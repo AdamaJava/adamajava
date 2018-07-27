@@ -1,5 +1,6 @@
 package au.edu.qimr.qannotate.modes;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.qcmg.common.util.Constants.VCF_MERGE_DELIM;
@@ -7,7 +8,9 @@ import static org.qcmg.common.util.Constants.VCF_MERGE_DELIM;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.AfterClass;
 import org.junit.Ignore;
@@ -22,7 +25,6 @@ import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 
-import au.edu.qimr.qannotate.utils.SampleColumn;
 
 public class ConfidenceModeTest {
 	
@@ -47,6 +49,56 @@ public class ConfidenceModeTest {
 		 assertEquals(false, ConfidenceMode.allValuesAboveThreshold(new int[]{10}, 100, 10.1f));
 		 assertEquals(true, ConfidenceMode.allValuesAboveThreshold(new int[]{10,11,23}, 100, 10.0f));
 		 assertEquals(false, ConfidenceMode.allValuesAboveThreshold(new int[]{10,11,23}, 100, 20.1f));
+	 }
+	 
+	 @Test
+	 public void getFieldofInts() {
+		 assertArrayEquals(new int[]{0}, ConfidenceMode.getFieldOfInts(null));
+		 assertArrayEquals(new int[]{0}, ConfidenceMode.getFieldOfInts(""));
+		 assertArrayEquals(new int[]{0}, ConfidenceMode.getFieldOfInts("."));
+		 assertArrayEquals(new int[]{1}, ConfidenceMode.getFieldOfInts("1"));
+		 assertArrayEquals(new int[]{10}, ConfidenceMode.getFieldOfInts("10"));
+		 assertArrayEquals(new int[]{10}, ConfidenceMode.getFieldOfInts("010"));
+		 assertArrayEquals(new int[]{10,0}, ConfidenceMode.getFieldOfInts("010,0"));
+		 assertArrayEquals(new int[]{10,1}, ConfidenceMode.getFieldOfInts("010,001"));
+	 }
+	 
+	 @Test
+	 public void getADs() {
+		 assertArrayEquals(new int[]{0}, ConfidenceMode.getAltCoveragesFromADField(null));
+		 assertArrayEquals(new int[]{0}, ConfidenceMode.getAltCoveragesFromADField(""));
+		 assertArrayEquals(new int[]{0}, ConfidenceMode.getAltCoveragesFromADField("."));
+		 assertArrayEquals(new int[]{0}, ConfidenceMode.getAltCoveragesFromADField("A"));
+		 assertArrayEquals(new int[]{0}, ConfidenceMode.getAltCoveragesFromADField("1234"));
+		 assertArrayEquals(new int[]{2}, ConfidenceMode.getAltCoveragesFromADField("1,2"));
+		 assertArrayEquals(new int[]{20}, ConfidenceMode.getAltCoveragesFromADField("1,20"));
+		 assertArrayEquals(new int[]{20}, ConfidenceMode.getAltCoveragesFromADField("XYZ,20"));
+		 assertArrayEquals(new int[]{20,1}, ConfidenceMode.getAltCoveragesFromADField("XYZ,20,1"));
+		 assertArrayEquals(new int[]{20,1,3}, ConfidenceMode.getAltCoveragesFromADField("XYZ,20,1,3"));
+		 assertArrayEquals(new int[]{20,1,3,5}, ConfidenceMode.getAltCoveragesFromADField("XYZ,20,1,3,5"));
+		 assertArrayEquals(new int[]{20,1,3,5}, ConfidenceMode.getAltCoveragesFromADField("100,20,1,3,5"));
+	 }
+	 
+	 @Test
+	 public void checkMin() {
+		 StringBuilder sb = null;
+		 ConfidenceMode.checkMIN(null, -1,  null,  sb, -1, -1f);
+		 assertEquals(null, sb);
+		 sb = new StringBuilder();
+		 ConfidenceMode.checkMIN(null, -1,  null,  sb, -1, -1f);
+		 assertEquals("", sb.toString());
+		 Map<String, int[]> alleleDist = new HashMap<>();
+		 alleleDist.put("A", new int[]{10,10});
+		 ConfidenceMode.checkMIN(new String [] {"A"}, 20,  alleleDist,  sb, 1, 5f);
+		 assertEquals("MIN", sb.toString());
+		 
+		 sb = new StringBuilder();
+		 ConfidenceMode.checkMIN(new String [] {"A"}, 2000,  alleleDist,  sb, Integer.MAX_VALUE, 5f);
+		 assertEquals("", sb.toString());
+		 ConfidenceMode.checkMIN(new String [] {"A"}, 2000,  alleleDist,  sb, 21, 5f);
+		 assertEquals("", sb.toString());
+		 ConfidenceMode.checkMIN(new String [] {"A"}, 2000,  alleleDist,  sb, 20, 5f);
+		 assertEquals("MIN", sb.toString());
 	 }
 	 
 	 @Test
@@ -737,8 +789,6 @@ public class ConfidenceModeTest {
 		mode.header.addOrReplace("##qControlSample=" + Scontrol);
 		mode.header.addOrReplace("##qTestSample="+ Stest);	
 		mode.header.addOrReplace("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tqControlSample\tqTestSample");			
-		
-		SampleColumn column = SampleColumn.getSampleColumn(Stest, Scontrol, mode.header);
 		
 		mode.addAnnotation();
 		mode.reheader("unitTest", DbsnpModeTest.inputName);

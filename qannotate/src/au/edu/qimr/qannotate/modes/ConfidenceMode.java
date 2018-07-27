@@ -54,10 +54,12 @@ public class ConfidenceMode extends AbstractMode{
 	public static final int TEST_COVERAGE_MIN_VALUE = 8;
 	
 	public static final int MUTATION_IN_NORMAL_MIN_PERCENTAGE = 5;
-	public static final int MUTATION_IN_NORMAL_MIN_COVERAGE = 3;
+	public static final int MUTATION_IN_NORMAL_MIN_COVERAGE = Integer.MAX_VALUE;		// set this to Integer.MAX_VALUE so that we are purely using percentage
 	
 	public static final int sBiasAltPercentage = 5;
 	public static final int sBiasCovPercentage = 5;
+	
+	public static final int MIUN_CUTOFF = 2;	// based on existing values
 	
 	//filters 
 	
@@ -83,6 +85,10 @@ public class ConfidenceMode extends AbstractMode{
 	private List<String> filtersToIgnore = new ArrayList<>();
 	private double mrPercentage = 0.0f;
 	
+	private int miunCutoff = MIUN_CUTOFF;
+	private int minCutoff = MUTATION_IN_NORMAL_MIN_COVERAGE;
+	private double minPercentage = MUTATION_IN_NORMAL_MIN_PERCENTAGE;
+	
 	//for unit testing
 	ConfidenceMode(){
 //		this.testCols = new TShortArrayList(testCol);
@@ -103,12 +109,17 @@ public class ConfidenceMode extends AbstractMode{
 		options.getControlCutoff().ifPresent(i -> controlCovCutoff = i.intValue());
 		options.getTestCutoff().ifPresent(i -> testCovCutoff = i.intValue());
 		options.getMRPercentage().ifPresent(i -> mrPercentage = i.floatValue());
+		options.getMIUNCutoff().ifPresent(i -> miunCutoff = i.intValue());
+		options.getMINCutoff().ifPresent(i -> minCutoff = i.intValue());
+		options.getMINPercentage().ifPresent(i -> minPercentage = i.floatValue());
 		filtersToIgnore = options.getFiltersToIgnore();
 		logger.tool("Number of Novel Starts filter value: " + nnsCount);
 		logger.tool("Number of Mutant Reads filter value: " + mrCount);
 		logger.tool("Percentage of Mutant Reads filter value: " + mrPercentage);
 		logger.tool("Control coverage minimum value: " + controlCovCutoff);
 		logger.tool("Test coverage minimum value: " + testCovCutoff);
+		logger.tool("Mutation In Unfiltered Normal (MIUN) will be applied if the Failed Filter (FF) format field contains more than " + miunCutoff + " occurrences of the alt in the normal (control)");
+		logger.tool("Mutation In Normal (MIN) will be applied if number of alt reads in the normnal (control) are greater than or equal to " + minCutoff + " OR greather than or equal to " + minPercentage +"% of total reads");
 		logger.tool("Filters to ignore: " + filtersToIgnore.stream().collect(Collectors.joining(", ")));
 		
 		minCov = Math.min(controlCovCutoff, testCovCutoff);
@@ -220,14 +231,16 @@ public class ConfidenceMode extends AbstractMode{
 						 */
 						if (isControl && isSomatic && ! isGATKCall) {
 							
-							for (String alt : alts) {
-								int altCov = Arrays.stream(alleleDist.getOrDefault(alt, new int[]{0,0})).sum();
-								boolean min = VcfUtils.mutationInNorma(altCov, cov, MUTATION_IN_NORMAL_MIN_PERCENTAGE, MUTATION_IN_NORMAL_MIN_COVERAGE);
-								if (min) {
-									StringUtils.updateStringBuilder(fSb, "MIN", Constants.SEMI_COLON);
-									break;
-								}
-							}
+							checkMIN(alts, cov, alleleDist, fSb, minCutoff, (float) minPercentage);
+							
+//							for (String alt : alts) {
+//								int altCov = Arrays.stream(alleleDist.getOrDefault(alt, new int[]{0,0})).sum();
+//								boolean min = VcfUtils.mutationInNorma(altCov, cov, MUTATION_IN_NORMAL_MIN_PERCENTAGE, MUTATION_IN_NORMAL_MIN_COVERAGE);
+//								if (min) {
+//									StringUtils.updateStringBuilder(fSb, "MIN", Constants.SEMI_COLON);
+//									break;
+//								}
+//							}
 						}
 						
 						/*
@@ -326,6 +339,20 @@ public class ConfidenceMode extends AbstractMode{
 		//add header line  set number to 1
 		if (null != header ) {
 			header.addInfo(VcfHeaderUtils.INFO_CONFIDENCE, "1", "String", DESCRIPTION_INFO_CONFIDENCE);
+		}
+	}
+	
+	
+	public static void checkMIN(String [] alts, int coverage, Map<String, int[]> alleleDist, StringBuilder sb, int minCutoff, float minPercentage) {
+		if (null != alts && null != alleleDist) {
+			for (String alt : alts) {
+				int altCov = Arrays.stream(alleleDist.getOrDefault(alt, new int[]{0,0})).sum();
+				boolean min = VcfUtils.mutationInNorma(altCov, coverage, minPercentage, minCutoff);
+				if (min) {
+					StringUtils.updateStringBuilder(sb, VcfHeaderUtils.FILTER_MUTATION_IN_NORMAL, Constants.SEMI_COLON);
+					break;
+				}
+			}
 		}
 	}
 	

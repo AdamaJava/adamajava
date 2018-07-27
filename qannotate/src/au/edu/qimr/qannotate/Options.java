@@ -53,8 +53,11 @@ public class Options {
     private  final int bufferSize; //trf
     private  final int gap ; //cadd
 	
-   private final Integer nnsCount;
-   private final Integer mrCount;
+    private final Integer miunCutoff;
+    private final Integer minCutoff;
+    private final Float minPercentage;
+    private final Integer nnsCount;
+    private final Integer mrCount;
 	private final Integer controlCoverageCutoff;
 	private final Integer testCoverageCutoff;
 	private final Float mrPercentage;
@@ -122,6 +125,9 @@ public class Options {
         bufferSize = (options.has("buffer"))? (Integer) options.valueOf("buffer") : 0; //TRF default is 0
         
         
+        miunCutoff = ((Integer) options.valueOf("miunCutoff"));
+        minCutoff = ((Integer) options.valueOf("minCutoff"));
+        minPercentage = ((Float) options.valueOf("minPercentage"));
         nnsCount = ((Integer) options.valueOf("nnsCounts"));
         mrCount = ((Integer) options.valueOf("mrCounts"));
         controlCoverageCutoff = ((Integer) options.valueOf("controlCoverageCutoff"));
@@ -166,6 +172,12 @@ public class Options {
 			.describedAs("numberOfNovelStarts");
 		parser.accepts("mrCounts", "Number of mutant reads (MR) required to be High Confidence").withRequiredArg().ofType(Integer.class)
 		.describedAs("numberOfMutantReads");
+		parser.accepts("miunCutoff", "Number of failed filter reads (FF) containing the alt, that will result in a MIUN (Mutation In Unfiltered Normal) in the filter field").withRequiredArg().ofType(Integer.class)
+		.describedAs("miunCutoff");
+		parser.accepts("minCutoff", "Minimum number of reads containing the alt, that will result in a MIN (Mutation In Normal) in the filter field. Used in conjunction with minPercentage").withRequiredArg().ofType(Integer.class)
+		.describedAs("minCutoff");
+		parser.accepts("minPercentage", "Percentage of reads containing the alt, that will result in a MIN (Mutation In Normal) in the filter field. Used in conjunction with minCutoff").withRequiredArg().ofType(Float.class)
+		.describedAs("minPercentage");
 		parser.accepts("controlCoverageCutoff", "Minimum coverage (DP format field) value to gain a PASS for control samples").withRequiredArg().ofType(Integer.class)
 		.describedAs("controlCoverageCutoff");
 		parser.accepts("testCoverageCutoff", "Minimum coverage (DP format field) value to gain a PASS for test samples").withRequiredArg().ofType(Integer.class)
@@ -369,6 +381,15 @@ public class Options {
 	}
 	public Optional<Integer> getTestCutoff() {
 		return Optional.ofNullable(testCoverageCutoff);
+	}
+	public Optional<Integer> getMIUNCutoff() {
+		return Optional.ofNullable(miunCutoff);
+	}
+	public Optional<Integer> getMINCutoff() {
+		return Optional.ofNullable(minCutoff);
+	}
+	public Optional<Float> getMINPercentage() {
+		return Optional.ofNullable(minPercentage);
 	}
 
 }
