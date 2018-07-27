@@ -183,6 +183,7 @@ public class ConfidenceMode extends AbstractMode{
 				String [] adArr = ffMap.get(VcfHeaderUtils.FORMAT_ALLELIC_DEPTHS);
 				String [] infArr = ffMap.get(VcfHeaderUtils.FORMAT_INFO);
 				String [] eorArr = ffMap.get(VcfHeaderUtils.FORMAT_END_OF_READ);
+				String [] ffArr = ffMap.get(VcfHeaderUtils.FORMAT_FF);
 				if (covArr == null || covArr.length == 0) {
 					logger.warn("no coverage values for vcf record!!!: " + vcf);
 					continue;
@@ -233,14 +234,13 @@ public class ConfidenceMode extends AbstractMode{
 							
 							checkMIN(alts, cov, alleleDist, fSb, minCutoff, (float) minPercentage);
 							
-//							for (String alt : alts) {
-//								int altCov = Arrays.stream(alleleDist.getOrDefault(alt, new int[]{0,0})).sum();
-//								boolean min = VcfUtils.mutationInNorma(altCov, cov, MUTATION_IN_NORMAL_MIN_PERCENTAGE, MUTATION_IN_NORMAL_MIN_COVERAGE);
-//								if (min) {
-//									StringUtils.updateStringBuilder(fSb, "MIN", Constants.SEMI_COLON);
-//									break;
-//								}
-//							}
+							/*
+							 * look for MIUN, but only if we don't already have MIN
+							 */
+							if ( ! fSb.toString().contains(VcfHeaderUtils.FILTER_MUTATION_IN_NORMAL)) {
+								String failedFilter = ffArr[i];
+								checkMIUN(alts, failedFilter, fSb, miunCutoff);
+							}
 						}
 						
 						/*
@@ -277,9 +277,10 @@ public class ConfidenceMode extends AbstractMode{
 								/*
 								 * HOM
 								 */
-								if (lhomo >= IndelConfidenceMode.DEFAULT_HOMN) {
-									StringUtils.updateStringBuilder(fSb, "HOM", Constants.SEMI_COLON);
-								}
+								checkHOM(fSb, lhomo, IndelConfidenceMode.DEFAULT_HOMN);
+//								if (lhomo >= IndelConfidenceMode.DEFAULT_HOMN) {
+//									StringUtils.updateStringBuilder(fSb, "HOM", Constants.SEMI_COLON);
+//								}
 								
 								/*
 								 * check AD and NNS
@@ -356,6 +357,25 @@ public class ConfidenceMode extends AbstractMode{
 		}
 	}
 	
+	public static void checkMIUN(String [] alts, String failedFilter, StringBuilder sb, int miunCutoff) {
+		if (null != alts && ! StringUtils.isNullOrEmptyOrMissingData(failedFilter)) {
+			for (String alt : alts) {
+				int altIndex = failedFilter.indexOf(alt);
+				if (altIndex > -1) {
+					/*
+					 * bases are separated by colons
+					 */
+					int colonIndex = failedFilter.indexOf(Constants.COLON, altIndex);
+					int failedFilterCount = Integer.parseInt(failedFilter.substring(altIndex + alt.length(), colonIndex > -1 ? colonIndex : failedFilter.length()));
+					if (failedFilterCount >= miunCutoff) {
+						StringUtils.updateStringBuilder(sb, VcfHeaderUtils.FILTER_MUTATION_IN_UNFILTERED_NORMAL, Constants.SEMI_COLON);
+						break;
+					}
+				}
+			}
+		}
+	}
+	
 	public static int endsOfReads(String [] alts, String gt, Map<String, int[]> oabsMap, String eor) {
 		if ((null == oabsMap || oabsMap.isEmpty()) 
 				|| StringUtils.isNullOrEmptyOrMissingData(eor)
@@ -397,6 +417,15 @@ public class ConfidenceMode extends AbstractMode{
 	}
 	public static boolean allValuesAboveThreshold(int[] values, int coverage, double percentageCutoff) {
 		return Arrays.stream(values).allMatch(i -> ((double)i / coverage) * 100 >= percentageCutoff);
+	}
+	
+	public static void checkHOM(StringBuilder sb, int homCount, int acceptableHomCount) {
+		/*
+		 * HOM
+		 */
+		if (homCount > 0 && homCount >= acceptableHomCount) {
+			StringUtils.updateStringBuilder(sb, VcfHeaderUtils.INFO_HOM, Constants.SEMI_COLON);
+		}
 	}
 
 	 public static int [] getFieldOfInts(VcfFormatFieldRecord formatField ,String key) {

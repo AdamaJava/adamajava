@@ -99,6 +99,68 @@ public class ConfidenceModeTest {
 		 assertEquals("", sb.toString());
 		 ConfidenceMode.checkMIN(new String [] {"A"}, 2000,  alleleDist,  sb, 20, 5f);
 		 assertEquals("MIN", sb.toString());
+		 
+		 sb = new StringBuilder();
+		 ConfidenceMode.checkMIN(new String [] {"C"}, 2000,  alleleDist,  sb, 20, 5f);
+		 assertEquals("", sb.toString());
+	 }
+	 
+	 @Test
+	 public void checkMIUN() {
+		 StringBuilder sb = null;
+		 ConfidenceMode.checkMIUN(null,   null,  sb, -1);
+		 assertEquals(null, sb);
+		 sb = new StringBuilder();
+		 ConfidenceMode.checkMIUN(new String [] {"A"}, "", sb, -1);
+		 assertEquals("", sb.toString());
+		 ConfidenceMode.checkMIUN(new String [] {"A"}, "C1", sb, 1);
+		 assertEquals("", sb.toString());
+		 ConfidenceMode.checkMIUN(new String [] {"A"}, "C1:G2:T3", sb, 1);
+		 assertEquals("", sb.toString());
+		 ConfidenceMode.checkMIUN(new String [] {"A","C"}, "C1:G2:T3", sb, 2);
+		 assertEquals("", sb.toString());
+		 ConfidenceMode.checkMIUN(new String [] {"A","C","G"}, "C1:G2:T3", sb, 2);
+		 assertEquals("MIUN", sb.toString());
+		 sb = new StringBuilder();
+		 ConfidenceMode.checkMIUN(new String [] {"A","C","T"}, "C1:G2:T3", sb, 3);
+		 assertEquals("MIUN", sb.toString());
+		 sb = new StringBuilder();
+		 ConfidenceMode.checkMIUN(new String [] {"C"}, "C1:G2:T3", sb, 1);
+		 assertEquals("MIUN", sb.toString());
+		 sb = new StringBuilder();
+		 ConfidenceMode.checkMIUN(new String [] {"G"}, "C1:G2:T3", sb, 2);
+		 assertEquals("MIUN", sb.toString());
+		 sb = new StringBuilder();
+		 ConfidenceMode.checkMIUN(new String [] {"T"}, "C1:G2:T3", sb, 3);
+		 assertEquals("MIUN", sb.toString());
+		 sb = new StringBuilder();
+		 ConfidenceMode.checkMIUN(new String [] {"T"}, "C1:G2:T3", sb, 4);
+		 assertEquals("", sb.toString());
+	 }
+	 
+	 @Test
+	 public void testHOM() {
+		 StringBuilder sb = null;
+		 ConfidenceMode.checkHOM(sb, -1, -1);
+		 assertEquals(null, sb);
+		 sb = new StringBuilder();
+		 ConfidenceMode.checkHOM(sb, -1, -1);
+		 assertEquals("", sb.toString());
+		 sb = new StringBuilder();
+		 ConfidenceMode.checkHOM(sb, 1, 0);
+		 assertEquals("HOM", sb.toString());
+		 sb = new StringBuilder();
+		 ConfidenceMode.checkHOM(sb, 1, 1);
+		 assertEquals("HOM", sb.toString());
+		 sb = new StringBuilder();
+		 ConfidenceMode.checkHOM(sb, 1, 2);
+		 assertEquals("", sb.toString());
+		 sb = new StringBuilder();
+		 ConfidenceMode.checkHOM(sb, 2, 2);
+		 assertEquals("HOM", sb.toString());
+		 sb = new StringBuilder();
+		 ConfidenceMode.checkHOM(sb, 3, 2);
+		 assertEquals("HOM", sb.toString());
 	 }
 	 
 	 @Test
