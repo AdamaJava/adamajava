@@ -100,10 +100,10 @@ public class Overlap {
 						sPos = "gold standard";
 					}
 				} else {
-					sPos = position + 1 + "";
+					sPos = "file " + (position + 1);
 				}
 				
-				sb.append(", In file" + sPos + " only: ").append(v.size()).append(" (").append(String.format("%.2f", perc)).append("%)");
+				sb.append(", In " + sPos + " only: ").append(v.size()).append(" (").append(String.format("%.2f", perc)).append("%)");
 			}
 			logger.info("files: " + k + " have " + v.size() + " positions (" +String.format("%.2f", perc)+"%)");
 			/*
