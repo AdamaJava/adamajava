@@ -99,7 +99,7 @@ public class Overlap {
 			if (files.contains(Constants.TAB_STRING)) {
 				sb.append("In both: ").append(size).append(" (").append(String.format("%.2f", perc)).append("%)");
 			} else {
-				int position = Arrays.binarySearch(vcfFiles, files);
+				int position = StringUtils.getPositionOfStringInArray(vcfFiles, files, false);
 				String sPos = "";
 				if (position < 0) {
 					if (files.equals(goldStandard)) {
