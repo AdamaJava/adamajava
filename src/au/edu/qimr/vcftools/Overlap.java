@@ -13,6 +13,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -89,32 +90,35 @@ public class Overlap {
 		});
 		
 		StringBuilder sb = new StringBuilder();
-		positionsByInput.forEach((k,v) -> {
-			double perc = 100.0 * v.size() / totalVariants;
-			if (k.contains(Constants.TAB_STRING)) {
-				sb.append("In both: ").append(v.size()).append(" (").append(String.format("%.2f", perc)).append("%)");
+		Comparator<Entry<String,  List<ChrPositionRefAlt>>> comp = Comparator.comparingInt(e -> e.getValue().size());
+		positionsByInput.entrySet().stream().sorted(comp).forEach((e) -> {
+			int size = e.getValue().size();
+			String files = e.getKey();
+			double perc = 100.0 * size / totalVariants;
+			if (files.contains(Constants.TAB_STRING)) {
+				sb.append("In both: ").append(size).append(" (").append(String.format("%.2f", perc)).append("%)");
 			} else {
-				int position = Arrays.binarySearch(vcfFiles, k);
+				int position = Arrays.binarySearch(vcfFiles, files);
 				String sPos = "";
 				if (position < 0) {
-					if (k.equals(goldStandard)) {
+					if (files.equals(goldStandard)) {
 						sPos = "gold standard";
 					}
 				} else {
 					sPos = "file " + (position + 1);
 				}
 				
-				sb.append(", In " + sPos + " only: ").append(v.size()).append(" (").append(String.format("%.2f", perc)).append("%)");
+				sb.append(", In " + sPos + " only: ").append(size).append(" (").append(String.format("%.2f", perc)).append("%)");
 			}
-			logger.info("files: " + k + " have " + v.size() + " positions (" +String.format("%.2f", perc)+"%)");
+			logger.info("files: " + files + " have " +size + " positions (" +String.format("%.2f", perc)+"%)");
 			/*
 			 * output entries that belong to a single file
 			 */
-			if ( ! k.contains(Constants.TAB_STRING)) {
+			if ( ! files.contains(Constants.TAB_STRING)) {
 				try {
-					writeOutput(v, outputDirectory + "/uniqueTo" + new File(k).getName());
-				} catch (FileNotFoundException e) {
-					e.printStackTrace();
+					writeOutput(e.getValue(), outputDirectory + "/uniqueTo" + new File(files).getName());
+				} catch (FileNotFoundException e1) {
+					e1.printStackTrace();
 				}
 			}
 		});
