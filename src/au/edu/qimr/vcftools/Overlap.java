@@ -92,7 +92,10 @@ public class Overlap {
 		positionsByInput.forEach((k,v) -> {
 			double perc = 100.0 * v.size() / totalVariants;
 			if (k.contains(Constants.TAB_STRING)) {
-				summaryFileName.append(k.replaceAll(Constants.TAB_STRING, "_vs_"));
+				String firstFilename = k.substring(0, k.indexOf(Constants.TAB));
+				String secondFilename = k.substring(k.indexOf(Constants.TAB) + 1);
+				
+				summaryFileName.append(new File(firstFilename).getName() +  "_vs_" + new File(secondFilename).getName());
 				sb.append("In both: ").append(v.size()).append(" (").append(String.format("%.2f", perc)).append("%)");
 			} else {
 				int position = Arrays.binarySearch(vcfFiles, k);
