@@ -62,6 +62,7 @@ final class Options {
 		parser.accepts("tiledRef", OUTPUT_FILE_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("ref", OUTPUT_FILE_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("bedFile", OUTPUT_FILE_DESCRIPTION).withRequiredArg().ofType(String.class);
+		parser.accepts("summaryFile", OUTPUT_FILE_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("cosmic", OUTPUT_FILE_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("dbsnp", OUTPUT_FILE_DESCRIPTION).withRequiredArg().ofType(String.class);
 //		parser.accepts("exclude", EXCLUDES_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
@@ -191,6 +192,12 @@ final class Options {
 	Optional<String> getGoldStandard() {
 		if (options.has("goldStandard")) {
 			return Optional.of((String) options.valueOf("goldStandard"));
+		}
+		return Optional.empty();
+	}
+	Optional<String> getSummaryFile() {
+		if (options.has("summaryFile")) {
+			return Optional.of((String) options.valueOf("summaryFile"));
 		}
 		return Optional.empty();
 	}

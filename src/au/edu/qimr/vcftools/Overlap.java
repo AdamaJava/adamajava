@@ -20,6 +20,7 @@ import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrPositionComparator;
 import org.qcmg.common.model.ChrPositionRefAlt;
+import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.meta.QExec;
@@ -39,6 +40,7 @@ public class Overlap {
 	private QExec exec;
 	private String[] vcfFiles;
 	private String outputDirectory;
+	private String summaryFile;
 	private String version;
 	private String logFile;
 	private String goldStandard;
@@ -77,9 +79,7 @@ public class Overlap {
 		 * comparing 2 inputs - could be 2 vcfs, could be 1 vcf and the gold standard
 		 */
 		
-//		final int numberOfInputFiles = vcfFiles.length + (null != goldStandard ? 1 : 0);
 		final int totalVariants = positions.size();
-		StringBuilder summaryFileName = new StringBuilder();
 		
 		Map<String, List<ChrPositionRefAlt>> positionsByInput = new HashMap<>();
 		
@@ -92,11 +92,6 @@ public class Overlap {
 		positionsByInput.forEach((k,v) -> {
 			double perc = 100.0 * v.size() / totalVariants;
 			if (k.contains(Constants.TAB_STRING)) {
-				String firstFilename = k.substring(0, k.indexOf(Constants.TAB));
-//				String secondFilename = k.substring(k.indexOf(Constants.TAB) + 1);
-				
-				summaryFileName.append(new File(firstFilename).getName());
-//				summaryFileName.append(new File(firstFilename).getName() +  "_vs_" + new File(secondFilename).getName());
 				sb.append("In both: ").append(v.size()).append(" (").append(String.format("%.2f", perc)).append("%)");
 			} else {
 				int position = Arrays.binarySearch(vcfFiles, k);
@@ -125,12 +120,13 @@ public class Overlap {
 		});
 		
 		logger.info("summary string: " + sb.toString());
-		
-		try {
-			writeSummaryLineToFile(sb.toString(), outputDirectory + "/" + summaryFileName.toString() + "_summary.txt");
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		if ( ! StringUtils.isNullOrEmpty(summaryFile)) {
+			try {
+				writeSummaryLineToFile(sb.toString(), summaryFile);
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		
 	}
@@ -433,6 +429,7 @@ public class Overlap {
 				logger.info("Will output gold standard as a vcf file");
 			
 			options.getGoldStandard().ifPresent(s -> goldStandard = s);
+			options.getSummaryFile().ifPresent(s -> summaryFile = s);
 			
 			return engage();
 		}
