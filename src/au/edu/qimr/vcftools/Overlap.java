@@ -87,9 +87,15 @@ public class Overlap {
 			positionsByInput.computeIfAbsent(files, f -> new ArrayList<>()).add(k);
 		});
 		
-		
+		StringBuilder sb = new StringBuilder();
 		positionsByInput.forEach((k,v) -> {
 			double perc = 100.0 * v.size() / totalVariants;
+			if (k.contains(Constants.TAB_STRING)) {
+				sb.append("In both: ").append(v.size()).append(" (").append(String.format("%.2f", perc)).append("%)");
+			} else {
+				int position = Arrays.binarySearch(vcfFiles, k) + 1;
+				sb.append(", In : " + position + " only: ").append(v.size()).append(" (").append(String.format("%.2f", perc)).append("%)");
+			}
 			logger.info("files: " + k + " have " + v.size() + " positions (" +String.format("%.2f", perc)+"%)");
 			/*
 			 * output entries that belong to a single file
@@ -102,6 +108,15 @@ public class Overlap {
 				}
 			}
 		});
+		
+		logger.info("summary string: " + sb.toString());
+		
+		try {
+			writeSummaryLineToFile("", outputDirectory + "/summary.txt");
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 	}
 	
@@ -184,7 +199,11 @@ public class Overlap {
 //		writeOutput(notInOne, outputDirectory + "/notInOne.vcf");
 //		
 //	}
-	
+	private void writeSummaryLineToFile(String line, String output) throws FileNotFoundException {
+		try (PrintStream ps = new PrintStream(new FileOutputStream(new File(output)))) {
+			ps.println(line);
+		}
+	}
 	
 	private void writeOutput(List<ChrPositionRefAlt> recs, String output) throws FileNotFoundException {
 		recs.sort(new ChrPositionComparator());
