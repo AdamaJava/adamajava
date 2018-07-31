@@ -93,8 +93,17 @@ public class Overlap {
 			if (k.contains(Constants.TAB_STRING)) {
 				sb.append("In both: ").append(v.size()).append(" (").append(String.format("%.2f", perc)).append("%)");
 			} else {
-				int position = Arrays.binarySearch(vcfFiles, k) + 1;
-				sb.append(", In : " + position + " only: ").append(v.size()).append(" (").append(String.format("%.2f", perc)).append("%)");
+				int position = Arrays.binarySearch(vcfFiles, k);
+				String sPos = "";
+				if (position < 0) {
+					if (k.equals(goldStandard)) {
+						sPos = "gold standard";
+					}
+				} else {
+					sPos = position + 1 + "";
+				}
+				
+				sb.append(", In file" + sPos + " only: ").append(v.size()).append(" (").append(String.format("%.2f", perc)).append("%)");
 			}
 			logger.info("files: " + k + " have " + v.size() + " positions (" +String.format("%.2f", perc)+"%)");
 			/*
@@ -112,7 +121,7 @@ public class Overlap {
 		logger.info("summary string: " + sb.toString());
 		
 		try {
-			writeSummaryLineToFile("", outputDirectory + "/summary.txt");
+			writeSummaryLineToFile(sb.toString(), outputDirectory + "/summary.txt");
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
