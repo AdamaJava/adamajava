@@ -9,6 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -90,8 +91,8 @@ public class Overlap {
 		});
 		
 		StringBuilder sb = new StringBuilder();
-		Comparator<Entry<String,  List<ChrPositionRefAlt>>> comp = Comparator.comparingInt(e -> e.getValue().size());
-		positionsByInput.entrySet().stream().sorted(comp).forEach((e) -> {
+		Comparator<Entry<String,  List<ChrPositionRefAlt>>> comp =Comparator.comparingInt(e -> e.getValue().size());
+		positionsByInput.entrySet().stream().sorted(Collections.reverseOrder(comp)).forEach((e) -> {
 			int size = e.getValue().size();
 			String files = e.getKey();
 			double perc = 100.0 * size / totalVariants;
