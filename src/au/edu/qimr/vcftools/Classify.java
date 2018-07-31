@@ -11,8 +11,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -20,6 +23,7 @@ import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrPositionComparator;
 import org.qcmg.common.model.ChrPositionRefAlt;
+import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.meta.QExec;
@@ -33,7 +37,7 @@ import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 
 
-public class Overlap {
+public class Classify {
 	
 	private static QLogger logger;
 	private QExec exec;
@@ -47,62 +51,16 @@ public class Overlap {
 	private boolean somatic;
 	private boolean germline;
 	
-	private final Map<ChrPositionRefAlt, List<String>> positions = new HashMap<>(1024 * 64);
+	private final Map<ChrPosition, ChrPositionRefAlt> roguePositions = new HashMap<>(1024 * 64);
+	private final List<VcfRecord> roguePositionsMatches = new ArrayList<>(1024 * 64);
 	
 	protected int engage() throws IOException {
 			
 		logger.info("about to load vcf files");
 		loadVcfs();
-		addGoldStandard();
-		outputStats();
+		examineMatches();
 //		writeOutput();
 		return exitStatus;
-	}
-	
-	private void addGoldStandard() throws IOException {
-		if (null != goldStandard) {
-			Path p = new File(goldStandard).toPath();
-			Files.lines(p).filter(s -> ! s.startsWith("#"))
-					.map(s -> TabTokenizer.tokenize(s))
-					.filter(arr -> arr[2].length() == 1 && arr[3].length() == 1)
-					.forEach(arr -> {
-						addToMap(positions, arr[0],Integer.parseInt(arr[1].replaceAll(",", "")),Integer.parseInt(arr[1].replaceAll(",", "")), arr[2], arr[3], goldStandard);
-					});
-			
-		}
-	}
-	
-	private void outputStats() {
-		/*
-		 * comparing 2 inputs - could be 2 vcfs, could be 1 vcf and the gold standard
-		 */
-		
-//		final int numberOfInputFiles = vcfFiles.length + (null != goldStandard ? 1 : 0);
-		final int totalVariants = positions.size();
-		
-		Map<String, List<ChrPositionRefAlt>> positionsByInput = new HashMap<>();
-		
-		positions.forEach((k,v) -> {
-			String files = v.stream().collect(Collectors.joining(Constants.TAB_STRING));
-			positionsByInput.computeIfAbsent(files, f -> new ArrayList<>()).add(k);
-		});
-		
-		
-		positionsByInput.forEach((k,v) -> {
-			double perc = 100.0 * v.size() / totalVariants;
-			logger.info("files: " + k + " have " + v.size() + " positions (" +String.format("%.2f", perc)+"%)");
-			/*
-			 * output entries that belong to a single file
-			 */
-			if ( ! k.contains(Constants.TAB_STRING)) {
-				try {
-					writeOutput(v, outputDirectory + "/uniqueTo" + new File(k).getName());
-				} catch (FileNotFoundException e) {
-					e.printStackTrace();
-				}
-			}
-		});
-		
 	}
 	
 //	private void outputStats() throws FileNotFoundException {
@@ -122,11 +80,8 @@ public class Overlap {
 //		if (null != goldStandard) {
 //			inputs[i++] = goldStandard;
 //		}
-//		long totalVariants = positions.size();
 //		long centreVenn = positions.entrySet().stream().filter(e -> e.getValue().size() == numberOfInputFiles).count();
-//		double centreVennPerc = 100.0 * centreVenn / totalVariants;
-//		logger.info("total number of variants: " + totalVariants);
-//		logger.info("number of variants in centre of venn: " + centreVenn + " ("+String.format("%.2f", centreVennPerc)+"%)");
+//		logger.info("number of variants in centre of venn: " + centreVenn);
 //		
 //		
 ////		Map<String, List<ChrPositionRefAlt>> uniqueVariants = new HashMap<>();
@@ -197,13 +152,13 @@ public class Overlap {
 			/*
 			 * put input files along with their positions into the file header
 			 */
-//			int j = 1;
-//			for (String s : vcfFiles) {
-//				ps.println("##" + j++ + ": vcf file: " + s);
-//			}
-//			if (null != goldStandard) {
-//				ps.println("##: gold standard file: " + goldStandard);
-//			}
+			int j = 1;
+			for (String s : vcfFiles) {
+				ps.println("##" + j++ + ": vcf file: " + s);
+			}
+			if (null != goldStandard) {
+				ps.println("##: gold standard file: " + goldStandard);
+			}
 			
 			
 			String header =  VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE ;
@@ -220,43 +175,104 @@ public class Overlap {
 		logger.info("writing output- DONE");
 	}
 	
+	private void examineMatches() {
+		logger.info("Found " + roguePositionsMatches.size() + " in vcf file out of a potential " + roguePositions.size());
+		int germlineCount = 0;
+		int somaticCount = 0;
+		int pass = 0;
+		Map<String, List<VcfRecord>> filterDistSom = new HashMap<>();
+		Map<String, List<VcfRecord>> filterDistGerm = new HashMap<>();
+		for (VcfRecord v : roguePositionsMatches) {
+			if (VcfUtils.isRecordSomatic(v)) {
+				somaticCount++;
+				filterDistSom.computeIfAbsent(getFilter(v), f -> new ArrayList<>()).add(v);
+			} else {
+				germlineCount++;
+				filterDistGerm.computeIfAbsent(getFilter(v), f -> new ArrayList<>()).add(v);
+			}
+			if (VcfUtils.isRecordAPass(v)) {
+				pass++;
+			}
+		}
+		logger.info("pass: " + pass + ", somaticCount: " + somaticCount + ", germlineCount: " + germlineCount);
+		Comparator<Entry<String,  List<VcfRecord>>> comp = Comparator.comparingInt(e -> e.getValue().size());
+		filterDistSom.entrySet().stream().sorted(comp).forEach(e -> logger.info("somatic, filter: " + e.getKey() + ", count: " + e.getValue().size() + ", v: " + e.getValue().get(0).toSimpleString()));
+		filterDistGerm.entrySet().stream().sorted(comp).forEach(e -> logger.info("germline, filter: " + e.getKey() + ", count: " + e.getValue().size() + ", v: " + e.getValue().get(0).toSimpleString()));
+	}
+	
+	public static String getFilter(VcfRecord v) {
+		String filter = v.getFilter();
+		if (StringUtils.isNullOrEmptyOrMissingData(filter)) {
+			/*
+			 * look to see if filter is in the format column
+			 */
+			List<String> formatFields = v.getFormatFields();
+			if (null != formatFields && formatFields.size() > 0) {
+				if (formatFields.get(0).contains(VcfHeaderUtils.FORMAT_FILTER)) {
+					
+					/*
+					 * get filters for all format values
+					 */
+					Map<String, String[]> ffMap = VcfUtils.getFormatFieldsAsMap(formatFields);
+					String [] filterArray = ffMap.get(VcfHeaderUtils.FORMAT_FILTER);
+					if (null != filterArray && filterArray.length > 0) {
+						filter = Arrays.stream(filterArray).collect(Collectors.joining(Constants.COMMA_STRING));
+					}
+				}
+			}
+		}
+		return filter;
+	}
+	
 	private void loadVcfs() throws IOException {
 		int i = 0;
 		int index = 0;
 		for (String s : vcfFiles) {
-			
-			try (VCFFileReader reader = new VCFFileReader(new File(s))) {
-				for (VcfRecord rec : reader) {
-					if (++ i % 1000000 == 0) {
-						logger.info("hit " + i + " entries");
+			if (index == 0) {
+				try (VCFFileReader reader = new VCFFileReader(new File(s))) {
+					for (VcfRecord rec : reader) {
+						if (++ i % 1000000 == 0) {
+							logger.info("hit " + i + " entries");
+						}
+						
+						processVcfRecord(rec, somatic, germline, roguePositions);
 					}
-					
-					processVcfRecord(rec, somatic, germline, positions, s);
+				}
+				logger.info("input: " + (index+1) + " has " + i + " entries");
+				logger.info("positions size: " + roguePositions.size());
+				i = 0;
+			} else {
+				try (VCFFileReader reader = new VCFFileReader(new File(s))) {
+					for (VcfRecord rec : reader) {
+						if (++ i % 1000000 == 0) {
+							logger.info("hit " + i + " entries");
+						}
+						
+						if (roguePositions.containsKey(rec.getChrPosition())) {
+							roguePositionsMatches.add(rec);
+						}
+					}
 				}
 			}
-			logger.info("input: " + (index+1) + " has " + i + " entries");
-			logger.info("positions size: " + positions.size());
-			i = 0;
 			index++;
 		}
-//		logger.info("Number of positions to be reported upon: " + positions.size());
 	}
 
 
 	/**
 	 * @param rec
 	 */
-	public static void processVcfRecord(VcfRecord rec, boolean somatic, boolean germline, Map<ChrPositionRefAlt, List<String>> map, String input) {
+	public static void processVcfRecord(VcfRecord rec, boolean somatic, boolean germline, Map<ChrPosition, ChrPositionRefAlt> map) {
 		/*
 		 * we want HC or PASS
 		 */
-		if (Amalgamator.isRecordHighConfOrPass(rec)) {
+//		if (Amalgamator.isRecordHighConfOrPass(rec)) {
 			
 			/*
 			 * only process record if it is of the desired type .eg somatic
-			 */
-			boolean recordSomatic = Amalgamator.isRecordSomatic(rec);
-			if ( (recordSomatic && somatic) || ( ! recordSomatic && germline)) {
+//			 */
+//			boolean recordSomatic = Amalgamator.isRecordSomatic(rec);
+//			if ( (recordSomatic && somatic) || ( ! recordSomatic && germline)) {
 				
 				
 				/*
@@ -274,16 +290,16 @@ public class Overlap {
 						 * split cs into constituent snps
 						 */
 						for (int z = 0 ; z < ref.length() ; z++) {
-							addToMap(map, rec.getChrPosition().getChromosome(),  rec.getChrPosition().getStartPosition() + z, rec.getChrPosition().getStartPosition() + z, ref.charAt(z)+"",  alt.charAt(z)+"", input);
+							addToMap(map, rec.getChrPosition().getChromosome(),  rec.getChrPosition().getStartPosition() + z, rec.getChrPosition().getStartPosition() + z, ref.charAt(z)+"",  alt.charAt(z)+"");
 //							addToMap(map, rec.getChrPosition().getChromosome(),  rec.getChrPosition().getStartPosition() + z, rec.getChrPosition().getStartPosition() + z, ref.charAt(z)+"",  alt.charAt(z) +Constants.TAB_STRING+ gt, input);
 						}
 					} else {
-						addToMap(map, rec.getChrPosition().getChromosome(), rec.getChrPosition().getStartPosition(), rec.getChrPosition().getStartPosition(), ref, alt, input);
+						addToMap(map, rec.getChrPosition().getChromosome(), rec.getChrPosition().getStartPosition(), rec.getChrPosition().getStartPosition(), ref, alt);
 //						addToMap(map, rec.getChrPosition().getChromosome(), rec.getChrPosition().getStartPosition(), rec.getChrPosition().getStartPosition(), ref, alt+Constants.TAB+gt, input);
 					}
 				}
-			}
-		}
+//			}
+//		}
 	}
 
 
@@ -315,18 +331,19 @@ public class Overlap {
 //		return gt;
 //	}
 	
-	public static void addToMap(Map<ChrPositionRefAlt, List<String>> map, String chr, int start, int end, String ref, String alt, String input) {
+	public static void addToMap(Map<ChrPosition, ChrPositionRefAlt> map, String chr, int start, int end, String ref, String alt) {
 		if (null != map && null != chr && start >=0 && end >= start) {
+			ChrPosition cp = new ChrPointPosition(chr, start);
 			ChrPositionRefAlt cpn  = new ChrPositionRefAlt(chr, start, end, ref, alt);
-			map.computeIfAbsent(cpn, v -> new ArrayList<String>(4)).add(input);
+			map.computeIfAbsent(cp, v -> cpn);
 		}
 	}
 	
 	public static void main(String[] args) throws Exception {
 		//loads all classes in referenced jars into memory to avoid nightly build sheninegans
-		LoadReferencedClasses.loadClasses(Overlap.class);
+		LoadReferencedClasses.loadClasses(Classify.class);
 		
-		Overlap qp = new Overlap();
+		Classify qp = new Classify();
 		int exitStatus = qp.setup(args);
 		if (null != logger) {
 			logger.logFinalExecutionStats(exitStatus);
@@ -352,9 +369,9 @@ public class Overlap {
 		} else {
 			// configure logging
 			logFile = options.getLog();
-			version = Overlap.class.getPackage().getImplementationVersion();
+			version = Classify.class.getPackage().getImplementationVersion();
 			if (null == version) {	version = "local"; }
-			logger = QLoggerFactory.getLogger(Overlap.class, logFile, options.getLogLevel());
+			logger = QLoggerFactory.getLogger(Classify.class, logFile, options.getLogLevel());
 			exec = logger.logInitialExecutionStats("q3vcftools Overlap", version, args);
 			
 			// get list of file names
