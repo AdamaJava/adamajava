@@ -79,6 +79,7 @@ public class Overlap {
 		
 //		final int numberOfInputFiles = vcfFiles.length + (null != goldStandard ? 1 : 0);
 		final int totalVariants = positions.size();
+		StringBuilder summaryFileName = new StringBuilder();
 		
 		Map<String, List<ChrPositionRefAlt>> positionsByInput = new HashMap<>();
 		
@@ -91,6 +92,7 @@ public class Overlap {
 		positionsByInput.forEach((k,v) -> {
 			double perc = 100.0 * v.size() / totalVariants;
 			if (k.contains(Constants.TAB_STRING)) {
+				summaryFileName.append(k.replaceAll(Constants.TAB_STRING, "_vs_"));
 				sb.append("In both: ").append(v.size()).append(" (").append(String.format("%.2f", perc)).append("%)");
 			} else {
 				int position = Arrays.binarySearch(vcfFiles, k);
@@ -121,7 +123,7 @@ public class Overlap {
 		logger.info("summary string: " + sb.toString());
 		
 		try {
-			writeSummaryLineToFile(sb.toString(), outputDirectory + "/summary.txt");
+			writeSummaryLineToFile(sb.toString(), outputDirectory + "/" + summaryFileName.toString() + "_summary.txt");
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
