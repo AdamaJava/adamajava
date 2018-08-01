@@ -72,18 +72,41 @@ public class HomoplymersModeTest {
 		VcfRecord re = new VcfRecord(new String[] {  "chr1", "21", null, "TCC", "AGG" });		
 		HomoplymersMode  homo = new HomoplymersMode(3,4);	
 		re = homo.annotate(re, getReference());
-		assertEquals("0,CCCaggCCC", re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM));
+		assertEquals("0,CCCtccCCC", re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM));
+//		assertEquals("0,CCCaggCCC", re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM));
 		
 		//SNP
 		re = new VcfRecord(new String[] {  "chr1", "16", null, "G", "A" });		
 		homo = new HomoplymersMode(10,5);	
 		re = homo.annotate(re, getReference());
-		assertEquals("2,GATCGaACCCT", re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM));
+//		assertEquals("2,GATCGaACCCT", re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM));
+		assertEquals("2,GATCGgACCCT", re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM));
 		
 		//SNP in non homoplyers region
 		re = new VcfRecord(new String[] {  "chr1", "13", null, "T", "A" });	
 		re = homo.annotate(re, getReference());	 
-		assertEquals("2,TTGGAaCGGAC", re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM));
+		assertEquals("0,TTGGAtCGGAC", re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM));
+//		assertEquals("2,TTGGAaCGGAC", re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM));
+		
+		re = new VcfRecord(new String[] {  "chr1", "10", null, "T", "A" });	
+		re = homo.annotate(re, "TTTTTTTTTTGCTGCTAGCTA".getBytes());	 
+		assertEquals("10,TTTTTtGCTGC", re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM));
+		
+		re = new VcfRecord(new String[] {  "chr1", "10", null, "G", "A" });	
+		re = homo.annotate(re, "TTTTTTTTTTGCTGCTAGCTA".getBytes());	 
+		assertEquals("2,TTTTTgGCTGC", re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM));
+		
+		re = new VcfRecord(new String[] {  "chr1", "10", null, "G", "A" });	
+		re = homo.annotate(re, "TTTTTTTTTTTTTTTTTTTT".getBytes());	 
+		assertEquals("0,TTTTTgTTTTT", re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM));
+		
+		re = new VcfRecord(new String[] {  "chr1", "10", null, "A", "C" });	
+		re = homo.annotate(re, "TTTTTTTTTTTTTTTTTTTT".getBytes());	 
+		assertEquals("0,TTTTTaTTTTT", re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM));
+		
+		re = new VcfRecord(new String[] {  "chr1", "10", null, "T", "C" });	
+		re = homo.annotate(re, "TTTTTTTTTTTTTTTTTTTT".getBytes());	 
+		assertEquals("20,TTTTTtTTTTT", re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM));
 	}
 	
 	@Test

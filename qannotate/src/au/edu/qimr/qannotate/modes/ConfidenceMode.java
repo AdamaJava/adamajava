@@ -53,7 +53,7 @@ public class ConfidenceMode extends AbstractMode{
 	public static final int CONTROL_COVERAGE_MIN_VALUE = 8;
 	public static final int TEST_COVERAGE_MIN_VALUE = 8;
 	
-	public static final int MUTATION_IN_NORMAL_MIN_PERCENTAGE = 5;
+	public static final int MUTATION_IN_NORMAL_MIN_PERCENTAGE = 3;					// setting this to 3 to mirror existing prod pipeline - was 5
 	public static final int MUTATION_IN_NORMAL_MIN_COVERAGE = Integer.MAX_VALUE;		// set this to Integer.MAX_VALUE so that we are purely using percentage
 	
 	public static final int sBiasAltPercentage = 5;
@@ -93,6 +93,11 @@ public class ConfidenceMode extends AbstractMode{
 	ConfidenceMode(){
 //		this.testCols = new TShortArrayList(testCol);
 //		this.controlCols = new TShortArrayList(controlCol);
+	}
+	ConfidenceMode(VcfFileMeta m){
+		this.meta = m;
+		testCols = meta.getAllTestPositions();
+		controlCols = meta.getAllControlPositions();
 	}
 
 	
@@ -252,44 +257,19 @@ public class ConfidenceMode extends AbstractMode{
 								
 								
 								if ( ! alleleDist.isEmpty() && ! isGATKCall) {
-									int index = gt.indexOf(Constants.SLASH);
-									int []  gts = new int[] {Integer.parseInt(gt.substring(0,index)), Integer.parseInt(gt.substring(index + 1))};
-								
-									AtomicInteger fsCount = new AtomicInteger();
-									AtomicInteger rsCount = new AtomicInteger();
-									alleleDist.values().stream().forEach(a -> {fsCount.addAndGet(a[0]); rsCount.addAndGet(a[1]);});
-									boolean sbiasCov = ! AccumulatorUtils.areBothStrandsRepresented(fsCount, rsCount, sBiasCovPercentage);
-									
-									
-									for (int gtI : gts) {
-										if (gtI > 0) {
-											int [] iArray = alleleDist.get(alts[gtI - 1]);
-											int min = Math.min(iArray[0], iArray[1]);
-											
-											if ( ((double) min / (iArray[0] + iArray[1])) * 100 < sBiasAltPercentage) {
-												StringUtils.updateStringBuilder(fSb, sbiasCov ? SnpUtils.STRAND_BIAS_COVERAGE : SnpUtils.STRAND_BIAS_ALT, Constants.SEMI_COLON);
-												break;
-											}
-										}
-									}
+									checkStrandBias(alts, fSb, alleleDist, gt, sBiasCovPercentage, sBiasAltPercentage);
 								}
 								
 								/*
 								 * HOM
 								 */
 								checkHOM(fSb, lhomo, IndelConfidenceMode.DEFAULT_HOMN);
-//								if (lhomo >= IndelConfidenceMode.DEFAULT_HOMN) {
-//									StringUtils.updateStringBuilder(fSb, "HOM", Constants.SEMI_COLON);
-//								}
 								
 								/*
 								 * check AD and NNS
 								 */
 								if ( ! isGATKCall) {
-									int [] nns = getFieldOfInts(nnsArr[i]);
-									if ( ! allValuesAboveThreshold(nns, nnsCount)) {
-										StringUtils.updateStringBuilder(fSb, "NNS", Constants.SEMI_COLON);
-									}
+									checkNNS(nnsArr[i], fSb, nnsCount);
 								}
 								
 								int [] altADs = getAltCoveragesFromADField(adArr[i]);
@@ -342,7 +322,43 @@ public class ConfidenceMode extends AbstractMode{
 			header.addInfo(VcfHeaderUtils.INFO_CONFIDENCE, "1", "String", DESCRIPTION_INFO_CONFIDENCE);
 		}
 	}
+
+
+	/**
+	 * @param alts
+	 * @param fSb
+	 * @param alleleDist
+	 * @param gt
+	 */
+	public static void checkStrandBias(String[] alts, StringBuilder fSb, Map<String, int[]> alleleDist, String gt, int sBiasCovPercentage, int sBiasAltPercentage) {
+		int index = gt.indexOf(Constants.SLASH);
+		int []  gts = new int[] {Integer.parseInt(gt.substring(0,index)), Integer.parseInt(gt.substring(index + 1))};
+
+		AtomicInteger fsCount = new AtomicInteger();
+		AtomicInteger rsCount = new AtomicInteger();
+		alleleDist.values().stream().forEach(a -> {fsCount.addAndGet(a[0]); rsCount.addAndGet(a[1]);});
+		boolean sbiasCov = ! AccumulatorUtils.areBothStrandsRepresented(fsCount, rsCount, sBiasCovPercentage);
+		
+		
+		for (int gtI : gts) {
+			if (gtI > 0) {
+				int [] iArray = alleleDist.get(alts[gtI - 1]);
+				int min = Math.min(iArray[0], iArray[1]);
+				
+				if ( ((double) min / (iArray[0] + iArray[1])) * 100 < sBiasAltPercentage) {
+					StringUtils.updateStringBuilder(fSb, sbiasCov ? SnpUtils.STRAND_BIAS_COVERAGE : SnpUtils.STRAND_BIAS_ALT, Constants.SEMI_COLON);
+					break;
+				}
+			}
+		}
+	}
 	
+	public static void checkNNS(String nnsString, StringBuilder sb, int nnsCount) {
+		int [] nns = getFieldOfInts(nnsString);
+		if ( ! allValuesAboveThreshold(nns, nnsCount)) {
+			StringUtils.updateStringBuilder(sb, VcfHeaderUtils.FILTER_NOVEL_STARTS, Constants.SEMI_COLON);
+		}
+	}
 	
 	public static void checkMIN(String [] alts, int coverage, Map<String, int[]> alleleDist, StringBuilder sb, int minCutoff, float minPercentage) {
 		if (null != alts && null != alleleDist) {
@@ -365,8 +381,8 @@ public class ConfidenceMode extends AbstractMode{
 					/*
 					 * bases are separated by colons
 					 */
-					int colonIndex = failedFilter.indexOf(Constants.COLON, altIndex);
-					int failedFilterCount = Integer.parseInt(failedFilter.substring(altIndex + alt.length(), colonIndex > -1 ? colonIndex : failedFilter.length()));
+					int semiColonIndex = failedFilter.indexOf(Constants.SEMI_COLON, altIndex);
+					int failedFilterCount = Integer.parseInt(failedFilter.substring(altIndex + alt.length(), semiColonIndex > -1 ? semiColonIndex : failedFilter.length()));
 					if (failedFilterCount >= miunCutoff) {
 						StringUtils.updateStringBuilder(sb, VcfHeaderUtils.FILTER_MUTATION_IN_UNFILTERED_NORMAL, Constants.SEMI_COLON);
 						break;

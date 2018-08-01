@@ -70,12 +70,14 @@ public class HomoplymersMode extends AbstractMode{
 		try (VCFFileReader reader = new VCFFileReader(input) ;
 	            VCFFileWriter writer = new VCFFileWriter(new File(output))  ) {
 			header.addInfo(VcfHeaderUtils.INFO_HOM,  "2", "String",VcfHeaderUtils.INFO_HOM_DESC); 			
-		    for(final VcfHeaderRecord record: header)	writer.addHeader(record.toString());
+		    for(final VcfHeaderRecord record: header) {
+		    		writer.addHeader(record.toString());
+		    }
 		    
 		    int sum = 0;
 			for (final VcfRecord re : reader) {	
 				String chr = IndelUtils.getFullChromosome(re.getChromosome());
-				byte[]  base =  referenceBase.get(chr);								 
+				byte[]  base =  referenceBase.get(chr);
 				writer.add( annotate(re,  base));
 				sum ++;
 			}

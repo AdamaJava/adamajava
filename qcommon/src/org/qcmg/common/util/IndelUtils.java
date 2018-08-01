@@ -263,7 +263,8 @@ public class IndelUtils {
 		if(type.equals(SVTYPE.UNKNOWN))
 			return null; 
 		
-		return alt;  //return alt for snp, mnp 		
+		return ref;  //return ref for snp, mnp 		THIS IS THE OLD (CURRENT PRODUCTION) WAY OF DOING IT
+//		return alt;  //return alt for snp, mnp 		THIS IS THE NEW (ASPIRATIONAL) WAY OF DOING IT
 	}
 	
 	/**
