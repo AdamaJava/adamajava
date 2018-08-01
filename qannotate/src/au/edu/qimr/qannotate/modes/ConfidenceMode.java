@@ -210,7 +210,7 @@ public class ConfidenceMode extends AbstractMode{
 					/*
 					 * check filter field - only proceed if its null, empty or '.'
 					 */
-					if (StringUtils.isNullOrEmptyOrMissingData(filterArr[i])) {
+//					if (StringUtils.isNullOrEmptyOrMissingData(filterArr[i])) {
 						
 						boolean isControl =  controlCols != null && controlCols.contains((short) (i+1));
 						/*
@@ -272,10 +272,15 @@ public class ConfidenceMode extends AbstractMode{
 									checkNNS(nnsArr[i], fSb, nnsCount);
 								}
 								
-								int [] altADs = getAltCoveragesFromADField(adArr[i]);
-								if ( ! (percentageMode ?  allValuesAboveThreshold(altADs, cov, mrPercentage) : allValuesAboveThreshold(altADs, mrCount))) {
+								
+								if (applyMutantReadFilter(gt, adArr[i], percentageMode ? (int)(mrPercentage * cov) : mrCount)) {
 									StringUtils.updateStringBuilder(fSb, "MR", Constants.SEMI_COLON);
 								}
+								
+//								int [] altADs = getAltCoveragesFromADField(adArr[i]);
+//								if ( ! (percentageMode ?  allValuesAboveThreshold(altADs, cov, mrPercentage) : allValuesAboveThreshold(altADs, mrCount))) {
+//									StringUtils.updateStringBuilder(fSb, "MR", Constants.SEMI_COLON);
+//								}
 								
 								/*
 								 * end of read check
@@ -299,7 +304,7 @@ public class ConfidenceMode extends AbstractMode{
 								filterArr[i] = VcfHeaderUtils.FILTER_PASS;
 							}
 						}
-					}
+//					}
 				}
 				
 				/*
@@ -426,6 +431,36 @@ public class ConfidenceMode extends AbstractMode{
 			i++;
 		}
 		return maxBP;
+	}
+	
+	/**
+	 * Check that if gt field contains a non-ref number that the corresponding AD value is above (or equal to) the cutoff
+	 * @param gt
+	 * @param adField
+	 * @param mrCutoff
+	 * @return
+	 */
+	public static boolean applyMutantReadFilter(String gt, String ad, int mrCutoff) {
+		
+		if ( ! StringUtils.isNullOrEmptyOrMissingData(gt) && ! StringUtils.isNullOrEmptyOrMissingData(ad)) {
+			if ( ! "0/0".equals(gt)) {
+				List<String> altPositions = gt.replaceAll("/","").chars().distinct().mapToObj(i -> String.valueOf((char)i)).collect(Collectors.toList());
+				
+				String [] adArray = ad.split(",");
+				if (null != adArray && adArray.length > 1) {
+					
+					for (String i : altPositions) {
+						int position = Integer.parseInt(i);
+						
+						if (position > 0 && position < adArray.length && Integer.parseInt(adArray[position]) < mrCutoff) {
+							return true;
+						}
+					}
+				}
+			}
+		}
+		
+		return false;
 	}
 	
 	public static boolean allValuesAboveThreshold(int[] values, int threshold) {
