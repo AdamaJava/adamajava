@@ -122,7 +122,7 @@ public class Overlap {
 			if ( ! files.contains(Constants.TAB_STRING)) {
 				try {
 					String name =  new File(files).getName();
-					writeOutput(e.getValue(), outputDirectory + "/" + UUID.randomUUID().toString(), "Unique to " + name + " in " + filesBeingCompared.toString().replace("\t", "_vs_") + " comparison");
+					writeOutput(e.getValue(), outputDirectory + "/" + UUID.randomUUID().toString() + ".vcf", "##Unique to " + name + " in " + filesBeingCompared.toString().replace("\t", "  vs  ") + " comparison");
 				} catch (FileNotFoundException e1) {
 					e1.printStackTrace();
 				}
@@ -251,7 +251,7 @@ public class Overlap {
 				ps.println(VcfHeaderUtils.CURRENT_FILE_FORMAT);
 			}
 			if (null != extraHeaderInfo) {
-				ps.println("#" + extraHeaderInfo);
+				ps.println(extraHeaderInfo);
 			}
 			ps.println(header);
 			for (ChrPositionRefAlt cp : recs) {
