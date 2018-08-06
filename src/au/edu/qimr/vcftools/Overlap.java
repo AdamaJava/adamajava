@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -90,6 +91,8 @@ public class Overlap {
 			positionsByInput.computeIfAbsent(files, f -> new ArrayList<>()).add(k);
 		});
 		
+		StringBuilder filesBeingCompared = new StringBuilder();
+		
 		StringBuilder sb = new StringBuilder();
 		Comparator<Entry<String,  List<ChrPositionRefAlt>>> comp =Comparator.comparingInt(e -> e.getValue().size());
 		positionsByInput.entrySet().stream().sorted(Collections.reverseOrder(comp)).forEach((e) -> {
@@ -97,6 +100,7 @@ public class Overlap {
 			String files = e.getKey();
 			double perc = 100.0 * size / totalVariants;
 			if (files.contains(Constants.TAB_STRING)) {
+				filesBeingCompared.append(files);
 				sb.append("In both: ").append(size).append(" (").append(String.format("%.2f", perc)).append("%)");
 			} else {
 				int position = StringUtils.getPositionOfStringInArray(vcfFiles, files, false);
@@ -117,7 +121,8 @@ public class Overlap {
 			 */
 			if ( ! files.contains(Constants.TAB_STRING)) {
 				try {
-					writeOutput(e.getValue(), outputDirectory + "/uniqueTo" + new File(files).getName());
+					String name =  new File(files).getName();
+					writeOutput(e.getValue(), outputDirectory + "/" + UUID.randomUUID().toString(), "Unique to " + name + " in " + filesBeingCompared.toString().replace("\t", "_vs_") + " comparison");
 				} catch (FileNotFoundException e1) {
 					e1.printStackTrace();
 				}
@@ -221,7 +226,7 @@ public class Overlap {
 		}
 	}
 	
-	private void writeOutput(List<ChrPositionRefAlt> recs, String output) throws FileNotFoundException {
+	private void writeOutput(List<ChrPositionRefAlt> recs, String output, String extraHeaderInfo) throws FileNotFoundException {
 		recs.sort(new ChrPositionComparator());
 		
 		logger.info("writing output");
@@ -244,6 +249,9 @@ public class Overlap {
 			String header =  VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE ;
 			if (vcfOutput) {
 				ps.println(VcfHeaderUtils.CURRENT_FILE_FORMAT);
+			}
+			if (null != extraHeaderInfo) {
+				ps.println("#" + extraHeaderInfo);
 			}
 			ps.println(header);
 			for (ChrPositionRefAlt cp : recs) {
