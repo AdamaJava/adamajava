@@ -50,6 +50,7 @@ public class ConfidenceMode extends AbstractMode{
 	public static final int HIGH_CONF_ALT_FREQ_PASSING_SCORE = 5;	
 	public static final int LOW_CONF_ALT_FREQ_PASSING_SCORE = 4;	
 	
+	public static final int CONTROL_COVERAGE_MIN_VALUE_SOMATIC_CALL = 12;
 	public static final int CONTROL_COVERAGE_MIN_VALUE = 8;
 	public static final int TEST_COVERAGE_MIN_VALUE = 8;
 	
@@ -77,6 +78,7 @@ public class ConfidenceMode extends AbstractMode{
 	private int nnsCount = HIGH_CONF_NOVEL_STARTS_PASSING_SCORE;
 	private int mrCount = HIGH_CONF_ALT_FREQ_PASSING_SCORE;
 	
+	private int controlCovCutoffForSomaticCalls = CONTROL_COVERAGE_MIN_VALUE_SOMATIC_CALL;
 	private int controlCovCutoff = CONTROL_COVERAGE_MIN_VALUE;
 	private int testCovCutoff = TEST_COVERAGE_MIN_VALUE;
 	
@@ -112,6 +114,7 @@ public class ConfidenceMode extends AbstractMode{
 		options.getNNSCount().ifPresent(i -> nnsCount = i.intValue());
 		options.getMRCount().ifPresent(i -> mrCount = i.intValue());
 		options.getControlCutoff().ifPresent(i -> controlCovCutoff = i.intValue());
+		options.getControlCutoffForSomatic().ifPresent(i -> controlCovCutoffForSomaticCalls = i.intValue());
 		options.getTestCutoff().ifPresent(i -> testCovCutoff = i.intValue());
 		options.getMRPercentage().ifPresent(i -> mrPercentage = i.floatValue());
 		options.getMIUNCutoff().ifPresent(i -> miunCutoff = i.intValue());
@@ -122,6 +125,7 @@ public class ConfidenceMode extends AbstractMode{
 		logger.tool("Number of Mutant Reads filter value: " + mrCount);
 		logger.tool("Percentage of Mutant Reads filter value: " + mrPercentage);
 		logger.tool("Control coverage minimum value: " + controlCovCutoff);
+		logger.tool("Control coverage minimum value (for SOMATIC calls): " + controlCovCutoffForSomaticCalls);
 		logger.tool("Test coverage minimum value: " + testCovCutoff);
 		logger.tool("Mutation In Unfiltered Normal (MIUN) will be applied if the Failed Filter (FF) format field contains more than " + miunCutoff + " occurrences of the alt in the normal (control)");
 		logger.tool("Mutation In Normal (MIN) will be applied if number of alt reads in the normnal (control) are greater than or equal to " + minCutoff + " OR greather than or equal to " + minPercentage +"% of total reads");
@@ -160,8 +164,9 @@ public class ConfidenceMode extends AbstractMode{
 		for (List<VcfRecord> vcfs : positionRecordMap.values()) {
 			for(VcfRecord vcf : vcfs){
 				
+				Map<String, String[]> ffMap = vcf.getFormatFieldsAsMap();
 				
-				boolean isSomatic = VcfUtils.isRecordSomatic(vcf);
+				boolean isSomatic = VcfUtils.isRecordSomatic(vcf.getInfo(), ffMap);
 				String [] alts = vcf.getAlt().split(Constants.COMMA_STRING);
 				
 				/*
@@ -171,7 +176,6 @@ public class ConfidenceMode extends AbstractMode{
 				 * if we have any other genotype (ie, the sample is showing a mutation), check coverage, MR and NNS and existing FT fields. If within our acceptable limits, set FT to PASS
 				 */
 				
-				Map<String, String[]> ffMap = VcfUtils.getFormatFieldsAsMap(vcf.getFormatFields());
 				VcfInfoFieldRecord info = vcf.getInfoRecord();
 				int lhomo = (info.getField(VcfHeaderUtils.INFO_HOM) == null)? 1 :
 					StringUtils.string2Number(info.getField(VcfHeaderUtils.INFO_HOM).split(Constants.COMMA_STRING)[0], Integer.class);
@@ -191,6 +195,9 @@ public class ConfidenceMode extends AbstractMode{
 				String [] ffArr = ffMap.get(VcfHeaderUtils.FORMAT_FF);
 				if (covArr == null || covArr.length == 0) {
 					logger.warn("no coverage values for vcf record!!!: " + vcf);
+					continue;
+				}
+				if (null == filterArr || filterArr.length == 0) {
 					continue;
 				}
 				
@@ -243,8 +250,13 @@ public class ConfidenceMode extends AbstractMode{
 							 * look for MIUN, but only if we don't already have MIN
 							 */
 							if ( ! fSb.toString().contains(VcfHeaderUtils.FILTER_MUTATION_IN_NORMAL)) {
-								String failedFilter = ffArr[i];
-								checkMIUN(alts, failedFilter, fSb, miunCutoff);
+								if (null != ffArr && ffArr.length > i) {
+									String failedFilter = ffArr[i];
+									checkMIUN(alts, failedFilter, fSb, miunCutoff);
+								}
+							}
+							if ( ! fSb.toString().contains("COV") && cov < controlCovCutoffForSomaticCalls) {
+								StringUtils.updateStringBuilder(fSb, "COV", Constants.SEMI_COLON);
 							}
 						}
 						
@@ -254,10 +266,11 @@ public class ConfidenceMode extends AbstractMode{
 						String gt = gtArray[i];
 						if ( ! StringUtils.isNullOrEmptyOrMissingData(gt)) {
 							if ( ! "0/0".equals(gt)) {
-								
+								int index = gt.indexOf(Constants.SLASH);
+								int []  gts = new int[] {Integer.parseInt(gt.substring(0,index)), Integer.parseInt(gt.substring(index + 1))};
 								
 								if ( ! alleleDist.isEmpty() && ! isGATKCall) {
-									checkStrandBias(alts, fSb, alleleDist, gt, sBiasCovPercentage, sBiasAltPercentage);
+									checkStrandBias(alts, fSb, alleleDist, gts, sBiasCovPercentage, sBiasAltPercentage);
 								}
 								
 								/*
@@ -273,7 +286,7 @@ public class ConfidenceMode extends AbstractMode{
 								}
 								
 								
-								if (applyMutantReadFilter(gt, adArr[i], percentageMode ? (int)(mrPercentage * cov) : mrCount)) {
+								if (applyMutantReadFilter(gts, adArr[i], percentageMode ? (int)(mrPercentage * cov) : mrCount)) {
 									StringUtils.updateStringBuilder(fSb, "MR", Constants.SEMI_COLON);
 								}
 								
@@ -335,9 +348,7 @@ public class ConfidenceMode extends AbstractMode{
 	 * @param alleleDist
 	 * @param gt
 	 */
-	public static void checkStrandBias(String[] alts, StringBuilder fSb, Map<String, int[]> alleleDist, String gt, int sBiasCovPercentage, int sBiasAltPercentage) {
-		int index = gt.indexOf(Constants.SLASH);
-		int []  gts = new int[] {Integer.parseInt(gt.substring(0,index)), Integer.parseInt(gt.substring(index + 1))};
+	public static void checkStrandBias(String[] alts, StringBuilder fSb, Map<String, int[]> alleleDist, int[] gts, int sBiasCovPercentage, int sBiasAltPercentage) {
 
 		AtomicInteger fsCount = new AtomicInteger();
 		AtomicInteger rsCount = new AtomicInteger();
@@ -409,7 +420,6 @@ public class ConfidenceMode extends AbstractMode{
 		
 		int i = 1;
 		int maxBP = 0;
-//		Map<String, int[]> oabsMap = VcfUtils.getAllelicCoverageWithStrand(oabs);
 		Map<String, int[]> eorMap = VcfUtils.getAllelicCoverageWithStrand(eor);
 		for (String alt : alts) {
 			if (gt.contains(""+i)) {
@@ -440,21 +450,16 @@ public class ConfidenceMode extends AbstractMode{
 	 * @param mrCutoff
 	 * @return
 	 */
-	public static boolean applyMutantReadFilter(String gt, String ad, int mrCutoff) {
+	public static boolean applyMutantReadFilter(int [] gts, String ad, int mrCutoff) {
 		
-		if ( ! StringUtils.isNullOrEmptyOrMissingData(gt) && ! StringUtils.isNullOrEmptyOrMissingData(ad)) {
-			if ( ! "0/0".equals(gt)) {
-				List<String> altPositions = gt.replaceAll("/","").chars().distinct().mapToObj(i -> String.valueOf((char)i)).collect(Collectors.toList());
+		if ( null != gts && gts.length > 0 && ! StringUtils.isNullOrEmptyOrMissingData(ad)) {
+			
+			String [] adArray = ad.split(Constants.COMMA_STRING);
+			if (null != adArray && adArray.length > 1) {
 				
-				String [] adArray = ad.split(",");
-				if (null != adArray && adArray.length > 1) {
-					
-					for (String i : altPositions) {
-						int position = Integer.parseInt(i);
-						
-						if (position > 0 && position < adArray.length && Integer.parseInt(adArray[position]) < mrCutoff) {
-							return true;
-						}
+				for (int i : gts) {
+					if (i > 0 && i < adArray.length && Integer.parseInt(adArray[i]) < mrCutoff) {
+						return true;
 					}
 				}
 			}

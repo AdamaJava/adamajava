@@ -33,6 +33,7 @@ import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.ListUtils;
 import org.qcmg.common.util.SnpUtils;
+import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 
 public class VcfUtils {
@@ -510,26 +511,26 @@ public class VcfUtils {
 	 * @return
 	 */
 	public static Map<String, String[]> getFormatFieldsAsMap(List<String> ff) {
-		Map<String, String[]> ffm = new HashMap<>();
 		if (null != ff &&  ! ff.isEmpty()) {
+			int ffSize = ff.size();
+			String [] headerFields = TabTokenizer.tokenize(ff.get(0), Constants.COLON);
 			
-			String [] headerFields = ff.get(0).split(Constants.COLON_STRING);
+			Map<String, String[]> ffm = new HashMap<>((int)(headerFields.length * 1.5));
 			
 			for (String s : headerFields) {
-				ffm.computeIfAbsent(s, (z) -> new String[ff.size()-1]);
+				ffm.computeIfAbsent(s, (z) -> new String[ffSize-1]);
 			}
 			
-			for (int i = 1 ; i < ff.size() ; i++) {
-				String [] sa = ff.get(i).split(Constants.COLON_STRING);
+			for (int i = 1 ; i < ffSize ; i++) {
+				String [] sa = TabTokenizer.tokenize(ff.get(i), Constants.COLON);
 				
-				for (int j = 0 ; j < sa.length ; j++) {
-					String header = headerFields[j];
-					
-					ffm.get(header)[i-1] = sa[j];
+				for (int j = 0, len = sa.length ; j < len ; j++) {
+					ffm.get(headerFields[j])[i-1] = sa[j];
 				}
 			}
+			return ffm;
 		}
-		return ffm;
+		return Collections.emptyMap();
 	}
 	
 	/**
@@ -1267,27 +1268,29 @@ public class VcfUtils {
 	 * returns true if the info field contains SOMATIC, or if more than half of format fields contain SOMATIC (this should mean all callers called this somatic, as we are only populating the test info field with this tag)
 	 */
 	public static boolean isRecordSomatic(VcfRecord rec) {
-		String info = rec.getInfo();
-		if ( ! StringUtils.isNullOrEmpty(info) && info.contains(VcfHeaderUtils.INFO_SOMATIC)) {
-			return true;
-		}
+		return isRecordSomatic(rec.getInfo(), rec.getFormatFieldsAsMap());
 		
-//		if (isMergedRecord(rec)) {
-			/*
-			 * check out the format fields - need all records to be somatic
-			 */
-			String ff = rec.getFormatFieldStrings();
-			Map<String, String[]> m =getFormatFieldsAsMap(ff);
-			
-			if (m.isEmpty()) {
-				return false;
-			}
-			String [] infos = m.get(VcfHeaderUtils.FORMAT_INFO);
-			if (null == infos || infos.length == 0) {
-				return false;
-			}
-			long somCount =  Arrays.asList(infos).stream().filter(f ->null != f && f.contains(VcfHeaderUtils.INFO_SOMATIC)).count();
-			return somCount * 2 >= infos.length;
+//		String info = rec.getInfo();
+//		if ( ! StringUtils.isNullOrEmpty(info) && info.contains(VcfHeaderUtils.INFO_SOMATIC)) {
+//			return true;
+//		}
+//		
+////		if (isMergedRecord(rec)) {
+//			/*
+//			 * check out the format fields - need all records to be somatic
+//			 */
+//			String ff = rec.getFormatFieldStrings();
+//			Map<String, String[]> m =getFormatFieldsAsMap(ff);
+//			
+//			if (m.isEmpty()) {
+//				return false;
+//			}
+//			String [] infos = m.get(VcfHeaderUtils.FORMAT_INFO);
+//			if (null == infos || infos.length == 0) {
+//				return false;
+//			}
+//			long somCount =  Arrays.asList(infos).stream().filter(f ->null != f && f.contains(VcfHeaderUtils.INFO_SOMATIC)).count();
+//			return somCount * 2 >= infos.length;
 			
 //			if (noOfSomatics == 0) {
 //				return false;
@@ -1300,6 +1303,22 @@ public class VcfUtils {
 //			return info.contains(VcfHeaderUtils.INFO_SOMATIC + "_1") && info.contains(VcfHeaderUtils.INFO_SOMATIC + "_2");  
 //		} else {
 //		}
+	}
+	
+	public static boolean isRecordSomatic(String info, Map<String, String[]> formatFields) {
+		if ( ! StringUtils.isNullOrEmpty(info) && info.contains(VcfHeaderUtils.INFO_SOMATIC)) {
+			return true;
+		}
+		
+		if (null == formatFields || formatFields.isEmpty()) {
+			return false;
+		}
+		String [] infos = formatFields.get(VcfHeaderUtils.FORMAT_INFO);
+		if (null == infos || infos.length == 0) {
+			return false;
+		}
+		long somCount =  Arrays.asList(infos).stream().filter(f ->null != f && f.contains(VcfHeaderUtils.INFO_SOMATIC)).count();
+		return somCount * 2 >= infos.length;
 	}
 	
 	/**
@@ -1315,12 +1334,7 @@ public class VcfUtils {
 			return true;
 		}
 		
-//		if (isMergedRecord(rec)) {
-		/*
-		 * check out the format fields - need all records to be somatic
-		 */
-		String ff = rec.getFormatFieldStrings();
-		Map<String, String[]> m =getFormatFieldsAsMap(ff);
+		Map<String, String[]> m =rec.getFormatFieldsAsMap();
 		
 		if (m.isEmpty()) {
 			return false;

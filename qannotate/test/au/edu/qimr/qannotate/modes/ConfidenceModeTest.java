@@ -842,23 +842,22 @@ public class ConfidenceModeTest {
 	 @Test
 	 public void applyMRFilter() {
 		 assertEquals(false, ConfidenceMode.applyMutantReadFilter(null, null, -1));
-		 assertEquals(false, ConfidenceMode.applyMutantReadFilter("", "", -1));
-		 assertEquals(false, ConfidenceMode.applyMutantReadFilter(".", ".", -1));
-		 assertEquals(false, ConfidenceMode.applyMutantReadFilter("0/0", ".", -1));
-		 assertEquals(false, ConfidenceMode.applyMutantReadFilter("0/0", "0", -1));
-		 assertEquals(false, ConfidenceMode.applyMutantReadFilter("0/0", "10", 5));
-		 assertEquals(true, ConfidenceMode.applyMutantReadFilter("0/1", "10,0", 5));
-		 assertEquals(true, ConfidenceMode.applyMutantReadFilter("0/1", "10,4", 5));
-		 assertEquals(false, ConfidenceMode.applyMutantReadFilter("0/1", "10,5", 5));
-		 assertEquals(false, ConfidenceMode.applyMutantReadFilter("0/1", "4,5", 5));
-		 assertEquals(false, ConfidenceMode.applyMutantReadFilter("1/1", "10,5", 5));
-		 assertEquals(true, ConfidenceMode.applyMutantReadFilter("1/1", "10,4", 5));
-		 assertEquals(true, ConfidenceMode.applyMutantReadFilter("1/1", "10,4,5", 5));
-		 assertEquals(false, ConfidenceMode.applyMutantReadFilter("2/2", "10,4,5", 5));
-		 assertEquals(false, ConfidenceMode.applyMutantReadFilter("1/2", "10,5,5", 5));
-		 assertEquals(false, ConfidenceMode.applyMutantReadFilter("1/2", "0,5,5", 5));
-		 assertEquals(true, ConfidenceMode.applyMutantReadFilter("1/2", "10,5,4", 5));
-		 assertEquals(false, ConfidenceMode.applyMutantReadFilter("2/2", "10,5,6", 5));
+		 assertEquals(false, ConfidenceMode.applyMutantReadFilter(new int[]{}, "", -1));
+		 assertEquals(false, ConfidenceMode.applyMutantReadFilter(new int[]{0,0}, ".", -1));
+		 assertEquals(false, ConfidenceMode.applyMutantReadFilter(new int[]{0,0}, "0", -1));
+		 assertEquals(false, ConfidenceMode.applyMutantReadFilter(new int[]{0,0}, "10", 5));
+		 assertEquals(true, ConfidenceMode.applyMutantReadFilter(new int[]{0,1}, "10,0", 5));
+		 assertEquals(true, ConfidenceMode.applyMutantReadFilter(new int[]{0,1}, "10,4", 5));
+		 assertEquals(false, ConfidenceMode.applyMutantReadFilter(new int[]{0,1}, "10,5", 5));
+		 assertEquals(false, ConfidenceMode.applyMutantReadFilter(new int[]{0,1}, "4,5", 5));
+		 assertEquals(false, ConfidenceMode.applyMutantReadFilter(new int[]{1,1}, "10,5", 5));
+		 assertEquals(true, ConfidenceMode.applyMutantReadFilter(new int[]{1,1}, "10,4", 5));
+		 assertEquals(true, ConfidenceMode.applyMutantReadFilter(new int[]{1,1}, "10,4,5", 5));
+		 assertEquals(false, ConfidenceMode.applyMutantReadFilter(new int[]{1,2}, "10,5,5", 5));
+		 assertEquals(false, ConfidenceMode.applyMutantReadFilter(new int[]{1,2}, "0,5,5", 5));
+		 assertEquals(true, ConfidenceMode.applyMutantReadFilter(new int[]{1,2}, "10,5,4", 5));
+		 assertEquals(false, ConfidenceMode.applyMutantReadFilter(new int[]{2,2}, "10,5,6", 5));
+		 assertEquals(false, ConfidenceMode.applyMutantReadFilter(new int[]{2,2}, "10,4,5", 5));
 	 }
 	 
 	 @Test

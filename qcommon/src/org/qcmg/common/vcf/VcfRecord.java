@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -279,6 +280,10 @@ public class VcfRecord implements Comparable<VcfRecord> {
 	
 	public int getFormatColumnCount() {
 		return formatRecords.size();
+	}
+	
+	public Map<String, String[]> getFormatFieldsAsMap() {
+		return VcfUtils.getFormatFieldsAsMap(formatRecords);
 	}
 	
 	public String getFormatFieldStrings(){ 

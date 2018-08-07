@@ -72,7 +72,7 @@ public class HomoplymersModeTest {
 		VcfRecord re = new VcfRecord(new String[] {  "chr1", "21", null, "TCC", "AGG" });		
 		HomoplymersMode  homo = new HomoplymersMode(3,4);	
 		re = homo.annotate(re, getReference());
-		assertEquals("0,CCCtccCCC", re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM));
+		assertEquals("5,CCCtccCCC", re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM));
 //		assertEquals("0,CCCaggCCC", re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM));
 		
 		//SNP
@@ -94,15 +94,18 @@ public class HomoplymersModeTest {
 		
 		re = new VcfRecord(new String[] {  "chr1", "10", null, "G", "A" });	
 		re = homo.annotate(re, "TTTTTTTTTTGCTGCTAGCTA".getBytes());	 
-		assertEquals("2,TTTTTgGCTGC", re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM));
+		assertEquals("9,TTTTTgGCTGC", re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM));
+//		assertEquals("2,TTTTTgGCTGC", re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM));
 		
 		re = new VcfRecord(new String[] {  "chr1", "10", null, "G", "A" });	
 		re = homo.annotate(re, "TTTTTTTTTTTTTTTTTTTT".getBytes());	 
-		assertEquals("0,TTTTTgTTTTT", re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM));
+		assertEquals("10,TTTTTgTTTTT", re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM));
+//		assertEquals("0,TTTTTgTTTTT", re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM));
 		
 		re = new VcfRecord(new String[] {  "chr1", "10", null, "A", "C" });	
 		re = homo.annotate(re, "TTTTTTTTTTTTTTTTTTTT".getBytes());	 
-		assertEquals("0,TTTTTaTTTTT", re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM));
+		assertEquals("10,TTTTTaTTTTT", re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM));
+//		assertEquals("0,TTTTTaTTTTT", re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM));
 		
 		re = new VcfRecord(new String[] {  "chr1", "10", null, "T", "C" });	
 		re = homo.annotate(re, "TTTTTTTTTTTTTTTTTTTT".getBytes());	 
@@ -115,10 +118,14 @@ public class HomoplymersModeTest {
 		b[0] = "AAAAA".getBytes();
 		b[1] = "AAAAA".getBytes();
 		
-		assertEquals(0, HomoplymersMode.findHomopolymer(b, "G", SVTYPE.SNP));
+		assertEquals(5, HomoplymersMode.findHomopolymer(b, "G", SVTYPE.SNP));
 		assertEquals(11, HomoplymersMode.findHomopolymer(b, "A", SVTYPE.SNP));
-		assertEquals(0, HomoplymersMode.findHomopolymer(b, "C", SVTYPE.SNP));
-		assertEquals(0, HomoplymersMode.findHomopolymer(b, "T", SVTYPE.SNP));
+		assertEquals(5, HomoplymersMode.findHomopolymer(b, "C", SVTYPE.SNP));
+		assertEquals(5, HomoplymersMode.findHomopolymer(b, "T", SVTYPE.SNP));
+//		assertEquals(0, HomoplymersMode.findHomopolymer(b, "G", SVTYPE.SNP));
+//		assertEquals(11, HomoplymersMode.findHomopolymer(b, "A", SVTYPE.SNP));
+//		assertEquals(0, HomoplymersMode.findHomopolymer(b, "C", SVTYPE.SNP));
+//		assertEquals(0, HomoplymersMode.findHomopolymer(b, "T", SVTYPE.SNP));
 	}
 	
 	@Test
@@ -127,10 +134,14 @@ public class HomoplymersModeTest {
 		b[0] = "CTTTTCCC".getBytes();
 		b[1] = "CCTTGGTT".getBytes();
 		
-		assertEquals(0, HomoplymersMode.findHomopolymer(b, "A", SVTYPE.SNP));
+		assertEquals(3, HomoplymersMode.findHomopolymer(b, "A", SVTYPE.SNP));
 		assertEquals(6, HomoplymersMode.findHomopolymer(b, "C", SVTYPE.SNP));
-		assertEquals(0, HomoplymersMode.findHomopolymer(b, "G", SVTYPE.SNP));
-		assertEquals(0, HomoplymersMode.findHomopolymer(b, "T", SVTYPE.SNP));
+		assertEquals(3, HomoplymersMode.findHomopolymer(b, "G", SVTYPE.SNP));
+		assertEquals(3, HomoplymersMode.findHomopolymer(b, "T", SVTYPE.SNP));
+//		assertEquals(0, HomoplymersMode.findHomopolymer(b, "A", SVTYPE.SNP));
+//		assertEquals(6, HomoplymersMode.findHomopolymer(b, "C", SVTYPE.SNP));
+//		assertEquals(0, HomoplymersMode.findHomopolymer(b, "G", SVTYPE.SNP));
+//		assertEquals(0, HomoplymersMode.findHomopolymer(b, "T", SVTYPE.SNP));
 	}
 	
 	@Test
@@ -139,10 +150,14 @@ public class HomoplymersModeTest {
 		b[0] = "TTGACTCC".getBytes();
 		b[1] = "TTTTTTAT".getBytes();
 		
-		assertEquals(0, HomoplymersMode.findHomopolymer(b, "A", SVTYPE.SNP));
-		assertEquals(3, HomoplymersMode.findHomopolymer(b, "C", SVTYPE.SNP));
-		assertEquals(0, HomoplymersMode.findHomopolymer(b, "G", SVTYPE.SNP));
+		assertEquals(6, HomoplymersMode.findHomopolymer(b, "A", SVTYPE.SNP));
+		assertEquals(6, HomoplymersMode.findHomopolymer(b, "C", SVTYPE.SNP));
+		assertEquals(6, HomoplymersMode.findHomopolymer(b, "G", SVTYPE.SNP));
 		assertEquals(7, HomoplymersMode.findHomopolymer(b, "T", SVTYPE.SNP));
+//		assertEquals(0, HomoplymersMode.findHomopolymer(b, "A", SVTYPE.SNP));
+//		assertEquals(3, HomoplymersMode.findHomopolymer(b, "C", SVTYPE.SNP));
+//		assertEquals(0, HomoplymersMode.findHomopolymer(b, "G", SVTYPE.SNP));
+//		assertEquals(7, HomoplymersMode.findHomopolymer(b, "T", SVTYPE.SNP));
 	}
 	
 	@Test
@@ -151,10 +166,14 @@ public class HomoplymersModeTest {
 		b[0] = "GGTTT".getBytes();
 		b[1] = "TTGTT".getBytes();
 		
-		assertEquals(0, HomoplymersMode.findHomopolymer(b, "A", SVTYPE.SNP));
-		assertEquals(0, HomoplymersMode.findHomopolymer(b, "C", SVTYPE.SNP));
-		assertEquals(0, HomoplymersMode.findHomopolymer(b, "G", SVTYPE.SNP));
+		assertEquals(3, HomoplymersMode.findHomopolymer(b, "A", SVTYPE.SNP));
+		assertEquals(3, HomoplymersMode.findHomopolymer(b, "C", SVTYPE.SNP));
+		assertEquals(3, HomoplymersMode.findHomopolymer(b, "G", SVTYPE.SNP));
 		assertEquals(6, HomoplymersMode.findHomopolymer(b, "T", SVTYPE.SNP));
+//		assertEquals(0, HomoplymersMode.findHomopolymer(b, "A", SVTYPE.SNP));
+//		assertEquals(0, HomoplymersMode.findHomopolymer(b, "C", SVTYPE.SNP));
+//		assertEquals(0, HomoplymersMode.findHomopolymer(b, "G", SVTYPE.SNP));
+//		assertEquals(6, HomoplymersMode.findHomopolymer(b, "T", SVTYPE.SNP));
 	}
 	
 	@Test
@@ -163,10 +182,14 @@ public class HomoplymersModeTest {
 		b[0] = "CATAAATTTT".getBytes();
 		b[1] = "TTTTTTTAAA".getBytes();
 		
-		assertEquals(0, HomoplymersMode.findHomopolymer(b, "A", SVTYPE.SNP));
-		assertEquals(0, HomoplymersMode.findHomopolymer(b, "C", SVTYPE.SNP));
-		assertEquals(0, HomoplymersMode.findHomopolymer(b, "G", SVTYPE.SNP));
+		assertEquals(7, HomoplymersMode.findHomopolymer(b, "A", SVTYPE.SNP));
+		assertEquals(7, HomoplymersMode.findHomopolymer(b, "C", SVTYPE.SNP));
+		assertEquals(7, HomoplymersMode.findHomopolymer(b, "G", SVTYPE.SNP));
 		assertEquals(12, HomoplymersMode.findHomopolymer(b, "T", SVTYPE.SNP));
+//		assertEquals(0, HomoplymersMode.findHomopolymer(b, "A", SVTYPE.SNP));
+//		assertEquals(0, HomoplymersMode.findHomopolymer(b, "C", SVTYPE.SNP));
+//		assertEquals(0, HomoplymersMode.findHomopolymer(b, "G", SVTYPE.SNP));
+//		assertEquals(12, HomoplymersMode.findHomopolymer(b, "T", SVTYPE.SNP));
 	}
 	
 	@Test
@@ -175,10 +198,14 @@ public class HomoplymersModeTest {
 		b[0] = "TTGTTTTTTT".getBytes();
 		b[1] = "AATTTCCAAA".getBytes();
 		
-		assertEquals(3, HomoplymersMode.findHomopolymer(b, "A", SVTYPE.SNP));
-		assertEquals(0, HomoplymersMode.findHomopolymer(b, "C", SVTYPE.SNP));
-		assertEquals(0, HomoplymersMode.findHomopolymer(b, "G", SVTYPE.SNP));
+		assertEquals(7, HomoplymersMode.findHomopolymer(b, "A", SVTYPE.SNP));
+		assertEquals(7, HomoplymersMode.findHomopolymer(b, "C", SVTYPE.SNP));
+		assertEquals(7, HomoplymersMode.findHomopolymer(b, "G", SVTYPE.SNP));
 		assertEquals(8, HomoplymersMode.findHomopolymer(b, "T", SVTYPE.SNP));
+//		assertEquals(3, HomoplymersMode.findHomopolymer(b, "A", SVTYPE.SNP));
+//		assertEquals(0, HomoplymersMode.findHomopolymer(b, "C", SVTYPE.SNP));
+//		assertEquals(0, HomoplymersMode.findHomopolymer(b, "G", SVTYPE.SNP));
+//		assertEquals(8, HomoplymersMode.findHomopolymer(b, "T", SVTYPE.SNP));
 	}
 	
 	@Test
@@ -187,13 +214,20 @@ public class HomoplymersModeTest {
 		b[0] = "GGTTT".getBytes();
 		b[1] = "TTGTT".getBytes();
 		
-		assertEquals(0, HomoplymersMode.findHomopolymer(b, "AA", SVTYPE.SNP));
-		assertEquals(0, HomoplymersMode.findHomopolymer(b, "CC", SVTYPE.SNP));
-		assertEquals(0, HomoplymersMode.findHomopolymer(b, "GG", SVTYPE.SNP));
+		assertEquals(3, HomoplymersMode.findHomopolymer(b, "AA", SVTYPE.SNP));
+		assertEquals(3, HomoplymersMode.findHomopolymer(b, "CC", SVTYPE.SNP));
+		assertEquals(3, HomoplymersMode.findHomopolymer(b, "GG", SVTYPE.SNP));
 		assertEquals(7, HomoplymersMode.findHomopolymer(b, "TT", SVTYPE.SNP));
-		assertEquals(0, HomoplymersMode.findHomopolymer(b, "TA", SVTYPE.SNP));
-		assertEquals(0, HomoplymersMode.findHomopolymer(b, "ATA", SVTYPE.SNP));
-		assertEquals(0, HomoplymersMode.findHomopolymer(b, "AT", SVTYPE.SNP));
+		assertEquals(4, HomoplymersMode.findHomopolymer(b, "TA", SVTYPE.SNP));
+		assertEquals(3, HomoplymersMode.findHomopolymer(b, "ATA", SVTYPE.SNP));
+		assertEquals(3, HomoplymersMode.findHomopolymer(b, "AT", SVTYPE.SNP));
+//		assertEquals(0, HomoplymersMode.findHomopolymer(b, "AA", SVTYPE.SNP));
+//		assertEquals(0, HomoplymersMode.findHomopolymer(b, "CC", SVTYPE.SNP));
+//		assertEquals(0, HomoplymersMode.findHomopolymer(b, "GG", SVTYPE.SNP));
+//		assertEquals(7, HomoplymersMode.findHomopolymer(b, "TT", SVTYPE.SNP));
+//		assertEquals(0, HomoplymersMode.findHomopolymer(b, "TA", SVTYPE.SNP));
+//		assertEquals(0, HomoplymersMode.findHomopolymer(b, "ATA", SVTYPE.SNP));
+//		assertEquals(0, HomoplymersMode.findHomopolymer(b, "AT", SVTYPE.SNP));
 	}
 	
 	@Test
@@ -208,9 +242,10 @@ public class HomoplymersModeTest {
 		} catch (IllegalArgumentException iae){}
 		
 		assertEquals("6,GGTTTtTTGTT", HomoplymersMode.getHomopolymerData("A,T", b, SVTYPE.SNP));
-		assertEquals("0,GGTTTaTTGTT", HomoplymersMode.getHomopolymerData("A,C", b, SVTYPE.SNP));
+		assertEquals("3,GGTTTaTTGTT", HomoplymersMode.getHomopolymerData("A,C", b, SVTYPE.SNP));
+//		assertEquals("0,GGTTTaTTGTT", HomoplymersMode.getHomopolymerData("A,C", b, SVTYPE.SNP));
 		assertEquals("6,GGTTTtTTGTT", HomoplymersMode.getHomopolymerData("A,C,T", b, SVTYPE.SNP));
-		assertEquals("0,GGTTTcTTGTT", HomoplymersMode.getHomopolymerData("C,G", b, SVTYPE.SNP));
+		assertEquals("3,GGTTTcTTGTT", HomoplymersMode.getHomopolymerData("C,G", b, SVTYPE.SNP));
 	}
 	
 	
@@ -220,10 +255,14 @@ public class HomoplymersModeTest {
 		b[0] = "CTTGACCACATCCTATTTTATCAGCAGGGTCTTTATGACCTGTATCTCATGATATCAATCCTGCAGACCTCATCTATCTTTTTTTTTTTTTTTTTTTTTT".getBytes();
 		b[1] = "AGACAAAGTCTCACTTTGTCACCCAGGCTGGAGTGCAATGACACCATCTCAGCTCACTGCAACTTCTGCCTCCCAGGTTCAAGCAATTCTCCTGCCTTAG".getBytes();
 		
-		assertEquals(0, HomoplymersMode.findHomopolymer(b, "G", SVTYPE.SNP));
-		assertEquals(2, HomoplymersMode.findHomopolymer(b, "A", SVTYPE.SNP));
-		assertEquals(0, HomoplymersMode.findHomopolymer(b, "C", SVTYPE.SNP));
+		assertEquals(22, HomoplymersMode.findHomopolymer(b, "G", SVTYPE.SNP));
+		assertEquals(22, HomoplymersMode.findHomopolymer(b, "A", SVTYPE.SNP));
+		assertEquals(22, HomoplymersMode.findHomopolymer(b, "C", SVTYPE.SNP));
 		assertEquals(23, HomoplymersMode.findHomopolymer(b, "T", SVTYPE.SNP));
+//		assertEquals(0, HomoplymersMode.findHomopolymer(b, "G", SVTYPE.SNP));
+//		assertEquals(2, HomoplymersMode.findHomopolymer(b, "A", SVTYPE.SNP));
+//		assertEquals(0, HomoplymersMode.findHomopolymer(b, "C", SVTYPE.SNP));
+//		assertEquals(23, HomoplymersMode.findHomopolymer(b, "T", SVTYPE.SNP));
 	}
 	
 	@Test
@@ -232,10 +271,14 @@ public class HomoplymersModeTest {
 		b[0] = "AAGAAAATAAAGCATATACAATCCTGGACTCCATAGATATAAAACTGTGATGTAATATCTGTATTGGTATCAAGTGATAAAACAACATTAAACTTTTCCC".getBytes();
 		b[1] = "CCTTGGTTTTGGCTCTAAGATAGCAACTCTATCATTGACTTAGTTTTCAAACTATAGGTCACACACTCATTTTTTCACTCATGGGTCTTCATGAAAAGAT".getBytes();
 		
-		assertEquals(0, HomoplymersMode.findHomopolymer(b, "A", SVTYPE.SNP));
-		assertEquals(0, HomoplymersMode.findHomopolymer(b, "G", SVTYPE.SNP));
+		assertEquals(3, HomoplymersMode.findHomopolymer(b, "A", SVTYPE.SNP));
+		assertEquals(3, HomoplymersMode.findHomopolymer(b, "G", SVTYPE.SNP));
 		assertEquals(6, HomoplymersMode.findHomopolymer(b, "C", SVTYPE.SNP));
-		assertEquals(0, HomoplymersMode.findHomopolymer(b, "T", SVTYPE.SNP));
+		assertEquals(3, HomoplymersMode.findHomopolymer(b, "T", SVTYPE.SNP));
+//		assertEquals(0, HomoplymersMode.findHomopolymer(b, "A", SVTYPE.SNP));
+//		assertEquals(0, HomoplymersMode.findHomopolymer(b, "G", SVTYPE.SNP));
+//		assertEquals(6, HomoplymersMode.findHomopolymer(b, "C", SVTYPE.SNP));
+//		assertEquals(0, HomoplymersMode.findHomopolymer(b, "T", SVTYPE.SNP));
 	}
 	@Test
 	public void findHomopolymer3() {
@@ -243,10 +286,100 @@ public class HomoplymersModeTest {
 		b[0] = "AGGATGACAGCCTCCAGCTGCATCTCTGTTGGAGAGTCAAATTACCTACAGTACCATCTAAATACTTGGAATCTGTCATTCCTGGAGCTGTGTTGACTCC".getBytes();
 		b[1] = "TTTTTTATTCATTTTGTAATTCGGAACATTTTCTTTTATTTTTAAGGGAGTTTGGGTTAGCTTTCTATCAATCGTAAACAAAGGAAACCAGTCGAAAGTA".getBytes();
 		
-		assertEquals(0, HomoplymersMode.findHomopolymer(b, "A", SVTYPE.SNP));
-		assertEquals(0, HomoplymersMode.findHomopolymer(b, "G", SVTYPE.SNP));
-		assertEquals(3, HomoplymersMode.findHomopolymer(b, "C", SVTYPE.SNP));
+		assertEquals(6, HomoplymersMode.findHomopolymer(b, "A", SVTYPE.SNP));
+		assertEquals(6, HomoplymersMode.findHomopolymer(b, "G", SVTYPE.SNP));
+		assertEquals(6, HomoplymersMode.findHomopolymer(b, "C", SVTYPE.SNP));
 		assertEquals(7, HomoplymersMode.findHomopolymer(b, "T", SVTYPE.SNP));
+//		assertEquals(0, HomoplymersMode.findHomopolymer(b, "A", SVTYPE.SNP));
+//		assertEquals(0, HomoplymersMode.findHomopolymer(b, "G", SVTYPE.SNP));
+//		assertEquals(3, HomoplymersMode.findHomopolymer(b, "C", SVTYPE.SNP));
+//		assertEquals(7, HomoplymersMode.findHomopolymer(b, "T", SVTYPE.SNP));
+	}
+	
+	@Test
+	public void findHom() {
+		byte[][] refs = new byte[2][];
+		refs[0] = "TCAAGAGTTT".getBytes();
+		refs[1] = "CTTTATTTTT".getBytes();
+		
+		assertEquals(3, findHomopolymer(refs, "C", SVTYPE.SNP));
+		assertEquals(3, HomoplymersMode.findHomopolymer(refs, "C", SVTYPE.SNP));
+		
+	}
+	
+	static int findHomopolymer(byte[][] updownReference, String motif, SVTYPE indelType){
+		
+		int upBaseCount = 1;
+		int downBaseCount = 1;
+ 		//upstream - start from end since this is the side adjacent to the indel
+		//decide if it is contiguous		
+		int finalUpIndex = updownReference[0].length-1;	
+		
+		//count upstream homopolymer bases
+		char nearBase = (char) updownReference[0][finalUpIndex];
+		for (int i=finalUpIndex-1; i>=0; i--) {
+			if (nearBase == updownReference[0][i]) {
+				upBaseCount++;
+			} else {
+				break;
+			}
+		}
+		
+		//count downstream homopolymer
+		nearBase = (char) updownReference[1][0];
+		for (int i=1; i< updownReference[1].length; i++) {
+			if (nearBase == updownReference[1][i]) {
+				downBaseCount++;
+			} else {
+				break;
+			}
+		}
+		
+		int max;
+		//reset up or down stream for deletion and SNPs reference base
+		if(indelType.equals(SVTYPE.DEL) || indelType.equals(SVTYPE.SNP) || indelType.equals(SVTYPE.DNP)  
+				|| indelType.equals(SVTYPE.ONP) || indelType.equals(SVTYPE.TNP) ){
+			byte[] mByte = motif.getBytes();
+			
+			int left = 0;
+			nearBase = (char) updownReference[0][finalUpIndex];
+			for (byte b : mByte) {
+				if (nearBase == b) {
+					left ++;
+				} else {
+					break;				 
+				}
+			}
+//			for(int i = 0; i < mByte.length; i ++ ) { 
+//				if (nearBase == mByte[i]) {
+//					left ++;
+//				} else {
+//					break;				 
+//				}
+//			}
+			upBaseCount += left; 
+						
+			int right = 0;
+			nearBase = (char) updownReference[1][0];
+			for(int i = mByte.length -1; i >=0; i--) { 
+				if (nearBase == mByte[i]) {
+					right++;
+				} else  {
+					break;
+				}
+			}
+			downBaseCount += right; 
+			
+			max = (left == right && left == mByte.length)? 
+					(downBaseCount + upBaseCount - mByte.length) : Math.max(downBaseCount, upBaseCount);
+						 			
+		} else {
+		    //INS don't have reference base
+			max = (updownReference[0][finalUpIndex] == updownReference[1][0] )? 
+					(downBaseCount + upBaseCount) : Math.max(downBaseCount, upBaseCount);
+		}
+					
+		return (max == 1)? 0 : max;
 	}
 	
 //	public byte[] getRef() throws IOException {

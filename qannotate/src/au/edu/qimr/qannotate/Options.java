@@ -59,6 +59,7 @@ public class Options {
     private final Integer nnsCount;
     private final Integer mrCount;
 	private final Integer controlCoverageCutoff;
+	private final Integer controlCoverageCutoffForSomatic;
 	private final Integer testCoverageCutoff;
 	private final Float mrPercentage;
 	
@@ -131,6 +132,7 @@ public class Options {
         nnsCount = ((Integer) options.valueOf("nnsCounts"));
         mrCount = ((Integer) options.valueOf("mrCounts"));
         controlCoverageCutoff = ((Integer) options.valueOf("controlCoverageCutoff"));
+        controlCoverageCutoffForSomatic = ((Integer) options.valueOf("controlCoverageCutoffForSomatic"));
         testCoverageCutoff = ((Integer) options.valueOf("testCoverageCutoff"));
         mrPercentage = ((Float) options.valueOf("mrPercentage"));
         filtersToIgnore = (List<String>) options.valuesOf("filtersToIgnore");
@@ -180,6 +182,8 @@ public class Options {
 		.describedAs("minPercentage");
 		parser.accepts("controlCoverageCutoff", "Minimum coverage (DP format field) value to gain a PASS for control samples").withRequiredArg().ofType(Integer.class)
 		.describedAs("controlCoverageCutoff");
+		parser.accepts("controlCoverageCutoffForSomatic", "Minimum coverage (DP format field) value to gain a PASS for control samples when the call is a SOMATIC one").withRequiredArg().ofType(Integer.class)
+		.describedAs("controlCoverageCutoffForSomatic");
 		parser.accepts("testCoverageCutoff", "Minimum coverage (DP format field) value to gain a PASS for test samples").withRequiredArg().ofType(Integer.class)
 		.describedAs("testCoverageCutoff");
 		parser.accepts("mrPercentage", "Number of mutant reads (MR) required to be High Confidence as a percentage").withRequiredArg().ofType(Float.class)
@@ -378,6 +382,9 @@ public class Options {
 
 	public Optional<Integer> getControlCutoff() {
 		return Optional.ofNullable(controlCoverageCutoff);
+	}
+	public Optional<Integer> getControlCutoffForSomatic() {
+		return Optional.ofNullable(controlCoverageCutoffForSomatic);
 	}
 	public Optional<Integer> getTestCutoff() {
 		return Optional.ofNullable(testCoverageCutoff);
