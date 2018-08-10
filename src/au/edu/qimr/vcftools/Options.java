@@ -32,6 +32,7 @@ final class Options {
 	private final OptionParser parser = new OptionParser();
 	private final OptionSet options;
 	private final String[] vcfs;
+	private final String[] alls;
 	private final String outputFileName;
 	private final String tiledRefFileName;
 	private final String refFileName;
@@ -78,6 +79,7 @@ final class Options {
 		parser.accepts("loglevel", LOG_LEVEL_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("uuid", LOG_LEVEL_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("vcf", VCF_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
+		parser.accepts("all", VCF_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
 		parser.posixlyCorrect(true);
 
 		options = parser.parse(args);
@@ -100,6 +102,10 @@ final class Options {
 		List<String> inputs = (List<String>) options.valuesOf("vcf");
 		vcfs = new String[inputs.size()];
 		inputs.toArray(vcfs);
+		// inputs
+		List<String> allInputs = (List<String>) options.valuesOf("all");
+		alls = new String[allInputs.size()];
+		allInputs.toArray(alls);
 		
 		
 		// output
@@ -218,6 +224,9 @@ final class Options {
 
 	String[] getVcfs() {
 		return vcfs;
+	}
+	String[] getAlls() {
+		return alls;
 	}
 	
 	String getLog() {
