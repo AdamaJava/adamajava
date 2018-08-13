@@ -25,10 +25,10 @@ public class TabTokenizer {
 	
 	public static String[] tokenize(final String data, final char delim) {
 		int nextIndex = data.indexOf(delim);
-		if (nextIndex < 0) throw new IllegalArgumentException("no delimiters '" + delim + "' found in string: " + data);
+		if (nextIndex < 0) return new String[]{data};//throw new IllegalArgumentException("no delimiters '" + delim + "' found in string: " + data);
 		
 		int currentIndex = 0;
-		final List<String> resultList = new ArrayList<String>();
+		final List<String> resultList = new ArrayList<>();
 		
 		resultList.add(data.substring(currentIndex, nextIndex));
 		currentIndex = nextIndex + 1;

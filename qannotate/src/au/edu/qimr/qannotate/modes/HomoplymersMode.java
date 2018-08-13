@@ -70,12 +70,14 @@ public class HomoplymersMode extends AbstractMode{
 		try (VCFFileReader reader = new VCFFileReader(input) ;
 	            VCFFileWriter writer = new VCFFileWriter(new File(output))  ) {
 			header.addInfo(VcfHeaderUtils.INFO_HOM,  "2", "String",VcfHeaderUtils.INFO_HOM_DESC); 			
-		    for(final VcfHeaderRecord record: header)	writer.addHeader(record.toString());
+		    for(final VcfHeaderRecord record: header) {
+		    		writer.addHeader(record.toString());
+		    }
 		    
 		    int sum = 0;
 			for (final VcfRecord re : reader) {	
 				String chr = IndelUtils.getFullChromosome(re.getChromosome());
-				byte[]  base =  referenceBase.get(chr);								 
+				byte[]  base =  referenceBase.get(chr);
 				writer.add( annotate(re,  base));
 				sum ++;
 			}
@@ -182,28 +184,11 @@ public class HomoplymersMode extends AbstractMode{
 			throw new IllegalArgumentException("motif supplied to findHomopolymer is invalid: " + motif);
 		}
 		
-		if (indelType.isSnpOrCS) {
-			/*
-			 * for single base, check to see if the updown ref starts with the same base 
-			 */
-			if (motif.length() == 1 || motif.chars().distinct().count() == 1) {
-				char mChar = motif.charAt(0);
-				if (updownReference[1][0] != mChar && updownReference[0][updownReference[0].length-1] != mChar) {
-					return 0;
-				}
-			} else {
-				/*
-				 * should only be here for compound snps that are not the same base - return 0
-				 */
-				return 0;
-			}
-		}
-			
 		int upBaseCount = 1;
 		int downBaseCount = 1;
  		//upstream - start from end since this is the side adjacent to the indel
 		//decide if it is contiguous		
-		int finalUpIndex = updownReference[0].length-1;	
+		final int finalUpIndex = updownReference[0].length-1;	
 		
 		//count upstream homopolymer bases
 		char nearBase = (char) updownReference[0][finalUpIndex];
@@ -214,7 +199,7 @@ public class HomoplymersMode extends AbstractMode{
 				break;
 			}
 		}
-			
+		
 		//count downstream homopolymer
 		nearBase = (char) updownReference[1][0];
 		for (int i=1; i< updownReference[1].length; i++) {
@@ -227,13 +212,21 @@ public class HomoplymersMode extends AbstractMode{
 		
 		int max;
 		//reset up or down stream for deletion and SNPs reference base
-		if(indelType.equals(SVTYPE.DEL)){			
-			byte[] mByte = motif.getBytes(); 	
+		if(indelType.equals(SVTYPE.DEL) || indelType.equals(SVTYPE.SNP) || indelType.equals(SVTYPE.DNP)  
+				|| indelType.equals(SVTYPE.ONP) || indelType.equals(SVTYPE.TNP) ){
+			byte[] mByte = motif.getBytes();
 			
 			int left = 0;
-			nearBase = (char) updownReference[0][finalUpIndex];			
-			for(int i = 0; i < mByte.length; i ++ ) {
-				if (nearBase == mByte[i])  {
+			nearBase = (char) updownReference[0][finalUpIndex];
+//			for (byte b : mByte) {
+//				if (nearBase == b) {
+//					left ++;
+//				} else {
+//					break;				 
+//				}
+//			}
+			for(int i = 0; i < mByte.length; i ++ ) { 
+				if (nearBase == mByte[i]) {
 					left ++;
 				} else {
 					break;				 
@@ -246,7 +239,7 @@ public class HomoplymersMode extends AbstractMode{
 			for(int i = mByte.length -1; i >=0; i--) { 
 				if (nearBase == mByte[i]) {
 					right++;
-				} else {
+				} else  {
 					break;
 				}
 			}
@@ -255,39 +248,7 @@ public class HomoplymersMode extends AbstractMode{
 			max = (left == right && left == mByte.length)? 
 					(downBaseCount + upBaseCount - mByte.length) : Math.max(downBaseCount, upBaseCount);
 						 			
-		} else if (indelType.isSnpOrCS) {
-			byte[] mByte = motif.getBytes();
-			if (mByte[0] != updownReference[0][finalUpIndex]) {
-				return downBaseCount + mByte.length;
-			} else if (mByte[0] != updownReference[1][0]) {
-				return upBaseCount + mByte.length;
-			}
-			
-			int left = 0;
-			nearBase = (char) updownReference[0][finalUpIndex];
-			for (byte b : mByte) {
-				if (nearBase == b)  {
-					left ++;
-				} else {
-					break;				 
-				}
-			}
-			upBaseCount += left; 
-						
-			int right = 0;
-			nearBase = (char) updownReference[1][0];
-			for (byte b : mByte) {
-				if (nearBase == b) {
-					right++;
-				} else {
-					break;
-				}
-			}
-			downBaseCount += right; 
-			
-			max = (left == right && left == mByte.length)? 
-					(downBaseCount + upBaseCount - mByte.length) : Math.max(downBaseCount, upBaseCount);
-		} else{
+		} else {
 		    //INS don't have reference base
 			max = (updownReference[0][finalUpIndex] == updownReference[1][0] )? 
 					(downBaseCount + upBaseCount) : Math.max(downBaseCount, upBaseCount);

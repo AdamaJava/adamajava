@@ -1240,6 +1240,32 @@ public class VcfUtilsTest {
 	}
 	
 	@Test
+	public void getFFAsMapSpeedTest() {
+		List<String> ffs = Arrays.asList("GT:AD:DP:EOR:FF:FT:GQ:INF:NNS:OABS:QL","0/1:27,19:46:C1[]2[];T1[]0[]:C6;T5:PASS:.:.:18:C10[40.2]9[35.33];T12[38.75]15[38]:.","0/1:9,39:48:C3[]2[]:C4;T1:PASS:.:.:37:C19[38]20[36.9];T5[39.2]4[37.75]:.","0/1:31,24:55:.:.:PASS:99:.:.:.:746.77","0/1:10,41:51:.:.:PASS:99:.:.:.:1468.77");
+		int counter = 1000000;
+		long start = System.currentTimeMillis();
+		for (int i = 0 ; i < counter ; i++) {
+			Map<String, String[]> ffMap = VcfUtils.getFormatFieldsAsMap(ffs);
+			assertEquals(11, ffMap.size());
+		}
+		System.out.println("Time taken old: " + (System.currentTimeMillis() - start));
+		
+		start = System.currentTimeMillis();
+		for (int i = 0 ; i < counter ; i++) {
+			Map<String, String[]> ffMap = VcfUtils.getFormatFieldsAsMap(ffs);
+			assertEquals(11, ffMap.size());
+		}
+		System.out.println("Time taken new: " + (System.currentTimeMillis() - start));
+		
+		start = System.currentTimeMillis();
+		for (int i = 0 ; i < counter ; i++) {
+			Map<String, String[]> ffMap = VcfUtils.getFormatFieldsAsMap(ffs);
+			assertEquals(11, ffMap.size());
+		}
+		System.out.println("Time taken old: " + (System.currentTimeMillis() - start));
+	}
+	
+	@Test
 	public void min() {
 		assertEquals(false, VcfUtils.mutationInNorma(0, 0, 0, 0));
 		assertEquals(false, VcfUtils.mutationInNorma(0, 10, 1, 2));

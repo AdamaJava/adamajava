@@ -248,5 +248,13 @@ public class CCMModeTest {
 		h.addOrReplace(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "ABC_1\tDEF_1\tABC_2\tDEF_2");
 		return h;
 	}
+	public static VcfHeader createSingleSampleTwoCallerVcf() {
+		VcfHeader h = new VcfHeader();
+		h.addOrReplace("##fileformat=VCFv4.0");
+		h.addOrReplace("##1:qTestBamUUID=DEF");
+		h.addOrReplace("##2:qTestBamUUID=DEF");
+		h.addOrReplace(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "DEF_1\tDEF_2");
+		return h;
+	}
 	
 }
