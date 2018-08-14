@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -67,7 +68,7 @@ public class Overlap {
 	private void addGoldStandard() throws IOException {
 		if (null != goldStandard) {
 			Path p = new File(goldStandard).toPath();
-			Files.lines(p).filter(s -> ! s.startsWith("#"))
+			Files.lines(p, Charset.defaultCharset()).filter(s -> ! s.startsWith("#"))
 					.map(s -> TabTokenizer.tokenize(s))
 					.filter(arr -> arr[2].length() == 1 && arr[3].length() == 1)
 					.forEach(arr -> {
@@ -94,6 +95,14 @@ public class Overlap {
 		StringBuilder filesBeingCompared = new StringBuilder();
 		
 		StringBuilder sb = new StringBuilder();
+		/*
+		 * add inputs to sb
+		 */
+		sb.append(Arrays.stream(vcfFiles).collect(Collectors.joining(" and ")));
+		if ( null != goldStandard) {
+			sb.append(" and ").append(goldStandard);
+		}
+		
 		Comparator<Entry<String,  List<ChrPositionRefAlt>>> comp =Comparator.comparingInt(e -> e.getValue().size());
 		positionsByInput.entrySet().stream().sorted(Collections.reverseOrder(comp)).forEach((e) -> {
 			int size = e.getValue().size();
@@ -101,7 +110,7 @@ public class Overlap {
 			double perc = 100.0 * size / totalVariants;
 			if (files.contains(Constants.TAB_STRING)) {
 				filesBeingCompared.append(files);
-				sb.append("In both: ").append(size).append(" (").append(String.format("%.2f", perc)).append("%)");
+				sb.append(". In both: ").append(size).append(" (").append(String.format("%.2f", perc)).append("%)");
 			} else {
 				int position = StringUtils.getPositionOfStringInArray(vcfFiles, files, false);
 				String sPos = "";
@@ -113,7 +122,7 @@ public class Overlap {
 					sPos = "file " + (position + 1);
 				}
 				
-				sb.append(", In " + sPos + " only: ").append(size).append(" (").append(String.format("%.2f", perc)).append("%)");
+				sb.append(". In " + sPos + " only: ").append(size).append(" (").append(String.format("%.2f", perc)).append("%)");
 			}
 			logger.info("files: " + files + " have " +size + " positions (" +String.format("%.2f", perc)+"%)");
 			/*
