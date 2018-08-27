@@ -80,15 +80,7 @@ public class ReadIDSummary {
 		if (headerLength > 4) {
 			updateMap(tileNumbers, headerDetails[4]);
 			
-			
-			
-//			try {
-//				String key = headerDetails[4];
-//				Integer intKey = Integer.valueOf(key);
-//				updateMap(tileNumbers, intKey);				
-//			} catch (NumberFormatException nfe) {				 
-//				throw new Exception("Can't convert string to integer: " + key, nfe);
-//			}
+
 		}		
 		// skip x, y coords for now
 		if (headerLength > 6)	 
@@ -131,6 +123,10 @@ public class ReadIDSummary {
 	
 		
 	public void toXml(Element element){
+		
+		
+		
+		
 		// header breakdown
 		SummaryReportUtils.lengthMapToXml( element, "INSTRUMENTS",  instruments );
 		SummaryReportUtils.lengthMapToXml( element, "RUN_IDS",  runIds );

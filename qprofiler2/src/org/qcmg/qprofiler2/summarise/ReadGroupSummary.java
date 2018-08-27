@@ -334,8 +334,8 @@ public class ReadGroupSummary {
 	public void readSummary2Xml(Element parent ) { 	 		
 						
 			//add to xml RG_Counts
-			Element rgElement = QprofilerXmlUtils.createSubElement( parent, node_readgroup );
-			rgElement.setAttribute("id", readGroupId);	
+			Element rgElement = QprofilerXmlUtils.createSubElement( parent, "reads" );
+			rgElement.setAttribute("readGroupId", readGroupId);	
 			rgElement.setAttribute(QprofilerXmlUtils.readCount, inputReadCounts.get() + "");
 						
 			//add discarded read Stats to readgroup summary			
@@ -364,36 +364,30 @@ public class ReadGroupSummary {
 						
 			lostPercentage += addCountedReadStats( rgElement, node_softClip, softClip, maxBases );
 			lostPercentage += addCountedReadStats( rgElement, node_hardClip, hardClip, maxBases );
-			lostPercentage += addCountedReadStats( rgElement, node_overlap, overlapBase, maxBases );	
+			lostPercentage += addCountedReadStats( rgElement, node_overlap, overlapBase, maxBases );
 			
-			//addCountedReadStats( rgElement, node_readLength, readLength, maxBases);	
-			//add overall
-			stats = QprofilerXmlUtils.createSubElement(rgElement, QprofilerXmlUtils.All_READGROUP);
-			stats.setAttribute("maxLength", maxReadLength + "" );
-			stats.setAttribute("averageLength", getAveReadLength() + "" );
-			stats.setAttribute(QprofilerXmlUtils.readCount, noOfRecords + "" );
-			
-			//by default String.format will round the tail of digits
-			stats.setAttribute("lostBasesPercent", String.format("%2.2f", lostPercentage) );						
+			//add overall information to current readgroup element
+			rgElement.setAttribute("maxLength", maxReadLength + "" );
+			rgElement.setAttribute("averageLength", getAveReadLength() + "" );
+			rgElement.setAttribute("lostBasesPercent", String.format("%2.2f", lostPercentage) );
+								
 	}	
 	
 	 	 
 	public void pairSummary2Xml(Element parent) { 	 
 		//add paring information
 		//<readGroup pairCount="148242192" id="1bf380d4-8b0f-483c-bc84-fad5f8f2bf1c">
-		Element pairElement = QprofilerXmlUtils.createSubElement(parent, node_readgroup);
-		pairElement.setAttribute("id", readGroupId);	
+		Element pairElement = QprofilerXmlUtils.createSubElement(parent, "pairs");
+		pairElement.setAttribute("readGroupId", readGroupId);	
 		pairElement.setAttribute("pairCount", pairNum.get()+"");	
 		
 		// <mateUnmappedPair count="1743093" pairNumber_flag_p="0"/>	 	
 		Element stats = QprofilerXmlUtils.createSubElement(pairElement, "mateUnmappedPair");
 		stats.setAttribute(QprofilerXmlUtils.count, mateUnmapped.get() + "");
-//		stats.setAttribute("pairNumber_flag_p", mateUnmapped_flag_p.get() + "");
 		
 		// <mateDifferentReferencePair count="3318739" pairNumber_flag_p="0"/>
 		stats = QprofilerXmlUtils.createSubElement(pairElement, "mateDifferentReferencePair");
 		stats.setAttribute(QprofilerXmlUtils.count, diffRef.get() + "");
-//		stats.setAttribute("pairNumber_flag_p", diffRef_flag_p.get() + "");
 
 		f5f3.toXml( pairElement );
 		f3f5.toXml( pairElement );

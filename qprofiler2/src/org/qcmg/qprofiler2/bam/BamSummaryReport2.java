@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentNavigableMap;
@@ -45,6 +46,7 @@ import org.qcmg.qprofiler2.summarise.CycleSummary;
 import org.qcmg.qprofiler2.summarise.KmersSummary;
 import org.qcmg.qprofiler2.summarise.PositionSummary;
 import org.qcmg.qprofiler2.summarise.ReadGroupSummary;
+import org.qcmg.qprofiler2.summarise.ReadIDSummary;
 import org.qcmg.qprofiler2.util.CycleSummaryUtils;
 import org.qcmg.qprofiler2.util.FlagUtil;
 import org.qcmg.qprofiler2.util.SummaryReportUtils;
@@ -87,6 +89,8 @@ public class BamSummaryReport2 extends SummaryReport {
 	private final QCMGAtomicLongArray cigarLengths = new QCMGAtomicLongArray(1024);	
 	private final QCMGAtomicLongArray p1Lengths = new QCMGAtomicLongArray(1024);
 	private final QCMGAtomicLongArray p2Lengths = new QCMGAtomicLongArray(1024);
+	
+	
 	
 	//Xu Code: each RG softclips, hardclips, read length; 	
 	@SuppressWarnings("serial")
@@ -152,11 +156,14 @@ public class BamSummaryReport2 extends SummaryReport {
 		
 		Element bamReportElement = init(parent, ProfileType.BAM, null,  maxRecords);		
 		XmlUtils.bamHeaderToXml(bamReportElement, bamHeader);
-		//createBamHeader( bamReportElement);
 		summaryToXml(bamReportElement ); //Summary for all read group
-//		createSeq(bamReportElement );
-//		createQual(bamReportElement );
-//		tagReport.toXml(bamReportElement);   
+		
+		
+		//create bamMertrics
+		bamReportElement = QprofilerXmlUtils.createSubElement( bamReportElement, "bamMetrics" );
+		createSeq(bamReportElement );
+		createQual(bamReportElement );
+		tagReport.toXml(bamReportElement);   
 //		createIsize(bamReportElement );	
 //		createMRNM(bamReportElement );	
 //		createRNAME(bamReportElement);
@@ -169,26 +176,15 @@ public class BamSummaryReport2 extends SummaryReport {
 //		SummaryReportUtils.lengthMapToXml(bamReportElement, "FLAG", flagBinaryCount); // FLAG
 //		if (includeCoverage) SummaryReportUtils.lengthMapToXml(bamReportElement, "Coverage", coverage);
 	}
-	
-	// bam file HEADER
-	// xml transformer can't handle large entries in the CDATA section so leave out bam header if its large (I'm looking at you here Platypus)
-	private void createBamHeader(Element bamReportElement){
 		
-		if ( null == bamHeader) return;
-			int cutoff = 100000;
-		 
-				Element headerElement = QprofilerXmlUtils.createSubElement(bamReportElement, "bamHeader");
-				//SummaryReportUtils.bamHeaderToXml(headerElement, bamHeader);
- 
-				XmlUtils.bamHeaderToXml(headerElement, bamHeader);
-	}
-	
 	//<SEQ>
 	private void createSeq(Element bamReportElement){
-		Element seqElement = QprofilerXmlUtils.createSubElement(bamReportElement, "SEQ");	//SEQ		
+		Element seqElement = QprofilerXmlUtils.createSubElement(bamReportElement, "report");	//SEQ
+		seqElement.setAttribute("Category", "SEQ");
+				
 		for(int order = 0; order < 3; order++){
 			//SEQ
-			seqByCycle[order].toXml(seqElement, "BaseByCycle", sourceName[order]);
+			seqByCycle[order].toXml(seqElement, "read Base distribution per base cycle", sourceName[order]+"BaseByCycle" );
 			SummaryReportUtils.lengthMapToXml(seqElement, "LengthTally",    sourceName[order], seqByCycle[order].getLengthMapFromCycle());
  			SummaryReportUtils.lengthMapToXml(seqElement, "BadBasesInReads" ,sourceName[order],  seqBadReadLineLengths[order]);
 		}
@@ -196,13 +192,22 @@ public class BamSummaryReport2 extends SummaryReport {
 		//add kmers  
 		for( int i : new int[] { 1, 2, 3, kmersSummary.maxKmers } )
 			kmersSummary.toXml(seqElement,i);	
+		
+		
+		 //read name will be under RT Tab
+		Element readNameElement = QprofilerXmlUtils.createSubElement(seqElement, "ReadNameAnalysis");
+		for( Entry<String, ReadIDSummary> entry:  tagReport.getReadIDSummary().entrySet()){
+			readNameElement.setAttribute("ReadGroupid", entry.getKey());
+			entry.getValue().toXml(readNameElement);
+			
+		}
 	}
 	//<QUAL>
 	private void createQual(Element bamReportElement){
 		Element qualElement = QprofilerXmlUtils.createSubElement( bamReportElement, "QUAL" );	//QUAL		
 		for(int order = 0; order < 3; order++){
 			//QUAL
-			qualByCycleInteger[order].toXml(qualElement, "QualityByCycle",sourceName[order]);
+			qualByCycleInteger[order].toXml(qualElement, "base Quality distribution per base cycle",sourceName[order]+"QualityByCycle");
 			SummaryReportUtils.lengthMapToXml(qualElement,"LengthTally",sourceName[order], qualByCycleInteger[order].getLengthMapFromCycle());
 			SummaryReportUtils.lengthMapToXml(qualElement,"BadQualsInReads",sourceName[order], qualBadReadLineLengths[order]);
 		}
@@ -355,53 +360,48 @@ public class BamSummaryReport2 extends SummaryReport {
 	}
 		
 	private void summaryToXml( Element bamReportElement){
-		 						
 		Element summaryElement = QprofilerXmlUtils.createSubElement(bamReportElement, QprofilerXmlUtils.summary);
-		// md cycles
-		//here reads contains duplicates, failed read but they all contain MD tag	
-		int mismatchingCycles = CycleSummaryUtils.getBigMDCycleNo(tagReport.tagMDMismatchByCycle, (float) 0.01, tagReport.allReadsLineLengths);
-		Element mdMismatchCyclesE = QprofilerXmlUtils.createSubElement(summaryElement,  QprofilerXmlUtils.mdCycle  );
-		mdMismatchCyclesE.setAttribute("value", mismatchingCycles + "");
-
-		// Summary - 1st and 2nd in pair ave read lengths
-		long runningTally = 0, total = 0;
-		for (int i = 0 ; i < p1Lengths.length() ; i++) {
-			long value = p1Lengths.get(i);
-			if (value > 0) {
-				total += value;
-				runningTally += (value * i);
+				
+		String[][] properties = new String[5][2];
+		//eg, <Property value="112" description="Number of cycles with >1% mismatches"/>
+		properties[0][0] = CycleSummaryUtils.getBigMDCycleNo(tagReport.tagMDMismatchByCycle, (float) 0.01, tagReport.allReadsLineLengths) +"";
+		properties[0][1] ="Number of cycles with greater than 1% mismatches";
+		
+		//<Property value="151" description="Average length of first-of-pair reads" readCount="37804"/>
+		//<Property value="151" description="Average length of second-of-pair reads" readCount="37259"/>
+		int point = 1;
+		for(QCMGAtomicLongArray length: new QCMGAtomicLongArray[] {p1Lengths, p2Lengths}) {
+			long runningTally = 0, total = 0;
+			for (int i = 0 ; i < length.length() ; i++) {
+				long value = length.get(i);
+				if (value > 0) {
+					total += value;
+					runningTally += (value * i);
+				}
 			}
+			
+			properties[point][0] = (total > 0 ? (runningTally / total) : 0 ) +"";
+			properties[point][1] = String.format("Average length of %s-of-pair reads", point == 1? "first" : "second");			 
+			point ++;
 		}
 		
-		//Element p1AveLenghtE = QprofilerXmlUtils.createSubElement(summaryElement, "FirstInPairAveLength");
-		Element p1AveLenghtE = QprofilerXmlUtils.createSubElement(summaryElement, QprofilerXmlUtils.FirstOfPair);
-		long averageLength = total > 0 ? (runningTally / total) : 0;
-		p1AveLenghtE.setAttribute("averageLength", averageLength + "");
-		p1AveLenghtE.setAttribute("count", String.format( "%d",total ) );
-		
-		runningTally = 0;
-		total = 0;
-		for (int i = 0 ; i < p2Lengths.length() ; i++) {
-			long value = p2Lengths.get(i);
-			if (value > 0) {
-				total += value;
-				runningTally += (value * i);
-			}
-		}
-		
-		Element p2AveLenghtE = QprofilerXmlUtils.createSubElement(summaryElement, QprofilerXmlUtils.SecondOfPair  );
-		averageLength = total > 0 ? (runningTally / total) : 0;
-		p2AveLenghtE.setAttribute("averageLength", averageLength + "");
-		p2AveLenghtE.setAttribute(QprofilerXmlUtils.count, String.format( "%d", total) );
-		
+		//<Property value="1122" description="Discarded reads (FailedVendorQuality, secondary, supplementary)"/>
 		long badReadNum = rgSummaries.get(QprofilerXmlUtils.All_READGROUP).getNumFailedVendorQuality() +
-				rgSummaries.get(QprofilerXmlUtils.All_READGROUP).getNumSecondary() + rgSummaries.get(QprofilerXmlUtils.All_READGROUP).getNumSupplementary() ;		
-		QprofilerXmlUtils.createSubElement(summaryElement, QprofilerXmlUtils.filteredReads).setAttribute(QprofilerXmlUtils.count, badReadNum+"");
-		QprofilerXmlUtils.createSubElement(summaryElement, QprofilerXmlUtils.fileReads).setAttribute(QprofilerXmlUtils.count, getRecordsParsed()+"");					
-						
-		//Xu code : for each read group	
-		Element readElement = QprofilerXmlUtils.createSubElement(summaryElement, QprofilerXmlUtils.reads);
-		Element pairElement = QprofilerXmlUtils.createSubElement(summaryElement, QprofilerXmlUtils.readPairs);
+				rgSummaries.get(QprofilerXmlUtils.All_READGROUP).getNumSecondary() + rgSummaries.get(QprofilerXmlUtils.All_READGROUP).getNumSupplementary() ;				
+		properties[3][0] = badReadNum + "";
+		properties[3][1] = "Discarded reads (FailedVendorQuality, secondary, supplementary)";
+		
+		//<Property value="102789" description="Total reads including discarded reads"/>
+		properties[4][0] = getRecordsParsed() + "";
+		properties[4][1] = "Total reads including discarded reads";
+		
+		
+		for(String[] property : properties) {
+			Element element = QprofilerXmlUtils.createSubElement(summaryElement,  "Property");
+			element.setAttribute("value", property[0]);
+			element.setAttribute("description", property[1]);
+			
+		}
 		
 		//for each real read group first	
 		long trimBases = 0;
@@ -409,8 +409,8 @@ public class BamSummaryReport2 extends SummaryReport {
 		
 		for(ReadGroupSummary summary: rgSummaries.values()) 
 			if(! summary.getReadGroupId().equals(QprofilerXmlUtils.All_READGROUP)){
-				summary.readSummary2Xml(readElement);
-				summary.pairSummary2Xml(pairElement);  
+				summary.readSummary2Xml(summaryElement);
+				summary.pairSummary2Xml(summaryElement);  
 				trimBases += summary.getTrimedBases();
 				maxBases += summary.getMaxReadLength() * summary.getCountedReads(); 
 			}		
@@ -420,8 +420,9 @@ public class BamSummaryReport2 extends SummaryReport {
 		ReadGroupSummary summary = rgSummaries.get(QprofilerXmlUtils.All_READGROUP);
 		summary.setMaxBases(maxBases);
 		summary.setTrimedBases(trimBases);
-		summary.readSummary2Xml(readElement);
-		summary.pairSummary2Xml(pairElement);
+		summary.readSummary2Xml(summaryElement);
+		summary.pairSummary2Xml(summaryElement);
+		
 	}
 		
 	void parseRNameAndPos( final String rName,  final int position, String rgid ) {

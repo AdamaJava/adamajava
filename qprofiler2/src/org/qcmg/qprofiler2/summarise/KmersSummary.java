@@ -2,8 +2,10 @@ package org.qcmg.qprofiler2.summarise;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
@@ -13,6 +15,7 @@ import org.qcmg.common.util.BaseUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.QprofilerXmlUtils;
 import org.qcmg.qprofiler2.bam.BamSummaryReport2;
+import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Element;
 
 public class KmersSummary {
@@ -237,27 +240,27 @@ public class KmersSummary {
 	}
 	
 	public void toXml( Element parent, int klength ) { 
-		
-		Element merElement = QprofilerXmlUtils.createSubElement(parent, "mers" + klength);				
+					
 
 		for(int pair = 0; pair < 3; pair ++){
 			if (parsedCount[pair].get() <= 0 ) continue; 
 			
-			Element element = QprofilerXmlUtils.createSubElement(merElement, "CycleTally" );			
-			Set<String> possibleMers = getPopularKmerString(16,  klength, false, pair) ;			
+			//Element element = QprofilerXmlUtils.createSubElement(merElement, "CycleTally" );			
+			Set<String> possibleMers = getPopularKmerString(16,  klength, false, pair) ;
+			String poss = QprofilerXmlUtils.joinByComma(new ArrayList<String>( possibleMers));
+			String desc = klength + "-mers sequence distribution";
 			
-			element.setAttribute( "possibleValues", QprofilerXmlUtils.joinByComma(new ArrayList<String>( possibleMers)));
-			element.setAttribute( "source",  BamSummaryReport2.sourceName[pair] );
-			element.setAttribute( "parsedReads",  parsedCount[pair].get()+"" );
-			for(int i = 0; i <  cycleNo; i++ ){ 		
-				List<Long> counts = new ArrayList<Long>();
+			Map<Integer, String> values = new HashMap<>();			
+ 			for(int i = 0; i <  cycleNo; i++ ){ 
+ 				List<Long> counts = new ArrayList<Long>();
 				for(String mer :  possibleMers)
 					counts.add(getCount( i,  mer, pair));
-				
-				Element childElement = QprofilerXmlUtils.createSubElement(element, "Cycle" );
-				childElement.setAttribute("value", i+"");
-				childElement.setAttribute("counts", QprofilerXmlUtils.joinByComma(  counts));					
-			}			
+				if(counts.isEmpty()) continue;
+ 				values.put(i, QprofilerXmlUtils.joinByComma(counts));			
+			}	
+ 			
+			XmlUtils.outputMatrix( parent, poss, desc, BamSummaryReport2.sourceName[pair]+klength+"mers", values);
+ 			
 		}				
 	}
 	

@@ -67,7 +67,7 @@ public class FastqSummaryReport extends SummaryReport {
 		
 		// SEQ
 		Element seqElement = QprofilerXmlUtils.createSubElement(element, "SEQ");
-		seqByCycle.toXml(seqElement, "BaseByCycle", null);
+		seqByCycle.toXml(seqElement, "BaseByCycle", "BaseCycle");
 		SummaryReportUtils.lengthMapToXml(seqElement, "LengthTally", seqLineLengths);
 		SummaryReportUtils.lengthMapToXml(seqElement, "BadBasesInReads", seqBadReadLineLengths);
 		

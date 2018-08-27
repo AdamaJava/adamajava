@@ -261,9 +261,43 @@ public class TagSummaryReport2 {
 	
 	
 	public void toXml(Element bamReportElement){
+		//MD tag
+		Element tagElement = QprofilerXmlUtils.createSubElement(bamReportElement, "report");	//SEQ
+		tagElement.setAttribute("Category", "MDTAG");
+
+		
+		//"distribution of mismatches in the MD tag, and the reported base";
+		// TAG-MD-Mismatch
+		Element tagMDElement = QprofilerXmlUtils.createSubElement(tagElement, "MD");			
+		//Element misMatchE = QprofilerXmlUtils.createSubElement(tagMDElement, "MismatchByCycle" );
+		
+		for(int order = 0; order < 3; order ++){ 
+			// SummaryReportUtils.lengthMapToXml(tagMDElement, "AllReads", sourceName[order], allReadsLineLengths[order]);
+			CycleSummaryUtils.toXmlWithPercentage(tagMDMismatchByCycle[order], tagMDElement,"MismatchByCycle", BamSummaryReport2.sourceName[order], allReadsLineLengths[order]  ); 		
+			// TAG-MD ref>alt switch the ints back to Strings
+			for(String strand : new String[]{"MutationForward", "MutationReverse"}){
+				Map<String, AtomicLong> mdRefAltLengthsString = new HashMap<String, AtomicLong>();
+				QCMGAtomicLongArray mdRefAltLengths = (strand.equals("MutationForward"))? mdRefAltLengthsForward[order] : mdRefAltLengthsReverse[order];				
+				for (int m = 0 ; m < mdRefAltLengths.length() ; m++) {
+					long l = mdRefAltLengths.get(m);
+					if (l <= 0)  continue;
+					mdRefAltLengthsString.put(CycleSummaryUtils.getStringFromInt(m), new AtomicLong(l));					 
+				}
+				SummaryReportUtils.lengthMapToXml(tagMDElement, strand, BamSummaryReport2.sourceName[order], mdRefAltLengthsString);
+			}
+		}	
+
+		
+		
+		
+		//other tags
+		
+		
+		
+		
  		
 		//TAG
-		Element tagElement = QprofilerXmlUtils.createSubElement( bamReportElement, "TAG");
+//		Element tagElement = QprofilerXmlUtils.createSubElement( bamReportElement, "TAG");
 		//TAG-CS
 		Element tagCSElement = QprofilerXmlUtils.createSubElement(tagElement, "CS");
 		if( tagCSByCycle.cycles().size() > 0){
@@ -293,25 +327,6 @@ public class TagSummaryReport2 {
 		SummaryReportUtils.lengthMapToXml(tagElement, "IH", tagIHLineLengths);
 		// TAG-NH
 		SummaryReportUtils.lengthMapToXml(tagElement, "NH", tagNHLineLengths);
-		// TAG-MD-Mismatch
-		Element tagMDElement = QprofilerXmlUtils.createSubElement(tagElement, "MD");			
-		//Element misMatchE = QprofilerXmlUtils.createSubElement(tagMDElement, "MismatchByCycle" );
-		
-		for(int order = 0; order < 3; order ++){ 
-			// SummaryReportUtils.lengthMapToXml(tagMDElement, "AllReads", sourceName[order], allReadsLineLengths[order]);
-			CycleSummaryUtils.toXmlWithPercentage(tagMDMismatchByCycle[order], tagMDElement,"MismatchByCycle", BamSummaryReport2.sourceName[order], allReadsLineLengths[order]  ); 		
-			// TAG-MD ref>alt switch the ints back to Strings
-			for(String strand : new String[]{"MutationForward", "MutationReverse"}){
-				Map<String, AtomicLong> mdRefAltLengthsString = new HashMap<String, AtomicLong>();
-				QCMGAtomicLongArray mdRefAltLengths = (strand.equals("MutationForward"))? mdRefAltLengthsForward[order] : mdRefAltLengthsReverse[order];				
-				for (int m = 0 ; m < mdRefAltLengths.length() ; m++) {
-					long l = mdRefAltLengths.get(m);
-					if (l <= 0)  continue;
-					mdRefAltLengthsString.put(CycleSummaryUtils.getStringFromInt(m), new AtomicLong(l));					 
-				}
-				SummaryReportUtils.lengthMapToXml(tagMDElement, strand, BamSummaryReport2.sourceName[order], mdRefAltLengthsString);
-			}
-		}	
 		
 		if (includeMatrices)  // ConcurrentMap<Integer, MAPQMatrix> mapQMatrix
 			createMatrix(bamReportElement );
@@ -332,14 +347,7 @@ public class TagSummaryReport2 {
 		//TAG-RG
 		SummaryReportUtils.lengthMapToXml(tagElement, "RG", tagRGLineLengths);
 		
-		 //read name will be under RT Tab
-		Element readNameElement = QprofilerXmlUtils.createSubElement(tagElement, "ReadNameAnalysis");
-		for( Entry<String, ReadIDSummary> entry:  readIdSummary.entrySet()){
-			Element ele = QprofilerXmlUtils.createSubElement(readNameElement, "ReadGroup");
-			ele.setAttribute("id", entry.getKey());
-			entry.getValue().toXml(ele);
-			
-		}
+
 		/**
 		 * 	private final ConcurrentMap<String, ReadIDSummary> readIdSummary = new ConcurrentHashMap<String, ReadIDSummary>();
 	private final ConcurrentMap<String, AtomicLong> inValidReadIds = new ConcurrentHashMap<String, AtomicLong>();
@@ -429,6 +437,6 @@ public class TagSummaryReport2 {
 		
 	}	
 	
- 
+	public ConcurrentMap<String, ReadIDSummary>  getReadIDSummary(){	return readIdSummary;	}
 	
 }
