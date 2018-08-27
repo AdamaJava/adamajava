@@ -28,6 +28,7 @@ import htsjdk.samtools.AlignmentBlock;
 import htsjdk.samtools.Cigar;
 import htsjdk.samtools.CigarElement;
 import htsjdk.samtools.CigarOperator;
+import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMSequenceDictionary;
 
@@ -47,6 +48,7 @@ import org.qcmg.qprofiler2.summarise.ReadGroupSummary;
 import org.qcmg.qprofiler2.util.CycleSummaryUtils;
 import org.qcmg.qprofiler2.util.FlagUtil;
 import org.qcmg.qprofiler2.util.SummaryReportUtils;
+import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Element;
 
 public class BamSummaryReport2 extends SummaryReport {	
@@ -97,7 +99,7 @@ public class BamSummaryReport2 extends SummaryReport {
 	private int zeroCoverageCount;
 	private boolean includeCoverage;
 	private Long maxRecords;
-	private String bamHeader;
+	private SAMFileHeader bamHeader;
 	private SAMSequenceDictionary samSeqDictionary;
 	private List<String> readGroupIds = Arrays.asList( QprofilerXmlUtils.UNKNOWN_READGROUP ); //init	
 	
@@ -149,37 +151,36 @@ public class BamSummaryReport2 extends SummaryReport {
 	public void toXml( Element parent ) {	
 		
 		Element bamReportElement = init(parent, ProfileType.BAM, null,  maxRecords);		
-		createBamHeader( bamReportElement);
+		XmlUtils.bamHeaderToXml(bamReportElement, bamHeader);
+		//createBamHeader( bamReportElement);
 		summaryToXml(bamReportElement ); //Summary for all read group
-		createSeq(bamReportElement );
-		createQual(bamReportElement );
-		tagReport.toXml(bamReportElement);   
-		createIsize(bamReportElement );	
-		createMRNM(bamReportElement );	
-		createRNAME(bamReportElement);
-		
-		// CIGAR
-		Element cigarElement = QprofilerXmlUtils.createSubElement(bamReportElement, "CIGAR");
-		SummaryReportUtils.lengthMapToXml(cigarElement, "ObservedOperations", null, cigarValuesCount, new CigarStringComparator());
-		SummaryReportUtils.lengthMapToXml(cigarElement, "Lengths", cigarLengths);		
-		SummaryReportUtils.MAPQtoXML(bamReportElement, "MAPQ", sourceName, mapQualityLengths) ;// MAPQ					
-		SummaryReportUtils.lengthMapToXml(bamReportElement, "FLAG", flagBinaryCount); // FLAG
-		if (includeCoverage) SummaryReportUtils.lengthMapToXml(bamReportElement, "Coverage", coverage);
+//		createSeq(bamReportElement );
+//		createQual(bamReportElement );
+//		tagReport.toXml(bamReportElement);   
+//		createIsize(bamReportElement );	
+//		createMRNM(bamReportElement );	
+//		createRNAME(bamReportElement);
+//		
+//		// CIGAR
+//		Element cigarElement = QprofilerXmlUtils.createSubElement(bamReportElement, "CIGAR");
+//		SummaryReportUtils.lengthMapToXml(cigarElement, "ObservedOperations", null, cigarValuesCount, new CigarStringComparator());
+//		SummaryReportUtils.lengthMapToXml(cigarElement, "Lengths", cigarLengths);		
+//		SummaryReportUtils.MAPQtoXML(bamReportElement, "MAPQ", sourceName, mapQualityLengths) ;// MAPQ					
+//		SummaryReportUtils.lengthMapToXml(bamReportElement, "FLAG", flagBinaryCount); // FLAG
+//		if (includeCoverage) SummaryReportUtils.lengthMapToXml(bamReportElement, "Coverage", coverage);
 	}
 	
 	// bam file HEADER
 	// xml transformer can't handle large entries in the CDATA section so leave out bam header if its large (I'm looking at you here Platypus)
 	private void createBamHeader(Element bamReportElement){
 		
-		if ( ! StringUtils.isNullOrEmpty(bamHeader)) {
+		if ( null == bamHeader) return;
 			int cutoff = 100000;
-			if (StringUtils.passesOccurenceCountCheck(bamHeader, "@SQ", cutoff)) {
+		 
 				Element headerElement = QprofilerXmlUtils.createSubElement(bamReportElement, "bamHeader");
-				SummaryReportUtils.bamHeaderToXml(headerElement, bamHeader);
-			} else {
-				logger.warn("Ommitting bam header information from report as the number of chromosomes/contigs is greater than: " + cutoff);
-			}
-		}
+				//SummaryReportUtils.bamHeaderToXml(headerElement, bamHeader);
+ 
+				XmlUtils.bamHeaderToXml(headerElement, bamHeader);
 	}
 	
 	//<SEQ>
@@ -429,9 +430,9 @@ public class BamSummaryReport2 extends SummaryReport {
 	}
 		
 	//setting
-	public void setBamHeader(String bamHeader) { this.bamHeader = bamHeader;	}
+	public void setBamHeader(SAMFileHeader header) {  this.bamHeader = header;	 }
 	public void setTorrentBam() { if(tagReport != null) tagReport.setTorrentBam();	}
-	public String getBamHeader() {	return bamHeader;	}
+	public String getBamHeader() {	return bamHeader.getSAMString();	}
 	public void setSamSequenceDictionary(SAMSequenceDictionary samSeqDictionary) {	this.samSeqDictionary = samSeqDictionary;	}
 	public SAMSequenceDictionary getSamSequenceDictionary() { return samSeqDictionary;	}	
 	public void setReadGroups(List<String> ids ){	readGroupIds = Stream.concat( ids.stream(), readGroupIds.stream()).collect(Collectors.toList()); }

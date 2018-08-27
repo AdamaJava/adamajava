@@ -19,6 +19,7 @@ import java.util.List;
 
 import htsjdk.samtools.SamReader;
 import htsjdk.samtools.ValidationStringency;
+import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMProgramRecord;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMSequenceDictionary;
@@ -56,23 +57,28 @@ public class BamSummarizer2 implements Summarizer {
 		
 		// create the SummaryReport
 		SamReader reader = SAMFileReaderFactory.createSAMFileReader(file);
-		SAMSequenceDictionary samSeqDict  = reader.getFileHeader().getSequenceDictionary();
-		String bamHeader = reader.getFileHeader().getTextHeader();
-		List<SAMProgramRecord> pgLines = reader.getFileHeader().getProgramRecords();
-		List<String> readGroupIds = reader.getFileHeader().getReadGroups().stream().map( it -> it.getId()  ).collect(toList()); 
+		SAMFileHeader header = reader.getFileHeader();
+		reader.close();
+		
+		SAMSequenceDictionary samSeqDict  = header.getSequenceDictionary();
+		//String bamHeader = reader.getFileHeader().getTextHeader();
+		List<SAMProgramRecord> pgLines = header.getProgramRecords();
+		List<String> readGroupIds = header.getReadGroups().stream().map( it -> it.getId()  ).collect(toList()); 
 		
 		boolean torrentBam = false;
 		for (SAMProgramRecord pgLine : pgLines)  
 			if ("tmap".equals(pgLine.getId())){ torrentBam = true;break;}		
-		reader.close();
+
 				
 		BamSummaryReport2 bamSummaryReport = new BamSummaryReport2(includes, maxRecords, tags, tagsInt, tagsChar);		
 		if(torrentBam) bamSummaryReport.setTorrentBam();
-		bamSummaryReport.setBamHeader(bamHeader);
+							
+		bamSummaryReport.setBamHeader(header);		
 		bamSummaryReport.setSamSequenceDictionary(samSeqDict);
 		bamSummaryReport.setReadGroups(readGroupIds);		
 		bamSummaryReport.setFileName(file.getAbsolutePath());
-		bamSummaryReport.setStartTime(DateUtils.getCurrentDateAsString());				
+		bamSummaryReport.setStartTime(DateUtils.getCurrentDateAsString());
+				
 		return bamSummaryReport;			
 	}
 	

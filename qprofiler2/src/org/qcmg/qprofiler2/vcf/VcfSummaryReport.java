@@ -16,6 +16,7 @@ import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.qprofiler2.report.SummaryReport;
 import org.qcmg.qprofiler2.summarise.SampleSummary;
+import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Element;
 
 
@@ -52,7 +53,8 @@ public class VcfSummaryReport  extends SummaryReport {
 		logger.info("preparing output...");
 		Element parentElement = init(parent, ProfileType.VCF);	
 		logger.info("outputing vcf header to xml...");
-		vcfHeaderToXml(parentElement);  //Vcf header	
+		//vcfHeaderToXml(parentElement);  //Vcf header	
+		XmlUtils.vcfHeaderToXml(parentElement, vcfHeader);
 		logger.info("outputing sample information to xml...");
 		summaryToXml( parentElement  );		
 	}
