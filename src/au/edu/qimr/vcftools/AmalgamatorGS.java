@@ -139,6 +139,9 @@ public class AmalgamatorGS {
 				for (int i = 1 ; i <= allFiles.length ; i++) {
 					header += "\tALL-AC:" + i;
 				}
+				for (int i = 1 ; i <= allFiles.length ; i++) {
+					header += "\tALL-FT:" + i;
+				}
 			}
 			header += "\tScore";
 			
@@ -150,6 +153,11 @@ public class AmalgamatorGS {
 				if (null != allFiles && null == missingACs || missingACs.length == 0) {
 					missingACs = new String[allFiles.length];
 					Arrays.fill(missingACs, ".");
+				}
+				String[] missingFTs = null != allP ? allP.getLeft() : null;
+				if (null != allFiles && null == missingFTs || missingFTs.length == 0) {
+					missingFTs = new String[allFiles.length];
+					Arrays.fill(missingFTs, ".");
 				}
 				int score = getScore(p.getLeft());
 				boolean gsOnly = goldStandardOnly(p.getLeft(), 4);
@@ -165,6 +173,7 @@ public class AmalgamatorGS {
 						+ cp.getAlt() + Constants.TAB + Arrays.stream(p.getLeft()).map(s -> null == s ? "./." : s).collect(Collectors.joining(Constants.TAB_STRING))
 						+ Constants.TAB +  Arrays.stream(p.getRight()).map(s -> null == s ? "." : s).collect(Collectors.joining(Constants.TAB_STRING))
 						+ Constants.TAB +  Arrays.stream(missingACs).map(s -> null == s ? "." : s).collect(Collectors.joining(Constants.TAB_STRING))
+						+ Constants.TAB +  Arrays.stream(missingFTs).map(s -> null == s ? "." : s).collect(Collectors.joining(Constants.TAB_STRING))
 						+ Constants.TAB + scoreS);
 			}
 		}
@@ -332,7 +341,7 @@ public class AmalgamatorGS {
 							} else {
 								ChrPositionRefAlt cpn  = new ChrPositionRefAlt(rec.getChrPosition().getChromosome(), rec.getChrPosition().getStartPosition(), rec.getChrPosition().getStartPosition(), ref, alt);
 								Pair<String[], String[]> pair = missingPositionsFromAll.computeIfAbsent(cpn, v -> Pair.of(new String[fileCount], new String[fileCount]));
-								updateGTsAndACs(index, rec, recordSomatic, ref, alt, pair, true);
+								updateFTsAndACs(index, rec, recordSomatic, ref, alt, pair, true);
 							}
 						}
 					}
@@ -346,6 +355,48 @@ public class AmalgamatorGS {
 			index++;
 		}
 	}
+	
+	static void updateFTsAndACs(int index, VcfRecord rec, boolean recordSomatic, String ref, String alt, Pair<String[], String[]> pair, boolean showPrefix) {
+		List<String> ffList = rec.getFormatFields();
+		/*
+		 * get position of FT from first entry, and then get second (germline and qsnp)
+		 */
+		String [] formatHeaders = TabTokenizer.tokenize(ffList.get(0), Constants.COLON);
+		int ftPosition = getPositionFromHeader(formatHeaders, VcfHeaderUtils.FORMAT_FILTER);
+		int adPosition = getPositionFromHeader(formatHeaders, VcfHeaderUtils.FORMAT_ALLELIC_DEPTHS);
+		int oabsPosition = getPositionFromHeader(formatHeaders, VcfHeaderUtils.FORMAT_ALLELE_COUNT);
+		int adAllPosition = -1;
+		if (oabsPosition == -1) {
+			adAllPosition = getPositionFromHeader(formatHeaders, "ADALL");
+		}
+		
+		/*
+		 * If list contains 2 elements, set position to 1, otherwise 
+		 * if germline, get from second entry in list, for somatic, get third
+		 */
+		int position = ffList.size() == 2 ? 1 : recordSomatic ? 2 : 1;
+		String [] params = TabTokenizer.tokenize(ffList.get(position), Constants.COLON); 
+		pair.getLeft()[index] =  getStringFromArray(params, ftPosition);
+		String somGerPrefix = recordSomatic ? "S" : "G";
+		
+		if (adPosition > -1) {
+			pair.getRight()[index] = (showPrefix ? somGerPrefix : "") +  getStringFromArray(params, adPosition);
+		} else {
+		
+			/*
+			 * get allele dist next
+			 */
+			if (oabsPosition > -1) {
+				String oabs = getStringFromArray(params, oabsPosition);
+				Map<String, Integer> alleleDist = VcfUtils.getAllelicCoverageFromAC(oabs);
+				pair.getRight()[index] = (showPrefix ? somGerPrefix : "") +  getAllelicDistFromMap(alleleDist, ref, alt);
+			} else if (adAllPosition > -1) {
+				pair.getRight()[index] = "ADALL:" + getStringFromArray(params, adAllPosition);
+			}
+		}
+	}
+	
+	
 	static void updateGTsAndACs(int index, VcfRecord rec, boolean recordSomatic, String ref, String alt, Pair<String[], String[]> pair) {
 		updateGTsAndACs( index,  rec,  recordSomatic,  ref,  alt, pair, false);
 	}
