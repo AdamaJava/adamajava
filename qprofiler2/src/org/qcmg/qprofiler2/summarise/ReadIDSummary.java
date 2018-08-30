@@ -6,9 +6,11 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Function;
 
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.qprofiler2.util.SummaryReportUtils;
+import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Element;
 
 public class ReadIDSummary {
@@ -18,8 +20,7 @@ public class ReadIDSummary {
 	ConcurrentMap<String, AtomicLong> runIds = new ConcurrentHashMap<>();
 	ConcurrentMap<String, AtomicLong> flowCellIds = new ConcurrentHashMap<>();
 	ConcurrentMap<String, AtomicLong> flowCellLanes = new ConcurrentHashMap<>();
-//	ConcurrentMap<Integer, AtomicLong> tileNumbers = new ConcurrentHashMap<>();
-	//hiseq tile number is integer but bgi is string
+
 	ConcurrentMap<String, AtomicLong> tileNumbers = new ConcurrentHashMap<>();
 	AtomicLong firstInPair = new AtomicLong();
 	AtomicLong secondInPair = new AtomicLong();
@@ -27,6 +28,8 @@ public class ReadIDSummary {
 	AtomicLong filteredN = new AtomicLong();
 	AtomicLong invalidId = new AtomicLong();
 	ConcurrentMap<String, AtomicLong> indexes = new ConcurrentHashMap<>();	
+	
+	AtomicLong inputNo  = new AtomicLong();
 	
 	/**
 	 * analysis readId, record instrument, runId, flowCellId, flowCellLanes, titleNumber etc
@@ -44,6 +47,8 @@ public class ReadIDSummary {
 	 * @throws Exception 
 	 */
 	public void parseReadId(String readId) throws Exception{
+		
+		inputNo.incrementAndGet();
 		
 		if ( !readId.contains(":")) { parseBgiReads(readId); return; };	
 		
@@ -121,28 +126,28 @@ public class ReadIDSummary {
 		//updateMap( tileNumbers, Integer.valueOf(tile) );
 	}
 	
+	public long getInputReadNumber() {return inputNo.get();}
 		
 	public void toXml(Element element){
-		
+		//XmlUtils.outputReadName(element, "INSTRUMENTS",  instruments );
 		
 		
 		
 		// header breakdown
-		SummaryReportUtils.lengthMapToXml( element, "INSTRUMENTS",  instruments );
-		SummaryReportUtils.lengthMapToXml( element, "RUN_IDS",  runIds );
-		SummaryReportUtils.lengthMapToXml( element, "FLOW_CELL_IDS",  flowCellIds );
-		SummaryReportUtils.lengthMapToXml( element, "FLOW_CELL_LANES", flowCellLanes );
-		SummaryReportUtils.lengthMapToXml( element, "TILE_NUMBERS", tileNumbers );
-		SummaryReportUtils.lengthMapToXml( element, "PAIR_INFO",  getPairs() );
-		SummaryReportUtils.lengthMapToXml( element, "FILTER_INFO",  getFiltered() );
-		SummaryReportUtils.lengthMapToXml( element, "INDEXES",  indexes );		
+		XmlUtils.outputReadName( element, "INSTRUMENTS",  instruments );
+		XmlUtils.outputReadName( element, "RUN_IDS",  runIds );
+		XmlUtils.outputReadName( element, "FLOW_CELL_IDS",  flowCellIds );
+		XmlUtils.outputReadName( element, "FLOW_CELL_LANES", flowCellLanes );
+		XmlUtils.outputReadName( element, "TILE_NUMBERS", tileNumbers );
+		XmlUtils.outputReadName( element, "PAIR_INFO",  getPairs() );
+		XmlUtils.outputReadName( element, "FILTER_INFO",  getFiltered() );
+		XmlUtils.outputReadName( element, "INDEXES",  indexes );		
 	}
 		
 	public ConcurrentMap<String, AtomicLong> getInstrumentsMap(){ return instruments;	}	
 	public ConcurrentMap<String, AtomicLong> getRunIdsMap(){ return runIds; }	
 	public ConcurrentMap<String, AtomicLong> getFlowCellIdsMap(){ return flowCellIds; }
 	public ConcurrentMap<String, AtomicLong> getFlowCellLanesMap(){ return flowCellLanes; }
-//	public ConcurrentMap<Integer, AtomicLong> getTileNumbersMap(){	return tileNumbers; }
 	public ConcurrentMap<String, AtomicLong> getTileNumbersMap(){	return tileNumbers; }
 	public ConcurrentMap<String, AtomicLong> getIndexesMap(){ return indexes; }
 	
@@ -213,15 +218,19 @@ public class ReadIDSummary {
 	}
 
 	private <T> void updateMap(ConcurrentMap<T, AtomicLong> map , T key) {
-		AtomicLong al = map.get(key);
-		if (null == al) {
-			al = new AtomicLong();
-			AtomicLong existing = map.putIfAbsent(key, al);
-			if (null != existing) {
-				al = existing;
-			}
-		}
+		AtomicLong al = map.computeIfAbsent(key, k-> new AtomicLong());
+		
+//		if (null == al) {
+//			al = new AtomicLong();
+//			AtomicLong existing = map.putIfAbsent(key, al);
+//			if (null != existing) {
+//				al = existing;
+//			}
+//		}
 		al.incrementAndGet();
+		
+		
+		 
 	}	
 
 	/**

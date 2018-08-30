@@ -1,6 +1,7 @@
 package org.qcmg.qprofiler2.bam;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.Map.Entry;
@@ -24,6 +25,7 @@ import org.qcmg.qprofiler2.summarise.CycleSummary;
 import org.qcmg.qprofiler2.summarise.ReadIDSummary;
 import org.qcmg.qprofiler2.util.CycleSummaryUtils;
 import org.qcmg.qprofiler2.util.SummaryReportUtils;
+import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Element;
 
 import htsjdk.samtools.SAMRecord;
@@ -261,91 +263,100 @@ public class TagSummaryReport2 {
 	
 	
 	public void toXml(Element bamReportElement){
-		//MD tag
 		Element tagElement = QprofilerXmlUtils.createSubElement(bamReportElement, "report");	//SEQ
-		tagElement.setAttribute("Category", "MDTAG");
-
-		
-		//"distribution of mismatches in the MD tag, and the reported base";
-		// TAG-MD-Mismatch
-		Element tagMDElement = QprofilerXmlUtils.createSubElement(tagElement, "MD");			
-		//Element misMatchE = QprofilerXmlUtils.createSubElement(tagMDElement, "MismatchByCycle" );
-		
-		for(int order = 0; order < 3; order ++){ 
-			// SummaryReportUtils.lengthMapToXml(tagMDElement, "AllReads", sourceName[order], allReadsLineLengths[order]);
-			CycleSummaryUtils.toXmlWithPercentage(tagMDMismatchByCycle[order], tagMDElement,"MismatchByCycle", BamSummaryReport2.sourceName[order], allReadsLineLengths[order]  ); 		
-			// TAG-MD ref>alt switch the ints back to Strings
-			for(String strand : new String[]{"MutationForward", "MutationReverse"}){
-				Map<String, AtomicLong> mdRefAltLengthsString = new HashMap<String, AtomicLong>();
-				QCMGAtomicLongArray mdRefAltLengths = (strand.equals("MutationForward"))? mdRefAltLengthsForward[order] : mdRefAltLengthsReverse[order];				
-				for (int m = 0 ; m < mdRefAltLengths.length() ; m++) {
-					long l = mdRefAltLengths.get(m);
-					if (l <= 0)  continue;
-					mdRefAltLengthsString.put(CycleSummaryUtils.getStringFromInt(m), new AtomicLong(l));					 
-				}
-				SummaryReportUtils.lengthMapToXml(tagMDElement, strand, BamSummaryReport2.sourceName[order], mdRefAltLengthsString);
-			}
-		}	
-
+		tagElement.setAttribute("Category", "TAG");
 		
 		
+		//MD tag
+		Element childElement = QprofilerXmlUtils.createSubElement(tagElement, "subField");	//SEQ
+		childElement.setAttribute("Category", "TAG:MD");
 		
-		//other tags
+		//mismatchbycycle
+		for(int order = 0; order < 3; order ++)
+			tagMDMismatchByCycle[order].toXml(childElement, "mismatch distribution per base cycle", BamSummaryReport2.sourceName[order], "read base cycle");
 		
-		
-		
-		
+//		//"distribution of mismatches in the MD tag, and the reported base";
+//		// TAG-MD-Mismatch
+//		Element tagMDElement = QprofilerXmlUtils.createSubElement(tagElement, "MD");			
+//		//Element misMatchE = QprofilerXmlUtils.createSubElement(tagMDElement, "MismatchByCycle" );
+//		
+//		for(int order = 0; order < 3; order ++){ 
+//			// SummaryReportUtils.lengthMapToXml(tagMDElement, "AllReads", sourceName[order], allReadsLineLengths[order]);
+//			CycleSummaryUtils.toXmlWithPercentage(tagMDMismatchByCycle[order], tagMDElement,"MismatchByCycle", BamSummaryReport2.sourceName[order], allReadsLineLengths[order]  ); 		
+//			// TAG-MD ref>alt switch the ints back to Strings
+//			for(String strand : new String[]{"MutationForward", "MutationReverse"}){
+//				Map<String, AtomicLong> mdRefAltLengthsString = new HashMap<String, AtomicLong>();
+//				QCMGAtomicLongArray mdRefAltLengths = (strand.equals("MutationForward"))? mdRefAltLengthsForward[order] : mdRefAltLengthsReverse[order];				
+//				for (int m = 0 ; m < mdRefAltLengths.length() ; m++) {
+//					long l = mdRefAltLengths.get(m);
+//					if (l <= 0)  continue;
+//					mdRefAltLengthsString.put(CycleSummaryUtils.getStringFromInt(m), new AtomicLong(l));					 
+//				}
+//				SummaryReportUtils.lengthMapToXml(tagMDElement, strand, BamSummaryReport2.sourceName[order], mdRefAltLengthsString);
+//			}
+//		}	
+			
  		
 		//TAG
-//		Element tagElement = QprofilerXmlUtils.createSubElement( bamReportElement, "TAG");
+ 
 		//TAG-CS
-		Element tagCSElement = QprofilerXmlUtils.createSubElement(tagElement, "CS");
+		childElement = QprofilerXmlUtils.createSubElement(tagElement, "subField");	//SEQ
+		childElement.setAttribute("Category", "TAG:CS");		
 		if( tagCSByCycle.cycles().size() > 0){
-			tagCSByCycle.toXml(tagCSElement, "ColourByCycle", null);
-			SummaryReportUtils.lengthMapToXml(tagCSElement, "LengthTally", tagCSByCycle.getLengthMapFromCycle() );
-			SummaryReportUtils.lengthMapToXml(tagCSElement, "BadColoursInReads", csBadReadLineLengths);
+			tagCSByCycle.toXml(childElement, "ColourByCycle", null, "read base cycle");
+			SummaryReportUtils.lengthMapToXml(childElement, "LengthTally", tagCSByCycle.getLengthMapFromCycle() );
+		//	SummaryReportUtils.lengthMapToXml(tagElement, "BadColoursInReads", csBadReadLineLengths);
 		}
+		
+		
 		//TAG-CQ
-		Element tagCQElement = QprofilerXmlUtils.createSubElement(tagElement, "CQ");
+		childElement = QprofilerXmlUtils.createSubElement(tagElement, "subField");	//SEQ
+		childElement.setAttribute("Category", "TAG:CQ");
+
 		if( tagCQByCycle.cycles().size() > 0){
-			tagCQByCycle.toXml(tagCQElement, "QualityByCycle", null);
-			SummaryReportUtils.lengthMapToXml(tagCQElement, "LengthTally", tagCQByCycle.getLengthMapFromCycle());
-			SummaryReportUtils.lengthMapToXml(tagCQElement, "BadQualsInReads", cqBadReadLineLengths);
+			tagCQByCycle.toXml(childElement, "QualityByCycle", null, "read base cycle");
+			//SummaryReportUtils.lengthMapToXml(tagElement, "LengthTally", tagCQByCycle.getLengthMapFromCycle());
+			createElement4tag(childElement, "TAG:CQ", "LengthTally", tagCQByCycle.getLengthMapFromCycle());
+			//SummaryReportUtils.lengthMapToXml(tagElement, "BadQualsInReads", cqBadReadLineLengths);
+			createElement4tag(childElement, "TAG:CQ", "BadQualsInReads", cqBadReadLineLengths);
 		}
+		
+		
+		
 				
 		//TAG-ZM
-		SummaryReportUtils.lengthMapToXml(tagElement, "ZM", tagZMLineLengths);
+		createElement4tag(tagElement, "ZM", null,tagZMLineLengths);
 		// TAG-ZP
-		SummaryReportUtils.lengthMapToXml(tagElement, "ZP", tagZPLineLengths);
+		createElement4tag(tagElement, "ZP", null,tagZPLineLengths);
 		// TAG-ZF
-		SummaryReportUtils.lengthMapToXml(tagElement, "ZF", tagZFLineLengths);
+		createElement4tag(tagElement, "ZF", null,tagZFLineLengths);
 		// TAG-CM
-		SummaryReportUtils.lengthMapToXml(tagElement, "CM", tagCMLineLengths);
+		createElement4tag(tagElement, "CM", null,tagCMLineLengths);
 		// TAG-SM
-		SummaryReportUtils.lengthMapToXml(tagElement, "SM", tagSMLineLengths);
+		createElement4tag(tagElement, "SM",null, tagSMLineLengths);
 		// TAG-IH
-		SummaryReportUtils.lengthMapToXml(tagElement, "IH", tagIHLineLengths);
+		createElement4tag(tagElement, "IH",null, tagIHLineLengths);
 		// TAG-NH
-		SummaryReportUtils.lengthMapToXml(tagElement, "NH", tagNHLineLengths);
+		createElement4tag(tagElement, "NH", null,tagNHLineLengths);
 		
 		if (includeMatrices)  // ConcurrentMap<Integer, MAPQMatrix> mapQMatrix
-			createMatrix(bamReportElement );
+			createMatrix(tagElement );
 		
 		// additional tags
 		for (Entry<String,  ConcurrentSkipListMap<String, AtomicLong>> entry : additionalTags.entrySet()) {
-			SummaryReportUtils.lengthMapToXml(tagElement, entry.getKey(), entry.getValue());
+			createElement4tag(tagElement, entry.getKey(), null,entry.getValue());
 		}
 		// additional tagsInt
 		for (Entry<String,  QCMGAtomicLongArray> entry : additionalIntegerTags.entrySet()) {
-			SummaryReportUtils.lengthMapToXml(tagElement, entry.getKey(), entry.getValue());
+			createElement4tag(tagElement, entry.getKey(),null, entry.getValue());
 		}
 		// additional tagsChar
 		for (Entry<String,  ConcurrentSkipListMap<Character, AtomicLong>> entry : additionalCharacterTags.entrySet()) {
-			SummaryReportUtils.lengthMapToXml(tagElement, entry.getKey(), entry.getValue());
+			createElement4tag(tagElement, entry.getKey(),null, entry.getValue());
 		}	
 				 
 		//TAG-RG
-		SummaryReportUtils.lengthMapToXml(tagElement, "RG", tagRGLineLengths);
+		createElement4tag(tagElement, "RG",null, tagRGLineLengths);
 		
 
 		/**
@@ -355,6 +366,38 @@ public class TagSummaryReport2 {
 		 */
 	}
 	
+	private  <T> void createElement4tag(Element parent, String tagName, String source, Map<T, AtomicLong> map) {
+		List<Element> reports = QprofilerXmlUtils.getChildElementByTagName(parent, "report");
+		Element current = null;
+		for(Element ele : reports)  
+			if(ele.getAttribute("Category").equals("TAG:"+ tagName)) {
+				current = ele;
+				break;
+			}
+		 		
+		if(current == null) {
+			current = QprofilerXmlUtils.createSubElement(parent, "report");
+			current.setAttribute("Category", "TAG:"+ tagName);
+		}
+			 
+		
+		SummaryReportUtils.lengthMapToXml(current, "RG",source, map, null);
+	}
+	
+	private void createElement4tag(Element parent, String tagName,String source, QCMGAtomicLongArray array) {
+	
+		  				 
+		Map<Integer, AtomicLong> map = new TreeMap<Integer, AtomicLong>();
+		for (int i = 0, length = (int) array.length() ; i < length ; i++) {
+			long count = array.get(i);					 			
+			if (count > 0)	map.put( i, new AtomicLong(count) );
+		}	
+			
+		createElement4tag(parent, tagName, source,  map);		
+	}
+	
+	
+
 	private void setupAdditionalTagMaps(){
 		if (null != tags) {
 			for (String tag : tags)
@@ -411,7 +454,7 @@ public class TagSummaryReport2 {
 			mapQMatrix.remove(entry.getKey());
 		}
 	}	
-	private void createMatrix(Element bamReportElement ){
+	private void createMatrix(Element parent ){
 		
 		Map<MAPQMiniMatrix, AtomicLong> cmMatrix = new TreeMap<MAPQMiniMatrix, AtomicLong>();
 		Map<MAPQMiniMatrix, AtomicLong> smMatrix = new TreeMap<MAPQMiniMatrix, AtomicLong>();
@@ -426,14 +469,27 @@ public class TagSummaryReport2 {
 		logger.debug("lengthMatrix(): " + lengthMatrix.size());
 		logger.debug("nhMatrix(): " + nhMatrix.size());
 		logger.debug("zmMatrix(): " + zmMatrix.size());
+		
 
-		SummaryReportUtils.lengthMapToXml(bamReportElement, "MAPQMatrixCM",null, cmMatrix, null);
-		SummaryReportUtils.lengthMapToXml(bamReportElement, "MAPQMatrixSM",null, smMatrix,null);
-		SummaryReportUtils.lengthMapToXml(bamReportElement, "MAPQMatrixLength",null, lengthMatrix,null);
-		SummaryReportUtils.lengthMapToXml(bamReportElement, "MAPQMatrixNH",null, nhMatrix,null);
-		SummaryReportUtils.lengthMapToXml(bamReportElement, "MAPQMatrixZM",null, zmMatrix,null);
 
-		zmSmMatrix.toXml(bamReportElement, "ZmSmMatrix");
+//		SummaryReportUtils.lengthMapToXml(parent, "MAPQMatrixCM",null, cmMatrix, null);
+		XmlUtils.outputSet(parent,"not sure", "matrix is included", "MAPQMatrixCM", "not sure", cmMatrix);
+		
+//		SummaryReportUtils.lengthMapToXml(parent, "MAPQMatrixSM",null, smMatrix,null);
+		XmlUtils.outputSet(parent,"not sure", "matrix is included", "MAPQMatrixSM", "not sure", cmMatrix);
+		
+//		SummaryReportUtils.lengthMapToXml(parent, "MAPQMatrixLength",null, lengthMatrix,null);
+		XmlUtils.outputSet(parent,"not sure", "matrix is included", "MAPQMatrixLength", "not sure", cmMatrix);
+		
+//		SummaryReportUtils.lengthMapToXml(parent, "MAPQMatrixNH",null, nhMatrix,null);
+		XmlUtils.outputSet(parent,"not sure", "matrix is included", "MAPQMatrixCM", "not sure", cmMatrix);
+		
+//		SummaryReportUtils.lengthMapToXml(parent, "MAPQMatrixZM",null, zmMatrix,null);
+		XmlUtils.outputSet(parent,"not sure", "matrix is included", "MAPQMatrixZM", "not sure", cmMatrix);
+		
+		parent = QprofilerXmlUtils.createSubElement( parent, "ZmSmMatrix" );
+		zmSmMatrix.toXml(parent, "ZmSmMatrix");
+	//	XmlUtils.outputSet(parent,"not sure", "matrix is included", "ZmSmMatrix", "not sure", cmMatrix);
 		
 	}	
 	

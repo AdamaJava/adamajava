@@ -327,7 +327,7 @@ public class CycleSummary<T> {
 	 * @param elementName String representing the name to be used when creating the element
 	 */
 	
-	public void toXml( Element parent, String description, String sourceName )
+	public void toXml( Element parent, String description, String sourceName, String inputDes )
 	{
 		//do nothing if no base detected
 		Set<T> possibles = getPossibleValues();
@@ -343,7 +343,7 @@ public class CycleSummary<T> {
 			values.put(cycle, QprofilerXmlUtils.joinByComma(counts));			 
 		}
 			
-		XmlUtils.outputMatrix( parent, poss, description, sourceName, values);
+		XmlUtils.outputMatrix( parent, poss, description, sourceName,inputDes,values);
 	}
 	
 
@@ -357,11 +357,12 @@ public class CycleSummary<T> {
  			long sum = 0;
 			for(T t :  getPossibleValues()) 				
 				  sum += count(cycle, t) ;	
+			
 			//only for the begin of cycle
 			if(previousTally == -1) previousTally = sum;
 			if (sum != previousTally) {
 				// record one cycle advance if base counts difference
-				//previousTally - count = the number of short reads
+				//previousTally - count = the number of short reads				
 				map.put(cycle-1, new AtomicLong(previousTally - sum ));
 				previousTally = sum;
 			}

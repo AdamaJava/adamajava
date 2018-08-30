@@ -35,7 +35,7 @@ public class QprofilerXmlUtils {
 	
 	//summary
 	public static final String readGroup = "readGroup";
-	public static final String summary = "summary";
+	public static final String summary = "bamSummary";
 	public static final String reads = "reads"; 
 	public static final String readPairs= "readPairs"; 
 	public static final String FirstOfPair = "firstReadInPair"; 

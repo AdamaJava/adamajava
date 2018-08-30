@@ -106,7 +106,7 @@ public class PositionSummary {
 	 * each element of Map is an array with size = rg numbers + 2
 	 */
 	
-	public Map<Integer,  AtomicLongArray> getCoverageByRgId(List<String> rgs) {
+	public Map<Integer,  AtomicLongArray> getCoverageByRgs(List<String> rgs) {
 		Map<Integer, AtomicLongArray> sortedCoverage = new TreeMap<Integer, AtomicLongArray>();		
 		for (int i = 0, max =getBinNumber() ; i < max ; i++){ 	
 			if(coverage.get(i) == 0) continue; 

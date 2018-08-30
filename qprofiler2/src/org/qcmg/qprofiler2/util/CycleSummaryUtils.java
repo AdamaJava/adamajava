@@ -69,9 +69,7 @@ public class CycleSummaryUtils {
 				
 				if (refBase == readBase) { 
 					return "Found refBase == altBase, md: " + mdData + " , cigar: " + cigar.toString() + ", seq: " + new String(readBases) + ", reverse strand: " +reverse; 
-					//System.out.println("Found refBase == altBase at ref position " + (i+1) + " ,refBase: " + refBase + ", md: " + mdData + " , cigar: " + cigar.toString() + ", seq: " + new String(readBases) + ", reverse strand: " +reverse);
 				}
-//				int pos = (reverse)? readBases.length - position + 1 : position; 		
 				
 				int pos = position + additionalOffset;
 				if(reverse) pos = readBases.length - pos + 1; 

@@ -34,8 +34,8 @@ public class PositionSummaryTest {
 		Assert.assertEquals(123, ps.getMin());
 		Assert.assertEquals(123459, ps.getMax());
 		Assert.assertEquals(7, ps.getCoverage().get(0).get());
-		Assert.assertEquals(2, ps.getCoverageByRgId(rgs).get(0).get(1));
-		Assert.assertEquals(5, ps.getCoverageByRgId(rgs).get(0).get(0));
+		Assert.assertEquals(2, ps.getCoverageByRgs(rgs).get(0).get(1));
+		Assert.assertEquals(5, ps.getCoverageByRgs(rgs).get(0).get(0));
 	}
 	
 	@Test
@@ -54,9 +54,9 @@ public class PositionSummaryTest {
 		Assert.assertEquals(4000000, ps.getMax());
 		Assert.assertEquals(1, ps.getCoverage().get(0).get());
 		Assert.assertEquals(1, ps.getCoverage().get(1).get());
-		Assert.assertEquals(1,  ps.getCoverageByRgId(rgs).get(2).get(1));
-		Assert.assertEquals(1,  ps.getCoverageByRgId(rgs).get(3).get(1));
-		Assert.assertEquals(1,  ps.getCoverageByRgId(rgs).get(4).get(1));
+		Assert.assertEquals(1,  ps.getCoverageByRgs(rgs).get(2).get(1));
+		Assert.assertEquals(1,  ps.getCoverageByRgs(rgs).get(3).get(1));
+		Assert.assertEquals(1,  ps.getCoverageByRgs(rgs).get(4).get(1));
 		
 		// add some smaller numbers
 		ps.addPosition(0,"rg3");
@@ -65,9 +65,9 @@ public class PositionSummaryTest {
 		Assert.assertEquals(0, ps.getMin());
 		Assert.assertEquals(4000000, ps.getMax());
 		Assert.assertEquals(3, ps.getCoverage().get(0).get());
-		Assert.assertEquals(2, ps.getCoverageByRgId(rgs).get(0).get(2));
-		Assert.assertEquals(1, ps.getCoverageByRgId(rgs).get(0).get(0));
-		Assert.assertEquals(0, ps.getCoverageByRgId(rgs).get(0).get(1));
+		Assert.assertEquals(2, ps.getCoverageByRgs(rgs).get(0).get(2));
+		Assert.assertEquals(1, ps.getCoverageByRgs(rgs).get(0).get(0));
+		Assert.assertEquals(0, ps.getCoverageByRgs(rgs).get(0).get(1));
 				
 		// and some larger numbers
 		ps.addPosition(2000002,"rg1");
@@ -75,6 +75,6 @@ public class PositionSummaryTest {
 		Assert.assertEquals(0, ps.getMin());
 		Assert.assertEquals(5000000, ps.getMax());
 		Assert.assertEquals(2, ps.getCoverage().get(2).get());
-		Assert.assertEquals(1, ps.getCoverageByRgId(rgs).get(2).get(1));		
+		Assert.assertEquals(1, ps.getCoverageByRgs(rgs).get(2).get(1));		
 	}
 }

@@ -11,9 +11,7 @@
  */
 package org.qcmg.qprofiler2.util;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
+
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -21,7 +19,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -78,13 +75,14 @@ public class SummaryReportUtils {
 	 */
 	public static <T> void lengthMapToXml(Element parent, String elementName, String sourceName, Map<T, AtomicLong> map, Comparator<T> comparator) {	
 				
-		Element element = (parent.getElementsByTagName(elementName).getLength() > 0)?
-				(Element) parent.getElementsByTagName(elementName).item(0)  :QprofilerXmlUtils.createSubElement(parent, elementName);
+//		Element element = (parent.getElementsByTagName(elementName).getLength() > 0)?
+//				(Element) parent.getElementsByTagName(elementName).item(0)  :QprofilerXmlUtils.createSubElement(parent, elementName);
+				
 		if( map.isEmpty()) return; 
 		
-		element = QprofilerXmlUtils.createSubElement(element, QprofilerXmlUtils.valueTally );		
-		if(sourceName != null) element.setAttribute("source", sourceName);		
-		lengthMapToXmlTallyItem(element, map, comparator);
+		Element element = QprofilerXmlUtils.createSubElement(parent, QprofilerXmlUtils.valueTally );		
+		if(sourceName != null) parent.setAttribute("source", sourceName);		
+		lengthMapToXmlTallyItem(parent, map, comparator);
 	} 	
 	
 	public static <T> void lengthMapToXml(Element parent, String elementName, Map<T, AtomicLong> map) {		
@@ -95,18 +93,18 @@ public class SummaryReportUtils {
 		lengthMapToXml(parent, elementName, sourceName, map, null);
 	}
 	
-	public static <T extends QCMGAtomicLongArray, AtomicLongArray >  void lengthMapToXml(Element parent, String elementName, String sourceName, T array) { 				 
-		Map<Integer, AtomicLong> map = new TreeMap<Integer, AtomicLong>();
-		for (int i = 0, length = (int) array.length() ; i < length ; i++) {
-			long count = array.get(i);					 			
-			if (count > 0)	map.put( i, new AtomicLong(count) );
-		}		
-		lengthMapToXml(  parent,  elementName, sourceName, map,  null);
-	}
+//	public static <T extends QCMGAtomicLongArray, AtomicLongArray >  void lengthMapToXml(Element parent, String elementName, String sourceName, T array) { 				 
+//		Map<Integer, AtomicLong> map = new TreeMap<Integer, AtomicLong>();
+//		for (int i = 0, length = (int) array.length() ; i < length ; i++) {
+//			long count = array.get(i);					 			
+//			if (count > 0)	map.put( i, new AtomicLong(count) );
+//		}		
+//		lengthMapToXml(  parent,  elementName, sourceName, map,  null);
+//	}
 	
-	public static <T extends QCMGAtomicLongArray, AtomicLongArray >  void lengthMapToXml(Element parent, String elementName,  T array) { 				  
-		lengthMapToXml(  parent,  elementName, null, array);
-	}	
+//	public static <T extends QCMGAtomicLongArray, AtomicLongArray >  void lengthMapToXml(Element parent, String elementName,  T array) { 				  
+//		lengthMapToXml(  parent,  elementName, null, array);
+//	}	
 	
 
 	public static <T> void lengthMapToXmlTallyItem(Element parent,  Map<T, AtomicLong> mapOfLengths, Comparator<T> comparator) {
@@ -516,7 +514,7 @@ public class SummaryReportUtils {
 				Map<Integer, AtomicLong> coverage = ps.getCoverage();
 //				Map<Integer, AtomicLongArray> rgCoverages = ps.getCoverageByRgId(readGroupIds);
 				
-				for (Entry<Integer, AtomicLongArray> entry : ps.getCoverageByRgId(readGroupIds).entrySet()  ){ //ps.getRgCoverage().entrySet()) {
+				for (Entry<Integer, AtomicLongArray> entry : ps.getCoverageByRgs(readGroupIds).entrySet()  ){ //ps.getRgCoverage().entrySet()) {
 					Element tallyE =  QprofilerXmlUtils.createSubElement(rNameE,  QprofilerXmlUtils.rangeTallyItem ); //   "RangeTallyItemOld" ); 
 					tallyE.setAttribute(QprofilerXmlUtils.start, "" + entry.getKey() * PositionSummary.BUCKET_SIZE  ); 
 					tallyE.setAttribute(QprofilerXmlUtils.end, "" + ((entry.getKey() + 1) * PositionSummary.BUCKET_SIZE  - 1));					

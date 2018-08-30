@@ -88,19 +88,7 @@ public class KmersSummary {
 		}
 		return conStr.toString();	
 	}
-	
-//	public static String producer(final int k, final String mers , final boolean includeN){ 		
-//		if(k == 0 )  return mers;			
-//		
-//		List<Character> bases = atgc.chars().mapToObj(c ->(char) c).collect(Collectors.toList() ); 
-//		if(includeN ) bases.add('N'); 
-//				
-//		String conStr = "";
-//		for(char c : bases) 	 	 
-//			conStr += "," + producer( k-1, mers + c,  includeN);			 
-//		 		
-//		return conStr;		
-//	}
+
 	
 	public String[] getPossibleKmerString(final int k, final boolean includeN){
 		//if require inital mers combination 
@@ -110,20 +98,7 @@ public class KmersSummary {
 		//produce all possible kmers in String 
 		String str1 = producer( k, "", includeN );		
 		return str1.split(Constants.COMMA_STRING);
-	}
-	
-//	public String[] getPossibleKmerString(final int k, final boolean includeN){
-//		//if require inital mers combination 
-//		if( k == merLength && includeN && mersStrList != null )  
-//			return mersStrList; 
-//		
-//		//produce all possible kmers in String 
-//		String str1 = producer( k, "", includeN );		
-//		while(str1.contains(",,")) str1 = str1.replace(",,", ",");	
-//		while(str1.startsWith(",")) str1 = str1.substring(1);			
-//		return str1.split(",");			
-//	}
-	
+	}	
 	public void parseKmers( byte[] readString, boolean reverse , int flagFirstOfPair){
 		 //get the biggest cycle
 		 int c = readString.length - merLength + 1;	
@@ -256,10 +231,10 @@ public class KmersSummary {
 				for(String mer :  possibleMers)
 					counts.add(getCount( i,  mer, pair));
 				if(counts.isEmpty()) continue;
- 				values.put(i, QprofilerXmlUtils.joinByComma(counts));			
+ 				values.put(i+1, QprofilerXmlUtils.joinByComma(counts));			
 			}	
  			
-			XmlUtils.outputMatrix( parent, poss, desc, BamSummaryReport2.sourceName[pair]+klength+"mers", values);
+			XmlUtils.outputMatrix( parent, poss, desc, BamSummaryReport2.sourceName[pair]+klength+"mers","kmers base cycle", values);
  			
 		}				
 	}

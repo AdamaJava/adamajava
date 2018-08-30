@@ -67,9 +67,9 @@ public class FastqSummaryReport extends SummaryReport {
 		
 		// SEQ
 		Element seqElement = QprofilerXmlUtils.createSubElement(element, "SEQ");
-		seqByCycle.toXml(seqElement, "BaseByCycle", "BaseCycle");
+		seqByCycle.toXml(seqElement, "read Base distribution per base cycle", "BaseCycle", "read base cycle");
 		SummaryReportUtils.lengthMapToXml(seqElement, "LengthTally", seqLineLengths);
-		SummaryReportUtils.lengthMapToXml(seqElement, "BadBasesInReads", seqBadReadLineLengths);
+	//	SummaryReportUtils.lengthMapToXml(seqElement, "BadBasesInReads", seqBadReadLineLengths);
 		
 		kmersSummary.toXml(seqElement,kmersSummary.maxKmers); //debug
 		kmersSummary.toXml(seqElement,1); //add 1-mers
@@ -78,9 +78,9 @@ public class FastqSummaryReport extends SummaryReport {
 		
 		// QUAL
 		Element qualElement = QprofilerXmlUtils.createSubElement(element, "QUAL");
-		qualByCycleInteger.toXml(qualElement, "QualityByCycle", null);
+		qualByCycleInteger.toXml(qualElement, "QualityByCycle", null,"read base cycle");
 		SummaryReportUtils.lengthMapToXml(qualElement, "LengthTally", qualLineLengths);
-		SummaryReportUtils.lengthMapToXml(qualElement, "BadQualsInReads", qualBadReadLineLengths);			
+	//	SummaryReportUtils.lengthMapToXml(qualElement, "BadQualsInReads", qualBadReadLineLengths);			
 			 		
 	}
 	

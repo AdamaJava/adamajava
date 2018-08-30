@@ -57,7 +57,7 @@ public class BamSummaryReportTest {
 		returnedSummary = bsr.getRNamePosition().get(rName);
 		Assert.assertEquals(position, returnedSummary.getMax());
 		Assert.assertEquals(999, returnedSummary.getMin());
-		Assert.assertEquals(1, returnedSummary.getCoverageByRgId(rgs).get(1).get(0) );
+		Assert.assertEquals(1, returnedSummary.getCoverageByRgs(rgs).get(1).get(0) );
 		
 		// add another position to this rName
 		position = 0;
@@ -65,8 +65,8 @@ public class BamSummaryReportTest {
 		returnedSummary = bsr.getRNamePosition().get(rName);
 		Assert.assertEquals(1000000, returnedSummary.getMax());
 		Assert.assertEquals(position, returnedSummary.getMin());
-		Assert.assertEquals(3, returnedSummary.getCoverageByRgId(rgs).get(0).get(0) );
-		Assert.assertEquals(1, returnedSummary.getCoverageByRgId(rgs).get(1).get(0) );
+		Assert.assertEquals(3, returnedSummary.getCoverageByRgs(rgs).get(0).get(0) );
+		Assert.assertEquals(1, returnedSummary.getCoverageByRgs(rgs).get(1).get(0) );
 		
 		// add a new rname
 		rName = "new rname";
@@ -74,8 +74,8 @@ public class BamSummaryReportTest {
 		returnedSummary = bsr.getRNamePosition().get(rName);
 		Assert.assertEquals(0, returnedSummary.getMax());
 		Assert.assertEquals(0, returnedSummary.getMin());
-		Assert.assertEquals(1, returnedSummary.getCoverageByRgId(rgs).get(0).get(0) );
-		Assert.assertEquals(1, returnedSummary.getCoverageByRgId(rgs).get(0).length() );
+		Assert.assertEquals(1, returnedSummary.getCoverageByRgs(rgs).get(0).get(0) );
+		Assert.assertEquals(1, returnedSummary.getCoverageByRgs(rgs).get(0).length() );
 		
 	}
 	
