@@ -67,5 +67,16 @@ public class AmalgamatorGSTest {
 		assertEquals("54,4,0", pair.getRight()[0]);
 	}
 	
+	@Test
+	public void getFilters() {
+		/*
+		 * chr1	17199274	.	T	C	.	.	FLANK=GCAAGCGCTGG;BaseQRankSum=1.660;ClippingRankSum=0.000;DP=153;ExcessHet=3.0103;FS=9.178;MQ=50.06;MQRankSum=-0.338;QD=5.53;ReadPosRankSum=-1.467;SOR=1.395;IN=1,2;GERM=C:192:1:149:44;HOM=0,GGAGGGCAAGtGCTGGTGGAC	GT:AD:DP:EOR:FF:FT:GQ:INF:NNS:OABS:QL	0/0:85,10:95:C1[]0[];T0[]2[]:A1;C29;G2;T90:PASS:.:.:.:C10[31.7]0[0];T37[36.97]48[36.38]:.	0/1:65,5:70:C1[]0[];T1[]0[]:A1;C40;T51:5BP=1:.:SOMATIC:5:C3[38.33]2[41];T31[34.32]34[35.03]:.	0/1:119,34:153:.:.:PASS:99:.:.:.:846.77	0/1:93,32:125:.:.:PASS:99:.:.:.:920.77
+		 */
+		VcfRecord r = new VcfRecord(new String[]{"chr1","17199274",".","T","C",".",".","FLANK=GCAAGCGCTGG;BaseQRankSum=1.660;ClippingRankSum=0.000;DP=153;ExcessHet=3.0103;FS=9.178;MQ=50.06;MQRankSum=-0.338;QD=5.53;ReadPosRankSum=-1.467;SOR=1.395;IN=1,2;GERM=C:192:1:149:44;HOM=0,GGAGGGCAAGtGCTGGTGGAC","GT:AD:DP:EOR:FF:FT:GQ:INF:NNS:OABS:QL","0/0:85,10:95:C1[]0[];T0[]2[]:A1;C29;G2;T90:PASS:.:.:.:C10[31.7]0[0];T37[36.97]48[36.38]:.","0/1:65,5:70:C1[]0[];T1[]0[]:A1;C40;T51:5BP=1:.:SOMATIC:5:C3[38.33]2[41];T31[34.32]34[35.03]:.","0/1:119,34:153:.:.:PASS:99:.:.:.:846.77","0/1:93,32:125:.:.:PASS:99:.:.:.:920.77"});
+		assertEquals("5BP=1", AmalgamatorGS.getFilters(r));
+		VcfRecord r2 = new VcfRecord(new String[]{"chr1","17199274",".","T","C",".",".","FLANK=GCAAGCGCTGG;BaseQRankSum=1.660;ClippingRankSum=0.000;DP=153;ExcessHet=3.0103;FS=9.178;MQ=50.06;MQRankSum=-0.338;QD=5.53;ReadPosRankSum=-1.467;SOR=1.395;IN=1,2;GERM=C:192:1:149:44;HOM=0,GGAGGGCAAGtGCTGGTGGAC","GT:AD:DP:EOR:FF:FT:GQ:INF:NNS:OABS:QL","0/0:80,3:83:T3[]1[]:C12;G1;T45:PASS:.:.:.:C3[36.33]0[0];T46[35.63]34[36.24]:.","0/1:117,14:132:T4[]1[]:C50;G1;T57:PASS:.:SOMATIC:12:C6[35.5]8[41];G0[0]1[12];T61[35.43]56[37.88]:.","0/1:101,11:112:.:.:PASS:69:.:.:.:40.77","0/1:143,56:199:.:.:PASS:99:.:.:.:1711.77"});
+		assertEquals("PASS", AmalgamatorGS.getFilters(r2));
+	}
+	
 
 }

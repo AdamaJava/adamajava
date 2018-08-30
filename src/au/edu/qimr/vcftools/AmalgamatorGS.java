@@ -376,7 +376,7 @@ public class AmalgamatorGS {
 		 */
 		int position = ffList.size() == 2 ? 1 : recordSomatic ? 2 : 1;
 		String [] params = TabTokenizer.tokenize(ffList.get(position), Constants.COLON); 
-		pair.getLeft()[index] =  getStringFromArray(params, ftPosition);
+		pair.getLeft()[index] =  getFilters(rec);
 		String somGerPrefix = recordSomatic ? "S" : "G";
 		
 		if (adPosition > -1) {
@@ -394,6 +394,19 @@ public class AmalgamatorGS {
 				pair.getRight()[index] = "ADALL:" + getStringFromArray(params, adAllPosition);
 			}
 		}
+	}
+	
+	public static String getFilters(VcfRecord v) {
+		
+		Map<String, String[]> ffMap = VcfUtils.getFormatFieldsAsMap(v.getFormatFields());
+		String [] filterArr = ffMap.get(VcfHeaderUtils.FORMAT_FILTER);
+		
+		String ft =  null == filterArr ? Constants.MISSING_DATA_STRING : Arrays.asList(filterArr).stream().distinct().collect(Collectors.joining(Constants.SEMI_COLON_STRING));
+//		String ft =  null == filterArr ? Constants.MISSING_DATA_STRING : Arrays.asList(filterArr).stream().distinct().filter(f -> ! f.contains(VcfHeaderUtils.FILTER_PASS)).collect(Collectors.joining(Constants.SEMI_COLON_STRING));
+		if (ft.contains(Constants.SEMI_COLON_STRING)) {
+			ft = Arrays.stream(TabTokenizer.tokenize(ft,Constants.SEMI_COLON)).distinct().filter(f -> ! f.contains(VcfHeaderUtils.FILTER_PASS)).collect(Collectors.joining(Constants.SEMI_COLON_STRING));
+		}
+		return ft;
 	}
 	
 	

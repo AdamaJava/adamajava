@@ -96,44 +96,54 @@ public class GoldStandardGeneratorTest {
 	
 	@Test
 	public void addToMap() {
-		Map<ChrPositionRefAlt, AtomicInteger> map = new HashMap<>(1024 * 64);
-		GoldStandardGenerator.addToMap(map, null, 0, 0, null, null);
+		Map<ChrPositionRefAlt, boolean[]> map = new HashMap<>(1024 * 64);
+//		Map<ChrPositionRefAlt, AtomicInteger> map = new HashMap<>(1024 * 64);
+		GoldStandardGenerator.addToMap(map, null, 0, 0, null, null,0,2);
 		assertEquals(0, map.size());
-		GoldStandardGenerator.addToMap(map, "1", 0, 0, null, null);
+		GoldStandardGenerator.addToMap(map, "1", 0, 0, null, null,0,2);
 		assertEquals(1, map.size());
-		assertEquals(1, map.values().toArray(new AtomicInteger[]{})[0].get());
+		assertEquals(true, map.values().toArray(new boolean[][]{})[0][0]);
 		
-		GoldStandardGenerator.addToMap(map, "1", 0, 0, null, null);
+		GoldStandardGenerator.addToMap(map, "1", 0, 0, null, null,1,2);
 		assertEquals(1, map.size());
-		assertEquals(2, map.values().toArray(new AtomicInteger[]{})[0].get());
+		assertEquals(true, map.values().toArray(new boolean[][]{})[0][0]);
+		assertEquals(true, map.values().toArray(new boolean[][]{})[0][1]);
 	}
 	@Test
 	public void addToMapAgain() {
-		Map<ChrPositionRefAlt, AtomicInteger> map = new HashMap<>(1024 * 64);
-		GoldStandardGenerator.addToMap(map, "chr1", 100, 100, "A", "C	0/1");
+		Map<ChrPositionRefAlt, boolean[]> map = new HashMap<>(1024 * 64);
+//		Map<ChrPositionRefAlt, AtomicInteger> map = new HashMap<>(1024 * 64);
+		GoldStandardGenerator.addToMap(map, "chr1", 100, 100, "A", "C	0/1",0,6);
 		assertEquals(1, map.size());
-		assertEquals(1, map.values().toArray(new AtomicInteger[]{})[0].get());
+		assertEquals(true, map.values().toArray(new boolean[][]{})[0][0]);
+		assertEquals(false, map.values().toArray(new boolean[][]{})[0][1]);
 		
-		GoldStandardGenerator.addToMap(map, "chr1", 100, 100, "A", "T	0/1");
+		GoldStandardGenerator.addToMap(map, "chr1", 100, 100, "A", "T	0/1",0,6);
 		assertEquals(2, map.size());
-		assertEquals(1, map.values().toArray(new AtomicInteger[]{})[0].get());
-		assertEquals(1, map.values().toArray(new AtomicInteger[]{})[1].get());
+		assertEquals(true, map.values().toArray(new boolean[][]{})[0][0]);
+		assertEquals(false, map.values().toArray(new boolean[][]{})[0][1]);
+		assertEquals(true, map.values().toArray(new boolean[][]{})[1][0]);
+		assertEquals(false, map.values().toArray(new boolean[][]{})[1][1]);
 		
-		GoldStandardGenerator.addToMap(map, "chr1", 100, 100, "A", "T	0/1");
+		GoldStandardGenerator.addToMap(map, "chr1", 100, 100, "A", "T	0/1",1,6);
 		assertEquals(2, map.size());
-		assertEquals(1, map.values().toArray(new AtomicInteger[]{})[0].get());
-		assertEquals(2, map.values().toArray(new AtomicInteger[]{})[1].get());
-		
-		GoldStandardGenerator.addToMap(map, "chr1", 100, 100, "A", "C	0/1");
+		assertEquals(true, map.values().toArray(new boolean[][]{})[0][0]);
+		assertEquals(true, map.values().toArray(new boolean[][]{})[1][0]);
+		assertEquals(true, map.values().toArray(new boolean[][]{})[1][1]);
+//		
+		GoldStandardGenerator.addToMap(map, "chr1", 100, 100, "A", "C	0/1",2,6);
 		assertEquals(2, map.size());
-		assertEquals(2, map.values().toArray(new AtomicInteger[]{})[0].get());
-		assertEquals(2, map.values().toArray(new AtomicInteger[]{})[1].get());
-		
-		GoldStandardGenerator.addToMap(map, "chr1", 100, 100, "A", "G	1/1");
+		assertEquals(true, map.values().toArray(new boolean[][]{})[0][0]);
+		assertEquals(false, map.values().toArray(new boolean[][]{})[0][1]);
+		assertEquals(true, map.values().toArray(new boolean[][]{})[0][2]);
+		assertEquals(true, map.values().toArray(new boolean[][]{})[1][0]);
+		assertEquals(true, map.values().toArray(new boolean[][]{})[1][1]);
+//		
+		GoldStandardGenerator.addToMap(map, "chr1", 100, 100, "A", "G	1/1",3,6);
 		assertEquals(3, map.size());
-		GoldStandardGenerator.addToMap(map, "chr1", 100, 100, "A", "G	0/1");
+		GoldStandardGenerator.addToMap(map, "chr1", 100, 100, "A", "G	0/1",4,6);
 		assertEquals(4, map.size());
-		GoldStandardGenerator.addToMap(map, "chr1", 100, 100, "T", "G	0/1");
+		GoldStandardGenerator.addToMap(map, "chr1", 100, 100, "T", "G	0/1",5,6);
 		assertEquals(5, map.size());
 	}
 	

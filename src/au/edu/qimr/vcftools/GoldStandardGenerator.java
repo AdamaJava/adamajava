@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -40,19 +41,42 @@ public class GoldStandardGenerator {
 	private boolean somatic;
 	private boolean germline;
 	
-	private final Map<ChrPositionRefAlt, AtomicInteger> positions = new HashMap<>(1024 * 64);
+	private final Map<ChrPositionRefAlt, boolean[]> positions = new HashMap<>(1024 * 64);
+//	private final Map<ChrPositionRefAlt, AtomicInteger> positions = new HashMap<>(1024 * 64);
 	
 	protected int engage() throws IOException {
 			
 		logger.info("about to load vcf files");
 		loadVcfs();
+		writeStats();
 		writeOutput();
 		return exitStatus;
 	}
 	
+	private void writeStats() {
+		boolean [] allTrue = new boolean[vcfFiles.length];
+		Arrays.fill(allTrue, true);
+		
+		List<ChrPositionRefAlt> overlap = positions.entrySet().stream().filter(e -> Arrays.equals(allTrue, e.getValue())).map(e -> e.getKey()).collect(Collectors.toList());
+		logger.info("count of positions in all files: " + overlap.size());
+		
+		
+		
+		for (int i = 0 ; i < vcfFiles.length ; i++) {
+			boolean [] array = new boolean[vcfFiles.length];
+			array[i] = true;
+			List<ChrPositionRefAlt> list = positions.entrySet().stream().filter(e -> Arrays.equals(array, e.getValue())).map(e -> e.getKey()).collect(Collectors.toList());
+			logger.info("count of positions unique to file: " + i + ", " + list.size());
+		}
+	}
+	
 	
 	private void writeOutput() throws FileNotFoundException {
-		List<ChrPositionRefAlt> recs = positions.entrySet().stream().filter(e -> e.getValue().get() == vcfFiles.length).map(e -> e.getKey()).collect(Collectors.toList());
+		boolean [] allTrue = new boolean[vcfFiles.length];
+		Arrays.fill(allTrue, true);
+		
+		List<ChrPositionRefAlt> recs = positions.entrySet().stream().filter(e -> Arrays.equals(allTrue, e.getValue())).map(e -> e.getKey()).collect(Collectors.toList());
+//		List<ChrPositionRefAlt> recs = positions.entrySet().stream().filter(e -> e.getValue().get() == vcfFiles.length).map(e -> e.getKey()).collect(Collectors.toList());
 		recs.sort(null);
 		
 		logger.info("writing output");
@@ -68,7 +92,7 @@ public class GoldStandardGenerator {
 		mutationCounts.entrySet().stream().sorted(Comparator.comparingInt(e -> e.getValue().get())).forEach(e -> logger.info("mutation: " + e.getKey() + ", counts: " + e.getValue().get()));
 		
 		
-		try (PrintStream ps = new PrintStream(new FileOutputStream(new File(outputFileName)))) {
+		try (PrintStream ps = new PrintStream(new FileOutputStream(new File(outputFileName)), false,  "UTF-8")) {
 			/*
 			 * put input files along with their positions into the file header
 			 */
@@ -99,6 +123,9 @@ public class GoldStandardGenerator {
 					ps.println(cp.toTabSeperatedString());
 				}
 			}
+		} catch (UnsupportedEncodingException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
 		}
 		
 		logger.info("writing output- DONE");
@@ -107,6 +134,7 @@ public class GoldStandardGenerator {
 	private void loadVcfs() throws IOException {
 		int i = 0;
 		int index = 0;
+		int numberOfFiles = vcfFiles.length;
 		for (String s : vcfFiles) {
 			
 			try (VCFFileReader reader = new VCFFileReader(new File(s))) {
@@ -115,7 +143,7 @@ public class GoldStandardGenerator {
 						logger.info("hit " + i + " entries");
 					}
 					
-					processVcfRecord(rec, somatic, germline, positions);
+					processVcfRecord(rec, somatic, germline, positions, index, numberOfFiles);
 				}
 			}
 			logger.info("input: " + (index+1) + " has " + i + " entries");
@@ -130,7 +158,7 @@ public class GoldStandardGenerator {
 	/**
 	 * @param rec
 	 */
-	public static void processVcfRecord(VcfRecord rec, boolean somatic, boolean germline, Map<ChrPositionRefAlt, AtomicInteger> map) {
+	public static void processVcfRecord(VcfRecord rec, boolean somatic, boolean germline, Map<ChrPositionRefAlt, boolean[]> map, int index, int numberOfFiles) {
 		/*
 		 * we want HC or PASS
 		 */
@@ -158,10 +186,10 @@ public class GoldStandardGenerator {
 						 * split cs into constituent snps
 						 */
 						for (int z = 0 ; z < ref.length() ; z++) {
-							addToMap(map, rec.getChrPosition().getChromosome(),  rec.getChrPosition().getStartPosition() + z, rec.getChrPosition().getStartPosition() + z, ref.charAt(z)+"",  alt.charAt(z) +Constants.TAB_STRING+ gt);
+							addToMap(map, rec.getChrPosition().getChromosome(),  rec.getChrPosition().getStartPosition() + z, rec.getChrPosition().getStartPosition() + z, ref.charAt(z)+"",  alt.charAt(z) +Constants.TAB_STRING+ gt, index, numberOfFiles);
 						}
 					} else {
-						addToMap(map, rec.getChrPosition().getChromosome(), rec.getChrPosition().getStartPosition(), rec.getChrPosition().getStartPosition(), ref, alt+Constants.TAB+gt);
+						addToMap(map, rec.getChrPosition().getChromosome(), rec.getChrPosition().getStartPosition(), rec.getChrPosition().getStartPosition(), ref, alt+Constants.TAB+gt, index, numberOfFiles);
 					}
 				}
 			}
@@ -197,10 +225,11 @@ public class GoldStandardGenerator {
 		return gt;
 	}
 	
-	public static void addToMap(Map<ChrPositionRefAlt, AtomicInteger> map, String chr, int start, int end, String ref, String alt) {
+	public static void addToMap(Map<ChrPositionRefAlt, boolean[]> map, String chr, int start, int end, String ref, String alt, int index, int numberOfFiles) {
 		if (null != map && null != chr && start >=0 && end >= start) {
 			ChrPositionRefAlt cpn  = new ChrPositionRefAlt(chr, start, end, ref, alt);
-			map.computeIfAbsent(cpn, v -> new AtomicInteger()).incrementAndGet();
+			map.computeIfAbsent(cpn, v -> new boolean[numberOfFiles])[index] = true;
+//			map.computeIfAbsent(cpn, v -> new AtomicInteger()).incrementAndGet();
 		}
 	}
 	
