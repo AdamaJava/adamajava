@@ -49,8 +49,8 @@ public class ReadIDSummaryTest {
 		assertEquals(1, header.getFlowCellIdsMap().get("HSQ955").intValue());
 		assertEquals(1, header.getFlowCellLanesMap().get("2").intValue());		
 		assertEquals(1, header.getTileNumbersMap().get("1101").intValue());
-		assertEquals(1, header.getPairs().get("1") .intValue());
-		assertEquals(0, header.getPairs().get("2").intValue());
+		assertEquals(1, header.pairs.get("1") .intValue());
+		assertEquals(0, header.pairs.get("2").intValue());
 	}
 	
 	@Ignore	// may need to cater for this in the future...
@@ -69,8 +69,8 @@ public class ReadIDSummaryTest {
 		assertEquals(1, header.getFlowCellIdsMap().get("HSQ955").intValue());
 		assertEquals(1, header.getFlowCellLanesMap().get("2").intValue());
 		assertEquals(1, header.getTileNumbersMap().get(1101).intValue());
-		assertEquals(1, header.getPairs().get("1") .intValue());
-		assertEquals(0, header.getPairs().get("2").intValue());
+		assertEquals(1, header.pairs.get("1") .intValue());
+		assertEquals(0, header.pairs.get("2").intValue());
 					
 	}	
 	

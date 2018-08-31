@@ -22,7 +22,7 @@ public class TagSummaryReportTest {
 	@Test
 	public void simpleTest() throws Exception{
 		
-		TagSummaryReport2 report = new TagSummaryReport2( null, null, null);
+		TagSummaryReport2 report = new TagSummaryReport2();
 		SAMRecord record = new SAMRecord(null);
 		record.setReadName("TESTDATA");
 		

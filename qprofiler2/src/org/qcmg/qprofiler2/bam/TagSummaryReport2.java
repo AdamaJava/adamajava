@@ -11,6 +11,7 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 
+import org.omg.IOP.TAG_ALTERNATE_IIOP_ADDRESS;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.MAPQMatrix;
@@ -29,6 +30,7 @@ import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Element;
 
 import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SAMRecord.SAMTagAndValue;
 import htsjdk.samtools.SAMTagUtil;
 import htsjdk.samtools.SAMUtils;
 
@@ -57,7 +59,7 @@ public class TagSummaryReport2 {
 	private final QCMGAtomicLongArray cqBadReadLineLengths = new QCMGAtomicLongArray(128);
 	private final SummaryByCycle<Integer> zmSmMatrix = new SummaryByCycle<Integer>(128);
 	
-	final ConcurrentMap<String, AtomicLong> tagRGLineLengths = new ConcurrentHashMap<String, AtomicLong>();
+//	final ConcurrentMap<String, AtomicLong> tagRGLineLengths = new ConcurrentHashMap<String, AtomicLong>();
 	final QCMGAtomicLongArray tagZMLineLengths = new QCMGAtomicLongArray(2048);
 	private final QCMGAtomicLongArray tagCMLineLengths = new QCMGAtomicLongArray(128);
 	private final QCMGAtomicLongArray tagSMLineLengths = new QCMGAtomicLongArray(256);
@@ -89,21 +91,23 @@ public class TagSummaryReport2 {
 	private long errMDReadNo ;
 	private long errIdReadNo ;
 
-	//read name
-	private final ConcurrentMap<String, ReadIDSummary> readIdSummary = new ConcurrentHashMap<String, ReadIDSummary>();
-	private final ConcurrentMap<String, AtomicLong> inValidReadIds = new ConcurrentHashMap<String, AtomicLong>();
+//	//read name
+//	private final ConcurrentMap<String, ReadIDSummary> readIdSummary = new ConcurrentHashMap<String, ReadIDSummary>();
+//	private final ConcurrentMap<String, AtomicLong> inValidReadIds = new ConcurrentHashMap<String, AtomicLong>();
 	
-	public TagSummaryReport2( String [] tags, String [] tagsInt, String [] tagsChar) {
-		this.tags = tags;
-		this.tagsInt = tagsInt;
-		this.tagsChar = tagsChar;	
+//	public TagSummaryReport2( String [] tags, String [] tagsInt, String [] tagsChar) {
+	public TagSummaryReport2() {
+//		this.tags = tags;
+//		this.tagsInt = tagsInt;
+//		this.tagsChar = tagsChar;	
 		
 		//init
 		this.errMDReadNo = 0;
 		this.torrentBam = false;
 		this.includeMatrices = false;
-		setupAdditionalTagMaps();		
+	//	setupAdditionalTagMaps();		
 	}
+ 
 	
 	/**
 	 * default torrentBam is false, unless this method is called
@@ -115,22 +119,22 @@ public class TagSummaryReport2 {
 		byte[] readBases = record.getReadBases();
 		boolean reverseStrand =record.getReadNegativeStrandFlag();		
 		
-		//RG
-		String value = (String) record.getAttribute(RG);	
-		if(value == null ) value = QprofilerXmlUtils.UNKNOWN_READGROUP;
-		 
-		SummaryByCycleUtils.incrementCount(tagRGLineLengths, value);						
-		readIdSummary.computeIfAbsent( value, (k) -> new ReadIDSummary() );
-		
-		try {			
-			readIdSummary.get(value).parseReadId( record.getReadName() );
-		} catch (Exception e) {
-			 SummaryByCycleUtils.incrementCount(inValidReadIds, value);
-			 if ( (errIdReadNo ++) < errReadLimit )  logger.warn( "invalid read name: " + record.getReadName() );			 
-		}
+//		//RG
+//		String value = (String) record.getAttribute(RG);	
+//		if(value == null ) value = QprofilerXmlUtils.UNKNOWN_READGROUP;
+//		 
+//		SummaryByCycleUtils.incrementCount(tagRGLineLengths, value);						
+//		readIdSummary.computeIfAbsent( value, (k) -> new ReadIDSummary() );
+//		
+//		try {			
+//			readIdSummary.get(value).parseReadId( record.getReadName() );
+//		} catch (Exception e) {
+//			 SummaryByCycleUtils.incrementCount(inValidReadIds, value);
+//			 if ( (errIdReadNo ++) < errReadLimit )  logger.warn( "invalid read name: " + record.getReadName() );			 
+//		}
 				
 		//MD	 
-		value = (String) record.getAttribute(MD);
+		String value = (String) record.getAttribute(MD);
 		if (null != value) {
 			//0: unpaired , 1: firstOfPair , 2: secondOfPair				
 			int order = (!record.getReadPairedFlag())? 0: (record.getFirstOfPairFlag())? 1 : 2;					
@@ -143,275 +147,86 @@ public class TagSummaryReport2 {
 				allReadsLineLengths[order].increment(i);
 				
 		}
-				
-		// if the record has a CQ tag, then it will likely have a CS tag
-		// if a record does not have a CQ tag, then it will not have a CS tag
-		value = (String) record.getAttribute(CQ);
-		if (null != value) {
-			// CQ
-			byte[] valueB = SAMUtils.fastqToPhred(value);
-			if (null != valueB) {
-				tagCQByCycle.parseByteData(valueB);
-				SummaryReportUtils.tallyQualScores(valueB, cqBadReadLineLengths);
-			}
-			// CS
-			value = (String) record.getAttribute(CS);
-			if (null != value) {
-				tagCSByCycle.parseStringData(value, 1);
-				SummaryReportUtils.tallyBadReadsAsString(value, csBadReadLineLengths);
-			}
-		}
-	
-		if ( ! torrentBam) {	
-			//ZP - not for torrent bams
-			value = (String) record.getAttribute(ZP);
-			if (null != value)
-				SummaryByCycleUtils.incrementCount(tagZPLineLengths, value);
-			//ZF - not for torrent bams
-			value = (String) record.getAttribute(ZF);
-			if (StringUtils.isNumeric(value)) 	// only care about ints in this tag
-				tagZFLineLengths.increment(Integer.parseInt(value));
-	
-		}
-
-		MAPQMatrix matrix = null;			
-		if (includeMatrices) {
-			int mapQ = record.getMappingQuality();
-			matrix = mapQMatrix.get(mapQ);
-			if (null == matrix) {
-				MAPQMatrix newMatrix = new MAPQMatrix(); 
-				matrix = mapQMatrix.putIfAbsent(mapQ, newMatrix);
-				if (null == matrix)
-					matrix = newMatrix;
-			}
-			matrix.addToMatrix(record.getReadLength(), MatrixType.LENGTH);
-		}
-		
-		//CM
-		Integer iValue = (Integer) record.getAttribute(CM);
-		if (null != iValue) {
-			tagCMLineLengths.increment(iValue.intValue());
-			//			SummaryByCycleUtils.incrementCount(tagCMLineLengths, iValue);
-			if (matrix != null) 
-				matrix.addToMatrix(iValue, MatrixType.CM);
-		}
-
-		//SM
-		Integer sm = (Integer) record.getAttribute(SM);
-		if (null != sm) {
-			tagSMLineLengths.increment(sm.intValue());
-			if (matrix != null) 
-				matrix.addToMatrix(sm, MatrixType.SM);
-		}
-				
-		//ZM - not for torrent bams
-		if ( ! torrentBam) {	
-			value = (String) record.getAttribute(ZM);
-			if (null != value) {
-				tagZMLineLengths.increment(Integer.parseInt(value));
-				if (matrix != null) {
-					Integer zm = Integer.valueOf(Integer.parseInt(value));
-					if(zm != null)
-						matrix.addToMatrix(zm, MatrixType.ZM);					 
-					if ( null != zm && null != sm)
-						zmSmMatrix.increment(zm, sm);	
+		// additionalTags	 
+		for( SAMTagAndValue tag : record.getAttributes()) {
+			if(tag.tag.equals("MD")) continue;
+			try {
+				if( record.getAttribute(tag.tag) instanceof Integer ) 
+					additionalIntegerTags.computeIfAbsent(tag.tag, k-> new QCMGAtomicLongArray(100))
+					.increment(record.getIntegerAttribute(tag.tag));
+				else if(record.getAttribute(tag.tag) instanceof Character ) { 
+					Map<Character, AtomicLong> map = additionalCharacterTags.computeIfAbsent(tag.tag, k-> new ConcurrentSkipListMap<Character, AtomicLong>());					
+					map.computeIfAbsent(record.getCharacterAttribute(tag.tag), k-> new AtomicLong()).incrementAndGet();
+				}else if(record.getAttribute(tag.tag) instanceof String) {					
+					Map<String, AtomicLong> map = additionalTags.computeIfAbsent(tag.tag, k-> new ConcurrentSkipListMap<String, AtomicLong>());
+					long v = map.computeIfAbsent(record.getStringAttribute(tag.tag), k-> new AtomicLong()).incrementAndGet();	
+					//debug
+					//System.out.println(tag.tag + " => " + record.getStringAttribute(tag.tag) + " = " + v);
 				}
+			}catch(Exception e) {
+				Map<String, AtomicLong> map = additionalTags.computeIfAbsent("Others", k-> new ConcurrentSkipListMap<String, AtomicLong>());
+				map.computeIfAbsent(tag.tag, k-> new AtomicLong()).incrementAndGet();					
 			}
-		}				
-		
-		//NH
-		iValue = (Integer) record.getAttribute(NH);
-		if (null != iValue) {
-			tagNHLineLengths.increment(iValue.intValue());
-			if (matrix != null) 
-				matrix.addToMatrix(iValue, MatrixType.NH);
-		}
-
-		//IH
-		iValue = (Integer) record.getAttribute(IH);
-		if (null != iValue) 
-			tagIHLineLengths.increment(iValue.intValue());
-
-		// additionalTags
-		if (null != tags)
-			for (String s : tags) {
-				value = (String) record.getAttribute(s);
-				if (null != value)
-					SummaryByCycleUtils.incrementCount(additionalTags.get(s), value);
-			}
-		
-		// additionalTagsInt
-		if (null != tagsInt)
-			for (String s : tagsInt) {
-				iValue = (Integer) record.getAttribute(s);
-				if (null != iValue)
-					additionalIntegerTags.get(s).increment(iValue.intValue());
-			}
-		
-		// additionalTagsChar
-		if (null != tagsChar) {
-			Character c = null;
-			for (String s : tagsChar) {
-				c = (Character) record.getAttribute(s);
-				if (null != c)
-					SummaryByCycleUtils.incrementCount(  additionalCharacterTags.get(s), c );
-			}
-		}
-
+		}			
 
 	}
 	
 	
-	public void toXml(Element bamReportElement){
-		Element tagElement = QprofilerXmlUtils.createSubElement(bamReportElement, "report");	//SEQ
-		tagElement.setAttribute("Category", "TAG");
-		
-		
+	public void toXml(Element parent){
+				
 		//MD tag
-		Element childElement = QprofilerXmlUtils.createSubElement(tagElement, "subField");	//SEQ
+		Element childElement = QprofilerXmlUtils.createSubElement(parent, "subField");	//SEQ
 		childElement.setAttribute("Category", "TAG:MD");
 		
 		//mismatchbycycle
-		for(int order = 0; order < 3; order ++)
-			tagMDMismatchByCycle[order].toXml(childElement, "mismatch distribution per base cycle", BamSummaryReport2.sourceName[order], "read base cycle");
-		
-//		//"distribution of mismatches in the MD tag, and the reported base";
-//		// TAG-MD-Mismatch
-//		Element tagMDElement = QprofilerXmlUtils.createSubElement(tagElement, "MD");			
-//		//Element misMatchE = QprofilerXmlUtils.createSubElement(tagMDElement, "MismatchByCycle" );
-//		
-//		for(int order = 0; order < 3; order ++){ 
-//			// SummaryReportUtils.lengthMapToXml(tagMDElement, "AllReads", sourceName[order], allReadsLineLengths[order]);
-//			CycleSummaryUtils.toXmlWithPercentage(tagMDMismatchByCycle[order], tagMDElement,"MismatchByCycle", BamSummaryReport2.sourceName[order], allReadsLineLengths[order]  ); 		
-//			// TAG-MD ref>alt switch the ints back to Strings
-//			for(String strand : new String[]{"MutationForward", "MutationReverse"}){
-//				Map<String, AtomicLong> mdRefAltLengthsString = new HashMap<String, AtomicLong>();
-//				QCMGAtomicLongArray mdRefAltLengths = (strand.equals("MutationForward"))? mdRefAltLengthsForward[order] : mdRefAltLengthsReverse[order];				
-//				for (int m = 0 ; m < mdRefAltLengths.length() ; m++) {
-//					long l = mdRefAltLengths.get(m);
-//					if (l <= 0)  continue;
-//					mdRefAltLengthsString.put(CycleSummaryUtils.getStringFromInt(m), new AtomicLong(l));					 
-//				}
-//				SummaryReportUtils.lengthMapToXml(tagMDElement, strand, BamSummaryReport2.sourceName[order], mdRefAltLengthsString);
-//			}
-//		}	
+		for(int order = 0; order < 3; order ++) 
+			tagMDMismatchByCycle[order].toXml(childElement, "mismatch distribution per base cycle",
+					BamSummaryReport2.sourceName[order],"read base cycle");
 			
- 		
-		//TAG
+		for(int order = 0; order < 3; order ++) {	
+			for(String strand : new String[]{"MutationForward", "MutationReverse"}){				
+				Map<String, AtomicLong> mdRefAltLengthsString = new HashMap<String, AtomicLong>();
+				QCMGAtomicLongArray mdRefAltLengths = (strand.equals("MutationForward"))? mdRefAltLengthsForward[order] : mdRefAltLengthsReverse[order];				
+				for (int m = 0 ; m < mdRefAltLengths.length() ; m++) {
+					long l = mdRefAltLengths.get(m);
+					if (l <= 0)  continue;
+					mdRefAltLengthsString.put(CycleSummaryUtils.getStringFromInt(m), new AtomicLong(l));					 
+				}
+				XmlUtils.outputSet(childElement, "base counts", String.format("%s base distribution per mutation value on %s", strand, BamSummaryReport2.sourceName[order]), 
+						strand+BamSummaryReport2.sourceName[order], "mutation value", mdRefAltLengthsString);
+			}		
+		}
  
-		//TAG-CS
-		childElement = QprofilerXmlUtils.createSubElement(tagElement, "subField");	//SEQ
-		childElement.setAttribute("Category", "TAG:CS");		
-		if( tagCSByCycle.cycles().size() > 0){
-			tagCSByCycle.toXml(childElement, "ColourByCycle", null, "read base cycle");
-			SummaryReportUtils.lengthMapToXml(childElement, "LengthTally", tagCSByCycle.getLengthMapFromCycle() );
-		//	SummaryReportUtils.lengthMapToXml(tagElement, "BadColoursInReads", csBadReadLineLengths);
-		}
-		
-		
-		//TAG-CQ
-		childElement = QprofilerXmlUtils.createSubElement(tagElement, "subField");	//SEQ
-		childElement.setAttribute("Category", "TAG:CQ");
 
-		if( tagCQByCycle.cycles().size() > 0){
-			tagCQByCycle.toXml(childElement, "QualityByCycle", null, "read base cycle");
-			//SummaryReportUtils.lengthMapToXml(tagElement, "LengthTally", tagCQByCycle.getLengthMapFromCycle());
-			createElement4tag(childElement, "TAG:CQ", "LengthTally", tagCQByCycle.getLengthMapFromCycle());
-			//SummaryReportUtils.lengthMapToXml(tagElement, "BadQualsInReads", cqBadReadLineLengths);
-			createElement4tag(childElement, "TAG:CQ", "BadQualsInReads", cqBadReadLineLengths);
-		}
 		
-		
-		
-				
-		//TAG-ZM
-		createElement4tag(tagElement, "ZM", null,tagZMLineLengths);
-		// TAG-ZP
-		createElement4tag(tagElement, "ZP", null,tagZPLineLengths);
-		// TAG-ZF
-		createElement4tag(tagElement, "ZF", null,tagZFLineLengths);
-		// TAG-CM
-		createElement4tag(tagElement, "CM", null,tagCMLineLengths);
-		// TAG-SM
-		createElement4tag(tagElement, "SM",null, tagSMLineLengths);
-		// TAG-IH
-		createElement4tag(tagElement, "IH",null, tagIHLineLengths);
-		// TAG-NH
-		createElement4tag(tagElement, "NH", null,tagNHLineLengths);
-		
-		if (includeMatrices)  // ConcurrentMap<Integer, MAPQMatrix> mapQMatrix
-			createMatrix(tagElement );
-		
-		// additional tags
+		// additional tags includes RG
 		for (Entry<String,  ConcurrentSkipListMap<String, AtomicLong>> entry : additionalTags.entrySet()) {
-			createElement4tag(tagElement, entry.getKey(), null,entry.getValue());
+			XmlUtils.outputSet(parent,"read counts","read distribution",  "tags:" + entry.getKey(), "tag value",entry.getValue());
 		}
 		// additional tagsInt
 		for (Entry<String,  QCMGAtomicLongArray> entry : additionalIntegerTags.entrySet()) {
-			createElement4tag(tagElement, entry.getKey(),null, entry.getValue());
+			XmlUtils.outputSet(parent,"counts","read distribution",  "tagInt:" + entry.getKey(),"tag value", entry.getValue());
 		}
 		// additional tagsChar
 		for (Entry<String,  ConcurrentSkipListMap<Character, AtomicLong>> entry : additionalCharacterTags.entrySet()) {
-			createElement4tag(tagElement, entry.getKey(),null, entry.getValue());
+			XmlUtils.outputSet(parent,"counts","read distribution",  "tagChar:" + entry.getKey(),"tag value", entry.getValue());
 		}	
-				 
-		//TAG-RG
-		createElement4tag(tagElement, "RG",null, tagRGLineLengths);
-		
-
-		/**
-		 * 	private final ConcurrentMap<String, ReadIDSummary> readIdSummary = new ConcurrentHashMap<String, ReadIDSummary>();
-	private final ConcurrentMap<String, AtomicLong> inValidReadIds = new ConcurrentHashMap<String, AtomicLong>();
-
-		 */
 	}
-	
-	private  <T> void createElement4tag(Element parent, String tagName, String source, Map<T, AtomicLong> map) {
-		List<Element> reports = QprofilerXmlUtils.getChildElementByTagName(parent, "report");
-		Element current = null;
-		for(Element ele : reports)  
-			if(ele.getAttribute("Category").equals("TAG:"+ tagName)) {
-				current = ele;
-				break;
-			}
-		 		
-		if(current == null) {
-			current = QprofilerXmlUtils.createSubElement(parent, "report");
-			current.setAttribute("Category", "TAG:"+ tagName);
-		}
-			 
-		
-		SummaryReportUtils.lengthMapToXml(current, "RG",source, map, null);
-	}
-	
-	private void createElement4tag(Element parent, String tagName,String source, QCMGAtomicLongArray array) {
-	
-		  				 
-		Map<Integer, AtomicLong> map = new TreeMap<Integer, AtomicLong>();
-		for (int i = 0, length = (int) array.length() ; i < length ; i++) {
-			long count = array.get(i);					 			
-			if (count > 0)	map.put( i, new AtomicLong(count) );
-		}	
-			
-		createElement4tag(parent, tagName, source,  map);		
-	}
-	
-	
 
-	private void setupAdditionalTagMaps(){
-		if (null != tags) {
-			for (String tag : tags)
-				additionalTags.put(tag, new ConcurrentSkipListMap<String, AtomicLong>());
-		}
-		if (null != tagsInt) {
-			for (String tagInt : tagsInt)
-				additionalIntegerTags.put(tagInt, new QCMGAtomicLongArray((100)));
-		}
-		if (null != tagsChar) {
-			for (String tagChar : tagsChar)
-				additionalCharacterTags.put(tagChar,  new ConcurrentSkipListMap<Character, AtomicLong>());
-		}
-	}	
+//	private void setupAdditionalTagMaps(){
+//		if (null != tags) {
+//			for (String tag : tags)
+//				additionalTags.put(tag, new ConcurrentSkipListMap<String, AtomicLong>());
+//		}
+//		if (null != tagsInt) {
+//			for (String tagInt : tagsInt)
+//				additionalIntegerTags.put(tagInt, new QCMGAtomicLongArray((100)));
+//		}
+//		if (null != tagsChar) {
+//			for (String tagChar : tagsChar)
+//				additionalCharacterTags.put(tagChar,  new ConcurrentSkipListMap<Character, AtomicLong>());
+//		}
+//	}	
 
 	void generateMAPQSubMaps(Map<MAPQMiniMatrix, AtomicLong> cmMatrix,
 			Map<MAPQMiniMatrix, AtomicLong> smMatrix,
@@ -488,11 +303,12 @@ public class TagSummaryReport2 {
 		XmlUtils.outputSet(parent,"not sure", "matrix is included", "MAPQMatrixZM", "not sure", cmMatrix);
 		
 		parent = QprofilerXmlUtils.createSubElement( parent, "ZmSmMatrix" );
+		XmlUtils.outputSet(parent,"not sure", "matrix is included", "MAPQMatrixZM", "not sure", zmMatrix);
 		zmSmMatrix.toXml(parent, "ZmSmMatrix");
 	//	XmlUtils.outputSet(parent,"not sure", "matrix is included", "ZmSmMatrix", "not sure", cmMatrix);
 		
 	}	
 	
-	public ConcurrentMap<String, ReadIDSummary>  getReadIDSummary(){	return readIdSummary;	}
+//	public ConcurrentMap<String, ReadIDSummary>  getReadIDSummary(){	return readIdSummary;	}
 	
 }

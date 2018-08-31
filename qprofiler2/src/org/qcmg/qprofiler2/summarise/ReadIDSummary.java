@@ -20,13 +20,15 @@ public class ReadIDSummary {
 	ConcurrentMap<String, AtomicLong> runIds = new ConcurrentHashMap<>();
 	ConcurrentMap<String, AtomicLong> flowCellIds = new ConcurrentHashMap<>();
 	ConcurrentMap<String, AtomicLong> flowCellLanes = new ConcurrentHashMap<>();
-
 	ConcurrentMap<String, AtomicLong> tileNumbers = new ConcurrentHashMap<>();
-	AtomicLong firstInPair = new AtomicLong();
-	AtomicLong secondInPair = new AtomicLong();
+	ConcurrentMap<String, AtomicLong> invalidId = new ConcurrentHashMap<>();
+	Map<String, AtomicLong> pairs = new HashMap<>();
+
+//	AtomicLong firstInPair = new AtomicLong();
+//	AtomicLong secondInPair = new AtomicLong();
 	AtomicLong filteredY = new AtomicLong();
 	AtomicLong filteredN = new AtomicLong();
-	AtomicLong invalidId = new AtomicLong();
+
 	ConcurrentMap<String, AtomicLong> indexes = new ConcurrentHashMap<>();	
 	
 	AtomicLong inputNo  = new AtomicLong();
@@ -46,64 +48,58 @@ public class ReadIDSummary {
 	 * @param readId
 	 * @throws Exception 
 	 */
-	public void parseReadId(String readId) throws Exception{
+	public void parseReadId(String readId) {
 		
 		inputNo.incrementAndGet();
+		try {
 		
-		if ( !readId.contains(":")) { parseBgiReads(readId); return; };	
-		
-		String [] headerDetails = TabTokenizer.tokenize( readId, ':' );
-		if (null == headerDetails ||  headerDetails.length <= 0)  return;
+			if ( !readId.contains(":")) { parseBgiReads(readId); return; };	
+			
+			String [] headerDetails = TabTokenizer.tokenize( readId, ':' );
+			if (null == headerDetails ||  headerDetails.length <= 0)  return;
+					
+			//if length is equal to 10, we have the classic Casava 1.8 format
+			int headerLength = headerDetails.length;					
+			if (headerLength == 5) {
+				if (readId.contains(" "))   parseFiveElementHeaderWithSpaces(headerDetails);
+				else   parseFiveElementHeaderNoSpaces(headerDetails);				
+				return;					 
+			} 
+									
+			// if (headerLength != 5)					
+			updateMap(instruments, headerDetails[0]);
+			
+			// run Id
+			if (headerLength > 1)  updateMap(runIds, headerDetails[1]);
+			 	
+			// flow cell id
+			if (headerLength > 2) updateMap(flowCellIds, headerDetails[2] );
 				
-		//if length is equal to 10, we have the classic Casava 1.8 format
-		int headerLength = headerDetails.length;					
-		if (headerLength == 5) {
-			if (readId.contains(" "))  
-				parseFiveElementHeaderWithSpaces(headerDetails);
-			else  
-				parseFiveElementHeaderNoSpaces(headerDetails);
-			
-			return;					 
-		} 
-								
-		// if (headerLength != 5)					
-		updateMap(instruments, headerDetails[0]);
-		
-		// run Id
-		if (headerLength > 1)  			 
-			updateMap(runIds, headerDetails[1]);
+			// flow cell lanes
+			if (headerLength > 3) updateMap(flowCellLanes, headerDetails[3]);
+			 	
+			// tile numbers within flow cell lane
+			if (headerLength > 4) updateMap(tileNumbers, headerDetails[4]);
+				
+	
 		 	
-		// flow cell id
-		if (headerLength > 2) 	
-			updateMap(flowCellIds, headerDetails[2] );
-			
-		// flow cell lanes
-		if (headerLength > 3)  		 
-			updateMap(flowCellLanes, headerDetails[3]);
-		 	
-		// tile numbers within flow cell lane
-		if (headerLength > 4) {
-			updateMap(tileNumbers, headerDetails[4]);
-			
-
-		}		
-		// skip x, y coords for now
-		if (headerLength > 6)	 
-			// this may contain member of pair information
-			getPairInfo(headerDetails[6]);
-			
-		// filtered
-		if (headerLength > 7) {
-			String key = headerDetails[7];
-			if ("Y".equals(key)) {
-				filteredY.incrementAndGet();
-			} else if ("N".equals(key)) {
-				filteredN.incrementAndGet();
-			}			
-			// skip control bit for now	 // thats it!!
+			// skip x, y coords for now
+			if (headerLength > 6) getPairInfo(headerDetails[6]); // this may contain member of pair information
+				
+				
+			// filtered
+			if (headerLength > 7) {
+				String key = headerDetails[7];
+				if ("Y".equals(key)) filteredY.incrementAndGet();
+				 else if ("N".equals(key)) filteredN.incrementAndGet();				 			
+				// skip control bit for now	 // thats it!!
+			}
+			// indexes
+			if (headerLength > 9)  updateMap(indexes, headerDetails[9]);
+		}catch( Exception e) {
+			updateMap(invalidId, "ReadNameInValid");
+		 
 		}
-		// indexes
-		if (headerLength > 9)  updateMap(indexes, headerDetails[9]);		
 				
 	}
 
@@ -129,17 +125,16 @@ public class ReadIDSummary {
 	public long getInputReadNumber() {return inputNo.get();}
 		
 	public void toXml(Element element){
-		//XmlUtils.outputReadName(element, "INSTRUMENTS",  instruments );
-		
-		
 		
 		// header breakdown
+		if(invalidId.size() > 0)
+			XmlUtils.outputReadName( element, "InValidReadName", invalidId );
 		XmlUtils.outputReadName( element, "INSTRUMENTS",  instruments );
 		XmlUtils.outputReadName( element, "RUN_IDS",  runIds );
 		XmlUtils.outputReadName( element, "FLOW_CELL_IDS",  flowCellIds );
 		XmlUtils.outputReadName( element, "FLOW_CELL_LANES", flowCellLanes );
 		XmlUtils.outputReadName( element, "TILE_NUMBERS", tileNumbers );
-		XmlUtils.outputReadName( element, "PAIR_INFO",  getPairs() );
+		XmlUtils.outputReadName( element, "PAIR_INFO",  pairs );
 		XmlUtils.outputReadName( element, "FILTER_INFO",  getFiltered() );
 		XmlUtils.outputReadName( element, "INDEXES",  indexes );		
 	}
@@ -150,13 +145,7 @@ public class ReadIDSummary {
 	public ConcurrentMap<String, AtomicLong> getFlowCellLanesMap(){ return flowCellLanes; }
 	public ConcurrentMap<String, AtomicLong> getTileNumbersMap(){	return tileNumbers; }
 	public ConcurrentMap<String, AtomicLong> getIndexesMap(){ return indexes; }
-	
-	public Map<String, AtomicLong> getPairs(){
-		Map<String, AtomicLong> pairs = new HashMap<>();
-		pairs.put("1", firstInPair);
-		pairs.put("2", secondInPair);
-		return pairs; 
-	}
+
 
 	public Map<String, AtomicLong> getFiltered(){
 		Map<String, AtomicLong> filtered = new HashMap<>();
@@ -281,13 +270,16 @@ public class ReadIDSummary {
 		}
 		if (index != -1) {
 			char c = key.charAt(index + 1);
-			if (c == '1') {
-				firstInPair.incrementAndGet();
-			} else if (c == '2') {
-				secondInPair.incrementAndGet();
-			} else {
-				throw new Exception("unexpected value for member of pair: " + c + " from " + key);
-			}
+			pairs.computeIfAbsent(key, k-> new AtomicLong()).incrementAndGet();
+			
+//			pairs.computeIfAbsent(c, new AtomicLong());
+//			if (c == '1') {
+//				firstInPair.incrementAndGet();
+//			} else if (c == '2') {
+//				secondInPair.incrementAndGet();
+//			} else {
+//				throw new Exception("unexpected value for member of pair: " + c + " from " + key);
+//			}
 		}
 	}
 }

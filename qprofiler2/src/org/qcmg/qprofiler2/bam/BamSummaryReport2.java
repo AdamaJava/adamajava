@@ -67,6 +67,7 @@ public class BamSummaryReport2 extends SummaryReport {
 	public static final Integer ii = Integer.MAX_VALUE;	
 	public static final String[] sourceName = new String[]{ "UnPaired", QprofilerXmlUtils.FirstOfPair, QprofilerXmlUtils.SecondOfPair };	
 	
+	private final ConcurrentMap<String, ReadIDSummary> readIdSummary = new ConcurrentHashMap<String, ReadIDSummary>();
 	//SEQ
 	//first of pair, secondof pair, unpaired
 	@SuppressWarnings("unchecked")
@@ -79,8 +80,6 @@ public class BamSummaryReport2 extends SummaryReport {
 	private final QCMGAtomicLongArray[] qualBadReadLineLengths = new QCMGAtomicLongArray[]{new QCMGAtomicLongArray(128), new QCMGAtomicLongArray(128), new QCMGAtomicLongArray(128)};
 	
 	@SuppressWarnings("unchecked")
-//	private final QCMGAtomicLongArray[] allReadsLineLengths = new QCMGAtomicLongArray[]{new QCMGAtomicLongArray(1024), new QCMGAtomicLongArray(1024), new QCMGAtomicLongArray(1024)};
-//	private final QCMGAtomicLongArray MRNMLengths = new QCMGAtomicLongArray(mateRefNameMinusOne + 1);
 	private final ConcurrentMap<String, AtomicLong> cigarValuesCount = new ConcurrentHashMap<String, AtomicLong>();
 	private final QCMGAtomicLongArray[] mapQualityLengths = new QCMGAtomicLongArray[]{new QCMGAtomicLongArray(256), new QCMGAtomicLongArray(256), new QCMGAtomicLongArray(256)};
 	
@@ -116,7 +115,7 @@ public class BamSummaryReport2 extends SummaryReport {
 	
 	public BamSummaryReport2(String [] includes, int maxRecs, String [] tags, String [] tagsInt, String [] tagsChar) {
 		super();		
-		tagReport = new TagSummaryReport2(tags, tagsInt, tagsChar);
+		tagReport = new TagSummaryReport2();
 
 		if (maxRecs > 0) maxRecords = Long.valueOf(maxRecs);		
 		
@@ -159,6 +158,21 @@ public class BamSummaryReport2 extends SummaryReport {
 	}
 	
 	@Override
+	/**
+	 * BAM record field
+	QNAME String [!-?A-~]{1,254} Query template NAME
+	2 FLAG Int [0,216-1] bitwise FLAG
+	3 RNAME String \*|[!-()+-<>-~][!-~]* Reference sequence NAME
+	4 POS Int [0,231-1] 1-based leftmost mapping POSition
+	5 MAPQ Int [0,28
+	-1] MAPping Quality
+	6 CIGAR String \*|([0-9]+[MIDNSHPX=])+ CIGAR string
+	7 RNEXT String \*|=|[!-()+-<>-~][!-~]* Ref. name of the mate/next read
+	8 PNEXT Int [0,231-1] Position of the mate/next read
+	9 TLEN Int [-231+1,231-1] observed Template LENgth
+	10 SEQ String \*|[A-Za-z=.]+ segment SEQuence
+	11 QUAL 
+	 */
 	public void toXml( Element parent ) {	
 		
 		Element bamReportElement = init(parent, ProfileType.BAM, null,  maxRecords);		
@@ -168,34 +182,17 @@ public class BamSummaryReport2 extends SummaryReport {
 		//create bamMertrics
 		bamReportElement = QprofilerXmlUtils.createSubElement( bamReportElement, "bamMetrics" );
 		createQNAME(createFieldNode(bamReportElement, "QNAME")  );					
-		XmlUtils.outputSet( createFieldNode(bamReportElement, "FLAG"), "read number", "read counts distribution based on flag string", "flag", "flag string" , flagBinaryCount);		 
+		XmlUtils.outputSet( createFieldNode(bamReportElement, "FLAG"), 
+				"read number", "read counts distribution based on flag string", "flag", "flag string" , flagBinaryCount);		 
 		createRNAME(createFieldNode(bamReportElement, "RNAME")  ); //it is same to RNEXT
 		createPOS(createFieldNode(bamReportElement, "POS")  );	
 		createMAPQ(createFieldNode(bamReportElement, "MAPQ"));	
 		createCigar(createFieldNode(bamReportElement, "CIGAR") );
-//		createRNEXT(createFieldNode(bamReportElement, "RNEXT") );
 		//PNEXT will be same to pos
 		createTLen(createFieldNode(bamReportElement, "TLEN") );
 		createSeq(createFieldNode(bamReportElement, "SEQ")  );
 		createQual(createFieldNode(bamReportElement, "QUAL")  );
-		tagReport.toXml(bamReportElement); 
-		
-/*		
- * BAM record field
-		QNAME String [!-?A-~]{1,254} Query template NAME
-		2 FLAG Int [0,216-1] bitwise FLAG
-		3 RNAME String \*|[!-()+-<>-~][!-~]* Reference sequence NAME
-		4 POS Int [0,231-1] 1-based leftmost mapping POSition
-		5 MAPQ Int [0,28
-		-1] MAPping Quality
-		6 CIGAR String \*|([0-9]+[MIDNSHPX=])+ CIGAR string
-		7 RNEXT String \*|=|[!-()+-<>-~][!-~]* Ref. name of the mate/next read
-		8 PNEXT Int [0,231-1] Position of the mate/next read
-		9 TLEN Int [-231+1,231-1] observed Template LENgth
-		10 SEQ String \*|[A-Za-z=.]+ segment SEQuence
-		11 QUAL 
-*/		
-		
+		tagReport.toXml(createFieldNode(bamReportElement, "TAG")); 
 		if (includeCoverage) SummaryReportUtils.lengthMapToXml(createFieldNode(bamReportElement, "Other:Coverage"), "Coverage", coverage);
 	}
 	
@@ -208,7 +205,7 @@ public class BamSummaryReport2 extends SummaryReport {
 	
 	private void createQNAME(Element parent ){
 		 //read name will be under RT Tab	
-		for( Entry<String, ReadIDSummary> entry:  tagReport.getReadIDSummary().entrySet()){
+		for( Entry<String, ReadIDSummary> entry:  readIdSummary.entrySet()){
 			Element readNameElement = QprofilerXmlUtils.createSubElement(parent, "ReadNameAnalysis");
 			readNameElement.setAttribute("ReadGroupid", entry.getKey());
 			readNameElement.setAttribute("readCount", entry.getValue().getInputReadNumber()+"");
@@ -233,7 +230,6 @@ public class BamSummaryReport2 extends SummaryReport {
 		//1mers is same to baseByCycle
 		for( int i : new int[] { 2, 3, kmersSummary.maxKmers } )
 			kmersSummary.toXml(seqElement,i);	
-
 	}
 	
 	//<QUAL>
@@ -251,14 +247,11 @@ public class BamSummaryReport2 extends SummaryReport {
 	private void createCigar(Element parent) {
 		Map<String, AtomicLong> map = new TreeMap<>(new CigarStringComparator());
 		map.putAll(cigarValuesCount);
-		System.out.println(map.keySet().toString());
 		
 		XmlUtils.outputSet(parent, "base counts", "base counts distribution based on cigar element", "cigar", "cigar element",  map);
-		SummaryReportUtils.lengthMapToXml(parent, "ObservedOperations", null, cigarValuesCount, new CigarStringComparator());
 				
 		//why require length
 		XmlUtils.outputSet(parent, "length","not sure why output these data", "cigarLengths", "cigar string length", cigarLengths);
-		//SummaryReportUtils.lengthMapToXml(parent, "Lengths",null, cigarLengths,null);
 	}
 	
 	private void createMAPQ(Element parent) {				
@@ -347,10 +340,13 @@ public class BamSummaryReport2 extends SummaryReport {
 		//anyway, add to summary and then add to it's readgroup
 		rgSummaries.get(QprofilerXmlUtils.All_READGROUP).parseRecord(record); 
 		ReadGroupSummary rgSumm = rgSummaries.computeIfAbsent(readGroup, k -> new ReadGroupSummary(k));
-		
+		ReadIDSummary idSumm = readIdSummary.computeIfAbsent( readGroup, (k) -> new ReadIDSummary() );
 		
 		final int order = (!record.getReadPairedFlag())? 0: (record.getFirstOfPairFlag())? 1 : 2;			
 		if( rgSumm.parseRecord(record) ) {	
+			//QName			 		
+			readIdSummary.computeIfAbsent( readGroup, (k) -> new ReadIDSummary() ).parseReadId( record.getReadName() );
+ 			
 			// SEQ 
 			byte[] data = (record.getReadNegativeStrandFlag())? SummaryReportUtils.getReversedSeq(record.getReadBases()) : record.getReadBases();
 			seqByCycle[order].parseByteData(data );			
@@ -362,7 +358,7 @@ public class BamSummaryReport2 extends SummaryReport {
 			SummaryReportUtils.tallyQualScores( record.getBaseQualities(), qualBadReadLineLengths[order] );				
  			kmersSummary.parseKmers( record.getReadBases(), record.getReadNegativeStrandFlag(), order );
  						
-			//ISIZE is done inside readGroupSummary.pParseRecord			
+			//TLen is done inside readGroupSummary.pParseRecord			
 			// MRNM is same to RNAME
  			
 			// RNAME & POS			
@@ -457,13 +453,10 @@ public class BamSummaryReport2 extends SummaryReport {
 			point ++;
 		}
 		
-		//<Property value="1122" description="Discarded reads (FailedVendorQuality, secondary, supplementary)"/>
 		long badReadNum = rgSummaries.get(QprofilerXmlUtils.All_READGROUP).getNumFailedVendorQuality() +
 				rgSummaries.get(QprofilerXmlUtils.All_READGROUP).getNumSecondary() + rgSummaries.get(QprofilerXmlUtils.All_READGROUP).getNumSupplementary() ;				
 		properties[3][0] = badReadNum + "";
-		properties[3][1] = "Discarded reads (FailedVendorQuality, secondary, supplementary)";
-		
-		//<Property value="102789" description="Total reads including discarded reads"/>
+		properties[3][1] = "Discarded reads (FailedVendorQuality, secondary, supplementary)";		
 		properties[4][0] = getRecordsParsed() + "";
 		properties[4][1] = "Total reads including discarded reads";
 				
@@ -518,7 +511,7 @@ public class BamSummaryReport2 extends SummaryReport {
 	ConcurrentMap<Integer, AtomicLong> getCoverageQueue() {	return coverageQueue;	}	
 	
 	ConcurrentMap<Integer, MAPQMatrix> getMapQMatrix() {return tagReport.mapQMatrix ;}	
-	ConcurrentMap<String, AtomicLong> getTagRGLineLengths() { return tagReport.tagRGLineLengths; }
+	//ConcurrentMap<String, AtomicLong> getTagRGLineLengths() { return tagReport.tagRGLineLengths; }
 	QCMGAtomicLongArray  getTagZMLineLengths() { return tagReport.tagZMLineLengths;	}
 	Map<Integer, AtomicLong> getTagCSLineLengths() { return tagReport.tagCSByCycle.getLengthMapFromCycle();	}
 	Map<Integer, AtomicLong> getTagCQLineLengths() { return tagReport.tagCQByCycle.getLengthMapFromCycle();	}			
