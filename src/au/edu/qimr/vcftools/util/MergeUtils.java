@@ -16,6 +16,7 @@ import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.SnpUtils;
+import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
@@ -114,13 +115,6 @@ public class MergeUtils {
 		mergedHeader.addInfo(Constants.VCF_MERGE_INFO, ".","Integer", VcfHeaderUtils.DESCRITPION_MERGE_IN);
 		//		 "Indicates which INput file this vcf record came from. Multiple values are allowed which indicate that the record has been merged from more than 1 input file");
 		
-		/*
-		 * make sure SOMATIC has been added, and add the _n entry
-		 */
-		if ( mergedHeader.getInfoRecord(VcfHeaderUtils.INFO_SOMATIC) == null) {
-			mergedHeader.addInfo(VcfHeaderUtils.INFO_SOMATIC, "0", "Flag", VcfHeaderUtils.INFO_SOMATIC_DESC);
-		}
-		mergedHeader.addInfo(VcfHeaderUtils.INFO_SOMATIC + "_n", "0", "Flag", "Indicates that the nth input file considered this record to be somatic. Multiple values are allowed which indicate that more than 1 input file consider this record to be somatic");
 			
 		/*
 		 * Build up new CHROM line with the samples updated with the input number appended to them
@@ -244,6 +238,8 @@ public class MergeUtils {
 		if ( ! aa.equals(combinedAlt)) {
 			
 			String[] existingGTs = ffMap.get(VcfHeaderUtils.FORMAT_GENOTYPE);
+			String[] existingADs = ffMap.get(VcfHeaderUtils.FORMAT_ALLELIC_DEPTHS);
+			String[] oabss = ffMap.get(VcfHeaderUtils.FORMAT_OBSERVED_ALLELES_BY_STRAND);
 			/*
 			 * we could have an updated gts
 			 */
@@ -255,25 +251,16 @@ public class MergeUtils {
 						existingGTs[z] = newGT;
 					}
 				}
-			}
-			
-			if (updateAD) {
-				String[] existingADs = ffMap.get(VcfHeaderUtils.FORMAT_ALLELIC_DEPTHS);
-				String[] oabss = ffMap.get(VcfHeaderUtils.FORMAT_OBSERVED_ALLELES_BY_STRAND);
-				for (int z = 0 ; z < existingADs.length ; z++) {
-					
+				if (updateAD) {
 					String ad = existingADs[z];
-					if ( ! ad.equals(Constants.MISSING_DATA_STRING)) {
-						String newAD = VcfUtils.getAD(r.getRef(), combinedAlt,oabss[z]);
+					if ( ! StringUtils.isNullOrEmptyOrMissingData(ad)) {
+						String newAD = null != oabss ? VcfUtils.getAD(r.getRef(), combinedAlt, oabss[z]) : fillAD(ad, existingGTs[z], gt);
 						if ( ! newAD.equals(ad)) {
 							existingADs[z] = newAD;
 						}
 					}
 				}
-				
-				ffMap.put(VcfHeaderUtils.FORMAT_GENOTYPE, existingADs);
 			}
-			ffMap.put(VcfHeaderUtils.FORMAT_GENOTYPE, existingGTs);
 		}
 		
 		/*
@@ -299,6 +286,48 @@ public class MergeUtils {
 		return f.chars().allMatch(i -> i == 46 || i == 58);
 	}
 	
+	public static String fillAD(String oldAD, String newGt, String oldGt) {
+		if (newGt.equals(oldGt)) {
+			return oldAD;
+		}
+		String [] adArray = TabTokenizer.tokenize(oldAD, Constants.COMMA);
+		int newgt1 = Integer.valueOf(""+newGt.charAt(0));
+		int newgt2 = Integer.valueOf(""+newGt.charAt(2));
+		int oldgt1 = Integer.valueOf(""+oldGt.charAt(0));
+		int oldgt2 = Integer.valueOf(""+oldGt.charAt(2));
+		
+		if (Math.max(oldgt1, oldgt2) >= Math.max(newgt1, newgt2)) {
+			return oldAD;
+		}
+		
+		String [] newADArray = new String[Math.max(newgt1,  newgt2) + 1];
+		
+		int i = 0;
+		for (String s : adArray) {
+				
+			if (i == oldgt1) {
+				newADArray[oldgt1 != newgt1 ? newgt1 : i] = s;
+			} else if ( i == oldgt2) {
+				newADArray[oldgt2 != newgt2 ? newgt2 : i] = s;
+			} else {
+				newADArray[i] = s;	
+			}
+				
+			i++;
+		}
+		
+		/*
+		 * loop through and set any null elements to .
+		 */
+		for (int j = 0 ; j < newADArray.length ; j++) {
+			if (null == newADArray[j]) {
+				newADArray[j] = Constants.MISSING_DATA_STRING;
+			}
+		}
+		
+		return Arrays.stream(newADArray).collect(Collectors.joining(Constants.COMMA_STRING));
+	}
+	
 	/**
 	 * Returns a new VcfRecord that takes the positional information from the suppliued VCfRecord, and uses the supplied alt for the alt...
 	 * @param r
@@ -316,7 +345,7 @@ public class MergeUtils {
 		if (null == caller1 && null == caller2) {
 			throw new IllegalArgumentException("MergeUtils.mergeRecords called will no records!!!");
 		} else if (null == caller1) {
-			Map<String, String> thisRecordsRules = null != rules ? rules.get(1) : null;
+//			Map<String, String> thisRecordsRules = null != rules ? rules.get(1) : null;
 			/*
 			 * just got caller 2 data
 			 */
@@ -339,7 +368,7 @@ public class MergeUtils {
 			}
 			
 		} else if (null == caller2) {
-			Map<String, String> thisRecordsRules = null != rules ? rules.get(0) : null;
+//			Map<String, String> thisRecordsRules = null != rules ? rules.get(0) : null;
 			/*
 			 * just got caller 1 data
 			 */
@@ -410,14 +439,14 @@ public class MergeUtils {
 			}
 			
 			moveDataToFormat(caller1, mr.getAlt(), true);
-			moveDataToFormat(caller2, mr.getAlt(), false);
+			moveDataToFormat(caller2, mr.getAlt(), true);
 			
 			/*
 			 * add format fields from caller1 to mr
 			 */
 			
-			Map<String, String[]> caller1FFMap = VcfUtils.getFormatFieldsAsMap(caller1.getFormatFields());
-			Map<String, String[]> caller2FFMap = VcfUtils.getFormatFieldsAsMap(caller2.getFormatFields());
+			Map<String, String[]> caller1FFMap = caller1.getFormatFieldsAsMap();
+			Map<String, String[]> caller2FFMap = caller2.getFormatFieldsAsMap();
 			
 			if (null != caller1Rules && ! caller1Rules.isEmpty()) {
 				/*
@@ -447,7 +476,7 @@ public class MergeUtils {
 			if (ff1.size() > 1) {
 				mr.setFormatFields(ff1);
 			}
-			List<String> ff2 =VcfUtils.convertFFMapToList(caller2FFMap);
+			List<String> ff2 = VcfUtils.convertFFMapToList(caller2FFMap);
 			if (ff2.size() > 1) {
 				VcfUtils.addAdditionalSamplesToFormatField(mr, ff2);
 			}

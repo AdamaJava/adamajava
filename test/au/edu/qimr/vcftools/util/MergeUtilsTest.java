@@ -91,7 +91,7 @@ public class MergeUtilsTest {
 		assertNotNull(pair);
 		
 		VcfHeader mergedHeader = pair.getLeft();
-		assertEquals(true, null != mergedHeader.getInfoRecord(SnpUtils.SOMATIC));
+		assertEquals(true, null == mergedHeader.getInfoRecord(SnpUtils.SOMATIC));
 		assertEquals(true, null != mergedHeader.getInfoRecord(Constants.VCF_MERGE_INFO));
 		String columnHeaderLine = mergedHeader.getChrom().toString();
 		String [] array = columnHeaderLine.split(Constants.TAB_STRING);
@@ -101,8 +101,11 @@ public class MergeUtilsTest {
 		assertEquals(testId + "_1", array[10]);
 		assertEquals(controlId + "_2", array[11]);
 		assertEquals(testId + "_2", array[12]);
-		assertTrue(  mergedHeader.getInfoRecord(SnpUtils.SOMATIC) != null);
-		assertTrue(  mergedHeader.getInfoRecord(SnpUtils.SOMATIC+ "_n") != null);
+		/*
+		 * no longer adding the somatic info header lines - they should now appear in the format INF fields
+		 */
+		assertTrue(  mergedHeader.getInfoRecord(SnpUtils.SOMATIC) == null);
+		assertTrue(  mergedHeader.getInfoRecord(SnpUtils.SOMATIC+ "_n") == null);
 				
 	}
 	
@@ -277,7 +280,7 @@ public class MergeUtilsTest {
  		assertEquals(false, null == p);
  		mergedH = p.getLeft();
 		assertEquals(0, mergedH.getAllMetaRecords().size());
-		assertEquals(4, mergedH.getInfoRecords().size());	// adds 2 somatic info lines, and an IN line
+		assertEquals(2, mergedH.getInfoRecords().size());	// adds an IN line
 		
 		/*
 		 * merge the same header, should have same number of entries
@@ -286,7 +289,7 @@ public class MergeUtilsTest {
 		assertEquals(false, null == p);
 		mergedH = p.getLeft();
 		assertEquals(0, mergedH.getAllMetaRecords().size());
-		assertEquals(4, mergedH.getInfoRecords().size());
+		assertEquals(2, mergedH.getInfoRecords().size());
 		
 		
 		VcfHeader h2 = new VcfHeader();
@@ -296,14 +299,14 @@ public class MergeUtilsTest {
 		assertEquals(false, null == p);
 		mergedH = p.getLeft();
 		assertEquals(0, mergedH.getAllMetaRecords().size());
-		assertEquals(5, mergedH.getInfoRecords().size());
+		assertEquals(3, mergedH.getInfoRecords().size());
 		
 		h2.addOrReplace(VcfHeaderUtils.HEADER_LINE_INFO + "=<ID=DEF,Number=.,Type=String,Description=\"My second info field\">");
 		p =MergeUtils.getMergedHeaderAndRules(h1, h2);
 		assertEquals(false, null == p);
 		mergedH = p.getLeft();
 		assertEquals(0, mergedH.getAllMetaRecords().size());
-		assertEquals(6, mergedH.getInfoRecords().size());
+		assertEquals(4, mergedH.getInfoRecords().size());
 	}
 	
 	@Test
@@ -312,7 +315,7 @@ public class MergeUtilsTest {
 		VcfHeader gatkHeader = new VcfHeader(getQsnpGATKVcfHeader());
 		VcfHeader newHeader = MergeUtils.getMergedHeaderAndRules(qsnpHeader, gatkHeader).getLeft();
 		
-		assertEquals(23, newHeader.getInfoRecords().size());		
+		assertEquals(21, newHeader.getInfoRecords().size());		
 		assertEquals(15, newHeader.getFilterRecords().size());
 		assertEquals(10,newHeader.getFormatRecords().size());
 	}
@@ -323,7 +326,7 @@ public class MergeUtilsTest {
 		VcfHeader gatkHeader = new VcfHeader(getQsnpGATKVcfHeader());
 		
 		VcfHeader newHeader = MergeUtils.getMergedHeaderAndRules(qsnpHeader, gatkHeader).getLeft();		
-		assertEquals(23, newHeader.getInfoRecords().size());		
+		assertEquals(21, newHeader.getInfoRecords().size());		
 		assertEquals(15, newHeader.getFilterRecords().size());
 		assertEquals(10,newHeader.getFormatRecords().size());
 		
@@ -651,6 +654,50 @@ public class MergeUtilsTest {
 		assertEquals("0/1:A75[31.96],57[29.32],C12[35.25],6[38]:.:.:PASS:A/C:.:18:16:.", ff.get(2));
 		assertEquals("0/1:A101[29.56],51[27.63],C30[30.83],21[37.29],G1[12],0[0]:2,2:4:NCIT:A/C:69:51:44:72,0,69", ff.get(3));
 		assertEquals("./.:A191[31.2],147[27.37],C70[30.29],92[37.47],T0[0],1[37]:.:.:NCIT:.:.:162:101:.", ff.get(4));
+	}
+	
+	@Test
+	public void mergeRealLifeDataAD() {
+		VcfRecord v1 = new VcfRecord(new String[]{"chr1","2587689",".","A","C,G",".",".","FLANK=AGCACCCACAC","GT:AD:DP:EOR:FF:FT:INF:NNS:OABS","2/2:3,5,54:62:C1[]1[];G4[]1[]:A6;C26;G58:.:.:47:A2[26.5]1[41];C3[30]2[22];G37[32.59]17[33.06]","1/2:4,10,61:75:A1[]0[];C1[]0[];G0[]2[]:A13;C68;G87;T1:.:SOMATIC:10,50:A2[24.5]2[41];C4[28.25]6[24.33];G35[30.74]26[31.5]"});
+		VcfRecord v2 = new VcfRecord(new String[]{"chr1","2587689",".","A","G",".",".","DP=60;ExcessHet=3.0103;FS=0.000;MQ=53.08;QD=34.17;SOR=1.919","GT:AD:DP:GQ:QL:FT:INF","1/1:0,56:56:99:1913.77:.:.","1/1:0,91:91:99:2811.77:.:."});
+		VcfRecord mr = MergeUtils.mergeRecords(null,  v1, v2);
+		
+		assertEquals("chr1", mr.getChromosome());
+		assertEquals(2587689, mr.getPosition());
+		assertEquals("A", mr.getRef());
+		assertEquals("C,G", mr.getAlt());
+		assertEquals(null, mr.getFilter());
+		assertEquals("FLANK=AGCACCCACAC;DP=60;ExcessHet=3.0103;FS=0.000;MQ=53.08;QD=34.17;SOR=1.919", mr.getInfo());
+		
+		List<String> ff = mr.getFormatFields();
+		assertEquals(5, ff.size());
+		
+		Map<String, String[]> ffs = mr.getFormatFieldsAsMap();
+		assertArrayEquals(new String[]{"3,5,54","4,10,61", "0,.,56","0,.,91"}, ffs.get(VcfHeaderUtils.FORMAT_ALLELIC_DEPTHS));
+	}
+	
+	@Test
+	public void moveDataToFormat() {
+		VcfRecord v1 = new VcfRecord(new String[]{"chr1","2587689",".","A","C,G",".",".","FLANK=AGCACCCACAC","GT:AD:DP:EOR:FF:FT:INF:NNS:OABS","2/2:3,5,54:62:C1[]1[];G4[]1[]:A6;C26;G58:.:.:47:A2[26.5]1[41];C3[30]2[22];G37[32.59]17[33.06]","1/2:4,10,61:75:A1[]0[];C1[]0[];G0[]2[]:A13;C68;G87;T1:.:SOMATIC:10,50:A2[24.5]2[41];C4[28.25]6[24.33];G35[30.74]26[31.5]"});
+		MergeUtils.moveDataToFormat(v1, "C,G", true);
+		assertEquals("FLANK=AGCACCCACAC", v1.getInfo());
+		assertEquals("GT:AD:DP:EOR:FF:FT:INF:NNS:OABS\t2/2:3,5,54:62:C1[]1[];G4[]1[]:A6;C26;G58:.:.:47:A2[26.5]1[41];C3[30]2[22];G37[32.59]17[33.06]\t1/2:4,10,61:75:A1[]0[];C1[]0[];G0[]2[]:A13;C68;G87;T1:.:SOMATIC:10,50:A2[24.5]2[41];C4[28.25]6[24.33];G35[30.74]26[31.5]", v1.getFormatFieldStrings());
+		
+		VcfRecord v2 = new VcfRecord(new String[]{"chr1","2587689",".","A","G",".",".","DP=60;ExcessHet=3.0103;FS=0.000;MQ=53.08;QD=34.17;SOR=1.919","GT:AD:DP:GQ:QL:FT:INF","1/1:0,56:56:99:1913.77:.:.","1/1:0,91:91:99:2811.77:.:."});
+		MergeUtils.moveDataToFormat(v2, "C,G", true);
+		assertEquals("DP=60;ExcessHet=3.0103;FS=0.000;MQ=53.08;QD=34.17;SOR=1.919", v2.getInfo());
+		assertEquals("GT:AD:DP:FT:GQ:INF:QL\t2/2:0,.,56:56:.:99:.:1913.77\t2/2:0,.,91:91:.:99:.:2811.77", v2.getFormatFieldStrings());
+	}
+	
+	@Test
+	public void fillAD() {
+		assertEquals("0,1", MergeUtils.fillAD("0,1", "1/1", "1/1"));
+		assertEquals("0,.,1", MergeUtils.fillAD("0,1", "2/2", "1/1"));
+		assertEquals("0,.,1", MergeUtils.fillAD("0,1", "0/2", "0/1"));
+		assertEquals("0,100,50", MergeUtils.fillAD("0,100,50", "1/2", "1/2"));
+		assertEquals("0,.,100", MergeUtils.fillAD("0,100", "2/2", "1/1"));
+		assertEquals("0,.,100,50", MergeUtils.fillAD("0,100,50", "2/3", "1/2"));
+		assertEquals("0,100,.,50", MergeUtils.fillAD("0,100,50", "3/3", "2/2"));
 	}
 	
 	// TODO should we do anything special when dealing with FILTER? PASS value for example? 
