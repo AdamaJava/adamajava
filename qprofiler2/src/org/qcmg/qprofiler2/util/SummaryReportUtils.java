@@ -416,23 +416,13 @@ public class SummaryReportUtils {
 	}
 
 	
-	/**
-	 * 
-	 * @param map
-	 * @param position
-	 * @param length
-	 */
-	public static void addPositionAndLengthToMap(ConcurrentMap<Integer, AtomicLong> map, int position, int length) {
-		for (int i = position ; i < position + length ; i++) {
-			SummaryByCycleUtils.incrementCount(map, Integer.valueOf(i));
-		}
-	}
+
 	
-	public static void bamHeaderToXml(Element parent, String header) {
-		Document doc = parent.getOwnerDocument();
-		Text element = doc.createCDATASection(header);
-		parent.appendChild(element);		
-	}
+//	public static void bamHeaderToXml(Element parent, String header) {
+//		Document doc = parent.getOwnerDocument();
+//		Text element = doc.createCDATASection(header);
+//		parent.appendChild(element);		
+//	}
 	
 	
 	public static void coverageByReferenceToXml(Element parent, String elementName, Map<String, PositionSummary> mapOfPositions, List<String> readGroupIds) {	

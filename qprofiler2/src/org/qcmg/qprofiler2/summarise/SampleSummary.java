@@ -19,6 +19,7 @@ import org.qcmg.common.util.QprofilerXmlUtils;
 import org.qcmg.common.vcf.VcfFormatFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
+import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Element;
 
 public class SampleSummary {
@@ -33,6 +34,9 @@ public class SampleSummary {
 	public final static String tiTvRatio = "TiTvRatio";
 	public final static String transitions ="Transitions";
 	public final static String transversions = "Transversions";
+		
+	//allele frequency value range. eg. altBinSize = 10, each bin contain counts for variants which mutation allele percent is [0, 0.1]
+	public final static int altBinSize = 20; 
 		
 	Set< String > gts = new HashSet<>(); //store possible genotyp 0/1, 0/0, ./1 ...
 	Map< String, AtomicLong > summary = new HashMap<>();
@@ -78,30 +82,9 @@ public class SampleSummary {
 			}
 		}
 		 
-		int rate = (int) ( 0.5 + (double) ( vaf * 100 ) / Integer.parseInt(dp) );
-		map.computeIfAbsent(type.name() , (k) -> new QCMGAtomicLongArray(51)).increment( rate );	
+		int rate = (int) ( 0.5 + (double) ( vaf * altBinSize ) / Integer.parseInt(dp) );
+		map.computeIfAbsent(type.name() , (k) -> new QCMGAtomicLongArray(altBinSize + 1)).increment( rate );	
 	}
-	
-//	private void incrementGTAD(SVTYPE type,String gt, String ad, String DP){	
-//		
-//		if( ad == null || ad.contains(".") ||  gt == null || gt.contains(".")  ||  gt.equals("0/0") || gt.equals("0|0") ) 
-//			return;		
-//		
-//		summaryAD.computeIfAbsent(type.name() , (k) -> new QCMGAtomicLongArray(102));		
-//		
-//		//bf: vaf = f(1)/(f(0) + f(1) + f(2) ..)  now: vaf (f(1) + f(2) +...) /DP
-//		String[] ads = ad.split(",");
-//		int vaf = 0; 
-//		for(int i = 1; i < ads.length; i ++) {
-//			if (i > 0) {
-//				vaf += Integer.parseInt(ads[i]);
-//			}
-//		}
-//		
-//		int dp = Integer.parseInt(DP);
-//		int rate = (int) ( 0.5 + (double) ( vaf * 100 ) / dp );
-//		summaryAD.get( type.name()  ).increment( rate );	
-//	}
 		
 
 	public void parseRecord( VcfRecord  vcf, int formateOrder) {
@@ -130,92 +113,68 @@ public class SampleSummary {
 			);
 						
 			for(SubsitutionEnum transType : transTypes){
-				String mark = transType.isTranstion() ? "Ti" : transType.isTransversion() ? "Tv" : "Other";	
-				increment( type.name() + mark  );
-				increment( type.name() + mark + transType.name() );					
+			//	String mark = transType.isTranstion() ? "Ti" : transType.isTransversion() ? "Tv" : "Other";	
+			//	increment( type.name() + mark  );
+				increment( type.name() + transType.name() );					
 			}				
 		}		
 	}	 			
 		
-	public void toXML(Element parent){
+	public void toXML(Element parent, String formats, String values ){
 		Element reportE = QprofilerXmlUtils.createSubElement(parent, report);
+		if(formats != null) {
+			reportE.setAttribute("foramts", formats);
+			reportE.setAttribute("values", values);
+		}
 		List<String> orderedGTs = new ArrayList<>(gts);
 		orderedGTs.sort(null);
 		for(SVTYPE type : SVTYPE.values()){	
 			//only output non zero value
 			AtomicLong totalAL = summary.get( type.name());
 			if( null == totalAL) continue;
+			
 			Element svtypeE = QprofilerXmlUtils.createSubElement(reportE,  variantType);
 			svtypeE.setAttribute("type", type.toVariantType() );
 			svtypeE.setAttribute( QprofilerXmlUtils.count, totalAL.toString());
 			String key =  type.name() + "dbSNP";
 			svtypeE.setAttribute("inDBSNP", summary .containsKey(key)? summary.get(key).get()+"" : "0" ); 
-			
-			Element genotypeE = QprofilerXmlUtils.createSubElement(svtypeE, genotypes);
-			for(String gt : orderedGTs){
-				key =  type.name() + gt;
-				AtomicLong al = summary.get(key);
-				if (null != al && al.get() > 0) {
-					Element element = QprofilerXmlUtils.createSubElement(genotypeE, genotype);
-					element.setAttribute("type", gt);
-					element.setAttribute( QprofilerXmlUtils.count, al.toString()); 
-				}
+						
+			Map<String, AtomicLong> gtvalues = new HashMap<>();
+			for(String gt : orderedGTs) {
+				AtomicLong gtv =  summary.get(type.name() + gt);
+				if(gtv != null) gtvalues.put(gt, gtv);				
 			}
+
+			XmlUtils.outputMap(svtypeE, "variant counts", "genotype distribution based on Format column GT field value", "genotype4"+type.toVariantType(), "genotyp(GT field)", gtvalues);
+
+			QCMGAtomicLongArray array = summaryAD.get(type.name());
+			if(array != null) {
+				Map<String, AtomicLong> altFreq = new HashMap<>();					
+				for( int i = 0; i < altBinSize; i ++  ){
+					long count =  array.get(i) ;
+					if(count <= 0) continue;
+					
+					String  bin = String.format("%.2f,%.2f", (double) i / altBinSize, (double) (i+1) / altBinSize  );
+					altFreq.put(bin, new AtomicLong(count) );
+				}		
 							
-			//vaf
-			Element ele = QprofilerXmlUtils.createSubElement( svtypeE, VAF );
-			VAF2Xml( ele, type.name() );
-			 			
+				XmlUtils.outputMap(svtypeE, "variant counts", "variant distribution based on allele frequency value", "altFreq4"+type.toVariantType(), "variantAltFrequency rate range", altFreq);
+			}  
+			
 			//titv
 			if(type.equals(SVTYPE.SNP)){
-				Element titvE = QprofilerXmlUtils.createSubElement( svtypeE, substitutions );
-				Element titvMethodE = QprofilerXmlUtils.createSubElement( titvE, type.name() );
+				Map<String, AtomicLong> tiFreq = new HashMap<>();
+				Map<String, AtomicLong> tvFreq = new HashMap<>();
+				for(SubsitutionEnum tran: SubsitutionEnum.values()) 
+					if(tran.isTranstion() &&  summary.get(type.name()+tran.name()) != null) 
+						tiFreq.put(tran.toString(), summary.get(type.name()+tran.name()));
+					else if( tran.isTransversion() &&  summary.get(type.name()+tran.name()) != null)  					 
+						tvFreq.put(tran.toString(), summary.get(type.name()+tran.name()));			
+				XmlUtils.outputMap(svtypeE, "variant counts", "SNP transtion substitution distribution", "transtion" , "substitution change", tiFreq);
+				XmlUtils.outputMap(svtypeE, "variant counts", "SNP transversion substitution distribution", "transversion" , "substitution change", tvFreq);
+			}			
+		
 
-				long sum1 =  summary.getOrDefault( type.name() + "Ti", new AtomicLong(0)).get();
-				long sum2 =  summary.getOrDefault( type.name() + "Tv", new AtomicLong(0)).get();	 
-				titvMethodE.setAttribute( tiTvRatio, (sum2 == 0 ? "-" : String.format( "%.2f", (double)sum1/sum2)));							
-				titvMethodE.setAttribute( transitions, sum1 + "");
-				titvMethodE.setAttribute( transversions, sum2 + "");	
-				for(SubsitutionEnum tran: SubsitutionEnum.values()){
-					if( !tran.isTransversion() && !tran.isTranstion()) continue; 
-					String mark = tran.isTranstion()? "Ti" :  "Tv" ;
-					if( ! summary.containsKey(key = type.name() + mark + tran.name())) continue;	
-					Element subE = QprofilerXmlUtils.createSubElement( titvMethodE, substitution );							
-					subE.setAttribute( QprofilerXmlUtils.count, summary.get(key).toString());
-					subE.setAttribute("change", tran.toString());							
-				}
-			}
 		}
 	}
-	
-	private void VAF2Xml(Element parent, String tagName  ){
-		 
-		QCMGAtomicLongArray array = summaryAD.get(tagName);
-		if(array == null) return;			
-		long total = 0;
-		for( int i = 0; i < array.length(); i ++  )
-			total += array.get(i);
-		
-		Element ele = QprofilerXmlUtils.createSubElement(parent, tagName);
-		ele.setAttribute( QprofilerXmlUtils.totalCount, total+"");
-		int arrayLast = 101;
-		for( int i = 0; i < array.length(); i ++  ){
-			long count =  array.get(i) ;
-			if(count <= 0) continue;
-			Element subE = QprofilerXmlUtils.createSubElement(ele, binTally);	
-			subE.setAttribute( QprofilerXmlUtils.count , count+"");
-			if(i == arrayLast ) subE.setAttribute("bin", "null");
-			else if(arrayLast == 101) 
-				subE.setAttribute("bin", String.format("%.2f", (double) i / 100)  );
-			else
-				subE.setAttribute("bin", String.format("%.1f", (double) i / 10)  );
-			
-			//percent	
-			int percent = (int)  (0.5 + (double) ( count * 100 ) / total );
-			subE.setAttribute(QprofilerXmlUtils.percent ,percent+"%" );			 
-		}		
-	}
-
-
-	
 }

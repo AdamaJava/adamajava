@@ -1,6 +1,7 @@
 package org.qcmg.qprofiler2.vcf;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -88,33 +89,36 @@ public class VcfSummaryReport  extends SummaryReport {
 		}				
 	}
 
-	void summaryToXml(Element parent){				
-		Element summaryElement = QprofilerXmlUtils.createSubElement(parent, NodeSummary);		
-		List<Map<String, Element>> categories =  new ArrayList<>();
-		for(int i = 0; i <= formatCategories.length; i ++) 
-			categories.add(   new HashMap<String, Element>() ); 	
+	/**
+	 * modifying now
+	 * @param parent
+	 */
+	void summaryToXml(Element parent){	
+		Element summaryElement = QprofilerXmlUtils.createSubElement(parent, NodeSummary);			
+		
+		//get list of types eg. FT:INF:CONF
+		List<String>  formatsTypes = new ArrayList<>();
+		for(int i = 0; i < formatCategories.length; i ++) {
+			System.out.println("formatCategories[i] == " +formatCategories[i]);
+			int pos = formatCategories[i].indexOf("=");
+			formatsTypes.add( pos > 0 ? formatCategories[i].substring(0, pos) : formatCategories[i] );			
+		}		
+		
 		
 		for( String key : summaries.keySet() ) {			
-			String[] cats = key.split(Seperator);				
-			String newKey = cats[0];			
-			Element ele = categories.get(0).computeIfAbsent( newKey, (k) -> QprofilerXmlUtils.createSubElement( summaryElement, Sample) );
-			ele.setAttribute( "value", cats[0] ); 
+			List<String> cats = new ArrayList<>(Arrays.asList(key.split(Seperator)));
+			String sample = cats.remove(0);						
+			Element ele = QprofilerXmlUtils.createSubElement( summaryElement, Sample);
+			ele.setAttribute("value", sample);
+			System.out.println(sample +" output... for " + key);
+			if(formatsTypes.isEmpty())
+				summaries.get(key).toXML(ele, null, null);
+			else
+				summaries.get(key).toXML(ele, String.join(":", formatsTypes), String.join(":", cats));	
 			
-			for( int i = 1; i < cats.length; i ++ ) {
-				newKey += Seperator + cats[i];
-				Map<String, Element> map = categories.get(i);
-				if(! map.containsKey( newKey) )
-					map.put( newKey, QprofilerXmlUtils.createSubElement(ele,  NodeCategory ) );
-				ele = map.get(  newKey );	
-				ele.setAttribute("value", cats[i]);
-				int pos = formatCategories[i-1].indexOf("=");
-				ele.setAttribute("type",  "FORMAT:" + (pos > 0 ? formatCategories[i-1].substring(0,pos)  : formatCategories[i-1]));
-				ele.setAttribute("count", counts.get(newKey).toString());
-			}
-			summaries.get(key).toXML(ele);
-		}		
+			
+		}
 	}
-		
 	void vcfHeaderToXml(Element parent){
 		Element headerElement = QprofilerXmlUtils.createSubElement( parent, NodeHeader);
 		Element metaElement = QprofilerXmlUtils.createSubElement( headerElement, NodeHeaderMeta);

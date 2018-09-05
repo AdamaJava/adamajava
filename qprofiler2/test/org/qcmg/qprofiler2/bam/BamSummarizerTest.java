@@ -107,8 +107,7 @@ public class BamSummarizerTest {
 		
 		Assert.assertNotNull(sr);
 		Assert.assertFalse(sr.getCoverage().isEmpty());
-		// check matrix info is still there
-		Assert.assertTrue(sr.getMapQMatrix().isEmpty());
+
 	}
 	
 	@Test
@@ -118,7 +117,6 @@ public class BamSummarizerTest {
 		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize(SAM_INPUT_FILE);
 		
 		Assert.assertNotNull(sr);
-		Assert.assertTrue(sr.getMapQMatrix().isEmpty());
 		
 		//release memory so we can work for mers6
 		bs = null; sr = null; 
@@ -128,7 +126,6 @@ public class BamSummarizerTest {
 		sr = (BamSummaryReport2) bs.summarize( SAM_INPUT_FILE);
 		
 		Assert.assertNotNull(sr);
-		Assert.assertFalse(sr.getMapQMatrix().isEmpty());
 		// check coverage info is still there
 		Assert.assertTrue(sr.getCoverage().isEmpty());
 	}
@@ -151,28 +148,7 @@ public class BamSummarizerTest {
 		Assert.assertEquals(3, sr.getSeqByCycle(1).count(26, 'T'));
 		Assert.assertEquals(0, sr.getSeqByCycle(1).count(26, 'C'));
 		Assert.assertEquals(1, sr.getSeqByCycle(1).count(26, 'G'));
-		
-		// tags....
-		// cs
-		Assert.assertEquals(3, sr.getTagCSByCycle().count(1, '1'));
-		Assert.assertEquals(3, sr.getTagCSByCycle().count(2, '0'));
-		//cs line lengths
-		Assert.assertEquals(5, sr.getTagCSLineLengths().get(Integer.valueOf(50)).get());
-		
-		//cq line lengths
-		Assert.assertEquals(5, sr.getTagCQLineLengths().get(Integer.valueOf(50)).get());
-		
-		// rg remove from tag to summary
-//		Assert.assertEquals(5, sr.getTagRGLineLengths().get("1959T").get());
-		
-		// zm - none of these in sample data as yet...		
-		int noOfPositionsWithPositiveCounts = 0;
-		for (int i = 0 ; i < sr.getTagZMLineLengths().length() ; i++) {
-			if (sr.getTagZMLineLengths().get(i) > 0) noOfPositionsWithPositiveCounts++;
-		}
-		Assert.assertEquals(0, noOfPositionsWithPositiveCounts);
-		
-		// something else..
+
 		
 	}
 

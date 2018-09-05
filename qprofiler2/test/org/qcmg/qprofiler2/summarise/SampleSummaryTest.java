@@ -44,7 +44,7 @@ public class SampleSummaryTest {
 			summary.parseRecord(tvRe, 1);
 		for(int i = 0; i < 3; i++ )
 			summary.parseRecord( new VcfRecord( new String[]{"chr1", "300",  "dbid", "A", "C", ".", ".", ".","GT:AD:DP", "0/1:,10:15"}), 1); //Tv	
-		summary.toXML(root);  
+		summary.toXML(root, null, null);  
 		
 		//check <Substitution ... >
 		for(Element ele : QprofilerXmlUtils.getOffspringElementByTagName( root, SampleSummary.substitution ) ){
@@ -156,7 +156,7 @@ public class SampleSummaryTest {
 		SampleSummary summary = new SampleSummary();
 		for(VcfRecord re: records)
 			summary.parseRecord(re, 1);		
-		summary.toXML(root);  
+		summary.toXML(root,null, null);  
 
 		
 		if(records.size() == 0){

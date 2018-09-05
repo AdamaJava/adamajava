@@ -12,6 +12,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import junit.framework.Assert;
 import org.junit.Test;
+import org.qcmg.common.util.SummaryByCycleUtils;
 import org.qcmg.qprofiler2.summarise.PositionSummary;
 import org.qcmg.qprofiler2.util.SummaryReportUtils;
 import org.w3c.dom.DOMImplementation;
@@ -51,7 +52,7 @@ public class SummaryReportUtilsTest {
 	@Test
 	public void testAddPositionAndLengthToMap() {
 		ConcurrentMap<Integer, AtomicLong> map = new ConcurrentHashMap<Integer, AtomicLong>();
-		SummaryReportUtils.addPositionAndLengthToMap(map, 10, 100);
+		addPositionAndLengthToMap(map, 10, 100);
 		
 		Assert.assertEquals(100, map.size());
 		Assert.assertNull(map.get(0));
@@ -61,7 +62,7 @@ public class SummaryReportUtilsTest {
 		Assert.assertEquals(1, map.get(109).get());
 		
 		
-		SummaryReportUtils.addPositionAndLengthToMap(map, 100, 50);
+		addPositionAndLengthToMap(map, 100, 50);
 		Assert.assertEquals(140, map.size());
 		Assert.assertNull(map.get(0));
 		Assert.assertNull(map.get(9));
@@ -71,7 +72,7 @@ public class SummaryReportUtilsTest {
 		
 
 		// adding 0 positions and size - should not affect anything...
-		SummaryReportUtils.addPositionAndLengthToMap(map, 0, 0);
+		addPositionAndLengthToMap(map, 0, 0);
 		Assert.assertEquals(140, map.size());
 		Assert.assertNull(map.get(0));
 		Assert.assertNull(map.get(9));
@@ -79,7 +80,7 @@ public class SummaryReportUtilsTest {
 		Assert.assertEquals(1, map.get(10).get());
 		Assert.assertEquals(2, map.get(109).get());
 		
-		SummaryReportUtils.addPositionAndLengthToMap(map, 100, 10);
+		addPositionAndLengthToMap(map, 100, 10);
 		Assert.assertEquals(140, map.size());
 		Assert.assertNull(map.get(0));
 		Assert.assertNull(map.get(9));
@@ -88,7 +89,7 @@ public class SummaryReportUtilsTest {
 		Assert.assertEquals(3, map.get(109).get());
 		
 		
-		SummaryReportUtils.addPositionAndLengthToMap(map, 10000, 2);
+		addPositionAndLengthToMap(map, 10000, 2);
 		Assert.assertEquals(142, map.size());
 		Assert.assertNull(map.get(0));
 		Assert.assertNull(map.get(9));
@@ -330,6 +331,16 @@ public class SummaryReportUtilsTest {
 		return doc.getDocumentElement();
 	}
 	
-
+	/**
+	 * 
+	 * @param map
+	 * @param position
+	 * @param length
+	 */
+	public static void addPositionAndLengthToMap(ConcurrentMap<Integer, AtomicLong> map, int position, int length) {
+		for (int i = position ; i < position + length ; i++) {
+			SummaryByCycleUtils.incrementCount(map, Integer.valueOf(i));
+		}
+	}
 	
 }

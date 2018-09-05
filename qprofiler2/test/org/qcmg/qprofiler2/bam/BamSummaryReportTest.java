@@ -25,6 +25,7 @@ import org.qcmg.common.util.SummaryByCycleUtils;
 import org.qcmg.qprofiler2.bam.BamSummaryReport2;
 import org.qcmg.qprofiler2.summarise.PositionSummary;
 import org.qcmg.qprofiler2.util.SummaryReportUtils;
+import org.qcmg.qprofiler2.util.SummaryReportUtilsTest;
 
 
 public class BamSummaryReportTest {
@@ -85,10 +86,10 @@ public class BamSummaryReportTest {
 		ConcurrentMap<Integer, AtomicLong> queue = bsr.getCoverageQueue();
 		ConcurrentMap<Integer, AtomicLong> map = bsr.getCoverage();
 		
-		SummaryReportUtils.addPositionAndLengthToMap(queue, 100, 25);
-		SummaryReportUtils.addPositionAndLengthToMap(queue, 100, 50);
-		SummaryReportUtils.addPositionAndLengthToMap(queue, 100, 75);
-		SummaryReportUtils.addPositionAndLengthToMap(queue, 125, 10);
+		SummaryReportUtilsTest.addPositionAndLengthToMap(queue, 100, 25);
+		SummaryReportUtilsTest.addPositionAndLengthToMap(queue, 100, 50);
+		SummaryReportUtilsTest.addPositionAndLengthToMap(queue, 100, 75);
+		SummaryReportUtilsTest.addPositionAndLengthToMap(queue, 125, 10);
 		
 		Assert.assertFalse(queue.isEmpty());
 		Assert.assertTrue(map.isEmpty());
@@ -161,7 +162,6 @@ public class BamSummaryReportTest {
 		Map<MAPQMiniMatrix, AtomicLong> nhMatrix = new TreeMap<MAPQMiniMatrix, AtomicLong>();
 		Map<MAPQMiniMatrix, AtomicLong> zmMatrix = new TreeMap<MAPQMiniMatrix, AtomicLong>();
 		
-		bsr.tagReport.generateMAPQSubMaps(cmMatrix, smMatrix, lengthMatrix, nhMatrix, zmMatrix);
 		
 		Assert.assertEquals(mapQCMMatrix.size(), cmMatrix.size());
 		Assert.assertEquals(mapQSMMatrix.size(), smMatrix.size());
