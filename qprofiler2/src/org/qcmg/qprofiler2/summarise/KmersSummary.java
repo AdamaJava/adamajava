@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
 import org.qcmg.common.model.QCMGAtomicLongArray;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.BaseUtils;

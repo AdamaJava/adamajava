@@ -106,7 +106,7 @@ public class CohortSummaryReport extends SummaryReport {
 			
 			this.category = name; 
 			String titv = "-" ;
-			for(Element ele : QprofilerXmlUtils.getChildElementByTagName(report, SampleSummary.variantType)){
+			for(Element ele : QprofilerXmlUtils.getOffspringElementByTagName(report, SampleSummary.variantType)){
 				//record counts and dbsnp for all type variants
 				String type = ele.getAttribute("type");				
 				int db = Integer.parseInt( ele.getAttribute("inDBSNP"));

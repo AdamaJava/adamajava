@@ -19,9 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.TreeSet;
 import java.util.Map.Entry;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentNavigableMap;
@@ -40,11 +38,9 @@ import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMSequenceDictionary;
 
 import org.qcmg.common.model.CigarStringComparator;
-import org.qcmg.common.model.MAPQMatrix;
 import org.qcmg.common.model.ProfileType;
 import org.qcmg.common.model.QCMGAtomicLongArray;
 import org.qcmg.common.model.ReferenceNameComparator;
-import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.QprofilerXmlUtils;
 import org.qcmg.common.util.SummaryByCycleUtils;
 import org.qcmg.qprofiler2.report.SummaryReport;
@@ -57,12 +53,11 @@ import org.qcmg.qprofiler2.util.CycleSummaryUtils;
 import org.qcmg.qprofiler2.util.FlagUtil;
 import org.qcmg.qprofiler2.util.SummaryReportUtils;
 import org.qcmg.qprofiler2.util.XmlUtils;
-import org.w3c.dom.DOMException;
 import org.w3c.dom.Element;
 
 public class BamSummaryReport2 extends SummaryReport {	
 
-	private final static int mateRefNameMinusOne = 255;
+//	private final static int mateRefNameMinusOne = 255;
 	public static final Character cc = Character.MAX_VALUE;
 	public static final Integer ii = Integer.MAX_VALUE;	
 	public static final String[] sourceName = new String[]{ "UnPaired", QprofilerXmlUtils.FirstOfPair, QprofilerXmlUtils.SecondOfPair };	
@@ -78,8 +73,6 @@ public class BamSummaryReport2 extends SummaryReport {
 	@SuppressWarnings("unchecked")
 	private final  CycleSummary<Integer>[] qualByCycleInteger = new CycleSummary[]{new CycleSummary<Integer>(ii, 512), new CycleSummary<Integer>(ii, 512), new CycleSummary<Integer>(ii, 512)};
 	private final QCMGAtomicLongArray[] qualBadReadLineLengths = new QCMGAtomicLongArray[]{new QCMGAtomicLongArray(128), new QCMGAtomicLongArray(128), new QCMGAtomicLongArray(128)};
-	
-	@SuppressWarnings("unchecked")
 	private final ConcurrentMap<String, AtomicLong> cigarValuesCount = new ConcurrentHashMap<String, AtomicLong>();
 	private final QCMGAtomicLongArray[] mapQualityLengths = new QCMGAtomicLongArray[]{new QCMGAtomicLongArray(256), new QCMGAtomicLongArray(256), new QCMGAtomicLongArray(256)};
 	
@@ -225,7 +218,7 @@ public class BamSummaryReport2 extends SummaryReport {
 			XmlUtils.outputMap( seqElement, "base counts", "bad base(. or N) distribution based on read base cycle",  sourceName[order]+"BadBasesInReads", "read base cycle position" , seqBadReadLineLengths[order]);
 		
 		//1mers is same to baseByCycle
-		for( int i : new int[] { 2, 3, kmersSummary.maxKmers } )
+		for( int i : new int[] { 2, 3, KmersSummary.maxKmers } )
 			kmersSummary.toXml(seqElement,i);	
 	}
 	
@@ -337,7 +330,7 @@ public class BamSummaryReport2 extends SummaryReport {
 		//anyway, add to summary and then add to it's readgroup
 		rgSummaries.get(QprofilerXmlUtils.All_READGROUP).parseRecord(record); 
 		ReadGroupSummary rgSumm = rgSummaries.computeIfAbsent(readGroup, k -> new ReadGroupSummary(k));
-		ReadIDSummary idSumm = readIdSummary.computeIfAbsent( readGroup, (k) -> new ReadIDSummary() );
+		//ReadIDSummary idSumm = readIdSummary.computeIfAbsent( readGroup, (k) -> new ReadIDSummary() );
 		
 		final int order = (!record.getReadPairedFlag())? 0: (record.getFirstOfPairFlag())? 1 : 2;			
 		if( rgSumm.parseRecord(record) ) {	
@@ -485,9 +478,8 @@ public class BamSummaryReport2 extends SummaryReport {
 		summary.readSummary2Xml(summaryElement);
 		summary.pairSummary2Xml(summaryElement);
 		
-		
 		if (includeCoverage) 
-			XmlUtils.outputMap(parent, "reference posistion counts", "not sure", "coverage", "read depth", coverage);
+			XmlUtils.outputMap(summaryElement, "reference base counts", "not sure", "coverage", "read depth", coverage);
 			//SummaryReportUtils.lengthMapToXml(createFieldNode(parent, "Other:Coverage"), "Coverage", coverage);
 		
 	}

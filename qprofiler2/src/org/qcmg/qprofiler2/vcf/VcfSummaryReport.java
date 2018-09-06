@@ -32,7 +32,8 @@ public class VcfSummaryReport  extends SummaryReport {
 	public static final String NodeHeaderFinal =  "HeaderLine";		
 	public static final String NodeSummary = "VCFMetrics";
 	public static final String NodeCategory = "ReportingCategory";
-	public static final String Sample = "Sample";
+	public static final String Sample = "Sample";	
+	public static final String id = "id";
 	
 	static final String Seperator = ",:,";
 	
@@ -77,11 +78,14 @@ public class VcfSummaryReport  extends SummaryReport {
 				if(pos > 0){
 					String formatKey = cate.substring(0, pos).trim();
 					String formatValue = cate.substring(pos+1).trim();
-					key += Seperator +  ( re.getField(formatKey) != null && re.getField(formatKey).equalsIgnoreCase(formatValue) ? formatValue : "Other" );
+					key += Seperator +  ( re.getField(formatKey) == null ? null :
+							  re.getField(formatKey).equalsIgnoreCase(formatValue) ? formatValue : "Other" );
+					//key += Seperator +  ( re.getField(formatKey) != null && re.getField(formatKey).equalsIgnoreCase(formatValue) ? formatValue : "Other" );
 						
 				} else {
 					//sample id may be various: http://purl.org/..   so make the Seperator longer and unique
-					key += Seperator + (re.getField(cate) != null? re.getField(cate) : "Other" ) ;
+					key += Seperator + re.getField(cate);
+					//key += Seperator + (re.getField(cate) != null? re.getField(cate) : "Other" ) ;
 				}
 				counts.computeIfAbsent(key, k ->  new AtomicLong() ).getAndIncrement();
 			}	 
@@ -99,24 +103,18 @@ public class VcfSummaryReport  extends SummaryReport {
 		//get list of types eg. FT:INF:CONF
 		List<String>  formatsTypes = new ArrayList<>();
 		for(int i = 0; i < formatCategories.length; i ++) {
-			System.out.println("formatCategories[i] == " +formatCategories[i]);
 			int pos = formatCategories[i].indexOf("=");
 			formatsTypes.add( pos > 0 ? formatCategories[i].substring(0, pos) : formatCategories[i] );			
-		}		
-		
+		}
 		
 		for( String key : summaries.keySet() ) {			
 			List<String> cats = new ArrayList<>(Arrays.asList(key.split(Seperator)));
 			String sample = cats.remove(0);						
-			Element ele = QprofilerXmlUtils.createSubElement( summaryElement, Sample);
-			ele.setAttribute("value", sample);
-			System.out.println(sample +" output... for " + key);
+			Element ele = getSampleElement(summaryElement, sample);
 			if(formatsTypes.isEmpty())
 				summaries.get(key).toXML(ele, null, null);
 			else
-				summaries.get(key).toXML(ele, String.join(":", formatsTypes), String.join(":", cats));	
-			
-			
+				summaries.get(key).toXML(ele, String.join(":", formatsTypes), String.join(":", cats));				
 		}
 	}
 	void vcfHeaderToXml(Element parent){
@@ -158,4 +156,17 @@ public class VcfSummaryReport  extends SummaryReport {
 		}  				
 	}
 
+	private Element getSampleElement(Element parent, String sampleId) {
+		 
+		List<Element> Esamples = QprofilerXmlUtils.getOffspringElementByTagName(parent, Sample);
+		for(Element ele : Esamples)  
+			if( ele.getAttribute(id).equals(sampleId))
+				return ele; 
+		 
+		Element ele = QprofilerXmlUtils.createSubElement( parent, Sample);
+		ele.setAttribute(id, sampleId);
+		
+		return ele;
+	}
+	
 }

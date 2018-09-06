@@ -1,57 +1,42 @@
 package org.qcmg.qprofiler2.bam;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Function;
-
-import org.omg.IOP.TAG_ALTERNATE_IIOP_ADDRESS;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
-import org.qcmg.common.model.MAPQMatrix;
-import org.qcmg.common.model.MAPQMiniMatrix;
 import org.qcmg.common.model.QCMGAtomicLongArray;
-import org.qcmg.common.model.SummaryByCycle;
-import org.qcmg.common.model.MAPQMatrix.MatrixType;
-import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.QprofilerXmlUtils;
-import org.qcmg.common.util.SummaryByCycleUtils;
 import org.qcmg.qprofiler2.summarise.CycleSummary;
-import org.qcmg.qprofiler2.summarise.ReadIDSummary;
 import org.qcmg.qprofiler2.util.CycleSummaryUtils;
-import org.qcmg.qprofiler2.util.SummaryReportUtils;
 import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Element;
-
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMRecord.SAMTagAndValue;
 import htsjdk.samtools.SAMTagUtil;
-import htsjdk.samtools.SAMUtils;
 
 //for sam record tag information
 public class TagSummaryReport2 {
 
 	public final static int additionTagMapLimit = 200;
 	public final static int errReadLimit  = 100;	
+
 	private final static SAMTagUtil STU = SAMTagUtil.getSingleton();
-	private final short CS = STU.CS;
-	private final short CQ = STU.CQ;
-	private final short RG = STU.RG;
-	private final short CM = STU.CM;
-	private final short SM = STU.SM;
-	private final short NH = STU.NH;
-	private final short MD = STU.MD;
-	private final short IH = STU.IH;
-	// custom tags
-	private final short ZM = STU.makeBinaryTag("ZM");
-	private final short ZP = STU.makeBinaryTag("ZP");
-	private final short ZF = STU.makeBinaryTag("ZF");
+	private final short MD = STU.MD;	
+//	private final short CS = STU.CS;
+//	private final short CQ = STU.CQ;
+//	private final short RG = STU.RG;
+//	private final short CM = STU.CM;
+//	private final short SM = STU.SM;
+//	private final short NH = STU.NH;
+//	private final short IH = STU.IH;
+//	// custom tags
+//	private final short ZM = STU.makeBinaryTag("ZM");
+//	private final short ZP = STU.makeBinaryTag("ZP");
+//	private final short ZF = STU.makeBinaryTag("ZF");
 	
 	// TAGS		
 	@SuppressWarnings("unchecked")
@@ -64,7 +49,6 @@ public class TagSummaryReport2 {
 	private final ConcurrentMap<String, QCMGAtomicLongArray> additionalIntegerTags = new ConcurrentSkipListMap<String, QCMGAtomicLongArray>();
 	private final ConcurrentMap<String, ConcurrentSkipListMap<Character, AtomicLong>> additionalCharacterTags = new ConcurrentSkipListMap<String, ConcurrentSkipListMap<Character, AtomicLong>>();
 	protected QLogger logger = QLoggerFactory.getLogger(getClass());	
-
 	private long errMDReadNo = 0 ;
 
 	
@@ -118,9 +102,7 @@ public class TagSummaryReport2 {
 				map.computeIfAbsent(tag.tag, k-> new AtomicLong()).incrementAndGet();					
 			}
 		}			
-
 	}
-	
 	
 	public void toXml(Element parent){
 				
@@ -159,31 +141,4 @@ public class TagSummaryReport2 {
 			XmlUtils.outputMap(parent,"counts","read distribution",  "tagChar:" + entry.getKey(),"tag value", entry.getValue());
 		}			
 	}
-	
-	private void createMatrix(Element parent ){
-		
-		Map<MAPQMiniMatrix, AtomicLong> cmMatrix = new TreeMap<MAPQMiniMatrix, AtomicLong>();
-		Map<MAPQMiniMatrix, AtomicLong> smMatrix = new TreeMap<MAPQMiniMatrix, AtomicLong>();
-		Map<MAPQMiniMatrix, AtomicLong> lengthMatrix = new TreeMap<MAPQMiniMatrix, AtomicLong>();
-		Map<MAPQMiniMatrix, AtomicLong> nhMatrix = new TreeMap<MAPQMiniMatrix, AtomicLong>();
-		Map<MAPQMiniMatrix, AtomicLong> zmMatrix = new TreeMap<MAPQMiniMatrix, AtomicLong>();
-
-		logger.debug("cmMatrix(): " + cmMatrix.size());
-		logger.debug("smMatrix(): " + smMatrix.size());
-		logger.debug("lengthMatrix(): " + lengthMatrix.size());
-		logger.debug("nhMatrix(): " + nhMatrix.size());
-		logger.debug("zmMatrix(): " + zmMatrix.size());
-		
-		XmlUtils.outputMap(parent,"not sure", "matrix is included", "MAPQMatrixCM", "not sure", cmMatrix);
-		XmlUtils.outputMap(parent,"not sure", "matrix is included", "MAPQMatrixSM", "not sure", cmMatrix);
-		XmlUtils.outputMap(parent,"not sure", "matrix is included", "MAPQMatrixLength", "not sure", cmMatrix);
-		XmlUtils.outputMap(parent,"not sure", "matrix is included", "MAPQMatrixCM", "not sure", cmMatrix);
-		XmlUtils.outputMap(parent,"not sure", "matrix is included", "MAPQMatrixZM", "not sure", cmMatrix);
-		
-		parent = QprofilerXmlUtils.createSubElement( parent, "ZmSmMatrix" );
-		XmlUtils.outputMap(parent,"not sure", "matrix is included", "MAPQMatrixZM", "not sure", zmMatrix);		
-	}	
-	
-//	public ConcurrentMap<String, ReadIDSummary>  getReadIDSummary(){	return readIdSummary;	}
-	
 }

@@ -1,26 +1,12 @@
 package org.qcmg.qprofiler2.util;
 
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.TreeSet;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Pattern;
-
 import org.qcmg.common.model.QCMGAtomicLongArray;
 import org.qcmg.common.util.BaseUtils;
-import org.qcmg.common.util.QprofilerXmlUtils;
 import org.qcmg.picard.util.SAMUtils;
 import org.qcmg.qprofiler2.summarise.CycleSummary;
-import org.w3c.dom.DOMException;
-import org.w3c.dom.Element;
-
 import htsjdk.samtools.Cigar;
-import htsjdk.samtools.CigarElement;
-import htsjdk.samtools.CigarOperator;
 
 public class CycleSummaryUtils {
 	public static final Pattern BAD_MD_PATTERN = Pattern.compile("([ACGTN])");	
@@ -84,7 +70,6 @@ public class CycleSummaryUtils {
 				position++;
 				 
 			} else i++;	// need to increment this or could end up with infinite loop...			 
-					
 		}
 		
 		return null; 				
@@ -118,58 +103,7 @@ public class CycleSummaryUtils {
 		
 		return mismatchingCycles; 
 	}
-	/**
-	 * Adds an xml representation of the current object to the supplied parent element.
-	 * 
-	 * @param parent Element that the current objects xml representation will be added to
-	 * @param elementName String representing the name to be used when creating the element
-	 * @return 
-	 */
-	public static <T> void toXmlWithPercentage( CycleSummary<T> sumByCycle,  Element parent, String elementName ,
-			String sourceName,  QCMGAtomicLongArray lengthArray) {
-		
-		Element element = (parent.getElementsByTagName(elementName).getLength() > 0)?
-				(Element) parent.getElementsByTagName(elementName).item(0)  :QprofilerXmlUtils.createSubElement(parent, elementName);
-		
-		//do nothing if no base detected
-		Set<T> possibles = sumByCycle.getPossibleValues();
-		if(possibles.size() == 0 ) return; 
-		
-        // adding another level to conform to DTD..
-        Element cycleTallyElement = QprofilerXmlUtils.createSubElement(element, "CycleTally");       
-        cycleTallyElement.setAttribute("possibleValues", QprofilerXmlUtils.joinByComma(new ArrayList<T>(possibles)));
-        
-		if(sourceName != null)
-			cycleTallyElement.setAttribute("source", sourceName);
-        
-        try {
-            final NumberFormat nf = new DecimalFormat("0.0#%");
-            	                
-            for (Integer cycle : sumByCycle.cycles()) {
-            	StringBuilder sb = new StringBuilder();
-            	long mapTotal = 0; 
-    			for(T t :  sumByCycle.getPossibleValues()){ 
-    				long c = sumByCycle.count(cycle, t);
-    				mapTotal += c; 
-    				sb.append( c + QprofilerXmlUtils.COMMA );	
-    			}
-    			String counts =  (sb.length() > 0)? sb.substring(0, sb.length()-QprofilerXmlUtils.COMMA.length()) : "0";
-    			long count = lengthArray.get(cycle);  
-            	double percentage = (((double) mapTotal / count));                                            
-                Element cycleE = QprofilerXmlUtils.createSubElement(cycleTallyElement, "Cycle");   
-                cycleE.setAttribute("value", cycle.toString());
-                cycleE.setAttribute("counts", counts);
-                cycleE.setAttribute("percent", nf.format(percentage));
-                cycleE.setAttribute("totalBase", count+"" );
-                
-		         //base number on that cycle is reducing since short reads chopped at current cycle
-		         AtomicLong ml = new AtomicLong(lengthArray.get(cycle));
-		         if (null != ml)   count -= ml.get();                 
-            }
-        } catch (DOMException e) {   e.printStackTrace(); }
-    }		
-	
-	
+  	
 	private static boolean isInValidExtended(char c) {
 		return c == 'A' || c == 'C' || c == 'G' || c == 'T' || c == 'N';
 	}
@@ -179,9 +113,7 @@ public class CycleSummaryUtils {
 			return c == 'M' || c =='R';
 		else return true;
 	}
-	
-	
-	
+		
 	public static int getIntFromChars(final char ref, final char alt) {
 		switch (ref) {
 		case 'A':
@@ -200,46 +132,44 @@ public class CycleSummaryUtils {
 	
 	public static String getStringFromInt(final int i) {
 		switch (i) {
-		// A's
-		case 1: return "A>A";
-		case 2: return "A>C";
-		case 3: return "A>G";
-		case 4: return "A>T";
-		case 5: return "A>N";
-		
-		//C's
-		case 6: return "C>A";
-		case 7: return "C>C";
-		case 8: return "C>G";
-		case 9: return "C>T";
-		case 10: return "C>N";
-		
-		//G's
-		case 11: return "G>A";
-		case 12: return "G>C";
-		case 13: return "G>G";
-		case 14: return "G>T";
-		case 15: return "G>N";
-		
-		//T's
-		case 16: return "T>A";
-		case 17: return "T>C";
-		case 18: return "T>G";
-		case 19: return "T>T";
-		case 20: return "T>N";
-		
-		//N's
-		case 21: return "N>A";
-		case 22: return "N>C";
-		case 23: return "N>G";
-		case 24: return "N>T";
-		case 25: return "N>N";
-		
-		// hmmmm
-		case -1: return "???";
+			// A's
+			case 1: return "A>A";
+			case 2: return "A>C";
+			case 3: return "A>G";
+			case 4: return "A>T";
+			case 5: return "A>N";
+			
+			//C's
+			case 6: return "C>A";
+			case 7: return "C>C";
+			case 8: return "C>G";
+			case 9: return "C>T";
+			case 10: return "C>N";
+			
+			//G's
+			case 11: return "G>A";
+			case 12: return "G>C";
+			case 13: return "G>G";
+			case 14: return "G>T";
+			case 15: return "G>N";
+			
+			//T's
+			case 16: return "T>A";
+			case 17: return "T>C";
+			case 18: return "T>G";
+			case 19: return "T>T";
+			case 20: return "T>N";
+			
+			//N's
+			case 21: return "N>A";
+			case 22: return "N>C";
+			case 23: return "N>G";
+			case 24: return "N>T";
+			case 25: return "N>N";
+			
+			// hmmmm
+			case -1: return "???";
 		}
 		return null;
 	}
-	
-	
 }
