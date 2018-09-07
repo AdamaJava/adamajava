@@ -166,13 +166,12 @@ public class QProfiler2 {
 		return exitStatus;
 	}
 	
-	private void processXmlFiles(List<String> files, String output)throws Exception{
-			 				
-			final CohortSummarizer summarizer = new CohortSummarizer();
-			for (final String file :files) 
-				 summarizer.summarize(file) ;
-				 
-			summarizer.outputSumamry(  new File( output+".tsv" ));
+	private void processXmlFiles(List<String> files, String output)throws Exception{			 				
+		final CohortSummarizer summarizer = new CohortSummarizer();
+		for (final String file :files) 
+			 summarizer.summarize(file) ;
+			 
+		summarizer.outputSumamry(  new File( output+".tsv" ));
 	}
 	
 	/**

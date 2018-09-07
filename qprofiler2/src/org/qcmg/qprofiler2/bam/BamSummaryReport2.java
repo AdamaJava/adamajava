@@ -171,32 +171,24 @@ public class BamSummaryReport2 extends SummaryReport {
 		
 		//create bamMertrics
 		bamReportElement = QprofilerXmlUtils.createSubElement( bamReportElement, "bamMetrics" );
-		createQNAME(createFieldNode(bamReportElement, "QNAME")  );					
-		XmlUtils.outputMap( createFieldNode(bamReportElement, "FLAG"), 
-				"read number", "read counts distribution based on flag string", "flag", "flag string" , flagBinaryCount);		 
-		createRNAME(createFieldNode(bamReportElement, "RNAME")  ); //it is same to RNEXT
-		createPOS(createFieldNode(bamReportElement, "POS")  );	
-		createMAPQ(createFieldNode(bamReportElement, "MAPQ"));	
-		createCigar(createFieldNode(bamReportElement, "CIGAR") );
+		createQNAME(XmlUtils.createFieldNode(bamReportElement, "QNAME")  );					
+		XmlUtils.outputMap( XmlUtils.createFieldNode(bamReportElement, "FLAG"), "read number", "read counts distribution based on flag string", "flag", "flag string" , flagBinaryCount);		 
+		createRNAME(XmlUtils.createFieldNode(bamReportElement, "RNAME")  ); //it is same to RNEXT
+		createPOS(XmlUtils.createFieldNode(bamReportElement, "POS")  );	
+		createMAPQ(XmlUtils.createFieldNode(bamReportElement, "MAPQ"));	
+		createCigar(XmlUtils.createFieldNode(bamReportElement, "CIGAR") );
 		//PNEXT will be same to pos
-		createTLen(createFieldNode(bamReportElement, "TLEN") );
-		createSeq(createFieldNode(bamReportElement, "SEQ")  );
-		createQual(createFieldNode(bamReportElement, "QUAL")  );
-		tagReport.toXml(createFieldNode(bamReportElement, "TAG")); 
+		createTLen(XmlUtils.createFieldNode(bamReportElement, "TLEN") );
+		createSeq(XmlUtils.createFieldNode(bamReportElement, "SEQ")  );
+		createQual(XmlUtils.createFieldNode(bamReportElement, "QUAL")  );
+		tagReport.toXml(XmlUtils.createFieldNode(bamReportElement, "TAG")); 
 
-	}
-	
-	private Element createFieldNode(Element parent, String fieldName) {
-		Element element = QprofilerXmlUtils.createSubElement(parent, "bamField");	//SEQ
-		element.setAttribute("fieldName", fieldName);
-
-		return element;
 	}
 	
 	private void createQNAME(Element parent ){
 		 //read name will be under RT Tab	
 		for( Entry<String, ReadIDSummary> entry:  readIdSummary.entrySet()){
-			Element readNameElement = QprofilerXmlUtils.createSubElement(parent, "ReadNameAnalysis");
+			Element readNameElement = QprofilerXmlUtils.createSubElement(parent, "ReadHeader");
 			readNameElement.setAttribute("ReadGroupid", entry.getKey());
 			readNameElement.setAttribute("readCount", entry.getValue().getInputReadNumber()+"");
 			entry.getValue().toXml(readNameElement);			
@@ -215,11 +207,11 @@ public class BamSummaryReport2 extends SummaryReport {
 			XmlUtils.outputMap( seqElement, "read counts", "read counts distribution based on read seq length",  sourceName[order]+"seqlength", "seq line length" , seqByCycle[order].getLengthMapFromCycle());
 		//badBase
 		for(int order = 0; order < 3; order++)  			
-			XmlUtils.outputMap( seqElement, "base counts", "bad base(. or N) distribution based on read base cycle",  sourceName[order]+"BadBasesInReads", "read base cycle position" , seqBadReadLineLengths[order]);
+			XmlUtils.outputMap( seqElement, "base counts", "bad base(. or N) distribution based on read base cycle",  sourceName[order]+"BadBasesInReads", "read base cycle" , seqBadReadLineLengths[order]);
 		
 		//1mers is same to baseByCycle
 		for( int i : new int[] { 2, 3, KmersSummary.maxKmers } )
-			kmersSummary.toXml(seqElement,i);	
+			kmersSummary.toXml( seqElement,i );	
 	}
 	
 	//<QUAL>
@@ -229,9 +221,8 @@ public class BamSummaryReport2 extends SummaryReport {
 			qualByCycleInteger[order].toXml(parent, "base Quality distribution per base cycle",sourceName[order]+"QualityByCycle", "Read Base cycle");
 		for(int order = 0; order < 3; order++)			
 			XmlUtils.outputMap(parent, 		"read counts", "read counts distribution based on read qual length","qualLength"+sourceName[order], "qual line length",qualByCycleInteger[order].getLengthMapFromCycle());
-
 		for(int order = 0; order < 3; order++)  			
-			XmlUtils.outputMap( parent, "bad base counts", "bad base(qual score < 10) distribution based on read base cycle",  sourceName[order]+"BadBasesInReads", "read base cycle position" , qualBadReadLineLengths[order]);	 
+			XmlUtils.outputMap( parent, "bad base counts", "bad base(qual score < 10) distribution based on read base cycle",  sourceName[order]+"BadBasesInReads", "read base cycle" , qualBadReadLineLengths[order]);	 
 	}	
 	
 	private void createCigar(Element parent) {
@@ -480,8 +471,7 @@ public class BamSummaryReport2 extends SummaryReport {
 		
 		if (includeCoverage) 
 			XmlUtils.outputMap(summaryElement, "reference base counts", "not sure", "coverage", "read depth", coverage);
-			//SummaryReportUtils.lengthMapToXml(createFieldNode(parent, "Other:Coverage"), "Coverage", coverage);
-		
+	
 	}
 		
 	void parseRNameAndPos( final String rName,  final int position, String rgid ) {

@@ -24,8 +24,6 @@ public class ReadIDSummary {
 	ConcurrentMap<String, AtomicLong> invalidId = new ConcurrentHashMap<>();
 	Map<String, AtomicLong> pairs = new HashMap<>();
 
-//	AtomicLong firstInPair = new AtomicLong();
-//	AtomicLong secondInPair = new AtomicLong();
 	AtomicLong filteredY = new AtomicLong();
 	AtomicLong filteredN = new AtomicLong();
 
@@ -113,18 +111,17 @@ public class ReadIDSummary {
 				
 		if(readId.length() < 23  || !readId.contains("_")) return;
 		
-		String tile = readId.substring(13, readId.indexOf("_"));
-//		tile = tile.substring(1, tile.indexOf("R"));
-		
+		String tile = readId.substring(13, readId.indexOf("_"));		
 		updateMap(flowCellIds,readId.substring(0, 11) ) ;
 		updateMap(flowCellLanes,  readId.substring(11,13));
 		updateMap( tileNumbers,  tile );
-		//updateMap( tileNumbers, Integer.valueOf(tile) );
 	}
 	
 	public long getInputReadNumber() {return inputNo.get();}
 		
 	public void toXml(Element element){
+		
+		element.setAttribute("readCount", inputNo.get()+"");
 		
 		// header breakdown
 		if(invalidId.size() > 0)
@@ -153,12 +150,6 @@ public class ReadIDSummary {
 		filtered.put( "N", filteredN );
 		return filtered; 
 	}	
-	
-//	public String[] getInstruments(){ return instruments.keySet().stream().toArray(String[]::new);	}	
-//	public String[] getRunIds(){ return runIds.keySet().stream().toArray(String[]::new); }	
-//	public String[] getFlowCellIds(){ return flowCellIds.keySet().stream().toArray(String[]::new); }
-//	public String[] getFlowCellLanes(){ return flowCellLanes.keySet().stream().toArray(String[]::new); }
-//	public Integer[] getTileNumbers(){	return tileNumbers.keySet().stream().toArray(Integer[]::new); }	
 	
 	/**
 	 * @HWUSI-EAS100R:6:73:941:1973#0/1
@@ -200,26 +191,14 @@ public class ReadIDSummary {
 		}
 		
 		updateMap(flowCellLanes, params[1]);
-//		updateMap(tileNumbers, Integer.parseInt(params[2]));
 		updateMap(tileNumbers,  params[2] );
 		// skip x, and y coords for now..
 		getPairInfo(params[4]);
 	}
 
 	private <T> void updateMap(ConcurrentMap<T, AtomicLong> map , T key) {
-		AtomicLong al = map.computeIfAbsent(key, k-> new AtomicLong());
-		
-//		if (null == al) {
-//			al = new AtomicLong();
-//			AtomicLong existing = map.putIfAbsent(key, al);
-//			if (null != existing) {
-//				al = existing;
-//			}
-//		}
-		al.incrementAndGet();
-		
-		
-		 
+		AtomicLong al = map.computeIfAbsent(key, k-> new AtomicLong());	
+		al.incrementAndGet();		 
 	}	
 
 	/**
@@ -258,8 +237,7 @@ public class ReadIDSummary {
 		
 		updateMap(flowCellLanes, params[1]);
 		updateMap(tileNumbers,  params[2] );
-		//updateMap(tileNumbers, Integer.parseInt(params[2]));
-		// skip x, and y coords for now..
+
 		getPairInfo(params[4]);
 	}
 	
@@ -271,15 +249,6 @@ public class ReadIDSummary {
 		if (index != -1) {
 			char c = key.charAt(index + 1);
 			pairs.computeIfAbsent(key, k-> new AtomicLong()).incrementAndGet();
-			
-//			pairs.computeIfAbsent(c, new AtomicLong());
-//			if (c == '1') {
-//				firstInPair.incrementAndGet();
-//			} else if (c == '2') {
-//				secondInPair.incrementAndGet();
-//			} else {
-//				throw new Exception("unexpected value for member of pair: " + c + " from " + key);
-//			}
 		}
 	}
 }

@@ -9,7 +9,6 @@
  */
 package org.qcmg.qprofiler2.fastq;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import htsjdk.samtools.fastq.FastqRecord;
@@ -23,6 +22,7 @@ import org.qcmg.qprofiler2.summarise.CycleSummary;
 import org.qcmg.qprofiler2.summarise.KmersSummary;
 import org.qcmg.qprofiler2.summarise.ReadIDSummary;
 import org.qcmg.qprofiler2.util.SummaryReportUtils;
+import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Element;
 
 public class FastqSummaryReport extends SummaryReport {
@@ -41,7 +41,6 @@ public class FastqSummaryReport extends SummaryReport {
 	
 	//QUAL
 	private final CycleSummary<Integer> qualByCycleInteger = new CycleSummary<Integer>(i, 512);
-	private Map<Integer, AtomicLong> qualLineLengths = null;
 	private final QCMGAtomicLongArray qualBadReadLineLengths = new QCMGAtomicLongArray(128);
 		
 	AtomicLong qualHeaderNotEqualToPlus = new AtomicLong();		
@@ -50,38 +49,26 @@ public class FastqSummaryReport extends SummaryReport {
 	public FastqSummaryReport() { super(); }
 	public ReadIDSummary getReadIDSummary(){	return readHeaderSummary;	}
 	@Override
-	public void toXml(Element parent) {
-		
-		Element element = init( parent, ProfileType.FASTQ, null, null );					
-		Element readNameElement = QprofilerXmlUtils.createSubElement(element, "ReadNameAnalysis");
-		readHeaderSummary.toXml(readNameElement);
+	public void toXml(Element parent1) {		
+		Element parent = init( parent1, ProfileType.FASTQ, null, null );
+		parent = QprofilerXmlUtils.createSubElement(parent, "fastqMetrics");
+		//header line
+ 		readHeaderSummary.toXml( XmlUtils.createFieldNode(parent, "HeaderLine") );
+				 			
+		//seq		
+		Element element = XmlUtils.createFieldNode( parent, "SequenceData" ) ;//QprofilerXmlUtils.createSubElement(parent, "SequenceData" );	 
+		seqByCycle.toXml(element, "read Base distribution per base cycle", "BaseCycle", "read base cycle");
+		XmlUtils.outputMap( element, "read counts", "read counts distribution based on read seq length", "seqlength", "seq line length" , seqByCycle.getLengthMapFromCycle() );		
+		XmlUtils.outputMap( element, "base counts", "bad base(. or N) distribution based on read base cycle",  "BadBasesInReads", "read base cycle" , seqBadReadLineLengths );		
+		//1mers is same to baseByCycle
+		for( int i : new int[] { 2, 3, KmersSummary.maxKmers } )
+			kmersSummary.toXml(element,i);	
 				
-		Map<String, AtomicLong> qualHeaders = new HashMap<>();
-		qualHeaders.put("non +", qualHeaderNotEqualToPlus);
-		qualHeaders.put("+", new AtomicLong(getRecordsParsed() - qualHeaderNotEqualToPlus.longValue()));
-		SummaryReportUtils.lengthMapToXml(readNameElement, "QUAL_HEADERS", qualHeaders);
-					
-		// create the length maps here from the cycles objects
-		seqLineLengths = seqByCycle.getLengthMapFromCycle();
-		qualLineLengths = qualByCycleInteger.getLengthMapFromCycle();
-		
-		// SEQ
-		Element seqElement = QprofilerXmlUtils.createSubElement(element, "SEQ");
-		seqByCycle.toXml(seqElement, "read Base distribution per base cycle", "BaseCycle", "read base cycle");
-		SummaryReportUtils.lengthMapToXml(seqElement, "LengthTally", seqLineLengths);
-	//	SummaryReportUtils.lengthMapToXml(seqElement, "BadBasesInReads", seqBadReadLineLengths);
-		
-		kmersSummary.toXml(seqElement,kmersSummary.maxKmers); //debug
-		kmersSummary.toXml(seqElement,1); //add 1-mers
-		kmersSummary.toXml(seqElement,2); //add 2-mers
-		kmersSummary.toXml(seqElement,3); //add 3-mers
-		
-		// QUAL
-		Element qualElement = QprofilerXmlUtils.createSubElement(element, "QUAL");
-		qualByCycleInteger.toXml(qualElement, "QualityByCycle", null,"read base cycle");
-		SummaryReportUtils.lengthMapToXml(qualElement, "LengthTally", qualLineLengths);
-	//	SummaryReportUtils.lengthMapToXml(qualElement, "BadQualsInReads", qualBadReadLineLengths);			
-			 		
+		//QUAL
+		element = XmlUtils.createFieldNode( parent, "QualityScores");	 
+		qualByCycleInteger.toXml(element, "QualityByCycle", null,"read base cycle");
+		XmlUtils.outputMap( element, "read counts", "read counts distribution based on read quality score stirng length", "quallength", "qual line length" , qualByCycleInteger.getLengthMapFromCycle() );		
+		XmlUtils.outputMap( element, "base counts", "bad base(. or N) distribution based on read base cycle",  "BadBasesInReads", "read base cycle" , qualBadReadLineLengths );			 		
 	}
 	
 	/**
