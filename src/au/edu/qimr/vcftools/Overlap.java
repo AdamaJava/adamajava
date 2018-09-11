@@ -473,11 +473,13 @@ public class Overlap {
 		
 		int altValue = 0;
 		for (String alt : alts) {
-			altValue += map.get(alt);
+			Integer i = map.get(alt);
+			if (null != i) {
+				altValue += i;
+			}
 		}
-		int refValue = map.get(ref);
 //		System.out.println("returning allele ratio of: " + (float) altValue / (altValue + refValue));
-		return (float) altValue / (altValue + refValue);
+		return (float) altValue / (altValue + map.getOrDefault(ref, 0));
 	}
 
 
