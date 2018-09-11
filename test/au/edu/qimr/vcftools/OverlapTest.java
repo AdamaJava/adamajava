@@ -3,7 +3,6 @@ package au.edu.qimr.vcftools;
 import static org.junit.Assert.*;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.junit.Rule;
@@ -26,15 +25,20 @@ public class OverlapTest {
 		/*
 		 * chr1    729700  .       C       T       .       PASS_1;PASS_2   SOMATIC_1;FLANK=CAGTTTCAGCA;SOMATIC_2;IN=1,2;HOM=2,CTTCCCAGTTtCAGCACTCTC;CONF=HIGH_1,HIGH_2    GT:GD:AC:DP:OABS:MR:NNS:AD:GQ:PL        0/0&.:C/C&C/C:C18[34.33],25[34.2]&C18[34.33],25[34.2]:43&.:C18[34.33]25[34.2]&C18[34.33]25[34.2]:0&0:0&0:.:.:.  0/1&0/1:C/T&C/T:C23[35.7],27[34.33],T7[31.86],3[29.67]&C23[35.7],27[34.33],T7[31.86],3[29.67]:60&60:C23[35.7]27[34.33];T7[31.86]3[29.67]&C23[35.7]27[34.33];T7[31.86]3[29.67]:10&10:10&10:50,10:99:122,0,1667
 		 */
-		VcfRecord oldVcf = new VcfRecord(new String[]{"chr1","729700",".","C","T",".","PASS_1;PASS_2","SOMATIC_1;FLANK=CAGTTTCAGCA;SOMATIC_2;IN=1,2;HOM=2,CTTCCCAGTTtCAGCACTCTC;CONF=HIGH_1,HIGH_2    GT:GD:AC:DP:OABS:MR:NNS:AD:GQ:PL","0/0&.:C/C&C/C:C18[34.33],25[34.2]&C18[34.33],25[34.2]:43&.:C18[34.33]25[34.2]&C18[34.33]25[34.2]:0&0:0&0:.:.:.","0/1&0/1:C/T&C/T:C23[35.7],27[34.33],T7[31.86],3[29.67]&C23[35.7],27[34.33],T7[31.86],3[29.67]:60&60:C23[35.7]27[34.33];T7[31.86]3[29.67]&C23[35.7]27[34.33];T7[31.86]3[29.67]:10&10:10&10:50,10:99:122,0,1667"});
+		VcfRecord oldVcf = new VcfRecord(new String[]{"chr1","729700",".","C","T",".","PASS_1;PASS_2","SOMATIC_1;FLANK=CAGTTTCAGCA;SOMATIC_2;IN=1,2;HOM=2,CTTCCCAGTTtCAGCACTCTC;CONF=HIGH_1,HIGH_2","GT:GD:AC:DP:OABS:MR:NNS:AD:GQ:PL","0/0&.:C/C&C/C:C18[34.33],25[34.2]&C18[34.33],25[34.2]:43&.:C18[34.33]25[34.2]&C18[34.33]25[34.2]:0&0:0&0:.:.:.","0/1&0/1:C/T&C/T:C23[35.7],27[34.33],T7[31.86],3[29.67]&C23[35.7],27[34.33],T7[31.86],3[29.67]:60&60:C23[35.7]27[34.33];T7[31.86]3[29.67]&C23[35.7]27[34.33];T7[31.86]3[29.67]:10&10:10&10:50,10:99:122,0,1667"});
 		
-		Map<ChrPositionRefAlt, List<String>> map = new HashMap<>();
-		Overlap.processVcfRecord(newVcf, true, true, map, "input1");
+		Map<ChrPositionRefAlt, float[]> map = new HashMap<>();
+		Overlap.processVcfRecord(newVcf, true, true, map, 0,2);
 		assertEquals(1, map.size());
-		Overlap.processVcfRecord(oldVcf, true, true, map, "input2");
+		Overlap.processVcfRecord(oldVcf, true, true, map, 1,2);
 		assertEquals(1, map.size());
-		assertEquals(2, map.get(new ChrPositionRefAlt("chr1", 729700,729700, "C","T")).size());
-		assertEquals(true, map.get(new ChrPositionRefAlt("chr1", 729700,729700, "C","T")).contains("input1"));
-		assertEquals(true, map.get(new ChrPositionRefAlt("chr1", 729700,729700, "C","T")).contains("input2"));
+		float[] alleleDist = map.get(new ChrPositionRefAlt("chr1", 729700,729700, "C","T"));
+		assertEquals(2, alleleDist.length);
+		assertEquals(true, alleleDist[0] > 0);
+		assertEquals(true, alleleDist[0] < Float.MAX_VALUE);
+		assertEquals(true, alleleDist[1] > 0);
+		assertEquals(true, alleleDist[1] < Float.MAX_VALUE);
+		
+//		assertEquals(true, map.get(new ChrPositionRefAlt("chr1", 729700,729700, "C","T")).contains("input2"));
 	}
 }

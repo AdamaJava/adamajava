@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.qcmg.common.model.ChrPointPosition;
@@ -53,7 +54,23 @@ public class Overlap {
 	private boolean somatic;
 	private boolean germline;
 	
-	private final Map<ChrPositionRefAlt, List<String>> positions = new HashMap<>(1024 * 64);
+	private final Map<ChrPositionRefAlt, float[]> positions = new HashMap<>(1024 * 64);
+//	private final Map<ChrPositionRefAlt, List<String>> positions = new HashMap<>(1024 * 64);
+	
+//	public static class NameAlleleDist {
+//		List<String> files;
+//		float[] alleleDists;
+//		public NameAlleleDist(int numberOfFiles) {
+//			files = new ArrayList<>(numberOfFiles);
+//			alleleDists = new float[numberOfFiles];
+//		}
+//		public void addFile(String fileName, int index) {
+//			files.add(fileName);
+//		}
+//		public void addAlleleDist(float ad, int index) {
+//			alleleDists[index] = ad;
+//		}
+// 	}
 	
 	protected int engage() throws IOException {
 			
@@ -68,14 +85,32 @@ public class Overlap {
 	private void addGoldStandard() throws IOException {
 		if (null != goldStandard) {
 			Path p = new File(goldStandard).toPath();
+			int fc = getFileCount();
 			Files.lines(p, Charset.defaultCharset()).filter(s -> ! s.startsWith("#"))
 					.map(s -> TabTokenizer.tokenize(s))
 					.filter(arr -> arr[2].length() == 1 && arr[3].length() == 1)
 					.forEach(arr -> {
-						addToMap(positions, arr[0],Integer.parseInt(arr[1].replaceAll(",", "")),Integer.parseInt(arr[1].replaceAll(",", "")), arr[2], arr[3], goldStandard);
+						addToMap(positions, arr[0],Integer.parseInt(arr[1].replaceAll(",", "")),Integer.parseInt(arr[1].replaceAll(",", "")), arr[2], arr[3], fc, fc, Float.MAX_VALUE);
 					});
 			
 		}
+	}
+	
+	private int getFileCount() {
+		return vcfFiles.length + (null != goldStandard ? 1 : 0);
+	}
+	
+	public static String getFilesFromFloatArray(float[] array, String[] fileNames) {
+		StringBuilder sb = new StringBuilder();
+		int i = 0;
+		for (float f : array) {
+			if (f > 0) {
+				StringUtils.updateStringBuilder(sb, fileNames[i], Constants.TAB);
+			}
+			i++;
+		}
+		
+		return sb.toString();
 	}
 	
 	private void outputStats() {
@@ -86,9 +121,17 @@ public class Overlap {
 		final int totalVariants = positions.size();
 		
 		Map<String, List<ChrPositionRefAlt>> positionsByInput = new HashMap<>();
+		String[] inputFiles = new String[getFileCount()];
+		int i = 0;
+		for (String s : vcfFiles) {
+			inputFiles[i++] = s;
+		}
+		if (null != goldStandard) {
+			inputFiles[i++] = goldStandard;
+		}
 		
 		positions.forEach((k,v) -> {
-			String files = v.stream().collect(Collectors.joining(Constants.TAB_STRING));
+			String files = getFilesFromFloatArray(v, inputFiles);
 			positionsByInput.computeIfAbsent(files, f -> new ArrayList<>()).add(k);
 		});
 		
@@ -107,10 +150,14 @@ public class Overlap {
 		positionsByInput.entrySet().stream().sorted(Collections.reverseOrder(comp)).forEach((e) -> {
 			int size = e.getValue().size();
 			String files = e.getKey();
+			float [] aveAlleleDists = getAverageFloatValue(e.getValue(), positions, inputFiles.length);
+			for (float f : aveAlleleDists) {
+				logger.info("ave allele dist: " + f);
+			}
 			double perc = 100.0 * size / totalVariants;
 			if (files.contains(Constants.TAB_STRING)) {
 				filesBeingCompared.append(files);
-				sb.append(". In both: ").append(size).append(" (").append(String.format("%.2f", perc)).append("%)");
+				sb.append(". In both: ").append(size).append(" (").append(String.format("%.2f", perc)).append("%), average allele dist (file1): ").append(aveAlleleDists[0]).append(", average allele dist (file2): ").append(aveAlleleDists[1]);
 			} else {
 				int position = StringUtils.getPositionOfStringInArray(vcfFiles, files, false);
 				String sPos = "";
@@ -122,7 +169,7 @@ public class Overlap {
 					sPos = "file " + (position + 1);
 				}
 				
-				sb.append(". In " + sPos + " only: ").append(size).append(" (").append(String.format("%.2f", perc)).append("%)");
+				sb.append(". In " + sPos + " only: ").append(size).append(" (").append(String.format("%.2f", perc)).append("%), average allele dist: ").append(aveAlleleDists[position]);
 			}
 			logger.info("files: " + files + " have " +size + " positions (" +String.format("%.2f", perc)+"%)");
 			/*
@@ -147,7 +194,41 @@ public class Overlap {
 				e.printStackTrace();
 			}
 		}
+	}
+	
+	public static float [] getAverageFloatValue(List<ChrPositionRefAlt> list,  Map<ChrPositionRefAlt, float[]> map, int fileCount) {
 		
+		float [][] arrays = new float[fileCount][];
+//		int numberOfPositions = list.size();
+//		int j = 0;
+		for (ChrPositionRefAlt cpra : list) {
+			float [] allelDists = map.get(cpra);
+			if (null != allelDists) {
+				
+				int i = 0;
+				for (float f : allelDists) {
+					if (null == arrays[i]) {
+						arrays[i] = new float[2];
+					}
+					if (f > 0 && f < Float.MAX_VALUE) {
+						arrays[i][0] += f;
+						arrays[i][1] += 1;
+					}
+					i++;
+				}
+			}
+//			j++;
+		}
+
+		float[] results = new float[fileCount];
+		int k = 0;
+		for (float[] array : arrays) {
+//			System.out.println(" array[0]: " +  array[0] + ",  array[1]: " +  array[1]);
+			results[k++] = array[0] / array[1];
+//			System.out.println("setting flaot to " + results[k-1]);
+		}
+		
+		return results;
 	}
 	
 //	private void outputStats() throws FileNotFoundException {
@@ -275,6 +356,7 @@ public class Overlap {
 	private void loadVcfs() throws IOException {
 		int i = 0;
 		int index = 0;
+		int fileCount = vcfFiles.length + (null != goldStandard ? 1 : 0);
 		for (String s : vcfFiles) {
 			
 			try (VCFFileReader reader = new VCFFileReader(new File(s))) {
@@ -283,7 +365,7 @@ public class Overlap {
 						logger.info("hit " + i + " entries");
 					}
 					
-					processVcfRecord(rec, somatic, germline, positions, s);
+					processVcfRecord(rec, somatic, germline, positions, index, fileCount);
 				}
 			}
 			logger.info("input: " + (index+1) + " has " + i + " entries");
@@ -298,7 +380,7 @@ public class Overlap {
 	/**
 	 * @param rec
 	 */
-	public static void processVcfRecord(VcfRecord rec, boolean somatic, boolean germline, Map<ChrPositionRefAlt, List<String>> map, String input) {
+	public static void processVcfRecord(VcfRecord rec, boolean somatic, boolean germline, Map<ChrPositionRefAlt, float[]> map, int input, int fileCount) {
 		/*
 		 * we want HC or PASS
 		 */
@@ -326,16 +408,76 @@ public class Overlap {
 						 * split cs into constituent snps
 						 */
 						for (int z = 0 ; z < ref.length() ; z++) {
-							addToMap(map, rec.getChrPosition().getChromosome(),  rec.getChrPosition().getStartPosition() + z, rec.getChrPosition().getStartPosition() + z, ref.charAt(z)+"",  alt.charAt(z)+"", input);
+							addToMap(map, rec.getChrPosition().getChromosome(),  rec.getChrPosition().getStartPosition() + z, rec.getChrPosition().getStartPosition() + z, ref.charAt(z)+"",  alt.charAt(z)+"", input,fileCount, Float.MAX_VALUE);
 //							addToMap(map, rec.getChrPosition().getChromosome(),  rec.getChrPosition().getStartPosition() + z, rec.getChrPosition().getStartPosition() + z, ref.charAt(z)+"",  alt.charAt(z) +Constants.TAB_STRING+ gt, input);
 						}
 					} else {
-						addToMap(map, rec.getChrPosition().getChromosome(), rec.getChrPosition().getStartPosition(), rec.getChrPosition().getStartPosition(), ref, alt, input);
+						addToMap(map, rec.getChrPosition().getChromosome(), rec.getChrPosition().getStartPosition(), rec.getChrPosition().getStartPosition(), ref, alt, input,fileCount, getAlleleRatio(rec));
 //						addToMap(map, rec.getChrPosition().getChromosome(), rec.getChrPosition().getStartPosition(), rec.getChrPosition().getStartPosition(), ref, alt+Constants.TAB+gt, input);
 					}
 				}
 			}
 		}
+	}
+	
+	/**
+	 * Returns Float.MAX_VALUE if there is no OABS
+	 * Otherwise, returns the number of times the alt allesles were seen divided by the sum of the number of occurrences of the ale alleles and the ref allele
+	 * 
+	 * If somatic, looks at the array position 1, 0 otherwise.
+	 *
+	 */
+	public static float getAlleleRatio(VcfRecord v) {
+		Map<String, String[]> ffMap = v.getFormatFieldsAsMap();
+		if (null != ffMap && ! ffMap.isEmpty()) {
+			String[] oabsArray = ffMap.get(VcfHeaderUtils.FORMAT_OBSERVED_ALLELES_BY_STRAND);
+			boolean recordSomatic = Amalgamator.isRecordSomatic(v);
+			int position = recordSomatic ? 1 : 0;
+			if (null != oabsArray && oabsArray.length > 0) {
+				return getAlleleRatioFromOABSorAC(oabsArray, position, v.getRef(), v.getAlt(), (s -> VcfUtils.getAllelicCoverage(s)));
+			} else {
+				/*
+				 * need to deal with vcf records that don't have an OABS - instead look for AC
+				 */
+				String[] acArray = ffMap.get(VcfHeaderUtils.FORMAT_ALLELE_COUNT);
+				if (null != acArray && acArray.length > 0) {
+					return getAlleleRatioFromOABSorAC(acArray, position, v.getRef(), v.getAlt(), (s -> VcfUtils.getAllelicCoverageFromAC(s)));
+				} else {
+					System.out.println("Coulnd't get allele dist from vcf record - no OABS or AC in format field");
+				}
+			}
+		}
+		return Float.MAX_VALUE;
+	}
+	
+	
+	
+	
+	public static float getAlleleRatioFromOABSorAC(String [] oabsOrAcArray, int position, String ref, String alt, Function<String, Map<String, Integer>> f) {
+		
+		if (position < oabsOrAcArray.length) {
+			String ac = oabsOrAcArray[position];
+			int delimiterIndex = ac.indexOf(Constants.VCF_MERGE_DELIM);
+			if (delimiterIndex > 0) {
+				ac = ac.substring(0, delimiterIndex);
+			}
+			
+			Map<String, Integer> map = f.apply(ac);
+			return getAlleleRatioFromMap(map, ref, alt);
+		}
+		return 0f;
+	}
+	
+	public static float getAlleleRatioFromMap(Map<String, Integer> map, String ref, String altString) {
+		String [] alts = TabTokenizer.tokenize(altString, Constants.COMMA);
+		
+		int altValue = 0;
+		for (String alt : alts) {
+			altValue += map.get(alt);
+		}
+		int refValue = map.get(ref);
+//		System.out.println("returning allele ratio of: " + (float) altValue / (altValue + refValue));
+		return (float) altValue / (altValue + refValue);
 	}
 
 
@@ -367,12 +509,18 @@ public class Overlap {
 //		return gt;
 //	}
 	
-	public static void addToMap(Map<ChrPositionRefAlt, List<String>> map, String chr, int start, int end, String ref, String alt, String input) {
+	public static void addToMap(Map<ChrPositionRefAlt, float[]> map, String chr, int start, int end, String ref, String alt, int input, int fileCount, float alleleDist) {
 		if (null != map && null != chr && start >=0 && end >= start) {
 			ChrPositionRefAlt cpn  = new ChrPositionRefAlt(chr, start, end, ref, alt);
-			map.computeIfAbsent(cpn, v -> new ArrayList<String>(4)).add(input);
+			map.computeIfAbsent(cpn, v -> new float[fileCount])[input] = alleleDist;
 		}
 	}
+//	public static void addToMap(Map<ChrPositionRefAlt, List<String>> map, String chr, int start, int end, String ref, String alt, String input) {
+//		if (null != map && null != chr && start >=0 && end >= start) {
+//			ChrPositionRefAlt cpn  = new ChrPositionRefAlt(chr, start, end, ref, alt);
+//			map.computeIfAbsent(cpn, v -> new ArrayList<String>(4)).add(input);
+//		}
+//	}
 	
 	public static void main(String[] args) throws Exception {
 		//loads all classes in referenced jars into memory to avoid nightly build sheninegans
