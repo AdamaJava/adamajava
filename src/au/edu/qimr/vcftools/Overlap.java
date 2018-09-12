@@ -135,6 +135,13 @@ public class Overlap {
 			positionsByInput.computeIfAbsent(files, f -> new ArrayList<>()).add(k);
 		});
 		
+		logger.info("positionsByInput.size(): " + positionsByInput.size());
+		positionsByInput.keySet().forEach(s -> logger.info("s: " + s));
+		
+		List<ChrPositionRefAlt> emptyStringList = positionsByInput.get("");
+		logger.info("number of entries in emptyStringList: " + emptyStringList.size());
+//		emptyStringList.forEach(s -> logger.info("emptyStringList: " + s));
+		
 		StringBuilder filesBeingCompared = new StringBuilder();
 		
 		StringBuilder sb = new StringBuilder();
@@ -159,17 +166,19 @@ public class Overlap {
 				filesBeingCompared.append(files);
 				sb.append(". In both: ").append(size).append(" (").append(String.format("%.2f", perc)).append("%), average allele dist (file1): ").append(aveAlleleDists[0]).append(", average allele dist (file2): ").append(aveAlleleDists[1]);
 			} else {
-				int position = StringUtils.getPositionOfStringInArray(vcfFiles, files, false);
-				String sPos = "";
-				if (position < 0) {
-					if (files.equals(goldStandard)) {
-						sPos = "gold standard";
-					}
-				} else {
-					sPos = "file " + (position + 1);
+				int position = StringUtils.getPositionOfStringInArray(inputFiles, files, false);
+				if (position > -1) {
+					String sPos = "";
+//					if (position < 0) {
+//						if (files.equals(goldStandard)) {
+//							sPos = "gold standard";
+//						}
+//					} else {
+						sPos = "file " + (position + 1);
+//					}
+					
+					sb.append(". In " + sPos + " only: ").append(size).append(" (").append(String.format("%.2f", perc)).append("%), average allele dist: ").append(aveAlleleDists[position]);
 				}
-				
-				sb.append(". In " + sPos + " only: ").append(size).append(" (").append(String.format("%.2f", perc)).append("%), average allele dist: ").append(aveAlleleDists[position]);
 			}
 			logger.info("files: " + files + " have " +size + " positions (" +String.format("%.2f", perc)+"%)");
 			/*
