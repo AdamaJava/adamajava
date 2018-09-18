@@ -41,7 +41,7 @@ import org.qcmg.common.model.CigarStringComparator;
 import org.qcmg.common.model.ProfileType;
 import org.qcmg.common.model.QCMGAtomicLongArray;
 import org.qcmg.common.model.ReferenceNameComparator;
-import org.qcmg.common.util.QprofilerXmlUtils;
+import org.qcmg.common.util.Qprofiler1XmlUtils;
 import org.qcmg.common.util.SummaryByCycleUtils;
 import org.qcmg.qprofiler2.report.SummaryReport;
 import org.qcmg.qprofiler2.summarise.CycleSummary;
@@ -60,7 +60,7 @@ public class BamSummaryReport2 extends SummaryReport {
 //	private final static int mateRefNameMinusOne = 255;
 	public static final Character cc = Character.MAX_VALUE;
 	public static final Integer ii = Integer.MAX_VALUE;	
-	public static final String[] sourceName = new String[]{ "UnPaired", QprofilerXmlUtils.FirstOfPair, QprofilerXmlUtils.SecondOfPair };	
+	public static final String[] sourceName = new String[]{ "UnPaired", XmlUtils.FirstOfPair, XmlUtils.SecondOfPair };	
 	
 	private final ConcurrentMap<String, ReadIDSummary> readIdSummary = new ConcurrentHashMap<String, ReadIDSummary>();
 	//SEQ
@@ -91,7 +91,7 @@ public class BamSummaryReport2 extends SummaryReport {
 		
 	@SuppressWarnings("serial")
 	private final ConcurrentMap<String, ReadGroupSummary> rgSummaries = new ConcurrentHashMap<String, ReadGroupSummary>(){{  
-		put( QprofilerXmlUtils.All_READGROUP, new ReadGroupSummary( QprofilerXmlUtils.All_READGROUP) ); }}; 
+		put( XmlUtils.All_READGROUP, new ReadGroupSummary( XmlUtils.All_READGROUP) ); }}; 
 			
 	private final KmersSummary kmersSummary = new KmersSummary( KmersSummary.maxKmers ); //default use biggest mers length
  	TagSummaryReport2 tagReport; 
@@ -101,7 +101,7 @@ public class BamSummaryReport2 extends SummaryReport {
 	private Long maxRecords;
 	private SAMFileHeader bamHeader;
 	private SAMSequenceDictionary samSeqDictionary;
-	private List<String> readGroupIds = Arrays.asList( QprofilerXmlUtils.UNKNOWN_READGROUP ); //init	
+	private List<String> readGroupIds = Arrays.asList( XmlUtils.UNKNOWN_READGROUP ); //init	
 	
 	public BamSummaryReport2(String [] includes, int maxRecs, String [] tags, String [] tagsInt, String [] tagsChar) {
 		super();		
@@ -170,27 +170,27 @@ public class BamSummaryReport2 extends SummaryReport {
 		summaryToXml(bamReportElement ); 	//Summary for all read group
 		
 		//create bamMertrics
-		bamReportElement = QprofilerXmlUtils.createSubElement( bamReportElement, "bamMetrics" );
-		createQNAME(XmlUtils.createFieldNode(bamReportElement, "QNAME")  );					
-		XmlUtils.outputMap( XmlUtils.createFieldNode(bamReportElement, "FLAG"), "read number", "read counts distribution based on flag string", "flag", "flag string" , flagBinaryCount);		 
-		createRNAME(XmlUtils.createFieldNode(bamReportElement, "RNAME")  ); //it is same to RNEXT
-		createPOS(XmlUtils.createFieldNode(bamReportElement, "POS")  );	
-		createMAPQ(XmlUtils.createFieldNode(bamReportElement, "MAPQ"));	
-		createCigar(XmlUtils.createFieldNode(bamReportElement, "CIGAR") );
+		bamReportElement = Qprofiler1XmlUtils.createSubElement( bamReportElement, "bamMetrics" );
+		createQNAME(Qprofiler1XmlUtils.createSubElement(bamReportElement, "QNAME")  );					
+		XmlUtils.outputMap( Qprofiler1XmlUtils.createSubElement(bamReportElement, "FLAG"), "read number", "read counts distribution based on flag string", "flag", "flag string" , flagBinaryCount);		 
+		createRNAME(Qprofiler1XmlUtils.createSubElement(bamReportElement, "RNAME")  ); //it is same to RNEXT
+		createPOS(Qprofiler1XmlUtils.createSubElement(bamReportElement, "POS")  );	
+		createMAPQ(Qprofiler1XmlUtils.createSubElement(bamReportElement, "MAPQ"));	
+		createCigar(Qprofiler1XmlUtils.createSubElement(bamReportElement, "CIGAR") );
 		//PNEXT will be same to pos
-		createTLen(XmlUtils.createFieldNode(bamReportElement, "TLEN") );
-		createSeq(XmlUtils.createFieldNode(bamReportElement, "SEQ")  );
-		createQual(XmlUtils.createFieldNode(bamReportElement, "QUAL")  );
-		tagReport.toXml(XmlUtils.createFieldNode(bamReportElement, "TAG")); 
+		createTLen(Qprofiler1XmlUtils.createSubElement(bamReportElement, "TLEN") );
+		createSeq(Qprofiler1XmlUtils.createSubElement(bamReportElement, "SEQ")  );
+		createQual(Qprofiler1XmlUtils.createSubElement(bamReportElement, "QUAL")  );
+		tagReport.toXml(Qprofiler1XmlUtils.createSubElement(bamReportElement, "TAG")); 
 
 	}
 	
 	private void createQNAME(Element parent ){
 		 //read name will be under RT Tab	
 		for( Entry<String, ReadIDSummary> entry:  readIdSummary.entrySet()){
-			Element readNameElement = QprofilerXmlUtils.createSubElement(parent, "ReadHeader");
-			readNameElement.setAttribute("ReadGroupid", entry.getKey());
-			readNameElement.setAttribute("readCount", entry.getValue().getInputReadNumber()+"");
+			Element readNameElement = Qprofiler1XmlUtils.createSubElement(parent, "ReadHeader");
+			readNameElement.setAttribute(XmlUtils.readGroupid, entry.getKey());
+			readNameElement.setAttribute(XmlUtils.count, entry.getValue().getInputReadNumber()+"");
 			entry.getValue().toXml(readNameElement);			
 		}	
 	}
@@ -200,7 +200,7 @@ public class BamSummaryReport2 extends SummaryReport {
 		
 		//BaseByCycle
 		for(int order = 0; order < 3; order++) 			
-			seqByCycle[order].toXml(seqElement, "read Base distribution per base cycle", sourceName[order]+"BaseByCycle", "read base cycle" );
+			seqByCycle[order].toXml(seqElement, "read Base distribution per base cycle", sourceName[order]+"BaseByCycle", "read base cycle", "counts for each base" );
 		
 		//seqLength
 		for(int order = 0; order < 3; order++) 
@@ -218,7 +218,7 @@ public class BamSummaryReport2 extends SummaryReport {
 	private void createQual(Element parent){
 		
 		for(int order = 0; order < 3; order++) 			
-			qualByCycleInteger[order].toXml(parent, "base Quality distribution per base cycle",sourceName[order]+"QualityByCycle", "Read Base cycle");
+			qualByCycleInteger[order].toXml(parent, "base Quality distribution per base cycle",sourceName[order]+"QualityByCycle", "Read Base cycle", "counts for each quality base value");
 		for(int order = 0; order < 3; order++)			
 			XmlUtils.outputMap(parent, 		"read counts", "read counts distribution based on read qual length","qualLength"+sourceName[order], "qual line length",qualByCycleInteger[order].getLengthMapFromCycle());
 		for(int order = 0; order < 3; order++)  			
@@ -238,7 +238,7 @@ public class BamSummaryReport2 extends SummaryReport {
 	private void createMAPQ(Element parent) {				
 		//,  sourceName, mapQualityLengths
 		if(sourceName.length == 0 ||  sourceName.length != mapQualityLengths.length   ) return;				
-		String poss = QprofilerXmlUtils.joinByComma( Arrays.asList(sourceName) );	
+		String poss = XmlUtils.joinByComma( Arrays.asList(sourceName) );	
 		 				
 		Map<Integer, String> values = new HashMap<>();
 		//MAPQ is [0,255], there should be bug is out of this range
@@ -250,15 +250,15 @@ public class BamSummaryReport2 extends SummaryReport {
 				total += mapQualityLengths[j].get(i);
 			}
 			if(total > 0) //we don't output mapq if no read contain this value
-				values.put(i, QprofilerXmlUtils.joinByComma(Scount));
+				values.put(i, XmlUtils.joinByComma(Scount));
 		} 
-		XmlUtils.outputMatrix(parent, poss, "read number distribution based on mapping quality", "MAPQ", "mapping quality value [0,255]",values);
+		XmlUtils.outputMatrix(parent, poss, "read number distribution based on mapping quality", "MAPQ", "mapping quality value [0,255]", "" ,values);
 	}	
 	private void createTLen(Element parent){
 		// ISIZE	
 		Set<String> readGroups =  rgSummaries.keySet();
-		readGroups.remove(QprofilerXmlUtils.All_READGROUP);
-		String poss = QprofilerXmlUtils.joinByComma(new ArrayList<String>(readGroups));		
+		readGroups.remove(XmlUtils.All_READGROUP);
+		String poss = XmlUtils.joinByComma(new ArrayList<String>(readGroups));		
 		if(poss == null || poss.length() <= 0) return; 
 		
 		Map<Integer, String> values = new HashMap<>();
@@ -269,10 +269,10 @@ public class BamSummaryReport2 extends SummaryReport {
 				counts.add(rgSummaries.get(rg).getISizeCount().get(pos));
 			long sum = counts.stream().reduce((x,y) -> x+y).get();
 			if(sum > 0)
-				values.put(pos, QprofilerXmlUtils.joinByComma(counts));			
+				values.put(pos, XmlUtils.joinByComma(counts));			
 		}
 				
-		XmlUtils.outputMatrix( parent, poss, "TLen distribution", "tLen", "TLEN value",values);
+		XmlUtils.outputMatrix( parent, poss, "TLen distribution", "tLen", "TLEN value", "pair counts for each read group", values);
 	}	
 	
 	private void createRNAME(Element parent){		
@@ -291,18 +291,18 @@ public class BamSummaryReport2 extends SummaryReport {
 	
 	private void createPOS(Element parent){
 		
-		List<String> readGroups = rgSummaries.keySet().stream().filter(it -> !it.equals(QprofilerXmlUtils.All_READGROUP)).sorted().collect(Collectors.toList());			
+		List<String> readGroups = rgSummaries.keySet().stream().filter(it -> !it.equals(XmlUtils.All_READGROUP)).sorted().collect(Collectors.toList());			
 		rNamePosition.keySet().stream().sorted(new ReferenceNameComparator()).forEach(k->{
 			Map<String, String> map = new HashMap<>();
 			// iterator on may <binNumber, [counts for each read group at that binNo]> eg. <2, [500,600,600]>
 			for (Entry<Integer, AtomicLongArray> entry : rNamePosition.get(k).getCoverageByRgs( readGroups).entrySet() ){  
 				int start = entry.getKey() * PositionSummary.BUCKET_SIZE; 
 				int end = start + PositionSummary.BUCKET_SIZE -1;
-				//map.put(String.format("%d,%d", start, end), QprofilerXmlUtils.joinByComma(Arrays.asList(entry.getValue())));	
+				//map.put(String.format("%d,%d", start, end), XmlUtils.joinByComma(Arrays.asList(entry.getValue())));	
 				map.put(String.format("%d,%d", start, end),   entry.getValue().toString().replace("[", "").replace("]", "").replace(" ", "") );
 				}
-			XmlUtils.outputMatrix(parent, QprofilerXmlUtils.joinByComma(readGroups), String.format("read depth on reference %s per bin based on readgroup id. Bin size is %d base pair", k,PositionSummary.BUCKET_SIZE ),					
-					"depthOn"+k, "[start,end] position on referene for each bin", map);
+			XmlUtils.outputMatrix(parent, XmlUtils.joinByComma(readGroups), String.format("read depth on reference %s. Bin size is %d base pair", k,PositionSummary.BUCKET_SIZE ),					
+					"depthOn"+k, "[start,end] position on referene for each bin", "read counts per bin based on readgroup id",map);
 			
 		});
 	}
@@ -314,12 +314,12 @@ public class BamSummaryReport2 extends SummaryReport {
 	public void parseRecord( final SAMRecord record ) {
  		updateRecordsParsed();
 		
-		String readGroup = QprofilerXmlUtils.UNKNOWN_READGROUP;
+		String readGroup = XmlUtils.UNKNOWN_READGROUP;
 		if(record.getReadGroup() != null && record.getReadGroup().getId() != null )
 			readGroup = record.getReadGroup().getReadGroupId();				
 		// check if record has its fail or duplicate flag set. if so, miss out some of the summaries
 		//anyway, add to summary and then add to it's readgroup
-		rgSummaries.get(QprofilerXmlUtils.All_READGROUP).parseRecord(record); 
+		rgSummaries.get(XmlUtils.All_READGROUP).parseRecord(record); 
 		ReadGroupSummary rgSumm = rgSummaries.computeIfAbsent(readGroup, k -> new ReadGroupSummary(k));
 		//ReadIDSummary idSumm = readIdSummary.computeIfAbsent( readGroup, (k) -> new ReadIDSummary() );
 		
@@ -415,7 +415,7 @@ public class BamSummaryReport2 extends SummaryReport {
 	}
 		
 	private void summaryToXml( Element parent){
-		Element summaryElement = QprofilerXmlUtils.createSubElement(parent, QprofilerXmlUtils.summary);
+		Element summaryElement = Qprofiler1XmlUtils.createSubElement(parent, XmlUtils.summary);
 				
 		String[][] properties = new String[5][2];
 		//eg, <Property value="112" description="Number of cycles with >1% mismatches"/>
@@ -437,15 +437,15 @@ public class BamSummaryReport2 extends SummaryReport {
 			point ++;
 		}
 		
-		long badReadNum = rgSummaries.get(QprofilerXmlUtils.All_READGROUP).getNumFailedVendorQuality() +
-				rgSummaries.get(QprofilerXmlUtils.All_READGROUP).getNumSecondary() + rgSummaries.get(QprofilerXmlUtils.All_READGROUP).getNumSupplementary() ;				
+		long badReadNum = rgSummaries.get(XmlUtils.All_READGROUP).getNumFailedVendorQuality() +
+				rgSummaries.get(XmlUtils.All_READGROUP).getNumSecondary() + rgSummaries.get(XmlUtils.All_READGROUP).getNumSupplementary() ;				
 		properties[3][0] = badReadNum + "";
 		properties[3][1] = "Discarded reads (FailedVendorQuality, secondary, supplementary)";		
 		properties[4][0] = getRecordsParsed() + "";
 		properties[4][1] = "Total reads including discarded reads";
 				
 		for(String[] property : properties) {
-			Element element = QprofilerXmlUtils.createSubElement(summaryElement,  "Property");
+			Element element = Qprofiler1XmlUtils.createSubElement(summaryElement,  "Property");
 			element.setAttribute("value", property[0]);
 			element.setAttribute("description", property[1]);			
 		}
@@ -454,20 +454,24 @@ public class BamSummaryReport2 extends SummaryReport {
 		long trimBases = 0;
 		long maxBases = 0; 		
 		for(ReadGroupSummary summary: rgSummaries.values()) 
-			if(! summary.getReadGroupId().equals(QprofilerXmlUtils.All_READGROUP)){
+			if(! summary.getReadGroupId().equals(XmlUtils.All_READGROUP)){
 				summary.readSummary2Xml(summaryElement);
-				summary.pairSummary2Xml(summaryElement);  
+			//	summary.pairSummary2Xml(summaryElement);  
 				trimBases += summary.getTrimedBases();
 				maxBases += summary.getMaxReadLength() * summary.getCountedReads(); 
 			}		
 		
 		if( maxBases == 0) return; //incase there is no readGroup  in bam header
 		//overall group at last
-		ReadGroupSummary summary = rgSummaries.get(QprofilerXmlUtils.All_READGROUP);
+		ReadGroupSummary summary = rgSummaries.get(XmlUtils.All_READGROUP);
 		summary.setMaxBases(maxBases);
 		summary.setTrimedBases(trimBases);
 		summary.readSummary2Xml(summaryElement);
-		summary.pairSummary2Xml(summaryElement);
+		//summary.pairSummary2Xml(summaryElement);
+		
+		//output pairs latter
+		for(ReadGroupSummary summary1: rgSummaries.values()) 
+			summary1.pairSummary2Xml(summaryElement);
 		
 		if (includeCoverage) 
 			XmlUtils.outputMap(summaryElement, "reference base counts", "not sure", "coverage", "read depth", coverage);

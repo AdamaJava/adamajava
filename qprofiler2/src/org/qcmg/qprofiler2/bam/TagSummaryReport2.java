@@ -9,7 +9,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.QCMGAtomicLongArray;
-import org.qcmg.common.util.QprofilerXmlUtils;
+import org.qcmg.common.util.Qprofiler1XmlUtils;
 import org.qcmg.qprofiler2.summarise.CycleSummary;
 import org.qcmg.qprofiler2.util.CycleSummaryUtils;
 import org.qcmg.qprofiler2.util.XmlUtils;
@@ -107,13 +107,13 @@ public class TagSummaryReport2 {
 	public void toXml(Element parent){
 				
 		//MD tag
-		Element childElement = QprofilerXmlUtils.createSubElement(parent, "subField");	//SEQ
+		Element childElement = Qprofiler1XmlUtils.createSubElement(parent, "subField");	//SEQ
 		childElement.setAttribute("Category", "TAG:MD");
 		
 		//mismatchbycycle
 		for(int order = 0; order < 3; order ++) 
 			tagMDMismatchByCycle[order].toXml(childElement, "mismatch distribution per base cycle",
-					BamSummaryReport2.sourceName[order],"read base cycle");
+					BamSummaryReport2.sourceName[order],"read base cycle", "mismatch base counts for listed base type on each cycle");
 			
 		for(int order = 0; order < 3; order ++) {	
 			for(String strand : new String[]{"MutationForward", "MutationReverse"}){				

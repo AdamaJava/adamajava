@@ -7,7 +7,6 @@
 package org.qcmg.qprofiler2.summarise;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -25,13 +24,9 @@ import java.util.concurrent.atomic.AtomicLongArray;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.qcmg.common.util.QprofilerXmlUtils;
-import org.qcmg.qprofiler2.bam.BamSummaryReport2;
-import org.qcmg.qprofiler2.util.SummaryReportUtils;
 import org.qcmg.qprofiler2.util.XmlUtils;
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
+
 
 /**
  * Class that tallies by cycle using java generics 
@@ -327,11 +322,11 @@ public class CycleSummary<T> {
 	 * @param elementName String representing the name to be used when creating the element
 	 */
 	
-	public void toXml( Element parent, String description, String sourceName, String inputDes )
+	public void toXml( Element parent, String description, String sourceName, String inputDes, String outputDes )
 	{
 		//do nothing if no base detected
 		Set<T> possibles = getPossibleValues();
-		final String poss = QprofilerXmlUtils.joinByComma(new ArrayList<T>(possibles)); //getPossibleValuesAsString();
+		final String poss = XmlUtils.joinByComma(new ArrayList<T>(possibles)); //getPossibleValuesAsString();
 		if(poss == null || poss.length() <= 0) return; 
 		
 		Map<Integer, String> values = new HashMap<>();
@@ -340,10 +335,10 @@ public class CycleSummary<T> {
 			for(T t :  getPossibleValues()) 
 				counts.add(count(cycle, t));
 			if(counts.isEmpty()) continue;			
-			values.put(cycle, QprofilerXmlUtils.joinByComma(counts));			 
+			values.put(cycle, XmlUtils.joinByComma(counts));			 
 		}
 			
-		XmlUtils.outputMatrix( parent, poss, description, sourceName,inputDes,values);
+		XmlUtils.outputMatrix( parent, poss, description, sourceName,inputDes, outputDes,values);
 	}
 	
 

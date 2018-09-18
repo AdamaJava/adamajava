@@ -16,7 +16,7 @@ import htsjdk.samtools.SAMUtils;
 import org.qcmg.common.model.ProfileType;
 import org.qcmg.common.model.QCMGAtomicLongArray;
 import org.qcmg.common.string.StringUtils;
-import org.qcmg.common.util.QprofilerXmlUtils;
+import org.qcmg.common.util.Qprofiler1XmlUtils;
 import org.qcmg.qprofiler2.report.SummaryReport;
 import org.qcmg.qprofiler2.summarise.CycleSummary;
 import org.qcmg.qprofiler2.summarise.KmersSummary;
@@ -51,13 +51,15 @@ public class FastqSummaryReport extends SummaryReport {
 	@Override
 	public void toXml(Element parent1) {		
 		Element parent = init( parent1, ProfileType.FASTQ, null, null );
-		parent = QprofilerXmlUtils.createSubElement(parent, "fastqMetrics");
+		parent = Qprofiler1XmlUtils.createSubElement(parent, ProfileType.FASTQ.getReportName() +   "Metrics");
 		//header line
- 		readHeaderSummary.toXml( XmlUtils.createFieldNode(parent, "HeaderLine") );
+		Element readNameElement = Qprofiler1XmlUtils.createSubElement(Qprofiler1XmlUtils.createSubElement(parent, "QNAME"), "ReadHeader");		
+	//	readNameElement.setAttribute(XmlUtils.count, readHeaderSummary.getInputReadNumber()+"");
+ 		readHeaderSummary.toXml(readNameElement );
 				 			
 		//seq		
-		Element element = XmlUtils.createFieldNode( parent, "SequenceData" ) ;//QprofilerXmlUtils.createSubElement(parent, "SequenceData" );	 
-		seqByCycle.toXml(element, "read Base distribution per base cycle", "BaseCycle", "read base cycle");
+		Element element =   Qprofiler1XmlUtils.createSubElement(parent, "SEQ" ) ;//Qprofiler1XmlUtils.createSubElement(parent, "SequenceData" );	 
+		seqByCycle.toXml(element, "read Base distribution per base cycle", "BaseCycle", "read base cycle", "counts for each base");
 		XmlUtils.outputMap( element, "read counts", "read counts distribution based on read seq length", "seqlength", "seq line length" , seqByCycle.getLengthMapFromCycle() );		
 		XmlUtils.outputMap( element, "base counts", "bad base(. or N) distribution based on read base cycle",  "BadBasesInReads", "read base cycle" , seqBadReadLineLengths );		
 		//1mers is same to baseByCycle
@@ -65,8 +67,8 @@ public class FastqSummaryReport extends SummaryReport {
 			kmersSummary.toXml(element,i);	
 				
 		//QUAL
-		element = XmlUtils.createFieldNode( parent, "QualityScores");	 
-		qualByCycleInteger.toXml(element, "QualityByCycle", null,"read base cycle");
+		element =   Qprofiler1XmlUtils.createSubElement(parent, "QUAL");	 
+		qualByCycleInteger.toXml(element, "QualityByCycle", null,"read base cycle", "counts for each quality base value");
 		XmlUtils.outputMap( element, "read counts", "read counts distribution based on read quality score stirng length", "quallength", "qual line length" , qualByCycleInteger.getLengthMapFromCycle() );		
 		XmlUtils.outputMap( element, "base counts", "bad base(. or N) distribution based on read base cycle",  "BadBasesInReads", "read base cycle" , qualBadReadLineLengths );			 		
 	}
@@ -100,7 +102,7 @@ public class FastqSummaryReport extends SummaryReport {
 		if ( ! StringUtils.isNullOrEmpty(qualHeader))  
 			qualHeaderNotEqualToPlus.incrementAndGet();		
 		
-		String id = record.getReadHeader();
+		String id = record.getReadName();//record.getReadHeader();		
 		try {
 			readHeaderSummary.parseReadId( id );
 		} catch (Exception e) {

@@ -9,7 +9,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.qcmg.common.model.ProfileType;
-import org.qcmg.common.util.QprofilerXmlUtils;
+import org.qcmg.common.util.Qprofiler1XmlUtils;
 import org.qcmg.common.vcf.VcfFormatFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
@@ -23,14 +23,14 @@ import org.w3c.dom.Element;
 
 public class VcfSummaryReport  extends SummaryReport {
 	
-	public static final String NodeHeader = "VCFHeader";
+	public static final String NodeHeader = "vcfHeader";
 	public static final String NodeHeaderMeta = "MetaInformation" ;
 	public static final String NodeHeaderMetaLine = "MetaInformationLine";
 	public static final String NodeHeaderStructured = "StructuredMetaInformation";
 	public static final String NodeHeaderStructuredType = "StructuredMetaInformationType";
 	public static final String NodeHeaderStructuredLine = "StructuredMetaInformationLine";
 	public static final String NodeHeaderFinal =  "HeaderLine";		
-	public static final String NodeSummary = "VCFMetrics";
+	public static final String NodeSummary = "vcfMetrics";
 	public static final String NodeCategory = "ReportingCategory";
 	public static final String Sample = "Sample";	
 	public static final String id = "id";
@@ -98,7 +98,7 @@ public class VcfSummaryReport  extends SummaryReport {
 	 * @param parent
 	 */
 	void summaryToXml(Element parent){	
-		Element summaryElement = QprofilerXmlUtils.createSubElement(parent, NodeSummary);			
+		Element summaryElement =  Qprofiler1XmlUtils.createSubElement(parent, NodeSummary);			
 		
 		//get list of types eg. FT:INF:CONF
 		List<String>  formatsTypes = new ArrayList<>();
@@ -117,35 +117,36 @@ public class VcfSummaryReport  extends SummaryReport {
 				summaries.get(key).toXML(ele, String.join(":", formatsTypes), String.join(":", cats));				
 		}
 	}
+	
 	void vcfHeaderToXml(Element parent){
-		Element headerElement = QprofilerXmlUtils.createSubElement( parent, NodeHeader);
-		Element metaElement = QprofilerXmlUtils.createSubElement( headerElement, NodeHeaderMeta);
-		Element structuredElement = QprofilerXmlUtils.createSubElement( headerElement, NodeHeaderStructured);
+		Element headerElement =  Qprofiler1XmlUtils.createSubElement( parent, NodeHeader);
+		Element metaElement =  Qprofiler1XmlUtils.createSubElement( headerElement, NodeHeaderMeta);
+		Element structuredElement =  Qprofiler1XmlUtils.createSubElement( headerElement, NodeHeaderStructured);
 		
 		HashMap<String, Element> struElements = new HashMap<String, Element>();
 				
 		for(final VcfHeaderRecord record: vcfHeader ){			
 			String key = record.getMetaKey().replace("##", "");
 			if(key.startsWith( VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE )){
-				Element ele = QprofilerXmlUtils.createSubElement( headerElement, NodeHeaderFinal );
+				Element ele =  Qprofiler1XmlUtils.createSubElement( headerElement, NodeHeaderFinal );
 				//ele.setAttribute("columns", key);
  				ele.appendChild(ele.getOwnerDocument().createCDATASection(key)  );
 			}
-			else if(record.getId() == null ){
-				Element ele =  QprofilerXmlUtils.createSubElement( metaElement, NodeHeaderMetaLine );
+			else if( record.getId() == null ){
+				Element ele =   Qprofiler1XmlUtils.createSubElement( metaElement, NodeHeaderMetaLine );
 				ele.setAttribute("key", record.getMetaKey().replace("##", "") );
 				String v = record.getMetaValue();
 				 if(v.startsWith("\"") && v.endsWith("\"")) 
-					 v = v.substring(1, v.length()-1).trim();				  				
+					 v = v.substring( 1, v.length()-1 ).trim();				  				
 				 ele.setAttribute("value", v);				
 			}else{				
 				 if(!struElements.containsKey(key)){
-					 Element ele = QprofilerXmlUtils.createSubElement( structuredElement, NodeHeaderStructuredType );
+					 Element ele =  Qprofiler1XmlUtils.createSubElement( structuredElement, NodeHeaderStructuredType );
 					 ele.setAttribute("type", key);
 					 struElements.put(key, ele );
 				 }
 				 Element ele = struElements.get(key);
-				 ele =  QprofilerXmlUtils.createSubElement( ele, NodeHeaderStructuredLine );
+				 ele =   Qprofiler1XmlUtils.createSubElement( ele, NodeHeaderStructuredLine );
 				 //ele.setAttribute("id", record.getId());
 				 for( Pair<String, String> p: record.getSubFields() ) {
 					 String v = (String) p.getRight().trim();
@@ -158,12 +159,12 @@ public class VcfSummaryReport  extends SummaryReport {
 
 	private Element getSampleElement(Element parent, String sampleId) {
 		 
-		List<Element> Esamples = QprofilerXmlUtils.getOffspringElementByTagName(parent, Sample);
+		List<Element> Esamples =  Qprofiler1XmlUtils.getOffspringElementByTagName(parent, Sample);
 		for(Element ele : Esamples)  
 			if( ele.getAttribute(id).equals(sampleId))
 				return ele; 
 		 
-		Element ele = QprofilerXmlUtils.createSubElement( parent, Sample);
+		Element ele =  Qprofiler1XmlUtils.createSubElement( parent, Sample);
 		ele.setAttribute(id, sampleId);
 		
 		return ele;

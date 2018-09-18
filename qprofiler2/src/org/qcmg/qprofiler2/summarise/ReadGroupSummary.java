@@ -1,15 +1,13 @@
 package org.qcmg.qprofiler2.summarise;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.qcmg.common.model.QCMGAtomicLongArray;
 import org.qcmg.common.util.Pair;
-import org.qcmg.common.util.QprofilerXmlUtils;
+import org.qcmg.common.util.Qprofiler1XmlUtils;
 import org.qcmg.picard.util.PairedRecordUtils;
+import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -134,7 +132,7 @@ public class ReadGroupSummary {
 		 */
 		
 		void toXml(Element parent  ){
-			Element stats = QprofilerXmlUtils.createSubElement(parent, name);			
+			Element stats = Qprofiler1XmlUtils.createSubElement(parent, name);			
 			stats.setAttribute("overlapping", overlap.get()+"");		 
 			stats.setAttribute("tlenUnder1500", near.get()+"");		 
 			stats.setAttribute("tlenOver10000", bigTlen.get() +"");
@@ -283,7 +281,7 @@ public class ReadGroupSummary {
 	}
 	
 	public long getTrimedBases(){
-		if( readGroupId.equals(QprofilerXmlUtils.All_READGROUP ))			 
+		if( readGroupId.equals(XmlUtils.All_READGROUP ))			 
 			return trimedBase ;
 		
 		//suppose original reads with same length for same read group
@@ -296,7 +294,7 @@ public class ReadGroupSummary {
 	}
 	
 	public void setTrimedBases(long bases){ 
-		if( readGroupId.equals( QprofilerXmlUtils.All_READGROUP ) )			 
+		if( readGroupId.equals( XmlUtils.All_READGROUP ) )			 
 			trimedBase = bases;
 	}
 	
@@ -334,12 +332,12 @@ public class ReadGroupSummary {
 	public void readSummary2Xml(Element parent ) { 	 		
 						
 			//add to xml RG_Counts
-			Element rgElement = QprofilerXmlUtils.createSubElement( parent, "reads" );
-			rgElement.setAttribute("readGroupId", readGroupId);	
-			rgElement.setAttribute(QprofilerXmlUtils.readCount, inputReadCounts.get() + "");
+			Element rgElement = Qprofiler1XmlUtils.createSubElement( parent, "reads" );
+			rgElement.setAttribute(XmlUtils.readGroupid, readGroupId);	
+			rgElement.setAttribute(XmlUtils.count, inputReadCounts.get() + "");
 						
 			//add discarded read Stats to readgroup summary			
-			Element stats = QprofilerXmlUtils.createSubElement( rgElement, QprofilerXmlUtils.filteredReads );	
+			Element stats = Qprofiler1XmlUtils.createSubElement( rgElement, XmlUtils.filteredReads );	
 			stats.setAttribute( "supplementaryAlignmentCount", supplementary.get()+"" );
 			stats.setAttribute( "secondaryAlignmentCount", secondary.get()+"" );
 			stats.setAttribute( "failedVendorQualityCount", secondary.get()+"" );			
@@ -353,12 +351,12 @@ public class ReadGroupSummary {
 						
 			//add counted read stats to readgroup summary	
 			int  maxReadLength = getMaxReadLength();
-			if(! readGroupId.equals(QprofilerXmlUtils.All_READGROUP )){
+			if(! readGroupId.equals(XmlUtils.All_READGROUP )){
 				setMaxBases( noOfRecords * maxReadLength );
 				lostPercentage += addCountedReadStats(rgElement, "trimmedBase", parseTrim(readLength, maxReadLength), maxBases);				
 			}else{
 				double percentage = 100 * (double) getTrimedBases() / getMaxBases() ;
-				QprofilerXmlUtils.createSubElement(rgElement, "trimmedBase").setAttribute(QprofilerXmlUtils.basePercent, String.format("%2.2f", percentage ));
+				Qprofiler1XmlUtils.createSubElement(rgElement, "trimmedBase").setAttribute(XmlUtils.basePercent, String.format("%2.2f", percentage ));
 				lostPercentage += percentage;	
 			}
 						
@@ -377,17 +375,17 @@ public class ReadGroupSummary {
 	public void pairSummary2Xml(Element parent) { 	 
 		//add paring information
 		//<readGroup pairCount="148242192" id="1bf380d4-8b0f-483c-bc84-fad5f8f2bf1c">
-		Element pairElement = QprofilerXmlUtils.createSubElement(parent, "pairs");
+		Element pairElement = Qprofiler1XmlUtils.createSubElement(parent, "pairs");
 		pairElement.setAttribute("readGroupId", readGroupId);	
 		pairElement.setAttribute("pairCount", pairNum.get()+"");	
 		
 		// <mateUnmappedPair count="1743093" pairNumber_flag_p="0"/>	 	
-		Element stats = QprofilerXmlUtils.createSubElement(pairElement, "mateUnmappedPair");
-		stats.setAttribute(QprofilerXmlUtils.count, mateUnmapped.get() + "");
+		Element stats = Qprofiler1XmlUtils.createSubElement(pairElement, "mateUnmappedPair");
+		stats.setAttribute(XmlUtils.count, mateUnmapped.get() + "");
 		
 		// <mateDifferentReferencePair count="3318739" pairNumber_flag_p="0"/>
-		stats = QprofilerXmlUtils.createSubElement(pairElement, "mateDifferentReferencePair");
-		stats.setAttribute(QprofilerXmlUtils.count, diffRef.get() + "");
+		stats = Qprofiler1XmlUtils.createSubElement(pairElement, "mateDifferentReferencePair");
+		stats.setAttribute(XmlUtils.count, diffRef.get() + "");
 
 		f5f3.toXml( pairElement );
 		f3f5.toXml( pairElement );
@@ -395,7 +393,7 @@ public class ReadGroupSummary {
 		outward.toXml( pairElement );
 		
 		Pair<Integer, String> isize = getIsizeStats();
-		stats = QprofilerXmlUtils.createSubElement(pairElement, "tlen");
+		stats = Qprofiler1XmlUtils.createSubElement(pairElement, "tlen");
 		stats.setAttribute( modal_isize, isize.getLeft() + "" );
 		stats.setAttribute("stdDev", isize.getRight());
 		
@@ -423,44 +421,6 @@ public class ReadGroupSummary {
 		
 	}
 	
-	
-//	@Deprecated
-//	public void iSize2Xml(Element parent) { 
-//		Element rgElement = QprofilerXmlUtils.createSubElement(parent, node_readgroup);
-//		rgElement.setAttribute("id", readGroupId );
-//		final int boundary = Math.min(farTlenValue *2, bigTlenValue/2);
-//
-//				
-//		Pair<Integer, String> isize = getIsizeStats();
-//		rgElement.setAttribute( modal_isize, isize.getLeft() + "" );
-//		rgElement.setAttribute("stdDev", isize.getRight());
-//				
-//		//counts for each Tlen value
-//		int start = 0;
-//		for(int i = 0; i < boundary ; i ++ ) 
-//			if(isize1.get(i) != 0) 			
-//				setISizeElement(rgElement,isize1.get(i),   i, i);				
-//				
-//		start = boundary;
-//		long count = isize1.get(boundary); 
-//		for(int i = boundary ; i < bigTlenValue;  i ++ ){
-//			count += isize1.get(i);
-//			if( i % 1000 == 0 ){
-//				if(count != 0)
-//					setISizeElement(rgElement, count,   start, i);
-//				count = 0; 
-//				start = i+1; 				
-//			}			
-//		}
-//		
-//		//region for last bin before bigTlenValue
-//		if(count > 0)
-//			setISizeElement(rgElement, count,   start, (bigTlenValue - 1));
-//				
-//		//region for oversize Tlen 
-//		setISizeElement(rgElement, isize1.get(bigTlenValue),   bigTlenValue, max_isize.get() );
-//	}
-	
 	/**
 	 * Create element node for each isize region with same counts
 	 * @param parent
@@ -479,7 +439,7 @@ public class ReadGroupSummary {
 
 	private double addDiscardReadStats(Element parent, String nodeName, AtomicLong counts, long totalReads ){
 			//add to RG_count section
-			Element stats = QprofilerXmlUtils.createSubElement(parent, nodeName);	
+			Element stats = Qprofiler1XmlUtils.createSubElement(parent, nodeName);	
 			stats.setAttribute("readCount", String.format("%d",counts.get()));
 						 	
 			//duplicats, non canonical and unmapped will be counted, others reads just discards
@@ -501,7 +461,6 @@ public class ReadGroupSummary {
 		}
 		
 		int mean = (counts == 0) ? 0: (int) (bases / counts);
-//			long medium = arrayLength > 0 ? array.get( (int) (arrayLength / 2)) : 0;
 		
 		long medium = 0;
 		for (int i = 0 ; i < arrayLength ; i++) {
@@ -526,7 +485,7 @@ public class ReadGroupSummary {
 			}
 		}
 							
-		Element stats = QprofilerXmlUtils.createSubElement(rgElement, nodeName);		
+		Element stats = Qprofiler1XmlUtils.createSubElement(rgElement, nodeName);		
 		stats.setAttribute( "min", min+"");
 		stats.setAttribute( "max", max +"");
 		stats.setAttribute("mean",mean+"");
@@ -536,7 +495,7 @@ public class ReadGroupSummary {
 
 		//deal with boundary value, missing reads
 		double percentage = (maxBases == 0)? 0: 100 * (double) bases /  maxBases ;		
-		stats.setAttribute("basePercent",  String.format("%2.2f", percentage    ));		
+		stats.setAttribute(XmlUtils.basePercent,  String.format("%2.2f", percentage    ));		
 		
 		return percentage; 
 	}

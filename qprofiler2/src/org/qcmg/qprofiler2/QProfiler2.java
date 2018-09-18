@@ -29,11 +29,10 @@ import org.qcmg.common.model.ProfileType;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.LoadReferencedClasses;
 import org.qcmg.common.util.ProfileTypeUtils;
-import org.qcmg.common.util.QprofilerXmlUtils;
+import org.qcmg.common.util.Qprofiler1XmlUtils;
 import org.qcmg.qprofiler2.bam.BamSummarizer2;
 import org.qcmg.qprofiler2.bam.BamSummarizerMT2;
 import org.qcmg.qprofiler2.cohort.CohortSummarizer;
-import org.qcmg.qprofiler2.fasta.FastaSummarizer;
 import org.qcmg.qprofiler2.fastq.FastqSummarizer;
 import org.qcmg.qprofiler2.fastq.FastqSummarizerMT;
 import org.qcmg.qprofiler2.report.SummaryReport;
@@ -76,7 +75,7 @@ public class QProfiler2 {
 	 * and ready for us to use.
 	 */
 	protected int engage() throws Exception {
-		Element root = QprofilerXmlUtils.createRootElement(null, "qProfiler", null);
+		Element root = Qprofiler1XmlUtils.createRootElement(null, "qProfiler", null);
 		
 		// Create new Summary object ready to hold our processing
 		QProfilerSummary2 sol = new QProfilerSummary2();
@@ -106,22 +105,7 @@ public class QProfiler2 {
 			sortedFiles.computeIfAbsent(type, v -> new ArrayList<>()).add(Pair.of(f, index));
 		}		
 				
-		if ( ! sortedFiles.isEmpty()) {			
-			/*
-			 * If neither XML nor text output files is requested then we should
-			 * probably drop out without doing any work. This behavior should be OK
-			 * until we get to the stage where we do validation as well as summary
-			 * reports.
-			 */
-			try {
-				// Don't forget to try to load the XML file before doing any crazy
-				// renaming stuff!
-				QprofilerXmlUtils.backupFileByRenaming(outputFile);
-			} catch (Exception e) {
-				logger.error("Exception caught whilst running StaticMethods.backupFileByRenaming", e);
-				throw e;
-			}
-			
+		if ( ! sortedFiles.isEmpty()) {						
 			//do xmlSummary here
 			if(sortedFiles.containsKey(ProfileType.XML )){
 				List<String> xmls = new ArrayList<>();
@@ -147,7 +131,7 @@ public class QProfiler2 {
 		root.setAttribute( "operatingSystem", System.getProperty("os.name") );
 		root.setAttribute("version", version);
 		sol.setFinishTime(DateUtils.getCurrentDateAsString());		
-		QprofilerXmlUtils.asXmlText(root, outputFile);
+		Qprofiler1XmlUtils.asXmlText(root, outputFile);
 		
 		//output tsv file if inputs are xml			
 		if ( ! noHtml ) {
@@ -222,9 +206,6 @@ public class QProfiler2 {
 		if (null != key) {
 			switch (key) {
 			case VCF: summarizer = new VcfSummarizer( cmdLineFormats );
-				break;
-			case FASTA:
-				summarizer = new FastaSummarizer(cmdLineInclude);
 				break;
 			case FASTQ:
 				if (noOfConsumerThreads > 0) {

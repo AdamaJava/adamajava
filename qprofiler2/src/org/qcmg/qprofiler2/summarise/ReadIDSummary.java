@@ -6,10 +6,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Function;
 
 import org.qcmg.common.util.TabTokenizer;
-import org.qcmg.qprofiler2.util.SummaryReportUtils;
 import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Element;
 
@@ -121,7 +119,7 @@ public class ReadIDSummary {
 		
 	public void toXml(Element element){
 		
-		element.setAttribute("readCount", inputNo.get()+"");
+		element.setAttribute(XmlUtils.count, inputNo.get()+"");
 		
 		// header breakdown
 		if(invalidId.size() > 0)

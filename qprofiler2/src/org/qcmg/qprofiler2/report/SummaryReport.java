@@ -18,7 +18,6 @@ import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.meta.QExec;
 import org.qcmg.common.model.ProfileType;
 import org.qcmg.common.util.FileUtils;
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 public abstract class SummaryReport {
