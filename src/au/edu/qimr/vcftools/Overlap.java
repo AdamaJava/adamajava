@@ -158,9 +158,8 @@ public class Overlap {
 		/*
 		 * add inputs to sb
 		 */
-		sb.append(Arrays.stream(vcfFiles).collect(Collectors.joining(" and ")));
-		if ( null != goldStandard) {
-			sb.append(" and ").append(goldStandard);
+		for (int j = 0 ; j < inputFiles.length ; j++) {
+			sb.append("file ").append(j+1).append(": ").append(inputFiles[j]).append(System.lineSeparator());
 		}
 		
 		Comparator<Entry<String,  List<ChrPositionRefAlt>>> comp =Comparator.comparingInt(e -> e.getValue().size());
@@ -175,17 +174,20 @@ public class Overlap {
 			double perc = 100.0 * size / totalVariants;
 			if (files.contains(Constants.TAB_STRING)) {
 				filesBeingCompared.append(files);
-				sb.append(". In both: ").append(size).append(" (").append(String.format("%.2f", perc)).append("%), average allele dist (file1): ").append(aveAlleleDists[0]).append(", average allele dist (file2): ").append(aveAlleleDists[1]).append(", ").append(ccmString);
+				sb.append("In both: ").append(size).append(" (").append(String.format("%.2f", perc)).append("%)").append(System.lineSeparator());
+				sb.append("average allele dist (file1): ").append(aveAlleleDists[0]).append(System.lineSeparator());
+				sb.append("average allele dist (file2): ").append(aveAlleleDists[1]).append(System.lineSeparator());
+				sb.append(ccmString).append('.');
 			} else {
 				int position = StringUtils.getPositionOfStringInArray(inputFiles, files, false);
 				if (position > -1) {
-					String sPos = "";
+					String sPos = "file " + (position + 1);
 //					if (position < 0) {
 //						if (files.equals(goldStandard)) {
 //							sPos = "gold standard";
 //						}
 //					} else {
-					sPos = "file " + (position + 1);
+//					sPos = "file " + (position + 1);
 //					}
 					int count = 0;
 					if (position > 0 && allFiles != null && allFiles.length > 0) {
@@ -197,8 +199,11 @@ public class Overlap {
 							e1.printStackTrace();
 						}
 					}
-					
-					sb.append(". In " + sPos + " only: ").append(size).append(" (").append(String.format("%.2f", perc)).append("%), (in all file: " + count).append("), average allele dist: ").append(aveAlleleDists[position]).append(", ").append(ccmString);
+					sb.append(System.lineSeparator()).append("In " + sPos + " only: ").append(size).append(" (").append(String.format("%.2f", perc)).append("%)");
+					sb.append(", in all file: ").append(count);
+					sb.append(", average allele dist: ").append(aveAlleleDists[position]);
+					sb.append(", " + ccmString).append(".");
+//					sb.append(" In " + sPos + " only: ").append(size).append(" (").append(String.format("%.2f", perc)).append("%), (in all file: " + count).append("), average allele dist: ").append(aveAlleleDists[position]).append(", ").append(ccmString).append('.');
 				}
 			}
 			logger.info("files: " + files + " have " +size + " positions (" +String.format("%.2f", perc)+"%)");
