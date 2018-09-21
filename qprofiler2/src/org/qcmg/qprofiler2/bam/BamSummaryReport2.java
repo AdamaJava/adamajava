@@ -171,17 +171,17 @@ public class BamSummaryReport2 extends SummaryReport {
 		
 		//create bamMertrics
 		bamReportElement = Qprofiler1XmlUtils.createSubElement( bamReportElement, "bamMetrics" );
-		createQNAME(Qprofiler1XmlUtils.createSubElement(bamReportElement, "QNAME")  );					
+		createQNAME( Qprofiler1XmlUtils.createSubElement(bamReportElement, "QNAME")  );					
 		XmlUtils.outputMap( Qprofiler1XmlUtils.createSubElement(bamReportElement, "FLAG"), "read number", "read counts distribution based on flag string", "flag", "flag string" , flagBinaryCount);		 
-		createRNAME(Qprofiler1XmlUtils.createSubElement(bamReportElement, "RNAME")  ); //it is same to RNEXT
-		createPOS(Qprofiler1XmlUtils.createSubElement(bamReportElement, "POS")  );	
-		createMAPQ(Qprofiler1XmlUtils.createSubElement(bamReportElement, "MAPQ"));	
-		createCigar(Qprofiler1XmlUtils.createSubElement(bamReportElement, "CIGAR") );
+		createRNAME( Qprofiler1XmlUtils.createSubElement(bamReportElement, "RNAME")  ); //it is same to RNEXT
+		createPOS( Qprofiler1XmlUtils.createSubElement(bamReportElement, "POS")  );	
+		createMAPQ( Qprofiler1XmlUtils.createSubElement(bamReportElement, "MAPQ"));	
+		createCigar( Qprofiler1XmlUtils.createSubElement(bamReportElement, "CIGAR") );
 		//PNEXT will be same to pos
-		createTLen(Qprofiler1XmlUtils.createSubElement(bamReportElement, "TLEN") );
-		createSeq(Qprofiler1XmlUtils.createSubElement(bamReportElement, "SEQ")  );
-		createQual(Qprofiler1XmlUtils.createSubElement(bamReportElement, "QUAL")  );
-		tagReport.toXml(Qprofiler1XmlUtils.createSubElement(bamReportElement, "TAG")); 
+		createTLen( Qprofiler1XmlUtils.createSubElement(bamReportElement, "TLEN") );
+		createSeq( Qprofiler1XmlUtils.createSubElement(bamReportElement, "SEQ")  );
+		createQual( Qprofiler1XmlUtils.createSubElement(bamReportElement, "QUAL")  );
+		tagReport.toXml( Qprofiler1XmlUtils.createSubElement(bamReportElement, "TAG")); 
 
 	}
 	
@@ -302,7 +302,7 @@ public class BamSummaryReport2 extends SummaryReport {
 				map.put(String.format("%d,%d", start, end),   entry.getValue().toString().replace("[", "").replace("]", "").replace(" ", "") );
 				}
 			XmlUtils.outputMatrix(parent, XmlUtils.joinByComma(readGroups), String.format("read depth on reference %s. Bin size is %d base pair", k,PositionSummary.BUCKET_SIZE ),					
-					"depthOn"+k, "[start,end] position on referene for each bin", "read counts per bin based on readgroup id",map);
+					"depthOn"+k, "bin:[start,end]", "read counts per bin based on readgroup id",map);
 			
 		});
 	}

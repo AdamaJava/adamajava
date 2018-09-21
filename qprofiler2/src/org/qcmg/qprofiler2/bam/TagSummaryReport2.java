@@ -14,7 +14,10 @@ import org.qcmg.qprofiler2.summarise.CycleSummary;
 import org.qcmg.qprofiler2.util.CycleSummaryUtils;
 import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Element;
+
+import htsjdk.samtools.BinaryTagCodec;
 import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SAMTag;
 import htsjdk.samtools.SAMRecord.SAMTagAndValue;
 import htsjdk.samtools.SAMTagUtil;
 
@@ -58,7 +61,7 @@ public class TagSummaryReport2 {
 	public void setTorrentBam(){   }
 	public void setInclMatrices(){  }
 	
-	public void parseTAGs(final SAMRecord record )  {
+	public void parseTAGs1(final SAMRecord record )  {
 		byte[] readBases = record.getReadBases();
 		boolean reverseStrand =record.getReadNegativeStrandFlag();		
 				
@@ -102,6 +105,54 @@ public class TagSummaryReport2 {
 				map.computeIfAbsent(tag.tag, k-> new AtomicLong()).incrementAndGet();					
 			}
 		}			
+	}
+	
+	public void parseTAGs(final SAMRecord record )  {
+				
+		//MD:Z:25 tomorrow test this case, tag.value.class == java.lang.String
+		//MD:i:25 tomorrow test this case, tag.value.class == java.lang.Integer
+		for( SAMTagAndValue tag : record.getAttributes()) {
+			if(tag.tag.equals("MD")) continue;
+			/*
+			 * the type may be one of A (character), B (generalarray), f (real number), H (hexadecimal array), i (integer), or Z (string).
+	           Note that H tag type is never written anymore, because B style is more compact.
+	          */
+			String type = ":B";			
+			if(tag.value instanceof Integer) type = ":i";
+			else if (tag.value instanceof Number ) type = ":f";
+			else if (tag.value instanceof String) type = ":Z";
+			else if (tag.value instanceof Character) type = ":A";
+
+			String key = tag.tag + type;
+			if(type.equals(":i")) {
+				additionalIntegerTags.computeIfAbsent(key, k-> new QCMGAtomicLongArray(100)).increment(record.getIntegerAttribute(tag.tag));					
+			}else {
+				Map<String, AtomicLong> map = additionalTags.computeIfAbsent(key, k-> new ConcurrentSkipListMap<String, AtomicLong>());
+				if(map.size() < additionTagMapLimit)
+					map.computeIfAbsent(tag.value+"", k-> new AtomicLong()).incrementAndGet();
+				else
+					map.computeIfAbsent("others", k-> new AtomicLong()).incrementAndGet();
+			} 			
+		}
+		
+				
+		//MD	 
+		String value = (String) record.getAttribute(MD);
+		if (null != value) {
+			byte[] readBases = record.getReadBases();
+			boolean reverseStrand =record.getReadNegativeStrandFlag();		
+
+			//0: unpaired , 1: firstOfPair , 2: secondOfPair				
+			int order = (!record.getReadPairedFlag())? 0: (record.getFirstOfPairFlag())? 1 : 2;					
+			String err = CycleSummaryUtils.tallyMDMismatches(value, record.getCigar(), tagMDMismatchByCycle[order], readBases, reverseStrand, mdRefAltLengthsForward[order], mdRefAltLengthsReverse[order]);
+			//limit err message on log file
+			if ( err != null && (( errMDReadNo ++) < errReadLimit)) logger.warn(record.getReadName() + ": " + err);
+			
+			//this counts will be used to caculate % for MD
+			for( int i = 1; i <= record.getReadLength(); i ++ )
+				allReadsLineLengths[order].increment(i);				
+		}
+		
 	}
 	
 	public void toXml(Element parent){
