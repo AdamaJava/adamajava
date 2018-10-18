@@ -332,7 +332,7 @@ public class Options {
             case vcf2maf: mess = Messages.getMessage("VCF2MAF_USAGE"); break;
             case hom: mess = Messages.getMessage("HOM_USAGE"); break;
 			case make_valid:	mess = Messages.getMessage("MAKE_VALID_USAGE"); break;
-			case overlap:	mess = Messages.getMessage("MAKE_PILEUP_USAGE"); break;
+			case overlap:	mess = Messages.getMessage("OVERLAP_USAGE"); break;
 			default:
 				break;
             } 
