@@ -15,7 +15,7 @@ import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.util.IndelUtils.SVTYPE;
-import org.qcmg.common.util.Qprofiler1XmlUtils;
+import org.qcmg.common.util.QprofilerXmlUtils;
 import org.qcmg.common.vcf.VcfFormatFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
@@ -121,7 +121,7 @@ public class SampleSummary {
 	}	 			
 		
 	public void toXML(Element parent, String formats, String values ){
-		Element reportE = Qprofiler1XmlUtils.createSubElement(parent, report);
+		Element reportE = QprofilerXmlUtils.createSubElement(parent, report);
 		if(formats != null) {
 			reportE.setAttribute("foramts", formats);
 			reportE.setAttribute("values", values);
@@ -133,9 +133,9 @@ public class SampleSummary {
 			AtomicLong totalAL = summary.get( type.name());
 			if( null == totalAL) continue;
 			
-			Element svtypeE = Qprofiler1XmlUtils.createSubElement(reportE,  variantType);
+			Element svtypeE = QprofilerXmlUtils.createSubElement(reportE,  variantType);
 			svtypeE.setAttribute("type", type.toVariantType() );
-			svtypeE.setAttribute( XmlUtils.count, totalAL.toString());
+			svtypeE.setAttribute( QprofilerXmlUtils.count, totalAL.toString());
 			String key =  type.name() + "dbSNP";
 			svtypeE.setAttribute("inDBSNP", summary .containsKey(key)? summary.get(key).get()+"" : "0" ); 
 						

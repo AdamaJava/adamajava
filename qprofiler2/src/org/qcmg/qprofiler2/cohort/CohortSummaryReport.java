@@ -8,10 +8,9 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.qcmg.common.util.IndelUtils.SVTYPE;
-import org.qcmg.common.util.Qprofiler1XmlUtils;
+import org.qcmg.common.util.QprofilerXmlUtils;
 import org.qcmg.qprofiler2.report.SummaryReport;
 import org.qcmg.qprofiler2.summarise.SampleSummary;
-import org.qcmg.qprofiler2.util.XmlUtils;
 import org.qcmg.qprofiler2.vcf.VcfSummaryReport;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -105,7 +104,7 @@ public class CohortSummaryReport extends SummaryReport {
 			
 			this.category = name; 
 			String titv = "-" ;
-			for(Element ele :Qprofiler1XmlUtils.getOffspringElementByTagName(report, SampleSummary.variantType)){
+			for(Element ele :QprofilerXmlUtils.getOffspringElementByTagName(report, SampleSummary.variantType)){
 				//record counts and dbsnp for all type variants
 				String type = ele.getAttribute("type");				
 				int db = Integer.parseInt( ele.getAttribute("inDBSNP"));
@@ -114,7 +113,7 @@ public class CohortSummaryReport extends SummaryReport {
 				dbSnpCounts.put(type, db);
 				if(type.equals(SVTYPE.SNP.toVariantType())){
 					//"Substitutions"
-					Element titvE =Qprofiler1XmlUtils.getChildElement(Qprofiler1XmlUtils.getChildElement(ele, SampleSummary.substitutions , 0),SVTYPE.SNP.name(), 0 );
+					Element titvE =QprofilerXmlUtils.getChildElement(QprofilerXmlUtils.getChildElement(ele, SampleSummary.substitutions , 0),SVTYPE.SNP.name(), 0 );
 					ti = Integer.parseInt( titvE.getAttribute(SampleSummary.transitions ));
 					tv = Integer.parseInt( titvE.getAttribute(SampleSummary.transversions ));
 					titv = titvE.getAttribute( SampleSummary.tiTvRatio );

@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicLongArray;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.qcmg.common.util.QprofilerXmlUtils;
 import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Element;
 
@@ -326,7 +327,7 @@ public class CycleSummary<T> {
 	{
 		//do nothing if no base detected
 		Set<T> possibles = getPossibleValues();
-		final String poss = XmlUtils.joinByComma(new ArrayList<T>(possibles)); //getPossibleValuesAsString();
+		final String poss = QprofilerXmlUtils.joinByComma(new ArrayList<T>(possibles)); //getPossibleValuesAsString();
 		if(poss == null || poss.length() <= 0) return; 
 		
 		Map<Integer, String> values = new HashMap<>();
@@ -335,10 +336,10 @@ public class CycleSummary<T> {
 			for(T t :  getPossibleValues()) 
 				counts.add(count(cycle, t));
 			if(counts.isEmpty()) continue;			
-			values.put(cycle, XmlUtils.joinByComma(counts));			 
+			values.put(cycle, QprofilerXmlUtils.joinByComma(counts));			 
 		}
-			
-		XmlUtils.outputMatrix( parent, poss, description, sourceName,inputDes, outputDes,values);
+		XmlUtils.outputCategory(parent, description, sourceName,inputDes, outputDes, values);	
+		//XmlUtils.outputMatrix( parent, poss, description, sourceName,inputDes, outputDes,values);
 	}
 	
 

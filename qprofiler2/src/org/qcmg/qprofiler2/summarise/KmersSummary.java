@@ -12,6 +12,7 @@ import org.qcmg.common.model.QCMGAtomicLongArray;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.BaseUtils;
 import org.qcmg.common.util.Constants;
+import org.qcmg.common.util.QprofilerXmlUtils;
 import org.qcmg.qprofiler2.bam.BamSummaryReport2;
 import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Element;
@@ -220,7 +221,7 @@ public class KmersSummary {
 			
 			//Element element = XmlUtils.createSubElement(merElement, "CycleTally" );			
 			Set<String> possibleMers = getPopularKmerString(16,  klength, false, pair) ;
-			String poss = XmlUtils.joinByComma(new ArrayList<String>( possibleMers));
+			String poss = QprofilerXmlUtils.joinByComma(new ArrayList<String>( possibleMers));
 			String desc = klength + "-mers sequence distribution";
 			
 			Map<Integer, String> values = new HashMap<>();			
@@ -229,11 +230,11 @@ public class KmersSummary {
 				for(String mer :  possibleMers)
 					counts.add(getCount( i,  mer, pair));
 				if(counts.isEmpty()) continue;
- 				values.put(i+1, XmlUtils.joinByComma(counts));			
+ 				values.put(i+1, QprofilerXmlUtils.joinByComma(counts));			
 			}	
  			
-			XmlUtils.outputMatrix( parent, poss, desc, BamSummaryReport2.sourceName[pair]+klength+"mers","kmers base cycle","counts per mer string start on specified base cycle", values);
- 			
+			//XmlUtils.outputMatrix( parent, poss, desc, BamSummaryReport2.sourceName[pair]+klength+"mers","kmers base cycle","counts per mer string start on specified base cycle", values);
+		//	XmlUtils.outputMatrix( parent, poss, desc, BamSummaryReport2.sourceName[pair]+klength+"mers","kmers base cycle", values); 
 		}				
 	}
 	

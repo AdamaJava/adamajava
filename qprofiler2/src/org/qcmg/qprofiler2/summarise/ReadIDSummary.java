@@ -7,6 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.qcmg.common.util.QprofilerXmlUtils;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Element;
@@ -119,7 +120,7 @@ public class ReadIDSummary {
 		
 	public void toXml(Element element){
 		
-		element.setAttribute(XmlUtils.count, inputNo.get()+"");
+		element.setAttribute(QprofilerXmlUtils.count, inputNo.get()+"");
 		
 		// header breakdown
 		if(invalidId.size() > 0)
@@ -245,7 +246,7 @@ public class ReadIDSummary {
 			index = key.indexOf("/");
 		}
 		if (index != -1) {
-			char c = key.charAt(index + 1);
+		//	char c = key.charAt(index + 1);
 			pairs.computeIfAbsent(key, k-> new AtomicLong()).incrementAndGet();
 		}
 	}

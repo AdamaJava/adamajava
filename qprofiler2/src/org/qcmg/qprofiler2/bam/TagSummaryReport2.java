@@ -9,15 +9,13 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.QCMGAtomicLongArray;
-import org.qcmg.common.util.Qprofiler1XmlUtils;
+import org.qcmg.common.util.QprofilerXmlUtils;
 import org.qcmg.qprofiler2.summarise.CycleSummary;
 import org.qcmg.qprofiler2.util.CycleSummaryUtils;
 import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Element;
 
-import htsjdk.samtools.BinaryTagCodec;
 import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SAMTag;
 import htsjdk.samtools.SAMRecord.SAMTagAndValue;
 import htsjdk.samtools.SAMTagUtil;
 
@@ -29,17 +27,7 @@ public class TagSummaryReport2 {
 
 	private final static SAMTagUtil STU = SAMTagUtil.getSingleton();
 	private final short MD = STU.MD;	
-//	private final short CS = STU.CS;
-//	private final short CQ = STU.CQ;
-//	private final short RG = STU.RG;
-//	private final short CM = STU.CM;
-//	private final short SM = STU.SM;
-//	private final short NH = STU.NH;
-//	private final short IH = STU.IH;
-//	// custom tags
-//	private final short ZM = STU.makeBinaryTag("ZM");
-//	private final short ZP = STU.makeBinaryTag("ZP");
-//	private final short ZF = STU.makeBinaryTag("ZF");
+
 	
 	// TAGS		
 	@SuppressWarnings("unchecked")
@@ -158,7 +146,7 @@ public class TagSummaryReport2 {
 	public void toXml(Element parent){
 				
 		//MD tag
-		Element childElement = Qprofiler1XmlUtils.createSubElement(parent, "subField");	//SEQ
+		Element childElement = QprofilerXmlUtils.createSubElement(parent, "subField");	//SEQ
 		childElement.setAttribute("Category", "TAG:MD");
 		
 		//mismatchbycycle
