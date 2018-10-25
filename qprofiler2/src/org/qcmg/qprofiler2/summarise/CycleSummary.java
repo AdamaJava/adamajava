@@ -9,10 +9,12 @@ package org.qcmg.qprofiler2.summarise;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.LinkedHashSet;
 import java.util.concurrent.ConcurrentHashMap;
@@ -27,6 +29,8 @@ import java.util.stream.Stream;
 import org.qcmg.common.util.QprofilerXmlUtils;
 import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Element;
+
+import com.amazonaws.jmespath.Comparator;
 
 
 /**
@@ -321,27 +325,23 @@ public class CycleSummary<T> {
 	 * 
 	 * @param parent Element that the current objects xml representation will be added to
 	 * @param elementName String representing the name to be used when creating the element
-	 */
-	
-	public void toXml( Element parent, String description, String sourceName, String inputDes, String outputDes )
+	 */	
+	public void toXml( Element parent,  String sourceName )
 	{
 		//do nothing if no base detected
 		Set<T> possibles = getPossibleValues();
-		final String poss = QprofilerXmlUtils.joinByComma(new ArrayList<T>(possibles)); //getPossibleValuesAsString();
-		if(poss == null || poss.length() <= 0) return; 
+		if( possibles == null || possibles.size() <= 0 ) return; 
 		
-		Map<Integer, String> values = new HashMap<>();
-		for (Integer cycle : cycles()) {
-			List<Long> counts = new ArrayList<Long>();
-			for(T t :  getPossibleValues()) 
-				counts.add(count(cycle, t));
-			if(counts.isEmpty()) continue;			
-			values.put(cycle, QprofilerXmlUtils.joinByComma(counts));			 
-		}
-		XmlUtils.outputCategory(parent, description, sourceName,inputDes, outputDes, values);	
-		//XmlUtils.outputMatrix( parent, poss, description, sourceName,inputDes, outputDes,values);
-	}
-	
+		Element ele = XmlUtils.createMetricsNode(parent, sourceName , null,null );	
+		
+		for(T t :  getPossibleValues()) {
+			Map<Integer, AtomicLong> tallys = new LinkedHashMap<>();
+			for (Integer cycle : cycles())
+				//System.out.println("cycle: " + cycle);
+				tallys.put( cycle,new AtomicLong(count(cycle, t)));			
+			XmlUtils.outputCategoryTallys( ele, String.valueOf(t), tallys, false );	
+		}		
+	}	
 
 	//xu totalSize should be seprate to first and second of pair		
 	public Map<Integer, AtomicLong> getLengthMapFromCycle() {
@@ -350,6 +350,7 @@ public class CycleSummary<T> {
 		long previousTally = -1;	
 		Integer last = 0;
 		for (Integer cycle : cycles()) {
+		
  			long sum = 0;
 			for(T t :  getPossibleValues()) 				
 				  sum += count(cycle, t) ;	

@@ -7,7 +7,7 @@ import org.qcmg.common.model.QCMGAtomicLongArray;
 import org.qcmg.common.util.Pair;
 import org.qcmg.common.util.QprofilerXmlUtils;
 import org.qcmg.picard.util.PairedRecordUtils;
-
+import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -326,18 +326,21 @@ public class ReadGroupSummary {
 	
 	//public void toXml(Element rgClipElement, Element summaryElement) {
 	public void readSummary2Xml(Element parent ) { 	 		
+		
+		
+		//add to xml RG_Counts
+		Element rgElement = parent; //for overall
+		if(! readGroupId.equals(QprofilerXmlUtils.All_READGROUP ))
+			rgElement = XmlUtils.createMetricsNode(parent, readGroupId, inputReadCounts.get(), null);
+					
+
+		rgElement.setAttribute( QprofilerXmlUtils.count, inputReadCounts.get() + "" );
+			//add discarded read Stats to readgroup summary		
+			Element ele = XmlUtils.createCategoryNode(rgElement, QprofilerXmlUtils.filteredReads );
+			XmlUtils.outputValueNode(ele, "supplementaryAlignmentCount", (Long)supplementary.get());
+			XmlUtils.outputValueNode(ele, "secondaryAlignmentCount", secondary.get());
+			XmlUtils.outputValueNode(ele, "failedVendorQualityCount",failedVendorQuality.get()  );
 						
-			//add to xml RG_Counts
-			Element rgElement = QprofilerXmlUtils.createSubElement( parent, "reads" );
-			rgElement.setAttribute(QprofilerXmlUtils.readGroup, readGroupId);	
-			rgElement.setAttribute(QprofilerXmlUtils.count, inputReadCounts.get() + "");
-						
-			//add discarded read Stats to readgroup summary			
-			Element stats = QprofilerXmlUtils.createSubElement( rgElement, QprofilerXmlUtils.filteredReads );	
-			stats.setAttribute( "supplementaryAlignmentCount", supplementary.get()+"" );
-			stats.setAttribute( "secondaryAlignmentCount", secondary.get()+"" );
-			stats.setAttribute( "failedVendorQualityCount", secondary.get()+"" );			
-			
 			long noOfRecords = getCountedReads( );
 			double lostPercentage = 0; 
 			//add discarded reads
@@ -349,10 +352,12 @@ public class ReadGroupSummary {
 			int  maxReadLength = getMaxReadLength();
 			if(! readGroupId.equals(QprofilerXmlUtils.All_READGROUP )){
 				setMaxBases( noOfRecords * maxReadLength );
-				lostPercentage += addCountedReadStats(rgElement, "trimmedBase", parseTrim(readLength, maxReadLength), maxBases);				
+				lostPercentage += addCountedReadStats( rgElement, "trimmedBase", parseTrim(readLength, maxReadLength), maxBases);				
 			}else{
 				double percentage = 100 * (double) getTrimedBases() / getMaxBases() ;
-				QprofilerXmlUtils.createSubElement(rgElement, "trimmedBase").setAttribute(QprofilerXmlUtils.basePercent, String.format("%2.2f", percentage ));
+				ele =  XmlUtils.createCategoryNode(rgElement, "trimmedBase");							
+				XmlUtils.outputValueNode(ele, QprofilerXmlUtils.basePercent,   percentage  );
+				
 				lostPercentage += percentage;	
 			}
 						
@@ -361,9 +366,9 @@ public class ReadGroupSummary {
 			lostPercentage += addCountedReadStats( rgElement, node_overlap, overlapBase, maxBases );
 			
 			//add overall information to current readgroup element
-			rgElement.setAttribute("maxLength", maxReadLength + "" );
-			rgElement.setAttribute("averageLength", getAveReadLength() + "" );
-			rgElement.setAttribute("lostBasesPercent", String.format("%2.2f", lostPercentage) );
+			XmlUtils.outputValueNode(rgElement, "maxLength", maxReadLength  );
+			XmlUtils.outputValueNode(rgElement, "averageLength", getAveReadLength()  );
+			XmlUtils.outputValueNode(rgElement, "lostBasesPercent",  String.format("%.2f", lostPercentage ) );
 								
 	}	
 	
@@ -435,19 +440,16 @@ public class ReadGroupSummary {
 	}
 
 	private double addDiscardReadStats(Element parent, String nodeName, AtomicLong counts, long totalReads ){
-			//add to RG_count section
-			Element stats = QprofilerXmlUtils.createSubElement(parent, nodeName);	
-			stats.setAttribute("readCount", String.format("%d",counts.get()));
-						 	
-			//duplicats, non canonical and unmapped will be counted, others reads just discards
-			float percentage = 100 * (float) counts.get() / totalReads ;						
-			stats.setAttribute("basePercent",  String.format("%2.2f", percentage   ));		
+		Element ele = XmlUtils.createCategoryNode(parent, nodeName);		
+		
+		XmlUtils.outputValueNode(ele, "readCount", counts.get());	
+		float percentage = 100 * (float) counts.get() / totalReads ;
+		XmlUtils.outputValueNode(ele, "basePercent",  percentage);
+		
+		return percentage; 			 	 
+	}		
 			
-			return percentage; 
-			 	 
-		}		
-			
-	private double addCountedReadStats(Element rgElement, String nodeName, QCMGAtomicLongArray array, long maxBases ){
+	private double addCountedReadStats(Element parent, String nodeName, QCMGAtomicLongArray array, long maxBases ){
 		
 		//get the position of median
 		long bases = 0,counts = 0;
@@ -457,18 +459,14 @@ public class ReadGroupSummary {
 			bases += i * array.get(i);
 		}
 		
-		int mean = (counts == 0) ? 0: (int) (bases / counts);
-		
+		int mean = (counts == 0) ? 0: (int) (bases / counts);		
 		long medium = 0;
-		for (int i = 0 ; i < arrayLength ; i++) {
-			if((medium += array.get(i)) >= counts/2  ){
-				medium = i; 
-				break; 
-			}
-		}
-		int min = 0, max = 0, mode = 0; 
+		for (int i = 0 ; i < arrayLength ; i++) 
+			if(( medium += array.get(i)) >= counts/2 ){ medium = i;  break; }
+		
+		int min = 0, max = 0, mode = 0;
 		long highest = 0;
-		for (int i = 1 ; i < arrayLength ; i++) {
+		for (int i = 1 ; i < arrayLength ; i++){
 			if(array.get(i) > 0){
 				//last non-zero position
 				max = i;					
@@ -481,19 +479,19 @@ public class ReadGroupSummary {
 				}  
 			}
 		}
-							
-		Element stats = QprofilerXmlUtils.createSubElement(rgElement, nodeName);		
-		stats.setAttribute( "min", min+"");
-		stats.setAttribute( "max", max +"");
-		stats.setAttribute("mean",mean+"");
-		stats.setAttribute( "mode", mode+"") ;
-		stats.setAttribute( "median", medium+"" );	
-		stats.setAttribute("readCount",counts+"");				
-
-		//deal with boundary value, missing reads
-		double percentage = (maxBases == 0)? 0: 100 * (double) bases /  maxBases ;		
-		stats.setAttribute(QprofilerXmlUtils.basePercent,  String.format("%2.2f", percentage    ));		
 		
+		Element ele = XmlUtils.createCategoryNode(parent, nodeName);	
+		XmlUtils.outputValueNode(ele, "min", min);
+		XmlUtils.outputValueNode(ele, "max", max);
+		XmlUtils.outputValueNode(ele, "mean",mean);
+		XmlUtils.outputValueNode(ele, "mode", mode);	
+		XmlUtils.outputValueNode(ele, "median", medium);
+		XmlUtils.outputValueNode(ele, "readCount",counts);
+		
+		//deal with boundary value, missing reads
+		double percentage = (maxBases == 0)? 0: 100 * (double) bases /  maxBases ;				
+		XmlUtils.outputValueNode(ele, QprofilerXmlUtils.basePercent,  String.format("%2.2f", percentage ));	
+									
 		return percentage; 
 	}
 	

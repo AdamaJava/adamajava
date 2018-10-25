@@ -3,6 +3,7 @@ package org.qcmg.qprofiler2.summarise;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -120,19 +121,33 @@ public class ReadIDSummary {
 		
 	public void toXml(Element element){
 		
-		element.setAttribute(QprofilerXmlUtils.count, inputNo.get()+"");
+		// header breakdown		
+		outputReadName( element, "InValidReadName", invalidId );
+		outputReadName( element, "INSTRUMENTS",  instruments );
+		outputReadName( element, "RUN_IDS",  runIds );
+		outputReadName( element, "FLOW_CELL_IDS",  flowCellIds );
+		outputReadName( element, "FLOW_CELL_LANES", flowCellLanes );
+		outputReadName( element, "TILE_NUMBERS", tileNumbers );
+		outputReadName( element, "PAIR_INFO",  pairs );
+		outputReadName( element, "FILTER_INFO",  getFiltered() );
+		outputReadName( element, "INDEXES",  indexes );		
+	}
+	
+	private void outputReadName(Element parent, String type,Map<String, AtomicLong> map) {
 		
-		// header breakdown
-		if(invalidId.size() > 0)
-			XmlUtils.outputReadName( element, "InValidReadName", invalidId );
-		XmlUtils.outputReadName( element, "INSTRUMENTS",  instruments );
-		XmlUtils.outputReadName( element, "RUN_IDS",  runIds );
-		XmlUtils.outputReadName( element, "FLOW_CELL_IDS",  flowCellIds );
-		XmlUtils.outputReadName( element, "FLOW_CELL_LANES", flowCellLanes );
-		XmlUtils.outputReadName( element, "TILE_NUMBERS", tileNumbers );
-		XmlUtils.outputReadName( element, "PAIR_INFO",  pairs );
-		XmlUtils.outputReadName( element, "FILTER_INFO",  getFiltered() );
-		XmlUtils.outputReadName( element, "INDEXES",  indexes );		
+		XmlUtils.outputCategoryTallys(parent, type, map, false);
+		
+//        if (null == map  ||  map.isEmpty())  return;
+//        long total = 0;
+//        for (AtomicLong ml : map.values())  total += ml.get();
+//        if(total == 0) return;
+//        
+//  
+//        Element ele = XmlUtils.createCategoryNode(parent, type);
+//        for(Entry<String, AtomicLong> entry : map.entrySet()) 
+//        	XmlUtils.outputTallyNode(ele, entry.getKey(), entry.getValue().get(), (100.00 * entry.getValue().get() / total));
+       			
+            			
 	}
 		
 	public ConcurrentMap<String, AtomicLong> getInstrumentsMap(){ return instruments;	}	

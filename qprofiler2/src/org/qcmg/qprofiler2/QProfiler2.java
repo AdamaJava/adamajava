@@ -124,12 +124,23 @@ public class QProfiler2 {
 		if (exitStatus == 1) return exitStatus;
 		logger.info("generating output xml file: " + outputFile);
 		
+		
+		//xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  xsi:noNamespaceSchemaLocation="combined1.xsd" >
+		
+		
 		//xml reorganise
 		root.setAttribute("startTime", sol.getStartTime());
 		root.setAttribute("finishTime", sol.getFinishTime());
 		root.setAttribute("user", System.getProperty("user.name"));
 		root.setAttribute( "operatingSystem", System.getProperty("os.name") );
 		root.setAttribute("version", version);
+		
+		//debug
+		//set attribute for xsd file
+		root.setAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
+		root.setAttribute("xsi:noNamespaceSchemaLocation", "combined1.xsd");
+		
+		
 		sol.setFinishTime(DateUtils.getCurrentDateAsString());		
 		QprofilerXmlUtils.asXmlText(root, outputFile);
 		
