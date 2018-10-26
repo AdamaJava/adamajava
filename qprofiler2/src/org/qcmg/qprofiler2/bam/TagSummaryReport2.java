@@ -5,11 +5,11 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.QCMGAtomicLongArray;
-import org.qcmg.common.util.QprofilerXmlUtils;
 import org.qcmg.qprofiler2.summarise.CycleSummary;
 import org.qcmg.qprofiler2.util.CycleSummaryUtils;
 import org.qcmg.qprofiler2.util.XmlUtils;
@@ -49,56 +49,8 @@ public class TagSummaryReport2 {
 	public void setTorrentBam(){   }
 	public void setInclMatrices(){  }
 	
-	public void parseTAGs1(final SAMRecord record )  {
-		byte[] readBases = record.getReadBases();
-		boolean reverseStrand =record.getReadNegativeStrandFlag();		
-				
-		//MD	 
-		String value = (String) record.getAttribute(MD);
-		if (null != value) {
-			//0: unpaired , 1: firstOfPair , 2: secondOfPair				
-			int order = (!record.getReadPairedFlag())? 0: (record.getFirstOfPairFlag())? 1 : 2;					
-			String err = CycleSummaryUtils.tallyMDMismatches(value, record.getCigar(), tagMDMismatchByCycle[order], readBases, reverseStrand, mdRefAltLengthsForward[order], mdRefAltLengthsReverse[order]);
-			//limit err message on log file
-			if ( err != null && (( errMDReadNo ++) < errReadLimit)) logger.warn(record.getReadName() + ": " + err);
-			
-			//this counts will be used to caculate % for MD
-			for( int i = 1; i <= record.getReadLength(); i ++ )
-				allReadsLineLengths[order].increment(i);
-				
-		}
-		
-		// additionalTags	 
-		for( SAMTagAndValue tag : record.getAttributes()) {
-			if(tag.tag.equals("MD")) continue;
-			try {
-				if( record.getAttribute(tag.tag) instanceof Integer ) 
-					additionalIntegerTags.computeIfAbsent(tag.tag, k-> new QCMGAtomicLongArray(100))
-					.increment(record.getIntegerAttribute(tag.tag));
-				else if(record.getAttribute(tag.tag) instanceof Character ) { 
-					Map<Character, AtomicLong> map = additionalCharacterTags.computeIfAbsent(tag.tag, k-> new ConcurrentSkipListMap<Character, AtomicLong>());	
-					if(map.size() < additionTagMapLimit)
-						map.computeIfAbsent(record.getCharacterAttribute(tag.tag), k-> new AtomicLong()).incrementAndGet();
-					else
-						map.computeIfAbsent((char)-128, k-> new AtomicLong()).incrementAndGet();
-				}else if(record.getAttribute(tag.tag) instanceof String) {					
-					Map<String, AtomicLong> map = additionalTags.computeIfAbsent(tag.tag, k-> new ConcurrentSkipListMap<String, AtomicLong>());
-					if(map.size() < additionTagMapLimit)
-						map.computeIfAbsent(record.getStringAttribute(tag.tag), k-> new AtomicLong()).incrementAndGet();
-					else
-						map.computeIfAbsent("others", k-> new AtomicLong()).incrementAndGet();
-				}
-			}catch(Exception e) {
-				Map<String, AtomicLong> map = additionalTags.computeIfAbsent("Others", k-> new ConcurrentSkipListMap<String, AtomicLong>());
-				map.computeIfAbsent(tag.tag, k-> new AtomicLong()).incrementAndGet();					
-			}
-		}			
-	}
-	
 	public void parseTAGs(final SAMRecord record )  {
 				
-		//MD:Z:25 tomorrow test this case, tag.value.class == java.lang.String
-		//MD:i:25 tomorrow test this case, tag.value.class == java.lang.Integer
 		for( SAMTagAndValue tag : record.getAttributes()) {
 			if(tag.tag.equals("MD")) continue;
 			/*
@@ -122,8 +74,7 @@ public class TagSummaryReport2 {
 					map.computeIfAbsent("others", k-> new AtomicLong()).incrementAndGet();
 			} 			
 		}
-		
-				
+						
 		//MD	 
 		String value = (String) record.getAttribute(MD);
 		if (null != value) {
@@ -144,40 +95,61 @@ public class TagSummaryReport2 {
 	}
 	
 	public void toXml(Element parent){
-				
-		//MD tag
-		Element childElement = QprofilerXmlUtils.createSubElement(parent, "subField");	//SEQ
-		childElement.setAttribute("Category", "TAG:MD");
-		
+						
 		//mismatchbycycle
 		for(int order = 0; order < 3; order ++) 
-			tagMDMismatchByCycle[order].toXml(childElement, "mismatch distribution per base cycle",
-					BamSummaryReport2.sourceName[order],"read base cycle", "mismatch base counts for listed base type on each cycle");
-			
-		for(int order = 0; order < 3; order ++) {	
-			for(String strand : new String[]{"MutationForward", "MutationReverse"}){				
-				Map<String, AtomicLong> mdRefAltLengthsString = new HashMap<String, AtomicLong>();
+			tagMDMismatchByCycle[order].toXml( parent, "tags:MD_"+BamSummaryReport2.sourceName[order], null, "baseCycle" );
+		
+
+		for(String strand : new String[]{"MutationOnForwardReads", "MutationOnReverseReads"}){	
+			Element ele = XmlUtils.createMetricsNode(parent, "tags:MD_"+strand, null, null);				
+			for(int order = 0; order < 3; order ++) {				
+				Map<String, AtomicLong> mdRefAltLengthsString = new HashMap<>();
 				QCMGAtomicLongArray mdRefAltLengths = (strand.equals("MutationForward"))? mdRefAltLengthsForward[order] : mdRefAltLengthsReverse[order];				
 				for (int m = 0 ; m < mdRefAltLengths.length() ; m++) {
 					long l = mdRefAltLengths.get(m);
 					if (l <= 0)  continue;
 					mdRefAltLengthsString.put(CycleSummaryUtils.getStringFromInt(m), new AtomicLong(l));					 
-				}
-				XmlUtils.outputMap(childElement, "base counts", String.format("%s base distribution per mutation value on %s", strand, BamSummaryReport2.sourceName[order]), 
-						strand+BamSummaryReport2.sourceName[order], "mutation value", mdRefAltLengthsString);
+				}				
+				XmlUtils.outputCategoryTallys(ele, "mutation", BamSummaryReport2.sourceName[order], mdRefAltLengthsString, true);				
 			}		
-		}
+		}		
+		
 		// additional tags includes RG
-		for (Entry<String,  ConcurrentSkipListMap<String, AtomicLong>> entry : additionalTags.entrySet()) {
-			XmlUtils.outputMap(parent,"read counts","read distribution",  "tags:" + entry.getKey(), "tag value",entry.getValue());
-		}
+		for (Entry<String,  ConcurrentSkipListMap<String, AtomicLong>> entry : additionalTags.entrySet())	
+			outputTag(parent, "tags:" + entry.getKey(),  entry.getValue());
+		
 		// additional tagsInt
-		for (Entry<String,  QCMGAtomicLongArray> entry : additionalIntegerTags.entrySet()) {
-			XmlUtils.outputMap(parent,"counts","read distribution",  "tagInt:" + entry.getKey(),"tag value", entry.getValue());
-		}
+		for (Entry<String,  QCMGAtomicLongArray> entry : additionalIntegerTags.entrySet())
+			outputTag(parent, "tags:" + entry.getKey(),  entry.getValue().toMap());
+		
 		// additional tagsChar
-		for (Entry<String,  ConcurrentSkipListMap<Character, AtomicLong>> entry : additionalCharacterTags.entrySet()) {
-			XmlUtils.outputMap(parent,"counts","read distribution",  "tagChar:" + entry.getKey(),"tag value", entry.getValue());
-		}			
+		for (Entry<String,  ConcurrentSkipListMap<Character, AtomicLong>> entry : additionalCharacterTags.entrySet())
+			outputTag(parent, "tags:" + entry.getKey(),  entry.getValue());
+		
+//		{			
+//			Element ele = XmlUtils.createMetricsNode(parent, "tags:" + entry.getKey(), entry.getValue().size(), "maximum output tally number is 100 if the total counts is greater than 100.");	
+//			int no = 0;
+//			entry.getValue().entrySet().removeIf( e-> (no++) > 100); 			
+//			XmlUtils.outputCategoryTallys(ele, "tagValue", null, entry.getValue(), true);
+//			XmlUtils.outputMap(parent,"read counts","read distribution",  "tags:" + entry.getKey(), "tag value",entry.getValue());
+//		}
+//		// additional tagsChar
+//		for (Entry<String,  ConcurrentSkipListMap<Character, AtomicLong>> entry : additionalCharacterTags.entrySet()) {
+//			Map<Character, AtomicLong> tallys = entry.getValue();
+//			Element ele = XmlUtils.createMetricsNode(parent, "tags:" + entry.getKey(),tallys.size(), "maximum output tally number is 100 if the total counts is greater than 100.");	
+//			XmlUtils.outputMap(parent,"counts","read distribution",  "tagChar:" + entry.getKey(),"tag value", entry.getValue());
+//		}	
+		
+	}
+	
+	private <T> void outputTag(Element ele, String metricName,  Map<T, AtomicLong> tallys) {
+		int size = tallys.size();
+		String comment = ( size < 100)? null : "here only only list top 100 tag values";		
+		ele = XmlUtils.createMetricsNode(ele, metricName, size, comment);	
+		AtomicInteger no = new AtomicInteger();		
+		tallys.entrySet().removeIf( e-> no.incrementAndGet() > 100 );
+		boolean percent = (size >= 100)? false : true;
+		XmlUtils.outputCategoryTallys(ele, "tagValue", null, tallys, percent);		
 	}
 }

@@ -145,7 +145,7 @@ public class SampleSummary {
 				if(gtv != null) gtvalues.put(gt, gtv);				
 			}
 
-			XmlUtils.outputMap(svtypeE, "variant counts", "genotype distribution based on Format column GT field value", "genotype4"+type.toVariantType(), "genotyp(GT field)", gtvalues);
+//			XmlUtils.outputMap(svtypeE, "variant counts", "genotype distribution based on Format column GT field value", "genotype4"+type.toVariantType(), "genotyp(GT field)", gtvalues);
 
 			QCMGAtomicLongArray array = summaryAD.get(type.name());
 			if(array != null) {
@@ -158,7 +158,7 @@ public class SampleSummary {
 					altFreq.put(bin, new AtomicLong(count) );
 				}		
 							
-				XmlUtils.outputMap(svtypeE, "variant counts", "variant distribution based on allele frequency value", "altFreq4"+type.toVariantType(), "variantAltFrequency rate range", altFreq);
+//				XmlUtils.outputMap(svtypeE, "variant counts", "variant distribution based on allele frequency value", "altFreq4"+type.toVariantType(), "variantAltFrequency rate range", altFreq);
 			}  
 			
 			//titv
@@ -170,8 +170,8 @@ public class SampleSummary {
 						tiFreq.put(tran.toString(), summary.get(type.name()+tran.name()));
 					else if( tran.isTransversion() &&  summary.get(type.name()+tran.name()) != null)  					 
 						tvFreq.put(tran.toString(), summary.get(type.name()+tran.name()));			
-				XmlUtils.outputMap(svtypeE, "variant counts", "SNP transtion substitution distribution", "transtion" , "substitution change", tiFreq);
-				XmlUtils.outputMap(svtypeE, "variant counts", "SNP transversion substitution distribution", "transversion" , "substitution change", tvFreq);
+//				XmlUtils.outputMap(svtypeE, "variant counts", "SNP transtion substitution distribution", "transtion" , "substitution change", tiFreq);
+//				XmlUtils.outputMap(svtypeE, "variant counts", "SNP transversion substitution distribution", "transversion" , "substitution change", tvFreq);
 			}			
 		
 

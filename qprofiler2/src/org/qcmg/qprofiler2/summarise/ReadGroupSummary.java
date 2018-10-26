@@ -128,12 +128,14 @@ public class ReadGroupSummary {
 		 */
 		
 		void toXml(Element parent  ){
-			Element stats = QprofilerXmlUtils.createSubElement(parent, name);			
-			stats.setAttribute("overlapping", overlap.get()+"");		 
-			stats.setAttribute("tlenUnder1500", near.get()+"");		 
-			stats.setAttribute("tlenOver10000", bigTlen.get() +"");
-			stats.setAttribute("tlenBetween1500And10000",far.get()+"");
-			stats.setAttribute("count", recordSum.get() + "");
+			
+			Element stats = XmlUtils.createCategoryNode(parent, name);
+			XmlUtils.outputValueNode(stats, "overlapping", overlap.get());
+			XmlUtils.outputValueNode(stats, "tlenUnder1500", near.get()+"");		 
+			XmlUtils.outputValueNode(stats, "tlenOver10000", bigTlen.get() +"");
+			XmlUtils.outputValueNode(stats, "tlenBetween1500And10000",far.get()+"");
+			XmlUtils.outputValueNode(stats, "totalCount", recordSum.get() + "");
+			
 		}
 		
 	}
@@ -213,8 +215,7 @@ public class ReadGroupSummary {
 			if(tLen < middleTlenValue) isize.increment(tLen);
 
 			//record region
-			if(tLen > bigTlenValue )  tLen = bigTlenValue;		
-			
+			if(tLen > bigTlenValue )  tLen = bigTlenValue;					
 			isizeRange.increment( (tLen/rangeGap));
 		}
 		
@@ -326,14 +327,12 @@ public class ReadGroupSummary {
 	
 	//public void toXml(Element rgClipElement, Element summaryElement) {
 	public void readSummary2Xml(Element parent ) { 	 		
-		
-		
+				
 		//add to xml RG_Counts
 		Element rgElement = parent; //for overall
 		if(! readGroupId.equals(QprofilerXmlUtils.All_READGROUP ))
-			rgElement = XmlUtils.createMetricsNode(parent, readGroupId, inputReadCounts.get(), null);
+			rgElement = XmlUtils.createMetricsNode(parent, readGroupId, "reads", inputReadCounts.get(), null);
 					
-
 		rgElement.setAttribute( QprofilerXmlUtils.count, inputReadCounts.get() + "" );
 			//add discarded read Stats to readgroup summary		
 			Element ele = XmlUtils.createCategoryNode(rgElement, QprofilerXmlUtils.filteredReads );
@@ -373,30 +372,24 @@ public class ReadGroupSummary {
 	}	
 	
 	 	 
-	public void pairSummary2Xml(Element parent) { 	 
-		//add paring information
-		//<readGroup pairCount="148242192" id="1bf380d4-8b0f-483c-bc84-fad5f8f2bf1c">
-		Element pairElement = QprofilerXmlUtils.createSubElement(parent, "pairs");
-		pairElement.setAttribute("readGroupId", readGroupId);	
-		pairElement.setAttribute("pairCount", pairNum.get()+"");	
-		
-		// <mateUnmappedPair count="1743093" pairNumber_flag_p="0"/>	 	
-		Element stats = QprofilerXmlUtils.createSubElement(pairElement, "mateUnmappedPair");
-		stats.setAttribute(QprofilerXmlUtils.count, mateUnmapped.get() + "");
-		
-		// <mateDifferentReferencePair count="3318739" pairNumber_flag_p="0"/>
-		stats = QprofilerXmlUtils.createSubElement(pairElement, "mateDifferentReferencePair");
-		stats.setAttribute(QprofilerXmlUtils.count, diffRef.get() + "");
+	public void pairSummary2Xml(Element parent) { 
+		//add to xml RG_Counts
+		Element ele = parent;
+		if(! readGroupId.equals(QprofilerXmlUtils.All_READGROUP ))
+			ele = XmlUtils.createMetricsNode(parent, readGroupId, "pairs", pairNum.get(), null);
 
-		f5f3.toXml( pairElement );
-		f3f5.toXml( pairElement );
-		inward.toXml( pairElement );
-		outward.toXml( pairElement );
-		
+		XmlUtils.outputValueNode(ele, "mateUnmappedPair", mateUnmapped.get() );
+		XmlUtils.outputValueNode(ele, "mateDifferentReferencePair", diffRef.get() );
+
 		Pair<Integer, String> isize = getIsizeStats();
-		stats = QprofilerXmlUtils.createSubElement(pairElement, "tlen");
-		stats.setAttribute( modal_isize, isize.getLeft() + "" );
-		stats.setAttribute("stdDev", isize.getRight());
+		Element ele1 = XmlUtils.createCategoryNode(ele, "tlen");	
+		XmlUtils.outputValueNode(ele1, modal_isize, isize.getLeft());
+		XmlUtils.outputValueNode(ele1, "stdDev", isize.getRight());
+
+		f5f3.toXml( ele );
+		f3f5.toXml( ele );
+		inward.toXml( ele );
+		outward.toXml( ele );	
 		
 	}
 	

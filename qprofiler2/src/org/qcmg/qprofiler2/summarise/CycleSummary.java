@@ -326,20 +326,20 @@ public class CycleSummary<T> {
 	 * @param parent Element that the current objects xml representation will be added to
 	 * @param elementName String representing the name to be used when creating the element
 	 */	
-	public void toXml( Element parent,  String sourceName )
+	public void toXml( Element parent,  String sourceName, String des, String cateName )
 	{
 		//do nothing if no base detected
 		Set<T> possibles = getPossibleValues();
 		if( possibles == null || possibles.size() <= 0 ) return; 
 		
-		Element ele = XmlUtils.createMetricsNode(parent, sourceName , null,null );	
+		Element ele = XmlUtils.createMetricsNode(parent, sourceName , null,des );	
 		
 		for(T t :  getPossibleValues()) {
 			Map<Integer, AtomicLong> tallys = new LinkedHashMap<>();
 			for (Integer cycle : cycles())
 				//System.out.println("cycle: " + cycle);
 				tallys.put( cycle,new AtomicLong(count(cycle, t)));			
-			XmlUtils.outputCategoryTallys( ele, String.valueOf(t), tallys, false );	
+			XmlUtils.outputCategoryTallys( ele, cateName, String.valueOf(t), tallys, false );	
 		}		
 	}	
 

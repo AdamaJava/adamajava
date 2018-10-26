@@ -209,13 +209,29 @@ public class KmersSummary {
 				for(int s = 0; s < 3; s++)
 					tally[s].increment(pos, sum[s]);
 			}
-		}		
-		
+		}				
 	}
 	
 	public void toXml( Element parent, int klength ) { 
-					
+		
+		for(int pair = 0; pair < 3; pair ++){
+			if (parsedCount[pair].get() <= 0 ) continue; 
+			String name = BamSummaryReport2.sourceName[pair] + "_" + klength+"mers"; 
+			Element ele = XmlUtils.createMetricsNode(parent, name, parsedCount[pair].get(), "counts per mer string start on specified base cycle");
+			//Element element = XmlUtils.createSubElement( merElement, "CycleTally" );			
+			for(String mer :  getPopularKmerString(16,  klength, false, pair)) {
+				Map<Integer, AtomicLong> map = new HashMap<>();
+				for( int i = 0; i < cycleNo; i++ ){				
+					long c = getCount( i,  mer, pair);
+					if( c > 0 )
+						map.put(i, new AtomicLong(c));					
+				}
+				XmlUtils.outputCategoryTallys( ele, "baseCycle", mer, map, false );	
+			}				
+		}
+		
 
+//old 
 		for(int pair = 0; pair < 3; pair ++){
 			if (parsedCount[pair].get() <= 0 ) continue; 
 			

@@ -122,33 +122,17 @@ public class ReadIDSummary {
 	public void toXml(Element element){
 		
 		// header breakdown		
-		outputReadName( element, "InValidReadName", invalidId );
-		outputReadName( element, "INSTRUMENTS",  instruments );
-		outputReadName( element, "RUN_IDS",  runIds );
-		outputReadName( element, "FLOW_CELL_IDS",  flowCellIds );
-		outputReadName( element, "FLOW_CELL_LANES", flowCellLanes );
-		outputReadName( element, "TILE_NUMBERS", tileNumbers );
-		outputReadName( element, "PAIR_INFO",  pairs );
-		outputReadName( element, "FILTER_INFO",  getFiltered() );
-		outputReadName( element, "INDEXES",  indexes );		
+		XmlUtils.outputCategoryTallys( element, "InValidReadName", null, invalidId, false );
+		XmlUtils.outputCategoryTallys( element,  "INSTRUMENTS",  null,instruments , false );
+		XmlUtils.outputCategoryTallys( element,  "RUN_IDS",  null,runIds , false );
+		XmlUtils.outputCategoryTallys( element,  "FLOW_CELL_IDS", null, flowCellIds , false );
+		XmlUtils.outputCategoryTallys( element,  "FLOW_CELL_LANES", null,flowCellLanes , false );
+		XmlUtils.outputCategoryTallys( element,  "TILE_NUMBERS",null, tileNumbers , false );
+		XmlUtils.outputCategoryTallys( element,  "PAIR_INFO",  null,pairs, false );
+		XmlUtils.outputCategoryTallys( element,  "FILTER_INFO", null, getFiltered() , false );
+		XmlUtils.outputCategoryTallys( element,  "INDEXES",  null,indexes , false );		
 	}
 	
-	private void outputReadName(Element parent, String type,Map<String, AtomicLong> map) {
-		
-		XmlUtils.outputCategoryTallys(parent, type, map, false);
-		
-//        if (null == map  ||  map.isEmpty())  return;
-//        long total = 0;
-//        for (AtomicLong ml : map.values())  total += ml.get();
-//        if(total == 0) return;
-//        
-//  
-//        Element ele = XmlUtils.createCategoryNode(parent, type);
-//        for(Entry<String, AtomicLong> entry : map.entrySet()) 
-//        	XmlUtils.outputTallyNode(ele, entry.getKey(), entry.getValue().get(), (100.00 * entry.getValue().get() / total));
-       			
-            			
-	}
 		
 	public ConcurrentMap<String, AtomicLong> getInstrumentsMap(){ return instruments;	}	
 	public ConcurrentMap<String, AtomicLong> getRunIdsMap(){ return runIds; }	
