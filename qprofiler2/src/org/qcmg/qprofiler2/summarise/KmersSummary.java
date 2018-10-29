@@ -216,8 +216,8 @@ public class KmersSummary {
 		
 		for(int pair = 0; pair < 3; pair ++){
 			if (parsedCount[pair].get() <= 0 ) continue; 
-			String name = BamSummaryReport2.sourceName[pair] + "_" + klength+"mers"; 
-			Element ele = XmlUtils.createMetricsNode(parent, name, parsedCount[pair].get(), "counts per mer string start on specified base cycle");
+			//"counts per mer string start on specified base cycle"
+			Element ele = XmlUtils.createMetricsNode(parent, klength+"mers", BamSummaryReport2.sourceName[pair],parsedCount[pair].get() );
 			//Element element = XmlUtils.createSubElement( merElement, "CycleTally" );			
 			for(String mer :  getPopularKmerString(16,  klength, false, pair)) {
 				Map<Integer, AtomicLong> map = new HashMap<>();
@@ -226,7 +226,7 @@ public class KmersSummary {
 					if( c > 0 )
 						map.put(i, new AtomicLong(c));					
 				}
-				XmlUtils.outputCategoryTallys( ele, "baseCycle", mer, map, false );	
+				XmlUtils.outputTallyGroup( ele, "baseCycle", mer, map, false );	
 			}				
 		}
 		

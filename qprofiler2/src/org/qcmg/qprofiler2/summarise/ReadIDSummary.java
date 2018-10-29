@@ -122,15 +122,15 @@ public class ReadIDSummary {
 	public void toXml(Element element){
 		
 		// header breakdown		
-		XmlUtils.outputCategoryTallys( element, "InValidReadName", null, invalidId, false );
-		XmlUtils.outputCategoryTallys( element,  "INSTRUMENTS",  null,instruments , false );
-		XmlUtils.outputCategoryTallys( element,  "RUN_IDS",  null,runIds , false );
-		XmlUtils.outputCategoryTallys( element,  "FLOW_CELL_IDS", null, flowCellIds , false );
-		XmlUtils.outputCategoryTallys( element,  "FLOW_CELL_LANES", null,flowCellLanes , false );
-		XmlUtils.outputCategoryTallys( element,  "TILE_NUMBERS",null, tileNumbers , false );
-		XmlUtils.outputCategoryTallys( element,  "PAIR_INFO",  null,pairs, false );
-		XmlUtils.outputCategoryTallys( element,  "FILTER_INFO", null, getFiltered() , false );
-		XmlUtils.outputCategoryTallys( element,  "INDEXES",  null,indexes , false );		
+		XmlUtils.outputTallyGroup( element, "InValidReadName", null, invalidId, false );
+		XmlUtils.outputTallyGroup( element,  "INSTRUMENTS",  null,instruments , false );
+		XmlUtils.outputTallyGroup( element,  "RUN_IDS",  null,runIds , false );
+		XmlUtils.outputTallyGroup( element,  "FLOW_CELL_IDS", null, flowCellIds , false );
+		XmlUtils.outputTallyGroup( element,  "FLOW_CELL_LANES", null,flowCellLanes , false );
+		XmlUtils.outputTallyGroup( element,  "TILE_NUMBERS",null, tileNumbers , false );
+		XmlUtils.outputTallyGroup( element,  "PAIR_INFO",  null,pairs, false );
+		XmlUtils.outputTallyGroup( element,  "FILTER_INFO", null, getFiltered() , false );
+		XmlUtils.outputTallyGroup( element,  "INDEXES",  null,indexes , false );		
 	}
 	
 		

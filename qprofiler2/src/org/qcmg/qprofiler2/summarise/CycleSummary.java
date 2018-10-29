@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
-import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.LinkedHashSet;
 import java.util.concurrent.ConcurrentHashMap;
@@ -25,18 +24,12 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicLongArray;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import org.qcmg.common.util.QprofilerXmlUtils;
 import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Element;
-
-import com.amazonaws.jmespath.Comparator;
-
 
 /**
  * Class that tallies by cycle using java generics 
   */
-
 public class CycleSummary<T> {
 	
 	private static final int MAX_ARRAY_CAPACITY = 2048 * 2048;		// over 4 million
@@ -326,20 +319,20 @@ public class CycleSummary<T> {
 	 * @param parent Element that the current objects xml representation will be added to
 	 * @param elementName String representing the name to be used when creating the element
 	 */	
-	public void toXml( Element parent,  String sourceName, String des, String cateName )
+	public void toXml( Element parent, String metricName, String metricType, String cateName )
 	{
 		//do nothing if no base detected
 		Set<T> possibles = getPossibleValues();
 		if( possibles == null || possibles.size() <= 0 ) return; 
 		
-		Element ele = XmlUtils.createMetricsNode(parent, sourceName , null,des );	
+		Element ele = XmlUtils.createMetricsNode(parent,metricName,  metricType, null);	
 		
 		for(T t :  getPossibleValues()) {
 			Map<Integer, AtomicLong> tallys = new LinkedHashMap<>();
 			for (Integer cycle : cycles())
 				//System.out.println("cycle: " + cycle);
 				tallys.put( cycle,new AtomicLong(count(cycle, t)));			
-			XmlUtils.outputCategoryTallys( ele, cateName, String.valueOf(t), tallys, false );	
+			XmlUtils.outputTallyGroup( ele, cateName, String.valueOf(t), tallys, false );	
 		}		
 	}	
 

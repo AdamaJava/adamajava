@@ -129,7 +129,7 @@ public class ReadGroupSummary {
 		
 		void toXml(Element parent  ){
 			
-			Element stats = XmlUtils.createCategoryNode(parent, name);
+			Element stats = XmlUtils.createGroupNode(parent, name);
 			XmlUtils.outputValueNode(stats, "overlapping", overlap.get());
 			XmlUtils.outputValueNode(stats, "tlenUnder1500", near.get()+"");		 
 			XmlUtils.outputValueNode(stats, "tlenOver10000", bigTlen.get() +"");
@@ -331,11 +331,11 @@ public class ReadGroupSummary {
 		//add to xml RG_Counts
 		Element rgElement = parent; //for overall
 		if(! readGroupId.equals(QprofilerXmlUtils.All_READGROUP ))
-			rgElement = XmlUtils.createMetricsNode(parent, readGroupId, "reads", inputReadCounts.get(), null);
+			rgElement = XmlUtils.createMetricsNode(parent, readGroupId, "reads", inputReadCounts.get());
 					
 		rgElement.setAttribute( QprofilerXmlUtils.count, inputReadCounts.get() + "" );
 			//add discarded read Stats to readgroup summary		
-			Element ele = XmlUtils.createCategoryNode(rgElement, QprofilerXmlUtils.filteredReads );
+			Element ele = XmlUtils.createGroupNode(rgElement, QprofilerXmlUtils.filteredReads );
 			XmlUtils.outputValueNode(ele, "supplementaryAlignmentCount", (Long)supplementary.get());
 			XmlUtils.outputValueNode(ele, "secondaryAlignmentCount", secondary.get());
 			XmlUtils.outputValueNode(ele, "failedVendorQualityCount",failedVendorQuality.get()  );
@@ -354,7 +354,7 @@ public class ReadGroupSummary {
 				lostPercentage += addCountedReadStats( rgElement, "trimmedBase", parseTrim(readLength, maxReadLength), maxBases);				
 			}else{
 				double percentage = 100 * (double) getTrimedBases() / getMaxBases() ;
-				ele =  XmlUtils.createCategoryNode(rgElement, "trimmedBase");							
+				ele =  XmlUtils.createGroupNode(rgElement, "trimmedBase");							
 				XmlUtils.outputValueNode(ele, QprofilerXmlUtils.basePercent,   percentage  );
 				
 				lostPercentage += percentage;	
@@ -376,13 +376,13 @@ public class ReadGroupSummary {
 		//add to xml RG_Counts
 		Element ele = parent;
 		if(! readGroupId.equals(QprofilerXmlUtils.All_READGROUP ))
-			ele = XmlUtils.createMetricsNode(parent, readGroupId, "pairs", pairNum.get(), null);
+			ele = XmlUtils.createMetricsNode(parent, readGroupId, "pairs", pairNum.get());
 
 		XmlUtils.outputValueNode(ele, "mateUnmappedPair", mateUnmapped.get() );
 		XmlUtils.outputValueNode(ele, "mateDifferentReferencePair", diffRef.get() );
 
 		Pair<Integer, String> isize = getIsizeStats();
-		Element ele1 = XmlUtils.createCategoryNode(ele, "tlen");	
+		Element ele1 = XmlUtils.createGroupNode(ele, "tlen");	
 		XmlUtils.outputValueNode(ele1, modal_isize, isize.getLeft());
 		XmlUtils.outputValueNode(ele1, "stdDev", isize.getRight());
 
@@ -433,7 +433,7 @@ public class ReadGroupSummary {
 	}
 
 	private double addDiscardReadStats(Element parent, String nodeName, AtomicLong counts, long totalReads ){
-		Element ele = XmlUtils.createCategoryNode(parent, nodeName);		
+		Element ele = XmlUtils.createGroupNode(parent, nodeName);		
 		
 		XmlUtils.outputValueNode(ele, "readCount", counts.get());	
 		float percentage = 100 * (float) counts.get() / totalReads ;
@@ -473,7 +473,7 @@ public class ReadGroupSummary {
 			}
 		}
 		
-		Element ele = XmlUtils.createCategoryNode(parent, nodeName);	
+		Element ele = XmlUtils.createGroupNode(parent, nodeName);	
 		XmlUtils.outputValueNode(ele, "min", min);
 		XmlUtils.outputValueNode(ele, "max", max);
 		XmlUtils.outputValueNode(ele, "mean",mean);

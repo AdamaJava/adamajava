@@ -27,7 +27,6 @@ public class TagSummaryReport2 {
 
 	private final static SAMTagUtil STU = SAMTagUtil.getSingleton();
 	private final short MD = STU.MD;	
-
 	
 	// TAGS		
 	@SuppressWarnings("unchecked")
@@ -90,66 +89,57 @@ public class TagSummaryReport2 {
 			//this counts will be used to caculate % for MD
 			for( int i = 1; i <= record.getReadLength(); i ++ )
 				allReadsLineLengths[order].increment(i);				
-		}
-		
+		}		
 	}
 	
-	public void toXml(Element parent){
-						
+	public void toXml(Element parent){						
 		//mismatchbycycle
 		for(int order = 0; order < 3; order ++) 
-			tagMDMismatchByCycle[order].toXml( parent, "tags:MD_"+BamSummaryReport2.sourceName[order], null, "baseCycle" );
+			tagMDMismatchByCycle[order].toXml( parent, "tags:MD:Z", BamSummaryReport2.sourceName[order],  "mismatchBaseCycle" );
 		
-
-		for(String strand : new String[]{"MutationOnForwardReads", "MutationOnReverseReads"}){	
-			Element ele = XmlUtils.createMetricsNode(parent, "tags:MD_"+strand, null, null);				
+		for(String strand : new String[]{"forwardReads", "reverseReads"}){	
+			Element ele = XmlUtils.createMetricsNode(parent, "tags:MD:Z", strand, null);				
 			for(int order = 0; order < 3; order ++) {				
 				Map<String, AtomicLong> mdRefAltLengthsString = new HashMap<>();
-				QCMGAtomicLongArray mdRefAltLengths = (strand.equals("MutationForward"))? mdRefAltLengthsForward[order] : mdRefAltLengthsReverse[order];				
+				QCMGAtomicLongArray mdRefAltLengths = (strand.contains("forward"))? mdRefAltLengthsForward[order] : mdRefAltLengthsReverse[order];				
 				for (int m = 0 ; m < mdRefAltLengths.length() ; m++) {
 					long l = mdRefAltLengths.get(m);
 					if (l <= 0)  continue;
 					mdRefAltLengthsString.put(CycleSummaryUtils.getStringFromInt(m), new AtomicLong(l));					 
 				}				
-				XmlUtils.outputCategoryTallys(ele, "mutation", BamSummaryReport2.sourceName[order], mdRefAltLengthsString, true);				
+				XmlUtils.outputTallyGroup(ele, "mutation", BamSummaryReport2.sourceName[order], mdRefAltLengthsString, true);				
 			}		
 		}		
 		
 		// additional tags includes RG
 		for (Entry<String,  ConcurrentSkipListMap<String, AtomicLong>> entry : additionalTags.entrySet())	
-			outputTag(parent, "tags:" + entry.getKey(),  entry.getValue());
+			outputTag(parent, entry.getKey(),  entry.getValue());
 		
 		// additional tagsInt
 		for (Entry<String,  QCMGAtomicLongArray> entry : additionalIntegerTags.entrySet())
-			outputTag(parent, "tags:" + entry.getKey(),  entry.getValue().toMap());
+			outputTag(parent,  entry.getKey(),  entry.getValue().toMap());
 		
 		// additional tagsChar
 		for (Entry<String,  ConcurrentSkipListMap<Character, AtomicLong>> entry : additionalCharacterTags.entrySet())
-			outputTag(parent, "tags:" + entry.getKey(),  entry.getValue());
-		
-//		{			
-//			Element ele = XmlUtils.createMetricsNode(parent, "tags:" + entry.getKey(), entry.getValue().size(), "maximum output tally number is 100 if the total counts is greater than 100.");	
-//			int no = 0;
-//			entry.getValue().entrySet().removeIf( e-> (no++) > 100); 			
-//			XmlUtils.outputCategoryTallys(ele, "tagValue", null, entry.getValue(), true);
-//			XmlUtils.outputMap(parent,"read counts","read distribution",  "tags:" + entry.getKey(), "tag value",entry.getValue());
-//		}
-//		// additional tagsChar
-//		for (Entry<String,  ConcurrentSkipListMap<Character, AtomicLong>> entry : additionalCharacterTags.entrySet()) {
-//			Map<Character, AtomicLong> tallys = entry.getValue();
-//			Element ele = XmlUtils.createMetricsNode(parent, "tags:" + entry.getKey(),tallys.size(), "maximum output tally number is 100 if the total counts is greater than 100.");	
-//			XmlUtils.outputMap(parent,"counts","read distribution",  "tagChar:" + entry.getKey(),"tag value", entry.getValue());
-//		}	
-		
+			outputTag(parent,  entry.getKey(),  entry.getValue());		
 	}
 	
-	private <T> void outputTag(Element ele, String metricName,  Map<T, AtomicLong> tallys) {
+	private <T> void outputTag(Element ele, String tag,  Map<T, AtomicLong> tallys) {
+				
 		int size = tallys.size();
-		String comment = ( size < 100)? null : "here only only list top 100 tag values";		
-		ele = XmlUtils.createMetricsNode(ele, metricName, size, comment);	
+	
+		ele = XmlUtils.createMetricsNode(ele, "tags:"+tag, null, size);
+		
 		AtomicInteger no = new AtomicInteger();		
 		tallys.entrySet().removeIf( e-> no.incrementAndGet() > 100 );
 		boolean percent = (size >= 100)? false : true;
-		XmlUtils.outputCategoryTallys(ele, "tagValue", null, tallys, percent);		
+
+		
+		String[] vs = tag.split(":");
+		XmlUtils.outputTallyGroup(ele, vs[0], null, tallys, percent);
+		
+		if( size > 100) 			 
+			ele.insertBefore( ele.getOwnerDocument().createComment( "here only list top 100 tag values" ), ele.getFirstChild());
+					
 	}
 }
