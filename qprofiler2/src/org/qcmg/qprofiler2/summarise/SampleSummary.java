@@ -28,7 +28,7 @@ public class SampleSummary {
 	public final static String genotype = "Genotype";
 	public final static String substitutions = "Substitutions";	
 	public final static String substitution = "Substitution";
-	public final static String report = "Report";	
+	public final static String report = "report";	
 	public final static String VAF = "VariantAlleleFrequency";
 	public final static String binTally = "BinTally";
 	public final static String tiTvRatio = "TiTvRatio";
@@ -118,16 +118,18 @@ public class SampleSummary {
 				increment( type.name() + transType.name() );					
 			}				
 		}		
-	}	 			
-		
-	public void toXML(Element parent, String formats, String values ){
+	}	
+	
+	
+	public void toXMLOld(Element parent, String formats, String values ){
 		Element reportE = QprofilerXmlUtils.createSubElement(parent, report);
 		if(formats != null) {
 			reportE.setAttribute("foramts", formats);
 			reportE.setAttribute("values", values);
 		}
+		
 		List<String> orderedGTs = new ArrayList<>(gts);
-		orderedGTs.sort(null);
+		//orderedGTs.sort(null);
 		for(SVTYPE type : SVTYPE.values()){	
 			//only output non zero value
 			AtomicLong totalAL = summary.get( type.name());
@@ -172,6 +174,67 @@ public class SampleSummary {
 						tvFreq.put(tran.toString(), summary.get(type.name()+tran.name()));			
 //				XmlUtils.outputMap(svtypeE, "variant counts", "SNP transtion substitution distribution", "transtion" , "substitution change", tiFreq);
 //				XmlUtils.outputMap(svtypeE, "variant counts", "SNP transversion substitution distribution", "transversion" , "substitution change", tvFreq);
+			}			
+		
+
+		}
+	}	
+	
+	
+		
+	public void toXML(Element parent, String formats, String values ){
+		
+		Element reportE = QprofilerXmlUtils.createSubElement(parent, report);
+		if(formats != null) {
+			reportE.setAttribute("formats", formats);
+			reportE.setAttribute("values", values);
+		}
+		
+		List<String> orderedGTs = new ArrayList<>( gts );
+		//orderedGTs.sort(null);
+		for(SVTYPE type : SVTYPE.values()){	
+			//only output non zero value
+			AtomicLong totalAL = summary.get( type.name());
+			if( null == totalAL) continue;						
+			
+			
+			Element reportE1  = XmlUtils.createMetricsNode( reportE, "variantType", type.name(), null );
+			String key =  type.name() + "dbSNP";
+			XmlUtils.outputValueNode(reportE1, "inDBSNP", summary .containsKey(key)? summary.get(key).get()+"" : "0" ); 
+			
+			Map<String, AtomicLong> gtvalues = new HashMap<>();
+			for(String gt : orderedGTs) {
+				AtomicLong gtv =  summary.get(type.name() + gt);
+				if(gtv != null) gtvalues.put(gt, gtv);				
+			}
+
+			XmlUtils.outputTallyGroup(reportE1 , "genotype", type.name(), gtvalues, true);
+
+			QCMGAtomicLongArray array = summaryAD.get(type.name());
+			if(array != null) {
+				Map<String, AtomicLong> altFreq = new HashMap<>();					
+				for( int i = 0; i < altBinSize; i ++  ){
+					long count =  array.get(i) ;
+					if( count <= 0 ) continue;
+					
+					String  bin = String.format("%.2f,%.2f", (double) i / altBinSize, (double) (i+1) / altBinSize  );
+					altFreq.put(bin, new AtomicLong(count) );
+				}		
+				XmlUtils.outputTallyGroup(reportE1 , "variantAltFrequency", type.name(), altFreq, true);			
+			}  
+			
+			//titv
+			if(type.equals(SVTYPE.SNP)){
+				Map<String, AtomicLong> tiFreq = new HashMap<>();
+				Map<String, AtomicLong> tvFreq = new HashMap<>();
+				for(SubsitutionEnum tran: SubsitutionEnum.values()) 
+					if(tran.isTranstion() &&  summary.get(type.name()+tran.name()) != null) 
+						tiFreq.put(tran.toString(), summary.get(type.name()+tran.name()));
+					else if( tran.isTransversion() &&  summary.get(type.name()+tran.name()) != null)  					 
+						tvFreq.put(tran.toString(), summary.get(type.name()+tran.name()));		
+				
+				XmlUtils.outputTallyGroup(reportE1 , "substitution", "transtion",  tiFreq, true);
+				XmlUtils.outputTallyGroup(reportE1 , "substitution", "transversion",  tvFreq, true);
 			}			
 		
 

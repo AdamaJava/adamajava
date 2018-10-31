@@ -50,27 +50,39 @@ public class FastqSummaryReport extends SummaryReport {
 	public ReadIDSummary getReadIDSummary(){	return readHeaderSummary;	}
 	@Override
 	public void toXml(Element parent1) {		
-//		Element parent = init( parent1, ProfileType.FASTQ, null, null );
-//		parent = QprofilerXmlUtils.createSubElement(parent, ProfileType.FASTQ.getReportName() +   "Metrics");
-//		//header line
-//		Element readNameElement = XmlUtils.createMetricsNode(QprofilerXmlUtils.createSubElement(parent, "QNAME"), readHeaderSummary.getInputReadNumber(), null);	
-// 		readHeaderSummary.toXml(readNameElement );
-//				 			
-//		//seq		
-//		Element element =   QprofilerXmlUtils.createSubElement(parent, "SEQ" ) ;//QprofilerXmlUtils.createSubElement(parent, "SequenceData" );	 
-//		seqByCycle.toXml(element, "read Base distribution per base cycle", "BaseCycle", "read base cycle", "counts for each base");
-//		XmlUtils.outputMap( element, "read counts", "read counts distribution based on read seq length", "seqlength", "seq line length" , seqByCycle.getLengthMapFromCycle() );		
-//		XmlUtils.outputMap( element, "base counts", "bad base(. or N) distribution based on read base cycle",  "BadBasesInReads", "read base cycle" , seqBadReadLineLengths );		
-//		//1mers is same to baseByCycle
-//		for( int i : new int[] { 2, 3, KmersSummary.maxKmers } )
-//			kmersSummary.toXml(element,i);	
-//				
-//		//QUAL
-//		element =   QprofilerXmlUtils.createSubElement(parent, "QUAL");	 
-//		qualByCycleInteger.toXml(element, "QualityByCycle", null,"read base cycle", "counts for each quality base value");
-//		XmlUtils.outputMap( element, "read counts", "read counts distribution based on read quality score stirng length", "quallength", "qual line length" , qualByCycleInteger.getLengthMapFromCycle() );		
-//		XmlUtils.outputMap( element, "base counts", "bad base(. or N) distribution based on read base cycle",  "BadBasesInReads", "read base cycle" , qualBadReadLineLengths );			 		
-	}
+		Element parent = init( parent1, ProfileType.FASTQ, null, null );
+		parent = QprofilerXmlUtils.createSubElement( parent, ProfileType.FASTQ.getReportName() +  XmlUtils.metrics   );
+		
+		//header line:"analysis read name pattern for read group
+		Element element =   QprofilerXmlUtils.createSubElement(parent, QprofilerXmlUtils.qname ) ;				
+		readHeaderSummary.toXml(element );		
+
+		//seq		
+		final String seqBaseCycle = QprofilerXmlUtils.seqBase + QprofilerXmlUtils.cycle; 						 			
+		element =   QprofilerXmlUtils.createSubElement(parent,QprofilerXmlUtils.seq  ) ;//QprofilerXmlUtils.createSubElement(parent, "SequenceData" );	 
+		seqByCycle.toXml( element, QprofilerXmlUtils.seqBase, null, seqBaseCycle );	
+		
+		Element ele = XmlUtils.createMetricsNode( element, QprofilerXmlUtils.seqLength , null, null); 
+		XmlUtils.outputTallyGroup( ele, QprofilerXmlUtils.seqLength,null, seqByCycle.getLengthMapFromCycle(), true );	
+		
+		ele = XmlUtils.createMetricsNode( element, QprofilerXmlUtils.badBase, null, null);
+		XmlUtils.outputTallyGroup( ele, seqBaseCycle, null,  seqBadReadLineLengths.toMap(), true );	
+		XmlUtils.addCommentChild(ele, "bad base(. or N) distribution" );
+		
+		//1mers is same to baseByCycle
+		for( int i : new int[] { 2, 3, KmersSummary.maxKmers } )
+			kmersSummary.toXml(element,i);	
+				
+		//QUAL
+		final String qualBaseCycle = QprofilerXmlUtils.qualBase + QprofilerXmlUtils.cycle; 	
+		element =   QprofilerXmlUtils.createSubElement(parent, QprofilerXmlUtils.qual);
+		qualByCycleInteger.toXml(element,QprofilerXmlUtils.qualBase ,null,   qualBaseCycle);
+		ele = XmlUtils.createMetricsNode( element, QprofilerXmlUtils.qualLength, null,null);
+		XmlUtils.outputTallyGroup( ele,  QprofilerXmlUtils.qualLength, null, qualByCycleInteger.getLengthMapFromCycle(), true );	
+		ele = XmlUtils.createMetricsNode( element,  QprofilerXmlUtils.badBase,null, null);
+		XmlUtils.outputTallyGroup( ele,  qualBaseCycle, null, qualBadReadLineLengths.toMap(), true );
+		XmlUtils.addCommentChild(ele, "bad base(qual score < 10) distribution" );
+ 	}
 	
 	/**
 	 * Reads a row from the text file and returns it as a string
@@ -86,26 +98,25 @@ public class FastqSummaryReport extends SummaryReport {
 		byte[] baseQualities = SAMUtils.fastqToPhred( record.getBaseQualityString() );
 		
 		//read are raw sequence ignore the strand
-		qualByCycleInteger.parseByteData( baseQualities);
-		SummaryReportUtils.tallyQualScores(baseQualities, qualBadReadLineLengths);
+		qualByCycleInteger.parseByteData( baseQualities );
+		SummaryReportUtils.tallyQualScores( baseQualities, qualBadReadLineLengths );
 						
 		// SEQ
 		byte[] readBases = record.getReadString().getBytes();
 		seqByCycle.parseByteData(readBases);
-		SummaryReportUtils.tallyBadReadsAsString(readBases, seqBadReadLineLengths);
+		SummaryReportUtils.tallyBadReadsAsString( readBases, seqBadReadLineLengths );
 		//fastq base are all orignal forward, treat all as first of pair 
 		kmersSummary.parseKmers( readBases, false, 0 ); 
 		
 		String qualHeader = record.getBaseQualityHeader();			
 		// If header just contains "+" then FastqRecord has null for qual header
-		if ( ! StringUtils.isNullOrEmpty(qualHeader))  
-			qualHeaderNotEqualToPlus.incrementAndGet();		
+		if ( ! StringUtils.isNullOrEmpty( qualHeader ))  
+			qualHeaderNotEqualToPlus.incrementAndGet();	
 		
 		String id = record.getReadName();//record.getReadHeader();		
-		try {
-			readHeaderSummary.parseReadId( id );
+		try { readHeaderSummary.parseReadId( id );
 		} catch (Exception e) {
-			if ( errNumber.incrementAndGet() < ReportErrNumber)
+			if ( errNumber.incrementAndGet() < ReportErrNumber )
 				logger.error( "Invalid read id: " + id );
 		}		 						 			 	 
 	}

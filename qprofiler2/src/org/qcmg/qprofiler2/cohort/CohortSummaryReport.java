@@ -51,22 +51,11 @@ public class CohortSummaryReport extends SummaryReport {
 			Category cat = new Category(key, ( Element ) reportNS.item(j)); 
 			categories.add(cat );
 			
-//			System.out.println(String.format("cat: %s, variants: %s, db: %s, ti:%d, tv :%d ", 
-//					sampleId + cat.category,  Arrays.toString(  cat.variantsCounts.values().toArray() ),
-//					Arrays.toString(cat.dbSnpCounts.values().toArray() ), cat.ti, cat.tv ));
 			//summary
 			sum_ti += cat.ti;
 			sum_tv += cat.tv;
 			for(int db : cat.dbSnpCounts.values()) sum_db += db;
 			for(int count : cat.variantsCounts.values()) sum_count += count;
-			
-//			//debug
-//			System.out.println("summary: sum_count = " + sum_count);
-//			//debug
-//			System.out.println("summary: ti = " + sum_ti);
-//
-//			//debug
-//			System.out.println("summary: tv = " + sum_tv);
 
 		}		
 	}	

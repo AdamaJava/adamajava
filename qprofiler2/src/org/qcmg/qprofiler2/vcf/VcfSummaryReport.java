@@ -30,9 +30,9 @@ public class VcfSummaryReport  extends SummaryReport {
 	public static final String NodeHeaderStructuredType = "StructuredMetaInformationType";
 	public static final String NodeHeaderStructuredLine = "StructuredMetaInformationLine";
 	public static final String NodeHeaderFinal =  "HeaderLine";		
-	public static final String NodeSummary = "vcfMetrics";
+//	public static final String NodeSummary = "vcfMetrics";
 	public static final String NodeCategory = "ReportingCategory";
-	public static final String Sample = "Sample";	
+	public static final String Sample = "sample";	
 	public static final String id = "id";
 	
 	static final String Seperator = ",:,";
@@ -55,7 +55,6 @@ public class VcfSummaryReport  extends SummaryReport {
 		logger.info("preparing output...");
 		Element parentElement = init(parent, ProfileType.VCF);	
 		logger.info("outputing vcf header to xml...");
-		//vcfHeaderToXml(parentElement);  //Vcf header	
 		XmlUtils.vcfHeaderToXml(parentElement, vcfHeader);
 		logger.info("outputing sample information to xml...");
 		summaryToXml( parentElement  );		
@@ -98,7 +97,7 @@ public class VcfSummaryReport  extends SummaryReport {
 	 * @param parent
 	 */
 	void summaryToXml(Element parent){	
-		Element summaryElement =  QprofilerXmlUtils.createSubElement(parent, NodeSummary);			
+		Element summaryElement =  QprofilerXmlUtils.createSubElement(parent,  ProfileType.VCF.getReportName()+"Metrics" );			
 		
 		//get list of types eg. FT:INF:CONF
 		List<String>  formatsTypes = new ArrayList<>();
@@ -108,13 +107,13 @@ public class VcfSummaryReport  extends SummaryReport {
 		}
 		
 		for( String key : summaries.keySet() ) {			
-			List<String> cats = new ArrayList<>(Arrays.asList(key.split(Seperator)));
+			List<String> cats = new ArrayList<>(Arrays.asList( key.split(Seperator) ));
 			String sample = cats.remove(0);						
 			Element ele = getSampleElement(summaryElement, sample);
-			if(formatsTypes.isEmpty())
-				summaries.get(key).toXML(ele, null, null);
+			if( formatsTypes.isEmpty() )
+				summaries.get(key).toXML( ele, null, null );
 			else
-				summaries.get(key).toXML(ele, String.join(":", formatsTypes), String.join(":", cats));				
+				summaries.get(key).toXML( ele, String.join(":", formatsTypes), String.join(":", cats) );				
 		}
 	}
 	

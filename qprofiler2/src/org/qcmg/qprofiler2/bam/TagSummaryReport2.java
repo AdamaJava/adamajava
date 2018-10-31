@@ -139,7 +139,7 @@ public class TagSummaryReport2 {
 		XmlUtils.outputTallyGroup(ele, vs[0], null, tallys, percent);
 		
 		if( size > 100) 			 
-			ele.insertBefore( ele.getOwnerDocument().createComment( "here only list top 100 tag values" ), ele.getFirstChild());
+			XmlUtils.addCommentChild(ele, "here only list top 100 tag values" );
 					
 	}
 }
