@@ -9,8 +9,6 @@ import java.util.regex.Pattern;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-
-import org.w3c.dom.DOMException;
 import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
 import org.w3c.dom.DocumentType;
@@ -53,11 +51,11 @@ public class QprofilerXmlUtils {
 	public static final String overlapBases = "overlapBases";
 	
  
-	//xml tag name
+	// tag name for old xml
 	public static final String valueTally = "ValueTally";
 	public static final String rangeTally = "RangeTally";
 	public static final String cycleTally = "CycleTally";
-	public static final String cycle = "Cycle";	
+
 	public static final String tallyItem = "TallyItem";
 	public static final String rangeTallyItem = "RangeTallyItem";
 	
@@ -75,18 +73,25 @@ public class QprofilerXmlUtils {
 	public static final String start = "start";
 	public static final String end = "end";
 	
-	//summary tags
-	
-//	<filteredReads failedVendorQualityCount="0" secondaryAlignmentCount="0" supplementaryAlignmentCount="420"/>
-//	<duplicateReads basePercent="14.09" readCount="4629"/>
-//	<unmappedReads basePercent="0.06" readCount="21"/>
-//	<nonCanonicalPair basePercent="11.17" readCount="3669"/>
-//	<trimmedBase basePercent="0.00" max="0" mean="0" median="0" min="0" mode="0" readCount="0"/>
-//	<softClippedBases basePercent="19.48" max="131" mean="53" median="15" min="1" mode="5" readCount="18139"/>
-//	<hardClippedBases basePercent="0.00" max="0" mean="0" median="0" min="0" mode="0" readCount="0"/>
-//	<overlapBases basePercent="4.19" max="151" mean="60" median="60" min="1" mode="2" readCount="3455"/>
-//	<overall averageLength="151" lostBasesPercent="49.00" maxLength="151" readCount="32844"/>
-	
+
+	//commly used on fastq bam
+	public static final String qname = "QNAME";
+	public static final String flag = "FLAG";
+	public static final String rname = "RNAME";
+	public static final String pos = "POS";
+	public static final String mapq = "MAPQ";
+	public static final String cigar = "CIGAR";
+	public static final String tlen = "TLEN";
+	public static final String seq = "SEQ"; 
+	public static final String tag = "TAG";
+	public static final String cycle = "Cycle";	
+	public static final String seqBase = "sequenceBase";
+	public static final String seqLength = "sequenceLength";
+	public static final String badBase = "badBase";
+	public static final String qual = "QUAL";
+	public static final String qualBase = "qualBase";
+	public static final String qualLength = "qualLength";
+		
 			
 	public static <T> String joinByComma( List<T> possibles){		 		
 		StringBuilder sb = new StringBuilder();
