@@ -95,10 +95,10 @@ public class TagSummaryReport2 {
 	public void toXml(Element parent){						
 		//mismatchbycycle
 		for(int order = 0; order < 3; order ++) 
-			tagMDMismatchByCycle[order].toXml( parent, "tags:MD:Z", BamSummaryReport2.sourceName[order],  "mismatchBaseCycle" );
+			tagMDMismatchByCycle[order].toXml( parent, "tags:MD:Z", BamSummaryReport2.sourceName[order],  "mismatchBase" );
 		
 		for(String strand : new String[]{"forwardReads", "reverseReads"}){	
-			Element ele = XmlUtils.createMetricsNode(parent, "tags:MD:Z", strand, null);				
+			Element ele = XmlUtils.createMetricsNode(parent, "tags:MD:Z_"+ strand, null);				
 			for(int order = 0; order < 3; order ++) {				
 				Map<String, AtomicLong> mdRefAltLengthsString = new HashMap<>();
 				QCMGAtomicLongArray mdRefAltLengths = (strand.contains("forward"))? mdRefAltLengthsForward[order] : mdRefAltLengthsReverse[order];				
@@ -128,7 +128,7 @@ public class TagSummaryReport2 {
 				
 		int size = tallys.size();
 	
-		ele = XmlUtils.createMetricsNode(ele, "tags:"+tag, null, size);
+		ele = XmlUtils.createMetricsNode(ele, "tags:"+tag, size);
 		
 		AtomicInteger no = new AtomicInteger();		
 		tallys.entrySet().removeIf( e-> no.incrementAndGet() > 100 );

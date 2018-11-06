@@ -213,46 +213,32 @@ public class KmersSummary {
 	}
 	
 	public void toXml( Element parent, int klength ) { 
+		final int maxNo = 16;
 		
 		for(int pair = 0; pair < 3; pair ++){
 			if (parsedCount[pair].get() <= 0 ) continue; 
-			//"counts per mer string start on specified base cycle"
-			Element ele = XmlUtils.createMetricsNode(parent, klength+"mers", BamSummaryReport2.sourceName[pair],parsedCount[pair].get() );
-			//Element element = XmlUtils.createSubElement( merElement, "CycleTally" );			
-			for(String mer :  getPopularKmerString(16,  klength, false, pair)) {
-				Map<Integer, AtomicLong> map = new HashMap<>();
-				for( int i = 0; i < cycleNo; i++ ){				
+			
+			//avoid kmers_null or kmers_unPaired in case have no pair
+			String name = klength+"mers_"+BamSummaryReport2.sourceName[pair];
+			if(pair == 0 && parsedCount[1].get() == 0 &&parsedCount[2].get() == 0)
+			name = klength+"mers";
+			
+			// "counts per mer string start on specified base cycle"	
+			Element ele = XmlUtils.createMetricsNode(parent, name, parsedCount[pair].get() );
+	 		for( int i = 0; i < cycleNo; i++ ){	
+	 			Map<String, AtomicLong> map = new HashMap<>();
+	 			for(String mer :  getPopularKmerString(maxNo,  klength, false, pair)) {
 					long c = getCount( i,  mer, pair);
 					if( c > 0 )
-						map.put(i, new AtomicLong(c));					
+						map.put(mer, new AtomicLong(c));					
 				}
-				XmlUtils.outputTallyGroup( ele, "baseCycle", mer, map, false );	
-			}				
-		}
-		
-
-//old 
-		for(int pair = 0; pair < 3; pair ++){
-			if (parsedCount[pair].get() <= 0 ) continue; 
-			
-			//Element element = XmlUtils.createSubElement(merElement, "CycleTally" );			
-			Set<String> possibleMers = getPopularKmerString(16,  klength, false, pair) ;
-			String poss = QprofilerXmlUtils.joinByComma(new ArrayList<String>( possibleMers));
-			String desc = klength + "-mers sequence distribution";
-			
-			Map<Integer, String> values = new HashMap<>();			
- 			for(int i = 0; i <  cycleNo; i++ ){ 
- 				List<Long> counts = new ArrayList<Long>();
-				for(String mer :  possibleMers)
-					counts.add(getCount( i,  mer, pair));
-				if(counts.isEmpty()) continue;
- 				values.put(i+1, QprofilerXmlUtils.joinByComma(counts));			
+				XmlUtils.outputTallyGroup( ele, "kmers", "baseCycle:"+i, map, false );					
 			}	
- 			
-			//XmlUtils.outputMatrix( parent, poss, desc, BamSummaryReport2.sourceName[pair]+klength+"mers","kmers base cycle","counts per mer string start on specified base cycle", values);
-		//	XmlUtils.outputMatrix( parent, poss, desc, BamSummaryReport2.sourceName[pair]+klength+"mers","kmers base cycle", values); 
-		}				
-	}
+			if(	Math.pow(4, klength) > maxNo )
+				XmlUtils.addCommentChild(ele, "here only list top "+ maxNo + " most popular kmers sequence for each Base Cycle" );
+
+		}			
+	}	
 	
 	public Set<String> getPopularKmerString(final int popularNo, final int kLength, final boolean includeN, final int flagFristRead){
 	 

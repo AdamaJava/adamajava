@@ -324,15 +324,15 @@ public class CycleSummary<T> {
 		//do nothing if no base detected
 		Set<T> possibles = getPossibleValues();
 		if( possibles == null || possibles.size() <= 0 ) return; 
+		String name = metricType == null ? metricName : metricName+"_"+ metricType;		
+		Element ele = XmlUtils.createMetricsNode(parent, name , null);			
 		
-		Element ele = XmlUtils.createMetricsNode(parent,metricName,  metricType, null);	
-		
-		for(T t :  getPossibleValues()) {
-			Map<Integer, AtomicLong> tallys = new LinkedHashMap<>();
-			for (Integer cycle : cycles())
-				//System.out.println("cycle: " + cycle);
-				tallys.put( cycle,new AtomicLong(count(cycle, t)));			
-			XmlUtils.outputTallyGroup( ele, cateName, String.valueOf(t), tallys, false );	
+		for (Integer cycle : cycles()){
+			Map<T, AtomicLong> tallys = new LinkedHashMap<>();
+			
+			for(T t :  getPossibleValues()) 				 
+				tallys.put(  t,new AtomicLong(count(cycle, t)));			
+			XmlUtils.outputTallyGroup( ele, cateName, "baseCycle:"+cycle, tallys, false );	
 		}		
 	}	
 

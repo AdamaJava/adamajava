@@ -1,15 +1,22 @@
 package org.qcmg.qprofiler2.util;
 
+import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import java.io.File;
 import java.io.IOException;
 
+import javax.xml.parsers.ParserConfigurationException;
+
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Test;
 import org.qcmg.common.util.QprofilerXmlUtils;
+import org.w3c.dom.Element;
 
-import junit.framework.Assert;
-
-public class XmulUtilsTest {
+import junit.runner.Version;
+public class XmlUtilsTest {
 
 	
 	private static final String TEST_FILENAME = "StaticMethodTest.test";
@@ -57,22 +64,32 @@ public class XmulUtilsTest {
 		currentFile.createNewFile();
 		QprofilerXmlUtils.backupFileByRenaming(TEST_FILENAME);
 		// should have created a backup file by renaming the orig file
-		Assert.assertTrue(backupFile.exists());
-		Assert.assertTrue(backupFile2.exists());
-		Assert.assertFalse(currentFile.exists());
+		assertTrue(backupFile.exists());
+		assertTrue(backupFile2.exists());
+		assertFalse(currentFile.exists());
 	}
 	
 	@Test
 	public void testBackupFileByRenamingInvalidPath() throws Exception{
 		String madeUpPath = "/this/is/a/made/up/path/" + TEST_FILENAME;
 		
-		try {
-			QprofilerXmlUtils.backupFileByRenaming(madeUpPath);
-			Assert.fail("Should have thrown Exception");
-		} catch (IOException e) {
-			Assert.assertEquals("No such file or directory", e.getMessage());
-//			e.printStackTrace();
-		}
+		Exception e = assertThrows(IOException.class , ()-> {QprofilerXmlUtils.backupFileByRenaming(madeUpPath);});
+	    assertTrue(e.getMessage().contains( "No such file or directory"));
 	}
 	
+	
+	
+	@Test
+	public void testReadGroupElement() throws ParserConfigurationException {				
+//		Exception e = assertThrows(Exception.class , ()-> {
+//			XmlUtils.createReadGroupNode( QprofilerXmlUtils.createRootElement(null, "qProfiler", null) , "id");
+//		});
+//		assertTrue(e.getMessage().contains( "invalid parent element name"));
+				
+		assertAll(  ()-> {
+			Element ele = XmlUtils.createReadGroupNode( QprofilerXmlUtils.createRootElement( XmlUtils.readGroupsEle, null) , "id" );
+			ele.getAttribute("RGID").equals("id");
+			ele.getNodeName().equals("readGroup");
+		} );
+	}
 }

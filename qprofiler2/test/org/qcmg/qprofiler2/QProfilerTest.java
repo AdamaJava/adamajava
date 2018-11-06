@@ -20,8 +20,6 @@ import org.qcmg.qprofiler2.QProfiler2;
 
 public class QProfilerTest {
 	
-//	private static final String USER_DIR = System.getProperty("user.dir");
-//	private static final String FILE_SEPERATOR = System.getProperty("file.separator");
 	private static final String GFF_FILE_NAME_1 =  "solid0039_20091125_1.gff3";
 	private static final String GFF_FILE_NAME_2 =  "solid0039_20091125_2.gff";
 	private static final String DODGY_GFF_FILE_NAME =  "solid0039_20091125_DODGY.gff3";

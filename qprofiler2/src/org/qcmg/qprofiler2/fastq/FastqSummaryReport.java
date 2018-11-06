@@ -62,10 +62,10 @@ public class FastqSummaryReport extends SummaryReport {
 		element =   QprofilerXmlUtils.createSubElement(parent,QprofilerXmlUtils.seq  ) ;//QprofilerXmlUtils.createSubElement(parent, "SequenceData" );	 
 		seqByCycle.toXml( element, QprofilerXmlUtils.seqBase, null, seqBaseCycle );	
 		
-		Element ele = XmlUtils.createMetricsNode( element, QprofilerXmlUtils.seqLength , null, null); 
+		Element ele = XmlUtils.createMetricsNode( element, QprofilerXmlUtils.seqLength ,  null); 
 		XmlUtils.outputTallyGroup( ele, QprofilerXmlUtils.seqLength,null, seqByCycle.getLengthMapFromCycle(), true );	
 		
-		ele = XmlUtils.createMetricsNode( element, QprofilerXmlUtils.badBase, null, null);
+		ele = XmlUtils.createMetricsNode( element, QprofilerXmlUtils.badBase, null);
 		XmlUtils.outputTallyGroup( ele, seqBaseCycle, null,  seqBadReadLineLengths.toMap(), true );	
 		XmlUtils.addCommentChild(ele, "bad base(. or N) distribution" );
 		
@@ -77,9 +77,9 @@ public class FastqSummaryReport extends SummaryReport {
 		final String qualBaseCycle = QprofilerXmlUtils.qualBase + QprofilerXmlUtils.cycle; 	
 		element =   QprofilerXmlUtils.createSubElement(parent, QprofilerXmlUtils.qual);
 		qualByCycleInteger.toXml(element,QprofilerXmlUtils.qualBase ,null,   qualBaseCycle);
-		ele = XmlUtils.createMetricsNode( element, QprofilerXmlUtils.qualLength, null,null);
+		ele = XmlUtils.createMetricsNode( element, QprofilerXmlUtils.qualLength,null);
 		XmlUtils.outputTallyGroup( ele,  QprofilerXmlUtils.qualLength, null, qualByCycleInteger.getLengthMapFromCycle(), true );	
-		ele = XmlUtils.createMetricsNode( element,  QprofilerXmlUtils.badBase,null, null);
+		ele = XmlUtils.createMetricsNode( element,  QprofilerXmlUtils.badBase, null);
 		XmlUtils.outputTallyGroup( ele,  qualBaseCycle, null, qualBadReadLineLengths.toMap(), true );
 		XmlUtils.addCommentChild(ele, "bad base(qual score < 10) distribution" );
  	}

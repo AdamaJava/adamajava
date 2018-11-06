@@ -8,16 +8,12 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.TreeSet;
 import java.util.stream.Collectors;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.qcmg.common.model.ProfileType;
@@ -25,15 +21,10 @@ import org.qcmg.common.util.QprofilerXmlUtils;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qprofiler2.bam.BamSummarizer2;
 import org.qcmg.qprofiler2.bam.BamSummaryReport2;
-import org.qcmg.qprofiler2.bam.TagSummaryReportTest;
-import org.w3c.dom.DOMImplementation;
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SamReader;
-import junit.framework.Assert;
 
 public class CycleSummaryTest {
 	private static final String INPUT_FILE = "input.sam";
@@ -119,7 +110,6 @@ public class CycleSummaryTest {
 						  else if(cycleE.getAttribute("value").equals("151") ) //reverse  C convet to 'G'
 							  assertTrue( "0,0,1,0,0".equals(cycleE.getAttribute("counts"))   ) ;
 					}
-					
 				}									 
 		}		
 	}
@@ -204,25 +194,17 @@ public class CycleSummaryTest {
 	  				Element ele1 = eleList1.get(0);
 	  				assertTrue(ele1.getAttribute(QprofilerXmlUtils.value).equals("1")   ); 
 	  				assertTrue(ele1.getAttribute(QprofilerXmlUtils.count).equals("1") ); 
-	  				assertTrue(ele1.getAttribute(QprofilerXmlUtils.percent).equals("100.0%") );
-	 				 
+	  				assertTrue(ele1.getAttribute(QprofilerXmlUtils.percent).equals("100.0%") );	 				 
 	  			}
-	  		}			
-			
-			
+	  		}								
 		}
-
- 
 		
 	}
 	
 
-	private Element getSummarizedRoot() throws Exception{
-		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-		DocumentBuilder builder = factory.newDocumentBuilder();
-		DOMImplementation domImpl = builder.getDOMImplementation();		
-		Document doc = domImpl.createDocument(null,"qProfiler",null);
-		Element root = doc.getDocumentElement();					 
+	private Element getSummarizedRoot() throws Exception{		
+		
+		Element root = QprofilerXmlUtils.createRootElement( "qProfiler", null);
 
 		BamSummarizer2 bs = new BamSummarizer2();
 		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize(INPUT_FILE); 

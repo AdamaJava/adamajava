@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
@@ -198,7 +199,7 @@ public class SampleSummary {
 			if( null == totalAL) continue;						
 			
 			
-			Element reportE1  = XmlUtils.createMetricsNode( reportE, "variantType", type.name(), null );
+			Element reportE1  = XmlUtils.createMetricsNode( reportE,  type.name(), null );
 			String key =  type.name() + "dbSNP";
 			XmlUtils.outputValueNode(reportE1, "inDBSNP", summary .containsKey(key)? summary.get(key).get()+"" : "0" ); 
 			
@@ -212,16 +213,13 @@ public class SampleSummary {
 
 			QCMGAtomicLongArray array = summaryAD.get(type.name());
 			if(array != null) {
-				Map<String, AtomicLong> altFreq = new HashMap<>();					
+				Element cateEle = XmlUtils.createGroupNode(reportE1, "variantAltFrequency");
 				for( int i = 0; i < altBinSize; i ++  ){
 					long count =  array.get(i) ;
 					if( count <= 0 ) continue;
-					
-					String  bin = String.format("%.2f,%.2f", (double) i / altBinSize, (double) (i+1) / altBinSize  );
-					altFreq.put(bin, new AtomicLong(count) );
-				}		
-				XmlUtils.outputTallyGroup(reportE1 , "variantAltFrequency", type.name(), altFreq, true);			
-			}  
+					XmlUtils.outputBinNode( cateEle, (double) i / altBinSize, (double) (i+1) / altBinSize, new AtomicLong(count));					 
+				}						 		
+			}
 			
 			//titv
 			if(type.equals(SVTYPE.SNP)){

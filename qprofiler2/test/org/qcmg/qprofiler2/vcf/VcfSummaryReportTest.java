@@ -110,7 +110,7 @@ public class VcfSummaryReportTest {
 		Node nreport = getXmlParentNode( file ) ;
 				 	
 		Node child = nreport.getChildNodes().item(1);
-		assertTrue(child.getNodeName().equals( VcfSummaryReport.NodeSummary));		 
+		assertTrue(child.getNodeName().equals( ProfileType.VCF.getReportName()+"Metrics" ));		 
 		assertTrue(child.getChildNodes().getLength() == 4);
 		
 		//the common part of each sample level xml

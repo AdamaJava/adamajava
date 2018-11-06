@@ -75,7 +75,7 @@ public class QProfiler2 {
 	 * and ready for us to use.
 	 */
 	protected int engage() throws Exception {
-		Element root = QprofilerXmlUtils.createRootElement(null, "qProfiler", null);
+		Element root = QprofilerXmlUtils.createRootElement( "qProfiler", null);
 		
 		// Create new Summary object ready to hold our processing
 		QProfilerSummary2 sol = new QProfilerSummary2();
