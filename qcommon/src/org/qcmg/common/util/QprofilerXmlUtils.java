@@ -232,13 +232,36 @@ public class QprofilerXmlUtils {
 		
 	}
 	
-	public static Element createRootElement( String namespaceURI, String qualifiedName, DocumentType doctype) throws  ParserConfigurationException{
+
+	/**
+	 * create an top level element without appending to any URI, and it's child element if specified
+	 * @param parentName: name for top level element 
+	 * @param childName: The child name of the top element to be created or null.
+	 * @return the top level element
+	 * @throws ParserConfigurationException
+	 */
+	public static Element createRootElement(String parentName, String childName) throws ParserConfigurationException{
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 		DocumentBuilder builder = factory.newDocumentBuilder();
 		DOMImplementation domImpl = builder.getDOMImplementation();		
-		Document doc = domImpl.createDocument( namespaceURI,  qualifiedName,  doctype );
-		return doc.getDocumentElement();
+		Document doc = domImpl.createDocument(null, parentName, null);
+		Element root = doc.getDocumentElement();
+		
+		if(childName == null) return root;
+		
+		return QprofilerXmlUtils.createSubElement(root, childName);	 
 	}
+	
+//	public static Element createRootElement( String namespaceURI, String qualifiedName, DocumentType doctype) throws  ParserConfigurationException{
+//		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+//		DocumentBuilder builder = factory.newDocumentBuilder();
+//		DOMImplementation domImpl = builder.getDOMImplementation();		
+//		Document doc = domImpl.createDocument( namespaceURI,  qualifiedName,  doctype );
+//		return doc.getDocumentElement();
+//	}
+	
+	
+	
 
 	public static Element createSubElement(Element parent, String name) {
 		Element element = parent.getOwnerDocument().createElement(name);
