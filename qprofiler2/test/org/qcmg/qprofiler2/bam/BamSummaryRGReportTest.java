@@ -10,11 +10,13 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.qcmg.common.model.QCMGAtomicLongArray;
 import org.qcmg.common.util.QprofilerXmlUtils;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qprofiler2.summarise.ReadGroupSummary;
@@ -47,132 +49,244 @@ public class BamSummaryRGReportTest {
 		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize(INPUT_FILE); 
 		sr.toXml(root);		 
 	}
-	
+
 	
 	@Test
 	public void overlapRGTest() throws IOException, ParserConfigurationException {
-		createInputFile();
 		
 		String rgid = "1959N"; //here only test the pair from "1959N" 	
-		ReadGroupSummary rgSumm = new ReadGroupSummary(rgid);		
-		SamReader reader = SAMFileReaderFactory.createSAMFileReaderAsStream(new File( INPUT_FILE), null, null);
-		for (SAMRecord record : reader) {				
-			if(record.getReadGroup() == null || !record.getReadGroup().getId().equals( rgid)) continue;
-			rgSumm.parseRecord(record);			 	 
-		}						
-		reader.close();
-		
+		ReadGroupSummary rgSumm = createRGElement(rgid );
 		Element root = QprofilerXmlUtils.createRootElement("root",null);
 		rgSumm.readSummary2Xml(root);
-		rgSumm.pairSummary2Xml(root);		
 		//must be after readSummary2Xml(root)
 		assertTrue(rgSumm.getMaxBases() == 100 ); //2 * maxReadLength
-		
-		//debug
-		//QprofilerXmlUtils.asXmlText(root, "/Users/christix/Documents/Eclipse/data/qprofiler/unitTest.xml");
-					
-		Element readsEle = getChildElement(root, XmlUtils.metricsEle, "reads");
+		assertTrue(rgSumm.getCountedReads() == 2);
+							
+		Element readsEle = QprofilerXmlUtils.getChildElementByTagName(root, XmlUtils.metricsEle)		
+			.stream().filter(ele -> ele.getAttribute(XmlUtils.Sname).equals( "reads" )).findFirst().get() ;
+				
 		assertTrue(readsEle.getChildNodes().getLength() == 11);
 		List<Element> valueEles = QprofilerXmlUtils.getOffspringElementByTagName(readsEle, XmlUtils.Svalue);
 		assertTrue(valueEles.size() == 40);
 		
-		
-		for(Element vele: valueEles) {		
-			String pname = ((Element)vele.getParentNode()).getAttribute(XmlUtils.Sname);
-			
-			switch (pname) { // from <avaliableGroup ..>
-			case QprofilerXmlUtils.overlapBases:
-				/**
-				 * 	only look at tlen ==175>0
-				 * int mate_end = 175+10075=10250;
-				 * read_end = record.getAlignmentStart() + record.getReadLength() - lSoft=10112;
-				 * overlap = 10112-10100 = 12
-				 */
-				if(vele.getAttribute( XmlUtils.Sname) .equals("readCount"))
-					assertTrue(vele.getTextContent().equals("1"));
-				else if(vele.getAttribute( XmlUtils.Sname) .equals(QprofilerXmlUtils.basePercent))
-					assertTrue(vele.getTextContent().equals("12.00"));
-			break;
-			case QprofilerXmlUtils.softClippedBases:
-				if(vele.getAttribute( XmlUtils.Sname) .equals("readCount"))
-					assertTrue(vele.getTextContent().equals("1"));
-				else if(vele.getAttribute( XmlUtils.Sname) .equals(QprofilerXmlUtils.basePercent))
-					assertTrue(vele.getTextContent().equals("5.00"));
-			break;
-			case QprofilerXmlUtils.trimmedBase:
-				if(vele.getAttribute( XmlUtils.Sname) .equals("readCount"))
-					assertTrue(vele.getTextContent().equals("1"));
-				else if(vele.getAttribute( XmlUtils.Sname) .equals(QprofilerXmlUtils.basePercent))
-					assertTrue(vele.getTextContent().equals("13.00"));	
-			break;
-			case "reads":
-				if(vele.getAttribute( XmlUtils.Sname) .equals("maxLength"))
-					assertTrue(vele.getTextContent().equals("50"));
-				else if(vele.getAttribute( XmlUtils.Sname) .equals("averageLength"))
-					assertTrue(vele.getTextContent().equals("43"));
-				else if(vele.getAttribute( XmlUtils.Sname) .equals("lostBasesPercent"))
-					assertTrue(vele.getTextContent().equals("30.00"));				
-				break;
-			default:
-				if(vele.getAttribute( XmlUtils.Sname).toLowerCase().contains("percent"))
-					assertTrue(vele.getTextContent().equals("0.00"));	
-				else
-					assertTrue(vele.getTextContent().equals("0"));				
-			}		
-		}		
+		assertTrue( checkChildValue(readsEle,"maxLength", "50")); 
+		assertTrue( checkChildValue(readsEle,"averageLength", "43")); 		
+		assertTrue( checkChildValue(readsEle,"lostBasesPercent", "30.00"));  //(13+5+12)/100=30%
+				
+		checkfilteredReads(readsEle, new String[] {"2", "0", "0","0"});		
+		//counted reads is 9-1-1-1 =6							
+		checkDiscardReadStats(readsEle, "duplicateReads",0, 2 );
+		checkDiscardReadStats(readsEle, "unmappedReads", 0,2 );
+		checkDiscardReadStats(readsEle, "nonCanonicalPair", 0,2 );
+		//total counted read Base is 2*50=100
+		checkCountedReadStats(readsEle,  "trimmedBase", new String[] {"1","13","13","13","13","0"}, 2, 100, "13.00");
+		checkCountedReadStats(readsEle, "softClippedBases", new String[] {"1","5","5","5","5","0"}, 2, 100, "5.00");		
+		checkCountedReadStats(readsEle, "hardClippedBases",new String[] {"0","0","0","0","0","0"}, 2, 100, "0.00");
+		//12/100= 12.00%
+		checkCountedReadStats(readsEle, "overlapBases", new String[] {"1","12","12","12","12","0"}, 2, 100, "12.00");			 
+	
 	}
 	
-	@Test
-	public void summaryByRGTest() throws Exception{
-		createInputFile();
-
-		Element root = QprofilerXmlUtils.createRootElement("qProfiler",null);
+	
+	/**
+	 * 
+	 * @param parent: <sequenceMetrics Name="reads" count="9">
+	 * @param counts: array of {totalReads, supplementaryReads, secondaryReads, failedReads}
+	 */
+	private void checkfilteredReads(Element parent, String... counts) {
 		
-		BamSummarizer2 bs = new BamSummarizer2();
-		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize(INPUT_FILE); 
-		sr.toXml(root);
-		assertTrue(sr.getRecordsParsed()==12);
+		assertTrue( parent.getAttribute("count").equals(counts[0]) ); //9 reads in this read group
+		Element ele1 = QprofilerXmlUtils.getChildElementByTagName(parent, XmlUtils.variableGroupEle)
+				   .stream().filter(ele -> ele.getAttribute(XmlUtils.Sname).equals("filteredReads")).findFirst().get() ;
+				
+		assertTrue( checkChildValue(ele1,"supplementaryAlignmentCount", counts[1]));
+		assertTrue( checkChildValue(ele1,"secondaryAlignmentCount", counts[2]));
+		assertTrue( checkChildValue(ele1,"failedVendorQualityCount", counts[3]));	
+	}
+	
+	/**
+	 * 
+	 * @param parent: eg. <sequenceMetrics Name="reads" count="9">
+	 * @param name: variableGroup name
+	 * @param counts: read number for duplicate, unmapped or non-canonical
+	 * @param totalReads : total counted reads
+	 * @return
+	 */
+	private Element checkDiscardReadStats(Element parent, String name, int counts, int totalReads ){
+		    
+		   Element groupE =  QprofilerXmlUtils.getChildElementByTagName(parent, XmlUtils.variableGroupEle)
+				   .stream().filter(ele -> ele.getAttribute(XmlUtils.Sname).equals(name)).findFirst().get() ;
+		   
+			assertTrue( checkChildValue(groupE,"readCount", String.valueOf(counts)));		
+			String v = String.format("%,.2f",  100 *  (float)  counts / totalReads) ;		
+			assertTrue( checkChildValue(groupE,"basePercent", v));
+			return groupE;
+	}
+	
+	/**
+	 * 
+	 * @param parent: eg. <sequenceMetrics Name="reads" count="9">
+	 * @param name: variableGroup name
+	 * @param counts: read number for trimmed, softClipped, hardClipped or overlapped
+	 * @param totalReads: counted reads
+	 * @param totalBase: counted_reads * max_read_length
+	 * @param percent: lostbase/totalBase
+	 */
+	
+	private void checkCountedReadStats(Element parent, String nodeName, String[] counts, int totalReads, int totalBase, String percent ) {
+		 //check readCount
+		 
+	   Element groupE =  QprofilerXmlUtils.getChildElementByTagName(parent, XmlUtils.variableGroupEle)
+			   .stream().filter(ele -> ele.getAttribute(XmlUtils.Sname).equals(nodeName)).findFirst().get() ;
+	    assertTrue( checkChildValue(groupE,"readCount", counts[0]));	
+	   
+		assertTrue( checkChildValue(groupE,"min", counts[1] ));
+		assertTrue( checkChildValue(groupE,"max", counts[2] ));
+		assertTrue( checkChildValue(groupE,"mean", counts[3] ));
+		assertTrue( checkChildValue(groupE,"mode", counts[4] ));	
+		assertTrue( checkChildValue(groupE,"median", counts[5] ));	
+		assertTrue( checkChildValue(groupE,"basePercent", percent));
+		
+	}
+	
+	@Test 
+	public void badRGTest()throws Exception{
+		String rgid = QprofilerXmlUtils.UNKNOWN_READGROUP; //here only test the pair from "1959N" 	
+		ReadGroupSummary rgSumm = createRGElement(rgid );
+		Element root = QprofilerXmlUtils.createRootElement("root",null);
+		rgSumm.readSummary2Xml(root);
+						
+		//must be after readSummary2Xml(root)
+		assertTrue(rgSumm.getMaxBases() == 75 ); //0 * maxReadLength
+		assertTrue(rgSumm.getCountedReads() == 1); //counted reads is  1	
+		
 		
 		//debug
 		QprofilerXmlUtils.asXmlText(root, "/Users/christix/Documents/Eclipse/data/qprofiler/unitTest.xml");
+
 		
-	//	getChildElement( Element parent, String childEleName, String name )
+		root = QprofilerXmlUtils.getChildElementByTagName(root, XmlUtils.metricsEle)		
+				.stream().filter(ele -> ele.getAttribute(XmlUtils.Sname).equals( "reads" )).findFirst().get() ;					
+		assertTrue( checkChildValue(root,"maxLength", "0"));  
+		assertTrue( checkChildValue(root,"averageLength", "0")); 		
+		assertTrue( checkChildValue(root,"lostBasesPercent", "100.00")); 
+		
+		for(Element ele : QprofilerXmlUtils.getChildElementByTagName(root, XmlUtils.variableGroupEle) )
+			if(ele.getAttribute(XmlUtils.Sname).equals("nonCanonicalPair") ) {
+				assertTrue( checkChildValue(ele,"readCount", "1"));  
+				assertTrue( checkChildValue(ele,"basePercent",  "100.00"));
+			}else 
+				for( Element e :  QprofilerXmlUtils.getOffspringElementByTagName(ele, XmlUtils.Svalue) )
+					if(e.getAttribute(XmlUtils.Sname).toLowerCase().contains("percent"))
+						assertTrue(e.getTextContent().equals("0.00") );
+					else
+						assertTrue(e.getTextContent().equals("0") );
+			 
+		
+		
+	}
+	
+	@Test
+	public void bigRGTest() throws Exception{
+		
+		String rgid = "1959T"; //here only test the pair from "1959N" 	
+		ReadGroupSummary rgSumm = createRGElement(rgid );
+		Element root = QprofilerXmlUtils.createRootElement("root",null);
+		rgSumm.readSummary2Xml(root);
 				
-		List<Element> nodes = QprofilerXmlUtils.getOffspringElementByTagName(root, QprofilerXmlUtils.readGroup) ;	
-		assertTrue(nodes.size() == 3);
-		for( Element rgEle : nodes ) {
-			if( rgEle.getAttribute(XmlUtils.Srgid).equals("1959T")  ) {
-				
-				
-			}
-			
-			
-		}
+		//must be after readSummary2Xml(root)
+		assertTrue(rgSumm.getMaxBases() == 240 ); //2 * maxReadLength
+		assertTrue(rgSumm.getCountedReads() == 6); //counted reads is 9-1-1-1 =6		
+		
+		root = QprofilerXmlUtils.getChildElementByTagName(root, XmlUtils.metricsEle)		
+				.stream().filter(ele -> ele.getAttribute(XmlUtils.Sname).equals( "reads" )).findFirst().get() ;
+					
+		assertTrue( checkChildValue(root,"maxLength", "40")); //max read length is 40 for this group
+		
+		checkfilteredReads(root, new String[] {"9", "1", "1","1"});		
+		//counted reads is 9-1-1-1 =6							
+		checkDiscardReadStats(root, "duplicateReads",2, 6 );
+		checkDiscardReadStats(root, "unmappedReads", 1,6 );
+		checkDiscardReadStats(root, "nonCanonicalPair", 1,6 );
+		//total counted read Base is 6*40 = 240
+		checkCountedReadStats(root,  "trimmedBase", new String[] {"0","0","0","0","0","0"}, 6, 240, "0.00");
+		checkCountedReadStats(root, "softClippedBases", new String[] {"0","0","0","0","0","0"}, 6, 240, "0.00");
+		
+		//only count hardclip on counted read not from discard reads there are 2 reads with 13 base hard clipped 
+		//hard clip base is 13/(40*6) = 0.05416666 = 5.42%
+		checkCountedReadStats(root, "hardClippedBases", new String[] {"2","5","8","6","5","5"}, 6, 240, "5.42" );
+		//26/240=0.108333=10.83%
+		checkCountedReadStats(root, "overlapBases", new String[] {"1","26","26","26","26","0"}, 6, 240, "10.83" );			 
+
+	}
+	
+	private static boolean checkChildValue(Element parent,String name, String value) {
+		 List<Element> eles = QprofilerXmlUtils.getChildElementByTagName(parent, XmlUtils.Svalue);	
+		 Element ele = eles.stream().filter( e -> e.getAttribute(XmlUtils.Sname).equals(name)).findFirst().get() ;
+		 return ele.getTextContent().equals(value);		
+	}
+	
+	@Test
+	public void totalTest() throws Exception {
+		createInputFile();
+		//overall readgroup should manually  setMaxBases(long);
+		Element root = QprofilerXmlUtils.createRootElement("root",null);
+		BamSummarizer2 bs = new BamSummarizer2();
+		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize(INPUT_FILE); 
+		sr.toXml(root);	
+		
+		//debug
+		QprofilerXmlUtils.asXmlText(root, "/Users/christix/Documents/Eclipse/data/qprofiler/unitTest.xml");
+ 	 
+		root = QprofilerXmlUtils.getOffspringElementByTagName(root, "bamSummary").get(0);
+
+		root = QprofilerXmlUtils.getChildElementByTagName(root, XmlUtils.metricsEle)		
+				.stream().filter(ele -> ele.getAttribute(XmlUtils.Sname).equals( "reads" )).findFirst().get() ;
+	
+	
+		assertTrue(root.getChildNodes().getLength() == 14);
+		List<Element> valueEles = QprofilerXmlUtils.getOffspringElementByTagName(root, XmlUtils.Svalue);
+		assertTrue(valueEles.size() == 42); //less child under trimmed base on summary
+		
+		//totalBase: 6*40 + 2*50 + 75 = 415
+		//totalLostBase: 57.25% *40*6 + 75 + 30 = 245
+		assertTrue( checkChildValue(root,"maxLength", "75")); 
+		assertTrue( checkChildValue(root,"averageLength", "43")); 		
+		assertTrue( checkChildValue(root,"lostBasesPercent", "75.07"));  //???
+
 		
 		
-		assertTrue( node != null );	
 		
-		for(Element rgEle : QprofilerXmlUtils.getChildElementByTagName(node, QprofilerXmlUtils.readGroup) )
-			if(rgEle.getAttribute(XmlUtils.Srgid).equals( "1959N") ){
-				
-			}		
-//			 else if(ele.getAttribute("id").equals( "1959T") ){	
-//		 		Assert.assertEquals( QprofilerXmlUtils.getChildElement(ele, QprofilerXmlUtils.unmappedReads, 0).getAttribute(QprofilerXmlUtils.basePercent ), "16.67");	
-//		 		Assert.assertEquals( QprofilerXmlUtils.getChildElement(ele, QprofilerXmlUtils.nonCanonicalPair, 0).getAttribute(QprofilerXmlUtils.basePercent ), "16.67");
-//		 		Assert.assertEquals(  QprofilerXmlUtils.getChildElement(ele, QprofilerXmlUtils.duplicateReads, 0).getAttribute(QprofilerXmlUtils.basePercent ),  "33.33");			 		
-//		 		Assert.assertEquals(  QprofilerXmlUtils.getChildElement(ele, QprofilerXmlUtils.softClippedBases, 0).getAttribute(QprofilerXmlUtils.basePercent ), "0.00");
-//		 		Assert.assertEquals(  QprofilerXmlUtils.getChildElement(ele, QprofilerXmlUtils.hardClippedBases, 0).getAttribute(QprofilerXmlUtils.basePercent ), "5.42");
-//		 		Assert.assertEquals(  QprofilerXmlUtils.getChildElement(ele, QprofilerXmlUtils.trimmedBase, 0).getAttribute(QprofilerXmlUtils.basePercent ), "0.00");				 		
-//		 		Assert.assertEquals(  QprofilerXmlUtils.getChildElement(ele, QprofilerXmlUtils.overlapBases, 0).getAttribute(QprofilerXmlUtils.basePercent ), "10.83");				 		
-//		 		Assert.assertEquals(QprofilerXmlUtils.getChildElement(ele,QprofilerXmlUtils.All_READGROUP, 0).getAttribute("lostBasesPercent"), "82.92");				 		
-//		 		Assert.assertEquals(QprofilerXmlUtils.getChildElement(ele,QprofilerXmlUtils.All_READGROUP, 0).getAttribute("maxLength" ), "40");	
-//		 		Assert.assertEquals(QprofilerXmlUtils.getChildElement(ele,QprofilerXmlUtils.All_READGROUP, 0).getAttribute(QprofilerXmlUtils.readCount ), "6");											
-//			}else if(ele.getAttribute("id").equals( QprofilerXmlUtils.UNKNOWN_READGROUP) ){	
-//				
-//				
-//			}
+	}
+	
+	/**
+	 * parse read with specified rgid; it will parse read without readgroupid if the input rgid=QprofilerXmlUtils.UNKNOWN_READGROUP
+	 * it will parse every reads if the input rgid is null
+	 * @param rgid : readgroup id, allow QprofilerXmlUtils.UNKNOWN_READGROUP and null
+	 * @return
+	 * @throws IOException
+	 * @throws ParserConfigurationException
+	 */
+	private ReadGroupSummary createRGElement(String rgid) throws IOException, ParserConfigurationException{
+		createInputFile();
+		
+		ReadGroupSummary rgSumm = new ReadGroupSummary(rgid);		
+		SamReader reader = SAMFileReaderFactory.createSAMFileReaderAsStream(new File( INPUT_FILE), null, null);
+		for (SAMRecord record : reader) {	
+			if(rgid == null)
+				rgSumm.parseRecord(record);
+			else if( rgid.equals(QprofilerXmlUtils.UNKNOWN_READGROUP) && record.getReadGroup() == null )
+				rgSumm.parseRecord(record);	
+			else if(record.getReadGroup() != null && record.getReadGroup().getId().equals( rgid)) 
+				rgSumm.parseRecord(record);						 	 
+		}						
+		reader.close();
+		
+		ReadGroupSummary rgUnknown = new ReadGroupSummary( QprofilerXmlUtils.UNKNOWN_READGROUP);
 		
 		
+		return rgSumm;
+	}
 		
 //		for (int i = 0 ; i < summaryNodes.getLength() ; i++) 
 //			if(summaryNodes.item(i).getNodeName().equals( "BaseCount")){
@@ -226,7 +340,28 @@ public class BamSummaryRGReportTest {
 //				 		throw new Exception("unexpected read group appears on xml SUMMARY section");
 //				 }
 //			}
-		}
+	
+/*	
+	
+	List<Element> nodes = QprofilerXmlUtils.getOffspringElementByTagName(root, QprofilerXmlUtils.readGroup) ;	
+//	assertTrue(nodes.size() == 3);
+	int size = 0;
+	for( Element rgEle : nodes ) {
+		//debug
+		System.out.println((size++) + " th node is " + rgEle.getTagName() + "::"+ rgEle.getAttribute("RGID"));
+		
+		System.out.println(QprofilerXmlUtils.getChildElementByTagName(rgEle, XmlUtils.metricsEle).get(0).getAttributes().item(0));
+		
+		
+		Element ele = QprofilerXmlUtils.getChildElementByTagName(rgEle, XmlUtils.metricsEle)
+				   .stream().filter(e -> e.getAttribute(XmlUtils.Sname).equals("reads")).findFirst().get() ;
+ 
+		if( rgEle.getAttribute(XmlUtils.Srgid).equals("1959T")  ) {
+			
+		}	
+	}
+//		}
+ * */
 	
 	private static void createInputFile() throws IOException{
 		List<String> data = new ArrayList<String>();
@@ -319,26 +454,8 @@ public class BamSummaryRGReportTest {
 		}	
 	}
 	
-	/**
-	 * 
-	 * @param parent
-	 * @param childEleName: element name which will be returned
-	 * @param name: value for attribute Name
-	 * @return the child element which contain attribute Name="name"
-	 */
-	private static Element getChildElement(Element parent, String childEleName, String name) {
-		
-		   List<Element> eles = QprofilerXmlUtils.getChildElementByTagName(parent, childEleName);		
-		   return eles.stream().filter(ele -> ele.getAttribute(XmlUtils.Sname).equals(name)).findFirst().get() ;
-			
-		}
 	
-	private static boolean checkChildValue(Element parent,String name, String value) {
-		 List<Element> eles = QprofilerXmlUtils.getChildElementByTagName(parent, XmlUtils.Svalue);	
-		 Element ele = eles.stream().filter( e -> e.getAttribute(XmlUtils.Sname).equals(name)).findFirst().get() ;
-		 return ele.getTextContent().equals(value);
-		
-	}
+
 	
 }
 

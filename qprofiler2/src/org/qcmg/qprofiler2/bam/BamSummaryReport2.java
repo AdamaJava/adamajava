@@ -88,6 +88,7 @@ public class BamSummaryReport2 extends SummaryReport {
 	@SuppressWarnings("serial")
 	private final ConcurrentMap<String, ReadGroupSummary> rgSummaries = new ConcurrentHashMap<String, ReadGroupSummary>(){{  
 		put( QprofilerXmlUtils.All_READGROUP, new ReadGroupSummary( QprofilerXmlUtils.All_READGROUP) ); }}; 
+//	private final ConcurrentMap<String, ReadGroupSummary> rgSummaries = new ConcurrentHashMap<String, ReadGroupSummary>(){{  }}; 
 			
 	private final KmersSummary kmersSummary = new KmersSummary( KmersSummary.maxKmers ); //default use biggest mers length
  	private final TagSummaryReport2 tagReport = new TagSummaryReport2();
@@ -322,11 +323,13 @@ public class BamSummaryReport2 extends SummaryReport {
 		if(record.getReadGroup() != null && record.getReadGroup().getId() != null )
 			readGroup = record.getReadGroup().getReadGroupId();				
 		// check if record has its fail or duplicate flag set. if so, miss out some of the summaries
+		
+		
 		//anyway, add to summary and then add to it's readgroup
 		rgSummaries.get(QprofilerXmlUtils.All_READGROUP).parseRecord(record); 
-		ReadGroupSummary rgSumm = rgSummaries.computeIfAbsent(readGroup, k -> new ReadGroupSummary(k));
-		//ReadIDSummary idSumm = readIdSummary.computeIfAbsent( readGroup, (k) -> new ReadIDSummary() );
 		
+		
+		ReadGroupSummary rgSumm = rgSummaries.computeIfAbsent(readGroup, k -> new ReadGroupSummary(k));		
 		final int order = (!record.getReadPairedFlag())? 0: (record.getFirstOfPairFlag())? 1 : 2;			
 		if( rgSumm.parseRecord(record) ) {	
 			//QName			 		
@@ -458,17 +461,24 @@ public class BamSummaryReport2 extends SummaryReport {
 		//base	
 		long trimBases = 0;
 		long maxBases = 0; 	
+		long badReadsBases = 0;
 		Element rgsElement = QprofilerXmlUtils.createSubElement(summaryElement, XmlUtils.readGroupsEle);
 		
 		for(ReadGroupSummary summary: rgSummaries.values()) 
 			if(! summary.getReadGroupId().equals(QprofilerXmlUtils.All_READGROUP)){
+				
 				try {
 					Element rgEle = XmlUtils.createReadGroupNode(rgsElement, summary.getReadGroupId());
 					summary.readSummary2Xml(rgEle);
 					summary.pairSummary2Xml(rgEle); 
 					trimBases += summary.getTrimedBases();
-					maxBases += summary.getMaxReadLength() * summary.getCountedReads();	
+					maxBases += summary.getMaxBases();	
+					badReadsBases += summary.getbadBases();
 				} catch (Exception e) {
+					
+						//debug
+				System.out.println(summary.getReadGroupId());
+			
 					logger.warn(e.getMessage());		
 				}
 			}		
@@ -476,8 +486,16 @@ public class BamSummaryReport2 extends SummaryReport {
 		if( maxBases == 0) return; //incase there is no readGroup  in bam header
 		//overall group at last
 		ReadGroupSummary summary = rgSummaries.get(QprofilerXmlUtils.All_READGROUP);
-		summary.setMaxBases(maxBases);
-		summary.setTrimedBases(trimBases);
+		try {
+			summary.setMaxBases( maxBases );
+			summary.setTrimedBases(trimBases);
+			summary.setbadBases( badReadsBases );		
+		}catch(Exception e) {
+			//debug
+		System.out.println(summary.getReadGroupId());
+
+			System.err.println(e.getMessage());
+		}
 		summary.readSummary2Xml(summaryElement);	
 		summary.pairSummary2Xml(summaryElement);	
 	}

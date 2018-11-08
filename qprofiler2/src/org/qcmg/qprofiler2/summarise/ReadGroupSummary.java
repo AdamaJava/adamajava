@@ -79,11 +79,14 @@ public class ReadGroupSummary {
 	//for combined readgroups, since max read length maybe different
 	private long trimedBase = 0; 
 	private Long maxBases = null; 
-	
+	private Long badBases = null;  //duplicated, unmapped, non-canonical read base
+	private int maxReadLength = 0;
+
 	
 	private final String readGroupId; 		
 	public ReadGroupSummary(String rgId){	this.readGroupId = rgId; }
 	public String getReadGroupId(){return readGroupId; }
+	
 		
  	private class PairedRead {
  		private final String name;		
@@ -146,45 +149,64 @@ public class ReadGroupSummary {
 	 */
 	public boolean parseRecord( final SAMRecord record ){
 				
-		//record counts disregard good or not
+		//record input reads number
 		inputReadCounts.incrementAndGet();  
 				
-		if ( record.getSupplementaryAlignmentFlag())
+		//find discard reads and return false
+		if ( record.getSupplementaryAlignmentFlag()) {
 			supplementary.incrementAndGet();
-		else if( record.isSecondaryAlignment() ) 
+			return false;
+		}else if( record.isSecondaryAlignment() ) {
 			secondary.incrementAndGet();
-		else if(record.getReadFailsVendorQualityCheckFlag())
+			return false;
+		}else if(record.getReadFailsVendorQualityCheckFlag()) {
 			failedVendorQuality.incrementAndGet();
-		else if(record.getReadUnmappedFlag() )
+			return false;
+		} 
+			
+		//find the max read length	
+		if(record.getReadLength() > this.maxReadLength)
+			this.maxReadLength = record.getReadLength();	
+		//debug
+		System.out.println(readGroupId  + " maxReadLength is " + this.maxReadLength);
+		
+			
+		//find mapped badly reads and return false	
+		if(record.getReadUnmappedFlag() ) {
 			unmapped.incrementAndGet();
-		else if(record.getDuplicateReadFlag())
+			return false;
+		}else if(record.getDuplicateReadFlag()) {
 			duplicate.incrementAndGet();
-		else if(! PairedRecordUtils.isCanonical(  record) ){
+			return false;
+		}else if(! PairedRecordUtils.isCanonical(  record) ){
 			nonCanonical.incrementAndGet();					
-			parsePairing( record , null); 			
-		}else{
-			//parse clips
-			 int lHard = 0, lSoft = 0;
-			 for (CigarElement ce : record.getCigar().getCigarElements()) {
-				 if (ce.getOperator().equals(CigarOperator.HARD_CLIP)) {
-					 lHard += ce.getLength();
-				 } else if (ce.getOperator().equals(CigarOperator.SOFT_CLIP)) {
-					 lSoft += ce.getLength();
-				 }
-			 }
-			hardClip.increment(lHard);
-			softClip.increment(lSoft);
-			readLength.increment(record.getReadLength()+lHard);
-	 		
-			//parse overlap
-			int overlap = PairedRecordUtils.getOverlapBase(record);
-			if(overlap > 0) overlapBase.increment(overlap);
-			parsePairing( record , overlap); 				
-			return true; 			
+			parsePairing( record , null); 	
+			return false;
 		}
 		
-		//return false for bad reads
-		return false; 
+		//parse clips
+		 int lHard = 0, lSoft = 0;
+		 for (CigarElement ce : record.getCigar().getCigarElements()) {
+			 if (ce.getOperator().equals(CigarOperator.HARD_CLIP)) {
+				 lHard += ce.getLength();
+			 } else if (ce.getOperator().equals(CigarOperator.SOFT_CLIP)) {
+				 lSoft += ce.getLength();
+			 }
+		 }
+		hardClip.increment(lHard);
+		softClip.increment(lSoft);
+		//filtered reads and discard reads won't count the length
+		int lwithHard = record.getReadLength()+lHard;
+		readLength.increment(lwithHard);
+		if(lwithHard > this.maxReadLength)
+			this.maxReadLength = lwithHard;
+ 		
+		//parse overlap
+		int overlap = PairedRecordUtils.getOverlapBase(record);
+		if(overlap > 0) overlapBase.increment(overlap);
+		parsePairing( record , overlap); 				
+		return true; 			
+ 
 	}
 	
 	public QCMGAtomicLongArray getISizeCount(){return isize;}
@@ -256,113 +278,194 @@ public class ReadGroupSummary {
 	public long getNumNonCanonical(){ return nonCanonical.get(); }
 	public long getNumFailedVendorQuality(){ return failedVendorQuality.get(); }
 
-	public int getMaxReadLength(){
-		int  maxReadLength  = 0 ;		 
-		for (int i = 1 ; i < readLength.length() ; i++) 
-			if(readLength.get(i) > 0) maxReadLength = i;			
-		return maxReadLength; 
-	}
+//	public long getMaxReadLength(){ return this.maxReadLength; }
+//		int  maxReadLength  = 0 ;		 
+//		for (int i = 1 ; i < readLength.length() ; i++) 
+//			if(readLength.get(i) > 0) maxReadLength = i;			
+//		return maxReadLength; 
+//	}
+		
+//	/**
+//	 * 
+//	 * @return mapped reads number excludes duplicate and non-canonical paired reads
+//	 */
+//	public long getCountReads() {
+//		long totalgoodRead = 0 ;
+//		for (int i = 1 ; i < readLength.length() ; i++) 			 			 
+//			totalgoodRead += readLength.get(i);
+//		 return totalgoodRead;	
+//	}
 	
 	/**
 	 * total base of mapped reads excludes duplicate and noncanonial reads; including all clipped bases 
-	 * @return average of read length which is total base divided by read number
+	 * @return average of read length which is total base divided by counted read number
 	 */
 	public int getAveReadLength(){
-		long totalgoodRead = 0 , totalgoodBase = 0;
+		long totalRead = 0 , totalBase = 0;
 		for (int i = 1 ; i < readLength.length() ; i++){ 			 
-			totalgoodBase += i * readLength.get(i);
-			totalgoodRead += readLength.get(i);
+			totalBase += i * readLength.get(i);
+			totalRead += readLength.get(i);
 		}		
-		return ( totalgoodRead == 0 )? 0 :(int) (totalgoodBase / totalgoodRead);		
+		//return the length of good reads
+		if( totalRead > 0  ) return (int) (totalBase / totalRead);
+		
+		//return the length of bad reads	
+		return  this.maxReadLength ;	
 	}
-	
+	/**
+	 * Here only counted reads with trimmed base are reported. all base on secondary,duplicate, unmapped reads are discarded. 
+	 * @return 
+	 */
 	public long getTrimedBases(){
 		if( readGroupId.equals(QprofilerXmlUtils.All_READGROUP ))			 
 			return trimedBase ;
 		
 		//suppose original reads with same length for same read group
-		long totalgoodRead = 0 , totalgoodBase = 0;
+		long totalRead = 0 , totalBase = 0;
 		for (int i = 1 ; i < readLength.length() ; i++){ 			 
-			totalgoodBase += i * readLength.get(i);
-			totalgoodRead += readLength.get(i);
+			totalBase += i * readLength.get(i);
+			totalRead += readLength.get(i);
 		}		
-		return totalgoodRead * getMaxReadLength() - totalgoodBase;
+		return totalRead * this.maxReadLength - totalBase;
 	}
 	
-	public void setTrimedBases(long bases){ 
-		if( readGroupId.equals( QprofilerXmlUtils.All_READGROUP ) )			 
+	public void setTrimedBases(long bases) throws Exception{ 
+		if( !readGroupId.equals( QprofilerXmlUtils.All_READGROUP ) )			 
+	 		throw new Exception("can't change maxBases value, since readgoup is not " + QprofilerXmlUtils.All_READGROUP);
+		 
 			trimedBase = bases;
 	}
 	
-	public void setMaxBases( Long bases){
-		if(this.maxBases != null ) 
-			throw new IllegalStateException("Illegal attempt to set a Once value (this.maxBases) after it's value has already been set.");
-		
-		if( bases == null )
-			throw new IllegalArgumentException("Illegal attempt to pass null value to Once setter (this.maxBases).");
-		
-		//if( readGroupId.equals(XmlUtils.All_READGROUP ))			 	
+	/**
+	 * only for readgroup id == QprofilerXmlUtils.All_READGROUP)
+	 * @param bases
+	 * @throws Exception 
+	 */
+	public void setMaxBases( Long bases) throws Exception{
+		if( !readGroupId.equals( QprofilerXmlUtils.All_READGROUP ) )			 
+	 		throw new Exception("can't change maxBases value, since readgoup is not " + QprofilerXmlUtils.All_READGROUP);
+					 	
 		this.maxBases = bases;
 	}	
 	
-	public long getMaxBases(){		
-		if(null == this.maxBases || this.maxBases <= 0) 			 
-			throw new IllegalStateException("Illegal attempt to access unitialized or minus value (this.maxBases).");
+	public long getMaxBases(){	
 		
-        return this.maxBases;
+		if( readGroupId.equals(QprofilerXmlUtils.All_READGROUP ))			 
+			return this.maxBases;
+
+		return getCountedReads() * this.maxReadLength;         
 	}
+	
+	/**
+	 * 
+	 * @param bases: total base for reads  duplicated, unmapped, non-canonical paired 
+	 * @throws Exception
+	 */
+	public void setbadBases(long bases) throws Exception{
+		if( !readGroupId.equals( QprofilerXmlUtils.All_READGROUP ) )			 
+	 		throw new Exception("can't change badBases value, since readgoup is not " + QprofilerXmlUtils.All_READGROUP);
+					 	
+		this.badBases = bases;		
+	}
+	/**
+	 * 
+	 * @return read base of duplicated, unmapped, non-canonical paired 
+	 */
+	public long getbadBases(){	
+		
+		if( readGroupId.equals(QprofilerXmlUtils.All_READGROUP ))			 
+			return this.badBases;
+
+		return (duplicate.get() + unmapped.get() + nonCanonical.get()) * this.maxReadLength;      
+	}
+	
+//	public void setDuplicate_unmapped_nonCanonical_base(Long bases) {
+//		
+//		if(this.badBases != null ) 
+//			throw new IllegalStateException("Illegal attempt to set a Once value (this.maxBases) after it's value has already been set.");
+//		
+//		if( bases == null )
+//			throw new IllegalArgumentException("Illegal attempt to pass null value to Once setter (this.maxBases).");
+//		
+//		//if( readGroupId.equals(XmlUtils.All_READGROUP ))			 	
+//		this.maxBases = bases;
+//	}
+//	public long getDuplicate_unmapped_nonCanonical_base(){		
+//		
+//		if(null == this.badBases || this.badBases <= 0) 			 
+//			throw new IllegalStateException("Illegal attempt to access unitialized or minus value (this.maxBases).");
+//		
+//        return this.badBases;
+//	}
 	
 	/**
 	 * 
 	 * @return number of reads excluds discarded one. 
 	 */
-	public long getCountedReads() {
-		long totalgoodRead = 0  ;
+	public long getCountedReads() {				
+		long totalRead = 0  ;
 		for (int i = 1 ; i < readLength.length() ; i++)			 
-			totalgoodRead += readLength.get(i);
+			totalRead += readLength.get(i);
 		
-		return totalgoodRead + duplicate.get() + unmapped.get() + nonCanonical.get() ;		
+		return totalRead + duplicate.get() + unmapped.get() + nonCanonical.get() ;		
 	}
 	
 	public void readSummary2Xml(Element parent ) { 	 		
 				
 		//add to xml RG_Counts
 		Element rgElement = XmlUtils.createMetricsNode(parent,"reads", inputReadCounts.get());					
-		rgElement.setAttribute( QprofilerXmlUtils.count, inputReadCounts.get() + "" );
+//		rgElement.setAttribute( QprofilerXmlUtils.count, inputReadCounts.get() + "" );
 		//add discarded read Stats to readgroup summary		
-		Element ele = XmlUtils.createGroupNode(rgElement, QprofilerXmlUtils.filteredReads );
+		Element ele = XmlUtils.createGroupNode(rgElement, QprofilerXmlUtils.discardReads );
 		XmlUtils.outputValueNode(ele, "supplementaryAlignmentCount", (Long)supplementary.get());
 		XmlUtils.outputValueNode(ele, "secondaryAlignmentCount", secondary.get());
 		XmlUtils.outputValueNode(ele, "failedVendorQualityCount",failedVendorQuality.get()  );
 					
 		long noOfRecords = getCountedReads( );
-		double lostPercentage = 0; 
-		//add discarded reads
-		lostPercentage += addDiscardReadStats( rgElement, node_duplicate, duplicate, noOfRecords );
-		lostPercentage += addDiscardReadStats( rgElement, node_unmapped, unmapped, noOfRecords );		
-		lostPercentage += addDiscardReadStats( rgElement, node_nonCanonicalPair, nonCanonical, noOfRecords );			
-					
+		badReadStats( rgElement, node_duplicate, duplicate, noOfRecords );
+		badReadStats( rgElement, node_unmapped, unmapped, noOfRecords );		
+		badReadStats( rgElement, node_nonCanonicalPair, nonCanonical, noOfRecords );
+		
+		
+//		double lostPercentage = 0; 
+//		//add discarded reads
+//		lostPercentage += addDiscardReadStats( rgElement, node_duplicate, duplicate, noOfRecords );
+//		lostPercentage += addDiscardReadStats( rgElement, node_unmapped, unmapped, noOfRecords );		
+//		lostPercentage += addDiscardReadStats( rgElement, node_nonCanonicalPair, nonCanonical, noOfRecords );			
+		
+		
 		//add counted read stats to readgroup summary	
-		int  maxReadLength = getMaxReadLength();
-		if(! readGroupId.equals(QprofilerXmlUtils.All_READGROUP )){
-			setMaxBases( noOfRecords * maxReadLength );
-			lostPercentage += addCountedReadStats( rgElement, "trimmedBase", parseTrim(readLength, maxReadLength), maxBases);				
+//		int  maxReadLength = getMaxReadLength();	
+		long maxBase = getMaxBases();
+		long lostBase = getbadBases();
+		if( !readGroupId.equals(QprofilerXmlUtils.All_READGROUP) ){
+			lostBase += lostBaseStats( rgElement, "trimmedBase", parseTrim(readLength ), maxBase);				
 		}else{
-			double percentage = 100 * (double) getTrimedBases() / getMaxBases() ;
+			double percentage = ( maxBase == 0)? 0 : 100 * (double) getTrimedBases() / maxBase ;
 			ele =  XmlUtils.createGroupNode(rgElement, "trimmedBase");							
-			XmlUtils.outputValueNode(ele, QprofilerXmlUtils.basePercent,   percentage  );			
-			lostPercentage += percentage;	
+			XmlUtils.outputValueNode(ele, QprofilerXmlUtils.basePercent,   percentage  );
+			XmlUtils.outputValueNode(ele, "lostBases",  getTrimedBases() );
+			lostBase += getTrimedBases();
 		}
 					
-		lostPercentage += addCountedReadStats( rgElement, node_softClip, softClip, maxBases );
-		lostPercentage += addCountedReadStats( rgElement, node_hardClip, hardClip, maxBases );
-		lostPercentage += addCountedReadStats( rgElement, node_overlap, overlapBase, maxBases );
+		lostBase += lostBaseStats( rgElement, node_softClip, softClip, maxBase );
+		lostBase += lostBaseStats( rgElement, node_hardClip, hardClip, maxBase );
+		lostBase += lostBaseStats( rgElement, node_overlap, overlapBase, maxBase );
 		XmlUtils.addCommentChild((Element)rgElement.getLastChild(), "Only count overlaped base on one strand which have positive Tlen value!");
 		
 		//add overall information to current readgroup element
-		XmlUtils.outputValueNode(rgElement, "maxLength", maxReadLength  );
-		XmlUtils.outputValueNode(rgElement, "averageLength", getAveReadLength()  );
-		XmlUtils.outputValueNode(rgElement, "lostBasesPercent",  String.format("%.2f", lostPercentage ) );								
+		XmlUtils.outputValueNode(rgElement, "countedReads", noOfRecords, "reads includes duplicate, non-canonical paired and unmapped reads but excludes discared reads (failed, secondary and supplementary)");				
+		XmlUtils.outputValueNode(rgElement, "readMaxLength", maxReadLength  );
+		XmlUtils.outputValueNode(rgElement, "readAverageLength", getAveReadLength() );
+		XmlUtils.outputValueNode(rgElement, "maxBase", maxBase, "countedReads multipy goodReadMaxLength" );
+		XmlUtils.outputValueNode(rgElement, "lostBases",  lostBase, "duplicate, non-canonical paired and unmapped read base   + (hard/soft clipped ,trimmed and overlapped base)");
+		XmlUtils.outputValueNode(rgElement, "lostBasesPercent",  String.format("%.2f",(getMaxBases() == 0? 0: 100 * (double) lostBase / getMaxBases())  ) );	
+		
+		//debug
+		if(readGroupId.equals(QprofilerXmlUtils.All_READGROUP) ){
+			System.out.println(readGroupId + ", maxBases is " +  maxBases);
+			System.out.println(readGroupId + ", lostBases is " +  lostBase);
+		}
 	}	
 	
 	 	 
@@ -413,9 +516,19 @@ public class ReadGroupSummary {
 		XmlUtils.outputValueNode(ele, "basePercent",  percentage);
 		
 		return percentage; 			 	 
-	}		
+	}	
+	
+	private void badReadStats(Element parent, String nodeName, AtomicLong counts, long totalReads ){
+		Element ele = XmlUtils.createGroupNode(parent, nodeName);		
+		
+		XmlUtils.outputValueNode(ele, "readCount", counts.get());	
+		float percentage = 100 * (float) counts.get() / totalReads ;
+		XmlUtils.outputValueNode(ele, "basePercent",  percentage);
+		
+		 	 
+	}	
 			
-	private double addCountedReadStats(Element parent, String nodeName, QCMGAtomicLongArray array, long maxBases ){
+	private long lostBaseStats(Element parent, String nodeName, QCMGAtomicLongArray array, long maxBases ){
 		
 		//get the position of median
 		long bases = 0,counts = 0;
@@ -453,15 +566,16 @@ public class ReadGroupSummary {
 		XmlUtils.outputValueNode(ele, "mode", mode);	
 		XmlUtils.outputValueNode(ele, "median", medium);
 		XmlUtils.outputValueNode(ele, "readCount",counts);
+		XmlUtils.outputValueNode(ele, "lostBase",bases);
 		
 		//deal with boundary value, missing reads
 		double percentage = (maxBases == 0)? 0: 100 * (double) bases /  maxBases ;				
 		XmlUtils.outputValueNode(ele, QprofilerXmlUtils.basePercent,  String.format("%2.2f", percentage ));	
 									
-		return percentage; 
+		return bases; 
 	}
 	
-	private QCMGAtomicLongArray parseTrim( QCMGAtomicLongArray readLengthArray, int maxReadLength ) {
+	private QCMGAtomicLongArray parseTrim( QCMGAtomicLongArray readLengthArray ) {
 		QCMGAtomicLongArray array = new QCMGAtomicLongArray(  maxReadLength+1 ); 
 		for(int i = 1; i < maxReadLength; i ++) {
 			array.increment( maxReadLength - i, readLengthArray.get(i) );

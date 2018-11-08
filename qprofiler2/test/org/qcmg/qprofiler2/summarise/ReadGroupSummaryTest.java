@@ -227,7 +227,7 @@ public class ReadGroupSummaryTest {
 			String unmapped, String nonCanonical, String duplicate, String failed, String supplementary, String secondary){
 		
 		//nonCountedReads
-		NamedNodeMap attrs = rgNode.getElementsByTagName(QprofilerXmlUtils.filteredReads ).item(0).getAttributes();
+		NamedNodeMap attrs = rgNode.getElementsByTagName(QprofilerXmlUtils.discardReads ).item(0).getAttributes();
 		Assert.assertEquals(attrs.getNamedItem( "failedVendorQualityCount").getNodeValue(), failed);
 		Assert.assertEquals(attrs.getNamedItem( "secondaryAlignmentCount").getNodeValue(), secondary);
 		Assert.assertEquals(attrs.getNamedItem( "supplementaryAlignmentCount").getNodeValue(), supplementary);
