@@ -804,6 +804,7 @@ public class BamSummaryReport extends SummaryReport {
 				maxBases += summary.getMaxReadLength() * summary.getCountedReads(); 
 			}
 		}
+		
 		if (maxBases == 0) {
 			logger.info("maxBases = 0, number of rgs: " + rgSummaries.size());
 		}
