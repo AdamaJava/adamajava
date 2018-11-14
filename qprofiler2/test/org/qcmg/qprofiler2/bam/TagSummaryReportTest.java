@@ -1,6 +1,12 @@
 package org.qcmg.qprofiler2.bam;
 
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -16,7 +22,7 @@ import htsjdk.samtools.SAMTagUtil;
 import junit.framework.Assert;
 
 public class TagSummaryReportTest {
-
+	protected static final String INPUT_FILE = "input.sam";
 	final  SAMTagUtil STU = SAMTagUtil.getSingleton();
 	
 	@Test
@@ -50,7 +56,10 @@ public class TagSummaryReportTest {
 		report.parseTAGs(record);
 		
 		Element root = createRootElement("ROOT");			
-		report.toXml(root);		
+		report.toXml(root);	
+		
+		QprofilerXmlUtils.asXmlText(root, "/Users/christix/Documents/Eclipse/data/qprofiler/unitTest.xml");
+		
 		checkXml( root );
 	}	
 	
@@ -138,8 +147,35 @@ public class TagSummaryReportTest {
 		short [] orderedTags = {MD, ZF, RG, IH, NH,CM,SM,ZM,ZP, CQ, CS};
 		
 		for (short tag : orderedTags) 
-			System.out.println(STU.makeStringTag(tag) + " : " + tag);
-			
-		
+			System.out.println(STU.makeStringTag(tag) + " : " + tag);					
 	}
+	
+	private static void createMDerrFile() throws IOException{
+		List<String> data = new ArrayList<String>();
+        data.add("@HD	VN:1.0	SO:coordinate");
+        data.add("@RG	ID:1959T	SM:eBeads_20091110_CD	DS:rl=50");
+        data.add("@PG	ID:SOLID-GffToSam	VN:1.4.3");
+        data.add("@SQ	SN:chr1	LN:249250621");
+        data.add("@SQ	SN:chr11	LN:243199373");
+	
+	    data.add("HWI-ST1408:8	147	chrM	3085	255	28S96M2S	=	3021	-160	" + 
+	    "CNNNNNNNNNNNNNNTNNANNNNNNNNTANNCNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNCNNAAGNACANGAGAAATAAGNCCTACTTCACAAAGCGCCTNCCCCCGNAAANGANN	" + 
+	    "########################################################################F==#F==#EGGGGGGE<=#FE1GGGGGGGGGGGGGF=?#GGGE@=#E@?#<=##	" + 
+	    "MD:Z:1T0C1A0G0G0T0C0G0G0T0T0T0C0T0A0T0C0T0A0C0N0T0T0C0A0A0A0T0T0C0C0T0C0C0C0T0G0T0A1G0A3G3A10G19T6T3T2	NH:i:1	HI:i:1	NM:i:47	AS:i:169	RG:Z:1959T");
+	
+		try(BufferedWriter out = new BufferedWriter(new FileWriter(INPUT_FILE))){	    
+			for (String line : data)  out.write(line + "\n");	               
+		}	
+	}
+	
+	@Test
+	public void tempTest() throws Exception{
+		createMDerrFile();	
+		Element root = QprofilerXmlUtils.createRootElement("root",null);
+		BamSummarizer2 bs = new BamSummarizer2();
+		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize(INPUT_FILE); 
+		sr.toXml(root);	 
+	}	
+	
+	
 }

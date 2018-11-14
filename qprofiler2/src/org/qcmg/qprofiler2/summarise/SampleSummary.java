@@ -201,7 +201,7 @@ public class SampleSummary {
 			
 			Element reportE1  = XmlUtils.createMetricsNode( reportE,  type.name(), null );
 			String key =  type.name() + "dbSNP";
-			XmlUtils.outputValueNode(reportE1, "inDBSNP", summary .containsKey(key)? summary.get(key).get()+"" : "0" ); 
+			XmlUtils.outputValueNode(reportE1, "inDBSNP", summary .containsKey(key)? summary.get(key).get() : 0 ); 
 			
 			Map<String, AtomicLong> gtvalues = new HashMap<>();
 			for(String gt : orderedGTs) {

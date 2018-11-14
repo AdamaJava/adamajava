@@ -126,18 +126,14 @@ public class TagSummaryReport2 {
 	
 	private <T> void outputTag(Element ele, String tag,  Map<T, AtomicLong> tallys) {
 				
-		int size = tallys.size();
-	
-		ele = XmlUtils.createMetricsNode(ele, "tags:"+tag, size);
-		
+		int size = tallys.size();	
+		ele = XmlUtils.createMetricsNode(ele, "tags:"+tag, size);		
 		AtomicInteger no = new AtomicInteger();		
 		tallys.entrySet().removeIf( e-> no.incrementAndGet() > 100 );
 		boolean percent = (size >= 100)? false : true;
-
 		
 		String[] vs = tag.split(":");
-		XmlUtils.outputTallyGroup(ele, vs[0], null, tallys, percent);
-		
+		XmlUtils.outputTallyGroup(ele, vs[0], null, tallys, percent);		
 		if( size > 100) 			 
 			XmlUtils.addCommentChild(ele, "here only list top 100 tag values" );
 					

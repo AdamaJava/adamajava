@@ -446,9 +446,8 @@ public class BamSummaryReport2 extends SummaryReport {
 			point ++;
 		}
 		
-		long badReadNum = rgSummaries.get(QprofilerXmlUtils.All_READGROUP).getNumFailedVendorQuality() +
-				rgSummaries.get(QprofilerXmlUtils.All_READGROUP).getNumSecondary() + rgSummaries.get(QprofilerXmlUtils.All_READGROUP).getNumSupplementary();				
-		properties[3][0] = badReadNum + "";
+		//bad fastq reads such as failed, seconday, supplementary
+		properties[3][0] = rgSummaries.get(QprofilerXmlUtils.All_READGROUP).getDiscardreads()+"";
 		properties[3][1] = "Discarded reads (FailedVendorQuality, secondary, supplementary)";		
 		properties[4][0] = getRecordsParsed() + "";
 		properties[4][1] = "Total reads including discarded reads";
@@ -456,48 +455,41 @@ public class BamSummaryReport2 extends SummaryReport {
 		//overall readgroup 
 		Element metricsE = XmlUtils.createMetricsNode(summaryElement, "summary", getRecordsParsed());						
 		for(String[] property : properties) 
-			XmlUtils.outputValueNode(metricsE, property[1], property[0]);
+			XmlUtils.outputValueNode(metricsE, property[1], Integer.parseInt(property[0]));
 				
 		//base	
 		long trimBases = 0;
-		long maxBases = 0; 	
-		long badReadsBases = 0;
-		Element rgsElement = QprofilerXmlUtils.createSubElement(summaryElement, XmlUtils.readGroupsEle);
+		long maxBases = 0; 			
+		long duplicateBase = 0;
+		long unmappedBase = 0;
+		long noncanonicalBase = 0;
+		long trimRead = 0;
 		
+		Element rgsElement = QprofilerXmlUtils.createSubElement(summaryElement, XmlUtils.readGroupsEle);		
 		for(ReadGroupSummary summary: rgSummaries.values()) 
-			if(! summary.getReadGroupId().equals(QprofilerXmlUtils.All_READGROUP)){
-				
-				try {
+			if(! summary.getReadGroupId().equals(QprofilerXmlUtils.All_READGROUP)){				
+				try {										
 					Element rgEle = XmlUtils.createReadGroupNode(rgsElement, summary.getReadGroupId());
 					summary.readSummary2Xml(rgEle);
 					summary.pairSummary2Xml(rgEle); 
-					trimBases += summary.getTrimedBases();
-					maxBases += summary.getMaxBases();	
-					badReadsBases += summary.getbadBases();
-				} catch (Exception e) {
-					
-						//debug
-				System.out.println(summary.getReadGroupId());
-			
-					logger.warn(e.getMessage());		
-				}
-			}		
-		
-		if( maxBases == 0) return; //incase there is no readGroup  in bam header
+					maxBases += summary.getMaxBases();						
+					duplicateBase += summary.getDuplicateBase();
+					unmappedBase += summary.getUnmappedBase();
+					noncanonicalBase += summary.getnonCanonicalBase();
+					trimBases += summary.getTrimmedBase();
+					trimRead += summary.getTrimmedRead();
+				} catch (Exception e) {	logger.warn(e.getMessage()); }
+			}				
+
 		//overall group at last
 		ReadGroupSummary summary = rgSummaries.get(QprofilerXmlUtils.All_READGROUP);
-		try {
-			summary.setMaxBases( maxBases );
-			summary.setTrimedBases(trimBases);
-			summary.setbadBases( badReadsBases );		
+		try {	
+			summary.preSummary(maxBases , trimBases , trimRead, duplicateBase, unmappedBase, noncanonicalBase );	
+			summary.readSummary2Xml(summaryElement);	
+			summary.pairSummary2Xml(summaryElement);			
 		}catch(Exception e) {
-			//debug
-		System.out.println(summary.getReadGroupId());
-
 			System.err.println(e.getMessage());
 		}
-		summary.readSummary2Xml(summaryElement);	
-		summary.pairSummary2Xml(summaryElement);	
 	}
 		
 	void parseRNameAndPos( final String rName,  final int position, String rgid ){
