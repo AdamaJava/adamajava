@@ -14,7 +14,17 @@ dependencies {
 
 	compile 'com.github.samtools:htsjdk:2.14.1'
 	compile 'net.sf.jopt-simple:jopt-simple:4.6'
-	testCompile 'junit:junit:4.10'
+
+  	testImplementation 'org.junit.jupiter:junit-jupiter-api:5.1.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.1.0'
+    testRuntimeOnly 'org.junit.vintage:junit-vintage-engine:5.1.0'
+    
+}
+
+test {
+    useJUnitPlatform {
+        includeEngines 'junit-jupiter', 'junit-vintage'
+    }
 }
 
 task findbugs(dependsOn: build) << {
@@ -32,7 +42,7 @@ task findbugs(dependsOn: build) << {
 
 
 //create a fat jar file only for dispatching our qprofiler to outside
-/* 
+  
 task fatJar(type: Jar ) {
 	baseName = project.name + '-all'
 	version = "$version"
@@ -44,7 +54,7 @@ task fatJar(type: Jar ) {
 				   'Implementation-Version': "$version ($revision)",
 				   'Built-By': System.properties['user.name'],
 				   'Date': new java.util.Date().toString(),
-				   'Main-Class' : mainclass,
+				   'Main-Class' :mainClassName,
 				   'Class-Path' : "${baseName}-${version}.jar"
 				  
 	 }
@@ -52,6 +62,6 @@ task fatJar(type: Jar ) {
 }
 
 artifacts { archives fatJar }
-*/
+ 
  
 
