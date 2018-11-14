@@ -82,25 +82,23 @@ public class PairedRecordUtils {
      * @return value = 0 for non-paired read, reads with Tlen<= 0; return value < 0 if no overlap exists ; 
      * return value > 0 which is the number of overlapping
      */
-    public static int getOverlapBase(SAMRecord  record) {
-	 
+    public static int getOverlapBase(SAMRecord  record) {   		 
 		//to avoid double the ovelap base, we only delegate all reverse strand reads and Tlen <= 0
-    		int iSize = record.getInferredInsertSize();
+    	int iSize = record.getInferredInsertSize();
 		if( ! record.getReadPairedFlag() || iSize <= 0 )  return 0 ;	
 	 		
 		//get softClip
 		int lSoft = 0;
-		for (CigarElement ce : record.getCigar().getCigarElements()) {
-			if (ce.getOperator().equals(CigarOperator.SOFT_CLIP))  {
-				 lSoft += ce.getLength();
-			}	 
-		}
+		for (CigarElement ce : record.getCigar().getCigarElements())
+			if( ce.getOperator().equals(CigarOperator.SOFT_CLIP) ){ lSoft += ce.getLength(); }
+		 
 		//canonical read : readLength - softClip - TLEN 
 		if(record.getReadNegativeStrandFlag() == record.getMateNegativeStrandFlag()) {
 			return record.getReadLength() - lSoft - iSize;
 		} else {
 			//non-canocial reads: min(both read_end) - max(both read_start) 
 			int mate_end = iSize + record.getAlignmentStart();
+			//here we don't use record.getAlignmentEnd() but only look at read length since we only want to ignore mapping but only sequence base
 			int read_end = record.getAlignmentStart() + record.getReadLength() - lSoft;
 			return Math.min( read_end, mate_end ) - Math.max(record.getAlignmentStart(), record.getMateAlignmentStart() );
 		} 	

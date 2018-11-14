@@ -69,4 +69,35 @@ public class PairedRecordUtilTest {
 		
 	}
 
+	@Test
+	public void getOverlapBase() {
+		
+		//forward tlen > 0 
+		//here we ignor record.getAlignmentEnd(); assume there is no indel or skipping. 
+		//since we only want to know the overlapp cause during sample on library
+		SAMRecord record = new SAMRecord(null);
+		record.setAlignmentStart(10075);
+		record.setMateAlignmentStart(10100);
+		record.setFlags(99);
+		record.setCigarString("15M50N22M");
+		record.setInferredInsertSize(175);
+		record.setReadBases("ACCCTAACCCTAACCCTAACCNTAACCCTAACCCAAC".getBytes());
+		assertTrue( 12 == PairedRecordUtils.getOverlapBase(record));
+		
+		//without overlap
+		record.setMateAlignmentStart(10200);
+		record.setInferredInsertSize(275);
+		assertTrue( 0 > PairedRecordUtils.getOverlapBase(record));		
+ 		
+		//mate reverse tlen < = 0
+	    record.setAlignmentStart(10100);
+		record.setMateAlignmentStart(10075);
+		record.setFlags(147);
+		record.setCigarString("25M100D20M5S");
+		record.setInferredInsertSize(-175);
+		assertTrue( 0 == PairedRecordUtils.getOverlapBase(record));
+		record.setReadBases("ACCCTAACCCTAACCCTAACCNTAACCCTAACCCAACACCCTAACCCTAA".getBytes());
+		assertTrue( 0 == PairedRecordUtils.getOverlapBase(record));
+	}
+	 
 }
