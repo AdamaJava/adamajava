@@ -39,7 +39,7 @@ public class QprofilerXmlUtils {
 	public static final String FirstOfPair = "firstReadInPair"; 
 	public static final String SecondOfPair = "secondReadInPair";
 	public static final String mdCycle = "mdMismatchCycles";	
-	public static final String filteredReads = "filteredReads";
+	public static final String discardReads = "discardReads";
 	public static final String fileReads = "fileReads";
 	
 	public static final String duplicateReads = "duplicateReads";
@@ -68,7 +68,7 @@ public class QprofilerXmlUtils {
 	public static final String readCount = "readCount";
 	public static final String value = "value";
 	public static final String percent = "percent";
-	public static final String basePercent = "basePercent";
+	public static final String lostPercent = "basePercent";
 	public static final String possibles = "possibleValues";
 	public static final String start = "start";
 	public static final String end = "end";
