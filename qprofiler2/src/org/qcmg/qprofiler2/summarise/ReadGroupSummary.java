@@ -2,22 +2,14 @@ package org.qcmg.qprofiler2.summarise;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-
 import org.qcmg.common.model.QCMGAtomicLongArray;
-import org.qcmg.common.util.Pair;
 import org.qcmg.common.util.QprofilerXmlUtils;
 import org.qcmg.picard.util.PairedRecordUtils;
 import org.qcmg.qprofiler2.util.XmlUtils;
-import org.w3c.dom.Comment;
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Text;
-
 import htsjdk.samtools.CigarElement;
 import htsjdk.samtools.CigarOperator;
 import htsjdk.samtools.SAMRecord;
-//import javafx.util.Pair;
-import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 
 public class ReadGroupSummary {
 	//xml node name 	
@@ -38,8 +30,7 @@ public class ReadGroupSummary {
 	public final static String node_nonCanonicalPair = "nonCanonicalPair";
 	public final static String node_failedVendorQuality = "failedVendorQuality";
 	public final static String modal_isize = "modalSize";
-	
-	
+		
 	public final static String smin= "min";	
 	public final static String smax = "max";
 	public final static String smean = "mean"; 
@@ -51,7 +42,7 @@ public class ReadGroupSummary {
 	
 	//fixed value
 	public final static int bigTlenValue = 10000;
-	public final static int farTlenValue = 1500;
+	public final static int smallTlenValue = 1500;
 	public final static int middleTlenValue = 5000;
 	public final static int rangeGap = 100;
  			
@@ -87,7 +78,7 @@ public class ReadGroupSummary {
 	AtomicLong diffRef  = new AtomicLong();	
 	AtomicLong mateUnmapped  = new AtomicLong();	
 	AtomicLong diffRef_flag_p  = new AtomicLong();	
-	AtomicLong mateUnmapped_flag_p  = new AtomicLong();
+//	AtomicLong mateUnmapped_flag_p  = new AtomicLong();
 	
 	//for combined readgroups, since max read length maybe different
 	//below value will be reset on preSummary() inside readsSummary2Xml()
@@ -153,15 +144,13 @@ public class ReadGroupSummary {
 			if(record.getInferredInsertSize() >= bigTlenValue){
 				bigTlen.incrementAndGet();
 			}							
-			if( record.getInferredInsertSize() >= farTlenValue && record.getInferredInsertSize() < bigTlenValue ){
+			if( record.getInferredInsertSize() >= smallTlenValue && record.getInferredInsertSize() < bigTlenValue ){
 				far.incrementAndGet();		
 			}
-			if( record.getInferredInsertSize() < farTlenValue && overlapBase <= 0 ){
+			if( record.getInferredInsertSize() < smallTlenValue && overlapBase <= 0 ){
 				near.incrementAndGet();		
 			}			
-		}
-		
-		
+		}		
 		
 		/**
 		 * 	  <f5f3Pair tlenUnder1500="3528" TlenOver10000="102075" tlenBetween1500And10000="22027" overlapping="241" count="127871"/>
@@ -175,10 +164,11 @@ public class ReadGroupSummary {
 			
 			Element stats = XmlUtils.createGroupNode(parent, name);
 			XmlUtils.outputValueNode(stats, "overlapping", overlap.get());
+			stats.appendChild(stats.getOwnerDocument().createComment("below counts excluding overlapping pairs"));
 			XmlUtils.outputValueNode(stats, "tlenUnder1500", near.get() );		 
 			XmlUtils.outputValueNode(stats, "tlenOver10000", bigTlen.get()  );
 			XmlUtils.outputValueNode(stats, "tlenBetween1500And10000",far.get() );
-			XmlUtils.outputValueNode(stats, "totalCount", recordSum.get()  );
+			XmlUtils.outputValueNode(stats, "pairCount", recordSum.get()  );
 			
 		}
 		
@@ -261,51 +251,55 @@ public class ReadGroupSummary {
 	 */
 	public void parsePairing( SAMRecord record, Integer overlapBase ){
 		//skip non-paired reads
-		if( !record.getReadPairedFlag() )  return;  						
-				
-		//record iSize, first pair only to avoid double iSize		
-		if(record.getFirstOfPairFlag()){
-			int tLen = Math.abs(record.getInferredInsertSize());				
-			if( tLen > max_isize.get() ) 
-				max_isize.getAndSet( tLen );
-				//max_isize.getAndSet(record.getInferredInsertSize() );	
-			
-			//only record popular TLEN
-			if(tLen < middleTlenValue) isize.increment(tLen);
-
-			//record region
-			if(tLen > bigTlenValue )  tLen = bigTlenValue;					
-			isizeRange.increment( (tLen/rangeGap));
-		}
-				
-		//if first pair missing, it won't be count here but it still go to direction if tlen>0	
-	 	//so sometime the pairNum will be different to sum of f5f3, f3f5, inward and outwards
-		//to avoid double counts, we only count first of pair or the pair is first time appear(mate is unmapped), since all input record are mapped. 
-		if(record.getFirstOfPairFlag() || record.getMateUnmappedFlag()) 
-	 		pairNum.incrementAndGet();	
-				
-		//pair from different reference, only look at first pair to avoid double counts
+		if( !record.getReadPairedFlag() )  return;  
+		
+		//normally bam reads are mapped, if the mate is missing, we still count it to pair but no detailed pair information
 		if( record.getMateUnmappedFlag() ){
-			mateUnmapped.incrementAndGet();
-			if(record.getProperPairFlag()) mateUnmapped_flag_p.incrementAndGet();	
+			mateUnmapped.incrementAndGet(); 
+			pairNum.incrementAndGet();	
 			return; 
 		}
 		
+		//pair from different reference, only look at first pair to avoid double counts
 		if( !record.getReferenceName().equals( record.getMateReferenceName()) && record.getFirstOfPairFlag()){
-			diffRef.incrementAndGet();
-			if(record.getProperPairFlag()) diffRef_flag_p.incrementAndGet();					
+			diffRef.incrementAndGet();	
+			pairNum.incrementAndGet();			
 			return; 
 		}
 		
-		//only count reads with tlen > 0 to avoid double counts
-		if( record.getInferredInsertSize() <=  0) return; 
-		
-		//detailed pair inforamtion
-		if(overlapBase == null)	overlapBase = PairedRecordUtils.getOverlapBase( record);				 
+		//if tlen unvaliable count first of pair and then discard	
+		//pairNum >= sum(f3f5, f5f3,inward,outward, diffRef, mateUnmapped)	
+		if( record.getInferredInsertSize() == 0 && record.getFirstOfPairFlag()) { 
+			isize.increment(0);
+			pairNum.incrementAndGet();	
+			return;
+		}
+								
+		//discard remains reads with tlen minus or unvaliable 	
+		if( record.getInferredInsertSize() <= 0 ) { return; }
+				
+		//??? both pair with tlen >0 it is hardly happen, bad value but picard accept it
+		//proper pair with tlen > 0 disregard first or second of pair		
+		pairNum.incrementAndGet();	
+		//another reason is impossible to caculate overlapBase since getOverlapBase( record) return 0 if tlen<=0		
+		if(overlapBase == null)	 //non-canonical pair
+			overlapBase = PairedRecordUtils.getOverlapBase( record);		
 		if( PairedRecordUtils.isF5toF3(record)) f5f3.parse( record, overlapBase ); 		
-		if( PairedRecordUtils.isF3toF5(record)) f3f5.parse( record, overlapBase );	 
-		if( PairedRecordUtils.isOutward(record)) outward.parse( record, overlapBase );		
-		if( PairedRecordUtils.isInward(record)) inward.parse( record, overlapBase );
+		else if( PairedRecordUtils.isF3toF5(record)) f3f5.parse( record, overlapBase );	 
+		else if( PairedRecordUtils.isOutward(record)) outward.parse( record, overlapBase );		
+		else if( PairedRecordUtils.isInward(record)) inward.parse( record, overlapBase );
+				
+		
+		//record tlen
+		int tLen =  record.getInferredInsertSize();	
+		//record the maxmum tlen value
+		if( record.getInferredInsertSize() > max_isize.get() ) max_isize.getAndSet( tLen );		
+		if(tLen > bigTlenValue )  tLen = bigTlenValue+1;	//can't handle too big tlen
+		//record region for all pair  
+		isizeRange.increment( (tLen/rangeGap));			
+		//only record popular TLEN
+		if(tLen < middleTlenValue) isize.increment(tLen);
+			
  	}
 			
 	public long getDiscardreads() {return supplementary.get() + failedVendorQuality.get() + secondary.get();}
@@ -410,73 +404,88 @@ public class ReadGroupSummary {
 		lostBase += lostBaseStats( rgElement, node_overlap, overlapBase, this.maxBases );
 		XmlUtils.addCommentChild((Element)rgElement.getLastChild(), "Only count overlaped base on one strand which have positive Tlen value!");
 		
-		double lostPercent =  this.maxBases == 0? 0: 100 * (double) lostBase / this.maxBases ;
-		//add overall information to current readgroup element
-		XmlUtils.outputValueNode(rgElement, sreadCount,  this.noOfCountedReads);				
-		XmlUtils.outputValueNode(rgElement, "readMaxLength", this.maxReadLength  );
-		XmlUtils.outputValueNode(rgElement, "countedBase", this.maxBases  );		
-		XmlUtils.outputValueNode(rgElement, slostBase,  lostBase);			
-		XmlUtils.outputValueNode(rgElement, QprofilerXmlUtils.lostPercent, lostPercent );	
 		
 		//add comments
-		String comment = "readCount: include duplicate, non-canonical paired and unmapped reads but excludes discared reads (failed, secondary and supplementary);";
+		String comment = "readCount: include duplicate, non-canonical paired and unmapped reads but excludes discared reads (failed, secondary and supplementary); ";
 		if( !readGroupId.equals(QprofilerXmlUtils.All_READGROUP) ) {
 			comment += "countedBase: readCount multipy readMaxLength;";		
-			comment += slostBase + ": sum of duplicate, non-canonical paired, unmapped read base and (hard/soft clipped ,trimmed and overlapped base);";
+			comment += slostBase + ": sum of duplicate, non-canonical paired, unmapped read base and (hard/soft clipped ,trimmed and overlapped base); ";
 		}else {
-			comment += "countedBase: sum of countedBase from all read group;";
-			comment += slostBase + ": sum of lostBase from all read group;";
+			comment += "countedBase: sum of countedBase from all read group; ";
+			comment += slostBase + ": sum of lostBase from all read group; ";
 		}
 		comment += QprofilerXmlUtils.lostPercent + ": lostBases divded by countedBase;";
-
-		Text element = parent.getOwnerDocument().createCDATASection(comment);
-		parent.appendChild(element);
+		rgElement.appendChild( rgElement.getOwnerDocument().createComment( comment) );
+		
+		//add overall information to current readgroup element		
+		double lostPercent =  this.maxBases == 0? 0: 100 * (double) lostBase / this.maxBases ;		
+		XmlUtils.outputValueNode( rgElement, sreadCount,  this.noOfCountedReads );
+		XmlUtils.outputValueNode( rgElement, "readMaxLength", this.maxReadLength  );
+		XmlUtils.outputValueNode( rgElement, "countedBase", this.maxBases  );		
+		XmlUtils.outputValueNode( rgElement, slostBase,  lostBase);			
+		XmlUtils.outputValueNode( rgElement, QprofilerXmlUtils.lostPercent, lostPercent );			
 	}
 	 	 
 	public void pairSummary2Xml(Element parent) { 
 		//add to xml RG_Counts
 		Element ele =  XmlUtils.createMetricsNode(parent, "pairs", pairNum.get());
 
-		XmlUtils.outputValueNode(ele, "mateUnmappedPair", mateUnmapped.get() );
-		XmlUtils.outputValueNode(ele, "mateDifferentReferencePair", diffRef.get() );
-
-		Pair<Integer, Double> isize = getIsizeStats();
-		Element ele1 = XmlUtils.createGroupNode(ele, "tlen");	
-		XmlUtils.outputValueNode(ele1, modal_isize, isize.getLeft());
-		XmlUtils.outputValueNode(ele1, "stdDev", isize.getRight());
-
+		XmlUtils.outputValueNode( ele, "mateUnmappedPair", mateUnmapped.get() );
+		XmlUtils.outputValueNode( ele, "mateDifferentReferencePair", diffRef.get() );
+		
 		f5f3.toXml( ele );
 		f3f5.toXml( ele );
 		inward.toXml( ele );
-		outward.toXml( ele );			
-	}
-	
-	/**
-	 * 
-	 * @return a pair of isize modal value and std
-	 */
-	private Pair<Integer, Double> getIsizeStats(){
-				
-		//move isize summary here	 
-		Pair<Integer, Long> modal = new Pair<Integer, Long>(0, (long) 0);		
-		StandardDeviation stdDev = new StandardDeviation();
-		for(int i = 1; i < farTlenValue; i ++ ){
-			if(isize.get(i) > modal.getRight() ) 
-				modal = new Pair<Integer, Long>( i, isize.get(i) ); //= isize.get(i);
-			for(int j = 0; j < isize.get(i); j ++){
-				stdDev.increment(i);
-			}	
-		}
+		outward.toXml( ele );		
 
-		return new Pair<Integer, Double>(modal.getLeft() ,   stdDev.getResult());		
+		//output tlen refer to method lostBaseStats(...)
+		long sum = 0, no = 0;
+		for(int i = 1; i < middleTlenValue; i ++ ){
+			sum += isize.get(i) * i;
+			no += isize.get(i);
+		}		
+		int mean = (no == 0) ? 0: (int) (sum / no);
+		
+		int min = 0; //find the smallest non-zero value;
+		for(int i = 1; i < middleTlenValue; i ++)
+			if(isize.get(i) > 0){ min  = i; break; }
+		
+			 
+		int medium = 0;  	// to avoid isize.get(0) >= 0 since 1(counts)/2== 0(counts/2) == 0
+		for (int i = 1,  total1 = 0 ; i < middleTlenValue; i++) { 
+			if(( total1 += isize.get(i)) > no/2 ){ 
+				medium = i;  
+				break; }
+		}
+				
+		int mode = 0; //mode is the number of read which length is most popular
+		long highest = 0;
+		double sd = 0;
+		for (int i = 1 ; i < middleTlenValue ; i++) {	
+			//the number of isize.get(i) pairs have same isize value 
+			sd += Math.pow(( i - mean), 2) * isize.get(i) / no;
+			if(isize.get(i) > highest){
+				highest = isize.get(i);
+				mode = i; 
+			} 
+		}
+		double standardDeviation = Math.sqrt(sd);
+		
+		Element ele1 = XmlUtils.createGroupNode(ele, "tlen");
+		XmlUtils.outputValueNode(ele1, smax, this.max_isize.get());
+		ele1.appendChild(ele1.getOwnerDocument().createComment("below stats is based on tlen value < " + this.middleTlenValue));
+		XmlUtils.outputValueNode(ele1, smin, min);		
+		XmlUtils.outputValueNode(ele1, smean, mean);
+		XmlUtils.outputValueNode(ele1, smode, mode);	
+		XmlUtils.outputValueNode(ele1, smedian, medium);
+		XmlUtils.outputValueNode(ele1, "pairCount", no);		
+		XmlUtils.outputValueNode( ele1, "standardDeviation", (int)standardDeviation);			
 	}
 	
 	private void badReadStats(Element parent, String nodeName, long reads, long badBase ){
-		Element ele = XmlUtils.createGroupNode(parent, nodeName);		
-		
+		Element ele = XmlUtils.createGroupNode(parent, nodeName);				
 		XmlUtils.outputValueNode(ele, sreadCount, reads);	
-		XmlUtils.outputValueNode(ele, slostBase, badBase);
-		
+		XmlUtils.outputValueNode(ele, slostBase, badBase);		
 		double percentage = 100 * (double) badBase / this.maxBases ;
 		XmlUtils.outputValueNode(ele, "basePercent",  percentage);		 	 
 	}	
@@ -491,14 +500,12 @@ public class ReadGroupSummary {
 			bases += i * array.get(i);
 		}		
 		int mean = (counts == 0) ? 0: (int) (bases / counts);	
-		
-		
+				
 		 // to avoid aray.get(0) >= 0 since 1(counts)/2== 0(counts/2) == 0
 		long medium = 0;  	
 		for (int i = 1 ; i < arrayLength; i++) 
 			if(( medium += array.get(i)) > counts/2 ){ medium = i;  break; }
-		
-		
+				
 		int min = 0; //find the smallest non-zero value;
 		for(int i = 1; i < arrayLength; i ++)
 			if(array.get(i) > 0){ min  = i; break; }
@@ -506,8 +513,7 @@ public class ReadGroupSummary {
 		int max = 0; //find the biggest non-zero value;
 		for(int i = (int) (arrayLength -1); i > 0; i--)
 			if(array.get(i) > 0){ max = i; break;  }
-				
-		
+						
 		int mode = 0; //mode is the number of read which length is most popular
 		long highest = 0;
 		for (int i = 1 ; i < arrayLength ; i++) 					

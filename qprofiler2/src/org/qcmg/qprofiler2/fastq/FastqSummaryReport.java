@@ -26,6 +26,8 @@ import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Element;
 
 public class FastqSummaryReport extends SummaryReport {
+	public final static String badBasePerRead = QprofilerXmlUtils.badBase + "PerRead";
+	public final static String badBaseComment = "read with bad base(qual score < 10) distribution";
 	
 	private static final Character c = Character.MAX_VALUE;
 	private static final Integer i = Integer.MAX_VALUE;
@@ -63,10 +65,10 @@ public class FastqSummaryReport extends SummaryReport {
 		seqByCycle.toXml( element, QprofilerXmlUtils.seqBase, null, seqBaseCycle );	
 		
 		Element ele = XmlUtils.createMetricsNode( element, QprofilerXmlUtils.seqLength ,  null); 
-		XmlUtils.outputTallyGroup( ele, QprofilerXmlUtils.seqLength,null, seqByCycle.getLengthMapFromCycle(), true );	
+		XmlUtils.outputTallyGroup( ele, QprofilerXmlUtils.seqLength, seqByCycle.getLengthMapFromCycle(), true );	
 		
 		ele = XmlUtils.createMetricsNode( element, QprofilerXmlUtils.badBase, null);
-		XmlUtils.outputTallyGroup( ele, seqBaseCycle, null,  seqBadReadLineLengths.toMap(), true );	
+		XmlUtils.outputTallyGroup( ele, seqBaseCycle,   seqBadReadLineLengths.toMap(), true );	
 		XmlUtils.addCommentChild(ele, "bad base(. or N) distribution" );
 		
 		//1mers is same to baseByCycle
@@ -78,10 +80,10 @@ public class FastqSummaryReport extends SummaryReport {
 		element =   QprofilerXmlUtils.createSubElement(parent, QprofilerXmlUtils.qual);
 		qualByCycleInteger.toXml(element,QprofilerXmlUtils.qualBase ,null,   qualBaseCycle);
 		ele = XmlUtils.createMetricsNode( element, QprofilerXmlUtils.qualLength,null);
-		XmlUtils.outputTallyGroup( ele,  QprofilerXmlUtils.qualLength, null, qualByCycleInteger.getLengthMapFromCycle(), true );	
+		XmlUtils.outputTallyGroup( ele,  QprofilerXmlUtils.qualLength,  qualByCycleInteger.getLengthMapFromCycle(), true );	
 		ele = XmlUtils.createMetricsNode( element,  QprofilerXmlUtils.badBase, null);
-		XmlUtils.outputTallyGroup( ele,  qualBaseCycle, null, qualBadReadLineLengths.toMap(), true );
-		XmlUtils.addCommentChild(ele, "bad base(qual score < 10) distribution" );
+		XmlUtils.outputTallyGroup( ele,  badBasePerRead ,  qualBadReadLineLengths.toMap(), true );
+		XmlUtils.addCommentChild(ele, badBaseComment );
  	}
 	
 	/**

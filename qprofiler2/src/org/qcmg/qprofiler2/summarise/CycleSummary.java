@@ -319,7 +319,7 @@ public class CycleSummary<T> {
 	 * @param parent Element that the current objects xml representation will be added to
 	 * @param elementName String representing the name to be used when creating the element
 	 */	
-	public void toXml( Element parent, String metricName, String metricType, String cateName )
+	public void toXml( Element parent, String metricName, String metricType, String groupName )
 	{
 		//do nothing if no base detected
 		Set<T> possibles = getPossibleValues();
@@ -332,7 +332,7 @@ public class CycleSummary<T> {
 			
 			for(T t :  getPossibleValues()) 				 
 				tallys.put(  t,new AtomicLong(count(cycle, t)));			
-			XmlUtils.outputTallyGroup( ele, cateName, "baseCycle:"+cycle, tallys, false );	
+			XmlUtils.outputTallyGroup( ele, "baseOnCycle:"+cycle, tallys, false );	
 		}		
 	}	
 

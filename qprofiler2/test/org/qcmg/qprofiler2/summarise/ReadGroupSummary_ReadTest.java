@@ -78,7 +78,7 @@ public class ReadGroupSummary_ReadTest {
 				"ACCCTAACCCTAACCCTAACCNTAACCCTAACCCAAC	+3?GH##;9@D7HI5,:IIB\"!\"II##>II$$BIIC3	" +
 				"RG:Z:1959T	CS:Z:T11010020320310312010320010320013320012232201032202	CQ:Z:**:921$795*#5:;##):<5&'/=,,9(2*#453-'%(.2$6&39$+4'");
 				
-		//overlap
+		//overlap outward
 		//forward ??? why -59, it should be reverse.mate_end -forward.read_start
 		data.add("970_1290_1068	163	chr1	10176	3	22M50D10M8H	=	10167	26	" +
 				"AACCTAACCCTAACCCTAACCCTAACCCTAAC	I&&HII%%IIII4CII=4?IIF0B((!!7F@+	RG:Z:1959T	" +
@@ -185,7 +185,7 @@ public class ReadGroupSummary_ReadTest {
 		assertTrue( checkChildValue(groupE, QprofilerXmlUtils.lostPercent, percent));		
 	}
 
-	private static boolean checkChildValue(Element parent,String name, String value) {
+	static boolean checkChildValue(Element parent,String name, String value) {
 		 List<Element> eles = QprofilerXmlUtils.getChildElementByTagName(parent, XmlUtils.Svalue);	
 		 Element ele = eles.stream().filter( e -> e.getAttribute(XmlUtils.Sname).equals(name)).findFirst().get() ;
 		 return ele.getTextContent().equals(value);		
@@ -198,7 +198,7 @@ public class ReadGroupSummary_ReadTest {
 	 * @throws IOException
 	 * @throws ParserConfigurationException
 	 */
-	private ReadGroupSummary createRGElement(String rgid) throws IOException, ParserConfigurationException{
+	static ReadGroupSummary createRGElement(String rgid) throws IOException, ParserConfigurationException{
 		createInputFile();
 		
 		ReadGroupSummary rgSumm = new ReadGroupSummary(rgid);		
@@ -212,9 +212,6 @@ public class ReadGroupSummary_ReadTest {
 				rgSumm.parseRecord(record);						 	 
 		}						
 		reader.close();
-		
-		ReadGroupSummary rgUnknown = new ReadGroupSummary( QprofilerXmlUtils.UNKNOWN_READGROUP);
-		
 		
 		return rgSumm;
 	}

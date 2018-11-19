@@ -107,7 +107,7 @@ public class TagSummaryReport2 {
 					if (l <= 0)  continue;
 					mdRefAltLengthsString.put(CycleSummaryUtils.getStringFromInt(m), new AtomicLong(l));					 
 				}				
-				XmlUtils.outputTallyGroup(ele, "mutation", BamSummaryReport2.sourceName[order], mdRefAltLengthsString, true);				
+				XmlUtils.outputTallyGroup(ele, "mutationOn"+ BamSummaryReport2.sourceName[order], mdRefAltLengthsString, true);				
 			}		
 		}		
 		
@@ -133,7 +133,7 @@ public class TagSummaryReport2 {
 		boolean percent = (size >= 100)? false : true;
 		
 		String[] vs = tag.split(":");
-		XmlUtils.outputTallyGroup(ele, vs[0], null, tallys, percent);		
+		XmlUtils.outputTallyGroup(ele, vs[0], tallys, percent);		
 		if( size > 100) 			 
 			XmlUtils.addCommentChild(ele, "here only list top 100 tag values" );
 					

@@ -209,7 +209,7 @@ public class SampleSummary {
 				if(gtv != null) gtvalues.put(gt, gtv);				
 			}
 
-			XmlUtils.outputTallyGroup(reportE1 , "genotype", type.name(), gtvalues, true);
+			XmlUtils.outputTallyGroup(reportE1 , "genotype_"+type.name(), gtvalues, true);
 
 			QCMGAtomicLongArray array = summaryAD.get(type.name());
 			if(array != null) {
@@ -231,8 +231,11 @@ public class SampleSummary {
 					else if( tran.isTransversion() &&  summary.get(type.name()+tran.name()) != null)  					 
 						tvFreq.put(tran.toString(), summary.get(type.name()+tran.name()));		
 				
-				XmlUtils.outputTallyGroup(reportE1 , "substitution", "transtion",  tiFreq, true);
-				XmlUtils.outputTallyGroup(reportE1 , "substitution", "transversion",  tvFreq, true);
+//				XmlUtils.outputTallyGroup(reportE1 , "substitution", "transtion",  tiFreq, true);
+//				XmlUtils.outputTallyGroup(reportE1 , "substitution", "transversion",  tvFreq, true);
+				XmlUtils.outputTallyGroup(reportE1 ,  "transtion",  tiFreq, true);
+				XmlUtils.outputTallyGroup(reportE1 ,  "transversion",  tvFreq, true);
+
 			}			
 		
 

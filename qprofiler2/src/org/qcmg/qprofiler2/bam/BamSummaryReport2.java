@@ -41,6 +41,7 @@ import org.qcmg.common.model.QCMGAtomicLongArray;
 import org.qcmg.common.model.ReferenceNameComparator;
 import org.qcmg.common.util.QprofilerXmlUtils;
 import org.qcmg.common.util.SummaryByCycleUtils;
+import org.qcmg.qprofiler2.fastq.FastqSummaryReport;
 import org.qcmg.qprofiler2.report.SummaryReport;
 import org.qcmg.qprofiler2.summarise.CycleSummary;
 import org.qcmg.qprofiler2.summarise.KmersSummary;
@@ -193,7 +194,7 @@ public class BamSummaryReport2 extends SummaryReport {
 	
 	private void createFLAG(Element parent ){
 		 if ( null == flagBinaryCount || flagBinaryCount.isEmpty()) return;
-	     XmlUtils.outputTallyGroup( XmlUtils.createMetricsNode(parent,  null, null) , "FLAG", null, flagBinaryCount, true);		
+	     XmlUtils.outputTallyGroup( XmlUtils.createMetricsNode(parent,  null, null) , "FLAG", flagBinaryCount, true);		
 	}
  		
 	//<SEQ>
@@ -209,14 +210,14 @@ public class BamSummaryReport2 extends SummaryReport {
 		for(int order = 0; order < 3; order++) { 
 			if(seqByCycle[order].getLengthMapFromCycle().isEmpty()) continue;
 			Element ele = XmlUtils.createMetricsNode( parent, QprofilerXmlUtils.seqLength+"_"+sourceName[order], null); 
-			XmlUtils.outputTallyGroup( ele, QprofilerXmlUtils.seqLength , null, seqByCycle[order].getLengthMapFromCycle(), true );		
+			XmlUtils.outputTallyGroup( ele, QprofilerXmlUtils.seqLength ,  seqByCycle[order].getLengthMapFromCycle(), true );		
 		}
 		
 		//badBase:  
 		for(int order = 0; order < 3; order++) {
 			if( seqBadReadLineLengths[order].toMap().isEmpty() )continue;
 			Element ele = XmlUtils.createMetricsNode( parent, QprofilerXmlUtils.badBase+"_"+sourceName[order], null);
-			XmlUtils.outputTallyGroup( ele, seqBaseCycle ,null,  seqBadReadLineLengths[order].toMap(), true );
+			XmlUtils.outputTallyGroup( ele, seqBaseCycle ,  seqBadReadLineLengths[order].toMap(), true );
 			XmlUtils.addCommentChild(ele, "bad base(. or N) distribution" );
 		}
 				
@@ -236,14 +237,14 @@ public class BamSummaryReport2 extends SummaryReport {
 		for(int order = 0; order < 3; order++) {
 			if(qualByCycleInteger[order].getLengthMapFromCycle().isEmpty()) continue;
 			Element ele = XmlUtils.createMetricsNode( parent, "qualLength"+"_"+ sourceName[order],null);
-			XmlUtils.outputTallyGroup( ele, QprofilerXmlUtils.qualLength, null, qualByCycleInteger[order].getLengthMapFromCycle(), true );	
+			XmlUtils.outputTallyGroup( ele, QprofilerXmlUtils.qualLength,  qualByCycleInteger[order].getLengthMapFromCycle(), true );	
 		}
 		//  
 		for(int order = 0; order < 3; order++) { 
 			if( qualBadReadLineLengths[order].toMap().isEmpty() )continue;
 			Element ele = XmlUtils.createMetricsNode( parent, QprofilerXmlUtils.badBase+"_"+sourceName[order], null);
-			XmlUtils.outputTallyGroup( ele, qualBaseCycle, null, qualBadReadLineLengths[order].toMap(), true );
-			XmlUtils.addCommentChild(ele, "bad base(qual score < 10) distribution" );
+			XmlUtils.outputTallyGroup( ele, FastqSummaryReport.badBasePerRead, qualBadReadLineLengths[order].toMap(), true );
+			XmlUtils.addCommentChild(ele, FastqSummaryReport.badBaseComment );
 		}
 	}	
 	
@@ -253,23 +254,31 @@ public class BamSummaryReport2 extends SummaryReport {
         readGroups.remove(QprofilerXmlUtils.All_READGROUP);       
         parent = QprofilerXmlUtils.createSubElement(parent, XmlUtils.readGroupsEle );        
         for(String rg : readGroups ) {
-        	QCMGAtomicLongArray iarray= rgSummaries.get(rg).getISizeCount();
-        	
+        	//output isize
+        	QCMGAtomicLongArray iarray= rgSummaries.get(rg).getISizeCount();       	
         	Map<String, AtomicLong> tallys =  iarray.toMap().entrySet().stream().collect(Collectors.toMap(e -> String.valueOf( e.getKey()  ), Map.Entry::getValue));
         	Element ele = XmlUtils.createMetricsNode( XmlUtils.createReadGroupNode(parent, rg), null, null);
-        	XmlUtils.outputTallyGroup( ele,  "tLen", null, tallys, true );   
+        	XmlUtils.outputTallyGroup( ele,  "tLen",  tallys, false );  
+        	
+        	//output isize range
+        	iarray= rgSummaries.get(rg).getISizeRangeCount();
+        	Element cateEle = XmlUtils.createGroupNode(ele, "tLenByBin");
+        	for(int i = 0; i < iarray.length(); i ++) {
+        		if(iarray.get(i) == 0) continue;
+        		int start = i * ReadGroupSummary.rangeGap + 1;
+        		int end = (i+1)* ReadGroupSummary.rangeGap;
+        		XmlUtils.outputBinNode( cateEle, start, end, iarray.get(i) );
+        	}
         }	
 	}			
 	private void createCigar(Element parent) {
 		Map<String, AtomicLong> tallys = new TreeMap<>(new CigarStringComparator());
 		tallys.putAll(	cigarValuesCount);
-		XmlUtils.outputTallyGroup( XmlUtils.createMetricsNode(parent, null, null), "CIGAR",null, tallys, true );		
+		XmlUtils.outputTallyGroup( XmlUtils.createMetricsNode(parent, null, null), "CIGAR", tallys, true );		
 	}	
 	private void createRNAME(Element parent){		
-		if (null == samSeqDictionary) return;
-				
-		Map<String, AtomicLong> tallys = new TreeMap<>(new ReferenceNameComparator());
-		
+		if (null == samSeqDictionary) return;				
+		Map<String, AtomicLong> tallys = new TreeMap<>(new ReferenceNameComparator());		
 		for(String chr : rNamePosition.keySet()) {
 			PositionSummary posSum = rNamePosition.get(chr);
 			if( posSum == null ) continue;
@@ -277,7 +286,7 @@ public class BamSummaryReport2 extends SummaryReport {
 			if(cov > 0)
 				tallys.put(chr, new AtomicLong(cov));
 		}
-		XmlUtils.outputTallyGroup( XmlUtils.createMetricsNode(parent, null, null), "RNAME",null, tallys, true );	
+		XmlUtils.outputTallyGroup( XmlUtils.createMetricsNode(parent, null, null), "RNAME", tallys, true );
 	}	
 	private void createMAPQ(Element parent) {				
 		//,  sourceName, mapQualityLengths
@@ -292,7 +301,7 @@ public class BamSummaryReport2 extends SummaryReport {
 				if(mapQualityLengths[j].get(i) > 0)
 					tallys.put( i, new AtomicLong(mapQualityLengths[j].get(i)));
 			
-			XmlUtils.outputTallyGroup(ele, "MAPQ", sourceName[j], tallys, true);			
+			XmlUtils.outputTallyGroup(ele, "mapqOn"+sourceName[j], tallys, true);			
 		}	 
 	}	
 	private void createPOS(Element parent){

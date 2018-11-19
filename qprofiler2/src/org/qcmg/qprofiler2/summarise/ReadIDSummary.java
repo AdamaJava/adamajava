@@ -119,28 +119,25 @@ public class ReadIDSummary {
 	
 	public long getInputReadNumber() {return inputNo.get();}
 		
-	public void toXml(Element element){
-		
+	public void toXml(Element element){		
 		// header breakdown		
-		XmlUtils.outputTallyGroup( element, "InValidReadName", null, invalidId, false );
-		XmlUtils.outputTallyGroup( element,  "INSTRUMENTS",  null,instruments , false );
-		XmlUtils.outputTallyGroup( element,  "RUN_IDS",  null,runIds , false );
-		XmlUtils.outputTallyGroup( element,  "FLOW_CELL_IDS", null, flowCellIds , false );
-		XmlUtils.outputTallyGroup( element,  "FLOW_CELL_LANES", null,flowCellLanes , false );
-		XmlUtils.outputTallyGroup( element,  "TILE_NUMBERS",null, tileNumbers , false );
-		XmlUtils.outputTallyGroup( element,  "PAIR_INFO",  null,pairs, false );
-		XmlUtils.outputTallyGroup( element,  "FILTER_INFO", null, getFiltered() , false );
-		XmlUtils.outputTallyGroup( element,  "INDEXES",  null,indexes , false );		
+		XmlUtils.outputTallyGroup( element, "InValidReadName", invalidId, false );
+		XmlUtils.outputTallyGroup( element,  "INSTRUMENTS", instruments , false );
+		XmlUtils.outputTallyGroup( element,  "RUN_IDS", runIds , false );
+		XmlUtils.outputTallyGroup( element,  "FLOW_CELL_IDS", flowCellIds , false );
+		XmlUtils.outputTallyGroup( element,  "FLOW_CELL_LANES", flowCellLanes , false );
+		XmlUtils.outputTallyGroup( element,  "TILE_NUMBERS", tileNumbers , false );
+		XmlUtils.outputTallyGroup( element,  "PAIR_INFO", pairs, false );
+		XmlUtils.outputTallyGroup( element,  "FILTER_INFO", getFiltered() , false );
+		XmlUtils.outputTallyGroup( element,  "INDEXES", indexes , false );		
 	}
-	
-		
+			
 	public ConcurrentMap<String, AtomicLong> getInstrumentsMap(){ return instruments;	}	
 	public ConcurrentMap<String, AtomicLong> getRunIdsMap(){ return runIds; }	
 	public ConcurrentMap<String, AtomicLong> getFlowCellIdsMap(){ return flowCellIds; }
 	public ConcurrentMap<String, AtomicLong> getFlowCellLanesMap(){ return flowCellLanes; }
 	public ConcurrentMap<String, AtomicLong> getTileNumbersMap(){	return tileNumbers; }
 	public ConcurrentMap<String, AtomicLong> getIndexesMap(){ return indexes; }
-
 
 	public Map<String, AtomicLong> getFiltered(){
 		Map<String, AtomicLong> filtered = new HashMap<>();

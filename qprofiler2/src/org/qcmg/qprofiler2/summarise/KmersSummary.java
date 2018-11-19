@@ -232,7 +232,7 @@ public class KmersSummary {
 					if( c > 0 )
 						map.put(mer, new AtomicLong(c));					
 				}
-				XmlUtils.outputTallyGroup( ele, "kmers", "baseCycle:"+i, map, false );					
+				XmlUtils.outputTallyGroup( ele, "kmersOnCycle_"+i, map, false );					
 			}	
 			if(	Math.pow(4, klength) > maxNo )
 				XmlUtils.addCommentChild(ele, "here only list top "+ maxNo + " most popular kmers sequence for each Base Cycle" );
