@@ -76,14 +76,16 @@ public class FastqSummaryReport extends SummaryReport {
 			kmersSummary.toXml(element,i);	
 				
 		//QUAL
-		final String qualBaseCycle = QprofilerXmlUtils.qualBase + QprofilerXmlUtils.cycle; 	
-		element =   QprofilerXmlUtils.createSubElement(parent, QprofilerXmlUtils.qual);
-		qualByCycleInteger.toXml(element,QprofilerXmlUtils.qualBase ,null,   qualBaseCycle);
-		ele = XmlUtils.createMetricsNode( element, QprofilerXmlUtils.qualLength,null);
-		XmlUtils.outputTallyGroup( ele,  QprofilerXmlUtils.qualLength,  qualByCycleInteger.getLengthMapFromCycle(), true );	
-		ele = XmlUtils.createMetricsNode( element,  QprofilerXmlUtils.badBase, null);
-		XmlUtils.outputTallyGroup( ele,  badBasePerRead ,  qualBadReadLineLengths.toMap(), true );
+		final String qualBaseCycle = QprofilerXmlUtils.qualBase + QprofilerXmlUtils.cycle ; 	
+		element =   QprofilerXmlUtils.createSubElement(parent, QprofilerXmlUtils.qual) ;
+		qualByCycleInteger.toXml(element,QprofilerXmlUtils.qualBase ,null,   qualBaseCycle) ;
+		ele = XmlUtils.createMetricsNode( element, QprofilerXmlUtils.qualLength,null) ;
+		XmlUtils.outputTallyGroup( ele,  QprofilerXmlUtils.qualLength,  qualByCycleInteger.getLengthMapFromCycle(), true ) ;	
+		ele = XmlUtils.createMetricsNode( element,  QprofilerXmlUtils.badBase, null) ;
+		XmlUtils.outputTallyGroup( ele,  badBasePerRead ,  qualBadReadLineLengths.toMap(), false ) ;
 		XmlUtils.addCommentChild(ele, badBaseComment );
+		
+		
  	}
 	
 	/**

@@ -332,7 +332,7 @@ public class CycleSummary<T> {
 			
 			for(T t :  getPossibleValues()) 				 
 				tallys.put(  t,new AtomicLong(count(cycle, t)));			
-			XmlUtils.outputTallyGroup( ele, "baseOnCycle:"+cycle, tallys, false );	
+			XmlUtils.outputTallyGroup( ele, "baseOnCycle_"+cycle, tallys, false );	
 		}		
 	}	
 
@@ -352,7 +352,7 @@ public class CycleSummary<T> {
 			if(previousTally == -1) previousTally = sum;
 			if (sum != previousTally) {
 				// record one cycle advance if base counts difference
-				//previousTally - count = the number of short reads				
+				// previousTally - count = the number of short reads				
 				map.put(cycle-1, new AtomicLong(previousTally - sum ));
 				previousTally = sum;
 			}

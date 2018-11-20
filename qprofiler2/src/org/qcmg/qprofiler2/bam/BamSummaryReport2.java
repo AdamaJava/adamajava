@@ -168,10 +168,9 @@ public class BamSummaryReport2 extends SummaryReport {
 		//create bamMertrics
 		bamReportElement = QprofilerXmlUtils.createSubElement( bamReportElement, ProfileType.BAM.getReportName()+ XmlUtils.metrics );
 		createQNAME( QprofilerXmlUtils.createSubElement( bamReportElement, QprofilerXmlUtils.qname ));	
-		createFLAG( QprofilerXmlUtils.createSubElement( bamReportElement, QprofilerXmlUtils.flag)  );
-		
+		createFLAG( QprofilerXmlUtils.createSubElement( bamReportElement, QprofilerXmlUtils.flag )  );		
 		createRNAME( QprofilerXmlUtils.createSubElement( bamReportElement, QprofilerXmlUtils.rname  )); //it is same to RNEXT
-		createPOS( QprofilerXmlUtils.createSubElement( bamReportElement,QprofilerXmlUtils.pos  ));	
+		createPOS( QprofilerXmlUtils.createSubElement( bamReportElement,QprofilerXmlUtils.pos ));	
 		createMAPQ( QprofilerXmlUtils.createSubElement( bamReportElement, QprofilerXmlUtils.mapq ));	
 		createCigar( QprofilerXmlUtils.createSubElement( bamReportElement,QprofilerXmlUtils.cigar ));
 		createTLen( QprofilerXmlUtils.createSubElement( bamReportElement, QprofilerXmlUtils.tlen ));

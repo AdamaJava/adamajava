@@ -30,6 +30,7 @@ public class ReadIDSummary {
 	ConcurrentMap<String, AtomicLong> indexes = new ConcurrentHashMap<>();	
 	
 	AtomicLong inputNo  = new AtomicLong();
+	//("@ERR091788.1 HSQ955_155:2:1101:1473:2037/1", 
 	
 	/**
 	 * analysis readId, record instrument, runId, flowCellId, flowCellLanes, titleNumber etc
@@ -49,10 +50,8 @@ public class ReadIDSummary {
 	public void parseReadId(String readId) {
 		
 		inputNo.incrementAndGet();
-		try {
-		
-			if ( !readId.contains(":")) { parseBgiReads(readId); return; };	
-			
+		try {		
+			if ( !readId.contains(":")) { parseBgiReads(readId); return; };				
 			String [] headerDetails = TabTokenizer.tokenize( readId, ':' );
 			if (null == headerDetails ||  headerDetails.length <= 0)  return;
 					
@@ -68,7 +67,7 @@ public class ReadIDSummary {
 			updateMap(instruments, headerDetails[0]);
 			
 			// run Id
-			if (headerLength > 1)  updateMap(runIds, headerDetails[1]);
+			if (headerLength > 1) updateMap(runIds, headerDetails[1]);
 			 	
 			// flow cell id
 			if (headerLength > 2) updateMap(flowCellIds, headerDetails[2] );
@@ -78,13 +77,10 @@ public class ReadIDSummary {
 			 	
 			// tile numbers within flow cell lane
 			if (headerLength > 4) updateMap(tileNumbers, headerDetails[4]);
-				
-	
-		 	
+						 	
 			// skip x, y coords for now
 			if (headerLength > 6) getPairInfo(headerDetails[6]); // this may contain member of pair information
-				
-				
+								
 			// filtered
 			if (headerLength > 7) {
 				String key = headerDetails[7];
@@ -95,10 +91,8 @@ public class ReadIDSummary {
 			// indexes
 			if (headerLength > 9)  updateMap(indexes, headerDetails[9]);
 		}catch( Exception e) {
-			updateMap(invalidId, "ReadNameInValid");
-		 
-		}
-				
+			updateMap(invalidId, "ReadNameInValid");		 
+		}				
 	}
 
 	
@@ -123,8 +117,8 @@ public class ReadIDSummary {
 		// header breakdown		
 		XmlUtils.outputTallyGroup( element, "InValidReadName", invalidId, false );
 		XmlUtils.outputTallyGroup( element,  "INSTRUMENTS", instruments , false );
-		XmlUtils.outputTallyGroup( element,  "RUN_IDS", runIds , false );
 		XmlUtils.outputTallyGroup( element,  "FLOW_CELL_IDS", flowCellIds , false );
+		XmlUtils.outputTallyGroup( element,  "RUN_IDS", runIds , false );
 		XmlUtils.outputTallyGroup( element,  "FLOW_CELL_LANES", flowCellLanes , false );
 		XmlUtils.outputTallyGroup( element,  "TILE_NUMBERS", tileNumbers , false );
 		XmlUtils.outputTallyGroup( element,  "PAIR_INFO", pairs, false );
@@ -141,11 +135,11 @@ public class ReadIDSummary {
 
 	public Map<String, AtomicLong> getFiltered(){
 		Map<String, AtomicLong> filtered = new HashMap<>();
-		filtered.put( "Y", filteredY );
-		filtered.put( "N", filteredN );
+		if(filteredY.get() != 0) filtered.put( "Y", filteredY );
+		if(filteredN.get() != 0) filtered.put( "N", filteredN );
 		return filtered; 
-	}	
-	
+	}		
+
 	/**
 	 * @HWUSI-EAS100R:6:73:941:1973#0/1
 	 * HWUSI-EAS100R	the unique instrument name
@@ -219,21 +213,19 @@ public class ReadIDSummary {
 		if (machineAndReadPosition.length != 2) {
 			throw new UnsupportedOperationException("Incorrect header format encountered in parseFiveElementHeader. Expected '@ERR091788.3104 HSQ955_155:2:1101:13051:2071/2' but recieved: " + Arrays.deepToString(params));
 		}
-		
-		updateMap(instruments, machineAndReadPosition[0]);
-		
 		String [] flowCellAndRunId = firstElementParams[1].split("_");
 		if (flowCellAndRunId.length != 2) {
 			throw new UnsupportedOperationException("Incorrect header format encountered in parseFiveElementHeader. Expected '@ERR091788.3104 HSQ955_155:2:1101:13051:2071/2' but recieved: " + Arrays.deepToString(params));
 		}
-		
+				
+		getPairInfo(params[4]);
+		//all updateMap should be after exeption check to avoid invalid read information stored accidently
+		updateMap(instruments, machineAndReadPosition[0]);				
 		updateMap(flowCellIds, flowCellAndRunId[0]);
-		updateMap(runIds, flowCellAndRunId[1]);
-		
+		updateMap(runIds, flowCellAndRunId[1]);		
 		updateMap(flowCellLanes, params[1]);
 		updateMap(tileNumbers,  params[2] );
-
-		getPairInfo(params[4]);
+		
 	}
 	
 	private void getPairInfo(String key) throws Exception {
@@ -242,8 +234,8 @@ public class ReadIDSummary {
 			index = key.indexOf("/");
 		}
 		if (index != -1) {
-		//	char c = key.charAt(index + 1);
-			pairs.computeIfAbsent(key, k-> new AtomicLong()).incrementAndGet();
+			char c = key.charAt(index + 1);
+			pairs.computeIfAbsent(c+"", k-> new AtomicLong()).incrementAndGet();
 		}
 	}
 }
