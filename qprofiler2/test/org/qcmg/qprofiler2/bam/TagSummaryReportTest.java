@@ -1,11 +1,14 @@
 package org.qcmg.qprofiler2.bam;
 
 
+import static org.junit.Assert.assertEquals;
+
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -14,6 +17,8 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.qcmg.common.util.QprofilerXmlUtils;
 import org.qcmg.qprofiler2.bam.TagSummaryReport2;
+import org.qcmg.qprofiler2.summarise.CycleSummary;
+import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -35,91 +40,80 @@ public class TagSummaryReportTest {
 		//first read
 		record.setReadBases("ACCCT AACCC CAACC CTAAC CNTAA CCCTA ACCCA AC".replace(" ","" ).getBytes());
 		record.setFlags(67); 	//first of pair forward
-		record.setAttribute("MD", "A25A");  //(ref) A>C (base) two
+		record.setAttribute("MD", "A25A");  //(ref) A>C (base) in cycly 11 and 37
 		record.setAttribute("RG", "first");
 		record.setCigarString("10S27M");		
 		report.parseTAGs(record);
 		
 		//second read
 		record.setReadBases("ACCCT AACCC".replace(" ","" ).getBytes());
-		record.setCigarString("10M");
-		record.setAttribute("MD", "T9");  //(ref) T>A (Base)
+		record.setCigarString( "10M" );
+		record.setAttribute( "MD", "T9" );  //ref T>A (Base) in cycle 1
 		report.parseTAGs(record);
 		
 		//third read
-		record.setReadNegativeStrandFlag(true);  // ref A>T (base)
+		record.setReadNegativeStrandFlag(true);  //ref A>T (base) in cycle 10 according to reverse
 		report.parseTAGs(record);
 		
-		//forth read
+		//forth read invalid cigar so mutation and MD are ignored
 		record.setReadBases("ACCCT AACCC A".replace(" ","" ).getBytes());
 		record.setAttribute("RG", "last");
 		report.parseTAGs(record);
 		
-		Element root = createRootElement("ROOT");			
-		report.toXml(root);	
-		
-		QprofilerXmlUtils.asXmlText(root, "/Users/christix/Documents/Eclipse/data/qprofiler/unitTest.xml");
-		
+		Element root = QprofilerXmlUtils.createRootElement( QprofilerXmlUtils.tag, null );
+		report.toXml( root );		
+		QprofilerXmlUtils.asXmlText(root, "/Users/christix/Documents/Eclipse/data/qprofiler/unitTest.xml");		
 		checkXml( root );
 	}	
-	
-	private void checkXml(Element root){
-		Element tagElement = QprofilerXmlUtils.getChildElement(  QprofilerXmlUtils.getChildElement( root, "TAG",0 ), "RG",0 );	
-		//valueTally
-		Element element = QprofilerXmlUtils.getChildElement(   tagElement,  QprofilerXmlUtils.valueTally,0 ); 
-		Assert.assertEquals(element.getAttribute( QprofilerXmlUtils.totalCount), "4");
-		//TallyItem first
-		element = QprofilerXmlUtils.getChildElement( element, QprofilerXmlUtils.tallyItem,0 ); 
-		Assert.assertEquals(element.getAttribute( QprofilerXmlUtils.count), "3");
-		Assert.assertEquals(element.getAttribute( QprofilerXmlUtils.value), "first");
-		Assert.assertEquals(element.getAttribute( QprofilerXmlUtils.percent), "75.0%");
-				
-		//MD->MismatchByCycle
-		tagElement = QprofilerXmlUtils.getChildElement(  QprofilerXmlUtils.getChildElement( tagElement, "MD",0 ), "RG",0 );	
-		tagElement = QprofilerXmlUtils.getChildElement(  QprofilerXmlUtils.getChildElement( root, "TAG",0 ), "MD",0 );	
-		element = QprofilerXmlUtils.getChildElement( tagElement, "MismatchByCycle",0 );
-		Assert.assertEquals(1, QprofilerXmlUtils.getChildElementByTagName( element,  QprofilerXmlUtils.cycleTally).size() );	
-		//<CycleTally>
-		element = QprofilerXmlUtils.getChildElement( element, "CycleTally",0 );
-		Assert.assertEquals( element.getAttribute( "source"), QprofilerXmlUtils.FirstOfPair );
-		Assert.assertEquals( element.getAttribute( QprofilerXmlUtils.possibles), "A,C,T" );
-		Assert.assertEquals( 4, QprofilerXmlUtils.getChildElementByTagName( element, "Cycle").size() );		
-		Assert.assertEquals("1,0,0", QprofilerXmlUtils.getChildElement( element, "Cycle",0 ).getAttribute(QprofilerXmlUtils.counts));
-		Assert.assertEquals("25.0%", QprofilerXmlUtils.getChildElement( element, "Cycle",1 ).getAttribute(QprofilerXmlUtils.percent));
-		Assert.assertEquals("11", QprofilerXmlUtils.getChildElement( element, "Cycle",2).getAttribute(QprofilerXmlUtils.value));
-		Assert.assertEquals(QprofilerXmlUtils.getChildElement( element, "Cycle",3).getAttribute(QprofilerXmlUtils.counts), QprofilerXmlUtils.getChildElement( element, "Cycle",2).getAttribute(QprofilerXmlUtils.counts));
-					
-		//MD->MutationForward
-		element = QprofilerXmlUtils.getChildElement(  tagElement,  "MutationForward",0 );		
-		Assert.assertEquals( 1, QprofilerXmlUtils.getChildElementByTagName( element, QprofilerXmlUtils.valueTally).size() );	
-		element = QprofilerXmlUtils.getChildElement( element, QprofilerXmlUtils.valueTally, 0 );
-		Assert.assertEquals( element.getAttribute( "source"), QprofilerXmlUtils.FirstOfPair );
-		Assert.assertEquals("A>C", QprofilerXmlUtils.getChildElement( element, QprofilerXmlUtils.tallyItem,0).getAttribute(QprofilerXmlUtils.value));
-		Assert.assertEquals("2", QprofilerXmlUtils.getChildElement( element, QprofilerXmlUtils.tallyItem,0).getAttribute(QprofilerXmlUtils.count));
 		
-		//MD->MutationReverse
-		element = QprofilerXmlUtils.getChildElement( QprofilerXmlUtils.getChildElement(  tagElement,  "MutationReverse",0 ), QprofilerXmlUtils.valueTally, 0 );
-		Assert.assertEquals("A>T", QprofilerXmlUtils.getChildElement( element, QprofilerXmlUtils.tallyItem,0).getAttribute(QprofilerXmlUtils.value));
-		Assert.assertEquals("1", QprofilerXmlUtils.getChildElement( element, QprofilerXmlUtils.tallyItem,0).getAttribute(QprofilerXmlUtils.count));
-		Assert.assertEquals("100.0%", QprofilerXmlUtils.getChildElement( element, QprofilerXmlUtils.tallyItem,0).getAttribute(QprofilerXmlUtils.percent));
+	private List<Element> getChildNameIs(Element parent, String eleName, String nameValue){		
+		return QprofilerXmlUtils.getChildElementByTagName(parent,eleName).stream().
+			filter( e -> e.getAttribute( XmlUtils.Sname ).equals( nameValue ) ).collect(Collectors.toList());		
 	}
 	
-	/**
-	 * create element for unit tests
-	 * @param parentName
-	 * @param childName
-	 * @return
-	 * @throws ParserConfigurationException
-	 */
-	private static Element createRootElement(String rootName) throws ParserConfigurationException{
-		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-		DocumentBuilder builder = factory.newDocumentBuilder();
-		DOMImplementation domImpl = builder.getDOMImplementation();		
-		Document doc = domImpl.createDocument(null, rootName, null);
-		Element root = doc.getDocumentElement();
+	private void checkXml(Element root){
+		 		
+		assertEquals( 4, QprofilerXmlUtils.getChildElementByTagName( root, XmlUtils.metricsEle ).size()  );
 		
-		return root;
-	}		
+		//check mutation on each base cycle
+		Element ele = getChildNameIs( root, XmlUtils.metricsEle, "tags:MD:Z_firstReadInPair" ).get(0);
+		assertEquals( ele.getChildNodes().getLength() , 4 );
+		
+		//three of firstOfPair have four mutation base
+		String[] values = new String[] { "A", "T", "C", "C" };
+		int[] counts =  new int[] { 1, 10, 11, 37 };
+		for(int i = 0; i < counts.length; i++ ) {
+			String cycle =  CycleSummary.baseOnCycle + counts[i];
+			Element vE = getChildNameIs( ele, XmlUtils.variableGroupEle, cycle).get(0);
+			assertEquals( vE.getChildNodes().getLength() , 1 );
+			vE = (Element) vE.getChildNodes().item(0);
+			assertEquals( vE.getAttribute(XmlUtils.Svalue), values[i]);
+			assertEquals( vE.getAttribute(XmlUtils.Scount), "1");
+		}
+		
+		//check mutaiton type on forward reads
+		ele = getChildNameIs( root, XmlUtils.metricsEle, "tags:MD:Z_forwardReads" ).get(0);
+		assertEquals( ele.getChildNodes().getLength() , 1);
+		assertEquals( 1, getChildNameIs( ele, XmlUtils.variableGroupEle,"mutation_"+ BamSummaryReport2.sourceName[1]).size());
+		assertEquals( 1, QprofilerXmlUtils.getOffspringElementByTagName(ele, XmlUtils.Stally).stream()
+			.filter(e -> e.getAttribute(XmlUtils.Svalue).equals("A>C") && e.getAttribute(XmlUtils.Scount).equals("2") ).count() );
+		assertEquals( 1, QprofilerXmlUtils.getOffspringElementByTagName(ele, XmlUtils.Stally).stream()
+			.filter(e -> e.getAttribute(XmlUtils.Svalue).equals("T>A") && e.getAttribute(XmlUtils.Scount).equals("1") ).count() );		
+		
+		//check mutaiton type on reverse reads
+		ele = getChildNameIs( root, XmlUtils.metricsEle, "tags:MD:Z_reverseReads" ).get(0);
+		assertEquals( 1, QprofilerXmlUtils.getOffspringElementByTagName(ele, XmlUtils.Stally).size());
+		assertEquals( 1, QprofilerXmlUtils.getOffspringElementByTagName(ele, XmlUtils.Stally).stream()
+				.filter(e -> e.getAttribute(XmlUtils.Svalue).equals("A>T") && e.getAttribute(XmlUtils.Scount).equals("1") ).count() );
+		
+		//check tag RG
+		ele = getChildNameIs( root, XmlUtils.metricsEle, "tags:RG:Z" ).get(0);
+		assertEquals( 1, QprofilerXmlUtils.getOffspringElementByTagName(ele, XmlUtils.Stally).stream()
+				.filter(e -> e.getAttribute(XmlUtils.Svalue).equals("first") && e.getAttribute(XmlUtils.Scount).equals("3") ).count() );
+		assertEquals( 1, QprofilerXmlUtils.getOffspringElementByTagName(ele, XmlUtils.Stally).stream()
+				.filter(e -> e.getAttribute(XmlUtils.Svalue).equals("last") && e.getAttribute(XmlUtils.Scount).equals("1") ).count() );
+	}
+		
 	
 	@Ignore
 	public void testTagPosition() {
@@ -176,6 +170,5 @@ public class TagSummaryReportTest {
 		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize(INPUT_FILE); 
 		sr.toXml(root);	 
 	}	
-	
 	
 }
