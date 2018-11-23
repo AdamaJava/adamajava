@@ -82,7 +82,8 @@ public class TagSummaryReport2 {
 
 			//0: unpaired , 1: firstOfPair , 2: secondOfPair				
 			int order = (!record.getReadPairedFlag())? 0: (record.getFirstOfPairFlag())? 1 : 2;					
-			String err = CycleSummaryUtils.tallyMDMismatches(value, record.getCigar(), tagMDMismatchByCycle[order], readBases, reverseStrand, mdRefAltLengthsForward[order], mdRefAltLengthsReverse[order]);
+			String err = CycleSummaryUtils.tallyMDMismatches( value, record.getCigar(), tagMDMismatchByCycle[order], 
+					readBases, reverseStrand, mdRefAltLengthsForward[order], mdRefAltLengthsReverse[order]);
 			//limit err message on log file
 			if ( err != null && (( errMDReadNo ++) < errReadLimit)) logger.warn(record.getReadName() + ": " + err);
 			
@@ -97,7 +98,7 @@ public class TagSummaryReport2 {
 		for(int order = 0; order < 3; order ++) 
 			tagMDMismatchByCycle[order].toXml( parent, "tags:MD:Z", BamSummaryReport2.sourceName[order],  "mismatchBase" );
 		
-		for(String strand : new String[]{"forwardReads", "reverseReads"}){	
+		for(String strand : new String[]{     "forwardReads", "reverseReads"}){	
 			Element ele = XmlUtils.createMetricsNode(parent, "tags:MD:Z_"+ strand, null);				
 			for(int order = 0; order < 3; order ++) {				
 				Map<String, AtomicLong> mdRefAltLengthsString = new HashMap<>();
@@ -107,7 +108,7 @@ public class TagSummaryReport2 {
 					if (l <= 0)  continue;
 					mdRefAltLengthsString.put(CycleSummaryUtils.getStringFromInt(m), new AtomicLong(l));					 
 				}				
-				XmlUtils.outputTallyGroup(ele, "mutationOn"+ BamSummaryReport2.sourceName[order], mdRefAltLengthsString, true);				
+				XmlUtils.outputTallyGroup(ele, "mutation_"+ BamSummaryReport2.sourceName[order], mdRefAltLengthsString, true);				
 			}		
 		}		
 		

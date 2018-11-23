@@ -62,6 +62,7 @@ public class CycleSummaryUtils {
 				tagMDMismatchByCycle.increment(pos, readBase);
 				
 				int intFromChar = getIntFromChars(refBase, readBase);
+								
 				if( reverse && mdRefAltLengthsReverse != null )
 					mdRefAltLengthsReverse.increment(intFromChar);					
 				else if( !reverse && mdRefAltLengthsForward != null )

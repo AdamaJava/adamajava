@@ -93,26 +93,19 @@ public class BamSummaryReportTest {
 		String expectedOutputString = "BHHKIIIIKKKLJJFFFLLJIFFFFJORKKKNLKHHJJKKVVddg______dddddddWV";
 		int counter = 100000;
 		String outputString = null;
-		long start = 0;
-		
-		start = System.currentTimeMillis();
+
 		for (int i = 0 ; i < counter ; i++) 
 			outputString = StringUtils.addASCIIValueToChar(inputString, 33);					
 		assertEquals(expectedOutputString, outputString);
 				
 		byte [] bytes = inputString.getBytes();
-		start = System.currentTimeMillis();
-		for (int i = 0 ; i < counter ; i++) {
-			
+		for (int i = 0 ; i < counter ; i++) 			
 			outputString = SAMUtils.phredToFastq(bytes);
-		}
-		assertEquals(expectedOutputString, outputString);
 		
-		start = System.currentTimeMillis();
-		for (int i = 0 ; i < counter ; i++) {
-			outputString = StringUtils.addASCIIValueToChar(inputString, 33);
-			
-		}
+		assertEquals(expectedOutputString, outputString);		
+		for (int i = 0 ; i < counter ; i++)
+			outputString = StringUtils.addASCIIValueToChar(inputString, 33);			
+		
 		assertEquals(expectedOutputString, outputString);
 	}
 	
@@ -120,7 +113,7 @@ public class BamSummaryReportTest {
 		if(counts.length != values.length)
 			throw new Exception("error: values size must be same to counts size");
 		
-		String nodeName = (isSeq)? "SEQ" : "QUAL";
+		String nodeName = (isSeq)? QprofilerXmlUtils.seq  : QprofilerXmlUtils.qual ;
 		String name = isSeq? QprofilerXmlUtils.seqLength : QprofilerXmlUtils.qualLength;
 		
 		Element node = QprofilerXmlUtils.getOffspringElementByTagName( root, nodeName ).get( 0 );		
@@ -155,12 +148,8 @@ public class BamSummaryReportTest {
 		checklength( root, true, QprofilerXmlUtils.seqLength + "_"+  QprofilerXmlUtils.FirstOfPair, new int[] {141,151}, new int[] { 1,1 });
 		checklength( root, true, QprofilerXmlUtils.seqLength + "_"+  QprofilerXmlUtils.SecondOfPair, new int[] {151}, new int[] { 1});
 		checklength( root, false, QprofilerXmlUtils.qualLength + "_"+  QprofilerXmlUtils.FirstOfPair, new int[] {143,151}, new int[] { 1,1 });
-		checklength( root, false, QprofilerXmlUtils.qualLength + "_"+  QprofilerXmlUtils.SecondOfPair, new int[] {151}, new int[] { 1});
-		
+		checklength( root, false, QprofilerXmlUtils.qualLength + "_"+  QprofilerXmlUtils.SecondOfPair, new int[] {151}, new int[] { 1});		
 	}
-
-				
-		
 		
 }
 

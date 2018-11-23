@@ -26,12 +26,12 @@ import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Element;
 
 public class FastqSummaryReport extends SummaryReport {
-	public final static String badBasePerRead = QprofilerXmlUtils.badBase + "PerRead";
-	public final static String badBaseComment = "read with bad base(qual score < 10) distribution";
+	public final static String badBaseNum = "numberOf" + QprofilerXmlUtils.badBase;
+	public final static String badBaseComment = " the number of reads containing a given number of bad bases (. or N) ";	
+	public final static String badQualComment = "the number of reads containing a given number of bases with bad quality scores (<10)";
 	
 	private static final Character c = Character.MAX_VALUE;
-	private static final Integer i = Integer.MAX_VALUE;
-	
+	private static final Integer i = Integer.MAX_VALUE;	
 	private static final int ReportErrNumber = 100;
 	AtomicLong errNumber = new AtomicLong();	
 	
@@ -68,8 +68,8 @@ public class FastqSummaryReport extends SummaryReport {
 		XmlUtils.outputTallyGroup( ele, QprofilerXmlUtils.seqLength, seqByCycle.getLengthMapFromCycle(), true );	
 		
 		ele = XmlUtils.createMetricsNode( element, QprofilerXmlUtils.badBase, null);
-		XmlUtils.outputTallyGroup( ele, seqBaseCycle,   seqBadReadLineLengths.toMap(), true );	
-		XmlUtils.addCommentChild(ele, "bad base(. or N) distribution" );
+		XmlUtils.outputTallyGroup( ele, FastqSummaryReport.badBaseNum,   seqBadReadLineLengths.toMap(), true );	
+		XmlUtils.addCommentChild(ele, FastqSummaryReport.badBaseComment );
 		
 		//1mers is same to baseByCycle
 		for( int i : new int[] { 2, 3, KmersSummary.maxKmers } )
@@ -82,8 +82,8 @@ public class FastqSummaryReport extends SummaryReport {
 		ele = XmlUtils.createMetricsNode( element, QprofilerXmlUtils.qualLength,null) ;
 		XmlUtils.outputTallyGroup( ele,  QprofilerXmlUtils.qualLength,  qualByCycleInteger.getLengthMapFromCycle(), true ) ;	
 		ele = XmlUtils.createMetricsNode( element,  QprofilerXmlUtils.badBase, null) ;
-		XmlUtils.outputTallyGroup( ele,  badBasePerRead ,  qualBadReadLineLengths.toMap(), false ) ;
-		XmlUtils.addCommentChild(ele, badBaseComment );
+		XmlUtils.outputTallyGroup( ele,  FastqSummaryReport.badBaseNum ,  qualBadReadLineLengths.toMap(), false ) ;
+		XmlUtils.addCommentChild(ele, FastqSummaryReport.badQualComment );
 		
 		
  	}

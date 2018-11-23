@@ -205,7 +205,6 @@ public class BamSummaryReport2 extends SummaryReport {
 			seqByCycle[order].toXml( parent, QprofilerXmlUtils.seqBase , sourceName[order], QprofilerXmlUtils.seqBase );
 		
 		//seqLength
-		//"read counts distribution based on read seq length";
 		for(int order = 0; order < 3; order++) { 
 			if(seqByCycle[order].getLengthMapFromCycle().isEmpty()) continue;
 			Element ele = XmlUtils.createMetricsNode( parent, QprofilerXmlUtils.seqLength+"_"+sourceName[order], null); 
@@ -216,8 +215,8 @@ public class BamSummaryReport2 extends SummaryReport {
 		for(int order = 0; order < 3; order++) {
 			if( seqBadReadLineLengths[order].toMap().isEmpty() )continue;
 			Element ele = XmlUtils.createMetricsNode( parent, QprofilerXmlUtils.badBase+"_"+sourceName[order], null);
-			XmlUtils.outputTallyGroup( ele, seqBaseCycle ,  seqBadReadLineLengths[order].toMap(), true );
-			XmlUtils.addCommentChild(ele, "bad base(. or N) distribution" );
+			XmlUtils.outputTallyGroup( ele, FastqSummaryReport.badBaseNum,  seqBadReadLineLengths[order].toMap(), true );
+			XmlUtils.addCommentChild(ele, FastqSummaryReport.badBaseComment );
 		}
 				
 		//1mers is same to baseByCycle
@@ -228,6 +227,7 @@ public class BamSummaryReport2 extends SummaryReport {
 	//<QUAL>
 	private void createQual(Element parent){
 		final String qualBaseCycle = QprofilerXmlUtils.qualBase + QprofilerXmlUtils.cycle; 	
+		
 		//"count on quality base",
 		for(int order = 0; order < 3; order++) 			
 			qualByCycleInteger[order].toXml(parent, QprofilerXmlUtils.qualBase, sourceName[order],  QprofilerXmlUtils.qualBase );
@@ -235,16 +235,18 @@ public class BamSummaryReport2 extends SummaryReport {
 		// 
 		for(int order = 0; order < 3; order++) {
 			if(qualByCycleInteger[order].getLengthMapFromCycle().isEmpty()) continue;
-			Element ele = XmlUtils.createMetricsNode( parent, "qualLength"+"_"+ sourceName[order],null);
+			Element ele = XmlUtils.createMetricsNode( parent, QprofilerXmlUtils.qualLength +"_"+ sourceName[order],null);
 			XmlUtils.outputTallyGroup( ele, QprofilerXmlUtils.qualLength,  qualByCycleInteger[order].getLengthMapFromCycle(), true );	
 		}
+		
 		//  
 		for(int order = 0; order < 3; order++) { 
 			if( qualBadReadLineLengths[order].toMap().isEmpty() )continue;
 			Element ele = XmlUtils.createMetricsNode( parent, QprofilerXmlUtils.badBase+"_"+sourceName[order], null);
-			XmlUtils.outputTallyGroup( ele, FastqSummaryReport.badBasePerRead, qualBadReadLineLengths[order].toMap(), true );
-			XmlUtils.addCommentChild(ele, FastqSummaryReport.badBaseComment );
+			XmlUtils.outputTallyGroup( ele, FastqSummaryReport.badBaseNum, qualBadReadLineLengths[order].toMap(), true );
+			XmlUtils.addCommentChild(ele, FastqSummaryReport.badQualComment);
 		}
+		
 	}	
 	
 	private void createTLen(Element parent){
@@ -273,7 +275,7 @@ public class BamSummaryReport2 extends SummaryReport {
 	private void createCigar(Element parent) {
 		Map<String, AtomicLong> tallys = new TreeMap<>(new CigarStringComparator());
 		tallys.putAll(	cigarValuesCount);
-		XmlUtils.outputTallyGroup( XmlUtils.createMetricsNode(parent, null, null), "CIGAR", tallys, true );		
+		XmlUtils.outputTallyGroup( XmlUtils.createMetricsNode(parent, null, null),QprofilerXmlUtils.cigar , tallys, true );		
 	}	
 	private void createRNAME(Element parent){		
 		if (null == samSeqDictionary) return;				
@@ -285,7 +287,7 @@ public class BamSummaryReport2 extends SummaryReport {
 			if(cov > 0)
 				tallys.put(chr, new AtomicLong(cov));
 		}
-		XmlUtils.outputTallyGroup( XmlUtils.createMetricsNode(parent, null, null), "RNAME", tallys, true );
+		XmlUtils.outputTallyGroup( XmlUtils.createMetricsNode(parent, null, null), QprofilerXmlUtils.rname, tallys, true );
 	}	
 	private void createMAPQ(Element parent) {				
 		//,  sourceName, mapQualityLengths

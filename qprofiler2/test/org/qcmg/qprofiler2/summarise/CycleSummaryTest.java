@@ -3,21 +3,11 @@ package org.qcmg.qprofiler2.summarise;
 
 import static org.junit.Assert.*;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
+import java.io.*;
+import java.util.*;
 import java.util.stream.Collectors;
 
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.qcmg.common.model.ProfileType;
+import org.junit.*;
 import org.qcmg.common.util.QprofilerXmlUtils;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qprofiler2.bam.BamSummarizer2;
@@ -64,16 +54,14 @@ public class CycleSummaryTest {
 	
 	@Test
 	public void getBaseByCycleTest() throws Exception{
- 		Element root = getSummarizedRoot();		
- 	  
+ 		Element root = getSummarizedRoot();			  
  		checklength( root, QprofilerXmlUtils.seqBase +"_"+QprofilerXmlUtils.FirstOfPair, 1, new String[] {"C","T"}, new int[] { 1,1 } ) ;
  		checklength( root, QprofilerXmlUtils.seqBase +"_"+QprofilerXmlUtils.FirstOfPair, 141, new String[] {"G","N"}, new int[] { 1,1 } ) ;
  		checklength( root, QprofilerXmlUtils.seqBase +"_"+QprofilerXmlUtils.FirstOfPair, 142, new String[] {"N"}, new int[] { 1 } ) ;
  		checklength( root, QprofilerXmlUtils.seqBase +"_"+QprofilerXmlUtils.FirstOfPair, 151, new String[] {"M" }, new int[] { 1 } ) ; 		
  		checklength( root, QprofilerXmlUtils.seqBase +"_"+QprofilerXmlUtils.SecondOfPair , 2, new String[] {"N"}, new int[] { 1} ) ;
  		checklength( root, QprofilerXmlUtils.seqBase +"_"+QprofilerXmlUtils.SecondOfPair , 4, new String[] {"T"}, new int[] { 1} ) ;
- 		checklength( root, QprofilerXmlUtils.seqBase +"_"+QprofilerXmlUtils.SecondOfPair , 151, new String[] {"G"}, new int[] { 1} ) ;
- 		
+ 		checklength( root, QprofilerXmlUtils.seqBase +"_"+QprofilerXmlUtils.SecondOfPair , 151, new String[] {"G"}, new int[] { 1} ) ; 		
  	}
 	
 	@Test
@@ -83,26 +71,21 @@ public class CycleSummaryTest {
  		checklength( root, QprofilerXmlUtils.qualBase +"_"+QprofilerXmlUtils.FirstOfPair, 1, new String[] {"A","("}, new int[] { 1,1 } ) ;
  		checklength( root, QprofilerXmlUtils.qualBase +"_"+QprofilerXmlUtils.FirstOfPair, 143, new String[] {"-","J"}, new int[] {1, 1} ) ;
  		checklength( root, QprofilerXmlUtils.qualBase +"_"+QprofilerXmlUtils.FirstOfPair, 144, new String[] {"7"}, new int[] { 1 } ) ;
- 		checklength( root, QprofilerXmlUtils.qualBase +"_"+QprofilerXmlUtils.FirstOfPair, 151, new String[] {"A"}, new int[] { 1 } ) ;
- 		
+ 		checklength( root, QprofilerXmlUtils.qualBase +"_"+QprofilerXmlUtils.FirstOfPair, 151, new String[] {"A"}, new int[] { 1 } ) ;		
   		checklength( root, QprofilerXmlUtils.qualBase +"_"+QprofilerXmlUtils.SecondOfPair, 1, new String[] {"A" }, new int[] { 1} ) ;	
-		checklength( root, QprofilerXmlUtils.qualBase +"_"+QprofilerXmlUtils.SecondOfPair, 148, new String[] {"7" }, new int[] { 1} ) ;
-		checklength( root, QprofilerXmlUtils.qualBase +"_"+QprofilerXmlUtils.SecondOfPair, 151, new String[] {"-" }, new int[] { 1} ) ;
+		checklength( root, QprofilerXmlUtils.qualBase +"_"+QprofilerXmlUtils.SecondOfPair, 148, new String[] {"-" }, new int[] { 1} ) ;
+		checklength( root, QprofilerXmlUtils.qualBase +"_"+QprofilerXmlUtils.SecondOfPair, 151, new String[] {"7" }, new int[] { 1} ) ;
 	}	
 
-	public static Element getSummarizedRoot() throws Exception{		
-		
+	public static Element getSummarizedRoot() throws Exception{				
 		Element root = QprofilerXmlUtils.createRootElement( "qProfiler", null);
-
 		BamSummarizer2 bs = new BamSummarizer2();
 		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize(INPUT_FILE); 
 		sr.toXml(root);
 		Assert.assertEquals(sr.getRecordsParsed(), 4);			
 		return root; 	
 	}
-		
-
-	
+			
 	public static void createInputFile(String fname) throws IOException{
 		List<String> data = new ArrayList<String>();
         data.add("@HD	VN:1.0	SO:coordinate");
@@ -128,20 +111,18 @@ public class CycleSummaryTest {
         		"TAGGGTTACGGTTAGGGTTAGGGTTAGGGTTAGGGTTAGGGTTAGGGTAGGGTTAGGGTTAGGGTTAGGGTTAGGGGTTAGGGGTTAGGGTTACGGTTAGGGTTAGGGGTTAGGGTTAGGGTGAGGGTGAGGGTGAGGGTG	" + 
         		"()FFFAFJJFJFJFJJJJFJFJFFFJJJF<AJFFJ<AJJFJ<JJFJJFJFJJ<JFFJJAJAJJA-FJJFA<-JAJJJF7AFAJFA-FJJJ<JJJFJAFJ<<JA<7FFJJ-7JJFJ--7AJJ7FFJFF-AAFJF-JFFJF7J7J	" + 
         		"ZC:i:6	MD:Z:8G84G21	PG:Z:MarkDuplicates.7	RG:Z:20150125163738010	NM:i:2	AS:i:105	XS:i:94");
-       
-       
+             
        //second in pair 
        data.add("ST-E00129:119:H0F9NALXX:7:1113:19016:29050	1169	chr1	81194989	6	96S53M2S	=	81194800	-189	" + 
        		"GGGTTTGGGTGTGGGTGTGGGGTGGGGGGTGGGGTTGGGGTGGGGGGTTGGGGTGGGGTTAGGGTGGGGGTGGGGGTGAGGGTTAGGGTGGGGGTGAGGGTTTAGGGTTAGGGTTAGGGTTAGGGTTAGGGTTAGGGTTAGGTTAGGGTAG	" + 
        		"-7-7--<7J-<--F7-A--F-7--A7---<-7A7---<F7---FF-----F----FF7-7<JFJF7-J<--<-J7<77-FJA---F-77<--JAFF-F-<<J-FF<AFJJAJJJFFFJJJJJJJJJFJJJJJAJJJJJJJJJJFJAFFFFA	" + 
        		"ZC:i:6	MD:Z:53	PG:Z:MarkDuplicates.7	RG:Z:20150125163738010	NM:i:0	AS:i:53	XS:i:49");	      
-       
-       
+              
         try(BufferedWriter out = new BufferedWriter(new FileWriter(fname))){	    
 			for (String line : data)  out.write(line + "\n");	               
-		}
-		
+		}		
 	}
+	
 	@Ignore
 	private String getPossibleQualString(boolean isFirstOfPair){
 	 	

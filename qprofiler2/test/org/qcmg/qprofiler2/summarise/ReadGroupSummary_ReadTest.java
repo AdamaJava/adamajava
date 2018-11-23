@@ -222,6 +222,7 @@ public class ReadGroupSummary_ReadTest {
 		ReadGroupSummary rgSumm = createRGElement(rgid );
 		Element root = QprofilerXmlUtils.createRootElement("root",null);
 		rgSumm.readSummary2Xml( root );
+				
 		//must be after readSummary2Xml(root)
 		assertTrue(rgSumm.getMaxBases() == 100 ); //2 * maxReadLength
 		assertTrue(rgSumm.getCountedReads() == 2);
@@ -229,7 +230,7 @@ public class ReadGroupSummary_ReadTest {
 		root = QprofilerXmlUtils.getChildElementByTagName(root, XmlUtils.metricsEle)		
 			.stream().filter(ele -> ele.getAttribute(XmlUtils.Sname).equals( "reads" )).findFirst().get() ;
 				
-		assertTrue(root.getChildNodes().getLength() == 13); //includes comments
+		assertTrue(root.getChildNodes().getLength() == 14); //includes comments
 		List<Element> valueEles = QprofilerXmlUtils.getOffspringElementByTagName(root, XmlUtils.Svalue);
 		assertTrue(valueEles.size() == 49);				
 		assertTrue( checkChildValue( root, "readMaxLength", "50" )); 

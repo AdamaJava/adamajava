@@ -107,7 +107,7 @@ public class KmersSummary {
 		 if (reverse){  
 			 byte[] dataReverse = readString.clone(); 
 			 for (int i = dataReverse.length -1 , j = 0; i >= 0 ; i--, j++)  
-				dataString[j] = ( byte ) BaseUtils.getComplement( (char) dataReverse[i] );
+				dataString[j] = (byte) BaseUtils.getComplement( (char) dataReverse[i] );
 		 }
 		 
 		 //readString may have differnt length to other reads
@@ -140,8 +140,7 @@ public class KmersSummary {
 				case 'T' : no = 4; break;
 			}
 			entry += no << ( j * 3 ); 	
-		}
-		
+		}		
 		return entry;
 	}
 		
@@ -221,22 +220,22 @@ public class KmersSummary {
 			//avoid kmers_null or kmers_unPaired in case have no pair
 			String name = klength+"mers_"+BamSummaryReport2.sourceName[pair];
 			if(pair == 0 && parsedCount[1].get() == 0 &&parsedCount[2].get() == 0)
-			name = klength+"mers";
+				name = klength+"mers";
+			Set<String> kmerStrs = getPopularKmerString(maxNo,  klength, false, pair);
 			
 			// "counts per mer string start on specified base cycle"	
 			Element ele = XmlUtils.createMetricsNode(parent, name, parsedCount[pair].get() );
 	 		for( int i = 0; i < cycleNo; i++ ){	
 	 			Map<String, AtomicLong> map = new HashMap<>();
-	 			for(String mer :  getPopularKmerString(maxNo,  klength, false, pair)) {
+	 			for(String mer :  kmerStrs) {
 					long c = getCount( i,  mer, pair);
 					if( c > 0 )
 						map.put(mer, new AtomicLong(c));					
 				}
-				XmlUtils.outputTallyGroup( ele, "kmersOnCycle_"+i, map, false );					
+				XmlUtils.outputTallyGroup( ele, "kmersOnCycle_"+(i+1), map, false );					
 			}	
 			if(	Math.pow(4, klength) > maxNo )
 				XmlUtils.addCommentChild(ele, "here only list top "+ maxNo + " most popular kmers sequence for each Base Cycle" );
-
 		}			
 	}	
 	
@@ -246,33 +245,33 @@ public class KmersSummary {
 		//incase empty input bam
 		if(cycleNo == 0 || possibleMers.length <= popularNo    ) 
 			return new HashSet<String>(Arrays.asList(possibleMers) );
-	 
-		
+	 	
+		//select three positions: middle, middle of first half, middle of second half
 		int midCycle = cycleNo / 2; 
 		int bfMidCycle = (midCycle > 20 )? midCycle - 10 : (midCycle < kLength )? 0 : midCycle - kLength; 
 		int afMidCycle = (midCycle > 20 )? midCycle + 10 : (midCycle < kLength )? cycleNo-1 : midCycle + kLength; 
+		
 				
 		long[] bfMidCycleCounts = getCounts(bfMidCycle, possibleMers,flagFristRead);
 		long[] afMidCycleCounts = getCounts(afMidCycle, possibleMers,flagFristRead);
 		long[] midCycleCounts = getCounts(midCycle, possibleMers,flagFristRead);
-		
 		for(int i = 0; i < midCycleCounts.length; i ++)
 			midCycleCounts[i] += bfMidCycleCounts[i] + afMidCycleCounts[i];
 		
+		//sort three position sum
 		long[] sortCounts = midCycleCounts.clone(); 
 		Arrays.sort(sortCounts);
 		
-		//get biggest popularNo
-	//	String[] popularMers = new String[popularNo];
+		//get biggest popularNo //	String[] popularMers = new String[popularNo];
 		Set<String> popularMers = new HashSet<>();
 		for(int i = 0; i < popularNo; i ++ ){
 			long bigValue = sortCounts[sortCounts.length - i-1];
-			for(int j = 0; j < possibleMers.length; j ++) {
-				if(bigValue == midCycleCounts[j]){
+			if( bigValue == 0 ) break; //find zero is meaningless
+			for(int j = 0; j < possibleMers.length; j ++)  
+				if(bigValue == midCycleCounts[j] && !popularMers.contains(possibleMers[j])){
 					popularMers.add( possibleMers[j]);
 					break;
 				}
-			}
 		}
 		return popularMers; 
 	}
