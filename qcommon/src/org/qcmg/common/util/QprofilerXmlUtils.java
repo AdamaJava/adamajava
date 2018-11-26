@@ -40,8 +40,7 @@ public class QprofilerXmlUtils {
 	public static final String SecondOfPair = "secondReadInPair";
 	public static final String mdCycle = "mdMismatchCycles";	
 	public static final String discardReads = "discardReads";
-	public static final String fileReads = "fileReads";
-	
+	public static final String fileReads = "fileReads";	
 	public static final String duplicateReads = "duplicateReads";
 	public static final String unmappedReads = 	"unmappedReads";
 	public static final String nonCanonicalPair = "nonCanonicalPair";
@@ -55,7 +54,6 @@ public class QprofilerXmlUtils {
 	public static final String valueTally = "ValueTally";
 	public static final String rangeTally = "RangeTally";
 	public static final String cycleTally = "CycleTally";
-
 	public static final String tallyItem = "TallyItem";
 	public static final String rangeTallyItem = "RangeTallyItem";
 	
@@ -71,8 +69,7 @@ public class QprofilerXmlUtils {
 	public static final String lostPercent = "basePercent";
 	public static final String possibles = "possibleValues";
 	public static final String start = "start";
-	public static final String end = "end";
-	
+	public static final String end = "end";	
 
 	//commly used on fastq bam
 	public static final String qname = "QNAME";
