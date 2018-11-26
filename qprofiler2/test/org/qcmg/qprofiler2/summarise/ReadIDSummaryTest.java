@@ -47,12 +47,7 @@ public class ReadIDSummaryTest {
 		FastqSummaryReport report = new FastqSummaryReport();
 		report.parseRecord(rec);
 		assertEquals(1, report.getRecordsParsed());
-		
-		//debug
-		Element root = QprofilerXmlUtils.createRootElement("root", null);
-		report.toXml(root);
-		QprofilerXmlUtils.asXmlText(root, "/Users/christix/Documents/Eclipse/data/qprofiler/unitTest.xml" );
-		
+				
 		
 		ReadIDSummary header = report.getReadIDSummary();		
 		assertEquals(1, header.getInstrumentsMap().get("@ERR091788").intValue());

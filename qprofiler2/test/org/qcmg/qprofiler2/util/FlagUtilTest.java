@@ -3,6 +3,7 @@ package org.qcmg.qprofiler2.util;
 import static org.junit.Assert.assertEquals;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -102,6 +103,7 @@ public class FlagUtilTest {
 		//parse two flags
 		flagIntegerCount.increment(99);		
 		flagIntegerCount.increment(147);
+		flagIntegerCount.increment(147);
 		
 		//convert to map
 		long length = flagIntegerCount.length();
@@ -112,11 +114,12 @@ public class FlagUtilTest {
 			}				
 		XmlUtils.outputTallyGroup( root , "FLAG", flagBinaryCount, true);	
 		
-		
 		//check output
+		List<Element> tallys =  QprofilerXmlUtils.getChildElementByTagName(QprofilerXmlUtils.getChildElement( root, XmlUtils.variableGroupEle,0), XmlUtils.Stally );
+		assertEquals( 2, tallys.size() );
 		
-		
-		
+		assertEquals( 1, tallys.stream().filter( e -> e.getAttribute(XmlUtils.Scount).equals("1")  &&  e.getAttribute(XmlUtils.Svalue).equals("000001100011, pPR1")).count() );
+		assertEquals( 1, tallys.stream().filter( e -> e.getAttribute(XmlUtils.Scount).equals("2")  &&  e.getAttribute(XmlUtils.Svalue).equals("000010010011, pPr2")).count() );
 	}
 
 }

@@ -42,11 +42,11 @@ public class TagSummaryReport2 {
 	private long errMDReadNo = 0 ;
 
 	
-	/**
-	 * default torrentBam is false, unless this method is called
-	 */
-	public void setTorrentBam(){   }
-	public void setInclMatrices(){  }
+//	/**
+//	 * default torrentBam is false, unless this method is called
+//	 */
+//	public void setTorrentBam(){   }
+//	public void setInclMatrices(){  }
 	
 	public void parseTAGs(final SAMRecord record )  {
 				

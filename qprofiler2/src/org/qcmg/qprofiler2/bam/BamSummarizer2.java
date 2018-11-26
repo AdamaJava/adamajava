@@ -35,25 +35,51 @@ import org.qcmg.qprofiler2.report.SummaryReport;
 public class BamSummarizer2 implements Summarizer {
 	public static final ValidationStringency DEFAULT_VS = ValidationStringency.SILENT;
 	
-	private String [] includes;
-	private String [] tags;
-	private String [] tagsInt;
-	private String [] tagsChar;
+//	private String [] includes;
+//	private String [] tags;
+//	private String [] tagsInt;
+//	private String [] tagsChar;
 	private int maxRecords;
 	private String validation;
 
 	private final static QLogger logger = QLoggerFactory.getLogger(BamSummarizer2.class);	
 	public BamSummarizer2() {}	// default constructor	
-	public BamSummarizer2(String [] includes, int maxRecords, String [] tags, String [] tagsInt, String [] tagsChar, String validation) {
-		this.includes = includes;
+	public BamSummarizer2( int maxRecords, String validation) {
 		this.maxRecords = maxRecords;
-		this.tags = tags;
-		this.tagsInt = tagsInt;
-		this.tagsChar = tagsChar;
 		this.validation = validation;
 	}
 	
-	public static BamSummaryReport2 createReport(File file,String [] includes, int maxRecords, String [] tags, String [] tagsInt, String [] tagsChar) throws IOException{
+//	public static BamSummaryReport2 createReport(File file,String [] includes, int maxRecords, String [] tags, String [] tagsInt, String [] tagsChar) throws IOException{
+//		
+//		// create the SummaryReport
+//		SamReader reader = SAMFileReaderFactory.createSAMFileReader(file);
+//		SAMFileHeader header = reader.getFileHeader();
+//		reader.close();
+//		
+//		SAMSequenceDictionary samSeqDict  = header.getSequenceDictionary();
+//		//String bamHeader = reader.getFileHeader().getTextHeader();
+//		List<SAMProgramRecord> pgLines = header.getProgramRecords();
+//		List<String> readGroupIds = header.getReadGroups().stream().map( it -> it.getId()  ).collect(toList()); 
+//		
+//		boolean torrentBam = false;
+//		for (SAMProgramRecord pgLine : pgLines)  
+//			if ("tmap".equals(pgLine.getId())){ torrentBam = true;break;}		
+//
+//				
+//		BamSummaryReport2 bamSummaryReport = new BamSummaryReport2(includes, maxRecords, tags, tagsInt, tagsChar);		
+//		if(torrentBam) bamSummaryReport.setTorrentBam();
+//							
+//		bamSummaryReport.setBamHeader(header);		
+//		bamSummaryReport.setSamSequenceDictionary(samSeqDict);
+//		bamSummaryReport.setReadGroups(readGroupIds);		
+//		bamSummaryReport.setFileName(file.getAbsolutePath());
+//		bamSummaryReport.setStartTime(DateUtils.getCurrentDateAsString());
+//				
+//		return bamSummaryReport;			
+//	}
+	
+	
+	public static BamSummaryReport2 createReport(File file, int maxRecords) throws IOException{
 		
 		// create the SummaryReport
 		SamReader reader = SAMFileReaderFactory.createSAMFileReader(file);
@@ -64,15 +90,8 @@ public class BamSummarizer2 implements Summarizer {
 		//String bamHeader = reader.getFileHeader().getTextHeader();
 		List<SAMProgramRecord> pgLines = header.getProgramRecords();
 		List<String> readGroupIds = header.getReadGroups().stream().map( it -> it.getId()  ).collect(toList()); 
-		
-		boolean torrentBam = false;
-		for (SAMProgramRecord pgLine : pgLines)  
-			if ("tmap".equals(pgLine.getId())){ torrentBam = true;break;}		
-
-				
-		BamSummaryReport2 bamSummaryReport = new BamSummaryReport2(includes, maxRecords, tags, tagsInt, tagsChar);		
-		if(torrentBam) bamSummaryReport.setTorrentBam();
 							
+		BamSummaryReport2 bamSummaryReport = new BamSummaryReport2( maxRecords);									
 		bamSummaryReport.setBamHeader(header);		
 		bamSummaryReport.setSamSequenceDictionary(samSeqDict);
 		bamSummaryReport.setReadGroups(readGroupIds);		
@@ -89,7 +108,7 @@ public class BamSummarizer2 implements Summarizer {
 		SamReader reader = SAMFileReaderFactory.createSAMFileReaderAsStream(input, index, vs);
 		
 		// create the SummaryReport		
-        BamSummaryReport2 bamSummaryReport = createReport(new File(input), includes, maxRecords, tags, tagsInt, tagsChar);
+        BamSummaryReport2 bamSummaryReport = createReport(new File(input),  maxRecords);
       		
 		boolean logLevelEnabled = logger.isLevelEnabled(QLevel.DEBUG);
 		

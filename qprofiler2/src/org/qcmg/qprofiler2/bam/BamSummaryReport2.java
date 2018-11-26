@@ -39,6 +39,7 @@ import org.qcmg.common.model.CigarStringComparator;
 import org.qcmg.common.model.ProfileType;
 import org.qcmg.common.model.QCMGAtomicLongArray;
 import org.qcmg.common.model.ReferenceNameComparator;
+import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.QprofilerXmlUtils;
 import org.qcmg.common.util.SummaryByCycleUtils;
 import org.qcmg.qprofiler2.fastq.FastqSummaryReport;
@@ -74,12 +75,12 @@ public class BamSummaryReport2 extends SummaryReport {
 	private final QCMGAtomicLongArray[] mapQualityLengths = new QCMGAtomicLongArray[]{new QCMGAtomicLongArray(256), new QCMGAtomicLongArray(256), new QCMGAtomicLongArray(256)};
 	
 	// FLAGS
-	private final Map<String, AtomicLong> flagBinaryCount = new ConcurrentSkipListMap<String, AtomicLong>();
-	private final QCMGAtomicLongArray flagIntegerCount = new QCMGAtomicLongArray( 2048 );
+	private final Map<String, AtomicLong> flagBinaryCount = new ConcurrentSkipListMap<String, AtomicLong>(); //summary all read flag
+	private final QCMGAtomicLongArray flagIntegerCount = new QCMGAtomicLongArray( 2048 );  //count on each read
 
 	// Coverage
 	private final ConcurrentMap<Integer, AtomicLong> coverage = new ConcurrentSkipListMap<Integer, AtomicLong>();
-	private final ConcurrentNavigableMap<Integer, AtomicLong> coverageQueue = new ConcurrentSkipListMap<Integer, AtomicLong>();
+//	private final ConcurrentNavigableMap<Integer, AtomicLong> coverageQueue = new ConcurrentSkipListMap<Integer, AtomicLong>();
 	private final ConcurrentMap<String, PositionSummary> rNamePosition = new ConcurrentHashMap<String, PositionSummary>(85);  //chr=>coveragesummary	
 	
 	private final QCMGAtomicLongArray cigarLengths = new QCMGAtomicLongArray(1024);	
@@ -89,32 +90,36 @@ public class BamSummaryReport2 extends SummaryReport {
 	@SuppressWarnings("serial")
 	private final ConcurrentMap<String, ReadGroupSummary> rgSummaries = new ConcurrentHashMap<String, ReadGroupSummary>(){{  
 		put( QprofilerXmlUtils.All_READGROUP, new ReadGroupSummary( QprofilerXmlUtils.All_READGROUP) ); }}; 
-//	private final ConcurrentMap<String, ReadGroupSummary> rgSummaries = new ConcurrentHashMap<String, ReadGroupSummary>(){{  }}; 
 			
 	private final KmersSummary kmersSummary = new KmersSummary( KmersSummary.maxKmers ); //default use biggest mers length
  	private final TagSummaryReport2 tagReport = new TagSummaryReport2();
  	
-	private int zeroCoverageCount;
-	private boolean includeCoverage;
+//	private int zeroCoverageCount;
+//	private boolean includeCoverage;
 	private Long maxRecords;
 	private SAMFileHeader bamHeader;
 	private SAMSequenceDictionary samSeqDictionary;
 	private List<String> readGroupIds = Arrays.asList( QprofilerXmlUtils.UNKNOWN_READGROUP ); //init	
 		
-	public BamSummaryReport2(String [] includes, int maxRecs, String [] tags, String [] tagsInt, String [] tagsChar) {
+//	public BamSummaryReport2(String [] includes, int maxRecs, String [] tags, String [] tagsInt, String [] tagsChar) {
+//		super();		
+//
+//		if (maxRecs > 0) maxRecords = Long.valueOf(maxRecs);			
+//		if (null == includes) return;
+//		for (String include : includes)
+//			if ("matrices".equalsIgnoreCase(include) || "matricies".equalsIgnoreCase(include))
+//				tagReport.setInclMatrices();
+//			 else if ("coverage".equalsIgnoreCase(include))
+//				includeCoverage = true;
+//			 else
+//				logger.warn("Unknown include type: " + include);		
+//	}
+	
+	public BamSummaryReport2( int maxRecs) {
 		super();		
 
-		if (maxRecs > 0) maxRecords = Long.valueOf(maxRecs);				
-		if (null == includes) return;		
-		for (String include : includes) {
-			if ("matrices".equalsIgnoreCase(include) || "matricies".equalsIgnoreCase(include))  
-				tagReport.setInclMatrices();
-			 else if ("coverage".equalsIgnoreCase(include))  
-				includeCoverage = true;
-			 else  
-				logger.warn("Unknown include type: " + include);				 
-		}			
-	}
+		if (maxRecs > 0) maxRecords = Long.valueOf(maxRecs);					
+	}	
 
 	/**
 	 * Called once all records have been parsed.
@@ -122,24 +127,24 @@ public class BamSummaryReport2 extends SummaryReport {
 	 */
 	public void cleanUp() {
 					
-		if (includeCoverage ) {
-			// add the zero coverage count to the collection
-			if (zeroCoverageCount > 0)
-				coverage.put(0, new AtomicLong(zeroCoverageCount));
-			// if there are any entries left in the queue, add them to the map
-			if ( ! coverageQueue.isEmpty()) {
-				int lastEntry = ((ConcurrentSkipListMap<Integer, AtomicLong>)coverageQueue).lastKey().intValue();
-				lastEntry++;	// increment as headMap returns values less than the passed in key
-				removeCoverageFromQueueAndAddToMap(lastEntry, coverageQueue, coverage);
-				assert coverageQueue.isEmpty() : "There are still entries in the coverageQueue!!"; 
-			}
-		}		
+//		if (includeCoverage ) {
+//			// add the zero coverage count to the collection
+//			if (zeroCoverageCount > 0)
+//				coverage.put(0, new AtomicLong(zeroCoverageCount));
+//			// if there are any entries left in the queue, add them to the map
+//			if ( ! coverageQueue.isEmpty()) {
+//				int lastEntry = ((ConcurrentSkipListMap<Integer, AtomicLong>)coverageQueue).lastKey().intValue();
+//				lastEntry++;	// increment as headMap returns values less than the passed in key
+//				removeCoverageFromQueueAndAddToMap(lastEntry, coverageQueue, coverage);
+//				assert coverageQueue.isEmpty() : "There are still entries in the coverageQueue!!"; 
+//			}
+//		}		
 						
 		long length = flagIntegerCount.length();
 		for (int i = 0 ; i < length ; i++) 
 			if (flagIntegerCount.get(i) > 0) {
 				String flagString = FlagUtil.getFlagString(i);
-				flagBinaryCount.put(flagString, new AtomicLong(flagIntegerCount.get(i)));
+				flagBinaryCount.put( flagString, new AtomicLong(flagIntegerCount.get(i)) );
 			}
 	}
 	
@@ -207,14 +212,14 @@ public class BamSummaryReport2 extends SummaryReport {
 		//seqLength
 		for(int order = 0; order < 3; order++) { 
 			if(seqByCycle[order].getLengthMapFromCycle().isEmpty()) continue;
-			Element ele = XmlUtils.createMetricsNode( parent, QprofilerXmlUtils.seqLength+"_"+sourceName[order], null); 
+			Element ele = XmlUtils.createMetricsNode( parent,StringUtils.getJoinedString( QprofilerXmlUtils.seqLength, sourceName[order], "_"), null); 
 			XmlUtils.outputTallyGroup( ele, QprofilerXmlUtils.seqLength ,  seqByCycle[order].getLengthMapFromCycle(), true );		
 		}
 		
 		//badBase:  
 		for(int order = 0; order < 3; order++) {
 			if( seqBadReadLineLengths[order].toMap().isEmpty() )continue;
-			Element ele = XmlUtils.createMetricsNode( parent, QprofilerXmlUtils.badBase+"_"+sourceName[order], null);
+			Element ele = XmlUtils.createMetricsNode( parent,    StringUtils.getJoinedString(QprofilerXmlUtils.badBase, sourceName[order], "_"),  null);
 			XmlUtils.outputTallyGroup( ele, FastqSummaryReport.badBaseNum,  seqBadReadLineLengths[order].toMap(), true );
 			XmlUtils.addCommentChild(ele, FastqSummaryReport.badBaseComment );
 		}
@@ -235,14 +240,15 @@ public class BamSummaryReport2 extends SummaryReport {
 		// 
 		for(int order = 0; order < 3; order++) {
 			if(qualByCycleInteger[order].getLengthMapFromCycle().isEmpty()) continue;
-			Element ele = XmlUtils.createMetricsNode( parent, QprofilerXmlUtils.qualLength +"_"+ sourceName[order],null);
+			Element ele = XmlUtils.createMetricsNode( parent, StringUtils.getJoinedString( QprofilerXmlUtils.qualLength, sourceName[order], "_"),null);
 			XmlUtils.outputTallyGroup( ele, QprofilerXmlUtils.qualLength,  qualByCycleInteger[order].getLengthMapFromCycle(), true );	
 		}
 		
 		//  
 		for(int order = 0; order < 3; order++) { 
 			if( qualBadReadLineLengths[order].toMap().isEmpty() )continue;
-			Element ele = XmlUtils.createMetricsNode( parent, QprofilerXmlUtils.badBase+"_"+sourceName[order], null);
+			
+			Element ele = XmlUtils.createMetricsNode( parent,StringUtils.getJoinedString(QprofilerXmlUtils.badBase,sourceName[order], "_"), null );
 			XmlUtils.outputTallyGroup( ele, FastqSummaryReport.badBaseNum, qualBadReadLineLengths[order].toMap(), true );
 			XmlUtils.addCommentChild(ele, FastqSummaryReport.badQualComment);
 		}
@@ -302,7 +308,7 @@ public class BamSummaryReport2 extends SummaryReport {
 				if(mapQualityLengths[j].get(i) > 0)
 					tallys.put( i, new AtomicLong(mapQualityLengths[j].get(i)));
 			
-			XmlUtils.outputTallyGroup(ele, "mapqOn"+sourceName[j], tallys, true);			
+			XmlUtils.outputTallyGroup(ele, StringUtils.getJoinedString( QprofilerXmlUtils.mapq, sourceName[j],"_"), tallys, true);			
 		}	 
 	}	
 	private void createPOS(Element parent){
@@ -333,12 +339,10 @@ public class BamSummaryReport2 extends SummaryReport {
 		if(record.getReadGroup() != null && record.getReadGroup().getId() != null )
 			readGroup = record.getReadGroup().getReadGroupId();				
 		// check if record has its fail or duplicate flag set. if so, miss out some of the summaries
-		
-		
+				
 		//anyway, add to summary and then add to it's readgroup
 		rgSummaries.get(QprofilerXmlUtils.All_READGROUP).parseRecord(record); 
-		
-		
+				
 		ReadGroupSummary rgSumm = rgSummaries.computeIfAbsent(readGroup, k -> new ReadGroupSummary(k));		
 		final int order = (!record.getReadPairedFlag())? 0: (record.getFirstOfPairFlag())? 1 : 2;			
 		if( rgSumm.parseRecord(record) ) {	
@@ -357,7 +361,7 @@ public class BamSummaryReport2 extends SummaryReport {
 			SummaryReportUtils.tallyQualScores( record.getBaseQualities(), qualBadReadLineLengths[order] );				
  			
  						
-			//TLen is done inside readGroupSummary.pParseRecord			
+			//TLen is done inside readGroupSummary.ParseRecord			
 			// MRNM is same to RNAME
  			
 			// RNAME & POS			
@@ -368,7 +372,7 @@ public class BamSummaryReport2 extends SummaryReport {
 				else if (record.getSecondOfPairFlag())  p2Lengths.increment(record.getReadBases().length);
 			} 
 			// coverage 
-			if (includeCoverage) { 	parseCoverage(record); }			
+//			if (includeCoverage) { 	parseCoverage(record); }			
 		}
 		
 		// MAPQ (Mapping Quality)
@@ -381,36 +385,36 @@ public class BamSummaryReport2 extends SummaryReport {
 		flagIntegerCount.increment(record.getFlags());
 	}
 
-	void parseCoverage(SAMRecord record) {
-		int count = 0;
-		for (AlignmentBlock ab : record.getAlignmentBlocks()) {
-			// find out how many positions were skipped...
-			int referenceStart = ab.getReferenceStart();
-			synchronized (coverageQueue) {
-				int latestFromMap = coverageQueue.isEmpty() ? 0 :  coverageQueue.lastKey();
-				//zero coverage if there is no overlap btw two adjacent reads
-				if (latestFromMap < referenceStart)  
-					zeroCoverageCount += referenceStart - latestFromMap + 1;
-				 				 
-				for (int i = 0 ; i < ab.getLength( ); i++) 
-					SummaryByCycleUtils.incrementCount(coverageQueue, Integer.valueOf(i + referenceStart));
-				 				
-				if (++count == 1)
-					removeCoverageFromQueueAndAddToMap(referenceStart, coverageQueue, coverage);
-			}
-		}
-	}
+//	void parseCoverage(SAMRecord record) {
+//		int count = 0;
+//		for (AlignmentBlock ab : record.getAlignmentBlocks()) {
+//			// find out how many positions were skipped...
+//			int referenceStart = ab.getReferenceStart();
+//			synchronized (coverageQueue) {
+//				int latestFromMap = coverageQueue.isEmpty() ? 0 :  coverageQueue.lastKey();
+//				//zero coverage if there is no overlap btw two adjacent reads
+//				if (latestFromMap < referenceStart)  
+//					zeroCoverageCount += referenceStart - latestFromMap + 1;
+//				 				 
+//				for (int i = 0 ; i < ab.getLength( ); i++) 
+//					SummaryByCycleUtils.incrementCount(coverageQueue, Integer.valueOf(i + referenceStart));
+//				 				
+//				if (++count == 1)
+//					removeCoverageFromQueueAndAddToMap(referenceStart, coverageQueue, coverage);
+//			}
+//		}
+//	}
 
-	void removeCoverageFromQueueAndAddToMap(int referenceStart, Map<Integer, AtomicLong> queue, 
-			ConcurrentMap<Integer, AtomicLong> map) {
-		for (Iterator<Integer> it = ((ConcurrentSkipListMap<Integer,AtomicLong>) queue)
-				.headMap(referenceStart).keySet().iterator() ; it.hasNext() ; ) {
-			SummaryByCycleUtils.incrementCount(map, Integer.valueOf((int)queue.get(it.next()).get()));
-			synchronized (queue) {
-				it.remove();
-			}
-		}
-	}
+//	void removeCoverageFromQueueAndAddToMap(int referenceStart, Map<Integer, AtomicLong> queue, 
+//			ConcurrentMap<Integer, AtomicLong> map) {
+//		for (Iterator<Integer> it = ((ConcurrentSkipListMap<Integer,AtomicLong>) queue)
+//				.headMap(referenceStart).keySet().iterator() ; it.hasNext() ; ) {
+//			SummaryByCycleUtils.incrementCount(map, Integer.valueOf((int)queue.get(it.next()).get()));
+//			synchronized (queue) {
+//				it.remove();
+//			}
+//		}
+//	}
 
 	void parseCigar(Cigar cigar) {
 		if (null != cigar) {
@@ -509,7 +513,7 @@ public class BamSummaryReport2 extends SummaryReport {
 		
 	//setting
 	public void setBamHeader(SAMFileHeader header) {  this.bamHeader = header;	 }
-	public void setTorrentBam() { if(tagReport != null) tagReport.setTorrentBam();	}
+//	public void setTorrentBam() { if(tagReport != null) tagReport.setTorrentBam();	}
 	public String getBamHeader() {	return bamHeader.getSAMString();	}
 	public void setSamSequenceDictionary(SAMSequenceDictionary samSeqDictionary) {	this.samSeqDictionary = samSeqDictionary;	}
 	public SAMSequenceDictionary getSamSequenceDictionary() { return samSeqDictionary;	}	
@@ -522,6 +526,6 @@ public class BamSummaryReport2 extends SummaryReport {
 	ConcurrentMap<String, AtomicLong> getCigarValuesCount() { return cigarValuesCount; }
 	ConcurrentMap<String, PositionSummary> getRNamePosition() {	return rNamePosition; }
 	CycleSummary<Character> getSeqByCycle(int flagFirstOfPair) { return   seqByCycle[flagFirstOfPair] ; 	}
-	ConcurrentMap<Integer, AtomicLong> getCoverage() { return coverage;	}
-	ConcurrentMap<Integer, AtomicLong> getCoverageQueue() {	return coverageQueue;	}	
+//	ConcurrentMap<Integer, AtomicLong> getCoverage() { return coverage;	}
+//	ConcurrentMap<Integer, AtomicLong> getCoverageQueue() {	return coverageQueue;	}	
 }

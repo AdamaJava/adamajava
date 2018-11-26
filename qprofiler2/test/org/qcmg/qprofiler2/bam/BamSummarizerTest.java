@@ -1,5 +1,10 @@
 package org.qcmg.qprofiler2.bam;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -39,53 +44,49 @@ public class BamSummarizerTest {
 	public void testSummarize() throws Exception {
 		BamSummarizer2 bs = new BamSummarizer2();
 		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize( SAM_INPUT_FILE);
-
-		Assert.assertNotNull(sr);
-		
-		Assert.assertEquals(5, sr.getRecordsParsed());		// should be 5 records
+		assertNotNull(sr);
+		assertEquals(5, sr.getRecordsParsed());		// should be 5 records
 		testSummaryReport(sr);
 	}
 	
 	@Test
 	public void testSummarizeMaxRecords() throws Exception {
 		for (int i = 1 ; i < 6 ; i++) {
-			BamSummarizer2 bs = new BamSummarizer2(null, i, null, null, null, null);
+			BamSummarizer2 bs = new BamSummarizer2( i, null);
 			BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize( SAM_INPUT_FILE);
 
-			Assert.assertNotNull(sr);
-			Assert.assertEquals(i, sr.getRecordsParsed());
+			assertNotNull(sr);
+			assertEquals(i, sr.getRecordsParsed());
 		}
 		
 		// test with 0 value - should return everything
-		BamSummarizer2 bs = new BamSummarizer2(null, 0, null, null, null, null);
+		BamSummarizer2 bs = new BamSummarizer2( 0, null);
 		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize( SAM_INPUT_FILE);
 		
-		Assert.assertNotNull(sr);
-		Assert.assertEquals(5, sr.getRecordsParsed());
+		assertNotNull(sr);
+		assertEquals(5, sr.getRecordsParsed());
 	}
 	
 	@Test
 	public void testSummarizeWithExcludesAll() throws Exception {
-		String[] args = new String[] {};
 		// no excludes defined - should return everything
-		BamSummarizer2 bs = new BamSummarizer2(args, 0, null, null, null, null);
+		BamSummarizer2 bs = new BamSummarizer2( 0, null);
 		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize( SAM_INPUT_FILE);
 		
-		Assert.assertNotNull(sr);
-		Assert.assertEquals(5, sr.getRecordsParsed());
+		assertNotNull(sr);
+		assertEquals(5, sr.getRecordsParsed());
 		testSummaryReport(sr);
 		
 		//release memory so we can work for mers6
 		bs = null; sr = null; 
 		
 		// all - collections should be null
-		String[] args2 = new String[] {"all"};
 		// no excludes defined - should return everything
-		bs = new BamSummarizer2(args2, 0, null, null, null, null);
+		bs = new BamSummarizer2( 0, null);
 		sr = (BamSummaryReport2) bs.summarize( SAM_INPUT_FILE);
 		
-		Assert.assertNotNull(sr);
-		Assert.assertEquals(5, sr.getRecordsParsed());
+		assertNotNull(sr);
+		assertEquals(5, sr.getRecordsParsed());
 	}
 	
 	@Test
@@ -94,41 +95,22 @@ public class BamSummarizerTest {
 		BamSummarizer2 bs = new BamSummarizer2();
 		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize(SAM_INPUT_FILE);
 		
-		Assert.assertNotNull(sr);
-		Assert.assertTrue(sr.getCoverage().isEmpty());
+		assertNotNull(sr);
+		assertTrue(sr.getCoverage().isEmpty());
 		
 		//release memory so we can work for mers6
 		bs = null; sr = null; 
 		
 		// great - now lets exclude it!
-		String[] args = new String[] {"coverage"};
-		bs = new BamSummarizer2(args, 0, null, null, null, null);
+		bs = new BamSummarizer2( 0, null);
 		sr = (BamSummaryReport2) bs.summarize(SAM_INPUT_FILE);
 		
-		Assert.assertNotNull(sr);
-		Assert.assertFalse(sr.getCoverage().isEmpty());
+		assertNotNull(sr);
+		assertFalse(sr.getCoverage().isEmpty());
 
 	}
 	
-	@Test
-	public void testSummarizeWithIncludeMatrices() throws Exception {
-		// first check we are getting coverage info
-		BamSummarizer2 bs = new BamSummarizer2();
-		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize(SAM_INPUT_FILE);
-		
-		Assert.assertNotNull(sr);
-		
-		//release memory so we can work for mers6
-		bs = null; sr = null; 
-		
-		// great - now lets include it!
-		bs = new BamSummarizer2(new String[] {"matrices"}, 0, null, null, null, null);
-		sr = (BamSummaryReport2) bs.summarize( SAM_INPUT_FILE);
-		
-		Assert.assertNotNull(sr);
-		// check coverage info is still there
-		Assert.assertTrue(sr.getCoverage().isEmpty());
-	}
+
 	
 	private void testSummaryReport(BamSummaryReport2 sr) {
 		// ceegars
@@ -235,7 +217,7 @@ public class BamSummarizerTest {
 		BamSummarizer2 qs = new BamSummarizer2();
 		try {
 			qs.summarize(SAM_DODGY_INPUT_FILE);
-			Assert.fail("Should have thrown an Exception");
+			assert.fail("Should have thrown an Exception");
 		} catch (Exception e) {
 //			Assert.fail("Should NOT have thrown an Exception");
 			// if there is no header details, defaults to unsorted hence strange error message
@@ -248,16 +230,12 @@ public class BamSummarizerTest {
 	private void deleteDodgyDataFile() {
 		File outputFile = new File(SAM_DODGY_INPUT_FILE);
 		boolean deleted = outputFile.delete();
-		Assert.assertTrue(deleted);
+		assertTrue(deleted);
 	}
 
 	private void createDodgyDataFile(List<String> dodgyData) {
 		createTestSamFile(SAM_DODGY_INPUT_FILE, dodgyData);
 	}
-	private void createDodgyDataFileBWA(List<String> dodgyData) {
-		createTestSamFile(SAM_DODGY_INPUT_FILE, dodgyData);
-	}
-
 	public static List<String> createValidSamData() {
 		List<String> data = new ArrayList<String>();
 		

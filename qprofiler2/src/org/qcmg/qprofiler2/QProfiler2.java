@@ -49,11 +49,11 @@ public class QProfiler2 {
 	private final static String FILE_SEPERATOR = System.getProperty("file.separator");	
 	private static String[] cmdLineFiles;
 	private static String[] cmdLineIndexFiles;
-	private static String[] cmdLineInclude;
-	private static String[] cmdLineTags;
-	private static String[] cmdLineFormats; //vcf mode
-	private static String[] cmdLineTagsInt;
-	private static String[] cmdLineTagsChar;
+	private static String[] cmdLineFormats; //vcf mode	
+//	private static String[] cmdLineInclude;
+//	private static String[] cmdLineTags;
+//	private static String[] cmdLineTagsInt;
+//	private static String[] cmdLineTagsChar;
 	private static ExecutorService exec;
 	private static String version;
 	
@@ -228,9 +228,9 @@ public class QProfiler2 {
 				break;
 			case BAM:
 				if (noOfConsumerThreads > 0) {
-					summarizer = new BamSummarizerMT2(noOfProducerThreads, noOfConsumerThreads, cmdLineInclude, maxRecords, cmdLineTags, cmdLineTagsInt, cmdLineTagsChar, validation);
+					summarizer = new BamSummarizerMT2(noOfProducerThreads, noOfConsumerThreads, maxRecords,  validation);
 				} else {
-					summarizer = new BamSummarizer2(cmdLineInclude, maxRecords, cmdLineTags, cmdLineTagsInt, cmdLineTagsChar, validation);
+					summarizer = new BamSummarizer2( maxRecords, validation);
 				}
 				break;
 			case XML:
@@ -303,13 +303,12 @@ public class QProfiler2 {
 				}
 			}
 			
-			cmdLineInclude = options.getBamIncludes();
-			cmdLineTags = options.getTags();
-			cmdLineFormats = options.getFormats(); // vcf mode 
-			cmdLineTagsInt = options.getTagsInt();
-			cmdLineTagsChar = options.getTagsChar();
+//			cmdLineInclude = options.getBamIncludes();
+//			cmdLineTags = options.getTags();
+//			cmdLineTagsInt = options.getTagsInt();
+//			cmdLineTagsChar = options.getTagsChar();
 			validation = options.getValidation();
-			
+			cmdLineFormats = options.getFormats(); // vcf mode 			
 			noHtml = options.hasNoHtmlOption();
 			
 			// get no of threads

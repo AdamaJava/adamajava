@@ -47,26 +47,21 @@ public class BamSummarizerMT2 implements Summarizer {
 	private int noOfProducerThreads;
 	private final int noOfConsumerThreads;
 	private final int maxRecords;
-	private final String [] includes;
+//	private final String [] includes;
 	private static SAMSequenceDictionary samSeqDict;
-	private final String [] tags;
-	private final String [] tagsInt;
-	private final String [] tagsChar;
+//	private final String [] tags;
+//	private final String [] tagsInt;
+//	private final String [] tagsChar;
 	private final String validation;
 	ValidationStringency vs;
 	private final static String UNMAPPED_READS = "Unmapped";
 
 	
-	public BamSummarizerMT2(int noOfProducerThreads, int noOfThreads, String [] includes, 
-			int maxNoOfRecords, String [] tags, String [] tagsInt, String [] tagsChar, String validation) {
+	public BamSummarizerMT2(int noOfProducerThreads, int noOfThreads, int maxNoOfRecords, String validation) {
 		super();
 		this.noOfProducerThreads = noOfProducerThreads;
 		this.noOfConsumerThreads = noOfThreads;
-		this.includes = includes;
 		this.maxRecords = maxNoOfRecords;
-		this.tags = tags;
-		this.tagsInt = tagsInt;
-		this.tagsChar = tagsChar;
 		this.validation = validation;
 	}
 	
@@ -114,7 +109,7 @@ public class BamSummarizerMT2 implements Summarizer {
 		}
 		long start = System.currentTimeMillis();
 		
-		final BamSummaryReport2 bamSummaryReport =  BamSummarizer2.createReport(file, includes, maxRecords, tags, tagsInt, tagsChar );				 		
+		final BamSummaryReport2 bamSummaryReport =  BamSummarizer2.createReport(file,  maxRecords );				 		
 		logger.info("will create " + noOfConsumerThreads + " consumer threads");
 
 		final CountDownLatch pLatch = new CountDownLatch(noOfProducerThreads);

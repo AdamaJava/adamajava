@@ -44,10 +44,10 @@ final class Options2 {
 	private final String[] fileNames;
 	private final String[] indexFileNames;
 	private final String outputFileName;
-	private final String[] includes;
-	private final String[] tags;
-	private final String[] tagsInt;
-	private final String[] tagsChar;
+//	private final String[] includes;
+//	private final String[] tags;
+//	private final String[] tagsInt;
+//	private final String[] tagsChar;
 	private int noOfProducerThreads;
 	private int noOfConsumerThreads;
 	private int maxRecords;
@@ -66,12 +66,12 @@ final class Options2 {
 		parser.accepts("ntProducer", NO_OF_THREADS_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
 		parser.accepts("ntConsumer", NO_OF_THREADS_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
 		parser.accepts("maxRecords", MAX_RECORDS_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
-		parser.accepts("include", INCLUDE_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
+//		parser.accepts("include", INCLUDE_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
 		parser.accepts("log", LOG_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("loglevel", LOG_LEVEL_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
-		parser.accepts("tags", TAGS_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
-		parser.accepts("tagsInt", TAGS_INT_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
-		parser.accepts("tagsChar", TAGS_CHAR_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
+//		parser.accepts("tags", TAGS_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
+//		parser.accepts("tagsInt", TAGS_INT_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
+//		parser.accepts("tagsChar", TAGS_CHAR_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
 		parser.accepts("validation", VALIDATION_STRINGENCY_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("nohtml", NO_HTML_DESCRIPTION);
 		parser.accepts("format", FORMAT_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
@@ -93,25 +93,25 @@ final class Options2 {
 		if (null != maxRecordsObject)
 			maxRecords =  (Integer) maxRecordsObject;
 		
-		// include
-		List<String> includeArgs = (List<String>) options.valuesOf("include");
-		includes = new String[includeArgs.size()];
-		includeArgs.toArray(includes);
-
-		// tags
-		List<String> tagsArgs = (List<String>) options.valuesOf("tags");
-		tags = new String[tagsArgs.size()];
-		tagsArgs.toArray(tags);
-		
-		// tagsInt
-		List<String> tagsIntArgs = (List<String>) options.valuesOf("tagsInt");
-		tagsInt = new String[tagsIntArgs.size()];
-		tagsIntArgs.toArray(tagsInt);
-		
-		// tagsChar
-		List<String> tagsCharArgs = (List<String>) options.valuesOf("tagsChar");
-		tagsChar = new String[tagsCharArgs.size()];
-		tagsCharArgs.toArray(tagsChar);
+//		// include
+//		List<String> includeArgs = (List<String>) options.valuesOf("include");
+//		includes = new String[includeArgs.size()];
+//		includeArgs.toArray(includes);
+//
+//		// tags
+//		List<String> tagsArgs = (List<String>) options.valuesOf("tags");
+//		tags = new String[tagsArgs.size()];
+//		tagsArgs.toArray(tags);
+//		
+//		// tagsInt
+//		List<String> tagsIntArgs = (List<String>) options.valuesOf("tagsInt");
+//		tagsInt = new String[tagsIntArgs.size()];
+//		tagsIntArgs.toArray(tagsInt);
+//		
+//		// tagsChar
+//		List<String> tagsCharArgs = (List<String>) options.valuesOf("tagsChar");
+//		tagsChar = new String[tagsCharArgs.size()];
+//		tagsCharArgs.toArray(tagsChar);
 		
 		// log file
 		log = (String) options.valueOf("log");
@@ -172,20 +172,10 @@ final class Options2 {
 		return indexFileNames;
 	}
 	
-	String[] getBamIncludes() {
-		return includes;
-	}
-	
-	String[] getTags() {
-		return tags;
-	}
-	
-	String[] getTagsInt() {
-		return tagsInt;
-	}
-	String[] getTagsChar() {
-		return tagsChar;
-	}
+//	String[] getBamIncludes() { 	return includes; }	
+//	String[] getTags() { return tags; }	
+//	String[] getTagsInt() { return tagsInt; }
+//	String[] getTagsChar() { 	return tagsChar; }
 	
 	//vcf mode
 	String[] getFormats(){ return formats; }
