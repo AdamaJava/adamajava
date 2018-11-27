@@ -358,7 +358,7 @@ public class ReadGroupSummary_ReadTest {
 	 */
 	public void lostBaseStatsTest() throws Exception {
 		
-		ReadGroupSummary_PairTest.createPairInputFile();
+		ReadGroupSummary_PairTest.createPairInputFile(INPUT_FILE);
 		Element root = QprofilerXmlUtils.createRootElement("root",null);
 		BamSummarizer2 bs = new BamSummarizer2();
 		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize(INPUT_FILE); 

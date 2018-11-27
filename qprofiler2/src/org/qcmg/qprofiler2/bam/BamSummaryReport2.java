@@ -13,7 +13,6 @@ package org.qcmg.qprofiler2.bam;
 
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -21,13 +20,11 @@ import java.util.TreeMap;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ConcurrentNavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import htsjdk.samtools.AlignmentBlock;
 import htsjdk.samtools.Cigar;
 import htsjdk.samtools.CigarElement;
 import htsjdk.samtools.CigarOperator;
@@ -79,7 +76,7 @@ public class BamSummaryReport2 extends SummaryReport {
 	private final QCMGAtomicLongArray flagIntegerCount = new QCMGAtomicLongArray( 2048 );  //count on each read
 
 	// Coverage
-	private final ConcurrentMap<Integer, AtomicLong> coverage = new ConcurrentSkipListMap<Integer, AtomicLong>();
+//	private final ConcurrentMap<Integer, AtomicLong> coverage = new ConcurrentSkipListMap<Integer, AtomicLong>();
 //	private final ConcurrentNavigableMap<Integer, AtomicLong> coverageQueue = new ConcurrentSkipListMap<Integer, AtomicLong>();
 	private final ConcurrentMap<String, PositionSummary> rNamePosition = new ConcurrentHashMap<String, PositionSummary>(85);  //chr=>coveragesummary	
 	
@@ -203,7 +200,6 @@ public class BamSummaryReport2 extends SummaryReport {
  		
 	//<SEQ>
 	private void createSeq(Element parent){			
-		final String seqBaseCycle = QprofilerXmlUtils.seqBase + QprofilerXmlUtils.cycle; 
 		
 		//sequenceBase	
 		for(int order = 0; order < 3; order++) 	
@@ -231,7 +227,6 @@ public class BamSummaryReport2 extends SummaryReport {
 	
 	//<QUAL>
 	private void createQual(Element parent){
-		final String qualBaseCycle = QprofilerXmlUtils.qualBase + QprofilerXmlUtils.cycle; 	
 		
 		//"count on quality base",
 		for(int order = 0; order < 3; order++) 			
@@ -264,11 +259,13 @@ public class BamSummaryReport2 extends SummaryReport {
         	//output isize
         	QCMGAtomicLongArray iarray= rgSummaries.get(rg).getISizeCount();       	
         	Map<String, AtomicLong> tallys =  iarray.toMap().entrySet().stream().collect(Collectors.toMap(e -> String.valueOf( e.getKey()  ), Map.Entry::getValue));
-        	Element ele = XmlUtils.createMetricsNode( XmlUtils.createReadGroupNode(parent, rg), null, null);
+        	String rgName = (readGroups.size() == 1 && rg.equals(QprofilerXmlUtils.UNKNOWN_READGROUP))? null : rg;
+        	Element ele = XmlUtils.createMetricsNode( XmlUtils.createReadGroupNode(parent, rgName), null, null);
         	XmlUtils.outputTallyGroup( ele,  "tLen",  tallys, false );  
         	
         	//output isize range
         	iarray= rgSummaries.get(rg).getISizeRangeCount();
+        	if(iarray.toMap().size() == 0) continue;
         	Element cateEle = XmlUtils.createGroupNode(ele, "tLenByBin");
         	for(int i = 0; i < iarray.length(); i ++) {
         		if(iarray.get(i) == 0) continue;
@@ -276,6 +273,7 @@ public class BamSummaryReport2 extends SummaryReport {
         		int end = (i+1)* ReadGroupSummary.rangeGap;
         		XmlUtils.outputBinNode( cateEle, start, end, iarray.get(i) );
         	}
+        	 
         }	
 	}			
 	private void createCigar(Element parent) {

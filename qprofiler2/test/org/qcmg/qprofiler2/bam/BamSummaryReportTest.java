@@ -3,6 +3,7 @@ package org.qcmg.qprofiler2.bam;
 import static org.junit.Assert.*;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -16,6 +17,7 @@ import org.qcmg.common.util.QprofilerXmlUtils;
 import org.qcmg.qprofiler2.bam.BamSummaryReport2;
 import org.qcmg.qprofiler2.summarise.CycleSummaryTest;
 import org.qcmg.qprofiler2.summarise.PositionSummary;
+import org.qcmg.qprofiler2.summarise.ReadGroupSummary_PairTest;
 import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Element;
 
@@ -24,20 +26,19 @@ import org.w3c.dom.Element;
  * @author christix
  * 
  * below is the test lists:
+ * BamSummaryReport2: BamSummarizerTest::testSummaryReport(BamSummaryReport2 sr)
  * bamSummary: ReadGroupSummary_PairTest::* ReadGroupSummary_ReadTest::*	
  * QNAME: FastqSummaryReportTest::qnameTest(); ReadIDSummaryTest::*
- * FLAG: FlagUtilTest::*
- * RNAME:  this.checkLengthNrname()    
- * POS: this.checkLength_rname_mapq()   PositionSummaryTest
+ * FLAG:  FlagUtilTest::*
+ * RNAME: this.checkLengthNrname()    
+ * POS:  this.checkLength_rname_mapq()   PositionSummaryTest
  * MAPQ: this.checkLength_rname_mapq()
  * CIGAR: BamSummarizerTest::testSummaryReport(BamSummaryReport2 sr)
- * TLEN:
+ * TLEN:  ReadGroupSummary_PairTest::chekTlen ???
  * SEQ:  FastqSummaryReportTest::*  CycleSummaryTest:*   KmersSummaryTest::* 	this.checkLengthNrname() 
  * QUAL: FastqSummaryReportTest::*  CycleSummaryTest:*   this.checkLengthNrname() 
- * TAG:  TagSummaryReportTest::*
-	
+ * TAG:  TagSummaryReportTest::* 
  * ??SummaryReportUtilsTest
-
  *
  */
 public class BamSummaryReportTest {
@@ -144,8 +145,7 @@ public class BamSummaryReportTest {
 			assertTrue(count == 1);
 		}	 
 	}
-	
-	
+		
 	private void checkTally(Element root, String groupName, String value, int count, int expectedNo ) {
 		
 		long findNo = QprofilerXmlUtils.getOffspringElementByTagName( root, XmlUtils.Stally).stream()
@@ -154,8 +154,7 @@ public class BamSummaryReportTest {
 
 		assertEquals( expectedNo , findNo);
 	}
-	
-	
+		
 	@Test
 	//check read length and rname, both ignor readgroup
 	public void checkLength_rname_mapq() throws Exception{ 
@@ -188,9 +187,61 @@ public class BamSummaryReportTest {
 				
 		
 	}
+		
 	
+	/** the algorithm is inside ReadGroupSummary::parseRecord::parsePairing
+	 * only middleTlenValue > record tLen > 0 exclude discard reads, duplicate, unmapped
+	 * @throws Exception
+	 */
+	@Test
+	public void checkTlen() throws Exception {
+		ReadGroupSummary_PairTest.createPairInputFile(input);		
+		BamSummaryReport2 sr = (BamSummaryReport2)  new BamSummarizer2().summarize(input);
+		
+		//overall readgroup should manually  setMaxBases(long);
+		Element root = QprofilerXmlUtils.createRootElement("root", null);
+		sr.toXml(root);	
+		//debug
+		QprofilerXmlUtils.asXmlText( root, "/Users/christix/Documents/Eclipse/data/qprofiler/unitTest.xml" );
+		
+		
+		final Element tlenE = checkOffSpring(  root, QprofilerXmlUtils.tlen , 1).get(0); //one <TLEN>
+		//three readGroup under one <readGroups>
+		final List<Element> rgsE = checkOffSpring( checkOffSpring( tlenE, XmlUtils.readGroupsEle , 1).get(0), "readGroup" , 3); 	
+				
+		//five pairs in 1959T, we only record 13, 26, 2015
+		Element ele1 = rgsE.stream().filter( e -> e.getAttribute(XmlUtils.Srgid).equals( "1959T" )  ).findFirst().get();
+		List<Element> eles1 = checkOffSpring( ele1, XmlUtils.Stally, 4);
+		assertEquals(1, eles1.stream().filter( e -> e.getAttribute(XmlUtils.Svalue).equals( "13" ) && e.getAttribute(XmlUtils.Scount).equals( "1" )  ).count());
+		assertEquals(1, eles1.stream().filter( e -> e.getAttribute(XmlUtils.Svalue).equals( "25" )  ).count());
+		assertEquals(1, eles1.stream().filter( e -> e.getAttribute(XmlUtils.Svalue).equals( "26" )  ).count());
+		assertEquals(1, eles1.stream().filter( e -> e.getAttribute(XmlUtils.Svalue).equals( "2025" )  ).count());
+		//tLenByBin
+		eles1 = checkOffSpring( ele1, XmlUtils.Sbin, 3);
+		assertEquals(1, eles1.stream().filter( e -> e.getAttribute(XmlUtils.Sstart).equals( "1" ) && e.getAttribute(XmlUtils.Scount).equals( "1" )  ).count());
+		assertEquals(1, eles1.stream().filter( e -> e.getAttribute(XmlUtils.Send).equals( "10100" )  ).count());
+		
+		
+		//empty for unkown_readgroup_id
+		ele1 = rgsE.stream().filter( e -> e.getAttribute(XmlUtils.Srgid).equals( QprofilerXmlUtils.UNKNOWN_READGROUP )  ).findFirst().get();
+		checkOffSpring( ele1, XmlUtils.variableGroupEle, 0);
+		
+		// only one pair inside 1959N
+		ele1 = rgsE.stream().filter( e -> e.getAttribute(XmlUtils.Srgid).equals( "1959N" )  ).findFirst().get();
+		eles1 = checkOffSpring( ele1, XmlUtils.Stally, 1);
+		assertEquals(1, eles1.stream().filter( e -> e.getAttribute(XmlUtils.Svalue).equals( "175" )  ).count());
+		eles1 = checkOffSpring( ele1, XmlUtils.Sbin, 1);
+		assertEquals(1, eles1.stream().filter( e -> e.getAttribute(XmlUtils.Sstart).equals( "101" )  && e.getAttribute(XmlUtils.Scount).equals( "1" )  ).count());
+	}
 	
-	
+	private List<Element> checkOffSpring(Element root,String node,  int size){
+		List<Element> eles = QprofilerXmlUtils.getOffspringElementByTagName(root, node );
+		
+		assertEquals(size, eles.size());
+		
+		return eles; 
+
+	}
 
 		
 }

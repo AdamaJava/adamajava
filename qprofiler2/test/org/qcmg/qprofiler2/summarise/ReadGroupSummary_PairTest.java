@@ -8,26 +8,18 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
-
-import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.qcmg.common.model.ProfileType;
+import org.w3c.dom.Element;
 import org.qcmg.common.util.QprofilerXmlUtils;
 import org.qcmg.qprofiler2.bam.BamSummarizer2;
 import org.qcmg.qprofiler2.bam.BamSummaryReport2;
 import org.qcmg.qprofiler2.summarise.ReadGroupSummary;
 import org.qcmg.qprofiler2.util.XmlUtils;
-import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.NodeList;
-
 import htsjdk.samtools.SAMRecord;
-import junit.framework.Assert;
 
 public class ReadGroupSummary_PairTest {
 	private static final String INPUT_FILE = ReadGroupSummary_ReadTest.INPUT_FILE;
@@ -35,14 +27,13 @@ public class ReadGroupSummary_PairTest {
 	
 	@Before
 	public void setUp() throws Exception{ 
-		createPairInputFile();
-		//overall readgroup should manually  setMaxBases(long);
-		this.root = QprofilerXmlUtils.createRootElement("root",null);
+		createPairInputFile(INPUT_FILE);
 		BamSummarizer2 bs = new BamSummarizer2();
 		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize(INPUT_FILE); 
+		
+		//overall readgroup should manually  setMaxBases(long);
+		this.root = QprofilerXmlUtils.createRootElement("root",null);
 		sr.toXml(root);	
-		//debug
-		QprofilerXmlUtils.asXmlText(root, "/Users/christix/Documents/Eclipse/data/qprofiler/unitTest.xml");
 
 	}
 	
@@ -183,7 +174,7 @@ public class ReadGroupSummary_PairTest {
 		checkVariableGroup(ele, "inwardPair", new int[] {1,0,0,0,1} );		
 	}	
 	
-	static void createPairInputFile() throws IOException{
+	public static void createPairInputFile(String fname) throws IOException{
 		
 		List<String> data = new ArrayList<>();
 		// first read of proper mapped pair; non-canonical pair (tlen > 0 will be counted), f5f3, tlen(2025>1500)
@@ -221,7 +212,7 @@ public class ReadGroupSummary_PairTest {
 		//1959T: pairNumber==2, f3f5 tlen(1025 < 1500) pair;  and inward overlapped pair
 		ReadGroupSummary_ReadTest.createInputFile();		
 		//append new pairs
-		try(BufferedWriter out = new BufferedWriter(new FileWriter(INPUT_FILE, true))){	    
+		try(BufferedWriter out = new BufferedWriter(new FileWriter(fname, true))){	    
 			for (String line : data)  out.write(line + "\n");	               
 		}		
 	}
