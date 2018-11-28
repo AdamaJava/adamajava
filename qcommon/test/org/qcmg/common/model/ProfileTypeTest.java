@@ -1,4 +1,4 @@
-package org.qcmg.common.util;
+package org.qcmg.common.model;
 
 import static org.junit.Assert.*;
 
@@ -6,36 +6,46 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.qcmg.common.model.ProfileType;
 
-public class ProfileTypeUtilsTest {
+public class ProfileTypeTest {
 	
 	@Test
 	public void fastqs() throws Exception {
-		assertEquals( ProfileType.FASTQ, ProfileTypeUtils.getType(".fq.gz"));
-		assertEquals( ProfileType.FASTQ, ProfileTypeUtils.getType("blah.fq"));
-		assertEquals( ProfileType.FASTQ, ProfileTypeUtils.getType("blah.fastq.gz"));
-		assertEquals( ProfileType.FASTQ, ProfileTypeUtils.getType("blah.fastq"));
+		assertEquals( ProfileType.FASTQ, ProfileType.getType1(".fq.gz"));
+		assertEquals( ProfileType.FASTQ, ProfileType.getType1("blah.fq"));
+		assertEquals( ProfileType.FASTQ, ProfileType.getType1("blah.fastq.gz"));
+		assertEquals( ProfileType.FASTQ, ProfileType.getType1("blah.fastq"));
 		try {
-			ProfileTypeUtils.getType(("blah.faq.gz"));
+			ProfileType.getType1(("blah.faq.gz"));
 			Assert.fail("should have barfed");
 		} catch (IllegalArgumentException e) {}
 	}
 	@Test
 	public void gffs() throws Exception {
-		assertEquals( ProfileType.GFF, ProfileTypeUtils.getType(("blah.gff")));
-		assertEquals( ProfileType.GFF, ProfileTypeUtils.getType(("blah.gff3")));
+		assertEquals( ProfileType.GFF, ProfileType.getType1(("blah.gff")));
+		assertEquals( ProfileType.GFF, ProfileType.getType1(("blah.gff3")));
 		try {
-			ProfileTypeUtils.getType(("blah.gff2"));
+			ProfileType.getType1(("blah.gff2"));
 			Assert.fail("should have barfed");
 		} catch (IllegalArgumentException e) {}
+		
+		//qprofiler2 don't support gff
+		try {
+			ProfileType.getType2(("blah.gff"));
+			Assert.fail("should have barfed");
+		} catch (IllegalArgumentException e) {}
+		
 	}
 	@Test
 	public void bams() throws Exception {
-		assertEquals( ProfileType.BAM, ProfileTypeUtils.getType(("blah.sam")) );
-		assertEquals( ProfileType.BAM, ProfileTypeUtils.getType(("blah.bam")) );
+		assertEquals( ProfileType.BAM, ProfileType.getType2(("blah.sam")) );
+		assertEquals( ProfileType.BAM, ProfileType.getType1(("blah.bam")) );
 		try {
-			ProfileTypeUtils.getType(("blah.bam123"));
+			ProfileType.getType1(("blah.bam123"));
 			Assert.fail("should have barfed");
 		} catch ( IllegalArgumentException e ) {    }
+		
+		
+		
 	}
 
 }
