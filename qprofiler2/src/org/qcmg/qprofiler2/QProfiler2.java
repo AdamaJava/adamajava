@@ -28,7 +28,6 @@ import org.qcmg.common.messages.QMessage;
 import org.qcmg.common.model.ProfileType;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.LoadReferencedClasses;
-import org.qcmg.common.util.ProfileTypeUtils;
 import org.qcmg.common.util.QprofilerXmlUtils;
 import org.qcmg.qprofiler2.bam.BamSummarizer2;
 import org.qcmg.qprofiler2.bam.BamSummarizerMT2;
@@ -42,7 +41,7 @@ import org.w3c.dom.Element;
 
 
 public class QProfiler2 {
-	
+		
 	private static QLogger logger;	
 	private final static int NO_OF_PROCESORS = Runtime.getRuntime().availableProcessors();
 	private final static String USER_DIR = System.getProperty("user.dir");
@@ -101,7 +100,7 @@ public class QProfiler2 {
 			if (null != cmdLineIndexFiles && cmdLineIndexFiles.length > i) {
 				index = cmdLineIndexFiles[i];
 			}
-			ProfileType type = ProfileTypeUtils.getType(f);
+			ProfileType type = ProfileType.getType2(f);
 			sortedFiles.computeIfAbsent(type, v -> new ArrayList<>()).add(Pair.of(f, index));
 		}		
 				
@@ -126,14 +125,12 @@ public class QProfiler2 {
 		
 		
 		//xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  xsi:noNamespaceSchemaLocation="combined1.xsd" >
-		
-		
 		//xml reorganise
-		root.setAttribute("startTime", sol.getStartTime());
-		root.setAttribute("finishTime", sol.getFinishTime());
-		root.setAttribute("user", System.getProperty("user.name"));
+		root.setAttribute( "startTime",  sol.getStartTime() );
+		root.setAttribute( "finishTime", sol.getFinishTime() );
+		root.setAttribute( "user", System.getProperty("user.name") );
 		root.setAttribute( "operatingSystem", System.getProperty("os.name") );
-		root.setAttribute("version", version);
+		root.setAttribute( "version", version );
 		
 		//debug
 		//set attribute for xsd file

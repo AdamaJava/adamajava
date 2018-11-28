@@ -218,7 +218,9 @@ public class BamSummaryReportTest {
 		assertEquals(1, eles1.stream().filter( e -> e.getAttribute(XmlUtils.Svalue).equals( "2025" )  ).count());
 		//tLenByBin
 		eles1 = checkOffSpring( ele1, XmlUtils.Sbin, 3);
-		assertEquals(1, eles1.stream().filter( e -> e.getAttribute(XmlUtils.Sstart).equals( "1" ) && e.getAttribute(XmlUtils.Scount).equals( "1" )  ).count());
+		//debug
+		eles1.stream().forEach( e -> System.out.println(e.getAttribute(XmlUtils.Sstart) + " => " + e.getAttribute(XmlUtils.Scount) ));
+		assertEquals(1, eles1.stream().filter( e -> e.getAttribute(XmlUtils.Sstart).equals( "1" ) && e.getAttribute(XmlUtils.Scount).equals( "3" )  ).count());
 		assertEquals(1, eles1.stream().filter( e -> e.getAttribute(XmlUtils.Send).equals( "10100" )  ).count());
 		
 		

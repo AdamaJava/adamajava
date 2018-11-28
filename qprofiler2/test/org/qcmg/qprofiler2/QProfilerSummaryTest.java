@@ -2,6 +2,8 @@ package org.qcmg.qprofiler2;
 
 
 
+import static org.junit.Assert.*;
+
 import java.io.File;
 
 import org.junit.Rule;
@@ -10,7 +12,6 @@ import org.junit.rules.TemporaryFolder;
 import org.qcmg.qprofiler2.QProfiler2;
 import org.qcmg.qprofiler2.bam.BamSummarizerTest;
 
-import junit.framework.Assert;
 
 public class QProfilerSummaryTest {
 	@Rule
@@ -30,9 +31,9 @@ public class QProfilerSummaryTest {
 		//for(String name : new String[]{"in#:.sam", "in,.sam","input?.sam", "in*.sam","...sam", "input\n.sam"}){	
 		for(String name : new String[]{",in#:.sam","...sam", "input\n.sam"}){	
 			int exitStatus = run(name, name+".xml");	
-			Assert.assertEquals(0, exitStatus);	
+			assertEquals(0, exitStatus);	
 			File outputFile = testFolder.newFile(name+".xml");
-			Assert.assertTrue(outputFile.exists());
+			assertTrue(outputFile.exists());
 		}
 		
 		
@@ -40,9 +41,9 @@ public class QProfilerSummaryTest {
 		for(String name : new String[]{ "in/.sam", null}){
 			try{
 				run(name, name+".xml");				
-				Assert.fail();
+				fail();
 			}catch(Exception e){
-				Assert.assertTrue(true);
+				assertTrue(true);
 			}	
  		}
 		

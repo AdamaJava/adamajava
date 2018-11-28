@@ -1,5 +1,8 @@
 package org.qcmg.qprofiler2;
 
+
+import static org.junit.Assert.*;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -7,8 +10,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
-
-import junit.framework.Assert;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -18,25 +19,27 @@ import org.junit.rules.TemporaryFolder;
 import org.qcmg.gff.GFFReader;
 import org.qcmg.qprofiler2.QProfiler2;
 
-public class QProfilerTest {
+public class QProfiler2Test {
 	
-	private static final String GFF_FILE_NAME_1 =  "solid0039_20091125_1.gff3";
-	private static final String GFF_FILE_NAME_2 =  "solid0039_20091125_2.gff";
-	private static final String DODGY_GFF_FILE_NAME =  "solid0039_20091125_DODGY.gff3";
+	private static final String DODGY_FILE_NAME =  "solid0039_20091125_DODGY.vcf";
+	private static final String XML_FILE_NAME =  "solid0039_20091125_1.xml";
+	private static final String GFF_FILE_NAME =  "solid0039_20091125_2.gff";
+	private static final String BAM_FILE_NAME =  "solid0039_20091125_2.sam";
+
 	
 	@Rule
 	public  TemporaryFolder testFolder = new TemporaryFolder();
-	public File GFF_FILE_NAME_1_FILE;
-	public File GFF_FILE_NAME_2_FILE;
-	public File DODGY_GFF_FILE_NAME_FILE;
+	public File GFF_FILE, BAM_FILE, XML_FILE, DODGY_FILE ;
 	
 	@Before
 	public void setup() throws IOException {
-		GFF_FILE_NAME_1_FILE = testFolder.newFile(GFF_FILE_NAME_1);
-		GFF_FILE_NAME_2_FILE = testFolder.newFile(GFF_FILE_NAME_2);
-		DODGY_GFF_FILE_NAME_FILE = testFolder.newFile(DODGY_GFF_FILE_NAME);
+		GFF_FILE = testFolder.newFile(GFF_FILE_NAME);
+		BAM_FILE = testFolder.newFile(BAM_FILE_NAME);
+		XML_FILE = testFolder.newFile(XML_FILE_NAME);
+		DODGY_FILE = testFolder.newFile(DODGY_FILE_NAME);
 		
-		createTestFile(DODGY_GFF_FILE_NAME_FILE, getDodgyFileContents());		
+		createTestFile(DODGY_FILE, getDodgyFileContents());	
+		createTestFile(BAM_FILE, null);	
 	}
 	
 	@After
@@ -55,50 +58,43 @@ public class QProfilerTest {
 	public final void executeWithValidArguments() throws Exception {
 		File logFile = testFolder.newFile("executeWithValidArguments.log");
 		File outputFile = testFolder.newFile("executeWithValidArguments.xml");
-		
-		String[] args = {"-log",  logFile.getAbsolutePath(), "-input", GFF_FILE_NAME_1_FILE.getAbsolutePath(),
-				"-input", GFF_FILE_NAME_2_FILE.getAbsolutePath(), "-o", outputFile.getAbsolutePath(), "--nohtml"};
+		//qprofiler2 accept two same input once type are XML, VCF, FASTQ or BAM
+		String[] args = {"-log",  logFile.getAbsolutePath(), "-input", BAM_FILE.getAbsolutePath(),
+				"-input", BAM_FILE.getAbsolutePath(), "-o", outputFile.getAbsolutePath(), "--nohtml"};
 		int exitStatus = new QProfiler2().setup(args);
-		Assert.assertEquals(0, exitStatus);
+		assertEquals(0, exitStatus);
 		
-		Assert.assertTrue(outputFile.exists());
+		//argument are correct input is doggy , the exception are caught
+		args = new String[] {"-log",  logFile.getAbsolutePath(), "-input", DODGY_FILE.getAbsolutePath(),
+				 "-o", outputFile.getAbsolutePath(), "--nohtml"};
+		exitStatus = new QProfiler2().setup(args);
+		assertEquals(1, exitStatus);
+		
+		assertTrue(outputFile.exists());
 	}
 	
-
 	@Test
 	public final void executeWithNoArgs() throws Exception {
 		String[] args = {};
 		try {
 			int exitStatus = new QProfiler2().setup(args);
-			Assert.assertEquals(1, exitStatus);
+			assertEquals(1, exitStatus);
 		} catch (Exception e) {
-			Assert.fail("no exception should have been thrown from executeWithNoArgs()");
+			fail("no exception should have been thrown from executeWithNoArgs()");
 		}
 	}
-	
-	
-	
-	@Test @Deprecated
-	public final void executeWithExcludeArgs() throws Exception {
-		File logFile = testFolder.newFile("executeWithExcludeArgs.log");
-		File logFile2 = testFolder.newFile("executeWithExcludeArgs2.log");
 		
-		String[] args = new String[]{"-inc","html,all", "-input", GFF_FILE_NAME_1_FILE.getAbsolutePath(), "-log",logFile.getAbsolutePath()};
-		try {
-			int exitStatus = new QProfiler2().setup(args);
-			Assert.assertEquals(0, exitStatus);
-		} catch (Exception e) {
-			e.printStackTrace();
-			Assert.fail("no exception should have been thrown from executeWithExcludeArgs()");
-		}
-		
-		String[] args2 = new String[]{"-include","html,all,matricies,coverage", "-input", GFF_FILE_NAME_1_FILE.getAbsolutePath(), "-log",logFile2.getAbsolutePath()};
+	@Test
+	public final void executeWithInvalidArgs() throws Exception {
+		File logFile = testFolder.newFile("executeWithInvalidArguments.log");
+				
+		String[] args2 = new String[]{"-input", BAM_FILE.getAbsolutePath(), "-log",logFile.getAbsolutePath(), "-nohtml", "-include","html,all,matricies,coverage", };
 		try {
 			int exitStatus =new QProfiler2().setup(args2);
-			Assert.assertEquals(0, exitStatus);
+			fail("no exception should have been thrown from executeWithExcludeArgs()");			 
 		} catch (Exception e) {
-			Assert.fail("no exception should have been thrown from executeWithExcludeArgs()");
-		}
+			assertEquals("'i' is not a recognized option", e.getMessage() );
+		}		
 	}
 	
 	@Test
@@ -106,13 +102,17 @@ public class QProfilerTest {
 		File logFile = testFolder.newFile("executeWithInvalidFileType.log");
 		File inputFile = testFolder.newFile("executeWithInvalidFileType.test");
 		
-		String[] args = {"-input",inputFile.getAbsolutePath(), "-log", logFile.getAbsolutePath()};
-		try {
-			new QProfiler2().setup(args);
-			Assert.fail("Should have thrown a QProfilerException");
-		} catch (Exception qpe) {
-			Assert.assertEquals("Unsupported file type test", qpe.getMessage());
-		}
+		String[] args1 = {"-input",inputFile.getAbsolutePath(), "-log", logFile.getAbsolutePath()};
+		String[] args2 = new String[] {"-input",GFF_FILE.getAbsolutePath(), "-log", logFile.getAbsolutePath()};	
+		
+		for(String[] args : new String[][] {args1, args2})
+			try {
+				new QProfiler2().setup(args);
+				fail("Should have thrown a QProfilerException");
+			} catch (Exception qpe) {
+				assertTrue(qpe.getMessage().contains( "Unsupported file type" ));
+			}
+				
 	}
 	
 	@Test
@@ -122,42 +122,36 @@ public class QProfilerTest {
 		String[] args = {"-input","test123.sam", "-log", logFile.getAbsolutePath()};
 		try {
 			new QProfiler2().setup(args);
-			Assert.fail("Should have thrown a QProfilerException");
+			fail("Should have thrown a QProfilerException");
 		} catch (Exception qpe) {
 			qpe.printStackTrace();
-			Assert.assertTrue(qpe.getMessage().startsWith("Cannot read supplied input file"));
-		}
-	}
-	
-	@Ignore
-	public final void executeWithCorruptGffFile() throws Exception {
-		GFFReader reader = null;
-		try {
-			reader = new GFFReader(DODGY_GFF_FILE_NAME_FILE);
-			Assert.fail("Should have thrown an Exception");
-		} catch (Exception e) {
-			Assert.assertEquals("Not enough fields in the Record", e.getMessage());
-		} finally {
-			// close the reader
-			if (null != reader)
-				reader.close();
+			assertTrue(qpe.getMessage().startsWith("Cannot read supplied input file"));
 		}
 	}
 	
 	private static void createTestFile(File file, List<String> data) {
-		PrintWriter out;
-		try {
-			out = new PrintWriter(new BufferedWriter(new FileWriter(file)));
-
-			for (String line : data) {
-				out.println(line);
-			}
-			out.close();
-		} catch (IOException e) {
-			System.err.println("IOException caught whilst attempting to write to test file: "
-							+ file.getAbsolutePath());
+		
+		if(data == null) {		
+			data = new ArrayList<String>();
+	        data.add("@HD	VN:1.0	SO:coordinate");
+	        data.add("@RG	ID:1959T	SM:eBeads_20091110_CD	DS:rl=50");
+	        data.add("@RG	ID:1959N	SM:eBeads_20091110_ND	DS:rl=50");
+	        data.add("@PG	ID:SOLID-GffToSam	VN:1.4.3");
+	        data.add("@SQ	SN:chr1	LN:249250621");
+	        data.add("@SQ	SN:chr11	LN:243199373");
+			//unmapped
+			data.add("243_146_1	101	chr1	10075	0	*	=	10167	0	" +		 
+					"ACCCTAACCCTAACCCTAACCNTAACCCTAACCCAAC	+3?GH##;9@D7HI5,:IIB\"!\"II##>II$$BIIC3	" +
+					"RG:Z:1959T	CS:Z:T11010020320310312010320010320013320012232201032202	CQ:Z:**:921$795*#5:;##):<5&'/=,,9(2*#453-'%(.2$6&39$+4'");
+		}
+                
+		try(BufferedWriter out = new BufferedWriter(new FileWriter(file))){	    
+			for (String line : data)  out.write(line + "\n");	               
+		}catch (IOException e) {
+			System.err.println("IOException caught whilst attempting to write to test file: " + file.getAbsolutePath());
 			e.printStackTrace();
 		}
+		
 	}
 	
 	private List<String> getDodgyFileContents() {
