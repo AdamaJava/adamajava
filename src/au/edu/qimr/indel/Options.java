@@ -109,10 +109,6 @@ public class Options {
 		}
 		
 		nearbyIndelWindow = Integer.parseInt( iniFile.fetch(ini_secParameter, "window.nearbyIndel"));
-//		nearbyHomopolymer = Integer.parseInt( iniFile.fetch(ini_secParameter, "window.homopolymer"));
-//		String[] windows = iniFile.fetch(ini_secParameter, "window.homopolymer").split(",");
-//		nearbyHomopolymer = Integer.parseInt(windows[0]);
-//		nearbyHomopolymerReport = Integer.parseInt(windows[1]);
 		max_events = Integer.parseInt( iniFile.fetch(ini_secParameter, "strong.event"));
 		softClipWindow = Integer.parseInt( iniFile.fetch(ini_secParameter, "window.softClip"));
 		threadNo = Integer.parseInt( iniFile.fetch(ini_secParameter, "threadNo"));
@@ -128,8 +124,6 @@ public class Options {
 		gematic_nns = Integer.parseInt( iniFile.fetch(ini_secRule, "gematic.nns"));
 		gematic_soi = Float.parseFloat( iniFile.fetch(ini_secRule, "gematic.soi"));
 		
-//		exdup  = Boolean.parseBoolean( iniFile.fetch(ini_secRule, "exclude.Duplicates"));
-				 		
   		detectBadOptions();	  		  		
 	}
 	
@@ -140,8 +134,6 @@ public class Options {
 		String f = ini.fetch(parent, child);
 		if( StringUtils.isNullOrEmpty(f) || f.toLowerCase().equals("null"))
 			return null; 
-//		 if( StringUtils.isNullOrEmpty(f))			 
-//			 throw new Q3IndelException("MISSING_PARAMETER", child);
 		
 		 return  new File(f ) ;		 
 	}
@@ -154,10 +146,6 @@ public class Options {
 	public float getMinGematicSupportOfInformative(){return gematic_soi; }
 	public int getMaxEventofStrongSupport(){return  max_events; }
 	
-
-//	public boolean excludeDuplicates() {
-//		return exdup;
-//	}	
 
 	public String getFilterQuery() {
 		return filterQuery;
@@ -202,7 +190,7 @@ public class Options {
 		if (hasHelpOption() || hasVersionOption())
 			return; 
 		
-		checkReference();
+//		checkReference();
 			
 		if (output != null && output.exists()) 			
 			throw new Q3IndelException("OUTPUT_EXISTS", output.getAbsolutePath());
@@ -213,7 +201,7 @@ public class Options {
 		if (controlBam != null && !controlBam.exists()) 
 			throw new Q3IndelException("FILE_EXISTS_ERROR", controlBam.getAbsolutePath());			
 		
-		if (RUNMODE_GATK.equalsIgnoreCase(runMode) || RUNMODE_GATKTEST.equalsIgnoreCase(runMode)){ 
+		if (RUNMODE_GATK.equalsIgnoreCase(runMode) || RUNMODE_GATKTEST.equalsIgnoreCase(runMode)){
 			if(testVcf != null && !testVcf.exists())
 				throw new Q3IndelException("FILE_EXISTS_ERROR","(test gatk vcf) " + testVcf.getAbsolutePath());
 			if(controlVcf != null && !controlVcf.exists())
@@ -223,9 +211,11 @@ public class Options {
 			if(pindelVcfs.size() == 0)
 				throw new Q3IndelException("INPUT_OPTION_ERROR","(pindel input vcf) not specified" );
 			
-			for(int i = 0; i < pindelVcfs.size(); i ++)
-			if ( pindelVcfs.get(i) != null && ! pindelVcfs.get(i).exists())  
-				throw new Q3IndelException("FILE_EXISTS_ERROR","(control indel vcf) " + pindelVcfs.get(i).getAbsolutePath());				
+			for(int i = 0; i < pindelVcfs.size(); i ++) {
+				if ( pindelVcfs.get(i) != null && ! pindelVcfs.get(i).exists()) {  
+					throw new Q3IndelException("FILE_EXISTS_ERROR","(control indel vcf) " + pindelVcfs.get(i).getAbsolutePath());
+				}
+			}
 		}else
 			throw new Q3IndelException("UNKNOWN_RUNMODE_ERROR", runMode);			
 		 				
@@ -235,19 +225,19 @@ public class Options {
 	 * check reference file and index if it is not null
 	 * @throws Q3IndelException
 	 */
-	private void checkReference() throws Q3IndelException {
-		if(reference == null)
-			return; 
-			
-		if (!reference.exists()) {
-			throw new Q3IndelException("NO_REF_FILE", reference.getAbsolutePath());
-		}	
-		File indexFile = new File(reference.getAbsolutePath() + ".fai");		
-
-		if (!indexFile.exists()) {
-			throw new Q3IndelException("FASTA_INDEX_ERROR", reference.getAbsolutePath());
-		}
-	}
+//	private void checkReference() throws Q3IndelException {
+//		if(reference == null)
+//			return; 
+//			
+//		if (!reference.exists()) {
+//			throw new Q3IndelException("NO_REF_FILE", reference.getAbsolutePath());
+//		}	
+//		File indexFile = new File(reference.getAbsolutePath() + ".fai");		
+//
+//		if (!indexFile.exists()) {
+//			throw new Q3IndelException("FASTA_INDEX_ERROR", reference.getAbsolutePath());
+//		}
+//	}
 
 
 	public File getTestBam() {
@@ -271,22 +261,16 @@ public class Options {
 	public File getOutput() {
 		return output;
 	}
-	public File getReference() {
-		return reference;
-	}
+//	public File getReference() {
+//		return reference;
+//	}
 
 	public int getNearbyIndelWindow() {
 		return nearbyIndelWindow;
 	}
 
-	public int getNearbySoftClipWindow(){
-		return softClipWindow;
-	}
-//	public int getNearbyHomopolymerWindow() {
-//		return nearbyHomopolymer;
-//	}
-//	public int getNearbyHomopolymerReportWindow() {
-//		return nearbyHomopolymerReport;
+//	public int getNearbySoftClipWindow(){
+//		return softClipWindow;
 //	}
 
 	public int getSoftClipWindow() {
@@ -297,11 +281,9 @@ public class Options {
 		return threadNo;
 	}
 
-//	public String getCommandLine() {	return commandLine; }		
 	public String getDonorId(){ return donorid; }
 	public String getControlSample(){ return  this.controlSampleid; }
 	public String getTestSample(){ return this.testSampleid; }
-
  
 }
 

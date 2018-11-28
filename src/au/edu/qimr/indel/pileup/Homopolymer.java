@@ -29,8 +29,8 @@ public class Homopolymer {
 	private final int homopolymerWindow;
 	private final int reportWindow;
 
-	private final List<Integer> maxBase = new ArrayList<Integer>();
-	private final List<byte[]> homoString = new ArrayList<byte[]>();
+	private final List<Integer> maxBase = new ArrayList<>();
+	private final List<byte[]> homoString = new ArrayList<>();
 	private final byte[] referenceBase;
 	
 	public Homopolymer(IndelPosition position, final byte[] referenceBase, int homopolymerWindow, int reportWindow) {

@@ -55,7 +55,7 @@ public class Support {
         }
 		 	
 		try(SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(tmp));){		
-			SAMOrBAMWriterFactory factory = new  SAMOrBAMWriterFactory(reader.getFileHeader() ,false, new File(output)) ;
+			SAMOrBAMWriterFactory factory = new  SAMOrBAMWriterFactory(reader.getFileHeader() ,false, new File(output));
 			SAMFileWriter writer = factory.getWriter();
 			for( SAMRecord record : reader) 
 				writer.addAlignment(record);
@@ -73,7 +73,7 @@ public class Support {
 	 */
 	public static void createGatkVcf(String vcf){	
 		
-        List<String> data = new ArrayList<String>();
+        List<String> data = new ArrayList<>();
         data.add(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT+"s1");
         data.add("chr11	2672739	.	ATT	A	123.86	.	.	GT	0/1"); 
         data.add("chrY	2672735	.	ATT	A	123.86	.	GATKINFO	GT	0/1"); 
@@ -92,11 +92,13 @@ public class Support {
 	}
 	
 	public static void createVcf( List<String> header, List<String> records, String output){	
-        List<String> data = new ArrayList<>(header);
-        data.addAll(records);
         try( BufferedWriter out = new BufferedWriter(new FileWriter(output ))) {
-        	for (String line : data)  
-                out.write(line + "\n");                   	            
+        		for (String line : header) {
+                out.write(line + "\n");
+        		}
+        		for (String line : records) {
+        			out.write(line + "\n");
+        		}
          }catch(IOException e){
          	System.err.println( Q3IndelException.getStrackTrace(e));	 	        	 
          	Assert.fail("Should not threw a Exception");
@@ -121,7 +123,7 @@ public class Support {
 			
 		} catch (Exception e) {
 			System.err.println(Q3IndelException.getStrackTrace(e));
-			Assert.fail("Should not threw an Exception");
+			Assert.fail("Should not throw an Exception");
 		}		
 		return null; 
 	}

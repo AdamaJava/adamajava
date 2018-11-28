@@ -11,7 +11,6 @@ import java.util.List;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -44,7 +43,6 @@ public class IndelPositionTest {
 		List<String> data = new ArrayList<String>();
 		data.add(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE);
 		Support.createVcf(data,data, emptyVcf); //empty vcf; 
-
 	}
 
 	

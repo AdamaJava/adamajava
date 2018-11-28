@@ -16,10 +16,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import htsjdk.samtools.reference.IndexedFastaSequenceFile;
 import htsjdk.samtools.SamReader;
 import htsjdk.samtools.SAMRecordIterator;
 import htsjdk.samtools.SAMSequenceRecord;
+import htsjdk.samtools.SamFiles;
 import htsjdk.samtools.SAMRecord;
 
 import org.qcmg.common.log.QLogger;
@@ -50,7 +50,8 @@ public class IndelMT {
 		private final Thread mainThread;
 		final CountDownLatch pLatch;
 		private SAMSequenceRecord contig;
-		private File bam; 
+		private File bam;
+		private File index;
 		private QueryExecutor exec;
 		
 		//unit Test only
@@ -72,47 +73,40 @@ public class IndelMT {
 		 * @param rLatch : the counter for reading thread
 		 * @param fLatch : the counter for filtering thread (current type)
 		 */
-		ContigPileup(SAMSequenceRecord contig,  AbstractQueue<IndelPosition> qIn, File bam, QueryExecutor exec,
+		ContigPileup(SAMSequenceRecord contig,  AbstractQueue<IndelPosition> qIn, File bam, File index, QueryExecutor exec,
 				AbstractQueue<IndelPileup> qOut, Thread mainThread, CountDownLatch latch)  {
 			this.qIn = qIn;
 			this.qOut = qOut;
 			this.mainThread = mainThread;
 			this.pLatch = latch;
 			this.bam = bam;
+			this.index = index;
 			this.contig = contig;
 			this.exec = exec; 
  		}
 
 		@Override
 		public void run() {
-		 	List<SAMRecord> current_pool = new ArrayList<SAMRecord>();
-		 	List<SAMRecord> next_pool = new ArrayList<SAMRecord>(); 
+		 	List<SAMRecord> current_pool = new ArrayList<>();
+		 	List<SAMRecord> next_pool = new ArrayList<>(); 
 		 	int size = qIn.size();	
 			if (size <= 0) {
-		 		logger.debug("There is no indel fallen in contig: " + contig.getSequenceName() );		 		
+		 		logger.debug("There is no indel in contig: " + contig.getSequenceName() );		 		
 		 		return;
 		 	}
 			
 			IndelPosition topPos= qIn.poll();
-			File index = new File(bam.getAbsolutePath() + ".bai");
-			if( !index.exists() && bam.getAbsolutePath().endsWith(".bam") )
-				index = new File(bam.getAbsolutePath().replace(".bam", ".bai"));
-			
-			try (SamReader Breader =  SAMFileReaderFactory.createSAMFileReader(bam, index); ){		
-				SAMRecordIterator ite = Breader.query(contig.getSequenceName(), 0, contig.getSequenceLength(),false);		
+			try (SamReader bReader =  SAMFileReaderFactory.createSAMFileReader(bam, index); ){
+				SAMRecordIterator ite = bReader.query(contig.getSequenceName(), 0, contig.getSequenceLength(),false);		
 			 	while (ite.hasNext()) {	
 			 		SAMRecord re = ite.next(); 
 			 		//bam file already sorted, skip non-indel region record
 			 		if(re.getAlignmentEnd() < topPos.getStart()) continue; 
 			 		
 			 		//only interested pass filter record
-			 		boolean passFilter; 	
-			 		if(exec != null )
-						passFilter = exec.Execute(re);
-					else
-						passFilter = !re.getReadUnmappedFlag() && !re.getDuplicateReadFlag() ;
+			 		boolean passFilter = exec != null ? exec.Execute(re) : ( ! re.getReadUnmappedFlag() && ! re.getDuplicateReadFlag());
 			 		
-			 	 	if(! passFilter ) continue;
+			 	 	if ( ! passFilter ) continue;
 			 			 		
 			 		//whether in current indel region
 			 		if (re.getAlignmentStart() <= topPos.getEnd() && current_pool.size() < MAXRAMREADS ) {
@@ -142,11 +136,12 @@ public class IndelMT {
 					resetPool(topPos,  current_pool, next_pool); 							
 			 	}while( true ) ;					 					 
 			} catch (Exception e) {
-				logger.error("Exception caught in pileup thread", e);
+				e.printStackTrace();
+//				logger.error("Exception caught in pileup thread", e);
 				mainThread.interrupt();
 			} finally {
 				pLatch.countDown();
-				logger.info( size + " indels is completed pileup from " + contig.getSequenceName() + " on " + bam.getName());
+				logger.info( size + " indels have completed pileup from " + contig.getSequenceName() + " on " + bam.getName());
 
  			}			
 		}		
@@ -160,8 +155,8 @@ public class IndelMT {
 		 void resetPool( IndelPosition topPos, List<SAMRecord> currentPool, List<SAMRecord> nextPool){
 			
 			
-				List<SAMRecord> tmp_current_pool = new ArrayList<SAMRecord>();							
-				List<SAMRecord> tmp_pool = new ArrayList<SAMRecord>();	
+				List<SAMRecord> tmp_current_pool = new ArrayList<>();							
+				List<SAMRecord> tmp_pool = new ArrayList<>();	
 				tmp_pool.addAll(nextPool);
 				
 				//check read record behind on current position			
@@ -195,58 +190,6 @@ public class IndelMT {
 		}				
 	}
 			
-	class HomopoPileup implements Runnable {
-		private final AbstractQueue<IndelPosition> qIn;
-		private final AbstractQueue<Homopolymer> qOut;
-		private final Thread mainThread;
-		private final File referenceFile; 
-		private final String contig; 
-		private final byte[] referenceBase;
-		private final int window; 
-		private final int reportWindow; 
-		final CountDownLatch pLatch;
-		
-		HomopoPileup(String contig,   AbstractQueue<IndelPosition> qIn, File reference,  
-				AbstractQueue<Homopolymer> qOut, int window,int reportWindow,  Thread mainThread, CountDownLatch latch) {
-			this.qIn = qIn;
-			this.qOut = qOut;
-			this.mainThread = mainThread;
-			this.referenceFile = reference; 
-			this.window = window;
-			this.pLatch = latch; 
-			this.contig = contig; 
-			this.reportWindow = reportWindow; 
-			
-			IndexedFastaSequenceFile indexedFasta = Homopolymer.getIndexedFastaFile(referenceFile);
-			this.referenceBase = indexedFasta.getSequence(contig).getBases();
- 	
- 		}
-		 
- 
-		@Override
-		public void run() {
-			int size = qIn.size();
-			try {
-  
-				try {
-					IndelPosition pos;					
-					while ((pos = qIn.poll()) != null)  
-						qOut.add(new Homopolymer(pos, referenceBase, window,reportWindow));
-				} finally {					 
-					pLatch.countDown();
-				}
-			}catch(Exception e){
-				logger.error("Exception caught in homopolymer thread", e);
-				mainThread.interrupt();
-
-			} finally {
-				pLatch.countDown();
-				logger.info(size  + " indels had been checked homopolymer from " + contig);
-			}
-		}
-		
-	}
-	
 	Options options; 
 	QLogger logger; 
 	ReadIndels indelload;
@@ -264,39 +207,40 @@ public class IndelMT {
 		
 		//get sequence from bam header
 		File bam = (options.getTestBam() != null)? options.getTestBam(): options.getControlBam();
-		SamReader reader =  SAMFileReaderFactory.createSAMFileReader(bam) ;				 
-		for (final SAMSequenceRecord contig : reader.getFileHeader().getSequenceDictionary().getSequences())  
-			sortedContigs.add(contig);
-		reader.close(); 
+		try (SamReader reader =  SAMFileReaderFactory.createSAMFileReader(bam)) {				 
+			for (final SAMSequenceRecord contig : reader.getFileHeader().getSequenceDictionary().getSequences()) {
+				sortedContigs.add(contig);
+			}
+		}
 		
 		//loading indels 
 		this.indelload = new ReadIndels(logger);		
 		if(options.getRunMode().equalsIgnoreCase(Options.RUNMODE_GATK) ){
 			//first load control
 			if(options.getControlInputVcf() != null){
-				indelload.LoadIndels(options.getControlInputVcf(),options.getRunMode());	
+				indelload.loadIndels(options.getControlInputVcf(),options.getRunMode());	
 				if(indelload.getCounts_newIndel() != indelload.getCounts_totalIndel())
 					logger.warn("ERROR: Found " + indelload.getCounts_newIndel() + 
-							" indels from control input, but it is not same to the number of indel inside MAP is " + indelload.getCounts_totalIndel());
-				logger.info(indelload.getCounts_newIndel() + " indels are found from Control vcf input.");
+							" indels from control input, but it is not the same as the number of indel inside MAP, which is " + indelload.getCounts_totalIndel());
+				logger.info(indelload.getCounts_newIndel() + " indels are found from control vcf input.");
 				logger.info(indelload.getCounts_multiIndel() + " indels are split from multi alleles in control vcf.");
-				logger.info(indelload.getCounts_inputLine() + " variants record exsits inside control vcf input.");
-				logger.info(indelload.getCounts_inputMultiAlt() + " variants record with multi Alleles exsits inside control vcf input.");									
+				logger.info(indelload.getCounts_inputLine() + " variant records exsit inside control vcf input.");
+				logger.info(indelload.getCounts_inputMultiAlt() + " variant records with multi alleles exsits inside control vcf input.");									
 			}	
 			//then test second column
 			if(options.getTestInputVcf() != null){
 				indelload.appendTestIndels(options.getTestInputVcf());				
-				logger.info(indelload.getCounts_inputLine() + " variants record exsits inside test vcf input.");
-				logger.info(indelload.getCounts_inputMultiAlt() + " variants record with multi Alleles exsits inside test vcf input.");	
+				logger.info(indelload.getCounts_inputLine() + " variant records exsit inside test vcf input.");
+				logger.info(indelload.getCounts_inputMultiAlt() + " variants record with multi alleles exsits inside test vcf input.");	
 				logger.info(indelload.getCounts_multiIndel() + " indels are split from multi alleles inside test vcf");					
-				logger.info(indelload.getCounts_newIndel() + " new indels are found in Test vcf input only.");
-				logger.info(indelload.getCounts_overlapIndel() + " indels are found in both Control and Test vcf inputs.");
+				logger.info(indelload.getCounts_newIndel() + " new indels are found in test vcf input only.");
+				logger.info(indelload.getCounts_overlapIndel() + " indels are found in both control and test vcf inputs.");
 				logger.info((indelload.getCounts_totalIndel() - indelload.getCounts_newIndel() - indelload.getCounts_overlapIndel()) +  
-						" indels are found in Control vcf input only." );				
+						" indels are found in control vcf input only." );				
 			}				
 		}else if(options.getRunMode().equalsIgnoreCase("pindel")){	
 			for(int i = 0; i < options.getInputVcfs().size(); i ++)
-				indelload.LoadIndels(options.getInputVcfs().get(i), options.getRunMode());	
+				indelload.loadIndels(options.getInputVcfs().get(i), options.getRunMode());	
 		}		
 	}
 	
@@ -312,14 +256,16 @@ public class IndelMT {
 		if(positionRecordMap == null || positionRecordMap.isEmpty()){
 			logger.info("Exit program since there is no indels loaded from inputs");
 			return 0; 
-		}			
+		}
 		
         final CountDownLatch pileupLatch = new CountDownLatch(sortedContigs.size() * 2); // filtering thread               
         
-        final AbstractQueue<IndelPileup> tumourQueue = new ConcurrentLinkedQueue<IndelPileup>();
-        final AbstractQueue<IndelPileup> normalQueue = new ConcurrentLinkedQueue<IndelPileup>();
+        final AbstractQueue<IndelPileup> tumourQueue = new ConcurrentLinkedQueue<>();
+        final AbstractQueue<IndelPileup> normalQueue = new ConcurrentLinkedQueue<>();
         // set up executor services
-        ExecutorService pileupThreads = Executors.newFixedThreadPool(threadNo);    	
+        ExecutorService pileupThreads = Executors.newFixedThreadPool(threadNo);
+        
+        Thread.setDefaultUncaughtExceptionHandler((t, e) -> {logger.error("( in uncaughtExceptionHandler) )exception " + e + ", from thread: " + t, e); System.exit(1);});
     	
         QueryExecutor query = null; 
         if (options.getFilterQuery() != null) {
@@ -328,14 +274,30 @@ public class IndelMT {
         
      	//each time only throw threadNo thread, the loop finish until the last threadNo                    	
 	    	for (SAMSequenceRecord contig : sortedContigs ){       		
-	    		if (options.getControlBam() != null) {		
-	    			 pileupThreads.execute(new ContigPileup(contig, getIndelList(contig), options.getControlBam(),query,
+	    		if (options.getControlBam() != null) {
+	    			/*
+	    			 * check to see if we have abm index files available, bomb i we dont
+	    			 */
+	    			File index = SamFiles.findIndex(options.getControlBam());
+	    			if (null == index || ! index.exists()) {
+	    				logger.error("No index file found for control bam: " + options.getControlBam());
+	    				return 1;
+	    			}
+	    			 pileupThreads.execute(new ContigPileup(contig, getIndelList(contig), options.getControlBam(), index, query,
 	    				normalQueue, Thread.currentThread(),pileupLatch ));
 	    		}
 	    		
 	    		//getIndelList must be called repeatedly, since it will be empty after pileup
 	    		 if (options.getTestBam() != null) {
-	    			 pileupThreads.execute(new ContigPileup(contig, getIndelList(contig), options.getTestBam() , query,
+	    			 /*
+    				 * check to see if we have abm index files available, bomb i we dont
+    				 */
+	    			 File index = SamFiles.findIndex(options.getTestBam());
+		    			if (null == index || ! index.exists()) {
+		    				logger.error("No index file found for test bam: " + options.getTestBam());
+		    				return 1;
+		    			}
+	    			 pileupThreads.execute(new ContigPileup(contig, getIndelList(contig), options.getTestBam() , index, query,
 	    					 tumourQueue, Thread.currentThread() ,pileupLatch));
 	    		 }
 	    		
@@ -359,6 +321,7 @@ public class IndelMT {
         
 		return 0; 
 	}
+	
 	
 	private void writeVCF(AbstractQueue<IndelPileup> tumourQueue, AbstractQueue<IndelPileup> normalQueue,File output, VcfHeader header ) throws Exception{
 		
@@ -389,24 +352,26 @@ public class IndelMT {
 						
 			//reheader
 			getHeaderForIndel(header);	
-        	for (final VcfHeaderRecord record: header) {
-        		writer.addHeader(record.toString());
-        	}
+	        	for (final VcfHeaderRecord record: header) {
+	        		writer.addHeader(record.toString());
+	        	}
 			 
         	//adding indels
 			long count = 0;
 			IndelPosition indel; 
 			long somaticCount = 0;
-			while( (indel = orderedList.poll()) != null)
-				for(int i = 0; i < indel.getMotifs().size(); i++){	
+			while( (indel = orderedList.poll()) != null) {
+				for(int i = 0; i < indel.getMotifs().size(); i++){
 
 					VcfRecord re = indel.getPileupedVcf(i, options.getMinGematicNovelStart(), options.getMinGematicSupportOfInformative());
 					writer.add(re  );	
 					count ++;
 					
-					if(re.getInfo().contains(VcfHeaderUtils.INFO_SOMATIC))
+					if (re.getInfo().contains(VcfHeaderUtils.INFO_SOMATIC)) {
 						somaticCount ++;
+					}
 				}
+			}
 						
 			logger.info("outputed VCF record: " + count);	
 			logger.info("including somatic record: " + somaticCount);

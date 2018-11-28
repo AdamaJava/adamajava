@@ -176,7 +176,7 @@ public class IndelPileup {
 			boolean partialflag = false; 
 			int refPos = re.getAlignmentStart();
 			Cigar cigar = re.getCigar();
-			for (CigarElement ce : cigar.getCigarElements()){					
+			for (CigarElement ce : cigar.getCigarElements()){			
 				if(CigarOperator.I == ce.getOperator() && (refPos == indelEnd && type.equals(SVTYPE.INS))){ 
 					//if insert rePos go next cigar block after cigar.I, which is indel end position			 	 			 		 	
 			 		if(ce.getLength() != motif.length())
@@ -223,8 +223,7 @@ public class IndelPileup {
 					refPos += ce.getLength();				
 			}
 		}					 
-		int[] counts = {support, forward_strong,backward_strong, part_support, novel4strong.size(), strong_support ,novel4support.size()};
-		return counts; 
+		return new int[] {support, forward_strong,backward_strong, part_support, novel4strong.size(), strong_support ,novel4support.size()};
 		
 	}
 	
@@ -285,7 +284,7 @@ public class IndelPileup {
 	
 	private List<SAMRecord> getInformative(List<SAMRecord> pool){
 		
-		List<SAMRecord> informativePool = new ArrayList<SAMRecord>();		
+		List<SAMRecord> informativePool = new ArrayList<>();		
 		int start = indelStart;
 		int end = indelEnd; 
 		

@@ -91,7 +91,7 @@ public class IndelMTTest {
 		VcfHeader header = null; 
 		try (VCFFileReader reader = new VCFFileReader(IniFileTest.output)) {
 			header = reader.getHeader();
-			for (VcfRecord re : reader) {	
+			for (VcfRecord re : reader) {
 				passNo ++;
 				record = re; 
 				//test the output variants order
@@ -125,7 +125,7 @@ public class IndelMTTest {
 	}
 	
 	public static void createDelBam( String output) {
-        List<String> data = new ArrayList<String>();        
+        List<String> data = new ArrayList<>();        
         data.add("ST-E00139:1112:a:102\t99\tchrY\t2672601\t60\t10M2D123M2D10M8S\t=\t2673085\t631\tGTAGTTTATATTTCTGTGGGGTCAGTGGTGATATCCCTTTTATTATTTTTTATTGTGTCTTTTTGATTCTTCTCTCTTTTCTTTTTTATTAATCTACCTAGCAGTCTATCTTATTGGGTGTG\t*\tMD:Z:10^AT100G0G21^TT9T");
         data.add("ST-E00139:2210:b:103\t99\tchrY\t2672680\t60\t56M2D50M45S\t=\t2672878\t349\tCTTTTCTTTTTTATTAATCTACCTAGCAGTCTATCTTATTGGGTGTGTGTGTGTGATTTTTTTTTTTTTTTCAAAAAACCAGTTCCTGAATTTATTTATTTTTTGATGTGTTTTTTTTTTCA\t*\tMD:Z:56^TT50");
 		data.add("ST-E00139:2121:c:104\t99\tchrY\t2672696\t60\t40M3D111M\t=\t2672957\t412\tATCTACCTAGCAGTCTATCTTATTGGGTGTGTGTGTGTGATTTTTTTTTTTTCCAAAAAACCAGTTCCTGAATTCATTGATTTTTTGAAGGGTTTTTTGTGTCACTGTCCCCTT\t*");

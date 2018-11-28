@@ -24,7 +24,6 @@ public class IndelPosition {
 	private final SVTYPE mutationType;	
 	private IndelPileup tumourPileup;
 	private IndelPileup normalPileup;
-//	private Homopolymer polymer;	
 
 	/**
 	 * retrive information from a vcf record
@@ -139,10 +138,6 @@ public class IndelPosition {
 		return  mutationType.equals(SVTYPE.DEL); 		 
 	}		
 	
-	public boolean isComplex() {
-		return mutationType.equals(SVTYPE.CTX);
-	}
-	
 	public String getMotif(int index) {	
 		
 		if(mutationType.equals(SVTYPE.INS))
@@ -155,7 +150,7 @@ public class IndelPosition {
 	
 	
 	public List<String> getMotifs( ) {	
-		List<String> motifs = new ArrayList<>();
+		List<String> motifs = new ArrayList<>(vcfs.size() + 1);
 		for(int i = 0; i < vcfs.size(); i ++)
 			motifs.add(i, getMotif(i));
 		
@@ -195,10 +190,6 @@ public class IndelPosition {
 		else
 			this.normalPileup = pileup;
 	}
-	
-//	public void setHomopolymer(Homopolymer polymer){
-//		this.polymer = polymer; 
-//	}	
 	
 	public VcfRecord getPileupedVcf(int index, final int gematic_nns, final float gematic_soi){
 		VcfRecord re = vcfs.get(index);		
@@ -272,21 +263,15 @@ public class IndelPosition {
 					 
 		//future job should check GT column	
 		//control always on first column and then test
-		List<String> field = new ArrayList<String>();
+		List<String> field = new ArrayList<>();
 		field.add(0,  (genotypeField.size() > 0)? genotypeField.get(0) + ":" + IndelUtils.FORMAT_ACINDEL : IndelUtils.FORMAT_ACINDEL );
 		field.add(1,  (genotypeField.size() > 1)? genotypeField.get(1) + ":" + nd : nd);
 		field.add(2,  (genotypeField.size() > 2)? genotypeField.get(2) + ":" + td: td);					
 		re.setFormatFields(  field); 
 				
-//		if(polymer != null &&  polymer.getPolymerSequence(index) != null ){
-//			VcfUtils.updateFilter(re, IndelUtils.FILTER_HOM + polymer.getCount(index));	
-//			re.appendInfo(String.format(IndelUtils.INFO_HOMTXT  + "=" + polymer.getPolymerSequence(index)));
-//		}
 					 
 		IndelPileup pileup = (somatic)? tumourPileup: normalPileup; 				
 		
-//		if(somatic && tumourPileup.getstrongsupportNovelStartReadCount(index) < 4 )
-		//if coverage == 0 
 		if(pileup !=null  && pileup.getstrongsupportNovelStartReadCount(index) < 4)
 			VcfUtils.updateFilter(re,IndelUtils.FILTER_NNS);
 		

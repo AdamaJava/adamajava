@@ -1,47 +1,29 @@
 package au.edu.qimr.indel.pileup;
 
 import static org.junit.Assert.*;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SamReader;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
+import htsjdk.samtools.SAMFileHeader;
+import htsjdk.samtools.SAMRecord;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
-import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.util.Constants;
+import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.util.IndelUtils.SVTYPE;
 import org.qcmg.common.vcf.VcfRecord;
-import org.qcmg.common.vcf.header.VcfHeaderUtils;
-import org.qcmg.picard.SAMFileReaderFactory;
 
 public class IndelPileupTest {
-//	static final String inputIndel = "indel.vcf"; 
-	static final String inputBam = "tumor.sam"; 
 	QLogger logger = QLoggerFactory.getLogger(IndelPileupTest.class);
-	
-	@BeforeClass
-	public static void createInput() {	
-		CreateSam();
-	}
-	
-	@AfterClass
-	public static void deleteInput() {	
-		new File(inputBam).delete();
-	}	
 		
 	@Test
 	public void insertTest() throws Exception{		 
         //pileup
-		List<VcfRecord> vcfs = new ArrayList<VcfRecord>();
+		List<VcfRecord> vcfs = new ArrayList<>();
 		vcfs.add(new VcfRecord.Builder("chr1",	183014,	"G").allele("GTT").build());
 		vcfs.add(new VcfRecord.Builder("chr1",	183014, "G").allele("GT").build());
 		
@@ -67,7 +49,7 @@ public class IndelPileupTest {
         assertTrue(pileup.getsupportNovelStartReadCount(1) == 1);
         assertTrue(pileup.getparticalReadCount(1) == 1); 	        
         //MD:Z:23G38T0C57  adjacant snps count as one, so one snp, one mnp and one INS, total 3 events
-        assertTrue(pileup.getstrongSuportReadCount(1) == 1);
+        assertEquals(1, pileup.getstrongSuportReadCount(1));
         assertTrue(pileup.getstrongsupportNovelStartReadCount(1) == 1);
 	}	
 	
@@ -99,7 +81,7 @@ public class IndelPileupTest {
 		IndelPosition indel = new IndelPosition (vs);
         IndelPileup pileup = new IndelPileup( indel, 13, 3,3); 	
         
-		List<SAMRecord> pool = new ArrayList<SAMRecord>();	
+		List<SAMRecord> pool = new ArrayList<>();	
 		pool.add(new SAMRecord(null ));		
 		SAMRecord record = pool.get(0);		
 		
@@ -132,7 +114,7 @@ public class IndelPileupTest {
 		IndelPosition indel = new IndelPosition (vs);
         IndelPileup pileup = new IndelPileup( indel, 20, 3,3); 	
         
-		List<SAMRecord> pool = new ArrayList<SAMRecord>();	
+		List<SAMRecord> pool = new ArrayList<>();	
 		pool.add(new SAMRecord(null ));		
 		SAMRecord record = pool.get(0);		
 		
@@ -151,67 +133,62 @@ public class IndelPileupTest {
 	}
 
 	 
-	 // @return a SAMRecord pool overlap the indel position
 	private List<SAMRecord> makePool(int indelEnd) throws IOException{
-		//make pool
-		List<SAMRecord> pool = new ArrayList<SAMRecord>();				
-		try(SamReader inreader =  SAMFileReaderFactory.createSAMFileReader(new File(inputBam));){
-	        for(SAMRecord record : inreader){
-	        	if(record.getAlignmentStart() <= indelEnd)
-	        	pool.add(record);
-	        }
-		}	
+		List<SAMRecord> pool = new ArrayList<>();				
+		
+		pool.add(createSamRec("1997_1173_1256	99	chr1	183011	60	112M1D39M	=	183351	491	" + 
+	        		"TATGTTTTTTAGTAGAGACAGGGTCTCACTGTGTTGCCCAGGCTAGTCTCTAACTCCTGGGCTCAAATTATCCTCCCCACTTGGCCTCCCAAAAGGATTGGATTACAGGCATAAGCCACTGCCCCAAGCCTAAAATTTTTTAAAGTACCAT	FFFFFFJFJJJJFJJFJFJJFAJJJJJJJJJJFJJJJJJJFJJJJJJJFJFJJJJJJJJJFJAJJJJJJJJJJJJJJJJFJFJJJJFJJJFFFJJJJAFFJFJJJJJFJFJFJJJFJJJFFJJJAFFJJJJFAFJFFFJJAFFAJJJJFJ7	ZC:i:4	MD:Z:112^A39	PG:Z:MarkDuplicates.5	RG:Z:20140717025441134", null));	                                 
+	         
+	        //INS
+		pool.add(createSamRec("1997_1173_1257	163	chr1	182999	60	16M1I105M29S	=	183397	540	" + 
+	        		"TACATTTAAAAATATGTTTTTTTAATAGAGACAGGGTCTCACTGTGTTGCCCAGGCTAGTCTCAAACTCCTGGGCTCAAATTATCCTCCCCACTTGGCCTCCCAAAAGGATTGGATTACAGGNANNNNNNNNNGNCNNNNNGCTAAAANTT	AAFFFJJJJJJJJJJJAJJJFJJJJJJ<J7FFJF-JFAFJJ<AJAFAJFF-FJJ-FJJAAFFJAFA-FFAFF<FFAFJAFJ<JJA7F-<-AJ<<J<F<FFJ-J<A7J-F-FJA7-<F<7J<<#-#########A#A#####AAFFFJA#--	ZC:i:4	"
+	        		+ "MD:Z:23G38T0C57	PG:Z:MarkDuplicates.5	RG:Z:20140717025441134", null));// MD:Z:23G38T58 before
+		pool.add(createSamRec("1997_1173_1258	163	chr1	183001	9	14M2I106M29S	=	183287	440	" + 
+	        		"CATTTAAAAATATGTTTTTTTTAATAGAGACAGGGTCTCACTGTGTTGCCCAGGCTAGTCTCAAACTCCTGGGCTCAAATTATCCTCCCCACTTGGCCTCCCAAAAGGATGGGATTACAGGCNTNNNNNNNNNCNCNNNNNCTAAAATNTT	AFFFFJJJJJJJJJJJJJJJJJJJJJFJJJJJJJJJJJJJJJJJJJJJJFJJJJJJJJJAJJJJJJJJJJAFJJJFJJJJJJJJJJJJJJJJJJJFJFFFAJJJJJJJJJJJJJJJJJJJJJ#A#########J#A#####JFJJJJF#JF	ZC:i:4	MD:Z:21G38T47T11	PG:Z:MarkDuplicates.5	RG:Z:20140717025441134", null));
+
+	       //deletion
+//	       data.add("1997_1173_1267	113	chr1	64	60	134M2D17M	chr1	72846	0	" +
+//	       "GAAAATACTAAACCACACCAGGTGTGGTGTCACATGCCTGTGGTCTCAGGTACTTGGGAGGCTGAGGTGGGAGGATCGCTTGAACCCAGGAAGTTGAGGCTGCAGTGAGTTGTGATTACACCAGCCTGGGTGACAGTGTCACCCTGTCTCA	JF7-<7--7-77-JJFFFJFJF<JJ<<JAFJAJJAAF<JJ<AFJ-JJAJJJAJAJJAAAJF-JFF7FFJFJAFAFAFJA<JF--FJA-F--JJAJJFJJ<FJJJJ<JJJJJJJJJJJJJJ<FAFJ<AA-JJJ<JJJJJJJJJFAFJAFFAA	ZC:i:5	"
+//	       + "MD:Z:12T121^TC17	PG:Z:MarkDuplicates.5	RG:Z:20140717025441134");
+		pool.add(createSamRec("1997_1173_1267	113	chr1	64	60	125M1I9M2D16M	chr1	72846	0	" +
+	              "GAAAATACTAAACCACACCAGGTGTGGTGTCACATGCCTGTGGTCTCAGGTACTTGGGAGGCTGAGGTGGGAGGATCGCTTGAACCCAGGAAGTTGAGGCTGCAGTGAGTTGTGATTACACCAGCCTGGGTGACAGTGTCACCCTGTCTCA	JF7-<7--7-77-JJFFFJFJF<JJ<<JAFJAJJAAF<JJ<AFJ-JJAJJJAJAJJAAAJF-JFF7FFJFJAFAFAFJA<JF--FJA-F--JJAJJFJJ<FJJJJ<JJJJJJJJJJJJJJ<FAFJ<AA-JJJ<JJJJJJJJJFAFJAFFAA	ZC:i:5	"
+	        + "MD:Z:11G0T121^AG17	PG:Z:MarkDuplicates.5	RG:Z:20140717025441134", null));
+	        
+		pool.add(createSamRec("1997_1173_1268	177	chr1	67	57	131M2D20M	chr1	72680	0	" +
+	       "AATACTAAAACACACCAGGTGTGGTGTCACATGCCTGTGGTCTCAGGNANTNGNGANGNTNAGGTGGGAGGATCGCTTGAACCCAGGAAGTTGAGGCTGCAGTGAGTTGTGATTACACCAGCCTGGGTGACAGTGTCACCCTGTCTCAAAA	JJJJFJJFFFJJFJJJFFJJJJJJJJJJFJJJJJJJJJJJJJJJJJJ#J#J#J#JJ#J#F#JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJFJJJJJJJJFFFAA	ZC:i:4	"
+	       + "MD:Z:47A1G1A1C2C1G1C70^AG20	PG:Z:MarkDuplicates.5	RG:Z:20140717025441134", null));       
+	        
+	       
+	       //multi deletion
+		pool.add(createSamRec("2211:26598	99	chrX	150936053	60	126M5D2M1D22M	=	150936493	568	GAAAACTGTTGGGCCTTCTGGGAGGGGTTAGAATCACTGTAAGCTCCAGAGTTTAGGGCTTGGAAGATGGACCTGAGGCCAGAGTGAAAAGAAACAGTGTGTGTGTGTGTGTGTGTGTGTGTGTGTTGAGAGAGAGAGAGACAGAGGGAT	A<AFFKKKFKKKKKKFKFFFF7,A(<7AFKFKKFKA7FF<FFKFKFFFKFKA<FKKAKFFA7F,,AFKKFKK7KKFFKKAFFFK<KKFFKKKK7FFKFFKFKKKKKFFKKAKFFK<F,A7FKFAF77A<FAFKK7F7A7AF<7A,,<A7A	MD:Z:62A63^GTGTG2^T0T21 PG:Z:MarkDuplicates	RG:Z:20140717025441134", null));
+		pool.add(createSamRec("29988:29314	99	chrX	150936056	60	121M7D2M1D27M	=	150936307	401	AACTGTTGGGCCTTCTGGGAGGGGTTAGAATCACTGTAAGCTCCAGAGTTTAGGGCTTGGAAGATGGACCTGAGGCCAGAGTGAAAAGAAACAGTGTGTGTGTGTGTGTGTGTGTGTGTGTTGAGAGAGAGAGAGACAGAGGGATAAACG	AAFFFKKKKKKKKKKKKKKKKKKKFFFKKKKKKKAKKKKKKKKKFKKKAAFKKKKKKKKKKKKKAKKKKKKKAFKKFKKKK<FFFKKKKKKKFKKKKKKKFK7KKKAKKKFKFFFKAA7F,,AAF7FKFKKFKKKFAFKFKKKK,<FFFF	MD:Z:59A61^GTGTGTG2^T0T26	PG:Z:MarkDuplicates	RG:Z:20140717025441134", null));      
 		
 		return pool; 
 	}
+    
+	private static SAMRecord createSamRec(String s, SAMFileHeader header) {
+		/*
+		 * convert to string array
+		 */
+		String [] array = TabTokenizer.tokenize(s, Constants.TAB);
+		SAMRecord rec = new SAMRecord(header);
+		rec.setReadName(array[0]);
+		rec.setFlags(Integer.parseInt(array[1]));
+		rec.setReferenceName(array[2]);
+		rec.setAlignmentStart(Integer.parseInt(array[3]));
+		rec.setMappingQuality(Integer.parseInt(array[4]));
+		rec.setCigarString(array[5]);
+		rec.setMateReferenceName(array[6]);
+		rec.setInferredInsertSize(Integer.parseInt(array[8]));
+		rec.setReadString(array[9]);
+		rec.setBaseQualityString(array[10]);
+		int mdIndex = s.indexOf("MD:Z:");
+		if (mdIndex > -1) {
+			rec.setAttribute("MD", s.substring(mdIndex + 5, s.indexOf(Constants.TAB, mdIndex + 5)));
+		}
 		
-    public static void CreateSam(){
-        List<String> data = new ArrayList<String>();
-        data.add("@HD	VN:1.0	SO:coordinate");
-        data.add("@RG	ID:20140717025441134	SM:eBeads_20091110_CD	DS:rl=50");
-        data.add("@PG	ID:qtest::Test	VN:0.2pre");
-        data.add("@SQ	SN:chr1	LN:249250621");
-        data.add("@SQ	SN:chr11	LN:243199373");
-        data.add("@CO	create by qcmg.qbamfilter.filter::TestFile");
-        data.add("1997_1173_1256	99	chr1	183011	60	112M1D39M	=	183351	491	" + 
-        		"TATGTTTTTTAGTAGAGACAGGGTCTCACTGTGTTGCCCAGGCTAGTCTCTAACTCCTGGGCTCAAATTATCCTCCCCACTTGGCCTCCCAAAAGGATTGGATTACAGGCATAAGCCACTGCCCCAAGCCTAAAATTTTTTAAAGTACCAT	FFFFFFJFJJJJFJJFJFJJFAJJJJJJJJJJFJJJJJJJFJJJJJJJFJFJJJJJJJJJFJAJJJJJJJJJJJJJJJJFJFJJJJFJJJFFFJJJJAFFJFJJJJJFJFJFJJJFJJJFFJJJAFFJJJJFAFJFFFJJAFFAJJJJFJ7	ZC:i:4	MD:Z:112^A39	PG:Z:MarkDuplicates.5	RG:Z:20140717025441134");	                                 
-         
-        //INS
-        data.add("1997_1173_1257	163	chr1	182999	60	16M1I105M29S	=	183397	540	" + 
-        		"TACATTTAAAAATATGTTTTTTTAATAGAGACAGGGTCTCACTGTGTTGCCCAGGCTAGTCTCAAACTCCTGGGCTCAAATTATCCTCCCCACTTGGCCTCCCAAAAGGATTGGATTACAGGNANNNNNNNNNGNCNNNNNGCTAAAANTT	AAFFFJJJJJJJJJJJAJJJFJJJJJJ<J7FFJF-JFAFJJ<AJAFAJFF-FJJ-FJJAAFFJAFA-FFAFF<FFAFJAFJ<JJA7F-<-AJ<<J<F<FFJ-J<A7J-F-FJA7-<F<7J<<#-#########A#A#####AAFFFJA#--	ZC:i:4	"
-        		+ "MD:Z:23G38T0C57	PG:Z:MarkDuplicates.5	RG:Z:20140717025441134");// MD:Z:23G38T58 before
-        data.add("1997_1173_1258	163	chr1	183001	9	14M2I106M29S	=	183287	440	" + 
-        		"CATTTAAAAATATGTTTTTTTTAATAGAGACAGGGTCTCACTGTGTTGCCCAGGCTAGTCTCAAACTCCTGGGCTCAAATTATCCTCCCCACTTGGCCTCCCAAAAGGATGGGATTACAGGCNTNNNNNNNNNCNCNNNNNCTAAAATNTT	AFFFFJJJJJJJJJJJJJJJJJJJJJFJJJJJJJJJJJJJJJJJJJJJJFJJJJJJJJJAJJJJJJJJJJAFJJJFJJJJJJJJJJJJJJJJJJJFJFFFAJJJJJJJJJJJJJJJJJJJJJ#A#########J#A#####JFJJJJF#JF	ZC:i:4	MD:Z:21G38T47T11	PG:Z:MarkDuplicates.5	RG:Z:20140717025441134");
-
-       //deletion
-//       data.add("1997_1173_1267	113	chr1	64	60	134M2D17M	chr1	72846	0	" +
-//       "GAAAATACTAAACCACACCAGGTGTGGTGTCACATGCCTGTGGTCTCAGGTACTTGGGAGGCTGAGGTGGGAGGATCGCTTGAACCCAGGAAGTTGAGGCTGCAGTGAGTTGTGATTACACCAGCCTGGGTGACAGTGTCACCCTGTCTCA	JF7-<7--7-77-JJFFFJFJF<JJ<<JAFJAJJAAF<JJ<AFJ-JJAJJJAJAJJAAAJF-JFF7FFJFJAFAFAFJA<JF--FJA-F--JJAJJFJJ<FJJJJ<JJJJJJJJJJJJJJ<FAFJ<AA-JJJ<JJJJJJJJJFAFJAFFAA	ZC:i:5	"
-//       + "MD:Z:12T121^TC17	PG:Z:MarkDuplicates.5	RG:Z:20140717025441134");
-        data.add("1997_1173_1267	113	chr1	64	60	125M1I9M2D16M	chr1	72846	0	" +
-              "GAAAATACTAAACCACACCAGGTGTGGTGTCACATGCCTGTGGTCTCAGGTACTTGGGAGGCTGAGGTGGGAGGATCGCTTGAACCCAGGAAGTTGAGGCTGCAGTGAGTTGTGATTACACCAGCCTGGGTGACAGTGTCACCCTGTCTCA	JF7-<7--7-77-JJFFFJFJF<JJ<<JAFJAJJAAF<JJ<AFJ-JJAJJJAJAJJAAAJF-JFF7FFJFJAFAFAFJA<JF--FJA-F--JJAJJFJJ<FJJJJ<JJJJJJJJJJJJJJ<FAFJ<AA-JJJ<JJJJJJJJJFAFJAFFAA	ZC:i:5	"
-        + "MD:Z:11G0T121^AG17	PG:Z:MarkDuplicates.5	RG:Z:20140717025441134");
-        
-       data.add("1997_1173_1268	177	chr1	67	57	131M2D20M	chr1	72680	0	" +
-       "AATACTAAAACACACCAGGTGTGGTGTCACATGCCTGTGGTCTCAGGNANTNGNGANGNTNAGGTGGGAGGATCGCTTGAACCCAGGAAGTTGAGGCTGCAGTGAGTTGTGATTACACCAGCCTGGGTGACAGTGTCACCCTGTCTCAAAA	JJJJFJJFFFJJFJJJFFJJJJJJJJJJFJJJJJJJJJJJJJJJJJJ#J#J#J#JJ#J#F#JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJFJJJJJJJJFFFAA	ZC:i:4	"
-       + "MD:Z:47A1G1A1C2C1G1C70^AG20	PG:Z:MarkDuplicates.5	RG:Z:20140717025441134");       
-        
-       
-       //multi deletion
-       data.add("2211:26598	99	chrX	150936053	60	126M5D2M1D22M	=	150936493	568	GAAAACTGTTGGGCCTTCTGGGAGGGGTTAGAATCACTGTAAGCTCCAGAGTTTAGGGCTTGGAAGATGGACCTGAGGCCAGAGTGAAAAGAAACAGTGTGTGTGTGTGTGTGTGTGTGTGTGTGTTGAGAGAGAGAGAGACAGAGGGAT	A<AFFKKKFKKKKKKFKFFFF7,A(<7AFKFKKFKA7FF<FFKFKFFFKFKA<FKKAKFFA7F,,AFKKFKK7KKFFKKAFFFK<KKFFKKKK7FFKFFKFKKKKKFFKKAKFFK<F,A7FKFAF77A<FAFKK7F7A7AF<7A,,<A7A	MD:Z:62A63^GTGTG2^T0T21 PG:Z:MarkDuplicates	RG:Z:20140717025441134");
-       data.add("29988:29314	99	chrX	150936056	60	121M7D2M1D27M	=	150936307	401	AACTGTTGGGCCTTCTGGGAGGGGTTAGAATCACTGTAAGCTCCAGAGTTTAGGGCTTGGAAGATGGACCTGAGGCCAGAGTGAAAAGAAACAGTGTGTGTGTGTGTGTGTGTGTGTGTGTTGAGAGAGAGAGAGACAGAGGGATAAACG	AAFFFKKKKKKKKKKKKKKKKKKKFFFKKKKKKKAKKKKKKKKKFKKKAAFKKKKKKKKKKKKKAKKKKKKKAFKKFKKKK<FFFKKKKKKKFKKKKKKKFK7KKKAKKKFKFFFKAA7F,,AAF7FKFKKFKKKFAFKFKKKK,<FFFF	MD:Z:59A61^GTGTGTG2^T0T26	PG:Z:MarkDuplicates	RG:Z:20140717025441134");      
-      
-       
-       
-       BufferedWriter out;
-        try {
-           out = new BufferedWriter(new FileWriter(inputBam ));
-           for (String line : data) 
-        	   out.write(line + "\n");          
-           out.close();
-        } catch (IOException e) {
-            System.err.println("IOException caught whilst attempting to write to SAM test file: " + inputBam  + e);
-        }              
-    }
+		return rec;
+	}
 
 
 }

@@ -26,7 +26,7 @@ public class IniFileTest {
 		fini.delete();
 	}
 	@Test
-	public void testquery() {
+	public void testquery() throws IOException, Q3IndelException {
 		 		
 		//ini file not exist
 		String[] args = {"-i", ini};
@@ -37,21 +37,13 @@ public class IniFileTest {
 		
 		// create ini file without query and some dodgy file
 		createIniFile(fini,fini,fini,fini,fini, null);	 
-		try {
-			Options options = new Options(args);	
-			assertTrue(options.getFilterQuery() == null);
-		} catch (Exception e) {
-			Assert.fail("Should not threw a Exception");
-		}
+		Options options = new Options(args);	
+		assertTrue(options.getFilterQuery() == null);
 		
 		// create ini file with empty query 
 		createIniFile(fini,fini,fini,fini,fini, "");	 
-		try {
-			Options options = new Options(args);	
-			assertTrue(options.getFilterQuery() == null);
-		} catch (Exception e) {
-			Assert.fail("Should not threw a Exception");
-		}
+		options = new Options(args);	
+		assertTrue(options.getFilterQuery() == null);
 	}	
 	@Test
 	public final void testIni() {
@@ -90,7 +82,7 @@ public class IniFileTest {
 	
 	public static void createIniFile(File ini, File testbam, File controlbam, File testvcf, File controlvcf,  String query, String mode){
 		
-        List<String> data = new ArrayList<String>();
+        List<String> data = new ArrayList<>();
         data.add("[IOs]");
         data.add( "ref=");
         
@@ -100,13 +92,11 @@ public class IniFileTest {
         data.add("controlVcf="  + (controlvcf == null? "":controlvcf.getAbsolutePath()));
                 
         data.add("output=" + output );
-        data.add("");
         data.add("[ids]");
         data.add("donorId=OESO-5007");
         data.add("analysisId=f6290103-b775-41f8-8880-331e91aeabdc");
         data.add("testSample=Primarytumour:4ca050b3-d15b-436b-b035-d6c1925b59fb");
         data.add("controlSample=Normalcontrol(othersite):a6b558da-ab2d-4e92-a029-6544fb98653b");
-        data.add("");
         data.add("[parameters]");
         data.add("runMode=" + mode);
         data.add("threadNo=5");
@@ -115,7 +105,6 @@ public class IniFileTest {
         data.add("window.homopolymer=100,10");
         data.add("window.softClip =13");
         data.add("strong.event=3");  
-        data.add("");
         data.add("[rules]");
         data.add("#discard all duplicate reads");
         data.add("exclude.Duplicates=true");
