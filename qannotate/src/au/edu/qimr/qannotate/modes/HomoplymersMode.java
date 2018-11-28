@@ -5,12 +5,17 @@
 */
 package au.edu.qimr.qannotate.modes;
 
+import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.SAMSequenceRecord;
 import htsjdk.samtools.reference.FastaSequenceIndex;
 import htsjdk.samtools.reference.IndexedFastaSequenceFile;
+import htsjdk.samtools.reference.ReferenceSequenceFileFactory;
+import htsjdk.samtools.util.IOUtil;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -57,9 +62,31 @@ public class HomoplymersMode extends AbstractMode{
         logger.tool("logger level " + (options.getLogLevel() == null ? QLoggerFactory.DEFAULT_LEVEL.getName() :  options.getLogLevel()));
         logger.tool("window size for homoplymers: " + homopolymerWindow);
         logger.tool("report homoplymers base on both side of variants: " + reportWindow);
+        
         reheader(options.getCommandLine(),options.getInputFileName());
  		addAnnotation(options.getDatabaseFileName() );		
-	}	
+	}
+	
+	/*
+	 * taken from htsjdk
+	 * https://github.com/samtools/htsjdk/blob/master/src/main/java/htsjdk/samtools/reference/AbstractFastaSequenceFile.java
+	 */
+	protected static Path findSequenceDictionary(final Path path) {
+        if (path == null) {
+            return null;
+        }
+        // Try and locate the dictionary with the default method
+        final Path dictionary = ReferenceSequenceFileFactory.getDefaultDictionaryForReferenceSequence(path); path.toAbsolutePath();
+        if (Files.exists(dictionary)) {
+            return dictionary;
+        }
+        // try without removing the file extension
+        final Path dictionaryExt = path.resolveSibling(path.getFileName().toString() + IOUtil.DICT_FILE_EXTENSION);
+        if (Files.exists(dictionaryExt)) {
+            return dictionaryExt;
+        }
+        else return null;
+    }
 	
 	
 	@Override
@@ -218,14 +245,7 @@ public class HomoplymersMode extends AbstractMode{
 			
 			int left = 0;
 			nearBase = (char) updownReference[0][finalUpIndex];
-//			for (byte b : mByte) {
-//				if (nearBase == b) {
-//					left ++;
-//				} else {
-//					break;				 
-//				}
-//			}
-			for(int i = 0; i < mByte.length; i ++ ) { 
+			for(int i = 0; i < mByte.length; i ++ ) {
 				if (nearBase == mByte[i]) {
 					left ++;
 				} else {
@@ -258,15 +278,32 @@ public class HomoplymersMode extends AbstractMode{
 	}
 	
    static Map<String, byte[]> getReferenceBase(File reference) throws IOException{
+	   
+	   /*
+        * check to see if the index and dict file exist for the reference
+        */
+       Path dictPath = findSequenceDictionary(reference.toPath());
+       if (null == dictPath) {
+       	throw new IllegalArgumentException("No dict file found for reference file: " + reference);
+       }
+       logger.tool("reference dictionary file: " + dictPath.toString());
+       Path indexPath = ReferenceSequenceFileFactory.getFastaIndexFileName(reference.toPath());
+       if (null == indexPath || ! indexPath.toFile().exists()) {
+       	throw new IllegalArgumentException("No index file found for reference file: " + reference);
+       }
+       logger.tool("reference index file: " + indexPath.toString());
+	   
 	   Map<String, byte[]> referenceBase = new HashMap<>();
-	   File indexFile = new File(reference.getAbsolutePath() + ".fai");
-	   FastaSequenceIndex index = new FastaSequenceIndex(indexFile);
+	   
+	   FastaSequenceIndex index = new FastaSequenceIndex(indexPath);
+	   
 	   try (IndexedFastaSequenceFile indexedFasta = new IndexedFastaSequenceFile(reference, index);) {
-		   for(SAMSequenceRecord re: indexedFasta.getSequenceDictionary().getSequences()  ){	
+		   SAMSequenceDictionary dict = indexedFasta.getSequenceDictionary();
+		   for (SAMSequenceRecord re: dict.getSequences()) {
 			   String contig = IndelUtils.getFullChromosome(re.getSequenceName());
 			   referenceBase.put(contig, indexedFasta.getSequence(contig).getBases());
 		   }
 	   }
-	   return referenceBase; 	   
+	   return referenceBase;
    }
 }

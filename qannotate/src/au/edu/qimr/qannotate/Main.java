@@ -7,7 +7,6 @@ package au.edu.qimr.qannotate;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
-import org.qcmg.common.util.LoadReferencedClasses;
 
 import au.edu.qimr.qannotate.modes.*;
 
