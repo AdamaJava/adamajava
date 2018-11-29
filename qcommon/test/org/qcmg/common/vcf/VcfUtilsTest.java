@@ -171,7 +171,7 @@ public class VcfUtilsTest {
 	}
 	
 	@Test
-	public void calculateAD() {
+	public void calculateAD () {
 		assertEquals("0,1", VcfUtils.calculateAD("0,1", "1/1", "1/1"));
 		assertEquals("0,0,1", VcfUtils.calculateAD("0,1", "2/2", "1/1"));
 		assertEquals("0,0,1", VcfUtils.calculateAD("0,1", "0/2", "0/1"));
