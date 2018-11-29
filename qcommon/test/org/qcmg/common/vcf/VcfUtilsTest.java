@@ -14,6 +14,7 @@ import java.util.TreeSet;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrRangePosition;
@@ -170,6 +171,22 @@ public class VcfUtilsTest {
 	}
 	
 	@Test
+	public void mergeGATKRealLife() {
+		String s1 = "chr4	49123053	.	G	A	800.77	.	AC=1;AF=0.500;AN=2;BaseQRankSum=-0.287;ClippingRankSum=0.000;DP=147;ExcessHet=3.0103;FS=13.746;MLEAC=1;MLEAF=0.500;MQ=49.35;MQRankSum=1.081;QD=5.89;ReadPosRankSum=0.743;SOR=3.371	GT:AD:DP:GQ:PL	0/1:108,28:136:99:829,0,4491";
+		String s2 = "chr4	49123053	.	G	T	544.77	.	AC=1;AF=0.500;AN=2;BaseQRankSum=1.033;ClippingRankSum=0.000;DP=72;ExcessHet=3.0103;FS=13.528;MLEAC=1;MLEAF=0.500;MQ=47.67;MQRankSum=1.416;QD=11.35;ReadPosRankSum=0.807;SOR=3.456	GT:AD:DP:GQ:PL	0/1:33,15:48:99:573,0,2744";
+		VcfRecord  vcf1  = new VcfRecord(s1.split("\t"));
+		VcfRecord  vcf2  = new VcfRecord(s2.split("\t"));
+		Optional<VcfRecord> oMergedVcf = VcfUtils.mergeGATKVcfRecs(vcf1, vcf2);
+		assertEquals(true, oMergedVcf.isPresent());
+		VcfRecord mergedVcf = oMergedVcf.get();
+		assertEquals(3, mergedVcf.getFormatFields().size());
+		assertEquals("A,T", mergedVcf.getAlt());
+		assertEquals("GT:AD:DP:GQ:QL", mergedVcf.getFormatFields().get(0));
+		assertEquals("0/1:108,28:136:99:800.77", mergedVcf.getFormatFields().get(1));
+		assertEquals("0/2:33,0,15:48:99:544.77", mergedVcf.getFormatFields().get(2));
+	}
+	
+	@Test
 	public void mergeGATKTestOnly() {
 		String s = "chr1\t13550\t.\tG\tA\t367.77\t.\tAC=1;AF=0.500;AN=2;BaseQRankSum=1.943;ClippingRankSum=0.411;DP=25;FS=36.217;MLEAC=1;MLEAF=0.500;MQ=27.62;MQRankSum=3.312;QD=14.71;ReadPosRankSum=1.670;SOR=3.894\tGT:AD:DP:GQ:PL\t0/1:11,14:25:99:396,0,223";
 		VcfRecord  vcf  = new VcfRecord(s.split("\t"));
@@ -213,7 +230,7 @@ public class VcfUtilsTest {
 		assertEquals(Constants.MISSING_DATA_STRING, mergedVcf.getInfo());
 		assertEquals(3, mergedVcf.getFormatFields().size());
 		assertEquals("0/1:10,3:13:78:49.77", mergedVcf.getFormatFields().get(1));
-		assertEquals("0/2:8,5:13:99:157.77", mergedVcf.getFormatFields().get(2));
+		assertEquals("0/2:8,0,5:13:99:157.77", mergedVcf.getFormatFields().get(2));
 	}
 	
 	@Test
@@ -1239,7 +1256,7 @@ public class VcfUtilsTest {
 		assertArrayEquals(new String[]{".","5348.77"}, ffMap.get(VcfHeaderUtils.FORMAT_QL));
 	}
 	
-	@Test
+	@Ignore
 	public void getFFAsMapSpeedTest() {
 		List<String> ffs = Arrays.asList("GT:AD:DP:EOR:FF:FT:GQ:INF:NNS:OABS:QL","0/1:27,19:46:C1[]2[];T1[]0[]:C6;T5:PASS:.:.:18:C10[40.2]9[35.33];T12[38.75]15[38]:.","0/1:9,39:48:C3[]2[]:C4;T1:PASS:.:.:37:C19[38]20[36.9];T5[39.2]4[37.75]:.","0/1:31,24:55:.:.:PASS:99:.:.:.:746.77","0/1:10,41:51:.:.:PASS:99:.:.:.:1468.77");
 		int counter = 1000000;
