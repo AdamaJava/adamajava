@@ -951,7 +951,7 @@ public class VcfUtils {
 		}
 	}
 	
-	public static String fillAD(String oldAD, String newGt, String oldGt) {
+	public static String calculateAD(String oldAD, String newGt, String oldGt) {
 		if (newGt.equals(oldGt)) {
 			return oldAD;
 		}
@@ -1084,7 +1084,7 @@ public class VcfUtils {
 				Map<String, String [] > ffMap = getFormatFieldsAsMap(tFFs);
 				String [] adArray = ffMap.get(VcfHeaderUtils.FORMAT_ALLELIC_DEPTHS);
 				if (null != adArray || adArray.length > 0) {
-					String newAD = fillAD(adArray[0] , newGT, tGT);
+					String newAD = calculateAD(adArray[0] , newGT, tGT);
 					adArray[0] = newAD;
 					tFFs = convertFFMapToList(ffMap);
 				}

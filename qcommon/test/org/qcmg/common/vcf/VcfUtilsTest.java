@@ -171,6 +171,17 @@ public class VcfUtilsTest {
 	}
 	
 	@Test
+	public void calculateAD() {
+		assertEquals("0,1", VcfUtils.calculateAD("0,1", "1/1", "1/1"));
+		assertEquals("0,0,1", VcfUtils.calculateAD("0,1", "2/2", "1/1"));
+		assertEquals("0,0,1", VcfUtils.calculateAD("0,1", "0/2", "0/1"));
+		assertEquals("0,100,50", VcfUtils.calculateAD("0,100,50", "1/2", "1/2"));
+		assertEquals("0,0,100", VcfUtils.calculateAD("0,100", "2/2", "1/1"));
+		assertEquals("0,0,100,50", VcfUtils.calculateAD("0,100,50", "2/3", "1/2"));
+		assertEquals("0,100,0,50", VcfUtils.calculateAD("0,100,50", "3/3", "2/2"));
+	}
+	
+	@Test
 	public void mergeGATKRealLife() {
 		String s1 = "chr4	49123053	.	G	A	800.77	.	AC=1;AF=0.500;AN=2;BaseQRankSum=-0.287;ClippingRankSum=0.000;DP=147;ExcessHet=3.0103;FS=13.746;MLEAC=1;MLEAF=0.500;MQ=49.35;MQRankSum=1.081;QD=5.89;ReadPosRankSum=0.743;SOR=3.371	GT:AD:DP:GQ:PL	0/1:108,28:136:99:829,0,4491";
 		String s2 = "chr4	49123053	.	G	T	544.77	.	AC=1;AF=0.500;AN=2;BaseQRankSum=1.033;ClippingRankSum=0.000;DP=72;ExcessHet=3.0103;FS=13.528;MLEAC=1;MLEAF=0.500;MQ=47.67;MQRankSum=1.416;QD=11.35;ReadPosRankSum=0.807;SOR=3.456	GT:AD:DP:GQ:PL	0/1:33,15:48:99:573,0,2744";
