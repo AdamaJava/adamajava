@@ -673,7 +673,34 @@ public class MergeUtilsTest {
 		assertEquals(5, ff.size());
 		
 		Map<String, String[]> ffs = mr.getFormatFieldsAsMap();
-		assertArrayEquals(new String[]{"3,5,54","4,10,61", "0,.,56","0,.,91"}, ffs.get(VcfHeaderUtils.FORMAT_ALLELIC_DEPTHS));
+		assertArrayEquals(new String[]{"3,5,54","4,10,61", "0,0,56","0,0,91"}, ffs.get(VcfHeaderUtils.FORMAT_ALLELIC_DEPTHS));
+	}
+	
+	@Test
+	public void mergeRealLifeDataAD2() {
+		
+		/*
+		 * Actual output
+		 * chr2    91629178        .       C       A,T     .       .       FLANK=TCTGTATGTTC;BaseQRankSum=-0.281;ClippingRankSum=0.000;DP=92;ExcessHet=3.0103;FS=0.954;MQ=33.50;MQRankSum=-1.018;QD=7.31;ReadPosRankSum=1.395;SOR=0.846;IN=1,2     GT:AD:DP:EOR:FF:FT:GQ:INF:NNS:OABS:QL   0/1:62,4,0:66:A1[]0[];C1[]6[]:A17;C91;T29:.:.:.:4:A3[38]1[12];C32[38.06]30[38]:.        0/0:123,6,1:130:A2[]0[];C7[]6[]:A61;C181;G2;T76:.:.:.:.:A6[38]0[0];C80[40.11]43[37.51];T0[0]1[41]:.     0/2:69,22:91:.:.:.:99:.:.:.:664.77      0/2:147,47:194:.:.:.:99:.:.:.:1551.77
+		 */
+		
+		
+		VcfRecord v1 = new VcfRecord(new String[]{"chr2","91629178",".","C","A",".",".","FLANK=TCTGTATGTTC","GT:AD:DP:EOR:FF:FT:INF:NNS:OABS","0/1:62,4:66:A1[]0[];C1[]6[]:A17;C91;T29:.:.:4:A3[38]1[12];C32[38.06]30[38]","0/0:123,6:130:A2[]0[];C7[]6[]:A61;C181;G2;T76:.:.:.:A6[38]0[0];C80[40.11]43[37.51];T0[0]1[41]"});
+		VcfRecord v2 = new VcfRecord(new String[]{"chr2","91629178",".","C","T",".",".","BaseQRankSum=-0.281;ClippingRankSum=0.000;DP=92;ExcessHet=3.0103;FS=0.954;MQ=33.50;MQRankSum=-1.018;QD=7.31;ReadPosRankSum=1.395;SOR=0.846","GT:AD:DP:GQ:QL:FT:INF","0/1:69,22:91:99:664.77:.:.","0/1:147,47:194:99:1551.77:.:."});
+		VcfRecord mr = MergeUtils.mergeRecords(null,  v1, v2);
+		
+		assertEquals("chr2", mr.getChromosome());
+		assertEquals(91629178, mr.getPosition());
+		assertEquals("C", mr.getRef());
+		assertEquals("A,T", mr.getAlt());
+		assertEquals(null, mr.getFilter());
+		assertEquals("FLANK=TCTGTATGTTC;BaseQRankSum=-0.281;ClippingRankSum=0.000;DP=92;ExcessHet=3.0103;FS=0.954;MQ=33.50;MQRankSum=-1.018;QD=7.31;ReadPosRankSum=1.395;SOR=0.846", mr.getInfo());
+		
+		List<String> ff = mr.getFormatFields();
+		assertEquals(5, ff.size());
+		
+		Map<String, String[]> ffs = mr.getFormatFieldsAsMap();
+		assertArrayEquals(new String[]{"62,4,0","123,6,1", "69,0,22","147,0,47"}, ffs.get(VcfHeaderUtils.FORMAT_ALLELIC_DEPTHS));
 	}
 	
 	@Test
@@ -686,18 +713,18 @@ public class MergeUtilsTest {
 		VcfRecord v2 = new VcfRecord(new String[]{"chr1","2587689",".","A","G",".",".","DP=60;ExcessHet=3.0103;FS=0.000;MQ=53.08;QD=34.17;SOR=1.919","GT:AD:DP:GQ:QL:FT:INF","1/1:0,56:56:99:1913.77:.:.","1/1:0,91:91:99:2811.77:.:."});
 		MergeUtils.moveDataToFormat(v2, "C,G", true);
 		assertEquals("DP=60;ExcessHet=3.0103;FS=0.000;MQ=53.08;QD=34.17;SOR=1.919", v2.getInfo());
-		assertEquals("GT:AD:DP:FT:GQ:INF:QL\t2/2:0,.,56:56:.:99:.:1913.77\t2/2:0,.,91:91:.:99:.:2811.77", v2.getFormatFieldStrings());
+		assertEquals("GT:AD:DP:FT:GQ:INF:QL\t2/2:0,0,56:56:.:99:.:1913.77\t2/2:0,0,91:91:.:99:.:2811.77", v2.getFormatFieldStrings());
 	}
 	
 	@Test
 	public void fillAD() {
 		assertEquals("0,1", MergeUtils.fillAD("0,1", "1/1", "1/1"));
-		assertEquals("0,.,1", MergeUtils.fillAD("0,1", "2/2", "1/1"));
-		assertEquals("0,.,1", MergeUtils.fillAD("0,1", "0/2", "0/1"));
+		assertEquals("0,0,1", MergeUtils.fillAD("0,1", "2/2", "1/1"));
+		assertEquals("0,0,1", MergeUtils.fillAD("0,1", "0/2", "0/1"));
 		assertEquals("0,100,50", MergeUtils.fillAD("0,100,50", "1/2", "1/2"));
-		assertEquals("0,.,100", MergeUtils.fillAD("0,100", "2/2", "1/1"));
-		assertEquals("0,.,100,50", MergeUtils.fillAD("0,100,50", "2/3", "1/2"));
-		assertEquals("0,100,.,50", MergeUtils.fillAD("0,100,50", "3/3", "2/2"));
+		assertEquals("0,0,100", MergeUtils.fillAD("0,100", "2/2", "1/1"));
+		assertEquals("0,0,100,50", MergeUtils.fillAD("0,100,50", "2/3", "1/2"));
+		assertEquals("0,100,0,50", MergeUtils.fillAD("0,100,50", "3/3", "2/2"));
 	}
 	
 	// TODO should we do anything special when dealing with FILTER? PASS value for example? 

@@ -318,10 +318,12 @@ public class MergeUtils {
 		
 		/*
 		 * loop through and set any null elements to .
+		 * ACTUALLY, set this to 0 rather than missing data
 		 */
 		for (int j = 0 ; j < newADArray.length ; j++) {
 			if (null == newADArray[j]) {
-				newADArray[j] = Constants.MISSING_DATA_STRING;
+				newADArray[j] = "0";
+//				newADArray[j] = Constants.MISSING_DATA_STRING;
 			}
 		}
 		
