@@ -4,7 +4,7 @@
  *
  * This code is released under the terms outlined in the included LICENSE file.
  */
-package org.qcmg.common.util;
+package org.qcmg.qprofiler.util;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -14,8 +14,10 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.qcmg.common.model.SummaryByCycle;
-import org.qcmg.common.model.SummaryByCycleNew2;
+import org.qcmg.common.util.BaseUtils;
+import org.qcmg.common.util.TabTokenizer;
+import org.qcmg.qprofiler.summarise.SummaryByCycle;
+import org.qcmg.qprofiler.summarise.SummaryByCycleNew2;
 
 public class SummaryByCycleUtils {
 		
@@ -85,7 +87,7 @@ public class SummaryByCycleUtils {
 	
 	/**
 	 * Calls the overloaded method passing in 0 as the offset, and null as the lengthMap
-	 * @see org.qcmg.common.util.SummaryByCycleUtils#parseCharacterSummary(SummaryByCycle, String, Map, int)
+	 * @see org.qcmg.qprofiler.util.SummaryByCycleUtils#parseCharacterSummary(SummaryByCycle, String, Map, int)
 	 * 
 	 * @param summary SummaryByCycle object that is tracking the summary data
 	 * @param dataString String containing the data that we wish to summarise
@@ -97,7 +99,7 @@ public class SummaryByCycleUtils {
 	
 	/**
 	 * Calls the overloaded method passing in 0 as the offset
-	 * @see org.qcmg.common.util.SummaryByCycleUtils#parseCharacterSummary(SummaryByCycle, String, Map, int)
+	 * @see org.qcmg.qprofiler.util.SummaryByCycleUtils#parseCharacterSummary(SummaryByCycle, String, Map, int)
 	 * 
 	 * @param summary SummaryByCycle object that is tracking the summary data
 	 * @param dataString String containing the data that we wish to summarise

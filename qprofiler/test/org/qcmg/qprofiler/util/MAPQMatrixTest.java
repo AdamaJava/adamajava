@@ -1,4 +1,4 @@
-package org.qcmg.common.model;
+package org.qcmg.qprofiler.util;
 
 import java.util.Map;
 import java.util.Random;
@@ -11,8 +11,10 @@ import java.util.concurrent.atomic.AtomicLong;
 import junit.framework.Assert;
 
 import org.junit.Test;
-import org.qcmg.common.model.MAPQMatrix.MatrixType;
-import org.qcmg.common.util.SummaryByCycleUtils;
+import org.qcmg.common.model.MAPQMiniMatrix;
+import org.qcmg.qprofiler.util.MAPQMatrix;
+import org.qcmg.qprofiler.util.SummaryByCycleUtils;
+import org.qcmg.qprofiler.util.MAPQMatrix.MatrixType;
 
 public class MAPQMatrixTest {
 	

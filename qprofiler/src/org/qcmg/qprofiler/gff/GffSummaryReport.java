@@ -9,9 +9,9 @@
 package org.qcmg.qprofiler.gff;
 
 import org.qcmg.common.model.ProfileType;
-import org.qcmg.common.model.SummaryByCycle;
 import org.qcmg.gff.GFFRecord;
 import org.qcmg.qprofiler.report.SummaryReport;
+import org.qcmg.qprofiler.summarise.SummaryByCycle;
 import org.w3c.dom.Element;
 
 public class GffSummaryReport extends SummaryReport {

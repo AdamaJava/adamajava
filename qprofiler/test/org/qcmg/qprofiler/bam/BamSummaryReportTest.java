@@ -18,10 +18,10 @@ import htsjdk.samtools.SAMUtils;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.qcmg.common.model.MAPQMiniMatrix;
-import org.qcmg.common.model.SummaryByCycle;
 import org.qcmg.common.string.StringUtils;
-import org.qcmg.common.util.SummaryByCycleUtils;
 import org.qcmg.qprofiler.summarise.PositionSummary;
+import org.qcmg.qprofiler.summarise.SummaryByCycle;
+import org.qcmg.qprofiler.util.SummaryByCycleUtils;
 import org.qcmg.qprofiler.util.SummaryReportUtils;
 
 

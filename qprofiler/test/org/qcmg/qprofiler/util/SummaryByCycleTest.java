@@ -1,4 +1,4 @@
-package org.qcmg.common.model;
+package org.qcmg.qprofiler.util;
 
 import java.util.Arrays;
 import java.util.List;
@@ -8,7 +8,8 @@ import java.util.TreeSet;
 import junit.framework.Assert;
 
 import org.junit.Test;
-import org.qcmg.common.util.SummaryByCycleUtils;
+import org.qcmg.qprofiler.summarise.SummaryByCycle;
+import org.qcmg.qprofiler.util.SummaryByCycleUtils;
 
 public class SummaryByCycleTest<T> {
 	

@@ -1,7 +1,8 @@
-package org.qcmg.common.model;
+package org.qcmg.qprofiler.util;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.qcmg.qprofiler.summarise.SummaryByCycleNew2;
 
 public class SummaryByCycleTestNew2<T> {
 	

@@ -1,4 +1,4 @@
-package org.qcmg.common.util;
+package org.qcmg.qprofiler.util;
 
 import java.util.Map;
 import java.util.Random;
@@ -12,8 +12,9 @@ import junit.framework.Assert;
 
 import org.junit.Ignore;
 import org.junit.Test;
-import org.qcmg.common.model.SummaryByCycle;
-import org.qcmg.common.model.SummaryByCycleNew2;
+import org.qcmg.qprofiler.summarise.SummaryByCycle;
+import org.qcmg.qprofiler.summarise.SummaryByCycleNew2;
+import org.qcmg.qprofiler.util.SummaryByCycleUtils;
 
 
 public class SummaryByCycleUtilsTest {

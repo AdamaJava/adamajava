@@ -4,15 +4,13 @@
  *
  * This code is released under the terms outlined in the included LICENSE file.
  */
-package org.qcmg.common.model;
+package org.qcmg.qprofiler.util;
 
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicLong;
-
-import org.qcmg.common.util.SummaryByCycleUtils;
 
 public class MAPQMatrix {
 	
