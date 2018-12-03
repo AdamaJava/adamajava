@@ -19,7 +19,7 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.messages.QMessage;
 import org.qcmg.common.model.ProfileType;
-
+import org.qcmg.common.util.Pair;
 import org.qcmg.common.util.QprofilerXmlUtils;
 import org.qcmg.qvisualise2.ChartTab;
 import org.qcmg.qvisualise2.util.QProfilerCollectionsUtils;
@@ -27,7 +27,6 @@ import org.w3c.dom.Element;
 
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import javafx.util.Pair;
 
 public class ReportBuilder {
 	private static final String[] SEQ_COLOURS = new String[] { "green", "blue", "black", "red", "aqua" };
@@ -97,12 +96,12 @@ public class ReportBuilder {
 	
 
 	
-	private static void createFaSummary(Element reportElement, Report report) {
-		
-		ChartTabBuilder  para = new ChartTabBuilder ( reportElement, "KMERS",
-				"kmer", "kmer").description("Top 100 6-mers seen in reference genome").chartType(HTMLReportUtils.COLUMN_CHART).setlogScale();			 
-		report.addTab( ChartTabBuilderUtils.createTabFromPossibleValue(para) );
-	}
+//	private static void createFaSummary(Element reportElement, Report report) {
+//		
+//		ChartTabBuilder  para = new ChartTabBuilder ( reportElement, "KMERS",
+//				"kmer", "kmer").description("Top 100 6-mers seen in reference genome").chartType(HTMLReportUtils.COLUMN_CHART).setlogScale();			 
+//		report.addTab( ChartTabBuilderUtils.createTabFromPossibleValue(para) );
+//	}
 	
 	private static void createFastqSummary(Element reportElement, Report report) {
 		final Element summaryElement = QprofilerXmlUtils.getChildElement( reportElement, "ReadNameAnalysis", 0);
@@ -159,7 +158,7 @@ public class ReportBuilder {
                         
                         summaryMap.put("Number of cycles with >1% mismatches", startVBlock + noOfCylces+ rag);
                         break;
-                case QprofilerXmlUtils.filteredReads:{
+                case QprofilerXmlUtils.discardReads:{
                 	    String value = String.format("%,.0f", Double.parseDouble( n.getAttributes().getNamedItem(QprofilerXmlUtils.count).getNodeValue().trim()));
                         summaryMap.put("Discarded reads (FailedVendorQuality, secondary, supplementary)", startVBlock + value + endVBlock);
                         break;
@@ -625,13 +624,13 @@ public class ReportBuilder {
 		
 		for(Pair<String,String> cigar : cigars){
 			//create LengthTally	
-			ChartTabBuilder  para = new ChartTabBuilder ( cigarE,  "ValueTally", (String)cigar.getValue(),  "cig" + cigar.getKey() )
-					.chartType( HTMLReportUtils.COLUMN_CHART).chartTitle(title + ", " + cigar.getValue() )
+			ChartTabBuilder  para = new ChartTabBuilder ( cigarE,  "ValueTally", (String)cigar.getRight(),  "cig" + cigar.getLeft() )
+					.chartType( HTMLReportUtils.COLUMN_CHART).chartTitle(title + ", " + cigar.getLeft())
 					.setlogScale().setChartLeftRight().VAxisMinValue(1).height(800).width( MAX_REPORT_WIDTH );
 						
 			para = para.setDataFilter(  ( Element element ) -> {
 				if( !element.getNodeName().equalsIgnoreCase("TallyItem")) return false;
-				if( !element.getAttribute(QprofilerXmlUtils.value).contains((String) cigar.getKey()) ) return false;
+				if( !element.getAttribute(QprofilerXmlUtils.value).contains((String) cigar.getLeft()) ) return false;
 				return true;						
 			});
 						

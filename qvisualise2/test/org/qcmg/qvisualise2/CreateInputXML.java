@@ -7,20 +7,13 @@ import org.w3c.dom.Element;
 
 public class CreateInputXML {
 	
-	@Test
-	public void xuTest() throws ParserConfigurationException{
-		
-		Element root = createMDElemet();
-//		asXmlText( root, "test.xml" );
-	}
-	
 	/**
 	 * 
 	 * @return Element: an empty root 
 	 * @throws ParserConfigurationException
 	 */
 	private static Element createRootElement() throws ParserConfigurationException{
-		Element root = QprofilerXmlUtils.createRootElement(null, "qProfiler", null);
+		Element root = QprofilerXmlUtils.createRootElement("qProfiler", null);
 		root.setAttribute("annotation", "testing xml for qvisulise");		
 		return root;
 	}

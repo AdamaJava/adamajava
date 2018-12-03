@@ -6,19 +6,14 @@
  */
 package org.qcmg.qvisualise2.report;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicLongArray;
 
 import org.qcmg.common.model.MAPQMiniMatrix;
-import org.qcmg.common.model.SummaryByCycle;
 import org.qcmg.qvisualise2.ChartTab;
 
 public class HTMLReportUtils {
@@ -631,6 +626,7 @@ public class HTMLReportUtils {
 		
 		return sb.toString();
 	}
+	/*
 	@Deprecated
 	public static <T> String generateGoogleDataCycles(
 			SummaryByCycle<T> cycle, String name, List<String> stringList, boolean isQualData, Map<Integer, String> percentages) {
@@ -722,6 +718,8 @@ public class HTMLReportUtils {
 		sb.append("]}, 0.6);");
 		return sb.toString();
 	}
+
+	*/
 	
 	///////////////////////////////////////////////////////////////////////////
 	// Private Methods

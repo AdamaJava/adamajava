@@ -25,8 +25,6 @@ import java.util.concurrent.atomic.AtomicLongArray;
 
 import org.qcmg.common.math.SimpleStat;
 import org.qcmg.common.model.MAPQMiniMatrix;
-
-import org.qcmg.common.model.SummaryByCycle;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.util.QprofilerXmlUtils;
@@ -79,24 +77,24 @@ public class QProfilerCollectionsUtils {
 		return splitFlags;
 	}
 	
-	public static <T> SummaryByCycle<T> generateSummaryByCycleFromElement(Element element) {
-		ConcurrentMap<Integer, ConcurrentMap<T, AtomicLong>> tally = new ConcurrentHashMap<Integer, ConcurrentMap<T, AtomicLong>>();
-		
-		// get the cycles
-		if (null != element  && element.hasChildNodes()) { 				
-			final NodeList cycles = element.getElementsByTagName( "Cycle" );
-			for (int i = 0, size = cycles.getLength() ; i < size ; i++) 
-				if (cycles.item(i) instanceof Element) {
-					final Element cycleElement = (Element) cycles.item(i);						
-					// get tallyitems
-					ConcurrentMap<T, AtomicLong> cycleCount = new ConcurrentHashMap<T, AtomicLong>();
-					populateTallyItemMap(cycleElement, cycleCount, false, null);						
-					tally.put(Integer.parseInt(cycleElement.getAttribute("value")), cycleCount);
-				}			
-		}
-
-		return new SummaryByCycle<T>(tally);
-	}	
+//	public static <T> SummaryByCycle<T> generateSummaryByCycleFromElement(Element element) {
+//		ConcurrentMap<Integer, ConcurrentMap<T, AtomicLong>> tally = new ConcurrentHashMap<Integer, ConcurrentMap<T, AtomicLong>>();
+//		
+//		// get the cycles
+//		if (null != element  && element.hasChildNodes()) { 				
+//			final NodeList cycles = element.getElementsByTagName( "Cycle" );
+//			for (int i = 0, size = cycles.getLength() ; i < size ; i++) 
+//				if (cycles.item(i) instanceof Element) {
+//					final Element cycleElement = (Element) cycles.item(i);						
+//					// get tallyitems
+//					ConcurrentMap<T, AtomicLong> cycleCount = new ConcurrentHashMap<T, AtomicLong>();
+//					populateTallyItemMap(cycleElement, cycleCount, false, null);						
+//					tally.put(Integer.parseInt(cycleElement.getAttribute("value")), cycleCount);
+//				}			
+//		}
+//
+//		return new SummaryByCycle<T>(tally);
+//	}	
 
 	@SuppressWarnings("unchecked")
 	public static <T> void populateTallyItemMap(Element cycleElement, final Map<T, AtomicLong> map, boolean isInteger, ChartTabBuilder.Filter filter) {		
