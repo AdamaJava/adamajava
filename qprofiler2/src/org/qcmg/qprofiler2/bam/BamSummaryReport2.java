@@ -38,7 +38,6 @@ import org.qcmg.common.model.QCMGAtomicLongArray;
 import org.qcmg.common.model.ReferenceNameComparator;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.QprofilerXmlUtils;
-import org.qcmg.common.util.SummaryByCycleUtils;
 import org.qcmg.qprofiler2.fastq.FastqSummaryReport;
 import org.qcmg.qprofiler2.report.SummaryReport;
 import org.qcmg.qprofiler2.summarise.CycleSummary;
@@ -413,6 +412,23 @@ public class BamSummaryReport2 extends SummaryReport {
 //			}
 //		}
 //	}
+	
+	/**
+	 * 	public static <T> void incrementCount(ConcurrentMap<T, AtomicLong> map, T data) {
+
+		if (null == map || null == data)
+			throw new AssertionError("Null map or data found in SummaryByCycleUtils.incrementMap");
+		
+		AtomicLong currentCount = map.get(data);
+		if (null == currentCount) {
+			currentCount = map.putIfAbsent(data, new AtomicLong(1));
+			if (null == currentCount)
+				return;
+		}
+		currentCount.incrementAndGet();
+	}
+	 * @param cigar
+	 */
 
 	void parseCigar(Cigar cigar) {
 		if (null != cigar) {
@@ -421,7 +437,9 @@ public class BamSummaryReport2 extends SummaryReport {
 			for (CigarElement ce : cigar.getCigarElements()) {
 				CigarOperator operator = ce.getOperator();
 				if ( ! CigarOperator.M.equals(operator)) {
-					SummaryByCycleUtils.incrementCount(cigarValuesCount, "" + ce.getLength() + operator);
+					String key = "" + ce.getLength() + operator;
+					cigarValuesCount.computeIfAbsent(key, k -> new AtomicLong(0)).incrementAndGet();					
+					//SummaryByCycleUtils.incrementCount(cigarValuesCount, "" + ce.getLength() + operator);
 				}
 				length += getSizeFromInt(ce.getLength()) + 1;
 			}

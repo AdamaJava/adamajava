@@ -12,38 +12,12 @@
 package org.qcmg.qprofiler2.util;
 
 
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicLongArray;
-import java.util.stream.Collectors;
 
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 import org.apache.commons.lang3.ArrayUtils;
-import org.qcmg.common.log.QLogger;
-import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.QCMGAtomicLongArray;
-import org.qcmg.common.model.ReferenceNameComparator;
 import org.qcmg.common.util.BaseUtils;
-import org.qcmg.common.util.SummaryByCycleUtils;
-import org.qcmg.qprofiler2.summarise.PositionSummary;
-import org.qcmg.qprofiler2.summarise.ReadGroupSummary;
-import org.w3c.dom.DOMException;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Text;
 
 
 public class SummaryReportUtils {

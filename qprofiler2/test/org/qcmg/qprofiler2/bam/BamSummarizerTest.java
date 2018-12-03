@@ -73,17 +73,6 @@ public class BamSummarizerTest {
 		assertNotNull(sr);
 		assertEquals(5, sr.getRecordsParsed());
 		testSummaryReport(sr);
-		
-//		//release memory so we can work for mers6
-//		bs = null; sr = null; 
-//		
-//		// all - collections should be null
-//		// no excludes defined - should return everything
-//		bs = new BamSummarizer2( 0, null);
-//		sr = (BamSummaryReport2) bs.summarize( SAM_INPUT_FILE);
-//		
-//		assertNotNull(sr);
-//		assertEquals(5, sr.getRecordsParsed());
 	}
 	
 	@Test
@@ -94,19 +83,6 @@ public class BamSummarizerTest {
 		
 		assertNotNull(sr);
 		assertTrue(sr.getRNamePosition().size() == 1);
-	//	assertTrue(sr.getCoverage().isEmpty());
-		
-		//release memory so we can work for mers6
-//		bs = null; sr = null; 
-//		
-//		// great - now lets exclude it!
-//		bs = new BamSummarizer2( 0, null);
-//		sr = (BamSummaryReport2) bs.summarize(SAM_INPUT_FILE);
-//		
-//		assertNotNull(sr);
-//		assertFalse(sr.getRNamePosition().isEmpty());
-	//	assertFalse(sr.getCoverage().isEmpty());
-
 	}
 	
 
@@ -128,9 +104,7 @@ public class BamSummarizerTest {
 		// position 26
 		assertEquals(3, sr.getSeqByCycle(1).count(26, 'T'));
 		assertEquals(0, sr.getSeqByCycle(1).count(26, 'C'));
-		assertEquals(1, sr.getSeqByCycle(1).count(26, 'G'));
-
-		
+		assertEquals(1, sr.getSeqByCycle(1).count(26, 'G'));		
 	}
 
 	@Test
@@ -217,11 +191,7 @@ public class BamSummarizerTest {
 		try {
 			qs.summarize(SAM_DODGY_INPUT_FILE);
 			fail("Should have thrown an Exception");
-		} catch (Exception e) {
-//			fail("Should NOT have thrown an Exception");
-			// if there is no header details, defaults to unsorted hence strange error message
-//			assertEquals("Input files must be coordinate sorted", e.getMessage());
-		}
+		} catch (Exception e) { }
 
 		deleteDodgyDataFile();
 	}

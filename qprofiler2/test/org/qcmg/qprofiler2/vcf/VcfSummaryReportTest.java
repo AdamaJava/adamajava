@@ -193,8 +193,7 @@ public class VcfSummaryReportTest {
 			Node nreport = root.getChildNodes().item(0);
 			assertTrue(nreport.getNodeName().equals( ProfileType.VCF.getReportName()  + "Report"));
 			
-			return nreport;
-			
+			return nreport;			
 		}catch (Exception e ) {				 
 			e.printStackTrace();
 			return null;
@@ -202,7 +201,6 @@ public class VcfSummaryReportTest {
 				
 	}
 	
-	//also used by cohorSaummryReportTest
 	/**
 	 * 
 	 * @param lastSampleName
@@ -265,7 +263,6 @@ public class VcfSummaryReportTest {
 		     for (final String line : data)  out.write(line + "\n");
 		  } 
 		  
-//		 return  new File(inputfile);
 	}	
 	 
 	private void checkLastSampleColumn(Node node){

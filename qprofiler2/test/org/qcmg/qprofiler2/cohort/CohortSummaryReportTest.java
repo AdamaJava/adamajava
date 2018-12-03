@@ -106,11 +106,6 @@ public class CohortSummaryReportTest {
 					}
 			}else 
 				assertTrue(outputs.size() == 3);
-//				if(ele.getAttribute("value").equals("null") )
-//				assertEquals( input.getCanonicalPath() + "\tnull\t.;.\t20\t1.000\t-",  outputs.get(0) );
-//			else if(ele.getAttribute("value").equals("control2") )
-//				
-			//	assertEquals( input.getCanonicalPath() + "\tcontrol2\t.;.\t20\t1.000\t-",  outputs.get(0) );			
 		}	
 		assertTrue(13 == outputSize);
 	}
