@@ -3,6 +3,8 @@ package org.qcmg.qprofiler2.vcf;
 import static org.junit.Assert.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.IntStream;
+
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.apache.commons.lang3.tuple.Pair;
@@ -10,6 +12,7 @@ import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
 import org.junit.After;
 import org.junit.Test;
 import org.qcmg.common.model.ProfileType;
+import org.qcmg.common.util.QprofilerXmlUtils;
 import org.qcmg.common.util.IndelUtils.SVTYPE;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
@@ -44,60 +47,50 @@ public class VcfSummaryReportTest {
 		
 		Node nreport = getXmlParentNode( file ) ;		
 		Node child = nreport.getChildNodes().item(0);
-		assertTrue( child.getNodeName().equals( VcfSummaryReport.NodeHeader) );
-		assertTrue( child.getChildNodes().getLength() == 3 );
+		assertTrue( child.getNodeName().equals( "vcfHeader") );
 		
-		//check meta Information line
-		child = nreport.getChildNodes().item(0).getFirstChild(); 
-		assertTrue(child.getNodeName().equals(VcfSummaryReport.NodeHeaderMeta));		
-		assertTrue(child.getChildNodes().getLength() == 12 ); 
-		boolean hasInput = false; 
-		for(int i = 0; i < 12; i++){
-			child = nreport.getChildNodes().item(0).getFirstChild().getChildNodes().item(i);
-			assertTrue(child.getNodeName().equals(VcfSummaryReport.NodeHeaderMetaLine)  );
-			String key =   child.getAttributes().getNamedItem("key").getNodeValue();
-			String value =   child.getAttributes().getNamedItem("value").getNodeValue();
-			if(key.equals("SnpEffVersion")   ) value = "\"" + value + "\"";
-			else if(key.equals("SnpEffCmd")) value = "\"" + value + " \"";
+		int[] mark = {0,0,0,0,0,0};
+		for(int i = 0; i < 6; i++) {
+			Element headersEle =  (Element) child.getChildNodes().item(i);
+			assertEquals( "headerRecords" , headersEle .getNodeName() );
 			
-			if( key.equals("INPUT")  ){
-				int index = hasInput ? 1 : 0;   
-				assertTrue( header.getRecords(key).get(index) .getMetaValue().equals(value) );
-				hasInput = true; 
-			}else		
-				assertTrue( header.firstMatchedRecord(key).getMetaValue().equals(value) );
-		}
-		 
-		//check structured meta information line
-		child = nreport.getChildNodes().item(0).getChildNodes().item(1); 
-		assertTrue(child.getNodeName().equals(VcfSummaryReport.NodeHeaderStructured));		
-		assertTrue(child.getChildNodes().getLength() == 4 ); 
-		int pgIds = 0;
-		for(int i = 0; i < 4; i++){
-			Node node =  child.getChildNodes().item(i);
-			assertTrue(node.getNodeName().equals( VcfSummaryReport.NodeHeaderStructuredType ));	
-			String key = node.getAttributes().getNamedItem("type").getNodeValue();	
-			for(int j = node.getChildNodes().getLength()-1; j >= 0; j --){
-				node = child.getChildNodes().item(i).getChildNodes().item(j);
-				assertTrue(node.getNodeName().equals( VcfSummaryReport.NodeHeaderStructuredLine ));	
-				String id = node.getAttributes().getNamedItem("ID").getNodeValue();	
-				if(key.equals("qPG")) 
-					pgIds += Integer.parseInt(id);
-				for(Pair p : header.getIDRecord(key, id).getSubFields()){					
-					assertTrue(((String) p.getRight()).replace( "\"", "").equals(node.getAttributes().getNamedItem( (String) p.getLeft()).getNodeValue() ));
+			//check meta Information line
+			if( headersEle.getAttribute( "FIELD" ).equals( "MetaInformation" ) ) {
+				mark[1] = 1;
+				for(int j = 0; j < 12; j ++) {
+					Element recordEle = (Element) headersEle.getChildNodes().item(j);
+					assertEquals( "record" , recordEle .getNodeName() );
+					String key = recordEle.getAttribute("id");
+					if(header.getRecords(key).size() == 1)
+						assertEquals( recordEle.getTextContent() , header.getRecords(key).get(0).toString() );
+					else
+						assertEquals( "INPUT" , key );
 				}
 			}
 			
+			//check structured meta information line	 
+			else if( headersEle.getAttribute( "FIELD" ).equals( "qPG" ) ) {
+				mark[2] = 1;
+				for( Element ele : QprofilerXmlUtils.getChildElementByTagName( headersEle, "record") )
+					assertEquals( ele.getTextContent(), header.getIDRecord("qPG", ele.getAttribute("id")).toString() );					
+			}else if( headersEle.getAttribute( "FIELD" ).equals( "FILTER" ) ) {
+				mark[3] = 1;
+				assertEquals( 1, headersEle.getChildNodes().getLength() );
+			}else if( headersEle.getAttribute( "FIELD" ).equals( "FORMAT" ) ) {
+				mark[4] = 1;
+				assertEquals( 2, headersEle.getChildNodes().getLength() );
+			}else if( headersEle.getAttribute( "FIELD" ).equals( "INFO" ) ) {
+				mark[5] = 1;
+				assertEquals( 1, headersEle.getChildNodes().getLength() );
+			}else {
+				mark[0] = 1;
+				assertEquals( "headerline", headersEle.getAttribute( "FIELD" ));
+				assertEquals( header.getChrom().toString(), headersEle.getChildNodes().item(0).getTextContent());
+			}			
 		}
-		assertTrue(pgIds == 8);
+			 
+		assertTrue(IntStream.of(mark).sum() == 6);
 		
-		//final head line
-		child = nreport.getChildNodes().item(0).getChildNodes().item(2); 
-		assertTrue(child.getNodeName().equals(VcfSummaryReport.NodeHeaderFinal));	
-		assertTrue(child.getChildNodes().getLength() == 1 ); 
-		child = child.getChildNodes().item(0);
-		assertTrue( child.getNodeName().equals("#cdata-section") );	
-		assertTrue( child.getNodeValue().equals( header.getChrom().toString()) );
 		file.delete();		
 	}	
   
@@ -189,6 +182,8 @@ public class VcfSummaryReportTest {
 			DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();			 
 			Element root = builder.getDOMImplementation().createDocument(null, "qProfiler", null).getDocumentElement();
 			vcfSummaryReport.toXml(root);
+			
+			QprofilerXmlUtils.asXmlText(root, "/Users/christix/Documents/Eclipse/data/qprofiler/output1.xml");
 						
 			Node nreport = root.getChildNodes().item(0);
 			assertTrue(nreport.getNodeName().equals( ProfileType.VCF.getReportName()  + "Report"));
@@ -196,7 +191,8 @@ public class VcfSummaryReportTest {
 			return nreport;			
 		}catch (Exception e ) {				 
 			e.printStackTrace();
-			return null;
+			fail("unexpected error during unit test");
+			return null; 
 		}
 				
 	}

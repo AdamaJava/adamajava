@@ -128,17 +128,17 @@ public class SampleSummaryTest {
 		
 		//new  VcfSummarizer(null); cause exception since for(Sting cat: null)
 		DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();			 
-		Element root = builder.getDOMImplementation().createDocument(null, "qProfiler", null).getDocumentElement();
+		Element root = builder.getDOMImplementation().createDocument( null, "qProfiler", null ).getDocumentElement();
 		SampleSummary summary = new SampleSummary();
-		for(VcfRecord re: records)
-			summary.parseRecord(re, 1);		
-		summary.toXML(root,null, null);  
-
+		for(VcfRecord re: records) summary.parseRecord( re, 1 );
+		summary.toXML( root,null, null );  
 		
 		if(records.size() == 0){
 			assertTrue( root.getElementsByTagName(SampleSummary.substitutions).getLength() == 0 ); 
 			return; 
 		}
+		
+		QprofilerXmlUtils.asXmlText(root, "/Users/christix/Documents/Eclipse/data/qprofiler/output1.xml");
 			
 		//get <SNP TiTvRatio="0.00" Transitions="0" Transversions="1">
 		Element subE = (Element) ((Element) root.getElementsByTagName(SampleSummary.substitutions).item(0) ).getElementsByTagName(SVTYPE.SNP.name()).item(0);

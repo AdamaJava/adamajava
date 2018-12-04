@@ -16,8 +16,7 @@ import org.qcmg.qprofiler2.bam.BamSummarizerTest;
 public class QProfilerSummaryTest {
 	@Rule
 	public  TemporaryFolder testFolder = new TemporaryFolder();
-	
-	
+		
 	@Test
 	/**
 	 * The only characters not allowed in a filename in *nix are NUL and /. 
@@ -32,22 +31,14 @@ public class QProfilerSummaryTest {
 		for(String name : new String[]{",in#:.sam","...sam", "input\n.sam"}){	
 			int exitStatus = run(name, name+".xml");	
 			assertEquals(0, exitStatus);	
-			File outputFile = testFolder.newFile(name+".xml");
-			assertTrue(outputFile.exists());
-		}
-		
+		}		
 		
 		// not allowed special letters		
-		for(String name : new String[]{ "in/.sam", null}){
+		for(String name : new String[]{ "in/.sam", null})
 			try{
 				run(name, name+".xml");				
 				fail();
-			}catch(Exception e){
-				assertTrue(true);
-			}	
- 		}
-		
-		
+			}catch(Exception e){ assertTrue(true); }			
 	}
 	
 	private int run(String input, String output) throws Exception{
@@ -55,15 +46,13 @@ public class QProfilerSummaryTest {
 		File inputFile = testFolder.newFile(input);			
 		BamSummarizerTest.createTestSamFile(inputFile.getAbsolutePath(), BamSummarizerTest.createValidSamData());	
 		
-//		String content = new String(Files.readAllBytes(Paths.get(inputFile.getAbsolutePath())));
-//		System.out.println(content);
-		
 		File logFile = testFolder.newFile(output +".log");
 		File outputFile = testFolder.newFile(output);
 		String[] args = {"--nohtml", "--log",  logFile.getAbsolutePath(), "--input", inputFile.getAbsolutePath(),
 				 "-o", outputFile.getAbsolutePath()};
 		int exitStatus =  new QProfiler2().setup(args); //not main, so no exit info on log file
 		
+		assertTrue(outputFile.exists());		
 		return exitStatus;
 	}
 }
