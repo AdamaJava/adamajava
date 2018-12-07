@@ -210,7 +210,13 @@ public class StandardPipelineTest {
 	}
 	
 	public final File createCoverageGL208(final String fileName, String dataFileName) throws IOException {
+		/*
+		 * this following hack is to make the data file available when running junit from within eclipse, and also from gradle
+		 */
 		Path p = Paths.get("test/resources/"+dataFileName).toAbsolutePath();
+		if ( ! p.toFile().exists()) {
+			p = Paths.get("../../resources/test/resources/" + dataFileName).toAbsolutePath();
+		}
 		List<String> sams = Files.readAllLines(p);
 		final File file = testFolder.newFile(fileName);
 		
