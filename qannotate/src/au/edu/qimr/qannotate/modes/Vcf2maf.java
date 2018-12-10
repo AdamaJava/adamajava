@@ -367,9 +367,9 @@ public class Vcf2maf extends AbstractMode{
 		Map<String, String[]> ffMap = VcfUtils.getFormatFieldsAsMap(formats);
 		
 		/*
-		 * get filter values from each sample
+		 * if vcf filter field is blank, get filter values from each sample
 		 */
-		maf.setColumnValue(MafElement.QFlag, getFilterDetails( ffMap.get(VcfHeaderUtils.FORMAT_FILTER)));
+		maf.setColumnValue(MafElement.QFlag, StringUtils.isNullOrEmptyOrMissingData(vcf.getFilter()) ? getFilterDetails(ffMap.get(VcfHeaderUtils.FORMAT_FILTER)) : vcf.getFilter());
 		
 		/*
 		 * confidence - get from VcfUtils

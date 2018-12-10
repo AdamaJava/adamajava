@@ -189,13 +189,20 @@ public class Vcf2mafTest {
      
      @Test
      public void filterField() {
-    	 final Vcf2maf v2m = new Vcf2maf(2,1, null, null, ContentType.MULTIPLE_CALLERS_MULTIPLE_SAMPLES);    //test column2; normal column 1            
-    	 final String[] parms = {"chr1","16534646","rs221058","C","G",".",".","FLANK=CTGGCGAGGCT;BaseQRankSum=0.337;ClippingRankSum=-0.625;DP=17;FS=0.000;MQ=60.00;MQ0=0;MQRankSum=-0.818;QD=15.22;ReadPosRankSum=-1.491;SOR=0.836;IN=1,2;DB;VLD;VAF=0.2062;EFF=missense_variant(MODERATE|MISSENSE|Ggc/Cgc|p.Gly163Arg/c.487G>C|802|ARHGEF19|protein_coding|CODING|ENST00000270747|3|1),upstream_gene_variant(MODIFIER||1625||167|ARHGEF19|protein_coding|CODING|ENST00000441785||1|WARNING_TRANSCRIPT_NO_START_CODON),upstream_gene_variant(MODIFIER||1625|||ARHGEF19|processed_transcript|CODING|ENST00000478210||1),upstream_gene_variant(MODIFIER||1608||305|ARHGEF19|protein_coding|CODING|ENST00000449495||1|WARNING_TRANSCRIPT_INCOMPLETE),upstream_gene_variant(MODIFIER||1169|||ARHGEF19|processed_transcript|CODING|ENST00000471928||1),upstream_gene_variant(MODIFIER||1140|||ARHGEF19|processed_transcript|CODING|ENST00000478117||1)"
+    	 Vcf2maf v2m = new Vcf2maf(2,1, null, null, ContentType.MULTIPLE_CALLERS_MULTIPLE_SAMPLES);    //test column2; normal column 1            
+    	 String[] parms = {"chr1","16534646","rs221058","C","G",".",".","FLANK=CTGGCGAGGCT;BaseQRankSum=0.337;ClippingRankSum=-0.625;DP=17;FS=0.000;MQ=60.00;MQ0=0;MQRankSum=-0.818;QD=15.22;ReadPosRankSum=-1.491;SOR=0.836;IN=1,2;DB;VLD;VAF=0.2062;EFF=missense_variant(MODERATE|MISSENSE|Ggc/Cgc|p.Gly163Arg/c.487G>C|802|ARHGEF19|protein_coding|CODING|ENST00000270747|3|1),upstream_gene_variant(MODIFIER||1625||167|ARHGEF19|protein_coding|CODING|ENST00000441785||1|WARNING_TRANSCRIPT_NO_START_CODON),upstream_gene_variant(MODIFIER||1625|||ARHGEF19|processed_transcript|CODING|ENST00000478210||1),upstream_gene_variant(MODIFIER||1608||305|ARHGEF19|protein_coding|CODING|ENST00000449495||1|WARNING_TRANSCRIPT_INCOMPLETE),upstream_gene_variant(MODIFIER||1169|||ARHGEF19|processed_transcript|CODING|ENST00000471928||1),upstream_gene_variant(MODIFIER||1140|||ARHGEF19|processed_transcript|CODING|ENST00000478117||1)"
     			 ,"GT:DP:FT:MR:NNS:OABS:INF:AD:GQ","0/1:17:.:9:9:C2[33]6[31.33];G2[33]7[37.29]:PASS:.:.","0/0:14:.:.:.:C3[35]9[35.44];G0[0]2[40]:PASS.:.:.","0/1:17:.:9:9:C2[33]6[31.33];G2[33]7[37.29]:PASS:8,9:99",".:.:SAT3:.:.:C3[35]9[35.44];G0[0]2[40]:.;.:.:."};
     	 
-    	 final VcfRecord vcf = new VcfRecord(parms);
-    	 final SnpEffMafRecord maf = v2m.converter(vcf);
+    	 VcfRecord vcf = new VcfRecord(parms);
+    	 SnpEffMafRecord maf = v2m.converter(vcf);
     	 assertEquals(".,.,.,SAT3", maf.getColumnValue(MafElement.QFlag));
+    	 
+    	 String[] params = {"chr1","16534646","rs221058","C","G",".","PASS","FLANK=CTGGCGAGGCT;BaseQRankSum=0.337;ClippingRankSum=-0.625;DP=17;FS=0.000;MQ=60.00;MQ0=0;MQRankSum=-0.818;QD=15.22;ReadPosRankSum=-1.491;SOR=0.836;IN=1,2;DB;VLD;VAF=0.2062;EFF=missense_variant(MODERATE|MISSENSE|Ggc/Cgc|p.Gly163Arg/c.487G>C|802|ARHGEF19|protein_coding|CODING|ENST00000270747|3|1),upstream_gene_variant(MODIFIER||1625||167|ARHGEF19|protein_coding|CODING|ENST00000441785||1|WARNING_TRANSCRIPT_NO_START_CODON),upstream_gene_variant(MODIFIER||1625|||ARHGEF19|processed_transcript|CODING|ENST00000478210||1),upstream_gene_variant(MODIFIER||1608||305|ARHGEF19|protein_coding|CODING|ENST00000449495||1|WARNING_TRANSCRIPT_INCOMPLETE),upstream_gene_variant(MODIFIER||1169|||ARHGEF19|processed_transcript|CODING|ENST00000471928||1),upstream_gene_variant(MODIFIER||1140|||ARHGEF19|processed_transcript|CODING|ENST00000478117||1)"
+    			 ,"GT:DP:FT:MR:NNS:OABS:INF:AD:GQ","0/1:17:.:9:9:C2[33]6[31.33];G2[33]7[37.29]:PASS:.:.","0/0:14:.:.:.:C3[35]9[35.44];G0[0]2[40]:PASS.:.:.","0/1:17:.:9:9:C2[33]6[31.33];G2[33]7[37.29]:PASS:8,9:99",".:.:SAT3:.:.:C3[35]9[35.44];G0[0]2[40]:.;.:.:."};
+    	 
+    	 vcf = new VcfRecord(params);
+    	 maf = v2m.converter(vcf);
+    	 assertEquals("PASS", maf.getColumnValue(MafElement.QFlag));
      }
      
      @Test
