@@ -35,14 +35,11 @@ public class SnpEffMafRecord {
 	
 	//all 58 set methods
 	public String getMafLine() {
-		return Arrays.stream(values).collect(Collectors.joining(Constants.TAB_STRING));
+		return getMafLine(true);
 	}
 	
 	public String getMafLine(boolean hasACSNP) {
-		if( hasACSNP)
-			return getMafLine();
-		
-		return Arrays.stream(Arrays.copyOfRange(values, 0, 62) ).collect(Collectors.joining(Constants.TAB_STRING));
+		return Arrays.stream( hasACSNP ? values : Arrays.copyOfRange(values, 0, 62) ).collect(Collectors.joining(Constants.TAB_STRING));
 	}
 		
 	public void setColumnValue(MafElement ele, String value) {
@@ -63,7 +60,7 @@ public class SnpEffMafRecord {
 	}
 	
 	public static String getSnpEffMafHeaderline(){
-		return Arrays.stream(MafElement.values()).map(MafElement::name).collect(Collectors.joining(Constants.TAB_STRING));
+		return getSnpEffMafHeaderline(true);
 	}
 	
 	/**
@@ -72,11 +69,7 @@ public class SnpEffMafRecord {
 	 * @return header line excludes note of ACSNP if hasACSNP is false; 
 	 */
 	public static String getSnpEffMafHeaderline(boolean hasACSNP){
-		if( hasACSNP)
-			return getSnpEffMafHeaderline();
-		
-		// Arrays.stream(MafElement.values()).filter( e -> e.getColumnNumber() < 63 ).map(MafElement::name).forEach( e->System.out.println(e) );
-		return Arrays.stream(MafElement.values()).filter( e -> e.getColumnNumber() < 63 ).map(MafElement::name).collect(Collectors.joining(Constants.TAB_STRING));
+		return Arrays.stream(MafElement.values()).filter( e -> hasACSNP || e.getColumnNumber() < 63 ).map(MafElement::name).collect(Collectors.joining(Constants.TAB_STRING));
 	}	
 
 }

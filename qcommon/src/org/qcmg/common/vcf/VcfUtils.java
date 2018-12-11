@@ -1194,8 +1194,11 @@ public class VcfUtils {
 	 * @return
 	 */
 	public static boolean isRecordAPass(VcfRecord v) {
-		
 		Map<String, String[]> ffMap = getFormatFieldsAsMap(v.getFormatFields());
+		return isRecordAPass(ffMap);
+	}
+	
+	public static boolean isRecordAPass(Map<String, String[]> ffMap) {
 		String [] filterArr = ffMap.get(VcfHeaderUtils.FORMAT_FILTER);
 		
 		long passCount =  null != filterArr ? Arrays.asList(filterArr).stream().filter(f -> f.contains(VcfHeaderUtils.FILTER_PASS)).count() : 0;
@@ -1208,21 +1211,6 @@ public class VcfUtils {
 		 */
 		if (passCount == filterArr.length) {
 			return true;
-			
-//			/*
-//			 * single sample - return true
-//			 * only handle single sample data that has 2 constituent sets of data for now...
-//			 */
-//			if (filterArr.length == 1 || (isMergedRecord(v) && filterArr.length == 2)) {
-//				return true;
-//			}
-//		
-//			/*
-//			 * if we are all germline or all somatic, then pass
-//			 */
-//			if (somCount == 0 || somCount * 2 >= filterArr.length ) {
-//				return true;
-//			}
 		}
 		
 		String [] infoArr = ffMap.get(VcfHeaderUtils.FORMAT_INFO);

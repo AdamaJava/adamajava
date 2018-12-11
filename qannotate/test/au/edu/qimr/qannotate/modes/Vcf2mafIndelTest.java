@@ -242,7 +242,7 @@ public class Vcf2mafIndelTest {
             assertTrue(maf.getColumnValue(33).equals("TEST_bam"));     //t_sample_id
             assertTrue(maf.getColumnValue(34).equals("CONTROL_bam"));    //n_sample_id
             
-            assertTrue(maf.getColumnValue(35).equals("PASS")); //QFlag
+            assertEquals("PASS", maf.getColumnValue(MafElement.QFlag)); //QFlag
             assertTrue(maf.getColumnValue(36).equals("8,18,16,8[2,6],9[9],0,0,0"));    //ND
             assertTrue(maf.getColumnValue(37).equals("12,35,34,12[8,4],15[13],0,1,0"));
             assertEquals("HIGH", maf.getColumnValue(38)); 
