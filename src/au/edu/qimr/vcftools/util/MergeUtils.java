@@ -96,7 +96,7 @@ public class MergeUtils {
 						}
 						
 						//remove leading "," and parse to structured meta info line
-						mergedHeader.addOrReplace(key+"=<" + newRec.substring(1) + ">");;					 				
+						mergedHeader.addOrReplace(key + "=<" + newRec.substring(1) + ">");;					 				
 						logger.info("bumping id from " + re.getId() + " to " + newId + " and adding to new header!");						 
 					}				
 				}
@@ -107,9 +107,9 @@ public class MergeUtils {
 		/*
 		 * add IN= to 
 		 */
-		logger.info("checking that no existing info lines start with "+Constants.VCF_MERGE_INFO+"= ");
+		logger.info("checking that no existing info lines start with " + Constants.VCF_MERGE_INFO + "= ");
 		if ( mergedHeader.getInfoRecord(Constants.VCF_MERGE_INFO) != null) {
-			logger.warn("Can't use "+Constants.VCF_MERGE_INFO+"= to mark records as having come from a particular input file - "+Constants.VCF_MERGE_INFO+"= is already in use!");
+			logger.warn("Can't use " + Constants.VCF_MERGE_INFO + "= to mark records as having come from a particular input file - " + Constants.VCF_MERGE_INFO + "= is already in use!");
 		}
 		
 		mergedHeader.addInfo(Constants.VCF_MERGE_INFO, ".","Integer", VcfHeaderUtils.DESCRITPION_MERGE_IN);
@@ -135,7 +135,7 @@ public class MergeUtils {
 			boolean go = false;
 			for (String s : array) {
 				if (go) {
-					StringUtils.updateStringBuilder(sb, s + "_" + (i+1), Constants.TAB);
+					StringUtils.updateStringBuilder(sb, s + "_" + (i + 1), Constants.TAB);
 				}
 				if (FORMAT.equals(s)) {
 					go = true;
@@ -186,7 +186,9 @@ public class MergeUtils {
 	}
 	
 	public static int getNewPosition(String[] newAlts, String[] oldAlts, int oldPos) {
-		if (oldPos == 0) return oldPos;
+		if (oldPos == 0) {
+			return oldPos;
+		}
 		
 		String alt = oldAlts[oldPos - 1];
 		int newPos = -1;
@@ -211,7 +213,7 @@ public class MergeUtils {
 		 */
 		List<String> ff = r.getFormatFields();
 		Map<String, String[]> ffMap = VcfUtils.getFormatFieldsAsMap(ff);
-		int sampleCount = ff.size() -1;
+		int sampleCount = ff.size() - 1;
 		if (sampleCount > 0) {
 			
 			/*
@@ -291,10 +293,10 @@ public class MergeUtils {
 			return oldAD;
 		}
 		String [] adArray = TabTokenizer.tokenize(oldAD, Constants.COMMA);
-		int newgt1 = Integer.valueOf(""+newGt.charAt(0));
-		int newgt2 = Integer.valueOf(""+newGt.charAt(2));
-		int oldgt1 = Integer.valueOf(""+oldGt.charAt(0));
-		int oldgt2 = Integer.valueOf(""+oldGt.charAt(2));
+		int newgt1 = Integer.parseInt("" + newGt.charAt(0));
+		int newgt2 = Integer.parseInt("" + newGt.charAt(2));
+		int oldgt1 = Integer.parseInt("" + oldGt.charAt(0));
+		int oldgt2 = Integer.parseInt("" + oldGt.charAt(2));
 		
 		if (Math.max(oldgt1, oldgt2) >= Math.max(newgt1, newgt2)) {
 			return oldAD;
@@ -323,7 +325,6 @@ public class MergeUtils {
 		for (int j = 0 ; j < newADArray.length ; j++) {
 			if (null == newADArray[j]) {
 				newADArray[j] = "0";
-//				newADArray[j] = Constants.MISSING_DATA_STRING;
 			}
 		}
 		
@@ -364,7 +365,7 @@ public class MergeUtils {
 			/*
 			 * add format columns for missing caller 
 			 */
-			int noOfSamples = ff.size() -1;
+			int noOfSamples = ff.size() - 1;
 			for (int i = 0 ; i < noOfSamples ; i++) {
 				VcfUtils.addMissingDataToFormatFields(mr, 1);
 			}
@@ -385,7 +386,7 @@ public class MergeUtils {
 			/*
 			 * add format columns for missing caller 
 			 */
-			int noOfSamples = ff.size() -1;
+			int noOfSamples = ff.size() - 1;
 			for (int i = 0 ; i < noOfSamples ; i++) {
 				VcfUtils.addMissingDataToFormatFields(mr, noOfSamples);
 			}
@@ -410,9 +411,9 @@ public class MergeUtils {
 					String key = equalsIndex > -1 ? s.substring(0, equalsIndex) : s;
 					String replacementKey = caller1Rules.get(key);
 					if (null == replacementKey) {
-						mr.getInfoRecord().appendField(key, (equalsIndex > -1) ? s.substring(equalsIndex+1) : s);
+						mr.getInfoRecord().appendField(key, (equalsIndex > -1) ? s.substring(equalsIndex + 1) : s);
 					} else {
-						mr.getInfoRecord().addField(replacementKey, (equalsIndex > -1) ? s.substring(equalsIndex+1) : s);
+						mr.getInfoRecord().addField(replacementKey, (equalsIndex > -1) ? s.substring(equalsIndex + 1) : s);
 					}
 				}
 				
@@ -430,9 +431,9 @@ public class MergeUtils {
 					String key = equalsIndex > -1 ? s.substring(0, equalsIndex) : s;
 					String replacementKey = caller2Rules.get(key);
 					if (null == replacementKey) {
-						mr.getInfoRecord().appendField(key, (equalsIndex > -1) ? s.substring(equalsIndex+1) : s);
+						mr.getInfoRecord().appendField(key, (equalsIndex > -1) ? s.substring(equalsIndex + 1) : s);
 					} else {
-						mr.getInfoRecord().addField(replacementKey, (equalsIndex > -1) ? s.substring(equalsIndex+1) : s);
+						mr.getInfoRecord().addField(replacementKey, (equalsIndex > -1) ? s.substring(equalsIndex + 1) : s);
 					}
 				}
 				
@@ -510,7 +511,6 @@ public class MergeUtils {
 		/*
 		 * Get common values from 1st record
 		 */ 
-//		VcfRecord mergedRecord =  VcfUtils.createVcfRecord(records[0].getChrPosition(),   records[0].getId(), records[0].getRef(), records[0].getAlt());
 		VcfRecord mergedRecord =  new VcfRecord.Builder(records[0].getChrPosition(), records[0].getRef())
 									.id(records[0].getId()).allele(combinedAlt.get()).build();
 				
@@ -522,7 +522,7 @@ public class MergeUtils {
 		for (int i = 0 ; i < records.length ; i++) {
 			VcfRecord r = records[i];
 			Map<String, String> thisRecordsRules = null != rules ? rules.get(i) : null;
-			String suffix = "_" + (i+1);
+			String suffix = "_" + (i + 1);
 			
 			mergedRecord.appendId(r.getId());
 			List<String> rFF =  r.getFormatFields() ;
@@ -573,8 +573,6 @@ public class MergeUtils {
 					formatInfo.add(isSomatic && ! rFF.get(j).startsWith(Constants.MISSING_DATA_STRING) ? SnpUtils.SOMATIC : Constants.MISSING_DATA_STRING);
 				}
 			}
-//			formatInfo.add(isSomatic && ! rFF.get(1).startsWith(Constants.MISSING_DATA_STRING) ? SnpUtils.SOMATIC : Constants.MISSING_DATA_STRING);
-//			formatInfo.add(isSomatic && ! rFF.get(2).startsWith(Constants.MISSING_DATA_STRING)? SnpUtils.SOMATIC : Constants.MISSING_DATA_STRING);
 			VcfUtils.addFormatFieldsToVcf(r,formatInfo);
 			if (isSomatic) {
 				r.getInfoRecord().removeField(SnpUtils.SOMATIC);
@@ -591,9 +589,9 @@ public class MergeUtils {
 					String key = equalsIndex > -1 ? s.substring(0, equalsIndex) : s;
 					String replacementKey = thisRecordsRules.get(key);
 					if (null == replacementKey) {
-						mergedRecord.getInfoRecord().appendField(key, (equalsIndex > -1) ? s.substring(equalsIndex+1) : s);
+						mergedRecord.getInfoRecord().appendField(key, (equalsIndex > -1) ? s.substring(equalsIndex + 1) : s);
 					} else {
-						mergedRecord.getInfoRecord().addField(replacementKey, (equalsIndex > -1) ? s.substring(equalsIndex+1) : s);
+						mergedRecord.getInfoRecord().addField(replacementKey, (equalsIndex > -1) ? s.substring(equalsIndex + 1) : s);
 					}
 				}
 				
@@ -629,7 +627,7 @@ public class MergeUtils {
 						rFF.set(0, newHeader.toString());
 					}
 					if (i == 0) {
-						VcfUtils.addFormatFieldsToVcf(mergedRecord,rFF);
+						VcfUtils.addFormatFieldsToVcf(mergedRecord, rFF);
 					} else {
 						VcfUtils.addAdditionalSamplesToFormatField(mergedRecord, rFF);
 					}
