@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -467,34 +468,22 @@ public class IndelMT {
 	  * @param filter: only return indel vcf records with specified filter value. Put null here if ignor record filter column value
 	  * @return a sorted list of IndelPotion on this contig; return whole reference indels if contig is null
 	  */
-//	private  AbstractQueue<IndelPosition>  getIndelList( SAMSequenceRecord contig, String filter ){	  
 	 private  AbstractQueue<IndelPosition>  getIndelList( SAMSequenceRecord contig){	  
 		if (positionRecordMap == null || positionRecordMap.size() == 0)
-			return new ConcurrentLinkedQueue<IndelPosition>(); 			  
+			return new ConcurrentLinkedQueue<>(); 			  
 		  
-		List<IndelPosition> list = new ArrayList<IndelPosition> ();	
-		for(ChrPosition pos : positionRecordMap.keySet()){
-			if(contig != null && !pos.getChromosome().equals(contig.getSequenceName())  )
+		List<IndelPosition> list = new ArrayList<> ();
+		for(Entry<ChrRangePosition, IndelPosition> entry : positionRecordMap.entrySet()){
+			if(contig != null && ! entry.getKey().getChromosome().equals(contig.getSequenceName())  )
 				continue; 
-			list.add(positionRecordMap.get(pos));	 
-//			boolean flag = true; 
-//			if(filter != null){
-//				flag = false; 
-//				for(VcfRecord re : positionRecordMap.get(pos).getIndelVcfs() )
-//					if( re.getFilter().equals(filter)){
-//						flag = true;
-//						break;
-//					}
-//			}
-//			if(flag)
-//				list.add(positionRecordMap.get(pos));	 
+			list.add(entry.getValue());	 
 		}
 		
 		//lambda expression to replace abstract method
 		list.sort(  (IndelPosition o1, IndelPosition o2) ->
 			o1.getChrRangePosition().compareTo( o2.getChrRangePosition()) );				 
 		
-		return new ConcurrentLinkedQueue<IndelPosition>(list);
+		return new ConcurrentLinkedQueue<>(list);
   }
 	 		
 }

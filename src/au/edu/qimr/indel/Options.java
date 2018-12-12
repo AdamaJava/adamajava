@@ -23,14 +23,14 @@ public class Options {
 	private static final String HELP_OPTION = Messages.getMessage("OPTION_HELP");	
 	private static final String VERSION_OPTION = Messages.getMessage("OPTION_VERSION");
 	
-	public static String ini_secIOs = "IOs";
-	public static String ini_secIDs = "ids";
-	public static String ini_secParameter = "parameters";
-	public static String ini_secRule = "rules";
+	public static final String INI_SEC_IOS = "IOs";
+	public static final String INI_SEC_IDS = "ids";
+	public static final String INI_SEC_PARAM = "parameters";
+	public static final String INI_SEC_RULE = "rules";
 	
-	public static String RUNMODE_GATK = "gatk";
-	public static String RUNMODE_DEFAULT = "pindel";
-	public static String RUNMODE_GATKTEST = "test";
+	public static final String RUNMODE_GATK = "gatk";
+	public static final String RUNMODE_DEFAULT = "pindel";
+	public static final String RUNMODE_GATKTEST = "test";
 	
 	private final OptionParser parser = new OptionParser();
 	private final OptionSet options;
@@ -45,7 +45,6 @@ public class Options {
 	
 	private File testBam;
 	private File controlBam;
-	private File reference;	
 	private File output;
 	
 	private File testVcf;
@@ -60,7 +59,6 @@ public class Options {
 	private int gematic_nns;
 	private float gematic_soi; 
 	private int max_events;
-//	private boolean exdup;
 				
 	private String filterQuery;
 
@@ -93,36 +91,36 @@ public class Options {
 			throw new IOException("missing ini file option \'-i \'");
 		
 		Ini	iniFile =  new Ini( new File(  (String) options.valueOf("i")));
-		reference = getIOFromIni(iniFile, ini_secIOs, "ref");
-		output = getIOFromIni(iniFile, ini_secIOs, "output");	
-		testBam = getIOFromIni(iniFile, ini_secIOs, "testBam");	
-		controlBam = getIOFromIni(iniFile, ini_secIOs, "controlBam");
+//		reference = getIOFromIni(iniFile, INI_SEC_IOS, "ref");
+		output = getIOFromIni(iniFile, INI_SEC_IOS, "output");	
+		testBam = getIOFromIni(iniFile, INI_SEC_IOS, "testBam");	
+		controlBam = getIOFromIni(iniFile, INI_SEC_IOS, "controlBam");
 		
-		runMode =  iniFile.fetch(ini_secParameter, "runMode");		
+		runMode =  iniFile.fetch(INI_SEC_PARAM, "runMode");		
 		if(runMode.equalsIgnoreCase(RUNMODE_GATK) || runMode.equalsIgnoreCase(RUNMODE_GATKTEST)){
-			testVcf = getIOFromIni(iniFile, ini_secIOs, "testVcf") ;		
-			controlVcf = getIOFromIni(iniFile, ini_secIOs, "controlVcf");					 			
+			testVcf = getIOFromIni(iniFile, INI_SEC_IOS, "testVcf") ;		
+			controlVcf = getIOFromIni(iniFile, INI_SEC_IOS, "controlVcf");					 			
 		}else if(runMode.equalsIgnoreCase(RUNMODE_DEFAULT)){
-			String[] inputs = iniFile.get(ini_secIOs).getAll("inputVcf",String[].class);
+			String[] inputs = iniFile.get(INI_SEC_IOS).getAll("inputVcf",String[].class);
 			for(int i = 0; i < inputs.length; i ++)
 				pindelVcfs.add(new File(inputs[i]));
 		}
 		
-		nearbyIndelWindow = Integer.parseInt( iniFile.fetch(ini_secParameter, "window.nearbyIndel"));
-		max_events = Integer.parseInt( iniFile.fetch(ini_secParameter, "strong.event"));
-		softClipWindow = Integer.parseInt( iniFile.fetch(ini_secParameter, "window.softClip"));
-		threadNo = Integer.parseInt( iniFile.fetch(ini_secParameter, "threadNo"));
-		filterQuery =  iniFile.fetch(ini_secParameter, "filter");
+		nearbyIndelWindow = Integer.parseInt( iniFile.fetch(INI_SEC_PARAM, "window.nearbyIndel"));
+		max_events = Integer.parseInt( iniFile.fetch(INI_SEC_PARAM, "strong.event"));
+		softClipWindow = Integer.parseInt( iniFile.fetch(INI_SEC_PARAM, "window.softClip"));
+		threadNo = Integer.parseInt( iniFile.fetch(INI_SEC_PARAM, "threadNo"));
+		filterQuery =  iniFile.fetch(INI_SEC_PARAM, "filter");
 		if(StringUtils.isNullOrEmpty(filterQuery) || filterQuery.equalsIgnoreCase("null"))
 			filterQuery = null;
 		
-		testSampleid = iniFile.fetch(ini_secIDs, "testSample");
-		controlSampleid = iniFile.fetch(ini_secIDs, "controlSample");
-		donorid = iniFile.fetch(ini_secIDs, "donorId");
-		analysisid = iniFile.fetch(ini_secIDs, "analysisId");
+		testSampleid = iniFile.fetch(INI_SEC_IDS, "testSample");
+		controlSampleid = iniFile.fetch(INI_SEC_IDS, "controlSample");
+		donorid = iniFile.fetch(INI_SEC_IDS, "donorId");
+		analysisid = iniFile.fetch(INI_SEC_IDS, "analysisId");
 		
-		gematic_nns = Integer.parseInt( iniFile.fetch(ini_secRule, "gematic.nns"));
-		gematic_soi = Float.parseFloat( iniFile.fetch(ini_secRule, "gematic.soi"));
+		gematic_nns = Integer.parseInt( iniFile.fetch(INI_SEC_RULE, "gematic.nns"));
+		gematic_soi = Float.parseFloat( iniFile.fetch(INI_SEC_RULE, "gematic.soi"));
 		
   		detectBadOptions();	  		  		
 	}

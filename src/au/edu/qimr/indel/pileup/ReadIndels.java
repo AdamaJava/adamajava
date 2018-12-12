@@ -1,6 +1,5 @@
 package au.edu.qimr.indel.pileup;
 
-
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -28,7 +27,7 @@ public class ReadIndels {
 	QLogger logger; 
 	private VcfHeader header; 
 	
-	private final int errRecordLimit = 100;	
+	private static final int errRecordLimit = 100;
 	//counts from each input, {No of new indel, No of overlap indel, No of indels with mult Allel, No of inputs variants, No of input variants with multi Allel}
 	private final int[] counts = {0,0, 0,0,0}; 
  

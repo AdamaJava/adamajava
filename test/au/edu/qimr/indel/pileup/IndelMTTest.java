@@ -1,5 +1,6 @@
 package au.edu.qimr.indel.pileup;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
@@ -75,7 +76,7 @@ public class IndelMTTest {
 			}
 		}
 		
-		assertTrue(line == 4);					
+		assertEquals(4, line);					
 	}
 	
 
