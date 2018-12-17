@@ -464,8 +464,31 @@ public final class VcfPipeline extends Pipeline {
 //	}
 	
 	private void mergeControlAndTestVcfs() {
-		for (Entry <ChrPosition, VcfRecord> cEntry : controlVCFMap.entrySet()) {
-			VcfRecord tVcf = testVCFMap.remove(cEntry.getKey());
+		mergeVcfRecords(controlVCFMap, testVCFMap, snps);
+//		for (Entry <ChrPosition, VcfRecord> cEntry : controlVCFMap.entrySet()) {
+//			VcfRecord tVcf = testVCFMap.remove(cEntry.getKey());
+//			VcfRecord cVcf = cEntry.getValue();
+//			/*
+//			 * control only
+//			 */
+//			if (null == tVcf) {
+//				/*
+//				 * add empty 
+//				 */
+//				VcfUtils.mergeGATKVcfRecs(cVcf, null).ifPresent(v -> snps.add(v));
+//			} else {
+//				VcfUtils.mergeGATKVcfRecs(cVcf, tVcf).ifPresent(v -> snps.add(v));
+//			}
+//		}
+//		
+//		for (VcfRecord vcf : testVCFMap.values()) {
+//			VcfUtils.mergeGATKVcfRecs(null, vcf).ifPresent(v -> snps.add(v));
+//		}
+	}
+	
+	public static void mergeVcfRecords(Map<ChrPosition,VcfRecord> controlMap, Map<ChrPosition,VcfRecord> testMap, List<VcfRecord> vcfs) {
+		for (Entry <ChrPosition, VcfRecord> cEntry : controlMap.entrySet()) {
+			VcfRecord tVcf = testMap.remove(cEntry.getKey());
 			VcfRecord cVcf = cEntry.getValue();
 			/*
 			 * control only
@@ -474,14 +497,14 @@ public final class VcfPipeline extends Pipeline {
 				/*
 				 * add empty 
 				 */
-				VcfUtils.mergeGATKVcfRecs(cVcf, null).ifPresent(v -> snps.add(v));
+				VcfUtils.mergeGATKVcfRecs(cVcf, null).ifPresent(v -> vcfs.add(v));
 			} else {
-				VcfUtils.mergeGATKVcfRecs(cVcf, tVcf).ifPresent(v -> snps.add(v));
+				VcfUtils.mergeGATKVcfRecs(cVcf, tVcf).ifPresent(v -> vcfs.add(v));
 			}
 		}
 		
-		for (VcfRecord vcf : testVCFMap.values()) {
-			VcfUtils.mergeGATKVcfRecs(null, vcf).ifPresent(v -> snps.add(v));
+		for (VcfRecord vcf : testMap.values()) {
+			VcfUtils.mergeGATKVcfRecs(null, vcf).ifPresent(v -> vcfs.add(v));
 		}
 	}
 
