@@ -356,6 +356,13 @@ public class MergeUtilsTest {
 		
 		assertEquals("0/1", MergeUtils.getGT("A,C", "A", "0/1"));
 		assertEquals("0/2", MergeUtils.getGT("A,C", "C", "0/1"));
+		assertEquals("0/2", MergeUtils.getGT("C,T", "T,C", "0/1"));
+		assertEquals("0/1", MergeUtils.getGT("C,T", "T,C", "0/2"));
+		
+		
+		assertEquals("0/1", MergeUtils.getGT("G,T", "T,G", "0/2"));
+		assertEquals("0/2", MergeUtils.getGT("G,T", "T,G", "0/1"));
+		assertEquals("2/1", MergeUtils.getGT("G,T", "T,G", "1/2"));
 	}
 	
 	@Test
@@ -676,6 +683,19 @@ public class MergeUtilsTest {
 		assertArrayEquals(new String[]{"3,5,54","4,10,61", "0,0,56","0,0,91"}, ffs.get(VcfHeaderUtils.FORMAT_ALLELIC_DEPTHS));
 	}
 	
+	
+	@Test
+	public void combinedAlts() {
+		VcfRecord v1 = new VcfRecord(new String[]{"chr2","91629178",".","C","A",".",".","FLANK=TCTGTATGTTC","GT:AD:DP:EOR:FF:FT:INF:NNS:OABS","0/1:62,4:66:A1[]0[];C1[]6[]:A17;C91;T29:.:.:4:A3[38]1[12];C32[38.06]30[38]","0/0:123,6:130:A2[]0[];C7[]6[]:A61;C181;G2;T76:.:.:.:A6[38]0[0];C80[40.11]43[37.51];T0[0]1[41]"});
+		VcfRecord v2 = new VcfRecord(new String[]{"chr2","91629178",".","C","T",".",".","BaseQRankSum=-0.281;ClippingRankSum=0.000;DP=92;ExcessHet=3.0103;FS=0.954;MQ=33.50;MQRankSum=-1.018;QD=7.31;ReadPosRankSum=1.395;SOR=0.846","GT:AD:DP:GQ:QL:FT:INF","0/1:69,22:91:99:664.77:.:.","0/1:147,47:194:99:1551.77:.:."});
+		assertEquals("A,T", MergeUtils.getCombinedAlt(v1, v2).get());
+		
+		v1 = new VcfRecord(new String[]{"chr1","142671569",".","C","T",".",".","FLANK=GCAGATCTGAG","GT:AD:DP:EOR:FF:FT:INF:NNS:OABS","0/1:70,27:97:C0[]1[]:A1;C7;G46;T6:.:.:23:C30[37.8]40[37.85];T9[32.67]18[33.17]","0/1:137,39:177:C6[]5[];T1[]0[]:C15;G117;T10:.:.:37:C69[38.42]68[39.04];G1[41]0[0];T16[38.38]23[34.26]"});
+		v2 = new VcfRecord(new String[]{"chr1","142671569",".","C","T,G",".",".",".","GT:AD:DP:GQ:QL:FT:INF","0/1:71,28:99:99:757.77:.:.","0/2:141,0,59:200:99:1491.77:.:SOMATIC"});
+		assertEquals("G,T", MergeUtils.getCombinedAlt(v1, v2).get());
+		
+	}
+	
 	@Test
 	public void mergeRealLifeDataAD2() {
 		
@@ -704,6 +724,50 @@ public class MergeUtilsTest {
 	}
 	
 	@Test
+	public void mergeRealLifeDataAD3() {
+		VcfRecord v1 = new VcfRecord(new String[]{"chr1","142671569",".","C","T",".",".","FLANK=GCAGATCTGAG","GT:AD:DP:EOR:FF:FT:INF:NNS:OABS","0/1:70,27:97:C0[]1[]:A1;C7;G46;T6:.:.:23:C30[37.8]40[37.85];T9[32.67]18[33.17]","0/1:137,39:177:C6[]5[];T1[]0[]:C15;G117;T10:.:.:37:C69[38.42]68[39.04];G1[41]0[0];T16[38.38]23[34.26]"});
+		VcfRecord v2 = new VcfRecord(new String[]{"chr1","142671569",".","C","T,G",".",".",".","GT:AD:DP:GQ:QL:FT:INF","0/1:71,28:99:99:757.77:.:.","0/2:141,0,59:200:99:1491.77:.:SOMATIC"});
+		VcfRecord mr = MergeUtils.mergeRecords(null,  v1, v2);
+		
+		assertEquals("chr1", mr.getChromosome());
+		assertEquals(142671569, mr.getPosition());
+		assertEquals("C", mr.getRef());
+		assertEquals("G,T", mr.getAlt());
+		assertEquals(null, mr.getFilter());
+		
+		List<String> ff = mr.getFormatFields();
+		assertEquals(5, ff.size());
+		
+		Map<String, String[]> ffs = mr.getFormatFieldsAsMap();
+		assertArrayEquals(new String[]{"0/2","0/2", "0/2","0/1"}, ffs.get(VcfHeaderUtils.FORMAT_GENOTYPE));
+		assertArrayEquals(new String[]{"70,0,27","137,1,39", "71,0,28","141,59,0"}, ffs.get(VcfHeaderUtils.FORMAT_ALLELIC_DEPTHS));
+	}
+	@Test
+	public void moveDataToFormatRealLife2() {
+		VcfRecord v1 = new VcfRecord(new String[]{"chr1","142671569",".","C","T",".",".","FLANK=GCAGATCTGAG","GT:AD:DP:EOR:FF:FT:INF:NNS:OABS","0/1:70,27:97:C0[]1[]:A1;C7;G46;T6:.:.:23:C30[37.8]40[37.85];T9[32.67]18[33.17]","0/1:137,39:177:C6[]5[];T1[]0[]:C15;G117;T10:.:.:37:C69[38.42]68[39.04];G1[41]0[0];T16[38.38]23[34.26]"});
+		MergeUtils.moveDataToFormat(v1, "G,T", true);
+		Map<String, String[]> ffMap = v1.getFormatFieldsAsMap();
+		String [] gtArray = ffMap.get(VcfHeaderUtils.FORMAT_GENOTYPE);
+		assertEquals("0/2", gtArray[0]);
+		assertEquals("0/2", gtArray[1]);
+		String [] adArray = ffMap.get(VcfHeaderUtils.FORMAT_ALLELIC_DEPTHS);
+		assertEquals("70,0,27", adArray[0]);
+		assertEquals("137,1,39", adArray[1]);
+		
+//		assertEquals("G,T", v1.getAlt());
+		v1 = new VcfRecord(new String[]{"chr1","142671569",".","C","T,G",".",".",".","GT:AD:DP:GQ:QL:FT:INF","0/1:71,28:99:99:757.77:.:.","0/2:141,0,59:200:99:1491.77:.:SOMATIC"});
+		MergeUtils.moveDataToFormat(v1, "G,T", true);
+		ffMap = v1.getFormatFieldsAsMap();
+		gtArray = ffMap.get(VcfHeaderUtils.FORMAT_GENOTYPE);
+		assertEquals("0/2", gtArray[0]);
+		assertEquals("0/1", gtArray[1]);
+		adArray = ffMap.get(VcfHeaderUtils.FORMAT_ALLELIC_DEPTHS);
+		assertEquals("71,0,28", adArray[0]);
+		assertEquals("141,59,0", adArray[1]);
+		
+	}
+	
+	@Test
 	public void moveDataToFormat() {
 		VcfRecord v1 = new VcfRecord(new String[]{"chr1","2587689",".","A","C,G",".",".","FLANK=AGCACCCACAC","GT:AD:DP:EOR:FF:FT:INF:NNS:OABS","2/2:3,5,54:62:C1[]1[];G4[]1[]:A6;C26;G58:.:.:47:A2[26.5]1[41];C3[30]2[22];G37[32.59]17[33.06]","1/2:4,10,61:75:A1[]0[];C1[]0[];G0[]2[]:A13;C68;G87;T1:.:SOMATIC:10,50:A2[24.5]2[41];C4[28.25]6[24.33];G35[30.74]26[31.5]"});
 		MergeUtils.moveDataToFormat(v1, "C,G", true);
@@ -725,6 +789,10 @@ public class MergeUtilsTest {
 		assertEquals("0,0,100", MergeUtils.fillAD("0,100", "2/2", "1/1"));
 		assertEquals("0,0,100,50", MergeUtils.fillAD("0,100,50", "2/3", "1/2"));
 		assertEquals("0,100,0,50", MergeUtils.fillAD("0,100,50", "3/3", "2/2"));
+		assertEquals("0,100,0,50", MergeUtils.fillAD("0,100,50", "3/3", "2/2"));
+		
+		assertEquals("141,59,0", MergeUtils.fillAD("141,0,59", "0/1", "0/2"));
+		assertEquals("10,30,2", MergeUtils.fillAD("10,2,30", "0/1", "0/2"));
 	}
 	
 	// TODO should we do anything special when dealing with FILTER? PASS value for example? 

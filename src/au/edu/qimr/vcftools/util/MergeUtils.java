@@ -298,29 +298,54 @@ public class MergeUtils {
 		int oldgt1 = Integer.parseInt("" + oldGt.charAt(0));
 		int oldgt2 = Integer.parseInt("" + oldGt.charAt(2));
 		
-		if (Math.max(oldgt1, oldgt2) >= Math.max(newgt1, newgt2)) {
-			return oldAD;
-		}
+//		if (Math.max(oldgt1, oldgt2) >= Math.max(newgt1, newgt2)) {
+//			return oldAD;
+//		}
+		int maxNew = Math.max(newgt1,  newgt2);
+		int maxOld = Math.max(oldgt1,  oldgt2);
 		
-		String [] newADArray = new String[Math.max(newgt1,  newgt2) + 1];
+//		String [] newADArray = new String [Math.max(maxNew,  maxOld) + 1];
+		String [] newADArray = Arrays.copyOf(adArray, Math.max(maxNew,  maxOld) + 1);
 		
-		int i = 0;
-		for (String s : adArray) {
-				
-			if (i == oldgt1) {
-				newADArray[oldgt1 != newgt1 ? newgt1 : i] = s;
-			} else if ( i == oldgt2) {
-				newADArray[oldgt2 != newgt2 ? newgt2 : i] = s;
+		if (oldgt1 != newgt1 && newgt1 != 0) {
+			String oldAD1Value = adArray[oldgt1];
+			newADArray[newgt1] = oldAD1Value;
+			if (newgt1 < oldgt1) {
+				String newAD1Value = newgt1 < adArray.length ? adArray[newgt1] : "0";
+				newADArray[oldgt1] = newAD1Value;
 			} else {
-				newADArray[i] = s;	
+				newADArray[oldgt1] = "0";
 			}
-				
-			i++;
 		}
+		if (oldgt2 != newgt2 && newgt2 != 0) {
+			String oldAD2Value = adArray[oldgt2];
+			newADArray[newgt2] = oldAD2Value;
+			if (newgt2 < oldgt2) {
+				String newAD2Value = newgt2 < adArray.length ? adArray[newgt2] : "0";
+				newADArray[oldgt2] = newAD2Value;
+			} else if (oldgt2 != newgt1){
+				newADArray[oldgt2] = "0";
+			}
+		}
+		
+		
+		
+//		int i = 0;
+//		for (String s : adArray) {
+//				
+//			if (i == oldgt1) {
+//				newADArray[oldgt1 != newgt1 ? newgt1 : i] = s;
+//			} else if ( i == oldgt2) {
+//				newADArray[oldgt2 != newgt2 ? newgt2 : i] = s;
+//			} else {
+//				newADArray[i] = s;	
+//			}
+//				
+//			i++;
+//		}
 		
 		/*
-		 * loop through and set any null elements to .
-		 * ACTUALLY, set this to 0 rather than missing data
+		 * loop through and set any null elements to 0
 		 */
 		for (int j = 0 ; j < newADArray.length ; j++) {
 			if (null == newADArray[j]) {

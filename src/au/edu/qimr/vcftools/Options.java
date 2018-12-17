@@ -49,6 +49,7 @@ final class Options {
 	private final String xml;
 	private final String logLevel;
 	private final String uuid;
+	private final String intervals;
 
 	@SuppressWarnings("unchecked")
 	Options(final String[] args) throws Exception {
@@ -80,6 +81,7 @@ final class Options {
 		parser.accepts("uuid", LOG_LEVEL_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("vcf", VCF_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
 		parser.accepts("all", VCF_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
+		parser.accepts("intervals", LOG_LEVEL_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.posixlyCorrect(true);
 
 		options = parser.parse(args);
@@ -115,6 +117,7 @@ final class Options {
 		cosmicFileName = (String) options.valueOf("cosmic");
 		dbSnpFileName = (String) options.valueOf("dbsnp");
 		uuid = (String) options.valueOf("uuid");
+		intervals = (String) options.valueOf("intervals");
 		
 	}
 
@@ -220,6 +223,9 @@ final class Options {
 	
 	String getUUID() {
 		return uuid;
+	}
+	String getIntervals() {
+		return intervals;
 	}
 
 	String[] getVcfs() {

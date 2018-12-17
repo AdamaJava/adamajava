@@ -192,8 +192,11 @@ public class Overlap {
 					int count = 0;
 					if (position > 0 && allFiles != null && allFiles.length > 0) {
 						try {
-							count = getCountInAllFile(e.getValue(), allFiles[0]);
+							Map<String, AtomicInteger> filterMap = getCountInAllFile(e.getValue(), allFiles[0]);
+							count = filterMap.values().stream().mapToInt(v -> v.get()).sum();
+							String filterDist = filterMap.entrySet().stream().sorted((e1,e2) -> Integer.compare(e2.getValue().get(), e1.getValue().get())).map(ent -> {return ent.getKey() + ":" + ent.getValue();}).collect(Collectors.joining(","));
 							logger.info("found " + count + " in all file");
+							logger.info("filterDist: " + filterDist);
 						} catch (IOException e1) {
 							// TODO Auto-generated catch block
 							e1.printStackTrace();
@@ -234,10 +237,12 @@ public class Overlap {
 	}
 	
 	
-	public static int getCountInAllFile(List<ChrPositionRefAlt> positions, String allFile) throws IOException {
+	public static Map<String, AtomicInteger> getCountInAllFile(List<ChrPositionRefAlt> positions, String allFile) throws IOException {
 		if (null != allFile && null != positions && 0 != positions.size()) {
 			
 			Set<ChrPositionRefAlt> set = new HashSet<>(positions);
+			Map<String, AtomicInteger> filterMap = new HashMap<>();
+			List<String> list = new ArrayList<>();
 			int i = 0;
 			int counter = 0;
 			try (VCFFileReader reader = new VCFFileReader(new File(allFile))) {
@@ -249,12 +254,32 @@ public class Overlap {
 					ChrPositionRefAlt cpra = new ChrPositionRefAlt(rec.getChromosome(), rec.getPosition(),rec.getPosition(), rec.getRef(), rec.getAlt());
 					if (set.contains(cpra)) {
 						counter++;
+						Map<String, String[]> ffMap = rec.getFormatFieldsAsMap();
+						String[] filters = ffMap.get(VcfHeaderUtils.FORMAT_FILTER);
+						if (null != filters && filters.length > 0) {
+							filterMap.computeIfAbsent(Arrays.stream(filters).collect(Collectors.joining(",")), f -> new AtomicInteger()).incrementAndGet();
+						} else {
+							/*
+							 * could be the old style vcf - check the filter field
+							 */
+							String filterField = rec.getFilter();
+							if ( ! StringUtils.isNullOrEmptyOrMissingData(filterField)) {
+								filterMap.computeIfAbsent(filterField, f -> new AtomicInteger()).incrementAndGet();
+							}
+						}
+						list.add(cpra.toIGVString());
 					}
 				}
 			}
-			return counter;
+			System.out.println("count: " + counter);
+			System.out.println("count (from map) : " + filterMap.values().stream().mapToInt(v -> v.get()).sum());
+			System.out.println("list: ");
+			list.stream().forEach(System.out::println);
+			
+			
+			return filterMap;
 		}
-		return -1;
+		return Collections.emptyMap();
 	}
 	
 	public static float [] getAverageFloatValue(List<ChrPositionRefAlt> list,  Map<ChrPositionRefAlt, Pair<float[], int[]>> map, int fileCount) {
