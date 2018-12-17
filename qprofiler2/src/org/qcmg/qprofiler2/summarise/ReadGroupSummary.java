@@ -402,7 +402,7 @@ public class ReadGroupSummary {
 		lostBase += lostBaseStats( rgElement, node_softClip, softClip, this.maxBases );
 		lostBase += lostBaseStats( rgElement, node_hardClip, hardClip, this.maxBases );
 		lostBase += lostBaseStats( rgElement, node_overlap, overlapBase, this.maxBases );
-		XmlUtils.addCommentChild((Element)rgElement.getLastChild(), "Only count overlaped base on one strand which have positive Tlen value!");
+		XmlUtils.addCommentChild(( Element )rgElement.getLastChild(), "Only count overlaped base on one strand which have positive Tlen value!");
 		
 		
 		//add comments
@@ -426,7 +426,7 @@ public class ReadGroupSummary {
 		XmlUtils.outputValueNode( rgElement, QprofilerXmlUtils.lostPercent, lostPercent );			
 	}
 	 	 
-	public void pairSummary2Xml(Element parent) { 
+	public void pairSummary2Xml( Element parent ) { 
 		//add to xml RG_Counts
 		Element ele =  XmlUtils.createMetricsNode(parent, "pairs", pairNum.get());
 
@@ -444,19 +444,14 @@ public class ReadGroupSummary {
 			sum += isize.get(i) * i;
 			no += isize.get(i);
 		}		
-		int mean = (no == 0) ? 0: (int) (sum / no);
-		
+		int mean = (no == 0) ? 0: (int) (sum / no);		
 		int min = 0; //find the smallest non-zero value;
 		for(int i = 1; i < middleTlenValue; i ++)
 			if(isize.get(i) > 0){ min  = i; break; }
-		
-			 
+					 
 		int medium = 0;  	// to avoid isize.get(0) >= 0 since 1(counts)/2== 0(counts/2) == 0
-		for (int i = 1,  total1 = 0 ; i < middleTlenValue; i++) { 
-			if(( total1 += isize.get(i)) > no/2 ){ 
-				medium = i;  
-				break; }
-		}
+		for (int i = 1,  total1 = 0 ; i < middleTlenValue; i++)
+			if(( total1 += isize.get(i)) > no/2 ){  medium = i;   break; }
 				
 		int mode = 0; //mode is the number of read which length is most popular
 		long highest = 0;
@@ -464,10 +459,7 @@ public class ReadGroupSummary {
 		for (int i = 1 ; i < middleTlenValue ; i++) {	
 			//the number of isize.get(i) pairs have same isize value 
 			sd += Math.pow(( i - mean), 2) * isize.get(i) / no;
-			if(isize.get(i) > highest){
-				highest = isize.get(i);
-				mode = i; 
-			} 
+			if(isize.get(i) > highest){ highest = isize.get(i); mode = i;  } 
 		}
 		double standardDeviation = Math.sqrt(sd);
 		

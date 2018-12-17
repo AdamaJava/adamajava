@@ -300,10 +300,6 @@ public class QProfiler2 {
 				}
 			}
 			
-//			cmdLineInclude = options.getBamIncludes();
-//			cmdLineTags = options.getTags();
-//			cmdLineTagsInt = options.getTagsInt();
-//			cmdLineTagsChar = options.getTagsChar();
 			validation = options.getValidation();
 			cmdLineFormats = options.getFormats(); // vcf mode 			
 			noHtml = options.hasNoHtmlOption();

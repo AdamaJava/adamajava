@@ -56,7 +56,8 @@ public class FastqSummaryReport extends SummaryReport {
 		parent = QprofilerXmlUtils.createSubElement( parent, ProfileType.FASTQ.getReportName() +  XmlUtils.metrics   );
 		
 		//header line:"analysis read name pattern for read group
-		Element element =   QprofilerXmlUtils.createSubElement(parent, QprofilerXmlUtils.qname ) ;				
+		Element element =   QprofilerXmlUtils.createSubElement(parent, QprofilerXmlUtils.qname ) ;	
+		element = XmlUtils.createMetricsNode(element, null,readHeaderSummary.getInputReadNumber());							
 		readHeaderSummary.toXml(element );		
 
 		//seq		
@@ -73,7 +74,7 @@ public class FastqSummaryReport extends SummaryReport {
 		
 		//1mers is same to baseByCycle
 		for( int i : new int[] { 2, 3, KmersSummary.maxKmers } )
-			kmersSummary.toXml(element,i);	
+			kmersSummary.toXml( element,i );	
 				
 		//QUAL
 		final String qualBaseCycle = QprofilerXmlUtils.qualBase + QprofilerXmlUtils.cycle ; 	

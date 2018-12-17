@@ -326,10 +326,10 @@ public class ReadGroupSummary_ReadTest {
 		BamSummarizer2 bs = new BamSummarizer2();
 		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize(INPUT_FILE); 
 		sr.toXml(root);	
- 	 
-		root = QprofilerXmlUtils.getOffspringElementByTagName(root, "bamSummary").get(0);
-		root = QprofilerXmlUtils.getChildElementByTagName(root, XmlUtils.metricsEle)		
-				.stream().filter(ele -> ele.getAttribute(XmlUtils.Sname).equals( "reads" )).findFirst().get() ;		
+			 
+		root = QprofilerXmlUtils.getOffspringElementByTagName( root, "bamSummary" ).get(0);
+		root = QprofilerXmlUtils.getChildElementByTagName( root, XmlUtils.metricsEle )		
+				.stream().filter( ele -> ele.getAttribute(XmlUtils.Sname ).equals( "reads" )).findFirst().get() ;		
 		assertTrue( checkChildValue( root, "readMaxLength", "75" )); 
 		assertTrue( checkChildValue( root, ReadGroupSummary.sreadCount, "9" ));
 		assertTrue( checkChildValue( root, "countedBase", "415" ));
@@ -366,10 +366,9 @@ public class ReadGroupSummary_ReadTest {
 		
 		root = QprofilerXmlUtils.getOffspringElementByTagName(root, "bamSummary").get(0);
 		root = QprofilerXmlUtils.getChildElementByTagName(root, XmlUtils.metricsEle)		
-				.stream().filter(ele -> ele.getAttribute(XmlUtils.Sname).equals( "reads" )).findFirst().get() ;		
+				.stream().filter(ele -> ele.getAttribute(XmlUtils.Sname).equals( "reads" )).findFirst().get() ;
 		checkCountedReadStats( root, ReadGroupSummary.node_hardClip, new int[] { 4,3,8,5,5,5,21 }, "2.56" );		
-		checkCountedReadStats( root, ReadGroupSummary.node_overlap, new int[] { 3,12,26,17,12,13,51 }, "6.22" );	 		
-		
+		checkCountedReadStats( root, ReadGroupSummary.node_overlap, new int[] { 3,12,26,17,12,13,51 }, "6.22" );	 				
 	}
 
 	

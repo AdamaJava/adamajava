@@ -291,7 +291,8 @@ public class BamSummaryReport2 extends SummaryReport {
 				tallys.put(chr, new AtomicLong(cov));
 		}
 		XmlUtils.outputTallyGroup( XmlUtils.createMetricsNode(parent, null, null), QprofilerXmlUtils.rname, tallys, true );
-	}	
+	}
+	
 	private void createMAPQ(Element parent) {				
 		//,  sourceName, mapQualityLengths
 		if( sourceName.length == 0 ||  sourceName.length != mapQualityLengths.length   ) return;	
@@ -307,14 +308,16 @@ public class BamSummaryReport2 extends SummaryReport {
 			
 			XmlUtils.outputTallyGroup(ele, StringUtils.getJoinedString( QprofilerXmlUtils.mapq, sourceName[j],"_"), tallys, true);			
 		}	 
-	}	
+	}
+	
 	private void createPOS(Element parent){
 		parent = QprofilerXmlUtils.createSubElement( parent, XmlUtils.readGroupsEle );
 		
 		for( String rg :  rgSummaries.keySet()) {
 			if( rg.equals(QprofilerXmlUtils.All_READGROUP)) continue;
 			ReadGroupSummary summary = rgSummaries.get(rg);
-			Element ele = XmlUtils.createMetricsNode(XmlUtils.createGroupNode(parent, rg), null, summary.getCountedReads());			
+			
+			Element ele = XmlUtils.createMetricsNode(XmlUtils.createReadGroupNode(parent, rg)  , null, summary.getCountedReads());			
 			rNamePosition.keySet().stream().sorted(new ReferenceNameComparator()).forEach( ref->{
 				Element cateEle = XmlUtils.createGroupNode(ele, ref);
 				for (Entry<Integer, AtomicLong> entry :rNamePosition.get(ref).getCoverageByRg(rg).entrySet()) {
@@ -481,20 +484,8 @@ public class BamSummaryReport2 extends SummaryReport {
 		properties[3][1] = "Discarded reads (FailedVendorQuality, secondary, supplementary)";		
 		properties[4][0] = getRecordsParsed() + "";
 		properties[4][1] = "Total reads including discarded reads";
-
-		//overall readgroup 
-		Element metricsE = XmlUtils.createMetricsNode(summaryElement, "summary", getRecordsParsed());						
-		for(String[] property : properties) 
-			XmlUtils.outputValueNode(metricsE, property[1], Integer.parseInt(property[0]));
-				
-		//base	
-		long trimBases = 0;
-		long maxBases = 0; 			
-		long duplicateBase = 0;
-		long unmappedBase = 0;
-		long noncanonicalBase = 0;
-		long trimRead = 0;
 		
+		long trimBases = 0, maxBases = 0,duplicateBase = 0, unmappedBase = 0, noncanonicalBase = 0,trimRead = 0;
 		Element rgsElement = QprofilerXmlUtils.createSubElement(summaryElement, XmlUtils.readGroupsEle);		
 		for(ReadGroupSummary summary: rgSummaries.values()) 
 			if(! summary.getReadGroupId().equals(QprofilerXmlUtils.All_READGROUP)){				
@@ -502,6 +493,7 @@ public class BamSummaryReport2 extends SummaryReport {
 					Element rgEle = XmlUtils.createReadGroupNode(rgsElement, summary.getReadGroupId());
 					summary.readSummary2Xml(rgEle);
 					summary.pairSummary2Xml(rgEle); 
+					//presummary
 					maxBases += summary.getMaxBases();						
 					duplicateBase += summary.getDuplicateBase();
 					unmappedBase += summary.getUnmappedBase();
@@ -509,17 +501,21 @@ public class BamSummaryReport2 extends SummaryReport {
 					trimBases += summary.getTrimmedBase();
 					trimRead += summary.getTrimmedRead();
 				} catch (Exception e) {	logger.warn(e.getMessage()); }
-			}				
+			}
+		
+		//overall readgroup 
+		Element metricsE = XmlUtils.createMetricsNode(summaryElement, "summary", getRecordsParsed());						
+		for(String[] property : properties) 
+			XmlUtils.outputValueNode(metricsE, property[1], Integer.parseInt(property[0]));		
+		
+		try {				
+			//summary
+			ReadGroupSummary summary1 = rgSummaries.get(QprofilerXmlUtils.All_READGROUP);		
+			summary1.preSummary(maxBases , trimBases , trimRead, duplicateBase, unmappedBase, noncanonicalBase );	
+			summary1.readSummary2Xml(summaryElement);	
+			summary1.pairSummary2Xml(summaryElement);				
+		}catch(Exception e) { logger.warn(e.getMessage()); }	
 
-		//overall group at last
-		ReadGroupSummary summary = rgSummaries.get(QprofilerXmlUtils.All_READGROUP);
-		try {	
-			summary.preSummary(maxBases , trimBases , trimRead, duplicateBase, unmappedBase, noncanonicalBase );	
-			summary.readSummary2Xml(summaryElement);	
-			summary.pairSummary2Xml(summaryElement);			
-		}catch(Exception e) {
-			System.err.println(e.getMessage());
-		}
 	}
 		
 	void parseRNameAndPos( final String rName,  final int position, String rgid ){
