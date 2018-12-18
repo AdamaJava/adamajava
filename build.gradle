@@ -1,7 +1,9 @@
 defaultTasks "build"
+
 allprojects {
    apply plugin: 'java'
    repositories { flatDir(dirs:"$projectDir/../lib"); mavenCentral() }
+   test { useJUnitPlatform() }
 }
 
 ext {

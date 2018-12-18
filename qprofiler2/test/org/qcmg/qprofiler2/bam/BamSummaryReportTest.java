@@ -210,7 +210,7 @@ public class BamSummaryReportTest {
 		final List<Element> rgsE = checkOffSpring( checkOffSpring( tlenE, XmlUtils.readGroupsEle , 1).get(0), "readGroup" , 3); 	
 				
 		//five pairs in 1959T, we only record 13, 26, 2015
-		Element ele1 = rgsE.stream().filter( e -> e.getAttribute(XmlUtils.Srgid).equals( "1959T" )  ).findFirst().get();
+		Element ele1 = rgsE.stream().filter( e -> e.getAttribute(XmlUtils.Sid).equals( "1959T" )  ).findFirst().get();
 		List<Element> eles1 = checkOffSpring( ele1, XmlUtils.Stally, 4);
 		assertEquals(1, eles1.stream().filter( e -> e.getAttribute(XmlUtils.Svalue).equals( "13" ) && e.getAttribute(XmlUtils.Scount).equals( "1" )  ).count());
 		assertEquals(1, eles1.stream().filter( e -> e.getAttribute(XmlUtils.Svalue).equals( "25" )  ).count());
@@ -225,11 +225,11 @@ public class BamSummaryReportTest {
 		
 		
 		//empty for unkown_readgroup_id
-		ele1 = rgsE.stream().filter( e -> e.getAttribute(XmlUtils.Srgid).equals( QprofilerXmlUtils.UNKNOWN_READGROUP )  ).findFirst().get();
+		ele1 = rgsE.stream().filter( e -> e.getAttribute(XmlUtils.Sid).equals( QprofilerXmlUtils.UNKNOWN_READGROUP )  ).findFirst().get();
 		checkOffSpring( ele1, XmlUtils.variableGroupEle, 0);
 		
 		// only one pair inside 1959N
-		ele1 = rgsE.stream().filter( e -> e.getAttribute(XmlUtils.Srgid).equals( "1959N" )  ).findFirst().get();
+		ele1 = rgsE.stream().filter( e -> e.getAttribute(XmlUtils.Sid).equals( "1959N" )  ).findFirst().get();
 		eles1 = checkOffSpring( ele1, XmlUtils.Stally, 1);
 		assertEquals(1, eles1.stream().filter( e -> e.getAttribute(XmlUtils.Svalue).equals( "175" )  ).count());
 		eles1 = checkOffSpring( ele1, XmlUtils.Sbin, 1);

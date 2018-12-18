@@ -38,8 +38,8 @@ public class SampleSummaryTest {
 		QCMGAtomicLongArray ar = map.get(SVTYPE.SNP.name());
 		
 		//QCMGAtomicLongArray(final int initialCapacity)  double capacity 
-		assertEquals(2*( SampleSummary.altBinSize + 1), ar.length());
-		assertEquals(1, ar.get( 10 * SampleSummary.altBinSize / 20  ));
+		assertEquals(2 * SampleSummary.altBinSize , ar.length());
+		assertEquals(1, ar.get( 10 * SampleSummary.altBinSize / 20 -1 ));
 	}
 	
 

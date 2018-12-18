@@ -165,9 +165,7 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 			throw new IllegalArgumentException("Vcf Header can't null or empty");
 		}
 		
-		headerRecords.forEach( r -> {
-				addOrReplace(r, false);
-		});
+		headerRecords.forEach( r -> { 	addOrReplace(r, false); });
 		
 		if (chromLine == null) {
 			throw new IllegalArgumentException("Missing or error on #CHROM line on vcf header");
@@ -227,6 +225,7 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 	public List<VcfHeaderRecord> getFilterRecords() { 
 		return getRecords(idRecords, VcfHeaderUtils.HEADER_LINE_FILTER); 
 	}
+	
 	/**
 	 * 
 	 * @return a list of vcf header record follow pattern ##FILTER=<ID=id,...>

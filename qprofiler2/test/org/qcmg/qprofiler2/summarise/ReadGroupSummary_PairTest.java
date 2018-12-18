@@ -49,17 +49,17 @@ public class ReadGroupSummary_PairTest {
 				
 		//only record popular TLEN that is tLen < middleTlenValue) isize.increment(tLen);	
 		//1959N only one overlap pair tlen is 175
-		Element ele = pairEles.stream().filter(e -> ( (Element) e.getParentNode()).getAttribute(XmlUtils.Srgid).equals("1959N")).findFirst().get(); 		
+		Element ele = pairEles.stream().filter(e -> ( (Element) e.getParentNode()).getAttribute(XmlUtils.Sid).equals("1959N")).findFirst().get(); 		
 		chekTlen(ele, new int[] { 1, 175, 175,175,175,175,0 });
 		
-		ele = pairEles.stream().filter(e -> ( (Element) e.getParentNode()).getAttribute(XmlUtils.Srgid).equals("1959T")).findFirst().get(); 		
+		ele = pairEles.stream().filter(e -> ( (Element) e.getParentNode()).getAttribute(XmlUtils.Sid).equals("1959T")).findFirst().get(); 		
 		chekTlen(ele, new int[] { 4, 13, 11025, 522, 13, 26, 867 });
 		
-		ele = pairEles.stream().filter(e -> ( (Element) e.getParentNode()).getAttribute(XmlUtils.Srgid).equals(QprofilerXmlUtils.UNKNOWN_READGROUP)).findFirst().get(); 		
+		ele = pairEles.stream().filter(e -> ( (Element) e.getParentNode()).getAttribute(XmlUtils.Sid).equals(QprofilerXmlUtils.UNKNOWN_READGROUP)).findFirst().get(); 		
 		chekTlen(ele, new int[] { 0, 0, 0, 0, 0, 0, 0 });
 
 		//check after bamMetric
-		ele = pairEles.stream().filter(e -> ( (Element) e.getParentNode()).getAttribute(XmlUtils.Srgid).equals("")).findFirst().get(); 		
+		ele = pairEles.stream().filter(e -> ( (Element) e.getParentNode()).getAttribute(XmlUtils.Sid).equals("")).findFirst().get(); 		
 		chekTlen(ele, new int[] { 5, 13, 11025, 452, 13, 26, 788 });
 				
 		
@@ -142,7 +142,7 @@ public class ReadGroupSummary_PairTest {
 				.stream().filter(ele -> ele.getAttribute(XmlUtils.Sname).equals( "pairs" )).collect(Collectors.toList());				
 		
 		//only one inward pair but overlapped
-		Element ele = pairEles.stream().filter(e -> ( (Element) e.getParentNode()).getAttribute(XmlUtils.Srgid).equals("1959N")).findFirst().get(); 		
+		Element ele = pairEles.stream().filter(e -> ( (Element) e.getParentNode()).getAttribute(XmlUtils.Sid).equals("1959N")).findFirst().get(); 		
 		checkPairsValue(ele, 1, 0, 0);		
 		checkVariableGroup(ele, "f5f3Pair", new int[] {0,0,0,0,0} );
 		checkVariableGroup(ele, "f3f5Pair", new int[] {0,0,0,0,0} );
@@ -150,7 +150,7 @@ public class ReadGroupSummary_PairTest {
 		checkVariableGroup(ele, "inwardPair", new int[] {1,0,0,0,1} );
 
 		//five pairs
-		ele = pairEles.stream().filter(e -> ( (Element) e.getParentNode()).getAttribute(XmlUtils.Srgid).equals("1959T")).findFirst().get();
+		ele = pairEles.stream().filter(e -> ( (Element) e.getParentNode()).getAttribute(XmlUtils.Sid).equals("1959T")).findFirst().get();
 		checkPairsValue(ele, 5, 0, 0);		
 		checkVariableGroup(ele, "f5f3Pair", new int[] {0,0,0,1,1} ); //tlen=11205, 2015
 		checkVariableGroup(ele, "f3f5Pair", new int[] {1,0,1,0,2} );
@@ -158,7 +158,7 @@ public class ReadGroupSummary_PairTest {
 		checkVariableGroup(ele, "inwardPair", new int[] {0,0,0,0,0} );
 		
 		//
-		ele = pairEles.stream().filter(e -> ( (Element) e.getParentNode()).getAttribute(XmlUtils.Srgid).equals(QprofilerXmlUtils.UNKNOWN_READGROUP)).findFirst().get();
+		ele = pairEles.stream().filter(e -> ( (Element) e.getParentNode()).getAttribute(XmlUtils.Sid).equals(QprofilerXmlUtils.UNKNOWN_READGROUP)).findFirst().get();
 		checkPairsValue(ele, 3, 2, 1);		
 		checkVariableGroup(ele, "f5f3Pair", new int[] {0,0,0,0,0} ); //tlen=11205, 2015
 		checkVariableGroup(ele, "f3f5Pair", new int[] {0,0,0,0,0} );
@@ -166,7 +166,7 @@ public class ReadGroupSummary_PairTest {
 		checkVariableGroup(ele, "inwardPair", new int[] {0,0,0,0,0} );
 				
 		//overall
-		ele = pairEles.stream().filter(e -> ( (Element) e.getParentNode()).getAttribute(XmlUtils.Srgid).equals("")).findFirst().get();		
+		ele = pairEles.stream().filter(e -> ( (Element) e.getParentNode()).getAttribute(XmlUtils.Sid).equals("")).findFirst().get();		
 		checkPairsValue(ele, 9, 2, 1);		
 		checkVariableGroup(ele, "f5f3Pair", new int[] {0,0,0,1,1} ); //tlen=11205, 2015
 		checkVariableGroup(ele, "f3f5Pair", new int[] {1,0,1,0,2}  );

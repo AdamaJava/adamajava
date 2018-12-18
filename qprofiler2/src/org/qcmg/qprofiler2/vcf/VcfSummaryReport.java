@@ -106,7 +106,7 @@ public class VcfSummaryReport  extends SummaryReport {
 		Element summaryElement =  QprofilerXmlUtils.createSubElement(parent,  ProfileType.VCF.getReportName()+"Metrics" );		
 		for( String sample : summaries.keySet() ) {	
 			Element ele =  QprofilerXmlUtils.createSubElement( summaryElement, Sample);
-			ele.setAttribute(XmlUtils.Sname, sample);
+			ele.setAttribute(XmlUtils.Sid, sample);
 						
 			//Element ele = getSampleElement( summaryElement, sample );
 			for(String cates : summaries.get(sample).keySet() )			

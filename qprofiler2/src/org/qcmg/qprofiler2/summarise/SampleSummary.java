@@ -6,7 +6,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
@@ -23,10 +22,7 @@ import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Element;
 
-public class SampleSummary {
-//	public final static String variantType = "VariantType";
-//	public final static String genotypes = "Genotypes";
-	
+public class SampleSummary {	
 	public final static String formats = "formats";
 	public final static String values = "values";
 	
@@ -64,11 +60,11 @@ public class SampleSummary {
 		if( ad == null || ad.contains(".") ||  gt == null || gt.contains(".")  ||  gt.equals("0/0") || gt.equals("0|0") ) 
 				return;		
 		
-		int commaIndex = ad.indexOf(Constants.COMMA);
+		int commaIndex = ad.indexOf(Constants.COMMA);  
 		int vaf = 0;
 		
 		/*
-		 * vaf needs to equal the sum of all the numbers in the AD field, apart from the first number (which is the reference count)
+		 *  vaf needs to equal the sum of all the numbers in the AD field, apart from the first number (which is the reference count)
 		 */
 		while (commaIndex > -1) {
 			int nextConmmaIndex = ad.indexOf(Constants.COMMA, commaIndex + 1);
@@ -80,10 +76,13 @@ public class SampleSummary {
 				break;
 			}
 		}
-		 
-		//int rate = (int) ( 0.5 + (double) ( vaf * altBinSize ) / Integer.parseInt(dp) );
-		int rate = (int) ( (double) ( vaf * altBinSize ) / Integer.parseInt(dp) );
-		map.computeIfAbsent( type.name() , (k) -> new QCMGAtomicLongArray(altBinSize + 1)).increment( rate );	
+		
+		//java support modulus for float number; 
+		//if reminding is zero, it count to previous bin		
+		int bin = vaf * altBinSize / Integer.parseInt(dp);
+		if(vaf * altBinSize % Integer.parseInt(dp) == 0 && bin > 0)
+			bin -= 1;
+		map.computeIfAbsent( type.name() , (k) -> new QCMGAtomicLongArray(altBinSize )).increment( bin );
 		
 	}
 		
@@ -97,8 +96,8 @@ public class SampleSummary {
 		String gt = format.getField(VcfHeaderUtils.FORMAT_GENOTYPE); //GT
 		gts.add(gt);
 				
-		increment( type.name()); //count svtype
-		increment( type + gt);	//count genotyp	
+		increment( type.name() ); //count svtype
+		increment( type + gt );	  //count genotype	
 						
 		//variant allel frequence VAF	 
 		incrementGTAD(type , gt, format.getField(VcfHeaderUtils.FORMAT_ALLELIC_DEPTHS), format.getField(VcfHeaderUtils.FORMAT_READ_DEPTH), summaryAD);				
@@ -114,8 +113,6 @@ public class SampleSummary {
 			);
 						
 			for(SubsitutionEnum transType : transTypes){
-			//	String mark = transType.isTranstion() ? "Ti" : transType.isTransversion() ? "Tv" : "Other";	
-			//	increment( type.name() + mark  );
 				increment( type.name() + transType.name() );					
 			}				
 		}		
@@ -156,30 +153,32 @@ public class SampleSummary {
 						sumTv += summary.get(type.name()+tran.name()).get();
 					}
 				
-				if(sumTi * sumTv == 0)	
-					XmlUtils.outputValueNode(reportE1, tiTvRatio,  null );
-				else
-					XmlUtils.outputValueNode(reportE1, tiTvRatio,   (double) sumTi/sumTv );
+				double rate = sumTi * sumTv == 0 ? null : (double) sumTi/sumTv;			 
+				XmlUtils.outputValueNode(reportE1, tiTvRatio,  rate );
+				 
 				XmlUtils.outputTallyGroup(reportE1 ,  transitions,  tiFreq, true);
 				XmlUtils.outputTallyGroup(reportE1 ,  transversions,  tvFreq, true);
 			}				
 						
 			Map<String, AtomicLong> gtvalues = new HashMap<>();
 			for(String gt : orderedGTs) {
-				AtomicLong gtv =  summary.get(type.name() + gt);
-				if(gtv != null) gtvalues.put(gt, gtv);				
+				AtomicLong gtv =  summary.get( type.name() + gt );
+				if(gtv != null) gtvalues.put( gt, gtv );				
 			}
 
 			XmlUtils.outputTallyGroup( reportE1 , genotype, gtvalues, true );
 
 			QCMGAtomicLongArray array = summaryAD.get(type.name());
-			if(array != null) {
+			if(array != null ) {
 				Element cateEle = XmlUtils.createGroupNode(reportE1, VAF );
-				for( int i = 0; i < altBinSize; i ++  ){
+				for( int i = 0; i <= altBinSize; i ++  ){
 					long count =  array.get(i) ;
 					if( count <= 0 ) continue;					
-					XmlUtils.outputBinNode( cateEle,  100*i / altBinSize, 100*(i+1) / altBinSize, new AtomicLong(count));					 
+						XmlUtils.outputBinNode( cateEle,  100*i / altBinSize, 100*(i+1) / altBinSize, new AtomicLong(count));							
 				}
+				
+				if(cateEle.hasChildNodes())
+					XmlUtils.addCommentChild(cateEle, "Each closedBin list the variant number belonging to variant allele frequency region ( start%, end% ].");
 			}
 
 		}

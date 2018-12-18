@@ -84,7 +84,7 @@ public class CohortSummaryReportTest {
 			List<String> outputs = xReport.outputCounts();
 			outputSize += outputs.size();
 			
-			if(ele.getAttribute(XmlUtils.Sname).equals("test1") ){
+			if(ele.getAttribute(XmlUtils.Sid).equals("test1") ){
 				assertTrue(outputs.size() == 4);
 				for(String output : outputs ){
 									 
@@ -110,6 +110,8 @@ public class CohortSummaryReportTest {
 					}
 			}else 
 				assertTrue(outputs.size() == 3);
+				
+			
 		}	
 		assertTrue(13 == outputSize);
 	}

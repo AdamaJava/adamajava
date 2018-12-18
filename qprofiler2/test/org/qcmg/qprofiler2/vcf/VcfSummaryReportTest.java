@@ -4,14 +4,8 @@ import static org.junit.Assert.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
-import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
@@ -145,7 +139,7 @@ public class VcfSummaryReportTest {
 		    assertEquals( 40, counts.stream().mapToInt(i -> i.intValue()).sum() );
 						
 			// assertTrue( counts == 40*2 );			
-			String sample = child.getAttributes().getNamedItem( XmlUtils.Sname ).getNodeValue();
+			String sample = child.getAttributes().getNamedItem( XmlUtils.Sid ).getNodeValue();
 			if( sample.equals(lastSample) || sample.equals( "control2" ) )  checkLastSampleColumn(child);	
 			else if( sample.equals("test1"))
 					checkTest1(child);
@@ -249,7 +243,7 @@ public class VcfSummaryReportTest {
 				sr.toXml(root);				
 				List<Element> samples = QprofilerXmlUtils.getOffspringElementByTagName(root, "sample");
 				assertEquals(4, samples.size());
-				assertEquals(1, samples.stream().filter( e -> e.getAttribute(XmlUtils.Sname).equals(lastSample)).count()) ;	
+				assertEquals(1, samples.stream().filter( e -> e.getAttribute(XmlUtils.Sid).equals(lastSample)).count()) ;	
 				assertEquals(4, QprofilerXmlUtils.getOffspringElementByTagName(root, "report").size());
 				QprofilerXmlUtils.getOffspringElementByTagName(root, "report").forEach(e -> assertEquals( 0, e.getAttributes().getLength()) );				 
 			} catch (Exception e) { fail("unexpected error"); }
@@ -262,9 +256,9 @@ public class VcfSummaryReportTest {
 				sr.toXml(root);				
 				List<Element> samples = QprofilerXmlUtils.getOffspringElementByTagName(root, "sample");
 				assertEquals(4, samples.size());
-				assertEquals(1, samples.stream().filter( e -> e.getAttribute(XmlUtils.Sname).equals(lastSample)).count()) ;	
+				assertEquals(1, samples.stream().filter( e -> e.getAttribute(XmlUtils.Sid).equals(lastSample)).count()) ;	
 				assertEquals(6, QprofilerXmlUtils.getOffspringElementByTagName(root, "report").size());				
-				Element child =  samples.stream().filter( e -> e.getAttribute(XmlUtils.Sname).equals("test1")).findFirst().get();
+				Element child =  samples.stream().filter( e -> e.getAttribute(XmlUtils.Sid).equals("test1")).findFirst().get();
 				checkTest1(child);							 
 			} catch (Exception e) { fail("unexpected error"); }
 			

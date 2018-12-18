@@ -16,7 +16,6 @@ import org.qcmg.vcf.VCFFileWriter;
 
 public class VcfSummarizer implements Summarizer {
 	private final static QLogger logger = QLoggerFactory.getLogger(VcfSummarizer.class);
-	private String[] excludes;
 		
 	@Override
 	public SummaryReport summarize(String input, String index, String[] regions) throws Exception{
