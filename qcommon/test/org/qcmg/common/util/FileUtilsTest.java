@@ -272,12 +272,16 @@ public class FileUtilsTest {
 		Assert.assertEquals(1, FileUtils.findFilesEndingWithFilter(file.getAbsolutePath(), "test").length);
 		Assert.assertEquals(file, FileUtils.findFilesEndingWithFilter(file.getAbsolutePath(), "test")[0]);
 		
+	//	File nestedDir = tempFolder.newFolder("testFolder" + FileUtils.FILE_SEPARATOR + "innerTestFolder");
+		tempFolder.newFolder("testFolder" ,"innerTestFolder");
+		File nestedFileInFolder = tempFolder.newFile("testFolder" + FileUtils.FILE_SEPARATOR + "innerTestFolder" + FileUtils.FILE_SEPARATOR + "test");		
+		Assert.assertEquals(nestedFileInFolder, FileUtils.findFilesEndingWithFilter(dir.getAbsolutePath(), "test", true)[1]);
+
+		
 		Assert.assertEquals(2, FileUtils.findFilesEndingWithFilter(dir.getAbsolutePath(), "test", true).length);
 		Assert.assertEquals(fileInFolder, FileUtils.findFilesEndingWithFilter(dir.getAbsolutePath(), "test", true)[0]);
 		
-//		File nestedDir = tempFolder.newFolder("testFolder" + FileUtils.FILE_SEPARATOR + "innerTestFolder");
-		File nestedFileInFolder = tempFolder.newFile("testFolder" + FileUtils.FILE_SEPARATOR + "innerTestFolder" + FileUtils.FILE_SEPARATOR + "test");		
-		Assert.assertEquals(nestedFileInFolder, FileUtils.findFilesEndingWithFilter(dir.getAbsolutePath(), "test", true)[1]);
+//		
 	}
 	
 	@Test
@@ -298,7 +302,7 @@ public class FileUtilsTest {
 		File dir = tempFolder.newFolder("testFolder");
 		File file = tempFolder.newFile("test");
 		File fileInFolder = tempFolder.newFile("testFolder" + FileUtils.FILE_SEPARATOR + "test");
-		File nestedDir = tempFolder.newFolder("testFolder" + FileUtils.FILE_SEPARATOR + "innerTestFolder");
+		tempFolder.newFolder("testFolder", "innerTestFolder");
 		File nestedFileInFolder = tempFolder.newFile("testFolder" + FileUtils.FILE_SEPARATOR + "innerTestFolder" + FileUtils.FILE_SEPARATOR + "test");
 		
 		try {
