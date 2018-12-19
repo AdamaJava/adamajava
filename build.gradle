@@ -99,4 +99,9 @@ task timestamped_dist(type: Zip) {
      }
   }
 
-clean << { ant { delete(dir: "adama/build") } ; subprojects {delete('adama/build/lib')} }
+clean.doLast{
+	delete(dir: "adama/build");
+	subprojects {delete('adama/build/lib')} 
+}
+
+//clean << { ant { delete(dir: "adama/build") } ; subprojects {delete('adama/build/lib')} }
