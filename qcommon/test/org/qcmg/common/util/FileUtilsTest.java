@@ -33,10 +33,7 @@ public class FileUtilsTest {
 	@Test
 	public void testOutputFile() throws Exception{
 		// null outputFile
-//		try {
 			Assert.assertFalse(FileUtils.validOutputFile(null));
-//			Assert.fail("Shouldn't have got here");
-//		} catch (Exception e) {}
 		
 		// empty string file
 		Assert.assertFalse(FileUtils.validOutputFile(""));
@@ -73,11 +70,6 @@ public class FileUtilsTest {
 		}		
 		Assert.assertTrue( !FileUtils.getFileCheckSum(fnames[0]).equals(FileUtils.getFileCheckSum(fnames[1])) );	
 		
-		
-//		//debug
-//		System.out.println("test on small file , md5 string is " + FileUtils.getFileCheckSum(fnames[0]));
-//		String str = FileUtils.getFileCheckSum("/Users/christix/Documents/Eclipse/data/qprofiler/afbe8977-547e-49a9-b2fe-9f39d1154cf8.vcf");
-//		System.out.println("test on large file (4.6G), md5 string is " + str);
 	}
 	
 	@Test
@@ -266,8 +258,6 @@ public class FileUtilsTest {
 		File dir = tempFolder.newFolder("testFolder");
 		File file = tempFolder.newFile("test");
 		File fileInFolder = tempFolder.newFile("testFolder" + FileUtils.FILE_SEPARATOR + "test");
-		File nestedDir = tempFolder.newFolder("testFolder" + FileUtils.FILE_SEPARATOR + "innerTestFolder");
-		File nestedFileInFolder = tempFolder.newFile("testFolder" + FileUtils.FILE_SEPARATOR + "innerTestFolder" + FileUtils.FILE_SEPARATOR + "test");
 		
 		try {
 			FileUtils.findFilesEndingWithFilter(file.getAbsolutePath(), null);
@@ -282,9 +272,16 @@ public class FileUtilsTest {
 		Assert.assertEquals(1, FileUtils.findFilesEndingWithFilter(file.getAbsolutePath(), "test").length);
 		Assert.assertEquals(file, FileUtils.findFilesEndingWithFilter(file.getAbsolutePath(), "test")[0]);
 		
+	//	File nestedDir = tempFolder.newFolder("testFolder" + FileUtils.FILE_SEPARATOR + "innerTestFolder");
+		tempFolder.newFolder("testFolder" ,"innerTestFolder");
+		File nestedFileInFolder = tempFolder.newFile("testFolder" + FileUtils.FILE_SEPARATOR + "innerTestFolder" + FileUtils.FILE_SEPARATOR + "test");		
+		Assert.assertEquals(nestedFileInFolder, FileUtils.findFilesEndingWithFilter(dir.getAbsolutePath(), "test", true)[1]);
+
+		
 		Assert.assertEquals(2, FileUtils.findFilesEndingWithFilter(dir.getAbsolutePath(), "test", true).length);
 		Assert.assertEquals(fileInFolder, FileUtils.findFilesEndingWithFilter(dir.getAbsolutePath(), "test", true)[0]);
-		Assert.assertEquals(nestedFileInFolder, FileUtils.findFilesEndingWithFilter(dir.getAbsolutePath(), "test", true)[1]);
+		
+//		
 	}
 	
 	@Test
@@ -305,7 +302,7 @@ public class FileUtilsTest {
 		File dir = tempFolder.newFolder("testFolder");
 		File file = tempFolder.newFile("test");
 		File fileInFolder = tempFolder.newFile("testFolder" + FileUtils.FILE_SEPARATOR + "test");
-		File nestedDir = tempFolder.newFolder("testFolder" + FileUtils.FILE_SEPARATOR + "innerTestFolder");
+		tempFolder.newFolder("testFolder", "innerTestFolder");
 		File nestedFileInFolder = tempFolder.newFile("testFolder" + FileUtils.FILE_SEPARATOR + "innerTestFolder" + FileUtils.FILE_SEPARATOR + "test");
 		
 		try {
@@ -346,8 +343,8 @@ public class FileUtilsTest {
 		Assert.assertEquals(1, FileUtils.findFiles(file.getAbsolutePath(), filter).length);
 		Assert.assertEquals(file, FileUtils.findFiles(file.getAbsolutePath(), filter)[0]);
 		
-		File dirXXX = tempFolder.newFolder("XXX");
-		File dirPPP = tempFolder.newFolder("PPP");
+//		File dirXXX = tempFolder.newFolder("XXX");
+//		File dirPPP = tempFolder.newFolder("PPP");
 		File dirPPPP = tempFolder.newFolder("PPPP_");
 		
 		Assert.assertEquals(1, FileUtils.findFiles(tempFolder.getRoot().getAbsolutePath(), filter).length);
@@ -365,7 +362,7 @@ public class FileUtilsTest {
 			Assert.fail("Should have thrown an exception");
 		} catch (IllegalArgumentException iae) {}
 		
-		File file = tempFolder.newFile("test");
+//		File file = tempFolder.newFile("test");
 		
 		Assert.assertEquals(0, FileUtils.findDirectories(tempFolder.getRoot().getAbsolutePath(), "test", false).length);
 		
@@ -386,7 +383,6 @@ public class FileUtilsTest {
 			@Override
 			public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
 				if (file.toString().endsWith(".java")) {
-//					if (file.toString().endsWith(".java")) {
 					foundFiles.add(file.toFile());
 				}
 				return FileVisitResult.CONTINUE;

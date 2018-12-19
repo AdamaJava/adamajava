@@ -111,7 +111,7 @@ public class ChartTabBuilderTest {
 	}
 	
 	public static Element createSeqElement() throws ParserConfigurationException{
-		Element root = QprofilerXmlUtils.createRootElement(null, "SEQ", null);
+		Element root = QprofilerXmlUtils.createRootElement( "SEQ", null);
 		
 		//BaseByCycle
 		Element ele = QprofilerXmlUtils.createSubElement(root, "BaseByCycle");	

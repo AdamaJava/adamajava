@@ -14,9 +14,9 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.qcmg.common.model.ProfileType;
-import org.qcmg.common.model.SummaryByCycle;
-import org.qcmg.common.util.SummaryByCycleUtils;
 import org.qcmg.qprofiler.report.SummaryReport;
+import org.qcmg.qprofiler.summarise.SummaryByCycle;
+import org.qcmg.qprofiler.util.SummaryByCycleUtils;
 import org.qcmg.qprofiler.util.SummaryReportUtils;
 import org.qcmg.record.SimpleRecord;
 import org.w3c.dom.Element;
@@ -66,7 +66,7 @@ public class QualSummaryReport extends SummaryReport {
 	 * @param record SimpleRecord containing the data to be parsed. For QUAL files, this is space delimited.
 	 * 
 	 * @see org.qcmg.qprofiler.report.SummaryReport#updateRecordsParsed()
-	 * @see org.qcmg.common.util.SummaryByCycleUtils#parseIntegerSummary(SummaryByCycle, String, String)
+	 * @see org.qcmg.qprofiler.util.SummaryByCycleUtils#parseIntegerSummary(SummaryByCycle, String, String)
 	 * @see org.qcmg.qprofiler.util.SummaryReportUtils#tallyQualScores(String, Map, String)
 	 */
 	public void parseRecord(SimpleRecord record) throws Exception{

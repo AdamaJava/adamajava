@@ -19,7 +19,6 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.messages.QMessage;
 import org.qcmg.common.model.ProfileType;
-
 import org.qcmg.common.util.QprofilerXmlUtils;
 import org.qcmg.qvisualise2.ChartTab;
 import org.qcmg.qvisualise2.util.QProfilerCollectionsUtils;
@@ -27,7 +26,6 @@ import org.w3c.dom.Element;
 
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import javafx.util.Pair;
 
 public class ReportBuilder {
 	private static final String[] SEQ_COLOURS = new String[] { "green", "blue", "black", "red", "aqua" };
@@ -613,17 +611,24 @@ public class ReportBuilder {
 		final String title = "CIGAR";	
 		
 		@SuppressWarnings("unchecked")
-		final Pair<String,String>[] cigars = (Pair<String,String>[]) new Pair[4];
-		cigars[0] = new Pair<String, String>( "D",  "Deletions" );
-		cigars[1] = new Pair<String, String>( "I", "Insertions" );
-		cigars[2] = new Pair<String, String>( "H", "Hard clips" );
-		cigars[3] = new Pair<String, String>( "S", "Soft clips" );
+//		final Pair<String,String>[] cigars = (Pair<String,String>[]) new Pair[4];
+//		cigars[0] = new Pair<String, String>( "D",  "Deletions" );
+//		cigars[1] = new Pair<String, String>( "I", "Insertions" );
+//		cigars[2] = new Pair<String, String>( "H", "Hard clips" );
+//		cigars[3] = new Pair<String, String>( "H", "Hard clips" );
+		
+		Map<String,String> cigars = new HashMap<>();
+		cigars.put( "D",  "Deletions" );
+		cigars.put( "I", "Insertions" );
+		cigars.put( "H", "Hard clips" );
+		cigars.put( "H", "Hard clips" );
+		
 				
 		final Element cigarE = QprofilerXmlUtils.getChildElement( QprofilerXmlUtils.getChildElement(reportElement, title, 0), "ObservedOperations",  0 );
 		final ChartTab cigarCT = new ChartTab(title);
 		report.addTab(cigarCT);
 		
-		for(Pair<String,String> cigar : cigars){
+		for(Map.Entry<String,String> cigar : cigars.entrySet()){
 			//create LengthTally	
 			ChartTabBuilder  para = new ChartTabBuilder ( cigarE,  "ValueTally", (String)cigar.getValue(),  "cig" + cigar.getKey() )
 					.chartType( HTMLReportUtils.COLUMN_CHART).chartTitle(title + ", " + cigar.getValue() )

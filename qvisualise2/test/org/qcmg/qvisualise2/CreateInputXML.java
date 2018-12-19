@@ -20,7 +20,7 @@ public class CreateInputXML {
 	 * @throws ParserConfigurationException
 	 */
 	private static Element createRootElement() throws ParserConfigurationException{
-		Element root = QprofilerXmlUtils.createRootElement(null, "qProfiler", null);
+		Element root = QprofilerXmlUtils.createRootElement( "qProfiler", null);
 		root.setAttribute("annotation", "testing xml for qvisulise");		
 		return root;
 	}
