@@ -49,9 +49,10 @@ public class QprofilerXmlUtils {
 	public static final String hardClippedBases = "hardClippedBases";
 	public static final String overlapBases = "overlapBases";
 	
-	//debug will remove after new qprfiler2
+	//debug will removed for new qprofiler2
+	public static final String filteredReads = "filteredReads";
 	public static final String basePercent = "basePercent";
-	public static final String filteredReads = "filteredReads";	
+	
  
 	// tag name for old xml
 	public static final String valueTally = "ValueTally";
@@ -91,6 +92,7 @@ public class QprofilerXmlUtils {
 	public static final String qual = "QUAL";
 	public static final String qualBase = "qualBase";
 	public static final String qualLength = "qualLength";
+
 		
 			
 	public static <T> String joinByComma( List<T> possibles){		 		

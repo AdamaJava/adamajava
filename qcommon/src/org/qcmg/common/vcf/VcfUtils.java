@@ -951,6 +951,49 @@ public class VcfUtils {
 		}
 	}
 	
+	public static String calculateAD(String oldAD, String newGt, String oldGt) {
+		if (newGt.equals(oldGt)) {
+			return oldAD;
+		}
+		String [] adArray = TabTokenizer.tokenize(oldAD, Constants.COMMA);
+		int newgt1 = Integer.valueOf(""+newGt.charAt(0));
+		int newgt2 = Integer.valueOf(""+newGt.charAt(2));
+		int oldgt1 = Integer.valueOf(""+oldGt.charAt(0));
+		int oldgt2 = Integer.valueOf(""+oldGt.charAt(2));
+		
+		if (Math.max(oldgt1, oldgt2) >= Math.max(newgt1, newgt2)) {
+			return oldAD;
+		}
+		
+		String [] newADArray = new String[Math.max(newgt1,  newgt2) + 1];
+		
+		int i = 0;
+		for (String s : adArray) {
+				
+			if (i == oldgt1) {
+				newADArray[oldgt1 != newgt1 ? newgt1 : i] = s;
+			} else if ( i == oldgt2) {
+				newADArray[oldgt2 != newgt2 ? newgt2 : i] = s;
+			} else {
+				newADArray[i] = s;	
+			}
+				
+			i++;
+		}
+		
+		/*
+		 * loop through and set any null elements to .
+		 * ACTUALLY, set this to 0 rather than missing data
+		 */
+		for (int j = 0 ; j < newADArray.length ; j++) {
+			if (null == newADArray[j]) {
+				newADArray[j] = "0";
+			}
+		}
+		
+		return Arrays.stream(newADArray).collect(Collectors.joining(Constants.COMMA_STRING));
+	}
+	
 	
 	/**
 	 * Will return a Optional<VcfRecord> that represents the smooshing together of the supplied control and test VCfRecords that are assumed to be GATK generated.
@@ -1034,9 +1077,17 @@ public class VcfUtils {
 				if (secondGT > 0) {
 					secondGT += noOfControlAlts;
 				}
-				tFF = tFF.replace(tGT, firstGT + Constants.SLASH_STRING + secondGT);
+				String newGT = firstGT + Constants.SLASH_STRING + secondGT;
+				tFF = tFF.replace(tGT, newGT);
 				tFFs.remove(1);
 				tFFs.add(tFF);
+				Map<String, String [] > ffMap = getFormatFieldsAsMap(tFFs);
+				String [] adArray = ffMap.get(VcfHeaderUtils.FORMAT_ALLELIC_DEPTHS);
+				if (null != adArray || adArray.length > 0) {
+					String newAD = calculateAD(adArray[0] , newGT, tGT);
+					adArray[0] = newAD;
+					tFFs = convertFFMapToList(ffMap);
+				}
 				
 				addAdditionalSampleToFormatField(m, tFFs);
 			}
@@ -1143,8 +1194,11 @@ public class VcfUtils {
 	 * @return
 	 */
 	public static boolean isRecordAPass(VcfRecord v) {
-		
 		Map<String, String[]> ffMap = getFormatFieldsAsMap(v.getFormatFields());
+		return isRecordAPass(ffMap);
+	}
+	
+	public static boolean isRecordAPass(Map<String, String[]> ffMap) {
 		String [] filterArr = ffMap.get(VcfHeaderUtils.FORMAT_FILTER);
 		
 		long passCount =  null != filterArr ? Arrays.asList(filterArr).stream().filter(f -> f.contains(VcfHeaderUtils.FILTER_PASS)).count() : 0;
@@ -1157,21 +1211,6 @@ public class VcfUtils {
 		 */
 		if (passCount == filterArr.length) {
 			return true;
-			
-//			/*
-//			 * single sample - return true
-//			 * only handle single sample data that has 2 constituent sets of data for now...
-//			 */
-//			if (filterArr.length == 1 || (isMergedRecord(v) && filterArr.length == 2)) {
-//				return true;
-//			}
-//		
-//			/*
-//			 * if we are all germline or all somatic, then pass
-//			 */
-//			if (somCount == 0 || somCount * 2 >= filterArr.length ) {
-//				return true;
-//			}
 		}
 		
 		String [] infoArr = ffMap.get(VcfHeaderUtils.FORMAT_INFO);
