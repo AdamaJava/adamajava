@@ -215,6 +215,16 @@ public final class MultiSAMFileReader implements Closeable, Iterable<SAMRecord> 
 		activeIterator = new MultiSAMFileIterator(readers);
 		return activeIterator;
 	}
+	public synchronized MultiSAMFileIterator getMultiSAMFileIterator(String sequence, int start, int end, boolean contained) throws IllegalStateException {
+		if (null != activeIterator) {
+			activeIterator.closeIterators();
+		}
+//		if (null != activeIterator) {
+//			throw new IllegalStateException("Reader already iterating. Close the reader and retry.");
+//		}
+		activeIterator = new MultiSAMFileIterator(readers, sequence, start, end, contained);
+		return activeIterator;
+	}
 
 	public File getFile(SamReader reader) {
 		return fileMap.get(reader);

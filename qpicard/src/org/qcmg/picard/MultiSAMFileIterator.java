@@ -17,6 +17,7 @@ import java.util.Vector;
 
 import htsjdk.samtools.SamReader;
 import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SAMRecordIterator;
 
 public final class MultiSAMFileIterator implements Iterator<SAMRecord> {
 	private SAMRecordWrapper nextWrapper;
@@ -27,6 +28,7 @@ public final class MultiSAMFileIterator implements Iterator<SAMRecord> {
 //	private final HashSet<SAMRecordWrapper> nextWrappers = new HashSet<>();
 //	private final Queue<SAMRecordWrapper> nextWrappers = new PriorityQueue<>(comparator);
 	private final List<SAMRecordWrapper> nextWrappers = new ArrayList<>();
+	private final List<SAMRecordIterator> iters = new ArrayList<>();
 
 	MultiSAMFileIterator(final Vector<SamReader> fileReaders) {
 		for (final SamReader reader : fileReaders) {
@@ -38,6 +40,26 @@ public final class MultiSAMFileIterator implements Iterator<SAMRecord> {
 			}
 		}
 		march();
+	}
+	
+	MultiSAMFileIterator(final Vector<SamReader> fileReaders, String sequence, int start, int end, boolean contained) {
+		for (final SamReader reader : fileReaders) {
+			SAMRecordIterator i = reader.query(sequence, start, end, contained);
+//			Iterator<SAMRecord> i = reader.query(sequence, start, end, contained);
+			iters.add(i);
+			if (i.hasNext()) {
+				SAMRecord record = i.next();
+				SAMRecordWrapper wrapper = new SAMRecordWrapper(record, i, reader);
+				nextWrappers.add(wrapper);
+			}
+		}
+		march();
+	}
+	
+	public void closeIterators() {
+		for (SAMRecordIterator i : iters) {
+			i.close();
+		}
 	}
 
 	@Override
@@ -58,28 +80,19 @@ public final class MultiSAMFileIterator implements Iterator<SAMRecord> {
 	}
 
 	private void march() {
-//		nextWrapper = nextWrappers.poll();
-//		if (null != nextWrapper) {
-//			step(nextWrapper);
-//		}
 		if (nextWrappers.isEmpty()) {
 			nextWrapper = null;
 		} else {
 			nextWrappers.sort(comparator);
 			nextWrapper = nextWrappers.remove(0);
 			step(nextWrapper);
-//			nextWrapper = Collections.min(nextWrappers, comparator);
-//			step(nextWrapper);
 		}
 	}
 
 	private void step(final SAMRecordWrapper wrapper) {
 		Iterator<SAMRecord> iter = wrapper.getRecordIterator();
 		SamReader reader = wrapper.getReader();
-//		nextWrappers.remove(wrapper);
 		if (iter.hasNext()) {
-//			SAMRecord record = iter.next();
-//			SAMRecordWrapper temp = new SAMRecordWrapper(record, iter, reader);
 			nextWrappers.add(new SAMRecordWrapper(iter.next(), iter, reader));
 		}
 	}

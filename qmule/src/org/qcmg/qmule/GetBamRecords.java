@@ -6,6 +6,8 @@
  */
 package org.qcmg.qmule;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -23,6 +25,7 @@ public class GetBamRecords {
 	private String logFile;
 	private String[] cmdLineInputFiles;
 	private String[] cmdLineOutputFiles;
+	List<SAMRecord> records;
 	
 	private String position;
 	
@@ -42,7 +45,7 @@ public class GetBamRecords {
 		logger.info("config: " + contig);
 		logger.info("start: " + start);
 		
-		List<SAMRecord> records = jumper.getOverlappingRecordsAtPosition(contig, start, start);
+		records = jumper.getOverlappingRecordsAtPosition(contig, start, start);
 		
 		logger.info("unfiltered read count: " + records.size()+ "");
 		
@@ -113,6 +116,8 @@ public class GetBamRecords {
 				logger.info("***" + rec.getSAMString());
 			} else logger.info(rec.getSAMString());
 			
+			
+			
 		}
 		
 		
@@ -137,7 +142,23 @@ public class GetBamRecords {
 		
 		jumper.closeReader();
 		
+		writeToFile();
+		
 		return exitStatus;
+	}
+	
+	private void writeToFile() {
+		if (null != cmdLineOutputFiles && cmdLineOutputFiles.length == 1) {
+			try (FileWriter writer = new FileWriter(cmdLineOutputFiles[0]);){
+				for (SAMRecord rec : records) {
+					writer.write(rec.getSAMString());
+				}
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+		}
 	}
 	
 	
@@ -185,6 +206,7 @@ public class GetBamRecords {
 				}
 			}
 			
+			position = options.getPosition();
 			position = options.getPosition();
 			
 			// check supplied output files can be written to
