@@ -1,3 +1,7 @@
+plugins {
+  id 'checkstyle'
+  id 'findbugs'
+}
 defaultTasks "build"
 allprojects {
    apply plugin: 'java'
@@ -19,10 +23,29 @@ version = 1.0
 def adamalib=file('adama/build/lib').absolutePath  
 subprojects {
    apply plugin: 'eclipse'
+   apply plugin: 'checkstyle'
+   apply plugin: 'findbugs'
    sourceCompatibility = 1.8
    defaultTasks "build"
    libsDirName = "lib"
    test.workingDir = getProperty('buildDir').getAbsolutePath() + '/classes/test'
+
+  checkstyle {
+    configFile = file('../config/google_check.xml')
+    toolVersion = '8.15'
+    checkstyleTest.enabled=false
+  }
+  findbugs {
+    ignoreFailures = true
+    findbugsTest.enabled=false
+  }
+  tasks.withType(FindBugs) {
+    reports {
+        xml.enabled = true
+        html.enabled = false
+    }
+  }
+  checkstyleMain.onlyIf {project.hasProperty('checkstyle')}
    
    sourceSets {
       main { java.srcDirs=['src']; resources.srcDirs=['src'] }
