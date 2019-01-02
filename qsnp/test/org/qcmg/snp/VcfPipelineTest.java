@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -711,6 +712,37 @@ public class VcfPipelineTest {
 			  }
 		  
 		  assertEquals(true, finalHeaderRecords.containsAll(existingHeaderRecords));
+	}
+	
+	@Test
+	public void merge() {
+		Map<ChrPosition, VcfRecord> controlMap = new HashMap<>();
+		Map<ChrPosition, VcfRecord> testMap = new HashMap<>();
+		List<VcfRecord> mergedVcfs = new ArrayList<>();
+		
+		/*
+		 * setup records
+		 */
+		String [] params1 = "chr1	142671569	.	C	T	757.77	.	AC=1;AF=0.500;AN=2;BaseQRankSum=-1.971;ClippingRankSum=0.000;DP=125;ExcessHet=3.0103;FS=1.825;MLEAC=1;MLEAF=0.500;MQ=50.74;MQRankSum=-4.031;QD=7.65;ReadPosRankSum=-1.984;SOR=0.922	GT:AD:DP:GQ:PL	0/1:71,28:99:99:786,0,2594".split("\t");
+		VcfRecord vcf1 = new VcfRecord(params1);
+		controlMap.put(vcf1.getChrPosition(), vcf1);
+		
+		String [] params2 = "chr1	142671569	.	C	G	1491.77	.	AC=1;AF=0.500;AN=2;BaseQRankSum=-2.275;ClippingRankSum=0.000;DP=242;ExcessHet=3.0103;FS=104.768;MLEAC=1;MLEAF=0.500;MQ=49.87;MQRankSum=-10.385;QD=7.46;ReadPosRankSum=-0.318;SOR=5.812	GT:AD:DP:GQ:PL	0/1:141,59:200:99:1520,0,5093".split("\t");
+		VcfRecord vcf2 = new VcfRecord(params2);
+		testMap.put(vcf2.getChrPosition(), vcf2);
+		
+		/*
+		 * run merge
+		 */
+		VcfPipeline.mergeVcfRecords(controlMap, testMap, mergedVcfs);
+		assertEquals(1, mergedVcfs.size());
+		VcfRecord mergedRec = mergedVcfs.get(0);
+		Map<String, String[]> ffMap = VcfUtils.getFormatFieldsAsMap(mergedRec.getFormatFields());
+		assertEquals("T,G", mergedRec.getAlt());
+		assertEquals("0/1", ffMap.get(VcfHeaderUtils.FORMAT_GENOTYPE)[0]);
+		assertEquals("0/2", ffMap.get(VcfHeaderUtils.FORMAT_GENOTYPE)[1]);
+		assertEquals("71,28", ffMap.get(VcfHeaderUtils.FORMAT_ALLELIC_DEPTHS)[0]);
+		assertEquals("141,0,59", ffMap.get(VcfHeaderUtils.FORMAT_ALLELIC_DEPTHS)[1]);
 	}
 	
 	
