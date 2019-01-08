@@ -112,11 +112,6 @@ public class GenotypeUtilTest {
 		assertEquals(".", GenotypeUtil.getFormatFilter(AccumulatorUtils.createFromOABS("A0[0]1[11];G13[38.15]20[40]", 1), "0/0", new String[]{"A"}, 'G', true, 3, 3, Classification.SOMATIC, true));
 	}
 	
-	@Test
-	public void nullAccumulatorFormatFilter() {
-		assertEquals(Constants.MISSING_DATA_STRING, GenotypeUtil.getFormatFilter(null, "0/0", new String[]{"T"}, 'C', true, 3, 3, Classification.SOMATIC, true));
-	}
-	
 //	@Test
 //	public void fivePercentMINAM() {
 //		
