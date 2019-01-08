@@ -38,7 +38,7 @@ public class GenotypeUtil {
 		} else {
 			
 			boolean switchToSBiasCov = runSBias && ! AccumulatorUtils.bothStrandsByPercentage(acc, sbiasPercentageCoverage);
-			int totalReadCount = acc.getCoverage();
+			int totalReadCount = null != acc?  acc.getCoverage() : 0;
 			
 			StringBuilder strandBias = new StringBuilder();
 			StringBuilder endOfRead = new StringBuilder();
@@ -46,43 +46,44 @@ public class GenotypeUtil {
 			StringBuilder coverageAndMER = new StringBuilder();
 			
 			int i = 1;
-			for (String s : alt) {
-				if (s.length() == 1) {
-					char a = s.charAt(0);
-					PileupElementLite pel = acc.getPelForBase(a);
-					if (null != pel) {
-						if (null != gt && gt.contains(i + "")) {
-							
-							/*
-							 * strand bias
-							 */
-							if (runSBias && strandBias(pel, sbiasPercentage)) {
-								updateStringBuilder(strandBias, switchToSBiasCov ? SnpUtils.STRAND_BIAS_COVERAGE : SnpUtils.STRAND_BIAS_ALT);
-							} else if (runSBias) {
+			if (null != acc) {
+				for (String s : alt) {
+					if (s.length() == 1) {
+						char a = s.charAt(0);
+						PileupElementLite pel = acc.getPelForBase(a);
+						if (null != pel) {
+							if (null != gt && gt.contains(i + "")) {
+								
+								/*
+								 * strand bias
+								 */
+								if (runSBias && strandBias(pel, sbiasPercentage)) {
+									updateStringBuilder(strandBias, switchToSBiasCov ? SnpUtils.STRAND_BIAS_COVERAGE : SnpUtils.STRAND_BIAS_ALT);
+								} else if (runSBias) {
 //									updateStringBuilder(strandBias, Constants.MISSING_DATA_STRING);
-							}
-							
-							/*
-							 * end of read
-							 */
-							int endsOfReads = endsOfReads(pel);
-							if (endsOfReads > 0) {
-								updateStringBuilder(endOfRead, SnpUtils.END_OF_READ + Constants.EQ + endsOfReads);
-							} else {
-								updateStringBuilder(endOfRead, Constants.MISSING_DATA_STRING);
+								}
+								
+								/*
+								 * end of read
+								 */
+								int endsOfReads = endsOfReads(pel);
+								if (endsOfReads > 0) {
+									updateStringBuilder(endOfRead, SnpUtils.END_OF_READ + Constants.EQ + endsOfReads);
+								} else {
+									updateStringBuilder(endOfRead, Constants.MISSING_DATA_STRING);
+								}
 							}
 						}
-					}
-					/*
-					 * If classification is somatic and we are control, 
-					 */
-					if (Classification.SOMATIC == cl && isControl) {
-						
-						int pelTotalCount = null != pel ? pel.getTotalCount() : 0;
-						boolean min = VcfUtils.mutationInNorma(pelTotalCount, totalReadCount, MUTATION_IN_NORMAL_MIN_PERCENTAGE, MUTATION_IN_NORMAL_MIN_COVERAGE);
-						updateStringBuilder(mutationInNormal, min ? SnpUtils.MUTATION_IN_NORMAL : Constants.MISSING_DATA_STRING);
-						
-						
+						/*
+						 * If classification is somatic and we are control, 
+						 */
+						if (Classification.SOMATIC == cl && isControl) {
+							
+							int pelTotalCount = null != pel ? pel.getTotalCount() : 0;
+							boolean min = VcfUtils.mutationInNorma(pelTotalCount, totalReadCount, MUTATION_IN_NORMAL_MIN_PERCENTAGE, MUTATION_IN_NORMAL_MIN_COVERAGE);
+							updateStringBuilder(mutationInNormal, min ? SnpUtils.MUTATION_IN_NORMAL : Constants.MISSING_DATA_STRING);
+							
+							
 //							if (( (double) pelTotalCount / totalReadCount ) * 100 >= 3.0 ) {
 //								updateStringBuilder(mutationInNormal, SnpUtils.MUTATION_IN_NORMAL);
 //							} else {
@@ -92,9 +93,10 @@ public class GenotypeUtil {
 //									updateStringBuilder(mutationInNormal, Constants.MISSING_DATA_STRING);
 //								}
 //							}
+						}
 					}
+					i++;
 				}
-				i++;
 			}
 			
 			/*
