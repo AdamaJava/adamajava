@@ -12,20 +12,20 @@ qprofiler collects summary statistics from a number of NGS related files includi
   git clone https://github.com/AdamaJava/adamajava
   ```
 
-  Then move into the qprofiler folder:
+  Then move into the adamajava folder:
   ```
-  cd qprofiler
+  cd adamajava
   ```
   Run gradle to build qprofiler and its dependant jar files:
   ```
-  ./gradlew
+  ./gradlew :qprofiler:build
   ```
-  This creates the qprofiler jar file along with dependant jars in the `build/flat` folder
+  This creates the qprofiler jar file along with dependant jars in the `qprofiler/build/flat` folder
 
 ## Running qprofiler
 
 * To run qprofiler, you need to supply an input, an output and a log file:
   ```
-  java -jar qprofiler.jar -i <input.file> -o <output.xml> -l <logfile.log>
+  java -jar qprofiler/build/flat/qprofiler-1.0.jar -i <input.file> -o <output.xml> -l <logfile.log>
   ```
   Output is written to the supplied `output.xml` file
