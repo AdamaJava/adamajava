@@ -25,6 +25,6 @@ Tool that detects structural variants from matched tumour/normal BAM files
 
 * **To run qsv, you need to supply an ini file:**
   ```
-  java -jar qsv/build/flat/qsv-0.3.jar -ini <file.ini> -l <logfile.log>
+  java -jar qsv/build/flat/qsv-0.3.jar -ini <file.ini>
   ```
   Output is written to the directory specified in the ini file.
