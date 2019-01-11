@@ -107,14 +107,6 @@ public abstract class Pipeline {
 	static int sBiasAltPercentage = 5;
 	static int sBiasCovPercentage = 5;
 	
-	// STATS FOR CLASSIFIER
-//	long classifyCount = 0;
-//	long classifyGermlineCount = 0;
-//	long classifySomaticCount = 0;
-//	long classifyGermlineLowCoverage = 0;
-//	long classifySomaticLowCoverage = 0;
-//	long classifyNoClassificationCount = 0;
-//	long classifyNoMutationCount = 0;
 	
 	long pValueCount = 0;
 
@@ -152,6 +144,8 @@ public abstract class Pipeline {
 	FastaSequenceFile sequenceFile;
 	byte[] referenceBases;
 	int referenceBasesLength;
+	int previousContigReferenceBasesLength;
+	int arrayBuffer = 1000;
 	
 	long noOfRecordsFailingFilter = 1000000;
 	String currentChr = "chr1";
@@ -448,7 +442,7 @@ public abstract class Pipeline {
 	}
 	
 	List<SAMFileHeader> getBamFileHeaders(String ... bams) {
-		final List<SAMFileHeader> headers = new ArrayList<SAMFileHeader>();
+		final List<SAMFileHeader> headers = new ArrayList<>(bams.length +1);
 		for (final String bam : bams) {
 			final SAMFileHeader header = SAMFileReaderFactory.createSAMFileReader(new File(bam)).getFileHeader();
 			headers.add(header);
@@ -619,6 +613,10 @@ public abstract class Pipeline {
 		}
 		referenceBases = null;
 		currentChr = null;
+		previousContigReferenceBasesLength = referenceBasesLength;
+		if (previousContigReferenceBasesLength == 0) {
+			previousContigReferenceBasesLength = Integer.MAX_VALUE;
+		}
 		referenceBasesLength = 0;
 		final ReferenceSequence refSeq = sequenceFile.nextSequence();
 		
@@ -652,15 +650,14 @@ public abstract class Pipeline {
 		final int noOfThreads = singleSampleMode ? 3 : 5;		// 2 for each bam, and a single cleaner
 		final int consumerLatchSize = singleSampleMode ? 1 : 2;		// 2 for each bam, and a single cleaner
 		
-		
 		final AtomicInteger controlMinStart = new AtomicInteger();
 		final AtomicInteger testMinStart = new AtomicInteger();
-		final Queue<SAMRecordFilterWrapper> normalSAMQueue = new ConcurrentLinkedQueue<SAMRecordFilterWrapper>();
-		final Queue<SAMRecordFilterWrapper> tumourSAMQueue = new ConcurrentLinkedQueue<SAMRecordFilterWrapper>();
+		final Queue<SAMRecordFilterWrapper> normalSAMQueue = new ConcurrentLinkedQueue<>();
+		final Queue<SAMRecordFilterWrapper> tumourSAMQueue = new ConcurrentLinkedQueue<>();
 		
 		// used by Cleaner3 threads
-		Accumulator [] cnormalAccs = new Accumulator[1024 * 1024 * 256];
-		Accumulator [] ctumourAccs = new Accumulator[1024 * 1024 * 256];
+		Accumulator [] controlAccs = new Accumulator[1024 * 1024 * 256];
+		Accumulator [] testAccs = new Accumulator[1024 * 1024 * 256];
 		
 		final CyclicBarrier barrier = new CyclicBarrier(noOfThreads, new Runnable() {
 			@Override
@@ -671,6 +668,7 @@ public abstract class Pipeline {
 				
 				// update the reference bases array
 				loadNextReferenceSequence();
+				
 				logger.info("barrier has been reached by all threads - moving onto next chromosome");
 			}
 		});
@@ -688,19 +686,19 @@ public abstract class Pipeline {
 		
 		// Control threads (if not single sample)
 		if ( ! singleSampleMode) {
-			service.execute(new Producer(controlBams, controlProducerLatch, true, normalSAMQueue, Thread.currentThread(), query, barrier, includeDups));
+			service.execute(new Producer(controlBams, controlProducerLatch, true, normalSAMQueue, Thread.currentThread(), query, barrier, includeDups, controlAccs));
 			service.execute(new Consumer(consumerLatch, controlProducerLatch, testProducerLatch, true, 
-					Thread.currentThread(), barrier, cnormalAccs, normalSAMQueue, controlMinStart));
+					Thread.currentThread(), barrier, controlAccs, normalSAMQueue, controlMinStart));
 		}
 		
 		// test threads
-		service.execute(new Producer(testBams, testProducerLatch, false, tumourSAMQueue, Thread.currentThread(), query, barrier, includeDups));
+		service.execute(new Producer(testBams, testProducerLatch, false, tumourSAMQueue, Thread.currentThread(), query, barrier, includeDups, testAccs));
 		service.execute(new Consumer(consumerLatch, controlProducerLatch, testProducerLatch, false, 
-				Thread.currentThread(), barrier, ctumourAccs, tumourSAMQueue, testMinStart));
+				Thread.currentThread(), barrier, testAccs, tumourSAMQueue, testMinStart));
 		
 		// Cleaner
 		service.execute(new Cleaner(cleanerLatch, consumerLatch, Thread.currentThread(),
-				barrier, controlMinStart, testMinStart, cnormalAccs, ctumourAccs));
+				barrier, controlMinStart, testMinStart, controlAccs, testAccs));
 		
 		service.shutdown();
 		try {
@@ -727,7 +725,7 @@ public abstract class Pipeline {
 	public class Producer implements Runnable {
 		
 		private final MultiSAMFileReader reader;
-		private final MultiSAMFileIterator iter;
+		private MultiSAMFileIterator iter;
 		private final boolean isControl;
 		private final CountDownLatch latch;
 		private final Queue<SAMRecordFilterWrapper> queue;
@@ -740,23 +738,25 @@ public abstract class Pipeline {
 		private final CyclicBarrier barrier;
 		private final boolean includeDups;
 		private final boolean runqBamFilter;
+		private Accumulator [] accum;
 		
 		public Producer(final String[] bamFiles, final CountDownLatch latch, final boolean isNormal, 
 				final Queue<SAMRecordFilterWrapper> samQueue, final Thread mainThread, final String query, 
-				final CyclicBarrier barrier, boolean includeDups) throws Exception {
+				final CyclicBarrier barrier, boolean includeDups, Accumulator [] accum) throws Exception {
 			this.latch = latch;
 			final Set<File> bams = new HashSet<File>();
 			for (final String bamFile : bamFiles) {
 				bams.add(new File(bamFile));
 			}
 			this.reader = new MultiSAMFileReader(bams, true, validation);
-			this.iter = reader.getMultiSAMFileIterator();
+//			this.iter = reader.getMultiSAMFileIterator(currentChr, 0, referenceBasesLength, true);
 			this.isControl = isNormal;
 			this.mainThread = mainThread;
 			this.queue = samQueue;
 			if ( ! StringUtils.isNullOrEmpty(query) && ! "QCMG".equals(query))
 				qbamFilter = new QueryExecutor(query);
 			this.barrier = barrier;
+			this.accum = accum;
 			this.includeDups = includeDups;
 			runqBamFilter = null != qbamFilter;
 		}
@@ -766,68 +766,93 @@ public abstract class Pipeline {
 			logger.info("In Producer run method with isControl: " + isControl);
 			logger.info("Use qbamfilter? " + runqBamFilter);
 			try {
+				boolean keepRunning = true;
 				
-				while (iter.hasNext()) {
-					final SAMRecord record = iter.next();
-					chrCounter++;
-					if (++ counter % 1000000 == 0) {
-						int qSize = queue.size();
-						logger.info("hit " + counter/1000000 + "M sam records, passed filter: " + passedFilterCount + ", qsize: " + qSize);
-						if (passedFilterCount == 0 && counter >= noOfRecordsFailingFilter) {
-							throw new SnpException("INVALID_FILTER", ""+counter);
-						}
-						while (qSize > 10000) {
-							try {
-								Thread.sleep(200);
-							} catch (final InterruptedException e) {
-								logger.warn("InterruptedException caught whilst Producer thread was sleeping");
-								throw e;
-							}
-							qSize = queue.size();
-						}
+				while (keepRunning) {
+					
+					
+					/*
+					 * setup accumulator
+					 */
+					if (previousContigReferenceBasesLength < Integer.MAX_VALUE) {
+						int upperBound = Math.min(previousContigReferenceBasesLength + (2 * arrayBuffer), accum.length - 1);
+						logger.info("about to null array - upper limit: " + upperBound);
+						Arrays.fill(accum, 0, upperBound, null);
+						logger.info("about to null array - DONE");
 					}
 					
-					if (record.getReferenceName().equals(currentChr)) {
-						processRecord(record);
-					} else if (null == currentChr) {
-						// no longer have reference details - exit
-						logger.warn("Exiting Producer despite records remaining in file - null reference chromosome");
-						logger.warn("extra record: " + SAMUtils.getSAMRecordAsSting(record));
-						break;
-					} else {
-						logger.info("Producer: Processed all records in " + currentChr + ", waiting at barrier");
-						try {
-							barrier.await();
-							// don't need to reset barrier, threads waiting at barrier are released when all threads reach barrier... oops
-//							if (isNormal) barrier.reset();		// reset the barrier
-						} catch (final InterruptedException e) {
-							logger.error("Producer: InterruptedException exception caught whilst processing record: " + SAMUtils.getSAMRecordAsSting(record), e);
-							throw e;
-						} catch (final BrokenBarrierException e) {
-							logger.error("Producer: BrokenBarrier exception caught whilst processing record: " + SAMUtils.getSAMRecordAsSting(record), e);
-							throw e;
+					iter = reader.getMultiSAMFileIterator(currentChr, 0, referenceBasesLength, true);
+					logger.info("Producer: about to process records from " + currentChr);
+					
+					
+					while (iter.hasNext()) {
+						final SAMRecord record = iter.next();
+						chrCounter++;
+					
+						if (++ counter % 1000000 == 0) {
+							int qSize = queue.size();
+							logger.info("hit " + counter/1000000 + "M sam records, passed filter: " + passedFilterCount + ", qsize: " + qSize);
+							if (passedFilterCount == 0 && counter >= noOfRecordsFailingFilter) {
+								throw new SnpException("INVALID_FILTER", ""+counter);
+							}
+							while (qSize > 10000) {
+								try {
+									Thread.sleep(200);
+								} catch (final InterruptedException e) {
+									logger.warn("InterruptedException caught whilst Producer thread was sleeping");
+									throw e;
+								}
+								qSize = queue.size();
+							}
 						}
+					
+						processRecord(record);
 						
-						// reset counter
+					}
+					/*
+					 * finished processing records from this chromosome
+					 * log and wait at barrier
+					 */
+					logger.info("Producer: Processed all records in " + currentChr + ", waiting at barrier");
+					try {
+						barrier.await();
+						// don't need to reset barrier, threads waiting at barrier are released when all threads reach barrier... oops
+//							if (isNormal) barrier.reset();		// reset the barrier
+					} catch (final InterruptedException e) {
+						logger.error("Producer: InterruptedException exception caught whilst waiting at barrier: ", e);
+						throw e;
+					} catch (final BrokenBarrierException e) {
+						logger.error("Producer: BrokenBarrier exception caught whilst waiting at barrier: ", e);
+						throw e;
+					}
+					
+					if (null == currentChr) {
+						// no longer have reference details - exit
+						logger.warn("Exiting Producer - null reference chromosome");
+						keepRunning = false;
+					} else {
+						/*
+						 * reset counter and move onto to new contig
+						 */
 						chrCounter = 1;
-						
+//						iter = reader.getMultiSAMFileIterator(currentChr, 0, 1, true);
 						// wait until queues are empty
 						int qSize = queue.size();
 						if (qSize > 0)
 							logger.info("Waiting for empty queue before continuing with next chr. qsize: " + qSize);
 						while (qSize > 0) {
 							try {
-								Thread.sleep(100);
+								Thread.sleep(10);
 							} catch (final InterruptedException e) {
 								e.printStackTrace();
 								throw e;
 							}
 							qSize = queue.size();
 						}
-						// deal with this record
-						processRecord(record);
 					}
 				}
+				
+				
 			} catch (final Exception e) {
 				e.printStackTrace();
 				mainThread.interrupt();
@@ -1100,19 +1125,37 @@ public abstract class Pipeline {
 			if (minStartPos <= 0) return;
 				
 			for (int i = previousPosition ; i < minStartPos ; i++) {
-				final Accumulator controlAcc = controlAccums[i];
-				final Accumulator testAcc = testAccums[i];
-				if (null != testAcc && null != controlAcc) {
-					processControlAndTest(controlAcc, testAcc);
-					controlAccums[i] = null;
-					testAccums[i] = null;
-				} else if (null != controlAcc){
-					processControl(controlAcc);
-					controlAccums[i] = null;
-				} else if (null != testAcc){
-					processTest(testAcc);
+				
+				if (null != controlAccums[i] ) {
+					
+					if (null != testAccums[i]) {
+						processControlAndTest(controlAccums[i], testAccums[i]);
+						controlAccums[i] = null;
+						testAccums[i] = null;
+					} else {
+						processControl(controlAccums[i]);
+						controlAccums[i] = null;
+					}
+					
+				} else if (null != testAccums[i]) {
+					processTest(testAccums[i]);
 					testAccums[i] = null;
 				}
+				
+				
+//				final Accumulator controlAcc = controlAccums[i];
+//				final Accumulator testAcc = testAccums[i];
+//				if (null != testAcc && null != controlAcc) {
+//					processControlAndTest(controlAcc, testAcc);
+//					controlAccums[i] = null;
+//					testAccums[i] = null;
+//				} else if (null != controlAcc){
+//					processControl(controlAcc);
+//					controlAccums[i] = null;
+//				} else if (null != testAcc){
+//					processTest(testAcc);
+//					testAccums[i] = null;
+//				}
 			}
 				
 			previousPosition = minStartPos;
@@ -1125,34 +1168,51 @@ public abstract class Pipeline {
 				 * Don't need to look past the end of the contig
 				 */
 				int minStartPos = 0;
-				int limit = testAccums.length;
+				int limit = referenceBasesLength + arrayBuffer;
+//				int limit = testAccums.length;
+				logger.info("minStartPos: " + minStartPos + ", limit: " + limit);
 				if ( ! singleSampleMode) {
 					
-					for (int i = minStartPos, len = limit ; i < len ; i++) {
-						Accumulator controlAcc = controlAccums[i];
-						Accumulator testAcc = testAccums[i];
-						if (null != controlAcc && null != testAcc) {
-							processControlAndTest(controlAcc, testAcc);
-							controlAccums[i] = null;
-							testAccums[i] = null;
-						} else if (null != testAcc) {
-							processTest(testAcc);
-							testAccums[i] = null;
-						} else if (null != controlAcc) {
-							processControl(controlAcc);
-							controlAccums[i] = null;
+					for (int i = minStartPos ; i < limit ; i++) {
+						
+						if (null != controlAccums[i] ) {
+							
+							if (null != testAccums[i]) {
+								processControlAndTest(controlAccums[i], testAccums[i]);
+							} else {
+								processControl(controlAccums[i]);
+							}
+							
+						} else if (null != testAccums[i]) {
+							processTest(testAccums[i]);
 						}
+						
+//						Accumulator controlAcc = controlAccums[i];
+//						Accumulator testAcc = testAccums[i];
+//						if (null == controlAccums[i] && null == testAccums[i]) {
+//						} else if (null != controlAccums[i] && null != testAccums[i]) {
+//							processControlAndTest(controlAccums[i], testAccums[i]);
+////							controlAccums[i] = null;
+////							testAccums[i] = null;
+//						} else if (null != testAccums[i]) {
+//							processTest(testAccums[i]);
+////							testAccums[i] = null;
+//						} else if (null != controlAccums[i]) {
+//							processControl(controlAccums[i]);
+////							controlAccums[i] = null;
+//						}
 					}
 				} else {
 					
-					for (int i = minStartPos, len = limit ; i < len ; i++) {
-						Accumulator testAcc = testAccums[i];
-						if (null != testAcc) {
-							processTest(testAcc);
-							testAccums[i] = null;
+					for (int i = minStartPos ; i < limit ; i++) {
+//						Accumulator testAcc = testAccums[i];
+						if (null != testAccums[i]) {
+							processTest(testAccums[i]);
+//							testAccums[i] = null;
 						}
 					}
 				}
+				logger.info("leaving processMapsAll");
 			}
 		}
 		
@@ -1183,7 +1243,7 @@ public abstract class Pipeline {
 							previousPosition = 0;
 							barrier.await();
 							logger.info("Cleaner: no of keepers so far: " + snps.size());
-							Thread.sleep(100);	// sleep to allow initial map population
+							Thread.sleep(10);	// sleep to allow initial map population
 						} catch (final InterruptedException e) {
 							logger.error("InterruptedException caught in Cleaner thread: ", e);
 							throw e;
