@@ -81,13 +81,13 @@ public class PileupElementLiteUtilTest {
 		assertEquals(false, PileupElementLiteUtil.areBothStrandsRepresented(pel,100));
 		
 		// add some data to pel
-		pel.addForwardQuality((byte) 64, 100, 1);
+		pel.addForwardQuality((byte) 64, 100, 1, false);
 		assertEquals(false, PileupElementLiteUtil.areBothStrandsRepresented(pel,0));
 		assertEquals(false, PileupElementLiteUtil.areBothStrandsRepresented(pel,10));
 		assertEquals(false, PileupElementLiteUtil.areBothStrandsRepresented(pel,100));
 		
 		// now add in some reverse strand data
-		pel.addReverseQuality((byte) 64, 100, 1);
+		pel.addReverseQuality((byte) 64, 100, 1, false);
 		assertEquals(true, PileupElementLiteUtil.areBothStrandsRepresented(pel,0));
 		assertEquals(true, PileupElementLiteUtil.areBothStrandsRepresented(pel,49));
 		assertEquals(true, PileupElementLiteUtil.areBothStrandsRepresented(pel,50));
@@ -112,13 +112,13 @@ public class PileupElementLiteUtilTest {
 		assertEquals(false, PileupElementLiteUtil.areBothStrandsRepresented(pel,100));
 		
 		// add some data to pel
-		pel.addForwardQuality((byte) 64, 100, 1);
+		pel.addForwardQuality((byte) 64, 100, 1, false);
 		assertEquals(false, PileupElementLiteUtil.areBothStrandsRepresented(pel,0));
 		assertEquals(false, PileupElementLiteUtil.areBothStrandsRepresented(pel,10));
 		assertEquals(false, PileupElementLiteUtil.areBothStrandsRepresented(pel,100));
 		
 		// now add in some reverse strand data
-		pel.addReverseQuality((byte) 64, 100, 1);
+		pel.addReverseQuality((byte) 64, 100, 1, false);
 		assertEquals(true, PileupElementLiteUtil.areBothStrandsRepresented(pel,0));
 		assertEquals(true, PileupElementLiteUtil.areBothStrandsRepresented(pel,49));
 		assertEquals(true, PileupElementLiteUtil.areBothStrandsRepresented(pel,50));

@@ -3,8 +3,11 @@ package org.qcmg.common.util;
 import gnu.trove.map.TIntIntMap;
 import gnu.trove.map.hash.TIntIntHashMap;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.qcmg.common.model.Accumulator;
@@ -19,6 +22,42 @@ public class AccumulatorUtils {
 		}
 		
 		return false;
+	}
+	
+	public static void removeOverlappingReads(Accumulator acc) {
+		if (null != acc) {
+			List<PileupElementLite> pels = acc.getPELs();
+			Map<String, List<String>> readNameMap = new HashMap<>(acc.getCoverage() * 2);
+			
+			for (PileupElementLite pel : pels) {
+				List<String> pelReadNames = pel.getReadNames();
+				int i = 0;
+				
+				for (String readName : pelReadNames) { 
+					readNameMap.computeIfAbsent(readName, f -> new ArrayList<>()).add("" + acc.getCharFromPel(pel) + (""+i));
+				}
+				i++;
+			}
+			
+			for (Entry<String, List<String>> entry : readNameMap.entrySet()) {
+				if (entry.getValue().size() > 1) {
+					/*
+					 * if both entries start with the same char, remove one of them from the relevent PEL
+					 * otherwise, remove them both
+					 */
+					if (entry.getValue().get(0).charAt(0) == entry.getValue().get(1).charAt(0)) {
+						/*
+						 * remove second entry - less shuffling in the list???
+						 */
+						int positionToRemove = Integer.parseInt(entry.getValue().get(1).substring(1));
+						PileupElementLite pel = acc.getPelForBase(entry.getValue().get(1).charAt(0));
+					} else {
+						
+					}
+				}
+			}
+			
+		}
 	}
 	
 	/**
@@ -158,10 +197,10 @@ public class AccumulatorUtils {
 				float rsQual = Float.parseFloat(a.substring(openBracketIndexRS + 1, closeBracketIndexRS));
 				
 				for (int i = 0 ; i < fsCount ; i++) {
-					acc.addBase((byte)base, (byte)fsQual, true, position - 10, position, position + 10, i);
+					acc.addBase((byte)base, (byte)fsQual, true, position - 10, position, position + 10, i, ""+i);
 				}
 				for (int i = 0 ; i < rsCount ; i++) {
-					acc.addBase((byte)base, (byte)rsQual, false, position - 10, position, position + 10, i);
+					acc.addBase((byte)base, (byte)rsQual, false, position - 10, position, position + 10, i, ""+i);
 				}
 			}
 			return acc;

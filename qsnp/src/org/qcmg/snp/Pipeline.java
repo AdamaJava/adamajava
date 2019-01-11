@@ -15,8 +15,14 @@ import htsjdk.samtools.CigarElement;
 import htsjdk.samtools.CigarOperator;
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SAMRecordIterator;
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.SAMSequenceRecord;
+import htsjdk.samtools.SamFiles;
+import htsjdk.samtools.SamReader;
+import htsjdk.samtools.SamReaderFactory;
+import htsjdk.samtools.SamReaderFactory.Option;
+import htsjdk.samtools.ValidationStringency;
 import htsjdk.samtools.reference.FastaSequenceFile;
 import htsjdk.samtools.reference.ReferenceSequence;
 
@@ -97,6 +103,11 @@ public abstract class Pipeline {
 	
 	static final String ILLUMINA_MOTIF = "GGT";
 	
+	/**
+	 * used to buffer the accumulation arrays in case reads go over ends of contigs 
+	 */
+	final static int ARRAY_BUFFER = 1000;
+	
 	private int novelStartsFilterValue = 4;
 	private int mutantReadsFilterValue = 5;
 	int minBaseQual = 10;
@@ -116,7 +127,7 @@ public abstract class Pipeline {
 	
 	final List<VcfRecord> snps = new ArrayList<>(6 * 1024 * 1024);
 	
-	final List<VcfRecord> compoundSnps = new ArrayList<>();
+	final List<VcfRecord> compoundSnps = new ArrayList<>(32 * 1024);
 	
 	// just used to store adjacent accumulators used by compound snp process
 	final ConcurrentMap<VcfRecord, Pair<Accumulator, Accumulator>> adjacentAccumulators = new ConcurrentHashMap<>(2 * 1024 * 1024); 
@@ -145,7 +156,6 @@ public abstract class Pipeline {
 	byte[] referenceBases;
 	int referenceBasesLength;
 	int previousContigReferenceBasesLength;
-	int arrayBuffer = 1000;
 	
 	long noOfRecordsFailingFilter = 1000000;
 	String currentChr = "chr1";
@@ -168,6 +178,9 @@ public abstract class Pipeline {
 	//////////////////
 	protected String [] controlBams;
 	protected String [] testBams;
+	
+	protected SamReader controlSamReader;
+	protected SamReader testSamReader;
 	
 	protected  QLogger logger;
 	protected QExec qexec;
@@ -678,20 +691,25 @@ public abstract class Pipeline {
 		final CountDownLatch testProducerLatch = new CountDownLatch(1);
 		final CountDownLatch cleanerLatch = new CountDownLatch(1);
 		
+		
 		/*
 		 * setup exception handler for threads, exit with code 1 if uncaught exception is encountered by worker threads
 		 */
 		Thread.setDefaultUncaughtExceptionHandler((t, e) -> {logger.error("( in uncaughtExceptionHandler) )exception " + e + ", from thread: " + t, e); System.exit(1);});
-		
+		final SamReaderFactory factory = SamReaderFactory.makeDefault()
+			       .enable(Option.INCLUDE_SOURCE_IN_RECORDS, Option.VALIDATE_CRC_CHECKSUMS)
+			       .validationStringency(ValidationStringency.SILENT);
 		
 		// Control threads (if not single sample)
 		if ( ! singleSampleMode) {
+			controlSamReader = factory.open(new File(controlBams[0]));
 			service.execute(new Producer(controlBams, controlProducerLatch, true, normalSAMQueue, Thread.currentThread(), query, barrier, includeDups, controlAccs));
 			service.execute(new Consumer(consumerLatch, controlProducerLatch, testProducerLatch, true, 
 					Thread.currentThread(), barrier, controlAccs, normalSAMQueue, controlMinStart));
 		}
 		
 		// test threads
+		testSamReader = factory.open(new File(testBams[0]));
 		service.execute(new Producer(testBams, testProducerLatch, false, tumourSAMQueue, Thread.currentThread(), query, barrier, includeDups, testAccs));
 		service.execute(new Consumer(consumerLatch, controlProducerLatch, testProducerLatch, false, 
 				Thread.currentThread(), barrier, testAccs, tumourSAMQueue, testMinStart));
@@ -775,7 +793,7 @@ public abstract class Pipeline {
 					 * setup accumulator
 					 */
 					if (previousContigReferenceBasesLength < Integer.MAX_VALUE) {
-						int upperBound = Math.min(previousContigReferenceBasesLength + (2 * arrayBuffer), accum.length - 1);
+						int upperBound = Math.min(previousContigReferenceBasesLength + (2 * ARRAY_BUFFER), accum.length - 1);
 						logger.info("about to null array - upper limit: " + upperBound);
 						Arrays.fill(accum, 0, upperBound, null);
 						logger.info("about to null array - DONE");
@@ -942,6 +960,7 @@ public abstract class Pipeline {
 			final byte[] bases = sam.getReadBases();
 			final byte[] qualities = record.getPassesFilter() ? sam.getBaseQualities() : null;
 			final Cigar cigar = sam.getCigar();
+			String readName = sam.getReadName();
 			
 			int referenceOffset = 0, offset = 0;
 			
@@ -953,7 +972,7 @@ public abstract class Pipeline {
 					// we have a number (length) of bases that can be advanced.
 					updateMapWithAccums(startPosition, bases,
 							qualities, forwardStrand, offset, length, referenceOffset, 
-							record.getPassesFilter(), endPosition, (int) record.getPosition());
+							record.getPassesFilter(), endPosition, (int) record.getPosition(), readName);
 					// advance offsets
 					referenceOffset += length;
 					offset += length;
@@ -980,7 +999,7 @@ public abstract class Pipeline {
 		 * @param readStartPosition start position of the read - depends on strand as to whether this is the alignemtnEnd or alignmentStart
 		 */
 		public void updateMapWithAccums(int startPosition, final byte[] bases, final byte[] qualities,
-				boolean forwardStrand, int offset, int length, int referenceOffset, final boolean passesFilter, final int readEndPosition, int readId) {
+				boolean forwardStrand, int offset, int length, int referenceOffset, final boolean passesFilter, final int readEndPosition, int readId, String readName) {
 			
 			final int startPosAndRefOffset = startPosition + referenceOffset;
 			
@@ -992,7 +1011,7 @@ public abstract class Pipeline {
 				}
 				if (passesFilter && qualities[i + offset] >= minBaseQual) {
 					acc.addBase(bases[i + offset], qualities[i + offset], forwardStrand, 
-							startPosition, i + startPosAndRefOffset, readEndPosition, readId);
+							startPosition, i + startPosAndRefOffset, readEndPosition, readId, readName);
 				} else {
 //					if ((i + startPosAndRefOffset) == 4511341) {
 //						System.out.println("failed filter: " + readId + " at position 4511341");
@@ -1100,7 +1119,7 @@ public abstract class Pipeline {
 		private final  Accumulator[] controlAccums;
 		private final  Accumulator[] testAccums;
 		private long processMapsCounter = 0;
-		private final int buffer = 1024;
+		private final int buffer = 512;
 		private final boolean debugLoggingEnabled;
 		
 		public Cleaner(CountDownLatch cleanerLatch, CountDownLatch consumerLatch, Thread mainThread, CyclicBarrier barrier,
@@ -1141,21 +1160,6 @@ public abstract class Pipeline {
 					processTest(testAccums[i]);
 					testAccums[i] = null;
 				}
-				
-				
-//				final Accumulator controlAcc = controlAccums[i];
-//				final Accumulator testAcc = testAccums[i];
-//				if (null != testAcc && null != controlAcc) {
-//					processControlAndTest(controlAcc, testAcc);
-//					controlAccums[i] = null;
-//					testAccums[i] = null;
-//				} else if (null != controlAcc){
-//					processControl(controlAcc);
-//					controlAccums[i] = null;
-//				} else if (null != testAcc){
-//					processTest(testAcc);
-//					testAccums[i] = null;
-//				}
 			}
 				
 			previousPosition = minStartPos;
@@ -1168,7 +1172,7 @@ public abstract class Pipeline {
 				 * Don't need to look past the end of the contig
 				 */
 				int minStartPos = 0;
-				int limit = referenceBasesLength + arrayBuffer;
+				int limit = referenceBasesLength + ARRAY_BUFFER;
 //				int limit = testAccums.length;
 				logger.info("minStartPos: " + minStartPos + ", limit: " + limit);
 				if ( ! singleSampleMode) {
@@ -1186,29 +1190,12 @@ public abstract class Pipeline {
 						} else if (null != testAccums[i]) {
 							processTest(testAccums[i]);
 						}
-						
-//						Accumulator controlAcc = controlAccums[i];
-//						Accumulator testAcc = testAccums[i];
-//						if (null == controlAccums[i] && null == testAccums[i]) {
-//						} else if (null != controlAccums[i] && null != testAccums[i]) {
-//							processControlAndTest(controlAccums[i], testAccums[i]);
-////							controlAccums[i] = null;
-////							testAccums[i] = null;
-//						} else if (null != testAccums[i]) {
-//							processTest(testAccums[i]);
-////							testAccums[i] = null;
-//						} else if (null != controlAccums[i]) {
-//							processControl(controlAccums[i]);
-////							controlAccums[i] = null;
-//						}
 					}
 				} else {
 					
 					for (int i = minStartPos ; i < limit ; i++) {
-//						Accumulator testAcc = testAccums[i];
 						if (null != testAccums[i]) {
 							processTest(testAccums[i]);
-//							testAccums[i] = null;
 						}
 					}
 				}
@@ -1256,18 +1243,18 @@ public abstract class Pipeline {
 						logger.info("Cleaner: consumer latch == 0 - running processMapsAll");
 						processMapsAll();
 						break;
-					} else {
+//					} else {
 						
 						/*
 						 * rather than sleeping, how about some compound snp work instead???
 						 */
 //						compoundSnps(false);
-						try {
-							Thread.sleep(5);	
-						} catch (final InterruptedException e) {
-							logger.error("InterruptedException caught in Cleaner sleep",e);
-							throw e;
-						}
+//						try {
+//							Thread.sleep(5);	
+//						} catch (final InterruptedException e) {
+//							logger.error("InterruptedException caught in Cleaner sleep",e);
+//							throw e;
+//						}
 					}
 				}
 			} catch (final Exception e) {
@@ -1282,25 +1269,25 @@ public abstract class Pipeline {
 	
 	private void processTest(Accumulator testAcc) {
 		if (testAcc.containsMultipleAlleles() || 
-				(testAcc.getPosition() -1 < referenceBasesLength 
-						&& ! baseEqualsReference(testAcc.getBase(),testAcc.getPosition() -1))) {
+				(testAcc.getPosition() - 1 < referenceBasesLength 
+						&& ! baseEqualsReference(testAcc.getBase(),testAcc.getPosition() - 1))) {
 			interrogateAccumulations(null, testAcc);
 		}
 	}
 	private void processControl(Accumulator controlAcc) {
 		if (controlAcc.containsMultipleAlleles() || 
-				(controlAcc.getPosition() -1 < referenceBasesLength
-						&& ! baseEqualsReference(controlAcc.getBase(), controlAcc.getPosition() -1))) {
+				(controlAcc.getPosition() - 1 < referenceBasesLength
+						&& ! baseEqualsReference(controlAcc.getBase(), controlAcc.getPosition() - 1))) {
 			interrogateAccumulations(controlAcc, null);
 		}
 	}
 	private void processControlAndTest(Accumulator controlAcc, Accumulator testAcc) {
 		if (controlAcc.containsMultipleAlleles() || testAcc.containsMultipleAlleles() 
 				|| (controlAcc.getBase() != testAcc.getBase())
-				|| (testAcc.getPosition() -1 < referenceBasesLength 
-						&& ! baseEqualsReference(testAcc.getBase(), testAcc.getPosition() -1))
-				|| (controlAcc.getPosition() -1 < referenceBasesLength
-						&& ! baseEqualsReference(controlAcc.getBase(), controlAcc.getPosition() -1))) {
+				|| (testAcc.getPosition() - 1 < referenceBasesLength 
+						&& ! baseEqualsReference(testAcc.getBase(), testAcc.getPosition() - 1))
+				|| (controlAcc.getPosition() - 1 < referenceBasesLength
+						&& ! baseEqualsReference(controlAcc.getBase(), controlAcc.getPosition() - 1))) {
 			interrogateAccumulations(controlAcc, testAcc);
 		}
 	}
@@ -1399,6 +1386,16 @@ public abstract class Pipeline {
 				
 				v.setFormatFields(ff);
 				
+				
+				
+				
+				/*
+				 * OVERLAP
+				 * check to see if any of the reads that made up this snp contained reads that overlapped each other.
+				 * If they do, then the counts need to be updated to reflect this.
+				 */
+//				checkForOverlaps(v);
+				
 				snps.add(v);
 				
 				
@@ -1417,6 +1414,69 @@ public abstract class Pipeline {
 	void compoundSnps() {
 		compoundSnps(true);
 	}
+	
+	
+	
+	
+	void checkForOverlaps(VcfRecord rec) {
+		
+		/*
+		 * get overlapping reads from both bam files for this position.
+		 */
+		Map<String, String[]> ffMap = rec.getFormatFieldsAsMap();
+		String [] gtArray = ffMap.get(VcfHeaderUtils.FORMAT_GENOTYPE);
+		
+		/*
+		 * control first
+		 */
+		if (null != gtArray && gtArray.length > 1) {
+			
+			if ( ! StringUtils.isNullOrEmptyOrMissingData(gtArray[0]) && ! "./.".equals(gtArray[0])) {
+				/*
+				 * just get data from first control bam - need to update MultiSAMFileITerator....
+				 */
+				List<SAMRecord> recs = getRecordsAtPosition(controlSamReader, rec.getChromosome(), rec.getPosition());
+				int uniqueCount = containsOverlaps(recs);
+//				logger.info("uniqueCount: " + uniqueCount + ", size: " + recs.size());
+				if (uniqueCount != recs.size()) {
+					logger.info("controlBam contains overlaps for rec, unique count: " + uniqueCount + ", recs size: " + recs.size() + ", vcf:" + rec.toSimpleString());
+				}
+			}
+			if ( ! StringUtils.isNullOrEmptyOrMissingData(gtArray[1]) && ! "./.".equals(gtArray[1])) {
+				/*
+				 * just get data from first control bam - need to update MultiSAMFileITerator....
+				 */
+				List<SAMRecord> recs = getRecordsAtPosition(testSamReader, rec.getChromosome(), rec.getPosition());
+				int uniqueCount = containsOverlaps(recs);
+//				logger.info("uniqueCount: " + uniqueCount + ", size: " + recs.size());
+				if (uniqueCount != recs.size()) {
+					logger.info("testBam contains overlaps for rec, unique count: " + uniqueCount + ", recs size: " + recs.size() + ", vcf:" + rec.toSimpleString());
+				}
+			}
+		}
+	}
+	
+	public static int containsOverlaps(List<SAMRecord> records) {
+		return (int) records.stream().map(SAMRecord::getReadName).distinct().count();
+//		return uniqueCount == records.size();
+	}
+	
+	
+	public static List<SAMRecord> getRecordsAtPosition(SamReader reader, String contig, int position) {
+//		System.out.println("about to query " + contig + " at " + position + ", with reader: " + reader.getResourceDescription());
+		SAMRecordIterator iter = reader.query(contig, position, position, false);
+		List<SAMRecord> recs = new ArrayList<>();
+		while (iter.hasNext()) {
+			SAMRecord r = iter.next();
+			if (SAMUtils.isSAMRecordValidForVariantCalling(r)) {
+				recs.add(r);
+			}
+		}
+		iter.close();
+		return recs;
+	}
+	
+	
 	
 	/**
 	 * If complete is set to true, then we can assume that there are no more snps to be added to the <code>snps</code> collection, and so we can traverse the whole collection.<br>
@@ -1496,31 +1556,31 @@ public abstract class Pipeline {
 		logger.info("Created " + compoundSnps.size() + " compound snps so far");
 	}
 	
-	void accumulateReadBases(Accumulator acc, Map<Long, StringBuilder> readSeqMap, int position) {
-		final TIntCharMap map = acc.getReadIdBaseMap();
-		// get existing seq for each id
-		int[] keys = map.keys();
-		
-		for (int l : keys) {
-			char c = map.get(l);
-			Long longObject = Long.valueOf(l);
-			StringBuilder seq = readSeqMap.get(longObject);
-			if (null == seq) {
-				// initialise based on how far away we are from the start
-				seq = new StringBuilder();
-				for (int q = (position) ; q > 0 ; q--) {
-					seq.append("_");
-				}
-				readSeqMap.put(longObject, seq);
-			}
-			seq.append(c);
-		}
-		// need to check that all elements have enough data in them
-		for (final StringBuilder sb : readSeqMap.values()) {
-			if (sb.length() <= position) {
-				sb.append("_");
-			}
-		}
-	}
+//	void accumulateReadBases(Accumulator acc, Map<Long, StringBuilder> readSeqMap, int position) {
+//		final TIntCharMap map = acc.getReadIdBaseMap();
+//		// get existing seq for each id
+//		int[] keys = map.keys();
+//		
+//		for (int l : keys) {
+//			char c = map.get(l);
+//			Long longObject = Long.valueOf(l);
+//			StringBuilder seq = readSeqMap.get(longObject);
+//			if (null == seq) {
+//				// initialise based on how far away we are from the start
+//				seq = new StringBuilder();
+//				for (int q = (position) ; q > 0 ; q--) {
+//					seq.append("_");
+//				}
+//				readSeqMap.put(longObject, seq);
+//			}
+//			seq.append(c);
+//		}
+//		// need to check that all elements have enough data in them
+//		for (final StringBuilder sb : readSeqMap.values()) {
+//			if (sb.length() <= position) {
+//				sb.append("_");
+//			}
+//		}
+//	}
 	
 }

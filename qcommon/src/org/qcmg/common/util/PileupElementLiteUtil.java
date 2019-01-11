@@ -48,6 +48,21 @@ public class PileupElementLiteUtil {
 		}
 		return l;
 	}
+	public static TIntList getDetailsFromCombinedList(TIntList combinedList, int divider, int remainder, boolean forwardStrand) {
+		if (null == combinedList || combinedList.isEmpty()) {
+			return new TIntArrayList(0);
+		}
+		/*
+		 * read ids are the even numbered elements in this list (0 based)
+		 */
+		TIntList l = new TIntArrayList();
+		for (int i = 0, len = combinedList.size() ; i < len ; i++) {
+			if (i % divider == remainder) {
+				l.add(combinedList.get(i));
+			}
+		}
+		return l;
+	}
 	
 	public static TIntIntMap getDetailsFromCombinedListInMap(TIntList combinedList, int divider, int keyRemainder, int valueRemainder) {
 		if (null == combinedList || combinedList.isEmpty()) {
@@ -227,43 +242,43 @@ public class PileupElementLiteUtil {
 		return sb.toString();
 	}
 	
-	public static String getBaseAndReadIds(final PileupElementLite pel, final String base) {
-		
-		final StringBuilder sb = new StringBuilder(base);
-		sb.append(Constants.COLON);
-		
-		TIntList forwardReadIds = null;
-		TIntList reverseReadIds = null;
-		
-		TIntList ids = pel.getForwardReadIds();
-		if (null != ids) {
-			forwardReadIds = new TIntArrayList(ids);
-		}
-		ids = pel.getReverseReadIds();
-		if (null != ids) {
-			reverseReadIds =new TIntArrayList(ids);
-		}
-		
-		if (null != forwardReadIds) {
-			forwardReadIds.forEach(new TIntProcedure() {
-				@Override
-				public boolean execute(int s) {
-					sb.append(s).append(Constants.COMMA);
-					return true;
-				}});
-		}
-		
-		sb.append('-');
-		
-		if (null != reverseReadIds) {
-			reverseReadIds.forEach(new TIntProcedure() {
-				@Override
-				public boolean execute(int s) {
-					sb.append(s).append(Constants.COMMA);
-					return true;
-				}});
-		}
-		
-		return sb.toString();
-	}
+//	public static String getBaseAndReadIds(final PileupElementLite pel, final String base) {
+//		
+//		final StringBuilder sb = new StringBuilder(base);
+//		sb.append(Constants.COLON);
+//		
+//		TIntList forwardReadIds = null;
+//		TIntList reverseReadIds = null;
+//		
+//		TIntList ids = pel.getForwardReadIds();
+//		if (null != ids) {
+//			forwardReadIds = new TIntArrayList(ids);
+//		}
+//		ids = pel.getReverseReadIds();
+//		if (null != ids) {
+//			reverseReadIds =new TIntArrayList(ids);
+//		}
+//		
+//		if (null != forwardReadIds) {
+//			forwardReadIds.forEach(new TIntProcedure() {
+//				@Override
+//				public boolean execute(int s) {
+//					sb.append(s).append(Constants.COMMA);
+//					return true;
+//				}});
+//		}
+//		
+//		sb.append('-');
+//		
+//		if (null != reverseReadIds) {
+//			reverseReadIds.forEach(new TIntProcedure() {
+//				@Override
+//				public boolean execute(int s) {
+//					sb.append(s).append(Constants.COMMA);
+//					return true;
+//				}});
+//		}
+//		
+//		return sb.toString();
+//	}
 }

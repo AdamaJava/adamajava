@@ -164,7 +164,7 @@ public class SAMUtils {
 				int startPosition = sam.getAlignmentStart();
 				int endPosition = sam.getAlignmentEnd();
 				
-				acc.addBase(base, qual, forwardStrand, startPosition, position, endPosition, counter);
+				acc.addBase(base, qual, forwardStrand, startPosition, position, endPosition, counter, sam.getReadName());
 			}
 		}
 		

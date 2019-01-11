@@ -92,7 +92,12 @@ public class Accumulator {
 	}
 	
 	public void addBase(final byte base, final byte qual, final boolean forwardStrand, final int startPosition, final int position, final int endPosition, int readId) {
+		addBase( base,  qual,  forwardStrand,  startPosition,  position,  endPosition,  readId, "" + readId);
+	}
+	
 		
+	public void addBase(final byte base, final byte qual, final boolean forwardStrand, final int startPosition, final int position, final int endPosition, int readId, String readName) {
+			
 		if (this.position != position) throw new IllegalArgumentException("Attempt to add data for wrong position. " +
 				"This position: " + this.position + ", position: " + position);
 		
@@ -105,19 +110,19 @@ public class Accumulator {
 		switch (base) {
 		case A_BYTE: 
 			if (null == A) A = new PileupElementLite();
-			update(A, qual, forwardStrand, startPositionToUse, endOfRead, readId);
+			update(A, qual, forwardStrand, startPositionToUse, endOfRead, readId, readName);
 			break;
 		case C_BYTE: 
 			if (null == C) C = new PileupElementLite();
-			update(C, qual, forwardStrand, startPositionToUse, endOfRead, readId);
+			update(C, qual, forwardStrand, startPositionToUse, endOfRead, readId, readName);
 			break;
 		case G_BYTE: 
 			if (null == G) G = new PileupElementLite();
-			update(G, qual, forwardStrand, startPositionToUse, endOfRead, readId);
+			update(G, qual, forwardStrand, startPositionToUse, endOfRead, readId, readName);
 			break;
 		case T_BYTE: 
 			if (null == T) T = new PileupElementLite();
-			update(T, qual, forwardStrand, startPositionToUse, endOfRead, readId);
+			update(T, qual, forwardStrand, startPositionToUse, endOfRead, readId, readName);
 			break;
 		case 'N':
 			nCount++;
@@ -125,11 +130,11 @@ public class Accumulator {
 		}
 	}
 	
-	private void update(final PileupElementLite peLite, final byte qual, final boolean forwardStrand, final int startPosition, boolean endOfRead, int readId) {
+	private void update(final PileupElementLite peLite, final byte qual, final boolean forwardStrand, final int startPosition, boolean endOfRead, int readId, String readName) {
 		if (forwardStrand)
-			peLite.addForwardQuality(qual, startPosition, readId, endOfRead);
+			peLite.addForwardQuality(qual, startPosition, readId, endOfRead, readName);
 		else
-			peLite.addReverseQuality(qual, startPosition, readId, endOfRead);
+			peLite.addReverseQuality(qual, startPosition, readId, endOfRead, readName);
 	}
 	
 //	public String getPileup() {
@@ -271,9 +276,9 @@ public class Accumulator {
 	 * @return
 	 */
 	public char getBase() {
-		if (containsMultipleAlleles()) 
-			throw new UnsupportedOperationException(
-					"Accumulator.getBase() called when there is more than 1 base at this position");
+//		if (containsMultipleAlleles()) 
+//			throw new UnsupportedOperationException(
+//					"Accumulator.getBase() called when there is more than 1 base at this position");
 		
 		if (null != A) return A_CHAR;
 		if (null != C) return C_CHAR;
@@ -318,7 +323,7 @@ public class Accumulator {
 	}
 	
 	public List<PileupElementLite> getPELs() {
-		List<PileupElementLite> pels = new ArrayList<PileupElementLite>(5);
+		List<PileupElementLite> pels = new ArrayList<>(5);
 		if (null != A) pels.add(A);
 		if (null != C) pels.add(C);
 		if (null != G) pels.add(G);
@@ -388,7 +393,7 @@ public class Accumulator {
 		return pileup.toString();
 	}
 	
-	private char getCharFromPel(PileupElementLite pel) {
+	public char getCharFromPel(PileupElementLite pel) {
 		if (A == pel) return A_CHAR;
 		if (C == pel) return C_CHAR;
 		if (G == pel) return G_CHAR;
@@ -524,24 +529,24 @@ public class Accumulator {
 		return pileup.length() == 0 ? Constants.MISSING_DATA_STRING : pileup.toString();
 	}
 	
-	public String getReadIdsPerAllele() {
-		StringBuilder sb = new StringBuilder();
-		if (null != A) {
-			sb.append(PileupElementLiteUtil.getBaseAndReadIds(A, A_STRING));
-		}
-		if (null != C) {
-			StringUtils.updateStringBuilder(sb, PileupElementLiteUtil.getBaseAndReadIds(C, C_STRING), COMMA);
-		}
-		if (null != G) {
-			StringUtils.updateStringBuilder(sb, PileupElementLiteUtil.getBaseAndReadIds(G, G_STRING), COMMA);
-		}
-		if (null != T) {
-			StringUtils.updateStringBuilder(sb, PileupElementLiteUtil.getBaseAndReadIds(T, T_STRING), COMMA);
-		}
-		
-		return sb.toString();
-		
-	}
+//	public String getReadIdsPerAllele() {
+//		StringBuilder sb = new StringBuilder();
+//		if (null != A) {
+//			sb.append(PileupElementLiteUtil.getBaseAndReadIds(A, A_STRING));
+//		}
+//		if (null != C) {
+//			StringUtils.updateStringBuilder(sb, PileupElementLiteUtil.getBaseAndReadIds(C, C_STRING), COMMA);
+//		}
+//		if (null != G) {
+//			StringUtils.updateStringBuilder(sb, PileupElementLiteUtil.getBaseAndReadIds(G, G_STRING), COMMA);
+//		}
+//		if (null != T) {
+//			StringUtils.updateStringBuilder(sb, PileupElementLiteUtil.getBaseAndReadIds(T, T_STRING), COMMA);
+//		}
+//		
+//		return sb.toString();
+//		
+//	}
 	
 	private void updateMap(TIntCharMap map, TIntIterator iter, char c) {
 		while(iter.hasNext()) {

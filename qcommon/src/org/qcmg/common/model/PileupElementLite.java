@@ -6,6 +6,9 @@
  */
 package org.qcmg.common.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.qcmg.common.util.PileupElementLiteUtil;
 
 import gnu.trove.list.TIntList;
@@ -22,8 +25,12 @@ import gnu.trove.set.hash.TIntHashSet;
  */
 public class PileupElementLite implements Comparable<PileupElementLite> {
 	
+//	private TIntList readIdStartPositionsQualityList;
 	private TIntList reverseReadIdStartPositionsQualityList;
 	private TIntList forwardReadIdStartPositionsQualityList;
+	
+	List<String> readNamesFS = new ArrayList<>(20);
+	List<String> readNamesRS = new ArrayList<>(20);
 	
 	private short endOfReadCountFS;
 	private short endOfReadCountRS;
@@ -65,19 +72,15 @@ public class PileupElementLite implements Comparable<PileupElementLite> {
 	public boolean isFoundOnBothStrandsMiddleOfRead() {
 		return getForwardCount() - endOfReadCountFS > 0 && getReverseCount() - endOfReadCountRS > 0;
 	}
-	
-	public void addForwardQuality(byte b, int startPosition, int readId) {
-		addForwardQuality(b, startPosition, readId, false);
-	}
-	public void addReverseQuality(byte b, int startPosition, int readId) {
-		addReverseQuality(b, startPosition, readId, false);
-	}
-	
 	public void addForwardQuality(byte b, int startPosition, int readId, boolean endOfRead) {
+		addForwardQuality(b, startPosition, readId, endOfRead, "" + readId);
+	}
+	
+	public void addForwardQuality(byte b, int startPosition, int readId, boolean endOfRead, String readName) {
 		if (null == forwardReadIdStartPositionsQualityList) {
-			forwardReadIdStartPositionsQualityList = new TIntArrayList();
+			forwardReadIdStartPositionsQualityList = new TIntArrayList(20);
 		}
-		
+		readNamesRS.add(readName);
 		forwardReadIdStartPositionsQualityList.add(readId);
 		forwardReadIdStartPositionsQualityList.add(startPosition);
 		forwardReadIdStartPositionsQualityList.add(b);
@@ -85,14 +88,23 @@ public class PileupElementLite implements Comparable<PileupElementLite> {
 	}
 
 	public void addReverseQuality(byte b, int startPosition, int readId, boolean endOfRead) {
+		addReverseQuality(b, startPosition, readId, endOfRead, "" + readId);
+	}
+	public void addReverseQuality(byte b, int startPosition, int readId, boolean endOfRead, String readName) {
 		if (null == reverseReadIdStartPositionsQualityList) {
-			reverseReadIdStartPositionsQualityList = new TIntArrayList();
+			reverseReadIdStartPositionsQualityList = new TIntArrayList(20);
 		}
-		
+		readNamesFS.add(readName);
 		reverseReadIdStartPositionsQualityList.add(readId);
 		reverseReadIdStartPositionsQualityList.add(startPosition);
 		reverseReadIdStartPositionsQualityList.add(b);
 		if (endOfRead) endOfReadCountRS++;
+	}
+	
+	public List<String> getReadNames() {
+		List<String> l = new ArrayList<>(readNamesFS);
+		l.addAll(readNamesRS);
+		return l;
 	}
 	
 	public int getEndOfReadCount() {
