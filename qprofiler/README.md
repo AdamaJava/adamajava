@@ -16,11 +16,11 @@ qprofiler collects summary statistics from a number of NGS related files includi
   ```
   cd adamajava
   ```
-  Run gradle to build qprofiler and its dependant jar files:
+  Run gradle to build qprofiler and its dependent jar files:
   ```
   ./gradlew :qprofiler:build
   ```
-  This creates the qprofiler jar file along with dependant jars in the `qprofiler/build/flat` folder
+  This creates the qprofiler jar file along with dependent jars in the `qprofiler/build/flat` folder
 
 ## Running qprofiler
 
