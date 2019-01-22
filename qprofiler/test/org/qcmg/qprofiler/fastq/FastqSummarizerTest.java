@@ -156,11 +156,6 @@ BCCFDFFFHHHHHJJJJIJJJJJIJIJJJJJJJGHJJJJJJJJJJIJFHIJJJHHHFFDDDDDCDCDDDDDDDDDDDDDD
 		qs.summarize(f);
 		FastqSummaryReport sr = (FastqSummaryReport) qs.summarize(f);
 		assertEquals(1, sr.getRecordsParsed());
-//		try {
-//			Assert.fail("Should have thrown an Exception");
-//		} catch (Exception e) {
-//			Assert.assertTrue(e.getMessage().startsWith("Bad id format"));
-//		}
 	}
 	
 	@Test
