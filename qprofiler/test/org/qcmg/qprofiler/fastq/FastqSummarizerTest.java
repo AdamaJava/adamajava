@@ -70,9 +70,9 @@ BCCFDFFFHHHHHJJJJIJJJJJIJIJJJJJJJGHJJJJJJJJJJIJFHIJJJHHHFFDDDDDCDCDDDDDDDDDDDDDD
 		FastqSummaryReport sr = (FastqSummaryReport) qs.summarize(f.getAbsolutePath(), null, null);
 
 		Assert.assertNotNull(sr);
-		Assert.assertEquals(4, sr.getRecordsParsed());
-		Assert.assertEquals(4, sr.getFastqBaseByCycle().count(1, 'G').get());
-		Assert.assertEquals(2, sr.getFastqBaseByCycle().count(60, 'T').get());
+		assertEquals(4, sr.getRecordsParsed());
+		assertEquals(4, sr.getFastqBaseByCycle().count(1, 'G').get());
+		assertEquals(2, sr.getFastqBaseByCycle().count(60, 'T').get());
 	}
 
 	@Test
@@ -113,7 +113,7 @@ BCCFDFFFHHHHHJJJJIJJJJJIJIJJJJJJJGHJJJJJJJJJJIJFHIJJJHHHFFDDDDDCDCDDDDDDDDDDDDDD
 
 		FastqSummarizer qs = new FastqSummarizer();
 		FastqSummaryReport sr = (FastqSummaryReport) qs.summarize(f);
-		Assert.assertEquals(0, sr.getRecordsParsed());
+		assertEquals(0, sr.getRecordsParsed());
 	}
 
 	@Test
@@ -127,7 +127,7 @@ BCCFDFFFHHHHHJJJJIJJJJJIJIJJJJJJJGHJJJJJJJJJJIJFHIJJJHHHFFDDDDDCDCDDDDDDDDDDDDDD
 			qs.summarize(f);
 			Assert.fail("Should have thrown an Exception");
 		} catch (Exception e) {
-			Assert.assertEquals(true, e.getMessage().startsWith("Sequence header must start with @:"));
+			assertEquals(true, e.getMessage().startsWith("Sequence header must start with @:"));
 		}
 	}
 	
@@ -144,6 +144,18 @@ BCCFDFFFHHHHHJJJJIJJJJJIJIJJJJJJJGHJJJJJJJJJJIJFHIJJJHHHFFDDDDDCDCDDDDDDDDDDDDDD
 		} catch (Exception e) {
 			Assert.assertTrue(e.getMessage().startsWith("Bad id format"));
 		}
+	}
+	
+	@Test
+	public void testSummarizeActualDuffData2() throws Exception {
+		logger.info("in testSummarizeExtraData()");
+		File f = testFolder.newFile("testSummarizeActualDuffData.fasta");
+		createDodgyDataFile(f, createActualDuffFastqData2());
+		
+		FastqSummarizer qs = new FastqSummarizer();
+		qs.summarize(f);
+		FastqSummaryReport sr = (FastqSummaryReport) qs.summarize(f);
+		assertEquals(1, sr.getRecordsParsed());
 	}
 	
 	@Test
@@ -182,7 +194,7 @@ BCCFDFFFHHHHHJJJJIJJJJJIJIJJJJJJJGHJJJJJJJJJJIJFHIJJJHHHFFDDDDDCDCDDDDDDDDDDDDDD
 		
 		FastqSummarizer qs = new FastqSummarizer();
 		FastqSummaryReport sr = (FastqSummaryReport) qs.summarize(f);
-		Assert.assertEquals(5, sr.getRecordsParsed());
+		assertEquals(5, sr.getRecordsParsed());
 	}
 
 	@Ignore
@@ -193,8 +205,8 @@ BCCFDFFFHHHHHJJJJIJJJJJIJIJJJJJJJGHJJJJJJJJJJIJFHIJJJHHHFFDDDDDCDCDDDDDDDDDDDDDD
 
 		FastqSummarizer qs = new FastqSummarizer();
 		FastqSummaryReport sr = (FastqSummaryReport) qs.summarize(f);
-		Assert.assertEquals(5, sr.getRecordsParsed());
-		Assert.assertEquals(5, sr.getRecordsParsed());
+		assertEquals(5, sr.getRecordsParsed());
+		assertEquals(5, sr.getRecordsParsed());
 	}
 
 	private void createDodgyDataFile(File f, List<String> dodgyData) {
@@ -284,6 +296,14 @@ BCCFDFFFHHHHHJJJJIJJJJJIJIJJJJJJJGHJJJJJJJJJJIJFHIJJJHHHFFDDDDDCDCDDDDDDDDDDDDDD
 		data.add(">1766_906_1526_F3");
 		data.add("T20010031232011020123300112100233003121221202002022");
 
+		return data;
+	}
+	private static List<String> createActualDuffFastqData2() {
+		List<String> data = new ArrayList<>();
+		data.add("@FCC24DK:1:1101:13935:1361#CATCATAA_TCTTTCCC/2");
+		data.add("TTATACCATTTTCTTTCTTCTTTTTTTCTCTCTCTTCCATCTCCAGCTGCTTCTCCTTCAATCTTTTTACTATCTTCCTCACCCCCAACTTTTTCATTATTATCTTTACTCCATTTCATTTCTATTCTTTTATCCCAGATACCCCTATTACCTGCTTCCTACATTTAGTTATACGTTTGTAAATTCATTGTTAACCTTACCTACTCTTTATTTTATTTTTGTGTTGCTTTCATTTCCTACACTCACTTTTACTTCAACTATTCTTCTTTTTTCTTCCTTGTTTTTTCCCTCACTTTCTTT");
+		data.add("+");
+		data.add("8,,,,<;,C,,,6<,,<,,6,<,;,8+,;6,;,6;;,;,,6666,,,;,,;;@6@@,,,,,,,,<,,;,;,,6,;,,,55,44,77+,,,:,:9=,,9,9,,959A=,,99,,9A?<,99,9@,,,9,94,,99,9,,,,,929,6+99+4+6,+1+32=++++66+++++++++360+++++624+5++43+*1++4+03:+*3***1**0*0*1;;;*)))5))*31;**303*5***)13)))1580**13;***2)**3****0030))118*****.))0-7**0((-*/.*846");
 		return data;
 	}
 
