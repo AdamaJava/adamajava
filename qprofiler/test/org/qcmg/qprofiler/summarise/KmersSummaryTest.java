@@ -34,7 +34,7 @@ public class KmersSummaryTest {
 	@Test
 	public void bothReversedTest() throws IOException {
 		long start = System.currentTimeMillis();
-		KmersSummary summary = new KmersSummary(KmersSummary.maxKmers);	
+		KmersSummary summary = new KmersSummary(KmersSummary.MAX_KMERS);	
 		System.out.println("time taken to instantiate KmersSummary: " + (System.currentTimeMillis() - start));
 		
 		
@@ -82,8 +82,23 @@ public class KmersSummaryTest {
 	}
 	
 	@Test
+	public void getEntry() {
+		assertEquals(0, KmersSummary.getEntry(new byte[]{}));
+		assertEquals(1, KmersSummary.getEntry(new byte[]{'A'}));
+		assertEquals(9, KmersSummary.getEntry("AA".getBytes()));
+		assertEquals(2, KmersSummary.getEntry("C".getBytes()));
+		assertEquals(18, KmersSummary.getEntry("CC".getBytes()));
+		assertEquals(3, KmersSummary.getEntry("G".getBytes()));
+		assertEquals(27, KmersSummary.getEntry("GG".getBytes()));
+		assertEquals(4, KmersSummary.getEntry("T".getBytes()));
+		assertEquals(36, KmersSummary.getEntry("TT".getBytes()));
+		assertEquals(10, KmersSummary.getEntry("AC".getBytes()));
+		assertEquals(148770, KmersSummary.getEntry("TTCTTC".getBytes()));
+	}
+	
+	@Test
 	public void getPossibleKmerString()  {
-		KmersSummary summary = new KmersSummary(KmersSummary.maxKmers);
+		KmersSummary summary = new KmersSummary(KmersSummary.MAX_KMERS);
 		String [] kmers = summary.getPossibleKmerString(6, true);
 		assertEquals((int)Math.pow(5,6), kmers.length);
 		kmers = summary.getPossibleKmerString(6, false);
@@ -92,14 +107,14 @@ public class KmersSummaryTest {
 	
 	@Test
 	public void toXml() throws ParserConfigurationException {
-		KmersSummary summary = new KmersSummary(KmersSummary.maxKmers);
+		KmersSummary summary = new KmersSummary(KmersSummary.MAX_KMERS);
 //		summary.parseKmers( "AAAAAAAAAAAAAACCCCCCCCCCCCCCCGGGGGGGGGGGGGGGGTTTTTTTTTTTTTTTTTTTTTT".getBytes(), false );
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 		DocumentBuilder builder = factory.newDocumentBuilder();
 		
 		Document doc = builder.getDOMImplementation().createDocument(null, "qProfiler", null);
 		org.w3c.dom.Element root = doc.getDocumentElement();
-		summary.toXml(root, KmersSummary.maxKmers);
+		summary.toXml(root, KmersSummary.MAX_KMERS);
 		assertEquals(true, true);	// we made it!
 	}
 	
