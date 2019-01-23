@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.qcmg.common.util.SummaryByCycleUtils;
+import org.qcmg.qprofiler.util.SummaryByCycleUtils;
 import org.qcmg.qvisualise.util.QProfilerCollectionsUtils;
 
 public class BamISizeTest {

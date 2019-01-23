@@ -1,5 +1,7 @@
 package org.qcmg.common.log;
 
+
+
 import static org.junit.Assert.*;
 
 import java.io.BufferedReader;
@@ -15,12 +17,16 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+
+
+
 public class QLoggerFactoryTest {
 	
 	//private static final String USER_DIR = System.getProperty("user.dir");
 	private static final String FILE_SEPERATOR = System.getProperty("file.separator");
+		
 	
-	@Rule
+	@Rule 
 	public  TemporaryFolder testFolder = new TemporaryFolder();
 	
 	@After

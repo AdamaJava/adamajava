@@ -21,12 +21,12 @@ import htsjdk.samtools.SAMUtils;
 
 import org.qcmg.common.model.ProfileType;
 import org.qcmg.common.model.QCMGAtomicLongArray;
-import org.qcmg.common.model.SummaryByCycleNew2;
 import org.qcmg.common.string.StringUtils;
-import org.qcmg.common.util.SummaryByCycleUtils;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.qprofiler.report.SummaryReport;
 import org.qcmg.qprofiler.summarise.KmersSummary;
+import org.qcmg.qprofiler.summarise.SummaryByCycleNew2;
+import org.qcmg.qprofiler.util.SummaryByCycleUtils;
 import org.qcmg.qprofiler.util.SummaryReportUtils;
 import org.w3c.dom.Element;
 

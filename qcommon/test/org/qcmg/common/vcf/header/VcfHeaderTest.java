@@ -1,23 +1,13 @@
 package org.qcmg.common.vcf.header;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
-import java.util.ArrayList;
+
+import static org.junit.Assert.*;
+
 import java.util.Arrays;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-import org.apache.commons.lang3.tuple.Pair;
-import org.junit.Assert;
 import org.junit.Test;
-import org.qcmg.common.string.StringUtils;
-import org.qcmg.common.util.Constants;
+
 
 public class VcfHeaderTest {
 

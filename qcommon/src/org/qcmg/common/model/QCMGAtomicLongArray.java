@@ -6,7 +6,10 @@
  */
 package org.qcmg.common.model;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicLongArray;
 
 public class QCMGAtomicLongArray {
@@ -83,4 +86,15 @@ public class QCMGAtomicLongArray {
 			while ( ! resizingInProgress.compareAndSet(true, false)) {}
 		}
 	}
+	
+	public Map<Integer, AtomicLong> toMap() {
+		Map<Integer, AtomicLong> map = new HashMap<>();		 
+		for(int i = 0; i < array.length(); i ++)
+			if(array.get(i) > 0)
+				map.put(i, new AtomicLong(array.get(i)));
+		
+		return map;
+	}
+	
+	
 }
