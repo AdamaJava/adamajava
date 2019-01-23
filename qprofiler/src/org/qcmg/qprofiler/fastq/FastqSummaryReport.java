@@ -15,7 +15,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicLongArray;
 
 import htsjdk.samtools.fastq.FastqRecord;
 import htsjdk.samtools.SAMUtils;
@@ -40,7 +39,7 @@ public class FastqSummaryReport extends SummaryReport {
 	private final SummaryByCycleNew2<Character> seqByCycle = new SummaryByCycleNew2<Character>(c, 512);
 	private Map<Integer, AtomicLong> seqLineLengths = null;
 	private final QCMGAtomicLongArray seqBadReadLineLengths = new QCMGAtomicLongArray(128);
-	private final KmersSummary kmersSummary = new KmersSummary( KmersSummary.maxKmers ); //default use biggest mers length
+	private final KmersSummary kmersSummary = new KmersSummary( KmersSummary.MAX_KMERS ); //default use biggest mers length
 	
 	//QUAL
 	private final SummaryByCycleNew2<Integer> qualByCycleInteger = new SummaryByCycleNew2<Integer>(i, 512);
@@ -124,7 +123,7 @@ public class FastqSummaryReport extends SummaryReport {
 			SummaryReportUtils.lengthMapToXmlTallyItem(seqElement, "LengthTally", seqLineLengths);
 			SummaryReportUtils.lengthMapToXml(seqElement, "BadBasesInReads", seqBadReadLineLengths);
 			
-			kmersSummary.toXml(seqElement,kmersSummary.maxKmers); //debug
+			kmersSummary.toXml(seqElement,kmersSummary.MAX_KMERS); //debug
 			kmersSummary.toXml(seqElement,1); //add 1-mers
 			kmersSummary.toXml(seqElement,2); //add 2-mers
 			kmersSummary.toXml(seqElement,3); //add 3-mers
@@ -162,8 +161,8 @@ public class FastqSummaryReport extends SummaryReport {
 				kmersSummary.parseKmers( readBases, false ); //fastq base are all orignal forward
 				
 				// header stuff
-				if (record.getReadHeader().contains(":")) {
-					String [] headerDetails = TabTokenizer.tokenize(record.getReadHeader(), ':');
+				if (record.getReadName().contains(":")) {
+					String [] headerDetails = TabTokenizer.tokenize(record.getReadName(), ':');
 					if (null != headerDetails && headerDetails.length > 0) {
 						
 						//if length is equal to 10, we have the classic Casava 1.8 format
@@ -181,7 +180,7 @@ public class FastqSummaryReport extends SummaryReport {
 						// 13051 - x
 						// 2071 - y
 						// 2 - 2nd in pair
-						if (record.getReadHeader().contains(" ")) {
+						if (record.getReadName().contains(" ")) {
 							parseFiveElementHeaderWithSpaces(headerDetails);
 						} else {
 							parseFiveElementHeaderNoSpaces(headerDetails);
@@ -370,20 +369,6 @@ public class FastqSummaryReport extends SummaryReport {
 			}
 		}
 		al.incrementAndGet();
-	}
-	
-	private <T> void updateMapAndPosition(ConcurrentMap<T, AtomicLongArray> map , T key, int position) {
-		
-		
-		AtomicLongArray ala = map.get(key);
-		if (null == ala) {
-			ala = new AtomicLongArray(256);
-			AtomicLongArray existing = map.putIfAbsent(key, ala);
-			if (null != existing) {
-				ala = existing;
-			}
-		}
-		ala.incrementAndGet(position);
 	}
 	
 	SummaryByCycleNew2<Character> getFastqBaseByCycle() {

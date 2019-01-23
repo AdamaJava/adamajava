@@ -21,10 +21,16 @@ public class QCMGAtomicLongArray {
 	
 	private AtomicLongArray array;
 	private volatile int capacity;
+	private int maxCapacity = MAX_CAPACITY;
 	
 	public  QCMGAtomicLongArray(final int initialCapacity) {
+		this(initialCapacity, MAX_CAPACITY);
+	}
+	
+	public  QCMGAtomicLongArray(final int initialCapacity, final int maxCapacity) {
+		this.maxCapacity = maxCapacity;
 		// double capacity 
-		capacity = Math.min(initialCapacity * 2, MAX_CAPACITY);
+		capacity = Math.min(initialCapacity * 2, maxCapacity);
 		array = new AtomicLongArray(capacity);
 	}
 	
@@ -64,7 +70,7 @@ public class QCMGAtomicLongArray {
 				System.out.println("resizing...");
 			
 				// double the required capacity
-				capacity = Math.min(arrayPosition * 2, MAX_CAPACITY);
+				capacity = Math.min(arrayPosition * 2, maxCapacity);
 				
 				AtomicLongArray newArray = new AtomicLongArray(capacity);
 				for (int i = 0, length = array.length() ; i < length ; i++) {
