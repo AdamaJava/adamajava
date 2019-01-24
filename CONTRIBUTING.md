@@ -1,5 +1,5 @@
-At present we are not accepting external contributions to the adamajava codebase.
+We welcome bug reports and feature requests made using the Issues tab.
 
-Please report any bugs or feature requests using the Issues tab.
+Unfortunately, we are not currently accepting pull requests from non-AdamaJava members.
 
 Thanks for your interest in adamajava.
