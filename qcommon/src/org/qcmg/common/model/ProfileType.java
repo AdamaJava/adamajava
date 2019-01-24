@@ -12,14 +12,14 @@ public enum ProfileType {
 	
 	BAM("bam"),
 	XML("xml"),
-	FASTQ("fastq"),
-	FASTA("fasta"), 	
+	FASTQ("fastq"),	
 	VCF("vcf"),
 
 	//below only used on qprofiler1.0
 	GFF("gff"), 
 	MA("ma"),
 	QUAL("qual"), 
+	FASTA("fasta"), 
 	FA("fa");	// genome files - hopefully...	
 
 	private String reportName;	
