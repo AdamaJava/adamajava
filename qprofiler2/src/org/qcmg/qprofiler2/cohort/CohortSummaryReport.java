@@ -3,22 +3,23 @@ package org.qcmg.qprofiler2.cohort;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.qcmg.common.util.IndelUtils.SVTYPE;
 import org.qcmg.common.util.QprofilerXmlUtils;
 import org.qcmg.qprofiler2.report.SummaryReport;
 import org.qcmg.qprofiler2.summarise.SampleSummary;
+import org.qcmg.qprofiler2.util.XmlUtils;
 import org.qcmg.qprofiler2.vcf.VcfSummaryReport;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 public class CohortSummaryReport extends SummaryReport {
-	public static String categorySeperate = ";";
+//	public static String categorySeperate = ";";
 	public static String outputSeperate = "\t";	
 	public static String headerline = String.join( outputSeperate, new String[]{ "File","Sample" ,"ReportingCategory","VariantType","VariantCount","DbSnpProportion","TiTvRatio"});
 	
@@ -33,44 +34,19 @@ public class CohortSummaryReport extends SummaryReport {
 	
 	CohortSummaryReport(File fxml, Element sampleNode) throws IOException{
 		this.file = fxml.getCanonicalPath();
-		this.sampleId = sampleNode.getAttribute("value");
-		 
-		NodeList reportNS =	 sampleNode.getElementsByTagName(SampleSummary.report);
-		for(int j = 0; j < reportNS.getLength(); j ++){
-			Element report = ( Element ) reportNS.item(j);	
-			
-			List<String> cats = new ArrayList<>();
-			while((report = (Element) report.getParentNode()) != null){
-				if(report.getNodeName().equalsIgnoreCase(VcfSummaryReport.Sample  )) break;				 					
-				if(report.getNodeName().equals( VcfSummaryReport.NodeCategory  ) )
-					cats.add(report.getAttribute("value"));
-			}
-			if(cats.size() > 0 ) Collections.reverse(cats);
-			String key = String.join( categorySeperate, cats);
-			if(key.length() == 0) key = "-";
-			
-			//for each report node
-			Category cat = new Category(key, ( Element ) reportNS.item(j)); 
+		this.sampleId = sampleNode.getAttribute(XmlUtils.Sid);
+		
+		for( Element ele : QprofilerXmlUtils.getChildElementByTagName( sampleNode, SampleSummary.report ) ) {
+			Category cat = new Category( ele.getAttribute(SampleSummary.values), ele ); 
 			categories.add(cat );
 			
-//			System.out.println(String.format("cat: %s, variants: %s, db: %s, ti:%d, tv :%d ", 
-//					sampleId + cat.category,  Arrays.toString(  cat.variantsCounts.values().toArray() ),
-//					Arrays.toString(cat.dbSnpCounts.values().toArray() ), cat.ti, cat.tv ));
 			//summary
 			sum_ti += cat.ti;
 			sum_tv += cat.tv;
 			for(int db : cat.dbSnpCounts.values()) sum_db += db;
-			for(int count : cat.variantsCounts.values()) sum_count += count;
-			
-//			//debug
-//			System.out.println("summary: sum_count = " + sum_count);
-//			//debug
-//			System.out.println("summary: ti = " + sum_ti);
-//
-//			//debug
-//			System.out.println("summary: tv = " + sum_tv);
-
-		}		
+			for(int count : cat.variantsCounts.values()) sum_count += count;			
+		}
+				
 	}	
 	
 	List<String> outputCounts(  ){		 
@@ -100,28 +76,51 @@ public class CohortSummaryReport extends SummaryReport {
 		
 		//for snv only, there is only one svn for each report unde same category
 		final String titvRate; 
-		int ti, tv;
+		int ti = 0, tv = 0;
 						
 		Category(String name, Element report){
 			
-			this.category = name; 
+			 
+			this.category = (name == null || name.isEmpty()) ? "-" : name; 
 			String titv = "-" ;
-			for(Element ele : QprofilerXmlUtils.getChildElementByTagName(report, SampleSummary.variantType)){
+			 
+			//for(Element ele :QprofilerXmlUtils.getOffspringElementByTagName(report, SampleSummary.variantType)){
+			for(Element ele :QprofilerXmlUtils.getOffspringElementByTagName(report, XmlUtils.metricsEle)){
 				//record counts and dbsnp for all type variants
-				String type = ele.getAttribute("type");				
-				int db = Integer.parseInt( ele.getAttribute("inDBSNP"));
+				String type = ele.getAttribute(XmlUtils.Sname);	
 				int count = Integer.parseInt(ele.getAttribute("count"));
 				variantsCounts.put(type, count );
+				
+				Element e1 = QprofilerXmlUtils.getChildElementByTagName(ele, XmlUtils.Svalue).stream().filter(e -> e.getAttribute(XmlUtils.Sname).equals(SampleSummary.dbSNP)).findFirst().get();				
+				int db = Integer.parseInt( e1.getTextContent() );
 				dbSnpCounts.put(type, db);
+				
 				if(type.equals(SVTYPE.SNP.toVariantType())){
-					//"Substitutions"
-					Element titvE = QprofilerXmlUtils.getChildElement( QprofilerXmlUtils.getChildElement(ele, SampleSummary.substitutions , 0),SVTYPE.SNP.name(), 0 );
-					ti = Integer.parseInt( titvE.getAttribute(SampleSummary.transitions ));
-					tv = Integer.parseInt( titvE.getAttribute(SampleSummary.transversions ));
-					titv = titvE.getAttribute( SampleSummary.tiTvRatio );
+					e1 = QprofilerXmlUtils.getChildElementByTagName(ele, XmlUtils.Svalue).stream().filter(e -> e.getAttribute(XmlUtils.Sname).equals(SampleSummary.tiTvRatio)).findFirst().get();				
+					titv = e1.getTextContent();	
+					
+					//ti
+					Optional<Element> streams = QprofilerXmlUtils.getChildElementByTagName(ele, XmlUtils.variableGroupEle).stream().filter(e -> e.getAttribute(XmlUtils.Sname).equals(SampleSummary.transitions)).findFirst();				
+					if( streams.isPresent()   ) {
+						List<Integer> sums = new ArrayList<>();						
+						QprofilerXmlUtils.getChildElementByTagName(streams.get(), XmlUtils.Stally).stream()
+							.forEach( e ->   sums.add(  Integer.parseInt(e.getAttribute(XmlUtils.Scount)) ) );
+						ti = sums.stream().mapToInt(i -> i.intValue()).sum();
+					} 
+					
+					//tv
+					streams = QprofilerXmlUtils.getChildElementByTagName(ele, XmlUtils.variableGroupEle).stream().filter(e -> e.getAttribute(XmlUtils.Sname).equals(SampleSummary.transversions)).findFirst() ;				
+					if( streams.isPresent() ) {
+						List<Integer> sums = new ArrayList<>();
+						QprofilerXmlUtils.getChildElementByTagName(streams.get(), XmlUtils.Stally).stream()
+							.forEach( e ->   sums.add(  Integer.parseInt(e.getAttribute(XmlUtils.Scount)) ) );
+						tv = sums.stream().mapToInt(i -> i.intValue()).sum();
+					}
+					
 				}
 			}
-			this.titvRate = titv; 
+			 
+			this.titvRate = titv;				 
 		}
 		
 		/**

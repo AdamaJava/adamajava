@@ -2,17 +2,19 @@ package org.qcmg.qprofiler2.summarise;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
 import org.qcmg.common.model.QCMGAtomicLongArray;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.BaseUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.QprofilerXmlUtils;
 import org.qcmg.qprofiler2.bam.BamSummaryReport2;
+import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Element;
 
 public class KmersSummary {
@@ -85,19 +87,7 @@ public class KmersSummary {
 		}
 		return conStr.toString();	
 	}
-	
-//	public static String producer(final int k, final String mers , final boolean includeN){ 		
-//		if(k == 0 )  return mers;			
-//		
-//		List<Character> bases = atgc.chars().mapToObj(c ->(char) c).collect(Collectors.toList() ); 
-//		if(includeN ) bases.add('N'); 
-//				
-//		String conStr = "";
-//		for(char c : bases) 	 	 
-//			conStr += "," + producer( k-1, mers + c,  includeN);			 
-//		 		
-//		return conStr;		
-//	}
+
 	
 	public String[] getPossibleKmerString(final int k, final boolean includeN){
 		//if require inital mers combination 
@@ -107,20 +97,7 @@ public class KmersSummary {
 		//produce all possible kmers in String 
 		String str1 = producer( k, "", includeN );		
 		return str1.split(Constants.COMMA_STRING);
-	}
-	
-//	public String[] getPossibleKmerString(final int k, final boolean includeN){
-//		//if require inital mers combination 
-//		if( k == merLength && includeN && mersStrList != null )  
-//			return mersStrList; 
-//		
-//		//produce all possible kmers in String 
-//		String str1 = producer( k, "", includeN );		
-//		while(str1.contains(",,")) str1 = str1.replace(",,", ",");	
-//		while(str1.startsWith(",")) str1 = str1.substring(1);			
-//		return str1.split(",");			
-//	}
-	
+	}	
 	public void parseKmers( byte[] readString, boolean reverse , int flagFirstOfPair){
 		 //get the biggest cycle
 		 int c = readString.length - merLength + 1;	
@@ -130,7 +107,7 @@ public class KmersSummary {
 		 if (reverse){  
 			 byte[] dataReverse = readString.clone(); 
 			 for (int i = dataReverse.length -1 , j = 0; i >= 0 ; i--, j++)  
-				dataString[j] = ( byte ) BaseUtils.getComplement( (char) dataReverse[i] );
+				dataString[j] = (byte) BaseUtils.getComplement( (char) dataReverse[i] );
 		 }
 		 
 		 //readString may have differnt length to other reads
@@ -163,8 +140,7 @@ public class KmersSummary {
 				case 'T' : no = 4; break;
 			}
 			entry += no << ( j * 3 ); 	
-		}
-		
+		}		
 		return entry;
 	}
 		
@@ -232,34 +208,36 @@ public class KmersSummary {
 				for(int s = 0; s < 3; s++)
 					tally[s].increment(pos, sum[s]);
 			}
-		}		
-		
+		}				
 	}
 	
 	public void toXml( Element parent, int klength ) { 
+		final int maxNo = 16;
 		
-		Element merElement = QprofilerXmlUtils.createSubElement(parent, "mers" + klength);				
-
 		for(int pair = 0; pair < 3; pair ++){
 			if (parsedCount[pair].get() <= 0 ) continue; 
 			
-			Element element = QprofilerXmlUtils.createSubElement(merElement, "CycleTally" );			
-			Set<String> possibleMers = getPopularKmerString(16,  klength, false, pair) ;			
+			//avoid kmers_null or kmers_unPaired in case have no pair
+			String name = klength+"mers_"+BamSummaryReport2.sourceName[pair];
+			if(pair == 0 && parsedCount[1].get() == 0 &&parsedCount[2].get() == 0)
+				name = klength+"mers";
+			Set<String> kmerStrs = getPopularKmerString(maxNo,  klength, false, pair);
 			
-			element.setAttribute( "possibleValues", QprofilerXmlUtils.joinByComma(new ArrayList<String>( possibleMers)));
-			element.setAttribute( "source",  BamSummaryReport2.sourceName[pair] );
-			element.setAttribute( "parsedReads",  parsedCount[pair].get()+"" );
-			for(int i = 0; i <  cycleNo; i++ ){ 		
-				List<Long> counts = new ArrayList<Long>();
-				for(String mer :  possibleMers)
-					counts.add(getCount( i,  mer, pair));
-				
-				Element childElement = QprofilerXmlUtils.createSubElement(element, "Cycle" );
-				childElement.setAttribute("value", i+"");
-				childElement.setAttribute("counts", QprofilerXmlUtils.joinByComma(  counts));					
-			}			
-		}				
-	}
+			// "counts per mer string start on specified base cycle"	
+			Element ele = XmlUtils.createMetricsNode(parent, name, parsedCount[pair].get() );
+	 		for( int i = 0; i < cycleNo; i++ ){	
+	 			Map<String, AtomicLong> map = new HashMap<>();
+	 			for(String mer :  kmerStrs) {
+					long c = getCount( i,  mer, pair);
+					if( c > 0 )
+						map.put(mer, new AtomicLong(c));					
+				}
+				XmlUtils.outputTallyGroup( ele, "kmersOnCycle_"+(i+1), map, false );					
+			}	
+			if(	Math.pow(4, klength) > maxNo )
+				XmlUtils.addCommentChild(ele, "here only list top "+ maxNo + " most popular kmers sequence for each Base Cycle" );
+		}			
+	}	
 	
 	public Set<String> getPopularKmerString(final int popularNo, final int kLength, final boolean includeN, final int flagFristRead){
 	 
@@ -267,33 +245,33 @@ public class KmersSummary {
 		//incase empty input bam
 		if(cycleNo == 0 || possibleMers.length <= popularNo    ) 
 			return new HashSet<String>(Arrays.asList(possibleMers) );
-	 
-		
+	 	
+		//select three positions: middle, middle of first half, middle of second half
 		int midCycle = cycleNo / 2; 
 		int bfMidCycle = (midCycle > 20 )? midCycle - 10 : (midCycle < kLength )? 0 : midCycle - kLength; 
 		int afMidCycle = (midCycle > 20 )? midCycle + 10 : (midCycle < kLength )? cycleNo-1 : midCycle + kLength; 
+		
 				
 		long[] bfMidCycleCounts = getCounts(bfMidCycle, possibleMers,flagFristRead);
 		long[] afMidCycleCounts = getCounts(afMidCycle, possibleMers,flagFristRead);
 		long[] midCycleCounts = getCounts(midCycle, possibleMers,flagFristRead);
-		
 		for(int i = 0; i < midCycleCounts.length; i ++)
 			midCycleCounts[i] += bfMidCycleCounts[i] + afMidCycleCounts[i];
 		
+		//sort three position sum
 		long[] sortCounts = midCycleCounts.clone(); 
 		Arrays.sort(sortCounts);
 		
-		//get biggest popularNo
-	//	String[] popularMers = new String[popularNo];
+		//get biggest popularNo //	String[] popularMers = new String[popularNo];
 		Set<String> popularMers = new HashSet<>();
 		for(int i = 0; i < popularNo; i ++ ){
 			long bigValue = sortCounts[sortCounts.length - i-1];
-			for(int j = 0; j < possibleMers.length; j ++) {
-				if(bigValue == midCycleCounts[j]){
+			if( bigValue == 0 ) break; //find zero is meaningless
+			for(int j = 0; j < possibleMers.length; j ++)  
+				if(bigValue == midCycleCounts[j] && !popularMers.contains(possibleMers[j])){
 					popularMers.add( possibleMers[j]);
 					break;
 				}
-			}
 		}
 		return popularMers; 
 	}

@@ -2,6 +2,8 @@ package org.qcmg.qprofiler2;
 
 
 
+import static org.junit.Assert.*;
+
 import java.io.File;
 
 import org.junit.Rule;
@@ -10,13 +12,11 @@ import org.junit.rules.TemporaryFolder;
 import org.qcmg.qprofiler2.QProfiler2;
 import org.qcmg.qprofiler2.bam.BamSummarizerTest;
 
-import junit.framework.Assert;
 
 public class QProfilerSummaryTest {
 	@Rule
 	public  TemporaryFolder testFolder = new TemporaryFolder();
-	
-	
+		
 	@Test
 	/**
 	 * The only characters not allowed in a filename in *nix are NUL and /. 
@@ -30,23 +30,15 @@ public class QProfilerSummaryTest {
 		//for(String name : new String[]{"in#:.sam", "in,.sam","input?.sam", "in*.sam","...sam", "input\n.sam"}){	
 		for(String name : new String[]{",in#:.sam","...sam", "input\n.sam"}){	
 			int exitStatus = run(name, name+".xml");	
-			Assert.assertEquals(0, exitStatus);	
-			File outputFile = testFolder.newFile(name+".xml");
-			Assert.assertTrue(outputFile.exists());
-		}
-		
+			assertEquals(0, exitStatus);	
+		}		
 		
 		// not allowed special letters		
-		for(String name : new String[]{ "in/.sam", null}){
+		for(String name : new String[]{ "in/.sam", null})
 			try{
 				run(name, name+".xml");				
-				Assert.fail();
-			}catch(Exception e){
-				Assert.assertTrue(true);
-			}	
- 		}
-		
-		
+				fail();
+			}catch(Exception e){ assertTrue(true); }			
 	}
 	
 	private int run(String input, String output) throws Exception{
@@ -54,15 +46,13 @@ public class QProfilerSummaryTest {
 		File inputFile = testFolder.newFile(input);			
 		BamSummarizerTest.createTestSamFile(inputFile.getAbsolutePath(), BamSummarizerTest.createValidSamData());	
 		
-//		String content = new String(Files.readAllBytes(Paths.get(inputFile.getAbsolutePath())));
-//		System.out.println(content);
-		
 		File logFile = testFolder.newFile(output +".log");
 		File outputFile = testFolder.newFile(output);
-		String[] args = {"--nohtml", "--log",  logFile.getAbsolutePath(), "--input", inputFile.getAbsolutePath(),
+		String[] args = { "--log",  logFile.getAbsolutePath(), "--input", inputFile.getAbsolutePath(),
 				 "-o", outputFile.getAbsolutePath()};
 		int exitStatus =  new QProfiler2().setup(args); //not main, so no exit info on log file
 		
+		assertTrue(outputFile.exists());		
 		return exitStatus;
 	}
 }

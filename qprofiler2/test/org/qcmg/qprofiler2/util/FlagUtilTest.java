@@ -3,9 +3,18 @@ package org.qcmg.qprofiler2.util;
 import static org.junit.Assert.assertEquals;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.atomic.AtomicLong;
+
+import javax.xml.parsers.ParserConfigurationException;
 
 import org.junit.Test;
+import org.qcmg.common.model.QCMGAtomicLongArray;
+import org.qcmg.common.util.QprofilerXmlUtils;
 import org.qcmg.qprofiler2.util.FlagUtil;
+import org.w3c.dom.Element;
 
 public class FlagUtilTest {
 	
@@ -44,8 +53,6 @@ public class FlagUtilTest {
 	public void readPairedFlag() {
 		
 		for (int i = 1 ; i < 5000 ; i++) {
-			
-//			System.out.println("i: " + i + " : " + (i & 0x1) + " : " + (i & 0x2));
 			
 			if ((i & 0x1) == 1) {
 				assertEquals(true, FlagUtil.getFlagString(i).contains("1, p"));
@@ -87,41 +94,32 @@ public class FlagUtilTest {
 		}
 	}
 	
-//	public enum TRANS{
-//		AG(0), GA(1), CT(2), TC(3),			
-//		AC(4), CA(5),AT(6), TA(7),CG(8), GC(9), GT(10), TG(11), 
-//		NA(12),AN(13), NG(14), GN(15),NT(16),TN(17),NC(18),CN(19), Others(20); 
-//		public final int order;
-//		 
-//		TRANS(int od){
-//			this.order = od;  			 
-//		}
-//		
-//		public int toCharCode(){
-//			
-//			int ascRef =  (int) name().charAt(0) ;
-//			int ascii = ascRef *2 + (int) name().charAt(1);	
-//			
-//			System.out.println(  "case " + ascii + " : return " + name() + ";");
-//			
-//			return ascii;
-//		}
-//	}		
-	
-	
-			
-//	@Test
-//	public void xuTest() {
-//		
-//		int[] inArray = new int[21];;
-//		for(TRANS tr :  TRANS.values())
-//			inArray[tr.order] =  tr.toCharCode();		
-//		
-//		Arrays.sort(inArray);
-//		for (int i = 0; i < inArray.length; i ++) {
-//			 System.out.println(i + "th = " + inArray[i]);
-//		}
-//	}
-	
+	@Test
+	public void flagXmlTest() throws ParserConfigurationException {
+		Map<String, AtomicLong> flagBinaryCount = new ConcurrentSkipListMap<String, AtomicLong>();
+		QCMGAtomicLongArray flagIntegerCount = new QCMGAtomicLongArray( 2048 );
+		Element root = QprofilerXmlUtils.createRootElement("root", null);
+		
+		//parse two flags
+		flagIntegerCount.increment(99);		
+		flagIntegerCount.increment(147);
+		flagIntegerCount.increment(147);
+		
+		//convert to map
+		long length = flagIntegerCount.length();
+		for (int i = 0 ; i < length ; i++) 
+			if (flagIntegerCount.get(i) > 0) {
+				String flagString = FlagUtil.getFlagString(i);
+				flagBinaryCount.put(flagString, new AtomicLong(flagIntegerCount.get(i)));
+			}				
+		XmlUtils.outputTallyGroup( root , "FLAG", flagBinaryCount, true);	
+		
+		//check output
+		List<Element> tallys =  QprofilerXmlUtils.getChildElementByTagName(QprofilerXmlUtils.getChildElement( root, XmlUtils.variableGroupEle,0), XmlUtils.Stally );
+		assertEquals( 2, tallys.size() );
+		
+		assertEquals( 1, tallys.stream().filter( e -> e.getAttribute(XmlUtils.Scount).equals("1")  &&  e.getAttribute(XmlUtils.Svalue).equals("000001100011, pPR1")).count() );
+		assertEquals( 1, tallys.stream().filter( e -> e.getAttribute(XmlUtils.Scount).equals("2")  &&  e.getAttribute(XmlUtils.Svalue).equals("000010010011, pPr2")).count() );
+	}
 
 }

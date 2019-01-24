@@ -47,29 +47,21 @@ public class BamSummarizerMT2 implements Summarizer {
 	private int noOfProducerThreads;
 	private final int noOfConsumerThreads;
 	private final int maxRecords;
-	private final String [] includes;
-//	private static String bamHeader;
+//	private final String [] includes;
 	private static SAMSequenceDictionary samSeqDict;
-//	private static List<String> readGroupIds;
-	private final String [] tags;
-	private final String [] tagsInt;
-	private final String [] tagsChar;
+//	private final String [] tags;
+//	private final String [] tagsInt;
+//	private final String [] tagsChar;
 	private final String validation;
 	ValidationStringency vs;
 	private final static String UNMAPPED_READS = "Unmapped";
-//	private boolean torrentBam = false;
 
 	
-	public BamSummarizerMT2(int noOfProducerThreads, int noOfThreads, String [] includes, 
-			int maxNoOfRecords, String [] tags, String [] tagsInt, String [] tagsChar, String validation) {
+	public BamSummarizerMT2(int noOfProducerThreads, int noOfThreads, int maxNoOfRecords, String validation) {
 		super();
 		this.noOfProducerThreads = noOfProducerThreads;
 		this.noOfConsumerThreads = noOfThreads;
-		this.includes = includes;
 		this.maxRecords = maxNoOfRecords;
-		this.tags = tags;
-		this.tagsInt = tagsInt;
-		this.tagsChar = tagsChar;
 		this.validation = validation;
 	}
 	
@@ -117,7 +109,7 @@ public class BamSummarizerMT2 implements Summarizer {
 		}
 		long start = System.currentTimeMillis();
 		
-		final BamSummaryReport2 bamSummaryReport =  BamSummarizer2.createReport(file, includes, maxRecords, tags, tagsInt, tagsChar );				 		
+		final BamSummaryReport2 bamSummaryReport =  BamSummarizer2.createReport(file,  maxRecords );				 		
 		logger.info("will create " + noOfConsumerThreads + " consumer threads");
 
 		final CountDownLatch pLatch = new CountDownLatch(noOfProducerThreads);
@@ -350,15 +342,11 @@ public class BamSummarizerMT2 implements Summarizer {
 		@Override
 		public void run() {
 			log.debug("start producer ");
-			
-			
-			SamReader reader = SAMFileReaderFactory.createSAMFileReader(file, validation);
-			//debug
-			System.out.println( "hasIndex: " +reader.hasIndex());
-			
+						
+						
 			long size = 0;
 			long count = 0;
-			try {
+			try(SamReader reader = SAMFileReaderFactory.createSAMFileReader(file, validation);) {
 				while (true) {
 					String sequence = sequences.poll();
 					if (null == sequence) break;
@@ -374,14 +362,12 @@ public class BamSummarizerMT2 implements Summarizer {
 							if (cLatch.getCount() == 0) {
 								log.error("no consumer threads left, but queue is not empty");
 								throw new Exception("No consumer threads left, but queue is not empty");
-//								break;
 							}
 							
 							// if q size is getting too large - give the Producer a rest
 							// having too many items in the queue seems to have a detrimental effect on performance.
 							//FIXME 4???
 							while (size > (100000 / noOfProducerThreads)) {
-//								sleepCounter++;
 								Thread.sleep(75);
 								size = queue.size();
 								if (cLatch.getCount() == 0) {
@@ -394,21 +380,14 @@ public class BamSummarizerMT2 implements Summarizer {
 					}
 					iter.close();
 				}
-				
-			} catch (InterruptedException e) {
+				reader.close();
+			} catch (InterruptedException | IOException e) {
 				log.info(Thread.currentThread().getName() + " " + e.getMessage());
 			}catch (Exception e) {
 				log.error(Thread.currentThread().getName() + " " + e.getMessage(), e);
 				mainThread.interrupt();
-			} finally {
-				try {
-					reader.close();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} finally {
-					pLatch.countDown();
-				}
+			} finally {				
+				pLatch.countDown();
 			}
 		}
 	}

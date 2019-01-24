@@ -7,9 +7,9 @@
 package org.qcmg.qprofiler2.summarise;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -24,19 +24,14 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicLongArray;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import org.qcmg.common.util.QprofilerXmlUtils;
-import org.qcmg.qprofiler2.bam.BamSummaryReport2;
-import org.qcmg.qprofiler2.util.SummaryReportUtils;
-import org.w3c.dom.Document;
+import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 
 /**
  * Class that tallies by cycle using java generics 
   */
-
 public class CycleSummary<T> {
+	public static final String baseOnCycle = "baseOnCycle_";
 	
 	private static final int MAX_ARRAY_CAPACITY = 2048 * 2048;		// over 4 million
 		
@@ -318,89 +313,29 @@ public class CycleSummary<T> {
 		
 		return allValues; 
 	}
-		
-//	public String getPossibleValuesAsString() {
-//		StringBuilder sb = new StringBuilder();
-//		for (T t : getPossibleValues()) {
-//			sb.append(t);
-//			sb.append(XmlUtils.COMMA);
-//		}
-//		
-//		if (sb.length() > 0)
-//			return sb.substring(0, sb.length()-3);
-//		return null;
-//	}
 
 	/**
 	 * Adds an xml representation of the current object to the supplied parent element.
 	 * 
 	 * @param parent Element that the current objects xml representation will be added to
 	 * @param elementName String representing the name to be used when creating the element
-	 */
-	public void toXml( Element parent, String elementName, String sourceName ) {	
-	
-		NodeList nodes = parent.getElementsByTagName(elementName);
-		//check whether elementName already created
-		Document doc = parent.getOwnerDocument();		
-		Element element = doc.createElement(elementName);
-		if(nodes.getLength() > 0 ) 
-			element = (Element) nodes.item(0);
-		else 
-			parent.appendChild(element);
-				
+	 */	
+	public void toXml( Element parent, String metricName, String metricType, String groupName )
+	{
 		//do nothing if no base detected
 		Set<T> possibles = getPossibleValues();
-		final String str = QprofilerXmlUtils.joinByComma(new ArrayList<T>(possibles)); //getPossibleValuesAsString();
-		if(str == null || str.length() <= 0) return; 
-				
-		// adding another level to conform to DTD..
-		Element cycleTallyElement = doc.createElement("CycleTally");		
-		cycleTallyElement.setAttribute("possibleValues", str); 	
-		element.appendChild(cycleTallyElement); 
-		if(sourceName != null)
-			cycleTallyElement.setAttribute("source", sourceName);
+		if( possibles == null || possibles.size() <= 0 ) return; 
+		String name = metricType == null ? metricName : metricName+"_"+ metricType;		
+		Element ele = XmlUtils.createMetricsNode(parent, name , null);			
 		
-		for (Integer cycle : cycles()) {
-			Element cycleE = doc.createElement("Cycle");
-			cycleTallyElement.appendChild(cycleE);
-			cycleE.setAttribute("value", cycle.toString());	
+		for (Integer cycle : cycles()){
+			Map<T, AtomicLong> tallys = new LinkedHashMap<>();
 			
-			StringBuilder sb = new StringBuilder();
-			for(T t :  getPossibleValues()) 				
-				sb.append( count(cycle, t) ).append( QprofilerXmlUtils.COMMA );	
-		 
-			cycleE.setAttribute("counts", sb.substring(0, sb.length() - QprofilerXmlUtils.COMMA.length()));			 
-		}
-								 
-	}
-	/**
-	 * 	public void toXml( Element parent, int klength ) { 
-		
-		Element merElement = SummaryReportUtils.createSubElement(parent, "mers" + klength);				
-//		for(Boolean isFirstRead: new Boolean[]{ true, false }){
-		for(int pair = 0; pair < 3; pair ++){
-			if (parsedCount[pair].get() <= 0 ) continue; 
-			
-			Element element = SummaryReportUtils.createSubElement(merElement, "CycleTally" );			
-			String[] possibleMers = getPopularKmerString(16,  klength, false, pair) ;			
-			
-			element.setAttribute( "possibleValues", XmlUtils.joinByComma(possibleMers));
-			element.setAttribute( "source",  BamSummaryReport.sourceName[pair] );
-			element.setAttribute( "parsedReads",  parsedCount[pair].get()+"" );
-			for(int i = 0; i <  cycleNo; i++ ){ 			
-				sb = new StringBuilder();
-				for(String mer :  possibleMers)
-					sb.append( getCount( i,  mer, pair)).append(XmlUtils.COMMA);
-				String counts =  (sb.length() > 0)?  sb.substring(0, sb.length()-3) : "";
-				
-				Element childElement = SummaryReportUtils.createSubElement(element, "Cycle" );
-				childElement.setAttribute("value", i+"");
-				childElement.setAttribute("counts", counts);					
-			}			
-		}				
-	}
-	 * @return
-	 */
+			for(T t :  getPossibleValues()) 				 
+				tallys.put(  t,new AtomicLong(count(cycle, t)));			
+			XmlUtils.outputTallyGroup( ele, this.baseOnCycle +cycle, tallys, false );	
+		}		
+	}	
 
 	//xu totalSize should be seprate to first and second of pair		
 	public Map<Integer, AtomicLong> getLengthMapFromCycle() {
@@ -409,14 +344,16 @@ public class CycleSummary<T> {
 		long previousTally = -1;	
 		Integer last = 0;
 		for (Integer cycle : cycles()) {
+		
  			long sum = 0;
 			for(T t :  getPossibleValues()) 				
 				  sum += count(cycle, t) ;	
+			
 			//only for the begin of cycle
 			if(previousTally == -1) previousTally = sum;
 			if (sum != previousTally) {
 				// record one cycle advance if base counts difference
-				//previousTally - count = the number of short reads
+				// previousTally - count = the number of short reads				
 				map.put(cycle-1, new AtomicLong(previousTally - sum ));
 				previousTally = sum;
 			}
