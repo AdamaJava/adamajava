@@ -8,6 +8,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import org.junit.*;
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.QprofilerXmlUtils;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qprofiler2.bam.BamSummarizer2;
@@ -121,30 +122,6 @@ public class CycleSummaryTest {
         try(BufferedWriter out = new BufferedWriter(new FileWriter(fname))){	    
 			for (String line : data)  out.write(line + "\n");	               
 		}		
-	}
-	
-	@Ignore
-	private String getPossibleQualString(boolean isFirstOfPair){
-	 	
-		// iterate over the SAMRecord objects returned, passing them to the summariser
-		HashSet<Byte> bases = new HashSet<Byte>();	
-		try(SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(INPUT_FILE));) {
-			for (SAMRecord record : reader) {
-				if(record.getFirstOfPairFlag() != isFirstOfPair) continue;
-				for(byte base : record.getBaseQualities())
-					bases.add(base);	
-			}			
-		} catch (IOException e) {
-			fail("unexpected to have IO problem");
-		}
-		
-		List<Byte> sorted =  bases.stream().sorted( (i,j ) -> j-i ).collect(Collectors.toList());	
-		StringBuilder sb = new StringBuilder();
-		for(byte b : sorted) sb.append(b).append(QprofilerXmlUtils.COMMA);
-		
-		if(sb.length() > 0)
-			return sb.substring(0, sb.length()-QprofilerXmlUtils.COMMA.length());
-		
-		return null; 
 	}	
+	
 }

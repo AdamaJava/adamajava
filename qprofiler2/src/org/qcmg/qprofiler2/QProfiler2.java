@@ -58,7 +58,7 @@ public class QProfiler2 {
 	private int maxRecords;
 	private String logFile;
 	private String validation;
-//	private boolean noHtml; 
+
 	
 	/*
 	 * This is the "main" method for this class. It will be invoked by the

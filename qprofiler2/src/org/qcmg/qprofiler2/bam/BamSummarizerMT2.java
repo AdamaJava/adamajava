@@ -29,7 +29,6 @@ import htsjdk.samtools.SamReader;
 import htsjdk.samtools.ValidationStringency;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMRecordIterator;
-import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.SAMSequenceRecord;
 
 import org.qcmg.common.date.DateUtils;
@@ -47,11 +46,7 @@ public class BamSummarizerMT2 implements Summarizer {
 	private int noOfProducerThreads;
 	private final int noOfConsumerThreads;
 	private final int maxRecords;
-//	private final String [] includes;
-	private static SAMSequenceDictionary samSeqDict;
-//	private final String [] tags;
-//	private final String [] tagsInt;
-//	private final String [] tagsChar;
+//	private static SAMSequenceDictionary samSeqDict;
 	private final String validation;
 	ValidationStringency vs;
 	private final static String UNMAPPED_READS = "Unmapped";
@@ -64,8 +59,7 @@ public class BamSummarizerMT2 implements Summarizer {
 		this.maxRecords = maxNoOfRecords;
 		this.validation = validation;
 	}
-	
-	
+		
 	@Override
 	public SummaryReport summarize(String input, String index) throws Exception {
 		
@@ -98,15 +92,20 @@ public class BamSummarizerMT2 implements Summarizer {
 			}			
 		} finally { reader.close(); }		
 				
-		ConcurrentLinkedQueue<SAMRecord>[] queues = null;
-		AbstractQueue<SAMRecord> q  = null;
-		if (noOfProducerThreads == 1) {
-			q = new ConcurrentLinkedQueue<>();
-		} else {
-			queues = new ConcurrentLinkedQueue[noOfProducerThreads];
-			for (int i = 0 ; i < noOfProducerThreads ; i++)  
-				queues[i] = new ConcurrentLinkedQueue<SAMRecord>();			 
+		@SuppressWarnings("unchecked")
+		ConcurrentLinkedQueue<SAMRecord>[] queues = new ConcurrentLinkedQueue[noOfProducerThreads];
+		for (int i = 0 ; i < noOfProducerThreads ; i++) {  
+			queues[i] = new ConcurrentLinkedQueue<SAMRecord>();	
 		}
+		
+//		AbstractQueue<SAMRecord> q  = null;
+//		if (noOfProducerThreads == 1) {
+//			q = new ConcurrentLinkedQueue<>();
+//		} else {
+//			queues = new ConcurrentLinkedQueue[noOfProducerThreads];
+//			for (int i = 0 ; i < noOfProducerThreads ; i++)  
+//				queues[i] = new ConcurrentLinkedQueue<SAMRecord>();			 
+//		}
 		long start = System.currentTimeMillis();
 		
 		final BamSummaryReport2 bamSummaryReport =  BamSummarizer2.createReport(file,  maxRecords );				 		
@@ -117,14 +116,14 @@ public class BamSummarizerMT2 implements Summarizer {
 		ExecutorService consumerThreads = Executors.newFixedThreadPool(noOfConsumerThreads);
 		for (int i = 0 ; i < noOfConsumerThreads ; i++) {
 			consumerThreads.execute(noOfProducerThreads == 1 
-					? new SingleProducerConsumer(q, bamSummaryReport, Thread.currentThread(), cLatch, pLatch)
+					? new SingleProducerConsumer(queues[0], bamSummaryReport, Thread.currentThread(), cLatch, pLatch)
 			 : new Consumer(queues, bamSummaryReport, Thread.currentThread(), cLatch, pLatch, i % noOfProducerThreads));
 		}
 		
 		// setpup and kick-off single Producer thread
 		ExecutorService producerThreads = Executors.newFixedThreadPool(noOfProducerThreads);
 		if (noOfProducerThreads == 1) {
-			producerThreads.execute(new SingleProducer(q, file, Thread.currentThread(), pLatch, cLatch));
+			producerThreads.execute(new SingleProducer(queues[0], file, Thread.currentThread(), pLatch, cLatch));
 		} else {
 			for (int i = 0 ; i < noOfProducerThreads ; i++) {
 				producerThreads.execute(new Producer(queues[i], file, Thread.currentThread(), pLatch, cLatch, sequences, bamSummaryReport));
@@ -144,20 +143,20 @@ public class BamSummarizerMT2 implements Summarizer {
 				consumerThreads.shutdownNow();
 				throw new Exception("Producer thread has timed out");
 			}
-			logger.info("producer thread finished, queue size: " + (q == null ? getQueueSize(queues) : getQueueSize(q) ) );
+			logger.info("producer thread finished, queue size: " +   getQueueSize(queues)   );
 			
 			if ( ! cLatch.await(30, TimeUnit.SECONDS)) {
 			
 				// need to cater for scenario where all consumer threads have died...
 				// if after 10 seconds, the q size has not decreased - assume the consumer threads are no more...
-				int qSize = q == null ? getQueueSize(queues) : getQueueSize(q);
+				int qSize =  getQueueSize(queues)  ;
 				int qSizeTheSameCounter = 0;
 				while (qSize > 0 && qSizeTheSameCounter < 10) {
 					Thread.sleep(1000);
-						if (qSize == (q == null ? getQueueSize(queues) : getQueueSize(q))) {
+					if (qSize ==   getQueueSize(queues)  ) {
 						qSizeTheSameCounter++;
 					} else {
-						qSize = (q == null ? getQueueSize(queues) : getQueueSize(q));
+						qSize = getQueueSize(queues);
 						qSizeTheSameCounter = 0;	// reset to zero
 					}
 				}
@@ -172,8 +171,8 @@ public class BamSummarizerMT2 implements Summarizer {
 			}
 
 			// if there are items left on the queue - means that the consumer threads encountered errors and were unable to complete the processing
-			if ((q == null ? getQueueSize(queues) : getQueueSize(q))  > 0 ) {
-				logger.error("no Consumer threads available to process items [" + q.size() + "] on queue");
+			if ( getQueueSize(queues)  > 0 ) {
+				logger.error("no Consumer threads available to process items [" + getQueueSize(queues) + "] on queue");
 				throw new Exception("Consumer threads were unable to process all items on the queue");
 			}
 			
@@ -200,7 +199,7 @@ public class BamSummarizerMT2 implements Summarizer {
 		return bamSummaryReport;
 	}
 	
-	private int getQueueSize(AbstractQueue<SAMRecord> ...abstractQueues) {
+	private int getQueueSize( AbstractQueue<SAMRecord>[]  abstractQueues) {
 		int totalSize = 0;
 		for (AbstractQueue<SAMRecord> q : abstractQueues)
 			totalSize += q.size();
@@ -339,6 +338,7 @@ public class BamSummarizerMT2 implements Summarizer {
 			this.sequences = sequences;
 		}
 
+		@SuppressWarnings("resource")
 		@Override
 		public void run() {
 			log.debug("start producer ");
@@ -366,7 +366,6 @@ public class BamSummarizerMT2 implements Summarizer {
 							
 							// if q size is getting too large - give the Producer a rest
 							// having too many items in the queue seems to have a detrimental effect on performance.
-							//FIXME 4???
 							while (size > (100000 / noOfProducerThreads)) {
 								Thread.sleep(75);
 								size = queue.size();
@@ -458,14 +457,9 @@ public class BamSummarizerMT2 implements Summarizer {
 				logger.info(Thread.currentThread().getName() + " " + e.getMessage());
 				mainThread.interrupt();
 			} finally {
-				try {
-					reader.close();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} finally {
-					pLatch.countDown();
-				}
+				try {reader.close(); } 
+				catch (IOException e) {e.printStackTrace(); } 
+				finally {pLatch.countDown();}
 			}
 		}
 	}

@@ -34,8 +34,6 @@ public class VcfSummarizer implements Summarizer {
 			vcfSummaryReport.setFileName(input);
 			vcfSummaryReport.setStartTime(DateUtils.getCurrentDateAsString());
 		
-			//debug
-			int testCode = 0;
         	//no chr in front of position
 			for (final VcfRecord vcf : reader) {
 				try{
