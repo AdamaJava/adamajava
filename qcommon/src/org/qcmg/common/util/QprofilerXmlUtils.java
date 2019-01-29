@@ -155,9 +155,9 @@ public class QprofilerXmlUtils {
 				backupFileByRenaming(newFile.getCanonicalPath());
 
 			// Finally we get the rename origFile to newFile!
-			if (!origFile.renameTo(newFile))  
+			if (!origFile.renameTo(newFile)) { 
 				throw new RuntimeException("Unable to rename file from " + origFile.getName() + " to " + newFile.getName());
-			 
+			}
 		}
 	}
 	
@@ -176,8 +176,9 @@ public class QprofilerXmlUtils {
 			if( ! (children.item(i) instanceof Element))
 				continue;
 			
-			if(children.item(i).getNodeName().equals(tagName))
-				elements.add((Element) children.item(i));			
+			if(children.item(i).getNodeName().equals(tagName)) {
+				elements.add((Element) children.item(i));	
+			}		
 		}
 		
 		return elements; 		
@@ -207,10 +208,11 @@ public class QprofilerXmlUtils {
 				
 		NodeList offspring = parent.getElementsByTagName(tagName);
 		for( int i = 0; i < offspring.getLength(); i ++ ){
-			if( ! (offspring.item(i) instanceof Element) )
-				continue;			
-			if(offspring.item(i).getNodeName().equals(tagName))
-				elements.add((Element) offspring.item(i));			
+			if( ! (offspring.item(i) instanceof Element) ) 	continue;			
+			if(offspring.item(i).getNodeName().equals(tagName)) {
+				elements.add((Element) offspring.item(i));	
+				
+			}		
 		}
 		
 		return elements; 		
@@ -253,24 +255,12 @@ public class QprofilerXmlUtils {
 		if(childName == null) return root;
 		
 		return QprofilerXmlUtils.createSubElement(root, childName);	 
-	}
-	
-//	public static Element createRootElement( String namespaceURI, String qualifiedName, DocumentType doctype) throws  ParserConfigurationException{
-//		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-//		DocumentBuilder builder = factory.newDocumentBuilder();
-//		DOMImplementation domImpl = builder.getDOMImplementation();		
-//		Document doc = domImpl.createDocument( namespaceURI,  qualifiedName,  doctype );
-//		return doc.getDocumentElement();
-//	}
-	
-	
-	
+	}	
 
 	public static Element createSubElement(Element parent, String name) {
 		Element element = parent.getOwnerDocument().createElement(name);
 		parent.appendChild(element);
 		return element;
 	}
-	
 	
 }
