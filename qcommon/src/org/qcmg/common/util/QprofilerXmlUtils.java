@@ -29,7 +29,6 @@ public class QprofilerXmlUtils {
 	public static final String TOTAL = "Total";
 	public static final String UNKNOWN_READGROUP = "unkown_readgroup_id";
 	public static final String All_READGROUP = "overall";	
-//	public static final String COMMA = ","; 
 	
 	//summary
 	public static final String readGroup = "readGroup";
