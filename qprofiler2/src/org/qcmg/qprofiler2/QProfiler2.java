@@ -136,20 +136,6 @@ public class QProfiler2 {
 		sol.setFinishTime(DateUtils.getCurrentDateAsString());		
 		QprofilerXmlUtils.asXmlText(root, outputFile);
 		
-//		//output tsv file if inputs are xml			
-//		if ( ! noHtml ) {
-//			String qVisLogFile = logFile.replace( "log", "html.log" );
-//			String [] args = { "-i",outputFile, "-log", qVisLogFile };
-//			logger.info( "about to run qVisualise on qProfiler output" );
-//			try {
-//				int exitstatus = new QVisualise().setup(args);
-//				if (exitstatus == 0) logger.info("qVisualise output generated: " + outputFile + ".html");
-//				else logger.warn("Problem occurred in qVisualise - please refer to log file [" + qVisLogFile + "] for (hopefully) more details"); 
-//			} catch (Exception e) {
-//				// just log this and continue
-//				logger.warn("qVisualise failed for qprofiler output: " + outputFile);
-//			}
-//		}
 		return exitStatus;
 	}
 	
