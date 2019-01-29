@@ -29,7 +29,7 @@ public class QprofilerXmlUtils {
 	public static final String TOTAL = "Total";
 	public static final String UNKNOWN_READGROUP = "unkown_readgroup_id";
 	public static final String All_READGROUP = "overall";	
-	public static final String COMMA = ","; 
+//	public static final String COMMA = ","; 
 	
 	//summary
 	public static final String readGroup = "readGroup";
@@ -97,10 +97,12 @@ public class QprofilerXmlUtils {
 			
 	public static <T> String joinByComma( List<T> possibles){		 		
 		StringBuilder sb = new StringBuilder();
-		for(T mer :  possibles)
-			if( mer instanceof  String || mer instanceof Number || mer instanceof Character)
-			sb.append(mer).append(QprofilerXmlUtils.COMMA);			
-		return (sb.length() > 0)?  sb.substring(0, sb.length()-COMMA.length()) : "";				
+		for(T mer :  possibles) {
+			if( mer instanceof  String || mer instanceof Number || mer instanceof Character) {
+				sb.append(mer).append(Constants.COMMA);	
+			} 	
+		}	
+		return (sb.length() > 0)?  sb.substring(0, sb.length()-1) : "";		
 	}
 
 	/**
