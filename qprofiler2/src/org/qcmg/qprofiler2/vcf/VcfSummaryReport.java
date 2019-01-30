@@ -96,8 +96,7 @@ public class VcfSummaryReport  extends SummaryReport {
 				if( formatsTypes.isEmpty() ) {
 					summaries.get(sample).get(cates).toXML( ele, null, null );
 				}else {
-					summaries.get(sample).get(cates).toXML( ele, String.join(Constants.COMMA_STRING , formatsTypes), cates );	
-					//summaries.get(sample).get(cates).toXML( ele, StringUtils.join( formatsTypes, Constants.COMMA), cates );	
+					summaries.get(sample).get(cates).toXML( ele, StringUtils.join( formatsTypes, Constants.COMMA), cates );	
 				}
 			}			
 		}		

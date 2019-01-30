@@ -11,42 +11,11 @@
  */
 package org.qcmg.qprofiler2.util;
 
-
-
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import org.qcmg.common.model.QCMGAtomicLongArray;
 
-
-
 public class SummaryReportUtils {
-	 	
-	/**
-	 * 
-	 * @param dataString: a byte array of readbase
-	 * @return reversed byte array and each base are complement. Eg. {'A','G', 'T'} => {'A','C', 'T'}
-	 */
-//	public static byte[] getReversedSeq(byte[] dataString){		
-//	
-//		byte[] data = getReversedQual(dataString);		
-//	 	byte[] complementBases = new byte[data.length];				
-//		for(int i = 0; i < data.length; i++) {		 
-//			complementBases[i] = (byte) BaseUtils.getComplement( (char)data[i]);
-//		}
-//		return complementBases ;		
-//	}
-	
-	/**
-	 * 
-	 * @param dataString: a byte array of Seq or qual
-	 * @return reversed byte array
-	 */
-//	public static byte[] getReversedQual(byte[] dataString){
-//		if(dataString == null) return null;
-//		byte[] data = dataString.clone();
-//		ArrayUtils.reverse(data );
-//		return data; 		
-//	}
 
 	/**
 	 * 
