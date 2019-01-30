@@ -75,8 +75,6 @@ public class BamSummaryReport2 extends SummaryReport {
 	private final QCMGAtomicLongArray flagIntegerCount = new QCMGAtomicLongArray( 2048 );  //count on each read
 
 	// Coverage
-//	private final ConcurrentMap<Integer, AtomicLong> coverage = new ConcurrentSkipListMap<Integer, AtomicLong>();
-//	private final ConcurrentNavigableMap<Integer, AtomicLong> coverageQueue = new ConcurrentSkipListMap<Integer, AtomicLong>();
 	private final ConcurrentMap<String, PositionSummary> rNamePosition = new ConcurrentHashMap<String, PositionSummary>(85);  //chr=>coveragesummary	
 	
 	private final QCMGAtomicLongArray cigarLengths = new QCMGAtomicLongArray(1024);	
@@ -90,27 +88,11 @@ public class BamSummaryReport2 extends SummaryReport {
 	private final KmersSummary kmersSummary = new KmersSummary( KmersSummary.maxKmers ); //default use biggest mers length
  	private final TagSummaryReport2 tagReport = new TagSummaryReport2();
  	
-//	private int zeroCoverageCount;
-//	private boolean includeCoverage;
 	private Long maxRecords;
 	private SAMFileHeader bamHeader;
 	private SAMSequenceDictionary samSeqDictionary;
 	private List<String> readGroupIds = Arrays.asList( QprofilerXmlUtils.UNKNOWN_READGROUP ); //init	
-		
-//	public BamSummaryReport2(String [] includes, int maxRecs, String [] tags, String [] tagsInt, String [] tagsChar) {
-//		super();		
-//
-//		if (maxRecs > 0) maxRecords = Long.valueOf(maxRecs);			
-//		if (null == includes) return;
-//		for (String include : includes)
-//			if ("matrices".equalsIgnoreCase(include) || "matricies".equalsIgnoreCase(include))
-//				tagReport.setInclMatrices();
-//			 else if ("coverage".equalsIgnoreCase(include))
-//				includeCoverage = true;
-//			 else
-//				logger.warn("Unknown include type: " + include);		
-//	}
-	
+			
 	public BamSummaryReport2( int maxRecs) {
 		super();		
 
@@ -121,20 +103,7 @@ public class BamSummaryReport2 extends SummaryReport {
 	 * Called once all records have been parsed.
 	 * Allows some cleanup to take place - eg. move remaining entries from coverageQueue and add to coverage map
 	 */
-	public void cleanUp() {
-					
-//		if (includeCoverage ) {
-//			// add the zero coverage count to the collection
-//			if (zeroCoverageCount > 0)
-//				coverage.put(0, new AtomicLong(zeroCoverageCount));
-//			// if there are any entries left in the queue, add them to the map
-//			if ( ! coverageQueue.isEmpty()) {
-//				int lastEntry = ((ConcurrentSkipListMap<Integer, AtomicLong>)coverageQueue).lastKey().intValue();
-//				lastEntry++;	// increment as headMap returns values less than the passed in key
-//				removeCoverageFromQueueAndAddToMap(lastEntry, coverageQueue, coverage);
-//				assert coverageQueue.isEmpty() : "There are still entries in the coverageQueue!!"; 
-//			}
-//		}		
+	public void cleanUp() {	
 						
 		long length = flagIntegerCount.length();
 		for (int i = 0 ; i < length ; i++) 
@@ -371,8 +340,6 @@ public class BamSummaryReport2 extends SummaryReport {
 				if (record.getFirstOfPairFlag()) p1Lengths.increment(record.getReadBases().length);
 				else if (record.getSecondOfPairFlag())  p2Lengths.increment(record.getReadBases().length);
 			} 
-			// coverage 
-//			if (includeCoverage) { 	parseCoverage(record); }			
 		}
 		
 		// MAPQ (Mapping Quality)
@@ -384,55 +351,7 @@ public class BamSummaryReport2 extends SummaryReport {
 		parseCigar(record.getCigar());
 		flagIntegerCount.increment(record.getFlags());
 	}
-
-//	void parseCoverage(SAMRecord record) {
-//		int count = 0;
-//		for (AlignmentBlock ab : record.getAlignmentBlocks()) {
-//			// find out how many positions were skipped...
-//			int referenceStart = ab.getReferenceStart();
-//			synchronized (coverageQueue) {
-//				int latestFromMap = coverageQueue.isEmpty() ? 0 :  coverageQueue.lastKey();
-//				//zero coverage if there is no overlap btw two adjacent reads
-//				if (latestFromMap < referenceStart)  
-//					zeroCoverageCount += referenceStart - latestFromMap + 1;
-//				 				 
-//				for (int i = 0 ; i < ab.getLength( ); i++) 
-//					SummaryByCycleUtils.incrementCount(coverageQueue, Integer.valueOf(i + referenceStart));
-//				 				
-//				if (++count == 1)
-//					removeCoverageFromQueueAndAddToMap(referenceStart, coverageQueue, coverage);
-//			}
-//		}
-//	}
-
-//	void removeCoverageFromQueueAndAddToMap(int referenceStart, Map<Integer, AtomicLong> queue, 
-//			ConcurrentMap<Integer, AtomicLong> map) {
-//		for (Iterator<Integer> it = ((ConcurrentSkipListMap<Integer,AtomicLong>) queue)
-//				.headMap(referenceStart).keySet().iterator() ; it.hasNext() ; ) {
-//			SummaryByCycleUtils.incrementCount(map, Integer.valueOf((int)queue.get(it.next()).get()));
-//			synchronized (queue) {
-//				it.remove();
-//			}
-//		}
-//	}
 	
-	/**
-	 * 	public static <T> void incrementCount(ConcurrentMap<T, AtomicLong> map, T data) {
-
-		if (null == map || null == data)
-			throw new AssertionError("Null map or data found in SummaryByCycleUtils.incrementMap");
-		
-		AtomicLong currentCount = map.get(data);
-		if (null == currentCount) {
-			currentCount = map.putIfAbsent(data, new AtomicLong(1));
-			if (null == currentCount)
-				return;
-		}
-		currentCount.incrementAndGet();
-	}
-	 * @param cigar
-	 */
-
 	void parseCigar(Cigar cigar) {
 		if (null != cigar) {
 			int length = 0;
@@ -457,10 +376,8 @@ public class BamSummaryReport2 extends SummaryReport {
 	
 	private void summaryToXml( Element parent ){
 		Element summaryElement = QprofilerXmlUtils.createSubElement(parent, QprofilerXmlUtils.summary);
-				
-		//QprofilerXmlUtils.createSubElement(summaryElement,  XmlUtils.metricsEle);		
+					
 		String[][] properties = new String[5][2];
-		//eg, <Property value="112" description="Number of cycles with >1% mismatches"/>
 		properties[0][0] = CycleSummaryUtils.getBigMDCycleNo(tagReport.tagMDMismatchByCycle, (float) 0.01, tagReport.allReadsLineLengths) +"";
 		properties[0][1] = "Number of cycles with greater than 1% mismatches";
 		
@@ -524,20 +441,33 @@ public class BamSummaryReport2 extends SummaryReport {
 	}
 		
 	//setting
-	public void setBamHeader(SAMFileHeader header) {  this.bamHeader = header;	 }
-//	public void setTorrentBam() { if(tagReport != null) tagReport.setTorrentBam();	}
-	public String getBamHeader() {	return bamHeader.getSAMString();	}
-	public void setSamSequenceDictionary(SAMSequenceDictionary samSeqDictionary) {	this.samSeqDictionary = samSeqDictionary;	}
-	public SAMSequenceDictionary getSamSequenceDictionary() { return samSeqDictionary;	}	
-	public void setReadGroups(List<String> ids ){	readGroupIds = Stream.concat( ids.stream(), readGroupIds.stream()).collect(Collectors.toList()); }
+	public void setBamHeader(SAMFileHeader header) { 
+		this.bamHeader = header;	
+	}
+	public String getBamHeader() {	
+		return bamHeader.getSAMString();	
+	}
+	public void setSamSequenceDictionary(SAMSequenceDictionary samSeqDictionary) {	
+		this.samSeqDictionary = samSeqDictionary;	
+	}
+	public SAMSequenceDictionary getSamSequenceDictionary() { 
+		return samSeqDictionary;	
+	}	
+	public void setReadGroups(List<String> ids ){	
+		readGroupIds = Stream.concat( ids.stream(), readGroupIds.stream()).collect(Collectors.toList()); 		
+	}
 	
 	
 	// ///////////////////////////////////////////////////////////////////////
 	// The following methods are used by the test classes
 	// ///////////////////////////////////////////////////////////////////////
-	ConcurrentMap<String, AtomicLong> getCigarValuesCount() { return cigarValuesCount; }
-	ConcurrentMap<String, PositionSummary> getRNamePosition() {	return rNamePosition; }
-	CycleSummary<Character> getSeqByCycle(int flagFirstOfPair) { return   seqByCycle[flagFirstOfPair] ; 	}
-//	ConcurrentMap<Integer, AtomicLong> getCoverage() { return coverage;	}
-//	ConcurrentMap<Integer, AtomicLong> getCoverageQueue() {	return coverageQueue;	}	
+	ConcurrentMap<String, AtomicLong> getCigarValuesCount() { 
+		return cigarValuesCount; 
+	}
+	ConcurrentMap<String, PositionSummary> getRNamePosition() {	
+		return rNamePosition; 
+	}
+	CycleSummary<Character> getSeqByCycle(int flagFirstOfPair) { 
+		return   seqByCycle[flagFirstOfPair] ; 	
+	}
 }

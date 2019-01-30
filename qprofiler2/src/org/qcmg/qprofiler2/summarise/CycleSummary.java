@@ -380,8 +380,9 @@ public class CycleSummary<T> {
 		if (size > 0) {				
 			// set offset to 0 if it is negative, or larger than the supplied string
 			if (offset < 0 || offset >= size) offset = 0;				
-			for (int i = 1 + offset ; i <= size; i++)  
-				increment(i - offset, dataString.charAt(i - 1));				 
+			for (int i = 1 + offset ; i <= size; i++) { 
+				increment(i - offset, dataString.charAt(i - 1));
+			}			 
 		}	
 	}	
 

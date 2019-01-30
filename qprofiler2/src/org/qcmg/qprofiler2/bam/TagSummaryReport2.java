@@ -10,6 +10,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.QCMGAtomicLongArray;
+import org.qcmg.common.util.Constants;
 import org.qcmg.qprofiler2.summarise.CycleSummary;
 import org.qcmg.qprofiler2.util.CycleSummaryUtils;
 import org.qcmg.qprofiler2.util.XmlUtils;
@@ -41,21 +42,13 @@ public class TagSummaryReport2 {
 	protected QLogger logger = QLoggerFactory.getLogger(getClass());	
 	private long errMDReadNo = 0 ;
 
-	
-//	/**
-//	 * default torrentBam is false, unless this method is called
-//	 */
-//	public void setTorrentBam(){   }
-//	public void setInclMatrices(){  }
-	
 	public void parseTAGs(final SAMRecord record )  {
 				
 		for( SAMTagAndValue tag : record.getAttributes()) {
 			if(tag.tag.equals("MD")) continue;
-			/*
-			 * the type may be one of A (character), B (generalarray), f (real number), H (hexadecimal array), i (integer), or Z (string).
-	           Note that H tag type is never written anymore, because B style is more compact.
-	          */
+			
+			// the type may be one of A (character), B (generalarray), f (real number), H (hexadecimal array), i (integer), or Z (string).
+	        //  Note that H tag type is never written anymore, because B style is more compact.	         
 			String type = ":B";			
 			if(tag.value instanceof Integer) type = ":i";
 			else if (tag.value instanceof Number ) type = ":f";
@@ -133,8 +126,12 @@ public class TagSummaryReport2 {
 		tallys.entrySet().removeIf( e-> no.incrementAndGet() > 100 );
 		boolean percent = (size >= 100)? false : true;
 		
-		String[] vs = tag.split(":");
-		XmlUtils.outputTallyGroup(ele, vs[0], tallys, percent);		
+		 
+//		String[] vs = tag.split(":");
+//		XmlUtils.outputTallyGroup(ele, vs[0], tallys, percent);	
+		
+		String name = tag.substring(0, tag.indexOf(Constants.COMMA_STRING));
+		XmlUtils.outputTallyGroup(ele, name, tallys, percent);	
 		if( size > 100) 			 
 			XmlUtils.addCommentChild(ele, "here only list top 100 tag values" );
 					

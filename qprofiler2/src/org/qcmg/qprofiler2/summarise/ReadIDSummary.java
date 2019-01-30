@@ -203,7 +203,7 @@ public class ReadIDSummary {
 							// 2 - 2nd in pair
 	 * @throws Exception 
 	 */
-	void parseFiveElementHeaderWithSpaces(String [] params) throws Exception {
+	void parseFiveElementHeaderWithSpaces(String [] params) {
 		// split by space
 		String [] firstElementParams = params[0].split(" ");
 		if (firstElementParams.length != 2) {
@@ -228,7 +228,7 @@ public class ReadIDSummary {
 		
 	}
 	
-	private void getPairInfo(String key) throws Exception {
+	private void getPairInfo(String key) {
 		int index = key.indexOf(" ");
 		if (index == -1) {
 			index = key.indexOf("/");

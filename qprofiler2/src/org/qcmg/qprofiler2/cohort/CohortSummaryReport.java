@@ -19,7 +19,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 public class CohortSummaryReport extends SummaryReport {
-//	public static String categorySeperate = ";";
 	public static String outputSeperate = "\t";	
 	public static String headerline = String.join( outputSeperate, new String[]{ "File","Sample" ,"ReportingCategory","VariantType","VariantCount","DbSnpProportion","TiTvRatio"});
 	
@@ -63,10 +62,7 @@ public class CohortSummaryReport extends SummaryReport {
 	 * @return an array of total counts of variantCounts , dbsnp , ti and tv
 	 */
 	public long[] getCountSum(){
-		
-	//	return new long[]{ sum_ti, sum_tv, sum_db, sum_count };
-		return new long[]{ sum_count, sum_db, sum_ti, sum_tv  };
-		
+		return new long[]{ sum_count, sum_db, sum_ti, sum_tv  };		
 	}
 	
 	class Category{
@@ -79,8 +75,7 @@ public class CohortSummaryReport extends SummaryReport {
 		int ti = 0, tv = 0;
 						
 		Category(String name, Element report){
-			
-			 
+					 
 			this.category = (name == null || name.isEmpty()) ? "-" : name; 
 			String titv = "-" ;
 			 
@@ -144,8 +139,6 @@ public class CohortSummaryReport extends SummaryReport {
 
 	
 	@Override @Deprecated
-	public void toXml(Element parent) {
-		// TODO Auto-generated method stub		
-	}
+	public void toXml(Element parent) {}
 
 }

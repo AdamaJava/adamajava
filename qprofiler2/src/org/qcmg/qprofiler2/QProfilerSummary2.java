@@ -77,7 +77,9 @@ public class QProfilerSummary2 {
 	 */
 	public void toXml( Element parent ) {
 		for (SummaryReport report : reports) {
-			if ( null != report ) report.toXml( parent );
+			if ( null != report ) { 
+				report.toXml( parent );
+			}
 		}
 	}
 	

@@ -78,7 +78,6 @@ public class ReadGroupSummary {
 	AtomicLong diffRef  = new AtomicLong();	
 	AtomicLong mateUnmapped  = new AtomicLong();	
 	AtomicLong diffRef_flag_p  = new AtomicLong();	
-//	AtomicLong mateUnmapped_flag_p  = new AtomicLong();
 	
 	//for combined readgroups, since max read length maybe different
 	//below value will be reset on preSummary() inside readsSummary2Xml()
@@ -207,9 +206,9 @@ public class ReadGroupSummary {
 		} 
 			
 		//find the max read length	
-		if(record.getReadLength() > this.maxReadLength)
+		if(record.getReadLength() > this.maxReadLength) {
 			this.maxReadLength = record.getReadLength();			
-			
+		}
 		//find mapped badly reads and return false	
 		if(record.getReadUnmappedFlag() ){
 			unmapped.incrementAndGet();
@@ -225,12 +224,13 @@ public class ReadGroupSummary {
 		
 		//parse clips
 		 int lHard = 0, lSoft = 0;
-		 for (CigarElement ce : record.getCigar().getCigarElements())
+		 for (CigarElement ce : record.getCigar().getCigarElements()) {
 			 if (ce.getOperator().equals(CigarOperator.HARD_CLIP)) {
 				 lHard += ce.getLength();
 			 } else if (ce.getOperator().equals(CigarOperator.SOFT_CLIP)) {
 				 lSoft += ce.getLength();
 			 }
+		 }
 		 
 		hardClip.increment(lHard);
 		softClip.increment(lSoft);
@@ -292,7 +292,8 @@ public class ReadGroupSummary {
 		//discard remains reads with tlen minus or unvaliable 	
 		if( record.getInferredInsertSize() <= 0 ) { return; }
 				
-		//??? both pair with tlen >0 it is hardly happen, bad value but picard accept it
+		//waringing: 
+		//both pair with tlen >0 it is hardly happen, bad value but picard accept it
 		//proper pair with tlen > 0 disregard first or second of pair		
 		pairNum.incrementAndGet();	
 		//another reason is impossible to caculate overlapBase since getOverlapBase( record) return 0 if tlen<=0		
@@ -316,7 +317,9 @@ public class ReadGroupSummary {
 			
  	}
 			
-	public long getDiscardreads() {return supplementary.get() + failedVendorQuality.get() + secondary.get();}
+	public long getDiscardreads() {
+		return supplementary.get() + failedVendorQuality.get() + secondary.get();
+	}
 		
 	/**
 	 * 
@@ -324,9 +327,9 @@ public class ReadGroupSummary {
 	 */
 	public long getCountedReads() {				
 		long totalRead = 0  ;
-		for (int i = 1 ; i < readLength.length() ; i++)			 
+		for (int i = 1 ; i < readLength.length() ; i++)	{		 
 			totalRead += readLength.get(i);
-		
+		}
 		return totalRead + duplicate.get() + unmapped.get() + nonCanonical.get() ;		
 	}
 		
@@ -449,13 +452,18 @@ public class ReadGroupSummary {
 		}		
 		int mean = (no == 0) ? 0: (int) (sum / no);		
 		int min = 0; //find the smallest non-zero value;
-		for(int i = 1; i < middleTlenValue; i ++)
-			if(isize.get(i) > 0){ min  = i; break; }
-					 
-		int medium = 0;  	// to avoid isize.get(0) >= 0 since 1(counts)/2== 0(counts/2) == 0
-		for (int i = 1,  total1 = 0 ; i < middleTlenValue; i++)
-			if(( total1 += isize.get(i)) > no/2 ){  medium = i;   break; }
-				
+		for(int i = 1; i < middleTlenValue; i ++) {
+			if(isize.get(i) > 0){ 
+				min  = i; break; 
+			}
+		}		 
+		int medium = 0;  	
+		// to avoid isize.get(0) >= 0 since 1(counts)/2== 0(counts/2) == 0
+		for (int i = 1,  total1 = 0 ; i < middleTlenValue; i++) {
+			if(( total1 += isize.get(i)) > no/2 ){  
+				medium = i;   break; 
+			}
+		}
 		int mode = 0; //mode is the number of read which length is most popular
 		long highest = 0;
 		double sd = 0;
@@ -468,7 +476,7 @@ public class ReadGroupSummary {
 		
 		Element ele1 = XmlUtils.createGroupNode(ele, "tlen");
 		XmlUtils.outputValueNode(ele1, smax, this.max_isize.get());
-		ele1.appendChild(ele1.getOwnerDocument().createComment("below stats is based on tlen value < " + this.middleTlenValue));
+		ele1.appendChild(ele1.getOwnerDocument().createComment("below stats is based on tlen value < " + middleTlenValue));
 		XmlUtils.outputValueNode(ele1, smin, min);		
 		XmlUtils.outputValueNode(ele1, smean, mean);
 		XmlUtils.outputValueNode(ele1, smode, mode);	
@@ -498,9 +506,9 @@ public class ReadGroupSummary {
 				
 		 // to avoid aray.get(0) >= 0 since 1(counts)/2== 0(counts/2) == 0
 		long medium = 0;  	
-		for (int i = 1 ; i < arrayLength; i++) 
+		for (int i = 1 ; i < arrayLength; i++) {
 			if(( medium += array.get(i)) > counts/2 ){ medium = i;  break; }
-				
+		}
 		int min = 0; //find the smallest non-zero value;
 		for(int i = 1; i < arrayLength; i ++) {
 			if(array.get(i) > 0){ 

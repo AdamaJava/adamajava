@@ -8,6 +8,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.lang3.StringUtils;
 import org.qcmg.common.model.ProfileType;
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.QprofilerXmlUtils;
 import org.qcmg.common.vcf.VcfFormatFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
@@ -21,7 +22,6 @@ import org.w3c.dom.Element;
 public class VcfSummaryReport  extends SummaryReport {
 		
 	public static final String Sample = "sample";	
-	static final String Seperator = ":";
 	private final VcfHeader vcfHeader;	
 	private final String[] sampleIds; 
  
@@ -71,7 +71,7 @@ public class VcfSummaryReport  extends SummaryReport {
 				}
 			}	 
 			Map<String, SampleSummary> map =  summaries.computeIfAbsent( sampleIds[i-1], (k) -> new HashMap<String, SampleSummary>() );
-			map.computeIfAbsent( StringUtils.join( cates, Seperator ), (k) -> new SampleSummary() ).parseRecord( vcf, i ) ;
+			map.computeIfAbsent( StringUtils.join( cates, Constants.COMMA), (k) -> new SampleSummary() ).parseRecord( vcf, i ) ;
 		}				
 	}
 
@@ -96,7 +96,8 @@ public class VcfSummaryReport  extends SummaryReport {
 				if( formatsTypes.isEmpty() ) {
 					summaries.get(sample).get(cates).toXML( ele, null, null );
 				}else {
-					summaries.get(sample).get(cates).toXML( ele, String.join(Seperator , formatsTypes), cates );	
+					summaries.get(sample).get(cates).toXML( ele, String.join(Constants.COMMA_STRING , formatsTypes), cates );	
+					//summaries.get(sample).get(cates).toXML( ele, StringUtils.join( formatsTypes, Constants.COMMA), cates );	
 				}
 			}			
 		}		

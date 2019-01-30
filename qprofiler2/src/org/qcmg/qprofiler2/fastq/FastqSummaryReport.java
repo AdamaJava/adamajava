@@ -37,7 +37,6 @@ public class FastqSummaryReport extends SummaryReport {
 	
 	//SEQ
 	private final CycleSummary<Character> seqByCycle = new CycleSummary<Character>(c, 512);
-//	private Map<Integer, AtomicLong> seqLineLengths = null;
 	private final QCMGAtomicLongArray seqBadReadLineLengths = new QCMGAtomicLongArray(128);
 	private final KmersSummary kmersSummary = new KmersSummary( KmersSummary.maxKmers ); //default use biggest mers length
 	
@@ -73,9 +72,10 @@ public class FastqSummaryReport extends SummaryReport {
 		XmlUtils.addCommentChild(ele, FastqSummaryReport.badBaseComment );
 		
 		//1mers is same to baseByCycle
-		for( int i : new int[] { 2, 3, KmersSummary.maxKmers } )
+		for( int i : new int[] { 2, 3, KmersSummary.maxKmers } ) {
 			kmersSummary.toXml( element,i );	
-				
+		}
+		
 		//QUAL
 		final String qualBaseCycle = QprofilerXmlUtils.qualBase + QprofilerXmlUtils.cycle ; 	
 		element =   QprofilerXmlUtils.createSubElement(parent, QprofilerXmlUtils.qual) ;

@@ -78,10 +78,13 @@ public class SampleSummary {
 		}
 		
 		//java support modulus for float number; 
-		//if reminding is zero, it count to previous bin		
-		int bin = vaf * altBinSize / Integer.parseInt(dp);
-		if(vaf * altBinSize % Integer.parseInt(dp) == 0 && bin > 0)
+		//if reminding is zero, it count to previous bin	
+		int idp = Integer.parseInt(dp);
+		int total = vaf * altBinSize;
+		int bin = total / idp;
+		if(total % idp == 0 && bin > 0) {
 			bin -= 1;
+		}
 		map.computeIfAbsent( type.name() , (k) -> new QCMGAtomicLongArray(altBinSize )).increment( bin );
 		
 	}
@@ -144,7 +147,7 @@ public class SampleSummary {
 				Map<String, AtomicLong> tvFreq = new HashMap<>();
 				
 				long sumTi = 0, sumTv = 0;
-				for(SubsitutionEnum tran: SubsitutionEnum.values()) 
+				for(SubsitutionEnum tran: SubsitutionEnum.values()) {
 					if(tran.isTranstion() &&  summary.get(type.name()+tran.name()) != null) { 
 						tiFreq.put(tran.toString(), summary.get(type.name()+tran.name()));
 						sumTi += summary.get(type.name()+tran.name()).get();
@@ -152,7 +155,7 @@ public class SampleSummary {
 						tvFreq.put(tran.toString(), summary.get(type.name()+tran.name()));	
 						sumTv += summary.get(type.name()+tran.name()).get();
 					}
-				
+				}
 				double rate = sumTi * sumTv == 0 ? 0 : (double) sumTi/sumTv;			 
 				XmlUtils.outputValueNode(reportE1, tiTvRatio,  rate );
 				 

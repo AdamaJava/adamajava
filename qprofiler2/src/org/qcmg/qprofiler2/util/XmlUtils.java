@@ -197,12 +197,13 @@ public class XmlUtils {
 		for(Entry<T,  AtomicLong> entry : tallys.entrySet()) { 
 			//skip zero value for output
 			if(entry.getValue().get() == 0 ) continue;
-			Double percent = (sum == 0)? null : 100 * (double)entry.getValue().get() / sum;
+			double percent = (sum == 0)? null : 100 * (double)entry.getValue().get() / sum;
 			Element ele1 = QprofilerXmlUtils.createSubElement( ele, Stally );
 			ele1.setAttribute( Svalue, String.valueOf( entry.getKey() ));
 			ele1.setAttribute( Scount, String.valueOf( entry.getValue().get() )); 
-			if( hasPercent == true)
+			if( hasPercent == true) {
 				ele1.setAttribute(Spercent, String.format("%,.2f", percent));	
+			}
 		}        	
     }
     

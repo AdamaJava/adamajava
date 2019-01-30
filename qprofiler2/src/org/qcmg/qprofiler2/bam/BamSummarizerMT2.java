@@ -46,7 +46,6 @@ public class BamSummarizerMT2 implements Summarizer {
 	private int noOfProducerThreads;
 	private final int noOfConsumerThreads;
 	private final int maxRecords;
-//	private static SAMSequenceDictionary samSeqDict;
 	private final String validation;
 	ValidationStringency vs;
 	private final static String UNMAPPED_READS = "Unmapped";
@@ -98,14 +97,6 @@ public class BamSummarizerMT2 implements Summarizer {
 			queues[i] = new ConcurrentLinkedQueue<SAMRecord>();	
 		}
 		
-//		AbstractQueue<SAMRecord> q  = null;
-//		if (noOfProducerThreads == 1) {
-//			q = new ConcurrentLinkedQueue<>();
-//		} else {
-//			queues = new ConcurrentLinkedQueue[noOfProducerThreads];
-//			for (int i = 0 ; i < noOfProducerThreads ; i++)  
-//				queues[i] = new ConcurrentLinkedQueue<SAMRecord>();			 
-//		}
 		long start = System.currentTimeMillis();
 		
 		final BamSummaryReport2 bamSummaryReport =  BamSummarizer2.createReport(file,  maxRecords );				 		
@@ -379,7 +370,6 @@ public class BamSummarizerMT2 implements Summarizer {
 					}
 					iter.close();
 				}
-				reader.close();
 			} catch (InterruptedException | IOException e) {
 				log.info(Thread.currentThread().getName() + " " + e.getMessage());
 			}catch (Exception e) {
@@ -409,9 +399,6 @@ public class BamSummarizerMT2 implements Summarizer {
 		public void run() {
 			logger.debug("start producer");
 			SamReader reader = SAMFileReaderFactory.createSAMFileReader(file, validation);
-
-			//debug
-			System.out.println( "single Producer hasIndex: " +reader.hasIndex());
 
 			int size = 0;
 			long count = 0;
@@ -448,8 +435,6 @@ public class BamSummarizerMT2 implements Summarizer {
 						break;
 				}
 				
-				// set the bam header
-				//bamHeader = reader.getFileHeader().getTextHeader();
 				
 			} catch (InterruptedException e) {
 				logger.info(Thread.currentThread().getName() + " " + e.getMessage());

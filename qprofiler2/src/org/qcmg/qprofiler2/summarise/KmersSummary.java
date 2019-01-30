@@ -250,8 +250,7 @@ public class KmersSummary {
 		int midCycle = cycleNo / 2; 
 		int bfMidCycle = (midCycle > 20 )? midCycle - 10 : (midCycle < kLength )? 0 : midCycle - kLength; 
 		int afMidCycle = (midCycle > 20 )? midCycle + 10 : (midCycle < kLength )? cycleNo-1 : midCycle + kLength; 
-		
-				
+						
 		long[] bfMidCycleCounts = getCounts(bfMidCycle, possibleMers,flagFristRead);
 		long[] afMidCycleCounts = getCounts(afMidCycle, possibleMers,flagFristRead);
 		long[] midCycleCounts = getCounts(midCycle, possibleMers,flagFristRead);
@@ -267,11 +266,12 @@ public class KmersSummary {
 		for(int i = 0; i < popularNo; i ++ ){
 			long bigValue = sortCounts[sortCounts.length - i-1];
 			if( bigValue == 0 ) break; //find zero is meaningless
-			for(int j = 0; j < possibleMers.length; j ++)  
+			for(int j = 0; j < possibleMers.length; j ++) { 
 				if(bigValue == midCycleCounts[j] && !popularMers.contains(possibleMers[j])){
 					popularMers.add( possibleMers[j]);
 					break;
 				}
+			}
 		}
 		return popularMers; 
 	}
