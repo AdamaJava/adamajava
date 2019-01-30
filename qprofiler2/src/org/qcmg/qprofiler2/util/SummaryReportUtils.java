@@ -279,7 +279,9 @@ public class SummaryReportUtils {
 		}
 	}
 	
-	private static boolean isInValid(char c) { return c == '.' || c == 'N'; }
+	private static boolean isInValid(char c) { 
+		return c == '.' || c == 'N';
+	}
 	
 	/**
 	 * how many quality base value is below then 10, then record this count to specified array

@@ -13,15 +13,11 @@ package org.qcmg.qprofiler2.summarise;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicLongArray;
 
 import org.qcmg.common.model.QCMGAtomicLongArray;
 
@@ -58,7 +54,9 @@ public class PositionSummary {
 	
 	public int getMax() {	return max.intValue(); }
 	
-	public int getBinNumber() { return (max.get()/BUCKET_SIZE) + 1 ;}
+	public int getBinNumber() {
+		return (max.get()/BUCKET_SIZE) + 1;
+	}
 
 	/**
 	 * 
@@ -73,7 +71,6 @@ public class PositionSummary {
 					rgCov[j] = rgCoverages[j].get(i);
 				Arrays.sort(rgCov);
 				maxRgs.add( rgCov[rgCoverages.length - 1 ]);   //get the max coverage of all readGroup at that position		
-//				System.out.println(i + ":" + maxRgs.size());    
 			}
 			hasAddPosition = false; 
 		}

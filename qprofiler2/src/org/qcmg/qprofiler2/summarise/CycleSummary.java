@@ -320,8 +320,7 @@ public class CycleSummary<T> {
 	 * @param parent Element that the current objects xml representation will be added to
 	 * @param elementName String representing the name to be used when creating the element
 	 */	
-	public void toXml( Element parent, String metricName, String metricType, String groupName )
-	{
+	public void toXml( Element parent, String metricName, String metricType, String groupName ){
 		//do nothing if no base detected
 		Set<T> possibles = getPossibleValues();
 		if( possibles == null || possibles.size() <= 0 ) return; 

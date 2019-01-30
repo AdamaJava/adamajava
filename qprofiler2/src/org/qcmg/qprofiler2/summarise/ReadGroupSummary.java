@@ -93,10 +93,17 @@ public class ReadGroupSummary {
 	private long trimedRead = -1;
 	
 	private final String readGroupId; 		
-	public ReadGroupSummary(String rgId){	this.readGroupId = rgId; }
+	public ReadGroupSummary(String rgId){
+		this.readGroupId = rgId; 
+	}
 	
-	public String getReadGroupId(){return readGroupId; }	
-	public Long getMaxBases(){	return this.maxBases; }
+	public String getReadGroupId(){
+		return readGroupId; 
+	}	
+	
+	public Long getMaxBases(){	
+		return this.maxBases; 
+	}
 
 	/**
 	 * 
@@ -117,10 +124,14 @@ public class ReadGroupSummary {
 			this.nonCanonicalBase : this.nonCanonical.get() * this.maxReadLength;
 	}
 	
-	public long getTrimmedBase() {return trimedBase;}
-	public long getTrimmedRead() {return trimedRead;}
+	public long getTrimmedBase() {
+		return trimedBase;
+	}
 	
-		
+	public long getTrimmedRead() {
+		return trimedRead;
+	}
+	
  	private class PairedRead {
  		private final String name;		
  		PairedRead(String name){this.name = name;}
@@ -160,8 +171,7 @@ public class ReadGroupSummary {
 		 * @param parent
 		 */
 		
-		void toXml(Element parent  ){
-			
+		void toXml(Element parent  ){			
 			Element stats = XmlUtils.createGroupNode(parent, name);
 			XmlUtils.outputValueNode(stats, "overlapping", overlap.get());
 			stats.appendChild(stats.getOwnerDocument().createComment("below counts excluding overlapping pairs"));
@@ -238,8 +248,12 @@ public class ReadGroupSummary {
  
 	}
 	
-	public QCMGAtomicLongArray getISizeCount(){return isize;}
-	public QCMGAtomicLongArray getISizeRangeCount(){return isizeRange;}
+	public QCMGAtomicLongArray getISizeCount(){
+		return isize;
+	}
+	public QCMGAtomicLongArray getISizeRangeCount(){
+		return isizeRange;
+	}
 	
 	/**
 	 * count the first of pair number and record iSize(Tlen);
@@ -319,18 +333,7 @@ public class ReadGroupSummary {
 	/**
 	 * check all globle value and assign the sumamry value
 	 * eg.  
-	 * 	private long trimedBase = 0; 
-	private Long maxBases = null; 
-	private Long badBases = null;  //duplicated, unmapped, non-canonical read base
-	private int maxReadLength = 0;
-	private int noOfCountedReads = 0;
-	trimedBase
-	
-			long duplicateBase = 0;
-		long unmappedBase = 0;
-		long noncanonicalBase = 0;
-
-
+	 * 	private long trimedBase = 0; 	
 	 */
 	public void preSummary(long max , long trimB, long trimR, long baseDup, long baseUnmap, long baseNonCan) {
 		//maxReadLength is continuelly updated during parseRecord
@@ -499,21 +502,27 @@ public class ReadGroupSummary {
 			if(( medium += array.get(i)) > counts/2 ){ medium = i;  break; }
 				
 		int min = 0; //find the smallest non-zero value;
-		for(int i = 1; i < arrayLength; i ++)
-			if(array.get(i) > 0){ min  = i; break; }
-				
+		for(int i = 1; i < arrayLength; i ++) {
+			if(array.get(i) > 0){ 
+				min  = i; break; 
+			}
+		}
+		
 		int max = 0; //find the biggest non-zero value;
-		for(int i = (int) (arrayLength -1); i > 0; i--)
-			if(array.get(i) > 0){ max = i; break;  }
-						
+		for(int i = (int) (arrayLength -1); i > 0; i--) {
+			if(array.get(i) > 0){ 
+				max = i; break;  
+			}
+		}
+		
 		int mode = 0; //mode is the number of read which length is most popular
 		long highest = 0;
-		for (int i = 1 ; i < arrayLength ; i++) 					
+		for (int i = 1 ; i < arrayLength ; i++) { 					
 			if(array.get(i) > highest){
 				highest = array.get(i);
 				mode = i; 
 			}  	
-		
+		}
 		Element ele = XmlUtils.createGroupNode(parent, nodeName);	
 		XmlUtils.outputValueNode(ele, smin, min);
 		XmlUtils.outputValueNode(ele, smax, max);

@@ -1,10 +1,9 @@
 package org.qcmg.qprofiler2.summarise;
 
-import java.util.ArrayList;
+
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
@@ -12,7 +11,6 @@ import org.qcmg.common.model.QCMGAtomicLongArray;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.BaseUtils;
 import org.qcmg.common.util.Constants;
-import org.qcmg.common.util.QprofilerXmlUtils;
 import org.qcmg.qprofiler2.bam.BamSummaryReport2;
 import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Element;
@@ -176,7 +174,9 @@ public class KmersSummary {
 		byte[] small = new byte[ merLength ];
 		byte[] big = new byte[ merLength ];
 		for(int i = 0; i < mer.length; i ++ ) small[i] = big[i] = mer[i];
-		for(int i = mer.length; i < merLength; i ++){ small[i] = 'A'; big[i] = 'N'; }
+		for(int i = mer.length; i < merLength; i ++){
+			small[i] = 'A'; big[i] = 'N'; 
+		}
 		
 		long count = 0;	
 		for(int i = getPosition(cycle, small), j = getPosition(cycle, big); i <=j ; i ++ ) 

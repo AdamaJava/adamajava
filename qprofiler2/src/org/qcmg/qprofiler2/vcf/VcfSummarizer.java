@@ -27,9 +27,10 @@ public class VcfSummarizer implements Summarizer {
 		
 		try (VCFFileReader reader = new VCFFileReader(new File(input))  ) {
 			VcfHeader header = reader.getHeader();
-			if(header == null || header.getSampleId() == null) 
+			if(header == null || header.getSampleId() == null) {
 				throw new Exception("Invalid Vcf Header: please specify Sample id after Format column on Header line!");
- 
+			}
+			
 			vcfSummaryReport = new VcfSummaryReport(header, formats);
 			vcfSummaryReport.setFileName(input);
 			vcfSummaryReport.setStartTime(DateUtils.getCurrentDateAsString());
@@ -40,10 +41,11 @@ public class VcfSummarizer implements Summarizer {
 					vcfSummaryReport.parseRecord( vcf );		
 					
 				}catch(Exception e){
-					if( ++errNo < 500 )
+					if( ++errNo < 500 ) {
 						logger.warn("error in vcf record: " + vcf.toString());
-					else 
+					}else { 
 						throw e; 
+					}
 				}			
 			}	
 		}	
