@@ -431,8 +431,11 @@ public class BamSummaryReport2 extends SummaryReport {
 		
 		//overall readgroup 
 		Element metricsE = XmlUtils.createMetricsNode(summaryElement, "summary", getRecordsParsed());						
-		for(String[] property : properties) 
-			XmlUtils.outputValueNode(metricsE, property[1], Integer.parseInt(property[0]));		
+		for(String[] property : properties) {
+			//the biggest input number we meet exceed the int.max, so here we have to use long
+			XmlUtils.outputValueNode(metricsE, property[1], Long.parseLong(property[0]));	
+		}
+		
 		
 		try {				
 			//summary
