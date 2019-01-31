@@ -93,7 +93,7 @@ public class KmersSummary {
 			return mersStrList; 
 		
 		//produce all possible kmers in String 
-		String str1 = producer( k, "", includeN );		
+		String str1 = producer( k, "", includeN );			
 		return str1.split(Constants.COMMA_STRING);
 	}	
 	public void parseKmers( byte[] readString, boolean reverse , int flagFirstOfPair){
