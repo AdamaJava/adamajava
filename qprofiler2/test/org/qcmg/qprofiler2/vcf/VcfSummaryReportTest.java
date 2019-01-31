@@ -12,6 +12,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.model.ProfileType;
 import org.qcmg.common.util.QprofilerXmlUtils;
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.IndelUtils.SVTYPE;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
@@ -116,8 +117,9 @@ public class VcfSummaryReportTest {
 			//check each report
 			for(int j = 0; j < child.getChildNodes().getLength(); j++){
 				Node  node = child.getChildNodes().item(j); //report node
-				assertEquals("report", node.getNodeName() );								
-				assertEquals( StringUtils.join( category, ":"  ), node.getAttributes().getNamedItem("formats").getNodeValue()  );	
+				assertEquals("report", node.getNodeName() );	
+				
+				assertEquals( StringUtils.join( category, Constants.COLON ), node.getAttributes().getNamedItem("formats").getNodeValue()  );	
 				//only allow one sequenceMetric under report
 				assertTrue(node.getChildNodes().getLength() > 0 );				
 				Element cnode = (Element) node.getChildNodes().item(0);
@@ -144,9 +146,7 @@ public class VcfSummaryReportTest {
 			else if( sample.equals("test1"))
 					checkTest1(child);
 			else
-				checkControl1(child);
-				
-				
+				checkControl1(child);			
 				 
 		}
 						
@@ -233,7 +233,7 @@ public class VcfSummaryReportTest {
 	public void SampleWithSpecial() throws IOException {
 		 
 			//sample contain special letter same to the seperator
-			final String lastSample = "http" + VcfSummaryReport.Seperator + "last";				
+			final String lastSample = "http" + Constants.COMMA + "last";				
 			File file = new File("input.vcf");
 			createVcfFile(lastSample, file);				
 			try {
@@ -267,15 +267,13 @@ public class VcfSummaryReportTest {
 			try {
 				
 				QProfiler2 qp = new QProfiler2();
-				createVcfFile( lastSample.replace(VcfSummaryReport.Seperator, ""), file);				
+				createVcfFile( lastSample.replace(Constants.COMMA_STRING, ""), file);				
 				int exitStatus = qp.setup( "--input input.vcf --output output.xml --log output.log".split(" ") );
 				assertTrue(0 == exitStatus);
 			} catch (Exception e) {
 				fail("unexpected error");
 			}
 			
- 		
-				
 	}
 	
 	private Node getXmlParentNode( File input ){

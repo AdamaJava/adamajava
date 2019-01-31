@@ -3,7 +3,6 @@ package org.qcmg.qprofiler2.bam;
 import static org.junit.Assert.*;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;

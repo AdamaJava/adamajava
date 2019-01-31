@@ -20,7 +20,7 @@ import org.w3c.dom.Element;
 
 
 public class VcfSummaryReport  extends SummaryReport {
-		
+	public static final String seperator = Constants.COLON_STRING;		
 	public static final String Sample = "sample";	
 	private final VcfHeader vcfHeader;	
 	private final String[] sampleIds; 
@@ -71,7 +71,7 @@ public class VcfSummaryReport  extends SummaryReport {
 				}
 			}	 
 			Map<String, SampleSummary> map =  summaries.computeIfAbsent( sampleIds[i-1], (k) -> new HashMap<String, SampleSummary>() );
-			map.computeIfAbsent( StringUtils.join( cates, Constants.COMMA), (k) -> new SampleSummary() ).parseRecord( vcf, i ) ;
+			map.computeIfAbsent( StringUtils.join( cates, seperator), (k) -> new SampleSummary() ).parseRecord( vcf, i ) ;
 		}				
 	}
 
@@ -96,7 +96,7 @@ public class VcfSummaryReport  extends SummaryReport {
 				if( formatsTypes.isEmpty() ) {
 					summaries.get(sample).get(cates).toXML( ele, null, null );
 				}else {
-					summaries.get(sample).get(cates).toXML( ele, StringUtils.join( formatsTypes, Constants.COMMA), cates );	
+					summaries.get(sample).get(cates).toXML( ele, StringUtils.join( formatsTypes, seperator), cates );	
 				}
 			}			
 		}		

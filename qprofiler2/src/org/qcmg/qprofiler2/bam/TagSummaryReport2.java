@@ -25,6 +25,7 @@ public class TagSummaryReport2 {
 
 	public final static int additionTagMapLimit = 200;
 	public final static int errReadLimit  = 100;	
+	public final static String seperator = Constants.COLON_STRING;	
 
 	private final static SAMTagUtil STU = SAMTagUtil.getSingleton();
 	private final short MD = STU.MD;	
@@ -124,14 +125,10 @@ public class TagSummaryReport2 {
 		ele = XmlUtils.createMetricsNode(ele, "tags:"+tag, size);		
 		AtomicInteger no = new AtomicInteger();		
 		tallys.entrySet().removeIf( e-> no.incrementAndGet() > 100 );
-		boolean percent = (size >= 100)? false : true;
-		
-		 
-//		String[] vs = tag.split(":");
-//		XmlUtils.outputTallyGroup(ele, vs[0], tallys, percent);	
-		
-		String name = tag.substring(0, tag.indexOf(Constants.COMMA_STRING));
-		XmlUtils.outputTallyGroup(ele, name, tallys, percent);	
+		boolean hasPercent = (size >= 100)? false : true;
+				
+		String name = tag.substring(0, tag.indexOf(seperator));
+		XmlUtils.outputTallyGroup(ele, name, tallys, hasPercent);	
 		if( size > 100) 			 
 			XmlUtils.addCommentChild(ele, "here only list top 100 tag values" );
 					

@@ -31,6 +31,7 @@ import htsjdk.samtools.CigarOperator;
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMSequenceDictionary;
+import htsjdk.samtools.util.SequenceUtil;
 
 import org.qcmg.common.model.CigarStringComparator;
 import org.qcmg.common.model.ProfileType;
@@ -214,8 +215,7 @@ public class BamSummaryReport2 extends SummaryReport {
 			Element ele = XmlUtils.createMetricsNode( parent,StringUtils.getJoinedString(QprofilerXmlUtils.badBase,sourceName[order], "_"), null );
 			XmlUtils.outputTallyGroup( ele, FastqSummaryReport.badBaseNum, qualBadReadLineLengths[order].toMap(), true );
 			XmlUtils.addCommentChild(ele, FastqSummaryReport.badQualComment);
-		}
-		
+		}		
 	}	
 	
 	private void createTLen(Element parent){
@@ -319,13 +319,22 @@ public class BamSummaryReport2 extends SummaryReport {
 			readIdSummary.computeIfAbsent( readGroup, (k) -> new ReadIDSummary() ).parseReadId( record.getReadName() );
  			
 			// SEQ 
-			byte[] data = (record.getReadNegativeStrandFlag())? SummaryReportUtils.getReversedSeq(record.getReadBases()) : record.getReadBases();
+			 
+//			byte[] data = (record.getReadNegativeStrandFlag())? SummaryReportUtils.getReversedSeq(record.getReadBases()) : record.getReadBases();			
+			byte[] data = record.getReadBases();			
+			if (record.getReadNegativeStrandFlag()) {
+				SequenceUtil.reverseComplement(data );
+			}		
 			seqByCycle[order].parseByteData(data );			
 			SummaryReportUtils.tallyBadReadsAsString( record.getReadBases(), seqBadReadLineLengths[order] );	
 			kmersSummary.parseKmers( record.getReadBases(), record.getReadNegativeStrandFlag(), order );
 
-			// QUAL 	
-			data = (record.getReadNegativeStrandFlag())? SummaryReportUtils.getReversedQual(record.getBaseQualities()) : record.getBaseQualities();
+			// QUAL 
+			data = record.getBaseQualities();
+			if (record.getReadNegativeStrandFlag()) {
+				SequenceUtil.reverseQualities(data);
+			}
+			//data = (record.getReadNegativeStrandFlag())? SummaryReportUtils.getReversedQual(record.getBaseQualities()) : record.getBaseQualities();
 			qualByCycleInteger[order].parseByteData(data);
 			SummaryReportUtils.tallyQualScores( record.getBaseQualities(), qualBadReadLineLengths[order] );				
  			
