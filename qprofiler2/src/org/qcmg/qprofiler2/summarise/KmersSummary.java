@@ -189,27 +189,27 @@ public class KmersSummary {
 	 * at moment we count short mers on the last cycle from the longest reads
 	 * these short mers will be discard on the tail of shorter reads
 	 */
-	void recaculatelastCycle(){		
-		
-		for(int i = 1; i < merLength; i ++){			
-			//5mers from last cycle of 6mers; 5~1 mers stored after last cycle of tally
-			int lastCycle = (i == 1)? cycleNo - 1: cycleNo;  	 
-			String[] shortList = getPossibleKmerString(merLength-i, true);		
-			for(String shortM : shortList){
-				long[] sum = {0,0,0}; 
-				for(byte base : atgcn.getBytes()){
-					String preMers = (char) base + shortM; 
-					int pos = getPosition(lastCycle, preMers.getBytes());
-					for(int s = 0; s < 3; s++)
-						sum[s] += tally[s].get(pos);
-				}
-				//put current short mers count to tally
-				int pos = getPosition(cycleNo, shortM.getBytes() );
-				for(int s = 0; s < 3; s++)
-					tally[s].increment(pos, sum[s]);
-			}
-		}				
-	}
+//	void recaculatelastCycle(){		
+//		
+//		for(int i = 1; i < merLength; i ++){			
+//			//5mers from last cycle of 6mers; 5~1 mers stored after last cycle of tally
+//			int lastCycle = (i == 1)? cycleNo - 1: cycleNo;  	 
+//			String[] shortList = getPossibleKmerString(merLength-i, true);		
+//			for(String shortM : shortList){
+//				long[] sum = {0,0,0}; 
+//				for(byte base : atgcn.getBytes()){
+//					String preMers = (char) base + shortM; 
+//					int pos = getPosition(lastCycle, preMers.getBytes());
+//					for(int s = 0; s < 3; s++)
+//						sum[s] += tally[s].get(pos);
+//				}
+//				//put current short mers count to tally
+//				int pos = getPosition(cycleNo, shortM.getBytes() );
+//				for(int s = 0; s < 3; s++)
+//					tally[s].increment(pos, sum[s]);
+//			}
+//		}				
+//	}
 	
 	public void toXml( Element parent, int klength ) { 
 		final int maxNo = 16;

@@ -185,7 +185,7 @@ public class KmersSummaryTest {
 	public void bothFirstTest() throws ParserConfigurationException {
 		final String base1 = "CAGNGTTAGGTTTTT";
 		final String base2 = "CCCCGTTAGGTTTTTT";
-		final int mersNo = 3;
+
 		KmersSummary summary = new KmersSummary(KmersSummary.maxKmers);	
 		summary.parseKmers( base1.getBytes() , false, 1);
 		summary.parseKmers( base2.getBytes() , false, 1);
@@ -211,7 +211,7 @@ public class KmersSummaryTest {
 		assertTrue( summary.getCount(8, "GGT", 1 ) == 2 );	
 		
 		//mers are not counted that is zero unless "TTA,GGT,CCG"
-		assertEquals( "TTA,GGT,CCG", StringUtils.join(summary.getPopularKmerString(16,  3, false, 1), ",") );
+		assertEquals( "TTA,GGT,CCG", StringUtils.join( summary.getPopularKmerString(16,  3, false, 1), ",") );
 		//nothing on second pair
 		assertEquals( "", StringUtils.join(summary.getPopularKmerString(16,  3, false, 2), ",") );						
 	}
