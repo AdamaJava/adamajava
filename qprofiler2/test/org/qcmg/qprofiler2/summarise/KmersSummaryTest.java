@@ -7,6 +7,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
 import java.util.List;
@@ -19,6 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.QprofilerXmlUtils;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qprofiler2.util.XmlUtils;
@@ -51,6 +54,47 @@ public class KmersSummaryTest {
 		assertEquals((int)Math.pow(5,6), kmers.length);
 		kmers = summary.getPossibleKmerString(6, false);
 		assertEquals((int)Math.pow(4,6), kmers.length);
+		
+		
+		//test speed between split and subString
+		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");  			
+		LocalDateTime now = LocalDateTime.now(); 
+		System.out.println(dtf.format(now)); 
+		
+		System.out.println("calling producer with split 101 times "); 
+		String[] mers1 = summary.getPossibleKmerString(6, false);
+		for (int  i = 0; i < 100; i ++) {
+			mers1 = summary.getPossibleKmerString(6, false);
+		}
+		assertTrue(mers1.length == 4096);
+		System.out.println("the finished producer with split 101 times "); 
+		
+		now = LocalDateTime.now(); 
+		System.out.println(dtf.format(now));		
+		System.out.println("calling producer with subString 101 times "); 
+		
+		List<String> mers2 = new ArrayList<>();
+		String str = KmersSummary.producer(6, "", false);
+		while(str.contains(Constants.COMMA_STRING)) {
+			int pos =  str.indexOf(Constants.COMMA_STRING); 
+			mers2.add(str.substring(0, pos)  );
+			str = str.substring(pos+1);				
+		}
+		mers2.add(str); //add last mer
+		for (int  i = 0; i < 100; i ++) {
+			str = KmersSummary.producer(6, "", false);
+			mers2 = new ArrayList<>();
+			while(str.contains(Constants.COMMA_STRING)) {
+				int pos =  str.indexOf(Constants.COMMA_STRING); 
+				mers2.add(str.substring(0, pos)  );
+				str = str.substring(pos+1);				
+			}
+			mers2.add(str); //add last mer			
+		}
+		assertTrue(mers2.size() == 4096);
+		now = LocalDateTime.now(); 
+		System.out.println(dtf.format(now));
+		System.out.println("the finished producer with subString 100 times "); 				
 	}
 	
 	@Test
