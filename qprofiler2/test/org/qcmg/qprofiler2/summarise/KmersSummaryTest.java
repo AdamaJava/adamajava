@@ -86,8 +86,8 @@ public class KmersSummaryTest {
 			mers2 = new ArrayList<>();
 			while(str.contains(Constants.COMMA_STRING)) {
 				int pos =  str.indexOf(Constants.COMMA_STRING); 
-				mers2.add(str.substring(0, pos)  );
-				str = str.substring(pos+1);				
+				mers2.add( str.substring(0, pos)  );
+				str = str.substring(pos+1);		
 			}
 			mers2.add(str); //add last mer			
 		}
