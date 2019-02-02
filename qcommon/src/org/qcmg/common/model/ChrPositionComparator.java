@@ -92,10 +92,10 @@ public class ChrPositionComparator implements Comparator<ChrPosition> {
 						return diff;
 					} else if (i1 >= 0 && i2 == -1) {
 						// o1.chr in list but not o2.chr => o1 < o2
-						return 1;
+						return -1;
 					} else if (i1 == -1 && i2 >= 0) {
 						// o2.chr in list but not o1.chr => o2 < o1
-						return -1;
+						return 1;
 					} else {
 						assert i1 == -1 && i2 == -1;
 						// neither o1 nor o2 chr in list => "natural" ordering
