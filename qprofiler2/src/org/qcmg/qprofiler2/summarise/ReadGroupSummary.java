@@ -1,23 +1,15 @@
 package org.qcmg.qprofiler2.summarise;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-
 import org.qcmg.common.model.QCMGAtomicLongArray;
-import org.qcmg.common.util.Pair;
 import org.qcmg.common.util.QprofilerXmlUtils;
 import org.qcmg.picard.util.PairedRecordUtils;
-import org.w3c.dom.Document;
+import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Element;
-
 import htsjdk.samtools.CigarElement;
 import htsjdk.samtools.CigarOperator;
 import htsjdk.samtools.SAMRecord;
-//import javafx.util.Pair;
-import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 
 public class ReadGroupSummary {
 	//xml node name 	
@@ -27,6 +19,7 @@ public class ReadGroupSummary {
 	public final static String node_inward = "inwardPair";
 	public final static String node_outward = "outwardPair";		
 	public final static String node_softClip = "softClippedBases";
+	public final static String node_trim = "trimmedBases";	
 	public final static String node_hardClip = "hardClippedBases";
 	public final static String node_readLength = "readLength" ; 
 	public final static String node_overlap = "overlapBases";	
@@ -37,10 +30,19 @@ public class ReadGroupSummary {
 	public final static String node_nonCanonicalPair = "nonCanonicalPair";
 	public final static String node_failedVendorQuality = "failedVendorQuality";
 	public final static String modal_isize = "modalSize";
+		
+	public final static String smin= "min";	
+	public final static String smax = "max";
+	public final static String smean = "mean"; 
+	public final static String smode =  "mode"; 
+	public final static String smedian = "median" ; 
+	public final static String sreadCount = "readCount"; 
+	public final static String slostBase = "lostBase"; 
+	public final static String sbasePercent = "basePercent"; 
 	
 	//fixed value
 	public final static int bigTlenValue = 10000;
-	public final static int farTlenValue = 1500;
+	public final static int smallTlenValue = 1500;
 	public final static int middleTlenValue = 5000;
 	public final static int rangeGap = 100;
  			
@@ -76,17 +78,59 @@ public class ReadGroupSummary {
 	AtomicLong diffRef  = new AtomicLong();	
 	AtomicLong mateUnmapped  = new AtomicLong();	
 	AtomicLong diffRef_flag_p  = new AtomicLong();	
-	AtomicLong mateUnmapped_flag_p  = new AtomicLong();
 	
 	//for combined readgroups, since max read length maybe different
-	private long trimedBase = 0; 
-	private Long maxBases = null; 
-	
+	//below value will be reset on preSummary() inside readsSummary2Xml()
+	private long trimedBase = -1;
+	private long maxBases = -1; 
+	private long duplicateBase = -1;
+	private long unmappedBase = -1;
+	private long nonCanonicalBase = -1;
+
+	private int maxReadLength = 0;
+	private long noOfCountedReads = -1;
+	private long trimedRead = -1;
 	
 	private final String readGroupId; 		
-	public ReadGroupSummary(String rgId){	this.readGroupId = rgId; }
-	public String getReadGroupId(){return readGroupId; }
-		
+	public ReadGroupSummary(String rgId){
+		this.readGroupId = rgId; 
+	}
+	
+	public String getReadGroupId(){
+		return readGroupId; 
+	}	
+	
+	public Long getMaxBases(){	
+		return this.maxBases; 
+	}
+
+	/**
+	 * 
+	 * @return read base of duplicated, unmapped, non-canonical paired 
+	 */
+	public long getDuplicateBase() { 
+		return readGroupId .equals( QprofilerXmlUtils.All_READGROUP ) ? 
+			this.duplicateBase : this.duplicate.get() * this.maxReadLength;
+	}
+	
+	public long getUnmappedBase() {
+		return readGroupId .equals( QprofilerXmlUtils.All_READGROUP ) ? 
+			this.unmappedBase :  this.unmapped.get() * this.maxReadLength;
+	}
+	
+	public long getnonCanonicalBase() {
+		return readGroupId .equals( QprofilerXmlUtils.All_READGROUP ) ? 
+			this.nonCanonicalBase : this.nonCanonical.get() * this.maxReadLength;
+	}
+	
+	public long getTrimmedBase() {
+		return trimedBase;
+	}
+	
+	public long getTrimmedRead() {
+		return trimedRead;
+	}
+	
  	private class PairedRead {
  		private final String name;		
  		PairedRead(String name){this.name = name;}
@@ -106,40 +150,35 @@ public class ReadGroupSummary {
 			
 			if( overlapBase > 0 ){
 				overlap.incrementAndGet();	
-//				if(record.getProperPairFlag()) overlap_flag_p.incrementAndGet();
 			}
 			if(record.getInferredInsertSize() >= bigTlenValue){
 				bigTlen.incrementAndGet();
-//				if(record.getProperPairFlag()) bigTlen_flag_p.incrementAndGet();
 			}							
-			if( record.getInferredInsertSize() >= farTlenValue && record.getInferredInsertSize() < bigTlenValue ){
+			if( record.getInferredInsertSize() >= smallTlenValue && record.getInferredInsertSize() < bigTlenValue ){
 				far.incrementAndGet();		
-//				if( record.getProperPairFlag()) far_flag_p.incrementAndGet();
 			}
-			if( record.getInferredInsertSize() < farTlenValue && overlapBase <= 0 ){
+			if( record.getInferredInsertSize() < smallTlenValue && overlapBase <= 0 ){
 				near.incrementAndGet();		
-//				if( record.getProperPairFlag()) near_flag_p.incrementAndGet();
 			}			
-		}
-		
-		
+		}		
 		
 		/**
 		 * 	  <f5f3Pair tlenUnder1500="3528" TlenOver10000="102075" tlenBetween1500And10000="22027" overlapping="241" count="127871"/>
 	  <f3f5Pair tlenUnder1500="12784" TlenOver10000="105049" tlenBetween1500And10000="21797" overlapping="738" count="140368"/>
 	  <inwardPair tlenUnder1500="134706192" TlenOver10000="198419" tlenBetween1500And10000="148179" overlapping="6988807" count="142041597"/>
 	  <outwardPair tlenUnder1500="100769" TlenOver10000="205890" tlenBetween1500And10000="111947" overlapping="322649" count="741255"/>
-
 		 * @param parent
 		 */
 		
-		void toXml(Element parent  ){
-			Element stats = QprofilerXmlUtils.createSubElement(parent, name);			
-			stats.setAttribute("overlapping", overlap.get()+"");		 
-			stats.setAttribute("tlenUnder1500", near.get()+"");		 
-			stats.setAttribute("tlenOver10000", bigTlen.get() +"");
-			stats.setAttribute("tlenBetween1500And10000",far.get()+"");
-			stats.setAttribute("count", recordSum.get() + "");
+		void toXml(Element parent  ){			
+			Element stats = XmlUtils.createGroupNode(parent, name);
+			XmlUtils.outputValueNode(stats, "overlapping", overlap.get());
+			stats.appendChild(stats.getOwnerDocument().createComment("below counts excluding overlapping pairs"));
+			XmlUtils.outputValueNode(stats, "tlenUnder1500", near.get() );		 
+			XmlUtils.outputValueNode(stats, "tlenOver10000", bigTlen.get()  );
+			XmlUtils.outputValueNode(stats, "tlenBetween1500And10000",far.get() );
+			XmlUtils.outputValueNode(stats, "pairCount", recordSum.get()  );
+			
 		}
 		
 	}
@@ -151,49 +190,70 @@ public class ReadGroupSummary {
 	 */
 	public boolean parseRecord( final SAMRecord record ){
 				
-		//record counts disregard good or not
+		//record input reads number
 		inputReadCounts.incrementAndGet();  
 				
-		if ( record.getSupplementaryAlignmentFlag())
+		//find discard reads and return false
+		if ( record.getSupplementaryAlignmentFlag()) {
 			supplementary.incrementAndGet();
-		else if( record.getNotPrimaryAlignmentFlag()  ) 
+			return false;
+		}else if( record.isSecondaryAlignment() ) {
 			secondary.incrementAndGet();
-		else if(record.getReadFailsVendorQualityCheckFlag())
+			return false;
+		}else if(record.getReadFailsVendorQualityCheckFlag()) {
 			failedVendorQuality.incrementAndGet();
-		else if(record.getReadUnmappedFlag() )
+			return false;
+		} 
+			
+		//find the max read length	
+		if(record.getReadLength() > this.maxReadLength) {
+			this.maxReadLength = record.getReadLength();			
+		}
+		//find mapped badly reads and return false	
+		if(record.getReadUnmappedFlag() ){
 			unmapped.incrementAndGet();
-		else if(record.getDuplicateReadFlag())
+			return false;
+		}else if(record.getDuplicateReadFlag()){
 			duplicate.incrementAndGet();
-		else if(! PairedRecordUtils.isCanonical(  record) ){
-			nonCanonical.incrementAndGet();					
-			parsePairing( record , null); 			
-		}else{
-			//parse clips
-			 int lHard = 0, lSoft = 0;
-			 for (CigarElement ce : record.getCigar().getCigarElements()) {
-				 if (ce.getOperator().equals(CigarOperator.HARD_CLIP)) {
-					 lHard += ce.getLength();
-				 } else if (ce.getOperator().equals(CigarOperator.SOFT_CLIP)) {
-					 lSoft += ce.getLength();
-				 }
-			 }
-			hardClip.increment(lHard);
-			softClip.increment(lSoft);
-			readLength.increment(record.getReadLength()+lHard);
-	 		
-			//parse overlap
-			int overlap = PairedRecordUtils.getOverlapBase(record);
-			if(overlap > 0) overlapBase.increment(overlap);
-			parsePairing( record , overlap); 				
-			return true; 			
+			return false;
+		}else if(! PairedRecordUtils.isCanonical( record ) ){
+			nonCanonical.incrementAndGet();
+			parsePairing( record , null); 	
+			return false;
 		}
 		
-		//return false for bad reads
-		return false; 
+		//parse clips
+		 int lHard = 0, lSoft = 0;
+		 for (CigarElement ce : record.getCigar().getCigarElements()) {
+			 if (ce.getOperator().equals(CigarOperator.HARD_CLIP)) {
+				 lHard += ce.getLength();
+			 } else if (ce.getOperator().equals(CigarOperator.SOFT_CLIP)) {
+				 lSoft += ce.getLength();
+			 }
+		 }
+		 
+		hardClip.increment(lHard);
+		softClip.increment(lSoft);
+		//filtered reads and discard reads won't count the length
+		int lwithHard = record.getReadLength()+lHard;
+		readLength.increment(lwithHard);
+		if(lwithHard > this.maxReadLength)
+			this.maxReadLength = lwithHard;
+		 		
+		//parse overlap
+		int overlap = PairedRecordUtils.getOverlapBase(record);
+		if(overlap > 0) overlapBase.increment(overlap);
+		parsePairing( record , overlap); 				
+		return true; 			
+ 
 	}
 	
-	public QCMGAtomicLongArray getISizeCount(){return isize;}
-	public QCMGAtomicLongArray getISizeRangeCount(){return isizeRange;}
+	public QCMGAtomicLongArray getISizeCount(){
+		return isize;
+	}
+	public QCMGAtomicLongArray getISizeRangeCount(){
+		return isizeRange;
+	}
 	
 	/**
 	 * count the first of pair number and record iSize(Tlen);
@@ -205,349 +265,289 @@ public class ReadGroupSummary {
 	 */
 	public void parsePairing( SAMRecord record, Integer overlapBase ){
 		//skip non-paired reads
-		if( !record.getReadPairedFlag() )  return;  						
-				
-		//record iSize, first pair only to avoid double iSize		
-		if(record.getFirstOfPairFlag()){
-			int tLen = Math.abs(record.getInferredInsertSize());
-				
-			if( tLen > max_isize.get() ) 
-				max_isize.getAndSet( tLen );
-				//max_isize.getAndSet(record.getInferredInsertSize() );	
-			
-			//only record popular TLEN
-			if(tLen < middleTlenValue) isize.increment(tLen);
-
-			//record region
-			if(tLen > bigTlenValue )  tLen = bigTlenValue;		
-			
-			isizeRange.increment( (tLen/rangeGap));
-		}
+		if( !record.getReadPairedFlag() )  return;  
 		
-		
-		//if first pair missing, it won't be count here but it still go to direction if tlen>0	
-	 	//so sometime the pairNum will be different to sum of f5f3, f3f5, inward and outwards
-		//to avoid double counts, we only count first of pair or the pair is first time appear(mate is unmapped), since all input record are mapped. 
-		if(record.getFirstOfPairFlag() || record.getMateUnmappedFlag()) 
-	 		pairNum.incrementAndGet();	
-				
-		//pair from different reference, only look at first pair to avoid double counts
+		//normally bam reads are mapped, if the mate is missing, we still count it to pair but no detailed pair information
 		if( record.getMateUnmappedFlag() ){
-			mateUnmapped.incrementAndGet();
-			if(record.getProperPairFlag()) mateUnmapped_flag_p.incrementAndGet();	
+			mateUnmapped.incrementAndGet(); 
+			pairNum.incrementAndGet();	
 			return; 
 		}
 		
+		//pair from different reference, only look at first pair to avoid double counts
 		if( !record.getReferenceName().equals( record.getMateReferenceName()) && record.getFirstOfPairFlag()){
-			diffRef.incrementAndGet();
-			if(record.getProperPairFlag()) diffRef_flag_p.incrementAndGet();					
+			diffRef.incrementAndGet();	
+			pairNum.incrementAndGet();			
 			return; 
 		}
 		
-		//only count reads with tlen > 0 to avoid double counts
-		if( record.getInferredInsertSize() <=  0) return; 
-		
-		//detailed pair inforamtion
-		if(overlapBase == null)	overlapBase = PairedRecordUtils.getOverlapBase( record);				 
+		//if tlen unvaliable count first of pair and then discard	
+		//pairNum >= sum(f3f5, f5f3,inward,outward, diffRef, mateUnmapped)	
+		if( record.getInferredInsertSize() == 0 && record.getFirstOfPairFlag()) { 
+			isize.increment(0);
+			pairNum.incrementAndGet();	
+			return;
+		}
+								
+		//discard remains reads with tlen minus or unvaliable 	
+		if( record.getInferredInsertSize() <= 0 ) { return; }
+				
+		//waringing: 
+		//both pair with tlen >0 it is hardly happen, bad value but picard accept it
+		//proper pair with tlen > 0 disregard first or second of pair		
+		pairNum.incrementAndGet();	
+		//another reason is impossible to caculate overlapBase since getOverlapBase( record) return 0 if tlen<=0		
+		if(overlapBase == null)	 //non-canonical pair
+			overlapBase = PairedRecordUtils.getOverlapBase( record);		
 		if( PairedRecordUtils.isF5toF3(record)) f5f3.parse( record, overlapBase ); 		
-		if( PairedRecordUtils.isF3toF5(record)) f3f5.parse( record, overlapBase );	 
-		if( PairedRecordUtils.isOutward(record)) outward.parse( record, overlapBase );		
-		if( PairedRecordUtils.isInward(record)) inward.parse( record, overlapBase );
+		else if( PairedRecordUtils.isF3toF5(record)) f3f5.parse( record, overlapBase );	 
+		else if( PairedRecordUtils.isOutward(record)) outward.parse( record, overlapBase );		
+		else if( PairedRecordUtils.isInward(record)) inward.parse( record, overlapBase );
+				
+		
+		//record tlen
+		int tLen =  record.getInferredInsertSize();	
+		//record the maxmum tlen value
+		if( record.getInferredInsertSize() > max_isize.get() ) max_isize.getAndSet( tLen );		
+		if(tLen > bigTlenValue )  tLen = bigTlenValue+1;	//can't handle too big tlen
+		//record region for all pair  
+		isizeRange.increment( (tLen/rangeGap));			
+		//only record popular TLEN
+		if(tLen < middleTlenValue) isize.increment(tLen);
+			
  	}
-		
-	public long getNumDuplicate(){ return duplicate.get(); }
-	public long getNumSecondary(){ return secondary.get(); }
-	public long getNumSupplementary(){ return supplementary.get(); }
-	public long getNumUnMapped(){ return unmapped.get(); }
-	public long getNumNonCanonical(){ return nonCanonical.get(); }
-	public long getNumFailedVendorQuality(){ return failedVendorQuality.get(); }
-
-	public int getMaxReadLength(){
-		int  maxReadLength  = 0 ;		 
-		for (int i = 1 ; i < readLength.length() ; i++) 
-			if(readLength.get(i) > 0) maxReadLength = i;			
-		return maxReadLength; 
+			
+	public long getDiscardreads() {
+		return supplementary.get() + failedVendorQuality.get() + secondary.get();
 	}
-	
-	/**
-	 * total base of mapped reads excludes duplicate and noncanonial reads; including all clipped bases 
-	 * @return average of read length which is total base divided by read number
-	 */
-	public int getAveReadLength(){
-		long totalgoodRead = 0 , totalgoodBase = 0;
-		for (int i = 1 ; i < readLength.length() ; i++){ 			 
-			totalgoodBase += i * readLength.get(i);
-			totalgoodRead += readLength.get(i);
-		}		
-		return ( totalgoodRead == 0 )? 0 :(int) (totalgoodBase / totalgoodRead);		
-	}
-	
-	public long getTrimedBases(){
-		if( readGroupId.equals(QprofilerXmlUtils.All_READGROUP ))			 
-			return trimedBase ;
 		
-		//suppose original reads with same length for same read group
-		long totalgoodRead = 0 , totalgoodBase = 0;
-		for (int i = 1 ; i < readLength.length() ; i++){ 			 
-			totalgoodBase += i * readLength.get(i);
-			totalgoodRead += readLength.get(i);
-		}		
-		return totalgoodRead * getMaxReadLength() - totalgoodBase;
-	}
-	
-	public void setTrimedBases(long bases){ 
-		if( readGroupId.equals( QprofilerXmlUtils.All_READGROUP ) )			 
-			trimedBase = bases;
-	}
-	
-	public void setMaxBases( Long bases){
-		if(this.maxBases != null ) 
-			throw new IllegalStateException("Illegal attempt to set a Once value (this.maxBases) after it's value has already been set.");
-		
-		if( bases == null )
-			throw new IllegalArgumentException("Illegal attempt to pass null value to Once setter (this.maxBases).");
-		
-		//if( readGroupId.equals(XmlUtils.All_READGROUP ))			 	
-		this.maxBases = bases;
-	}	
-	
-	public long getMaxBases(){		
-		if(null == this.maxBases || this.maxBases <= 0) 			 
-			throw new IllegalStateException("Illegal attempt to access unitialized or minus value (this.maxBases).");
-		
-        return this.maxBases;
-	}
-	
 	/**
 	 * 
 	 * @return number of reads excluds discarded one. 
 	 */
-	public long getCountedReads() {
-		long totalgoodRead = 0  ;
-		for (int i = 1 ; i < readLength.length() ; i++)			 
-			totalgoodRead += readLength.get(i);
-		
-		return totalgoodRead + duplicate.get() + unmapped.get() + nonCanonical.get() ;		
-	}
-	
-	//public void toXml(Element rgClipElement, Element summaryElement) {
-	public void readSummary2Xml(Element parent ) { 	 		
-						
-			//add to xml RG_Counts
-			Element rgElement = QprofilerXmlUtils.createSubElement( parent, node_readgroup );
-			rgElement.setAttribute("id", readGroupId);	
-			rgElement.setAttribute(QprofilerXmlUtils.readCount, inputReadCounts.get() + "");
-						
-			//add discarded read Stats to readgroup summary			
-			Element stats = QprofilerXmlUtils.createSubElement( rgElement, QprofilerXmlUtils.filteredReads );	
-			stats.setAttribute( "supplementaryAlignmentCount", supplementary.get()+"" );
-			stats.setAttribute( "secondaryAlignmentCount", secondary.get()+"" );
-			stats.setAttribute( "failedVendorQualityCount", secondary.get()+"" );			
-			
-			long noOfRecords = getCountedReads( );
-			double lostPercentage = 0; 
-			//add discarded reads
-			lostPercentage += addDiscardReadStats( rgElement, node_duplicate, duplicate, noOfRecords );
-			lostPercentage += addDiscardReadStats( rgElement, node_unmapped, unmapped, noOfRecords );		
-			lostPercentage += addDiscardReadStats( rgElement, node_nonCanonicalPair, nonCanonical, noOfRecords );			
-						
-			//add counted read stats to readgroup summary	
-			int  maxReadLength = getMaxReadLength();
-			if(! readGroupId.equals(QprofilerXmlUtils.All_READGROUP )){
-				setMaxBases( noOfRecords * maxReadLength );
-				lostPercentage += addCountedReadStats(rgElement, "trimmedBase", parseTrim(readLength, maxReadLength), maxBases);				
-			}else{
-				double percentage = 100 * (double) getTrimedBases() / getMaxBases() ;
-				QprofilerXmlUtils.createSubElement(rgElement, "trimmedBase").setAttribute(QprofilerXmlUtils.basePercent, String.format("%2.2f", percentage ));
-				lostPercentage += percentage;	
-			}
-						
-			lostPercentage += addCountedReadStats( rgElement, node_softClip, softClip, maxBases );
-			lostPercentage += addCountedReadStats( rgElement, node_hardClip, hardClip, maxBases );
-			lostPercentage += addCountedReadStats( rgElement, node_overlap, overlapBase, maxBases );	
-			
-			//addCountedReadStats( rgElement, node_readLength, readLength, maxBases);	
-			//add overall
-			stats = QprofilerXmlUtils.createSubElement(rgElement, QprofilerXmlUtils.All_READGROUP);
-			stats.setAttribute("maxLength", maxReadLength + "" );
-			stats.setAttribute("averageLength", getAveReadLength() + "" );
-			stats.setAttribute(QprofilerXmlUtils.readCount, noOfRecords + "" );
-			
-			//by default String.format will round the tail of digits
-			stats.setAttribute("lostBasesPercent", String.format("%2.2f", lostPercentage) );						
-	}	
-	
-	 	 
-	public void pairSummary2Xml(Element parent) { 	 
-		//add paring information
-		//<readGroup pairCount="148242192" id="1bf380d4-8b0f-483c-bc84-fad5f8f2bf1c">
-		Element pairElement = QprofilerXmlUtils.createSubElement(parent, node_readgroup);
-		pairElement.setAttribute("id", readGroupId);	
-		pairElement.setAttribute("pairCount", pairNum.get()+"");	
-		
-		// <mateUnmappedPair count="1743093" pairNumber_flag_p="0"/>	 	
-		Element stats = QprofilerXmlUtils.createSubElement(pairElement, "mateUnmappedPair");
-		stats.setAttribute(QprofilerXmlUtils.count, mateUnmapped.get() + "");
-//		stats.setAttribute("pairNumber_flag_p", mateUnmapped_flag_p.get() + "");
-		
-		// <mateDifferentReferencePair count="3318739" pairNumber_flag_p="0"/>
-		stats = QprofilerXmlUtils.createSubElement(pairElement, "mateDifferentReferencePair");
-		stats.setAttribute(QprofilerXmlUtils.count, diffRef.get() + "");
-//		stats.setAttribute("pairNumber_flag_p", diffRef_flag_p.get() + "");
-
-		f5f3.toXml( pairElement );
-		f3f5.toXml( pairElement );
-		inward.toXml( pairElement );
-		outward.toXml( pairElement );
-		
-		Pair<Integer, String> isize = getIsizeStats();
-		stats = QprofilerXmlUtils.createSubElement(pairElement, "tlen");
-		stats.setAttribute( modal_isize, isize.getLeft() + "" );
-		stats.setAttribute("stdDev", isize.getRight());
-		
-	}
-	
-	/**
-	 * 
-	 * @return a pair of isize modal value and std
-	 */
-	private Pair<Integer, String> getIsizeStats(){
-		
-		
-		//move isize summary here	 
-		Pair<Integer, Long> modal = new Pair<Integer, Long>(0, (long) 0);		
-		StandardDeviation stdDev = new StandardDeviation();
-		for(int i = 1; i < farTlenValue; i ++ ){
-			if(isize.get(i) > modal.getRight() ) 
-				modal = new Pair<Integer, Long>( i, isize.get(i) ); //= isize.get(i);
-			for(int j = 0; j < isize.get(i); j ++){
-				stdDev.increment(i);
-			}	
+	public long getCountedReads() {				
+		long totalRead = 0  ;
+		for (int i = 1 ; i < readLength.length() ; i++)	{		 
+			totalRead += readLength.get(i);
 		}
-
-		return new Pair<Integer, String>(modal.getLeft() , String.format( "%,.2f",  stdDev.getResult()));
-		
+		return totalRead + duplicate.get() + unmapped.get() + nonCanonical.get() ;		
 	}
-	
-	
-//	@Deprecated
-//	public void iSize2Xml(Element parent) { 
-//		Element rgElement = QprofilerXmlUtils.createSubElement(parent, node_readgroup);
-//		rgElement.setAttribute("id", readGroupId );
-//		final int boundary = Math.min(farTlenValue *2, bigTlenValue/2);
-//
-//				
-//		Pair<Integer, String> isize = getIsizeStats();
-//		rgElement.setAttribute( modal_isize, isize.getLeft() + "" );
-//		rgElement.setAttribute("stdDev", isize.getRight());
-//				
-//		//counts for each Tlen value
-//		int start = 0;
-//		for(int i = 0; i < boundary ; i ++ ) 
-//			if(isize1.get(i) != 0) 			
-//				setISizeElement(rgElement,isize1.get(i),   i, i);				
-//				
-//		start = boundary;
-//		long count = isize1.get(boundary); 
-//		for(int i = boundary ; i < bigTlenValue;  i ++ ){
-//			count += isize1.get(i);
-//			if( i % 1000 == 0 ){
-//				if(count != 0)
-//					setISizeElement(rgElement, count,   start, i);
-//				count = 0; 
-//				start = i+1; 				
-//			}			
-//		}
-//		
-//		//region for last bin before bigTlenValue
-//		if(count > 0)
-//			setISizeElement(rgElement, count,   start, (bigTlenValue - 1));
-//				
-//		//region for oversize Tlen 
-//		setISizeElement(rgElement, isize1.get(bigTlenValue),   bigTlenValue, max_isize.get() );
-//	}
-	
+		
 	/**
-	 * Create element node for each isize region with same counts
-	 * @param parent
-	 * @param count
-	 * @param start
-	 * @param end
+	 * check all globle value and assign the sumamry value
+	 * eg.  
+	 * 	private long trimedBase = 0; 	
 	 */
-	private void setISizeElement(Element parent, long count, int start, int end ){
-		Document doc = parent.getOwnerDocument(); 
-		Element cycleE = doc.createElement("RangeTallyItem");
-		cycleE.setAttribute("count", count +"");
-		cycleE.setAttribute("start", start + "");
-		cycleE.setAttribute("end", end + "");	
-		parent.appendChild(cycleE);			
-	}
-
-	private double addDiscardReadStats(Element parent, String nodeName, AtomicLong counts, long totalReads ){
-			//add to RG_count section
-			Element stats = QprofilerXmlUtils.createSubElement(parent, nodeName);	
-			stats.setAttribute("readCount", String.format("%d",counts.get()));
-						 	
-			//duplicats, non canonical and unmapped will be counted, others reads just discards
-			float percentage = 100 * (float) counts.get() / totalReads ;						
-			stats.setAttribute("basePercent",  String.format("%2.2f", percentage   ));		
-			
-			return percentage; 
-			 	 
-		}		
-			
-	private double addCountedReadStats(Element rgElement, String nodeName, QCMGAtomicLongArray array, long maxBases ){
+	public void preSummary(long max , long trimB, long trimR, long baseDup, long baseUnmap, long baseNonCan) {
+		//maxReadLength is continuelly updated during parseRecord
+				
+		//number of reads excluds discarded one.
+		long no = duplicate.get() + unmapped.get() + nonCanonical.get() ;
+		for (int i = 1 ; i <= this.maxReadLength ; i++)			 
+			no += readLength.get(i);		
+		this.noOfCountedReads = no;
 		
-		//get the position of median
-		long bases = 0,counts = 0;
+		//add value to All_READGROUP manually since the readLength are different for each readGroup
+		if( readGroupId.equals(QprofilerXmlUtils.All_READGROUP) ) {	 			
+			this.maxBases = max;
+			this.trimedBase = trimB;
+			this.trimedRead = trimR;
+			this.duplicateBase = baseDup;
+			this.unmappedBase = baseUnmap;
+			this.nonCanonicalBase = baseNonCan;			
+			return;
+		}
+		
+		this.maxBases = this.noOfCountedReads * this.maxReadLength;
+		
+		//suppose original reads with same length for same read group
+		//the counts should be same to the sumOf QCMGAtomicLongArray from parseTrim(...)
+		long totalBase = 0;		
+		no = 0;
+		for (int i = 1 ; i < this.maxReadLength ; i++){ 			 
+			totalBase += i * readLength.get(i);
+			no += readLength.get(i);
+		}				
+		this.trimedRead = no; 
+		//here we omit full length reads which length is maxReadLength since there is no trimming
+		this.trimedBase = no * this.maxReadLength - totalBase;
+		
+	}
+	private void checkPrepare() throws Exception {
+		if( !readGroupId.equals(QprofilerXmlUtils.All_READGROUP) )
+			preSummary(0, 0,0,0,0,0);
+		else if (trimedBase < 0 || trimedRead < 0 || maxBases < 0 ||   noOfCountedReads < 0)  
+			throw new Exception("counts have null value, please call method::preSummary(...) before process!");		
+	}
+	
+	public void readSummary2Xml(Element parent ) throws Exception { 	
+		
+		 checkPrepare();						
+		//add to xml RG_Counts
+		Element rgElement = XmlUtils.createMetricsNode(parent,"reads", inputReadCounts.get());					
+		//add discarded read Stats to readgroup summary		
+		Element ele = XmlUtils.createGroupNode(rgElement, QprofilerXmlUtils.discardReads );
+		XmlUtils.outputValueNode(ele, "supplementaryAlignmentCount", supplementary.get());
+		XmlUtils.outputValueNode(ele, "secondaryAlignmentCount", secondary.get());
+		XmlUtils.outputValueNode(ele, "failedVendorQualityCount",failedVendorQuality.get()  );
+					
+		//long noOfRecords = getCountedReads( );
+		badReadStats( rgElement, node_duplicate, duplicate.get(), getDuplicateBase()   );
+		badReadStats( rgElement, node_unmapped, unmapped.get(), getUnmappedBase() );		
+		badReadStats( rgElement, node_nonCanonicalPair, nonCanonical.get(),  getnonCanonicalBase());
+				
+		long lostBase = getDuplicateBase() + getUnmappedBase()+ getnonCanonicalBase();
+		
+		if( !readGroupId.equals(QprofilerXmlUtils.All_READGROUP) ){
+			lostBase += lostBaseStats( rgElement, node_trim, parseTrim(readLength ), this.maxBases);				
+		}else{
+			lostBase += this.trimedBase;
+			badReadStats( rgElement, node_trim, this.trimedRead, this.trimedBase   );
+		}
+					
+		lostBase += lostBaseStats( rgElement, node_softClip, softClip, this.maxBases );
+		lostBase += lostBaseStats( rgElement, node_hardClip, hardClip, this.maxBases );
+		lostBase += lostBaseStats( rgElement, node_overlap, overlapBase, this.maxBases );
+		XmlUtils.addCommentChild(( Element )rgElement.getLastChild(), "Only count overlaped base on one strand which have positive Tlen value!");
+		
+		
+		//add comments
+		String comment = "readCount: include duplicate, non-canonical paired and unmapped reads but excludes discared reads (failed, secondary and supplementary); ";
+		if( !readGroupId.equals(QprofilerXmlUtils.All_READGROUP) ) {
+			comment += "countedBase: readCount multipy readMaxLength;";		
+			comment += slostBase + ": sum of duplicate, non-canonical paired, unmapped read base and (hard/soft clipped ,trimmed and overlapped base); ";
+		}else {
+			comment += "countedBase: sum of countedBase from all read group; ";
+			comment += slostBase + ": sum of lostBase from all read group; ";
+		}
+		comment += QprofilerXmlUtils.lostPercent + ": lostBases divded by countedBase;";
+		rgElement.appendChild( rgElement.getOwnerDocument().createComment( comment) );
+		
+		//add overall information to current readgroup element		
+		double lostPercent =  this.maxBases == 0? 0: 100 * (double) lostBase / this.maxBases ;		
+		XmlUtils.outputValueNode( rgElement, sreadCount,  this.noOfCountedReads );
+		XmlUtils.outputValueNode( rgElement, "readMaxLength", this.maxReadLength  );
+		XmlUtils.outputValueNode( rgElement, "countedBase", this.maxBases  );		
+		XmlUtils.outputValueNode( rgElement, slostBase,  lostBase);			
+		XmlUtils.outputValueNode( rgElement, QprofilerXmlUtils.lostPercent, lostPercent );			
+	}
+	 	 
+	public void pairSummary2Xml( Element parent ) { 
+		//add to xml RG_Counts
+		Element ele =  XmlUtils.createMetricsNode(parent, "pairs", pairNum.get());
+
+		XmlUtils.outputValueNode( ele, "mateUnmappedPair", mateUnmapped.get() );
+		XmlUtils.outputValueNode( ele, "mateDifferentReferencePair", diffRef.get() );
+		
+		f5f3.toXml( ele );
+		f3f5.toXml( ele );
+		inward.toXml( ele );
+		outward.toXml( ele );		
+
+		//output tlen refer to method lostBaseStats(...)
+		long sum = 0, no = 0;
+		for(int i = 1; i < middleTlenValue; i ++ ){
+			sum += isize.get(i) * i;
+			no += isize.get(i);
+		}		
+		int mean = (no == 0) ? 0: (int) (sum / no);		
+		int min = 0; //find the smallest non-zero value;
+		for(int i = 1; i < middleTlenValue; i ++) {
+			if(isize.get(i) > 0){ 
+				min  = i; break; 
+			}
+		}		 
+		int medium = 0;  	
+		// to avoid isize.get(0) >= 0 since 1(counts)/2== 0(counts/2) == 0
+		for (int i = 1,  total1 = 0 ; i < middleTlenValue; i++) {
+			if(( total1 += isize.get(i)) > no/2 ){  
+				medium = i;   break; 
+			}
+		}
+		int mode = 0; //mode is the number of read which length is most popular
+		long highest = 0;
+		double sd = 0;
+		for (int i = 1 ; i < middleTlenValue ; i++) {	
+			//the number of isize.get(i) pairs have same isize value 
+			sd += Math.pow(( i - mean), 2) * isize.get(i) / no;
+			if(isize.get(i) > highest){ highest = isize.get(i); mode = i;  } 
+		}
+		double standardDeviation = Math.sqrt(sd);
+		
+		Element ele1 = XmlUtils.createGroupNode(ele, "tlen");
+		XmlUtils.outputValueNode(ele1, smax, this.max_isize.get());
+		ele1.appendChild(ele1.getOwnerDocument().createComment("below stats is based on tlen value < " + middleTlenValue));
+		XmlUtils.outputValueNode(ele1, smin, min);		
+		XmlUtils.outputValueNode(ele1, smean, mean);
+		XmlUtils.outputValueNode(ele1, smode, mode);	
+		XmlUtils.outputValueNode(ele1, smedian, medium);
+		XmlUtils.outputValueNode(ele1, "pairCount", no);		
+		XmlUtils.outputValueNode( ele1, "standardDeviation", (int)standardDeviation);			
+	}
+	
+	private void badReadStats(Element parent, String nodeName, long reads, long badBase ){
+		Element ele = XmlUtils.createGroupNode(parent, nodeName);				
+		XmlUtils.outputValueNode(ele, sreadCount, reads);	
+		XmlUtils.outputValueNode(ele, slostBase, badBase);		
+		double percentage = 100 * (double) badBase / this.maxBases ;
+		XmlUtils.outputValueNode(ele, "basePercent",  percentage);		 	 
+	}	
+			
+	private long lostBaseStats(Element parent, String nodeName, QCMGAtomicLongArray array, long maxBases ){
 		long arrayLength = null != array ? array.length() : 0;
+		
+		long bases = 0,counts = 0;		
 		for (int i = 1 ; i < arrayLength ; i++){
+			if(array.get(i) <= 0) continue;
 			counts += array.get(i);
 			bases += i * array.get(i);
+		}		
+		int mean = (counts == 0) ? 0: (int) (bases / counts);	
+				
+		 // to avoid aray.get(0) >= 0 since 1(counts)/2== 0(counts/2) == 0
+		long medium = 0;  	
+		for (int i = 1 ; i < arrayLength; i++) {
+			if(( medium += array.get(i)) > counts/2 ){ medium = i;  break; }
 		}
-		
-		int mean = (counts == 0) ? 0: (int) (bases / counts);
-//			long medium = arrayLength > 0 ? array.get( (int) (arrayLength / 2)) : 0;
-		
-		long medium = 0;
-		for (int i = 0 ; i < arrayLength ; i++) {
-			if((medium += array.get(i)) >= counts/2  ){
-				medium = i; 
-				break; 
+		int min = 0; //find the smallest non-zero value;
+		for(int i = 1; i < arrayLength; i ++) {
+			if(array.get(i) > 0){ 
+				min  = i; break; 
 			}
 		}
-		int min = 0, max = 0, mode = 0; 
+		
+		int max = 0; //find the biggest non-zero value;
+		for(int i = (int) (arrayLength -1); i > 0; i--) {
+			if(array.get(i) > 0){ 
+				max = i; break;  
+			}
+		}
+		
+		int mode = 0; //mode is the number of read which length is most popular
 		long highest = 0;
-		for (int i = 1 ; i < arrayLength ; i++) {
-			if(array.get(i) > 0){
-				//last non-zero position
-				max = i;					
-				//first non-zero position
-				min = ( min == 0 ) ? i : min; 					
-				//mode is the number of read which length is most popular
-				if(array.get(i) > highest){
-					highest = array.get(i);
-					mode = i; 
-				}  
-			}
+		for (int i = 1 ; i < arrayLength ; i++) { 					
+			if(array.get(i) > highest){
+				highest = array.get(i);
+				mode = i; 
+			}  	
 		}
-							
-		Element stats = QprofilerXmlUtils.createSubElement(rgElement, nodeName);		
-		stats.setAttribute( "min", min+"");
-		stats.setAttribute( "max", max +"");
-		stats.setAttribute("mean",mean+"");
-		stats.setAttribute( "mode", mode+"") ;
-		stats.setAttribute( "median", medium+"" );	
-		stats.setAttribute("readCount",counts+"");				
-
-		//deal with boundary value, missing reads
-		double percentage = (maxBases == 0)? 0: 100 * (double) bases /  maxBases ;		
-		stats.setAttribute("basePercent",  String.format("%2.2f", percentage    ));		
+		Element ele = XmlUtils.createGroupNode(parent, nodeName);	
+		XmlUtils.outputValueNode(ele, smin, min);
+		XmlUtils.outputValueNode(ele, smax, max);
+		XmlUtils.outputValueNode(ele, smean, mean);
+		XmlUtils.outputValueNode(ele, smode, mode);	
+		XmlUtils.outputValueNode(ele, smedian, medium);
+		XmlUtils.outputValueNode(ele, sreadCount, counts);
+		XmlUtils.outputValueNode(ele, slostBase, bases);
 		
-		return percentage; 
+		//deal with boundary value, missing reads
+		double percentage = (maxBases == 0)? 0: 100 * (double) bases /  maxBases ;				
+		XmlUtils.outputValueNode(ele, QprofilerXmlUtils.lostPercent,  percentage );	
+									
+		return bases; 
 	}
 	
-	private QCMGAtomicLongArray parseTrim( QCMGAtomicLongArray readLengthArray, int maxReadLength ) {
+	private QCMGAtomicLongArray parseTrim( QCMGAtomicLongArray readLengthArray ) {
 		QCMGAtomicLongArray array = new QCMGAtomicLongArray(  maxReadLength+1 ); 
 		for(int i = 1; i < maxReadLength; i ++) {
 			array.increment( maxReadLength - i, readLengthArray.get(i) );

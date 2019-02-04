@@ -42,7 +42,7 @@ public class FlagUtil {
 			additionalData.append("1");
 		if (readPaired && record.getSecondOfPairFlag())
 			additionalData.append("2");
-		if (record.getNotPrimaryAlignmentFlag())
+		if (record.isSecondaryAlignment())
 			additionalData.append("s");
 		if (record.getSupplementaryAlignmentFlag())
 			additionalData.append("S");
@@ -50,11 +50,7 @@ public class FlagUtil {
 			additionalData.append("f");
 		if (record.getDuplicateReadFlag())
 			additionalData.append("d");
-		
-//		SummaryByCycleUtils.incrementCount(flagBinaryCount, StringUtils
-//				.padString(Integer.toBinaryString(record.getFlags()), 12, '0', true) 
-//				+ ((additionalData.length() > 0) ? ", " + additionalData : ""));
-		
+				
 		return  StringUtils
 		.padString(Integer.toBinaryString(flags), 12, '0', true) 
 		+ ((additionalData.length() > 0) ? ", " + additionalData : "");

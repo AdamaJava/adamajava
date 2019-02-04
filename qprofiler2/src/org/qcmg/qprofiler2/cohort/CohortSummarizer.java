@@ -4,10 +4,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -24,7 +21,6 @@ import org.w3c.dom.NodeList;
 
 public class CohortSummarizer implements Summarizer {
 	private final static QLogger logger = QLoggerFactory.getLogger(CohortSummarizer.class);
-	private int errNo = 0;
 	
 	List<CohortSummaryReport> reports = new ArrayList<>();
 	public CohortSummarizer( ) { }	
@@ -73,14 +69,6 @@ public class CohortSummarizer implements Summarizer {
  		summary += String.format("%d\t%.3f\t%.3f\n", sumCounts[0], 
  				(double) sumCounts[1] / sumCounts[0] ,  (double) sumCounts[2] / sumCounts[3] );
  		logger.info(summary);		
- 		
-//		for( String key :  sumCounts.keySet())		
-//			summary +=  String.format( "%s, %d, %.3f, %.3f\n", key, sumCounts.get(key)[0], 
-//					(double) sumCounts.get(key)[1] / sumCounts.get(key)[0] , 
-//					(double) sumCounts.get(key)[2] / sumCounts.get(key)[3] );
-//		
-//		logger.info("total output records is " + order);
-//		
 
 	}	
 	

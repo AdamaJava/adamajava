@@ -15,12 +15,10 @@ import java.nio.file.StandardCopyOption;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
-
 import htsjdk.samtools.BAMIndex;
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMFileWriter;
 import htsjdk.samtools.SAMFileWriterFactory;
-import htsjdk.samtools.SAMFileWriterImpl;
 
 public class SAMOrBAMWriterFactory {
 	
@@ -87,30 +85,6 @@ public class SAMOrBAMWriterFactory {
 		
 		writer = factory.makeSAMOrBAMWriter(header, preSort, output);  
 	}
-//	public SAMOrBAMWriterFactory(SAMFileHeader header,  boolean preSort, File output,File tmpDir, int ramReads, boolean createindex){
-//		SAMFileWriterFactory factory = new SAMFileWriterFactory();   
-//		if(ramReads != 0) {
-//			htsjdk.samtools.SAMFileWriterImpl.setDefaultMaxRecordsInRam( ramReads );
-//		}
-//		
-//		index = createindex && header.getSortOrder().equals(SAMFileHeader.SortOrder.coordinate);
-//		
-//		factory.setCreateIndex(index);
-//		
-//		/*
-//		 * set to async
-//		 */
-//		factory.setUseAsyncIo(true);
-//		factory.setAsyncOutputBufferSize(SAMFileWriterImpl.getDefaultMaxRecordsInRam());
-//		if(tmpDir != null) {
-//			factory.setTempDirectory(tmpDir);
-//		}
-//		
-//		this.output = output;		
-//		
-//		writer = factory.makeSAMOrBAMWriter(header, preSort, output);  
-//	}
-	
 	
 	public SAMFileWriter getWriter(){
 		

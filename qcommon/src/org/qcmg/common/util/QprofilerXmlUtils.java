@@ -11,7 +11,6 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
-import org.w3c.dom.DocumentType;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.bootstrap.DOMImplementationRegistry;
@@ -29,7 +28,6 @@ public class QprofilerXmlUtils {
 	public static final String TOTAL = "Total";
 	public static final String UNKNOWN_READGROUP = "unkown_readgroup_id";
 	public static final String All_READGROUP = "overall";	
-	public static final String COMMA = ","; 
 	
 	//summary
 	public static final String readGroup = "readGroup";
@@ -97,10 +95,12 @@ public class QprofilerXmlUtils {
 			
 	public static <T> String joinByComma( List<T> possibles){		 		
 		StringBuilder sb = new StringBuilder();
-		for(T mer :  possibles)
-			if( mer instanceof  String || mer instanceof Number || mer instanceof Character)
-			sb.append(mer).append(QprofilerXmlUtils.COMMA);			
-		return (sb.length() > 0)?  sb.substring(0, sb.length()-COMMA.length()) : "";				
+		for(T mer :  possibles) {
+			if( mer instanceof  String || mer instanceof Number || mer instanceof Character) {
+				sb.append(mer).append(Constants.COMMA);	
+			} 	
+		}	
+		return (sb.length() > 0)?  sb.substring(0, sb.length()-1) : "";		
 	}
 
 	/**
@@ -154,9 +154,9 @@ public class QprofilerXmlUtils {
 				backupFileByRenaming(newFile.getCanonicalPath());
 
 			// Finally we get the rename origFile to newFile!
-			if (!origFile.renameTo(newFile))  
+			if (!origFile.renameTo(newFile)) { 
 				throw new RuntimeException("Unable to rename file from " + origFile.getName() + " to " + newFile.getName());
-			 
+			}
 		}
 	}
 	
@@ -175,8 +175,9 @@ public class QprofilerXmlUtils {
 			if( ! (children.item(i) instanceof Element))
 				continue;
 			
-			if(children.item(i).getNodeName().equals(tagName))
-				elements.add((Element) children.item(i));			
+			if(children.item(i).getNodeName().equals(tagName)) {
+				elements.add((Element) children.item(i));	
+			}		
 		}
 		
 		return elements; 		
@@ -206,10 +207,11 @@ public class QprofilerXmlUtils {
 				
 		NodeList offspring = parent.getElementsByTagName(tagName);
 		for( int i = 0; i < offspring.getLength(); i ++ ){
-			if( ! (offspring.item(i) instanceof Element) )
-				continue;			
-			if(offspring.item(i).getNodeName().equals(tagName))
-				elements.add((Element) offspring.item(i));			
+			if( ! (offspring.item(i) instanceof Element) ) 	continue;			
+			if(offspring.item(i).getNodeName().equals(tagName)) {
+				elements.add((Element) offspring.item(i));	
+				
+			}		
 		}
 		
 		return elements; 		
@@ -252,24 +254,12 @@ public class QprofilerXmlUtils {
 		if(childName == null) return root;
 		
 		return QprofilerXmlUtils.createSubElement(root, childName);	 
-	}
-	
-//	public static Element createRootElement( String namespaceURI, String qualifiedName, DocumentType doctype) throws  ParserConfigurationException{
-//		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-//		DocumentBuilder builder = factory.newDocumentBuilder();
-//		DOMImplementation domImpl = builder.getDOMImplementation();		
-//		Document doc = domImpl.createDocument( namespaceURI,  qualifiedName,  doctype );
-//		return doc.getDocumentElement();
-//	}
-	
-	
-	
+	}	
 
 	public static Element createSubElement(Element parent, String name) {
 		Element element = parent.getOwnerDocument().createElement(name);
 		parent.appendChild(element);
 		return element;
 	}
-	
 	
 }

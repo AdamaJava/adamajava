@@ -34,7 +34,8 @@ public class FastqSummarizer implements Summarizer {
 	
 	private final static QLogger logger = QLoggerFactory.getLogger(FastqSummarizer.class);
 	
-	public FastqSummarizer() {}	// default constructor
+	// default constructor
+	public FastqSummarizer() {}	
 	
 	
 	@Override

@@ -20,7 +20,7 @@ public interface Summarizer {
 	 * @return SummaryReport object containing the summations
 	 * @throws Exception
 	 */
-//	public SummaryReport summarize(File file) throws Exception;
+
 	public SummaryReport summarize(String input, String index) throws Exception;
 	public default SummaryReport summarize(String input) throws Exception {
 		return summarize(input, null);
