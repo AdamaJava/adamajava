@@ -18,20 +18,20 @@ import htsjdk.samtools.SAMReadGroupRecord;
 import htsjdk.samtools.SAMSequenceRecord;
 
 public class XmlUtils {
-	public static String metrics = "Metrics";
-	public static String readGroupsEle ="readGroups";
-	public static String variableGroupEle = "variableGroup";
-	public static String Svalue = "value";
-	public static String Sbin = "closedBin";
-	public static String metricsEle = "sequence" + metrics;
-	public static String Sname = "name";
-	public static String Sid = "id";	
-	public static String Scount = "count";
-	public static String Spercent = "percent";
-	public static String Stally = "tally";
-	public static String Sstart = "start";
-	public static String Send = "end";
-	public static String Stype = "Type";
+	public static final String metrics = "Metrics";
+	public static final String readGroupsEle ="readGroups";
+	public static final String variableGroupEle = "variableGroup";
+	public static final String Svalue = "value";
+	public static final String Sbin = "closedBin";
+	public static final String metricsEle = "sequence" + metrics;
+	public static final String Sname = "name";
+	public static final String Sid = "id";	
+	public static final String Scount = "count";
+	public static final String Spercent = "percent";
+	public static final String Stally = "tally";
+	public static final String Sstart = "start";
+	public static final String Send = "end";
+	public static final String Stype = "Type";
 	
 	
    public static void bamHeaderToXml(Element parent1, SAMFileHeader header){
