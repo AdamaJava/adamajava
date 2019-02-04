@@ -66,8 +66,7 @@ public class QProfilerSummary2 {
 	 * @param summaries List of SummaryReport objects to be added to the reports collection
 	 */
 	public void addSummaries( List<SummaryReport> summaries ) {
-		if (null != summaries)
-			reports.addAll(summaries);
+		if (null != summaries) 	reports.addAll(summaries);
 	}
 	
 	/**
@@ -78,7 +77,9 @@ public class QProfilerSummary2 {
 	 */
 	public void toXml( Element parent ) {
 		for (SummaryReport report : reports) {
-			if (null != report) report.toXml(parent);
+			if ( null != report ) { 
+				report.toXml( parent );
+			}
 		}
 	}
 	
