@@ -20,11 +20,12 @@ public class CigarFilter  implements SamRecordFilter{
     
     /**
      * initilize cigar operator name, comparator and operator value
-     * @parm operatorName : At moment the valid name are [M,I,D,N,S,H,P].
-     * @param comp: see details of valid comparator on org.qcmg.qbamfilter.filter.Comparator. 
-     * @param value:  a integer string.
+     * 
+     * @parm operatorName  At moment the valid name are [M,I,D,N,S,H,P].
+     * @param comp refer to valid comparator of org.qcmg.qbamfilter.filter.Comparator.
+     * @param value is a integer string.
      * @throws Exception
-     * See usage on method filterout.
+     * 
      */
     public CigarFilter(String operatorName, Comparator comp, String value )throws Exception{
         this.value = Integer.valueOf(value);
