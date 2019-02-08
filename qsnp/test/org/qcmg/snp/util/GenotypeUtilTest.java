@@ -27,90 +27,110 @@ public class GenotypeUtilTest {
 		
 		String gt = "1/1";
 		Accumulator acc = new Accumulator(100);
-		acc.addBase((byte)'A', (byte)40, true, 90, 100, 200, 1,"");
+		acc.addBase((byte)'A', (byte)40, true, 90, 100, 200, 1);
 		assertEquals(gt + ":0,1:1:.:.:.:SOMATIC:1:A1[40]0[0]", GenotypeUtil.getFormatValues(acc, gt, "A", 'C', false, 0,0, Classification.SOMATIC, false));
 //		assertEquals("1/1:1:SBIASALT:1:1:A1[40]0[0]", GenotypeUtil.getFormatValues(acc, GenotypeEnum.AA, "A", 'C', true, 0, 0,Classification.SOMATIC, false));
 		
 		acc = new Accumulator(100);
-		acc.addBase((byte)'C', (byte)40, true, 90, 100, 200, 1,"");
+		acc.addBase((byte)'C', (byte)40, true, 90, 100, 200, 1);
 		 gt = "0/0";
 		assertEquals(gt + ":1,0:1:.:.:.:.:.:C1[40]0[0]", GenotypeUtil.getFormatValues(acc, gt, "A", 'C', false, 0, 0,Classification.SOMATIC, true));
 //		assertEquals("1/1:1:SBIASALT;COVN12:1:1:A1[40]0[0]", GenotypeUtil.getFormatValues(acc, GenotypeEnum.AA, "A", 'C', true, 0,0,Classification.SOMATIC, true));
 	}
 	
 	@Test
-	public void nnsAndMr() {
-		List<String> mrNns = GenotypeUtil.getMRandNNS("0/0", new String [] {"A"}, AccumulatorUtils.createFromOABS("A3[23]11[24.18];G2[35]4[32]", 3418618));
-		assertEquals(2, mrNns.size());
-		assertEquals(".", mrNns.get(0));
-		assertEquals(".", mrNns.get(1));
+	public void nns() {
+		String mrNns = GenotypeUtil.getNNS("0/0", new String [] {"A"}, AccumulatorUtils.createFromOABS("A3[23]11[24.18];G2[35]4[32]", 3418618));
+		assertEquals(".", mrNns);
 		
-		mrNns = GenotypeUtil.getMRandNNS("0/1", new String [] {"A"}, AccumulatorUtils.createFromOABS("A3[23]11[24.18];G2[35]4[32]", 3418618));
-		assertEquals(2, mrNns.size());
-		assertEquals("14", mrNns.get(0));
-		assertEquals("2", mrNns.get(1));
+		mrNns = GenotypeUtil.getNNS("0/1", new String [] {"A"}, AccumulatorUtils.createFromOABS("A3[23]11[24.18];G2[35]4[32]", 3418618));
+		assertEquals("2", mrNns);
 		
-		mrNns = GenotypeUtil.getMRandNNS("1/1", new String [] {"A"}, AccumulatorUtils.createFromOABS("A3[23]11[24.18];G2[35]4[32]", 3418618));
-		assertEquals(2, mrNns.size());
-		assertEquals("14", mrNns.get(0));
-		assertEquals("2", mrNns.get(1));
+		mrNns = GenotypeUtil.getNNS("1/1", new String [] {"A"}, AccumulatorUtils.createFromOABS("A3[23]11[24.18];G2[35]4[32]", 3418618));
+		assertEquals("2", mrNns);
 		
-		mrNns = GenotypeUtil.getMRandNNS("0/2", new String [] {"A","G"}, AccumulatorUtils.createFromOABS("A3[23]11[24.18];G2[35]4[32]", 3418618));
-		assertEquals(2, mrNns.size());
-		assertEquals("6", mrNns.get(0));
-		assertEquals("2", mrNns.get(1));
+		mrNns = GenotypeUtil.getNNS("0/2", new String [] {"A","G"}, AccumulatorUtils.createFromOABS("A3[23]11[24.18];G2[35]4[32]", 3418618));
+		assertEquals("2", mrNns);
 		
-		mrNns = GenotypeUtil.getMRandNNS("1/2", new String [] {"A","G"}, AccumulatorUtils.createFromOABS("A3[23]11[24.18];G2[35]4[32]", 3418618));
-		assertEquals(2, mrNns.size());
-		assertEquals("14,6", mrNns.get(0));
-		assertEquals("2,2", mrNns.get(1));
+		mrNns = GenotypeUtil.getNNS("1/2", new String [] {"A","G"}, AccumulatorUtils.createFromOABS("A3[23]11[24.18];G2[35]4[32]", 3418618));
+		assertEquals("2,2", mrNns);
 		
-		mrNns = GenotypeUtil.getMRandNNS("2/2", new String [] {"A","G"}, AccumulatorUtils.createFromOABS("A3[23]11[24.18];G2[35]4[32]", 3418618));
-		assertEquals(2, mrNns.size());
-		assertEquals("6", mrNns.get(0));
-		assertEquals("2", mrNns.get(1));
+		mrNns = GenotypeUtil.getNNS("2/2", new String [] {"A","G"}, AccumulatorUtils.createFromOABS("A3[23]11[24.18];G2[35]4[32]", 3418618));
+		assertEquals("2", mrNns);
 	}
+//	@Test
+//	public void nnsAndMr() {
+//		List<String> mrNns = GenotypeUtil.getMRandNNS("0/0", new String [] {"A"}, AccumulatorUtils.createFromOABS("A3[23]11[24.18];G2[35]4[32]", 3418618));
+//		assertEquals(2, mrNns.size());
+//		assertEquals(".", mrNns.get(0));
+//		assertEquals(".", mrNns.get(1));
+//		
+//		mrNns = GenotypeUtil.getMRandNNS("0/1", new String [] {"A"}, AccumulatorUtils.createFromOABS("A3[23]11[24.18];G2[35]4[32]", 3418618));
+//		assertEquals(2, mrNns.size());
+//		assertEquals("14", mrNns.get(0));
+//		assertEquals("2", mrNns.get(1));
+//		
+//		mrNns = GenotypeUtil.getMRandNNS("1/1", new String [] {"A"}, AccumulatorUtils.createFromOABS("A3[23]11[24.18];G2[35]4[32]", 3418618));
+//		assertEquals(2, mrNns.size());
+//		assertEquals("14", mrNns.get(0));
+//		assertEquals("2", mrNns.get(1));
+//		
+//		mrNns = GenotypeUtil.getMRandNNS("0/2", new String [] {"A","G"}, AccumulatorUtils.createFromOABS("A3[23]11[24.18];G2[35]4[32]", 3418618));
+//		assertEquals(2, mrNns.size());
+//		assertEquals("6", mrNns.get(0));
+//		assertEquals("2", mrNns.get(1));
+//		
+//		mrNns = GenotypeUtil.getMRandNNS("1/2", new String [] {"A","G"}, AccumulatorUtils.createFromOABS("A3[23]11[24.18];G2[35]4[32]", 3418618));
+//		assertEquals(2, mrNns.size());
+//		assertEquals("14,6", mrNns.get(0));
+//		assertEquals("2,2", mrNns.get(1));
+//		
+//		mrNns = GenotypeUtil.getMRandNNS("2/2", new String [] {"A","G"}, AccumulatorUtils.createFromOABS("A3[23]11[24.18];G2[35]4[32]", 3418618));
+//		assertEquals(2, mrNns.size());
+//		assertEquals("6", mrNns.get(0));
+//		assertEquals("2", mrNns.get(1));
+//	}
 	
 	
 	
-	@Test
-	public void dontPutSAN3IfCoverageExists() {
-		/*
-		 * .:.:.:SAN3:.:SOMATIC:.:.:T57[38.09]62[36.97]
-		 * This should not have the SAN3 filter
-		 */
-		Accumulator acc = AccumulatorUtils.createFromOABS("T57[38.09]62[36.97]", 15986933);
-		assertEquals(Constants.MISSING_DATA_STRING, GenotypeUtil.getFormatFilter(acc, null, new String[]{"C"}, 'T', true, 3, 3, Classification.SOMATIC, true));
-	}
+//	@Test
+//	public void dontPutSAN3IfCoverageExists() {
+//		/*
+//		 * .:.:.:SAN3:.:SOMATIC:.:.:T57[38.09]62[36.97]
+//		 * This should not have the SAN3 filter
+//		 */
+//		Accumulator acc = AccumulatorUtils.createFromOABS("T57[38.09]62[36.97]", 15986933);
+//		assertEquals(Constants.MISSING_DATA_STRING, GenotypeUtil.getFormatFilter(acc, null, new String[]{"C"}, 'T', true, 3, 3, Classification.SOMATIC, true));
+//	}
 	
 	/*
 	 * no longer populate coverage based filters
 	 */
-	@Ignore
-	public void whereIsSAM3() {
-		assertEquals("SAN3", GenotypeUtil.getFormatFilter(null, null, new String[]{"C"}, 'T', true, 3, 3, Classification.SOMATIC, true));
-		assertEquals("SAT3", GenotypeUtil.getFormatFilter(null, null, new String[]{"C"}, 'T', true, 3, 3, Classification.SOMATIC, false));
-		assertEquals("SAN3", GenotypeUtil.getFormatFilter(null, "0/0", new String[]{"C"}, 'T', true, 3, 3, Classification.SOMATIC, true));
-		assertEquals("SAT3", GenotypeUtil.getFormatFilter(null, "0/0", new String[]{"C"}, 'T', true, 3, 3, Classification.SOMATIC, false));
-		assertEquals("SAN3", GenotypeUtil.getFormatFilter(null, "0/1", new String[]{"C"}, 'T', true, 3, 3, Classification.SOMATIC, true));
-		assertEquals("SAT3", GenotypeUtil.getFormatFilter(null, "0/1", new String[]{"C"}, 'T', true, 3, 3, Classification.SOMATIC, false));
-		assertEquals("SAN3", GenotypeUtil.getFormatFilter(null, "1/1", new String[]{"C"}, 'T', true, 3, 3, Classification.SOMATIC, true));
-		assertEquals("SAT3", GenotypeUtil.getFormatFilter(null, "1/1", new String[]{"C"}, 'T', true, 3, 3, Classification.SOMATIC, false));
-		assertEquals("SAN3", GenotypeUtil.getFormatFilter(null, "1/2", new String[]{"C","G"}, 'T', true, 3, 3, Classification.SOMATIC, true));
-		assertEquals("SAT3", GenotypeUtil.getFormatFilter(null, "1/2", new String[]{"C","G"}, 'T', true, 3, 3, Classification.SOMATIC, false));
-	}
+//	@Ignore
+//	public void whereIsSAM3() {
+//		assertEquals("SAN3", GenotypeUtil.getFormatFilter(null, null, new String[]{"C"}, 'T', true, 3, 3, Classification.SOMATIC, true));
+//		assertEquals("SAT3", GenotypeUtil.getFormatFilter(null, null, new String[]{"C"}, 'T', true, 3, 3, Classification.SOMATIC, false));
+//		assertEquals("SAN3", GenotypeUtil.getFormatFilter(null, "0/0", new String[]{"C"}, 'T', true, 3, 3, Classification.SOMATIC, true));
+//		assertEquals("SAT3", GenotypeUtil.getFormatFilter(null, "0/0", new String[]{"C"}, 'T', true, 3, 3, Classification.SOMATIC, false));
+//		assertEquals("SAN3", GenotypeUtil.getFormatFilter(null, "0/1", new String[]{"C"}, 'T', true, 3, 3, Classification.SOMATIC, true));
+//		assertEquals("SAT3", GenotypeUtil.getFormatFilter(null, "0/1", new String[]{"C"}, 'T', true, 3, 3, Classification.SOMATIC, false));
+//		assertEquals("SAN3", GenotypeUtil.getFormatFilter(null, "1/1", new String[]{"C"}, 'T', true, 3, 3, Classification.SOMATIC, true));
+//		assertEquals("SAT3", GenotypeUtil.getFormatFilter(null, "1/1", new String[]{"C"}, 'T', true, 3, 3, Classification.SOMATIC, false));
+//		assertEquals("SAN3", GenotypeUtil.getFormatFilter(null, "1/2", new String[]{"C","G"}, 'T', true, 3, 3, Classification.SOMATIC, true));
+//		assertEquals("SAT3", GenotypeUtil.getFormatFilter(null, "1/2", new String[]{"C","G"}, 'T', true, 3, 3, Classification.SOMATIC, false));
+//	}
 	
-	@Test
-	public void fivePercentMIN() {
-		
-		assertEquals("MIN", GenotypeUtil.getFormatFilter(AccumulatorUtils.createFromOABS("C10[36.4]23[39.61];T2[11]1[0]", 1), "0/0", new String[]{"T"}, 'C', true, 3, 3, Classification.SOMATIC, true));
-		assertEquals("MIN", GenotypeUtil.getFormatFilter(AccumulatorUtils.createFromOABS("C10[36.4]23[39.61];T2[11]0[0]", 1), "0/0", new String[]{"T"}, 'C', true, 3, 3, Classification.SOMATIC, true));
-		assertEquals(".", GenotypeUtil.getFormatFilter(AccumulatorUtils.createFromOABS("C10[36.4]23[39.61];T1[11]0[0]", 1), "0/0", new String[]{"T"}, 'C', true, 3, 3, Classification.SOMATIC, true));
-		
-		assertEquals(".", GenotypeUtil.getFormatFilter(AccumulatorUtils.createFromOABS("C14[40.21]19[41.74];T1[11]0[0]", 1), "0/0", new String[]{"T"}, 'C', true, 3, 3, Classification.SOMATIC, true));
-		assertEquals(".", GenotypeUtil.getFormatFilter(AccumulatorUtils.createFromOABS("C18[41.17]15[39.33];T0[0]1[11]", 1), "0/0", new String[]{"T"}, 'C', true, 3, 3, Classification.SOMATIC, true));
-		assertEquals(".", GenotypeUtil.getFormatFilter(AccumulatorUtils.createFromOABS("A0[0]1[11];G13[38.15]20[40]", 1), "0/0", new String[]{"A"}, 'G', true, 3, 3, Classification.SOMATIC, true));
-	}
+//	@Test
+//	public void fivePercentMIN() {
+//		
+//		assertEquals("MIN", GenotypeUtil.getFormatFilter(AccumulatorUtils.createFromOABS("C10[36.4]23[39.61];T2[11]1[0]", 1), "0/0", new String[]{"T"}, 'C', true, 3, 3, Classification.SOMATIC, true));
+//		assertEquals("MIN", GenotypeUtil.getFormatFilter(AccumulatorUtils.createFromOABS("C10[36.4]23[39.61];T2[11]0[0]", 1), "0/0", new String[]{"T"}, 'C', true, 3, 3, Classification.SOMATIC, true));
+//		assertEquals(".", GenotypeUtil.getFormatFilter(AccumulatorUtils.createFromOABS("C10[36.4]23[39.61];T1[11]0[0]", 1), "0/0", new String[]{"T"}, 'C', true, 3, 3, Classification.SOMATIC, true));
+//		
+//		assertEquals(".", GenotypeUtil.getFormatFilter(AccumulatorUtils.createFromOABS("C14[40.21]19[41.74];T1[11]0[0]", 1), "0/0", new String[]{"T"}, 'C', true, 3, 3, Classification.SOMATIC, true));
+//		assertEquals(".", GenotypeUtil.getFormatFilter(AccumulatorUtils.createFromOABS("C18[41.17]15[39.33];T0[0]1[11]", 1), "0/0", new String[]{"T"}, 'C', true, 3, 3, Classification.SOMATIC, true));
+//		assertEquals(".", GenotypeUtil.getFormatFilter(AccumulatorUtils.createFromOABS("A0[0]1[11];G13[38.15]20[40]", 1), "0/0", new String[]{"A"}, 'G', true, 3, 3, Classification.SOMATIC, true));
+//	}
 	
 //	@Test
 //	public void fivePercentMINAM() {
@@ -126,7 +146,7 @@ public class GenotypeUtilTest {
 		String cGt = "./.";
 		String tGt = "0/1";
 		
-		assertEquals(Classification.GERMLINE, GenotypeUtil.getClassification(control.getCompressedPileup(), cGt, tGt, "A"));
+		assertEquals(Classification.GERMLINE, GenotypeUtil.getClassification(AccumulatorUtils.getUniqueBasesAsString(control), cGt, tGt, "A"));
 	}
 	
 	@Test
@@ -135,7 +155,7 @@ public class GenotypeUtilTest {
 		String cGt = "0/0";
 		String tGt = "0/1";
 		
-		assertEquals(Classification.SOMATIC, GenotypeUtil.getClassification(control.getCompressedPileup(), cGt, tGt, "A"));
+		assertEquals(Classification.SOMATIC, GenotypeUtil.getClassification(AccumulatorUtils.getUniqueBasesAsString(control), cGt, tGt, "A"));
 	}
 	
 	@Test
@@ -152,7 +172,7 @@ public class GenotypeUtilTest {
 //		Accumulator test = AccumulatorUtils.createFromOABS("A36[37]21[11]", 54817257);
 		String cGt = "0/1";
 		String tGt = "0/0";
-		assertEquals(Classification.GERMLINE, GenotypeUtil.getClassification(control.getCompressedPileup(), cGt, tGt, "G"));
+		assertEquals(Classification.GERMLINE, GenotypeUtil.getClassification(AccumulatorUtils.getUniqueBasesAsString(control), cGt, tGt, "G"));
 		
 		//TODO awaiting discussion about whether 1/1 to 0/0 is GERMLINE or SOMATIC
 //		Accumulator control2 = AccumulatorUtils.createFromOABS("A16[37]18[11]", 54817258);
@@ -428,86 +448,86 @@ public class GenotypeUtilTest {
 	@Test
 	public void testSingleGenotypeSameAsRef() {
 		Accumulator acc = new Accumulator(1);
-		acc.addBase((byte)'A', (byte)40, true, 1, 1, 2, 1,"");
-		acc.addBase((byte)'A', (byte)40, true, 1, 1, 2, 1,"");
-		acc.addBase((byte)'A', (byte)40, true, 1, 1, 2, 1,"");
-		acc.addBase((byte)'A', (byte)40, true, 1, 1, 2, 1,"");
-		acc.addBase((byte)'A', (byte)40, true, 1, 1, 2, 1,"");
+		acc.addBase((byte)'A', (byte)40, true, 1, 1, 2, 1);
+		acc.addBase((byte)'A', (byte)40, true, 1, 1, 2, 1);
+		acc.addBase((byte)'A', (byte)40, true, 1, 1, 2, 1);
+		acc.addBase((byte)'A', (byte)40, true, 1, 1, 2, 1);
+		acc.addBase((byte)'A', (byte)40, true, 1, 1, 2, 1);
 		assertEquals(Classification.UNKNOWN, GenotypeUtil.getClassification(null, null, null , "A"));
 		
-		assertEquals(Classification.UNKNOWN, GenotypeUtil.getClassification(acc.getCompressedPileup() , "0/0", null,  "C"));
-		assertEquals(Classification.UNKNOWN, GenotypeUtil.getClassification(acc.getCompressedPileup() ,null,  "0/0",  "C"));
+		assertEquals(Classification.UNKNOWN, GenotypeUtil.getClassification(AccumulatorUtils.getUniqueBasesAsString(acc) , "0/0", null,  "C"));
+		assertEquals(Classification.UNKNOWN, GenotypeUtil.getClassification(AccumulatorUtils.getUniqueBasesAsString(acc) ,null,  "0/0",  "C"));
 	}
 	
 	@Test
 	public void singleLowNormalCov() {
 		Accumulator controlAcc = new Accumulator(1);
-		controlAcc.addBase((byte)'A', (byte)40, true, 1, 1, 2, 1,"");
-		controlAcc.addBase((byte)'G', (byte)40, false, 1, 1, 2, 1,"");
+		controlAcc.addBase((byte)'A', (byte)40, true, 1, 1, 2, 1);
+		controlAcc.addBase((byte)'G', (byte)40, false, 1, 1, 2, 1);
 		assertEquals(Classification.GERMLINE, GenotypeUtil.getClassification("AG", null, "0/1" , "G"));
-		assertEquals(Classification.GERMLINE, GenotypeUtil.getClassification(controlAcc.getCompressedPileup() ,null,  "0/1",  "G"));
+		assertEquals(Classification.GERMLINE, GenotypeUtil.getClassification(AccumulatorUtils.getUniqueBasesAsString(controlAcc) ,null,  "0/1",  "G"));
 		assertEquals("G", GenotypeUtil.getAltAlleles(null, GenotypeEnum.AG, 'A'));
 		
-		controlAcc.addBase((byte)'G', (byte)40, false, 1, 1, 2, 1,"");
-		assertEquals(Classification.GERMLINE, GenotypeUtil.getClassification(controlAcc.getCompressedPileup() ,null,  "0/1",  "G"));
-		assertEquals("G", GenotypeUtil.getAltAlleles(null, GenotypeEnum.AG, 'A'));
-		
-		controlAcc = new Accumulator(1);
-		controlAcc.addBase((byte)'A', (byte)40, true, 1, 1, 2, 1,"");
-		controlAcc.addBase((byte)'A', (byte)40, true, 1, 1, 2, 1,"");
-		assertEquals(Classification.SOMATIC, GenotypeUtil.getClassification(controlAcc.getCompressedPileup() ,null,  "0/1",  "G"));
+		controlAcc.addBase((byte)'G', (byte)40, false, 1, 1, 2, 1);
+		assertEquals(Classification.GERMLINE, GenotypeUtil.getClassification(AccumulatorUtils.getUniqueBasesAsString(controlAcc) ,null,  "0/1",  "G"));
 		assertEquals("G", GenotypeUtil.getAltAlleles(null, GenotypeEnum.AG, 'A'));
 		
 		controlAcc = new Accumulator(1);
-		controlAcc.addBase((byte)'C', (byte)40, true, 1, 1, 2, 1,"");
-		controlAcc.addBase((byte)'A', (byte)40, true, 1, 1, 2, 1,"");
-		controlAcc.addBase((byte)'C', (byte)40, false, 1, 1, 2, 1,"");
-		assertEquals(Classification.SOMATIC, GenotypeUtil.getClassification(controlAcc.getCompressedPileup() ,null,  "1/2",  "G,T"));
+		controlAcc.addBase((byte)'A', (byte)40, true, 1, 1, 2, 1);
+		controlAcc.addBase((byte)'A', (byte)40, true, 1, 1, 2, 1);
+		assertEquals(Classification.SOMATIC, GenotypeUtil.getClassification(AccumulatorUtils.getUniqueBasesAsString(controlAcc) ,null,  "0/1",  "G"));
+		assertEquals("G", GenotypeUtil.getAltAlleles(null, GenotypeEnum.AG, 'A'));
+		
+		controlAcc = new Accumulator(1);
+		controlAcc.addBase((byte)'C', (byte)40, true, 1, 1, 2, 1);
+		controlAcc.addBase((byte)'A', (byte)40, true, 1, 1, 2, 1);
+		controlAcc.addBase((byte)'C', (byte)40, false, 1, 1, 2, 1);
+		assertEquals(Classification.SOMATIC, GenotypeUtil.getClassification(AccumulatorUtils.getUniqueBasesAsString(controlAcc) ,null,  "1/2",  "G,T"));
 		assertEquals("G,T", GenotypeUtil.getAltAlleles(null, GenotypeEnum.GT, 'A'));
 		
 		controlAcc = new Accumulator(1);
-		controlAcc.addBase((byte)'T', (byte)40, true, 1, 1, 2, 1,"");
-		controlAcc.addBase((byte)'A', (byte)40, true, 1, 1, 2, 1,"");
-		controlAcc.addBase((byte)'G', (byte)40, true, 1, 1, 2, 1,"");
-		controlAcc.addBase((byte)'G', (byte)40, false, 1, 1, 2, 1,"");
-		assertEquals(Classification.GERMLINE, GenotypeUtil.getClassification(controlAcc.getCompressedPileup() ,null,  "1/1",  "T"));
+		controlAcc.addBase((byte)'T', (byte)40, true, 1, 1, 2, 1);
+		controlAcc.addBase((byte)'A', (byte)40, true, 1, 1, 2, 1);
+		controlAcc.addBase((byte)'G', (byte)40, true, 1, 1, 2, 1);
+		controlAcc.addBase((byte)'G', (byte)40, false, 1, 1, 2, 1);
+		assertEquals(Classification.GERMLINE, GenotypeUtil.getClassification(AccumulatorUtils.getUniqueBasesAsString(controlAcc) ,null,  "1/1",  "T"));
 		assertEquals("T", GenotypeUtil.getAltAlleles(null, GenotypeEnum.TT, 'A'));
 	}
 	
 	@Test
 	public void singleLowTestCov() {
 		Accumulator controlAcc = new Accumulator(1);
-		controlAcc.addBase((byte)'A', (byte)40, true, 1, 1, 2, 1,"");
-		controlAcc.addBase((byte)'G', (byte)40, false, 1, 1, 2, 1,"");
-		assertEquals(Classification.GERMLINE, GenotypeUtil.getClassification(controlAcc.getCompressedPileup() ,"0/1", null, "G"));
+		controlAcc.addBase((byte)'A', (byte)40, true, 1, 1, 2, 1);
+		controlAcc.addBase((byte)'G', (byte)40, false, 1, 1, 2, 1);
+		assertEquals(Classification.GERMLINE, GenotypeUtil.getClassification(AccumulatorUtils.getUniqueBasesAsString(controlAcc) ,"0/1", null, "G"));
 		assertEquals("G", GenotypeUtil.getAltAlleles(GenotypeEnum.AG, null, 'A'));
 		
-		assertEquals(Classification.GERMLINE, GenotypeUtil.getClassification(controlAcc.getCompressedPileup() ,"1/1", null, "C"));
+		assertEquals(Classification.GERMLINE, GenotypeUtil.getClassification(AccumulatorUtils.getUniqueBasesAsString(controlAcc) ,"1/1", null, "C"));
 		assertEquals("C", GenotypeUtil.getAltAlleles(GenotypeEnum.CC, null, 'A'));
 		
-		assertEquals(Classification.UNKNOWN, GenotypeUtil.getClassification(controlAcc.getCompressedPileup() ,"0/0", null, ""));
+		assertEquals(Classification.UNKNOWN, GenotypeUtil.getClassification(AccumulatorUtils.getUniqueBasesAsString(controlAcc) ,"0/0", null, ""));
 	}
 
 	@Test
 	public void realLifeData() {
 		Accumulator controlAcc = new Accumulator(1);
-		controlAcc.addBase((byte)'A', (byte)40, true, 1, 1, 2, 1,"");
-		controlAcc.addBase((byte)'A', (byte)40, false, 1, 1, 2, 1,"");
-		controlAcc.addBase((byte)'T', (byte)40, true, 1, 1, 2, 1,"");
+		controlAcc.addBase((byte)'A', (byte)40, true, 1, 1, 2, 1);
+		controlAcc.addBase((byte)'A', (byte)40, false, 1, 1, 2, 1);
+		controlAcc.addBase((byte)'T', (byte)40, true, 1, 1, 2, 1);
 		assertEquals(Classification.GERMLINE, GenotypeUtil.getClassification("AT", "0/1", ".", "T"));
 		assertEquals("T", GenotypeUtil.getAltAlleles(null, GenotypeEnum.AT, 'A'));
 		
 		
 		controlAcc = new Accumulator(1);
-		controlAcc.addBase((byte)'C', (byte)40, true, 1, 1, 2, 1,"");
-		controlAcc.addBase((byte)'C', (byte)40, true, 1, 1, 2, 1,"");
-		controlAcc.addBase((byte)'T', (byte)40, true, 1, 1, 2, 1,"");
-		controlAcc.addBase((byte)'T', (byte)40, true, 1, 1, 2, 1,"");
+		controlAcc.addBase((byte)'C', (byte)40, true, 1, 1, 2, 1);
+		controlAcc.addBase((byte)'C', (byte)40, true, 1, 1, 2, 1);
+		controlAcc.addBase((byte)'T', (byte)40, true, 1, 1, 2, 1);
+		controlAcc.addBase((byte)'T', (byte)40, true, 1, 1, 2, 1);
 		assertEquals(Classification.GERMLINE, GenotypeUtil.getClassification("CT", "1/2", ".", "C,T"));
 		assertEquals("C,T", GenotypeUtil.getAltAlleles(null, GenotypeEnum.CT, 'G'));
 		
 		controlAcc = new Accumulator(1);
-		controlAcc.addBase((byte)'G', (byte)40, true, 1, 1, 2, 1,"");
+		controlAcc.addBase((byte)'G', (byte)40, true, 1, 1, 2, 1);
 		assertEquals(Classification.GERMLINE, GenotypeUtil.getClassification("G", "1/1", ".", "G"));
 		assertEquals("G", GenotypeUtil.getAltAlleles(null, GenotypeEnum.GG, 'A'));
 	}

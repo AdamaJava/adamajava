@@ -481,7 +481,7 @@ public final class MuTectPipeline extends Pipeline {
 					if (null != oldAcc) acc = oldAcc;
 				}
 				acc.addBase(sam.getReadBases()[indexInRead], baseQuality, ! sam.getReadNegativeStrandFlag(), 
-						sam.getAlignmentStart(), cp.getStartPosition(), sam.getAlignmentEnd(), readId, sam.getReadName());
+						sam.getAlignmentStart(), cp.getStartPosition(), sam.getAlignmentEnd(), readId);
 			}
 		}
 		

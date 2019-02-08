@@ -19,7 +19,9 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.QprofilerXmlUtils;
+import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Element;
@@ -52,6 +54,34 @@ public class KmersSummaryTest {
 		assertEquals((int)Math.pow(5,6), kmers.length);
 		kmers = summary.getPossibleKmerString(6, false);
 		assertEquals((int)Math.pow(4,6), kmers.length);
+	}
+	
+	@Test
+	public void speedTest() {
+		int counter = 10;
+		String s = KmersSummary.producer(6, "", true);
+		System.out.println("s length: " + s.length());
+		long start = System.currentTimeMillis();
+		for (int i = 0 ; i < counter ; i++) {
+		String[] split = s.split(Constants.COMMA_STRING);
+		}
+//		System.out.println("split.length: " + split.length);
+		System.out.println("time taken split: " + (System.currentTimeMillis() - start));
+		
+		start = System.currentTimeMillis();
+		for (int i = 0 ; i < counter ; i++) {
+			String [] tt = TabTokenizer.tokenize(s, Constants.COMMA);
+			}
+//		System.out.println("tt.length: " + tt.length);
+		System.out.println("time taken tt: " + (System.currentTimeMillis() - start));
+		
+		
+		start = System.currentTimeMillis();
+		for (int i = 0 ; i < counter ; i++) {
+		String[] split = s.split(Constants.COMMA_STRING);
+		}
+//		System.out.println("split.length: " + split.length);
+		System.out.println("time taken split: " + (System.currentTimeMillis() - start));
 	}
 	
 	@Test

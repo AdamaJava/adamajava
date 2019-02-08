@@ -3,11 +3,15 @@ package org.qcmg.snp.util;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertArrayEquals;
 import gnu.trove.list.TIntList;
+import gnu.trove.list.TLongList;
 import gnu.trove.list.array.TIntArrayList;
+import gnu.trove.list.array.TLongArrayList;
 import gnu.trove.map.TIntIntMap;
+import gnu.trove.map.TLongIntMap;
 import gnu.trove.map.TMap;
 import gnu.trove.map.hash.THashMap;
 import gnu.trove.map.hash.TIntIntHashMap;
+import gnu.trove.map.hash.TLongIntHashMap;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -111,7 +115,7 @@ Exception in thread "main" java.lang.IllegalArgumentException: List of Accumulat
 	}
 	
 	@Test
-	public void getLoLoRecsDiffClassification() throws Exception {
+	public void getLoLoRecsDiffClassification() {
 		VcfRecord v1 = VcfUtils.createVcfRecord(new ChrPointPosition("1", 100),null,"A","C");
 		VcfRecord v2 = VcfUtils.createVcfRecord(new ChrPointPosition("1", 101),null,"C","G");
 		v2.setInfo(VcfHeaderUtils.INFO_SOMATIC);
@@ -156,6 +160,33 @@ Exception in thread "main" java.lang.IllegalArgumentException: List of Accumulat
 		assertEquals(1, PipelineUtil.getUniqueCount(m, l));
 		l.add(101);
 		assertEquals(1, PipelineUtil.getUniqueCount(m, l));
+	}
+	
+	@Test
+	public void getUniquesLong() {
+		TLongIntMap m  = new TLongIntHashMap();
+		TLongList l  = new TLongArrayList();
+		assertEquals(0, PipelineUtil.getUniqueCount(m, l, true));
+		assertEquals(0, PipelineUtil.getUniqueCount(m, l, false));
+		m.put(100, 10);
+		assertEquals(0, PipelineUtil.getUniqueCount(m, l, true));
+		assertEquals(0, PipelineUtil.getUniqueCount(m, l, false));
+		l.add(100);
+		assertEquals(1, PipelineUtil.getUniqueCount(m, l, true));
+		assertEquals(0, PipelineUtil.getUniqueCount(m, l, false));
+		l.add(101);
+		assertEquals(1, PipelineUtil.getUniqueCount(m, l, true));
+		assertEquals(0, PipelineUtil.getUniqueCount(m, l, false));
+		
+		/*
+		 * add a reverse strand entry
+		 */
+		m.put(101, -20);
+		assertEquals(1, PipelineUtil.getUniqueCount(m, l, true));
+		assertEquals(1, PipelineUtil.getUniqueCount(m, l, false));
+		m.put(101, -20);
+		assertEquals(1, PipelineUtil.getUniqueCount(m, l, true));
+		assertEquals(1, PipelineUtil.getUniqueCount(m, l, false));
 	}
 	
 	@Test
@@ -278,11 +309,26 @@ Exception in thread "main" java.lang.IllegalArgumentException: List of Accumulat
 	}
 	
 	@Test
+	public void doesStringContainLC() {
+		assertEquals(false, PipelineUtil.isStringLowerCase(null));
+		assertEquals(false, PipelineUtil.isStringLowerCase(""));
+		assertEquals(false, PipelineUtil.isStringLowerCase("."));
+		assertEquals(false, PipelineUtil.isStringLowerCase("_"));
+		assertEquals(false, PipelineUtil.isStringLowerCase("_A"));
+		assertEquals(false, PipelineUtil.isStringLowerCase("A_"));
+		assertEquals(false, PipelineUtil.isStringLowerCase("A_B"));
+		assertEquals(true, PipelineUtil.isStringLowerCase("a"));
+		assertEquals(true, PipelineUtil.isStringLowerCase("_a"));
+		assertEquals(true, PipelineUtil.isStringLowerCase("_a_"));
+		assertEquals(true, PipelineUtil.isStringLowerCase("__x"));
+	}
+	
+	@Test
 	public void getMR() {
 		Accumulator acc1 = new Accumulator(150);
-		acc1.addBase((byte)'G', (byte) 1, true, 100, 150, 200, 1,"1");
-		acc1.addBase((byte)'G', (byte) 1, true, 100, 150, 200, 2,"2");
-		acc1.addBase((byte)'G', (byte) 1, false, 100, 150, 200, 3,"3");
+		acc1.addBase((byte)'G', (byte) 1, true, 100, 150, 200, 1);
+		acc1.addBase((byte)'G', (byte) 1, true, 100, 150, 200, 2);
+		acc1.addBase((byte)'G', (byte) 1, false, 100, 150, 200, 3);
 		List<Accumulator> accs = Arrays.asList(acc1);
 		
 		Map<String, short[]> basesAndCounts = PipelineUtil.getBasesFromAccumulators(accs);
@@ -309,9 +355,9 @@ Exception in thread "main" java.lang.IllegalArgumentException: List of Accumulat
 	@Test
 	public void getCount() {
 		Accumulator acc1 = new Accumulator(1);
-		acc1.addBase((byte)'G', (byte) 1, true, 1, 1, 2, 1,"1");
-		acc1.addBase((byte)'G', (byte) 1, true, 1, 1, 2, 2,"2");
-		acc1.addBase((byte)'G', (byte) 1, false, 1, 1, 2, 3,"3");
+		acc1.addBase((byte)'G', (byte) 1, true, 1, 1, 2, 1);
+		acc1.addBase((byte)'G', (byte) 1, true, 1, 1, 2, 2);
+		acc1.addBase((byte)'G', (byte) 1, false, 1, 1, 2, 3);
 //		Accumulator acc2 = new Accumulator(2);
 //		acc2.addBase((byte)'A', (byte) 1, true, 2, 2, 3, 1);
 		List<Accumulator> accs = Arrays.asList(acc1);
@@ -319,8 +365,8 @@ Exception in thread "main" java.lang.IllegalArgumentException: List of Accumulat
 		Map<String, short[]> basesAndCounts = PipelineUtil.getBasesFromAccumulators(accs);
 		assertEquals(3, PipelineUtil.getCount(basesAndCounts, "G", 0));
 		
-		acc1.addBase((byte)'T', (byte) 1, false, 1, 1, 2, 4,"4");
-		acc1.addBase((byte)'T', (byte) 1, true, 1, 1, 2, 5,"5");
+		acc1.addBase((byte)'T', (byte) 1, false, 1, 1, 2, 4);
+		acc1.addBase((byte)'T', (byte) 1, true, 1, 1, 2, 5);
 		basesAndCounts = PipelineUtil.getBasesFromAccumulators(accs);
 		assertEquals(3, PipelineUtil.getCount(basesAndCounts, "G", 0));
 		assertEquals(2, PipelineUtil.getCount(basesAndCounts, "T", 0));
@@ -516,32 +562,32 @@ Exception in thread "main" java.lang.IllegalArgumentException: List of Accumulat
 	@Test
 	public void getBasesFromAccs() {
 		Accumulator acc1 = new Accumulator(100);
-		acc1.addBase((byte)'G', (byte) 1, true, 100, 100, 200, 1,"1");
-		acc1.addBase((byte)'G', (byte) 1, true, 100, 100, 200, 2,"2");
-		acc1.addBase((byte)'G', (byte) 1, false, 100, 100, 200, 3,"3");
+		acc1.addBase((byte)'G', (byte) 1, true, 100, 100, 200, 1);
+		acc1.addBase((byte)'G', (byte) 1, true, 100, 100, 200, 2);
+		acc1.addBase((byte)'G', (byte) 1, false, 100, 100, 200, 3);
 		Accumulator acc2 = new Accumulator(101);
-		acc2.addBase((byte)'A', (byte) 1, true, 100, 101, 200, 1,"1");
-		acc2.addBase((byte)'A', (byte) 1, true, 100, 101, 200, 2,"2");
-		acc2.addBase((byte)'A', (byte) 1, false, 100, 101, 200, 3,"3");
+		acc2.addBase((byte)'A', (byte) 1, true, 100, 101, 200, 1);
+		acc2.addBase((byte)'A', (byte) 1, true, 100, 101, 200, 2);
+		acc2.addBase((byte)'A', (byte) 1, false, 100, 101, 200, 3);
 		List<Accumulator> accs = Arrays.asList(acc1, acc2);
 		
 		Map<String, short[]> basesAndCounts = PipelineUtil.getBasesFromAccumulators(accs);
 		assertEquals(1, basesAndCounts.size());
 		Assert.assertArrayEquals(new short[]{2,1,1,1}, basesAndCounts.get("GA"));
 		
-		acc1.addBase((byte)'C', (byte) 1, false, 100, 100, 201, 4,"");
+		acc1.addBase((byte)'C', (byte) 1, false, 100, 100, 201, 4);
 		basesAndCounts = PipelineUtil.getBasesFromAccumulators(accs);
 		assertEquals(2, basesAndCounts.size());
 		Assert.assertArrayEquals(new short[]{2,1,1,1}, basesAndCounts.get("GA"));
 		Assert.assertArrayEquals(new short[]{0,0,1,1}, basesAndCounts.get("C_"));
 		
-		acc1.addBase((byte)'C', (byte) 1, false, 100, 100, 199, 6,"");
+		acc1.addBase((byte)'C', (byte) 1, false, 100, 100, 199, 6);
 		basesAndCounts = PipelineUtil.getBasesFromAccumulators(accs);
 		assertEquals(2, basesAndCounts.size());
 		Assert.assertArrayEquals(new short[]{2,1,1,1}, basesAndCounts.get("GA"));
 		Assert.assertArrayEquals(new short[]{0,0,2,2}, basesAndCounts.get("C_"));
 		
-		acc2.addBase((byte)'T', (byte) 1, true, 101, 101, 200, 5,"");
+		acc2.addBase((byte)'T', (byte) 1, true, 101, 101, 200, 5);
 		basesAndCounts = PipelineUtil.getBasesFromAccumulators(accs);
 		assertEquals(3, basesAndCounts.size());
 		Assert.assertArrayEquals(new short[]{2,1,1,1}, basesAndCounts.get("GA"));
@@ -549,9 +595,9 @@ Exception in thread "main" java.lang.IllegalArgumentException: List of Accumulat
 		Assert.assertArrayEquals(new short[]{1,1,0,0}, basesAndCounts.get("_T"));
 		
 		Accumulator acc3 = new Accumulator(102);
-		acc3.addBase((byte)'C', (byte) 1, true, 100, 102, 200, 1,"");
-		acc3.addBase((byte)'C', (byte) 1, true, 100, 102, 200, 2,"");
-		acc3.addBase((byte)'C', (byte) 1, true,101, 102, 200, 5,"");
+		acc3.addBase((byte)'C', (byte) 1, true, 100, 102, 200, 1);
+		acc3.addBase((byte)'C', (byte) 1, true, 100, 102, 200, 2);
+		acc3.addBase((byte)'C', (byte) 1, true,101, 102, 200, 5);
 		accs = Arrays.asList(acc1, acc2, acc3);
 		
 		basesAndCounts = PipelineUtil.getBasesFromAccumulators(accs);
@@ -569,14 +615,14 @@ Exception in thread "main" java.lang.IllegalArgumentException: List of Accumulat
 		VcfRecord origV = VcfUtils.createVcfRecord(new ChrPointPosition("1", 100),null,"A","C");
 		
 		Accumulator controlAcc100 = new Accumulator(100);
-		controlAcc100.addBase((byte)'A', (byte) 1, true, 100, 100, 200, 1,"");
-		controlAcc100.addBase((byte)'A', (byte) 1, true, 100, 100, 200, 2,"");
-		controlAcc100.addBase((byte)'A', (byte) 1, false, 100, 100, 200, 3,"");
+		controlAcc100.addBase((byte)'A', (byte) 1, true, 100, 100, 200, 1);
+		controlAcc100.addBase((byte)'A', (byte) 1, true, 100, 100, 200, 2);
+		controlAcc100.addBase((byte)'A', (byte) 1, false, 100, 100, 200, 3);
 		
 		Accumulator testAcc100 = new Accumulator(100);
-		testAcc100.addBase((byte)'C', (byte) 1, true, 100, 100, 200, 1,"");
-		testAcc100.addBase((byte)'C', (byte) 1, true, 100, 100, 200, 2,"");
-		testAcc100.addBase((byte)'C', (byte) 1, false, 100, 100, 200, 3,"");
+		testAcc100.addBase((byte)'C', (byte) 1, true, 100, 100, 200, 1);
+		testAcc100.addBase((byte)'C', (byte) 1, true, 100, 100, 200, 2);
+		testAcc100.addBase((byte)'C', (byte) 1, false, 100, 100, 200, 3);
 		Map<VcfRecord, Pair<Accumulator, Accumulator>> map = new HashMap<>();
 		map.put(origV, new Pair<>(controlAcc100, testAcc100));
 		
@@ -595,24 +641,24 @@ Exception in thread "main" java.lang.IllegalArgumentException: List of Accumulat
 		VcfRecord origV2 = VcfUtils.createVcfRecord(new ChrPointPosition("1", 101),null,"C","T");
 		
 		Accumulator controlAcc100 = new Accumulator(100);
-		controlAcc100.addBase((byte)'A', (byte) 1, true, 100, 100, 200, 1,"");
-		controlAcc100.addBase((byte)'A', (byte) 1, true, 100, 100, 200, 2,"");
-		controlAcc100.addBase((byte)'A', (byte) 1, false, 100, 100, 200, 3,"");
+		controlAcc100.addBase((byte)'A', (byte) 1, true, 100, 100, 200, 1);
+		controlAcc100.addBase((byte)'A', (byte) 1, true, 100, 100, 200, 2);
+		controlAcc100.addBase((byte)'A', (byte) 1, false, 100, 100, 200, 3);
 		
 		Accumulator controlAcc101 = new Accumulator(101);
-		controlAcc101.addBase((byte)'C', (byte) 1, true, 101, 101, 200, 1,"");
-		controlAcc101.addBase((byte)'C', (byte) 1, true, 101, 101, 200, 2,"");
-		controlAcc101.addBase((byte)'C', (byte) 1, false, 101, 101, 200, 3,"");
+		controlAcc101.addBase((byte)'C', (byte) 1, true, 101, 101, 200, 1);
+		controlAcc101.addBase((byte)'C', (byte) 1, true, 101, 101, 200, 2);
+		controlAcc101.addBase((byte)'C', (byte) 1, false, 101, 101, 200, 3);
 		
 		Accumulator testAcc100 = new Accumulator(100);
-		testAcc100.addBase((byte)'G', (byte) 1, true, 100, 100, 200, 1,"");
-		testAcc100.addBase((byte)'G', (byte) 1, true, 100, 100, 200, 2,"");
-		testAcc100.addBase((byte)'G', (byte) 1, false, 100, 100, 200, 3,"");
+		testAcc100.addBase((byte)'G', (byte) 1, true, 100, 100, 200, 1);
+		testAcc100.addBase((byte)'G', (byte) 1, true, 100, 100, 200, 2);
+		testAcc100.addBase((byte)'G', (byte) 1, false, 100, 100, 200, 3);
 		
 		Accumulator testAcc101 = new Accumulator(101);
-		testAcc101.addBase((byte)'T', (byte) 1, true, 101, 101, 200, 1,"");
-		testAcc101.addBase((byte)'T', (byte) 1, true, 101, 101, 200, 2,"");
-		testAcc101.addBase((byte)'T', (byte) 1, false, 101, 101, 200, 3,"");
+		testAcc101.addBase((byte)'T', (byte) 1, true, 101, 101, 200, 1);
+		testAcc101.addBase((byte)'T', (byte) 1, true, 101, 101, 200, 2);
+		testAcc101.addBase((byte)'T', (byte) 1, false, 101, 101, 200, 3);
 		
 		Map<VcfRecord, Pair<Accumulator, Accumulator>> map = new HashMap<>();
 		map.put(origV, new Pair<>(controlAcc100, testAcc100));
@@ -629,9 +675,9 @@ Exception in thread "main" java.lang.IllegalArgumentException: List of Accumulat
 		/*
 		 * add some noise
 		 */
-		controlAcc100.addBase((byte)'T', (byte) 1, false, 100, 100, 200, 4,"");
-		controlAcc100.addBase((byte)'T', (byte) 1, false, 100, 100, 200, 5,"");
-		controlAcc100.addBase((byte)'T', (byte) 1, false, 100, 100, 200, 6,"");
+		controlAcc100.addBase((byte)'T', (byte) 1, false, 100, 100, 200, 4);
+		controlAcc100.addBase((byte)'T', (byte) 1, false, 100, 100, 200, 5);
+		controlAcc100.addBase((byte)'T', (byte) 1, false, 100, 100, 200, 6);
 		
 		 v = PipelineUtil.createCompoundSnp(map, cRules,tRules, true, 3, 3).get();
 		assertEquals(2, v.getChrPosition().getLength());
@@ -921,12 +967,12 @@ chr4    8046421 .       A       T       .       .       BaseQRankSum=0.727;Clipp
 		assertEquals(false, PipelineUtil.createCompoundSnp(map, cRules,tRules, true, 3, 3).isPresent());
 		
 		// need 4 reads with the cs to register
-		tumour100.addBase((byte)'C', (byte)30, true, 100, 100, 200, 2,"");
-		tumour101.addBase((byte)'G', (byte)30, true, 101, 101, 200, 2,"");
-		tumour100.addBase((byte)'C', (byte)30, false, 100, 100, 200, 3,"");
-		tumour101.addBase((byte)'G', (byte)30, false, 101, 101, 200, 3,"");
-		tumour100.addBase((byte)'C', (byte)30, true, 100, 100, 200, 4,"");
-		tumour101.addBase((byte)'G', (byte)30, true, 101, 101, 200, 4,"");
+		tumour100.addBase((byte)'C', (byte)30, true, 100, 100, 200, 2);
+		tumour101.addBase((byte)'G', (byte)30, true, 101, 101, 200, 2);
+		tumour100.addBase((byte)'C', (byte)30, false, 100, 100, 200, 3);
+		tumour101.addBase((byte)'G', (byte)30, false, 101, 101, 200, 3);
+		tumour100.addBase((byte)'C', (byte)30, true, 100, 100, 200, 4);
+		tumour101.addBase((byte)'G', (byte)30, true, 101, 101, 200, 4);
 		
 		Optional<VcfRecord> ov = PipelineUtil.createCompoundSnp(map, cRules,tRules, true, 3, 3); 
 		assertEquals(true, ov.isPresent());
@@ -944,9 +990,9 @@ chr4    8046421 .       A       T       .       .       BaseQRankSum=0.727;Clipp
 		v2.setInfo(VcfHeaderUtils.INFO_SOMATIC);
 		
 		final Accumulator tumour100 = new Accumulator(100);
-		tumour100.addBase((byte)'C', (byte)30, true, 100, 100, 200, 1,"");
+		tumour100.addBase((byte)'C', (byte)30, true, 100, 100, 200, 1);
 		final Accumulator tumour101 = new Accumulator(101);
-		tumour101.addBase((byte)'G', (byte)30, true, 101, 101, 200, 1,"");
+		tumour101.addBase((byte)'G', (byte)30, true, 101, 101, 200, 1);
 		
 		Map<VcfRecord, Pair<Accumulator, Accumulator>> map = new HashMap<>();
 		map.put(v1,  new Pair<>(null, tumour100));
@@ -954,10 +1000,10 @@ chr4    8046421 .       A       T       .       .       BaseQRankSum=0.727;Clipp
 		assertEquals(false, PipelineUtil.createCompoundSnp(map, cRules,tRules, true, 3, 3).isPresent());
 		
 		// need 4 reads with the cs to register
-		tumour100.addBase((byte)'C', (byte)30, true, 100, 100, 200, 2,"");
-		tumour101.addBase((byte)'G', (byte)30, true, 101, 101, 200, 2,"");
-		tumour100.addBase((byte)'C', (byte)30, true, 100, 100, 200, 3,"");
-		tumour101.addBase((byte)'G', (byte)30, true, 101, 101, 200, 3,"");
+		tumour100.addBase((byte)'C', (byte)30, true, 100, 100, 200, 2);
+		tumour101.addBase((byte)'G', (byte)30, true, 101, 101, 200, 2);
+		tumour100.addBase((byte)'C', (byte)30, true, 100, 100, 200, 3);
+		tumour101.addBase((byte)'G', (byte)30, true, 101, 101, 200, 3);
 		tumour100.addBase((byte)'C', (byte)30, true, 100, 100, 200, 4);
 		tumour101.addBase((byte)'G', (byte)30, true, 101, 101, 200, 4);
 		tumour101.addBase((byte)'G', (byte)30, true, 101, 101, 200, 5);
@@ -1328,23 +1374,23 @@ chr4    8046421 .       A       T       .       .       BaseQRankSum=0.727;Clipp
 //		assertEquals("1/1:0,65:67:.:SOMATIC:65:65:AA34[]31[];AC1[]0[];CA1[]0[]", ff.get(2));	// tumour
 //	}
 	
-	@Test
-	public void getSkeletonVcf() {
-		List<VcfRecord> snps = new ArrayList<>();
-		snps.add(VcfUtils.createVcfRecord(new ChrPointPosition("1", 99),null,"A","C"));
-		snps.add(VcfUtils.createVcfRecord(new ChrPointPosition("1", 101),null,"A","C"));
-		snps.add(VcfUtils.createVcfRecord(new ChrPointPosition("1", 102),null,"A","C"));
-		snps.add(VcfUtils.createVcfRecord(new ChrPointPosition("1", 103),null,"A","C"));
-		snps.add(VcfUtils.createVcfRecord(new ChrPointPosition("1", 104),null,"A","C"));
-		snps.add(VcfUtils.createVcfRecord(new ChrPointPosition("1", 106),null,"A","C"));
-		
-		List<List<VcfRecord>> loloVcfs = PipelineUtil.listOfListOfAdjacentVcfs(snps); 
-		assertEquals(1, loloVcfs.size());
-		VcfRecord v = PipelineUtil.createSkeletonCompoundSnp(loloVcfs.get(0));
-		assertEquals("1", v.getChrPosition().getChromosome());
-		assertEquals(101, v.getChrPosition().getStartPosition());
-		assertEquals("AAAA", v.getRef());
-		assertEquals("CCCC", v.getAlt());
-		
-	}
+//	@Test
+//	public void getSkeletonVcf() {
+//		List<VcfRecord> snps = new ArrayList<>();
+//		snps.add(VcfUtils.createVcfRecord(new ChrPointPosition("1", 99),null,"A","C"));
+//		snps.add(VcfUtils.createVcfRecord(new ChrPointPosition("1", 101),null,"A","C"));
+//		snps.add(VcfUtils.createVcfRecord(new ChrPointPosition("1", 102),null,"A","C"));
+//		snps.add(VcfUtils.createVcfRecord(new ChrPointPosition("1", 103),null,"A","C"));
+//		snps.add(VcfUtils.createVcfRecord(new ChrPointPosition("1", 104),null,"A","C"));
+//		snps.add(VcfUtils.createVcfRecord(new ChrPointPosition("1", 106),null,"A","C"));
+//		
+//		List<List<VcfRecord>> loloVcfs = PipelineUtil.listOfListOfAdjacentVcfs(snps); 
+//		assertEquals(1, loloVcfs.size());
+//		VcfRecord v = PipelineUtil.createSkeletonCompoundSnp(loloVcfs.get(0));
+//		assertEquals("1", v.getChrPosition().getChromosome());
+//		assertEquals(101, v.getChrPosition().getStartPosition());
+//		assertEquals("AAAA", v.getRef());
+//		assertEquals("CCCC", v.getAlt());
+//		
+//	}
 }

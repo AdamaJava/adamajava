@@ -1,5 +1,6 @@
 package org.qcmg.common.model;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import gnu.trove.list.array.TIntArrayList;
 
@@ -8,6 +9,7 @@ import java.util.Queue;
 
 import org.junit.Ignore;
 import org.junit.Test;
+import org.qcmg.common.util.PileupElementLiteUtil;
 
 public class PileupElementLiteTest {
 	
@@ -16,147 +18,84 @@ public class PileupElementLiteTest {
 		PileupElementLite pel = new PileupElementLite();
 		
 		// add some forward quals
-		pel.addForwardQuality((byte) 0, 1, 1, false);
-		assertEquals(1, pel.getNovelStartCount());
+		pel.add(1l, true, (byte) 0, 1, false);
 		assertEquals(1, pel.getForwardCount());
+		assertEquals(0, pel.getReverseCount());
 		assertEquals(1, pel.getTotalCount());
+		assertEquals(1, PileupElementLiteUtil.getNovelStarts(pel));
 		
-		pel = new PileupElementLite();
-		pel.addForwardQuality((byte) 0, 1, 1, false);
-		pel.addForwardQuality((byte) 0, 1, 2, false);
+		pel.add(2l, true, (byte) 0, 1, false);
 		
-		assertEquals(1, pel.getNovelStartCount());
 		assertEquals(2, pel.getForwardCount());
+		assertEquals(0, pel.getReverseCount());
 		assertEquals(2, pel.getTotalCount());
+		assertEquals(1, PileupElementLiteUtil.getNovelStarts(pel));
 		
-		pel = new PileupElementLite();
-		pel.addForwardQuality((byte) 0, 1, 1, false);
-		pel.addForwardQuality((byte) 0, 1, 2, false);
-		pel.addForwardQuality((byte) 0, 2, 3, false);
-		
-		assertEquals(2, pel.getNovelStartCount());
-		assertEquals(3, pel.getForwardCount());
-		assertEquals(3, pel.getTotalCount());
-		
-		pel = new PileupElementLite();
-		pel.addForwardQuality((byte) 0, 1, 1, false);
-		pel.addForwardQuality((byte) 0, 1, 2, false);
-		pel.addForwardQuality((byte) 0, 2, 3, false);
-		pel.addForwardQuality((byte) 0, 2, 4, false);
-		
-		assertEquals(2, pel.getNovelStartCount());
-		assertEquals(4, pel.getForwardCount());
-		assertEquals(4, pel.getTotalCount());
-		
-		pel = new PileupElementLite();
-		pel.addForwardQuality((byte) 0, 1, 1, false);
-		pel.addForwardQuality((byte) 0, 1, 2, false);
-		pel.addForwardQuality((byte) 0, 2, 3, false);
-		pel.addForwardQuality((byte) 0, 2, 4, false);
-		pel.addForwardQuality((byte) 0, 3, 5,false);
-		
-		assertEquals(3, pel.getNovelStartCount());
+		pel.add(3l, true, (byte) 0, 1, false);
+		pel.add(4l, true, (byte) 0, 1, false);
+		pel.add(5l, true, (byte) 0, 2, false);
+		assertEquals(2, PileupElementLiteUtil.getNovelStarts(pel));
 		assertEquals(5, pel.getForwardCount());
 		assertEquals(5, pel.getTotalCount());
+		assertEquals(0, pel.getReverseCount());
 		
-		// add some reverse quals
-		pel = new PileupElementLite();
-		pel.addForwardQuality((byte) 0, 1, 1, false);
-		pel.addForwardQuality((byte) 0, 1, 2, false);
-		pel.addForwardQuality((byte) 0, 2, 3, false);
-		pel.addForwardQuality((byte) 0, 2, 4, false);
-		pel.addForwardQuality((byte) 0, 3, 5,false);
-		pel.addReverseQuality((byte) 0, 5, 6,false);
-		
-		assertEquals(4, pel.getNovelStartCount());
-		assertEquals(1, pel.getReverseCount());
-		assertEquals(6, pel.getTotalCount());
-		
-		pel = new PileupElementLite();
-		pel.addForwardQuality((byte) 0, 1, 1, false);
-		pel.addForwardQuality((byte) 0, 1, 2, false);
-		pel.addForwardQuality((byte) 0, 2, 3, false);
-		pel.addForwardQuality((byte) 0, 2, 4, false);
-		pel.addForwardQuality((byte) 0, 3, 5,false);
-		pel.addReverseQuality((byte) 0, 5,1, false);
-		pel.addReverseQuality((byte) 0, 5, 2,false);
-		
-		assertEquals(4, pel.getNovelStartCount());
-		assertEquals(2, pel.getReverseCount());
-		assertEquals(7, pel.getTotalCount());
-		
-		pel = new PileupElementLite();
-		pel.addForwardQuality((byte) 0, 1, 1, false);
-		pel.addForwardQuality((byte) 0, 1, 2, false);
-		pel.addForwardQuality((byte) 0, 2, 3, false);
-		pel.addForwardQuality((byte) 0, 2, 4, false);
-		pel.addForwardQuality((byte) 0, 3,5, false);
-		pel.addReverseQuality((byte) 0, 5,6, false);
-		pel.addReverseQuality((byte) 0, 5, 7,false);
-		pel.addReverseQuality((byte) 0, 6, 8,false);
-		
-		assertEquals(5, pel.getNovelStartCount());
-		assertEquals(3, pel.getReverseCount());
+		pel.add(6l, false, (byte) 0, 1, false);
+		pel.add(7l, false, (byte) 0, 1, false);
+		pel.add(8l, false, (byte) 0, 2, false);
+		assertEquals(4, PileupElementLiteUtil.getNovelStarts(pel));
+		assertEquals(5, pel.getForwardCount());
 		assertEquals(8, pel.getTotalCount());
-		
-		pel = new PileupElementLite();
-		pel.addForwardQuality((byte) 0, 1, 1, false);
-		pel.addForwardQuality((byte) 0, 1, 2, false);
-		pel.addForwardQuality((byte) 0, 2, 3, false);
-		pel.addForwardQuality((byte) 0, 2, 4, false);
-		pel.addForwardQuality((byte) 0, 3,5, false);
-		pel.addReverseQuality((byte) 0, 5,6, false);
-		pel.addReverseQuality((byte) 0, 5,7, false);
-		pel.addReverseQuality((byte) 0, 6, 8,false);
-		pel.addReverseQuality((byte) 0, 6, 9,false);
-		
-		assertEquals(5, pel.getNovelStartCount());
-		assertEquals(4, pel.getReverseCount());
-		assertEquals(9, pel.getTotalCount());
-		
-		pel = new PileupElementLite();
-		pel.addForwardQuality((byte) 0, 1, 1, false);
-		pel.addForwardQuality((byte) 0, 1, 2, false);
-		pel.addForwardQuality((byte) 0, 2, 3, false);
-		pel.addForwardQuality((byte) 0, 2, 4, false);
-		pel.addForwardQuality((byte) 0, 3, 5,false);
-		pel.addReverseQuality((byte) 0, 5, 6,false);
-		pel.addReverseQuality((byte) 0, 5, 7,false);
-		pel.addReverseQuality((byte) 0, 6,18, false);
-		pel.addReverseQuality((byte) 0, 6,19, false);
-		pel.addReverseQuality((byte) 0, 7,10, false);
-		
-		assertEquals(6, pel.getNovelStartCount());
-		assertEquals(5, pel.getReverseCount());
-		assertEquals(10, pel.getTotalCount());
+		assertEquals(3, pel.getReverseCount());
+	}
+	
+	@Test
+	public void convert() {
+		assertArrayEquals(new int[] {1,1,1,1}, PileupElementLite.convertLongToStrandQualAndPosition(
+				PileupElementLite.convertStrandQualAndPositionToLong(true, true, (byte)1, 1)));
+		assertArrayEquals(new int[] {0,0,1,1}, PileupElementLite.convertLongToStrandQualAndPosition(
+				PileupElementLite.convertStrandQualAndPositionToLong(false, false, (byte)1, 1)));
+		assertArrayEquals(new int[] {0,0,0,0}, PileupElementLite.convertLongToStrandQualAndPosition(
+				PileupElementLite.convertStrandQualAndPositionToLong(false, false, (byte)0, 0)));
+		assertArrayEquals(new int[] {0,0,40,100}, PileupElementLite.convertLongToStrandQualAndPosition(
+				PileupElementLite.convertStrandQualAndPositionToLong(false, false, (byte)40, 100)));
+		assertArrayEquals(new int[] {1,0,40,100}, PileupElementLite.convertLongToStrandQualAndPosition(
+				PileupElementLite.convertStrandQualAndPositionToLong(true, false, (byte)40, 100)));
+		assertArrayEquals(new int[] {0,1,40,100}, PileupElementLite.convertLongToStrandQualAndPosition(
+				PileupElementLite.convertStrandQualAndPositionToLong(false, true, (byte)40, 100)));
+		assertArrayEquals(new int[] {1,1,40,100}, PileupElementLite.convertLongToStrandQualAndPosition(
+				PileupElementLite.convertStrandQualAndPositionToLong(true, true, (byte)40, 100)));
 	}
 	
 	@Test
 	public void testNSCounterBothStrands() {
 		PileupElementLite pel = new PileupElementLite();
 		// add some forward quals
-		pel.addForwardQuality((byte) 0, 1, 1, false);
-		assertEquals(1, pel.getNovelStartCount());
-		pel.addReverseQuality((byte) 0, 1, 1, false);
-		assertEquals(2, pel.getNovelStartCount());
-		pel.addForwardQuality((byte) 0, 1, 2, false);
-		assertEquals(2, pel.getNovelStartCount());
-		pel.addReverseQuality((byte) 0, 1, 2, false);
-		assertEquals(2, pel.getNovelStartCount());
+		pel.add(1l, true, (byte) 10, 1, false);
+		assertEquals(1, PileupElementLiteUtil.getNovelStarts(pel));
+		assertEquals(10, PileupElementLiteUtil.getTotalQuality(pel));
+		pel.add(2l, false, (byte) 10, 1, false);
+		assertEquals(20, PileupElementLiteUtil.getTotalQuality(pel));
+		assertEquals(2, PileupElementLiteUtil.getNovelStarts(pel));
+		pel.add(3l, true, (byte) 10, 2, false);
+		assertEquals(30, PileupElementLiteUtil.getTotalQuality(pel));
+		assertEquals(3, PileupElementLiteUtil.getNovelStarts(pel));
+		pel.add(4l, false, (byte) 10, 1, false);
+		assertEquals(3, PileupElementLiteUtil.getNovelStarts(pel));
+		assertEquals(40, PileupElementLiteUtil.getTotalQuality(pel));
 		
-		pel.addReverseQuality((byte) 0, 99,3, false);
-		assertEquals(3, pel.getNovelStartCount());
-		pel.addForwardQuality((byte) 0, 100, 3,false);
-		assertEquals(4, pel.getNovelStartCount());
-		pel.addReverseQuality((byte) 0, 100,4, false);
-		assertEquals(5, pel.getNovelStartCount());
+		pel.add(5l, false, (byte) 10, 99, false);
+		assertEquals(4, PileupElementLiteUtil.getNovelStarts(pel));
+		assertEquals(50, PileupElementLiteUtil.getTotalQuality(pel));
+		pel.add(6l, true, (byte) 20, 100, false);
+		assertEquals(5, PileupElementLiteUtil.getNovelStarts(pel));
+		assertEquals(70, PileupElementLiteUtil.getTotalQuality(pel));
+		pel.add(7l, false, (byte) 15, 100, false);
+		assertEquals(6, PileupElementLiteUtil.getNovelStarts(pel));
+		assertEquals(85, PileupElementLiteUtil.getTotalQuality(pel));
 		
-		// doesn't increment count as we are adding a value less than current forward start position of 100
-		/*
-		 * EDIT - it now does increment the ns count, as we are now storing the start positions as the values in a map, and when calculating the ns count, we unique them, so this will up the ns count!
-		 */
-		pel.addForwardQuality((byte) 0, 99,4, false);
-		assertEquals(6, pel.getNovelStartCount());
+		pel.add(7l, false, (byte) 0, 100, false);
+		assertEquals(6, PileupElementLiteUtil.getNovelStarts(pel));
+		assertEquals(85, PileupElementLiteUtil.getTotalQuality(pel));
 	}
 	
 	@Ignore

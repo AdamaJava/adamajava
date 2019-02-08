@@ -6,21 +6,12 @@
  */
 package org.qcmg.common.model;
 
-import gnu.trove.list.TIntList;
-import gnu.trove.iterator.TIntIterator;
-import gnu.trove.map.TIntCharMap;
-import gnu.trove.map.hash.TIntCharHashMap;
-
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import gnu.trove.list.TLongList;
+import gnu.trove.list.array.TLongArrayList;
 
 import org.qcmg.common.string.StringUtils;
+import org.qcmg.common.util.AccumulatorUtils;
 import org.qcmg.common.util.Constants;
-import org.qcmg.common.util.PileupElementLiteUtil;
-
-import static org.qcmg.common.util.Constants.COMMA;
-
 
 /**
  * This class aims to track all the necessary information at a loci required by qSNP to make a call on its eligibility as being a position of interest
@@ -33,14 +24,8 @@ import static org.qcmg.common.util.Constants.COMMA;
  */
 public class Accumulator {
 	
-	private static final char DOT = '.';
 	public static final int END_OF_READ_DISTANCE = 5;
 	public static final float UNFILTERED_PERCENTAGE = 3f;
-	
-	private PileupElementLite A;
-	private PileupElementLite C;
-	private PileupElementLite G;
-	private PileupElementLite T;
 	
 	public static final char A_CHAR = 'A';
 	public static final char C_CHAR = 'C';
@@ -62,13 +47,14 @@ public class Accumulator {
 	public static final String G_STRING = "G";
 	public static final String T_STRING = "T";
 	
-	private int nCount;
 	private final int position;
 	
 	private short failedFiltedACount = 0;
 	private short failedFilterCCount = 0;
 	private short failedfilterGCount = 0;
 	private short failedFilterTCount = 0;
+	
+	private TLongList readNameHashStrandBasePositionQualitys;
 	
 	public Accumulator(int position) {
 		this.position = position;
@@ -91,12 +77,21 @@ public class Accumulator {
 		}
 	}
 	
+	public TLongList getData() {
+		return null != readNameHashStrandBasePositionQualitys 
+				? readNameHashStrandBasePositionQualitys 
+						: new TLongArrayList(0);
+	}
+	public void setData(TLongList list) {
+		readNameHashStrandBasePositionQualitys = list;
+	}
+	
 	public void addBase(final byte base, final byte qual, final boolean forwardStrand, final int startPosition, final int position, final int endPosition, int readId) {
-		addBase( base,  qual,  forwardStrand,  startPosition,  position,  endPosition,  readId, "" + readId);
+		addBase( base,  qual,  forwardStrand,  startPosition,  position,  endPosition,  (long)readId);
 	}
 	
 		
-	public void addBase(final byte base, final byte qual, final boolean forwardStrand, final int startPosition, final int position, final int endPosition, int readId, String readName) {
+	public void addBase(final byte base, final byte qual, final boolean forwardStrand, final int startPosition, final int position, final int endPosition, long readNameHash) {
 			
 		if (this.position != position) throw new IllegalArgumentException("Attempt to add data for wrong position. " +
 				"This position: " + this.position + ", position: " + position);
@@ -107,186 +102,20 @@ public class Accumulator {
 		// if on the reverse strand, start position is actually endPosition
 		int startPositionToUse = forwardStrand ? startPosition : endPosition;
 		
-		switch (base) {
-		case A_BYTE: 
-			if (null == A) A = new PileupElementLite();
-			update(A, qual, forwardStrand, startPositionToUse, endOfRead, readId, readName);
-			break;
-		case C_BYTE: 
-			if (null == C) C = new PileupElementLite();
-			update(C, qual, forwardStrand, startPositionToUse, endOfRead, readId, readName);
-			break;
-		case G_BYTE: 
-			if (null == G) G = new PileupElementLite();
-			update(G, qual, forwardStrand, startPositionToUse, endOfRead, readId, readName);
-			break;
-		case T_BYTE: 
-			if (null == T) T = new PileupElementLite();
-			update(T, qual, forwardStrand, startPositionToUse, endOfRead, readId, readName);
-			break;
-		case 'N':
-			nCount++;
-			break;
+		
+		if (null == readNameHashStrandBasePositionQualitys) {
+			readNameHashStrandBasePositionQualitys = new TLongArrayList(80);
 		}
+		readNameHashStrandBasePositionQualitys.add(readNameHash);
+		readNameHashStrandBasePositionQualitys.add(AccumulatorUtils.convertStrandEORBaseQualAndPositionToLong(forwardStrand, endOfRead, base, qual, startPositionToUse));
+		
 	}
 	
-	private void update(final PileupElementLite peLite, final byte qual, final boolean forwardStrand, final int startPosition, boolean endOfRead, int readId, String readName) {
-		if (forwardStrand)
-			peLite.addForwardQuality(qual, startPosition, readId, endOfRead, readName);
-		else
-			peLite.addReverseQuality(qual, startPosition, readId, endOfRead, readName);
-	}
-	
-//	public String getPileup() {
-//		StringBuilder pileup = new StringBuilder();
-//		if (null != A) {
-//			for (int i = 0 , count = A.getForwardCount() ; i < count ; i++)
-//				pileup.append(A_CHAR);
-//			for (int i = 0 , count = A.getReverseCount() ; i < count ; i++)
-//				pileup.append(A_CHAR_LC);
-//		}
-//		if (null != C) {
-//			for (int i = 0 , count = C.getForwardCount() ; i < count ; i++)
-//				pileup.append(C_CHAR);
-//			for (int i = 0 , count = C.getReverseCount() ; i < count ; i++)
-//				pileup.append(C_CHAR_LC);
-//		}
-//		if (null != G) {
-//			for (int i = 0 , count = G.getForwardCount() ; i < count ; i++)
-//				pileup.append(G_CHAR);
-//			for (int i = 0 , count = G.getReverseCount() ; i < count ; i++)
-//				pileup.append(G_CHAR_LC);
-//		}
-//		if (null != T) {
-//			for (int i = 0 , count = T.getForwardCount() ; i < count ; i++)
-//				pileup.append(T_CHAR);
-//			for (int i = 0 , count = T.getReverseCount() ; i < count ; i++)
-//				pileup.append(T_CHAR_LC);
-//		}
-//		
-//		return pileup.toString();
-//	}
-//	
-//	public String getPileupQualities() {
-//		StringBuilder qualities = new StringBuilder();
-//		if (null != A) {
-//			qualities.append(A.getForwardQualitiesAsString());
-//			qualities.append(A.getReverseQualitiesAsString());
-//		}
-//		if (null != C) {
-//			qualities.append(C.getForwardQualitiesAsString());
-//			qualities.append(C.getReverseQualitiesAsString());
-//		}
-//		if (null != G) {
-//			qualities.append(G.getForwardQualitiesAsString());
-//			qualities.append(G.getReverseQualitiesAsString());
-//		}
-//		if (null != T) {
-//			qualities.append(T.getForwardQualitiesAsString());
-//			qualities.append(T.getReverseQualitiesAsString());
-//		}
-//		
-//		return qualities.toString();
-//	}
-	
-	private int getNS(PileupElementLite peLite) {
-		if (null != peLite) return peLite.getNovelStartCount();
-		return 0;
-	}
-	
-	public int getNovelStartsCountForBase(final char base) {
-		switch (base) {
-		case A_CHAR: 
-			return  getNS(A);
-		case C_CHAR: 
-			return  getNS(C);
-		case G_CHAR: 
-			return  getNS(G);
-		case T_CHAR: 
-			return  getNS(T);
-		}
-		return 0;
-	}
 	
 	@Override
 	public String toString() {
-		return position + ":" + getObservedAllelesByStrand();
+		return position + ":" + AccumulatorUtils.getOABS(this);
 	}
-//	
-//	public String toPileupString(String pileup) {
-//		if (null == pileup)
-//			pileup = getPileup();
-//		return pileup.length() + Constants.TAB + pileup + Constants.TAB + getPileupQualities();
-//	}
-	
-	/**
-	 * Use '.' and ',' rather than the reference in the pileup string
-	 * @param ref
-	 * @return
-	 */
-	public String toSamtoolsPileupString(char ref) {
-		ref = Character.toUpperCase(ref);
-		StringBuilder pileup = new StringBuilder();
-		boolean equalsToRef = false;
-		if (null != A) {
-			equalsToRef = ref == A_CHAR;
-			for (int i = 0 , count = A.getForwardCount() ; i < count ; i++)
-				pileup.append(equalsToRef ? DOT : A_CHAR);
-			for (int i = 0 , count = A.getReverseCount() ; i < count ; i++)
-				pileup.append(equalsToRef ? COMMA : A_CHAR_LC);
-		}
-		if (null != C) {
-			equalsToRef = ref == C_CHAR;
-			for (int i = 0 , count = C.getForwardCount() ; i < count ; i++)
-				pileup.append(equalsToRef ? DOT : C_CHAR);
-			for (int i = 0 , count = C.getReverseCount() ; i < count ; i++)
-				pileup.append(equalsToRef ? COMMA : C_CHAR_LC);
-		}
-		if (null != G) {
-			equalsToRef = ref == G_CHAR;
-			for (int i = 0 , count = G.getForwardCount() ; i < count ; i++)
-				pileup.append(equalsToRef ? DOT : G_CHAR);
-			for (int i = 0 , count = G.getReverseCount() ; i < count ; i++)
-				pileup.append(equalsToRef ? COMMA : G_CHAR_LC);
-		}
-		if (null != T) {
-			equalsToRef = ref == T_CHAR;
-			for (int i = 0 , count = T.getForwardCount() ; i < count ; i++)
-				pileup.append(equalsToRef ? DOT : T_CHAR);
-			for (int i = 0 , count = T.getReverseCount() ; i < count ; i++)
-				pileup.append(equalsToRef ? COMMA : T_CHAR_LC);
-		}
-		
-		return pileup.toString();
-	}
-	
-	public boolean containsMultipleAlleles() {
-		byte differentBases = 0;
-//		if (null != DOT) differentBases++;
-		if (null != A) differentBases++;
-		if (null != C) differentBases++;
-		if (null != G) differentBases++;
-		if (null != T) differentBases++;
-		return differentBases > 1;
-	}
-	
-	/**
-	 * This method is only called if containsMultipleAlleles returns false.
-	 * Meaning that there should only be a single base being represented at this position.
-	 * @return
-	 */
-	public char getBase() {
-//		if (containsMultipleAlleles()) 
-//			throw new UnsupportedOperationException(
-//					"Accumulator.getBase() called when there is more than 1 base at this position");
-		
-		if (null != A) return A_CHAR;
-		if (null != C) return C_CHAR;
-		if (null != G) return G_CHAR;
-		if (null != T) return T_CHAR;
-		return '\u0000';
-	}
-	
 	
 	public String getFailedFilterPileup() {
 		StringBuilder sb = new StringBuilder();
@@ -305,307 +134,9 @@ public class Accumulator {
 		return sb.length() > 0 ? sb.toString() : Constants.MISSING_DATA_STRING;
 	}
 	
-	public String getEndOfReadsPileup() {
-		StringBuilder sb = new StringBuilder();
-		if (null != A && A.getEndOfReadCount() > 0) {
-			StringUtils.updateStringBuilder(sb, A_STRING + A.getEndOfReadString(), Constants.SEMI_COLON);
-		}
-		if (null != C && C.getEndOfReadCount() > 0) {
-			StringUtils.updateStringBuilder(sb, C_STRING + C.getEndOfReadString(), Constants.SEMI_COLON);
-		}
-		if (null != G && G.getEndOfReadCount() > 0) {
-			StringUtils.updateStringBuilder(sb, G_STRING + G.getEndOfReadString(), Constants.SEMI_COLON);
-		}
-		if (null != T && T.getEndOfReadCount() > 0) {
-			StringUtils.updateStringBuilder(sb, T_STRING + T.getEndOfReadString(), Constants.SEMI_COLON);
-		}
-		return sb.length() > 0 ? sb.toString() : Constants.MISSING_DATA_STRING;
-	}
-	
-	public List<PileupElementLite> getPELs() {
-		List<PileupElementLite> pels = new ArrayList<>(5);
-		if (null != A) pels.add(A);
-		if (null != C) pels.add(C);
-		if (null != G) pels.add(G);
-		if (null != T) pels.add(T);
-		return pels;
-	}
 
 	public int getCoverage() {
-		int coverage = nCount;
-		if (null != A) coverage += A.getTotalCount();
-		if (null != C) coverage += C.getTotalCount();
-		if (null != G) coverage += G.getTotalCount();
-		if (null != T) coverage += T.getTotalCount();
-		return coverage; 
-	}
-	
-	public PileupElementLite getLargestVariant(char ref) {
-		List<PileupElementLite> pel = new ArrayList<PileupElementLite>(6);
-		if (null != A && ref != A_CHAR) pel.add(A);
-		if (null != C && ref != C_CHAR) pel.add(C);
-		if (null != G && ref != G_CHAR) pel.add(G);
-		if (null != T && ref != T_CHAR) pel.add(T);
-		
-		if (pel.size() > 1) {
-			pel.sort(null);
-		}
-		else if (pel.isEmpty()) return null;
-		
-		return pel.get(0);
-	}
-	
-	public PileupElementLite getPelForBase(char base) {
-		if (null != A && base == A_CHAR) return A;
-		if (null != C && base == C_CHAR) return C;
-		if (null != G && base == G_CHAR) return G;
-		if (null != T && base == T_CHAR) return T;
-		return null;
-	}
-	
-	public int getBaseCountForBase(char base) {
-		if (null != A && base == A_CHAR) return A.getTotalCount();
-		if (null != C && base == C_CHAR) return C.getTotalCount();
-		if (null != G && base == G_CHAR) return G.getTotalCount();
-		if (null != T && base == T_CHAR) return T.getTotalCount();
-		return 0;
-	}
-	
-	public int getTotalQualityScore() {
-		int qualityScore = 0;
-		if (null != A) qualityScore += A.getTotalQualityScore();
-		if (null != C) qualityScore += C.getTotalQualityScore();
-		if (null != G) qualityScore += G.getTotalQualityScore();
-		if (null != T) qualityScore += T.getTotalQualityScore();
-		return qualityScore; 
-	}
-	
-	/**
-	 * Just return a single instance of each base seen at this position
-	 * @return
-	 */
-	public String getCompressedPileup() {
-		StringBuilder pileup = new StringBuilder();
-		if (null != A) pileup.append(A_STRING);
-		if (null != C) pileup.append(C_STRING);
-		if (null != G) pileup.append(G_STRING);
-		if (null != T) pileup.append(T_STRING);
-		return pileup.toString();
-	}
-	
-	public char getCharFromPel(PileupElementLite pel) {
-		if (A == pel) return A_CHAR;
-		if (C == pel) return C_CHAR;
-		if (G == pel) return G_CHAR;
-		if (T == pel) return T_CHAR;
-		return '\u0000';
-	}
-	
-	public static boolean canContributeToGenotype(final PileupElementLite pel, final int coverage, final int totalQuality, final Rule rule, final boolean secondPass, final double percentage) {
-		return 
-				null != pel
-				&& ( ! secondPass || pel.isFoundOnBothStrands())
-				&& PileupElementLiteUtil.passesCountCheck(pel.getTotalCount(), coverage, rule, secondPass) 
-				&& PileupElementLiteUtil.passesWeightedVotingCheck(totalQuality, pel.getTotalQualityScore(), percentage, secondPass);
-	}
-	
-	public GenotypeEnum getGenotype(final char ref, final Rule rule, final boolean secondPass, final double percentage) {
-		final int coverage = getCoverage();
-		final int totalQuality = getTotalQualityScore();
-		
-		List<PileupElementLite> pels = new ArrayList<PileupElementLite>(6);
-		
-		if (canContributeToGenotype(A, coverage, totalQuality, rule, secondPass, percentage))
-			pels.add(A);
-		if (canContributeToGenotype(C, coverage, totalQuality, rule, secondPass, percentage))
-			pels.add(C);
-		if (canContributeToGenotype(G, coverage, totalQuality, rule, secondPass, percentage))
-			pels.add(G);
-		if (canContributeToGenotype(T, coverage, totalQuality, rule, secondPass, percentage))
-			pels.add(T);
-		
-		if (pels.isEmpty()) return null;
-		
-		if (pels.size() == 1) {
-			char c = getCharFromPel(pels.get(0));
-			return GenotypeEnum.getGenotypeEnum(c,c);
-		} else if (pels.size() == 2) {
-			char c1 = getCharFromPel(pels.get(0));
-			char c2 = getCharFromPel(pels.get(1));
-			return GenotypeEnum.getGenotypeEnum(c1,c2);
-		} else  {
-			//3 or more in collection
-			// re-sort according to count, reference, and base qualities
-			pels.sort(new Comparator<PileupElementLite>(){
-				@Override
-				public int compare(PileupElementLite o1, PileupElementLite o2) {
-					int diff = o1.compareTo(o2);
-					if (diff != 0) return diff;
-					if (ref == getCharFromPel(o2)) 
-						return 1;
-					else if (ref == getCharFromPel(o1)) 
-						return -1;
-					return o2.getTotalQualityScore() - o1.getTotalQualityScore();
-				}
-			});
-			char c1 = getCharFromPel(pels.get(0));
-			char c2 = getCharFromPel(pels.get(1));
-			return GenotypeEnum.getGenotypeEnum(c1,c2);
-		}
-	}
-	
-//	public String getPileupElementString() {
-//		StringBuilder pileup = new StringBuilder();
-//		if (null != A) {
-//			pileup.append(PileupElementLiteUtil.toSummaryString(A, A_STRING));
-//		}
-//		if (null != C) {
-//			if (pileup.length() > 0) pileup.append(COMMA);
-//			pileup.append(PileupElementLiteUtil.toSummaryString(C, C_STRING));
-//		}
-//		if (null != G) {
-//			if (pileup.length() > 0) pileup.append(COMMA);
-//			pileup.append(PileupElementLiteUtil.toSummaryString(G, G_STRING));
-//		}
-//		if (null != T) {
-//			if (pileup.length() > 0) pileup.append(COMMA);
-//			pileup.append(PileupElementLiteUtil.toSummaryString(T, T_STRING));
-//		}
-//		
-//		return pileup.toString();
-//	}
-	
-//	public String getAlleleicFrequencies(char ref, String alts) {
-//		int refCount = getBaseCountForBase(ref);
-//		
-//		if (null == alts) {
-//			/*
-//			 * return ref count and other count
-//			 */
-//			return refCount + Constants.COMMA_STRING +(getCoverage() - refCount);
-//		} else if (alts.length() == 1) {
-//			char a = alts.charAt(0);
-//			int altCount = ref != a ? getBaseCountForBase(alts.charAt(0)) : 0;
-//			return refCount + Constants.COMMA_STRING + altCount + Constants.COMMA_STRING + (getCoverage() - refCount - altCount);
-//			
-//		} else {
-//			/*
-//			 * more than 1 alt
-//			 */
-//			String [] altsArray = alts.split(Constants.COMMA_STRING);
-//			String [] altCounts = new String[altsArray.length];
-//			int i = 0;
-//			int tally = 0;
-//			for (String s : altsArray) {
-//				if (s.length() != 1 || s.charAt(0) == ref) {
-//					/*
-//					 * hmmm
-//					 */
-//				} else {
-//					int count = getBaseCountForBase(s.charAt(0));
-//					tally += count;
-//					altCounts[i++] = count + "";
-//				}
-//			}
-//			return refCount + Constants.COMMA_STRING + Arrays.stream(altCounts).collect(Collectors.joining(Constants.COMMA_STRING)) + Constants.COMMA_STRING + (getCoverage() - refCount - tally);
-//		}
-//	}
-	
-	public String getObservedAllelesByStrand() {
-		StringBuilder pileup = new StringBuilder();
-		if (null != A) {
-			pileup.append(PileupElementLiteUtil.toObservedAlleleByStrand(A, A_STRING));
-		}
-		if (null != C) {
-			StringUtils.updateStringBuilder(pileup, PileupElementLiteUtil.toObservedAlleleByStrand(C, C_STRING), Constants.SEMI_COLON);
-		}
-		if (null != G) {
-			StringUtils.updateStringBuilder(pileup, PileupElementLiteUtil.toObservedAlleleByStrand(G, G_STRING), Constants.SEMI_COLON);
-		}
-		if (null != T) {
-			StringUtils.updateStringBuilder(pileup, PileupElementLiteUtil.toObservedAlleleByStrand(T, T_STRING), Constants.SEMI_COLON);
-		}
-		
-		return pileup.length() == 0 ? Constants.MISSING_DATA_STRING : pileup.toString();
-	}
-	
-//	public String getReadIdsPerAllele() {
-//		StringBuilder sb = new StringBuilder();
-//		if (null != A) {
-//			sb.append(PileupElementLiteUtil.getBaseAndReadIds(A, A_STRING));
-//		}
-//		if (null != C) {
-//			StringUtils.updateStringBuilder(sb, PileupElementLiteUtil.getBaseAndReadIds(C, C_STRING), COMMA);
-//		}
-//		if (null != G) {
-//			StringUtils.updateStringBuilder(sb, PileupElementLiteUtil.getBaseAndReadIds(G, G_STRING), COMMA);
-//		}
-//		if (null != T) {
-//			StringUtils.updateStringBuilder(sb, PileupElementLiteUtil.getBaseAndReadIds(T, T_STRING), COMMA);
-//		}
-//		
-//		return sb.toString();
-//		
-//	}
-	
-	private void updateMap(TIntCharMap map, TIntIterator iter, char c) {
-		while(iter.hasNext()) {
-			map.put(iter.next(), c);
-		}
-	}
-	
-	public TIntCharMap getReadIdBaseMap() {
-		final TIntCharMap map = new TIntCharHashMap();
-		
-		if (null != A) {
-			TIntList ids = A.getForwardReadIds();
-			if ( ! ids.isEmpty()) {
-				updateMap(map, ids.iterator(), A_CHAR);
-			}
-			
-			ids = A.getReverseReadIds();
-			
-			if ( ! ids.isEmpty()) {
-				updateMap(map, ids.iterator(), A_CHAR_LC);
-			}
-		}
-		
-		if (null != C) {
-			TIntList ids = C.getForwardReadIds();
-			if ( ! ids.isEmpty()) {
-				updateMap(map, ids.iterator(), C_CHAR);
-			}
-			
-			 ids = C.getReverseReadIds();
-			 
-			if (ids != null) {
-				updateMap(map, ids.iterator(), C_CHAR_LC);
-			}
-		}
-		
-		if (null != G) {
-			TIntList ids = G.getForwardReadIds();
-			if ( ! ids.isEmpty()) {
-				updateMap(map, ids.iterator(), G_CHAR);
-			}
-			 ids = G.getReverseReadIds();
-			 
-			if ( ! ids.isEmpty()) {
-				updateMap(map, ids.iterator(), G_CHAR_LC);
-			}
-		}
-		
-		if (null != T) {
-			TIntList ids = T.getForwardReadIds();
-			if ( ! ids.isEmpty()) {
-				updateMap(map, ids.iterator(), T_CHAR);
-			}
-			 ids = T.getReverseReadIds();
-			if (ids != null) {
-				updateMap(map, ids.iterator(), T_CHAR_LC);
-			}
-		}
-		return map;
+		return null == readNameHashStrandBasePositionQualitys ? 0 : readNameHashStrandBasePositionQualitys.size() / 2;
 	}
 	
 }

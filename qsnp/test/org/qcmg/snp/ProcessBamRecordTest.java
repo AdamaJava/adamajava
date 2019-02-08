@@ -13,6 +13,7 @@ import htsjdk.samtools.SAMRecord;
 import org.junit.Assert;
 import org.junit.Test;
 import org.qcmg.common.model.Accumulator;
+import org.qcmg.common.util.AccumulatorUtils;
 import org.qcmg.picard.SAMRecordFilterWrapper;
 
 public class ProcessBamRecordTest {
@@ -28,8 +29,8 @@ public class ProcessBamRecordTest {
 		sam.setBaseQualityString("8BB@DDDDDDCDDDDDDDDDEDDDDDDDECB?9DDDDDBBEFHHGHIHD>HHH@JIJJJJIJJJJJIGGGGGHIJHGIIIIJHEHGJJGHHHHFFFFFCCC");
 		processSAMRecord(getSamWrapper(sam));
 		assertEquals(101, map.size());
-		assertEquals('A', map.get(750778).getBase());
-		assertEquals('G', map.get(750878).getBase());
+		assertEquals('A', AccumulatorUtils.getUniqueBasesAsString(map.get(750778)).charAt(0));
+		assertEquals('G', AccumulatorUtils.getUniqueBasesAsString(map.get(750878)).charAt(0));
 		
 		map.clear();
 		
@@ -95,7 +96,7 @@ public class ProcessBamRecordTest {
 			if (i < 44) {
 				Assert.assertNotNull(map.get(i + 750985));
 				if (i > 26)
-					Assert.assertEquals('A', map.get(i + 750985).getBase());
+					assertEquals('A', AccumulatorUtils.getUniqueBasesAsString(map.get(i + 750985)).charAt(0));
 			}
 			if (i == 44)
 				Assert.assertNull(map.get(i + 750985));
@@ -109,14 +110,14 @@ public class ProcessBamRecordTest {
 				Assert.assertNotNull(map.get(i + 750985));
 		}
 		// start
-		assertEquals('T', map.get(750985).getBase());
-		assertEquals('G', map.get(750986).getBase());
-		assertEquals('G', map.get(750987).getBase());
-		assertEquals('G', map.get(750988).getBase());
+		assertEquals('T', AccumulatorUtils.getUniqueBasesAsString(map.get(750985)).charAt(0));
+		assertEquals('G', AccumulatorUtils.getUniqueBasesAsString(map.get(750986)).charAt(0));
+		assertEquals('G', AccumulatorUtils.getUniqueBasesAsString(map.get(750987)).charAt(0));
+		assertEquals('G', AccumulatorUtils.getUniqueBasesAsString(map.get(750988)).charAt(0));
 		// end
-		assertEquals('C', map.get(750985 + 95).getBase());
-		assertEquals('C', map.get(750985 + 96).getBase());
-		assertEquals('T', map.get(750985 + 97).getBase());
+		assertEquals('C', AccumulatorUtils.getUniqueBasesAsString(map.get(750985 + 95)).charAt(0));
+		assertEquals('C', AccumulatorUtils.getUniqueBasesAsString(map.get(750985 + 96)).charAt(0));
+		assertEquals('T', AccumulatorUtils.getUniqueBasesAsString(map.get(750985 + 97)).charAt(0));
 		Assert.assertNull(map.get(750985 + 98));
 	}
 	
