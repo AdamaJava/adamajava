@@ -377,11 +377,11 @@ Exception in thread "main" java.lang.IllegalArgumentException: List of Accumulat
 		assertEquals("1/1", altsGTs.get(2));
 	}
 	
-	@Test
-	public void csFilter() {
-		assertEquals(".", PipelineUtil.getCSFilters(null, -1, -1, 0, null, 3, 3, true, true));
-		assertEquals(".", PipelineUtil.getCSFilters(null, -1, -1, 0, null, 3, 3, true, false));
-	}
+//	@Test
+//	public void csFilter() {
+//		assertEquals(".", PipelineUtil.getCSFilters(null, -1, -1, 0, null, 3, 3, true, true));
+//		assertEquals(".", PipelineUtil.getCSFilters(null, -1, -1, 0, null, 3, 3, true, false));
+//	}
 	
 	@Test
 	public void getAltsAndGTs() {
@@ -1003,7 +1003,10 @@ chr4    8046421 .       A       T       .       .       BaseQRankSum=0.727;Clipp
 		assertEquals("CG", v.getAlt());
 		List<String> ff = v.getFormatFields();
 		assertEquals("./.:.:0:.:.:.:.", ff.get(1));	// control
-		assertEquals("1/1:0,4:4:SBIASCOV:SOMATIC:1:CG4[]0[];C_1[]0[]", ff.get(2));	// tumour
+		/*
+		 * filters are now applied in qannotate
+		 */
+		assertEquals("1/1:0,4:4:.:SOMATIC:1:CG4[]0[];C_1[]0[]", ff.get(2));	// tumour
 	}
 	
 	@Test

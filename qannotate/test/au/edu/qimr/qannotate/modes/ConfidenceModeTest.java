@@ -110,6 +110,42 @@ public class ConfidenceModeTest {
 	 }
 	 
 	 @Test
+	 public void minForCompoundSnps() {
+		 
+		 StringBuilder sb = new StringBuilder();
+		 Map<String, int[]> alleleDist = VcfUtils.getAllelicCoverageWithStrand("AA10[40]10[40]");
+		 ConfidenceMode.checkMIN(new String [] {"AA"}, 20,  alleleDist,  sb, 1, 5f);
+		 assertEquals("MIN", sb.toString());
+		 
+		 sb = new StringBuilder();
+		 ConfidenceMode.checkMIN(new String [] {"AC"}, 20,  alleleDist,  sb, 1, 5f);
+		 assertEquals("", sb.toString());
+		 
+		 sb = new StringBuilder();
+		 alleleDist = VcfUtils.getAllelicCoverageWithStrand("AA10[40]10[40];AC1[40]0[0]");
+		 ConfidenceMode.checkMIN(new String [] {"AC"}, 21,  alleleDist,  sb, 1, 5f);
+		 assertEquals("MIN", sb.toString());
+		 
+		 sb = new StringBuilder();
+		 alleleDist = VcfUtils.getAllelicCoverageWithStrand("AA10[40]10[40];AC1[40]0[0]");
+		 ConfidenceMode.checkMIN(new String [] {"AC"}, 21,  alleleDist,  sb, 2, 5f);
+		 assertEquals("", sb.toString());
+		 
+		 sb = new StringBuilder();
+		 alleleDist = VcfUtils.getAllelicCoverageWithStrand("AA10[40]10[40];AC1[40]10[40]");
+		 ConfidenceMode.checkMIN(new String [] {"AC"}, 32,  alleleDist,  sb, Integer.MAX_VALUE, 5f);
+		 assertEquals("MIN", sb.toString());
+		 
+		 sb = new StringBuilder();
+		 alleleDist = VcfUtils.getAllelicCoverageWithStrand("AA100[40]10[40];AC1[40]10[40]");
+		 ConfidenceMode.checkMIN(new String [] {"AC"}, 122,  alleleDist,  sb, Integer.MAX_VALUE, 10f);
+		 assertEquals("", sb.toString());
+		 ConfidenceMode.checkMIN(new String [] {"AA"}, 122,  alleleDist,  sb, Integer.MAX_VALUE, 10f);
+		 assertEquals("MIN", sb.toString());
+		 
+	 }
+	 
+	 @Test
 	 public void checkMIUN() {
 		 StringBuilder sb = null;
 		 ConfidenceMode.checkMIUN(null,   null,  sb, -1);

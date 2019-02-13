@@ -73,44 +73,44 @@ public class GenotypeUtilTest {
 	
 	
 	
-	@Test
-	public void dontPutSAN3IfCoverageExists() {
-		/*
-		 * .:.:.:SAN3:.:SOMATIC:.:.:T57[38.09]62[36.97]
-		 * This should not have the SAN3 filter
-		 */
-		Accumulator acc = AccumulatorUtils.createFromOABS("T57[38.09]62[36.97]", 15986933);
-		assertEquals(Constants.MISSING_DATA_STRING, GenotypeUtil.getFormatFilter(acc, null, new String[]{"C"}, 'T', true, 3, 3, Classification.SOMATIC, true));
-	}
+//	@Test
+//	public void dontPutSAN3IfCoverageExists() {
+//		/*
+//		 * .:.:.:SAN3:.:SOMATIC:.:.:T57[38.09]62[36.97]
+//		 * This should not have the SAN3 filter
+//		 */
+//		Accumulator acc = AccumulatorUtils.createFromOABS("T57[38.09]62[36.97]", 15986933);
+//		assertEquals(Constants.MISSING_DATA_STRING, GenotypeUtil.getFormatFilter(acc, null, new String[]{"C"}, 'T', true, 3, 3, Classification.SOMATIC, true));
+//	}
 	
 	/*
 	 * no longer populate coverage based filters
 	 */
-	@Ignore
-	public void whereIsSAM3() {
-		assertEquals("SAN3", GenotypeUtil.getFormatFilter(null, null, new String[]{"C"}, 'T', true, 3, 3, Classification.SOMATIC, true));
-		assertEquals("SAT3", GenotypeUtil.getFormatFilter(null, null, new String[]{"C"}, 'T', true, 3, 3, Classification.SOMATIC, false));
-		assertEquals("SAN3", GenotypeUtil.getFormatFilter(null, "0/0", new String[]{"C"}, 'T', true, 3, 3, Classification.SOMATIC, true));
-		assertEquals("SAT3", GenotypeUtil.getFormatFilter(null, "0/0", new String[]{"C"}, 'T', true, 3, 3, Classification.SOMATIC, false));
-		assertEquals("SAN3", GenotypeUtil.getFormatFilter(null, "0/1", new String[]{"C"}, 'T', true, 3, 3, Classification.SOMATIC, true));
-		assertEquals("SAT3", GenotypeUtil.getFormatFilter(null, "0/1", new String[]{"C"}, 'T', true, 3, 3, Classification.SOMATIC, false));
-		assertEquals("SAN3", GenotypeUtil.getFormatFilter(null, "1/1", new String[]{"C"}, 'T', true, 3, 3, Classification.SOMATIC, true));
-		assertEquals("SAT3", GenotypeUtil.getFormatFilter(null, "1/1", new String[]{"C"}, 'T', true, 3, 3, Classification.SOMATIC, false));
-		assertEquals("SAN3", GenotypeUtil.getFormatFilter(null, "1/2", new String[]{"C","G"}, 'T', true, 3, 3, Classification.SOMATIC, true));
-		assertEquals("SAT3", GenotypeUtil.getFormatFilter(null, "1/2", new String[]{"C","G"}, 'T', true, 3, 3, Classification.SOMATIC, false));
-	}
+//	@Ignore
+//	public void whereIsSAM3() {
+//		assertEquals("SAN3", GenotypeUtil.getFormatFilter(null, null, new String[]{"C"}, 'T', true, 3, 3, Classification.SOMATIC, true));
+//		assertEquals("SAT3", GenotypeUtil.getFormatFilter(null, null, new String[]{"C"}, 'T', true, 3, 3, Classification.SOMATIC, false));
+//		assertEquals("SAN3", GenotypeUtil.getFormatFilter(null, "0/0", new String[]{"C"}, 'T', true, 3, 3, Classification.SOMATIC, true));
+//		assertEquals("SAT3", GenotypeUtil.getFormatFilter(null, "0/0", new String[]{"C"}, 'T', true, 3, 3, Classification.SOMATIC, false));
+//		assertEquals("SAN3", GenotypeUtil.getFormatFilter(null, "0/1", new String[]{"C"}, 'T', true, 3, 3, Classification.SOMATIC, true));
+//		assertEquals("SAT3", GenotypeUtil.getFormatFilter(null, "0/1", new String[]{"C"}, 'T', true, 3, 3, Classification.SOMATIC, false));
+//		assertEquals("SAN3", GenotypeUtil.getFormatFilter(null, "1/1", new String[]{"C"}, 'T', true, 3, 3, Classification.SOMATIC, true));
+//		assertEquals("SAT3", GenotypeUtil.getFormatFilter(null, "1/1", new String[]{"C"}, 'T', true, 3, 3, Classification.SOMATIC, false));
+//		assertEquals("SAN3", GenotypeUtil.getFormatFilter(null, "1/2", new String[]{"C","G"}, 'T', true, 3, 3, Classification.SOMATIC, true));
+//		assertEquals("SAT3", GenotypeUtil.getFormatFilter(null, "1/2", new String[]{"C","G"}, 'T', true, 3, 3, Classification.SOMATIC, false));
+//	}
 	
-	@Test
-	public void fivePercentMIN() {
-		
-		assertEquals("MIN", GenotypeUtil.getFormatFilter(AccumulatorUtils.createFromOABS("C10[36.4]23[39.61];T2[11]1[0]", 1), "0/0", new String[]{"T"}, 'C', true, 3, 3, Classification.SOMATIC, true));
-		assertEquals("MIN", GenotypeUtil.getFormatFilter(AccumulatorUtils.createFromOABS("C10[36.4]23[39.61];T2[11]0[0]", 1), "0/0", new String[]{"T"}, 'C', true, 3, 3, Classification.SOMATIC, true));
-		assertEquals(".", GenotypeUtil.getFormatFilter(AccumulatorUtils.createFromOABS("C10[36.4]23[39.61];T1[11]0[0]", 1), "0/0", new String[]{"T"}, 'C', true, 3, 3, Classification.SOMATIC, true));
-		
-		assertEquals(".", GenotypeUtil.getFormatFilter(AccumulatorUtils.createFromOABS("C14[40.21]19[41.74];T1[11]0[0]", 1), "0/0", new String[]{"T"}, 'C', true, 3, 3, Classification.SOMATIC, true));
-		assertEquals(".", GenotypeUtil.getFormatFilter(AccumulatorUtils.createFromOABS("C18[41.17]15[39.33];T0[0]1[11]", 1), "0/0", new String[]{"T"}, 'C', true, 3, 3, Classification.SOMATIC, true));
-		assertEquals(".", GenotypeUtil.getFormatFilter(AccumulatorUtils.createFromOABS("A0[0]1[11];G13[38.15]20[40]", 1), "0/0", new String[]{"A"}, 'G', true, 3, 3, Classification.SOMATIC, true));
-	}
+//	@Test
+//	public void fivePercentMIN() {
+//		
+//		assertEquals("MIN", GenotypeUtil.getFormatFilter(AccumulatorUtils.createFromOABS("C10[36.4]23[39.61];T2[11]1[0]", 1), "0/0", new String[]{"T"}, 'C', true, 3, 3, Classification.SOMATIC, true));
+//		assertEquals("MIN", GenotypeUtil.getFormatFilter(AccumulatorUtils.createFromOABS("C10[36.4]23[39.61];T2[11]0[0]", 1), "0/0", new String[]{"T"}, 'C', true, 3, 3, Classification.SOMATIC, true));
+//		assertEquals(".", GenotypeUtil.getFormatFilter(AccumulatorUtils.createFromOABS("C10[36.4]23[39.61];T1[11]0[0]", 1), "0/0", new String[]{"T"}, 'C', true, 3, 3, Classification.SOMATIC, true));
+//		
+//		assertEquals(".", GenotypeUtil.getFormatFilter(AccumulatorUtils.createFromOABS("C14[40.21]19[41.74];T1[11]0[0]", 1), "0/0", new String[]{"T"}, 'C', true, 3, 3, Classification.SOMATIC, true));
+//		assertEquals(".", GenotypeUtil.getFormatFilter(AccumulatorUtils.createFromOABS("C18[41.17]15[39.33];T0[0]1[11]", 1), "0/0", new String[]{"T"}, 'C', true, 3, 3, Classification.SOMATIC, true));
+//		assertEquals(".", GenotypeUtil.getFormatFilter(AccumulatorUtils.createFromOABS("A0[0]1[11];G13[38.15]20[40]", 1), "0/0", new String[]{"A"}, 'G', true, 3, 3, Classification.SOMATIC, true));
+//	}
 	
 //	@Test
 //	public void fivePercentMINAM() {
