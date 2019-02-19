@@ -312,8 +312,6 @@ Exception in thread "main" java.lang.IllegalArgumentException: List of Accumulat
 		acc1.addBase((byte)'G', (byte) 1, true, 1, 1, 2, 1);
 		acc1.addBase((byte)'G', (byte) 1, true, 1, 1, 2, 2);
 		acc1.addBase((byte)'G', (byte) 1, false, 1, 1, 2, 3);
-//		Accumulator acc2 = new Accumulator(2);
-//		acc2.addBase((byte)'A', (byte) 1, true, 2, 2, 3, 1);
 		List<Accumulator> accs = Arrays.asList(acc1);
 		
 		Map<String, short[]> basesAndCounts = PipelineUtil.getBasesFromAccumulators(accs);
@@ -375,12 +373,6 @@ Exception in thread "main" java.lang.IllegalArgumentException: List of Accumulat
 		assertEquals("123", altsGTs.get(0));
 		assertEquals(Constants.MISSING_GT, altsGTs.get(1));
 		assertEquals("1/1", altsGTs.get(2));
-	}
-	
-	@Test
-	public void csFilter() {
-		assertEquals(".", PipelineUtil.getCSFilters(null, -1, -1, 0, null, 3, 3, true, true));
-		assertEquals(".", PipelineUtil.getCSFilters(null, -1, -1, 0, null, 3, 3, true, false));
 	}
 	
 	@Test
@@ -564,8 +556,6 @@ Exception in thread "main" java.lang.IllegalArgumentException: List of Accumulat
 	
 	@Test
 	public void createCSSinglePos() {
-//		List<VcfRecord> snps = new ArrayList<>();
-//		snps.add(VcfUtils.createVcfRecord(new ChrPointPosition("1", 100),null,"A","C"));
 		VcfRecord origV = VcfUtils.createVcfRecord(new ChrPointPosition("1", 100),null,"A","C");
 		
 		Accumulator controlAcc100 = new Accumulator(100);
@@ -1003,7 +993,10 @@ chr4    8046421 .       A       T       .       .       BaseQRankSum=0.727;Clipp
 		assertEquals("CG", v.getAlt());
 		List<String> ff = v.getFormatFields();
 		assertEquals("./.:.:0:.:.:.:.", ff.get(1));	// control
-		assertEquals("1/1:0,4:4:SBIASCOV:SOMATIC:1:CG4[]0[];C_1[]0[]", ff.get(2));	// tumour
+		/*
+		 * filters are now applied in qannotate
+		 */
+		assertEquals("1/1:0,4:4:.:SOMATIC:1:CG4[]0[];C_1[]0[]", ff.get(2));	// tumour
 	}
 	
 	@Test

@@ -17,10 +17,8 @@ import org.qcmg.common.model.Accumulator;
 import org.qcmg.common.model.GenotypeEnum;
 import org.qcmg.common.model.PileupElementLite;
 import org.qcmg.common.string.StringUtils;
-import org.qcmg.common.util.AccumulatorUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.PileupElementLiteUtil;
-import org.qcmg.common.util.SnpUtils;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.model.Classification;
@@ -29,122 +27,13 @@ public class GenotypeUtil {
 	
 	private final static QLogger logger = QLoggerFactory.getLogger(GenotypeUtil.class);
 	
-	public static final int MUTATION_IN_NORMAL_MIN_COVERAGE = 3;
-	public static final int MUTATION_IN_NORMAL_MIN_PERCENTAGE = 5;
-	
-	public static String getFormatFilter(Accumulator acc, String gt, String [] alt, char ref, boolean runSBias, int sbiasPercentage, int sbiasPercentageCoverage, Classification cl, boolean isControl) {
-		if (null == acc) {
-			return Constants.MISSING_DATA_STRING;
-		} else {
-			
-			boolean switchToSBiasCov = runSBias && ! AccumulatorUtils.bothStrandsByPercentage(acc, sbiasPercentageCoverage);
-			int totalReadCount = null != acc?  acc.getCoverage() : 0;
-			
-			StringBuilder strandBias = new StringBuilder();
-			StringBuilder endOfRead = new StringBuilder();
-			StringBuilder mutationInNormal = new StringBuilder();
-			StringBuilder coverageAndMER = new StringBuilder();
-			
-			int i = 1;
-			if (null != acc) {
-				for (String s : alt) {
-					if (s.length() == 1) {
-						char a = s.charAt(0);
-						PileupElementLite pel = acc.getPelForBase(a);
-						if (null != pel) {
-							if (null != gt && gt.contains(i + "")) {
-								
-								/*
-								 * strand bias
-								 */
-								if (runSBias && strandBias(pel, sbiasPercentage)) {
-									updateStringBuilder(strandBias, switchToSBiasCov ? SnpUtils.STRAND_BIAS_COVERAGE : SnpUtils.STRAND_BIAS_ALT);
-								} else if (runSBias) {
-//									updateStringBuilder(strandBias, Constants.MISSING_DATA_STRING);
-								}
-								
-								/*
-								 * end of read
-								 */
-								int endsOfReads = endsOfReads(pel);
-								if (endsOfReads > 0) {
-									updateStringBuilder(endOfRead, SnpUtils.END_OF_READ + Constants.EQ + endsOfReads);
-								} else {
-									updateStringBuilder(endOfRead, Constants.MISSING_DATA_STRING);
-								}
-							}
-						}
-						/*
-						 * If classification is somatic and we are control, 
-						 */
-						if (Classification.SOMATIC == cl && isControl) {
-							
-							int pelTotalCount = null != pel ? pel.getTotalCount() : 0;
-							boolean min = VcfUtils.mutationInNorma(pelTotalCount, totalReadCount, MUTATION_IN_NORMAL_MIN_PERCENTAGE, MUTATION_IN_NORMAL_MIN_COVERAGE);
-							updateStringBuilder(mutationInNormal, min ? SnpUtils.MUTATION_IN_NORMAL : Constants.MISSING_DATA_STRING);
-							
-							
-//							if (( (double) pelTotalCount / totalReadCount ) * 100 >= 3.0 ) {
-//								updateStringBuilder(mutationInNormal, SnpUtils.MUTATION_IN_NORMAL);
-//							} else {
-//								if (unfilteredBases.contains(s)) {
-//									updateStringBuilder(mutationInNormal, SnpUtils.MUTATION_IN_UNFILTERED_NORMAL);
-//								} else {
-//									updateStringBuilder(mutationInNormal, Constants.MISSING_DATA_STRING);
-//								}
-//							}
-						}
-					}
-					i++;
-				}
-			}
-			
-			/*
-			 * non-allele specific filters
-			 */
-			if (Classification.SOMATIC.equals(cl)) {
-				if ( ! isControl && gt.equals("0/0")) {
-					updateStringBuilder(coverageAndMER, SnpUtils.MUTATION_EQUALS_REF);
-				}
-			}
-			
-			StringBuilder sb = new StringBuilder();
-			
-			/*
-			 * before adding our constituent string builders to the parent, check that they are not empty (or just contain missing data)
-			 */
-			if (containsFilter(strandBias)) {
-				updateStringBuilder(sb, strandBias);
-			}
-			if (containsFilter(endOfRead)) {
-				updateStringBuilder(sb, endOfRead);
-			}
-			if (containsFilter(mutationInNormal)) {
-				updateStringBuilder(sb, mutationInNormal);
-			}
-			if (containsFilter(coverageAndMER)) {
-				updateStringBuilder(sb, coverageAndMER);
-			}
-			
-			/*
-			 * must return at least the missing data char
-			 */
-			if (sb.length() == 0) {
-				sb.append(Constants.MISSING_DATA);
-			}
-			return sb.toString();
-		}
-	}
-	
 	public static boolean containsFilter(StringBuilder sb) {
 		return sb.length() > 0 && ! sb.toString().equals(Constants.MISSING_DATA_STRING) && ! sb.toString().equals(Constants.MISSING_DATA_STRING + Constants.SEMI_COLON + Constants.MISSING_DATA); 
 	}
 	
-	
 	public static void updateStringBuilder(StringBuilder sb, CharSequence toAdd) {
 		StringUtils.updateStringBuilder(sb, toAdd, Constants.SEMI_COLON);
 	}
-	
 	
 	/**
 	 * Currently returning:
@@ -199,7 +88,6 @@ public class GenotypeUtil {
 		/*
 		 * don't add filters here - move to qannotate
 		 */
-//		sb.append(getFormatFilter(acc, gt, altAlleleArray,  ref, runSBias,  sbiasPercentage, sbiasPercentageCoverage, cl, isControl)).append(Constants.COLON);
 		sb.append(".:");
 		
 		/*
