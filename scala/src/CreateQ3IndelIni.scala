@@ -1,4 +1,5 @@
-import java.io.File
+import java.io._
+import java.nio.charset.StandardCharsets
 /*
   * Created by oliverh on 7/09/2016.
   */
@@ -36,7 +37,7 @@ import java.io.File
     def writeIni(m: OptionMap, s: String): Unit = {
       if (!new File(s).exists()) {
         println(s"Will write to output file $s")
-        val pw = new java.io.PrintWriter(new File(s))
+        val pw = new PrintWriter(new OutputStreamWriter(new FileOutputStream(new File(s)), StandardCharsets.UTF_8))
         try {
           // inputs
           pw.println("[IOs]")

@@ -6,7 +6,10 @@ package au.edu.qimr.indel.pileup;
 import htsjdk.samtools.reference.FastaSequenceIndex;
 import htsjdk.samtools.reference.IndexedFastaSequenceFile;
 
+import java.lang.IllegalStateException;
 import java.io.File;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -55,7 +58,11 @@ public class Homopolymer {
  
  	
 	public String getPolymerSequence(int index){
-		return  homoString.get(index) == null ? null : new String(   homoString.get(index));				 
+		try {
+			return  homoString.get(index) == null ? null : new String(homoString.get(index), StandardCharsets.UTF_8.name());				 
+		} catch (UnsupportedEncodingException e) {
+			throw new IllegalStateException("StandardCharsets.UTF_8 should be supported");
+		}
 	}
 		
 	private byte[] setSequence(String motif) {	
@@ -71,7 +78,11 @@ public class Homopolymer {
 			for (int i=0; i<motif.length(); i++)
 				seq[baseNo1 + i] = '_';
 		else  			
-			System.arraycopy(motif.toLowerCase().getBytes(), 0, seq, baseNo1 , motif.length());  
+			try {
+				System.arraycopy(motif.toLowerCase().getBytes(StandardCharsets.UTF_8.name()), 0, seq, baseNo1 , motif.length());  
+			} catch (UnsupportedEncodingException e) {
+				throw new IllegalStateException("StandardCharsets.UTF_8 should be supported");
+			}
 
 		return seq; 
 	}
@@ -107,7 +118,12 @@ public class Homopolymer {
 		int max  = 0;
 		//reset up or down stream for deletion reference base
 		if(indelType.equals(SVTYPE.DEL)){			
-			byte[] mByte = motifs.get(0).getBytes(); 	
+			byte[] mByte;
+			try {
+				mByte = motifs.get(0).getBytes(StandardCharsets.UTF_8.name()); 	
+			} catch (UnsupportedEncodingException e) {
+				throw new IllegalStateException("StandardCharsets.UTF_8 should be supported");
+			}
 			
 			int left = 0;
 			nearBase = (char) upstreamReference[finalUpIndex];			
