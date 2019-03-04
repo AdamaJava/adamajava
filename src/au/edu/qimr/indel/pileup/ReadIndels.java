@@ -38,7 +38,7 @@ public class ReadIndels {
 	
 	/**
 	 * merge first sample column of input to existing variants which is stored on hash map
-	 * @param f: input of vcf file
+	 * @param f input of vcf file
 	 * @throws IOException
 	 */
 	public void appendTestIndels(File f) throws IOException{
@@ -92,7 +92,7 @@ public class ReadIndels {
 	/**
 	 * Add this vcf record if not exists on Map, mark as somatic on filter column,  move  this record first sample column to second column and mark missing data '.' on the first column; 
 	 * Or merge this vcf record into existed variants: replace the second sample column of exist variants with first sample column of new one.
-	 * @param secVcf: a vcf record
+	 * @param secVcf a vcf record
 	 * @return true if same variants exist and merge them; otherwise return false by adding this new variants 
 	 */
 	private boolean mergeTestIndel(  VcfRecord secVcf){
@@ -139,7 +139,7 @@ public class ReadIndels {
 	
 	/**
 	 * load variants to hash map
-	 * @param f: vcf input file
+	 * @param f vcf input file
 	 * @param sampleCode: replace sample code inside the input vcf file 
 	 * @throws IOException
 	 */
@@ -200,7 +200,7 @@ public class ReadIndels {
 	/**
 	 * change the input vcf by putting '.' on "GT" field if there are multi Alleles existis;
 	 * do nothing if not multi Alleles or not GT field on format column
-	 * @param vcf: input vcf record
+	 * @param vcf input vcf record
 	 */
 	public void resetGenotype(VcfRecord vcf){
 		List<String> format = vcf.getFormatFields();

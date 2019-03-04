@@ -85,9 +85,9 @@ public class IndelPileup {
 	
 	/**
 	 * 
-	 * @param pool: a pool of input reads
-	 * @param window: window size on both side of indel
-	 * @return: a pool of reads which are potential supporting reads or partial supporting reads
+	 * @param pool a pool of input reads
+	 * @param window window size on both side of indel
+	 * @return a pool of reads which are potential supporting reads or partial supporting reads
 	 */
 	private List<SAMRecord> getRegionIndels(List<SAMRecord> pool, int window){
 		int count = 0;
@@ -157,7 +157,7 @@ public class IndelPileup {
 	
 	/**
 	 * 
-	 * @param pool: potential support or partial support reads
+	 * @param pool potential support or partial support reads
 	 * @param motif
 	 * @return the counts of support, forwardSupport,backwardSupport, partsupport, novelStarts 
 	 */
@@ -229,7 +229,7 @@ public class IndelPileup {
 	
 	/**
 	 * 
-	 * @param record: a support bam record
+	 * @param record a support bam record
 	 * @return true, if there are less specified number of variants events on that read. it self counts as one
 	 */
 	 boolean isStrongSupport(final SAMRecord record, final int eventNo ) {

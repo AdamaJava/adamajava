@@ -27,7 +27,7 @@ public class IndelPosition {
 
 	/**
 	 * retrive information from a vcf record
-	 * @param re: a vcf record
+	 * @param re a vcf record
 	 * @param type
 	 * @param indelFileType
 	 * @param isGermline

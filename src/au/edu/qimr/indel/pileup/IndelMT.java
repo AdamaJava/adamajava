@@ -65,14 +65,14 @@ public class IndelMT {
 
 		/**
 		 * 
-		 * @param qIn : store SAM record from input file
-		 * @param qOutGood : store unmatched record based on query
-		 * @param qOutBad: store unmatched record based on query (null is allowed)
-		 * @param query : query string
-		 * @param maxRecords : queue size
-		 * @param mainThread : parent thread
-		 * @param rLatch : the counter for reading thread
-		 * @param fLatch : the counter for filtering thread (current type)
+		 * @param qIn  store SAM record from input file
+		 * @param qOutGood  store unmatched record based on query
+		 * @param qOutBad  store unmatched record based on query (null is allowed)
+		 * @param query  query string
+		 * @param maxRecords  queue size
+		 * @param mainThread  parent thread
+		 * @param rLatch  the counter for reading thread
+		 * @param fLatch  the counter for filtering thread (current type)
 		 */
 		ContigPileup(SAMSequenceRecord contig,  AbstractQueue<IndelPosition> qIn, File bam, File index, QueryExecutor exec,
 				AbstractQueue<IndelPileup> qOut, Thread mainThread, CountDownLatch latch)  {
@@ -149,9 +149,9 @@ public class IndelMT {
 		/**
 		 * it swap SAMRecord between currentPool and nextPool. After then, the currentPool will contain all SAMRecord overlapping topPos position, 
 		 * the nextPool will contain all SAMRecord start after topPos position.  All SAMRecord end before topPos position will be remvoved from both pool. 
-		 * @param topPos:   pileup position
-		 * @param currentPool: a list of SAMRecord overlapped previous pileup Position
-		 * @param nextPool: a list of SAMRecord behind previous pileup Position
+		 * @param topPos   pileup position
+		 * @param currentPool a list of SAMRecord overlapped previous pileup Position
+		 * @param nextPool a list of SAMRecord behind previous pileup Position
 		 */
 		 void resetPool( IndelPosition topPos, List<SAMRecord> currentPool, List<SAMRecord> nextPool){
 			
@@ -248,7 +248,7 @@ public class IndelMT {
 	/**
 	 * run parallel pileup without homopolymers pileup if the withHomoOption is false
 	 * @param threadNo
-	 * @param withHomoOption, if true, it will run homopolymers pileup
+	 * @param withHomoOption  if true, it will run homopolymers pileup
 	 * @return
 	 * @throws Exception
 	 */
@@ -464,8 +464,8 @@ public class IndelMT {
 	 
 	 /**
 	  * 
-	  * @param contig: contig name or null for whole reference
-	  * @param filter: only return indel vcf records with specified filter value. Put null here if ignor record filter column value
+	  * @param contig contig name or null for whole reference
+	  * @param filter only return indel vcf records with specified filter value. Put null here if ignor record filter column value
 	  * @return a sorted list of IndelPotion on this contig; return whole reference indels if contig is null
 	  */
 	 private  AbstractQueue<IndelPosition>  getIndelList( SAMSequenceRecord contig){	  
