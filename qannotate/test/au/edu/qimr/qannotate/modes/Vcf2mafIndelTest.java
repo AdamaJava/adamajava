@@ -121,7 +121,7 @@ public class Vcf2mafIndelTest {
         };
             try {
                 Vcf2mafTest.createVcf(input, str);
-                final String[] command = {"--mode", "vcf2maf",  "--log", log.getAbsolutePath(),  "-i", input.getAbsolutePath() , "-o" , out.getAbsolutePath()};
+                final String[] command = {"--mode", "vcf2maf",  "--log", log.getAbsolutePath(),  "-i", input.getAbsolutePath() , "-output" , out.getAbsolutePath()};
                 au.edu.qimr.qannotate.Main.main(command);
             } catch ( Exception e) {
                 e.printStackTrace(); 
