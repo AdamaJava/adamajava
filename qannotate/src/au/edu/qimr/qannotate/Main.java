@@ -72,7 +72,14 @@ public class Main {
         }
 	}
 	
-	
+	/**
+	 * Checks the Options object to see if the minimal options (input, output, database) have been supplied.
+	 * Using the switch statements fall through process here.
+	 * 
+	 * Assuming that the individual modes will perform any more specific Options checking internally 
+	 *  
+	 * @param o
+	 */
 	public static void checkOptions(Options o) {
 		Options.MODE m = o.getMode();
 		switch (m) {
@@ -90,7 +97,8 @@ public class Main {
         	}
 			
 		/*
-		 * modst modes need an output
+		 * most modes need an output and input
+		 * there is a break after these checks as the vcf2mafs are a slightly special case
 		 */
 		case overlap:
 		case confidence:
@@ -105,7 +113,7 @@ public class Main {
 			}
 			break;
 		/*
-		 * all modes need an input
+		 * apart from the vcf2maf modes which can take either a outdir or output option
 		 */
 		case vcf2maf:
 		case vcf2maftmp:
