@@ -10,6 +10,38 @@ import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 
 public class HomoplymersModeTest {
+	
+	@Test
+	public void startOfContig() {
+		//SNP
+		VcfRecord re = new VcfRecord(new String[] {  "chr1", "1", null, "T", "A" });		
+		HomoplymersMode  homo = new HomoplymersMode(3,3);	
+		re = homo.annotate(re, getReference());
+		assertEquals("0,tATG", re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM));
+		
+		re = new VcfRecord(new String[] {  "chr1", "0", null, "T", "A" });		
+		homo = new HomoplymersMode(3,3);
+		try {
+			re = homo.annotate(re, getReference());
+			fail("Should have thrown an IllegalArgumentException");
+		} catch (IllegalArgumentException iae){};
+	}
+	
+	@Test
+	public void endOfContig() {
+		//SNP
+		VcfRecord re = new VcfRecord(new String[] {  "chr1", "40", null, "T", "A" });		
+		HomoplymersMode  homo = new HomoplymersMode(3,3);	
+		re = homo.annotate(re, getReference());
+		assertEquals("3,CCCt", re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM));
+		
+		re = new VcfRecord(new String[] {  "chr1", "41", null, "T", "A" });		
+		homo = new HomoplymersMode(3,3);	
+		try {
+			re = homo.annotate(re, getReference());
+			fail("Should have thrown an IllegalArgumentException");
+		} catch (IllegalArgumentException iae){};
+	}
  	
 
 	@Test
@@ -302,7 +334,7 @@ public class HomoplymersModeTest {
 		refs[0] = "TCAAGAGTTT".getBytes();
 		refs[1] = "CTTTATTTTT".getBytes();
 		
-		assertEquals(3, findHomopolymer(refs, "C", SVTYPE.SNP));
+		assertEquals(3, HomoplymersMode.findHomopolymer(refs, "C", SVTYPE.SNP));
 		assertEquals(3, HomoplymersMode.findHomopolymer(refs, "C", SVTYPE.SNP));
 		
 	}

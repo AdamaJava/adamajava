@@ -38,6 +38,7 @@ public class HomoplymersMode extends AbstractMode{
 	private final String input;
 	private final String output;
 	private final int homopolymerWindow;
+	private final String dbfile;
 	private int reportWindow;
 	public static final int defaultWindow = 100;
 	public static final int defaultreport = 10;
@@ -46,25 +47,28 @@ public class HomoplymersMode extends AbstractMode{
 	HomoplymersMode( int homoWindow, int reportWindow){		
 		this.input = null;
 		this.output = null;
+		this.dbfile = null;
 		this.homopolymerWindow = homoWindow;
 		this.reportWindow = reportWindow;
 	}
 		
-	public HomoplymersMode(Options options) throws Exception{	
+	public HomoplymersMode(Options options) throws IOException {
 		input = options.getInputFileName();
 		output = options.getOutputFileName();
+		dbfile = options.getDatabaseFileName();
 		homopolymerWindow =  options.getHomoplymersWindow();
 		reportWindow = options.getHomoplymersReportSize();
+		reportWindow = options.getHomoplymersReportSize();
 		logger.tool("input: " + options.getInputFileName());
-        logger.tool("reference file: " + options.getDatabaseFileName() );
+        logger.tool("reference file: " + dbfile);
         logger.tool("output for annotated vcf records: " + options.getOutputFileName());
         logger.tool("logger file " + options.getLogFileName());
         logger.tool("logger level " + (options.getLogLevel() == null ? QLoggerFactory.DEFAULT_LEVEL.getName() :  options.getLogLevel()));
         logger.tool("window size for homoplymers: " + homopolymerWindow);
-        logger.tool("report homoplymers base on both side of variants: " + reportWindow);
+        logger.tool("number of homoplymer bases on either side of variant to report: " + reportWindow);
         
         reheader(options.getCommandLine(),options.getInputFileName());
- 		addAnnotation(options.getDatabaseFileName() );		
+ 		addAnnotation(dbfile);		
 	}
 	
 	/*
@@ -94,21 +98,19 @@ public class HomoplymersMode extends AbstractMode{
 		//load reference data
 		Map<String, byte[]> referenceBase = getReferenceBase(new File(dbfile));
 		
-		try (VCFFileReader reader = new VCFFileReader(input) ;
-	            VCFFileWriter writer = new VCFFileWriter(new File(output))  ) {
+		try (VCFFileReader reader = new VCFFileReader(input);
+	            VCFFileWriter writer = new VCFFileWriter(new File(output))) {
 			header.addInfo(VcfHeaderUtils.INFO_HOM,  "2", "String",VcfHeaderUtils.INFO_HOM_DESC); 			
-		    for(final VcfHeaderRecord record: header) {
-		    		writer.addHeader(record.toString());
+		    for (final VcfHeaderRecord record: header) {
+		    	writer.addHeader(record.toString());
 		    }
 		    
 		    int sum = 0;
 			for (final VcfRecord re : reader) {	
-				String chr = IndelUtils.getFullChromosome(re.getChromosome());
-				byte[]  base =  referenceBase.get(chr);
-				writer.add( annotate(re,  base));
+				writer.add( annotate(re, referenceBase.get(IndelUtils.getFullChromosome(re.getChromosome()))));
 				sum ++;
 			}
-			logger.info(sum + " record are outputed with homoplymers information");
+			logger.info(sum + " records have been put through qannotate's homopolymer mode");
 		}
 	}
 	
@@ -148,7 +150,7 @@ public class HomoplymersMode extends AbstractMode{
 				if (maxHomAlt == null) {
 					maxHomAlt = alt;
 				}
-				int hNo = findHomopolymer(sideBases,  alt,variantType);
+				int hNo = findHomopolymer(sideBases, alt,variantType);
 				if (hNo > maxHomValue) {
 					maxHomValue = hNo;
 					maxHomAlt = alt;
@@ -174,7 +176,7 @@ public class HomoplymersMode extends AbstractMode{
  		System.arraycopy(updownReference[1], 0, seq, baseNo1 + variantStr.length(), baseNo2); 
  				
 		if (type.equals(SVTYPE.DEL)) {			 
-			for (int i=0; i< variantStr.length(); i++) {
+			for (int i = 0; i < variantStr.length(); i++) {
 				seq[baseNo1 + i] = '_';
 			}
 		} else {  			
@@ -184,7 +186,6 @@ public class HomoplymersMode extends AbstractMode{
 		return new String(seq); 
 	}
 	
-	
 	static byte[][] getReferenceBase(byte[]  reference, ChrRangePosition pos, SVTYPE type, int homopolymerWindow) { 	
 		//eg. INS: 21 T TC ,  DEL: 21  TCC T,  SNPs: TCC ATT
 		//T from INS or DEL  position.getPosition() is 21 but should be  referenceBase[20] which is end of upStream
@@ -192,18 +193,24 @@ public class HomoplymersMode extends AbstractMode{
 		//DEL position.getEndPosition() is 23, downStream should start at referenceBase[23]
 	    //SNPs referenceBase[19] which is end of upStream and downStream should start at referenceBase[23]
 		
-	    //byet[] start with 0 but reference start with 1. 
+	    //byte[] start with 0 but reference start with 1. 
 		//INDELs contain leading base from reference but SNPs not
-	    int indelStart = (type.equals(SVTYPE.INS) || type.equals(SVTYPE.DEL)) ? pos.getStartPosition() : pos.getStartPosition() - 1 ;	    
-	    	int wstart =  Math.max( 0,indelStart-homopolymerWindow) ;   	
-	    	byte[] upstreamReference = new byte[indelStart - wstart ]; 
+	    int indelStart = (type.equals(SVTYPE.INS) || type.equals(SVTYPE.DEL)) ? pos.getStartPosition() : pos.getStartPosition() - 1;
+    	int wstart =  Math.max( 0,indelStart-homopolymerWindow);
+    	if (indelStart - wstart < 0) {
+  	    	throw new IllegalArgumentException("Start of variant is before (or equal to) start of contig! variant start (+homopolymerWindow): " + wstart);
+  	    }
+    	byte[] upstreamReference = new byte[indelStart - wstart];
 	    System.arraycopy(reference, wstart, upstreamReference, 0, upstreamReference.length);
 	    
-	    int indelEnd = pos.getEndPosition(); 
-	    int wend = Math.min(reference.length, indelEnd + homopolymerWindow);  
-     	byte[] downstreamReference = new byte[wend - indelEnd ];     	 	
+	    int indelEnd = pos.getEndPosition();
+	    int wend = Math.min(reference.length, indelEnd + homopolymerWindow);
+	    if (wend - indelEnd < 0) {
+	    	throw new IllegalArgumentException("End of variant is past (or equal to) end of contig! contig end: " + reference.length + ", variant end (+homopolymerWindow): " + wend);
+	    }
+     	byte[] downstreamReference = new byte[wend - indelEnd];
      	System.arraycopy(reference, indelEnd, downstreamReference, 0, downstreamReference.length);   
-     	return new byte[][]{upstreamReference, downstreamReference};     	
+     	return new byte[][]{upstreamReference, downstreamReference};
 	}
 	
 	static int findHomopolymer(byte[][] updownReference, String motif, SVTYPE indelType){
@@ -215,25 +222,29 @@ public class HomoplymersMode extends AbstractMode{
 		int downBaseCount = 1;
  		//upstream - start from end since this is the side adjacent to the indel
 		//decide if it is contiguous		
-		final int finalUpIndex = updownReference[0].length-1;	
+		final int finalUpIndex = updownReference[0].length - 1;	
 		
 		//count upstream homopolymer bases
-		char nearBase = (char) updownReference[0][finalUpIndex];
-		for (int i=finalUpIndex-1; i>=0; i--) {
-			if (nearBase == updownReference[0][i]) {
-				upBaseCount++;
-			} else {
-				break;
+		if (finalUpIndex >= 0) {
+			char nearBase = (char) updownReference[0][finalUpIndex];
+			for (int i = finalUpIndex - 1; i >= 0; i--) {
+				if (nearBase == updownReference[0][i]) {
+					upBaseCount++;
+				} else {
+					break;
+				}
 			}
 		}
 		
 		//count downstream homopolymer
-		nearBase = (char) updownReference[1][0];
-		for (int i=1; i< updownReference[1].length; i++) {
-			if (nearBase == updownReference[1][i]) {
-				downBaseCount++;
-			} else {
-				break;
+		if (null != updownReference[1] && updownReference[1].length > 0) {
+			char nearBase = (char) updownReference[1][0];
+			for (int i = 1; i < updownReference[1].length; i++) {
+				if (nearBase == updownReference[1][i]) {
+					downBaseCount++;
+				} else {
+					break;
+				}
 			}
 		}
 		
@@ -244,40 +255,43 @@ public class HomoplymersMode extends AbstractMode{
 			byte[] mByte = motif.getBytes();
 			
 			int left = 0;
-			nearBase = (char) updownReference[0][finalUpIndex];
-			for(int i = 0; i < mByte.length; i ++ ) {
-				if (nearBase == mByte[i]) {
-					left ++;
-				} else {
-					break;				 
+			if (finalUpIndex >= 0) {
+				char nearBase = (char) updownReference[0][finalUpIndex];
+				for(int i = 0; i < mByte.length; i++ ) {
+					if (nearBase == mByte[i]) {
+						left ++;
+					} else {
+						break;				 
+					}
 				}
 			}
 			upBaseCount += left; 
 						
 			int right = 0;
-			nearBase = (char) updownReference[1][0];
-			for(int i = mByte.length -1; i >=0; i--) { 
-				if (nearBase == mByte[i]) {
-					right++;
-				} else  {
-					break;
+			if (null != updownReference[1] && updownReference[1].length > 0) {
+				char nearBase = (char) updownReference[1][0];
+				for(int i = mByte.length - 1; i >= 0; i--) { 
+					if (nearBase == mByte[i]) {
+						right++;
+					} else  {
+						break;
+					}
 				}
 			}
 			downBaseCount += right; 
 			
-			max = (left == right && left == mByte.length)? 
+			max = (left == right && left == mByte.length) ? 
 					(downBaseCount + upBaseCount - mByte.length) : Math.max(downBaseCount, upBaseCount);
-						 			
 		} else {
 		    //INS don't have reference base
-			max = (updownReference[0][finalUpIndex] == updownReference[1][0] )? 
+			max = (updownReference[0][finalUpIndex] == updownReference[1][0]) ? 
 					(downBaseCount + upBaseCount) : Math.max(downBaseCount, upBaseCount);
 		}
 					
-		return (max == 1)? 0 : max;
+		return max == 1 ? 0 : max;
 	}
 	
-   static Map<String, byte[]> getReferenceBase(File reference) throws IOException{
+   static Map<String, byte[]> getReferenceBase(File reference) throws IOException {
 	   
 	   /*
         * check to see if the index and dict file exist for the reference

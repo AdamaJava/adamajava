@@ -103,14 +103,14 @@ public class Options {
         
         //log, input and output are compulsory
         inputFileName = (String) options.valueOf("i") ;      	 
-        outputFileName = (String) options.valueOf("o") ; 
-	    	logFileName = (String) options.valueOf("log");  	
-	    	logLevel = (String) options.valueOf("loglevel");
-	    	
-	    	 if (null == inputFileName) { 
-		        	displayHelp(mode);  
-		        	System.exit(0);	
-	        }
+        outputFileName = (String) options.valueOf("output") ; 
+    	logFileName = (String) options.valueOf("log");  	
+    	logLevel = (String) options.valueOf("loglevel");
+    	
+    	if (null == inputFileName) { 
+        	displayHelp(mode);  
+        	System.exit(0);	
+        }
     	
     	//
 		List<String> dbList = (List<String>) options.valuesOf("d");		 
@@ -120,11 +120,9 @@ public class Options {
 		  	displayHelp(mode);  
         	System.exit(0);	
 		}
-		
         
         gap = (options.has("gap"))? (int)options.valueOf("gap") : 1000;  //CADD default is 1000
         bufferSize = (options.has("buffer"))? (Integer) options.valueOf("buffer") : 0; //TRF default is 0
-        
         
         miunCutoff = ((Integer) options.valueOf("miunCutoff"));
         minCutoff = ((Integer) options.valueOf("minCutoff"));
@@ -136,7 +134,6 @@ public class Options {
         testCoverageCutoff = ((Integer) options.valueOf("testCoverageCutoff"));
         mrPercentage = ((Float) options.valueOf("mrPercentage"));
         filtersToIgnore = (List<String>) options.valuesOf("filtersToIgnore");
-        
         
         //vcf2maf
         outputDir = (options.has("outdir"))? (String)options.valueOf("outdir") : null;
@@ -192,19 +189,19 @@ public class Options {
 
         OptionSet options  = parser.parse(args);  
         if (options.has("v") || options.has("version")){
-	    		System.err.println( "qannotate: Current version is " + getVersion());
-	    		System.exit(0);
+    		System.err.println( "qannotate: Current version is " + getVersion());
+    		System.exit(0);
         }  
         
         Options.MODE mm = null;   	
-        if(options.has("mode")){
-	        	final String	m = ((String) options.valueOf("mode")).toLowerCase();
-	        	try{
-	        		mm = MODE.valueOf(m);
-	        	}catch(IllegalArgumentException | NullPointerException e){
-	        		System.err.println("invalid mode specified: "  + m);
-	        		System.exit(1);
-	        	}
+        if (options.has("mode")){
+        	final String m = ((String) options.valueOf("mode")).toLowerCase();
+        	try{
+        		mm = MODE.valueOf(m);
+        	}catch(IllegalArgumentException | NullPointerException e){
+        		System.err.println("invalid mode specified: " + m);
+        		System.exit(1);
+        	}
         }
         
         if (mm == null) return options;
@@ -240,7 +237,6 @@ public class Options {
          }
          
          return parser.parse(args);
-        
 	} 
        
     public String getVersion(){
@@ -286,7 +282,7 @@ public class Options {
     	for (File out : outputs)  {   
     		//out.getParentFile() maybe null if file name string exclude path eg. out = "ok.txt"
     		File parent = out.getAbsoluteFile().getParentFile();    		    		
-    		if ( (out.exists() && ! out.canWrite()) || ( !out.exists() && !parent.canWrite())) {    				 
+    		if ( (out.exists() && ! out.canWrite()) || ( ! out.exists() && ! parent.canWrite())) {    				 
     			throw new IllegalArgumentException( Messages.getMessage("OUTPUT_ERR_DESCRIPTION", out.getName()));
     		}
     	}	
@@ -301,11 +297,11 @@ public class Options {
     	//check whether file unique
  	    inputs.addAll(outputs);
        	for (int  i = inputs.size() -1; i > 0; i --) {
-	    		for (int j = i-1; j >= 0; j -- ){
-	    			if (inputs.get(i).getCanonicalFile().equals(inputs.get(j).getCanonicalFile())) {
-	    				throw new IllegalArgumentException( "below command line values are point to same file: \n\t" + inputs.get(i) + "\n\t" + inputs.get(j) );
-	    			}
-	    		}
+    		for (int j = i - 1; j >= 0; j-- ){
+    			if (inputs.get(i).getCanonicalFile().equals(inputs.get(j).getCanonicalFile())) {
+    				throw new IllegalArgumentException( "below command line values are point to same file: \n\t" + inputs.get(i) + "\n\t" + inputs.get(j) );
+    			}
+    		}
        	}
     }
 
@@ -315,7 +311,7 @@ public class Options {
 	public String getInputFileName(){return inputFileName;}
 	public String getOutputFileName(){return outputFileName;}
 	public String getDatabaseFileName(){return null != databaseFiles && databaseFiles.length > 0 ? databaseFiles[0] : null;}	
-	public String[] getDatabaseFiles(){ return  (mode.equals(MODE.cadd) || mode.equals(MODE.overlap))? databaseFiles : null;}
+	public String[] getDatabaseFiles(){ return (mode.equals(MODE.cadd) || mode.equals(MODE.overlap)) ? databaseFiles : null;}
     public MODE getMode(){	return  mode; }
    
     private void displayHelp(MODE mode) throws IOException {   

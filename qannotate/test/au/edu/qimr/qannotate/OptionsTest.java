@@ -24,5 +24,19 @@ public class OptionsTest {
 		o = new Options(new String[]{"--mode", "make_valid","-i",i.getAbsolutePath(), "-d", d.getAbsolutePath()});
 		assertEquals(d.getAbsolutePath(), o.getDatabaseFileName());
 	}
+	
+	@Test
+	public void outputOption() throws IOException {
+		File i = testFolder.newFile();
+		File output = testFolder.newFile();
+		Options o = new Options(new String[]{"--mode", "make_valid","-output",output.getAbsolutePath(),"-i",i.getAbsolutePath(),});
+		assertEquals(output.getAbsolutePath(), o.getOutputFileName());
+		o = new Options(new String[]{"--mode", "make_valid","-o",output.getAbsolutePath(),"-i",i.getAbsolutePath(),});
+		assertEquals(output.getAbsolutePath(), o.getOutputFileName());
+		o = new Options(new String[]{"--mode", "hom","-o",output.getAbsolutePath(),"-i",i.getAbsolutePath(),});
+		assertEquals(output.getAbsolutePath(), o.getOutputFileName());
+		o = new Options(new String[]{"--mode", "hom","-output",output.getAbsolutePath(),"-i",i.getAbsolutePath(),});
+		assertEquals(output.getAbsolutePath(), o.getOutputFileName());
+	}
 
 }
