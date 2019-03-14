@@ -1024,7 +1024,6 @@ public class AccumulatorUtils {
 			return acc;
 		}
 		return null;
-		
 	}
 
 }
