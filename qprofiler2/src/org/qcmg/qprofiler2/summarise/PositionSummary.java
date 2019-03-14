@@ -13,15 +13,11 @@ package org.qcmg.qprofiler2.summarise;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicLongArray;
 
 import org.qcmg.common.model.QCMGAtomicLongArray;
 
@@ -58,7 +54,9 @@ public class PositionSummary {
 	
 	public int getMax() {	return max.intValue(); }
 	
-	public int getBinNumber() { return (max.get()/BUCKET_SIZE) + 1 ;}
+	public int getBinNumber() {
+		return (max.get()/BUCKET_SIZE) + 1;
+	}
 
 	/**
 	 * 
@@ -73,7 +71,6 @@ public class PositionSummary {
 					rgCov[j] = rgCoverages[j].get(i);
 				Arrays.sort(rgCov);
 				maxRgs.add( rgCov[rgCoverages.length - 1 ]);   //get the max coverage of all readGroup at that position		
-//				System.out.println(i + ":" + maxRgs.size());    
 			}
 			hasAddPosition = false; 
 		}
@@ -101,39 +98,55 @@ public class PositionSummary {
 		return count;
 	}
 	
+//	/**
+//	 * Returns a map which holds the coverage of positions binned by millions
+//	 * each element of Map is an array with size = rg numbers + 2
+//	 */
+//	
+//	public Map<Integer,  AtomicLongArray> getCoverageByRgs(List<String> rgs) {
+//		Map<Integer, AtomicLongArray> sortedCoverage = new TreeMap<Integer, AtomicLongArray>();		
+//		for (int i = 0, max =getBinNumber() ; i < max ; i++){ 	
+//			if(coverage.get(i) == 0) continue; 
+//			AtomicLongArray array = new AtomicLongArray( rgs.size() );						
+//			//skip coverages[coverages.length-2].get(i) since it for non-RG record
+//						
+//			for(int j = 0; j < rgs.size(); j ++){
+//				int order = readGroupIds.indexOf(rgs.get(j));
+//				array.getAndAdd(j, rgCoverages[order].get(i)) ;				
+//			}
+//			sortedCoverage.put( i, array );			
+//		}
+//		return sortedCoverage;
+//	}
+	
 	/**
 	 * Returns a map which holds the coverage of positions binned by millions
-	 * each element of Map is an array with size = rg numbers + 2
+	 * each element of Map is : <bin_order, reads number on that bin from specified read group> 
 	 */
 	
-	public Map<Integer,  AtomicLongArray> getCoverageByRgId(List<String> rgs) {
-		Map<Integer, AtomicLongArray> sortedCoverage = new TreeMap<Integer, AtomicLongArray>();		
+	public Map<Integer,  AtomicLong> getCoverageByRg( String rg) {
+		Map<Integer, AtomicLong> singleRgCoverage = new TreeMap<Integer, AtomicLong>();		
 		for (int i = 0, max =getBinNumber() ; i < max ; i++){ 	
-			if(coverage.get(i) == 0) continue; 
-			AtomicLongArray array = new AtomicLongArray( rgs.size() );						
-			//skip coverages[coverages.length-2].get(i) since it for non-RG record
-						
-			for(int j = 0; j < rgs.size(); j ++){
-				int order = readGroupIds.indexOf(rgs.get(j));
-				array.getAndAdd(j, rgCoverages[order].get(i)) ;				
-			}
-			sortedCoverage.put( i, array );			
+			if(coverage.get(i) == 0) continue; 			
+			int order = readGroupIds.indexOf(rg);			
+			singleRgCoverage.put( i, new AtomicLong( rgCoverages[order].get(i)));
 		}
-		return sortedCoverage;
-	}
+		return singleRgCoverage;
+	}	
 	
 	
-	/**
-     * Returns a map which holds the coverage of positions binned by millions
-     * doesn't need to be sorted
-     */
-    public Map<Integer, AtomicLong> getCoverage() {
-        Map<Integer, AtomicLong> sortedCoverage = new HashMap<Integer, AtomicLong>();
-        for (int i = 0, length = (int)coverage.length() ; i < length ; i++) {
-        		sortedCoverage.put(i, new AtomicLong(coverage.get(i)));
-        }
-        return sortedCoverage;
-    }
+	
+//	/**
+//     * Returns a map which holds the coverage of positions binned by millions
+//     * doesn't need to be sorted
+//     */
+//    public Map<Integer, AtomicLong> getCoverage() {
+//        Map<Integer, AtomicLong> sortedCoverage = new HashMap<Integer, AtomicLong>();
+//        for (int i = 0, length = (int)coverage.length() ; i < length ; i++) {
+//        		sortedCoverage.put(i, new AtomicLong(coverage.get(i)));
+//        }
+//        return sortedCoverage;
+//    }
 		
 	/**
 	 * This method adds a position to the Summary.

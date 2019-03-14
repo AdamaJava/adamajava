@@ -16,7 +16,6 @@ import org.qcmg.common.model.Accumulator;
 import org.qcmg.common.model.GenotypeEnum;
 import org.qcmg.common.model.PileupElementLite;
 import org.qcmg.common.string.StringUtils;
-import org.qcmg.common.util.AccumulatorUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.PileupElementLiteUtil;
 import org.qcmg.common.util.TabTokenizer;
@@ -29,21 +28,18 @@ public class GenotypeUtil {
 	
 	
 	private final static QLogger logger = QLoggerFactory.getLogger(GenotypeUtil.class);
-	
+
 	public static final int MUTATION_IN_NORMAL_MIN_COVERAGE = 3;
 	public static final int MUTATION_IN_NORMAL_MIN_PERCENTAGE = 5;
 	public static final int MIDDLE_OF_READ_CUTOFF = 5;
-	
-	
+
 	public static boolean containsFilter(StringBuilder sb) {
 		return sb.length() > 0 && ! sb.toString().equals(Constants.MISSING_DATA_STRING) && ! sb.toString().equals(Constants.MISSING_DATA_STRING + Constants.SEMI_COLON + Constants.MISSING_DATA); 
 	}
 	
-	
 	public static void updateStringBuilder(StringBuilder sb, CharSequence toAdd) {
 		StringUtils.updateStringBuilder(sb, toAdd, Constants.SEMI_COLON);
 	}
-	
 	
 	/**
 	 * Currently returning:

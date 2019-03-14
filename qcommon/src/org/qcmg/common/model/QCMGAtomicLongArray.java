@@ -6,7 +6,10 @@
  */
 package org.qcmg.common.model;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicLongArray;
 
 public class QCMGAtomicLongArray {
@@ -18,10 +21,16 @@ public class QCMGAtomicLongArray {
 	
 	private AtomicLongArray array;
 	private volatile int capacity;
+	private int maxCapacity = MAX_CAPACITY;
 	
 	public  QCMGAtomicLongArray(final int initialCapacity) {
+		this(initialCapacity, MAX_CAPACITY);
+	}
+	
+	public  QCMGAtomicLongArray(final int initialCapacity, final int maxCapacity) {
+		this.maxCapacity = maxCapacity;
 		// double capacity 
-		capacity = Math.min(initialCapacity * 2, MAX_CAPACITY);
+		capacity = Math.min(initialCapacity * 2, maxCapacity);
 		array = new AtomicLongArray(capacity);
 	}
 	
@@ -61,7 +70,7 @@ public class QCMGAtomicLongArray {
 				System.out.println("resizing...");
 			
 				// double the required capacity
-				capacity = Math.min(arrayPosition * 2, MAX_CAPACITY);
+				capacity = Math.min(arrayPosition * 2, maxCapacity);
 				
 				AtomicLongArray newArray = new AtomicLongArray(capacity);
 				for (int i = 0, length = array.length() ; i < length ; i++) {
@@ -77,4 +86,15 @@ public class QCMGAtomicLongArray {
 			while ( ! resizingInProgress.compareAndSet(true, false)) {}
 		}
 	}
+	
+	public Map<Integer, AtomicLong> toMap() {
+		Map<Integer, AtomicLong> map = new HashMap<>();		 
+		for(int i = 0; i < array.length(); i ++)
+			if(array.get(i) > 0)
+				map.put(i, new AtomicLong(array.get(i)));
+		
+		return map;
+	}
+	
+	
 }

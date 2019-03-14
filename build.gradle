@@ -1,6 +1,7 @@
 plugins {
   id 'checkstyle'
   id 'findbugs'
+  id 'eclipse'
 }
 defaultTasks "build"
 allprojects {
@@ -120,4 +121,4 @@ task timestamped_dist(type: Zip) {
      }
   }
 
-clean << { ant { delete(dir: "adama/build") } ; subprojects {delete('adama/build/lib')} }
+clean.doLast { ant { delete(dir: "adama/build") } ; subprojects {delete('adama/build/lib')} }

@@ -58,11 +58,12 @@ public class VcfInfoFieldRecord {
 	 */
 	public void appendField(String key, String value){
 		String existingValue = getField(key);
-		if ( ! StringUtils.isNullOrEmpty(existingValue) && existingValue.equals(value)) {
-			
-		} else {
+		if (   StringUtils.isNullOrEmpty(existingValue)  ) {
 			removeField(key);
-			addField(key, (existingValue == null || existingValue.equals(Constants.EMPTY_STRING)) ? value :  existingValue + Constants.COMMA + value);
+			addField(key,  value );
+		} else if(!existingValue.equals(value)) {
+			removeField(key);
+			addField(key,  existingValue + Constants.COMMA + value);
 		}
 	}
 

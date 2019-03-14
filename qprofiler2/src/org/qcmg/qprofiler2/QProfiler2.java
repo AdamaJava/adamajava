@@ -28,33 +28,26 @@ import org.qcmg.common.messages.QMessage;
 import org.qcmg.common.model.ProfileType;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.LoadReferencedClasses;
-import org.qcmg.common.util.ProfileTypeUtils;
 import org.qcmg.common.util.QprofilerXmlUtils;
 import org.qcmg.qprofiler2.bam.BamSummarizer2;
 import org.qcmg.qprofiler2.bam.BamSummarizerMT2;
 import org.qcmg.qprofiler2.cohort.CohortSummarizer;
-import org.qcmg.qprofiler2.fasta.FastaSummarizer;
 import org.qcmg.qprofiler2.fastq.FastqSummarizer;
 import org.qcmg.qprofiler2.fastq.FastqSummarizerMT;
 import org.qcmg.qprofiler2.report.SummaryReport;
 import org.qcmg.qprofiler2.vcf.VcfSummarizer;
-import org.qcmg.qvisualise2.QVisualise;
 import org.w3c.dom.Element;
 
 
 public class QProfiler2 {
-	
+		
 	private static QLogger logger;	
 	private final static int NO_OF_PROCESORS = Runtime.getRuntime().availableProcessors();
 	private final static String USER_DIR = System.getProperty("user.dir");
 	private final static String FILE_SEPERATOR = System.getProperty("file.separator");	
 	private static String[] cmdLineFiles;
 	private static String[] cmdLineIndexFiles;
-	private static String[] cmdLineInclude;
-	private static String[] cmdLineTags;
-	private static String[] cmdLineFormats; //vcf mode
-	private static String[] cmdLineTagsInt;
-	private static String[] cmdLineTagsChar;
+	private static String[] cmdLineFormats; //vcf mode	
 	private static ExecutorService exec;
 	private static String version;
 	
@@ -65,7 +58,7 @@ public class QProfiler2 {
 	private int maxRecords;
 	private String logFile;
 	private String validation;
-	private boolean noHtml; 
+
 	
 	/*
 	 * This is the "main" method for this class. It will be invoked by the
@@ -76,7 +69,7 @@ public class QProfiler2 {
 	 * and ready for us to use.
 	 */
 	protected int engage() throws Exception {
-		Element root = QprofilerXmlUtils.createRootElement(null, "qProfiler", null);
+		Element root = QprofilerXmlUtils.createRootElement( "qProfiler", null);
 		
 		// Create new Summary object ready to hold our processing
 		QProfilerSummary2 sol = new QProfilerSummary2();
@@ -102,26 +95,11 @@ public class QProfiler2 {
 			if (null != cmdLineIndexFiles && cmdLineIndexFiles.length > i) {
 				index = cmdLineIndexFiles[i];
 			}
-			ProfileType type = ProfileTypeUtils.getType(f);
+			ProfileType type = ProfileType.getType2(f);
 			sortedFiles.computeIfAbsent(type, v -> new ArrayList<>()).add(Pair.of(f, index));
 		}		
 				
-		if ( ! sortedFiles.isEmpty()) {			
-			/*
-			 * If neither XML nor text output files is requested then we should
-			 * probably drop out without doing any work. This behavior should be OK
-			 * until we get to the stage where we do validation as well as summary
-			 * reports.
-			 */
-			try {
-				// Don't forget to try to load the XML file before doing any crazy
-				// renaming stuff!
-				QprofilerXmlUtils.backupFileByRenaming(outputFile);
-			} catch (Exception e) {
-				logger.error("Exception caught whilst running StaticMethods.backupFileByRenaming", e);
-				throw e;
-			}
-			
+		if ( ! sortedFiles.isEmpty()) {						
 			//do xmlSummary here
 			if(sortedFiles.containsKey(ProfileType.XML )){
 				List<String> xmls = new ArrayList<>();
@@ -140,39 +118,33 @@ public class QProfiler2 {
 		if (exitStatus == 1) return exitStatus;
 		logger.info("generating output xml file: " + outputFile);
 		
+		
+		//xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  xsi:noNamespaceSchemaLocation="combined1.xsd" >
 		//xml reorganise
-		root.setAttribute("startTime", sol.getStartTime());
-		root.setAttribute("finishTime", sol.getFinishTime());
-		root.setAttribute("user", System.getProperty("user.name"));
+		root.setAttribute( "startTime",  sol.getStartTime() );
+		root.setAttribute( "finishTime", sol.getFinishTime() );
+		root.setAttribute( "user", System.getProperty("user.name") );
 		root.setAttribute( "operatingSystem", System.getProperty("os.name") );
-		root.setAttribute("version", version);
+		root.setAttribute( "version", version );
+		
+		//debug
+		//set attribute for xsd file
+		root.setAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
+		root.setAttribute("xsi:noNamespaceSchemaLocation", "combined1.xsd");
+		
+		
 		sol.setFinishTime(DateUtils.getCurrentDateAsString());		
 		QprofilerXmlUtils.asXmlText(root, outputFile);
 		
-		//output tsv file if inputs are xml			
-		if ( ! noHtml ) {
-			String qVisLogFile = logFile.replace( "log", "html.log" );
-			String [] args = { "-i",outputFile, "-log", qVisLogFile };
-			logger.info( "about to run qVisualise on qProfiler output" );
-			try {
-				int exitstatus = new QVisualise().setup(args);
-				if (exitstatus == 0) logger.info("qVisualise output generated: " + outputFile + ".html");
-				else logger.warn("Problem occurred in qVisualise - please refer to log file [" + qVisLogFile + "] for (hopefully) more details"); 
-			} catch (Exception e) {
-				// just log this and continue
-				logger.warn("qVisualise failed for qprofiler output: " + outputFile);
-			}
-		}
 		return exitStatus;
 	}
 	
-	private void processXmlFiles(List<String> files, String output)throws Exception{
-			 				
-			final CohortSummarizer summarizer = new CohortSummarizer();
-			for (final String file :files) 
-				 summarizer.summarize(file) ;
-				 
-			summarizer.outputSumamry(  new File( output+".tsv" ));
+	private void processXmlFiles(List<String> files, String output)throws Exception{			 				
+		final CohortSummarizer summarizer = new CohortSummarizer();
+		for (final String file :files) 
+			 summarizer.summarize(file) ;
+			 
+		summarizer.outputSumamry(  new File( output+".tsv" ));
 	}
 	
 	/**
@@ -224,9 +196,6 @@ public class QProfiler2 {
 			switch (key) {
 			case VCF: summarizer = new VcfSummarizer( cmdLineFormats );
 				break;
-			case FASTA:
-				summarizer = new FastaSummarizer(cmdLineInclude);
-				break;
 			case FASTQ:
 				if (noOfConsumerThreads > 0) {
 					summarizer = new FastqSummarizerMT(noOfConsumerThreads);
@@ -237,9 +206,9 @@ public class QProfiler2 {
 				break;
 			case BAM:
 				if (noOfConsumerThreads > 0) {
-					summarizer = new BamSummarizerMT2(noOfProducerThreads, noOfConsumerThreads, cmdLineInclude, maxRecords, cmdLineTags, cmdLineTagsInt, cmdLineTagsChar, validation);
+					summarizer = new BamSummarizerMT2(noOfProducerThreads, noOfConsumerThreads, maxRecords,  validation);
 				} else {
-					summarizer = new BamSummarizer2(cmdLineInclude, maxRecords, cmdLineTags, cmdLineTagsInt, cmdLineTagsChar, validation);
+					summarizer = new BamSummarizer2( maxRecords, validation);
 				}
 				break;
 			case XML:
@@ -312,14 +281,8 @@ public class QProfiler2 {
 				}
 			}
 			
-			cmdLineInclude = options.getBamIncludes();
-			cmdLineTags = options.getTags();
-			cmdLineFormats = options.getFormats(); // vcf mode 
-			cmdLineTagsInt = options.getTagsInt();
-			cmdLineTagsChar = options.getTagsChar();
 			validation = options.getValidation();
-			
-			noHtml = options.hasNoHtmlOption();
+			cmdLineFormats = options.getFormats(); // vcf mode 			
 			
 			// get no of threads
 			noOfConsumerThreads = options.getNoOfConsumerThreads();

@@ -65,21 +65,45 @@ public class ChrPositionComparator implements Comparator<ChrPosition> {
 		
 	}
 	
+	/**
+	 * Return a comparator for VCF records, preserving the order according to the supplied
+	 * list of contigs. If the CHROM value of record A is in the list but that of record B isn't
+	 * then record A sorts earlier than the record B. If the CHROM value of neither A nor B is in
+	 * the list then the records are sorted according to the "natural" order given by
+	 * `ChrPositionComparator.compare(o1, o2)`
+	 */
 	public static Comparator<VcfRecord> getVcfRecordComparator(List<String> list) {
 		
-		return	(null == list || list.isEmpty()) ? null
-		: 
+		return	(null == list || list.isEmpty()) ? null :
 			new Comparator<VcfRecord>() {
-			@Override
-			public int compare(VcfRecord o1, VcfRecord o2) {
-				int diff = list.indexOf(o1.getChrPosition().getChromosome()) - list.indexOf(o2.getChrPosition().getChromosome());
-				if (diff == 0) {
-					diff = o1.getChrPosition().getStartPosition() - o2.getChrPosition().getStartPosition();   
+				private final ChrPositionComparator chrPosComp = new ChrPositionComparator();
+				@Override
+				public int compare(VcfRecord o1, VcfRecord o2) {
+					ChrPosition o1Pos = o1.getChrPosition();
+					ChrPosition o2Pos = o2.getChrPosition();
+					int i1 = list.indexOf(o1Pos.getChromosome());
+					int i2 = list.indexOf(o2Pos.getChromosome());
+					if (i1 >= 0 && i2 >= 0) {
+						// o1 & o2 chr in list => order by chr in list then pos
+						int diff = i1 - i2;
+						if (diff == 0) {
+							diff = o1Pos.getStartPosition() - o2Pos.getStartPosition();
+						}
+						return diff;
+					} else if (i1 >= 0 && i2 == -1) {
+						// o1.chr in list but not o2.chr => o1 < o2
+						return -1;
+					} else if (i1 == -1 && i2 >= 0) {
+						// o2.chr in list but not o1.chr => o2 < o1
+						return 1;
+					} else {
+						assert i1 == -1 && i2 == -1;
+						// neither o1 nor o2 chr in list => "natural" ordering
+						return chrPosComp.compare(o1Pos, o2Pos);
+					}
+
 				}
-				return diff;
-			}
-		};
-		
+			};
 	}
 	
 	/**

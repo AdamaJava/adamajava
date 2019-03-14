@@ -2,10 +2,14 @@ package org.qcmg.qprofiler2.summarise;
 
 import static org.junit.Assert.assertEquals;
 
+import javax.xml.parsers.ParserConfigurationException;
+
 import org.junit.Ignore;
 import org.junit.Test;
+import org.qcmg.common.util.QprofilerXmlUtils;
 import org.qcmg.qprofiler2.fastq.FastqSummaryReport;
 import org.qcmg.qprofiler2.summarise.ReadIDSummary;
+import org.w3c.dom.Element;
 
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.fastq.FastqRecord;
@@ -34,7 +38,7 @@ public class ReadIDSummaryTest {
 
 	
 	@Test
-	public void parseRecordHeader() {
+	public void parseRecordHeader() throws ParserConfigurationException {
 		FastqRecord rec = new FastqRecord("@ERR091788.1 HSQ955_155:2:1101:1473:2037/1", 
 				"GGGCANCCAGCAGCCCTCGGGGCTTCTCTGTTTATGGAGTAGCCATTCTCGTATCCTTCTACTTTCTTAAACTTTCTTTCACTTACAAAAAAATAGTGGA", 
 				"+", 
@@ -43,14 +47,15 @@ public class ReadIDSummaryTest {
 		FastqSummaryReport report = new FastqSummaryReport();
 		report.parseRecord(rec);
 		assertEquals(1, report.getRecordsParsed());
+				
 		
 		ReadIDSummary header = report.getReadIDSummary();		
 		assertEquals(1, header.getInstrumentsMap().get("@ERR091788").intValue());
 		assertEquals(1, header.getFlowCellIdsMap().get("HSQ955").intValue());
 		assertEquals(1, header.getFlowCellLanesMap().get("2").intValue());		
 		assertEquals(1, header.getTileNumbersMap().get("1101").intValue());
-		assertEquals(1, header.getPairs().get("1") .intValue());
-		assertEquals(0, header.getPairs().get("2").intValue());
+		assertEquals(1, header.pairs.get("1") .intValue());
+		assertEquals(null, header.pairs.get("2") );
 	}
 	
 	@Ignore	// may need to cater for this in the future...
@@ -69,8 +74,8 @@ public class ReadIDSummaryTest {
 		assertEquals(1, header.getFlowCellIdsMap().get("HSQ955").intValue());
 		assertEquals(1, header.getFlowCellLanesMap().get("2").intValue());
 		assertEquals(1, header.getTileNumbersMap().get(1101).intValue());
-		assertEquals(1, header.getPairs().get("1") .intValue());
-		assertEquals(0, header.getPairs().get("2").intValue());
+		assertEquals(1, header.pairs.get("1") .intValue());
+		assertEquals(0, header.pairs.get("2").intValue());
 					
 	}	
 	

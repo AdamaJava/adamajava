@@ -51,8 +51,7 @@ public class FastqSummarizerMT implements Summarizer {
 		fastqSummaryReport.setStartTime(DateUtils.getCurrentDateAsString());
 		
 		
-		// set the bam header
-		
+		// set the bam header		
 		logger.info("will create " + (noOfConsumerThreads -1 ) + " consumer threads");
 
 		final CountDownLatch pLatch = new CountDownLatch(1);
@@ -204,8 +203,6 @@ public class FastqSummarizerMT implements Summarizer {
 			int count = 0;
 			int millions = 0;
 			
-//			long start = System.currentTimeMillis();
-//			long end = 0;
 			final int counter = 1000000;
 			
 			try (FastqReader reader =  new FastqReader(file);) {
@@ -215,10 +212,8 @@ public class FastqSummarizerMT implements Summarizer {
 					if (++count == counter) {
 						millions++;
 						count = 0;
-						size = queue.size();
-//						end = System.currentTimeMillis();
+						size = queue.size();//						end = System.currentTimeMillis();
 						logger.info("added " + millions + "M, q.size: " + size);
-//						start = end;
 						
 						if (cLatch.getCount() == 0 && size > 0) {
 							logger.error("No consumer threads left, but queue is not empty");

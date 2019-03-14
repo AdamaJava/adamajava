@@ -36,11 +36,10 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.QCMGAtomicLongArray;
 import org.qcmg.common.model.ReferenceNameComparator;
-import org.qcmg.common.model.SummaryByCycle;
-import org.qcmg.common.model.SummaryByCycleNew2;
 import org.qcmg.common.util.BaseUtils;
-import org.qcmg.common.util.SummaryByCycleUtils;
 import org.qcmg.qprofiler.summarise.PositionSummary;
+import org.qcmg.qprofiler.summarise.SummaryByCycle;
+import org.qcmg.qprofiler.summarise.SummaryByCycleNew2;
 import org.qcmg.qvisualise.util.QProfilerCollectionsUtils;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
@@ -618,7 +617,7 @@ public class SummaryReportUtils {
 	 *            Map containing the tally
 	 * @param separator
 	 *            String indicating the separator for the data String. Must be provided.
-	 * @see org.qcmg.common.util.SummaryByCycleUtils#incrementCount(Map,
+	 * @see org.qcmg.qprofiler.util.SummaryByCycleUtils#incrementCount(Map,
 	 *      Object)
 	 */
 	public static void tallyQualScores(String data, ConcurrentMap<Integer, AtomicLong> map,
@@ -647,7 +646,7 @@ public class SummaryReportUtils {
 	 *            String data that is being checked for bad reads ('.' or 'N')
 	 * @param map
 	 *            Map containing the tally
-	 * @see org.qcmg.common.util.SummaryByCycleUtils#incrementCount(Map,
+	 * @see org.qcmg.qprofiler.util.SummaryByCycleUtils#incrementCount(Map,
 	 *      Object)
 	 * @deprecated
 	 */
@@ -681,7 +680,7 @@ public class SummaryReportUtils {
 	 * 
 	 * @param data String data that is being checked for bad reads ('.' or 'N')
 	 * @param map Map containing the tally
-	 * @see org.qcmg.common.util.SummaryByCycleUtils#incrementCount(Map, Object)
+	 * @see org.qcmg.qprofiler.util.SummaryByCycleUtils#incrementCount(Map, Object)
 	 */
 	public static void tallyBadReadsAsString(String data, ConcurrentMap<Integer, AtomicLong> map) {
 		if (null != data) {

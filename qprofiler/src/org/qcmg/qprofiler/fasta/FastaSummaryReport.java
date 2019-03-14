@@ -13,9 +13,9 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.qcmg.common.model.ProfileType;
-import org.qcmg.common.model.SummaryByCycle;
-import org.qcmg.common.util.SummaryByCycleUtils;
 import org.qcmg.qprofiler.report.SummaryReport;
+import org.qcmg.qprofiler.summarise.SummaryByCycle;
+import org.qcmg.qprofiler.util.SummaryByCycleUtils;
 import org.qcmg.qprofiler.util.SummaryReportUtils;
 import org.qcmg.record.SimpleRecord;
 import org.w3c.dom.Element;

@@ -11,10 +11,6 @@ import static org.junit.Assert.*;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicLong;
-import junit.framework.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.qcmg.common.model.QCMGAtomicLongArray;
@@ -46,20 +42,20 @@ public class CycleSummaryUtilsMDTest {
 			for( int i = 1; i <= record.getReadLength(); i ++ ) allReadsLineLengths[order].increment(i);
 			
 			String err = CycleSummaryUtils.tallyMDMismatches(value, record.getCigar(), tagMDMismatchByCycle[order], record.getReadBases()  , record.getReadNegativeStrandFlag(), null, null);
-			Assert.assertEquals(err , null);
+			assertEquals(err , null);
 			count ++;			
 		}
 		new File(fname).delete();
-		Assert.assertEquals(firstNo , 2);
-		Assert.assertEquals(secondNo , 2);
-		Assert.assertEquals(count , 4);
+		assertEquals(firstNo , 2);
+		assertEquals(secondNo , 2);
+		assertEquals(count , 4);
 		
 		int bigMDno = CycleSummaryUtils.getBigMDCycleNo(tagMDMismatchByCycle, (float) 0.2, allReadsLineLengths);
-		Assert.assertEquals(bigMDno, 4);
+		assertEquals(bigMDno, 4);
 		bigMDno = CycleSummaryUtils.getBigMDCycleNo(tagMDMismatchByCycle, (float) 0.01, allReadsLineLengths);
-		Assert.assertEquals(bigMDno, 4);		
+		assertEquals(bigMDno, 4);		
 		bigMDno = CycleSummaryUtils.getBigMDCycleNo(tagMDMismatchByCycle, (float) 0.3, allReadsLineLengths);
-		Assert.assertEquals(bigMDno, 0);
+		assertEquals(bigMDno, 0);
 	}
 		
 

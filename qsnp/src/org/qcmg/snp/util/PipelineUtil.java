@@ -39,7 +39,6 @@ import org.qcmg.common.util.AccumulatorUtils;
 import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.Pair;
 import org.qcmg.common.util.Constants;
-import org.qcmg.common.util.SnpUtils;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
@@ -604,51 +603,6 @@ public class PipelineUtil {
 			.sum();
 	}
 	
-	public static String getCSFilters(String [] alts, int fg, int sg, int totalCov, Map<String, short[]> map, int sBiasCov, int sBiasAlt, boolean runSBias, boolean isControl) {
-		
-		
-		/*
-		 * sbias and coverage for now
-		 */
-		StringBuilder sb = new StringBuilder();
-		if (runSBias) {
-			if (fg > 0) {
-				boolean bothStrands = AccumulatorUtils.bothStrandsByPercentageCS(map, sBiasCov);
-				String alt = alts[fg -1];
-				short[] data = map.get(alt);
-				boolean sBiasAltPresent = AccumulatorUtils.areBothStrandsRepresented(data[0], data[2], sBiasAlt);
-				if ( ! sBiasAltPresent) {
-					sb.append ( ! bothStrands ? SnpUtils.STRAND_BIAS_COVERAGE : SnpUtils.STRAND_BIAS_ALT);
-				}
-			}
-			if (sg != fg && sg > 0) {
-				String alt = alts[sg -1];
-				short[] data = map.get(alt);
-				boolean sBiasAltPresent = AccumulatorUtils.areBothStrandsRepresented(data[0], data[2], sBiasAlt);
-				if ( ! sBiasAltPresent) {
-					boolean bothStrands = AccumulatorUtils.bothStrandsByPercentageCS(map, sBiasCov);
-					sb.append ( ! bothStrands ? SnpUtils.STRAND_BIAS_COVERAGE : SnpUtils.STRAND_BIAS_ALT);
-				}
-			}
-		}
-		
-		/*
-		 * MIN annotation - only applies if we are dealing with the control sample, and the control genotype is 0/0
-		 */
-		if (isControl && fg == 0 && sg == 0) {
-			for (String s : alts) {
-				int count = getTotalCounts(map, s);
-				if (count > 0) {
-					if (VcfUtils.mutationInNorma(count, totalCov, GenotypeUtil.MUTATION_IN_NORMAL_MIN_PERCENTAGE, GenotypeUtil.MUTATION_IN_NORMAL_MIN_COVERAGE)) {
-						StringUtils.updateStringBuilder(sb, SnpUtils.MUTATION_IN_NORMAL, Constants.SEMI_COLON);
-						break;
-					}
-				}
-			}
-		}
-		return sb.length() == 0 ? Constants.MISSING_DATA_STRING : sb.toString();
-	}
-	
 	/**
 	 * Create compound snp based purely on GATK vcf information.
 	 * Classification (ie. SOMATIC) must be same for all snps - thats about the only rule...
@@ -868,10 +822,12 @@ public class PipelineUtil {
 		StringBuilder cSB = new StringBuilder(altsAndGTs.get(1));
 		StringUtils.updateStringBuilder(cSB, VcfUtils.getAD(ref.get(), altsAndGTs.get(0), oabs), Constants.COLON);
 		StringUtils.updateStringBuilder(cSB, controlCov > 0 ? controlCov+"" : "0", Constants.COLON);
-		StringUtils.updateStringBuilder(cSB, getCSFilters(aAlts, controlFirstG, controlSecondG, controlCov, cBasesCountsNNS, sBiasCov, sBiasAlt, runSBias, true), Constants.COLON);
+		/*
+		 * filters are applied in qannotate now
+		 */
+		StringUtils.updateStringBuilder(cSB, Constants.MISSING_DATA_STRING, Constants.COLON);
 		String [] mrNNS =  getMR(cBasesCountsNNS, aAlts, controlFirstG, controlSecondG);
 		StringUtils.updateStringBuilder(cSB, Constants.MISSING_DATA_STRING, Constants.COLON);	// INF field
-//		StringUtils.updateStringBuilder(cSB, mrNNS[0], Constants.COLON);
 		StringUtils.updateStringBuilder(cSB, mrNNS[1], Constants.COLON);
 		StringUtils.updateStringBuilder(cSB, oabs, Constants.COLON);
 		
@@ -881,10 +837,12 @@ public class PipelineUtil {
 		StringBuilder tSB = new StringBuilder(altsAndGTs.get(2));
 		StringUtils.updateStringBuilder(tSB, VcfUtils.getAD(ref.get(), altsAndGTs.get(0), oabs), Constants.COLON);
 		StringUtils.updateStringBuilder(tSB, testCov > 0 ? testCov +"" :  "0", Constants.COLON);
-		StringUtils.updateStringBuilder(tSB, getCSFilters(aAlts, testFirstG, testSecondG, testCov, tBasesCountsNNS, sBiasCov, sBiasAlt, runSBias, false), Constants.COLON);
+		/*
+		 * filters are applied in qannotate now
+		 */
+		StringUtils.updateStringBuilder(tSB, Constants.MISSING_DATA_STRING, Constants.COLON);
 		StringUtils.updateStringBuilder(tSB, (c == Classification.SOMATIC ? VcfHeaderUtils.INFO_SOMATIC : Constants.MISSING_DATA_STRING), Constants.COLON);	// INF field
 		mrNNS =  getMR(tBasesCountsNNS,aAlts, testFirstG, testSecondG);
-//		StringUtils.updateStringBuilder(tSB, mrNNS[0], Constants.COLON);
 		StringUtils.updateStringBuilder(tSB, mrNNS[1], Constants.COLON);
 		StringUtils.updateStringBuilder(tSB, oabs, Constants.COLON);
 		

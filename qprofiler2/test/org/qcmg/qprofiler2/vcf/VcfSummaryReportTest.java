@@ -3,26 +3,32 @@ package org.qcmg.qprofiler2.vcf;
 import static org.junit.Assert.*;
 import java.util.ArrayList;
 import java.util.List;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import org.apache.commons.lang3.tuple.Pair;
-import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
+import java.util.stream.IntStream;
+
+import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.model.ProfileType;
+import org.qcmg.common.util.QprofilerXmlUtils;
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.IndelUtils.SVTYPE;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.vcf.VCFFileReader;
 import org.qcmg.qprofiler2.QProfiler2;
+import org.qcmg.qprofiler2.Summarizer;
+import org.qcmg.qprofiler2.report.SummaryReport;
 import org.qcmg.qprofiler2.summarise.SampleSummary;
+import org.qcmg.qprofiler2.util.XmlUtils;
 import org.qcmg.qprofiler2.vcf.VcfSummaryReport;
 import org.w3c.dom.*;
 import java.io.*;
 
 public class VcfSummaryReportTest {
-//	@Rule
-//	public  TemporaryFolder testFolder = new TemporaryFolder();	
+	@Rule
+	public  TemporaryFolder testFolder = new TemporaryFolder();	
 	
 	private final static String inputfile = "input.vcf";
 	private final static String[] category = new String[] {"FT","INF"};
@@ -44,60 +50,50 @@ public class VcfSummaryReportTest {
 		
 		Node nreport = getXmlParentNode( file ) ;		
 		Node child = nreport.getChildNodes().item(0);
-		assertTrue( child.getNodeName().equals( VcfSummaryReport.NodeHeader) );
-		assertTrue( child.getChildNodes().getLength() == 3 );
+		assertTrue( child.getNodeName().equals( "vcfHeader") );
 		
-		//check meta Information line
-		child = nreport.getChildNodes().item(0).getFirstChild(); 
-		assertTrue(child.getNodeName().equals(VcfSummaryReport.NodeHeaderMeta));		
-		assertTrue(child.getChildNodes().getLength() == 12 ); 
-		boolean hasInput = false; 
-		for(int i = 0; i < 12; i++){
-			child = nreport.getChildNodes().item(0).getFirstChild().getChildNodes().item(i);
-			assertTrue(child.getNodeName().equals(VcfSummaryReport.NodeHeaderMetaLine)  );
-			String key =   child.getAttributes().getNamedItem("key").getNodeValue();
-			String value =   child.getAttributes().getNamedItem("value").getNodeValue();
-			if(key.equals("SnpEffVersion")   ) value = "\"" + value + "\"";
-			else if(key.equals("SnpEffCmd")) value = "\"" + value + " \"";
+		int[] mark = { 0, 0, 0, 0, 0, 0 };
+		for( int i = 0; i < 6; i++ ) {
+			Element headersEle =  (Element) child.getChildNodes().item(i);
+			assertEquals( "headerRecords" , headersEle .getNodeName() );
 			
-			if( key.equals("INPUT")  ){
-				int index = hasInput ? 1 : 0;   
-				assertTrue( header.getRecords(key).get(index) .getMetaValue().equals(value) );
-				hasInput = true; 
-			}else		
-				assertTrue( header.firstMatchedRecord(key).getMetaValue().equals(value) );
-		}
-		 
-		//check structured meta information line
-		child = nreport.getChildNodes().item(0).getChildNodes().item(1); 
-		assertTrue(child.getNodeName().equals(VcfSummaryReport.NodeHeaderStructured));		
-		assertTrue(child.getChildNodes().getLength() == 4 ); 
-		int pgIds = 0;
-		for(int i = 0; i < 4; i++){
-			Node node =  child.getChildNodes().item(i);
-			assertTrue(node.getNodeName().equals( VcfSummaryReport.NodeHeaderStructuredType ));	
-			String key = node.getAttributes().getNamedItem("type").getNodeValue();	
-			for(int j = node.getChildNodes().getLength()-1; j >= 0; j --){
-				node = child.getChildNodes().item(i).getChildNodes().item(j);
-				assertTrue(node.getNodeName().equals( VcfSummaryReport.NodeHeaderStructuredLine ));	
-				String id = node.getAttributes().getNamedItem("ID").getNodeValue();	
-				if(key.equals("qPG")) 
-					pgIds += Integer.parseInt(id);
-				for(Pair p : header.getIDRecord(key, id).getSubFields()){					
-					assertTrue(((String) p.getRight()).replace( "\"", "").equals(node.getAttributes().getNamedItem( (String) p.getLeft()).getNodeValue() ));
+			//check meta Information line
+			if( headersEle.getAttribute( "FIELD" ).equals( "MetaInformation" ) ) {
+				mark[1] = 1;
+				for(int j = 0; j < 12; j ++) {
+					Element recordEle = (Element) headersEle.getChildNodes().item(j);
+					assertEquals( "record" , recordEle .getNodeName() );
+					String key = recordEle.getAttribute("id");
+					if(header.getRecords(key).size() == 1)
+						assertEquals( recordEle.getTextContent() , header.getRecords(key).get(0).toString() );
+					else
+						assertEquals( "INPUT" , key );
 				}
 			}
 			
+			//check structured meta information line	 
+			else if( headersEle.getAttribute( "FIELD" ).equals( "qPG" ) ) {
+				mark[2] = 1;
+				for( Element ele : QprofilerXmlUtils.getChildElementByTagName( headersEle, "record") )
+					assertEquals( ele.getTextContent(), header.getIDRecord("qPG", ele.getAttribute("id")).toString() );					
+			}else if( headersEle.getAttribute( "FIELD" ).equals( "FILTER" ) ) {
+				mark[3] = 1;
+				assertEquals( 1, headersEle.getChildNodes().getLength() );
+			}else if( headersEle.getAttribute( "FIELD" ).equals( "FORMAT" ) ) {
+				mark[4] = 1;
+				assertEquals( 2, headersEle.getChildNodes().getLength() );
+			}else if( headersEle.getAttribute( "FIELD" ).equals( "INFO" ) ) {
+				mark[5] = 1;
+				assertEquals( 1, headersEle.getChildNodes().getLength() );
+			}else {
+				mark[0] = 1;
+				assertEquals( "headerline", headersEle.getAttribute( "FIELD" ));
+				assertEquals( header.getChrom().toString(), headersEle.getChildNodes().item(0).getTextContent());
+			}			
 		}
-		assertTrue(pgIds == 8);
+			 
+		assertTrue(IntStream.of(mark).sum() == 6);
 		
-		//final head line
-		child = nreport.getChildNodes().item(0).getChildNodes().item(2); 
-		assertTrue(child.getNodeName().equals(VcfSummaryReport.NodeHeaderFinal));	
-		assertTrue(child.getChildNodes().getLength() == 1 ); 
-		child = child.getChildNodes().item(0);
-		assertTrue( child.getNodeName().equals("#cdata-section") );	
-		assertTrue( child.getNodeValue().equals( header.getChrom().toString()) );
 		file.delete();		
 	}	
   
@@ -110,74 +106,174 @@ public class VcfSummaryReportTest {
 		Node nreport = getXmlParentNode( file ) ;
 				 	
 		Node child = nreport.getChildNodes().item(1);
-		assertTrue(child.getNodeName().equals( VcfSummaryReport.NodeSummary));		 
+		assertTrue(child.getNodeName().equals( ProfileType.VCF.getReportName()+"Metrics" ));		 
 		assertTrue(child.getChildNodes().getLength() == 4);
 		
 		//the common part of each sample level xml
 		for(int sampleNo = 0; sampleNo < 4; sampleNo ++){
 			child = nreport.getChildNodes().item(1).getChildNodes().item(sampleNo); 
 			assertTrue( child.getNodeName().equals( VcfSummaryReport.Sample  ) );
-			
-			int counts = 0;
+						
+			//check each report
 			for(int j = 0; j < child.getChildNodes().getLength(); j++){
-				Node  node = child.getChildNodes().item(j);
-				assertTrue( node.getNodeName().equals( VcfSummaryReport.NodeCategory) );
-				assertTrue( node.getAttributes().getNamedItem("type").getNodeValue().equals("FORMAT:" + category[0]) );
-				counts += Integer.parseInt(node.getAttributes().getNamedItem("count").getNodeValue() );
+				Node  node = child.getChildNodes().item(j); //report node
+				assertEquals("report", node.getNodeName() );	
 				
-				for(int k = 0; k < node.getChildNodes().getLength(); k ++){
-					Node cnode = node.getChildNodes().item(k);
-					assertTrue( cnode.getNodeName().equals( VcfSummaryReport.NodeCategory) );
-					assertTrue( cnode.getAttributes().getNamedItem("type").getNodeValue().equals("FORMAT:" + category[1]) );
-					counts += Integer.parseInt(cnode.getAttributes().getNamedItem("count").getNodeValue() );
-					
-					NodeList nlists = cnode.getFirstChild().getChildNodes(); //VariationType
-					for(int kk = 0; kk < nlists.getLength(); kk ++){
-						cnode = nlists.item(kk);
-						assertEquals(cnode.getNodeName(), SampleSummary.variantType);
-						assertEquals(cnode.getFirstChild().getNodeName(), SampleSummary.genotypes);
-						if( cnode.getAttributes().getNamedItem("type").getNodeValue().equals(SVTYPE.SNP.toVariantType() ) ){
-							assertSame(cnode.getChildNodes().getLength(), 3);
-							assertEquals(cnode.getChildNodes().item(2).getNodeName(), SampleSummary.substitutions);
-						}else
-							assertSame(cnode.getChildNodes().getLength(), 2); // now conatin VariantAlleleFrequency
-					} 					
-				}				
+				assertEquals( StringUtils.join( category, Constants.COLON ), node.getAttributes().getNamedItem("formats").getNodeValue()  );	
+				//only allow one sequenceMetric under report
+				assertTrue(node.getChildNodes().getLength() > 0 );				
+				Element cnode = (Element) node.getChildNodes().item(0);
+				assertEquals(XmlUtils.metricsEle, cnode.getNodeName() );
+				if(cnode.getAttribute(XmlUtils.Sname).equals(SVTYPE.SNP.toVariantType()))  
+					assertEquals( 2, QprofilerXmlUtils.getChildElementByTagName(cnode, XmlUtils.Svalue).size() );					
+				 else  
+					assertEquals( 1,  QprofilerXmlUtils.getChildElementByTagName(cnode, XmlUtils.Svalue).size() );				
 			}
-			assertTrue(counts == 40*2);
+			List<Element> eles = new ArrayList<>();		
 			
-			String sample = child.getAttributes().getNamedItem("value").getNodeValue();
-			if(sample.equals(lastSample) || sample.equals("control2"))  checkLastSampleColumn(child);	
-			else checkSNV(child);
+ 			QprofilerXmlUtils.getOffspringElementByTagName((Element)child, XmlUtils.variableGroupEle).stream() 
+				.filter( e -> e.getAttribute( XmlUtils.Sname ).equals( SampleSummary.genotype ))
+				.forEach( e1 ->     eles.addAll(QprofilerXmlUtils.getChildElementByTagName(e1, XmlUtils.Stally)) );
+					
+			List<Integer> counts = new ArrayList<>();
+			
+			eles.stream().forEach(e -> 	counts.add(Integer.parseInt(e.getAttribute(XmlUtils.Scount))) );			 			
+		    assertEquals( 40, counts.stream().mapToInt(i -> i.intValue()).sum() );
+						
+			// assertTrue( counts == 40*2 );			
+			String sample = child.getAttributes().getNamedItem( XmlUtils.Sid ).getNodeValue();
+			if( sample.equals(lastSample) || sample.equals( "control2" ) )  checkLastSampleColumn(child);	
+			else if( sample.equals("test1"))
+					checkTest1(child);
+			else
+				checkControl1(child);			
+				 
 		}
 						
 		file.delete();			
 	}
 	
-	@Test
-	public void SampleWithSpecial() {				
-		try {
-			//sample contain special letter same to the seperator
-			String lastSample = "http" + VcfSummaryReport.Seperator + "last";				
-			File file = new File("input.vcf");
-			createVcfFile(lastSample, file);	
-			
-			QProfiler2 qp = new QProfiler2();
-			int exitStatus = qp.setup( "--nohtml --input input.vcf --output output.xml --log output.log".split(" ") );
-			
-			System.out.println("exitStatus: " + exitStatus);
-			assertTrue( 1 == exitStatus );
-			
-			//normal sample name
-			lastSample = lastSample.replace(VcfSummaryReport.Seperator, "");
-			createVcfFile(lastSample, file);			
-			qp = new QProfiler2();
-			exitStatus = qp.setup( "--nohtml --input input.vcf --output output.xml --log output.log".split(" ") );
-			assertTrue(0 == exitStatus);
-		} catch (Exception e) {
-			fail("throw unexpected Exception");
-		}			
+	private void checkControl1(Node child) {
+		
+		/** 
+		 * 0/0:20,5:25:PASS:.
+		 * 1/1:.:29:PASS:.:.
+		 * 0/1:153:PASS:.
+		 * 1/1:5,30,1:36:PASS:.
+		 */
 				
+		assertEquals( 1,  QprofilerXmlUtils.getChildElementByTagName( (Element) child, "report").size() );
+		Element ele = QprofilerXmlUtils.getChildElementByTagName( (Element) child, "report").get(0);
+		assertEquals( "PASS:." , ele.getAttribute("values"));
+				
+		//check genotype
+		long no = QprofilerXmlUtils.getOffspringElementByTagName( ele,  XmlUtils.Stally ).stream()
+			.filter( e -> e.getAttribute(XmlUtils.Svalue).equals("0/0") && e.getAttribute(XmlUtils.Scount).equals("10")).count();		
+		assertEquals( 1 , no );
+		no = QprofilerXmlUtils.getOffspringElementByTagName( ele,  XmlUtils.Stally ).stream()
+				.filter( e -> e.getAttribute(XmlUtils.Svalue).equals("1/1") && e.getAttribute(XmlUtils.Scount).equals("10")).count();	
+		assertEquals( 2 , no );
+		no = QprofilerXmlUtils.getOffspringElementByTagName( ele,  XmlUtils.Stally ).stream()
+				.filter( e -> e.getAttribute(XmlUtils.Svalue).equals("0/1") && e.getAttribute(XmlUtils.Scount).equals("10")).count();	
+		assertEquals( 1 , no );
+		
+		// ariantAltFrequencyPercent only from 1/1:5,30,1:36:PASS:.
+		// 31/36 = 86%
+		assertEquals( 1 , QprofilerXmlUtils.getOffspringElementByTagName( ele,  XmlUtils.Sbin ).size() );
+		no = QprofilerXmlUtils.getOffspringElementByTagName( ele,  XmlUtils.Sbin ).stream()
+				.filter( e -> e.getAttribute(XmlUtils.Sstart).equals("85") && e.getAttribute(XmlUtils.Send).equals("90") && e.getAttribute(XmlUtils.Scount).equals("10")).count();			
+		assertEquals( 1 , no );
+				
+	}
+
+	/**
+	 * 0/1:49,48:97:5BP=3:SOMATIC;GERM=42,185
+	 * 1/2:.:64:PASS:.:SOMATIC (FT:GQ:INF )
+	 * 0/2:143:PASS:SOMATIC
+	 * 1/2:1,32,32:66:5BP=3:SOMATIC
+	 */
+	private void checkTest1(Node child) {
+		
+		//check FT:INF
+		for(String value : new String[] {"5BP=3:SOMATIC;GERM=42,185",  "PASS:SOMATIC", "5BP=3:SOMATIC"  })
+		assertEquals( 1, QprofilerXmlUtils.getOffspringElementByTagName( (Element) child,  "report" ).stream()
+				.filter( e -> e.getAttribute("values").equals(value) ).count() );
+		
+		//check genotype
+		long no = QprofilerXmlUtils.getOffspringElementByTagName( (Element) child,  XmlUtils.Stally ).stream()
+			.filter( e -> e.getAttribute(XmlUtils.Svalue).equals("0/1") && e.getAttribute(XmlUtils.Scount).equals("10")).count();		
+		assertEquals( 1 , no );
+		no = QprofilerXmlUtils.getOffspringElementByTagName( (Element) child,  XmlUtils.Stally ).stream()
+				.filter( e -> e.getAttribute(XmlUtils.Svalue).equals("1/2") && e.getAttribute(XmlUtils.Scount).equals("10")).count();	
+		assertEquals( 2 , no );
+		no = QprofilerXmlUtils.getOffspringElementByTagName( (Element) child,  XmlUtils.Stally ).stream()
+				.filter( e -> e.getAttribute(XmlUtils.Svalue).equals("0/2") && e.getAttribute(XmlUtils.Scount).equals("10")).count();	
+		assertEquals( 1 , no );
+				
+				
+		//titv will be done on sampleSummayTest
+		
+		//ariantAltFrequencyPercent
+		assertEquals( 2 , QprofilerXmlUtils.getOffspringElementByTagName( (Element) child,  XmlUtils.Sbin ).size() );
+		no = QprofilerXmlUtils.getOffspringElementByTagName( (Element) child,  XmlUtils.Sbin ).stream()
+				.filter( e -> e.getAttribute(XmlUtils.Sstart).equals("45") && e.getAttribute(XmlUtils.Send).equals("50") && e.getAttribute(XmlUtils.Scount).equals("10")).count();			
+		assertEquals( 1 , no );	
+		no = QprofilerXmlUtils.getOffspringElementByTagName( (Element) child,  XmlUtils.Sbin ).stream()
+				.filter( e -> e.getAttribute(XmlUtils.Sstart).equals("95") && e.getAttribute(XmlUtils.Send).equals("100") && e.getAttribute(XmlUtils.Scount).equals("10")).count();			
+		assertEquals( 1 , no );	
+		
+		
+	}
+
+	@Test
+	/**
+	 * it can deal with special char in sample name since updated qprofiler2 use Map<Ssample, Map<categor,SampleSummary>>
+	 * @throws IOException
+	 */
+	public void SampleWithSpecial() throws IOException {
+		 
+			//sample contain special letter same to the seperator
+			final String lastSample = "http" + Constants.COMMA + "last";				
+			File file = new File("input.vcf");
+			createVcfFile(lastSample, file);				
+			try {
+				Summarizer summarizer  = new VcfSummarizer( new String[] {}  );
+				SummaryReport sr = summarizer.summarize("input.vcf", null);				
+				Element root = QprofilerXmlUtils.createRootElement("qProfiler", null);					
+				sr.toXml(root);				
+				List<Element> samples = QprofilerXmlUtils.getOffspringElementByTagName(root, "sample");
+				assertEquals(4, samples.size());
+				assertEquals(1, samples.stream().filter( e -> e.getAttribute(XmlUtils.Sid).equals(lastSample)).count()) ;	
+				assertEquals(4, QprofilerXmlUtils.getOffspringElementByTagName(root, "report").size());
+				QprofilerXmlUtils.getOffspringElementByTagName(root, "report").forEach(e -> assertEquals( 0, e.getAttributes().getLength()) );				 
+			} catch (Exception e) { fail("unexpected error"); }
+			
+			
+			try {
+				Summarizer summarizer  = new VcfSummarizer(new String[] {"FT","INF"} );
+				SummaryReport sr = summarizer.summarize("input.vcf", null);				
+				Element root = QprofilerXmlUtils.createRootElement("qProfiler", null);					
+				sr.toXml(root);				
+				List<Element> samples = QprofilerXmlUtils.getOffspringElementByTagName(root, "sample");
+				assertEquals(4, samples.size());
+				assertEquals(1, samples.stream().filter( e -> e.getAttribute(XmlUtils.Sid).equals(lastSample)).count()) ;	
+				assertEquals(6, QprofilerXmlUtils.getOffspringElementByTagName(root, "report").size());				
+				Element child =  samples.stream().filter( e -> e.getAttribute(XmlUtils.Sid).equals("test1")).findFirst().get();
+				checkTest1(child);							 
+			} catch (Exception e) { fail("unexpected error"); }
+			
+			
+			 
+			try {
+				
+				QProfiler2 qp = new QProfiler2();
+				createVcfFile( lastSample.replace(Constants.COMMA_STRING, ""), file);				
+				int exitStatus = qp.setup( "--input input.vcf --output output.xml --log output.log".split(" ") );
+				assertTrue(0 == exitStatus);
+			} catch (Exception e) {
+				fail("unexpected error");
+			}
+			
 	}
 	
 	private Node getXmlParentNode( File input ){
@@ -185,24 +281,22 @@ public class VcfSummaryReportTest {
 		try (  VCFFileReader reader = new VCFFileReader(input ) ){			 
 			VcfSummaryReport vcfSummaryReport  = new VcfSummaryReport( reader.getHeader(), category );					 		
 			for (final VcfRecord vcf : reader) vcfSummaryReport.parseRecord( vcf);			
-						
-			DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();			 
-			Element root = builder.getDOMImplementation().createDocument(null, "qProfiler", null).getDocumentElement();
+								 
+			Element root = QprofilerXmlUtils.createRootElement("qProfiler", null);					
 			vcfSummaryReport.toXml(root);
 						
 			Node nreport = root.getChildNodes().item(0);
 			assertTrue(nreport.getNodeName().equals( ProfileType.VCF.getReportName()  + "Report"));
 			
-			return nreport;
-			
+			return nreport;			
 		}catch (Exception e ) {				 
 			e.printStackTrace();
-			return null;
+			fail("unexpected error during unit test");
+			return null; 
 		}
 				
 	}
 	
-	//also used by cohorSaummryReportTest
 	/**
 	 * 
 	 * @param lastSampleName
@@ -221,12 +315,13 @@ public class VcfSummaryReportTest {
 	  data.add("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tcontrol1\ttest1\tcontrol2\t"+ lastSampleName);	
 	  
 	  for(int i = 0; i < 10; i++){	
-		  data.add("chr1\t10177\trs201752861\tA\tC\t.\t.\tIN=1\tGT:DP:FT:INF\t0/0:25:PASS:.\t0/1:97:5BP=3:SOMATIC;GERM=42,185\t.:.:.:.\t.:.:.:.");	
+		  data.add("chr1\t10177\trs201752861\tA\tC\t.\t.\tIN=1\tGT:AD:DP:FT:INF\t0/0:20,5:25:PASS:.\t0/1:49,48:97:5BP=3:SOMATIC;GERM=42,185\t.:.:.:.\t.:.:.:.");	
 		  data.add("chr1\t80930980\trs7354844\tG\tT,A\t.\t.\tIN=1\tGT:AD:DP:FT:GQ:INF\t1/1:.:29:PASS:.:.\t1/2:.:64:PASS:.:SOMATIC\t.:.:.:.\t.:.:.:.");
 		  data.add("chr21\t10725791\t.\tGG\tAA,TA\t.\t.\tIN=1\tGT:DP:FT:INF\t0/1:153:PASS:.\t0/2:143:PASS:SOMATIC\t.:.:.:.\t.:.:.:.");	 
-		  data.add("chr22\t48574793\t.\tCGC\tTAA,AAA\t.\t.\tIN=1,2\tGT:DP:FT:INF\t1/1:36:PASS:.\t1/2:66:5BP=3:SOMATIC\t.:.:.:.\t.:.:.:.");	
+		  data.add("chr22\t48574793\t.\tCGC\tTAA,AAA\t.\t.\tIN=1,2\tGT:AD:DP:FT:INF\t1/1:5,30,1:36:PASS:.\t1/2:1,32,32:66:5BP=3:SOMATIC\t.:.:.:.\t.:.:.:.");			  
 	  }
-	  try( BufferedWriter out = new BufferedWriter( new FileWriter(inputfile) ); ){      
+	  
+	  try( BufferedWriter out = new BufferedWriter( new FileWriter(inputfile) ); ){  
 	     for ( final String line : data )  out.write( line + "\n");
 	  }   
 					  		  
@@ -265,101 +360,42 @@ public class VcfSummaryReportTest {
 		     for (final String line : data)  out.write(line + "\n");
 		  } 
 		  
-//		 return  new File(inputfile);
 	}	
 	 
 	private void checkLastSampleColumn(Node node){
 		
-		Node cnode = node.getFirstChild(); // FORMAT:FT		 
-		for(int i = 0; i < 2; i ++){
-			assertTrue( cnode.getChildNodes().getLength() == 1 );  //single child until <report>
-			assertEquals( cnode.getAttributes().getNamedItem("value").getNodeValue(),"." );
-			assertEquals( cnode.getAttributes().getNamedItem("count").getNodeValue(),"40" );			
-			cnode = cnode.getFirstChild(); // FORMAT:INF then <Report>
-		}
+		assertEquals(1, node.getChildNodes().getLength()); //only one <report>
 		
-		assertSame(cnode.getChildNodes().getLength(),3); //<Report>		
+		Element ele = (Element) node.getFirstChild();
+		assertEquals( "FT:INF", ele.getAttribute("formats") );
+		assertEquals( ".:.", ele.getAttribute("values") );
+		assertSame(ele.getChildNodes().getLength(),3); // <sequenceMetrics>	
+		
+		//check SNV, there is no gt so no titv
+		Element snvE = (Element) ele.getFirstChild();		
+		for( Element e : QprofilerXmlUtils.getChildElementByTagName(snvE, XmlUtils.Svalue) )
+			if(e.getAttribute(XmlUtils.Sname).equals("inDBSNP"))  
+				assertEquals("20", e.getTextContent() );  //dbsnp always same for all sample
+			else if(e.getAttribute(XmlUtils.Sname).equals("TiTvRatio"))  
+				assertEquals("0.00", e.getTextContent() );
+			 					
 		for(int i = 0; i < 3; i ++){
-			Node varNode = cnode.getChildNodes().item(i);
-			Node genNode = varNode.getFirstChild().getFirstChild();
-			assertEquals( genNode.getAttributes().getNamedItem("type").getNodeValue(), "." );
-			if(varNode.getAttributes().getNamedItem("type").getNodeValue().equals(SVTYPE.SNP.toVariantType() ) ){
-				assertEquals(varNode.getAttributes().getNamedItem("count").getNodeValue() , "20" );
-				assertEquals(varNode.getAttributes().getNamedItem("inDBSNP").getNodeValue() , "20" );
-				assertEquals(genNode.getAttributes().getNamedItem("count").getNodeValue(), "20" );
-				assertEquals( varNode.getChildNodes().item(2).getNodeName(), SampleSummary.substitutions  );
-				assertEquals( varNode.getChildNodes().item(2).getFirstChild().getFirstChild(), null );
-				
-			}else{
-				assertEquals(varNode.getAttributes().getNamedItem("count").getNodeValue() , "10" );
-				assertEquals(varNode.getAttributes().getNamedItem("inDBSNP").getNodeValue() , "0" );
-				assertEquals(genNode.getAttributes().getNamedItem("count").getNodeValue(), "10" );
-				String type = varNode.getAttributes().getNamedItem("type").getNodeValue();
-				assertTrue( type.equals(SVTYPE.TNP.toVariantType())  || type.equals(SVTYPE.DNP.toVariantType())  );	
-			}			
+			Element e = (Element) ele.getChildNodes().item(i);
+			assertEquals(XmlUtils.metricsEle, e.getNodeName() );						
+			assertEquals(1, QprofilerXmlUtils.getChildElementByTagName( e, XmlUtils.variableGroupEle ).size());
+			Element e1 = QprofilerXmlUtils.getChildElementByTagName( e, XmlUtils.variableGroupEle ).get(0);
+			assertEquals(1, QprofilerXmlUtils.getChildElementByTagName(e1, XmlUtils.Stally).size());
+			e1 = QprofilerXmlUtils.getChildElement(e1,  XmlUtils.Stally, 0);
+			assertEquals(".", e1.getAttribute(XmlUtils.Svalue));
+			
+			if( e.getAttribute( XmlUtils.Sname).equals(SVTYPE.SNP.toVariantType() )  ) 				
+				assertEquals("20",  e1.getAttribute( XmlUtils.Scount));
+			else 				
+				assertEquals("10",  e1.getAttribute( XmlUtils.Scount));
+			
 		}
 		
 	}
 
-	private void checkSNV(Node sampleNode){
-		
-		String sample = sampleNode.getAttributes().getNamedItem("value").getNodeValue();
-	
-		//get <VariationType count="10" inDBSNP="10" type="SNV">
-		Node svnNode = null;
-		for(int i = 0; i < sampleNode.getChildNodes().getLength(); i ++){
-			String str1 = sampleNode.getChildNodes().item(i).getAttributes().getNamedItem("value").getNodeValue();
-			String str2 = sampleNode.getChildNodes().item(i).getAttributes().getNamedItem("type").getNodeValue();
-			
-			if(str1.equals("PASS") && str2.equals("FORMAT:FT")){
-				Node node = sampleNode.getChildNodes().item(i).getFirstChild().getFirstChild();
-				for(int ii = 0; ii < node.getChildNodes().getLength(); ii++) 
-					if(node.getChildNodes().item(ii).getAttributes().getNamedItem("type")
-							.getNodeValue().equals(SVTYPE.SNP.toVariantType() )){
-						svnNode = node.getChildNodes().item(ii);
-						break; //break ii loop
-					}			
-			}
-			if(svnNode != null) break; // break i loop 
-		}
-		
-		String str = svnNode.getParentNode().getParentNode().getAttributes().getNamedItem("type").getNodeValue();
-		assertEquals( str, "FORMAT:INF" );
-		str = svnNode.getParentNode().getParentNode().getAttributes().getNamedItem("value").getNodeValue();
-		if(sample.equals("test1"))  assertEquals( str, "SOMATIC");
-		else assertTrue( str.equals(".")     );				 
-		
-		for( int i = 0; i < svnNode.getChildNodes().getLength(); i++ ){
-			Node node = svnNode.getChildNodes().item(i);
-			//<Genotype count="10" type="1/2"/>
-			if(node.getNodeName().equals(SampleSummary.genotypes))
-				for(int ii = 0; ii < node.getChildNodes().getLength(); ii ++){
-					assertEquals(node.getChildNodes().item(ii).getNodeName(), SampleSummary.genotype) ;
-					str = node.getChildNodes().item(ii).getAttributes().getNamedItem("type").getNodeValue();					
-					if(sample.equals("test1"))  assertEquals( str, "1/2");
-					else assertTrue( str.equals("0/0")  || str.equals("1/1")   );				 
-				}
-			else if(node.getNodeName().equals(SampleSummary.substitutions)){
-				//node =  QprofilerXmlUtils.getChildElement((Element)node, "SNP_uniqAlt", 0) //now  got child SNP_uniqAlt
-				node = node.getChildNodes().item(0);								
-				if(sample.equals("test1")){
-					assertEquals(node.getAttributes().getNamedItem("TiTvRatio").getNodeValue(), "1.00");
-					assertEquals(node.getAttributes().getNamedItem("Transitions").getNodeValue(), "10");
-					assertEquals(node.getAttributes().getNamedItem("Transversions").getNodeValue(), "10");					
-				}else{
-					//sample: control1
-					assertEquals(node.getAttributes().getNamedItem("TiTvRatio").getNodeValue(), "0.00");
-					assertEquals(node.getAttributes().getNamedItem("Transitions").getNodeValue(), "0");
-					assertEquals(node.getAttributes().getNamedItem("Transversions").getNodeValue(), "10");					
-				}
-				
-				for(int ii = 0; ii < node.getChildNodes().getLength(); ii ++){
-					str = node.getChildNodes().item(ii).getAttributes().getNamedItem("change").getNodeValue();
-					if(sample.equals("control1"))  assertEquals( str, "G>T");
-					else assertTrue( str.equals("G>A")  || str.equals("G>T")   );				 
-				}				
-			}			
-		}				
-	}
 	
 }
