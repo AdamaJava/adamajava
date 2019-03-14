@@ -1,39 +1,9 @@
-plugins {
-  id 'org.hidetake.ssh' version '2.9.0'
-}
-
 version = '2.1.4'
 apply plugin: 'application'
 
 mainClassName = 'org.qcmg.snp.Main'
 def scriptname = 'qsnp'
 def isExecutable = true
-
-remotes {
-  avalon {
-    host = 'hpcpbs01.adqimr.ad.lan'
-    user = 'oliverH'
-    identity = file('../../../../../.ssh/id_rsa')
-  }
-}
-
-task deploy {
-  doLast {
-    ssh.run {
-      session(remotes.avalon) {
-        put from: 'build/lib/qsnp-' + "$version" + '.jar', into: '/mnt/backedup/home/oliverH/qsnp/bin'
-        put from: 'build/flat/qcommon-0.4.jar', into: '/mnt/backedup/home/oliverH/qsnp/bin'
-        put from: 'build/flat/qio-0.1.1.jar', into: '/mnt/backedup/home/oliverH/qsnp/bin'
-        put from: 'build/flat/qpicard-1.1.jar', into: '/mnt/backedup/home/oliverH/qsnp/bin'
-        //put from: 'build/flat/lz4-java-1.5.0.jar', into: '/mnt/backedup/home/oliverH/qsnp/bin'
-      }
-    }
-  }
-}
-
-configurations {
-        sshAntTask
-}
 
 dependencies {
     configurations.compile.transitive = true
@@ -49,7 +19,6 @@ dependencies {
 	compile 'org.apache.commons:commons-lang3:3.4'
 	compile 'com.github.samtools:htsjdk:2.14.1'
 	compile 'net.sf.jopt-simple:jopt-simple:4.6'
-	compile 'org.lz4:lz4-java:1.5.0'
 	testCompile 'junit:junit:4.10'
 }
 
