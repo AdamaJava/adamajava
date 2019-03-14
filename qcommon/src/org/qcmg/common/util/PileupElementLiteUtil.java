@@ -10,18 +10,15 @@ import gnu.trove.list.TIntList;
 import gnu.trove.list.TLongList;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.list.array.TLongArrayList;
-import gnu.trove.map.TCharObjectMap;
 import gnu.trove.map.TIntIntMap;
 import gnu.trove.map.TLongIntMap;
 import gnu.trove.map.hash.TIntIntHashMap;
 import gnu.trove.map.hash.TLongIntHashMap;
-import gnu.trove.procedure.TIntProcedure;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.qcmg.common.model.Accumulator;
 import org.qcmg.common.model.PileupElementLite;
@@ -33,15 +30,6 @@ public class PileupElementLiteUtil {
 	
 	public static final char OPEN_BRACKET = '[';
 	public static final char CLOSE_BRACKET = ']';
-	
-//	public static int getLargestVariantNovelStarts(final Accumulator accum, final char ref) {
-//		if (null == accum) return 0;
-//		PileupElementLite pel = accum.getLargestVariant(ref);
-//		if (null == pel) return 0;
-//		return getNovelStarts(pel);
-//	}
-	
-	
 	
 	public static int getNovelStarts(PileupElementLite pel) {
 		if (null != pel) {
@@ -143,17 +131,6 @@ public class PileupElementLiteUtil {
 							eorTallyRS++;
 						}
 					}
-//					if (((list.get(i)  >>> PileupElementLite.STRAND_BIT_POSITION) & 1) == 1) {
-//						if ((list.get(i) & (1L << PileupElementLite.END_OF_READ_BIT_POSITION)) != 0) {
-//							eorTallyFS++;
-//						}
-////						eorTallyFS += (list.get(i) >>> PileupElementLite.END_OF_READ_BIT_POSITION);
-//					} else {
-//						if ((list.get(i) & (1L << PileupElementLite.END_OF_READ_BIT_POSITION)) != 0) {
-//							eorTallyFS++;
-//						}
-//						eorTallyRS += (list.get(i) >>> PileupElementLite.END_OF_READ_BIT_POSITION);
-//					}
 				}
 			}
 			return new int[] {eorTallyFS, eorTallyRS};
@@ -188,25 +165,6 @@ public class PileupElementLiteUtil {
 		}
 		return new int[] {0,0};
 	}
-	
-//	public static int[] getReadNameHashes(PileupElementLite pel) {
-//		if (null != pel) {
-//			TLongList list = pel.getData();
-//			int eorTallyFS = 0;
-//			int eorTallyRS = 0;
-//			if (null != list) {
-//				for (int i = 1, len = list.size(); i < len ; i += 2) {
-//					if (((list.get(i)  >>> PileupElementLite.STRAND_BIT_POSITION) & 1) == 1) {
-//						eorTallyFS += (list.get(i) >>> PileupElementLite.END_OF_READ_BIT_POSITION);
-//					} else {
-//						eorTallyRS += (list.get(i) >>> PileupElementLite.END_OF_READ_BIT_POSITION);
-//					}
-//				}
-//			}
-//			return new int[] {eorTallyFS, eorTallyRS};
-//		}
-//		return new int[] {0,0};
-//	}
 	
 	public static boolean onBothStrands(PileupElementLite pel) {
 		if (null != pel) {
@@ -319,60 +277,6 @@ public class PileupElementLiteUtil {
 		}
 		return results;
 	}
-//	public static boolean[] isAccumulatorAKeeper(final Accumulator accum, final char ref, final Rule rule, final int percentage) {
-//		boolean [] results = new boolean[2];
-//		
-//		if (null == accum || null == rule) return results;
-//		PileupElementLite pel = accum.getLargestVariant(ref);
-//		if (null == pel) return results;
-//		
-//		
-//		int coverage = accum.getCoverage();
-//		int variantCount = pel.getTotalCount();
-//		int totalQualityScore = accum.getTotalQualityScore();
-//		int variantQualityScore = PileupElementLiteUtil.getTotalQuality(pel);
-//		
-//		if (passesCountCheck(variantCount, coverage, rule) 
-//				&& passesWeightedVotingCheck(totalQualityScore, variantQualityScore, percentage)) {
-//			
-//			results[0] = true;	// first pass
-//			
-//		} else if (passesCountCheck(variantCount, coverage, rule, true) 
-//				&& onBothStrands(pel)
-//				&& passesWeightedVotingCheck(totalQualityScore, variantQualityScore, percentage, true)) {
-//			
-//			results[1] = true;	// second pass
-//		}
-//		return results;
-//	}
-	
-//	public static boolean isAccumulatorAKeeperFirstPass(final Accumulator accum, final char ref, final Rule rule, final int percentage) {
-//		if (null == accum || null == rule) return false;
-//		PileupElementLite pel = accum.getLargestVariant(ref);
-//		if (null == pel) return false;
-//		
-//		int coverage = accum.getCoverage();
-//		int variantCount = pel.getTotalCount();
-//		int totalQualityScore = accum.getTotalQualityScore();
-//		int variantQualityScore = pel.getTotalQualityScore();
-//		
-//		return passesCountCheck(variantCount, coverage, rule) 
-//				&& passesWeightedVotingCheck(totalQualityScore, variantQualityScore, percentage);
-//	}
-//	public static boolean isAccumulatorAKeeperSecondPass(final Accumulator accum, final char ref, final Rule rule, final int percentage) {
-//		if (null == accum || null == rule) return false;
-//		PileupElementLite pel = accum.getLargestVariant(ref);
-//		if (null == pel) return false;
-//		
-//		int coverage = accum.getCoverage();
-//		int variantCount = pel.getTotalCount();
-//		int totalQualityScore = accum.getTotalQualityScore();
-//		int variantQualityScore = pel.getTotalQualityScore();
-//		
-//		return passesCountCheck(variantCount, coverage, rule, true) 
-//				&& pel.isFoundOnBothStrands()
-//				&& passesWeightedVotingCheck(totalQualityScore, variantQualityScore, percentage, true);
-//	}
 	
 	public static boolean passesCountCheck(int count, int coverage, Rule rule) {
 		return passesCountCheck(count, coverage, rule, false);
@@ -380,7 +284,6 @@ public class PileupElementLiteUtil {
 	
 	public static boolean passesCountCheck(int count, int coverage, Rule rule, boolean secondPass) {
 		if (null == rule) return false;
-//			throw new IllegalArgumentException("null Rule passed to method");
 		if (coverage < 0)
 			throw new IllegalArgumentException("coverage cannot be less then zero");
 		if (count > coverage)
@@ -439,23 +342,6 @@ public class PileupElementLiteUtil {
 		return (100 * (double)variantQualityScore / totalQualityScore) >= (secondPass ? percentage / 2 : percentage);
 	}
 	
-
-//	public static String toSummaryString(final PileupElementLite pel, final String base) {
-//		int forwardCount = pel.getForwardCount();
-//		int reverseCount = pel.getReverseCount();
-//		
-//		StringBuilder sb = new StringBuilder(base);
-//		sb.append(forwardCount).append(OPEN_BRACKET);
-//		double forwardQual = forwardCount == 0 ? 0.0 : (double)pel.getTotalForwardQualityScore() / forwardCount; 
-//		sb.append(nf.format(forwardQual));
-//		sb.append("],");
-//		sb.append(reverseCount).append(OPEN_BRACKET);
-//		double reverseQual = reverseCount == 0 ? 0.0 : (double)pel.getTotalReverseQualityScore() / reverseCount; 
-//		sb.append(nf.format(reverseQual));
-//		sb.append(CLOSE_BRACKET);
-//		return sb.toString();
-//	}
-	
 	public static String toObservedAlleleByStrand(final PileupElementLite pel, final String base) {
 		int forwardCount = pel.getForwardCount();
 		int reverseCount = pel.getReverseCount();
@@ -472,44 +358,4 @@ public class PileupElementLiteUtil {
 		sb.append(CLOSE_BRACKET);
 		return sb.toString();
 	}
-	
-//	public static String getBaseAndReadIds(final PileupElementLite pel, final String base) {
-//		
-//		final StringBuilder sb = new StringBuilder(base);
-//		sb.append(Constants.COLON);
-//		
-//		TIntList forwardReadIds = null;
-//		TIntList reverseReadIds = null;
-//		
-//		TIntList ids = pel.getForwardReadIds();
-//		if (null != ids) {
-//			forwardReadIds = new TIntArrayList(ids);
-//		}
-//		ids = pel.getReverseReadIds();
-//		if (null != ids) {
-//			reverseReadIds =new TIntArrayList(ids);
-//		}
-//		
-//		if (null != forwardReadIds) {
-//			forwardReadIds.forEach(new TIntProcedure() {
-//				@Override
-//				public boolean execute(int s) {
-//					sb.append(s).append(Constants.COMMA);
-//					return true;
-//				}});
-//		}
-//		
-//		sb.append('-');
-//		
-//		if (null != reverseReadIds) {
-//			reverseReadIds.forEach(new TIntProcedure() {
-//				@Override
-//				public boolean execute(int s) {
-//					sb.append(s).append(Constants.COMMA);
-//					return true;
-//				}});
-//		}
-//		
-//		return sb.toString();
-//	}
 }

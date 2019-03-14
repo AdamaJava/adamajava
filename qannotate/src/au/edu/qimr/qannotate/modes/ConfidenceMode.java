@@ -234,7 +234,7 @@ public class ConfidenceMode extends AbstractMode{
 						int cov = StringUtils.isNullOrEmptyOrMissingData(covS) ? 0 :Integer.parseInt(covS);
 						
 						if (cov < minCov || cov < (isControl ? controlCovCutoff : testCovCutoff)) {
-							StringUtils.updateStringBuilder(fSb, "COV", Constants.SEMI_COLON);
+							StringUtils.updateStringBuilder(fSb, VcfHeaderUtils.FILTER_COVERAGE, Constants.SEMI_COLON);
 						}
 						
 						Map<String, int[]> alleleDist = (null != oabsArr && oabsArr.length >= i) ? VcfUtils.getAllelicCoverageWithStrand(oabsArr[i]) : Collections.emptyMap();
@@ -255,8 +255,8 @@ public class ConfidenceMode extends AbstractMode{
 									checkMIUN(alts, failedFilter, fSb, miunCutoff);
 								}
 							}
-							if ( ! fSb.toString().contains("COV") && cov < controlCovCutoffForSomaticCalls) {
-								StringUtils.updateStringBuilder(fSb, "COV", Constants.SEMI_COLON);
+							if ( ! fSb.toString().contains(VcfHeaderUtils.FILTER_COVERAGE) && cov < controlCovCutoffForSomaticCalls) {
+								StringUtils.updateStringBuilder(fSb, VcfHeaderUtils.FILTER_COVERAGE, Constants.SEMI_COLON);
 							}
 						}
 						
@@ -287,7 +287,7 @@ public class ConfidenceMode extends AbstractMode{
 								
 								
 								if (applyMutantReadFilter(gts, adArr[i], percentageMode ? (int)(mrPercentage * cov) : mrCount)) {
-									StringUtils.updateStringBuilder(fSb, "MR", Constants.SEMI_COLON);
+									StringUtils.updateStringBuilder(fSb, VcfHeaderUtils.FORMAT_MUTANT_READS, Constants.SEMI_COLON);
 								}
 								
 //								int [] altADs = getAltCoveragesFromADField(adArr[i]);

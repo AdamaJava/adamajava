@@ -10,6 +10,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.qcmg.common.util.SnpUtils;
+import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.pileup.QSnpRecord;
 
 public class GatkUniqueSnpsTest {
@@ -52,7 +53,7 @@ public class GatkUniqueSnpsTest {
 		
 		Assert.assertNotNull(qpr.getAnnotation());
 		Assert.assertFalse(qpr.getAnnotation().contains("mutation also found in pileup of normal"));
-		Assert.assertTrue(qpr.getAnnotation().contains(SnpUtils.LESS_THAN_12_READS_NORMAL));
+		Assert.assertTrue(qpr.getAnnotation().contains(VcfHeaderUtils.FILTER_COVERAGE));
 	}
 	
 	@Test
@@ -100,7 +101,7 @@ public class GatkUniqueSnpsTest {
 		
 		Assert.assertNotNull(qpr.getAnnotation());
 		Assert.assertTrue(qpr.getAnnotation().contains(SnpUtils.MUTATION_IN_NORMAL));
-		Assert.assertTrue(qpr.getAnnotation().contains(SnpUtils.LESS_THAN_12_READS_NORMAL));
+		Assert.assertTrue(qpr.getAnnotation().contains(VcfHeaderUtils.FILTER_COVERAGE));
 	}
 	
 	
@@ -113,7 +114,7 @@ public class GatkUniqueSnpsTest {
 		
 		Assert.assertNotNull(qpr.getAnnotation());
 		Assert.assertTrue(qpr.getAnnotation().contains(SnpUtils.MUTATION_IN_NORMAL));
-		Assert.assertTrue(qpr.getAnnotation().contains(SnpUtils.LESS_THAN_12_READS_NORMAL));
+		Assert.assertTrue(qpr.getAnnotation().contains(VcfHeaderUtils.FILTER_COVERAGE));
 		
 		qpr = new QSnpRecord("chr1", 102, "G");
 		qpr.setAlt("C");
@@ -122,7 +123,7 @@ public class GatkUniqueSnpsTest {
 		
 		Assert.assertNotNull(qpr.getAnnotation());
 		Assert.assertFalse(qpr.getAnnotation().contains(SnpUtils.MUTATION_IN_NORMAL));
-		Assert.assertTrue(qpr.getAnnotation().contains(SnpUtils.LESS_THAN_12_READS_NORMAL));
+		Assert.assertTrue(qpr.getAnnotation().contains(VcfHeaderUtils.FILTER_COVERAGE));
 		
 		qpr = new QSnpRecord("chr1", 110, "A");
 		qpr.setAlt("G");
@@ -131,7 +132,7 @@ public class GatkUniqueSnpsTest {
 		
 		Assert.assertNotNull(qpr.getAnnotation());
 		Assert.assertFalse(qpr.getAnnotation().contains(SnpUtils.MUTATION_IN_NORMAL));
-		Assert.assertTrue(qpr.getAnnotation().contains(SnpUtils.LESS_THAN_12_READS_NORMAL));
+		Assert.assertTrue(qpr.getAnnotation().contains(VcfHeaderUtils.FILTER_COVERAGE));
 		
 		qpr = new QSnpRecord("chr1", 112, "A");
 		qpr.setAlt("G");
@@ -145,7 +146,7 @@ public class GatkUniqueSnpsTest {
 		GatkUniqueSnps.examinePileup(samRecords, qpr);
 		Assert.assertNotNull(qpr.getAnnotation());
 		Assert.assertTrue(qpr.getAnnotation().contains(SnpUtils.MUTATION_IN_NORMAL));
-		Assert.assertFalse(qpr.getAnnotation().contains(SnpUtils.LESS_THAN_12_READS_NORMAL));
+		Assert.assertFalse(qpr.getAnnotation().contains(VcfHeaderUtils.FILTER_COVERAGE));
 	}
 	
 	

@@ -418,23 +418,16 @@ public abstract class Pipeline {
 		
 		header.addInfo(VcfHeaderUtils.INFO_FLANKING_SEQUENCE, "1", "String","Flanking sequence either side of variant");														
 		header.addInfo(VcfHeaderUtils.INFO_SOMATIC, "0", "Flag",VcfHeaderUtils.INFO_SOMATIC_DESC);														
-		header.addFilter(VcfHeaderUtils.FILTER_COVERAGE_NORMAL_12, "Less than 12 reads coverage in normal");
-		header.addFilter(VcfHeaderUtils.FILTER_COVERAGE_NORMAL_8,"Less than 8 reads coverage in normal");  
-		header.addFilter(VcfHeaderUtils.FILTER_COVERAGE_TUMOUR,"Less than 8 reads coverage in tumour"); 
-		header.addFilter(VcfHeaderUtils.FILTER_SAME_ALLELE_NORMAL,"Less than 3 reads of same allele in normal");  
-		header.addFilter(VcfHeaderUtils.FILTER_SAME_ALLELE_TUMOUR,"Less than 3 reads of same allele in tumour");  
+		header.addFilter(VcfHeaderUtils.FILTER_COVERAGE, VcfHeaderUtils.FILTER_COVERAGE_DESC);
 		header.addFilter(VcfHeaderUtils.FILTER_MUTATION_IN_NORMAL,"Mutation also found in pileup of normal");  
 		header.addFilter(VcfHeaderUtils.FILTER_MUTATION_IN_UNFILTERED_NORMAL,"Mutation also found in pileup of (unfiltered) normal");  
 		header.addFilter(VcfHeaderUtils.FILTER_GERMLINE,"Mutation is a germline variant in another patient");  
 		header.addFilter(VcfHeaderUtils.FILTER_NOVEL_STARTS,"Less than 4 novel starts not considering read pair");  
 		header.addFilter(VcfHeaderUtils.FILTER_MUTANT_READS,"Less than 5 mutant reads"); 
-		header.addFilter(VcfHeaderUtils.FILTER_MUTATION_EQUALS_REF,"Mutation equals reference"); 
-		header.addFilter(VcfHeaderUtils.FILTER_NO_CALL_IN_TEST,"No call in test"); 
 		header.addFilter(VcfHeaderUtils.FILTER_STRAND_BIAS_ALT,"Alternate allele on only one strand (or percentage alternate allele on other strand is less than " + sBiasAltPercentage + "%)"); 
 		header.addFilter(VcfHeaderUtils.FILTER_STRAND_BIAS_COV,"Sequence coverage on only one strand (or percentage coverage on other strand is less than " + sBiasCovPercentage + "%)"); 
 	
 		header.addFormat(VcfHeaderUtils.FORMAT_GENOTYPE, "1", "String" ,"Genotype");
-//		header.addFormat(VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS, "1", "String","Genotype details: specific alleles (A,G,T or C)");
 		header.addFormat(VcfHeaderUtils.FORMAT_END_OF_READ, ".", "String",VcfHeaderUtils.FORMAT_END_OF_READ_DESC);
 		header.addFormat(VcfHeaderUtils.FORMAT_FILTER, ".", "String","Filters that apply to this sample");
 		header.addFormat(VcfHeaderUtils.FORMAT_INFO, ".", "String",VcfHeaderUtils.FORMAT_INFO_DESCRIPTION);
@@ -751,7 +744,6 @@ public abstract class Pipeline {
 		private long invalidCount = 0;
 		private int counter = 0;
 		private int higherOrderCounter = 0;
-//		private int chrCounter = 0;
 		private final CyclicBarrier barrier;
 		private final boolean includeDups;
 		private final boolean runqBamFilter;
@@ -769,7 +761,6 @@ public abstract class Pipeline {
 				bams.add(new File(bamFile));
 			}
 			this.reader = new MultiSAMFileReader(bams, true, validation);
-//			this.iter = reader.getMultiSAMFileIterator(currentChr, 0, referenceBasesLength, true);
 			this.isControl = isNormal;
 			this.mainThread = mainThread;
 			this.queue = samQueue;
@@ -819,7 +810,6 @@ public abstract class Pipeline {
 						if (++ counter > ONE_MILLION) {
 							higherOrderCounter++;
 							counter = 0;
-//							if (++ counter % 1000000 == 0) {
 							int qSize = queue.size();
 							logger.info("hit " + higherOrderCounter + "M sam records, passed filter: " + passedFilterCount + ", qsize: " + qSize);
 							if (passedFilterCount == 0 && (counter + (ONE_MILLION * higherOrderCounter)) >= noOfRecordsFailingFilter) {
@@ -846,8 +836,6 @@ public abstract class Pipeline {
 					logger.info("Producer: Processed all records in " + currentChr + ", waiting at barrier");
 					try {
 						barrier.await();
-						// don't need to reset barrier, threads waiting at barrier are released when all threads reach barrier... oops
-//							if (isNormal) barrier.reset();		// reset the barrier
 					} catch (final InterruptedException e) {
 						logger.error("Producer: InterruptedException exception caught whilst waiting at barrier: ", e);
 						throw e;
@@ -861,11 +849,6 @@ public abstract class Pipeline {
 						logger.warn("Exiting Producer - null reference chromosome");
 						keepRunning = false;
 					} else {
-						/*
-						 * reset counter and move onto to new contig
-						 */
-//						chrCounter = 1;
-//						iter = reader.getMultiSAMFileIterator(currentChr, 0, 1, true);
 						// wait until queues are empty
 						int qSize = queue.size();
 						if (qSize > 0)
@@ -954,7 +937,6 @@ public abstract class Pipeline {
 			this.isControl = isNormal;
 			this.mainThread = mainThread;
 			this.array =  array;
-//			this.map =  map;
 			this.barrier = barrier;
 			this.queue = queue;
 			this.minStartPosition = minStartPosition;
@@ -969,7 +951,6 @@ public abstract class Pipeline {
 			final byte[] bases = sam.getReadBases();
 			final byte[] qualities = record.getPassesFilter() ? sam.getBaseQualities() : null;
 			final Cigar cigar = sam.getCigar();
-//			String readName = sam.getReadName();
 			
 			int referenceOffset = 0, offset = 0;
 			
@@ -1022,9 +1003,6 @@ public abstract class Pipeline {
 					acc.addBase(bases[i + offset], qualities[i + offset], forwardStrand, 
 							startPosition, i + startPosAndRefOffset, readEndPosition, readNameHash);
 				} else {
-//					if ((i + startPosAndRefOffset) == 4511341) {
-//						System.out.println("failed filter: " + readId + " at position 4511341");
-//					}
 					acc.addFailedFilterBase(bases[i + offset]);
 				}
 			}
@@ -1046,8 +1024,6 @@ public abstract class Pipeline {
 						
 						if (++ count > maxMapSize) {
 							count = 0;
-							
-//						if (++count % maxMapSize == 0) {
 							
 							/*
 							 * check to see how many non-null entries we have in the acc array
@@ -1181,7 +1157,6 @@ public abstract class Pipeline {
 				 */
 				int minStartPos = 0;
 				int limit = referenceBasesLength + ARRAY_BUFFER;
-//				int limit = testAccums.length;
 				logger.info("minStartPos: " + minStartPos + ", limit: " + limit);
 				if ( ! singleSampleMode) {
 					
@@ -1232,8 +1207,6 @@ public abstract class Pipeline {
 						
 						processMapsAll();
 						compoundSnps(true);
-						// lets try purging here...
-//						purgeNonAdjacentAccumulators();
 						try {
 							previousPosition = 0;
 							barrier.await();
@@ -1251,18 +1224,6 @@ public abstract class Pipeline {
 						logger.info("Cleaner: consumer latch == 0 - running processMapsAll");
 						processMapsAll();
 						break;
-//					} else {
-						
-						/*
-						 * rather than sleeping, how about some compound snp work instead???
-						 */
-//						compoundSnps(false);
-//						try {
-//							Thread.sleep(5);	
-//						} catch (final InterruptedException e) {
-//							logger.error("InterruptedException caught in Cleaner sleep",e);
-//							throw e;
-//						}
 					}
 				}
 			} catch (final Exception e) {
@@ -1277,39 +1238,20 @@ public abstract class Pipeline {
 	
 	private void processTest(Accumulator testAcc) {
 		if (AccumulatorUtils.passesInitialCheck(testAcc, (char) referenceBases[testAcc.getPosition() - 1])) {
-//		if (testAcc.containsMultipleAlleles() || 
-//				(testAcc.getPosition() - 1 < referenceBasesLength 
-//						&& ! baseEqualsReference(testAcc.getBase(),testAcc.getPosition() - 1))) {
 			interrogateAccumulations(null, testAcc);
 		}
 	}
 	private void processControl(Accumulator controlAcc) {
 		if (AccumulatorUtils.passesInitialCheck(controlAcc, (char) referenceBases[controlAcc.getPosition() - 1])) {
-//		if (controlAcc.containsMultipleAlleles() || 
-//				(controlAcc.getPosition() - 1 < referenceBasesLength
-//						&& ! baseEqualsReference(controlAcc.getBase(), controlAcc.getPosition() - 1))) {
 			interrogateAccumulations(controlAcc, null);
 		}
 	}
 	private void processControlAndTest(Accumulator controlAcc, Accumulator testAcc) {
 		if (AccumulatorUtils.passesInitialCheck(controlAcc, testAcc, (char) referenceBases[testAcc.getPosition() - 1])) {
-//		if (controlAcc.containsMultipleAlleles() || testAcc.containsMultipleAlleles() 
-//				|| (controlAcc.getBase() != testAcc.getBase())
-//				|| (testAcc.getPosition() - 1 < referenceBasesLength 
-//						&& ! baseEqualsReference(testAcc.getBase(), testAcc.getPosition() - 1))
-//				|| (controlAcc.getPosition() - 1 < referenceBasesLength
-//						&& ! baseEqualsReference(controlAcc.getBase(), controlAcc.getPosition() - 1))) {
 			interrogateAccumulations(controlAcc, testAcc);
 		}
 	}
 	
-//	private boolean baseEqualsReference(char base, int position) {
-//		final char refBase = (char) referenceBases[position];
-//		if (base == refBase) return true;
-//		if (Character.isLowerCase(refBase)) {
-//			return base == Character.toUpperCase(refBase);
-//		} else return false;
-//	}
 	
 	private void interrogateAccumulations(final Accumulator control, final Accumulator test) {
 		
@@ -1440,52 +1382,7 @@ public abstract class Pipeline {
 		compoundSnps(true);
 	}
 	
-//	void checkForOverlaps(VcfRecord rec) {
-//		
-//		/*
-//		 * get overlapping reads from both bam files for this position.
-//		 */
-//		Map<String, String[]> ffMap = rec.getFormatFieldsAsMap();
-//		String [] gtArray = ffMap.get(VcfHeaderUtils.FORMAT_GENOTYPE);
-//		
-//		/*
-//		 * control first
-//		 */
-//		if (null != gtArray && gtArray.length > 1) {
-//			
-//			if ( ! StringUtils.isNullOrEmptyOrMissingData(gtArray[0]) && ! "./.".equals(gtArray[0])) {
-//				/*
-//				 * just get data from first control bam - need to update MultiSAMFileITerator....
-//				 */
-//				List<SAMRecord> recs = getRecordsAtPosition(controlSamReader, rec.getChromosome(), rec.getPosition());
-//				int uniqueCount = containsOverlaps(recs);
-////				logger.info("uniqueCount: " + uniqueCount + ", size: " + recs.size());
-//				if (uniqueCount != recs.size()) {
-//					logger.info("controlBam contains overlaps for rec, unique count: " + uniqueCount + ", recs size: " + recs.size() + ", vcf:" + rec.toSimpleString());
-//				}
-//			}
-//			if ( ! StringUtils.isNullOrEmptyOrMissingData(gtArray[1]) && ! "./.".equals(gtArray[1])) {
-//				/*
-//				 * just get data from first control bam - need to update MultiSAMFileITerator....
-//				 */
-//				List<SAMRecord> recs = getRecordsAtPosition(testSamReader, rec.getChromosome(), rec.getPosition());
-//				int uniqueCount = containsOverlaps(recs);
-////				logger.info("uniqueCount: " + uniqueCount + ", size: " + recs.size());
-//				if (uniqueCount != recs.size()) {
-//					logger.info("testBam contains overlaps for rec, unique count: " + uniqueCount + ", recs size: " + recs.size() + ", vcf:" + rec.toSimpleString());
-//				}
-//			}
-//		}
-//	}
-	
-//	public static int containsOverlaps(List<SAMRecord> records) {
-//		return (int) records.stream().map(SAMRecord::getReadName).distinct().count();
-////		return uniqueCount == records.size();
-//	}
-	
-	
 	public static List<SAMRecord> getRecordsAtPosition(SamReader reader, String contig, int position) {
-//		System.out.println("about to query " + contig + " at " + position + ", with reader: " + reader.getResourceDescription());
 		SAMRecordIterator iter = reader.query(contig, position, position, false);
 		List<SAMRecord> recs = new ArrayList<>();
 		while (iter.hasNext()) {
@@ -1507,7 +1404,7 @@ public abstract class Pipeline {
 	 * This is because we don't know if the latest entries in <code>snps</code> are part of a compound snp.
 	 * 
 	 * <br><b>NOTE</b> that it is the same thread that adds to the snps collection that calls this method (apart from when it is run with <code>complete=true</code>) 
-	 * and so modifying the <code>snps</code> collection should be ok. ie. should not get concurrent modification excpetions. 
+	 * and so modifying the <code>snps</code> collection should be OK. i.e. should not get concurrent modification exceptions. 
 	 * 
 	 */
 	void compoundSnps(boolean complete) {
@@ -1577,32 +1474,4 @@ public abstract class Pipeline {
 		
 		logger.info("Created " + compoundSnps.size() + " compound snps so far");
 	}
-	
-//	void accumulateReadBases(Accumulator acc, Map<Long, StringBuilder> readSeqMap, int position) {
-//		final TIntCharMap map = acc.getReadIdBaseMap();
-//		// get existing seq for each id
-//		int[] keys = map.keys();
-//		
-//		for (int l : keys) {
-//			char c = map.get(l);
-//			Long longObject = Long.valueOf(l);
-//			StringBuilder seq = readSeqMap.get(longObject);
-//			if (null == seq) {
-//				// initialise based on how far away we are from the start
-//				seq = new StringBuilder();
-//				for (int q = (position) ; q > 0 ; q--) {
-//					seq.append("_");
-//				}
-//				readSeqMap.put(longObject, seq);
-//			}
-//			seq.append(c);
-//		}
-//		// need to check that all elements have enough data in them
-//		for (final StringBuilder sb : readSeqMap.values()) {
-//			if (sb.length() <= position) {
-//				sb.append("_");
-//			}
-//		}
-//	}
-	
 }

@@ -338,7 +338,7 @@ public class GatkUniqueSnps {
 //		record.setNormalCount(normalCoverage);
 		
 		if (normalCoverage < 12) {
-			VcfUtils.updateFilter(record.getVcfRecord(), VcfHeaderUtils.FILTER_COVERAGE_NORMAL_12);
+			VcfUtils.updateFilter(record.getVcfRecord(), VcfHeaderUtils.FILTER_COVERAGE);
 		}
 		
 		
