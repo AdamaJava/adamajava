@@ -2,15 +2,12 @@ package org.qcmg.snp.util;
 
 import static org.junit.Assert.assertEquals;
 
-import java.util.List;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.qcmg.common.model.Accumulator;
 import org.qcmg.common.model.GenotypeEnum;
 import org.qcmg.common.util.AccumulatorUtils;
-import org.qcmg.common.util.Constants;
 import org.qcmg.common.model.Classification;
 
 public class GenotypeUtilTest {
@@ -58,87 +55,6 @@ public class GenotypeUtilTest {
 		mrNns = GenotypeUtil.getNNS("2/2", new String [] {"A","G"}, AccumulatorUtils.createFromOABS("A3[23]11[24.18];G2[35]4[32]", 3418618));
 		assertEquals("2", mrNns);
 	}
-//	@Test
-//	public void nnsAndMr() {
-//		List<String> mrNns = GenotypeUtil.getMRandNNS("0/0", new String [] {"A"}, AccumulatorUtils.createFromOABS("A3[23]11[24.18];G2[35]4[32]", 3418618));
-//		assertEquals(2, mrNns.size());
-//		assertEquals(".", mrNns.get(0));
-//		assertEquals(".", mrNns.get(1));
-//		
-//		mrNns = GenotypeUtil.getMRandNNS("0/1", new String [] {"A"}, AccumulatorUtils.createFromOABS("A3[23]11[24.18];G2[35]4[32]", 3418618));
-//		assertEquals(2, mrNns.size());
-//		assertEquals("14", mrNns.get(0));
-//		assertEquals("2", mrNns.get(1));
-//		
-//		mrNns = GenotypeUtil.getMRandNNS("1/1", new String [] {"A"}, AccumulatorUtils.createFromOABS("A3[23]11[24.18];G2[35]4[32]", 3418618));
-//		assertEquals(2, mrNns.size());
-//		assertEquals("14", mrNns.get(0));
-//		assertEquals("2", mrNns.get(1));
-//		
-//		mrNns = GenotypeUtil.getMRandNNS("0/2", new String [] {"A","G"}, AccumulatorUtils.createFromOABS("A3[23]11[24.18];G2[35]4[32]", 3418618));
-//		assertEquals(2, mrNns.size());
-//		assertEquals("6", mrNns.get(0));
-//		assertEquals("2", mrNns.get(1));
-//		
-//		mrNns = GenotypeUtil.getMRandNNS("1/2", new String [] {"A","G"}, AccumulatorUtils.createFromOABS("A3[23]11[24.18];G2[35]4[32]", 3418618));
-//		assertEquals(2, mrNns.size());
-//		assertEquals("14,6", mrNns.get(0));
-//		assertEquals("2,2", mrNns.get(1));
-//		
-//		mrNns = GenotypeUtil.getMRandNNS("2/2", new String [] {"A","G"}, AccumulatorUtils.createFromOABS("A3[23]11[24.18];G2[35]4[32]", 3418618));
-//		assertEquals(2, mrNns.size());
-//		assertEquals("6", mrNns.get(0));
-//		assertEquals("2", mrNns.get(1));
-//	}
-	
-	
-	
-//	@Test
-//	public void dontPutSAN3IfCoverageExists() {
-//		/*
-//		 * .:.:.:SAN3:.:SOMATIC:.:.:T57[38.09]62[36.97]
-//		 * This should not have the SAN3 filter
-//		 */
-//		Accumulator acc = AccumulatorUtils.createFromOABS("T57[38.09]62[36.97]", 15986933);
-//		assertEquals(Constants.MISSING_DATA_STRING, GenotypeUtil.getFormatFilter(acc, null, new String[]{"C"}, 'T', true, 3, 3, Classification.SOMATIC, true));
-//	}
-	
-	/*
-	 * no longer populate coverage based filters
-	 */
-//	@Ignore
-//	public void whereIsSAM3() {
-//		assertEquals("SAN3", GenotypeUtil.getFormatFilter(null, null, new String[]{"C"}, 'T', true, 3, 3, Classification.SOMATIC, true));
-//		assertEquals("SAT3", GenotypeUtil.getFormatFilter(null, null, new String[]{"C"}, 'T', true, 3, 3, Classification.SOMATIC, false));
-//		assertEquals("SAN3", GenotypeUtil.getFormatFilter(null, "0/0", new String[]{"C"}, 'T', true, 3, 3, Classification.SOMATIC, true));
-//		assertEquals("SAT3", GenotypeUtil.getFormatFilter(null, "0/0", new String[]{"C"}, 'T', true, 3, 3, Classification.SOMATIC, false));
-//		assertEquals("SAN3", GenotypeUtil.getFormatFilter(null, "0/1", new String[]{"C"}, 'T', true, 3, 3, Classification.SOMATIC, true));
-//		assertEquals("SAT3", GenotypeUtil.getFormatFilter(null, "0/1", new String[]{"C"}, 'T', true, 3, 3, Classification.SOMATIC, false));
-//		assertEquals("SAN3", GenotypeUtil.getFormatFilter(null, "1/1", new String[]{"C"}, 'T', true, 3, 3, Classification.SOMATIC, true));
-//		assertEquals("SAT3", GenotypeUtil.getFormatFilter(null, "1/1", new String[]{"C"}, 'T', true, 3, 3, Classification.SOMATIC, false));
-//		assertEquals("SAN3", GenotypeUtil.getFormatFilter(null, "1/2", new String[]{"C","G"}, 'T', true, 3, 3, Classification.SOMATIC, true));
-//		assertEquals("SAT3", GenotypeUtil.getFormatFilter(null, "1/2", new String[]{"C","G"}, 'T', true, 3, 3, Classification.SOMATIC, false));
-//	}
-	
-//	@Test
-//	public void fivePercentMIN() {
-//		
-//		assertEquals("MIN", GenotypeUtil.getFormatFilter(AccumulatorUtils.createFromOABS("C10[36.4]23[39.61];T2[11]1[0]", 1), "0/0", new String[]{"T"}, 'C', true, 3, 3, Classification.SOMATIC, true));
-//		assertEquals("MIN", GenotypeUtil.getFormatFilter(AccumulatorUtils.createFromOABS("C10[36.4]23[39.61];T2[11]0[0]", 1), "0/0", new String[]{"T"}, 'C', true, 3, 3, Classification.SOMATIC, true));
-//		assertEquals(".", GenotypeUtil.getFormatFilter(AccumulatorUtils.createFromOABS("C10[36.4]23[39.61];T1[11]0[0]", 1), "0/0", new String[]{"T"}, 'C', true, 3, 3, Classification.SOMATIC, true));
-//		
-//		assertEquals(".", GenotypeUtil.getFormatFilter(AccumulatorUtils.createFromOABS("C14[40.21]19[41.74];T1[11]0[0]", 1), "0/0", new String[]{"T"}, 'C', true, 3, 3, Classification.SOMATIC, true));
-//		assertEquals(".", GenotypeUtil.getFormatFilter(AccumulatorUtils.createFromOABS("C18[41.17]15[39.33];T0[0]1[11]", 1), "0/0", new String[]{"T"}, 'C', true, 3, 3, Classification.SOMATIC, true));
-//		assertEquals(".", GenotypeUtil.getFormatFilter(AccumulatorUtils.createFromOABS("A0[0]1[11];G13[38.15]20[40]", 1), "0/0", new String[]{"A"}, 'G', true, 3, 3, Classification.SOMATIC, true));
-//	}
-	
-//	@Test
-//	public void fivePercentMINAM() {
-//		
-//		assertEquals("MIN", GenotypeUtil.getFormatFilter(AccumulatorUtils.createFromOABS("C9[0]0[0];T0[0]1[0]", 1), "0/0", new String[]{"T"}, 'C', true, 3, 3, Classification.SOMATIC, true));
-//		assertEquals("MIN", GenotypeUtil.getFormatFilter(AccumulatorUtils.createFromOABS("C19[0]0[0];T0[0]1[0]", 1), "0/0", new String[]{"T"}, 'C', true, 3, 3, Classification.SOMATIC, true));
-//		assertEquals(".", GenotypeUtil.getFormatFilter(AccumulatorUtils.createFromOABS("C29[0]0[0];T0[0]1[0]", 1), "0/0", new String[]{"T"}, 'C', true, 3, 3, Classification.SOMATIC, true));
-//	}
 	
 	@Test
 	public void  isSomatic() {
