@@ -14,10 +14,9 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.Accumulator;
 import org.qcmg.common.model.GenotypeEnum;
-import org.qcmg.common.model.PileupElementLite;
 import org.qcmg.common.string.StringUtils;
+import org.qcmg.common.util.AccumulatorUtils;
 import org.qcmg.common.util.Constants;
-import org.qcmg.common.util.PileupElementLiteUtil;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfUtils;
 
@@ -159,36 +158,6 @@ public class GenotypeUtil {
 			sb.append(Constants.MISSING_DATA);
 		}
 		return sb.toString();
-	}
-	
-	public static int endsOfReads(PileupElementLite pel) {
-		return endsOfReads(pel, MIDDLE_OF_READ_CUTOFF);
-	}
-	
-	public static int endsOfReads(PileupElementLite pel, int middleOfReadCutoff) {
-		if (null == pel) {
-			return 0;
-		}
-		
-		int [] countAndEndOfReadByStrand = PileupElementLiteUtil.getCountAndEndOfReadByStrand(pel); 
-		int totaCount = countAndEndOfReadByStrand[0] + countAndEndOfReadByStrand[1];
-		int endOfReadCount = countAndEndOfReadByStrand[2] + countAndEndOfReadByStrand[3];
-		
-		if ((totaCount - endOfReadCount) >= middleOfReadCutoff 
-				&& countAndEndOfReadByStrand[0] - countAndEndOfReadByStrand[2] > 0	// forward strand Count - forward strand end of read count
-				 && countAndEndOfReadByStrand[1] - countAndEndOfReadByStrand[3] > 0) {	// reverse strand Count - reverse strand end of read count
-			// all good
-			return 0;
-		} else {
-			return  endOfReadCount;
-		}
-	}
-	
-	/**
-	 */
-	public static boolean strandBias(PileupElementLite pel, int sbiasPercentage) {
-		
-		return ! PileupElementLiteUtil.areBothStrandsRepresented(pel, sbiasPercentage);
 	}
 	
 	public static Classification getClassification(String controlPileup, String controlGT, String testGT, String alts) {
