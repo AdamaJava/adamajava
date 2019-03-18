@@ -40,24 +40,24 @@ public class PipelineTest {
 //		assertEquals(-1, Pipeline.getCountFromString("C10;A1;B2", 'X'));
 //	}
 	
-	@Test
-	public void accumulateReadBases() {
-		final Pipeline pipeline = new TestPipeline();
-		
-		Map<Long, StringBuilder>readSeqMap = new HashMap<>();
-		Accumulator acc = new Accumulator(100);
-		acc.addBase((byte)'C', (byte)30, true, 100, 100, 200, 1);
-		
-		pipeline.accumulateReadBases(acc, readSeqMap, 100);
-		
-		assertEquals(1, readSeqMap.size());
-		
-		Accumulator acc2 = new Accumulator(101);
-		acc2.addBase((byte)'C', (byte)30, true, 101, 101, 200, 1);
-		
-		pipeline.accumulateReadBases(acc2, readSeqMap, 101);
-//		assertEquals(2, readSeqMap.size());
-	}
+//	@Test
+//	public void accumulateReadBases() {
+//		final Pipeline pipeline = new TestPipeline();
+//		
+//		Map<Long, StringBuilder>readSeqMap = new HashMap<>();
+//		Accumulator acc = new Accumulator(100);
+//		acc.addBase((byte)'C', (byte)30, true, 100, 100, 200, 1);
+//		
+//		pipeline.accumulateReadBases(acc, readSeqMap, 100);
+//		
+//		assertEquals(1, readSeqMap.size());
+//		
+//		Accumulator acc2 = new Accumulator(101);
+//		acc2.addBase((byte)'C', (byte)30, true, 101, 101, 200, 1);
+//		
+//		pipeline.accumulateReadBases(acc2, readSeqMap, 101);
+////		assertEquals(2, readSeqMap.size());
+//	}
 	
 	@Test
 	public void getHeader() {

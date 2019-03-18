@@ -7,7 +7,6 @@
 package org.qcmg.snp.util;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -15,18 +14,24 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.Accumulator;
 import org.qcmg.common.model.GenotypeEnum;
-import org.qcmg.common.model.PileupElementLite;
 import org.qcmg.common.string.StringUtils;
+import org.qcmg.common.util.AccumulatorUtils;
 import org.qcmg.common.util.Constants;
-import org.qcmg.common.util.PileupElementLiteUtil;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfUtils;
+
+import gnu.trove.map.TCharObjectMap;
+
 import org.qcmg.common.model.Classification;
 public class GenotypeUtil {
 	
 	
 	private final static QLogger logger = QLoggerFactory.getLogger(GenotypeUtil.class);
-	
+
+	public static final int MUTATION_IN_NORMAL_MIN_COVERAGE = 3;
+	public static final int MUTATION_IN_NORMAL_MIN_PERCENTAGE = 5;
+	public static final int MIDDLE_OF_READ_CUTOFF = 5;
+
 	public static boolean containsFilter(StringBuilder sb) {
 		return sb.length() > 0 && ! sb.toString().equals(Constants.MISSING_DATA_STRING) && ! sb.toString().equals(Constants.MISSING_DATA_STRING + Constants.SEMI_COLON + Constants.MISSING_DATA); 
 	}
@@ -65,18 +70,18 @@ public class GenotypeUtil {
 		/*
 		 * deal with null acc in place
 		 */
+		TCharObjectMap<int[]> accumulatorMap = AccumulatorUtils.getAccumulatorDataByBase(acc);
 		
-		String oabs = null == acc ? Constants.MISSING_DATA_STRING : acc.getObservedAllelesByStrand();
+		String oabs = null == acc ? Constants.MISSING_DATA_STRING : AccumulatorUtils.getOABS(accumulatorMap);
 		
 		StringBuilder sb = new StringBuilder();
-//		int accTotalCoverage = null == acc ? Constants.MISSING_DATA_STRING :acc.getCoverage();
 		sb.append(null != gt ? gt : Constants.MISSING_GT).append(Constants.COLON);
 		sb.append(VcfUtils.getAD(""+ref, alt, oabs)).append(Constants.COLON);
 		sb.append(null == acc ? Constants.MISSING_DATA_STRING :acc.getCoverage()).append(Constants.COLON);
 		/*
 		 * adding EOR (end of reads -similar in format to FF)
 		 */
-		sb.append(null != acc ? acc.getEndOfReadsPileup() : Constants.MISSING_DATA_STRING).append(Constants.COLON);
+		sb.append(null != acc ? AccumulatorUtils.getEndOfReadsPileup(accumulatorMap) : Constants.MISSING_DATA_STRING).append(Constants.COLON);
 		/*
 		 * adding FF - failed filters
 		 */
@@ -86,7 +91,7 @@ public class GenotypeUtil {
 		
 	
 		/*
-		 * don't add filters here - move to qannotate
+		 * FT - don't add filters here - move to qannotate
 		 */
 		sb.append(".:");
 		
@@ -95,29 +100,16 @@ public class GenotypeUtil {
 		 */
 		sb.append( ( ! isControl && cl == Classification.SOMATIC) ? Classification.SOMATIC : Constants.MISSING_DATA).append(Constants.COLON);
 		
-		List<String> mrNNS = getMRandNNS(gt, altAlleleArray, acc);
+		String nns = getNNS(gt, altAlleleArray, acc);
 		
-		/*
-		 * removing MR - duplicated in AD
-		 */
-		sb.append(mrNNS.get(1).length() == 0 ? Constants.MISSING_DATA : mrNNS.get(1).toString()).append(Constants.COLON);
+		sb.append(StringUtils.isNullOrEmptyOrMissingData(nns) ? Constants.MISSING_DATA : nns).append(Constants.COLON);
 		sb.append(oabs);
 		
 		return sb.toString();
 	}
 	
-	/**
-	 * Gets the Number of Novel Starts (NNS) and Mutant Read (MR) counts for the supplied accumulator.
-	 * It uses the supplied genotype and list of alt alleles to get the appropriate values from the accumulator object.
-	 * 
-	 * @param gt
-	 * @param altAlleleArray
-	 * @param acc
-	 * @return
-	 */
-	public static List<String> getMRandNNS(String gt, String [] altAlleleArray, Accumulator acc) {
+	public static String getNNS(String gt, String [] altAlleleArray, Accumulator acc) {
 		if (null != gt) {
-			StringBuilder mr = new StringBuilder();
 			StringBuilder nns = new StringBuilder();
 			int i = 0;
 			int j = 1; 
@@ -126,20 +118,17 @@ public class GenotypeUtil {
 					char c = s.charAt(0);
 					
 					if (i++ > 0) {
-						mr.append(Constants.COMMA);
 						nns.append(Constants.COMMA);
 					}
-					PileupElementLite pel = acc != null ? acc.getPelForBase(c) : null;
-					mr.append(null == pel ? Constants.MISSING_DATA_STRING : pel.getTotalCount());
-					nns.append(null == pel ? Constants.MISSING_DATA_STRING : pel.getNovelStartCount());
+					int ns = AccumulatorUtils.getNovelStartsForBase(acc, c);
+					nns.append(ns == 0 ? Constants.MISSING_DATA_STRING : ns);
 					
 				}
 				j++;
 			}
-			return Arrays.asList(mr.length() > 0 ? mr.toString() : Constants.MISSING_DATA_STRING
-					, nns.length() > 0 ? nns.toString() : Constants.MISSING_DATA_STRING);
+			return nns.length() > 0 ? nns.toString() : Constants.MISSING_DATA_STRING;
 		}
-		return Arrays.asList(Constants.MISSING_DATA_STRING, Constants.MISSING_DATA_STRING);
+		return Constants.MISSING_DATA_STRING;
 	}
 	
 	public static String convertListOfListOfFiltersToString(List<List<String>> loloFilters) {
@@ -169,25 +158,6 @@ public class GenotypeUtil {
 			sb.append(Constants.MISSING_DATA);
 		}
 		return sb.toString();
-	}
-	
-	public static int endsOfReads(PileupElementLite pel) {
-		if (null == pel) {
-			return 0;
-		}
-		if (pel.getMiddleOfReadCount() >= 5 && pel.isFoundOnBothStrandsMiddleOfRead()) {
-			// all good
-			return 0;
-		} else {
-			return  pel.getEndOfReadCount();
-		}
-	}
-	
-	/**
-	 */
-	public static boolean strandBias(PileupElementLite pel, int sbiasPercentage) {
-		
-		return ! PileupElementLiteUtil.areBothStrandsRepresented(pel, sbiasPercentage);
 	}
 	
 	public static Classification getClassification(String controlPileup, String controlGT, String testGT, String alts) {

@@ -7,7 +7,6 @@
 
 package org.qcmg.snp;
 
-import gnu.trove.map.TIntCharMap;
 import gnu.trove.map.TMap;
 import gnu.trove.map.hash.THashMap;
 import htsjdk.samtools.Cigar;
@@ -15,10 +14,17 @@ import htsjdk.samtools.CigarElement;
 import htsjdk.samtools.CigarOperator;
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SAMRecordIterator;
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.SAMSequenceRecord;
+import htsjdk.samtools.SamReader;
+import htsjdk.samtools.SamReaderFactory;
+import htsjdk.samtools.SamReaderFactory.Option;
+import htsjdk.samtools.ValidationStringency;
 import htsjdk.samtools.reference.FastaSequenceFile;
 import htsjdk.samtools.reference.ReferenceSequence;
+import net.jpountz.xxhash.XXHash64;
+import net.jpountz.xxhash.XXHashFactory;
 
 import java.io.File;
 import java.text.DateFormat;
@@ -30,7 +36,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
@@ -57,6 +62,7 @@ import org.qcmg.common.model.GenotypeEnum;
 import org.qcmg.common.model.PileupElement;
 import org.qcmg.common.model.Rule;
 import org.qcmg.common.string.StringUtils;
+import org.qcmg.common.util.AccumulatorUtils;
 import org.qcmg.common.util.BaseUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.Pair;
@@ -95,7 +101,12 @@ public abstract class Pipeline {
 			VcfHeaderUtils.FORMAT_NOVEL_STARTS + Constants.COLON + 
 			VcfHeaderUtils.FORMAT_OBSERVED_ALLELES_BY_STRAND;
 	
-	static final String ILLUMINA_MOTIF = "GGT";
+//	static final String ILLUMINA_MOTIF = "GGT";
+	
+	/**
+	 * used to buffer the accumulation arrays in case reads go over ends of contigs 
+	 */
+	final static int ARRAY_BUFFER = 1000;
 	
 	private int novelStartsFilterValue = 4;
 	private int mutantReadsFilterValue = 5;
@@ -108,15 +119,13 @@ public abstract class Pipeline {
 	static int sBiasCovPercentage = 5;
 	
 	
-	long pValueCount = 0;
-
 	/*///////////////////////
 	 * COLLECTIONS
 	 *///////////////////////
 	
 	final List<VcfRecord> snps = new ArrayList<>(6 * 1024 * 1024);
 	
-	final List<VcfRecord> compoundSnps = new ArrayList<>();
+	final List<VcfRecord> compoundSnps = new ArrayList<>(32 * 1024);
 	
 	// just used to store adjacent accumulators used by compound snp process
 	final ConcurrentMap<VcfRecord, Pair<Accumulator, Accumulator>> adjacentAccumulators = new ConcurrentHashMap<>(2 * 1024 * 1024); 
@@ -145,7 +154,6 @@ public abstract class Pipeline {
 	byte[] referenceBases;
 	int referenceBasesLength;
 	int previousContigReferenceBasesLength;
-	int arrayBuffer = 1000;
 	
 	long noOfRecordsFailingFilter = 1000000;
 	String currentChr = "chr1";
@@ -168,6 +176,9 @@ public abstract class Pipeline {
 	//////////////////
 	protected String [] controlBams;
 	protected String [] testBams;
+	
+	protected SamReader controlSamReader;
+	protected SamReader testSamReader;
 	
 	protected  QLogger logger;
 	protected QExec qexec;
@@ -407,23 +418,16 @@ public abstract class Pipeline {
 		
 		header.addInfo(VcfHeaderUtils.INFO_FLANKING_SEQUENCE, "1", "String","Flanking sequence either side of variant");														
 		header.addInfo(VcfHeaderUtils.INFO_SOMATIC, "0", "Flag",VcfHeaderUtils.INFO_SOMATIC_DESC);														
-		header.addFilter(VcfHeaderUtils.FILTER_COVERAGE_NORMAL_12, "Less than 12 reads coverage in normal");
-		header.addFilter(VcfHeaderUtils.FILTER_COVERAGE_NORMAL_8,"Less than 8 reads coverage in normal");  
-		header.addFilter(VcfHeaderUtils.FILTER_COVERAGE_TUMOUR,"Less than 8 reads coverage in tumour"); 
-		header.addFilter(VcfHeaderUtils.FILTER_SAME_ALLELE_NORMAL,"Less than 3 reads of same allele in normal");  
-		header.addFilter(VcfHeaderUtils.FILTER_SAME_ALLELE_TUMOUR,"Less than 3 reads of same allele in tumour");  
+		header.addFilter(VcfHeaderUtils.FILTER_COVERAGE, VcfHeaderUtils.FILTER_COVERAGE_DESC);
 		header.addFilter(VcfHeaderUtils.FILTER_MUTATION_IN_NORMAL,"Mutation also found in pileup of normal");  
 		header.addFilter(VcfHeaderUtils.FILTER_MUTATION_IN_UNFILTERED_NORMAL,"Mutation also found in pileup of (unfiltered) normal");  
 		header.addFilter(VcfHeaderUtils.FILTER_GERMLINE,"Mutation is a germline variant in another patient");  
 		header.addFilter(VcfHeaderUtils.FILTER_NOVEL_STARTS,"Less than 4 novel starts not considering read pair");  
 		header.addFilter(VcfHeaderUtils.FILTER_MUTANT_READS,"Less than 5 mutant reads"); 
-		header.addFilter(VcfHeaderUtils.FILTER_MUTATION_EQUALS_REF,"Mutation equals reference"); 
-		header.addFilter(VcfHeaderUtils.FILTER_NO_CALL_IN_TEST,"No call in test"); 
 		header.addFilter(VcfHeaderUtils.FILTER_STRAND_BIAS_ALT,"Alternate allele on only one strand (or percentage alternate allele on other strand is less than " + sBiasAltPercentage + "%)"); 
 		header.addFilter(VcfHeaderUtils.FILTER_STRAND_BIAS_COV,"Sequence coverage on only one strand (or percentage coverage on other strand is less than " + sBiasCovPercentage + "%)"); 
 	
 		header.addFormat(VcfHeaderUtils.FORMAT_GENOTYPE, "1", "String" ,"Genotype");
-//		header.addFormat(VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS, "1", "String","Genotype details: specific alleles (A,G,T or C)");
 		header.addFormat(VcfHeaderUtils.FORMAT_END_OF_READ, ".", "String",VcfHeaderUtils.FORMAT_END_OF_READ_DESC);
 		header.addFormat(VcfHeaderUtils.FORMAT_FILTER, ".", "String","Filters that apply to this sample");
 		header.addFormat(VcfHeaderUtils.FORMAT_INFO, ".", "String",VcfHeaderUtils.FORMAT_INFO_DESCRIPTION);
@@ -678,20 +682,25 @@ public abstract class Pipeline {
 		final CountDownLatch testProducerLatch = new CountDownLatch(1);
 		final CountDownLatch cleanerLatch = new CountDownLatch(1);
 		
+		
 		/*
 		 * setup exception handler for threads, exit with code 1 if uncaught exception is encountered by worker threads
 		 */
 		Thread.setDefaultUncaughtExceptionHandler((t, e) -> {logger.error("( in uncaughtExceptionHandler) )exception " + e + ", from thread: " + t, e); System.exit(1);});
-		
+		final SamReaderFactory factory = SamReaderFactory.makeDefault()
+			       .enable(Option.INCLUDE_SOURCE_IN_RECORDS, Option.VALIDATE_CRC_CHECKSUMS)
+			       .validationStringency(ValidationStringency.SILENT);
 		
 		// Control threads (if not single sample)
 		if ( ! singleSampleMode) {
+			controlSamReader = factory.open(new File(controlBams[0]));
 			service.execute(new Producer(controlBams, controlProducerLatch, true, normalSAMQueue, Thread.currentThread(), query, barrier, includeDups, controlAccs));
 			service.execute(new Consumer(consumerLatch, controlProducerLatch, testProducerLatch, true, 
 					Thread.currentThread(), barrier, controlAccs, normalSAMQueue, controlMinStart));
 		}
 		
 		// test threads
+		testSamReader = factory.open(new File(testBams[0]));
 		service.execute(new Producer(testBams, testProducerLatch, false, tumourSAMQueue, Thread.currentThread(), query, barrier, includeDups, testAccs));
 		service.execute(new Consumer(consumerLatch, controlProducerLatch, testProducerLatch, false, 
 				Thread.currentThread(), barrier, testAccs, tumourSAMQueue, testMinStart));
@@ -733,12 +742,15 @@ public abstract class Pipeline {
 		private final Thread mainThread;
 		private long passedFilterCount = 0;
 		private long invalidCount = 0;
-		private long counter = 0;
-		private int chrCounter = 0;
+		private int counter = 0;
+		private int higherOrderCounter = 0;
 		private final CyclicBarrier barrier;
 		private final boolean includeDups;
 		private final boolean runqBamFilter;
 		private Accumulator [] accum;
+		private XXHash64 xxhash64;
+		private final static int seed = 0x9747b28c; // used to initialize the hash value, use whatever value you want, but always the same
+		private final static int ONE_MILLION = 1_000_000;
 		
 		public Producer(final String[] bamFiles, final CountDownLatch latch, final boolean isNormal, 
 				final Queue<SAMRecordFilterWrapper> samQueue, final Thread mainThread, final String query, 
@@ -749,7 +761,6 @@ public abstract class Pipeline {
 				bams.add(new File(bamFile));
 			}
 			this.reader = new MultiSAMFileReader(bams, true, validation);
-//			this.iter = reader.getMultiSAMFileIterator(currentChr, 0, referenceBasesLength, true);
 			this.isControl = isNormal;
 			this.mainThread = mainThread;
 			this.queue = samQueue;
@@ -765,6 +776,14 @@ public abstract class Pipeline {
 		public void run() {
 			logger.info("In Producer run method with isControl: " + isControl);
 			logger.info("Use qbamfilter? " + runqBamFilter);
+			
+			/*
+			 * setup hashing factory
+			 */
+			XXHashFactory factory = XXHashFactory.fastestInstance();
+		    xxhash64 = factory.hash64();
+			
+			
 			try {
 				boolean keepRunning = true;
 				
@@ -775,7 +794,7 @@ public abstract class Pipeline {
 					 * setup accumulator
 					 */
 					if (previousContigReferenceBasesLength < Integer.MAX_VALUE) {
-						int upperBound = Math.min(previousContigReferenceBasesLength + (2 * arrayBuffer), accum.length - 1);
+						int upperBound = Math.min(previousContigReferenceBasesLength + (2 * ARRAY_BUFFER), accum.length - 1);
 						logger.info("about to null array - upper limit: " + upperBound);
 						Arrays.fill(accum, 0, upperBound, null);
 						logger.info("about to null array - DONE");
@@ -787,13 +806,14 @@ public abstract class Pipeline {
 					
 					while (iter.hasNext()) {
 						final SAMRecord record = iter.next();
-						chrCounter++;
 					
-						if (++ counter % 1000000 == 0) {
+						if (++ counter > ONE_MILLION) {
+							higherOrderCounter++;
+							counter = 0;
 							int qSize = queue.size();
-							logger.info("hit " + counter/1000000 + "M sam records, passed filter: " + passedFilterCount + ", qsize: " + qSize);
-							if (passedFilterCount == 0 && counter >= noOfRecordsFailingFilter) {
-								throw new SnpException("INVALID_FILTER", ""+counter);
+							logger.info("hit " + higherOrderCounter + "M sam records, passed filter: " + passedFilterCount + ", qsize: " + qSize);
+							if (passedFilterCount == 0 && (counter + (ONE_MILLION * higherOrderCounter)) >= noOfRecordsFailingFilter) {
+								throw new SnpException("INVALID_FILTER", ""+ (counter + (ONE_MILLION * higherOrderCounter)));
 							}
 							while (qSize > 10000) {
 								try {
@@ -816,8 +836,6 @@ public abstract class Pipeline {
 					logger.info("Producer: Processed all records in " + currentChr + ", waiting at barrier");
 					try {
 						barrier.await();
-						// don't need to reset barrier, threads waiting at barrier are released when all threads reach barrier... oops
-//							if (isNormal) barrier.reset();		// reset the barrier
 					} catch (final InterruptedException e) {
 						logger.error("Producer: InterruptedException exception caught whilst waiting at barrier: ", e);
 						throw e;
@@ -831,11 +849,6 @@ public abstract class Pipeline {
 						logger.warn("Exiting Producer - null reference chromosome");
 						keepRunning = false;
 					} else {
-						/*
-						 * reset counter and move onto to new contig
-						 */
-						chrCounter = 1;
-//						iter = reader.getMultiSAMFileIterator(currentChr, 0, 1, true);
 						// wait until queues are empty
 						int qSize = queue.size();
 						if (qSize > 0)
@@ -873,12 +886,10 @@ public abstract class Pipeline {
 			
 			if (runqBamFilter) {
 				final boolean passesFilter = qbamFilter.Execute(record);
-//				if (isControl || passesFilter) {
 				/*
-				 * we now want to kep track of reads that don't pass the filter for test as well as control
+				 * we now want to keep track of reads that don't pass the filter for test as well as control
 				 */
-					addRecordToQueue(record, passesFilter);
-//				}
+				addRecordToQueue(record, passesFilter);
 			} else {
 				// didn't have any filtering defined - add all
 				addRecordToQueue(record, true);
@@ -894,9 +905,8 @@ public abstract class Pipeline {
 			}
 			record.getCigar();					// cache cigar for all records
 			record.getAlignmentEnd();		// cache alignment end for all records
-//			if (record.getReadNegativeStrandFlag()) record.getAlignmentEnd();		// cache alignment end if its on reverse strand
 			
-			final SAMRecordFilterWrapper wrapper = new SAMRecordFilterWrapper(record, chrCounter);
+			final SAMRecordFilterWrapper wrapper = new SAMRecordFilterWrapper(record, xxhash64.hash(record.getReadName().getBytes(), 0, record.getReadNameLength(), seed));
 			wrapper.setPassesFilter(passesFilter);
 			queue.add(wrapper);
 		}
@@ -927,7 +937,6 @@ public abstract class Pipeline {
 			this.isControl = isNormal;
 			this.mainThread = mainThread;
 			this.array =  array;
-//			this.map =  map;
 			this.barrier = barrier;
 			this.queue = queue;
 			this.minStartPosition = minStartPosition;
@@ -953,7 +962,7 @@ public abstract class Pipeline {
 					// we have a number (length) of bases that can be advanced.
 					updateMapWithAccums(startPosition, bases,
 							qualities, forwardStrand, offset, length, referenceOffset, 
-							record.getPassesFilter(), endPosition, (int) record.getPosition());
+							record.getPassesFilter(), endPosition, record.getPosition());
 					// advance offsets
 					referenceOffset += length;
 					offset += length;
@@ -980,7 +989,7 @@ public abstract class Pipeline {
 		 * @param readStartPosition start position of the read - depends on strand as to whether this is the alignemtnEnd or alignmentStart
 		 */
 		public void updateMapWithAccums(int startPosition, final byte[] bases, final byte[] qualities,
-				boolean forwardStrand, int offset, int length, int referenceOffset, final boolean passesFilter, final int readEndPosition, int readId) {
+				boolean forwardStrand, int offset, int length, int referenceOffset, final boolean passesFilter, final int readEndPosition, long readNameHash) {
 			
 			final int startPosAndRefOffset = startPosition + referenceOffset;
 			
@@ -992,11 +1001,8 @@ public abstract class Pipeline {
 				}
 				if (passesFilter && qualities[i + offset] >= minBaseQual) {
 					acc.addBase(bases[i + offset], qualities[i + offset], forwardStrand, 
-							startPosition, i + startPosAndRefOffset, readEndPosition, readId);
+							startPosition, i + startPosAndRefOffset, readEndPosition, readNameHash);
 				} else {
-//					if ((i + startPosAndRefOffset) == 4511341) {
-//						System.out.println("failed filter: " + readId + " at position 4511341");
-//					}
 					acc.addFailedFilterBase(bases[i + offset]);
 				}
 			}
@@ -1006,7 +1012,8 @@ public abstract class Pipeline {
 		public void run() {
 			logger.info("In Consumer run method with isControl: " + isControl);
 			try {
-				long count = 0;
+				int count = 0;
+				
 				while (true) {
 					
 					final SAMRecordFilterWrapper rec = queue.poll();
@@ -1014,15 +1021,14 @@ public abstract class Pipeline {
 						
 						processSAMRecord(rec);
 						minStartPosition.set(rec.getRecord().getAlignmentStart());
-//						int alignmentStart = rec.getRecord().getAlignmentStart(); 
 						
-						if (++count % maxMapSize == 0) {
+						if (++ count > maxMapSize) {
+							count = 0;
 							
 							/*
 							 * check to see how many non-null entries we have in the acc array
 							 * if more than our max amount - have a rest...
 							 */
-							
 							int currentPos = minStartPosition.get();
 							int minPos = Math.max(0,currentPos - 10000000);
 							int nonNullPositions = 0;
@@ -1033,11 +1039,8 @@ public abstract class Pipeline {
 							}
 							
 							if (nonNullPositions > 1000000) {
-//							for (int i = 0 ; i < 100 ; i++) {
-								final int sleepInterval = nonNullPositions / 1000;
-//								if (sleepInterval > 1000) logger.info("sleeping for " + sleepInterval + ", nonNullPositions: " + nonNullPositions);
 								try {
-									Thread.sleep(sleepInterval);
+									Thread.sleep(nonNullPositions / 1000);
 								} catch (final InterruptedException e) {
 									logger.error("InterruptedException caught in Consumer sleep",e);
 									throw e;
@@ -1100,7 +1103,7 @@ public abstract class Pipeline {
 		private final  Accumulator[] controlAccums;
 		private final  Accumulator[] testAccums;
 		private long processMapsCounter = 0;
-		private final int buffer = 1024;
+		private final int buffer = 512;
 		private final boolean debugLoggingEnabled;
 		
 		public Cleaner(CountDownLatch cleanerLatch, CountDownLatch consumerLatch, Thread mainThread, CyclicBarrier barrier,
@@ -1141,21 +1144,6 @@ public abstract class Pipeline {
 					processTest(testAccums[i]);
 					testAccums[i] = null;
 				}
-				
-				
-//				final Accumulator controlAcc = controlAccums[i];
-//				final Accumulator testAcc = testAccums[i];
-//				if (null != testAcc && null != controlAcc) {
-//					processControlAndTest(controlAcc, testAcc);
-//					controlAccums[i] = null;
-//					testAccums[i] = null;
-//				} else if (null != controlAcc){
-//					processControl(controlAcc);
-//					controlAccums[i] = null;
-//				} else if (null != testAcc){
-//					processTest(testAcc);
-//					testAccums[i] = null;
-//				}
 			}
 				
 			previousPosition = minStartPos;
@@ -1168,8 +1156,7 @@ public abstract class Pipeline {
 				 * Don't need to look past the end of the contig
 				 */
 				int minStartPos = 0;
-				int limit = referenceBasesLength + arrayBuffer;
-//				int limit = testAccums.length;
+				int limit = referenceBasesLength + ARRAY_BUFFER;
 				logger.info("minStartPos: " + minStartPos + ", limit: " + limit);
 				if ( ! singleSampleMode) {
 					
@@ -1186,29 +1173,12 @@ public abstract class Pipeline {
 						} else if (null != testAccums[i]) {
 							processTest(testAccums[i]);
 						}
-						
-//						Accumulator controlAcc = controlAccums[i];
-//						Accumulator testAcc = testAccums[i];
-//						if (null == controlAccums[i] && null == testAccums[i]) {
-//						} else if (null != controlAccums[i] && null != testAccums[i]) {
-//							processControlAndTest(controlAccums[i], testAccums[i]);
-////							controlAccums[i] = null;
-////							testAccums[i] = null;
-//						} else if (null != testAccums[i]) {
-//							processTest(testAccums[i]);
-////							testAccums[i] = null;
-//						} else if (null != controlAccums[i]) {
-//							processControl(controlAccums[i]);
-////							controlAccums[i] = null;
-//						}
 					}
 				} else {
 					
 					for (int i = minStartPos ; i < limit ; i++) {
-//						Accumulator testAcc = testAccums[i];
 						if (null != testAccums[i]) {
 							processTest(testAccums[i]);
-//							testAccums[i] = null;
 						}
 					}
 				}
@@ -1237,8 +1207,6 @@ public abstract class Pipeline {
 						
 						processMapsAll();
 						compoundSnps(true);
-						// lets try purging here...
-//						purgeNonAdjacentAccumulators();
 						try {
 							previousPosition = 0;
 							barrier.await();
@@ -1256,18 +1224,6 @@ public abstract class Pipeline {
 						logger.info("Cleaner: consumer latch == 0 - running processMapsAll");
 						processMapsAll();
 						break;
-					} else {
-						
-						/*
-						 * rather than sleeping, how about some compound snp work instead???
-						 */
-//						compoundSnps(false);
-						try {
-							Thread.sleep(5);	
-						} catch (final InterruptedException e) {
-							logger.error("InterruptedException caught in Cleaner sleep",e);
-							throw e;
-						}
 					}
 				}
 			} catch (final Exception e) {
@@ -1281,43 +1237,27 @@ public abstract class Pipeline {
 	}
 	
 	private void processTest(Accumulator testAcc) {
-		if (testAcc.containsMultipleAlleles() || 
-				(testAcc.getPosition() -1 < referenceBasesLength 
-						&& ! baseEqualsReference(testAcc.getBase(),testAcc.getPosition() -1))) {
+		if (AccumulatorUtils.passesInitialCheck(testAcc, (char) referenceBases[testAcc.getPosition() - 1])) {
 			interrogateAccumulations(null, testAcc);
 		}
 	}
 	private void processControl(Accumulator controlAcc) {
-		if (controlAcc.containsMultipleAlleles() || 
-				(controlAcc.getPosition() -1 < referenceBasesLength
-						&& ! baseEqualsReference(controlAcc.getBase(), controlAcc.getPosition() -1))) {
+		if (AccumulatorUtils.passesInitialCheck(controlAcc, (char) referenceBases[controlAcc.getPosition() - 1])) {
 			interrogateAccumulations(controlAcc, null);
 		}
 	}
 	private void processControlAndTest(Accumulator controlAcc, Accumulator testAcc) {
-		if (controlAcc.containsMultipleAlleles() || testAcc.containsMultipleAlleles() 
-				|| (controlAcc.getBase() != testAcc.getBase())
-				|| (testAcc.getPosition() -1 < referenceBasesLength 
-						&& ! baseEqualsReference(testAcc.getBase(), testAcc.getPosition() -1))
-				|| (controlAcc.getPosition() -1 < referenceBasesLength
-						&& ! baseEqualsReference(controlAcc.getBase(), controlAcc.getPosition() -1))) {
+		if (AccumulatorUtils.passesInitialCheck(controlAcc, testAcc, (char) referenceBases[testAcc.getPosition() - 1])) {
 			interrogateAccumulations(controlAcc, testAcc);
 		}
 	}
 	
-	private boolean baseEqualsReference(char base, int position) {
-		final char refBase = (char) referenceBases[position];
-		if (base == refBase) return true;
-		if (Character.isLowerCase(refBase)) {
-			return base == Character.toUpperCase(refBase);
-		} else return false;
-	}
 	
 	private void interrogateAccumulations(final Accumulator control, final Accumulator test) {
 		
 		// get coverage for both normal and tumour
-		final int controlCoverage = null != control ? control.getCoverage() : 0;
-		final int testCoverage = null != test ? test.getCoverage() : 0;
+		int controlCoverage = null != control ? control.getCoverage() : 0;
+		int testCoverage = null != test ? test.getCoverage() : 0;
 		
 		if (controlCoverage + testCoverage < initialTestSumOfCountsLimit) return;
 		
@@ -1341,71 +1281,95 @@ public abstract class Pipeline {
 			if (Character.isLowerCase(ref)) ref = Character.toUpperCase(ref);
 			
 			// get rule for normal and tumour
-			final Rule controlRule = RulesUtil.getRule(controlRules, controlCoverage);
-			final Rule testRule = RulesUtil.getRule(testRules, testCoverage);
+			Rule controlRule = RulesUtil.getRule(controlRules, controlCoverage);
+			Rule testRule = RulesUtil.getRule(testRules, testCoverage);
 			
 			
-			final boolean [] controlPass = PileupElementLiteUtil.isAccumulatorAKeeper(control,  ref, controlRule, baseQualityPercentage);
-			final boolean [] testPass = PileupElementLiteUtil.isAccumulatorAKeeper(test,  ref, testRule, baseQualityPercentage);
+			boolean [] controlPass = PileupElementLiteUtil.isAccumulatorAKeeper(control,  ref, controlRule, baseQualityPercentage);
+			boolean [] testPass = PileupElementLiteUtil.isAccumulatorAKeeper(test,  ref, testRule, baseQualityPercentage);
 			
 			
 			if (controlPass[0] || controlPass[1] || testPass[0] || testPass[1]) {
-				GenotypeEnum controlGE = null != control ? control.getGenotype(ref, controlRule, controlPass[1], baseQualityPercentage) : null;
-				GenotypeEnum testGE = null != test ? test.getGenotype(ref, testRule, testPass[1], baseQualityPercentage) : null;
-				String alt = GenotypeUtil.getAltAlleles(controlGE, testGE, ref);
-				
-				String cGT = VcfUtils.getGTStringWhenAltHasCommas(alt, ref, controlGE);
-				String tGT = VcfUtils.getGTStringWhenAltHasCommas(alt, ref, testGE);
-				
-				Classification c = Classification.UNKNOWN;
-				if ( ! singleSampleMode) {
-					c = GenotypeUtil.getClassification(null != control ? control.getCompressedPileup() : null, cGT, tGT, alt);
-				}
-				
-				if (null == alt) {
-					logger.warn("Null alt received from control GE: " + controlGE + ", testGE: " + testGE +", and ref: " + ref);
-					logger.warn("Null alt received from control: " + control + ", test: " + test +", and ref: " + ref);
-				}
-				
-				VcfRecord v = new VcfRecord.Builder(currentChr, position, ref + Constants.EMPTY_STRING).allele(alt).build();
 				
 				/*
-				 * Flanking sequence
+				 * remove overlapping reads and then check again to see if this position is of interest
 				 */
-				final char[] cpgCharArray = new char[11];
-				for (int i = 0 ; i < 11 ; i++) {
-					final int refPosition = position - (6 - i);
-					if (i == 5) {
-						cpgCharArray[i] = alt.charAt(0);
-					} else if ( refPosition >= 0 && refPosition < referenceBasesLength) {
-						cpgCharArray[i] = Character.toUpperCase((char) referenceBases[refPosition]);
-					} else {
-						cpgCharArray[i] = '-';
+				
+				if (null != control) {
+					AccumulatorUtils.removeOverlappingReads(control);
+				}
+				if (null != test) {
+					AccumulatorUtils.removeOverlappingReads(test);
+				}
+				
+				controlCoverage = null != control ? control.getCoverage() : 0;
+				testCoverage = null != test ? test.getCoverage() : 0;
+				if (controlCoverage + testCoverage < initialTestSumOfCountsLimit) return;
+				
+				
+				controlRule = RulesUtil.getRule(controlRules, controlCoverage);
+				testRule = RulesUtil.getRule(testRules, testCoverage);
+				controlPass = PileupElementLiteUtil.isAccumulatorAKeeper(control,  ref, controlRule, baseQualityPercentage);
+				testPass = PileupElementLiteUtil.isAccumulatorAKeeper(test,  ref, testRule, baseQualityPercentage);
+				
+				if (controlPass[0] || controlPass[1] || testPass[0] || testPass[1]) {
+				
+					GenotypeEnum controlGE = null != control ? AccumulatorUtils.getGenotype(control, ref, controlRule, controlPass[1], baseQualityPercentage) : null;
+					GenotypeEnum testGE = null != test ?  AccumulatorUtils.getGenotype(test, ref, testRule, testPass[1], baseQualityPercentage) : null;
+					String alt = GenotypeUtil.getAltAlleles(controlGE, testGE, ref);
+					
+					String cGT = VcfUtils.getGTStringWhenAltHasCommas(alt, ref, controlGE);
+					String tGT = VcfUtils.getGTStringWhenAltHasCommas(alt, ref, testGE);
+					
+					Classification c = Classification.UNKNOWN;
+					if ( ! singleSampleMode) {
+						c = GenotypeUtil.getClassification(null != control ? AccumulatorUtils.getUniqueBasesAsString(control) : null, cGT, tGT, alt);
 					}
+					
+					if (null == alt) {
+						logger.warn("Null alt received from control GE: " + controlGE + ", testGE: " + testGE +", and ref: " + ref);
+						logger.warn("Null alt received from control: " + control + ", test: " + test +", and ref: " + ref);
+					}
+					
+					VcfRecord v = new VcfRecord.Builder(currentChr, position, ref + Constants.EMPTY_STRING).allele(alt).build();
+					
+					/*
+					 * Flanking sequence
+					 */
+					final char[] cpgCharArray = new char[11];
+					for (int i = 0 ; i < 11 ; i++) {
+						final int refPosition = position - (6 - i);
+						if (i == 5) {
+							cpgCharArray[i] = alt.charAt(0);
+						} else if ( refPosition >= 0 && refPosition < referenceBasesLength) {
+							cpgCharArray[i] = Character.toUpperCase((char) referenceBases[refPosition]);
+						} else {
+							cpgCharArray[i] = '-';
+						}
+					}
+					v.appendInfo(VcfHeaderUtils.INFO_FLANKING_SEQUENCE +Constants.EQ +String.valueOf(cpgCharArray));
+					
+					
+					/*
+					 * attempt to add format field information
+					 */
+					List<String> ff = new ArrayList<String>(4);
+					ff.add(header);
+					
+					if ( ! singleSampleMode) {
+						ff.add(GenotypeUtil.getFormatValues(control, cGT, alt, ref, runSBIASAnnotation, sBiasAltPercentage,sBiasCovPercentage,  c, true));
+					}
+					ff.add(GenotypeUtil.getFormatValues(test, tGT, alt, ref, runSBIASAnnotation, sBiasAltPercentage, sBiasCovPercentage, c, false));
+					
+					v.setFormatFields(ff);
+					
+					snps.add(v);
+					
+					/*
+					 * populate adjacentAccumulators so that compound snp decision can be made
+					 */
+					adjacentAccumulators.put(v, new Pair<Accumulator, Accumulator>(control, test));
 				}
-				v.appendInfo(VcfHeaderUtils.INFO_FLANKING_SEQUENCE +Constants.EQ +String.valueOf(cpgCharArray));
-				
-				
-				/*
-				 * attempt to add format field information
-				 */
-				List<String> ff = new ArrayList<String>(4);
-				ff.add(header);
-				
-				if ( ! singleSampleMode) {
-					ff.add(GenotypeUtil.getFormatValues(control, cGT, alt, ref, runSBIASAnnotation, sBiasAltPercentage,sBiasCovPercentage,  c, true));
-				}
-				ff.add(GenotypeUtil.getFormatValues(test, tGT, alt, ref, runSBIASAnnotation, sBiasAltPercentage, sBiasCovPercentage, c, false));
-				
-				v.setFormatFields(ff);
-				
-				snps.add(v);
-				
-				
-				/*
-				 * populate adjacentAccumulators so that compound snp decision can be made
-				 */
-				adjacentAccumulators.put(v, new Pair<Accumulator, Accumulator>(control, test));
 			}
 		}
 	}
@@ -1418,6 +1382,21 @@ public abstract class Pipeline {
 		compoundSnps(true);
 	}
 	
+	public static List<SAMRecord> getRecordsAtPosition(SamReader reader, String contig, int position) {
+		SAMRecordIterator iter = reader.query(contig, position, position, false);
+		List<SAMRecord> recs = new ArrayList<>();
+		while (iter.hasNext()) {
+			SAMRecord r = iter.next();
+			if (SAMUtils.isSAMRecordValidForVariantCalling(r)) {
+				recs.add(r);
+			}
+		}
+		iter.close();
+		return recs;
+	}
+	
+	
+	
 	/**
 	 * If complete is set to true, then we can assume that there are no more snps to be added to the <code>snps</code> collection, and so we can traverse the whole collection.<br>
 	 * 
@@ -1425,7 +1404,7 @@ public abstract class Pipeline {
 	 * This is because we don't know if the latest entries in <code>snps</code> are part of a compound snp.
 	 * 
 	 * <br><b>NOTE</b> that it is the same thread that adds to the snps collection that calls this method (apart from when it is run with <code>complete=true</code>) 
-	 * and so modifying the <code>snps</code> collection should be ok. ie. should not get concurrent modification excpetions. 
+	 * and so modifying the <code>snps</code> collection should be OK. i.e. should not get concurrent modification exceptions. 
 	 * 
 	 */
 	void compoundSnps(boolean complete) {
@@ -1495,32 +1474,4 @@ public abstract class Pipeline {
 		
 		logger.info("Created " + compoundSnps.size() + " compound snps so far");
 	}
-	
-	void accumulateReadBases(Accumulator acc, Map<Long, StringBuilder> readSeqMap, int position) {
-		final TIntCharMap map = acc.getReadIdBaseMap();
-		// get existing seq for each id
-		int[] keys = map.keys();
-		
-		for (int l : keys) {
-			char c = map.get(l);
-			Long longObject = Long.valueOf(l);
-			StringBuilder seq = readSeqMap.get(longObject);
-			if (null == seq) {
-				// initialise based on how far away we are from the start
-				seq = new StringBuilder();
-				for (int q = (position) ; q > 0 ; q--) {
-					seq.append("_");
-				}
-				readSeqMap.put(longObject, seq);
-			}
-			seq.append(c);
-		}
-		// need to check that all elements have enough data in them
-		for (final StringBuilder sb : readSeqMap.values()) {
-			if (sb.length() <= position) {
-				sb.append("_");
-			}
-		}
-	}
-	
 }

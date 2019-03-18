@@ -152,6 +152,7 @@ public class StandardPipelineTest {
 		vcfs.stream().forEach(System.out::println);
 		
 		assertEquals(4, vcfs.size());
+//		assertEquals("GL000208.1	53	.	T	G	.	.	FLANK=AAGTGGTTCAA	GT:AD:DP:EOR:FF:FT:INF:NNS:OABS	0/1:90,6:96:T1[]5[]:C1;G51;T89:.:.:6:G1[41]5[40.2];T9[35.22]81[39.68]	0/1:90,6:96:T1[]5[]:C1;G51;T89:.:.:6:G1[41]5[40.2];T9[35.22]81[39.68]", vcfs.get(0));
 		assertEquals("GL000208.1	53	.	T	G	.	.	FLANK=AAGTGGTTCAA	GT:AD:DP:EOR:FF:FT:INF:NNS:OABS	0/1:115,10:125:T1[]7[]:C1;G51;T89:.:.:9:G2[41]8[40.5];T9[35.22]106[39.88]	0/1:115,10:125:T1[]7[]:C1;G51;T89:.:.:9:G2[41]8[40.5];T9[35.22]106[39.88]", vcfs.get(0));
 //		assertEquals("GL000208.1	77	.	T	C	.	.	FLANK=AAAGACGTATT	GT:AD:DP:EOR:FF:FT:INF:NNS:OABS	1/1:4,94:98:C0[]3[];T0[]1[]:C171;T11:.:.:64:C9[35.78]85[39.94];T1[41]3[39.67]	1/1:4,94:98:C0[]3[];T0[]1[]:C171;T11:.:.:64:C9[35.78]85[39.94];T1[41]3[39.67]", vcfs.get(1));
 //		assertEquals("GL000208.1	84	.	C	A	.	.	FLANK=TATTCAACTCA	GT:AD:DP:EOR:FF:FT:INF:NNS:OABS	0/1:22,71:93:A2[]6[]:A178;C6:.:.:50:A8[38.62]63[38.92];C2[36.5]20[40.2]	0/1:22,71:93:A2[]6[]:A178;C6:.:.:50:A8[38.62]63[38.92];C2[36.5]20[40.2]", vcfs.get(2));

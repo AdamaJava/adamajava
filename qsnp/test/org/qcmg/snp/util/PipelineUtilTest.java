@@ -3,11 +3,15 @@ package org.qcmg.snp.util;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertArrayEquals;
 import gnu.trove.list.TIntList;
+import gnu.trove.list.TLongList;
 import gnu.trove.list.array.TIntArrayList;
+import gnu.trove.list.array.TLongArrayList;
 import gnu.trove.map.TIntIntMap;
+import gnu.trove.map.TLongIntMap;
 import gnu.trove.map.TMap;
 import gnu.trove.map.hash.THashMap;
 import gnu.trove.map.hash.TIntIntHashMap;
+import gnu.trove.map.hash.TLongIntHashMap;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -111,7 +115,7 @@ Exception in thread "main" java.lang.IllegalArgumentException: List of Accumulat
 	}
 	
 	@Test
-	public void getLoLoRecsDiffClassification() throws Exception {
+	public void getLoLoRecsDiffClassification() {
 		VcfRecord v1 = VcfUtils.createVcfRecord(new ChrPointPosition("1", 100),null,"A","C");
 		VcfRecord v2 = VcfUtils.createVcfRecord(new ChrPointPosition("1", 101),null,"C","G");
 		v2.setInfo(VcfHeaderUtils.INFO_SOMATIC);
@@ -156,6 +160,33 @@ Exception in thread "main" java.lang.IllegalArgumentException: List of Accumulat
 		assertEquals(1, PipelineUtil.getUniqueCount(m, l));
 		l.add(101);
 		assertEquals(1, PipelineUtil.getUniqueCount(m, l));
+	}
+	
+	@Test
+	public void getUniquesLong() {
+		TLongIntMap m  = new TLongIntHashMap();
+		TLongList l  = new TLongArrayList();
+		assertEquals(0, PipelineUtil.getUniqueCount(m, l, true));
+		assertEquals(0, PipelineUtil.getUniqueCount(m, l, false));
+		m.put(100, 10);
+		assertEquals(0, PipelineUtil.getUniqueCount(m, l, true));
+		assertEquals(0, PipelineUtil.getUniqueCount(m, l, false));
+		l.add(100);
+		assertEquals(1, PipelineUtil.getUniqueCount(m, l, true));
+		assertEquals(0, PipelineUtil.getUniqueCount(m, l, false));
+		l.add(101);
+		assertEquals(1, PipelineUtil.getUniqueCount(m, l, true));
+		assertEquals(0, PipelineUtil.getUniqueCount(m, l, false));
+		
+		/*
+		 * add a reverse strand entry
+		 */
+		m.put(101, -20);
+		assertEquals(1, PipelineUtil.getUniqueCount(m, l, true));
+		assertEquals(1, PipelineUtil.getUniqueCount(m, l, false));
+		m.put(101, -20);
+		assertEquals(1, PipelineUtil.getUniqueCount(m, l, true));
+		assertEquals(1, PipelineUtil.getUniqueCount(m, l, false));
 	}
 	
 	@Test
@@ -275,6 +306,21 @@ Exception in thread "main" java.lang.IllegalArgumentException: List of Accumulat
 		snps.add(VcfUtils.createVcfRecord(new ChrPointPosition("1", 102), null, "C", null));
 		
 		assertEquals("ABC", PipelineUtil.getReference(snps).get());
+	}
+	
+	@Test
+	public void doesStringContainLC() {
+		assertEquals(false, PipelineUtil.isStringLowerCase(null));
+		assertEquals(false, PipelineUtil.isStringLowerCase(""));
+		assertEquals(false, PipelineUtil.isStringLowerCase("."));
+		assertEquals(false, PipelineUtil.isStringLowerCase("_"));
+		assertEquals(false, PipelineUtil.isStringLowerCase("_A"));
+		assertEquals(false, PipelineUtil.isStringLowerCase("A_"));
+		assertEquals(false, PipelineUtil.isStringLowerCase("A_B"));
+		assertEquals(true, PipelineUtil.isStringLowerCase("a"));
+		assertEquals(true, PipelineUtil.isStringLowerCase("_a"));
+		assertEquals(true, PipelineUtil.isStringLowerCase("_a_"));
+		assertEquals(true, PipelineUtil.isStringLowerCase("__x"));
 	}
 	
 	@Test
@@ -1321,23 +1367,23 @@ chr4    8046421 .       A       T       .       .       BaseQRankSum=0.727;Clipp
 //		assertEquals("1/1:0,65:67:.:SOMATIC:65:65:AA34[]31[];AC1[]0[];CA1[]0[]", ff.get(2));	// tumour
 //	}
 	
-	@Test
-	public void getSkeletonVcf() {
-		List<VcfRecord> snps = new ArrayList<>();
-		snps.add(VcfUtils.createVcfRecord(new ChrPointPosition("1", 99),null,"A","C"));
-		snps.add(VcfUtils.createVcfRecord(new ChrPointPosition("1", 101),null,"A","C"));
-		snps.add(VcfUtils.createVcfRecord(new ChrPointPosition("1", 102),null,"A","C"));
-		snps.add(VcfUtils.createVcfRecord(new ChrPointPosition("1", 103),null,"A","C"));
-		snps.add(VcfUtils.createVcfRecord(new ChrPointPosition("1", 104),null,"A","C"));
-		snps.add(VcfUtils.createVcfRecord(new ChrPointPosition("1", 106),null,"A","C"));
-		
-		List<List<VcfRecord>> loloVcfs = PipelineUtil.listOfListOfAdjacentVcfs(snps); 
-		assertEquals(1, loloVcfs.size());
-		VcfRecord v = PipelineUtil.createSkeletonCompoundSnp(loloVcfs.get(0));
-		assertEquals("1", v.getChrPosition().getChromosome());
-		assertEquals(101, v.getChrPosition().getStartPosition());
-		assertEquals("AAAA", v.getRef());
-		assertEquals("CCCC", v.getAlt());
-		
-	}
+//	@Test
+//	public void getSkeletonVcf() {
+//		List<VcfRecord> snps = new ArrayList<>();
+//		snps.add(VcfUtils.createVcfRecord(new ChrPointPosition("1", 99),null,"A","C"));
+//		snps.add(VcfUtils.createVcfRecord(new ChrPointPosition("1", 101),null,"A","C"));
+//		snps.add(VcfUtils.createVcfRecord(new ChrPointPosition("1", 102),null,"A","C"));
+//		snps.add(VcfUtils.createVcfRecord(new ChrPointPosition("1", 103),null,"A","C"));
+//		snps.add(VcfUtils.createVcfRecord(new ChrPointPosition("1", 104),null,"A","C"));
+//		snps.add(VcfUtils.createVcfRecord(new ChrPointPosition("1", 106),null,"A","C"));
+//		
+//		List<List<VcfRecord>> loloVcfs = PipelineUtil.listOfListOfAdjacentVcfs(snps); 
+//		assertEquals(1, loloVcfs.size());
+//		VcfRecord v = PipelineUtil.createSkeletonCompoundSnp(loloVcfs.get(0));
+//		assertEquals("1", v.getChrPosition().getChromosome());
+//		assertEquals(101, v.getChrPosition().getStartPosition());
+//		assertEquals("AAAA", v.getRef());
+//		assertEquals("CCCC", v.getAlt());
+//		
+//	}
 }

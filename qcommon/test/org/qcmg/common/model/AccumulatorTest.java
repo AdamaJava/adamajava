@@ -1,7 +1,7 @@
 package org.qcmg.common.model;
 
 import static org.junit.Assert.assertEquals;
-import gnu.trove.map.TIntCharMap;
+import gnu.trove.map.TLongCharMap;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,8 +10,12 @@ import java.util.Random;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.qcmg.common.util.AccumulatorUtils;
 
 public class AccumulatorTest {
+	
+	public static final Rule ruleZeroToTwentyThree = new Rule(0,20,3);
+	public static final Rule ruleZeroToThirtyThree = new Rule(0,30,3);
 	
 	@Test
 	public void testAccumulator() {
@@ -19,14 +23,14 @@ public class AccumulatorTest {
 		
 		acc.addBase((byte)'A', (byte)10, true, 1, 1, 2, 1);
 		acc.addBase((byte)'A', (byte)10, true, 2, 1, 2, 1);
-		assertEquals(2, acc.getNovelStartsCountForBase('A'));
+		assertEquals(2, AccumulatorUtils.getNovelStartsForBase(acc, 'A'));
 		
 		acc = new Accumulator(1);
 		acc.addBase((byte)'A', (byte)10, true, 1, 1, 2, 1);
 		acc.addBase((byte)'A', (byte)10, true, 2, 1, 2, 1);
 		acc.addBase((byte)'C', (byte)10, true, 2, 1, 2, 1);
 		acc.addBase((byte)'C', (byte)10, true, 3, 1, 2, 1);
-		assertEquals(2, acc.getNovelStartsCountForBase('C'));
+		assertEquals(2, AccumulatorUtils.getNovelStartsForBase(acc, 'C'));
 		
 		
 		acc = new Accumulator(1);
@@ -35,7 +39,7 @@ public class AccumulatorTest {
 		acc.addBase((byte)'C', (byte)10, true, 2, 1, 2, 1);
 		acc.addBase((byte)'C', (byte)10, true, 3, 1, 2, 1);
 		acc.addBase((byte)'C', (byte)10, true, 3, 1, 2, 1);
-		assertEquals(2, acc.getNovelStartsCountForBase('C'));
+		assertEquals(2, AccumulatorUtils.getNovelStartsForBase(acc, 'C'));
 		
 		acc = new Accumulator(1);
 		acc.addBase((byte)'A', (byte)10, true, 1, 1, 2, 1);
@@ -52,25 +56,25 @@ public class AccumulatorTest {
 	@Test
 	public void endOfReads() {
 		Accumulator acc = new Accumulator(100);
-		assertEquals(".", acc.getEndOfReadsPileup());
+		assertEquals(".", AccumulatorUtils.getEndOfReadsPileup(acc));
 		acc.addBase((byte)'C', (byte)10, true, 100, 100, 200, 1);
-		assertEquals("C1[]0[]", acc.getEndOfReadsPileup());
+		assertEquals("C1[]0[]", AccumulatorUtils.getEndOfReadsPileup(acc));
 		acc.addBase((byte)'C', (byte)10, true, 1, 100, 200, 1);
-		assertEquals("C1[]0[]", acc.getEndOfReadsPileup());
+		assertEquals("C1[]0[]", AccumulatorUtils.getEndOfReadsPileup(acc));
 		acc.addBase((byte)'C', (byte)10, true, 99, 100, 200, 1);
-		assertEquals("C2[]0[]", acc.getEndOfReadsPileup());
+		assertEquals("C2[]0[]", AccumulatorUtils.getEndOfReadsPileup(acc));
 		acc.addBase((byte)'C', (byte)10, true, 95, 100, 200, 1);
-		assertEquals("C2[]0[]", acc.getEndOfReadsPileup());
+		assertEquals("C2[]0[]", AccumulatorUtils.getEndOfReadsPileup(acc));
 		acc.addBase((byte)'C', (byte)10, true, 1, 100, 106, 1);
-		assertEquals("C2[]0[]", acc.getEndOfReadsPileup());
+		assertEquals("C2[]0[]", AccumulatorUtils.getEndOfReadsPileup(acc));
 		acc.addBase((byte)'C', (byte)10, true, 1, 100, 105, 1);
-		assertEquals("C2[]0[]", acc.getEndOfReadsPileup());
+		assertEquals("C2[]0[]", AccumulatorUtils.getEndOfReadsPileup(acc));
 		acc.addBase((byte)'C', (byte)10, true, 1, 100, 104, 1);
-		assertEquals("C3[]0[]", acc.getEndOfReadsPileup());
+		assertEquals("C3[]0[]", AccumulatorUtils.getEndOfReadsPileup(acc));
 		acc.addBase((byte)'C', (byte)10, true, 1, 100, 100, 1);
-		assertEquals("C4[]0[]", acc.getEndOfReadsPileup());
+		assertEquals("C4[]0[]", AccumulatorUtils.getEndOfReadsPileup(acc));
 		acc.addBase((byte)'T', (byte)10, false, 98, 100, 104, 2);
-		assertEquals("C4[]0[];T0[]1[]", acc.getEndOfReadsPileup());
+		assertEquals("C4[]0[];T0[]1[]", AccumulatorUtils.getEndOfReadsPileup(acc));
 	}
 	
 	@Test
@@ -140,192 +144,57 @@ public class AccumulatorTest {
 	}
 	
 	@Test
-	public void testToSamtoolsPileupString() {
-		Accumulator acc = new Accumulator(1);
-		acc.addBase((byte)'A', (byte)10, true, 1, 1, 2, 1);
-		assertEquals(".", acc.toSamtoolsPileupString('A'));
-		
-		acc = new Accumulator(1);
-		acc.addBase((byte)'A', (byte)10, true, 1, 1, 2, 1);
-		acc.addBase((byte)'A', (byte)10, true, 1, 1, 2, 1);
-		assertEquals("..", acc.toSamtoolsPileupString('A'));
-		
-		acc = new Accumulator(1);
-		acc.addBase((byte)'A', (byte)10, true, 1, 1, 2, 1);
-		acc.addBase((byte)'A', (byte)10, true, 1, 1, 2, 1);
-		acc.addBase((byte)'A', (byte)10, true, 1, 1, 2, 1);
-		assertEquals("...", acc.toSamtoolsPileupString('A'));
-		
-		acc = new Accumulator(1);
-		acc.addBase((byte)'A', (byte)10, true, 1, 1, 2, 1);
-		acc.addBase((byte)'A', (byte)10, true, 1, 1, 2, 1);
-		acc.addBase((byte)'A', (byte)10, true, 1, 1, 2, 1);
-		acc.addBase((byte)'A', (byte)10, true, 1, 1, 2, 1);
-		assertEquals("....", acc.toSamtoolsPileupString('A'));
-		assertEquals("AAAA", acc.toSamtoolsPileupString('C'));
-		assertEquals("AAAA", acc.toSamtoolsPileupString('G'));
-		assertEquals("AAAA", acc.toSamtoolsPileupString('T'));
-	}
-	
-//	@Test
-//	public void getAlleleicDistribution() {
-//		Accumulator acc = new Accumulator(1);
-//		acc.addBase((byte)'A', (byte)10, true, 1, 1, 2, 1);
-//		
-//		assertEquals("1,0", acc.getAlleleicFrequencies('A',null));
-//		assertEquals("1,0,0", acc.getAlleleicFrequencies('A',"A"));
-//		assertEquals("1,0,0", acc.getAlleleicFrequencies('A',"C"));
-//		assertEquals("1,0,0", acc.getAlleleicFrequencies('A',"T"));
-//		assertEquals("1,0,0", acc.getAlleleicFrequencies('A',"X"));
-//		
-//		for (int i = 0 ; i < 5 ; i++) acc.addBase((byte)'G', (byte)10, true, 1, 1, 2, i);
-//		assertEquals("1,5", acc.getAlleleicFrequencies('A',null));
-//		assertEquals("1,0,5", acc.getAlleleicFrequencies('A',"A"));
-//		assertEquals("1,0,5", acc.getAlleleicFrequencies('A',"C"));
-//		assertEquals("1,5,0", acc.getAlleleicFrequencies('A',"G"));
-//		assertEquals("1,0,5", acc.getAlleleicFrequencies('A',"X"));
-//		
-//		assertEquals("1,0,5,0", acc.getAlleleicFrequencies('A',"C,G"));
-//		assertEquals("1,5,0,0", acc.getAlleleicFrequencies('A',"G,C"));
-//		
-//		for (int i = 0 ; i < 3 ; i++) acc.addBase((byte)'T', (byte)10, true, 1, 1, 2, i);
-//		assertEquals("1,0,5,3", acc.getAlleleicFrequencies('A',"C,G"));
-//		assertEquals("1,0,5,3,0", acc.getAlleleicFrequencies('A',"C,G,T"));
-//		assertEquals("1,3,5", acc.getAlleleicFrequencies('A',"T"));
-//	}
-	
-	@Test
-	public void testToSamtoolsPileupString2() {
-		Accumulator acc = new Accumulator(1);
-		acc.addBase((byte)'A', (byte)10, true, 1, 1, 2, 1);
-		assertEquals(".", acc.toSamtoolsPileupString('A'));
-		acc.addBase((byte)'C', (byte)10, true, 1, 1, 2, 1);
-		assertEquals(".C", acc.toSamtoolsPileupString('A'));
-		acc.addBase((byte)'G', (byte)10, true, 1, 1, 2, 1);
-		assertEquals(".CG", acc.toSamtoolsPileupString('A'));
-		acc.addBase((byte)'T', (byte)10, true, 1, 1, 2, 1);
-		assertEquals(".CGT", acc.toSamtoolsPileupString('A'));
-		assertEquals("A.GT", acc.toSamtoolsPileupString('C'));
-		assertEquals("AC.T", acc.toSamtoolsPileupString('G'));
-		assertEquals("ACG.", acc.toSamtoolsPileupString('T'));
-	}
-	@Test
-	public void testToSamtoolsPileupStringReverse() {
-		Accumulator acc = new Accumulator(1);
-		acc.addBase((byte)'A', (byte)10, false, 1, 1, 2, 1);
-		assertEquals(",", acc.toSamtoolsPileupString('A'));
-		
-		acc = new Accumulator(1);
-		acc.addBase((byte)'A', (byte)10, false, 1, 1, 2, 1);
-		acc.addBase((byte)'A', (byte)10, false, 1, 1, 2, 1);
-		assertEquals(",,", acc.toSamtoolsPileupString('A'));
-		
-		acc = new Accumulator(1);
-		acc.addBase((byte)'A', (byte)10, false, 1, 1, 2, 1);
-		acc.addBase((byte)'A', (byte)10, false, 1, 1, 2, 1);
-		acc.addBase((byte)'A', (byte)10, false, 1, 1, 2, 1);
-		assertEquals(",,,", acc.toSamtoolsPileupString('A'));
-		
-		acc = new Accumulator(1);
-		acc.addBase((byte)'A', (byte)10, false, 1, 1, 2, 1);
-		acc.addBase((byte)'A', (byte)10, false, 1, 1, 2, 1);
-		acc.addBase((byte)'A', (byte)10, false, 1, 1, 2, 1);
-		acc.addBase((byte)'A', (byte)10, false, 1, 1, 2, 1);
-		assertEquals(",,,,", acc.toSamtoolsPileupString('A'));
-		assertEquals("aaaa", acc.toSamtoolsPileupString('C'));
-		assertEquals("aaaa", acc.toSamtoolsPileupString('G'));
-		assertEquals("aaaa", acc.toSamtoolsPileupString('T'));
+	public void canContributeToGenotype() {
+		assertEquals(false, AccumulatorUtils.canContributeToGenotype(null, 0, 0, null, false, 0.0));
+		assertEquals(false, AccumulatorUtils.canContributeToGenotype(new int[] {}, 0, 0, null, false, 0.0));
+		assertEquals(false, AccumulatorUtils.canContributeToGenotype(new int[] {1,2,3,4,5,6}, 0, 0, null, false, 0.0));
+		assertEquals(true, AccumulatorUtils.canContributeToGenotype(new int[] {1,2,3,4,5,6}, 5, 7, ruleZeroToTwentyThree, false, 10.0));
+		assertEquals(true, AccumulatorUtils.canContributeToGenotype(new int[] {10,100,1,0,0,0}, 10, 100, ruleZeroToTwentyThree, false, 10.0));
+		assertEquals(true, AccumulatorUtils.canContributeToGenotype(new int[] {3,30,1,0,0,0}, 13, 130, ruleZeroToTwentyThree, false, 10.0));
 	}
 	
 	@Test
-	public void testToSamtoolsPileupStringReverse2() {
-		Accumulator acc = new Accumulator(1);
-		acc.addBase((byte)'A', (byte)10, false, 1, 1, 2, 1);
-		assertEquals(",", acc.toSamtoolsPileupString('A'));
-		acc.addBase((byte)'C', (byte)10, false, 1, 1, 2, 1);
-		assertEquals(",c", acc.toSamtoolsPileupString('A'));
-		acc.addBase((byte)'G', (byte)10, false, 1, 1, 2, 1);
-		assertEquals(",cg", acc.toSamtoolsPileupString('A'));
-		acc.addBase((byte)'T', (byte)10, false, 1, 1, 2, 1);
-		assertEquals(",cgt", acc.toSamtoolsPileupString('A'));
-		assertEquals("a,gt", acc.toSamtoolsPileupString('C'));
-		assertEquals("ac,t", acc.toSamtoolsPileupString('G'));
-		assertEquals("acg,", acc.toSamtoolsPileupString('T'));
-	}
-	
-	@Test
-	public void testToSamtoolsPileupStringCombined() {
-		Accumulator acc = new Accumulator(1);
-		acc.addBase((byte)'A', (byte)10, true, 1, 1, 2, 1);
-		assertEquals(".", acc.toSamtoolsPileupString('A'));
+	public void getCountAndQualCombo() {
+		assertEquals(0l, AccumulatorUtils.getCountAndQualCombo(null));
+		assertEquals(0l, AccumulatorUtils.getCountAndQualCombo(new int[] {}));
+		assertEquals(0l, AccumulatorUtils.getCountAndQualCombo(new int[] {1,2,3,4,5}));
 		
-		acc = new Accumulator(1);
-		acc.addBase((byte)'A', (byte)10, true, 1, 1, 2, 1);
-		acc.addBase((byte)'A', (byte)10, false, 1, 1, 2, 1);
-		assertEquals(".,", acc.toSamtoolsPileupString('A'));
-		
-		acc = new Accumulator(1);
-		acc.addBase((byte)'A', (byte)10, true, 1, 1, 2, 1);
-		acc.addBase((byte)'A', (byte)10, false, 1, 1, 2, 1);
-		acc.addBase((byte)'A', (byte)10, true, 1, 1, 2, 1);
-		assertEquals("..,", acc.toSamtoolsPileupString('A'));
-		
-		acc = new Accumulator(1);
-		acc.addBase((byte)'A', (byte)10, true, 1, 1, 2, 1);
-		acc.addBase((byte)'A', (byte)10, false, 1, 1, 2, 1);
-		acc.addBase((byte)'A', (byte)10, true, 1, 1, 2, 1);
-		acc.addBase((byte)'A', (byte)10, false, 1, 1, 2, 1);
-		assertEquals("..,,", acc.toSamtoolsPileupString('A'));
-		assertEquals("AAaa", acc.toSamtoolsPileupString('C'));
-		assertEquals("AAaa", acc.toSamtoolsPileupString('G'));
-		assertEquals("AAaa", acc.toSamtoolsPileupString('T'));
-	}
-	@Test
-	public void testToSamtoolsPileupStringCombined2() {
-		Accumulator acc = new Accumulator(1);
-		acc.addBase((byte)'A', (byte)10, true, 1, 1, 2, 1);
-		assertEquals(".", acc.toSamtoolsPileupString('A'));
-		acc.addBase((byte)'C', (byte)10, false, 1, 1, 2, 1);
-		assertEquals(".c", acc.toSamtoolsPileupString('A'));
-		acc.addBase((byte)'G', (byte)10, true, 1, 1, 2, 1);
-		assertEquals(".cG", acc.toSamtoolsPileupString('A'));
-		acc.addBase((byte)'T', (byte)10, false, 1, 1, 2, 1);
-		assertEquals(".cGt", acc.toSamtoolsPileupString('A'));
-		assertEquals("A,Gt", acc.toSamtoolsPileupString('C'));
-		assertEquals("Ac.t", acc.toSamtoolsPileupString('G'));
-		assertEquals("AcG,", acc.toSamtoolsPileupString('T'));
+		// this should be 5 << 32 and 7
+		assertEquals(21474836487l, AccumulatorUtils.getCountAndQualCombo(new int[] {1,2,3,4,5,6}));
+		// this should be 5 << 32 and 0
+		assertEquals(21474836480l, AccumulatorUtils.getCountAndQualCombo(new int[] {1,0,3,4,0,6}));
 	}
 	
 	@Test
 	public void testGetGenotypeEnum() {
 		Accumulator acc = new Accumulator(1);
 		for (int i = 0 ; i < 10 ; i++) acc.addBase((byte)'A', (byte)10, true, 1, 1, 2, 1);
-		assertEquals(GenotypeEnum.AA, acc.getGenotype('A', new Rule(0,20,3), false, 10.0));
+		assertEquals(GenotypeEnum.AA, AccumulatorUtils.getGenotype(acc, 'A', ruleZeroToTwentyThree, false, 10.0));
 		
 		acc = new Accumulator(1);
 		for (int i = 0 ; i < 10 ; i++) acc.addBase((byte)'A', (byte)10, true, 1, 1, 2, 1);
 		for (int i = 0 ; i < 2 ; i++) acc.addBase((byte)'C', (byte)10, true, 1, 1, 2, 1);
-		assertEquals(GenotypeEnum.AA, acc.getGenotype('A', new Rule(0,20,3), false, 10.0));
+		assertEquals(GenotypeEnum.AA, AccumulatorUtils.getGenotype(acc, 'A', ruleZeroToTwentyThree, false, 10.0));
 		
 		acc = new Accumulator(1);
 		for (int i = 0 ; i < 10 ; i++) acc.addBase((byte)'A', (byte)10, true, 1, 1, 2, 1);
 		for (int i = 0 ; i < 2 ; i++) acc.addBase((byte)'C', (byte)10, true, 1, 1, 2, 1);
 		 acc.addBase((byte)'C', (byte)10, true, 1, 1, 2, 1);
-		assertEquals(GenotypeEnum.AC, acc.getGenotype('A', new Rule(0,20,3), false, 10.0));
+		assertEquals(GenotypeEnum.AC, AccumulatorUtils.getGenotype(acc, 'A', ruleZeroToTwentyThree, false, 10.0));
 		
 		acc = new Accumulator(1);
 		for (int i = 0 ; i < 10 ; i++) acc.addBase((byte)'C', (byte)10, true, 1, 1, 2, 1);
 		for (int i = 0 ; i < 9 ; i++) acc.addBase((byte)'G', (byte)10, true, 1, 1, 2, 1);
 		for (int i = 0 ; i < 8 ; i++) acc.addBase((byte)'T', (byte)10, true, 1, 1, 2, 1);
 		try {	// coverage exceeds rule
-			assertEquals(GenotypeEnum.AC, acc.getGenotype('C', new Rule(0,20,3), false, 10.0));
+			assertEquals(GenotypeEnum.AC, AccumulatorUtils.getGenotype(acc, 'C', ruleZeroToTwentyThree, false, 10.0));
 			Assert.fail("Should have thrown an IllegalArgumentException");
 		} catch(IllegalArgumentException e) {}
 		
-		assertEquals(GenotypeEnum.CG, acc.getGenotype('C', new Rule(0,30,3), false, 10.0));
-		assertEquals(GenotypeEnum.CG, acc.getGenotype('G', new Rule(0,30,3), false, 10.0));
-		assertEquals(GenotypeEnum.CG, acc.getGenotype('T', new Rule(0,30,3), false, 10.0));
-		assertEquals(GenotypeEnum.CG, acc.getGenotype('A', new Rule(0,30,3), false, 10.0));
+		assertEquals(GenotypeEnum.CG, AccumulatorUtils.getGenotype(acc, 'C', ruleZeroToThirtyThree, false, 10.0));
+		assertEquals(GenotypeEnum.CG, AccumulatorUtils.getGenotype(acc, 'G', ruleZeroToThirtyThree, false, 10.0));
+		assertEquals(GenotypeEnum.CG, AccumulatorUtils.getGenotype(acc, 'T', ruleZeroToThirtyThree, false, 10.0));
+		assertEquals(GenotypeEnum.CG, AccumulatorUtils.getGenotype(acc, 'A', ruleZeroToThirtyThree, false, 10.0));
 		
 		// add another T - equals numbers of Ts and Gs 
 		acc = new Accumulator(1);
@@ -333,10 +202,10 @@ public class AccumulatorTest {
 		for (int i = 0 ; i < 9 ; i++) acc.addBase((byte)'G', (byte)10, true, 1, 1, 2, 1);
 		for (int i = 0 ; i < 8 ; i++) acc.addBase((byte)'T', (byte)10, true, 1, 1, 2, 1);
 		acc.addBase((byte)'T', (byte)10, true, 1, 1, 2, 1);
-		assertEquals(GenotypeEnum.CG, acc.getGenotype('C', new Rule(0,30,3), false, 10.0));
-		assertEquals(GenotypeEnum.CG, acc.getGenotype('G', new Rule(0,30,3), false, 10.0));
-		assertEquals(GenotypeEnum.CT, acc.getGenotype('T', new Rule(0,30,3), false, 10.0));
-		assertEquals(GenotypeEnum.CG, acc.getGenotype('A', new Rule(0,30,3), false, 10.0));
+		assertEquals(GenotypeEnum.CG, AccumulatorUtils.getGenotype(acc, 'C', ruleZeroToThirtyThree, false, 10.0));
+		assertEquals(GenotypeEnum.CG, AccumulatorUtils.getGenotype(acc, 'G', ruleZeroToThirtyThree, false, 10.0));
+		assertEquals(GenotypeEnum.CT, AccumulatorUtils.getGenotype(acc, 'T', ruleZeroToThirtyThree, false, 10.0));
+		assertEquals(GenotypeEnum.CG, AccumulatorUtils.getGenotype(acc, 'A', ruleZeroToThirtyThree, false, 10.0));
 	}
 	
 	@Test
@@ -349,101 +218,16 @@ public class AccumulatorTest {
 		for (int i = 1 ; i <= 5 ; i++) acc.addBase((byte)'C', (byte)42, false, 1, 1, 2, i + 61);
 		for (int i = 1 ; i <= 1 ; i++) acc.addBase((byte)'C', (byte)42, true, 1, 1, 2, i + 67);
 		
-		assertEquals("C1[42]5[42];G0[0]60[40]", acc.getObservedAllelesByStrand());
+		assertEquals("C1[42]5[42];G0[0]60[40]", AccumulatorUtils.getOABS(acc));
 		/*
 		 * first pass, we get hom wildtype
 		 */
-		assertEquals("GG", acc.getGenotype('G', new Rule(51, Integer.MAX_VALUE, 10), false, 10).toString());
+		assertEquals("GG", AccumulatorUtils.getGenotype(acc, 'G', new Rule(51, Integer.MAX_VALUE, 10), false, 10).toString());
 		/*
 		 * second pass, we get hom for alt!!!
 		 */
-		assertEquals("CC", acc.getGenotype('G', new Rule(51, Integer.MAX_VALUE, 10), true, 10).toString());
+		assertEquals("CC", AccumulatorUtils.getGenotype(acc, 'G', new Rule(51, Integer.MAX_VALUE, 10), true, 10).toString());
 	}
-	
-//	@Test
-//	public void testGetPileupElementString() {
-//		Accumulator acc = new Accumulator(1);
-//		for (int i = 0 ; i < 10 ; i++) acc.addBase((byte)'A', (byte)10, true, 1, 1, 2, 1);
-//		assertEquals("A10[10],0[0]", acc.getPileupElementString());
-//		for (int i = 0 ; i < 10 ; i++) acc.addBase((byte)'C', (byte)10, false, 1, 1, 2, 1);
-//		assertEquals("A10[10],0[0],C0[0],10[10]", acc.getPileupElementString());
-//	}
-//	@Test
-//	public void testGetPileup() {
-//		Accumulator acc = new Accumulator(1);
-//		for (int i = 0 ; i < 10 ; i++) acc.addBase((byte)'A', (byte)10, true, 1, 1, 2, 1);
-//		assertEquals("AAAAAAAAAA", acc.getPileup());
-//		for (int i = 0 ; i < 10 ; i++) acc.addBase((byte)'C', (byte)10, false, 1, 1, 2, 1);
-//		assertEquals("AAAAAAAAAAcccccccccc", acc.getPileup());
-//		for (int i = 0 ; i < 5 ; i++) acc.addBase((byte)'G', (byte)10, false, 1, 1, 2, 1);
-//		assertEquals("AAAAAAAAAAccccccccccggggg", acc.getPileup());
-//		for (int i = 0 ; i < 3 ; i++) acc.addBase((byte)'T', (byte)10, true, 1, 1, 2, 1);
-//		assertEquals("AAAAAAAAAAccccccccccgggggTTT", acc.getPileup());
-//	}
-	
-//	@Test
-//	public void testGetCompressedPileup() {
-//		Accumulator acc = new Accumulator(1);
-//		for (int i = 0 ; i < 10 ; i++) acc.addBase((byte)'A', (byte)10, true, 1, 1, 2, 1);
-//		assertEquals("A", acc.getCompressedPileup());
-//		for (int i = 0 ; i < 10 ; i++) acc.addBase((byte)'C', (byte)10, false, 1, 1, 2, 1);
-//		assertEquals("AC", acc.getCompressedPileup());
-//		for (int i = 0 ; i < 5 ; i++) acc.addBase((byte)'G', (byte)10, false, 1, 1, 2, 1);
-//		assertEquals("ACG", acc.getCompressedPileup());
-//		for (int i = 0 ; i < 3 ; i++) acc.addBase((byte)'T', (byte)10, true, 1, 1, 2, 1);
-//		assertEquals("ACGT", acc.getCompressedPileup());
-//	}
-	
-	@Test
-	public void testContainsMutation() {
-		Accumulator acc = new Accumulator(1010101);
-		assertEquals(false, acc.containsMultipleAlleles());
-		for (int i = 0 ; i < 10 ; i++) acc.addBase((byte)'T', (byte)10, (i % 2 == 0) ? false : true, 1010100, 1010101, 1010101, 1);
-		assertEquals(false, acc.containsMultipleAlleles());
-		for (int i = 0 ; i < 10 ; i++) acc.addBase((byte)'T', (byte)10, (i % 2 == 0) ? false : true, 1010100, 1010101, 1010101, 1);
-		assertEquals(false, acc.containsMultipleAlleles());
-		acc.addBase((byte)'G', (byte)10, true, 1010100, 1010101, 1010101, 1);
-		assertEquals(true, acc.containsMultipleAlleles());
-		acc.addBase((byte)'A', (byte)10, true, 1010100, 1010101, 1010101, 1);
-		assertEquals(true, acc.containsMultipleAlleles());
-		acc.addBase((byte)'C', (byte)10, true, 1010100, 1010101, 1010101, 1);
-		assertEquals(true, acc.containsMultipleAlleles());
-	}
-	
-	@Test
-	public void testGetBase() {
-		Accumulator acc = new Accumulator(1010101);
-		assertEquals(false, acc.containsMultipleAlleles());
-		assertEquals('\u0000', acc.getBase());
-		acc.addBase((byte)'C', (byte)10, false, 1010100, 1010101, 1010102, 1);
-		assertEquals('C', acc.getBase());
-		acc.addBase((byte)'C', (byte)10, true, 1010100, 1010101, 1010102, 1);
-		assertEquals('C', acc.getBase());
-		acc.addBase((byte)'T', (byte)10, true, 1010100, 1010101, 1010102, 1);
-		try {
-			assertEquals('C', acc.getBase());
-			Assert.fail("Should have thrown a wobbly");
-		} catch (UnsupportedOperationException uoe) {}
-	}
-	
-//	@Ignore
-//	public void testGetPileupQualities() {
-//		Accumulator acc = new Accumulator(1010101);
-//		acc.addBase((byte)'G', (byte)'(', true, 1010100, 1010101, 1010102, 1);
-//		assertEquals("I", acc.getPileupQualities());
-//		acc.addBase((byte)'G', (byte)'(', true, 1010100, 1010101, 1010102, 1);
-//		assertEquals("II", acc.getPileupQualities());
-//		acc.addBase((byte)'A', (byte)'$', false, 1010100, 1010101, 1010102, 1);
-//		assertEquals("EII", acc.getPileupQualities());
-//		acc.addBase((byte)'T', (byte)'&', false, 1010100, 1010101, 1010102, 1);
-//		acc.addBase((byte)'T', (byte)'&', false, 1010100, 1010101, 1010102, 1);
-//		assertEquals("EIIGG", acc.getPileupQualities());
-//		acc.addBase((byte)'C', (byte)'\'', false, 1010100, 1010101, 1010102, 1);
-//		acc.addBase((byte)'C', (byte)'!', true, 1010100, 1010101, 1010102, 1);
-//		acc.addBase((byte)'C', (byte)'!', false, 1010100, 1010101, 1010102, 1);
-//		acc.addBase((byte)'C', (byte)'\'', true, 1010100, 1010101, 1010102, 1);
-//		assertEquals("EBHBHIIGG", acc.getPileupQualities());
-//	}
 	
 	@Test
 	public void readIdBaseMap() {
@@ -451,12 +235,12 @@ public class AccumulatorTest {
 		Accumulator acc = new Accumulator(1);
 		for (int i = 0 ; i < 10 ; i++) acc.addBase((byte)'A', (byte)10, true, 1, 1, 2, i);
 		
-		TIntCharMap map = acc.getReadIdBaseMap();
+		TLongCharMap map = AccumulatorUtils.getReadNameHashBaseMap(acc);
 		assertEquals(10, map.size());
 		
 		for (int i = 10 ; i < 20 ; i++) acc.addBase((byte)'C', (byte)10, true, 1, 1, 2, i);
 		
-		map = acc.getReadIdBaseMap();
+		map = AccumulatorUtils.getReadNameHashBaseMap(acc);
 		assertEquals(20, map.size());
 		
 		for (int i = 0 ; i < 20 ; i++ ) {
@@ -471,30 +255,28 @@ public class AccumulatorTest {
 	@Test
 	public void getOABS() {
 		Accumulator acc = new Accumulator(1);
-		assertEquals(".", acc.getObservedAllelesByStrand());
+		assertEquals(".", AccumulatorUtils.getOABS(acc));
 		
 		for (int i = 0 ; i < 10 ; i++) acc.addBase((byte)'A', (byte)10, true, 1, 1, 2, i);
-		assertEquals("A10[10]0[0]", acc.getObservedAllelesByStrand());
+		assertEquals("A10[10]0[0]", AccumulatorUtils.getOABS(acc));
 		for (int i = 0 ; i < 12 ; i++) acc.addBase((byte)'A', (byte)12, false, 1, 1, 2, i);
-		assertEquals("A10[10]12[12]", acc.getObservedAllelesByStrand());
+		assertEquals("A10[10]12[12]", AccumulatorUtils.getOABS(acc));
 		
 		for (int i = 0 ; i < 15 ; i++) acc.addBase((byte)'C', (byte)15, false, 1, 1, 2, i);
-		assertEquals("A10[10]12[12];C0[0]15[15]", acc.getObservedAllelesByStrand());
+		assertEquals("A10[10]12[12];C0[0]15[15]", AccumulatorUtils.getOABS(acc));
 		for (int i = 0 ; i < 18 ; i++) acc.addBase((byte)'C', (byte)18, true, 1, 1, 2, i);
-		assertEquals("A10[10]12[12];C18[18]15[15]", acc.getObservedAllelesByStrand());
+		assertEquals("A10[10]12[12];C18[18]15[15]", AccumulatorUtils.getOABS(acc));
 		
 		for (int i = 0 ; i < 20 ; i++) acc.addBase((byte)'T', (byte)1, false, 1, 1, 2, i);
-		assertEquals("A10[10]12[12];C18[18]15[15];T0[0]20[1]", acc.getObservedAllelesByStrand());
+		assertEquals("A10[10]12[12];C18[18]15[15];T0[0]20[1]", AccumulatorUtils.getOABS(acc));
 		for (int i = 0 ; i < 19 ; i++) acc.addBase((byte)'G', (byte)33, true, 1, 1, 2, i);
-		assertEquals("A10[10]12[12];C18[18]15[15];G19[33]0[0];T0[0]20[1]", acc.getObservedAllelesByStrand());
+		assertEquals("A10[10]12[12];C18[18]15[15];G19[33]0[0];T0[0]20[1]", AccumulatorUtils.getOABS(acc));
 		
 		for (int i = 0 ; i < 6 ; i++) acc.addBase((byte)'G', (byte)32, false, 1, 1, 2, i);
-		assertEquals("A10[10]12[12];C18[18]15[15];G19[33]6[32];T0[0]20[1]", acc.getObservedAllelesByStrand());
+		assertEquals("A10[10]12[12];C18[18]15[15];G19[33]6[32];T0[0]20[1]", AccumulatorUtils.getOABS(acc));
 		for (int i = 0 ; i < 8 ; i++) acc.addBase((byte)'T', (byte)3, true, 1, 1, 2, i);
-		assertEquals("A10[10]12[12];C18[18]15[15];G19[33]6[32];T8[3]20[1]", acc.getObservedAllelesByStrand());
+		assertEquals("A10[10]12[12];C18[18]15[15];G19[33]6[32];T8[3]20[1]", AccumulatorUtils.getOABS(acc));
 	}
-	
-	
 	
 	@Test
 	public void readIdBaseMapStrand() {
@@ -509,7 +291,7 @@ public class AccumulatorTest {
 		acc.addBase((byte)'T', (byte)10, false, 1, 1, 2, 7);
 		 
 		// should have both forward and reverse strand info here
-		TIntCharMap map = acc.getReadIdBaseMap();
+		TLongCharMap map = AccumulatorUtils.getReadNameHashBaseMap(acc);
 		assertEquals(7, map.size());
 		for (int i = 1 ; i < 8 ; i++) {
 			if (i < 4) {
@@ -560,6 +342,4 @@ public class AccumulatorTest {
 		}
 		System.out.println("time taken for " + noOfLoops + " adds to list: " + (System.currentTimeMillis() - start ));
 	}
-	
-
 }

@@ -1,13 +1,19 @@
 package org.qcmg.snp.util;
 
 import gnu.trove.list.TIntList;
+import gnu.trove.list.TLongList;
 import gnu.trove.list.array.TIntArrayList;
+import gnu.trove.list.array.TLongArrayList;
 import gnu.trove.map.TIntCharMap;
 import gnu.trove.map.TIntIntMap;
 import gnu.trove.map.TIntObjectMap;
+import gnu.trove.map.TLongCharMap;
+import gnu.trove.map.TLongIntMap;
+import gnu.trove.map.TLongObjectMap;
 import gnu.trove.map.TMap;
 import gnu.trove.map.hash.THashMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
+import gnu.trove.map.hash.TLongObjectHashMap;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
 
@@ -259,7 +265,7 @@ public class PipelineUtil {
 		/*
 		 * create map of readIds and bases, then flip to bases and counts
 		 */
-		TIntObjectMap<StringBuilder> moReadIdsAndBases = new TIntObjectHashMap<>();
+		TLongObjectMap<StringBuilder> moReadIdsAndBases = new TLongObjectHashMap<>();
 		
 		int pos = -1;
 		AtomicInteger ai = new AtomicInteger();
@@ -279,19 +285,11 @@ public class PipelineUtil {
 			pos = acc.getPosition();
 			
 			
-			TIntCharMap accMap = acc.getReadIdBaseMap();
-			/*
-			 * convert entries with lower case chars (which represent negative strand reasds) into upper case ones with -ve readids
-			 */
-			accMap.forEachEntry((i,c) -> {
-				if (Character.isLowerCase(c)) {
-					accMap.put(-i, Character.toUpperCase(c));
-					accMap.remove(i);
-				}
-				return true;
-				});
+			TLongCharMap accMap = AccumulatorUtils.getReadNameHashBaseMap(acc);
+			if (null == accMap) continue;
 			
 			if (ai.get() == 0) {
+				
 				accMap.forEachEntry((j,c) -> {
 					moReadIdsAndBases.put(j, new StringBuilder(c + Constants.EMPTY_STRING) ); 
 					return true;
@@ -326,31 +324,15 @@ public class PipelineUtil {
 			ai.incrementAndGet();
 		}
 		
-		/*
-		 * now turn into a TMap<String,  Pair<TIntList, TIntList>>
-		 */
-		TMap<String, Pair<TIntList, TIntList>> basesAndReadIds = new THashMap<>(moReadIdsAndBases.size() * 2); 
-		moReadIdsAndBases.forEachEntry((i,sb) -> {
-			Pair<TIntList, TIntList> readIds = basesAndReadIds.get(sb.toString());
-			if (null == readIds) {
-				TIntList fsList = new TIntArrayList();
-				TIntList rsList = new TIntArrayList();
-				readIds = new Pair<>(fsList, rsList);
-				basesAndReadIds.put(sb.toString(), readIds);
-			}
-			if (i < 0) {
-				readIds.getRight().add(i);
-			} else {
-				readIds.getLeft().add( i);
-			}
-			return true;
-		});
+		TMap<String, Pair<TLongList, TLongList>> basesAndReadIds = invertMap(moReadIdsAndBases);
 		
 		
 		/*
 		 * Create map of readIdAndStartPos
+		 * The start positions of reads on the reverse strand are indicated by the sign of the start position (value in the map).
+		 * If it is -ve, then the read is on the reverse strand, if +ve, its on the forward strand
 		 */
-		TIntIntMap combinedReadIdsStarPos = AccumulatorUtils.getReadIdStartPosMap(accs);
+		TLongIntMap combinedReadIdsStarPos = AccumulatorUtils.getReadIdStartPosMap(accs);
 		
 		
 		Map<String, short[]> allelesCountsNNS = new THashMap<>();
@@ -368,7 +350,7 @@ public class PipelineUtil {
 			 * second column is fs nns count
 			 * Need to get set of start positions from combinedReadIdsStarPos for our readIds 
 			 */
-			sa[1] = (short)getUniqueCount(combinedReadIdsStarPos, v.getLeft());
+			sa[1] = (short)getUniqueCount(combinedReadIdsStarPos, v.getLeft(), true);
 			/*
 			 * third column in sa is rs count
 			 */
@@ -382,6 +364,38 @@ public class PipelineUtil {
 			});
 		
 		return allelesCountsNNS;
+	}
+
+	private static TMap<String, Pair<TLongList, TLongList>> invertMap(TLongObjectMap<StringBuilder> moReadIdsAndBases) {
+		/*
+		 * now turn into a TMap<String,  Pair<TIntList, TIntList>>
+		 */
+		TMap<String, Pair<TLongList, TLongList>> basesAndReadIds = new THashMap<>(moReadIdsAndBases.size() * 2); 
+		moReadIdsAndBases.forEachEntry((i,sb) -> {
+			
+			/*
+			 * if the string builder contains lower case chars, then it is reverse strand
+			 * so need to upper case it
+			 */
+			boolean reverseStrand = isStringLowerCase(sb.toString());
+			
+			String bases = reverseStrand ? sb.toString().toUpperCase() : sb.toString();
+			
+			Pair<TLongList, TLongList> readIds = basesAndReadIds.get(bases);
+			if (null == readIds) {
+				TLongList fsList = new TLongArrayList();
+				TLongList rsList = new TLongArrayList();
+				readIds = new Pair<>(fsList, rsList);
+				basesAndReadIds.put(bases, readIds);
+			}
+			if (reverseStrand) {
+				readIds.getRight().add(i);
+			} else {
+				readIds.getLeft().add( i);
+			}
+			return true;
+		});
+		return basesAndReadIds;
 	}
 	
 	public static int getUniqueCount(TIntIntMap map, TIntList list) {
@@ -407,27 +421,57 @@ public class PipelineUtil {
 		return set.size();
 	}
 	
-	/**
-	 * Returns a VcfRecord with just the positional and ref and alt information provided. Does not contain filter, info, format etc.
-	 * @param vcfs
-	 * @return
-	 */
-	public static VcfRecord createSkeletonCompoundSnp(List<VcfRecord> vcfs) {
-		/*
-		 * sort list
-		 */
-		vcfs.sort(null);
-		StringBuilder ref = new StringBuilder();
-		StringBuilder alt = new StringBuilder();
-		ChrPosition startPosition = vcfs.get(0).getChrPosition();
-		
-		for (VcfRecord v : vcfs) {
-			ref.append(v.getRefChar());
-			alt.append(v.getAlt());
+	public static boolean isStringLowerCase(String s) {
+		if (null != s) {
+			for (char c : s.toCharArray()) {
+				if (Character.isLetter(c) && Character.isLowerCase(c)) {
+					return true;
+				}
+			}
 		}
-		return VcfUtils.createVcfRecord(startPosition, null, ref.toString(), alt.toString());
+		return false;
 	}
 	
+	/**
+	 * for each element in the list, get the corresponding value in the map, and return the unique count of these values
+	 * In this map, strandedness is the sign in the int value, the long key is the readname hashcode, and all 64 bits are used for this.
+	 * @param map
+	 * @param list
+	 * @return
+	 */
+	public static int getUniqueCount(TLongIntMap map, TLongList list, boolean fs) {
+		TIntSet set = new TIntHashSet();
+		list.forEach(i -> {
+			int startPosition = map.get(i);
+			if ((fs && startPosition > 0) || ( ! fs && startPosition < 0)) {
+				set.add(Math.abs(startPosition));
+			}
+			return true;
+		});
+		return set.size();
+	}
+	
+//	/**
+//	 * Returns a VcfRecord with just the positional and ref and alt information provided. Does not contain filter, info, format etc.
+//	 * @param vcfs
+//	 * @return
+//	 */
+//	public static VcfRecord createSkeletonCompoundSnp(List<VcfRecord> vcfs) {
+//		/*
+//		 * sort list
+//		 */
+//		vcfs.sort(null);
+//		StringBuilder ref = new StringBuilder();
+//		StringBuilder alt = new StringBuilder();
+//		ChrPosition startPosition = vcfs.get(0).getChrPosition();
+//		
+//		for (VcfRecord v : vcfs) {
+//			ref.append(v.getRefChar());
+//			alt.append(v.getAlt());
+//		}
+//		return VcfUtils.createVcfRecord(startPosition, null, ref.toString(), alt.toString());
+//	}
+//	
 	
 	public static Pair<List<Accumulator>, List<Accumulator>> getAccs(Map<VcfRecord, Pair<Accumulator, Accumulator>> vcfs) {
 		/*

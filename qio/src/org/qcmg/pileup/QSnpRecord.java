@@ -215,12 +215,12 @@ public class QSnpRecord {
 //	public void setNormalOABS(String normalOABS) {
 //		this.normalOABS = normalOABS;
 //	}
-	public String getNormalOABS() {
-		return control != null ? control.getObservedAllelesByStrand() : null;
-	}
-	public String getTumourOABS() {
-		return test != null ? test.getObservedAllelesByStrand() : null;
-	}
+//	public String getNormalOABS() {
+//		return control != null ? control.getObservedAllelesByStrand() : null;
+//	}
+//	public String getTumourOABS() {
+//		return test != null ? test.getObservedAllelesByStrand() : null;
+//	}
 //	public void setUnfilteredNormalPileup(String unfilteredNormalPileup) {
 //		this.unfilteredNormalPileup = unfilteredNormalPileup;
 //	}
