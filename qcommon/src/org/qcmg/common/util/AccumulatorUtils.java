@@ -44,6 +44,15 @@ public class AccumulatorUtils {
 	public static final int G_POSITION = 2;
 	public static final int T_POSITION = 3;
 	
+	public static final int A_FS_POSITION = 0;
+	public static final int A_RS_POSITION = 1;
+	public static final int C_FS_POSITION = 2;
+	public static final int C_RS_POSITION = 3;
+	public static final int G_FS_POSITION = 4;
+	public static final int G_RS_POSITION = 5;
+	public static final int T_FS_POSITION = 6;
+	public static final int T_RS_POSITION = 7;
+	
 	public static final long A_BASE_BIT = 0x2000000000000000l;
 	public static final int A_BASE_BIT_POSITION = 61;
 	public static final long C_BASE_BIT = 0x1000000000000000l;
@@ -62,6 +71,7 @@ public class AccumulatorUtils {
 	
 	/**
 	 * This removes reads that have the same read name hash from the accumulator.
+	 * If 
 	 * If the duplicates have the same base, then 1 is left, if they have different bases, they are both (all?) removed
 	 * 
 	 * This method updates the Accumulator object that is passed in, and is therefore not side-effect free
@@ -73,7 +83,7 @@ public class AccumulatorUtils {
 			TLongList data = acc.getData();
 			int len = data.size();
 			TLongObjectMap<TLongList> readNameMap = new TLongObjectHashMap<>(len);
-			
+			int [] baseCountByStrand = getBaseCountByStrand(acc);
 			
 			for (int i = 0 ; i < len ; i += 2) {
 				TLongList list = readNameMap.get(data.get(i));
@@ -102,7 +112,12 @@ public class AccumulatorUtils {
 							/*
 							 * all the same base - remove all but one from the list
 							 */
-							long toKeep = list.get(0);
+							
+							if (list.size() > 2) {
+								System.out.println("WARNING: list has more than 2 elements! " + acc.getPosition());
+							}
+							
+							long toKeep = longToKeepFromOverlapPair(list, baseCountByStrand);
 							list.clear();
 							list.add(toKeep);
 						}
@@ -135,6 +150,82 @@ public class AccumulatorUtils {
 				acc.setData(newData);
 			}
 		}
+	}
+	
+	public static long longToKeepFromOverlapPair(TLongList overlappingList, int[] basesByStrand) {
+		
+		if (overlappingList.size() != 2) {
+			throw new IllegalArgumentException("longToKeepFromOverlapPair called with list with size != 2. Size: " + overlappingList.size());
+		}
+		long l1 = overlappingList.get(0);
+		long l2 = overlappingList.get(1);
+		
+		char c1 = getBaseAsCharFromLong(l1);
+		char c2 = getBaseAsCharFromLong(l2);
+		if (c1 != c2) {
+			throw new IllegalArgumentException("longToKeepFromOverlapPair called with list containing different bases! c1: " + c1 + ", c2: " + c2);
+		}
+		
+		boolean forwardStrand1 = isForwardStrand(l1);
+		boolean forwardStrand2 = isForwardStrand(l2);
+		if (forwardStrand1 == forwardStrand2) {
+			/*
+			 * keep the one with the highest base qual
+			 */
+			decrementBaseCountByStrandArray(basesByStrand, c1, forwardStrand1);
+			return getQualityFromLong(l1) >= getQualityFromLong(l2) ? l1 : l2; 
+		}
+		
+		int [] strandCountArray = getBaseCountByStrand(basesByStrand, c1);
+		
+		int fStrandCount = strandCountArray[0];
+		int rStrandCount = strandCountArray[1];
+		
+		if (fStrandCount >= rStrandCount) {
+			/*
+			 * return entry that is on reverse strand 
+			 */
+			decrementBaseCountByStrandArray(basesByStrand, c1, forwardStrand1);
+			return forwardStrand1 ? l2 : l1;
+		} else {
+			/*
+			 * return entry that is on forward strand 
+			 */
+			decrementBaseCountByStrandArray(basesByStrand, c1, forwardStrand2);
+			return forwardStrand2 ? l2 : l1;
+		}
+	}
+	
+	/**
+	 * Decrements an element in the supplied int array based on the passed in char and boolean
+	 * 
+	 * @param array
+	 * @param c
+	 * @param forwardStrand
+	 */
+	public static void decrementBaseCountByStrandArray(int [] array, char c, boolean forwardStrand) {
+		switch (c) {
+		case Accumulator.A_CHAR : array[forwardStrand ? A_FS_POSITION : A_RS_POSITION] --; break;
+		case Accumulator.C_CHAR : array[forwardStrand ? C_FS_POSITION : C_RS_POSITION] --; break;
+		case Accumulator.G_CHAR : array[forwardStrand ? G_FS_POSITION : G_RS_POSITION] --; break;
+		case Accumulator.T_CHAR : array[forwardStrand ? T_FS_POSITION : T_RS_POSITION] --; break;
+		}
+	}
+
+	/**
+	 * Returns a subset of the supplied array that just contains the information relating to the supplied char
+	 * @param array
+	 * @param c
+	 * @return
+	 */
+	public static int[] getBaseCountByStrand(int [] array, char c) {
+		switch (c) {
+		case Accumulator.A_CHAR : return new int[]{array[A_FS_POSITION], array[A_RS_POSITION]};
+		case Accumulator.C_CHAR : return new int[]{array[C_FS_POSITION], array[C_RS_POSITION]};
+		case Accumulator.G_CHAR : return new int[]{array[G_FS_POSITION], array[G_RS_POSITION]};
+		case Accumulator.T_CHAR : return new int[]{array[T_FS_POSITION], array[T_RS_POSITION]};
+		}
+		return new int[2];
 	}
 	
 	/**
@@ -597,6 +688,10 @@ public class AccumulatorUtils {
 		return (byte)(l >>> QUALITY_BIT_POSITION);
 	}
 	
+	public static boolean isForwardStrand(long l) {
+		return ((l >>> STRAND_BIT_POSITION) & 1) == 1;
+	}
+	
 	public static int[] getCountAndEndOfReadByStrand(Accumulator acc) {
 		if (null != acc) {
 			TLongList list = acc.getData();
@@ -621,6 +716,28 @@ public class AccumulatorUtils {
 			return new int[] {fsCount, rsCount, eorTallyFS, eorTallyRS};
 		}
 		return new int[] {0,0,0,0};
+	}
+	
+	
+	public static int[] getBaseCountByStrand(Accumulator acc) {
+		if (null != acc) {
+			TLongList list = acc.getData();
+			if (null != list) {
+				int [] baseCountByStrand = new int[8];
+				for (int i = 1, len = list.size(); i < len ; i += 2) {
+					boolean fs = ((list.get(i)  >>> STRAND_BIT_POSITION) & 1) == 1;
+					char c = getBaseAsCharFromLong(list.get(i));
+					switch (c) {
+					case 'A': baseCountByStrand[fs ? A_FS_POSITION : A_RS_POSITION]++; break;
+					case 'C': baseCountByStrand[fs ? C_FS_POSITION : C_RS_POSITION]++; break;
+					case 'G': baseCountByStrand[fs ? G_FS_POSITION : G_RS_POSITION]++; break;
+					case 'T': baseCountByStrand[fs ? T_FS_POSITION : T_RS_POSITION]++; break;
+					}
+				}
+				return baseCountByStrand;
+			}
+		}
+		return new int[8];
 	}
 	
 	public static String getOABS(Accumulator acc) {

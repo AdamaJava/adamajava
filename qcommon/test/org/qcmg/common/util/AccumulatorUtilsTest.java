@@ -243,6 +243,132 @@ public class AccumulatorUtilsTest {
 		}
 	}
 	
+	
+	@Test
+	public void getBaseCountByStrand() {
+		Accumulator acc1 = new Accumulator(150);
+		for (int i = 0 ; i < 10 ; i++) {
+			acc1.addBase((byte)'G', (byte) 1, true, 100, 150, 200, i);
+		}
+		for (int i = 10 ; i < 20 ; i++) {
+			acc1.addBase((byte)'G', (byte) 1, false, 100, 150, 200, i);
+		}
+		assertArrayEquals(new int[]{0,0,0,0,10,10,0,0}, AccumulatorUtils.getBaseCountByStrand(acc1));
+		Accumulator acc2 = new Accumulator(151);
+		for (int i = 0 ; i < 10 ; i++) {
+			acc2.addBase((byte)'A', (byte) 1, true, 100, 151, 200, i);
+		}
+		for (int i = 10 ; i < 20 ; i++) {
+			acc2.addBase((byte)'A', (byte) 1, false, 100, 151, 200, i);
+		}
+		assertArrayEquals(new int[]{10,10,0,0,0,0,0,0}, AccumulatorUtils.getBaseCountByStrand(acc2));
+		
+		for (int i = 0 ; i < 10 ; i++) {
+			acc2.addBase((byte)'G', (byte) 1, true, 100, 151, 200, i);
+		}
+		for (int i = 10 ; i < 20 ; i++) {
+			acc2.addBase((byte)'G', (byte) 1, false, 100, 151, 200, i);
+		}
+		assertArrayEquals(new int[]{10,10,0,0,10,10,0,0}, AccumulatorUtils.getBaseCountByStrand(acc2));
+	}
+	
+	@Test
+	public void getBaseCountByStrand2() {
+		int [] array = new int [] {1,2,3,4,5,6,7,8};
+		assertArrayEquals(new int[]{1,2}, AccumulatorUtils.getBaseCountByStrand(array, 'A'));
+		assertArrayEquals(new int[]{3,4}, AccumulatorUtils.getBaseCountByStrand(array, 'C'));
+		assertArrayEquals(new int[]{5,6}, AccumulatorUtils.getBaseCountByStrand(array, 'G'));
+		assertArrayEquals(new int[]{7,8}, AccumulatorUtils.getBaseCountByStrand(array, 'T'));
+	}
+	
+	@Test
+	public void decrementBaseCountByStrandArray() {
+		int [] array = new int [] {1,2,3,4,5,6,7,8};
+		AccumulatorUtils.decrementBaseCountByStrandArray(array, 'A', false);
+		assertArrayEquals(new int[]{1,1,3,4,5,6,7,8}, array);
+		AccumulatorUtils.decrementBaseCountByStrandArray(array, 'T', true);
+		assertArrayEquals(new int[]{1,1,3,4,5,6,6,8}, array);
+		AccumulatorUtils.decrementBaseCountByStrandArray(array, 'C', true);
+		assertArrayEquals(new int[]{1,1,2,4,5,6,6,8}, array);
+		AccumulatorUtils.decrementBaseCountByStrandArray(array, 'G', true);
+		assertArrayEquals(new int[]{1,1,2,4,4,6,6,8}, array);
+		AccumulatorUtils.decrementBaseCountByStrandArray(array, 'G', false);
+		assertArrayEquals(new int[]{1,1,2,4,4,5,6,8}, array);
+	}
+	
+	@Test
+	public void longToKeepFromOverlapPair() {
+		int [] array = new int [] {1,2,3,4,5,6,7,8};
+		TLongList list = new TLongArrayList();
+		long l1 = AccumulatorUtils.convertStrandEORBaseQualAndPositionToLong(true, false, (byte)'T', (byte)10, 12345);
+		long l2 = AccumulatorUtils.convertStrandEORBaseQualAndPositionToLong(true, false, (byte)'T', (byte)10, 12345);
+		list.add(l1);
+		list.add(l2);
+		assertEquals(l1, AccumulatorUtils.longToKeepFromOverlapPair(list, array));
+		assertArrayEquals(new int [] {1,2,3,4,5,6,6,8}, array);
+		
+		list = new TLongArrayList();
+		l1 = AccumulatorUtils.convertStrandEORBaseQualAndPositionToLong(true, false, (byte)'T', (byte)10, 12345);
+		l2 = AccumulatorUtils.convertStrandEORBaseQualAndPositionToLong(false, false, (byte)'T', (byte)10, 12345);
+		list.add(l1);
+		list.add(l2);
+		assertEquals(l1, AccumulatorUtils.longToKeepFromOverlapPair(list, array));
+		assertArrayEquals(new int [] {1,2,3,4,5,6,6,7}, array);
+		
+		list = new TLongArrayList();
+		l1 = AccumulatorUtils.convertStrandEORBaseQualAndPositionToLong(false, false, (byte)'G', (byte)10, 12345);
+		l2 = AccumulatorUtils.convertStrandEORBaseQualAndPositionToLong(false, false, (byte)'G', (byte)20, 12345);
+		list.add(l1);
+		list.add(l2);
+		assertEquals(l2, AccumulatorUtils.longToKeepFromOverlapPair(list, array));
+		assertArrayEquals(new int [] {1,2,3,4,5,5,6,7}, array);
+		
+		list = new TLongArrayList();
+		l1 = AccumulatorUtils.convertStrandEORBaseQualAndPositionToLong(false, false, (byte)'G', (byte)10, 12345);
+		l2 = AccumulatorUtils.convertStrandEORBaseQualAndPositionToLong(true, false, (byte)'G', (byte)20, 12345);
+		list.add(l1);
+		list.add(l2);
+		assertEquals(l1, AccumulatorUtils.longToKeepFromOverlapPair(list, array));
+		assertArrayEquals(new int [] {1,2,3,4,5,4,6,7}, array);
+		
+	}
+	
+	@Test
+	public void overlapsTakingIntoAccountStrand() {
+		Accumulator acc = new Accumulator(150);
+		/*
+		 * add different reads all on same strand
+		 */
+		acc.addBase((byte)'G', (byte) 1, false, 100, 150, 200, 1);
+		acc.addBase((byte)'G', (byte) 1, false, 100, 150, 200, 2);
+		acc.addBase((byte)'G', (byte) 1, false, 100, 150, 200, 3);
+		acc.addBase((byte)'G', (byte) 1, false, 100, 150, 200, 4);
+		acc.addBase((byte)'G', (byte) 1, false, 100, 150, 200, 5);
+		assertEquals(5, acc.getCoverage());
+		AccumulatorUtils.removeOverlappingReads(acc);
+		assertEquals(5, acc.getCoverage());
+		assertArrayEquals(new int[]{0,5,0,0}, AccumulatorUtils.getCountAndEndOfReadByStrand(acc));
+		
+		/*
+		 * add read with same id on same strand - should be removed
+		 */
+		acc.addBase((byte)'G', (byte) 1, false, 100, 150, 200, 3);
+		assertEquals(6, acc.getCoverage());
+		AccumulatorUtils.removeOverlappingReads(acc);
+		assertEquals(5, acc.getCoverage());
+		assertArrayEquals(new int[]{0,5,0,0}, AccumulatorUtils.getCountAndEndOfReadByStrand(acc));
+		
+		/*
+		 * this time add read with same id on opposite strand - will keep that one and remove the original read
+		 */
+		acc.addBase((byte)'G', (byte) 1, true, 100, 150, 200, 3);
+		assertEquals(6, acc.getCoverage());
+		AccumulatorUtils.removeOverlappingReads(acc);
+		assertEquals(5, acc.getCoverage());
+		assertArrayEquals(new int[]{1,4,0,0}, AccumulatorUtils.getCountAndEndOfReadByStrand(acc));
+		
+	}
+	
 	@Test
 	public void overlaps() {
 		Accumulator acc = new Accumulator(150);
