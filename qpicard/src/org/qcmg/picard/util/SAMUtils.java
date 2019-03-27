@@ -264,7 +264,7 @@ public class SAMUtils {
 				 isSAMRecordValid(rec)
 				 && (includeDuplicates || ! rec.getDuplicateReadFlag())
 				 && ! rec.getReadUnmappedFlag()
-				 && ! rec.getNotPrimaryAlignmentFlag();
+				 && ! rec.isSecondaryOrSupplementary();
 	 }
 	 
 	 

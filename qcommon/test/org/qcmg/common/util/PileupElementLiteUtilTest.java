@@ -11,8 +11,6 @@ import org.qcmg.common.model.Accumulator;
 import org.qcmg.common.model.PileupElementLite;
 import org.qcmg.common.model.Rule;
 
-import gnu.trove.list.TIntList;
-import gnu.trove.list.array.TIntArrayList;
 
 public class PileupElementLiteUtilTest {
 	
@@ -181,46 +179,6 @@ public class PileupElementLiteUtilTest {
 		assertEquals(true, PileupElementLiteUtil.passesCountCheck(100, 100, new Rule(0,Integer.MAX_VALUE,10), true));
 		
 	}
-	
-//	@Test
-//	public void toSummaryString() {
-//		Accumulator accum = new Accumulator(1);
-//		accum.addBase((byte)'A', (byte) 1, true, 1, 1, 2, 1);
-//		assertEquals("A1[1],0[0]", PileupElementLiteUtil.toSummaryString(accum.getLargestVariant('\u0000'), "A"));
-//		accum.addBase((byte)'T', (byte) 1, true, 1, 1, 2, 1);
-//		assertEquals("T1[1],0[0]", PileupElementLiteUtil.toSummaryString(accum.getLargestVariant('\u0000'), "T"));
-//	}
-//	@Test
-//	public void toOABS() {
-//		Accumulator accum = new Accumulator(1);
-//		accum.addBase((byte)'A', (byte) 1, true, 1, 1, 2, 1);
-//		assertEquals("A1[1]0[0]", PileupElementLiteUtil.toObservedAlleleByStrand(accum.getLargestVariant('\u0000'), "A"));
-//	}
-//	
-//	@Test
-//	public void testGetLargestVariantNovelStarts() {
-//		Accumulator accum = new Accumulator(1);
-//		assertEquals(0, PileupElementLiteUtil.getLargestVariantNovelStarts(accum, 'A'));
-//		assertEquals(0, PileupElementLiteUtil.getLargestVariantNovelStarts(accum, 'C'));
-//		assertEquals(0, PileupElementLiteUtil.getLargestVariantNovelStarts(accum, 'G'));
-//		assertEquals(0, PileupElementLiteUtil.getLargestVariantNovelStarts(accum, 'T'));
-//		assertEquals(0, PileupElementLiteUtil.getLargestVariantNovelStarts(accum, 'N'));
-//		assertEquals(0, PileupElementLiteUtil.getLargestVariantNovelStarts(accum, 'X'));
-//		
-//		accum.addFailedFilterBase((byte)'A');
-//		assertEquals(0, PileupElementLiteUtil.getLargestVariantNovelStarts(accum, 'A'));
-//		byte A = 'A';
-//		accum.addBase(A, (byte) 1, true, 1, 1, 2, 1);
-//		assertEquals(0, PileupElementLiteUtil.getLargestVariantNovelStarts(accum, 'A'));
-//		assertEquals(1, PileupElementLiteUtil.getLargestVariantNovelStarts(accum, 'C'));
-//		byte C = 'C';
-//		accum.addBase(C, (byte) 1, true, 1, 1, 2, 1);
-//		accum.addBase(C, (byte) 1, true, 2, 1, 2, 1);
-//		assertEquals(1, PileupElementLiteUtil.getLargestVariantNovelStarts(accum, 'C'));	// still have the A in there
-//		assertEquals(2, PileupElementLiteUtil.getLargestVariantNovelStarts(accum, 'A'));
-//		assertEquals(2, PileupElementLiteUtil.getLargestVariantNovelStarts(accum, 'G'));
-//		assertEquals(2, PileupElementLiteUtil.getLargestVariantNovelStarts(accum, 'T'));
-//	}
 	
 	@Test
 	public void testIsAccumulatorAKeeper() {

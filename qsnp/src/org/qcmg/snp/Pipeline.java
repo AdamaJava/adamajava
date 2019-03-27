@@ -871,7 +871,7 @@ public abstract class Pipeline {
 				mainThread.interrupt();
 			} finally {
 				latch.countDown();
-				logger.info("Producer: shutting down - processed " + counter + " records, passed filter: " 
+				logger.info("Producer: shutting down - processed " + ((higherOrderCounter * ONE_MILLION) + counter) + " records, passed filter: " 
 						+ passedFilterCount + ", invalidCount: " + invalidCount);
 			}
 		}
