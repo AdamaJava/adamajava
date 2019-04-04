@@ -11,11 +11,11 @@ import org.qcmg.qsv.util.QSVConstants;
 
 public class StructuralVariant {
 	
-	String leftReference = null;
-	String rightReference = null;
-	Integer leftBreakpoint = null;
-	Integer rightBreakpoint = null;
-	String orientationCategory = null;
+	private String leftReference = null;
+	private String rightReference = null;
+	private Integer leftBreakpoint = null;
+	private Integer rightBreakpoint = null;
+	private String orientationCategory = null;
 	
 	public StructuralVariant() {
 		
@@ -85,8 +85,7 @@ public class StructuralVariant {
 		setRightReference(right);
 	}
 
-	public void setBreakpointsByCategory(String orientation, Integer leftBP,
-			Integer rightBP) {
+	public void setBreakpointsByCategory(String orientation, Integer leftBP, Integer rightBP) {
 		setOrientationCategory(orientation);
 		setLeftBreakpoint(leftBP);
 		setRightBreakpoint(rightBP);		
@@ -104,16 +103,16 @@ public class StructuralVariant {
 	}
 
 	public boolean splitReadEquals(StructuralVariant knownSV, String confidenceLevel, int buffer) {
-		
-		
-		if (orientationCategory.equals(knownSV.getOrientationCategory()) || confidenceLevel.equals(QSVConstants.LEVEL_SINGLE_CLIP)) {			
-			if (leftReference.equals(knownSV.getLeftReference()) && (rightReference.equals(knownSV.getRightReference()))) {				
-				if (leftBreakpoint >= knownSV.getLeftBreakpoint() - buffer && leftBreakpoint <= knownSV.getLeftBreakpoint()  + buffer) {					
-					if (rightBreakpoint >= knownSV.getRightBreakpoint() - buffer && rightBreakpoint <= knownSV.getRightBreakpoint() + buffer) {						
-						return true;
+		if (null != knownSV && null != confidenceLevel) {
+			if (knownSV.getOrientationCategory().equals(orientationCategory) || QSVConstants.LEVEL_SINGLE_CLIP.equals(confidenceLevel)) {
+				if (knownSV.getLeftReference().equals(leftReference) && (knownSV.getRightReference().equals(rightReference))) {
+					if (leftBreakpoint >= knownSV.getLeftBreakpoint() - buffer && leftBreakpoint <= knownSV.getLeftBreakpoint()  + buffer) {
+						if (rightBreakpoint >= knownSV.getRightBreakpoint() - buffer && rightBreakpoint <= knownSV.getRightBreakpoint() + buffer) {
+							return true;
+						}
 					}
 				}
-			}						
+			}
 		}
 		return false;
 	}
@@ -122,8 +121,6 @@ public class StructuralVariant {
 		String tempRef = leftReference;
 		leftReference = rightReference;
 		rightReference = tempRef;
-		
 	}
-	
 	
 }

@@ -394,7 +394,7 @@ public class QSVCluster {
 	/*
 	 * Check for +/-100bp overlap between cluster boundary and clip breakpoint
 	 */
-	private boolean getOverlap(int clipBreakpoint, int clusterBoundary) {
+	public static boolean getOverlap(int clipBreakpoint, int clusterBoundary) {
 		int start = clusterBoundary - 100;
 		if (start < 0) {
 			start = 0;
@@ -403,6 +403,7 @@ public class QSVCluster {
 		
 		return (clipBreakpoint >= start && clipBreakpoint <= end) ;
 	}
+	
 	
 	/**
 	 * Confidence level for the SV. 
@@ -463,6 +464,7 @@ public class QSVCluster {
 		}
 		return cat;
 	}
+	
 
 	/**
 	 * Check to see if the SV is potentially germline. Will return true if 
@@ -552,9 +554,6 @@ public class QSVCluster {
 				return clipRecords.get(0);
 			} else {
 				
-				int maxCount = 0;
-				SoftClipCluster match = null;
-				
 				List<SoftClipCluster> potentialMatches = new ArrayList<>();
 				//give those with 2 breakpoints higher priority
 				for (SoftClipCluster c: clipRecords) {
@@ -567,25 +566,10 @@ public class QSVCluster {
 					return potentialMatches.get(0);
 				} else if (potentialMatches.size()  > 1) {
 					//chose the one with the most clips
-					for (SoftClipCluster c: potentialMatches) {
-						int count = c.getClipCount(true, true) + c.getClipCount(true, false);
-						if (count > maxCount) {
-							maxCount = count;
-							match = c;
-						}
-					}
-					return match;
+					return getSoftClipClusterWithHighestClipCount(potentialMatches);
 				} else {
 					//no double sided clip clusters, chose single sided with highest clip count
-					for (SoftClipCluster c: clipRecords) {
-						int count = c.getClipCount(true, true) + c.getClipCount(true, false);
-						if (count > maxCount) {
-							maxCount = count;
-							match = c;	
-						}
-					}
-
-					return match;
+					return getSoftClipClusterWithHighestClipCount(clipRecords);
 				}
 			}			
 		}
@@ -661,6 +645,19 @@ public class QSVCluster {
 			}
 			
 		}				
+	}
+	
+	public static SoftClipCluster getSoftClipClusterWithHighestClipCount(List<SoftClipCluster> list) {
+		SoftClipCluster match = null;
+		int maxCount = 0;
+		for (SoftClipCluster c: list) {
+			int count = c.getClipCount(true, true) + c.getClipCount(true, false);
+			if (count > maxCount) {
+				maxCount = count;
+				match = c;	
+			}
+		}
+		return match;
 	}
 
 	/*

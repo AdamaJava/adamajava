@@ -54,12 +54,29 @@ public class SplitReadContigTest {
 	}
 	
 	@Test
+	public void getMutationType() {
+		createStandardObject(1);
+		splitReadContig.setConfidenceLevel(QSVConstants.LEVEL_SINGLE_CLIP);
+		splitReadContig.determineSplitReadPotential();
+		assertEquals(null, splitReadContig.getMutationType());
+	}
+	
+	@Test
 	public void testLeftLower() throws UnsupportedEncodingException, QSVException {
 		createStandardObject(1);
 		splitReadContig.setSplitReadAlignments(left, right);
-		assertTrue(splitReadContig.leftLower());
+		assertTrue(SplitReadContig.leftLower(left.getQueryStart().intValue(), right.getQueryStart().intValue()));
 		splitReadContig.setSplitReadAlignments(right, left);
-		assertFalse(splitReadContig.leftLower());
+		assertFalse(SplitReadContig.leftLower(right.getQueryStart().intValue(), left.getQueryStart().intValue()));
+	}
+	
+	@Test
+	public void getSingleSplitReadAlignment() {
+		createStandardObject(1);
+		assertEquals(null, SplitReadContig.getSingleSplitReadAlignment(left, right));
+		assertEquals(left, SplitReadContig.getSingleSplitReadAlignment(left, null));
+		assertEquals(right, SplitReadContig.getSingleSplitReadAlignment(null, right));
+		assertEquals(null, SplitReadContig.getSingleSplitReadAlignment(null, null));
 	}
 	
 	@Test
@@ -131,16 +148,14 @@ public class SplitReadContigTest {
 	
 	@Test
 	public void testNeedToReverseComplement() {	
-		createStandardObject(1);
-		left = new SplitReadAlignment("chr10", QSVUtil.MINUS, 89700210, 89700299, 1, 90);
-		right = new SplitReadAlignment("chr10", QSVUtil.MINUS, 89712341, 89712514, 109, 282);
-		splitReadContig.setSplitReadAlignments(left, right);
-		assertTrue(splitReadContig.needToReverseComplement(QSVConstants.ORIENTATION_1));
-	
-		left = new SplitReadAlignment("chr10", QSVUtil.PLUS, 89700210, 89700299, 1, 90);
-		right = new SplitReadAlignment("chr10", QSVUtil.MINUS, 89712341, 89712514, 109, 282);
-		splitReadContig.setSplitReadAlignments(left, right);
-		assertTrue(splitReadContig.needToReverseComplement(QSVConstants.ORIENTATION_4));
+		assertEquals(false, SplitReadContig.needToReverseComplement(QSVConstants.ORIENTATION_4, QSVUtil.MINUS));
+		assertEquals(true, SplitReadContig.needToReverseComplement(QSVConstants.ORIENTATION_3, QSVUtil.MINUS));
+		assertEquals(true, SplitReadContig.needToReverseComplement(QSVConstants.ORIENTATION_2, QSVUtil.MINUS));
+		assertEquals(true, SplitReadContig.needToReverseComplement(QSVConstants.ORIENTATION_1, QSVUtil.MINUS));
+		assertEquals(true, SplitReadContig.needToReverseComplement(QSVConstants.ORIENTATION_4, QSVUtil.PLUS));
+		assertEquals(false, SplitReadContig.needToReverseComplement(QSVConstants.ORIENTATION_3, QSVUtil.PLUS));
+		assertEquals(false, SplitReadContig.needToReverseComplement(QSVConstants.ORIENTATION_2, QSVUtil.PLUS));
+		assertEquals(false, SplitReadContig.needToReverseComplement(QSVConstants.ORIENTATION_1, QSVUtil.PLUS));
 	}	
 	
 	@Test
@@ -185,77 +200,104 @@ public class SplitReadContigTest {
 		assertEquals(18, splitReadContig.getNonTemplateSequence().length());
 		assertEquals("GAGATTATACTTTGTGTA", splitReadContig.getNonTemplateSequence());	
 	}
+	
+	@Test
+	public void determineMutationType() {
+		StructuralVariant sv = new StructuralVariant("chrX", "chrX", 100, 1000, "1");		
+		assertEquals("DEL/ITX", SplitReadContig.determineMutationType(sv));
+		sv = new StructuralVariant("chrX", "chrX", 100, 1000, "2");
+		assertEquals("DUP/INS/ITX", SplitReadContig.determineMutationType(sv));
+		sv = new StructuralVariant("chrX", "chrX", 100, 1000, "3");
+		assertEquals("INV/ITX", SplitReadContig.determineMutationType(sv));
+		sv = new StructuralVariant("chrX", "chrX", 100, 1000, "4");
+		assertEquals("INV/ITX", SplitReadContig.determineMutationType(sv));
+		sv = new StructuralVariant("chrX", "chrX", 100, 1000, "");
+		assertEquals("", SplitReadContig.determineMutationType(sv));
+		sv = new StructuralVariant("chrX", "chrX", 100, 1000, null);
+		assertEquals("", SplitReadContig.determineMutationType(sv));
+	}
+	
+	@Test
+	public void getAlignmentDifference() {
+		SplitReadAlignment sra = new SplitReadAlignment("chr1", '-', 1000, 900, 1, 50);
+		assertEquals(null, SplitReadContig.getAlignmentDifference(null, null, 10, sra, QSVConstants.LEVEL_HIGH, 89700299, 89712341, 282));
+		assertEquals(sra, SplitReadContig.getAlignmentDifference(null, null, 10, sra, QSVConstants.LEVEL_SINGLE_CLIP, 89700299, 89712341, 282));
+		
+		sra = new SplitReadAlignment("chr1", '-', 89700299, 89712341, 1, 50);
+		assertEquals(sra, SplitReadContig.getAlignmentDifference(null, null, 10, sra, QSVConstants.LEVEL_HIGH, 89700299, 89712341, 282));
+		
+	}
 
 	@Test
 	public void testPassesBreakpointFilter() {
 		createStandardObject(1);
 		splitReadContig.setConfidenceLevel(QSVConstants.LEVEL_HIGH);
-		assertTrue(splitReadContig.passesBreakpointFilter(left, right));
+		assertTrue(SplitReadContig.passesBreakpointFilter(left, right, QSVConstants.LEVEL_HIGH, 89700299, 89712341));
 		
 		splitReadContig.setConfidenceLevel(QSVConstants.LEVEL_SINGLE_CLIP);
 		left = new SplitReadAlignment("chr10", QSVUtil.PLUS, 89700210, 89719299, 1, 90);
 		right = new SplitReadAlignment("chr10", QSVUtil.MINUS, 89712341, 89712514, 109, 282);
-		assertTrue(splitReadContig.passesBreakpointFilter(left, right));
+		assertTrue(SplitReadContig.passesBreakpointFilter(left, right, QSVConstants.LEVEL_SINGLE_CLIP, 89700299, 89712341));
 		splitReadContig.setConfidenceLevel(QSVConstants.LEVEL_HIGH);
-		assertFalse(splitReadContig.passesBreakpointFilter(left, right));		
+		assertFalse(SplitReadContig.passesBreakpointFilter(left, right, QSVConstants.LEVEL_HIGH, 89700299, 89712341));		
 	}	
 	
 	@Test
 	public void testQueryStringPositionFilter() {
 		createStandardObject(1);
-		assertTrue(splitReadContig.passesQueryPositionFilter(right, left));
+		assertTrue(SplitReadContig.passesQueryPositionFilter(right, left, 282));
 		
 		left = new SplitReadAlignment("chr10", QSVUtil.PLUS, 89700210, 89700299, 1, 200);
 		right = new SplitReadAlignment("chr10", QSVUtil.PLUS, 89712341, 89712514, 20, 232);
-		assertFalse(splitReadContig.passesQueryPositionFilter(left, right));
+		assertFalse(SplitReadContig.passesQueryPositionFilter(left, right, 282));
 		
 		left = new SplitReadAlignment("chr10", QSVUtil.PLUS, 89700210, 89700299, 1, 120);
 		right = new SplitReadAlignment("chr10", QSVUtil.PLUS, 89712341, 89712514, 110, 232);
-		assertTrue(splitReadContig.passesQueryPositionFilter(left, right));
+		assertTrue(SplitReadContig.passesQueryPositionFilter(left, right, 282));
 	}
 	
 	@Test
 	public void testQueryLengthFilter() {
 		createStandardObject(1);
-		assertTrue(splitReadContig.queryLengthFilter(right, left));
+		assertTrue(SplitReadContig.queryLengthFilter(right, left, 282));
 		
 		left = new SplitReadAlignment("chr10", QSVUtil.PLUS, 89700210, 89700299, 1, 10);
-		assertFalse(splitReadContig.queryLengthFilter(left, right));
+		assertFalse(SplitReadContig.queryLengthFilter(left, right, 282));
 		
 		left = new SplitReadAlignment("chr10", QSVUtil.PLUS, 89700210, 89700299, 0, 290);
-		assertFalse(splitReadContig.queryLengthFilter(left, right));
+		assertFalse(SplitReadContig.queryLengthFilter(left, right, 282));
 		
 		left = new SplitReadAlignment("chr10", QSVUtil.PLUS, 89700210, 89700299, 1, 90);
 		right = new SplitReadAlignment("chr10", QSVUtil.PLUS, 89712341, 89712514, 1, 200);
-		assertFalse(splitReadContig.queryLengthFilter(left, right));
-		assertFalse(splitReadContig.queryLengthFilter(right, left));	
+		assertFalse(SplitReadContig.queryLengthFilter(left, right, 282));
+		assertFalse(SplitReadContig.queryLengthFilter(right, left, 282));	
 	}
 	
 	@Test
 	public void testPassesSizeFilter() {
 		createStandardObject(1);
-		assertFalse(splitReadContig.passesSizeFilter(new SplitReadAlignment("chr10", QSVUtil.PLUS, 2970200, 2970220, 1, 19)));
-		assertFalse(splitReadContig.passesSizeFilter(new SplitReadAlignment("chr10", QSVUtil.PLUS, 2970200, 2970220, 1, 270)));
-		assertTrue(splitReadContig.passesSizeFilter(new SplitReadAlignment("chr10", QSVUtil.PLUS, 2970200, 2970220, 1, 100)));
+		assertFalse(SplitReadContig.passesSizeFilter(new SplitReadAlignment("chr10", QSVUtil.PLUS, 2970200, 2970220, 1, 19), 282));
+		assertFalse(SplitReadContig.passesSizeFilter(new SplitReadAlignment("chr10", QSVUtil.PLUS, 2970200, 2970220, 1, 270), 282));
+		assertTrue(SplitReadContig.passesSizeFilter(new SplitReadAlignment("chr10", QSVUtil.PLUS, 2970200, 2970220, 1, 100), 282));
 	}
 	
 	@Test
 	public void testPassesBreakpointFilterSingleAlignment() {
 		createStandardObject(1);
 		splitReadContig.setConfidenceLevel(QSVConstants.LEVEL_MID);
-		assertTrue(splitReadContig.passesBreakpointFilter(left));
-		assertTrue(splitReadContig.passesBreakpointFilter(right));
+		assertTrue(SplitReadContig.passesBreakpointFilter(left, QSVConstants.LEVEL_MID, 89700299, 89712341));
+		assertTrue(SplitReadContig.passesBreakpointFilter(right, QSVConstants.LEVEL_MID, 89700299, 89712341));
 		
 		right = new SplitReadAlignment("chr10", QSVUtil.PLUS, 100, 200, 1, 200);
 		
-		assertFalse(splitReadContig.passesBreakpointFilter(right));
+		assertFalse(SplitReadContig.passesBreakpointFilter(right, QSVConstants.LEVEL_MID, 89700299, 89712341));
 	}
 	
 	@Test
 	public void testCheckBlockSize() throws QSVException {
 		createStandardObject(1);
-		assertFalse(splitReadContig.checkBlockSize(new BLATRecord("187\t5\t0\t0\t2\t61\t1\t17709\t-\tsplitcon_chr22_21353096_chr22_21566646_3_true\t253\t0\t253\tchr22\t51304566\t25002854\t25020755\t3\t17,10,165,\t0,22,88,\t25002854,25002871,25020590,\t")));
-		assertTrue(splitReadContig.checkBlockSize(new BLATRecord("187\t5\t0\t0\t2\t61\t1\t17709\t-\tsplitcon_chr22_21353096_chr22_21566646_3_true\t253\t0\t253\tchr22\t51304566\t25002854\t25020755\t2\t270,165,\t22,88,\t25002854,25020590,\t")));
+		assertFalse(SplitReadContig.checkBlockSize(new BLATRecord("187\t5\t0\t0\t2\t61\t1\t17709\t-\tsplitcon_chr22_21353096_chr22_21566646_3_true\t253\t0\t253\tchr22\t51304566\t25002854\t25020755\t3\t17,10,165,\t0,22,88,\t25002854,25002871,25020590,\t")));
+		assertTrue(SplitReadContig.checkBlockSize(new BLATRecord("187\t5\t0\t0\t2\t61\t1\t17709\t-\tsplitcon_chr22_21353096_chr22_21566646_3_true\t253\t0\t253\tchr22\t51304566\t25002854\t25020755\t2\t270,165,\t22,88,\t25002854,25020590,\t")));
 	}
 	
 	@Test
@@ -267,10 +309,11 @@ public class SplitReadContigTest {
 	@Test
 	public void testMatchingQueryString() {
 		createStandardObject(1);
-		assertEquals(Integer.valueOf(5), splitReadContig.matchingQueryString(286, 85, 232, left));
-		assertEquals(null, splitReadContig.matchingQueryString(286, 20, 232, left));
-		assertEquals(Integer.valueOf(14), splitReadContig.matchingQueryString(286, 1, 95, right));
-		assertEquals(null, splitReadContig.matchingQueryString(286, 20, 232, right));
+		assertEquals(true, SplitReadContig.matchingQueryString(286, 85, 232, left, 282));
+//		assertEquals(Integer.valueOf(5), splitReadContig.matchingQueryString(286, 85, 232, left, 282));
+		assertEquals(false, SplitReadContig.matchingQueryString(286, 20, 232, left, 282));
+		assertEquals(true, SplitReadContig.matchingQueryString(286, 1, 95, right, 282));
+		assertEquals(false, SplitReadContig.matchingQueryString(286, 20, 232, right, 282));
 	}
 	
 	private void createStandardObject(int num) {
