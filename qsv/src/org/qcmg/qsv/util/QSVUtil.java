@@ -52,7 +52,7 @@ public class QSVUtil {
 	public static ConcurrentMap<String, byte[]> REFERENCE;
 	public static final ReferenceNameComparator REF_NAME_COMP =  new ReferenceNameComparator();
 	
-	public static final String ABA = "ABA";
+	private static final String ABA = "ABA";
 	private static final String AAB = "AAB";
 	private static final String ABC = "ABC";
 	private static final String BAB = "BAB";
@@ -63,6 +63,7 @@ public class QSVUtil {
 	private static final String BBC = "BBC";
 	private static final String ABB = "ABB";
 	private static final String AAC = "AAC";
+	private static final String CTX = "CTX";
 
 	/**
 	 * Takes start and end date and return a string of the time between these two Date objects
@@ -218,12 +219,12 @@ public class QSVUtil {
 	 */
 	public static String getMutationByPairGroup(String pg) {
 		if (pg.equals("Cxx")) {
-			return "CTX";
+			return CTX;
 		} else if (pg.equals(AAC)) {
 			return "DEL/ITX";
 		} else if (pg.equals("BAC_BBC") || pg.equals("BAA_BBA") || pg.equals("BAB_BBB")) {
 			return "INV/ITX";
-		} else if (pg.equals(ABC) || pg.equals(ABA) || pg.equals("AAB") || pg.equals(ABB)) {
+		} else if (pg.equals(ABC) || pg.equals(ABA) || pg.equals(AAB) || pg.equals(ABB)) {
 			return "DUP/INS/ITX";
 		} else {
 			return pg;
@@ -239,7 +240,7 @@ public class QSVUtil {
 	public static String getMutationByPairClassification(PairClassification pClass) {
 		String zp = pClass.toString();
 		if (zp.equals("Cxx")) {
-			return "CTX";
+			return CTX;
 		} else if (zp.equals(AAC)) {
 			return "DEL/ITX";
 		} else if (zp.equals(BAC) || zp.equals(BBC) ||zp.equals(BAA) || zp.equals(BBA) || zp.equals(BAB) || zp.equals(BBB) ) {
