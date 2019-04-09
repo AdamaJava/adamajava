@@ -644,17 +644,15 @@ public class SoftClipCluster implements Comparable<SoftClipCluster> {
 		
 		if (cat != null) {
 			
-		if (leftBreakpointObject == null) {
-			return "";
-		} else if (rightBreakpointObject == null) {
-			return "";
-		} else {
-			leftReferenceSeq = leftBreakpointObject.getBreakpointConsenus();
-			rightReferenceSeq = rightBreakpointObject.getBreakpointConsenus();
-		}
-	
+			if (leftBreakpointObject == null || rightBreakpointObject == null) {
+				return "";
+			} else {
+				leftReferenceSeq = leftBreakpointObject.getBreakpointConsenus();
+				rightReferenceSeq = rightBreakpointObject.getBreakpointConsenus();
+			}
+		
 			if (cat.equals(QSVConstants.ORIENTATION_2)) {
-				String tmp = leftReferenceSeq;			
+				String tmp = leftReferenceSeq;
 				leftReferenceSeq = rightReferenceSeq;
 				rightReferenceSeq = tmp;		
 			} else if (cat.equals(QSVConstants.ORIENTATION_3)) {
@@ -664,8 +662,6 @@ public class SoftClipCluster implements Comparable<SoftClipCluster> {
 			}
 			
 			String mh = "";
-			
-			
 			for (int i=1; i<rightReferenceSeq.length(); i++) {
 				//startPosition
 				String currentRight = rightReferenceSeq.substring(0, i);
@@ -674,7 +670,7 @@ public class SoftClipCluster implements Comparable<SoftClipCluster> {
 					if (currentRight.length() > mh.length()) {
 						mh = currentRight;
 					}
-				}			
+				}
 			}
 			
 			return mh.equals("") ? QSVConstants.NOT_FOUND : mh;

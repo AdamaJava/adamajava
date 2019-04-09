@@ -312,7 +312,7 @@ public class Breakpoint implements Comparable<Breakpoint>{
 	 * 
 	 * NOTE that this method has side-effects - it will remove data from the splitReadsList
 	 * 
-	 * @param headers
+	 * @param header
 	 * @param splitReadsList
 	 * @return
 	 */
@@ -524,7 +524,7 @@ public class Breakpoint implements Comparable<Breakpoint>{
 	}
 
 	/**
-	 * Return the queryBreakpoit as an OptionalInt if it is within 10 either side of the mateBreakpoint
+	 * Return the queryBreakpoint as an OptionalInt if it is within 10 either side of the mateBreakpoint
 	 * empty OptionalInt otherwise
 	 * 
 	 * @param queryReference
