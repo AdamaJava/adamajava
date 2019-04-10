@@ -8,7 +8,7 @@ import java.util.Map.Entry;
 import java.util.NavigableMap;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.qcmg.qsv.QSVException;
@@ -24,7 +24,7 @@ public class CalculateISize {
 	private int isizeMin;
 	private int isizeMax;
 	
-	public CalculateISize(ConcurrentHashMap<Integer, AtomicInteger> isizeMap) {
+	public CalculateISize(ConcurrentMap<Integer, AtomicInteger> isizeMap) {
 		
 		for (Entry<Integer, AtomicInteger> entry: isizeMap.entrySet()) {
 			totalMap.put(new Integer(entry.getKey().intValue()), new Integer(entry.getValue().intValue()));

@@ -31,6 +31,7 @@ import htsjdk.samtools.SAMRecord;
 import org.qcmg.common.meta.QExec;
 import org.qcmg.common.model.ReferenceNameComparator;
 import org.qcmg.common.string.StringUtils;
+import org.qcmg.common.util.Constants;
 import org.qcmg.qsv.QSVException;
 import org.qcmg.qsv.discordantpair.MatePair;
 import org.qcmg.qsv.discordantpair.PairClassification;
@@ -50,6 +51,19 @@ public class QSVUtil {
 	
 	public static ConcurrentMap<String, byte[]> REFERENCE;
 	public static final ReferenceNameComparator REF_NAME_COMP =  new ReferenceNameComparator();
+	
+	private static final String ABA = "ABA";
+	private static final String AAB = "AAB";
+	private static final String ABC = "ABC";
+	private static final String BAB = "BAB";
+	private static final String BBA = "BBA";
+	private static final String BBB = "BBB";
+	private static final String BAA = "BAA";
+	private static final String BAC = "BAC";
+	private static final String BBC = "BBC";
+	private static final String ABB = "ABB";
+	private static final String AAC = "AAC";
+	private static final String CTX = "CTX";
 
 	/**
 	 * Takes start and end date and return a string of the time between these two Date objects
@@ -60,10 +74,8 @@ public class QSVUtil {
 	 * @return the string
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
-	public static String writeTime(String timeType, Date dateStart, Date dateEnd)
-			throws IOException {
+	public static String writeTime(String timeType, Date dateStart, Date dateEnd) throws IOException {
 		long time = dateEnd.getTime() - dateStart.getTime();
-
 		String write = timeType + secondsToString(time / 1000);
 		return write;
 	}
@@ -78,9 +90,9 @@ public class QSVUtil {
 		int seconds = (int) (time % 60);
 		int minutes = (int) ((time / 60) % 60);
 		int hours = (int) ((time / 3600));
-		String secondsStr = (seconds < 10 ? "0" : "") + seconds;
-		String minutesStr = (minutes < 10 ? "0" : "") + minutes;
-		String hoursStr = (hours < 10 ? "0" : "") + hours;
+		String secondsStr = (seconds < 10 ? "0" : Constants.EMPTY_STRING) + seconds;
+		String minutesStr = (minutes < 10 ? "0" : Constants.EMPTY_STRING) + minutes;
+		String hoursStr = (hours < 10 ? "0" : Constants.EMPTY_STRING) + hours;
 		return hoursStr + COLON + minutesStr + COLON + secondsStr;
 	}
 
@@ -130,6 +142,18 @@ public class QSVUtil {
 		e.printStackTrace(pw);
 		return sw.toString();
 	}
+	/**
+	 * Gets the strack trace.
+	 *
+	 * @param t the t
+	 * @return the strack trace
+	 */
+	public static String getStrackTrace(Throwable t) {
+		StringWriter sw = new StringWriter();
+		PrintWriter pw = new PrintWriter(sw);
+		t.printStackTrace(pw);
+		return sw.toString();
+	}
 
 	/**
 	 * Reorder by chromosomes.
@@ -141,26 +165,6 @@ public class QSVUtil {
 	public static boolean reorderByChromosomes(String leftReference, String rightReference) {
 		return REF_NAME_COMP.compare(leftReference, rightReference) > 0;
 	}
-//	public static boolean reorderByChromosomes(String leftReference, String rightReference) {	    	
-//		String leftChr = leftReference.replace("chr", "");
-//		String rightChr = rightReference.replace("chr", "");
-//		
-//		Pattern numPattern = Pattern.compile("\\d*");
-//		Matcher numMatcherleft = numPattern.matcher(leftChr);
-//		Matcher numMatcherRight = numPattern.matcher(rightChr);
-//		
-//		// check that there is no X/Y chromosome
-//		if (numMatcherleft.matches() && numMatcherRight.matches()) {
-//			if (Integer.parseInt(leftChr) > Integer.parseInt(rightChr)) {
-//				return true;
-//			}
-//		} else {
-//			if (leftReference.compareTo(rightReference) > 0) {
-//				return true;
-//			} 
-//		}
-//		return false;
-//	}
 
 	/**
 	 * Reverse complement a DNA sequence.
@@ -171,7 +175,7 @@ public class QSVUtil {
 	public static String reverseComplement(String consensus) {
 		String reverse = "";
 
-		for (int i=consensus.length()-1; i>=0; i--) {
+		for (int i = consensus.length() - 1; i >= 0; i--) {
 			char pos = consensus.charAt(i);
 			if (pos == 'A') {
 				reverse += 'T';
@@ -196,11 +200,11 @@ public class QSVUtil {
 	 */
 	public static PairGroup getPairGroupByZP(PairClassification zpType) {
 		String zp = zpType.toString();
-		if (zp.equals("BAA") || zp.equals("BBA")) {
+		if (zp.equals(BAA) || zp.equals(BBA)) {
 			return PairGroup.valueOf("BAA_BBA");
-		} else if (zp.equals("BAB") || zp.equals("BBB")) {
+		} else if (zp.equals(BAB) || zp.equals(BBB)) {
 			return PairGroup.valueOf("BAB_BBB");
-		} else if (zp.equals("BAC") || zp.equals("BBC")) {
+		} else if (zp.equals(BAC) || zp.equals(BBC)) {
 			return  PairGroup.valueOf("BAC_BBC");
 		} else {
 			return PairGroup.valueOf(zp);
@@ -215,12 +219,12 @@ public class QSVUtil {
 	 */
 	public static String getMutationByPairGroup(String pg) {
 		if (pg.equals("Cxx")) {
-			return "CTX";
-		} else if (pg.equals("AAC")) {
+			return CTX;
+		} else if (pg.equals(AAC)) {
 			return "DEL/ITX";
 		} else if (pg.equals("BAC_BBC") || pg.equals("BAA_BBA") || pg.equals("BAB_BBB")) {
 			return "INV/ITX";
-		} else if (pg.equals("ABC") || pg.equals("ABA") || pg.equals("AAB") || pg.equals("ABB")) {
+		} else if (pg.equals(ABC) || pg.equals(ABA) || pg.equals(AAB) || pg.equals(ABB)) {
 			return "DUP/INS/ITX";
 		} else {
 			return pg;
@@ -236,12 +240,12 @@ public class QSVUtil {
 	public static String getMutationByPairClassification(PairClassification pClass) {
 		String zp = pClass.toString();
 		if (zp.equals("Cxx")) {
-			return "CTX";
-		} else if (zp.equals("AAC")) {
+			return CTX;
+		} else if (zp.equals(AAC)) {
 			return "DEL/ITX";
-		} else if (zp.equals("BAC") || zp.equals("BBC") ||zp.equals("BAA") || zp.equals("BBA") || zp.equals("BAB") || zp.equals("BBB") ) {
+		} else if (zp.equals(BAC) || zp.equals(BBC) ||zp.equals(BAA) || zp.equals(BBA) || zp.equals(BAB) || zp.equals(BBB) ) {
 			return "INV/ITX";
-		} else if (zp.equals("ABC") || zp.equals("ABA") || zp.equals("ABB") || zp.equals("AAB")) {
+		} else if (zp.equals(ABC) || zp.equals(ABA) || zp.equals(ABB) || zp.equals(AAB)) {
 			return "DUP/INS/ITX";
 		} else {
 			return zp;
@@ -297,18 +301,18 @@ public class QSVUtil {
 	 */
 	public static List<String> getCategoryByZP(PairClassification zpPairClass) {
 		String zp = zpPairClass.toString();
-		List<String> list = new ArrayList<String>();
-		if (zp.equals("AAC")) {
+		List<String> list = new ArrayList<>();
+		if (zp.equals(AAC)) {
 			list.add(QSVConstants.ORIENTATION_1);			
 		} else if (zp.equals("Cxx")) {
 			list.add(QSVConstants.ORIENTATION_1);
 			list.add(QSVConstants.ORIENTATION_2);
 			list.add(QSVConstants.ORIENTATION_3);
 			list.add(QSVConstants.ORIENTATION_4);
-		} else if (zp.equals("AAB") || zp.equals("ABB") || zp.equals("ABC") || zp.equals("ABA") || zp.equals("ABC")) {
+		} else if (zp.equals(AAB) || zp.equals(ABB) || zp.equals(ABA) || zp.equals(ABC)) {
 			list.add(QSVConstants.ORIENTATION_2);
-		} else if (zp.equals("BBA") || zp.equals("BAA") || zp.equals("BAB") || zp.equals("BBB") 
-				|| zp.equals("BAC") || zp.equals("BBC")) {
+		} else if (zp.equals(BBA) || zp.equals(BAA) || zp.equals(BAB) || zp.equals(BBB) 
+				|| zp.equals(BAC) || zp.equals(BBC)) {
 			list.add(QSVConstants.ORIENTATION_3);
 			list.add(QSVConstants.ORIENTATION_4);
 		}
@@ -324,15 +328,15 @@ public class QSVUtil {
 	 */
 	public static List<String> getCategoryByPairGroup(PairGroup zpGroup) {
 		String zp = zpGroup.toString();
-		List<String> list = new ArrayList<String>();
-		if (zp.equals("AAC")) {
+		List<String> list = new ArrayList<>();
+		if (zp.equals(AAC)) {
 			list.add(QSVConstants.ORIENTATION_1);			
 		} else if (zp.equals("Cxx")) {
 			list.add(QSVConstants.ORIENTATION_1);
 			list.add(QSVConstants.ORIENTATION_2);
 			list.add(QSVConstants.ORIENTATION_3);
 			list.add(QSVConstants.ORIENTATION_4);
-		} else if (zp.equals("AAB") || zp.equals("ABC") || zp.equals("ABA") || zp.equals("ABB")) {
+		} else if (zp.equals(AAB) || zp.equals(ABC) || zp.equals(ABA) || zp.equals(ABB)) {
 			list.add(QSVConstants.ORIENTATION_2);
 		} else if (zp.equals("BAA_BBA") || zp.equals("BAB_BBB") || zp.equals("BAC_BBC")) {
 			list.add(QSVConstants.ORIENTATION_3);
@@ -359,13 +363,13 @@ public class QSVUtil {
 		}
 		int count = 0;
 		int len = consensus.length();
-		for (int i=0 ; i < len ; i++) {
+		for (int i = 0 ; i < len ; i ++) {
 			if (consensus.charAt(i) == 'N' || consensus.charAt(i) == 'n') {
 				count++;
 			}
 		}
 
-		return  (double) count/len >= limit;
+		return  (double) count / len >= limit;
 	}
 
 	/**
@@ -374,39 +378,25 @@ public class QSVUtil {
 	 * @param oc the oc
 	 * @return the pair groups by orientation category
 	 */
-	public static Set<String> getPairGroupsByOrientationCategory(
-			String oc) {
-		Set<String> list = new HashSet<String>();
+	public static Set<String> getPairGroupsByOrientationCategory(String oc) {
+		Set<String> list = new HashSet<>();
 		if (oc.equals("1")) {
-			list.add("AAC");			
+			list.add(AAC);			
 		} else if (oc.equals("2")) {
-			list.add("ABA");
-			list.add("ABB");
-			list.add("AAB");
-			list.add("ABC");
+			list.add(ABA);
+			list.add(ABB);
+			list.add(AAB);
+			list.add(ABC);
 		} else if (oc.equals("3") || oc.equals("4")) {
-			list.add("BAA");
-			list.add("BBA");
-			list.add("BAB");
-			list.add("BBB");
-			list.add("BAC");
-			list.add("BBC");
+			list.add(BAA);
+			list.add(BBA);
+			list.add(BAB);
+			list.add(BBB);
+			list.add(BAC);
+			list.add(BBC);
 		} 
 
 		return list;
-	}
-
-	/**
-	 * Gets the strack trace.
-	 *
-	 * @param t the t
-	 * @return the strack trace
-	 */
-	public static String getStrackTrace(Throwable t) {
-		StringWriter sw = new StringWriter();
-		PrintWriter pw = new PrintWriter(sw);
-		t.printStackTrace(pw);
-		return sw.toString();
 	}
 
 	/**
@@ -463,7 +453,6 @@ public class QSVUtil {
 
 			if ( ! indexFile.exists()) {
 				return null;
-//				throw new QSVException("FASTA_INDEX_ERROR");
 			}
 
 			FastaSequenceIndex index = new FastaSequenceIndex(indexFile);
@@ -491,7 +480,7 @@ public class QSVUtil {
 			SAMRecord record, Integer start, Integer end, String name, String chr, String softClipDir, boolean isTumour) throws IOException, QSVException {
 
 		if (createRecord(record.getMateAlignmentStart(), start, end)) {
-			if (!QSVUtil.highNCount(record.getReadString(), 0.2)) {
+			if ( ! QSVUtil.highNCount(record.getReadString(), 0.2)) {
 				UnmappedRead read = new UnmappedRead(record, isTumour);
 				writer.write(read.toTmpString());				
 			}
@@ -501,7 +490,7 @@ public class QSVUtil {
 	public static void writeUnmappedRecord(BufferedWriter writer,
 			SAMRecord record, Integer start, Integer end, boolean isTumour) throws IOException, QSVException {
 
-		int recordStart =record.getMateAlignmentStart();
+		int recordStart = record.getMateAlignmentStart();
 
 		if (createRecord(recordStart, start, end)) {
 			String readString = record.getReadString();
@@ -509,9 +498,9 @@ public class QSVUtil {
 			if (! QSVUtil.highNCount(readString, 0.2)) {
 
 				StringBuilder sb = new StringBuilder("unmapped,");
-				sb.append(record.getReadName()).append(COLON ).append(record.getReadGroup() != null ? record.getReadGroup().getId() : "").append(',');
-				sb.append(record.getReferenceName()).append(',');
-				sb.append(recordStart).append(',');
+				sb.append(record.getReadName()).append(COLON ).append(record.getReadGroup() != null ? record.getReadGroup().getId() : Constants.EMPTY_STRING).append(Constants.COMMA);
+				sb.append(record.getReferenceName()).append(Constants.COMMA);
+				sb.append(recordStart).append(Constants.COMMA);
 				sb.append(readString).append(getNewLine());
 
 				writer.write(sb.toString());
@@ -530,7 +519,7 @@ public class QSVUtil {
 	public static boolean createRecord(int bpPos, Integer chrStart, Integer chrEnd) {
 
 		return chrStart == null && chrEnd == null
-				|| (null != chrStart && bpPos >= chrStart.intValue() && null != chrEnd && bpPos <=chrEnd.intValue());
+				|| (null != chrStart && bpPos >= chrStart.intValue() && null != chrEnd && bpPos <= chrEnd.intValue());
 
 	}
 
@@ -545,8 +534,7 @@ public class QSVUtil {
 	}
 
 
-	public static boolean doesMatePairOverlapRegions(MatePair m, int leftStart, int leftEnd, 
-			int rightStart, int rightEnd) {
+	public static boolean doesMatePairOverlapRegions(MatePair m, int leftStart, int leftEnd, int rightStart, int rightEnd) {
 
 		int leftMateStart = m.getLeftMate().getStart();
 		int leftMateEnd = m.getLeftMate().getEnd();

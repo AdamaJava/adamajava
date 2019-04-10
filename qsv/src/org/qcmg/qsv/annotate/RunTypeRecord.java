@@ -65,7 +65,7 @@ public class RunTypeRecord {
         this.upper = isize.getISizeMax();
         
         if (this.upper == 0) {
-        		throw new QSVException("ZERO_UPPER", rgId);
+    		throw new QSVException("ZERO_UPPER", rgId);
         }
 	}
 
@@ -73,7 +73,7 @@ public class RunTypeRecord {
 		return count.intValue();
 	}
 	
-	public synchronized void addToMap(int iSize) {		
+	public synchronized void addToMap(int iSize) {
 		
 		int absISize = Math.abs(iSize);		
 		
@@ -82,24 +82,14 @@ public class RunTypeRecord {
 			bucket = (absISize / INITIAL_I_SIZE_BUCKET_SIZE)
 					* INITIAL_I_SIZE_BUCKET_SIZE;
 		} else {
-			
-			if (absISize < FINAL_I_SIZE_BUCKET_SIZE) {
-				bucket = MAX_I_SIZE;
-			} else {
-				bucket = (absISize / FINAL_I_SIZE_BUCKET_SIZE)
-						* FINAL_I_SIZE_BUCKET_SIZE;
-			}
+			bucket = absISize >= FINAL_I_SIZE_BUCKET_SIZE 
+					? (absISize / FINAL_I_SIZE_BUCKET_SIZE) * FINAL_I_SIZE_BUCKET_SIZE 
+							: MAX_I_SIZE;
 		}
 		
 		if (bucket < MAX_CURVE_ISIZE) {
 			count.incrementAndGet();
-			
-			AtomicInteger current = isizeMap.get(bucket);
-			if (null != current) {
-				current.incrementAndGet();
-			} else {
-				isizeMap.put(bucket, new AtomicInteger(1));
-			}
+			isizeMap.computeIfAbsent(bucket, f -> new AtomicInteger()).incrementAndGet();
 		}	
 	}
 
