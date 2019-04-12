@@ -201,6 +201,8 @@ public class Options {
 				platform = "solid";
 			} else if (sequencingPlatform.toLowerCase().contains("hiseq") || sequencingPlatform.toLowerCase().contains("illumina")) {
 				platform = "illumina";
+			} else if (sequencingPlatform.toLowerCase().contains("bgiseq") || sequencingPlatform.toLowerCase().contains("mgiseq")) {
+				platform = "bgi";
 			} else {
 				throw new QSVException("PLATFORM_ERROR", sequencingPlatform);			
 			}
@@ -711,17 +713,6 @@ public class Options {
 		return  (preprocessMode.equals("both") || preprocessMode.equals("clip")) ;
 	}
 
-	public String translatePlatform() {
-		
-		if (platform.equals("solid")) {
-			return "4";
-		} else if (platform.equals("illumina")) {
-			return "60";
-		} else {
-			return "";
-		}
-	}
-	
 	public String getSequencingPlatform() {
 		return sequencingPlatform;
 	}

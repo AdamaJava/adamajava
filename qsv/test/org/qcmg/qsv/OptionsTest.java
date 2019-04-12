@@ -53,6 +53,20 @@ public class OptionsTest {
         assertEquals(options.getIniFile(), testFolder.getRoot().getAbsolutePath() + "/test.ini");
         assertEquals(options.getTempDirName(), testFolder.getRoot().getAbsolutePath());
     }
+    @Test
+    public void bgiPlatform() throws Exception {
+    	
+    	String[] args = TestUtil.getValidOptions(testFolder, file1, file2, "both", "both", true, true);
+    	Options options = new Options(args);
+    	assertFalse(options.hasHelpOption());
+    	assertFalse(options.hasVersionOption());
+    	assertEquals(options.getIniFile(), testFolder.getRoot().getAbsolutePath() + "/test.ini");
+    	assertEquals(options.getTempDirName(), testFolder.getRoot().getAbsolutePath());
+    	options.parseIniFile();
+        options.detectBadOptions();
+    	assertEquals("bgi", options.getPlatform());
+    	assertEquals("MGISeq2000", options.getSequencingPlatform());
+    }
     
     @Test
     public void testGoodIniFileOptions() throws Exception {
