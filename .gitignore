@@ -1,6 +1,8 @@
 # gradle project .gitignore from https://github.com/github/gitignore/blob/master/Gradle.gitignore
 .gradle
 /build/
+/*/build/
+/*/adama/
 
 # Ignore Gradle GUI config
 gradle-app.setting

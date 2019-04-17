@@ -37,6 +37,7 @@ import org.qcmg.common.util.FileUtils;
 import org.qcmg.picard.HeaderUtils;
 import org.qcmg.picard.MultiSAMFileIterator;
 import org.qcmg.picard.MultiSAMFileReader;
+import org.qcmg.picard.RenameFile;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.SAMOrBAMWriterFactory;
 import org.qcmg.picard.util.SAMReadGroupRecordUtils;
@@ -484,12 +485,15 @@ public final class FileMerger {
 		}
 	}
 	
-	private void reheadSingleBamFile() {
+	private void reheadSingleBamFile() throws IOException {
 		File in = new File(allInputFileNames[0]);
 		final SamReader reader = SAMFileReaderFactory.createSAMFileReader(in, validation);
 		final SAMFileHeader header = reader.getFileHeader();
 		replaceUUIDInHeader(header, uuid);
-		BamFileIoUtils.reheaderBamFile(header, in, outputFile, true, true);
+		BamFileIoUtils.reheaderBamFile(header, in, outputFile, false, createIndex);
+		if (createIndex) {
+			RenameFile.renameIndex(outputFile);
+		}
 	}
 
 	/**

@@ -24,7 +24,7 @@ import htsjdk.samtools.SAMReadGroupRecord;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMTagUtil;
 
-import org.qcmg.picard.RnameFile;
+import org.qcmg.picard.RenameFile;
 import org.qcmg.picard.SAMFileReaderFactory;
 
 public class Split {
@@ -300,7 +300,7 @@ public class Split {
 		if(createIndex){
 			for(File out: outputNames){
 				try{
-					RnameFile.renameIndex(out);
+					RenameFile.renameIndex(out);
 				}catch(Exception e){
 					 System.out.println(e.toString());
 				}

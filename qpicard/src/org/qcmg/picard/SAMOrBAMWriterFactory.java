@@ -92,41 +92,14 @@ public class SAMOrBAMWriterFactory {
 	}
 	public void closeWriter(){
 		writer.close();
- 
 		if (index) {
-			renameIndex(output);
+			try {
+				RenameFile.renameIndex(output);
+			} catch(IOException e) {
+				logMessage = "IOEXception caught whilst trying to move file";
+				logger.error(logMessage, e);
+			}
 		}
-	}
-	
-	/**
-	 * rename index, eg. output.bai to output.bam.bai if the related bam named as output.bam
-	 * @param bamFile
-	 * @throws IOException 
-	 */
-	public void renameIndex(File bamFile)  {
-		String path = bamFile.getPath();
-	   	String indexFileBase = bamFile.getPath().endsWith(".bam") ? bamFile.getPath().substring(0, path.lastIndexOf(".")) : path;
-
-	   	if(! indexFileBase.equals(path)){
-	        File org = new File(indexFileBase + BAMIndex.BAMIndexSuffix);
-	        File des = new File(path + BAMIndex.BAMIndexSuffix);
-			
-	        if(! org.exists()){
-	        	logMessage = "Error: can't rename file, since file not exist: " + org.getPath();
-	        	return;
-	        }else if(! org.getPath().equals(des.getPath())) {
-	        	Path pOrg = Paths.get(org.getPath());
-	    		Path pDes = Paths.get(des.getPath());
-	        	try{
-					Files.move(pOrg, pDes, StandardCopyOption.REPLACE_EXISTING);			
-					org.delete();			 
-				}catch(IOException e){
-					logMessage ="Error: Exception occured during deleting file: " + org.getPath();
-					logger.error("IOEXception caught whilst trying to move file", e);
-				}
-	        }
-	        logMessage = "Succeed: renamed index file to " + des.getPath();
-        }
 	}
 	
 	public String getLogMessage(){
