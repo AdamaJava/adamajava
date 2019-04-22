@@ -127,7 +127,7 @@ public class DCCReport extends QSVReport {
 		} else if ("illumina".equals(platform)) {
 			return"60";
 		} else if ("bgi".equals(platform)) {
-			return"99";
+			return"81";
 		} else {
 			return "-999";
 		}

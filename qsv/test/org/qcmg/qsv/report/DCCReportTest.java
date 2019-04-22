@@ -12,7 +12,7 @@ public class DCCReportTest {
 		assertEquals("-999", DCCReport.getValidationPlatform(""));
 		assertEquals("4", DCCReport.getValidationPlatform("solid"));
 		assertEquals("60", DCCReport.getValidationPlatform("illumina"));
-		assertEquals("99", DCCReport.getValidationPlatform("bgi"));
+		assertEquals("81", DCCReport.getValidationPlatform("bgi"));
 		
 		/*
 		 * got to be lower case - exact matches only
