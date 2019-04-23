@@ -112,12 +112,12 @@ public class DCCReport extends QSVReport {
 	@Override
 	public void writeReport() throws IOException {
 		try ( BufferedWriter writer = new BufferedWriter(new FileWriter(file, true))) {
-	    	 for (QSVCluster r: qsvRecords) {
-	    		 if (r.printRecord(isSingleSided)) {
-	    			 String str = r.getDataString("dcc", tumourFindType, normalFindType, true, getValidationPlatform(platform)); 				 
-	    			 writer.write(str +  QSVUtil.getNewLine());    			 
-	    		 }
-	    	 }
+		    for (QSVCluster r: qsvRecords) {
+			    if (r.printRecord(isSingleSided)) {
+				    String str = r.getDataString("dcc", tumourFindType, normalFindType, true, getValidationPlatform(platform)); 				 
+				    writer.write(str +  QSVUtil.getNewLine());
+			    }
+		    }
 		}
 	}
 
