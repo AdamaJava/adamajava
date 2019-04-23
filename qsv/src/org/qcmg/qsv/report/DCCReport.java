@@ -75,7 +75,7 @@ public class DCCReport extends QSVReport {
 	}
 
 	private void writeDCCMeta(BufferedWriter writer) throws IOException {
-		QDccMeta meta = new QDccMeta(analysisId, options.getInputSampleId(), options.getComparisonSampleId(), options.translateReference(), options.translatePlatform(),
+		QDccMeta meta = new QDccMeta(analysisId, options.getInputSampleId(), options.getComparisonSampleId(), options.translateReference(), getValidationPlatform(platform),
 				options.getPairingType(), options.getSequencingPlatform(), options.getMapper(), "qSV", options.getSampleName());
 		writer.write(meta.getDCCMetaDataToString());
 	}
@@ -112,20 +112,22 @@ public class DCCReport extends QSVReport {
 	@Override
 	public void writeReport() throws IOException {
 		try ( BufferedWriter writer = new BufferedWriter(new FileWriter(file, true))) {
-		    	 for (QSVCluster r: qsvRecords) {
-		    		 if (r.printRecord(isSingleSided)) {
-		    			 String str = r.getDataString("dcc", tumourFindType, normalFindType, true, getValidationPlatform(platform)); 				 
-		    			 writer.write(str +  QSVUtil.getNewLine());    			 
-		    		 }
-		    	 }
+		    for (QSVCluster r: qsvRecords) {
+			    if (r.printRecord(isSingleSided)) {
+				    String str = r.getDataString("dcc", tumourFindType, normalFindType, true, getValidationPlatform(platform)); 				 
+				    writer.write(str +  QSVUtil.getNewLine());
+			    }
+		    }
 		}
 	}
 
-	private String getValidationPlatform(String platform) {
-		if (platform.equals("solid")) {
+	public static String getValidationPlatform(String platform) {
+		if ("solid".equals(platform)) {
 			return "4";
-		} else if (platform.equals("illumina")) {
+		} else if ("illumina".equals(platform)) {
 			return"60";
+		} else if ("bgi".equals(platform)) {
+			return"81";
 		} else {
 			return "-999";
 		}
