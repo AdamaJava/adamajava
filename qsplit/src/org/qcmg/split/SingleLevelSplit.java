@@ -30,7 +30,7 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.picard.HeaderUtils;
-import org.qcmg.picard.RnameFile;
+import org.qcmg.picard.RenameFile;
 import org.qcmg.picard.SAMFileReaderFactory;
 
 public class SingleLevelSplit extends Split {
@@ -120,7 +120,7 @@ public class SingleLevelSplit extends Split {
 		if(createIndex){
 			for(File out: outputNames){
 				try{
-					RnameFile.renameIndex(out);
+					RenameFile.renameIndex(out);
 					logger.info("rename index to " + out.getPath() + ".bai");
 				}catch(Exception e){
 					logger.error(e.toString());

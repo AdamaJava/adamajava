@@ -16,7 +16,6 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.qcmg.common.log.QLogger;
-import org.qcmg.picard.RnameFile;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.SAMOrBAMWriterFactory;
 import org.qcmg.picard.HeaderUtils;
