@@ -7,8 +7,8 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.qcmg.common.model.QCMGAtomicLongArray;
 import org.qcmg.qprofiler.bam.BamSummaryReport;
 import org.qcmg.qprofiler.report.SummaryReport;
+import org.qcmg.qprofiler.util.PairedRecordUtils;
 import org.qcmg.qprofiler.util.SummaryReportUtils;
-import org.qcmg.picard.util.PairedRecordUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 

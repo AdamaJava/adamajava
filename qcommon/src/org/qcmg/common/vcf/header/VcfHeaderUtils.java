@@ -41,8 +41,11 @@ public class VcfHeaderUtils {
 	
 	public static final String BLANK_HEADER_LINE = Constants.DOUBLE_HASH;
 	public static final String FORMAT = BLANK_HEADER_LINE + "FORMAT";
+	public static final String FILTER_GERMLINE_DESC = "Mutation is a germline variant in another patient";
 	public static final String INFO_GERMLINE_DESC = "Alt allele followed by number of calls with VAF < 30%, then number of calls with VAF < 30%, number of calls with coverage < 100, number of calls with coverage > 100";
+//	public static final String INFO_GERMLINE_DESC = "Counts of donor occurs this mutation, total recorded donor number";
 	
+	public static final String FORMAT_COMPOUND_SNP_ALLELE_COUNT_DESC = "Allele Count Compound Snp: lists read sequence and count (forward strand, reverse strand) ";
 	public static final String INFO_DB_DESC = "dbSNP Membership";
 	public static final String INFO_VAF_DESC = "Variant allele frequencies based on 1000Genomes from dbSNP as the CAF. CAF starting with the reference allele followed " +
 			 "by alternate alleles as ordered in the ALT column.   Here we only take the related allel frequency.";
@@ -52,8 +55,6 @@ public class VcfHeaderUtils {
 	public static final String FILTER_COVERAGE_NORMAL_12 = SnpUtils.LESS_THAN_12_READS_NORMAL;
 	public static final String FILTER_COVERAGE_NORMAL_8 = SnpUtils.LESS_THAN_8_READS_NORMAL;
 	public static final String FILTER_COVERAGE_TUMOUR = SnpUtils.LESS_THAN_8_READS_TUMOUR;
-	public static final String FILTER_COVERAGE = "COV";
-	public static final String FILTER_COVERAGE_DESC = "Not enough coverage";
 	public static final String FILTER_GERMLINE = SnpUtils.MUTATION_GERMLINE_IN_ANOTHER_PATIENT;
 	public static final String FILTER_MUTATION_IN_NORMAL = SnpUtils.MUTATION_IN_NORMAL;
 	public static final String FILTER_MUTATION_IN_UNFILTERED_NORMAL = SnpUtils.MUTATION_IN_UNFILTERED_NORMAL;

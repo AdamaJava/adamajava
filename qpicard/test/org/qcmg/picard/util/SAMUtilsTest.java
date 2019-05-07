@@ -307,28 +307,12 @@ public class SAMUtilsTest {
 	}
 	
 	@Test
-	public void supplementaryReads() {
-		SAMRecord sam = new SAMRecord(null);
-		sam.setSecondaryAlignment(true);
-		assertEquals(false, SAMUtils.isSAMRecordValidForVariantCalling(sam));
-		sam.setSecondaryAlignment(false);
-		assertEquals(true, SAMUtils.isSAMRecordValidForVariantCalling(sam));
-		sam.setSupplementaryAlignmentFlag(true);
-		assertEquals(false, SAMUtils.isSAMRecordValidForVariantCalling(sam));
-	}
-	
-	@Test
 	public void testIsSAMRecordValidForVariantCallingAllOptions() {
 		
-		/*
-		 * flag values are 1 less than actual position as a right-shift operation is being performed
-		 */
 		int failsVendorCheck = 9;
 		int duplicate = 10;
 		int notPrimaryAlignment = 8;
 		int unmapped = 2;
-		int supplementary = 11;
-		int secondary = 8;
 		SAMRecord sam = new SAMRecord(null);
 		
 		for (int i = 0 ; i < 5000; i++) {
@@ -381,10 +365,6 @@ public class SAMUtilsTest {
 				
 				assertEquals(false, SAMUtils.isSAMRecordValidForVariantCalling(sam));
 				
-			} else if (((i >>> supplementary) & 1) != 0) {
-				assertEquals(false, SAMUtils.isSAMRecordValidForVariantCalling(sam));
-			} else if (((i >>> secondary) & 1) != 0) {
-				assertEquals(false, SAMUtils.isSAMRecordValidForVariantCalling(sam));
 			} else {
 				assertEquals(true, SAMUtils.isSAMRecordValidForVariantCalling(sam));
 			}

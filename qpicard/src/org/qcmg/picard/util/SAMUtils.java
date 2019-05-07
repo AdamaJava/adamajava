@@ -146,30 +146,30 @@ public class SAMUtils {
 	}
 	
 	
-//	public static Accumulator getAccumulatorFromReads(List<SAMRecord> sams, int position) {
-//		if (null == sams || sams.isEmpty()) throw new IllegalArgumentException("null or empty list of sam records passed to getAccumulatorFromReads");
-//		
-//		Accumulator acc = new Accumulator(position);
-//		
-//		int counter = 0;
-//		for (SAMRecord sam : sams) {
-//			counter++;
-//			int positionInReadString = getIndexInReadFromPosition(sam, position);
-//			if (positionInReadString > -1) {
-//				byte base = sam.getReadBases()[positionInReadString];
-//				byte qual = sam.getBaseQualities()[positionInReadString];
-//				
-//				// need to take strand into account when setting start position
-//				boolean forwardStrand = ! sam.getReadNegativeStrandFlag();
-//				int startPosition = sam.getAlignmentStart();
-//				int endPosition = sam.getAlignmentEnd();
-//				
-//				acc.addBase(base, qual, forwardStrand, startPosition, position, endPosition, counter, sam.getReadName());
-//			}
-//		}
-//		
-//		return acc;
-//	}
+	public static Accumulator getAccumulatorFromReads(List<SAMRecord> sams, int position) {
+		if (null == sams || sams.isEmpty()) throw new IllegalArgumentException("null or empty list of sam records passed to getAccumulatorFromReads");
+		
+		Accumulator acc = new Accumulator(position);
+		
+		int counter = 0;
+		for (SAMRecord sam : sams) {
+			counter++;
+			int positionInReadString = getIndexInReadFromPosition(sam, position);
+			if (positionInReadString > -1) {
+				byte base = sam.getReadBases()[positionInReadString];
+				byte qual = sam.getBaseQualities()[positionInReadString];
+				
+				// need to take strand into account when setting start position
+				boolean forwardStrand = ! sam.getReadNegativeStrandFlag();
+				int startPosition = sam.getAlignmentStart();
+				int endPosition = sam.getAlignmentEnd();
+				
+				acc.addBase(base, qual, forwardStrand, startPosition, position, endPosition, counter);
+			}
+		}
+		
+		return acc;
+	}
 	
 	/**
 	 * Returns the sam records in the supplied list that have the specified base at the position of interest
@@ -264,7 +264,7 @@ public class SAMUtils {
 				 isSAMRecordValid(rec)
 				 && (includeDuplicates || ! rec.getDuplicateReadFlag())
 				 && ! rec.getReadUnmappedFlag()
-				 && ! rec.isSecondaryOrSupplementary();
+				 && ! rec.getNotPrimaryAlignmentFlag();
 	 }
 	 
 	 
