@@ -42,36 +42,36 @@ public class BamSummarizerTest {
 		BamSummarizer2 bs = new BamSummarizer2();
 		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize( SAM_INPUT_FILE);
 		assertNotNull(sr);
-		assertEquals(5, sr.getRecordsParsed());		// should be 5 records
+		assertEquals(5, sr.getRecordsInputed());		// should be 5 records
 		testSummaryReport(sr);
 	}
 	
 	@Test
 	public void testSummarizeMaxRecords() throws Exception {
 		for (int i = 1 ; i < 6 ; i++) {
-			BamSummarizer2 bs = new BamSummarizer2( i, null);
+			BamSummarizer2 bs = new BamSummarizer2( i, null, false);
 			BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize( SAM_INPUT_FILE);
 
 			assertNotNull(sr);
-			assertEquals(i, sr.getRecordsParsed());
+			assertEquals(i, sr.getRecordsInputed());
 		}
 		
 		// test with 0 value - should return everything
-		BamSummarizer2 bs = new BamSummarizer2( 0, null);
+		BamSummarizer2 bs = new BamSummarizer2( 0, null, true);
 		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize( SAM_INPUT_FILE);
 		
 		assertNotNull(sr);
-		assertEquals(5, sr.getRecordsParsed());
+		assertEquals(5, sr.getRecordsInputed());
 	}
 	
 	@Test
 	public void testSummarizeWithExcludesAll() throws Exception {
 		// no excludes defined - should return everything
-		BamSummarizer2 bs = new BamSummarizer2( 0, null);
+		BamSummarizer2 bs = new BamSummarizer2( 0, null, false);
 		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize( SAM_INPUT_FILE);
 		
 		assertNotNull(sr);
-		assertEquals(5, sr.getRecordsParsed());
+		assertEquals(5, sr.getRecordsInputed());
 		testSummaryReport(sr);
 	}
 	
@@ -88,14 +88,6 @@ public class BamSummarizerTest {
 
 	
 	private void testSummaryReport(BamSummaryReport2 sr) {
-		// ceegars
-		assertEquals(1, sr.getCigarValuesCount().get("13H").get());
-		assertEquals(1, sr.getCigarValuesCount().get("15H").get());
-		assertEquals(1, sr.getCigarValuesCount().get("8H").get());
-		assertEquals(1, sr.getCigarValuesCount().get("22H").get());
-		assertEquals(1, sr.getCigarValuesCount().get("10H").get());
-		
-		// seq by cycle
 		// position 1
 		assertEquals(0, sr.getSeqByCycle(1).count(1, 'A'));
 		assertEquals(2, sr.getSeqByCycle(1).count(1, 'T'));

@@ -22,7 +22,7 @@ import org.w3c.dom.Element;
 
 public abstract class SummaryReport {
 	
-	private final AtomicLong recordsParsed = new AtomicLong();
+	private final AtomicLong recordsInputed = new AtomicLong();
 	
 	private String startTime;
 	private String finishTime;
@@ -39,11 +39,11 @@ public abstract class SummaryReport {
 		logger = QLoggerFactory.getLogger(getClass());
 	}
 
-	public long getRecordsParsed() {
-		return recordsParsed.get();
+	public long getRecordsInputed() {
+		return recordsInputed.get();
 	}
- 	public void updateRecordsParsed() {
-		recordsParsed.incrementAndGet();
+ 	public void updateRecordsInputed() {
+		recordsInputed.incrementAndGet();
 	}
 
 	public String getStartTime() {
@@ -94,7 +94,7 @@ public abstract class SummaryReport {
 				
 		//don't list records_parsed on xml for BAM type
 		if(!reportType.equals(ProfileType.BAM))
-			element.setAttribute("records_parsed", String.format("%,d", getRecordsParsed()) );	
+			element.setAttribute("records_parsed", String.format("%,d", getRecordsInputed()) );	
 		if(reportType.equals(ProfileType.VCF  ))
 			element.setAttribute("file_checksum", FileUtils.getFileCheckSum(getFileName()));
 		if (null != maxRecords)

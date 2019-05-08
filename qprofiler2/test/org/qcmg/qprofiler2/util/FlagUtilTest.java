@@ -12,7 +12,7 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.junit.Test;
 import org.qcmg.common.model.QCMGAtomicLongArray;
-import org.qcmg.common.util.QprofilerXmlUtils;
+import org.qcmg.common.util.XmlElementUtils;
 import org.qcmg.qprofiler2.util.FlagUtil;
 import org.w3c.dom.Element;
 
@@ -98,7 +98,7 @@ public class FlagUtilTest {
 	public void flagXmlTest() throws ParserConfigurationException {
 		Map<String, AtomicLong> flagBinaryCount = new ConcurrentSkipListMap<String, AtomicLong>();
 		QCMGAtomicLongArray flagIntegerCount = new QCMGAtomicLongArray( 2048 );
-		Element root = QprofilerXmlUtils.createRootElement("root", null);
+		Element root = XmlElementUtils.createRootElement("root", null);
 		
 		//parse two flags
 		flagIntegerCount.increment(99);		
@@ -115,7 +115,7 @@ public class FlagUtilTest {
 		XmlUtils.outputTallyGroup( root , "FLAG", flagBinaryCount, true);	
 		
 		//check output
-		List<Element> tallys =  QprofilerXmlUtils.getChildElementByTagName(QprofilerXmlUtils.getChildElement( root, XmlUtils.variableGroupEle,0), XmlUtils.Stally );
+		List<Element> tallys =  XmlElementUtils.getChildElementByTagName(XmlElementUtils.getChildElement( root, XmlUtils.variableGroupEle,0), XmlUtils.Stally );
 		assertEquals( 2, tallys.size() );
 		
 		assertEquals( 1, tallys.stream().filter( e -> e.getAttribute(XmlUtils.Scount).equals("1")  &&  e.getAttribute(XmlUtils.Svalue).equals("000001100011, pPR1")).count() );

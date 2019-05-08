@@ -13,8 +13,8 @@ import java.util.Map;
 import org.junit.Test;
 import org.qcmg.common.model.QCMGAtomicLongArray;
 import org.qcmg.common.util.IndelUtils.SVTYPE;
+import org.qcmg.common.util.XmlElementUtils;
 import org.qcmg.common.util.IndelUtils;
-import org.qcmg.common.util.QprofilerXmlUtils;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.qprofiler2.summarise.SampleSummary;
 import org.qcmg.qprofiler2.util.XmlUtils;
@@ -81,33 +81,33 @@ public class SampleSummaryTest {
 		
 		//new  VcfSummarizer(null); cause exception since for(Sting cat: null)
 		 
-		Element root = QprofilerXmlUtils.createRootElement("root", null) ;
+		Element root = XmlElementUtils.createRootElement("root", null) ;
 		SampleSummary summary = new SampleSummary();
 		for(VcfRecord re: records) summary.parseRecord( re, 1 );
 		summary.toXML( root,null, null );  
 		if(records.size() == 0){			
-			assertEquals( 0, QprofilerXmlUtils.getOffspringElementByTagName(root, XmlUtils.Svalue).size());			 
+			assertEquals( 0, XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.Svalue).size());			 
 			return; 
 		}
 			
 			
 		//get <SNP TiTvRatio="0.00" Transitions="0" Transversions="1">
-		Element subE = QprofilerXmlUtils.getOffspringElementByTagName(root, XmlUtils.Svalue).stream()
+		Element subE = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.Svalue).stream()
 				.filter( e -> e.getAttribute(XmlUtils.Sname).equals(SampleSummary.tiTvRatio)).findFirst().get();								 
 		assertEquals( ratio, subE.getTextContent());
 		
 		
 		if(ti != null) {
-			subE = QprofilerXmlUtils.getOffspringElementByTagName(root, XmlUtils.variableGroupEle).stream()
+			subE = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.variableGroupEle).stream()
 					.filter( e -> e.getAttribute(XmlUtils.Sname).equals(SampleSummary.transitions)).findFirst().get();
-			assertEquals(ti, QprofilerXmlUtils.getChildElement(subE, XmlUtils.Stally, 0).getAttribute(XmlUtils.Scount));
+			assertEquals(ti, XmlElementUtils.getChildElement(subE, XmlUtils.Stally, 0).getAttribute(XmlUtils.Scount));
 			
 		}
 		
 		if(tv != null) {
-			subE = QprofilerXmlUtils.getOffspringElementByTagName(root, XmlUtils.variableGroupEle).stream()
+			subE = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.variableGroupEle).stream()
 					.filter( e -> e.getAttribute(XmlUtils.Sname).equals(SampleSummary.transversions)).findFirst().get();
-			assertEquals(tv,  QprofilerXmlUtils.getChildElement(subE, XmlUtils.Stally, 0).getAttribute(XmlUtils.Scount));
+			assertEquals(tv,  XmlElementUtils.getChildElement(subE, XmlUtils.Stally, 0).getAttribute(XmlUtils.Scount));
 			
 		}
 	

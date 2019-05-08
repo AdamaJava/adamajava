@@ -185,46 +185,24 @@ public class KmersSummary {
 		return count; 		
 	}
 	
-	/**
-	 * at moment we count short mers on the last cycle from the longest reads
-	 * these short mers will be discard on the tail of shorter reads
-	 */
-//	void recaculatelastCycle(){		
-//		
-//		for(int i = 1; i < merLength; i ++){			
-//			//5mers from last cycle of 6mers; 5~1 mers stored after last cycle of tally
-//			int lastCycle = (i == 1)? cycleNo - 1: cycleNo;  	 
-//			String[] shortList = getPossibleKmerString(merLength-i, true);		
-//			for(String shortM : shortList){
-//				long[] sum = {0,0,0}; 
-//				for(byte base : atgcn.getBytes()){
-//					String preMers = (char) base + shortM; 
-//					int pos = getPosition(lastCycle, preMers.getBytes());
-//					for(int s = 0; s < 3; s++)
-//						sum[s] += tally[s].get(pos);
-//				}
-//				//put current short mers count to tally
-//				int pos = getPosition(cycleNo, shortM.getBytes() );
-//				for(int s = 0; s < 3; s++)
-//					tally[s].increment(pos, sum[s]);
-//			}
-//		}				
-//	}
 	
 	public void toXml( Element parent, int klength ) { 
 		final int maxNo = 16;
-		
+		Element merEle = XmlUtils.createMetricsNode(parent, klength+"mers", null );
+				
 		for(int pair = 0; pair < 3; pair ++){
-			if (parsedCount[pair].get() <= 0 ) continue; 
+			if (parsedCount[pair].get() <= 0 ) continue; 	
 			
 			//avoid kmers_null or kmers_unPaired in case have no pair
-			String name = klength+"mers_"+BamSummaryReport2.sourceName[pair];
+			String name = BamSummaryReport2.sourceName[pair];
+			
+			//read may have no pair information such as fastq
 			if(pair == 0 && parsedCount[1].get() == 0 &&parsedCount[2].get() == 0)
 				name = klength+"mers";
 			Set<String> kmerStrs = getPopularKmerString(maxNo,  klength, false, pair);
 			
 			// "counts per mer string start on specified base cycle"	
-			Element ele = XmlUtils.createMetricsNode(parent, name, parsedCount[pair].get() );
+			Element ele = XmlUtils.createGroupNode(merEle, name);
 	 		for( int i = 0; i < cycleNo; i++ ){	
 	 			Map<String, AtomicLong> map = new HashMap<>();
 	 			for(String mer :  kmerStrs) {
@@ -232,7 +210,7 @@ public class KmersSummary {
 					if( c > 0 )
 						map.put(mer, new AtomicLong(c));					
 				}
-				XmlUtils.outputTallyGroup( ele, "kmersOnCycle_"+(i+1), map, false );					
+				XmlUtils.outputCycleTallyGroup( ele, String.valueOf(i+1), map, false );					
 			}	
 			if(	Math.pow(4, klength) > maxNo )
 				XmlUtils.addCommentChild(ele, "here only list top "+ maxNo + " most popular kmers sequence for each Base Cycle" );

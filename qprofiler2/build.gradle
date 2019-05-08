@@ -16,20 +16,6 @@ dependencies {
 	testCompile 'junit:junit:4.10'
 }
 
-task findbugs(dependsOn: build) << {
-	def outputFileName = project.name
-    ant {
-        taskdef(name:'findbugs', classname:'edu.umd.cs.findbugs.anttask.FindBugsTask', classpath: 'build/deps/findbugs-1.3.9/lib/findbugs.jar')
-
-        findbugs(home: 'build/deps/findbugs-1.3.9/lib', output:'xml', outputFile:'findbugs_' + "${outputFileName}-${version}" + '.xml') {
-                sourcePath(path: 'src')
-                "class"(location: 'build/lib/qprofiler-' + "$version" + '.jar')
-        }
-    }
-}
-
-
-
 //create a fat jar file only for dispatching our qprofiler to outside
 /* 
 task fatJar(type: Jar ) {

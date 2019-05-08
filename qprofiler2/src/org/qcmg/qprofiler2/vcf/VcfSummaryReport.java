@@ -9,7 +9,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.apache.commons.lang3.StringUtils;
 import org.qcmg.common.model.ProfileType;
 import org.qcmg.common.util.Constants;
-import org.qcmg.common.util.QprofilerXmlUtils;
+import org.qcmg.common.util.XmlElementUtils;
 import org.qcmg.common.vcf.VcfFormatFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
@@ -47,7 +47,7 @@ public class VcfSummaryReport  extends SummaryReport {
 	
 
 	void parseRecord( VcfRecord  vcf ) {
-		updateRecordsParsed();
+		updateRecordsInputed();
 		
 		List<String> formats = vcf.getFormatFields();
 		if(sampleIds == null || formats.size() != sampleIds.length + 1) {
@@ -87,10 +87,10 @@ public class VcfSummaryReport  extends SummaryReport {
 			formatsTypes.add( pos > 0 ? formatCategories[i].substring(0, pos) : formatCategories[i] );			
 		}	
 		
-		Element summaryElement =  QprofilerXmlUtils.createSubElement(parent,  ProfileType.VCF.getReportName()+"Metrics" );		
+		Element summaryElement =  XmlElementUtils.createSubElement(parent,  ProfileType.VCF.getReportName()+"Metrics" );		
 		for( String sample : summaries.keySet() ) {	
-			Element ele =  QprofilerXmlUtils.createSubElement( summaryElement, Sample);
-			ele.setAttribute(XmlUtils.Sid, sample);
+			Element ele =  XmlElementUtils.createSubElement( summaryElement, Sample);
+			ele.setAttribute(XmlUtils.Sname, sample);
 						
 			for(String cates : summaries.get(sample).keySet() ) {			
 				if( formatsTypes.isEmpty() ) {

@@ -47,16 +47,18 @@ public class BamSummarizerMT2 implements Summarizer {
 	private final int noOfConsumerThreads;
 	private final int maxRecords;
 	private final String validation;
+	private final boolean isFullBamHeader;
 	ValidationStringency vs;
 	private final static String UNMAPPED_READS = "Unmapped";
 
 	
-	public BamSummarizerMT2(int noOfProducerThreads, int noOfThreads, int maxNoOfRecords, String validation) {
+	public BamSummarizerMT2(int noOfProducerThreads, int noOfThreads, int maxNoOfRecords, String validation,boolean isFullBamHeader) {
 		super();
 		this.noOfProducerThreads = noOfProducerThreads;
 		this.noOfConsumerThreads = noOfThreads;
 		this.maxRecords = maxNoOfRecords;
 		this.validation = validation;
+		this.isFullBamHeader =  isFullBamHeader;
 	}
 		
 	@Override
@@ -89,7 +91,8 @@ public class BamSummarizerMT2 implements Summarizer {
 			for (SAMSequenceRecord rec : orderedSamSequences) {
 				sequences.add(rec.getSequenceName());
 			}			
-		} finally { reader.close(); }		
+		} finally { reader.close(); }	
+		
 				
 		@SuppressWarnings("unchecked")
 		ConcurrentLinkedQueue<SAMRecord>[] queues = new ConcurrentLinkedQueue[noOfProducerThreads];
@@ -99,7 +102,7 @@ public class BamSummarizerMT2 implements Summarizer {
 		
 		long start = System.currentTimeMillis();
 		
-		final BamSummaryReport2 bamSummaryReport =  BamSummarizer2.createReport(file,  maxRecords );				 		
+		final BamSummaryReport2 bamSummaryReport =  BamSummarizer2.createReport(file,  maxRecords, isFullBamHeader );				 		
 		logger.info("will create " + noOfConsumerThreads + " consumer threads");
 
 		final CountDownLatch pLatch = new CountDownLatch(noOfProducerThreads);
@@ -181,7 +184,7 @@ public class BamSummarizerMT2 implements Summarizer {
 		}
 		
         bamSummaryReport.cleanUp();
-		logger.info("records parsed: " + bamSummaryReport.getRecordsParsed());
+		logger.info("records parsed: " + bamSummaryReport.getRecordsInputed());
 		
 		bamSummaryReport.setFinishTime(DateUtils.getCurrentDateAsString());
 
@@ -333,9 +336,8 @@ public class BamSummarizerMT2 implements Summarizer {
 		@Override
 		public void run() {
 			log.debug("start producer ");
-						
-						
-			long size = 0;
+											
+			
 			long count = 0;
 			try(SamReader reader = SAMFileReaderFactory.createSAMFileReader(file, validation);) {
 				while (true) {
@@ -343,12 +345,23 @@ public class BamSummarizerMT2 implements Summarizer {
 					if (null == sequence) break;
 					SAMRecordIterator iter = UNMAPPED_READS.equals(sequence) ? reader.queryUnmapped() : reader.query(sequence, 0, 0, false) ;
 					log.info("retrieving records for sequence: " + sequence);
+					
 					while (iter.hasNext()) {
 						queue.add(iter.next());
+						long size = queue.size();
+						while (size > (100000 / noOfProducerThreads)) {
+							//while (size > (100000 / noOfProducerThreads)) {
+								Thread.sleep(75);
+								size = queue.size();
+								log.info("sleep when queue size is " + size +  " records, current queu size: " + size);
+								if (cLatch.getCount() == 0) {
+									throw new Exception("No consumer threads left, but queue is not empty");
+								}
+							}
 						
 						if (++count % 2000000 == 0) {
 							size = queue.size();
-							log.info("added " + count/1000000 + "M records, current queu size: " + size);
+							log.info(noOfProducerThreads +"(noOfProducerThreads) added " + count/1000000 + "M records, current queu size: " + size);
 							
 							if (cLatch.getCount() == 0) {
 								log.error("no consumer threads left, but queue is not empty");
@@ -357,13 +370,7 @@ public class BamSummarizerMT2 implements Summarizer {
 							
 							// if q size is getting too large - give the Producer a rest
 							// having too many items in the queue seems to have a detrimental effect on performance.
-							while (size > (100000 / noOfProducerThreads)) {
-								Thread.sleep(75);
-								size = queue.size();
-								if (cLatch.getCount() == 0) {
-									throw new Exception("No consumer threads left, but queue is not empty");
-								}
-							}
+							
 						}
 						if (maxRecords > 0 && count == maxRecords)
 							break;
@@ -400,36 +407,35 @@ public class BamSummarizerMT2 implements Summarizer {
 			logger.debug("start producer");
 			SamReader reader = SAMFileReaderFactory.createSAMFileReader(file, validation);
 
-			int size = 0;
+			
 			long count = 0;
 			long start = System.currentTimeMillis();
 			long end = 0;
 			int counter = 1000000;
 			try {
-				for (SAMRecord record : reader) {
-					
+				for (SAMRecord record : reader) {					
 					queue.add(record);
 					
+					// if q size is getting too large - give the Producer a rest
+					// having too many items in the queue seems to have a detrimental effect on performance.
+					int size = queue.size();
+					while (size > 100000) {
+						Thread.sleep(10);
+						size = queue.size();
+						if (cLatch.getCount() == 0) {
+							throw new Exception("No consumer threads left, but queue is not empty");
+						}
+					}
+										
 					if (++count % counter == 0) {
 						size = queue.size();
 						end = System.currentTimeMillis();
 						logger.info("added " + count/counter + "M, q.size: " + size + ", r/ms: " + (counter / (end - start)));
-						start = end;
-						
+						start = end;						
 						if (cLatch.getCount() == 0 && size > 0) {
 							logger.error("no consumer threads left, but queue is not empty");
 							break;
-						}
-						
-						// if q size is getting too large - give the Producer a rest
-						// having too many items in the queue seems to have a detrimental effect on performance.
-						while (size > 100000) {
-							Thread.sleep(50);
-							size = queue.size();
-							if (cLatch.getCount() == 0) {
-								throw new Exception("No consumer threads left, but queue is not empty");
-							}
-						}
+						}										
 					}
 					if (maxRecords > 0 && count == maxRecords)
 						break;

@@ -31,7 +31,7 @@ final class Options2 {
 	private static final String INPUT_FILE_DESCRIPTION = messages.getMessage("INPUT_FILE_DESCRIPTION");
 	private static final String INDEX_FILE_DESCRIPTION = messages.getMessage("INDEX_FILE_DESCRIPTION");
 	private static final String VALIDATION_STRINGENCY_OPTION_DESCRIPTION = messages.getMessage("VALIDATION_STRINGENCY_DESCRIPTION");
-	private static final String NO_HTML_DESCRIPTION = messages.getMessage("NO_HTML_OPTION_DESCRIPTION");
+	private static final String FULL_BAMHEADER_OPTION_DESCRIPTION = messages.getMessage("FULL_BAMHEADER_OPTION_DESCRIPTION");
 	
 	//vcf mode
 	private static final String FORMAT_OPTION_DESCRIPTION = messages.getMessage("FORMAT_OPTION_DESCRIPTION");
@@ -62,7 +62,7 @@ final class Options2 {
 		parser.accepts("ntConsumer", NO_OF_THREADS_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
 		parser.accepts("maxRecords", MAX_RECORDS_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
 		parser.accepts("validation", VALIDATION_STRINGENCY_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
-//		parser.accepts("nohtml", NO_HTML_DESCRIPTION);
+		parser.accepts("fullBamHeader", FULL_BAMHEADER_OPTION_DESCRIPTION);
 		parser.accepts("format", FORMAT_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
 		parser.accepts("index", INDEX_FILE_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
 		parser.posixlyCorrect(true);
@@ -108,6 +108,8 @@ final class Options2 {
 		if ( ! options.nonOptionArguments().isEmpty())
 			throw new IllegalArgumentException(messages.getMessage("USAGE"));
 	}
+	
+	boolean hasFullBamHeaderOption() { return options.has("fullBamHeader") ; }
 
 	boolean hasVersionOption() { return options.has("version"); }
 

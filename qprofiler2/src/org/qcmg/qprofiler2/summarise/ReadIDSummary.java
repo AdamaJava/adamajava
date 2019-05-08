@@ -1,241 +1,353 @@
 package org.qcmg.qprofiler2.summarise;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
+
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import org.qcmg.common.util.QprofilerXmlUtils;
-import org.qcmg.common.util.TabTokenizer;
+import org.qcmg.common.string.StringUtils;
+import org.qcmg.common.util.Constants;
+import org.qcmg.common.util.Pair;
 import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Element;
 
 public class ReadIDSummary {
+	public final static String empty = "empty";
+	public final static String other = "others";
+	static final int maxPoolSize = 500;
+	static final int tallySize = maxPoolSize/5;
+	
+	//pattern predict
+	public enum  RNPattern{
+		NoColon("<Element>"),  //not sure
+		NoColon_NCBI("<Run Id>.<Pos>"),//pattern 1 : no colon, short name [S|E][0-9]{6}.[0-9]+  eg.  SRR3083868.47411824 99 chr1 10015 9 100M = 10028 113 ...
+		NoColon_NUN("<Pos>"), // pattern 2 : [no colon, NoColon name  0-9]+   eg. 322356 99 chr1 1115486 3 19M9S = 1115486 19
+		NoColon_BGI("<Flow Cell Id><Flow Cell Lane><Tile Number><Pos>"), //pattern 3: eg. bgiseq500 : FCL300002639L1C017R084_416735  
+		OneColon("<Element1>:<Element2>"), //not sure
+		TwoColon("<Element1>:<Element2>:<Element3>"),  // not sure
+		TwoColon_Torrent("<Run Id>:<X Pos>:<Y Pos>"),  // pattern 4 :  eg. WR6H1:09838:13771 0ZT4V:02282:09455
+		ThreeColon("<Element1>:<Element2>:<Element3>:<Element4>"), //not sure
+		FourColon("<Element1>:<Element2>:<Element3>:<Element4>:<Element5>"),
+		FourColon_OlderIllumina("<Instruments>:<Flow Cell Lane>:<Tile Number>:<X Pos>:<Y Pos><#Index></Pair>"),//  eg. hiseq2000: HWI-ST797_0059:3:2205:20826:152489#CTTGTA		
+		FourColon_OlderIlluminaWithoutIndex("<Instrument>:<Flow Cell Lane>:<Tile Number>:<X Pos>:<Y Pos>"),//   eg. hiseq2000: HWI-ST797_0059:3:2205:20826:152489
+		FiveColon("<Element1>:<Element2>:<Element3>:<Element4>:<Element5>:<Element6>"), //not sure
+		SixColon("<Element1>:<Element2>:<Element3>:<Element4>:<Element5>:<Element6>:<Element7>"), //not sure
+		SixColon_Illumina("<Instrument>:<Run Id>:<Flow Cell Id>:<Flow Cell Lane>:<Tile Number>:<X Pos>:<Y Pos>"), //pattern 6 :  eg. MG00HS15:400:C4KC7ACXX:4:2104:11896:63394
+		SevenColon_andMore("<Element1>:<Element2>:...:<Elementn>");  //not sure
+				
+		final String pattern ; 
+		RNPattern(String str ){ this.pattern = str; }				
+		public String toString() { return pattern;  }
+	}
+		
+	//the max queue size is 100k refer to BamSummarizerMT2, so 500 qname is trival 
+	List<String> pool_random =  Collections.synchronizedList(new ArrayList<String>()); //collect random 500	
+	List<String> pool_uniq =  Collections.synchronizedList(new ArrayList<String>()); //QNAME with different Element value	
 
-	// Header info
+	// overall qname information
+	ConcurrentMap< String, AtomicLong> patterns = new ConcurrentHashMap<>();	
+	@SuppressWarnings("unchecked")
+	ConcurrentMap<String, AtomicLong>[] columns = new ConcurrentMap[7];
+	{ for(int i =0; i < 7; i++) columns[i] = new ConcurrentHashMap<>(); }			
 	ConcurrentMap<String, AtomicLong> instruments = new ConcurrentHashMap<>();
 	ConcurrentMap<String, AtomicLong> runIds = new ConcurrentHashMap<>();
 	ConcurrentMap<String, AtomicLong> flowCellIds = new ConcurrentHashMap<>();
 	ConcurrentMap<String, AtomicLong> flowCellLanes = new ConcurrentHashMap<>();
 	ConcurrentMap<String, AtomicLong> tileNumbers = new ConcurrentHashMap<>();
-	ConcurrentMap<String, AtomicLong> invalidId = new ConcurrentHashMap<>();
-	Map<String, AtomicLong> pairs = new HashMap<>();
-
-	AtomicLong filteredY = new AtomicLong();
-	AtomicLong filteredN = new AtomicLong();
-
+	ConcurrentMap<String, AtomicLong> pairs = new ConcurrentHashMap<>();	
 	ConcurrentMap<String, AtomicLong> indexes = new ConcurrentHashMap<>();	
-	
-	AtomicLong inputNo  = new AtomicLong();
-	//("@ERR091788.1 HSQ955_155:2:1101:1473:2037/1", 
-	
-	/**
-	 * analysis readId, record instrument, runId, flowCellId, flowCellLanes, titleNumber etc
-	 * eg.	//@ERR091788.3104 HSQ955_155:2:1101:13051:2071/2
-			//@ERR091788 - machine id
-			//3104 - read position in file
-			// HSQ955 - flowcell
-			// 155 - run_id
-			// 2 - flowcell lane
-			// 1101 - tile
-			// 13051 - x
-			// 2071 - y
-			// 2 - 2nd in pair
-	 * @param readId
-	 * @throws Exception 
-	 */
-	public void parseReadId(String readId) {
-		
-		inputNo.incrementAndGet();
-		try {		
-			if ( !readId.contains(":")) { parseBgiReads(readId); return; };				
-			String [] headerDetails = TabTokenizer.tokenize( readId, ':' );
-			if (null == headerDetails ||  headerDetails.length <= 0)  return;
-					
-			//if length is equal to 10, we have the classic Casava 1.8 format
-			int headerLength = headerDetails.length;					
-			if (headerLength == 5) {
-				if (readId.contains(" "))   parseFiveElementHeaderWithSpaces(headerDetails);
-				else   parseFiveElementHeaderNoSpaces(headerDetails);				
-				return;					 
-			} 
-									
-			// if (headerLength != 5)					
-			updateMap(instruments, headerDetails[0]);
-			
-			// run Id
-			if (headerLength > 1) updateMap(runIds, headerDetails[1]);
-			 	
-			// flow cell id
-			if (headerLength > 2) updateMap(flowCellIds, headerDetails[2] );
-				
-			// flow cell lanes
-			if (headerLength > 3) updateMap(flowCellLanes, headerDetails[3]);
-			 	
-			// tile numbers within flow cell lane
-			if (headerLength > 4) updateMap(tileNumbers, headerDetails[4]);
-						 	
-			// skip x, y coords for now
-			if (headerLength > 6) getPairInfo(headerDetails[6]); // this may contain member of pair information
-								
-			// filtered
-			if (headerLength > 7) {
-				String key = headerDetails[7];
-				if ("Y".equals(key)) filteredY.incrementAndGet();
-				 else if ("N".equals(key)) filteredN.incrementAndGet();				 			
-				// skip control bit for now	 // thats it!!
-			}
-			// indexes
-			if (headerLength > 9)  updateMap(indexes, headerDetails[9]);
-		}catch( Exception e) {
-			updateMap(invalidId, "ReadNameInValid");		 
-		}				
-	}
+	private AtomicLong inputNo  = new AtomicLong();
+	private Random r = new Random();
 
+	/**
+	 * recognize known pattern, re-arrange split string
+	 * @param parts: split string of read name
+	 * @return RNPattern for that read name
+	 */
+	public   RNPattern getPattern(String[] parts) {	
+		switch ( parts.length ){		
+						    
+			case 1:
+				if( StringUtils.isNumeric( parts[0]) ) {					
+					return  RNPattern.NoColon_NUN;						
+				}				
+			case 0:
+			    return RNPattern.NoColon;
+			case 2:
+				if(parts[1].startsWith("."))
+					return RNPattern.NoColon_NCBI;
+				return RNPattern.OneColon;
+			case 3:					
+				if( StringUtils.isNumeric(parts[1]) && StringUtils.isNumeric(parts[2]))				
+					return RNPattern.TwoColon_Torrent;
+				else if( (parts[1] != null && parts[1].startsWith("L")) &&
+						(parts[2] != null && parts[2].startsWith("C"))   	)
+					return  RNPattern.NoColon_BGI;
+				
+				return RNPattern.TwoColon;
+			case 4:
+				return RNPattern.ThreeColon;     
+			case 5:
+				//<InstrumentS>:<lane>:<Tile Number>:<X Pos>:<Y Pos>
+				if( StringUtils.isNumeric(parts[3]) && StringUtils.isNumeric(parts[4]))
+					return RNPattern.FourColon_OlderIlluminaWithoutIndex;
+				
+				return RNPattern.FourColon;		
+			case 6:			
+				return RNPattern.FiveColon;  
+			case 7:
+				for(int i = 0; i < 5; i++) {
+					 if( StringUtils.isNullOrEmpty(parts[i])) {
+						 return RNPattern.SixColon;
+					 }
+				 }
+				
+				if(StringUtils.isNumeric(parts[5]) && StringUtils.isNumeric(parts[6])){
+					return RNPattern.SixColon_Illumina; 
+				} 
+				
+				//last two Elements are not number, allow null
+				boolean withIndex = (parts[5] == null || parts[5].startsWith("#"));
+				boolean withPair = (parts[6] == null ||  parts[5].startsWith("/"));			
+				if(withIndex || withPair) {
+					if( StringUtils.isNumeric(parts[3]) && StringUtils.isNumeric(parts[4])) {
+						if(parts[5] == null )
+							return RNPattern.FourColon_OlderIlluminaWithoutIndex;
+						else
+							return RNPattern.FourColon_OlderIllumina;
+					}
+				}			
+				//unknown pattern with 7 elements
+				return RNPattern.SixColon; 
+			  default:
+					return RNPattern.SevenColon_andMore; 
+		}	
+	}	
+
+    String[] splitElements(String readId) {
+		String[] parts = readId.split(Constants.COLON_STRING);
+		List<String> elements = new ArrayList<>();
+				
+		int pos = -1;				
+		if(parts.length == 1) {
+			//check NCBI 
+			pos = parts[0].indexOf(".");	
+			if(pos > 0) {
+				elements.add( parts[0].substring(0, pos ) );
+				elements.add( parts[0].substring( pos ) );		 
+			}else if(!StringUtils.isNumeric( parts[0].substring(0,1))) {
+				//if first char is not number then check BGI
+				//BGI L?C must appear after 5th
+				int  currentL=5;
+				//String str = parts[0].substring(currentL);
+				while((pos = parts[0].substring(currentL).indexOf("L")) != -1) {
+					currentL += pos;
+					if(parts[0].substring(currentL+2).startsWith("C")) {
+						pos = parts[0].substring(currentL+2).indexOf("_");
+						String tile = pos > 0 ? parts[0].substring(currentL+2,currentL+2 + pos ) : null;
+						if(pos < 0) {
+							pos = parts[0].substring(currentL+2).indexOf("R");
+							tile = pos > 0 ? parts[0].substring(currentL+2,currentL+2 + pos+1 ) : null;
+						}
+						if(tile != null) {						
+							elements.add( parts[0].substring(0, currentL ));
+							elements.add( parts[0].substring(currentL, currentL + 2));						
+							elements.add( tile );
+						}
+						break;
+					}
+					
+				}				
+			}		
+		}else if(parts.length == 5) {
+			//check index and pair for five element name pattern
+			String pair=null, index=null, yPos= parts[4]; 
+		    pos = parts[4].lastIndexOf("/");
+			if(pos > 0) { 
+				pair = parts[4].substring(pos); //put pair to 6th temporary
+				yPos = parts[4].substring(0, pos);
+			}
+			pos = yPos.lastIndexOf("#");				
+			if(pos > 0) { 
+				yPos = yPos.substring(0, pos);					
+				index = yPos.substring(pos);//put index				 
+			}
+			
+			for(int i = 0; i < 4; i ++)
+				elements.add(parts[i]);
+			elements.add(yPos);
+			//return five elements or 7 elements
+			if(index != null || pair != null) {
+				elements.add(index);
+				elements.add(pair);		
+			}	
+		}else {
+			for(int i = 0; i < parts.length; i ++)
+				elements.add(parts[i]);			
+		}	
+		
+		return elements.toArray(new String[elements.size()]); 			
+	}
+	
+	public void parseReadId(String readId) {
+		inputNo.incrementAndGet();
+		
+		String[] elements = splitElements( readId);  
+		RNPattern pattern =  getPattern(elements);	
+							
+		boolean isUpdated = false; 
+			 
+		switch ( pattern ){		
+			case NoColon ://do nothing			
+			case NoColon_NUN://do nothing
+				break;
+				
+			case SevenColon_andMore:	
+			case SixColon: //record element 0~4	 
+				updateMap( columns[4], elements[4]);	
+				updateMap( columns[3], elements[3]);				
+			case FiveColon:		
+			case FourColon: //record element 0~2
+				updateMap( columns[2], elements[2]);
+				updateMap( columns[1], elements[1]);				
+			case ThreeColon:		
+		    case TwoColon: //record element 0	
+		    case OneColon: //record element 0	 	    	
+			case NoColon_NCBI: //eg.  SRR3083868.47411824
+				updateMap( columns[0], elements[0]);
+				break;
+							
+			case NoColon_BGI:
+				//"<Flow Cell Id><lane><tile><pos>"
+				updateMap( tileNumbers,  elements[2] );	 //too many tile number, so skip it for checking whether uniq			
+				isUpdated = updateMap(flowCellIds, elements[0]);
+				//updatedMap must before "|| isUpdated" if isUpdated == true, flowCellLanes will not be updated. 
+				isUpdated = updateMap(flowCellLanes,  elements[1] ) || isUpdated;	
+				break;
+				
+		   case  TwoColon_Torrent:
+				//TwoColon_Torrent("<Run Id>:<X Pos>:<Y Pos>"),  // pattern 4 : <Run> : <X Pos> : <Y Pos>  eg. WR6H1:09838:13771 0ZT4V:02282:09455
+				isUpdated = updateMap(runIds, elements[0]);
+				break;
+				
+		   case FourColon_OlderIllumina:
+				//FourColon_OlderIllumina("<InstrumentS>:<lane>:<tile>:<X Pos>:<Y Pos><#index></pair>"),
+				updateMap(indexes, elements[5]);	
+				if(elements[6] != null)
+					updateMap(pairs, elements[6]);	
+				//no break here, below code work for both FourColon_OlderIllumina and FourColon_OlderIlluminaWithoutIndex
+		   case FourColon_OlderIlluminaWithoutIndex:
+				//FourColon_OlderIlluminaWithoutIndex("<InstrumentS>:<lane>:<tile>:<X Pos>:<Y Pos>"),
+				updateMap( tileNumbers,  elements[2] );	 //too many tile number, so skip it for checking whether uniq	
+				isUpdated = updateMap(instruments, elements[0]) || updateMap(flowCellLanes,  elements[1] );	
+				break;
+		    
+		   case SixColon_Illumina:    // code block				
+			   //"<instrument>:<run id>:<Flow Cell Id> :<lane>:<tile>:<X Pos>:<Y Pos>"
+				updateMap(tileNumbers, elements[4] );
+				isUpdated = updateMap(instruments,  elements[0]);
+				isUpdated = updateMap(runIds, elements[1])|| isUpdated;	;
+				isUpdated = updateMap(flowCellIds, elements[2])|| isUpdated;	;
+				isUpdated = updateMap(flowCellLanes, elements[3])|| isUpdated;	;	  
+				break;	   		   
+
+		   default:
+		}
+		
+		//record this qName
+		isUpdated = updateMap( patterns, pattern.toString() )|| isUpdated;	;
+		select2Queue(  readId,   isUpdated );	 
+	}
 	
 	/**
-	 * flow cell id: CL100013884, lane: L2 tile number: C004R071
-	 * @param readId: eg CL100013884L2C004R071_323304
-	 * @throws Exception
+	 * selectively record input QNAME into pool
+	 * @param readId
+	 * @param isUpdated
 	 */
-	public void parseBgiReads(String readId) throws Exception{
+	private void select2Queue( String readId, boolean isUpdated ) {
 				
-		if(readId.length() < 23  || !readId.contains("_")) return;
-		
-		String tile = readId.substring(13, readId.indexOf("_"));		
-		updateMap(flowCellIds,readId.substring(0, 11) ) ;
-		updateMap(flowCellLanes,  readId.substring(11,13));
-		updateMap( tileNumbers,  tile );
+		//record the first Qname for iron
+		if(  isUpdated  &&  pool_uniq.size() < maxPoolSize/2 ) {	
+			pool_uniq.add(readId);	
+			return;
+		} 	
+		// record first 10 QNAME
+		if(inputNo.get() <= 10)
+			pool_random.add(readId);
+		// 1% of first 1000 QNAME, that is max of 10
+		else if(inputNo.get() <= 1000 ) {
+			if (inputNo.get() % 100 == 11 ) pool_random.add(readId);
+		}else if(pool_random.size() < maxPoolSize) {	
+			// 1/10000 of first 5M, that is max of 500
+			if(	 (inputNo.get() % 1000 == 999 ) && (r.nextInt(10 ) == 1)) pool_random.add(readId);			
+		}else  if((inputNo.get() % 100000 == 99999 ) && (r.nextInt(10) > 5)) {
+			// after 5Mth random (5/M)replace to above pool with 	
+			int pos = r.nextInt( pool_random.size()-1);
+			pool_random.set(pos, readId);					
+		}
+
 	}
 	
 	public long getInputReadNumber() {return inputNo.get();}
 		
-	public void toXml(Element element){		
-		// header breakdown		
-		XmlUtils.outputTallyGroup( element, "InValidReadName", invalidId, false );
-		XmlUtils.outputTallyGroup( element,  "INSTRUMENTS", instruments , false );
-		XmlUtils.outputTallyGroup( element,  "FLOW_CELL_IDS", flowCellIds , false );
-		XmlUtils.outputTallyGroup( element,  "RUN_IDS", runIds , false );
-		XmlUtils.outputTallyGroup( element,  "FLOW_CELL_LANES", flowCellLanes , false );
-		XmlUtils.outputTallyGroup( element,  "TILE_NUMBERS", tileNumbers , false );
-		XmlUtils.outputTallyGroup( element,  "PAIR_INFO", pairs, false );
-		XmlUtils.outputTallyGroup( element,  "FILTER_INFO", getFiltered() , false );
-		XmlUtils.outputTallyGroup( element,  "INDEXES", indexes , false );		
-	}
-			
-	public ConcurrentMap<String, AtomicLong> getInstrumentsMap(){ return instruments;	}	
-	public ConcurrentMap<String, AtomicLong> getRunIdsMap(){ return runIds; }	
-	public ConcurrentMap<String, AtomicLong> getFlowCellIdsMap(){ return flowCellIds; }
-	public ConcurrentMap<String, AtomicLong> getFlowCellLanesMap(){ return flowCellLanes; }
-	public ConcurrentMap<String, AtomicLong> getTileNumbersMap(){	return tileNumbers; }
-	public ConcurrentMap<String, AtomicLong> getIndexesMap(){ return indexes; }
-
-	public Map<String, AtomicLong> getFiltered(){
-		Map<String, AtomicLong> filtered = new HashMap<>();
-		if(filteredY.get() != 0) filtered.put( "Y", filteredY );
-		if(filteredN.get() != 0) filtered.put( "N", filteredN );
-		return filtered; 
-	}		
-
-	/**
-	 * @HWUSI-EAS100R:6:73:941:1973#0/1
-	 * HWUSI-EAS100R	the unique instrument name
-	* 6	flowcell lane
-	* 73	tile number within the flowcell lane
-	* 941	'x'-coordinate of the cluster within the tile
-	* 1973	'y'-coordinate of the cluster within the tile
-	* #0	index number for a multiplexed sample (0 for no indexing)
-	* /1	the member of a pair, /1 or /2 (paired-end or mate-pair reads only)
-	* 
-	* 
-	* OR
-	* 
-	* @HS2000-1107_220:6:1115:6793:38143/1
-	* HS2000-1107 	the unique instrument name
-	* 220	runId 
-	* 6	flowcell lane
-	* 1115	tile number within the flowcell lane
-	* 6793	'x'-coordinate of the cluster within the tile
-	* 38143	'y'-coordinate of the cluster within the tile
-	* /1	the member of a pair, /1 or /2 (paired-end or mate-pair reads only)
-	*
-	 * @param params
-	 * @throws Exception 
-	 */
-	void parseFiveElementHeaderNoSpaces(String [] params) throws Exception {
+	public void toXml(Element ele){		
 		
-		/*
-		 * If instrument name contains an underscore, split on this and the RHS becomes the run id!
-		 * If no underscore, no run_id and the 
-		 */
-		int underscoreIndex = params[0].indexOf('_');
-		if (underscoreIndex > -1) {
-			updateMap(runIds,  params[0].substring(underscoreIndex + 1));
-			updateMap(instruments, params[0].substring(0, underscoreIndex));
-		} else {
-			updateMap(instruments, params[0]);
-		}
-		
-		updateMap(flowCellLanes, params[1]);
-		updateMap(tileNumbers,  params[2] );
-		// skip x, and y coords for now..
-		getPairInfo(params[4]);
-	}
-
-	private <T> void updateMap(ConcurrentMap<T, AtomicLong> map , T key) {
-		AtomicLong al = map.computeIfAbsent(key, k-> new AtomicLong());	
-		al.incrementAndGet();		 
-	}	
-
-	/**
-	 * 	//@ERR091788.3104 HSQ955_155:2:1101:13051:2071/2
-							//@ERR091788 - machine id
-							//3104 - read position in file
-							// HSQ955 - flowcell
-							// 155 - run_id
-							// 2 - flowcell lane
-							// 1101 - tile
-							// 13051 - x
-							// 2071 - y
-							// 2 - 2nd in pair
-	 * @throws Exception 
-	 */
-	void parseFiveElementHeaderWithSpaces(String [] params) {
-		// split by space
-		String [] firstElementParams = params[0].split(" ");
-		if (firstElementParams.length != 2) {
-			throw new UnsupportedOperationException("Incorrect header format encountered in parseFiveElementHeader. Expected '@ERR091788.3104 HSQ955_155:2:1101:13051:2071/2' but recieved: " + Arrays.deepToString(params));
-		}
-		String [] machineAndReadPosition = firstElementParams[0].split("\\.");
-		if (machineAndReadPosition.length != 2) {
-			throw new UnsupportedOperationException("Incorrect header format encountered in parseFiveElementHeader. Expected '@ERR091788.3104 HSQ955_155:2:1101:13051:2071/2' but recieved: " + Arrays.deepToString(params));
-		}
-		String [] flowCellAndRunId = firstElementParams[1].split("_");
-		if (flowCellAndRunId.length != 2) {
-			throw new UnsupportedOperationException("Incorrect header format encountered in parseFiveElementHeader. Expected '@ERR091788.3104 HSQ955_155:2:1101:13051:2071/2' but recieved: " + Arrays.deepToString(params));
+		Element element = XmlUtils.createMetricsNode(ele, "qnameInfo", new Pair(ReadGroupSummary.sreadCount, getInputReadNumber()));
+		XmlUtils.outputTallyGroup( element,  "QNAME Format", patterns , false );
+		for(int i = 0; i < columns.length; i ++) {
+			if(columns[i].size() > 0)
+				XmlUtils.outputTallyGroup( element,  (i+1)+"thColumnSplitByColon", columns[i] , false );
 		}
 				
-		getPairInfo(params[4]);
-		//all updateMap should be after exeption check to avoid invalid read information stored accidently
-		updateMap(instruments, machineAndReadPosition[0]);				
-		updateMap(flowCellIds, flowCellAndRunId[0]);
-		updateMap(runIds, flowCellAndRunId[1]);		
-		updateMap(flowCellLanes, params[1]);
-		updateMap(tileNumbers,  params[2] );
+		XmlUtils.outputTallyGroup( element,  "Instrument", instruments , false );
+		XmlUtils.outputTallyGroup( element,  "Flow Cell Id", flowCellIds , false );
+		XmlUtils.outputTallyGroup( element,  "Run Id", runIds , false );
+		XmlUtils.outputTallyGroup( element,  "Flow Cell Lane", flowCellLanes , false );
+		outputTallyGroup(element,  "Tile Number", tileNumbers);
+		outputTallyGroup( element,  "Pair infomation", pairs);
+		outputTallyGroup( element,  "Index", indexes );
+		//merge two pool together
+		pool_random.addAll(pool_uniq);
 		
+		//output 20 qname randomly
+		element = XmlUtils.createMetricsNode(ele, "qnameExample", null);			
+		//incase pool_random size is 1 or 0 
+		for( int i = 0; i < Math.min(20,pool_random.size()-1) ; i ++ ) {
+			int pos = r.nextInt( pool_random.size()-1);
+			XmlUtils.outputValueNode(element, pool_random.get(pos), 1);
+		}	
 	}
 	
-	private void getPairInfo(String key) {
-		int index = key.indexOf(" ");
-		if (index == -1) {
-			index = key.indexOf("/");
-		}
-		if (index != -1) {
-			char c = key.charAt(index + 1);
-			pairs.computeIfAbsent(c+"", k-> new AtomicLong()).incrementAndGet();
+	private void outputTallyGroup(Element parent, String name, Map<String, AtomicLong> tallys) {
+		Element e1 = XmlUtils.outputTallyGroup( parent, name, tallys , false );
+		if(e1 != null ) {
+			String v1 = (tallys.size() < tallySize )? tallys.size()+"" : tallySize + "+";
+			e1.setAttribute("no", v1);
 		}
 	}
+
+	/**
+	 * 
+	 * @param <T>
+	 * @param map
+	 * @param key
+	 * @return true if it is a new key added
+	 */
+	private  boolean updateMap(ConcurrentMap<String, AtomicLong> map , String key) {
+		String key1 = key;	 	
+		if(!map.containsKey(key1)) { 
+			if(map.size() >= tallySize )
+				key1 = other;			 
+			map.computeIfAbsent(key1, k -> new AtomicLong()); 
+		}
+		
+		if(map.get(key1).incrementAndGet() == 1)
+			return true;
+		 
+		return false; 
+	}	
+	
 }

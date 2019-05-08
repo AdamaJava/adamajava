@@ -7,17 +7,20 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+
+import javax.xml.parsers.ParserConfigurationException;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.qcmg.gff.GFFReader;
 import org.qcmg.qprofiler2.QProfiler2;
+
 
 public class QProfiler2Test {
 	
@@ -127,6 +130,39 @@ public class QProfiler2Test {
 			qpe.printStackTrace();
 			assertTrue(qpe.getMessage().startsWith("Cannot read supplied input file"));
 		}
+	}
+	
+	@Test
+	public void bamHeaderOptionTest() throws IOException, ParserConfigurationException {
+		String input = "input.sam"; 
+		//BAM with small header
+		createTestFile(new File(input), null);
+		
+		File logFile = testFolder.newFile("executeWithNonexistantInputFile.log");
+		String[] args = {"-input",input, "-log", logFile.getAbsolutePath()};
+		try { 		
+			// print full header		
+			new QProfiler2().setup( args );		
+			assertTrue( Files.lines(Paths.get(  "qprofiler.xml")).filter(s -> s.contains("<headerRecords TAG=\"HD\"")).count()== 1);	
+			assertTrue( Files.lines(Paths.get(  "qprofiler.xml")).filter(s -> s.contains("<headerRecords TAG=\"SQ\"")).count()== 1);
+			assertTrue( Files.lines(Paths.get("qprofiler.xml")).filter(s -> s.contains("<headerRecords TAG=\"PG\"")).count()== 0);	
+			assertTrue( Files.lines(Paths.get("qprofiler.xml")).filter(s -> s.contains("<headerRecords TAG=\"RG\"")).count()== 0);							
+			//only one line for whole file
+			assertTrue( Files.lines(Paths.get(  "qprofiler.xml")).filter(s -> s.contains("<headerRecords TAG=")).count()== 1);				
+			
+			//default mode, only HD and RG
+			args = new String[] {"-input",input, "-log", logFile.getAbsolutePath(), "--fullBamHeader"};
+			new QProfiler2().setup( args );	
+			assertTrue( Files.lines(Paths.get(  "qprofiler.xml")).filter(s -> s.contains("<headerRecords TAG=\"HD\"")).count()== 1);	
+			assertTrue( Files.lines(Paths.get(  "qprofiler.xml")).filter(s -> s.contains("<headerRecords TAG=\"SQ\"")).count()== 1);			
+			assertTrue( Files.lines(Paths.get("qprofiler.xml")).filter(s -> s.contains("<headerRecords TAG=\"PG\"")).count()== 1);	
+			assertTrue( Files.lines(Paths.get("qprofiler.xml")).filter(s -> s.contains("<headerRecords TAG=\"RG\"")).count()== 1);					
+			assertTrue( Files.lines(Paths.get("qprofiler.xml")).filter(s -> s.contains("@RG	ID:1959T")).count()== 1);
+			assertTrue( Files.lines(Paths.get("qprofiler.xml")).filter(s -> s.contains("@RG	ID:1959N")).count()== 1);						
+		} catch (Exception qpe) {
+			fail("a QProfilerException for args: " + Arrays.toString(args));			 
+		}
+				
 	}
 	
 	private static void createTestFile(File file, List<String> data) {
