@@ -44,7 +44,7 @@ public class QProfilerSummaryTest {
 	private int run(String input, String output) throws Exception{
 			
 		File inputFile = testFolder.newFile(input);			
-		BamSummarizerTest.createTestSamFile(inputFile.getAbsolutePath(), BamSummarizerTest.createValidSamData());	
+		BamSummarizerTest.createTestSamFile(inputFile, BamSummarizerTest.createValidSamData());	
 		
 		File logFile = testFolder.newFile(output +".log");
 		File outputFile = testFolder.newFile(output);

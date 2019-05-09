@@ -26,7 +26,6 @@ import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Element;
 
 public class FastqSummaryReport extends SummaryReport {
-//	public final static String badBaseNum = "numberOf" + QprofilerXmlUtils.badBase;
 	public final static String badBaseComment = " the number of reads containing a given number of bad bases (. or N) ";	
 	public final static String badQualComment = "the number of reads containing a given number of bases with bad quality scores (<10)";
 	

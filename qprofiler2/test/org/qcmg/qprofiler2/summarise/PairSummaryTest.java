@@ -10,7 +10,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.util.XmlElementUtils;
 import org.qcmg.qprofiler2.bam.BamSummarizer2;
 import org.qcmg.qprofiler2.bam.BamSummaryReport2;
@@ -20,6 +23,14 @@ import org.w3c.dom.Element;
 import htsjdk.samtools.SAMRecord;
 
 public class PairSummaryTest {
+	@Rule
+	public  TemporaryFolder testFolder = new TemporaryFolder();
+	public File input;
+
+	@Before
+	public void setup() throws IOException {
+		input = testFolder.newFile("testInputFile.sam");
+	}	
 	
 	@Test
 	public void zeroMinusTlen() {
@@ -280,7 +291,7 @@ public class PairSummaryTest {
 	@Test
 	public void toSummaryXmlTest() throws Exception {	
 		
-		Element root = createPairRoot(ReadGroupSummaryTest.INPUT_FILE);		
+		Element root = createPairRoot(input);		
 		List<Element> pairEles =  XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.metricsEle)	
 				.stream().filter(e -> e.getAttribute(XmlUtils.Sname).equals( "properPairs" )).collect(Collectors.toList());	
 		
@@ -303,7 +314,7 @@ public class PairSummaryTest {
 		ele = pairEles.stream().filter(e -> ( (Element) e.getParentNode()).getAttribute(XmlUtils.Sname).equals(XmlUtils.UNKNOWN_READGROUP)).findFirst().get();	
 		checkVariableGroup( ele, "F3F5", new int[] {1,0,0,0,1,1,0,0,0, 0} ); //notProperPair
 		
-		new File(ReadGroupSummaryTest.INPUT_FILE).delete();
+		
 	}
 	
 	private void checkVariableGroup(Element root, String name, int[] counts ) {
@@ -330,10 +341,10 @@ public class PairSummaryTest {
 		}	
 	}
 	
-	public static Element createPairRoot(String fname) throws Exception {
-		createPairInputFile(fname);
+	public static Element createPairRoot(File input) throws Exception {
+		createPairInputFile(input);
 		BamSummarizer2 bs = new BamSummarizer2();
-		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize(fname); 
+		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize(input.getAbsolutePath()); 
 		Element root = XmlElementUtils.createRootElement("root",null);
 		sr.toXml(root);		
 		
@@ -341,7 +352,7 @@ public class PairSummaryTest {
 	}
 	
 
-	private static void createPairInputFile(String fname) throws IOException{
+	private static void createPairInputFile(File input) throws IOException{
 		
 		List<String> data = new ArrayList<>();
 		// first read of proper mapped pair; proper pair (tlen > 0 will be counted), f5f3, tlen(2025>1500)
@@ -387,9 +398,9 @@ public class PairSummaryTest {
 		//noRG: pairNumber==0
 		//1959N: pairNumber==1, inward overlapped pair
 		//1959T: pairNumber==2, f3f5 tlen(1025 < 1500) pair;  and inward overlapped pair
-		ReadGroupSummaryTest.createInputFile();		
+		ReadGroupSummaryTest.createInputFile(input);		
 		//append new pairs
-		try(BufferedWriter out = new BufferedWriter(new FileWriter(fname, true))){	    
+		try(BufferedWriter out = new BufferedWriter(new FileWriter(input, true))){	    
 			for (String line : data)  out.write(line + "\n");	               
 		}		
 	}	

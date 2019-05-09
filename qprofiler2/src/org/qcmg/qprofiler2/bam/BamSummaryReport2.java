@@ -262,9 +262,11 @@ public class BamSummaryReport2 extends SummaryReport {
 		Element ele = XmlUtils.createMetricsNode( parent, null, null);		
 		for(int j = 0; j < sourceName.length; j ++) {			
 			Map<Integer, AtomicLong> tallys = new HashMap<>();
-			for(int i = 0; i < 256; i ++) 
-				if(mapQualityLengths[j].get(i) > 0)
+			for(int i = 0; i < 256; i ++) {
+				if(mapQualityLengths[j].get(i) > 0) {
 					tallys.put( i, new AtomicLong(mapQualityLengths[j].get(i)));
+					}
+				}
 			//XmlUtils.outputTallyGroup(ele, StringUtils.getJoinedString( QprofilerXmlUtils.mapq, sourceName[j],"_"), tallys, true);	
 			XmlUtils.outputTallyGroup(ele, sourceName[j] , tallys, true);			
 		}	 
@@ -275,7 +277,7 @@ public class BamSummaryReport2 extends SummaryReport {
 		
 		for( String rg :  rgSummaries.keySet()) {
 			ReadGroupSummary summary = rgSummaries.get(rg);			
-			Element ele = XmlUtils.createMetricsNode(XmlUtils.createReadGroupNode(parent, rg)  , null, new Pair(ReadGroupSummary.sreadCount, summary.getReadCount()));			
+			Element ele = XmlUtils.createMetricsNode(XmlUtils.createReadGroupNode(parent, rg)  , null, new Pair(ReadGroupSummary.READ_COUNT, summary.getReadCount()));			
 			rNamePosition.keySet().stream().sorted(new ReferenceNameComparator()).forEach( ref-> 
 				XmlUtils.outputBins(ele, ref, rNamePosition.get(ref).getCoverageByRg(rg), PositionSummary.BUCKET_SIZE));
 		
@@ -377,7 +379,7 @@ public class BamSummaryReport2 extends SummaryReport {
 			}
 	
 		//overall readgroup 
-		Element metricsE = XmlUtils.createMetricsNode(summaryElement, "summary1", new Pair( ReadGroupSummary.sreadCount, getRecordsInputed()));						
+		Element metricsE = XmlUtils.createMetricsNode(summaryElement, "summary1", new Pair( ReadGroupSummary.READ_COUNT, getRecordsInputed()));						
 		XmlUtils.outputValueNode(metricsE, "Number of cycles with greater than 1% mismatches",
 				CycleSummaryUtils.getBigMDCycleNo(tagReport.tagMDMismatchByCycle, (float) 0.01, tagReport.allReadsLineLengths));		
 				
@@ -399,34 +401,34 @@ public class BamSummaryReport2 extends SummaryReport {
 		XmlUtils.outputValueNode(metricsE, "Total reads including discarded reads", getRecordsInputed());	
 		
 		
-		metricsE = XmlUtils.createMetricsNode(summaryElement, "summary2", new Pair( ReadGroupSummary.sreadCount, getRecordsInputed()));		
+		metricsE = XmlUtils.createMetricsNode(summaryElement, "summary2", new Pair( ReadGroupSummary.READ_COUNT, getRecordsInputed()));		
 		
-		XmlUtils.outputValueNode(metricsE, ReadGroupSummary.sreadCount, readCount, "readCount: includes duplicateReads, notProperPairs and unmappedReads but excludes discardedReads (failed, secondary and supplementary)" );	
-		XmlUtils.outputValueNode(metricsE, ReadGroupSummary.sbaseCount, maxBases, "baseCount: the sum of baseCount from all read group" );	
+		XmlUtils.outputValueNode(metricsE, ReadGroupSummary.READ_COUNT, readCount, "readCount: includes duplicateReads, notProperPairs and unmappedReads but excludes discardedReads (failed, secondary and supplementary)" );	
+		XmlUtils.outputValueNode(metricsE, ReadGroupSummary.BASE_COUNT, maxBases, "baseCount: the sum of baseCount from all read group" );	
 
 		double percentage = (maxBases == 0)? 0: 100 * (double) lostBase /  maxBases ;				
-		XmlUtils.outputValueNode(metricsE, ReadGroupSummary.slostBase + "_" +ReadGroupSummary.sbasePercent,  percentage , "basePercent: basesLost / baseCount, basesLost: the sum of basesLost from all read group, ");	
+		XmlUtils.outputValueNode(metricsE, ReadGroupSummary.BASE_LOST_COUNT + "_" +ReadGroupSummary.BASE_LOST_PERCENT,  percentage , "basePercent: basesLost / baseCount, basesLost: the sum of basesLost from all read group, ");	
 
 		percentage = (maxBases == 0)? 0: 100 * (double) duplicateBase /  maxBases ;				
-		XmlUtils.outputValueNode(metricsE, ReadGroupSummary.node_duplicate + "_" +ReadGroupSummary.sbasePercent,  percentage );	
+		XmlUtils.outputValueNode(metricsE, ReadGroupSummary.NODE_DUPLICATE + "_" +ReadGroupSummary.BASE_LOST_PERCENT,  percentage );	
 		
 		percentage = (maxBases == 0)? 0: 100 * (double) unmappedBase /  maxBases ;				
-		XmlUtils.outputValueNode(metricsE, ReadGroupSummary.node_unmapped + "_" +ReadGroupSummary.sbasePercent,  percentage );	
+		XmlUtils.outputValueNode(metricsE, ReadGroupSummary.NODE_UNMAPPED + "_" +ReadGroupSummary.BASE_LOST_PERCENT,  percentage );	
 		
 		percentage = (maxBases == 0)? 0: 100 * (double) noncanonicalBase /  maxBases ;				
-		XmlUtils.outputValueNode(metricsE, ReadGroupSummary.node_nonCanonicalPair + "_" +ReadGroupSummary.sbasePercent,  percentage );	
+		XmlUtils.outputValueNode(metricsE, ReadGroupSummary.NODE_NOT_PROPER_PAIR + "_" +ReadGroupSummary.BASE_LOST_PERCENT,  percentage );	
 		
 		percentage = (maxBases == 0)? 0: 100 * (double) trimBases /  maxBases ;				
-		XmlUtils.outputValueNode(metricsE, ReadGroupSummary.node_trim + "_" +ReadGroupSummary.sbasePercent,  percentage );	
+		XmlUtils.outputValueNode(metricsE, ReadGroupSummary.NODE_TRIM + "_" +ReadGroupSummary.BASE_LOST_PERCENT,  percentage );	
 		
 		percentage = (maxBases == 0)? 0: 100 * (double) softClippedBase /  maxBases ;				
-		XmlUtils.outputValueNode(metricsE, ReadGroupSummary.node_softClip + "_" +ReadGroupSummary.sbasePercent,  percentage );	
+		XmlUtils.outputValueNode(metricsE, ReadGroupSummary.NODE_SOFTCLIP + "_" +ReadGroupSummary.BASE_LOST_PERCENT,  percentage );	
 		
 		percentage = (maxBases == 0)? 0: 100 * (double) hardClippedBase /  maxBases ;				
-		XmlUtils.outputValueNode(metricsE, ReadGroupSummary.node_hardClip + "_" +ReadGroupSummary.sbasePercent,  percentage );	
+		XmlUtils.outputValueNode(metricsE, ReadGroupSummary.NODE_HARDCLIP + "_" +ReadGroupSummary.BASE_LOST_PERCENT,  percentage );	
 		
 		percentage = (maxBases == 0)? 0: 100 * (double) overlappedBase /  maxBases ;				
-		XmlUtils.outputValueNode(metricsE, ReadGroupSummary.node_overlap + "_" +ReadGroupSummary.sbasePercent,  percentage );	
+		XmlUtils.outputValueNode(metricsE, ReadGroupSummary.NODE_OVERLAP + "_" +ReadGroupSummary.BASE_LOST_PERCENT,  percentage );	
 				
 	}
 		

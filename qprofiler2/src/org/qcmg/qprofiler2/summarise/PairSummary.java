@@ -1,6 +1,5 @@
 package org.qcmg.qprofiler2.summarise;
 
-import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicLong;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -17,9 +16,9 @@ public class PairSummary {
 	}
 
 	/**
-	 * ignor 
-	 * @param record
-	 * @return
+	 *  
+	 * @param record: a samRrecord
+	 * @return 0 if record with negative tLen value or secondOfPair with zero tLen value ; otherwise return the overlapped base counts
 	 */
     public static int getOverlapBase(SAMRecord  record) {
 	   	 
@@ -36,10 +35,10 @@ public class PairSummary {
    			// outward pair without overlap
    			if( iSize == 0) {  return 0;   } 
    			
-   			//we don't know forward mate end but knows reverse mate end = tLen + read start
-   			int mate_end = iSize + record.getAlignmentStart()-1 ;  //reverse mate end
-   			int read_end = record.getAlignmentEnd();   //forward read start
-   			result = Math.min( read_end, mate_end ) - Math.max(record.getAlignmentStart(), record.getMateAlignmentStart() ) + 1;   
+   			//We don't know forward mate end but know reverse mate end = tLen + read start
+   			int mateEnd = iSize + record.getAlignmentStart()-1 ;  //reverse mate end
+   			int readEnd = record.getAlignmentEnd();   //forward read start
+   			result = Math.min( readEnd, mateEnd ) - Math.max(record.getAlignmentStart(), record.getMateAlignmentStart() ) + 1;   
    		}
    		
    		//|--->    or     |-----> (read end - mate start>0) or       |----->
@@ -93,21 +92,38 @@ public class PairSummary {
 	
 	public final Pair type;
 	public final Boolean isProperPair; 
-	PairSummary( Pair pair, boolean isProper){this.type = pair; this.isProperPair = isProper;}
+	public PairSummary( Pair pair, boolean isProper){this.type = pair; this.isProperPair = isProper;}
 	
-	@Override
-	public boolean equals(Object obj) {
-		if (obj == null) return false;		
-		if (!(obj instanceof PairSummary)) return false;		
-		if(obj.hashCode() == this.hashCode() ) return true;
-		
-		return false;
-	}
-	
-	@Override
-	public int hashCode() {	
-	    return isProperPair? this.type.id * 100 : this.type.id * 1;	    
-	}
+	/*
+	 * I decide not to override equals and hashCode method. 
+	 * The original plan is to create unique PairSummary based on pair orientation and ProperPair flag. 
+	 * However, two objects may have the same Pair and flag but still possible have different counts. 
+	 * They should be considered non-equal.
+	 */
+//	@Override
+//	public boolean equals(Object obj) {
+//		
+//		if (obj == null ) return false;	
+//		if (!(obj instanceof PairSummary)) return false;
+//		
+//		if(this.type == null || ((PairSummary) obj).type == null ) { 
+//			return false;		
+//		}
+//		
+//		if( ((PairSummary) obj).type.equals(this.type)  &&
+//				((PairSummary) obj).isProperPair == this.isProperPair ) {
+//			return true;
+//		}
+//		
+//		return false;
+//	}
+//	
+//	@Override
+//	public int hashCode() {	
+//		if(type == null ) return 0; 
+//		
+//	    return isProperPair? this.type.id  : this.type.id * -1;	    
+//	}
 	
 	//fixed value
 	public final static int bigTlenValue = 10000;
@@ -194,14 +210,6 @@ public class PairSummary {
 	void toSummaryXml(Element parent  ){	
 		long overlapPair = overlapBase.toMap().values().stream().mapToLong(e->e.get()).reduce(0, (x,y) -> x+y);
 		long pairCoutns = tLenOverall.toMap().values().stream().mapToLong(e->e.get()).reduce(0, (x,y) -> x+y);
-//		long no = 0;
-//		int mode = 0;
-//		for( int i = 0; i < PairSummary.middleTlenValue; i ++ ){
-//			no += tLenOverall.get(i);
-//			if( tLenOverall.get(i) >  tLenOverall.get(mode) ){
-//				mode = i; 
-//			}
-//		}
 	
 		Element stats = XmlUtils.createGroupNode(parent, type.name());
 		XmlUtils.outputValueNode(stats, "firstOfPairs", firstOfPairNum.get());

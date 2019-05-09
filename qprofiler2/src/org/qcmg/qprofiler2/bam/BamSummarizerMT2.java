@@ -350,7 +350,6 @@ public class BamSummarizerMT2 implements Summarizer {
 						queue.add(iter.next());
 						long size = queue.size();
 						while (size > (100000 / noOfProducerThreads)) {
-							//while (size > (100000 / noOfProducerThreads)) {
 								Thread.sleep(75);
 								size = queue.size();
 								log.info("sleep when queue size is " + size +  " records, current queu size: " + size);

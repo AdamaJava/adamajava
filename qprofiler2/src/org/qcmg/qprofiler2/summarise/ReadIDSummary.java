@@ -15,10 +15,10 @@ import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Element;
 
 public class ReadIDSummary {
-	public final static String empty = "empty";
-	public final static String other = "others";
-	static final int maxPoolSize = 500;
-	static final int tallySize = maxPoolSize/5;
+//	public final static String empty = "empty";
+	public final static String OTHER = "others";
+	static final int MAX_POOL_SIZE = 500;
+	static final int TALLY_SIZE = MAX_POOL_SIZE/5;
 	
 	//pattern predict
 	public enum  RNPattern{
@@ -176,8 +176,10 @@ public class ReadIDSummary {
 				index = yPos.substring(pos);//put index				 
 			}
 			
-			for(int i = 0; i < 4; i ++)
-				elements.add(parts[i]);
+			for(int i = 0; i < 4; i ++) { 
+				elements.add(parts[i]); 
+			}
+			
 			elements.add(yPos);
 			//return five elements or 7 elements
 			if(index != null || pair != null) {
@@ -185,8 +187,9 @@ public class ReadIDSummary {
 				elements.add(pair);		
 			}	
 		}else {
-			for(int i = 0; i < parts.length; i ++)
-				elements.add(parts[i]);			
+			for(int i = 0; i < parts.length; i ++) {
+				elements.add(parts[i]);						
+			}	
 		}	
 		
 		return elements.toArray(new String[elements.size()]); 			
@@ -270,17 +273,18 @@ public class ReadIDSummary {
 	private void select2Queue( String readId, boolean isUpdated ) {
 				
 		//record the first Qname for iron
-		if(  isUpdated  &&  pool_uniq.size() < maxPoolSize/2 ) {	
+		if(  isUpdated  &&  pool_uniq.size() < MAX_POOL_SIZE/2 ) {	
 			pool_uniq.add(readId);	
 			return;
 		} 	
-		// record first 10 QNAME
-		if(inputNo.get() <= 10)
-			pool_random.add(readId);
-		// 1% of first 1000 QNAME, that is max of 10
-		else if(inputNo.get() <= 1000 ) {
+		
+		if(inputNo.get() <= 10) {
+			// record first 10 QNAME
+			pool_random.add(readId);		
+		}else if(inputNo.get() <= 1000 ) {
+			// 1% of first 1000 QNAME, that is max of 10
 			if (inputNo.get() % 100 == 11 ) pool_random.add(readId);
-		}else if(pool_random.size() < maxPoolSize) {	
+		}else if(pool_random.size() < MAX_POOL_SIZE) {	
 			// 1/10000 of first 5M, that is max of 500
 			if(	 (inputNo.get() % 1000 == 999 ) && (r.nextInt(10 ) == 1)) pool_random.add(readId);			
 		}else  if((inputNo.get() % 100000 == 99999 ) && (r.nextInt(10) > 5)) {
@@ -295,7 +299,7 @@ public class ReadIDSummary {
 		
 	public void toXml(Element ele){		
 		
-		Element element = XmlUtils.createMetricsNode(ele, "qnameInfo", new Pair(ReadGroupSummary.sreadCount, getInputReadNumber()));
+		Element element = XmlUtils.createMetricsNode(ele, "qnameInfo", new Pair(ReadGroupSummary.READ_COUNT, getInputReadNumber()));
 		XmlUtils.outputTallyGroup( element,  "QNAME Format", patterns , false );
 		for(int i = 0; i < columns.length; i ++) {
 			if(columns[i].size() > 0)
@@ -324,30 +328,29 @@ public class ReadIDSummary {
 	private void outputTallyGroup(Element parent, String name, Map<String, AtomicLong> tallys) {
 		Element e1 = XmlUtils.outputTallyGroup( parent, name, tallys , false );
 		if(e1 != null ) {
-			String v1 = (tallys.size() < tallySize )? tallys.size()+"" : tallySize + "+";
+			String v1 = (tallys.size() < TALLY_SIZE )? tallys.size()+"" : TALLY_SIZE + "+";
 			e1.setAttribute("no", v1);
 		}
 	}
 
 	/**
-	 * 
+	 *  
 	 * @param <T>
 	 * @param map
 	 * @param key
 	 * @return true if it is a new key added
 	 */
 	private  boolean updateMap(ConcurrentMap<String, AtomicLong> map , String key) {
+		boolean isNew = false; 
 		String key1 = key;	 	
 		if(!map.containsKey(key1)) { 
-			if(map.size() >= tallySize )
-				key1 = other;			 
-			map.computeIfAbsent(key1, k -> new AtomicLong()); 
-		}
+			if(map.size() >= TALLY_SIZE ) {key1 = OTHER;}
+			isNew = true; 
+		} 
 		
-		if(map.get(key1).incrementAndGet() == 1)
-			return true;
+		map.computeIfAbsent(key1, k -> new AtomicLong()).incrementAndGet();
 		 
-		return false; 
+		return isNew; 
 	}	
 	
 }

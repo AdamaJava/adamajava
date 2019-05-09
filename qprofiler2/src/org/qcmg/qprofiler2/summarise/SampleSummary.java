@@ -177,15 +177,7 @@ public class SampleSummary {
 				Element cateEle = XmlUtils.outputBins(reportE1, VAF, array.toMap(), (100 / altBinSize));
 				if(cateEle.hasChildNodes()) {
 					XmlUtils.addCommentChild(cateEle, "Each closedBin list the variant number belonging to variant allele frequency region ( start%, end% ].");
-				}				
-//				Element cateEle = XmlUtils.createGroupNode(reportE1, VAF );
-//				for( int i = 0; i <= altBinSize; i ++  ){
-//					long count =  array.get(i) ;
-//					if( count <= 0 ) continue;					
-//						XmlUtils.outputBinNode( cateEle,  100*i / altBinSize, 100*(i+1) / altBinSize, new AtomicLong(count));							
-//				}
-//				
-				
+				}								
 			}
 
 		}

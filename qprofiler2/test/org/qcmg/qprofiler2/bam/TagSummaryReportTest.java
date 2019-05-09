@@ -10,8 +10,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.util.XmlElementUtils;
 import org.qcmg.qprofiler2.bam.TagSummaryReport2;
 import org.qcmg.qprofiler2.util.XmlUtils;
@@ -20,12 +23,16 @@ import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMTagUtil;
 
 public class TagSummaryReportTest {
-	protected static final String INPUT_FILE = "input.sam";
+	@Rule
+	public  TemporaryFolder testFolder = new TemporaryFolder();
+	protected String INPUT_FILE;
 	final  SAMTagUtil STU = SAMTagUtil.getSingleton();
 	
-	@After
-	public void tearDown() { new File(INPUT_FILE).delete();	}	
-
+	@Before
+	public void setup() throws IOException {
+		INPUT_FILE = testFolder.newFile("input.sam").getAbsolutePath();
+	}
+	
 	
 	@Test
 	public void simpleTest() throws Exception{
@@ -142,7 +149,7 @@ public class TagSummaryReportTest {
 			System.out.println(STU.makeStringTag(tag) + " : " + tag);					
 	}
 	
-	private static void createMDerrFile() throws IOException{
+	private void createMDerrFile() throws IOException{
 		List<String> data = new ArrayList<String>();
         data.add("@HD	VN:1.0	SO:coordinate");
         data.add("@RG	ID:1959T	SM:eBeads_20091110_CD	DS:rl=50");

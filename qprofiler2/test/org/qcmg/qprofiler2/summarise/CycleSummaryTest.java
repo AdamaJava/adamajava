@@ -8,6 +8,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import org.junit.*;
+import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.util.XmlElementUtils;
 import org.qcmg.qprofiler2.bam.BamSummarizer2;
 import org.qcmg.qprofiler2.bam.BamSummaryReport2;
@@ -16,14 +17,16 @@ import org.w3c.dom.Element;
 
 
 public class CycleSummaryTest {
-	public static final String INPUT_FILE = "input.sam";
-
+	
+	@Rule
+	public TemporaryFolder testFolder = new TemporaryFolder();
+	private static File input;
 	
 	@Before
-	public void setUp() throws Exception{ createInputFile(INPUT_FILE); }
-	
-	@After
-	public void tearDown() { new File(INPUT_FILE).delete();	}	
+	public void setUp() throws Exception{
+		input = testFolder.newFile("input.sam");
+		createInputFile(input); 		
+	}
 	
 	private  void checklength( Element root, String metricName, String pairName, int cycle, String[] values, int[] counts ) throws Exception {
 		if(counts.length != values.length)
@@ -83,13 +86,13 @@ public class CycleSummaryTest {
 	public static Element getSummarizedRoot() throws Exception{				
 		Element root = XmlElementUtils.createRootElement( "qProfiler", null);
 		BamSummarizer2 bs = new BamSummarizer2();
-		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize(INPUT_FILE); 
+		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize(input.getAbsolutePath()); 
 		sr.toXml(root);
 		Assert.assertEquals(sr.getRecordsInputed(), 4);			
 		return root; 	
 	}
 			
-	public static void createInputFile(String fname) throws IOException{
+	public static void createInputFile(File input) throws IOException{
 		List<String> data = new ArrayList<String>();
         data.add("@HD	VN:1.0	SO:coordinate");
         data.add("@RG	ID:20150125163736341	SM:eBeads_20091110_CD	DS:rl=50");
@@ -121,7 +124,7 @@ public class CycleSummaryTest {
        		"-7-7--<7J-<--F7-A--F-7--A7---<-7A7---<F7---FF-----F----FF7-7<JFJF7-J<--<-J7<77-FJA---F-77<--JAFF-F-<<J-FF<AFJJAJJJFFFJJJJJJJJJFJJJJJAJJJJJJJJJJFJAFFFFA	" + 
        		"ZC:i:6	MD:Z:53	PG:Z:MarkDuplicates.7	RG:Z:20150125163738010	NM:i:0	AS:i:53	XS:i:49");	      
               
-        try(BufferedWriter out = new BufferedWriter(new FileWriter(fname))){	    
+        try(BufferedWriter out = new BufferedWriter(new FileWriter(input))){	    
 			for (String line : data)  out.write(line + "\n");	               
 		}		
 	}	

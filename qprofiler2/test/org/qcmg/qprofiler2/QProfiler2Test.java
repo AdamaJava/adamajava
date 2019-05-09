@@ -93,7 +93,7 @@ public class QProfiler2Test {
 				
 		String[] args2 = new String[]{"-input", BAM_FILE.getAbsolutePath(), "-log",logFile.getAbsolutePath(), "-include","html,all,matricies,coverage", };
 		try {
-			int exitStatus =new QProfiler2().setup(args2);
+			new QProfiler2().setup(args2);
 			fail("no exception should have been thrown from executeWithExcludeArgs()");			 
 		} catch (Exception e) {
 			assertEquals("'i' is not a recognized option", e.getMessage() );
@@ -134,12 +134,12 @@ public class QProfiler2Test {
 	
 	@Test
 	public void bamHeaderOptionTest() throws IOException, ParserConfigurationException {
-		String input = "input.sam"; 
+		File input = testFolder.newFile("input.sam"); 
 		//BAM with small header
-		createTestFile(new File(input), null);
+		createTestFile(input, null);
 		
 		File logFile = testFolder.newFile("executeWithNonexistantInputFile.log");
-		String[] args = {"-input",input, "-log", logFile.getAbsolutePath()};
+		String[] args = {"-input",input.getAbsolutePath(), "-log", logFile.getAbsolutePath()};
 		try { 		
 			// print full header		
 			new QProfiler2().setup( args );		
@@ -151,7 +151,7 @@ public class QProfiler2Test {
 			assertTrue( Files.lines(Paths.get(  "qprofiler.xml")).filter(s -> s.contains("<headerRecords TAG=")).count()== 1);				
 			
 			//default mode, only HD and RG
-			args = new String[] {"-input",input, "-log", logFile.getAbsolutePath(), "--fullBamHeader"};
+			args = new String[] {"-input",input.getAbsolutePath(), "-log", logFile.getAbsolutePath(), "--fullBamHeader"};
 			new QProfiler2().setup( args );	
 			assertTrue( Files.lines(Paths.get(  "qprofiler.xml")).filter(s -> s.contains("<headerRecords TAG=\"HD\"")).count()== 1);	
 			assertTrue( Files.lines(Paths.get(  "qprofiler.xml")).filter(s -> s.contains("<headerRecords TAG=\"SQ\"")).count()== 1);			

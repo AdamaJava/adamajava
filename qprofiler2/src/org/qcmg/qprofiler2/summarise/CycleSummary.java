@@ -31,7 +31,6 @@ import org.w3c.dom.Element;
  * Class that tallies by cycle using java generics 
   */
 public class CycleSummary<T> {
-	//public static final String baseOnCycle = "baseOnCycle_";
 	public static final String baseOnCycle = "cycle";
 	
 	private static final int MAX_ARRAY_CAPACITY = 2048 * 2048;		// over 4 million

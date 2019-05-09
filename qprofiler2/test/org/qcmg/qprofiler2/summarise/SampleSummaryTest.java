@@ -24,9 +24,6 @@ public class SampleSummaryTest {
 	
 	private VcfRecord tiRe = new VcfRecord( new String[]{ "chr1", "200",  ".", "A", "G", ".", ".",".", "GT", "0/1" } );  //ti
 	private VcfRecord tvRe = new VcfRecord( new String[]{ "chr1", "100",  ".", "A", "T", ".", ".", ".","GT", "1/1" } );  //tv
-		
-	
-
 
 	@Test
 	public void incrementGTAD() {

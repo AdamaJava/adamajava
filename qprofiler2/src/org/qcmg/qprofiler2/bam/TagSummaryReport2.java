@@ -127,7 +127,7 @@ public class TagSummaryReport2 {
 	private <T> void outputTag(Element ele, String tag,  Map<T, AtomicLong> tallys) {
 				
 		int size = tallys.size();	
-		ele = XmlUtils.createMetricsNode(ele, "tags:"+tag, new Pair(ReadGroupSummary.sreadCount, size));		
+		ele = XmlUtils.createMetricsNode(ele, "tags:"+tag, new Pair(ReadGroupSummary.READ_COUNT, size));		
 		AtomicInteger no = new AtomicInteger();		
 		tallys.entrySet().removeIf( e-> no.incrementAndGet() > 100 );
 		boolean hasPercent = (size >= 100)? false : true;

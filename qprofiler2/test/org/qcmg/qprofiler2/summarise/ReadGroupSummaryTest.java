@@ -1,8 +1,10 @@
 package org.qcmg.qprofiler2.summarise;
  
 import static org.junit.Assert.assertTrue;
-import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -26,9 +28,18 @@ import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SamReader;
 
 public class ReadGroupSummaryTest {
-	protected static final String INPUT_FILE = "input.sam";
+	
+	@Rule
+	public  TemporaryFolder testFolder = new TemporaryFolder();
+	File input;
 
-	static void createInputFile() throws IOException{
+	@Before
+	public void setup() throws IOException {
+		input = testFolder.newFile("testInputFile.sam");
+		createInputFile (input);
+	}	
+	 
+	static void createInputFile(File input) throws IOException{
 		List<String> data = new ArrayList<String>();
         data.add("@HD	VN:1.0	SO:coordinate");
         data.add("@RG	ID:1959T	SM:eBeads_20091110_CD	DS:rl=50");
@@ -99,15 +110,11 @@ public class ReadGroupSummaryTest {
 		data.add("NS500239:99	16	chr1	7480169	0	75M	*	0	0	AATGAATAGAAGGGTCCAGATCCAGTTCTAATTTGGGGTAGGGACTCAGTTTGTGTTTTTTCACGAGATGAAGAT	" + 
 				"EEEA<EEEEEE<<EE/AEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEAEEEEEEEEAEEEEEEEAAAAA	NH:i:14	HI:i:11	AS:i:73	NM:i:0	MD:Z:75	");
 		
-		try(BufferedWriter out = new BufferedWriter(new FileWriter(INPUT_FILE))){	    
+		try(BufferedWriter out = new BufferedWriter(new FileWriter(input))){	    
 			for (String line : data)  out.write(line + "\n");	               
 		}		
 	}
-
-	@After
-	public void tearDown() { 	new File(INPUT_FILE).delete(); }
-			
-
+		
 	/**
 	 * 
 	 * @param ele:<sequenceMetrics name="reads"..>
@@ -115,11 +122,11 @@ public class ReadGroupSummaryTest {
 	private void checktLen(Element parent, int pairCount, int max, int mean, int mode, int median) {
 		Element ele = XmlElementUtils.getChildElementByTagName(parent, XmlUtils.variableGroupEle)
 		.stream().filter(e -> e.getAttribute(XmlUtils.Sname).equals("tLen")).findFirst().get() ;	
-		assertTrue( checkChildValue( ele, ReadGroupSummary.smax, max+"" )); 	
-		assertTrue( checkChildValue( ele, ReadGroupSummary.smean, mean +"")); 	
-		assertTrue( checkChildValue( ele, ReadGroupSummary.smode, mode+"" )); 	
-		assertTrue( checkChildValue( ele, ReadGroupSummary.smedian, median +"")); 	
-		assertTrue( checkChildValue( ele, ReadGroupSummary.spairCount, pairCount+"" )); 		
+		assertTrue( checkChildValue( ele, ReadGroupSummary.MAX, max+"" )); 	
+		assertTrue( checkChildValue( ele, ReadGroupSummary.MEAN, mean +"")); 	
+		assertTrue( checkChildValue( ele, ReadGroupSummary.MODE, mode+"" )); 	
+		assertTrue( checkChildValue( ele, ReadGroupSummary.MEDIAN, median +"")); 	
+		assertTrue( checkChildValue( ele, ReadGroupSummary.PAIR_COUNT, pairCount+"" )); 		
 	}
 	
 	/**
@@ -128,7 +135,6 @@ public class ReadGroupSummaryTest {
 	 * @param counts: array of {totalReads, supplementaryReads, secondaryReads, failedReads}
 	 */
 	private void checkDiscardReads(Element parent, int supplementary, int secondary, int failedVendor) {		
-	//	assertTrue( parent.getAttribute("count").equals(counts[0]) ); //9 reads in this read group
 		Element ele1 = XmlElementUtils.getChildElementByTagName(parent, XmlUtils.variableGroupEle)
 				   .stream().filter(ele -> ele.getAttribute(XmlUtils.Sname).equals("discardedReads")).findFirst().get() ;				
 		assertTrue( checkChildValue(ele1,"supplementaryAlignmentCount", String.valueOf(supplementary)));
@@ -164,23 +170,22 @@ public class ReadGroupSummaryTest {
 		//check readCount		 
 		Element groupE =  XmlElementUtils.getChildElementByTagName(parent, XmlUtils.variableGroupEle)
 			.stream().filter(ele -> ele.getAttribute(XmlUtils.Sname).equals(nodeName)).findFirst().get() ;		   
-		assertTrue( checkChildValue(groupE, ReadGroupSummary.smin, String.valueOf(counts[1] )));
-		assertTrue( checkChildValue(groupE, ReadGroupSummary.smax, String.valueOf(counts[2] )));
-		assertTrue( checkChildValue(groupE, ReadGroupSummary.smean, String.valueOf(counts[3] )));
-		assertTrue( checkChildValue(groupE, ReadGroupSummary.smode, String.valueOf(counts[4] )));	
-		assertTrue( checkChildValue(groupE, ReadGroupSummary.smedian, String.valueOf(counts[5] )));
-		assertTrue( checkChildValue(groupE, ReadGroupSummary.sreadCount, String.valueOf(counts[0])));		
-		assertTrue( checkChildValue(groupE, ReadGroupSummary.slostBase, String.valueOf(counts[6])));		
-		assertTrue( checkChildValue(groupE, ReadGroupSummary.sbasePercent, percent));		
+		assertTrue( checkChildValue(groupE, ReadGroupSummary.MIN, String.valueOf(counts[1] )));
+		assertTrue( checkChildValue(groupE, ReadGroupSummary.MAX, String.valueOf(counts[2] )));
+		assertTrue( checkChildValue(groupE, ReadGroupSummary.MEAN, String.valueOf(counts[3] )));
+		assertTrue( checkChildValue(groupE, ReadGroupSummary.MODE, String.valueOf(counts[4] )));	
+		assertTrue( checkChildValue(groupE, ReadGroupSummary.MEDIAN, String.valueOf(counts[5] )));
+		assertTrue( checkChildValue(groupE, ReadGroupSummary.READ_COUNT, String.valueOf(counts[0])));		
+		assertTrue( checkChildValue(groupE, ReadGroupSummary.BASE_LOST_COUNT, String.valueOf(counts[6])));		
+		assertTrue( checkChildValue(groupE, ReadGroupSummary.BASE_LOST_PERCENT, percent));		
 	}
-		
-	
+			
 	public static boolean checkChildValue(Element parent,String name, String value) {
-
 		 List<Element> eles = XmlElementUtils.getChildElementByTagName(parent, XmlUtils.Svalue);	
 		 Element ele = eles.stream().filter( e -> e.getAttribute(XmlUtils.Sname).equals(name)).findFirst().get() ;		 
 		 return ele.getTextContent().equals(value);		
 	}
+
 	/**
 	 * parse read with specified rgid; it will parse read without readgroupid if the input rgid=QprofilerXmlUtils.UNKNOWN_READGROUP
 	 * it will parse every reads if the input rgid is null
@@ -189,11 +194,10 @@ public class ReadGroupSummaryTest {
 	 * @throws IOException
 	 * @throws ParserConfigurationException
 	 */
-	static ReadGroupSummary createRGElement(String rgid) throws IOException, ParserConfigurationException{
-		createInputFile();
+	private ReadGroupSummary createRGElement(String rgid) throws IOException, ParserConfigurationException{
 		
 		ReadGroupSummary rgSumm = new ReadGroupSummary(rgid);		
-		SamReader reader = SAMFileReaderFactory.createSAMFileReaderAsStream(new File( INPUT_FILE), null, null);
+		SamReader reader = SAMFileReaderFactory.createSAMFileReaderAsStream(input, null, null);
 		for (SAMRecord record : reader) {	
 			if(rgid == null)
 				rgSumm.parseRecord(record);
@@ -223,33 +227,33 @@ public class ReadGroupSummaryTest {
 				.stream().filter(ele -> ele.getAttribute(XmlUtils.Sname).equals( "basesLost" )).findFirst().get() ;	
 		checkBadReadStats(root1, "duplicateReads", 0, 0, "0.00");
 		checkBadReadStats(root1, "unmappedReads", 0, 0, "0.00" );
-		checkBadReadStats(root1, ReadGroupSummary.node_nonCanonicalPair, 0, 0, "0.00" );
+		checkBadReadStats(root1, ReadGroupSummary.NODE_NOT_PROPER_PAIR, 0, 0, "0.00" );
 		checkBadReadStats(root1, "trimmedBases", 1, 13, "13.00" );
-		checkCountedReadStats(root1, ReadGroupSummary.node_softClip , new int[] {1, 5, 5, 5, 5, 5,5}, "5.00");
-		checkCountedReadStats(root1, ReadGroupSummary.node_hardClip  ,new int[] {0, 0, 0, 0, 0,0,0}, "0.00");
-		checkCountedReadStats(root1, ReadGroupSummary.node_overlap, new int[] {1,62,62,62,62,62,62},"62.00");
+		checkCountedReadStats(root1, ReadGroupSummary.NODE_SOFTCLIP , new int[] {1, 5, 5, 5, 5, 5,5}, "5.00");
+		checkCountedReadStats(root1, ReadGroupSummary.NODE_HARDCLIP  ,new int[] {0, 0, 0, 0, 0,0,0}, "0.00");
+		checkCountedReadStats(root1, ReadGroupSummary.NODE_OVERLAP, new int[] {1,62,62,62,62,62,62},"62.00");
 		
 		
 		//<sequenceMetrics name="reads" readCount="2">					
 		root1 = XmlElementUtils.getChildElementByTagName(root, XmlUtils.metricsEle)		
 			.stream().filter(ele -> ele.getAttribute(XmlUtils.Sname).equals( "reads" )).findFirst().get() ;		
-		assertTrue( root1.getAttribute(ReadGroupSummary.sreadCount).equals("2"));
+		assertTrue( root1.getAttribute(ReadGroupSummary.READ_COUNT).equals("2"));
 		checkDiscardReads(root1, 0,0,0);
 		
 		//check readCount
 		Element groupE =  XmlElementUtils.getChildElementByTagName(root1, XmlUtils.variableGroupEle)
-				.stream().filter(ele -> ele.getAttribute(XmlUtils.Sname).equals(ReadGroupSummary.node_readLength)).findFirst().get() ;		   					
-		assertTrue( checkChildValue( groupE, ReadGroupSummary.smax, "50" )); 	
-		assertTrue( checkChildValue( groupE, ReadGroupSummary.smean, "43" )); 
+				.stream().filter(ele -> ele.getAttribute(XmlUtils.Sname).equals(ReadGroupSummary.NODE_READ_LENGTH)).findFirst().get() ;		   					
+		assertTrue( checkChildValue( groupE, ReadGroupSummary.MAX, "50" )); 	
+		assertTrue( checkChildValue( groupE, ReadGroupSummary.MEAN, "43" )); 
 		
 		groupE =  XmlElementUtils.getChildElementByTagName(root1, XmlUtils.variableGroupEle)
 				.stream().filter(ele -> ele.getAttribute(XmlUtils.Sname).equals("countedReads")).findFirst().get() ;	
-		assertTrue( checkChildValue( groupE, ReadGroupSummary.sunpaired, "0" ));
-		assertTrue( checkChildValue( groupE, ReadGroupSummary.sreadCount, "2" )); 
-		assertTrue( checkChildValue( groupE, ReadGroupSummary.slostBase, "80" ));
+		assertTrue( checkChildValue( groupE, ReadGroupSummary.UNPAIRED_READ, "0" ));
+		assertTrue( checkChildValue( groupE, ReadGroupSummary.READ_COUNT, "2" )); 
+		assertTrue( checkChildValue( groupE, ReadGroupSummary.BASE_LOST_COUNT, "80" ));
 		//here overlapped base is more than real base number since it alignment end may include skipping/deletion base
-		assertTrue( checkChildValue( groupE, ReadGroupSummary.sbasePercent, "80.00" ));   
-		assertTrue( checkChildValue( groupE, ReadGroupSummary.sbaseCount, "100" ));
+		assertTrue( checkChildValue( groupE, ReadGroupSummary.BASE_LOST_PERCENT, "80.00" ));   
+		assertTrue( checkChildValue( groupE, ReadGroupSummary.BASE_COUNT, "100" ));
 		
 	}
 	
@@ -268,32 +272,32 @@ public class ReadGroupSummaryTest {
 		checkBadReadStats(root1, "duplicateReads", 0, 0, "0.00");
 		checkBadReadStats(root1, "unmappedReads", 0, 0, "0.00" );
 		checkBadReadStats(root1, "trimmedBases", 0, 0, "0.00" );
-		checkBadReadStats(root1, ReadGroupSummary.node_nonCanonicalPair, 0, 0, "0.00" );
-		checkCountedReadStats(root1, ReadGroupSummary.node_softClip , new int[] {0, 0, 0, 0, 0,0,0}, "0.00");
-		checkCountedReadStats(root1, ReadGroupSummary.node_hardClip  ,new int[] {0, 0, 0, 0, 0,0,0}, "0.00");
-		checkCountedReadStats(root1, ReadGroupSummary.node_overlap, new int[] {0, 0, 0, 0, 0,0,0}, "0.00");
+		checkBadReadStats(root1, ReadGroupSummary.NODE_NOT_PROPER_PAIR, 0, 0, "0.00" );
+		checkCountedReadStats(root1, ReadGroupSummary.NODE_SOFTCLIP , new int[] {0, 0, 0, 0, 0,0,0}, "0.00");
+		checkCountedReadStats(root1, ReadGroupSummary.NODE_HARDCLIP  ,new int[] {0, 0, 0, 0, 0,0,0}, "0.00");
+		checkCountedReadStats(root1, ReadGroupSummary.NODE_OVERLAP, new int[] {0, 0, 0, 0, 0,0,0}, "0.00");
 				
 		//<sequenceMetrics name="reads" readCount="2">					
 		root1 = XmlElementUtils.getChildElementByTagName(root, XmlUtils.metricsEle)		
 			.stream().filter(ele -> ele.getAttribute(XmlUtils.Sname).equals( "reads" )).findFirst().get() ;	
 		checktLen(root1, 0, 0,  0, 0,0);
-		assertTrue( root1.getAttribute(ReadGroupSummary.sreadCount).equals("1"));
+		assertTrue( root1.getAttribute(ReadGroupSummary.READ_COUNT).equals("1"));
 		checkDiscardReads(root1, 0,0,0);
 		
 		//check readCount
 		Element groupE =  XmlElementUtils.getChildElementByTagName(root1, XmlUtils.variableGroupEle)
-				.stream().filter(ele -> ele.getAttribute(XmlUtils.Sname).equals(ReadGroupSummary.node_readLength)).findFirst().get() ;		  		
-		assertTrue( checkChildValue( groupE, ReadGroupSummary.smax, "75" )); 	
-		assertTrue( checkChildValue( groupE, ReadGroupSummary.smean, "75" )); 	
+				.stream().filter(ele -> ele.getAttribute(XmlUtils.Sname).equals(ReadGroupSummary.NODE_READ_LENGTH)).findFirst().get() ;		  		
+		assertTrue( checkChildValue( groupE, ReadGroupSummary.MAX, "75" )); 	
+		assertTrue( checkChildValue( groupE, ReadGroupSummary.MEAN, "75" )); 	
 		
 		groupE =  XmlElementUtils.getChildElementByTagName(root1, XmlUtils.variableGroupEle)
 				.stream().filter(ele -> ele.getAttribute(XmlUtils.Sname).equals("countedReads")).findFirst().get() ;			
-		assertTrue( checkChildValue( groupE, ReadGroupSummary.sreadCount, "1" )); 
-		assertTrue( checkChildValue( groupE, ReadGroupSummary.sunpaired, "1" ));
-		assertTrue( checkChildValue( groupE, ReadGroupSummary.slostBase, "0" ));
+		assertTrue( checkChildValue( groupE, ReadGroupSummary.READ_COUNT, "1" )); 
+		assertTrue( checkChildValue( groupE, ReadGroupSummary.UNPAIRED_READ, "1" ));
+		assertTrue( checkChildValue( groupE, ReadGroupSummary.BASE_LOST_COUNT, "0" ));
 		//here overlapped base is more than real base number since it alignment end may include skipping/deletion base
-		assertTrue( checkChildValue( groupE, ReadGroupSummary.sbasePercent, "0.00" ));   
-		assertTrue( checkChildValue( groupE, ReadGroupSummary.sbaseCount, "75" ));		
+		assertTrue( checkChildValue( groupE, ReadGroupSummary.BASE_LOST_PERCENT, "0.00" ));   
+		assertTrue( checkChildValue( groupE, ReadGroupSummary.BASE_COUNT, "75" ));		
 		
 		
 	}
@@ -313,58 +317,57 @@ public class ReadGroupSummaryTest {
 		checkBadReadStats(root1, "duplicateReads", 2, 80, "33.33"); 
 		checkBadReadStats(root1, "unmappedReads", 1, 40, "16.67" );
 		checkBadReadStats(root1, "trimmedBases", 0, 0, "0.00" );
-		checkBadReadStats(root1, ReadGroupSummary.node_nonCanonicalPair, 0, 0, "0.00" );
-		checkCountedReadStats(root1, ReadGroupSummary.node_softClip , new int[] {0, 0, 0, 0, 0,0,0}, "0.00");
-		checkCountedReadStats(root1, ReadGroupSummary.node_overlap, new int[] {1 ,26,26,26,26,26,26},"10.83" );	
-		checkCountedReadStats(root1, ReadGroupSummary.node_hardClip, new int[] {3,3,8 ,5 ,3,5,16}, "6.67" );			
+		checkBadReadStats(root1, ReadGroupSummary.NODE_NOT_PROPER_PAIR, 0, 0, "0.00" );
+		checkCountedReadStats(root1, ReadGroupSummary.NODE_SOFTCLIP , new int[] {0, 0, 0, 0, 0,0,0}, "0.00");
+		checkCountedReadStats(root1, ReadGroupSummary.NODE_OVERLAP, new int[] {1 ,26,26,26,26,26,26},"10.83" );	
+		checkCountedReadStats(root1, ReadGroupSummary.NODE_HARDCLIP, new int[] {3,3,8 ,5 ,3,5,16}, "6.67" );			
 				
 		//<sequenceMetrics name="reads" readCount="2">					
 		root1 = XmlElementUtils.getChildElementByTagName(root, XmlUtils.metricsEle)		
 			.stream().filter(ele -> ele.getAttribute(XmlUtils.Sname).equals( "reads" )).findFirst().get() ;	
 		checktLen(root1,2, 93,  59, 26,93);
-		assertTrue( root1.getAttribute(ReadGroupSummary.sreadCount).equals("9"));
+		assertTrue( root1.getAttribute(ReadGroupSummary.READ_COUNT).equals("9"));
 		checkDiscardReads(root1, 1,1,1);
 		
 		//check readCount
 		Element groupE =  XmlElementUtils.getChildElementByTagName(root1, XmlUtils.variableGroupEle)
-				.stream().filter(ele -> ele.getAttribute(XmlUtils.Sname).equals(ReadGroupSummary.node_readLength)).findFirst().get() ;		   					
-		assertTrue( checkChildValue( groupE, ReadGroupSummary.smax, "40" )); 	
-		assertTrue( checkChildValue( groupE, ReadGroupSummary.smean, "39" )); 
+				.stream().filter(ele -> ele.getAttribute(XmlUtils.Sname).equals(ReadGroupSummary.NODE_READ_LENGTH)).findFirst().get() ;		   					
+		assertTrue( checkChildValue( groupE, ReadGroupSummary.MAX, "40" )); 	
+		assertTrue( checkChildValue( groupE, ReadGroupSummary.MEAN, "39" )); 
 		
 		groupE =  XmlElementUtils.getChildElementByTagName(root1, XmlUtils.variableGroupEle)
 				.stream().filter(ele -> ele.getAttribute(XmlUtils.Sname).equals("countedReads")).findFirst().get() ;		
-		assertTrue( checkChildValue( groupE, ReadGroupSummary.sreadCount, "6" )); 
-		assertTrue( checkChildValue( groupE, ReadGroupSummary.sunpaired, "0" ));
-		assertTrue( checkChildValue( groupE, ReadGroupSummary.slostBase, "162" ));
+		assertTrue( checkChildValue( groupE, ReadGroupSummary.READ_COUNT, "6" )); 
+		assertTrue( checkChildValue( groupE, ReadGroupSummary.UNPAIRED_READ, "0" ));
+		assertTrue( checkChildValue( groupE, ReadGroupSummary.BASE_LOST_COUNT, "162" ));
 		//here overlapped base is more than real base number since it alignment end may include skipping/deletion base
-		assertTrue( checkChildValue( groupE, ReadGroupSummary.sbasePercent, "67.50" ));   
-		assertTrue( checkChildValue( groupE, ReadGroupSummary.sbaseCount, "240" ));				
+		assertTrue( checkChildValue( groupE, ReadGroupSummary.BASE_LOST_PERCENT, "67.50" ));   
+		assertTrue( checkChildValue( groupE, ReadGroupSummary.BASE_COUNT, "240" ));				
 		
 	}
 		
 	@Test
 	public void overallTest() throws Exception {
-		createInputFile();
 		//overall readgroup should manually  setMaxBases(long);
 		Element root = XmlElementUtils.createRootElement("root",null);
 		BamSummarizer2 bs = new BamSummarizer2();
 		//BamSummarizer2 bs = new BamSummarizer2( 200, null, true);
-		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize(INPUT_FILE); 
+		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize(input.getAbsolutePath()); 
 		sr.toXml(root);	
 
 		root = XmlElementUtils.getOffspringElementByTagName( root, "bamSummary" ).get(0);
 		Element root1 = XmlElementUtils.getChildElementByTagName( root, XmlUtils.metricsEle )		
 		.stream().filter( ele -> ele.getAttribute(XmlUtils.Sname ).equals( "summary2" )).findFirst().get() ;	
-		assertTrue( checkChildValue( root1, ReadGroupSummary.sreadCount, "9" ));
-		assertTrue( checkChildValue( root1, ReadGroupSummary.sbaseCount , "415" ));	
+		assertTrue( checkChildValue( root1, ReadGroupSummary.READ_COUNT, "9" ));
+		assertTrue( checkChildValue( root1, ReadGroupSummary.BASE_COUNT , "415" ));	
 		//duplicate 80/415=19.28
-		assertTrue( checkChildValue( root1, StringUtils.getJoinedString( ReadGroupSummary.node_duplicate,   ReadGroupSummary.sbasePercent, "_"), "19.28" ) ); //80/415
-		assertTrue( checkChildValue( root1, StringUtils.getJoinedString( ReadGroupSummary.node_unmapped, ReadGroupSummary.sbasePercent, "_"), "9.64" ));  //40/415
-		assertTrue( checkChildValue( root1, StringUtils.getJoinedString( ReadGroupSummary.node_nonCanonicalPair, ReadGroupSummary.sbasePercent, "_"), "0.00" ));  //0/415
-		assertTrue( checkChildValue( root1, StringUtils.getJoinedString( ReadGroupSummary.node_trim , ReadGroupSummary.sbasePercent, "_"), "3.13" ));  //13/415
-		assertTrue( checkChildValue( root1, StringUtils.getJoinedString( ReadGroupSummary.node_softClip, ReadGroupSummary.sbasePercent, "_"), "1.20" ));  //5/415	 
-		assertTrue( checkChildValue( root1, StringUtils.getJoinedString( ReadGroupSummary.node_hardClip, ReadGroupSummary.sbasePercent, "_"), "3.86" ));  //16/415
-		assertTrue( checkChildValue( root1, StringUtils.getJoinedString( ReadGroupSummary.node_overlap , ReadGroupSummary.sbasePercent, "_"), "21.20" ));  //88/415	   		
+		assertTrue( checkChildValue( root1, StringUtils.getJoinedString( ReadGroupSummary.NODE_DUPLICATE,   ReadGroupSummary.BASE_LOST_PERCENT, "_"), "19.28" ) ); //80/415
+		assertTrue( checkChildValue( root1, StringUtils.getJoinedString( ReadGroupSummary.NODE_UNMAPPED, ReadGroupSummary.BASE_LOST_PERCENT, "_"), "9.64" ));  //40/415
+		assertTrue( checkChildValue( root1, StringUtils.getJoinedString( ReadGroupSummary.NODE_NOT_PROPER_PAIR, ReadGroupSummary.BASE_LOST_PERCENT, "_"), "0.00" ));  //0/415
+		assertTrue( checkChildValue( root1, StringUtils.getJoinedString( ReadGroupSummary.NODE_TRIM , ReadGroupSummary.BASE_LOST_PERCENT, "_"), "3.13" ));  //13/415
+		assertTrue( checkChildValue( root1, StringUtils.getJoinedString( ReadGroupSummary.NODE_SOFTCLIP, ReadGroupSummary.BASE_LOST_PERCENT, "_"), "1.20" ));  //5/415	 
+		assertTrue( checkChildValue( root1, StringUtils.getJoinedString( ReadGroupSummary.NODE_HARDCLIP, ReadGroupSummary.BASE_LOST_PERCENT, "_"), "3.86" ));  //16/415
+		assertTrue( checkChildValue( root1, StringUtils.getJoinedString( ReadGroupSummary.NODE_OVERLAP , ReadGroupSummary.BASE_LOST_PERCENT, "_"), "21.20" ));  //88/415	   		
 			
 		root1 = XmlElementUtils.getChildElementByTagName( root, XmlUtils.metricsEle )		
 				.stream().filter( ele -> ele.getAttribute(XmlUtils.Sname ).equals( "summary1" )).findFirst().get() ;
@@ -373,22 +376,6 @@ public class ReadGroupSummaryTest {
 		assertTrue( checkChildValue( root1, "Average length of second-of-pair reads", "41" )); // (32+50)/2
 		assertTrue( checkChildValue( root1, "Discarded reads (FailedVendorQuality, secondary, supplementary)", "3" ));  	
 		assertTrue( checkChildValue( root1, "Total reads including discarded reads", "12" )); // 
-	}
-	
-	
-//	@Test
-//	public void cigarTest() throws Exception {
-//			// cigars
-//		assertEquals(1, sr.getCigarValuesCount().get("13H").get());
-//		assertEquals(1, sr.getCigarValuesCount().get("15H").get());
-//		assertEquals(1, sr.getCigarValuesCount().get("8H").get());
-//		assertEquals(1, sr.getCigarValuesCount().get("22H").get());
-//		assertEquals(1, sr.getCigarValuesCount().get("10H").get());
-//	
-//		
-//	}
-
-
-				
+	}				
 }
 

@@ -18,9 +18,10 @@ import java.util.logging.Logger;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.lang3.StringUtils;
-import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.XmlElementUtils;
 import org.qcmg.picard.SAMFileReaderFactory;
@@ -32,14 +33,16 @@ import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SamReader;
 
 public class KmersSummaryTest {
-	private static final String SAM_INPUT_FILE = "testInputFile.sam";
+	@Rule
+	public TemporaryFolder testFolder = new TemporaryFolder();
+	private static File input;
 	
 	@Before
-	public void createFile(){ createTestSamFile(); }
-	
-	@After
-	public void deleteFile(){ new File(SAM_INPUT_FILE).delete(); }
-	
+	public void setUp() throws Exception{
+		input = testFolder.newFile("input.sam");
+		createTestSamFile();	
+	}
+
 	@Test
 	public void producerTest() {
 		assertEquals("A,T,G,C,N", KmersSummary.producer(1,"",true));
@@ -100,7 +103,7 @@ public class KmersSummaryTest {
 	@Test
 	public void bothReversedTest() throws IOException {		
 		KmersSummary summary = new KmersSummary(KmersSummary.maxKmers);	
- 		try( SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(SAM_INPUT_FILE));){
+ 		try( SamReader reader = SAMFileReaderFactory.createSAMFileReader(input);){
  			for (SAMRecord record : reader){ 
 				final int order = (!record.getReadPairedFlag())? 0: (record.getFirstOfPairFlag())? 1 : 2;	
 				summary.parseKmers(record.getReadBases(), true, order );				
@@ -156,7 +159,7 @@ public class KmersSummaryTest {
 	@Test
 	public void toXmlTest() throws IOException, DOMException, ParserConfigurationException {		
 		KmersSummary summary = new KmersSummary(KmersSummary.maxKmers);	
- 		try( SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(SAM_INPUT_FILE));){
+ 		try( SamReader reader = SAMFileReaderFactory.createSAMFileReader(input);){
  			for (SAMRecord record : reader){ 		
 				final int order = (!record.getReadPairedFlag())? 0: (record.getFirstOfPairFlag())? 1 : 2;	
 				summary.parseKmers(record.getReadBases(), record.getReadNegativeStrandFlag(), order );				
@@ -213,7 +216,7 @@ public class KmersSummaryTest {
 	public void bothForwardTest() throws IOException {
 		
 		KmersSummary summary = new KmersSummary(KmersSummary.maxKmers);	
- 		try( SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(SAM_INPUT_FILE));){
+ 		try( SamReader reader = SAMFileReaderFactory.createSAMFileReader(input);){
  			for (SAMRecord record : reader){ 
 				final int order = (!record.getReadPairedFlag())? 0: (record.getFirstOfPairFlag())? 1 : 2;	
 				summary.parseKmers(record.getReadBases(), false, order );				
@@ -308,11 +311,11 @@ public class KmersSummaryTest {
  		//forward second in pair
 		data.add("970_1290_1068	163	chr1	10176	3	9M6H	=	10167	-59	CCTAACNCT	I&&HII%%I	RG:Z:1959T");
 				
-		try(PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(SAM_INPUT_FILE)) ) ) {
+		try(PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(input)) ) ) {
 			for (String line : data)   out.println(line);			 
 		} catch (IOException e) {
 			Logger.getLogger("KmersSummaryTest").log(
-					Level.WARNING, "IOException caught whilst attempting to write to SAM test file: " + SAM_INPUT_FILE, e);
+					Level.WARNING, "IOException caught whilst attempting to write to SAM test file: " + input.getAbsolutePath(), e);
 		}  
 	}
 	

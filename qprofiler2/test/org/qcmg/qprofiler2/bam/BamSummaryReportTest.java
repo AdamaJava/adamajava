@@ -3,12 +3,15 @@ package org.qcmg.qprofiler2.bam;
 import static org.junit.Assert.*;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import htsjdk.samtools.SAMUtils;
-import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.XmlElementUtils;
 import org.qcmg.qprofiler2.bam.BamSummaryReport2;
@@ -22,10 +25,14 @@ import org.w3c.dom.Element;
 
 public class BamSummaryReportTest {
 	
-	final String input = "input.sam";
-	
-	@After
-	public void tearDown() { new File(input).delete();	}	
+	@Rule
+	public  TemporaryFolder testFolder = new TemporaryFolder();
+	public File input;
+
+	@Before
+	public void setup() throws IOException {
+		input = testFolder.newFile("testInputFile.sam");
+	}	
 			
 	@Test
 	public void testParseRNameAndPos() throws Exception {
@@ -148,7 +155,7 @@ public class BamSummaryReportTest {
 		CycleSummaryTest.createInputFile(input);
 		Element root = XmlElementUtils.createRootElement("root",null);
 		BamSummarizer2 bs = new BamSummarizer2();
-		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize( input ); 
+		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize( input.getAbsolutePath() ); 
 		sr.toXml(root);			
 		
 		//length

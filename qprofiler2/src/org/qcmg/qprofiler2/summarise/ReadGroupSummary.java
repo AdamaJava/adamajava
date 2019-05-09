@@ -17,34 +17,35 @@ import htsjdk.samtools.SAMRecord;
 
 public class ReadGroupSummary {
 
-	public final static int errReadLimit  = 10;	
+	public final static int ERR_READ_LIMIT  = 10;	
 	//xml node name 	
-	public final static String node_readgroup = "readGroup";		
-	public final static String node_softClip = "softClippedBases";
-	public final static String node_trim = "trimmedBases";	
-	public final static String node_hardClip = "hardClippedBases";
-	public final static String node_readLength = "readLength" ; 
-	public final static String node_pairTlen = "tLen" ; 	
-	public final static String node_overlap = "overlappedBases";	
-	public final static String node_duplicate = "duplicateReads";
-	public final static String node_secondary = "secondary";
-	public final static String node_supplementary = "supplementary"; 	
-	public final static String node_unmapped = "unmappedReads";
-	public final static String node_nonCanonicalPair = "notProperPairs";
-	public final static String node_failedVendorQuality = "failedVendorQuality";
+	public final static String NODE_READGROUP = "readGroup";		
+	public final static String NODE_SOFTCLIP = "softClippedBases";
+	public final static String NODE_TRIM = "trimmedBases";	
+	public final static String NODE_HARDCLIP = "hardClippedBases";
+	public final static String NODE_READ_LENGTH = "readLength" ; 
+	public final static String NODE_PAIR_TLEN = "tLen" ; 	
+	public final static String NODE_OVERLAP = "overlappedBases";	
+	public final static String NODE_DUPLICATE = "duplicateReads";
+	public final static String NODE_SECONDARY = "secondary";
+	public final static String NODE_SUPPLEMENTARY = "supplementary"; 	
+	public final static String NODE_UNMAPPED = "unmappedReads";
+	public final static String NODE_NOT_PROPER_PAIR = "notProperPairs";
+	public final static String NODE_FAILED_VENDOR_QUALITY = "failedVendorQuality";
 
 		
-	public final static String smin= "min";	
-	public final static String smax = "max";
-	public final static String smean = "mean"; 
-	public final static String smode =  "mode"; 
-	public final static String smedian = "median" ; 
-	public final static String sreadCount = "readCount";
-	public final static String spairCount = "pairCount";
-	public final static String sbaseCount = "basesCount"; // 
-	public final static String slostBase = "basesLostCount"; 
-	public final static String sbasePercent = "basesLostPercent"; 	
-	public final static String sunpaired ="unpairedReads";
+	public final static String MIN= "min";	
+	public final static String MAX = "max";
+	public final static String MEAN = "mean"; 
+	public final static String MODE =  "mode"; 
+	public final static String MEDIAN = "median" ; 
+	public final static String READ_COUNT = "readCount";
+	public final static String PAIR_COUNT = "pairCount";
+	public final static String BASE_COUNT = "basesCount"; 
+	public final static String BASE_LOST_COUNT = "basesLostCount"; 
+	public final static String BASE_LOST_PERCENT = "basesLostPercent"; 	
+	public final static String UNPAIRED_READ ="unpairedReads";
+	
 	 			
 	//softclips, hardclips, read length; 	
 	QCMGAtomicLongArray softClip = new QCMGAtomicLongArray(128);
@@ -57,7 +58,6 @@ public class ReadGroupSummary {
 	//must be concurrent set for multi threads
 	private final ConcurrentMap<Integer, PairSummary> pairCategory = new ConcurrentHashMap<>();
 
-//	AtomicInteger max_isize = new AtomicInteger(); 	
 	//bad reads inforamtion
 	AtomicLong duplicate = new AtomicLong();
 	AtomicLong secondary  = new AtomicLong();
@@ -90,8 +90,6 @@ public class ReadGroupSummary {
 	public long getDuplicateBase() { return this.duplicate.get() * getMaxReadLength(); }	
 	public long getUnmappedBase() { return this.unmapped.get() * getMaxReadLength(); }	
 	public long getnotPoperPairedBase() {  return notProperPairedReads.get() * getMaxReadLength(); }
-
-
 		
 	/**
 	 * classify record belongs (duplicate...) and count the number. If record is parsed, then count the hard/soft clip bases, pair mapping overlap bases and pairs information
@@ -133,11 +131,6 @@ public class ReadGroupSummary {
 			 }	 
 		}
 		readLength.increment(record.getReadLength()+lHard);	
-//		//record readlength includeing hardclip and duplicat, unmapped etc reads
-//		int lenght_clip = record.getReadLength()+lHard;
-//		if(this.maxReadLength < lenght_clip  )
-//			this.maxReadLength = lenght_clip ;
-
 			
 		//find mapped badly reads and return false	
 		if(record.getDuplicateReadFlag()){
@@ -154,7 +147,7 @@ public class ReadGroupSummary {
 		if(record.getReadPairedFlag()) {
 			PairSummary.Pair pairType = PairSummary.getPairType(record);
 			boolean isProper = record.getProperPairFlag();
-			int key = isProper? pairType.id * 2 :  pairType.id;			 
+			int key = isProper? pairType.id   :  pairType.id * -1;	
 			pairCategory.computeIfAbsent(key, e-> new PairSummary( pairType, isProper)).parse(record);
 			//we always parse pairs but stop here if not ProperPair
 			if( !isProper ) { 
@@ -215,8 +208,7 @@ public class ReadGroupSummary {
 		QCMGAtomicLongArray trimedBase = new QCMGAtomicLongArray(maxLenght);	
 		for (int i = 1 ; i < forTrimLength.length() ; i++)	{			
 			if(forTrimLength.get(i) == 0 || maxLenght == i ) continue;
-			//trimmedbase is maxLenght - i; readcounts is forTrimLength.get(i)
-			trimedBase.increment( maxLenght - i, forTrimLength.get(i));
+				trimedBase.increment( maxLenght - i, forTrimLength.get(i));
 		}
 		this.trimBaseStats = new SummaryReportUtils.TallyStats( trimedBase );		
 		
@@ -229,17 +221,17 @@ public class ReadGroupSummary {
 		//add to xml RG_Counts		
 		Element rgElement = XmlUtils.createMetricsNode(parent,"basesLost", null);					
 		//add discarded read Stats to readgroup summary	
-		badReadStats( rgElement, node_duplicate, duplicate.get());
-		badReadStats( rgElement, node_unmapped, unmapped.get() );		
-		badReadStats( rgElement, node_nonCanonicalPair, notProperPairedReads.get());
-		lostBaseStats( rgElement, node_trim, trimBaseStats );		
-		lostBaseStats( rgElement, node_softClip, softclipStats );
-		lostBaseStats( rgElement, node_hardClip, hardclipStats  );
-		lostBaseStats( rgElement, node_overlap, overlapStats );
+		badReadStats( rgElement, NODE_DUPLICATE, duplicate.get());
+		badReadStats( rgElement, NODE_UNMAPPED, unmapped.get() );		
+		badReadStats( rgElement, NODE_NOT_PROPER_PAIR, notProperPairedReads.get());
+		lostBaseStats( rgElement, NODE_TRIM, trimBaseStats );		
+		lostBaseStats( rgElement, NODE_SOFTCLIP, softclipStats );
+		lostBaseStats( rgElement, NODE_HARDCLIP, hardclipStats  );
+		lostBaseStats( rgElement, NODE_OVERLAP, overlapStats );
 		
 		
 		//create node for overall	
-		rgElement = XmlUtils.createMetricsNode(parent,"reads", new Pair(sreadCount, inputReadCounts.get()));		
+		rgElement = XmlUtils.createMetricsNode(parent,"reads", new Pair(READ_COUNT, inputReadCounts.get()));		
 		Element ele = XmlUtils.createGroupNode(rgElement, XmlUtils.discardReads );
 		XmlUtils.outputValueNode(ele, "supplementaryAlignmentCount", supplementary.get());
 		XmlUtils.outputValueNode(ele, "secondaryAlignmentCount", secondary.get());
@@ -247,37 +239,37 @@ public class ReadGroupSummary {
 		
 		
 		//readLength and tLen
-		for(String name : new String[] {node_readLength, node_pairTlen}) {
+		for(String name : new String[] {NODE_READ_LENGTH, NODE_PAIR_TLEN}) {
 			ele = XmlUtils.createGroupNode(rgElement, name );
-			SummaryReportUtils.TallyStats stats = name.equals(node_readLength)? readlengthStats : pairtLenStats;
-			String countName = name.equals(node_readLength)? sreadCount : spairCount;	
-			String comment =  name.equals(node_readLength)? ": includes duplicateReads, nonCanonicalPairs and unmappedReads but excludes discardedReads (failed, secondary and supplementary)." 
+			SummaryReportUtils.TallyStats stats = name.equals(NODE_READ_LENGTH)? readlengthStats : pairtLenStats;
+			String countName = name.equals(NODE_READ_LENGTH)? READ_COUNT : PAIR_COUNT;	
+			String comment =  name.equals(NODE_READ_LENGTH)? ": includes duplicateReads, nonCanonicalPairs and unmappedReads but excludes discardedReads (failed, secondary and supplementary)." 
 					: ": only count properPaired reads which have a positive TLEN value or zero value but it is marked as firstOfPair";
 			ele.appendChild( ele.getOwnerDocument().createComment( countName + comment ));	
 			XmlUtils.outputValueNode(ele, countName, stats.getReadCounts());	
-			XmlUtils.outputValueNode(ele, smax, stats.getMax());
-			XmlUtils.outputValueNode(ele, smean, stats.getMean());
-			XmlUtils.outputValueNode(ele, smode, stats.getMode());
-			XmlUtils.outputValueNode(ele, smedian, stats.getMedium());	
+			XmlUtils.outputValueNode(ele, MAX, stats.getMax());
+			XmlUtils.outputValueNode(ele, MEAN, stats.getMean());
+			XmlUtils.outputValueNode(ele, MODE, stats.getMode());
+			XmlUtils.outputValueNode(ele, MEDIAN, stats.getMedium());	
 			
 		}		
 		
-		////add overall information to current readgroup element	
+		//add overall information to current readgroup element	
 		long maxBases = getReadCount() * readlengthStats.getMax() ;
 		long lostBase = (duplicate.get() + unmapped.get() + notProperPairedReads.get()  ) * getMaxReadLength() +
 				trimBaseStats.getBaseCounts() + softclipStats.getBaseCounts() + hardclipStats.getBaseCounts()+ overlapStats.getBaseCounts();
 		double lostPercent =  maxBases == 0? 0: 100 * (double) lostBase / maxBases ;	
 		
 		ele = XmlUtils.createGroupNode(rgElement, "countedReads" );
-		XmlUtils.outputValueNode(ele, sunpaired,  unpaired.get());	
-		ele.appendChild( ele.getOwnerDocument().createComment(sreadCount + ": includes duplicateReads, nonCanonicalPairs and unmappedReads but excludes discardedReads (failed, secondary and supplementary).") );						
-		XmlUtils.outputValueNode( ele, sreadCount,  getReadCount() );
-		ele.appendChild( ele.getOwnerDocument().createComment(sbaseCount + ": " + sreadCount + " * readMaxLength") );
-		XmlUtils.outputValueNode( ele, sbaseCount, maxBases);	
-		ele.appendChild( ele.getOwnerDocument().createComment(slostBase + ": readMaxLength * (duplicateReads + nonCanonicalPairs + unmappedReads) + trimmedBases + softClippedBases + hardClippedBases + overlappedBases") );					
-		XmlUtils.outputValueNode( ele, slostBase,  lostBase);	
-		ele.appendChild( ele.getOwnerDocument().createComment(String.format("%s: %s / %s", sbasePercent, slostBase, sbaseCount)) );			
-		XmlUtils.outputValueNode( ele, sbasePercent , lostPercent );			
+		XmlUtils.outputValueNode(ele, UNPAIRED_READ,  unpaired.get());	
+		ele.appendChild( ele.getOwnerDocument().createComment(READ_COUNT + ": includes duplicateReads, nonCanonicalPairs and unmappedReads but excludes discardedReads (failed, secondary and supplementary).") );						
+		XmlUtils.outputValueNode( ele, READ_COUNT,  getReadCount() );
+		ele.appendChild( ele.getOwnerDocument().createComment(BASE_COUNT + ": " + READ_COUNT + " * readMaxLength") );
+		XmlUtils.outputValueNode( ele, BASE_COUNT, maxBases);	
+		ele.appendChild( ele.getOwnerDocument().createComment(BASE_LOST_COUNT + ": readMaxLength * (duplicateReads + nonCanonicalPairs + unmappedReads) + trimmedBases + softClippedBases + hardClippedBases + overlappedBases") );					
+		XmlUtils.outputValueNode( ele, BASE_LOST_COUNT,  lostBase);	
+		ele.appendChild( ele.getOwnerDocument().createComment(String.format("%s: %s / %s", BASE_LOST_PERCENT, BASE_LOST_COUNT, BASE_COUNT)) );			
+		XmlUtils.outputValueNode( ele, BASE_LOST_PERCENT , lostPercent );			
 	}
 	 	 
 	public void pairSummary2Xml( Element parent ) { 
@@ -293,7 +285,7 @@ public class ReadGroupSummary {
 				}			
 			}
 			//can't really count he pair number due to RAM limits, just pickup number of firstOfPair
-			ele.setAttribute( spairCount, sum+"");  			
+			ele.setAttribute( PAIR_COUNT, sum+"");  			
 		}
 	}
 
@@ -314,26 +306,26 @@ public class ReadGroupSummary {
 	//for duplicate, unmapped and not proper paired reads
 	private void badReadStats(Element parent, String nodeName, long reads ){
 		Element ele = XmlUtils.createGroupNode(parent, nodeName);				
-		XmlUtils.outputValueNode(ele, sreadCount, reads);	
-		XmlUtils.outputValueNode(ele, slostBase, reads * getMaxReadLength());		
+		XmlUtils.outputValueNode(ele, READ_COUNT, reads);	
+		XmlUtils.outputValueNode(ele, BASE_LOST_COUNT, reads * getMaxReadLength());		
 		double percentage = 100 * (double) reads / getReadCount() ;
-		XmlUtils.outputValueNode(ele, sbasePercent,  percentage);		 	 
+		XmlUtils.outputValueNode(ele, BASE_LOST_PERCENT,  percentage);		 	 
 	}	
 	
 	private void lostBaseStats(Element parent, String nodeName, SummaryReportUtils.TallyStats stats ){
 		long maxBases = getReadCount() * getMaxReadLength();		 
 		Element ele = XmlUtils.createGroupNode(parent, nodeName);	
-		XmlUtils.outputValueNode(ele, smin, stats.getMin());
-		XmlUtils.outputValueNode(ele, smax, stats.getMax());
-		XmlUtils.outputValueNode(ele, smean, stats.getMean());
-		XmlUtils.outputValueNode(ele, smode, stats.getMode());
-		XmlUtils.outputValueNode(ele, smedian, stats.getMedium());
-		XmlUtils.outputValueNode(ele, sreadCount, stats.getReadCounts());
-		XmlUtils.outputValueNode(ele, slostBase, stats.getBaseCounts());
+		XmlUtils.outputValueNode(ele, MIN, stats.getMin());
+		XmlUtils.outputValueNode(ele, MAX, stats.getMax());
+		XmlUtils.outputValueNode(ele, MEAN, stats.getMean());
+		XmlUtils.outputValueNode(ele, MODE, stats.getMode());
+		XmlUtils.outputValueNode(ele, MEDIAN, stats.getMedium());
+		XmlUtils.outputValueNode(ele, READ_COUNT, stats.getReadCounts());
+		XmlUtils.outputValueNode(ele, BASE_LOST_COUNT, stats.getBaseCounts());
 		
 		//deal with boundary value, missing reads
 		double percentage = (maxBases == 0)? 0: 100 * (double) stats.getBaseCounts() /  maxBases ;				
-		XmlUtils.outputValueNode(ele, sbasePercent,  percentage );		
+		XmlUtils.outputValueNode(ele, BASE_LOST_PERCENT,  percentage );		
 	}
 
 }

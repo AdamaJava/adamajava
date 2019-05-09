@@ -2,6 +2,7 @@ package org.qcmg.qprofiler2;
 
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.qcmg.qprofiler2.Options2;
@@ -96,25 +97,33 @@ public class OptionsTest {
 		try {
 			new Options2(new String[] {"-ntP","matrices"});
 			fail("Should have thrown an exception");
-		} catch (Exception e) {}
+		} catch (Exception e) {
+			assertTrue(true);
+		}
 		
 		// more than 1 value, will throw an exception as they are considered to be nonoption arguments
 		try {
 			new Options2(new String[] {"--ntC","2","3","4","5"});
 			fail("Should have thrown an exception");
-		} catch (IllegalArgumentException e) {}
+		} catch (IllegalArgumentException e) {
+			assertTrue(true);
+		}
 		
 		// multiple values - will throw an exception
 		try {
 			new Options2(new String[] {"-ntP","2","-ntC","3","-ntC","4","-ntP","5"});
 			fail("Should have thrown an exception");
-		} catch (Exception e) {}
+		} catch (Exception e) {
+			assertTrue(true);
+		}
 		
 		// empty options
 		try {
 			new Options2(new String[] {"--ntC"});
 			fail("Should have thrown an exception");
-		} catch (Exception e) {}
+		} catch (Exception e) {
+			assertTrue(true);
+		}
 	}
 	
 	
