@@ -4,7 +4,7 @@
  *
  * This code is released under the terms outlined in the included LICENSE file.
  */
-package org.qcmg.qprofiler.summarise;
+package org.qcmg.qvisualise.util;
 
 import java.util.Set;
 import java.util.SortedSet;
@@ -23,7 +23,6 @@ import org.w3c.dom.Element;
 /**
  * Class that tallies by cycle using java generics 
   */
-@Deprecated
 public class SummaryByCycleNew2<T> {
 	
 	private static final int MAX_ARRAY_CAPACITY = 2048 * 2048;		// over 4 million

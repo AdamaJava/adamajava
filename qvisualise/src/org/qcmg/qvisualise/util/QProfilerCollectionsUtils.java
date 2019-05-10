@@ -19,7 +19,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicLongArray;
 
 import org.qcmg.common.model.MAPQMiniMatrix;
-import org.qcmg.common.model.SummaryByCycle;
 import org.qcmg.common.util.Constants;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;

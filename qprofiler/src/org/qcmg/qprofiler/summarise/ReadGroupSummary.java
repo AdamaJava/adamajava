@@ -8,10 +8,11 @@ import org.qcmg.common.model.QCMGAtomicLongArray;
 import org.qcmg.qprofiler.bam.BamSummaryReport;
 import org.qcmg.qprofiler.report.SummaryReport;
 import org.qcmg.qprofiler.util.SummaryReportUtils;
-import org.qcmg.picard.util.PairedRecordUtils;
+import org.qcmg.qprofiler.util.PairedRecordUtils;
+
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-
 import htsjdk.samtools.CigarElement;
 import htsjdk.samtools.CigarOperator;
 import htsjdk.samtools.SAMRecord;
@@ -147,7 +148,7 @@ public class ReadGroupSummary {
 				
 		if ( record.getSupplementaryAlignmentFlag())
 			supplementary.incrementAndGet();
-		else if( record.getNotPrimaryAlignmentFlag()  ) 
+		else if( record.isSecondaryAlignment()  ) 
 			secondary.incrementAndGet();
 		else if(record.getReadFailsVendorQualityCheckFlag())
 			failedVendorQuality.incrementAndGet();

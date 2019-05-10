@@ -12,6 +12,8 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.qcmg.qvisualise.util.SummaryByCycleUtils;
+
 public class MAPQMatrix {
 	
 	public enum MatrixType{

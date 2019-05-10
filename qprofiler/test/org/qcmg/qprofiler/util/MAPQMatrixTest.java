@@ -13,8 +13,8 @@ import junit.framework.Assert;
 import org.junit.Test;
 import org.qcmg.common.model.MAPQMiniMatrix;
 import org.qcmg.qprofiler.util.MAPQMatrix;
-import org.qcmg.qprofiler.util.SummaryByCycleUtils;
 import org.qcmg.qprofiler.util.MAPQMatrix.MatrixType;
+import org.qcmg.qvisualise.util.SummaryByCycleUtils;
 
 public class MAPQMatrixTest {
 	

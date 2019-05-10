@@ -46,12 +46,12 @@ import org.qcmg.qprofiler.report.SummaryReport;
 import org.qcmg.qprofiler.summarise.KmersSummary;
 import org.qcmg.qprofiler.summarise.PositionSummary;
 import org.qcmg.qprofiler.summarise.ReadGroupSummary;
-import org.qcmg.qprofiler.summarise.SummaryByCycle;
-import org.qcmg.qprofiler.summarise.SummaryByCycleNew2;
 import org.qcmg.qprofiler.util.FlagUtil;
 import org.qcmg.qprofiler.util.MAPQMatrix;
-import org.qcmg.qprofiler.util.SummaryByCycleUtils;
 import org.qcmg.qprofiler.util.SummaryReportUtils;
+import org.qcmg.qvisualise.util.SummaryByCycle;
+import org.qcmg.qvisualise.util.SummaryByCycleNew2;
+import org.qcmg.qvisualise.util.SummaryByCycleUtils;
 import org.qcmg.qprofiler.util.MAPQMatrix.MatrixType;
 import org.w3c.dom.Element;
 

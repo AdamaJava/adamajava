@@ -11,10 +11,11 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.junit.Ignore;
 import org.junit.Test;
-import org.qcmg.common.model.SummaryByCycle;
-import org.qcmg.common.util.SummaryByCycleUtils;
+
 import org.qcmg.qvisualise.report.XmlReportReader;
 import org.qcmg.qvisualise.util.QProfilerCollectionsUtils;
+import org.qcmg.qvisualise.util.SummaryByCycle;
+import org.qcmg.qvisualise.util.SummaryByCycleUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;

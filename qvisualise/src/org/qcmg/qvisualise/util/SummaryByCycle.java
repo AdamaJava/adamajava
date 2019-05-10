@@ -4,7 +4,7 @@
  *
  * This code is released under the terms outlined in the included LICENSE file.
  */
-package org.qcmg.qprofiler.summarise;
+package org.qcmg.qvisualise.util;
 
 import java.util.Set;
 import java.util.SortedSet;

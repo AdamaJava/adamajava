@@ -8,8 +8,8 @@ import java.util.TreeSet;
 import junit.framework.Assert;
 
 import org.junit.Test;
-import org.qcmg.qprofiler.summarise.SummaryByCycle;
-import org.qcmg.qprofiler.util.SummaryByCycleUtils;
+import org.qcmg.qvisualise.util.SummaryByCycle;
+import org.qcmg.qvisualise.util.SummaryByCycleUtils;
 
 public class SummaryByCycleTest<T> {
 	

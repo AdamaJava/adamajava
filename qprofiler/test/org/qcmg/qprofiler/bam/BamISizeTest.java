@@ -11,69 +11,13 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.qcmg.qprofiler.util.SummaryByCycleUtils;
+
 import org.qcmg.qvisualise.util.QProfilerCollectionsUtils;
+import org.qcmg.qvisualise.util.SummaryByCycleUtils;
 
 public class BamISizeTest {
 	private static Random random = new Random();
 	
-//	@Test
-//	public void testParseISize() {
-//		BamSummaryReport bsr = new BamSummaryReport();
-//		bsr.parseISize(0, "rg1");
-//
-//		Assert.assertEquals(1, bsr.getISizeLengths().size());
-//		Assert.assertEquals(1, bsr.getISizeLengths().get(0).get());
-//		
-//		bsr.parseISize(0, "rg2");
-//		Assert.assertEquals(1, bsr.getISizeLengths().size());
-//		Assert.assertEquals(2, bsr.getISizeLengths().get(0).get());
-//		
-//		// if value is below 50000, will but in buckets of 10, eg. 99 will be in bucket 90
-//		bsr.parseISize(99, "rg1");
-//		Assert.assertEquals(2, bsr.getISizeLengths().size());
-//		Assert.assertEquals(2, bsr.getISizeLengths().get(0).get());
-//		Assert.assertEquals(1, bsr.getISizeLengths().get(90).get());
-//		
-//		bsr.parseISize(40, "rg1");
-//		Assert.assertEquals(3, bsr.getISizeLengths().size());
-//		Assert.assertEquals(1, bsr.getISizeLengths().get(40).get());
-//		
-//		bsr.parseISize(31, "rg1");
-//		Assert.assertEquals(1, bsr.getISizeLengths().get(30).get());
-//		
-//		bsr.parseISize(1234, "rg1");
-//		Assert.assertEquals(1, bsr.getISizeLengths().get(1230).get());
-//		
-//		bsr.parseISize(49999, "rg1");
-//		Assert.assertEquals(1, bsr.getISizeLengths().get(49990).get());
-//		
-//		// values over 50000 will be in buckets of 1000000!! eg. 50001 will be in 50000
-//		bsr.parseISize(50000, "rg1");
-//		Assert.assertEquals(1, bsr.getISizeLengths().get(50000).get());
-//		
-//		bsr.parseISize(50001, "rg3");
-//		Assert.assertEquals(2, bsr.getISizeLengths().get(50000).get());
-//		
-//		bsr.parseISize(50010, "rg1");
-//		Assert.assertEquals(3, bsr.getISizeLengths().get(50000).get());
-//		bsr.parseISize(999999, "rg1");
-//		Assert.assertEquals(4, bsr.getISizeLengths().get(50000).get());
-//		
-//		bsr.parseISize(1000000, "rg1");
-//		Assert.assertEquals(1, bsr.getISizeLengths().get(1000000).get());
-//		bsr.parseISize(1050001, "rg1");
-//		Assert.assertEquals(2, bsr.getISizeLengths().get(1000000).get());
-//		bsr.parseISize(1999999, "rg2");
-//		Assert.assertEquals(3, bsr.getISizeLengths().get(1000000).get());
-//		
-//		bsr.parseISize(2999999, "rg1");
-//		Assert.assertEquals(1, bsr.getISizeLengths().get(2000000).get());
-//	}
-	
-//	private IntWrapper getIntWrapper(int value) {
-//		return new IntWrapper(value);
-//	}
 	
 	@Test
 	public void testNewISizeProcess() {
