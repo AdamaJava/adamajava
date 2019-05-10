@@ -1,9 +1,29 @@
 version = '2.1.4'
 apply plugin: 'application'
+apply plugin: 'scala'
 
 mainClassName = 'org.qcmg.snp.Main'
 def scriptname = 'qsnp'
 def isExecutable = true
+
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src']
+        }
+        scala {
+            srcDirs = ['scala/src']
+        }
+    }
+    test {
+        scala {
+            srcDirs = ['test']
+        }
+        scala {
+            srcDirs = ['scala/test']
+        }
+    }
+}
 
 dependencies {
     configurations.compile.transitive = true
@@ -15,10 +35,14 @@ dependencies {
     
     compile group: 'org.ini4j', name: 'ini4j', version: '0.5.2'
 
-	compile 'org.apache.commons:commons-lang3:3.4'
-	compile 'com.github.samtools:htsjdk:2.14.1'
-	compile 'net.sf.jopt-simple:jopt-simple:4.6'
-	testCompile 'junit:junit:4.10'
+
+    compile 'net.sf.trove4j:core:3.1.0'
+    compile 'org.apache.commons:commons-lang3:3.4'
+    compile 'com.github.samtools:htsjdk:2.14.1'
+    compile 'net.sf.jopt-simple:jopt-simple:4.6'
+    compile 'org.lz4:lz4-java:1.5.0'
+    compile 'org.scala-lang:scala-library:2.12.3'
+    testCompile 'junit:junit:4.10'
 }
 
  
