@@ -3,53 +3,40 @@ package org.qcmg.qprofiler2.bam;
 import static org.junit.Assert.*;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import htsjdk.samtools.SAMUtils;
-
-import org.junit.After;
-import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.string.StringUtils;
-import org.qcmg.common.util.QprofilerXmlUtils;
+import org.qcmg.common.util.XmlElementUtils;
 import org.qcmg.qprofiler2.bam.BamSummaryReport2;
 import org.qcmg.qprofiler2.summarise.CycleSummaryTest;
+import org.qcmg.qprofiler2.summarise.PairSummary;
+import org.qcmg.qprofiler2.summarise.PairSummaryTest;
 import org.qcmg.qprofiler2.summarise.PositionSummary;
-import org.qcmg.qprofiler2.summarise.ReadGroupSummary_PairTest;
 import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Element;
 
-/**
- * 
- * @author christix
- * 
- * below is the test lists:
- * BamSummaryReport2: BamSummarizerTest::testSummaryReport(BamSummaryReport2 sr)
- * bamSummary: ReadGroupSummary_PairTest::* ReadGroupSummary_ReadTest::*	
- * QNAME: FastqSummaryReportTest::qnameTest(); ReadIDSummaryTest::*
- * FLAG:  FlagUtilTest::*
- * RNAME: this.checkLengthNrname()    
- * POS:  this.checkLength_rname_mapq()   PositionSummaryTest
- * MAPQ: this.checkLength_rname_mapq()
- * CIGAR: BamSummarizerTest::testSummaryReport(BamSummaryReport2 sr)
- * TLEN:  ReadGroupSummary_PairTest::chekTlen ???
- * SEQ:  FastqSummaryReportTest::*  CycleSummaryTest:*   KmersSummaryTest::* 	this.checkLengthNrname() 
- * QUAL: FastqSummaryReportTest::*  CycleSummaryTest:*   this.checkLengthNrname() 
- * TAG:  TagSummaryReportTest::* 
- * ??SummaryReportUtilsTest
- *
- */
+
 public class BamSummaryReportTest {
 	
-	final String input = "input.sam";
-	
-	@After
-	public void tearDown() { new File(input).delete();	}	
+	@Rule
+	public  TemporaryFolder testFolder = new TemporaryFolder();
+	public File input;
+
+	@Before
+	public void setup() throws IOException {
+		input = testFolder.newFile("testInputFile.sam");
+	}	
 			
 	@Test
 	public void testParseRNameAndPos() throws Exception {
-		BamSummaryReport2 bsr = new BamSummaryReport2( -1);
+		BamSummaryReport2 bsr = new BamSummaryReport2( -1, false);
 		final String rg = "rg1";
 		bsr.setReadGroups(Arrays.asList(rg) );
 		
@@ -118,27 +105,35 @@ public class BamSummaryReportTest {
 		assertEquals(expectedOutputString, outputString);
 	}
 	
-	private void checklength(Element root, boolean isSeq, String parentName, int[] values, int[] counts) throws Exception {
+	private void checklength(Element root, boolean isSeq,  String pairName, int[] values, int[] counts) throws Exception {
 		if(counts.length != values.length)
 			throw new Exception("error: values size must be same to counts size");
 		
-		String nodeName = (isSeq)? QprofilerXmlUtils.seq  : QprofilerXmlUtils.qual ;
-		String name = isSeq? QprofilerXmlUtils.seqLength : QprofilerXmlUtils.qualLength;
+		String nodeName = (isSeq)? XmlUtils.seq  : XmlUtils.qual ;
+		String sLength = isSeq? XmlUtils.seqLength : XmlUtils.qualLength;
 		
-		Element node = QprofilerXmlUtils.getOffspringElementByTagName( root, nodeName ).get( 0 );		
-		List<Element> elements = QprofilerXmlUtils.getOffspringElementByTagName( node, XmlUtils.variableGroupEle ).stream()
-			.filter( e -> e.getAttribute(XmlUtils.Sname).equals( name) &&
-					 ((Element) e.getParentNode()).getAttribute(XmlUtils.Sname).equals(parentName)).collect(Collectors.toList());
-		Assert.assertEquals(elements.size(), 1);
+		//get node <SEQ> or <QUAL>
+		List<Element> lists = XmlElementUtils.getOffspringElementByTagName( root, nodeName );
+		assertEquals(1, lists.size());
 		
-		Element ele = elements.get(0);
+		//get node <sequenceMetrics name="seqLength"> or <sequenceMetrics name="qualLength">		
+		lists = XmlElementUtils.getOffspringElementByTagName( lists.get( 0 ), XmlUtils.metricsEle ).stream()
+			.filter( e -> e.getAttribute(XmlUtils.Sname).equals( sLength)).collect(Collectors.toList());
+		assertEquals(1, lists.size());
+		
+		//<variableGroup name="firstReadInPair"> or <variableGroup name="secondReadInPair">				
+		lists = XmlElementUtils.getOffspringElementByTagName( lists.get( 0 ), XmlUtils.variableGroupEle ).stream()
+				.filter( e -> e.getAttribute(XmlUtils.Sname).equals(pairName)).collect(Collectors.toList());		
+		assertEquals(1, lists.size());				
+		
+		Element ele = lists.get(0);
 		assertEquals(values.length, ele.getChildNodes().getLength());	
 			
 		//eg   QprofilerXmlUtils.seqLength + "_"+  QprofilerXmlUtils.FirstOfPair;
 		for(int i = 0; i < values.length; i ++) {
 			String v = values[i] + "";
 			String c = counts[i] + "";
-			long count = QprofilerXmlUtils.getChildElementByTagName( ele, XmlUtils.Stally ).stream()
+			long count = XmlElementUtils.getChildElementByTagName( ele, XmlUtils.Stally ).stream()
 					.filter( e -> e.getAttribute(XmlUtils.Svalue).equals(v) 
 							&& e.getAttribute(XmlUtils.Scount).equals(c) ).count();
 			assertTrue(count == 1);
@@ -147,7 +142,7 @@ public class BamSummaryReportTest {
 		
 	private void checkTally(Element root, String groupName, String value, int count, int expectedNo ) {
 		
-		long findNo = QprofilerXmlUtils.getOffspringElementByTagName( root, XmlUtils.Stally).stream()
+		long findNo = XmlElementUtils.getOffspringElementByTagName( root, XmlUtils.Stally).stream()
 			.filter( e -> e.getAttribute(XmlUtils.Svalue).equals(value) && e.getAttribute(XmlUtils.Scount).equals(count + "") &&
 					((Element) e.getParentNode()).getAttribute(XmlUtils.Sname).equals(groupName)).count();
 
@@ -158,31 +153,30 @@ public class BamSummaryReportTest {
 	//check read length and rname, both ignor readgroup
 	public void checkLength_rname_mapq() throws Exception{ 
 		CycleSummaryTest.createInputFile(input);
-		Element root = QprofilerXmlUtils.createRootElement("root",null);
+		Element root = XmlElementUtils.createRootElement("root",null);
 		BamSummarizer2 bs = new BamSummarizer2();
-		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize( input ); 
-		sr.toXml(root);	
-		QprofilerXmlUtils.asXmlText( root, "/Users/christix/Documents/Eclipse/data/qprofiler/unitTest.xml" );
-  		
+		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize( input.getAbsolutePath() ); 
+		sr.toXml(root);			
+		
 		//length
-		checklength( root, true, QprofilerXmlUtils.seqLength + "_"+  QprofilerXmlUtils.FirstOfPair, new int[] {141,151}, new int[] { 1,1 });
-		checklength( root, true, QprofilerXmlUtils.seqLength + "_"+  QprofilerXmlUtils.SecondOfPair, new int[] {151}, new int[] { 1});
-		checklength( root, false, QprofilerXmlUtils.qualLength + "_"+  QprofilerXmlUtils.FirstOfPair, new int[] {143,151}, new int[] { 1,1 });
-		checklength( root, false, QprofilerXmlUtils.qualLength + "_"+  QprofilerXmlUtils.SecondOfPair, new int[] {151}, new int[] { 1});		
+		checklength( root, true,  XmlUtils.FirstOfPair, new int[] {141,151}, new int[] { 1,1 });
+		checklength( root, true,  XmlUtils.SecondOfPair, new int[] {151}, new int[] { 1});
+		checklength( root, false, XmlUtils.FirstOfPair, new int[] {143,151}, new int[] { 1,1 });
+		checklength( root, false, XmlUtils.SecondOfPair, new int[] {151}, new int[] { 1});		
 		
 		//rNAME
-		Element node = QprofilerXmlUtils.getOffspringElementByTagName( root, QprofilerXmlUtils.rname ).get( 0 );	
-		checkTally(node, QprofilerXmlUtils.rname, "chr1", 2, 1 );
+		Element node = XmlElementUtils.getOffspringElementByTagName( root, XmlUtils.rname ).get( 0 );	
+		checkTally(node, XmlUtils.rname, "chr1", 2, 1 );
 		//the second of pair on chr11 is duplicated, so here only the first of pair are counted
-		checkTally(node, QprofilerXmlUtils.rname, "chr11", 1, 1 );
+		checkTally(node, XmlUtils.rname, "chr11", 1, 1 );
 			
 		//mapq is for all counted reads disregard duplicate ect, unmapped reads mapq=0
 		//Zero mapping quality indicates that the read maps to multiple locations or differet ref
-		node = QprofilerXmlUtils.getOffspringElementByTagName( root, QprofilerXmlUtils.mapq ).get( 0 );	
-		checkTally(node,  QprofilerXmlUtils.mapq + "_"+  QprofilerXmlUtils.FirstOfPair, "0", 1, 1 );
-		checkTally(node,  QprofilerXmlUtils.mapq + "_"+  QprofilerXmlUtils.FirstOfPair, "25", 1, 1 );
-		checkTally(node,  QprofilerXmlUtils.mapq + "_"+  QprofilerXmlUtils.SecondOfPair, "0", 1, 1 );	
-		checkTally(node,  QprofilerXmlUtils.mapq + "_"+  QprofilerXmlUtils.SecondOfPair, "6", 1, 1 );	
+		node = XmlElementUtils.getOffspringElementByTagName( root, XmlUtils.mapq ).get( 0 );	
+		checkTally(node,  XmlUtils.FirstOfPair, "0", 1, 1 );
+		checkTally(node,  XmlUtils.FirstOfPair, "25", 1, 1 );
+		checkTally(node,  XmlUtils.SecondOfPair, "0", 1, 1 );	
+		checkTally(node,  XmlUtils.SecondOfPair, "6", 1, 1 );	
 				
 		
 	}
@@ -194,57 +188,90 @@ public class BamSummaryReportTest {
 	 */
 	@Test
 	public void checkTlen() throws Exception {
-		ReadGroupSummary_PairTest.createPairInputFile(input);		
-		BamSummaryReport2 sr = (BamSummaryReport2)  new BamSummarizer2().summarize(input);
+		Element root = PairSummaryTest.createPairRoot( input);		
+		 
+
+		final Element tlenE = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.tlen  ).get(0);
+		final List<Element> rgsE =  XmlElementUtils.getOffspringElementByTagName( tlenE, "readGroup" );
 		
-		//overall readgroup should manually  setMaxBases(long);
-		Element root = QprofilerXmlUtils.createRootElement("root", null);
-		sr.toXml(root);	
-		//debug
-		QprofilerXmlUtils.asXmlText( root, "/Users/christix/Documents/Eclipse/data/qprofiler/unitTest.xml" );
-		
-		
-		final Element tlenE = checkOffSpring(  root, QprofilerXmlUtils.tlen , 1).get(0); //one <TLEN>
-		//three readGroup under one <readGroups>
-		final List<Element> rgsE = checkOffSpring( checkOffSpring( tlenE, XmlUtils.readGroupsEle , 1).get(0), "readGroup" , 3); 	
+		//five pairs in 1959T, we only record 13, 26, 2015		
+		List<Element> tallyE = getTallys( rgsE, "1959T", "tLenInProperPair" , 4); 
+		chekTlen(  tallyE, PairSummary.Pair.F3F5, 1, 93 );
+		chekTlen(  tallyE, PairSummary.Pair.F5F3, 1, 2025 );
+		chekTlen(  tallyE, PairSummary.Pair.Outward, 1, 13 );
+		chekTlen(  tallyE, PairSummary.Pair.Outward, 1, 26 );
 				
-		//five pairs in 1959T, we only record 13, 26, 2015
-		Element ele1 = rgsE.stream().filter( e -> e.getAttribute(XmlUtils.Sid).equals( "1959T" )  ).findFirst().get();
-		List<Element> eles1 = checkOffSpring( ele1, XmlUtils.Stally, 4);
-		assertEquals(1, eles1.stream().filter( e -> e.getAttribute(XmlUtils.Svalue).equals( "13" ) && e.getAttribute(XmlUtils.Scount).equals( "1" )  ).count());
-		assertEquals(1, eles1.stream().filter( e -> e.getAttribute(XmlUtils.Svalue).equals( "25" )  ).count());
-		assertEquals(1, eles1.stream().filter( e -> e.getAttribute(XmlUtils.Svalue).equals( "26" )  ).count());
-		assertEquals(1, eles1.stream().filter( e -> e.getAttribute(XmlUtils.Svalue).equals( "2025" )  ).count());
-		//tLenByBin
-		eles1 = checkOffSpring( ele1, XmlUtils.Sbin, 3);
-		//debug
-		eles1.stream().forEach( e -> System.out.println(e.getAttribute(XmlUtils.Sstart) + " => " + e.getAttribute(XmlUtils.Scount) ));
-		assertEquals(1, eles1.stream().filter( e -> e.getAttribute(XmlUtils.Sstart).equals( "1" ) && e.getAttribute(XmlUtils.Scount).equals( "3" )  ).count());
-		assertEquals(1, eles1.stream().filter( e -> e.getAttribute(XmlUtils.Send).equals( "10100" )  ).count());
+		//only record popular TLEN that is tLen < middleTlenValue) isize.increment(tLen);	
+		//1959N only one overlap pair tlen is 175
+		tallyE = getTallys( rgsE, "1959N", "tLenInProperPair" , 1); 
+		chekTlen(  tallyE, PairSummary.Pair.Inward, 1, 175 );		
+		tallyE = getTallys( rgsE, "1959N", "overlapBaseInProperPair" , 1); 
+		chekTlen(  tallyE, PairSummary.Pair.Inward, 1, 62 );
+				
+		tallyE = getTallys( rgsE, XmlUtils.UNKNOWN_READGROUP, "tLenInProperPair" , 1); 
+		chekTlen(  tallyE, PairSummary.Pair.Inward, 1, 76 );		
+		tallyE = getTallys( rgsE, XmlUtils.UNKNOWN_READGROUP, "overlapBaseInProperPair" , 1); 
+		chekTlen(  tallyE, PairSummary.Pair.Inward, 1, 75 );	
+		tallyE = getTallys( rgsE, XmlUtils.UNKNOWN_READGROUP, "tLenInNotProperPair" , 1); 
+		chekTlen(  tallyE, PairSummary.Pair.F3F5, 1, 0 );
+	}
+	private void chekTlen(List<Element> tallyE, PairSummary.Pair p, int count, int value ) {
+		 long no = tallyE.stream().filter( e ->   
+			((Element) e.getParentNode()).getAttribute(XmlUtils.Sname).equals(p.name()) &&
+			 e.getAttribute(XmlUtils.Svalue).equals( value+"" ) && e.getAttribute(XmlUtils.Scount).equals( count+"" )		 
+		 ).count();	
 		
-		
-		//empty for unkown_readgroup_id
-		ele1 = rgsE.stream().filter( e -> e.getAttribute(XmlUtils.Sid).equals( QprofilerXmlUtils.UNKNOWN_READGROUP )  ).findFirst().get();
-		checkOffSpring( ele1, XmlUtils.variableGroupEle, 0);
-		
-		// only one pair inside 1959N
-		ele1 = rgsE.stream().filter( e -> e.getAttribute(XmlUtils.Sid).equals( "1959N" )  ).findFirst().get();
-		eles1 = checkOffSpring( ele1, XmlUtils.Stally, 1);
-		assertEquals(1, eles1.stream().filter( e -> e.getAttribute(XmlUtils.Svalue).equals( "175" )  ).count());
-		eles1 = checkOffSpring( ele1, XmlUtils.Sbin, 1);
-		assertEquals(1, eles1.stream().filter( e -> e.getAttribute(XmlUtils.Sstart).equals( "101" )  && e.getAttribute(XmlUtils.Scount).equals( "1" )  ).count());
+		 assertTrue(no == 1);		
 	}
 	
-	private List<Element> checkOffSpring(Element root,String node,  int size){
-		List<Element> eles = QprofilerXmlUtils.getOffspringElementByTagName(root, node );
-		
-		assertEquals(size, eles.size());
-		
-		return eles; 
-
+	private List<Element> getTallys(List<Element> rgsE,String rgName, String metricName,  int size){		
+		Element ele = rgsE.stream().filter( e -> e.getAttribute(XmlUtils.Sname).equals( rgName )  ).findFirst().get();
+		ele = XmlElementUtils.getChildElementByTagName(ele, XmlUtils.metricsEle).stream().filter(e -> e.getAttribute(XmlUtils.Sname).equals( metricName )  ).findFirst().get();
+		List<Element> eles = XmlElementUtils.getOffspringElementByTagName(ele, XmlUtils.Stally);
+		assertEquals(size, eles.size());	
+	 
+		return eles;
 	}
-
 		
 }
 
+//Element ele = pairEles.stream().filter(e -> ( (Element) e.getParentNode()).getAttribute(XmlUtils.Sname).equals("1959N")).findFirst().get(); 		
+//chekTlen(ele,  175, 175, 175, 0, 1, 1  );		
+//ele = pairEles.stream().filter(e -> ( (Element) e.getParentNode()).getAttribute(XmlUtils.Sname).equals("1959T")).findFirst().get(); 
+//chekTlen(ele,  11025, 522, 13, 867, 4, 5 );
+//
+//ele = pairEles.stream().filter(e -> ( (Element) e.getParentNode()).getAttribute(XmlUtils.Sname).equals(QprofilerXmlUtils.UNKNOWN_READGROUP)).findFirst().get(); 		
+//chekTlen(ele,    76, 76, 76  ,  0,  1,  2 );
+//
+////check after bamMetric
+//ele = pairEles.stream().filter(e -> ( (Element) e.getParentNode()).getAttribute(XmlUtils.Sname).equals("")).findFirst().get(); 	
+//chekTlen(ele,  11025 ,  390, 13 , 733 , 6 , 8  );		
+//
+//new File(input).delete();
 
+
+//Element ele2 = QprofilerXmlElementUtils.getOffspringElementByTagName(ele1, XmlUtils.variableGroupEle).stream()
+//		.filter( e -> e.getAttribute(XmlUtils.Sname).equals( "tLen" )  ).findFirst().get();
+//List<Element> eles1 = checkOffSpring( ele2, XmlUtils.Stally, 4);
+//assertEquals(1, eles1.stream().filter( e -> e.getAttribute(XmlUtils.Svalue).equals( "13" ) && e.getAttribute(XmlUtils.Scount).equals( "1" )  ).count());
+//assertEquals(1, eles1.stream().filter( e -> e.getAttribute(XmlUtils.Svalue).equals( "25" )  ).count());
+//assertEquals(1, eles1.stream().filter( e -> e.getAttribute(XmlUtils.Svalue).equals( "26" )  ).count());
+//assertEquals(1, eles1.stream().filter( e -> e.getAttribute(XmlUtils.Svalue).equals( "2025" )  ).count());
+////tLenByBin
+//eles1 = checkOffSpring( ele1, XmlUtils.Sbin, 3);
+//assertEquals(1, eles1.stream().filter( e -> e.getAttribute(XmlUtils.Sstart).equals( "1" ) && e.getAttribute(XmlUtils.Scount).equals( "3" )  ).count());
+//assertEquals(1, eles1.stream().filter( e -> e.getAttribute(XmlUtils.Send).equals( "10100" )  ).count());
+//
+//
+////empty for unkown_readgroup_id
+//ele1 = rgsE.stream().filter( e -> e.getAttribute(XmlUtils.Sname).equals( QprofilerXmlUtils.UNKNOWN_READGROUP )  ).findFirst().get();
+//checkOffSpring( ele1, XmlUtils.variableGroupEle, 3);
+//
+//// only one pair inside 1959N
+//ele1 = rgsE.stream().filter( e -> e.getAttribute(XmlUtils.Sname).equals( "1959N" )  ).findFirst().get();
+//ele2 = QprofilerXmlElementUtils.getOffspringElementByTagName(ele1, XmlUtils.variableGroupEle).stream()
+//		.filter( e -> e.getAttribute(XmlUtils.Sname).equals( "tLen" )  ).findFirst().get();
+//eles1 = checkOffSpring( ele2, XmlUtils.Stally, 1);
+//assertEquals(1, eles1.stream().filter( e -> e.getAttribute(XmlUtils.Svalue).equals( "175" )  ).count());
+//eles1 = checkOffSpring( ele1, XmlUtils.Sbin, 1);
+//assertEquals(1, eles1.stream().filter( e -> e.getAttribute(XmlUtils.Sstart).equals( "101" )  && e.getAttribute(XmlUtils.Scount).equals( "1" )  ).count());

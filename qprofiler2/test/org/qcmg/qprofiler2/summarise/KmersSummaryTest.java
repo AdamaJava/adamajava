@@ -18,12 +18,12 @@ import java.util.logging.Logger;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.lang3.StringUtils;
-import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.util.Constants;
-import org.qcmg.common.util.QprofilerXmlUtils;
-import org.qcmg.common.util.TabTokenizer;
+import org.qcmg.common.util.XmlElementUtils;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.DOMException;
@@ -33,14 +33,16 @@ import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SamReader;
 
 public class KmersSummaryTest {
-	private static final String SAM_INPUT_FILE = "testInputFile.sam";
+	@Rule
+	public TemporaryFolder testFolder = new TemporaryFolder();
+	private static File input;
 	
 	@Before
-	public void createFile(){ createTestSamFile(); }
-	
-	@After
-	public void deleteFile(){ new File(SAM_INPUT_FILE).delete(); }
-	
+	public void setUp() throws Exception{
+		input = testFolder.newFile("input.sam");
+		createTestSamFile();	
+	}
+
 	@Test
 	public void producerTest() {
 		assertEquals("A,T,G,C,N", KmersSummary.producer(1,"",true));
@@ -99,37 +101,9 @@ public class KmersSummaryTest {
 	}
 	
 	@Test
-	public void speedTest() {
-		int counter = 10;
-		String s = KmersSummary.producer(6, "", true);
-		System.out.println("s length: " + s.length());
-		long start = System.currentTimeMillis();
-		for (int i = 0 ; i < counter ; i++) {
-		String[] split = s.split(Constants.COMMA_STRING);
-		}
-//		System.out.println("split.length: " + split.length);
-		System.out.println("time taken split: " + (System.currentTimeMillis() - start));
-		
-		start = System.currentTimeMillis();
-		for (int i = 0 ; i < counter ; i++) {
-			String [] tt = TabTokenizer.tokenize(s, Constants.COMMA);
-			}
-//		System.out.println("tt.length: " + tt.length);
-		System.out.println("time taken tt: " + (System.currentTimeMillis() - start));
-		
-		
-		start = System.currentTimeMillis();
-		for (int i = 0 ; i < counter ; i++) {
-		String[] split = s.split(Constants.COMMA_STRING);
-		}
-//		System.out.println("split.length: " + split.length);
-		System.out.println("time taken split: " + (System.currentTimeMillis() - start));
-	}
-	
-	@Test
 	public void bothReversedTest() throws IOException {		
 		KmersSummary summary = new KmersSummary(KmersSummary.maxKmers);	
- 		try( SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(SAM_INPUT_FILE));){
+ 		try( SamReader reader = SAMFileReaderFactory.createSAMFileReader(input);){
  			for (SAMRecord record : reader){ 
 				final int order = (!record.getReadPairedFlag())? 0: (record.getFirstOfPairFlag())? 1 : 2;	
 				summary.parseKmers(record.getReadBases(), true, order );				
@@ -149,18 +123,50 @@ public class KmersSummaryTest {
  		}
  		assertTrue(summary.getCount(4, bases1[4], 1 ) == 1);		 
 	}
+	
+	@Test
+	public void toXmlFastqTest() throws ParserConfigurationException {
+		
+		final String base1 = "CAGNGTTAGGTTTTT";
+		final String base2 = "CCCCGTTAGGTTTTTT";
+		KmersSummary summary = new KmersSummary(KmersSummary.maxKmers);	
+		//prepair data base only no strand and pair info		
+		summary.parseKmers( base1.getBytes() , false, 0);
+		summary.parseKmers( base2.getBytes() , false, 0);
+		
+		Element root = XmlElementUtils.createRootElement("root", null);
+		summary.toXml(root, 2);
+				
+		//only one <sequenceMetrics>
+		List<Element> eles = XmlElementUtils.getChildElementByTagName(root, XmlUtils.metricsEle);
+		assertEquals(eles.size(), 1);
+		assertEquals(eles.get(0).getAttribute(XmlUtils.Sname), "2mers");
+		assertEquals(1, eles.get(0).getChildNodes().getLength());
+		
+		//check <variableGroup...>
+		Element ele = (Element)eles.get(0).getFirstChild();
+		assertEquals(ele.getAttribute(XmlUtils.Sname), "2mers") ;
+		//base.length -3 
+		//cycle number = base.length - KmersSummary.maxKmers = 16-6 that is [1,11]
+		assertEquals(11, ele.getChildNodes().getLength());
+		for(int i = 0; i < ele.getChildNodes().getLength(); i ++) {
+			Element baseE = XmlElementUtils.getChildElement(ele, XmlUtils.baseCycleEle, i);
+			assertEquals(baseE.getAttribute(XmlUtils.Scycle), (i+1) + "");
+		}	
+		
+	}
 
 	@Test
 	public void toXmlTest() throws IOException, DOMException, ParserConfigurationException {		
 		KmersSummary summary = new KmersSummary(KmersSummary.maxKmers);	
- 		try( SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(SAM_INPUT_FILE));){
+ 		try( SamReader reader = SAMFileReaderFactory.createSAMFileReader(input);){
  			for (SAMRecord record : reader){ 		
 				final int order = (!record.getReadPairedFlag())? 0: (record.getFirstOfPairFlag())? 1 : 2;	
 				summary.parseKmers(record.getReadBases(), record.getReadNegativeStrandFlag(), order );				
 			} 
 		}
  		
-		Element root = QprofilerXmlUtils.createRootElement("root", null);
+		Element root = XmlElementUtils.createRootElement("root", null);
 		summary.toXml(root, 3);
 		
 		//the popular kmers are based on counts on middle, middle of first half, middle of second half
@@ -168,24 +174,27 @@ public class KmersSummaryTest {
 		assertEquals( "GTT,CAG", StringUtils.join(summary.getPopularKmerString(16,  3, false, 1), ",") );
 		assertEquals( "TAA,CCT", StringUtils.join(summary.getPopularKmerString(16,  3, false, 2), ",") );
 			 
-		List<Element> tallysE = QprofilerXmlUtils.getOffspringElementByTagName(root, XmlUtils.Stally);
+		List<Element> tallysE = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.Stally);
 		assertEquals(4, tallysE.size());
 		
 		for(Element tE : tallysE) { 
 			assertTrue( tE.getAttribute(XmlUtils.Scount).equals("1") );	
-			Element parentE = (Element) tE.getParentNode();
+			Element baseCycleEle = (Element) tE.getParentNode();
+			Element groupEle =  (Element) baseCycleEle.getParentNode();
+			Element metricEle = (Element) groupEle.getParentNode();
 			if( tE.getAttribute( XmlUtils.Svalue ).equals("GTT") ) {								
-				assertTrue( parentE.getAttribute(XmlUtils.Sname).equals("kmersOnCycle_5") );
-				assertTrue( ((Element) parentE.getParentNode()).getAttribute(XmlUtils.Sname).equals("3mers_firstReadInPair") ); 
+				assertTrue( baseCycleEle.getAttribute(XmlUtils.Scycle).equals("5") );
+				assertTrue( metricEle.getAttribute(XmlUtils.Sname).equals("3mers") );	
+				assertTrue( groupEle.getAttribute(XmlUtils.Sname).equals("firstReadInPair") ); 				
 			}else if(tE.getAttribute( XmlUtils.Svalue ).equals("TAA")){
-				assertTrue( parentE.getAttribute(XmlUtils.Sname).equals("kmersOnCycle_3") );
-				assertTrue( ((Element) parentE.getParentNode()).getAttribute(XmlUtils.Sname).equals("3mers_secondReadInPair") ); 				
+				assertTrue( baseCycleEle.getAttribute(XmlUtils.Scycle).equals("3") );
+				assertTrue( metricEle.getAttribute(XmlUtils.Sname).equals("3mers") ); 
+				assertTrue( groupEle.getAttribute(XmlUtils.Sname).equals("secondReadInPair") ); 
 			}else if(tE.getAttribute( XmlUtils.Svalue ).equals("CCT")) 
-				assertTrue( parentE.getAttribute(XmlUtils.Sname).equals("kmersOnCycle_1") );
+				assertTrue( baseCycleEle.getAttribute(XmlUtils.Scycle).equals("1") );
 			else
 				assertTrue( tE.getAttribute( XmlUtils.Svalue ).equals("CAG"));			 
 		}
-		
 		
 		// kmers3
 		// CAGNG TTAGG <= GTCNCAATCC <= CCTAACNCTG		 first reversed
@@ -207,7 +216,7 @@ public class KmersSummaryTest {
 	public void bothForwardTest() throws IOException {
 		
 		KmersSummary summary = new KmersSummary(KmersSummary.maxKmers);	
- 		try( SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(SAM_INPUT_FILE));){
+ 		try( SamReader reader = SAMFileReaderFactory.createSAMFileReader(input);){
  			for (SAMRecord record : reader){ 
 				final int order = (!record.getReadPairedFlag())? 0: (record.getFirstOfPairFlag())? 1 : 2;	
 				summary.parseKmers(record.getReadBases(), false, order );				
@@ -302,11 +311,11 @@ public class KmersSummaryTest {
  		//forward second in pair
 		data.add("970_1290_1068	163	chr1	10176	3	9M6H	=	10167	-59	CCTAACNCT	I&&HII%%I	RG:Z:1959T");
 				
-		try(PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(SAM_INPUT_FILE)) ) ) {
+		try(PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(input)) ) ) {
 			for (String line : data)   out.println(line);			 
 		} catch (IOException e) {
 			Logger.getLogger("KmersSummaryTest").log(
-					Level.WARNING, "IOException caught whilst attempting to write to SAM test file: " + SAM_INPUT_FILE, e);
+					Level.WARNING, "IOException caught whilst attempting to write to SAM test file: " + input.getAbsolutePath(), e);
 		}  
 	}
 	

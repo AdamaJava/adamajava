@@ -15,7 +15,8 @@ import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.util.IndelUtils.SVTYPE;
-import org.qcmg.common.util.QprofilerXmlUtils;
+import org.qcmg.common.util.Pair;
+import org.qcmg.common.util.XmlElementUtils;
 import org.qcmg.common.vcf.VcfFormatFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
@@ -124,7 +125,7 @@ public class SampleSummary {
 		
 	public void toXML(Element parent, String formats, String values ){
 		
-		Element reportE = QprofilerXmlUtils.createSubElement(parent, report);
+		Element reportE = XmlElementUtils.createSubElement(parent, report);
 		if(formats != null) {
 			reportE.setAttribute(SampleSummary.formats, formats);
 			reportE.setAttribute(SampleSummary.values, values);
@@ -137,7 +138,7 @@ public class SampleSummary {
 			AtomicLong totalAL = summary.get( type.name());
 			if( null == totalAL) continue;						
 						
-			Element reportE1  = XmlUtils.createMetricsNode( reportE,  type.toVariantType(), totalAL );
+			Element reportE1  = XmlUtils.createMetricsNode( reportE,  type.toVariantType(),new Pair(XmlUtils.Scount, totalAL) );
 			String key =  type.name() + "dbSNP";
 			XmlUtils.outputValueNode(reportE1, "inDBSNP", summary .containsKey(key)? summary.get(key).get() : 0 ); 
 						
@@ -172,16 +173,11 @@ public class SampleSummary {
 			XmlUtils.outputTallyGroup( reportE1 , genotype, gtvalues, true );
 
 			QCMGAtomicLongArray array = summaryAD.get(type.name());
-			if(array != null ) {
-				Element cateEle = XmlUtils.createGroupNode(reportE1, VAF );
-				for( int i = 0; i <= altBinSize; i ++  ){
-					long count =  array.get(i) ;
-					if( count <= 0 ) continue;					
-						XmlUtils.outputBinNode( cateEle,  100*i / altBinSize, 100*(i+1) / altBinSize, new AtomicLong(count));							
-				}
-				
-				if(cateEle.hasChildNodes())
+			if(array != null ) {					
+				Element cateEle = XmlUtils.outputBins(reportE1, VAF, array.toMap(), (100 / altBinSize));
+				if(cateEle.hasChildNodes()) {
 					XmlUtils.addCommentChild(cateEle, "Each closedBin list the variant number belonging to variant allele frequency region ( start%, end% ].");
+				}								
 			}
 
 		}

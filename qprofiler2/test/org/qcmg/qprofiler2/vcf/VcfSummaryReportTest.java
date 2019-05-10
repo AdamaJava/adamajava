@@ -11,9 +11,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.model.ProfileType;
-import org.qcmg.common.util.QprofilerXmlUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.IndelUtils.SVTYPE;
+import org.qcmg.common.util.XmlElementUtils;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.vcf.VCFFileReader;
@@ -63,7 +63,7 @@ public class VcfSummaryReportTest {
 				for(int j = 0; j < 12; j ++) {
 					Element recordEle = (Element) headersEle.getChildNodes().item(j);
 					assertEquals( "record" , recordEle .getNodeName() );
-					String key = recordEle.getAttribute("id");
+					String key = recordEle.getAttribute(XmlUtils.Sname);
 					if(header.getRecords(key).size() == 1)
 						assertEquals( recordEle.getTextContent() , header.getRecords(key).get(0).toString() );
 					else
@@ -74,8 +74,8 @@ public class VcfSummaryReportTest {
 			//check structured meta information line	 
 			else if( headersEle.getAttribute( "FIELD" ).equals( "qPG" ) ) {
 				mark[2] = 1;
-				for( Element ele : QprofilerXmlUtils.getChildElementByTagName( headersEle, "record") )
-					assertEquals( ele.getTextContent(), header.getIDRecord("qPG", ele.getAttribute("id")).toString() );					
+				for( Element ele : XmlElementUtils.getChildElementByTagName( headersEle, "record") )
+					assertEquals( ele.getTextContent(), header.getIDRecord("qPG", ele.getAttribute(XmlUtils.Sname)).toString() );					
 			}else if( headersEle.getAttribute( "FIELD" ).equals( "FILTER" ) ) {
 				mark[3] = 1;
 				assertEquals( 1, headersEle.getChildNodes().getLength() );
@@ -125,15 +125,15 @@ public class VcfSummaryReportTest {
 				Element cnode = (Element) node.getChildNodes().item(0);
 				assertEquals(XmlUtils.metricsEle, cnode.getNodeName() );
 				if(cnode.getAttribute(XmlUtils.Sname).equals(SVTYPE.SNP.toVariantType()))  
-					assertEquals( 2, QprofilerXmlUtils.getChildElementByTagName(cnode, XmlUtils.Svalue).size() );					
+					assertEquals( 2, XmlElementUtils.getChildElementByTagName(cnode, XmlUtils.Svalue).size() );					
 				 else  
-					assertEquals( 1,  QprofilerXmlUtils.getChildElementByTagName(cnode, XmlUtils.Svalue).size() );				
+					assertEquals( 1,  XmlElementUtils.getChildElementByTagName(cnode, XmlUtils.Svalue).size() );				
 			}
 			List<Element> eles = new ArrayList<>();		
 			
- 			QprofilerXmlUtils.getOffspringElementByTagName((Element)child, XmlUtils.variableGroupEle).stream() 
+ 			XmlElementUtils.getOffspringElementByTagName((Element)child, XmlUtils.variableGroupEle).stream() 
 				.filter( e -> e.getAttribute( XmlUtils.Sname ).equals( SampleSummary.genotype ))
-				.forEach( e1 ->     eles.addAll(QprofilerXmlUtils.getChildElementByTagName(e1, XmlUtils.Stally)) );
+				.forEach( e1 ->     eles.addAll(XmlElementUtils.getChildElementByTagName(e1, XmlUtils.Stally)) );
 					
 			List<Integer> counts = new ArrayList<>();
 			
@@ -141,7 +141,7 @@ public class VcfSummaryReportTest {
 		    assertEquals( 40, counts.stream().mapToInt(i -> i.intValue()).sum() );
 						
 			// assertTrue( counts == 40*2 );			
-			String sample = child.getAttributes().getNamedItem( XmlUtils.Sid ).getNodeValue();
+			String sample = child.getAttributes().getNamedItem( XmlUtils.Sname).getNodeValue();
 			if( sample.equals(lastSample) || sample.equals( "control2" ) )  checkLastSampleColumn(child);	
 			else if( sample.equals("test1"))
 					checkTest1(child);
@@ -162,26 +162,27 @@ public class VcfSummaryReportTest {
 		 * 1/1:5,30,1:36:PASS:.
 		 */
 				
-		assertEquals( 1,  QprofilerXmlUtils.getChildElementByTagName( (Element) child, "report").size() );
-		Element ele = QprofilerXmlUtils.getChildElementByTagName( (Element) child, "report").get(0);
+		assertEquals( 1,  XmlElementUtils.getChildElementByTagName( (Element) child, "report").size() );
+		Element ele = XmlElementUtils.getChildElementByTagName( (Element) child, "report").get(0);
 		assertEquals( "PASS:." , ele.getAttribute("values"));
 				
 		//check genotype
-		long no = QprofilerXmlUtils.getOffspringElementByTagName( ele,  XmlUtils.Stally ).stream()
+		long no = XmlElementUtils.getOffspringElementByTagName( ele,  XmlUtils.Stally ).stream()
 			.filter( e -> e.getAttribute(XmlUtils.Svalue).equals("0/0") && e.getAttribute(XmlUtils.Scount).equals("10")).count();		
 		assertEquals( 1 , no );
-		no = QprofilerXmlUtils.getOffspringElementByTagName( ele,  XmlUtils.Stally ).stream()
+		no = XmlElementUtils.getOffspringElementByTagName( ele,  XmlUtils.Stally ).stream()
 				.filter( e -> e.getAttribute(XmlUtils.Svalue).equals("1/1") && e.getAttribute(XmlUtils.Scount).equals("10")).count();	
 		assertEquals( 2 , no );
-		no = QprofilerXmlUtils.getOffspringElementByTagName( ele,  XmlUtils.Stally ).stream()
+		no = XmlElementUtils.getOffspringElementByTagName( ele,  XmlUtils.Stally ).stream()
 				.filter( e -> e.getAttribute(XmlUtils.Svalue).equals("0/1") && e.getAttribute(XmlUtils.Scount).equals("10")).count();	
 		assertEquals( 1 , no );
 		
 		// ariantAltFrequencyPercent only from 1/1:5,30,1:36:PASS:.
 		// 31/36 = 86%
-		assertEquals( 1 , QprofilerXmlUtils.getOffspringElementByTagName( ele,  XmlUtils.Sbin ).size() );
-		no = QprofilerXmlUtils.getOffspringElementByTagName( ele,  XmlUtils.Sbin ).stream()
-				.filter( e -> e.getAttribute(XmlUtils.Sstart).equals("85") && e.getAttribute(XmlUtils.Send).equals("90") && e.getAttribute(XmlUtils.Scount).equals("10")).count();			
+		assertEquals( 1 , XmlElementUtils.getOffspringElementByTagName( ele,  XmlUtils.Sbin ).size() );
+		no = XmlElementUtils.getOffspringElementByTagName( ele,  XmlUtils.Sbin ).stream()
+				.filter( e -> e.getAttribute(XmlUtils.Sstart).equals("85")  && e.getAttribute(XmlUtils.Scount).equals("10")).count();			
+//				.filter( e -> e.getAttribute(XmlUtils.Sstart).equals("85") && e.getAttribute(XmlUtils.Send).equals("90") && e.getAttribute(XmlUtils.Scount).equals("10")).count();			
 		assertEquals( 1 , no );
 				
 	}
@@ -196,33 +197,28 @@ public class VcfSummaryReportTest {
 		
 		//check FT:INF
 		for(String value : new String[] {"5BP=3:SOMATIC;GERM=42,185",  "PASS:SOMATIC", "5BP=3:SOMATIC"  })
-		assertEquals( 1, QprofilerXmlUtils.getOffspringElementByTagName( (Element) child,  "report" ).stream()
-				.filter( e -> e.getAttribute("values").equals(value) ).count() );
-		
+		assertEquals( 1, XmlElementUtils.getOffspringElementByTagName( (Element) child,  "report" ).stream()
+				.filter( e -> e.getAttribute("values").equals(value) ).count() );		
 		//check genotype
-		long no = QprofilerXmlUtils.getOffspringElementByTagName( (Element) child,  XmlUtils.Stally ).stream()
+		long no = XmlElementUtils.getOffspringElementByTagName( (Element) child,  XmlUtils.Stally ).stream()
 			.filter( e -> e.getAttribute(XmlUtils.Svalue).equals("0/1") && e.getAttribute(XmlUtils.Scount).equals("10")).count();		
 		assertEquals( 1 , no );
-		no = QprofilerXmlUtils.getOffspringElementByTagName( (Element) child,  XmlUtils.Stally ).stream()
+		no = XmlElementUtils.getOffspringElementByTagName( (Element) child,  XmlUtils.Stally ).stream()
 				.filter( e -> e.getAttribute(XmlUtils.Svalue).equals("1/2") && e.getAttribute(XmlUtils.Scount).equals("10")).count();	
 		assertEquals( 2 , no );
-		no = QprofilerXmlUtils.getOffspringElementByTagName( (Element) child,  XmlUtils.Stally ).stream()
+		no = XmlElementUtils.getOffspringElementByTagName( (Element) child,  XmlUtils.Stally ).stream()
 				.filter( e -> e.getAttribute(XmlUtils.Svalue).equals("0/2") && e.getAttribute(XmlUtils.Scount).equals("10")).count();	
 		assertEquals( 1 , no );
-				
-				
-		//titv will be done on sampleSummayTest
-		
+								
+		//titv will be done on sampleSummayTest		
 		//ariantAltFrequencyPercent
-		assertEquals( 2 , QprofilerXmlUtils.getOffspringElementByTagName( (Element) child,  XmlUtils.Sbin ).size() );
-		no = QprofilerXmlUtils.getOffspringElementByTagName( (Element) child,  XmlUtils.Sbin ).stream()
-				.filter( e -> e.getAttribute(XmlUtils.Sstart).equals("45") && e.getAttribute(XmlUtils.Send).equals("50") && e.getAttribute(XmlUtils.Scount).equals("10")).count();			
+		assertEquals( 2 , XmlElementUtils.getOffspringElementByTagName( (Element) child,  XmlUtils.Sbin ).size() );
+		no = XmlElementUtils.getOffspringElementByTagName( (Element) child,  XmlUtils.Sbin ).stream()
+				.filter( e -> e.getAttribute(XmlUtils.Sstart).equals("45")  && e.getAttribute(XmlUtils.Scount).equals("10")).count();			
 		assertEquals( 1 , no );	
-		no = QprofilerXmlUtils.getOffspringElementByTagName( (Element) child,  XmlUtils.Sbin ).stream()
-				.filter( e -> e.getAttribute(XmlUtils.Sstart).equals("95") && e.getAttribute(XmlUtils.Send).equals("100") && e.getAttribute(XmlUtils.Scount).equals("10")).count();			
-		assertEquals( 1 , no );	
-		
-		
+		no = XmlElementUtils.getOffspringElementByTagName( (Element) child,  XmlUtils.Sbin ).stream()
+				.filter( e -> e.getAttribute(XmlUtils.Sstart).equals("95")  && e.getAttribute(XmlUtils.Scount).equals("10")).count();			
+		assertEquals( 1 , no );			
 	}
 
 	@Test
@@ -239,26 +235,26 @@ public class VcfSummaryReportTest {
 			try {
 				Summarizer summarizer  = new VcfSummarizer( new String[] {}  );
 				SummaryReport sr = summarizer.summarize("input.vcf", null);				
-				Element root = QprofilerXmlUtils.createRootElement("qProfiler", null);					
+				Element root = XmlElementUtils.createRootElement("qProfiler", null);					
 				sr.toXml(root);				
-				List<Element> samples = QprofilerXmlUtils.getOffspringElementByTagName(root, "sample");
+				List<Element> samples = XmlElementUtils.getOffspringElementByTagName(root, "sample");
 				assertEquals(4, samples.size());
-				assertEquals(1, samples.stream().filter( e -> e.getAttribute(XmlUtils.Sid).equals(lastSample)).count()) ;	
-				assertEquals(4, QprofilerXmlUtils.getOffspringElementByTagName(root, "report").size());
-				QprofilerXmlUtils.getOffspringElementByTagName(root, "report").forEach(e -> assertEquals( 0, e.getAttributes().getLength()) );				 
+				assertEquals(1, samples.stream().filter( e -> e.getAttribute(XmlUtils.Sname).equals(lastSample)).count()) ;	
+				assertEquals(4, XmlElementUtils.getOffspringElementByTagName(root, "report").size());
+				XmlElementUtils.getOffspringElementByTagName(root, "report").forEach(e -> assertEquals( 0, e.getAttributes().getLength()) );				 
 			} catch (Exception e) { fail("unexpected error"); }
 			
 			
 			try {
 				Summarizer summarizer  = new VcfSummarizer(new String[] {"FT","INF"} );
 				SummaryReport sr = summarizer.summarize("input.vcf", null);				
-				Element root = QprofilerXmlUtils.createRootElement("qProfiler", null);					
+				Element root = XmlElementUtils.createRootElement("qProfiler", null);					
 				sr.toXml(root);				
-				List<Element> samples = QprofilerXmlUtils.getOffspringElementByTagName(root, "sample");
+				List<Element> samples = XmlElementUtils.getOffspringElementByTagName(root, "sample");
 				assertEquals(4, samples.size());
-				assertEquals(1, samples.stream().filter( e -> e.getAttribute(XmlUtils.Sid).equals(lastSample)).count()) ;	
-				assertEquals(6, QprofilerXmlUtils.getOffspringElementByTagName(root, "report").size());				
-				Element child =  samples.stream().filter( e -> e.getAttribute(XmlUtils.Sid).equals("test1")).findFirst().get();
+				assertEquals(1, samples.stream().filter( e -> e.getAttribute(XmlUtils.Sname).equals(lastSample)).count()) ;	
+				assertEquals(6, XmlElementUtils.getOffspringElementByTagName(root, "report").size());				
+				Element child =  samples.stream().filter( e -> e.getAttribute(XmlUtils.Sname).equals("test1")).findFirst().get();
 				checkTest1(child);							 
 			} catch (Exception e) { fail("unexpected error"); }
 			
@@ -282,8 +278,10 @@ public class VcfSummaryReportTest {
 			VcfSummaryReport vcfSummaryReport  = new VcfSummaryReport( reader.getHeader(), category );					 		
 			for (final VcfRecord vcf : reader) vcfSummaryReport.parseRecord( vcf);			
 								 
-			Element root = QprofilerXmlUtils.createRootElement("qProfiler", null);					
+			Element root = XmlElementUtils.createRootElement("qProfiler", null);					
 			vcfSummaryReport.toXml(root);
+			
+//			QprofilerXmlUtils.asXmlText(root, "/Users/christix/Documents/Eclipse/data/qprofiler/test.xml");
 						
 			Node nreport = root.getChildNodes().item(0);
 			assertTrue(nreport.getNodeName().equals( ProfileType.VCF.getReportName()  + "Report"));
@@ -373,7 +371,7 @@ public class VcfSummaryReportTest {
 		
 		//check SNV, there is no gt so no titv
 		Element snvE = (Element) ele.getFirstChild();		
-		for( Element e : QprofilerXmlUtils.getChildElementByTagName(snvE, XmlUtils.Svalue) )
+		for( Element e : XmlElementUtils.getChildElementByTagName(snvE, XmlUtils.Svalue) )
 			if(e.getAttribute(XmlUtils.Sname).equals("inDBSNP"))  
 				assertEquals("20", e.getTextContent() );  //dbsnp always same for all sample
 			else if(e.getAttribute(XmlUtils.Sname).equals("TiTvRatio"))  
@@ -382,10 +380,10 @@ public class VcfSummaryReportTest {
 		for(int i = 0; i < 3; i ++){
 			Element e = (Element) ele.getChildNodes().item(i);
 			assertEquals(XmlUtils.metricsEle, e.getNodeName() );						
-			assertEquals(1, QprofilerXmlUtils.getChildElementByTagName( e, XmlUtils.variableGroupEle ).size());
-			Element e1 = QprofilerXmlUtils.getChildElementByTagName( e, XmlUtils.variableGroupEle ).get(0);
-			assertEquals(1, QprofilerXmlUtils.getChildElementByTagName(e1, XmlUtils.Stally).size());
-			e1 = QprofilerXmlUtils.getChildElement(e1,  XmlUtils.Stally, 0);
+			assertEquals(1, XmlElementUtils.getChildElementByTagName( e, XmlUtils.variableGroupEle ).size());
+			Element e1 = XmlElementUtils.getChildElementByTagName( e, XmlUtils.variableGroupEle ).get(0);
+			assertEquals(1, XmlElementUtils.getChildElementByTagName(e1, XmlUtils.Stally).size());
+			e1 = XmlElementUtils.getChildElement(e1,  XmlUtils.Stally, 0);
 			assertEquals(".", e1.getAttribute(XmlUtils.Svalue));
 			
 			if( e.getAttribute( XmlUtils.Sname).equals(SVTYPE.SNP.toVariantType() )  ) 				

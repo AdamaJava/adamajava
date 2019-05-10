@@ -124,7 +124,7 @@ public class FastqSummarizerMT implements Summarizer {
 			throw e;
 		}
 		
-		logger.info("records parsed: " + fastqSummaryReport.getRecordsParsed());
+		logger.info("records parsed: " + fastqSummaryReport.getRecordsInputed());
 		
 		fastqSummaryReport.setFinishTime(DateUtils.getCurrentDateAsString());
 

@@ -12,7 +12,9 @@ import static org.junit.Assert.*;
 import java.io.File;
 import java.io.IOException;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.model.QCMGAtomicLongArray;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qprofiler2.summarise.CycleSummary;
@@ -20,17 +22,19 @@ import org.qcmg.qprofiler2.summarise.CycleSummaryTest;
 import org.qcmg.qprofiler2.util.CycleSummaryUtils;
 
 public class CycleSummaryUtilsMDTest {
+	@Rule
+	public  TemporaryFolder testFolder = new TemporaryFolder();
 	
 	@Test
 	public void getBigMDCycleNoTest() throws IOException{
-		String fname = "input.bam";
-		CycleSummaryTest.createInputFile(fname);
+		File input = testFolder.newFile("input.bam");
+		CycleSummaryTest.createInputFile(input);
 		@SuppressWarnings("unchecked")
 		final CycleSummary<Character>[] tagMDMismatchByCycle = new CycleSummary[]{ new CycleSummary<Character>(Character.MAX_VALUE, 512), new CycleSummary<Character>(Character.MAX_VALUE, 512)};	
 		final QCMGAtomicLongArray[] allReadsLineLengths = new QCMGAtomicLongArray[]{new QCMGAtomicLongArray(1024), new QCMGAtomicLongArray(1024), new QCMGAtomicLongArray(1024)};
 		
 		
-		SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(fname));		
+		SamReader reader = SAMFileReaderFactory.createSAMFileReader(input);		
 		int count = 0, firstNo = 0, secondNo = 0;
 		for (SAMRecord record : reader) {
 			String value = (String) record.getAttribute("MD");
@@ -45,7 +49,7 @@ public class CycleSummaryUtilsMDTest {
 			assertEquals(err , null);
 			count ++;			
 		}
-		new File(fname).delete();
+	
 		assertEquals(firstNo , 2);
 		assertEquals(secondNo , 2);
 		assertEquals(count , 4);

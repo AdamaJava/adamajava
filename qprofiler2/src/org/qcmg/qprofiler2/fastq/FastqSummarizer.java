@@ -52,7 +52,7 @@ public class FastqSummarizer implements Summarizer {
 				if (null != record) {
 					
 					fastqSummaryReport.parseRecord(record);
-					recordsParsed = fastqSummaryReport.getRecordsParsed();
+					recordsParsed = fastqSummaryReport.getRecordsInputed();
 					
 					if (recordsParsed % (FEEDBACK_LINES_COUNT) == 0) {
 						logger.info("records parsed: " + (recordsParsed / FEEDBACK_LINES_COUNT) + "M");
@@ -61,7 +61,7 @@ public class FastqSummarizer implements Summarizer {
 			}
 		}
 		
-		logger.info("records parsed: " + fastqSummaryReport.getRecordsParsed());
+		logger.info("records parsed: " + fastqSummaryReport.getRecordsInputed());
 		
 		fastqSummaryReport.setFinishTime(DateUtils.getCurrentDateAsString());
 		return fastqSummaryReport;

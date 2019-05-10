@@ -1,19 +1,21 @@
 package org.qcmg.qprofiler2.util;
 
 import java.util.ArrayList;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicLong;
-
-import org.qcmg.common.util.QprofilerXmlUtils;
+import org.qcmg.common.util.Pair;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
+import org.qcmg.common.util.XmlElementUtils;
 import org.w3c.dom.Element;
 
 import htsjdk.samtools.AbstractSAMHeaderRecord;
 import htsjdk.samtools.SAMFileHeader;
+import htsjdk.samtools.SAMProgramRecord;
 import htsjdk.samtools.SAMReadGroupRecord;
 import htsjdk.samtools.SAMSequenceRecord;
 
@@ -25,19 +27,42 @@ public class XmlUtils {
 	public static final String Sbin = "closedBin";
 	public static final String metricsEle = "sequence" + metrics;
 	public static final String Sname = "name";
-	public static final String Sid = "id";	
 	public static final String Scount = "count";
 	public static final String Spercent = "percent";
 	public static final String Stally = "tally";
 	public static final String Sstart = "start";
 	public static final String Send = "end";
-	public static final String Stype = "Type";
+	public static final String Scycle = "cycle";
+	public static final String baseCycleEle = "baseCycle";
+	public static final String recordEle ="record";
+	public static final String discardReads = "discardedReads";
+		
+	public static final String seqBase = "seqBase";
+	public static final String seqLength = "seqLength";
+	public static final String badBase = "badBase";
+	public static final String qualBase = "qualBase";
+	public static final String qualLength = "qualLength";	
+	public static final String FirstOfPair = "firstReadInPair"; 
+	public static final String SecondOfPair = "secondReadInPair";
+	public static final String UNKNOWN_READGROUP = "unkown_readgroup_id";	
+	public static final String summary = "bamSummary";
 	
+	//commly used on fastq bam
+	public static final String qname = "QNAME";
+	public static final String flag = "FLAG";	
+	public static final String rname = "RNAME";
+	public static final String pos = "POS";
+	public static final String mapq = "MAPQ";
+	public static final String cigar = "CIGAR";
+	public static final String tlen = "TLEN";
+	public static final String seq = "SEQ"; 
+	public static final String qual = "QUAL";
+	public static final String tag = "TAG";	
 	
-   public static void bamHeaderToXml(Element parent1, SAMFileHeader header){
+   public static void bamHeaderToXml(Element parent1, SAMFileHeader header, boolean isFullBamHeader){
 
         if ( null == header) return;
-        Element parent = QprofilerXmlUtils.createSubElement(parent1, "bamHeader");
+        Element parent = XmlElementUtils.createSubElement(parent1, "bamHeader");
 
         String cateName = "TAG"; //output bam header classified by "TAG"
         //create header line
@@ -47,23 +72,25 @@ public class XmlUtils {
 
         //<HeadRecords Category="SQ" Describe="Sequence">
         //<HeadRecord>@SQ       SN:chr1 LN:249250621</HeadRecord>
-        createHeaderRecords(parent,cateName,  "SQ", "sequences", header.getSequenceDictionary().getSequences());
-
-        //RG
-        createHeaderRecords(parent, cateName, "RG", "read groups", header.getReadGroups());
-        //PG
-        createHeaderRecords(parent, cateName, "PG", "program records", header.getProgramRecords());
-        //CO
-        createHeaderRecords(parent, cateName, "CO", "comment lines", header.getComments());
+        createHeaderRecords(parent,cateName,  "SQ", "Reference sequence dictionary", header.getSequenceDictionary().getSequences());
+      
+        if(  isFullBamHeader) {
+	        //RG
+	        createHeaderRecords(parent, cateName, "RG", "Read group", header.getReadGroups());
+	        //PG
+	        createHeaderRecords(parent, cateName, "PG", "Program", header.getProgramRecords());
+	        //CO
+	        createHeaderRecords(parent, cateName, "CO", "Text comment", header.getComments());
+        }
     }
 
     private static <T> void createHeaderRecords(Element parent, String cateName, String cateValue, String des, List<T > records) {
-            Element element = QprofilerXmlUtils.createSubElement(parent, "headerRecords" );
+            Element element = XmlElementUtils.createSubElement(parent, "headerRecords" );
             if(records != null && !records.isEmpty()) {
                     element.setAttribute( cateName, cateValue);
                     element.setAttribute( "description", des);
                     for(T re: records) {
-                            Element elechild = QprofilerXmlUtils.createSubElement(parent, "record" );
+                            Element elechild = XmlElementUtils.createSubElement(parent, recordEle );
                             //set txt content
                             if(re instanceof String)
                                     elechild.setTextContent((String)re);
@@ -74,12 +101,15 @@ public class XmlUtils {
 
                             //set id
                             if (re instanceof SAMSequenceRecord) {
-                                    elechild.setAttribute("id", ((SAMSequenceRecord)re).getSequenceName()  );
-                            }else if (re instanceof SAMReadGroupRecord)
-                                    elechild.setAttribute("id", ((SAMReadGroupRecord)re).getId()  );
-                            else if(re instanceof VcfHeaderRecord) {
-
-                                    elechild.setAttribute("id",((VcfHeaderRecord) re).getId() != null ? ((VcfHeaderRecord) re).getId(): ((VcfHeaderRecord) re).getMetaKey().replace("##", "") );
+                                    elechild.setAttribute(Sname, ((SAMSequenceRecord)re).getSequenceName()  );
+                            }else if (re instanceof SAMReadGroupRecord) {
+                                    elechild.setAttribute(Sname, ((SAMReadGroupRecord)re).getId()  );
+                            }else if (re instanceof SAMProgramRecord) {
+                                elechild.setAttribute(Sname, ((SAMProgramRecord)re).getId()  );
+                             //   elechild.setAttribute(Sname, ((SAMProgramRecord)re).getProgramName()  );
+                                
+                            }else if(re instanceof VcfHeaderRecord) {
+                                    elechild.setAttribute(Sname,((VcfHeaderRecord) re).getId() != null ? ((VcfHeaderRecord) re).getId(): ((VcfHeaderRecord) re).getMetaKey().replace("##", "") );
                             }
                             element.appendChild(elechild);
                     }
@@ -91,12 +121,12 @@ public class XmlUtils {
         if ( null == header) return;
         String cateName = "FIELD"; //output vcf header classified by "FIELD"
         
-        Element parent = QprofilerXmlUtils.createSubElement(parent1, "vcfHeader");
+        Element parent = XmlElementUtils.createSubElement(parent1, "vcfHeader");
          
         //the last header line with #CHROM
         List<String> headers = new ArrayList<>();
         headers.add( header.getChrom().toString() );
-        createHeaderRecords(parent, cateName , "headerline", "header line", headers );
+        createHeaderRecords(parent, cateName , "headerline", "The header line", headers );
                         
         //information line with key=value pair
         createHeaderRecords(parent, cateName , "MetaInformation", "Meta-information lines", header.getAllMetaRecords());
@@ -122,27 +152,43 @@ public class XmlUtils {
 	 * @param id: readgroup id. set to null if not exists
 	 * @return
 	 */       
-    public static Element createMetricsNode(Element parent,  String name, Number totalcount ) {
-    	
-    	Element ele = QprofilerXmlUtils.createSubElement( parent,  XmlUtils.metricsEle );
-					
-		if( totalcount != null ) ele.setAttribute( Scount, String.valueOf(totalcount));  
-		 
+    public static Element createMetricsNode(Element parent,  String name, Pair<?, ?> totalCounts ) {	
+    	Element ele = XmlElementUtils.createSubElement( parent,  XmlUtils.metricsEle );
+    						
+		if( totalCounts != null ) ele.setAttribute((String)totalCounts.getLeft(), String.valueOf( totalCounts.getRight()));		 
 		if(name != null) ele.setAttribute( Sname, name );
-		
+				
 		return ele;        	
     }      
         
 	/**
-	 * <category name="name" >... </category>
+	 * <variableGroup name="name" >... </category>
 	 * @param parent
 	 * @param name: category name
 	 * @param id: readgroup id. set to null if not exists
 	 * @return
 	 */
     public static Element createGroupNode(Element parent, String name) {
-    	Element ele = QprofilerXmlUtils.createSubElement( parent,  XmlUtils.variableGroupEle );	
+    	Element ele = XmlElementUtils.createSubElement( parent,  XmlUtils.variableGroupEle );	
     	ele.setAttribute( Sname, name); 
+    	return ele;
+    }
+    public static Element createGroupNode(Element parent, String name, Number totalcount) {
+    	Element ele = createGroupNode(  parent,   name);
+    	 ele.setAttribute( Scount, String.valueOf(totalcount));  
+    	 return ele; 
+    }
+    
+	/**
+	 * <variableGroup name="name" >... </category>
+	 * @param parent
+	 * @param name: category name
+	 * @param id: readgroup id. set to null if not exists
+	 * @return
+	 */
+    public static Element createCycleNode(Element parent, String name) {
+    	Element ele = XmlElementUtils.createSubElement( parent,  baseCycleEle );	
+    	ele.setAttribute( Scycle, name); 
     	return ele;
     }
         
@@ -153,7 +199,7 @@ public class XmlUtils {
      * @param value
      */
     public static <T> Element outputValueNode(Element parent, String name, Number value) {        	
-    	Element ele = QprofilerXmlUtils.createSubElement(parent, Svalue);
+    	Element ele = XmlElementUtils.createSubElement(parent, Svalue);
     	ele.setAttribute(Sname, name);
     	String v = String.valueOf(value);
 
@@ -174,37 +220,72 @@ public class XmlUtils {
     public static <T> void outputValueNode(Element parent, String name, Number value, String comment) {   
     	parent.insertBefore( parent.getOwnerDocument().createComment( comment ), parent.getFirstChild() ); 
     	outputValueNode( parent,  name,  value);
+    	    	    	 
+    }
+    
+    public static Element outputBins( Element parent, String name, Map<Integer, AtomicLong> bins, int binSize) {
     	
-    	//parent.appendChild( parent.getOwnerDocument().createComment( name + ": " + comment ) );
- 	//	Text element = parent.getOwnerDocument().createCDATASection(comment);
-	//	parent.appendChild(element);
-    	    	 
+    	Element cateEle = XmlUtils.createGroupNode(parent, name);
+    	cateEle.setAttribute("binSize", binSize+"" );
+    	Element ele;
+    	for (Entry<Integer, AtomicLong> entry : bins.entrySet() ) {
+    		if(entry.getValue().get() > 0) {
+    			ele = XmlElementUtils.createSubElement(cateEle, Sbin);
+    	    	ele.setAttribute(Sstart,  String.valueOf(entry.getKey() * binSize));   	    	
+    	    	ele.setAttribute(Scount, String.valueOf(entry.getValue().get())); 			
+    		}  	    		
+    	}
+    	
+    	return cateEle;
+    	
     }
-            
-    public static void outputBinNode(Element parent, Number start, Number end, Number count ) {
-    	Element ele = QprofilerXmlUtils.createSubElement(parent, Sbin);
-    	ele.setAttribute(Sstart,  String.valueOf(start));
-    	ele.setAttribute(Send,  String.valueOf(end));
-    	ele.setAttribute(Scount, String.valueOf(count)); 
-    }
-   
-    public static <T> void outputTallyGroup( Element parent, String name, Map<T, AtomicLong> tallys, boolean hasPercent ) {
-    	if(tallys == null || tallys.isEmpty()) return;
-    	       	
-    	Element ele = createGroupNode( parent, name);	//<category>       	
-		double sum = hasPercent ? tallys.values().stream().mapToDouble( x -> (double) x.get() ).sum() : 0;	
-		
-		for(Entry<T,  AtomicLong> entry : tallys.entrySet()) { 
+    
+    
+    private static <T> void outputTallys( Element ele, String name, Map<T, AtomicLong> tallys, boolean hasPercent) {
+    	
+    	double sum = hasPercent ? tallys.values().stream().mapToDouble( x -> (double) x.get() ).sum() : 0;	
+    	   	
+    	for(T t: tallys.keySet()) {
 			//skip zero value for output
-			if(entry.getValue().get() == 0 ) continue;
-			double percent = (sum == 0)? 0 : 100 * (double)entry.getValue().get() / sum;
-			Element ele1 = QprofilerXmlUtils.createSubElement( ele, Stally );
-			ele1.setAttribute( Svalue, String.valueOf( entry.getKey() ));
-			ele1.setAttribute( Scount, String.valueOf( entry.getValue().get() )); 
+			if(tallys.get(t).get() == 0 ) continue;
+			double percent = (sum == 0)? 0 : 100 * (double)tallys.get(t).get() / sum;
+			Element ele1 = XmlElementUtils.createSubElement( ele, Stally );
+			ele1.setAttribute( Svalue, String.valueOf( t ));
+			ele1.setAttribute( Scount, String.valueOf( tallys.get(t).get() )); 
 			if( hasPercent == true) {
 				ele1.setAttribute(Spercent, String.format("%,.2f", percent));	
-			}
-		}        	
+			}					
+		}  	
+    	long counts = tallys.values().stream().mapToLong( x -> (long) x.get() ).sum() ;	
+    	ele.setAttribute(Scount, counts+"");
+    	
+    }
+    
+    public static <T> Element outputTallyGroup( Element parent, String name, Map<T, AtomicLong> tallys, boolean hasPercent, String comment ) {
+    	if(tallys == null || tallys.isEmpty()) return null;
+    	       	
+    	Element ele = createGroupNode( parent, name);	//<category>      
+    	
+    	if( comment != null ) 
+    		ele.appendChild( ele.getOwnerDocument().createComment(comment) );	
+		
+    	outputTallys(  ele,  name,  tallys,  hasPercent );
+    	return ele; 
+      	
+    }
+   
+    public static  <T> Element outputTallyGroup( Element parent, String name, Map< T, AtomicLong> tallys, boolean hasPercent ) {
+    	return outputTallyGroup(  parent,  name,  tallys,  hasPercent, null );    	
+    }
+    
+    
+    public static <T>  void outputCycleTallyGroup( Element parent, String name, Map<T, AtomicLong> tallys, boolean hasPercent ) {
+    	if(tallys == null || tallys.isEmpty()) return;
+    	       	
+    	Element ele = XmlElementUtils.createSubElement( parent,  baseCycleEle );	
+    	ele.setAttribute( Scycle, name); 
+ 
+    	outputTallys(  ele,  name,  tallys,  hasPercent );        	
     }
     
     public static void addCommentChild(Element ele, String comment) {
@@ -213,9 +294,20 @@ public class XmlUtils {
     }
 
     public static Element createReadGroupNode( Element parent, String rgid) {
-     	Element ele = QprofilerXmlUtils.createSubElement( parent, "readGroup" );
-    	ele.setAttribute(Sid, rgid);
+     	Element ele = XmlElementUtils.createSubElement( parent, "readGroup" );
+    	ele.setAttribute(Sname, rgid);
     	return ele;
+    }
+    
+    /**
+     * join str1 and str2 which fist letter will be capitalized. 
+     * @param str1
+     * @param str2 will covert the first letter to upper case
+     * @return a joined string
+     */
+    public static String join(String str1, String str2) {
+    	
+    	return str1 + str2.substring(0,1).toUpperCase() + str2.substring(1);
     }
         
         

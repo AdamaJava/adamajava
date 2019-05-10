@@ -28,7 +28,7 @@ import org.qcmg.common.messages.QMessage;
 import org.qcmg.common.model.ProfileType;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.LoadReferencedClasses;
-import org.qcmg.common.util.QprofilerXmlUtils;
+import org.qcmg.common.util.XmlElementUtils;
 import org.qcmg.qprofiler2.bam.BamSummarizer2;
 import org.qcmg.qprofiler2.bam.BamSummarizerMT2;
 import org.qcmg.qprofiler2.cohort.CohortSummarizer;
@@ -38,7 +38,7 @@ import org.qcmg.qprofiler2.report.SummaryReport;
 import org.qcmg.qprofiler2.vcf.VcfSummarizer;
 import org.w3c.dom.Element;
 
-
+//xmllint --noout --schema ~/PATH/Schema.xsd file.xml
 public class QProfiler2 {
 		
 	private static QLogger logger;	
@@ -58,6 +58,7 @@ public class QProfiler2 {
 	private int maxRecords;
 	private String logFile;
 	private String validation;
+	private boolean  isFullBamHeader;
 
 	
 	/*
@@ -69,7 +70,7 @@ public class QProfiler2 {
 	 * and ready for us to use.
 	 */
 	protected int engage() throws Exception {
-		Element root = QprofilerXmlUtils.createRootElement( "qProfiler", null);
+		Element root = XmlElementUtils.createRootElement( "qProfiler", null);
 		
 		// Create new Summary object ready to hold our processing
 		QProfilerSummary2 sol = new QProfilerSummary2();
@@ -119,23 +120,16 @@ public class QProfiler2 {
 		logger.info("generating output xml file: " + outputFile);
 		
 		
-		//xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  xsi:noNamespaceSchemaLocation="combined1.xsd" >
 		//xml reorganise
+		sol.setFinishTime(DateUtils.getCurrentDateAsString());		
 		root.setAttribute( "startTime",  sol.getStartTime() );
-		root.setAttribute( "finishTime", sol.getFinishTime() );
+		root.setAttribute( "finishTime", sol.getFinishTime() );		
 		root.setAttribute( "user", System.getProperty("user.name") );
 		root.setAttribute( "operatingSystem", System.getProperty("os.name") );
 		root.setAttribute( "version", version );
-		
-		//debug
-		//set attribute for xsd file
-		root.setAttribute("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
-		root.setAttribute("xsi:noNamespaceSchemaLocation", "combined1.xsd");
-		
-		
-		sol.setFinishTime(DateUtils.getCurrentDateAsString());		
-		QprofilerXmlUtils.asXmlText(root, outputFile);
-		
+		root.setAttribute("validationSchema", "qprofiler_2_0.xsd");
+		XmlElementUtils.asXmlText(root, outputFile);		
+		 			
 		return exitStatus;
 	}
 	
@@ -206,9 +200,9 @@ public class QProfiler2 {
 				break;
 			case BAM:
 				if (noOfConsumerThreads > 0) {
-					summarizer = new BamSummarizerMT2(noOfProducerThreads, noOfConsumerThreads, maxRecords,  validation);
+					summarizer = new BamSummarizerMT2(noOfProducerThreads, noOfConsumerThreads, maxRecords,  validation,  isFullBamHeader);
 				} else {
-					summarizer = new BamSummarizer2( maxRecords, validation);
+					summarizer = new BamSummarizer2( maxRecords, validation, isFullBamHeader);
 				}
 				break;
 			case XML:
@@ -299,6 +293,8 @@ public class QProfiler2 {
 			if (maxRecords > 0) {
 				logger.tool("Running in maxRecord mode (BAM files only). Will stop profiling after " + maxRecords + " records");
 			}
+			
+			this.isFullBamHeader = options.hasFullBamHeaderOption();
 			
 			// setup the ExecutorService thread pool
 			// the size of the pool is the smaller of the no of files, and the NO_OF_PROCESSORS variable

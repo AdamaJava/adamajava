@@ -50,7 +50,7 @@ public class VcfSummarizer implements Summarizer {
 			}	
 		}	
 		
-		logger.info("records parsed: " + vcfSummaryReport.getRecordsParsed());
+		logger.info("records parsed: " + vcfSummaryReport.getRecordsInputed());
 		vcfSummaryReport.setFinishTime(DateUtils.getCurrentDateAsString());
 		return vcfSummaryReport;
 	}

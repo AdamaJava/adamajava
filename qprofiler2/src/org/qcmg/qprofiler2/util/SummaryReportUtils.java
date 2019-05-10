@@ -70,4 +70,73 @@ public class SummaryReportUtils {
 			array.increment(countUnderTen);
 		}
 	}
+	
+
+	
+	public static class TallyStats{
+		private long min, max, mean, mode, medium, counts, bases;
+		
+			/**
+			 * 
+			 * @param array:  read counts at each array index position
+			 * @return: the minimum, maximum, mean, mode, medium, sum of array elements ,  sum of array elements multiply it's index position;
+			 */
+			public   TallyStats(QCMGAtomicLongArray array) {
+				long arrayLength = null != array ? array.length() : 0;
+				
+				long bases = 0,counts = 0;		
+				for (int i = 1 ; i < arrayLength ; i++){
+					if(array.get(i) <= 0) continue;
+					counts += array.get(i);
+					bases += i * array.get(i);
+				}		
+				int mean = (counts == 0) ? 0: (int) (bases / counts);
+						
+				 // to avoid aray.get(0) >= 0 since 1(counts)/2== 0(counts/2) == 0
+				long sum = 0; 
+				int medium = 0;
+				for (int i = 1 ; i < arrayLength; i++) {
+					if(( sum += array.get(i)) > counts/2 ){ medium = i;  break; }
+				}
+				int min = 0; //find the smallest non-zero value;
+				for(int i = 1; i < arrayLength; i ++) {
+					if(array.get(i) > 0){ 
+						min  = i; break; 
+					}
+				}
+				
+				int max = 0; //find the biggest non-zero value;
+				for(int i = (int) (arrayLength -1); i > 0; i--) {
+					if(array.get(i) > 0){ 
+						max = i; break;  
+					}
+				}
+				
+				int mode = 0; //mode is the number of read which length is most popular
+				long highest = 0;
+				for (int i = 1 ; i < arrayLength ; i++) { 					
+					if(array.get(i) > highest){
+						highest = array.get(i);
+						mode = i; 
+					}  	
+				}
+				
+				this.min = min;
+				this.max = max;
+				this.mean = mean;
+				this.mode = mode;
+				this.medium = medium;
+				this.counts = counts;
+				this.bases = bases;
+				
+			}
+			
+			public long getMin() {return min;}
+			public long getMax() {return max;}
+			public long getMode() {return mode;}			
+			public long getMedium() {return medium;}
+			public long getMean() {return mean;}
+			public long getReadCounts() {return counts;}
+			public long getBaseCounts() {return bases;}	
+	}
 }

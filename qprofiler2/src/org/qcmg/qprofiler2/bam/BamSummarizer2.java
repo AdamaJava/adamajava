@@ -37,15 +37,17 @@ public class BamSummarizer2 implements Summarizer {
 	
 	private int maxRecords;
 	private String validation;
+	private boolean isFullBamHeader;
 
 	private final static QLogger logger = QLoggerFactory.getLogger(BamSummarizer2.class);	
 	public BamSummarizer2() {}	// default constructor	
-	public BamSummarizer2( int maxRecords, String validation) {
+	public BamSummarizer2( int maxRecords, String validation, boolean isFullBamHeader) {
 		this.maxRecords = maxRecords;
 		this.validation = validation;
+		this.isFullBamHeader = isFullBamHeader;
 	}	
 	
-	public static BamSummaryReport2 createReport(File file, int maxRecords) throws IOException{
+	public static BamSummaryReport2 createReport(File file, int maxRecords, boolean isFullBamHeader) throws IOException{
 		
 		// create the SummaryReport
 		SamReader reader = SAMFileReaderFactory.createSAMFileReader(file);
@@ -57,8 +59,8 @@ public class BamSummarizer2 implements Summarizer {
 		List<SAMProgramRecord> pgLines = header.getProgramRecords();
 		List<String> readGroupIds = header.getReadGroups().stream().map( it -> it.getId()  ).collect(toList()); 
 							
-		BamSummaryReport2 bamSummaryReport = new BamSummaryReport2( maxRecords);									
-		bamSummaryReport.setBamHeader(header);		
+		BamSummaryReport2 bamSummaryReport = new BamSummaryReport2( maxRecords, isFullBamHeader );									
+		bamSummaryReport.setBamHeader(header, isFullBamHeader);		
 		bamSummaryReport.setSamSequenceDictionary(samSeqDict);
 		bamSummaryReport.setReadGroups(readGroupIds);		
 		bamSummaryReport.setFileName(file.getAbsolutePath());
@@ -74,14 +76,15 @@ public class BamSummarizer2 implements Summarizer {
 		SamReader reader = SAMFileReaderFactory.createSAMFileReaderAsStream(input, index, vs);
 		
 		// create the SummaryReport		
-        BamSummaryReport2 bamSummaryReport = createReport(new File(input),  maxRecords);
+        BamSummaryReport2 bamSummaryReport = createReport(new File(input),  maxRecords, isFullBamHeader);
       		
 		boolean logLevelEnabled = logger.isLevelEnabled(QLevel.DEBUG);
 		
 		long currentRecordCount = 0;
-		for (SAMRecord samRecord : reader) {				 
+	
+		for (SAMRecord samRecord : reader) {			
 			bamSummaryReport.parseRecord(samRecord);
-			currentRecordCount = bamSummaryReport.getRecordsParsed();				
+			currentRecordCount = bamSummaryReport.getRecordsInputed();				
 			if (logLevelEnabled && currentRecordCount % FEEDBACK_LINES_COUNT == 0) 
 				logger.debug("Records parsed: " + currentRecordCount);
 			 				
@@ -90,7 +93,7 @@ public class BamSummarizer2 implements Summarizer {
 		}			
 			
 		bamSummaryReport.cleanUp();
-		logger.info("records parsed: "+ bamSummaryReport.getRecordsParsed());
+		logger.info("records parsed: "+ bamSummaryReport.getRecordsInputed());
 		bamSummaryReport.setFinishTime(DateUtils.getCurrentDateAsString());
 		return bamSummaryReport;
 	}

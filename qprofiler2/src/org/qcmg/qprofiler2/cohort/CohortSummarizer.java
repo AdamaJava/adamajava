@@ -58,8 +58,6 @@ public class CohortSummarizer implements Summarizer {
 				//System.out.println(report.sampleId);
 				for(int i = 0; i < sumCounts.length; i++){
 					long[] reportCounts = report.getCountSum();					
-					//debug
-					//System.out.println(i + " (summCount[i]): " + sumCounts[i] + " += " + reportCounts[i]);
 					sumCounts[i] += reportCounts[i];
 				}			
 			}
