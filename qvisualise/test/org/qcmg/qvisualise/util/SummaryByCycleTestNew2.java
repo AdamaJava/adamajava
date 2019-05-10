@@ -1,4 +1,4 @@
-package org.qcmg.qprofiler.util;
+package org.qcmg.qvisualise.util;
 
 import org.junit.Assert;
 import org.junit.Test;

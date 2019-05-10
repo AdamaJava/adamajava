@@ -1,4 +1,4 @@
-package org.qcmg.qprofiler.util;
+package org.qcmg.qvisualise.util;
 
 import java.util.Arrays;
 import java.util.List;

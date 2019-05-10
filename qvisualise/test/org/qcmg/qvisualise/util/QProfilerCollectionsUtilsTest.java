@@ -1,4 +1,4 @@
-package org.qcmg.qvisualise;
+package org.qcmg.qvisualise.util;
 
 import static org.junit.Assert.*;
 
