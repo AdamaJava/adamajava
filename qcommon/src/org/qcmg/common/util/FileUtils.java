@@ -31,6 +31,8 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 import javax.xml.bind.DatatypeConverter;
 import org.qcmg.common.string.StringUtils;
@@ -431,5 +433,64 @@ public class FileUtils {
 		}
 		return ext;
 	}
+	
+	
+	/**
+	 * Backup a file by renaming it where the renaming is based on appending (or
+	 * incrementing) a version number extension. This could turn into a
+	 * recursive process if the new names we come up with already exist in which
+	 * case those files need to be renamed etc etc. To do the renaming we will
+	 * add a numeric version number to the file and increment as needed.
+	 * 
+	 * @param filename name of file to be renamed with version number
+	 */
+	public static void backupFileByRenaming(String filename) throws Exception {
+		
+		Pattern fileVersionPattern = Pattern.compile("^(.*)\\.(\\d+)$");
+
+		File origFile = new File(filename);
+		
+		// check that directory exists and is writable
+		// this will throw an IOExcpetion if the file path is incorrect
+		// if it returns true, do nowt, otherwise - rename existing file
+		if (origFile.createNewFile()) {
+			
+			// delete the file straight away - don't want empty files lying around
+			origFile.delete();
+			
+		} else {
+
+//		 if file already exists, backup by renaming
+			Matcher matcher = fileVersionPattern.matcher(origFile.getCanonicalPath());
+			boolean matchFound = matcher.find();
+
+			// Determine the name we will use to rename the current file
+			String fileStem = null;
+			Integer fileVersion = 0;
+			if (!matchFound) {
+				// Original filename has no version so create new filename by
+				// appending ".1"
+				fileStem = origFile.getCanonicalPath();
+				fileVersion = 1;
+			} else {
+				// Original filename has version so create new filename by
+				// incrementing version
+				fileStem = matcher.group(1);
+				fileVersion = Integer.parseInt(matcher.group(2)) + 1;
+			}
+
+			// If new filename already exists then we need to rename that file
+			// also so let's use some recursion
+			File newFile = new File(fileStem + "." + fileVersion);
+			if (newFile.canRead())  
+				backupFileByRenaming(newFile.getCanonicalPath());
+
+			// Finally we get the rename origFile to newFile!
+			if (!origFile.renameTo(newFile)) { 
+				throw new RuntimeException("Unable to rename file from " + origFile.getName() + " to " + newFile.getName());
+			}
+		}
+	}
+
 
 }

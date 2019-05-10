@@ -6,8 +6,7 @@
  */
 package org.qcmg.common.model;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicLongArray;
@@ -52,7 +51,7 @@ public class QCMGAtomicLongArray {
 	}
 	
 	public long get(int arrayPosition) { 	return array.get(arrayPosition); }
-	public long length() { 	return array.length(); }
+	public int length() { 	return array.length(); }
 	
 	private void resize(final int arrayPosition) {
 		// lock
@@ -87,14 +86,26 @@ public class QCMGAtomicLongArray {
 		}
 	}
 	
-	public Map<Integer, AtomicLong> toMap() {
-		Map<Integer, AtomicLong> map = new HashMap<>();		 
+ 
+	
+	public TreeMap<Integer, AtomicLong> toMap() {
+		TreeMap<Integer, AtomicLong> map = new TreeMap<>();		 
 		for(int i = 0; i < array.length(); i ++)
 			if(array.get(i) > 0)
 				map.put(i, new AtomicLong(array.get(i)));
 		
 		return map;
 	}
+	
+	public boolean isEmpty() {
+		for(int i = 0; i < array.length(); i ++) {
+			if(array.get(i) > 0) {
+				return false;
+			}
+		}
+		return true; 
+	}
+	
 	
 	
 }

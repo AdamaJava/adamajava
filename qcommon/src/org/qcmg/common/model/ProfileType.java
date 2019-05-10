@@ -93,8 +93,14 @@ public enum ProfileType {
 	public static ProfileType getType2(String s) {
 		String ext = null;
 
-	    int i = s.lastIndexOf('.');	    
-	    if ( i > 0 &&  i < s.length() - 1) { ext = s.substring(i+1).toLowerCase();  }	    	    
+	    int i = s.lastIndexOf('.');	 	    
+	    if ( i > 0 &&  i < s.length() - 1) { ext = s.substring(i+1).toLowerCase();  }	   	    
+	    // if ext is equal to gz, then find the previous extension
+	    if (GZ_EXTENSION.equals(ext)) {
+	    	i = s.lastIndexOf('.', i -1);
+	    	ext = s.substring(i+1).toLowerCase();
+	    }
+	    
 	    if (BAM_EXTENSION.equals(ext) || SAM_EXTENSION.equals(ext))
 	    	return ProfileType.BAM;
 	    if (XML_EXTENSION.equals(ext))
