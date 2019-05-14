@@ -445,14 +445,4 @@ public class StringUtils {
 		return sb.toString();
 	}
 
-	
-	public static <T> String joinByComma( List<T> possibles){		 		
-		StringBuilder sb = new StringBuilder();
-		for(T mer :  possibles) {
-			if( mer instanceof  String || mer instanceof Number || mer instanceof Character) {
-				sb.append(mer).append(Constants.COMMA);	
-			} 	
-		}	
-		return (sb.length() > 0)?  sb.substring(0, sb.length()-1) : "";		
-	}
 }
