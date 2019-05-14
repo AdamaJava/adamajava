@@ -444,8 +444,6 @@ public class ReadGroupSummaryTest {
 		Element root = XmlElementUtils.createRootElement("root",null);
 		rgSumm.readSummary2Xml(root);
 		
-		XmlElementUtils.asXmlText(root, "/Users/christix/Documents/Eclipse/data/qprofiler/bam/20190510/test.xml");	
-		
 		Element	root1 = XmlElementUtils.getOffspringElementByTagName( root, XmlUtils.variableGroupEle)
 				.stream().filter(ele -> ele.getAttribute(XmlUtils.Sname).equals("countedReads")).findFirst().get() ;
 		assertTrue( checkChildValue( root1, ReadGroupSummary.READ_COUNT, "3" )); 

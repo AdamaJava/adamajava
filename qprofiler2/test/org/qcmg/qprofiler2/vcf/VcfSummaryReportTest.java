@@ -280,9 +280,7 @@ public class VcfSummaryReportTest {
 								 
 			Element root = XmlElementUtils.createRootElement("qProfiler", null);					
 			vcfSummaryReport.toXml(root);
-			
-//			QprofilerXmlUtils.asXmlText(root, "/Users/christix/Documents/Eclipse/data/qprofiler/test.xml");
-						
+									
 			Node nreport = root.getChildNodes().item(0);
 			assertTrue(nreport.getNodeName().equals( ProfileType.VCF.getReportName()  + "Report"));
 			

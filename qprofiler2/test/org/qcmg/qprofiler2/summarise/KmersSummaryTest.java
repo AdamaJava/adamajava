@@ -19,6 +19,7 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -50,15 +51,15 @@ public class KmersSummaryTest {
 		assertEquals("AA,AT,AG,AC,TA,TT,TG,TC,GA,GT,GG,GC,CA,CT,CG,CC", KmersSummary.producer(2,"",false));		
 	}
 	
-	@Test
+	@Ignore 
+	//speed test should be ignore due to time consuming
 	public void getPossibleKmerStringTest()  {
 		KmersSummary summary = new KmersSummary(KmersSummary.maxKmers);
 		String [] kmers = summary.getPossibleKmerString(6, true);
 		assertEquals((int)Math.pow(5,6), kmers.length);
 		kmers = summary.getPossibleKmerString(6, false);
 		assertEquals((int)Math.pow(4,6), kmers.length);
-		
-		
+				
 		//test speed between split and subString
 		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");  			
 		LocalDateTime now = LocalDateTime.now(); 
