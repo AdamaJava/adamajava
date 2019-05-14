@@ -82,10 +82,11 @@ public class SummaryReportUtils {
 			 * @return: the minimum, maximum, mean, mode, medium, sum of array elements ,  sum of array elements multiply it's index position;
 			 */
 			public   TallyStats(QCMGAtomicLongArray array) {
+								
 				long arrayLength = null != array ? array.length() : 0;
 				
 				long bases = 0,counts = 0;		
-				for (int i = 1 ; i < arrayLength ; i++){
+				for (int i = 0; i < arrayLength ; i++){
 					if(array.get(i) <= 0) continue;
 					counts += array.get(i);
 					bases += i * array.get(i);
@@ -95,7 +96,7 @@ public class SummaryReportUtils {
 				 // to avoid aray.get(0) >= 0 since 1(counts)/2== 0(counts/2) == 0
 				long sum = 0; 
 				int medium = 0;
-				for (int i = 1 ; i < arrayLength; i++) {
+				for (int i = 0; i < arrayLength; i++) {
 					if(( sum += array.get(i)) > counts/2 ){ medium = i;  break; }
 				}
 				int min = 0; //find the smallest non-zero value;
@@ -114,7 +115,7 @@ public class SummaryReportUtils {
 				
 				int mode = 0; //mode is the number of read which length is most popular
 				long highest = 0;
-				for (int i = 1 ; i < arrayLength ; i++) { 					
+				for (int i = 0; i < arrayLength ; i++) { 					
 					if(array.get(i) > highest){
 						highest = array.get(i);
 						mode = i; 

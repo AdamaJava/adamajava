@@ -377,5 +377,92 @@ public class ReadGroupSummaryTest {
 		assertTrue( checkChildValue( root1, "Discarded reads (FailedVendorQuality, secondary, supplementary)", "3" ));  	
 		assertTrue( checkChildValue( root1, "Total reads including discarded reads", "12" )); // 
 	}				
+
+	@Test
+	/**
+	 * test some invalid reads, such as 
+	 * ST-E00110:380:H3NCKCCXY:3:2220:10084:38684	117	chrY	239007	0	*	=	239007	0	*	*	PG:Z:MarkDuplicates	RG:Z:c9516885-22af-4fbc-8acb-1dafeca5925d	AS:i:0	XS:i:0
+ 	 * ST-E00110:380:H3NCKCCXY:3:2120:3752:45329	69	chrY	239631	0	*	=	239631	0	*	*	PG:Z:MarkDuplicates	RG:Z:c9516885-22af-4fbc-8acb-1dafeca5925d	AS:i:0	XS:i:0
+	 */
+	public  void unMappedReadTest() throws Exception {
+		SAMRecord record = new SAMRecord(null);
+		record.setAlignmentStart(239007);
+		record.setReferenceName("chrY");
+				
+		ReadGroupSummary rgSumm = new ReadGroupSummary(null);
+		for(int flag : new int[] {117, 69, 181}) {
+			record.setFlags(flag);
+			rgSumm.parseRecord(record);
+		}
+		//add one more read with seq to avoid max lenght is zero
+		record.setReadBases(new byte[] {1,2,3,4,5,6,7});
+		rgSumm.parseRecord(record);
+		
+		Element root = XmlElementUtils.createRootElement("root",null);
+		rgSumm.readSummary2Xml(root);
+		
+		//<sequenceMetrics name="basesLost">
+		Element	root1 = XmlElementUtils.getChildElementByTagName(root, XmlUtils.metricsEle)		
+						.stream().filter(ele -> ele.getAttribute(XmlUtils.Sname).equals( "basesLost" )).findFirst().get() ;	
+		checkCountedReadStats(root1, ReadGroupSummary.NODE_SOFTCLIP , new int[] {0, 0, 0, 0, 0,0,0}, "0.00");
+		checkCountedReadStats(root1, ReadGroupSummary.NODE_HARDCLIP , new int[] {0, 0, 0, 0, 0,0,0}, "0.00");
+		checkCountedReadStats(root1, ReadGroupSummary.NODE_TRIM , new int[] {0, 0, 0, 0, 0,0,0}, "0.00");
+		
+		//<sequenceMetrics name="reads"
+		root1  = XmlElementUtils.getChildElementByTagName(root, XmlUtils.metricsEle)		
+				.stream().filter(ele -> ele.getAttribute(XmlUtils.Sname).equals( "reads" )).findFirst().get() ;	
+		assertTrue( root1.getAttribute(ReadGroupSummary.READ_COUNT).equals("4"));
+		checktLen(root1,0, 0,  0, 0,0);		
+		checkDiscardReads(root1, 0,0,0);
+		
+		//<variableGroup name="countedReads">
+		root1 = XmlElementUtils.getChildElementByTagName(root1, XmlUtils.variableGroupEle)
+				.stream().filter(ele -> ele.getAttribute(XmlUtils.Sname).equals("countedReads")).findFirst().get() ;	
+		assertTrue( checkChildValue( root1, ReadGroupSummary.READ_COUNT, "4" )); 
+		assertTrue( checkChildValue( root1, ReadGroupSummary.UNPAIRED_READ, "0" ));
+		assertTrue( checkChildValue( root1, ReadGroupSummary.BASE_LOST_PERCENT, "100.00" ));   
+		assertTrue( checkChildValue( root1, ReadGroupSummary.BASE_COUNT, "28" ));		
+		assertTrue( checkChildValue( root1, ReadGroupSummary.BASE_LOST_COUNT, "28" ));		
+	}
+	
+	@Test
+	public void noSeqReadTest() throws Exception {
+		SAMRecord record = new SAMRecord(null);
+		record.setAlignmentStart(239007);
+		record.setReferenceName("chrY");
+
+		ReadGroupSummary rgSumm = new ReadGroupSummary(null);
+		//64: unpaired read, 65: not proper pair read
+		for(int flag : new int[] {64, 65}) {
+			record.setFlags(flag);
+			rgSumm.parseRecord(record);
+		}	
+		//add one more read with seq to avoid max lenght is zero
+		record.setReadBases(new byte[] {1,2,3,4,5,6,7});
+		rgSumm.parseRecord(record);
+		
+		Element root = XmlElementUtils.createRootElement("root",null);
+		rgSumm.readSummary2Xml(root);
+		
+		XmlElementUtils.asXmlText(root, "/Users/christix/Documents/Eclipse/data/qprofiler/bam/20190510/test.xml");	
+		
+		Element	root1 = XmlElementUtils.getOffspringElementByTagName( root, XmlUtils.variableGroupEle)
+				.stream().filter(ele -> ele.getAttribute(XmlUtils.Sname).equals("countedReads")).findFirst().get() ;
+		assertTrue( checkChildValue( root1, ReadGroupSummary.READ_COUNT, "3" )); 
+		assertTrue( checkChildValue( root1, ReadGroupSummary.UNPAIRED_READ, "1" ));
+		assertTrue( checkChildValue( root1, ReadGroupSummary.BASE_LOST_PERCENT, "100.00" ));   
+		assertTrue( checkChildValue( root1, ReadGroupSummary.BASE_COUNT, "21" ));		
+		assertTrue( checkChildValue( root1, ReadGroupSummary.BASE_LOST_COUNT, "21" ));		
+		
+		
+		//<sequenceMetrics name="basesLost">
+		root1 = XmlElementUtils.getChildElementByTagName(root, XmlUtils.metricsEle)		
+					.stream().filter(ele -> ele.getAttribute(XmlUtils.Sname).equals( "basesLost" )).findFirst().get() ;	
+		checkCountedReadStats(root1, ReadGroupSummary.NODE_SOFTCLIP , new int[] {0, 0, 0, 0, 0,0,0}, "0.00");
+		checkCountedReadStats(root1, ReadGroupSummary.NODE_HARDCLIP , new int[] {0, 0, 0, 0, 0,0,0}, "0.00");
+		checkCountedReadStats(root1, ReadGroupSummary.NODE_TRIM , new int[] {1, 7,7, 7, 7,7,7}, "33.33");		
+	}
+	
+	
 }
 

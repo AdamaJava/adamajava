@@ -123,7 +123,7 @@ public class BamSummaryReport2 extends SummaryReport {
 	11 QUAL 
 	 */
 	public void toXml( Element parent ) {	
-		
+				
 		Element bamReportElement = init(parent, ProfileType.BAM, null,  maxRecords);		
 		XmlUtils.bamHeaderToXml(bamReportElement, bamHeader,  isFullBamHeader);
 		summaryToXml(bamReportElement ); 	//Summary for all read group
@@ -309,6 +309,7 @@ public class BamSummaryReport2 extends SummaryReport {
 		// check if record has its fail or duplicate flag set. if so, miss out some of the summaries
 		ReadGroupSummary rgSumm = rgSummaries.computeIfAbsent(readGroup, k -> new ReadGroupSummary(k));	
 		if( rgSumm.parseRecord(record) ) {	
+			
 			//QName	
 			readIdSummary.computeIfAbsent( readGroup, (k) -> new ReadIDSummary() ).parseReadId( record.getReadName() );
  			
