@@ -20,9 +20,9 @@ import org.qcmg.ma.MADefLine;
 import org.qcmg.ma.MAMapping;
 import org.qcmg.ma.MARecord;
 import org.qcmg.qprofiler.report.SummaryReport;
-import org.qcmg.qprofiler.summarise.SummaryByCycle;
-import org.qcmg.qprofiler.util.SummaryByCycleUtils;
 import org.qcmg.qprofiler.util.SummaryReportUtils;
+import org.qcmg.qvisualise.util.SummaryByCycle;
+import org.qcmg.qvisualise.util.SummaryByCycleUtils;
 import org.w3c.dom.Element;
 
 public class MaSummaryReport extends SummaryReport {

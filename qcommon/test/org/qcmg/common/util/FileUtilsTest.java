@@ -1,5 +1,7 @@
 package org.qcmg.common.util;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.File;
@@ -19,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.GZIPOutputStream;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -406,5 +409,69 @@ public class FileUtilsTest {
 		Assert.assertEquals(true, FileUtils.areInputFilesValid(newFile));
 		Assert.assertEquals(false, FileUtils.areInputFilesValid(newFile, null));
 		Assert.assertEquals(false, FileUtils.areInputFilesValid(null, newFile));
+	}
+	
+	
+	@Test
+	public void testBackupFileByRenaming() throws Exception{
+		String backupFileName = TEST_FILENAME + ".1";
+		String backupFileName2 = TEST_FILENAME + ".2";
+		File backupFile = new File(backupFileName);
+		File backupFile2 = new File(backupFileName2);
+		File currentFile = new File(TEST_FILENAME);
+		
+		try {
+			FileUtils.backupFileByRenaming(TEST_FILENAME);
+		} catch (IOException e) {
+			fail("Should not have thrown Exception");
+			e.printStackTrace();
+		}
+		// current file should be create-able, but no backup should have been made
+		Assert.assertTrue(currentFile.createNewFile());
+		Assert.assertFalse(backupFile.exists());
+		
+		// try again
+		FileUtils.backupFileByRenaming(TEST_FILENAME);
+		// should have created a backup file by renaming the orig file
+		Assert.assertTrue(backupFile.exists());
+		Assert.assertFalse(currentFile.exists());
+		
+		// one last time
+		currentFile.createNewFile();
+		FileUtils.backupFileByRenaming(TEST_FILENAME);
+		// should have created a backup file by renaming the orig file
+		assertTrue(backupFile.exists());
+		assertTrue(backupFile2.exists());
+		assertFalse(currentFile.exists());
+	}
+	
+	@Test
+	public void testBackupFileByRenamingInvalidPath(){
+		String madeUpPath = "/this/is/a/made/up/path/" + TEST_FILENAME;
+		
+		try{ 			
+			FileUtils.backupFileByRenaming(madeUpPath);			
+			fail("expected exception didn't appear!");
+		}catch(Exception e) {
+			assertTrue(e.getMessage().contains( "No such file or directory"));
+		}
+	    
+	}
+	
+	private static final String TEST_FILENAME = "StaticMethodTest.test";
+	
+	@After
+	public void cleanup() {
+		File f = new File(TEST_FILENAME);
+		
+		if (f.exists())
+			f.delete();
+		
+		for (int i = 0 ; i < 100 ; i++) {
+			f = new File(TEST_FILENAME + "." + i);
+			if (f.exists()) {
+				f.delete();
+			}
+		}
 	}
 }

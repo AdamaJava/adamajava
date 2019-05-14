@@ -94,5 +94,15 @@ public class QCMGAtomicLongArrayTest {
 			assertEquals((noOfLoops / 20) *3, array.get(i));
 		}
 	}
+	
+	@Test
+	public void isEmptyTest() {
+		final QCMGAtomicLongArray array = new QCMGAtomicLongArray(10);
+		assertTrue(array.isEmpty());
+		
+		array.increment(5);
+		assertFalse(array.isEmpty());
+		
+	}
 
 }

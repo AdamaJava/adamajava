@@ -17,7 +17,8 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicLongArray;
 
 import org.qcmg.common.model.MAPQMiniMatrix;
-import org.qcmg.common.model.SummaryByCycle;
+import org.qcmg.qvisualise.util.SummaryByCycle;
+
 
 public class HTMLReportUtils {
 	

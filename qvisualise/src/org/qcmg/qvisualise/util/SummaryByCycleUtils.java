@@ -4,7 +4,7 @@
  *
  * This code is released under the terms outlined in the included LICENSE file.
  */
-package org.qcmg.qprofiler.util;
+package org.qcmg.qvisualise.util;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -16,8 +16,8 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.qcmg.common.util.BaseUtils;
 import org.qcmg.common.util.TabTokenizer;
-import org.qcmg.qprofiler.summarise.SummaryByCycle;
-import org.qcmg.qprofiler.summarise.SummaryByCycleNew2;
+//import org.qcmg.qprofiler.summarise.SummaryByCycle;
+//import org.qcmg.qprofiler.summarise.SummaryByCycleNew2;
 
 public class SummaryByCycleUtils {
 		

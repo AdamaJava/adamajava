@@ -130,6 +130,7 @@ public class ReadGroupSummary {
 				}			 			 				 
 			 }	 
 		}
+		
 		readLength.increment(record.getReadLength()+lHard);	
 			
 		//find mapped badly reads and return false	
@@ -157,9 +158,8 @@ public class ReadGroupSummary {
 		} else {
 			unpaired.incrementAndGet();
 		}
-		
-		hardClip.increment(lHard);
-		softClip.increment(lSoft);
+		if(lHard > 0) hardClip.increment(lHard);
+		if(lSoft > 0) softClip.increment(lSoft);
 		//record read length excluding the discard reads duplicate.get() + unmapped.get() + getnonCanonicalReadsCount();	
 		//due to it for trimmed base caculation as well
 		forTrimLength.increment(record.getReadLength()+lHard);	
@@ -197,7 +197,6 @@ public class ReadGroupSummary {
 				tLenOverall.increment(i, p.getTLENCounts().get(i));					 
 			}			
 		}
-
 		this.overlapStats = new SummaryReportUtils.TallyStats(overlapBase);
 		this.pairtLenStats = new SummaryReportUtils.TallyStats(tLenOverall );
 		this.softclipStats = new SummaryReportUtils.TallyStats( softClip);
@@ -205,13 +204,12 @@ public class ReadGroupSummary {
 		this.readlengthStats = new SummaryReportUtils.TallyStats( readLength );	
 		
 		int maxLenght = (int)readlengthStats.getMax();
-		QCMGAtomicLongArray trimedBase = new QCMGAtomicLongArray(maxLenght);	
-		for (int i = 1 ; i < forTrimLength.length() ; i++)	{			
+		QCMGAtomicLongArray trimedBase = new QCMGAtomicLongArray(maxLenght+1);	
+		for (int i = 0 ; i < forTrimLength.length() ; i++)	{			
 			if(forTrimLength.get(i) == 0 || maxLenght == i ) continue;
-				trimedBase.increment( maxLenght - i, forTrimLength.get(i));
+			trimedBase.increment( maxLenght - i, forTrimLength.get(i));
 		}
-		this.trimBaseStats = new SummaryReportUtils.TallyStats( trimedBase );		
-		
+		this.trimBaseStats = new SummaryReportUtils.TallyStats( trimedBase );			
 	}
 	@SuppressWarnings("unchecked")
 	public void readSummary2Xml(Element parent ) throws Exception { 	
@@ -228,16 +226,14 @@ public class ReadGroupSummary {
 		lostBaseStats( rgElement, NODE_SOFTCLIP, softclipStats );
 		lostBaseStats( rgElement, NODE_HARDCLIP, hardclipStats  );
 		lostBaseStats( rgElement, NODE_OVERLAP, overlapStats );
-		
-		
+				
 		//create node for overall	
 		rgElement = XmlUtils.createMetricsNode(parent,"reads", new Pair(READ_COUNT, inputReadCounts.get()));		
 		Element ele = XmlUtils.createGroupNode(rgElement, XmlUtils.discardReads );
 		XmlUtils.outputValueNode(ele, "supplementaryAlignmentCount", supplementary.get());
 		XmlUtils.outputValueNode(ele, "secondaryAlignmentCount", secondary.get());
 		XmlUtils.outputValueNode(ele, "failedVendorQualityCount",failedVendorQuality.get()  );
-		
-		
+				
 		//readLength and tLen
 		for(String name : new String[] {NODE_READ_LENGTH, NODE_PAIR_TLEN}) {
 			ele = XmlUtils.createGroupNode(rgElement, name );

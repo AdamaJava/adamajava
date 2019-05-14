@@ -47,5 +47,15 @@ public class ProfileTypeTest {
 		
 		
 	}
-
+	@Test
+	public void vcfs() throws Exception {
+		assertEquals( ProfileType.VCF, ProfileType.getType2("vcf.gz"));
+		assertEquals( ProfileType.VCF, ProfileType.getType2("ok.vcf"));
+		assertEquals( ProfileType.VCF, ProfileType.getType2("blah.vcf.gz"));
+		 
+		try {
+			ProfileType.getType1(("blah.faq.gz"));
+			Assert.fail("should have vcf");
+		} catch (IllegalArgumentException e) {}
+	}
 }

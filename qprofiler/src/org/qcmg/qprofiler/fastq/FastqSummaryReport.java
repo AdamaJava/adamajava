@@ -25,9 +25,9 @@ import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.qprofiler.report.SummaryReport;
 import org.qcmg.qprofiler.summarise.KmersSummary;
-import org.qcmg.qprofiler.summarise.SummaryByCycleNew2;
-import org.qcmg.qprofiler.util.SummaryByCycleUtils;
 import org.qcmg.qprofiler.util.SummaryReportUtils;
+import org.qcmg.qvisualise.util.SummaryByCycleNew2;
+import org.qcmg.qvisualise.util.SummaryByCycleUtils;
 import org.w3c.dom.Element;
 
 public class FastqSummaryReport extends SummaryReport {

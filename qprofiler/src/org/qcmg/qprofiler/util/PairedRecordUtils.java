@@ -1,4 +1,4 @@
-package org.qcmg.picard.util;
+package org.qcmg.qprofiler.util;
 
 import htsjdk.samtools.CigarElement;
 import htsjdk.samtools.CigarOperator;
@@ -98,22 +98,26 @@ public class PairedRecordUtils {
 		//canonical read : readLength - softClip - TLEN 
 		if(record.getReadNegativeStrandFlag() == record.getMateNegativeStrandFlag()) {
 			return record.getReadLength() - lSoft - iSize;
+		}
+		//the reverse reads of outward pair has positive tlen, but no overlap
+		else if(record.getReadNegativeStrandFlag()){
+			return 0;
 		} else {
 			//non-canocial reads: min(both read_end) - max(both read_start) 
 			int mate_end = iSize + record.getAlignmentStart();
 			int read_end = record.getAlignmentStart() + record.getReadLength() - lSoft;
 			return Math.min( read_end, mate_end ) - Math.max(record.getAlignmentStart(), record.getMateAlignmentStart() );
-		} 	
+		}
     }
+    
+    static boolean isReadLeftOfMate(SAMRecord record ) {   return record.getAlignmentStart() < record.getMateAlignmentStart(); }
+    
+    static boolean isReadRightOfMate(SAMRecord record) {   return record.getAlignmentStart() > record.getMateAlignmentStart(); }
     
     private static boolean isReadF3(SAMRecord  record) {  return record.getFirstOfPairFlag();  }
 
     private static boolean isReadF5(SAMRecord  record) {   return record.getSecondOfPairFlag();  }	
-	
-    static boolean isReadLeftOfMate(SAMRecord record ) {   return record.getAlignmentStart() < record.getMateAlignmentStart(); }
-    
-    static boolean isReadRightOfMate(SAMRecord record) {   return record.getAlignmentStart() > record.getMateAlignmentStart(); }
-
+	   
     private static boolean isReadForward(SAMRecord record ) {   return ! record.getReadNegativeStrandFlag(); }   
 	
     private static boolean isMateForward( SAMRecord record ) {   return ! record.getMateNegativeStrandFlag();  }	
