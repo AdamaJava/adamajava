@@ -73,8 +73,8 @@
 	  <xs:complexType>
 			<xs:attribute type="xs:integer" name="start" use="required"/> 
 			<xs:attribute type="xs:integer" name="count" use="required"/>    	
-	     	<xs:attribute type="xs:integer" name="end" use="required"/>
 	  </xs:complexType>
+	  
 	</xs:element>
 
    <xs:complexType name="cycleType">
@@ -82,6 +82,7 @@
 		   <xs:element ref="tally"  maxOccurs="unbounded"/>	   
 	   </xs:sequence>   
 	   <xs:attribute type="xs:int" name="cycle" use="required"/> 
+	    <xs:attribute type="xs:int" name="count" use="required"/> 
    </xs:complexType>
  
 
@@ -101,7 +102,9 @@
 		</xs:choice>
 	 <xs:attribute type="xs:string" name="name" use="required"/> 
 	  <xs:attribute type="xs:integer" name="count" use="optional"/>
-	 <!--  xs:attribute type="xs:string" name="Type" use="optional"/  -->
+	  <xs:attribute type="xs:integer" name="binSize" use="optional"/>
+	  <xs:attribute type="xs:integer" name="tallyNumber" use="optional"/>
+	  <xs:assert test="2 > count(@binSize) + count(@tallyNumber) + count(@count)"/>
   </xs:complexType>
 
     <xs:complexType name="SequenceMetricsType">
@@ -116,7 +119,10 @@
 	     </xs:choice>
     
     <xs:attribute type="xs:integer" name="count" use="optional"/>
+    <xs:attribute type="xs:integer" name="readCount" use="optional"/>
+    <xs:attribute type="xs:integer" name="pairCount" use="optional"/>
     <xs:attribute type="xs:string" name="name" use="optional"/>
+    <xs:assert test="2 > count(@readCount) + count(@pairCount) + count(@count)"/>
    </xs:complexType>
 
   <xs:complexType name="SequenceMetricsGroup">
@@ -182,8 +188,7 @@
     </xs:sequence>
   </xs:complexType>   
 
-
-  <xs:complexType name="bamReportType">
+ 	<xs:complexType name="bamReportType">
     <xs:sequence>
       <xs:element name="bamHeader" type="headerType"> 
       	<!--the Category attribute under each bamHeader must unique and exists-->         
@@ -264,29 +269,27 @@
     <xs:attributeGroup ref="executor"/>
    </xs:complexType>  
 
-
-
 	<!-- main stream  -->
- <xs:element name="qProfiler">
-	<xs:complexType>
-	    <xs:choice maxOccurs="unbounded" minOccurs="0">
-	        <xs:element name="bamReport" type="bamReportType"/>
-	        <xs:element name="vcfReport" type="vcfReportType" />
-	        <xs:element name="fastqReport" type="fastqReportType" />
-		</xs:choice> 
-		<xs:attributeGroup ref="executor"/>
-		<xs:attribute type="xs:string" name="operatingSystem" use="optional"/>
-	    <xs:attribute type="xs:string" name="user" use="optional"/>
-	    <xs:attribute type="xs:string" name="version" use="optional"/>	 
-	    <xs:attribute type="xs:string" name="validationSchema" use="optional"/>	    	
-	</xs:complexType>
-	
-	<!--uuid attribute must be unique and exist  --> 	
-	<xs:key name="uuidKey">
-		<xs:selector xpath="*"/>
-		<xs:field xpath="@uuid"/>		
-	</xs:key>
- </xs:element>
+ 	<xs:element name="qProfiler">
+		<xs:complexType>
+		    <xs:choice maxOccurs="unbounded" minOccurs="0">
+		        <xs:element name="bamReport" type="bamReportType"/>
+		        <xs:element name="vcfReport" type="vcfReportType" />
+		        <xs:element name="fastqReport" type="fastqReportType" />
+			</xs:choice> 
+			<xs:attributeGroup ref="executor"/>
+			<xs:attribute type="xs:string" name="operatingSystem" use="optional"/>
+		    <xs:attribute type="xs:string" name="user" use="optional"/>
+		    <xs:attribute type="xs:string" name="version" use="optional"/>	 
+		    <xs:attribute type="xs:string" name="validationSchema" use="optional"/>	    	
+		</xs:complexType>
+		
+		<!--uuid attribute must be unique and exist  --> 	
+		<xs:key name="uuidKey">
+			<xs:selector xpath="*"/>
+			<xs:field xpath="@uuid"/>		
+		</xs:key>
+ 	</xs:element>
 
 </xs:schema>
 
