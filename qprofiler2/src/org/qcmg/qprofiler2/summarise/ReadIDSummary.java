@@ -15,9 +15,7 @@ import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Element;
 
 public class ReadIDSummary {
-//	public final static String empty = "empty";
-	public final static String OTHER = "others";
-	static final int MAX_POOL_SIZE = 500;
+static final int MAX_POOL_SIZE = 500;
 	static final int TALLY_SIZE = MAX_POOL_SIZE/5;
 	
 	//pattern predict
@@ -310,9 +308,9 @@ public class ReadIDSummary {
 		XmlUtils.outputTallyGroup( element,  "Flow Cell Id", flowCellIds , false );
 		XmlUtils.outputTallyGroup( element,  "Run Id", runIds , false );
 		XmlUtils.outputTallyGroup( element,  "Flow Cell Lane", flowCellLanes , false );
-		outputTallyGroup(element,  "Tile Number", tileNumbers);
-		outputTallyGroup( element,  "Pair infomation", pairs);
-		outputTallyGroup( element,  "Index", indexes );
+		XmlUtils.outputTallyGroupWithSize(element,  "Tile Number", tileNumbers, TALLY_SIZE);
+		XmlUtils.outputTallyGroupWithSize( element,  "Pair infomation", pairs, TALLY_SIZE);
+		XmlUtils.outputTallyGroupWithSize( element,  "Index", indexes , TALLY_SIZE);
 		//merge two pool together
 		pool_random.addAll(pool_uniq);
 		
@@ -325,13 +323,13 @@ public class ReadIDSummary {
 		}	
 	}
 	
-	private void outputTallyGroup(Element parent, String name, Map<String, AtomicLong> tallys) {
-		Element e1 = XmlUtils.outputTallyGroup( parent, name, tallys , false );
-		if(e1 != null ) {
-			String v1 = (tallys.size() < TALLY_SIZE )? tallys.size()+"" : TALLY_SIZE + "+";
-			e1.setAttribute("no", v1);
-		}
-	}
+//	private void outputTallyGroup(Element parent, String name, Map<String, AtomicLong> tallys) {
+//		Element e1 = XmlUtils.outputTallyGroup( parent, name, tallys , false );
+//		if(e1 != null ) {
+//			String v1 = (tallys.size() < TALLY_SIZE )? tallys.size()+"" : TALLY_SIZE + "+";
+//			e1.setAttribute(XmlUtils.StallyCount, v1);
+//		}
+//	}
 
 	/**
 	 *  
@@ -344,7 +342,7 @@ public class ReadIDSummary {
 		boolean isNew = false; 
 		String key1 = key;	 	
 		if(!map.containsKey(key1)) { 
-			if(map.size() >= TALLY_SIZE ) {key1 = OTHER;}
+			if(map.size() >= TALLY_SIZE ) {key1 = XmlUtils.OTHER;}
 			isNew = true; 
 		} 
 		

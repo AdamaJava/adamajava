@@ -20,6 +20,8 @@ import htsjdk.samtools.SAMReadGroupRecord;
 import htsjdk.samtools.SAMSequenceRecord;
 
 public class XmlUtils {
+	public final static String OTHER = "others";
+	
 	public static final String metrics = "Metrics";
 	public static final String readGroupsEle ="readGroups";
 	public static final String variableGroupEle = "variableGroup";
@@ -30,6 +32,7 @@ public class XmlUtils {
 	public static final String Scount = "count";
 	public static final String Spercent = "percent";
 	public static final String Stally = "tally";
+	public static final String StallyCount = "tallyCount";
 	public static final String Sstart = "start";
 	public static final String Send = "end";
 	public static final String Scycle = "cycle";
@@ -236,9 +239,25 @@ public class XmlUtils {
     		}  	    		
     	}
     	
-    	return cateEle;
-    	
+    	return cateEle;   	
     }
+	
+	public static <T> void outputTallyGroupWithSize(Element parent, String name, Map<T, AtomicLong> tallys, int sizeLimits) {
+		String comment = null; 
+		boolean hasPercent =  true;
+		String tallyCount = null; 
+		if( tallys.size() > sizeLimits) { 			 
+			comment = "here only list top "+ sizeLimits + " tally element" ;
+			hasPercent = false;
+			tallyCount =sizeLimits + "+";
+		}
+       	
+    	Element e1 = outputTallyGroup(parent, name, tallys, hasPercent, comment) ;		
+    	 
+		if(tallyCount != null) {			 
+			e1.setAttribute(XmlUtils.StallyCount, tallyCount);
+		}
+	}
     
     
     private static <T> void outputTallys( Element ele, String name, Map<T, AtomicLong> tallys, boolean hasPercent) {
@@ -309,6 +328,9 @@ public class XmlUtils {
     	
     	return str1 + str2.substring(0,1).toUpperCase() + str2.substring(1);
     }
+
+	//	public final static String empty = "empty";
+
         
         
 }

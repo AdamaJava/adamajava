@@ -9,6 +9,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import javax.xml.parsers.ParserConfigurationException;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -17,6 +20,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.util.XmlElementUtils;
 import org.qcmg.qprofiler2.bam.TagSummaryReport2;
+import org.qcmg.qprofiler2.summarise.ReadGroupSummary;
 import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Element;
 import htsjdk.samtools.SAMRecord;
@@ -78,7 +82,7 @@ public class TagSummaryReportTest {
 		 		
 		assertEquals( 2, XmlElementUtils.getChildElementByTagName( root, XmlUtils.metricsEle ).size()  );				
 		
-		//<sequenceMetrics name="tags:MD:Z">
+		//<sequenceMetrics name="tags:MDM:Z">
 		Element metricE = getChildNameIs( root, XmlUtils.metricsEle, "tags:MD:Z" ).get(0);
 		assertEquals( metricE.getChildNodes().getLength() , 3 );
 		
@@ -175,5 +179,45 @@ public class TagSummaryReportTest {
 		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize(INPUT_FILE); 
 		sr.toXml(root);	 
 	}	
+	
+	@Test
+	public void addtionalTagTest() throws ParserConfigurationException {
+		final  SAMTagUtil STU = SAMTagUtil.getSingleton();
+		TagSummaryReport2 report = new TagSummaryReport2();
+		SAMRecord record = new SAMRecord(null);
+		record.setReadName("TESTDATA");
+		record.setAttribute(STU.makeStringTag(STU.NM), new Integer(Integer.MAX_VALUE));
+		report.parseTAGs(record);
+		
+		for(int i = 0; i < 200; i++) {	
+			for(int j = 0; j < 2; j ++) {
+				record.setAttribute(STU.makeStringTag(STU.NM), new Integer(i+j));
+				report.parseTAGs(record);
+			}			
+			record.setAttribute(STU.makeStringTag(STU.NM), i + "");
+			report.parseTAGs(record);			
+		}		
+		
+		Element root = XmlElementUtils.createRootElement( XmlUtils.tag, null );
+		report.toXml( root );	
+		
+		Element ele = getChildNameIs( getChildNameIs( root, XmlUtils.metricsEle, "tags:NM:Z" ).get(0), XmlUtils.variableGroupEle, "NM" ).get(0);
+		assertEquals( ele.getAttribute(XmlUtils.StallyCount) , TagSummaryReport2.ADDI_TAG_MAP_LIMIT+"+" ); 
+		assertEquals( ele.getAttribute(XmlUtils.Scount) , "200" );		
+		assertEquals( XmlElementUtils.getChildElementByTagName(ele, XmlUtils.Stally).size(), 101);
+		long findNo = XmlElementUtils.getChildElementByTagName(ele, XmlUtils.Stally).stream()
+			.filter(e -> e.getAttribute( XmlUtils.Svalue ).equals(XmlUtils.OTHER ) && e.getAttribute( XmlUtils.Scount ).equals("100" )).count() ;
+		assertEquals(findNo, 1);
+		
+		
+		ele = getChildNameIs( getChildNameIs( root, XmlUtils.metricsEle, "tags:NM:i" ).get(0), XmlUtils.variableGroupEle, "NM" ).get(0);
+		assertEquals( ele.getAttribute(XmlUtils.StallyCount) , TagSummaryReport2.ADDI_TAG_MAP_LIMIT+"+" ); 
+		assertEquals( ele.getAttribute(XmlUtils.Scount) , "401" );
+		assertEquals( XmlElementUtils.getChildElementByTagName(ele, XmlUtils.Stally).size(), 101);
+		findNo = XmlElementUtils.getChildElementByTagName(ele, XmlUtils.Stally).stream()
+				.filter(e -> e.getAttribute( XmlUtils.Svalue ).equals(XmlUtils.OTHER ) && e.getAttribute( XmlUtils.Scount ).equals("203" )).count() ;
+			assertEquals(findNo, 1);
+		
+	}
 	
 }
