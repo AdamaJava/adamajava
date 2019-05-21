@@ -60,7 +60,7 @@ static final int MAX_POOL_SIZE = 500;
 
 	/**
 	 * recognize known pattern, re-arrange split string
-	 * @param parts: split string of read name
+	 * @param parts split string of read name
 	 * @return RNPattern for that read name
 	 */
 	public   RNPattern getPattern(String[] parts) {	

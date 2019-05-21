@@ -133,11 +133,11 @@ public class CycleSummary<T> {
 	
 	/**
 	 * Increments the count of a particular value, for a particular cycle.
-	 * <p>If the cycle does not exist, it will be added to the summary.
-	 * <p>If the value at the specified cycle does not exist, it will be added to the map for that cycle.
+	 * If the cycle does not exist, it will be added to the summary.
+	 * If the value at the specified cycle does not exist, it will be added to the map for that cycle.
 	 * 
 	 * @param cycle Integer the cycle that is being incremented
-	 * @param key <T> the value for the specified cycle whose count is to b incremented
+	 * @param key the value for the specified cycle whose count is to b incremented
 	 */
 
 	public void increment(final int cycle, final int value) {

@@ -151,9 +151,9 @@ public class KmersSummary {
 	}
 	/**
 	 * 
-	 * @param cycle: number of cycle
-	 * @param mers: kmers string
-	 * @param flagFirstOfPair: 0: unPaired, 1: firstOfPair, 2: secondOfPair
+	 * @param cycle number of cycle
+	 * @param mers kmers string
+	 * @param flagFirstOfPair 0: unPaired, 1: firstOfPair, 2: secondOfPair
 	 * @return coutns of specified mers string at this cycle
 	 */
 	long getCount(final int cycle, Object mers, int flagFirstOfPair){  	

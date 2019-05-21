@@ -101,7 +101,7 @@ public class PositionSummary {
 	
 	/**
 	 * Returns a map which holds the coverage of positions binned by millions
-	 * each element of Map is : <bin_order, reads number on that bin from specified read group> 
+	 * each element of Map is  <bin_order, reads number on that bin from specified read group> 
 	 */
 	
 	public Map<Integer,  AtomicLong> getCoverageByRg( String rg) {

@@ -17,7 +17,7 @@ public class PairSummary {
 
 	/**
 	 *  
-	 * @param record: a samRrecord
+	 * @param record a samRrecord
 	 * @return 0 if record with negative tLen value or secondOfPair with zero tLen value ; otherwise return the overlapped base counts
 	 */
     public static int getOverlapBase(SAMRecord  record) {

@@ -151,8 +151,8 @@ public class XmlUtils {
 	/**
 	 * <sequenceMetric count="100"  rgid="id">... </category>
 	 * @param parent
-	 * @param name: category name
-	 * @param id: readgroup id. set to null if not exists
+	 * @param name category name
+	 * @param id readgroup id. set to null if not exists
 	 * @return
 	 */       
     public static Element createMetricsNode(Element parent,  String name, Pair<?, ?> totalCounts ) {	
@@ -167,8 +167,8 @@ public class XmlUtils {
 	/**
 	 * <variableGroup name="name" >... </category>
 	 * @param parent
-	 * @param name: category name
-	 * @param id: readgroup id. set to null if not exists
+	 * @param name category name
+	 * @param id readgroup id. set to null if not exists
 	 * @return
 	 */
     public static Element createGroupNode(Element parent, String name) {
@@ -185,8 +185,8 @@ public class XmlUtils {
 	/**
 	 * <variableGroup name="name" >... </category>
 	 * @param parent
-	 * @param name: category name
-	 * @param id: readgroup id. set to null if not exists
+	 * @param name category name
+	 * @param id readgroup id. set to null if not exists
 	 * @return
 	 */
     public static Element createCycleNode(Element parent, String name) {
@@ -322,8 +322,8 @@ public class XmlUtils {
     
 	/**
 	 *  
-	 * @param map: Map<String, AtomicLong>
-	 * @param key: key string of map
+	 * @param map Map<String, AtomicLong>
+	 * @param key key string of map
 	 * @return true if it is a new key added
 	 */
 	public static boolean updateMapWithLimit(Map<String, AtomicLong> map , String key, int limitSize) {
