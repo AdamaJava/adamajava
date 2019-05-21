@@ -275,6 +275,7 @@ public class QProfiler2 {
 				}
 			}
 			
+			cmdLineIndexFiles = options.getIndexFileNames();
 			validation = options.getValidation();
 			cmdLineFormats = options.getFormats(); // vcf mode 			
 			

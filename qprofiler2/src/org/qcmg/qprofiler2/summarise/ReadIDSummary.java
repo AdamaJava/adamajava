@@ -322,33 +322,4 @@ static final int MAX_POOL_SIZE = 500;
 			XmlUtils.outputValueNode(element, pool_random.get(pos), 1);
 		}	
 	}
-	
-//	private void outputTallyGroup(Element parent, String name, Map<String, AtomicLong> tallys) {
-//		Element e1 = XmlUtils.outputTallyGroup( parent, name, tallys , false );
-//		if(e1 != null ) {
-//			String v1 = (tallys.size() < TALLY_SIZE )? tallys.size()+"" : TALLY_SIZE + "+";
-//			e1.setAttribute(XmlUtils.StallyCount, v1);
-//		}
-//	}
-
-	/**
-	 *  
-	 * @param <T>
-	 * @param map
-	 * @param key
-	 * @return true if it is a new key added
-	 */
-//	private  boolean updateMap(ConcurrentMap<String, AtomicLong> map , String key) {
-//		boolean isNew = false; 
-//		String key1 = key;	 	
-//		if(!map.containsKey(key1)) { 
-//			if(map.size() >= TALLY_SIZE ) {key1 = XmlUtils.OTHER;}
-//			isNew = true; 
-//		} 
-//		
-//		map.computeIfAbsent(key1, k -> new AtomicLong()).incrementAndGet();
-//		 
-//		return isNew; 
-//	}	
-	
 }
