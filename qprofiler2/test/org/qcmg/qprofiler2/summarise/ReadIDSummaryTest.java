@@ -121,11 +121,9 @@ public class ReadIDSummaryTest {
 		assertTrue( idSummary.tileNumbers.get("C017R084").get() == 2999000 );
 		//since we ignore tile for uniq check
 		assertTrue( idSummary.pool_uniq.size() == 4 );
-		assertTrue( idSummary.pool_random.size() <= ReadIDSummary.MAX_POOL_SIZE  );	
-		
-	
-				
+		assertTrue( idSummary.pool_random.size() <= ReadIDSummary.MAX_POOL_SIZE  );						
 	}
+	
 	@Test
 	public void bigTileNumberTest() {
 		ReadIDSummary idSummary = new ReadIDSummary();

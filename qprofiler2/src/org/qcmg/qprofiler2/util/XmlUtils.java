@@ -318,19 +318,34 @@ public class XmlUtils {
     	return ele;
     }
     
+	/**
+	 *  
+	 * @param map: Map<String, AtomicLong>
+	 * @param key: key string of map
+	 * @return true if it is a new key added
+	 */
+	public static boolean updateMapWithLimit(Map<String, AtomicLong> map , String key, int limitSize) {
+		boolean isNew = false; 
+		String key1 = key;	 	
+		if(!map.containsKey(key1)) { 
+			if(map.size() >= limitSize ) {key1 = XmlUtils.OTHER;}
+			else{isNew = true; }
+		} 
+		
+		map.computeIfAbsent(key1, k -> new AtomicLong()).incrementAndGet();
+		 
+		return isNew; 
+	}	     
+   
+	
     /**
      * join str1 and str2 which fist letter will be capitalized. 
      * @param str1
      * @param str2 will covert the first letter to upper case
      * @return a joined string
      */
-    public static String join(String str1, String str2) {
-    	
-    	return str1 + str2.substring(0,1).toUpperCase() + str2.substring(1);
-    }
-
-	//	public final static String empty = "empty";
-
-        
-        
+//    public static String join(String str1, String str2) {
+//    	
+//    	return str1 + str2.substring(0,1).toUpperCase() + str2.substring(1);
+//    }
 }

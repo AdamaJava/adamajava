@@ -60,13 +60,7 @@ public class TagSummaryReport2 {
 
 			String key = tag.tag + type;
 			Map<String, AtomicLong> map = additionalTags.computeIfAbsent(key, k-> new ConcurrentSkipListMap<String, AtomicLong>());
-			key = tag.value+"";
-			if (!map.containsKey(key) &&  map.size() >= ADDI_TAG_MAP_LIMIT ) {
-				//can't insert a new key once map size reached limits
-				key= XmlUtils.OTHER;
-			}
-			map.computeIfAbsent(key, k-> new AtomicLong()).incrementAndGet();	
-				 
+			XmlUtils.updateMapWithLimit(map, tag.value+"", ADDI_TAG_MAP_LIMIT);				 
 		}
 						
 		//MD	 

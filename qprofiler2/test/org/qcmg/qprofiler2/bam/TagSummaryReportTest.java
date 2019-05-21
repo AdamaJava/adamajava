@@ -181,7 +181,7 @@ public class TagSummaryReportTest {
 	}	
 	
 	@Test
-	public void addtionalTagTest() throws ParserConfigurationException {
+	public void toXmlTest() throws ParserConfigurationException {
 		final  SAMTagUtil STU = SAMTagUtil.getSingleton();
 		TagSummaryReport2 report = new TagSummaryReport2();
 		SAMRecord record = new SAMRecord(null);
