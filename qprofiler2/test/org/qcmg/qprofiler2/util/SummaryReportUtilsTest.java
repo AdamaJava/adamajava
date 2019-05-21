@@ -4,13 +4,15 @@ import static org.junit.Assert.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
+
+import org.junit.Ignore;
 import org.junit.Test;
 import org.qcmg.common.model.QCMGAtomicLongArray;
 import org.qcmg.qprofiler2.util.SummaryReportUtils;
 
 public class SummaryReportUtilsTest {
 		
-	@Test
+	@Ignore
 	public void testCompareWithSAMUtilsAgain() {
 		String inputString = "!''*((((***+))%%%++)(%%%%).1***-+*''))**55CCF>>>>>>CCCCCCC65";
 		QCMGAtomicLongArray qualCount = new QCMGAtomicLongArray(1000);
@@ -113,7 +115,7 @@ public class SummaryReportUtilsTest {
 	 * @param position
 	 * @param length
 	 */
-	public static void addPositionAndLengthToMap(ConcurrentMap<Integer, AtomicLong> map, int position, int length) {
+	private static void addPositionAndLengthToMap(ConcurrentMap<Integer, AtomicLong> map, int position, int length) {
 		for (int i = position ; i < position + length ; i++) 
 			//SummaryByCycleUtils.incrementCount(map, Integer.valueOf(i));			
 			map.computeIfAbsent( Integer.valueOf(i), k -> new AtomicLong(0)).incrementAndGet();		

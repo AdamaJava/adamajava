@@ -9,6 +9,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import javax.xml.parsers.ParserConfigurationException;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -17,6 +20,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.util.XmlElementUtils;
 import org.qcmg.qprofiler2.bam.TagSummaryReport2;
+import org.qcmg.qprofiler2.summarise.ReadGroupSummary;
 import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Element;
 import htsjdk.samtools.SAMRecord;
@@ -71,19 +75,19 @@ public class TagSummaryReportTest {
 		
 	private List<Element> getChildNameIs(Element parent, String eleName, String nameValue){		
 		return XmlElementUtils.getChildElementByTagName(parent,eleName).stream().
-			filter( e -> e.getAttribute( XmlUtils.Sname ).equals( nameValue ) ).collect(Collectors.toList());		
+			filter( e -> e.getAttribute( XmlUtils.sName ).equals( nameValue ) ).collect(Collectors.toList());		
 	}
 	
 	private void checkXml(Element root){
 		 		
 		assertEquals( 2, XmlElementUtils.getChildElementByTagName( root, XmlUtils.metricsEle ).size()  );				
 		
-		//<sequenceMetrics name="tags:MD:Z">
+		//<sequenceMetrics name="tags:MDM:Z">
 		Element metricE = getChildNameIs( root, XmlUtils.metricsEle, "tags:MD:Z" ).get(0);
 		assertEquals( metricE.getChildNodes().getLength() , 3 );
 		
 		//check mutation on each base cycle
-		Element ele = getChildNameIs( metricE, XmlUtils.variableGroupEle, XmlUtils.FirstOfPair ).get(0);
+		Element ele = getChildNameIs( metricE, XmlUtils.variableGroupEle, XmlUtils.firstOfPair ).get(0);
 		//three of firstOfPair have four mutation base
 		String[] values = new String[] { "A", "T", "C", "C" };
 		String[] counts =  new String[] { "1", "10", "11", "37" };
@@ -94,29 +98,29 @@ public class TagSummaryReportTest {
 				filter( e -> e.getAttribute( XmlUtils.Scycle ).equals( String.valueOf(count))  ).findFirst().get();		
 			assertEquals( vE.getChildNodes().getLength() , 1 );
 			vE = (Element) vE.getChildNodes().item(0);
-			assertEquals( vE.getAttribute(XmlUtils.Svalue), values[i]);
-			assertEquals( vE.getAttribute(XmlUtils.Scount), "1");
+			assertEquals( vE.getAttribute(XmlUtils.sValue), values[i]);
+			assertEquals( vE.getAttribute(XmlUtils.sCount), "1");
 		}
 		
 		//check mutaiton type on forward reads
-		ele = getChildNameIs(metricE, XmlUtils.variableGroupEle, XmlUtils.FirstOfPair+"ForwardStrand" ).get(0);
-		assertEquals( 1, XmlElementUtils.getOffspringElementByTagName(ele, XmlUtils.Stally).stream()
-			.filter(e -> e.getAttribute(XmlUtils.Svalue).equals("A>C") && e.getAttribute(XmlUtils.Scount).equals("2") ).count() );
-		assertEquals( 1, XmlElementUtils.getOffspringElementByTagName(ele, XmlUtils.Stally).stream()
-			.filter(e -> e.getAttribute(XmlUtils.Svalue).equals("T>A") && e.getAttribute(XmlUtils.Scount).equals("1") ).count() );		
+		ele = getChildNameIs(metricE, XmlUtils.variableGroupEle, XmlUtils.firstOfPair+"ForwardStrand" ).get(0);
+		assertEquals( 1, XmlElementUtils.getOffspringElementByTagName(ele, XmlUtils.sTally).stream()
+			.filter(e -> e.getAttribute(XmlUtils.sValue).equals("A>C") && e.getAttribute(XmlUtils.sCount).equals("2") ).count() );
+		assertEquals( 1, XmlElementUtils.getOffspringElementByTagName(ele, XmlUtils.sTally).stream()
+			.filter(e -> e.getAttribute(XmlUtils.sValue).equals("T>A") && e.getAttribute(XmlUtils.sCount).equals("1") ).count() );		
 		
 		//check mutaiton type on reverse reads
-		ele = getChildNameIs( metricE, XmlUtils.variableGroupEle, XmlUtils.FirstOfPair+"ReverseStrand" ).get(0);
-		assertEquals( 1, XmlElementUtils.getOffspringElementByTagName(ele, XmlUtils.Stally).size());
-		assertEquals( 1, XmlElementUtils.getOffspringElementByTagName(ele, XmlUtils.Stally).stream()
-				.filter(e -> e.getAttribute(XmlUtils.Svalue).equals("A>T") && e.getAttribute(XmlUtils.Scount).equals("1") ).count() );
+		ele = getChildNameIs( metricE, XmlUtils.variableGroupEle, XmlUtils.firstOfPair+"ReverseStrand" ).get(0);
+		assertEquals( 1, XmlElementUtils.getOffspringElementByTagName(ele, XmlUtils.sTally).size());
+		assertEquals( 1, XmlElementUtils.getOffspringElementByTagName(ele, XmlUtils.sTally).stream()
+				.filter(e -> e.getAttribute(XmlUtils.sValue).equals("A>T") && e.getAttribute(XmlUtils.sCount).equals("1") ).count() );
 		
 		//check tag RG
 		ele = getChildNameIs( root, XmlUtils.metricsEle, "tags:RG:Z" ).get(0);
-		assertEquals( 1, XmlElementUtils.getOffspringElementByTagName(ele, XmlUtils.Stally).stream()
-				.filter(e -> e.getAttribute(XmlUtils.Svalue).equals("first") && e.getAttribute(XmlUtils.Scount).equals("3") ).count() );
-		assertEquals( 1, XmlElementUtils.getOffspringElementByTagName(ele, XmlUtils.Stally).stream()
-				.filter(e -> e.getAttribute(XmlUtils.Svalue).equals("last") && e.getAttribute(XmlUtils.Scount).equals("1") ).count() );
+		assertEquals( 1, XmlElementUtils.getOffspringElementByTagName(ele, XmlUtils.sTally).stream()
+				.filter(e -> e.getAttribute(XmlUtils.sValue).equals("first") && e.getAttribute(XmlUtils.sCount).equals("3") ).count() );
+		assertEquals( 1, XmlElementUtils.getOffspringElementByTagName(ele, XmlUtils.sTally).stream()
+				.filter(e -> e.getAttribute(XmlUtils.sValue).equals("last") && e.getAttribute(XmlUtils.sCount).equals("1") ).count() );
 	}
 		
 	
@@ -175,5 +179,45 @@ public class TagSummaryReportTest {
 		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize(INPUT_FILE); 
 		sr.toXml(root);	 
 	}	
+	
+	@Test
+	public void toXmlTest() throws ParserConfigurationException {
+		final  SAMTagUtil STU = SAMTagUtil.getSingleton();
+		TagSummaryReport2 report = new TagSummaryReport2();
+		SAMRecord record = new SAMRecord(null);
+		record.setReadName("TESTDATA");
+		record.setAttribute(STU.makeStringTag(STU.NM), new Integer(Integer.MAX_VALUE));
+		report.parseTAGs(record);
+		
+		for(int i = 0; i < 200; i++) {	
+			for(int j = 0; j < 2; j ++) {
+				record.setAttribute(STU.makeStringTag(STU.NM), new Integer(i+j));
+				report.parseTAGs(record);
+			}			
+			record.setAttribute(STU.makeStringTag(STU.NM), i + "");
+			report.parseTAGs(record);			
+		}		
+		
+		Element root = XmlElementUtils.createRootElement( XmlUtils.tag, null );
+		report.toXml( root );	
+		
+		Element ele = getChildNameIs( getChildNameIs( root, XmlUtils.metricsEle, "tags:NM:Z" ).get(0), XmlUtils.variableGroupEle, "NM" ).get(0);
+		assertEquals( ele.getAttribute(XmlUtils.sTallyCount) , TagSummaryReport2.ADDI_TAG_MAP_LIMIT+"+" ); 
+		assertEquals( ele.getAttribute(XmlUtils.sCount) , "200" );		
+		assertEquals( XmlElementUtils.getChildElementByTagName(ele, XmlUtils.sTally).size(), 101);
+		long findNo = XmlElementUtils.getChildElementByTagName(ele, XmlUtils.sTally).stream()
+			.filter(e -> e.getAttribute( XmlUtils.sValue ).equals(XmlUtils.OTHER ) && e.getAttribute( XmlUtils.sCount ).equals("100" )).count() ;
+		assertEquals(findNo, 1);
+		
+		
+		ele = getChildNameIs( getChildNameIs( root, XmlUtils.metricsEle, "tags:NM:i" ).get(0), XmlUtils.variableGroupEle, "NM" ).get(0);
+		assertEquals( ele.getAttribute(XmlUtils.sTallyCount) , TagSummaryReport2.ADDI_TAG_MAP_LIMIT+"+" ); 
+		assertEquals( ele.getAttribute(XmlUtils.sCount) , "401" );
+		assertEquals( XmlElementUtils.getChildElementByTagName(ele, XmlUtils.sTally).size(), 101);
+		findNo = XmlElementUtils.getChildElementByTagName(ele, XmlUtils.sTally).stream()
+				.filter(e -> e.getAttribute( XmlUtils.sValue ).equals(XmlUtils.OTHER ) && e.getAttribute( XmlUtils.sCount ).equals("203" )).count() ;
+			assertEquals(findNo, 1);
+		
+	}
 	
 }

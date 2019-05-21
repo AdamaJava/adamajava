@@ -54,8 +54,6 @@ public class CohortSummarizer implements Summarizer {
 				for(String str : report.outputCounts())
 					writer.write(( order ++) + "\t" + str + "\n");	
 				//summry to log file
-				
-				//System.out.println(report.sampleId);
 				for(int i = 0; i < sumCounts.length; i++){
 					long[] reportCounts = report.getCountSum();					
 					sumCounts[i] += reportCounts[i];

@@ -29,7 +29,7 @@ public class CohortSummaryReport extends SummaryReport {
 	
 	CohortSummaryReport(File fxml, Element sampleNode) throws IOException{
 		this.file = fxml.getCanonicalPath();
-		this.sampleId = sampleNode.getAttribute(XmlUtils.Sname);
+		this.sampleId = sampleNode.getAttribute(XmlUtils.sName);
 		
 		for( Element ele : XmlElementUtils.getChildElementByTagName( sampleNode, SampleSummary.report ) ) {
 			Category cat = new Category( ele.getAttribute(SampleSummary.values), ele ); 
@@ -78,33 +78,33 @@ public class CohortSummaryReport extends SummaryReport {
 			//for(Element ele :QprofilerXmlUtils.getOffspringElementByTagName(report, SampleSummary.variantType)){
 			for(Element ele :XmlElementUtils.getOffspringElementByTagName(report, XmlUtils.metricsEle)){
 				//record counts and dbsnp for all type variants
-				String type = ele.getAttribute(XmlUtils.Sname);	
+				String type = ele.getAttribute(XmlUtils.sName);	
 				int count = Integer.parseInt(ele.getAttribute("count"));
 				variantsCounts.put(type, count );
 				
-				Element e1 = XmlElementUtils.getChildElementByTagName(ele, XmlUtils.Svalue).stream().filter(e -> e.getAttribute(XmlUtils.Sname).equals(SampleSummary.dbSNP)).findFirst().get();				
+				Element e1 = XmlElementUtils.getChildElementByTagName(ele, XmlUtils.sValue).stream().filter(e -> e.getAttribute(XmlUtils.sName).equals(SampleSummary.dbSNP)).findFirst().get();				
 				int db = Integer.parseInt( e1.getTextContent() );
 				dbSnpCounts.put(type, db);
 				
 				if(type.equals(SVTYPE.SNP.toVariantType())){
-					e1 = XmlElementUtils.getChildElementByTagName(ele, XmlUtils.Svalue).stream().filter(e -> e.getAttribute(XmlUtils.Sname).equals(SampleSummary.tiTvRatio)).findFirst().get();				
+					e1 = XmlElementUtils.getChildElementByTagName(ele, XmlUtils.sValue).stream().filter(e -> e.getAttribute(XmlUtils.sName).equals(SampleSummary.tiTvRatio)).findFirst().get();				
 					titv = e1.getTextContent();	
 					
 					//ti
-					Optional<Element> streams = XmlElementUtils.getChildElementByTagName(ele, XmlUtils.variableGroupEle).stream().filter(e -> e.getAttribute(XmlUtils.Sname).equals(SampleSummary.transitions)).findFirst();				
+					Optional<Element> streams = XmlElementUtils.getChildElementByTagName(ele, XmlUtils.variableGroupEle).stream().filter(e -> e.getAttribute(XmlUtils.sName).equals(SampleSummary.transitions)).findFirst();				
 					if( streams.isPresent()   ) {
 						List<Integer> sums = new ArrayList<>();						
-						XmlElementUtils.getChildElementByTagName(streams.get(), XmlUtils.Stally).stream()
-							.forEach( e ->   sums.add(  Integer.parseInt(e.getAttribute(XmlUtils.Scount)) ) );
+						XmlElementUtils.getChildElementByTagName(streams.get(), XmlUtils.sTally).stream()
+							.forEach( e ->   sums.add(  Integer.parseInt(e.getAttribute(XmlUtils.sCount)) ) );
 						ti = sums.stream().mapToInt(i -> i.intValue()).sum();
 					} 
 					
 					//tv
-					streams = XmlElementUtils.getChildElementByTagName(ele, XmlUtils.variableGroupEle).stream().filter(e -> e.getAttribute(XmlUtils.Sname).equals(SampleSummary.transversions)).findFirst() ;				
+					streams = XmlElementUtils.getChildElementByTagName(ele, XmlUtils.variableGroupEle).stream().filter(e -> e.getAttribute(XmlUtils.sName).equals(SampleSummary.transversions)).findFirst() ;				
 					if( streams.isPresent() ) {
 						List<Integer> sums = new ArrayList<>();
-						XmlElementUtils.getChildElementByTagName(streams.get(), XmlUtils.Stally).stream()
-							.forEach( e ->   sums.add(  Integer.parseInt(e.getAttribute(XmlUtils.Scount)) ) );
+						XmlElementUtils.getChildElementByTagName(streams.get(), XmlUtils.sTally).stream()
+							.forEach( e ->   sums.add(  Integer.parseInt(e.getAttribute(XmlUtils.sCount)) ) );
 						tv = sums.stream().mapToInt(i -> i.intValue()).sum();
 					}
 					

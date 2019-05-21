@@ -5,15 +5,12 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListMap;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.QCMGAtomicLongArray;
 import org.qcmg.common.util.Constants;
-import org.qcmg.common.util.Pair;
 import org.qcmg.qprofiler2.summarise.CycleSummary;
-import org.qcmg.qprofiler2.summarise.ReadGroupSummary;
 import org.qcmg.qprofiler2.util.CycleSummaryUtils;
 import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Element;
@@ -25,7 +22,8 @@ import htsjdk.samtools.SAMTagUtil;
 //for sam record tag information
 public class TagSummaryReport2 {
 
-	public final static int additionTagMapLimit = 200;
+//	public final static int additionTagMapLimit = 200;
+	public final static int ADDI_TAG_MAP_LIMIT = 100;
 	public final static int errReadLimit  = 10;	
 	public final static String seperator = Constants.COLON_STRING;	
 
@@ -39,12 +37,11 @@ public class TagSummaryReport2 {
 	private final QCMGAtomicLongArray[] mdRefAltLengthsReverse = new QCMGAtomicLongArray[]{new QCMGAtomicLongArray(32), new QCMGAtomicLongArray(32), new QCMGAtomicLongArray(32)};	
     final QCMGAtomicLongArray[] allReadsLineLengths = new QCMGAtomicLongArray[]{new QCMGAtomicLongArray(1024), new QCMGAtomicLongArray(1024), new QCMGAtomicLongArray(1024)};
 
-	private final ConcurrentMap<String, ConcurrentSkipListMap<String, AtomicLong>> additionalTags = new ConcurrentSkipListMap<String, ConcurrentSkipListMap<String, AtomicLong>>();
-	private final ConcurrentMap<String, QCMGAtomicLongArray> additionalIntegerTags = new ConcurrentSkipListMap<String, QCMGAtomicLongArray>();
-	private final ConcurrentMap<String, ConcurrentSkipListMap<Character, AtomicLong>> additionalCharacterTags = new ConcurrentSkipListMap<String, ConcurrentSkipListMap<Character, AtomicLong>>();
+	private final ConcurrentMap<String, ConcurrentSkipListMap<String, AtomicLong>> additionalTags = new ConcurrentSkipListMap<>();
+	private final ConcurrentMap<String, ConcurrentSkipListMap<Character, AtomicLong>> additionalCharacterTags = new ConcurrentSkipListMap<>();
 	protected QLogger logger = QLoggerFactory.getLogger(getClass());	
-	private long errMDReadNo = 0 ;
-
+	private long errMDReadNo = 0 ;	
+	
 	public void parseTAGs(final SAMRecord record )  {
 				
 		for( SAMTagAndValue tag : record.getAttributes()) {
@@ -59,15 +56,8 @@ public class TagSummaryReport2 {
 			else if (tag.value instanceof Character) type = ":A";
 
 			String key = tag.tag + type;
-			if(type.equals(":i")) {
-				additionalIntegerTags.computeIfAbsent(key, k-> new QCMGAtomicLongArray(100)).increment(record.getIntegerAttribute(tag.tag));					
-			}else {
-				Map<String, AtomicLong> map = additionalTags.computeIfAbsent(key, k-> new ConcurrentSkipListMap<String, AtomicLong>());
-				if(map.size() < additionTagMapLimit)
-					map.computeIfAbsent(tag.value+"", k-> new AtomicLong()).incrementAndGet();
-				else
-					map.computeIfAbsent("others", k-> new AtomicLong()).incrementAndGet();
-			} 			
+			Map<String, AtomicLong> map = additionalTags.computeIfAbsent(key, k-> new ConcurrentSkipListMap<String, AtomicLong>());
+			XmlUtils.updateMapWithLimit(map, tag.value+"", ADDI_TAG_MAP_LIMIT);				 
 		}
 						
 		//MD	 
@@ -112,30 +102,23 @@ public class TagSummaryReport2 {
 		}			
 		
 		// additional tags includes RG
-		for (Entry<String,  ConcurrentSkipListMap<String, AtomicLong>> entry : additionalTags.entrySet())	
+		for (Entry<String,  ConcurrentSkipListMap<String, AtomicLong>> entry : additionalTags.entrySet()) {			
 			outputTag(parent, entry.getKey(),  entry.getValue());
-		
-		// additional tagsInt
-		for (Entry<String,  QCMGAtomicLongArray> entry : additionalIntegerTags.entrySet())
-			outputTag(parent,  entry.getKey(),  entry.getValue().toMap());
+		}	
 		
 		// additional tagsChar
-		for (Entry<String,  ConcurrentSkipListMap<Character, AtomicLong>> entry : additionalCharacterTags.entrySet())
+		for (Entry<String,  ConcurrentSkipListMap<Character, AtomicLong>> entry : additionalCharacterTags.entrySet()) {
 			outputTag(parent,  entry.getKey(),  entry.getValue());		
+		}
 	}
 	
+	
 	private <T> void outputTag(Element ele, String tag,  Map<T, AtomicLong> tallys) {
-				
-		int size = tallys.size();	
-		ele = XmlUtils.createMetricsNode(ele, "tags:"+tag, new Pair(ReadGroupSummary.READ_COUNT, size));		
-		AtomicInteger no = new AtomicInteger();		
-		tallys.entrySet().removeIf( e-> no.incrementAndGet() > 100 );
-		boolean hasPercent = (size >= 100)? false : true;
-				
-		String name = tag.substring(0, tag.indexOf(seperator));
-		XmlUtils.outputTallyGroup(ele, name, tallys, hasPercent);	
-		if( size > 100) 			 
-			XmlUtils.addCommentChild(ele, "here only list top 100 tag values" );
+	
+		ele = XmlUtils.createMetricsNode(ele, "tags:"+tag, null);		 
+		String name = tag.substring(0, tag.indexOf(seperator));			
+		XmlUtils.outputTallyGroupWithSize(ele, name, tallys, ADDI_TAG_MAP_LIMIT);
 					
 	}
+	
 }

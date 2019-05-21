@@ -53,7 +53,7 @@ public class BamSummaryReport2 extends SummaryReport {
 
 	public static final Character cc = Character.MAX_VALUE;
 	public static final Integer ii = Integer.MAX_VALUE;	
-	public static final String[] sourceName = new String[]{ "unPaired", XmlUtils.FirstOfPair, XmlUtils.SecondOfPair };	
+	public static final String[] sourceName = new String[]{ "unPaired", XmlUtils.firstOfPair, XmlUtils.secondOfPair };	
 	
 	private final ConcurrentMap<String, ReadIDSummary> readIdSummary = new ConcurrentHashMap<String, ReadIDSummary>();
 	//SEQ first of pair, secondof pair, unpaired

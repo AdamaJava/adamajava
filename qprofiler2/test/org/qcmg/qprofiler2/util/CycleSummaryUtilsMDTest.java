@@ -180,7 +180,7 @@ public class CycleSummaryUtilsMDTest {
 		summary = new CycleSummary<Character>(Character.MAX_VALUE, 64);
 		mdString = mdString.replace("19G", "29G");
 		errMess = CycleSummaryUtils.tallyMDMismatches(mdString, cigar, summary, readBases, true, null, null);	
-		System.out.println(errMess);
+	
 		assertTrue(errMess != null);
 		assertTrue(summary.cycles().size() == 0);
 		assertTrue(summary.getPossibleValues().size() == 0);

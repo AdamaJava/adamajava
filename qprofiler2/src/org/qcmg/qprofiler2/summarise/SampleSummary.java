@@ -138,7 +138,7 @@ public class SampleSummary {
 			AtomicLong totalAL = summary.get( type.name());
 			if( null == totalAL) continue;						
 						
-			Element reportE1  = XmlUtils.createMetricsNode( reportE,  type.toVariantType(),new Pair(XmlUtils.Scount, totalAL) );
+			Element reportE1  = XmlUtils.createMetricsNode( reportE,  type.toVariantType(),new Pair(XmlUtils.sCount, totalAL) );
 			String key =  type.name() + "dbSNP";
 			XmlUtils.outputValueNode(reportE1, "inDBSNP", summary .containsKey(key)? summary.get(key).get() : 0 ); 
 						

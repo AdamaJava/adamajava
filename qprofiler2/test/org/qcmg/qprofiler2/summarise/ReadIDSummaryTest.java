@@ -7,6 +7,7 @@ import java.util.Arrays;
 import org.junit.Test;
 import org.qcmg.common.util.Constants;
 import org.qcmg.qprofiler2.summarise.ReadIDSummary.RNPattern;
+import org.qcmg.qprofiler2.util.XmlUtils;
 
 public class ReadIDSummaryTest {
 		
@@ -120,11 +121,9 @@ public class ReadIDSummaryTest {
 		assertTrue( idSummary.tileNumbers.get("C017R084").get() == 2999000 );
 		//since we ignore tile for uniq check
 		assertTrue( idSummary.pool_uniq.size() == 4 );
-		assertTrue( idSummary.pool_random.size() <= ReadIDSummary.MAX_POOL_SIZE  );	
-		
-	
-				
+		assertTrue( idSummary.pool_random.size() <= ReadIDSummary.MAX_POOL_SIZE  );						
 	}
+	
 	@Test
 	public void bigTileNumberTest() {
 		ReadIDSummary idSummary = new ReadIDSummary();
@@ -137,7 +136,7 @@ public class ReadIDSummaryTest {
 		assertTrue( idSummary.patterns.keySet().size() == 1 );
 		assertTrue( idSummary.patterns.get( RNPattern.NoColon_BGI.toString() ).get() == 200 );
 		assertTrue( idSummary.tileNumbers.get("C017R99").get() == 1 );
-		assertTrue( idSummary.tileNumbers.get(ReadIDSummary.OTHER).get() == 100 );
+		assertTrue( idSummary.tileNumbers.get(XmlUtils.OTHER).get() == 100 );
 		assertTrue( idSummary.tileNumbers.size() == 101 );
 	}
 
