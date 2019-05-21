@@ -25,16 +25,16 @@ public class XmlUtils {
 	public static final String metrics = "Metrics";
 	public static final String readGroupsEle ="readGroups";
 	public static final String variableGroupEle = "variableGroup";
-	public static final String Svalue = "value";
-	public static final String Sbin = "closedBin";
+	public static final String sValue = "value";
+	public static final String sBin = "closedBin";
 	public static final String metricsEle = "sequence" + metrics;
-	public static final String Sname = "name";
-	public static final String Scount = "count";
-	public static final String Spercent = "percent";
-	public static final String Stally = "tally";
-	public static final String StallyCount = "tallyCount";
-	public static final String Sstart = "start";
-	public static final String Send = "end";
+	public static final String sName = "name";
+	public static final String sCount = "count";
+	public static final String sPercent = "percent";
+	public static final String sTally = "tally";
+	public static final String sTallyCount = "tallyCount";
+	public static final String sStart = "start";
+	public static final String sEnd = "end";
 	public static final String Scycle = "cycle";
 	public static final String baseCycleEle = "baseCycle";
 	public static final String recordEle ="record";
@@ -45,8 +45,8 @@ public class XmlUtils {
 	public static final String badBase = "badBase";
 	public static final String qualBase = "qualBase";
 	public static final String qualLength = "qualLength";	
-	public static final String FirstOfPair = "firstReadInPair"; 
-	public static final String SecondOfPair = "secondReadInPair";
+	public static final String firstOfPair = "firstReadInPair"; 
+	public static final String secondOfPair = "secondReadInPair";
 	public static final String UNKNOWN_READGROUP = "unkown_readgroup_id";	
 	public static final String summary = "bamSummary";
 	
@@ -104,15 +104,15 @@ public class XmlUtils {
 
                             //set id
                             if (re instanceof SAMSequenceRecord) {
-                                    elechild.setAttribute(Sname, ((SAMSequenceRecord)re).getSequenceName()  );
+                                    elechild.setAttribute(sName, ((SAMSequenceRecord)re).getSequenceName()  );
                             }else if (re instanceof SAMReadGroupRecord) {
-                                    elechild.setAttribute(Sname, ((SAMReadGroupRecord)re).getId()  );
+                                    elechild.setAttribute(sName, ((SAMReadGroupRecord)re).getId()  );
                             }else if (re instanceof SAMProgramRecord) {
-                                elechild.setAttribute(Sname, ((SAMProgramRecord)re).getId()  );
+                                elechild.setAttribute(sName, ((SAMProgramRecord)re).getId()  );
                              //   elechild.setAttribute(Sname, ((SAMProgramRecord)re).getProgramName()  );
                                 
                             }else if(re instanceof VcfHeaderRecord) {
-                                    elechild.setAttribute(Sname,((VcfHeaderRecord) re).getId() != null ? ((VcfHeaderRecord) re).getId(): ((VcfHeaderRecord) re).getMetaKey().replace("##", "") );
+                                    elechild.setAttribute(sName,((VcfHeaderRecord) re).getId() != null ? ((VcfHeaderRecord) re).getId(): ((VcfHeaderRecord) re).getMetaKey().replace("##", "") );
                             }
                             element.appendChild(elechild);
                     }
@@ -159,7 +159,7 @@ public class XmlUtils {
     	Element ele = XmlElementUtils.createSubElement( parent,  XmlUtils.metricsEle );
     						
 		if( totalCounts != null ) ele.setAttribute((String)totalCounts.getLeft(), String.valueOf( totalCounts.getRight()));		 
-		if(name != null) ele.setAttribute( Sname, name );
+		if(name != null) ele.setAttribute( sName, name );
 				
 		return ele;        	
     }      
@@ -173,12 +173,12 @@ public class XmlUtils {
 	 */
     public static Element createGroupNode(Element parent, String name) {
     	Element ele = XmlElementUtils.createSubElement( parent,  XmlUtils.variableGroupEle );	
-    	ele.setAttribute( Sname, name); 
+    	ele.setAttribute( sName, name); 
     	return ele;
     }
     public static Element createGroupNode(Element parent, String name, Number totalcount) {
     	Element ele = createGroupNode(  parent,   name);
-    	 ele.setAttribute( Scount, String.valueOf(totalcount));  
+    	 ele.setAttribute( sCount, String.valueOf(totalcount));  
     	 return ele; 
     }
     
@@ -202,8 +202,8 @@ public class XmlUtils {
      * @param value
      */
     public static <T> Element outputValueNode(Element parent, String name, Number value) {        	
-    	Element ele = XmlElementUtils.createSubElement(parent, Svalue);
-    	ele.setAttribute(Sname, name);
+    	Element ele = XmlElementUtils.createSubElement(parent, sValue);
+    	ele.setAttribute(sName, name);
     	String v = String.valueOf(value);
 
     	if( value instanceof Double ) {
@@ -233,9 +233,9 @@ public class XmlUtils {
     	Element ele;
     	for (Entry<Integer, AtomicLong> entry : bins.entrySet() ) {
     		if(entry.getValue().get() > 0) {
-    			ele = XmlElementUtils.createSubElement(cateEle, Sbin);
-    	    	ele.setAttribute(Sstart,  String.valueOf(entry.getKey() * binSize));   	    	
-    	    	ele.setAttribute(Scount, String.valueOf(entry.getValue().get())); 			
+    			ele = XmlElementUtils.createSubElement(cateEle, sBin);
+    	    	ele.setAttribute(sStart,  String.valueOf(entry.getKey() * binSize));   	    	
+    	    	ele.setAttribute(sCount, String.valueOf(entry.getValue().get())); 			
     		}  	    		
     	}
     	
@@ -243,6 +243,8 @@ public class XmlUtils {
     }
 	
 	public static <T> void outputTallyGroupWithSize(Element parent, String name, Map<T, AtomicLong> tallys, int sizeLimits) {
+		if(tallys == null ) return; 
+		
 		String comment = null; 
 		boolean hasPercent =  true;
 		String tallyCount = null; 
@@ -255,7 +257,7 @@ public class XmlUtils {
     	Element e1 = outputTallyGroup(parent, name, tallys, hasPercent, comment) ;		
     	 
 		if(tallyCount != null) {			 
-			e1.setAttribute(XmlUtils.StallyCount, tallyCount);
+			e1.setAttribute(XmlUtils.sTallyCount, tallyCount);
 		}
 	}
     
@@ -268,15 +270,15 @@ public class XmlUtils {
 			//skip zero value for output
 			if(tallys.get(t).get() == 0 ) continue;
 			double percent = (sum == 0)? 0 : 100 * (double)tallys.get(t).get() / sum;
-			Element ele1 = XmlElementUtils.createSubElement( ele, Stally );
-			ele1.setAttribute( Svalue, String.valueOf( t ));
-			ele1.setAttribute( Scount, String.valueOf( tallys.get(t).get() )); 
+			Element ele1 = XmlElementUtils.createSubElement( ele, sTally );
+			ele1.setAttribute( sValue, String.valueOf( t ));
+			ele1.setAttribute( sCount, String.valueOf( tallys.get(t).get() )); 
 			if( hasPercent == true) {
-				ele1.setAttribute(Spercent, String.format("%,.2f", percent));	
+				ele1.setAttribute(sPercent, String.format("%,.2f", percent));	
 			}					
 		}  	
     	long counts = tallys.values().stream().mapToLong( x -> (long) x.get() ).sum() ;	
-    	ele.setAttribute(Scount, counts+"");
+    	ele.setAttribute(sCount, counts+"");
     	
     }
     
@@ -314,7 +316,7 @@ public class XmlUtils {
 
     public static Element createReadGroupNode( Element parent, String rgid) {
      	Element ele = XmlElementUtils.createSubElement( parent, "readGroup" );
-    	ele.setAttribute(Sname, rgid);
+    	ele.setAttribute(sName, rgid);
     	return ele;
     }
     
@@ -325,7 +327,10 @@ public class XmlUtils {
 	 * @return true if it is a new key added
 	 */
 	public static boolean updateMapWithLimit(Map<String, AtomicLong> map , String key, int limitSize) {
-		boolean isNew = false; 
+		
+		if(map == null) return false; 
+		
+		boolean isNew = false;
 		String key1 = key;	 	
 		if(!map.containsKey(key1)) { 
 			if(map.size() >= limitSize ) {key1 = XmlUtils.OTHER;}
@@ -336,16 +341,5 @@ public class XmlUtils {
 		 
 		return isNew; 
 	}	     
-   
-	
-    /**
-     * join str1 and str2 which fist letter will be capitalized. 
-     * @param str1
-     * @param str2 will covert the first letter to upper case
-     * @return a joined string
-     */
-//    public static String join(String str1, String str2) {
-//    	
-//    	return str1 + str2.substring(0,1).toUpperCase() + str2.substring(1);
-//    }
+
 }

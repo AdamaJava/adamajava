@@ -58,20 +58,20 @@ public class XmlUtilsTest {
 		XmlUtils.outputTallyGroupWithSize(root, "test", map, limit);
 		
 		Element ele = XmlElementUtils.getChildElement(root, XmlUtils.variableGroupEle,0);
-		assertTrue(ele.getAttribute(XmlUtils.Scount).equals("31"));//[1..20][5..15]
-		assertTrue(ele.getAttribute(XmlUtils.StallyCount).equals(limit+"+"));
+		assertTrue(ele.getAttribute(XmlUtils.sCount).equals("31"));//[1..20][5..15]
+		assertTrue(ele.getAttribute(XmlUtils.sTallyCount).equals(limit+"+"));
 					
 		int[] counts = new int[] {1,1,1,1,2,2,2,2,2,2};
 		int[] values = new int[] {1,2,3,4,5,6,7,8,9,10};
-		for(Element e : XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.Stally)) {
+		for(Element e : XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.sTally)) {
 			boolean isFind = false;		 
-			if(e.getAttribute(XmlUtils.Svalue).equals(XmlUtils.OTHER)){
-					assertTrue(e.getAttribute(XmlUtils.Scount).equals("15"));
+			if(e.getAttribute(XmlUtils.sValue).equals(XmlUtils.OTHER)){
+					assertTrue(e.getAttribute(XmlUtils.sCount).equals("15"));
 					isFind = true;
 			}else {
 				for(int i = 0; i<=10; i++) {		 
-					if(e.getAttribute(XmlUtils.Svalue).equals(values[i] + "")) {
-						assertTrue(e.getAttribute(XmlUtils.Scount).equals(counts[i]+""));
+					if(e.getAttribute(XmlUtils.sValue).equals(values[i] + "")) {
+						assertTrue(e.getAttribute(XmlUtils.sCount).equals(counts[i]+""));
 						isFind = true;
 						break;
 					}

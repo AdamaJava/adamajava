@@ -293,25 +293,25 @@ public class PairSummaryTest {
 		
 		Element root = createPairRoot(input);		
 		List<Element> pairEles =  XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.metricsEle)	
-				.stream().filter(e -> e.getAttribute(XmlUtils.Sname).equals( "properPairs" )).collect(Collectors.toList());	
+				.stream().filter(e -> e.getAttribute(XmlUtils.sName).equals( "properPairs" )).collect(Collectors.toList());	
 		
 		//only one inward pair but overlapped
-		Element ele = pairEles.stream().filter(e -> ( (Element) e.getParentNode()).getAttribute(XmlUtils.Sname).equals("1959N")).findFirst().get(); 		
+		Element ele = pairEles.stream().filter(e -> ( (Element) e.getParentNode()).getAttribute(XmlUtils.sName).equals("1959N")).findFirst().get(); 		
 		checkVariableGroup( ele, "Inward", new int[] {1,0,0,0,1,1,1, 0, 0,175} );
 
 		//five pairs
-		ele = pairEles.stream().filter(e -> ( (Element) e.getParentNode()).getAttribute(XmlUtils.Sname).equals("1959T")).findFirst().get();	
+		ele = pairEles.stream().filter(e -> ( (Element) e.getParentNode()).getAttribute(XmlUtils.sName).equals("1959T")).findFirst().get();	
 		checkVariableGroup( ele, "F5F3", new int[] {0,0,0,1,1,1,0, 0, 0,2025} ); //tlen=11205, 2015
 		checkVariableGroup( ele, "F3F5", new int[] {0,1,1,0,1,1,1,0, 0,93} ); //paircounts only for number of firstOfpair
 		checkVariableGroup( ele, "Outward", new int[] {2,0,0,0,2,1,3,0,0,13} );
 				
-		ele = pairEles.stream().filter(e -> ( (Element) e.getParentNode()).getAttribute(XmlUtils.Sname).equals(XmlUtils.UNKNOWN_READGROUP)).findFirst().get();	
+		ele = pairEles.stream().filter(e -> ( (Element) e.getParentNode()).getAttribute(XmlUtils.sName).equals(XmlUtils.UNKNOWN_READGROUP)).findFirst().get();	
 		checkVariableGroup( ele, "Inward", new int[] {1,0,0,0,1,1,0,0,0,76 } );		
 			
 		//notProperPair
 		pairEles =  XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.metricsEle)	
-				.stream().filter(e  -> e .getAttribute(XmlUtils.Sname).equals( "notProperPairs" )).collect(Collectors.toList());
-		ele = pairEles.stream().filter(e -> ( (Element) e.getParentNode()).getAttribute(XmlUtils.Sname).equals(XmlUtils.UNKNOWN_READGROUP)).findFirst().get();	
+				.stream().filter(e  -> e .getAttribute(XmlUtils.sName).equals( "notProperPairs" )).collect(Collectors.toList());
+		ele = pairEles.stream().filter(e -> ( (Element) e.getParentNode()).getAttribute(XmlUtils.sName).equals(XmlUtils.UNKNOWN_READGROUP)).findFirst().get();	
 		checkVariableGroup( ele, "F3F5", new int[] {1,0,0,0,1,1,0,0,0, 0} ); //notProperPair
 		
 		
@@ -320,13 +320,13 @@ public class PairSummaryTest {
 	private void checkVariableGroup(Element root, String name, int[] counts ) {
 		
 		Element variableEle = XmlElementUtils.getChildElementByTagName(root, XmlUtils.variableGroupEle).stream()
-			.filter(e -> e.getAttribute(XmlUtils.Sname).equals(name) ).findFirst().get();
+			.filter(e -> e.getAttribute(XmlUtils.sName).equals(name) ).findFirst().get();
 		
-		List<Element> childEles = XmlElementUtils.getChildElementByTagName(variableEle, XmlUtils.Svalue);
+		List<Element> childEles = XmlElementUtils.getChildElementByTagName(variableEle, XmlUtils.sValue);
 		assertTrue( childEles.size() == 9 );
 		
 		for(Element ele : childEles) {
-			switch (ele.getAttribute(XmlUtils.Sname)) {
+			switch (ele.getAttribute(XmlUtils.sName)) {
 				case "overlappedPairs": assertTrue( ele.getTextContent().equals(counts[0] + "") ); break;
 				case  "tlenUnder1500Pairs" : assertTrue( ele.getTextContent().equals(counts[1] + "") ); break;
 				case  "tlenOver10000Pairs" : assertTrue( ele.getTextContent().equals(counts[2] + "") ); break;

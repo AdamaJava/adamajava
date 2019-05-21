@@ -141,12 +141,12 @@ public class KmersSummaryTest {
 		//only one <sequenceMetrics>
 		List<Element> eles = XmlElementUtils.getChildElementByTagName(root, XmlUtils.metricsEle);
 		assertEquals(eles.size(), 1);
-		assertEquals(eles.get(0).getAttribute(XmlUtils.Sname), "2mers");
+		assertEquals(eles.get(0).getAttribute(XmlUtils.sName), "2mers");
 		assertEquals(1, eles.get(0).getChildNodes().getLength());
 		
 		//check <variableGroup...>
 		Element ele = (Element)eles.get(0).getFirstChild();
-		assertEquals(ele.getAttribute(XmlUtils.Sname), "2mers") ;
+		assertEquals(ele.getAttribute(XmlUtils.sName), "2mers") ;
 		//base.length -3 
 		//cycle number = base.length - KmersSummary.maxKmers = 16-6 that is [1,11]
 		assertEquals(11, ele.getChildNodes().getLength());
@@ -175,26 +175,26 @@ public class KmersSummaryTest {
 		assertEquals( "GTT,CAG", StringUtils.join(summary.getPopularKmerString(16,  3, false, 1), ",") );
 		assertEquals( "TAA,CCT", StringUtils.join(summary.getPopularKmerString(16,  3, false, 2), ",") );
 			 
-		List<Element> tallysE = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.Stally);
+		List<Element> tallysE = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.sTally);
 		assertEquals(4, tallysE.size());
 		
 		for(Element tE : tallysE) { 
-			assertTrue( tE.getAttribute(XmlUtils.Scount).equals("1") );	
+			assertTrue( tE.getAttribute(XmlUtils.sCount).equals("1") );	
 			Element baseCycleEle = (Element) tE.getParentNode();
 			Element groupEle =  (Element) baseCycleEle.getParentNode();
 			Element metricEle = (Element) groupEle.getParentNode();
-			if( tE.getAttribute( XmlUtils.Svalue ).equals("GTT") ) {								
+			if( tE.getAttribute( XmlUtils.sValue ).equals("GTT") ) {								
 				assertTrue( baseCycleEle.getAttribute(XmlUtils.Scycle).equals("5") );
-				assertTrue( metricEle.getAttribute(XmlUtils.Sname).equals("3mers") );	
-				assertTrue( groupEle.getAttribute(XmlUtils.Sname).equals("firstReadInPair") ); 				
-			}else if(tE.getAttribute( XmlUtils.Svalue ).equals("TAA")){
+				assertTrue( metricEle.getAttribute(XmlUtils.sName).equals("3mers") );	
+				assertTrue( groupEle.getAttribute(XmlUtils.sName).equals("firstReadInPair") ); 				
+			}else if(tE.getAttribute( XmlUtils.sValue ).equals("TAA")){
 				assertTrue( baseCycleEle.getAttribute(XmlUtils.Scycle).equals("3") );
-				assertTrue( metricEle.getAttribute(XmlUtils.Sname).equals("3mers") ); 
-				assertTrue( groupEle.getAttribute(XmlUtils.Sname).equals("secondReadInPair") ); 
-			}else if(tE.getAttribute( XmlUtils.Svalue ).equals("CCT")) 
+				assertTrue( metricEle.getAttribute(XmlUtils.sName).equals("3mers") ); 
+				assertTrue( groupEle.getAttribute(XmlUtils.sName).equals("secondReadInPair") ); 
+			}else if(tE.getAttribute( XmlUtils.sValue ).equals("CCT")) 
 				assertTrue( baseCycleEle.getAttribute(XmlUtils.Scycle).equals("1") );
 			else
-				assertTrue( tE.getAttribute( XmlUtils.Svalue ).equals("CAG"));			 
+				assertTrue( tE.getAttribute( XmlUtils.sValue ).equals("CAG"));			 
 		}
 		
 		// kmers3

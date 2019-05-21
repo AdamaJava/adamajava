@@ -118,12 +118,12 @@ public class BamSummaryReportTest {
 		
 		//get node <sequenceMetrics name="seqLength"> or <sequenceMetrics name="qualLength">		
 		lists = XmlElementUtils.getOffspringElementByTagName( lists.get( 0 ), XmlUtils.metricsEle ).stream()
-			.filter( e -> e.getAttribute(XmlUtils.Sname).equals( sLength)).collect(Collectors.toList());
+			.filter( e -> e.getAttribute(XmlUtils.sName).equals( sLength)).collect(Collectors.toList());
 		assertEquals(1, lists.size());
 		
 		//<variableGroup name="firstReadInPair"> or <variableGroup name="secondReadInPair">				
 		lists = XmlElementUtils.getOffspringElementByTagName( lists.get( 0 ), XmlUtils.variableGroupEle ).stream()
-				.filter( e -> e.getAttribute(XmlUtils.Sname).equals(pairName)).collect(Collectors.toList());		
+				.filter( e -> e.getAttribute(XmlUtils.sName).equals(pairName)).collect(Collectors.toList());		
 		assertEquals(1, lists.size());				
 		
 		Element ele = lists.get(0);
@@ -133,18 +133,18 @@ public class BamSummaryReportTest {
 		for(int i = 0; i < values.length; i ++) {
 			String v = values[i] + "";
 			String c = counts[i] + "";
-			long count = XmlElementUtils.getChildElementByTagName( ele, XmlUtils.Stally ).stream()
-					.filter( e -> e.getAttribute(XmlUtils.Svalue).equals(v) 
-							&& e.getAttribute(XmlUtils.Scount).equals(c) ).count();
+			long count = XmlElementUtils.getChildElementByTagName( ele, XmlUtils.sTally ).stream()
+					.filter( e -> e.getAttribute(XmlUtils.sValue).equals(v) 
+							&& e.getAttribute(XmlUtils.sCount).equals(c) ).count();
 			assertTrue(count == 1);
 		}	 
 	}
 		
 	private void checkTally(Element root, String groupName, String value, int count, int expectedNo ) {
 		
-		long findNo = XmlElementUtils.getOffspringElementByTagName( root, XmlUtils.Stally).stream()
-			.filter( e -> e.getAttribute(XmlUtils.Svalue).equals(value) && e.getAttribute(XmlUtils.Scount).equals(count + "") &&
-					((Element) e.getParentNode()).getAttribute(XmlUtils.Sname).equals(groupName)).count();
+		long findNo = XmlElementUtils.getOffspringElementByTagName( root, XmlUtils.sTally).stream()
+			.filter( e -> e.getAttribute(XmlUtils.sValue).equals(value) && e.getAttribute(XmlUtils.sCount).equals(count + "") &&
+					((Element) e.getParentNode()).getAttribute(XmlUtils.sName).equals(groupName)).count();
 
 		assertEquals( expectedNo , findNo);
 	}
@@ -159,10 +159,10 @@ public class BamSummaryReportTest {
 		sr.toXml(root);			
 		
 		//length
-		checklength( root, true,  XmlUtils.FirstOfPair, new int[] {141,151}, new int[] { 1,1 });
-		checklength( root, true,  XmlUtils.SecondOfPair, new int[] {151}, new int[] { 1});
-		checklength( root, false, XmlUtils.FirstOfPair, new int[] {143,151}, new int[] { 1,1 });
-		checklength( root, false, XmlUtils.SecondOfPair, new int[] {151}, new int[] { 1});		
+		checklength( root, true,  XmlUtils.firstOfPair, new int[] {141,151}, new int[] { 1,1 });
+		checklength( root, true,  XmlUtils.secondOfPair, new int[] {151}, new int[] { 1});
+		checklength( root, false, XmlUtils.firstOfPair, new int[] {143,151}, new int[] { 1,1 });
+		checklength( root, false, XmlUtils.secondOfPair, new int[] {151}, new int[] { 1});		
 		
 		//rNAME
 		Element node = XmlElementUtils.getOffspringElementByTagName( root, XmlUtils.rname ).get( 0 );	
@@ -173,10 +173,10 @@ public class BamSummaryReportTest {
 		//mapq is for all counted reads disregard duplicate ect, unmapped reads mapq=0
 		//Zero mapping quality indicates that the read maps to multiple locations or differet ref
 		node = XmlElementUtils.getOffspringElementByTagName( root, XmlUtils.mapq ).get( 0 );	
-		checkTally(node,  XmlUtils.FirstOfPair, "0", 1, 1 );
-		checkTally(node,  XmlUtils.FirstOfPair, "25", 1, 1 );
-		checkTally(node,  XmlUtils.SecondOfPair, "0", 1, 1 );	
-		checkTally(node,  XmlUtils.SecondOfPair, "6", 1, 1 );	
+		checkTally(node,  XmlUtils.firstOfPair, "0", 1, 1 );
+		checkTally(node,  XmlUtils.firstOfPair, "25", 1, 1 );
+		checkTally(node,  XmlUtils.secondOfPair, "0", 1, 1 );	
+		checkTally(node,  XmlUtils.secondOfPair, "6", 1, 1 );	
 				
 		
 	}
@@ -217,17 +217,17 @@ public class BamSummaryReportTest {
 	}
 	private void chekTlen(List<Element> tallyE, PairSummary.Pair p, int count, int value ) {
 		 long no = tallyE.stream().filter( e ->   
-			((Element) e.getParentNode()).getAttribute(XmlUtils.Sname).equals(p.name()) &&
-			 e.getAttribute(XmlUtils.Svalue).equals( value+"" ) && e.getAttribute(XmlUtils.Scount).equals( count+"" )		 
+			((Element) e.getParentNode()).getAttribute(XmlUtils.sName).equals(p.name()) &&
+			 e.getAttribute(XmlUtils.sValue).equals( value+"" ) && e.getAttribute(XmlUtils.sCount).equals( count+"" )		 
 		 ).count();	
 		
 		 assertTrue(no == 1);		
 	}
 	
 	private List<Element> getTallys(List<Element> rgsE,String rgName, String metricName,  int size){		
-		Element ele = rgsE.stream().filter( e -> e.getAttribute(XmlUtils.Sname).equals( rgName )  ).findFirst().get();
-		ele = XmlElementUtils.getChildElementByTagName(ele, XmlUtils.metricsEle).stream().filter(e -> e.getAttribute(XmlUtils.Sname).equals( metricName )  ).findFirst().get();
-		List<Element> eles = XmlElementUtils.getOffspringElementByTagName(ele, XmlUtils.Stally);
+		Element ele = rgsE.stream().filter( e -> e.getAttribute(XmlUtils.sName).equals( rgName )  ).findFirst().get();
+		ele = XmlElementUtils.getChildElementByTagName(ele, XmlUtils.metricsEle).stream().filter(e -> e.getAttribute(XmlUtils.sName).equals( metricName )  ).findFirst().get();
+		List<Element> eles = XmlElementUtils.getOffspringElementByTagName(ele, XmlUtils.sTally);
 		assertEquals(size, eles.size());	
 	 
 		return eles;

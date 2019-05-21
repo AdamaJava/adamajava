@@ -121,7 +121,7 @@ public class ReadGroupSummaryTest {
 	 */
 	private void checktLen(Element parent, int pairCount, int max, int mean, int mode, int median) {
 		Element ele = XmlElementUtils.getChildElementByTagName(parent, XmlUtils.variableGroupEle)
-		.stream().filter(e -> e.getAttribute(XmlUtils.Sname).equals("tLen")).findFirst().get() ;	
+		.stream().filter(e -> e.getAttribute(XmlUtils.sName).equals("tLen")).findFirst().get() ;	
 		assertTrue( checkChildValue( ele, ReadGroupSummary.MAX, max+"" )); 	
 		assertTrue( checkChildValue( ele, ReadGroupSummary.MEAN, mean +"")); 	
 		assertTrue( checkChildValue( ele, ReadGroupSummary.MODE, mode+"" )); 	
@@ -136,7 +136,7 @@ public class ReadGroupSummaryTest {
 	 */
 	private void checkDiscardReads(Element parent, int supplementary, int secondary, int failedVendor) {		
 		Element ele1 = XmlElementUtils.getChildElementByTagName(parent, XmlUtils.variableGroupEle)
-				   .stream().filter(ele -> ele.getAttribute(XmlUtils.Sname).equals("discardedReads")).findFirst().get() ;				
+				   .stream().filter(ele -> ele.getAttribute(XmlUtils.sName).equals("discardedReads")).findFirst().get() ;				
 		assertTrue( checkChildValue(ele1,"supplementaryAlignmentCount", String.valueOf(supplementary)));
 		assertTrue( checkChildValue(ele1,"secondaryAlignmentCount", String.valueOf(secondary)));
 		assertTrue( checkChildValue(ele1,"failedVendorQualityCount", String.valueOf(failedVendor)));
@@ -152,7 +152,7 @@ public class ReadGroupSummaryTest {
 	 */
 	private Element checkBadReadStats(Element parent, String name, int reads, int base, String percent ){		    
 		   Element groupE =  XmlElementUtils.getChildElementByTagName(parent, XmlUtils.variableGroupEle)
-				   .stream().filter(ele -> ele.getAttribute(XmlUtils.Sname).equals(name)).findFirst().get() ;		   
+				   .stream().filter(ele -> ele.getAttribute(XmlUtils.sName).equals(name)).findFirst().get() ;		   
 			assertTrue( checkChildValue(groupE,"readCount", String.valueOf(reads)));
 			assertTrue( checkChildValue(groupE,"basesLostCount", String.valueOf(base)));			 		
 			assertTrue( checkChildValue(groupE,"basesLostPercent",percent));
@@ -169,7 +169,7 @@ public class ReadGroupSummaryTest {
 	private void checkCountedReadStats(Element parent, String nodeName, int[] counts, String percent ) {
 		//check readCount		 
 		Element groupE =  XmlElementUtils.getChildElementByTagName(parent, XmlUtils.variableGroupEle)
-			.stream().filter(ele -> ele.getAttribute(XmlUtils.Sname).equals(nodeName)).findFirst().get() ;		   
+			.stream().filter(ele -> ele.getAttribute(XmlUtils.sName).equals(nodeName)).findFirst().get() ;		   
 		assertTrue( checkChildValue(groupE, ReadGroupSummary.MIN, String.valueOf(counts[1] )));
 		assertTrue( checkChildValue(groupE, ReadGroupSummary.MAX, String.valueOf(counts[2] )));
 		assertTrue( checkChildValue(groupE, ReadGroupSummary.MEAN, String.valueOf(counts[3] )));
@@ -181,8 +181,8 @@ public class ReadGroupSummaryTest {
 	}
 			
 	public static boolean checkChildValue(Element parent,String name, String value) {
-		 List<Element> eles = XmlElementUtils.getChildElementByTagName(parent, XmlUtils.Svalue);	
-		 Element ele = eles.stream().filter( e -> e.getAttribute(XmlUtils.Sname).equals(name)).findFirst().get() ;		 
+		 List<Element> eles = XmlElementUtils.getChildElementByTagName(parent, XmlUtils.sValue);	
+		 Element ele = eles.stream().filter( e -> e.getAttribute(XmlUtils.sName).equals(name)).findFirst().get() ;		 
 		 return ele.getTextContent().equals(value);		
 	}
 
@@ -224,7 +224,7 @@ public class ReadGroupSummaryTest {
 		
 		//<sequenceMetrics name="baseLost">
 		Element root1 = XmlElementUtils.getChildElementByTagName(root, XmlUtils.metricsEle)		
-				.stream().filter(ele -> ele.getAttribute(XmlUtils.Sname).equals( "basesLost" )).findFirst().get() ;	
+				.stream().filter(ele -> ele.getAttribute(XmlUtils.sName).equals( "basesLost" )).findFirst().get() ;	
 		checkBadReadStats(root1, "duplicateReads", 0, 0, "0.00");
 		checkBadReadStats(root1, "unmappedReads", 0, 0, "0.00" );
 		checkBadReadStats(root1, ReadGroupSummary.NODE_NOT_PROPER_PAIR, 0, 0, "0.00" );
@@ -236,18 +236,18 @@ public class ReadGroupSummaryTest {
 		
 		//<sequenceMetrics name="reads" readCount="2">					
 		root1 = XmlElementUtils.getChildElementByTagName(root, XmlUtils.metricsEle)		
-			.stream().filter(ele -> ele.getAttribute(XmlUtils.Sname).equals( "reads" )).findFirst().get() ;		
+			.stream().filter(ele -> ele.getAttribute(XmlUtils.sName).equals( "reads" )).findFirst().get() ;		
 		assertTrue( root1.getAttribute(ReadGroupSummary.READ_COUNT).equals("2"));
 		checkDiscardReads(root1, 0,0,0);
 		
 		//check readCount
 		Element groupE =  XmlElementUtils.getChildElementByTagName(root1, XmlUtils.variableGroupEle)
-				.stream().filter(ele -> ele.getAttribute(XmlUtils.Sname).equals(ReadGroupSummary.NODE_READ_LENGTH)).findFirst().get() ;		   					
+				.stream().filter(ele -> ele.getAttribute(XmlUtils.sName).equals(ReadGroupSummary.NODE_READ_LENGTH)).findFirst().get() ;		   					
 		assertTrue( checkChildValue( groupE, ReadGroupSummary.MAX, "50" )); 	
 		assertTrue( checkChildValue( groupE, ReadGroupSummary.MEAN, "43" )); 
 		
 		groupE =  XmlElementUtils.getChildElementByTagName(root1, XmlUtils.variableGroupEle)
-				.stream().filter(ele -> ele.getAttribute(XmlUtils.Sname).equals("countedReads")).findFirst().get() ;	
+				.stream().filter(ele -> ele.getAttribute(XmlUtils.sName).equals("countedReads")).findFirst().get() ;	
 		assertTrue( checkChildValue( groupE, ReadGroupSummary.UNPAIRED_READ, "0" ));
 		assertTrue( checkChildValue( groupE, ReadGroupSummary.READ_COUNT, "2" )); 
 		assertTrue( checkChildValue( groupE, ReadGroupSummary.BASE_LOST_COUNT, "80" ));
@@ -268,7 +268,7 @@ public class ReadGroupSummaryTest {
 		
 		//<sequenceMetrics name="baseLost">
 		Element root1 = XmlElementUtils.getChildElementByTagName(root, XmlUtils.metricsEle)		
-				.stream().filter(ele -> ele.getAttribute(XmlUtils.Sname).equals( "basesLost" )).findFirst().get() ;	
+				.stream().filter(ele -> ele.getAttribute(XmlUtils.sName).equals( "basesLost" )).findFirst().get() ;	
 		checkBadReadStats(root1, "duplicateReads", 0, 0, "0.00");
 		checkBadReadStats(root1, "unmappedReads", 0, 0, "0.00" );
 		checkBadReadStats(root1, "trimmedBases", 0, 0, "0.00" );
@@ -279,19 +279,19 @@ public class ReadGroupSummaryTest {
 				
 		//<sequenceMetrics name="reads" readCount="2">					
 		root1 = XmlElementUtils.getChildElementByTagName(root, XmlUtils.metricsEle)		
-			.stream().filter(ele -> ele.getAttribute(XmlUtils.Sname).equals( "reads" )).findFirst().get() ;	
+			.stream().filter(ele -> ele.getAttribute(XmlUtils.sName).equals( "reads" )).findFirst().get() ;	
 		checktLen(root1, 0, 0,  0, 0,0);
 		assertTrue( root1.getAttribute(ReadGroupSummary.READ_COUNT).equals("1"));
 		checkDiscardReads(root1, 0,0,0);
 		
 		//check readCount
 		Element groupE =  XmlElementUtils.getChildElementByTagName(root1, XmlUtils.variableGroupEle)
-				.stream().filter(ele -> ele.getAttribute(XmlUtils.Sname).equals(ReadGroupSummary.NODE_READ_LENGTH)).findFirst().get() ;		  		
+				.stream().filter(ele -> ele.getAttribute(XmlUtils.sName).equals(ReadGroupSummary.NODE_READ_LENGTH)).findFirst().get() ;		  		
 		assertTrue( checkChildValue( groupE, ReadGroupSummary.MAX, "75" )); 	
 		assertTrue( checkChildValue( groupE, ReadGroupSummary.MEAN, "75" )); 	
 		
 		groupE =  XmlElementUtils.getChildElementByTagName(root1, XmlUtils.variableGroupEle)
-				.stream().filter(ele -> ele.getAttribute(XmlUtils.Sname).equals("countedReads")).findFirst().get() ;			
+				.stream().filter(ele -> ele.getAttribute(XmlUtils.sName).equals("countedReads")).findFirst().get() ;			
 		assertTrue( checkChildValue( groupE, ReadGroupSummary.READ_COUNT, "1" )); 
 		assertTrue( checkChildValue( groupE, ReadGroupSummary.UNPAIRED_READ, "1" ));
 		assertTrue( checkChildValue( groupE, ReadGroupSummary.BASE_LOST_COUNT, "0" ));
@@ -313,7 +313,7 @@ public class ReadGroupSummaryTest {
 				
 		//<sequenceMetrics name="baseLost">
 		Element root1 = XmlElementUtils.getChildElementByTagName(root, XmlUtils.metricsEle)		
-				.stream().filter(ele -> ele.getAttribute(XmlUtils.Sname).equals( "basesLost" )).findFirst().get() ;	
+				.stream().filter(ele -> ele.getAttribute(XmlUtils.sName).equals( "basesLost" )).findFirst().get() ;	
 		checkBadReadStats(root1, "duplicateReads", 2, 80, "33.33"); 
 		checkBadReadStats(root1, "unmappedReads", 1, 40, "16.67" );
 		checkBadReadStats(root1, "trimmedBases", 0, 0, "0.00" );
@@ -324,19 +324,19 @@ public class ReadGroupSummaryTest {
 				
 		//<sequenceMetrics name="reads" readCount="2">					
 		root1 = XmlElementUtils.getChildElementByTagName(root, XmlUtils.metricsEle)		
-			.stream().filter(ele -> ele.getAttribute(XmlUtils.Sname).equals( "reads" )).findFirst().get() ;	
+			.stream().filter(ele -> ele.getAttribute(XmlUtils.sName).equals( "reads" )).findFirst().get() ;	
 		checktLen(root1,2, 93,  59, 26,93);
 		assertTrue( root1.getAttribute(ReadGroupSummary.READ_COUNT).equals("9"));
 		checkDiscardReads(root1, 1,1,1);
 		
 		//check readCount
 		Element groupE =  XmlElementUtils.getChildElementByTagName(root1, XmlUtils.variableGroupEle)
-				.stream().filter(ele -> ele.getAttribute(XmlUtils.Sname).equals(ReadGroupSummary.NODE_READ_LENGTH)).findFirst().get() ;		   					
+				.stream().filter(ele -> ele.getAttribute(XmlUtils.sName).equals(ReadGroupSummary.NODE_READ_LENGTH)).findFirst().get() ;		   					
 		assertTrue( checkChildValue( groupE, ReadGroupSummary.MAX, "40" )); 	
 		assertTrue( checkChildValue( groupE, ReadGroupSummary.MEAN, "39" )); 
 		
 		groupE =  XmlElementUtils.getChildElementByTagName(root1, XmlUtils.variableGroupEle)
-				.stream().filter(ele -> ele.getAttribute(XmlUtils.Sname).equals("countedReads")).findFirst().get() ;		
+				.stream().filter(ele -> ele.getAttribute(XmlUtils.sName).equals("countedReads")).findFirst().get() ;		
 		assertTrue( checkChildValue( groupE, ReadGroupSummary.READ_COUNT, "6" )); 
 		assertTrue( checkChildValue( groupE, ReadGroupSummary.UNPAIRED_READ, "0" ));
 		assertTrue( checkChildValue( groupE, ReadGroupSummary.BASE_LOST_COUNT, "162" ));
@@ -357,7 +357,7 @@ public class ReadGroupSummaryTest {
 
 		root = XmlElementUtils.getOffspringElementByTagName( root, "bamSummary" ).get(0);
 		Element root1 = XmlElementUtils.getChildElementByTagName( root, XmlUtils.metricsEle )		
-		.stream().filter( ele -> ele.getAttribute(XmlUtils.Sname ).equals( "summary2" )).findFirst().get() ;	
+		.stream().filter( ele -> ele.getAttribute(XmlUtils.sName ).equals( "summary2" )).findFirst().get() ;	
 		assertTrue( checkChildValue( root1, ReadGroupSummary.READ_COUNT, "9" ));
 		assertTrue( checkChildValue( root1, ReadGroupSummary.BASE_COUNT , "415" ));	
 		//duplicate 80/415=19.28
@@ -370,7 +370,7 @@ public class ReadGroupSummaryTest {
 		assertTrue( checkChildValue( root1, StringUtils.getJoinedString( ReadGroupSummary.NODE_OVERLAP , ReadGroupSummary.BASE_LOST_PERCENT, "_"), "21.20" ));  //88/415	   		
 			
 		root1 = XmlElementUtils.getChildElementByTagName( root, XmlUtils.metricsEle )		
-				.stream().filter( ele -> ele.getAttribute(XmlUtils.Sname ).equals( "summary1" )).findFirst().get() ;
+				.stream().filter( ele -> ele.getAttribute(XmlUtils.sName ).equals( "summary1" )).findFirst().get() ;
 		assertTrue( checkChildValue( root1, "Number of cycles with greater than 1% mismatches", "0" ));  
 		assertTrue( checkChildValue( root1, "Average length of first-of-pair reads", "36" )); // (37+35+37)/3
 		assertTrue( checkChildValue( root1, "Average length of second-of-pair reads", "41" )); // (32+50)/2
@@ -403,21 +403,21 @@ public class ReadGroupSummaryTest {
 		
 		//<sequenceMetrics name="basesLost">
 		Element	root1 = XmlElementUtils.getChildElementByTagName(root, XmlUtils.metricsEle)		
-						.stream().filter(ele -> ele.getAttribute(XmlUtils.Sname).equals( "basesLost" )).findFirst().get() ;	
+						.stream().filter(ele -> ele.getAttribute(XmlUtils.sName).equals( "basesLost" )).findFirst().get() ;	
 		checkCountedReadStats(root1, ReadGroupSummary.NODE_SOFTCLIP , new int[] {0, 0, 0, 0, 0,0,0}, "0.00");
 		checkCountedReadStats(root1, ReadGroupSummary.NODE_HARDCLIP , new int[] {0, 0, 0, 0, 0,0,0}, "0.00");
 		checkCountedReadStats(root1, ReadGroupSummary.NODE_TRIM , new int[] {0, 0, 0, 0, 0,0,0}, "0.00");
 		
 		//<sequenceMetrics name="reads"
 		root1  = XmlElementUtils.getChildElementByTagName(root, XmlUtils.metricsEle)		
-				.stream().filter(ele -> ele.getAttribute(XmlUtils.Sname).equals( "reads" )).findFirst().get() ;	
+				.stream().filter(ele -> ele.getAttribute(XmlUtils.sName).equals( "reads" )).findFirst().get() ;	
 		assertTrue( root1.getAttribute(ReadGroupSummary.READ_COUNT).equals("4"));
 		checktLen(root1,0, 0,  0, 0,0);		
 		checkDiscardReads(root1, 0,0,0);
 		
 		//<variableGroup name="countedReads">
 		root1 = XmlElementUtils.getChildElementByTagName(root1, XmlUtils.variableGroupEle)
-				.stream().filter(ele -> ele.getAttribute(XmlUtils.Sname).equals("countedReads")).findFirst().get() ;	
+				.stream().filter(ele -> ele.getAttribute(XmlUtils.sName).equals("countedReads")).findFirst().get() ;	
 		assertTrue( checkChildValue( root1, ReadGroupSummary.READ_COUNT, "4" )); 
 		assertTrue( checkChildValue( root1, ReadGroupSummary.UNPAIRED_READ, "0" ));
 		assertTrue( checkChildValue( root1, ReadGroupSummary.BASE_LOST_PERCENT, "100.00" ));   
@@ -445,7 +445,7 @@ public class ReadGroupSummaryTest {
 		rgSumm.readSummary2Xml(root);
 		
 		Element	root1 = XmlElementUtils.getOffspringElementByTagName( root, XmlUtils.variableGroupEle)
-				.stream().filter(ele -> ele.getAttribute(XmlUtils.Sname).equals("countedReads")).findFirst().get() ;
+				.stream().filter(ele -> ele.getAttribute(XmlUtils.sName).equals("countedReads")).findFirst().get() ;
 		assertTrue( checkChildValue( root1, ReadGroupSummary.READ_COUNT, "3" )); 
 		assertTrue( checkChildValue( root1, ReadGroupSummary.UNPAIRED_READ, "1" ));
 		assertTrue( checkChildValue( root1, ReadGroupSummary.BASE_LOST_PERCENT, "100.00" ));   
@@ -455,7 +455,7 @@ public class ReadGroupSummaryTest {
 		
 		//<sequenceMetrics name="basesLost">
 		root1 = XmlElementUtils.getChildElementByTagName(root, XmlUtils.metricsEle)		
-					.stream().filter(ele -> ele.getAttribute(XmlUtils.Sname).equals( "basesLost" )).findFirst().get() ;	
+					.stream().filter(ele -> ele.getAttribute(XmlUtils.sName).equals( "basesLost" )).findFirst().get() ;	
 		checkCountedReadStats(root1, ReadGroupSummary.NODE_SOFTCLIP , new int[] {0, 0, 0, 0, 0,0,0}, "0.00");
 		checkCountedReadStats(root1, ReadGroupSummary.NODE_HARDCLIP , new int[] {0, 0, 0, 0, 0,0,0}, "0.00");
 		checkCountedReadStats(root1, ReadGroupSummary.NODE_TRIM , new int[] {1, 7,7, 7, 7,7,7}, "33.33");		

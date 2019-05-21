@@ -5,15 +5,12 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListMap;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.QCMGAtomicLongArray;
 import org.qcmg.common.util.Constants;
-import org.qcmg.common.util.Pair;
 import org.qcmg.qprofiler2.summarise.CycleSummary;
-import org.qcmg.qprofiler2.summarise.ReadGroupSummary;
 import org.qcmg.qprofiler2.util.CycleSummaryUtils;
 import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Element;
@@ -105,13 +102,14 @@ public class TagSummaryReport2 {
 		}			
 		
 		// additional tags includes RG
-		for (Entry<String,  ConcurrentSkipListMap<String, AtomicLong>> entry : additionalTags.entrySet())	
-			//XmlUtils.outputTallyGroupWithSize(parent, entry.getKey(), entry.getValue(), ADDI_TAG_MAP_LIMIT);
+		for (Entry<String,  ConcurrentSkipListMap<String, AtomicLong>> entry : additionalTags.entrySet()) {			
 			outputTag(parent, entry.getKey(),  entry.getValue());
-				
+		}	
+		
 		// additional tagsChar
-		for (Entry<String,  ConcurrentSkipListMap<Character, AtomicLong>> entry : additionalCharacterTags.entrySet())
+		for (Entry<String,  ConcurrentSkipListMap<Character, AtomicLong>> entry : additionalCharacterTags.entrySet()) {
 			outputTag(parent,  entry.getKey(),  entry.getValue());		
+		}
 	}
 	
 	

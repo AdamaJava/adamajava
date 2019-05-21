@@ -63,7 +63,7 @@ public class VcfSummaryReportTest {
 				for(int j = 0; j < 12; j ++) {
 					Element recordEle = (Element) headersEle.getChildNodes().item(j);
 					assertEquals( "record" , recordEle .getNodeName() );
-					String key = recordEle.getAttribute(XmlUtils.Sname);
+					String key = recordEle.getAttribute(XmlUtils.sName);
 					if(header.getRecords(key).size() == 1)
 						assertEquals( recordEle.getTextContent() , header.getRecords(key).get(0).toString() );
 					else
@@ -75,7 +75,7 @@ public class VcfSummaryReportTest {
 			else if( headersEle.getAttribute( "FIELD" ).equals( "qPG" ) ) {
 				mark[2] = 1;
 				for( Element ele : XmlElementUtils.getChildElementByTagName( headersEle, "record") )
-					assertEquals( ele.getTextContent(), header.getIDRecord("qPG", ele.getAttribute(XmlUtils.Sname)).toString() );					
+					assertEquals( ele.getTextContent(), header.getIDRecord("qPG", ele.getAttribute(XmlUtils.sName)).toString() );					
 			}else if( headersEle.getAttribute( "FIELD" ).equals( "FILTER" ) ) {
 				mark[3] = 1;
 				assertEquals( 1, headersEle.getChildNodes().getLength() );
@@ -124,24 +124,24 @@ public class VcfSummaryReportTest {
 				assertTrue(node.getChildNodes().getLength() > 0 );				
 				Element cnode = (Element) node.getChildNodes().item(0);
 				assertEquals(XmlUtils.metricsEle, cnode.getNodeName() );
-				if(cnode.getAttribute(XmlUtils.Sname).equals(SVTYPE.SNP.toVariantType()))  
-					assertEquals( 2, XmlElementUtils.getChildElementByTagName(cnode, XmlUtils.Svalue).size() );					
+				if(cnode.getAttribute(XmlUtils.sName).equals(SVTYPE.SNP.toVariantType()))  
+					assertEquals( 2, XmlElementUtils.getChildElementByTagName(cnode, XmlUtils.sValue).size() );					
 				 else  
-					assertEquals( 1,  XmlElementUtils.getChildElementByTagName(cnode, XmlUtils.Svalue).size() );				
+					assertEquals( 1,  XmlElementUtils.getChildElementByTagName(cnode, XmlUtils.sValue).size() );				
 			}
 			List<Element> eles = new ArrayList<>();		
 			
  			XmlElementUtils.getOffspringElementByTagName((Element)child, XmlUtils.variableGroupEle).stream() 
-				.filter( e -> e.getAttribute( XmlUtils.Sname ).equals( SampleSummary.genotype ))
-				.forEach( e1 ->     eles.addAll(XmlElementUtils.getChildElementByTagName(e1, XmlUtils.Stally)) );
+				.filter( e -> e.getAttribute( XmlUtils.sName ).equals( SampleSummary.genotype ))
+				.forEach( e1 ->     eles.addAll(XmlElementUtils.getChildElementByTagName(e1, XmlUtils.sTally)) );
 					
 			List<Integer> counts = new ArrayList<>();
 			
-			eles.stream().forEach(e -> 	counts.add(Integer.parseInt(e.getAttribute(XmlUtils.Scount))) );			 			
+			eles.stream().forEach(e -> 	counts.add(Integer.parseInt(e.getAttribute(XmlUtils.sCount))) );			 			
 		    assertEquals( 40, counts.stream().mapToInt(i -> i.intValue()).sum() );
 						
 			// assertTrue( counts == 40*2 );			
-			String sample = child.getAttributes().getNamedItem( XmlUtils.Sname).getNodeValue();
+			String sample = child.getAttributes().getNamedItem( XmlUtils.sName).getNodeValue();
 			if( sample.equals(lastSample) || sample.equals( "control2" ) )  checkLastSampleColumn(child);	
 			else if( sample.equals("test1"))
 					checkTest1(child);
@@ -167,21 +167,21 @@ public class VcfSummaryReportTest {
 		assertEquals( "PASS:." , ele.getAttribute("values"));
 				
 		//check genotype
-		long no = XmlElementUtils.getOffspringElementByTagName( ele,  XmlUtils.Stally ).stream()
-			.filter( e -> e.getAttribute(XmlUtils.Svalue).equals("0/0") && e.getAttribute(XmlUtils.Scount).equals("10")).count();		
+		long no = XmlElementUtils.getOffspringElementByTagName( ele,  XmlUtils.sTally ).stream()
+			.filter( e -> e.getAttribute(XmlUtils.sValue).equals("0/0") && e.getAttribute(XmlUtils.sCount).equals("10")).count();		
 		assertEquals( 1 , no );
-		no = XmlElementUtils.getOffspringElementByTagName( ele,  XmlUtils.Stally ).stream()
-				.filter( e -> e.getAttribute(XmlUtils.Svalue).equals("1/1") && e.getAttribute(XmlUtils.Scount).equals("10")).count();	
+		no = XmlElementUtils.getOffspringElementByTagName( ele,  XmlUtils.sTally ).stream()
+				.filter( e -> e.getAttribute(XmlUtils.sValue).equals("1/1") && e.getAttribute(XmlUtils.sCount).equals("10")).count();	
 		assertEquals( 2 , no );
-		no = XmlElementUtils.getOffspringElementByTagName( ele,  XmlUtils.Stally ).stream()
-				.filter( e -> e.getAttribute(XmlUtils.Svalue).equals("0/1") && e.getAttribute(XmlUtils.Scount).equals("10")).count();	
+		no = XmlElementUtils.getOffspringElementByTagName( ele,  XmlUtils.sTally ).stream()
+				.filter( e -> e.getAttribute(XmlUtils.sValue).equals("0/1") && e.getAttribute(XmlUtils.sCount).equals("10")).count();	
 		assertEquals( 1 , no );
 		
 		// ariantAltFrequencyPercent only from 1/1:5,30,1:36:PASS:.
 		// 31/36 = 86%
-		assertEquals( 1 , XmlElementUtils.getOffspringElementByTagName( ele,  XmlUtils.Sbin ).size() );
-		no = XmlElementUtils.getOffspringElementByTagName( ele,  XmlUtils.Sbin ).stream()
-				.filter( e -> e.getAttribute(XmlUtils.Sstart).equals("85")  && e.getAttribute(XmlUtils.Scount).equals("10")).count();			
+		assertEquals( 1 , XmlElementUtils.getOffspringElementByTagName( ele,  XmlUtils.sBin ).size() );
+		no = XmlElementUtils.getOffspringElementByTagName( ele,  XmlUtils.sBin ).stream()
+				.filter( e -> e.getAttribute(XmlUtils.sStart).equals("85")  && e.getAttribute(XmlUtils.sCount).equals("10")).count();			
 //				.filter( e -> e.getAttribute(XmlUtils.Sstart).equals("85") && e.getAttribute(XmlUtils.Send).equals("90") && e.getAttribute(XmlUtils.Scount).equals("10")).count();			
 		assertEquals( 1 , no );
 				
@@ -200,24 +200,24 @@ public class VcfSummaryReportTest {
 		assertEquals( 1, XmlElementUtils.getOffspringElementByTagName( (Element) child,  "report" ).stream()
 				.filter( e -> e.getAttribute("values").equals(value) ).count() );		
 		//check genotype
-		long no = XmlElementUtils.getOffspringElementByTagName( (Element) child,  XmlUtils.Stally ).stream()
-			.filter( e -> e.getAttribute(XmlUtils.Svalue).equals("0/1") && e.getAttribute(XmlUtils.Scount).equals("10")).count();		
+		long no = XmlElementUtils.getOffspringElementByTagName( (Element) child,  XmlUtils.sTally ).stream()
+			.filter( e -> e.getAttribute(XmlUtils.sValue).equals("0/1") && e.getAttribute(XmlUtils.sCount).equals("10")).count();		
 		assertEquals( 1 , no );
-		no = XmlElementUtils.getOffspringElementByTagName( (Element) child,  XmlUtils.Stally ).stream()
-				.filter( e -> e.getAttribute(XmlUtils.Svalue).equals("1/2") && e.getAttribute(XmlUtils.Scount).equals("10")).count();	
+		no = XmlElementUtils.getOffspringElementByTagName( (Element) child,  XmlUtils.sTally ).stream()
+				.filter( e -> e.getAttribute(XmlUtils.sValue).equals("1/2") && e.getAttribute(XmlUtils.sCount).equals("10")).count();	
 		assertEquals( 2 , no );
-		no = XmlElementUtils.getOffspringElementByTagName( (Element) child,  XmlUtils.Stally ).stream()
-				.filter( e -> e.getAttribute(XmlUtils.Svalue).equals("0/2") && e.getAttribute(XmlUtils.Scount).equals("10")).count();	
+		no = XmlElementUtils.getOffspringElementByTagName( (Element) child,  XmlUtils.sTally ).stream()
+				.filter( e -> e.getAttribute(XmlUtils.sValue).equals("0/2") && e.getAttribute(XmlUtils.sCount).equals("10")).count();	
 		assertEquals( 1 , no );
 								
 		//titv will be done on sampleSummayTest		
 		//ariantAltFrequencyPercent
-		assertEquals( 2 , XmlElementUtils.getOffspringElementByTagName( (Element) child,  XmlUtils.Sbin ).size() );
-		no = XmlElementUtils.getOffspringElementByTagName( (Element) child,  XmlUtils.Sbin ).stream()
-				.filter( e -> e.getAttribute(XmlUtils.Sstart).equals("45")  && e.getAttribute(XmlUtils.Scount).equals("10")).count();			
+		assertEquals( 2 , XmlElementUtils.getOffspringElementByTagName( (Element) child,  XmlUtils.sBin ).size() );
+		no = XmlElementUtils.getOffspringElementByTagName( (Element) child,  XmlUtils.sBin ).stream()
+				.filter( e -> e.getAttribute(XmlUtils.sStart).equals("45")  && e.getAttribute(XmlUtils.sCount).equals("10")).count();			
 		assertEquals( 1 , no );	
-		no = XmlElementUtils.getOffspringElementByTagName( (Element) child,  XmlUtils.Sbin ).stream()
-				.filter( e -> e.getAttribute(XmlUtils.Sstart).equals("95")  && e.getAttribute(XmlUtils.Scount).equals("10")).count();			
+		no = XmlElementUtils.getOffspringElementByTagName( (Element) child,  XmlUtils.sBin ).stream()
+				.filter( e -> e.getAttribute(XmlUtils.sStart).equals("95")  && e.getAttribute(XmlUtils.sCount).equals("10")).count();			
 		assertEquals( 1 , no );			
 	}
 
@@ -239,7 +239,7 @@ public class VcfSummaryReportTest {
 				sr.toXml(root);				
 				List<Element> samples = XmlElementUtils.getOffspringElementByTagName(root, "sample");
 				assertEquals(4, samples.size());
-				assertEquals(1, samples.stream().filter( e -> e.getAttribute(XmlUtils.Sname).equals(lastSample)).count()) ;	
+				assertEquals(1, samples.stream().filter( e -> e.getAttribute(XmlUtils.sName).equals(lastSample)).count()) ;	
 				assertEquals(4, XmlElementUtils.getOffspringElementByTagName(root, "report").size());
 				XmlElementUtils.getOffspringElementByTagName(root, "report").forEach(e -> assertEquals( 0, e.getAttributes().getLength()) );				 
 			} catch (Exception e) { fail("unexpected error"); }
@@ -252,9 +252,9 @@ public class VcfSummaryReportTest {
 				sr.toXml(root);				
 				List<Element> samples = XmlElementUtils.getOffspringElementByTagName(root, "sample");
 				assertEquals(4, samples.size());
-				assertEquals(1, samples.stream().filter( e -> e.getAttribute(XmlUtils.Sname).equals(lastSample)).count()) ;	
+				assertEquals(1, samples.stream().filter( e -> e.getAttribute(XmlUtils.sName).equals(lastSample)).count()) ;	
 				assertEquals(6, XmlElementUtils.getOffspringElementByTagName(root, "report").size());				
-				Element child =  samples.stream().filter( e -> e.getAttribute(XmlUtils.Sname).equals("test1")).findFirst().get();
+				Element child =  samples.stream().filter( e -> e.getAttribute(XmlUtils.sName).equals("test1")).findFirst().get();
 				checkTest1(child);							 
 			} catch (Exception e) { fail("unexpected error"); }
 			
@@ -369,10 +369,10 @@ public class VcfSummaryReportTest {
 		
 		//check SNV, there is no gt so no titv
 		Element snvE = (Element) ele.getFirstChild();		
-		for( Element e : XmlElementUtils.getChildElementByTagName(snvE, XmlUtils.Svalue) )
-			if(e.getAttribute(XmlUtils.Sname).equals("inDBSNP"))  
+		for( Element e : XmlElementUtils.getChildElementByTagName(snvE, XmlUtils.sValue) )
+			if(e.getAttribute(XmlUtils.sName).equals("inDBSNP"))  
 				assertEquals("20", e.getTextContent() );  //dbsnp always same for all sample
-			else if(e.getAttribute(XmlUtils.Sname).equals("TiTvRatio"))  
+			else if(e.getAttribute(XmlUtils.sName).equals("TiTvRatio"))  
 				assertEquals("0.00", e.getTextContent() );
 			 					
 		for(int i = 0; i < 3; i ++){
@@ -380,14 +380,14 @@ public class VcfSummaryReportTest {
 			assertEquals(XmlUtils.metricsEle, e.getNodeName() );						
 			assertEquals(1, XmlElementUtils.getChildElementByTagName( e, XmlUtils.variableGroupEle ).size());
 			Element e1 = XmlElementUtils.getChildElementByTagName( e, XmlUtils.variableGroupEle ).get(0);
-			assertEquals(1, XmlElementUtils.getChildElementByTagName(e1, XmlUtils.Stally).size());
-			e1 = XmlElementUtils.getChildElement(e1,  XmlUtils.Stally, 0);
-			assertEquals(".", e1.getAttribute(XmlUtils.Svalue));
+			assertEquals(1, XmlElementUtils.getChildElementByTagName(e1, XmlUtils.sTally).size());
+			e1 = XmlElementUtils.getChildElement(e1,  XmlUtils.sTally, 0);
+			assertEquals(".", e1.getAttribute(XmlUtils.sValue));
 			
-			if( e.getAttribute( XmlUtils.Sname).equals(SVTYPE.SNP.toVariantType() )  ) 				
-				assertEquals("20",  e1.getAttribute( XmlUtils.Scount));
+			if( e.getAttribute( XmlUtils.sName).equals(SVTYPE.SNP.toVariantType() )  ) 				
+				assertEquals("20",  e1.getAttribute( XmlUtils.sCount));
 			else 				
-				assertEquals("10",  e1.getAttribute( XmlUtils.Scount));
+				assertEquals("10",  e1.getAttribute( XmlUtils.sCount));
 			
 		}
 		

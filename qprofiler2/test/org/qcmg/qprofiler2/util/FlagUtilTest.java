@@ -115,11 +115,11 @@ public class FlagUtilTest {
 		XmlUtils.outputTallyGroup( root , "FLAG", flagBinaryCount, true);	
 		
 		//check output
-		List<Element> tallys =  XmlElementUtils.getChildElementByTagName(XmlElementUtils.getChildElement( root, XmlUtils.variableGroupEle,0), XmlUtils.Stally );
+		List<Element> tallys =  XmlElementUtils.getChildElementByTagName(XmlElementUtils.getChildElement( root, XmlUtils.variableGroupEle,0), XmlUtils.sTally );
 		assertEquals( 2, tallys.size() );
 		
-		assertEquals( 1, tallys.stream().filter( e -> e.getAttribute(XmlUtils.Scount).equals("1")  &&  e.getAttribute(XmlUtils.Svalue).equals("000001100011, pPR1")).count() );
-		assertEquals( 1, tallys.stream().filter( e -> e.getAttribute(XmlUtils.Scount).equals("2")  &&  e.getAttribute(XmlUtils.Svalue).equals("000010010011, pPr2")).count() );
+		assertEquals( 1, tallys.stream().filter( e -> e.getAttribute(XmlUtils.sCount).equals("1")  &&  e.getAttribute(XmlUtils.sValue).equals("000001100011, pPR1")).count() );
+		assertEquals( 1, tallys.stream().filter( e -> e.getAttribute(XmlUtils.sCount).equals("2")  &&  e.getAttribute(XmlUtils.sValue).equals("000010010011, pPr2")).count() );
 	}
 
 }
