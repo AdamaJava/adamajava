@@ -17,7 +17,7 @@ dependencies {
 }
 
 //create a fat jar file only for dispatching our qprofiler to outside
-/* 
+/*
 task fatJar(type: Jar ) {
 	baseName = project.name + '-all'
 	version = "$version"
@@ -29,7 +29,7 @@ task fatJar(type: Jar ) {
 				   'Implementation-Version': "$version ($revision)",
 				   'Built-By': System.properties['user.name'],
 				   'Date': new java.util.Date().toString(),
-				   'Main-Class' : mainclass,
+				   'Main-Class' : mainClassName,
 				   'Class-Path' : "${baseName}-${version}.jar"
 				  
 	 }
@@ -38,5 +38,4 @@ task fatJar(type: Jar ) {
 
 artifacts { archives fatJar }
 */
- 
 
