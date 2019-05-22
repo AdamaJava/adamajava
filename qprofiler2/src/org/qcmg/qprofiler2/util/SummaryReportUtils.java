@@ -34,8 +34,8 @@ public class SummaryReportUtils {
 	
 	/**
 	 * count how many invalid char ('.' or 'N';) on a given read base array, then record the counts to the given array
-	 * @param data: read base
-	 * @param array: increment(number of invalid char)
+	 * @param data read base
+	 * @param array increment(number of invalid char)
 	 */
 	public static void tallyBadReadsAsString(byte[] data, QCMGAtomicLongArray array) {
 		if (null != data) {
@@ -54,9 +54,9 @@ public class SummaryReportUtils {
 	
 	/**
 	 * how many quality base value is below then 10, then record this count to specified array
-	 * @param data : base quality array, each base quality is acsii - 33; eg. string in read column 11th "()FF...", equal to "7,8,37,37..."
+	 * @param data  base quality array, each base quality is acsii - 33; eg. string in read column 11th "()FF...", equal to "7,8,37,37..."
 	 * 				FastqRecord.getBaseQualities() and samRecord.getBaseQualities() return array already -33
-	 * @param array: an array to storre the bad base count for each bam record
+	 * @param array an array to storre the bad base count for each bam record
 	 */
 	public static void tallyQualScores(byte [] data, QCMGAtomicLongArray array) {
 		if (null != data) {

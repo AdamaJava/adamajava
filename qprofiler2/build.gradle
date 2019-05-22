@@ -31,11 +31,8 @@ task fatJar(type: Jar ) {
 				   'Date': new java.util.Date().toString(),
 				   'Main-Class' : mainClassName,
 				   'Class-Path' : "${baseName}-${version}.jar"
-				  
 	 }
 	exclude 'META-INF/.RSA', 'META-INF/.SF','META-INF/*.DSA'
 }
-
 artifacts { archives fatJar }
 */
-

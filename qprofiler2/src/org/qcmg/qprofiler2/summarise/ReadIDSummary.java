@@ -5,8 +5,6 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
@@ -15,9 +13,7 @@ import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Element;
 
 public class ReadIDSummary {
-//	public final static String empty = "empty";
-	public final static String OTHER = "others";
-	static final int MAX_POOL_SIZE = 500;
+static final int MAX_POOL_SIZE = 500;
 	static final int TALLY_SIZE = MAX_POOL_SIZE/5;
 	
 	//pattern predict
@@ -64,7 +60,7 @@ public class ReadIDSummary {
 
 	/**
 	 * recognize known pattern, re-arrange split string
-	 * @param parts: split string of read name
+	 * @param parts split string of read name
 	 * @return RNPattern for that read name
 	 */
 	public   RNPattern getPattern(String[] parts) {	
@@ -210,58 +206,58 @@ public class ReadIDSummary {
 				
 			case SevenColon_andMore:	
 			case SixColon: //record element 0~4	 
-				updateMap( columns[4], elements[4]);	
-				updateMap( columns[3], elements[3]);				
+				XmlUtils.updateMapWithLimit( columns[4], elements[4],TALLY_SIZE);	
+				XmlUtils.updateMapWithLimit( columns[3], elements[3],TALLY_SIZE);					
 			case FiveColon:		
 			case FourColon: //record element 0~2
-				updateMap( columns[2], elements[2]);
-				updateMap( columns[1], elements[1]);				
+				XmlUtils.updateMapWithLimit( columns[2], elements[2],TALLY_SIZE);	
+				XmlUtils.updateMapWithLimit( columns[1], elements[1],TALLY_SIZE);					
 			case ThreeColon:		
 		    case TwoColon: //record element 0	
 		    case OneColon: //record element 0	 	    	
 			case NoColon_NCBI: //eg.  SRR3083868.47411824
-				updateMap( columns[0], elements[0]);
+				XmlUtils.updateMapWithLimit( columns[0], elements[0],TALLY_SIZE);	
 				break;
 							
 			case NoColon_BGI:
 				//"<Flow Cell Id><lane><tile><pos>"
-				updateMap( tileNumbers,  elements[2] );	 //too many tile number, so skip it for checking whether uniq			
-				isUpdated = updateMap(flowCellIds, elements[0]);
+				XmlUtils.updateMapWithLimit( tileNumbers,  elements[2] ,TALLY_SIZE);		 //too many tile number, so skip it for checking whether uniq			
+				isUpdated = XmlUtils.updateMapWithLimit(flowCellIds, elements[0],TALLY_SIZE);	
 				//updatedMap must before "|| isUpdated" if isUpdated == true, flowCellLanes will not be updated. 
-				isUpdated = updateMap(flowCellLanes,  elements[1] ) || isUpdated;	
+				isUpdated = XmlUtils.updateMapWithLimit(flowCellLanes,  elements[1],TALLY_SIZE) || isUpdated;	
 				break;
 				
 		   case  TwoColon_Torrent:
 				//TwoColon_Torrent("<Run Id>:<X Pos>:<Y Pos>"),  // pattern 4 : <Run> : <X Pos> : <Y Pos>  eg. WR6H1:09838:13771 0ZT4V:02282:09455
-				isUpdated = updateMap(runIds, elements[0]);
+				isUpdated = XmlUtils.updateMapWithLimit(runIds, elements[0],TALLY_SIZE);	
 				break;
 				
 		   case FourColon_OlderIllumina:
 				//FourColon_OlderIllumina("<InstrumentS>:<lane>:<tile>:<X Pos>:<Y Pos><#index></pair>"),
-				updateMap(indexes, elements[5]);	
+				XmlUtils.updateMapWithLimit(indexes, elements[5],TALLY_SIZE);		
 				if(elements[6] != null)
-					updateMap(pairs, elements[6]);	
+					XmlUtils.updateMapWithLimit(pairs, elements[6],TALLY_SIZE);		
 				//no break here, below code work for both FourColon_OlderIllumina and FourColon_OlderIlluminaWithoutIndex
 		   case FourColon_OlderIlluminaWithoutIndex:
 				//FourColon_OlderIlluminaWithoutIndex("<InstrumentS>:<lane>:<tile>:<X Pos>:<Y Pos>"),
-				updateMap( tileNumbers,  elements[2] );	 //too many tile number, so skip it for checking whether uniq	
-				isUpdated = updateMap(instruments, elements[0]) || updateMap(flowCellLanes,  elements[1] );	
+				XmlUtils.updateMapWithLimit( tileNumbers,  elements[2],TALLY_SIZE);		 //too many tile number, so skip it for checking whether uniq	
+				isUpdated = XmlUtils.updateMapWithLimit(instruments, elements[0],TALLY_SIZE) || XmlUtils.updateMapWithLimit(flowCellLanes,  elements[1] ,TALLY_SIZE);		
 				break;
 		    
 		   case SixColon_Illumina:    // code block				
 			   //"<instrument>:<run id>:<Flow Cell Id> :<lane>:<tile>:<X Pos>:<Y Pos>"
-				updateMap(tileNumbers, elements[4] );
-				isUpdated = updateMap(instruments,  elements[0]);
-				isUpdated = updateMap(runIds, elements[1])|| isUpdated;	;
-				isUpdated = updateMap(flowCellIds, elements[2])|| isUpdated;	;
-				isUpdated = updateMap(flowCellLanes, elements[3])|| isUpdated;	;	  
+				XmlUtils.updateMapWithLimit(tileNumbers, elements[4],TALLY_SIZE);
+				isUpdated = XmlUtils.updateMapWithLimit(instruments,  elements[0],TALLY_SIZE);	
+				isUpdated = XmlUtils.updateMapWithLimit(runIds, elements[1],TALLY_SIZE)|| isUpdated;	;
+				isUpdated = XmlUtils.updateMapWithLimit(flowCellIds, elements[2],TALLY_SIZE)|| isUpdated;	;
+				isUpdated = XmlUtils.updateMapWithLimit(flowCellLanes, elements[3],TALLY_SIZE)|| isUpdated;	;	  
 				break;	   		   
 
 		   default:
 		}
 		
 		//record this qName
-		isUpdated = updateMap( patterns, pattern.toString() )|| isUpdated;	;
+		isUpdated = XmlUtils.updateMapWithLimit( patterns, pattern.toString() ,TALLY_SIZE)|| isUpdated;	;
 		select2Queue(  readId,   isUpdated );	 
 	}
 	
@@ -310,9 +306,9 @@ public class ReadIDSummary {
 		XmlUtils.outputTallyGroup( element,  "Flow Cell Id", flowCellIds , false );
 		XmlUtils.outputTallyGroup( element,  "Run Id", runIds , false );
 		XmlUtils.outputTallyGroup( element,  "Flow Cell Lane", flowCellLanes , false );
-		outputTallyGroup(element,  "Tile Number", tileNumbers);
-		outputTallyGroup( element,  "Pair infomation", pairs);
-		outputTallyGroup( element,  "Index", indexes );
+		XmlUtils.outputTallyGroupWithSize(element,  "Tile Number", tileNumbers, TALLY_SIZE);
+		XmlUtils.outputTallyGroupWithSize( element,  "Pair infomation", pairs, TALLY_SIZE);
+		XmlUtils.outputTallyGroupWithSize( element,  "Index", indexes , TALLY_SIZE);
 		//merge two pool together
 		pool_random.addAll(pool_uniq);
 		
@@ -324,33 +320,4 @@ public class ReadIDSummary {
 			XmlUtils.outputValueNode(element, pool_random.get(pos), 1);
 		}	
 	}
-	
-	private void outputTallyGroup(Element parent, String name, Map<String, AtomicLong> tallys) {
-		Element e1 = XmlUtils.outputTallyGroup( parent, name, tallys , false );
-		if(e1 != null ) {
-			String v1 = (tallys.size() < TALLY_SIZE )? tallys.size()+"" : TALLY_SIZE + "+";
-			e1.setAttribute("no", v1);
-		}
-	}
-
-	/**
-	 *  
-	 * @param <T>
-	 * @param map
-	 * @param key
-	 * @return true if it is a new key added
-	 */
-	private  boolean updateMap(ConcurrentMap<String, AtomicLong> map , String key) {
-		boolean isNew = false; 
-		String key1 = key;	 	
-		if(!map.containsKey(key1)) { 
-			if(map.size() >= TALLY_SIZE ) {key1 = OTHER;}
-			isNew = true; 
-		} 
-		
-		map.computeIfAbsent(key1, k -> new AtomicLong()).incrementAndGet();
-		 
-		return isNew; 
-	}	
-	
 }

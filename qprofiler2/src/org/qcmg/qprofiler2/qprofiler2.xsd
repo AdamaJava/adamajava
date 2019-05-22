@@ -73,8 +73,8 @@
 	  <xs:complexType>
 			<xs:attribute type="xs:integer" name="start" use="required"/> 
 			<xs:attribute type="xs:integer" name="count" use="required"/>    	
-	     	<xs:attribute type="xs:integer" name="end" use="required"/>
-	  </xs:complexType>	  
+	    <xs:attribute type="xs:integer" name="end" use="required"/>
+	  </xs:complexType>
 	</xs:element>
 
    <xs:complexType name="cycleType">
@@ -84,9 +84,7 @@
 	   <xs:attribute type="xs:int" name="cycle" use="required"/> 
 	   <xs:attribute type="xs:int" name="count" use="required"/> 
    </xs:complexType>
- 
-
-   
+  
    <xs:complexType name="groupType">
 	   <xs:choice>
 			<xs:sequence> 
@@ -100,30 +98,28 @@
 			</xs:sequence>			
 			<xs:element name="baseCycle" maxOccurs="unbounded" type="cycleType"/>
 		</xs:choice>
-	 <xs:attribute type="xs:string" name="name" use="required"/> 
+	  <xs:attribute type="xs:string" name="name" use="required"/> 
 	  <xs:attribute type="xs:integer" name="count" use="optional"/>
 	  <xs:attribute type="xs:integer" name="binSize" use="optional"/>
 	  <xs:attribute type="xs:integer" name="tallyCount" use="optional"/>
 	  <!--  xs:assert test="2 > count(@binSize) + count(@tallyCount) + count(@count)"/-->
   </xs:complexType>
 
-    <xs:complexType name="SequenceMetricsType">
-    
-	     <xs:choice>
-		     <xs:sequence>
+  <xs:complexType name="SequenceMetricsType">   
+    <xs:choice>
+		   <xs:sequence>
 			     <xs:element name="variableGroup" maxOccurs="unbounded" type="groupType"/>
-		     </xs:sequence>
-		     <xs:sequence>
-			     <xs:element ref="value" maxOccurs="unbounded"/>
-		     </xs:sequence>			
-	     </xs:choice>
-    
+		   </xs:sequence>
+		   <xs:sequence>
+			    <xs:element ref="value" maxOccurs="unbounded"/>
+		   </xs:sequence>			
+    </xs:choice>  
     <xs:attribute type="xs:integer" name="count" use="optional"/>
     <xs:attribute type="xs:integer" name="readCount" use="optional"/>
     <xs:attribute type="xs:integer" name="pairCount" use="optional"/>
     <xs:attribute type="xs:string" name="name" use="optional"/>    
     <!--  xs:assert test="2 > count(@readCount) + count(@pairCount) + count(@count)"/ -->
-   </xs:complexType>
+  </xs:complexType>
 
   <xs:complexType name="SequenceMetricsGroup">
 	<xs:sequence>	
@@ -144,9 +140,9 @@
 			  </xs:sequence>
 			</xs:complexType>	
 			<xs:unique name="nametype1">
-	      		<xs:selector xpath="."/>
-	      		<xs:field xpath="@rgId"/> 			
-      		</xs:unique>  		 
+	      	<xs:selector xpath="."/>
+	        <xs:field xpath="@rgId"/> 			
+      </xs:unique>  		 
 		</xs:element>
 		<xs:element name="sequenceMetrics" minOccurs="0" maxOccurs="unbounded"  type="SequenceMetricsType">
 			<xs:annotation>
@@ -160,7 +156,7 @@
     <xs:complexType name="headerType">
     <xs:sequence>       
       <xs:element name="headerRecords" maxOccurs="unbounded"> 
-	 	<xs:complexType>
+	  	<xs:complexType>
 		     <xs:sequence>
 			     <xs:element name="record"    maxOccurs="unbounded" >
 				 	<xs:complexType>
@@ -229,23 +225,23 @@
       </xs:element> 
             
       <xs:element name="vcfMetrics">
-	 	<xs:complexType>
+	 	   <xs:complexType>
 		     <xs:sequence>
 			     <xs:element name="sample" maxOccurs="unbounded">
-				   <xs:complexType >
-					<xs:sequence> 						
-						<xs:element name="report" maxOccurs="unbounded">
-						   <xs:complexType >
-							<xs:sequence> 
-								<xs:element name="sequenceMetrics" maxOccurs="unbounded" type="SequenceMetricsType"/>	
-							</xs:sequence>
-							 <xs:attribute type="xs:string" name="formats" use="optional"/> 
-							 <xs:attribute type="xs:string" name="values" use="optional"/> 
-						  </xs:complexType>			     			     
+				    <xs:complexType >
+					   <xs:sequence> 						
+						 <xs:element name="report" maxOccurs="unbounded">
+						    <xs:complexType >
+							    <xs:sequence> 
+							   	  <xs:element name="sequenceMetrics" maxOccurs="unbounded" type="SequenceMetricsType"/>	
+							    </xs:sequence>
+							    <xs:attribute type="xs:string" name="formats" use="optional"/> 
+							    <xs:attribute type="xs:string" name="values" use="optional"/> 
+						    </xs:complexType>			     			     
 					     </xs:element> 
-					</xs:sequence>
-					 <xs:attribute type="xs:string" name="sid" use="required"/> 
-				  </xs:complexType>			     			     
+				  	 </xs:sequence>
+					   <xs:attribute type="xs:string" name="sid" use="required"/> 
+				    </xs:complexType>			     			     
 			     </xs:element> 
 		     </xs:sequence>
 	    </xs:complexType>             

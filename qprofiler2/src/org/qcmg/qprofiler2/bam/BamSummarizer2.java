@@ -78,8 +78,7 @@ public class BamSummarizer2 implements Summarizer {
 		// create the SummaryReport		
         BamSummaryReport2 bamSummaryReport = createReport(new File(input),  maxRecords, isFullBamHeader);
       		
-		boolean logLevelEnabled = logger.isLevelEnabled(QLevel.DEBUG);
-		
+		boolean logLevelEnabled = logger.isLevelEnabled(QLevel.DEBUG);		
 		long currentRecordCount = 0;
 	
 		for (SAMRecord samRecord : reader) {			

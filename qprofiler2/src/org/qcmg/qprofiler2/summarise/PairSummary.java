@@ -17,7 +17,7 @@ public class PairSummary {
 
 	/**
 	 *  
-	 * @param record: a samRrecord
+	 * @param record a samRrecord
 	 * @return 0 if record with negative tLen value or secondOfPair with zero tLen value ; otherwise return the overlapped base counts
 	 */
     public static int getOverlapBase(SAMRecord  record) {
@@ -93,37 +93,7 @@ public class PairSummary {
 	public final Pair type;
 	public final Boolean isProperPair; 
 	public PairSummary( Pair pair, boolean isProper){this.type = pair; this.isProperPair = isProper;}
-	
-	/*
-	 * I decide not to override equals and hashCode method. 
-	 * The original plan is to create unique PairSummary based on pair orientation and ProperPair flag. 
-	 * However, two objects may have the same Pair and flag but still possible have different counts. 
-	 * They should be considered non-equal.
-	 */
-//	@Override
-//	public boolean equals(Object obj) {
-//		
-//		if (obj == null ) return false;	
-//		if (!(obj instanceof PairSummary)) return false;
-//		
-//		if(this.type == null || ((PairSummary) obj).type == null ) { 
-//			return false;		
-//		}
-//		
-//		if( ((PairSummary) obj).type.equals(this.type)  &&
-//				((PairSummary) obj).isProperPair == this.isProperPair ) {
-//			return true;
-//		}
-//		
-//		return false;
-//	}
-//	
-//	@Override
-//	public int hashCode() {	
-//		if(type == null ) return 0; 
-//		
-//	    return isProperPair? this.type.id  : this.type.id * -1;	    
-//	}
+
 	
 	//fixed value
 	public final static int bigTlenValue = 10000;

@@ -90,7 +90,7 @@ public class VcfSummaryReport  extends SummaryReport {
 		Element summaryElement =  XmlElementUtils.createSubElement(parent,  ProfileType.VCF.getReportName()+"Metrics" );		
 		for( String sample : summaries.keySet() ) {	
 			Element ele =  XmlElementUtils.createSubElement( summaryElement, Sample);
-			ele.setAttribute(XmlUtils.Sname, sample);
+			ele.setAttribute(XmlUtils.sName, sample);
 						
 			for(String cates : summaries.get(sample).keySet() ) {			
 				if( formatsTypes.isEmpty() ) {
