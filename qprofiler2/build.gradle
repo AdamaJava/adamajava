@@ -34,4 +34,6 @@ task fatJar(type: Jar ) {
 		exclude 'META-INF/.RSA', 'META-INF/.SF','META-INF/*.DSA'		
 }
 
-//artifacts { archives fatJar }
+//leave out: artifacts { archives fatJar }.
+//we don't want to publish automaitcally at moment, but may require it in soon further. 
+//create the fatJar unless we call this task
