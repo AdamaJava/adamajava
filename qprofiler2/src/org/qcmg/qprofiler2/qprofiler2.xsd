@@ -104,11 +104,10 @@
 	  <xs:attribute type="xs:integer" name="count" use="optional"/>
 	  <xs:attribute type="xs:integer" name="binSize" use="optional"/>
 	  <xs:attribute type="xs:string" name="tallyCount" use="optional"/>
-	  <xs:assert test="2 > count(@binSize) + count(@tallyCount)"/>
+	  <!--  xs:assert test="2 > count(@binSize) + count(@tallyCount)" -->
   </xs:complexType>
 
-    <xs:complexType name="SequenceMetricsType">
-    
+    <xs:complexType name="SequenceMetricsType">    
 	     <xs:choice>
 		     <xs:sequence>
 			     <xs:element name="variableGroup" maxOccurs="unbounded" type="groupType"/>
@@ -116,13 +115,12 @@
 		     <xs:sequence>
 			     <xs:element ref="value" maxOccurs="unbounded"/>
 		     </xs:sequence>			
-	     </xs:choice>
-    
+	     </xs:choice>    
     <xs:attribute type="xs:integer" name="count" use="optional"/>
     <xs:attribute type="xs:integer" name="readCount" use="optional"/>
     <xs:attribute type="xs:integer" name="pairCount" use="optional"/>
     <xs:attribute type="xs:string" name="name" use="optional"/>
-    <xs:assert test="2 > count(@readCount) + count(@pairCount) + count(@count)"/>
+    <!--  xs:assert test="2 > count(@readCount) + count(@pairCount) + count(@count)" -->
    </xs:complexType>
 
   <xs:complexType name="SequenceMetricsGroup">

@@ -17,22 +17,23 @@ dependencies {
 }
 
 //create a fat jar file only for dispatching our qprofiler to outside
-/*
-task fatJar(type: Jar ) {
-	baseName = project.name + '-all'
-	version = "$version"
-	from { configurations.compile.collect { it.isDirectory() ? it :  zipTree(it) } }
-	with jar
-	
-	manifest {
-		attributes 'Implementation-Title': baseName,
-				   'Implementation-Version': "$version ($revision)",
-				   'Built-By': System.properties['user.name'],
-				   'Date': new java.util.Date().toString(),
-				   'Main-Class' : mainClassName,
-				   'Class-Path' : "${baseName}-${version}.jar"
-	 }
-	exclude 'META-INF/.RSA', 'META-INF/.SF','META-INF/*.DSA'
+task fatJar(type: Jar ) {	
+		baseName = project.name + '-all'
+		version = "$version"
+		from { configurations.compile.collect { it.isDirectory() ? it :  zipTree(it) } }
+		with jar
+		
+		manifest {
+			attributes 'Implementation-Title': baseName,
+					   'Implementation-Version': "$version ($revision)",
+					   'Built-By': System.properties['user.name'],
+					   'Date': new java.util.Date().toString(),
+					   'Main-Class' : mainClassName,
+					   'Class-Path' : "${baseName}-${version}.jar"
+		 }
+		exclude 'META-INF/.RSA', 'META-INF/.SF','META-INF/*.DSA'		
 }
-artifacts { archives fatJar }
-*/
+
+//leave out: artifacts { archives fatJar }.
+//we don't want to publish automaitcally at moment, but may require it in soon further. 
+//create the fatJar unless we call this task
