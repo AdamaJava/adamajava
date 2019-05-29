@@ -52,7 +52,6 @@ public class MatePairsReader {
 
 	}
 
-
 	public Map<String, List<File>> getFilesToRead() {
 		return filesToRead;
 	}
@@ -88,13 +87,16 @@ public class MatePairsReader {
 						String value = dirString + s;
 
 						File file = new File(value);
-						if (filesToRead.containsKey(key)) {  
-							filesToRead.get(key).add(file);
-						} else {
-							List<File> list = new ArrayList<File>();
-							list.add(file);
-							filesToRead.put(key, list); // key: reference name | value: file
-						}                     
+						
+						filesToRead.computeIfAbsent(key, f ->  new ArrayList<>()).add(file);
+						
+//						if (filesToRead.containsKey(key)) {  
+//							filesToRead.get(key).add(file);
+//						} else {
+//							List<File> list = new ArrayList<File>();
+//							list.add(file);
+//							filesToRead.put(key, list); // key: reference name | value: file
+//						}                     
 					}
 				}
 			}
@@ -107,7 +109,7 @@ public class MatePairsReader {
 
 	public List<MatePair> getMatePairsListByFiles(List<File> files, boolean isFindMethod) throws Exception {
 
-		List<MatePair> readPairs = new ArrayList<MatePair>();
+		List<MatePair> readPairs = new ArrayList<>();
 
 		for (File file : files) {
 			try (FileReader fileReader = new FileReader(file);

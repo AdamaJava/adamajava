@@ -15,6 +15,7 @@ import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.meta.QExec;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.LoadReferencedClasses;
+import org.qcmg.qsv.tiledaligner.TiledAlignerUtil;
 import org.qcmg.qsv.util.QSVUtil;
 
 
@@ -88,9 +89,10 @@ public class QSV {
 					//Run the QSV pipeline
 					QSVPipeline pipeline = new QSVPipeline(options, resultsDirectory, analysisDate, analysisId, exec);
 					pipeline.runPipeline();
+					logger.info("SmithWaterman count: " + TiledAlignerUtil.swCounter.get());
 				}
 			}
-		} catch (Exception e) {	
+		} catch (Exception e) {
 		    System.err.println(Messages.USAGE);
 			e.printStackTrace();
 			exitStatus = 1;

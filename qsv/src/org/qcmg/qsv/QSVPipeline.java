@@ -45,9 +45,12 @@ import org.qcmg.qsv.report.DCCReport;
 import org.qcmg.qsv.report.SVCountReport;
 import org.qcmg.qsv.report.SummaryReport;
 import org.qcmg.qsv.softclip.FindClipClustersMT;
+import org.qcmg.qsv.tiledaligner.TiledAlignerLongMap;
 import org.qcmg.qsv.util.CustomThreadPoolExecutor;
 import org.qcmg.qsv.util.QSVConstants;
 import org.qcmg.qsv.util.QSVUtil;
+
+import gnu.trove.map.TIntObjectMap;
 
 /**
  * 
@@ -56,7 +59,8 @@ import org.qcmg.qsv.util.QSVUtil;
  */
 public class QSVPipeline {
 
-
+	public static TIntObjectMap<int[]> TILED_ALIGNER_CACHE;
+	
 	private final QLogger logger = QLoggerFactory.getLogger(QSVPipeline.class);
 	private static final String FILE_SEPERATOR = System.getProperty("file.separator");
 	private QSVParameters normal;
@@ -170,7 +174,7 @@ public class QSVPipeline {
 
 		if (exitStatus.intValue() == 1 || ((CreateParametersCallable) tumourWorker).getExitStatus() == 1) {
 			throw new QSVException ("QSV_PARAMETER_EXCEPTION");
-		}		
+		}
 	}
 
 	/**
@@ -199,6 +203,15 @@ public class QSVPipeline {
 		//add qsv parameters to log file
 		logger.info("Starting QSV pipeline");
 		logQSVParameters();
+		
+		/*
+		 * load tiled aligner cache
+		 */
+		//TODO remove hard-coded values
+		logger.info("loading tiled aligner cache");
+		TILED_ALIGNER_CACHE = TiledAlignerLongMap.getCache("/mnt/backedup/home/oliverH/qsv/regression/output.txt.gz", 64);
+		logger.info("loading tiled aligner cache - DONE");
+		
 
 		logger.debug("Test sample input BAM file size: " + tumor.getInputBamFile().length());
 
@@ -481,7 +494,8 @@ public class QSVPipeline {
 
 		BLAT blat = new BLAT(options.getBlatServer(), options.getBlatPort(), options.getBlatPath());
 
-		FindClipClustersMT worker = new FindClipClustersMT(tumor, normal, softclipDir, blat, tumorRecords, options, analysisId, clipCount);
+		FindClipClustersMT worker = new FindClipClustersMT(tumor, normal, softclipDir, tumorRecords, options, analysisId, clipCount, TILED_ALIGNER_CACHE);
+//		FindClipClustersMT worker = new FindClipClustersMT(tumor, normal, softclipDir, blat, tumorRecords, options, analysisId, clipCount);
 		worker.execute();
 
 		this.somaticCounts = worker.getQSVRecordWriter().getSomaticCount().intValue();

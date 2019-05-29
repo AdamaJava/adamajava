@@ -153,40 +153,44 @@ public class Clip implements Comparable<Clip>{
         return result;
 	}
 
-	public void getClipBases(int[][] bases) {
-		
-		if (this.isLeft) {	
-			int index = bases.length - length -1;			
-			for (int i=0; i<length; i++) {
-				int base = clipSequence.charAt(i);
-				index++;
-				addBase(index, base, bases);
+//	public void getClipBases(int[][] bases) {
+//		getClipBases( bases, isLeft, clipSequence);
+//		if (this.isLeft) {
+//			int index = bases.length - length -1;			
+//			for (int i=0; i<length; i++) {
+//				int base = clipSequence.charAt(i);
+//				index++;
+//				addBase(index, base, bases);
+//			}
+//		} else {
+//			for (int i=0; i<length; i++) {
+//				int base = clipSequence.charAt(i);
+//				addBase(i, base, bases);
+//			}
+//		}
+//	}
+	
+	public static void getClipBases(int[][] bases, boolean isLeft, String clipSequence) {
+		getBases(bases, isLeft, clipSequence, true);
+	}
+	public static void getBases(int[][] bases, boolean isLeft, String sequence, boolean isClip) {
+		int length = sequence.length();
+		if (isLeft && isClip || ( ! isLeft && ! isClip)) {
+			int index = bases.length - length - 1;			
+			for (int i = 0; i < length; i++) {
+				addBase(++index, sequence.charAt(i), bases);
 			}
 		} else {
-			for (int i=0; i<length; i++) {
-				int base = clipSequence.charAt(i);
-				addBase(i, base, bases);
+			for (int i = 0; i < length; i++) {
+				addBase(i, sequence.charAt(i), bases);
 			}
-		}		
+		}
+	}
+	public static void getReferenceBases(int[][] bases, boolean isLeft, String sequence) {
+		getBases(bases, isLeft, sequence, false);
 	}
 	
-	public void getReferenceBases(int[][] bases) {
-		if (this.isLeft) {	
-			for (int i=0; i<referenceSequence.length(); i++) {
-				int base = referenceSequence.charAt(i);
-				addBase(i, base, bases);
-			}
-		} else {			
-			int index = bases.length - referenceSequence.length() -1;
-			for (int i=0; i<referenceSequence.length(); i++) {
-				int base = referenceSequence.charAt(i);
-				index++;				
-				addBase(index, base, bases);
-			}
-		}		
-	}
-
-	private void addBase(int index, int base, int[][] bases) {
+	public static void addBase(int index, int base, int[][] bases) {
 		//ACTGN
 		if (base == 65) {
 			bases[index][0] += 1;

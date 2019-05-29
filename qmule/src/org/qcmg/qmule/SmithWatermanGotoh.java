@@ -10,6 +10,7 @@ package org.qcmg.qmule;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Arrays;
 
 public class SmithWatermanGotoh {
 	
@@ -31,11 +32,15 @@ public class SmithWatermanGotoh {
 	private static final int LEFT = 1;	
 	private static final int DIAGONAL = 2;
 	private static final int UP = 3;
-	private static final String GAP = "-";
-	private static final String EMPTY = " ";
-	private static final String MISMATCH = ".";
-	private static final String MATCH = "|";
-	private static final String TAB = "";
+	private static final char GAP = '-';
+	private static final char EMPTY = ' ';
+	private static final char MISMATCH = '.';
+	private static final char MATCH = '|';
+//	private static final String GAP = "-";
+//	private static final String EMPTY = " ";
+//	private static final String MISMATCH = ".";
+//	private static final String MATCH = "|";
+//	private static final String TAB = "";
 	
 	public SmithWatermanGotoh(File fileA, File fileB, int matchScore, int mismatchScore, float gapOpen, float gapExtend) throws IOException  {
 		
@@ -60,7 +65,7 @@ public class SmithWatermanGotoh {
 		this.mismatchScore =  mismatchScore;
 		this.rows = sequenceA.length() + 1;//i
 		this.columns = sequenceB.length() + 1;//j
-		align();
+		fillMatrix();
 	}
 	
 	private String readFastaFile(File file) throws IOException {
@@ -86,7 +91,7 @@ public class SmithWatermanGotoh {
 
 	private void align() {		
 		fillMatrix();
-		traceback();
+//		traceback();
 //		System.out.println(getDiffs());
 	}
 	
@@ -108,11 +113,11 @@ public class SmithWatermanGotoh {
 		//storage for current calculations
 		float[] bestScores = new float[columns];//score if xi aligns to gap after yi		
 		float[] queryGapScores = new float[columns];//best score of alignment x1..xi to y1..yi
-		
-		for (int i=0; i<columns; i++) {
-			queryGapScores[i] = Float.NEGATIVE_INFINITY;
-			bestScores[i] = 0;
-		}
+		Arrays.fill(queryGapScores, Float.NEGATIVE_INFINITY);
+//		for (int i = 0; i < columns; i++) {
+//			queryGapScores[i] = Float.NEGATIVE_INFINITY;
+//			bestScores[i] = 0;
+//		}
 		
 		float currentAnchorGapScore;// score if yi aligns to a gap after xi
 		float totalSimilarityScore;		
@@ -125,10 +130,10 @@ public class SmithWatermanGotoh {
 		
 		float simScore, queryGapExtendScore, queryGapOpenScore, referenceGapExtendScore, referenceGapOpenScore;
 		
-		for (int row=1; row<rows; row++) {		
+		for (int row = 1; row < rows; row++) {		
 			currentAnchorGapScore = Float.NEGATIVE_INFINITY;
 			bestScoreDiagonal = bestScores[0];
-			for (int column=1; column<columns; column++) {
+			for (int column = 1; column < columns; column++) {
 				simScore = findSimilarity(row, column);
 				totalSimilarityScore = bestScoreDiagonal + simScore;								
 				
@@ -140,8 +145,7 @@ public class SmithWatermanGotoh {
 					//add extend score
 					queryGapScores[column] = queryGapExtendScore;
 					//increase size of gap
-					int gapLength = verticalGaps[row-1][column] + 1;
-					verticalGaps[row][column] = (short) gapLength;  
+					verticalGaps[row][column] = (short) (verticalGaps[row - 1][column] + 1);  
 				} else {
 					//add open score
 					queryGapScores[column] = queryGapOpenScore; 
@@ -155,8 +159,7 @@ public class SmithWatermanGotoh {
 					//add extend score
 					currentAnchorGapScore = referenceGapExtendScore;
 					//increase size of gap					
-					short gapLength = (short) (horizontalGaps[row][column-1] + 1);					
-					horizontalGaps[row][column] = gapLength;  
+					horizontalGaps[row][column] = (short) (horizontalGaps[row][column - 1] + 1);	
 				} else {
 					//add open score
 					currentAnchorGapScore = referenceGapOpenScore; 
@@ -169,7 +172,10 @@ public class SmithWatermanGotoh {
 				//determine trackback direction
 				float score = bestScores[column];
 				if (score == 0) {
-					pointerMatrix[row][column] = STOP;
+					/*
+					 * don't think we need to set this as it should already be zero
+					 */
+//					pointerMatrix[row][column] = STOP;
 				} else if (score == totalSimilarityScore) {
 					pointerMatrix[row][column] = DIAGONAL;
 				} else if (score == queryGapScores[column]) {
@@ -186,29 +192,44 @@ public class SmithWatermanGotoh {
 				}				
 			}
 		}
-	}	
-
+	}
+	
+//	public void afterInitialiseState() {
+//		System.out.println("pointerMatrix: " + Arrays.deepToString(pointerMatrix));
+//		System.out.println("verticalGaps: " + Arrays.deepToString(verticalGaps));
+//		System.out.println("horizontalGaps: " + Arrays.deepToString(horizontalGaps));
+//	}
 
 	private void initialize() {
 		pointerMatrix = new int[rows][columns];
 		verticalGaps = new short[rows][columns];
 		horizontalGaps = new short[rows][columns];
-		for (int i=0; i<rows; i++) {
-			pointerMatrix[i][0] = STOP;
-			if (i==0) {
-				for (int j=0; j<columns; j++) {
-					pointerMatrix[0][j] = STOP;
-				}
-			}
-		}		
 		
-		for (int row=0; row<rows; row++) {
-			for (int column=0; column<columns; column++) {
-				verticalGaps[row][column] = 1;
-				horizontalGaps[row][column] = 1;
-			}
+		for (int row = 0; row < rows; row++) {
+			Arrays.fill(verticalGaps[row], (short) 1);
+			Arrays.fill(horizontalGaps[row], (short) 1);
 		}		
 	}
+//	private void initialize() {
+//		pointerMatrix = new int[rows][columns];
+//		verticalGaps = new short[rows][columns];
+//		horizontalGaps = new short[rows][columns];
+//		for (int i = 0; i < rows; i++) {
+//			pointerMatrix[i][0] = STOP;
+//			if (i == 0) {
+//				for (int j = 0; j < columns; j++) {
+//					pointerMatrix[0][j] = STOP;
+//				}
+//			}
+//		}		
+//		
+//		for (int row = 0; row < rows; row++) {
+//			for (int column = 0; column < columns; column++) {
+//				verticalGaps[row][column] = 1;
+//				horizontalGaps[row][column] = 1;
+//			}
+//		}		
+//	}
 	
 	public String[] traceback() {
 		StringBuilder alignmentA = new StringBuilder();
@@ -225,10 +246,10 @@ public class SmithWatermanGotoh {
 					
 				    //horizontal gap
 					int hEnd = horizontalGaps[rs][cs];
-					for (int i=0; i<hEnd; i++) {
+					for (int i = 0; i < hEnd; i++) {
 						alignmentA.append(GAP);
 						gapString.append(EMPTY);
-						alignmentB.append(sequenceB.charAt(--cs)).append(TAB);
+						alignmentB.append(sequenceB.charAt(--cs));
 					}					
 					break;
 			
@@ -236,8 +257,8 @@ public class SmithWatermanGotoh {
 					
 					char a = sequenceA.charAt(--rs);
 					char b = sequenceB.charAt(--cs);
-					alignmentA.append(a).append(TAB);
-					alignmentB.append(b).append(TAB);
+					alignmentA.append(a);
+					alignmentB.append(b);
 					if (a == b) {
 						gapString.append(MATCH);
 					} else {
@@ -249,10 +270,10 @@ public class SmithWatermanGotoh {
 				case UP:
 					//vertical gap					
 					int vEnd = verticalGaps[rs][cs];
-					for (int i=0; i<vEnd; i++) {
+					for (int i = 0; i < vEnd; i++) {
 						alignmentB.append(GAP);						
 						gapString.append(EMPTY);
-						alignmentA.append(sequenceA.charAt(--rs)).append(TAB);						
+						alignmentA.append(sequenceA.charAt(--rs));						
 					}					
 					break;
 					
@@ -264,6 +285,60 @@ public class SmithWatermanGotoh {
 		
 		return new String[] {alignmentA.reverse().toString(), gapString.reverse().toString(), alignmentB.reverse().toString()};  
 	}
+//	public String[] traceback() {
+//		StringBuilder alignmentA = new StringBuilder();
+//		StringBuilder gapString = new StringBuilder();
+//		StringBuilder alignmentB = new StringBuilder();
+//		
+//		int rs = bestRow;
+//		int cs = bestColumn;
+//		
+//		boolean run = true;
+//		while (run) {
+//			switch(pointerMatrix[rs][cs]) {
+//			case LEFT:		
+//				
+//				//horizontal gap
+//				int hEnd = horizontalGaps[rs][cs];
+//				for (int i = 0; i < hEnd; i++) {
+//					alignmentA.append(GAP);
+//					gapString.append(EMPTY);
+//					alignmentB.append(sequenceB.charAt(--cs)).append(TAB);
+//				}					
+//				break;
+//				
+//			case DIAGONAL:
+//				
+//				char a = sequenceA.charAt(--rs);
+//				char b = sequenceB.charAt(--cs);
+//				alignmentA.append(a).append(TAB);
+//				alignmentB.append(b).append(TAB);
+//				if (a == b) {
+//					gapString.append(MATCH);
+//				} else {
+//					gapString.append(MISMATCH);
+//				}
+//				
+//				break;
+//				
+//			case UP:
+//				//vertical gap					
+//				int vEnd = verticalGaps[rs][cs];
+//				for (int i = 0; i < vEnd; i++) {
+//					alignmentB.append(GAP);						
+//					gapString.append(EMPTY);
+//					alignmentA.append(sequenceA.charAt(--rs)).append(TAB);						
+//				}					
+//				break;
+//				
+//			case STOP:
+//				run = false;
+//				break;		
+//			}
+//		}
+//		
+//		return new String[] {alignmentA.reverse().toString(), gapString.reverse().toString(), alignmentB.reverse().toString()};  
+//	}
 	
 //	public String getDiffs() {
 //		StringBuilder alignmentA = new StringBuilder();
@@ -331,21 +406,21 @@ public class SmithWatermanGotoh {
 //	}
 	
 	private int findSimilarity(int row, int column) {
-		if (sequenceA.charAt(row-1) == sequenceB.charAt(column-1)) {
+		if (sequenceA.charAt(row - 1) == sequenceB.charAt(column - 1)) {
 			return matchScore;
 		} 
 		return mismatchScore;
 	}
 
 	private float findMaximum(float valueA, float valueB, float valueC) {
-		if (valueA <=0 && valueB <=0 && valueC <=0) {
+		if (valueA <= 0 && valueB <= 0 && valueC <= 0) {
 			return 0;
 		}
 		return Math.max(valueA, Math.max(valueB, valueC));
 	}
 	
 	public static void main(String[] args) throws IOException {
-//		String sequence1 = "GAATTCAGTTA";
+//		String sequence1 = "GAATTCAG";
 //		String sequence2 = "GGATCGA";
 //		String sequence1 = "TTGGGCTAAA";
 //		String sequence2 = "TTGGGAACTAAA";
@@ -357,12 +432,91 @@ public class SmithWatermanGotoh {
 //		String sequence2 = "CGATTTCTTGATCACATAGACTTCCATTTTCTACTTTTTCTGAGGTTTCCTCTGGTCCTGGTATGAAGAATGTATTTACCCAAAAGTGAAACATTTTGTGCGAAAAAAAAAAAAGAAAAGAAAAAGAAATGAAATGACATATTTAATTAATGATGTTTTATTTTTTTAAAAAAGAAAATCTGTCACCTATGTTAAACATTTGCAAAAAGTCAACAAAATAAAC";
 //		String sequence1 = "AAATATGCTTCACTTCAGAAGACATTTTCAGGTCTTCACTATCAACTTCATTAGAAATCTGTTTTTCCAATTCAGTATTCACTGTATGTTGGGATGATACTACAAAATTCAGAACATTTGTTATGGCAATGTACAAACAAATTTTAAATTTTCTAACTATAGATATATAAAACATTTGGCTACACTAGAACTTAAATCAGAAGGTATTCATCAAAGCAGACAATT";
 //		String sequence2 = "GAATATGCTTCACTTCAGAAGACATTTTCATTTCTTCACTATCAGTCTCATTAGAAATCTGTTTTTCCAATTCGGTATTCACTGTATGTTGGGATGATATTACAAAATTCAGAACATTTGTTATGGTAATGTACAAACAAATTTTAAATTTTCTAACTATAGATATATAAAACATTTGGCTACACTAGAACTTAAATCAGAAGGTATTCATCAAAGCAGACAATT";
+
+		String ref=("aaaagaaccaggagggcacatgggcatggggagtgatgaaccagagaaag"+
+				"ctgctgtctttctgggcaagtgccaagcaacggatcacccttgaccccta"+
+				"GGAAAGAAAAAGAAGAAAACCCGAGGTGATCATTTTAAACTTCGCTTCCG"+
+				"AAAAAACTTTCAGGCCCTGTTGGAGGAGCAGgtgagaggagggtcggcct"+
+				"gggaggaccccacagggaaggggtgagcctggcccgggcaggtgttcgct"+
+				"gcgtgggtgggcggaggagttctagagccggccccttgtctctgcagAAC"+
+				"TTGAGTGTGGCCGAGGGCCCTAACTACCTGACGGCCTGTGCGGGACCCCC"+
+				"ATCGCGGCCCCAGCGCCCCTTCTGTGCTGTCTGTGGCTTCCCATCCCCCT"+
+				"ACACCTGTGTCAGCTGCGGTGCCCGGTACTGCACTGTGCGCTGTCTGGGG"+
+				"ACCCACCAGGAGACCAGgtgagcatgagacctgctgtccactcccactcc"+
+				"ctccttcccacagcctccccagacctctctcccctcatcctggcttcccc"+
+				"tctgtctgcagGTGTCTGAAGTGGACTGTGTGAGCCTGGGCATTCCCAGA"+
+				"GAGGAAGGGCCGCTGTGCACTGCCCGGCCTTCAGAAAGACAGAATTTCAT"+
+				"CACCCAATGCAGGGGGAGCTCTTCCTGGACCAAGGGAGGAGCCGCTCATT"+
+				"CACCCaacaaaactgtgtcttatctgccaggaaagaccagcctcactcct"+
+				"gggaactgtctggcaggtaggctgggccccccagtgctgttagaataaaa"+
+				"agcct").toUpperCase();
+		String ref2 = "AAAAAGAACCAGGAGGGCACATGGGCATGGGGAGTGATGAACCAGAGAAAGCTGCTGTCTTTCTGGGCAAGTGCCAAGCAACGGATCACCCTTGACCCCTAGGAAAGAAAAAGAAGAAAACCCGAGGTGATCATTTTAAACTTCGCTTCCGAAAAAACTTTCAGGCCCTGTTGGAGGAGCAGGTGAGAGGAGGGTCGGCCTGGGAGGACCCCACAGGGAAGGGGTGAGCCTGGCCCGGGCAGGTGTTCGCTGCGTGGGTGGGCGGAGGAGTTCTAGAGCCGGCCCCTTGTCTCTGCAGAACTTGAGTGTGGCCGAGGGCCCTAACTACCTGACGGCCTGTGCGGGACCCCCATCGCGGCCCCAGCGCCCCTTCTGTGCTGTCTGTGGCTTCCCATCCCCCTACACCTGTGTCAGCTGCGGTGCCCGGTACTGCACTGTGCGCTGTCTGGGGACCCACCAGGAGACCAGGTGAGCATGAGACCTGCTGTCCACTCCCACTCCCTCCTTCCCACAGCCTCCCCAGACCTCTCTCCCCTCATCCTGGCTTCCCCTCTGTCTGCAGGTGTCTGAAGTGGACTGTGTGAGCCTGGGCATTCCCAGAGAGGAAGGGCCGCTGTGCACTGCCCGGCCTTCAGAAAGACAGAATTTCATCACCCAATGCAGGGGGAGCTCTTCCTGGACCAAGGGAGGAGCCGCTCATTCACCCAACAAAACTGTGTCTTATCTGCCAGGAAAGACCAGCCTCACTCCTGGGAACTGTCTGGCAGGTAGGCTGGGCCCCCCAGTGCTGTTAGAATAAAAAGCCTCGTGCCGGAAGCCTTCCTGTTTGGTCGTGGTGTGTTTGAGGTGATGGTAATGGGTCACCCGTCTCTCCTGCTCACGGCTCTGTCTCTCTTCCTCCTGCCTCCCACTCACCCCTGCCACCGTCCGCCCCTCTGTGTCCCTGATCGCGAGAGATTCTGTCCCATTTTCCTGCCACCCCCGAGCCCCTGCCCTCCTTGGCTGCTTCTTTAAGTCTTTTTGGTTATTGATTTAGTTGTTTAAACTATTTTATTTATTTATTAGAGACAGGGTCTCGCACTGTAACCCAGGCTGG";
+//		String ref2 = "CAAGACCAGCCTGGCCAACATGGTGAAACCCCATCTCTACTAAAAATACAAAAACAAAATTAGCCAGGCATGGTGGTGGACACCTGTAATCCCAGCTACTCAGGAGGCCAAGGCAAGAAAATCACTTGAACCCAGGAGATGGAGGTTGCAGTGAGTCAAGATCGCACCACTGCACTCCAGCCTGGGTGACAGAGTGAGACTGTCTCAAAAAGAACCAGGAGGGCACATGGGCATGGGGAGTGATGAACCAGAGAAAGCTGCTGTCTTTCTGGGCAAGTGCCAAGCAACGGATCACCCTTGACCCCTAGGAAAGAAAAAGAAGAAAACCCGAGGTGATCATTTTAAACTTCGCTTCCGAAAAAACTTTCAGGCCCTGTTGGAGGAGCAGGTGAGAGGAGGGTCGGCCTGGGAGGACCCCACAGGGAAGGGGTGAGCCTGGCCCGGGCAGGTGTTCGCTGCGTGGGTGGGCGGAGGAGTTCTAGAGCCGGCCCCTTGTCTCTGCAGAACTTGAGTGTGGCCGAGGGCCCTAACTACCTGACGGCCTGTGCGGGACCCCCATCGCGGCCCCAGCGCCCCTTCTGTGCTGTCTGTGGCTTCCCATCCCCCTACACCTGTGTCAGCTGCGGTGCCCGGTACTGCACTGTGCGCTGTCTGGGGACCCACCAGGAGACCAGGTGAGCATGAGACCTGCTGTCCACTCCCACTCCCTCCTTCCCACAGCCTCCCCAGACCTCTCTCCCCTCATCCTGGCTTCCCCTCTGTCTGCAGGTGTCTGAAGTGGACTGTGTGAGCCTGGGCATTCCCAGAGAGGAAGGGCCGCTGTGCACTGCCCGGCCTTCAGAAAGACAGAATTTCATCACCCAATGCAGGGGGAGCTCTTCCTGGACCAAGGGAGGAGCCGCTCATTCACCCAACAAAACTGTGTCTTATCTGCCAGGAAAGACCAGCCTCACTCCTGGGAACTGTCTGGCAGGTAGGCTGGGCCCCCCAGTGCTGTTAGAATAAAAAGCCTCGTGCCGGAAGCCTTCCTGTTTGGTCGTGGTGTGTTTGAGGTGATGGTAATGGGTCACCCGTCTCTCCTGCTCACGGCTCTGTCTCTCTTCCTCCTGCCTCCCACTCACCCCTGCCACCGTCCGCCCCTCTGTGTCCCTGATCGCGAGAGATTCTGTCCCATTTTCCTGCCACCCCCGAGCCCCTGCCCTCCTTGGCTGCTTCTTTAAGTCTTTTTGGTTATTGATTTAGTTGTTTAAACTATTTTATTTATTTATTAGAGACAGGGTCTCGCACTGTAACCCAGGCTGGAGTGCAGTGGTGCGGTCTCAGCTCACTGCAACCTCTGCCTCCCAGGTTCAAGGGATTCTCCTGCCTCAGCCTCCCAAGTAACTGGGATTACAGGTG";
+		String seq = "TGGAAAGAAAAAGAAGAAAACCCGAGGTGATCATTTTAAACTTCGCTTCCGAAAAAAACTTTCAGGCCCTGTTGGAGGAGCAGAACTTGAGTGTGGCCGAGGGCCCTAACTACCTGACGGCCTGTGCGGGACCCCCATCGCGGCCCCAGCGCCCCTTCTGTGCTGTCTGTGGCTTCCCATCCCCCTACACCTGTGTCAGCTGCGGTGCCCGGTACTGCACTGTGCGCTGTCTGGGGACCCACCAGGAGACCAGGTGTCTGAAGTGGACTGTGTGAGCCTGGGCATTCCCAGAGAGGAAGGGCCGCTGTGCACTGCCCGGCCTTCAGAAAGACAGAATTTCATCACCCAATGCAGGGGGAGCTCTTCCTGGACCAAGGGAGGAGCCGCTCATTCACCCG";
 		
-		SmithWatermanGotoh nm = new SmithWatermanGotoh(sequence1, sequence2, 5, -4, 16, 4);	
+		SmithWatermanGotoh nm = new SmithWatermanGotoh(ref2, seq, 4, -4, 4, 1);
+//		SmithWatermanGotoh nm = new SmithWatermanGotoh(sequence1, sequence2, 5, -4, 16, 4);	
 		String [] results = nm.traceback();
 		for (String s : results) {
 			System.out.println(s);
 		}
+		nm = new SmithWatermanGotoh(ref2, seq, 5, -1, 1, 1);
+//		SmithWatermanGotoh nm = new SmithWatermanGotoh(sequence1, sequence2, 5, -4, 16, 4);	
+		results = nm.traceback();
+		for (String s : results) {
+			System.out.println(s);
+		}
+		nm = new SmithWatermanGotoh(ref, seq, 5, -1, 1, 2);
+//		SmithWatermanGotoh nm = new SmithWatermanGotoh(sequence1, sequence2, 5, -4, 16, 4);	
+		results = nm.traceback();
+		for (String s : results) {
+			System.out.println(s);
+		}
+		String seq5 = "GCCTATTGCAAGACCTGGAAGAAAGAAAAGTAACGATTCTTCTCGGCCAGAGAGAGAAGCATGACCGGTTTTGCATACCCTGTCCCCAGAAAAAGCACTCTAAGAGTAGGCGCGCTACTCCTGGGCGAGGAAACTGCGGAAGTGAGGCATTGGTGCCAGGTTCAAAGATGGCGCTGAGCAGCCAAGCGCAGAAGCGAAGAGAGGTCGGCAGCCGGCGGCCGTGGCCGGGCCGCGAGGTCTGGGACGGGGGGCG";
+		String ref5 = "ATCCTCTGGGTCAGTTTCTGTGGAATAAACTGTAAAGGCAAACGGTGGGACGCCCGAACCCGCCCGGCAGCCACGGTGGGACGCCCGAACCCGCCCGGCAGCCACGGTGGGACGCCCGAACCCGCCCGGCAGCCGCGCTGCGACCCCGCCTTCCCGCCCGCGTCGCTCCGCGCGGGGCCCGCGCCCTCACCGTCTCCCAGCGGATGCCCTGGACGGCCCTCCACTGCGAGGGCACGGACGCCACACCCAGGGTCTCGTCCTGCAGCGGCCCTGGCCGCCCCGGCCCCGGGCCGCTCGCAACCCCGACTGTCGCCAGCGCCGCAACACCAGCGCTTCCCGCCTGGCTGAGTGGCCCCGGCTGCGCGCGGGTTGCCATGGAGACGGTTCCGCCCTCTCGTGCGGACGCACTCAGGCGCGACCTCCGCCCCTACGCCGCCATGAGCGGAAAACGGGGAATGTGAGGCTGACGGCGCCATGTTTGAATTGGTCGCAGCGCCTCCTGCAAGACCTGGAAGAAAGAAAAGTAACGATTCTTCTCGGCCAGAGAGAGAAGCATGACCGGTTTTGCATACCCTGTCCCCAGAAAAAGCACTCTAAGAGTAGGCGCGCTACTCCTGGGCGAGGAAACTGCGGAAGTGAGGCATTGGTGCCAGGTTCAAAGATGGCGCTGAGCAGCCAAGCGCAGAAGCGAAGAGAGGGCGGCAGCCTGCGGCCGTGGCCGGCCCGCGAGGTCTGGGCCTGGGAGCGCAGATCTGGCTGAGCAGCTGATTCTTCCAGCAGATCCGAGAACCGCGCCACTCGAACAGGCTGTCACCTCGAAGCCAAGTGATCTCCCTTTAATCCTCAGTCTCTGTCTCAATAGAATGATGATGAAAAATATTCCTACGGAGATCCTAAATGTGGTTAAAAAGCTGGGAGGCCCAAATGAGGTCTTCTACAGAAACATGCTTATTAAATCGAAATTAAAAGCAAATAACTAAATAATGTGCCTACTGTGTGTCAGGCAAAGAGCCCAGAACGTCTCTTTCTTATTAAGTTCTCACCCTGAGGAAAGAATTGCTTTTTATACTATATTATGTCGTTCTGCCATTCCGCGCGCCCCACCGGAATTAAAAAAACTGGAGATTCTGACCTGAGGACTAAAAAATAAAAATAAAGAATAAACAAATAGGCCAGGTGCGGTGGCTCACACCTGTAATCCCGGTACTTTGAGAGGCCAAGGCAGGAGGATCGCTTGAAGCCAGGAGTTCGAA";
+		nm = new SmithWatermanGotoh(ref5, seq5, 2, -5, 5, 1);
+//			SmithWatermanGotoh nm = new SmithWatermanGotoh(sequence1, sequence2, 5, -4, 16, 4);	
+		results = nm.traceback();
+		for (String s : results) {
+			System.out.println(s);
+		}
+		nm = new SmithWatermanGotoh(ref5, seq5, 5, -4, 16, 4);
+//		SmithWatermanGotoh nm = new SmithWatermanGotoh(sequence1, sequence2, 5, -4, 16, 4);	
+		results = nm.traceback();
+		for (String s : results) {
+			System.out.println(s);
+		}
+		
+		String r = "ACCATGGTATTTGTGTATCTAAACATACCTAAACATAGAAAAGGTACAGTAAAAATACAGTATTATAATCTTATGGGACCACCATCATATATGTGGTCGTCATTGACTGAGACATCATTAATGTGGTGCATGACTACTCCAATCAGTCCAGGAACAAATTAAAAAGATAAGGAGAAAAGTCAGTGCTTTGAGGCTCCACAACACCTTGCTGTGTCCATTTAGAGCAATTTACAGCTGTTGCTGTAATTAATGAAGCTATCTCCTCCCAGGCAAAGCCTTTGGTTGTGTTGGAGGGTACATCGCCAGCACGAGTTCTCTGATTGACACCGTACGGTCCTATGCTGCTGGCTTCATCTTCACCACCTCTCTGCCACCCATGCTGCTGGCTGGAGCCCTGGAGTCTGTGCGGATCCTGAAGAGCGCTGAGGGACGGGTGCTTCGCCGCCAGCACCAGCGCAACGTCAAACTCATGAGACAGATGCTAATGGATGCCGGCCTCCCTGTTGTCCACTGCCCCAGCCACATCATCCCTGTGCGGGTAATGGCCTGTCTCTGATTGGACTTGCCGTGGGGTGTGCCTCTACACATGATGTACGGATGTTCTGCTTCATACCTTCCTGAAGTTGGGCTTGAGCGGGGTGACTGCCAGGGCAGGGGTTGTAGCCAGCCACCCTCTGTCATGTTTCCGCCATTGGCTGACTTCACCAAGAGAAGAAAGCCTTTGAACCCAGCAGGCTGGGGCAGAAGTTCCCTCTCCGGAGCACTGACCTTAACAGGGTAAACACAGAGCTTGTATCTAGAAAGCTCCAGAAGCCTGAGCTTGGCCAGCTTTGAAGTATGGCTTTCTACTTAGTAAATTTCAAAATAGGTTTTGCCCTTCCCACTACAAATGGTAGCACTGTTGATGTCACAGTTGAATTAGTGTAATGAATACAGCTAGTATAACTGAATCTAGATTATACATCGTGGGTATGAGAGTCTGCTGGTACGAACAGAACCAGTGTTTTCTGATTAAAAATGTATTTCTTTTTAATAAGGTTTTGGTTCCCTGGTGTTCACGAAACAACACTGGCTTCTTTTAAATGACAGGTGTTTGGGCAGCGCTTTCCCTCTGCCCCAAGCTTGCATGTGTTGCTACAGTCTGGTCTTGAGCCTGAGCGTTGTGGGGACTGCGTTCGTTAGGATCTCTGCTAAGAGGTAGTCCTTCCTGTTGTGACCTTACCTTCTGCTCTCATTGAACTTAGGTTGCAGATGCTGCTAAAAACACAGAAGTCTGTGATGAACTAATGAGCAGACATAACATCTACGTGCAAGCAATCAATTACCCTACGGTGCCCCGGGGAGAAGAGCTCCTACGGATTGCCCCCACCCCTCACCACACAC";
+		String s = "CTGTTGTCCACTGCCCCAGCCACATCATCCCTGTGCGGGTTGCAGATGCTGCTAAAAACACAGAAGTCTGTGATGAACTAATGAGCAGACATAACATCTACGTGCAAGCAATCAATTACCCTACGGTGCCCCGGGGAGAAGAGCTCCTACGGATTGCCCCCACCCCTCACCACACACCCCAGATGATGAACTACTTCCTTGGTGAGTACCTGGGGAGCTGCTGGTGCCTCACTGAGGAGTTGCATAAAGCTGTCTTTGCAGTGTTTATAATTGAAGCCCTTCGGAGGGCTTCAGATTTGTTTCTTCTTCTTTTTTTATTTTTTTTTTTTTTTCCATTATTTTCGTTCTTTTTTCCCTTCCTTGGTTTTTTTTGCCCAATCCCT";
+		nm = new SmithWatermanGotoh(r, s, 4, -4, 4, 1);
+		results = nm.traceback();
+		for (String s1 : results) {
+			System.out.println(s1);
+		}
+//		String seq6 = "AACTTTTCGTCTCCCCGCGGATGCCCTGGACGGCCCTCCACTGCGAGGGCACGGACGCCACACCCAGGGTCTCGTCCTGCAGCGGCCCTGGCCGCCCCGGCCCCGGGCCGCTCGCAACCCCG";
+//		String ref6=("ccgcccggcagccacggtgggacgcccgaacccgcccggcagccgcgctg"+
+//				"cgaccccgccttcccgcccgcgtcgctccgcgcggggcccgcgccctcac"+
+//				"CGTCTCCCaGCGGATGCCCTGGACGGCCCTCCACTGCGAGGGCACGGACG"+
+//				"CCACACCCAGGGTCTCGTCCTGCAGCGGCCCTGGCCGCCCCGGCCCCGGG"+
+//				"CCGCTCGCAACCCCGactgtcgccagcgccgcaacaccagcgcttcccgc"+
+//				"ctggctgagtggccccggctgcgcgcgggttgccatggagacggttccgc"+
+//				"cctctcgtgcggacg").toUpperCase();
+//		nm = new SmithWatermanGotoh(ref6, seq6, 4, -4, 4, 1);
+//		results = nm.traceback();
+//		for (String s : results) {
+//			System.out.println(s);
+//		}
+//		nm = new SmithWatermanGotoh(ref6, seq6, 5, -4, 16, 4);
+//		results = nm.traceback();
+//		for (String s : results) {
+//			System.out.println(s);
+//		}
+//		nm = new SmithWatermanGotoh(ref6, seq6, 5, -4, 1, 1);
+//		results = nm.traceback();
+//		for (String s : results) {
+//			System.out.println(s);
+//		}
 	}
 
 }

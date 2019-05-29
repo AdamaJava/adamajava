@@ -21,7 +21,7 @@ public class Read {
 	private final String reverseSeed;
 	private TObjectIntHashMap<String> seeds;
 	
-	public Read (String header, String tsequence) throws Exception {
+	public Read (String header, String tsequence) {
 		if (header.startsWith(">") || header.startsWith("@")) {
 			this.header = header.substring(1); //remove >/@ from header
 		} else {
@@ -32,7 +32,7 @@ public class Read {
 		sequenceLength = sequence.length;
 		
 		if (sequenceLength < QSVAssemble.SEED_LENGTH) {			
-			throw new Exception("Read sequence length less than SEED_LENGTH: " + sequenceLength + " < " + QSVAssemble.SEED_LENGTH);
+			throw new IllegalArgumentException("Read sequence length less than SEED_LENGTH: " + sequenceLength + " < " + QSVAssemble.SEED_LENGTH);
 		}
 		
 		forwordSeed = String.copyValueOf(sequence, 0, QSVAssemble.SEED_LENGTH);
@@ -41,7 +41,7 @@ public class Read {
 		checkSequence();
 	}
 	
-	public Read (String header, String sequence, boolean isReverse) throws Exception {
+	public Read (String header, String sequence, boolean isReverse) {
 		int i = header.indexOf(' ');
 		if (i > 0) {
 			this.header = header.substring(1, i);
@@ -65,10 +65,10 @@ public class Read {
 	/*
 	 * Checks to determine if there are non-supported characters in the read sequence e.g. chars != A,T,G,C,N
 	 */
-	private void checkSequence() throws Exception {
+	private void checkSequence() {
 		for (char c : sequence) {
 			if ( ! BaseUtils.isACGTN(c)) {
-				throw new Exception("Fileformatting error. Are there incorrectly formated read in the file or have you chosen the correct file format?");
+				throw new IllegalArgumentException("Fileformatting error. Are there incorrectly formated read in the file or have you chosen the correct file format?");
 			}
 		}
 	}
@@ -122,9 +122,9 @@ public class Read {
 		return String.copyValueOf(sequence);
 	}
 	
-	public void setSequence(String newSequence) {
-		sequence = newSequence.toCharArray();
-	}
+//	public void setSequence(String newSequence) {
+//		sequence = newSequence.toCharArray();
+//	}
 	
 	public String getHeader() {
 		return header;
@@ -134,24 +134,24 @@ public class Read {
 		header = newHeader;
 	}
 		
-	public void reverse () {
-		for (int i = 0; i < sequence.length; i++) {
-			switch (sequence[i]) {
-				case 'A': 
-					sequence[i] = 'T';
-					break;
-				case 'T': 
-					sequence[i] = 'A';
-					break;
-				case 'C': 
-					sequence[i] = 'G';
-					break;
-				case 'G': 
-					sequence[i] = 'C';
-					break;
-			}
-		}
-	}
+//	public void reverse () {
+//		for (int i = 0; i < sequence.length; i++) {
+//			switch (sequence[i]) {
+//				case 'A': 
+//					sequence[i] = 'T';
+//					break;
+//				case 'T': 
+//					sequence[i] = 'A';
+//					break;
+//				case 'C': 
+//					sequence[i] = 'G';
+//					break;
+//				case 'G': 
+//					sequence[i] = 'C';
+//					break;
+//			}
+//		}
+//	}
 	
 	/*
 	 * Used eclipse to generate this. It is much better than mine was :)

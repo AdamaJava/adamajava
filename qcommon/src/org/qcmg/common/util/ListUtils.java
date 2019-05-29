@@ -9,7 +9,12 @@ package org.qcmg.common.util;
 import java.util.Comparator;
 import java.util.List;
 
+import gnu.trove.list.TLongList;
+import gnu.trove.list.array.TLongArrayList;
+
 public class ListUtils {
+	
+	public static final int ADJACENT_POSITION_BUFFER = 2;
 	
 	/**
 	 * Returns a comparator based on the sequence order of the elements in the list
@@ -53,5 +58,44 @@ public class ListUtils {
 		}
 		return -1;
 	}
+	
+	public static TLongList removeAdjacentPositionsInList(TLongList originalList) {
+		return removeAdjacentPositionsInList(originalList,ADJACENT_POSITION_BUFFER );
+	}
+	public static TLongList removeAdjacentPositionsInList(TLongList originalList, int buffer) {
+		TLongList list = new TLongArrayList();
+		if (null != originalList) {
+			int size = originalList.size();
+			if (size > 0) {
+				originalList.sort();
+				long current = originalList.get(0);
+				list.add(current);
+				long previous = current;
+				for (int i = 1 ;  i < size ; i++) {
+					current = originalList.get(i);
+					if (current - previous > buffer) {
+						list.add(current);
+						previous = current;
+					}
+				}
+			}
+		}
+		return list;
+	}
+//	public static TLongList removeAdjacentPositionsInList(TLongList originalList, int buffer) {
+//		TLongSet set = new TLongHashSet(originalList.size() * 2);
+//		originalList.sort();
+//		for (long l : originalList.toArray()) {
+//			boolean noAdjacentPositions = true;
+//			for (int i = 1 ; i <= buffer ; i++) {
+//				if (set.contains(l + i) || set.contains(l - i)) {
+//					noAdjacentPositions = false;
+//				}
+//			}
+//			if (noAdjacentPositions) set.add(l);
+//		}
+//		
+//		return new TLongArrayList(set);
+//	}
 
 }

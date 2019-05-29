@@ -297,7 +297,7 @@ public class QSVUtil {
 	 */
 	public static List<String> getCategoryByZP(PairClassification zpPairClass) {
 		String zp = zpPairClass.toString();
-		List<String> list = new ArrayList<String>();
+		List<String> list = new ArrayList<>(6);
 		if (zp.equals("AAC")) {
 			list.add(QSVConstants.ORIENTATION_1);			
 		} else if (zp.equals("Cxx")) {
@@ -324,7 +324,7 @@ public class QSVUtil {
 	 */
 	public static List<String> getCategoryByPairGroup(PairGroup zpGroup) {
 		String zp = zpGroup.toString();
-		List<String> list = new ArrayList<String>();
+		List<String> list = new ArrayList<>(6);
 		if (zp.equals("AAC")) {
 			list.add(QSVConstants.ORIENTATION_1);			
 		} else if (zp.equals("Cxx")) {
@@ -359,7 +359,7 @@ public class QSVUtil {
 		}
 		int count = 0;
 		int len = consensus.length();
-		for (int i=0 ; i < len ; i++) {
+		for (int i = 0 ; i < len ; i++) {
 			if (consensus.charAt(i) == 'N' || consensus.charAt(i) == 'n') {
 				count++;
 			}
@@ -374,9 +374,8 @@ public class QSVUtil {
 	 * @param oc the oc
 	 * @return the pair groups by orientation category
 	 */
-	public static Set<String> getPairGroupsByOrientationCategory(
-			String oc) {
-		Set<String> list = new HashSet<String>();
+	public static Set<String> getPairGroupsByOrientationCategory(String oc) {
+		Set<String> list = new HashSet<>(10);
 		if (oc.equals("1")) {
 			list.add("AAC");			
 		} else if (oc.equals("2")) {
@@ -491,7 +490,7 @@ public class QSVUtil {
 			SAMRecord record, Integer start, Integer end, String name, String chr, String softClipDir, boolean isTumour) throws IOException, QSVException {
 
 		if (createRecord(record.getMateAlignmentStart(), start, end)) {
-			if (!QSVUtil.highNCount(record.getReadString(), 0.2)) {
+			if ( ! QSVUtil.highNCount(record.getReadString(), 0.2)) {
 				UnmappedRead read = new UnmappedRead(record, isTumour);
 				writer.write(read.toTmpString());				
 			}

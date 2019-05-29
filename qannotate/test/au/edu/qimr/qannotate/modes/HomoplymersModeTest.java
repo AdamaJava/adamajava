@@ -110,6 +110,10 @@ public class HomoplymersModeTest {
 		re = new VcfRecord(new String[] {  "chr1", "10", null, "T", "C" });	
 		re = homo.annotate(re, "TTTTTTTTTTTTTTTTTTTT".getBytes());	 
 		assertEquals("20,TTTTTtTTTTT", re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM));
+		
+		re = new VcfRecord(new String[] {  "chr1", "1", null, "T", "C" });	
+		re = homo.annotate(re, "TTTTTTTTTTTTTTTTTTTT".getBytes());	 
+		assertEquals("20,TTTTTtTTTTT", re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM));
 	}
 	
 	@Test

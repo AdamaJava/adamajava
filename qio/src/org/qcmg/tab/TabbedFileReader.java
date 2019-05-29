@@ -25,16 +25,20 @@ public final class TabbedFileReader implements Closeable, Iterable<TabbedRecord>
     private final InputStream inputStream;
     private final TabbedHeader header;
 
-    public TabbedFileReader(final File file) throws IOException {
+    public TabbedFileReader(final File file, int bufferSize) throws IOException {
         this.file = file;
         boolean isGzip = FileUtils.isInputGZip( file);
-        try(InputStream stream = (isGzip) ? new GZIPInputStream(new FileInputStream(file), 65536) : new FileInputStream(file);) {
+        try(InputStream stream = (isGzip) ? new GZIPInputStream(new FileInputStream(file), bufferSize) : new FileInputStream(file);) {
         	BufferedReader in = new BufferedReader(new InputStreamReader(stream));        
         	header = TabbedSerializer.readHeader(in);       	
         } 
         
         //  create a new stream rather a closed one
-        inputStream = (isGzip) ? new GZIPInputStream(new FileInputStream(file), 65536) : new FileInputStream(file);          
+        inputStream = (isGzip) ? new GZIPInputStream(new FileInputStream(file), bufferSize) : new FileInputStream(file);          
+    }
+    
+    public TabbedFileReader(final File file) throws IOException {
+    	this(file, 65536);
     }
     
     public TabbedHeader getHeader() {

@@ -37,6 +37,20 @@ import org.qcmg.qsv.util.QSVUtil;
  */
 public class DiscordantPairCluster {
 
+	@Override
+	public String toString() {
+		return "DiscordantPairCluster [clusterMatePairs=" + clusterMatePairs + ", matchedNormalMatePairs="
+				+ matchedNormalMatePairs + ", leftReferenceName=" + leftReferenceName + ", rightReferenceName="
+				+ rightReferenceName + ", zp=" + zp + ", windowSize=" + windowSize + ", sampleType=" + sampleType
+				+ ", strandOrientations=" + strandOrientations + ", lowConfidenceNormalMatePairs="
+				+ lowConfidenceNormalMatePairs + ", leftStart=" + leftStart + ", rightStart=" + rightStart
+				+ ", leftEnd=" + leftEnd + ", rightEnd=" + rightEnd + ", type=" + type + ", strandOrientation="
+				+ strandOrientation + ", id=" + id + ", compareLeftStart=" + compareLeftStart + ", compareRightStart="
+				+ compareRightStart + ", compareLeftEnd=" + compareLeftEnd + ", compareRightEnd=" + compareRightEnd
+				+ ", referenceKey=" + referenceKey + ", rescuedTumour=" + rescuedTumour + ", qPrimerCateory="
+				+ qPrimerCateory + ", isQCMG=" + isQCMG + "]";
+	}
+
 	private static final ReadMateLeftStartComparator READ_MATE_LEFT_START_COMP = new MatePair.ReadMateLeftStartComparator();
 	private static final ReadMateLeftEndComparator READ_MATE_LEFT_END_COMP = new MatePair.ReadMateLeftEndComparator();
 	private static final ReadMateRightStartComparator READ_MATE_RIGHT_START_COMP = new MatePair.ReadMateRightStartComparator();

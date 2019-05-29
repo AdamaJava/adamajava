@@ -8,6 +8,7 @@ package org.qcmg.common.string;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -177,14 +178,31 @@ public class StringUtils {
 	 * @throws IllegalArgumentException if either of the supplied strings are null, and if fialIfNull is set to true
 	 */
 	public static boolean doesStringContainSubString(String outerString, String subString, boolean failIfNull) {
-		
+		return indexOfSubStringInString(outerString, subString, failIfNull) > -1;
+	}
+	
+	public static int indexOfSubStringInString(String outerString, String subString) {
+		return indexOfSubStringInString(outerString, subString, false);
+	}
+	/**
+	 * Examines the supplied outer string to see if it contains the supplied inner string.<br>
+	 * If it does, return the position in the outer string that the inner string appears, otherwise, return -1.<br>
+	 * If <code>failIfNull</code> is set to true, and either of the strings are null, an IllegalArgumentException will be thrown.<br> 
+	 * If it is set to false, and either of the strings are null, returns -1 
+	 * 
+	 * @param outerString String outer string that is to be searched
+	 * @param subString String inner string containing the search text
+	 * @param failIfNull boolean indicating if an IllegalArgumentException should be thrown if either of the supplied strings are null
+	 * @return true if subString is contained within outerString, false otherwise
+	 * @throws IllegalArgumentException if either of the supplied strings are null, and if fialIfNull is set to true
+	 */
+	public static int indexOfSubStringInString(String outerString, String subString, boolean failIfNull) {
 		if (isNullOrEmpty(outerString) || isNullOrEmpty(subString)) {
 			if (failIfNull)
 				throw new IllegalArgumentException("Null or empty arguments suppleid to doesStringContainSubString");
-			else return false;
+			else return -1;
 		}
-		
-		return outerString.contains(subString);
+		return outerString.indexOf(subString);
 	}
 	
 	/**
@@ -231,6 +249,27 @@ public class StringUtils {
 			flag = test.equals(DOT);
 		 		
 		return flag;
+	}
+	
+	/**
+	 * The purpose of this method is to provide a fairly naive measure of sequence complexity
+	 * 
+	 * 
+	 * @param sequence
+	 * @return
+	 */
+	public static BitSet determineSequenceComplexity(String sequence) {
+		BitSet bs = new BitSet(4);
+		for (int i = 0, len = sequence.length() ; i < len ; i++) {
+			switch (sequence.charAt(i)) {
+			case 'A': bs.set(0); break;
+			case 'C': bs.set(1); break;
+			case 'G': bs.set(2); break;
+			case 'T': bs.set(3); break;
+			default: break;
+			}
+		}
+		return bs;
 	}
 	
 	/**
@@ -443,6 +482,12 @@ public class StringUtils {
 			for (final Character c : set) sb.append(c);
 		}
 		return sb.toString();
+	}
+
+	public static String repeat(char c, int length) {
+		char [] array = new char[length];
+		Arrays.fill(array, c);
+		return new String(array);
 	}
 
 }

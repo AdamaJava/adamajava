@@ -28,6 +28,8 @@ import org.qcmg.qsv.discordantpair.PairGroup;
 import org.qcmg.qsv.util.QSVUtil;
 import org.qcmg.qsv.util.TestUtil;
 
+import gnu.trove.map.hash.TIntObjectHashMap;
+
 public class FindSoftClipClustersMTTest {
 
 	@Rule
@@ -39,16 +41,14 @@ public class FindSoftClipClustersMTTest {
 		INT_OBJECT--;
 		assertEquals(0, INT_OBJECT.intValue());
 	}
+
 	
 	@Test
 	public void getProperClipSVs() throws Exception {
 		File tumorBam = TestUtil.createHiseqBamFile(testFolder.newFile("tumor.bam").getAbsolutePath(), PairGroup.AAC, SortOrder.coordinate);
-//        File normalBam = TestUtil.createHiseqBamFile(testFolder.newFile("normal.bam").getAbsolutePath(), PairGroup.AAC, SortOrder.coordinate);
 
         QSVParameters tumor = TestUtil.getQSVParameters(testFolder, tumorBam.getAbsolutePath(), tumorBam.getAbsolutePath(), true,  "clip");
         QSVParameters normal = TestUtil.getQSVParameters(testFolder, tumorBam.getAbsolutePath(), tumorBam.getAbsolutePath(), false,  "clip"); 
-//        QSVParameters tumor = TestUtil.getQSVParameters(testFolder, normalBam.getAbsolutePath(), tumorBam.getAbsolutePath(), true,  "clip");
-//        QSVParameters normal = TestUtil.getQSVParameters(testFolder, normalBam.getAbsolutePath(), tumorBam.getAbsolutePath(), false,  "clip"); 
         tumor.setReference("file");
         normal.setReference("file");
         Options options = createMock(Options.class);
@@ -63,7 +63,7 @@ public class FindSoftClipClustersMTTest {
 		expect(options.getPlatform()).andReturn("illumina");
 		expect(options.getIncludeTranslocations()).andReturn(true);
 		expect(options.allChromosomes()).andReturn(true);
-		expect(options.getGffFiles()).andReturn(new ArrayList<String>());
+		expect(options.getGffFiles()).andReturn(new ArrayList<>());
 		replay(options);    
         
         File softClipDir = testFolder.newFolder("softclip");
@@ -86,20 +86,18 @@ public class FindSoftClipClustersMTTest {
         expected.put("chr10_89700299_false_-", new BLATRecord(value2.split("\t")));
         expect(blat.align(softClipDir.getAbsolutePath() + QSVUtil.getFileSeparator() + ("TD_breakpoint.chr10.fa"), softClipDir.getAbsolutePath() + QSVUtil.getFileSeparator() + ("TD_breakpoint.chr10.psl"))).andReturn(expected);
        
-//        List<BLATRecord> splitList1 = new ArrayList<>();
-//        String value3 = "262\t1\t0\t\t1\t18\t1\t12041\t+\tsplitcon-chr10-89700299-chr10-89712341\t281\t0\t281\tchr10\t135534747\t89700191\t89712495\t2\t108,155,\t0,126,\t89700191,89712340,";        
-//        splitList1.add(new BLATRecord(value3.split("\t")));
-        expect(blat.alignConsensus(softClipDir.getAbsolutePath(), "splitcon-chr7-140189108-chr7-140191044", "TGGCCTTTAGAAGTAGGAGAAGTACAGAGTACTTTGCCATTTTAAGGCCCGGAAAATGAGGTTGTCGAGTCATGCA", "chr7", "chr7")).andReturn(new ArrayList<BLATRecord>());
-        expect(blat.alignConsensus(softClipDir.getAbsolutePath(), "splitcon-chr7-140189108-chr7-140191044", "TGGCCTTTAGAAGTAGGAGAAGTACAGAGTACTTTGCCATTTTAAGGCCCGGAAAATGAGGTTGTCGAGTCATGCA", "chr7", "chr7")).andReturn(new ArrayList<BLATRecord>());
-        expect(blat.alignConsensus(softClipDir.getAbsolutePath(), "splitcon-chr10-89700299-chr10-89712341", "TTGTTTCACAAAACGAACAGATCTGCAAAGATCAACCTGTCCTAAGTCATATAATCTCTTTGTGTAAGAGATTATACTTTGTGTAAGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAGGGCAGGGATCAATTCCTTAATATCTTAGGA", "chr10", "chr10")).andReturn(new ArrayList<BLATRecord>());
-        expect(blat.alignConsensus(softClipDir.getAbsolutePath(), "splitcon-chr10-89700299-chr10-89712341", "TTGTTTCACAAAACGAACAGATCTGCAAAGATCAACCTGTCCTAAGTCATATAATCTCTTTGTGTAAGAGATTATACTTTGTGTAAGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAGGGCAGGGATCAATTCCTTAATATCTTAGGA", "chr10", "chr10")).andReturn(new ArrayList<BLATRecord>());
+        expect(blat.alignConsensus(softClipDir.getAbsolutePath(), "splitcon-chr7-140189108-chr7-140191044", "TGGCCTTTAGAAGTAGGAGAAGTACAGAGTACTTTGCCATTTTAAGGCCCGGAAAATGAGGTTGTCGAGTCATGCA", "chr7", "chr7")).andReturn(new ArrayList<>());
+        expect(blat.alignConsensus(softClipDir.getAbsolutePath(), "splitcon-chr7-140189108-chr7-140191044", "TGGCCTTTAGAAGTAGGAGAAGTACAGAGTACTTTGCCATTTTAAGGCCCGGAAAATGAGGTTGTCGAGTCATGCA", "chr7", "chr7")).andReturn(new ArrayList<>());
+        expect(blat.alignConsensus(softClipDir.getAbsolutePath(), "splitcon-chr10-89700299-chr10-89712341", "TTGTTTCACAAAACGAACAGATCTGCAAAGATCAACCTGTCCTAAGTCATATAATCTCTTTGTGTAAGAGATTATACTTTGTGTAAGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAGGGCAGGGATCAATTCCTTAATATCTTAGGA", "chr10", "chr10")).andReturn(new ArrayList<>());
+        expect(blat.alignConsensus(softClipDir.getAbsolutePath(), "splitcon-chr10-89700299-chr10-89712341", "TTGTTTCACAAAACGAACAGATCTGCAAAGATCAACCTGTCCTAAGTCATATAATCTCTTTGTGTAAGAGATTATACTTTGTGTAAGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAGGGCAGGGATCAATTCCTTAATATCTTAGGA", "chr10", "chr10")).andReturn(new ArrayList<>());
         
         replay(blat);
 		
-		FindClipClustersMT worker = new FindClipClustersMT(tumor, normal, softClipDir.getAbsolutePath(), blat, tumorClusterRecords,  options, "analysisId", 200);
+		FindClipClustersMT worker = new FindClipClustersMT(tumor, normal, softClipDir.getAbsolutePath(), tumorClusterRecords,  options, "analysisId", 200, new TIntObjectHashMap<int[]>());
+//		FindClipClustersMT worker = new FindClipClustersMT(tumor, normal, softClipDir.getAbsolutePath(), blat, tumorClusterRecords,  options, "analysisId", 200);
 		String key = "";
 		List<SoftClipCluster> clusters = new ArrayList<>();
-		List<SoftClipCluster> results = worker.getProperClipSVs(key, clusters);
+		List<SoftClipCluster> results = FindClipClustersMT.getProperClipSVs(key, clusters);
 		assertEquals(0, results.size());
 	}
 		
@@ -107,12 +105,9 @@ public class FindSoftClipClustersMTTest {
 	@Test
 	public void testClipClusterWorker() throws Exception {
 		File tumorBam = TestUtil.createHiseqBamFile(testFolder.newFile("tumor.bam").getAbsolutePath(), PairGroup.AAC, SortOrder.coordinate);
-//        File normalBam = TestUtil.createHiseqBamFile(testFolder.newFile("normal.bam").getAbsolutePath(), PairGroup.AAC, SortOrder.coordinate);
 
         QSVParameters tumor = TestUtil.getQSVParameters(testFolder, tumorBam.getAbsolutePath(), tumorBam.getAbsolutePath(), true,  "clip");
         QSVParameters normal = TestUtil.getQSVParameters(testFolder, tumorBam.getAbsolutePath(), tumorBam.getAbsolutePath(), false,  "clip"); 
-//        QSVParameters tumor = TestUtil.getQSVParameters(testFolder, normalBam.getAbsolutePath(), tumorBam.getAbsolutePath(), true,  "clip");
-//        QSVParameters normal = TestUtil.getQSVParameters(testFolder, normalBam.getAbsolutePath(), tumorBam.getAbsolutePath(), false,  "clip"); 
         tumor.setReference("file");
         normal.setReference("file");
         Options options = createMock(Options.class);
@@ -127,7 +122,7 @@ public class FindSoftClipClustersMTTest {
 		expect(options.getPlatform()).andReturn("illumina");
 		expect(options.getIncludeTranslocations()).andReturn(true);
 		expect(options.allChromosomes()).andReturn(true);
-		expect(options.getGffFiles()).andReturn(new ArrayList<String>());
+		expect(options.getGffFiles()).andReturn(new ArrayList<>());
 		replay(options);    
         
         File softClipDir = testFolder.newFolder("softclip");
@@ -136,7 +131,7 @@ public class FindSoftClipClustersMTTest {
 		
 		Map<PairGroup, Map<String,List<DiscordantPairCluster>>> tumorClusterRecords = new HashMap<>();
 		Map<String,List<DiscordantPairCluster>> map = new HashMap<>();
-		List<DiscordantPairCluster> list = new ArrayList<DiscordantPairCluster>();
+		List<DiscordantPairCluster> list = new ArrayList<>();
 		list.add(TestUtil.setupSolidCluster(PairGroup.AAC, "somatic", testFolder, "chr7", "chr7"));
 		map.put("chr10:chr10", list);
 		tumorClusterRecords.put(PairGroup.AAC, map);
@@ -150,17 +145,15 @@ public class FindSoftClipClustersMTTest {
         expected.put("chr10_89700299_false_-", new BLATRecord(value2.split("\t")));
         expect(blat.align(softClipDir.getAbsolutePath() + QSVUtil.getFileSeparator() + ("TD_breakpoint.chr10.fa"), softClipDir.getAbsolutePath() + QSVUtil.getFileSeparator() + ("TD_breakpoint.chr10.psl"))).andReturn(expected);
        
-//        List<BLATRecord> splitList1 = new ArrayList<BLATRecord>();
-//        String value3 = "262\t1\t0\t\t1\t18\t1\t12041\t+\tsplitcon-chr10-89700299-chr10-89712341\t281\t0\t281\tchr10\t135534747\t89700191\t89712495\t2\t108,155,\t0,126,\t89700191,89712340,";        
-//        splitList1.add(new BLATRecord(value3.split("\t")));
-        expect(blat.alignConsensus(softClipDir.getAbsolutePath(), "splitcon-chr7-140189108-chr7-140191044", "TGGCCTTTAGAAGTAGGAGAAGTACAGAGTACTTTGCCATTTTAAGGCCCGGAAAATGAGGTTGTCGAGTCATGCA", "chr7", "chr7")).andReturn(new ArrayList<BLATRecord>());
-        expect(blat.alignConsensus(softClipDir.getAbsolutePath(), "splitcon-chr7-140189108-chr7-140191044", "TGGCCTTTAGAAGTAGGAGAAGTACAGAGTACTTTGCCATTTTAAGGCCCGGAAAATGAGGTTGTCGAGTCATGCA", "chr7", "chr7")).andReturn(new ArrayList<BLATRecord>());
-        expect(blat.alignConsensus(softClipDir.getAbsolutePath(), "splitcon-chr10-89700299-chr10-89712341", "TTGTTTCACAAAACGAACAGATCTGCAAAGATCAACCTGTCCTAAGTCATATAATCTCTTTGTGTAAGAGATTATACTTTGTGTAAGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAGGGCAGGGATCAATTCCTTAATATCTTAGGA", "chr10", "chr10")).andReturn(new ArrayList<BLATRecord>());
-        expect(blat.alignConsensus(softClipDir.getAbsolutePath(), "splitcon-chr10-89700299-chr10-89712341", "TTGTTTCACAAAACGAACAGATCTGCAAAGATCAACCTGTCCTAAGTCATATAATCTCTTTGTGTAAGAGATTATACTTTGTGTAAGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAGGGCAGGGATCAATTCCTTAATATCTTAGGA", "chr10", "chr10")).andReturn(new ArrayList<BLATRecord>());
+        expect(blat.alignConsensus(softClipDir.getAbsolutePath(), "splitcon-chr7-140189108-chr7-140191044", "TGGCCTTTAGAAGTAGGAGAAGTACAGAGTACTTTGCCATTTTAAGGCCCGGAAAATGAGGTTGTCGAGTCATGCA", "chr7", "chr7")).andReturn(new ArrayList<>());
+        expect(blat.alignConsensus(softClipDir.getAbsolutePath(), "splitcon-chr7-140189108-chr7-140191044", "TGGCCTTTAGAAGTAGGAGAAGTACAGAGTACTTTGCCATTTTAAGGCCCGGAAAATGAGGTTGTCGAGTCATGCA", "chr7", "chr7")).andReturn(new ArrayList<>());
+        expect(blat.alignConsensus(softClipDir.getAbsolutePath(), "splitcon-chr10-89700299-chr10-89712341", "TTGTTTCACAAAACGAACAGATCTGCAAAGATCAACCTGTCCTAAGTCATATAATCTCTTTGTGTAAGAGATTATACTTTGTGTAAGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAGGGCAGGGATCAATTCCTTAATATCTTAGGA", "chr10", "chr10")).andReturn(new ArrayList<>());
+        expect(blat.alignConsensus(softClipDir.getAbsolutePath(), "splitcon-chr10-89700299-chr10-89712341", "TTGTTTCACAAAACGAACAGATCTGCAAAGATCAACCTGTCCTAAGTCATATAATCTCTTTGTGTAAGAGATTATACTTTGTGTAAGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAGGGCAGGGATCAATTCCTTAATATCTTAGGA", "chr10", "chr10")).andReturn(new ArrayList<>());
         
         replay(blat);
 		
-		FindClipClustersMT worker = new FindClipClustersMT(tumor, normal, softClipDir.getAbsolutePath(), blat, tumorClusterRecords,  options, "analysisId", 200);
+		FindClipClustersMT worker = new FindClipClustersMT(tumor, normal, softClipDir.getAbsolutePath(), tumorClusterRecords,  options, "analysisId", 200, new TIntObjectHashMap<int[]>());
+//		FindClipClustersMT worker = new FindClipClustersMT(tumor, normal, softClipDir.getAbsolutePath(), blat, tumorClusterRecords,  options, "analysisId", 200);
         worker.execute();
         
         assertEquals(0, worker.getExitStatus().intValue());

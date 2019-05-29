@@ -174,8 +174,8 @@ public class QSVAssemble {
 	private Read getSplitReadsContigs(List<Read> splitReads, Read seedContig, int size) throws Exception {
 		this.currentContig = null;
 		
-		for (int i=0; i<size; i++) {
-			if (i<splitReads.size()) {
+		for (int i = 0; i < size; i++) {
+			if (i < splitReads.size()) {
 				createSeed(i, splitReads.get(i), splitReads, false);				
 			}
 		}
@@ -225,14 +225,14 @@ public class QSVAssemble {
 
 	private void removeRead(List<Read> reads, Read read) {
 		int index = getIndex(reads, read);	
-		if (index>=0) {
+		if (index >= 0) {
 			reads.remove(index);
 		}
 	}
 	
 	private int getIndex(List<Read> reads, Read read) {
 		int index = -1;
-		for (int i=0, size = reads.size() ; i < size ; i++) {
+		for (int i = 0, size = reads.size() ; i < size ; i++) {
 			if (read.getHeader().equals(reads.get(i).getHeader())) {
 				index = i;
 				break;
@@ -244,7 +244,7 @@ public class QSVAssemble {
 	private void findMatches(int currentIndex, Read seed,
 			ConcurrentHashMap<Integer, ReadMatch> matches, List<Read> reads) {
 		int position;
-		for (int j=0, size = reads.size() ; j < size ; j++) {
+		for (int j = 0, size = reads.size() ; j < size ; j++) {
 			if (j != currentIndex){
 
 				Read read = reads.get(j);
@@ -299,7 +299,7 @@ public class QSVAssemble {
 		createSeed(0, clipReads.get(0), clipReads, true);
 		
 		if (currentContig != null) {
-			if (currentContig.getHeader().split(",").length == 2 && !QSVUtil.highNCount(currentContig.getSequence(), 0.1)) {
+			if (currentContig.getHeader().split(",").length == 2 && ! QSVUtil.highNCount(currentContig.getSequence(), 0.1)) {
 				return currentContig.getSequence();
 			}
 		} 

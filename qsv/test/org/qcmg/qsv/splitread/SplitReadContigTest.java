@@ -12,6 +12,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -23,6 +24,8 @@ import org.qcmg.qsv.blat.BLAT;
 import org.qcmg.qsv.blat.BLATRecord;
 import org.qcmg.qsv.util.QSVConstants;
 import org.qcmg.qsv.util.QSVUtil;
+
+import gnu.trove.map.hash.TIntObjectHashMap;
 
 
 public class SplitReadContigTest {
@@ -52,6 +55,61 @@ public class SplitReadContigTest {
 		left = null;
 		right = null;
 	}
+	
+	@Test
+	public void setSplitReadAlignments() {
+		/*
+		 * consensus: CTAGTGTGTGTGTGTGTGTGTGTGTGTGTGTGTGTGTGTGTGTGTGTGTGTGTGTGTGTAGACAAGGTCTCGCTGTGTTGCCCAGGCTGGCCTTGAACTCCTGGCCTTGAGTGAGCCTCCCACCTCAACCTCCCGAGGTGCTGAGGTTACAAATGTGAGCTACTGCACCTGGCACTAGAAATTAGCTTTTATTTACACTTTCTAAGCATTCACACTGTGCCTGGTTCCGGTT
+		 * 214		215	1	0	0	0	0	0	0+	splitcon_chr7_101126970_chr7_156838178__true_1557450089062_845461	232	15	231	chr7	12345	101127272	101127488	1	216	15	101127287	, 
+		 * r2: 74		118	39	0	0	3	3	2	2	-	splitcon_chr7_101126970_chr7_156838178__true_1557450089062_845461	232	-1	144	chr7	12345	100341191	100341351	2	14,145	-1,-1	100341190,100341190	, 
+		 * left: null, right: null, lhsBp: 101126970, rhsBp: 156838178, confidenceLevel: 6, length: 232
+		 */
+		BLATRecord r1 = new BLATRecord("215	1	0	0	0	0	0	0	+	splitcon_chr7_101126970_chr7_156838178__true_1557450089062_845461	232	15	231	chr7	12345	101127272	101127488	1	216	15	101127287".split("\t"));
+		BLATRecord r2 = new BLATRecord("118	39	0	0	3	3	2	2	-	splitcon_chr7_101126970_chr7_156838178__true_1557450089062_845461	232	-1	144	chr7	12345	100341191	100341351	2	14,145	-1,-1	100341190,100341190".split("\t"));
+		SplitReadAlignment left = null;
+		SplitReadAlignment right = null;
+		int lhsBp = 101126970;
+		int rhsBp = 156838178;
+		String confidenceLevel = "6";
+		int length = 232;
+		Pair<SplitReadAlignment, SplitReadAlignment> pair = SplitReadContig.setSplitReadAlignments(r1, r2, lhsBp, rhsBp, confidenceLevel, length);
+		left = pair.getLeft();
+		right = pair.getRight();
+		assertEquals(false, left == null);
+		assertEquals(true, right == null);
+		
+	}
+	@Test
+	public void setSplitReadAlignments2() {
+		/*
+		 * consensus: CGTGGGGGTGGGATCCACTGAGCTAGAACACTTGGCTCCCTGGCTTTGGCCCCCTTTCCAGGGGAGTGAACAGTTCTGTCTTGCTGGTGTTCCAGGCGCCACTGGGGTATGAAAAATATTCCTGCAGCTAGCTCAGTGTCTTCTTGGCAATGTGGGCACTTTTTTGGTTCCATATGAATTTTAAAGTAGTTTTTTCCAATTCTGTGAAGAAA
+		 *r1: 144		160	8	0	0	4	4	4	4+	name	212	0	172	chr9	12345	22496387	22496559	2	159,13	0,159	22496387,22496546	, 
+		 *r2: 116		146	22	0	0	2	26	6	-	name	212	-1	110	chr9	12345	79456284	79456454	2	63,111	-1,-1	79456283,79456283	, 
+		 *left: null, right: null, lhsBp: 22496527, rhsBp: 22504346, confidenceLevel: 6, length: 212
+		 */
+		BLATRecord r1 = new BLATRecord("160	8	0	0	4	4	4	4	+	name	212	0	172	chr9	12345	22496387	22496559	2	159,13	0,159	22496387,22496546".split("\t"));
+		BLATRecord r2 = new BLATRecord("146	22	0	0	2	2	6	6	-	name	212	-1	110	chr9	12345	79456284	79456454	2	63,111	-1,-1	79456283,79456283".split("\t"));
+		SplitReadAlignment left = null;
+		SplitReadAlignment right = null;
+		int lhsBp = 22496527;
+		int rhsBp = 22504346;
+		String confidenceLevel = "6";
+		int length = 212;
+		Pair<SplitReadAlignment, SplitReadAlignment> pair = SplitReadContig.setSplitReadAlignments(r1, r2, lhsBp, rhsBp, confidenceLevel, length);
+		left = pair.getLeft();
+		right = pair.getRight();
+		assertEquals(false, left == null);
+		assertEquals(false, right == null);
+		assertEquals(212, right.getQueryEnd().intValue());
+		
+	}
+	
+	@Test
+	public void passesNewAlignmentFilters() {
+		SplitReadAlignment newAlign = new SplitReadAlignment(new BLATRecord("215	1	0	0	0	0	0	0	+	splitcon_chr7_101126970_chr7_156838178__true_1557450089062_845461	232	15	231	chr7	12345	101127272	101127488	1	216	15	101127287".split("\t")));
+		assertEquals(false, SplitReadContig.passesNewAlignmentFilters(newAlign, 101126970, 156838178, "6", 232));
+	}
+	
 	
 	@Test
 	public void testLeftLower() throws UnsupportedEncodingException, QSVException {
@@ -91,6 +149,21 @@ public class SplitReadContigTest {
 			assertTrue(splitReadContig.getLeft().getStartPos() < splitReadContig.getRight().getStartPos());			
 		}
 	}
+	
+	@Test
+	public void getSplitReadAlignmentsFromBlatRecord() {
+		List<SplitReadAlignment> sras = SplitReadContig.getSplitReadAlignmentsFromBlatRecord(new BLATRecord("277	52	0	0	1	1	0	0	+	splitcon_GL000219.1_165002_GL000219.1_165479__true_1557278698900_893903	329	-1	329	GL000219.1	12345	164913	165243	2	64,263	1,67	164914,164980"));
+		assertEquals(2, sras.size());
+		for (SplitReadAlignment sra : sras) {
+			System.out.println("sra: " + sra);
+		}
+	}
+	
+//	@Test
+//	public void matchingQueryString() {
+//		SplitReadAlignment sra = new SplitReadAlignment();
+//		assertEquals(-1, SplitReadContig.matchingQueryString(1, 1, 2, sra, 329);
+//	}
 
 	@Test
 	public void testCalculateMicrohomologyIsAbsent() throws QSVException, IOException {
@@ -252,6 +325,12 @@ public class SplitReadContigTest {
 	}
 	
 	@Test
+	public void getSingleSplitReadAlignment() {
+		new SplitReadAlignment("chr15", QSVUtil.PLUS, 89700210, 89700299, 1, 90);
+		assertEquals(null, SplitReadContig.getSingleSplitReadAlignment(null, null));
+	}
+	
+	@Test
 	public void testCheckBlockSize() throws QSVException {
 		createStandardObject(1);
 		assertFalse(splitReadContig.checkBlockSize(new BLATRecord("187\t5\t0\t0\t2\t61\t1\t17709\t-\tsplitcon_chr22_21353096_chr22_21566646_3_true\t253\t0\t253\tchr22\t51304566\t25002854\t25020755\t3\t17,10,165,\t0,22,88,\t25002854,25002871,25020590,\t")));
@@ -288,7 +367,8 @@ public class SplitReadContigTest {
 		replay(p);
 		blat = createMock(BLAT.class);
 		replay(blat);
-		splitReadContig = new SplitReadContig(blat, p, "chr10", "chr10", 89700299, 89712341, QSVConstants.ORIENTATION_1);
+		splitReadContig = new SplitReadContig(new TIntObjectHashMap<int[]>(), p, "chr10", "chr10", 89700299, 89712341, QSVConstants.ORIENTATION_1);
+//		splitReadContig = new SplitReadContig(blat, p, "chr10", "chr10", 89700299, 89712341, QSVConstants.ORIENTATION_1);
 		splitReadContig.setConsensus("CAGATAGGCAACAGATCGAGACCTTGTTTCACAAAACGAACAGATCTGCAAAGATCAACCTGTCCTAAGTCATATAATCTCTTTGTGTAAGAGATTATACTTTGTGTAAGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAGGGCAGGGATCAATTCCTTAATATCTTAGGAAGACTAGGTATTGACAGTAATGGTGACAAAGCAATGAAAAGGAAAGGAAGAAGTGATAAGACATGGCAGCAAGCTGAAGTATGATGAGTAAAGAATAGGAATCA");				
 		left = new SplitReadAlignment("chr10", QSVUtil.PLUS, 89700210, 89700299, 1, 90);
 		right = new SplitReadAlignment("chr10", QSVUtil.PLUS, 89712341, 89712514, 109, 282);
@@ -388,8 +468,10 @@ public class SplitReadContigTest {
 
 	private void testOrientationCategory(String leftReference, String rightReference, 
 			int leftBreakpoint, int rightBreakpoint, String orientation, String consensus) throws Exception {
-		splitReadContig = new SplitReadContig(blat, p, leftReference, rightReference, leftBreakpoint, 
+		splitReadContig = new SplitReadContig(new TIntObjectHashMap<int[]>(), p, leftReference, rightReference, leftBreakpoint, 
 				rightBreakpoint, orientation);
+//		splitReadContig = new SplitReadContig(blat, p, leftReference, rightReference, leftBreakpoint, 
+//				rightBreakpoint, orientation);
 		splitReadContig.setConsensus(consensus);
 		splitReadContig.setConfidenceLevel(QSVConstants.LEVEL_HIGH);
 		splitReadContig.parseConsensusAlign(records);

@@ -118,10 +118,10 @@ public class Options {
 		}
 		
 		if (options.has("range")) {
-	    		ranges = new ArrayList<String>();
-	    		ranges.add((String) options.valueOf("range"));
-	    		processRanges();
-	    	}
+    		ranges = new ArrayList<String>();
+    		ranges.add((String) options.valueOf("range"));
+    		processRanges();
+    	}
 	}
 	
 	public String getOverrideOutput() {

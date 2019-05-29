@@ -27,6 +27,8 @@ import org.qcmg.qsv.discordantpair.PairGroup;
 import org.qcmg.qsv.util.QSVUtil;
 import org.qcmg.qsv.util.TestUtil;
 
+import gnu.trove.map.hash.TIntObjectHashMap;
+
 public class SoftClipClusterTest {
 
 	SoftClipCluster clip;
@@ -252,7 +254,7 @@ public class SoftClipClusterTest {
 		assertEquals(0, clip.getClipCount(true, false));
 
 		BLAT blat = createMock(BLAT.class);
-		Map<String, BLATRecord> expected = new HashMap<String, BLATRecord>();
+		Map<String, BLATRecord> expected = new HashMap<>();
 		String value = "48\t1\t0\t0\t2\t0\t3\t0\t+\tchr10_89712341_true_+\t66\t0\t48\tchr10\t135534747\t89700251\t89700299\t1\t48,\t0,\t89700251,";
 
 		expected.put("chr10_89712341_true_+", new BLATRecord(value.split("\t")));
@@ -263,9 +265,21 @@ public class SoftClipClusterTest {
 								.getAbsolutePath())).andReturn(expected);
 		replay(blat);
 
-		clip.rescueClips(tumor, blat, new File(tumourFile),
-				new File(normalFile), testFolder.getRoot().toString(), 20, 200,
-				50);
+		clip.rescueClips(tumor, new TIntObjectHashMap<int[]>(), new File(tumourFile),
+				new File(normalFile), testFolder.getRoot().toString(), 20, 200, 50);
+//		clip.rescueClips(tumor, blat, new File(tumourFile),
+//				new File(normalFile), testFolder.getRoot().toString(), 20, 200,	50);
+		assertEquals(true, clip.hasMatchingBreakpoints());
+		assertEquals(false, clip.isOneSide());
+		assertEquals(true, clip.isRescuedClips());
+		assertEquals("1", clip.getOrientationCategory());
+		assertEquals(89700299, clip.getLeftBreakpoint().intValue());
+		assertEquals(89712341, clip.getRightBreakpoint().intValue());
+	}
+	
+	@Test
+	public void getNonTemplateSeq() {
+		assertEquals("not tested", SoftClipCluster.getNonTemplateSequence("", true, "", "", "", 1, 1));
 	}
 
 	@Test

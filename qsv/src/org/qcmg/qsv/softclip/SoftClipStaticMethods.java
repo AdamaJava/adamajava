@@ -38,7 +38,7 @@ public class SoftClipStaticMethods {
 			List<CigarElement> elements = record.getCigar().getCigarElements();
 			
 			CigarElement first = elements.get(0);
-			CigarElement last = elements.get(elements.size()-1);
+			CigarElement last = elements.get(elements.size() - 1);
 			
 			if (first.getOperator().equals(CigarOperator.S) && last.getOperator().equals(CigarOperator.S)) {
 				return null;

@@ -51,6 +51,42 @@ public class StringUtilsTest {
 	}
 	
 	@Test
+	public void sequenceComplexity() {
+		String s = "ACGT";
+		assertEquals(4, StringUtils.determineSequenceComplexity(s).cardinality());
+		s = "NACGT";
+		assertEquals(4, StringUtils.determineSequenceComplexity(s).cardinality());
+		s = "NANCGT";
+		assertEquals(4, StringUtils.determineSequenceComplexity(s).cardinality());
+		s = "NANCNGT";
+		assertEquals(4, StringUtils.determineSequenceComplexity(s).cardinality());
+		s = "NANCNGNT";
+		assertEquals(4, StringUtils.determineSequenceComplexity(s).cardinality());
+		s = "NANCNGNTN";
+		assertEquals(4, StringUtils.determineSequenceComplexity(s).cardinality());
+		s = "";
+		assertEquals(0, StringUtils.determineSequenceComplexity(s).cardinality());
+		s = "N";
+		assertEquals(0, StringUtils.determineSequenceComplexity(s).cardinality());
+		s = "    ";
+		assertEquals(0, StringUtils.determineSequenceComplexity(s).cardinality());
+		s = "XYZ";
+		assertEquals(0, StringUtils.determineSequenceComplexity(s).cardinality());
+		s = "HELLO WORLD";
+		assertEquals(0, StringUtils.determineSequenceComplexity(s).cardinality());
+		s = "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCNCCCC";
+		assertEquals(1, StringUtils.determineSequenceComplexity(s).cardinality());
+		s = "CCCCCCCCCCCCCCCCCCCCCCCNNNNNNNNCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCNCCCC";
+		assertEquals(1, StringUtils.determineSequenceComplexity(s).cardinality());
+		s = "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC";
+		assertEquals(1, StringUtils.determineSequenceComplexity(s).cardinality());
+		s = "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN";
+		assertEquals(0, StringUtils.determineSequenceComplexity(s).cardinality());
+		s = "NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN";
+		assertEquals(0, StringUtils.determineSequenceComplexity(s).cardinality());
+	}
+	
+	@Test
 	public void testAddASCIIValueToCharWithQualString() {
 		String qualString = "!''*((((***+))%%%++)(%%%%).1***-+*''))**55CCF>>>>>>CCCCCCC65";
 		String expectedConvertedString = "BHHKIIIIKKKLJJFFFLLJIFFFFJORKKKNLKHHJJKKVVddg______dddddddWV";

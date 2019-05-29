@@ -87,26 +87,26 @@ public class QSVTest {
     
     @Test
     public void getUUIDFromOverrideOption() {
-    		Date now = new Date();
-    		String analysisId = QSV.getAnalysisId(false, null, "sample", now);
-    		assertEquals(QSVUtil.getAnalysisId(false, "sample", now), analysisId);
-    		
-    		
-    		analysisId = QSV.getAnalysisId(false, "non_null_override_option", "sample", now);
-    		assertEquals(QSVUtil.getAnalysisId(false, "sample", now), analysisId);
-    		
-    		analysisId = QSV.getAnalysisId(true, null, "sample", now);
-    		assertEquals(UUID.fromString(analysisId).toString(), analysisId);
-    		
-    		try {
-    			analysisId = QSV.getAnalysisId(true, "non_null_override_option", "sample", now);
-    			Assert.fail("Should have thrown an IAE");
-    		} catch (IllegalArgumentException aie){}
-    		
-    		UUID uuid = UUID.randomUUID();
-    		
-    		analysisId = QSV.getAnalysisId(true, uuid.toString(), "sample", now);
-    		assertEquals(uuid.toString(), analysisId);
+		Date now = new Date();
+		String analysisId = QSV.getAnalysisId(false, null, "sample", now);
+		assertEquals(QSVUtil.getAnalysisId(false, "sample", now), analysisId);
+		
+		
+		analysisId = QSV.getAnalysisId(false, "non_null_override_option", "sample", now);
+		assertEquals(QSVUtil.getAnalysisId(false, "sample", now), analysisId);
+		
+		analysisId = QSV.getAnalysisId(true, null, "sample", now);
+		assertEquals(UUID.fromString(analysisId).toString(), analysisId);
+		
+		try {
+			analysisId = QSV.getAnalysisId(true, "non_null_override_option", "sample", now);
+			Assert.fail("Should have thrown an IAE");
+		} catch (IllegalArgumentException aie){}
+		
+		UUID uuid = UUID.randomUUID();
+		
+		analysisId = QSV.getAnalysisId(true, uuid.toString(), "sample", now);
+		assertEquals(uuid.toString(), analysisId);
     		
     }
     

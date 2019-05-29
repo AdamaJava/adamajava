@@ -30,6 +30,8 @@ import org.qcmg.qsv.splitread.UnmappedRead;
 import org.qcmg.qsv.util.QSVConstants;
 import org.qcmg.qsv.util.QSVUtil;
 
+import gnu.trove.map.TIntObjectMap;
+
 public class SoftClipCluster implements Comparable<SoftClipCluster> {
 	
 	
@@ -319,11 +321,11 @@ public class SoftClipCluster implements Comparable<SoftClipCluster> {
 	public int getClipCount(boolean isTumour, boolean leftPos) {		
 		
 		if (leftBreakpointObject != null) {
-				if (leftPos && !orientationCategory.equals(QSVConstants.ORIENTATION_2)) {
-					return getLeftClipCount(isTumour);								
-				} else if (!leftPos && orientationCategory.equals(QSVConstants.ORIENTATION_2)) {
-					return getRightClipCount(isTumour);	
-				}
+			if (leftPos && !orientationCategory.equals(QSVConstants.ORIENTATION_2)) {
+				return getLeftClipCount(isTumour);								
+			} else if (!leftPos && orientationCategory.equals(QSVConstants.ORIENTATION_2)) {
+				return getRightClipCount(isTumour);	
+			}
 		}
 		if (rightBreakpointObject != null) {
 			if (!leftPos && !orientationCategory.equals(QSVConstants.ORIENTATION_2)) {
@@ -417,7 +419,7 @@ public class SoftClipCluster implements Comparable<SoftClipCluster> {
 		return this.name + TAB + rightBreakpoint + TAB + rightStrand + TAB + rightMateStrand + TAB + size; 
 	}
 
-	public void rescueClips(QSVParameters p, BLAT blat, File tumourFile, File normalFile, String softclipDir, int consensusLength, int chrBuffer, Integer minInsertSize) throws Exception {
+	public void rescueClips(QSVParameters p, TIntObjectMap<int[]> cache, File tumourFile, File normalFile, String softclipDir, int consensusLength, int chrBuffer, Integer minInsertSize) throws Exception {
 		
 		Map<Integer, Breakpoint> leftMap = new HashMap<>();
 		Map<Integer, Breakpoint> rightMap = new HashMap<>();
@@ -430,10 +432,25 @@ public class SoftClipCluster implements Comparable<SoftClipCluster> {
 			readRescuedClips(tumourFile, true, ref, bp, leftMap, rightMap, splitReads, consensusLength, chrBuffer, minInsertSize, p.getReadGroupIds(), p.getPairingType());
 			readRescuedClips(normalFile, false, ref, bp, leftMap, rightMap, splitReads, consensusLength, chrBuffer, minInsertSize, p.getReadGroupIds(), p.getPairingType());
 		}		
-		findMaxRescueBreakpoint(p, blat, leftMap, rightMap, splitReads, softclipDir);
+		findMaxRescueBreakpoint(p, cache, leftMap, rightMap, splitReads, softclipDir);
 	}
+//	public void rescueClips(QSVParameters p, BLAT blat, File tumourFile, File normalFile, String softclipDir, int consensusLength, int chrBuffer, Integer minInsertSize) throws Exception {
+//		
+//		Map<Integer, Breakpoint> leftMap = new HashMap<>();
+//		Map<Integer, Breakpoint> rightMap = new HashMap<>();
+//		TreeMap<Integer, List<UnmappedRead>> splitReads = new TreeMap<>();
+//		Integer bp = getOrphanBreakpoint();
+//		String ref = getOrphanReference();
+//		
+//		
+//		if (bp != null) {
+//			readRescuedClips(tumourFile, true, ref, bp, leftMap, rightMap, splitReads, consensusLength, chrBuffer, minInsertSize, p.getReadGroupIds(), p.getPairingType());
+//			readRescuedClips(normalFile, false, ref, bp, leftMap, rightMap, splitReads, consensusLength, chrBuffer, minInsertSize, p.getReadGroupIds(), p.getPairingType());
+//		}		
+//		findMaxRescueBreakpoint(p, blat, leftMap, rightMap, splitReads, softclipDir);
+//	}
 	
-	public void findMaxRescueBreakpoint(QSVParameters p, BLAT blat,
+	public void findMaxRescueBreakpoint(QSVParameters p, TIntObjectMap<int[]> cache,
 			Map<Integer, Breakpoint> leftMap,
 			Map<Integer, Breakpoint> rightMap, TreeMap<Integer, List<UnmappedRead>> splitReads, String softclipDir) throws Exception {
 
@@ -466,7 +483,7 @@ public class SoftClipCluster implements Comparable<SoftClipCluster> {
 		if (maxLengthBp != null) {
 			
 			if (maxLengthBp.getMateConsensus().length() > 20) {
-				boolean match = maxLengthBp.findRescuedMateBreakpoint(blat, p, softclipDir);
+				boolean match = maxLengthBp.findRescuedMateBreakpoint(cache, p, softclipDir);
 				
 				if (match) {
 					if (this.getSingleBreakpoint() != null) {
@@ -490,6 +507,63 @@ public class SoftClipCluster implements Comparable<SoftClipCluster> {
 			} 
 		}
 	}	
+//	public void findMaxRescueBreakpoint(QSVParameters p, BLAT blat,
+//			Map<Integer, Breakpoint> leftMap,
+//			Map<Integer, Breakpoint> rightMap, TreeMap<Integer, List<UnmappedRead>> splitReads, String softclipDir) throws Exception {
+//		
+//		//find maximum breakpoint
+//		Breakpoint maxLengthBp = null;
+//		int maxLength = 0;
+//		int buffer = p.getUpperInsertSize() + 100;		
+//		
+//		for (Breakpoint b : leftMap.values()) {
+//			
+//			if (b.getMaxBreakpoint(buffer, splitReads, maxLength)) {
+//				if (b.getBreakpoint().intValue() != this.getSingleBreakpoint().getBreakpoint().intValue()) {
+//					
+//					maxLengthBp = b;
+//					maxLength = b.getMateConsensus().length();
+//				}
+//			}
+//		}
+//		
+//		for (Breakpoint b: rightMap.values()) {
+//			
+//			if (b.getMaxBreakpoint(buffer, splitReads, maxLength)) {
+//				if (b.getBreakpoint().intValue() != this.getSingleBreakpoint().getBreakpoint().intValue()) {
+//					maxLengthBp = b;
+//					maxLength = b.getMateConsensus().length();
+//				}
+//			}
+//		}
+//		
+//		if (maxLengthBp != null) {
+//			
+//			if (maxLengthBp.getMateConsensus().length() > 20) {
+//				boolean match = maxLengthBp.findRescuedMateBreakpoint(blat, p, softclipDir);
+//				
+//				if (match) {
+//					if (this.getSingleBreakpoint() != null) {
+//						if (this.findMatchingBreakpoints(new SoftClipCluster(maxLengthBp))) {
+//							maxLengthBp.setRescued(false);
+//							
+//							if (leftBreakpointObject == null) {
+//								leftBreakpointObject = maxLengthBp;								
+//							} else {
+//								rightBreakpointObject = maxLengthBp;	
+//							}
+//							
+//							rescuedClips = true;
+//							oneSide = false;
+//							setStartAndEnd();
+//							this.mutationType = defineMutationType();
+//							hasMatchingBreakpoints = true;
+//						}
+//					}
+//				}
+//			} 
+//		}
+//	}	
 
 	String getOrphanReference() {
 		if (leftBreakpointObject == null) {
@@ -503,7 +577,7 @@ public class SoftClipCluster implements Comparable<SoftClipCluster> {
 		return null;
 	}
 
-	private void readRescuedClips(File file, boolean isTumour, String reference, int bp, Map<Integer, Breakpoint> leftMap, Map<Integer, Breakpoint> rightMap, TreeMap<Integer, 
+	public static void readRescuedClips(File file, boolean isTumour, String reference, int bp, Map<Integer, Breakpoint> leftMap, Map<Integer, Breakpoint> rightMap, TreeMap<Integer, 
 			List<UnmappedRead>> splitReads, int consensusLength, int chrBuffer, Integer minInsertSize, Collection<String> readGroupIds, String pairingType) throws IOException {
 		int bpStart = bp - chrBuffer;
 		int bpEnd = bp + chrBuffer;
@@ -514,65 +588,65 @@ public class SoftClipCluster implements Comparable<SoftClipCluster> {
 		
 		try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(file,ValidationStringency.SILENT)) {
         
-	    		SAMRecordIterator iter = reader.queryOverlapping(reference, referenceStart, referenceEnd);
+    		SAMRecordIterator iter = reader.queryOverlapping(reference, referenceStart, referenceEnd);
 	    
-	    		while (iter.hasNext()) {
-		        	SAMRecord r = iter.next();	
+    		while (iter.hasNext()) {
+	        	SAMRecord r = iter.next();	
 		        	
-	        		if (readGroupIds.contains(r.getReadGroup().getId())) {
-		        		if (r.getReadUnmappedFlag()) {
+        		if (readGroupIds.contains(r.getReadGroup().getId())) {
+	        		if (r.getReadUnmappedFlag()) {
+		        		count++;
+		        		if (count > 5000) {
+		    	        		break;
+		    	        }
+		        		UnmappedRead splitRead = new UnmappedRead(r, isTumour);
+		        		List<UnmappedRead> reads = splitReads.get(splitRead.getBpPos());
+		        		if (null == reads) {
+		        			reads = new ArrayList<UnmappedRead>();
+		        			splitReads.put(splitRead.getBpPos(), reads);
+		        		}
+		        		reads.add(splitRead);
+		        		
+		        	} else {
+			        	if ( ! r.getDuplicateReadFlag() && r.getCigarString().contains("S")) {
 			        		count++;
 			        		if (count > 5000) {
-			    	        		break;
+			        			break;
 			    	        }
-			        		UnmappedRead splitRead = new UnmappedRead(r, isTumour);
-			        		List<UnmappedRead> reads = splitReads.get(splitRead.getBpPos());
-			        		if (null == reads) {
-			        			reads = new ArrayList<UnmappedRead>();
-			        			splitReads.put(splitRead.getBpPos(), reads);
-			        		}
-			        		reads.add(splitRead);
-			        		
-			        	} else {
-				        	if ( ! r.getDuplicateReadFlag() && r.getCigarString().contains("S")) {
-				        		count++;
-				        		if (count > 5000) {
-				        			break;
-				    	        }
-				        		Clip c = SoftClipStaticMethods.createSoftClipRecord(r, bpStart, bpEnd, reference);
-				        		if (c != null) {     			
-			        				if (c.isLeft()) {
-			        					Breakpoint b = leftMap.get(c.getBpPos());
-			        					if (null == b) {
-			        						b = new Breakpoint(c.getBpPos(), reference, true, consensusLength, minInsertSize);
+			        		Clip c = SoftClipStaticMethods.createSoftClipRecord(r, bpStart, bpEnd, reference);
+			        		if (c != null) {     			
+		        				if (c.isLeft()) {
+		        					Breakpoint b = leftMap.get(c.getBpPos());
+		        					if (null == b) {
+		        						b = new Breakpoint(c.getBpPos(), reference, true, consensusLength, minInsertSize);
+		        						b.addTumourClip(c);
+		        						leftMap.put(c.getBpPos(), b);
+		        					} else {
+		        					
+			        					if (isTumour) {
 			        						b.addTumourClip(c);
-			        						leftMap.put(c.getBpPos(), b);
 			        					} else {
-			        					
-				        					if (isTumour) {
-				        						b.addTumourClip(c);
-				        					} else {
-				        						b.addNormalClip(c);
-				        					}
+			        						b.addNormalClip(c);
 			        					}
-			        				} else {
-			        					Breakpoint b = rightMap.get(c.getBpPos());
-			        					if (null == b) {
-			        						b = new Breakpoint(c.getBpPos(), reference, false, consensusLength, minInsertSize);
-			        						b.addTumourClip(c);
-			        						rightMap.put(c.getBpPos(), b);
-			        					} else {
-			        						if (isTumour) {
-			        							b.addTumourClip(c);
-			        						} else {
-			        							b.addNormalClip(c);
-			        						}
-				        				} 
-			        				}	        				
-				        		}
-				        	}
-			        	}    		
-		        	}	        		
+		        					}
+		        				} else {
+		        					Breakpoint b = rightMap.get(c.getBpPos());
+		        					if (null == b) {
+		        						b = new Breakpoint(c.getBpPos(), reference, false, consensusLength, minInsertSize);
+		        						b.addTumourClip(c);
+		        						rightMap.put(c.getBpPos(), b);
+		        					} else {
+		        						if (isTumour) {
+		        							b.addTumourClip(c);
+		        						} else {
+		        							b.addNormalClip(c);
+		        						}
+			        				}
+		        				}
+			        		}
+			        	}
+		        	}
+        		}	
 	        }
 		}
 	}
@@ -682,7 +756,7 @@ public class SoftClipCluster implements Comparable<SoftClipCluster> {
 			String mh = "";
 			
 			
-			for (int i=1; i<rightReferenceSeq.length(); i++) {
+			for (int i = 1; i < rightReferenceSeq.length(); i++) {
 				//startPosition
 				String currentRight = rightReferenceSeq.substring(0, i);
 				
@@ -786,6 +860,50 @@ public class SoftClipCluster implements Comparable<SoftClipCluster> {
 				String rightClipSeq = leftBreakpointObject.getMateConsensusPosStrand();
 				int leftNonTemp = rightBreakpointObject.getNonTempBases();
 				int rightNonTemp = leftBreakpointObject.getNonTempBases();
+				
+				if (cat.equals(QSVConstants.ORIENTATION_2)) {
+					String tmp = leftClipSeq;			
+					leftClipSeq = rightClipSeq;
+					rightClipSeq = tmp;		
+				}
+				
+				if (leftNonTemp == rightNonTemp) {
+					if (leftNonTemp == 0) {
+						nonTmp = "";
+					}
+					String currentRight = rightClipSeq.substring(0, rightNonTemp);
+					if (leftClipSeq.endsWith(currentRight)) {
+						nonTmp = currentRight;
+					}
+				}
+			}
+		}
+		return nonTmp;
+	}
+	
+	public static String getNonTemplateSequence(String clusterCategory, boolean hasMatchingBreakpoints, String orientationCategory, 
+			String rightBpMateConsensus, String leftBpMateConsensus, int rightBpNonTempBases, int leftBpNonTempBases) {
+		String nonTmp = QSVConstants.UNTESTED;
+		if (hasMatchingBreakpoints) {
+			
+			String cat = null;
+			
+			if (orientationCategory != null) {
+				if (!orientationCategory.equals("")) {
+					cat = orientationCategory;
+				}
+			} else {
+				if (clusterCategory != null) {
+					cat = clusterCategory;
+				}
+			}
+			
+			if (cat != null) {
+				
+				String leftClipSeq = rightBpMateConsensus;			
+				String rightClipSeq = leftBpMateConsensus;
+				int leftNonTemp = rightBpNonTempBases;
+				int rightNonTemp = leftBpNonTempBases;
 				
 				if (cat.equals(QSVConstants.ORIENTATION_2)) {
 					String tmp = leftClipSeq;			

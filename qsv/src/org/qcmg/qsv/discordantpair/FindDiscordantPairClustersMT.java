@@ -94,7 +94,7 @@ public class FindDiscordantPairClustersMT implements Callable <Map<String, List<
 
 			if (findParameters.isTumor() || isQCMG) {
 
-				processByMatePairList();        
+				processByMatePairList();
 				if (isQCMG) {
 					logger.info("Number of " + findReader.getZp() + " mates for " + findReader.getType() + " " + zp.getPairGroup() + ": " + findReader.getMateCount());
 					logger.info("Number of clusters for " + findParameters.getFindType() + " " + zp.getPairGroup() + ": " + getTotalClusters());
