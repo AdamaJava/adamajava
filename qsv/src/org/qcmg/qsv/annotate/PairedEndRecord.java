@@ -17,10 +17,9 @@ import org.qcmg.qsv.util.QSVConstants;
  *
  */
 public class PairedEndRecord {
-//	private static final int nullNHZ = 0;
     
 	private final SAMRecord record;
-    private String zpAnnotation;
+    private String zpAnnotation = QSVConstants.Z_STAR_STAR;
     private final int isizeUpperLimit;
     private final int isizeLowerLimit;
 
@@ -29,7 +28,6 @@ public class PairedEndRecord {
         this.record = record;
         this.isizeLowerLimit = isizeLowerLimit;
         this.isizeUpperLimit = isizeUpperLimit;
-        this.zpAnnotation = "";
     }
     
 	/**
@@ -41,50 +39,49 @@ public class PairedEndRecord {
         	
         	Integer nh = record.getIntegerAttribute(QSVConstants.NH);
         	
-            if (null != nh && 1 == nh.intValue() && record.getMateUnmappedFlag()) {
-                zpAnnotation = QSVConstants.D_STAR_STAR;
-            } else if (null != nh
-                    && 1 == nh.intValue()
-                    && !record.getReferenceName().equals(
-                            record.getMateReferenceName())
-                    && !record.getMateReferenceName().equals(Constants.EQ_STRING)) {
-                zpAnnotation = QSVConstants.C_STAR_STAR;
-                
-            } else if (null != nh && 1 == nh.intValue()
-                    && record.getReadFailsVendorQualityCheckFlag()) {
-                zpAnnotation = QSVConstants.E_STAR_STAR;
-                
-            } else if (null != nh && 1 == nh.intValue() && isDifferentStrand()) {
-                zpAnnotation = "A";
-                handleOrientation();
-                handleIntervalSize();
-            } else if (null != nh && 1 != nh.intValue() && isDifferentStrand()) {
-                zpAnnotation = "A";
-                handleOrientation();
-                handleIntervalSize();
-                if ( ! zpAnnotation.equals(QSVConstants.AAA)) {
-                		zpAnnotation = QSVConstants.Z_STAR_STAR;
-                }                
-            } else if (null == nh && isDifferentStrand()) {
-                zpAnnotation = "A";
-                handleOrientation();
-                handleIntervalSize();
-                if ( ! zpAnnotation.equals(QSVConstants.AAA)) {
-                		zpAnnotation = QSVConstants.Z_STAR_STAR;
-                }
-                
-            } else if (null != nh && 1 == nh && isSameStrand()) {
-                zpAnnotation = "B";
-                handleOrientation();
-                handleIntervalSize();
-            } else {
-            		zpAnnotation = QSVConstants.Z_STAR_STAR;
-            }
-        } else {
-        		zpAnnotation = QSVConstants.Z_STAR_STAR;
+        	if (null != nh) {
+        		
+        		if (1 == nh.intValue()) {
+        			if (record.getMateUnmappedFlag()) {
+        				zpAnnotation = QSVConstants.D_STAR_STAR;
+        			} else if ( ! record.getReferenceName().equals(record.getMateReferenceName()) && ! record.getMateReferenceName().equals(Constants.EQ_STRING)) {
+        				zpAnnotation = QSVConstants.C_STAR_STAR;
+        			} else if (record.getReadFailsVendorQualityCheckFlag()) {
+        				zpAnnotation = QSVConstants.E_STAR_STAR;
+        			} else if (isDifferentStrand()) {
+        				zpAnnotation = "A";
+        				handleOrientation();
+        				handleIntervalSize();
+        			} else if (isSameStrand()) {
+        				zpAnnotation = "B";
+        	            handleOrientation();
+        	            handleIntervalSize();
+        			}
+        		} else {
+        			if (isDifferentStrand()) {
+        				zpAnnotation = "A";
+        	            handleOrientation();
+        	            handleIntervalSize();
+        	            if ( ! zpAnnotation.equals(QSVConstants.AAA)) {
+        	                zpAnnotation = QSVConstants.Z_STAR_STAR;
+        	            }                
+        			}
+        		}
+        	} else {
+        		/*
+        		 * null == nh
+        		 */
+        		if (isDifferentStrand()) {
+        			 zpAnnotation = "A";
+                     handleOrientation();
+                     handleIntervalSize();
+                     if ( ! zpAnnotation.equals(QSVConstants.AAA)) {
+                    	 zpAnnotation = QSVConstants.Z_STAR_STAR;
+                     }
+        		}
+        	}
         }
         record.setAttribute(QSVConstants.ZP, zpAnnotation);
-        	
     }
     
     public String handleOrientation() {
@@ -109,18 +106,18 @@ public class PairedEndRecord {
         }
         
         return zpAnnotation;
-                
     }
 
     /**
 	 * Determine the isize between this record and its mate
 	 */
 	public void handleIntervalSize() {
-        if (isDistanceNormal()) {
+		int absISize = Math.abs(record.getInferredInsertSize());
+        if (isDistanceNormal(absISize)) {
             zpAnnotation += 'A';
-        } else if (isDistanceTooSmall()) {
+        } else if (isDistanceTooSmall(absISize)) {
             zpAnnotation += 'B';
-        } else if (isDistanceTooLarge()) {
+        } else if (isDistanceTooLarge(absISize)) {
             zpAnnotation += 'C';
         }
     }
@@ -162,9 +159,7 @@ public class PairedEndRecord {
     * @return true if succcessful
     */
     public boolean isSameStrand() {
-    	
-        return record.getReadNegativeStrandFlag() == record
-                .getMateNegativeStrandFlag();
+        return record.getReadNegativeStrandFlag() == record.getMateNegativeStrandFlag();
     }
 
     /**
@@ -176,39 +171,49 @@ public class PairedEndRecord {
     }
 
     public boolean isF5toF3() {
-        boolean result = false;
-        if (isReadF5() && isReadLeftOfMate() && isReadForward()
-                && isMateForward()) {
-            result = true;
-        } else if (isReadF5() && isReadRightOfMate() && isReadReverse()
-                && isMateReverse()) {
-            result = true;
-        } else if (isReadF3() && isReadRightOfMate() && isReadForward()
-                && isMateForward()) {
-            result = true;
-        } else if (isReadF3() && isReadLeftOfMate() && isReadReverse()
-                && isMateReverse()) {
-            result = true;
-        }
-        return result;
+    	boolean isF5 = isReadF5();
+    	boolean isLeftOfMate = isReadLeftOfMate();
+    	boolean isForward = isReadForward();
+    	boolean isMateForward = isMateForward();
+    	
+    	if (isF5 && isLeftOfMate && isForward && isMateForward) {
+    		return true;
+    	}
+    	boolean isRightOfMate = isReadRightOfMate();
+    	if (isF5 && isRightOfMate && ! isForward && ! isMateForward) {
+    		return true;
+    	}
+    	boolean isF3 = isReadF3();
+    	if (isF3 && isRightOfMate && isForward && isMateForward) {
+    		return true;
+    	}
+    	if (isF3 && isLeftOfMate && ! isForward && ! isMateForward) {
+    		return true;
+    	}
+    	return false;
     }
 
     public boolean isF3toF5() {
-        boolean result = false;
-        if (isReadF3() && isReadLeftOfMate() && isReadForward()
-                && isMateForward()) {
-            result = true;
-        } else if (isReadF3() && isReadRightOfMate() && isReadReverse()
-                && isMateReverse()) {
-            result = true;
-        } else if (isReadF5() && isReadRightOfMate() && isReadForward()
-                && isMateForward()) {
-            result = true;
-        } else if (isReadF5() && isReadLeftOfMate() && isReadReverse()
-                && isMateReverse()) {
-            result = true;
+    	boolean isF3 = isReadF3();
+    	boolean isLeftOfMate = isReadLeftOfMate();
+    	boolean isForward = isReadForward();
+    	boolean isMateForward = isMateForward();
+		if (isF3 && isLeftOfMate && isForward && isMateForward) {
+	        return true;
+		}
+		boolean isRightOfMate = isReadRightOfMate();
+    	if (isF3 && isRightOfMate && ! isForward && ! isMateForward) {
+    		return true;
+    	}
+        boolean isF5 = isReadF5();
+        if (isF5 && isRightOfMate && isForward && isMateForward) {
+        	return true;
         }
-        return result;
+        if (isF5 && isLeftOfMate &&  ! isForward && ! isMateForward) {
+            return true;
+        }
+        return false;
+        
     }
 
     /**
@@ -216,13 +221,14 @@ public class PairedEndRecord {
      * @return true if inward
      */
     public boolean isInward() {
-        boolean result = false;
-        if (isReadLeftOfMate() && isReadForward() && isMateReverse()) {
-            result = true;
-        } else if (isReadRightOfMate() && isReadReverse() && isMateForward()) {
-            result = true;
+        boolean isForward = isReadForward();
+    	boolean isMateForward = isMateForward();
+        if (isReadLeftOfMate() && isForward && ! isMateForward) {
+            return true;
+        } else if (isReadRightOfMate() && ! isForward && isMateForward) {
+            return true;
         }
-        return result;
+        return false;
     }
 
     /**
@@ -230,13 +236,14 @@ public class PairedEndRecord {
      * @return true if outward
      */
     public boolean isOutward() {
-        boolean result = false;
-        if (isReadRightOfMate() && isReadForward() && isMateReverse()) {
-            result = true;
-        } else if (isReadLeftOfMate() && isReadReverse() && isMateForward()) {
-            result = true;
+        boolean isForward = isReadForward();
+    	boolean isMateForward = isMateForward();
+        if (isReadRightOfMate() && isForward && ! isMateForward) {
+            return true;
+        } else if (isReadLeftOfMate() && ! isForward && isMateForward) {
+            return true;
         }
-        return result;
+        return false;
     }
 
     /**
@@ -244,8 +251,10 @@ public class PairedEndRecord {
      * @return true if successful
      */
     public boolean isDistanceTooSmall() {
-        int absoluteISize = Math.abs(record.getInferredInsertSize());
-        return 0 <= absoluteISize && absoluteISize < isizeLowerLimit;
+    	return isDistanceTooSmall(Math.abs(record.getInferredInsertSize()));
+    }
+    public boolean isDistanceTooSmall(int absoluteISize) {
+    	return absoluteISize < isizeLowerLimit;
     }
 
     /**
@@ -253,9 +262,12 @@ public class PairedEndRecord {
      * @return true if successful
      */
     public boolean isDistanceNormal() {
-        int absoluteISize = Math.abs(record.getInferredInsertSize());
-        return isizeLowerLimit <= absoluteISize
-                && absoluteISize <= isizeUpperLimit;
+    	return isDistanceNormal(Math.abs(record.getInferredInsertSize()));
+    }
+    
+    public boolean isDistanceNormal(int absoluteISize) {
+    	return isizeLowerLimit <= absoluteISize
+    			&& absoluteISize <= isizeUpperLimit;
     }
 
     /**
@@ -263,8 +275,10 @@ public class PairedEndRecord {
      * @return true if successful
      */
     public boolean isDistanceTooLarge() {
-        int absoluteISize = Math.abs(record.getInferredInsertSize());
-        return absoluteISize > isizeUpperLimit;
+    	return isDistanceTooLarge(Math.abs(record.getInferredInsertSize()));
+    }
+    public boolean isDistanceTooLarge(int absoluteISize) {
+    	return absoluteISize > isizeUpperLimit;
     }
 
     public String getZPAnnotation() {

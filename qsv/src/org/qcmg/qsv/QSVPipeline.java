@@ -72,10 +72,10 @@ public class QSVPipeline {
 	private final Map<PairGroup, Map<String, List<DiscordantPairCluster>>> normalRecords;
 	private int somaticCounts = 0;
 	private int  germlineCounts = 0;
-	private int normalGermlineCounts =0;
+	private int normalGermlineCounts = 0;
 	private final String analysisId;
 	private final String resultsDir;
-	private long clipCount =0;
+	private long clipCount = 0;
 
 	public QSVPipeline(Options options, String resultsDir, Date analysisDate, String analysisId, QExec exec) throws Exception {
 

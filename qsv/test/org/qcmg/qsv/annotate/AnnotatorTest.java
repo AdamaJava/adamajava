@@ -16,6 +16,8 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.qcmg.qsv.QSVException;
+import org.qcmg.qsv.util.QSVConstants;
 import org.qcmg.qsv.util.TestUtil;
 
 public class AnnotatorTest {   
@@ -186,6 +188,72 @@ public class AnnotatorTest {
     	sequencingRuns.remove(r);
     }
     
+    @Test
+    public void addNHAttribute() throws QSVException {
+  	    SAMRecord r1 = records.get(0);
+  	    Annotator.setNHAttribute("bwa", r1);
+  	    assertEquals(0, r1.getAttribute(QSVConstants.NH_SHORT));
+  	    Annotator.setNHAttribute("bwa-mem", r1);
+  	    assertEquals(1, r1.getAttribute(QSVConstants.NH_SHORT));
+  	    Annotator.setNHAttribute("novoalign", r1);
+  	    assertEquals(1, r1.getAttribute(QSVConstants.NH_SHORT));
+  	    
+  	  //singleton, passes vendor check
+        r1 = records.get(1);
+        Annotator.setNHAttribute("bwa", r1);
+        assertEquals(0, r1.getAttribute(QSVConstants.NH_SHORT));
+        Annotator.setNHAttribute("bwa-mem", r1);
+        assertEquals(1, r1.getAttribute(QSVConstants.NH_SHORT));
+        Annotator.setNHAttribute("novoalign", r1);
+        assertEquals(1, r1.getAttribute(QSVConstants.NH_SHORT));
+        
+        r1 = records.get(6);
+        Annotator.setNHAttribute("bwa", r1);
+        assertEquals(0, r1.getAttribute(QSVConstants.NH_SHORT));
+        Annotator.setNHAttribute("bwa-mem", r1);
+        assertEquals(1, r1.getAttribute(QSVConstants.NH_SHORT));
+        Annotator.setNHAttribute("novoalign", r1);
+        assertEquals(1, r1.getAttribute(QSVConstants.NH_SHORT));
+        
+        r1.setAttribute("X0", Integer.parseInt("12345"));
+        Annotator.setNHAttribute("bwa", r1);
+        assertEquals(12345, r1.getAttribute(QSVConstants.NH_SHORT));
+        Annotator.setNHAttribute("bwa-mem", r1);
+        assertEquals(1, r1.getAttribute(QSVConstants.NH_SHORT));
+        Annotator.setNHAttribute("novoalign", r1);
+        assertEquals(1, r1.getAttribute(QSVConstants.NH_SHORT));
+        
+        r1.setAttribute("X0", null);
+        r1.setAttribute("XT", 'X');
+        Annotator.setNHAttribute("bwa", r1);
+        assertEquals(0, r1.getAttribute(QSVConstants.NH_SHORT));
+        r1.setAttribute("XT", 'M');
+        Annotator.setNHAttribute("bwa", r1);
+        assertEquals(1, r1.getAttribute(QSVConstants.NH_SHORT));
+        r1.setAttribute("XA", "hello world");
+        Annotator.setNHAttribute("bwa", r1);
+        assertEquals(2, r1.getAttribute(QSVConstants.NH_SHORT));
+        r1.setAttribute("XA", "hello;world");
+        Annotator.setNHAttribute("bwa", r1);
+        assertEquals(3, r1.getAttribute(QSVConstants.NH_SHORT));
+        r1.setAttribute("XA", "hello;world;a");
+        Annotator.setNHAttribute("bwa", r1);
+        assertEquals(4, r1.getAttribute(QSVConstants.NH_SHORT));
+    }
+    
+    @Test
+    public void addNHAttributeBwaMem() throws QSVException {
+  	    SAMRecord r1 = records.get(6);
+  	    Annotator.setNHAttribute("bwa-mem", r1);
+  	    assertEquals(1, r1.getAttribute(QSVConstants.NH_SHORT));
+  	    
+	  	r1.setAttribute("SA", "toodles");
+	    Annotator.setNHAttribute("bwa-mem", r1);
+	    assertEquals(2, r1.getAttribute(QSVConstants.NH_SHORT));
+	    r1.setAttribute("SA", "t;o;o;d;l;e;s");
+	    Annotator.setNHAttribute("bwa-mem", r1);
+	    assertEquals(8, r1.getAttribute(QSVConstants.NH_SHORT));
+    }    
 
 	@Test
     public void testLMPAnnotate() throws Exception {
