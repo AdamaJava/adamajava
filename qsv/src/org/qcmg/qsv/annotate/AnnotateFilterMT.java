@@ -252,17 +252,7 @@ public class AnnotateFilterMT implements Runnable {
 					chromosomes = queueIn.poll();               
 
 					if (chromosomes == null) {
-
-						// qIn maybe filled again during sleep, so sleep should
-						// be secondly
-						try {
-							Thread.sleep(sleepUnit);
-							sleepcount++;
-						} catch (final InterruptedException e) {
-							logger.info(Thread.currentThread().getName() + " "
-									+ e.toString());
-						}
-
+						run = false;
 					} else {
 						// pass the record to filter and then to output queue                    	
 						for (final Chromosome chromosome: chromosomes) {
@@ -559,8 +549,14 @@ public class AnnotateFilterMT implements Runnable {
 									}
 								}
 	
-								if (filterLatch.getCount() == 0) {	                        	
-									run = false;
+								if (filterLatch.getCount() == 0) {
+									/*
+									 * the queue could have been added to since our last check (we did have a quick sleep after all
+									 * Check size again before pulling the plug
+									 */
+									if (queue.isEmpty()) {
+										run = false;
+									}
 								}
 	
 							} else {
