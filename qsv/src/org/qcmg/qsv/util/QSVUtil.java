@@ -26,6 +26,7 @@ import htsjdk.samtools.reference.FastaSequenceIndex;
 import htsjdk.samtools.reference.IndexedFastaSequenceFile;
 import htsjdk.samtools.reference.ReferenceSequence;
 import htsjdk.samtools.reference.ReferenceSequenceFile;
+import htsjdk.samtools.SAMReadGroupRecord;
 import htsjdk.samtools.SAMRecord;
 
 import org.qcmg.common.meta.QExec;
@@ -487,8 +488,11 @@ public class QSVUtil {
 		}		
 	}
 
-	public static void writeUnmappedRecord(BufferedWriter writer,
-			SAMRecord record, Integer start, Integer end, boolean isTumour) throws IOException, QSVException {
+	public static void writeUnmappedRecord(BufferedWriter writer, SAMRecord record, Integer start, Integer end, boolean isTumour) throws IOException, QSVException {
+		SAMReadGroupRecord rg = record.getReadGroup();
+		writeUnmappedRecord( writer, record, (rg != null ? rg.getId() : Constants.EMPTY_STRING), start, end,  isTumour);
+	}
+	public static void writeUnmappedRecord(BufferedWriter writer, SAMRecord record, String rgId, Integer start, Integer end, boolean isTumour) throws IOException, QSVException {
 
 		int recordStart = record.getMateAlignmentStart();
 
@@ -496,12 +500,11 @@ public class QSVUtil {
 			String readString = record.getReadString();
 
 			if (! QSVUtil.highNCount(readString, 0.2)) {
-
 				StringBuilder sb = new StringBuilder("unmapped,");
-				sb.append(record.getReadName()).append(COLON ).append(record.getReadGroup() != null ? record.getReadGroup().getId() : Constants.EMPTY_STRING).append(Constants.COMMA);
+				sb.append(record.getReadName()).append(COLON ).append(rgId).append(Constants.COMMA);
 				sb.append(record.getReferenceName()).append(Constants.COMMA);
 				sb.append(recordStart).append(Constants.COMMA);
-				sb.append(readString).append(getNewLine());
+				sb.append(readString).append(NEW_LINE);
 
 				writer.write(sb.toString());
 			}

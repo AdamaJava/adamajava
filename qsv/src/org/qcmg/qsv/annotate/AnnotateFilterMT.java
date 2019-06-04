@@ -12,14 +12,13 @@ import java.io.FileWriter;
 import java.util.AbstractQueue;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMFileHeader.SortOrder;
@@ -54,7 +53,7 @@ import org.qcmg.qsv.util.QSVUtil;
  */
 public class AnnotateFilterMT implements Runnable {
 	
-	private static final int noOfThreads = 3;
+	private static final int noOfThreads = 2;
 	private static final int maxRecords = 500000;
 	private static final int checkPoint = 100000;
 
@@ -128,7 +127,8 @@ public class AnnotateFilterMT implements Runnable {
 	public void run() {
 
 		// create queue to get the chromosomes to reads
-		final AbstractQueue<List<Chromosome>> readQueue = new ConcurrentLinkedQueue<List<Chromosome>>();
+		final AbstractQueue<List<Chromosome>> readQueue = new ConcurrentLinkedQueue<>(parameters.getChromosomes().values().stream().collect(Collectors.toList()));
+		logger.info("readQueue setup with " + readQueue.size() + " lists of chromosomes");
 
 		// create queue to store the satisfied BAM records for discordant pairs
 		final AbstractQueue<SAMRecord> writeQueue = new ConcurrentLinkedQueue<SAMRecord>();
@@ -136,25 +136,20 @@ public class AnnotateFilterMT implements Runnable {
 		// create queue to store the satisfied BAM records for clips and unmapped reads
 		final AbstractQueue<SAMRecord> writeClipQueue = new ConcurrentLinkedQueue<SAMRecord>();
 
-		final CountDownLatch readLatch = new CountDownLatch(1); // reading thread
 		final CountDownLatch filterLatch = new CountDownLatch(noOfThreads); // annotating filtering threads
 		final CountDownLatch writeLatch = new CountDownLatch(2); // writing thread for satisfied records
 
 		// set up executor services
-		final ExecutorService readThread = new CustomThreadPoolExecutor(1, exitStatus, logger);
 		final ExecutorService filterThreads = new CustomThreadPoolExecutor(noOfThreads, exitStatus, logger);
 		final ExecutorService writeThreads = new CustomThreadPoolExecutor(2, exitStatus, logger);
 
 		try {
 
-			// kick-off single reading thread
-			readThread.execute(new Reading(readQueue, Thread.currentThread(), readLatch, filterLatch));
-			readThread.shutdown();
 
 			// kick-off filtering thread
 			for (int i = 0; i < noOfThreads; i++) {
 				filterThreads.execute(new AnnotationFiltering(readQueue,
-						writeQueue, writeClipQueue, Thread.currentThread(), readLatch,
+						writeQueue, writeClipQueue, Thread.currentThread(),
 						filterLatch, writeLatch));
 			}
 			filterThreads.shutdown();
@@ -167,7 +162,6 @@ public class AnnotateFilterMT implements Runnable {
 			writeThreads.shutdown();
 
 			logger.info("waiting for  threads to finish (max wait will be 20 hours)");
-			readThread.awaitTermination(60, TimeUnit.HOURS);
 			filterThreads.awaitTermination(60, TimeUnit.HOURS);
 			writeThreads.awaitTermination(60, TimeUnit.HOURS);
 
@@ -195,7 +189,6 @@ public class AnnotateFilterMT implements Runnable {
 			}
 		} finally {
 			// kill off any remaining threads            	
-			readThread.shutdownNow();
 			writeThreads.shutdownNow();
 			filterThreads.shutdownNow();
 			mainLatch.countDown();
@@ -206,81 +199,6 @@ public class AnnotateFilterMT implements Runnable {
 		return goodClipCount;
 	}
 
-	/**
-	 * Class to determine the chromosomes/contigs to read/write
-	 * @author felicity
-	 *
-	 */
-	private class Reading implements Runnable {
-
-		private final AbstractQueue<List<Chromosome>> queue;
-		private final Thread mainThread;
-		private final CountDownLatch rLatch;
-		private final CountDownLatch fLatch;
-
-		public Reading(AbstractQueue<List<Chromosome>> q, Thread mainThread,
-				CountDownLatch readLatch, CountDownLatch filterLatch) {
-			this.queue = q;
-			this.mainThread = mainThread;
-			this.rLatch = readLatch;
-			this.fLatch = filterLatch;
-		}
-
-		@Override
-		public void run() {
-			logger.info("Starting to read input: " + input.getAbsolutePath());
-			int countSleep = 0;
-			long count = 0;
-			try {
-				final Map<String, List<Chromosome>> chromosomes = parameters.getChromosomes();
-
-				for (final Entry<String, List<Chromosome>> entry: chromosomes.entrySet()) {
-					logger.info("Adding chromosome to queue: " + entry.getKey() + " in sample " + parameters.getFindType());
-					queue.add(entry.getValue());
-
-					if (fLatch.getCount() == 0) {
-						throw new Exception(
-								"No filtering threads left, but reading from input is not yet completed");
-					}
-
-					if (++count % checkPoint == 1) {
-						while (queue.size() >= maxRecords) {
-							try {
-								Thread.sleep(sleepUnit);
-								countSleep++;
-							} catch (final Exception e) {
-								logger.info(Thread.currentThread().getName()
-										+ " " +QSVUtil.getStrackTrace(e));
-							}
-						}
-					}
-
-					if (count % 50000000 == 0) {
-						logger.debug("Read " + count + " records from input: "
-								+ parameters.getFindType());
-					}
-
-				}
-
-				logger.info("Completed reading thread, read " + count
-						+ " records from input: " + input.getAbsolutePath());
-			} catch (final Exception e) {
-				logger.error("Setting exit status in execute thread to 1 as exception caught in reading method: " + QSVUtil.getStrackTrace(e));
-				if (exitStatus.intValue() == 0) {
-					exitStatus.incrementAndGet();
-				}
-				mainThread.interrupt();
-			} finally {
-				rLatch.countDown();
-				logger.info(String
-						.format("Exit Reading thread, total slept %d times * %d milli-seconds, "
-								+ "since input queue are full.fLatch  is %d; queus size is %d ",
-								countSleep, sleepUnit, fLatch.getCount(),
-								queue.size()));
-			}
-
-		}
-	}
 
 	/**
 	 * Class to annotate and filter discordant pairs, clips and unmapped readsS
@@ -291,7 +209,6 @@ public class AnnotateFilterMT implements Runnable {
 		private final AbstractQueue<List<Chromosome>> queueIn;
 		private final AbstractQueue<SAMRecord> queueOutPair;
 		private final Thread mainThread;
-		private final CountDownLatch readLatch;
 		private final CountDownLatch filterLatch;
 		private final CountDownLatch writeLatch;
 		private int countOutputSleep;
@@ -303,13 +220,11 @@ public class AnnotateFilterMT implements Runnable {
 
 		public AnnotationFiltering(AbstractQueue<List<Chromosome>> readQueue,
 				AbstractQueue<SAMRecord> writeQueue, AbstractQueue<SAMRecord> writeClipQueue, Thread mainThread,
-				CountDownLatch readLatch, CountDownLatch fLatch,
-				CountDownLatch wGoodLatch) throws Exception {
+				CountDownLatch fLatch, CountDownLatch wGoodLatch) throws Exception {
 			this.queueIn = readQueue;
 			this.queueOutPair = writeQueue;
 			this.queueOutClip = writeClipQueue;
 			this.mainThread = mainThread;
-			this.readLatch = readLatch;
 			this.filterLatch = fLatch;
 			this.writeLatch = wGoodLatch;
 			if (runPair && ! StringUtils.isNullOrEmpty(query)) {
@@ -337,21 +252,7 @@ public class AnnotateFilterMT implements Runnable {
 					chromosomes = queueIn.poll();               
 
 					if (chromosomes == null) {
-						// must check whether reading thread finished first.
-						if (readLatch.getCount() == 0) {
-							run = false;
-						}
-
-						// qIn maybe filled again during sleep, so sleep should
-						// be secondly
-						try {
-							Thread.sleep(sleepUnit);
-							sleepcount++;
-						} catch (final InterruptedException e) {
-							logger.info(Thread.currentThread().getName() + " "
-									+ e.toString());
-						}
-
+						run = false;
 					} else {
 						// pass the record to filter and then to output queue                    	
 						for (final Chromosome chromosome: chromosomes) {
@@ -425,7 +326,7 @@ public class AnnotateFilterMT implements Runnable {
 		
 							//discordant pairs
 							if (runPair && record.getAlignmentStart() >= startPos && record.getAlignmentStart() <= endPos) {
-								writersResult = addToPairWriter(record, count);
+								writersResult = addToPairWriter(record, srgr.getId(), count);
 							}
 		
 							if (runClip) {
@@ -433,7 +334,7 @@ public class AnnotateFilterMT implements Runnable {
 								if (( ! record.getReadUnmappedFlag() && ! record.getDuplicateReadFlag() && record.getCigarString().contains("S"))
 										|| (isSplitRead && record.getReadUnmappedFlag()) ) {
 									
-									pileupResult = pileupSoftClips(writer, record, startPos, endPos, chromosome);
+									pileupResult = pileupSoftClips(writer, record, srgr.getId(), startPos, endPos, chromosome, count);
 								}
 							}
 		
@@ -471,19 +372,19 @@ public class AnnotateFilterMT implements Runnable {
 		/*
 		 * write soft clips and unmapped reads
 		 */
-		private boolean pileupSoftClips(BufferedWriter writer, SAMRecord record, int start, int end, Chromosome chromosome) throws Exception {
+		private boolean pileupSoftClips(BufferedWriter writer, SAMRecord record, String rgId, int start, int end, Chromosome chromosome, int count) throws Exception {
 			if (record.getReadUnmappedFlag()) {
 				unmappedCount.incrementAndGet();
-				QSVUtil.writeUnmappedRecord(writer, record, start, end, parameters.isTumor());						
-				return add2queue(record, queueOutClip, start);
+				QSVUtil.writeUnmappedRecord(writer, record, rgId, start, end, parameters.isTumor());						
+				return add2queue(record, queueOutClip, count);
 			}
 
 
 			//see if clips pass the filter
 			if (clipQueryEx.Execute(record)) {
 				goodClipCount.incrementAndGet();
-				SoftClipStaticMethods.writeSoftClipRecord(writer, record, start, end, chromosome.getName());    			
-				return add2queue(record, queueOutClip, start);
+				SoftClipStaticMethods.writeSoftClipRecord(writer, record, rgId, start, end, chromosome.getName());    			
+				return add2queue(record, queueOutClip, count);
 			} else {
 				return true;
 			}			
@@ -492,14 +393,14 @@ public class AnnotateFilterMT implements Runnable {
 		/*
 		 * Write discordant pairs to bam
 		 */
-		private boolean addToPairWriter(SAMRecord record, int count) throws Exception {
+		private boolean addToPairWriter(SAMRecord record, String rgId, int count) throws Exception {
 
 			if ( ! record.getReadUnmappedFlag()) {
 				
 				if ( ! translocationsOnly || QSVUtil.isTranslocationPair(record)) {
 
 					//annotate the read
-					parameters.getAnnotator().annotate(record);
+					parameters.getAnnotator().annotate(record, rgId);
 					final String zp = (String) record.getAttribute(QSVConstants.ZP_SHORT);
 
 					//make sure it is discordant
@@ -509,29 +410,29 @@ public class AnnotateFilterMT implements Runnable {
 							if (pairQueryEx.Execute(record)) {
 								goodPairRecordCount.incrementAndGet();                 		    
 								return add2queue(record, queueOutPair, count, writeLatch);			                                
-							} else if (lifescopeQueryEx != null && record.getAttribute("SM") == null && record.getAttribute("XC") != null) {
-								//try to filter lifescope reads
-								if (lifescopeQueryEx.Execute(record)) {
-									goodPairRecordCount.incrementAndGet();
-									return add2queue(record, queueOutPair, count, writeLatch);
-								} else {
-									record.setAttribute(QSVConstants.ZP, record.getAttribute("XC"));
-									if (lifescopeQueryEx.Execute(record)) {
-										return add2queue(record, queueOutPair, count, writeLatch);
-									}
-								} 
-								badRecordCount.incrementAndGet();
 							} else {
-								badRecordCount.incrementAndGet();
+								Object xc = record.getAttribute("XC");
+								if (lifescopeQueryEx != null && record.getAttribute("SM") == null && xc != null) {
+									//try to filter lifescope reads
+									if (lifescopeQueryEx.Execute(record)) {
+										goodPairRecordCount.incrementAndGet();
+										return add2queue(record, queueOutPair, count, writeLatch);
+									} else {
+										record.setAttribute(QSVConstants.ZP, xc);
+										if (lifescopeQueryEx.Execute(record)) {
+											return add2queue(record, queueOutPair, count, writeLatch);
+										}
+									}
+									badRecordCount.incrementAndGet();
+								} else {
+									badRecordCount.incrementAndGet();
+								}
 							}
-						}
-					} 	               	
+						} 	               	
+					}
 				}
-				return true;
-
-			} else {
-				return true;
-			}			
+			}
+			return true;
 		}
 		
 		private boolean add2queue(SAMRecord re, AbstractQueue<SAMRecord> queue, int count) {
@@ -539,12 +440,11 @@ public class AnnotateFilterMT implements Runnable {
 		}
 
 		//add to write queue
-		private boolean add2queue(SAMRecord re, AbstractQueue<SAMRecord> queue,
-				int count, CountDownLatch latch) {
+		private boolean add2queue(SAMRecord re, AbstractQueue<SAMRecord> queue,	int count, CountDownLatch latch) {
 			// check queue size in each checkPoint number
 			if (count % checkPoint == 0) {
 				// check mainThread
-				if (!mainThread.isAlive()) {
+				if ( ! mainThread.isAlive()) {
 					logger.error("mainThread died: " + mainThread.getName());
 					return false;
 				}
@@ -564,9 +464,7 @@ public class AnnotateFilterMT implements Runnable {
 				} // end while
 			}
 
-			queue.add(re);
-
-			return true;
+			return queue.add(re);
 		}
 	}
 
@@ -595,12 +493,12 @@ public class AnnotateFilterMT implements Runnable {
 		public void run() {        	
 			int countSleep = 0;
 			boolean run = true;
+			logger.info("Started Writing thread with output file: " + file);
 			try {
 				int count = 0;
 				if (file != null) {
 					final String commandLine = query;
-					HeaderUtils.addProgramRecord(header, "qsv",
-							Messages.getVersionMessage(), commandLine);
+					HeaderUtils.addProgramRecord(header, "qsv",	Messages.getVersionMessage(), commandLine);
 					final SAMFileWriterFactory writeFactory = new SAMFileWriterFactory();
 					if (header.getSortOrder().equals(SortOrder.coordinate)) {
 						writeFactory.setCreateIndex(true);
@@ -621,7 +519,6 @@ public class AnnotateFilterMT implements Runnable {
 					
 					final SAMFileWriter writer = writeFactory.makeBAMWriter(header, false, file, 1);
 					
-//					final File tmpLocation = htsjdk.samtools.util.IOUtil.getDefaultTmpDir();
 					logger.info("all tmp BAMs are located on " + file.getParentFile().getCanonicalPath());
 					logger.info("default maxRecordsInRam " + htsjdk.samtools.SAMFileWriterImpl.getDefaultMaxRecordsInRam());
 
@@ -639,29 +536,37 @@ public class AnnotateFilterMT implements Runnable {
 											+ QSVUtil.getStrackTrace(e));
 								}
 	
-								if ((count % checkPoint == 0)
-										&& (!mainThread.isAlive()))
-									throw new Exception(
-											"Writing thread failed since parent thread died.");
+								if ((count % checkPoint == 0) && (!mainThread.isAlive())) {
+									throw new Exception("Writing thread failed since parent thread died.");
+								}
 	
 								while (queue.size() >= maxRecords) {
 									try {
 										Thread.sleep(sleepUnit);
 										countSleep++;
 									} catch (final Exception e) {
-										logger.info(Thread.currentThread().getName()
-												+ " " + QSVUtil.getStrackTrace(e));
+										logger.info(Thread.currentThread().getName() + " " + QSVUtil.getStrackTrace(e));
 									}
 								}
 	
-								if (filterLatch.getCount() == 0) {	                        	
-									run = false;
+								if (filterLatch.getCount() == 0) {
+									/*
+									 * the queue could have been added to since our last check (we did have a quick sleep after all
+									 * Check size again before pulling the plug
+									 */
+									if (queue.isEmpty()) {
+										run = false;
+									}
 								}
 	
 							} else {
 	
 								writer.addAlignment(record);
 								count++;
+								
+								if (count % 1000000 == 0) {
+									logger.info("have written " + count + " SAMRecords to file, queue size: " + queue.size());
+								}
 							}
 						}
 					} catch (Exception e) {

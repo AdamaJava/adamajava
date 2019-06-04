@@ -21,11 +21,15 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import javax.xml.bind.Marshaller;
 
+import htsjdk.samtools.SAMReadGroupRecord;
 import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SAMTagUtil;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.util.Constants;
 import org.qcmg.qsv.QSVException;
+import org.qcmg.qsv.util.QSVConstants;
 
 /**
  * 
@@ -33,6 +37,13 @@ import org.qcmg.qsv.QSVException;
  *
  */
 public class Annotator  {
+	
+	public static final String X0 = "X0";
+	public static final String XT = "XT";
+	public static final short X0_SHORT = SAMTagUtil.getSingleton().makeBinaryTag(X0);
+	public static final short XA_SHORT = SAMTagUtil.getSingleton().makeBinaryTag("XA");
+	public static final short SA_SHORT = SAMTagUtil.getSingleton().makeBinaryTag("SA");
+	public static final short ZN_SHORT = SAMTagUtil.getSingleton().makeBinaryTag("ZN");
 
 	private final File file;
 	private static QLogger logger = QLoggerFactory.getLogger(Annotator.class);
@@ -85,6 +96,11 @@ public class Annotator  {
 	 * @throws Exception
 	 */
 	public void annotate(SAMRecord record) throws QSVException {
+		SAMReadGroupRecord rg = record.getReadGroup();
+		annotate(record, null != rg ? rg.getId() : null);
+		
+	}
+	public void annotate(SAMRecord record, String rgId) throws QSVException {
 
 		//NH is the number of reporte alignments. Only get those that have a single alignment
 		//		record.getAttribute("NH");
@@ -99,8 +115,8 @@ public class Annotator  {
 		int upper = -1;
 
 		//find the correct upper and lower insert sizes		
-		if (record.getReadGroup() != null) {
-			RunTypeRecord rtr = sequencingRunsMap.get(record.getReadGroup().getId());
+		if (rgId != null) {
+			RunTypeRecord rtr = sequencingRunsMap.get(rgId);
 			if (null != rtr) {
 				lower = rtr.getLower();
 				upper = rtr.getUpper();
@@ -169,28 +185,28 @@ public class Annotator  {
 			} else {	
 				//read unpaired
 				if (record.getDuplicateReadFlag()) {
-					record.setAttribute("ZP", "W**");
+					record.setAttribute(QSVConstants.ZP, "W**");
 					countZp("W**");
 				} else {
-					record.setAttribute("ZP", "X**");
+					record.setAttribute(QSVConstants.ZP, "X**");
 					countZp("X**");
 				}
 			}
 		} else {
 			if (record.getReadPairedFlag()) {
 				if (record.getDuplicateReadFlag()) {
-					record.setAttribute("ZP", "Y**");					
+					record.setAttribute(QSVConstants.ZP, "Y**");					
 					countZp("Y**");
 				} else {
-					record.setAttribute("ZP", "T**");
+					record.setAttribute(QSVConstants.ZP, "T**");
 					countZp("T**");
 				}				
 			} else {
 				if (record.getDuplicateReadFlag()) {
-					record.setAttribute("ZP", "W**");
+					record.setAttribute(QSVConstants.ZP, "W**");
 					countZp("W**");
 				} else {
-					record.setAttribute("ZP", "X**");
+					record.setAttribute(QSVConstants.ZP, "X**");
 					countZp("X**");
 				}				
 			}			
@@ -200,7 +216,7 @@ public class Annotator  {
 	}
 
 	private void countZp(String zpAnnotation) {
-		AtomicLong al =zpToCount.get(zpAnnotation); 
+		AtomicLong al = zpToCount.get(zpAnnotation); 
 		if (null == al) {
 			AtomicLong newValue = new AtomicLong(1);
 			al = zpToCount.putIfAbsent(zpAnnotation, newValue);
@@ -328,55 +344,62 @@ public class Annotator  {
 	 * @param record
 	 * @throws QSVException
 	 */
-	public void setNHAttribute(String mapper, SAMRecord record) throws QSVException {
+	public static void setNHAttribute(String mapper, SAMRecord record) throws QSVException {
 
 		//bwa
 		if (mapper.equals("bwa")) {
 
 			// annotate the record
 			if (record.getReadUnmappedFlag() || record.getNotPrimaryAlignmentFlag()) {
-				record.setAttribute("NH", 0);
+				record.setAttribute(QSVConstants.NH, 0);
 				//X0 = unqiue
-			} else if (record.getAttribute("X0") != null) {
-				// X0 == NH
-				record.setAttribute("NH", record.getAttribute("X0"));
 			} else {
-				// X0 is absent, use XT
-				if (record.getCharacterAttribute("XT") != null) {
-					//mate rescued
-					if (record.getCharacterAttribute("XT") == 'M') {
-						// include m
-						if (record.getAttribute("XA") == null) {
-							record.setAttribute("NH", 1);
+				Object xo = record.getAttribute(X0_SHORT); 
+				if (xo != null) {
+					record.setAttribute(QSVConstants.NH, xo);
+				} else {
+					
+					// X0 is absent, use XT
+					Character xt = record.getCharacterAttribute(XT);
+					if (xt != null) {
+						//mate rescued
+						if (xt == 'M') {
+							// include m
+							String xa = (String) record.getAttribute(XA_SHORT);
+							if (xa == null) {
+								record.setAttribute(QSVConstants.NH, 1);
+							} else {
+								int value = xa.split(Constants.SEMI_COLON_STRING).length + 1;
+								record.setAttribute(QSVConstants.NH, value);
+							}
 						} else {
-							String xa = (String) record.getAttribute("XA");
-							int value = xa.split(";").length + 1;
-							record.setAttribute("NH", value);
+							record.setAttribute(QSVConstants.NH, 0);
 						}
 					} else {
-						record.setAttribute("NH", 0);
+						record.setAttribute(QSVConstants.NH, 0);
 					}
-				} else {
-					record.setAttribute("NH", 0);
 				}
 			}
 		} else if (mapper.equals("bwa-mem")) {
 			if (record.getReadUnmappedFlag() || record.getNotPrimaryAlignmentFlag()) {
-				record.setAttribute("NH", 0);
-			} else if (record.getAttribute("SA") != null) {				
-				String xa = (String) record.getAttribute("SA");
-				int value = xa.split(";").length + 1;
-				record.setAttribute("NH", value);
+				record.setAttribute(QSVConstants.NH, 0);
 			} else {
-				record.setAttribute("NH", 1);
+				String xa = (String) record.getAttribute(SA_SHORT);
+				if (xa != null) {
+					int value = xa.split(Constants.SEMI_COLON_STRING).length + 1;
+					record.setAttribute(QSVConstants.NH, value);
+				} else {
+					record.setAttribute(QSVConstants.NH, 1);
+				}
 			}
 		} else if (mapper.equals("novoalign")) {
-			if ((Integer)record.getAttribute("ZN") != null) {
-				record.setAttribute("NH", record.getAttribute("ZN"));	
+			Integer zn = (Integer)record.getAttribute(ZN_SHORT);
+			if (zn != null) {
+				record.setAttribute(QSVConstants.NH, zn);	
 			} else if (record.getNotPrimaryAlignmentFlag()) {
-				record.setAttribute("NH", 2);
+				record.setAttribute(QSVConstants.NH, 2);
 			} else {
-				record.setAttribute("NH", 1);
+				record.setAttribute(QSVConstants.NH, 1);
 			}			
 		} else {
 			throw new QSVException("UNKNOWN_MAPPER");
