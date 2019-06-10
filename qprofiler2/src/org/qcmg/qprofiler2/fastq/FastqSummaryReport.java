@@ -51,22 +51,22 @@ public class FastqSummaryReport extends SummaryReport {
 	@Override
 	public void toXml(Element parent1) {		
 		Element parent = init( parent1, ProfileType.FASTQ, null, null );
-		parent = XmlElementUtils.createSubElement( parent, ProfileType.FASTQ.getReportName() +  XmlUtils.metrics   );
+		parent = XmlElementUtils.createSubElement( parent, ProfileType.FASTQ.getReportName() +  XmlUtils.METRICS   );
 		
 		//header line:"analysis read name pattern for read group
-		Element element =   XmlElementUtils.createSubElement(parent, XmlUtils.qname ) ;							
+		Element element =   XmlElementUtils.createSubElement(parent, XmlUtils.QNAME ) ;							
 		readHeaderSummary.toXml(element );		
 
 		//seq								 			
-		element =   XmlElementUtils.createSubElement(parent,XmlUtils.seq  ) ;
-		Element ele = XmlUtils.createMetricsNode( element, XmlUtils.seqBase , null); 
-		seqByCycle.toXml( ele, XmlUtils.seqBase);	
+		element =   XmlElementUtils.createSubElement(parent,XmlUtils.SEQ  ) ;
+		Element ele = XmlUtils.createMetricsNode( element, XmlUtils.SEQ_BASE , null); 
+		seqByCycle.toXml( ele, XmlUtils.SEQ_BASE);	
 		
-		ele = XmlUtils.createMetricsNode( element, XmlUtils.seqLength , null); 
-		XmlUtils.outputTallyGroup( ele, XmlUtils.seqLength, seqByCycle.getLengthMapFromCycle(), true );	
+		ele = XmlUtils.createMetricsNode( element, XmlUtils.SEQ_LENGTH , null); 
+		XmlUtils.outputTallyGroup( ele, XmlUtils.SEQ_LENGTH, seqByCycle.getLengthMapFromCycle(), true, true );	
 		
-		ele = XmlUtils.createMetricsNode( element, XmlUtils.badBase, null);
-		XmlUtils.outputTallyGroup( ele, XmlUtils.badBase,   seqBadReadLineLengths.toMap(), true );	
+		ele = XmlUtils.createMetricsNode( element, XmlUtils.BAD_READ, null);
+		XmlUtils.outputTallyGroup( ele, XmlUtils.BAD_READ,   seqBadReadLineLengths.toMap(), true, true );	
 		XmlUtils.addCommentChild(ele, FastqSummaryReport.badBaseComment );
 		
 		//1mers is same to baseByCycle
@@ -75,18 +75,17 @@ public class FastqSummaryReport extends SummaryReport {
 		}
 		
 		//QUAL
-		element = XmlElementUtils.createSubElement(parent, XmlUtils.qual) ;
-		ele = XmlUtils.createMetricsNode( element, XmlUtils.qualBase , null); 
-		qualByCycleInteger.toXml(element,XmlUtils.qualBase) ;
+		element = XmlElementUtils.createSubElement(parent, XmlUtils.QUAL) ;
+		ele = XmlUtils.createMetricsNode( element, XmlUtils.QUAL_BASE , null); 
+		qualByCycleInteger.toXml(element,XmlUtils.QUAL_BASE) ;
 		
-		ele = XmlUtils.createMetricsNode( element, XmlUtils.qualLength, null) ;
-		XmlUtils.outputTallyGroup( ele,  XmlUtils.qualLength,  qualByCycleInteger.getLengthMapFromCycle(), true ) ;	
+		ele = XmlUtils.createMetricsNode( element, XmlUtils.QUAL_LENGTH, null) ;
+		XmlUtils.outputTallyGroup( ele,  XmlUtils.QUAL_LENGTH,  qualByCycleInteger.getLengthMapFromCycle(), true, true ) ;	
 		
-		ele = XmlUtils.createMetricsNode( element,  XmlUtils.badBase, null) ;
-		XmlUtils.outputTallyGroup( ele,  XmlUtils.badBase ,  qualBadReadLineLengths.toMap(), false ) ;
+		ele = XmlUtils.createMetricsNode( element,  XmlUtils.BAD_READ, null) ;
+		XmlUtils.outputTallyGroup( ele,  XmlUtils.BAD_READ ,  qualBadReadLineLengths.toMap(), false, true ) ;
 		XmlUtils.addCommentChild(ele, FastqSummaryReport.badQualComment );
-		
-		
+			
  	}
 	
 	/**

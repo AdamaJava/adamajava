@@ -70,7 +70,7 @@ public class CohortSummaryReportTest {
 			List<String> outputs = xReport.outputCounts();
 			outputSize += outputs.size();
 			
-			if(ele.getAttribute(XmlUtils.sName).equals("test1") ){
+			if(ele.getAttribute(XmlUtils.NAME).equals("test1") ){
 				assertTrue(outputs.size() == 4);
 				for(String output : outputs ){								 
 					String[] subs = new String[]{"5BP=3:SOMATIC;GERM=42,185", "5BP=3:SOMATIC", "PASS:SOMATIC\tSNV" ,"PASS:SOMATIC\tDNV" };					
@@ -83,7 +83,7 @@ public class CohortSummaryReportTest {
 					else
 						assertEquals( input.getCanonicalPath() + "\ttest1\t" + subs[3] + "\t10\t0.000\t-",  output );	 
 				}
-			}else if(ele.getAttribute(XmlUtils.sName).equals("control1") ){
+			}else if(ele.getAttribute(XmlUtils.NAME).equals("control1") ){
 				assertTrue(outputs.size() == 3);
 				for(String output : outputs ){					
 					if(output.contains("\tSNV\t"))

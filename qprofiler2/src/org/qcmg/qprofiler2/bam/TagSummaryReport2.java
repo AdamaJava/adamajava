@@ -97,7 +97,7 @@ public class TagSummaryReport2 {
 				}
 				String name = BamSummaryReport2.sourceName[order] + strand; 
 				
-				XmlUtils.outputTallyGroup(ele,  name, mdRefAltLengthsString, true);				
+				XmlUtils.outputTallyGroup(ele,  name, mdRefAltLengthsString, true, true);				
 			}		
 		}			
 		

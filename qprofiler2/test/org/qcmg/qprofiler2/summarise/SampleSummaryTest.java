@@ -83,28 +83,28 @@ public class SampleSummaryTest {
 		for(VcfRecord re: records) summary.parseRecord( re, 1 );
 		summary.toXML( root,null, null );  
 		if(records.size() == 0){			
-			assertEquals( 0, XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.sValue).size());			 
+			assertEquals( 0, XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.VALUE).size());			 
 			return; 
 		}
 			
 			
 		//get <SNP TiTvRatio="0.00" Transitions="0" Transversions="1">
-		Element subE = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.sValue).stream()
-				.filter( e -> e.getAttribute(XmlUtils.sName).equals(SampleSummary.tiTvRatio)).findFirst().get();								 
+		Element subE = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.VALUE).stream()
+				.filter( e -> e.getAttribute(XmlUtils.NAME).equals(SampleSummary.tiTvRatio)).findFirst().get();								 
 		assertEquals( ratio, subE.getTextContent());
 		
 		
 		if(ti != null) {
-			subE = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.variableGroupEle).stream()
-					.filter( e -> e.getAttribute(XmlUtils.sName).equals(SampleSummary.transitions)).findFirst().get();
-			assertEquals(ti, XmlElementUtils.getChildElement(subE, XmlUtils.sTally, 0).getAttribute(XmlUtils.sCount));
+			subE = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.VARIABLE_GROUP_ELE).stream()
+					.filter( e -> e.getAttribute(XmlUtils.NAME).equals(SampleSummary.transitions)).findFirst().get();
+			assertEquals(ti, XmlElementUtils.getChildElement(subE, XmlUtils.TALLY, 0).getAttribute(XmlUtils.COUNT));
 			
 		}
 		
 		if(tv != null) {
-			subE = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.variableGroupEle).stream()
-					.filter( e -> e.getAttribute(XmlUtils.sName).equals(SampleSummary.transversions)).findFirst().get();
-			assertEquals(tv,  XmlElementUtils.getChildElement(subE, XmlUtils.sTally, 0).getAttribute(XmlUtils.sCount));
+			subE = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.VARIABLE_GROUP_ELE).stream()
+					.filter( e -> e.getAttribute(XmlUtils.NAME).equals(SampleSummary.transversions)).findFirst().get();
+			assertEquals(tv,  XmlElementUtils.getChildElement(subE, XmlUtils.TALLY, 0).getAttribute(XmlUtils.COUNT));
 			
 		}
 	

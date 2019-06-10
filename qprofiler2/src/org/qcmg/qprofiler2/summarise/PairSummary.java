@@ -4,92 +4,13 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.QCMGAtomicLongArray;
+import org.qcmg.picard.BwaPair;
+import org.qcmg.picard.BwaPair.Pair;
 import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Element;
 import htsjdk.samtools.SAMRecord;
 
 public class PairSummary {		
-	public enum Pair{ 
-		F3F5(1), F5F3(2), Inward(3), Outward(4), Others(5); 
-		int id;
-		Pair(int id){this.id = id;}
-	}
-
-	/**
-	 *  
-	 * @param record a samRrecord
-	 * @return 0 if record with negative tLen value or secondOfPair with zero tLen value ; otherwise return the overlapped base counts
-	 */
-    public static int getOverlapBase(SAMRecord  record) {
-	   	 
-    	//to avoid double counts, we only select one of Pair: tLen > 0 
-        int iSize = record.getInferredInsertSize();
-       	if(iSize < 0) return 0;  
-       	//pick up first of pair if same strand read and tlen=0
-       	if(iSize == 0 && !record.getFirstOfPairFlag() ) return 0;
-        	       	
-       	int result  = 0;  	
-   		//|--> <--| mate end = tLen -1 + read start
-   
-   		if( record.getReadNegativeStrandFlag() != record.getMateNegativeStrandFlag()  ) {  			
-   			// outward pair without overlap
-   			if( iSize == 0) {  return 0;   } 
-   			
-   			//We don't know forward mate end but know reverse mate end = tLen + read start
-   			int mateEnd = iSize + record.getAlignmentStart()-1 ;  //reverse mate end
-   			int readEnd = record.getAlignmentEnd();   //forward read start
-   			result = Math.min( readEnd, mateEnd ) - Math.max(record.getAlignmentStart(), record.getMateAlignmentStart() ) + 1;   
-   		}
-   		
-   		//|--->    or     |-----> (read end - mate start>0) or       |----->
-   		//|----->              |----->                      |---> (read end - mate start < 0)  		
-		//if tLen >= 0, then mate_start > read_start; so min_end will be read end if we assue pair with same length. 
-   		else if( !record.getReadNegativeStrandFlag()) {  		
-   			result = record.getAlignmentEnd() - record.getMateAlignmentStart() + 1; 			
-   		}else {  		
-	  		//<---|    or     <-----| (read end - mate start>0) or       <-----|
-	   		//<-----|             <-----|                      <---| (read end - mate start < 0)
-	   		result = record.getAlignmentEnd() - Math.max( record.getAlignmentStart(), record.getMateAlignmentStart()) + 1;			
-   		}
-   		
-   		return result; 	
-    }
-	public static Pair getPairType( SAMRecord  record ) {
-	 
-		if(record.getReadUnmappedFlag() ||  record.getMateUnmappedFlag() || ! record.getReferenceName().equals(record.getMateReferenceName()) )
-			return Pair.Others;
-		
-		// pair with different orientation 
-		if( record.getReadNegativeStrandFlag() != record.getMateNegativeStrandFlag()  ) {	
-			// |----->  <-------|(read is reverse)
-			if( record.getReadNegativeStrandFlag() && record.getAlignmentStart() >= record.getMateAlignmentStart())
-				return Pair.Inward;
-				
-			// (read is forward)|----->  <-------| 
-			if( !record.getReadNegativeStrandFlag() && record.getAlignmentStart() <= record.getMateAlignmentStart())
-				return Pair.Inward;
-	 					
-			return Pair.Outward;
-		}
-				
-		//non-canonical: pair with same orientation  		
-		//first of pair start
-		int s1 = ( record.getFirstOfPairFlag())? record.getAlignmentStart() : record.getMateAlignmentStart();		
-		//second of pair start
-		int s2 = ( !record.getFirstOfPairFlag())? record.getAlignmentStart() : record.getMateAlignmentStart();
-						    	 		 
-		//F3(s1)|---->  F5(s2)|------>
-		if( !record.getReadNegativeStrandFlag() &&  s1 <= s2)  return Pair.F3F5;
-		//F5(s2)<----|  F3(s1)<------|
-		if( record.getReadNegativeStrandFlag() &&  s1 >= s2)  return Pair.F3F5;		
-		//F5(s2)|---->  F3(s1)|------>
-		if( !record.getReadNegativeStrandFlag() &&  s1 > s2)  return Pair.F5F3;
-		//F3(s1)<----|  F5(s2)<----|
-		if( record.getReadNegativeStrandFlag() &&  s1 < s2)  return Pair.F5F3;
-				
-		return Pair.Others;
-	}	
-	
 	public final Pair type;
 	public final Boolean isProperPair; 
 	public PairSummary( Pair pair, boolean isProper){this.type = pair; this.isProperPair = isProper;}
@@ -152,7 +73,7 @@ public class PairSummary {
 		if(tLen < middleTlenValue) tLenOverall.increment(tLen);
 		
 		//classify tlen groups
-		int	overlap = getOverlapBase( record);
+		int	overlap = BwaPair.getOverlapBase( record);
 		if( overlap > 0 ){
 			overlapBase.increment(overlap);
 			tLenOverlap.increment(tLen);			
