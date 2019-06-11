@@ -139,7 +139,7 @@ public class KmersSummaryTest {
 		summary.toXml(root, 2);
 				
 		//only one <sequenceMetrics>
-		List<Element> eles = XmlElementUtils.getChildElementByTagName(root, XmlUtils.METRICS_ELE);
+		List<Element> eles = XmlElementUtils.getChildElementByTagName(root, XmlUtils.SEQUENCE_METRICS);
 		assertEquals(eles.size(), 1);
 		assertEquals(eles.get(0).getAttribute(XmlUtils.NAME), "2mers");
 		assertEquals(1, eles.get(0).getChildNodes().getLength());
@@ -151,7 +151,7 @@ public class KmersSummaryTest {
 		//cycle number = base.length - KmersSummary.maxKmers = 16-6 that is [1,11]
 		assertEquals(11, ele.getChildNodes().getLength());
 		for(int i = 0; i < ele.getChildNodes().getLength(); i ++) {
-			Element baseE = XmlElementUtils.getChildElement(ele, XmlUtils.BASE_CYCLE_ELE, i);
+			Element baseE = XmlElementUtils.getChildElement(ele, XmlUtils.BASE_CYCLE, i);
 			assertEquals(baseE.getAttribute(XmlUtils.CYCLE), (i+1) + "");
 		}	
 		

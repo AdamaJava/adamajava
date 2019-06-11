@@ -145,7 +145,7 @@ public class BamSummaryReport2 extends SummaryReport {
 	
 	private void createQNAME(Element parent ){
 		 //read name will be under RT Tab	
-		Element rgsElement = XmlElementUtils.createSubElement(parent, XmlUtils.READGROUP_ELE);
+		Element rgsElement = XmlElementUtils.createSubElement(parent, XmlUtils.READGROUPS);
 		for( Entry<String, ReadIDSummary> entry:  readIdSummary.entrySet()){
 			//"analysis read name pattern for read group
 			Element ele = XmlUtils.createReadGroupNode(rgsElement, entry.getKey());
@@ -214,7 +214,7 @@ public class BamSummaryReport2 extends SummaryReport {
 	private void createTLen(Element parent){
         // ISIZE
         Set<String> readGroups =  rgSummaries.keySet();     
-        parent = XmlElementUtils.createSubElement(parent, XmlUtils.READGROUP_ELE );  
+        parent = XmlElementUtils.createSubElement(parent, XmlUtils.READGROUPS );  
         
         for(String rg : readGroups ) {
         	String rgName = (readGroups.size() == 1 && rg.equals(XmlUtils.UNKNOWN_READGROUP))? null : rg;
@@ -226,7 +226,7 @@ public class BamSummaryReport2 extends SummaryReport {
 	private void createCigar(Element parent) {
 				
         Set<String> readGroups =  rgSummaries.keySet();    
-        parent = XmlElementUtils.createSubElement(parent, XmlUtils.READGROUP_ELE );  
+        parent = XmlElementUtils.createSubElement(parent, XmlUtils.READGROUPS );  
         
         for(String rg : readGroups ) {
         	String rgName = (readGroups.size() == 1 && rg.equals(XmlUtils.UNKNOWN_READGROUP))? null : rg;
@@ -270,7 +270,7 @@ public class BamSummaryReport2 extends SummaryReport {
 	}
 	
 	private void createPOS(Element parent){
-		parent = XmlElementUtils.createSubElement( parent, XmlUtils.READGROUP_ELE );
+		parent = XmlElementUtils.createSubElement( parent, XmlUtils.READGROUPS );
 		
 		for( String rg :  rgSummaries.keySet()) {
 			ReadGroupSummary summary = rgSummaries.get(rg);			
@@ -351,7 +351,7 @@ public class BamSummaryReport2 extends SummaryReport {
 		long  discardReads = 0,maxBases = 0,duplicateBase = 0, unmappedBase = 0, noncanonicalBase = 0;
 		long  trimBases = 0,overlappedBase = 0, softClippedBase = 0, hardClippedBase = 0;
 		long  readCount = 0, lostBase=0; //baseCount = 0,
-		Element rgsElement = XmlElementUtils.createSubElement(summaryElement, XmlUtils.READGROUP_ELE);		
+		Element rgsElement = XmlElementUtils.createSubElement(summaryElement, XmlUtils.READGROUPS);		
 		for(ReadGroupSummary summary: rgSummaries.values()) { 					
 			try {	
 				

@@ -95,14 +95,14 @@ public class SampleSummaryTest {
 		
 		
 		if(ti != null) {
-			subE = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.VARIABLE_GROUP_ELE).stream()
+			subE = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.VARIABLE_GROUP).stream()
 					.filter( e -> e.getAttribute(XmlUtils.NAME).equals(SampleSummary.transitions)).findFirst().get();
 			assertEquals(ti, XmlElementUtils.getChildElement(subE, XmlUtils.TALLY, 0).getAttribute(XmlUtils.COUNT));
 			
 		}
 		
 		if(tv != null) {
-			subE = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.VARIABLE_GROUP_ELE).stream()
+			subE = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.VARIABLE_GROUP).stream()
 					.filter( e -> e.getAttribute(XmlUtils.NAME).equals(SampleSummary.transversions)).findFirst().get();
 			assertEquals(tv,  XmlElementUtils.getChildElement(subE, XmlUtils.TALLY, 0).getAttribute(XmlUtils.COUNT));
 			

@@ -123,7 +123,7 @@ public class VcfSummaryReportTest {
 				//only allow one sequenceMetric under report
 				assertTrue(node.getChildNodes().getLength() > 0 );				
 				Element cnode = (Element) node.getChildNodes().item(0);
-				assertEquals(XmlUtils.METRICS_ELE, cnode.getNodeName() );
+				assertEquals(XmlUtils.SEQUENCE_METRICS, cnode.getNodeName() );
 				if(cnode.getAttribute(XmlUtils.NAME).equals(SVTYPE.SNP.toVariantType()))  
 					assertEquals( 2, XmlElementUtils.getChildElementByTagName(cnode, XmlUtils.VALUE).size() );					
 				 else  
@@ -131,7 +131,7 @@ public class VcfSummaryReportTest {
 			}
 			List<Element> eles = new ArrayList<>();		
 			
- 			XmlElementUtils.getOffspringElementByTagName((Element)child, XmlUtils.VARIABLE_GROUP_ELE).stream() 
+ 			XmlElementUtils.getOffspringElementByTagName((Element)child, XmlUtils.VARIABLE_GROUP).stream() 
 				.filter( e -> e.getAttribute( XmlUtils.NAME ).equals( SampleSummary.genotype ))
 				.forEach( e1 ->     eles.addAll(XmlElementUtils.getChildElementByTagName(e1, XmlUtils.TALLY)) );
 					
@@ -377,9 +377,9 @@ public class VcfSummaryReportTest {
 			 					
 		for(int i = 0; i < 3; i ++){
 			Element e = (Element) ele.getChildNodes().item(i);
-			assertEquals(XmlUtils.METRICS_ELE, e.getNodeName() );						
-			assertEquals(1, XmlElementUtils.getChildElementByTagName( e, XmlUtils.VARIABLE_GROUP_ELE ).size());
-			Element e1 = XmlElementUtils.getChildElementByTagName( e, XmlUtils.VARIABLE_GROUP_ELE ).get(0);
+			assertEquals(XmlUtils.SEQUENCE_METRICS, e.getNodeName() );						
+			assertEquals(1, XmlElementUtils.getChildElementByTagName( e, XmlUtils.VARIABLE_GROUP ).size());
+			Element e1 = XmlElementUtils.getChildElementByTagName( e, XmlUtils.VARIABLE_GROUP ).get(0);
 			assertEquals(1, XmlElementUtils.getChildElementByTagName(e1, XmlUtils.TALLY).size());
 			e1 = XmlElementUtils.getChildElement(e1,  XmlUtils.TALLY, 0);
 			assertEquals(".", e1.getAttribute(XmlUtils.VALUE));

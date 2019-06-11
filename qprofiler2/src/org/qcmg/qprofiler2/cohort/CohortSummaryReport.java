@@ -76,7 +76,7 @@ public class CohortSummaryReport extends SummaryReport {
 			String titv = "-" ;
 			 
 			//for(Element ele :QprofilerXmlUtils.getOffspringElementByTagName(report, SampleSummary.variantType)){
-			for(Element ele :XmlElementUtils.getOffspringElementByTagName(report, XmlUtils.METRICS_ELE)){
+			for(Element ele :XmlElementUtils.getOffspringElementByTagName(report, XmlUtils.SEQUENCE_METRICS)){
 				//record counts and dbsnp for all type variants
 				String type = ele.getAttribute(XmlUtils.NAME);	
 				int count = Integer.parseInt(ele.getAttribute("count"));
@@ -91,7 +91,7 @@ public class CohortSummaryReport extends SummaryReport {
 					titv = e1.getTextContent();	
 					
 					//ti
-					Optional<Element> streams = XmlElementUtils.getChildElementByTagName(ele, XmlUtils.VARIABLE_GROUP_ELE).stream().filter(e -> e.getAttribute(XmlUtils.NAME).equals(SampleSummary.transitions)).findFirst();				
+					Optional<Element> streams = XmlElementUtils.getChildElementByTagName(ele, XmlUtils.VARIABLE_GROUP).stream().filter(e -> e.getAttribute(XmlUtils.NAME).equals(SampleSummary.transitions)).findFirst();				
 					if( streams.isPresent()   ) {
 						List<Integer> sums = new ArrayList<>();						
 						XmlElementUtils.getChildElementByTagName(streams.get(), XmlUtils.TALLY).stream()
@@ -100,7 +100,7 @@ public class CohortSummaryReport extends SummaryReport {
 					} 
 					
 					//tv
-					streams = XmlElementUtils.getChildElementByTagName(ele, XmlUtils.VARIABLE_GROUP_ELE).stream().filter(e -> e.getAttribute(XmlUtils.NAME).equals(SampleSummary.transversions)).findFirst() ;				
+					streams = XmlElementUtils.getChildElementByTagName(ele, XmlUtils.VARIABLE_GROUP).stream().filter(e -> e.getAttribute(XmlUtils.NAME).equals(SampleSummary.transversions)).findFirst() ;				
 					if( streams.isPresent() ) {
 						List<Integer> sums = new ArrayList<>();
 						XmlElementUtils.getChildElementByTagName(streams.get(), XmlUtils.TALLY).stream()

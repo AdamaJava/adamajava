@@ -34,14 +34,14 @@ public class CycleSummaryTest {
 		
 		
 		//eg. <sequenceMetrics name="seqBase"><variableGroup name="firstReadInPair">	
-		List<Element> elements = XmlElementUtils.getOffspringElementByTagName( root, XmlUtils.VARIABLE_GROUP_ELE ).stream()
+		List<Element> elements = XmlElementUtils.getOffspringElementByTagName( root, XmlUtils.VARIABLE_GROUP ).stream()
 			.filter( e -> e.getAttribute(XmlUtils.NAME).equals(pairName ) &&
 					 ((Element) e.getParentNode()).getAttribute(XmlUtils.NAME).equals(metricName)).collect(Collectors.toList());
 		Assert.assertEquals(elements.size(), 1);
 		
 
 		//eg, <baseCycle cycle="1">
-		Element ele = XmlElementUtils.getOffspringElementByTagName( elements.get(0), XmlUtils.BASE_CYCLE_ELE ).stream()
+		Element ele = XmlElementUtils.getOffspringElementByTagName( elements.get(0), XmlUtils.BASE_CYCLE ).stream()
 			.filter( e -> e.getAttribute(XmlUtils.CYCLE).equals(cycle + "" )).findFirst().get();	
 		assertEquals(values.length, ele.getChildNodes().getLength());	
 		

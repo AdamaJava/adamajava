@@ -37,7 +37,7 @@ public class PairSummaryTest {
 	public void toSummaryXmlTest() throws Exception {	
 		
 		Element root = createPairRoot(input);		
-		List<Element> pairEles =  XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.METRICS_ELE)	
+		List<Element> pairEles =  XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.SEQUENCE_METRICS)	
 				.stream().filter(e -> e.getAttribute(XmlUtils.NAME).equals( "properPairs" )).collect(Collectors.toList());	
 		
 		//only one inward pair but overlapped
@@ -54,7 +54,7 @@ public class PairSummaryTest {
 		checkVariableGroup( ele, "Inward", new int[] {1,0,0,0,1,1,0,0,0,76 } );		
 			
 		//notProperPair
-		pairEles =  XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.METRICS_ELE)	
+		pairEles =  XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.SEQUENCE_METRICS)	
 				.stream().filter(e  -> e .getAttribute(XmlUtils.NAME).equals( "notProperPairs" )).collect(Collectors.toList());
 		ele = pairEles.stream().filter(e -> ( (Element) e.getParentNode()).getAttribute(XmlUtils.NAME).equals(XmlUtils.UNKNOWN_READGROUP)).findFirst().get();	
 		checkVariableGroup( ele, "F3F5", new int[] {1,0,0,0,1,1,0,0,0, 0} ); //notProperPair
@@ -64,7 +64,7 @@ public class PairSummaryTest {
 	
 	private void checkVariableGroup(Element root, String name, int[] counts ) {
 		
-		Element variableEle = XmlElementUtils.getChildElementByTagName(root, XmlUtils.VARIABLE_GROUP_ELE).stream()
+		Element variableEle = XmlElementUtils.getChildElementByTagName(root, XmlUtils.VARIABLE_GROUP).stream()
 			.filter(e -> e.getAttribute(XmlUtils.NAME).equals(name) ).findFirst().get();
 		
 		List<Element> childEles = XmlElementUtils.getChildElementByTagName(variableEle, XmlUtils.VALUE);

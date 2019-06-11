@@ -24,11 +24,11 @@ public class XmlUtils {
 	public static final String UNKNOWN_READGROUP = "unkown_readgroup_id";	
 	
 	public static final String METRICS = "Metrics";
-	public static final String READGROUP_ELE ="readGroups";
-	public static final String VARIABLE_GROUP_ELE = "variableGroup";
+	public static final String READGROUPS ="readGroups";
+	public static final String VARIABLE_GROUP = "variableGroup";
 	public static final String VALUE = "value";
 	public static final String COLSED_BIN = "closedBin";
-	public static final String METRICS_ELE = "sequence" + METRICS;
+	public static final String SEQUENCE_METRICS = "sequence" + METRICS;
 	public static final String NAME = "name";
 	public static final String COUNT = "count";
 	public static final String PERCENT = "percent";
@@ -37,8 +37,8 @@ public class XmlUtils {
 	public static final String START = "start";
 	public static final String END = "end";
 	public static final String CYCLE = "cycle";
-	public static final String BASE_CYCLE_ELE = "baseCycle";
-	public static final String RECORD_ELE ="record";
+	public static final String BASE_CYCLE = "baseCycle";
+	public static final String RECORD ="record";
 	public static final String DISCARD_READS = "discardedReads";		
 	public static final String SEQ_BASE = "seqBase";
 	public static final String SEQ_LENGTH = "seqLength";
@@ -95,7 +95,7 @@ public class XmlUtils {
                     element.setAttribute( cateName, cateValue);
                     element.setAttribute( "description", des);
                     for(T re: records) {
-                            Element elechild = XmlElementUtils.createSubElement(parent, RECORD_ELE );
+                            Element elechild = XmlElementUtils.createSubElement(parent, RECORD );
                             //set txt content
                             if(re instanceof String)
                                     elechild.setTextContent((String)re);
@@ -158,7 +158,7 @@ public class XmlUtils {
 	 * @return
 	 */       
     public static Element createMetricsNode(Element parent,  String name, Pair<?, ?> totalCounts ) {	
-    	Element ele = XmlElementUtils.createSubElement( parent,  XmlUtils.METRICS_ELE );
+    	Element ele = XmlElementUtils.createSubElement( parent,  XmlUtils.SEQUENCE_METRICS );
     						
 		if( totalCounts != null ) ele.setAttribute((String)totalCounts.getLeft(), String.valueOf( totalCounts.getRight()));		 
 		if(name != null) ele.setAttribute( NAME, name );
@@ -174,7 +174,7 @@ public class XmlUtils {
 	 * @return
 	 */
     public static Element createGroupNode(Element parent, String name) {
-    	Element ele = XmlElementUtils.createSubElement( parent,  XmlUtils.VARIABLE_GROUP_ELE );	
+    	Element ele = XmlElementUtils.createSubElement( parent,  XmlUtils.VARIABLE_GROUP );	
     	ele.setAttribute( NAME, name); 
     	return ele;
     }
@@ -192,7 +192,7 @@ public class XmlUtils {
 	 * @return
 	 */
     public static Element createCycleNode(Element parent, String name) {
-    	Element ele = XmlElementUtils.createSubElement( parent,  BASE_CYCLE_ELE );	
+    	Element ele = XmlElementUtils.createSubElement( parent,  BASE_CYCLE );	
     	ele.setAttribute( CYCLE, name); 
     	return ele;
     }
@@ -215,18 +215,6 @@ public class XmlUtils {
     	ele.setTextContent( v );    
     	return ele;
     }
-    /**
-     * utput <value name="name" note="comment">value</value>
-     * @param parent
-     * @param name
-     * @param value
-     * @param comment
-     */
-//    public static <T> void outputValueNode(Element parent, String name, Number value, String comment) {   
-//    	parent.insertBefore( parent.getOwnerDocument().createComment( comment ), parent.getFirstChild() ); 
-//    	outputValueNode( parent,  name,  value);
-//    	    	    	 
-//    }
     
     public static Element outputBins( Element parent, String name, Map<Integer, AtomicLong> bins, int binSize) {
     	
@@ -289,7 +277,7 @@ public class XmlUtils {
     public static <T>  void outputCycleTallyGroup( Element parent, String name, Map<T, AtomicLong> tallys, boolean hasPercent ) {
     	if(tallys == null || tallys.isEmpty()) return;
     	       	
-    	Element ele = XmlElementUtils.createSubElement( parent,  BASE_CYCLE_ELE );	
+    	Element ele = XmlElementUtils.createSubElement( parent,  BASE_CYCLE );	
     	ele.setAttribute( CYCLE, name); 
  
     	outputTallys(  ele,  name,  tallys,  hasPercent );  

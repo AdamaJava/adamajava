@@ -57,7 +57,7 @@ public class XmlUtilsTest {
 		Element root = XmlElementUtils.createRootElement( "root", null );
 		XmlUtils.outputTallyGroupWithSize(root, "test", map, limit);
 		
-		Element ele = XmlElementUtils.getChildElement(root, XmlUtils.VARIABLE_GROUP_ELE,0);
+		Element ele = XmlElementUtils.getChildElement(root, XmlUtils.VARIABLE_GROUP,0);
 		assertTrue(ele.getAttribute(XmlUtils.COUNT).equals("31"));//[1..20][5..15]
 		assertTrue(ele.getAttribute(XmlUtils.TALLY_COUNT).equals(limit+"+"));
 					

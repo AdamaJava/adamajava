@@ -118,12 +118,12 @@ public class BamSummaryReportTest {
 		assertEquals(1, lists.size());
 		
 		//get node <sequenceMetrics name="seqLength"> or <sequenceMetrics name="qualLength">		
-		lists = XmlElementUtils.getOffspringElementByTagName( lists.get( 0 ), XmlUtils.METRICS_ELE ).stream()
+		lists = XmlElementUtils.getOffspringElementByTagName( lists.get( 0 ), XmlUtils.SEQUENCE_METRICS ).stream()
 			.filter( e -> e.getAttribute(XmlUtils.NAME).equals( sLength)).collect(Collectors.toList());
 		assertEquals(1, lists.size());
 		
 		//<variableGroup name="firstReadInPair"> or <variableGroup name="secondReadInPair">				
-		lists = XmlElementUtils.getOffspringElementByTagName( lists.get( 0 ), XmlUtils.VARIABLE_GROUP_ELE ).stream()
+		lists = XmlElementUtils.getOffspringElementByTagName( lists.get( 0 ), XmlUtils.VARIABLE_GROUP ).stream()
 				.filter( e -> e.getAttribute(XmlUtils.NAME).equals(pairName)).collect(Collectors.toList());		
 		assertEquals(1, lists.size());				
 		
@@ -225,7 +225,7 @@ public class BamSummaryReportTest {
 	
 	private List<Element> getTallys(List<Element> rgsE,String rgName, String metricName,  int size){		
 		Element ele = rgsE.stream().filter( e -> e.getAttribute(XmlUtils.NAME).equals( rgName )  ).findFirst().get();
-		ele = XmlElementUtils.getChildElementByTagName(ele, XmlUtils.METRICS_ELE).stream().filter(e -> e.getAttribute(XmlUtils.NAME).equals( metricName )  ).findFirst().get();
+		ele = XmlElementUtils.getChildElementByTagName(ele, XmlUtils.SEQUENCE_METRICS).stream().filter(e -> e.getAttribute(XmlUtils.NAME).equals( metricName )  ).findFirst().get();
 		List<Element> eles = XmlElementUtils.getOffspringElementByTagName(ele, XmlUtils.TALLY);
 		assertEquals(size, eles.size());	
 	 
