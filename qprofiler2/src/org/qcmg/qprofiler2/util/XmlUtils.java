@@ -11,6 +11,7 @@ import org.qcmg.common.util.Pair;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.util.XmlElementUtils;
+import org.w3c.dom.Comment;
 import org.w3c.dom.Element;
 
 import htsjdk.samtools.AbstractSAMHeaderRecord;
@@ -236,9 +237,9 @@ public class XmlUtils {
 		boolean hasPercent = tallys.size() > sizeLimits ? false : true;		
 		Element ele = outputTallyGroup(parent, name, tallys, hasPercent, true) ;		
 		
-		if( ele != null && tallys.size() > sizeLimits) { 			
-			ele.appendChild( ele.getOwnerDocument().createComment( "here only list top "+ sizeLimits + " tally element" ) );	
-			ele.setAttribute(XmlUtils.TALLY_COUNT, sizeLimits + "+");		
+		if( ele != null && tallys.size() > sizeLimits) { 
+			ele.setAttribute(XmlUtils.TALLY_COUNT, sizeLimits + "+");	
+			ele.insertBefore(ele.getOwnerDocument().createComment( "here only list top "+ sizeLimits + " tally element" ), ele.getFirstChild()) ;				
 		}
 	}
     

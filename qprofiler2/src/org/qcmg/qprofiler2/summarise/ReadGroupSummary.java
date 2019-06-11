@@ -239,16 +239,14 @@ public class ReadGroupSummary {
 		for(String name : new String[] {NODE_READ_LENGTH, NODE_PAIR_TLEN}) {
 			ele = XmlUtils.createGroupNode(rgElement, name );
 			SummaryReportUtils.TallyStats stats = name.equals(NODE_READ_LENGTH)? readlengthStats : pairtLenStats;
-			String countName = name.equals(NODE_READ_LENGTH)? READ_COUNT : PAIR_COUNT;	
-			String comment =  name.equals(NODE_READ_LENGTH)? ": includes duplicateReads, nonCanonicalPairs and unmappedReads but excludes discardedReads (failed, secondary and supplementary)." 
-					: ": only count properPaired reads which have a positive TLEN value or zero value but it is marked as firstOfPair";
-			ele.appendChild( ele.getOwnerDocument().createComment( countName + comment ));	
+			String countName = name.equals(NODE_READ_LENGTH)? READ_COUNT : PAIR_COUNT;			
+			//readCount: includes duplicateReads, nonCanonicalPairs and unmappedReads but excludes discardedReads (failed, secondary and supplementary).
+			//pairCount: only count properPaired reads which have a positive TLEN value or zero value but it is marked as firstOfPair						
 			XmlUtils.outputValueNode(ele, countName, stats.getReadCounts());	
 			XmlUtils.outputValueNode(ele, MAX, stats.getMax());
 			XmlUtils.outputValueNode(ele, MEAN, stats.getMean());
 			XmlUtils.outputValueNode(ele, MODE, stats.getMode());
-			XmlUtils.outputValueNode(ele, MEDIAN, stats.getMedium());	
-			
+			XmlUtils.outputValueNode(ele, MEDIAN, stats.getMedium());				
 		}		
 		
 		//add overall information to current readgroup element	
@@ -259,14 +257,15 @@ public class ReadGroupSummary {
 		
 		ele = XmlUtils.createGroupNode(rgElement, "countedReads" );
 		XmlUtils.outputValueNode(ele, UNPAIRED_READ,  unpaired.get());	
-		ele.appendChild( ele.getOwnerDocument().createComment(READ_COUNT + ": includes duplicateReads, nonCanonicalPairs and unmappedReads but excludes discardedReads (failed, secondary and supplementary).") );						
+		//READ_COUNT : includes duplicateReads, nonCanonicalPairs and unmappedReads but excludes discardedReads (failed, secondary and supplementary).						
 		XmlUtils.outputValueNode( ele, READ_COUNT,  getReadCount() );
-		ele.appendChild( ele.getOwnerDocument().createComment(BASE_COUNT + ": " + READ_COUNT + " * readMaxLength") );
+		//BASE_COUNT :  READ_COUNT  * readMaxLength
 		XmlUtils.outputValueNode( ele, BASE_COUNT, maxBases);	
-		ele.appendChild( ele.getOwnerDocument().createComment(BASE_LOST_COUNT + ": readMaxLength * (duplicateReads + nonCanonicalPairs + unmappedReads) + trimmedBases + softClippedBases + hardClippedBases + overlappedBases") );					
+		//BASE_LOST_COUNT : readMaxLength * (duplicateReads + nonCanonicalPairs + unmappedReads) + trimmedBases + softClippedBases + hardClippedBases + overlappedBases				
 		XmlUtils.outputValueNode( ele, BASE_LOST_COUNT,  lostBase);	
-		ele.appendChild( ele.getOwnerDocument().createComment(String.format("%s: %s / %s", BASE_LOST_PERCENT, BASE_LOST_COUNT, BASE_COUNT)) );			
-		XmlUtils.outputValueNode( ele, BASE_LOST_PERCENT , lostPercent );			
+		//basesLostPercent: basesLostCount / basesCount		
+		XmlUtils.outputValueNode( ele, BASE_LOST_PERCENT , lostPercent );	
+		
 	}
 	 	 
 	public void pairSummary2Xml( Element parent ) { 

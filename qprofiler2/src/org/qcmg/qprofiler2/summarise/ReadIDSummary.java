@@ -313,10 +313,13 @@ static final int MAX_POOL_SIZE = 500;
 		pool_random.addAll(pool_uniq);
 		
 		//output 20 qname randomly
-		element = XmlUtils.createMetricsNode(ele, "qnameExample", null);			
+		element = XmlUtils.createMetricsNode(ele, "qnameExample", null);
+		int size = Math.min(20,pool_random.size());
+		element.appendChild(ele.getOwnerDocument().createComment(size + " QNAMEs are listed here, which are picked up randomly"));
 		//incase pool_random size is 1 or 0 
-		for( int i = 0; i < Math.min(20,pool_random.size()-1) ; i ++ ) {
-			int pos = r.nextInt( pool_random.size()-1);
+		for( int i = 0; i < size ; i ++ ) {
+			//incase there is only one element in the pool (unit test)
+			int pos = pool_random.size() > 1 ? r.nextInt( pool_random.size()-1): 0 ;
 			XmlUtils.outputValueNode(element, pool_random.get(pos), 1);
 		}	
 	}
