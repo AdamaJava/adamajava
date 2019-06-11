@@ -179,8 +179,8 @@ public class VcfSummaryReportTest {
 		
 		// ariantAltFrequencyPercent only from 1/1:5,30,1:36:PASS:.
 		// 31/36 = 86%
-		assertEquals( 1 , XmlElementUtils.getOffspringElementByTagName( ele,  XmlUtils.COLSED_BIN ).size() );
-		no = XmlElementUtils.getOffspringElementByTagName( ele,  XmlUtils.COLSED_BIN ).stream()
+		assertEquals( 1 , XmlElementUtils.getOffspringElementByTagName( ele,  XmlUtils.CLOSED_BIN ).size() );
+		no = XmlElementUtils.getOffspringElementByTagName( ele,  XmlUtils.CLOSED_BIN ).stream()
 				.filter( e -> e.getAttribute(XmlUtils.START).equals("85")  && e.getAttribute(XmlUtils.COUNT).equals("10")).count();			
 //				.filter( e -> e.getAttribute(XmlUtils.Sstart).equals("85") && e.getAttribute(XmlUtils.Send).equals("90") && e.getAttribute(XmlUtils.Scount).equals("10")).count();			
 		assertEquals( 1 , no );
@@ -212,11 +212,11 @@ public class VcfSummaryReportTest {
 								
 		//titv will be done on sampleSummayTest		
 		//ariantAltFrequencyPercent
-		assertEquals( 2 , XmlElementUtils.getOffspringElementByTagName( (Element) child,  XmlUtils.COLSED_BIN ).size() );
-		no = XmlElementUtils.getOffspringElementByTagName( (Element) child,  XmlUtils.COLSED_BIN ).stream()
+		assertEquals( 2 , XmlElementUtils.getOffspringElementByTagName( (Element) child,  XmlUtils.CLOSED_BIN ).size() );
+		no = XmlElementUtils.getOffspringElementByTagName( (Element) child,  XmlUtils.CLOSED_BIN ).stream()
 				.filter( e -> e.getAttribute(XmlUtils.START).equals("45")  && e.getAttribute(XmlUtils.COUNT).equals("10")).count();			
 		assertEquals( 1 , no );	
-		no = XmlElementUtils.getOffspringElementByTagName( (Element) child,  XmlUtils.COLSED_BIN ).stream()
+		no = XmlElementUtils.getOffspringElementByTagName( (Element) child,  XmlUtils.CLOSED_BIN ).stream()
 				.filter( e -> e.getAttribute(XmlUtils.START).equals("95")  && e.getAttribute(XmlUtils.COUNT).equals("10")).count();			
 		assertEquals( 1 , no );			
 	}

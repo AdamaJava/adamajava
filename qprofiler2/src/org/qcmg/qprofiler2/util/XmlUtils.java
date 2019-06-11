@@ -27,7 +27,7 @@ public class XmlUtils {
 	public static final String READGROUPS ="readGroups";
 	public static final String VARIABLE_GROUP = "variableGroup";
 	public static final String VALUE = "value";
-	public static final String COLSED_BIN = "closedBin";
+	public static final String CLOSED_BIN = "closedBin";
 	public static final String SEQUENCE_METRICS = "sequence" + METRICS;
 	public static final String NAME = "name";
 	public static final String COUNT = "count";
@@ -223,7 +223,7 @@ public class XmlUtils {
     	Element ele;
     	for (Entry<Integer, AtomicLong> entry : bins.entrySet() ) {
     		if(entry.getValue().get() > 0) {
-    			ele = XmlElementUtils.createSubElement(cateEle, COLSED_BIN);
+    			ele = XmlElementUtils.createSubElement(cateEle, CLOSED_BIN);
     	    	ele.setAttribute(START,  String.valueOf(entry.getKey() * binSize));   	    	
     	    	ele.setAttribute(COUNT, String.valueOf(entry.getValue().get())); 			
     		}  	    		
