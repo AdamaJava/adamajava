@@ -397,8 +397,7 @@ public class BamSummaryReport2 extends SummaryReport {
 		
 		XmlUtils.outputValueNode(metricsE, "Discarded reads (FailedVendorQuality, secondary, supplementary)", discardReads);	
 		XmlUtils.outputValueNode(metricsE, "Total reads including discarded reads", getRecordsInputed());	
-		
-		
+				
 		metricsE = XmlUtils.createMetricsNode(summaryElement, XmlUtils.ALL_BASE_LOST, null);		
 		
 		//readCount: includes duplicateReads, notProperPairs and unmappedReads but excludes discardedReads (failed, secondary and supplementary).
