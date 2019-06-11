@@ -316,9 +316,8 @@ static final int MAX_POOL_SIZE = 500;
 		element = XmlUtils.createMetricsNode(ele, "qnameExample", null);
 		int size = Math.min(20,pool_random.size());
 		element.appendChild(ele.getOwnerDocument().createComment(size + " QNAMEs are listed here, which are picked up randomly"));
-		//incase pool_random size is 1 or 0 
 		for( int i = 0; i < size ; i ++ ) {
-			//incase there is only one element in the pool (unit test)
+			//in case there is only one element in the pool (unit test)
 			int pos = pool_random.size() > 1 ? r.nextInt( pool_random.size()-1): 0 ;
 			XmlUtils.outputValueNode(element, pool_random.get(pos), 1);
 		}	
