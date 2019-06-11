@@ -91,16 +91,22 @@ public abstract class SummaryReport {
 		//xml reorganise
 		element.setAttribute("startTime", getStartTime());
 		element.setAttribute("finishTime", getFinishTime());
+		logger.info("retriving checksum for input file...");
+		element.setAttribute("file_checksum", FileUtils.getFileCheckSum(getFileName()));
+		logger.info("checksum is done!");
 				
 		//don't list records_parsed on xml for BAM type
-		if(!reportType.equals(ProfileType.BAM))
+		if(!reportType.equals(ProfileType.BAM)) {
 			element.setAttribute("records_parsed", String.format("%,d", getRecordsInputed()) );	
-		if(reportType.equals(ProfileType.VCF  ))
-			element.setAttribute("file_checksum", FileUtils.getFileCheckSum(getFileName()));
-		if (null != maxRecords)
+		}
+		
+		
+		if (null != maxRecords) {
 			element.setAttribute("max_no_of_records", String.format("%,d",maxRecords) );
-		if (null != noOfDuplicates)
+		}
+		if (null != noOfDuplicates) {
 			element.setAttribute("duplicate_records", String.format("%,d", noOfDuplicates));
+		}
 		
 		return element;
 	}
