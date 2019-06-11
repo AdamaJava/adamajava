@@ -34,15 +34,15 @@ public class CycleSummaryTest {
 		
 		
 		//eg. <sequenceMetrics name="seqBase"><variableGroup name="firstReadInPair">	
-		List<Element> elements = XmlElementUtils.getOffspringElementByTagName( root, XmlUtils.variableGroupEle ).stream()
-			.filter( e -> e.getAttribute(XmlUtils.sName).equals(pairName ) &&
-					 ((Element) e.getParentNode()).getAttribute(XmlUtils.sName).equals(metricName)).collect(Collectors.toList());
+		List<Element> elements = XmlElementUtils.getOffspringElementByTagName( root, XmlUtils.VARIABLE_GROUP ).stream()
+			.filter( e -> e.getAttribute(XmlUtils.NAME).equals(pairName ) &&
+					 ((Element) e.getParentNode()).getAttribute(XmlUtils.NAME).equals(metricName)).collect(Collectors.toList());
 		Assert.assertEquals(elements.size(), 1);
 		
 
 		//eg, <baseCycle cycle="1">
-		Element ele = XmlElementUtils.getOffspringElementByTagName( elements.get(0), XmlUtils.baseCycleEle ).stream()
-			.filter( e -> e.getAttribute(XmlUtils.Scycle).equals(cycle + "" )).findFirst().get();	
+		Element ele = XmlElementUtils.getOffspringElementByTagName( elements.get(0), XmlUtils.BASE_CYCLE ).stream()
+			.filter( e -> e.getAttribute(XmlUtils.CYCLE).equals(cycle + "" )).findFirst().get();	
 		assertEquals(values.length, ele.getChildNodes().getLength());	
 		
 		
@@ -51,9 +51,9 @@ public class CycleSummaryTest {
 		for(int i = 0; i < values.length; i ++) {
 			String v =  (metricName.contains("qual"))? ((byte) values[i].toCharArray()[0]-33) + ""   : (String)values[i] ;
 			String c = counts[i] + "";
-			long count = XmlElementUtils.getChildElementByTagName( ele, XmlUtils.sTally ).stream()
-					.filter( e -> e.getAttribute(XmlUtils.sValue).equals(v) 
-							&& e.getAttribute(XmlUtils.sCount).equals(c) ).count();
+			long count = XmlElementUtils.getChildElementByTagName( ele, XmlUtils.TALLY ).stream()
+					.filter( e -> e.getAttribute(XmlUtils.VALUE).equals(v) 
+							&& e.getAttribute(XmlUtils.COUNT).equals(c) ).count();
 			assertTrue(count == 1);
 		}	 
 	}
@@ -61,26 +61,26 @@ public class CycleSummaryTest {
 	@Test
 	public void getBaseByCycleTest() throws Exception{
  		Element root = getSummarizedRoot();			  
- 		checklength( root, XmlUtils.seqBase , XmlUtils.firstOfPair, 1, new String[] {"C","T"}, new int[] { 1,1 } ) ;
- 		checklength( root, XmlUtils.seqBase , XmlUtils.firstOfPair, 141, new String[] {"G","N"}, new int[] { 1,1 } ) ;
- 		checklength( root, XmlUtils.seqBase , XmlUtils.firstOfPair, 142, new String[] {"N"}, new int[] { 1 } ) ;
- 		checklength( root, XmlUtils.seqBase , XmlUtils.firstOfPair, 151, new String[] {"M" }, new int[] { 1 } ) ; 		
- 		checklength( root, XmlUtils.seqBase , XmlUtils.secondOfPair , 2, new String[] {"N"}, new int[] { 1} ) ;
- 		checklength( root, XmlUtils.seqBase , XmlUtils.secondOfPair , 4, new String[] {"T"}, new int[] { 1} ) ;
- 		checklength( root, XmlUtils.seqBase , XmlUtils.secondOfPair , 151, new String[] {"G"}, new int[] { 1} ) ; 		
+ 		checklength( root, XmlUtils.SEQ_BASE , XmlUtils.FIRST_PAIR, 1, new String[] {"C","T"}, new int[] { 1,1 } ) ;
+ 		checklength( root, XmlUtils.SEQ_BASE , XmlUtils.FIRST_PAIR, 141, new String[] {"G","N"}, new int[] { 1,1 } ) ;
+ 		checklength( root, XmlUtils.SEQ_BASE , XmlUtils.FIRST_PAIR, 142, new String[] {"N"}, new int[] { 1 } ) ;
+ 		checklength( root, XmlUtils.SEQ_BASE , XmlUtils.FIRST_PAIR, 151, new String[] {"M" }, new int[] { 1 } ) ; 		
+ 		checklength( root, XmlUtils.SEQ_BASE , XmlUtils.SECOND_PAIR , 2, new String[] {"N"}, new int[] { 1} ) ;
+ 		checklength( root, XmlUtils.SEQ_BASE , XmlUtils.SECOND_PAIR , 4, new String[] {"T"}, new int[] { 1} ) ;
+ 		checklength( root, XmlUtils.SEQ_BASE , XmlUtils.SECOND_PAIR , 151, new String[] {"G"}, new int[] { 1} ) ; 		
  	}
 	
 	@Test
 	public void getQualityByCycleTest() throws Exception{
  		Element root = getSummarizedRoot();		
  		
- 		checklength( root,  XmlUtils.qualBase , XmlUtils.firstOfPair, 1, new String[] {"A","("}, new int[] { 1,1 } ) ;
- 		checklength( root,  XmlUtils.qualBase , XmlUtils.firstOfPair, 143, new String[] {"-","J"}, new int[] {1, 1} ) ;
- 		checklength( root,  XmlUtils.qualBase , XmlUtils.firstOfPair, 144, new String[] {"7"}, new int[] { 1 } ) ;
- 		checklength( root,  XmlUtils.qualBase , XmlUtils.firstOfPair, 151, new String[] {"A"}, new int[] { 1 } ) ;		
-  		checklength( root,  XmlUtils.qualBase , XmlUtils.secondOfPair, 1, new String[] {"A" }, new int[] { 1} ) ;	
-		checklength( root,  XmlUtils.qualBase , XmlUtils.secondOfPair, 148, new String[] {"-" }, new int[] { 1} ) ;
-		checklength( root,  XmlUtils.qualBase , XmlUtils.secondOfPair, 151, new String[] {"7" }, new int[] { 1} ) ;
+ 		checklength( root,  XmlUtils.QUAL_BASE , XmlUtils.FIRST_PAIR, 1, new String[] {"A","("}, new int[] { 1,1 } ) ;
+ 		checklength( root,  XmlUtils.QUAL_BASE , XmlUtils.FIRST_PAIR, 143, new String[] {"-","J"}, new int[] {1, 1} ) ;
+ 		checklength( root,  XmlUtils.QUAL_BASE , XmlUtils.FIRST_PAIR, 144, new String[] {"7"}, new int[] { 1 } ) ;
+ 		checklength( root,  XmlUtils.QUAL_BASE , XmlUtils.FIRST_PAIR, 151, new String[] {"A"}, new int[] { 1 } ) ;		
+  		checklength( root,  XmlUtils.QUAL_BASE , XmlUtils.SECOND_PAIR, 1, new String[] {"A" }, new int[] { 1} ) ;	
+		checklength( root,  XmlUtils.QUAL_BASE , XmlUtils.SECOND_PAIR, 148, new String[] {"-" }, new int[] { 1} ) ;
+		checklength( root,  XmlUtils.QUAL_BASE , XmlUtils.SECOND_PAIR, 151, new String[] {"7" }, new int[] { 1} ) ;
 	}	
 
 	public static Element getSummarizedRoot() throws Exception{				

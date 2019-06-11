@@ -138,7 +138,7 @@ public class SampleSummary {
 			AtomicLong totalAL = summary.get( type.name());
 			if( null == totalAL) continue;						
 						
-			Element reportE1  = XmlUtils.createMetricsNode( reportE,  type.toVariantType(),new Pair(XmlUtils.sCount, totalAL) );
+			Element reportE1  = XmlUtils.createMetricsNode( reportE,  type.toVariantType(),new Pair(XmlUtils.COUNT, totalAL) );
 			String key =  type.name() + "dbSNP";
 			XmlUtils.outputValueNode(reportE1, "inDBSNP", summary .containsKey(key)? summary.get(key).get() : 0 ); 
 						
@@ -160,8 +160,8 @@ public class SampleSummary {
 				double rate = sumTi * sumTv == 0 ? 0 : (double) sumTi/sumTv;			 
 				XmlUtils.outputValueNode(reportE1, tiTvRatio,  rate );
 				 
-				XmlUtils.outputTallyGroup(reportE1 ,  transitions,  tiFreq, true);
-				XmlUtils.outputTallyGroup(reportE1 ,  transversions,  tvFreq, true);
+				XmlUtils.outputTallyGroup(reportE1 ,  transitions,  tiFreq, true, true);
+				XmlUtils.outputTallyGroup(reportE1 ,  transversions,  tvFreq, true, true);
 			}				
 						
 			Map<String, AtomicLong> gtvalues = new HashMap<>();
@@ -170,7 +170,7 @@ public class SampleSummary {
 				if(gtv != null) gtvalues.put( gt, gtv );				
 			}
 
-			XmlUtils.outputTallyGroup( reportE1 , genotype, gtvalues, true );
+			XmlUtils.outputTallyGroup( reportE1 , genotype, gtvalues, true , true);
 
 			QCMGAtomicLongArray array = summaryAD.get(type.name());
 			if(array != null ) {					

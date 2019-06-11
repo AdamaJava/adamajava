@@ -8,6 +8,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 import org.qcmg.common.model.QCMGAtomicLongArray;
 import org.qcmg.common.util.Pair;
+import org.qcmg.picard.BwaPair;
 import org.qcmg.qprofiler2.util.SummaryReportUtils;
 import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Element;
@@ -146,7 +147,7 @@ public class ReadGroupSummary {
 		
 		//check pair orientaiton, tLen, mate
 		if(record.getReadPairedFlag()) {
-			PairSummary.Pair pairType = PairSummary.getPairType(record);
+			BwaPair.Pair pairType = BwaPair.getPairType(record);
 			boolean isProper = record.getProperPairFlag();
 			int key = isProper? pairType.id   :  pairType.id * -1;	
 			pairCategory.computeIfAbsent(key, e-> new PairSummary( pairType, isProper)).parse(record);
@@ -229,7 +230,7 @@ public class ReadGroupSummary {
 				
 		//create node for overall	
 		rgElement = XmlUtils.createMetricsNode(parent,"reads", new Pair(READ_COUNT, inputReadCounts.get()));		
-		Element ele = XmlUtils.createGroupNode(rgElement, XmlUtils.discardReads );
+		Element ele = XmlUtils.createGroupNode(rgElement, XmlUtils.DISCARD_READS );
 		XmlUtils.outputValueNode(ele, "supplementaryAlignmentCount", supplementary.get());
 		XmlUtils.outputValueNode(ele, "secondaryAlignmentCount", secondary.get());
 		XmlUtils.outputValueNode(ele, "failedVendorQualityCount",failedVendorQuality.get()  );
@@ -291,11 +292,11 @@ public class ReadGroupSummary {
 		for(PairSummary p : pairCategory.values()) {
 			String name = p.isProperPair? "tLenInProperPair" : "tLenInNotProperPair";
 			Element ele = metricEs.computeIfAbsent(name,  k-> XmlUtils.createMetricsNode( parent, k, null )); 
-			XmlUtils.outputTallyGroup( ele, p.type.name(), p.getTLENCounts().toMap(), false );  
+			XmlUtils.outputTallyGroup( ele, p.type.name(), p.getTLENCounts().toMap(), false, true );  
 			
 			name = p.isProperPair? "overlapBaseInProperPair" : "overlapBaseInNotProperPair";
 			ele = metricEs.computeIfAbsent(name,  k-> XmlUtils.createMetricsNode( parent, k, null )); 			
-			XmlUtils.outputTallyGroup( ele, p.type.name(), p.getoverlapCounts().toMap(), false ); 							
+			XmlUtils.outputTallyGroup( ele, p.type.name(), p.getoverlapCounts().toMap(), false , true); 							
 		}
 	}
 	

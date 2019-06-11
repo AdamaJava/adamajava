@@ -112,14 +112,14 @@ public class FlagUtilTest {
 				String flagString = FlagUtil.getFlagString(i);
 				flagBinaryCount.put(flagString, new AtomicLong(flagIntegerCount.get(i)));
 			}				
-		XmlUtils.outputTallyGroup( root , "FLAG", flagBinaryCount, true);	
+		XmlUtils.outputTallyGroup( root , "FLAG", flagBinaryCount, true, true);	
 		
 		//check output
-		List<Element> tallys =  XmlElementUtils.getChildElementByTagName(XmlElementUtils.getChildElement( root, XmlUtils.variableGroupEle,0), XmlUtils.sTally );
+		List<Element> tallys =  XmlElementUtils.getChildElementByTagName(XmlElementUtils.getChildElement( root, XmlUtils.VARIABLE_GROUP,0), XmlUtils.TALLY );
 		assertEquals( 2, tallys.size() );
 		
-		assertEquals( 1, tallys.stream().filter( e -> e.getAttribute(XmlUtils.sCount).equals("1")  &&  e.getAttribute(XmlUtils.sValue).equals("000001100011, pPR1")).count() );
-		assertEquals( 1, tallys.stream().filter( e -> e.getAttribute(XmlUtils.sCount).equals("2")  &&  e.getAttribute(XmlUtils.sValue).equals("000010010011, pPr2")).count() );
+		assertEquals( 1, tallys.stream().filter( e -> e.getAttribute(XmlUtils.COUNT).equals("1")  &&  e.getAttribute(XmlUtils.VALUE).equals("000001100011, pPR1")).count() );
+		assertEquals( 1, tallys.stream().filter( e -> e.getAttribute(XmlUtils.COUNT).equals("2")  &&  e.getAttribute(XmlUtils.VALUE).equals("000010010011, pPr2")).count() );
 	}
 
 }

@@ -296,16 +296,16 @@ static final int MAX_POOL_SIZE = 500;
 	public void toXml(Element ele){		
 		
 		Element element = XmlUtils.createMetricsNode(ele, "qnameInfo", new Pair(ReadGroupSummary.READ_COUNT, getInputReadNumber()));
-		XmlUtils.outputTallyGroup( element,  "QNAME Format", patterns , false );
+		XmlUtils.outputTallyGroup( element,  "QNAME Format", patterns , false , true);
 		for(int i = 0; i < columns.length; i ++) {
 			if(columns[i].size() > 0)
-				XmlUtils.outputTallyGroup( element,  (i+1)+"thColumnSplitByColon", columns[i] , false );
+				XmlUtils.outputTallyGroup( element,  (i+1)+"thColumnSplitByColon", columns[i] , false, true );
 		}
 				
-		XmlUtils.outputTallyGroup( element,  "Instrument", instruments , false );
-		XmlUtils.outputTallyGroup( element,  "Flow Cell Id", flowCellIds , false );
-		XmlUtils.outputTallyGroup( element,  "Run Id", runIds , false );
-		XmlUtils.outputTallyGroup( element,  "Flow Cell Lane", flowCellLanes , false );
+		XmlUtils.outputTallyGroup( element,  "Instrument", instruments , false , true);
+		XmlUtils.outputTallyGroup( element,  "Flow Cell Id", flowCellIds , false , true);
+		XmlUtils.outputTallyGroup( element,  "Run Id", runIds , false , true);
+		XmlUtils.outputTallyGroup( element,  "Flow Cell Lane", flowCellLanes , false , true);
 		XmlUtils.outputTallyGroupWithSize(element,  "Tile Number", tileNumbers, TALLY_SIZE);
 		XmlUtils.outputTallyGroupWithSize( element,  "Pair infomation", pairs, TALLY_SIZE);
 		XmlUtils.outputTallyGroupWithSize( element,  "Index", indexes , TALLY_SIZE);

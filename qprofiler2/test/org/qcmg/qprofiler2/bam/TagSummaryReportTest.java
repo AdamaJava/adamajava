@@ -68,59 +68,59 @@ public class TagSummaryReportTest {
 		record.setAttribute("RG", "last");
 		report.parseTAGs(record);
 		
-		Element root = XmlElementUtils.createRootElement( XmlUtils.tag, null );
+		Element root = XmlElementUtils.createRootElement( XmlUtils.TAG, null );
 		report.toXml( root );		
 		checkXml( root );
 	}	
 		
 	private List<Element> getChildNameIs(Element parent, String eleName, String nameValue){		
 		return XmlElementUtils.getChildElementByTagName(parent,eleName).stream().
-			filter( e -> e.getAttribute( XmlUtils.sName ).equals( nameValue ) ).collect(Collectors.toList());		
+			filter( e -> e.getAttribute( XmlUtils.NAME ).equals( nameValue ) ).collect(Collectors.toList());		
 	}
 	
 	private void checkXml(Element root){
 		 		
-		assertEquals( 2, XmlElementUtils.getChildElementByTagName( root, XmlUtils.metricsEle ).size()  );				
+		assertEquals( 2, XmlElementUtils.getChildElementByTagName( root, XmlUtils.SEQUENCE_METRICS ).size()  );				
 		
 		//<sequenceMetrics name="tags:MDM:Z">
-		Element metricE = getChildNameIs( root, XmlUtils.metricsEle, "tags:MD:Z" ).get(0);
+		Element metricE = getChildNameIs( root, XmlUtils.SEQUENCE_METRICS, "tags:MD:Z" ).get(0);
 		assertEquals( metricE.getChildNodes().getLength() , 3 );
 		
 		//check mutation on each base cycle
-		Element ele = getChildNameIs( metricE, XmlUtils.variableGroupEle, XmlUtils.firstOfPair ).get(0);
+		Element ele = getChildNameIs( metricE, XmlUtils.VARIABLE_GROUP, XmlUtils.FIRST_PAIR ).get(0);
 		//three of firstOfPair have four mutation base
 		String[] values = new String[] { "A", "T", "C", "C" };
 		String[] counts =  new String[] { "1", "10", "11", "37" };
 		for(int i = 0; i < counts.length; i++ ) {
 			
 			String count = counts[i];
-			Element vE = XmlElementUtils.getChildElementByTagName(ele, XmlUtils.baseCycleEle).stream().
-				filter( e -> e.getAttribute( XmlUtils.Scycle ).equals( String.valueOf(count))  ).findFirst().get();		
+			Element vE = XmlElementUtils.getChildElementByTagName(ele, XmlUtils.BASE_CYCLE).stream().
+				filter( e -> e.getAttribute( XmlUtils.CYCLE ).equals( String.valueOf(count))  ).findFirst().get();		
 			assertEquals( vE.getChildNodes().getLength() , 1 );
 			vE = (Element) vE.getChildNodes().item(0);
-			assertEquals( vE.getAttribute(XmlUtils.sValue), values[i]);
-			assertEquals( vE.getAttribute(XmlUtils.sCount), "1");
+			assertEquals( vE.getAttribute(XmlUtils.VALUE), values[i]);
+			assertEquals( vE.getAttribute(XmlUtils.COUNT), "1");
 		}
 		
 		//check mutaiton type on forward reads
-		ele = getChildNameIs(metricE, XmlUtils.variableGroupEle, XmlUtils.firstOfPair+"ForwardStrand" ).get(0);
-		assertEquals( 1, XmlElementUtils.getOffspringElementByTagName(ele, XmlUtils.sTally).stream()
-			.filter(e -> e.getAttribute(XmlUtils.sValue).equals("A>C") && e.getAttribute(XmlUtils.sCount).equals("2") ).count() );
-		assertEquals( 1, XmlElementUtils.getOffspringElementByTagName(ele, XmlUtils.sTally).stream()
-			.filter(e -> e.getAttribute(XmlUtils.sValue).equals("T>A") && e.getAttribute(XmlUtils.sCount).equals("1") ).count() );		
+		ele = getChildNameIs(metricE, XmlUtils.VARIABLE_GROUP, XmlUtils.FIRST_PAIR+"ForwardStrand" ).get(0);
+		assertEquals( 1, XmlElementUtils.getOffspringElementByTagName(ele, XmlUtils.TALLY).stream()
+			.filter(e -> e.getAttribute(XmlUtils.VALUE).equals("A>C") && e.getAttribute(XmlUtils.COUNT).equals("2") ).count() );
+		assertEquals( 1, XmlElementUtils.getOffspringElementByTagName(ele, XmlUtils.TALLY).stream()
+			.filter(e -> e.getAttribute(XmlUtils.VALUE).equals("T>A") && e.getAttribute(XmlUtils.COUNT).equals("1") ).count() );		
 		
 		//check mutaiton type on reverse reads
-		ele = getChildNameIs( metricE, XmlUtils.variableGroupEle, XmlUtils.firstOfPair+"ReverseStrand" ).get(0);
-		assertEquals( 1, XmlElementUtils.getOffspringElementByTagName(ele, XmlUtils.sTally).size());
-		assertEquals( 1, XmlElementUtils.getOffspringElementByTagName(ele, XmlUtils.sTally).stream()
-				.filter(e -> e.getAttribute(XmlUtils.sValue).equals("A>T") && e.getAttribute(XmlUtils.sCount).equals("1") ).count() );
+		ele = getChildNameIs( metricE, XmlUtils.VARIABLE_GROUP, XmlUtils.FIRST_PAIR+"ReverseStrand" ).get(0);
+		assertEquals( 1, XmlElementUtils.getOffspringElementByTagName(ele, XmlUtils.TALLY).size());
+		assertEquals( 1, XmlElementUtils.getOffspringElementByTagName(ele, XmlUtils.TALLY).stream()
+				.filter(e -> e.getAttribute(XmlUtils.VALUE).equals("A>T") && e.getAttribute(XmlUtils.COUNT).equals("1") ).count() );
 		
 		//check tag RG
-		ele = getChildNameIs( root, XmlUtils.metricsEle, "tags:RG:Z" ).get(0);
-		assertEquals( 1, XmlElementUtils.getOffspringElementByTagName(ele, XmlUtils.sTally).stream()
-				.filter(e -> e.getAttribute(XmlUtils.sValue).equals("first") && e.getAttribute(XmlUtils.sCount).equals("3") ).count() );
-		assertEquals( 1, XmlElementUtils.getOffspringElementByTagName(ele, XmlUtils.sTally).stream()
-				.filter(e -> e.getAttribute(XmlUtils.sValue).equals("last") && e.getAttribute(XmlUtils.sCount).equals("1") ).count() );
+		ele = getChildNameIs( root, XmlUtils.SEQUENCE_METRICS, "tags:RG:Z" ).get(0);
+		assertEquals( 1, XmlElementUtils.getOffspringElementByTagName(ele, XmlUtils.TALLY).stream()
+				.filter(e -> e.getAttribute(XmlUtils.VALUE).equals("first") && e.getAttribute(XmlUtils.COUNT).equals("3") ).count() );
+		assertEquals( 1, XmlElementUtils.getOffspringElementByTagName(ele, XmlUtils.TALLY).stream()
+				.filter(e -> e.getAttribute(XmlUtils.VALUE).equals("last") && e.getAttribute(XmlUtils.COUNT).equals("1") ).count() );
 	}
 		
 	
@@ -198,24 +198,24 @@ public class TagSummaryReportTest {
 			report.parseTAGs(record);			
 		}		
 		
-		Element root = XmlElementUtils.createRootElement( XmlUtils.tag, null );
+		Element root = XmlElementUtils.createRootElement( XmlUtils.TAG, null );
 		report.toXml( root );	
 		
-		Element ele = getChildNameIs( getChildNameIs( root, XmlUtils.metricsEle, "tags:NM:Z" ).get(0), XmlUtils.variableGroupEle, "NM" ).get(0);
-		assertEquals( ele.getAttribute(XmlUtils.sTallyCount) , TagSummaryReport2.ADDI_TAG_MAP_LIMIT+"+" ); 
-		assertEquals( ele.getAttribute(XmlUtils.sCount) , "200" );		
-		assertEquals( XmlElementUtils.getChildElementByTagName(ele, XmlUtils.sTally).size(), 101);
-		long findNo = XmlElementUtils.getChildElementByTagName(ele, XmlUtils.sTally).stream()
-			.filter(e -> e.getAttribute( XmlUtils.sValue ).equals(XmlUtils.OTHER ) && e.getAttribute( XmlUtils.sCount ).equals("100" )).count() ;
+		Element ele = getChildNameIs( getChildNameIs( root, XmlUtils.SEQUENCE_METRICS, "tags:NM:Z" ).get(0), XmlUtils.VARIABLE_GROUP, "NM" ).get(0);
+		assertEquals( ele.getAttribute(XmlUtils.TALLY_COUNT) , TagSummaryReport2.ADDI_TAG_MAP_LIMIT+"+" ); 
+		assertEquals( ele.getAttribute(XmlUtils.COUNT) , "200" );		
+		assertEquals( XmlElementUtils.getChildElementByTagName(ele, XmlUtils.TALLY).size(), 101);
+		long findNo = XmlElementUtils.getChildElementByTagName(ele, XmlUtils.TALLY).stream()
+			.filter(e -> e.getAttribute( XmlUtils.VALUE ).equals(XmlUtils.OTHER ) && e.getAttribute( XmlUtils.COUNT ).equals("100" )).count() ;
 		assertEquals(findNo, 1);
 		
 		
-		ele = getChildNameIs( getChildNameIs( root, XmlUtils.metricsEle, "tags:NM:i" ).get(0), XmlUtils.variableGroupEle, "NM" ).get(0);
-		assertEquals( ele.getAttribute(XmlUtils.sTallyCount) , TagSummaryReport2.ADDI_TAG_MAP_LIMIT+"+" ); 
-		assertEquals( ele.getAttribute(XmlUtils.sCount) , "401" );
-		assertEquals( XmlElementUtils.getChildElementByTagName(ele, XmlUtils.sTally).size(), 101);
-		findNo = XmlElementUtils.getChildElementByTagName(ele, XmlUtils.sTally).stream()
-				.filter(e -> e.getAttribute( XmlUtils.sValue ).equals(XmlUtils.OTHER ) && e.getAttribute( XmlUtils.sCount ).equals("203" )).count() ;
+		ele = getChildNameIs( getChildNameIs( root, XmlUtils.SEQUENCE_METRICS, "tags:NM:i" ).get(0), XmlUtils.VARIABLE_GROUP, "NM" ).get(0);
+		assertEquals( ele.getAttribute(XmlUtils.TALLY_COUNT) , TagSummaryReport2.ADDI_TAG_MAP_LIMIT+"+" ); 
+		assertEquals( ele.getAttribute(XmlUtils.COUNT) , "401" );
+		assertEquals( XmlElementUtils.getChildElementByTagName(ele, XmlUtils.TALLY).size(), 101);
+		findNo = XmlElementUtils.getChildElementByTagName(ele, XmlUtils.TALLY).stream()
+				.filter(e -> e.getAttribute( XmlUtils.VALUE ).equals(XmlUtils.OTHER ) && e.getAttribute( XmlUtils.COUNT ).equals("203" )).count() ;
 			assertEquals(findNo, 1);
 		
 	}
