@@ -104,5 +104,19 @@ public class QCMGAtomicLongArrayTest {
 		assertFalse(array.isEmpty());
 		
 	}
+	
+	@Test
+	public void getSumTest() {
+		final QCMGAtomicLongArray array = new QCMGAtomicLongArray(10);
+		
+		for(int i = 0; i < 5; i++ ) {
+			array.increment(i * 2, 10);
+		}		
+		assertTrue(array.getSum() == 50);
+		
+		array.increment(9, -10 );
+		assertTrue(array.getSum() == 40);
+		
+	}
 
 }
