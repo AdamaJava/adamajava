@@ -27,7 +27,7 @@ public class PositionSummary {
 	private final AtomicInteger min;
 	private final AtomicInteger max;
 	private final QCMGAtomicLongArray[] rgCoverages; // the coverage for each readgroup on that position   
-	private final QCMGAtomicLongArray coverage = new QCMGAtomicLongArray(512);  // total coverage on that position
+//	private final QCMGAtomicLongArray coverage = new QCMGAtomicLongArray(512);  // total coverage on that position
 	private final List<String> readGroupIds;
 	
 	private final ArrayList<Long> maxRgs = new ArrayList<Long>(); //store the max coverage from all read group at each position;
@@ -77,6 +77,7 @@ public class PositionSummary {
 		//stream is slow but we only use it once		
 		return maxRgs.stream().mapToLong(val -> val).sum();
 	}
+	
 	/**
 	 * 
 	 * @param floorValue
@@ -87,34 +88,37 @@ public class PositionSummary {
 			getMaxRgCoverage(); //caculate the maxRgs 		
 		return  (int) maxRgs.stream().mapToLong(val -> val).filter(val -> val > floorValue).count();
 	}
-	
-	
-	
+		
 		
 	public long getTotalCount() {
-		long count = 0;		 
-		for (int i = 0, length = (int)coverage.length() ; i < length ; i++)
-				count += coverage.get(i);		 
+		long count = 0;	
+		for(String rg : readGroupIds) {
+			count += getTotalCountByRg( rg );			
+		}		
 		return count;
 	}
 	
-	
+	public long getTotalCountByRg(String rg) {
+		int order = readGroupIds.indexOf(rg);	
+		long count = 0;		 
+		for (int i = 0, max =getBinNumber() ; i < max ; i++){ 							
+			count += rgCoverages[order].get(i);
+		}
+		return count; 
+	}
+		
 	/**
 	 * Returns a map which holds the coverage of positions binned by millions
 	 * each element of Map is  <bin_order, reads number on that bin from specified read group> 
-	 */
-	
+	 */	
 	public Map<Integer,  AtomicLong> getCoverageByRg( String rg) {
-		Map<Integer, AtomicLong> singleRgCoverage = new TreeMap<Integer, AtomicLong>();		
-		for (int i = 0, max =getBinNumber() ; i < max ; i++){ 	
-			if(coverage.get(i) == 0) continue; 			
-			int order = readGroupIds.indexOf(rg);			
+		Map<Integer, AtomicLong> singleRgCoverage = new TreeMap<Integer, AtomicLong>();	
+		int order = readGroupIds.indexOf(rg);
+		for (int i = 0, max =getBinNumber() ; i < max ; i++){ 								
 			singleRgCoverage.put( i, new AtomicLong( rgCoverages[order].get(i)));
 		}
 		return singleRgCoverage;
 	}	
-	
-	
 		
 	/**
 	 * This method adds a position to the Summary.
@@ -152,7 +156,7 @@ public class PositionSummary {
 		
 		rgCoverages[ readGroupIds.indexOf(rgid)  ].increment(position / BUCKET_SIZE);  
 		//last element is the total counts on that position
-		coverage.increment(position / BUCKET_SIZE); 
+	//	coverage.increment(position / BUCKET_SIZE); 
 		
 		hasAddPosition = true;
 	}

@@ -273,8 +273,8 @@ public class BamSummaryReport2 extends SummaryReport {
 		parent = XmlElementUtils.createSubElement( parent, XmlUtils.READGROUPS );
 		
 		for( String rg :  rgSummaries.keySet()) {
-			ReadGroupSummary summary = rgSummaries.get(rg);			
-			Element ele = XmlUtils.createMetricsNode(XmlUtils.createReadGroupNode(parent, rg)  , null, new Pair(ReadGroupSummary.READ_COUNT, summary.getReadCount()));			
+			long readCount = rNamePosition.values().stream().mapToLong( x -> x.getTotalCountByRg(rg) ).sum();
+			Element ele = XmlUtils.createMetricsNode(XmlUtils.createReadGroupNode(parent, rg)  , null, new Pair(ReadGroupSummary.READ_COUNT, readCount));			
 			rNamePosition.keySet().stream().sorted(new ReferenceNameComparator()).forEach( ref-> 
 				XmlUtils.outputBins(ele, ref, rNamePosition.get(ref).getCoverageByRg(rg), PositionSummary.BUCKET_SIZE));		
 		}
@@ -332,7 +332,7 @@ public class BamSummaryReport2 extends SummaryReport {
 			// MRNM is same to RNAME
  			
 			// RNAME & POS			
-			parseRNameAndPos(record.getReferenceName(), record.getAlignmentStart(), readGroup);	// Position value
+			parseRNameAndPos( record.getReferenceName(), record.getAlignmentStart(), readGroup );	// Position value
 			
 			//it is not include hard clip
 			if (record.getReadPairedFlag()){  
