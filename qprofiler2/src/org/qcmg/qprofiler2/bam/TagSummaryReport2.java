@@ -10,7 +10,9 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.QCMGAtomicLongArray;
 import org.qcmg.common.util.Constants;
+import org.qcmg.common.util.Pair;
 import org.qcmg.qprofiler2.summarise.CycleSummary;
+import org.qcmg.qprofiler2.summarise.ReadGroupSummary;
 import org.qcmg.qprofiler2.util.CycleSummaryUtils;
 import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Element;
@@ -79,9 +81,16 @@ public class TagSummaryReport2 {
 		}		
 	}
 	
-	public void toXml(Element parent){						
-		//"tags:MD:Z" mismatchbycycle
-		Element ele = XmlUtils.createMetricsNode(parent, "tags:MD:Z", null);	
+	public void toXml(Element parent){
+		long counts = 0;
+		for(int order = 0; order < 3; order++) {
+			counts += tagMDMismatchByCycle[order].getInputCounts();
+		}
+		Pair rcPair = new Pair<String, Number>(ReadGroupSummary.READ_COUNT, counts);
+		
+		
+		//"tags:MD:Z" mismatchbycycle		
+		Element ele = XmlUtils.createMetricsNode(parent, "tags:MD:Z", rcPair);	
 		for(int order = 0; order < 3; order ++) { 
 			tagMDMismatchByCycle[order].toXml( ele, BamSummaryReport2.sourceName[order] );
 		}
@@ -115,9 +124,12 @@ public class TagSummaryReport2 {
 	
 	private <T> void outputTag(Element ele, String tag,  Map<T, AtomicLong> tallys) {
 	
-		ele = XmlUtils.createMetricsNode(ele, "tags:"+tag, null);		 
+		long counts = tallys.values().stream().mapToLong(x -> x.get()).sum();
+		
+		ele = XmlUtils.createMetricsNode(ele, "tags:"+tag, new Pair<String, Number>(ReadGroupSummary.READ_COUNT, counts));
+			
 		String name = tag.substring(0, tag.indexOf(seperator));			
-		XmlUtils.outputTallyGroupWithSize(ele, name, tallys, ADDI_TAG_MAP_LIMIT);
+		XmlUtils.outputTallyGroupWithSize(ele, name, tallys, ADDI_TAG_MAP_LIMIT, false);
 					
 	}
 	

@@ -3,6 +3,7 @@ package org.qcmg.qprofiler2.summarise;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -64,6 +65,7 @@ public class ReadGroupSummary {
 	AtomicLong secondary  = new AtomicLong();
 	AtomicLong supplementary  = new AtomicLong();
 	AtomicLong failedVendorQuality  = new AtomicLong();
+	AtomicLong cigarRead = new AtomicLong();
 	AtomicLong unmapped  = new AtomicLong();
 	AtomicLong unpaired  = new AtomicLong();
 	AtomicLong notProperPairedReads  = new AtomicLong();
@@ -83,6 +85,7 @@ public class ReadGroupSummary {
 		
 	public int getMaxReadLength() { return (int) readlengthStats.getMax(); }
 	
+	public long getCigarReadCount() { return cigarRead.get(); }
 	public long getOverlappedBase() { return overlapStats.getBaseCounts(); }
 	public long getSoftClippedBase() { return softclipStats.getBaseCounts(); }
 	public long getHardClippedBase() { return hardclipStats.getBaseCounts(); }
@@ -118,7 +121,8 @@ public class ReadGroupSummary {
 		//parseing cigar
 		//cigar string from reads including duplicateReads, nonCanonicalPairs and unmappedReads but excluding discardedReads (failed, secondary and supplementary).
 		int lHard = 0, lSoft = 0;
-		if (null != record.getCigar()) {  			
+		if (null != record.getCigar()) {  
+			cigarRead.incrementAndGet();
 			for (CigarElement ce : record.getCigar().getCigarElements()) {			 
 				if ( ! CigarOperator.M.equals(ce.getOperator())) {
 					String key = "" + ce.getLength() + ce.getOperator();
@@ -229,7 +233,7 @@ public class ReadGroupSummary {
 		lostBaseStats( rgElement, NODE_OVERLAP, overlapStats );
 				
 		//create node for overall	
-		rgElement = XmlUtils.createMetricsNode(parent,"reads", new Pair(READ_COUNT, inputReadCounts.get()));		
+		rgElement = XmlUtils.createMetricsNode(parent,"reads", new Pair<String, Number>(READ_COUNT, inputReadCounts.get()));		
 		Element ele = XmlUtils.createGroupNode(rgElement, XmlUtils.DISCARD_READS );
 		XmlUtils.outputValueNode(ele, "supplementaryAlignmentCount", supplementary.get());
 		XmlUtils.outputValueNode(ele, "secondaryAlignmentCount", secondary.get());
@@ -289,12 +293,15 @@ public class ReadGroupSummary {
 		Map<String, Element> metricEs = new HashMap<>();
 		
 		for(PairSummary p : pairCategory.values()) {
+			 			
 			String name = p.isProperPair? "tLenInProperPair" : "tLenInNotProperPair";
-			Element ele = metricEs.computeIfAbsent(name,  k-> XmlUtils.createMetricsNode( parent, k, null )); 
+			Element ele = metricEs.computeIfAbsent(name,  k-> XmlUtils.createMetricsNode( parent, k, 
+					new Pair<String, Number>(ReadGroupSummary.PAIR_COUNT, p.getTLENCounts().getSum()) )); 
 			XmlUtils.outputTallyGroup( ele, p.type.name(), p.getTLENCounts().toMap(), false, true );  
 			
 			name = p.isProperPair? "overlapBaseInProperPair" : "overlapBaseInNotProperPair";
-			ele = metricEs.computeIfAbsent(name,  k-> XmlUtils.createMetricsNode( parent, k, null )); 			
+			ele = metricEs.computeIfAbsent(name,  k-> XmlUtils.createMetricsNode( parent, k, 
+					new Pair<String, Number>(ReadGroupSummary.PAIR_COUNT, p.getoverlapCounts().getSum()) )); 			
 			XmlUtils.outputTallyGroup( ele, p.type.name(), p.getoverlapCounts().toMap(), false , true); 							
 		}
 	}

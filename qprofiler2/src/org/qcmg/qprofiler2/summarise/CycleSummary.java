@@ -62,6 +62,7 @@ public class CycleSummary<T> {
 	private final AtomicInteger keyMask = new AtomicInteger();
 	private final AtomicInteger maxCycleValue = new AtomicInteger();
 	private final AtomicInteger maxKeyValue = new AtomicInteger();
+	private final AtomicLong parseCounts = new AtomicLong();
 	
 	private AtomicLongArray tally;
 	
@@ -367,8 +368,11 @@ public class CycleSummary<T> {
 		return map;
 	}
 	
+	public long getInputCounts() { return parseCounts.get();}
+	
 	public void parseByteData(final byte[] dataString) {
 		if(dataString == null) return;
+		parseCounts.incrementAndGet();
  			
 		for (int i = 0, size = dataString.length ; i < size ; i++) {
 			int value = (type instanceof Integer) ? dataString[i] & 0xFF : 
@@ -378,7 +382,8 @@ public class CycleSummary<T> {
 	}	
 	
 	public void parseStringData( String dataString,  int offset) {
-		if (null == dataString) return; 			
+		if (null == dataString) return; 
+		parseCounts.incrementAndGet();
 		int size = dataString.length();
 		if (size > 0) {				
 			// set offset to 0 if it is negative, or larger than the supplied string

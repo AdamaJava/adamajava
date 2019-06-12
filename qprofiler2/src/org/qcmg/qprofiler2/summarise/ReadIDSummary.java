@@ -306,9 +306,9 @@ static final int MAX_POOL_SIZE = 500;
 		XmlUtils.outputTallyGroup( element,  "Flow Cell Id", flowCellIds , false , true);
 		XmlUtils.outputTallyGroup( element,  "Run Id", runIds , false , true);
 		XmlUtils.outputTallyGroup( element,  "Flow Cell Lane", flowCellLanes , false , true);
-		XmlUtils.outputTallyGroupWithSize(element,  "Tile Number", tileNumbers, TALLY_SIZE);
-		XmlUtils.outputTallyGroupWithSize( element,  "Pair infomation", pairs, TALLY_SIZE);
-		XmlUtils.outputTallyGroupWithSize( element,  "Index", indexes , TALLY_SIZE);
+		XmlUtils.outputTallyGroupWithSize(element,  "Tile Number", tileNumbers, TALLY_SIZE, true);
+		XmlUtils.outputTallyGroupWithSize( element,  "Pair infomation", pairs, TALLY_SIZE, true);
+		XmlUtils.outputTallyGroupWithSize( element,  "Index", indexes , TALLY_SIZE, true);
 		//merge two pool together
 		pool_random.addAll(pool_uniq);
 		

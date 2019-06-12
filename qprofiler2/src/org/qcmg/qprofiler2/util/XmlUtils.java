@@ -158,7 +158,8 @@ public class XmlUtils {
 	 * @param id readgroup id. set to null if not exists
 	 * @return
 	 */       
-    public static Element createMetricsNode(Element parent,  String name, Pair<?, ?> totalCounts ) {	
+//    public static Element createMetricsNode(Element parent,  String name, Pair<?, ?> totalCounts ) {	
+    public static Element createMetricsNode(Element parent,  String name, Pair<String, Number> totalCounts ) {	
     	Element ele = XmlElementUtils.createSubElement( parent,  XmlUtils.SEQUENCE_METRICS );
     						
 		if( totalCounts != null ) ele.setAttribute((String)totalCounts.getLeft(), String.valueOf( totalCounts.getRight()));		 
@@ -233,9 +234,9 @@ public class XmlUtils {
     	return cateEle;   	
     }
 	
-	public static <T> void outputTallyGroupWithSize(Element parent, String name, Map<T, AtomicLong> tallys, int sizeLimits) {
+	public static <T> void outputTallyGroupWithSize(Element parent, String name, Map<T, AtomicLong> tallys, int sizeLimits, boolean outputSum ) {
 		boolean hasPercent = tallys.size() > sizeLimits ? false : true;		
-		Element ele = outputTallyGroup(parent, name, tallys, hasPercent, true) ;		
+		Element ele = outputTallyGroup(parent, name, tallys, hasPercent, outputSum) ;		
 		
 		if( ele != null && tallys.size() > sizeLimits) { 
 			ele.setAttribute(XmlUtils.TALLY_COUNT, sizeLimits + "+");	
