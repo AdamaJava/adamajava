@@ -39,7 +39,7 @@ public class ReadGroupSummaryTest {
 		createInputFile (input);
 	}	
 	 
-	static void createInputFile(File input) throws IOException{
+	public static void createInputFile(File input) throws IOException{
 		List<String> data = new ArrayList<String>();
         data.add("@HD	VN:1.0	SO:coordinate");
         data.add("@RG	ID:1959T	SM:eBeads_20091110_CD	DS:rl=50");
@@ -354,7 +354,7 @@ public class ReadGroupSummaryTest {
 		//BamSummarizer2 bs = new BamSummarizer2( 200, null, true);
 		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize(input.getAbsolutePath()); 
 		sr.toXml(root);	
-
+		
 		root = XmlElementUtils.getOffspringElementByTagName( root, "bamSummary" ).get(0);
 		Element root1 = XmlElementUtils.getChildElementByTagName( root, XmlUtils.SEQUENCE_METRICS )		
 		.stream().filter( ele -> ele.getAttribute(XmlUtils.NAME ).equals( XmlUtils.ALL_BASE_LOST  )).findFirst().get() ;	
