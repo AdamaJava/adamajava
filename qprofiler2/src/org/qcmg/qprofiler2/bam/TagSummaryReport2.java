@@ -24,7 +24,6 @@ import htsjdk.samtools.SAMTagUtil;
 //for sam record tag information
 public class TagSummaryReport2 {
 
-//	public final static int additionTagMapLimit = 200;
 	public final static int ADDI_TAG_MAP_LIMIT = 100;
 	public final static int errReadLimit  = 10;	
 	public final static String seperator = Constants.COLON_STRING;	
@@ -43,6 +42,7 @@ public class TagSummaryReport2 {
 	private final ConcurrentMap<String, ConcurrentSkipListMap<Character, AtomicLong>> additionalCharacterTags = new ConcurrentSkipListMap<>();
 	protected QLogger logger = QLoggerFactory.getLogger(getClass());	
 	private long errMDReadNo = 0 ;	
+	private AtomicLong mdTagCounts = new AtomicLong();
 	
 	public void parseTAGs(final SAMRecord record )  {
 				
@@ -65,6 +65,7 @@ public class TagSummaryReport2 {
 		//MD	 
 		String value = (String) record.getAttribute(MD);
 		if (null != value) {
+			mdTagCounts.incrementAndGet();
 			byte[] readBases = record.getReadBases();
 			boolean reverseStrand =record.getReadNegativeStrandFlag();		
 
@@ -82,15 +83,10 @@ public class TagSummaryReport2 {
 	}
 	
 	public void toXml(Element parent){
-		long counts = 0;
-		for(int order = 0; order < 3; order++) {
-			counts += tagMDMismatchByCycle[order].getInputCounts();
-		}
-		Pair rcPair = new Pair<String, Number>(ReadGroupSummary.READ_COUNT, counts);
-		
-		
+				
 		//"tags:MD:Z" mismatchbycycle		
-		Element ele = XmlUtils.createMetricsNode(parent, "tags:MD:Z", rcPair);	
+		Element ele = XmlUtils.createMetricsNode(parent, "tags:MD:Z", 
+				new Pair<String, Number>(ReadGroupSummary.READ_COUNT, mdTagCounts.get()));
 		for(int order = 0; order < 3; order ++) { 
 			tagMDMismatchByCycle[order].toXml( ele, BamSummaryReport2.sourceName[order] );
 		}

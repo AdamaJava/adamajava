@@ -9,8 +9,8 @@ import org.qcmg.qprofiler2.summarise.CycleSummary;
 import htsjdk.samtools.Cigar;
 
 public class CycleSummaryUtils {
-	public static final Pattern BAD_MD_PATTERN = Pattern.compile("([ACGTN])");	
-	private static final Pattern badReadPattern = Pattern.compile("([.N])");	
+//	public static final Pattern BAD_MD_PATTERN = Pattern.compile("([ACGTN])");	
+//	private static final Pattern badReadPattern = Pattern.compile("([.N])");	
 	
 	public static String tallyMDMismatches(final String mdData, Cigar cigar, final CycleSummary<Character> tagMDMismatchByCycle, 
 			final byte[] readBases, final boolean reverse, QCMGAtomicLongArray mdRefAltLengthsForward, QCMGAtomicLongArray mdRefAltLengthsReverse) {

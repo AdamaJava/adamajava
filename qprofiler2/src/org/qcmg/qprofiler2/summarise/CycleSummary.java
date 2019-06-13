@@ -384,6 +384,7 @@ public class CycleSummary<T> {
 	public void parseStringData( String dataString,  int offset) {
 		if (null == dataString) return; 
 		parseCounts.incrementAndGet();
+		
 		int size = dataString.length();
 		if (size > 0) {				
 			// set offset to 0 if it is negative, or larger than the supplied string

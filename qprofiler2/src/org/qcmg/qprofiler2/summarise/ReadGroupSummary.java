@@ -291,19 +291,30 @@ public class ReadGroupSummary {
 
 	public void pairTlen2Xml( Element parent ) {
 		Map<String, Element> metricEs = new HashMap<>();
-		
+		Map<String, AtomicLong> metricCounts = new HashMap<>();
 		for(PairSummary p : pairCategory.values()) {
-			 			
 			String name = p.isProperPair? "tLenInProperPair" : "tLenInNotProperPair";
-			Element ele = metricEs.computeIfAbsent(name,  k-> XmlUtils.createMetricsNode( parent, k, 
-					new Pair<String, Number>(ReadGroupSummary.PAIR_COUNT, p.getTLENCounts().getSum()) )); 
+			//sum all pairCounts belong to metrics section
+			AtomicLong cPairs =  metricCounts.computeIfAbsent(name,  k->  new AtomicLong());
+			cPairs.addAndGet(p.getTLENCounts().getSum());
+			//output pair tLen to classified section
+			Element ele = metricEs.computeIfAbsent(name,  k-> XmlUtils.createMetricsNode( parent, k, null)); 
 			XmlUtils.outputTallyGroup( ele, p.type.name(), p.getTLENCounts().toMap(), false, true );  
-			
+					
 			name = p.isProperPair? "overlapBaseInProperPair" : "overlapBaseInNotProperPair";
-			ele = metricEs.computeIfAbsent(name,  k-> XmlUtils.createMetricsNode( parent, k, 
-					new Pair<String, Number>(ReadGroupSummary.PAIR_COUNT, p.getoverlapCounts().getSum()) )); 			
-			XmlUtils.outputTallyGroup( ele, p.type.name(), p.getoverlapCounts().toMap(), false , true); 							
+			//sum all pairCounts belong to metrics section
+			cPairs =  metricCounts.computeIfAbsent(name,  k->  new AtomicLong());
+			cPairs.addAndGet(p.getoverlapCounts().getSum());
+			//output pair overlap to classified section
+			ele = metricEs.computeIfAbsent(name,  k-> XmlUtils.createMetricsNode( parent, k, null));
+			XmlUtils.outputTallyGroup( ele, p.type.name(), p.getoverlapCounts().toMap(), false , true); 
 		}
+		
+		//add pairCounts into metrics elements
+		for(String name : metricEs.keySet()) {
+			metricEs.get(name).setAttribute(ReadGroupSummary.PAIR_COUNT, metricCounts.get(name).get()+"" );
+		}
+		
 	}
 	
 	//for duplicate, unmapped and not proper paired reads

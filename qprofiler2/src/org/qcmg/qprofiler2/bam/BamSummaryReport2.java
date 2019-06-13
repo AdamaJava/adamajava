@@ -210,12 +210,12 @@ public class BamSummaryReport2 extends SummaryReport {
 		Pair rcPair = new Pair<String, Number>(ReadGroupSummary.READ_COUNT, counts);
 		
 		//"count on quality base",
-		Element ele = XmlUtils.createMetricsNode( parent,  XmlUtils.QUAL_BASE,  null); 
+		Element ele = XmlUtils.createMetricsNode( parent,  XmlUtils.QUAL_BASE,  rcPair); 
 		for(int order = 0; order < 3; order++) 			
 			qualByCycleInteger[order].toXml(ele, sourceName[order]);
 		
 		//qual length
-		ele = XmlUtils.createMetricsNode( parent,  XmlUtils.QUAL_LENGTH,  null); 
+		ele = XmlUtils.createMetricsNode( parent,  XmlUtils.QUAL_LENGTH,  rcPair); 
 		for(int order = 0; order < 3; order++) {
 			if(qualByCycleInteger[order].getLengthMapFromCycle().isEmpty()) continue;		
 			XmlUtils.outputTallyGroup( ele, sourceName[order],  qualByCycleInteger[order].getLengthMapFromCycle(), true , true);	

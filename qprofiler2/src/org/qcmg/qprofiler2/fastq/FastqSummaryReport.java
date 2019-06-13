@@ -16,10 +16,12 @@ import htsjdk.samtools.SAMUtils;
 import org.qcmg.common.model.ProfileType;
 import org.qcmg.common.model.QCMGAtomicLongArray;
 import org.qcmg.common.string.StringUtils;
+import org.qcmg.common.util.Pair;
 import org.qcmg.common.util.XmlElementUtils;
 import org.qcmg.qprofiler2.report.SummaryReport;
 import org.qcmg.qprofiler2.summarise.CycleSummary;
 import org.qcmg.qprofiler2.summarise.KmersSummary;
+import org.qcmg.qprofiler2.summarise.ReadGroupSummary;
 import org.qcmg.qprofiler2.summarise.ReadIDSummary;
 import org.qcmg.qprofiler2.util.SummaryReportUtils;
 import org.qcmg.qprofiler2.util.XmlUtils;
@@ -56,16 +58,28 @@ public class FastqSummaryReport extends SummaryReport {
 		//header line:"analysis read name pattern for read group
 		Element element =   XmlElementUtils.createSubElement(parent, XmlUtils.QNAME ) ;							
 		readHeaderSummary.toXml(element );		
+				
 
 		//seq								 			
 		element =   XmlElementUtils.createSubElement(parent,XmlUtils.SEQ  ) ;
-		Element ele = XmlUtils.createMetricsNode( element, XmlUtils.SEQ_BASE , null); 
+		long counts = 0;
+		for(int order = 0; order < 3; order++) {
+			counts += seqByCycle.getInputCounts();
+		}
+		Pair rcPair = new Pair<String, Number>(ReadGroupSummary.READ_COUNT, counts);
+		Element ele = XmlUtils.createMetricsNode( element, XmlUtils.SEQ_BASE , rcPair); 
 		seqByCycle.toXml( ele, XmlUtils.SEQ_BASE);	
 		
-		ele = XmlUtils.createMetricsNode( element, XmlUtils.SEQ_LENGTH , null); 
+		ele = XmlUtils.createMetricsNode( element, XmlUtils.SEQ_LENGTH , rcPair); 
 		XmlUtils.outputTallyGroup( ele, XmlUtils.SEQ_LENGTH, seqByCycle.getLengthMapFromCycle(), true, true );	
 		
-		ele = XmlUtils.createMetricsNode( element, XmlUtils.BAD_READ, null);
+		
+		counts = 0;
+		for(int order = 0; order < 3; order++) {
+			counts += seqBadReadLineLengths.getSum();	
+		}
+		rcPair = new Pair<String, Number>(ReadGroupSummary.READ_COUNT, counts);		
+		ele = XmlUtils.createMetricsNode( element, XmlUtils.BAD_READ, rcPair);
 		XmlUtils.outputTallyGroup( ele, XmlUtils.BAD_READ,   seqBadReadLineLengths.toMap(), true, true );	
 		XmlUtils.addCommentChild(ele, FastqSummaryReport.badBaseComment );
 		
