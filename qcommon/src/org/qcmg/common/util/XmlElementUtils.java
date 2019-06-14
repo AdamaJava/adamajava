@@ -64,7 +64,7 @@ public class XmlElementUtils{
 	 */
 	public static List<Element> getOffspringElementByTagName( Element parent, String tagName ){
 				
-		List<Element> elements = new ArrayList<Element>(); 
+		List<Element> elements = new ArrayList<>(); 
 		if( parent == null ) return elements;
 				
 		NodeList offspring = parent.getElementsByTagName(tagName);
