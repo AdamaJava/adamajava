@@ -57,7 +57,7 @@ public class BamSummaryReportMetricsTest {
 		
 		//check RG
 		Element ele = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.SEQUENCE_METRICS).stream()
-				.filter(k -> k.getAttribute(XmlUtils.NAME).equals("tag:RG:Z")).findFirst().get();
+				.filter(k -> k.getAttribute(XmlUtils.NAME).equals("tags:RG:Z")).findFirst().get();
 		
 		int scount = 0;
 		for(Element ele1 : XmlElementUtils.getOffspringElementByTagName(ele, XmlUtils.TALLY)) {
@@ -66,9 +66,9 @@ public class BamSummaryReportMetricsTest {
 			//bamSummary			
 			Element ele2 = getElementByFirst(bamSummaryE, "readGroup",  k -> k.getAttribute(XmlUtils.NAME).equals(rg));
 			ele2 = getElementByFirst(ele2, XmlUtils.SEQUENCE_METRICS,  k -> k.getAttribute(XmlUtils.NAME).equals("reads"));
-			
-			assertEquals( ele1.getAttribute(XmlUtils.COUNT) , ele2.getAttribute(ReadGroupSummary.READ_COUNT) );
-			scount += Integer.getInteger( ele1.getAttribute(XmlUtils.COUNT) );			
+						
+			assertEquals( ele1.getAttribute(XmlUtils.COUNT) , ele2.getAttribute(ReadGroupSummary.READ_COUNT) );		
+			scount += Integer.parseInt(ele1.getAttribute(XmlUtils.COUNT)  );	
 		}
 		
 		assertEquals(scount+"", ele.getAttribute(ReadGroupSummary.READ_COUNT) );
