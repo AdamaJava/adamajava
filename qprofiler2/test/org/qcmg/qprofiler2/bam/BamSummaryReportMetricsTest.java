@@ -47,6 +47,10 @@ public class BamSummaryReportMetricsTest {
 		//XmlElementUtils.asXmlText(root, "/users/christix/Documents/Eclipse/gitHub/qprofiler_jun2019/adamajava/qprofiler2/qprofiler1.xml");		
 	}
 	
+	/**
+	 * it take all inputed reads and then count the reads with nominated tag value; 
+	 */
+	@Test
 	public void tagTest() {
 		
 		Element bamSummaryE = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.BAM_SUMMARY).get(0);
@@ -86,6 +90,9 @@ public class BamSummaryReportMetricsTest {
 	}
 	
 	@Test
+	/**
+	 * tLen take properpair or notProperpair as input, due to RAM limitation, only count pair with tLen < 5000
+	 */
 	public void tLenTest() {	
 		Element tagE = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.TLEN).get(0);
 		for(String rg : new String[] {"1959T", "1959N", "unkown_readgroup_id" }) {
