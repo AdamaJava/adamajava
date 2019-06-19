@@ -10,10 +10,18 @@ import org.junit.Test;
 import java.io.File;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
-import org.w3c.dom.Element;
+import java.util.UUID;
 
+import org.w3c.dom.Element;
+import org.qcmg.common.date.DateUtils;
+import org.qcmg.common.log.QLogger;
+import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.util.XmlElementUtils;
+import org.qcmg.qprofiler2.QProfiler2;
 import org.qcmg.qprofiler2.summarise.PairSummaryTest;
 import org.qcmg.qprofiler2.summarise.ReadGroupSummary;
 import org.qcmg.qprofiler2.util.XmlUtils;
@@ -84,7 +92,7 @@ public class BamSummaryReportMetricsTest {
 			String tag = tags[i];
 			ele = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.SEQUENCE_METRICS).stream()
 					.filter(k -> k.getAttribute(XmlUtils.NAME).equals(tag)).findFirst().get();
-			assertEquals( ele.getAttribute( ReadGroupSummary.READ_COUNT ),readCounts[i]+"" );
+			assertEquals( ele.getAttribute( ReadGroupSummary.READ_COUNT ),readCounts[i]+ "" );
 		}
 		
 	}
@@ -273,6 +281,43 @@ public class BamSummaryReportMetricsTest {
 		}
 		
 		return sum; 
+		
+	}
+	
+	
+	@Test
+	public void speedTest() {
+		List<String> myList  = new ArrayList<>();
+		
+		for(int i = 0; i < 101; i ++) {
+			myList.add(i + "::"+UUID.randomUUID().toString());
+		}
+		myList.sort( Comparator.comparing( String::toString ) );
+		
+		//test accuracy
+		for(int i = 0; i < 1000; i ++) {
+			String str1 = myList.get(i%100);
+			int order = Collections.binarySearch( myList, str1, null); 
+			assertEquals(order, myList.indexOf(str1));
+		}
+		
+		int freq = 10000;
+		String str; 
+		QLogger logger = QLoggerFactory.getLogger(QProfiler2.class, "my.log", "DEBUG");
+		long start = System.currentTimeMillis();		
+		for(int i = 0; i < freq; i ++) {
+			str = myList.get(i%100);
+			Collections.binarySearch( myList, str, null);  
+		}
+		logger.getRunTime(start, System.currentTimeMillis());
+		
+		start = System.currentTimeMillis();		
+		for(int i = 0; i < freq; i ++) {
+			str = myList.get(i%100);
+			myList.indexOf(str);
+		}
+		logger.getRunTime(start, System.currentTimeMillis());
+		
 		
 	}
 	
