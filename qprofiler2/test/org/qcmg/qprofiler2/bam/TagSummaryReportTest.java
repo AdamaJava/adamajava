@@ -203,7 +203,7 @@ public class TagSummaryReportTest {
 		
 		Element ele = getChildNameIs( getChildNameIs( root, XmlUtils.SEQUENCE_METRICS, "tags:NM:Z" ).get(0), XmlUtils.VARIABLE_GROUP, "NM" ).get(0);
 		assertEquals( ele.getAttribute(XmlUtils.TALLY_COUNT) , TagSummaryReport2.ADDI_TAG_MAP_LIMIT+"+" ); 
-		assertEquals( ele.getAttribute(XmlUtils.COUNT) , "200" );		
+		assertEquals( ((Element)ele.getParentNode()).getAttribute(ReadGroupSummary.READ_COUNT) , "200" );		
 		assertEquals( XmlElementUtils.getChildElementByTagName(ele, XmlUtils.TALLY).size(), 101);
 		long findNo = XmlElementUtils.getChildElementByTagName(ele, XmlUtils.TALLY).stream()
 			.filter(e -> e.getAttribute( XmlUtils.VALUE ).equals(XmlUtils.OTHER ) && e.getAttribute( XmlUtils.COUNT ).equals("100" )).count() ;
@@ -212,7 +212,7 @@ public class TagSummaryReportTest {
 		
 		ele = getChildNameIs( getChildNameIs( root, XmlUtils.SEQUENCE_METRICS, "tags:NM:i" ).get(0), XmlUtils.VARIABLE_GROUP, "NM" ).get(0);
 		assertEquals( ele.getAttribute(XmlUtils.TALLY_COUNT) , TagSummaryReport2.ADDI_TAG_MAP_LIMIT+"+" ); 
-		assertEquals( ele.getAttribute(XmlUtils.COUNT) , "401" );
+		assertEquals( ((Element)ele.getParentNode()).getAttribute(ReadGroupSummary.READ_COUNT) , "401" );
 		assertEquals( XmlElementUtils.getChildElementByTagName(ele, XmlUtils.TALLY).size(), 101);
 		findNo = XmlElementUtils.getChildElementByTagName(ele, XmlUtils.TALLY).stream()
 				.filter(e -> e.getAttribute( XmlUtils.VALUE ).equals(XmlUtils.OTHER ) && e.getAttribute( XmlUtils.COUNT ).equals("203" )).count() ;

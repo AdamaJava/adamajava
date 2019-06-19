@@ -87,7 +87,10 @@ public class QCMGAtomicLongArray {
 	}
 	
  
-	
+	/**
+	 * 
+	 * @return a map of positive value, in which the key is array position. 
+	 */
 	public TreeMap<Integer, AtomicLong> toMap() {
 		TreeMap<Integer, AtomicLong> map = new TreeMap<>();		 
 		for(int i = 0; i < array.length(); i ++)
@@ -106,6 +109,12 @@ public class QCMGAtomicLongArray {
 		return true; 
 	}
 	
-	
-	
+	public long getSum() {
+		long sum = 0;
+		for(int i = 0; i < array.length(); i ++) {			 
+			sum += array.get(i);			 
+		}
+		return sum; 
+	}
+		
 }

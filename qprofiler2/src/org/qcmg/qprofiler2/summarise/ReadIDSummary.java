@@ -306,17 +306,19 @@ static final int MAX_POOL_SIZE = 500;
 		XmlUtils.outputTallyGroup( element,  "Flow Cell Id", flowCellIds , false , true);
 		XmlUtils.outputTallyGroup( element,  "Run Id", runIds , false , true);
 		XmlUtils.outputTallyGroup( element,  "Flow Cell Lane", flowCellLanes , false , true);
-		XmlUtils.outputTallyGroupWithSize(element,  "Tile Number", tileNumbers, TALLY_SIZE);
-		XmlUtils.outputTallyGroupWithSize( element,  "Pair infomation", pairs, TALLY_SIZE);
-		XmlUtils.outputTallyGroupWithSize( element,  "Index", indexes , TALLY_SIZE);
+		XmlUtils.outputTallyGroupWithSize(element,  "Tile Number", tileNumbers, TALLY_SIZE, true);
+		XmlUtils.outputTallyGroupWithSize( element,  "Pair infomation", pairs, TALLY_SIZE, true);
+		XmlUtils.outputTallyGroupWithSize( element,  "Index", indexes , TALLY_SIZE, true);
 		//merge two pool together
 		pool_random.addAll(pool_uniq);
 		
 		//output 20 qname randomly
-		element = XmlUtils.createMetricsNode(ele, "qnameExample", null);			
-		//incase pool_random size is 1 or 0 
-		for( int i = 0; i < Math.min(20,pool_random.size()-1) ; i ++ ) {
-			int pos = r.nextInt( pool_random.size()-1);
+		element = XmlUtils.createMetricsNode(ele, "qnameExample", null);
+		int size = Math.min(20,pool_random.size());
+		element.appendChild(ele.getOwnerDocument().createComment(size + " QNAMEs are listed here, which are picked up randomly"));
+		for( int i = 0; i < size ; i ++ ) {
+			//in case there is only one element in the pool (unit test)
+			int pos = pool_random.size() > 1 ? r.nextInt( pool_random.size()-1): 0 ;
 			XmlUtils.outputValueNode(element, pool_random.get(pos), 1);
 		}	
 	}

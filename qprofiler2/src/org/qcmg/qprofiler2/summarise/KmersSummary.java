@@ -11,6 +11,7 @@ import org.qcmg.common.model.QCMGAtomicLongArray;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.BaseUtils;
 import org.qcmg.common.util.Constants;
+import org.qcmg.common.util.Pair;
 import org.qcmg.qprofiler2.bam.BamSummaryReport2;
 import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Element;
@@ -187,9 +188,13 @@ public class KmersSummary {
 	
 	
 	public void toXml( Element parent, int klength ) { 
-		final int maxNo = 16;
-		Element merEle = XmlUtils.createMetricsNode(parent, klength+"mers", null );
-				
+		long sum = 0;
+		for(int pair = 0; pair < 3; pair ++){
+			sum += parsedCount[pair].get();	
+		}
+		Element merEle = XmlUtils.createMetricsNode(parent, klength+"mers", new Pair<String, Number>(ReadGroupSummary.READ_COUNT, sum));
+		
+		final int maxNo = 16;				
 		for(int pair = 0; pair < 3; pair ++){
 			if (parsedCount[pair].get() <= 0 ) continue; 	
 			

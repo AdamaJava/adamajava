@@ -13,6 +13,8 @@ package org.qcmg.qprofiler2.summarise;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -27,8 +29,7 @@ public class PositionSummary {
 	private final AtomicInteger min;
 	private final AtomicInteger max;
 	private final QCMGAtomicLongArray[] rgCoverages; // the coverage for each readgroup on that position   
-	private final QCMGAtomicLongArray coverage = new QCMGAtomicLongArray(512);  // total coverage on that position
-	private final List<String> readGroupIds;
+	private final List<String> readGroupIds;  //nature sorted
 	
 	private final ArrayList<Long> maxRgs = new ArrayList<Long>(); //store the max coverage from all read group at each position;
 	private Boolean hasAddPosition = true; //set to true after each time addPosition, set to false after getAverage
@@ -43,6 +44,9 @@ public class PositionSummary {
 	 */	
 	public PositionSummary(List<String> rgs) {
 		readGroupIds = rgs; 
+		//Natural order
+		readGroupIds.sort(Comparator.comparing( String::toString ) );
+		
 		min = new AtomicInteger(512*BUCKET_SIZE);
 		max = new AtomicInteger(0); 
 		rgCoverages = new QCMGAtomicLongArray[rgs.size()];
@@ -77,6 +81,7 @@ public class PositionSummary {
 		//stream is slow but we only use it once		
 		return maxRgs.stream().mapToLong(val -> val).sum();
 	}
+	
 	/**
 	 * 
 	 * @param floorValue
@@ -87,34 +92,39 @@ public class PositionSummary {
 			getMaxRgCoverage(); //caculate the maxRgs 		
 		return  (int) maxRgs.stream().mapToLong(val -> val).filter(val -> val > floorValue).count();
 	}
-	
-	
-	
+		
 		
 	public long getTotalCount() {
-		long count = 0;		 
-		for (int i = 0, length = (int)coverage.length() ; i < length ; i++)
-				count += coverage.get(i);		 
+		long count = 0;	
+		for(String rg : readGroupIds) {
+			count += getTotalCountByRg( rg );			
+		}		
 		return count;
 	}
 	
-	
+	public long getTotalCountByRg(String rg) {
+		//get nature order
+		int order = Collections.binarySearch( readGroupIds, rg, null);  
+		long count = 0;		 
+		for (int i = 0, max =getBinNumber() ; i < max ; i++){ 							
+			count += rgCoverages[order].get(i);
+		}
+		return count; 
+	}
+		
 	/**
 	 * Returns a map which holds the coverage of positions binned by millions
 	 * each element of Map is  <bin_order, reads number on that bin from specified read group> 
-	 */
-	
+	 */	
 	public Map<Integer,  AtomicLong> getCoverageByRg( String rg) {
-		Map<Integer, AtomicLong> singleRgCoverage = new TreeMap<Integer, AtomicLong>();		
-		for (int i = 0, max =getBinNumber() ; i < max ; i++){ 	
-			if(coverage.get(i) == 0) continue; 			
-			int order = readGroupIds.indexOf(rg);			
+		Map<Integer, AtomicLong> singleRgCoverage = new TreeMap<Integer, AtomicLong>();	
+		//get nature order
+		int order = Collections.binarySearch( readGroupIds, rg, null);  
+		for (int i = 0, max =getBinNumber() ; i < max ; i++){ 								
 			singleRgCoverage.put( i, new AtomicLong( rgCoverages[order].get(i)));
 		}
 		return singleRgCoverage;
 	}	
-	
-	
 		
 	/**
 	 * This method adds a position to the Summary.
@@ -146,14 +156,14 @@ public class PositionSummary {
 			}
 		}
 		//count for nominated rg on that position
-		int order = readGroupIds.indexOf(rgid);
+		// search for key rgid with natural ordering
+	    int order = Collections.binarySearch( readGroupIds, rgid, null);  
 		if(order < 0 )
 			throw new IllegalArgumentException("can't find readGroup Id on Bam header: @RG ID:"+ rgid);
 		
-		rgCoverages[ readGroupIds.indexOf(rgid)  ].increment(position / BUCKET_SIZE);  
 		//last element is the total counts on that position
-		coverage.increment(position / BUCKET_SIZE); 
-		
+		rgCoverages[ order  ].increment(position / BUCKET_SIZE);  
+				
 		hasAddPosition = true;
 	}
 }

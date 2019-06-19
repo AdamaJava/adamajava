@@ -170,7 +170,7 @@ public class PairSummaryTest {
 	}
 	
 
-	private static void createPairInputFile(File input) throws IOException{
+	public static void createPairInputFile(File input) throws IOException{
 		
 		List<String> data = new ArrayList<>();
 		// first read of proper mapped pair; proper pair (tlen > 0 will be counted), f5f3, tlen(2025>1500)
