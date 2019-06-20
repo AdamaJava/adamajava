@@ -8,6 +8,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.ArrayList;
@@ -49,10 +50,7 @@ public class BamSummaryReportMetricsTest {
 		BamSummarizer2 bs = new BamSummarizer2();
 		//BamSummarizer2 bs = new BamSummarizer2( 200, null, true);
 		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize(input.getAbsolutePath()); 		
-		sr.toXml(root);	
-		
-		//debug
-		//XmlElementUtils.asXmlText(root, "/users/christix/Documents/Eclipse/gitHub/qprofiler_jun2019/adamajava/qprofiler2/qprofiler1.xml");		
+		sr.toXml(root);			
 	}
 	
 	/**
@@ -286,7 +284,7 @@ public class BamSummaryReportMetricsTest {
 	
 	
 	@Test
-	public void speedTest() {
+	public void speedTest() throws IOException {
 		List<String> myList  = new ArrayList<>();
 		
 		for(int i = 0; i < 101; i ++) {
@@ -303,7 +301,7 @@ public class BamSummaryReportMetricsTest {
 		
 		int freq = 10000;
 		String str; 
-		QLogger logger = QLoggerFactory.getLogger(QProfiler2.class, "my.log", "DEBUG");
+		QLogger logger = QLoggerFactory.getLogger(QProfiler2.class, testFolder.newFile("my.log").getAbsolutePath(), "DEBUG");
 		long start = System.currentTimeMillis();		
 		for(int i = 0; i < freq; i ++) {
 			str = myList.get(i%100);

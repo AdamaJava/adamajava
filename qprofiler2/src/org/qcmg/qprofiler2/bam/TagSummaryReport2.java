@@ -84,27 +84,28 @@ public class TagSummaryReport2 {
 	
 	public void toXml(Element parent){
 				
-		//"tags:MD:Z" mismatchbycycle		
-		Element ele = XmlUtils.createMetricsNode(parent, "tags:MD:Z", 
-				new Pair<String, Number>(ReadGroupSummary.READ_COUNT, mdTagCounts.get()));
-		for(int order = 0; order < 3; order ++) { 
-			tagMDMismatchByCycle[order].toXml( ele, BamSummaryReport2.sourceName[order] );
+		//"tags:MD:Z" mismatchbycycle
+		if( mdTagCounts.get() > 0) {
+			Element ele = XmlUtils.createMetricsNode(parent, "tags:MD:Z", 
+					new Pair<String, Number>(ReadGroupSummary.READ_COUNT, mdTagCounts.get()));
+			for(int order = 0; order < 3; order ++) { 
+				tagMDMismatchByCycle[order].toXml( ele, BamSummaryReport2.sourceName[order] );
+			}
+					
+			for(String strand : new String[]{ "ForwardStrand", "ReverseStrand" }){				
+				for(int order = 0; order < 3; order ++) {				
+					Map<String, AtomicLong> mdRefAltLengthsString = new HashMap<>();
+					QCMGAtomicLongArray mdRefAltLengths = (strand.contains("Forward"))? mdRefAltLengthsForward[order] : mdRefAltLengthsReverse[order];				
+					for (int m = 0 ; m < mdRefAltLengths.length() ; m++) {
+						long l = mdRefAltLengths.get(m);
+						if (l <= 0)  continue;
+						mdRefAltLengthsString.put(CycleSummaryUtils.getStringFromInt(m), new AtomicLong(l));					 
+					}
+					String name = BamSummaryReport2.sourceName[order] + strand; 				
+					XmlUtils.outputTallyGroup(ele,  name, mdRefAltLengthsString, true, true);				
+				}		
+			}			
 		}
-				
-		for(String strand : new String[]{ "ForwardStrand", "ReverseStrand" }){				
-			for(int order = 0; order < 3; order ++) {				
-				Map<String, AtomicLong> mdRefAltLengthsString = new HashMap<>();
-				QCMGAtomicLongArray mdRefAltLengths = (strand.contains("Forward"))? mdRefAltLengthsForward[order] : mdRefAltLengthsReverse[order];				
-				for (int m = 0 ; m < mdRefAltLengths.length() ; m++) {
-					long l = mdRefAltLengths.get(m);
-					if (l <= 0)  continue;
-					mdRefAltLengthsString.put(CycleSummaryUtils.getStringFromInt(m), new AtomicLong(l));					 
-				}
-				String name = BamSummaryReport2.sourceName[order] + strand; 
-				
-				XmlUtils.outputTallyGroup(ele,  name, mdRefAltLengthsString, true, true);				
-			}		
-		}			
 		
 		// additional tags includes RG
 		for (Entry<String,  ConcurrentSkipListMap<String, AtomicLong>> entry : additionalTags.entrySet()) {			

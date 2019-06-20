@@ -42,10 +42,9 @@ public class PositionSummary {
 	 * @param position sets the first position value of this summary record to position
 	 * 
 	 */	
-	public PositionSummary(List<String> rgs) {
+	public PositionSummary(List<String> rgs) {		
+		//Natural order should only do once inside BamSummarizer2::createReport
 		readGroupIds = rgs; 
-		//Natural order
-		readGroupIds.sort(Comparator.comparing( String::toString ) );
 		
 		min = new AtomicInteger(512*BUCKET_SIZE);
 		max = new AtomicInteger(0); 
