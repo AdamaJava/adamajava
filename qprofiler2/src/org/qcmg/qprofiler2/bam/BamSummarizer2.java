@@ -15,6 +15,7 @@ import static java.util.stream.Collectors.toList;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.List;
 
 import htsjdk.samtools.SamReader;
@@ -57,8 +58,9 @@ public class BamSummarizer2 implements Summarizer {
 		SAMSequenceDictionary samSeqDict  = header.getSequenceDictionary();
 		//String bamHeader = reader.getFileHeader().getTextHeader();
 		List<SAMProgramRecord> pgLines = header.getProgramRecords();
-		List<String> readGroupIds = header.getReadGroups().stream().map( it -> it.getId()  ).collect(toList()); 
-							
+		List<String> readGroupIds = header.getReadGroups().stream().map( it -> it.getId()  ).collect(toList()); 		
+		readGroupIds.sort(Comparator.comparing( String::toString ) );//Natural order  
+		
 		BamSummaryReport2 bamSummaryReport = new BamSummaryReport2( maxRecords, isFullBamHeader );									
 		bamSummaryReport.setBamHeader(header, isFullBamHeader);		
 		bamSummaryReport.setSamSequenceDictionary(samSeqDict);
