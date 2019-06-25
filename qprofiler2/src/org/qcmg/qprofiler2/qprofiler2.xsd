@@ -102,6 +102,7 @@
 		</xs:choice>
 	  <xs:attribute type="xs:string" name="name" use="required"/> 
 	  <xs:attribute type="xs:integer" name="count" use="optional"/>
+	  <xs:attribute type="xs:integer" name="readCount" use="optional"/>
 	  <xs:attribute type="xs:integer" name="binSize" use="optional"/>
 	  <xs:attribute type="xs:string" name="tallyCount" use="optional"/>
 	  <!--  xs:assert test="2 > count(@binSize) + count(@tallyCount)" -->

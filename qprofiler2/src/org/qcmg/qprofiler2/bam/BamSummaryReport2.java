@@ -172,7 +172,7 @@ public class BamSummaryReport2 extends SummaryReport {
 		//sequenceBase	
 		Element ele = XmlUtils.createMetricsNode( parent,  XmlUtils.SEQ_BASE,  rcPair );	
 		for(int order = 0; order < 3; order++) { 	
-			seqByCycle[order].toXml( ele,  sourceName[order] );
+			seqByCycle[order].toXml( ele,  sourceName[order], seqByCycle[order].getInputCounts() );
 		}
 				
 		//seqLength
@@ -212,7 +212,7 @@ public class BamSummaryReport2 extends SummaryReport {
 		//"count on quality base",
 		Element ele = XmlUtils.createMetricsNode( parent,  XmlUtils.QUAL_BASE,  rcPair); 
 		for(int order = 0; order < 3; order++) 			
-			qualByCycleInteger[order].toXml(ele, sourceName[order]);
+			qualByCycleInteger[order].toXml(ele, sourceName[order], qualByCycleInteger[order].getInputCounts());
 		
 		//qual length
 		ele = XmlUtils.createMetricsNode( parent,  XmlUtils.QUAL_LENGTH,  rcPair); 

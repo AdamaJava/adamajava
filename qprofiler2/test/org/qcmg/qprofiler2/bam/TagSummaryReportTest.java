@@ -71,6 +71,9 @@ public class TagSummaryReportTest {
 		Element root = XmlElementUtils.createRootElement( XmlUtils.TAG, null );
 		report.toXml( root );		
 		checkXml( root );
+				
+		
+		//check md counts
 	}	
 		
 	private List<Element> getChildNameIs(Element parent, String eleName, String nameValue){		
@@ -88,6 +91,7 @@ public class TagSummaryReportTest {
 		
 		//check mutation on each base cycle
 		Element ele = getChildNameIs( metricE, XmlUtils.VARIABLE_GROUP, XmlUtils.FIRST_PAIR ).get(0);
+		assertEquals(ele.getAttribute(ReadGroupSummary.READ_COUNT), "4");
 		//three of firstOfPair have four mutation base
 		String[] values = new String[] { "A", "T", "C", "C" };
 		String[] counts =  new String[] { "1", "10", "11", "37" };

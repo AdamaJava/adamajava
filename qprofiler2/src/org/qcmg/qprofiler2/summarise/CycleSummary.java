@@ -322,13 +322,14 @@ public class CycleSummary<T> {
 	 * @param elementName String representing the name to be used when creating the element
 	 */
 		
-	public void toXml( Element metricEle,  String groupName ){
+	public void toXml( Element metricEle,  String groupName, long readCount ){
 		//do nothing if no base detected
 		Set<T> possibles = getPossibleValues();
 		if( possibles == null || possibles.size() <= 0 ) return; 
 		//String name = metricType == null ? metricName : metricName+"_"+ metricType;		
 		 	
-		Element ele = XmlUtils.createGroupNode( metricEle, groupName);	//<category>    
+		Element ele = XmlUtils.createGroupNode( metricEle, groupName);	//<category>   
+		ele.setAttribute(ReadGroupSummary.READ_COUNT, readCount+"");
 		for (Integer cycle : cycles()){
 			Map<T, AtomicLong> tallys = new LinkedHashMap<>();
 			
