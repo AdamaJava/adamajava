@@ -276,7 +276,6 @@ public class CycleSummary<T> {
 	
 	/**
 	 * 
-	 * <p>
 	 * @param cycle Integer cycle for which summary details should be returned
 	 * @return Returns a SortedSet of elements for a particular cycle of this summary object. Returns null if the summary does not contain the cycle
 	 */
