@@ -3,16 +3,12 @@ package org.qcmg.qprofiler2.bam;
 import static org.junit.Assert.assertEquals;
 
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import javax.xml.parsers.ParserConfigurationException;
-
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -68,9 +64,10 @@ public class TagSummaryReportTest {
 		record.setAttribute("RG", "last");
 		report.parseTAGs(record);
 		
+		//check md counts
 		Element root = XmlElementUtils.createRootElement( XmlUtils.TAG, null );
 		report.toXml( root );		
-		checkXml( root );
+		checkXml( root );				
 	}	
 		
 	private List<Element> getChildNameIs(Element parent, String eleName, String nameValue){		
@@ -88,6 +85,7 @@ public class TagSummaryReportTest {
 		
 		//check mutation on each base cycle
 		Element ele = getChildNameIs( metricE, XmlUtils.VARIABLE_GROUP, XmlUtils.FIRST_PAIR ).get(0);
+		assertEquals(ele.getAttribute(ReadGroupSummary.READ_COUNT), "4");
 		//three of firstOfPair have four mutation base
 		String[] values = new String[] { "A", "T", "C", "C" };
 		String[] counts =  new String[] { "1", "10", "11", "37" };

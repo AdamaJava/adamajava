@@ -172,7 +172,7 @@ public class BamSummaryReport2 extends SummaryReport {
 		//sequenceBase	
 		Element ele = XmlUtils.createMetricsNode( parent,  XmlUtils.SEQ_BASE,  rcPair );	
 		for(int order = 0; order < 3; order++) { 	
-			seqByCycle[order].toXml( ele,  sourceName[order] );
+			seqByCycle[order].toXml( ele,  sourceName[order], seqByCycle[order].getInputCounts() );
 		}
 				
 		//seqLength
@@ -212,7 +212,7 @@ public class BamSummaryReport2 extends SummaryReport {
 		//"count on quality base",
 		Element ele = XmlUtils.createMetricsNode( parent,  XmlUtils.QUAL_BASE,  rcPair); 
 		for(int order = 0; order < 3; order++) 			
-			qualByCycleInteger[order].toXml(ele, sourceName[order]);
+			qualByCycleInteger[order].toXml(ele, sourceName[order], qualByCycleInteger[order].getInputCounts());
 		
 		//qual length
 		ele = XmlUtils.createMetricsNode( parent,  XmlUtils.QUAL_LENGTH,  rcPair); 
@@ -329,11 +329,14 @@ public class BamSummaryReport2 extends SummaryReport {
 		final int mapQ = record.getMappingQuality();
 		mapQualityLengths[order].increment(mapQ);
 
-		// only TAGS, FLAGS are always summarised
-		tagReport.parseTAGs(record);
-		flagIntegerCount.increment(record.getFlags());		
-		
-				
+		// only FLAGS are always summarised		
+		flagIntegerCount.increment(record.getFlags());	
+			
+		//excludes repeated reads for tags
+		if ( !record.getSupplementaryAlignmentFlag() &&	!record.isSecondaryAlignment() && !record.getReadFailsVendorQualityCheckFlag() ) {
+			tagReport.parseTAGs(record);			
+		} 
+						
 		// check if record has its fail or duplicate flag set. if so, miss out some of the summaries
 		ReadGroupSummary rgSumm = rgSummaries.computeIfAbsent(readGroup, k -> new ReadGroupSummary(k));	
 		if( rgSumm.parseRecord(record) ) {	
@@ -372,9 +375,6 @@ public class BamSummaryReport2 extends SummaryReport {
 				else if (record.getSecondOfPairFlag())  p2Lengths.increment(record.getReadBases().length);
 			} 
 		}
-		
-
-		
 	}
 		
 	private void summaryToXml( Element parent ){

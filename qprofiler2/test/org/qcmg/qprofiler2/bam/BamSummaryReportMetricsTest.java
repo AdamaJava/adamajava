@@ -59,6 +59,10 @@ public class BamSummaryReportMetricsTest {
 	@Test
 	public void tagTest() {
 		
+		//debug
+		XmlElementUtils.asXmlText(root, "/Users/christix/Documents/Eclipse/data/qprofiler/test.xml");
+
+		
 		Element bamSummaryE = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.BAM_SUMMARY).get(0);
 		
 		//check RG
@@ -71,21 +75,21 @@ public class BamSummaryReportMetricsTest {
 			
 			//bamSummary			
 			Element ele2 = getElementByFirst(bamSummaryE, "readGroup",  k -> k.getAttribute(XmlUtils.NAME).equals(rg));
-			ele2 = getElementByFirst(ele2, XmlUtils.SEQUENCE_METRICS,  k -> k.getAttribute(XmlUtils.NAME).equals("reads"));
-						
-			assertEquals( ele1.getAttribute(XmlUtils.COUNT) , ele2.getAttribute(ReadGroupSummary.READ_COUNT) );		
+			ele2 = getElementByFirst(ele2, XmlUtils.VARIABLE_GROUP ,  k -> k.getAttribute(XmlUtils.NAME).equals("countedReads"));
+			ele2 = getElementByFirst(ele2, XmlUtils.VALUE,  k -> k.getAttribute(XmlUtils.NAME).equals(ReadGroupSummary.READ_COUNT));
+			assertEquals( ele1.getAttribute(XmlUtils.COUNT) , ele2.getTextContent() );			
 			scount += Integer.parseInt(ele1.getAttribute(XmlUtils.COUNT)  );	
 		}
 		
 		assertEquals(scount+"", ele.getAttribute(ReadGroupSummary.READ_COUNT) );
 						 
-		//get tag read counts from grep command
-		int[] readCounts = new int[] {6, 6, 15, 15, 6, 6, 6 };
+		//get tag read counts from grep command		
 		int tagMetriNo = (int) XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.SEQUENCE_METRICS).stream()
 				.filter(k -> k.getAttribute(XmlUtils.NAME).startsWith("tags:")).count();
 		String[] tags = new String[] {"tags:MD:Z", "tags:AS:i","tags:CQ:Z", "tags:CS:Z", "tags:HI:i" ,"tags:NH:i" , "tags:NM:i" };	
 		assertEquals(tags.length+1, tagMetriNo);
-				
+		
+		int[] readCounts = new int[] {6, 6, 12, 12, 6, 6, 6 };		
 		for(int i = 0; i < tags.length; i ++) {
 			String tag = tags[i];
 			ele = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.SEQUENCE_METRICS).stream()

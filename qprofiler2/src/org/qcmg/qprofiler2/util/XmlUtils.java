@@ -11,7 +11,6 @@ import org.qcmg.common.util.Pair;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.util.XmlElementUtils;
-import org.w3c.dom.Comment;
 import org.w3c.dom.Element;
 
 import htsjdk.samtools.AbstractSAMHeaderRecord;
@@ -151,14 +150,14 @@ public class XmlUtils {
             createHeaderRecords(parent, cateName, entry.getKey(), entry.getKey() + " field", entry.getValue());
     }      
                        
-	/**
-	 * <sequenceMetric count="100"  rgid="id">... </category>
-	 * @param parent
-	 * @param name category name
-	 * @param id readgroup id. set to null if not exists
-	 * @return
-	 */       
-//    public static Element createMetricsNode(Element parent,  String name, Pair<?, ?> totalCounts ) {	
+	  
+    /**
+     * 
+     * @param parent node of sequenceMetrics
+     * @param name will be assigned to attribute name
+     * @param totalCounts store the counts into the pair of attribute name and value
+     * @return the created element of sequenceMetrics
+     */
     public static Element createMetricsNode(Element parent,  String name, Pair<String, Number> totalCounts ) {	
     	Element ele = XmlElementUtils.createSubElement( parent,  XmlUtils.SEQUENCE_METRICS );
     						
@@ -169,11 +168,10 @@ public class XmlUtils {
     }      
         
 	/**
-	 * <variableGroup name="name" >... </category>
-	 * @param parent
-	 * @param name category name
-	 * @param id readgroup id. set to null if not exists
-	 * @return
+	 *  
+	 * @param parent node of variableGroup
+	 * @param name will be assigned to attribute name
+	 * @return the created element of variableGroup
 	 */
     public static Element createGroupNode(Element parent, String name) {
     	Element ele = XmlElementUtils.createSubElement( parent,  XmlUtils.VARIABLE_GROUP );	
@@ -187,11 +185,10 @@ public class XmlUtils {
     }
     
 	/**
-	 * <variableGroup name="name" >... </category>
-	 * @param parent
+	 * 
+	 * @param parent node of baseCycle
 	 * @param name category name
-	 * @param id readgroup id. set to null if not exists
-	 * @return
+	 * @return the created element of baseCycle
 	 */
     public static Element createCycleNode(Element parent, String name) {
     	Element ele = XmlElementUtils.createSubElement( parent,  BASE_CYCLE );	
@@ -199,13 +196,16 @@ public class XmlUtils {
     	return ele;
     }
         
+   
     /**
-     * output <value name="name">value</value>
-     * @param parent
-     * @param name
-     * @param value
+     * 
+     *
+     * @param parent node of value
+     * @param name will be assigned to attribute name
+     * @param value will be assigned to value note text content
+     * @return
      */
-    public static <T> Element outputValueNode(Element parent, String name, Number value) {        	
+    public static Element outputValueNode(Element parent, String name, Number value) {        	
     	Element ele = XmlElementUtils.createSubElement(parent, VALUE);
     	ele.setAttribute(NAME, name);
     	String v = String.valueOf(value);
@@ -300,8 +300,8 @@ public class XmlUtils {
     
 	/**
 	 *  
-	 * @param map Map<String, AtomicLong>
-	 * @param key key string of map
+	 * @param map 
+	 * @param key string of map
 	 * @return true if it is a new key added
 	 */
 	public static boolean updateMapWithLimit(Map<String, AtomicLong> map , String key, int limitSize) {

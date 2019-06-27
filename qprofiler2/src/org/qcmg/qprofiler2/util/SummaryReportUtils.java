@@ -79,7 +79,7 @@ public class SummaryReportUtils {
 			/**
 			 * 
 			 * @param array:  read counts at each array index position
-			 * @return: the minimum, maximum, mean, mode, medium, sum of array elements ,  sum of array elements multiply it's index position;
+			 * @return the minimum, maximum, mean, mode, medium, sum of array elements ,  sum of array elements multiply it's index position;
 			 */
 			public   TallyStats(QCMGAtomicLongArray array) {
 								
