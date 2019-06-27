@@ -14,7 +14,6 @@ package org.qcmg.qprofiler2.summarise;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -113,7 +112,7 @@ public class PositionSummary {
 		
 	/**
 	 * Returns a map which holds the coverage of positions binned by millions
-	 * each element of Map is  <bin_order, reads number on that bin from specified read group> 
+	 * each element of Map is  bin_order, reads number on that bin from specified read group> 
 	 */	
 	public Map<Integer,  AtomicLong> getCoverageByRg( String rg) {
 		Map<Integer, AtomicLong> singleRgCoverage = new TreeMap<Integer, AtomicLong>();	
