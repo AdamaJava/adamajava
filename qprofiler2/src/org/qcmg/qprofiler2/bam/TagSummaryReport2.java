@@ -89,7 +89,7 @@ public class TagSummaryReport2 {
 			Element ele = XmlUtils.createMetricsNode(parent, "tags:MD:Z", 
 					new Pair<String, Number>(ReadGroupSummary.READ_COUNT, mdTagCounts.get()));
 			for(int order = 0; order < 3; order ++) { 
-				//so choose 1th position base counts as read count, since all read at least have one base. 
+				//so choose 1st cycle base counts as read count, since all read at least have one base. 
 				tagMDMismatchByCycle[order].toXml( ele, BamSummaryReport2.sourceName[order], allReadsLineLengths[order].get(1) );
 			}
 					

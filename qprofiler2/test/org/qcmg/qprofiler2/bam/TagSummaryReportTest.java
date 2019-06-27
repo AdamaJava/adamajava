@@ -3,16 +3,12 @@ package org.qcmg.qprofiler2.bam;
 import static org.junit.Assert.assertEquals;
 
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import javax.xml.parsers.ParserConfigurationException;
-
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -68,12 +64,10 @@ public class TagSummaryReportTest {
 		record.setAttribute("RG", "last");
 		report.parseTAGs(record);
 		
+		//check md counts
 		Element root = XmlElementUtils.createRootElement( XmlUtils.TAG, null );
 		report.toXml( root );		
-		checkXml( root );
-				
-		
-		//check md counts
+		checkXml( root );				
 	}	
 		
 	private List<Element> getChildNameIs(Element parent, String eleName, String nameValue){		
