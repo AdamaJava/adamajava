@@ -124,7 +124,13 @@ public class BamSummarizerMT2 implements Summarizer {
 			}
 		}
 
+		//call another thread for md5 checksum
+		ExecutorService md5Threads = Executors.newFixedThreadPool(1);
+		Runnable runnableTask = () -> { bamSummaryReport.setFileMd5();};
+		md5Threads.execute(runnableTask ) ;
+
 		// don't allow any new threads to start
+		md5Threads.shutdown();
 		producerThreads.shutdown();
 		consumerThreads.shutdown();
 		
