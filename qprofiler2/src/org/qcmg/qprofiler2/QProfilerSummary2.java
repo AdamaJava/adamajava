@@ -22,7 +22,6 @@ package org.qcmg.qprofiler2;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.qcmg.qprofiler2.report.SummaryReport;
 import org.w3c.dom.Element;
 
 public class QProfilerSummary2 {
@@ -73,7 +72,7 @@ public class QProfilerSummary2 {
 	 * Loops through all summaryReports in the reports collection and calls <code>SummaryReport.toXml</code> on them.
 	 * 
 	 * @param parent Element parent element that is passed to the subsequent <code>SummartReport.toXml</code> calls
-	 * @see  org.qcmg.qprofiler2.report.SummaryReport#toXml(Element)
+	 * @see  org.qcmg.qprofiler2.SummaryReport#toXml(Element)
 	 */
 	public void toXml( Element parent ) {
 		for (SummaryReport report : reports) {

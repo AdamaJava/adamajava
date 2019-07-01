@@ -26,7 +26,7 @@ import org.qcmg.common.date.DateUtils;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.qprofiler2.Summarizer;
-import org.qcmg.qprofiler2.report.SummaryReport;
+import org.qcmg.qprofiler2.SummaryReport;
 
 public class FastqSummarizerMT implements Summarizer {
 	

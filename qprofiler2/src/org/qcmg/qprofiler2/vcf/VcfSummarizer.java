@@ -7,7 +7,7 @@ import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.qprofiler2.Summarizer;
-import org.qcmg.qprofiler2.report.SummaryReport;
+import org.qcmg.qprofiler2.SummaryReport;
 import org.qcmg.vcf.VCFFileReader;
 
 public class VcfSummarizer implements Summarizer {

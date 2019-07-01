@@ -18,7 +18,7 @@ import org.qcmg.common.model.QCMGAtomicLongArray;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Pair;
 import org.qcmg.common.util.XmlElementUtils;
-import org.qcmg.qprofiler2.report.SummaryReport;
+import org.qcmg.qprofiler2.SummaryReport;
 import org.qcmg.qprofiler2.summarise.CycleSummary;
 import org.qcmg.qprofiler2.summarise.KmersSummary;
 import org.qcmg.qprofiler2.summarise.ReadGroupSummary;

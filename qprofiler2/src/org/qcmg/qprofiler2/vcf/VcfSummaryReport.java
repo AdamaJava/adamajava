@@ -13,7 +13,7 @@ import org.qcmg.common.util.XmlElementUtils;
 import org.qcmg.common.vcf.VcfFormatFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
-import org.qcmg.qprofiler2.report.SummaryReport;
+import org.qcmg.qprofiler2.SummaryReport;
 import org.qcmg.qprofiler2.summarise.SampleSummary;
 import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Element;

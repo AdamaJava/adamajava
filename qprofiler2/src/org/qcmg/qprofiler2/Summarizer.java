@@ -8,8 +8,6 @@
  */
 package org.qcmg.qprofiler2;
 
-import org.qcmg.qprofiler2.report.SummaryReport;
-
 public interface Summarizer {
 	public static final int FEEDBACK_LINES_COUNT = 1000000;
 
