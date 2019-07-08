@@ -34,7 +34,6 @@ import org.qcmg.qprofiler2.bam.BamSummarizerMT2;
 import org.qcmg.qprofiler2.cohort.CohortSummarizer;
 import org.qcmg.qprofiler2.fastq.FastqSummarizer;
 import org.qcmg.qprofiler2.fastq.FastqSummarizerMT;
-import org.qcmg.qprofiler2.report.SummaryReport;
 import org.qcmg.qprofiler2.vcf.VcfSummarizer;
 import org.w3c.dom.Element;
 

@@ -13,7 +13,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.qprofiler2.Summarizer;
-import org.qcmg.qprofiler2.report.SummaryReport;
+import org.qcmg.qprofiler2.SummaryReport;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;

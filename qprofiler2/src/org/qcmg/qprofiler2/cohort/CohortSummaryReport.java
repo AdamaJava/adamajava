@@ -9,7 +9,7 @@ import java.util.Optional;
 
 import org.qcmg.common.util.IndelUtils.SVTYPE;
 import org.qcmg.common.util.XmlElementUtils;
-import org.qcmg.qprofiler2.report.SummaryReport;
+import org.qcmg.qprofiler2.SummaryReport;
 import org.qcmg.qprofiler2.summarise.SampleSummary;
 import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Element;

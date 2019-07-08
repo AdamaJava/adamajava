@@ -31,7 +31,7 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qprofiler2.Summarizer;
-import org.qcmg.qprofiler2.report.SummaryReport;
+import org.qcmg.qprofiler2.SummaryReport;
 
 public class BamSummarizer2 implements Summarizer {
 	public static final ValidationStringency DEFAULT_VS = ValidationStringency.SILENT;

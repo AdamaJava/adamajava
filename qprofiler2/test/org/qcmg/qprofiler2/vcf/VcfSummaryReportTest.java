@@ -19,7 +19,7 @@ import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.vcf.VCFFileReader;
 import org.qcmg.qprofiler2.QProfiler2;
 import org.qcmg.qprofiler2.Summarizer;
-import org.qcmg.qprofiler2.report.SummaryReport;
+import org.qcmg.qprofiler2.SummaryReport;
 import org.qcmg.qprofiler2.summarise.SampleSummary;
 import org.qcmg.qprofiler2.util.XmlUtils;
 import org.qcmg.qprofiler2.vcf.VcfSummaryReport;

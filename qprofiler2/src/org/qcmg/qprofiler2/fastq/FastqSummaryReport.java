@@ -18,7 +18,7 @@ import org.qcmg.common.model.QCMGAtomicLongArray;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Pair;
 import org.qcmg.common.util.XmlElementUtils;
-import org.qcmg.qprofiler2.report.SummaryReport;
+import org.qcmg.qprofiler2.SummaryReport;
 import org.qcmg.qprofiler2.summarise.CycleSummary;
 import org.qcmg.qprofiler2.summarise.KmersSummary;
 import org.qcmg.qprofiler2.summarise.ReadGroupSummary;
@@ -68,7 +68,7 @@ public class FastqSummaryReport extends SummaryReport {
 		}
 		Pair rcPair = new Pair<String, Number>(ReadGroupSummary.READ_COUNT, counts);
 		Element ele = XmlUtils.createMetricsNode( element, XmlUtils.SEQ_BASE , rcPair); 
-		seqByCycle.toXml( ele, XmlUtils.SEQ_BASE);	
+		seqByCycle.toXml( ele, XmlUtils.SEQ_BASE,seqByCycle.getInputCounts());	
 		
 		ele = XmlUtils.createMetricsNode( element, XmlUtils.SEQ_LENGTH , rcPair); 
 		XmlUtils.outputTallyGroup( ele, XmlUtils.SEQ_LENGTH, seqByCycle.getLengthMapFromCycle(), true, true );	
@@ -91,7 +91,7 @@ public class FastqSummaryReport extends SummaryReport {
 		//QUAL
 		element = XmlElementUtils.createSubElement(parent, XmlUtils.QUAL) ;
 		ele = XmlUtils.createMetricsNode( element, XmlUtils.QUAL_BASE , null); 
-		qualByCycleInteger.toXml(element,XmlUtils.QUAL_BASE) ;
+		qualByCycleInteger.toXml(element,XmlUtils.QUAL_BASE, qualByCycleInteger.getInputCounts()) ;
 		
 		ele = XmlUtils.createMetricsNode( element, XmlUtils.QUAL_LENGTH, null) ;
 		XmlUtils.outputTallyGroup( ele,  XmlUtils.QUAL_LENGTH,  qualByCycleInteger.getLengthMapFromCycle(), true, true ) ;	

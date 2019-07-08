@@ -226,11 +226,10 @@ public class CycleSummary<T> {
 	 * Returns 0 if the cycle does not exist,  or if the cycle does not contain the specified value.
 	 * 
 	 * @param cycle Integer representing the cycle number
-	 * @param value <T> value for which we want a count, at a particular cycle
+	 * @param value for which we want a count, at a particular cycle
 	 * @return Integer relating to the count of .Defaults to zero if the cycle does not exist, 
 	 * or if the cycle does not contain the specified value <T>
-	 */
-	
+	 */	
 	public long count(Integer cycle, T value) {	
  
 		int v = (type instanceof Integer) ? (Integer) value : 
@@ -242,7 +241,7 @@ public class CycleSummary<T> {
 
 	/**
 	 * 
-	 * @param key: cycle number
+	 * @param key is the cycle number
 	 * @return a map of counts for each possible value on this cycle
 	 */
 	public ConcurrentMap<T, AtomicLong> getValue(Integer key) {
@@ -262,9 +261,8 @@ public class CycleSummary<T> {
 		return cm;
 	}	
 	/**
-	 * Returns a SortedSet relating to the cycles currently held by this summary object.
 	 * 
-	 * @return SortedSet<T> containing all of the cycles for this summary object
+	 * @return SortedSet relating to the cycles currently held by this summary object.
 	 */
 	public SortedSet<Integer> cycles() {
 		HashSet<Integer> ts = new HashSet<Integer>();		
@@ -277,12 +275,9 @@ public class CycleSummary<T> {
 	}
 	
 	/**
-	 * Returns a SortedSet of elements <T> for a particular cycle of this summary object.
-	 * <p>
-	 * Returns null if the summary does not contain the cycle
 	 * 
 	 * @param cycle Integer cycle for which summary details should be returned
-	 * @return SortedSet<T>  relating to the values for a particular cycle for this summary object
+	 * @return Returns a SortedSet of elements for a particular cycle of this summary object. Returns null if the summary does not contain the cycle
 	 */
 	public Set<T> getPossibleValues() {	
 		
@@ -322,13 +317,14 @@ public class CycleSummary<T> {
 	 * @param elementName String representing the name to be used when creating the element
 	 */
 		
-	public void toXml( Element metricEle,  String groupName ){
+	public void toXml( Element metricEle,  String groupName, long readCount ){
 		//do nothing if no base detected
 		Set<T> possibles = getPossibleValues();
 		if( possibles == null || possibles.size() <= 0 ) return; 
 		//String name = metricType == null ? metricName : metricName+"_"+ metricType;		
 		 	
-		Element ele = XmlUtils.createGroupNode( metricEle, groupName);	//<category>    
+		Element ele = XmlUtils.createGroupNode( metricEle, groupName);	//<category>   
+		ele.setAttribute(ReadGroupSummary.READ_COUNT, readCount+"");
 		for (Integer cycle : cycles()){
 			Map<T, AtomicLong> tallys = new LinkedHashMap<>();
 			
