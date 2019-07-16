@@ -80,7 +80,7 @@ public abstract class SummaryReport {
 		element.setAttribute("finishTime", this.finishTime );
 		
 		if(this.fileMd5 == null) { setFileMd5(); }
-		element.setAttribute("file_checksum",this.fileMd5);
+		element.setAttribute("md5sum",this.fileMd5);
 				
 		//don't list records_parsed on xml for BAM type
 		if(!reportType.equals(ProfileType.BAM)) {
