@@ -283,7 +283,8 @@ public class QProfiler2 {
 			noOfProducerThreads = Math.max(1, options.getNoOfProducerThreads());
 			if (noOfConsumerThreads > 0) {
 				logger.tool("Running in multi-threaded mode (BAM files only). No of available processors: " + NO_OF_PROCESORS + 
-						", no of requested consumer threads: " + noOfConsumerThreads + ", producer threads: " + noOfProducerThreads);
+						", no of requested consumer threads: " + noOfConsumerThreads + ", producer threads: " + noOfProducerThreads +
+						", no of md5 checksum thread: 1");
 			} else {
 				logger.tool("Running in single-threaded mode");
 			}
