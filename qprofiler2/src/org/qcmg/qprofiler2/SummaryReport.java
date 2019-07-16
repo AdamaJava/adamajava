@@ -63,9 +63,9 @@ public abstract class SummaryReport {
 			return; 
 		}
 		
-		logger.info("retriving checksum for input file...");
+		logger.info("waiting for md5 checksum for input file to finish (max wait will be 20 hours)");
 		this.fileMd5 =  FileUtils.getFileCheckSum(this.fileName);
-		logger.info("checksum is done!");		
+		logger.info("md5 checksum is done!");		
 	}	
 	
 	protected Element init(Element parent, ProfileType reportType, Long noOfDuplicates,  Long maxRecords) {
