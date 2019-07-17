@@ -44,7 +44,7 @@
 		<xs:attribute type="nonEmptyString" name="records_parsed" use="optional"/>
 			
 		<!-- vcfReport only but compulsary ??? -->
-		<xs:attribute type="nonEmptyString" name="file_checksum" use="optional"/>   
+		<xs:attribute type="nonEmptyString" name="md5sum" use="optional"/>   
 	</xs:attributeGroup>
 
  	<!-- elements -->
