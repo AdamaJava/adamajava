@@ -180,37 +180,39 @@ public class IndelUtils {
 	}
 	
 	/**
+	 * Takes a string representation of a contig and updates it if necessary (ie. if ref is equal to X,Y,M,MT, or an integer less than 23 and greater than 0).
+	 *  
+	 *  It used to be the case that is the supplied ref was equal to "chrM", the returned value would be "chrMT". 
+	 *  This was useful when different versions of the human genome (ie. GRCh37/b37 and Hg19) had different values for the mitochondrial genome.
+	 *  
+	 *  With the adoption of GRCh38, which uses "chrM", this feature was removed
 	 * 
 	 * @param ref
 	 * @return
 	 */
 	public static String getFullChromosome(String ref) {
-		if(ref == null ) return null; //stop exception
+		if (ref == null ) return null; //stop exception
 		
-		/*
-		 * Deal with MT special case first
-		 */
-        if (ref.equals("chrM") || ref.equals("M") || ref.equals("MT")) {
-            return "chrMT";
-        }
-        
         if (ref.startsWith(Constants.CHR)) {
-        		return ref;
-        	}
+        	return ref;
+        }
 		
-		if (ref.equals("X") || ref.equals("Y")) {
+		if (ref.equals("X") || ref.equals("Y") || ref.equals("M") || ref.equals("MT")) {
 			return "chr" + ref;
 		}
 		
 		/*
 		 * If ref is an integer less than 23, slap "chr" in front of it
 		 */
-		try {
-			if (Integer.parseInt(ref) < 23) {
-				return Constants.CHR + ref;
+		if (Character.isDigit(ref.charAt(0))) {
+			try {
+				int refInt = Integer.parseInt(ref);
+				if (refInt < 23 && refInt > 0) {
+					return Constants.CHR + ref;
+				}
+			} catch (NumberFormatException nfe) {
+				// don't do anything here - will return the original reference
 			}
-		} catch (NumberFormatException nfe) {
-			// don't do anything here - will return the original reference
 		}
 		
 		return ref;

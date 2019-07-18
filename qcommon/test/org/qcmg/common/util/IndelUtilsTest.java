@@ -198,7 +198,7 @@ public class IndelUtilsTest {
 		
 		assertEquals("chr10", IndelUtils.getFullChromosome("10"));
 		assertEquals("chr10", IndelUtils.getFullChromosome("chr10"));
-		assertEquals("chrMT", IndelUtils.getFullChromosome("M"));
+		assertEquals("chrM", IndelUtils.getFullChromosome("M"));
 		assertEquals("chrMT", IndelUtils.getFullChromosome("MT"));
 		assertEquals("GL12345", IndelUtils.getFullChromosome("GL12345"));
 	}
@@ -214,10 +214,10 @@ public class IndelUtilsTest {
 		assertEquals("chr1", IndelUtils.getFullChromosome("1"));
 		assertEquals("chrY", IndelUtils.getFullChromosome("Y"));
 		assertEquals("chrX", IndelUtils.getFullChromosome("X"));
-		assertEquals("chrMT", IndelUtils.getFullChromosome("M"));
+		assertEquals("chrM", IndelUtils.getFullChromosome("M"));
 		assertEquals("chrMT", IndelUtils.getFullChromosome("MT"));
 		assertEquals("chrMT", IndelUtils.getFullChromosome("chrMT"));
-		assertEquals("chrMT", IndelUtils.getFullChromosome("chrM"));
+		assertEquals("chrM", IndelUtils.getFullChromosome("chrM"));
 		assertEquals("MTT", IndelUtils.getFullChromosome("MTT"));
 		assertEquals("GL123", IndelUtils.getFullChromosome("GL123"));
 		assertEquals("chr10", IndelUtils.getFullChromosome("chr10"));
