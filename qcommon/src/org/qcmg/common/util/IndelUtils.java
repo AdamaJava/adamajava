@@ -193,11 +193,16 @@ public class IndelUtils {
 	public static String getFullChromosome(String ref) {
 		if (ref == null ) return null; //stop exception
 		
+		//convert chrMT first 
+		if (ref.equals("chrM") || ref.equals("M") || ref.equals("MT")) {	
+           		 return "chrMT";	
+       		 }
+		
         if (ref.startsWith(Constants.CHR)) {
         	return ref;
         }
 		
-		if (ref.equals("X") || ref.equals("Y") || ref.equals("M") || ref.equals("MT")) {
+		if (ref.equals("X") || ref.equals("Y") ) {
 			return "chr" + ref;
 		}
 		
