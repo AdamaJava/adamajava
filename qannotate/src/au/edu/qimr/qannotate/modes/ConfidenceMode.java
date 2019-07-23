@@ -40,10 +40,6 @@ import au.edu.qimr.qannotate.Options;
 public class ConfidenceMode extends AbstractMode{
 	private final QLogger logger = QLoggerFactory.getLogger(ConfidenceMode.class);
 	
-	
-//	public static final String[] CLASS_B_FILTERS= new String[] {PASS, MUTATION_IN_UNFILTERED_NORMAL, LESS_THAN_12_READS_NORMAL, LESS_THAN_3_READS_NORMAL};
-//	public static final String[] CONTROL_FILTERS= new String[] {MUTATION_IN_UNFILTERED_NORMAL, MUTATION_IN_NORMAL, LESS_THAN_12_READS_NORMAL, LESS_THAN_8_READS_NORMAL, LESS_THAN_3_READS_NORMAL};
-	
 	public static final int HIGH_CONF_NOVEL_STARTS_PASSING_SCORE = 4;
 	public static final int LOW_CONF_NOVEL_STARTS_PASSING_SCORE = 4;
 	
@@ -139,8 +135,22 @@ public class ConfidenceMode extends AbstractMode{
 		controlCols = meta.getAllControlPositions();
 
 		addAnnotation();
-		reheader(options.getCommandLine(),options.getInputFileName())	;	
-		writeVCF(new File(options.getOutputFileName()) );	
+		addVcfHeaderFilters();
+		reheader(options.getCommandLine(),options.getInputFileName());	
+		writeVCF(new File(options.getOutputFileName()) );
+	}
+	
+	public void addVcfHeaderFilters() {
+		header.addFilter(VcfHeaderUtils.FILTER_COVERAGE, VcfHeaderUtils.FILTER_COVERAGE_DESC
+				+ ", test coverage minimum value: " + testCovCutoff + ", control coverage minimum value (somatic/germline): "
+				+ controlCovCutoffForSomaticCalls + "/" + controlCovCutoff);
+		header.addFilter(VcfHeaderUtils.FILTER_MUTATION_IN_NORMAL,"Mutation also found in pileup of normal (>= " + minPercentage + "% of reads)");
+		header.addFilter(VcfHeaderUtils.FILTER_MUTATION_IN_UNFILTERED_NORMAL,"Mutation also found in pileup of unfiltered normal (>= " + miunCutoff + " reads)");  
+		header.addFilter(VcfHeaderUtils.FILTER_NOVEL_STARTS,"Less than " + nnsCount + " novel starts not considering read pair");
+		header.addFilter(VcfHeaderUtils.FILTER_MUTANT_READS,"Less than " + (mrPercentage > 0.0f ? mrPercentage +"%" : mrCount) + " mutant reads");
+		header.addFilter(VcfHeaderUtils.FILTER_STRAND_BIAS_ALT,"Alternate allele on only one strand (or percentage alternate allele on other strand is less than " + sBiasAltPercentage + "%)"); 
+		header.addFilter(VcfHeaderUtils.FILTER_STRAND_BIAS_COV,"Sequence coverage on only one strand (or percentage coverage on other strand is less than " + sBiasCovPercentage + "%)");
+		header.addFilter(VcfHeaderUtils.FILTER_END_OF_READ, VcfHeaderUtils.FILTER_END_OF_READ_DESC);
 	}
 
 	public void setMRPercentage(double perc) {
@@ -213,111 +223,98 @@ public class ConfidenceMode extends AbstractMode{
 						continue;
 					}
 					
+					boolean isControl =  controlCols != null && controlCols.contains((short) (i+1));
+					/*
+					 * add all failed filters to FT field
+					 */
+					StringBuilder fSb = new StringBuilder();
+					
 					
 					/*
-					 * check filter field - only proceed if its null, empty or '.'
+					 * coverage next - needs to be >= the min coverage value
 					 */
-//					if (StringUtils.isNullOrEmptyOrMissingData(filterArr[i])) {
+					String covS = covArr[i];
+					boolean isGATKCall = null != gqArr && ! StringUtils.isNullOrEmptyOrMissingData(gqArr[i]);
+					int cov = StringUtils.isNullOrEmptyOrMissingData(covS) ? 0 :Integer.parseInt(covS);
+					
+					if (cov < minCov || cov < (isControl ? controlCovCutoff : testCovCutoff)) {
+						StringUtils.updateStringBuilder(fSb, VcfHeaderUtils.FILTER_COVERAGE, Constants.SEMI_COLON);
+					}
+					
+					Map<String, int[]> alleleDist = (null != oabsArr && oabsArr.length >= i) ? VcfUtils.getAllelicCoverageWithStrand(oabsArr[i]) : Collections.emptyMap();
+					/*
+					 * MIN next - only do this for control when we have a somatic call
+					 * need OABS field to be able to do this.
+					 */
+					if (isControl && isSomatic && ! isGATKCall) {
 						
-						boolean isControl =  controlCols != null && controlCols.contains((short) (i+1));
+						checkMIN(alts, cov, alleleDist, fSb, minCutoff, (float) minPercentage);
+						
 						/*
-						 * add all failed filters to FT field
+						 * look for MIUN, but only if we don't already have MIN
 						 */
-						StringBuilder fSb = new StringBuilder();
-						
-						
-						/*
-						 * coverage next - needs to be >= the min coverage value
-						 */
-						String covS = covArr[i];
-						boolean isGATKCall = null != gqArr && ! StringUtils.isNullOrEmptyOrMissingData(gqArr[i]);
-						int cov = StringUtils.isNullOrEmptyOrMissingData(covS) ? 0 :Integer.parseInt(covS);
-						
-						if (cov < minCov || cov < (isControl ? controlCovCutoff : testCovCutoff)) {
+						if ( ! fSb.toString().contains(VcfHeaderUtils.FILTER_MUTATION_IN_NORMAL)) {
+							if (null != ffArr && ffArr.length > i) {
+								String failedFilter = ffArr[i];
+								checkMIUN(alts, failedFilter, fSb, miunCutoff);
+							}
+						}
+						if ( ! fSb.toString().contains(VcfHeaderUtils.FILTER_COVERAGE) && cov < controlCovCutoffForSomaticCalls) {
 							StringUtils.updateStringBuilder(fSb, VcfHeaderUtils.FILTER_COVERAGE, Constants.SEMI_COLON);
 						}
+					}
 						
-						Map<String, int[]> alleleDist = (null != oabsArr && oabsArr.length >= i) ? VcfUtils.getAllelicCoverageWithStrand(oabsArr[i]) : Collections.emptyMap();
-						/*
-						 * MIN next - only do this for control when we have a somatic call
-						 * need OABS field to be able to do this.
-						 */
-						if (isControl && isSomatic && ! isGATKCall) {
+					/*
+					 * SBIASALT and SBIASCOV - do for all samples
+					 */
+					String gt = gtArray[i];
+					if ( ! StringUtils.isNullOrEmptyOrMissingData(gt)) {
+						if ( ! "0/0".equals(gt)) {
+							int index = gt.indexOf(Constants.SLASH);
+							int []  gts = new int[] {Integer.parseInt(gt.substring(0,index)), Integer.parseInt(gt.substring(index + 1))};
 							
-							checkMIN(alts, cov, alleleDist, fSb, minCutoff, (float) minPercentage);
+							if ( ! alleleDist.isEmpty() && ! isGATKCall) {
+								checkStrandBias(alts, fSb, alleleDist, gts, sBiasCovPercentage, sBiasAltPercentage);
+							}
 							
 							/*
-							 * look for MIUN, but only if we don't already have MIN
+							 * HOM
 							 */
-							if ( ! fSb.toString().contains(VcfHeaderUtils.FILTER_MUTATION_IN_NORMAL)) {
-								if (null != ffArr && ffArr.length > i) {
-									String failedFilter = ffArr[i];
-									checkMIUN(alts, failedFilter, fSb, miunCutoff);
+							checkHOM(fSb, lhomo, IndelConfidenceMode.DEFAULT_HOMN);
+							
+							/*
+							 * check mutant read count and novel starts
+							 */
+							if ( ! isGATKCall) {
+								checkNNS(nnsArr[i], fSb, nnsCount);
+							}
+							
+							if (applyMutantReadFilter(gts, adArr[i], percentageMode ? (int)(mrPercentage * cov) : mrCount)) {
+								StringUtils.updateStringBuilder(fSb, VcfHeaderUtils.FORMAT_MUTANT_READS, Constants.SEMI_COLON);
+							}
+							
+							/*
+							 * end of read check
+							 */
+							if ( ! isGATKCall && null != eorArr) {
+								int eor = endsOfReads(alts, gt, alleleDist, eorArr[i]);
+								if (eor > 0) {
+									StringUtils.updateStringBuilder(fSb, "5BP=" + eor, Constants.SEMI_COLON);
 								}
 							}
-							if ( ! fSb.toString().contains(VcfHeaderUtils.FILTER_COVERAGE) && cov < controlCovCutoffForSomaticCalls) {
-								StringUtils.updateStringBuilder(fSb, VcfHeaderUtils.FILTER_COVERAGE, Constants.SEMI_COLON);
-							}
 						}
+					}
 						
-						/*
-						 * SBIASALT and SBIASCOV - do for all samples
-						 */
-						String gt = gtArray[i];
-						if ( ! StringUtils.isNullOrEmptyOrMissingData(gt)) {
-							if ( ! "0/0".equals(gt)) {
-								int index = gt.indexOf(Constants.SLASH);
-								int []  gts = new int[] {Integer.parseInt(gt.substring(0,index)), Integer.parseInt(gt.substring(index + 1))};
-								
-								if ( ! alleleDist.isEmpty() && ! isGATKCall) {
-									checkStrandBias(alts, fSb, alleleDist, gts, sBiasCovPercentage, sBiasAltPercentage);
-								}
-								
-								/*
-								 * HOM
-								 */
-								checkHOM(fSb, lhomo, IndelConfidenceMode.DEFAULT_HOMN);
-								
-								/*
-								 * check AD and NNS
-								 */
-								if ( ! isGATKCall) {
-									checkNNS(nnsArr[i], fSb, nnsCount);
-								}
-								
-								
-								if (applyMutantReadFilter(gts, adArr[i], percentageMode ? (int)(mrPercentage * cov) : mrCount)) {
-									StringUtils.updateStringBuilder(fSb, VcfHeaderUtils.FORMAT_MUTANT_READS, Constants.SEMI_COLON);
-								}
-								
-//								int [] altADs = getAltCoveragesFromADField(adArr[i]);
-//								if ( ! (percentageMode ?  allValuesAboveThreshold(altADs, cov, mrPercentage) : allValuesAboveThreshold(altADs, mrCount))) {
-//									StringUtils.updateStringBuilder(fSb, "MR", Constants.SEMI_COLON);
-//								}
-								
-								/*
-								 * end of read check
-								 */
-								if ( ! isGATKCall && null != eorArr) {
-									int eor = endsOfReads(alts, gt, alleleDist, eorArr[i]);
-									if (eor > 0) {
-										StringUtils.updateStringBuilder(fSb, "5BP=" + eor, Constants.SEMI_COLON);
-									}
-								}
-							}
+					filterArr[i] = fSb.length() == 0 ? VcfHeaderUtils.FILTER_PASS : fSb.toString();
+					/*
+					 * deal with homozygous loss instances where we potentially have no coverage in test - still mark as a pass
+					 */
+					if (null != ccmArr) {
+						int ccm = Integer.parseInt(ccmArr[i]);
+						if (ccm == 11 || ccm == 21 || ccm == 31 || ccm == 41) {
+							filterArr[i] = VcfHeaderUtils.FILTER_PASS;
 						}
-						
-						filterArr[i] = fSb.length() == 0 ? VcfHeaderUtils.FILTER_PASS : fSb.toString();
-						/*
-						 * deal with homozygous loss instances where we potentially have no coverage in test - still mark as a pass
-						 */
-						if (null != ccmArr) {
-							int ccm = Integer.parseInt(ccmArr[i]);
-							if (ccm == 11 || ccm == 21 || ccm == 31 || ccm == 41) {
-								filterArr[i] = VcfHeaderUtils.FILTER_PASS;
-							}
-						}
-//					}
+					}
 				}
 				
 				/*
@@ -380,7 +377,7 @@ public class ConfidenceMode extends AbstractMode{
 		if (null != alts && null != alleleDist) {
 			for (String alt : alts) {
 				int altCov = Arrays.stream(alleleDist.getOrDefault(alt, new int[]{0,0})).sum();
-				boolean min = VcfUtils.mutationInNorma(altCov, coverage, minPercentage, minCutoff);
+				boolean min = VcfUtils.mutationInNormal(altCov, coverage, minPercentage, minCutoff);
 				if (min) {
 					StringUtils.updateStringBuilder(sb, VcfHeaderUtils.FILTER_MUTATION_IN_NORMAL, Constants.SEMI_COLON);
 					break;
