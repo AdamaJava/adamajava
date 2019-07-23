@@ -42,12 +42,9 @@ public class CCMMode extends AbstractMode{
 	
 	public CCMMode(Options options) throws IOException {	
 		logger.tool("input: " + options.getInputFileName());
-        logger.tool("output for annotated vcf records: " + options.getOutputFileName());
-        logger.tool("logger file " + options.getLogFileName());
-        logger.tool("logger level " + (options.getLogLevel() == null ? QLoggerFactory.DEFAULT_LEVEL.getName() :  options.getLogLevel()));
-		
+        logger.tool("output for annotated vcf records: " + options.getOutputFileName());		
 
-        loadVcfRecordsFromFile(new File( options.getInputFileName()));
+        loadVcfRecordsFromFile(new File( options.getInputFileName()), options.isStrict2chrName());
 		
 		/*
 		 * don't have access to header until after records have been loaded...

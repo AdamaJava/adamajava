@@ -19,9 +19,8 @@ import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.meta.QExec;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrPositionComparator;
-import org.qcmg.common.model.ChrRangePosition;
+import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.Constants;
-import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
@@ -44,23 +43,19 @@ abstract class AbstractMode {
 	 * @param f: read variants from input into RAM hash map
 	 * @throws IOException
 	 */
-	protected void loadVcfRecordsFromFile(File f) throws IOException {
+	protected void loadVcfRecordsFromFile(File f, boolean isStrictName) throws IOException {
 		
         //read record into RAM, meanwhile wipe off the ID field value;
         try (VCFFileReader reader = new VCFFileReader(f)) {
         	header = reader.getHeader();
         	//no chr in front of position
 			for (final VcfRecord vcf : reader) {
-				String chr = IndelUtils.getFullChromosome( vcf.getChromosome() );
-				ChrPosition pos = vcf.getChrPosition();
-				if ( ! pos.getChromosome().equals(chr)) {
-					pos = new ChrRangePosition(chr, pos.getStartPosition(), pos.getEndPosition());
-				}
+				ChrPosition pos = ChrPositionUtils.getNewchrNameIfStrict(vcf.getChrPosition(), isStrictName) ;				
+				//used converted  chr name as key but vcf is kept as original 
 				positionRecordMap.computeIfAbsent(pos, function -> new ArrayList<VcfRecord>(2)).add(vcf);
 			}
 		}
-        logger.info("loaded " + positionRecordMap.size() + " vcf entries from " + f.getAbsolutePath());
-        
+        logger.info("loaded " + positionRecordMap.size() + " vcf entries from " + f.getAbsolutePath());        
 	}
 
 	abstract void addAnnotation(String dbfile) throws Exception;

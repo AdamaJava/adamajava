@@ -21,6 +21,7 @@ import org.qcmg.common.model.ChrPositionComparator;
 import org.qcmg.common.vcf.VcfFormatFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
+import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.SAMOrBAMWriterFactory;
@@ -38,27 +39,23 @@ public class OverlapMode extends AbstractMode{
 
 
 	private final static int threadNo = 8; 
-	
-	private final static QLogger logger = QLoggerFactory.getLogger(OverlapMode.class);
-//	private QueryExecutor query =  new QueryExecutor( "and (flag_ReadUnmapped == false,flag_NotprimaryAlignment == false,"
-//			+ " flag_ReadFailsVendorQuality == false, flag_SupplementaryRead == false, Flag_DuplicateRead == false, CIGAR_M > 34, MAPQ >10, MD_mismatch <= 3 )");
-
-	
+	private final boolean isStrict2chrName;
+	private final static QLogger logger = QLoggerFactory.getLogger(OverlapMode.class);	
 	private final QueryExecutor query =  new QueryExecutor( "and (Flag_DuplicateRead == false, CIGAR_M > 34, MAPQ >10, MD_mismatch <= 3 )");
 	
 	public OverlapMode(Options options) throws Exception{	
-		logger.tool(	"input: " + options.getInputFileName()	);
-        logger.tool(	"bam file: " + Arrays.toString( options.getDatabaseFiles()) );
-        logger.tool(	"output for annotated vcf records: " + options.getOutputFileName()	);
-        logger.tool(	"logger file " + options.getLogFileName()	);
-        logger.tool(	"logger level " + (options.getLogLevel() == null ? QLoggerFactory.DEFAULT_LEVEL.getName() :  options.getLogLevel())	);
+		this.isStrict2chrName = options.isStrict2chrName();
+		
+		logger.tool( "input: " + options.getInputFileName()	);
+        logger.tool( "bam file: " + Arrays.toString( options.getDatabaseFiles()) );
+        logger.tool( "output for annotated vcf records: " + options.getOutputFileName()	);
               
         //read vcf records to Map<ChrPosition,List<VcfRecord>> positionRecordMap
-        loadVcfRecordsFromFile(new File( options.getInputFileName())   );
+        loadVcfRecordsFromFile( new File( options.getInputFileName()),  isStrict2chrName  );
               
         Map<VcfRecord, String[]> annotationMap = annotation( options.getDatabaseFiles() );        
 	    String[] acOverlap;//options.getDatabaseFiles().length
-	    for(List<VcfRecord> vcfs: positionRecordMap.values()) 
+	    for(List<VcfRecord> vcfs: positionRecordMap.values()) { 
 	    	for(VcfRecord vcf :  vcfs){ 
 	    		acOverlap = annotationMap.get(vcf);
 	    		if(acOverlap == null) continue;        		
@@ -73,7 +70,8 @@ public class OverlapMode extends AbstractMode{
 				}
 				vcf.setFormatFields(  field ); 
 			}
-        	                 
+	    }
+	    
 		reheader(options.getCommandLine(),options.getInputFileName());
 		header.addFormat(VcfHeaderUtils.FORMAT_ACLAP, ".", "String", VcfHeaderUtils.FORMAT_ACLAP_DESC);
 		writeVCF( new File(options.getOutputFileName()));	        
@@ -102,10 +100,12 @@ public class OverlapMode extends AbstractMode{
         ExecutorService pileupThreads = Executors.newFixedThreadPool( threadNo );        
      	//each time only throw threadNo thread, the loop finish until the last threadNo     
                   
-	   for (SAMSequenceRecord contig : contigs ) 
-		   for(int i = 0 ; i< bamfiles.length; i ++ )      		   
-			pileupThreads.execute(new ContigPileup(contig, getVcfList(contig), new File(bamfiles[i]), query, queue, i+1, Thread.currentThread(), pileupLatch ));    		    	 
-    	pileupThreads.shutdown();
+	   for (SAMSequenceRecord contig : contigs ) { 
+		   for(int i = 0 ; i< bamfiles.length; i ++ ) {      		   
+			   pileupThreads.execute(new ContigPileup(contig, getVcfList(contig), new File(bamfiles[i]), query, queue, i+1, Thread.currentThread(), pileupLatch ));    
+		   }
+	   }
+	   pileupThreads.shutdown();
     	
 		// wait for threads to complete
 		try {
@@ -121,18 +121,7 @@ public class OverlapMode extends AbstractMode{
 		Map<VcfRecord, String[]> pileuped = new HashMap<>();
 		for(VariantPileup pileup : queue){ 
 			String[] anno = pileuped.computeIfAbsent( pileup.getVcf(), k-> new String[bamfiles.length] );
-			anno[pileup.getSampleColumnNo()-1] = pileup.getAnnotation();	
-			
-//			//debug
-//			if(pileup.getVcf().getPosition() == 4511341){			
-//				try (SamReader Breader =  SAMFileReaderFactory.createSAMFileReader(new File(bamfiles[0]));){
-//					SAMOrBAMWriterFactory fact = new SAMOrBAMWriterFactory(Breader.getFileHeader(), false, new File("output.33.bam"));				 
-//					for(SAMRecord re: pileup.getReads33())
-//						fact.getWriter().addAlignment(re);
-//					fact.closeWriter();					 
-//				}
-//			}
-			
+			anno[pileup.getSampleColumnNo()-1] = pileup.getAnnotation();			
 		}
 				
 		return pileuped;		
@@ -151,7 +140,8 @@ public class OverlapMode extends AbstractMode{
 		List<VcfRecord> list = new ArrayList<> ();	
 		for(ChrPosition pos : positionRecordMap.keySet()){
 			//get variants from same contig
-			if(contig != null && !pos.getChromosome().equals(contig.getSequenceName())  )
+			String chr = isStrict2chrName? contig.getSequenceName(): ChrPositionUtils.ChrNameConveter(contig.getSequenceName());
+			if(contig != null && !pos.getChromosome().equals( chr ) )
 				continue; 
 			list.addAll(positionRecordMap.get(pos));
 		}

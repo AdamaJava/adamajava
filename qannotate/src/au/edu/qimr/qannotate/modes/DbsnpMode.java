@@ -18,7 +18,6 @@ import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.Constants;
-import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
@@ -30,31 +29,29 @@ import au.edu.qimr.qannotate.Options;
 
 public class DbsnpMode extends AbstractMode{
 	private final static QLogger logger = QLoggerFactory.getLogger(DbsnpMode.class);
+	private final boolean isStrict2chrName;
 	
 	//for unit Test
-	DbsnpMode(){}
+	DbsnpMode(){ this.isStrict2chrName = false; }
 	
-	
-	public DbsnpMode(Options options) throws Exception{	
+	public DbsnpMode(Options options) throws Exception{
+		this.isStrict2chrName = options.isStrict2chrName();
 		logger.tool("input: " + options.getInputFileName());
         logger.tool("dbSNP database: " + options.getDatabaseFileName() );
         logger.tool("output for annotated vcf records: " + options.getOutputFileName());
-        logger.tool("logger file " + options.getLogFileName());
-        logger.tool("logger level " + (options.getLogLevel() == null ? QLoggerFactory.DEFAULT_LEVEL.getName() :  options.getLogLevel()));
+        logger.tool("accept ambiguous chromosome name, eg. treat M and chrMT as same chromosome name: " + (!isStrict2chrName));
 		
-		loadVcfRecordsFromFile(new File( options.getInputFileName())   );
+		loadVcfRecordsFromFile( new File( options.getInputFileName()), isStrict2chrName);
 		
-		removeExistingDbSnpIds();
-		
- 		addAnnotation(options.getDatabaseFileName() );
-		
-		reheader(options.getCommandLine(),options.getInputFileName())	;
-		writeVCF( new File(options.getOutputFileName()));	
+		removeExistingDbSnpIds();		
+ 		addAnnotation( options.getDatabaseFileName() );		
+		reheader(options.getCommandLine(),options.getInputFileName());
+		writeVCF( new File(options.getOutputFileName()));
 	}
 	
 	private void removeExistingDbSnpIds() {
 		//init remove all exsiting dbsnpid
-		for (List<VcfRecord> vcfs : positionRecordMap.values()) { 
+		for (List<VcfRecord> vcfs : positionRecordMap.values()){
 			for (VcfRecord vcf : vcfs ) {
 				vcf.setId(".");
 				vcf.getInfoRecord().removeField(VcfHeaderUtils.INFO_DB);
@@ -81,14 +78,11 @@ public class DbsnpMode extends AbstractMode{
 				header.addOrReplace( reader.getHeader().getInfoRecord(VcfHeaderUtils.INFO_VLD));
 		 
 			int dbSnpNo = 0;
-			for (final VcfRecord dbSNPVcf : reader) {
-				 
-				//each dbSNP check twice, since indel alleles followed by one reference base, eg. chr1 100 . TT T ...
-				ChrPosition dbSnpCP = dbSNPVcf.getChrPosition();
-				final String chr = IndelUtils.getFullChromosome(dbSNPVcf.getChromosome());
-				if ( ! chr.equals(dbSnpCP.getChromosome())) {
-					dbSnpCP = ChrPositionUtils.cloneWithNewChromosomeName(dbSnpCP, chr);
-				}
+			//each dbSNP check twice, since indel alleles followed by one reference base, eg. chr1 100 . TT T ...			
+			for (final VcfRecord dbSNPVcf : reader) {				
+				//conver chr name if ambiguous mode, otherwise use original one
+				ChrPosition dbSnpCP = ChrPositionUtils.getNewchrNameIfStrict(dbSNPVcf.getChrPosition(), isStrict2chrName) ;
+	
 				List<VcfRecord> inputVcfs = positionRecordMap.get(dbSnpCP);
 				if (null != inputVcfs && inputVcfs.size() != 0){
 					for(VcfRecord re: inputVcfs) {
@@ -109,7 +103,7 @@ public class DbsnpMode extends AbstractMode{
 					int start = Integer.parseInt(rspos);
 					if(start == dbSnpCP.getStartPosition() || start > dbSnpCP.getEndPosition()) continue; 
 					
-					dbSnpCP = new ChrRangePosition(chr, start, dbSnpCP.getEndPosition() );	
+					dbSnpCP = new ChrRangePosition(dbSnpCP.getChromosome(), start, dbSnpCP.getEndPosition() );	
 					inputVcfs = positionRecordMap.get(dbSnpCP);
 					if (null != inputVcfs && inputVcfs.size() != 0) {
 						for(VcfRecord re: inputVcfs) {

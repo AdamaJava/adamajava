@@ -22,6 +22,7 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.TabTokenizer;
@@ -34,20 +35,21 @@ import au.edu.qimr.qannotate.Options;
 public class GermlineMode extends AbstractMode{
 	
 	private static final QLogger logger = QLoggerFactory.getLogger(GermlineMode.class);
+	private final boolean isStrict2chrName;
 	
 	//for unit Test only
-	GermlineMode(){}
+	GermlineMode(){this.isStrict2chrName = true;}
 
  	public GermlineMode(Options options) throws Exception{
+ 		this.isStrict2chrName = options.isStrict2chrName();
 		
-		//this.logger = logger;		
 		logger.tool("input: " + options.getInputFileName());
         logger.tool("germline database: " + options.getDatabaseFileName() );
-        logger.tool("output annotated records: " + options.getOutputFileName());
-        logger.tool("logger file " + options.getLogFileName());
-        logger.tool("logger level " + (options.getLogLevel() == null ? QLoggerFactory.DEFAULT_LEVEL.getName() :  options.getLogLevel()));
- 		
-		loadVcfRecordsFromFile(new File( options.getInputFileName())   );
+        logger.tool("output annotated records to : " + options.getOutputFileName());
+        logger.tool("accept ambiguous chromosome name, eg. treat M and chrMT as same chromosome name: " + (!isStrict2chrName));
+        
+        //here we only process snp, ref length == 1. so the map stores chrPointPosition
+		loadVcfRecordsFromFile(new File( options.getInputFileName()) , isStrict2chrName  );
 		addAnnotation(options.getDatabaseFileName() );
 		header.addInfo(VcfHeaderUtils.INFO_GERMLINE, ".", "String",VcfHeaderUtils.INFO_GERMLINE_DESC);
 		reheader(options.getCommandLine(),options.getInputFileName())	;	
@@ -100,6 +102,7 @@ public class GermlineMode extends AbstractMode{
 	 			if (null != usParams && usParams.length > 3) {
 	 				// contig is first followed by position
 					ChrPosition cp = new ChrPointPosition(usParams[0], Integer.parseInt(usParams[1]));
+					cp = ChrPositionUtils.getNewchrNameIfStrict( cp, isStrict2chrName );					
 					List<VcfRecord> inputVcfs = positionRecordMap.get(cp);
 					if (null == inputVcfs || inputVcfs.size() == 0) {
 						continue; 

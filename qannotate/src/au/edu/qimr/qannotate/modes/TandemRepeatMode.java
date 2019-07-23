@@ -21,6 +21,7 @@ import org.qcmg.vcf.VCFFileWriter;
 
 import au.edu.qimr.qannotate.Options;
 
+//???? next day
 public class TandemRepeatMode  extends AbstractMode{
 	private static final int BLOCK_INDEX_GAP = 100; //insert index for big block
 	private static final int MaxErrLine = 100; 
@@ -30,6 +31,7 @@ public class TandemRepeatMode  extends AbstractMode{
 	private final String output;
 	private final String commandLine;
 	private final int buffer;
+	private final boolean isStrict2chrName;
 	
 	//for unit test only
 	@Deprecated
@@ -38,6 +40,7 @@ public class TandemRepeatMode  extends AbstractMode{
 		this.output = output;
 		this.commandLine = null;
 		this.buffer = buffer;
+		this.isStrict2chrName = true;
 	}	
 	
 	public TandemRepeatMode( Options options) throws IOException{	
@@ -45,25 +48,25 @@ public class TandemRepeatMode  extends AbstractMode{
 		output = options.getOutputFileName();
 		commandLine = options.getCommandLine();
 		buffer = options.getBufferSize();
+		this.isStrict2chrName = options.isStrict2chrName();
 		
 		logger.tool("input: " + options.getInputFileName());
         logger.tool("mask File: " + options.getDatabaseFileName() );
         logger.tool("output annotated records: " + options.getOutputFileName());
-        logger.tool("logger file " + options.getLogFileName());
-        logger.tool("logger level " + (options.getLogLevel() == null ? QLoggerFactory.DEFAULT_LEVEL.getName() :  options.getLogLevel()));
-          
+        logger.tool("accept ambiguous chromosome name, eg. treat M and chrMT as same chromosome name: " + (!isStrict2chrName));
+        
 		addAnnotation( options.getDatabaseFileName() );				
 	}	
 	
 	static class Repeat {
-		final String chr;
+//		final String chr;
 	    final int start;
 		final int end;
 		final int patternLength;
 		final int patternNo; 
 		
 		Repeat(String chr,int start, int end, int length, int no){
-			this.chr = chr;
+//			this.chr = chr;
 			this.start = start;
 			this.end = end;
 			this.patternLength = length;
@@ -72,14 +75,20 @@ public class TandemRepeatMode  extends AbstractMode{
 		
 		//convert line from dbfile and return a Repeat
 		//chr1    11114   11123   5       2.0     5       100     0       20      0.97    GGCGC
-		Repeat(String str) throws NumberFormatException{				
-            String[] array = str.split(Constants.TAB_STRING);
-			this.chr = IndelUtils.getFullChromosome( array[0] );
+//		Repeat(String str) throws NumberFormatException{	
+//			new Repeat(str.split(Constants.TAB_STRING) );	 			
+//		}
+		
+		//convert line from dbfile and return a Repeat
+		//chr1    11114   11123   5       2.0     5       100     0       20      0.97    GGCGC		
+		Repeat(String[] array) throws NumberFormatException{				
+ //           String[] array = str.split(Constants.TAB_STRING);
+//			this.chr =  array[0] ; //keep original first
 			this.start = Integer.parseInt(array[1]);
 			this.end = Integer.parseInt(array[2]);
 			this.patternLength = Integer.parseInt(array[3]);
 			this.patternNo = (int) (Float.parseFloat(array[4]) + 0.5);			 			
-		}
+		}		
 		
 		String printMark(){		return patternLength + "_" + patternNo;	 }
 	}
@@ -131,25 +140,10 @@ public class TandemRepeatMode  extends AbstractMode{
 	
 	@Override
 	public void addAnnotation(String dbfile) throws IOException {
-		
-		Map<String, HashSet<Repeat>> repeats = loadRepeat(dbfile );  //S1			
-		logger.info( "reference number inside TRF data file is " + repeats.size());
-		logger.info("loading into RAM...");
-		if(repeats.size() == 0) return; 
-		
-		int totalRepeat = 0; 
-		int totalBlock = 0;					
-		Map<String, BlockIndex> indexedBlock  = new HashMap<>();
-		for(String chr: repeats.keySet()){
-			 logger.debug("indexing blocks for " + chr);
-			 indexedBlock.put(chr,  makeIndexedBlock( repeats.get(chr)));
-			 totalRepeat += repeats.get(chr).size();
-			 totalBlock += indexedBlock.get(chr).index.size();	 
-		}
-	
-		logger.info("total repeats from dbfile is " + totalRepeat);
-		logger.info("total blocks from dbfile is " + totalBlock );
-		 
+		//eg. chrMT => BlockIndex
+		Map<String, BlockIndex> indexedBlock = loadRepeat(dbfile );  //S1	
+		if(indexedBlock.size() == 0) return ; 
+				 
 		long count = 0;
 		long repeatCount = 0; 
 		try (VCFFileReader reader = new VCFFileReader(input) ;
@@ -165,9 +159,11 @@ public class TandemRepeatMode  extends AbstractMode{
 		    }
 			logger.info("annotating vcfs from inputs " );
 			
-	        for (final VcfRecord vcf : reader) {   
-		        	String vcfchr =  IndelUtils.getFullChromosome(vcf.getChromosome());	         
-	 	    		if(annotate(vcf, indexedBlock.get(vcfchr)))
+	        for (final VcfRecord vcf : reader) { 
+				String chr = isStrict2chrName? vcf.getChromosome(): ChrPositionUtils.ChrNameConveter(vcf.getChromosome());
+
+		        	//String vcfchr =  IndelUtils.getFullChromosome(vcf.getChromosome());	         
+	 	    		if(annotate(vcf, indexedBlock.get(chr)))
 	 	    			repeatCount ++; 	    			
 		    		count++;
 		    		writer.add(vcf);
@@ -280,12 +276,16 @@ public class TandemRepeatMode  extends AbstractMode{
 	
 	
 	/**
-	 * 
+	 * the key of the map is converted referenct name, value is the realted repeats. eg. chrMT => set<Repeat>
 	 * @param dbfile: TRF repeat file: eg chr1    11114   11123   5       2.0     5       100     0       20      0.97    GGCGC
 	 * @return a list a  repeat region, each region related to a line from dbfile
 	 * @throws IOException
 	 */
-	Map<String, HashSet<Repeat>> loadRepeat(String dbfile) throws IOException {
+	//Map<String, HashSet<Repeat>> loadRepeat(String dbfile) throws IOException {
+	Map<String, BlockIndex> loadRepeat(String dbfile) throws IOException {
+ 		
+		logger.info("loading into RAM...");		
+		//eg. chrMT => set<repeat>		
 		Map<String, HashSet<Repeat>> allRepeats = new HashMap<>();
 		int errLine = 0;
 		//s1: read whole file into Repeat list
@@ -295,19 +295,40 @@ public class TandemRepeatMode  extends AbstractMode{
             	/*
             	 * ignore header line
             	 */
-            		if (line.startsWith("chrom\tstart")) continue;
+            	if (line.startsWith("chrom\tstart")) continue;
             		
 	           try {
-	        	   		Repeat rep = new Repeat(line);
-	        	   		allRepeats.computeIfAbsent(rep.chr, (v) -> new HashSet<>()).add(rep);
+	        	   String[] array = line.split(Constants.TAB_STRING);
+        	   		Repeat rep = new Repeat(array);
+        	   		String chr = isStrict2chrName? array[0]: ChrPositionUtils.ChrNameConveter(array[0]);
+        	   		allRepeats.computeIfAbsent(chr, (v) -> new HashSet<>()).add(rep);
 	            } catch (NumberFormatException e) {
-		            	if (errLine ++ < MaxErrLine) {
-		            		logger.warn("can't retrive information from TRF repeat file: " + line);
-		            	}
+	            	if (errLine ++ < MaxErrLine) {
+	            		logger.warn("can't retrive information from TRF repeat file: " + line);
+	            	}
 	            }             
             }
         } 
-        return allRepeats; 		
+        logger.info( "reference number inside TRF data file is " + allRepeats.size());
+        
+        Map<String, BlockIndex> indexedBlock  = new HashMap<>();
+		if(allRepeats.size() == 0) return indexedBlock; 
+		
+		int totalRepeat = 0; 
+		int totalBlock = 0;	
+		//eg. chrMT => BlockIndex
+		for(String chr: allRepeats.keySet()){
+			 logger.debug("indexing blocks for " + chr);
+			 //use converted chromosome name as key if requires
+			 indexedBlock.put(chr,  makeIndexedBlock( allRepeats.get(chr)));
+			 totalRepeat += allRepeats.get(chr).size();
+			 totalBlock += indexedBlock.get(chr).index.size();	 
+		}        
+		logger.info("total repeats from dbfile is " + totalRepeat);
+		logger.info("total blocks from dbfile is " + totalBlock );
+		
+		return indexedBlock;      
+        
 	}
 	
 	
@@ -341,22 +362,22 @@ public class TandemRepeatMode  extends AbstractMode{
 			
 		    while(it.hasNext()){
 		    	
-			    	//do nothing if exists from starts disregards whether it is in ends or not
-			    	if(!starts.contains(start))
-			    		start += 1; 
-			    	
-			    	//trim if end is some repeat start
-			    	end = it.next();	
-			    	int end0 = end;  //store original boundary for next loop
-			    	 
-			    	if(starts.contains(end))		    		 
-			    		end -= 1; 
-			    	
-			    	if(start <= end)
-			    		blockIndex.put(start,  new Block(start, end));
-			    	
-			    	//next block must be one base forward
-			    	start = end0; 
+		    	//do nothing if exists from starts disregards whether it is in ends or not
+		    	if(!starts.contains(start))
+		    		start += 1; 
+		    	
+		    	//trim if end is some repeat start
+		    	end = it.next();	
+		    	int end0 = end;  //store original boundary for next loop
+		    	 
+		    	if(starts.contains(end))		    		 
+		    		end -= 1; 
+		    	
+		    	if(start <= end)
+		    		blockIndex.put(start,  new Block(start, end));
+		    	
+		    	//next block must be one base forward
+		    	start = end0; 
 		    }
 		    
 		    //S3: filling repeat 

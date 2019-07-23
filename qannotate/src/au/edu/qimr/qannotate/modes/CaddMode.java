@@ -17,6 +17,7 @@ import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrPositionComparator;
 import org.qcmg.common.model.ChrRangePosition;
+import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
@@ -31,15 +32,21 @@ public class  CaddMode extends AbstractMode{
 	
 	private static final Comparator<ChrPosition> COMPARATOR = new ChrPositionComparator();
 	private final static String CADD = "CADD";
+	private final boolean isStrict2chrName;
 	
 	private static long outputNo = 0;
 	private static long blockNo = 0;	
 	private static long inputNo = 0;
-	private final QLogger logger= QLoggerFactory.getLogger(CaddMode.class);
+	private static final QLogger logger= QLoggerFactory.getLogger(CaddMode.class);
 	
 	public static final String description = "query CADD library for this variant. Format: (Ref>Alt|isDerived|Consequence|ConsScore|ConsDetail|scoreSegDup|priPhyloP|GerpRS|mirSVR-E|cHmmTssA|motifDist|ESP_AFR|ESP_EUR|TG_AMR|FeatureID|FeatureID|CCDS|relcDNApos)";	
 		
-	public CaddMode( Options options) throws Exception {		
+	public CaddMode( Options options) throws Exception {
+		this.isStrict2chrName = options.isStrict2chrName();
+		logger.tool("input: " + options.getInputFileName());      
+        logger.tool("output for annotated vcf records: " + options.getOutputFileName());
+        logger.tool("accept ambiguous chromosome name, eg. treat M and chrMT as same chromosome name: " + (!isStrict2chrName));
+
 		
 		final String input = options.getInputFileName();
 		final File output =  new File( options.getOutputFileName() );
@@ -47,9 +54,10 @@ public class  CaddMode extends AbstractMode{
 		
 		final String[] database = options.getDatabaseFiles();
 		final TabixReader[] tabixs = new TabixReader[database.length];
-		for(int i = 0; i < database.length; i ++)
+		for(int i = 0; i < database.length; i ++) {
 			tabixs[i] = new TabixReader( database[i] );
-		
+		    logger.tool("add database: " + database[i] );
+		}
 		
 		String chr = null;
 		int pos = 0; 
@@ -81,12 +89,14 @@ public class  CaddMode extends AbstractMode{
 				
 				//add every variants into hashmap
 				pos = re.getPosition();
-				add2Map(re); 
+				//add2Map(re);
+				ChrPosition cp = ChrPositionUtils.getNewchrNameIfStrict(re.getChrPosition(), isStrict2chrName) ;
+				positionRecordMap.computeIfAbsent(cp, v -> new ArrayList<>()).add(re) ;
 			}
 			
 			//last block
 			if(chr != null)
-		    		addAnnotation( chr, start-1, pos+1 , tabixs, writer );			
+		    	addAnnotation( chr, start-1, pos+1 , tabixs, writer );
 		}//end try	
 
 		logger.info("total input variants is  " + inputNo);		 
@@ -102,9 +112,6 @@ public class  CaddMode extends AbstractMode{
 	
 	    	int blockSize = 0; 
 	    	int outputSize = 0;
-	    	if(chr.startsWith("chr"))  chr = chr.substring(3);
-	    	if(chr.equalsIgnoreCase("m")) chr = "MT"; 
-
     	
 		for(TabixReader tabix : tabixs){	
 			TabixReader.Iterator it = tabix.query(chr, start, end);
@@ -118,14 +125,13 @@ public class  CaddMode extends AbstractMode{
 	 				continue;
 	 			} else {
 	 				last = entry;
-	 			}
-	 			
+	 			} 			
 	
-		    		int s = Integer.parseInt(eles[1]);  //start position = second column
-		    		int e = s + eles[2].length() - 1;   //start position + length -1
-		    		
-		    		ChrPosition cp  = new ChrRangePosition(chr, s, e);
-		    		List<VcfRecord> inputVcfs = positionRecordMap.get(cp);	    
+	    		int s = Integer.parseInt(eles[1]);  //start position = second column
+	    		int e = s + eles[2].length() - 1;   //start position + length -1
+	    		
+	    		ChrPosition cp  = ChrPositionUtils.getNewchrNameIfStrict(new ChrRangePosition(chr, s, e), isStrict2chrName) ;
+	    		List<VcfRecord> inputVcfs = positionRecordMap.get(cp);	    
 				if ( (null == inputVcfs) || inputVcfs.size() == 0 ) {
 					continue; 
 				}
@@ -173,25 +179,25 @@ public class  CaddMode extends AbstractMode{
 	 * it remove "chr" and change "chrM" to "MT"  for reference name 
 	 * @param re input vcf record
 	 */
-	private void add2Map(VcfRecord re){
-		ChrPosition pos = re.getChrPosition();
-		String chr = pos.getChromosome();	
-		boolean change = false; 
-	    	if (chr.startsWith("chr"))  	{
-	    		chr = chr.substring(3);
-	    		change = true;
-	    	}
-	    	if (chr.equalsIgnoreCase("m")) {
-	    		chr = "MT";
-	    		change = true;
-	    	}
-		
-		if(change) {
-			pos =  new ChrRangePosition(chr, re.getChrPosition().getStartPosition(), re.getChrPosition().getEndPosition());
-		}
-		
-		positionRecordMap.computeIfAbsent(pos, v -> new ArrayList<>()).add(re) ;
-	}
+//	private void add2Map(VcfRecord re){
+//		ChrPosition pos = re.getChrPosition();
+//		String chr = pos.getChromosome();	
+//		boolean change = false; 
+//	    	if (chr.startsWith("chr"))  	{
+//	    		chr = chr.substring(3);
+//	    		change = true;
+//	    	}
+//	    	if (chr.equalsIgnoreCase("m")) {
+//	    		chr = "MT";
+//	    		change = true;
+//	    	}
+//		
+//		if(change) {
+//			pos =  new ChrRangePosition(chr, re.getChrPosition().getStartPosition(), re.getChrPosition().getEndPosition());
+//		}
+//		
+//		positionRecordMap.computeIfAbsent(pos, v -> new ArrayList<>()).add(re) ;
+//	}
 		
 	@Override
 	void addAnnotation(String database) throws Exception { }

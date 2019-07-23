@@ -93,9 +93,8 @@ public class ConfidenceMode extends AbstractMode{
 	
 	//for unit testing
 	ConfidenceMode(){
-//		this.testCols = new TShortArrayList(testCol);
-//		this.controlCols = new TShortArrayList(controlCol);
 	}
+	
 	ConfidenceMode(VcfFileMeta m){
 		this.meta = m;
 		testCols = meta.getAllTestPositions();
@@ -106,10 +105,9 @@ public class ConfidenceMode extends AbstractMode{
 	public ConfidenceMode( Options options) throws Exception{				 
 		logger.tool("input: " + options.getInputFileName());
         logger.tool("output annotated records: " + options.getOutputFileName());
-        logger.tool("logger file " + options.getLogFileName());
-        logger.tool("logger level " + (options.getLogLevel() == null ? QLoggerFactory.DEFAULT_LEVEL.getName() :  options.getLogLevel()));
- 		
-		loadVcfRecordsFromFile(new File( options.getInputFileName())   );	
+  		
+        //there is no database file, we use input vcf chromosome name directory.
+		loadVcfRecordsFromFile(new File( options.getInputFileName()), true  );	
 		
 		options.getNNSCount().ifPresent(i -> nnsCount = i.intValue());
 		options.getMRCount().ifPresent(i -> mrCount = i.intValue());
@@ -183,7 +181,6 @@ public class ConfidenceMode extends AbstractMode{
 				
 				String [] gtArray = ffMap.get(VcfHeaderUtils.FORMAT_GENOTYPE);
 				String [] nnsArr = ffMap.get(VcfHeaderUtils.FILTER_NOVEL_STARTS);
-//				String [] mrArr = ffMap.get(VcfHeaderUtils.FORMAT_MUTANT_READS);
 				String [] filterArr = ffMap.get(VcfHeaderUtils.FORMAT_FILTER);
 				String [] covArr = ffMap.get(VcfHeaderUtils.FORMAT_READ_DEPTH);
 				String [] ccmArr = ffMap.get(VcfHeaderUtils.FORMAT_CCM);
@@ -290,11 +287,6 @@ public class ConfidenceMode extends AbstractMode{
 									StringUtils.updateStringBuilder(fSb, VcfHeaderUtils.FORMAT_MUTANT_READS, Constants.SEMI_COLON);
 								}
 								
-//								int [] altADs = getAltCoveragesFromADField(adArr[i]);
-//								if ( ! (percentageMode ?  allValuesAboveThreshold(altADs, cov, mrPercentage) : allValuesAboveThreshold(altADs, mrCount))) {
-//									StringUtils.updateStringBuilder(fSb, "MR", Constants.SEMI_COLON);
-//								}
-								
 								/*
 								 * end of read check
 								 */
@@ -317,7 +309,6 @@ public class ConfidenceMode extends AbstractMode{
 								filterArr[i] = VcfHeaderUtils.FILTER_PASS;
 							}
 						}
-//					}
 				}
 				
 				/*
