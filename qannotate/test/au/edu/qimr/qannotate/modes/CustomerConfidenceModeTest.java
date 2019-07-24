@@ -30,7 +30,7 @@ public class CustomerConfidenceModeTest {
 	 public void sampleidTest() throws Exception{
 		createInputFile();
 		final CustomerConfidenceMode mode = new CustomerConfidenceMode();		
-		mode.loadVcfRecordsFromFile(new File(DbsnpModeTest.inputName));
+		mode.loadVcfRecordsFromFile(new File(DbsnpModeTest.inputName),true);
 			 
 		SampleColumn column =  SampleColumn.getSampleColumn(null,null,  mode.header);
 		mode.setSampleColumn(column.getTestSampleColumn(), column.getControlSampleColumn() );

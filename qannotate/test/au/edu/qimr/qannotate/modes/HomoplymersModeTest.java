@@ -2,123 +2,190 @@ package au.edu.qimr.qannotate.modes;
 
 import static org.junit.Assert.*;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.IndelUtils.SVTYPE;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
+import org.qcmg.picard.Faidx;
 
 public class HomoplymersModeTest {
+	@Rule
+	public final TemporaryFolder testFolder = new TemporaryFolder();
+	private File refFile;
+ 
+	
+	@Before
+	public void createSequenceFile() throws IOException {
+		refFile = testFolder.newFile("test.fa");
+		createFaFile(refFile.getAbsolutePath());
+	}
 	
 	@Test
-	public void startOfContig() {
-		//SNP
-		VcfRecord re = new VcfRecord(new String[] {  "chr1", "1", null, "T", "A" });		
-		HomoplymersMode  homo = new HomoplymersMode(3,3);	
-		re = homo.annotate(re, getReference());
+	public void refNameTest() throws IOException {
+		String chr = "chrMT";
+		//SNP  in strict mode  chrM != chrMT
+		VcfRecord re = new VcfRecord(new String[] { chr, "1", null, "T", "A" });		
+		HomoplymersMode  homo = new HomoplymersMode(null, 3,3, true);	
+		Map<String, byte[]> referenceBase = homo.getReferenceBase(refFile);
+	    assertFalse(referenceBase.containsKey(chr));
+		 
+	  //SNP  in Not strict mode  chrM == chrMT
+		homo = new HomoplymersMode(null, 3,3, false);	
+		referenceBase = homo.getReferenceBase(refFile);
+		assertTrue(referenceBase.containsKey(chr));
+		
+		
+		//notStrict mode MT == chrM
+		chr = "MT";
+		String fvcf = testFolder.newFile("test.vcf").getAbsolutePath();
+        try(BufferedWriter out = new BufferedWriter(new FileWriter(fvcf));) {    
+        	 out.write("##fileformat=VCFv4.2\n"+VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "\n");    
+        	 out.write(new VcfRecord(new String[] { chr, "1", null, "T", "A" }).toString());                          
+         } 
+        
+      //not Strict mode MT != chrM no exception
+		homo = new HomoplymersMode(fvcf, 3,3, false);
+		homo.addAnnotation(refFile.getAbsolutePath());
+		
+		//Strict mode MT != chrM throw excption
+		homo = new HomoplymersMode(fvcf, 3,3, true);
+		try {
+			homo.addAnnotation(refFile.getAbsolutePath());
+			fail("Should have thrown an NullPointerException");
+		} catch (NullPointerException iae){};
+		
+	}
+	
+	@Test
+	public void startOfContig() throws IOException {
+		String chr = "chr1";
+		
+		//SNP  in strict mode but both ref and vcf have chr1
+		VcfRecord re = new VcfRecord(new String[] { chr, "1", null, "T", "A" });		
+		HomoplymersMode  homo = new HomoplymersMode(null, 3,3, true);	
+		Map<String, byte[]> referenceBase = homo.getReferenceBase(refFile);
+		
+		re = homo.annotate(re,referenceBase.get(chr));
 		assertEquals("0,tATG", re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM));
 		
-		re = new VcfRecord(new String[] {  "chr1", "0", null, "T", "A" });		
-		homo = new HomoplymersMode(3,3);
+		re = new VcfRecord(new String[] { chr, "0", null, "T", "A" });		
+		//homo = new HomoplymersMode(3,3);
 		try {
-			re = homo.annotate(re, getReference());
+			re = homo.annotate(re, referenceBase.get(chr));
+			fail("Should have thrown an IllegalArgumentException");
+		} catch (IllegalArgumentException iae){};
+		
+
+	}
+	
+	@Test
+	public void endOfContig() throws IOException {
+		String chr = "chr1";
+		//SNP
+		VcfRecord re = new VcfRecord(new String[] {  chr, "40", null, "T", "A" });		
+		HomoplymersMode  homo = new HomoplymersMode(null, 3,3, true);
+		Map<String, byte[]> referenceBase = homo.getReferenceBase(refFile);
+		
+		re = homo.annotate(re, referenceBase.get(chr));
+		assertEquals("3,CCCt", re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM));
+		
+		re = new VcfRecord(new String[] {"chr1", "41", null, "T", "A" });			
+		try {
+			re = homo.annotate(re, referenceBase.get(chr));
 			fail("Should have thrown an IllegalArgumentException");
 		} catch (IllegalArgumentException iae){};
 	}
 	
-	@Test
-	public void endOfContig() {
-		//SNP
-		VcfRecord re = new VcfRecord(new String[] {  "chr1", "40", null, "T", "A" });		
-		HomoplymersMode  homo = new HomoplymersMode(3,3);	
-		re = homo.annotate(re, getReference());
-		assertEquals("3,CCCt", re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM));
-		
-		re = new VcfRecord(new String[] {  "chr1", "41", null, "T", "A" });		
-		homo = new HomoplymersMode(3,3);	
-		try {
-			re = homo.annotate(re, getReference());
-			fail("Should have thrown an IllegalArgumentException");
-		} catch (IllegalArgumentException iae){};
-	}
+	
  	
 
 	@Test
-	public void testInsert(){				
-		VcfRecord re = new VcfRecord( new String[] {"chr1", "21",null, "T", "TTAA" });
+	public void testInsert() throws IOException{	
+		String chr = "chr1";
+		VcfRecord re = new VcfRecord( new String[] {chr, "21",null, "T", "TTAA" });
 		
 		//small insertion inside reference region
-		HomoplymersMode  homo = new HomoplymersMode(3,3);		
-		re = homo.annotate(re, getReference());
+		HomoplymersMode  homo = new HomoplymersMode(null, 3,3, true);	
+		Map<String, byte[]> referenceBase = homo.getReferenceBase(refFile);
+		re = homo.annotate(re,  referenceBase.get(chr));
 		assertEquals("3,CCTtaaCCC", re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM));
 		assertTrue(StringUtils.isMissingDtaString(re.getFilter()));
 
 		//check on edge of contig but report window still inside
-		homo = new HomoplymersMode( 100, 10);	
-		re = homo.annotate(re, getReference());
+		homo = new HomoplymersMode(null,  100, 10, true);
+		re = homo.annotate(re,  referenceBase.get(chr));
 		assertTrue(re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM).equals("19,ATCGGACCCTtaaCCCCCCCCCC"));
 		assertTrue(StringUtils.isMissingDtaString(re.getFilter()));
-//		assertTrue(re.getFilter().contains(VcfHeaderUtils.FILTER_HOM));
  		
 		// report window also over edge
-		homo = new HomoplymersMode( 100, 25);
-		re = homo.annotate(re, getReference());
+		homo = new HomoplymersMode(null,  100, 25, true);
+		re = homo.annotate(re,  referenceBase.get(chr));
 		assertTrue(re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM).equals("19,AATGCAATTGGATCGGACCCTtaaCCCCCCCCCCCCCCCCCCC"));
-//		assertTrue(re.getFilter().contains(VcfHeaderUtils.FILTER_HOM));
 		
 		//embed case
 		re = new VcfRecord(new String[] {"chr1", "23", null, "C", "CCAC" });
-		homo = new HomoplymersMode(3,3);		
-		re = homo.annotate(re, getReference());
+		homo = new HomoplymersMode(null, 3,3, true);	
+		re = homo.annotate(re,  referenceBase.get(chr));
 		assertTrue(re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM).equals("5,TCCcacCCC"));
-//		assertTrue(StringUtils.isMissingDtaString(re.getFilter()));
 	}
 
 	
 	@Test
-	public void testDel(){
-		VcfRecord re = new VcfRecord(new String[] {  "chr1", "21", null, "TCC", "T" });		
-		HomoplymersMode  homo = new HomoplymersMode(3,4);	
-		re = homo.annotate(re, getReference());
+	public void testDel() throws IOException{
+		String chr = "chr1";
+		VcfRecord re = new VcfRecord(new String[] {  chr, "21", null, "TCC", "T" });		
+		HomoplymersMode  homo = new HomoplymersMode(null, 3,4, true);	
+		Map<String, byte[]> referenceBase = homo.getReferenceBase(refFile);
+		
+		re = homo.annotate(re,  referenceBase.get(chr));
 		assertTrue(re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM).equals("5,CCT__CCC"));
-//		assertTrue(StringUtils.isMissingDtaString(re.getFilter()));
  		
 		//no repeats
 		re = new VcfRecord(new String[] {  "chr1", "12", null, "AT", "A" });
-		homo = new HomoplymersMode(100,10);
-		re = homo.annotate(re, getReference());
+		homo = new HomoplymersMode(null, 100,10, true);
+		re = homo.annotate(re,  referenceBase.get(chr));
 		assertTrue(  re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM).equals("0,TGCAATTGGA_CGGACCCTCC") );
 
 		//motif of DEL contains repeat base same to adjacant homopolymers 
 		re = new VcfRecord(new String[] {  "chr1", "18", null, "CCCTCC", "C" });
-		homo = new HomoplymersMode(100,10);
-		re = homo.annotate(re, getReference());
+		homo = new HomoplymersMode(null, 100,10, true);
+		re = homo.annotate(re,  referenceBase.get(chr));
 		assertTrue(re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM).equals("19,TGGATCGGAC_____CCCCCCCCCC") );	
-//		assertTrue(re.getFilter().contains(VcfHeaderUtils.FILTER_HOM));
 	}
 	
 	@Test
-	public void testSNP(){
+	public void testSNP() throws IOException{
+		String chr = "chr1";
 		//MNP
-		VcfRecord re = new VcfRecord(new String[] {  "chr1", "21", null, "TCC", "AGG" });		
-		HomoplymersMode  homo = new HomoplymersMode(3,4);	
-		re = homo.annotate(re, getReference());
+		VcfRecord re = new VcfRecord(new String[] {  chr, "21", null, "TCC", "AGG" });		
+		HomoplymersMode  homo = new HomoplymersMode(null, 3,4, true);
+		Map<String, byte[]> referenceBase = homo.getReferenceBase(refFile);
+		re = homo.annotate(re,  referenceBase.get(chr));
 		assertEquals("5,CCCtccCCC", re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM));
-//		assertEquals("0,CCCaggCCC", re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM));
 		
 		//SNP
 		re = new VcfRecord(new String[] {  "chr1", "16", null, "G", "A" });		
-		homo = new HomoplymersMode(10,5);	
-		re = homo.annotate(re, getReference());
-//		assertEquals("2,GATCGaACCCT", re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM));
+		homo = new HomoplymersMode(null, 10,5, true);
+		re = homo.annotate(re,  referenceBase.get(chr));
 		assertEquals("2,GATCGgACCCT", re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM));
 		
 		//SNP in non homoplyers region
 		re = new VcfRecord(new String[] {  "chr1", "13", null, "T", "A" });	
-		re = homo.annotate(re, getReference());	 
+		re = homo.annotate(re,  referenceBase.get(chr));	 
 		assertEquals("0,TTGGAtCGGAC", re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM));
-//		assertEquals("2,TTGGAaCGGAC", re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM));
 		
 		re = new VcfRecord(new String[] {  "chr1", "10", null, "T", "A" });	
 		re = homo.annotate(re, "TTTTTTTTTTGCTGCTAGCTA".getBytes());	 
@@ -127,17 +194,14 @@ public class HomoplymersModeTest {
 		re = new VcfRecord(new String[] {  "chr1", "10", null, "G", "A" });	
 		re = homo.annotate(re, "TTTTTTTTTTGCTGCTAGCTA".getBytes());	 
 		assertEquals("9,TTTTTgGCTGC", re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM));
-//		assertEquals("2,TTTTTgGCTGC", re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM));
 		
 		re = new VcfRecord(new String[] {  "chr1", "10", null, "G", "A" });	
 		re = homo.annotate(re, "TTTTTTTTTTTTTTTTTTTT".getBytes());	 
 		assertEquals("10,TTTTTgTTTTT", re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM));
-//		assertEquals("0,TTTTTgTTTTT", re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM));
 		
 		re = new VcfRecord(new String[] {  "chr1", "10", null, "A", "C" });	
 		re = homo.annotate(re, "TTTTTTTTTTTTTTTTTTTT".getBytes());	 
 		assertEquals("10,TTTTTaTTTTT", re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM));
-//		assertEquals("0,TTTTTaTTTTT", re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM));
 		
 		re = new VcfRecord(new String[] {  "chr1", "10", null, "T", "C" });	
 		re = homo.annotate(re, "TTTTTTTTTTTTTTTTTTTT".getBytes());	 
@@ -154,10 +218,6 @@ public class HomoplymersModeTest {
 		assertEquals(11, HomoplymersMode.findHomopolymer(b, "A", SVTYPE.SNP));
 		assertEquals(5, HomoplymersMode.findHomopolymer(b, "C", SVTYPE.SNP));
 		assertEquals(5, HomoplymersMode.findHomopolymer(b, "T", SVTYPE.SNP));
-//		assertEquals(0, HomoplymersMode.findHomopolymer(b, "G", SVTYPE.SNP));
-//		assertEquals(11, HomoplymersMode.findHomopolymer(b, "A", SVTYPE.SNP));
-//		assertEquals(0, HomoplymersMode.findHomopolymer(b, "C", SVTYPE.SNP));
-//		assertEquals(0, HomoplymersMode.findHomopolymer(b, "T", SVTYPE.SNP));
 	}
 	
 	@Test
@@ -170,10 +230,6 @@ public class HomoplymersModeTest {
 		assertEquals(6, HomoplymersMode.findHomopolymer(b, "C", SVTYPE.SNP));
 		assertEquals(3, HomoplymersMode.findHomopolymer(b, "G", SVTYPE.SNP));
 		assertEquals(3, HomoplymersMode.findHomopolymer(b, "T", SVTYPE.SNP));
-//		assertEquals(0, HomoplymersMode.findHomopolymer(b, "A", SVTYPE.SNP));
-//		assertEquals(6, HomoplymersMode.findHomopolymer(b, "C", SVTYPE.SNP));
-//		assertEquals(0, HomoplymersMode.findHomopolymer(b, "G", SVTYPE.SNP));
-//		assertEquals(0, HomoplymersMode.findHomopolymer(b, "T", SVTYPE.SNP));
 	}
 	
 	@Test
@@ -186,10 +242,6 @@ public class HomoplymersModeTest {
 		assertEquals(6, HomoplymersMode.findHomopolymer(b, "C", SVTYPE.SNP));
 		assertEquals(6, HomoplymersMode.findHomopolymer(b, "G", SVTYPE.SNP));
 		assertEquals(7, HomoplymersMode.findHomopolymer(b, "T", SVTYPE.SNP));
-//		assertEquals(0, HomoplymersMode.findHomopolymer(b, "A", SVTYPE.SNP));
-//		assertEquals(3, HomoplymersMode.findHomopolymer(b, "C", SVTYPE.SNP));
-//		assertEquals(0, HomoplymersMode.findHomopolymer(b, "G", SVTYPE.SNP));
-//		assertEquals(7, HomoplymersMode.findHomopolymer(b, "T", SVTYPE.SNP));
 	}
 	
 	@Test
@@ -202,10 +254,6 @@ public class HomoplymersModeTest {
 		assertEquals(3, HomoplymersMode.findHomopolymer(b, "C", SVTYPE.SNP));
 		assertEquals(3, HomoplymersMode.findHomopolymer(b, "G", SVTYPE.SNP));
 		assertEquals(6, HomoplymersMode.findHomopolymer(b, "T", SVTYPE.SNP));
-//		assertEquals(0, HomoplymersMode.findHomopolymer(b, "A", SVTYPE.SNP));
-//		assertEquals(0, HomoplymersMode.findHomopolymer(b, "C", SVTYPE.SNP));
-//		assertEquals(0, HomoplymersMode.findHomopolymer(b, "G", SVTYPE.SNP));
-//		assertEquals(6, HomoplymersMode.findHomopolymer(b, "T", SVTYPE.SNP));
 	}
 	
 	@Test
@@ -218,10 +266,6 @@ public class HomoplymersModeTest {
 		assertEquals(7, HomoplymersMode.findHomopolymer(b, "C", SVTYPE.SNP));
 		assertEquals(7, HomoplymersMode.findHomopolymer(b, "G", SVTYPE.SNP));
 		assertEquals(12, HomoplymersMode.findHomopolymer(b, "T", SVTYPE.SNP));
-//		assertEquals(0, HomoplymersMode.findHomopolymer(b, "A", SVTYPE.SNP));
-//		assertEquals(0, HomoplymersMode.findHomopolymer(b, "C", SVTYPE.SNP));
-//		assertEquals(0, HomoplymersMode.findHomopolymer(b, "G", SVTYPE.SNP));
-//		assertEquals(12, HomoplymersMode.findHomopolymer(b, "T", SVTYPE.SNP));
 	}
 	
 	@Test
@@ -234,10 +278,6 @@ public class HomoplymersModeTest {
 		assertEquals(7, HomoplymersMode.findHomopolymer(b, "C", SVTYPE.SNP));
 		assertEquals(7, HomoplymersMode.findHomopolymer(b, "G", SVTYPE.SNP));
 		assertEquals(8, HomoplymersMode.findHomopolymer(b, "T", SVTYPE.SNP));
-//		assertEquals(3, HomoplymersMode.findHomopolymer(b, "A", SVTYPE.SNP));
-//		assertEquals(0, HomoplymersMode.findHomopolymer(b, "C", SVTYPE.SNP));
-//		assertEquals(0, HomoplymersMode.findHomopolymer(b, "G", SVTYPE.SNP));
-//		assertEquals(8, HomoplymersMode.findHomopolymer(b, "T", SVTYPE.SNP));
 	}
 	
 	@Test
@@ -253,13 +293,6 @@ public class HomoplymersModeTest {
 		assertEquals(4, HomoplymersMode.findHomopolymer(b, "TA", SVTYPE.SNP));
 		assertEquals(3, HomoplymersMode.findHomopolymer(b, "ATA", SVTYPE.SNP));
 		assertEquals(3, HomoplymersMode.findHomopolymer(b, "AT", SVTYPE.SNP));
-//		assertEquals(0, HomoplymersMode.findHomopolymer(b, "AA", SVTYPE.SNP));
-//		assertEquals(0, HomoplymersMode.findHomopolymer(b, "CC", SVTYPE.SNP));
-//		assertEquals(0, HomoplymersMode.findHomopolymer(b, "GG", SVTYPE.SNP));
-//		assertEquals(7, HomoplymersMode.findHomopolymer(b, "TT", SVTYPE.SNP));
-//		assertEquals(0, HomoplymersMode.findHomopolymer(b, "TA", SVTYPE.SNP));
-//		assertEquals(0, HomoplymersMode.findHomopolymer(b, "ATA", SVTYPE.SNP));
-//		assertEquals(0, HomoplymersMode.findHomopolymer(b, "AT", SVTYPE.SNP));
 	}
 	
 	@Test
@@ -275,7 +308,6 @@ public class HomoplymersModeTest {
 		
 		assertEquals("6,GGTTTtTTGTT", HomoplymersMode.getHomopolymerData("A,T", b, SVTYPE.SNP));
 		assertEquals("3,GGTTTaTTGTT", HomoplymersMode.getHomopolymerData("A,C", b, SVTYPE.SNP));
-//		assertEquals("0,GGTTTaTTGTT", HomoplymersMode.getHomopolymerData("A,C", b, SVTYPE.SNP));
 		assertEquals("6,GGTTTtTTGTT", HomoplymersMode.getHomopolymerData("A,C,T", b, SVTYPE.SNP));
 		assertEquals("3,GGTTTcTTGTT", HomoplymersMode.getHomopolymerData("C,G", b, SVTYPE.SNP));
 	}
@@ -291,10 +323,6 @@ public class HomoplymersModeTest {
 		assertEquals(22, HomoplymersMode.findHomopolymer(b, "A", SVTYPE.SNP));
 		assertEquals(22, HomoplymersMode.findHomopolymer(b, "C", SVTYPE.SNP));
 		assertEquals(23, HomoplymersMode.findHomopolymer(b, "T", SVTYPE.SNP));
-//		assertEquals(0, HomoplymersMode.findHomopolymer(b, "G", SVTYPE.SNP));
-//		assertEquals(2, HomoplymersMode.findHomopolymer(b, "A", SVTYPE.SNP));
-//		assertEquals(0, HomoplymersMode.findHomopolymer(b, "C", SVTYPE.SNP));
-//		assertEquals(23, HomoplymersMode.findHomopolymer(b, "T", SVTYPE.SNP));
 	}
 	
 	@Test
@@ -307,10 +335,6 @@ public class HomoplymersModeTest {
 		assertEquals(3, HomoplymersMode.findHomopolymer(b, "G", SVTYPE.SNP));
 		assertEquals(6, HomoplymersMode.findHomopolymer(b, "C", SVTYPE.SNP));
 		assertEquals(3, HomoplymersMode.findHomopolymer(b, "T", SVTYPE.SNP));
-//		assertEquals(0, HomoplymersMode.findHomopolymer(b, "A", SVTYPE.SNP));
-//		assertEquals(0, HomoplymersMode.findHomopolymer(b, "G", SVTYPE.SNP));
-//		assertEquals(6, HomoplymersMode.findHomopolymer(b, "C", SVTYPE.SNP));
-//		assertEquals(0, HomoplymersMode.findHomopolymer(b, "T", SVTYPE.SNP));
 	}
 	@Test
 	public void findHomopolymer3() {
@@ -322,10 +346,6 @@ public class HomoplymersModeTest {
 		assertEquals(6, HomoplymersMode.findHomopolymer(b, "G", SVTYPE.SNP));
 		assertEquals(6, HomoplymersMode.findHomopolymer(b, "C", SVTYPE.SNP));
 		assertEquals(7, HomoplymersMode.findHomopolymer(b, "T", SVTYPE.SNP));
-//		assertEquals(0, HomoplymersMode.findHomopolymer(b, "A", SVTYPE.SNP));
-//		assertEquals(0, HomoplymersMode.findHomopolymer(b, "G", SVTYPE.SNP));
-//		assertEquals(3, HomoplymersMode.findHomopolymer(b, "C", SVTYPE.SNP));
-//		assertEquals(7, HomoplymersMode.findHomopolymer(b, "T", SVTYPE.SNP));
 	}
 	
 	@Test
@@ -382,13 +402,7 @@ public class HomoplymersModeTest {
 					break;				 
 				}
 			}
-//			for(int i = 0; i < mByte.length; i ++ ) { 
-//				if (nearBase == mByte[i]) {
-//					left ++;
-//				} else {
-//					break;				 
-//				}
-//			}
+			
 			upBaseCount += left; 
 						
 			int right = 0;
@@ -414,36 +428,8 @@ public class HomoplymersModeTest {
 		return (max == 1)? 0 : max;
 	}
 	
-//	public byte[] getRef() throws IOException {
-//		
-//		   Map<String, byte[]> referenceBase = new HashMap<>();
-//		   File indexFile = new File("/Users/oliverh/development/data/GRCh37_ICGC_standard_v2.fa.fai");
-//		   FastaSequenceIndex index = new FastaSequenceIndex(indexFile);
-//		   byte[] b;
-//		   try (IndexedFastaSequenceFile indexedFasta = new IndexedFastaSequenceFile(new File("/Users/oliverh/development/data/GRCh37_ICGC_standard_v2.fa"), index);) {
-//			   ReferenceSequence chrBases = indexedFasta.getSequence("chr2");
-//			   b = chrBases.getBases();
-//			   referenceBase.put("chr2", b);
-//		   }
-//		
-//		assertEquals(false, referenceBase.isEmpty());
-//		return b;
-//	}
-//	
-//	@Test
-//	public void get2Darray() throws IOException {
-//		byte[][] bb = HomoplymersMode.getReferenceBase(getRef(), new ChrRangePosition(new ChrPointPosition("chr2", 209421502)), SVTYPE.SNP, 100);
-//		assertEquals(2, bb.length);
-//		assertEquals(100, bb[0].length);
-//		assertEquals(100, bb[1].length);
-//		System.out.println(" bb[0]: " +  new String(bb[0]));
-//		System.out.println(" bb[0]: " +  new String(bb[1]));
-//	}
-//	
-	
-	private byte[] getReference(){				
-		
-	/**
+	public void  createFaFile(String file) throws IOException {    
+		/**
 		1  AATGC
 		6  AATTG
 		11 GATCG
@@ -452,7 +438,20 @@ public class HomoplymersModeTest {
 		26 CCCCC
 		31 CCCCC
 		36 CCCCC
-	*/			
-		return "AATGCAATTGGATCGGACCCTCCCCCCCCCCCCCCCCCCC".getBytes(); 	
-	}		
+	*/	
+    	final List<String> data = new ArrayList<>();
+        data.add(">chr1  AC:CM000663.2  gi:568336023  LN:248956422  rl:Chromosome  M5:6aef897c3d6ff0c78aff06ac189178dd  AS:GRCh38");      
+        data.add("AATGCAATTGGATCGGACCCTCCCCCCCCCCCCCCCCCCC");          	
+        data.add(">chrM  AC:J01415.2  gi:113200490  LN:16569  rl:Mitochondrion  M5:c68f52674c9fb33aef52dcf399755519  AS:GRCh38  tp:circular");      
+        data.add("AATGCAATTGGATCGGACCCTCCCCCCCCCCCCCCCCCCC");
+ 
+        try(BufferedWriter out = new BufferedWriter(new FileWriter(file));) {          
+           for (final String line : data)  out.write(line + "\n");
+        } 
+    	//creat index file
+        Faidx idx = new Faidx(new File(file));
+        idx.outputIdx(file + ".fai");
+        idx.outputDict(file + ".dict");
+        
+	}
 }

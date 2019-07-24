@@ -103,9 +103,9 @@ public class TandemRepeatModeTest {
 		assertEquals(36744042, bi.firstBlockStart);
 		assertEquals(36744593, bi.lastBlockEnd);
 		
-		/*
-		 * chr22	36744135	rs386395340	T	TAA	911.73	PASS	AC=1;AF=0.500;AN=2;BaseQRankSum=1.905;ClippingRankSum=1.154;DP=52;FS=0.000;MLEAC=1;MLEAF=0.500;MQ=60.00;MQRankSum=1.264;QD=17.53;ReadPosRankSum=0.934;SOR=0.576;NIOC=0.019;SSOI=0.471;SVTYPE=INS;END=36744136;IN=1;DB;VAF=0.5014;TRF=44_2,10_5,12_3,5_2;CONF=HIGH	GT:GD:AD:DP:GQ:PL:ACINDEL	0/1:T/TAA:27,25:52:99:949,0,1035:22,52,51,24[14,10],24[22],0,1,10/1:T/TAA:57,65:122:99:2517,0,2197:52,124,120,58[27,31],60[54],0,1,1
-		 */
+		 
+		 // chr22	36744135	rs386395340	T	TAA	911.73	PASS	AC=1;AF=0.500;AN=2;BaseQRankSum=1.905;ClippingRankSum=1.154;DP=52;FS=0.000;MLEAC=1;MLEAF=0.500;MQ=60.00;MQRankSum=1.264;QD=17.53;ReadPosRankSum=0.934;SOR=0.576;NIOC=0.019;SSOI=0.471;SVTYPE=INS;END=36744136;IN=1;DB;VAF=0.5014;TRF=44_2,10_5,12_3,5_2;CONF=HIGH	GT:GD:AD:DP:GQ:PL:ACINDEL	0/1:T/TAA:27,25:52:99:949,0,1035:22,52,51,24[14,10],24[22],0,1,10/1:T/TAA:57,65:122:99:2517,0,2197:52,124,120,58[27,31],60[54],0,1,1
+		 
 		 VcfRecord vcf = VcfUtils.createVcfRecord(ChrPositionUtils.getChrPosition("chr22", 36744135, 36744136), "rs386395340","T", "TAA");
 		 vcf.setFilter("PASS");
 		 vcf.setInfo("AC=1;AF=0.500;AN=2;BaseQRankSum=1.905;ClippingRankSum=1.154;DP=52;FS=0.000;MLEAC=1;MLEAF=0.500;MQ=60.00;MQRankSum=1.264;QD=17.53;ReadPosRankSum=0.934;SOR=0.576;NIOC=0.019;SSOI=0.471;SVTYPE=INS;END=36744136;IN=1;DB;VAF=0.5014;CONF=HIGH");
@@ -118,8 +118,7 @@ public class TandemRepeatModeTest {
 		 assertEquals("5_2,10_5,12_3,44_2", vcf.getInfoRecord().getField("TRF"));
 	}
 	
-	
-	
+ 		
 	@Test
 	public void noBufferTest() throws IOException{
 		File f = testFolder.newFile();
@@ -213,7 +212,7 @@ public class TandemRepeatModeTest {
 		vcf = new VcfRecord.Builder("chr1", 2001, "A").allele("T").build();	
 		assertTrue( trf.annotate(vcf, index) );
 	}
-	
+
 	@Test
 	public void embededTRFTest() throws IOException{
 		File f = testFolder.newFile();

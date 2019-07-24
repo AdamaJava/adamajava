@@ -924,8 +924,9 @@ public class ConfidenceModeTest {
 	 @Ignore
 	 public void confidenceTest() throws IOException, Exception{	
 	 	DbsnpModeTest.createVcf();
-		final ConfidenceMode mode = new ConfidenceMode();		
-		mode.loadVcfRecordsFromFile(new File(DbsnpModeTest.inputName));
+		final ConfidenceMode mode = new ConfidenceMode();	
+		//no database required, chromosome name only from input file
+		mode.loadVcfRecordsFromFile(new File(DbsnpModeTest.inputName), true);
 
 		String Scontrol = "EXTERN-MELA-20140505-001";
 		String Stest = "EXTERN-MELA-20140505-002";
@@ -963,7 +964,7 @@ public class ConfidenceModeTest {
 	 public void sampleColumnNoIDTest() throws IOException, Exception{	
 	 	DbsnpModeTest.createVcf();
 		final ConfidenceMode mode = new ConfidenceMode();		
-		mode.loadVcfRecordsFromFile(new File(DbsnpModeTest.inputName));
+		mode.loadVcfRecordsFromFile(new File(DbsnpModeTest.inputName), true);
 
 		String Scontrol = "EXTERN-MELA-20140505-001";
 		String Stest = "EXTERN-MELA-20140505-002";

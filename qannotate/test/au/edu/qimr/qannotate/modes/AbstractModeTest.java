@@ -67,8 +67,8 @@ public class AbstractModeTest {
 	    	   assertTrue(i == 3);
 	   }
 	       
-		DbsnpMode db = new DbsnpMode();
-		db.loadVcfRecordsFromFile(new File(inputName));		
+		DbsnpMode db = new DbsnpMode(true);
+		db.loadVcfRecordsFromFile(new File(inputName),false);		
 		db.reheader("testing run",   inputName);
 		db.writeVCF(new File(outputName));
 		

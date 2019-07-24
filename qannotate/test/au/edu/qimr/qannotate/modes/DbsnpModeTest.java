@@ -82,76 +82,76 @@ public class DbsnpModeTest {
 		 assertTrue(vcf.getInfoRecord().getField("VAF").equals("."));
 		 assertTrue(vcf.getInfoRecord().getField("DB").equals(Constants.EMPTY_STRING) );
 	 }
-	 
-//	@Test
-//	public void annotationTest() throws IOException, Exception{
-//		createDbsnp(); 
-//		
-//		final DbsnpMode mode = new DbsnpMode();		
-//		mode.inputRecord(new File(inputName));
-//		mode.addAnnotation(dbSNPName);
-//		mode.reheader("testing run",   inputName);
-//		mode.writeVCF( new File(outputName));
-//		
-//		 try(VCFFileReader reader = new VCFFileReader(outputName)){
-//			VcfHeader header = reader.getHeader();
-//			
-//			assertTrue (null != header.getFileFormat()) ;  
-//			assertTrue (null != header.getFileDate()) ; 	 
-//			assertTrue (null != header.getUUID()) ;   
-//			assertTrue (null != header.getSource()) ;  
-//			
-//			assertTrue(header.getRecords(VcfHeaderUtils.STANDARD_FILE_FORMAT).size() == 1);
-//			assertTrue(header.getRecords(VcfHeaderUtils.STANDARD_FILE_DATE ).size() == 1);
-//			assertTrue(header.getRecords(VcfHeaderUtils.STANDARD_UUID_LINE ).size() == 1);
-//			assertTrue(header.getRecords(VcfHeaderUtils.STANDARD_SOURCE_LINE ).size() == 1);
-//			assertTrue(header.getRecords(VcfHeaderUtils.STANDARD_INPUT_LINE ).size() == 1);
-//						
-//			int ii = 0;
-//			for(VcfHeaderRecord re : VcfHeaderUtils.getqPGRecords(header)){
-//				assertEquals( VcfHeaderUtils.getQPGTool(re)  , Constants.NULL_STRING_UPPER_CASE);
-//				assertNotNull(VcfHeaderUtils.getQPGDate(re) );
-//				assertNotNull( VcfHeaderUtils.getQPGCommandLine(re) );
-//				assertEquals(1, VcfHeaderUtils.getQPGOrder(re) );
-//				ii ++;	
-//			}
-//			assertTrue(ii == 1);
-//						
-//			VcfHeaderRecord chrom = header.getChrom();
-//			assertTrue(chrom.toString().startsWith(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE)) ;			
-//			assertTrue(header.getInfoRecord(VcfHeaderUtils.INFO_VAF) != null);  
-//			assertTrue(header.getInfoRecord(VcfHeaderUtils.INFO_DB) != null) ;
-//			  						
-//			int i = 0;
-//			for (final VcfRecord re : reader) {	
-// 				i ++;
-//				if(re.getPosition() == 2675826){
-//					assertTrue(re.getId().equals("rs71432129"));
-//					assertFalse(re.getInfo().contains(VcfHeaderUtils.INFO_GMAF));
-//					assertTrue(re.getInfoRecord().getField(VcfHeaderUtils.INFO_VAF).equals("0.39") );	
-//				}else if(re.getPosition() == 2675825){
-//					assertTrue(re.getId().equals("rs71432129"));
-//					assertFalse(re.getInfo().contains(VcfHeaderUtils.INFO_GMAF));
-//					assertTrue(re.getInfoRecord().getField(VcfHeaderUtils.INFO_VAF).equals("0.23") );	
-//				}else if(re.getPosition() == 22012840){
-//					assertTrue(re.getId().equals("rs111477956"));
-//					assertTrue(re.getInfo().replace(VcfHeaderUtils.INFO_VLD,"").replace(VcfHeaderUtils.INFO_DB, "").replace(VcfHeaderUtils.INFO_SOMATIC,"").equals(Constants.SEMI_COLON_STRING + Constants.SEMI_COLON_STRING));
-//				}else if(re.getPosition() == 77242678){
-//					assertTrue(re.getId().equals("rs386662672"));
-//					assertTrue(re.getInfoRecord().getField(VcfHeaderUtils.INFO_VAF) == null );	
-//					assertTrue(re.getInfoRecord().getField(VcfHeaderUtils.INFO_VLD) == null );	
-//					assertTrue(re.getInfo().contains(VcfHeaderUtils.INFO_DB));
-//
-//				}else{
-//					assertTrue(re.getId().equals("."));
-//					assertFalse(re.getInfo().contains(VcfHeaderUtils.INFO_VLD));
-//					assertFalse(re.getInfo().contains(VcfHeaderUtils.INFO_VAF));
-//					assertFalse(re.getInfo().contains(VcfHeaderUtils.INFO_DB));
-//				}				
-//			}
-//			assertTrue(i == 5);
-//		 }
-//	}
+	      
+	 @Test
+	public void annotationTest() throws IOException, Exception{
+		createDbsnp(); 
+		
+		final DbsnpMode mode = new DbsnpMode(false);	
+		mode.loadVcfRecordsFromFile(new File(inputName),false);
+		mode.addAnnotation(dbSNPName);
+		mode.reheader("testing run",   inputName);
+		mode.writeVCF( new File(outputName));
+		
+		 try(VCFFileReader reader = new VCFFileReader(outputName)){
+			VcfHeader header = reader.getHeader();
+			
+			assertTrue (null != header.getFileFormat()) ;  
+			assertTrue (null != header.getFileDate()) ; 	 
+			assertTrue (null != header.getUUID()) ;   
+			assertTrue (null != header.getSource()) ;  
+			
+			assertTrue(header.getRecords(VcfHeaderUtils.STANDARD_FILE_FORMAT).size() == 1);
+			assertTrue(header.getRecords(VcfHeaderUtils.STANDARD_FILE_DATE ).size() == 1);
+			assertTrue(header.getRecords(VcfHeaderUtils.STANDARD_UUID_LINE ).size() == 1);
+			assertTrue(header.getRecords(VcfHeaderUtils.STANDARD_SOURCE_LINE ).size() == 1);
+			assertTrue(header.getRecords(VcfHeaderUtils.STANDARD_INPUT_LINE ).size() == 1);
+						
+			int ii = 0;
+			for(VcfHeaderRecord re : VcfHeaderUtils.getqPGRecords(header)){
+				assertEquals( VcfHeaderUtils.getQPGTool(re)  , Constants.NULL_STRING_UPPER_CASE);
+				assertNotNull(VcfHeaderUtils.getQPGDate(re) );
+				assertNotNull( VcfHeaderUtils.getQPGCommandLine(re) );
+				assertEquals(1, VcfHeaderUtils.getQPGOrder(re) );
+				ii ++;	
+			}
+			assertTrue(ii == 1);
+						
+			VcfHeaderRecord chrom = header.getChrom();
+			assertTrue(chrom.toString().startsWith(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE)) ;			
+			assertTrue(header.getInfoRecord(VcfHeaderUtils.INFO_VAF) != null);  
+			assertTrue(header.getInfoRecord(VcfHeaderUtils.INFO_DB) != null) ;
+			  						
+			int i = 0;
+			for (final VcfRecord re : reader) {	
+ 				i ++;
+				if(re.getPosition() == 2675826){
+					assertTrue(re.getId().equals("rs71432129"));
+					assertFalse(re.getInfo().contains(VcfHeaderUtils.INFO_GMAF));
+					assertTrue(re.getInfoRecord().getField(VcfHeaderUtils.INFO_VAF).equals("0.39") );	
+				}else if(re.getPosition() == 2675825){
+					assertTrue(re.getId().equals("rs71432129"));
+					assertFalse(re.getInfo().contains(VcfHeaderUtils.INFO_GMAF));
+					assertTrue(re.getInfoRecord().getField(VcfHeaderUtils.INFO_VAF).equals("0.23") );	
+				}else if(re.getPosition() == 22012840){
+					assertTrue(re.getId().equals("rs111477956"));
+					assertTrue(re.getInfo().replace(VcfHeaderUtils.INFO_VLD,"").replace(VcfHeaderUtils.INFO_DB, "").replace(VcfHeaderUtils.INFO_SOMATIC,"").equals(Constants.SEMI_COLON_STRING + Constants.SEMI_COLON_STRING));
+				}else if(re.getPosition() == 77242678){
+					assertTrue(re.getId().equals("rs386662672"));
+					assertTrue(re.getInfoRecord().getField(VcfHeaderUtils.INFO_VAF) == null );	
+					assertTrue(re.getInfoRecord().getField(VcfHeaderUtils.INFO_VLD) == null );	
+					assertTrue(re.getInfo().contains(VcfHeaderUtils.INFO_DB));
+
+				}else{
+					assertTrue(re.getId().equals("."));
+					assertFalse(re.getInfo().contains(VcfHeaderUtils.INFO_VLD));
+					assertFalse(re.getInfo().contains(VcfHeaderUtils.INFO_VAF));
+					assertFalse(re.getInfo().contains(VcfHeaderUtils.INFO_DB));
+				}				
+			}
+			assertTrue(i == 5);
+		 }
+	}
 	
 	/**
 	 * The VLD info should add to output vcf if it appear on the dbSNP header
@@ -160,18 +160,27 @@ public class DbsnpModeTest {
 	 */
 	
 	@Test
-	public void vLDTest() throws IOException, Exception{
+	public void vLDandStrictTest() throws IOException, Exception{
 		createDbsnpHeader();
 		
-		final DbsnpMode mode = new DbsnpMode();		
-		mode.loadVcfRecordsFromFile(new File(inputName));
+		final DbsnpMode mode = new DbsnpMode(true);		
+		mode.loadVcfRecordsFromFile(new File(inputName), true);
 		mode.addAnnotation(dbSNPName);		
 		mode.reheader("testing run",   inputName);
 		mode.writeVCF(new File(outputName));
 
 		try (VCFFileReader reader = new VCFFileReader(outputName)) {
+			//won't affect header
 			VcfHeader header = reader.getHeader();	
 			assertEquals( header.getInfoRecord(VcfHeaderUtils.INFO_VLD)!= null, true);
+			
+			
+			int i = 0;
+			for (final VcfRecord re : reader) {	 				
+ 				assertTrue(re.getId().equals(Constants.MISSING_DATA_STRING));
+ 				i ++;
+			}
+			assertTrue(i == 5);
 		}		 
 	}		
 	
@@ -188,7 +197,7 @@ public class DbsnpModeTest {
         data.add("chrY\t2675826\t.\tTG\tCA\t.\tCOVN12;MIUN\tSOMATIC;END=2675826\tACCS\tTG,5,37,CA,0,2\tAA,1,1,CA,4,1,CT,3,1,TA,11,76,TG,2,2,TG,0,1");
         data.add("chrY\t2675825\t.\tTTG\tTGG\t.\tCOVN12;MIUN\tSOMATIC;END=2675826\tACCS\tTG,5,37,CA,0,2\tAA,1,1,CA,4,1,CT,3,1,TA,11,76,TG,2,2,TG,0,1");
 
-        data.add("chrY\t22012840\t.\tC\tA\t.\tMIUN\tSOMATIC\tGT:GD:AC:MR:NNS\t0/1:C/A:A0[0],15[36.2],C11[36.82],9[33]\t0/1:C/A:A0[0],33[35.73],C6[30.5],2[34]:15:13");  
+        data.add("chrMT\t22012840\t.\tC\tA\t.\tMIUN\tSOMATIC\tGT:GD:AC:MR:NNS\t0/1:C/A:A0[0],15[36.2],C11[36.82],9[33]\t0/1:C/A:A0[0],33[35.73],C6[30.5],2[34]:15:13");  
         data.add("chrY\t77242678\t.\tCA\tTG\t.\tPASS\tEND=77242679\tACCS\tCA,10,14,TG,6,7\tCA,14,9,TG,23,21");
         
         try(BufferedWriter out = new BufferedWriter(new FileWriter(inputName));) {          
@@ -209,7 +218,7 @@ public class DbsnpModeTest {
         data.add(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE);
         data.add("Y\t2675825\trs71432129\tTTG\tTGG,TCA\t.\t.\tRSPOS=2675826;RV;dbSNPBuildID=130;SSR=0;SAO=0;VP=050100000008000100000800;WGT=0;VC=MNV;SLO;CFL;GNO;CAF=[0.33,0.23,0.39]");
         data.add("Y\t2675829\trs112502114\tA\tC\t.\t.\tRSPOS=2675829;RV;dbSNPBuildID=132;SSR=0;SAO=0;VP=050100000008000100000100;WGT=0;VC=SNV;SLO;CFL;GNO");
-        data.add("Y\t22012840\trs111477956\tC\tA\t.\t.\tRSPOS=22012840;RV;GMAF=0.113802559414991;dbSNPBuildID=132;SSR=0;SAO=0;VP=050100000000000100000100;WGT=0;VC=SNV;SLO;GNO;VLD");  
+        data.add("M\t22012840\trs111477956\tC\tA\t.\t.\tRSPOS=22012840;RV;GMAF=0.113802559414991;dbSNPBuildID=132;SSR=0;SAO=0;VP=050100000000000100000100;WGT=0;VC=SNV;SLO;GNO;VLD");  
         data.add("Y\t77242677\trs386662672\tCCA\tCTG\t.\t.\tRS=386662672;RSPOS=77242678;dbSNPBuildID=138;SSR=0;SAO=0;VP=0x050000080005000002000800;WGT=1;VC=MNV;INT;ASP;OTHERKG");
         try(BufferedWriter out = new BufferedWriter(new FileWriter(dbSNPName));) {          
            for (final String line : data)  out.write(line + "\n");
