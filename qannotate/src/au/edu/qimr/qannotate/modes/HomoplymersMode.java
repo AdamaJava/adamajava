@@ -45,14 +45,18 @@ public class HomoplymersMode extends AbstractMode{
 	public static final int defaultreport = 10;
 	private final boolean isStrict2chrName;
 	
-	@Deprecated //for unit test
-	HomoplymersMode( int homoWindow, int reportWindow){		
-		this.input = null;
-		this.output = null;
+	//for unit test
+	HomoplymersMode( String input, int homoWindow, int reportWindow, boolean isStrict) throws IOException{		
+		this.input = input;
+		this.output = input == null? null : input + ".out.vcf";
 		this.dbfile = null;
 		this.homopolymerWindow = homoWindow;
 		this.reportWindow = reportWindow;
-		this.isStrict2chrName = true;
+		this.isStrict2chrName = isStrict;
+		
+		if(input != null) {
+			reheader("cmd",input);
+		}
 	}
 		
 	public HomoplymersMode(Options options) throws IOException {
@@ -79,11 +83,13 @@ public class HomoplymersMode extends AbstractMode{
 	 * https://github.com/samtools/htsjdk/blob/master/src/main/java/htsjdk/samtools/reference/AbstractFastaSequenceFile.java
 	 */
 	protected static Path findSequenceDictionary(final Path path) {
+
         if (path == null) {
             return null;
         }
         // Try and locate the dictionary with the default method
-        final Path dictionary = ReferenceSequenceFileFactory.getDefaultDictionaryForReferenceSequence(path); path.toAbsolutePath();
+        final Path dictionary = ReferenceSequenceFileFactory.getDefaultDictionaryForReferenceSequence(path); 
+        path.toAbsolutePath();
         if (Files.exists(dictionary)) {
             return dictionary;
         }
@@ -295,7 +301,7 @@ public class HomoplymersMode extends AbstractMode{
 		return max == 1 ? 0 : max;
 	}
 	
-   private Map<String, byte[]> getReferenceBase(File reference) throws IOException {
+    Map<String, byte[]> getReferenceBase(File reference) throws IOException {
 	   
 	   /*
         * check to see if the index and dict file exist for the reference

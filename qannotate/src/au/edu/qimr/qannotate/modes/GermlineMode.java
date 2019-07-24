@@ -38,7 +38,7 @@ public class GermlineMode extends AbstractMode{
 	private final boolean isStrict2chrName;
 	
 	//for unit Test only
-	GermlineMode(){this.isStrict2chrName = true;}
+	GermlineMode(boolean isStrict ){ this.isStrict2chrName = isStrict; }
 
  	public GermlineMode(Options options) throws Exception{
  		this.isStrict2chrName = options.isStrict2chrName();

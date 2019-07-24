@@ -32,7 +32,7 @@ public class DbsnpMode extends AbstractMode{
 	private final boolean isStrict2chrName;
 	
 	//for unit Test
-	DbsnpMode(){ this.isStrict2chrName = false; }
+	DbsnpMode(boolean isStrict ){ this.isStrict2chrName = isStrict; }
 	
 	public DbsnpMode(Options options) throws Exception{
 		this.isStrict2chrName = options.isStrict2chrName();

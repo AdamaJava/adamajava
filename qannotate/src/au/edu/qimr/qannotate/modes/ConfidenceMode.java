@@ -38,12 +38,7 @@ import au.edu.qimr.qannotate.Options;
  */
 
 public class ConfidenceMode extends AbstractMode{
-	private final QLogger logger = QLoggerFactory.getLogger(ConfidenceMode.class);
-	
-	
-//	public static final String[] CLASS_B_FILTERS= new String[] {PASS, MUTATION_IN_UNFILTERED_NORMAL, LESS_THAN_12_READS_NORMAL, LESS_THAN_3_READS_NORMAL};
-//	public static final String[] CONTROL_FILTERS= new String[] {MUTATION_IN_UNFILTERED_NORMAL, MUTATION_IN_NORMAL, LESS_THAN_12_READS_NORMAL, LESS_THAN_8_READS_NORMAL, LESS_THAN_3_READS_NORMAL};
-	
+	private final QLogger logger = QLoggerFactory.getLogger(ConfidenceMode.class);	
 	public static final int HIGH_CONF_NOVEL_STARTS_PASSING_SCORE = 4;
 	public static final int LOW_CONF_NOVEL_STARTS_PASSING_SCORE = 4;
 	
@@ -92,8 +87,7 @@ public class ConfidenceMode extends AbstractMode{
 	private double minPercentage = MUTATION_IN_NORMAL_MIN_PERCENTAGE;
 	
 	//for unit testing
-	ConfidenceMode(){
-	}
+	ConfidenceMode(){ }
 	
 	ConfidenceMode(VcfFileMeta m){
 		this.meta = m;
@@ -213,102 +207,100 @@ public class ConfidenceMode extends AbstractMode{
 					
 					/*
 					 * check filter field - only proceed if its null, empty or '.'
+					 */						
+					boolean isControl =  controlCols != null && controlCols.contains((short) (i+1));
+					/*
+					 * add all failed filters to FT field
 					 */
-//					if (StringUtils.isNullOrEmptyOrMissingData(filterArr[i])) {
+					StringBuilder fSb = new StringBuilder();
+					
+					
+					/*
+					 * coverage next - needs to be >= the min coverage value
+					 */
+					String covS = covArr[i];
+					boolean isGATKCall = null != gqArr && ! StringUtils.isNullOrEmptyOrMissingData(gqArr[i]);
+					int cov = StringUtils.isNullOrEmptyOrMissingData(covS) ? 0 :Integer.parseInt(covS);
+					
+					if (cov < minCov || cov < (isControl ? controlCovCutoff : testCovCutoff)) {
+						StringUtils.updateStringBuilder(fSb, VcfHeaderUtils.FILTER_COVERAGE, Constants.SEMI_COLON);
+					}
 						
-						boolean isControl =  controlCols != null && controlCols.contains((short) (i+1));
+					Map<String, int[]> alleleDist = (null != oabsArr && oabsArr.length >= i) ? VcfUtils.getAllelicCoverageWithStrand(oabsArr[i]) : Collections.emptyMap();
+					/*
+					 * MIN next - only do this for control when we have a somatic call
+					 * need OABS field to be able to do this.
+					 */
+					if (isControl && isSomatic && ! isGATKCall) {
+						
+						checkMIN(alts, cov, alleleDist, fSb, minCutoff, (float) minPercentage);
+						
 						/*
-						 * add all failed filters to FT field
+						 * look for MIUN, but only if we don't already have MIN
 						 */
-						StringBuilder fSb = new StringBuilder();
-						
-						
-						/*
-						 * coverage next - needs to be >= the min coverage value
-						 */
-						String covS = covArr[i];
-						boolean isGATKCall = null != gqArr && ! StringUtils.isNullOrEmptyOrMissingData(gqArr[i]);
-						int cov = StringUtils.isNullOrEmptyOrMissingData(covS) ? 0 :Integer.parseInt(covS);
-						
-						if (cov < minCov || cov < (isControl ? controlCovCutoff : testCovCutoff)) {
+						if ( ! fSb.toString().contains(VcfHeaderUtils.FILTER_MUTATION_IN_NORMAL)) {
+							if (null != ffArr && ffArr.length > i) {
+								String failedFilter = ffArr[i];
+								checkMIUN(alts, failedFilter, fSb, miunCutoff);
+							}
+						}
+						if ( ! fSb.toString().contains(VcfHeaderUtils.FILTER_COVERAGE) && cov < controlCovCutoffForSomaticCalls) {
 							StringUtils.updateStringBuilder(fSb, VcfHeaderUtils.FILTER_COVERAGE, Constants.SEMI_COLON);
 						}
+					}
 						
-						Map<String, int[]> alleleDist = (null != oabsArr && oabsArr.length >= i) ? VcfUtils.getAllelicCoverageWithStrand(oabsArr[i]) : Collections.emptyMap();
-						/*
-						 * MIN next - only do this for control when we have a somatic call
-						 * need OABS field to be able to do this.
-						 */
-						if (isControl && isSomatic && ! isGATKCall) {
+					/*
+					 * SBIASALT and SBIASCOV - do for all samples
+					 */
+					String gt = gtArray[i];
+					if ( ! StringUtils.isNullOrEmptyOrMissingData(gt)) {
+						if ( ! "0/0".equals(gt)) {
+							int index = gt.indexOf(Constants.SLASH);
+							int []  gts = new int[] {Integer.parseInt(gt.substring(0,index)), Integer.parseInt(gt.substring(index + 1))};
 							
-							checkMIN(alts, cov, alleleDist, fSb, minCutoff, (float) minPercentage);
+							if ( ! alleleDist.isEmpty() && ! isGATKCall) {
+								checkStrandBias(alts, fSb, alleleDist, gts, sBiasCovPercentage, sBiasAltPercentage);
+							}
 							
 							/*
-							 * look for MIUN, but only if we don't already have MIN
+							 * HOM
 							 */
-							if ( ! fSb.toString().contains(VcfHeaderUtils.FILTER_MUTATION_IN_NORMAL)) {
-								if (null != ffArr && ffArr.length > i) {
-									String failedFilter = ffArr[i];
-									checkMIUN(alts, failedFilter, fSb, miunCutoff);
+							checkHOM(fSb, lhomo, IndelConfidenceMode.DEFAULT_HOMN);
+							
+							/*
+							 * check AD and NNS
+							 */
+							if ( ! isGATKCall) {
+								checkNNS(nnsArr[i], fSb, nnsCount);
+							}
+							
+							
+							if (applyMutantReadFilter(gts, adArr[i], percentageMode ? (int)(mrPercentage * cov) : mrCount)) {
+								StringUtils.updateStringBuilder(fSb, VcfHeaderUtils.FORMAT_MUTANT_READS, Constants.SEMI_COLON);
+							}
+							
+							/*
+							 * end of read check
+							 */
+							if ( ! isGATKCall && null != eorArr) {
+								int eor = endsOfReads(alts, gt, alleleDist, eorArr[i]);
+								if (eor > 0) {
+									StringUtils.updateStringBuilder(fSb, "5BP=" + eor, Constants.SEMI_COLON);
 								}
 							}
-							if ( ! fSb.toString().contains(VcfHeaderUtils.FILTER_COVERAGE) && cov < controlCovCutoffForSomaticCalls) {
-								StringUtils.updateStringBuilder(fSb, VcfHeaderUtils.FILTER_COVERAGE, Constants.SEMI_COLON);
-							}
 						}
+					}
 						
-						/*
-						 * SBIASALT and SBIASCOV - do for all samples
-						 */
-						String gt = gtArray[i];
-						if ( ! StringUtils.isNullOrEmptyOrMissingData(gt)) {
-							if ( ! "0/0".equals(gt)) {
-								int index = gt.indexOf(Constants.SLASH);
-								int []  gts = new int[] {Integer.parseInt(gt.substring(0,index)), Integer.parseInt(gt.substring(index + 1))};
-								
-								if ( ! alleleDist.isEmpty() && ! isGATKCall) {
-									checkStrandBias(alts, fSb, alleleDist, gts, sBiasCovPercentage, sBiasAltPercentage);
-								}
-								
-								/*
-								 * HOM
-								 */
-								checkHOM(fSb, lhomo, IndelConfidenceMode.DEFAULT_HOMN);
-								
-								/*
-								 * check AD and NNS
-								 */
-								if ( ! isGATKCall) {
-									checkNNS(nnsArr[i], fSb, nnsCount);
-								}
-								
-								
-								if (applyMutantReadFilter(gts, adArr[i], percentageMode ? (int)(mrPercentage * cov) : mrCount)) {
-									StringUtils.updateStringBuilder(fSb, VcfHeaderUtils.FORMAT_MUTANT_READS, Constants.SEMI_COLON);
-								}
-								
-								/*
-								 * end of read check
-								 */
-								if ( ! isGATKCall && null != eorArr) {
-									int eor = endsOfReads(alts, gt, alleleDist, eorArr[i]);
-									if (eor > 0) {
-										StringUtils.updateStringBuilder(fSb, "5BP=" + eor, Constants.SEMI_COLON);
-									}
-								}
-							}
+					filterArr[i] = fSb.length() == 0 ? VcfHeaderUtils.FILTER_PASS : fSb.toString();
+					/*
+					 * deal with homozygous loss instances where we potentially have no coverage in test - still mark as a pass
+					 */
+					if (null != ccmArr) {
+						int ccm = Integer.parseInt(ccmArr[i]);
+						if (ccm == 11 || ccm == 21 || ccm == 31 || ccm == 41) {
+							filterArr[i] = VcfHeaderUtils.FILTER_PASS;
 						}
-						
-						filterArr[i] = fSb.length() == 0 ? VcfHeaderUtils.FILTER_PASS : fSb.toString();
-						/*
-						 * deal with homozygous loss instances where we potentially have no coverage in test - still mark as a pass
-						 */
-						if (null != ccmArr) {
-							int ccm = Integer.parseInt(ccmArr[i]);
-							if (ccm == 11 || ccm == 21 || ccm == 31 || ccm == 41) {
-								filterArr[i] = VcfHeaderUtils.FILTER_PASS;
-							}
-						}
+					}
 				}
 				
 				/*
