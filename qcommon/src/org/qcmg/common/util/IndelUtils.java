@@ -190,33 +190,33 @@ public class IndelUtils {
 	 * @param ref
 	 * @return
 	 */
-	public static String getFullChromosome(String ref) {
-		if (ref == null ) return null; //stop exception
-		
-        if (ref.startsWith(Constants.CHR)) {
-        	return ref;
-        }
-		
-		if (ref.equals("X") || ref.equals("Y") || ref.equals("M") || ref.equals("MT")) {
-			return "chr" + ref;
-		}
-		
-		/*
-		 * If ref is an integer less than 23, slap "chr" in front of it
-		 */
-		if (Character.isDigit(ref.charAt(0))) {
-			try {
-				int refInt = Integer.parseInt(ref);
-				if (refInt < 23 && refInt > 0) {
-					return Constants.CHR + ref;
-				}
-			} catch (NumberFormatException nfe) {
-				// don't do anything here - will return the original reference
-			}
-		}
-		
-		return ref;
-	}
+//	public static String getFullChromosome(String ref) {
+//		if (ref == null ) return null; //stop exception
+//		
+//        if (ref.startsWith(Constants.CHR)) {
+//        	return ref;
+//        }
+//		
+//		if (ref.equals("X") || ref.equals("Y") || ref.equals("M") || ref.equals("MT")) {
+//			return "chr" + ref;
+//		}
+//		
+//		/*
+//		 * If ref is an integer less than 23, slap "chr" in front of it
+//		 */
+//		if (Character.isDigit(ref.charAt(0))) {
+//			try {
+//				int refInt = Integer.parseInt(ref);
+//				if (refInt < 23 && refInt > 0) {
+//					return Constants.CHR + ref;
+//				}
+//			} catch (NumberFormatException nfe) {
+//				// don't do anything here - will return the original reference
+//			}
+//		}
+//		
+//		return ref;
+//	}
 
 	/**
 	 * 

@@ -66,7 +66,7 @@ public class QLoggerFactory {
 	 * @see QLoggerFactory#getLogger(Class, String, String)
 	 */
 	public synchronized static QLogger getLogger(Class<?> clazz) {
-		return getLogger(clazz, null, null);
+		return getLogger( clazz, null, null );
 	}
 	
 	private static void setupParentLogger(String logFile, String logLevel) {
