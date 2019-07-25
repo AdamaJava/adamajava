@@ -1095,23 +1095,11 @@ public class VcfUtils {
 		}
 	}
 	
-//	public static boolean isDPFormatFieldPresent(VcfRecord v) {
-//		return v.getFormatFields().get(0).contains(VcfHeaderUtils.FORMAT_READ_DEPTH);
-//	}
-	
 	public static final void prepareGATKVcfForMerge(VcfRecord v) {
 		/*
 		 * need to remove AC and AN from info field
 		 */
 		removeElementsFromInfoField(v);
-//		VcfInfoFieldRecord i = v.getInfoRecord();
-//		if (null != i) {
-//			i.removeField("AN");
-//			i.removeField("AC");
-//			i.removeField("AF");
-//			i.removeField("MLEAF");
-//			i.removeField("MLEAC");
-//		}
 		Map<String, String[]> ffMap = getFormatFieldsAsMap(v.getFormatFields());
 		ffMap.remove("PL");
 		
@@ -1120,7 +1108,6 @@ public class VcfUtils {
 		 */
 		ffMap.computeIfAbsent(VcfHeaderUtils.FORMAT_READ_DEPTH, f -> new String[]{Constants.MISSING_DATA_STRING});
 		ffMap.computeIfAbsent(VcfHeaderUtils.FORMAT_ALLELIC_DEPTHS, f -> new String[]{Constants.MISSING_DATA_STRING});
-//		ffMap.computeIfAbsent(VcfHeaderUtils.FORMAT_INFO, f -> new String[]{Constants.MISSING_DATA_STRING});
 		ffMap.computeIfAbsent(VcfHeaderUtils.FORMAT_QL, f -> new String[]{StringUtils.isNullOrEmptyOrMissingData(v.getQualString()) ? Constants.MISSING_DATA_STRING : v.getQualString()});
 		/*
 		 * reset qual field as it won't be applicable once merged
