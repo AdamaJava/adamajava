@@ -38,7 +38,8 @@ import au.edu.qimr.qannotate.Options;
  */
 
 public class ConfidenceMode extends AbstractMode{
-	private final QLogger logger = QLoggerFactory.getLogger(ConfidenceMode.class);	
+	private final QLogger logger = QLoggerFactory.getLogger(ConfidenceMode.class);
+	
 	public static final int HIGH_CONF_NOVEL_STARTS_PASSING_SCORE = 4;
 	public static final int LOW_CONF_NOVEL_STARTS_PASSING_SCORE = 4;
 	
@@ -87,8 +88,10 @@ public class ConfidenceMode extends AbstractMode{
 	private double minPercentage = MUTATION_IN_NORMAL_MIN_PERCENTAGE;
 	
 	//for unit testing
-	ConfidenceMode(){ }
-	
+	ConfidenceMode(){
+//		this.testCols = new TShortArrayList(testCol);
+//		this.controlCols = new TShortArrayList(controlCol);
+	}
 	ConfidenceMode(VcfFileMeta m){
 		this.meta = m;
 		testCols = meta.getAllTestPositions();
@@ -99,9 +102,11 @@ public class ConfidenceMode extends AbstractMode{
 	public ConfidenceMode( Options options) throws Exception{				 
 		logger.tool("input: " + options.getInputFileName());
         logger.tool("output annotated records: " + options.getOutputFileName());
-  		
-        //there is no database file, we use input vcf chromosome name directory.
-		loadVcfRecordsFromFile(new File( options.getInputFileName()), true  );	
+        logger.tool("logger file " + options.getLogFileName());
+        logger.tool("logger level " + (options.getLogLevel() == null ? QLoggerFactory.DEFAULT_LEVEL.getName() :  options.getLogLevel()));
+ 		
+        //there is no db file, we always use the chromosome from input, so isStrictName == true;
+		loadVcfRecordsFromFile(new File( options.getInputFileName()) , true  );	
 		
 		options.getNNSCount().ifPresent(i -> nnsCount = i.intValue());
 		options.getMRCount().ifPresent(i -> mrCount = i.intValue());
@@ -131,8 +136,22 @@ public class ConfidenceMode extends AbstractMode{
 		controlCols = meta.getAllControlPositions();
 
 		addAnnotation();
-		reheader(options.getCommandLine(),options.getInputFileName())	;	
-		writeVCF(new File(options.getOutputFileName()) );	
+		addVcfHeaderFilters();
+		reheader(options.getCommandLine(),options.getInputFileName());	
+		writeVCF(new File(options.getOutputFileName()) );
+	}
+	
+	public void addVcfHeaderFilters() {
+		header.addFilter(VcfHeaderUtils.FILTER_COVERAGE, VcfHeaderUtils.FILTER_COVERAGE_DESC
+				+ ", test coverage minimum value: " + testCovCutoff + ", control coverage minimum value (somatic/germline): "
+				+ controlCovCutoffForSomaticCalls + "/" + controlCovCutoff);
+		header.addFilter(VcfHeaderUtils.FILTER_MUTATION_IN_NORMAL,"Mutation also found in pileup of normal (>= " + minPercentage + "% of reads)");
+		header.addFilter(VcfHeaderUtils.FILTER_MUTATION_IN_UNFILTERED_NORMAL,"Mutation also found in pileup of unfiltered normal (>= " + miunCutoff + " reads)");  
+		header.addFilter(VcfHeaderUtils.FILTER_NOVEL_STARTS,"Less than " + nnsCount + " novel starts not considering read pair");
+		header.addFilter(VcfHeaderUtils.FILTER_MUTANT_READS,"Less than " + (mrPercentage > 0.0f ? mrPercentage +"%" : mrCount) + " mutant reads");
+		header.addFilter(VcfHeaderUtils.FILTER_STRAND_BIAS_ALT,"Alternate allele on only one strand (or percentage alternate allele on other strand is less than " + sBiasAltPercentage + "%)"); 
+		header.addFilter(VcfHeaderUtils.FILTER_STRAND_BIAS_COV,"Sequence coverage on only one strand (or percentage coverage on other strand is less than " + sBiasCovPercentage + "%)");
+		header.addFilter(VcfHeaderUtils.FILTER_END_OF_READ, VcfHeaderUtils.FILTER_END_OF_READ_DESC);
 	}
 
 	public void setMRPercentage(double perc) {
@@ -175,6 +194,7 @@ public class ConfidenceMode extends AbstractMode{
 				
 				String [] gtArray = ffMap.get(VcfHeaderUtils.FORMAT_GENOTYPE);
 				String [] nnsArr = ffMap.get(VcfHeaderUtils.FILTER_NOVEL_STARTS);
+//				String [] mrArr = ffMap.get(VcfHeaderUtils.FORMAT_MUTANT_READS);
 				String [] filterArr = ffMap.get(VcfHeaderUtils.FORMAT_FILTER);
 				String [] covArr = ffMap.get(VcfHeaderUtils.FORMAT_READ_DEPTH);
 				String [] ccmArr = ffMap.get(VcfHeaderUtils.FORMAT_CCM);
@@ -204,10 +224,6 @@ public class ConfidenceMode extends AbstractMode{
 						continue;
 					}
 					
-					
-					/*
-					 * check filter field - only proceed if its null, empty or '.'
-					 */						
 					boolean isControl =  controlCols != null && controlCols.contains((short) (i+1));
 					/*
 					 * add all failed filters to FT field
@@ -225,7 +241,7 @@ public class ConfidenceMode extends AbstractMode{
 					if (cov < minCov || cov < (isControl ? controlCovCutoff : testCovCutoff)) {
 						StringUtils.updateStringBuilder(fSb, VcfHeaderUtils.FILTER_COVERAGE, Constants.SEMI_COLON);
 					}
-						
+					
 					Map<String, int[]> alleleDist = (null != oabsArr && oabsArr.length >= i) ? VcfUtils.getAllelicCoverageWithStrand(oabsArr[i]) : Collections.emptyMap();
 					/*
 					 * MIN next - only do this for control when we have a somatic call
@@ -268,12 +284,11 @@ public class ConfidenceMode extends AbstractMode{
 							checkHOM(fSb, lhomo, IndelConfidenceMode.DEFAULT_HOMN);
 							
 							/*
-							 * check AD and NNS
+							 * check mutant read count and novel starts
 							 */
 							if ( ! isGATKCall) {
 								checkNNS(nnsArr[i], fSb, nnsCount);
 							}
-							
 							
 							if (applyMutantReadFilter(gts, adArr[i], percentageMode ? (int)(mrPercentage * cov) : mrCount)) {
 								StringUtils.updateStringBuilder(fSb, VcfHeaderUtils.FORMAT_MUTANT_READS, Constants.SEMI_COLON);
@@ -363,7 +378,7 @@ public class ConfidenceMode extends AbstractMode{
 		if (null != alts && null != alleleDist) {
 			for (String alt : alts) {
 				int altCov = Arrays.stream(alleleDist.getOrDefault(alt, new int[]{0,0})).sum();
-				boolean min = VcfUtils.mutationInNorma(altCov, coverage, minPercentage, minCutoff);
+				boolean min = VcfUtils.mutationInNormal(altCov, coverage, minPercentage, minCutoff);
 				if (min) {
 					StringUtils.updateStringBuilder(sb, VcfHeaderUtils.FILTER_MUTATION_IN_NORMAL, Constants.SEMI_COLON);
 					break;
@@ -501,4 +516,3 @@ public class ConfidenceMode extends AbstractMode{
 		// TODO Auto-generated method stub		
 	}  
 }	
-	
