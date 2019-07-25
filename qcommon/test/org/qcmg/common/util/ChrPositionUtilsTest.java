@@ -226,7 +226,7 @@ public class ChrPositionUtilsTest {
 		
 		assertEquals("chr10", ChrPositionUtils.ChrNameConveter("10"));
 		assertEquals("chr10", ChrPositionUtils.ChrNameConveter("chr10"));
-		assertEquals("chrM", ChrPositionUtils.ChrNameConveter("M"));
+		assertEquals("chrMT", ChrPositionUtils.ChrNameConveter("M"));
 		assertEquals("chrMT", ChrPositionUtils.ChrNameConveter("MT"));
 		assertEquals("GL12345", ChrPositionUtils.ChrNameConveter("GL12345"));
 	}
@@ -242,10 +242,10 @@ public class ChrPositionUtilsTest {
 		assertEquals("chr1", ChrPositionUtils.ChrNameConveter("1"));
 		assertEquals("chrY", ChrPositionUtils.ChrNameConveter("Y"));
 		assertEquals("chrX", ChrPositionUtils.ChrNameConveter("X"));
-		assertEquals("chrM", ChrPositionUtils.ChrNameConveter("M"));
+		assertEquals("chrMT", ChrPositionUtils.ChrNameConveter("M"));
 		assertEquals("chrMT", ChrPositionUtils.ChrNameConveter("MT"));
 		assertEquals("chrMT", ChrPositionUtils.ChrNameConveter("chrMT"));
-		assertEquals("chrM", ChrPositionUtils.ChrNameConveter("chrM"));
+		assertEquals("chrMT", ChrPositionUtils.ChrNameConveter("chrM"));
 		assertEquals("MTT", ChrPositionUtils.ChrNameConveter("MTT"));
 		assertEquals("GL123", ChrPositionUtils.ChrNameConveter("GL123"));
 		assertEquals("chr10", ChrPositionUtils.ChrNameConveter("chr10"));
