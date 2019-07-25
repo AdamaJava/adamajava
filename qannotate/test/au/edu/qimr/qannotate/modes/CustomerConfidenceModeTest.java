@@ -8,9 +8,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
-import org.junit.AfterClass;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.model.MafConfidence;
 import org.qcmg.common.vcf.VcfInfoFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
@@ -20,25 +20,24 @@ import org.qcmg.vcf.VCFFileReader;
 import au.edu.qimr.qannotate.utils.SampleColumn;
 
 public class CustomerConfidenceModeTest {
-	
-	 @AfterClass
-	 public static void deleteIO(){
-		 new File(DbsnpModeTest.inputName).delete();
-	 }
+
+	@Rule
+	public final TemporaryFolder testFolder = new TemporaryFolder();
 	 
 	 @Test
 	 public void sampleidTest() throws Exception{
-		createInputFile();
+		File input = createInputFile();
+		File output = testFolder.newFile();
 		final CustomerConfidenceMode mode = new CustomerConfidenceMode();		
-		mode.loadVcfRecordsFromFile(new File(DbsnpModeTest.inputName),true);
+		mode.loadVcfRecordsFromFile( input ,true);
 			 
 		SampleColumn column =  SampleColumn.getSampleColumn(null,null,  mode.header);
 		mode.setSampleColumn(column.getTestSampleColumn(), column.getControlSampleColumn() );
 		mode.addAnnotation();
-		mode.reheader("testing run",   DbsnpModeTest.inputName );
-		mode.writeVCF(new File(DbsnpModeTest.outputName));
+		mode.reheader("testing run",   input.getAbsolutePath() );
+		mode.writeVCF( output );
 		
-		try(VCFFileReader reader = new VCFFileReader(DbsnpModeTest.outputName)){			
+		try(VCFFileReader reader = new VCFFileReader( output )){			
 			for (final VcfRecord re : reader) {		
 				final VcfInfoFieldRecord infoRecord = new VcfInfoFieldRecord(re.getInfo()); 				
 				if(re.getPosition() == 41281388) 
@@ -51,7 +50,7 @@ public class CustomerConfidenceModeTest {
 		}		 
 	 }
 						
-	public static void createInputFile() throws IOException{
+	public File createInputFile() throws IOException{
         final List<String> data = new ArrayList<String>();
         data.add("##fileformat=VCFv4.2");
 //        data.add("##");
@@ -63,9 +62,12 @@ public class CustomerConfidenceModeTest {
         data.add("chr3\t41281389\t.\tT\tG\t.\t%5BP67\tFLANK=ATTTAGCAAAC;CONF=HIGH\tGT:GD:AC:MR:NNS\t0/1:G/T:A0[0],15[16.53],C1[38],0[0],G0[0],105[27.78],T112[37.92],106[22.47]:105:2\t0/1:G/T:A0[0],15[16.53],C1[38],0[0],G0[0],15[27.78],T112[37.92],106[22.47]:15:2");
         data.add("chr3\t41281390\t.\tT\tG\t.\tSBIAS;SBIASCOV\tFLANK=ATTTAGCAAAC;CONF=HIGH\tGT:GD:AC:MR:NNS\t0/1:G/T:A0[0],15[16.53],C1[38],0[0],G0[0],105[27.78],T112[37.92],106[22.47]:105:2\t0/1:G/T:A0[0],15[16.53],C1[38],0[0],G0[0],15[27.78],T112[37.92],106[22.47]:15:2");
 
-        try(BufferedWriter out = new BufferedWriter(new FileWriter(DbsnpModeTest.inputName));){      
+        File input = testFolder.newFile();
+        try(BufferedWriter out = new BufferedWriter(new FileWriter( input ));){      
            for (final String line : data)  out.write(line + "\n");
         }
+        
+        return input;
 	          
 	}
 }

@@ -12,9 +12,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.AfterClass;
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.model.MafConfidence;
 import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.Constants;
@@ -27,16 +28,15 @@ import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 
 
+
 public class ConfidenceModeTest {
 	
 	 public static final VcfFileMeta TWO_SAMPLE_TWO_CALLER_META = new VcfFileMeta( CCMModeTest.createTwoSampleTwoCallerVcf());
 	 public static final VcfFileMeta SINGLE_SAMPLE_TWO_CALLER_META = new VcfFileMeta( CCMModeTest.createSingleSampleTwoCallerVcf());
+
+	 @Rule
+	 public final TemporaryFolder testFolder = new TemporaryFolder();
 	
-	 @AfterClass
-	 public static void deleteIO(){
-		 new File(DbsnpModeTest.inputName).delete();
-		 new File(DbsnpModeTest.outputName).delete();		 
-	 }
 	 
 	 @Test
 	 public void testThresholds() {
@@ -923,10 +923,12 @@ public class ConfidenceModeTest {
 	
 	 @Ignore
 	 public void confidenceTest() throws IOException, Exception{	
-	 	DbsnpModeTest.createVcf();
+	 	File input = new DbsnpModeTest().createVcf();
+	 	File output = testFolder.newFile();
+	 	
 		final ConfidenceMode mode = new ConfidenceMode();	
 		//no database required, chromosome name only from input file
-		mode.loadVcfRecordsFromFile(new File(DbsnpModeTest.inputName), true);
+		mode.loadVcfRecordsFromFile(input, true);
 
 		String Scontrol = "EXTERN-MELA-20140505-001";
 		String Stest = "EXTERN-MELA-20140505-002";
@@ -935,10 +937,10 @@ public class ConfidenceModeTest {
 		mode.header.addOrReplace("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tEXTERN-MELA-20140505-001\tEXTERN-MELA-20140505-002");			
 		
 		mode.addAnnotation();
-		mode.reheader("unitTest", DbsnpModeTest.inputName);
-		mode.writeVCF(new File(DbsnpModeTest.outputName)  );
+		mode.reheader("unitTest", input.getAbsolutePath());
+		mode.writeVCF(output  );
 		
-		try(VCFFileReader reader = new VCFFileReader(DbsnpModeTest.outputName)){			 
+		try(VCFFileReader reader = new VCFFileReader( output); ){			 
 			for (final VcfRecord re : reader) {
 				String ff = re.getFormatFieldStrings();
 				if(re.getPosition() == 2675826) {
@@ -962,9 +964,12 @@ public class ConfidenceModeTest {
 	 
 	 @Ignore
 	 public void sampleColumnNoIDTest() throws IOException, Exception{	
-	 	DbsnpModeTest.createVcf();
+		 
+	 	File input = new DbsnpModeTest().createVcf();
+	 	File output = testFolder.newFile();
+		 
 		final ConfidenceMode mode = new ConfidenceMode();		
-		mode.loadVcfRecordsFromFile(new File(DbsnpModeTest.inputName), true);
+		mode.loadVcfRecordsFromFile(input, true);
 
 		String Scontrol = "EXTERN-MELA-20140505-001";
 		String Stest = "EXTERN-MELA-20140505-002";
@@ -973,10 +978,10 @@ public class ConfidenceModeTest {
 		mode.header.addOrReplace("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tqControlSample\tqTestSample");			
 		
 		mode.addAnnotation();
-		mode.reheader("unitTest", DbsnpModeTest.inputName);
-		mode.writeVCF(new File(DbsnpModeTest.outputName)  );
+		mode.reheader("unitTest", input.getAbsolutePath());
+		mode.writeVCF(output );
 		
-		try(VCFFileReader reader = new VCFFileReader(DbsnpModeTest.outputName)){
+		try(VCFFileReader reader = new VCFFileReader( output )){
 			for (final VcfRecord re : reader) {		
 				final VcfInfoFieldRecord infoRecord = new VcfInfoFieldRecord(re.getInfo()); 				
 				if(re.getPosition() == 2675826) 

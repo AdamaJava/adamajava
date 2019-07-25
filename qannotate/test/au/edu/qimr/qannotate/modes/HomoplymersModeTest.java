@@ -10,8 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -24,17 +22,11 @@ import org.qcmg.picard.Faidx;
 public class HomoplymersModeTest {
 	@Rule
 	public final TemporaryFolder testFolder = new TemporaryFolder();
-	private File refFile;
- 
-	
-	@Before
-	public void createSequenceFile() throws IOException {
-		refFile = testFolder.newFile("test.fa");
-		createFaFile(refFile.getAbsolutePath());
-	}
+
 	
 	@Test
 	public void refNameTest() throws IOException {
+		File refFile = createFaFile();		
 		String chr = "chrMT";
 		//SNP  in strict mode  chrM != chrMT
 		VcfRecord re = new VcfRecord(new String[] { chr, "1", null, "T", "A" });		
@@ -50,7 +42,7 @@ public class HomoplymersModeTest {
 		
 		//notStrict mode MT == chrM
 		chr = "MT";
-		String fvcf = testFolder.newFile("test.vcf").getAbsolutePath();
+		String fvcf = testFolder.newFile().getAbsolutePath();
         try(BufferedWriter out = new BufferedWriter(new FileWriter(fvcf));) {    
         	 out.write("##fileformat=VCFv4.2\n"+VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "\n");    
         	 out.write(new VcfRecord(new String[] { chr, "1", null, "T", "A" }).toString());                          
@@ -72,6 +64,7 @@ public class HomoplymersModeTest {
 	@Test
 	public void startOfContig() throws IOException {
 		String chr = "chr1";
+		File refFile = createFaFile();	
 		
 		//SNP  in strict mode but both ref and vcf have chr1
 		VcfRecord re = new VcfRecord(new String[] { chr, "1", null, "T", "A" });		
@@ -94,6 +87,7 @@ public class HomoplymersModeTest {
 	@Test
 	public void endOfContig() throws IOException {
 		String chr = "chr1";
+		File refFile = createFaFile();	
 		//SNP
 		VcfRecord re = new VcfRecord(new String[] {  chr, "40", null, "T", "A" });		
 		HomoplymersMode  homo = new HomoplymersMode(null, 3,3, true);
@@ -115,6 +109,7 @@ public class HomoplymersModeTest {
 	@Test
 	public void testInsert() throws IOException{	
 		String chr = "chr1";
+		File refFile = createFaFile();	
 		VcfRecord re = new VcfRecord( new String[] {chr, "21",null, "T", "TTAA" });
 		
 		//small insertion inside reference region
@@ -146,6 +141,7 @@ public class HomoplymersModeTest {
 	@Test
 	public void testDel() throws IOException{
 		String chr = "chr1";
+		File refFile = createFaFile();	
 		VcfRecord re = new VcfRecord(new String[] {  chr, "21", null, "TCC", "T" });		
 		HomoplymersMode  homo = new HomoplymersMode(null, 3,4, true);	
 		Map<String, byte[]> referenceBase = homo.getReferenceBase(refFile);
@@ -169,6 +165,7 @@ public class HomoplymersModeTest {
 	@Test
 	public void testSNP() throws IOException{
 		String chr = "chr1";
+		File refFile = createFaFile();	
 		//MNP
 		VcfRecord re = new VcfRecord(new String[] {  chr, "21", null, "TCC", "AGG" });		
 		HomoplymersMode  homo = new HomoplymersMode(null, 3,4, true);
@@ -428,7 +425,7 @@ public class HomoplymersModeTest {
 		return (max == 1)? 0 : max;
 	}
 	
-	public void  createFaFile(String file) throws IOException {    
+	public File  createFaFile() throws IOException {    
 		/**
 		1  AATGC
 		6  AATTG
@@ -439,19 +436,24 @@ public class HomoplymersModeTest {
 		31 CCCCC
 		36 CCCCC
 	*/	
+		
+		//int id = (int) (Math.random() * 10000);
+		File file = testFolder.newFile();
+		file = new File(file.getAbsolutePath() + ".fa");
     	final List<String> data = new ArrayList<>();
         data.add(">chr1  AC:CM000663.2  gi:568336023  LN:248956422  rl:Chromosome  M5:6aef897c3d6ff0c78aff06ac189178dd  AS:GRCh38");      
         data.add("AATGCAATTGGATCGGACCCTCCCCCCCCCCCCCCCCCCC");          	
         data.add(">chrM  AC:J01415.2  gi:113200490  LN:16569  rl:Mitochondrion  M5:c68f52674c9fb33aef52dcf399755519  AS:GRCh38  tp:circular");      
         data.add("AATGCAATTGGATCGGACCCTCCCCCCCCCCCCCCCCCCC");
  
-        try(BufferedWriter out = new BufferedWriter(new FileWriter(file));) {          
+        try(BufferedWriter out = new BufferedWriter( new FileWriter(file));) {          
            for (final String line : data)  out.write(line + "\n");
         } 
     	//creat index file
-        Faidx idx = new Faidx(new File(file));
-        idx.outputIdx(file + ".fai");
-        idx.outputDict(file + ".dict");
+        Faidx idx = new Faidx(file);
+        idx.outputIdx(file.getAbsolutePath() + ".fai");
+        idx.outputDict(file.getAbsolutePath() + ".dict");
         
+        return file;      
 	}
 }
