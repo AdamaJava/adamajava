@@ -1504,7 +1504,7 @@ public class VcfUtils {
 	 * @param minCoverage
 	 * @return
 	 */
-	public static boolean mutationInNorma(int altCount, int totalReadCount, float percentage, int maxCoverage) {
+	public static boolean mutationInNormal(int altCount, int totalReadCount, float percentage, int maxCoverage) {
 		if (altCount == 0) {
 			return false;
 		}
@@ -1520,7 +1520,7 @@ public class VcfUtils {
 		float passingCount = totalReadCount > 0 ? (((float)totalReadCount / 100) * percentage) : 0;
 		return altCount >= passingCount;
 	}
-	public static boolean mutationInNorma(int altCount, int totalReadCount, int percentage, int maxCoverage) {
-		return mutationInNorma(altCount, totalReadCount, (float) percentage, maxCoverage);
+	public static boolean mutationInNormal(int altCount, int totalReadCount, int percentage, int maxCoverage) {
+		return mutationInNormal(altCount, totalReadCount, (float) percentage, maxCoverage);
 	}
 }

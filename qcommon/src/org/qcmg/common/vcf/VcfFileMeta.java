@@ -83,8 +83,35 @@ public class VcfFileMeta {
 		}
 		
 		if (controlSamplePositions.isEmpty() && testSamplePositions.isEmpty()) {
-			//hmmm...
-			throw new IllegalArgumentException("unable to determine control and test positions from VcfHeader to be able to create VcfFileMeta object: " + chrLine);
+			/*
+			 * maybe the CHROM line is using the sample names rather than the BAM UUIDs
+			 */
+			for (short i = 1 ; i <= ffs.length ; i++ ) {
+				String s = ffs[i - 1];
+				
+				/*
+				 * choose caller string based on suffix of sample if there is one, or caller 
+				 */
+				int index = s.indexOf('_');
+				String caller = index > -1 ? s.substring(index  + 1) : callerId + "";
+				
+				if (controlSamples.stream().anyMatch(cs -> s.startsWith(cs))) {
+					controlSamplePositions.add(i);
+					callerSamplePositions.computeIfAbsent(caller, v -> new short[2])[0] = i;
+				}
+				if (testSamples.stream().anyMatch(cs -> s.startsWith(cs))) {
+					testSamplePositions.add(i);
+					callerSamplePositions.computeIfAbsent(caller, v -> new short[2])[1] = i;
+					callerId++;
+				}
+			}
+			
+			/*
+			 * If positions are still empty, throw an exception - we cant continue
+			 */
+			if (controlSamplePositions.isEmpty() && testSamplePositions.isEmpty()) {
+				throw new IllegalArgumentException("unable to determine control and test positions from VcfHeader to be able to create VcfFileMeta object: " + chrLine);
+			}
 		}
 		
 		/*
