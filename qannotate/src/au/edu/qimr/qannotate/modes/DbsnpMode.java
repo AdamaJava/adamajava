@@ -81,7 +81,7 @@ public class DbsnpMode extends AbstractMode{
 			//each dbSNP check twice, since indel alleles followed by one reference base, eg. chr1 100 . TT T ...			
 			for (final VcfRecord dbSNPVcf : reader) {				
 				//conver chr name if ambiguous mode, otherwise use original one
-				ChrPosition dbSnpCP = ChrPositionUtils.getNewchrNameIfStrict(dbSNPVcf.getChrPosition(), isStrict2chrName) ;
+				ChrPosition dbSnpCP = ChrPositionUtils.getNewchrName(dbSNPVcf.getChrPosition(), isStrict2chrName) ;
 	
 				List<VcfRecord> inputVcfs = positionRecordMap.get(dbSnpCP);
 				if (null != inputVcfs && inputVcfs.size() != 0){

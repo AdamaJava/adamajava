@@ -50,7 +50,7 @@ abstract class AbstractMode {
         	header = reader.getHeader();
         	//no chr in front of position
 			for (final VcfRecord vcf : reader) {
-				ChrPosition pos = ChrPositionUtils.getNewchrNameIfStrict(vcf.getChrPosition(), isStrictName) ;				
+				ChrPosition pos = ChrPositionUtils.getNewchrName(vcf.getChrPosition(), isStrictName) ;				
 				//used converted  chr name as key but vcf is kept as original 
 				positionRecordMap.computeIfAbsent(pos, function -> new ArrayList<VcfRecord>(2)).add(vcf);
 			}

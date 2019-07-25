@@ -21,7 +21,6 @@ import org.qcmg.vcf.VCFFileWriter;
 
 import au.edu.qimr.qannotate.Options;
 
-//???? next day
 public class TandemRepeatMode  extends AbstractMode{
 	private static final int BLOCK_INDEX_GAP = 100; //insert index for big block
 	private static final int MaxErrLine = 100; 
@@ -34,14 +33,21 @@ public class TandemRepeatMode  extends AbstractMode{
 	private final boolean isStrict2chrName;
 	
 	//for unit test only
-	@Deprecated
-	TandemRepeatMode( String input, String output, int buffer) {	
-		this.input = input;
-		this.output = output;
+	TandemRepeatMode(  int buffer, boolean isStrict) {	
+		this.input = null;
+		this.output = null;
 		this.commandLine = null;
 		this.buffer = buffer;
-		this.isStrict2chrName = true;
-	}	
+		this.isStrict2chrName = isStrict;
+	}
+	
+//	TandemRepeatMode( String input, String output, int buffer, boolean isStrict) {	
+//		this.input = input;
+//		this.output = output;
+//		this.commandLine = null;
+//		this.buffer = buffer;
+//		this.isStrict2chrName = isStrict;
+//	}
 	
 	public TandemRepeatMode( Options options) throws IOException{	
 		input = options.getInputFileName();
@@ -59,41 +65,30 @@ public class TandemRepeatMode  extends AbstractMode{
 	}	
 	
 	static class Repeat {
-//		final String chr;
 	    final int start;
 		final int end;
 		final int patternLength;
 		final int patternNo; 
 		
 		Repeat(String chr,int start, int end, int length, int no){
-//			this.chr = chr;
 			this.start = start;
 			this.end = end;
 			this.patternLength = length;
 			this.patternNo = no;			
 		}
-		
-		//convert line from dbfile and return a Repeat
-		//chr1    11114   11123   5       2.0     5       100     0       20      0.97    GGCGC
-//		Repeat(String str) throws NumberFormatException{	
-//			new Repeat(str.split(Constants.TAB_STRING) );	 			
-//		}
-		
+				
 		//convert line from dbfile and return a Repeat
 		//chr1    11114   11123   5       2.0     5       100     0       20      0.97    GGCGC		
 		Repeat(String[] array) throws NumberFormatException{				
- //           String[] array = str.split(Constants.TAB_STRING);
-//			this.chr =  array[0] ; //keep original first
 			this.start = Integer.parseInt(array[1]);
 			this.end = Integer.parseInt(array[2]);
 			this.patternLength = Integer.parseInt(array[3]);
 			this.patternNo = (int) (Float.parseFloat(array[4]) + 0.5);			 			
-		}		
-		
+		}				
 		String printMark(){		return patternLength + "_" + patternNo;	 }
 	}
 	
-	class Block {
+	static class Block {
 		private final int start;
 		private final int end;
 		private final List<Repeat> repeats; 
@@ -126,15 +121,15 @@ public class TandemRepeatMode  extends AbstractMode{
 		
 	}
 
-	class BlockIndex {
+	static class BlockIndex {
 		final int firstBlockStart;
 		final int lastBlockEnd;
-		final Map<Integer, Block> index;
+		final Map<Integer, Block> indexs;
 		
 		BlockIndex(int s, int e, Map<Integer, Block> in){
 			this.firstBlockStart = s;
 			this.lastBlockEnd = e;
-			this.index = in;
+			this.indexs = in;
 		}
 	}
 	
@@ -160,13 +155,11 @@ public class TandemRepeatMode  extends AbstractMode{
 			logger.info("annotating vcfs from inputs " );
 			
 	        for (final VcfRecord vcf : reader) { 
-				String chr = isStrict2chrName? vcf.getChromosome(): ChrPositionUtils.ChrNameConveter(vcf.getChromosome());
-
-		        	//String vcfchr =  IndelUtils.getFullChromosome(vcf.getChromosome());	         
-	 	    		if(annotate(vcf, indexedBlock.get(chr)))
-	 	    			repeatCount ++; 	    			
-		    		count++;
-		    		writer.add(vcf);
+				String chr = isStrict2chrName? vcf.getChromosome(): ChrPositionUtils.ChrNameConveter(vcf.getChromosome());         
+ 	    		if(annotate(vcf, indexedBlock.get(chr)))
+ 	    			repeatCount ++; 	    			
+	    		count++;
+	    		writer.add(vcf);
 	        }
 		}  
 					
@@ -186,7 +179,7 @@ public class TandemRepeatMode  extends AbstractMode{
 		if(end < indexedBlock.firstBlockStart) return false; //not in repeat region
 				
 		List<Block> coveredBlocks = new ArrayList<>();	
-		Map<Integer, Block> indexMap = indexedBlock.index;
+		Map<Integer, Block> indexMap = indexedBlock.indexs;
 		//find first block
 		Block block = null;		
 		
@@ -311,23 +304,24 @@ public class TandemRepeatMode  extends AbstractMode{
         } 
         logger.info( "reference number inside TRF data file is " + allRepeats.size());
         
-        Map<String, BlockIndex> indexedBlock  = new HashMap<>();
-		if(allRepeats.size() == 0) return indexedBlock; 
+        Map<String, BlockIndex> allIdxBlocks  = new HashMap<>();
+		if(allRepeats.size() == 0) return allIdxBlocks; 
 		
 		int totalRepeat = 0; 
 		int totalBlock = 0;	
 		//eg. chrMT => BlockIndex
 		for(String chr: allRepeats.keySet()){
 			 logger.debug("indexing blocks for " + chr);
+			 logger.info("indexing blocks for " + chr);
 			 //use converted chromosome name as key if requires
-			 indexedBlock.put(chr,  makeIndexedBlock( allRepeats.get(chr)));
+			 allIdxBlocks.put(chr,  makeIndexedBlock( allRepeats.get(chr)));
 			 totalRepeat += allRepeats.get(chr).size();
-			 totalBlock += indexedBlock.get(chr).index.size();	 
+			 totalBlock += allIdxBlocks.get(chr).indexs.size();	 
 		}        
 		logger.info("total repeats from dbfile is " + totalRepeat);
 		logger.info("total blocks from dbfile is " + totalBlock );
 		
-		return indexedBlock;      
+		return allIdxBlocks;      
         
 	}
 	
@@ -341,74 +335,70 @@ public class TandemRepeatMode  extends AbstractMode{
 		
 		if(repeats == null || repeats.size() == 0) return null; 
 		 
-			//S1: get unique block edge 
-			Set<Integer> starts = new HashSet<>(); //list will be very slow
-			Set<Integer> ends = new HashSet<>(); //list will be very slow
-			for(Repeat rep : repeats){				 
-				starts.add(rep.start);				
-				ends.add(rep.end);
-			}			
+		//S1: get unique block edge 
+		Set<Integer> starts = new HashSet<>(); //list will be very slow
+		Set<Integer> ends = new HashSet<>(); //list will be very slow
+		for(Repeat rep : repeats){				 
+			starts.add(rep.start);				
+			ends.add(rep.end);
+		}			
 			
-			//sort and unique the elements
-		   TreeSet<Integer> sortedStartEnd = new TreeSet<>();
-		    sortedStartEnd.addAll(starts);
-		    sortedStartEnd.addAll(ends);
+	    //sort and unique the elements
+	    TreeSet<Integer> sortedStartEnd = new TreeSet<>();
+	    sortedStartEnd.addAll(starts);
+	    sortedStartEnd.addAll(ends);
 		    
-		    //S2:create block for each start end but the edge may require one base shift
-			Map<Integer, Block> blockIndex = new HashMap<>(); 
-			Iterator<Integer> it = sortedStartEnd.iterator(); 
-			int start = it.next();
-			int end = start; 
+	    //S2:create block for each start end but the edge may require one base shift
+		Map<Integer, Block> blockIndex = new HashMap<>(); 
+		Iterator<Integer> it = sortedStartEnd.iterator(); 
+		int start = it.next();
+		int end = start; 
 			
-		    while(it.hasNext()){
-		    	
-		    	//do nothing if exists from starts disregards whether it is in ends or not
-		    	if(!starts.contains(start))
-		    		start += 1; 
-		    	
-		    	//trim if end is some repeat start
-		    	end = it.next();	
-		    	int end0 = end;  //store original boundary for next loop
-		    	 
-		    	if(starts.contains(end))		    		 
-		    		end -= 1; 
-		    	
-		    	if(start <= end)
-		    		blockIndex.put(start,  new Block(start, end));
-		    	
-		    	//next block must be one base forward
-		    	start = end0; 
-		    }
+	    while(it.hasNext()){		    	
+	    	//do nothing if exists from starts disregards whether it is in ends or not
+	    	if(!starts.contains(start))
+	    		start += 1; 
+	    	
+	    	//trim if end is some repeat start
+	    	end = it.next();	
+	    	int end0 = end;  //store original boundary for next loop
+	    	 
+	    	if(starts.contains(end))		    		 
+	    		end -= 1; 
+	    	
+	    	if(start <= end)
+	    		blockIndex.put(start,  new Block(start, end));
+	    	
+	    	//next block must be one base forward
+	    	start = end0; 
+	    }
 		    
-		    //S3: filling repeat 
-		    for(Repeat rep : repeats){	
-				start = rep.start;	
-				//repeat must be greater than one base; 
-				//if end overlaop with next repeat start, chop the end
-				while(start < rep.end){
-					//all repeat start is never been chopped
-					Block block = blockIndex.get(start);
-					block.addRepeat(rep);
-					//next block must be one base forward
-					start = block.end+1;						
-				}
+	    //S3: filling repeat 
+	    for(Repeat rep : repeats){	
+			start = rep.start;	
+			//repeat must be greater than one base; 
+			//if end overlaop with next repeat start, chop the end
+			while(start < rep.end){
+				//all repeat start is never been chopped
+				Block block = blockIndex.get(start);
+				block.addRepeat(rep);
+				//next block must be one base forward
+				start = block.end+1;						
 			}
-		    
-		    
-		    //S4: each gap insert a index
-	 	    Map<Integer, Block> inserts = new HashMap<>();
-		    for(Block block:  blockIndex.values() ){		    	
-			    	start = block.start;
-			    	//throw null exception since some block is null
-			    	while (block.end > BLOCK_INDEX_GAP + start){	    		
-			    		start += BLOCK_INDEX_GAP;
-			    		inserts.put(start , block);	
-			    	}	    	
-		    }
-		    blockIndex.putAll(inserts);
-		    
-		    
-		    return new BlockIndex(sortedStartEnd.first(), sortedStartEnd.last(), blockIndex);
+		}
+		    		    
+	    //S4: each gap insert a index
+ 	    Map<Integer, Block> inserts = new HashMap<>();
+	    for(Block block:  blockIndex.values() ){		    	
+		    	start = block.start;
+		    	//throw null exception since some block is null
+		    	while (block.end > BLOCK_INDEX_GAP + start){	    		
+		    		start += BLOCK_INDEX_GAP;
+		    		inserts.put(start , block);	
+		    	}	    	
+	    }
+	    blockIndex.putAll(inserts);		    
+	    return new BlockIndex(sortedStartEnd.first(), sortedStartEnd.last(), blockIndex);
 	}
 
 }

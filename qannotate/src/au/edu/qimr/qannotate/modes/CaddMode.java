@@ -90,7 +90,7 @@ public class  CaddMode extends AbstractMode{
 				//add every variants into hashmap
 				pos = re.getPosition();
 				//add2Map(re);
-				ChrPosition cp = ChrPositionUtils.getNewchrNameIfStrict(re.getChrPosition(), isStrict2chrName) ;
+				ChrPosition cp = ChrPositionUtils.getNewchrName(re.getChrPosition(), isStrict2chrName) ;
 				positionRecordMap.computeIfAbsent(cp, v -> new ArrayList<>()).add(re) ;
 			}
 			
@@ -130,7 +130,7 @@ public class  CaddMode extends AbstractMode{
 	    		int s = Integer.parseInt(eles[1]);  //start position = second column
 	    		int e = s + eles[2].length() - 1;   //start position + length -1
 	    		
-	    		ChrPosition cp  = ChrPositionUtils.getNewchrNameIfStrict(new ChrRangePosition(chr, s, e), isStrict2chrName) ;
+	    		ChrPosition cp  = ChrPositionUtils.getNewchrName(new ChrRangePosition(chr, s, e), isStrict2chrName) ;
 	    		List<VcfRecord> inputVcfs = positionRecordMap.get(cp);	    
 				if ( (null == inputVcfs) || inputVcfs.size() == 0 ) {
 					continue; 

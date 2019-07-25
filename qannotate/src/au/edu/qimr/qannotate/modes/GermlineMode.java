@@ -102,7 +102,7 @@ public class GermlineMode extends AbstractMode{
 	 			if (null != usParams && usParams.length > 3) {
 	 				// contig is first followed by position
 					ChrPosition cp = new ChrPointPosition(usParams[0], Integer.parseInt(usParams[1]));
-					cp = ChrPositionUtils.getNewchrNameIfStrict( cp, isStrict2chrName );					
+					cp = ChrPositionUtils.getNewchrName( cp, isStrict2chrName );					
 					List<VcfRecord> inputVcfs = positionRecordMap.get(cp);
 					if (null == inputVcfs || inputVcfs.size() == 0) {
 						continue; 
