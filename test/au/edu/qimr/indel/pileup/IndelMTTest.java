@@ -37,11 +37,11 @@ public class IndelMTTest {
 		File vcf = new File(inputVcf);	
 	 			
 		//fake ref and make test and control point to same bam
-		File ini = new File(ini_noquery);	
-		IniFileTest.createIniFile(ini, bam,bam,vcf,vcf,null);	
+		File ini = new File(ini_noquery);
+		IniFileTest.createIniFile(ini, bam,bam,vcf,vcf,null, new File(IniFileTest.output));	
 				
 		ini = new File(ini_query);	
-		IniFileTest.createIniFile(ini,bam,bam,vcf,vcf,query);			
+		IniFileTest.createIniFile(ini,bam,bam,vcf,vcf,query, new File(IniFileTest.output));			
 
 	}
 	

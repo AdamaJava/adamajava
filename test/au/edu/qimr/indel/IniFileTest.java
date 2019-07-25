@@ -13,6 +13,7 @@ import junit.framework.Assert;
 
 import org.junit.After;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
  
 
 public class IniFileTest {
@@ -21,12 +22,15 @@ public class IniFileTest {
 	public static final File fini = new File( ini);
 	
 	
+	@org.junit.Rule
+	public  TemporaryFolder testFolder = new TemporaryFolder();
+	
 	@After
 	public void after() {	
 		fini.delete();
 	}
 	@Test
-	public void testquery() throws IOException, Q3IndelException {
+	public void testQuery() throws IOException, Q3IndelException {
 		 		
 		//ini file not exist
 		String[] args = {"-i", ini};
@@ -36,12 +40,12 @@ public class IniFileTest {
 		} catch (Exception e) {}
 		
 		// create ini file without query and some dodgy file
-		createIniFile(fini,fini,fini,fini,fini, null);	 
+		createIniFile(fini,fini,fini,fini,fini, null, new File("blah"));	 
 		Options options = new Options(args);	
 		assertTrue(options.getFilterQuery() == null);
 		
 		// create ini file with empty query 
-		createIniFile(fini,fini,fini,fini,fini, "");	 
+		createIniFile(fini,fini,fini,fini,fini, "", new File("blah"));	 
 		options = new Options(args);	
 		assertTrue(options.getFilterQuery() == null);
 	}	
@@ -72,15 +76,15 @@ public class IniFileTest {
 	
 	
 	public static void createIniFile(String ini, String testbam, String controlbam, String testvcf, String controlvcf,  String query){
-		createIniFile(new File( ini), new File(testbam), new File(controlbam), new File(testvcf), new File(controlvcf),   query, "gatk");
+		createIniFile(new File( ini), new File(testbam), new File(controlbam), new File(testvcf), new File(controlvcf),   query, "gatk", new File(output));
 				
 	}
 	
-	public static void createIniFile(File ini, File testbam, File controlbam, File testvcf, File controlvcf,  String query){
-		createIniFile( ini,  testbam, controlbam, testvcf,  controlvcf,  query, "gatk");
+	public static void createIniFile(File ini, File testbam, File controlbam, File testvcf, File controlvcf,  String query, File outputVcfFile){
+		createIniFile( ini,  testbam, controlbam, testvcf,  controlvcf,  query, "gatk", outputVcfFile);
 	}
 	
-	public static void createIniFile(File ini, File testbam, File controlbam, File testvcf, File controlvcf,  String query, String mode){
+	public static void createIniFile(File ini, File testbam, File controlbam, File testvcf, File controlvcf,  String query, String mode, File outputVcfFile){
 		
         List<String> data = new ArrayList<>();
         data.add("[IOs]");
@@ -91,7 +95,7 @@ public class IniFileTest {
         data.add("testVcf="  + (testvcf == null? "":testvcf.getAbsolutePath()));
         data.add("controlVcf="  + (controlvcf == null? "":controlvcf.getAbsolutePath()));
                 
-        data.add("output=" + output );
+        data.add("output=" + outputVcfFile.getAbsolutePath() );
         data.add("[ids]");
         data.add("donorId=OESO-5007");
         data.add("analysisId=f6290103-b775-41f8-8880-331e91aeabdc");

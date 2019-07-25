@@ -38,20 +38,17 @@ public class IndelPositionTest {
 		File vcf = new File(inputIndel);
 		
 		//dodgy fake reference  and index
-	 	contigPileupTest.createSam(vcf + ".fai");	
+	 	ContigPileupTest.createSam(vcf + ".fai");	
 		 
 		List<String> data = new ArrayList<String>();
 		data.add(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE);
 		Support.createVcf(data,data, emptyVcf); //empty vcf; 
 	}
-
-	
 	
 	@AfterClass
 	public static void clear() throws IOException {
 		 Support.clear();		
 	}
-	
 	
 	@Test
 	//test HCOVN and HCOVT can't have other flag or SOMATIC
@@ -212,9 +209,7 @@ public class IndelPositionTest {
 				}
 		}
 		 new File(IniFileTest.output).delete();
-		
 	}
-	
 	 
 	@Test //SOMTIC, COVN12, MIN, NNS
 	public void somaticTest() throws IOException{
@@ -255,9 +250,6 @@ public class IndelPositionTest {
 				}
 		}	
 		new File(IniFileTest.output).delete();	
-		
 	}
-	
-
 
 }

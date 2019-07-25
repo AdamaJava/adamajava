@@ -34,23 +34,22 @@ public class IndelPileupTest {
 	 		
 		//assert first insertion vcf
         assertTrue(pileup.getInformativeCount() == 3);
-        assertTrue(pileup.getsuportReadCount(0) == 1); 
-        assertTrue(pileup.getparticalReadCount(0) == 1);
-        assertTrue(pileup.getsupportNovelStartReadCount(0) == 1);   
+        assertTrue(pileup.getSupportReadCount(0) == 1); 
+        assertTrue(pileup.getPartialReadCount(0) == 1);
+        assertTrue(pileup.getSupportNovelStartReadCount(0) == 1);   
          // 4 events supporting reads (one INS three snps) won't count as strong supporting
-        assertTrue(pileup.getstrongSuportReadCount(0) == 0);        
+        assertTrue(pileup.getStrongSupportReadCount(0) == 0);        
         //novelStrats for strong supporting
-        assertTrue(pileup.getstrongsupportNovelStartReadCount(0) == 0);
+        assertTrue(pileup.getStrongSupportNovelStartReadCount(0) == 0);
             
-        
         //assert second insertion vcf
         assertTrue(pileup.getInformativeCount() == 3);
-        assertTrue(pileup.getsuportReadCount(1) == 1); 
-        assertTrue(pileup.getsupportNovelStartReadCount(1) == 1);
-        assertTrue(pileup.getparticalReadCount(1) == 1); 	        
+        assertTrue(pileup.getSupportReadCount(1) == 1); 
+        assertTrue(pileup.getSupportNovelStartReadCount(1) == 1);
+        assertTrue(pileup.getPartialReadCount(1) == 1); 	        
         //MD:Z:23G38T0C57  adjacant snps count as one, so one snp, one mnp and one INS, total 3 events
-        assertEquals(1, pileup.getstrongSuportReadCount(1));
-        assertTrue(pileup.getstrongsupportNovelStartReadCount(1) == 1);
+        assertEquals(1, pileup.getStrongSupportReadCount(1));
+        assertTrue(pileup.getStrongSupportNovelStartReadCount(1) == 1);
 	}	
 	
 	@Test
@@ -65,13 +64,13 @@ public class IndelPileupTest {
                 
         assertTrue(pileup.getmotif(0).equals("AG"));
         assertTrue(pileup.getInformativeCount() == 2);
-        assertTrue(pileup.getsuportReadCount(0) == 2); 
-        assertTrue(pileup.getparticalReadCount(0) == 0); 	        
+        assertTrue(pileup.getSupportReadCount(0) == 2); 
+        assertTrue(pileup.getPartialReadCount(0) == 0); 	        
         // 3 events: cigar 130M1I3M2D17M and MD:Z:11G0T121^AG17
         //8 events: cigar 131M2D20M and MD:Z:47A1G1A1C2C1G1C70^AG20
-        assertTrue(pileup.getstrongSuportReadCount(0) == 1);  
-        assertTrue(pileup.getsupportNovelStartReadCount(0)  == 2);
-        assertTrue(pileup.getstrongsupportNovelStartReadCount(0) == 1);
+        assertTrue(pileup.getStrongSupportReadCount(0) == 1);  
+        assertTrue(pileup.getSupportNovelStartReadCount(0)  == 2);
+        assertTrue(pileup.getStrongSupportNovelStartReadCount(0) == 1);
 	}
 	
 	@Test
@@ -104,8 +103,7 @@ public class IndelPileupTest {
 		record.setCigarString("96S4M9S");
 		pileup.pileup(pool);
 		assertTrue(pileup.getNearybySoftclipCount() == 1);
-				
-	}	
+	}
 
 	@Test
 	public void bigDelTest() throws Exception{
@@ -127,11 +125,9 @@ public class IndelPileupTest {
 				
         pileup.pileup(pool);   
         assertTrue(pileup.getNearbyIndelCount() == 0);
-        assertTrue(pileup.getsuportReadCount(0) == 0);
-        assertTrue(pileup.getparticalReadCount(0) == 1);
-      		
+        assertTrue(pileup.getSupportReadCount(0) == 0);
+        assertTrue(pileup.getPartialReadCount(0) == 1);
 	}
-
 	 
 	private List<SAMRecord> makePool(int indelEnd) throws IOException{
 		List<SAMRecord> pool = new ArrayList<>();				
@@ -186,9 +182,6 @@ public class IndelPileupTest {
 		if (mdIndex > -1) {
 			rec.setAttribute("MD", s.substring(mdIndex + 5, s.indexOf(Constants.TAB, mdIndex + 5)));
 		}
-		
 		return rec;
 	}
-
-
 }

@@ -18,7 +18,7 @@ import org.qcmg.picard.SAMFileReaderFactory;
 import au.edu.qimr.indel.Q3IndelException;
 import au.edu.qimr.indel.pileup.IndelMT.ContigPileup;
 
-public class contigPileupTest {
+public class ContigPileupTest {
 	
 	@Test
 	public void resetPoolTest() throws IOException{			

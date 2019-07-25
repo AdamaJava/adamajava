@@ -73,7 +73,7 @@ public class Support {
 	 */
 	public static void createGatkVcf(String vcf){	
 		
-        List<String> data = new ArrayList<>();
+        List<String> data = new ArrayList<>(6);
         data.add(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT+"s1");
         data.add("chr11	2672739	.	ATT	A	123.86	.	.	GT	0/1"); 
         data.add("chrY	2672735	.	ATT	A	123.86	.	GATKINFO	GT	0/1"); 
@@ -84,7 +84,7 @@ public class Support {
 	}
 	
 	public static void createVcf( List<String> data1, String output){	
-        List<String> data = new ArrayList<>();
+        List<String> data = new ArrayList<>(3);
         data.add("##fileformat=VCFv4.1");
         data.add(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT+"S1"); 
         
@@ -93,19 +93,17 @@ public class Support {
 	
 	public static void createVcf( List<String> header, List<String> records, String output){	
         try( BufferedWriter out = new BufferedWriter(new FileWriter(output ))) {
-        		for (String line : header) {
+    		for (String line : header) {
                 out.write(line + "\n");
-        		}
-        		for (String line : records) {
-        			out.write(line + "\n");
-        		}
+    		}
+    		for (String line : records) {
+    			out.write(line + "\n");
+    		}
          }catch(IOException e){
          	System.err.println( Q3IndelException.getStrackTrace(e));	 	        	 
          	Assert.fail("Should not threw a Exception");
          }  
-		
 	}	
-	
 	
 	/**
 	 * run q3indel without run homopolymer for unit testing
