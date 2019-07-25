@@ -50,6 +50,7 @@ public class GermlineMode extends AbstractMode{
 		loadVcfRecordsFromFile(new File( options.getInputFileName())   );
 		addAnnotation(options.getDatabaseFileName() );
 		header.addInfo(VcfHeaderUtils.INFO_GERMLINE, ".", "String",VcfHeaderUtils.INFO_GERMLINE_DESC);
+//		header.addFilter(VcfHeaderUtils.FILTER_GERMLINE,"Mutation is a germline variant in another patient");
 		reheader(options.getCommandLine(),options.getInputFileName())	;	
 		writeVCF(new File(options.getOutputFileName()) );	
 	}
@@ -72,7 +73,7 @@ public class GermlineMode extends AbstractMode{
 	void addAnnotation(String dbGermlineFile) throws IOException {
  		
  		/*
- 		 *  remove all exsiting GERM annotation
+ 		 *  remove all existing GERM annotation
  		 */
  		for (List<VcfRecord> vcfs : positionRecordMap.values()) {
  			for(VcfRecord vcf : vcfs ) {
