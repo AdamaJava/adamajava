@@ -4,7 +4,9 @@
 package au.edu.qimr.indel;
 
 import java.text.MessageFormat;
+import java.util.Arrays;
 import java.util.ResourceBundle;
+import java.util.stream.Collectors;
 
 public final class Messages {
 	static final ResourceBundle messages = ResourceBundle.getBundle("au.edu.qimr.indel.messages");
@@ -40,18 +42,14 @@ public final class Messages {
 	}
 	
 
-		/**
-		 * Reconstruct command line.
-		 *
-		 * @param args the args
-		 * @return the string
-		 */
-		public static String reconstructCommandLine(final String[] args) {
-			String result = getProgramName() + " ";
-			for (final String arg : args) {
-				result += arg + " ";
-			}
-			return result;
-		}	
+	/**
+	 * Reconstruct command line.
+	 *
+	 * @param args the args
+	 * @return the string
+	 */
+	public static String reconstructCommandLine(final String[] args) {
+		return  getProgramName() + " " + Arrays.stream(args).collect(Collectors.joining(" "));
+	}
 	
 }

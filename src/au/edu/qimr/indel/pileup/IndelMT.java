@@ -1,6 +1,5 @@
 package au.edu.qimr.indel.pileup;
 
-
 import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
@@ -25,10 +24,10 @@ import htsjdk.samtools.SAMRecord;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.meta.QExec;
-import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.vcf.VcfRecord;
+import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.*;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.util.QBamIdFactory;
@@ -42,7 +41,7 @@ import au.edu.qimr.indel.pileup.ReadIndels;
 
 
 public class IndelMT {
-	public static final int  MAXRAMREADS = 1500; //maximum number of total reads in RAM
+	public static final int MAXRAMREADS = 1500; //maximum number of total reads in RAM
 	
 	class ContigPileup implements Runnable {
 
@@ -98,7 +97,7 @@ public class IndelMT {
 			
 			IndelPosition topPos= qIn.poll();
 			try (SamReader bReader =  SAMFileReaderFactory.createSAMFileReader(bam, index); ){
-				SAMRecordIterator ite = bReader.query(contig.getSequenceName(), 0, contig.getSequenceLength(),false);		
+				SAMRecordIterator ite = bReader.query(contig.getSequenceName(), 0, contig.getSequenceLength(), false);		
 			 	while (ite.hasNext()) {	
 			 		SAMRecord re = ite.next(); 
 			 		//bam file already sorted, skip non-indel region record
@@ -143,7 +142,6 @@ public class IndelMT {
 			} finally {
 				pLatch.countDown();
 				logger.info( size + " indels have completed pileup from " + contig.getSequenceName() + " on " + bam.getName());
-
  			}			
 		}		
 		/**
@@ -155,39 +153,38 @@ public class IndelMT {
 		 */
 		 void resetPool( IndelPosition topPos, List<SAMRecord> currentPool, List<SAMRecord> nextPool){
 			
+			List<SAMRecord> tmp_current_pool = new ArrayList<>();							
+			List<SAMRecord> tmp_pool = new ArrayList<>();	
+			tmp_pool.addAll(nextPool);
 			
-				List<SAMRecord> tmp_current_pool = new ArrayList<>();							
-				List<SAMRecord> tmp_pool = new ArrayList<>();	
-				tmp_pool.addAll(nextPool);
-				
-				//check read record behind on current position			
-				for( SAMRecord  re : tmp_pool ){
-					//aligned position before indel
-					if (re.getAlignmentEnd() < topPos.getStart()) {
-						nextPool.remove(re);
-					//aligned position cross indel
-					} else if (re.getAlignmentStart() <= topPos.getEnd()){		 
-						tmp_current_pool.add(re);	
-						nextPool.remove(re);
-					}			 
-				}	
-				
-				tmp_pool.clear();
-				tmp_pool.addAll(currentPool);
-				//check already read record  for previous pileup
-				for( SAMRecord  re1 : tmp_pool ){
-					//aligned position before indel
-					if (re1.getAlignmentEnd() < topPos.getStart()) {
-						currentPool.remove(re1);
-					//aligned position after indel
-					} else if (re1.getAlignmentStart() > topPos.getEnd()){
-						nextPool.add(re1);
-						currentPool.remove(re1);
-					}
+			//check read record behind on current position			
+			for( SAMRecord  re : tmp_pool ){
+				//aligned position before indel
+				if (re.getAlignmentEnd() < topPos.getStart()) {
+					nextPool.remove(re);
+				//aligned position cross indel
+				} else if (re.getAlignmentStart() <= topPos.getEnd()){		 
+					tmp_current_pool.add(re);	
+					nextPool.remove(re);
+				}			 
+			}	
+			
+			tmp_pool.clear();
+			tmp_pool.addAll(currentPool);
+			//check already read record  for previous pileup
+			for( SAMRecord  re1 : tmp_pool ){
+				//aligned position before indel
+				if (re1.getAlignmentEnd() < topPos.getStart()) {
+					currentPool.remove(re1);
+				//aligned position after indel
+				} else if (re1.getAlignmentStart() > topPos.getEnd()){
+					nextPool.add(re1);
+					currentPool.remove(re1);
 				}
-				
-				//merge samrecord
-				currentPool.addAll(tmp_current_pool);
+			}
+			
+			//merge samrecord
+			currentPool.addAll(tmp_current_pool);
 		}				
 	}
 			
@@ -301,7 +298,6 @@ public class IndelMT {
 	    			 pileupThreads.execute(new ContigPileup(contig, getIndelList(contig), options.getTestBam() , index, query,
 	    					 tumourQueue, Thread.currentThread() ,pileupLatch));
 	    		 }
-	    		
 	    	}
 	    	pileupThreads.shutdown();
     	
@@ -319,10 +315,8 @@ public class IndelMT {
 		} finally {
             pileupThreads.shutdownNow();
 		}
-        
 		return 0; 
 	}
-	
 	
 	private void writeVCF(AbstractQueue<IndelPileup> tumourQueue, AbstractQueue<IndelPileup> normalQueue,File output, VcfHeader header ) throws Exception{
 		
@@ -353,9 +347,9 @@ public class IndelMT {
 						
 			//reheader
 			getHeaderForIndel(header);	
-	        	for (final VcfHeaderRecord record: header) {
-	        		writer.addHeader(record.toString());
-	        	}
+        	for (final VcfHeaderRecord record: header) {
+        		writer.addHeader(record.toString());
+        	}
 			 
         	//adding indels
 			long count = 0;
@@ -365,7 +359,13 @@ public class IndelMT {
 				for(int i = 0; i < indel.getMotifs().size(); i++){
 
 					VcfRecord re = indel.getPileupedVcf(i, options.getMinGematicNovelStart(), options.getMinGematicSupportOfInformative());
-					writer.add(re  );	
+					
+					/*
+					 * strip out the fields that GATK inserts that are not valid when used in a comparative way (potentially more than one sample in the format field) 
+					 */
+					VcfUtils.removeElementsFromInfoField(re);
+					
+					writer.add(re);
 					count ++;
 					
 					if (re.getInfo().contains(VcfHeaderUtils.INFO_SOMATIC)) {
@@ -373,14 +373,12 @@ public class IndelMT {
 					}
 				}
 			}
-						
 			logger.info("outputed VCF record: " + count);	
 			logger.info("including somatic record: " + somaticCount);
 		}
-		
 	}
 	
-	 private void getHeaderForIndel(VcfHeader header ) throws Exception {
+	private void getHeaderForIndel(VcfHeader header ) {
 
 		QExec qexec = options.getQExec();
 		 
@@ -394,7 +392,6 @@ public class IndelMT {
 		header.addOrReplace(VcfHeaderUtils.STANDARD_CONTROL_SAMPLE + "=" + options.getControlSample());		
 		header.addOrReplace(VcfHeaderUtils.STANDARD_TEST_SAMPLE + "=" + options.getTestSample());		
 		
-//		List<File> inputs = new ArrayList<File>();
 		if(options.getRunMode().equalsIgnoreCase("gatk")){
 			header.addOrReplace(VcfHeaderUtils.STANDARD_INPUT_LINE + "_GATK_TEST=" + 
 					(options.getTestInputVcf() == null? null : options.getTestInputVcf().getAbsolutePath()));
@@ -407,53 +404,61 @@ public class IndelMT {
  		}
 		
 		String controlBamID = null; 
-		if( options.getControlBam() != null ){
+		if ( options.getControlBam() != null ){
 			String normalBamName = options.getControlBam().getAbsolutePath();
 			controlBamID = QBamIdFactory.getQ3BamId(normalBamName).getUUID();
-			if(controlBamID == null ) controlBamID = new File(normalBamName).getName().replaceAll("(?i).bam$", "");
+			if (controlBamID == null ) {
+				controlBamID = new File(normalBamName).getName().replaceAll("(?i).bam$", "");
+			}
 			header.addOrReplace( VcfHeaderUtils.STANDARD_CONTROL_BAM  + "=" + normalBamName );
 			header.addOrReplace( VcfHeaderUtils.STANDARD_CONTROL_BAMID + "=" +  controlBamID );
-			 
 		}
-		
-	 
 		
 		String testBamID = null; 
 		if( options.getTestBam() != null ){
 			String tumourBamName = options.getTestBam().getAbsolutePath();
 			testBamID = QBamIdFactory.getQ3BamId(tumourBamName).getUUID();
-			if(testBamID == null ) testBamID = new File(tumourBamName).getName().replaceAll("(?i).bam$", "");
+			if (testBamID == null ) {
+				testBamID = new File(tumourBamName).getName().replaceAll("(?i).bam$", "");
+			}
 			
 			header.addOrReplace( VcfHeaderUtils.STANDARD_TEST_BAM  + "=" + tumourBamName);
 			header.addOrReplace( VcfHeaderUtils.STANDARD_TEST_BAMID  + "=" + ( testBamID  == null ? new File(tumourBamName).getName() : testBamID ));
 		}	
 		header.addOrReplace( VcfHeaderUtils.STANDARD_ANALYSIS_ID +"=" + options.getAnalysisId() );
-	
 		
 		//add filter
-        header.addFilter(IndelUtils.FILTER_COVN12, IndelUtils.DESCRITPION_FILTER_COVN12 );
-        header.addFilter(IndelUtils.FILTER_COVN8,  IndelUtils.DESCRITPION_FILTER_COVN8 );
-        header.addFilter(IndelUtils.FILTER_COVT,  IndelUtils.DESCRITPION_FILTER_COVT );
-        header.addFilter(IndelUtils.FILTER_HCOVN,  IndelUtils.DESCRITPION_FILTER_HCOVN );
-        header.addFilter(IndelUtils.FILTER_HCOVT,  IndelUtils.DESCRITPION_FILTER_HCOVT );
-        header.addFilter(IndelUtils.FILTER_MIN,  IndelUtils.DESCRITPION_FILTER_MIN );
-        header.addFilter(IndelUtils.FILTER_NNS,  IndelUtils.DESCRITPION_FILTER_NNS );
-        header.addFilter(IndelUtils.FILTER_TPART,  IndelUtils.DESCRITPION_FILTER_TPART );
-        header.addFilter(IndelUtils.FILTER_NPART,  IndelUtils.DESCRITPION_FILTER_NPART );
-        header.addFilter(IndelUtils.FILTER_TBIAS,  IndelUtils.DESCRITPION_FILTER_TBIAS );
-        header.addFilter(IndelUtils.FILTER_NBIAS,  IndelUtils.DESCRITPION_FILTER_NBIAS );
+        header.addFilter(IndelUtils.FILTER_COVN12, IndelUtils.DESCRIPTION_FILTER_COVN12 );
+        header.addFilter(IndelUtils.FILTER_COVN8,  IndelUtils.DESCRIPTION_FILTER_COVN8 );
+        header.addFilter(IndelUtils.FILTER_COVT,  IndelUtils.DESCRIPTION_FILTER_COVT );
+        header.addFilter(IndelUtils.FILTER_HCOVN,  IndelUtils.DESCRIPTION_FILTER_HCOVN );
+        header.addFilter(IndelUtils.FILTER_HCOVT,  IndelUtils.DESCRIPTION_FILTER_HCOVT );
+        header.addFilter(IndelUtils.FILTER_MIN,  IndelUtils.DESCRIPTION_FILTER_MIN );
+        header.addFilter(IndelUtils.FILTER_NNS,  IndelUtils.DESCRIPTION_FILTER_NNS );
+        header.addFilter(IndelUtils.FILTER_TPART,  IndelUtils.DESCRIPTION_FILTER_TPART );
+        header.addFilter(IndelUtils.FILTER_NPART,  IndelUtils.DESCRIPTION_FILTER_NPART );
+        header.addFilter(IndelUtils.FILTER_TBIAS,  IndelUtils.DESCRIPTION_FILTER_TBIAS );
+        header.addFilter(IndelUtils.FILTER_NBIAS,  IndelUtils.DESCRIPTION_FILTER_NBIAS );
         
 		final String SOMATIC_DESCRIPTION = String.format("There are more than %d novel starts  or "
 				+ "more than %.2f soi (number of supporting informative reads /number of informative reads) on control BAM",
 				options.getMinGematicNovelStart(), options.getMinGematicSupportOfInformative());
 
 		header.addInfo(VcfHeaderUtils.INFO_SOMATIC, "1", "String", SOMATIC_DESCRIPTION);
-		header.addInfo(IndelUtils.INFO_NIOC, "1", "String", IndelUtils.DESCRITPION_INFO_NIOC);
-		header.addInfo(IndelUtils.INFO_SSOI, "1", "String", IndelUtils.DESCRITPION_INFO_SSOI);		
+		header.addInfo(IndelUtils.INFO_NIOC, "1", "String", IndelUtils.DESCRIPTION_INFO_NIOC);
+		header.addInfo(IndelUtils.INFO_SSOI, "1", "String", IndelUtils.DESCRIPTION_INFO_SSOI);		
 		header.addInfo(VcfHeaderUtils.INFO_MERGE_IN, "1", "String",VcfHeaderUtils.DESCRITPION_MERGE_IN); 
+		header.addInfo(IndelUtils.INFO_END, "1", "String",IndelUtils.DESCRIPTION_INFO_END); 
+		header.addInfo(IndelUtils.INFO_SVTYPE, "1", "String",IndelUtils.DESCRIPTION_INFO_SVTYPE); 
 				
 		header.addFormat(VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS, "1","String", "Genotype details: specific alleles");
-		header.addFormat(IndelUtils.FORMAT_ACINDEL, ".", "String", IndelUtils.DESCRITPION_FORMAT_ACINDEL); //vcf validataion
+		header.addFormat(IndelUtils.FORMAT_ACINDEL, ".", "String", IndelUtils.DESCRIPTION_FORMAT_ACINDEL); //vcf validataion
+		
+		/*
+		 * overwrite the AD and PL header supplied by GATK as we will have samples with no data/coverage, and a number set to 'R' for the AD field causes the validator to complain
+		 */
+		header.addFormat("AD", ".","Integer", "Allelic depths for the ref and alt alleles in the order listed");
+		header.addFormat("PL", ".", "Integer", "Normalized, Phred-scaled likelihoods for genotypes as defined in the VCF specification");
 
 		VcfHeaderUtils.addQPGLineToHeader(header, qexec.getToolName().getValue(), qexec.getToolVersion().getValue(), qexec.getCommandLine().getValue() 
 				+  " [runMode: " + options.getRunMode() + "]");        
@@ -484,6 +489,6 @@ public class IndelMT {
 			o1.getChrRangePosition().compareTo( o2.getChrRangePosition()) );				 
 		
 		return new ConcurrentLinkedQueue<>(list);
-  }
+	 }
 	 		
 }
