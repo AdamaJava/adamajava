@@ -34,14 +34,25 @@ public class ChrPositionUtilsTest {
 		assertEquals(true, ChrPositionUtils.arePositionsWithinDelta(cp1, cp2, 4));
 	}
 	
+//	@Test
+//	public void cloneWithNewName() {
+//		ChrRangePosition cp = new ChrRangePosition("1", 100, 200);
+//		assertEquals("chr1", ChrPositionUtils.cloneWithNewChromosomeName(cp, "chr1").getChromosome());
+//		assertEquals("chrXY", ChrPositionUtils.cloneWithNewChromosomeName(cp, "chrXY").getChromosome());
+//		assertEquals("myCP", ChrPositionUtils.cloneWithNewChromosomeName(cp, "myCP").getChromosome());
+//		assertEquals("1", ChrPositionUtils.cloneWithNewChromosomeName(cp, "1").getChromosome());
+//		
+//	}
+	
 	@Test
-	public void cloneWithNewName() {
-		ChrRangePosition cp = new ChrRangePosition("1", 100, 200);
-		assertEquals("chr1", ChrPositionUtils.cloneWithNewChromosomeName(cp, "chr1").getChromosome());
-		assertEquals("chrXY", ChrPositionUtils.cloneWithNewChromosomeName(cp, "chrXY").getChromosome());
-		assertEquals("myCP", ChrPositionUtils.cloneWithNewChromosomeName(cp, "myCP").getChromosome());
-		assertEquals("1", ChrPositionUtils.cloneWithNewChromosomeName(cp, "1").getChromosome());
-		
+	public void getNewchrName() {
+
+		assertEquals("1", ChrPositionUtils.getNewchrName(new ChrRangePosition("1", 100, 200), true ).getChromosome());
+		assertEquals("chr1", ChrPositionUtils.getNewchrName(new ChrRangePosition("1", 100, 200), false ).getChromosome());
+		assertEquals("CHRXY", ChrPositionUtils.getNewchrName( new ChrRangePosition("CHRXY", 100, 200), true ).getChromosome());
+		assertEquals("chrXY", ChrPositionUtils.getNewchrName( new ChrRangePosition("CHRXY", 100, 200), false ).getChromosome());		
+		assertEquals("CHRM", ChrPositionUtils.getNewchrName( new ChrRangePosition("CHRM", 100, 200), true ).getChromosome());
+		assertEquals("chrMT", ChrPositionUtils.getNewchrName( new ChrRangePosition("CHRM", 100, 200), false ).getChromosome());		
 	}
 	
 	@Test
@@ -207,6 +218,37 @@ public class ChrPositionUtilsTest {
 		assertEquals(true, ChrPositionUtils.areAdjacent(preceedingCP2, preceedingCP));
 		assertEquals(false, ChrPositionUtils.areAdjacent(preceedingCP2, cp));
 		assertEquals(false, ChrPositionUtils.areAdjacent(cp, preceedingCP2));
+	}
+	
+	
+	@Test
+	public void testGetFullChromosome() {
+		
+		assertEquals("chr10", ChrPositionUtils.ChrNameConveter("10"));
+		assertEquals("chr10", ChrPositionUtils.ChrNameConveter("chr10"));
+		assertEquals("chrM", ChrPositionUtils.ChrNameConveter("M"));
+		assertEquals("chrMT", ChrPositionUtils.ChrNameConveter("MT"));
+		assertEquals("GL12345", ChrPositionUtils.ChrNameConveter("GL12345"));
+	}
+	
+	@Test
+	public void testAddChromosomeReference() {
+		
+		assertEquals("chr10", ChrPositionUtils.ChrNameConveter("10"));
+		assertEquals("23", ChrPositionUtils.ChrNameConveter("23"));
+		assertEquals("chr22", ChrPositionUtils.ChrNameConveter("22"));
+		assertEquals("99", ChrPositionUtils.ChrNameConveter("99"));
+		assertEquals("100", ChrPositionUtils.ChrNameConveter("100"));
+		assertEquals("chr1", ChrPositionUtils.ChrNameConveter("1"));
+		assertEquals("chrY", ChrPositionUtils.ChrNameConveter("Y"));
+		assertEquals("chrX", ChrPositionUtils.ChrNameConveter("X"));
+		assertEquals("chrM", ChrPositionUtils.ChrNameConveter("M"));
+		assertEquals("chrMT", ChrPositionUtils.ChrNameConveter("MT"));
+		assertEquals("chrMT", ChrPositionUtils.ChrNameConveter("chrMT"));
+		assertEquals("chrM", ChrPositionUtils.ChrNameConveter("chrM"));
+		assertEquals("MTT", ChrPositionUtils.ChrNameConveter("MTT"));
+		assertEquals("GL123", ChrPositionUtils.ChrNameConveter("GL123"));
+		assertEquals("chr10", ChrPositionUtils.ChrNameConveter("chr10"));
 	}
 	
 }

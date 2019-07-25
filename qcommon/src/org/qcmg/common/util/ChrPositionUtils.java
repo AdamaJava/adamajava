@@ -274,7 +274,7 @@ public class ChrPositionUtils {
 		}
 		
         if (refName.startsWith(Constants.CHR)) {
-        	return ref;
+        	return Constants.CHR + refName.substring(3).toUpperCase();
         }
 				
 		/*
@@ -294,28 +294,14 @@ public class ChrPositionUtils {
 		return ref;
 	}
 	
-//	public static boolean compareAmbiguousChrName(String chrA, String chrB) {
-//		
-//		if(chrA == null || chrB == null) { 
-//			return false;
-//		}	
-//		
-//		if(chrA.trim().equals(chrB.trim()) || ChrNameConveter(chrA).equals(ChrNameConveter(chrB))){
-//			return true;
-//		}
-//				
-//	 
-//		return false;
-//	}
-	
 	/**
 	 * to convert chromosome name if accept ambiguous match, otherwise return original input. 
-	 * In ambiguous match, it will add "chr" to "X", "Y" and digit between 1 and 23, convert "chrM", "MT","M", "chrMT" ignore case to "chrMT"
+	 * In ambiguous match, it will add "chr" to "X", "Y" and digit [1,23], convert "chrM", "MT","M", "chrMT" ignore case to "chrMT"
 	 * @param cp input value of ChrPosition
-	 * @param isStrict2chrName whether to match the chromosome name strictly
+	 * @param isStrict2chrName return original value, otherwise change chromosome name
 	 * @return the input ChrPosition if it require to match the chromosome name strictly. otherwise return a modified ChrPosition value.
 	 */
-	public static ChrPosition getNewchrNameIfStrict(ChrPosition cp, boolean isStrict2chrName) {
+	public static ChrPosition getNewchrName(ChrPosition cp, boolean isStrict2chrName) {
 		
 		//chr name convertion in ambiguous mode		
 		if( !isStrict2chrName ) {
