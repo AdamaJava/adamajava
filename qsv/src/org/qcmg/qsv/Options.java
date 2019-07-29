@@ -201,6 +201,11 @@ public class Options {
 				platform = "solid";
 			} else if (sequencingPlatform.toLowerCase().contains("hiseq") || sequencingPlatform.toLowerCase().contains("illumina")) {
 				platform = "illumina";
+			} else if (sequencingPlatform.toLowerCase().contains("novaseq") || sequencingPlatform.toLowerCase().contains("nextseq")) {
+				/*
+				 * add novaseq and nextseq to the list of allowed sequencers. Treat them as illumina (for now)
+				 */
+				platform = "illumina";	
 			} else if (sequencingPlatform.toLowerCase().contains("bgiseq") || sequencingPlatform.toLowerCase().contains("mgiseq")) {
 				platform = "bgi";
 			} else {
