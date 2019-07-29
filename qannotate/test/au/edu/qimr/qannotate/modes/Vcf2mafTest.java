@@ -13,6 +13,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.junit.Ignore;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.string.StringUtils;
@@ -31,7 +32,7 @@ import au.edu.qimr.qannotate.utils.SnpEffMafRecord;
 
 public class Vcf2mafTest {
     
-    @org.junit.Rule
+    @Rule
     public  TemporaryFolder testFolder = new TemporaryFolder();
     
      @Test
@@ -599,7 +600,7 @@ public class Vcf2mafTest {
                     "chr1\t7722099\trs6698334\tC\tT\t.\t.\tBaseQRankSum=-0.736;ClippingRankSum=0.736;DP=3;FS=0.000;MQ=60.00;MQ0=0;MQRankSum=0.736;QD=14.92;ReadPosRankSum=0.736;SOR=0.223;IN=2;DB;VLD;VAF=0.06887;EFF=intron_variant(MODIFIER|||c.805+173C>T|1673|CAMTA1|protein_coding|CODING|ENST00000303635|8|1),intron_variant(MODIFIER|||c.805+173C>T|1659|CAMTA1|protein_coding|CODING|ENST00000439411|8|1)\tGT:AD:DP:GQ:FT:MR:NNS:OABS:INF\t.:.:.:.:.:.:.:.:CONF=ZERO\t.:.:.:.:.:.:.:.:.\t0/1:1,2:3:35:COVN8:2:2:C0[0]1[39];T1[35]1[37]:CONF=ZERO\t.:.:.:.:.:.:.:.:."};            
                 createVcf(input, str); 
                 try {
-                    Vcf2mafTest.createVcf(input, str);
+                    createVcf(input, str);
                     final String[] command = {"--mode", "vcf2maf",  "--log", log.getAbsolutePath(),  "-i", input.getAbsolutePath() , "-o" , out.getAbsolutePath()};
                     au.edu.qimr.qannotate.Main.main(command);
                 } catch ( Exception e) {
@@ -662,7 +663,7 @@ public class Vcf2mafTest {
     public File createVcf(String[] str) throws IOException{    
         return createVcf( testFolder.newFile()  , str);
     }
-    public static File createVcf(File outputFile, String[] str) throws IOException{
+    public File createVcf(File outputFile, String[] str) throws IOException{
         try(PrintWriter out = new PrintWriter(new FileWriter(outputFile));) {
             out.println(Arrays.stream(str).collect(Collectors.joining(Constants.NL_STRING)));
         }  

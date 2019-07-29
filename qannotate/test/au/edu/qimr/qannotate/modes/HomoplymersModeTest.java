@@ -22,7 +22,6 @@ import org.qcmg.picard.Faidx;
 public class HomoplymersModeTest {
 	@Rule
 	public final TemporaryFolder testFolder = new TemporaryFolder();
-
 	
 	@Test
 	public void refNameTest() throws IOException {
@@ -457,3 +456,5 @@ public class HomoplymersModeTest {
         return file;      
 	}
 }
+
+
