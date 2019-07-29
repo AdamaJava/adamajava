@@ -5,5 +5,5 @@ def isExecutable = true
 dependencies {
     configurations.compile.transitive = true
     compile project(':qcommon')
-    testCompile 'junit:junit:4.10'
+ //   
 } 

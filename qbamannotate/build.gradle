@@ -16,6 +16,6 @@ dependencies {
 	compile 'com.github.samtools:htsjdk:2.14.1'
 
     testCompile project(':qtesting')
-	testCompile 'junit:junit:4.10'
+	
 }
 

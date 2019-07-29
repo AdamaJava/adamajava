@@ -16,7 +16,8 @@ dependencies {
 	compile name: 'snpEff', version: '4.0e'	
 	compile 'com.github.samtools:htsjdk:2.14.1'
 	compile 'net.sf.jopt-simple:jopt-simple:4.6'
-	testCompile 'junit:junit:4.10'
+
+ 
 }
 
  

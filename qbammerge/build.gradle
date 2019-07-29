@@ -16,6 +16,6 @@ dependencies {
 	
     testCompile project(':qtesting')
     testCompile project(':qsplit')
-	testCompile 'junit:junit:4.10'
+	
 }
 

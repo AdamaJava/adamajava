@@ -34,6 +34,6 @@ dependencies {
     compile name: 'jhdf5obj'  
 
 	testCompile 'org.easymock:easymock:3.1'
-	testCompile 'junit:junit:4.10'
+	
 }
 

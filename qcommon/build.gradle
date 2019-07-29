@@ -9,7 +9,7 @@ dependencies {
 	compile 'org.apache.commons:commons-lang3:3.4'  
 	compile 'net.sf.trove4j:trove4j:3.0.3'
 	//compile name: 'trove', version: '3.1a1'
-    testCompile 'junit:junit:4.10'
+  //  
 		
     compile 'com.amazonaws:aws-java-sdk-s3:1.11.241'
     compile 'uk.co.lucasweb:aws-v4-signer-java:1.3'	

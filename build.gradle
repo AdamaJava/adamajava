@@ -46,6 +46,10 @@ subprojects {
         html.enabled = false
     }
   }
+
+  dependencies {
+	testCompile 'junit:junit:4.10'	
+  }
   checkstyleMain.onlyIf {project.hasProperty('checkstyle')}
    
    sourceSets {
