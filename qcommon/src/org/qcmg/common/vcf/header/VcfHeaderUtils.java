@@ -71,7 +71,7 @@ public class VcfHeaderUtils {
 			+ "and the repeat frequence is more than 10 (or more than six for homoplymers repeat), "
 			+ ", or less than 20% of informative reads are strong supporting in case of indel variant";
 	public static final String FILTER_END_OF_READ = "5BP";
-	public static final String FILTER_END_OF_READ_DESC = "Bases that fall within 5bp of the start or finish of the (filtered) read.";
+	public static final String FILTER_END_OF_READ_DESC = "There are fewer than 5 reads supporting the mutation where the mutation is in the middle of the read (ie. not 5bp from the start or end of the read) OR there are 5 or more reads supporting the mutation where the mutation is in the middle of the read, BUT they are all on the same strand";
 
 	//INFO FIELDS
 	public static final String INFO_MUTATION = "MU";

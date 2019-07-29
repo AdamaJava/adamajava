@@ -9,10 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.Set;
-import java.util.TreeSet;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -21,8 +18,6 @@ import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.model.GenotypeEnum;
 import org.qcmg.common.model.MafConfidence;
 import org.qcmg.common.model.PileupElement;
-import org.qcmg.common.string.StringUtils;
-import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 
@@ -242,6 +237,24 @@ public class VcfUtilsTest {
 		assertEquals(3, mergedVcf.getFormatFields().size());
 		assertEquals("0/1:10,3:13:78:49.77", mergedVcf.getFormatFields().get(1));
 		assertEquals("0/2:8,0,5:13:99:157.77", mergedVcf.getFormatFields().get(2));
+	}
+	
+	@Test
+	public void removeGATKINFOFelds() {
+		String s = "chrY	2672735	.	ATT	A	123.86	COVN8;NNS	GATKINFO;NIOC=0;SSOI=1.000;SVTYPE=DEL;END=2672737;IN=1	GT:GD:ACINDEL	0/1:ATT/A:1,1,1,1[1,0],1[1],0,0,1	.";
+		VcfRecord vcf  = new VcfRecord(s.split("\t"));
+		VcfUtils.removeElementsFromInfoField(vcf);
+		assertEquals("GT:GD:ACINDEL	0/1:ATT/A:1,1,1,1[1,0],1[1],0,0,1	.", vcf.getFormatFieldStrings());
+		
+		s = "chrY	2672735	.	ATT	A	123.86	COVN8;NNS	GATKINFO;NIOC=0;SSOI=1.000;SVTYPE=DEL;END=2672737;IN=1;AN=1	GT:GD:ACINDEL	0/1:ATT/A:1,1,1,1[1,0],1[1],0,0,1	.";
+		vcf  = new VcfRecord(s.split("\t"));
+		VcfUtils.removeElementsFromInfoField(vcf);
+		assertEquals("GATKINFO;NIOC=0;SSOI=1.000;SVTYPE=DEL;END=2672737;IN=1", vcf.getInfo());
+		
+		s = "chrY	2672735	.	ATT	A	123.86	COVN8;NNS	GATKINFO;NIOC=0;SSOI=1.000;SVTYPE=DEL;END=2672737;IN=1;AN=1	GT:GD:ACINDEL	0/1:ATT/A:1,1,1,1[1,0],1[1],0,0,1	.";
+		vcf  = new VcfRecord(s.split("\t"));
+		VcfUtils.removeElementsFromInfoField(vcf, "AC");
+		assertEquals("GATKINFO;NIOC=0;SSOI=1.000;SVTYPE=DEL;END=2672737;IN=1;AN=1", vcf.getInfo());
 	}
 	
 	@Test

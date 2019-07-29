@@ -101,8 +101,6 @@ public abstract class Pipeline {
 			VcfHeaderUtils.FORMAT_NOVEL_STARTS + Constants.COLON + 
 			VcfHeaderUtils.FORMAT_OBSERVED_ALLELES_BY_STRAND;
 	
-//	static final String ILLUMINA_MOTIF = "GGT";
-	
 	/**
 	 * used to buffer the accumulation arrays in case reads go over ends of contigs 
 	 */
@@ -418,15 +416,6 @@ public abstract class Pipeline {
 		
 		header.addInfo(VcfHeaderUtils.INFO_FLANKING_SEQUENCE, "1", "String","Flanking sequence either side of variant");														
 		header.addInfo(VcfHeaderUtils.INFO_SOMATIC, "0", "Flag",VcfHeaderUtils.INFO_SOMATIC_DESC);														
-		header.addFilter(VcfHeaderUtils.FILTER_COVERAGE, VcfHeaderUtils.FILTER_COVERAGE_DESC);
-		header.addFilter(VcfHeaderUtils.FILTER_MUTATION_IN_NORMAL,"Mutation also found in pileup of normal");  
-		header.addFilter(VcfHeaderUtils.FILTER_MUTATION_IN_UNFILTERED_NORMAL,"Mutation also found in pileup of (unfiltered) normal");  
-		header.addFilter(VcfHeaderUtils.FILTER_GERMLINE,"Mutation is a germline variant in another patient");  
-		header.addFilter(VcfHeaderUtils.FILTER_NOVEL_STARTS,"Less than 4 novel starts not considering read pair");  
-		header.addFilter(VcfHeaderUtils.FILTER_MUTANT_READS,"Less than 5 mutant reads"); 
-		header.addFilter(VcfHeaderUtils.FILTER_STRAND_BIAS_ALT,"Alternate allele on only one strand (or percentage alternate allele on other strand is less than " + sBiasAltPercentage + "%)"); 
-		header.addFilter(VcfHeaderUtils.FILTER_STRAND_BIAS_COV,"Sequence coverage on only one strand (or percentage coverage on other strand is less than " + sBiasCovPercentage + "%)"); 
-	
 		header.addFormat(VcfHeaderUtils.FORMAT_GENOTYPE, "1", "String" ,"Genotype");
 		header.addFormat(VcfHeaderUtils.FORMAT_END_OF_READ, ".", "String",VcfHeaderUtils.FORMAT_END_OF_READ_DESC);
 		header.addFormat(VcfHeaderUtils.FORMAT_FILTER, ".", "String","Filters that apply to this sample");
@@ -436,7 +425,6 @@ public abstract class Pipeline {
 		header.addFormat(VcfHeaderUtils.FORMAT_FF, ".", "String",VcfHeaderUtils.FORMAT_FF_DESC);
 		header.addFormat(VcfHeaderUtils.FORMAT_READ_DEPTH, "1", "Integer","Approximate read depth (reads with MQ=255 or with bad mates are filtered)");
 		header.addFormat(VcfHeaderUtils.FORMAT_GENOTYPE_QUALITY, "1", "Integer","Genotype Quality");
-		header.addFormat(VcfHeaderUtils.FORMAT_MUTANT_READS,  ".", "Integer","Number of mutant/variant reads");
 		header.addFormat(VcfHeaderUtils.FORMAT_NOVEL_STARTS, ".", "Integer","Number of novel starts not considering read pair");		
 		header.addFormat(VcfHeaderUtils.FORMAT_QL, "1", "Float",VcfHeaderUtils.FORMAT_QL_DESC);		
 			

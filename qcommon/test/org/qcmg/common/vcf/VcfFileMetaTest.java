@@ -118,6 +118,29 @@ public class VcfFileMetaTest {
 		VcfFileMeta meta = new VcfFileMeta(header);
 		assertEquals(ContentType.SINGLE_CALLER_SINGLE_SAMPLE, meta.getType());
 	}
+	@Test
+	public void ctorRealLifeFail2() {
+		VcfHeader header = new VcfHeader();
+		header.addOrReplace("##fileformat=VCFv4.2");
+		header.addOrReplace("##fileDate=20181008");
+		header.addOrReplace("##reference=file:///mnt/lustre/reference/genomes/GRCh37_ICGC_standard_v2/indexes/GATK_3.3-0/GRCh37_ICGC_standard_v2.fa");
+		header.addOrReplace("##qDonorId=02.006.0452");
+		header.addOrReplace("##qControlSample=020060452BP");
+		header.addOrReplace("##qTestSample=020060452FFPE");
+		header.addOrReplace("##qINPUT_GATK_TEST=/mnt/lustre/working/genomeinfo/analysis/7/2/72dde0d0-b795-44d2-956f-3b948389c677/72dde0d0-b795-44d2-956f-3b948389c677.vcf");
+		header.addOrReplace("##qINPUT_GATK_CONTROL=/mnt/lustre/working/genomeinfo/analysis/6/7/67db1323-1761-46e2-9f2a-6ec66c0cb229/67db1323-1761-46e2-9f2a-6ec66c0cb229.vcf");
+		header.addOrReplace("##qControlBam=/mnt/lustre/working/genomeinfo/sample/a/f/af146d8c-0a17-4a24-8953-38fb82b06987/aligned_read_group_set/a264340d-07bf-433b-b871-5a1051b040ae.bam");
+		header.addOrReplace("##qControlBamUUID=a264340d-07bf-433b-b871-5a1051b040ae");
+		header.addOrReplace("##qTestBam=/mnt/lustre/working/genomeinfo/sample/8/0/807cf4b0-4f64-4c75-8367-8edf5887b470/aligned_read_group_set/e3125365-7708-4e97-bee8-ba93337daedd.bam");
+		header.addOrReplace("##qTestBamUUID=e3125365-7708-4e97-bee8-ba93337daedd");
+		header.addOrReplace("##qAnalysisId=cf1c66f2-f2cd-4e90-8df0-34719d230c6e");
+		header.addOrReplace("##qUUID=405ee63d-a2ae-4ad5-a302-e5d523f3fb77");
+		header.addOrReplace("##qSource=qannotate-2.0.1 (2566)");
+		header.addOrReplace("##qINPUT=405ee63d-a2ae-4ad5-a302-e5d523f3fb77:/mnt/lustre/working/genomeinfo/analysis/c/f/cf1c66f2-f2cd-4e90-8df0-34719d230c6e/cf1c66f2-f2cd-4e90-8df0-34719d230c6e.vcf.conf");
+		header.addOrReplace("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\t020060452BP\t020060452FFPE");
+		VcfFileMeta meta = new VcfFileMeta(header);
+		assertEquals(ContentType.SINGLE_CALLER_MULTIPLE_SAMPLES, meta.getType());
+	}
 	
 	@Test
 	public void ctorSingleSampleSingleCaller() {

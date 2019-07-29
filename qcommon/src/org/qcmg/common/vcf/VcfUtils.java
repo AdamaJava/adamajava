@@ -1083,7 +1083,7 @@ public class VcfUtils {
 				tFFs.add(tFF);
 				Map<String, String [] > ffMap = getFormatFieldsAsMap(tFFs);
 				String [] adArray = ffMap.get(VcfHeaderUtils.FORMAT_ALLELIC_DEPTHS);
-				if (null != adArray || adArray.length > 0) {
+				if (null != adArray && adArray.length > 0) {
 					String newAD = calculateAD(adArray[0] , newGT, tGT);
 					adArray[0] = newAD;
 					tFFs = convertFFMapToList(ffMap);
@@ -1095,22 +1095,11 @@ public class VcfUtils {
 		}
 	}
 	
-//	public static boolean isDPFormatFieldPresent(VcfRecord v) {
-//		return v.getFormatFields().get(0).contains(VcfHeaderUtils.FORMAT_READ_DEPTH);
-//	}
-	
 	public static final void prepareGATKVcfForMerge(VcfRecord v) {
 		/*
 		 * need to remove AC and AN from info field
 		 */
-		VcfInfoFieldRecord i = v.getInfoRecord();
-		if (null != i) {
-			i.removeField("AN");
-			i.removeField("AC");
-			i.removeField("AF");
-			i.removeField("MLEAF");
-			i.removeField("MLEAC");
-		}
+		removeElementsFromInfoField(v);
 		Map<String, String[]> ffMap = getFormatFieldsAsMap(v.getFormatFields());
 		ffMap.remove("PL");
 		
@@ -1119,7 +1108,6 @@ public class VcfUtils {
 		 */
 		ffMap.computeIfAbsent(VcfHeaderUtils.FORMAT_READ_DEPTH, f -> new String[]{Constants.MISSING_DATA_STRING});
 		ffMap.computeIfAbsent(VcfHeaderUtils.FORMAT_ALLELIC_DEPTHS, f -> new String[]{Constants.MISSING_DATA_STRING});
-//		ffMap.computeIfAbsent(VcfHeaderUtils.FORMAT_INFO, f -> new String[]{Constants.MISSING_DATA_STRING});
 		ffMap.computeIfAbsent(VcfHeaderUtils.FORMAT_QL, f -> new String[]{StringUtils.isNullOrEmptyOrMissingData(v.getQualString()) ? Constants.MISSING_DATA_STRING : v.getQualString()});
 		/*
 		 * reset qual field as it won't be applicable once merged
@@ -1128,6 +1116,18 @@ public class VcfUtils {
 		v.setFormatFields(convertFFMapToList(ffMap));
 	}
 	
+	public static void removeElementsFromInfoField(VcfRecord vcf) {
+		removeElementsFromInfoField(vcf, "AN", "AC", "AF","MLEAF","MLEAC");
+	}
+	
+	public static void removeElementsFromInfoField(VcfRecord vcf, String ... elements) {
+		VcfInfoFieldRecord i = vcf.getInfoRecord();
+		if (null != i) {
+			for (String s : elements) {
+				i.removeField(s);
+			}
+		}
+	}
 	
 	public static String getUpdateAltString(String newRef, String origRef, String origAlt) {
 		/*
@@ -1489,7 +1489,18 @@ public class VcfUtils {
 		String conf = info.substring(index + CONF_LENGTH, scIndex > -1 ? scIndex : info.length());
 		return conf;
 	}
-
+	/**
+	 * will return true if:
+	 * altCount is >= maxCoverage
+	 * OR
+	 * altCount is 5% (or more) of the totalReadCount
+	 * 
+	 * @param altCount
+	 * @param totalReadCount
+	 * @param percentage
+	 * @param minCoverage
+	 * @return
+	 */
 	public static boolean mutationInNormal(int altCount, int totalReadCount, float percentage, int maxCoverage) {
 		if (altCount == 0) {
 			return false;
@@ -1506,6 +1517,7 @@ public class VcfUtils {
 		float passingCount = totalReadCount > 0 ? (((float)totalReadCount / 100) * percentage) : 0;
 		return altCount >= passingCount;
 	}
-
-	 
+	public static boolean mutationInNormal(int altCount, int totalReadCount, int percentage, int maxCoverage) {
+		return mutationInNormal(altCount, totalReadCount, (float) percentage, maxCoverage);
+	}
 }
