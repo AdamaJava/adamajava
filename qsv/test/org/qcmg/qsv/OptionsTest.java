@@ -80,6 +80,44 @@ public class OptionsTest {
     	assertEquals("bgi", options.getPlatform());
     	assertEquals("BGISeq500", options.getSequencingPlatform());
     }
+    @Test
+    public void novaSeq() throws Exception {
+    	String[] args = TestUtil.getValidOptions(testFolder, file1, file2, "both", "both", true, "bwamem", "NovaSeq");
+    	Options options = new Options(args);
+    	assertFalse(options.hasHelpOption());
+    	assertFalse(options.hasVersionOption());
+    	assertEquals(options.getIniFile(), testFolder.getRoot().getAbsolutePath() + "/test.ini");
+    	assertEquals(options.getTempDirName(), testFolder.getRoot().getAbsolutePath());
+    	options.parseIniFile();
+    	options.detectBadOptions();
+    	assertEquals("illumina", options.getPlatform());
+    	assertEquals("NovaSeq", options.getSequencingPlatform());
+    }
+    
+    @Test
+    public void nextSeq() throws Exception {
+    	String[] args = TestUtil.getValidOptions(testFolder, file1, file2, "both", "both", true, "bwamem", "NextSeq");
+    	Options options = new Options(args);
+    	assertFalse(options.hasHelpOption());
+    	assertFalse(options.hasVersionOption());
+    	assertEquals(options.getIniFile(), testFolder.getRoot().getAbsolutePath() + "/test.ini");
+    	assertEquals(options.getTempDirName(), testFolder.getRoot().getAbsolutePath());
+    	options.parseIniFile();
+    	options.detectBadOptions();
+    	assertEquals("illumina", options.getPlatform());
+    	assertEquals("NextSeq", options.getSequencingPlatform());
+    }
+    
+    @Test(expected = QSVException.class)
+    public void dummySeq() throws Exception {
+    	String[] args = TestUtil.getValidOptions(testFolder, file1, file2, "both", "both", true, "bwamem", "anySeqButHere");
+    	Options options = new Options(args);
+    	assertFalse(options.hasHelpOption());
+    	assertFalse(options.hasVersionOption());
+    	assertEquals(options.getIniFile(), testFolder.getRoot().getAbsolutePath() + "/test.ini");
+    	assertEquals(options.getTempDirName(), testFolder.getRoot().getAbsolutePath());
+    	options.parseIniFile();
+    }
     
     @Test
     public void testGoodIniFileOptions() throws Exception {
