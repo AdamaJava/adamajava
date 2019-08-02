@@ -42,7 +42,7 @@ dependencies {
     compile 'net.sf.jopt-simple:jopt-simple:4.6'
     compile 'org.lz4:lz4-java:1.5.0'
     compile 'org.scala-lang:scala-library:2.12.3'
-    testCompile 'junit:junit:4.10'
+    
 }
 
  

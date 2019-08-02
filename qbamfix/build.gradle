@@ -13,6 +13,6 @@ dependencies {
 
 	compile 'com.github.samtools:htsjdk:2.14.1'
 	compile 'commons-cli:commons-cli:1.2'
-    testCompile 'junit:junit:4.10'
+    
 }
 
