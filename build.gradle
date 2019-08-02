@@ -48,7 +48,7 @@ subprojects {
   }
   checkstyleMain.onlyIf {project.hasProperty('checkstyle')}
 
-   dependencies { testCompile 'junit:junit:4.10' }
+   dependencies { testCompile 'junit:junit:4.12' }
    
    sourceSets {
       main { java.srcDirs=['src']; resources.srcDirs=['src'] }

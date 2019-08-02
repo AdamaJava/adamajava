@@ -16,9 +16,9 @@ import java.util.stream.Stream;
 
 import junit.framework.Assert;
 
-import org.junit.After;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
 import org.qcmg.common.commandline.Executor;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.IndelUtils.SVTYPE;
@@ -27,10 +27,11 @@ import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 
+import au.edu.qimr.qannotate.CallBlockJUnit4ClassRunner;
 import au.edu.qimr.qannotate.utils.MafElement;
 import au.edu.qimr.qannotate.utils.SnpEffMafRecord;
 
-
+@RunWith(CallBlockJUnit4ClassRunner.class )
 public class Vcf2mafIndelTest {
     
     

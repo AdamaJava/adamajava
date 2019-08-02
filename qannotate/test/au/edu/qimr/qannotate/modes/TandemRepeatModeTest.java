@@ -17,14 +17,17 @@ import java.util.Set;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 
+import au.edu.qimr.qannotate.CallBlockJUnit4ClassRunner;
 import au.edu.qimr.qannotate.modes.TandemRepeatMode.*;
 
+@RunWith(CallBlockJUnit4ClassRunner.class )
 public class TandemRepeatModeTest {
 	String repeatFileName = "input.repeat";
 	String inputVcfName = "input.vcf";

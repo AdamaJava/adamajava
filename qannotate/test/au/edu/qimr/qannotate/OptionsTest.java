@@ -8,7 +8,9 @@ import java.io.IOException;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
 
+@RunWith(CallBlockJUnit4ClassRunner.class )
 public class OptionsTest {
 	
 	@Rule

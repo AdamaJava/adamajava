@@ -14,7 +14,6 @@ import org.qcmg.common.vcf.header.VcfHeader;
 
 public class MakeValidModeTest {
 	
-	
 	@Test
 	public void makeValidSecondCaller() {
 		//chr1    823538  rs375868960     G       T       63.77   MR;NNS  SOMATIC;IN=2;DB;GERM=60,185;HOM=0,TCTGGGCCTAtTCCTTCCTTT;CONF=ZERO  GT:AD:DP:GQ:PL:GD:AC:OABS:MR:NNS        .:.:.:.:.:G/G:G5[39.4],13[39.62]:.:0:0  0/1:53,6:59:92:92,0,2176:G/T:G11[37.82],31[40.45]:.:0:0
