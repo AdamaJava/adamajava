@@ -212,8 +212,8 @@ public class AbstractModeTest {
 		/*
 		 * create vcf file
 		 */
-		File vcfFile = testFolder.newFile("my.input.file.vcf");
-		File outputVcfFile = testFolder.newFile("my.output.file.vcf");
+		File vcfFile = testFolder.newFile();
+		File outputVcfFile = testFolder.newFile();
 		createVcf(vcfFile, data);
 		
 		ConfidenceMode mode = new ConfidenceMode();
