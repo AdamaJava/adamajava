@@ -48,6 +48,12 @@ subprojects {
   }
   checkstyleMain.onlyIf {project.hasProperty('checkstyle')}
 
+  configurations {
+    junit
+  }
+  sourceSets.test.compileClasspath = configurations.junit + sourceSets.test.compileClasspath
+  sourceSets.test.runtimeClasspath = configurations.junit + sourceSets.test.runtimeClasspath
+
    dependencies { testCompile 'junit:junit:4.10' }
    
    sourceSets {
