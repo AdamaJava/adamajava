@@ -6,6 +6,6 @@ dependencies {
     configurations.compile.transitive = true	
     compile project(':qio')
 	compile project(':qcommon')	
-	testCompile 'junit:junit:4.10'
+	
 }
 

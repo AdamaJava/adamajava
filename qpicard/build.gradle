@@ -3,13 +3,10 @@ version = '1.1'
 def isExecutable = false
 
 dependencies {
-    configurations.compile.transitive = true
-    
+    configurations.compile.transitive = true   
     compile project(':qcommon')
     compile project(':qio')
 	
-	compile 'com.github.broadinstitute:picard:1.130'
-	compile 'com.github.samtools:htsjdk:2.14.1'
-    testCompile 'junit:junit:4.10'
-	 
+    compile 'com.github.broadinstitute:picard:1.130'
+    compile 'com.github.samtools:htsjdk:2.14.1'
 }

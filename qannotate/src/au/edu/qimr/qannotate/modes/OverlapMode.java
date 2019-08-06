@@ -123,27 +123,16 @@ public class OverlapMode extends AbstractMode{
 			String[] anno = pileuped.computeIfAbsent( pileup.getVcf(), k-> new String[bamfiles.length] );
 			anno[pileup.getSampleColumnNo()-1] = pileup.getAnnotation();	
 			
-//			//debug
-//			if(pileup.getVcf().getPosition() == 4511341){			
-//				try (SamReader Breader =  SAMFileReaderFactory.createSAMFileReader(new File(bamfiles[0]));){
-//					SAMOrBAMWriterFactory fact = new SAMOrBAMWriterFactory(Breader.getFileHeader(), false, new File("output.33.bam"));				 
-//					for(SAMRecord re: pileup.getReads33())
-//						fact.getWriter().addAlignment(re);
-//					fact.closeWriter();					 
-//				}
-//			}
-			
 		}
 				
 		return pileuped;		
 	}
 	
-	 /**
-	  * 
-	  * @param contig: contig name or null for whole reference
-	  * @param filter: only return indel vcf records with specified filter value. Put null here if ignor record filter column value
-	  * @return a sorted list of IndelPotion on this contig; return whole reference indels if contig is null
-	  */
+	/**
+	 * 
+	 * @param contig lists contig name or null for whole reference
+	 * @return a sorted list of IndelPotion on this contig; return whole reference indels if contig is null
+	 */
 	 private  AbstractQueue<VcfRecord>  getVcfList( SAMSequenceRecord contig ){
 		if (positionRecordMap == null || positionRecordMap.size() == 0)
 			return new ConcurrentLinkedQueue<VcfRecord>(); 	
