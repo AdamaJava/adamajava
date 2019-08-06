@@ -127,8 +127,8 @@ public class DbsnpMode extends AbstractMode{
 	
 	/**
 	 * annotate inputVcf with dbSNPVcf information: dbsnp id; allels frequency; VLD:if validated; mark as DB if one of input allele match dbSNP allele
-	 * @param inputVcf: vcf record from input file
-	 * @param dbSNPVcf: position matched vcf record from dbSNP file
+	 * @param inputVcf is the input vcf file which will be loaded into a map
+	 * @param dbSNPVcf is dbSNP file which will be used to match the input vcf record 
 	 */
 	 public static boolean annotateDBsnp(VcfRecord  inputVcf, VcfRecord dbSNPVcf ){
 		 if (null == inputVcf || null == dbSNPVcf) {

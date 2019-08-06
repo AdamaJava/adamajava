@@ -40,8 +40,8 @@ abstract class AbstractMode {
 	private final static QLogger logger = QLoggerFactory.getLogger(AbstractMode.class);	
 	
 	/**
-	 * 
-	 * @param f: read variants from input into RAM hash map
+	 * read variants from input into RAM hash map
+	 * @param f is input vcf file 
 	 * @throws IOException
 	 */
 	protected void loadVcfRecordsFromFile(File f) throws IOException {
@@ -66,8 +66,8 @@ abstract class AbstractMode {
 	abstract void addAnnotation(String dbfile) throws Exception;
 	
 	/**
-	 * 
-	 * @param outputFile: add annotate variants from RAM hash map intp the output file
+	 * add annotate variants from RAM hash map intp the output file
+	 * @param outputFile is output vcf file
 	 * @throws IOException
 	 */
 	void writeVCF(File outputFile ) throws IOException {		 
@@ -117,7 +117,7 @@ abstract class AbstractMode {
 
 	/**
 	 * 
-	 * @param cmd: add this cmd string into vcf header
+	 * @param cmd is the command line string which will be added into vcf header
 	 * @param inputVcfName: add input file name into vcf header
 	 * @throws IOException
 	 */

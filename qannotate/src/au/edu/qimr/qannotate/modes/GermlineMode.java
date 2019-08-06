@@ -125,9 +125,9 @@ public class GermlineMode extends AbstractMode{
  	
  	/**
  	 * 
- 	 * @param inputVcf: a vcf record - INFO field will be updated if the ref and alts match
- 	 * @param germlineVcf: snp listed on germline file
- 	 * @param total: total number of listed germline snp number which is written on database file header
+ 	 * @param inputVcf  contains vcf record which INFO field will be updated if the ref and alts match
+ 	 * @param germlineVcf list germline snps 
+ 	 * @param total is the total number of listed germline snp number which is written on database file header
  	 * @return true if the inputVcf is matched the germline vcf
  	 */
  	public static boolean annotateGermlineSnp(VcfRecord vcf, String gRef, String gAlt, String[] gNumbers) {
