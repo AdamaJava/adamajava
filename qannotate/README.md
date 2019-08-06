@@ -23,8 +23,8 @@ Tool that annotates vcf files. It has a number of modes that perform various ann
 
 ## Running qannotate
 
-* **Run qannotate with the `--help` option to see a list of modes and required inputs:**
+* **Run qannotate with the `-help` option to see a list of modes and required inputs:**
   ```
-  java -jar qannotate/build/flat/qannotate-2.1.2.jar -i-help
+  java -jar qannotate/build/flat/qannotate-2.1.2.jar -help
   ```
   
