@@ -59,7 +59,21 @@ public class ChrPositionComparator implements Comparator<ChrPosition> {
 			new Comparator<String>() {
 			@Override
 			public int compare(String o1, String o2) {
-				return list.indexOf(o1) - list.indexOf(o2);
+				int i1 = list.indexOf(o1);
+				int i2 = list.indexOf(o2);
+				if (i1 >= 0 && i2 >= 0) {
+					return i1 - i2;
+				} else if (i1 >= 0 && i2 == -1) {
+					// o1.chr in list but not o2.chr => o1 < o2
+					return -1;
+				} else if (i1 == -1 && i2 >= 0) {
+					// o2.chr in list but not o1.chr => o2 < o1
+					return 1;
+				} else {
+					assert i1 == -1 && i2 == -1;
+					// neither o1 nor o2 chr in list => "natural" ordering
+					return o1.compareTo(o2);
+				}
 			}
 		};
 		
