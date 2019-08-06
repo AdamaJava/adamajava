@@ -13,9 +13,19 @@ dependencies {
     compile project(':qio')
     compile project(':qbamfilter')
 
-    compile name: 'snpEff', version: '4.0e'	
     compile 'com.github.samtools:htsjdk:2.14.1'
     compile 'net.sf.jopt-simple:jopt-simple:4.6'
+    compile name: 'snpEff', version: '4.0e'	
+/**
+    snpEff-4.0e.jar complied with Junit4.4, which disabled our required junit library such as junit4.10.
+    this also make TemporaryFolder rule stop working properly. TemporaryFolder rule requires BlockJUnit4ClassRunner 
+    but junit4.4 call JUnit4ClassRunner which is old. 
+    
+	To solve the problem we define an customized runner which inherits all feature from BlockJUnit4ClassRunner,
+	and then added it into our test class: "@RunWith(CallBlockJUnit4ClassRunner.class"
+	
+	There is also another simpler way that is to add our required junit to  the compile and runtime classpath. Please refer to the root build.gradle
+ */
 	
 }
 
