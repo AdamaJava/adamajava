@@ -16,14 +16,13 @@ import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.picard.SAMFileReaderFactory;
-import org.qcmg.qbamfilter.query.QueryExecutor;
 
 import static org.junit.Assert.assertTrue;
 
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMSequenceRecord;
 import htsjdk.samtools.SamReader;
-import scala.actors.threadpool.Arrays;
+import java.util.Arrays;
 
 public class ContigPileupTest {
 	
