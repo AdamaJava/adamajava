@@ -6,18 +6,36 @@ mainClassName = 'au.edu.qimr.qannotate.Main'
 def scriptname = 'qannotate'
 def isExecutable = true
 
+/*
+* qannotate requires snpEff and the version currently used is 4.0e
+* This version of the snpEff jar file embedds a version of junit that is old,
+* and qannotate's test classes use some features that the bundled version does not have.
+*
+* This is purely an issue with the ordering of jars on the classpath that is used by the tests
+* Unfortunately, the 'testCompile' elements in the 'dependencies' block will appear in the classpath after the 'compile' elements
+* A workaround for this is to define a configuration that has the desired version of the jar you care about, and then to 
+* setup the compile and runtime classpath with that configuration first.
+*
+* more details here: https://stackoverflow.com/questions/7228076/how-to-specify-classpath-ordering-in-gradle
+*
+*/
+
+configurations {
+    junit
+  }
+
 dependencies {
+    junit ('junit:junit:4.10')
     configurations.compile.transitive = true
 
     compile project(':qcommon')
     compile project(':qio')
     compile project(':qbamfilter')
 
-	compile name: 'snpEff', version: '4.0e'	
-	compile 'com.github.samtools:htsjdk:2.14.1'
-	compile 'net.sf.jopt-simple:jopt-simple:4.6'
-
- 
+    compile 'com.github.samtools:htsjdk:2.14.1'
+    compile 'net.sf.jopt-simple:jopt-simple:4.6'
+    compile name: 'snpEff', version: '4.0e'	
 }
 
- 
+sourceSets.test.compileClasspath = configurations.junit + sourceSets.test.compileClasspath
+sourceSets.test.runtimeClasspath = configurations.junit + sourceSets.test.runtimeClasspath

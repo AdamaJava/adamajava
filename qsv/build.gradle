@@ -13,10 +13,9 @@ dependencies {
     compile project(':qpicard')
 	
     compile group: 'org.ini4j', name: 'ini4j', version: '0.5.2'	
-	compile 'com.github.samtools:htsjdk:2.14.1'	
-	compile 'net.sf.jopt-simple:jopt-simple:4.6'	
+    compile 'com.github.samtools:htsjdk:2.14.1'	
+    compile 'net.sf.jopt-simple:jopt-simple:4.6'	
 		
-	
-	testCompile 'org.easymock:easymock:3.1'
+    testCompile 'org.easymock:easymock:3.1'
 }
 

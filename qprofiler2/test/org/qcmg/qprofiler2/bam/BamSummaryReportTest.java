@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMUtils;
 import org.junit.Before;
 import org.junit.Rule;
@@ -20,6 +22,7 @@ import org.qcmg.qprofiler2.summarise.CycleSummaryTest;
 import org.qcmg.qprofiler2.summarise.PairSummary;
 import org.qcmg.qprofiler2.summarise.PairSummaryTest;
 import org.qcmg.qprofiler2.summarise.PositionSummary;
+import org.qcmg.qprofiler2.summarise.ReadGroupSummary;
 import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Element;
 
@@ -231,5 +234,26 @@ public class BamSummaryReportTest {
 	 
 		return eles;
 	}
+	
+	
+	
+	@Test
+	public void unKnownIdTest() throws Exception{
+		final Element root = XmlElementUtils.createRootElement("root",null);
+		BamSummaryReport2 bsr = new BamSummaryReport2( -1, false);
+		SAMRecord record = new SAMRecord(null);
+		record.setReadName("243_146_1");
+		record.setBaseQualities(new byte[] {1,2,3,4,5,6,7});
+		record.setReadBases(new byte[] {1,2,3,4,5,6,7});				
+		record.setAlignmentStart(239007);
+		record.setReferenceName("chrY");
+		record.setFlags(64);		
+		bsr.parseRecord(record);
+		bsr.toXml(root);
 		
+		for(Element ele: XmlElementUtils.getOffspringElementByTagName(root, "readGroup")) {
+			assertEquals( ele.getAttribute("name"), "unknown_readgroup_id");
+		} 		
+	}
+	
 }

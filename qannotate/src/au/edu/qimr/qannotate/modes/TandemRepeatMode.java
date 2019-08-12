@@ -269,8 +269,8 @@ public class TandemRepeatMode  extends AbstractMode{
 	
 	
 	/**
-	 * the key of the map is converted referenct name, value is the realted repeats. eg. chrMT => set<Repeat>
-	 * @param dbfile: TRF repeat file: eg chr1    11114   11123   5       2.0     5       100     0       20      0.97    GGCGC
+	 * 
+	 * @param dbfile is the TRF repeat file: eg chr1    11114   11123   5       2.0     5       100     0       20      0.97    GGCGC
 	 * @return a list a  repeat region, each region related to a line from dbfile
 	 * @throws IOException
 	 */
@@ -328,7 +328,7 @@ public class TandemRepeatMode  extends AbstractMode{
 	
 	/**
 	 * 
-	 * @param repeats: a list of repeats from loadRepeat(String dbfile)
+	 * @param repeats is a list of repeats from loadRepeat(String dbfile)
 	 * @return an indexed block list for each chromosome reference
 	 */
 	BlockIndex makeIndexedBlock(final Set<Repeat> repeats){

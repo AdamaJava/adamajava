@@ -24,16 +24,14 @@ import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.picard.SAMFileReaderFactory;
-import org.qcmg.picard.SAMOrBAMWriterFactory;
 import org.qcmg.qbamfilter.query.QueryExecutor;
 
 import au.edu.qimr.qannotate.Options;
 import au.edu.qimr.qannotate.utils.ContigPileup;
 import au.edu.qimr.qannotate.utils.VariantPileup;
-import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMSequenceRecord;
 import htsjdk.samtools.SamReader;
-import scala.actors.threadpool.Arrays;
+import java.util.Arrays;
 
 public class OverlapMode extends AbstractMode{
 
@@ -127,12 +125,11 @@ public class OverlapMode extends AbstractMode{
 		return pileuped;		
 	}
 	
-	 /**
-	  * 
-	  * @param contig: contig name or null for whole reference
-	  * @param filter: only return indel vcf records with specified filter value. Put null here if ignor record filter column value
-	  * @return a sorted list of IndelPotion on this contig; return whole reference indels if contig is null
-	  */
+	/**
+	 * 
+	 * @param contig lists contig name or null for whole reference
+	 * @return a sorted list of IndelPotion on this contig; return whole reference indels if contig is null
+	 */
 	 private  AbstractQueue<VcfRecord>  getVcfList( SAMSequenceRecord contig ){
 		if (positionRecordMap == null || positionRecordMap.size() == 0)
 			return new ConcurrentLinkedQueue<VcfRecord>(); 	

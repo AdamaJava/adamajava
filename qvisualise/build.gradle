@@ -9,7 +9,7 @@ def isExecutable = true
 dependencies {
     configurations.compile.transitive = true
     compile project(':qcommon')
-	compile 'net.sf.jopt-simple:jopt-simple:4.6'
-	
+
+    compile 'net.sf.jopt-simple:jopt-simple:4.6'
 }
 
