@@ -174,7 +174,7 @@ public class AbstractModeTest {
         createVcf(vcfFile, data);
         
         ConfidenceMode mode = new ConfidenceMode();
-		mode.loadVcfRecordsFromFile(vcfFile);
+		mode.loadVcfRecordsFromFile(vcfFile, true);
 		mode.writeVCF(outputVcfFile);
 		
 		/*
@@ -217,7 +217,7 @@ public class AbstractModeTest {
 		createVcf(vcfFile, data);
 		
 		ConfidenceMode mode = new ConfidenceMode();
-		mode.loadVcfRecordsFromFile(vcfFile);
+		mode.loadVcfRecordsFromFile(vcfFile, true);
 		mode.writeVCF(outputVcfFile);
 		
 		/*
