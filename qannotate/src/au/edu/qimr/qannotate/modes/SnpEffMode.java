@@ -36,15 +36,12 @@ public class SnpEffMode extends AbstractMode{
         logger.tool("snpeff config file: " + options.getConfigFileName());
         logger.tool("output for annotated vcf records: " + options.getOutputFileName());
         logger.tool("output for summary File: " + options.getSummaryFileName());
-        logger.tool("logger file " + options.getLogFileName());
-        logger.tool("logger level " + (options.getLogLevel() == null ? QLoggerFactory.DEFAULT_LEVEL.getName() :  options.getLogLevel()));
 		      
-        tmpFile = options.getOutputFileName() + ".tmp";
-        
-	    	logger.tool("running snpEFF, output to " + tmpFile);
-	    	final boolean ok = addAnnotation( options , tmpFile );
-	
-	    	logger.tool("exit snpEFF: " + ok);
+        tmpFile = options.getOutputFileName() + ".tmp";        
+    	logger.tool("running snpEFF, output to " + tmpFile);
+    	final boolean ok = addAnnotation( options , tmpFile );
+
+    	logger.tool("exit snpEFF: " + ok);
 		
 		//reheader
         if (ok) { 

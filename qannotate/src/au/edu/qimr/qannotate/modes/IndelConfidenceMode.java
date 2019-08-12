@@ -19,6 +19,7 @@ import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.MafConfidence;
 import org.qcmg.common.string.StringUtils;
+import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.vcf.VcfInfoFieldRecord;
@@ -40,13 +41,14 @@ import au.edu.qimr.qannotate.Options;
 public class IndelConfidenceMode extends AbstractMode{
 	private final QLogger logger = QLoggerFactory.getLogger(IndelConfidenceMode.class);
 	
-	private final String input;
+//	private final String input;
 	private final String output;
 	private final String commandLine;
 	private static final float DEFAULT_NIOC = 0.1f;
 	private static final float DEFAULT_SSOI = 0.2f;
 	static final int DEFAULT_HOMN = 6;
 	private final Map<String,BitSet> mask = new HashMap<>();
+	private final boolean isStrict2chrName;
 		
  	//filters 
 	private static final String FILTER_REPEAT = "REPEAT"; 
@@ -59,23 +61,26 @@ public class IndelConfidenceMode extends AbstractMode{
 	@Deprecated
 	//unit test only
 	IndelConfidenceMode(){
- 		this.input = null;
+ 		this.isStrict2chrName = true;
 		this.output = null;
 		commandLine = null;
 	}
 	
 	public IndelConfidenceMode(Options options) throws Exception{
-		input = options.getInputFileName();
+//		input = options.getInputFileName();
 		output = options.getOutputFileName();
 		commandLine = options.getCommandLine();
+		this.isStrict2chrName = options.isStrict2chrName();
 		
 		logger.tool("input: " + options.getInputFileName());
         logger.tool("mask File: " + options.getDatabaseFileName() );
         logger.tool("output annotated records: " + options.getOutputFileName());
-        logger.tool("logger file " + options.getLogFileName());
-        logger.tool("logger level " + (options.getLogLevel() == null ? QLoggerFactory.DEFAULT_LEVEL.getName() :  options.getLogLevel()));
-          
-		addAnnotation(options.getDatabaseFileName() );				
+        logger.tool("accept ambiguous chromosome name, eg. treat M and chrMT as same chromosome name: " + (!isStrict2chrName));
+        
+		// TODO Auto-generated method stub
+		loadMask( options.getDatabaseFileName() );	
+
+		addAnnotation(options.getInputFileName() );				
 	}
 
 	/**
@@ -88,16 +93,16 @@ public class IndelConfidenceMode extends AbstractMode{
         try(BufferedReader reader = new BufferedReader(new FileReader(dbfile))){
             String line;
             while (( line = reader.readLine()) != null) {
-            		if ( ! line.startsWith("geno")) {
-	                String[] array = line.split(" ");
-	                	//int no = Integer.parseInt(array[0]) - 1;
-	                	String chr = IndelUtils.getFullChromosome(array[0]);
-	                	
-	                	int start = Integer.parseInt(array[1]);
-	                	int end = Integer.parseInt(array[2]);
-	                	
-	                	mask.computeIfAbsent(chr, (v) -> new BitSet()).set(start,end);
-            		}
+        		if ( ! line.startsWith("geno")) {
+                String[] array = line.split(" ");
+                	//int no = Integer.parseInt(array[0]) - 1;
+                	//String chr = IndelUtils.getFullChromosome(array[0]);
+                	String chr = isStrict2chrName? array[0]: ChrPositionUtils.ChrNameConveter(array[0]);		
+                	int start = Integer.parseInt(array[1]);
+                	int end = Integer.parseInt(array[2]);
+                	
+                	mask.computeIfAbsent(chr, (v) -> new BitSet()).set(start,end);
+        		}
             }
 		}        
 	}
@@ -135,8 +140,8 @@ public class IndelConfidenceMode extends AbstractMode{
 	
  
 	private boolean isRepeat(VcfRecord vcf){
-        
-		String chr = IndelUtils.getFullChromosome(vcf.getChromosome()); 
+        		 
+		String chr = isStrict2chrName? vcf.getChromosome(): ChrPositionUtils.ChrNameConveter( vcf.getChromosome() );	
 		BitSet chrMask = mask.get(chr);
 		if (null == chrMask) {
 			return false;
@@ -150,11 +155,8 @@ public class IndelConfidenceMode extends AbstractMode{
        	return false;        	
 	}
 
-
 	@Override
-	void addAnnotation(String dbfile) throws IOException {
-		// TODO Auto-generated method stub
-		loadMask( dbfile );	
+	void addAnnotation(String input) throws IOException {
 		
 		long count = 0;
 		long repeatCount = 0; 

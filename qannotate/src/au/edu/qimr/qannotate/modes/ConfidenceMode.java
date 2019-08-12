@@ -105,7 +105,8 @@ public class ConfidenceMode extends AbstractMode{
         logger.tool("logger file " + options.getLogFileName());
         logger.tool("logger level " + (options.getLogLevel() == null ? QLoggerFactory.DEFAULT_LEVEL.getName() :  options.getLogLevel()));
  		
-		loadVcfRecordsFromFile(new File( options.getInputFileName())   );	
+        //there is no db file, we always use the chromosome from input, so isStrictName == true;
+		loadVcfRecordsFromFile(new File( options.getInputFileName()) , true  );	
 		
 		options.getNNSCount().ifPresent(i -> nnsCount = i.intValue());
 		options.getMRCount().ifPresent(i -> mrCount = i.intValue());
@@ -515,4 +516,3 @@ public class ConfidenceMode extends AbstractMode{
 		// TODO Auto-generated method stub		
 	}  
 }	
-	

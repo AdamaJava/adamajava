@@ -13,10 +13,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.qcmg.common.log.QLoggerFactory;
+
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 
-import org.qcmg.common.log.QLogger;
+//import org.qcmg.common.log.QLogger;
 
 import au.edu.qimr.qannotate.Messages;
 import au.edu.qimr.qannotate.modes.*;
@@ -38,13 +40,13 @@ public class Options {
     
     private final Options.MODE mode;  
     private final  OptionParser parser;
-    private final QLogger logger = null;
 	 	
     private final String outputFileName ;
     private final String inputFileName ;
     private final String[] databaseFiles;
     private final String logFileName;
     private final String logLevel;  
+    private final boolean isStrictName;
 	
 	//vcf2maf 
     private  final String testSample;
@@ -83,19 +85,19 @@ public class Options {
      * check command line and store arguments and option information
      */   
     public Options(final String[] args) throws IOException{      	
-	    	parser = new OptionParser();    	       
-	    	OptionSet options =  parseArgs(args);
-	    	
-	    	if (options.has("mode")){
-	    		String m = ((String) options.valueOf("mode")).toLowerCase();
-	    		this.mode = MODE.valueOf(m); //already checked the validation of mode
-	    	} else {
-	    		this.mode = null;
-	    	}
+    	parser = new OptionParser();    	       
+    	OptionSet options =  parseArgs(args);
+    	
+    	if (options.has("mode")){
+    		String m = ((String) options.valueOf("mode")).toLowerCase();
+    		this.mode = MODE.valueOf(m); //already checked the validation of mode
+    	} else {
+    		this.mode = null;
+    	}
     		   	
         if (options.has("h") || options.has("help")) { 
-	        	displayHelp(mode);  
-	        	System.exit(0);	
+        	displayHelp(mode);  
+        	System.exit(0);	
         }
         
        //parse parameters        
@@ -106,6 +108,7 @@ public class Options {
         outputFileName = (String) options.valueOf("output") ; 
     	logFileName = (String) options.valueOf("log");  	
     	logLevel = (String) options.valueOf("loglevel");
+    	isStrictName = (options.has("strict2ChromosomeName"))? true : false;  //chromosome name must match bwt input and db file
     	
     	if (null == inputFileName) { 
         	displayHelp(mode);  
@@ -120,7 +123,7 @@ public class Options {
 		  	displayHelp(mode);  
         	System.exit(0);	
 		}
-        
+              
         gap = (options.has("gap"))? (int)options.valueOf("gap") : 1000;  //CADD default is 1000
         bufferSize = (options.has("buffer"))? (Integer) options.valueOf("buffer") : 0; //TRF default is 0
         
@@ -186,7 +189,9 @@ public class Options {
 		parser.accepts("mrPercentage", "Number of mutant reads (MR) required to be High Confidence as a percentage").withRequiredArg().ofType(Float.class)
 		.describedAs("numberOfMutantReadsPercentage");
 		parser.accepts("filtersToIgnore", LOG_DESCRIPTION).withRequiredArg().ofType(String.class);
-
+		parser.accepts("strict2ChromosomeName", "It requires the chromosome name match the one in database file strictly. Without this option, it accepts ambiguous name, "
+				+ "eg. treat 'M' and 'chrMT' as same chromosome name");
+		
         OptionSet options  = parser.parse(args);  
         if (options.has("v") || options.has("version")){
     		System.err.println( "qannotate: Current version is " + getVersion());
@@ -306,7 +311,7 @@ public class Options {
     }
 
 	public String getLogFileName() { return logFileName;}	
-	public String getLogLevel(){ return logLevel; }	 
+	public String getLogLevel(){ return logLevel == null ? QLoggerFactory.DEFAULT_LEVEL.getName() :  logLevel; }	 
 	public String getCommandLine() {	return commandLine; }	
 	public String getInputFileName(){return inputFileName;}
 	public String getOutputFileName(){return outputFileName;}
@@ -394,5 +399,7 @@ public class Options {
 	public Optional<Float> getMINPercentage() {
 		return Optional.ofNullable(minPercentage);
 	}
+	
+	public boolean isStrict2chrName() {return isStrictName;}
 
 }

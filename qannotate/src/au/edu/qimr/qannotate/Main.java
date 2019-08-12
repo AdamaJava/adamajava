@@ -16,10 +16,11 @@ public class Main {
 	public static void main(final String[] args) throws Exception {	
 
 		try {
-           final Options options = new Options(args);             
-        		//LoadReferencedClasses.loadClasses(Main.class);    
+           final Options options = new Options(args);
            logger = QLoggerFactory.getLogger(Main.class, options.getLogFileName(),  options.getLogLevel());	            		               
            logger.logInitialExecutionStats(options.getPGName(), options.getVersion(),args);
+	       logger.tool("logger file " + options.getLogFileName());
+	       logger.tool("logger level " + options.getLogLevel());
            
            checkOptions(options);
            
@@ -45,8 +46,6 @@ public class Main {
     	   		new TandemRepeatMode( options );
             } else if (options.getMode() == Options.MODE.make_valid) {
     	   		new MakeValidMode( options );
-//           } else if (options.getMode() == Options.MODE.snppileup) {
-//   	   			new SnpPileupMode( options );
    	   	    } else if (options.getMode() == Options.MODE.overlap) {
    	   			new OverlapMode( options );
 	   	   	} else if (options.getMode() == Options.MODE.vcf2maftmp) {

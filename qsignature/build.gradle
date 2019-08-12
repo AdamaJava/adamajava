@@ -13,7 +13,6 @@ dependencies {
     compile project(':qio')
     
     compile 'com.github.samtools:htsjdk:2.14.1'
-    compile 'net.sf.jopt-simple:jopt-simple:4.6'
-	
+    compile 'net.sf.jopt-simple:jopt-simple:4.6'	
 }
 

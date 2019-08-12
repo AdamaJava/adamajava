@@ -200,22 +200,22 @@ public class SignatureUtil {
 	}
 	
 	
-	public static List<VcfRecord> addChrToVcfRecords(List<VcfRecord> vcfs) {
-		
-		List<VcfRecord> updatedVcfs = new ArrayList<>();
-		for (VcfRecord v : vcfs) {
-			if (Character.isDigit(v.getChrPosition().getChromosome().charAt(0))) {
-				ChrPosition oldCP = v.getChrPosition();
-				v = VcfUtils.cloneWithNewChrPos(v, ChrPositionUtils.cloneWithNewChromosomeName(oldCP, "chr" + oldCP.getChromosome()));
-			}
-			updatedVcfs.add(v);
-		}
-		return updatedVcfs;
-		
-//		return vcfs.stream()
-//				.map(f -> (Character.isDigit(f.getChrPosition().getChromosome().charAt(0)) ? "chr" + f : f))
-//				.collect(Collectors.toList());
-	}
+//	public static List<VcfRecord> addChrToVcfRecords(List<VcfRecord> vcfs) {
+//		
+//		List<VcfRecord> updatedVcfs = new ArrayList<>();
+//		for (VcfRecord v : vcfs) {
+//			if (Character.isDigit(v.getChrPosition().getChromosome().charAt(0))) {
+//				ChrPosition oldCP = v.getChrPosition();
+//				v = VcfUtils.cloneWithNewChrPos(v, ChrPositionUtils.cloneWithNewChromosomeName(oldCP, "chr" + oldCP.getChromosome()));
+//			}
+//			updatedVcfs.add(v);
+//		}
+//		return updatedVcfs;
+//		
+////		return vcfs.stream()
+////				.map(f -> (Character.isDigit(f.getChrPosition().getChromosome().charAt(0)) ? "chr" + f : f))
+////				.collect(Collectors.toList());
+//	}
 
 	public static Map<File, Map<ChrPosition, double[]>> getDonorSnpChipData(String donor, List<File> files) throws IOException {
 		
