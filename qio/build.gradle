@@ -5,4 +5,5 @@ def isExecutable = true
 dependencies {
     configurations.compile.transitive = true
     compile project(':qcommon')
+    
 } 
