@@ -23,16 +23,14 @@ import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.picard.SAMFileReaderFactory;
-import org.qcmg.picard.SAMOrBAMWriterFactory;
 import org.qcmg.qbamfilter.query.QueryExecutor;
 
 import au.edu.qimr.qannotate.Options;
 import au.edu.qimr.qannotate.utils.ContigPileup;
 import au.edu.qimr.qannotate.utils.VariantPileup;
-import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMSequenceRecord;
 import htsjdk.samtools.SamReader;
-import scala.actors.threadpool.Arrays;
+import java.util.Arrays;
 
 public class OverlapMode extends AbstractMode{
 

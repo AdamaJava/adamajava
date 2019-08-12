@@ -11,7 +11,7 @@ import org.qcmg.common.util.IndelUtils.SVTYPE;
 import org.qcmg.common.util.Pair;
 import org.qcmg.common.vcf.VcfRecord;
 import htsjdk.samtools.SAMRecord;
-import scala.actors.threadpool.Arrays;
+import java.util.Arrays;
 
 public class VariantPileup {
 	
