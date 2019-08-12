@@ -243,9 +243,8 @@ public class BamSummaryReport2 extends SummaryReport {
         parent = XmlElementUtils.createSubElement(parent, XmlUtils.READGROUPS );  
         
         for(String rg : readGroups ) {
-        	String rgName = (readGroups.size() == 1 && rg.equals(XmlUtils.UNKNOWN_READGROUP))? null : rg;
         	//output tLen inside pairSummary, eg. inward, f3f5
-        	rgSummaries.get(rg).pairTlen2Xml(XmlUtils.createReadGroupNode(parent, rgName));       	
+        	rgSummaries.get(rg).pairTlen2Xml(XmlUtils.createReadGroupNode(parent, rg));       	
         }	
 	}			
 	private void createCigar(Element parent) {
@@ -254,8 +253,7 @@ public class BamSummaryReport2 extends SummaryReport {
         parent = XmlElementUtils.createSubElement(parent, XmlUtils.READGROUPS );  
         
         for(String rg : readGroups ) {
-        	String rgName = (readGroups.size() == 1 && rg.equals(XmlUtils.UNKNOWN_READGROUP))? null : rg;
-        	Element ele = XmlUtils.createMetricsNode( XmlUtils.createReadGroupNode(parent, rgName), null, 
+        	Element ele = XmlUtils.createMetricsNode( XmlUtils.createReadGroupNode(parent, rg), null, 
         			new Pair<String, Number>(ReadGroupSummary.READ_COUNT,rgSummaries.get(rg).getCigarReadCount()) )	;
         	
         	//cigar string from reads including duplicateReads, notProperPairs and unmappedReads but excluding discardedReads (failed, secondary and supplementary).

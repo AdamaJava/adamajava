@@ -111,7 +111,7 @@
     <xs:complexType name="SequenceMetricsType">    
 	     <xs:choice>
 		     <xs:sequence>
-			     <xs:element name="variableGroup" maxOccurs="unbounded" type="groupType"/>
+			     <xs:element name="variableGroup" maxOccurs="unbounded"  minOccurs="0" type="groupType"/>
 		     </xs:sequence>
 		     <xs:sequence>
 			     <xs:element ref="value" maxOccurs="unbounded"/>

@@ -21,7 +21,7 @@ import htsjdk.samtools.SAMSequenceRecord;
 
 public class XmlUtils {
 	public static final String OTHER = "others";
-	public static final String UNKNOWN_READGROUP = "unkown_readgroup_id";	
+	public static final String UNKNOWN_READGROUP = "unknown_readgroup_id";	
 	
 	public static final String METRICS = "Metrics";
 	public static final String READGROUPS ="readGroups";
