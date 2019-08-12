@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.UUID;
 
 import org.w3c.dom.Element;
-import org.qcmg.common.date.DateUtils;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.util.XmlElementUtils;
@@ -145,7 +144,7 @@ public class BamSummaryReportMetricsTest {
 	public void cigarTest() {
 		Element summaryE = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.BAM_SUMMARY).get(0);			
 		Element tagE = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.CIGAR).get(0);
-		for(String rg : new String[] {"1959T", "1959N", "unkown_readgroup_id" }) {
+		for(String rg : new String[] {"1959T", "1959N", "unknown_readgroup_id" }) {
 			//get counts from <bamMetrics>
 			Element ele =getElementByFirst(tagE, "readGroup",  k -> k.getAttribute(XmlUtils.NAME).equals(rg));
 			String readCount = XmlElementUtils.getChildElement(ele,  XmlUtils.SEQUENCE_METRICS, 0).getAttribute(ReadGroupSummary.READ_COUNT);
@@ -231,7 +230,7 @@ public class BamSummaryReportMetricsTest {
 		for(String tagName : new String[] { XmlUtils.QNAME, XmlUtils.POS }) {
 			Element tagE = XmlElementUtils.getOffspringElementByTagName(root, tagName).get(0);
 			
-			for(String rg : new String[] {"1959T", "1959N", "unkown_readgroup_id" }) {			
+			for(String rg : new String[] {"1959T", "1959N", "unknown_readgroup_id" }) {			
 				Element ele =getElementByFirst(tagE, "readGroup",  k -> k.getAttribute(XmlUtils.NAME).equals(rg));
 				String readCount = tagName.equals(XmlUtils.POS ) ? 
 					 XmlElementUtils.getChildElement(ele,  XmlUtils.SEQUENCE_METRICS, 0).getAttribute(ReadGroupSummary.READ_COUNT) :
@@ -304,23 +303,20 @@ public class BamSummaryReportMetricsTest {
 		}
 		
 		int freq = 10000;
-		String str; 
-		QLogger logger = QLoggerFactory.getLogger(QProfiler2.class, testFolder.newFile("my.log").getAbsolutePath(), "DEBUG");
+		String str;
 		long start = System.currentTimeMillis();		
 		for(int i = 0; i < freq; i ++) {
 			str = myList.get(i%100);
 			Collections.binarySearch( myList, str, null);  
 		}
-		logger.getRunTime(start, System.currentTimeMillis());
+		QLogger.getRunTime(start, System.currentTimeMillis());
 		
 		start = System.currentTimeMillis();		
 		for(int i = 0; i < freq; i ++) {
 			str = myList.get(i%100);
 			myList.indexOf(str);
 		}
-		logger.getRunTime(start, System.currentTimeMillis());
-		
-		
+		QLogger.getRunTime(start, System.currentTimeMillis());		
 	}
 	
 }

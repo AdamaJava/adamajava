@@ -6,7 +6,26 @@ mainClassName = 'au.edu.qimr.qannotate.Main'
 def scriptname = 'qannotate'
 def isExecutable = true
 
+/*
+* qannotate requires snpEff and the version currently used is 4.0e
+* This version of the snpEff jar file embedds a version of junit that is old,
+* and qannotate's test classes use some features that the bundled version does not have.
+*
+* This is purely an issue with the ordering of jars on the classpath that is used by the tests
+* Unfortunately, the 'testCompile' elements in the 'dependencies' block will appear in the classpath after the 'compile' elements
+* A workaround for this is to define a configuration that has the desired version of the jar you care about, and then to 
+* setup the compile and runtime classpath with that configuration first.
+*
+* more details here: https://stackoverflow.com/questions/7228076/how-to-specify-classpath-ordering-in-gradle
+*
+*/
+
+configurations {
+    junit
+  }
+
 dependencies {
+    junit ('junit:junit:4.10')
     configurations.compile.transitive = true
 
     compile project(':qcommon')
@@ -16,17 +35,7 @@ dependencies {
     compile 'com.github.samtools:htsjdk:2.14.1'
     compile 'net.sf.jopt-simple:jopt-simple:4.6'
     compile name: 'snpEff', version: '4.0e'	
-/**
-    snpEff-4.0e.jar complied with Junit4.4, which disabled our required junit library such as junit4.10.
-    this also make TemporaryFolder rule stop working properly. TemporaryFolder rule requires BlockJUnit4ClassRunner 
-    but junit4.4 call JUnit4ClassRunner which is old. 
-    
-	To solve the problem we define an customized runner which inherits all feature from BlockJUnit4ClassRunner,
-	and then added it into our test class: "@RunWith(CallBlockJUnit4ClassRunner.class"
-	
-	There is also another simpler way that is to add our required junit to  the compile and runtime classpath. Please refer to the root build.gradle
- */
-	
 }
 
- 
+sourceSets.test.compileClasspath = configurations.junit + sourceSets.test.compileClasspath
+sourceSets.test.runtimeClasspath = configurations.junit + sourceSets.test.runtimeClasspath
