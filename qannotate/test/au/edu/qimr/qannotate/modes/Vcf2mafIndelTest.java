@@ -14,9 +14,6 @@ import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import junit.framework.Assert;
-
-import org.junit.After;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.commandline.Executor;
@@ -37,26 +34,6 @@ public class Vcf2mafIndelTest {
     @org.junit.Rule
     public  TemporaryFolder testFolder = new TemporaryFolder();
     
-//     static String inputName = DbsnpModeTest.inputName;    
-//    static String outputDir = new File(inputName).getAbsoluteFile().getParent() + "/output";
-//    static String outputMafName = "output.maf";
-//    static String logName = "output.log"; 
- 
-//    @After
-//    public void deleteIO() throws IOException{
-//       
-//        File dir = new java.io.File( "." ).getCanonicalFile();
-//        File[] files = dir.listFiles();
-//        if (null != files) {
-//            for(File f: files){ 
-//                if(    f.getName().endsWith(".vcf")  ||  f.getName().contains(".log") || f.getName().endsWith(".maf") ||  f.getName().contains("output")){            
-//                    f.delete();    
-//                }      
-//            }
-//        }
-//        Vcf2mafTest.deleteIO();        
-//    }
-    
     @Test
     public void frame_Shift_Test() throws IOException  {
         File input = testFolder.newFile();
@@ -70,7 +47,7 @@ public class Vcf2mafIndelTest {
             };
             
             try{
-                    Vcf2mafTest.createVcf(input, str);                
+                   new Vcf2mafTest().createVcf(input, str);                
                     final Vcf2maf v2m = new Vcf2maf(1,2, null, null, ContentType.MULTIPLE_CALLERS_MULTIPLE_SAMPLES);    
                     try(VCFFileReader reader = new VCFFileReader(input); ){
                      for (final VcfRecord vcf : reader){
@@ -120,7 +97,7 @@ public class Vcf2mafIndelTest {
                        
         };
             try {
-                Vcf2mafTest.createVcf(input, str);
+                new Vcf2mafTest().createVcf(input, str);
                 final String[] command = {"--mode", "vcf2maf",  "--log", log.getAbsolutePath(),  "-i", input.getAbsolutePath() , "-output" , out.getAbsolutePath()};
                 au.edu.qimr.qannotate.Main.main(command);
             } catch ( Exception e) {
@@ -208,7 +185,7 @@ public class Vcf2mafIndelTest {
         };
            
 
-            Vcf2mafTest.createVcf(input, str);             
+            new Vcf2mafTest().createVcf(input, str);             
             
         final String command = "--mode vcf2maf  --log " + log.getAbsolutePath() + " -i " + input.getAbsolutePath() + " --outdir " + out.getAbsolutePath();            
         final Executor exec = new Executor(command, "au.edu.qimr.qannotate.Main");            
@@ -220,7 +197,7 @@ public class Vcf2mafIndelTest {
             Optional<String> delline = lines.filter(s ->s.contains("8,18,16,8[2,6],9[9],0,0,0")).filter(s->s.contains("DEL")).findFirst();
             
             if(!delline.isPresent())
-                Assert.fail("missing DEL variants");                
+                fail("missing DEL variants");                
             //split string to maf record               
             SnpEffMafRecord maf =  toMafRecord(delline.get());
             
@@ -262,7 +239,7 @@ public class Vcf2mafIndelTest {
         try(Stream<String> lines = Files.lines(path)){
             Optional<String> insline = lines.filter(s -> s.contains("INS")).filter(s -> s.contains("23114")).findFirst();
             if(!insline.isPresent())
-                Assert.fail("missing INS variants");                
+               fail("missing INS variants");                
             SnpEffMafRecord maf =  toMafRecord(insline.get());
                
             //"chr1\t16864\t.\tGCA\tG
@@ -320,7 +297,7 @@ public class Vcf2mafIndelTest {
         };
            
         try {
-            Vcf2mafTest.createVcf(input, str);
+            new Vcf2mafTest().createVcf(input, str);
             final String[] command = {"--mode", "vcf2maf",  "--log", log.getAbsolutePath(),  "-i", input.getAbsolutePath() , "-o" , out.getAbsolutePath()};
             au.edu.qimr.qannotate.Main.main(command);
         } catch ( Exception e) {
@@ -347,7 +324,6 @@ public class Vcf2mafIndelTest {
         //split string to maf record
         SnpEffMafRecord maf = new SnpEffMafRecord();
         String[] eles = line.split("\\t");
-        System.out.println("eles.length: " + eles.length);
         //last two optional column for acsnp
         assertTrue(eles.length == MafElement.values().length);
              

@@ -74,8 +74,6 @@ public class MakeValidMode extends AbstractMode {
 			logger.tool("reference file: " + refFile);
 		}
         logger.tool("output annotated records: " + options.getOutputFileName());
-        logger.tool("logger file " + options.getLogFileName());
-        logger.tool("logger level " + (options.getLogLevel() == null ? QLoggerFactory.DEFAULT_LEVEL.getName() :  options.getLogLevel()));
         
         processVcfFile(options.getInputFileName(), options.getOutputFileName(), options.getCommandLine(), refFile);
 	}

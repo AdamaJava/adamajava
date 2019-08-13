@@ -72,8 +72,8 @@ public class AbstractModeTest {
 	    	   assertTrue(i == 3);
 	   }
 	       
-		DbsnpMode db = new DbsnpMode();
-		db.loadVcfRecordsFromFile(new File(inputName));		
+		DbsnpMode db = new DbsnpMode(true);
+		db.loadVcfRecordsFromFile(new File(inputName),false);		
 		db.reheader("testing run",   inputName);
 		db.writeVCF(new File(outputName));
 		
@@ -174,7 +174,7 @@ public class AbstractModeTest {
         createVcf(vcfFile, data);
         
         ConfidenceMode mode = new ConfidenceMode();
-		mode.loadVcfRecordsFromFile(vcfFile);
+		mode.loadVcfRecordsFromFile(vcfFile, true);
 		mode.writeVCF(outputVcfFile);
 		
 		/*
@@ -217,7 +217,7 @@ public class AbstractModeTest {
 		createVcf(vcfFile, data);
 		
 		ConfidenceMode mode = new ConfidenceMode();
-		mode.loadVcfRecordsFromFile(vcfFile);
+		mode.loadVcfRecordsFromFile(vcfFile, true);
 		mode.writeVCF(outputVcfFile);
 		
 		/*

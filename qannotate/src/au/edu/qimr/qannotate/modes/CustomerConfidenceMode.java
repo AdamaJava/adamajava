@@ -32,10 +32,10 @@ public final class CustomerConfidenceMode extends AbstractMode{
 	final String BP = "5BP"; 
 	final String SBIASCOV = "SBIASCOV"; 
 	
-//	String description = null;
+
 	private static final int min_read_counts = 50;
 	private static final int variants_rate = 10 ;
-//	boolean passOnly = false;
+
 	
 	private int test_column = -2; //can't be -1 since will "+1"
 	private int control_column  = -2;
@@ -43,7 +43,7 @@ public final class CustomerConfidenceMode extends AbstractMode{
 	private final QLogger logger  = QLoggerFactory.getLogger(CustomerConfidenceMode.class); 
 	
  	
-//	//unit test only
+	//unit test only
 	CustomerConfidenceMode( ){	}
 	
 	public CustomerConfidenceMode(Options options) throws Exception{	
@@ -53,11 +53,8 @@ public final class CustomerConfidenceMode extends AbstractMode{
         logger.tool("logger file " + options.getLogFileName());
         logger.tool("logger level " + (options.getLogLevel() == null ? QLoggerFactory.DEFAULT_LEVEL.getName() :  options.getLogLevel()));
         
-//        min_read_counts = options.get_min_read_count();
-//        variants_rate = options.get_min_mutant_rate();
-//        passOnly = options.isPassOnly();
-        
-		loadVcfRecordsFromFile(new File( options.getInputFileName())   );	
+      //there is no database file, we use input vcf chromosome name directory.
+		loadVcfRecordsFromFile(new File( options.getInputFileName()), true  );	
 		
 		//get control and test sample column; here use the header from inputRecord(...)
 		SampleColumn column = SampleColumn.getSampleColumn(options.getTestSample(), options.getControlSample(), this.header );

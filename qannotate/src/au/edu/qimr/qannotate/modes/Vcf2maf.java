@@ -60,6 +60,7 @@ public class Vcf2maf extends AbstractMode{
 	private boolean hasACLAP = false; 
 	
 	//for unit test
+	@Deprecated
 	Vcf2maf(int test_column, int control_column, String test, String control, ContentType contentType){ 
 		center = SnpEffMafRecord.center;
 		sequencer = SnpEffMafRecord.Unknown; 
@@ -75,6 +76,10 @@ public class Vcf2maf extends AbstractMode{
  
 	//EFF= Effect ( Effect_Impact | Functional_Class | Codon_Change | Amino_Acid_Change| Amino_Acid_Length | Gene_Name | Transcript_BioType | Gene_Coding | Transcript_ID | Exon_Rank  | Genotype_Number [ | ERRORS | WARNINGS ] )	
 	public Vcf2maf( Options option) throws Exception {
+		logger.tool(	"input: " + option.getInputFileName()	);
+         
+
+		
 		this.center = option.getCenter();
 		this.sequencer = option.getSequencer();		
 		
@@ -104,7 +109,7 @@ public class Vcf2maf extends AbstractMode{
 					
 		String outputname;
 		if(option.getOutputFileName() != null) {
-			outputname =  option.getOutputFileName();
+			outputname =  option.getOutputFileName();			
 		} else if( option.getOutputDir() != null) {
 			if (donorId != null && controlSample != null && testSample != null) {
 				outputname = String.format("%s//%s.%s.%s.maf", option.getOutputDir(), donorId, controlSample , testSample);
@@ -116,7 +121,8 @@ public class Vcf2maf extends AbstractMode{
 		} else {
 			throw new Exception("Please specify output file name or output file directory on command line");
 		}
-	
+		logger.tool(	"output: " + outputname 	);
+		
 		String sPC  = outputname.replace(".maf", ".Somatic.Pass.Consequence.maf") ;
 		String sP = outputname.replace(".maf", ".Somatic.Pass.maf") ;
 		String gPC  = outputname.replace(".maf", ".Germline.Pass.Consequence.maf") ;
