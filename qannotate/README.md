@@ -2,7 +2,7 @@
 Tool that annotates vcf files. It has a number of modes that perform various annotations. 
 
 ## Requirements
-* Java 1.8
+* Java 1.8+
 
 ## Building qannotate
 
