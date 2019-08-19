@@ -1489,6 +1489,9 @@ public class VcfUtils {
 		String conf = info.substring(index + CONF_LENGTH, scIndex > -1 ? scIndex : info.length());
 		return conf;
 	}
+
+
+
 	/**
 	 * will return true if:
 	 * altCount is >= maxCoverage

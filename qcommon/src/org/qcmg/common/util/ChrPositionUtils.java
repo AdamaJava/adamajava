@@ -116,15 +116,15 @@ public class ChrPositionUtils {
 	}
 	
 
-//	public static ChrPosition cloneWithNewChromosomeName(ChrPosition cp, String newChr) {
-//		if (cp instanceof ChrPointPosition) {
-//			return ChrPointPosition.valueOf(newChr, cp.getStartPosition());
-//		} else if  (cp instanceof ChrRangePosition) {
-//			return new ChrRangePosition(newChr, cp.getStartPosition(), cp.getEndPosition());
-//		} else {
-//			throw new UnsupportedOperationException("cloneWithNewName not yet implemented for any types other than ChrPointPosition and ChrRangePosition!!!");
-//		}
-//	}
+	public static ChrPosition cloneWithNewChromosomeName(ChrPosition cp, String newChr) {
+		if (cp instanceof ChrPointPosition) {
+			return ChrPointPosition.valueOf(newChr, cp.getStartPosition());
+		} else if  (cp instanceof ChrRangePosition) {
+			return new ChrRangePosition(newChr, cp.getStartPosition(), cp.getEndPosition());
+		} else {
+			throw new UnsupportedOperationException("cloneWithNewName not yet implemented for any types other than ChrPointPosition and ChrRangePosition!!!");
+		}
+	}
 	
 	/**
 	 * ASsumes that String is in the IGV notation.
@@ -254,70 +254,4 @@ public class ChrPositionUtils {
 		return false;
 	}
 	
-	/**
-	 * 
-	 * @param ref: chromosome name
-	 * @return converted name, eg. M, MT, chrmt to chrMT; X,Y to chrX,chrY; 1 to chr1
-	 */
-	public static String ChrNameConveter(String ref) {
-		if (ref == null ) return null; //stop exception
-		
-		
-		String refName = ref.toLowerCase();
-		
-		if( refName.equals("m") || refName.equals("mt")|| refName.equals("chrm")|| refName.equals("chrmt")) {
-			return Constants.CHR + "MT";
-		}
-		
-		if (refName.equals("x") || refName.equals("y") ) {
-			return Constants.CHR + ref.toUpperCase();
-		}
-		
-        if (refName.startsWith(Constants.CHR)) {
-        	return Constants.CHR + refName.substring(3).toUpperCase();
-        }
-				
-		/*
-		 * If ref is an integer less than 23, slap "chr" in front of it
-		 */
-		if (Character.isDigit(ref.charAt(0))) {
-			try {
-				int refInt = Integer.parseInt(ref);
-				if (refInt < 23 && refInt > 0) {
-					return Constants.CHR + ref;
-				}
-			} catch (NumberFormatException nfe) {
-				// don't do anything here - will return the original reference
-			}
-		}
-		
-		return ref;
-	}
-	
-	/**
-	 * to convert chromosome name if accept ambiguous match, otherwise return original input. 
-	 * In ambiguous match, it will add "chr" to "X", "Y" and digit [1,23], convert "chrM", "MT","M", "chrMT" ignore case to "chrMT"
-	 * @param cp input value of ChrPosition
-	 * @param isStrict2chrName return original value, otherwise change chromosome name
-	 * @return the input ChrPosition if it require to match the chromosome name strictly. otherwise return a modified ChrPosition value.
-	 */
-	public static ChrPosition getNewchrName(ChrPosition cp, boolean isStrict2chrName) {
-		
-		//chr name convertion in ambiguous mode		
-		if( !isStrict2chrName ) {
-			String newChr = ChrPositionUtils.ChrNameConveter(  cp.getChromosome() );
-			if ( ! newChr.equals(cp.getChromosome())) {				
-				if (cp instanceof ChrPointPosition) {
-					return ChrPointPosition.valueOf(newChr, cp.getStartPosition());
-				} else if  (cp instanceof ChrRangePosition) {
-					return new ChrRangePosition(newChr, cp.getStartPosition(), cp.getEndPosition());
-				} else {
-					throw new UnsupportedOperationException("cloneWithNewName not yet implemented for any types other than ChrPointPosition and ChrRangePosition!!!");
-				}				
-				 
-			}		 
-		}
-		
-		return cp;
-	}	
 }
