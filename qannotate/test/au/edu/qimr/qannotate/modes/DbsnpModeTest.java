@@ -25,8 +25,7 @@ import org.qcmg.vcf.VCFFileReader;
 public class DbsnpModeTest {
 		
 	@Rule
-	public final TemporaryFolder testFolder = new TemporaryFolder();
-	
+	public final TemporaryFolder testFolder = new TemporaryFolder();	
 	 
 	 @Test
 	 public void indelTest(){
