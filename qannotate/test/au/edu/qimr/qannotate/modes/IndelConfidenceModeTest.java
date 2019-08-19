@@ -9,8 +9,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.After;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.model.MafConfidence;
 import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.vcf.VcfRecord;
@@ -20,20 +21,10 @@ import org.qcmg.vcf.VCFFileReader;
 import au.edu.qimr.qannotate.Main;
 
 public class IndelConfidenceModeTest {
-	public static String dbMask = "repeat.mask";
-	public static String input = "input.vcf";
-	public static String output = "output.vcf";
-	public static String log = "output.log";
 	
-	@After
-	public void clear(){
-		
-        new File(dbMask).delete();
-        new File(input).delete();
-        new File(output).delete();
-        new File(log).delete();
+	@Rule
+	public final TemporaryFolder testFolder = new TemporaryFolder();
 
-	}
 	
 	@Test
 	public void InfoTest(){
@@ -41,7 +32,6 @@ public class IndelConfidenceModeTest {
 		IndelConfidenceMode mode = new IndelConfidenceMode();	
 		
 		String str = "chr1	11303744	.	C	CA	37.73	PASS	SOMATIC;HOM=5,AGCCTGTCTCaAAAAAAAAAA;NIOC=0.087;SVTYPE=INS;END=11303745	GT:AD:DP:GQ:PL:ACINDEL	.:.:.:.:.:0,39,36,0[0,0],0,4,4	0/1:30,10:40:75:75,0,541:7,80,66,8[4,4],1,7,8";
-//		String str = "chr1	11303744	.	C	CA	37.73	HOM5	SOMATIC;HOMTXT=AGCCTGTCTCaAAAAAAAAAA;NIOC=0.087;SVTYPE=INS;END=11303745	GT:AD:DP:GQ:PL:ACINDEL	.:.:.:.:.:0,39,36,0[0,0],0,4,4	0/1:30,10:40:75:75,0,541:7,80,66,8[4,4],1,7,8";
 
 		VcfRecord vcf = new	VcfRecord(str.split("\\t"));
 		assertTrue(mode.getConfidence(vcf) == MafConfidence.HIGH);
@@ -101,16 +91,19 @@ public class IndelConfidenceModeTest {
 	
 	@Test
 	public void MaskTest() throws Exception{
-		
+		File input = testFolder.newFile();
+		File output = testFolder.newFile();
+		File dbMask = testFolder.newFile();
+		File log = testFolder.newFile();
 		try{
-			createMask();
-			createVcf();
+			createMask(dbMask);
+			createVcf(input);
 			
-			String[] args ={"--mode","IndelConfidence", "-i", new File(input).getAbsolutePath(), "-o", new File(output).getAbsolutePath(),
-					"-d", new File(dbMask).getAbsolutePath(), "--log", new File(log).getAbsolutePath()};									
+			String[] args ={"--mode","IndelConfidence", "-i", input.getAbsolutePath(), "-o", output.getAbsolutePath(),
+					"-d", dbMask.getAbsolutePath(), "--log",  log.getAbsolutePath(), "--lenient"};									
 			Main.main(args);
 						
-	        try (VCFFileReader reader = new VCFFileReader(new File(output))) {
+	        try (VCFFileReader reader = new VCFFileReader(output)) {
 	        	int i = 0;
 	        	//mask 53744 53780 
 	        	for ( VcfRecord re : reader) {		
@@ -143,17 +136,17 @@ public class IndelConfidenceModeTest {
 	
 	}
 	
-	public static void createMask() throws IOException{
+	public static void createMask(File f) throws IOException{
 		        final List<String> data = new ArrayList<String>();
         data.add("genoName genoStart genoEnd repClass repFamily");
         data.add("1 53744 53780 Low_complexity Low_complexity");
         data.add("chr1 54712 54820 Simple_repeat Simple_repeat");
-        try(BufferedWriter out = new BufferedWriter(new FileWriter(dbMask));) {          
+        try(BufferedWriter out = new BufferedWriter(new FileWriter(f));) {          
             for (final String line : data)   out.write(line +"\n");                  
          }  
 	}
 	
-	public static void createVcf() throws IOException{
+	public static void createVcf(File f) throws IOException{
         final List<String> data = new ArrayList<String>();
         data.add("##fileformat=VCFv4.0");
         data.add(VcfHeaderUtils.STANDARD_UUID_LINE + "=abcd_12345678_xzy_999666333");
@@ -165,7 +158,7 @@ public class IndelConfidenceModeTest {
         data.add("chr1	53743	.	C	CA	37.73	PASS	SOMATIC;HOMCNTXT=5,AGCCTGTCTCaAAAAAAAAAA;NIOC=0.087");
         data.add("chr1	53744	.	CTT	C	37.73	PASS	SOMATIC;HOMCNTXT=5,AGCCTGTCTCaAAAAAAAAAA;NIOC=0.087");
        
-        try(BufferedWriter out = new BufferedWriter(new FileWriter(input));) {          
+        try(BufferedWriter out = new BufferedWriter(new FileWriter(f));) {          
             for (final String line : data)   out.write(line +"\n");                  
          }  
 

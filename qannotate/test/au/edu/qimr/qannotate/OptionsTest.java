@@ -38,5 +38,16 @@ public class OptionsTest {
 		o = new Options(new String[]{"--mode", "hom","-output",output.getAbsolutePath(),"-i",i.getAbsolutePath(),});
 		assertEquals(output.getAbsolutePath(), o.getOutputFileName());
 	}
+	
+	@Test
+	public void lenientOptionTest() throws IOException {
+		File i = testFolder.newFile();
+		File output = testFolder.newFile();
+		Options o = new Options(new String[]{"--mode", "hom","-o",output.getAbsolutePath(),"-i",i.getAbsolutePath(),});
+		assertTrue( o.isStringentChrName());
+				
+		o = new Options(new String[]{"--mode", "hom","-o",output.getAbsolutePath(),"-i",i.getAbsolutePath(), "--lenient"});
+		assertFalse( o.isStringentChrName());
+	}
 
 }

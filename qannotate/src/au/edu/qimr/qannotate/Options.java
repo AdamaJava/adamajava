@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.qcmg.common.log.QLoggerFactory;
@@ -18,7 +19,6 @@ import org.qcmg.common.log.QLoggerFactory;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 
-//import org.qcmg.common.log.QLogger;
 
 import au.edu.qimr.qannotate.Messages;
 import au.edu.qimr.qannotate.modes.*;
@@ -108,7 +108,15 @@ public class Options {
         outputFileName = (String) options.valueOf("output") ; 
     	logFileName = (String) options.valueOf("log");  	
     	logLevel = (String) options.valueOf("loglevel");
-    	isStringent = (options.has("stringency"))? true : false;  //chromosome name must match bwt input and db file
+    	isStringent = (options.has("lenient"))? false : true;  //chromosome name must match bwt input and db file
+    	
+    	
+    	//debug
+    	options.specs().forEach(e-> System.out.println( e.toString()));
+    	 
+    		
+    		
+    	 
     	
     	if (null == inputFileName) { 
         	displayHelp(mode);  
@@ -189,9 +197,9 @@ public class Options {
 		parser.accepts("mrPercentage", "Number of mutant reads (MR) required to be High Confidence as a percentage").withRequiredArg().ofType(Float.class)
 			.describedAs("numberOfMutantReadsPercentage");
 		parser.accepts("filtersToIgnore", LOG_DESCRIPTION).withRequiredArg().ofType(String.class);
-		parser.accepts("stringency", "It requires the chromosome name appeared input file and database file,  must match. Without this option, it accepts ambiguous name, "
-				+ "eg. treat 'M' and 'chrMT' as same chromosome name");
-		
+		parser.accepts("lenient", "qannotate automatically modify chromosome/reference name internally, if the name are slightly different between input and database file."
+				+ " eg. 'M' and 'chrMT', '1' and 'chr1' and 'chrx' and 'X'. it is also case insensitive."
+				+ " Without this option, it requires the chromosome name in both input file and database file,  must match exactly." );		
         OptionSet options  = parser.parse(args);  
         if (options.has("v") || options.has("version")){
     		System.err.println( "qannotate: Current version is " + getVersion());

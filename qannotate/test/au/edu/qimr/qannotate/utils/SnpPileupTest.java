@@ -9,9 +9,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.SAMOrBAMWriterFactory;
@@ -22,22 +22,10 @@ import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SamReader;
 
 public class SnpPileupTest {
-	static final String inputBam = "input.bam"; 
- 
-	@BeforeClass
-	public static void createInput() {	
-		createSam( makeReads4Pair() ); 
-	}
 	
-	@AfterClass
-	public static void deleteInput() {			
-		File dir = new File(".");
-		if(!dir.isDirectory()) throw new IllegalStateException("wtf mate?");
-		for(File file : dir.listFiles()) {
-		    if(file.getName().startsWith("input."))
-		       file.delete();
-		}
-	}	
+	@Rule
+	public final TemporaryFolder testFolder = new TemporaryFolder();
+	
 	
 	@Test 
 	public void overlappedPairTest() throws IOException{
@@ -138,15 +126,20 @@ public class SnpPileupTest {
 	}
 	
 	private List<SAMRecord> createPool() throws IOException{			
-		List<SAMRecord> pool = new ArrayList<SAMRecord>();				
-		try(SamReader inreader =  SAMFileReaderFactory.createSAMFileReader(new File(inputBam));){
+		List<SAMRecord> pool = new ArrayList<SAMRecord>();	
+		File fbam = testFolder.newFile();
+		createSam( fbam, makeReads4Pair() ); 
+		
+//		try(SamReader inreader =  SAMFileReaderFactory.createSAMFileReader(new File(inputBam));){
+		
+		try(SamReader inreader =  SAMFileReaderFactory.createSAMFileReader(fbam);){
 	        for(SAMRecord re : inreader)  pool.add(re);   	
 		}		
 		return pool; 		
 	}
 
-    public static void createSam( List<String> reads ){
-    	String ftmp = "input.sam";
+    public  void createSam(File inputBam,  List<String> reads ) throws IOException{
+    	//String ftmp = "input.sam";
     	
         List<String> data = new ArrayList<String> ();
         data.add("@HD	VN:1.0	SO:coordinate");
@@ -157,7 +150,7 @@ public class SnpPileupTest {
         data.add("@CO	create by qcmg.qbamfilter.filter::TestFile"); 
         data.addAll(reads);
                   
-       
+        File ftmp = testFolder.newFile();
         try( BufferedWriter out =  new BufferedWriter( new FileWriter( ftmp )) ){
            for ( String line : data )  out.write( line + "\n" );          
            out.close();
@@ -165,10 +158,10 @@ public class SnpPileupTest {
             System.err.println( "IOException caught whilst attempting to write to SAM test file: " + ftmp  + e );
         } 
         
-		try(SamReader inreader =  SAMFileReaderFactory.createSAMFileReader(new File(ftmp));  ){
+		try(SamReader inreader =  SAMFileReaderFactory.createSAMFileReader(ftmp);  ){
 			SAMFileHeader he = inreader.getFileHeader();
 			he.setSortOrder( SAMFileHeader.SortOrder.coordinate );
-			SAMFileWriter writer = new SAMOrBAMWriterFactory(he , false, new File(inputBam), true).getWriter();	        
+			SAMFileWriter writer = new SAMOrBAMWriterFactory(he , false, inputBam, true).getWriter();	        
 	        for(SAMRecord re : inreader){ writer.addAlignment(re); }
 	        writer.close();
 		} catch (IOException e) { e.printStackTrace(); }		
