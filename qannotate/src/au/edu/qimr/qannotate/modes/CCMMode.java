@@ -44,7 +44,7 @@ public class CCMMode extends AbstractMode{
 		logger.tool("input: " + options.getInputFileName());
         logger.tool("output for annotated vcf records: " + options.getOutputFileName());		
 
-        loadVcfRecordsFromFile(new File( options.getInputFileName()), options.isStrict2chrName());
+        loadVcfRecordsFromFile(new File( options.getInputFileName()), options.isStringentChrName());
 		
 		/*
 		 * don't have access to header until after records have been loaded...

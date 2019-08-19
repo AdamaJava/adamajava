@@ -22,8 +22,6 @@ import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 
-import junit.runner.Version;
-
 public class DbsnpModeTest {
 		
 	@Rule
@@ -185,7 +183,7 @@ public class DbsnpModeTest {
 	 */
 	public  File createVcf() throws IOException{
 		
-		System.out.println(this.getClass() + "::JUnit version is: " + Version.id()) ;		
+	//	System.out.println(this.getClass() + "::JUnit version is: " + Version.id()) ;		
 		
         final List<String> data = new ArrayList<>();
         data.add("##fileformat=VCFv4.0");

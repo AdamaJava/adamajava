@@ -30,7 +30,7 @@ public class TandemRepeatMode  extends AbstractMode{
 	private final String output;
 	private final String commandLine;
 	private final int buffer;
-	private final boolean isStrict2chrName;
+	private final boolean isStringent;
 	
 	//for unit test only
 	TandemRepeatMode(  int buffer, boolean isStrict) {	
@@ -38,28 +38,21 @@ public class TandemRepeatMode  extends AbstractMode{
 		this.output = null;
 		this.commandLine = null;
 		this.buffer = buffer;
-		this.isStrict2chrName = isStrict;
+		this.isStringent = isStrict;
 	}
 	
-//	TandemRepeatMode( String input, String output, int buffer, boolean isStrict) {	
-//		this.input = input;
-//		this.output = output;
-//		this.commandLine = null;
-//		this.buffer = buffer;
-//		this.isStrict2chrName = isStrict;
-//	}
 	
 	public TandemRepeatMode( Options options) throws IOException{	
 		input = options.getInputFileName();
 		output = options.getOutputFileName();
 		commandLine = options.getCommandLine();
 		buffer = options.getBufferSize();
-		this.isStrict2chrName = options.isStrict2chrName();
+		this.isStringent = options.isStringentChrName();
 		
 		logger.tool("input: " + options.getInputFileName());
         logger.tool("mask File: " + options.getDatabaseFileName() );
         logger.tool("output annotated records: " + options.getOutputFileName());
-        logger.tool("accept ambiguous chromosome name, eg. treat M and chrMT as same chromosome name: " + (!isStrict2chrName));
+        logger.tool("accept ambiguous chromosome name, eg. treat M and chrMT as same chromosome name: " + (!isStringent));
         
 		addAnnotation( options.getDatabaseFileName() );				
 	}	
@@ -155,7 +148,7 @@ public class TandemRepeatMode  extends AbstractMode{
 			logger.info("annotating vcfs from inputs " );
 			
 	        for (final VcfRecord vcf : reader) { 
-				String chr = isStrict2chrName? vcf.getChromosome(): ChrPositionUtils.ChrNameConveter(vcf.getChromosome());         
+				String chr = isStringent? vcf.getChromosome(): getFullChromosome(vcf.getChromosome());         
  	    		if(annotate(vcf, indexedBlock.get(chr)))
  	    			repeatCount ++; 	    			
 	    		count++;
@@ -293,7 +286,7 @@ public class TandemRepeatMode  extends AbstractMode{
 	           try {
 	        	   String[] array = line.split(Constants.TAB_STRING);
         	   		Repeat rep = new Repeat(array);
-        	   		String chr = isStrict2chrName? array[0]: ChrPositionUtils.ChrNameConveter(array[0]);
+        	   		String chr = isStringent? array[0]: getFullChromosome(array[0]);
         	   		allRepeats.computeIfAbsent(chr, (v) -> new HashSet<>()).add(rep);
 	            } catch (NumberFormatException e) {
 	            	if (errLine ++ < MaxErrLine) {

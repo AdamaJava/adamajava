@@ -21,7 +21,6 @@ import org.qcmg.common.model.ChrPositionComparator;
 import org.qcmg.common.vcf.VcfFormatFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
-import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qbamfilter.query.QueryExecutor;
@@ -37,19 +36,19 @@ public class OverlapMode extends AbstractMode{
 
 
 	private final static int threadNo = 8; 
-	private final boolean isStrict2chrName;
+	private final boolean isStringent;
 	private final static QLogger logger = QLoggerFactory.getLogger(OverlapMode.class);	
 	private final QueryExecutor query =  new QueryExecutor( "and (Flag_DuplicateRead == false, CIGAR_M > 34, MAPQ >10, MD_mismatch <= 3 )");
 	
 	public OverlapMode(Options options) throws Exception{	
-		this.isStrict2chrName = options.isStrict2chrName();
+		this.isStringent = options.isStringentChrName();
 		
 		logger.tool( "input: " + options.getInputFileName()	);
         logger.tool( "bam file: " + Arrays.toString( options.getDatabaseFiles()) );
         logger.tool( "output for annotated vcf records: " + options.getOutputFileName()	);
               
         //read vcf records to Map<ChrPosition,List<VcfRecord>> positionRecordMap
-        loadVcfRecordsFromFile( new File( options.getInputFileName()),  isStrict2chrName  );
+        loadVcfRecordsFromFile( new File( options.getInputFileName()),  isStringent  );
               
         Map<VcfRecord, String[]> annotationMap = annotation( options.getDatabaseFiles() );        
 	    String[] acOverlap;//options.getDatabaseFiles().length
@@ -137,7 +136,7 @@ public class OverlapMode extends AbstractMode{
 		List<VcfRecord> list = new ArrayList<> ();	
 		for(ChrPosition pos : positionRecordMap.keySet()){
 			//get variants from same contig
-			String chr = isStrict2chrName? contig.getSequenceName(): ChrPositionUtils.ChrNameConveter(contig.getSequenceName());
+			String chr = isStringent? contig.getSequenceName(): getFullChromosome(contig.getSequenceName());
 			if(contig != null && !pos.getChromosome().equals( chr ) )
 				continue; 
 			list.addAll(positionRecordMap.get(pos));

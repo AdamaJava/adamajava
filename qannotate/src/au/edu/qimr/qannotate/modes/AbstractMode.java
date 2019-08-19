@@ -17,8 +17,10 @@ import java.util.Map;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.meta.QExec;
+import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrPositionComparator;
+import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.vcf.VcfRecord;
@@ -43,14 +45,14 @@ abstract class AbstractMode {
 	 * @param f is input vcf file 
 	 * @throws IOException
 	 */
-	protected void loadVcfRecordsFromFile(File f, boolean isStrictName) throws IOException {
+	protected void loadVcfRecordsFromFile(File f, boolean isStringent) throws IOException {
 		
         //read record into RAM, meanwhile wipe off the ID field value;
         try (VCFFileReader reader = new VCFFileReader(f)) {
         	header = reader.getHeader();
         	//no chr in front of position
 			for (final VcfRecord vcf : reader) {
-				ChrPosition pos = ChrPositionUtils.getNewchrName(vcf.getChrPosition(), isStrictName) ;				
+				ChrPosition pos = cloneIfLenient(vcf.getChrPosition(), isStringent) ;				
 				//used converted  chr name as key but vcf is kept as original 
 				positionRecordMap.computeIfAbsent(pos, function -> new ArrayList<VcfRecord>(2)).add(vcf);
 			}
@@ -84,7 +86,7 @@ abstract class AbstractMode {
 		}  
 	}
 	
-	static VcfHeader reheader(VcfHeader header, String cmd, String inputVcfName) {	
+	 VcfHeader reheader(VcfHeader header, String cmd, String inputVcfName) {	
 		 
 		VcfHeader myHeader = header;  	
  		
@@ -128,4 +130,67 @@ abstract class AbstractMode {
 		header = reheader(header, cmd, inputVcfName);			
 	}
 
+	protected ChrPosition cloneIfLenient(ChrPosition cp, boolean isStringent ) {
+		if( isStringent ) return cp; 
+		
+		String newChr = getFullChromosome(  cp.getChromosome() );
+		if ( ! newChr.equals(cp.getChromosome())) {				
+			if (cp instanceof ChrPointPosition) {
+				return ChrPointPosition.valueOf(newChr, cp.getStartPosition());
+			} else if  (cp instanceof ChrRangePosition) {
+				return new ChrRangePosition(newChr, cp.getStartPosition(), cp.getEndPosition());
+			} else {
+				throw new UnsupportedOperationException("cloneWithNewName not yet implemented for any types other than ChrPointPosition and ChrRangePosition!!!");
+			}							 
+		}	
+		
+		return cp;		
+	}
+	
+	
+	/**
+	 * Takes a string representation of a contig and updates it if necessary (ie. if ref is equal to X,Y,M,MT, or an integer less than 23 and greater than 0).
+	 *  
+	 *  It used to be the case that is the supplied ref was equal to "chrMT", the returned value would be "chrM", due to GRCh38 uses "chrM". 
+	 *  This was useful when different versions of the human genome (ie. GRCh37/b37 and Hg19) had different values for the mitochondrial genome.
+	 * 
+	 * @param ref
+	 * @return an updated ref name
+	 */
+	 protected String getFullChromosome(String ref) {
+		if (ref == null ) return null; //stop exception
+		
+		String refName = ref.toLowerCase();
+		
+		if( refName.equals("m") || refName.equals("mt")|| refName.equals("chrm")|| refName.equals("chrmt")) {
+			return Constants.CHR + "M";
+		}
+		
+		if (refName.equals("x") || refName.equals("y") ) {
+			return Constants.CHR + ref.toUpperCase();
+		}
+				
+        if (refName.startsWith(Constants.CHR)) {
+        	return Constants.CHR + refName.substring(3).toUpperCase();
+        }
+		
+			
+		/*
+		 * If ref is an integer less than 23, slap "chr" in front of it
+		 */
+		if (Character.isDigit(ref.charAt(0))) {
+			try {
+				int refInt = Integer.parseInt(ref);
+				if (refInt < 23 && refInt > 0) {
+					return Constants.CHR + ref;
+				}
+			} catch (NumberFormatException nfe) {
+				// don't do anything here - will return the original reference
+			}
+		}
+		
+		return ref;
+	}
+
+	
 }

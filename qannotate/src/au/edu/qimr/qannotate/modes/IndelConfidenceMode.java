@@ -19,7 +19,6 @@ import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.MafConfidence;
 import org.qcmg.common.string.StringUtils;
-import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.vcf.VcfInfoFieldRecord;
@@ -41,14 +40,13 @@ import au.edu.qimr.qannotate.Options;
 public class IndelConfidenceMode extends AbstractMode{
 	private final QLogger logger = QLoggerFactory.getLogger(IndelConfidenceMode.class);
 	
-//	private final String input;
 	private final String output;
 	private final String commandLine;
 	private static final float DEFAULT_NIOC = 0.1f;
 	private static final float DEFAULT_SSOI = 0.2f;
 	static final int DEFAULT_HOMN = 6;
 	private final Map<String,BitSet> mask = new HashMap<>();
-	private final boolean isStrict2chrName;
+	private final boolean isStringent;
 		
  	//filters 
 	private static final String FILTER_REPEAT = "REPEAT"; 
@@ -61,7 +59,7 @@ public class IndelConfidenceMode extends AbstractMode{
 	@Deprecated
 	//unit test only
 	IndelConfidenceMode(){
- 		this.isStrict2chrName = true;
+ 		this.isStringent = true;
 		this.output = null;
 		commandLine = null;
 	}
@@ -70,12 +68,12 @@ public class IndelConfidenceMode extends AbstractMode{
 //		input = options.getInputFileName();
 		output = options.getOutputFileName();
 		commandLine = options.getCommandLine();
-		this.isStrict2chrName = options.isStrict2chrName();
+		this.isStringent = options.isStringentChrName();
 		
 		logger.tool("input: " + options.getInputFileName());
         logger.tool("mask File: " + options.getDatabaseFileName() );
         logger.tool("output annotated records: " + options.getOutputFileName());
-        logger.tool("accept ambiguous chromosome name, eg. treat M and chrMT as same chromosome name: " + (!isStrict2chrName));
+        logger.tool("accept ambiguous chromosome name, eg. treat M and chrMT as same chromosome name: " + (!isStringent));
         
 		// TODO Auto-generated method stub
 		loadMask( options.getDatabaseFileName() );	
@@ -97,7 +95,7 @@ public class IndelConfidenceMode extends AbstractMode{
                 String[] array = line.split(" ");
                 	//int no = Integer.parseInt(array[0]) - 1;
                 	//String chr = IndelUtils.getFullChromosome(array[0]);
-                	String chr = isStrict2chrName? array[0]: ChrPositionUtils.ChrNameConveter(array[0]);		
+                	String chr = isStringent? array[0]: getFullChromosome(array[0]);		
                 	int start = Integer.parseInt(array[1]);
                 	int end = Integer.parseInt(array[2]);
                 	
@@ -141,7 +139,7 @@ public class IndelConfidenceMode extends AbstractMode{
  
 	private boolean isRepeat(VcfRecord vcf){
         		 
-		String chr = isStrict2chrName? vcf.getChromosome(): ChrPositionUtils.ChrNameConveter( vcf.getChromosome() );	
+		String chr = isStringent? vcf.getChromosome(): getFullChromosome( vcf.getChromosome() );	
 		BitSet chrMask = mask.get(chr);
 		if (null == chrMask) {
 			return false;

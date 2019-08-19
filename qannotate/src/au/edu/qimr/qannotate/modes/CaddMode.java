@@ -32,7 +32,7 @@ public class  CaddMode extends AbstractMode{
 	
 	private static final Comparator<ChrPosition> COMPARATOR = new ChrPositionComparator();
 	private final static String CADD = "CADD";
-	private final boolean isStrict2chrName;
+	private final boolean isStringent;
 	
 	private static long outputNo = 0;
 	private static long blockNo = 0;	
@@ -42,10 +42,10 @@ public class  CaddMode extends AbstractMode{
 	public static final String description = "query CADD library for this variant. Format: (Ref>Alt|isDerived|Consequence|ConsScore|ConsDetail|scoreSegDup|priPhyloP|GerpRS|mirSVR-E|cHmmTssA|motifDist|ESP_AFR|ESP_EUR|TG_AMR|FeatureID|FeatureID|CCDS|relcDNApos)";	
 		
 	public CaddMode( Options options) throws Exception {
-		this.isStrict2chrName = options.isStrict2chrName();
+		this.isStringent = options.isStringentChrName();
 		logger.tool("input: " + options.getInputFileName());      
         logger.tool("output for annotated vcf records: " + options.getOutputFileName());
-        logger.tool("accept ambiguous chromosome name, eg. treat M and chrMT as same chromosome name: " + (!isStrict2chrName));
+        logger.tool("accept ambiguous chromosome name, eg. treat M and chrMT as same chromosome name: " + (!isStringent));
 
 		
 		final String input = options.getInputFileName();
@@ -90,7 +90,7 @@ public class  CaddMode extends AbstractMode{
 				//add every variants into hashmap
 				pos = re.getPosition();
 				//add2Map(re);
-				ChrPosition cp = ChrPositionUtils.getNewchrName(re.getChrPosition(), isStrict2chrName) ;
+				ChrPosition cp = cloneIfLenient(re.getChrPosition(), isStringent) ;
 				positionRecordMap.computeIfAbsent(cp, v -> new ArrayList<>()).add(re) ;
 			}
 			
@@ -130,7 +130,7 @@ public class  CaddMode extends AbstractMode{
 	    		int s = Integer.parseInt(eles[1]);  //start position = second column
 	    		int e = s + eles[2].length() - 1;   //start position + length -1
 	    		
-	    		ChrPosition cp  = ChrPositionUtils.getNewchrName(new ChrRangePosition(chr, s, e), isStrict2chrName) ;
+	    		ChrPosition cp  = cloneIfLenient(new ChrRangePosition(chr, s, e), isStringent) ;
 	    		List<VcfRecord> inputVcfs = positionRecordMap.get(cp);	    
 				if ( (null == inputVcfs) || inputVcfs.size() == 0 ) {
 					continue; 

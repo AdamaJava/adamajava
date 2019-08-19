@@ -16,7 +16,6 @@ import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.string.StringUtils;
-import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfRecord;
@@ -29,19 +28,19 @@ import au.edu.qimr.qannotate.Options;
 
 public class DbsnpMode extends AbstractMode{
 	private final static QLogger logger = QLoggerFactory.getLogger(DbsnpMode.class);
-	private final boolean isStrict2chrName;
+	private final boolean isStringent;
 	
 	//for unit Test
-	DbsnpMode(boolean isStrict ){ this.isStrict2chrName = isStrict; }
+	DbsnpMode(boolean isStrict ){ this.isStringent = isStrict; }
 	
 	public DbsnpMode(Options options) throws Exception{
-		this.isStrict2chrName = options.isStrict2chrName();
+		this.isStringent = options.isStringentChrName();
 		logger.tool("input: " + options.getInputFileName());
         logger.tool("dbSNP database: " + options.getDatabaseFileName() );
         logger.tool("output for annotated vcf records: " + options.getOutputFileName());
-        logger.tool("accept ambiguous chromosome name, eg. treat M and chrMT as same chromosome name: " + (!isStrict2chrName));
+        logger.tool("accept ambiguous chromosome name, eg. treat M and chrMT as same chromosome name: " + (!isStringent));
 		
-		loadVcfRecordsFromFile( new File( options.getInputFileName()), isStrict2chrName);
+		loadVcfRecordsFromFile( new File( options.getInputFileName()), isStringent);
 		
 		removeExistingDbSnpIds();		
  		addAnnotation( options.getDatabaseFileName() );		
@@ -81,7 +80,7 @@ public class DbsnpMode extends AbstractMode{
 			//each dbSNP check twice, since indel alleles followed by one reference base, eg. chr1 100 . TT T ...			
 			for (final VcfRecord dbSNPVcf : reader) {				
 				//conver chr name if ambiguous mode, otherwise use original one
-				ChrPosition dbSnpCP = ChrPositionUtils.getNewchrName(dbSNPVcf.getChrPosition(), isStrict2chrName) ;
+				ChrPosition dbSnpCP = cloneIfLenient(dbSNPVcf.getChrPosition(), isStringent) ;
 	
 				List<VcfRecord> inputVcfs = positionRecordMap.get(dbSnpCP);
 				if (null != inputVcfs && inputVcfs.size() != 0){

@@ -202,7 +202,7 @@ public class TandemRepeatModeTest {
 		File f = testFolder.newFile();
 		createRepeat("chrMT", f);			
 		TandemRepeatMode trf = new TandemRepeatMode(   0, false);		
-		String chr1 = ChrPositionUtils.ChrNameConveter(chr);
+		String chr1 = trf.getFullChromosome(chr);
 		BlockIndex index = trf.loadRepeat( f.getAbsolutePath() ).get(chr1);
 		
 		

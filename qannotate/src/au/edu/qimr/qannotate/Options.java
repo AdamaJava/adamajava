@@ -46,7 +46,7 @@ public class Options {
     private final String[] databaseFiles;
     private final String logFileName;
     private final String logLevel;  
-    private final boolean isStrictName;
+    private final boolean isStringent;
 	
 	//vcf2maf 
     private  final String testSample;
@@ -108,7 +108,7 @@ public class Options {
         outputFileName = (String) options.valueOf("output") ; 
     	logFileName = (String) options.valueOf("log");  	
     	logLevel = (String) options.valueOf("loglevel");
-    	isStrictName = (options.has("strict2ChromosomeName"))? true : false;  //chromosome name must match bwt input and db file
+    	isStringent = (options.has("stringency"))? true : false;  //chromosome name must match bwt input and db file
     	
     	if (null == inputFileName) { 
         	displayHelp(mode);  
@@ -173,23 +173,23 @@ public class Options {
 		parser.accepts("nnsCounts", "Number of novel starts (NNS) required to be High Confidence").withRequiredArg().ofType(Integer.class)
 			.describedAs("numberOfNovelStarts");
 		parser.accepts("mrCounts", "Number of mutant reads (MR) required to be High Confidence").withRequiredArg().ofType(Integer.class)
-		.describedAs("numberOfMutantReads");
+			.describedAs("numberOfMutantReads");
 		parser.accepts("miunCutoff", "Number of failed filter reads (FF) containing the alt, that will result in a MIUN (Mutation In Unfiltered Normal) in the filter field").withRequiredArg().ofType(Integer.class)
-		.describedAs("miunCutoff");
+			.describedAs("miunCutoff");
 		parser.accepts("minCutoff", "Minimum number of reads containing the alt, that will result in a MIN (Mutation In Normal) in the filter field. Used in conjunction with minPercentage").withRequiredArg().ofType(Integer.class)
-		.describedAs("minCutoff");
+			.describedAs("minCutoff");
 		parser.accepts("minPercentage", "Percentage of reads containing the alt, that will result in a MIN (Mutation In Normal) in the filter field. Used in conjunction with minCutoff").withRequiredArg().ofType(Float.class)
-		.describedAs("minPercentage");
+			.describedAs("minPercentage");
 		parser.accepts("controlCoverageCutoff", "Minimum coverage (DP format field) value to gain a PASS for control samples").withRequiredArg().ofType(Integer.class)
-		.describedAs("controlCoverageCutoff");
+			.describedAs("controlCoverageCutoff");
 		parser.accepts("controlCoverageCutoffForSomatic", "Minimum coverage (DP format field) value to gain a PASS for control samples when the call is a SOMATIC one").withRequiredArg().ofType(Integer.class)
-		.describedAs("controlCoverageCutoffForSomatic");
+			.describedAs("controlCoverageCutoffForSomatic");
 		parser.accepts("testCoverageCutoff", "Minimum coverage (DP format field) value to gain a PASS for test samples").withRequiredArg().ofType(Integer.class)
-		.describedAs("testCoverageCutoff");
+			.describedAs("testCoverageCutoff");
 		parser.accepts("mrPercentage", "Number of mutant reads (MR) required to be High Confidence as a percentage").withRequiredArg().ofType(Float.class)
-		.describedAs("numberOfMutantReadsPercentage");
+			.describedAs("numberOfMutantReadsPercentage");
 		parser.accepts("filtersToIgnore", LOG_DESCRIPTION).withRequiredArg().ofType(String.class);
-		parser.accepts("strict2ChromosomeName", "It requires the chromosome name match the one in database file strictly. Without this option, it accepts ambiguous name, "
+		parser.accepts("stringency", "It requires the chromosome name appeared input file and database file,  must match. Without this option, it accepts ambiguous name, "
 				+ "eg. treat 'M' and 'chrMT' as same chromosome name");
 		
         OptionSet options  = parser.parse(args);  
@@ -400,6 +400,6 @@ public class Options {
 		return Optional.ofNullable(minPercentage);
 	}
 	
-	public boolean isStrict2chrName() {return isStrictName;}
+	public boolean isStringentChrName() {return isStringent;}
 
 }

@@ -17,6 +17,8 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.qcmg.common.model.ChrPointPosition;
+import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
@@ -27,28 +29,23 @@ import org.qcmg.vcf.VCFFileReader;
 import au.edu.qimr.qannotate.utils.SampleColumn;
 
 
-public class AbstractModeTest {
-	public static String outputName = "output.vcf";
-	public static String inputName = "input.vcf";
+public class AbstractModeTest {	
+	public File input; 
 	
 	@Rule
 	public  TemporaryFolder testFolder = new TemporaryFolder();
 	
-	@BeforeClass
-	public static void createInput() throws IOException{	
-		createVcf();
+	{
+		try {
+			input = testFolder.newFile();
+			createVcf();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	
-	 @AfterClass
-	 public static void deleteIO(){
-
-		 new File(inputName).delete();
-		 new File(outputName).delete();
-		 
-	 }	
-	
-	//test data
 	@Test
 	public void inputRecordCompoundSnp() throws Exception{
 		
@@ -59,12 +56,10 @@ public class AbstractModeTest {
 		 
 	}
 	
-
-	
 	@Test
 	public void reHeaderTest() throws Exception{
 		
-	   try (BufferedReader br = new BufferedReader(new FileReader(inputName))){
+	   try (BufferedReader br = new BufferedReader(new FileReader(input))){
 	    	   int i = 0;
 	    	   while (  br.readLine() != null ) {
 	    		   i++;
@@ -73,12 +68,12 @@ public class AbstractModeTest {
 	   }
 	       
 		DbsnpMode db = new DbsnpMode(true);
-		db.loadVcfRecordsFromFile(new File(inputName),false);		
-		db.reheader("testing run",   inputName);
-		db.writeVCF(new File(outputName));
+		db.loadVcfRecordsFromFile(input,false);		
+		db.reheader("testing run",   input.getAbsolutePath());
+		db.writeVCF(input);
 		
 		
-        try (VCFFileReader reader = new VCFFileReader(new File(outputName))) {
+        try (VCFFileReader reader = new VCFFileReader(input)) {
 	        	int i = 0;
 	        	for (VcfHeaderRecord re :  reader.getHeader()) {
 	        		if (re.toString().startsWith(VcfHeaderUtils.STANDARD_UUID_LINE)) {
@@ -242,12 +237,12 @@ public class AbstractModeTest {
 		}		 
 	}
 	
-	public static void createVcf() throws IOException{
+	public void createVcf() throws IOException{		
         final List<String> data = new ArrayList<>();
         data.add("##fileformat=VCFv4.0");
         data.add(VcfHeaderUtils.STANDARD_UUID_LINE + "=abcd_12345678_xzy_999666333");
         data.add("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO");
-        createVcf(new File(inputName), data);
+        createVcf(input, data);
 	}
 	
 	public static void createVcf(File vcfFile, List<String> data) throws IOException {
@@ -257,4 +252,17 @@ public class AbstractModeTest {
 			}
 		 }
 	}
+	
+	@Test
+	public void getFullChromosome() {
+		AbstractMode am = new DbsnpMode(true);			
+		assertEquals("1",  am.cloneIfLenient(new ChrRangePosition("1", 100, 200), true ).getChromosome());
+		assertEquals("chr1",  am.cloneIfLenient(new ChrRangePosition("1", 100, 200), false ).getChromosome());				
+		assertEquals("CHRXY",  am.cloneIfLenient(new ChrRangePosition("CHRXY", 100, 200), true ).getChromosome());
+		assertEquals("chrXY",  am.cloneIfLenient(new ChrRangePosition("CHRXY", 100, 200), false ).getChromosome());				
+		assertEquals("CHRmT",  am.cloneIfLenient(new ChrPointPosition("CHRmT", 100), true ).getChromosome());
+		assertEquals("chrM",  am.cloneIfLenient(new ChrPointPosition("CHRmT", 100), false ).getChromosome());		
+	}
+	
+	
 }

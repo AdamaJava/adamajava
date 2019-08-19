@@ -22,7 +22,6 @@ import java.util.Map;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrRangePosition;
-import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.util.IndelUtils.SVTYPE;
@@ -43,7 +42,7 @@ public class HomoplymersMode extends AbstractMode{
 	private int reportWindow;
 	public static final int defaultWindow = 100;
 	public static final int defaultreport = 10;
-	private final boolean isStrict2chrName;
+	private final boolean isStringent;
 	
 	//for unit test
 	HomoplymersMode( String input, int homoWindow, int reportWindow, boolean isStrict) throws IOException{		
@@ -52,7 +51,7 @@ public class HomoplymersMode extends AbstractMode{
 		this.dbfile = null;
 		this.homopolymerWindow = homoWindow;
 		this.reportWindow = reportWindow;
-		this.isStrict2chrName = isStrict;
+		this.isStringent = isStrict;
 		
 		if(input != null) {
 			reheader("cmd",input);
@@ -63,7 +62,7 @@ public class HomoplymersMode extends AbstractMode{
 		input = options.getInputFileName();
 		output = options.getOutputFileName();
 		dbfile = options.getDatabaseFileName();
-		this.isStrict2chrName = options.isStrict2chrName();
+		this.isStringent = options.isStringentChrName();
 		homopolymerWindow =  options.getHomoplymersWindow();
 		reportWindow = options.getHomoplymersReportSize();
 		reportWindow = options.getHomoplymersReportSize();
@@ -72,7 +71,7 @@ public class HomoplymersMode extends AbstractMode{
         logger.tool("output for annotated vcf records: " + options.getOutputFileName());
         logger.tool("window size for homoplymers: " + homopolymerWindow);
         logger.tool("number of homoplymer bases on either side of variant to report: " + reportWindow);
-        logger.tool("accept ambiguous chromosome name, eg. treat M and chrMT as same chromosome name: " + (!isStrict2chrName));
+        logger.tool("accept ambiguous chromosome name, eg. treat M and chrMT as same chromosome name: " + (!isStringent));
         
         reheader(options.getCommandLine(),options.getInputFileName());
  		addAnnotation(dbfile);		
@@ -116,7 +115,7 @@ public class HomoplymersMode extends AbstractMode{
 		    
 		    int sum = 0;
 			for (final VcfRecord re : reader) {					 
-				String contig = isStrict2chrName? re.getChromosome(): ChrPositionUtils.ChrNameConveter(re.getChromosome());			
+				String contig = isStringent? re.getChromosome(): getFullChromosome(re.getChromosome());			
 				writer.add( annotate(re, referenceBase.get( contig ) ));
 				sum ++;
 			}
@@ -308,7 +307,7 @@ public class HomoplymersMode extends AbstractMode{
         */
        Path dictPath = findSequenceDictionary(reference.toPath());
        if (null == dictPath) {
-       	throw new IllegalArgumentException("No dict file found for reference file: " + reference);
+    	   throw new IllegalArgumentException("No dict file found for reference file: " + reference);
        }
        logger.tool("reference dictionary file: " + dictPath.toString());
        Path indexPath = ReferenceSequenceFileFactory.getFastaIndexFileName(reference.toPath());
@@ -325,7 +324,7 @@ public class HomoplymersMode extends AbstractMode{
 		   SAMSequenceDictionary dict = indexedFasta.getSequenceDictionary();
 		   for (SAMSequenceRecord re: dict.getSequences()) {
 			   //here we store reference base to map, convert contig name if requires
-			   String contig = isStrict2chrName? re.getSequenceName(): ChrPositionUtils.ChrNameConveter(re.getSequenceName());			  
+			   String contig = isStringent? re.getSequenceName(): getFullChromosome(re.getSequenceName());			  
 			   referenceBase.put(contig, indexedFasta.getSequence( re.getSequenceName()).getBases());
 		   }
 	   }

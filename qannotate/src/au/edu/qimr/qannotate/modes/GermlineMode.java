@@ -35,21 +35,21 @@ import au.edu.qimr.qannotate.Options;
 public class GermlineMode extends AbstractMode{
 	
 	private static final QLogger logger = QLoggerFactory.getLogger(GermlineMode.class);
-	private final boolean isStrict2chrName;
+	private final boolean isStringent;
 	
 	//for unit Test only
-	GermlineMode(boolean isStrict ){ this.isStrict2chrName = isStrict; }
+	GermlineMode(boolean isStrict ){ this.isStringent = isStrict; }
 
  	public GermlineMode(Options options) throws Exception{
- 		this.isStrict2chrName = options.isStrict2chrName();
+ 		this.isStringent = options.isStringentChrName();
 		
 		logger.tool("input: " + options.getInputFileName());
         logger.tool("germline database: " + options.getDatabaseFileName() );
         logger.tool("output annotated records to : " + options.getOutputFileName());
-        logger.tool("accept ambiguous chromosome name, eg. treat M and chrMT as same chromosome name: " + (!isStrict2chrName));
+        logger.tool("accept ambiguous chromosome name, eg. treat M and chrMT as same chromosome name: " + (!isStringent));
         
         //here we only process snp, ref length == 1. so the map stores chrPointPosition
-		loadVcfRecordsFromFile(new File( options.getInputFileName()) , isStrict2chrName  );
+		loadVcfRecordsFromFile(new File( options.getInputFileName()) , isStringent  );
 		addAnnotation(options.getDatabaseFileName() );
 		header.addInfo(VcfHeaderUtils.INFO_GERMLINE, ".", "String",VcfHeaderUtils.INFO_GERMLINE_DESC);
 //		header.addFilter(VcfHeaderUtils.FILTER_GERMLINE,"Mutation is a germline variant in another patient");
@@ -103,7 +103,7 @@ public class GermlineMode extends AbstractMode{
 	 			if (null != usParams && usParams.length > 3) {
 	 				// contig is first followed by position
 					ChrPosition cp = new ChrPointPosition(usParams[0], Integer.parseInt(usParams[1]));
-					cp = ChrPositionUtils.getNewchrName( cp, isStrict2chrName );					
+					cp = cloneIfLenient( cp, isStringent );					
 					List<VcfRecord> inputVcfs = positionRecordMap.get(cp);
 					if (null == inputVcfs || inputVcfs.size() == 0) {
 						continue; 

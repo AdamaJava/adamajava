@@ -17,7 +17,6 @@ import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.IndelUtils.SVTYPE;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
-import org.qcmg.picard.Faidx;
 
 public class HomoplymersModeTest {
 	@Rule
@@ -26,14 +25,14 @@ public class HomoplymersModeTest {
 	@Test
 	public void refNameTest() throws IOException {
 		File refFile = createFaFile();		
-		String chr = "chrMT";
-		//SNP  in strict mode  chrM != chrMT
-		VcfRecord re = new VcfRecord(new String[] { chr, "1", null, "T", "A" });		
+		String chr = "chrM";
+		
+		//SNP  in stringent mode  chrM != chrMT
 		HomoplymersMode  homo = new HomoplymersMode(null, 3,3, true);	
 		Map<String, byte[]> referenceBase = homo.getReferenceBase(refFile);
 	    assertFalse(referenceBase.containsKey(chr));
 		 
-	  //SNP  in Not strict mode  chrM == chrMT
+	   //SNP  in lenient mode  chrM == chrMT
 		homo = new HomoplymersMode(null, 3,3, false);	
 		referenceBase = homo.getReferenceBase(refFile);
 		assertTrue(referenceBase.containsKey(chr));
@@ -62,10 +61,10 @@ public class HomoplymersModeTest {
 	
 	@Test
 	public void startOfContig() throws IOException {
-		String chr = "chr1";
+		String chr = "1";
 		File refFile = createFaFile();	
 		
-		//SNP  in strict mode but both ref and vcf have chr1
+		//SNP  in stringent mode but both ref and vcf have chr1
 		VcfRecord re = new VcfRecord(new String[] { chr, "1", null, "T", "A" });		
 		HomoplymersMode  homo = new HomoplymersMode(null, 3,3, true);	
 		Map<String, byte[]> referenceBase = homo.getReferenceBase(refFile);
@@ -87,9 +86,10 @@ public class HomoplymersModeTest {
 	public void endOfContig() throws IOException {
 		String chr = "chr1";
 		File refFile = createFaFile();	
+		
 		//SNP
 		VcfRecord re = new VcfRecord(new String[] {  chr, "40", null, "T", "A" });		
-		HomoplymersMode  homo = new HomoplymersMode(null, 3,3, true);
+		HomoplymersMode  homo = new HomoplymersMode(null, 3,3, false);
 		Map<String, byte[]> referenceBase = homo.getReferenceBase(refFile);
 		
 		re = homo.annotate(re, referenceBase.get(chr));
@@ -107,7 +107,7 @@ public class HomoplymersModeTest {
 
 	@Test
 	public void testInsert() throws IOException{	
-		String chr = "chr1";
+		String chr = "1";
 		File refFile = createFaFile();	
 		VcfRecord re = new VcfRecord( new String[] {chr, "21",null, "T", "TTAA" });
 		
@@ -139,23 +139,27 @@ public class HomoplymersModeTest {
 	
 	@Test
 	public void testDel() throws IOException{
-		String chr = "chr1";
+		String chr = "1";
+			
 		File refFile = createFaFile();	
 		VcfRecord re = new VcfRecord(new String[] {  chr, "21", null, "TCC", "T" });		
-		HomoplymersMode  homo = new HomoplymersMode(null, 3,4, true);	
+		HomoplymersMode  homo = new HomoplymersMode(null, 3,4, false);			
 		Map<String, byte[]> referenceBase = homo.getReferenceBase(refFile);
-		
-		re = homo.annotate(re,  referenceBase.get(chr));
+				
+		//Stringent == false, so use converted chr name
+		String newChr = homo.getFullChromosome(chr );
+		re = homo.annotate(re,  referenceBase.get( newChr )); 		
 		assertTrue(re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM).equals("5,CCT__CCC"));
  		
 		//no repeats
-		re = new VcfRecord(new String[] {  "chr1", "12", null, "AT", "A" });
+		re = new VcfRecord(new String[] {  chr, "12", null, "AT", "A" });
 		homo = new HomoplymersMode(null, 100,10, true);
+		referenceBase = homo.getReferenceBase(refFile);
 		re = homo.annotate(re,  referenceBase.get(chr));
 		assertTrue(  re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM).equals("0,TGCAATTGGA_CGGACCCTCC") );
 
 		//motif of DEL contains repeat base same to adjacant homopolymers 
-		re = new VcfRecord(new String[] {  "chr1", "18", null, "CCCTCC", "C" });
+		re = new VcfRecord(new String[] {  chr, "18", null, "CCCTCC", "C" });
 		homo = new HomoplymersMode(null, 100,10, true);
 		re = homo.annotate(re,  referenceBase.get(chr));
 		assertTrue(re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM).equals("19,TGGATCGGAC_____CCCCCCCCCC") );	
@@ -163,7 +167,7 @@ public class HomoplymersModeTest {
 	
 	@Test
 	public void testSNP() throws IOException{
-		String chr = "chr1";
+		String chr = "1";
 		File refFile = createFaFile();	
 		//MNP
 		VcfRecord re = new VcfRecord(new String[] {  chr, "21", null, "TCC", "AGG" });		
@@ -173,33 +177,33 @@ public class HomoplymersModeTest {
 		assertEquals("5,CCCtccCCC", re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM));
 		
 		//SNP
-		re = new VcfRecord(new String[] {  "chr1", "16", null, "G", "A" });		
+		re = new VcfRecord(new String[] {  chr, "16", null, "G", "A" });		
 		homo = new HomoplymersMode(null, 10,5, true);
 		re = homo.annotate(re,  referenceBase.get(chr));
 		assertEquals("2,GATCGgACCCT", re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM));
 		
 		//SNP in non homoplyers region
-		re = new VcfRecord(new String[] {  "chr1", "13", null, "T", "A" });	
+		re = new VcfRecord(new String[] {  chr, "13", null, "T", "A" });	
 		re = homo.annotate(re,  referenceBase.get(chr));	 
 		assertEquals("0,TTGGAtCGGAC", re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM));
 		
-		re = new VcfRecord(new String[] {  "chr1", "10", null, "T", "A" });	
+		re = new VcfRecord(new String[] {  chr, "10", null, "T", "A" });	
 		re = homo.annotate(re, "TTTTTTTTTTGCTGCTAGCTA".getBytes());	 
 		assertEquals("10,TTTTTtGCTGC", re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM));
 		
-		re = new VcfRecord(new String[] {  "chr1", "10", null, "G", "A" });	
+		re = new VcfRecord(new String[] {  chr, "10", null, "G", "A" });	
 		re = homo.annotate(re, "TTTTTTTTTTGCTGCTAGCTA".getBytes());	 
 		assertEquals("9,TTTTTgGCTGC", re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM));
 		
-		re = new VcfRecord(new String[] {  "chr1", "10", null, "G", "A" });	
+		re = new VcfRecord(new String[] {  chr, "10", null, "G", "A" });	
 		re = homo.annotate(re, "TTTTTTTTTTTTTTTTTTTT".getBytes());	 
 		assertEquals("10,TTTTTgTTTTT", re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM));
 		
-		re = new VcfRecord(new String[] {  "chr1", "10", null, "A", "C" });	
+		re = new VcfRecord(new String[] {  chr, "10", null, "A", "C" });	
 		re = homo.annotate(re, "TTTTTTTTTTTTTTTTTTTT".getBytes());	 
 		assertEquals("10,TTTTTaTTTTT", re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM));
 		
-		re = new VcfRecord(new String[] {  "chr1", "10", null, "T", "C" });	
+		re = new VcfRecord(new String[] {  chr, "10", null, "T", "C" });	
 		re = homo.annotate(re, "TTTTTTTTTTTTTTTTTTTT".getBytes());	 
 		assertEquals("20,TTTTTtTTTTT", re.getInfoRecord().getField(VcfHeaderUtils.INFO_HOM));
 	}
@@ -440,9 +444,9 @@ public class HomoplymersModeTest {
 		File file = testFolder.newFile();
 		file = new File(file.getAbsolutePath() + ".fa");
     	final List<String> data = new ArrayList<>();
-        data.add(">chr1  AC:CM000663.2  gi:568336023  LN:248956422  rl:Chromosome  M5:6aef897c3d6ff0c78aff06ac189178dd  AS:GRCh38");      
+        data.add(">1  AC:CM000663.2  gi:568336023  LN:248956422  rl:Chromosome  M5:6aef897c3d6ff0c78aff06ac189178dd  AS:GRCh38");      
         data.add("AATGCAATTGGATCGGACCCTCCCCCCCCCCCCCCCCCCC");          	
-        data.add(">chrM  AC:J01415.2  gi:113200490  LN:16569  rl:Mitochondrion  M5:c68f52674c9fb33aef52dcf399755519  AS:GRCh38  tp:circular");      
+        data.add(">chrMT  AC:J01415.2  gi:113200490  LN:16569  rl:Mitochondrion  M5:c68f52674c9fb33aef52dcf399755519  AS:GRCh38  tp:circular");      
         data.add("AATGCAATTGGATCGGACCCTCCCCCCCCCCCCCCCCCCC");
  
         try(BufferedWriter out = new BufferedWriter( new FileWriter(file));) {          
@@ -455,6 +459,9 @@ public class HomoplymersModeTest {
         
         return file;      
 	}
+	
+	
+	
 }
 
 
