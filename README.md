@@ -1,6 +1,6 @@
 The AdamaJava project holds code for variant callers and pipeline tools related to next-generation sequencing (NGS).  The code was created by members of the Queensland Centre for Medical Genomics ([QCMG](http://www.qcmg.org)) as part of their participation in the International Cancer Genome Consortium ([ICGC](http://www.icgc.org)).  The code is now being developed and maintained by the [Genome Informatics Group](http://www.qimrberghofer.edu.au/lab/genome-informatics/) at the [QIMR Berghofer Medical Research Institute](http://www.qimrberghofer.edu.au).
 
-While the repository contains code for dozens of utilities, the list below shows tools that are considered robust enough to be released for general use.  Most are written in Java and require version 1.7 although some now require version 1.8 or above.  Some tools and helper scripts may be written in other languages, primarily perl and groovy.  Some tools have dependencies on other software.
+While the repository contains code for dozens of utilities, the list below shows tools that are considered robust enough to be released for general use.  Most are written in Java and require version 1.8.  Some tools and helper scripts may be written in other languages, primarily perl and groovy.  Some tools have dependencies on other software.
 
 * [qAmplicon](/p/adamajava/wiki/qAmplicon/) - design primer pairs for variant verification
 * [qCnv](/p/adamajava/wiki/qCnv/) - a pre-processor for copy number variant (CNV) calling

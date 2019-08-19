@@ -7,7 +7,6 @@ def isExecutable = true
 
 dependencies {
     configurations.compile.transitive = true
-    sourceCompatibility = 1.7
 
     compile project(':qcommon')
     compile project(':qio')
