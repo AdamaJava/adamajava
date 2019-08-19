@@ -775,7 +775,6 @@ public class SignatureUtil {
 	                # if SNP is A/T and SNP=BOT, T=ALLELE A and A=ALLELE B
 	                # if SNP is C/G and SNP=TOP, C=ALLELE A and G=ALLELE B
 	                # if SNP is C/G and SNP=BOT, G=ALLELE A and C=ALLELE B
-
 		 */
 		else if ((snpChar1 == 'A' && snpChar2 == 'T') 
 				|| (snpChar1 == 'C' && snpChar2 == 'G')
@@ -1030,3 +1029,4 @@ public class SignatureUtil {
 	}
 
 }
+
