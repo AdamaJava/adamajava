@@ -66,9 +66,10 @@ public class VcfFileMeta {
 			String s = ffs[i - 1];
 			
 			/*
-			 * choose caller string based on suffix of sample if there is one, or caller 
+			 * choose caller string based on suffix of sample if there is one, or caller
+			 * Use lastIndexOf as sample names will contain underscores in some instances, and we are after the final part of the string
 			 */
-			int index = s.indexOf('_');
+			int index = s.lastIndexOf('_');
 			String caller = index > -1 ? s.substring(index  + 1) : callerId + "";
 			
 			if (controlBamUUIDs.stream().anyMatch(cs -> s.startsWith(cs))) {
@@ -86,13 +87,15 @@ public class VcfFileMeta {
 			/*
 			 * maybe the CHROM line is using the sample names rather than the BAM UUIDs
 			 */
+			callerId = 1;	// reset this
 			for (short i = 1 ; i <= ffs.length ; i++ ) {
 				String s = ffs[i - 1];
 				
 				/*
-				 * choose caller string based on suffix of sample if there is one, or caller 
+				 * choose caller string based on suffix of sample if there is one, or caller
+				 *  * Use lastIndexOf as sample names will contain underscores in some instances, and we are after the final part of the string
 				 */
-				int index = s.indexOf('_');
+				int index = s.lastIndexOf('_');
 				String caller = index > -1 ? s.substring(index  + 1) : callerId + "";
 				
 				if (controlSamples.stream().anyMatch(cs -> s.startsWith(cs))) {
