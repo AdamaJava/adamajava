@@ -66,7 +66,8 @@ public class VcfFileMeta {
 			String s = ffs[i - 1];
 			
 			/*
-			 * choose caller string based on suffix of sample if there is one, or caller 
+			 * choose caller string based on suffix of sample if there is one, or caller
+			 * Use lastIndexOf as sample names will contain underscores in some instances, and we are after the final part of the string
 			 */
 			int index = s.lastIndexOf('_');
 			String caller = index > -1 ? s.substring(index  + 1) : callerId + "";
@@ -91,7 +92,8 @@ public class VcfFileMeta {
 				String s = ffs[i - 1];
 				
 				/*
-				 * choose caller string based on suffix of sample if there is one, or caller 
+				 * choose caller string based on suffix of sample if there is one, or caller
+				 *  * Use lastIndexOf as sample names will contain underscores in some instances, and we are after the final part of the string
 				 */
 				int index = s.lastIndexOf('_');
 				String caller = index > -1 ? s.substring(index  + 1) : callerId + "";
