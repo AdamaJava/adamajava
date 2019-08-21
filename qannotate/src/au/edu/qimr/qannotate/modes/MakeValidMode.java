@@ -26,6 +26,7 @@ import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.meta.QExec;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
+import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.vcf.ContentType;
 import org.qcmg.common.vcf.VcfFileMeta;
 import org.qcmg.common.vcf.VcfInfoFieldRecord;
@@ -527,21 +528,25 @@ public class MakeValidMode extends AbstractMode {
 		 * The following header lines need to be adjusted so as to be valid:
 		 * HOM, CONF, GERM, AC, ACCS, SOMATIC_1, 5BP
 		 */
-		myHeader.addInfo(VcfHeaderUtils.INFO_HOM,  ".", "String",VcfHeaderUtils.INFO_HOM_DESC);
-		myHeader.addInfo(VcfHeaderUtils.INFO_CONFIDENCE, ".", "String", DESCRIPTION_INFO_CONFIDENCE);
-		myHeader.addInfo(VcfHeaderUtils.INFO_GERMLINE, ".", "String", VcfHeaderUtils.INFO_GERMLINE_DESC);
+		myHeader.addInfo(VcfHeaderUtils.INFO_HOM,  ".", VcfInfoType.String.name(),VcfHeaderUtils.INFO_HOM_DESC);
+		myHeader.addInfo(VcfHeaderUtils.INFO_CONFIDENCE, ".", VcfInfoType.String.name(), DESCRIPTION_INFO_CONFIDENCE);
+		myHeader.addInfo(VcfHeaderUtils.INFO_GERMLINE, ".", VcfInfoType.String.name(), VcfHeaderUtils.INFO_GERMLINE_DESC);
 		myHeader.addInfo(VcfHeaderUtils.INFO_DB,  "0", VcfInfoType.Flag.name(),VcfHeaderUtils.INFO_DB_DESC);
+		myHeader.addInfo(VcfHeaderUtils.INFO_MERGE_IN,  ".", VcfInfoType.Integer.name(),VcfHeaderUtils.DESCRITPION_MERGE_IN);
+		myHeader.addInfo(IndelUtils.INFO_END, "1", VcfInfoType.String.name(), IndelUtils.DESCRIPTION_INFO_END);
+		myHeader.addInfo("INS", "0", VcfInfoType.Flag.name(), "Insertion");
+		myHeader.addInfo("DEL", "0", VcfInfoType.Flag.name(), "Deletion");
 		myHeader.addFilter(VcfHeaderUtils.FILTER_END_OF_READ,VcfHeaderUtils.FILTER_END_OF_READ_DESC); 
-		myHeader.addFormat(VcfHeaderUtils.FORMAT_ALLELE_COUNT, ".", "String",VcfHeaderUtils.FORMAT_ALLELE_COUNT_DESC);
-		myHeader.addFormat(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP, ".", "String",VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP_DESC);
-		myHeader.addFormat(VcfHeaderUtils.FORMAT_OBSERVED_ALLELES_BY_STRAND, ".", "String",VcfHeaderUtils.FORMAT_OBSERVED_ALLELES_BY_STRAND_DESC);
-		myHeader.addFormat(VcfHeaderUtils.FORMAT_FILTER, ".", "String",VcfHeaderUtils.FORMAT_FILTER_DESCRIPTION);
-		myHeader.addFormat(VcfHeaderUtils.FORMAT_INFO, ".", "String",VcfHeaderUtils.FORMAT_INFO_DESCRIPTION);
+		myHeader.addFormat(VcfHeaderUtils.FORMAT_ALLELE_COUNT, ".", VcfInfoType.String.name(), VcfHeaderUtils.FORMAT_ALLELE_COUNT_DESC);
+		myHeader.addFormat(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP, ".", VcfInfoType.String.name(), VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP_DESC);
+		myHeader.addFormat(VcfHeaderUtils.FORMAT_OBSERVED_ALLELES_BY_STRAND, ".", VcfInfoType.String.name(), VcfHeaderUtils.FORMAT_OBSERVED_ALLELES_BY_STRAND_DESC);
+		myHeader.addFormat(VcfHeaderUtils.FORMAT_FILTER, ".", VcfInfoType.String.name(),VcfHeaderUtils.FORMAT_FILTER_DESCRIPTION);
+		myHeader.addFormat(VcfHeaderUtils.FORMAT_INFO, ".", VcfInfoType.String.name(),VcfHeaderUtils.FORMAT_INFO_DESCRIPTION);
 		myHeader.addOrReplace(VcfHeaderUtils.FORMAT +"=<ID=" + VcfHeaderUtils.FORMAT_CCM + ",Number=.,Type=String,Description=\"" + VcfHeaderUtils.FORMAT_CCM_DESC + "\">" );
 		myHeader.addOrReplace(VcfHeaderUtils.FORMAT +"=<ID=" + VcfHeaderUtils.FORMAT_CCC + ",Number=.,Type=String,Description=\"" + VcfHeaderUtils.FORMAT_CCC_DESC + "\">" );
 		for (int i = 1 ; i <= 2 ; i++) {
 			String subscript = i == 1 ? "st" : "nd";
-			myHeader.addInfo(VcfHeaderUtils.INFO_SOMATIC + "_" + i, "0", "Flag", "Indicates that the " + i + subscript + " input file considered this record to be somatic.");
+			myHeader.addInfo(VcfHeaderUtils.INFO_SOMATIC + "_" + i, "0", VcfInfoType.Flag.name(), "Indicates that the " + i + subscript + " input file considered this record to be somatic.");
 			myHeader.addFilter(VcfHeaderUtils.FILTER_COVERAGE_NORMAL_12 + "_" + i, "Less than 12 reads coverage in normal");
 			myHeader.addFilter(VcfHeaderUtils.FILTER_COVERAGE_NORMAL_8 + "_" + i,"Less than 8 reads coverage in normal");  
 			myHeader.addFilter(VcfHeaderUtils.FILTER_COVERAGE_TUMOUR + "_" + i,"Less than 8 reads coverage in tumour"); 
