@@ -71,7 +71,7 @@ public class MtCNVSeq {
 	       }	  
 	       //wait threads finish
 	       queryThreads.shutdown();
-	       queryThreads.awaitTermination(20, TimeUnit.HOURS);
+	       queryThreads.awaitTermination(40, TimeUnit.HOURS);
 	       queryThreads.shutdownNow();
 	       logger.debug("completed parallel query based on genome file name");
 	       

@@ -152,8 +152,8 @@ public class BootstrapMT {
 	        }
 	        viewThreads.shutdown();
 
-	        readThread.awaitTermination(20, TimeUnit.HOURS);
-	        viewThreads.awaitTermination(20, TimeUnit.HOURS);	         
+	        readThread.awaitTermination(40, TimeUnit.HOURS);
+	        viewThreads.awaitTermination(40, TimeUnit.HOURS);	         
 	        
 	        if (readQueue.size() != 0) {
 	        	logger.info("Setting exitStatus to 1 in execute thread as readQueue is not empty.");

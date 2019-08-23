@@ -284,7 +284,7 @@ public class FindDiscordantPairClustersMT implements Callable <Map<String, List<
 		service.shutdown();
 		
 		try {
-			service.awaitTermination(10, TimeUnit.HOURS);
+			service.awaitTermination(40, TimeUnit.HOURS);
 		} catch (InterruptedException e) {
 			logger.warn("Thread interrupted while running ClusterClassifier");
 			Thread.currentThread().interrupt();

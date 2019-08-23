@@ -217,7 +217,7 @@ public class QProfiler {
 		// don't allow any new tasks to be executed
 		exec.shutdown();
 		try {
-			exec.awaitTermination(20, TimeUnit.HOURS);
+			exec.awaitTermination(40, TimeUnit.HOURS);
 		} catch (InterruptedException e) {
 			// restore interrupted status
 			Thread.currentThread().interrupt();

@@ -185,13 +185,13 @@ public class QueryMT {
 
 		// wait for threads to complete
 		try {
-			logger.info("waiting for  threads to finish (max wait will be 20 hours)");
-			readThreads.awaitTermination(20, TimeUnit.HOURS);
-			filterThreads.awaitTermination(20, TimeUnit.HOURS);
-			writeThreadA.awaitTermination(20, TimeUnit.HOURS);
+			logger.info("waiting for  threads to finish (max wait will be 40 hours)");
+			readThreads.awaitTermination(40, TimeUnit.HOURS);
+			filterThreads.awaitTermination(40, TimeUnit.HOURS);
+			writeThreadA.awaitTermination(40, TimeUnit.HOURS);
 
 			if (outBadQueue != null) {
-				writeThreadB.awaitTermination(20, TimeUnit.HOURS);
+				writeThreadB.awaitTermination(40, TimeUnit.HOURS);
 				if (outBadQueue.size() != 0)
 					throw new Exception(" threads have completed but Queue of unmatched Records isn't empty):  "
 									+ outBadQueue.size());
