@@ -3,7 +3,6 @@ package org.qcmg.sig.util;
 import static org.junit.Assert.assertEquals;
 import gnu.trove.map.TMap;
 import gnu.trove.map.hash.TIntShortHashMap;
-import gnu.trove.map.hash.TShortIntHashMap;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -49,6 +48,17 @@ public class SignatureUtilTest {
 			"##rg2=14989e3c-e669-46c2-866d-a8c504679743",
 			"#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO");
 	
+	public static final List<String> BAM_HEADER_OLD_SKOOL = Arrays.asList("##fileformat=VCFv4.2",
+			"##fileDate=20171206",
+			"##qUUID=389f2b7f-68f9-4393-8053-76ba54fb16ce",
+			"##bam_file=/mnt/lustre/working/genomeinfo/sample/f/9/f92864a0-42c8-4f11-895e-5766e1e008c7/aligned_read_group_set/b141eb5f-b556-4d3b-a2e3-b7ea39d56e00.bam",
+			"##snp_file=/software/genomeinfo/configs/qsignature/qsignature_positions.txt",
+			"##FILTER=<ID=MAPPING_QUALITY,Description=\"Mapping quality < 10\">",
+			"##FILTER=<ID=BASE_QUALITY,Description=\"Base quality < 10\">",
+			"##INFO=<ID=NOVELCOV,Number=-1,Type=String,Description=\"bases at position from reads with novel starts\">",
+			"##INFO=<ID=FULLCOV,Number=-1,Type=String,Description=\"all bases at position\">",
+			"#CHROM  POS     ID      REF     ALT     QUAL    FILTER  INFO");
+	
 	public static final List<String> SNP_CHIP_HEADER = Arrays.asList("##fileformat=VCFv4.2",
 			"##datetime=2018-04-17T16:03:13.028",
 			"##program=SignatureGeneratorBespoke",
@@ -74,6 +84,14 @@ public class SignatureUtilTest {
 		assertEquals("UNKNOWN", SignatureUtil.getPatientFromFile(new File("/path/project/AAAA_33/SNP_array/5555.txt")));
 	}
 	
+	@Test
+	public void doesOldStyleHeaderReturnASigMeta() {
+		TabbedHeader h = new TabbedHeader(BAM_HEADER_OLD_SKOOL);
+		Optional<Pair<SigMeta, Map<String, String>>> optional = SignatureUtil.getSigMetaAndRGsFromHeader(h);
+		assertEquals(true, optional.isPresent());
+		SigMeta sm = optional.get().getKey();
+		assertEquals(false, sm.isValid());
+	}
 	
 	@Test
 	public void doContigsStartWithDigit() {

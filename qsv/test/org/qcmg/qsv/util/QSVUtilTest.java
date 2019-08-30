@@ -169,7 +169,8 @@ public class QSVUtilTest {
 
 	@Test 
 	public void testGetAnalysisId() {    	
-		assertTrue(QSVUtil.getAnalysisId(false, "test", new Date(1352958269803L)).contains("qSV_test_20121511_1544"));
+		assertEquals("qSV_test_20121511_1544", QSVUtil.getAnalysisId(false, "test", new Date(1352958269803L)));
+//		assertTrue(QSVUtil.getAnalysisId(false, "test", new Date(1352958269803L)).contains("qSV_test_20121511_1544"));
 		assertTrue(QSVUtil.getAnalysisId(true, "test", new Date(1352958269803L)).length() == 36);
 	}
 
