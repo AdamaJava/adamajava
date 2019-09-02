@@ -24,6 +24,7 @@ import htsjdk.samtools.reference.ReferenceSequence;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.util.Constants;
 import org.qcmg.pileup.Options;
 import org.qcmg.pileup.PileupConstants;
 import org.qcmg.pileup.PileupUtil;
@@ -152,8 +153,8 @@ public class BootstrapMT {
 	        }
 	        viewThreads.shutdown();
 
-	        readThread.awaitTermination(100, TimeUnit.HOURS);
-	        viewThreads.awaitTermination(20, TimeUnit.HOURS);	         
+	        readThread.awaitTermination(Constants.EXECUTOR_SERVICE_AWAIT_TERMINATION, TimeUnit.HOURS);
+	        viewThreads.awaitTermination(Constants.EXECUTOR_SERVICE_AWAIT_TERMINATION, TimeUnit.HOURS);	         
 	        
 	        if (readQueue.size() != 0) {
 	        	logger.info("Setting exitStatus to 1 in execute thread as readQueue is not empty.");

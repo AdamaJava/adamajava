@@ -24,6 +24,7 @@ import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.ValidationStringency;
 
 import org.qcmg.common.log.QLogger;
+import org.qcmg.common.util.Constants;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.SAMOrBAMWriterFactory;
 import org.qcmg.picard.SAMRecordFilterWrapper;
@@ -186,12 +187,12 @@ public class QueryMT {
 		// wait for threads to complete
 		try {
 			logger.info("waiting for  threads to finish (max wait will be 100 hours)");
-			readThreads.awaitTermination(100, TimeUnit.HOURS);
-			filterThreads.awaitTermination(20, TimeUnit.HOURS);
-			writeThreadA.awaitTermination(20, TimeUnit.HOURS);
+			readThreads.awaitTermination(Constants.EXECUTOR_SERVICE_AWAIT_TERMINATION, TimeUnit.HOURS);
+			filterThreads.awaitTermination(Constants.EXECUTOR_SERVICE_AWAIT_TERMINATION, TimeUnit.HOURS);
+			writeThreadA.awaitTermination(Constants.EXECUTOR_SERVICE_AWAIT_TERMINATION, TimeUnit.HOURS);
 
 			if (outBadQueue != null) {
-				writeThreadB.awaitTermination(20, TimeUnit.HOURS);
+				writeThreadB.awaitTermination(Constants.EXECUTOR_SERVICE_AWAIT_TERMINATION, TimeUnit.HOURS);
 				if (outBadQueue.size() != 0)
 					throw new Exception(" threads have completed but Queue of unmatched Records isn't empty):  "
 									+ outBadQueue.size());

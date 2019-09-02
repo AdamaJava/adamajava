@@ -26,6 +26,7 @@ import htsjdk.samtools.SAMRecord;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.util.Constants;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qsv.QSVException;
 import org.qcmg.qsv.annotate.RunTypeRecord;
@@ -80,8 +81,8 @@ public class SAMRecordCounterMT {
             }
             processThreads.shutdown();
 
-            readThread.awaitTermination(100, TimeUnit.HOURS);
-            processThreads.awaitTermination(20, TimeUnit.HOURS);
+            readThread.awaitTermination(Constants.EXECUTOR_SERVICE_AWAIT_TERMINATION, TimeUnit.HOURS);
+            processThreads.awaitTermination(Constants.EXECUTOR_SERVICE_AWAIT_TERMINATION, TimeUnit.HOURS);
 
 
             if (readQueue.size() != 0) {

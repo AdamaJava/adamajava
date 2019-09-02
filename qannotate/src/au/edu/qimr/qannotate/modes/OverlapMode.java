@@ -108,7 +108,7 @@ public class OverlapMode extends AbstractMode{
 		// wait for threads to complete
 		try {
 			logger.info("waiting for  threads to finish (max wait will be 40 hours)");
-			pileupThreads.awaitTermination(100, TimeUnit.HOURS);
+			pileupThreads.awaitTermination(Constants.EXECUTOR_SERVICE_AWAIT_TERMINATION, TimeUnit.HOURS);
 			logger.info("All threads finished");			
 		} catch (Exception e) {
 			logger.error("Exception caught whilst waiting for threads to finish: " + e.getMessage(), e);

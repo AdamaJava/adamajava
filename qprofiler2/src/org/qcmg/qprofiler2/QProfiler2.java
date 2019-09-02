@@ -26,6 +26,7 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.messages.QMessage;
 import org.qcmg.common.model.ProfileType;
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.LoadReferencedClasses;
 import org.qcmg.common.util.XmlElementUtils;
@@ -176,7 +177,7 @@ public class QProfiler2 {
 		// don't allow any new tasks to be executed
 		exec.shutdown();
 		try {
-			exec.awaitTermination(100, TimeUnit.HOURS);
+			exec.awaitTermination(Constants.EXECUTOR_SERVICE_AWAIT_TERMINATION, TimeUnit.HOURS);
 		} catch (InterruptedException e) {
 			// restore interrupted status
 			Thread.currentThread().interrupt();

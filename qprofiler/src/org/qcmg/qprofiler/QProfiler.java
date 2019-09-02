@@ -28,6 +28,7 @@ import org.qcmg.common.date.DateUtils;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ProfileType;
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.LoadReferencedClasses;
 import org.qcmg.qprofiler.bam.BamSummarizer;
@@ -217,7 +218,7 @@ public class QProfiler {
 		// don't allow any new tasks to be executed
 		exec.shutdown();
 		try {
-			exec.awaitTermination(100, TimeUnit.HOURS);
+			exec.awaitTermination(Constants.EXECUTOR_SERVICE_AWAIT_TERMINATION, TimeUnit.HOURS);
 		} catch (InterruptedException e) {
 			// restore interrupted status
 			Thread.currentThread().interrupt();

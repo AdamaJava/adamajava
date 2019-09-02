@@ -24,6 +24,7 @@ import htsjdk.samtools.SAMRecordIterator;
 import htsjdk.samtools.ValidationStringency;
 
 import org.qcmg.common.log.*;
+import org.qcmg.common.util.Constants;
 import org.qcmg.picard.SAMFileReaderFactory;
 
 
@@ -71,7 +72,7 @@ public class MtCNVSeq {
 	       }	  
 	       //wait threads finish
 	       queryThreads.shutdown();
-	       queryThreads.awaitTermination(100, TimeUnit.HOURS);
+	       queryThreads.awaitTermination(Constants.EXECUTOR_SERVICE_AWAIT_TERMINATION, TimeUnit.HOURS);
 	       queryThreads.shutdownNow();
 	       logger.debug("completed parallel query based on genome file name");
 	       
