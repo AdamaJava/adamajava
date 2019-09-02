@@ -84,35 +84,35 @@ final class Options {
 			.describedAs("minBaseQuality");
 		parser.accepts("cutoff", CUT_OFF_OPTION_DESCRIPTION).withRequiredArg().ofType(Float.class)
 			.describedAs("cutoff");
-		parser.accepts("homCutoff", CUT_OFF_OPTION_DESCRIPTION).withRequiredArg().ofType(Float.class)
+		parser.accepts("homCutoff", "Cutoff for homozygous positions (defaults to 0.9)").withRequiredArg().ofType(Float.class)
 		.describedAs("homCutoff");
-		parser.accepts("hetUpperCutoff", CUT_OFF_OPTION_DESCRIPTION).withRequiredArg().ofType(Float.class)
+		parser.accepts("hetUpperCutoff", "Cutoff for upper heterozygous positions (defaults to 0.7). Position will be considered a heterozygous position if its VAF is between the upper and lower het cutoffs").withRequiredArg().ofType(Float.class)
 		.describedAs("hetUpperCutoff");
-		parser.accepts("hetLowerCutoff", CUT_OFF_OPTION_DESCRIPTION).withRequiredArg().ofType(Float.class)
+		parser.accepts("hetLowerCutoff", "Cutoff for upper heterozygous positions (defaults to 0.3). Position will be considered a heterozygous position if its VAF is between the upper and lower het cutoffs").withRequiredArg().ofType(Float.class)
 		.describedAs("hetLowerCutoff");
 		parser.accepts("noOfThreads", NO_OF_THREADS_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class)
 			.describedAs("noOfThreads");
 		parser.accepts("snpPositions", SNP_POSITION_DESCRIPTION).withRequiredArg().ofType(String.class)
 			.describedAs("snpPositions");
 		parser.accepts("sequential", SEQUENTIAL_OPTION_DESCRIPTION);
-		parser.accepts("searchSuffix", INPUT_DESCRIPTION).withRequiredArg().ofType(String.class)
+		parser.accepts("searchSuffix", "If option is specified, files must end with the supplied suffix").withRequiredArg().ofType(String.class)
 				.describedAs("Search suffix");
-		parser.accepts("snpChipSearchSuffix", INPUT_DESCRIPTION).withRequiredArg().ofType(String.class)
+		parser.accepts("snpChipSearchSuffix", "If option is specified, snp chip files must end with the supplied suffix").withRequiredArg().ofType(String.class)
 				.describedAs("Snp Chip Search Suffix");
-		parser.accepts("additionalSearchString", INPUT_DESCRIPTION).withRequiredArg().ofType(String.class)
+		parser.accepts("additionalSearchString", "qsig vcf filenames must match any strings supplied by this option. If they don't match, they will not be included in the comparison").withRequiredArg().ofType(String.class)
 				.describedAs("Additional Search string");
-		parser.accepts("excludeString", INPUT_DESCRIPTION).withRequiredArg().ofType(String.class)
+		parser.accepts("excludeString", "Qsig vcf filenames that contain the suppled excludes string will be excluded").withRequiredArg().ofType(String.class)
 				.describedAs("Excluded strings");
-		parser.accepts("illuminaArraysDesign", INPUT_DESCRIPTION).withRequiredArg().ofType(String.class)
+		parser.accepts("illuminaArraysDesign", "Illumina arrays design document - contains list of snp ids and whether they should be complemented").withRequiredArg().ofType(String.class)
 				.describedAs("Illumina Arrays Design file");
-		parser.accepts("email", INPUT_DESCRIPTION).withRequiredArg().ofType(String.class)
+		parser.accepts("email", "email address to send output to").withRequiredArg().ofType(String.class)
 				.describedAs("email");
-		parser.accepts("emailSubject", INPUT_DESCRIPTION).withRequiredArg().ofType(String.class)
+		parser.accepts("emailSubject", "subject line for email").withRequiredArg().ofType(String.class)
 				.describedAs("emailSubject");
-		parser.accepts("excludeVcfsFile", INPUT_DESCRIPTION).withRequiredArg().ofType(String.class)
+		parser.accepts("excludeVcfsFile", "file containing a list of vcf files to ignore in the comparison").withRequiredArg().ofType(String.class)
 				.describedAs("excludeVcfsFile");
 		parser.accepts("validation", VALIDATION_STRINGENCY_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
-		parser.acceptsAll(asList("p", "position"), INPUT_DESCRIPTION).withRequiredArg().ofType(String.class).describedAs("position");
+		parser.acceptsAll(asList("p", "position"), "File containing a list of positions that will be examined. Must be a subset of the positions in the snpPositions file").withRequiredArg().ofType(String.class).describedAs("position");
 		options = parser.parse(args);
 
 		List inputList = options.valuesOf("i");
