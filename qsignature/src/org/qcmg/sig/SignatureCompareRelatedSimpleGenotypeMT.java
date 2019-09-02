@@ -280,20 +280,21 @@ public class SignatureCompareRelatedSimpleGenotypeMT {
 	protected int setup(String args[]) throws Exception{
 		int returnStatus = 1;
 		if (null == args || args.length == 0) {
-			System.err.println(Messages.USAGE);
+			System.err.println(Messages.COMPARE_USAGE);
 			System.exit(1);
 		}
 		Options options = new Options(args);
 
 		if (options.hasHelpOption()) {
-			System.err.println(Messages.USAGE);
+			System.err.println(Messages.COMPARE_USAGE);
 			options.displayHelp();
 			returnStatus = 0;
 		} else if (options.hasVersionOption()) {
 			System.err.println(Messages.getVersionMessage());
 			returnStatus = 0;
 		} else if ( ! options.hasLogOption()) {
-			System.err.println(Messages.USAGE);
+			System.err.println(Messages.COMPARE_USAGE);
+			options.displayHelp();
 		} else {
 			// configure logging
 			logFile = options.getLog();
