@@ -604,7 +604,7 @@ public class SignatureGenerator {
 		
 		// wait till the producer count down latch has hit zero
 		try {
-			pLatch.await(10, TimeUnit.HOURS);
+			pLatch.await();
 		} catch (final InterruptedException e) {
 			e.printStackTrace();
 			throw new Exception("Exception caught in Producer thread");
@@ -612,7 +612,7 @@ public class SignatureGenerator {
 		
 		// and now the consumer latch
 		try {
-			cLatch.await(1, TimeUnit.HOURS);
+			cLatch.await();
 		} catch (final InterruptedException e) {
 			e.printStackTrace();
 			throw new Exception("Exception caught in Consumer thread");

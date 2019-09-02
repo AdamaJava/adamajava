@@ -46,6 +46,12 @@ public class Constants {
 	public static final String CHR = "chr";
 	public static final String MISSING_GT = "./.";
 	
+	/*
+	 * Number of hours that an ExecutorService will wait for before terminating
+	 * Set to 100 initially
+	 */
+	public static final int EXECUTOR_SERVICE_AWAIT_TERMINATION = 100;
+	
 	
 	// SAM Header Prefixes
 	public static final String HEADER_PREFIX = "@HD";
