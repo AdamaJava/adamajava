@@ -216,8 +216,16 @@ public class SignatureCompareRelatedSimpleGenotypeMT {
 						try {
 							genotypes = SignatureUtil.loadSignatureRatiosFloatGenotype(f, minimumCoverage, homCutoff, hetUpperCutoff, hetLowerCutoff);
 						} catch (Exception e) {
-							// TODO Auto-generated catch block
+							/*
+							 * set exit status, log exception and re-throw
+							 */
+							exitStatus = 1;
 							e.printStackTrace();
+							try {
+								throw e;
+							} catch (Exception e1) {
+								e1.printStackTrace();
+							}
 						}
 						TIntShortHashMap prevGenotypes = cache.putIfAbsent(f, genotypes);
 						if (null != prevGenotypes) {
@@ -272,20 +280,21 @@ public class SignatureCompareRelatedSimpleGenotypeMT {
 	protected int setup(String args[]) throws Exception{
 		int returnStatus = 1;
 		if (null == args || args.length == 0) {
-			System.err.println(Messages.USAGE);
+			System.err.println(Messages.COMPARE_USAGE);
 			System.exit(1);
 		}
 		Options options = new Options(args);
 
 		if (options.hasHelpOption()) {
-			System.err.println(Messages.USAGE);
+			System.err.println(Messages.COMPARE_USAGE);
 			options.displayHelp();
 			returnStatus = 0;
 		} else if (options.hasVersionOption()) {
 			System.err.println(Messages.getVersionMessage());
 			returnStatus = 0;
 		} else if ( ! options.hasLogOption()) {
-			System.err.println(Messages.USAGE);
+			System.err.println(Messages.COMPARE_USAGE);
+			options.displayHelp();
 		} else {
 			// configure logging
 			logFile = options.getLog();
