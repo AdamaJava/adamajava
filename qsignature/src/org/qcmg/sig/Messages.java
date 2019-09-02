@@ -12,6 +12,7 @@ final class Messages {
 	static final String ERROR_PREFIX = getProgramName() + ": ";
 	static final String USAGE = getMessage("USAGE");
 	static final String COMPARE_USAGE = getMessage("COMPARE_USAGE");
+	static final String GENERATOR_USAGE = getMessage("GENERATOR_USAGE");
 
 	static String getMessage(final String identifier) {
 		return messages.getString(identifier);

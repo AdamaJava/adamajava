@@ -103,7 +103,7 @@ final class Options {
 				.describedAs("Additional Search string");
 		parser.accepts("excludeString", "Qsig vcf filenames that contain the suppled excludes string will be excluded").withRequiredArg().ofType(String.class)
 				.describedAs("Excluded strings");
-		parser.accepts("illuminaArraysDesign", INPUT_DESCRIPTION).withRequiredArg().ofType(String.class)
+		parser.accepts("illuminaArraysDesign", "Illumina arrays design document - contains list of snp ids and whether they should be complemented").withRequiredArg().ofType(String.class)
 				.describedAs("Illumina Arrays Design file");
 		parser.accepts("email", "email address to send output to").withRequiredArg().ofType(String.class)
 				.describedAs("email");
