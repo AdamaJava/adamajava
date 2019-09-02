@@ -30,6 +30,7 @@ import java.util.stream.Collectors;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.LoadReferencedClasses;
 import org.qcmg.sig.model.Comparison;
@@ -192,7 +193,7 @@ public class SignatureCompareRelatedSimpleGenotypeMT {
 		}
 		service.shutdown();
 		try {
-			if ( ! service.awaitTermination(100, TimeUnit.HOURS)) {
+			if ( ! service.awaitTermination(Constants.EXECUTOR_SERVICE_AWAIT_TERMINATION, TimeUnit.HOURS)) {
 				logger.info("Timed out getting data from threads");
 			}
 		} catch (InterruptedException e) {
@@ -236,7 +237,7 @@ public class SignatureCompareRelatedSimpleGenotypeMT {
 		}
 		service.shutdown();
 		try {
-			if ( ! service.awaitTermination(100, TimeUnit.HOURS)) {
+			if ( ! service.awaitTermination(Constants.EXECUTOR_SERVICE_AWAIT_TERMINATION, TimeUnit.HOURS)) {
 				logger.info("Timed out getting data from threads");
 			}
 		} catch (InterruptedException e) {

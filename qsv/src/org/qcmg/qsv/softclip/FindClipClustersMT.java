@@ -39,6 +39,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.util.Constants;
 import org.qcmg.qsv.Chromosome;
 import org.qcmg.qsv.Options;
 import org.qcmg.qsv.QSVCluster;
@@ -179,8 +180,8 @@ public class FindClipClustersMT  {
 			}
 			filterThreads.shutdown();            
 
-			logger.info("waiting for  threads to finish (max wait will be 60 hours)");
-			filterThreads.awaitTermination(60, TimeUnit.HOURS);
+			logger.info("waiting for  threads to finish (max wait will be 100 hours)");
+			filterThreads.awaitTermination(Constants.EXECUTOR_SERVICE_AWAIT_TERMINATION, TimeUnit.HOURS);
 
 			if (readQueue.size() != 0) {
 				throw new Exception(
@@ -232,7 +233,7 @@ public class FindClipClustersMT  {
 						.currentThread(), overlapLatch));
 			}
 			overlapThreads.shutdown();
-			overlapThreads.awaitTermination(60, TimeUnit.HOURS);
+			overlapThreads.awaitTermination(Constants.EXECUTOR_SERVICE_AWAIT_TERMINATION, TimeUnit.HOURS);
 		} catch (Exception e) {
 			logger.error("Setting exit status in 1 as exception caught: "
 					+ QSVUtil.getStrackTrace(e));
@@ -651,7 +652,7 @@ public class FindClipClustersMT  {
 			executorService.shutdown();
 
 			try {
-				executorService.awaitTermination(60, TimeUnit.HOURS);                  
+				executorService.awaitTermination(Constants.EXECUTOR_SERVICE_AWAIT_TERMINATION, TimeUnit.HOURS);                  
 
 			} catch (InterruptedException e) {             
 				logger.error("Interrupted exception caught (b): "
@@ -929,7 +930,7 @@ public class FindClipClustersMT  {
 				executorService.shutdown();
 
 				try {
-					executorService.awaitTermination(60, TimeUnit.HOURS);                   
+					executorService.awaitTermination(Constants.EXECUTOR_SERVICE_AWAIT_TERMINATION, TimeUnit.HOURS);                   
 
 				} catch (InterruptedException e) {             
 					logger.error("Interrupted exception caught (c): "

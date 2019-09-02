@@ -36,6 +36,7 @@ import htsjdk.samtools.SAMRecord;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.util.Constants;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qbamfilter.query.QueryExecutor;
 import org.qcmg.qbasepileup.InputBAM;
@@ -115,10 +116,10 @@ public class SnpBasePileupByFileMT {
 			writeThread.execute(new Writing(writeQueue, options.getOutput(), Thread.currentThread(), pileupLatch, writeLatch));
 			writeThread.shutdown();
 
-			logger.info("waiting for  threads to finish (max wait will be 60 hours)");
+			logger.info("waiting for  threads to finish (max wait will be 100 hours)");
 
-			pileupThreads.awaitTermination(60, TimeUnit.HOURS);
-			writeThread.awaitTermination(60, TimeUnit.HOURS);
+			pileupThreads.awaitTermination(Constants.EXECUTOR_SERVICE_AWAIT_TERMINATION, TimeUnit.HOURS);
+			writeThread.awaitTermination(Constants.EXECUTOR_SERVICE_AWAIT_TERMINATION, TimeUnit.HOURS);
 
 			if (readQueue.size() != 0 || writeQueue.size() != 0) {
 				exitStatus.incrementAndGet();

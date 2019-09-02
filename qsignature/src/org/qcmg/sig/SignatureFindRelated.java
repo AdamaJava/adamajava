@@ -26,6 +26,7 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.util.ChrPositionUtils;
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.DonorUtils;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.LoadReferencedClasses;
@@ -161,7 +162,7 @@ public class SignatureFindRelated {
 			}
 		});
 		service.shutdown();
-		if ( ! service.awaitTermination(100, TimeUnit.HOURS)) {
+		if ( ! service.awaitTermination(Constants.EXECUTOR_SERVICE_AWAIT_TERMINATION, TimeUnit.HOURS)) {
 			
 			logger.info("Timed out getting data from threads");
 			return -1;
