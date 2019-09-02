@@ -130,9 +130,9 @@ public class SnpBasePileupMT {
 			writeThread.execute(new Writing(writeQueue, options.getOutput(), Thread.currentThread(), pileupLatch, writeLatch));
 			writeThread.shutdown();
 
-			logger.info("waiting for  threads to finish (max wait will be 60 hours)");
-			pileupThreads.awaitTermination(60, TimeUnit.HOURS);
-			writeThread.awaitTermination(60, TimeUnit.HOURS);
+			logger.info("waiting for  threads to finish (max wait will be 100 hours)");
+			pileupThreads.awaitTermination(Constants.EXECUTOR_SERVICE_AWAIT_TERMINATION, TimeUnit.HOURS);
+			writeThread.awaitTermination(Constants.EXECUTOR_SERVICE_AWAIT_TERMINATION, TimeUnit.HOURS);
 
 			logger.info("All threads finished");
 

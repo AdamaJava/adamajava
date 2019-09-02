@@ -71,13 +71,8 @@ public class FastqSummarizerMT implements Summarizer {
 		
 		// wait for threads to complete
 		try {
-			logger.info("waiting for Producer thread to finish (max wait will be 20 hours)");
-			if ( ! pLatch.await(20, TimeUnit.HOURS)) {
-				// we've hit the 20 hour limit - shutdown the threads and throw an exception
-				producerThreads.shutdownNow();
-				consumerThreads.shutdownNow();
-				throw new Exception("Producer thread has timed out");
-			}
+			logger.info("waiting for Producer thread to finish");
+			pLatch.await();
 			logger.info("producer thread finished, queue size: " + q.size());
 			
 			if ( ! cLatch.await(30, TimeUnit.SECONDS)) {

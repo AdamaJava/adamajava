@@ -32,6 +32,7 @@ import htsjdk.samtools.SAMRecordIterator;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.string.StringUtils;
+import org.qcmg.common.util.Constants;
 import org.qcmg.picard.HeaderUtils;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qbamfilter.query.QueryExecutor;
@@ -161,9 +162,9 @@ public class AnnotateFilterMT implements Runnable {
 			writeThreads.execute(new Writing(writeClipQueue, clippedFile, Thread.currentThread(), filterLatch, writeLatch, coordinateHeader));
 			writeThreads.shutdown();
 
-			logger.info("waiting for  threads to finish (max wait will be 20 hours)");
-			filterThreads.awaitTermination(60, TimeUnit.HOURS);
-			writeThreads.awaitTermination(60, TimeUnit.HOURS);
+			logger.info("waiting for  threads to finish (max wait will be 100 hours)");
+			filterThreads.awaitTermination(Constants.EXECUTOR_SERVICE_AWAIT_TERMINATION, TimeUnit.HOURS);
+			writeThreads.awaitTermination(Constants.EXECUTOR_SERVICE_AWAIT_TERMINATION, TimeUnit.HOURS);
 
 			if (readQueue.size() != 0 || writeQueue.size() != 0 || writeClipQueue.size() != 0) {
 				throw new Exception(
