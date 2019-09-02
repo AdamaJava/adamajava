@@ -216,8 +216,16 @@ public class SignatureCompareRelatedSimpleGenotypeMT {
 						try {
 							genotypes = SignatureUtil.loadSignatureRatiosFloatGenotype(f, minimumCoverage, homCutoff, hetUpperCutoff, hetLowerCutoff);
 						} catch (Exception e) {
-							// TODO Auto-generated catch block
+							/*
+							 * set exit status, log exception and re-throw
+							 */
+							exitStatus = 1;
 							e.printStackTrace();
+							try {
+								throw e;
+							} catch (Exception e1) {
+								e1.printStackTrace();
+							}
 						}
 						TIntShortHashMap prevGenotypes = cache.putIfAbsent(f, genotypes);
 						if (null != prevGenotypes) {

@@ -161,9 +161,9 @@ public class AnnotateFilterMT implements Runnable {
 			writeThreads.execute(new Writing(writeClipQueue, clippedFile, Thread.currentThread(), filterLatch, writeLatch, coordinateHeader));
 			writeThreads.shutdown();
 
-			logger.info("waiting for  threads to finish (max wait will be 20 hours)");
-			filterThreads.awaitTermination(60, TimeUnit.HOURS);
-			writeThreads.awaitTermination(60, TimeUnit.HOURS);
+			logger.info("waiting for  threads to finish (max wait will be 100 hours)");
+			filterThreads.awaitTermination(100, TimeUnit.HOURS);
+			writeThreads.awaitTermination(20, TimeUnit.HOURS);
 
 			if (readQueue.size() != 0 || writeQueue.size() != 0 || writeClipQueue.size() != 0) {
 				throw new Exception(

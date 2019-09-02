@@ -84,7 +84,7 @@ public class MtCounts {
        //wait threads finish
    	   logger.info("submited counting threads are " + index);	 
        queryThreads.shutdown();
-       queryThreads.awaitTermination(40, TimeUnit.HOURS);
+       queryThreads.awaitTermination(100, TimeUnit.HOURS);
        queryThreads.shutdownNow();
        
        logger.info("completed parallel query based on genome file name");	       

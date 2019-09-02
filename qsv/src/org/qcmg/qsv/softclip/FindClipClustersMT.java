@@ -179,8 +179,8 @@ public class FindClipClustersMT  {
 			}
 			filterThreads.shutdown();            
 
-			logger.info("waiting for  threads to finish (max wait will be 60 hours)");
-			filterThreads.awaitTermination(60, TimeUnit.HOURS);
+			logger.info("waiting for  threads to finish (max wait will be 100 hours)");
+			filterThreads.awaitTermination(100, TimeUnit.HOURS);
 
 			if (readQueue.size() != 0) {
 				throw new Exception(
@@ -232,7 +232,7 @@ public class FindClipClustersMT  {
 						.currentThread(), overlapLatch));
 			}
 			overlapThreads.shutdown();
-			overlapThreads.awaitTermination(60, TimeUnit.HOURS);
+			overlapThreads.awaitTermination(100, TimeUnit.HOURS);
 		} catch (Exception e) {
 			logger.error("Setting exit status in 1 as exception caught: "
 					+ QSVUtil.getStrackTrace(e));
@@ -651,7 +651,7 @@ public class FindClipClustersMT  {
 			executorService.shutdown();
 
 			try {
-				executorService.awaitTermination(60, TimeUnit.HOURS);                  
+				executorService.awaitTermination(100, TimeUnit.HOURS);                  
 
 			} catch (InterruptedException e) {             
 				logger.error("Interrupted exception caught (b): "
@@ -929,7 +929,7 @@ public class FindClipClustersMT  {
 				executorService.shutdown();
 
 				try {
-					executorService.awaitTermination(60, TimeUnit.HOURS);                   
+					executorService.awaitTermination(100, TimeUnit.HOURS);                   
 
 				} catch (InterruptedException e) {             
 					logger.error("Interrupted exception caught (c): "

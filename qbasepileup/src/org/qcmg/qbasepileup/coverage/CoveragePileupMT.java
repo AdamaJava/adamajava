@@ -99,10 +99,10 @@ public class CoveragePileupMT {
             writeThread.execute(new Writing(writeQueue, options.getOutput(), Thread.currentThread(), pileupLatch, writeLatch));
             writeThread.shutdown();
 
-            logger.info("waiting for  threads to finish (max wait will be 60 hours)");
-            readThread.awaitTermination(60, TimeUnit.HOURS);
-            pileupThreads.awaitTermination(60, TimeUnit.HOURS);
-            writeThread.awaitTermination(60, TimeUnit.HOURS);
+            logger.info("waiting for  threads to finish (max wait will be 100 hours)");
+            readThread.awaitTermination(100, TimeUnit.HOURS);
+            pileupThreads.awaitTermination(20, TimeUnit.HOURS);
+            writeThread.awaitTermination(20, TimeUnit.HOURS);
 
             if (readQueue.size() != 0 || writeQueue.size() != 0) {
             	exitStatus.incrementAndGet();

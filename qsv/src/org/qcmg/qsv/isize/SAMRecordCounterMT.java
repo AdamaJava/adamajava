@@ -80,8 +80,8 @@ public class SAMRecordCounterMT {
             }
             processThreads.shutdown();
 
-            readThread.awaitTermination(60, TimeUnit.HOURS);
-            processThreads.awaitTermination(60, TimeUnit.HOURS);
+            readThread.awaitTermination(100, TimeUnit.HOURS);
+            processThreads.awaitTermination(20, TimeUnit.HOURS);
 
 
             if (readQueue.size() != 0) {

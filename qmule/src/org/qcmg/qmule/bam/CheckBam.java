@@ -117,12 +117,8 @@ public class CheckBam {
 		// don't allow any new threads to start
 		producerThreads.shutdown();
 		
-		logger.info("waiting for Producer thread to finish (max wait will be 40 hours)");
-		if ( ! pLatch.await(40, TimeUnit.HOURS)) {
-			// we've hit the 40 hour limit - shutdown the threads and throw an exception
-			producerThreads.shutdownNow();
-			throw new Exception("Producer thread has timed out");
-		}
+		logger.info("waiting for Producer thread to finish");
+		pLatch.await();
 		logger.info("Producer thread finished, counter size: " + counter.longValue());
 		// output flag stats too
 		long dups = 0;
