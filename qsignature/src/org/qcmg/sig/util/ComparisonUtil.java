@@ -22,23 +22,21 @@ import org.qcmg.sig.model.Comparison;
 public class ComparisonUtil {
 	
 	public static final int MINIMUM_NO_OF_CALCULATIONS = 25000;
-	
 	private static final QLogger logger = QLoggerFactory.getLogger(ComparisonUtil.class);
 	
 	
 	public static String getComparisonsBody(List<Comparison> comparisons) {
-		if (null == comparisons || comparisons.isEmpty()) throw new IllegalArgumentException("null or empty list of comparisons to headerise");
+		if (null == comparisons || comparisons.isEmpty()) {
+			throw new IllegalArgumentException("null or empty list of comparisons to headerise");
+		}
 		
 		StringBuilder sb = new StringBuilder();
 		String mainFile = comparisons.get(0).getMain();
-		if (null != mainFile)
+		if (null != mainFile) {
 			sb.append(mainFile).append('\t');
+		}
 		
 		for (Comparison comp : comparisons) {
-			
-//			sb.append(SignatureUtil.nf.format(comp.getScore())).append("[").append(comp.getOverlapCoverage())
-//				.append(",").append(comp.getNumberOfCalculations()).append("],");
-			
 			sb.append(SignatureUtil.nf.format(comp.getScore())).append("[").append(comp.getOverlapCoverage())
 			.append("],");
 		}
@@ -49,7 +47,9 @@ public class ComparisonUtil {
 	}
 	
 	public static boolean containsDodgyComparisons(List<Comparison> comparisons, double cutoff) {
-		if (null == comparisons || comparisons.isEmpty()) throw new IllegalArgumentException("null or empty list of comparisons to examine");
+		if (null == comparisons || comparisons.isEmpty()) {
+			throw new IllegalArgumentException("null or empty list of comparisons to examine");
+		}
 		
 		for (Comparison comp : comparisons) {
 			// only care about comparisons that had a large number of calculations
@@ -63,12 +63,12 @@ public class ComparisonUtil {
 	public static Comparison compareRatiosUsingSnps(final Map<ChrPosition, double[]> file1Ratios,
 				final Map<ChrPosition, double[]> file2Ratios, File file1, File file2, Map<ChrPosition, ChrPosition> positionsOfInterest) {
 			
-			if (null == file1Ratios || null == file2Ratios)
+			if (null == file1Ratios || null == file2Ratios) {
 				throw new IllegalArgumentException("null maps passed to compareRatios");
-			
-			if (null == file1 || null == file2)
+			}
+			if (null == file1 || null == file2) {
 				throw new IllegalArgumentException("null files passed to compareRatios");
-			
+			}
 			if (file1Ratios.isEmpty() || file2Ratios.isEmpty()) {
 				return  new Comparison(file1.getAbsolutePath(), file1Ratios.size(), file2.getAbsolutePath(), file2Ratios.size(), 0, 0);
 			}
@@ -82,8 +82,6 @@ public class ComparisonUtil {
 			
 			int match = 0;
 			int totalCompared = 0;
-//			long f1TotalCov = 0;
-//			long f2TotalCov = 0;
 			for (Entry<ChrPosition, double[]> file1RatiosEntry : file1Ratios.entrySet()) {
 				
 				// check to see if position is in the list of desired positions, if not continue
@@ -133,9 +131,6 @@ public class ComparisonUtil {
 								match++;
 							}
 							totalCompared++;
-							
-//							f1TotalCov += file1Ratio[4];
-//							f2TotalCov += file2Ratio[4];
 						}
 					}
 				}
@@ -151,12 +146,12 @@ public class ComparisonUtil {
 		return compareRatiosUsingSnpsFloat(file1Ratios,file2Ratios, file1.getAbsolutePath(), file2.getAbsolutePath()); 
 	}
 	public static Comparison compareRatiosUsingSnpsFloat(TIntShortHashMap file1Ratios,TIntShortHashMap file2Ratios, String file1, String file2) {
-		if (null == file1Ratios || null == file2Ratios)
+		if (null == file1Ratios || null == file2Ratios) {
 			throw new IllegalArgumentException("null maps passed to compareRatios");
-		
-		if (null == file1 || null == file2)
+		}
+		if (null == file1 || null == file2) {
 			throw new IllegalArgumentException("null files passed to compareRatios");
-		
+		}
 		if (file1Ratios.isEmpty() || file2Ratios.isEmpty()) {
 			return  new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), 0, 0);
 		}
@@ -182,7 +177,5 @@ public class ComparisonUtil {
 		
 		Comparison comp = new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), match.get(), totalCompared.get());
 		return comp;
-		
 	}
-			
 }

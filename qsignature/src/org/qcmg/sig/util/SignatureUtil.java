@@ -161,8 +161,9 @@ public class SignatureUtil {
 		
 		Pattern p = Pattern.compile(pattern);
 		Matcher m = p.matcher(string);
-		if (m.find())
+		if (m.find()) {
 			return m.group();
+		}
 		return UNKNOWN;
 	}
 
@@ -212,9 +213,6 @@ public class SignatureUtil {
 		}
 		return updatedVcfs;
 		
-//		return vcfs.stream()
-//				.map(f -> (Character.isDigit(f.getChrPosition().getChromosome().charAt(0)) ? "chr" + f : f))
-//				.collect(Collectors.toList());
 	}
 
 	public static Map<File, Map<ChrPosition, double[]>> getDonorSnpChipData(String donor, List<File> files) throws IOException {
@@ -330,13 +328,19 @@ public class SignatureUtil {
 			
 			for (TabbedRecord vcfRecord : reader) {
 				line = vcfRecord.getData();
-				if (line.startsWith(Constants.HASH_STRING)) continue;
+				if (line.startsWith(Constants.HASH_STRING)) {
+					continue;
+				}
 				//do a brute force search for the empty coverage string before passing to tokenizer
 				// only populate ratios with non-zero values
 				// attempt to keep memory usage down...
-				if (line.indexOf(SHORT_CUT_EMPTY_COVERAGE) > -1) continue;
+				if (line.indexOf(SHORT_CUT_EMPTY_COVERAGE) > -1) {
+					continue;
+				}
 				// ignore entries that have nan in there
-				if (line.indexOf(NAN) > -1) continue;
+				if (line.indexOf(NAN) > -1) {
+					continue;
+				}
 				
 				String[] params = TabTokenizer.tokenize(line);
 				String coverage = params[7];
@@ -408,18 +412,11 @@ public class SignatureUtil {
 				int [] counts = decipherCoverageString(info);
 				
 				if (counts[4] >= 1) {
-				boolean passesCoverage = counts[4] >= minCoverage;
-				
-//				if (counts[4] >= minCoverage) {
+					boolean passesCoverage = counts[4] >= minCoverage;
 					
 					String ref = vcf.getRef();
 					short vafAsShort = getFloatAsShort(getVAF(counts, ref));
-//					if (vafAsShort == 25) {
-//						logger.info("vaf = 25, info: " + info + ", ref: " + ref);
-//					}
-//					dist.adjustOrPutValue(vafAsShort, 1, 1);
 					dist.computeIfAbsent(Short.valueOf(vafAsShort), v -> new int[2])[passesCoverage ? 0 : 1] += 1;
-					
 				}
 			}
 		}
@@ -447,9 +444,38 @@ public class SignatureUtil {
 		return vaf;
 	}
 	
+	public static Pair<SigMeta, TMap<String, TIntShortHashMap>> loadSignatureGenotype(File file, int minCoverage, int minRGCoverage) throws IOException {
+		if (null == file) {
+			throw new IllegalArgumentException("Null file object passed to loadSignatureGenotype");
+		}
+		TIntShortHashMap ratios = new TIntShortHashMap();
+		TMap<String, TIntShortHashMap> rgRatios = new THashMap<>();
+		
+		Map<String, String> rgIds = Collections.emptyMap();
+		SigMeta sm = null;
+		
+		try (TabbedFileReader reader = new TabbedFileReader(file)) {
+			TabbedHeader h = reader.getHeader();
+			
+			Optional<Pair<SigMeta, Map<String, String>>> metaAndRGsO = getSigMetaAndRGsFromHeader(h);
+			if (metaAndRGsO.isPresent()) {
+				Pair<SigMeta, Map<String, String>> p = metaAndRGsO.get();
+				sm = p.getFirst();
+				rgIds = p.getSecond();
+			}
+			
+			if (null != sm && sm.isValid()) {
+				getDataFromBespolkeLayout(file, minCoverage, minRGCoverage, ratios, rgRatios, rgIds, reader);
+			} else {
+				rgRatios.put("all", loadSignatureRatiosFloatGenotype(file));
+			}
+		}
+		return new Pair<>(sm, rgRatios);
+	}
+	
 	public static Pair<SigMeta, TMap<String, TIntShortHashMap>> loadSignatureRatiosBespokeGenotype(File file, int minCoverage, int minRGCoverage) throws IOException {
 		if (null == file) {
-			throw new IllegalArgumentException("Null file object passed to loadSignatureRatios");
+			throw new IllegalArgumentException("Null file object passed to loadSignatureRatiosBespokeGenotype");
 		}
 		
 		TIntShortHashMap ratios = new TIntShortHashMap();
@@ -468,74 +494,89 @@ public class SignatureUtil {
 				rgIds = p.getSecond();
 			}
 			
-			int noOfRGs = rgIds.size();
-			logger.info("Number of rgs for  " + file.getAbsolutePath() + " is " + noOfRGs);
+			getDataFromBespolkeLayout(file, minCoverage, minRGCoverage, ratios, rgRatios, rgIds, reader);
 			
-			String line;
-			
-			AtomicInteger cachePosition = new AtomicInteger();
-			
-			for (TabbedRecord vcfRecord : reader) {
-				line = vcfRecord.getData();
-				if (line.startsWith(Constants.HASH_STRING)) {
-					continue;
-				}
-				
-				String[] params = TabTokenizer.tokenize(line);
-				String coverage = params[7];
-				
-				/*
-				 * This should be in the QAF=t:5-0-0-0,rg4:2-0-0-0,rg1:1-0-0-0,rg2:2-0-0-0 format
-				 * Need to tease out the pertinent bits
-				 */
-				int commaIndex = coverage.indexOf(Constants.COMMA);
-				String totalCov = coverage.substring(coverage.indexOf(Constants.COLON) + 1, commaIndex > -1 ? commaIndex : coverage.length());
-				
-				Optional<float[]> array = getValuesFromCoverageStringBespoke(totalCov, minCoverage);
-				array.ifPresent(f -> {
-					
-					short g = getCodedGenotype(f);
-					
-					if (isCodedGenotypeValid(g)) {
-						cachePosition.set(ChrPositionCache.getChrPositionIndex(params[0], Integer.parseInt(params[1])));
-						ratios.put(cachePosition.get(), g);
-						/*
-						 * Get rg data if we have more than 1 rg
-						 */
-						if (noOfRGs > 1) {
-							
-							String [] covParams = coverage.substring(commaIndex + 1).split(Constants.COMMA_STRING);
-							for (String s : covParams) {
-								/*
-								 * strip rg id from string
-								 */
-								int index = s.indexOf(Constants.COLON_STRING);
-								String cov = s.substring(index + 1);
-								
-								Optional<float[]> arr = getValuesFromCoverageStringBespoke(cov, minRGCoverage);
-								arr.ifPresent(f2-> {
-									
-									short g2 = getCodedGenotype(f2);
-									
-									if (isCodedGenotypeValid(g2)) {
-										String rg = s.substring(0, index);
-										TIntShortHashMap r = rgRatios.get(rg);
-										if (r == null) {
-											r = new TIntShortHashMap();
-											rgRatios.put(rg, r);
-										}
-										r.put(cachePosition.get(), g2);
-									}
-								});
-							}
-						}
-					}
-				});
-				
-				rgRatios.put("all", ratios);
-			}
 		}
 		return new Pair<>(sm, rgRatios);
+	}
+	
+	/**
+	 * @param file
+	 * @param minCoverage
+	 * @param minRGCoverage
+	 * @param ratios
+	 * @param rgRatios
+	 * @param rgIds
+	 * @param reader
+	 */
+	public static void getDataFromBespolkeLayout(File file, int minCoverage, int minRGCoverage, TIntShortHashMap ratios,
+			TMap<String, TIntShortHashMap> rgRatios, Map<String, String> rgIds, TabbedFileReader reader) {
+		int noOfRGs = rgIds.size();
+		logger.info("Number of rgs for  " + file.getAbsolutePath() + " is " + noOfRGs);
+		
+		String line;
+		
+		AtomicInteger cachePosition = new AtomicInteger();
+		
+		for (TabbedRecord vcfRecord : reader) {
+			line = vcfRecord.getData();
+			if (line.startsWith(Constants.HASH_STRING)) {
+				continue;
+			}
+			
+			String[] params = TabTokenizer.tokenize(line);
+			String coverage = params[7];
+			
+			/*
+			 * This should be in the QAF=t:5-0-0-0,rg4:2-0-0-0,rg1:1-0-0-0,rg2:2-0-0-0 format
+			 * Need to tease out the pertinent bits
+			 */
+			int commaIndex = coverage.indexOf(Constants.COMMA);
+			String totalCov = coverage.substring(coverage.indexOf(Constants.COLON) + 1, commaIndex > -1 ? commaIndex : coverage.length());
+			
+			Optional<float[]> array = getValuesFromCoverageStringBespoke(totalCov, minCoverage);
+			array.ifPresent(f -> {
+				
+				short g = getCodedGenotype(f);
+				
+				if (isCodedGenotypeValid(g)) {
+					cachePosition.set(ChrPositionCache.getChrPositionIndex(params[0], Integer.parseInt(params[1])));
+					ratios.put(cachePosition.get(), g);
+					/*
+					 * Get rg data if we have more than 1 rg
+					 */
+					if (noOfRGs > 1) {
+						
+						String [] covParams = coverage.substring(commaIndex + 1).split(Constants.COMMA_STRING);
+						for (String s : covParams) {
+							/*
+							 * strip rg id from string
+							 */
+							int index = s.indexOf(Constants.COLON_STRING);
+							String cov = s.substring(index + 1);
+							
+							Optional<float[]> arr = getValuesFromCoverageStringBespoke(cov, minRGCoverage);
+							arr.ifPresent(f2-> {
+								
+								short g2 = getCodedGenotype(f2);
+								
+								if (isCodedGenotypeValid(g2)) {
+									String rg = s.substring(0, index);
+									TIntShortHashMap r = rgRatios.get(rg);
+									if (r == null) {
+										r = new TIntShortHashMap();
+										rgRatios.put(rg, r);
+									}
+									r.put(cachePosition.get(), g2);
+								}
+							});
+						}
+					}
+				}
+			});
+			
+			rgRatios.put("all", ratios);
+		}
 	}
 	
 	/**
@@ -627,7 +668,9 @@ public class SignatureUtil {
 	 */
 	public static List<File> removeExcludedFilesFromList(List<File> originalList, List<String> filesToExclude) {
 		
-		if (null == filesToExclude || filesToExclude.isEmpty()) return originalList;
+		if (null == filesToExclude || filesToExclude.isEmpty()) {
+			return originalList;
+		}
 		
 		List<File> keepers = new ArrayList<>();
 		for (File f : originalList) {
@@ -641,8 +684,11 @@ public class SignatureUtil {
 				}
 			}
 			
-			if (includeFile) keepers.add(f);
-			else logger.info("ignoring " + fName + " as it is in the excludes file");
+			if (includeFile) {
+				keepers.add(f);
+			} else {
+				logger.info("ignoring " + fName + " as it is in the excludes file");
+			}
 			
 		}
 		return keepers;
@@ -650,7 +696,9 @@ public class SignatureUtil {
 	
 	public static List<File> removeClosedProjectFilesFromList(List<File> originalList, List<String> closedProjects) {
 		
-		if (null == closedProjects || closedProjects.isEmpty()) return originalList;
+		if (null == closedProjects || closedProjects.isEmpty()) {
+			return originalList;
+		}
 		
 		List<File> keepers = new ArrayList<>();
 		for (File f : originalList) {
@@ -717,7 +765,9 @@ public class SignatureUtil {
 	 * @param f
 	 */
 	public static void addFileToCollection(List<File> collection, List<String> excludes, File f) {
-		if (null == collection || null == f) return;		// don't proceed if collection or file is null
+		if (null == collection || null == f) {
+			return;		// don't proceed if collection or file is null
+		}
 		
 		boolean inExcludes = false;
 		if (null != excludes) {
@@ -730,7 +780,9 @@ public class SignatureUtil {
 				}
 			}
 		}
-		if ( ! inExcludes) collection.add(f);
+		if ( ! inExcludes) {
+			collection.add(f);
+		}
 	}
 	
 	
@@ -847,14 +899,16 @@ public class SignatureUtil {
 	 * @return
 	 */
 	public static int[] decipherCoverageString(String info) {
-		if (StringUtils.isNullOrEmpty(info))
+		if (StringUtils.isNullOrEmpty(info)) {
 			throw new IllegalArgumentException("Invalid coverage string passed to decipherCoverageString: " + info);
+		}
 		// strip out the pertinent bits
 		// total
 		final int totalIndex = info.indexOf("TOTAL:");
 		
-		if (totalIndex == -1)
+		if (totalIndex == -1) {
 			throw new IllegalArgumentException("Invalid coverage string passed to decipherCoverageString: " + info);
+		}
 		
 		final int total = Integer.parseInt(info.substring(totalIndex + 6, info.indexOf("NOVELCOV") - 1));
 		
@@ -894,8 +948,9 @@ public class SignatureUtil {
 	 * @return
 	 */
 	public static Optional<int[]> decipherCoverageStringBespoke(String info) {
-		if (StringUtils.isNullOrEmpty(info))
+		if (StringUtils.isNullOrEmpty(info)) {
 			throw new IllegalArgumentException("Invalid coverage string passed to decipherCoverageStringBespoke: " + info);
+		}
 		
 		String [] data = TabTokenizer.tokenize(info, Constants.MINUS);
 		if (data.length == 4) {
@@ -917,7 +972,9 @@ public class SignatureUtil {
 		
 		int[] baseCoverages = decipherCoverageString(coverage);
 		int total = baseCoverages[4];
-		if (total < minimumCoverage) return null;
+		if (total < minimumCoverage) {
+			return null;
+		}
 		
 		double aFrac = (double) baseCoverages[0] / total;
 		double cFrac = (double) baseCoverages[1] / total;
@@ -959,7 +1016,9 @@ public class SignatureUtil {
 		
 		int[] baseCoverages = decipherCoverageString(coverage);
 		int total = baseCoverages[4];
-		if (total < minimumCoverage) return Optional.empty();
+		if (total < minimumCoverage) {
+			return Optional.empty();
+		}
 		
 		return Optional.of(new float[] { (float) baseCoverages[0] / total, 
 				(float) baseCoverages[1] / total,

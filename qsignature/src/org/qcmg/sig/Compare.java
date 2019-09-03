@@ -1,77 +1,74 @@
 /**
- * © Copyright The University of Queensland 2010-2014.
  * © Copyright QIMR Berghofer Medical Research Institute 2014-2016.
  *
  * This code is released under the terms outlined in the included LICENSE file.
  */
 package org.qcmg.sig;
 
-import gnu.trove.map.hash.THashMap;
-import gnu.trove.map.hash.TIntShortHashMap;
-
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-
+import org.apache.commons.math3.util.Pair;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
-import org.qcmg.common.util.DonorUtils;
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.LoadReferencedClasses;
 import org.qcmg.sig.model.Comparison;
+import org.qcmg.sig.model.SigMeta;
 import org.qcmg.sig.util.ComparisonUtil;
 import org.qcmg.sig.util.SignatureUtil;
+
+import gnu.trove.map.TMap;
+import gnu.trove.map.hash.THashMap;
+import gnu.trove.map.hash.TIntShortHashMap;
+import gnu.trove.set.hash.THashSet;
 
 /**
  * This class gets a list of all .qsig.vcf files from the supplied path.
  * It then performs a comparison between them all, regardless of whether they are bam or snp chip files
- * An xml output file is produced
- * If any comparison scores are less than the cutoff, they are added to a list, which is then emailed to interested parties informing them of the potential problem files
+ * 
+ * If the SigMeta for the files being compared are eligible for comparison, then they will be compared.
+ * If one (or both) of the SigMeta's is inValid, they will still be compared.
+ * If both SigMetas are valid, but not eligible for comparison, then they will not be compared.
+ * This is to get around the issue where we have some data sets sporting the 
+ * new "bespoke" vcf format, and others with the "traditional" vcf format.
+ * 
+ * An xml output file is produced.
  *  
  * @author o.holmes
- * @Deprecated use Compare instead
  *
  */
-@Deprecated
-public class SignatureCompareRelatedSimpleGenotype {
+public class Compare {
 	
 	private static QLogger logger;
 	private int exitStatus;
 	
-	
-	private float cutoff = 0.2f;
+	private float cutoff = 0.95f;
 	private int minimumCoverage = 10;
-	
-//	private final int cacheSize = 700;
+	private int minimumRGCoverage = 10;
 	
 	private String outputXml;
 	private String [] paths;
 	private String [] additionalSearchStrings;
-	private String donor;
-//	private static final String QSIG_SUFFIX = ".qsig.vcf";
 	
 	private String excludeVcfsFile;
 	private List<String> excludes;
 	private String logFile;
 	
-	private float homCutoff = SignatureUtil.HOM_CUTOFF;
-	private float hetUpperCutoff = SignatureUtil.HET_UPPER_CUTOFF;
-	private float hetLowerCutoff = SignatureUtil.HET_LOWER_CUTOFF;
-	
 	private final Map<String, int[]> fileIdsAndCounts = new THashMap<>();
 	private final List<Comparison> allComparisons = new ArrayList<>();
 	
-//	private final Map<File, Map<ChrPosition, float[]>> cache = new THashMap<>(cacheSize * 2);
-	private final Map<File, TIntShortHashMap> cache = new THashMap<>();
+	private final Map<File, Pair<SigMeta,TIntShortHashMap>> cache = new THashMap<>();
 	
-	List<String> suspiciousResults = new ArrayList<String>();
+	List<String> suspiciousResults = new ArrayList<>();
 	
 	private int engage() throws Exception {
 		
@@ -79,9 +76,9 @@ public class SignatureCompareRelatedSimpleGenotype {
 		logger.info("Retrieving excludes list from: " + excludeVcfsFile);
 		excludes = SignatureUtil.getEntriesFromExcludesFile(excludeVcfsFile);
 		
-		// get qsig vcf files for this donor
+		// get qsig vcf files
 		logger.info("Retrieving qsig vcf files from: " + Arrays.stream(paths).collect(Collectors.joining(",")));
-		Set<File> uniqueFiles = new HashSet<>();
+		Set<File> uniqueFiles = new THashSet<>();
 		for (String path : paths) {
 			uniqueFiles.addAll(FileUtils.findFilesEndingWithFilterNIO(path, SignatureUtil.QSIG_VCF));
 		}
@@ -102,9 +99,6 @@ public class SignatureCompareRelatedSimpleGenotype {
 			return 0;
 		}
 		
-		
-		
-		
 		/*
 		 * Match files on additionalSearchStrings
 		 */
@@ -116,64 +110,57 @@ public class SignatureCompareRelatedSimpleGenotype {
 		}
 		
 		
-		logger.info("Should have " + (files.size() -1) + " + " + (files.size() -2) + " ...  comparisons");
+		final int numberOfFiles = files.size();
+		final int numberOfComparisons = ((numberOfFiles * (numberOfFiles -1)) /2);
+		logger.info("Should have " +numberOfComparisons + " comparisons, based on " + numberOfFiles + " input files");
 		
 		files.sort(FileUtils.FILE_COMPARATOR);
 		
 		// add files to map
 		addFilesToMap(files);
 		
-		if (donor == null) {
-			donor = DonorUtils.getDonorFromFilename(files.get(0).getAbsolutePath());
-			if (null == donor) {
-				logger.warn("Could not get donor information from file: " + files.get(0).getAbsolutePath());
-			}
-		}
-		
-		StringBuilder donorSB = new StringBuilder(donor + "\n");
-		
+		StringBuilder sb = new StringBuilder();
 		
 		int size = files.size();
 		
 		for (int i = 0 ; i < size -1 ; i++) {
 			
-			if (i % 10 == 0) {
-				logger.info("Have loaded data from " + i + " files");
-			}
-				
-			
 			File f1 = files.get(i);
-//			Map<ChrPosition, float[]> ratios1 = getSignatureData(f1);
-			TIntShortHashMap ratios1 = getSignatureData(f1);
+			Pair<SigMeta, TIntShortHashMap> ratios1 = getSignatureData(f1);
 			
 			for (int j = i + 1 ; j < size ; j++) {
 				File f2 = files.get(j);
-//				Map<ChrPosition, float[]> ratios2 = getSignatureData(f2);
-				TIntShortHashMap ratios2 = getSignatureData(f2);
+				Pair<SigMeta, TIntShortHashMap> ratios2 = getSignatureData(f2);
 				
-//				Comparison comp = QSigCompareDistance.compareRatiosFloat(ratios1, ratios2, f1, f2, null);
-				Comparison comp = ComparisonUtil.compareRatiosUsingSnpsFloat(ratios1, ratios2, f1, f2);
-				donorSB.append(comp.toString()).append("\n");
-				allComparisons.add(comp);
+				/*
+				 * If both sig metas are valid, check to see if they are suitable for comparison (same snp positions file and have had the same filters applied).
+				 * If one is invalid, perform comparison anyway, as we will be dealing with the traditional format here
+				 */
+				if ( ! ratios1.getKey().isValid() || ! ratios2.getKey().isValid() || SigMeta.suitableForComparison(ratios1.getKey(), ratios2.getKey())) {
+//					logger.info("SigMeta matches: " + ratios1.getKey() + " and " + ratios2.getKey());
+					Comparison comp = ComparisonUtil.compareRatiosUsingSnpsFloat(ratios1.getValue(), ratios2.getValue(), f1, f2);
+					sb.append(comp.toString()).append(Constants.NEW_LINE);
+					allComparisons.add(comp);
+				} else {
+					logger.warn("Could not compare " + f1.getAbsolutePath() + " and " + f2.getAbsolutePath() + " as their SigMeta information was not equal or not valid: " + ratios1.getKey() + " and " + ratios2.getKey());
+				}
 			}
 			
 			// can now remove f1 from the cache as it is no longer required
-//			Map<ChrPosition, float[]> m = cache.remove(f1);
-			TIntShortHashMap m = cache.remove(f1);
-			m.clear();
+			Pair<SigMeta,TIntShortHashMap> m = cache.remove(f1);
+			m.getSecond().clear();
 			m = null;
 		}
-		logger.info("Loaded data for " + size + " (all) files");
 		
 		for (Comparison comp : allComparisons) {
-			if (comp.getScore() > cutoff) {
-				suspiciousResults.add(donor + "\t" + comp.toSummaryString());
+			if (comp.getScore() < cutoff) {
+				suspiciousResults.add(comp.toSummaryString());
 			}
 		}
 		
 		
 		// flush out last donor details
-		logger.info(donorSB.toString());
+		logger.info(sb.toString());
 		
 		logger.info("");
 		if (suspiciousResults.isEmpty()) {
@@ -190,32 +177,47 @@ public class SignatureCompareRelatedSimpleGenotype {
 		return exitStatus;
 	}
 	
-	TIntShortHashMap getSignatureData(File f) throws Exception {
+	Pair<SigMeta, TIntShortHashMap> getSignatureData(File f) throws IOException {
 		// check map to see if this data has already been loaded
 		// if not - load
-		TIntShortHashMap result = cache.get(f);
+		Pair<SigMeta, TIntShortHashMap> result = cache.get(f);
 		if (result == null) {
+			Pair<SigMeta, TMap<String, TIntShortHashMap>> rgResults = SignatureUtil.loadSignatureGenotype(f, minimumCoverage, minimumRGCoverage);
 			
-			
-			
-			result = SignatureUtil.loadSignatureRatiosFloatGenotype(f, minimumCoverage, homCutoff, hetUpperCutoff, hetLowerCutoff);
-			
-			if (result.size() < 1000) {
-				logger.warn("low coverage (" + result.size() + ") for file " + f.getAbsolutePath());
+			/*
+			 * if we have multiple rgs (more than 2 entries in map) - perform comparison on them before adding overall ratios to cache
+			 * 
+			 */
+			if ( rgResults.getSecond().size() == 2) {
+				result = new Pair<>(rgResults.getKey(), rgResults.getSecond().get("all"));
+			} else {
+				/*
+				 * remove all from map
+				 */
+				result =new Pair<>(rgResults.getKey(), rgResults.getSecond().remove("all"));
+				
+				List<String> rgs = new ArrayList<>(rgResults.getSecond().keySet());
+				for (int i = 0 ; i < rgs.size() ; i++) {
+					String rg1 = rgs.get(i);
+					TIntShortHashMap r1 = rgResults.getSecond().get(rg1);
+					for (int j = i + 1 ; j < rgs.size() ; j++) {
+						String rg2 = rgs.get(j);
+						TIntShortHashMap r2 = rgResults.getSecond().get(rg2);
+						
+						Comparison c = ComparisonUtil.compareRatiosUsingSnpsFloat(r1, r2, new File(rg1), new File(rg2));
+						if (c.getScore() < cutoff) {
+							logger.warn("rgs don't match!: " + c.toString());
+						}
+					}
+				}
 			}
 			
-//			if (cache.size() < cacheSize) {
-				cache.put(f, result);
-//			}
-			fileIdsAndCounts.get(f.getAbsolutePath())[1] = result.size();
-			/*
-			 * average coverage
-			 */
-			//TODO put this back in
-//			IntSummaryStatistics iss = result.values().stream()
-//				.mapToInt(array -> (int) array[4])
-//				.summaryStatistics();
-//			fileIdsAndCounts.get(f)[2] = (int) iss.getAverage();
+			if (result.getValue().size() < 1000) {
+				logger.warn("low coverage (" + result.getValue().size() + ") for file " + f.getAbsolutePath());
+			}
+			
+			cache.put(f, result);
+			fileIdsAndCounts.get(f.getAbsolutePath())[1] = result.getValue().size();
 		}
 		return result;
 	}
@@ -229,19 +231,19 @@ public class SignatureCompareRelatedSimpleGenotype {
 
 	
 	public static void main(String[] args) throws Exception {
-		LoadReferencedClasses.loadClasses(SignatureCompareRelatedSimpleGenotype.class);
+		LoadReferencedClasses.loadClasses(Compare.class);
 		
-		SignatureCompareRelatedSimpleGenotype sp = new SignatureCompareRelatedSimpleGenotype();
+		Compare sp = new Compare();
 		int exitStatus = 0;
 		try {
 			exitStatus = sp.setup(args);
 		} catch (Exception e) {
 			exitStatus = 2;
 			if (null != logger)
-				logger.error("Exception caught whilst running SignatureCompareRelatedSimple:", e);
+				logger.error("Exception caught whilst running Compare:", e);
 			else {
-				System.err.println("Exception caught whilst running SignatureCompareRelatedSimple: " + e.getMessage());
-				System.err.println(Messages.COMPARE_USAGE);
+				System.err.println("Exception caught whilst running Compare: " + e.getMessage());
+				System.err.println(Messages.USAGE);
 			}
 		}
 		
@@ -254,28 +256,24 @@ public class SignatureCompareRelatedSimpleGenotype {
 	protected int setup(String args[]) throws Exception{
 		int returnStatus = 1;
 		if (null == args || args.length == 0) {
-			System.err.println(Messages.COMPARE_USAGE);
+			System.err.println(Messages.USAGE);
 			System.exit(1);
 		}
 		Options options = new Options(args);
 
 		if (options.hasHelpOption()) {
-			System.err.println(Messages.COMPARE_USAGE);
+			System.err.println(Messages.USAGE);
 			options.displayHelp();
 			returnStatus = 0;
 		} else if (options.hasVersionOption()) {
 			System.err.println(Messages.getVersionMessage());
 			returnStatus = 0;
 		} else if ( ! options.hasLogOption()) {
-			System.err.println(Messages.COMPARE_USAGE);
-			options.displayHelp();
-		} else if ( options.getDirNames().length == 0) {
-			System.err.println(Messages.COMPARE_USAGE);
-			options.displayHelp();
+			System.err.println(Messages.USAGE);
 		} else {
 			// configure logging
 			logFile = options.getLog();
-			logger = QLoggerFactory.getLogger(SignatureCompareRelatedSimpleGenotype.class, logFile, options.getLogLevel());
+			logger = QLoggerFactory.getLogger(Compare.class, logFile, options.getLogLevel());
 			
 			
 			String [] cmdLineOutputFiles = options.getOutputFileNames();
@@ -286,20 +284,16 @@ public class SignatureCompareRelatedSimpleGenotype {
 			if (null != paths && paths.length > 0) {
 				this.paths = paths;
 			}
-			if (null == paths) throw new QSignatureException("MISSING_DIRECTORY_OPTION");
+			if (null == paths || paths.length == 0) throw new QSignatureException("MISSING_DIRECTORY_OPTION");
 			
-			if (options.hasCutoff())
+			if (options.hasCutoff()) {
 				cutoff = options.getCutoff();
+			}
 			
 			options.getMinCoverage().ifPresent(i -> {minimumCoverage = i.intValue();});
+			options.getMinRGCoverage().ifPresent(i -> {minimumRGCoverage = i.intValue();});
 			logger.tool("Setting minumim coverage to: " + minimumCoverage);
-			
-			options.getHomCutoff().ifPresent(i -> {homCutoff = i.floatValue();});
-			logger.tool("Setting homozygous cutoff to: " + homCutoff);
-			options.getHetUpperCutoff().ifPresent(i -> {hetUpperCutoff = i.floatValue();});
-			logger.tool("Setting heterozygous upper cutoff to: " + hetUpperCutoff);
-			options.getHetLowerCutoff().ifPresent(i -> {hetLowerCutoff = i.floatValue();});
-			logger.tool("Setting heterozygous lower cutoff to: " + hetLowerCutoff);
+			logger.tool("Setting minumim RG coverage to: " + minimumRGCoverage);
 			
 			additionalSearchStrings = options.getAdditionalSearchString();
 			logger.tool("Setting additionalSearchStrings to: " + Arrays.deepToString(additionalSearchStrings));
@@ -307,7 +301,7 @@ public class SignatureCompareRelatedSimpleGenotype {
 			if (options.hasExcludeVcfsFileOption())
 				excludeVcfsFile = options.getExcludeVcfsFile();
 			
-			logger.logInitialExecutionStats("SignatureCompareRelatedSimpleGenotype", SignatureCompareRelatedSimpleGenotype.class.getPackage().getImplementationVersion(), args);
+			logger.logInitialExecutionStats("Compare", Compare.class.getPackage().getImplementationVersion(), args);
 			
 			return engage();
 		}

@@ -36,12 +36,19 @@ import gnu.trove.set.hash.THashSet;
 /**
  * This class gets a list of all .qsig.vcf files from the supplied path.
  * It then performs a comparison between them all, regardless of whether they are bam or snp chip files
+ * It will also perform comparisons for old and new styled qsig xml files.
+ * In doing so, it will forgo the sigmeta check where there is no sigmeta data for one of the comparisons.
+ * Where both files have valid sigmeta data, the check will still be performed. Make sense? 
+ * 
  * An xml output file is produced
  * If any comparison scores are less than the cutoff, they are added to a list, which is then emailed to interested parties informing them of the potential problem files
  *  
  * @author o.holmes
+ * 
+ *  @Deprecated use Compare instead
  *
  */
+@Deprecated
 public class CompareGenotypeBespoke {
 	
 	private static QLogger logger;
