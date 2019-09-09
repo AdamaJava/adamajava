@@ -167,9 +167,9 @@ static final int MAX_POOL_SIZE = 500;
 				yPos = parts[4].substring(0, pos);
 			}
 			pos = yPos.lastIndexOf("#");				
-			if(pos > 0) { 
-				yPos = yPos.substring(0, pos);					
-				index = yPos.substring(pos);//put index				 
+			if(pos > 0) { 								
+				index = yPos.substring(pos);//put index	
+				yPos = yPos.substring(0, pos);	//then change yPos value
 			}
 			
 			for(int i = 0; i < 4; i ++) { 
