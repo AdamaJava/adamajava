@@ -2,16 +2,12 @@ package org.qcmg.qprofiler2.summarise;
 
 import static org.junit.Assert.assertTrue;
 
-import java.util.Arrays;
-
 import javax.xml.parsers.ParserConfigurationException;
-
 import org.junit.Test;
 import org.qcmg.common.util.Constants;
-import org.qcmg.common.util.XmlElementUtils;
 import org.qcmg.qprofiler2.summarise.ReadIDSummary.RNPattern;
 import org.qcmg.qprofiler2.util.XmlUtils;
-import org.w3c.dom.Element;
+
 
 public class ReadIDSummaryTest {
 		
