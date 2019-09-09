@@ -2,7 +2,6 @@ package org.qcmg.qprofiler2.summarise;
 
 import static org.junit.Assert.assertTrue;
 
-import javax.xml.parsers.ParserConfigurationException;
 import org.junit.Test;
 import org.qcmg.common.util.Constants;
 import org.qcmg.qprofiler2.summarise.ReadIDSummary.RNPattern;
@@ -143,7 +142,7 @@ public class ReadIDSummaryTest {
 	}
 	
 	@Test
-	public void indexTest() throws ParserConfigurationException {
+	public void indexTest() {
 		 
 		String name = "HWI-ST567_0239:1:7:20610:49360#0";
 		
