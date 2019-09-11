@@ -4,14 +4,13 @@
 package org.qcmg.sig;
 
 import gnu.trove.map.hash.THashMap;
-import gnu.trove.map.hash.TIntShortHashMap;
+import gnu.trove.map.hash.TIntByteHashMap;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -55,7 +54,6 @@ public class SignatureWTFExomes {
 	private static QLogger logger;
 	private int exitStatus;
 	
-	
 	private float cutoff = 0.2f;
 	private int minimumCoverage = 10;
 	
@@ -65,7 +63,6 @@ public class SignatureWTFExomes {
 	private String [] paths;
 	private String [] additionalSearchStrings;
 	private String donor;
-//	private static final String QSIG_SUFFIX = ".qsig.vcf";
 	
 	private String excludeVcfsFile;
 	private List<String> excludes;
@@ -74,7 +71,7 @@ public class SignatureWTFExomes {
 	private final Map<File, int[]> fileIdsAndCounts = new THashMap<>();
 	private final List<Comparison> allComparisons = new ArrayList<>();
 	
-	private final Map<File, TIntShortHashMap> cache = new THashMap<>(cacheSize * 2);
+	private final Map<File, TIntByteHashMap> cache = new THashMap<>(cacheSize * 2);
 	
 	List<String> suspiciousResults = new ArrayList<String>();
 	
@@ -106,8 +103,6 @@ public class SignatureWTFExomes {
 			logger.warn("No files left after removing exlcuded files");
 			return 0;
 		}
-		
-		
 		
 		
 		/*
@@ -142,11 +137,11 @@ public class SignatureWTFExomes {
 		
 		
 		int size = files.size();
-		List<TIntShortHashMap> ratios = new ArrayList<>();
+		List<TIntByteHashMap> ratios = new ArrayList<>();
 		for (int i = 0 ; i < size ; i++) {
 			
 			File f1 = files.get(i);
-			TIntShortHashMap ratios1 = getSignatureData(f1);
+			TIntByteHashMap ratios1 = getSignatureData(f1);
 			ratios.add(ratios1);
 		}
 		
@@ -175,21 +170,6 @@ public class SignatureWTFExomes {
 		allComparisons.add(comp3);
 		
 		
-//			for (int j = i + 1 ; j < size ; j++) {
-//				File f2 = files.get(j);
-//				TIntShortHashMap ratios2 = getSignatureData(f2);
-//				
-//				Comparison comp = ComparisonUtil.compareRatiosUsingSnpsFloat(ratios1, ratios2, f1, f2);
-//				donorSB.append(comp.toString()).append("\n");
-//				allComparisons.add(comp);
-//			}
-//			
-//			// can now remove f1 from the cache as it is no longer required
-//			TIntShortHashMap m = cache.remove(f1);
-//			m.clear();
-//			m = null;
-//		}
-		
 		for (Comparison comp : allComparisons) {
 			if (comp.getScore() > cutoff) {
 				suspiciousResults.add(donor + "\t" + comp.toSummaryString());
@@ -214,12 +194,12 @@ public class SignatureWTFExomes {
 		return exitStatus;
 	}
 	
-	TIntShortHashMap getSignatureData(File f) throws Exception {
+	TIntByteHashMap getSignatureData(File f) throws Exception {
 		// check map to see if this data has already been loaded
 		// if not - load
-		TIntShortHashMap result = cache.get(f);
+		TIntByteHashMap result = cache.get(f);
 		if (result == null) {
-			result = SignatureUtil.loadSignatureRatiosFloatGenotype(f);
+			result = SignatureUtil.loadSignatureRatiosFloatGenotypeNew(f);
 		}
 			
 		if (result.size() < 1000) {
@@ -241,31 +221,6 @@ public class SignatureWTFExomes {
 //		}
 		return result;
 	}
-//	Map<ChrPosition, float[]> getSignatureData(File f) throws Exception {
-//		// check map to see if this data has already been loaded
-//		// if not - load
-//		Map<ChrPosition, float[]> result = cache.get(f);
-//		if (result == null) {
-//			result = SignatureUtil.loadSignatureRatiosFloat(f, minimumCoverage);
-//			
-//			if (result.size() < 1000) {
-//				logger.warn("low coverage (" + result.size() + ") for file " + f.getAbsolutePath());
-//			}
-//			
-//			if (cache.size() < cacheSize) {
-//				cache.put(f, result);
-//			}
-//			fileIdsAndCounts.get(f)[1] = result.size();
-//			/*
-//			 * average coverage
-//			 */
-//			IntSummaryStatistics iss = result.values().stream()
-//					.mapToInt(array -> (int) array[4])
-//					.summaryStatistics();
-//			fileIdsAndCounts.get(f)[2] = (int) iss.getAverage();
-//		}
-//		return result;
-//	}
 	
 	private void writeXmlOutput() throws ParserConfigurationException, TransformerException {
 		DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
@@ -307,9 +262,6 @@ public class SignatureWTFExomes {
 			compE.setAttribute("file2", id2 + "");
 			compE.setAttribute("score", comp.getScore() + "");
 			compE.setAttribute("overlap", comp.getOverlapCoverage() + "");
-//			compE.setAttribute("calcs", comp.getNumberOfCalculations() + "");
-//			compE.setAttribute("f1AveCovAtOverlaps", comp.getMainAveCovAtOverlaps() + "");
-//			compE.setAttribute("f2AveCovAtOverlaps", comp.getTestAveCovAtOverlaps() + "");
 			compsE.appendChild(compE);
 		}
 		

@@ -8,7 +8,7 @@ package org.qcmg.sig;
 
 import gnu.trove.map.TMap;
 import gnu.trove.map.hash.THashMap;
-import gnu.trove.map.hash.TIntShortHashMap;
+import gnu.trove.map.hash.TIntByteHashMap;
 import gnu.trove.set.hash.THashSet;
 
 import java.io.File;
@@ -70,7 +70,7 @@ public class CompareRGGenotype {
 	
 	private final List<Comparison> allComparisons = new ArrayList<>();
 	
-	private final Map<File, Pair<SigMeta, TMap<String, TIntShortHashMap>>> cache = new THashMap<>();
+	private final Map<File, Pair<SigMeta, TMap<String, TIntByteHashMap>>> cache = new THashMap<>();
 	
 	List<String> suspiciousResults = new ArrayList<String>();
 	
@@ -120,12 +120,12 @@ public class CompareRGGenotype {
 			File f = files.get(i);
 			logger.info("getting data for " + f.getAbsolutePath());
 			
-			Pair<SigMeta, TMap<String, TIntShortHashMap>> p = getSignatureData(f);
+			Pair<SigMeta, TMap<String, TIntByteHashMap>> p = getSignatureData(f);
 			
 			/*
 			 * Just intra-file checks for now - keeping data in cache will allow for inter-bam-rg comparisons at a later date.....
 			 */
-			TMap<String, TIntShortHashMap> m = p.getSecond();
+			TMap<String, TIntByteHashMap> m = p.getSecond();
 			
 			/*
 			 * Check to see if we have more than 1 entry left in the map - if we do, compare, otherwise move on
@@ -143,10 +143,10 @@ public class CompareRGGenotype {
 				for (int j = 0 ; j < rgIds.size() ; j++) {
 					
 					String rg1 = rgIds.get(j);
-					TIntShortHashMap r1 = m.get(rg1);
+					TIntByteHashMap r1 = m.get(rg1);
 					for (int k = j + 1 ; k < rgIds.size() ; k++) {
 						String rg2 = rgIds.get(k);
-						TIntShortHashMap r2 = m.get(rg2);
+						TIntByteHashMap r2 = m.get(rg2);
 						
 						Comparison c = ComparisonUtil.compareRatiosUsingSnpsFloat(r1, r2, f.getAbsolutePath() + "-" + rg1, f.getAbsolutePath() + "-" + rg2);
 						if (c.getScore() < genotypeCutoff) {
@@ -179,12 +179,12 @@ public class CompareRGGenotype {
 		return exitStatus;
 	}
 	
-	Pair<SigMeta, TMap<String, TIntShortHashMap>> getSignatureData(File f) throws Exception {
+	Pair<SigMeta, TMap<String, TIntByteHashMap>> getSignatureData(File f) throws Exception {
 		// check map to see if this data has already been loaded
 		// if not - load
-		Pair<SigMeta, TMap<String, TIntShortHashMap>> result = cache.get(f);
+		Pair<SigMeta, TMap<String, TIntByteHashMap>> result = cache.get(f);
 		if (result == null) {
-			result = SignatureUtil.loadSignatureRatiosBespokeGenotype(f, minimumCoverage, minimumRGCoverage);
+			result = SignatureUtil.loadSignatureGenotype(f, minimumCoverage, minimumRGCoverage);
 			
 			if (result.getValue().get("all").size() < 1000) {
 				logger.warn("low coverage (" + result.getValue().size() + ") for file " + f.getAbsolutePath());

@@ -18,6 +18,7 @@ public class ChrPositionCache {
 	
 	private static ConcurrentMap<String, ChrPointPosition> cache = new ConcurrentHashMap<>();
 	private static ConcurrentMap<ChrPosition, Integer> cacheWithIndex = new ConcurrentHashMap<>();
+	private static ConcurrentMap<String, Integer> stringCacheWithIndex = new ConcurrentHashMap<>();
 	private static AtomicInteger index = new AtomicInteger();
 	
 	
@@ -37,6 +38,17 @@ public class ChrPositionCache {
 		if (null == i) {
 			i = index.incrementAndGet();
 			Integer prevI = cacheWithIndex.putIfAbsent(cp, i);
+			if (null != prevI && ! prevI.equals(i)) {
+				i = prevI;
+			}
+		}
+		return i.intValue();
+	}
+	public static int getStringIndex(String chrAndPosition) {
+		Integer i = stringCacheWithIndex.get(chrAndPosition);
+		if (null == i) {
+			i = index.incrementAndGet();
+			Integer prevI = stringCacheWithIndex.putIfAbsent(chrAndPosition, i);
 			if (null != prevI && ! prevI.equals(i)) {
 				i = prevI;
 			}

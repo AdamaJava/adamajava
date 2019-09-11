@@ -7,11 +7,19 @@ package org.qcmg.sig;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.AbstractQueue;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -28,7 +36,7 @@ import org.qcmg.sig.util.SignatureUtil;
 
 import gnu.trove.map.TMap;
 import gnu.trove.map.hash.THashMap;
-import gnu.trove.map.hash.TIntShortHashMap;
+import gnu.trove.map.hash.TIntByteHashMap;
 import gnu.trove.set.hash.THashSet;
 
 /**
@@ -51,9 +59,11 @@ public class Compare {
 	private static QLogger logger;
 	private int exitStatus;
 	
+	private int nThreads = 1;
+	
 	private float cutoff = 0.95f;
-	private int minimumCoverage = 10;
-	private int minimumRGCoverage = 10;
+	private int minimumCoverage = SignatureUtil.MINIMUM_COVERAGE;
+	private int minimumRGCoverage = SignatureUtil.MINIMUM_RG_COVERAGE;
 	
 	private String outputXml;
 	private String [] paths;
@@ -64,9 +74,12 @@ public class Compare {
 	private String logFile;
 	
 	private final Map<String, int[]> fileIdsAndCounts = new THashMap<>();
-	private final List<Comparison> allComparisons = new ArrayList<>();
+//	private final List<Comparison> allComparisons = new ArrayList<>();
+	private final List<Comparison> allComparisons = new CopyOnWriteArrayList<>();
 	
-	private final Map<File, Pair<SigMeta,TIntShortHashMap>> cache = new THashMap<>();
+//	private final Map<File, Pair<SigMeta,TIntByteHashMap>> cache = new THashMap<>();
+	private final ConcurrentMap<File, Pair<SigMeta,TIntByteHashMap>> cache = new ConcurrentHashMap<>();
+//	private final Map<File, Pair<SigMeta,TIntShortHashMap>> cache = new THashMap<>();
 	
 	List<String> suspiciousResults = new ArrayList<>();
 	
@@ -119,70 +132,97 @@ public class Compare {
 		// add files to map
 		addFilesToMap(files);
 		
-		StringBuilder sb = new StringBuilder();
+		populateCache(files);
 		
-		int size = files.size();
+		logger.info("number of entries in cache: " + cache.size());
 		
-		for (int i = 0 ; i < size -1 ; i++) {
-			
-			File f1 = files.get(i);
-			Pair<SigMeta, TIntShortHashMap> ratios1 = getSignatureData(f1);
-			
-			for (int j = i + 1 ; j < size ; j++) {
-				File f2 = files.get(j);
-				Pair<SigMeta, TIntShortHashMap> ratios2 = getSignatureData(f2);
-				
-				/*
-				 * If both sig metas are valid, check to see if they are suitable for comparison (same snp positions file and have had the same filters applied).
-				 * If one is invalid, perform comparison anyway, as we will be dealing with the traditional format here
-				 */
-				if ( ! ratios1.getKey().isValid() || ! ratios2.getKey().isValid() || SigMeta.suitableForComparison(ratios1.getKey(), ratios2.getKey())) {
-//					logger.info("SigMeta matches: " + ratios1.getKey() + " and " + ratios2.getKey());
-					Comparison comp = ComparisonUtil.compareRatiosUsingSnpsFloat(ratios1.getValue(), ratios2.getValue(), f1, f2);
-					sb.append(comp.toString()).append(Constants.NEW_LINE);
-					allComparisons.add(comp);
-				} else {
-					logger.warn("Could not compare " + f1.getAbsolutePath() + " and " + f2.getAbsolutePath() + " as their SigMeta information was not equal or not valid: " + ratios1.getKey() + " and " + ratios2.getKey());
-				}
-			}
-			
-			// can now remove f1 from the cache as it is no longer required
-			Pair<SigMeta,TIntShortHashMap> m = cache.remove(f1);
-			m.getSecond().clear();
-			m = null;
-		}
+		performComparisons(files);
+		
+//		StringBuilder sb = new StringBuilder();
+//		
+//		int size = files.size();
+//		int fileCounter = 0;
+//		int compCounter = 0;
+//		
+//		for (int i = 0 ; i < size -1 ; i++) {
+//			
+//			File f1 = files.get(i);
+//			Pair<SigMeta, TIntByteHashMap> ratios1 = getSignatureData(f1);
+////			Pair<SigMeta, TIntShortHashMap> ratios1 = getSignatureData(f1);
+//			if (++fileCounter % 100 == 0) {
+//				logger.info("hit " + fileCounter + " files");
+//			}
+//			
+//			for (int j = i + 1 ; j < size ; j++) {
+//				File f2 = files.get(j);
+//				Pair<SigMeta, TIntByteHashMap> ratios2 = getSignatureData(f2);
+////				Pair<SigMeta, TIntShortHashMap> ratios2 = getSignatureData(f2);
+//				if (++fileCounter % 100 == 0) {
+//					logger.info("hit " + fileCounter + " files");
+//				}
+//				
+//				/*
+//				 * If both sig metas are valid, check to see if they are suitable for comparison (same snp positions file and have had the same filters applied).
+//				 * If one is invalid, perform comparison anyway, as we will be dealing with the traditional format here
+//				 */
+//				if ( ! ratios1.getKey().isValid() || ! ratios2.getKey().isValid() || SigMeta.suitableForComparison(ratios1.getKey(), ratios2.getKey())) {
+////					logger.info("SigMeta matches: " + ratios1.getKey() + " and " + ratios2.getKey());
+//					Comparison comp = ComparisonUtil.compareRatiosUsingSnpsFloat(ratios1.getValue(), ratios2.getValue(), f1, f2);
+//					sb.append(comp.toString()).append(Constants.NEW_LINE);
+//					allComparisons.add(comp);
+//					if (++compCounter % 1000 == 0) {
+//						logger.info("hit " + compCounter + " comparisons");
+//					}
+//				} else {
+//					logger.warn("Could not compare " + f1.getAbsolutePath() + " and " + f2.getAbsolutePath() + " as their SigMeta information was not equal or not valid: " + ratios1.getKey() + " and " + ratios2.getKey());
+//				}
+//			}
+//			
+//			// can now remove f1 from the cache as it is no longer required
+//			Pair<SigMeta,TIntByteHashMap> m = cache.remove(f1);
+////			Pair<SigMeta,TIntShortHashMap> m = cache.remove(f1);
+//			m.getSecond().clear();
+//			m = null;
+//		}
 		
 		for (Comparison comp : allComparisons) {
-			if (comp.getScore() < cutoff) {
+			if (null == comp) {
+				logger.warn("Null comparison object in allComparions");
+			} else if (comp.getScore() < cutoff) {
 				suspiciousResults.add(comp.toSummaryString());
 			}
 		}
 		
 		
 		// flush out last donor details
-		logger.info(sb.toString());
+//		logger.info(sb.toString());
 		
 		logger.info("");
 		if (suspiciousResults.isEmpty()) {
 			logger.info("No suspicious results found");
 		} else {
 			logger.info("Suspicious results SUMMARY:");
-			for (String s : suspiciousResults) logger.info(s);
+			for (String s : suspiciousResults) {
+				logger.info(s);
+			}
 		}
 		
-		if (outputXml != null)
+		if (outputXml != null) {
 			SignatureUtil.writeXmlOutput(fileIdsAndCounts, allComparisons, outputXml);
-//		writeXmlOutput();
+		}
 		
 		return exitStatus;
 	}
 	
-	Pair<SigMeta, TIntShortHashMap> getSignatureData(File f) throws IOException {
+	Pair<SigMeta, TIntByteHashMap> getSignatureData(File f) throws IOException {
+//		Pair<SigMeta, TIntShortHashMap> getSignatureData(File f) throws IOException {
 		// check map to see if this data has already been loaded
 		// if not - load
-		Pair<SigMeta, TIntShortHashMap> result = cache.get(f);
+		Pair<SigMeta, TIntByteHashMap> result = cache.get(f);
+//		Pair<SigMeta, TIntShortHashMap> result = cache.get(f);
 		if (result == null) {
-			Pair<SigMeta, TMap<String, TIntShortHashMap>> rgResults = SignatureUtil.loadSignatureGenotype(f, minimumCoverage, minimumRGCoverage);
+			Pair<SigMeta, TMap<String, TIntByteHashMap>> rgResults = SignatureUtil.loadSignatureGenotype(f, minimumCoverage, minimumRGCoverage);
+//			Pair<SigMeta, TMap<String, TIntShortHashMap>> rgResults = SignatureUtil.loadSignatureGenotype(f, minimumCoverage, minimumRGCoverage);
 			
 			/*
 			 * if we have multiple rgs (more than 2 entries in map) - perform comparison on them before adding overall ratios to cache
@@ -199,10 +239,12 @@ public class Compare {
 				List<String> rgs = new ArrayList<>(rgResults.getSecond().keySet());
 				for (int i = 0 ; i < rgs.size() ; i++) {
 					String rg1 = rgs.get(i);
-					TIntShortHashMap r1 = rgResults.getSecond().get(rg1);
+					TIntByteHashMap r1 = rgResults.getSecond().get(rg1);
+//					TIntShortHashMap r1 = rgResults.getSecond().get(rg1);
 					for (int j = i + 1 ; j < rgs.size() ; j++) {
 						String rg2 = rgs.get(j);
-						TIntShortHashMap r2 = rgResults.getSecond().get(rg2);
+						TIntByteHashMap r2 = rgResults.getSecond().get(rg2);
+//						TIntShortHashMap r2 = rgResults.getSecond().get(rg2);
 						
 						Comparison c = ComparisonUtil.compareRatiosUsingSnpsFloat(r1, r2, new File(rg1), new File(rg2));
 						if (c.getScore() < cutoff) {
@@ -228,6 +270,106 @@ public class Compare {
 			fileIdsAndCounts.put(f.getAbsolutePath(), new int[]{id++, -1, -1});
 		}
 	}
+	
+	private void performComparisons(List<File> files) {
+		int size = files.size();
+		AbstractQueue<Integer> queue =  new ConcurrentLinkedQueue<>();
+		for (int i = 0 ; i < size -1 ; i++) {
+			queue.add(i);
+		}
+		
+		ExecutorService service = Executors.newFixedThreadPool(nThreads);		
+		for (int i = 0 ; i < nThreads; i++) {
+			service.execute(() -> {
+					List<Comparison> myComps = new ArrayList<>();
+					while (true) {
+						Integer in = queue.poll();
+						if (null == in) break;
+				
+						logger.info("performing comparison for : " + in.intValue());
+						
+						File f1 = files.get(in);
+						Pair<SigMeta, TIntByteHashMap> r1 = cache.get(f1);
+						
+						for (int j = in.intValue() + 1 ; j < size ; j ++ ) {
+							File f2 = files.get(j);
+							Pair<SigMeta, TIntByteHashMap> r2 =  cache.get(f2);
+							
+							
+							/*
+							 * If both sig metas are valid, check to see if they are suitable for comparison (same snp positions file and have had the same filters applied).
+							 * If one is invalid, perform comparison anyway, as we will be dealing with the traditional format here
+							 */
+							if ( ! r1.getKey().isValid() || ! r2.getKey().isValid() || SigMeta.suitableForComparison(r1.getKey(), r2.getKey())) {
+//								logger.info("SigMeta matches: " + ratios1.getKey() + " and " + ratios2.getKey());
+								Comparison comp = ComparisonUtil.compareRatiosUsingSnpsFloat(r1.getValue(), r2.getValue(), f1, f2);
+								myComps.add(comp);
+							} else {
+								logger.warn("Could not compare " + f1.getAbsolutePath() + " and " + f2.getAbsolutePath() + " as their SigMeta information was not equal or not valid: " + r1.getKey() + " and " + r2.getKey());
+							}
+						}
+					}
+					/*
+					 * add myComps to allComps
+					 */
+					allComparisons.addAll(myComps);
+				});
+		}
+		service.shutdown();
+		try {
+			if ( ! service.awaitTermination(Constants.EXECUTOR_SERVICE_AWAIT_TERMINATION, TimeUnit.HOURS)) {
+				logger.info("Timed out getting data from threads");
+			}
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	private void populateCache(List<File> files) {
+		AbstractQueue<File> queue =  new ConcurrentLinkedQueue<>(files);
+		ExecutorService service = Executors.newFixedThreadPool(nThreads);		
+		for (int i = 0 ; i < nThreads; i++) {
+			service.execute(() -> {
+					while (true) {
+						File f = queue.poll();
+						if (null == f) break;
+				
+						logger.info("loading data from: " + f.getAbsolutePath());
+						
+						Pair<SigMeta, TIntByteHashMap> genotypes = null;
+						try {
+							genotypes = getSignatureData(f);
+						} catch (Exception e) {
+							/*
+							 * set exit status, log exception and re-throw
+							 */
+							exitStatus = 1;
+							e.printStackTrace();
+							try {
+								throw e;
+							} catch (Exception e1) {
+								e1.printStackTrace();
+							}
+						}
+						Pair<SigMeta, TIntByteHashMap> prevGenotypes = cache.putIfAbsent(f, genotypes);
+						if (null != prevGenotypes) {
+							logger.warn("already genotypes associated with file: " + f.getAbsolutePath());
+						}
+					}
+				});
+		}
+		service.shutdown();
+		try {
+			if ( ! service.awaitTermination(Constants.EXECUTOR_SERVICE_AWAIT_TERMINATION, TimeUnit.HOURS)) {
+				logger.info("Timed out getting data from threads");
+			}
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
 
 	
 	public static void main(String[] args) throws Exception {
@@ -243,7 +385,7 @@ public class Compare {
 				logger.error("Exception caught whilst running Compare:", e);
 			else {
 				System.err.println("Exception caught whilst running Compare: " + e.getMessage());
-				System.err.println(Messages.USAGE);
+				System.err.println(Messages.COMPARE_USAGE);
 			}
 		}
 		
@@ -256,20 +398,20 @@ public class Compare {
 	protected int setup(String args[]) throws Exception{
 		int returnStatus = 1;
 		if (null == args || args.length == 0) {
-			System.err.println(Messages.USAGE);
+			System.err.println(Messages.COMPARE_USAGE);
 			System.exit(1);
 		}
 		Options options = new Options(args);
 
 		if (options.hasHelpOption()) {
-			System.err.println(Messages.USAGE);
+			System.err.println(Messages.COMPARE_USAGE);
 			options.displayHelp();
 			returnStatus = 0;
 		} else if (options.hasVersionOption()) {
 			System.err.println(Messages.getVersionMessage());
 			returnStatus = 0;
 		} else if ( ! options.hasLogOption()) {
-			System.err.println(Messages.USAGE);
+			System.err.println(Messages.COMPARE_USAGE);
 		} else {
 			// configure logging
 			logFile = options.getLog();
@@ -291,7 +433,9 @@ public class Compare {
 			}
 			
 			options.getMinCoverage().ifPresent(i -> {minimumCoverage = i.intValue();});
+			options.getNoOfThreads().ifPresent(i -> {nThreads = i.intValue();});
 			options.getMinRGCoverage().ifPresent(i -> {minimumRGCoverage = i.intValue();});
+			logger.tool("Number of threads to use: " + nThreads);
 			logger.tool("Setting minumim coverage to: " + minimumCoverage);
 			logger.tool("Setting minumim RG coverage to: " + minimumRGCoverage);
 			

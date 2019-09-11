@@ -9,7 +9,7 @@ package org.qcmg.sig.util;
 import static java.util.Comparator.comparing;
 import gnu.trove.map.TMap;
 import gnu.trove.map.hash.THashMap;
-import gnu.trove.map.hash.TIntShortHashMap;
+import gnu.trove.map.hash.TIntByteHashMap;
 
 import java.io.File;
 import java.io.IOException;
@@ -52,6 +52,7 @@ import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.DonorUtils;
 import org.qcmg.common.util.FileUtils;
+import org.qcmg.common.util.NumberUtils;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
@@ -86,6 +87,9 @@ public class SignatureUtil {
 	
 	public static final String SNP_ARRAY = "SNP_array";
 	public static final String UNKNOWN = "UNKNOWN";
+	
+	public static final int MINIMUM_COVERAGE = 10;
+	public static final int MINIMUM_RG_COVERAGE = 10;
 	
 	public static final NumberFormat nf = new DecimalFormat("0.####");
 	public static final QLogger logger = QLoggerFactory.getLogger(SignatureUtil.class);
@@ -229,7 +233,6 @@ public class SignatureUtil {
 				map.put(snpFile, snpChipRatios);
 			}
 		}
-		
 		return map;
 	}
 	
@@ -309,15 +312,15 @@ public class SignatureUtil {
 		}
 		return ratios;
 	}
-	public static TIntShortHashMap loadSignatureRatiosFloatGenotype(File file) throws IOException {
-		return loadSignatureRatiosFloatGenotype(file, 10, HOM_CUTOFF, HET_UPPER_CUTOFF, HET_LOWER_CUTOFF);
-	}
 	public static Map<ChrPosition, float[]> loadSignatureRatiosFloat(File file) throws IOException {
 		return loadSignatureRatiosFloat(file, 10);
 	}
 	
-	public static TIntShortHashMap loadSignatureRatiosFloatGenotype(File file, int minCoverage, float homCutoff, float hetUpperCutoff, float hetLowerCutoff) throws IOException {
-		TIntShortHashMap ratios = new TIntShortHashMap();
+	public static TIntByteHashMap loadSignatureRatiosFloatGenotypeNew(File file) throws IOException {
+		return loadSignatureRatiosFloatGenotypeNew(file, 10, HOM_CUTOFF, HET_UPPER_CUTOFF, HET_LOWER_CUTOFF);
+	}
+	public static TIntByteHashMap loadSignatureRatiosFloatGenotypeNew(File file, int minCoverage, float homCutoff, float hetUpperCutoff, float hetLowerCutoff) throws IOException {
+		TIntByteHashMap ratios = new TIntByteHashMap();
 		
 		if (null == file) {
 			throw new IllegalArgumentException("Null file object passed to loadSignatureRatios");
@@ -342,17 +345,34 @@ public class SignatureUtil {
 					continue;
 				}
 				
-				String[] params = TabTokenizer.tokenize(line);
-				String coverage = params[7];
+				/*
+				 * don't tokenise the line, just get the first 2 columns along with the last
+				 * should be quicker than a full tokenise...
+				 */
+				
+//				String[] params = TabTokenizer.tokenize(line);
+//				String coverage = params[7];
+				int lastIndex = line.lastIndexOf(Constants.TAB_STRING);
+				String coverage = line.substring(lastIndex);
+				/*
+				 * sometimes we have trailing tabs...
+				 */
+				if (StringUtils.isNullOrEmpty(coverage)) {
+					int nextLastIndex = line.lastIndexOf(Constants.TAB_STRING, lastIndex - 1);
+					coverage = line.substring(nextLastIndex + 1, lastIndex);
+				}
+				
 				Optional<float[]> array = getValuesFromCoverageStringFloat(coverage, minCoverage);
-				array.ifPresent(f -> {
-					
-					short g = getCodedGenotype(f, homCutoff, hetUpperCutoff, hetLowerCutoff);
-					
+				
+				if (array.isPresent()) {
+					byte g = getCodedGenotypeAsByte(array.get(), homCutoff, hetUpperCutoff, hetLowerCutoff);
 					if (isCodedGenotypeValid(g)) {
-						ratios.put(ChrPositionCache.getChrPositionIndex(params[0], Integer.parseInt(params[1])), g);
+						int index = line.indexOf(Constants.TAB_STRING);
+						index = line.indexOf(Constants.TAB_STRING, index + 1);
+						String chrAndPos = line.substring(0, index);
+						ratios.put(ChrPositionCache.getStringIndex(chrAndPos), g);
 					}
-				});
+				}
 			}
 		}
 		return ratios;
@@ -444,12 +464,16 @@ public class SignatureUtil {
 		return vaf;
 	}
 	
-	public static Pair<SigMeta, TMap<String, TIntShortHashMap>> loadSignatureGenotype(File file, int minCoverage, int minRGCoverage) throws IOException {
+	public static Pair<SigMeta, TMap<String, TIntByteHashMap>> loadSignatureGenotype(File file) throws IOException {
+		return loadSignatureGenotype(file, MINIMUM_COVERAGE, MINIMUM_RG_COVERAGE);
+	}
+	
+	public static Pair<SigMeta, TMap<String, TIntByteHashMap>> loadSignatureGenotype(File file, int minCoverage, int minRGCoverage) throws IOException {
 		if (null == file) {
 			throw new IllegalArgumentException("Null file object passed to loadSignatureGenotype");
 		}
-		TIntShortHashMap ratios = new TIntShortHashMap();
-		TMap<String, TIntShortHashMap> rgRatios = new THashMap<>();
+		TIntByteHashMap ratios = new TIntByteHashMap();
+		TMap<String, TIntByteHashMap> rgRatios = new THashMap<>();
 		
 		Map<String, String> rgIds = Collections.emptyMap();
 		SigMeta sm = null;
@@ -467,50 +491,14 @@ public class SignatureUtil {
 			if (null != sm && sm.isValid()) {
 				getDataFromBespolkeLayout(file, minCoverage, minRGCoverage, ratios, rgRatios, rgIds, reader);
 			} else {
-				rgRatios.put("all", loadSignatureRatiosFloatGenotype(file));
+				rgRatios.put("all", loadSignatureRatiosFloatGenotypeNew(file));
 			}
 		}
 		return new Pair<>(sm, rgRatios);
 	}
 	
-	public static Pair<SigMeta, TMap<String, TIntShortHashMap>> loadSignatureRatiosBespokeGenotype(File file, int minCoverage, int minRGCoverage) throws IOException {
-		if (null == file) {
-			throw new IllegalArgumentException("Null file object passed to loadSignatureRatiosBespokeGenotype");
-		}
-		
-		TIntShortHashMap ratios = new TIntShortHashMap();
-		TMap<String, TIntShortHashMap> rgRatios = new THashMap<>();
-		
-		Map<String, String> rgIds = Collections.emptyMap();
-		SigMeta sm = null;
-		
-		try (TabbedFileReader reader = new TabbedFileReader(file)) {
-			TabbedHeader h = reader.getHeader();
-			
-			Optional<Pair<SigMeta, Map<String, String>>> metaAndRGsO = getSigMetaAndRGsFromHeader(h);
-			if (metaAndRGsO.isPresent()) {
-				Pair<SigMeta, Map<String, String>> p = metaAndRGsO.get();
-				sm = p.getFirst();
-				rgIds = p.getSecond();
-			}
-			
-			getDataFromBespolkeLayout(file, minCoverage, minRGCoverage, ratios, rgRatios, rgIds, reader);
-			
-		}
-		return new Pair<>(sm, rgRatios);
-	}
-	
-	/**
-	 * @param file
-	 * @param minCoverage
-	 * @param minRGCoverage
-	 * @param ratios
-	 * @param rgRatios
-	 * @param rgIds
-	 * @param reader
-	 */
-	public static void getDataFromBespolkeLayout(File file, int minCoverage, int minRGCoverage, TIntShortHashMap ratios,
-			TMap<String, TIntShortHashMap> rgRatios, Map<String, String> rgIds, TabbedFileReader reader) {
+	public static void getDataFromBespolkeLayout(File file, int minCoverage, int minRGCoverage, TIntByteHashMap ratios,
+			TMap<String, TIntByteHashMap> rgRatios, Map<String, String> rgIds, TabbedFileReader reader) {
 		int noOfRGs = rgIds.size();
 		logger.info("Number of rgs for  " + file.getAbsolutePath() + " is " + noOfRGs);
 		
@@ -537,11 +525,12 @@ public class SignatureUtil {
 			Optional<float[]> array = getValuesFromCoverageStringBespoke(totalCov, minCoverage);
 			array.ifPresent(f -> {
 				
-				short g = getCodedGenotype(f);
+				byte genotype1 = getCodedGenotypeAsByte(f);
 				
-				if (isCodedGenotypeValid(g)) {
-					cachePosition.set(ChrPositionCache.getChrPositionIndex(params[0], Integer.parseInt(params[1])));
-					ratios.put(cachePosition.get(), g);
+				if (isCodedGenotypeValid(genotype1)) {
+					cachePosition.set(ChrPositionCache.getStringIndex(params[0] + "\t" + params[1]));
+//					cachePosition.set(ChrPositionCache.getChrPositionIndex(params[0], Integer.parseInt(params[1])));
+					ratios.put(cachePosition.get(), genotype1);
 					/*
 					 * Get rg data if we have more than 1 rg
 					 */
@@ -558,16 +547,16 @@ public class SignatureUtil {
 							Optional<float[]> arr = getValuesFromCoverageStringBespoke(cov, minRGCoverage);
 							arr.ifPresent(f2-> {
 								
-								short g2 = getCodedGenotype(f2);
+								byte genotype2 = getCodedGenotypeAsByte(f2);
 								
-								if (isCodedGenotypeValid(g2)) {
+								if (isCodedGenotypeValid(genotype2)) {
 									String rg = s.substring(0, index);
-									TIntShortHashMap r = rgRatios.get(rg);
+									TIntByteHashMap r = rgRatios.get(rg);
 									if (r == null) {
-										r = new TIntShortHashMap();
+										r = new TIntByteHashMap();
 										rgRatios.put(rg, r);
 									}
-									r.put(cachePosition.get(), g2);
+									r.put(cachePosition.get(), genotype2);
 								}
 							});
 						}
@@ -580,65 +569,71 @@ public class SignatureUtil {
 	}
 	
 	/**
-	 * Convert float array containing allele percentages for ACGT bases into a short.
+	 * Convert float array containing allele percentages for ACGT bases into a byte.
 	 * 
-	 * If over 90% in A, then will return 2000
-	 * If over 90% in C, then will return 200
-	 * If over 90% in G, then will return 20
-	 * If over 90% in T, then will return 2
-	 * If het for AC, will return 1100
-	 * If het for AG, will return 1010
-	 * If het for AT, will return 1001
-	 * If het for CG, will return 0110
-	 * If het for CT, will return 0101
-	 * If het for GT, will return 0011
+	 * If over 90% in A, then will return 1000000 (binary form)
+	 * If over 90% in C, then will return 0100000
+	 * If over 90% in G, then will return 0010000
+	 * If over 90% in T, then will return 0001000
+	 * If het for AC, will return 00001100
+	 * If het for AG, will return 00001010
+	 * If het for AT, will return 00001001
+	 * If het for CG, will return 00000110
+	 * If het for CT, will return 00000101
+	 * If het for GT, will return 00000011
 	 * 
 	 * 
-	 * The cutoffs are > 0.90000 for homozygous, and > 0.30000 and < 0.70000 for heterozygous
+	 * The default cutoffs are > 0.90000 for homozygous, and > 0.30000 and < 0.70000 for heterozygous
 	 * 
 	 * 
 	 * @param f
 	 * @return
 	 */
-	public static short getCodedGenotype(float[] f, float homCutoff, float hetUpperCutoff, float hetLowerCutoff) {
-		short g1 = 0;
+	public static byte getCodedGenotypeAsByte(float[] f,  float homCutoff, float hetUpperCutoff, float hetLowerCutoff) {
+		byte g1 = 0;
 		for (int i = 0 ; i < 4 ; i++) {
 			float d = f[i];
-			if (d > homCutoff) {	// homozygous
-				g1 += i == 0 ? 2000 : i == 1 ? 200 : i == 2 ? 20 : 2;
+			if (d > homCutoff) {
+				g1 = NumberUtils.setBit(g1, i + 4);
 				break;
 			} else if (d > hetLowerCutoff && d < hetUpperCutoff) {	// heterozygous
-				g1 += i == 0 ? 1000 : i == 1 ? 100 : i == 2 ? 10 : 1;
+				g1 = NumberUtils.setBit(g1, i);
 			}
 		}
 		return g1;
 	}
 	
-	public static short getCodedGenotype(float[] f) {
-		return getCodedGenotype(f, HOM_CUTOFF,  HET_UPPER_CUTOFF, HET_LOWER_CUTOFF);
+	public static byte getCodedGenotypeAsByte(float[] f) {
+		return getCodedGenotypeAsByte(f, HOM_CUTOFF,  HET_UPPER_CUTOFF, HET_LOWER_CUTOFF);
 	}
 	
 	/**
-	 * A short value outwith the 0-2000 range is invalid, and will return false.
-	 * Also, if the short contains only a single 1 within this range (ie. 1000), then this is also invalid, and will return false
+	 * the following values are considered to be valid:
+	 * 10000000		-128
+	 * 01000000		64
+	 * 00100000		32
+	 * 00010000		16
+	 * 00001100		12
+	 * 00001010		10
+	 * 00001001		9
+	 * 00000110		6
+	 * 00000101		5
+	 * 00000011		3
 	 * 
-	 * @param s
+	 * @param b
 	 * @return
 	 */
-	public static boolean isCodedGenotypeValid(short s) {
-		switch (s) {
-		case 2000 : 
-		case 200 :
-		case 20 :
-		case 2:
-		case 1100:
-		case 1010:
-		case 1001:
-		case 110:
-		case 101:
-		case 11: return true;
-		default: return false;
-		}
+	public static boolean isCodedGenotypeValid(byte b) {
+		return b == 3
+				|| b == 5
+				|| b == 6
+				|| b == 9
+				|| b == 10
+				|| b == 12
+				|| b == 16
+				|| b == 32
+				|| b == 64
+				|| b == -128;
 	}
 	
 	

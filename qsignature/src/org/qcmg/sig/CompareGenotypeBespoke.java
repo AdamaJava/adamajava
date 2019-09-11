@@ -30,6 +30,7 @@ import org.qcmg.sig.util.SignatureUtil;
 
 import gnu.trove.map.TMap;
 import gnu.trove.map.hash.THashMap;
+import gnu.trove.map.hash.TIntByteHashMap;
 import gnu.trove.map.hash.TIntShortHashMap;
 import gnu.trove.set.hash.THashSet;
 
@@ -69,7 +70,8 @@ public class CompareGenotypeBespoke {
 	private final Map<String, int[]> fileIdsAndCounts = new THashMap<>();
 	private final List<Comparison> allComparisons = new ArrayList<>();
 	
-	private final Map<File, Pair<SigMeta,TIntShortHashMap>> cache = new THashMap<>();
+	private final Map<File, Pair<SigMeta,TIntByteHashMap>> cache = new THashMap<>();
+//	private final Map<File, Pair<SigMeta,TIntShortHashMap>> cache = new THashMap<>();
 	
 	List<String> suspiciousResults = new ArrayList<>();
 	
@@ -129,11 +131,11 @@ public class CompareGenotypeBespoke {
 		for (int i = 0 ; i < size -1 ; i++) {
 			
 			File f1 = files.get(i);
-			Pair<SigMeta, TIntShortHashMap> ratios1 = getSignatureData(f1);
+			Pair<SigMeta, TIntByteHashMap> ratios1 = getSignatureData(f1);
 			
 			for (int j = i + 1 ; j < size ; j++) {
 				File f2 = files.get(j);
-				Pair<SigMeta, TIntShortHashMap> ratios2 = getSignatureData(f2);
+				Pair<SigMeta, TIntByteHashMap> ratios2 = getSignatureData(f2);
 				
 				/*
 				 * Check that the 2 files were born of the same snp positions file and have had the same filters applied
@@ -149,7 +151,7 @@ public class CompareGenotypeBespoke {
 			}
 			
 			// can now remove f1 from the cache as it is no longer required
-			Pair<SigMeta,TIntShortHashMap> m = cache.remove(f1);
+			Pair<SigMeta,TIntByteHashMap> m = cache.remove(f1);
 			m.getSecond().clear();
 			m = null;
 		}
@@ -179,12 +181,12 @@ public class CompareGenotypeBespoke {
 		return exitStatus;
 	}
 	
-	Pair<SigMeta, TIntShortHashMap> getSignatureData(File f) throws IOException {
+	Pair<SigMeta, TIntByteHashMap> getSignatureData(File f) throws IOException {
 		// check map to see if this data has already been loaded
 		// if not - load
-		Pair<SigMeta, TIntShortHashMap> result = cache.get(f);
+		Pair<SigMeta, TIntByteHashMap> result = cache.get(f);
 		if (result == null) {
-			Pair<SigMeta, TMap<String, TIntShortHashMap>> rgResults = SignatureUtil.loadSignatureRatiosBespokeGenotype(f, minimumCoverage, minimumRGCoverage);
+			Pair<SigMeta, TMap<String, TIntByteHashMap>> rgResults = SignatureUtil.loadSignatureGenotype(f, minimumCoverage, minimumRGCoverage);
 			
 			/*
 			 * if we have multiple rgs (more than 2 entries in map) - perform comparison on them before adding overall ratios to cache
@@ -201,10 +203,12 @@ public class CompareGenotypeBespoke {
 				List<String> rgs = new ArrayList<>(rgResults.getSecond().keySet());
 				for (int i = 0 ; i < rgs.size() ; i++) {
 					String rg1 = rgs.get(i);
-					TIntShortHashMap r1 = rgResults.getSecond().get(rg1);
+					TIntByteHashMap r1 = rgResults.getSecond().get(rg1);
+//					TIntShortHashMap r1 = rgResults.getSecond().get(rg1);
 					for (int j = i + 1 ; j < rgs.size() ; j++) {
 						String rg2 = rgs.get(j);
-						TIntShortHashMap r2 = rgResults.getSecond().get(rg2);
+						TIntByteHashMap r2 = rgResults.getSecond().get(rg2);
+//						TIntShortHashMap r2 = rgResults.getSecond().get(rg2);
 						
 						Comparison c = ComparisonUtil.compareRatiosUsingSnpsFloat(r1, r2, new File(rg1), new File(rg2));
 						if (c.getScore() < cutoff) {
