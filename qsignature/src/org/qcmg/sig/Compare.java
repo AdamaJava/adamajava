@@ -74,12 +74,9 @@ public class Compare {
 	private String logFile;
 	
 	private final Map<String, int[]> fileIdsAndCounts = new THashMap<>();
-//	private final List<Comparison> allComparisons = new ArrayList<>();
 	private final List<Comparison> allComparisons = new CopyOnWriteArrayList<>();
 	
-//	private final Map<File, Pair<SigMeta,TIntByteHashMap>> cache = new THashMap<>();
 	private final ConcurrentMap<File, Pair<SigMeta,TIntByteHashMap>> cache = new ConcurrentHashMap<>();
-//	private final Map<File, Pair<SigMeta,TIntShortHashMap>> cache = new THashMap<>();
 	
 	List<String> suspiciousResults = new ArrayList<>();
 	
@@ -138,52 +135,6 @@ public class Compare {
 		
 		performComparisons(files);
 		
-//		StringBuilder sb = new StringBuilder();
-//		
-//		int size = files.size();
-//		int fileCounter = 0;
-//		int compCounter = 0;
-//		
-//		for (int i = 0 ; i < size -1 ; i++) {
-//			
-//			File f1 = files.get(i);
-//			Pair<SigMeta, TIntByteHashMap> ratios1 = getSignatureData(f1);
-////			Pair<SigMeta, TIntShortHashMap> ratios1 = getSignatureData(f1);
-//			if (++fileCounter % 100 == 0) {
-//				logger.info("hit " + fileCounter + " files");
-//			}
-//			
-//			for (int j = i + 1 ; j < size ; j++) {
-//				File f2 = files.get(j);
-//				Pair<SigMeta, TIntByteHashMap> ratios2 = getSignatureData(f2);
-////				Pair<SigMeta, TIntShortHashMap> ratios2 = getSignatureData(f2);
-//				if (++fileCounter % 100 == 0) {
-//					logger.info("hit " + fileCounter + " files");
-//				}
-//				
-//				/*
-//				 * If both sig metas are valid, check to see if they are suitable for comparison (same snp positions file and have had the same filters applied).
-//				 * If one is invalid, perform comparison anyway, as we will be dealing with the traditional format here
-//				 */
-//				if ( ! ratios1.getKey().isValid() || ! ratios2.getKey().isValid() || SigMeta.suitableForComparison(ratios1.getKey(), ratios2.getKey())) {
-////					logger.info("SigMeta matches: " + ratios1.getKey() + " and " + ratios2.getKey());
-//					Comparison comp = ComparisonUtil.compareRatiosUsingSnpsFloat(ratios1.getValue(), ratios2.getValue(), f1, f2);
-//					sb.append(comp.toString()).append(Constants.NEW_LINE);
-//					allComparisons.add(comp);
-//					if (++compCounter % 1000 == 0) {
-//						logger.info("hit " + compCounter + " comparisons");
-//					}
-//				} else {
-//					logger.warn("Could not compare " + f1.getAbsolutePath() + " and " + f2.getAbsolutePath() + " as their SigMeta information was not equal or not valid: " + ratios1.getKey() + " and " + ratios2.getKey());
-//				}
-//			}
-//			
-//			// can now remove f1 from the cache as it is no longer required
-//			Pair<SigMeta,TIntByteHashMap> m = cache.remove(f1);
-////			Pair<SigMeta,TIntShortHashMap> m = cache.remove(f1);
-//			m.getSecond().clear();
-//			m = null;
-//		}
 		
 		for (Comparison comp : allComparisons) {
 			if (null == comp) {
@@ -192,10 +143,6 @@ public class Compare {
 				suspiciousResults.add(comp.toSummaryString());
 			}
 		}
-		
-		
-		// flush out last donor details
-//		logger.info(sb.toString());
 		
 		logger.info("");
 		if (suspiciousResults.isEmpty()) {
@@ -215,14 +162,11 @@ public class Compare {
 	}
 	
 	Pair<SigMeta, TIntByteHashMap> getSignatureData(File f) throws IOException {
-//		Pair<SigMeta, TIntShortHashMap> getSignatureData(File f) throws IOException {
 		// check map to see if this data has already been loaded
 		// if not - load
 		Pair<SigMeta, TIntByteHashMap> result = cache.get(f);
-//		Pair<SigMeta, TIntShortHashMap> result = cache.get(f);
 		if (result == null) {
 			Pair<SigMeta, TMap<String, TIntByteHashMap>> rgResults = SignatureUtil.loadSignatureGenotype(f, minimumCoverage, minimumRGCoverage);
-//			Pair<SigMeta, TMap<String, TIntShortHashMap>> rgResults = SignatureUtil.loadSignatureGenotype(f, minimumCoverage, minimumRGCoverage);
 			
 			/*
 			 * if we have multiple rgs (more than 2 entries in map) - perform comparison on them before adding overall ratios to cache
@@ -240,11 +184,9 @@ public class Compare {
 				for (int i = 0 ; i < rgs.size() ; i++) {
 					String rg1 = rgs.get(i);
 					TIntByteHashMap r1 = rgResults.getSecond().get(rg1);
-//					TIntShortHashMap r1 = rgResults.getSecond().get(rg1);
 					for (int j = i + 1 ; j < rgs.size() ; j++) {
 						String rg2 = rgs.get(j);
 						TIntByteHashMap r2 = rgResults.getSecond().get(rg2);
-//						TIntShortHashMap r2 = rgResults.getSecond().get(rg2);
 						
 						Comparison c = ComparisonUtil.compareRatiosUsingSnpsFloat(r1, r2, new File(rg1), new File(rg2));
 						if (c.getScore() < cutoff) {
