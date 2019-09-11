@@ -2,12 +2,11 @@ package org.qcmg.qprofiler2.summarise;
 
 import static org.junit.Assert.assertTrue;
 
-import java.util.Arrays;
-
 import org.junit.Test;
 import org.qcmg.common.util.Constants;
 import org.qcmg.qprofiler2.summarise.ReadIDSummary.RNPattern;
 import org.qcmg.qprofiler2.util.XmlUtils;
+
 
 public class ReadIDSummaryTest {
 		
@@ -53,7 +52,9 @@ public class ReadIDSummaryTest {
 //		FourColon_OlderIllumina("<instrument_id>:<lane>:<tile>:<x-pos>:<y-pos><#index></pair>"),
 		pa =  idSummary.getPattern(idSummary.splitElements("HWI-ST797_0059:3:2205:20826:152489#CTTGTA"));
 		assertTrue(pa.equals(RNPattern.FourColon_OlderIllumina ));
-		
+		pa =  idSummary.getPattern(idSummary.splitElements("HWI-ST797_0059:3:2205:20826:152489#0/1"));
+		assertTrue(pa.equals(RNPattern.FourColon_OlderIllumina ));
+				
 //		FourColon_OlderIlluminaWithoutIndex("<instrument_id>:<lane>:<tile>:<x-pos>:<y-pos>"),
 		pa =  idSummary.getPattern(idSummary.splitElements("HWI-EAS282-R_100802:2:14:7444:1268"));	
 		assertTrue(pa.equals(RNPattern.FourColon_OlderIlluminaWithoutIndex));
@@ -138,6 +139,25 @@ public class ReadIDSummaryTest {
 		assertTrue( idSummary.tileNumbers.get("C017R99").get() == 1 );
 		assertTrue( idSummary.tileNumbers.get(XmlUtils.OTHER).get() == 100 );
 		assertTrue( idSummary.tileNumbers.size() == 101 );
+	}
+	
+	@Test
+	public void indexTest() {
+		 
+		String name = "HWI-ST567_0239:1:7:20610:49360#0";
+		
+		ReadIDSummary idSummary = new ReadIDSummary();
+		idSummary.parseReadId(name);
+		idSummary.parseReadId(name+"c");
+				
+		assertTrue( idSummary.indexes.size() == 2 );
+		assertTrue( idSummary.indexes.get("#0").get()== 1 );
+		assertTrue( idSummary.indexes.get("#0c").get()== 1 );
+		
+		idSummary.parseReadId(name+"/1");
+		assertTrue( idSummary.indexes.size() == 2 );
+		assertTrue( idSummary.pairs.size() == 1);
+		assertTrue( idSummary.pairs.get("/1").get()== 1 );	
 	}
 
 }
