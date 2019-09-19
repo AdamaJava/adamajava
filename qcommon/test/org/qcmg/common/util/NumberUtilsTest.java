@@ -13,12 +13,23 @@ public class NumberUtilsTest {
 	public void pack2IntsInto1() {
 		assertEquals(0, NumberUtils.pack2IntsInto1(0, 0));
 		assertEquals(1, NumberUtils.pack2IntsInto1(0, 1));
-		assertEquals(1 << 16, NumberUtils.pack2IntsInto1(1, 0));
+		
+		assertEquals(1 << NumberUtils.SHORT_DIVIDER, NumberUtils.pack2IntsInto1(1, 0));
 		assertEquals(65536, NumberUtils.pack2IntsInto1(1, 0));
+		
+		/*
+		 * should be 65536 + 1
+		 */
+		assertEquals((1 << NumberUtils.SHORT_DIVIDER) + 1, NumberUtils.pack2IntsInto1(1, 1));
 		assertEquals(65537, NumberUtils.pack2IntsInto1(1, 1));
-		assertEquals(1 << 17, NumberUtils.pack2IntsInto1(2, 0));
-		assertEquals(2 << 16, NumberUtils.pack2IntsInto1(2, 0));
+		/*
+		 * should be 65536 * 2
+		 */
+		assertEquals(131072, NumberUtils.pack2IntsInto1(2, 0));
+		assertEquals(2 << NumberUtils.SHORT_DIVIDER, NumberUtils.pack2IntsInto1(2, 0));
+		
 		assertEquals(851974, NumberUtils.pack2IntsInto1(13, 6));
+		assertEquals(((13 << NumberUtils.SHORT_DIVIDER) + 6), NumberUtils.pack2IntsInto1(13, 6));
 	}
 	
 	@Test
@@ -61,34 +72,6 @@ public class NumberUtilsTest {
 	}
 	
 	@Test
-	public void getPositionOfLongInArray() {
-		long [] array = new long[] {};
-		assertEquals(-1, NumberUtils.getPositionOfLongInArray(array, 1));
-		
-		array = new long[] {1};
-		assertEquals(0, NumberUtils.getPositionOfLongInArray(array, 1));
-		assertEquals(-2, NumberUtils.getPositionOfLongInArray(array, 2));
-		assertEquals(-1, NumberUtils.getPositionOfLongInArray(array, 0));
-		assertEquals(-2, NumberUtils.getPositionOfLongInArray(array, 10));
-		
-		array = new long[] {1, 10};
-		assertEquals(0, NumberUtils.getPositionOfLongInArray(array, 1));
-		assertEquals(1, NumberUtils.getPositionOfLongInArray(array, 10));
-		assertEquals(-2, NumberUtils.getPositionOfLongInArray(array, 2));
-		assertEquals(-1, NumberUtils.getPositionOfLongInArray(array, 0));
-		assertEquals(-3, NumberUtils.getPositionOfLongInArray(array, 11));
-		
-		array = new long[] {1, 10, 100};
-		assertEquals(0, NumberUtils.getPositionOfLongInArray(array, 1));
-		assertEquals(1, NumberUtils.getPositionOfLongInArray(array, 10));
-		assertEquals(-2, NumberUtils.getPositionOfLongInArray(array, 2));
-		assertEquals(-1, NumberUtils.getPositionOfLongInArray(array, 0));
-		assertEquals(-3, NumberUtils.getPositionOfLongInArray(array, 11));
-		assertEquals(2, NumberUtils.getPositionOfLongInArray(array, 100));
-		assertEquals(-4, NumberUtils.getPositionOfLongInArray(array, 101));
-	}
-	
-	@Test
 	public void sumPackedInt() {
 		assertEquals(0, NumberUtils.sumPackedInt(0));
 		assertEquals(1, NumberUtils.sumPackedInt(1));
@@ -97,13 +80,4 @@ public class NumberUtilsTest {
 		assertEquals(2, NumberUtils.sumPackedInt(65537));
 	}
 	
-	@Test
-	public void getIndexInArray() {
-		assertEquals(0, NumberUtils.getPositionOfLongInArray(new long[] {12345}, 12345));
-		assertEquals(-1, NumberUtils.getPositionOfLongInArray(new long[] {12345}, 12344));
-		assertEquals(-1, Arrays.binarySearch(new long[] {12345}, 12344));
-		assertEquals(-2, Arrays.binarySearch(new long[] {12345}, 12346));
-		assertEquals(-2, NumberUtils.getPositionOfLongInArray(new long[] {12345}, 12346));
-	}
-
 }

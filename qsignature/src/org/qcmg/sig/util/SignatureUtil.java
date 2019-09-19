@@ -94,6 +94,20 @@ public class SignatureUtil {
 	public static final NumberFormat nf = new DecimalFormat("0.####");
 	public static final QLogger logger = QLoggerFactory.getLogger(SignatureUtil.class);
 	
+	/*
+	 * byte values representing the available genotypes
+	 */
+	public static final byte HOM_A = 16;
+	public static final byte HOM_C = 32;
+	public static final byte HOM_G = 64;
+	public static final byte HOM_T = -128;
+	public static final byte HET_AC = 3;
+	public static final byte HET_AG = 5;
+	public static final byte HET_AT = 9;
+	public static final byte HET_CG = 6;
+	public static final byte HET_CT = 10;
+	public static final byte HET_GT = 12;
+	
 	
 	public static final String MD_5_SUM = "##positions_md5sum";
 	public static final String POSITIONS_COUNT = "##positions_count";
@@ -350,8 +364,6 @@ public class SignatureUtil {
 				 * should be quicker than a full tokenise...
 				 */
 				
-//				String[] params = TabTokenizer.tokenize(line);
-//				String coverage = params[7];
 				int lastIndex = line.lastIndexOf(Constants.TAB_STRING);
 				String coverage = line.substring(lastIndex);
 				/*
@@ -528,8 +540,7 @@ public class SignatureUtil {
 				byte genotype1 = getCodedGenotypeAsByte(f);
 				
 				if (isCodedGenotypeValid(genotype1)) {
-					cachePosition.set(ChrPositionCache.getStringIndex(params[0] + "\t" + params[1]));
-//					cachePosition.set(ChrPositionCache.getChrPositionIndex(params[0], Integer.parseInt(params[1])));
+					cachePosition.set(ChrPositionCache.getStringIndex(params[0] + Constants.TAB + params[1]));
 					ratios.put(cachePosition.get(), genotype1);
 					/*
 					 * Get rg data if we have more than 1 rg
@@ -571,7 +582,7 @@ public class SignatureUtil {
 	/**
 	 * Convert float array containing allele percentages for ACGT bases into a byte.
 	 * 
-	 * If over 90% in A, then will return 1000000 (binary form)
+	 * If over 90% in A, then will return 1000000 (binary form)		HOM_A
 	 * If over 90% in C, then will return 0100000
 	 * If over 90% in G, then will return 0010000
 	 * If over 90% in T, then will return 0001000
@@ -609,31 +620,31 @@ public class SignatureUtil {
 	
 	/**
 	 * the following values are considered to be valid:
-	 * 10000000		-128
-	 * 01000000		64
-	 * 00100000		32
-	 * 00010000		16
-	 * 00001100		12
-	 * 00001010		10
-	 * 00001001		9
-	 * 00000110		6
-	 * 00000101		5
-	 * 00000011		3
+	 * 10000000		-128	HOM_A
+	 * 01000000		64		HOM_C
+	 * 00100000		32		HOM_G
+	 * 00010000		16		HOM_T
+	 * 00001100		12		HET_GT
+	 * 00001010		10		HET_CT
+	 * 00001001		9		HET_AT
+	 * 00000110		6		HET_CG
+	 * 00000101		5		HET_AG
+	 * 00000011		3		HET_AC
 	 * 
 	 * @param b
 	 * @return
 	 */
 	public static boolean isCodedGenotypeValid(byte b) {
-		return b == 3
-				|| b == 5
-				|| b == 6
-				|| b == 9
-				|| b == 10
-				|| b == 12
-				|| b == 16
-				|| b == 32
-				|| b == 64
-				|| b == -128;
+		return b == HET_AC
+				|| b == HET_AG
+				|| b == HET_CG
+				|| b == HET_AT
+				|| b == HET_CT
+				|| b == HET_GT
+				|| b == HOM_T
+				|| b == HOM_G
+				|| b == HOM_C
+				|| b == HOM_A;
 	}
 	
 	

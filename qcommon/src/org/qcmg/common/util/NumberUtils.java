@@ -55,41 +55,6 @@ public class NumberUtils {
 		}
 	}
 	
-	
-	/**
-	 * Returns the position of the value in the long array.
-	 * If it is not present, returns a negative value that corresponds to where in the array it would sit should it exist
-	 * assumes that the array is sorted.
-	 * 
-	 * Try and minimise the number of calls to Arrays.binarySearch by checking size and boundary positions
-	 * Should not be more than 500 entries in the array 
-	 * 
-	 * 
-	 * @param array
-	 * @param value
-	 * @return
-	 */
-	public static int getPositionOfLongInArray(long [] array, long value) {
-		int length = array.length;
-		if (length <= 0) {
-			return -1;
-		}
-		if (array[0] == value) {
-			return 0;
-		} else if (array[0] > value) {
-			return -1;
-		} else if (array[length - 1] == value) {
-			return length - 1;
-		} else if (array[length - 1] < value) {
-			return - length - 1;
-		} else {
-			/*
-			 * ok, time for binary search
-			 */
-			return Arrays.binarySearch(array, 1, length - 1, value);
-		}
-	}
-
 	public static long setBit(long value, int numberOfBits) {
 		return (1l << numberOfBits) + value;
 	}

@@ -121,7 +121,7 @@ public class Compare {
 		
 		
 		final int numberOfFiles = files.size();
-		final int numberOfComparisons = ((numberOfFiles * (numberOfFiles -1)) /2);
+		final int numberOfComparisons = ((numberOfFiles * (numberOfFiles - 1)) / 2);
 		logger.info("Should have " +numberOfComparisons + " comparisons, based on " + numberOfFiles + " input files");
 		
 		files.sort(FileUtils.FILE_COMPARATOR);
@@ -216,7 +216,7 @@ public class Compare {
 	private void performComparisons(List<File> files) {
 		int size = files.size();
 		AbstractQueue<Integer> queue =  new ConcurrentLinkedQueue<>();
-		for (int i = 0 ; i < size -1 ; i++) {
+		for (int i = 0 ; i < size - 1 ; i++) {
 			queue.add(i);
 		}
 		
@@ -224,9 +224,8 @@ public class Compare {
 		for (int i = 0 ; i < nThreads; i++) {
 			service.execute(() -> {
 					List<Comparison> myComps = new ArrayList<>();
-					while (true) {
-						Integer in = queue.poll();
-						if (null == in) break;
+					Integer in;
+					while ((in = queue.poll()) != null) {
 				
 						logger.info("performing comparison for : " + in.intValue());
 						
@@ -273,9 +272,8 @@ public class Compare {
 		ExecutorService service = Executors.newFixedThreadPool(nThreads);		
 		for (int i = 0 ; i < nThreads; i++) {
 			service.execute(() -> {
-					while (true) {
-						File f = queue.poll();
-						if (null == f) break;
+					File f;
+					while ((f = queue.poll()) != null) {
 				
 						logger.info("loading data from: " + f.getAbsolutePath());
 						
@@ -310,9 +308,7 @@ public class Compare {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
 	}
-
 	
 	public static void main(String[] args) throws Exception {
 		LoadReferencedClasses.loadClasses(Compare.class);

@@ -17,6 +17,7 @@ import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.commandline.Executor;
 import org.qcmg.sig.util.SignatureUtilTest;
 
+
 public class CompareTest {
 	
 	@Rule
