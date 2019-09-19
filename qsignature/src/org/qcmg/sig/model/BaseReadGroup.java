@@ -1,5 +1,6 @@
 package org.qcmg.sig.model;
 
+@Deprecated
 public class BaseReadGroup {
 	
 	private final char base;

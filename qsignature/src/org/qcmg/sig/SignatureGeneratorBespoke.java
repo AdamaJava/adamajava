@@ -6,7 +6,9 @@
  */
 package org.qcmg.sig;
 
+import gnu.trove.map.TObjectIntMap;
 import gnu.trove.map.hash.THashMap;
+import gnu.trove.map.hash.TObjectIntHashMap;
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMReadGroupRecord;
 import htsjdk.samtools.SAMRecord;
@@ -35,7 +37,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 import java.util.zip.GZIPOutputStream;
 
 import javax.xml.bind.DatatypeConverter;
@@ -90,7 +91,8 @@ public class SignatureGeneratorBespoke {
 	Comparator<String> chrComparator;
 	
 	private final List<VcfRecord> snps = new ArrayList<>();
-	private final Map<ChrPosition, List<BaseReadGroup>> results = new ConcurrentHashMap<>();
+	private final Map<ChrPosition, int[][]> results = new ConcurrentHashMap<>();
+	private TObjectIntMap<String> rgIds;
 	private final List<StringBuilder> resultsToWrite = new ArrayList<>();
 	private final AbstractQueue<SAMRecord> sams = new ConcurrentLinkedQueue<>();
 	private final Map<String, String[]> illuminaArraysDesignMap = new ConcurrentHashMap<>();
@@ -189,6 +191,10 @@ public class SignatureGeneratorBespoke {
 			chrComparator = ChrPositionComparator.getChrNameComparator(bamContigs);
 			snps.sort(ChrPositionComparator.getVcfRecordComparator(bamContigs));
 			
+			/*
+			 * Get readgroups from bam header and populate map with values and ids - will need to display these in header
+			 */
+			rgIds = getReadGroupsAsMap(header);
 			
 			try {
 				runSequentially(bamFile);
@@ -197,17 +203,7 @@ public class SignatureGeneratorBespoke {
 				e1.printStackTrace();
 			}
 			
-			/*
-			 * Get readgroups from bam header and populate map with values and ids - will need to display these in header
-			 */
-			Map<String, String> rgIds = new HashMap<>();
-			int id = 1;
-			for (SAMReadGroupRecord srgr : header.getReadGroups()) {
-				rgIds.put(srgr.getId(), "rg" + id++);
-			}
-			
-			
-			updateResults(rgIds);
+			updateResults();
 			
 			// output vcf file
 			writeOutput(bamFile, rgIds, true);
@@ -216,6 +212,25 @@ public class SignatureGeneratorBespoke {
 			results.clear();
 			resultsToWrite.clear();
 		}
+	}
+	
+	public static TObjectIntMap<String> getReadGroupsAsMap(SAMFileHeader header) {
+		/*
+		 * Get readgroups from bam header and populate map with values and ids - will need to display these in header
+		 */
+		TObjectIntMap<String> map = new TObjectIntHashMap<>();
+		int id = 0;
+		/*
+		 * Add a null entry to the map for records that don't have their RG set
+		 * This is conveniently set as the first entry as TObjectIntMap will return 0 when the key is not in the map
+		 */
+		map.putIfAbsent(null, id++);
+		
+		for (SAMReadGroupRecord srgr : header.getReadGroups()) {
+			map.putIfAbsent(srgr.getId(), id++);
+		}
+		
+		return map;
 	}
 	
 	private void processIlluminaFiles() throws IOException {
@@ -322,7 +337,7 @@ public class SignatureGeneratorBespoke {
 	}
 	
 	
-	private void updateResults(Map<String, String> rgIds) {
+	private void updateResults() {
 		
 		/*
 		 * create map from snps list - need ref allele
@@ -343,30 +358,35 @@ public class SignatureGeneratorBespoke {
 		for (ChrPosition cp : keys) {
 		
 			String ref = snpMap.get(cp);
-			if ("-".equals(ref)|| "+".equals(ref)) {
+			if ("-".equals(ref) || "+".equals(ref)) {
 				ref = "n";
 			}
-			final List<BaseReadGroup> bsps = results.get(cp);
+			final int [][] bsps = results.get(cp);
 			
-			if (null == bsps || bsps.isEmpty()) {
+			if (null == bsps || bsps.length == 0) {
 			} else {
 				final StringBuilder sb = new StringBuilder(cp.getChromosome());
 				sb.append(Constants.TAB);
 				sb.append(cp.getStartPosition());
 				sb.append(Constants.TAB);
 				sb.append(Constants.MISSING_DATA).append(Constants.TAB);	// id
-				sb.append(ref).append(Constants.TAB);										// ref allele
+				sb.append(ref).append(Constants.TAB);						// ref allele
 				sb.append(Constants.MISSING_DATA).append(Constants.TAB);	// alt allele
 				sb.append(Constants.MISSING_DATA).append(Constants.TAB);	// qual
 				sb.append(Constants.MISSING_DATA).append(Constants.TAB);	// filter
-				sb.append("QAF=t:");																	// info
- 				sb.append(getEncodedDist(bsps));
+				sb.append("QAF=t:");										// info
+ 				sb.append(getTotalDist(bsps));
 				
 				/*
 				 * now again for the readgroups that we have
 				 */
-				Map<String, List<BaseReadGroup>> mapOfRgToBases = bsps.stream().collect(Collectors.groupingBy(BaseReadGroup::getReadGroup));
-				mapOfRgToBases.forEach((s,l) -> sb.append(Constants.COMMA).append(rgIds.get(s)).append(Constants.COLON).append(getEncodedDist(l)));
+				
+				for (int i = 0 ; i < bsps.length ; i++) {
+					String readGroupSpecificDist = getDist(bsps, i);
+					if ( ! readGroupSpecificDist.isEmpty()) { 
+						sb.append(Constants.COMMA).append("rg" + i).append(Constants.COLON).append(readGroupSpecificDist);
+					}
+				}
 				
 				resultsToWrite.add(sb);
 			}
@@ -387,6 +407,41 @@ public class SignatureGeneratorBespoke {
 			}
 		}
 		return "" + as + Constants.MINUS + cs + Constants.MINUS + gs + Constants.MINUS + ts;
+	}
+	
+	/**
+	 * rgBases is a 2D array. Top level is readgroup, and each readgroup contains a sub-array of length 4. Once for each of ACGT.
+	 * The elements in the sub-array correspond to the number of times that particular base was seen
+	 * Returns null if the 2D array is null, or of zero length
+	 * Will only tally the sub-arrays if they are of length 4.
+	 * 
+	 * @param rgBases
+	 * @return
+	 */
+	public static String getTotalDist(int [][] rgBases) {
+		if (null == rgBases || rgBases.length == 0) {
+			return null;
+		}
+		int as = 0, cs = 0, gs = 0, ts = 0;
+		for (int [] innerArray : rgBases) {
+			if (innerArray.length == 4) {
+				as += innerArray[0];
+				cs += innerArray[1];
+				gs += innerArray[2];
+				ts += innerArray[3];
+			}
+		}
+		return "" + as + Constants.MINUS + cs + Constants.MINUS + gs + Constants.MINUS + ts;
+	}
+	
+	public static String getDist(int [][] rgBases, int position) {
+		if (null == rgBases || rgBases.length < position || rgBases[position].length != 4) {
+			return null;
+		}
+		if (rgBases[position][0] + rgBases[position][1] + rgBases[position][2] + rgBases[position][3] == 0) {
+			return Constants.EMPTY_STRING;
+		}
+		return "" + rgBases[position][0] + Constants.MINUS + rgBases[position][1] + Constants.MINUS + rgBases[position][2] + Constants.MINUS + rgBases[position][3];
 	}
 	
 	private void updateResultsIllumina(Map<ChrPosition, IlluminaRecord> iIlluminaMap) {
@@ -422,7 +477,7 @@ public class SignatureGeneratorBespoke {
 		}
 	}
 	
-	private void writeOutput(File f, Map<String, String> rgIds, boolean bam) throws IOException {
+	private void writeOutput(File f, TObjectIntMap<String> rgIds, boolean bam) throws IOException {
 		// if we have an output folder defined, place the vcf files there, otherwise they will live next to the input file
 		File outputVCFFile = null;
 		if (null != outputDirectory) {
@@ -435,12 +490,21 @@ public class SignatureGeneratorBespoke {
 		// check that can write to new file
 		if (FileUtils.canFileBeWrittenTo(outputVCFFile)) {
 			final StringBuilder sbRgIds = new StringBuilder();
-//			final StringBuilder sbRgIds = new StringBuilder("##id=readgroup\n");
-			if (null != rgIds) {
-				rgIds.entrySet().stream()
+			
+			/*
+			 * convert TObjectIntMap to HashMap to use streaming etc
+			 */
+			Map<String, Integer> convertedMap = new HashMap<>();
+			rgIds.forEachEntry((String k, int v) -> {
+				convertedMap.putIfAbsent(k, Integer.valueOf(v));
+				return true;
+			} );
+			
+			if (null != convertedMap) {
+				
+				convertedMap.entrySet().stream()
 					.sorted(Comparator.comparing(Entry::getValue))
-					.forEach(e -> sbRgIds.append("##").append(e.getValue()).append(Constants.EQ).append(e.getKey()).append(Constants.NL));
-//				.forEach(e -> sbRgIds.append("##").append(e.getValue()).append(Constants.COLON).append(e.getKey()).append(Constants.NL));
+					.forEach(e -> sbRgIds.append("##rg").append(e.getValue()).append(Constants.EQ).append(e.getKey()).append(Constants.NL));
 			}
 			
 			try (OutputStream os = new GZIPOutputStream(new FileOutputStream(outputVCFFile), 1024 * 1024)) {
@@ -577,10 +641,14 @@ public class SignatureGeneratorBespoke {
 				if (sam.getBaseQualities()[indexInRead] < minBaseQuality) return;
 				
 				final char c = sam.getReadString().charAt(indexInRead);
-				String rgId = null != sam.getReadGroup() ? sam.getReadGroup().getId() : "null";
+				String rgId = null != sam.getReadGroup() ? sam.getReadGroup().getId() : null;
 				
-				results.computeIfAbsent(vcf.getChrPosition(), f -> new ArrayList<>())
-					.add(new BaseReadGroup(c, rgId));
+				int rgPosition = rgIds.get(rgId);
+				int innerArrayPosition = c == 'A' ? 0 : (c == 'C' ? 1 : (c == 'G' ? 2 : (c == 'T' ? 3 : -1)));
+				if (innerArrayPosition > -1) {
+//					logger.info("rgPosition: " + rgPosition + ", innerArrayPosition: " + innerArrayPosition + ", rgIds.size(): " + rgIds.size() + ", rg: " + rgId);
+					results.computeIfAbsent(vcf.getChrPosition(), f -> new int[rgIds.size()][4])[rgPosition][innerArrayPosition]++;
+				}
 			}
 		}
 	}

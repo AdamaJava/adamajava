@@ -354,8 +354,11 @@ public class SignatureGeneratorTest {
     }
 	
     static void getBamFile(File bamFile, boolean validHeader, boolean useChrs) {
-	    	final SAMFileHeader header = getHeader(validHeader, useChrs);
-	    	List<SAMRecord> data = getRecords(useChrs, header, true);
+    	getBamFile(bamFile,  validHeader,  useChrs, false);
+    }
+    static void getBamFile(File bamFile, boolean validHeader, boolean useChrs, boolean addReadGroupToHeaderAndRecords) {
+	    	final SAMFileHeader header = getHeader(validHeader, useChrs, addReadGroupToHeaderAndRecords);
+	    	List<SAMRecord> data = getRecords(useChrs, header, true, addReadGroupToHeaderAndRecords);
 	//    	if ( ! validHeader) header.setSequenceDictionary(new SAMSequenceDictionary());
 	    	final SAMOrBAMWriterFactory factory = new SAMOrBAMWriterFactory(header, false, bamFile, false);
 	    	try {
@@ -366,8 +369,10 @@ public class SignatureGeneratorTest {
 	    		factory.closeWriter();
 	    	}
     }
-    
-	private static SAMFileHeader getHeader(boolean valid, boolean useChrs) {
+    public static SAMFileHeader getHeader(boolean valid, boolean useChrs) {
+    	return getHeader(valid, useChrs, false);
+    }    
+	public static SAMFileHeader getHeader(boolean valid, boolean useChrs, boolean addReadGroups) {
 		final SAMFileHeader header = new SAMFileHeader();
 		
 		final SAMProgramRecord bwaPG = new SAMProgramRecord("bwa");
@@ -384,6 +389,11 @@ public class SignatureGeneratorTest {
 			rgRec.setAttribute("PG", "tmap");
 			header.addReadGroup(rgRec);
 		}
+		if (addReadGroups) {
+			header.addReadGroup(new SAMReadGroupRecord("20130325103517169"));
+			header.addReadGroup(new SAMReadGroupRecord("20130325112045146"));
+			header.addReadGroup(new SAMReadGroupRecord("20130325084856212"));
+		}
 		
 		// looks like we need this to be specifically defined
 		final SAMSequenceDictionary seqDict = new SAMSequenceDictionary();
@@ -397,8 +407,10 @@ public class SignatureGeneratorTest {
 		
 		return header;
 	}
-	
 	private static List<SAMRecord> getRecords(boolean useChr, SAMFileHeader header, boolean isValid) {
+		return  getRecords( useChr,  header,  isValid, false); 
+	}	
+	private static List<SAMRecord> getRecords(boolean useChr, SAMFileHeader header, boolean isValid, boolean addRG) {
 		List<SAMRecord> records = new ArrayList<>();
 //		records.add("HS2000-152_756:1:1316:11602:65138	89	chr1	9993	25	100M	=	9993	0	TCTTCCGATCTCCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTA	B@??BBCCB<>BCBB?:BAA?9-A;?2;@ECA=;7BEE?=7D9@@8.C;B8=.HGDBBBCCD::*GGD:?*FDGFCA>EIHEEBEAEFDFFC=+?DD@@@	X0:i:1	X1:i:0	ZC:i:9	MD:Z:0C0T0G6A0A89	PG:Z:MarkDuplicates	RG:Z:20130325103517169	XG:i:0	AM:i:0	NM:i:5	SM:i:25	XM:i:5	XN:i:8	XO:i:0	XT:A:U");
 		SAMRecord sam = new SAMRecord(header);
@@ -410,6 +422,9 @@ public class SignatureGeneratorTest {
 		sam.setReadString("TCTTCCGATCTCCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTA");
 		sam.setBaseQualityString("B@??BBCCB<>BCBB?:BAA?9-A;?2;@ECA=;7BEE?=7D9@@8.C;B8=.HGDBBBCCD::*GGD:?*FDGFCA>EIHEEBEAEFDFFC=+?DD@@@");
 		sam.setCigarString("100M");
+		if (addRG) {
+			sam.setAttribute("RG", "20130325103517169");
+		}
 		
 		assertEquals(true, SAMUtils.isSAMRecordValidForVariantCalling(sam, true));
 		for (int i = 0 ; i < 10; i++) records.add(sam);
@@ -423,6 +438,10 @@ public class SignatureGeneratorTest {
 		sam.setReadString("TAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCCTAACCCCCACCCCCTACCCCACACTCACCCACCCCCTAACCTCAGCACCCC");
 		sam.setBaseQualityString("CCCFFFFFFHHHHGGIJJIIJJJJJJJJJJGEHIJJ9)?)?D))?(?BFB;CD@C#############################################");
 		sam.setCigarString("45M1I14M4D9M2D21M10S");
+		sam.setAttribute("RG", "20130325112045146");
+		if (addRG) {
+			sam.setAttribute("RG", "20130325112045146");
+		}
 		for (int i = 0 ; i < 20; i++) records.add(sam);
 		
 //		records.add("HS2000-152_757:7:1311:15321:98529	163	chr1	10002	0	100M	=	10020	118	AACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACACTAACCCTAACCCTAACCCTAACCCTAACCCTAACC	@@@FFDFFB;DFHIHIIIIJGICGGGGGGF?9CF;@?DD;BDGG2DEFGC9EDHHI@CCEEFE)=?33;6;6;@AA;=A?2<?((59(9<<((28?<?B8	X0:i:362	ZC:i:8	MD:Z:63C36	PG:Z:MarkDuplicates	RG:Z:20130325084856212	XG:i:0	AM:i:0	NM:i:1	SM:i:0	XM:i:1	XO:i:0	XT:A:R");
@@ -434,6 +453,9 @@ public class SignatureGeneratorTest {
 		sam.setReadString("AACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACACTAACCCTAACCCTAACCCTAACCCTAACCCTAACC");
 		sam.setBaseQualityString("@@@FFDFFB;DFHIHIIIIJGICGGGGGGF?9CF;@?DD;BDGG2DEFGC9EDHHI@CCEEFE)=?33;6;6;@AA;=A?2<?((59(9<<((28?<?B8");
 		sam.setCigarString("100M");
+		if (addRG) {
+			sam.setAttribute("RG", "20130325084856212");
+		}
 		for (int i = 0 ; i < 10; i++) records.add(sam);
 		
 //		records.add("HS2000-152_756:2:2306:7001:4421	99	chr1	10003	29	2S53M1I44M	=	10330	426	TGACCCTGACCCTGACCCTGACCCTGACCCTGACCCTGACCCTGACCCTGACCCTAAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAA	CCCFFFFFHHHHHIJJJJEHGIIJIHGIIJIFGIJJJGGHHIIGCDGIHI>GIIEAFGJJI@EGFDFCE@DDDE@CA=A;3;?BDB?CD@DB9ADDBA9?	ZC:i:7	MD:Z:5A5A5A5A5A5A5A5A49	PG:Z:MarkDuplicates	RG:Z:20130325112045146	XG:i:1	AM:i:29	NM:i:9	SM:i:29	XM:i:8	XO:i:1	XT:A:M");
@@ -445,6 +467,9 @@ public class SignatureGeneratorTest {
 		sam.setMappingQuality(60);
 		sam.setBaseQualityString("CCCFFFFFHHHHHIJJJJEHGIIJIHGIIJIFGIJJJGGHHIIGCDGIHI>GIIEAFGJJI@EGFDFCE@DDDE@CA=A;3;?BDB?CD@DB9ADDBA9?");
 		sam.setCigarString("2S53M1I44M");
+		if (addRG) {
+			sam.setAttribute("RG", "20130325112045146");
+		}
 		for (int i = 0 ; i < 20; i++) records.add(sam);
 		
 //		records.add("HS2000-152_756:1:1215:14830:88102	99	chr1	10004	29	24M4D76M	=	10441	537	CCCTACCCCTACCCCTACCCCTAAAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTTACCCTAACCCTTACCCTAACC	CCCFFFFFHHHHHJJIHFHJIGIHGIIJJJJIJJIIIIJJJJJIIJJJJIJJJJJJJJHHGHHFFEFCEEDD9?BABDCDDDDDDDDDDDDCDDDDDDDB	ZC:i:9	MD:Z:5A5A5A6^CCCT54A11A9	PG:Z:MarkDuplicates	RG:Z:20130325103517169	XG:i:4	AM:i:29	NM:i:9	SM:i:29	XM:i:5	XO:i:1	XT:A:M");
@@ -456,6 +481,9 @@ public class SignatureGeneratorTest {
 		sam.setBaseQualityString("CCCFFFFFHHHHHJJIHFHJIGIHGIIJJJJIJJIIIIJJJJJIIJJJJIJJJJJJJJHHGHHFFEFCEEDD9?BABDCDDDDDDDDDDDDCDDDDDDDB");
 		sam.setMappingQuality(60);
 		sam.setCigarString("24M4D76M");
+		if (addRG) {
+			sam.setAttribute("RG", "20130325103517169");
+		}
 		for (int i = 0 ; i < 10; i++) records.add(sam);
 		
 		sam = new SAMRecord(header);
