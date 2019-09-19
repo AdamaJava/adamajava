@@ -17,6 +17,7 @@ import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.commandline.Executor;
 import org.qcmg.sig.util.SignatureUtilTest;
 
+
 public class CompareTest {
 	
 	@Rule
@@ -42,7 +43,7 @@ public class CompareTest {
 		writeVcfFile(f2);
 		
 		Executor exec = execute("--log " + logF.getAbsolutePath() + " -d " + f1.getParent() + " -o " + o.getAbsolutePath());
-		assertTrue(0 == exec.getErrCode());		// all ok
+		assertEquals(0, exec.getErrCode());		// all ok
 		assertEquals(true, o.exists());
 		assertEquals(10, Files.readAllLines(Paths.get(o.getAbsolutePath())).size());		// 10 lines means 1 comparison
 	}
@@ -58,7 +59,7 @@ public class CompareTest {
 		writeVcfFile(f2, "##positions_md5sum=d18c99f481afbe04294d11deeb418890XXX\n");
 		
 		Executor exec = execute("--log " + logF.getAbsolutePath() + " -d " + f1.getParent() + " -o " + o.getAbsolutePath());
-		assertTrue(0 == exec.getErrCode());		// all ok
+		assertEquals(0, exec.getErrCode());		// all ok
 		assertEquals(true, o.exists());
 		assertEquals(8, Files.readAllLines(Paths.get(o.getAbsolutePath())).size());		// 8 lines means 0 comparison
 	}
@@ -88,11 +89,11 @@ public class CompareTest {
 		writeDataToFile(tradData, trad);
 		
 		Executor exec = execute("--log " + logF.getAbsolutePath() + " -d " + bespoke.getParent() + " -o " + o.getAbsolutePath());
-		assertTrue(0 == exec.getErrCode());		// all ok
+		assertEquals(0, exec.getErrCode());		// all ok
 		assertEquals(true, o.exists());
 		List<String> outputData = Files.readAllLines(Paths.get(o.getAbsolutePath()));
 		assertEquals(10, outputData.size());		// 10 lines means 1 comparison
-		assertEquals(true, outputData.contains("<comparison file1=\"1\" file2=\"2\" overlap=\"4\" score=\"1.0\"/>"));
+		assertEquals("<comparison file1=\"1\" file2=\"2\" overlap=\"4\" score=\"1.0\"/>", outputData.get(7));
 	}
 	
 	@Test
@@ -122,7 +123,7 @@ public class CompareTest {
 		writeDataToFile(trad2Data, trad2);
 		
 		Executor exec = execute("--log " + logF.getAbsolutePath() + " -d " + trad1.getParent() + " -o " + o.getAbsolutePath());
-		assertTrue(0 == exec.getErrCode());		// all ok
+		assertEquals(0, exec.getErrCode());		// all ok
 		assertEquals(true, o.exists());
 		List<String> outputData = Files.readAllLines(Paths.get(o.getAbsolutePath()));
 		assertEquals(10, outputData.size());		// 10 lines means 1 comparison
@@ -152,7 +153,7 @@ public class CompareTest {
 		writeDataToFile(bespoke2Data, bespoke2);
 		
 		Executor exec = execute("--log " + logF.getAbsolutePath() + " -d " + bespoke1.getParent() + " -o " + o.getAbsolutePath());
-		assertTrue(0 == exec.getErrCode());		// all ok
+		assertEquals(0, exec.getErrCode());		// all ok
 		assertEquals(true, o.exists());
 		List<String> outputData = Files.readAllLines(Paths.get(o.getAbsolutePath()));
 		assertEquals(10, outputData.size());		// 10 lines means 1 comparison
@@ -199,7 +200,7 @@ public class CompareTest {
 		}
 	}
 	
-	private void writeDataToFile(List<String> data, File f) throws IOException {
+	public static void writeDataToFile(List<String> data, File f) throws IOException {
 		try (FileWriter w = new FileWriter(f);){
 			for (String d : data) {
 				w.write(d + "\n");

@@ -7,6 +7,7 @@
 package org.qcmg.sig;
 
 import gnu.trove.map.hash.THashMap;
+import gnu.trove.map.hash.TIntByteHashMap;
 import gnu.trove.map.hash.TIntShortHashMap;
 
 import java.io.File;
@@ -45,17 +46,13 @@ public class SignatureCompareRelatedSimpleGenotype {
 	private static QLogger logger;
 	private int exitStatus;
 	
-	
 	private float cutoff = 0.2f;
 	private int minimumCoverage = 10;
-	
-//	private final int cacheSize = 700;
 	
 	private String outputXml;
 	private String [] paths;
 	private String [] additionalSearchStrings;
 	private String donor;
-//	private static final String QSIG_SUFFIX = ".qsig.vcf";
 	
 	private String excludeVcfsFile;
 	private List<String> excludes;
@@ -68,8 +65,7 @@ public class SignatureCompareRelatedSimpleGenotype {
 	private final Map<String, int[]> fileIdsAndCounts = new THashMap<>();
 	private final List<Comparison> allComparisons = new ArrayList<>();
 	
-//	private final Map<File, Map<ChrPosition, float[]>> cache = new THashMap<>(cacheSize * 2);
-	private final Map<File, TIntShortHashMap> cache = new THashMap<>();
+	private final Map<File, TIntByteHashMap> cache = new THashMap<>();
 	
 	List<String> suspiciousResults = new ArrayList<String>();
 	
@@ -143,23 +139,19 @@ public class SignatureCompareRelatedSimpleGenotype {
 				
 			
 			File f1 = files.get(i);
-//			Map<ChrPosition, float[]> ratios1 = getSignatureData(f1);
-			TIntShortHashMap ratios1 = getSignatureData(f1);
+			TIntByteHashMap ratios1 = getSignatureData(f1);
 			
 			for (int j = i + 1 ; j < size ; j++) {
 				File f2 = files.get(j);
-//				Map<ChrPosition, float[]> ratios2 = getSignatureData(f2);
-				TIntShortHashMap ratios2 = getSignatureData(f2);
+				TIntByteHashMap ratios2 = getSignatureData(f2);
 				
-//				Comparison comp = QSigCompareDistance.compareRatiosFloat(ratios1, ratios2, f1, f2, null);
 				Comparison comp = ComparisonUtil.compareRatiosUsingSnpsFloat(ratios1, ratios2, f1, f2);
 				donorSB.append(comp.toString()).append("\n");
 				allComparisons.add(comp);
 			}
 			
 			// can now remove f1 from the cache as it is no longer required
-//			Map<ChrPosition, float[]> m = cache.remove(f1);
-			TIntShortHashMap m = cache.remove(f1);
+			TIntByteHashMap m = cache.remove(f1);
 			m.clear();
 			m = null;
 		}
@@ -190,15 +182,15 @@ public class SignatureCompareRelatedSimpleGenotype {
 		return exitStatus;
 	}
 	
-	TIntShortHashMap getSignatureData(File f) throws Exception {
+	TIntByteHashMap getSignatureData(File f) throws Exception {
 		// check map to see if this data has already been loaded
 		// if not - load
-		TIntShortHashMap result = cache.get(f);
+		TIntByteHashMap result = cache.get(f);
 		if (result == null) {
 			
 			
 			
-			result = SignatureUtil.loadSignatureRatiosFloatGenotype(f, minimumCoverage, homCutoff, hetUpperCutoff, hetLowerCutoff);
+			result = SignatureUtil.loadSignatureRatiosFloatGenotypeNew(f, minimumCoverage, homCutoff, hetUpperCutoff, hetLowerCutoff);
 			
 			if (result.size() < 1000) {
 				logger.warn("low coverage (" + result.size() + ") for file " + f.getAbsolutePath());

@@ -2,6 +2,7 @@ package org.qcmg.sig.util;
 
 import static org.junit.Assert.assertEquals;
 import gnu.trove.map.TMap;
+import gnu.trove.map.hash.TIntByteHashMap;
 import gnu.trove.map.hash.TIntShortHashMap;
 
 import java.io.File;
@@ -16,9 +17,11 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.math3.util.Pair;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.illumina.IlluminaRecord;
+import org.qcmg.sig.CompareTest;
 import org.qcmg.sig.model.Comparison;
 import org.qcmg.sig.model.SigMeta;
 import org.qcmg.tab.TabbedHeader;
@@ -82,6 +85,26 @@ public class SignatureUtilTest {
 		assertEquals("AAAA_9999", SignatureUtil.getPatientFromFile(new File("/path/project/AAAA_9999/SNP_array/5555.txt")));
 		assertEquals("AAAA_333", SignatureUtil.getPatientFromFile(new File("/path/project/AAAA_333/SNP_array/5555.txt")));
 		assertEquals("UNKNOWN", SignatureUtil.getPatientFromFile(new File("/path/project/AAAA_33/SNP_array/5555.txt")));
+	}
+	
+	@Test
+	public void getGenotypesAsByte() throws IOException {
+		List<String> trad1Data = new ArrayList<>(SignatureUtilTest.BAM_HEADER_OLD_SKOOL);
+		File testVcf = testFolder.newFile("test.vcf");
+		String evenData = "\tcnvi0147523\tG\t.\t.\t.\tFULLCOV=A:0,C:0,G:55,T:0,N:0,TOTAL:55;NOVELCOV=A:0,C:0,G:49,T:0,N:0,TOTAL:49\t";
+		String oddData = "\tcnvi0147523\tG\t.\t.\t.\tFULLCOV=A:20,C:0,G:35,T:0,N:0,TOTAL:55;NOVELCOV=A:20,C:0,G:29,T:0,N:0,TOTAL:49\t";
+		for (int i = 0 ; i < 10 ; i++ ) {
+			trad1Data.add("chr1\t" + i + (i % 2 == 0 ? evenData : oddData));
+		}
+		CompareTest.writeDataToFile(trad1Data, testVcf);
+		TIntByteHashMap byteMap = SignatureUtil.loadSignatureRatiosFloatGenotypeNew(testVcf);
+		assertEquals(10, byteMap.size());
+		/*
+		 * values in map will be either HOM_G or HET_AG
+		 */
+		for (int i = 1 ; i <= 10 ; i++) {
+			assertEquals((i % 2 == 0 ? SignatureUtil.HET_AG : SignatureUtil.HOM_G), byteMap.get(i));
+		}
 	}
 	
 	@Test
@@ -195,7 +218,7 @@ public class SignatureUtilTest {
 		
 		int [] indicies = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17};
 		List<Optional<float[]>> oeso_0031Floats = oeso_0031CovArray.stream().map(s -> SignatureUtil.getValuesFromCoverageStringFloat(s)).collect(Collectors.toList());
-		List<Short> oeso_0031Shorts = oeso_0031Floats.stream().map(of -> SignatureUtil.getCodedGenotype(of.get())).collect(Collectors.toList());
+		List<Byte> oeso_0031Shorts = oeso_0031Floats.stream().map(of -> SignatureUtil.getCodedGenotypeAsByte(of.get())).collect(Collectors.toList());
 		oeso_0031Shorts.stream().forEach(System.out::println);
 		
 		List<String> oeso_0050CovArray = Arrays.asList("A:25,C:0,G:31,T:0,N:0,TOTAL:56;NOVELCOV",
@@ -217,7 +240,7 @@ public class SignatureUtilTest {
 "A:18,C:0,G:10,T:0,N:0,TOTAL:28;NOVELCOV");
 		
 		List<Optional<float[]>> oeso_0050Floats = oeso_0050CovArray.stream().map(s -> SignatureUtil.getValuesFromCoverageStringFloat(s)).collect(Collectors.toList());
-		List<Short> oeso_0050Shorts = oeso_0050Floats.stream().map(of -> SignatureUtil.getCodedGenotype(of.get())).collect(Collectors.toList());
+		List<Byte> oeso_0050Shorts = oeso_0050Floats.stream().map(of -> SignatureUtil.getCodedGenotypeAsByte(of.get())).collect(Collectors.toList());
 		oeso_0050Shorts.stream().forEach(System.out::println);
 		
 		List<String> pn400007CovArray = Arrays.asList("A:70,C:1,G:0,T:0,N:0,TOTAL:71;NOVELCOV",
@@ -239,7 +262,7 @@ public class SignatureUtilTest {
 "A:0,C:0,G:50,T:0,N:0,TOTAL:50;NOVELCOV");
 		
 		List<Optional<float[]>> pn400007Floats = pn400007CovArray.stream().map(s -> SignatureUtil.getValuesFromCoverageStringFloat(s)).collect(Collectors.toList());
-		List<Short> pn400007Shorts = pn400007Floats.stream().map(of -> SignatureUtil.getCodedGenotype(of.get())).collect(Collectors.toList());
+		List<Byte> pn400007Shorts = pn400007Floats.stream().map(of -> SignatureUtil.getCodedGenotypeAsByte(of.get())).collect(Collectors.toList());
 		pn400007Shorts.stream().forEach(System.out::println);
 		
 		TIntShortHashMap oeso_0031Map = new TIntShortHashMap();
@@ -289,7 +312,7 @@ public class SignatureUtilTest {
 		File f = testFolder.newFile();
 		createBamVcfFile(f);
 		
-		Pair<SigMeta, TMap<String, TIntShortHashMap>> p = SignatureUtil.loadSignatureRatiosBespokeGenotype(f, 10, 10);
+		Pair<SigMeta, TMap<String, TIntByteHashMap>> p = SignatureUtil.loadSignatureGenotype(f, 10, 10);
 		assertEquals(7, p.getSecond().get("all").size());
 		assertEquals(3, p.getSecond().get("rg1").size());
 		assertEquals(2, p.getSecond().get("rg2").size());
@@ -298,7 +321,7 @@ public class SignatureUtilTest {
 		 * adjust the rg min coverage value
 		 * Note that the minCov value will be used first for the total value before the rg specific value is used for the individual rgs
 		 */
-		 p = SignatureUtil.loadSignatureRatiosBespokeGenotype(f, 10, 5);
+		 p = SignatureUtil.loadSignatureGenotype(f, 10, 5);
 		assertEquals(7, p.getSecond().get("all").size());
 		assertEquals(7, p.getSecond().get("rg1").size());
 		assertEquals(5, p.getSecond().get("rg2").size());
@@ -344,10 +367,10 @@ public class SignatureUtilTest {
 		File f2 = testFolder.newFile();
 		createBamVcfFile(f1);
 		createBamVcfFile(f2);
-		Pair<SigMeta, TMap<String, TIntShortHashMap>> p1 = SignatureUtil.loadSignatureRatiosBespokeGenotype(f1,10,10);
-		Pair<SigMeta, TMap<String, TIntShortHashMap>> p2 = SignatureUtil.loadSignatureRatiosBespokeGenotype(f2,10,10);
-		Pair<SigMeta, TIntShortHashMap> ratios1 = new Pair<>(p1.getKey(), p1.getSecond().get("all"));
-		Pair<SigMeta, TIntShortHashMap> ratios2 = new Pair<>(p2.getKey(), p2.getSecond().get("all"));
+		Pair<SigMeta, TMap<String, TIntByteHashMap>> p1 = SignatureUtil.loadSignatureGenotype(f1,10,10);
+		Pair<SigMeta, TMap<String, TIntByteHashMap>> p2 = SignatureUtil.loadSignatureGenotype(f2,10,10);
+		Pair<SigMeta, TIntByteHashMap> ratios1 = new Pair<>(p1.getKey(), p1.getSecond().get("all"));
+		Pair<SigMeta, TIntByteHashMap> ratios2 = new Pair<>(p2.getKey(), p2.getSecond().get("all"));
 		Comparison comp = ComparisonUtil.compareRatiosUsingSnpsFloat(ratios1.getValue(), ratios2.getValue(), f1, f2);
 		assertEquals(1.0, comp.getScore(), 0.0001d);
 		assertEquals(7, comp.getOverlapCoverage());	// 7 of the 11 have coverage over 10
@@ -358,10 +381,10 @@ public class SignatureUtilTest {
 		File f2 = testFolder.newFile();
 		createSnpChipVcfFile(f1);
 		createSnpChipVcfFile(f2);
-		Pair<SigMeta, TMap<String, TIntShortHashMap>> p1 = SignatureUtil.loadSignatureRatiosBespokeGenotype(f1,10,10);
-		Pair<SigMeta, TMap<String, TIntShortHashMap>> p2 = SignatureUtil.loadSignatureRatiosBespokeGenotype(f2,10,10);
-		Pair<SigMeta, TIntShortHashMap> ratios1 = new Pair<>(p1.getKey(), p1.getSecond().get("all"));
-		Pair<SigMeta, TIntShortHashMap> ratios2 = new Pair<>(p2.getKey(), p2.getSecond().get("all"));
+		Pair<SigMeta, TMap<String, TIntByteHashMap>> p1 = SignatureUtil.loadSignatureGenotype(f1,10,10);
+		Pair<SigMeta, TMap<String, TIntByteHashMap>> p2 = SignatureUtil.loadSignatureGenotype(f2,10,10);
+		Pair<SigMeta, TIntByteHashMap> ratios1 = new Pair<>(p1.getKey(), p1.getSecond().get("all"));
+		Pair<SigMeta, TIntByteHashMap> ratios2 = new Pair<>(p2.getKey(), p2.getSecond().get("all"));
 		Comparison comp = ComparisonUtil.compareRatiosUsingSnpsFloat(ratios1.getValue(), ratios2.getValue(), f1, f2);
 		assertEquals(1.0, comp.getScore(), 0.0001d);
 		assertEquals(11, comp.getOverlapCoverage());	// 7 of the 11 have coverage over 10
@@ -372,10 +395,10 @@ public class SignatureUtilTest {
 		File f2 = testFolder.newFile();
 		createBamVcfFile(f1);
 		createSnpChipVcfFile(f2);
-		Pair<SigMeta, TMap<String, TIntShortHashMap>> p1 = SignatureUtil.loadSignatureRatiosBespokeGenotype(f1,10,10);
-		Pair<SigMeta, TMap<String, TIntShortHashMap>> p2 = SignatureUtil.loadSignatureRatiosBespokeGenotype(f2,10,10);
-		Pair<SigMeta, TIntShortHashMap> ratios1 = new Pair<>(p1.getKey(), p1.getSecond().get("all"));
-		Pair<SigMeta, TIntShortHashMap> ratios2 = new Pair<>(p2.getKey(), p2.getSecond().get("all"));
+		Pair<SigMeta, TMap<String, TIntByteHashMap>> p1 = SignatureUtil.loadSignatureGenotype(f1,10,10);
+		Pair<SigMeta, TMap<String, TIntByteHashMap>> p2 = SignatureUtil.loadSignatureGenotype(f2,10,10);
+		Pair<SigMeta, TIntByteHashMap> ratios1 = new Pair<>(p1.getKey(), p1.getSecond().get("all"));
+		Pair<SigMeta, TIntByteHashMap> ratios2 = new Pair<>(p2.getKey(), p2.getSecond().get("all"));
 		Comparison comp = ComparisonUtil.compareRatiosUsingSnpsFloat(ratios1.getValue(), ratios2.getValue(), f1, f2);
 		assertEquals(0.0, comp.getScore(), 0.0001d);
 		assertEquals(7, comp.getOverlapCoverage());	// 7 of the 11 have coverage over 10
@@ -403,58 +426,87 @@ public class SignatureUtilTest {
 		assertEquals(5055, SignatureUtil.getFloatAsShort(50.55f));
 	}
 	
+//	@Test
+//	public void genotypeShort() {
+//		/*
+//		 * AAs and BBs
+//		 */
+//		assertEquals(2000, SignatureUtil.getCodedGenotype(new float[]{0.91f,0.0f,0.0f,0.09f}));
+//		assertEquals(200, SignatureUtil.getCodedGenotype(new float[]{0.01f,0.99f,0.0f,0.00f}));
+//		assertEquals(20, SignatureUtil.getCodedGenotype(new float[]{0.01f,0.09f,0.909f,0.00f}));
+//		assertEquals(2, SignatureUtil.getCodedGenotype(new float[]{0.0f,0.0f,0.0f,1.0f}));
+//		
+//		/*
+//		 * ABs
+//		 */
+//		assertEquals(1100, SignatureUtil.getCodedGenotype(new float[]{0.5f,0.5f,0.0f,0.0f}));
+//		assertEquals(1001, SignatureUtil.getCodedGenotype(new float[]{0.5f,0.0f,0.0f,0.4f}));
+//		assertEquals(101, SignatureUtil.getCodedGenotype(new float[]{0.0f,0.4f,0.0f,0.4f}));
+//		assertEquals(11, SignatureUtil.getCodedGenotype(new float[]{0.0f,0.0f,0.59f,0.59f}));
+//		assertEquals(1010, SignatureUtil.getCodedGenotype(new float[]{0.5f,0.0f,0.5f,0.0f}));
+//		
+//		/*
+//		 * invalid
+//		 */
+//		assertEquals(1000, SignatureUtil.getCodedGenotype(new float[]{0.5f,0.0f,0.0f,0.0f}));
+//		assertEquals(1111, SignatureUtil.getCodedGenotype(new float[]{0.5f,0.5f,0.5f,0.5f}));
+//		assertEquals(false, SignatureUtil.isCodedGenotypeValid(SignatureUtil.getCodedGenotype(new float[]{0.32f,0.32f,0.32f,0.05f})));
+//		assertEquals(1, SignatureUtil.getCodedGenotype(new float[]{0.0f,0.0f,0.0f,0.4f}));
+//		assertEquals(100, SignatureUtil.getCodedGenotype(new float[]{0.0f,0.4f,0.0f,0.0f}));
+//		assertEquals(10, SignatureUtil.getCodedGenotype(new float[]{0.0f,0.0f,0.59f,0.0f}));
+//	}
+	
 	@Test
-	public void genotypeShort() {
+	public void genotypeAsByte() {
 		/*
 		 * AAs and BBs
 		 */
-		assertEquals(2000, SignatureUtil.getCodedGenotype(new float[]{0.91f,0.0f,0.0f,0.09f}));
-		assertEquals(200, SignatureUtil.getCodedGenotype(new float[]{0.01f,0.99f,0.0f,0.00f}));
-		assertEquals(20, SignatureUtil.getCodedGenotype(new float[]{0.01f,0.09f,0.909f,0.00f}));
-		assertEquals(2, SignatureUtil.getCodedGenotype(new float[]{0.0f,0.0f,0.0f,1.0f}));
+		//10000 or HOM_A
+		assertEquals(SignatureUtil.HOM_A, SignatureUtil.getCodedGenotypeAsByte(new float[]{0.91f,0.0f,0.0f,0.09f}));
+		assertEquals(true, SignatureUtil.isCodedGenotypeValid(SignatureUtil.getCodedGenotypeAsByte(new float[]{0.91f,0.0f,0.0f,0.09f})));
+		//100000
+		assertEquals(SignatureUtil.HOM_C, SignatureUtil.getCodedGenotypeAsByte(new float[]{0.01f,0.99f,0.0f,0.00f}));
+		assertEquals(true, SignatureUtil.isCodedGenotypeValid(SignatureUtil.getCodedGenotypeAsByte(new float[]{0.01f,0.99f,0.0f,0.00f})));
+		//1000000
+		assertEquals(SignatureUtil.HOM_G, SignatureUtil.getCodedGenotypeAsByte(new float[]{0.01f,0.09f,0.909f,0.00f}));
+		assertEquals(true, SignatureUtil.isCodedGenotypeValid(SignatureUtil.getCodedGenotypeAsByte(new float[]{0.01f,0.09f,0.909f,0.00f})));
+		//10000000
+		assertEquals(SignatureUtil.HOM_T, SignatureUtil.getCodedGenotypeAsByte(new float[]{0.0f,0.0f,0.0f,1.0f}));
+		assertEquals(true, SignatureUtil.isCodedGenotypeValid(SignatureUtil.getCodedGenotypeAsByte(new float[]{0.0f,0.0f,0.0f,1.0f})));
 		
 		/*
 		 * ABs
 		 */
-		assertEquals(1100, SignatureUtil.getCodedGenotype(new float[]{0.5f,0.5f,0.0f,0.0f}));
-		assertEquals(1001, SignatureUtil.getCodedGenotype(new float[]{0.5f,0.0f,0.0f,0.4f}));
-		assertEquals(101, SignatureUtil.getCodedGenotype(new float[]{0.0f,0.4f,0.0f,0.4f}));
-		assertEquals(11, SignatureUtil.getCodedGenotype(new float[]{0.0f,0.0f,0.59f,0.59f}));
-		assertEquals(1010, SignatureUtil.getCodedGenotype(new float[]{0.5f,0.0f,0.5f,0.0f}));
+		assertEquals(SignatureUtil.HET_AC, SignatureUtil.getCodedGenotypeAsByte(new float[]{0.5f,0.5f,0.0f,0.0f}));
+		assertEquals(true,  SignatureUtil.isCodedGenotypeValid(SignatureUtil.getCodedGenotypeAsByte(new float[]{0.5f,0.5f,0.0f,0.0f})));
+		assertEquals(SignatureUtil.HET_AT, SignatureUtil.getCodedGenotypeAsByte(new float[]{0.5f,0.0f,0.0f,0.4f}));
+		assertEquals(true,  SignatureUtil.isCodedGenotypeValid(SignatureUtil.getCodedGenotypeAsByte(new float[]{0.5f,0.0f,0.0f,0.4f})));
+		assertEquals(SignatureUtil.HET_CT, SignatureUtil.getCodedGenotypeAsByte(new float[]{0.0f,0.4f,0.0f,0.4f}));
+		assertEquals(true,  SignatureUtil.isCodedGenotypeValid(SignatureUtil.getCodedGenotypeAsByte(new float[]{0.0f,0.4f,0.0f,0.4f})));
+		assertEquals(SignatureUtil.HET_CG, SignatureUtil.getCodedGenotypeAsByte(new float[]{0.0f,0.4f,0.6f,0.0f}));
+		assertEquals(true,  SignatureUtil.isCodedGenotypeValid(SignatureUtil.getCodedGenotypeAsByte(new float[]{0.0f,0.4f,0.6f,0.0f})));
+		assertEquals(SignatureUtil.HET_GT, SignatureUtil.getCodedGenotypeAsByte(new float[]{0.0f,0.0f,0.59f,0.59f}));
+		assertEquals(true,  SignatureUtil.isCodedGenotypeValid(SignatureUtil.getCodedGenotypeAsByte(new float[]{0.0f,0.0f,0.59f,0.59f})));
+		assertEquals(SignatureUtil.HET_AG, SignatureUtil.getCodedGenotypeAsByte(new float[]{0.5f,0.0f,0.5f,0.0f}));
+		assertEquals(true,  SignatureUtil.isCodedGenotypeValid(SignatureUtil.getCodedGenotypeAsByte(new float[]{0.5f,0.0f,0.5f,0.0f})));
 		
 		/*
 		 * invalid
 		 */
-		assertEquals(1000, SignatureUtil.getCodedGenotype(new float[]{0.5f,0.0f,0.0f,0.0f}));
-		assertEquals(1111, SignatureUtil.getCodedGenotype(new float[]{0.5f,0.5f,0.5f,0.5f}));
-		assertEquals(1, SignatureUtil.getCodedGenotype(new float[]{0.0f,0.0f,0.0f,0.4f}));
-		assertEquals(100, SignatureUtil.getCodedGenotype(new float[]{0.0f,0.4f,0.0f,0.0f}));
-		assertEquals(10, SignatureUtil.getCodedGenotype(new float[]{0.0f,0.0f,0.59f,0.0f}));
-	}
-	
-	@Test
-	public void validCodedGenotype() {
-		assertEquals(true, SignatureUtil.isCodedGenotypeValid((short) 2000));
-		assertEquals(true, SignatureUtil.isCodedGenotypeValid((short) 200));
-		assertEquals(true, SignatureUtil.isCodedGenotypeValid((short) 20));
-		assertEquals(true, SignatureUtil.isCodedGenotypeValid((short) 2));
-		assertEquals(true, SignatureUtil.isCodedGenotypeValid((short) 1100));
-		assertEquals(true, SignatureUtil.isCodedGenotypeValid((short) 1010));
-		assertEquals(true, SignatureUtil.isCodedGenotypeValid((short) 1001));
-		assertEquals(true, SignatureUtil.isCodedGenotypeValid((short) 101));
-		assertEquals(true, SignatureUtil.isCodedGenotypeValid((short) 110));
-		assertEquals(true, SignatureUtil.isCodedGenotypeValid((short) 11));
+		// this is 3 lots of 0.32 - invalid
+		assertEquals(false, SignatureUtil.isCodedGenotypeValid(SignatureUtil.getCodedGenotypeAsByte(new float[]{0.32f,0.32f,0.32f,0.0f})));
 		
-		assertEquals(false, SignatureUtil.isCodedGenotypeValid((short) 1));
-		assertEquals(false, SignatureUtil.isCodedGenotypeValid((short) 10));
-		assertEquals(false, SignatureUtil.isCodedGenotypeValid((short) 100));
-		assertEquals(false, SignatureUtil.isCodedGenotypeValid((short) 1000));
-		assertEquals(false, SignatureUtil.isCodedGenotypeValid((short) 10000));
-		assertEquals(false, SignatureUtil.isCodedGenotypeValid((short) 111));
-		assertEquals(false, SignatureUtil.isCodedGenotypeValid((short) 22));
-		assertEquals(false, SignatureUtil.isCodedGenotypeValid((short) 2020));
-		assertEquals(false, SignatureUtil.isCodedGenotypeValid((short) 2001));
-		assertEquals(false, SignatureUtil.isCodedGenotypeValid((short) 2222));
+		
+		assertEquals("1", Integer.toBinaryString(SignatureUtil.getCodedGenotypeAsByte(new float[]{0.5f,0.0f,0.0f,0.0f})));
+		assertEquals(false, SignatureUtil.isCodedGenotypeValid(SignatureUtil.getCodedGenotypeAsByte(new float[]{0.5f,0.0f,0.0f,0.0f})));
+		assertEquals("1111", Integer.toBinaryString(SignatureUtil.getCodedGenotypeAsByte(new float[]{0.5f,0.5f,0.5f,0.5f})));
+		assertEquals(false, SignatureUtil.isCodedGenotypeValid(SignatureUtil.getCodedGenotypeAsByte(new float[]{0.5f,0.5f,0.5f,0.5f})));
+		assertEquals("1000", Integer.toBinaryString(SignatureUtil.getCodedGenotypeAsByte(new float[]{0.0f,0.0f,0.0f,0.4f})));
+		assertEquals(false, SignatureUtil.isCodedGenotypeValid(SignatureUtil.getCodedGenotypeAsByte(new float[]{0.0f,0.0f,0.0f,0.4f})));
+		assertEquals("10", Integer.toBinaryString(SignatureUtil.getCodedGenotypeAsByte(new float[]{0.0f,0.4f,0.0f,0.0f})));
+		assertEquals(false, SignatureUtil.isCodedGenotypeValid(SignatureUtil.getCodedGenotypeAsByte(new float[]{0.0f,0.4f,0.0f,0.0f})));
+		assertEquals("100", Integer.toBinaryString(SignatureUtil.getCodedGenotypeAsByte(new float[]{0.0f,0.0f,0.59f,0.0f})));
+		assertEquals(false, SignatureUtil.isCodedGenotypeValid(SignatureUtil.getCodedGenotypeAsByte(new float[]{0.0f,0.0f,0.59f,0.0f})));
 	}
 	
 	@Test
@@ -555,8 +607,9 @@ public class SignatureUtilTest {
 		assertEquals("excludesFile1excludesFile2", SignatureUtil.getEntriesFromExcludesFile(excludesFile.getAbsolutePath()).get(0));
 		
 		try (FileWriter writer = new FileWriter(excludesFile, true);){
-			for (int i = 3 ; i <= 10 ; i++)
+			for (int i = 3 ; i <= 10 ; i++) {
 				writer.append("\nexcludesFile" + i);
+			}
 		}
 		
 		assertEquals(9, SignatureUtil.getEntriesFromExcludesFile(excludesFile.getAbsolutePath()).size());

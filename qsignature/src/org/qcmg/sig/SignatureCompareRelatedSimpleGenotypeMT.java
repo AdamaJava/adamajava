@@ -7,7 +7,7 @@
 package org.qcmg.sig;
 
 import gnu.trove.map.hash.THashMap;
-import gnu.trove.map.hash.TIntShortHashMap;
+import gnu.trove.map.hash.TIntByteHashMap;
 
 import java.io.File;
 import java.util.AbstractQueue;
@@ -71,7 +71,7 @@ public class SignatureCompareRelatedSimpleGenotypeMT {
 	private final Map<String, int[]> fileIdsAndCounts = new THashMap<>();
 	private final List<Comparison> allComparisons = new CopyOnWriteArrayList<>();
 	
-	private final ConcurrentMap<File, TIntShortHashMap> cache = new ConcurrentHashMap<>();
+	private final ConcurrentMap<File, TIntByteHashMap> cache = new ConcurrentHashMap<>();
 	
 	List<String> suspiciousResults = new ArrayList<String>();
 	
@@ -176,11 +176,11 @@ public class SignatureCompareRelatedSimpleGenotypeMT {
 						logger.info("performing comparison for : " + in.intValue());
 						
 						File f1 = files.get(in);
-						TIntShortHashMap r1 = cache.get(f1);
+						TIntByteHashMap r1 = cache.get(f1);
 						
 						for (int j = in.intValue() + 1 ; j < size ; j ++ ) {
 							File f2 = files.get(j);
-							TIntShortHashMap r2 =  cache.get(f2);
+							TIntByteHashMap r2 =  cache.get(f2);
 							Comparison c = ComparisonUtil.compareRatiosUsingSnpsFloat(r1, r2, f1, f2);
 							myComps.add(c);
 						}
@@ -213,9 +213,9 @@ public class SignatureCompareRelatedSimpleGenotypeMT {
 				
 						logger.info("loading data from: " + f.getAbsolutePath());
 						
-						TIntShortHashMap genotypes = null;
+						TIntByteHashMap genotypes = null;
 						try {
-							genotypes = SignatureUtil.loadSignatureRatiosFloatGenotype(f, minimumCoverage, homCutoff, hetUpperCutoff, hetLowerCutoff);
+							genotypes = SignatureUtil.loadSignatureRatiosFloatGenotypeNew(f, minimumCoverage, homCutoff, hetUpperCutoff, hetLowerCutoff);
 						} catch (Exception e) {
 							/*
 							 * set exit status, log exception and re-throw
@@ -228,7 +228,7 @@ public class SignatureCompareRelatedSimpleGenotypeMT {
 								e1.printStackTrace();
 							}
 						}
-						TIntShortHashMap prevGenotypes = cache.putIfAbsent(f, genotypes);
+						TIntByteHashMap prevGenotypes = cache.putIfAbsent(f, genotypes);
 						if (null != prevGenotypes) {
 							logger.warn("already genotypes associated with file: " + f.getAbsolutePath());
 						}
