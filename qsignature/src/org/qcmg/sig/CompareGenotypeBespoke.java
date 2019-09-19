@@ -10,7 +10,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.IntSummaryStatistics;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -30,7 +29,7 @@ import org.qcmg.sig.util.SignatureUtil;
 
 import gnu.trove.map.TMap;
 import gnu.trove.map.hash.THashMap;
-import gnu.trove.map.hash.TIntShortHashMap;
+import gnu.trove.map.hash.TIntByteHashMap;
 import gnu.trove.set.hash.THashSet;
 
 /**
@@ -69,7 +68,7 @@ public class CompareGenotypeBespoke {
 	private final Map<String, int[]> fileIdsAndCounts = new THashMap<>();
 	private final List<Comparison> allComparisons = new ArrayList<>();
 	
-	private final Map<File, Pair<SigMeta,TIntShortHashMap>> cache = new THashMap<>();
+	private final Map<File, Pair<SigMeta,TIntByteHashMap>> cache = new THashMap<>();
 	
 	List<String> suspiciousResults = new ArrayList<>();
 	
@@ -129,11 +128,11 @@ public class CompareGenotypeBespoke {
 		for (int i = 0 ; i < size -1 ; i++) {
 			
 			File f1 = files.get(i);
-			Pair<SigMeta, TIntShortHashMap> ratios1 = getSignatureData(f1);
+			Pair<SigMeta, TIntByteHashMap> ratios1 = getSignatureData(f1);
 			
 			for (int j = i + 1 ; j < size ; j++) {
 				File f2 = files.get(j);
-				Pair<SigMeta, TIntShortHashMap> ratios2 = getSignatureData(f2);
+				Pair<SigMeta, TIntByteHashMap> ratios2 = getSignatureData(f2);
 				
 				/*
 				 * Check that the 2 files were born of the same snp positions file and have had the same filters applied
@@ -149,7 +148,7 @@ public class CompareGenotypeBespoke {
 			}
 			
 			// can now remove f1 from the cache as it is no longer required
-			Pair<SigMeta,TIntShortHashMap> m = cache.remove(f1);
+			Pair<SigMeta,TIntByteHashMap> m = cache.remove(f1);
 			m.getSecond().clear();
 			m = null;
 		}
@@ -169,22 +168,24 @@ public class CompareGenotypeBespoke {
 			logger.info("No suspicious results found");
 		} else {
 			logger.info("Suspicious results SUMMARY:");
-			for (String s : suspiciousResults) logger.info(s);
+			for (String s : suspiciousResults) {
+				logger.info(s);
+			}
 		}
 		
-		if (outputXml != null)
+		if (outputXml != null) {
 			SignatureUtil.writeXmlOutput(fileIdsAndCounts, allComparisons, outputXml);
-//		writeXmlOutput();
+		}
 		
 		return exitStatus;
 	}
 	
-	Pair<SigMeta, TIntShortHashMap> getSignatureData(File f) throws IOException {
+	Pair<SigMeta, TIntByteHashMap> getSignatureData(File f) throws IOException {
 		// check map to see if this data has already been loaded
 		// if not - load
-		Pair<SigMeta, TIntShortHashMap> result = cache.get(f);
+		Pair<SigMeta, TIntByteHashMap> result = cache.get(f);
 		if (result == null) {
-			Pair<SigMeta, TMap<String, TIntShortHashMap>> rgResults = SignatureUtil.loadSignatureRatiosBespokeGenotype(f, minimumCoverage, minimumRGCoverage);
+			Pair<SigMeta, TMap<String, TIntByteHashMap>> rgResults = SignatureUtil.loadSignatureGenotype(f, minimumCoverage, minimumRGCoverage);
 			
 			/*
 			 * if we have multiple rgs (more than 2 entries in map) - perform comparison on them before adding overall ratios to cache
@@ -201,10 +202,10 @@ public class CompareGenotypeBespoke {
 				List<String> rgs = new ArrayList<>(rgResults.getSecond().keySet());
 				for (int i = 0 ; i < rgs.size() ; i++) {
 					String rg1 = rgs.get(i);
-					TIntShortHashMap r1 = rgResults.getSecond().get(rg1);
+					TIntByteHashMap r1 = rgResults.getSecond().get(rg1);
 					for (int j = i + 1 ; j < rgs.size() ; j++) {
 						String rg2 = rgs.get(j);
-						TIntShortHashMap r2 = rgResults.getSecond().get(rg2);
+						TIntByteHashMap r2 = rgResults.getSecond().get(rg2);
 						
 						Comparison c = ComparisonUtil.compareRatiosUsingSnpsFloat(r1, r2, new File(rg1), new File(rg2));
 						if (c.getScore() < cutoff) {
@@ -214,24 +215,12 @@ public class CompareGenotypeBespoke {
 				}
 			}
 			
-//			result = SignatureUtil.loadSignatureRatiosBespokeGenotype(f, minimumCoverage);
-			
 			if (result.getValue().size() < 1000) {
 				logger.warn("low coverage (" + result.getValue().size() + ") for file " + f.getAbsolutePath());
 			}
 			
-//			if (cache.size() < cacheSize) {
-				cache.put(f, result);
-//			}
+			cache.put(f, result);
 			fileIdsAndCounts.get(f.getAbsolutePath())[1] = result.getValue().size();
-			/*
-			 * average coverage
-			 */
-			//TODO put this back in
-//			IntSummaryStatistics iss = result.getValue().values().stream()
-//				.mapToInt(array -> (int) array[4])
-//				.summaryStatistics();
-//			fileIdsAndCounts.get(f)[2] = (int) iss.getAverage();
 		}
 		return result;
 	}
@@ -261,8 +250,9 @@ public class CompareGenotypeBespoke {
 			}
 		}
 		
-		if (null != logger)
+		if (null != logger) {
 			logger.logFinalExecutionStats(exitStatus);
+		}
 		
 		System.exit(exitStatus);
 	}
@@ -313,8 +303,9 @@ public class CompareGenotypeBespoke {
 			additionalSearchStrings = options.getAdditionalSearchString();
 			logger.tool("Setting additionalSearchStrings to: " + Arrays.deepToString(additionalSearchStrings));
 			
-			if (options.hasExcludeVcfsFileOption())
+			if (options.hasExcludeVcfsFileOption()) {
 				excludeVcfsFile = options.getExcludeVcfsFile();
+			}
 			
 			logger.logInitialExecutionStats("CompareGenotypeBespoke", CompareGenotypeBespoke.class.getPackage().getImplementationVersion(), args);
 			

@@ -6,6 +6,7 @@
  */
 package org.qcmg.sig.util;
 
+import gnu.trove.map.hash.TIntByteHashMap;
 import gnu.trove.map.hash.TIntShortHashMap;
 
 import java.io.File;
@@ -169,6 +170,48 @@ public class ComparisonUtil {
 					if (s == s2) {
 						match.incrementAndGet();
 					}
+					totalCompared.incrementAndGet();
+				}
+			}
+			return true;
+		});
+		
+		Comparison comp = new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), match.get(), totalCompared.get());
+		return comp;
+	}
+	public static Comparison compareRatiosUsingSnpsFloat(TIntByteHashMap file1Ratios,TIntByteHashMap file2Ratios, File file1, File file2) {
+		return compareRatiosUsingSnpsFloat(file1Ratios,file2Ratios, file1.getAbsolutePath(), file2.getAbsolutePath()); 
+	}
+	public static Comparison compareRatiosUsingSnpsFloat(TIntByteHashMap file1Ratios,TIntByteHashMap file2Ratios, String file1, String file2) {
+		if (null == file1Ratios || null == file2Ratios) {
+			throw new IllegalArgumentException("null maps passed to compareRatios");
+		}
+		if (null == file1 || null == file2) {
+			throw new IllegalArgumentException("null files passed to compareRatios");
+		}
+		if (file1Ratios.isEmpty() || file2Ratios.isEmpty()) {
+			return  new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), 0, 0);
+		}
+		
+		if (file1.equals(file2)) {
+			return  new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), 0, file1Ratios.size());
+		}
+		AtomicInteger match = new AtomicInteger();
+		AtomicInteger totalCompared = new AtomicInteger();
+		/*
+		 * find the map with the smaller number of entries and iterate over that one - save some cycles
+		 */
+		boolean useFirst = file1Ratios.size() < file2Ratios.size();
+		TIntByteHashMap iter = useFirst ? file1Ratios : file2Ratios;
+		TIntByteHashMap lookup = useFirst ? file2Ratios : file1Ratios;
+		
+		iter.forEachEntry((int a, byte b) -> {
+			if (SignatureUtil.isCodedGenotypeValid(b)) {
+				byte b2 = lookup.get(a);
+				if (b == b2) {
+					match.incrementAndGet();
+				}
+				if (SignatureUtil.isCodedGenotypeValid(b2)) {
 					totalCompared.incrementAndGet();
 				}
 			}
