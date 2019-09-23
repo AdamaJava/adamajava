@@ -135,25 +135,6 @@ public class Compare {
 		
 		performComparisons(files);
 		
-		
-		for (Comparison comp : allComparisons) {
-			if (null == comp) {
-				logger.warn("Null comparison object in allComparions");
-			} else if (comp.getScore() < cutoff) {
-				suspiciousResults.add(comp.toSummaryString());
-			}
-		}
-		
-		logger.info("");
-		if (suspiciousResults.isEmpty()) {
-			logger.info("No suspicious results found");
-		} else {
-			logger.info("Suspicious results SUMMARY:");
-			for (String s : suspiciousResults) {
-				logger.info(s);
-			}
-		}
-		
 		if (outputXml != null) {
 			SignatureUtil.writeXmlOutput(fileIdsAndCounts, allComparisons, outputXml);
 		}
