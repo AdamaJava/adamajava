@@ -20,6 +20,7 @@ import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.qcmg.common.util.ChrPositionCache;
 import org.qcmg.illumina.IlluminaRecord;
 import org.qcmg.sig.CompareTest;
 import org.qcmg.sig.model.Comparison;
@@ -102,8 +103,15 @@ public class SignatureUtilTest {
 		/*
 		 * values in map will be either HOM_G or HET_AG
 		 */
-		for (int i = 1 ; i <= 10 ; i++) {
-			assertEquals((i % 2 == 0 ? SignatureUtil.HET_AG : SignatureUtil.HOM_G), byteMap.get(i));
+		
+		
+		/*
+		 * need to use ChrPositionCache.getStringIndex to get the index in the cache for the position.
+		 * This test used to just use 0-9, but if the test was run after other tests that put entries into the cache, then it would fail.
+		 * This fix should remove the 'Flaky' nature of this test 
+		 */
+		for (int i = 0 ; i < 10 ; i++ ) {
+			assertEquals(i % 2 == 0 ? SignatureUtil.HOM_G : SignatureUtil.HET_AG, byteMap.get(ChrPositionCache.getStringIndex("chr1\t" + i)));
 		}
 	}
 	
