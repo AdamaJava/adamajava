@@ -95,7 +95,7 @@ public class SignatureUtilTest {
 		String evenData = "\tcnvi0147523\tG\t.\t.\t.\tFULLCOV=A:0,C:0,G:55,T:0,N:0,TOTAL:55;NOVELCOV=A:0,C:0,G:49,T:0,N:0,TOTAL:49\t";
 		String oddData = "\tcnvi0147523\tG\t.\t.\t.\tFULLCOV=A:20,C:0,G:35,T:0,N:0,TOTAL:55;NOVELCOV=A:20,C:0,G:29,T:0,N:0,TOTAL:49\t";
 		for (int i = 0 ; i < 10 ; i++ ) {
-			trad1Data.add("chr1\t1" + i + (i % 2 == 0 ? evenData : oddData));
+			trad1Data.add("chr1\t" + i + (i % 2 == 0 ? evenData : oddData));
 		}
 		CompareTest.writeDataToFile(trad1Data, testVcf);
 		TIntByteHashMap byteMap = SignatureUtil.loadSignatureRatiosFloatGenotypeNew(testVcf);
@@ -111,7 +111,7 @@ public class SignatureUtilTest {
 		 * This fix should remove the 'Flaky' nature of this test 
 		 */
 		for (int i = 0 ; i < 10 ; i++ ) {
-			assertEquals(i % 2 == 0 ? SignatureUtil.HOM_G : SignatureUtil.HET_AG, byteMap.get(ChrPositionCache.getStringIndex("chr1\t1" + i)));
+			assertEquals(i % 2 == 0 ? SignatureUtil.HOM_G : SignatureUtil.HET_AG, byteMap.get(ChrPositionCache.getStringIndex("chr1\t" + i)));
 		}
 	}
 	
