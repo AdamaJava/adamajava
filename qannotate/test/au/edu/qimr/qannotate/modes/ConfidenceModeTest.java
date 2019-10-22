@@ -102,6 +102,8 @@ public class ConfidenceModeTest {
 		 ConfidenceMode.checkMIN(new String [] {"A"}, 2000,  alleleDist,  sb, 21, 5f);
 		 assertEquals("", sb.toString());
 		 ConfidenceMode.checkMIN(new String [] {"A"}, 2000,  alleleDist,  sb, 20, 5f);
+		 assertEquals("", sb.toString());
+		 ConfidenceMode.checkMIN(new String [] {"A"}, 200,  alleleDist,  sb, 2, 3f);
 		 assertEquals("MIN", sb.toString());
 		 
 		 sb = new StringBuilder();
@@ -124,6 +126,11 @@ public class ConfidenceModeTest {
 		 sb = new StringBuilder();
 		 alleleDist = VcfUtils.getAllelicCoverageWithStrand("AA10[40]10[40];AC1[40]0[0]");
 		 ConfidenceMode.checkMIN(new String [] {"AC"}, 21,  alleleDist,  sb, 1, 5f);
+		 assertEquals("", sb.toString());
+		 ConfidenceMode.checkMIN(new String [] {"AC"}, 21,  alleleDist,  sb, 2, 3f);
+		 assertEquals("", sb.toString());
+		 alleleDist = VcfUtils.getAllelicCoverageWithStrand("AA10[40]10[40];AC1[40]1[10]");
+		 ConfidenceMode.checkMIN(new String [] {"AC"}, 21,  alleleDist,  sb, 2, 3f);
 		 assertEquals("MIN", sb.toString());
 		 
 		 sb = new StringBuilder();
@@ -133,14 +140,14 @@ public class ConfidenceModeTest {
 		 
 		 sb = new StringBuilder();
 		 alleleDist = VcfUtils.getAllelicCoverageWithStrand("AA10[40]10[40];AC1[40]10[40]");
-		 ConfidenceMode.checkMIN(new String [] {"AC"}, 32,  alleleDist,  sb, Integer.MAX_VALUE, 5f);
+		 ConfidenceMode.checkMIN(new String [] {"AC"}, 32,  alleleDist,  sb, 2, 5f);
 		 assertEquals("MIN", sb.toString());
 		 
 		 sb = new StringBuilder();
 		 alleleDist = VcfUtils.getAllelicCoverageWithStrand("AA100[40]10[40];AC1[40]10[40]");
-		 ConfidenceMode.checkMIN(new String [] {"AC"}, 122,  alleleDist,  sb, Integer.MAX_VALUE, 10f);
+		 ConfidenceMode.checkMIN(new String [] {"AC"}, 122,  alleleDist,  sb, 2, 10f);
 		 assertEquals("", sb.toString());
-		 ConfidenceMode.checkMIN(new String [] {"AA"}, 122,  alleleDist,  sb, Integer.MAX_VALUE, 10f);
+		 ConfidenceMode.checkMIN(new String [] {"AA"}, 122,  alleleDist,  sb, 2, 10f);
 		 assertEquals("MIN", sb.toString());
 		 
 	 }
@@ -218,7 +225,7 @@ public class ConfidenceModeTest {
 				 ,"0/1:28,12:Somatic:13:40:A1[]1[];C1[]2[]:A6;C4:.:.:SOMATIC:12:A1[32]11[33.55];C3[31.33]25[35.04]:."
 				 ,"./.:.:.:3:.:.:.:.:.:NCIG:.:.:."
 				 ,"0/1:23,14:.:3:37:.:.:.:99:SOMATIC:.:.:349.77"});
-		 ConfidenceMode cm =new ConfidenceMode();
+		 ConfidenceMode cm = new ConfidenceMode();
 		 cm.positionRecordMap.put(r.getChrPosition(), java.util.Arrays.asList(r));
 		 cm.addAnnotation();
 		 r = cm.positionRecordMap.get(r.getChrPosition()).get(0);
@@ -235,7 +242,7 @@ public class ConfidenceModeTest {
 		  * chr1	792590	.	C	A	.	.	FLANK=AATTTATTCCC;BaseQRankSum=-1.455;ClippingRankSum=0.000;DP=73;ExcessHet=3.0103;FS=1.318;MQ=55.96;MQRankSum=-6.174;QD=1.23;ReadPosRankSum=1.813;SOR=0.953;IN=1,2;GERM=A:9:0:9:0;HOM=0,TTGATAATTTaTTCCCATTCT;EFF=downstream_gene_variant(MODIFIER||4458|||LINC01128|retained_intron|NON_CODING|ENST00000425657||1),downstream_gene_variant(MODIFIER||4444|||LINC01128|lincRNA|NON_CODING|ENST00000416570||1),downstream_gene_variant(MODIFIER||4444|||LINC01128|lincRNA|NON_CODING|ENST00000448975||1),downstream_gene_variant(MODIFIER||3584|||LINC01128|lincRNA|NON_CODING|ENST00000449005||1),non_coding_exon_variant(MODIFIER|||n.4370C>A||LINC01128|lincRNA|NON_CODING|ENST00000445118|5|1)	GT:AD:DP:EOR:FF:FT:GQ:INF:NNS:OABS:QL	0/0:46,1:47:.:A3;C8:PASS:.:.:.:A1[37]0[0];C26[39.62]20[40.15]:.	0/1:61,7:68:C1[]2[]:A9;C3:PASS:.:SOMATIC:6:A6[37.83]1[41];C40[40.17]21[37.86]:.	./.:.:.:.:.:PASS:.:NCIG:.:.:.	0/1:62,11:73:.:.:PASS:99:SOMATIC:.:.:89.77
 		  */
 		 VcfRecord r = new VcfRecord(new String[]{"chr1","792590",".","C","A",".",".","FLANK=AATTTATTCCC;BaseQRankSum=-1.455;ClippingRankSum=0.000;DP=73;ExcessHet=3.0103;FS=1.318;MQ=55.96;MQRankSum=-6.174;QD=1.23;ReadPosRankSum=1.813;SOR=0.953;IN=1,2;GERM=A:9:0:9:0;HOM=0,TTGATAATTTaTTCCCATTCT","GT:AD:DP:EOR:FF:FT:GQ:INF:NNS:OABS:QL","0/0:46,1:47:.:A3;C8:.:.:.:.:A1[37]0[0];C26[39.62]20[40.15]:.","0/1:61,7:68:C1[]2[]:A9;C3:.:.:SOMATIC:6:A6[37.83]1[41];C40[40.17]21[37.86]:.","./.:.:.:.:.:.:.:NCIG:.:.:.","0/1:62,11:73:.:.:.:99:SOMATIC:.:.:89.77"});
-		 ConfidenceMode cm =new ConfidenceMode(TWO_SAMPLE_TWO_CALLER_META);
+		 ConfidenceMode cm = new ConfidenceMode(TWO_SAMPLE_TWO_CALLER_META);
 		 cm.positionRecordMap.put(r.getChrPosition(), java.util.Arrays.asList(r));
 		 cm.addAnnotation();
 		 r = cm.positionRecordMap.get(r.getChrPosition()).get(0);
@@ -250,13 +257,70 @@ public class ConfidenceModeTest {
 		 /*
 		  * chr1	14248	.	T	G	.	.	FLANK=CTGACGGCCCT;BaseQRankSum=-0.422;ClippingRankSum=0.000;DP=25;ExcessHet=3.0103;FS=1.906;MQ=26.71;MQRankSum=1.263;QD=2.31;ReadPosRankSum=0.769;SOR=1.282;IN=1,2;GERM=G:205:9:214:0;HOM=2,CCCTGCTGACgGCCCTTCTCT	GT:AD:DP:EOR:FF:FT:GQ:INF:NNS:OABS:QL	0/0:24,1:25:T1[]0[]:G8;T42:PASS:.:.:.:G1[41]0[0];T14[31.36]10[38.1]:.	0/1:20,6:26:T2[]1[]:G11;T94:PASS:.:SOMATIC:6:G4[35.25]2[26.5];T11[39.09]9[37.56]:.	./.:.:.:.:.:PASS:.:NCIG:.:.:.	0/1:19,6:25:.:.:PASS:86:SOMATIC:.:.:57.77
 		  */
-		 VcfRecord r = new VcfRecord(new String[]{"chr1","14248",".","T","G",".",".","FLANK=CTGACGGCCCT;BaseQRankSum=-0.422;ClippingRankSum=0.000;DP=25;ExcessHet=3.0103;FS=1.906;MQ=26.71;MQRankSum=1.263;QD=2.31;ReadPosRankSum=0.769;SOR=1.282;IN=1,2;GERM=G:205:9:214:0;HOM=2,CCCTGCTGACgGCCCTTCTCT","GT:AD:DP:EOR:FF:FT:GQ:INF:NNS:OABS:QL","0/0:24,1:25:T1[]0[]:G8;T42:.:.:.:.:G1[41]0[0];T14[31.36]10[38.1]:.","0/1:20,6:26:T2[]1[]:G11;T94:.:.:SOMATIC:6:G4[35.25]2[26.5];T11[39.09]9[37.56]:.","./.:.:.:.:.:.:.:NCIG:.:.:.","0/1:19,6:25:.:.:.:86:SOMATIC:.:.:57.77"});
-		 ConfidenceMode cm =new ConfidenceMode(TWO_SAMPLE_TWO_CALLER_META);
+		 VcfRecord r = new VcfRecord(new String[]{"chr1","14248",".","T","G",".",".","FLANK=CTGACGGCCCT;BaseQRankSum=-0.422;ClippingRankSum=0.000;DP=25;ExcessHet=3.0103;FS=1.906;MQ=26.71;MQRankSum=1.263;QD=2.31;ReadPosRankSum=0.769;SOR=1.282;IN=1,2;GERM=G:205:9:214:0;HOM=2,CCCTGCTGACgGCCCTTCTCT",
+				 "GT:AD:DP:EOR:FF:FT:GQ:INF:NNS:OABS:QL",
+				 "0/0:24,2:26:T1[]0[]:T42:.:.:.:.:G1[41]1[10];T14[31.36]10[38.1]:.",
+				 "0/1:20,6:26:T2[]1[]:G11;T94:.:.:SOMATIC:6:G4[35.25]2[26.5];T11[39.09]9[37.56]:.",
+				 "./.:.:.:.:.:.:.:NCIG:.:.:.",
+				 "0/1:19,6:25:.:.:.:86:SOMATIC:.:.:57.77"});
+		 ConfidenceMode cm = new ConfidenceMode(TWO_SAMPLE_TWO_CALLER_META);
 		 cm.positionRecordMap.put(r.getChrPosition(), java.util.Arrays.asList(r));
 		 cm.addAnnotation();
 		 r = cm.positionRecordMap.get(r.getChrPosition()).get(0);
 		 
 		 assertEquals("MIN", r.getSampleFormatRecord(1).getField(VcfHeaderUtils.FORMAT_FILTER));
+		 assertEquals("PASS", r.getSampleFormatRecord(2).getField(VcfHeaderUtils.FORMAT_FILTER));
+		 assertEquals("PASS", r.getSampleFormatRecord(3).getField(VcfHeaderUtils.FORMAT_FILTER));
+		 assertEquals("PASS", r.getSampleFormatRecord(4).getField(VcfHeaderUtils.FORMAT_FILTER));
+		 
+		 /*
+		  * reduce alt coverage in control to below 3% - should change to PASS
+		  */
+		 r.setFormatFields(java.util.Arrays.asList("GT:AD:DP:EOR:FF:FT:GQ:INF:NNS:OABS:QL",
+				 "0/0:34,1:35:T1[]0[]:T42:.:.:.:.:G1[41]0[0];T14[31.36]20[38.1]:.",
+				 "0/1:20,6:26:T2[]1[]:G11;T94:.:.:SOMATIC:6:G4[35.25]2[26.5];T11[39.09]9[37.56]:.",
+				 "./.:.:.:.:.:.:.:NCIG:.:.:.",
+				 "0/1:19,6:25:.:.:.:86:SOMATIC:.:.:57.77"));
+		 cm.addAnnotation();
+		 r = cm.positionRecordMap.get(r.getChrPosition()).get(0);
+		 assertEquals("PASS", r.getSampleFormatRecord(1).getField(VcfHeaderUtils.FORMAT_FILTER));
+		 assertEquals("PASS", r.getSampleFormatRecord(2).getField(VcfHeaderUtils.FORMAT_FILTER));
+		 assertEquals("PASS", r.getSampleFormatRecord(3).getField(VcfHeaderUtils.FORMAT_FILTER));
+		 assertEquals("PASS", r.getSampleFormatRecord(4).getField(VcfHeaderUtils.FORMAT_FILTER));
+	 }
+	 @Test
+	 public void realLifeMIN2() {
+		 /*
+		  * chr1	14248	.	T	G	.	.	FLANK=CTGACGGCCCT;BaseQRankSum=-0.422;ClippingRankSum=0.000;DP=25;ExcessHet=3.0103;FS=1.906;MQ=26.71;MQRankSum=1.263;QD=2.31;ReadPosRankSum=0.769;SOR=1.282;IN=1,2;GERM=G:205:9:214:0;HOM=2,CCCTGCTGACgGCCCTTCTCT	GT:AD:DP:EOR:FF:FT:GQ:INF:NNS:OABS:QL	0/0:24,1:25:T1[]0[]:G8;T42:PASS:.:.:.:G1[41]0[0];T14[31.36]10[38.1]:.	0/1:20,6:26:T2[]1[]:G11;T94:PASS:.:SOMATIC:6:G4[35.25]2[26.5];T11[39.09]9[37.56]:.	./.:.:.:.:.:PASS:.:NCIG:.:.:.	0/1:19,6:25:.:.:PASS:86:SOMATIC:.:.:57.77
+		  */
+		 VcfRecord r = new VcfRecord(new String[]{"chr1","14248",".","T","G",".",".","FLANK=CTGACGGCCCT;BaseQRankSum=-0.422;ClippingRankSum=0.000;DP=25;ExcessHet=3.0103;FS=1.906;MQ=26.71;MQRankSum=1.263;QD=2.31;ReadPosRankSum=0.769;SOR=1.282;IN=1,2;GERM=G:205:9:214:0;HOM=2,CCCTGCTGACgGCCCTTCTCT",
+				 "GT:AD:DP:EOR:FF:FT:GQ:INF:NNS:OABS:QL",
+				 "0/0:64,3:67:T1[]0[]:T42:.:.:.:.:G1[41]2[20];T14[31.36]50[38.1]:.",
+				 "0/1:20,6:26:T2[]1[]:G11;T94:.:.:SOMATIC:6:G4[35.25]2[26.5];T11[39.09]9[37.56]:.",
+				 "./.:.:.:.:.:.:.:NCIG:.:.:.",
+		 		"0/1:19,6:25:.:.:.:86:SOMATIC:.:.:57.77"});
+		 ConfidenceMode cm = new ConfidenceMode(TWO_SAMPLE_TWO_CALLER_META);
+		 cm.positionRecordMap.put(r.getChrPosition(), java.util.Arrays.asList(r));
+		 cm.addAnnotation();
+		 r = cm.positionRecordMap.get(r.getChrPosition()).get(0);
+		 
+		 assertEquals("MIN", r.getSampleFormatRecord(1).getField(VcfHeaderUtils.FORMAT_FILTER));
+		 assertEquals("PASS", r.getSampleFormatRecord(2).getField(VcfHeaderUtils.FORMAT_FILTER));
+		 assertEquals("PASS", r.getSampleFormatRecord(3).getField(VcfHeaderUtils.FORMAT_FILTER));
+		 assertEquals("PASS", r.getSampleFormatRecord(4).getField(VcfHeaderUtils.FORMAT_FILTER));
+		 
+		 /*
+		  * reduce alt coverage in control to below 3% - should change to PASS
+		  */
+		 r.setFormatFields(java.util.Arrays.asList(
+				 "GT:AD:DP:EOR:FF:FT:GQ:INF:NNS:OABS:QL",
+				 "0/0:64,2:67:T1[]0[]:T42:.:.:.:.:G1[41]1[20];T14[31.36]50[38.1]:.",
+				 "0/1:20,6:26:T2[]1[]:G11;T94:.:.:SOMATIC:6:G4[35.25]2[26.5];T11[39.09]9[37.56]:.",
+				 "./.:.:.:.:.:.:.:NCIG:.:.:.",
+		 		"0/1:19,6:25:.:.:.:86:SOMATIC:.:.:57.77"));
+		 cm.addAnnotation();
+		 r = cm.positionRecordMap.get(r.getChrPosition()).get(0);
+		 assertEquals("PASS", r.getSampleFormatRecord(1).getField(VcfHeaderUtils.FORMAT_FILTER));
 		 assertEquals("PASS", r.getSampleFormatRecord(2).getField(VcfHeaderUtils.FORMAT_FILTER));
 		 assertEquals("PASS", r.getSampleFormatRecord(3).getField(VcfHeaderUtils.FORMAT_FILTER));
 		 assertEquals("PASS", r.getSampleFormatRecord(4).getField(VcfHeaderUtils.FORMAT_FILTER));
@@ -273,7 +337,7 @@ public class ConfidenceModeTest {
 				 "0/1:3,5:8:.:.:5:5",
 				 "0/1:3,5:8:.:.:5:5"));
 		 
-		 ConfidenceMode cm =new ConfidenceMode();
+		 ConfidenceMode cm = new ConfidenceMode();
 		 cm.positionRecordMap.put(vcf.getChrPosition(), java.util.Arrays.asList(vcf));
 		 cm.addAnnotation();
 		 vcf = cm.positionRecordMap.get(vcf.getChrPosition()).get(0);
@@ -394,7 +458,7 @@ public class ConfidenceModeTest {
 //		 "0/1:20,7:Germline:23:27:.:99:.:7:7:A20[38.1]0[0];G6[40.33]1[41]",
 //		 "0/1:45,20:Germline:23:65:.:99:.:29:25:A43[39.23]4[41];G28[39.39]1[41]");
 		 vcf.setFormatFields(ff);
-		 ConfidenceMode cm =new ConfidenceMode();
+		 ConfidenceMode cm = new ConfidenceMode();
 		 cm.positionRecordMap.put(vcf.getChrPosition(), java.util.Arrays.asList(vcf));
 		 cm.addAnnotation();
 		 vcf = cm.positionRecordMap.get(vcf.getChrPosition()).get(0);
@@ -452,7 +516,7 @@ public class ConfidenceModeTest {
 				 ,"0/1:5,18:Germline:21:23:.:99:.:16:15:G5[38]11[38.09];T4[34.25]4[35.5]"
 				 ,"./.:3,5:HomozygousLoss:21:8:.:99:.:7:7:G4[34.25]3[39];T4[38.25]3[33]"});
 		 
-		 ConfidenceMode cm =new ConfidenceMode();
+		 ConfidenceMode cm = new ConfidenceMode();
 		 cm.positionRecordMap.put(r.getChrPosition(), java.util.Arrays.asList(r));
 		 cm.addAnnotation();
 		 r = cm.positionRecordMap.get(r.getChrPosition()).get(0);
@@ -473,7 +537,7 @@ public class ConfidenceModeTest {
 		 ,"0/0:.:.:.:.:.:NCIG:.:.:."
 		 ,"0/1:5,44:49:.:.:3:.:.:.:1038.53"});
 		 
-		 ConfidenceMode cm =new ConfidenceMode();
+		 ConfidenceMode cm = new ConfidenceMode();
 		 cm.positionRecordMap.put(r.getChrPosition(), java.util.Arrays.asList(r));
 		 cm.addAnnotation();
 		 r = cm.positionRecordMap.get(r.getChrPosition()).get(0);
@@ -495,7 +559,7 @@ public class ConfidenceModeTest {
 				 ,"0/1:5,18:Germline:23:23:.:99:.:.:."
 				 ,"0/1:3,5:Germline:23:8:.:99:.:.:."});
 		 
-		 ConfidenceMode cm =new ConfidenceMode();
+		 ConfidenceMode cm = new ConfidenceMode();
 		 cm.positionRecordMap.put(r.getChrPosition(), java.util.Arrays.asList(r));
 		 cm.addAnnotation();
 		 r = cm.positionRecordMap.get(r.getChrPosition()).get(0);
@@ -517,7 +581,7 @@ public class ConfidenceModeTest {
 				 ,"0/1:50,40:Germline:23:90:.:99:.:.:."
 				 ,"0/1:40,27:Germline:23:67:.:99:.:.:."});
 		 
-		 ConfidenceMode cm =new ConfidenceMode();
+		 ConfidenceMode cm = new ConfidenceMode();
 		 cm.positionRecordMap.put(r.getChrPosition(), java.util.Arrays.asList(r));
 		 cm.addAnnotation();
 		 r = cm.positionRecordMap.get(r.getChrPosition()).get(0);
@@ -562,7 +626,7 @@ public class ConfidenceModeTest {
 				 ,"1/1:0,4:4:5BP=1;COVT:12:SOMATIC;GERM=53,185:4:4:G2[35]2[35]"});
 		 
 		 assertEquals(true, VcfUtils.isRecordSomatic(r));
-		 ConfidenceMode cm =new ConfidenceMode();
+		 ConfidenceMode cm = new ConfidenceMode();
 		 cm.positionRecordMap.put(r.getChrPosition(), java.util.Arrays.asList(r));
 		 cm.addAnnotation();
 		 r = cm.positionRecordMap.get(r.getChrPosition()).get(0);
@@ -608,7 +672,7 @@ public class ConfidenceModeTest {
 		 VcfRecord vcf1 = new VcfRecord(new String[]{"chr8","12306635","rs28428895","C","T",".",".","FLANK=ACACATACATA;DB;EFF=intron_variant(MODIFIER|||n.304-488G>A||ENPP7P6|unprocessed_pseudogene|NON_CODING|ENST00000529817|2|1)","GT:AC:AD:DP:NNS:FT","0/1:C10[39],3[30],G1[11],0[0],T7[41.29],1[42]:13,8:22:8:.","0/0:C19[36.11],20[38.45],T1[42],0[0]:39,1:40:1:."});
 		 VcfRecord vcf2 = new VcfRecord(new String[]{"chr8","12306635","rs28428895","C","T","57.77",".","SOMATIC;DB;GERM=30,185;EFF=intron_variant(MODIFIER|||n.304-488G>A||ENPP7P6|unprocessed_pseudogene|NON_CODING|ENST00000529817|2|1)","GT:AD:DP:GQ:PL:GD:AC:MR:NNS:FT","0/1:17,15,1:33:.:.:C/C:C14[38.79],3[30],G1[11],0[0],T11[39.27],4[25.25]:15:15:MIN","0/1:4,3:7:86:86,0,133:C/T:C22[36.23],22[36.91],T2[26.5],1[42]:3:2:MR;NNS"});
 		 
-		 ConfidenceMode cm =new ConfidenceMode(SINGLE_SAMPLE_TWO_CALLER_META);
+		 ConfidenceMode cm = new ConfidenceMode(SINGLE_SAMPLE_TWO_CALLER_META);
 		 cm.positionRecordMap.put(vcf1.getChrPosition(), java.util.Arrays.asList(vcf1, vcf2));
 		 cm.addAnnotation();
 		 
@@ -632,7 +696,7 @@ public class ConfidenceModeTest {
 				 ,"2/2:1,19:20:.:.:PASS:48:.:.:.:594.77"
 				 ,"2/2:0,8:8:.:.:PASS:22:.:.:.:119.79"});
 		 
-		 ConfidenceMode cm =new ConfidenceMode(TWO_SAMPLE_TWO_CALLER_META);
+		 ConfidenceMode cm = new ConfidenceMode(TWO_SAMPLE_TWO_CALLER_META);
 		 cm.positionRecordMap.put(vcf.getChrPosition(), Arrays.asList(vcf));
 		 cm.addAnnotation();
 		 vcf = cm.positionRecordMap.get(vcf.getChrPosition()).get(0);
@@ -676,7 +740,7 @@ public class ConfidenceModeTest {
 				 "0/0:158,4:164:A0[0]4[24.25];C128[17.64]30[20.9];G2[7]0[0]:4:.",
 				 "0/1:150,15:165:A2[7]13[28.23];C96[17.22]54[14.22]:15:."});
 		 
-		 ConfidenceMode cm =new ConfidenceMode();
+		 ConfidenceMode cm = new ConfidenceMode();
 		 cm.positionRecordMap.put(vcf1.getChrPosition(), Arrays.asList(vcf1, vcf2));
 		 cm.addAnnotation();
 		 
@@ -697,7 +761,7 @@ public class ConfidenceModeTest {
 				 "0/1:A0[0]4[24.25];C243[17.06]65[18.88];G2[7]0[0]:4:6,5:300:99:234,0,331:.:SOMATIC",
 				 "0/0:.:.:.:.:.:.:.:NCIG",
 				 "1/1:.:16:1,18:319:46:841,46,0:.:."});
-		 ConfidenceMode cm =new ConfidenceMode();
+		 ConfidenceMode cm = new ConfidenceMode();
 		 cm.positionRecordMap.put(vcf.getChrPosition(), Arrays.asList(vcf));
 		 cm.addAnnotation();
 		 
@@ -720,7 +784,7 @@ public class ConfidenceModeTest {
 				 ,"0/1:22:.:SOMATIC:16:A9[33.11]7[33.86];G3[34.33]3[35.67]:6,16:."
 				 ,"0/0:.:.:NCIG:.:.:.:."
 				 ,"0/1:23:.:SOMATIC:.:.:6,17:99"});
-		 ConfidenceMode cm =new ConfidenceMode();
+		 ConfidenceMode cm = new ConfidenceMode();
 		 cm.positionRecordMap.put(vcf.getChrPosition(), java.util.Arrays.asList(vcf));
 		 cm.addAnnotation();
 		 
@@ -743,7 +807,7 @@ public class ConfidenceModeTest {
 				 ,"1/1:1,9:10:.:.:.:8:C0[0]1[28];T9[39.67]0[0]"
 				 ,"1/1:0,17:17:.:57:.:.:."
 				 ,"0/1:1,10:11:.:46:.:.:."});
-		 ConfidenceMode cm =new ConfidenceMode();
+		 ConfidenceMode cm = new ConfidenceMode();
 		 cm.positionRecordMap.put(vcf.getChrPosition(), java.util.Arrays.asList(vcf));
 		 cm.addAnnotation();
 		 
@@ -766,7 +830,7 @@ public class ConfidenceModeTest {
 				 ,"0/1:32,7:39:.:.:.:7:C2[35]5[34];T23[33.39]9[35.44]"
 				 ,"0/0:.:.:.:.:NCIG:.:."
 				 ,"0/1:32,7:39:.:83:SOMATIC;GERM=49,185:.:."});
-		 ConfidenceMode cm =new ConfidenceMode();
+		 ConfidenceMode cm = new ConfidenceMode();
 		 cm.positionRecordMap.put(vcf.getChrPosition(), java.util.Arrays.asList(vcf));
 		 cm.addAnnotation();
 		 
@@ -791,7 +855,7 @@ public class ConfidenceModeTest {
 				 ,"0/1:5,5:10:.:.:SOMATIC;GERM=117,185:5:C1[32]4[35.5];T2[34]3[38]"
 				 ,"0/0:.:.:.:.:NCIG:.:."
 				 ,"0/1:5,5:10:.:99:SOMATIC;GERM=117,185:.:."});
-		 ConfidenceMode cm =new ConfidenceMode();
+		 ConfidenceMode cm = new ConfidenceMode();
 //		 ConfidenceMode cm =new ConfidenceMode(new short[] {1,3}, new short[]{2,4});
 		 cm.positionRecordMap.put(vcf.getChrPosition(), java.util.Arrays.asList(vcf));
 		 cm.addAnnotation();
@@ -816,7 +880,7 @@ public class ConfidenceModeTest {
 				 ,"1/1:2,17:19:.:.:SOMATIC;GERM=11,185:17:A1[39]1[39];G7[37.43]10[38.4]"
 				 ,"0/0:.:.:.:.:NCIG:.:."
 				 ,"1/1:2,17:19:.:8:SOMATIC;GERM=11,185:.:."});
-		 ConfidenceMode cm =new ConfidenceMode();
+		 ConfidenceMode cm = new ConfidenceMode();
 		 cm.positionRecordMap.put(vcf.getChrPosition(), java.util.Arrays.asList(vcf));
 		 cm.addAnnotation();
 		 
@@ -840,7 +904,7 @@ public class ConfidenceModeTest {
 				 ,"0/1:62,7:69:.:.:SOMATIC;GERM=40,185:5:G1[35]6[39.67];T32[32.12]30[36]"
 				 ,"0/0:.:.:.:.:NCIG:.:."
 				 ,"0/1:58,15:73:.:99:SOMATIC;GERM=40,185:.:."});
-		 ConfidenceMode cm =new ConfidenceMode();
+		 ConfidenceMode cm = new ConfidenceMode();
 		 cm.positionRecordMap.put(vcf.getChrPosition(), java.util.Arrays.asList(vcf));
 		 cm.addAnnotation();
 		 
@@ -864,7 +928,7 @@ public class ConfidenceModeTest {
 				 ,"1/1:1,11:12:.:.:SOMATIC;GERM=30,185:10:G5[33.6]6[35.67];T0[0]1[38]"
 				 ,"0/0:.:.:.:.:NCIG:.:."
 				 ,"0/1:1,11:12:.:7:SOMATIC;GERM=30,185:.:."});
-		 ConfidenceMode cm =new ConfidenceMode();
+		 ConfidenceMode cm = new ConfidenceMode();
 		 cm.positionRecordMap.put(vcf.getChrPosition(), java.util.Arrays.asList(vcf));
 		 cm.addAnnotation();
 		 
