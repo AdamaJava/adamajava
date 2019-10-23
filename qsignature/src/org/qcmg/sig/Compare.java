@@ -180,9 +180,6 @@ public class Compare {
 			if (result.getValue().size() < 1000) {
 				logger.warn("low coverage (" + result.getValue().size() + ") for file " + f.getAbsolutePath());
 			}
-			
-			cache.put(f, result);
-			fileIdsAndCounts.get(f.getAbsolutePath())[1] = result.getValue().size();
 		}
 		return result;
 	}
@@ -277,6 +274,7 @@ public class Compare {
 						if (null != prevGenotypes) {
 							logger.warn("already genotypes associated with file: " + f.getAbsolutePath());
 						}
+						fileIdsAndCounts.get(f.getAbsolutePath())[1] = genotypes.getValue().size();
 					}
 				});
 		}
