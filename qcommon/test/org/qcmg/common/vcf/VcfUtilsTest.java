@@ -1266,11 +1266,16 @@ public class VcfUtilsTest {
 		//static boolean mutationInNorma(int altCount, int totalReadCount, int percentage, int minCoverage) {
 		assertEquals(true, VcfUtils.mutationInNormal(1, 10, 5, 0));
 		assertEquals(true, VcfUtils.mutationInNormal(1, 20, 5, 0));
-		assertEquals(true, VcfUtils.mutationInNormal(1, 30, 5, 0));
-		assertEquals(true, VcfUtils.mutationInNormal(1, 30, 5, 1));
+		assertEquals(false, VcfUtils.mutationInNormal(1, 30, 5, 0));
+		assertEquals(false, VcfUtils.mutationInNormal(1, 30, 5, 1));
 		assertEquals(false, VcfUtils.mutationInNormal(1, 30, 5, 2));
 		assertEquals(false, VcfUtils.mutationInNormal(1, 30, 5, 3));
-		assertEquals(true, VcfUtils.mutationInNormal(3, 300, 5, 3));
+		assertEquals(false, VcfUtils.mutationInNormal(3, 300, 5, 3));
+		assertEquals(true, VcfUtils.mutationInNormal(3, 100, 3, 2));
+		assertEquals(false, VcfUtils.mutationInNormal(1, 30, 3, 2));
+		assertEquals(false, VcfUtils.mutationInNormal(2, 67, 3, 2));
+		assertEquals(true, VcfUtils.mutationInNormal(2, 66, 3, 2));
+		assertEquals(true, VcfUtils.mutationInNormal(2, 50, 3, 2));
 	}
 	
 	@Test
@@ -1310,28 +1315,32 @@ public class VcfUtilsTest {
 	public void min() {
 		assertEquals(false, VcfUtils.mutationInNormal(0, 0, 0, 0));
 		assertEquals(false, VcfUtils.mutationInNormal(0, 10, 1, 2));
-		assertEquals(true, VcfUtils.mutationInNormal(1, 10, 1, 2));
+		assertEquals(false, VcfUtils.mutationInNormal(1, 10, 1, 2));
+//		assertEquals(true, VcfUtils.mutationInNormal(1, 10, 1, 2));
 		assertEquals(true, VcfUtils.mutationInNormal(2, 10, 1, 2));
-		assertEquals(true, VcfUtils.mutationInNormal(2, 10, 1, 3));
-		assertEquals(true, VcfUtils.mutationInNormal(2, 10, 25, 2));
+		assertEquals(false, VcfUtils.mutationInNormal(2, 10, 1, 3));
+		assertEquals(false, VcfUtils.mutationInNormal(2, 10, 25, 2));
 		assertEquals(false, VcfUtils.mutationInNormal(2, 10, 25, 3));
+		assertEquals(true, VcfUtils.mutationInNormal(2, 10, 20, 2));
 		
 		
 		assertEquals(false, VcfUtils.mutationInNormal(1, 24, 5, 3));
-		assertEquals(true, VcfUtils.mutationInNormal(3, 63, 5, 3));
+		assertEquals(false, VcfUtils.mutationInNormal(3, 63, 5, 3));		// 3.15 = 0.05 * 63
 		assertEquals(true, VcfUtils.mutationInNormal(4, 79, 5, 3));
-		assertEquals(true, VcfUtils.mutationInNormal(4, 99, 5, 3));
+		assertEquals(false, VcfUtils.mutationInNormal(4, 99, 5, 3));		// 4.95 = 0.05 * 99
 		
 		assertEquals(false, VcfUtils.mutationInNormal(1, 30, 5, 3));
-		assertEquals(true, VcfUtils.mutationInNormal(1, 10, 5, 3));
-		assertEquals(true, VcfUtils.mutationInNormal(2, 10, 5, 3));
+		assertEquals(false, VcfUtils.mutationInNormal(1, 10, 5, 3));
+		assertEquals(true, VcfUtils.mutationInNormal(1, 10, 5, 1));
+		assertEquals(false, VcfUtils.mutationInNormal(2, 10, 5, 3));
+		assertEquals(true, VcfUtils.mutationInNormal(2, 10, 5, 2));
 		assertEquals(true, VcfUtils.mutationInNormal(3, 10, 5, 3));
 		assertEquals(true, VcfUtils.mutationInNormal(4, 10, 5, 3));
 		
 		assertEquals(false, VcfUtils.mutationInNormal(1, 100, 5, 3));
 		assertEquals(false, VcfUtils.mutationInNormal(2, 100, 5, 3));
-		assertEquals(true, VcfUtils.mutationInNormal(3, 100, 5, 3));
-		assertEquals(true, VcfUtils.mutationInNormal(4, 100, 5, 3));
+		assertEquals(false, VcfUtils.mutationInNormal(3, 100, 5, 3));
+		assertEquals(false, VcfUtils.mutationInNormal(4, 100, 5, 3));
 		assertEquals(true, VcfUtils.mutationInNormal(5, 100, 5, 3));
 		assertEquals(true, VcfUtils.mutationInNormal(6, 100, 5, 3));
 	}
