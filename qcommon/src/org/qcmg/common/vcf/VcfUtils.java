@@ -1494,9 +1494,7 @@ public class VcfUtils {
 
 	/**
 	 * will return true if:
-	 * altCount is >= maxCoverage
-	 * OR
-	 * altCount is 5% (or more) of the totalReadCount
+	 * altCount is >= max(minValue, percentage * (totalReadCount / 100))
 	 * 
 	 * @param altCount
 	 * @param totalReadCount
@@ -1511,24 +1509,8 @@ public class VcfUtils {
 		/*
 		 * Need to get the max(minValue, percentage * totalReadCount) and see if the alt count is larger than that
 		 */
-		return altCount >= Math.max(minValue, (totalReadCount > 0 ? (((float)totalReadCount / 100) * percentage) : 0));
+		return altCount >= Math.max(minValue, ((float) totalReadCount / 100) * percentage);
 	}
-//	public static boolean mutationInNormal(int altCount, int totalReadCount, float percentage, int maxCoverage) {
-//		if (altCount == 0) {
-//			return false;
-//		}
-//		/*
-//		 * if altCount is greater than the maxCoverage
-//		 */
-//		if (altCount >= maxCoverage) {
-//			return true;
-//		}
-//		/*
-//		 * calculate percentage
-//		 */
-//		float passingCount = totalReadCount > 0 ? (((float)totalReadCount / 100) * percentage) : 0;
-//		return altCount >= passingCount;
-//	}
 	public static boolean mutationInNormal(int altCount, int totalReadCount, int percentage, int maxCoverage) {
 		return mutationInNormal(altCount, totalReadCount, (float) percentage, maxCoverage);
 	}
