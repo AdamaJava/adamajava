@@ -131,6 +131,7 @@ public class ConfidenceMode extends AbstractMode{
 
 		//get control and test sample column; here use the header from inputRecord(...)
 		meta = new VcfFileMeta(header);
+		logger.tool("meta: " + meta.getType());
 		testCols = meta.getAllTestPositions();
 		controlCols = meta.getAllControlPositions();
 
