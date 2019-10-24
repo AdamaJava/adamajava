@@ -512,7 +512,7 @@ public class SignatureUtil {
 	public static void getDataFromBespolkeLayout(File file, int minCoverage, int minRGCoverage, TIntByteHashMap ratios,
 			TMap<String, TIntByteHashMap> rgRatios, Map<String, String> rgIds, TabbedFileReader reader) {
 		int noOfRGs = rgIds.size();
-		logger.info("Number of rgs for  " + file.getAbsolutePath() + " is " + noOfRGs);
+		logger.debug("Number of rgs for  " + file.getAbsolutePath() + " is " + noOfRGs);
 		
 		String line;
 		
