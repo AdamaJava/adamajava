@@ -50,8 +50,8 @@ public class ConfidenceMode extends AbstractMode{
 	public static final int CONTROL_COVERAGE_MIN_VALUE = 8;
 	public static final int TEST_COVERAGE_MIN_VALUE = 8;
 	
-	public static final int MUTATION_IN_NORMAL_MIN_PERCENTAGE = 3;					// setting this to 3 to mirror existing prod pipeline - was 5
-	public static final int MUTATION_IN_NORMAL_MIN_COVERAGE = Integer.MAX_VALUE;		// set this to Integer.MAX_VALUE so that we are purely using percentage
+	public static final int MUTATION_IN_NORMAL_MIN_PERCENTAGE = 3;		// setting this to 3 to mirror existing prod pipeline - was 5
+	public static final int MUTATION_IN_NORMAL_MIN_COVERAGE = 2;		// set this to 2, meaning that if defaults are used it will be max(2, 3%) that is used
 	
 	public static final int sBiasAltPercentage = 5;
 	public static final int sBiasCovPercentage = 5;
@@ -131,6 +131,7 @@ public class ConfidenceMode extends AbstractMode{
 
 		//get control and test sample column; here use the header from inputRecord(...)
 		meta = new VcfFileMeta(header);
+		logger.tool("meta: " + meta.getType());
 		testCols = meta.getAllTestPositions();
 		controlCols = meta.getAllControlPositions();
 
