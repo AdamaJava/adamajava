@@ -18,7 +18,8 @@ import org.w3c.dom.Element;
 
 public class KmersSummary {
 		
-	int cycleNo = 0 ; //init 0, eventially store the biggest cycle number
+	//init 0, eventially store the biggest cycle number
+	private int cycleNo ; 
 
 	//unpaired, firstOfPair, secondOfPair
 	private final QCMGAtomicLongArray[] tally = new QCMGAtomicLongArray[3] ;
@@ -39,6 +40,8 @@ public class KmersSummary {
 	private final String[] mersStrList; 
 	
 	public KmersSummary( int length ) {	
+		cycleNo = 0 ; //init 0, eventially store the biggest cycle number
+		
 		if(length > maxKmers ){ 			
 			System.err.println("array size exceed Integer.MAX_VALUE/2! please reduce kmers length below 6. ");
 			System.exit(1);
@@ -64,8 +67,8 @@ public class KmersSummary {
 		
 		for(int i = 0; i < 3; i ++){
 			//array capacity for kmers. eg. kmer=6, base=1000mers ,  
-			//maxCapacity = 4^6 * 1000 = 4096,000 incase of excludes 'N' 
-			//maxCapacity = 5^6 * 1000 = 15625,000 incase of includes 'N'
+			//maxCapacity = 4^6 * 1000 = 4096,000 in case of excludes 'N' 
+			//maxCapacity = 5^6 * 1000 = 15625,000 in case of includes 'N'
 			tally[i] =  new QCMGAtomicLongArray( (int) ( iniCycleNo * mersStrList.length ),  (int) ( maxCycleNo * mersStrList.length ));	
 			parsedCount[i] = new AtomicLong();
 		}
@@ -236,7 +239,7 @@ public class KmersSummary {
 	Set<String> getPopularKmerString(final int popularNo, final int kLength, final boolean includeN, final int flagFristRead){
 	 
 		String[] possibleMers = getPossibleKmerString(kLength, false);
-		//incase empty input bam
+		//in case empty input bam
 		if(cycleNo == 0 || possibleMers.length <= popularNo    ) 
 			return new HashSet<String>(Arrays.asList(possibleMers) );
 	 	

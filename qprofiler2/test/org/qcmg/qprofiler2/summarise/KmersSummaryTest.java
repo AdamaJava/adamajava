@@ -10,13 +10,9 @@ import java.io.PrintWriter;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
@@ -28,7 +24,6 @@ import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.XmlElementUtils;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qprofiler2.util.XmlUtils;
-import org.w3c.dom.DOMException;
 import org.w3c.dom.Element;
 
 import htsjdk.samtools.SAMRecord;
@@ -335,7 +330,7 @@ public class KmersSummaryTest {
 			summary.parseKmers(sb.toString().getBytes(), false, 1);	
 		}
 		
-		//reach maximum 1000base
+		//reach maximum 1000 base
 		for(int i = 0; i < (KmersSummary.maxCycleNo/bases.length() -200); i ++) sb.append(bases);		
 		assertTrue(sb.length() == KmersSummary.maxCycleNo);
 		summary.parseKmers(sb.toString().getBytes(), false, 1);	
