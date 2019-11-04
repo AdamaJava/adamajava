@@ -314,7 +314,7 @@ public class BamSummaryReport2 extends SummaryReport {
 	 * Parse a SAMRecord Collate various pieces of info from the SAMRecord ready for the summariser to retrieve
 	 * @param record SAMRecord next row in file
 	 */
-	public void parseRecord( final SAMRecord record ) {
+	public void parseRecord( final SAMRecord record ) throws Exception{
  		updateRecordsInputed();
  				
 		String readGroup = XmlUtils.UNKNOWN_READGROUP;

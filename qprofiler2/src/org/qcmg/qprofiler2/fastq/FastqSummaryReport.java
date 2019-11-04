@@ -107,7 +107,7 @@ public class FastqSummaryReport extends SummaryReport {
 	 * 
 	 * @return next row in file
 	 */
-	public void parseRecord(FastqRecord record) {
+	public void parseRecord(FastqRecord record) throws Exception {
 		if( null == record ) return;
 		 			
 		updateRecordsInputed();

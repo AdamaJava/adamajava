@@ -18,14 +18,17 @@ import org.w3c.dom.Element;
 
 public class KmersSummary {
 		
-	private int cycleNo = 0 ; //init 0, eventially store the biggest cycle number
-	
+	int cycleNo = 0 ; //init 0, eventially store the biggest cycle number
+
 	//unpaired, firstOfPair, secondOfPair
 	private final QCMGAtomicLongArray[] tally = new QCMGAtomicLongArray[3] ;
 	private final AtomicLong[] parsedCount = new AtomicLong[3]; 
+			
+	//here we can only handle read length smaller than 1000
+    static final int maxCycleNo = 1000;	
+	private static final int iniCycleNo = 126;
 	
-	private static final int iniCycleNo = 126;	
-	public static final int maxKmers = 6; 
+	public static final int maxKmers = 6; 	
 	public static final String atgc = "ATGC";  //make sure letter on same order
 	public static final String atgcn = "ATGCN";  //make sure letter on same order
 	public static final char[] atgcCharArray = new char[]{'A','T','G','C'};
@@ -60,7 +63,10 @@ public class KmersSummary {
 		}	
 		
 		for(int i = 0; i < 3; i ++){
-			tally[i] =  new QCMGAtomicLongArray( (int) ( iniCycleNo * mersStrList.length ) );	
+			//array capacity for kmers. eg. kmer=6, base=1000mers ,  
+			//maxCapacity = 4^6 * 1000 = 4096,000 incase of excludes 'N' 
+			//maxCapacity = 5^6 * 1000 = 15625,000 incase of includes 'N'
+			tally[i] =  new QCMGAtomicLongArray( (int) ( iniCycleNo * mersStrList.length ),  (int) ( maxCycleNo * mersStrList.length ));	
 			parsedCount[i] = new AtomicLong();
 		}
 		
@@ -97,7 +103,11 @@ public class KmersSummary {
 		String str1 = producer( k, "", includeN );			
 		return str1.split(Constants.COMMA_STRING);
 	}	
-	public void parseKmers( byte[] readString, boolean reverse , int flagFirstOfPair){
+	public void parseKmers( byte[] readString, boolean reverse , int flagFirstOfPair) throws Exception{
+		 if( readString.length > maxCycleNo ) {
+			 throw new Exception("Can't handle large read sequence, which length is greater than " + maxCycleNo + "!");
+			 
+		 }
 		 //get the biggest cycle
 		 int c = readString.length - merLength + 1;	
 		 if(c > cycleNo) cycleNo = c; 
@@ -127,7 +137,7 @@ public class KmersSummary {
 		return cycle * mersStrList.length +  pos;
 	}
 	
-	
+	//just for fast caculate, the return value is not position of mers in QCMGArray
 	private int getEntry(byte[] mers){
 		int entry = 0; 
 		for(int i = 0, j = mers.length-1; i < mers.length; i ++, j-- ){
@@ -222,7 +232,8 @@ public class KmersSummary {
 		}			
 	}	
 	
-	public Set<String> getPopularKmerString(final int popularNo, final int kLength, final boolean includeN, final int flagFristRead){
+	//set to package access level due for unit test
+	Set<String> getPopularKmerString(final int popularNo, final int kLength, final boolean includeN, final int flagFristRead){
 	 
 		String[] possibleMers = getPossibleKmerString(kLength, false);
 		//incase empty input bam
