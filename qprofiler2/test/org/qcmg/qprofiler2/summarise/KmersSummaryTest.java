@@ -349,10 +349,6 @@ public class KmersSummaryTest {
 			//expected exception due to large seq 
 			assertTrue(true);
 		}				
-	}
-	
+	}	
 }
-
-
-
 
