@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.xml.parsers.ParserConfigurationException;
+
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -98,7 +100,7 @@ public class KmersSummaryTest {
 	}
 	
 	@Test
-	public void bothReversedTest() throws Exception {		
+	public void bothReversedTest() throws IllegalArgumentException, IOException {		
 		KmersSummary summary = new KmersSummary(KmersSummary.maxKmers);	
  		try( SamReader reader = SAMFileReaderFactory.createSAMFileReader(input);){
  			for (SAMRecord record : reader){ 
@@ -122,7 +124,7 @@ public class KmersSummaryTest {
 	}
 	
 	@Test
-	public void toXmlFastqTest() throws Exception {
+	public void toXmlFastqTest() throws IllegalArgumentException, ParserConfigurationException {
 		
 		final String base1 = "CAGNGTTAGGTTTTT";
 		final String base2 = "CCCCGTTAGGTTTTTT";
@@ -154,7 +156,7 @@ public class KmersSummaryTest {
 	}
 
 	@Test
-	public void toXmlTest() throws Exception {		
+	public void toXmlTest() throws IllegalArgumentException, ParserConfigurationException, IOException {		
 		KmersSummary summary = new KmersSummary(KmersSummary.maxKmers);	
  		try( SamReader reader = SAMFileReaderFactory.createSAMFileReader(input);){
  			for (SAMRecord record : reader){ 		
@@ -210,7 +212,7 @@ public class KmersSummaryTest {
 	
 	
 	@Test
-	public void bothForwardTest() throws Exception {
+	public void bothForwardTest() throws IllegalArgumentException, IOException {
 		
 		KmersSummary summary = new KmersSummary(KmersSummary.maxKmers);	
  		try( SamReader reader = SAMFileReaderFactory.createSAMFileReader(input);){
@@ -261,7 +263,7 @@ public class KmersSummaryTest {
 	 * here we set the base to more the 15 base
 	 * @throws ParserConfigurationException
 	 */
-	public void bothFirstTest() throws Exception {
+	public void bothFirstTest() throws IllegalArgumentException {
 						
 		final String base1 = "CAGNGTTAGGTTTTT";
 		final String base2 = "CCCCGTTAGGTTTTTT";
@@ -318,7 +320,7 @@ public class KmersSummaryTest {
 	}
 		 
 	@Test
-	public void maxLengthTest() throws Exception {	
+	public void maxLengthTest() throws IllegalArgumentException {	
 		final String bases = "ATGC";
 		KmersSummary summary = new KmersSummary(KmersSummary.maxKmers);	
 		
@@ -345,7 +347,7 @@ public class KmersSummaryTest {
 			summary.parseKmers(sb.toString().getBytes(), false, 1);	
 			//must fail if no exception happen
 			assertFalse(true);
-		}catch(Exception e) {
+		}catch(IllegalArgumentException e) {
 			//expected exception due to large seq 
 			assertTrue(true);
 		}				

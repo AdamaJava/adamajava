@@ -106,9 +106,9 @@ public class KmersSummary {
 		String str1 = producer( k, "", includeN );			
 		return str1.split(Constants.COMMA_STRING);
 	}	
-	public void parseKmers( byte[] readString, boolean reverse , int flagFirstOfPair) throws Exception{
+	public void parseKmers( byte[] readString, boolean reverse , int flagFirstOfPair) throws IllegalArgumentException{
 		 if( readString.length > maxCycleNo ) {
-			 throw new Exception("Can't handle large read sequence, which length is greater than " + maxCycleNo + "!");
+			 throw new IllegalArgumentException("Can't handle large read sequence, which length is greater than " + maxCycleNo + "!");
 			 
 		 }
 		 //get the biggest cycle

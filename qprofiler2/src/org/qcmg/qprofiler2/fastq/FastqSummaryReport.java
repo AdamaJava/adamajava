@@ -66,7 +66,7 @@ public class FastqSummaryReport extends SummaryReport {
 		for(int order = 0; order < 3; order++) {
 			counts += seqByCycle.getInputCounts();
 		}
-		Pair rcPair = new Pair<String, Number>(ReadGroupSummary.READ_COUNT, counts);
+		Pair<String, Number> rcPair = new Pair<>(ReadGroupSummary.READ_COUNT, counts);
 		Element ele = XmlUtils.createMetricsNode( element, XmlUtils.SEQ_BASE , rcPair); 
 		seqByCycle.toXml( ele, XmlUtils.SEQ_BASE,seqByCycle.getInputCounts());	
 		
@@ -107,7 +107,7 @@ public class FastqSummaryReport extends SummaryReport {
 	 * 
 	 * @return next row in file
 	 */
-	public void parseRecord(FastqRecord record) throws Exception {
+	public void parseRecord(FastqRecord record) throws IllegalArgumentException {
 		if( null == record ) return;
 		 			
 		updateRecordsInputed();
