@@ -100,7 +100,7 @@ public class KmersSummaryTest {
 	}
 	
 	@Test
-	public void bothReversedTest() throws IllegalArgumentException, IOException {		
+	public void bothReversedTest() throws IOException {		
 		KmersSummary summary = new KmersSummary(KmersSummary.maxKmers);	
  		try( SamReader reader = SAMFileReaderFactory.createSAMFileReader(input);){
  			for (SAMRecord record : reader){ 
