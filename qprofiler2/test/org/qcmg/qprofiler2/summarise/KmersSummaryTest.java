@@ -124,7 +124,7 @@ public class KmersSummaryTest {
 	}
 	
 	@Test
-	public void toXmlFastqTest() throws IllegalArgumentException, ParserConfigurationException {
+	public void toXmlFastqTest() throws  ParserConfigurationException {
 		
 		final String base1 = "CAGNGTTAGGTTTTT";
 		final String base2 = "CCCCGTTAGGTTTTTT";
@@ -156,7 +156,7 @@ public class KmersSummaryTest {
 	}
 
 	@Test
-	public void toXmlTest() throws IllegalArgumentException, ParserConfigurationException, IOException {		
+	public void toXmlTest() throws ParserConfigurationException, IOException {		
 		KmersSummary summary = new KmersSummary(KmersSummary.maxKmers);	
  		try( SamReader reader = SAMFileReaderFactory.createSAMFileReader(input);){
  			for (SAMRecord record : reader){ 		
@@ -212,7 +212,7 @@ public class KmersSummaryTest {
 	
 	
 	@Test
-	public void bothForwardTest() throws IllegalArgumentException, IOException {
+	public void bothForwardTest() throws  IOException {
 		
 		KmersSummary summary = new KmersSummary(KmersSummary.maxKmers);	
  		try( SamReader reader = SAMFileReaderFactory.createSAMFileReader(input);){
@@ -263,7 +263,7 @@ public class KmersSummaryTest {
 	 * here we set the base to more the 15 base
 	 * @throws ParserConfigurationException
 	 */
-	public void bothFirstTest() throws IllegalArgumentException {
+	public void bothFirstTest() {
 						
 		final String base1 = "CAGNGTTAGGTTTTT";
 		final String base2 = "CCCCGTTAGGTTTTTT";
@@ -320,7 +320,7 @@ public class KmersSummaryTest {
 	}
 		 
 	@Test
-	public void maxLengthTest() throws IllegalArgumentException {	
+	public void maxLengthTest() {	
 		final String bases = "ATGC";
 		KmersSummary summary = new KmersSummary(KmersSummary.maxKmers);	
 		
