@@ -167,7 +167,7 @@ public class BamSummaryReport2 extends SummaryReport {
 		for(int order = 0; order < 3; order++) {
 			counts += seqByCycle[order].getInputCounts();
 		}
-		Pair rcPair = new Pair<String, Number>(ReadGroupSummary.READ_COUNT, counts);
+		Pair<String, Number> rcPair = new Pair<>(ReadGroupSummary.READ_COUNT, counts);
 		
 		//sequenceBase	
 		Element ele = XmlUtils.createMetricsNode( parent,  XmlUtils.SEQ_BASE,  rcPair );	
@@ -207,7 +207,7 @@ public class BamSummaryReport2 extends SummaryReport {
 		for(int order = 0; order < 3; order++) {
 			counts += qualByCycleInteger[order].getInputCounts();
 		}
-		Pair rcPair = new Pair<String, Number>(ReadGroupSummary.READ_COUNT, counts);
+		Pair<String, Number> rcPair = new Pair<>(ReadGroupSummary.READ_COUNT, counts);
 		
 		//"count on quality base",
 		Element ele = XmlUtils.createMetricsNode( parent,  XmlUtils.QUAL_BASE,  rcPair); 

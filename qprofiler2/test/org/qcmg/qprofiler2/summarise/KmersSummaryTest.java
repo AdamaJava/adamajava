@@ -10,7 +10,6 @@ import java.io.PrintWriter;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -27,7 +26,6 @@ import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.XmlElementUtils;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qprofiler2.util.XmlUtils;
-import org.w3c.dom.DOMException;
 import org.w3c.dom.Element;
 
 import htsjdk.samtools.SAMRecord;
@@ -126,7 +124,7 @@ public class KmersSummaryTest {
 	}
 	
 	@Test
-	public void toXmlFastqTest() throws ParserConfigurationException {
+	public void toXmlFastqTest() throws  ParserConfigurationException {
 		
 		final String base1 = "CAGNGTTAGGTTTTT";
 		final String base2 = "CCCCGTTAGGTTTTTT";
@@ -158,7 +156,7 @@ public class KmersSummaryTest {
 	}
 
 	@Test
-	public void toXmlTest() throws IOException, DOMException, ParserConfigurationException {		
+	public void toXmlTest() throws ParserConfigurationException, IOException {		
 		KmersSummary summary = new KmersSummary(KmersSummary.maxKmers);	
  		try( SamReader reader = SAMFileReaderFactory.createSAMFileReader(input);){
  			for (SAMRecord record : reader){ 		
@@ -214,7 +212,7 @@ public class KmersSummaryTest {
 	
 	
 	@Test
-	public void bothForwardTest() throws IOException {
+	public void bothForwardTest() throws  IOException {
 		
 		KmersSummary summary = new KmersSummary(KmersSummary.maxKmers);	
  		try( SamReader reader = SAMFileReaderFactory.createSAMFileReader(input);){
@@ -265,13 +263,14 @@ public class KmersSummaryTest {
 	 * here we set the base to more the 15 base
 	 * @throws ParserConfigurationException
 	 */
-	public void bothFirstTest() throws ParserConfigurationException {
+	public void bothFirstTest() {
+						
 		final String base1 = "CAGNGTTAGGTTTTT";
 		final String base2 = "CCCCGTTAGGTTTTTT";
 
 		KmersSummary summary = new KmersSummary(KmersSummary.maxKmers);	
 		summary.parseKmers( base1.getBytes() , false, 1);
-		summary.parseKmers( base2.getBytes() , false, 1);
+		summary.parseKmers( base2.getBytes() , false, 1);		
 				
 		/** 		
 		 * int midCycle = cycleNo / 2; 
@@ -296,10 +295,10 @@ public class KmersSummaryTest {
 		//mers are not counted that is zero unless "TTA,GGT,CCG"
 		assertEquals( "TTA,GGT,CCG", StringUtils.join( summary.getPopularKmerString(16,  3, false, 1), ",") );
 		//nothing on second pair
-		assertEquals( "", StringUtils.join(summary.getPopularKmerString(16,  3, false, 2), ",") );						
+		assertEquals( "", StringUtils.join(summary.getPopularKmerString(16,  3, false, 2), ",") );		
+				
 	}
-	
-	
+		
 	private static void createTestSamFile( ) {
 		List<String> data = new ArrayList<String>();
 		data.add("@HD	VN:1.0	SO:coordinate");
@@ -319,5 +318,39 @@ public class KmersSummaryTest {
 					Level.WARNING, "IOException caught whilst attempting to write to SAM test file: " + input.getAbsolutePath(), e);
 		}  
 	}
-	
+		 
+	@Test
+	public void maxLengthTest() {	
+		final String bases = "ATGC";
+		KmersSummary summary = new KmersSummary(KmersSummary.maxKmers);	
+		
+		//due to summary.toXml(). getPopularKmerString(...).getPossibleKmerString(kLength, false)
+		//any seq include 'N' will not be reported, it is better to skip 'N' for testing
+		StringBuilder sb=new StringBuilder();
+		for(int i = 0; i < 200; i ++) sb.append(bases);
+		for(int i = 0; i < 100; i ++) {
+			summary.parseKmers(sb.toString().getBytes(), false, 1);	
+		}
+		
+		//reach maximum 1000 base
+		for(int i = 0; i < (KmersSummary.maxCycleNo/bases.length() -200); i ++) sb.append(bases);		
+		assertTrue(sb.length() == KmersSummary.maxCycleNo);
+		summary.parseKmers(sb.toString().getBytes(), false, 1);	
+		
+		assertTrue(summary.getCount(793, "TGCATG", 1 ) == 101 ); //cycle + 1 = 794 to xml
+		assertTrue(summary.getCount(797, "TGCATG", 1 ) == 1 ); //cycle + 1 = 794 to xml
+						
+		//test oversize sequence 
+		try {
+			sb.append("A");
+			assertTrue(sb.length() > KmersSummary.maxCycleNo);
+			summary.parseKmers(sb.toString().getBytes(), false, 1);	
+			//must fail if no exception happen
+			assertFalse(true);
+		}catch(IllegalArgumentException e) {
+			//expected exception due to large seq 
+			assertTrue(true);
+		}				
+	}	
 }
+
