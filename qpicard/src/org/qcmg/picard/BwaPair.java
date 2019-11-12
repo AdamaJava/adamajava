@@ -21,6 +21,10 @@ public class BwaPair {
 	public static int getOverlapBase(SAMRecord  record) {
 		
 		int tLen = record.getInferredInsertSize();
+	
+	   	//debug
+	   	System.out.println(String.format("debug: tLen=%d, readStart=%d, mateStart=%d", tLen,record.getAlignmentStart(), record.getMateAlignmentStart() ));
+		
 		
 		//to avoid double counts, we only select one of Pair: tLen > 0 
 		//that is we only select the one behind the mate: --selected---    ---mated--
@@ -31,7 +35,9 @@ public class BwaPair {
 	   	//pick up first of pair if same strand read and tlen=0
 	    //warning, mate unmapped/different ref, also tLen == 0; default tLen == 0 if the tLen value is not sure. 
 	   	if(tLen == 0 && !record.getFirstOfPairFlag() ) return 0;
-	   	       
+
+	   	
+	   	
 	   	int result  = 0;  	
 		// |--selected--->    <---mated---|  mate end = tLen -1 + read start  
 		if( record.getReadNegativeStrandFlag() != record.getMateNegativeStrandFlag()  ) {  		
@@ -46,6 +52,11 @@ public class BwaPair {
 			int readEnd = record.getAlignmentEnd();   //forward read end
 			
 			result = Math.min( readEnd, mateEnd ) - Math.max(record.getAlignmentStart(), record.getMateAlignmentStart() ) + 1;   
+		}else if(tLen == 0 && (record.getAlignmentStart() != record.getMateAlignmentStart())) {
+			//tLen == 0 may means pair with same strand and start; or outward pair with 1 base overlap
+		   	//tLen == 0 also means value is unavailable if not above case			
+			return 0;
+			
 		}else if( !record.getReadNegativeStrandFlag()) { 
 	   		//|--->    or     |-----> (read end - mate start>0) or       |----->
 	   		//|----->              |----->                      |---> (read end - mate start < 0)  		

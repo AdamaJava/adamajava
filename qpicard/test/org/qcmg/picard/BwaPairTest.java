@@ -10,7 +10,7 @@ import org.qcmg.picard.BwaPair.Pair;
 import htsjdk.samtools.SAMRecord;
 
 public class BwaPairTest {
-
+/*
 	@Test
 	public void isOverlapF3F5() {
 		//read   : first of pair    |---->        or  	   <------|      
@@ -190,6 +190,43 @@ public class BwaPairTest {
 		recorda.setInferredInsertSize(17);
 		//overlap = min_ends - max_start + 1= min(104, 120+?) - 120 + 1
 		assertTrue(BwaPair.getOverlapBase(recorda) == 0);
+		
+	}
+
+	*/
+	@Test
+	public void unvailableTlenTest() {
+		
+		
+		SAMRecord recorda = new SAMRecord(null);
+		
+		//both forward --mate--     --read--
+		recorda.setFlags(65); 
+		recorda.setAlignmentStart(17020467);		
+		recorda.setMateAlignmentStart(6513428);
+		recorda.setInferredInsertSize(0 );
+		assertTrue(BwaPair.getOverlapBase(recorda) == 0); 
+		
+		
+		//both forward same start     
+		recorda.setCigarString("200M");
+		recorda.setMateAlignmentStart(17020467);
+		System.out.println("BwaPair.getOverlapBase(recorda) == 200 : " + BwaPair.getOverlapBase(recorda));
+		assertTrue(BwaPair.getOverlapBase(recorda) == 200);
+
+		//both reverse same start
+		recorda.setFlags(113); 
+		System.out.println("setFlags(113) BwaPair.getOverlapBase(recorda) == 200 : " + BwaPair.getOverlapBase(recorda));
+		assertTrue(BwaPair.getOverlapBase(recorda) == 200);
+		
+		
+		//read forward, mate reverse
+		recorda.setFlags(113); 
+		System.out.println("setFlags(97) BwaPair.getOverlapBase(recorda) == 200 : " + BwaPair.getOverlapBase(recorda));
+		assertTrue(BwaPair.getOverlapBase(recorda) == 200);
+		
+		
+
 		
 	}
 
