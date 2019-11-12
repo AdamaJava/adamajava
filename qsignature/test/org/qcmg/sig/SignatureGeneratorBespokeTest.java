@@ -13,7 +13,6 @@ import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
-import org.qcmg.sig.model.BaseReadGroup;
 import org.qcmg.vcf.VCFFileReader;
 
 import gnu.trove.map.TObjectIntMap;
@@ -261,6 +260,99 @@ public class SignatureGeneratorBespokeTest {
 		assertEquals("QAF=t:0-0-0-20,rg2:0-0-0-20", recs.get(3).getInfo());
 		assertEquals("QAF=t:0-10-0-0,rg1:0-10-0-0", recs.get(4).getInfo());
 		assertEquals("QAF=t:0-20-0-0,rg0:0-20-0-0", recs.get(5).getInfo());
+	}
+	
+	@Test
+	public void runProcessWithNoOutputOption() throws Exception {
+		final File positionsOfInterestFile = testFolder.newFile("runProcessWithHG19BamFile.snps.txt");
+		final File illuminaArraysDesignFile = testFolder.newFile("runProcessWithHG19BamFile.illuminaarray.txt");
+		final File bamFile = testFolder.newFile("runProcessWithHG19BamFile.bam");
+		final File logFile = testFolder.newFile("runProcessWithHG19BamFile.log");
+		
+		SignatureGeneratorTest.writeSnpPositionsFile(positionsOfInterestFile);
+		
+		/*
+		 * no output or dir option specified
+		 * output will live next to input
+		 */
+		int exitStatus = qss.setup(new String[] {"--log" , logFile.getAbsolutePath(), 
+				"-snpPositions" , positionsOfInterestFile.getAbsolutePath(), 
+				"-i" , bamFile.getAbsolutePath(),  
+				"-illuminaArraysDesign" , illuminaArraysDesignFile.getAbsolutePath()} );
+		assertEquals(0, exitStatus);
+		assertTrue(new File(bamFile.getAbsolutePath() + ".qsig.vcf.gz").exists());
+		assertTrue(new File(bamFile.getAbsolutePath() + ".qsig.vcf.gz").length() > 0);
+	}
+		
+		
+	@Test
+	public void runProcessWithOutputOptionFile() throws Exception {
+		final File positionsOfInterestFile = testFolder.newFile("runProcessWithHG19BamFile.snps.txt");
+		final File illuminaArraysDesignFile = testFolder.newFile("runProcessWithHG19BamFile.illuminaarray.txt");
+		final File bamFile = testFolder.newFile("runProcessWithHG19BamFile.bam");
+		final File logFile = testFolder.newFile("runProcessWithHG19BamFile.log");
+		
+		SignatureGeneratorTest.writeSnpPositionsFile(positionsOfInterestFile);
+		/*
+		 * and now with the output option pointing to a file
+		 */
+		String outputFile = testFolder.newFile("output_file").getAbsolutePath();
+		int exitStatus = qss.setup(new String[] {"--log", logFile.getAbsolutePath(), 
+				"-snpPositions", positionsOfInterestFile.getAbsolutePath(), 
+				"-i", bamFile.getAbsolutePath(),  
+				"-output", outputFile,  
+				"-illuminaArraysDesign", illuminaArraysDesignFile.getAbsolutePath()} );
+		assertEquals(0, exitStatus);
+		assertTrue(new File(outputFile).exists());
+		assertTrue(new File(outputFile).length() > 0);
+	}
+		
+	
+	@Test
+	public void runProcessWithOutputOptionDir() throws Exception {
+		final File positionsOfInterestFile = testFolder.newFile("runProcessWithHG19BamFile.snps.txt");
+		final File illuminaArraysDesignFile = testFolder.newFile("runProcessWithHG19BamFile.illuminaarray.txt");
+		final File bamFile = testFolder.newFile("runProcessWithHG19BamFile.bam");
+		final File logFile = testFolder.newFile("runProcessWithHG19BamFile.log");
+		
+		SignatureGeneratorTest.writeSnpPositionsFile(positionsOfInterestFile);
+		/*
+		 * and now with the output option pointing to a folder
+		 * this means the output will be in the form : folder/input_name.qsig.vcf.gz
+		 */
+		String outputFolder = testFolder.newFolder("output_folder").getAbsolutePath();
+		int exitStatus = qss.setup(new String[] {"--log", logFile.getAbsolutePath(), 
+				"-snpPositions", positionsOfInterestFile.getAbsolutePath(), 
+				"-i", bamFile.getAbsolutePath(),  
+				"-output", outputFolder,  
+				"-illuminaArraysDesign", illuminaArraysDesignFile.getAbsolutePath()} );
+		assertEquals(0, exitStatus);
+		assertTrue(new File(outputFolder + File.separator + bamFile.getName() + ".qsig.vcf.gz").exists());
+		assertTrue(new File(outputFolder + File.separator + bamFile.getName() + ".qsig.vcf.gz").length() > 0);
+	}
+		
+		
+	@Test
+	public void runProcessWithDirOption() throws Exception {
+		final File positionsOfInterestFile = testFolder.newFile("runProcessWithHG19BamFile.snps.txt");
+		final File illuminaArraysDesignFile = testFolder.newFile("runProcessWithHG19BamFile.illuminaarray.txt");
+		final File bamFile = testFolder.newFile("runProcessWithHG19BamFile.bam");
+		final File logFile = testFolder.newFile("runProcessWithHG19BamFile.log");
+		
+		SignatureGeneratorTest.writeSnpPositionsFile(positionsOfInterestFile);
+		/*
+		 * and now with the dir option pointing to a folder
+		 * this means the output will be in the form : dir/input_name.qsig.vcf.gz
+		 */
+		String dir = testFolder.newFolder("output_dir").getAbsolutePath();
+		int exitStatus = qss.setup(new String[] {"--log", logFile.getAbsolutePath(), 
+				"-snpPositions", positionsOfInterestFile.getAbsolutePath(), 
+				"-i", bamFile.getAbsolutePath(),  
+				"-d", dir,  
+				"-illuminaArraysDesign", illuminaArraysDesignFile.getAbsolutePath()} );
+		assertEquals(0, exitStatus);
+		assertEquals(true, new File(dir + File.separator + bamFile.getName() + ".qsig.vcf.gz").exists());
+		assertTrue(new File(dir + File.separator + bamFile.getName() + ".qsig.vcf.gz").length() > 0);
 	}
 
 }
