@@ -9,9 +9,10 @@
  */
 package au.edu.qimr.qannotate.utils;
 
+import org.qcmg.common.log.QLogger;
+import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
-import org.qcmg.common.log.*;
 
 /*
  * Consequence are happened at protein_coding with impact HIGH, MODERATE or LOW

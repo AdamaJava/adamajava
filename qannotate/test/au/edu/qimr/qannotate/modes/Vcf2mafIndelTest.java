@@ -14,9 +14,6 @@ import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import junit.framework.Assert;
-
-import org.junit.After;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.commandline.Executor;
@@ -29,6 +26,7 @@ import org.qcmg.vcf.VCFFileReader;
 
 import au.edu.qimr.qannotate.utils.MafElement;
 import au.edu.qimr.qannotate.utils.SnpEffMafRecord;
+import junit.framework.Assert;
 
 
 public class Vcf2mafIndelTest {

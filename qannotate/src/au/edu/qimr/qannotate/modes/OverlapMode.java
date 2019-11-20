@@ -3,9 +3,11 @@ package au.edu.qimr.qannotate.modes;
 import java.io.File;
 import java.util.AbstractQueue;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
@@ -17,11 +19,10 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrPositionComparator;
-
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.vcf.VcfFormatFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
-import org.qcmg.common.util.Constants;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qbamfilter.query.QueryExecutor;
 
@@ -30,7 +31,6 @@ import au.edu.qimr.qannotate.utils.ContigPileup;
 import au.edu.qimr.qannotate.utils.VariantPileup;
 import htsjdk.samtools.SAMSequenceRecord;
 import htsjdk.samtools.SamReader;
-import java.util.Arrays;
 
 public class OverlapMode extends AbstractMode{
 
@@ -136,11 +136,12 @@ public class OverlapMode extends AbstractMode{
 			return new ConcurrentLinkedQueue<VcfRecord>(); 	
 				  
 		List<VcfRecord> list = new ArrayList<> ();	
-		for(ChrPosition pos : positionRecordMap.keySet()){
+		for(Entry<ChrPosition, List<VcfRecord>> entry : positionRecordMap.entrySet()){
 			//get variants from same contig
-			if(contig != null && !pos.getChromosome().equals(contig.getSequenceName())  )
-				continue; 
-			list.addAll(positionRecordMap.get(pos));
+			if (contig != null && ! entry.getKey().getChromosome().equals(contig.getSequenceName()) ) {
+				continue;
+			}
+			list.addAll(entry.getValue());
 		}
 
 		// lambda expression to replace abstract method			 				 

@@ -5,14 +5,28 @@
 */
 package au.edu.qimr.qannotate.modes;
 
-import java.io.*;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
-import org.qcmg.common.util.*;
+import org.qcmg.common.util.Constants;
+import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.util.IndelUtils.SVTYPE;
-import org.qcmg.common.vcf.*;
+import org.qcmg.common.vcf.VcfRecord;
+import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
@@ -50,7 +64,7 @@ public class TandemRepeatMode  extends AbstractMode{
         logger.tool("mask File: " + options.getDatabaseFileName() );
         logger.tool("output annotated records: " + options.getOutputFileName());
         logger.tool("logger file " + options.getLogFileName());
-        logger.tool("logger level " + (options.getLogLevel() == null ? QLoggerFactory.DEFAULT_LEVEL.getName() :  options.getLogLevel()));
+        logger.tool("logger level " + (options.getLogLevel() == null ? QLoggerFactory.DEFAULT_LEVEL.getName() : options.getLogLevel()));
           
 		addAnnotation( options.getDatabaseFileName() );				
 	}	
@@ -140,11 +154,13 @@ public class TandemRepeatMode  extends AbstractMode{
 		int totalRepeat = 0; 
 		int totalBlock = 0;					
 		Map<String, BlockIndex> indexedBlock  = new HashMap<>();
-		for(String chr: repeats.keySet()){
-			 logger.debug("indexing blocks for " + chr);
-			 indexedBlock.put(chr,  makeIndexedBlock( repeats.get(chr)));
-			 totalRepeat += repeats.get(chr).size();
-			 totalBlock += indexedBlock.get(chr).index.size();	 
+		
+		for(Entry<String, HashSet<Repeat>> entry: repeats.entrySet()){
+			String chr = entry.getKey();
+			logger.debug("indexing blocks for " + chr);
+			indexedBlock.put(chr,  makeIndexedBlock(entry.getValue()));
+			totalRepeat += entry.getValue().size();
+			totalBlock += indexedBlock.get(chr).index.size();	 
 		}
 	
 		logger.info("total repeats from dbfile is " + totalRepeat);
@@ -153,7 +169,7 @@ public class TandemRepeatMode  extends AbstractMode{
 		long count = 0;
 		long repeatCount = 0; 
 		try (VCFFileReader reader = new VCFFileReader(input) ;
-            VCFFileWriter writer = new VCFFileWriter(new File(output))  ) {
+            VCFFileWriter writer = new VCFFileWriter(new File(output)) ) {
 			//reheader
 		    VcfHeader hd = 	reader.getHeader();
 		    hd = reheader(hd, commandLine ,input);			    
@@ -161,16 +177,17 @@ public class TandemRepeatMode  extends AbstractMode{
 		    hd.addFilter(VcfHeaderUtils.FILTER_TRF, VcfHeaderUtils.FILTER_TRF_DESC );
 		    
 		    for(final VcfHeaderRecord record: hd) {
-		    		writer.addHeader(record.toString());			
+		    	writer.addHeader(record.toString());			
 		    }
-			logger.info("annotating vcfs from inputs " );
+			logger.info("annotating vcfs from inputs ");
 			
-	        for (final VcfRecord vcf : reader) {   
-		        	String vcfchr =  IndelUtils.getFullChromosome(vcf.getChromosome());	         
-	 	    		if(annotate(vcf, indexedBlock.get(vcfchr)))
-	 	    			repeatCount ++; 	    			
-		    		count++;
-		    		writer.add(vcf);
+	        for (final VcfRecord vcf : reader) {
+	        	String vcfchr =  IndelUtils.getFullChromosome(vcf.getChromosome());
+ 	    		if(annotate(vcf, indexedBlock.get(vcfchr))) {
+ 	    			repeatCount ++;
+ 	    		}
+	    		count++;
+	    		writer.add(vcf);
 	        }
 		}  
 					
@@ -186,7 +203,7 @@ public class TandemRepeatMode  extends AbstractMode{
 		if(start > indexedBlock.lastBlockEnd ) return false; //not in repeat region
 						
 		SVTYPE type = IndelUtils.getVariantType(vcf.getRef(), vcf.getAlt());
-		int end = (type.equals(SVTYPE.INS))? buffer + vcf.getPosition() + vcf.getAlt().length()-1 : buffer + vcf.getChrPosition().getEndPosition();
+		int end = (type.equals(SVTYPE.INS)) ? buffer + vcf.getPosition() + vcf.getAlt().length() - 1 : buffer + vcf.getChrPosition().getEndPosition();
 		if(end < indexedBlock.firstBlockStart) return false; //not in repeat region
 				
 		List<Block> coveredBlocks = new ArrayList<>();	
@@ -252,22 +269,23 @@ public class TandemRepeatMode  extends AbstractMode{
 		String tRF_info = ""; //"TRF=" + coveredRepeats.get(0).printMark();
 		for(int i = 0; i < coveredRepeats.size(); i++){
 			Repeat rep = coveredRepeats.get(i);
-			tRF_info +="," + rep.printMark();	
+			tRF_info += "," + rep.printMark();	
 			
 			//once find one TRF satisfied, the filter will be marked as TRF
 			if(tRF_filter) continue; 
 			
 			//discard TRF inside indel(DEL) region that is smaller than DEL size			
 			if(rep.start >= vcf.getPosition() && rep.end <= vcf.getChrPosition().getEndPosition() && 
-					(rep.end - rep.start) < (vcf.getRef().length()-1))
+					(rep.end - rep.start) < (vcf.getRef().length()-1)) {
 				tRF_filter = false;
-			else if( rep.patternLength < 6 && rep.patternLength > 1 && rep.patternNo > 10)				
+			} else if( rep.patternLength < 6 && rep.patternLength > 1 && rep.patternNo > 10) {				
 				tRF_filter = true; //high frequence short TRF
-			else if(rep.patternLength == 1 && rep.patternNo > 6)
+			} else if(rep.patternLength == 1 && rep.patternNo > 6) {
 				tRF_filter = true; //homoplymers
-			else if ( (rep.patternLength < 6 &&  rep.patternLength > 0) 
-					&&  (rate < 0.2 && rate >= 0 )) // must check 0 value in case the repeat or ssoi value not exist
+			} else if ( (rep.patternLength < 6 &&  rep.patternLength > 0) 
+					&&  (rate < 0.2 && rate >= 0 )) { // must check 0 value in case the repeat or ssoi value not exist
 				tRF_filter = true;  //low confidence short TRF
+			}
 		}
 		
 		vcf.appendInfo("TRF=" + tRF_info.substring(1));
@@ -295,15 +313,15 @@ public class TandemRepeatMode  extends AbstractMode{
             	/*
             	 * ignore header line
             	 */
-            		if (line.startsWith("chrom\tstart")) continue;
+        		if (line.startsWith("chrom\tstart")) continue;
             		
 	           try {
-	        	   		Repeat rep = new Repeat(line);
-	        	   		allRepeats.computeIfAbsent(rep.chr, (v) -> new HashSet<>()).add(rep);
+        	   		Repeat rep = new Repeat(line);
+        	   		allRepeats.computeIfAbsent(rep.chr, (v) -> new HashSet<>()).add(rep);
 	            } catch (NumberFormatException e) {
-		            	if (errLine ++ < MaxErrLine) {
-		            		logger.warn("can't retrive information from TRF repeat file: " + line);
-		            	}
+	            	if (errLine ++ < MaxErrLine) {
+	            		logger.warn("can't retrive information from TRF repeat file: " + line);
+	            	}
 	            }             
             }
         } 
@@ -318,76 +336,77 @@ public class TandemRepeatMode  extends AbstractMode{
 	 */
 	BlockIndex makeIndexedBlock(final Set<Repeat> repeats){
 		
-		if(repeats == null || repeats.size() == 0) return null; 
+		if(repeats == null || repeats.size() == 0) {
+			return null; 
+		}
 		 
-			//S1: get unique block edge 
-			Set<Integer> starts = new HashSet<>(); //list will be very slow
-			Set<Integer> ends = new HashSet<>(); //list will be very slow
-			for(Repeat rep : repeats){				 
-				starts.add(rep.start);				
-				ends.add(rep.end);
-			}			
-			
-			//sort and unique the elements
-		   TreeSet<Integer> sortedStartEnd = new TreeSet<>();
-		    sortedStartEnd.addAll(starts);
-		    sortedStartEnd.addAll(ends);
-		    
-		    //S2:create block for each start end but the edge may require one base shift
-			Map<Integer, Block> blockIndex = new HashMap<>(); 
-			Iterator<Integer> it = sortedStartEnd.iterator(); 
-			int start = it.next();
-			int end = start; 
-			
-		    while(it.hasNext()){
-		    	
-			    	//do nothing if exists from starts disregards whether it is in ends or not
-			    	if(!starts.contains(start))
-			    		start += 1; 
-			    	
-			    	//trim if end is some repeat start
-			    	end = it.next();	
-			    	int end0 = end;  //store original boundary for next loop
-			    	 
-			    	if(starts.contains(end))		    		 
-			    		end -= 1; 
-			    	
-			    	if(start <= end)
-			    		blockIndex.put(start,  new Block(start, end));
-			    	
-			    	//next block must be one base forward
-			    	start = end0; 
-		    }
-		    
-		    //S3: filling repeat 
-		    for(Repeat rep : repeats){	
-				start = rep.start;	
-				//repeat must be greater than one base; 
-				//if end overlaop with next repeat start, chop the end
-				while(start < rep.end){
-					//all repeat start is never been chopped
-					Block block = blockIndex.get(start);
-					block.addRepeat(rep);
-					//next block must be one base forward
-					start = block.end+1;						
-				}
+		//S1: get unique block edge 
+		Set<Integer> starts = new HashSet<>(); //list will be very slow
+		Set<Integer> ends = new HashSet<>(); //list will be very slow
+		for(Repeat rep : repeats){				 
+			starts.add(rep.start);				
+			ends.add(rep.end);
+		}			
+		
+		//sort and unique the elements
+	   TreeSet<Integer> sortedStartEnd = new TreeSet<>();
+	    sortedStartEnd.addAll(starts);
+	    sortedStartEnd.addAll(ends);
+	    
+	    //S2:create block for each start end but the edge may require one base shift
+		Map<Integer, Block> blockIndex = new HashMap<>(); 
+		Iterator<Integer> it = sortedStartEnd.iterator(); 
+		int start = it.next();
+		int end = start; 
+		
+	    while(it.hasNext()){
+	    	
+	    	//do nothing if exists from starts disregards whether it is in ends or not
+	    	if(!starts.contains(start))
+	    		start += 1; 
+	    	
+	    	//trim if end is some repeat start
+	    	end = it.next();	
+	    	int end0 = end;  //store original boundary for next loop
+	    	 
+	    	if(starts.contains(end))		    		 
+	    		end -= 1; 
+	    	
+	    	if(start <= end)
+	    		blockIndex.put(start,  new Block(start, end));
+	    	
+	    	//next block must be one base forward
+	    	start = end0; 
+	    }
+	    
+	    //S3: filling repeat 
+	    for(Repeat rep : repeats){	
+			start = rep.start;	
+			//repeat must be greater than one base; 
+			//if end overlaop with next repeat start, chop the end
+			while(start < rep.end){
+				//all repeat start is never been chopped
+				Block block = blockIndex.get(start);
+				block.addRepeat(rep);
+				//next block must be one base forward
+				start = block.end+1;						
 			}
-		    
-		    
-		    //S4: each gap insert a index
-	 	    Map<Integer, Block> inserts = new HashMap<>();
-		    for(Block block:  blockIndex.values() ){		    	
-			    	start = block.start;
-			    	//throw null exception since some block is null
-			    	while (block.end > BLOCK_INDEX_GAP + start){	    		
-			    		start += BLOCK_INDEX_GAP;
-			    		inserts.put(start , block);	
-			    	}	    	
-		    }
-		    blockIndex.putAll(inserts);
-		    
-		    
-		    return new BlockIndex(sortedStartEnd.first(), sortedStartEnd.last(), blockIndex);
+		}
+	    
+	    
+	    //S4: each gap insert a index
+ 	    Map<Integer, Block> inserts = new HashMap<>();
+	    for(Block block:  blockIndex.values() ){		    	
+	    	start = block.start;
+	    	//throw null exception since some block is null
+	    	while (block.end > BLOCK_INDEX_GAP + start){		
+	    		start += BLOCK_INDEX_GAP;
+	    		inserts.put(start , block);
+	    	}	    	
+	    }
+	    blockIndex.putAll(inserts);
+	    
+	    return new BlockIndex(sortedStartEnd.first(), sortedStartEnd.last(), blockIndex);
 	}
 
 }

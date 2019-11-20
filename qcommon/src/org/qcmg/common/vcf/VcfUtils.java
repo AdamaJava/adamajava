@@ -22,7 +22,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPointPosition;
@@ -200,7 +199,7 @@ public class VcfUtils {
 				} else {
 					sb = ffl.get(i);
 				}
-				StringUtils.updateStringBuilder(sb, sa[i-1], Constants.COLON);
+				StringUtils.updateStringBuilder(sb, sa[i - 1], Constants.COLON);
 			}
 		}
 		return ffl.stream().map(StringBuilder::toString).collect(Collectors.toList());
@@ -479,28 +478,19 @@ public class VcfUtils {
 	 * @param alts
 	 * @return
 	 */
-	public static List<String> getAlleles(String genotype, String ref, String alts) {
+	public static String[] getAlleles(String genotype, String ref, String alts) {
 		if (StringUtils.isNullOrEmptyOrMissingData(genotype) || Constants.MISSING_GT.equals(genotype)
 				|| StringUtils.isNullOrEmptyOrMissingData(ref)) {
-			return Collections.emptyList();
+			return new String[]{};
 		}
 		int gt1 = Integer.valueOf(genotype.charAt(0) + "");
 		int gt2 = Integer.valueOf(genotype.charAt(2) + "");
 		
-		List<String> l = new ArrayList<>(2);
+		String[] array = new String[2];
 		String [] altsArr = alts.split(Constants.COMMA_STRING);
-		if (gt1 == 0) {
-			l.add(ref);
-		} else {
-			l.add(altsArr[gt1 - 1]);
-		}
-		
-		if (gt2 == 0) {
-			l.add(ref);
-		} else {
-			l.add(altsArr[gt2 - 1]);
-		}
-		return l;
+		array[0] = gt1 == 0 ? ref : altsArr[gt1 - 1];
+		array[1] = gt2 == 0 ? ref : altsArr[gt2 - 1];
+		return array;
 	}
 	
 
@@ -525,7 +515,7 @@ public class VcfUtils {
 				String [] sa = TabTokenizer.tokenize(ff.get(i), Constants.COLON);
 				
 				for (int j = 0, len = sa.length ; j < len ; j++) {
-					ffm.get(headerFields[j])[i-1] = sa[j];
+					ffm.get(headerFields[j])[i - 1] = sa[j];
 				}
 			}
 			return ffm;
@@ -591,7 +581,7 @@ public class VcfUtils {
 	 */
 	public static VcfRecord createVcfRecord(ChrPosition cp, String id, String ref, String alt) {
  			
-		if(ref != null   && (cp.getEndPosition() - cp.getStartPosition() +1 )!= ref.length()) {
+		if(ref != null   && (cp.getEndPosition() - cp.getStartPosition() + 1 )!= ref.length()) {
 			return(new VcfRecord.Builder(cp.getChromosome(),cp.getStartPosition(), ref)).id(id).allele(alt).build();
 		}
 		if (cp instanceof ChrPointPosition) {
@@ -804,8 +794,6 @@ public class VcfUtils {
 	public static void addAdditionalSampleToFormatField(VcfRecord vcf, List<String> additionalSampleFormatFields) {
 		if ( null != additionalSampleFormatFields && additionalSampleFormatFields.size() > 1) {
 			
-//			logger.info("attempting to add sample ff to vcf rec: " + vcf.toString());
-//			additionalSampleFormatFields.stream().forEach(s -> logger.info("new ff: " + s));
 			List<String[]> additionalSampleFormatFieldsParams = additionalSampleFormatFields.stream().map(s -> s.split(Constants.COLON_STRING)).collect(Collectors.toList());
 			
 			List<String> existingFF = vcf.getFormatFields();
@@ -923,9 +911,8 @@ public class VcfUtils {
 									} else {
 										existingArray[index] = existingValue + separator + additionalValue;
 									}
-//									}
 									// re-insert into vcf
-										existingFF.set(j, Arrays.stream(existingArray).collect(Collectors.joining(Constants.COLON_STRING)));
+									existingFF.set(j, Arrays.stream(existingArray).collect(Collectors.joining(Constants.COLON_STRING)));
 								}
 							}
 						} else {
@@ -956,10 +943,10 @@ public class VcfUtils {
 			return oldAD;
 		}
 		String [] adArray = TabTokenizer.tokenize(oldAD, Constants.COMMA);
-		int newgt1 = Integer.valueOf(""+newGt.charAt(0));
-		int newgt2 = Integer.valueOf(""+newGt.charAt(2));
-		int oldgt1 = Integer.valueOf(""+oldGt.charAt(0));
-		int oldgt2 = Integer.valueOf(""+oldGt.charAt(2));
+		int newgt1 = Integer.valueOf("" + newGt.charAt(0));
+		int newgt2 = Integer.valueOf("" + newGt.charAt(2));
+		int oldgt1 = Integer.valueOf("" + oldGt.charAt(0));
+		int oldgt2 = Integer.valueOf("" + oldGt.charAt(2));
 		
 		if (Math.max(oldgt1, oldgt2) >= Math.max(newgt1, newgt2)) {
 			return oldAD;
@@ -1036,7 +1023,6 @@ public class VcfUtils {
 		if (control.getAlt().equals(test.getAlt())) {
 			List<String> ff = test.getFormatFields();
 			addAdditionalSampleToFormatField(control, ff);
-//			prepareGATKVcfForMerge(control);
 			return Optional.ofNullable(control);
 		} else {
 			
@@ -1054,8 +1040,6 @@ public class VcfUtils {
 			 */
 			List<String> cFF = control.getFormatFields();
 			m.setFormatFields(cFF);
-//			prepareGATKVcfForMerge(m);
-//			prepareGATKVcfForMerge(test);
 			
 			List<String> tFFs = test.getFormatFields(); 
 			String tFF = tFFs.get(1);
@@ -1308,40 +1292,6 @@ public class VcfUtils {
 	 */
 	public static boolean isRecordSomatic(VcfRecord rec) {
 		return isRecordSomatic(rec.getInfo(), rec.getFormatFieldsAsMap());
-		
-//		String info = rec.getInfo();
-//		if ( ! StringUtils.isNullOrEmpty(info) && info.contains(VcfHeaderUtils.INFO_SOMATIC)) {
-//			return true;
-//		}
-//		
-////		if (isMergedRecord(rec)) {
-//			/*
-//			 * check out the format fields - need all records to be somatic
-//			 */
-//			String ff = rec.getFormatFieldStrings();
-//			Map<String, String[]> m =getFormatFieldsAsMap(ff);
-//			
-//			if (m.isEmpty()) {
-//				return false;
-//			}
-//			String [] infos = m.get(VcfHeaderUtils.FORMAT_INFO);
-//			if (null == infos || infos.length == 0) {
-//				return false;
-//			}
-//			long somCount =  Arrays.asList(infos).stream().filter(f ->null != f && f.contains(VcfHeaderUtils.INFO_SOMATIC)).count();
-//			return somCount * 2 >= infos.length;
-			
-//			if (noOfSomatics == 0) {
-//				return false;
-//			}
-//			return noOfSomatics * 2 >= filter.length;
-//		}
-			/*
-			 *SOMATIC_1 and SOMATIC_2 to return true
-			 */
-//			return info.contains(VcfHeaderUtils.INFO_SOMATIC + "_1") && info.contains(VcfHeaderUtils.INFO_SOMATIC + "_2");  
-//		} else {
-//		}
 	}
 	
 	public static boolean isRecordSomatic(String info, Map<String, String[]> formatFields) {
@@ -1459,8 +1409,8 @@ public class VcfUtils {
 		String [] oldAltArray = oldAlt.split(Constants.COMMA_STRING);
 		String [] altsArray = alts.split(Constants.COMMA_STRING);
 		
-		int newFirst = first > 0 ?  ListUtils.positionOfStringInArray(altsArray, oldAltArray[first -1]) + 1 : first;
-		int newSecond = second > 0 ?  ListUtils.positionOfStringInArray(altsArray, oldAltArray[second -1]) + 1: second;
+		int newFirst = first > 0 ?  ListUtils.positionOfStringInArray(altsArray, oldAltArray[first - 1]) + 1 : first;
+		int newSecond = second > 0 ?  ListUtils.positionOfStringInArray(altsArray, oldAltArray[second - 1]) + 1: second;
 		
 		return newFirst + "/" + newSecond;
 	}

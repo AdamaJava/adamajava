@@ -5,8 +5,6 @@
 */
 package au.edu.qimr.qannotate.modes;
 
-import htsjdk.tribble.readers.TabixReader;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -25,6 +23,7 @@ import org.qcmg.vcf.VCFFileReader;
 import org.qcmg.vcf.VCFFileWriter;
 
 import au.edu.qimr.qannotate.Options;
+import htsjdk.tribble.readers.TabixReader;
 
 
 public class  CaddMode extends AbstractMode{

@@ -5,6 +5,13 @@
 */
 package au.edu.qimr.qannotate.modes;
 
+import static org.qcmg.common.util.Constants.BAR_STRING;
+import static org.qcmg.common.util.Constants.CHR;
+import static org.qcmg.common.util.Constants.COMMA_STRING;
+import static org.qcmg.common.util.Constants.MISSING_DATA_STRING;
+import static org.qcmg.common.util.Constants.SLASH_STRING;
+import static org.qcmg.common.util.Constants.VCF_MERGE_DELIM;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -22,21 +29,24 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.MafConfidence;
 import org.qcmg.common.string.StringUtils;
-
-import static org.qcmg.common.util.Constants.*;
-
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.util.IndelUtils.SVTYPE;
 import org.qcmg.common.util.SnpUtils;
-import org.qcmg.common.vcf.*;
+import org.qcmg.common.vcf.VcfFormatFieldRecord;
+import org.qcmg.common.vcf.VcfInfoFieldRecord;
+import org.qcmg.common.vcf.VcfRecord;
+import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
 
 import au.edu.qimr.qannotate.Options;
-import au.edu.qimr.qannotate.utils.*;
+import au.edu.qimr.qannotate.utils.MafElement;
+import au.edu.qimr.qannotate.utils.SampleColumn;
+import au.edu.qimr.qannotate.utils.SnpEffConsequence;
+import au.edu.qimr.qannotate.utils.SnpEffMafRecord;
  
 
 public class Vcf2mafTmp extends AbstractMode{
