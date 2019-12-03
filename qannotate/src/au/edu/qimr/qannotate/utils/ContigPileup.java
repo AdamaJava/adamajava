@@ -9,7 +9,6 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
-import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qbamfilter.query.QueryExecutor;

@@ -67,34 +67,34 @@ public class VcfUtilsTest {
 		 String gt = "0/0";
 		 String ref = "R";
 		 String alt = "A";
-		 List<String> alleles = VcfUtils.getAlleles(gt, ref, alt);
-		 assertEquals(2, alleles.size());
-		 assertEquals("R", alleles.get(0));
-		 assertEquals("R", alleles.get(1));
+		 String[] alleles = VcfUtils.getAlleles(gt, ref, alt);
+		 assertEquals(2, alleles.length);
+		 assertEquals("R", alleles[0]);
+		 assertEquals("R", alleles[1]);
 		 
 		 gt = "0/1";
 		 alleles = VcfUtils.getAlleles(gt, ref, alt);
-		 assertEquals(2, alleles.size());
-		 assertEquals("R", alleles.get(0));
-		 assertEquals("A", alleles.get(1));
+		 assertEquals(2, alleles.length);
+		 assertEquals("R", alleles[0]);
+		 assertEquals("A", alleles[1]);
 		 
 		 gt = "1/1";
 		 alleles = VcfUtils.getAlleles(gt, ref, alt);
-		 assertEquals(2, alleles.size());
-		 assertEquals("A", alleles.get(0));
-		 assertEquals("A", alleles.get(1));
+		 assertEquals(2, alleles.length);
+		 assertEquals("A", alleles[0]);
+		 assertEquals("A", alleles[1]);
 		 
 		 alt = "A,B";
 		 alleles = VcfUtils.getAlleles(gt, ref, alt);
-		 assertEquals(2, alleles.size());
-		 assertEquals("A", alleles.get(0));
-		 assertEquals("A", alleles.get(1));
+		 assertEquals(2, alleles.length);
+		 assertEquals("A", alleles[0]);
+		 assertEquals("A", alleles[1]);
 		 
 		 gt = "1/2";
 		 alleles = VcfUtils.getAlleles(gt, ref, alt);
-		 assertEquals(2, alleles.size());
-		 assertEquals("A", alleles.get(0));
-		 assertEquals("B", alleles.get(1));
+		 assertEquals(2, alleles.length);
+		 assertEquals("A", alleles[0]);
+		 assertEquals("B", alleles[1]);
 	}
 	
 	@Test
