@@ -5,13 +5,6 @@
 */
 package au.edu.qimr.qannotate.modes;
 
-import htsjdk.samtools.SAMSequenceDictionary;
-import htsjdk.samtools.SAMSequenceRecord;
-import htsjdk.samtools.reference.FastaSequenceIndex;
-import htsjdk.samtools.reference.IndexedFastaSequenceFile;
-import htsjdk.samtools.reference.ReferenceSequenceFileFactory;
-import htsjdk.samtools.util.IOUtil;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -32,6 +25,12 @@ import org.qcmg.vcf.VCFFileReader;
 import org.qcmg.vcf.VCFFileWriter;
 
 import au.edu.qimr.qannotate.Options;
+import htsjdk.samtools.SAMSequenceDictionary;
+import htsjdk.samtools.SAMSequenceRecord;
+import htsjdk.samtools.reference.FastaSequenceIndex;
+import htsjdk.samtools.reference.IndexedFastaSequenceFile;
+import htsjdk.samtools.reference.ReferenceSequenceFileFactory;
+import htsjdk.samtools.util.IOUtil;
 
 public class HomoplymersMode extends AbstractMode{
 	private final static QLogger logger = QLoggerFactory.getLogger(HomoplymersMode.class);

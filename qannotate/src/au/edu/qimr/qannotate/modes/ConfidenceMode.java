@@ -5,8 +5,6 @@
 */
 package au.edu.qimr.qannotate.modes;
 
-import gnu.trove.list.TShortList;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -31,6 +29,7 @@ import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 
 import au.edu.qimr.qannotate.Options;
+import gnu.trove.list.TShortList;
 
 /**
  * @author christix

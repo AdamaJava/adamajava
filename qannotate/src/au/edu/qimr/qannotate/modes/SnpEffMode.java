@@ -11,6 +11,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.qcmg.common.log.QLogger;
@@ -21,7 +22,6 @@ import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.vcf.VCFFileReader;
 import org.qcmg.vcf.VCFFileWriter;
 
-import java.util.Arrays;
 import au.edu.qimr.qannotate.Options;
 import ca.mcgill.mcb.pcingola.snpEffect.commandLine.SnpEff;
 

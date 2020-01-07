@@ -6,14 +6,9 @@
 package au.edu.qimr.qannotate.modes;
 
 
-import htsjdk.samtools.SAMSequenceRecord;
-import htsjdk.samtools.reference.ReferenceSequenceFile;
-import htsjdk.samtools.reference.ReferenceSequenceFileFactory;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -41,6 +36,9 @@ import org.qcmg.vcf.VCFFileWriter;
 
 import au.edu.qimr.qannotate.Main;
 import au.edu.qimr.qannotate.Options;
+import htsjdk.samtools.SAMSequenceRecord;
+import htsjdk.samtools.reference.ReferenceSequenceFile;
+import htsjdk.samtools.reference.ReferenceSequenceFileFactory;
 
 /**
  * 

@@ -58,7 +58,6 @@ import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.util.BAMFileUtils;
 import org.qcmg.picard.util.SAMUtils;
 import org.qcmg.record.Record;
-import org.qcmg.sig.model.BaseReadGroup;
 import org.qcmg.sig.util.SignatureUtil;
 import org.qcmg.tab.TabbedFileReader;
 import org.qcmg.tab.TabbedRecord;
@@ -82,6 +81,7 @@ public class SignatureGeneratorBespoke {
 	private int arraySize;
 	private int arrayPosition;
 	private String outputDirectory;
+	private String outputFile;
 	
 	private int minMappingQuality = 10;
 	private int minBaseQuality = 10;
@@ -393,22 +393,6 @@ public class SignatureGeneratorBespoke {
 		}
 	}
 
-	public static String getEncodedDist(final List<BaseReadGroup> bsps) {
-		if (null == bsps || bsps.isEmpty()) {
-			return null;
-		}
-		int as = 0, cs = 0, gs = 0, ts = 0;
-		for (final BaseReadGroup bsp : bsps) {
-			switch (bsp.getBase()) {
-			case  'A' : as++;break;
-			case  'C' : cs++;break;
-			case  'G' : gs++;break;
-			case  'T' : ts++;break;
-			}
-		}
-		return "" + as + Constants.MINUS + cs + Constants.MINUS + gs + Constants.MINUS + ts;
-	}
-	
 	/**
 	 * rgBases is a 2D array. Top level is readgroup, and each readgroup contains a sub-array of length 4. Once for each of ACGT.
 	 * The elements in the sub-array correspond to the number of times that particular base was seen
@@ -478,9 +462,22 @@ public class SignatureGeneratorBespoke {
 	}
 	
 	private void writeOutput(File f, TObjectIntMap<String> rgIds, boolean bam) throws IOException {
-		// if we have an output folder defined, place the vcf files there, otherwise they will live next to the input file
+		/*
+		 * If outputFile is defined, and is not a directory, use that
+		 * If outputFile is defined and is a directory, use directory and input filename
+		 * If outputFile is not defined, look at outputDirectory
+		 * If outputDirectory is defined, use directory and input filename
+		 * If outputDirectory is not defined, use input directory and input filename.
+		 * 
+		 */
 		File outputVCFFile = null;
-		if (null != outputDirectory) {
+		if (null != outputFile) {
+			if (new File(outputFile).isDirectory()) {
+				outputVCFFile = new File(outputFile + FileUtils.FILE_SEPARATOR + f.getName() + SignatureUtil.QSIG_VCF_GZ);
+			} else {
+				outputVCFFile = new File(outputFile);
+			}
+		} else if (null != outputDirectory) {
 			outputVCFFile = new File(outputDirectory + FileUtils.FILE_SEPARATOR + f.getName() + SignatureUtil.QSIG_VCF_GZ);
 		} else {
 			outputVCFFile = new File(f.getAbsoluteFile() + SignatureUtil.QSIG_VCF_GZ);
@@ -746,6 +743,9 @@ public class SignatureGeneratorBespoke {
 				}
 			}
 			
+			if (null != options.getOutputFileNames() && options.getOutputFileNames().length > 0) {
+				outputFile = options.getOutputFileNames()[0];
+			}
 			if (null != options.getDirNames() && options.getDirNames().length > 0) {
 				outputDirectory = options.getDirNames()[0];
 			}

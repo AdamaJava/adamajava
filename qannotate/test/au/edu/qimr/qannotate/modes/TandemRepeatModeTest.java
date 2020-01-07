@@ -1,6 +1,8 @@
 package au.edu.qimr.qannotate.modes;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -23,7 +25,9 @@ import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 
-import au.edu.qimr.qannotate.modes.TandemRepeatMode.*;
+import au.edu.qimr.qannotate.modes.TandemRepeatMode.Block;
+import au.edu.qimr.qannotate.modes.TandemRepeatMode.BlockIndex;
+import au.edu.qimr.qannotate.modes.TandemRepeatMode.Repeat;
 
 public class TandemRepeatModeTest {
 	String repeatFileName = "input.repeat";
