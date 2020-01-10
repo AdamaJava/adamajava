@@ -45,7 +45,7 @@ public class FlagUtil {
 		if (record.isSecondaryAlignment())
 			additionalData.append("s");
 		if (record.getSupplementaryAlignmentFlag())
-			additionalData.append("S");
+			additionalData.append("b");
 		if (record.getReadFailsVendorQualityCheckFlag())
 			additionalData.append("f");
 		if (record.getDuplicateReadFlag())

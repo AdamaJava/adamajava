@@ -88,7 +88,7 @@ public class FlagUtilTest {
 				assertEquals(true, FlagUtil.getFlagString(i).contains("d"));
 			}
 			if ((i & 0x800) == 2048) {
-				assertEquals(true, FlagUtil.getFlagString(i).contains("S"));
+				assertEquals(true, FlagUtil.getFlagString(i).contains("b"));
 			}
 			
 		}

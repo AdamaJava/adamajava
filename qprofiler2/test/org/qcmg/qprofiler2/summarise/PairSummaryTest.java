@@ -42,7 +42,7 @@ public class PairSummaryTest {
 		
 		//only one inward pair but overlapped
 		Element ele = pairEles.stream().filter(e -> ( (Element) e.getParentNode()).getAttribute(XmlUtils.NAME).equals("1959N")).findFirst().get(); 		
-		checkVariableGroup( ele, "Inward", new int[] {1,0,0,0,1,1,1, 0, 0,175} );
+		checkVariableGroup( ele, "Inward", new int[] {1,0,0,0,1,1,1, 0, 0,175,0} );
 
 		//five pairs
 		ele = pairEles.stream().filter(e -> ( (Element) e.getParentNode()).getAttribute(XmlUtils.NAME).equals("1959T")).findFirst().get();	
@@ -57,8 +57,8 @@ public class PairSummaryTest {
 		pairEles =  XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.SEQUENCE_METRICS)	
 				.stream().filter(e  -> e .getAttribute(XmlUtils.NAME).equals( "notProperPairs" )).collect(Collectors.toList());
 		ele = pairEles.stream().filter(e -> ( (Element) e.getParentNode()).getAttribute(XmlUtils.NAME).equals(XmlUtils.UNKNOWN_READGROUP)).findFirst().get();	
-		checkVariableGroup( ele, "F3F5", new int[] {1,0,0,0,1,1,0,0,0, 0} ); //notProperPair
-		
+		//checkVariableGroup( ele, "F3F5", new int[] {1,0,0,0,1,1,0,0,0, 0} ); //notProperPair
+		checkVariableGroup( ele, "F3F5", new int[] {0,0,0,0,1,1,0,0,0, 0,1} ); //notProperPair
 		
 	}
 	
@@ -68,12 +68,15 @@ public class PairSummaryTest {
 			.filter(e -> e.getAttribute(XmlUtils.NAME).equals(name) ).findFirst().get();
 		
 		List<Element> childEles = XmlElementUtils.getChildElementByTagName(variableEle, XmlUtils.VALUE);
-		assertTrue( childEles.size() == 9 );
+		//assertTrue( childEles.size() == 9 );
+		assertTrue( childEles.size() == 10 );
 		
 		for(Element ele : childEles) {
 			switch (ele.getAttribute(XmlUtils.NAME)) {
 				case "overlappedPairs": assertTrue( ele.getTextContent().equals(counts[0] + "") ); break;
 				case  "tlenUnder1500Pairs" : assertTrue( ele.getTextContent().equals(counts[1] + "") ); break;
+//				case  "tlenUnder1500Pairs" : System.out.println( ele.getTextContent() + " != " + counts[1]   ); break;
+				case  "tlenZeroPairs" : System.out.println( ele.getTextContent() + " != " + counts[9]   ); break;
 				case  "tlenOver10000Pairs" : assertTrue( ele.getTextContent().equals(counts[2] + "") ); break;
 				case  "tlenBetween1500And10000Pairs" : assertTrue( ele.getTextContent().equals(counts[3] + "") ); break;
 				case  "pairCountUnderTlen5000" : assertTrue( ele.getTextContent().equals(counts[4] + "") ); break;
@@ -94,12 +97,8 @@ public class PairSummaryTest {
 		assertTrue(BwaPair.getOverlapBase(recorda) == 0); 
 		recorda.setInferredInsertSize(-1 );
 		assertTrue(BwaPair.getOverlapBase(recorda) == 0); 
-		try {
-			pairS.parse(recorda);
-			fail("expect to throw exception");
-		}catch(Exception e) {}
-		
-		
+		pairS.parse(recorda); // do nothing for unpaired read
+				
 		//set tLen == 0, any second of pair
 		recorda.setInferredInsertSize( 0 );
 		for(int flag : new int[] {129,131,147, 179}) {
@@ -110,13 +109,17 @@ public class PairSummaryTest {
 		
 		//ST-E00180:52:H5LNMCCXX:1:1116:24274:5247 113 chr1 27977105 60 5S145M = 27977205 0
 		//<-----------| F3F5 reverse firstOfPaie
-		//    <-------|
+		//    <-------|		
+		//these overlapped pair with tLen==0 because they are same end in bwa-mem
+		//but bwa-meth, tLen==0 means tLen not available. 
+		//To follow sam specification, our algorithm return overlap==0 when tLen == 0
 		recorda.setFlags(113);
 		recorda.setCigarString("5S145M");
 		recorda.setAlignmentStart(27977105);
 		recorda.setMateAlignmentStart(27977205);
-		assertTrue(BwaPair.getOverlapBase(recorda) == 27977250 - 27977205); 
-		pairS.parse(recorda);
+//		assertTrue(BwaPair.getOverlapBase(recorda) == 27977250 - 27977205);
+		assertTrue(BwaPair.getOverlapBase(recorda) == 0); 
+		pairS.parse(recorda);  //no overlap due to tLen==0
 		
 		//ST-E00180:52:H5LNMCCXX:1:2103:1720:24691 113 chr1 27775356 39 117S33M = 27775354 0
 		//    <-------|  F5F3 reverse firstOfPaie
@@ -124,7 +127,8 @@ public class PairSummaryTest {
 		recorda.setCigarString( "117S33M" );
 		recorda.setAlignmentStart( 27775356 );
 		recorda.setMateAlignmentStart( 27775354 );
-		assertTrue(BwaPair.getOverlapBase(recorda) == 27775389 - 27775356); 
+		//assertTrue(BwaPair.getOverlapBase(recorda) == 27775389 - 27775356); 
+		assertTrue(BwaPair.getOverlapBase(recorda) == 0); 
 		pairS.parse(recorda);
 		
 		//ST-E00180:52:H5LNMCCXX:1:2101:31703:21983 65 chr1 34492938 60 95M55S = 34492938 0   
@@ -135,7 +139,8 @@ public class PairSummaryTest {
 		recorda.setCigarString("95M55S");
 		recorda.setAlignmentStart(34492938);
 		recorda.setMateAlignmentStart(34492938);
-		assertTrue(BwaPair.getOverlapBase(recorda) == 95); 
+	//	assertTrue(BwaPair.getOverlapBase(recorda) == 95); 
+		assertTrue(BwaPair.getOverlapBase(recorda) == 0);
 		pairS.parse(recorda);
 	
 		
@@ -145,17 +150,24 @@ public class PairSummaryTest {
 		recorda.setCigarString("95M55S");		
 		recorda.setAlignmentStart(121484553);
 		recorda.setMateAlignmentStart(121484404);		
-		assertTrue(BwaPair.getOverlapBase(recorda) == 1); 
+	//	assertTrue(BwaPair.getOverlapBase(recorda) == 1); 
+		assertTrue(BwaPair.getOverlapBase(recorda) == 0);
 		pairS.parse(recorda);
 		
 		assertTrue( pairS.getFirstOfPairCounts() == 4 );
 		assertTrue( pairS.near.get() == 0 ); //only one without overlap		
 		assertTrue( pairS.tLenOverall.get(0) == 4 ); 
 		
-		assertTrue( pairS.getoverlapCounts().get(0) == 0 );
-		assertTrue( pairS.getoverlapCounts().get(33) == 1 );
-		assertTrue( pairS.getoverlapCounts().get(45) == 1 );
-		assertTrue( pairS.getoverlapCounts().get(95) == 1 );
+		for(int i = 0 ; i < 96; i++) {
+			assertTrue( pairS.getoverlapCounts().get(i) == 0 );
+		}
+			
+			
+//		assertTrue( pairS.getoverlapCounts().get(0) == 0 );
+//		assertTrue( pairS.getoverlapCounts().get(33) == 1 );
+//		assertTrue( pairS.getoverlapCounts().get(45) == 1 );
+//		assertTrue( pairS.getoverlapCounts().get(95) == 1 );
+
 		
 	}
 
