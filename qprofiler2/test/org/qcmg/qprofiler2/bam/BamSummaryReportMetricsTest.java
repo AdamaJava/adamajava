@@ -58,10 +58,6 @@ public class BamSummaryReportMetricsTest {
 	@Test
 	public void tagTest() {
 		
-		//debug
-		XmlElementUtils.asXmlText(root, "/Users/christix/Documents/Eclipse/data/qprofiler/test.xml");
-
-		
 		Element bamSummaryE = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.BAM_SUMMARY).get(0);
 		
 		//check RG
@@ -211,7 +207,6 @@ public class BamSummaryReportMetricsTest {
 			ele = XmlElementUtils.getOffspringElementByTagName(root, tagName).get(0);			
 			String readCount = XmlElementUtils.getChildElement(ele,  XmlUtils.SEQUENCE_METRICS, 0).getAttribute(ReadGroupSummary.READ_COUNT);
 						
-			//System.out.println(ele.getTextContent() + ".equals" + count1 );
 			assertTrue( totalCount.equals(readCount) );		
 		}
 	}
