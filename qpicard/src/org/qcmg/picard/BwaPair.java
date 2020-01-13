@@ -21,40 +21,35 @@ public class BwaPair {
 	public static int getOverlapBase(SAMRecord  record) {
 		
 		int tLen = record.getInferredInsertSize();
-	
-//	   	//debug
-//	   	System.out.println( String.format("debug: tLen=%d, readStart=%d, mateStart=%d", tLen,record.getAlignmentStart(), record.getMateAlignmentStart() ));
 		
-		
-		//to avoid double counts, we only select one of Pair: tLen > 0 
-		//that is we only select the one behind the mate: --selected---    ---mated--
-	   	if(tLen < 0) return 0;  
-	   		   	
 	   	/*
-	   	 * In sam specification, tLen == 0 means tLen value is not sure, such as mate unmapped/different ref.
+	   	 * In sam specification, tLen == 0 means tLen value is not available, such as mate unmapped/different ref.
 	   	 * The different read alignment tools may have a slightly different algorithm to calculate TLEN value. 
 	   	 * For example, the bwa-meth will assign "0" to tLen if the reads marked as "not proper mapped pair" even they mapped to the same reference. 
 	   	 * While the bwa-mem will still assign a real value to tLen, which is the 
 	   	 * " tLen = ( forwardMate.start /reverseMate.End ) - ( forwardRead.start / reverseRead.End ) +/- 1 ". 
-	   	 * In the case of the bwa-mem reads with "tLen==0", they may be the pair with the same strand and same start/end, 
-	   	 * obviously, these pairs are overlapped.
+	   	 * In the case of the bwa-mem reads with "tLen==0", they may be the pair and overlapped with the same strand and same start/end.
 	   	 * 
-	   	 * In previous algorithm, we pick up first of pair if same strand read and tlen=0	
-	   	 * if(tLen == 0 && !record.getFirstOfPairFlag() ) return 0;
+	   	 * In previous algorithm, we use "if(tLen == 0 && !record.getFirstOfPairFlag() ) return 0;" 
+	   	 * but It will throw exception when the input is bwa-meth BAM. 
 	   	 * 
-	   	 * To avoid exceptions, now we return 0 for all pair with tLen == 0
+	   	 * Hence we have to make this overlap algorithm suits all type of BAMs, now we return 0 for all pair with tLen == 0
+	   	 *   
 	   	 */
 	   	if(tLen == 0 ) return 0;	 
+		
+				
+		//to avoid double counts, we only select one of Pair: tLen > 0 
+		//that is we only select the one behind the mate: --selected---    ---mated--
+	   	if(tLen < 0) return 0;  
+	   		   	
 	   		   		   	
 	   	//two reads not overlapped due to far distance:  --selected---    ---mated---
 	    if(record.getMateAlignmentStart() - record.getAlignmentEnd() > 0) return 0;
 
 	   	int result  = 0;  	
 		// |--selected--->    <---mated---|  mate end = tLen -1 + read start  
-		if( record.getReadNegativeStrandFlag() != record.getMateNegativeStrandFlag()  ) {  		
-			//if tLen == 0; mateEnd = read.start, Math.min( readEnd, mateEnd ) = read.start; max(starts) = read.start
-			//result = read.start - read.start + 1 = 1
-			  			
+		if( record.getReadNegativeStrandFlag() != record.getMateNegativeStrandFlag()  ) {  					  			
 			//here tLen > 0 && mate.start <= read.end 
 			//so here read must forward  and mate reverse 
 			int mateEnd = tLen + record.getAlignmentStart()-1 ;  //reverse mate end
