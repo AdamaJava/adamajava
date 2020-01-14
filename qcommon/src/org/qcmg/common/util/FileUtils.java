@@ -64,9 +64,9 @@ public class FileUtils {
 	        ByteBuffer buff = ByteBuffer.allocate(2048);
 	
 	        while(channel.read(buff) != -1){
-	        	//jdk8 don't have java.nio.ByteBuffer.flip()
-	        	//we have to cast it to Buffer, so it can run JDK8 and above
-	            ((Buffer)buff).flip();
+	        	//we have to cast it to Buffer, ((Buffer)buff).flip();
+	        	//if we want to compiler and run on JDK8+	             
+	        	buff.flip();
 	            md.update(buff);
 	            buff.clear();
 	        }
