@@ -172,7 +172,7 @@ public class BamSummaryReport2 extends SummaryReport {
 		//sequenceBase	
 		Element ele = XmlUtils.createMetricsNode( parent,  XmlUtils.SEQ_BASE,  rcPair );	
 		for(int order = 0; order < 3; order++) { 	
-			seqByCycle[order].toXml( ele,  sourceName[order], seqByCycle[order].getInputCounts() );
+			seqByCycle[order].toXml( ele,  sourceName[order], seqByCycle[order].getInputCounts());
 		}
 				
 		//seqLength
@@ -196,8 +196,10 @@ public class BamSummaryReport2 extends SummaryReport {
 		}
 				
 		//1mers is same to baseByCycle
-		for( int i : new int[] { 2, 3, KmersSummary.maxKmers } )
-			kmersSummary.toXml( parent,i );
+		for( int i : new int[] { 2, 3, KmersSummary.maxKmers } ) {
+			kmersSummary.toXml( parent,i, false);
+		}
+			
 	}
 	
 	//<QUAL>
