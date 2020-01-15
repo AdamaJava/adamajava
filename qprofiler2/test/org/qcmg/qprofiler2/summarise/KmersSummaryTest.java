@@ -153,6 +153,14 @@ public class KmersSummaryTest {
 			assertEquals(baseE.getAttribute(XmlUtils.CYCLE), (i+1) + "");
 		}	
 		
+		//test unpaired bam reads
+		root = XmlElementUtils.createRootElement("root", null);
+		summary.toXml(root, 2, false);
+		eles = XmlElementUtils.getChildElementByTagName(root, XmlUtils.SEQUENCE_METRICS);		
+		//check <variableGroup...>
+		ele = (Element)eles.get(0).getFirstChild();
+		assertEquals(ele.getAttribute(XmlUtils.NAME), "unPaired") ;
+				
 	}
 
 	@Test
