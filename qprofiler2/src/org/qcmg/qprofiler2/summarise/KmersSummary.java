@@ -125,7 +125,9 @@ public class KmersSummary {
 		 //readString may have differnt length to other reads
 		 for(int i = 0; i <= readString.length - merLength; i ++ ){
 			 byte[] mers = new byte[ merLength ];
-			 for(int j = 0; j <  merLength; j ++ )  mers[j] = dataString[ i + j ];	
+			 for(int j = 0; j <  merLength; j ++ ) {
+				 mers[j] = dataString[ i + j ];	
+			 }
 			 int pos = getPosition( i, mers );			 
 			 tally[flagFirstOfPair].increment( pos );
 		 }	
@@ -221,8 +223,9 @@ public class KmersSummary {
 			String name = BamSummaryReport2.sourceName[pair];
 			
 			//read may have no pair information such as fastq
-			if( isFastq )
+			if( isFastq ) {
 				name = klength+"mers";
+			}
 			Set<String> kmerStrs = getPopularKmerString(maxNo,  klength, false, pair);
 			
 			// "counts per mer string start on specified base cycle"	

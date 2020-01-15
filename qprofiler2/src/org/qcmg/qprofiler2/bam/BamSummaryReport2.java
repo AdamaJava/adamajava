@@ -196,8 +196,10 @@ public class BamSummaryReport2 extends SummaryReport {
 		}
 				
 		//1mers is same to baseByCycle
-		for( int i : new int[] { 2, 3, KmersSummary.maxKmers } )
+		for( int i : new int[] { 2, 3, KmersSummary.maxKmers } ) {
 			kmersSummary.toXml( parent,i, false);
+		}
+			
 	}
 	
 	//<QUAL>
