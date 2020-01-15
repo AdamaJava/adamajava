@@ -58,8 +58,7 @@ public class FastqSummaryReport extends SummaryReport {
 		//header line:"analysis read name pattern for read group
 		Element element =   XmlElementUtils.createSubElement(parent, XmlUtils.QNAME ) ;							
 		readHeaderSummary.toXml(element );		
-				
-
+		
 		//seq								 			
 		element =   XmlElementUtils.createSubElement(parent,XmlUtils.SEQ  ) ;
 		long counts = 0;
@@ -68,12 +67,11 @@ public class FastqSummaryReport extends SummaryReport {
 		}
 		Pair<String, Number> rcPair = new Pair<>(ReadGroupSummary.READ_COUNT, counts);
 		Element ele = XmlUtils.createMetricsNode( element, XmlUtils.SEQ_BASE , rcPair); 
-		seqByCycle.toXml( ele, XmlUtils.SEQ_BASE,seqByCycle.getInputCounts());	
+		seqByCycle.toXml( ele, XmlUtils.SEQ_BASE,seqByCycle.getInputCounts());
 		
 		ele = XmlUtils.createMetricsNode( element, XmlUtils.SEQ_LENGTH , rcPair); 
-		XmlUtils.outputTallyGroup( ele, XmlUtils.SEQ_LENGTH, seqByCycle.getLengthMapFromCycle(), true, true );	
-		
-		
+		XmlUtils.outputTallyGroup( ele, XmlUtils.SEQ_LENGTH, seqByCycle.getLengthMapFromCycle(), true, true );
+				
 		counts = 0;
 		for(int order = 0; order < 3; order++) {
 			counts += seqBadReadLineLengths.getSum();	
@@ -85,7 +83,7 @@ public class FastqSummaryReport extends SummaryReport {
 		
 		//1mers is same to baseByCycle
 		for( int i : new int[] { 2, 3, KmersSummary.maxKmers } ) {
-			kmersSummary.toXml( element,i );	
+			kmersSummary.toXml( element,i, true );	
 		}
 		
 		//QUAL
@@ -99,7 +97,7 @@ public class FastqSummaryReport extends SummaryReport {
 		ele = XmlUtils.createMetricsNode( element,  XmlUtils.BAD_READ, null) ;
 		XmlUtils.outputTallyGroup( ele,  XmlUtils.BAD_READ ,  qualBadReadLineLengths.toMap(), false, true ) ;
 		XmlUtils.addCommentChild(ele, FastqSummaryReport.badQualComment );
-			
+		
  	}
 	
 	/**

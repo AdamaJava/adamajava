@@ -134,7 +134,7 @@ public class KmersSummaryTest {
 		summary.parseKmers( base2.getBytes() , false, 0);
 		
 		Element root = XmlElementUtils.createRootElement("root", null);
-		summary.toXml(root, 2);
+		summary.toXml(root, 2, true);
 				
 		//only one <sequenceMetrics>
 		List<Element> eles = XmlElementUtils.getChildElementByTagName(root, XmlUtils.SEQUENCE_METRICS);
@@ -166,7 +166,7 @@ public class KmersSummaryTest {
 		}
  		
 		Element root = XmlElementUtils.createRootElement("root", null);
-		summary.toXml(root, 3);
+		summary.toXml(root, 3, false);
 		
 		//the popular kmers are based on counts on middle, middle of first half, middle of second half
 		//in this testing case it look at firt cyle, middle cycle and last cycle
