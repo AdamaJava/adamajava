@@ -221,7 +221,6 @@ public class KmersSummary {
 			String name = BamSummaryReport2.sourceName[pair];
 			
 			//read may have no pair information such as fastq
-			//if(pair == 0 && parsedCount[1].get() == 0 && parsedCount[2].get() == 0)
 			if( isFastq )
 				name = klength+"mers";
 			Set<String> kmerStrs = getPopularKmerString(maxNo,  klength, false, pair);
