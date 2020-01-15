@@ -61,22 +61,22 @@ public class FastqSummaryReport extends SummaryReport {
 		
 		//seq								 			
 		element =   XmlElementUtils.createSubElement(parent,XmlUtils.SEQ  ) ;
-		long counts = 0;
-		for(int order = 0; order < 3; order++) {
-			counts += seqByCycle.getInputCounts();
-		}
-		Pair<String, Number> rcPair = new Pair<>(ReadGroupSummary.READ_COUNT, counts);
+//???		long counts = 0;
+//		for(int order = 0; order < 3; order++) {
+//			counts += seqByCycle.getInputCounts();
+//		}
+		Pair<String, Number> rcPair = new Pair<>(ReadGroupSummary.READ_COUNT, seqByCycle.getInputCounts());
 		Element ele = XmlUtils.createMetricsNode( element, XmlUtils.SEQ_BASE , rcPair); 
 		seqByCycle.toXml( ele, XmlUtils.SEQ_BASE,seqByCycle.getInputCounts());
 		
 		ele = XmlUtils.createMetricsNode( element, XmlUtils.SEQ_LENGTH , rcPair); 
 		XmlUtils.outputTallyGroup( ele, XmlUtils.SEQ_LENGTH, seqByCycle.getLengthMapFromCycle(), true, true );
 				
-		counts = 0;
-		for(int order = 0; order < 3; order++) {
-			counts += seqBadReadLineLengths.getSum();	
-		}
-		rcPair = new Pair<String, Number>(ReadGroupSummary.READ_COUNT, counts);		
+//???		counts = 0;
+//		for(int order = 0; order < 3; order++) {
+//			counts += seqBadReadLineLengths.getSum();	
+//		}
+		rcPair = new Pair<String, Number>(ReadGroupSummary.READ_COUNT, seqBadReadLineLengths.getSum());		
 		ele = XmlUtils.createMetricsNode( element, XmlUtils.BAD_READ, rcPair);
 		XmlUtils.outputTallyGroup( ele, XmlUtils.BAD_READ,   seqBadReadLineLengths.toMap(), true, true );	
 		XmlUtils.addCommentChild(ele, FastqSummaryReport.badBaseComment );
@@ -88,15 +88,17 @@ public class FastqSummaryReport extends SummaryReport {
 		
 		//QUAL
 		element = XmlElementUtils.createSubElement(parent, XmlUtils.QUAL) ;
-		ele = XmlUtils.createMetricsNode( element, XmlUtils.QUAL_BASE , null); 
-		qualByCycleInteger.toXml(element,XmlUtils.QUAL_BASE, qualByCycleInteger.getInputCounts()) ;
+		rcPair = new Pair<String, Number>(ReadGroupSummary.READ_COUNT, qualByCycleInteger.getInputCounts());	
+		ele = XmlUtils.createMetricsNode( element, XmlUtils.QUAL_BASE , rcPair); 
+		qualByCycleInteger.toXml( ele, XmlUtils.QUAL_BASE, qualByCycleInteger.getInputCounts()) ;
 		
-		ele = XmlUtils.createMetricsNode( element, XmlUtils.QUAL_LENGTH, null) ;
+		ele = XmlUtils.createMetricsNode( element, XmlUtils.QUAL_LENGTH, rcPair) ;
 		XmlUtils.outputTallyGroup( ele,  XmlUtils.QUAL_LENGTH,  qualByCycleInteger.getLengthMapFromCycle(), true, true ) ;	
-		
-		ele = XmlUtils.createMetricsNode( element,  XmlUtils.BAD_READ, null) ;
+
+		rcPair = new Pair<String, Number>(ReadGroupSummary.READ_COUNT, qualBadReadLineLengths.getSum());	
+		ele = XmlUtils.createMetricsNode( element,  XmlUtils.BAD_READ, rcPair) ;
 		XmlUtils.outputTallyGroup( ele,  XmlUtils.BAD_READ ,  qualBadReadLineLengths.toMap(), false, true ) ;
-		XmlUtils.addCommentChild(ele, FastqSummaryReport.badQualComment );
+		XmlUtils.addCommentChild( ele, FastqSummaryReport.badQualComment );
 		
  	}
 	
