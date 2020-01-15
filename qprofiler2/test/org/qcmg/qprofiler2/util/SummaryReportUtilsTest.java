@@ -116,9 +116,9 @@ public class SummaryReportUtilsTest {
 	 * @param length
 	 */
 	private static void addPositionAndLengthToMap(ConcurrentMap<Integer, AtomicLong> map, int position, int length) {
-		for (int i = position ; i < position + length ; i++) 
-			//SummaryByCycleUtils.incrementCount(map, Integer.valueOf(i));			
+		for (int i = position ; i < position + length ; i++) {		
 			map.computeIfAbsent( Integer.valueOf(i), k -> new AtomicLong(0)).incrementAndGet();		
+		}
 	}
 	
 }

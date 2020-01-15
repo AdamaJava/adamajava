@@ -63,7 +63,7 @@ public class KmersSummaryTest {
 		LocalDateTime now = LocalDateTime.now(); 
 		System.out.println(dtf.format(now)); 
 		
-		System.out.println("calling producer with split 101 times "); 
+		//calling producer with split 101 times
 		String[] mers1 = summary.getPossibleKmerString(6, false);
 		for (int  i = 0; i < 100; i ++) {
 			mers1 = summary.getPossibleKmerString(6, false);

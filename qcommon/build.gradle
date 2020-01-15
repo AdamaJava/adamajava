@@ -14,5 +14,9 @@ dependencies {
     compile 'org.slf4j:slf4j-api:1.7.25'
     compile 'org.slf4j:slf4j-simple:1.7.25'
     compile 'com.typesafe:config:1.3.1'
+    
+    //jaxb is removed from JDK9+
+    //we need below jar in case to run on JDK9 and above
+    compile 'javax.xml.bind:jaxb-api:2.2.12' 
 }
 

@@ -327,8 +327,11 @@ public class BamSummaryReport2 extends SummaryReport {
 		final int mapQ = record.getMappingQuality();
 		mapQualityLengths[order].increment(mapQ);
 
-		// only FLAGS are always summarised		
-		flagIntegerCount.increment(record.getFlags());	
+		//summarize FLAGS for all reads includes bad reads
+		flagIntegerCount.increment(record.getFlags());
+		//summarize QName for each read group includes bad reads	
+		readIdSummary.computeIfAbsent( readGroup, (k) -> new ReadIDSummary() ).parseReadId( record.getReadName() );
+		
 			
 		//excludes repeated reads for tags
 		if ( !record.getSupplementaryAlignmentFlag() &&	!record.isSecondaryAlignment() && !record.getReadFailsVendorQualityCheckFlag() ) {
@@ -339,8 +342,6 @@ public class BamSummaryReport2 extends SummaryReport {
 		ReadGroupSummary rgSumm = rgSummaries.computeIfAbsent(readGroup, k -> new ReadGroupSummary(k));	
 		if( rgSumm.parseRecord(record) ) {	
 			
-			//QName	
-			readIdSummary.computeIfAbsent( readGroup, (k) -> new ReadIDSummary() ).parseReadId( record.getReadName() );
  			
 			// SEQ 
 			byte[] data = record.getReadBases();			

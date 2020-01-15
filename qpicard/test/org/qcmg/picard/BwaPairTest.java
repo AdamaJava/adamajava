@@ -25,21 +25,22 @@ public class BwaPairTest {
 		
 		//only count overlap on reads with positive tlen
 		recorda.setInferredInsertSize(-20);		//100-120	
-		assertTrue(BwaPair.getOverlapBase(recorda) == 0);
-				
-		//first pair  fully overlap with tLen == 0 since both forward orientation
+		assertTrue(BwaPair.getOverlapBase(recorda) == 0);		
+
+		//first pair  fully overlap with tLen == 10 since both forward orientation
 		recorda.setCigarString("75M");
 		//first of mapped pair, both forward
 		recorda.setFlags(65);
-		recorda.setAlignmentStart(7480169);
+		recorda.setAlignmentStart(7480159);
 		recorda.setMateAlignmentStart(7480169);		
 		assertEquals( BwaPair.getPairType(recorda), Pair.F3F5 );
-		//same start first of pair
-		recorda.setInferredInsertSize(0);	
-		assertTrue(BwaPair.getOverlapBase(recorda) == 75); 
-		//same start second of pair
+		//not same start first of pair
+		recorda.setInferredInsertSize(10);	
+		assertTrue(BwaPair.getOverlapBase(recorda) == 65); 
+		//not same start second of pair
 		recorda.setFlags(179);
-		assertTrue(BwaPair.getOverlapBase(recorda) == 0); 
+		assertTrue(BwaPair.getOverlapBase(recorda) == 65); 
+		
 		
 		//now set to second of mapped pair, both reverse 
 		//ST-E00180:52:H5LNMCCXX:1:1116:24274:5247 113 chr1 27977105 60 5S145M = 27977205 0 
@@ -57,10 +58,10 @@ public class BwaPairTest {
 		// 		205 <-------|225		
 		recorda.setInferredInsertSize(0);
 		//second of pair overlap ignor if tLen = 0
-		assertTrue(BwaPair.getOverlapBase(recorda) == 0); 
+		assertTrue(BwaPair.getOverlapBase(recorda) == 0); 		
 		//first of pair overlap >= 0 if tLen = 0
 		recorda.setFlags(115);
-		assertTrue(BwaPair.getOverlapBase(recorda) == 21); 
+		assertTrue(BwaPair.getOverlapBase(recorda) == 0); 
 	}
 
 	@Test
@@ -168,7 +169,7 @@ public class BwaPairTest {
 		recorda.setAlignmentStart(120);
 		recorda.setMateAlignmentStart(100);
 		assertEquals( BwaPair.getPairType(recorda), Pair.Outward);
-		assertTrue(BwaPair.getOverlapBase(recorda) == 1); //tLen == 0
+		assertTrue(BwaPair.getOverlapBase(recorda) == 0); //tLen == 0
 		recorda.setInferredInsertSize(-10); //tLen < 0
 		assertTrue(BwaPair.getOverlapBase(recorda) == 0);		
 		
@@ -191,6 +192,35 @@ public class BwaPairTest {
 		//overlap = min_ends - max_start + 1= min(104, 120+?) - 120 + 1
 		assertTrue(BwaPair.getOverlapBase(recorda) == 0);
 		
+	}
+
+
+	@Test
+	public void unvailableTlenTest() {
+				
+		SAMRecord recorda = new SAMRecord(null);		
+		//both forward --mate--     --read--
+		recorda.setFlags(65); 
+		recorda.setAlignmentStart(17020467);		
+		recorda.setMateAlignmentStart(6513428);
+		recorda.setInferredInsertSize(0 );
+		assertTrue(BwaPair.getOverlapBase(recorda) == 0); 
+				
+		//both forward same start     
+		recorda.setCigarString("200M");
+		recorda.setMateAlignmentStart(17020467);
+		//may 200 bases occurs, but follow sam specification, skip overlap for read with tLen==0
+		assertTrue(BwaPair.getOverlapBase(recorda) == 0);
+
+		//both reverse same start
+		recorda.setFlags(113); 
+		//may 200 bases occurs, but follow sam specification, skip overlap for read with tLen==0
+		assertTrue(BwaPair.getOverlapBase(recorda) == 0);
+		
+		//read forward, mate reverse
+		recorda.setFlags(113); 
+		//may 200 bases occurs, but follow sam specification, skip overlap for read with tLen==0
+		assertTrue(BwaPair.getOverlapBase(recorda) == 0);		
 	}
 
 }
