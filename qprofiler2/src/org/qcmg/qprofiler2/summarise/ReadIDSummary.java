@@ -191,8 +191,21 @@ static final int MAX_POOL_SIZE = 500;
 		return elements.toArray(new String[elements.size()]); 			
 	}
 	
-	public void parseReadId(String readId) {
+	public void parseReadId(String id) {
 		inputNo.incrementAndGet();
+		String readId = id.trim(); 
+		
+		//read id line may contain extra informtion, such as below from fastq file
+		//NB551151:83:HWC2VBGX9:4:13602:8142:7462 1:N:0:GGGGGG
+		//we have to remove all string after space	
+		try {
+			StringTokenizer st = new StringTokenizer(readId," \n\r\t");	
+			//only get first token as readId
+			readId = st.nextToken();
+		}catch( NoSuchElementException e) {
+			//do nothing, just pass to next step. 
+		}
+		
 		
 		String[] elements = splitElements( readId);  
 		RNPattern pattern =  getPattern(elements);	

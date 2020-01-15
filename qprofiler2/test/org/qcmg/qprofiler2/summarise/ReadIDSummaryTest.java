@@ -1,14 +1,43 @@
 package org.qcmg.qprofiler2.summarise;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import javax.xml.parsers.ParserConfigurationException;
 
 import org.junit.Test;
 import org.qcmg.common.util.Constants;
+import org.qcmg.common.util.XmlElementUtils;
 import org.qcmg.qprofiler2.summarise.ReadIDSummary.RNPattern;
 import org.qcmg.qprofiler2.util.XmlUtils;
+import org.w3c.dom.Element;
 
 
 public class ReadIDSummaryTest {
+	
+	@Test
+	public void fastqIdTest() throws ParserConfigurationException {
+		ReadIDSummary idSummary = new ReadIDSummary();			
+		//accept empty string as id
+		RNPattern pa =  idSummary.getPattern( "".split(Constants.COLON_STRING));
+		assertTrue(pa.equals(RNPattern.NoColon ));
+		
+		//id not null
+		try {
+			idSummary.parseReadId(null);
+			fail("can't accept null id");
+		}catch(Exception e) {
+			//expect to catch exception			
+		}
+		
+		//remove substring after space,tab newline etc from id
+		idSummary.parseReadId(" NB551151:83:HWC2VBGX9:4:13602:8142:7462	1:N:0:GGGGGG");				
+		Element root = XmlElementUtils.createRootElement( "root", null);				
+		idSummary.toXml(root);		
+		Element ele = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.VALUE).get(0);
+		assertEquals( ele.getAttribute(XmlUtils.NAME),"NB551151:83:HWC2VBGX9:4:13602:8142:7462" );
+	}
 		
 	@Test
 	public void patternTest() {

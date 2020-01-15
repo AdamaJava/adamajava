@@ -199,7 +199,6 @@ public class BamSummaryReport2 extends SummaryReport {
 		for( int i : new int[] { 2, 3, KmersSummary.maxKmers } ) {
 			kmersSummary.toXml( parent,i, false);
 		}
-			
 	}
 	
 	//<QUAL>
