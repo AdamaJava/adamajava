@@ -46,10 +46,10 @@ public class FastqSummaryReport extends SummaryReport {
 	private final QCMGAtomicLongArray qualBadReadLineLengths = new QCMGAtomicLongArray(128);
 		
 	AtomicLong qualHeaderNotEqualToPlus = new AtomicLong();		
-	private ReadIDSummary readHeaderSummary = new ReadIDSummary(); 
+	private ReadIDSummary readNameSummary = new ReadIDSummary(); 
 	
 	public FastqSummaryReport() { super(); }
-	public ReadIDSummary getReadIDSummary(){	return readHeaderSummary;	}
+	public ReadIDSummary getReadIDSummary(){	return readNameSummary;	}
 	@Override
 	public void toXml(Element parent1) {		
 		Element parent = init( parent1, ProfileType.FASTQ, null, null );
@@ -57,7 +57,7 @@ public class FastqSummaryReport extends SummaryReport {
 		
 		//header line:"analysis read name pattern for read group
 		Element element =   XmlElementUtils.createSubElement(parent, XmlUtils.QNAME ) ;							
-		readHeaderSummary.toXml(element );		
+		readNameSummary.toXml(element );		
 		
 		//seq								 			
 		element =   XmlElementUtils.createSubElement(parent,XmlUtils.SEQ  ) ;
@@ -132,7 +132,7 @@ public class FastqSummaryReport extends SummaryReport {
 			qualHeaderNotEqualToPlus.incrementAndGet();	
 		
 		String id = record.getReadName();//record.getReadHeader();		
-		try { readHeaderSummary.parseReadId( id );
+		try { readNameSummary.parseReadId( id );
 		} catch (Exception e) {
 			if ( errNumber.incrementAndGet() < ReportErrNumber )
 				logger.error( "Invalid read id: " + id );

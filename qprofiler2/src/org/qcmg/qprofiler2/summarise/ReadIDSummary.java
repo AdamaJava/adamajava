@@ -227,9 +227,12 @@ static final int MAX_POOL_SIZE = 500;
 				XmlUtils.updateMapWithLimit( columns[1], elements[1],TALLY_SIZE);					
 			case ThreeColon:		
 		    case TwoColon: //record element 0	
-		    case OneColon: //record element 0	 	    	
+		    case OneColon: //record element 0	
+		    	//debug add here
+		    	XmlUtils.updateMapWithLimit( columns[0], elements[0],TALLY_SIZE);
 			case NoColon_NCBI: //eg.  SRR3083868.47411824
-				XmlUtils.updateMapWithLimit( columns[0], elements[0],TALLY_SIZE);	
+				//XmlUtils.updateMapWithLimit( columns[0], elements[0],TALLY_SIZE);	
+				XmlUtils.updateMapWithLimit( runIds, elements[0],TALLY_SIZE);	
 				break;
 							
 			case NoColon_BGI:
