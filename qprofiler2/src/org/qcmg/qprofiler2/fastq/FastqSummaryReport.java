@@ -61,10 +61,6 @@ public class FastqSummaryReport extends SummaryReport {
 		
 		//seq								 			
 		element =   XmlElementUtils.createSubElement(parent,XmlUtils.SEQ  ) ;
-//???		long counts = 0;
-//		for(int order = 0; order < 3; order++) {
-//			counts += seqByCycle.getInputCounts();
-//		}
 		Pair<String, Number> rcPair = new Pair<>(ReadGroupSummary.READ_COUNT, seqByCycle.getInputCounts());
 		Element ele = XmlUtils.createMetricsNode( element, XmlUtils.SEQ_BASE , rcPair); 
 		seqByCycle.toXml( ele, XmlUtils.SEQ_BASE,seqByCycle.getInputCounts());
@@ -72,10 +68,6 @@ public class FastqSummaryReport extends SummaryReport {
 		ele = XmlUtils.createMetricsNode( element, XmlUtils.SEQ_LENGTH , rcPair); 
 		XmlUtils.outputTallyGroup( ele, XmlUtils.SEQ_LENGTH, seqByCycle.getLengthMapFromCycle(), true, true );
 				
-//???		counts = 0;
-//		for(int order = 0; order < 3; order++) {
-//			counts += seqBadReadLineLengths.getSum();	
-//		}
 		rcPair = new Pair<String, Number>(ReadGroupSummary.READ_COUNT, seqBadReadLineLengths.getSum());		
 		ele = XmlUtils.createMetricsNode( element, XmlUtils.BAD_READ, rcPair);
 		XmlUtils.outputTallyGroup( ele, XmlUtils.BAD_READ,   seqBadReadLineLengths.toMap(), true, true );	
