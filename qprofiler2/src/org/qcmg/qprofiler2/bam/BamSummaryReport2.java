@@ -474,16 +474,9 @@ public class BamSummaryReport2 extends SummaryReport {
 		this.bamHeader = header;	
 		this.isFullBamHeader = isFullBamHeader;
 	}
-//	public String getBamHeader() {	
-//		return bamHeader.getSAMString();	
-//	}
 	public void setSamSequenceDictionary(SAMSequenceDictionary samSeqDictionary) {	
 		this.samSeqDictionary = samSeqDictionary;	
 	}
-//	public SAMSequenceDictionary getSamSequenceDictionary() { 
-//		return samSeqDictionary;	
-//	}	
-
 	
 	
 	// ///////////////////////////////////////////////////////////////////////

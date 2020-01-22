@@ -82,8 +82,6 @@ public class ReadIDSummaryTest {
 		
 		Element root =  XmlElementUtils.createRootElement("root", null);
 		idSummary.toXml(root);
-		XmlElementUtils.asXmlText(root, "/Users/christix/Documents/Eclipse/data/qprofiler2/test.xml");
-		
 		
 		//total 15 patterns
 		assertEquals( idSummary.patterns.keySet().size(), 15 );
@@ -95,7 +93,6 @@ public class ReadIDSummaryTest {
 				assertEquals( e.getAttribute(XmlUtils.COUNT), "2");
 			}else {
 				//others <tally count="1" value="..."/>
-				//System.out.println("debug: " + pa.toString());
 				Element e = XmlElementUtils.getChildElementByTagName(ele, XmlUtils.TALLY) .stream().filter(k -> k.getAttribute(XmlUtils.VALUE).equals(pa.toString())).findFirst().get();
 				assertEquals( e.getAttribute(XmlUtils.COUNT), "1");				
 			}			
@@ -105,8 +102,6 @@ public class ReadIDSummaryTest {
 		int order = 1;
 		for( int count : new int[] {8,6,5,4,3} ) {
 			String name = "Element" + order;
-//			for(Element e : XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.VARIABLE_GROUP))
-//				System.out.println("debug, " + e.getNodeName() + " : " + e.getAttribute("name")  + " == " + name);
 			
 			ele = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.VARIABLE_GROUP).stream().filter( k -> k.getAttribute(XmlUtils.NAME).equals(name)).findFirst().get();
 			assertEquals(ele.getAttribute(XmlUtils.COUNT), count + "");
@@ -277,13 +272,6 @@ public class ReadIDSummaryTest {
 		assertTrue( idSummary.patterns.get( RNPattern.NoColon_NCBI.toString() ).get() == 1000 );
 		assertTrue( idSummary.patterns.get( RNPattern.NoColon_BGI.toString() ).get() == 4999000 );
 			
-		//debug
-//		System.out.println("columns[0]:size " + idSummary.columns[0].size());
-//		for(String str :  idSummary.columns[0].keySet())
-//			System.out.println("columns[0]: " + str);
-//		assertTrue( idSummary.columns[0].keySet().size() == 2 );
-//		assertTrue( idSummary.columns[0].keySet().size() == 1 );
-//		assertTrue( idSummary.columns[0].get("SRR3083868").get() == 1000 );
 		
 		//stop record runid to column[0] for NoColon_NCBI("<Run Id>.<Pos>")
 		assertTrue( idSummary.runIds.get("SRR3083868").get() == 1000 );
