@@ -270,14 +270,11 @@ public class BamSummaryReportTest {
 		record.setReadName("TESTDATA");
 		
 		//first read
-		record.setReadBases("ACCCT AACCC CAACC CTAAC CNTAA CCCTA ACCCA AC".replace(" ","" ).getBytes());
-		
-		report.parseRecord(record);//unapired
-		
+		record.setReadBases("ACCCT AACCC CAACC CTAAC CNTAA CCCTA ACCCA AC".replace(" ","" ).getBytes());		
+		report.parseRecord(record);//unapired		
 		record.setFlags(67); //firstInPair
 		report.parseRecord(record);
-		
-		
+				
 		Element root =  XmlElementUtils.createRootElement("root", null);
 		report.toXml(root);
 
