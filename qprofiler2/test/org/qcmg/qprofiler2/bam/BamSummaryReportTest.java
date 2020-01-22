@@ -8,8 +8,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.xml.parsers.ParserConfigurationException;
+
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMUtils;
+import htsjdk.samtools.fastq.FastqRecord;
+
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -18,8 +22,8 @@ import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.XmlElementUtils;
 import org.qcmg.picard.BwaPair.Pair;
 import org.qcmg.qprofiler2.bam.BamSummaryReport2;
+import org.qcmg.qprofiler2.fastq.FastqSummaryReport;
 import org.qcmg.qprofiler2.summarise.CycleSummaryTest;
-import org.qcmg.qprofiler2.summarise.PairSummary;
 import org.qcmg.qprofiler2.summarise.PairSummaryTest;
 import org.qcmg.qprofiler2.summarise.PositionSummary;
 import org.qcmg.qprofiler2.summarise.ReadGroupSummary;
@@ -256,4 +260,47 @@ public class BamSummaryReportTest {
 		} 		
 	}
 	
+
+
+	@Test
+	public void unpairedTest() throws ParserConfigurationException {
+		BamSummaryReport2 report  = new BamSummaryReport2(3, false);	
+		
+		SAMRecord record = new SAMRecord(null);
+		record.setReadName("TESTDATA");
+		
+		//first read
+		record.setReadBases("ACCCT AACCC CAACC CTAAC CNTAA CCCTA ACCCA AC".replace(" ","" ).getBytes());
+		
+		report.parseRecord(record);//unapired
+		
+		record.setFlags(67); //firstInPair
+		report.parseRecord(record);
+		
+		
+		Element root =  XmlElementUtils.createRootElement("root", null);
+		report.toXml(root);
+
+		//check each node, make sure both "unPaired" and "firstReadinPair" are reported
+		Element seqEle = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.SEQ).get(0);
+		assertEquals( XmlElementUtils.getChildElementByTagName(seqEle, XmlUtils.SEQUENCE_METRICS).size(), 6  );
+		for(Element ele : XmlElementUtils.getChildElementByTagName(seqEle, XmlUtils.SEQUENCE_METRICS)) {
+			assertEquals( ele.getAttribute( ReadGroupSummary.READ_COUNT ) ,  "2");			
+			assertEquals( XmlElementUtils.getChildElementByTagName(ele, XmlUtils.VARIABLE_GROUP).size(),2  );			
+			boolean hasUnpaired = false;
+			boolean hasFirst = false;
+			for(Element vele :  XmlElementUtils.getChildElementByTagName(ele, XmlUtils.VARIABLE_GROUP)  ) {				
+				if(vele.getAttribute(XmlUtils.NAME).equals("unPaired")) {
+					hasUnpaired = true;
+				}else if(vele.getAttribute(XmlUtils.NAME).equals(XmlUtils.FIRST_PAIR)) {
+					hasFirst = true;
+				}				
+			}			
+			assertTrue(hasUnpaired && hasFirst); //must have both 
+		}
+		
+		
+		
+	}
+
 }

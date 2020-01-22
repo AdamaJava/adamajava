@@ -75,8 +75,11 @@ public class FastqSummaryReportTest {
 			}
 		}
 		
-		//check read length
-		XmlElementUtils.getChildElementByTagName(seqEle, XmlUtils.SEQUENCE_METRICS)
+		//value for name attributte are same 
+		for( Element ele : XmlElementUtils.getOffspringElementByTagName( seqEle, XmlUtils.SEQUENCE_METRICS ) ) {
+			String vname = XmlElementUtils.getChildElement( ele, XmlUtils.VARIABLE_GROUP, 0 ).getAttribute(XmlUtils.NAME);
+			assertEquals( ele.getAttribute(XmlUtils.NAME), vname );
+		}
 		
 	}
 	
@@ -90,43 +93,21 @@ public class FastqSummaryReportTest {
 		Element root =  XmlElementUtils.createRootElement("root", null);
 		report.toXml(root);
 		
-		Element seqEle = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.QUAL).get(0);
-		assertEquals( XmlElementUtils.getChildElementByTagName(seqEle, XmlUtils.SEQUENCE_METRICS).size(), 3  );
-		for(Element ele : XmlElementUtils.getChildElementByTagName(seqEle, XmlUtils.SEQUENCE_METRICS)) {
+		Element qulEle = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.QUAL).get(0);
+		assertEquals( XmlElementUtils.getChildElementByTagName(qulEle, XmlUtils.SEQUENCE_METRICS).size(), 3  );
+		for(Element ele : XmlElementUtils.getChildElementByTagName(qulEle, XmlUtils.SEQUENCE_METRICS)) {
 			//one of qual is null won't count
 			assertEquals( ele.getAttribute( ReadGroupSummary.READ_COUNT ) ,  "10");
 			assertEquals( XmlElementUtils.getChildElementByTagName(ele, XmlUtils.VARIABLE_GROUP).get(0).getAttribute(XmlUtils.NAME), ele.getAttribute(XmlUtils.NAME) );
 		}
 		
-		for(Element ele : XmlElementUtils.getOffspringElementByTagName(seqEle, XmlUtils.TALLY)) {
-			if(ele.getAttribute( XmlUtils.VALUE).equals("0") ) {
-				//unless bad reads, value==0 means good
-				assertEquals( ele.getAttribute( XmlUtils.COUNT ) ,  "9");
-			}else {
-				//only two reads have seq, others are empty
-				assertEquals( ele.getAttribute( XmlUtils.COUNT ) ,  "2");
-			}
+		//value for name attributte are same 
+		for( Element ele : XmlElementUtils.getOffspringElementByTagName( qulEle, XmlUtils.SEQUENCE_METRICS ) ) {
+			String vname = XmlElementUtils.getChildElement( ele, XmlUtils.VARIABLE_GROUP, 0 ).getAttribute(XmlUtils.NAME);
+			assertEquals( ele.getAttribute(XmlUtils.NAME), vname );
 		}
 		
-	}	
-	
-	
-	
-	
-	@Test
-	public void xuTest() throws ParserConfigurationException {
-		
-		FastqSummaryReport report  = new FastqSummaryReport();		
-		for(FastqRecord record : createFastqRecord()) {
-			report.parseRecord(record);
-		}
-		
-		Element root =  XmlElementUtils.createRootElement("root", null);
-		report.toXml(root);
-		XmlElementUtils.asXmlText(root, "/Users/christix/Documents/Eclipse/data/qprofiler2/test.xml");
-		
-	}
-	
+	}		
 	
 	@Test
 	public void ExceptionTest() {
@@ -149,14 +130,6 @@ public class FastqSummaryReportTest {
 		}	
 	 	
 		
-	}
-	
-//	System.out.println("\n*******");
-//	System.out.println( "record.getReadName() : " + record.getReadName() );
-//	System.out.println(  "record.getReadString(): " + record.getReadString() );
-//	System.out.println(  "record.getBaseQualityHeader(): " + record.getBaseQualityHeader() );
-//	System.out.println(  "record.getBaseQualityString(): " + record.getBaseQualityString() );
-//	System.out.println(  "record.toFastQString() : " + record.toFastQString() );			
-	
+	}	
 
 }
