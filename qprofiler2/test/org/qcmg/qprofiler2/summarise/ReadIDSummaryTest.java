@@ -1,17 +1,179 @@
 package org.qcmg.qprofiler2.summarise;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import javax.xml.parsers.ParserConfigurationException;
 
 import org.junit.Test;
 import org.qcmg.common.util.Constants;
+import org.qcmg.common.util.Pair;
+import org.qcmg.common.util.XmlElementUtils;
 import org.qcmg.qprofiler2.summarise.ReadIDSummary.RNPattern;
 import org.qcmg.qprofiler2.util.XmlUtils;
+import org.w3c.dom.Element;
 
 
 public class ReadIDSummaryTest {
+	
+	@Test
+	public void fastqIdTest() throws ParserConfigurationException {
+		ReadIDSummary idSummary = new ReadIDSummary();			
+		//accept empty string as id
+		RNPattern pa =  idSummary.getPattern( "".split(Constants.COLON_STRING));
+		assertTrue(pa.equals(RNPattern.NoColon ));
+		
+		//id not null
+		try {
+			idSummary.parseReadId(null);
+			fail("can't accept null id");
+		}catch(Exception e) {
+			//expect to catch exception			
+		}
+		
+		//remove substring after space,tab newline etc from id
+		idSummary.parseReadId(" NB551151:83:HWC2VBGX9:4:13602:8142:7462	1:N:0:GGGGGG");				
+		Element root = XmlElementUtils.createRootElement( "root", null);				
+		idSummary.toXml(root);		
+		Element ele = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.VALUE).get(0);
+		assertEquals( ele.getAttribute(XmlUtils.NAME),"NB551151:83:HWC2VBGX9:4:13602:8142:7462" );
+	}
+	
+	@Test
+	public void toXmlTest() throws ParserConfigurationException {
+		ReadIDSummary idSummary = new ReadIDSummary();	
+		
+		//NoColon("<Element>")
+		idSummary.parseReadId("element");		
+		//NoColon_NCBI("<Run Id>.<Pos>") eg. SRR3083868.47411824
+		idSummary.parseReadId("SRR3083868.47411824");				
+		//NoColon_NUN("<Pos>"), eg. 322356 ???belong to NoColon("<Element>")
+		idSummary.parseReadId(" 322356");				
+		//NoColon_BGI("<Flow Cell Id><Flow Cell Lane><Tile Number><Pos>"), like bgiseq500
+		idSummary.parseReadId(" FCL300002639L1C017R084_416735");
+		//OneColon("<Element1>:<Element2>"), //not sure
+		idSummary.parseReadId("element1:element2 ");
+		//TwoColon("<Element1>:<Element2>:<Element3>"),  not sure
+		idSummary.parseReadId(" element1:element2:element3");
+		//TwoColon_Torrent("<Run Id>:<X Pos>:<Y Pos>")
+		idSummary.parseReadId(" WR6H1:09838:13771");
+		//ThreeColon("<Element1>:<Element2>:<Element3>:<Element4>"), not sure
+		idSummary.parseReadId("element1:element2:element3:element4");
+		//FourColon("<Element1>:<Element2>:<Element3>:<Element4>:<Element5>"),
+		idSummary.parseReadId(" element1:element2:element3:element4:element5");
+		//FourColon_OlderIllumina("<Instruments>:<Flow Cell Lane>:<Tile Number>:<X Pos>:<Y Pos><#Index></Pair>"), hiseq2000
+		idSummary.parseReadId("HWI-ST797_0059:3:2205:20826:152489#CTTGTA");
+		//FourColon_OlderIlluminaWithoutIndex("<Instrument>:<Flow Cell Lane>:<Tile Number>:<X Pos>:<Y Pos>"), hiseq2000: 
+		idSummary.parseReadId("HWI-ST797_0059:3:2205:20826:152489");
+		//FiveColon("<Element1>:<Element2>:<Element3>:<Element4>:<Element5>:<Element6>"), not sure
+		idSummary.parseReadId("element1:element2:element3:element4:element5:element6 ");
+		//SixColon("<Element1>:<Element2>:<Element3>:<Element4>:<Element5>:<Element6>:<Element7>"), not sure
+		idSummary.parseReadId("element1:element2:element3:element4:element5:element6:element7");
+		//SixColon_Illumina("<Instrument>:<Run Id>:<Flow Cell Id>:<Flow Cell Lane>:<Tile Number>:<X Pos>:<Y Pos>"),   
+		idSummary.parseReadId("MG00HS15:400:C4KC7ACXX:4:2104:11896:63394");
+		//SevenColon_andMore("<Element1>:<Element2>:...:<Elementn>");  //not sure
+		idSummary.parseReadId("element1:element2:element3:element4:element5:element6:element7:8");
+		idSummary.parseReadId("element1:element2:element3:element4:element5:element6:element7:8:9");		
+		
+		Element root =  XmlElementUtils.createRootElement("root", null);
+		idSummary.toXml(root);
+		
+		//total 15 patterns
+		assertEquals( idSummary.patterns.keySet().size(), 15 );
+		Element ele = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.VARIABLE_GROUP).stream().filter( k -> k.getAttribute(XmlUtils.NAME).equals("QNAME Format") ).findFirst().get() ;
+		for(String pa : idSummary.patterns.keySet()) {
+			if(pa.equals(ReadIDSummary.RNPattern.SevenColon_andMore.toString())) {
+				//only <tally count="2" value="<Element1>:<Element2>:...:<Elementn>"/>
+				Element e = XmlElementUtils.getChildElementByTagName(ele, XmlUtils.TALLY) .stream().filter(k -> k.getAttribute(XmlUtils.VALUE).equals(pa.toString())).findFirst().get();
+				assertEquals( e.getAttribute(XmlUtils.COUNT), "2");
+			}else {
+				//others <tally count="1" value="..."/>
+				Element e = XmlElementUtils.getChildElementByTagName(ele, XmlUtils.TALLY) .stream().filter(k -> k.getAttribute(XmlUtils.VALUE).equals(pa.toString())).findFirst().get();
+				assertEquals( e.getAttribute(XmlUtils.COUNT), "1");				
+			}			
+		}
+		
+		//check <Element1..5>, last 2 element won't output, incase they are position and too many values
+		int order = 1;
+		for( int count : new int[] {8,6,5,4,3} ) {
+			String name = "Element" + order;
+			
+			ele = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.VARIABLE_GROUP).stream().filter( k -> k.getAttribute(XmlUtils.NAME).equals(name)).findFirst().get();
+			assertEquals(ele.getAttribute(XmlUtils.COUNT), count + "");
+			//child element
+			ele = XmlElementUtils.getChildElement(ele, XmlUtils.TALLY, 0);
+			assertEquals(ele.getAttribute(XmlUtils.COUNT), count + "");
+			assertEquals(ele.getAttribute(XmlUtils.VALUE), "element"+ order);			
+			order ++;
+		}
+		
+		//3 instrument 
+		List<Pair<String, Integer>> valuePair = new ArrayList<Pair<String, Integer>>() {{
+			add( new Pair<>("HWI-ST797_0059",2));
+			add( new Pair<>("MG00HS15",1) );
+		}};
+		checkVariableGroup( root, "Instrument", valuePair  ) ;
+		
+		
+		//Flow Cell Id
+		valuePair = new ArrayList<Pair<String, Integer>>() {{
+			add( new Pair<>("FCL300002639",1));
+			add( new Pair<>("C4KC7ACXX",1) );
+		}};
+		checkVariableGroup( root, "Flow Cell Id", valuePair  ) ;
+		
+		//Run Id
+		valuePair = new ArrayList<Pair<String, Integer>>() {{
+			add( new Pair<>("SRR3083868",1));
+			add( new Pair<>("WR6H1",1) );
+			add( new Pair<>("400",1) );
+		}};
+		checkVariableGroup( root, "Run Id", valuePair  ) ;
+		
+		// Flow Cell Lane
+		valuePair = new ArrayList<Pair<String, Integer>>() {{
+			add( new Pair<>("L1",1) );
+			add( new Pair<>("3",2) );
+			add( new Pair<>("4",1) );
+		}};
+		checkVariableGroup( root, "Flow Cell Lane", valuePair  ) ;
+		
+		// Tile Number
+		valuePair = new ArrayList<Pair<String, Integer>>() {{
+			add( new Pair<>("C017R084",1) );
+			add( new Pair<>("2205",2) );
+			add( new Pair<>("2104",1) );
+		}};
+		checkVariableGroup( root, "Tile Number", valuePair  ) ;
+		
+		// Index
+		valuePair = new ArrayList<Pair<String, Integer>>() {{
+			add( new Pair<>("#CTTGTA",1) );
+		}};
+		checkVariableGroup( root, "Index", valuePair  ) ;			
+		
+	}
+	
+	private void checkVariableGroup(Element root, String name, List<Pair<String, Integer>> valuePair) {
+		Element ele = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.VARIABLE_GROUP).stream().filter( k -> k.getAttribute(XmlUtils.NAME).equals(name)).findFirst().get();
+		int total = 0;
+		for(Pair p : valuePair) {
+			Element e = XmlElementUtils.getChildElementByTagName( ele, XmlUtils.TALLY ).stream().filter(  k -> k.getAttribute(XmlUtils.VALUE ).equals(p.getLeft())).findFirst().get();
+			assertEquals( e.getAttribute(XmlUtils.COUNT), p.getRight() + "");
+			total += (Integer)p.getRight();
+		}
+				
+		assertEquals(ele.getAttribute(XmlUtils.COUNT),  total+"");		
+	}
+	
 		
 	@Test
-	public void patternTest() {
+ 	public void patternTest() {
 		ReadIDSummary idSummary = new ReadIDSummary();			
 //		NoColon("<element>"),
 		RNPattern pa =  idSummary.getPattern( "V100007022_3_001R018843237".split(Constants.COLON_STRING));
@@ -110,8 +272,9 @@ public class ReadIDSummaryTest {
 		assertTrue( idSummary.patterns.get( RNPattern.NoColon_NCBI.toString() ).get() == 1000 );
 		assertTrue( idSummary.patterns.get( RNPattern.NoColon_BGI.toString() ).get() == 4999000 );
 			
-		assertTrue( idSummary.columns[0].keySet().size() == 1 );
-		assertTrue( idSummary.columns[0].get("SRR3083868").get() == 1000 );
+		
+		//stop record runid to column[0] for NoColon_NCBI("<Run Id>.<Pos>")
+		assertTrue( idSummary.runIds.get("SRR3083868").get() == 1000 );
 				
 		assertTrue( idSummary.flowCellIds.get("FCL300002639").get() == 1999000 );
 		assertTrue( idSummary.flowCellIds.get("CL300002639").get() == 3000000 );

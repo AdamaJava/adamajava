@@ -74,7 +74,7 @@ public class PairSummaryTest {
 			switch (ele.getAttribute(XmlUtils.NAME)) {
 				case "overlappedPairs": assertTrue( ele.getTextContent().equals(counts[0] + "") ); break;
 				case  "tlenUnder1500Pairs" : assertTrue( ele.getTextContent().equals(counts[1] + "") ); break;
-				case  "tlenZeroPairs" : System.out.println( ele.getTextContent() + " != " + counts[9]   ); break;
+				case  "tlenZeroPairs" : assertFalse( ele.getTextContent().equals( counts[9] +"" )   ); break;
 				case  "tlenOver10000Pairs" : assertTrue( ele.getTextContent().equals(counts[2] + "") ); break;
 				case  "tlenBetween1500And10000Pairs" : assertTrue( ele.getTextContent().equals(counts[3] + "") ); break;
 				case  "pairCountUnderTlen5000" : assertTrue( ele.getTextContent().equals(counts[4] + "") ); break;
