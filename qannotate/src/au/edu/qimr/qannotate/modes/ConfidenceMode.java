@@ -142,7 +142,7 @@ public class ConfidenceMode extends AbstractMode{
 				+ ", test coverage minimum value: " + testCovCutoff + ", control coverage minimum value (somatic/germline): "
 				+ controlCovCutoffForSomaticCalls + "/" + controlCovCutoff);
 		header.addFilter(VcfHeaderUtils.FILTER_MUTATION_IN_NORMAL,"Mutation also found in pileup of normal (>= " + minPercentage + "% of reads)");
-		header.addFilter(VcfHeaderUtils.FILTER_MUTATION_IN_UNFILTERED_NORMAL,"Mutation also found in pileup of unfiltered normal (>=  max(" + minCutoff + ", " + minPercentage + "%) of reads)");  
+		header.addFilter(VcfHeaderUtils.FILTER_MUTATION_IN_UNFILTERED_NORMAL,"Mutation also found in pileup of unfiltered normal (>= " + minCutoff + " reads, and also >= " + minPercentage + "%) of reads)");  
 		header.addFilter(VcfHeaderUtils.FILTER_NOVEL_STARTS,"Less than " + nnsCount + " novel starts not considering read pair");
 		header.addFilter(VcfHeaderUtils.FILTER_MUTANT_READS,"Less than " + (mrPercentage > 0.0f ? mrPercentage +"%" : mrCount) + " mutant reads");
 		header.addFilter(VcfHeaderUtils.FILTER_STRAND_BIAS_ALT,"Alternate allele on only one strand (or percentage alternate allele on other strand is less than " + sBiasAltPercentage + "%)"); 
