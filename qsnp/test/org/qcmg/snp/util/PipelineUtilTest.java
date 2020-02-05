@@ -1091,6 +1091,47 @@ chr4    8046421 .       A       T       .       .       BaseQRankSum=0.727;Clipp
 	}
 	
 	@Test
+	public void csRealLife2() {
+		/*
+		 * chr1    79760719        .       TG      CA      .       .       .       GT:AD:DP:FT:INF:NNS:OABS        1/1:0,5:12:.:.:5:CA5[]0[];CG7[]0[]      1/1:0,5:24:.:.:5:CA5[]0[];CG19[]0[];_G1[]0[]
+		 * 
+		 * I think this should be TG -> CA,CG with 1/2 in the GT fields for both samples
+		 * This needs some thought and a separate ticket
+		 */
+		VcfRecord v1 = VcfUtils.createVcfRecord(new ChrPointPosition("1", 154701381),null,"T","C");
+		v1.setInfo(VcfHeaderUtils.INFO_SOMATIC);
+		VcfRecord v2 = VcfUtils.createVcfRecord(new ChrPointPosition("1", 154701382),null,"G","A");
+		v2.setInfo(VcfHeaderUtils.INFO_SOMATIC);
+		final Accumulator tumour100 = new Accumulator(154701381);
+		final Accumulator tumour101 = new Accumulator(154701382);
+		for (int i = 1 ; i <= 5 ; i++) {
+			tumour100.addBase((byte)'C', (byte)30, true, 154701261 + i, 154701381, 154701391, i);
+			tumour101.addBase((byte)'A', (byte)30, true, 154701261 + i, 154701382, 154701391, i);
+		}
+		for (int i = 6 ; i <= 12 ; i++) {
+			tumour100.addBase((byte)'C', (byte)30, false, 154701261 + i, 154701381, 154701391 + i, i);
+			tumour101.addBase((byte)'G', (byte)30, false, 154701261 + i, 154701382, 154701391 + i, i);
+		}
+		
+		tumour100.addBase((byte)'A', (byte)30, true, 154701262, 154701381, 154701391, 70);
+		tumour101.addBase((byte)'C', (byte)30, true, 154701262, 154701382, 154701391, 70);
+		tumour100.addBase((byte)'C', (byte)30, true, 154701262, 154701381, 154701391, 71);
+		tumour101.addBase((byte)'A', (byte)30, true, 154701262, 154701382, 154701391, 71);
+		
+		Map<VcfRecord, Pair<Accumulator, Accumulator>> map = new HashMap<>(4);
+		map.put(v1,  new Pair<>(null, tumour100));
+		map.put(v2,  new Pair<>(null, tumour101));
+		
+		Optional<VcfRecord> ov = PipelineUtil.createCompoundSnp(map, cRules,tRules, true, 3, 3); 
+		assertEquals(true, ov.isPresent());
+		VcfRecord v = ov.get();
+		assertEquals("CA", v.getAlt());
+		assertEquals("TG", v.getRef());
+//		List<String> ff = v.getFormatFields();
+//		assertEquals("1/1:0,65:67:.:SOMATIC:65:AA34[]31[];AC1[]0[];CA1[]0[]", ff.get(2));	// tumour
+	}
+	
+	@Test
 	public void csGATK() {
 		VcfRecord v1 = new VcfRecord(new String[]{"chr1","39592384",".","G","T",".",".","BaseQRankSum=-0.893;ClippingRankSum=0.266;DP=46;FS=14.005;MQ=60.00;MQRankSum=1.801;QD=31.52;ReadPosRankSum=-0.517;SOR=0.028;IN=2;HOM=3,ACTTGAGCTTtGGAGGCAGAG;","GT:AD:CCC:CCM:DP:FT:GQ:INF:QL","./.:.:Reference:13:.:PASS:.:NCIG:.","0/1:7,38:Somatic:13:45:PASS:99:SOMATIC:1449.77"});
 		VcfRecord v2 = new VcfRecord(new String[]{"chr1","39592385",".","G","A",".",".","BaseQRankSum=0.767;ClippingRankSum=-0.266;DP=46;FS=14.005;MQ=60.00;MQRankSum=-0.423;QD=31.52;ReadPosRankSum=-0.611;SOR=0.028;IN=2;HOM=0,CTTGAGCTTGaGAGGCAGAGA;","GT:AD:CCC:CCM:DP:FT:GQ:INF:QL","./.:.:Reference:13:.:PASS:.:NCIG:.","0/1:7,38:Somatic:13:45:PASS:99:SOMATIC:1449.77"});

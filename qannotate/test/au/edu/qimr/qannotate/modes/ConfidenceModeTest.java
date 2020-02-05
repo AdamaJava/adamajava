@@ -30,6 +30,7 @@ import org.qcmg.vcf.VCFFileReader;
 public class ConfidenceModeTest {
 	
 	 public static final VcfFileMeta TWO_SAMPLE_TWO_CALLER_META = new VcfFileMeta( CCMModeTest.createTwoSampleTwoCallerVcf());
+	 public static final VcfFileMeta TWO_SAMPLE_ONE_CALLER_META = new VcfFileMeta( CCMModeTest.createTwoSampleVcf());
 	 public static final VcfFileMeta SINGLE_SAMPLE_TWO_CALLER_META = new VcfFileMeta( CCMModeTest.createSingleSampleTwoCallerVcf());
 	
 	 @AfterClass
@@ -251,6 +252,127 @@ public class ConfidenceModeTest {
 		 assertEquals("PASS", r.getSampleFormatRecord(2).getField(VcfHeaderUtils.FORMAT_FILTER));
 		 assertEquals("PASS", r.getSampleFormatRecord(3).getField(VcfHeaderUtils.FORMAT_FILTER));
 		 assertEquals("PASS", r.getSampleFormatRecord(4).getField(VcfHeaderUtils.FORMAT_FILTER));
+	 }
+	 
+	 @Test
+	 public void firstCallerOnly() {
+		 
+	 }
+	 
+	 @Test
+	 public void secondCallerOnly() {
+		 /*
+		  * chr1    5323163 rs7525806       C       T       .       .       BaseQRankSum=-0.967;ClippingRankSum=0.000;DP=3;ExcessHet=3.0103;FS=0.000;MQ=60.00;MQRankSum=0.000;QD=11.92;ReadPosRankSum=-0.431;SOR=1.179;IN=2;DB;VLD;VAF=0.2567;GERM=T:8:157:165:0;HOM=3,TGGCACTATGcTTTGCATAGA;EFF=intergenic_region(MODIFIER||||||||||1)     GT:AD:CCC:CCM:DP:FT:GQ:INF:QL   ./.:.:.:1:.:COV:.:.:.   ./.:.:.:1:.:COV:.:.:.   0/1:1,2:Germline:21:3:COV;MR:37:.:35.77 ./.:.:HomozygousLoss:21:.:PASS:.:NCIG:.
+		  */
+		 VcfRecord r = new VcfRecord(new String[]{"chr1","5323163","rs7525806","C","T",".",".","BaseQRankSum=-0.967;ClippingRankSum=0.000;DP=3;ExcessHet=3.0103;FS=0.000;MQ=60.00;MQRankSum=0.000;QD=11.92;ReadPosRankSum=-0.431;SOR=1.179;IN=2;DB;VLD;VAF=0.2567;GERM=T:8:157:165:0;HOM=3,TGGCACTATGcTTTGCATAGA;EFF=intergenic_region(MODIFIER||||||||||1)","GT:AD:CCC:CCM:DP:FT:GQ:INF:QL","./.:.:.:1:.:.:.:.:.","./.:.:.:1:.:.:.:.:.","0/1:1,2:Germline:21:3:.:37:.:35.77","./.:.:HomozygousLoss:21:.:.:.:NCIG:."});
+		 ConfidenceMode cm = new ConfidenceMode(TWO_SAMPLE_TWO_CALLER_META);
+		 cm.positionRecordMap.put(r.getChrPosition(), java.util.Arrays.asList(r));
+		 cm.addAnnotation();
+		 r = cm.positionRecordMap.get(r.getChrPosition()).get(0);
+		 assertEquals("COV", r.getSampleFormatRecord(1).getField(VcfHeaderUtils.FORMAT_FILTER));
+		 assertEquals("COV", r.getSampleFormatRecord(2).getField(VcfHeaderUtils.FORMAT_FILTER));
+		 assertEquals("PASS", r.getSampleFormatRecord(3).getField(VcfHeaderUtils.FORMAT_FILTER));
+		 assertEquals("PASS", r.getSampleFormatRecord(4).getField(VcfHeaderUtils.FORMAT_FILTER));
+	 }
+	 
+	 @Test
+	 public void compoundSnp() {
+		 /*
+		  * chr1    14221527        .       TG      CA      .       .       IN=1;HOM=2,TGTAAAACGGtgCTACTAGGCA;EFF=intergenic_region(MODIFIER||||||||||1)    GT:AD:CCC:CCM:DP:FT:INF:NNS:OABS        1/1:0,22:Germline:34:39:PASS:.:21:CA12[]10[];CG8[]9[];C_2[]0[]  1/1:0,6:Germline:34:50:PASS:.:6:CA3[]3[];CG23[]21[];_G1[]1[]    ./.:.:.:1:.:COV:.:.:.   ./.:.:.:1:.:COV:.:.:.
+		  */
+		 VcfRecord r = new VcfRecord(new String[]{"chr1","14221527",".","TG","CA",".",".","IN=1;HOM=2,TGTAAAACGGtgCTACTAGGCA;EFF=intergenic_region(MODIFIER||||||||||1)",
+				 "GT:AD:CCC:CCM:DP:FT:INF:NNS:OABS",
+				 "1/1:0,22:Germline:34:39:.:.:21:CA12[]10[];CG8[]9[];C_2[]0[]",
+				 "1/1:0,6:Germline:34:50:.:.:6:CA3[]3[];CG23[]21[];_G1[]1[]",
+				 "./.:.:.:1:.:.:.:.:.",
+				 "./.:.:.:1:.:.:.:.:."});
+		 ConfidenceMode cm = new ConfidenceMode(TWO_SAMPLE_TWO_CALLER_META);
+		 cm.positionRecordMap.put(r.getChrPosition(), java.util.Arrays.asList(r));
+		 cm.addAnnotation();
+		 r = cm.positionRecordMap.get(r.getChrPosition()).get(0);
+		 
+		 assertEquals("PASS", r.getSampleFormatRecord(1).getField(VcfHeaderUtils.FORMAT_FILTER));
+		 assertEquals("PASS", r.getSampleFormatRecord(2).getField(VcfHeaderUtils.FORMAT_FILTER));
+		 assertEquals("COV", r.getSampleFormatRecord(3).getField(VcfHeaderUtils.FORMAT_FILTER));
+		 assertEquals("COV", r.getSampleFormatRecord(4).getField(VcfHeaderUtils.FORMAT_FILTER));
+	 }
+	 
+	 @Test
+	 public void compoundSnp2() {
+		 /*
+		  * chr1    14221527        .       TG      CA      .       .       IN=1;HOM=2,TGTAAAACGGtgCTACTAGGCA;EFF=intergenic_region(MODIFIER||||||||||1)    
+		  * GT:AD:CCC:CCM:DP:FT:INF:NNS:OABS        
+		  * 1/1:0,22:Germline:34:39:PASS:.:21:CA12[]10[];CG8[]9[];C_2[]0[]  
+		  * 1/1:0,6:Germline:34:50:PASS:.:6:CA3[]3[];CG23[]21[];_G1[]1[]    
+		  * ./.:.:.:1:.:COV:.:.:.   ./.:.:.:1:.:COV:.:.:.
+		  */
+		 VcfRecord r = new VcfRecord(new String[]{"chr1","14221527",".","TG","CA",".",".","IN=1;HOM=2,TGTAAAACGGtgCTACTAGGCA;EFF=intergenic_region(MODIFIER||||||||||1)",
+				 "GT:AD:CCC:CCM:DP:FT:INF:NNS:OABS",
+				 "./.:.:.:1:.:.:.:.:.",
+				 "1/1:0,6:Germline:34:50:.:SOMATIC:6:CA3[]3[];CG23[]21[];_G1[]1[]",
+				 "./.:.:.:1:.:.:.:.:.",
+		 		 "./.:.:.:1:.:.:.:.:."});
+		 ConfidenceMode cm = new ConfidenceMode(TWO_SAMPLE_TWO_CALLER_META);
+		 cm.positionRecordMap.put(r.getChrPosition(), java.util.Arrays.asList(r));
+		 cm.addAnnotation();
+		 r = cm.positionRecordMap.get(r.getChrPosition()).get(0);
+		 
+		 assertEquals("COV", r.getSampleFormatRecord(1).getField(VcfHeaderUtils.FORMAT_FILTER));
+		 assertEquals("PASS", r.getSampleFormatRecord(2).getField(VcfHeaderUtils.FORMAT_FILTER));
+		 assertEquals("COV", r.getSampleFormatRecord(3).getField(VcfHeaderUtils.FORMAT_FILTER));
+		 assertEquals("COV", r.getSampleFormatRecord(4).getField(VcfHeaderUtils.FORMAT_FILTER));
+		 
+		 r = new VcfRecord(new String[]{"chr1","14221527",".","TG","CA",".",".","IN=1;HOM=2,TGTAAAACGGtgCTACTAGGCA;EFF=intergenic_region(MODIFIER||||||||||1)",
+				 "GT:AD:CCC:CCM:DP:FT:INF:NNS:OABS",
+				 "0/0:3:.:1:.:.:.:.:TG1[]2[]",
+				 "1/1:0,6:Germline:34:50:.:SOMATIC:6:CA3[]3[];CG23[]21[];_G1[]1[]",
+				 "./.:.:.:1:.:.:.:.:.",
+		 		 "./.:.:.:1:.:.:.:.:."});
+		 cm = new ConfidenceMode(TWO_SAMPLE_TWO_CALLER_META);
+		 cm.positionRecordMap.put(r.getChrPosition(), java.util.Arrays.asList(r));
+		 cm.addAnnotation();
+		 r = cm.positionRecordMap.get(r.getChrPosition()).get(0);
+		 
+		 assertEquals("COV", r.getSampleFormatRecord(1).getField(VcfHeaderUtils.FORMAT_FILTER));
+		 assertEquals("PASS", r.getSampleFormatRecord(2).getField(VcfHeaderUtils.FORMAT_FILTER));
+		 assertEquals("COV", r.getSampleFormatRecord(3).getField(VcfHeaderUtils.FORMAT_FILTER));
+		 assertEquals("COV", r.getSampleFormatRecord(4).getField(VcfHeaderUtils.FORMAT_FILTER));
+		 
+		 r = new VcfRecord(new String[]{"chr1","14221527",".","TG","CA",".",".","IN=1;HOM=2,TGTAAAACGGtgCTACTAGGCA;EFF=intergenic_region(MODIFIER||||||||||1)",
+				 "GT:AD:CCC:CCM:DP:FT:INF:NNS:OABS",
+				 "1/1:0,16:Germline:34:50:.:.:16:CA13[]3[];CG23[]21[];_G1[]1[]",
+		 		"./.:.:.:1:.:.:.:.:."});
+		 cm = new ConfidenceMode(SINGLE_SAMPLE_TWO_CALLER_META);
+		 cm.positionRecordMap.put(r.getChrPosition(), java.util.Arrays.asList(r));
+		 cm.addAnnotation();
+		 r = cm.positionRecordMap.get(r.getChrPosition()).get(0);
+		 
+		 assertEquals("PASS", r.getSampleFormatRecord(1).getField(VcfHeaderUtils.FORMAT_FILTER));
+		 assertEquals("COV", r.getSampleFormatRecord(2).getField(VcfHeaderUtils.FORMAT_FILTER));
+		 
+		 r = new VcfRecord(new String[]{"chr1","14221527",".","TG","CA",".",".","IN=1;HOM=2,TGTAAAACGGtgCTACTAGGCA;EFF=intergenic_region(MODIFIER||||||||||1)",
+				 "GT:AD:CCC:CCM:DP:FT:INF:NNS:OABS",
+				 "1/1:0,16:Germline:34:50:.:.:16:CA13[]3[];CG23[]21[];_G1[]1[]",
+		 		  "./.:.:.:1:.:.:.:.:."});
+		 cm = new ConfidenceMode(TWO_SAMPLE_ONE_CALLER_META);
+		 cm.positionRecordMap.put(r.getChrPosition(), java.util.Arrays.asList(r));
+		 cm.addAnnotation();
+		 r = cm.positionRecordMap.get(r.getChrPosition()).get(0);
+		 
+		 assertEquals("PASS", r.getSampleFormatRecord(1).getField(VcfHeaderUtils.FORMAT_FILTER));
+		 assertEquals("COV", r.getSampleFormatRecord(2).getField(VcfHeaderUtils.FORMAT_FILTER));
+		 
+		 r = new VcfRecord(new String[]{"chr1","14221527",".","TG","CA",".",".","IN=1;HOM=2,TGTAAAACGGtgCTACTAGGCA;EFF=intergenic_region(MODIFIER||||||||||1)",
+				 "GT:AD:CCC:CCM:DP:FT:INF:NNS:OABS",
+				 "./.:.:.:1:.:.:.:.:.",
+		 		"1/1:0,6:Germline:34:50:.:SOMATIC:6:CA3[]3[];CG23[]21[];_G1[]1[]"});
+		 cm = new ConfidenceMode();
+		 cm.positionRecordMap.put(r.getChrPosition(), java.util.Arrays.asList(r));
+		 cm.addAnnotation();
+		 r = cm.positionRecordMap.get(r.getChrPosition()).get(0);
+		 
+		 assertEquals("COV", r.getSampleFormatRecord(1).getField(VcfHeaderUtils.FORMAT_FILTER));
+		 assertEquals("PASS", r.getSampleFormatRecord(2).getField(VcfHeaderUtils.FORMAT_FILTER));
 	 }
 	 @Test
 	 public void realLifeMIN() {
@@ -698,7 +820,7 @@ public class ConfidenceModeTest {
 //		 conf = vcf.getInfoRecord().getField(VcfHeaderUtils.INFO_CONFIDENT);
 //		 assertEquals("LOW_1,LOW_2", conf);
 //	 }
-//	 
+	 
 	 @Test
 	 public void willMultipleACValuesWork() {
 		 VcfFormatFieldRecord format = new VcfFormatFieldRecord("GT:GD:AC:MR:NNS:AD:DP:GQ:PL", "0/1:A/C:A8[33.75],11[38.82],C3[42],5[40]"+VCF_MERGE_DELIM+"A9[33.56],11[38.82],C3[42],5[40],G0[0],1[22],T1[11],0[0]:8:8:18"+VCF_MERGE_DELIM+"8:26:99:274,0,686");

@@ -6,6 +6,7 @@
 package au.edu.qimr.qannotate.modes;
 
 import gnu.trove.list.TShortList;
+import htsjdk.samtools.SAMValidationError.Type;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,6 +15,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -190,11 +192,10 @@ public class ConfidenceMode extends AbstractMode{
 				VcfInfoFieldRecord info = vcf.getInfoRecord();
 				int lhomo = (info.getField(VcfHeaderUtils.INFO_HOM) == null)? 1 :
 					StringUtils.string2Number(info.getField(VcfHeaderUtils.INFO_HOM).split(Constants.COMMA_STRING)[0], Integer.class);
-				
+				String caller = info.getField(VcfHeaderUtils.INFO_MERGE_IN);
 				
 				String [] gtArray = ffMap.get(VcfHeaderUtils.FORMAT_GENOTYPE);
 				String [] nnsArr = ffMap.get(VcfHeaderUtils.FILTER_NOVEL_STARTS);
-//				String [] mrArr = ffMap.get(VcfHeaderUtils.FORMAT_MUTANT_READS);
 				String [] filterArr = ffMap.get(VcfHeaderUtils.FORMAT_FILTER);
 				String [] covArr = ffMap.get(VcfHeaderUtils.FORMAT_READ_DEPTH);
 				String [] ccmArr = ffMap.get(VcfHeaderUtils.FORMAT_CCM);
@@ -225,6 +226,7 @@ public class ConfidenceMode extends AbstractMode{
 					}
 					
 					boolean isControl =  controlCols != null && controlCols.contains((short) (i+1));
+					
 					/*
 					 * add all failed filters to FT field
 					 */

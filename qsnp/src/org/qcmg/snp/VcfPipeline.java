@@ -134,52 +134,52 @@ public final class VcfPipeline extends Pipeline {
 		logger.info("about to classify - DONE[" + snps.size() + "]");
 		
 		// compound snps!
-		logger.info("about to do compound snps");
-		compoundSnps();
-		logger.info("about to do compound snps - DONE");
+//		logger.info("about to do compound snps");
+//		compoundSnps();
+//		logger.info("about to do compound snps - DONE");
 		
 		// write output
 		writeVCF(vcfFile);
 	}
 	
-	@Override
-	void compoundSnps() {
-		List<List<VcfRecord>> loloSnps = PipelineUtil.listOfListOfAdjacentVcfs(snps);
-		logger.info("Getting loloSnps [ " + loloSnps.size() + "] - DONE");
-		
-		if (loloSnps.isEmpty()) {
-			return;
-		}
-		
-		Set<VcfRecord> toRemove = new HashSet<>(1024 * 8);
-		
-		for (List<VcfRecord> loSnps : loloSnps) {
-			
-			Optional<VcfRecord> optionalVcf = PipelineUtil.createCompoundSnpGATK(loSnps, singleSampleMode);
-			
-			/*
-			 * if present, add to compound snps collection and remove from snps collection, if not present, do nowt
-			 */
-			if (optionalVcf.isPresent()) {
-				compoundSnps.add(optionalVcf.get());
-				toRemove.addAll(loSnps);
-			}
-		}
-		
-		if (toRemove.size() > 0) {
-			logger.info("About to call remove with toRemove size: " + toRemove.size());
-			Iterator<VcfRecord> iter = snps.iterator();
-			while (iter.hasNext()) {
-				VcfRecord v = iter.next();
-				if (toRemove.contains(v)) {
-					iter.remove();
-				}
-			}
-			logger.info("About to call remove with toRemove size: " + toRemove.size() + " - DONE");
-		}
-		
-		logger.info("Created " + compoundSnps.size() + " compound snps so far");
-	}
+//	@Override
+//	void compoundSnps() {
+//		List<List<VcfRecord>> loloSnps = PipelineUtil.listOfListOfAdjacentVcfs(snps);
+//		logger.info("Getting loloSnps [ " + loloSnps.size() + "] - DONE");
+//		
+//		if (loloSnps.isEmpty()) {
+//			return;
+//		}
+//		
+//		Set<VcfRecord> toRemove = new HashSet<>(1024 * 8);
+//		
+//		for (List<VcfRecord> loSnps : loloSnps) {
+//			
+//			Optional<VcfRecord> optionalVcf = PipelineUtil.createCompoundSnpGATK(loSnps, singleSampleMode);
+//			
+//			/*
+//			 * if present, add to compound snps collection and remove from snps collection, if not present, do nowt
+//			 */
+//			if (optionalVcf.isPresent()) {
+//				compoundSnps.add(optionalVcf.get());
+//				toRemove.addAll(loSnps);
+//			}
+//		}
+//		
+//		if (toRemove.size() > 0) {
+//			logger.info("About to call remove with toRemove size: " + toRemove.size());
+//			Iterator<VcfRecord> iter = snps.iterator();
+//			while (iter.hasNext()) {
+//				VcfRecord v = iter.next();
+//				if (toRemove.contains(v)) {
+//					iter.remove();
+//				}
+//			}
+//			logger.info("About to call remove with toRemove size: " + toRemove.size() + " - DONE");
+//		}
+//		
+//		logger.info("Created " + compoundSnps.size() + " compound snps so far");
+//	}
 	
 	void classifyPileup() {
 		for (VcfRecord v : snps) {
