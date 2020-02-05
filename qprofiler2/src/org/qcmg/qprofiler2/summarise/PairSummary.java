@@ -14,7 +14,6 @@ public class PairSummary {
 	public final Pair type;
 	public final Boolean isProperPair; 
 	public PairSummary( Pair pair, boolean isProper){this.type = pair; this.isProperPair = isProper;}
-
 	
 	//fixed value
 	public final static int bigTlenValue = 10000;
@@ -23,11 +22,12 @@ public class PairSummary {
 	public final static int rangeGap = 100;
 	public final static int segmentSize = 500; //assume 
 	
-	//AtomicLong overlapPair = new AtomicLong();
 	AtomicLong near = new AtomicLong();
 	AtomicLong far = new AtomicLong();
-	AtomicLong bigTlen  = new AtomicLong();			
-	
+	AtomicLong bigTlen  = new AtomicLong();
+	AtomicLong zeroTlen  = new AtomicLong(); //only record the firstOfPair
+	 
+		
 	QCMGAtomicLongArray tLenOverall = new QCMGAtomicLongArray(middleTlenValue);	 //store count bwt [0, 5000]
 	QCMGAtomicLongArray tLenOverlap = new QCMGAtomicLongArray(segmentSize);	 //store count bwt [0, 1500]
 	QCMGAtomicLongArray overlapBase = new QCMGAtomicLongArray(segmentSize);	
@@ -42,18 +42,24 @@ public class PairSummary {
 	protected QLogger logger = QLoggerFactory.getLogger(getClass());			
 	public long getFirstOfPairCounts() { return firstOfPairNum.get(); }
 	public long getSecondOfPairCounts(){ return secondOfPairNum.get(); }
-	public QCMGAtomicLongArray getoverlapCounts() {return overlapBase;}
-	public QCMGAtomicLongArray getTLENCounts() {return tLenOverall;}
+	public QCMGAtomicLongArray getoverlapCounts() { return overlapBase; }
+	public QCMGAtomicLongArray getTLENCounts() { return tLenOverall; }
 				
 	/**
+	 * This function can only process paired reads (including notProperMappedPair), this algorithm won't work properly for single segment reads
 	 * only select one read from a pair for summary. here, read with positive tLen or firOfPair if tLen == 0 are selected. 
 	 * it's tLen, overlap information will be collected. 
-	 * @param record
+	 * @param record is the paired reads
 	 */
 	public void parse(SAMRecord record ){	
-			
+		if( !record.getReadPairedFlag()  ) { 
+			return; 
+		}
+		
 		if(record.getFirstOfPairFlag()) firstOfPairNum.incrementAndGet();
 		else secondOfPairNum.incrementAndGet();
+		
+		int tLen =  record.getInferredInsertSize();			
 	
 		//normally bam reads are mapped, if the mate is missing, we still count it to pair but no detailed pair` information
 		if( record.getMateUnmappedFlag() ){ mateUnmapped.incrementAndGet();  return;  }
@@ -62,18 +68,23 @@ public class PairSummary {
 			diffRef.incrementAndGet();	
 			return; 
 		}	
-				
-		int tLen =  record.getInferredInsertSize();	
+							
  		//to avoid double counts, we only select one of Pair: tLen > 0 or firstOfPair with tLen==0;
- 		if( tLen < 0 || (tLen == 0 && !record.getFirstOfPairFlag())   ) {
+ 		if( tLen < 0 || (tLen == 0 && !record.getFirstOfPairFlag()) ) {
  			return;
   		}
 		
-		//only record popular tLen, since RAM too expensive
+		//only record popular tLen, since RAM too expensive??
+ 		// tLen bwt [0, 5000], single segment are also recorded 
 		if(tLen < middleTlenValue) tLenOverall.increment(tLen);
+		//first of Pair with tLen == 0
+		if( tLen == 0 ) {
+			zeroTlen.incrementAndGet();
+			return;
+		}
 		
 		//classify tlen groups
-		int	overlap = BwaPair.getOverlapBase( record);
+		int	overlap = BwaPair.getOverlapBase( record );
 		if( overlap > 0 ){
 			overlapBase.increment(overlap);
 			tLenOverlap.increment(tLen);			
@@ -83,16 +94,17 @@ public class PairSummary {
 			far.incrementAndGet();	
 		}else { // must be record.getInferredInsertSize() >= bigTlenValue
 			bigTlen.incrementAndGet();
-		} 		
+		}
 	}		
 	
 	/**
 	 * output example: 	 
 	 *  <variableGroup name="outwardPair">
-			<value name="overlappedPairs">898775</value>
+			<value name="tlenZeroPairs">1300</value>
 			<value name="tlenUnder1500Pairs">219588</value>
 			<value name="tlenOver10000Pairs">572986</value>
 			<value name="tlenBetween1500And10000Pairs">237035</value>
+			<value name="overlappedPairs">898775</value>
 			<value name="pairCount">1928384</value>
 		</variableGroup>
 	 * @param parent element
@@ -107,10 +119,11 @@ public class PairSummary {
 		XmlUtils.outputValueNode(stats, "secondOfPairs", secondOfPairNum.get());
 		XmlUtils.outputValueNode( stats, "mateUnmappedPair", mateUnmapped.get() );
 		XmlUtils.outputValueNode( stats, "mateDifferentReferencePair", diffRef.get() );
-		XmlUtils.outputValueNode(stats, "overlappedPairs", overlapPair);
+		XmlUtils.outputValueNode(stats, "tlenZeroPairs", zeroTlen.get());
 		XmlUtils.outputValueNode(stats, "tlenUnder1500Pairs", near.get() );		 
 		XmlUtils.outputValueNode(stats, "tlenOver10000Pairs", bigTlen.get()  );
-		XmlUtils.outputValueNode(stats, "tlenBetween1500And10000Pairs",far.get() );			
+		XmlUtils.outputValueNode(stats, "tlenBetween1500And10000Pairs",far.get() );	
+		XmlUtils.outputValueNode(stats, "overlappedPairs", overlapPair);
 		XmlUtils.outputValueNode(stats, "pairCountUnderTlen5000", pairCoutns );		
 	}	
 	

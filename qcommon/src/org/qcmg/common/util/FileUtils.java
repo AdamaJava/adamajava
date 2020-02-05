@@ -15,6 +15,7 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.FileVisitOption;
@@ -61,8 +62,11 @@ public class FileUtils {
 	        MessageDigest md = MessageDigest.getInstance("MD5");
 	        FileChannel channel = inputStream.getChannel();
 	        ByteBuffer buff = ByteBuffer.allocate(2048);
+	
 	        while(channel.read(buff) != -1){
-	            buff.flip();
+	        	//we have to cast it to Buffer, ((Buffer)buff).flip();
+	        	//if we want to compiler and run on JDK8+	             
+	        	buff.flip();
 	            md.update(buff);
 	            buff.clear();
 	        }

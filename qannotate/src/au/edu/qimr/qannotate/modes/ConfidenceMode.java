@@ -5,8 +5,6 @@
 */
 package au.edu.qimr.qannotate.modes;
 
-import gnu.trove.list.TShortList;
-import htsjdk.samtools.SAMValidationError.Type;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,6 +31,7 @@ import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 
 import au.edu.qimr.qannotate.Options;
+import gnu.trove.list.TShortList;
 
 /**
  * @author christix
@@ -58,6 +57,7 @@ public class ConfidenceMode extends AbstractMode{
 	public static final int sBiasAltPercentage = 5;
 	public static final int sBiasCovPercentage = 5;
 	
+	@Deprecated	// using values (both hard cutoff and percentage) from MIN for MIUN annotation
 	public static final int MIUN_CUTOFF = 2;	// based on existing values
 	
 	//filters 
@@ -85,14 +85,11 @@ public class ConfidenceMode extends AbstractMode{
 	private List<String> filtersToIgnore = new ArrayList<>();
 	private double mrPercentage = 0.0f;
 	
-	private int miunCutoff = MIUN_CUTOFF;
 	private int minCutoff = MUTATION_IN_NORMAL_MIN_COVERAGE;
 	private double minPercentage = MUTATION_IN_NORMAL_MIN_PERCENTAGE;
 	
 	//for unit testing
 	ConfidenceMode(){
-//		this.testCols = new TShortArrayList(testCol);
-//		this.controlCols = new TShortArrayList(controlCol);
 	}
 	ConfidenceMode(VcfFileMeta m){
 		this.meta = m;
@@ -105,9 +102,9 @@ public class ConfidenceMode extends AbstractMode{
 		logger.tool("input: " + options.getInputFileName());
         logger.tool("output annotated records: " + options.getOutputFileName());
         logger.tool("logger file " + options.getLogFileName());
-        logger.tool("logger level " + (options.getLogLevel() == null ? QLoggerFactory.DEFAULT_LEVEL.getName() :  options.getLogLevel()));
+        logger.tool("logger level " + (options.getLogLevel() == null ? QLoggerFactory.DEFAULT_LEVEL.getName() : options.getLogLevel()));
  		
-		loadVcfRecordsFromFile(new File( options.getInputFileName())   );	
+		loadVcfRecordsFromFile(new File(options.getInputFileName()));	
 		
 		options.getNNSCount().ifPresent(i -> nnsCount = i.intValue());
 		options.getMRCount().ifPresent(i -> mrCount = i.intValue());
@@ -115,7 +112,6 @@ public class ConfidenceMode extends AbstractMode{
 		options.getControlCutoffForSomatic().ifPresent(i -> controlCovCutoffForSomaticCalls = i.intValue());
 		options.getTestCutoff().ifPresent(i -> testCovCutoff = i.intValue());
 		options.getMRPercentage().ifPresent(i -> mrPercentage = i.floatValue());
-		options.getMIUNCutoff().ifPresent(i -> miunCutoff = i.intValue());
 		options.getMINCutoff().ifPresent(i -> minCutoff = i.intValue());
 		options.getMINPercentage().ifPresent(i -> minPercentage = i.floatValue());
 		filtersToIgnore = options.getFiltersToIgnore();
@@ -125,7 +121,7 @@ public class ConfidenceMode extends AbstractMode{
 		logger.tool("Control coverage minimum value: " + controlCovCutoff);
 		logger.tool("Control coverage minimum value (for SOMATIC calls): " + controlCovCutoffForSomaticCalls);
 		logger.tool("Test coverage minimum value: " + testCovCutoff);
-		logger.tool("Mutation In Unfiltered Normal (MIUN) will be applied if the Failed Filter (FF) format field contains more than " + miunCutoff + " occurrences of the alt in the normal (control)");
+		logger.tool("Mutation In Unfiltered Normal (MIUN) will be applied if the Failed Filter (FF) format field contains more than max(" + minCutoff + ", " + minPercentage + "%) occurrences of the alt in the normal (control)");
 		logger.tool("Mutation In Normal (MIN) will be applied if number of alt reads in the normnal (control) are greater than or equal to " + minCutoff + " OR greather than or equal to " + minPercentage +"% of total reads");
 		logger.tool("Filters to ignore: " + filtersToIgnore.stream().collect(Collectors.joining(", ")));
 		
@@ -148,7 +144,7 @@ public class ConfidenceMode extends AbstractMode{
 				+ ", test coverage minimum value: " + testCovCutoff + ", control coverage minimum value (somatic/germline): "
 				+ controlCovCutoffForSomaticCalls + "/" + controlCovCutoff);
 		header.addFilter(VcfHeaderUtils.FILTER_MUTATION_IN_NORMAL,"Mutation also found in pileup of normal (>= " + minPercentage + "% of reads)");
-		header.addFilter(VcfHeaderUtils.FILTER_MUTATION_IN_UNFILTERED_NORMAL,"Mutation also found in pileup of unfiltered normal (>= " + miunCutoff + " reads)");  
+		header.addFilter(VcfHeaderUtils.FILTER_MUTATION_IN_UNFILTERED_NORMAL,"Mutation also found in pileup of unfiltered normal (>= " + minCutoff + " reads, and also >= " + minPercentage + "%) of reads)");  
 		header.addFilter(VcfHeaderUtils.FILTER_NOVEL_STARTS,"Less than " + nnsCount + " novel starts not considering read pair");
 		header.addFilter(VcfHeaderUtils.FILTER_MUTANT_READS,"Less than " + (mrPercentage > 0.0f ? mrPercentage +"%" : mrCount) + " mutant reads");
 		header.addFilter(VcfHeaderUtils.FILTER_STRAND_BIAS_ALT,"Alternate allele on only one strand (or percentage alternate allele on other strand is less than " + sBiasAltPercentage + "%)"); 
@@ -225,8 +221,8 @@ public class ConfidenceMode extends AbstractMode{
 						continue;
 					}
 					
-					boolean isControl =  controlCols != null && controlCols.contains((short) (i+1));
-					
+					boolean isControl =  controlCols != null && controlCols.contains((short) (i + 1));
+
 					/*
 					 * add all failed filters to FT field
 					 */
@@ -259,7 +255,8 @@ public class ConfidenceMode extends AbstractMode{
 						if ( ! fSb.toString().contains(VcfHeaderUtils.FILTER_MUTATION_IN_NORMAL)) {
 							if (null != ffArr && ffArr.length > i) {
 								String failedFilter = ffArr[i];
-								checkMIUN(alts, failedFilter, fSb, miunCutoff);
+								// using the same values as for the MIN annotation
+								checkMIUN(alts, cov, failedFilter, fSb, minCutoff, (float) minPercentage);
 							}
 						}
 						if ( ! fSb.toString().contains(VcfHeaderUtils.FILTER_COVERAGE) && cov < controlCovCutoffForSomaticCalls) {
@@ -389,8 +386,25 @@ public class ConfidenceMode extends AbstractMode{
 		}
 	}
 	
-	public static void checkMIUN(String [] alts, String failedFilter, StringBuilder sb, int miunCutoff) {
+	/**
+	 * This checkMIUN method will use the max(percentage of alts, hard cutoff) means of determining if the MIUN annotation should be added, similar to the checkMIN method
+	 * 
+	 * THe coverage used in the percentage calculation will need to take into account failed filter reads along with regular reads.
+	 * 
+	 * @param alts
+	 * @param coverage
+	 * @param failedFilter
+	 * @param sb
+	 * @param miunCutoff
+	 * @param miunPercentage
+	 */
+	public static void checkMIUN(String [] alts, int coverage, String failedFilter, StringBuilder sb, int miunCutoff, float miunPercentage) {
 		if (null != alts && ! StringUtils.isNullOrEmptyOrMissingData(failedFilter)) {
+			
+			int totalCoverage = coverage + getCoverageFromFailedFilterString(failedFilter);
+			float cutoffToUse = Math.max(miunCutoff, (float)((miunPercentage / 100) * totalCoverage));
+			
+			
 			for (String alt : alts) {
 				int altIndex = failedFilter.indexOf(alt);
 				if (altIndex > -1) {
@@ -399,7 +413,7 @@ public class ConfidenceMode extends AbstractMode{
 					 */
 					int semiColonIndex = failedFilter.indexOf(Constants.SEMI_COLON, altIndex);
 					int failedFilterCount = Integer.parseInt(failedFilter.substring(altIndex + alt.length(), semiColonIndex > -1 ? semiColonIndex : failedFilter.length()));
-					if (failedFilterCount >= miunCutoff) {
+					if (failedFilterCount >= cutoffToUse) {
 						StringUtils.updateStringBuilder(sb, VcfHeaderUtils.FILTER_MUTATION_IN_UNFILTERED_NORMAL, Constants.SEMI_COLON);
 						break;
 					}
@@ -422,7 +436,7 @@ public class ConfidenceMode extends AbstractMode{
 		int maxBP = 0;
 		Map<String, int[]> eorMap = VcfUtils.getAllelicCoverageWithStrand(eor);
 		for (String alt : alts) {
-			if (gt.contains(""+i)) {
+			if (gt.contains("" + i)) {
 				int [] altCov = oabsMap.getOrDefault(alt, new int [] {0,0});
 				int [] altCovEOR = eorMap.getOrDefault(alt, new int [] {0,0});
 				int middleOfReadForwardStrand = altCov[0] - altCovEOR[0];
@@ -484,18 +498,61 @@ public class ConfidenceMode extends AbstractMode{
 		}
 	}
 
-	 public static int [] getFieldOfInts(VcfFormatFieldRecord formatField ,String key) {
+	 public static int [] getFieldOfInts(VcfFormatFieldRecord formatField, String key) {
 		 String value = formatField.getField(key);
 		 return getFieldOfInts(value);
 	 }
 	 
+	 /**
+	  * Takes a string containing 1 or 2 ints separated by a comma, and returns an int array representing the ints in the string.
+	  * If the string is null or empty, an int array containing a single element equal to 0 is returned.
+	  * 
+	  * This will throw an (unchecked) exception should the string contain characters that can't be coerced into a int using Interger.parseInt()
+	  * 
+	  * @param value
+	  * @return
+	  */
 	 public static int [] getFieldOfInts(String value) {
 		 if (StringUtils.isNullOrEmptyOrMissingData(value)) {
 			 return new int[]{0};
 		 }
 		 int cI = value.indexOf(Constants.COMMA);
 		 if (cI == -1) return new int[] {Integer.parseInt(value)};
-		 return new int[]{Integer.parseInt(value.substring(0,cI)), Integer.parseInt(value.substring(cI + 1))}; 
+		 return new int[]{Integer.parseInt(value.substring(0, cI)), Integer.parseInt(value.substring(cI + 1))}; 
+	 }
+	 
+	 /**
+	  * Returns the number of reads present in the failed filter string.
+	  * This string must be in the following format: "<base><count>[;<base><count>]"
+	  * eg. "A3;C8"
+	  * The coverage value returned in this instance would be 11.
+	  * 
+	  * @param ff
+	  * @return
+	  */
+	 public static int getCoverageFromFailedFilterString(String ff) {
+		int cov = 0;
+		if ( ! StringUtils.isNullOrEmptyOrMissingData(ff)) {
+			 
+			 int semiColonIndex = ff.indexOf(Constants.SEMI_COLON);
+				 
+			 // could probably start this at 1....
+			 for (int i = 0 ; i < ff.length() ; ) {
+				 if (Character.isDigit(ff.charAt(i))) {
+					 cov += Integer.parseInt(ff.substring(i, semiColonIndex > -1 ? semiColonIndex : ff.length()));
+					 if (semiColonIndex == -1) {
+						 break;
+					 } else {
+						 // increment i by semi colon index
+						 i = semiColonIndex + 1;
+						 semiColonIndex = ff.indexOf(Constants.SEMI_COLON, i);
+					 }
+				 } else {
+					 i++;
+				 }
+			 }
+		}
+		return cov;
 	 }
 	 
 	 public static int [] getAltCoveragesFromADField(String ad) {
@@ -506,9 +563,9 @@ public class ConfidenceMode extends AbstractMode{
 		 if (adArray.length < 2) {
 			 return new int[]{0};
 		 }
-		 int [] adIntArray = new int[adArray.length -1];
+		 int [] adIntArray = new int[adArray.length - 1];
 		 for (int i = 1 ; i < adArray.length ; i++) {
-			 adIntArray[i-1] = Integer.parseInt(adArray[i]);
+			 adIntArray[i - 1] = Integer.parseInt(adArray[i]);
 		 }
 		 return adIntArray;
 	 }

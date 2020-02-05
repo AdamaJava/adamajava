@@ -8,7 +8,19 @@ package au.edu.qimr.qannotate;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 
-import au.edu.qimr.qannotate.modes.*;
+import au.edu.qimr.qannotate.modes.CCMMode;
+import au.edu.qimr.qannotate.modes.CaddMode;
+import au.edu.qimr.qannotate.modes.ConfidenceMode;
+import au.edu.qimr.qannotate.modes.DbsnpMode;
+import au.edu.qimr.qannotate.modes.GermlineMode;
+import au.edu.qimr.qannotate.modes.HomoplymersMode;
+import au.edu.qimr.qannotate.modes.IndelConfidenceMode;
+import au.edu.qimr.qannotate.modes.MakeValidMode;
+import au.edu.qimr.qannotate.modes.OverlapMode;
+import au.edu.qimr.qannotate.modes.SnpEffMode;
+import au.edu.qimr.qannotate.modes.TandemRepeatMode;
+import au.edu.qimr.qannotate.modes.Vcf2maf;
+import au.edu.qimr.qannotate.modes.Vcf2mafTmp;
 
 public class Main {
 	 

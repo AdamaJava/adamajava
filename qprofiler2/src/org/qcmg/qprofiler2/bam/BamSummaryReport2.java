@@ -172,7 +172,7 @@ public class BamSummaryReport2 extends SummaryReport {
 		//sequenceBase	
 		Element ele = XmlUtils.createMetricsNode( parent,  XmlUtils.SEQ_BASE,  rcPair );	
 		for(int order = 0; order < 3; order++) { 	
-			seqByCycle[order].toXml( ele,  sourceName[order], seqByCycle[order].getInputCounts() );
+			seqByCycle[order].toXml( ele,  sourceName[order], seqByCycle[order].getInputCounts());
 		}
 				
 		//seqLength
@@ -196,8 +196,9 @@ public class BamSummaryReport2 extends SummaryReport {
 		}
 				
 		//1mers is same to baseByCycle
-		for( int i : new int[] { 2, 3, KmersSummary.maxKmers } )
-			kmersSummary.toXml( parent,i );
+		for( int i : new int[] { 2, 3, KmersSummary.maxKmers } ) {
+			kmersSummary.toXml( parent,i, false);
+		}
 	}
 	
 	//<QUAL>
@@ -327,8 +328,11 @@ public class BamSummaryReport2 extends SummaryReport {
 		final int mapQ = record.getMappingQuality();
 		mapQualityLengths[order].increment(mapQ);
 
-		// only FLAGS are always summarised		
-		flagIntegerCount.increment(record.getFlags());	
+		//summarize FLAGS for all reads includes bad reads
+		flagIntegerCount.increment(record.getFlags());
+		//summarize QName for each read group includes bad reads	
+		readIdSummary.computeIfAbsent( readGroup, (k) -> new ReadIDSummary() ).parseReadId( record.getReadName() );
+		
 			
 		//excludes repeated reads for tags
 		if ( !record.getSupplementaryAlignmentFlag() &&	!record.isSecondaryAlignment() && !record.getReadFailsVendorQualityCheckFlag() ) {
@@ -339,8 +343,6 @@ public class BamSummaryReport2 extends SummaryReport {
 		ReadGroupSummary rgSumm = rgSummaries.computeIfAbsent(readGroup, k -> new ReadGroupSummary(k));	
 		if( rgSumm.parseRecord(record) ) {	
 			
-			//QName	
-			readIdSummary.computeIfAbsent( readGroup, (k) -> new ReadIDSummary() ).parseReadId( record.getReadName() );
  			
 			// SEQ 
 			byte[] data = record.getReadBases();			
@@ -472,16 +474,9 @@ public class BamSummaryReport2 extends SummaryReport {
 		this.bamHeader = header;	
 		this.isFullBamHeader = isFullBamHeader;
 	}
-//	public String getBamHeader() {	
-//		return bamHeader.getSAMString();	
-//	}
 	public void setSamSequenceDictionary(SAMSequenceDictionary samSeqDictionary) {	
 		this.samSeqDictionary = samSeqDictionary;	
 	}
-//	public SAMSequenceDictionary getSamSequenceDictionary() { 
-//		return samSeqDictionary;	
-//	}	
-
 	
 	
 	// ///////////////////////////////////////////////////////////////////////

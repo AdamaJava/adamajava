@@ -46,10 +46,10 @@ public class FastqSummaryReport extends SummaryReport {
 	private final QCMGAtomicLongArray qualBadReadLineLengths = new QCMGAtomicLongArray(128);
 		
 	AtomicLong qualHeaderNotEqualToPlus = new AtomicLong();		
-	private ReadIDSummary readHeaderSummary = new ReadIDSummary(); 
+	private ReadIDSummary readNameSummary = new ReadIDSummary(); 
 	
 	public FastqSummaryReport() { super(); }
-	public ReadIDSummary getReadIDSummary(){	return readHeaderSummary;	}
+	public ReadIDSummary getReadIDSummary(){	return readNameSummary;	}
 	@Override
 	public void toXml(Element parent1) {		
 		Element parent = init( parent1, ProfileType.FASTQ, null, null );
@@ -57,49 +57,41 @@ public class FastqSummaryReport extends SummaryReport {
 		
 		//header line:"analysis read name pattern for read group
 		Element element =   XmlElementUtils.createSubElement(parent, XmlUtils.QNAME ) ;							
-		readHeaderSummary.toXml(element );		
-				
-
+		readNameSummary.toXml(element );		
+		
 		//seq								 			
 		element =   XmlElementUtils.createSubElement(parent,XmlUtils.SEQ  ) ;
-		long counts = 0;
-		for(int order = 0; order < 3; order++) {
-			counts += seqByCycle.getInputCounts();
-		}
-		Pair<String, Number> rcPair = new Pair<>(ReadGroupSummary.READ_COUNT, counts);
+		Pair<String, Number> rcPair = new Pair<>(ReadGroupSummary.READ_COUNT, seqByCycle.getInputCounts());
 		Element ele = XmlUtils.createMetricsNode( element, XmlUtils.SEQ_BASE , rcPair); 
-		seqByCycle.toXml( ele, XmlUtils.SEQ_BASE,seqByCycle.getInputCounts());	
+		seqByCycle.toXml( ele, XmlUtils.SEQ_BASE,seqByCycle.getInputCounts());
 		
 		ele = XmlUtils.createMetricsNode( element, XmlUtils.SEQ_LENGTH , rcPair); 
-		XmlUtils.outputTallyGroup( ele, XmlUtils.SEQ_LENGTH, seqByCycle.getLengthMapFromCycle(), true, true );	
-		
-		
-		counts = 0;
-		for(int order = 0; order < 3; order++) {
-			counts += seqBadReadLineLengths.getSum();	
-		}
-		rcPair = new Pair<String, Number>(ReadGroupSummary.READ_COUNT, counts);		
+		XmlUtils.outputTallyGroup( ele, XmlUtils.SEQ_LENGTH, seqByCycle.getLengthMapFromCycle(), true, true );
+				
+		rcPair = new Pair<String, Number>(ReadGroupSummary.READ_COUNT, seqBadReadLineLengths.getSum());		
 		ele = XmlUtils.createMetricsNode( element, XmlUtils.BAD_READ, rcPair);
 		XmlUtils.outputTallyGroup( ele, XmlUtils.BAD_READ,   seqBadReadLineLengths.toMap(), true, true );	
 		XmlUtils.addCommentChild(ele, FastqSummaryReport.badBaseComment );
 		
 		//1mers is same to baseByCycle
 		for( int i : new int[] { 2, 3, KmersSummary.maxKmers } ) {
-			kmersSummary.toXml( element,i );	
+			kmersSummary.toXml( element,i, true );	
 		}
 		
 		//QUAL
 		element = XmlElementUtils.createSubElement(parent, XmlUtils.QUAL) ;
-		ele = XmlUtils.createMetricsNode( element, XmlUtils.QUAL_BASE , null); 
-		qualByCycleInteger.toXml(element,XmlUtils.QUAL_BASE, qualByCycleInteger.getInputCounts()) ;
+		rcPair = new Pair<String, Number>(ReadGroupSummary.READ_COUNT, qualByCycleInteger.getInputCounts());	
+		ele = XmlUtils.createMetricsNode( element, XmlUtils.QUAL_BASE , rcPair); 
+		qualByCycleInteger.toXml( ele, XmlUtils.QUAL_BASE, qualByCycleInteger.getInputCounts()) ;
 		
-		ele = XmlUtils.createMetricsNode( element, XmlUtils.QUAL_LENGTH, null) ;
+		ele = XmlUtils.createMetricsNode( element, XmlUtils.QUAL_LENGTH, rcPair) ;
 		XmlUtils.outputTallyGroup( ele,  XmlUtils.QUAL_LENGTH,  qualByCycleInteger.getLengthMapFromCycle(), true, true ) ;	
-		
-		ele = XmlUtils.createMetricsNode( element,  XmlUtils.BAD_READ, null) ;
+
+		rcPair = new Pair<String, Number>(ReadGroupSummary.READ_COUNT, qualBadReadLineLengths.getSum());	
+		ele = XmlUtils.createMetricsNode( element,  XmlUtils.BAD_READ, rcPair) ;
 		XmlUtils.outputTallyGroup( ele,  XmlUtils.BAD_READ ,  qualBadReadLineLengths.toMap(), false, true ) ;
-		XmlUtils.addCommentChild(ele, FastqSummaryReport.badQualComment );
-			
+		XmlUtils.addCommentChild( ele, FastqSummaryReport.badQualComment );
+		
  	}
 	
 	/**
@@ -132,7 +124,7 @@ public class FastqSummaryReport extends SummaryReport {
 			qualHeaderNotEqualToPlus.incrementAndGet();	
 		
 		String id = record.getReadName();//record.getReadHeader();		
-		try { readHeaderSummary.parseReadId( id );
+		try { readNameSummary.parseReadId( id );
 		} catch (Exception e) {
 			if ( errNumber.incrementAndGet() < ReportErrNumber )
 				logger.error( "Invalid read id: " + id );

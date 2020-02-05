@@ -13,13 +13,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import joptsimple.OptionParser;
-import joptsimple.OptionSet;
-
 import org.qcmg.common.log.QLogger;
 
-import au.edu.qimr.qannotate.Messages;
-import au.edu.qimr.qannotate.modes.*;
+import au.edu.qimr.qannotate.modes.HomoplymersMode;
+import joptsimple.OptionParser;
+import joptsimple.OptionSet;
 /*
  * parse command line to options. 
  */
@@ -83,19 +81,19 @@ public class Options {
      * check command line and store arguments and option information
      */   
     public Options(final String[] args) throws IOException{      	
-	    	parser = new OptionParser();    	       
-	    	OptionSet options =  parseArgs(args);
-	    	
-	    	if (options.has("mode")){
-	    		String m = ((String) options.valueOf("mode")).toLowerCase();
-	    		this.mode = MODE.valueOf(m); //already checked the validation of mode
-	    	} else {
-	    		this.mode = null;
-	    	}
+    	parser = new OptionParser();    	       
+    	OptionSet options =  parseArgs(args);
+    	
+    	if (options.has("mode")){
+    		String m = ((String) options.valueOf("mode")).toLowerCase();
+    		this.mode = MODE.valueOf(m); //already checked the validation of mode
+    	} else {
+    		this.mode = null;
+    	}
     		   	
         if (options.has("h") || options.has("help")) { 
-	        	displayHelp(mode);  
-	        	System.exit(0);	
+        	displayHelp(mode);  
+        	System.exit(0);	
         }
         
        //parse parameters        
@@ -296,7 +294,7 @@ public class Options {
     	}
     	//check whether file unique
  	    inputs.addAll(outputs);
-       	for (int  i = inputs.size() -1; i > 0; i --) {
+       	for (int  i = inputs.size() - 1; i > 0; i--) {
     		for (int j = i - 1; j >= 0; j-- ){
     			if (inputs.get(i).getCanonicalFile().equals(inputs.get(j).getCanonicalFile())) {
     				throw new IllegalArgumentException( "below command line values are point to same file: \n\t" + inputs.get(i) + "\n\t" + inputs.get(j) );
@@ -305,14 +303,30 @@ public class Options {
        	}
     }
 
-	public String getLogFileName() { return logFileName;}	
-	public String getLogLevel(){ return logLevel; }	 
-	public String getCommandLine() {	return commandLine; }	
-	public String getInputFileName(){return inputFileName;}
-	public String getOutputFileName(){return outputFileName;}
-	public String getDatabaseFileName(){return null != databaseFiles && databaseFiles.length > 0 ? databaseFiles[0] : null;}	
-	public String[] getDatabaseFiles(){ return (mode.equals(MODE.cadd) || mode.equals(MODE.overlap)) ? databaseFiles : null;}
-    public MODE getMode(){	return  mode; }
+	public String getLogFileName() { 
+		return logFileName;
+	}	
+	public String getLogLevel(){ 
+		return logLevel; 
+	}	 
+	public String getCommandLine() {	
+		return commandLine; 
+	}	
+	public String getInputFileName(){
+		return inputFileName;
+	}
+	public String getOutputFileName(){
+		return outputFileName;
+	}
+	public String getDatabaseFileName(){
+		return null != databaseFiles && databaseFiles.length > 0 ? databaseFiles[0] : null;
+	}	
+	public String[] getDatabaseFiles(){ 
+		return (mode.equals(MODE.cadd) || mode.equals(MODE.overlap)) ? databaseFiles : null;
+	}
+    public MODE getMode(){	
+    	return  mode; 
+    }
    
     private void displayHelp(MODE mode) throws IOException {   
         String mess = Messages.getMessage("USAGE");  
@@ -339,28 +353,52 @@ public class Options {
     }   
         
     //vcf2maf confidence
-	public String getTestSample(){  return testSample; }
-	public String getControlSample(){  return controlSample; }
+	public String getTestSample(){  
+		return testSample; 
+	}
+	public String getControlSample(){  
+		return controlSample; 
+	}
 	
 	//vcf2maf
-	public String getCenter(){  return ( mode == (MODE.vcf2maf))? center: null; }
-	public String getSequencer(){  return ( mode == (MODE.vcf2maf))? sequencer: null; }
-	public String getOutputDir(){return ( mode == (MODE.vcf2maf))? outputDir:null;}
-	public String getDonorId(){return ( mode == (MODE.vcf2maf))? donorId :null; }
+	public String getCenter(){  
+		return ( mode == (MODE.vcf2maf))? center: null; 
+	}
+	public String getSequencer(){  
+		return ( mode == (MODE.vcf2maf))? sequencer: null; 
+	}
+	public String getOutputDir(){
+		return ( mode == (MODE.vcf2maf))? outputDir:null;
+	}
+	public String getDonorId(){
+		return ( mode == (MODE.vcf2maf))? donorId :null; 
+	}
 	 
 	 //snpEff
-	public String getSummaryFileName(){ return  (mode == MODE.snpeff)? summaryFileName : null; }		
-	public String getGenesFileName(){ return  (mode == MODE.snpeff)? outputFileName + ".snpEff_genes.txt" : null; 	}		
+	public String getSummaryFileName(){ 
+		return  (mode == MODE.snpeff)? summaryFileName : null; 
+	}		
+	public String getGenesFileName(){ 
+		return  (mode == MODE.snpeff)? outputFileName + ".snpEff_genes.txt" : null; 	
+	}		
 	public String getConfigFileName() { 
 		return (MODE.snpeff == mode)? configFileName : null;
 	}
 	
-	public int getBufferSize(){ return (mode == MODE.trf)? bufferSize : -1; } //trf
-	public int getGapSize(){ return (mode == MODE.trf)? gap : -1; } //cadd
+	public int getBufferSize(){ 
+		return (mode == MODE.trf)? bufferSize : -1; 
+	} //trf
+	public int getGapSize(){ 
+		return (mode == MODE.trf)? gap : -1; 
+	} //cadd
 	
 	//hom
-	public int getHomoplymersWindow(){ return (mode == MODE.hom) ? homWindow : -1; } //trf
-	public int getHomoplymersReportSize(){ return (mode == MODE.hom) ? homReportSize : -1; } //cadd
+	public int getHomoplymersWindow(){
+		return (mode == MODE.hom) ? homWindow : -1;
+	} //trf
+	public int getHomoplymersReportSize() { 
+		return (mode == MODE.hom) ? homReportSize : -1; 
+	} //cadd
 	
 	public Optional<Integer> getNNSCount() {
 		return Optional.ofNullable(nnsCount);

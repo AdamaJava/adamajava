@@ -1,6 +1,10 @@
 package au.edu.qimr.qannotate.modes;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -19,6 +23,7 @@ import org.qcmg.common.commandline.Executor;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.IndelUtils;
+import org.qcmg.common.util.IndelUtils.SVTYPE;
 import org.qcmg.common.vcf.ContentType;
 import org.qcmg.common.vcf.VcfFileMeta;
 import org.qcmg.common.vcf.VcfRecord;
@@ -93,6 +98,29 @@ public class Vcf2mafTest {
          assertEquals(false, Vcf2maf.isHighConfidence(maf));
          maf.setColumnValue(MafElement.Confidence, "PASS");
          assertEquals(true, Vcf2maf.isHighConfidence(maf));
+     }
+     
+     @Test
+     public void getAltCounts() {
+    	 /*
+    	  * Output array is in the following format:
+    	  * array[nns, depth, ref_count, alt_count, allele1, allele2, coverageString(AC,ACCS,ACINDEL)]; 
+    	  */
+    	 VcfFormatFieldRecord vffr = new VcfFormatFieldRecord();
+    	 String [] array = Vcf2maf.getAltCounts(vffr, "A", "C", SVTYPE.SNP, false);
+    	 assertArrayEquals(null, array);
+    	 
+    	 vffr = new VcfFormatFieldRecord("GT", "0/1");
+    	 array = Vcf2maf.getAltCounts(vffr, "A", "C", SVTYPE.SNP, false);
+    	 assertArrayEquals( new String[] {"0", "0", "0", "0", "A", "C", null}, array);
+    	 
+    	 vffr = new VcfFormatFieldRecord("GT:OABS", "0/1:A9[40]11[40];C4[40]6[30]");
+    	 array = Vcf2maf.getAltCounts(vffr, "A", "C", SVTYPE.SNP, false);
+    	 assertArrayEquals(new String[] {"0", "0", "0", "0", "A", "C", null}, array);
+    	 
+    	 vffr = new VcfFormatFieldRecord( "GT:AD:CCC:CCM:DP:FT:GQ:INF:NNS:OABS", "0/1:24,10:Germline:23:34:PASS:.:.:9:C13[39.69]11[39.73];T9[37]1[42]");
+    	 array = Vcf2maf.getAltCounts(vffr, "C", "T", SVTYPE.SNP, false);
+    	 assertArrayEquals(new String[] {"9", "0", "0", "0", "C", "T", null}, array);
      }
      
      @Test
@@ -481,6 +509,77 @@ public class Vcf2mafTest {
     	 assertEquals(".,PASS", Vcf2maf.getFilterDetails(new String[]{".","PASS"}));
     	 assertEquals(".,PASS,.", Vcf2maf.getFilterDetails(new String[]{".","PASS","."}));
     	 assertEquals("h,e,l,l,o", Vcf2maf.getFilterDetails(new String[]{"h","e","l","l","o"}));
+     }
+     
+     @Test 
+     public void tumourAlleleTest() {
+		final Vcf2maf v2m = new Vcf2maf(2,1, null, null, ContentType.MULTIPLE_CALLERS_MULTIPLE_SAMPLES);    //test column2; normal column 1            
+		String[] parms = {"chr1","19595137","rs2235795","C","T",".",".","FLANK=ATACGTGGCCT;DP=9;FS=0.000;MQ=60.00;MQ0=0;QD=28.75;SOR=1.402;IN=1,2;DB;VLD;VAF=0.6584;EFF=missense_variant(MODERATE|MISSENSE|Gcg/Acg|p.Ala77Thr/c.229G>A|153|AKR7L|protein_coding|CODING|ENST00000420396|4|1),downstream_gene_variant(MODIFIER||1890|||AKR7L|retained_intron|CODING|ENST00000493176||1),non_coding_exon_variant(MODIFIER|||n.431G>A||AKR7L|polymorphic_pseudogene|CODING|ENST00000457194|4|1),non_coding_exon_variant(MODIFIER|||n.763G>A||AKR7L|polymorphic_pseudogene|CODING|ENST00000429712|6|1)"
+		    ,"GT:DP:FT:MR:NNS:OABS:INF:AD:GQ"
+		    ,"1/1:9:COVN12:9:9:T6[36.67]3[37.67]:.:.:."
+		    ,"1/1:10:PASS:10:10:T8[36.12]2[30]:.:.:."
+		    ,"1/1:9:COVN12:9:9:T6[36.67]3[37.67]:.:0,9:27"
+		    ,"1/1:10:PASS:10:10:T8[36.12]2[30]:.:0,10:30"};
+		
+		 VcfRecord vcf = new VcfRecord(parms);
+		 SnpEffMafRecord maf = v2m.converter(vcf);
+		 assertEquals("T", maf.getColumnValue(MafElement.Tumor_Seq_Allele1));
+		 assertEquals("T", maf.getColumnValue(MafElement.Tumor_Seq_Allele2));
+		 
+		 parms = new String[] {"chr1","19595137","rs2235795","C","T",".",".","FLANK=ATACGTGGCCT;DP=9;FS=0.000;MQ=60.00;MQ0=0;QD=28.75;SOR=1.402;IN=1,2;DB;VLD;VAF=0.6584;EFF=missense_variant(MODERATE|MISSENSE|Gcg/Acg|p.Ala77Thr/c.229G>A|153|AKR7L|protein_coding|CODING|ENST00000420396|4|1),downstream_gene_variant(MODIFIER||1890|||AKR7L|retained_intron|CODING|ENST00000493176||1),non_coding_exon_variant(MODIFIER|||n.431G>A||AKR7L|polymorphic_pseudogene|CODING|ENST00000457194|4|1),non_coding_exon_variant(MODIFIER|||n.763G>A||AKR7L|polymorphic_pseudogene|CODING|ENST00000429712|6|1)"
+				    ,"GT:DP:FT:MR:NNS:OABS:INF:AD:GQ"
+				    ,"0/0:9:COVN12:9:9:T6[36.67]3[37.67]:.:.:."
+				    ,"0/1:10:PASS:10:10:T8[36.12]2[30]:.:.:."
+				    ,"0/0:9:COVN12:9:9:T6[36.67]3[37.67]:.:0,9:27"
+				    ,"0/1:10:PASS:10:10:T8[36.12]2[30]:.:0,10:30"};
+		 vcf = new VcfRecord(parms);
+		 maf = v2m.converter(vcf);
+		 assertEquals("C", maf.getColumnValue(MafElement.Tumor_Seq_Allele1));
+		 assertEquals("T", maf.getColumnValue(MafElement.Tumor_Seq_Allele2));
+		 
+		 parms = new String[] {"chr1","19595137","rs2235795","C","T,G,A",".",".","FLANK=ATACGTGGCCT;DP=9;FS=0.000;MQ=60.00;MQ0=0;QD=28.75;SOR=1.402;IN=1,2;DB;VLD;VAF=0.6584;EFF=missense_variant(MODERATE|MISSENSE|Gcg/Acg|p.Ala77Thr/c.229G>A|153|AKR7L|protein_coding|CODING|ENST00000420396|4|1),downstream_gene_variant(MODIFIER||1890|||AKR7L|retained_intron|CODING|ENST00000493176||1),non_coding_exon_variant(MODIFIER|||n.431G>A||AKR7L|polymorphic_pseudogene|CODING|ENST00000457194|4|1),non_coding_exon_variant(MODIFIER|||n.763G>A||AKR7L|polymorphic_pseudogene|CODING|ENST00000429712|6|1)"
+				 ,"GT:DP:FT:MR:NNS:OABS:INF:AD:GQ"
+				 ,"0/0:9:COVN12:9:9:T6[36.67]3[37.67]:.:.:."
+				 ,"0/1:10:PASS:10:10:T8[36.12]2[30]:.:.:."
+				 ,"0/0:9:COVN12:9:9:T6[36.67]3[37.67]:.:0,9:27"
+				 ,"0/1:10:PASS:10:10:T8[36.12]2[30]:.:0,10:30"};
+		 vcf = new VcfRecord(parms);
+		 maf = v2m.converter(vcf);
+		 assertEquals("C", maf.getColumnValue(MafElement.Tumor_Seq_Allele1));
+		 assertEquals("T", maf.getColumnValue(MafElement.Tumor_Seq_Allele2));
+		 
+		 parms = new String[] {"chr1","19595137","rs2235795","C","T,G,A",".",".","FLANK=ATACGTGGCCT;DP=9;FS=0.000;MQ=60.00;MQ0=0;QD=28.75;SOR=1.402;IN=1,2;DB;VLD;VAF=0.6584;EFF=missense_variant(MODERATE|MISSENSE|Gcg/Acg|p.Ala77Thr/c.229G>A|153|AKR7L|protein_coding|CODING|ENST00000420396|4|1),downstream_gene_variant(MODIFIER||1890|||AKR7L|retained_intron|CODING|ENST00000493176||1),non_coding_exon_variant(MODIFIER|||n.431G>A||AKR7L|polymorphic_pseudogene|CODING|ENST00000457194|4|1),non_coding_exon_variant(MODIFIER|||n.763G>A||AKR7L|polymorphic_pseudogene|CODING|ENST00000429712|6|1)"
+				 ,"GT:DP:FT:MR:NNS:OABS:INF:AD:GQ"
+				 ,"0/0:9:COVN12:9:9:T6[36.67]3[37.67]:.:.:."
+				 ,"1/2:10:PASS:10:10:T8[36.12]2[30]:.:.:."
+				 ,"0/0:9:COVN12:9:9:T6[36.67]3[37.67]:.:0,9:27"
+				 ,"0/1:10:PASS:10:10:T8[36.12]2[30]:.:0,10:30"};
+		 vcf = new VcfRecord(parms);
+		 maf = v2m.converter(vcf);
+		 assertEquals("T", maf.getColumnValue(MafElement.Tumor_Seq_Allele1));
+		 assertEquals("G", maf.getColumnValue(MafElement.Tumor_Seq_Allele2));
+		 
+		 parms = new String[] {"chr1","19595137","rs2235795","C","T,G,A",".",".","FLANK=ATACGTGGCCT;DP=9;FS=0.000;MQ=60.00;MQ0=0;QD=28.75;SOR=1.402;IN=1,2;DB;VLD;VAF=0.6584;EFF=missense_variant(MODERATE|MISSENSE|Gcg/Acg|p.Ala77Thr/c.229G>A|153|AKR7L|protein_coding|CODING|ENST00000420396|4|1),downstream_gene_variant(MODIFIER||1890|||AKR7L|retained_intron|CODING|ENST00000493176||1),non_coding_exon_variant(MODIFIER|||n.431G>A||AKR7L|polymorphic_pseudogene|CODING|ENST00000457194|4|1),non_coding_exon_variant(MODIFIER|||n.763G>A||AKR7L|polymorphic_pseudogene|CODING|ENST00000429712|6|1)"
+				 ,"GT:DP:FT:MR:NNS:OABS:INF:AD:GQ"
+				 ,"0/0:9:COVN12:9:9:T6[36.67]3[37.67]:.:.:."
+				 ,"3/3:10:PASS:10:10:T8[36.12]2[30]:.:.:."
+				 ,"0/0:9:COVN12:9:9:T6[36.67]3[37.67]:.:0,9:27"
+				 ,"1/1:10:PASS:10:10:T8[36.12]2[30]:.:0,10:30"};
+		 vcf = new VcfRecord(parms);
+		 maf = v2m.converter(vcf);
+		 assertEquals("A", maf.getColumnValue(MafElement.Tumor_Seq_Allele1));
+		 assertEquals("A", maf.getColumnValue(MafElement.Tumor_Seq_Allele2));
+		 
+		 parms = new String[] {"chr1","19595137","rs2235795","C","T,G,A",".",".","FLANK=ATACGTGGCCT;DP=9;FS=0.000;MQ=60.00;MQ0=0;QD=28.75;SOR=1.402;IN=1,2;DB;VLD;VAF=0.6584;EFF=missense_variant(MODERATE|MISSENSE|Gcg/Acg|p.Ala77Thr/c.229G>A|153|AKR7L|protein_coding|CODING|ENST00000420396|4|1),downstream_gene_variant(MODIFIER||1890|||AKR7L|retained_intron|CODING|ENST00000493176||1),non_coding_exon_variant(MODIFIER|||n.431G>A||AKR7L|polymorphic_pseudogene|CODING|ENST00000457194|4|1),non_coding_exon_variant(MODIFIER|||n.763G>A||AKR7L|polymorphic_pseudogene|CODING|ENST00000429712|6|1)"
+				 ,"GT:DP:FT:MR:NNS:OABS:INF:AD:GQ"
+				 ,"0/0:9:COVN12:9:9:T6[36.67]3[37.67]:.:.:."
+				 ,"2/3:10:PASS:10:10:T8[36.12]2[30]:.:.:."
+				 ,"0/0:9:COVN12:9:9:T6[36.67]3[37.67]:.:0,9:27"
+				 ,"0/1:10:PASS:10:10:T8[36.12]2[30]:.:0,10:30"};
+		 vcf = new VcfRecord(parms);
+		 maf = v2m.converter(vcf);
+		 assertEquals("G", maf.getColumnValue(MafElement.Tumor_Seq_Allele1));
+		 assertEquals("A", maf.getColumnValue(MafElement.Tumor_Seq_Allele2));
      }
      
      @Test 

@@ -156,37 +156,46 @@ public class ConfidenceModeTest {
 	 @Test
 	 public void checkMIUN() {
 		 StringBuilder sb = null;
-		 ConfidenceMode.checkMIUN(null,   null,  sb, -1);
+		 ConfidenceMode.checkMIUN(null, 0, null,  sb, -1, 3);
 		 assertEquals(null, sb);
 		 sb = new StringBuilder();
-		 ConfidenceMode.checkMIUN(new String [] {"A"}, "", sb, -1);
+		 ConfidenceMode.checkMIUN(new String [] {"A"}, 0, "", sb, -1, 3);
 		 assertEquals("", sb.toString());
-		 ConfidenceMode.checkMIUN(new String [] {"A"}, "C1", sb, 1);
+		 ConfidenceMode.checkMIUN(new String [] {"A"}, 0, "C1", sb, 1, 3);
 		 assertEquals("", sb.toString());
-		 ConfidenceMode.checkMIUN(new String [] {"A"}, "C1;G2;T3", sb, 1);
+		 ConfidenceMode.checkMIUN(new String [] {"A"}, 0, "C1;G2;T3", sb, 1, 3);
 		 assertEquals("", sb.toString());
-		 ConfidenceMode.checkMIUN(new String [] {"A","C"}, "C1;G2;T3", sb, 2);
+		 ConfidenceMode.checkMIUN(new String [] {"A","C"}, 0, "C1;G2;T3", sb, 2, 3);
 		 assertEquals("", sb.toString());
-		 ConfidenceMode.checkMIUN(new String [] {"A","C","G"}, "C1;G2;T3", sb, 2);
+		 ConfidenceMode.checkMIUN(new String [] {"A","C","G"}, 93, "C1;G2;T3", sb, 2, 3);
+		 assertEquals("", sb.toString());
+		 ConfidenceMode.checkMIUN(new String [] {"A","C","G","T"}, 93, "C1;G2;T3", sb, 2, 3);
 		 assertEquals("MIUN", sb.toString());
 		 sb = new StringBuilder();
-		 ConfidenceMode.checkMIUN(new String [] {"A","C","T"}, "C1;G2;T3", sb, 3);
+		 ConfidenceMode.checkMIUN(new String [] {"A","C","G"}, 94, "C1;G2;T3", sb, 2, 3);
+		 assertEquals("", sb.toString());
+		 ConfidenceMode.checkMIUN(new String [] {"A","C","T"}, 0, "C1;G2;T3", sb, 3, 3);
 		 assertEquals("MIUN", sb.toString());
 		 sb = new StringBuilder();
-		 ConfidenceMode.checkMIUN(new String [] {"C"}, "C1;G2;T3", sb, 1);
+		 ConfidenceMode.checkMIUN(new String [] {"A","C","T"}, 100, "C1;G2;T3", sb, 3, 3);
+		 assertEquals("", sb.toString());
+		 ConfidenceMode.checkMIUN(new String [] {"C"}, 0, "C1;G2;T3", sb, 1, 3);
 		 assertEquals("MIUN", sb.toString());
 		 sb = new StringBuilder();
-		 ConfidenceMode.checkMIUN(new String [] {"G"}, "C1;G2;T3", sb, 2);
+		 ConfidenceMode.checkMIUN(new String [] {"G"}, 0, "C1;G2;T3", sb, 2, 3);
 		 assertEquals("MIUN", sb.toString());
 		 sb = new StringBuilder();
-		 ConfidenceMode.checkMIUN(new String [] {"T"}, "C1;G2;T3", sb, 3);
+		 ConfidenceMode.checkMIUN(new String [] {"T"}, 0, "C1;G2;T3", sb, 3, 3);
 		 assertEquals("MIUN", sb.toString());
 		 sb = new StringBuilder();
-		 ConfidenceMode.checkMIUN(new String [] {"T"}, "C1;G2;T3", sb, 4);
+		 ConfidenceMode.checkMIUN(new String [] {"T"}, 0, "C1;G2;T3", sb, 4, 3);
 		 assertEquals("", sb.toString());
 		 sb = new StringBuilder();
-		 ConfidenceMode.checkMIUN(new String [] {"A"}, "A3;C8", sb, 2);
+		 ConfidenceMode.checkMIUN(new String [] {"A"}, 0, "A3;C8", sb, 2, 3);
 		 assertEquals("MIUN", sb.toString());
+		 sb = new StringBuilder();
+		 ConfidenceMode.checkMIUN(new String [] {"A"}, 90, "A3;C8", sb, 2, 3);
+		 assertEquals("", sb.toString());
 	 }
 	 
 	 @Test
@@ -241,7 +250,12 @@ public class ConfidenceModeTest {
 		 /*
 		  * chr1	792590	.	C	A	.	.	FLANK=AATTTATTCCC;BaseQRankSum=-1.455;ClippingRankSum=0.000;DP=73;ExcessHet=3.0103;FS=1.318;MQ=55.96;MQRankSum=-6.174;QD=1.23;ReadPosRankSum=1.813;SOR=0.953;IN=1,2;GERM=A:9:0:9:0;HOM=0,TTGATAATTTaTTCCCATTCT;EFF=downstream_gene_variant(MODIFIER||4458|||LINC01128|retained_intron|NON_CODING|ENST00000425657||1),downstream_gene_variant(MODIFIER||4444|||LINC01128|lincRNA|NON_CODING|ENST00000416570||1),downstream_gene_variant(MODIFIER||4444|||LINC01128|lincRNA|NON_CODING|ENST00000448975||1),downstream_gene_variant(MODIFIER||3584|||LINC01128|lincRNA|NON_CODING|ENST00000449005||1),non_coding_exon_variant(MODIFIER|||n.4370C>A||LINC01128|lincRNA|NON_CODING|ENST00000445118|5|1)	GT:AD:DP:EOR:FF:FT:GQ:INF:NNS:OABS:QL	0/0:46,1:47:.:A3;C8:PASS:.:.:.:A1[37]0[0];C26[39.62]20[40.15]:.	0/1:61,7:68:C1[]2[]:A9;C3:PASS:.:SOMATIC:6:A6[37.83]1[41];C40[40.17]21[37.86]:.	./.:.:.:.:.:PASS:.:NCIG:.:.:.	0/1:62,11:73:.:.:PASS:99:SOMATIC:.:.:89.77
 		  */
-		 VcfRecord r = new VcfRecord(new String[]{"chr1","792590",".","C","A",".",".","FLANK=AATTTATTCCC;BaseQRankSum=-1.455;ClippingRankSum=0.000;DP=73;ExcessHet=3.0103;FS=1.318;MQ=55.96;MQRankSum=-6.174;QD=1.23;ReadPosRankSum=1.813;SOR=0.953;IN=1,2;GERM=A:9:0:9:0;HOM=0,TTGATAATTTaTTCCCATTCT","GT:AD:DP:EOR:FF:FT:GQ:INF:NNS:OABS:QL","0/0:46,1:47:.:A3;C8:.:.:.:.:A1[37]0[0];C26[39.62]20[40.15]:.","0/1:61,7:68:C1[]2[]:A9;C3:.:.:SOMATIC:6:A6[37.83]1[41];C40[40.17]21[37.86]:.","./.:.:.:.:.:.:.:NCIG:.:.:.","0/1:62,11:73:.:.:.:99:SOMATIC:.:.:89.77"});
+		 VcfRecord r = new VcfRecord(new String[]{"chr1","792590",".","C","A",".",".","FLANK=AATTTATTCCC;BaseQRankSum=-1.455;ClippingRankSum=0.000;DP=73;ExcessHet=3.0103;FS=1.318;MQ=55.96;MQRankSum=-6.174;QD=1.23;ReadPosRankSum=1.813;SOR=0.953;IN=1,2;GERM=A:9:0:9:0;HOM=0,TTGATAATTTaTTCCCATTCT",
+				 "GT:AD:DP:EOR:FF:FT:GQ:INF:NNS:OABS:QL",
+				 "0/0:46,1:47:.:A3;C8:.:.:.:.:A1[37]0[0];C26[39.62]20[40.15]:.",
+				 "0/1:61,7:68:C1[]2[]:A9;C3:.:.:SOMATIC:6:A6[37.83]1[41];C40[40.17]21[37.86]:.",
+				 "./.:.:.:.:.:.:.:NCIG:.:.:.",
+				 "0/1:62,11:73:.:.:.:99:SOMATIC:.:.:89.77"});
 		 ConfidenceMode cm = new ConfidenceMode(TWO_SAMPLE_TWO_CALLER_META);
 		 cm.positionRecordMap.put(r.getChrPosition(), java.util.Arrays.asList(r));
 		 cm.addAnnotation();
@@ -1102,6 +1116,25 @@ public class ConfidenceModeTest {
 		 assertEquals(true, ConfidenceMode.applyMutantReadFilter(new int[]{1,2}, "10,5,4", 5));
 		 assertEquals(false, ConfidenceMode.applyMutantReadFilter(new int[]{2,2}, "10,5,6", 5));
 		 assertEquals(false, ConfidenceMode.applyMutantReadFilter(new int[]{2,2}, "10,4,5", 5));
+	 }
+	 
+	 @Test
+	 public void covFromFF() {
+		 assertEquals(0, ConfidenceMode.getCoverageFromFailedFilterString(null));
+		 assertEquals(0, ConfidenceMode.getCoverageFromFailedFilterString(""));
+		 assertEquals(0, ConfidenceMode.getCoverageFromFailedFilterString("."));
+		 assertEquals(0, ConfidenceMode.getCoverageFromFailedFilterString("A0"));
+		 assertEquals(1, ConfidenceMode.getCoverageFromFailedFilterString("A1"));
+		 assertEquals(10, ConfidenceMode.getCoverageFromFailedFilterString("A10"));
+		 assertEquals(100, ConfidenceMode.getCoverageFromFailedFilterString("A100"));
+		 assertEquals(101, ConfidenceMode.getCoverageFromFailedFilterString("A100;B1"));
+		 assertEquals(110, ConfidenceMode.getCoverageFromFailedFilterString("A100;B10"));
+		 assertEquals(113, ConfidenceMode.getCoverageFromFailedFilterString("A100;B10;X3"));
+		 // alts of more than 1 base too
+		 assertEquals(1, ConfidenceMode.getCoverageFromFailedFilterString("AA1"));
+		 assertEquals(2, ConfidenceMode.getCoverageFromFailedFilterString("AA1;B1"));
+		 assertEquals(107, ConfidenceMode.getCoverageFromFailedFilterString("AA1;B1;CAB105"));
+		 assertEquals(127, ConfidenceMode.getCoverageFromFailedFilterString("AA1;B1;CAB105;H20"));
 	 }
 	 
 	 @Test

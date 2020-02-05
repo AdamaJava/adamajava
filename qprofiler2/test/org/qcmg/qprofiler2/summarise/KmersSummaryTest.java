@@ -63,7 +63,7 @@ public class KmersSummaryTest {
 		LocalDateTime now = LocalDateTime.now(); 
 		System.out.println(dtf.format(now)); 
 		
-		System.out.println("calling producer with split 101 times "); 
+		//calling producer with split 101 times
 		String[] mers1 = summary.getPossibleKmerString(6, false);
 		for (int  i = 0; i < 100; i ++) {
 			mers1 = summary.getPossibleKmerString(6, false);
@@ -134,7 +134,7 @@ public class KmersSummaryTest {
 		summary.parseKmers( base2.getBytes() , false, 0);
 		
 		Element root = XmlElementUtils.createRootElement("root", null);
-		summary.toXml(root, 2);
+		summary.toXml(root, 2, true);
 				
 		//only one <sequenceMetrics>
 		List<Element> eles = XmlElementUtils.getChildElementByTagName(root, XmlUtils.SEQUENCE_METRICS);
@@ -153,6 +153,14 @@ public class KmersSummaryTest {
 			assertEquals(baseE.getAttribute(XmlUtils.CYCLE), (i+1) + "");
 		}	
 		
+		//test unpaired bam reads
+		root = XmlElementUtils.createRootElement("root", null);
+		summary.toXml(root, 2, false);
+		eles = XmlElementUtils.getChildElementByTagName(root, XmlUtils.SEQUENCE_METRICS);		
+		//check <variableGroup...>
+		ele = (Element)eles.get(0).getFirstChild();
+		assertEquals(ele.getAttribute(XmlUtils.NAME), "unPaired") ;
+				
 	}
 
 	@Test
@@ -166,7 +174,7 @@ public class KmersSummaryTest {
 		}
  		
 		Element root = XmlElementUtils.createRootElement("root", null);
-		summary.toXml(root, 3);
+		summary.toXml(root, 3, false);
 		
 		//the popular kmers are based on counts on middle, middle of first half, middle of second half
 		//in this testing case it look at firt cyle, middle cycle and last cycle

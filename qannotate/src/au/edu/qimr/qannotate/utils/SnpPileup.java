@@ -5,8 +5,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import htsjdk.samtools.SAMRecord;
 import org.qcmg.common.model.ChrPosition;
+
+import htsjdk.samtools.SAMRecord;
 
 /**
  * pileup on snp position, retrive the number of discard read, duplicate read, overlapped pairs, forward/backward reads, novel start reads for each Alleles

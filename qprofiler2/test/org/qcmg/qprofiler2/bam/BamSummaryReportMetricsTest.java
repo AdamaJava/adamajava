@@ -58,10 +58,6 @@ public class BamSummaryReportMetricsTest {
 	@Test
 	public void tagTest() {
 		
-		//debug
-		XmlElementUtils.asXmlText(root, "/Users/christix/Documents/Eclipse/data/qprofiler/test.xml");
-
-		
 		Element bamSummaryE = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.BAM_SUMMARY).get(0);
 		
 		//check RG
@@ -211,10 +207,34 @@ public class BamSummaryReportMetricsTest {
 			ele = XmlElementUtils.getOffspringElementByTagName(root, tagName).get(0);			
 			String readCount = XmlElementUtils.getChildElement(ele,  XmlUtils.SEQUENCE_METRICS, 0).getAttribute(ReadGroupSummary.READ_COUNT);
 						
-			//System.out.println(ele.getTextContent() + ".equals" + count1 );
 			assertTrue( totalCount.equals(readCount) );		
 		}
 	}
+	
+	@Test
+	/**
+	 * <bamMetrics><QNAME><readGroups><readGroup name="1959T"><sequenceMetrics name="qnameInfo" readCount="3">
+	 * readCount: total reads but excluds notProperpair, unmapped, duplicate and  discarded reads 
+	 * which is same to the sum of below
+	 * <bamSummary>..<value name="unpairedReads">
+	 * <sequenceMetrics name="properPairs">...<<value name="firstOfPairs"> and <value name="secondOfPairs">
+	 */
+	public void qNameTest() {
+		Element nameE = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.QNAME).get(0);
+		Element bamSummaryE = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.BAM_SUMMARY).get(0);
+		
+		for(String rg : new String[] {"1959T", "1959N", "unknown_readgroup_id" }) {			
+			Element ele =getElementByFirst(nameE, "readGroup",  k -> k.getAttribute(XmlUtils.NAME).equals(rg));
+			String count1 = XmlElementUtils.getChildElement(ele,  XmlUtils.SEQUENCE_METRICS, 0).getAttribute(ReadGroupSummary.READ_COUNT);
+			
+			Element eleSum = getElementByFirst(bamSummaryE, "readGroup",  k -> k.getAttribute(XmlUtils.NAME).equals(rg));				
+			String count2 = getElementByFirst(eleSum, XmlUtils.SEQUENCE_METRICS,  k -> k.getAttribute(XmlUtils.NAME).equals("reads")).getAttribute(ReadGroupSummary.READ_COUNT);				   
+				    
+			assertTrue(count1.equals(count2));	 		
+		}			
+	}	
+	
+	
 		
 	@Test
 	/**
@@ -226,19 +246,20 @@ public class BamSummaryReportMetricsTest {
 	 * <sequenceMetrics name="properPairs">...<<value name="firstOfPairs"> and <value name="secondOfPairs">
 	 */
 	public void qNamePosTest() {
+
+		Element tagE = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.POS).get(0);
+		Element bamSummaryE = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.BAM_SUMMARY).get(0);
 		
-		for(String tagName : new String[] { XmlUtils.QNAME, XmlUtils.POS }) {
-			Element tagE = XmlElementUtils.getOffspringElementByTagName(root, tagName).get(0);
+		for(String rg : new String[] {"1959T", "1959N", "unknown_readgroup_id" }) {			
+			Element ele =getElementByFirst(tagE, "readGroup",  k -> k.getAttribute(XmlUtils.NAME).equals(rg));
+		   
+		   //test pos element for good reads only
+		  String readCount = XmlElementUtils.getChildElement(ele,  XmlUtils.SEQUENCE_METRICS, 0).getAttribute(ReadGroupSummary.READ_COUNT);
+		  String readCountSum = getProperReadCount(rg);			  
+		   
+		  assertTrue(readCount.equals(readCountSum));	 						
 			
-			for(String rg : new String[] {"1959T", "1959N", "unknown_readgroup_id" }) {			
-				Element ele =getElementByFirst(tagE, "readGroup",  k -> k.getAttribute(XmlUtils.NAME).equals(rg));
-				String readCount = tagName.equals(XmlUtils.POS ) ? 
-					 XmlElementUtils.getChildElement(ele,  XmlUtils.SEQUENCE_METRICS, 0).getAttribute(ReadGroupSummary.READ_COUNT) :
-					 getElementByFirst(ele, XmlUtils.SEQUENCE_METRICS,  k -> k.getAttribute(XmlUtils.NAME).equals("qnameInfo")).getAttribute(ReadGroupSummary.READ_COUNT);
-				 		
-				assertTrue(readCount.equals(getProperReadCount(rg)));			
-			}			
-		}		
+		}						
 	}
 		
 	private Element getElementByFirst(Element parent, String tagName, Predicate<? super Element> predicate ) {

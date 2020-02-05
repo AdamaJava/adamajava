@@ -125,9 +125,11 @@ public class KmersSummary {
 		 //readString may have differnt length to other reads
 		 for(int i = 0; i <= readString.length - merLength; i ++ ){
 			 byte[] mers = new byte[ merLength ];
-			 for(int j = 0; j <  merLength; j ++ )  mers[j] = dataString[ i + j ];	
-			 int pos = getPosition(i, mers );			 
-			 tally[flagFirstOfPair].increment(pos);
+			 for(int j = 0; j <  merLength; j ++ ) {
+				 mers[j] = dataString[ i + j ];	
+			 }
+			 int pos = getPosition( i, mers );			 
+			 tally[flagFirstOfPair].increment( pos );
 		 }	
 		 
 		 parsedCount[flagFirstOfPair].incrementAndGet();
@@ -199,8 +201,14 @@ public class KmersSummary {
 		return count; 		
 	}
 	
-	
-	public void toXml( Element parent, int klength ) { 
+	 
+	/**
+	 * 
+	 * @param parent  is the parent element
+	 * @param klength is the length of kemers
+	 * @param isFastq is true, the variable group name will be length+"kmers"; otherwise it will be pair type. 
+	 */
+	public void toXml( Element parent,  int klength , boolean isFastq) { 
 		long sum = 0;
 		for(int pair = 0; pair < 3; pair ++){
 			sum += parsedCount[pair].get();	
@@ -215,8 +223,9 @@ public class KmersSummary {
 			String name = BamSummaryReport2.sourceName[pair];
 			
 			//read may have no pair information such as fastq
-			if(pair == 0 && parsedCount[1].get() == 0 &&parsedCount[2].get() == 0)
+			if( isFastq ) {
 				name = klength+"mers";
+			}
 			Set<String> kmerStrs = getPopularKmerString(maxNo,  klength, false, pair);
 			
 			// "counts per mer string start on specified base cycle"	
