@@ -732,7 +732,6 @@ public class VcfUtilsTest {
 		rec.setFilter("PASS_1;PASS_2");
 		assertEquals("PASS_1", VcfUtils.getFiltersEndingInSuffix(rec, "_1"));
 		assertEquals("PASS_2", VcfUtils.getFiltersEndingInSuffix(rec, "_2"));
-		
 	}
 	
 	@Test
@@ -840,7 +839,6 @@ public class VcfUtilsTest {
 		assertEquals(GenotypeEnum.GG, VcfUtils.calculateGenotypeEnum("0/0", 'G', 'G'));
 		assertEquals(GenotypeEnum.GG, VcfUtils.calculateGenotypeEnum("0/1", 'G', 'G'));
 		assertEquals(GenotypeEnum.GG, VcfUtils.calculateGenotypeEnum("1/1", 'G', 'G'));
-		
 	}
 	
 	@Test
@@ -858,13 +856,6 @@ public class VcfUtilsTest {
 		assertEquals("NOVELCOV=A:1,C:1,G:0,T:0,N:0,TOTAL:2", VcfUtils.getPileupElementAsString(pileups, true));
 		assertEquals("FULLCOV=A:1,C:1,G:0,T:0,N:0,TOTAL:2", VcfUtils.getPileupElementAsString(pileups, false));
 	}
-	
-//	@Test
-//	public void testGetMutationAndGTsRealLife() {
-//		assertArrayEquals(new String[] {"C", "0/1","0/1"} , VcfUtils.getMutationAndGTs("G",  GenotypeEnum.CG, GenotypeEnum.CG));
-//		assertArrayEquals(new String[] {"C", "1/1","1/1"} , VcfUtils.getMutationAndGTs("G",  GenotypeEnum.CC, GenotypeEnum.CC));
-//	}
-	
 	
 	@Test
 	public void getGTStringWithCommas() {
@@ -925,8 +916,6 @@ public class VcfUtilsTest {
 		assertEquals("CTTGT", VcfUtils.getUpdateAltString("CATTTGT", "CAT", "C"));
 	}
 	
-	
-	
 	@Test
 	public void isRecordAMnp() {
 		
@@ -968,7 +957,6 @@ public class VcfUtilsTest {
 		
 		rec = VcfUtils.resetAllel(rec,"A,AACCACC");
 		assertEquals(false, VcfUtils.isRecordAMnp(rec));
-		
 	}
 	
 	@Test
@@ -1032,7 +1020,6 @@ public class VcfUtilsTest {
 		assertEquals("./.:anythinghere:.:0:.:blah:.", rec.getFormatFields().get(2));
 	}
 	
-	
 	@Test
 	public void additionalSamplesRealLife() {
 		VcfRecord rec = new VcfRecord( new String[] {"chr1","3418618",".","G","A",".",".","FLANK=CCGGCACCTCC;DB;DP=3;FS=0.000;MQ=60.00;MQ0=0;QD=32.74;SOR=2.833;SOMATIC;IN=1,2"
@@ -1040,7 +1027,6 @@ public class VcfUtilsTest {
 				,"0/1:20:.:14:14:A3[23]11[24.18];G2[35]4[32]:.:.:."
 				,"0/0:7:COVT:.:.:A0[0]2[23.5];G2[36]3[35]:.:.:."
 				,"0/0:6:MIN:A3[23]11[24.18];G2[35]4[32]:.:.:SOMATIC"});
-		//VcfUtils.createVcfRecord("1", 1, "");
 		VcfUtils.addAdditionalSamplesToFormatField(rec, Arrays.asList("GT:AD:DP:FT:GQ:INF:MR:NNS:OABS","1/1:0,3:3:SBIASALT;COVT:9:SOMATIC:2:2:A0[0]2[23.5];G2[36]3[35]"));
 		assertEquals(5, rec.getFormatFields().size());
 		
@@ -1048,7 +1034,6 @@ public class VcfUtilsTest {
 	@Test
 	public void additionalSamples() {
 		VcfRecord rec = new VcfRecord( new String[] {"1","1",".","ACCACCACC","."});
-		//VcfUtils.createVcfRecord("1", 1, "");
 		VcfUtils.addFormatFieldsToVcf(rec, Arrays.asList("GT:GD:AC:MR:NNS","0/1:A/C:A38[31.42],32[25],C11[27.64],5[36.6]:16:16","0/1:A/C:A75[31.96],57[29.32],C12[35.25],6[38]:18:16"));
 		VcfUtils.addAdditionalSamplesToFormatField(rec, Arrays.asList("GT:AD:DP:GQ:PL:GD:AC:MR:NNS","0/1:2,2:4:69:72,0,69:A/C:A101[29.56],51[27.63],C30[30.83],21[37.29],G1[12],0[0]:51:44",".:.:.:.:.:.:A191[31.2],147[27.37],C70[30.29],92[37.47],T0[0],1[37]:162:101"));
 		assertEquals(5, rec.getFormatFields().size());
@@ -1353,7 +1338,6 @@ public class VcfUtilsTest {
 		assertEquals(false, VcfUtils.samplesPass(null, null, null, null, null));
 		assertEquals(false, VcfUtils.samplesPass("", "", "", "", ""));
 		assertEquals(false, VcfUtils.samplesPass(".", ".", ".", ".", "."));
-//		assertEquals(false, VcfUtils.samplesPass("PASS", "5", "PASS", "SOMATIC", "5"));
 	}
 	
 	@Test
@@ -1392,7 +1376,6 @@ public class VcfUtilsTest {
 		assertEquals("12,20", VcfUtils.getAD("T", "A", "A10[10]10[20];T1[]11[];C22[1]33[5]"));
 		assertEquals("12,20,55", VcfUtils.getAD("T", "A,C", "A10[10]10[20];T1[]11[];C22[1]33[5]"));
 		assertEquals("0,20,55", VcfUtils.getAD("G", "A,C", "A10[10]10[20];T1[]11[];C22[1]33[5]"));
-		
 	}
 	
 	@Test
@@ -1523,13 +1506,11 @@ public class VcfUtilsTest {
 		assertEquals(false, VcfUtils.mutationInNormal(0, 0, 0, 0));
 		assertEquals(false, VcfUtils.mutationInNormal(0, 10, 1, 2));
 		assertEquals(false, VcfUtils.mutationInNormal(1, 10, 1, 2));
-//		assertEquals(true, VcfUtils.mutationInNormal(1, 10, 1, 2));
 		assertEquals(true, VcfUtils.mutationInNormal(2, 10, 1, 2));
 		assertEquals(false, VcfUtils.mutationInNormal(2, 10, 1, 3));
 		assertEquals(false, VcfUtils.mutationInNormal(2, 10, 25, 2));
 		assertEquals(false, VcfUtils.mutationInNormal(2, 10, 25, 3));
 		assertEquals(true, VcfUtils.mutationInNormal(2, 10, 20, 2));
-		
 		
 		assertEquals(false, VcfUtils.mutationInNormal(1, 24, 5, 3));
 		assertEquals(false, VcfUtils.mutationInNormal(3, 63, 5, 3));		// 3.15 = 0.05 * 63

@@ -23,7 +23,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPointPosition;
@@ -40,17 +39,13 @@ import org.qcmg.common.vcf.header.VcfHeaderUtils;
 public class VcfUtils {
 	
 	private static final QLogger logger = QLoggerFactory.getLogger(VcfUtils.class);
-	
 	public static final Pattern pattern_AC = Pattern.compile("[ACGT][0-9]+\\[[0-9]+.?[0-9]*\\],[0-9]+\\[[0-9]+.?[0-9]*\\]");
 	public static final Pattern pattern_ACCS = Pattern.compile("[ACGT_]+,[0-9]+,[0-9]+");
 	public static final int CONF_LENGTH = (VcfHeaderUtils.INFO_CONFIDENCE + Constants.EQ).length();
-
-	
 	
 	/**
 	 * Attempts to merge a number of vcf records that have the same start position
 	 * NOTE that only the first 8 columns are merged, info, format fields will be empty
-	 * 
 	 * 
 	 * 
 	 * @param records
@@ -132,9 +127,7 @@ public class VcfUtils {
   * @return the counts for specified base or return total allels counts if base is null;
   */
 	public static int getAltFrequency( VcfFormatFieldRecord re, String base){
-		
 		int count = 0;
-		
  		 
 		final Matcher m;
 		String countString = null;
@@ -209,39 +202,6 @@ public class VcfUtils {
 	
 	public static Map<String, int[]> getAllelicCoverageFromOABS(String oabs) {
 		return getAllelicCoverageWithStrand(oabs);
-		
-		/*
-		 * need to decompose the OABs string into a map of string keys and corresponding counts
-		 */
-//		if ( ! StringUtils.isNullOrEmptyOrMissingData(oabs)) {
-//			
-//			String [] a = oabs.split(Constants.SEMI_COLON_STRING);
-//			Map<String, int[]> m = new HashMap<>(a.length * 2);
-//			
-//			for (String pileup : a) {
-//				int openBracketIndex = pileup.indexOf(Constants.OPEN_SQUARE_BRACKET);
-//				int startOfNumberIndex = 1;
-//				for (int i = 1 ; i < openBracketIndex ; i++) {
-//					char c = pileup.charAt(i);
-//					if (Character.isDigit(c)) {
-//						/*
-//						 * end of the line
-//						 */
-//						startOfNumberIndex = i;
-//						break;
-//					}
-//				}
-//				
-//				/*
-//				 * get fs + rs count
-//				 */
-//				int fsCount = Integer.parseInt(pileup.substring(startOfNumberIndex, openBracketIndex));
-//				int rsCount = Integer.parseInt(pileup.substring(pileup.indexOf(Constants.CLOSE_SQUARE_BRACKET) + 1, pileup.indexOf(Constants.OPEN_SQUARE_BRACKET, openBracketIndex + 1)));
-//				m.put(pileup.substring(0, startOfNumberIndex), new int[]{fsCount, rsCount});
-//			}
-//			return m;
-//		}
-//		return Collections.emptyMap();
 	}
 	
 	/**
@@ -525,8 +485,6 @@ public class VcfUtils {
 		return l;
 	}
 	
-
-	
 	/**
 	 * Returns a map of string arrays that represent the format field records
 	 * @param ff
@@ -654,7 +612,6 @@ public class VcfUtils {
 		
 		return re1; 
 	}
-
 	
 	/**
 	 * A vcf record is considered to be a snp if the length of the ref and alt fields are the same (and not null/0), the fields don't contain commas, and are not equal 
@@ -707,12 +664,10 @@ public class VcfUtils {
 					 */
 					return Arrays.stream(alts).allMatch(s -> s.length() == refLength);
 				}
-				
 			}
 		}
 		return false;
 	}
-	
 	
 	public static Map<String, int[]> getAllelicCoverageWithStrand(String oabs) {
 		
@@ -741,7 +696,6 @@ public class VcfUtils {
 							break;
 						}
 					}
-					
 					/*
 					 * get fs + rs count
 					 */
@@ -752,7 +706,6 @@ public class VcfUtils {
 			}
 			return m;
 		}
-		
 		return Collections.emptyMap();
 	}
 	
@@ -809,7 +762,6 @@ public class VcfUtils {
 		/*
 		 * split list up and add 1 at a time...
 		 */
-		
 		if (additionalSampleFormatFields.size() == 2) {
 			addAdditionalSampleToFormatField(vcf, additionalSampleFormatFields);
 		} else {
@@ -826,10 +778,7 @@ public class VcfUtils {
 	public static void addAdditionalSampleToFormatField(VcfRecord vcf, List<String> additionalSampleFormatFields) {
 		if ( null != additionalSampleFormatFields && additionalSampleFormatFields.size() > 1) {
 			
-//			logger.info("attempting to add sample ff to vcf rec: " + vcf.toString());
-//			additionalSampleFormatFields.stream().forEach(s -> logger.info("new ff: " + s));
 			List<String[]> additionalSampleFormatFieldsParams = additionalSampleFormatFields.stream().map(s -> s.split(Constants.COLON_STRING)).collect(Collectors.toList());
-			
 			List<String> existingFF = vcf.getFormatFields();
 			
 			if( existingFF.isEmpty()) {
@@ -1437,40 +1386,6 @@ public class VcfUtils {
 	 */
 	public static boolean isRecordSomatic(VcfRecord rec) {
 		return isRecordSomatic(rec.getInfo(), rec.getFormatFieldsAsMap());
-		
-//		String info = rec.getInfo();
-//		if ( ! StringUtils.isNullOrEmpty(info) && info.contains(VcfHeaderUtils.INFO_SOMATIC)) {
-//			return true;
-//		}
-//		
-////		if (isMergedRecord(rec)) {
-//			/*
-//			 * check out the format fields - need all records to be somatic
-//			 */
-//			String ff = rec.getFormatFieldStrings();
-//			Map<String, String[]> m =getFormatFieldsAsMap(ff);
-//			
-//			if (m.isEmpty()) {
-//				return false;
-//			}
-//			String [] infos = m.get(VcfHeaderUtils.FORMAT_INFO);
-//			if (null == infos || infos.length == 0) {
-//				return false;
-//			}
-//			long somCount =  Arrays.asList(infos).stream().filter(f ->null != f && f.contains(VcfHeaderUtils.INFO_SOMATIC)).count();
-//			return somCount * 2 >= infos.length;
-			
-//			if (noOfSomatics == 0) {
-//				return false;
-//			}
-//			return noOfSomatics * 2 >= filter.length;
-//		}
-			/*
-			 *SOMATIC_1 and SOMATIC_2 to return true
-			 */
-//			return info.contains(VcfHeaderUtils.INFO_SOMATIC + "_1") && info.contains(VcfHeaderUtils.INFO_SOMATIC + "_2");  
-//		} else {
-//		}
 	}
 	
 	public static boolean isRecordSomatic(String info, Map<String, String[]> formatFields) {

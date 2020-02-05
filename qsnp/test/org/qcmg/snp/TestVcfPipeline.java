@@ -1,15 +1,10 @@
 package org.qcmg.snp;
 
-import java.util.List;
-
 import org.qcmg.common.meta.QExec;
 import org.qcmg.common.util.Constants;
-import org.qcmg.common.vcf.VcfRecord;
-import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
-import org.qcmg.pileup.QSnpRecord;
 
 public class TestVcfPipeline extends Pipeline {
 	
