@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -38,17 +39,13 @@ import org.qcmg.common.vcf.header.VcfHeaderUtils;
 public class VcfUtils {
 	
 	private static final QLogger logger = QLoggerFactory.getLogger(VcfUtils.class);
-	
 	public static final Pattern pattern_AC = Pattern.compile("[ACGT][0-9]+\\[[0-9]+.?[0-9]*\\],[0-9]+\\[[0-9]+.?[0-9]*\\]");
 	public static final Pattern pattern_ACCS = Pattern.compile("[ACGT_]+,[0-9]+,[0-9]+");
 	public static final int CONF_LENGTH = (VcfHeaderUtils.INFO_CONFIDENCE + Constants.EQ).length();
-
-	
 	
 	/**
 	 * Attempts to merge a number of vcf records that have the same start position
 	 * NOTE that only the first 8 columns are merged, info, format fields will be empty
-	 * 
 	 * 
 	 * 
 	 * @param records
@@ -130,9 +127,7 @@ public class VcfUtils {
   * @return the counts for specified base or return total allels counts if base is null;
   */
 	public static int getAltFrequency( VcfFormatFieldRecord re, String base){
-		
 		int count = 0;
-		
  		 
 		final Matcher m;
 		String countString = null;
@@ -203,42 +198,6 @@ public class VcfUtils {
 			}
 		}
 		return ffl.stream().map(StringBuilder::toString).collect(Collectors.toList());
-	}
-	
-	public static Map<String, int[]> getAllelicCoverageFromOABS(String oabs) {
-		
-		/*
-		 * need to decompose the OABs string into a map of string keys and corresponding counts
-		 */
-		if ( ! StringUtils.isNullOrEmptyOrMissingData(oabs)) {
-			
-			String [] a = oabs.split(Constants.SEMI_COLON_STRING);
-			Map<String, int[]> m = new HashMap<>(a.length * 2);
-			
-			for (String pileup : a) {
-				int openBracketIndex = pileup.indexOf(Constants.OPEN_SQUARE_BRACKET);
-				int startOfNumberIndex = 1;
-				for (int i = 1 ; i < openBracketIndex ; i++) {
-					char c = pileup.charAt(i);
-					if (Character.isDigit(c)) {
-						/*
-						 * end of the line
-						 */
-						startOfNumberIndex = i;
-						break;
-					}
-				}
-				
-				/*
-				 * get fs + rs count
-				 */
-				int fsCount = Integer.parseInt(pileup.substring(startOfNumberIndex, openBracketIndex));
-				int rsCount = Integer.parseInt(pileup.substring(pileup.indexOf(Constants.CLOSE_SQUARE_BRACKET) + 1, pileup.indexOf(Constants.OPEN_SQUARE_BRACKET, openBracketIndex + 1)));
-				m.put(pileup.substring(0, startOfNumberIndex), new int[]{fsCount, rsCount});
-			}
-			return m;
-		}
-		return Collections.emptyMap();
 	}
 	
 	/**
@@ -409,8 +368,28 @@ public class VcfUtils {
 	}
 	
 	public static boolean isCompoundSnp(VcfRecord vcf) {
-		String ff = vcf.getFormatFieldStrings();
-		return ff.contains(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP);
+		int refLength = vcf.getRef().length();
+		if (refLength > 1) {
+			String alt = vcf.getAlt();
+			if (alt.indexOf(Constants.COMMA) > -1) {
+				/*
+				 * all alts need to be of the same length, and also equal to refLength
+				 */
+				String [] alts = alt.split(Constants.COMMA_STRING);
+				for (String a : alts) {
+					if (a.length() != refLength) {
+						return false;
+					}
+				}
+				return true;
+			} else {
+				/*
+				 * single alt, just check the length
+				 */
+				return alt.length() == refLength;
+			}
+		}
+		return false;
 	}
 	
 	public static String getGenotypeFromGATKVCFRecord(VcfRecord rec) {
@@ -492,8 +471,6 @@ public class VcfUtils {
 		array[1] = gt2 == 0 ? ref : altsArr[gt2 - 1];
 		return array;
 	}
-	
-
 	
 	/**
 	 * Returns a map of string arrays that represent the format field records
@@ -622,7 +599,6 @@ public class VcfUtils {
 		
 		return re1; 
 	}
-
 	
 	/**
 	 * A vcf record is considered to be a snp if the length of the ref and alt fields are the same (and not null/0), the fields don't contain commas, and are not equal 
@@ -675,13 +651,22 @@ public class VcfUtils {
 					 */
 					return Arrays.stream(alts).allMatch(s -> s.length() == refLength);
 				}
-				
 			}
 		}
 		return false;
 	}
 	
-	
+	/**
+	 * Takes a String representing the observed allele by strand (OABS) and returns a corresponding map where the keys are the bases seen, and the values are an int array containing counts on each strand
+	 * 
+	 * eg. A12[40]20[30];T5[34]9[18]
+	 * would be represented by the following map:
+	 * <A: int[]{12,20}>
+	 * <T: int[]{5,9}>
+	 * 
+	 * @param oabs
+	 * @return
+	 */
 	public static Map<String, int[]> getAllelicCoverageWithStrand(String oabs) {
 		
 		/*
@@ -709,7 +694,6 @@ public class VcfUtils {
 							break;
 						}
 					}
-					
 					/*
 					 * get fs + rs count
 					 */
@@ -720,7 +704,6 @@ public class VcfUtils {
 			}
 			return m;
 		}
-		
 		return Collections.emptyMap();
 	}
 	
@@ -777,7 +760,6 @@ public class VcfUtils {
 		/*
 		 * split list up and add 1 at a time...
 		 */
-		
 		if (additionalSampleFormatFields.size() == 2) {
 			addAdditionalSampleToFormatField(vcf, additionalSampleFormatFields);
 		} else {
@@ -795,7 +777,6 @@ public class VcfUtils {
 		if ( null != additionalSampleFormatFields && additionalSampleFormatFields.size() > 1) {
 			
 			List<String[]> additionalSampleFormatFieldsParams = additionalSampleFormatFields.stream().map(s -> s.split(Constants.COLON_STRING)).collect(Collectors.toList());
-			
 			List<String> existingFF = vcf.getFormatFields();
 			
 			if( existingFF.isEmpty()) {
@@ -989,7 +970,6 @@ public class VcfUtils {
 	 * 
 	 * If both control and test exist, will merge the records into a single record with (hopefully) all required data populated.
 	 * 
-	 * 
 	 * @param control
 	 * @param test
 	 * @return
@@ -1155,21 +1135,9 @@ public class VcfUtils {
 		}
 	}
 	
-	public static void removeFilter(VcfRecord rec, String filter) {
-		// perform some null guarding
-		if (null == rec) throw new IllegalArgumentException("Null vcf record passed to removeAnnotation");
-		if (null == filter) {
-			return;
-		}
-		
-		rec.setFilter(StringUtils.removeFromString(rec.getFilter(), filter, Constants.SC));
-	}
-	
 	public static Map<String, String[]> getFormatFieldsAsMap(String ff) {
 		return getFormatFieldsAsMap(Arrays.asList(ff.split(Constants.TAB_STRING)));
 	}
-	
-	
 	
 	/**
 	 * For SOMATIC records, if all format columns have a PASS in them, then we are a PASS.
@@ -1183,18 +1151,10 @@ public class VcfUtils {
 	}
 	
 	public static boolean isRecordAPass(Map<String, String[]> ffMap) {
-		String [] filterArr = ffMap.get(VcfHeaderUtils.FORMAT_FILTER);
-		
-		long passCount =  null != filterArr ? Arrays.asList(filterArr).stream().filter(f -> f.contains(VcfHeaderUtils.FILTER_PASS)).count() : 0;
-		if (passCount == 0) {
-			return false;
-		}
-		
-		/*
-		 * if all columns have a pass, we are done
-		 */
-		if (passCount == filterArr.length) {
-			return true;
+		String [] filterArray = ffMap.get(VcfHeaderUtils.FORMAT_FILTER);
+		Optional<Boolean> shortCut = getShortCutPassFail(filterArray);
+		if (shortCut.isPresent()) {
+			return shortCut.get().booleanValue();
 		}
 		
 		String [] infoArr = ffMap.get(VcfHeaderUtils.FORMAT_INFO);
@@ -1205,7 +1165,7 @@ public class VcfUtils {
 		if (somCount == 0) {
 			int i = 0;
 			boolean allPasses = true;
-			for (String s : filterArr) {
+			for (String s : filterArray) {
 				if (i++ %2 == 0) {
 					if ( ! s.equals(VcfHeaderUtils.FILTER_PASS)) {
 						allPasses = false;
@@ -1216,6 +1176,137 @@ public class VcfUtils {
 			return allPasses;
 		}
 		return false;	
+	}
+	
+	/**
+	 * Return true if there is a PASS in the fields that are specified in the int array.
+	 * False otherwise
+	 * 
+	 * @param ffMap
+	 * @param columnsThatMustHavePass
+	 * @return
+	 */
+	public static boolean isRecordAPass(Map<String, String[]> ffMap, int[] columnsThatMustHavePass) {
+		String [] filterArr = ffMap.get(VcfHeaderUtils.FORMAT_FILTER);
+		int filterArrayLength = filterArr.length;
+		for (int i : columnsThatMustHavePass) {
+			if (i >= filterArrayLength || ! filterArr[i].equals(VcfHeaderUtils.FILTER_PASS)) {
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	public static boolean isRecordAPass(VcfRecord v, VcfFileMeta meta) {
+		if (null == meta) {
+			return isRecordAPass(v);
+		}
+		return isRecordAPass(v.getFormatFieldsAsMap(), meta, v.getInfo(), isCompoundSnp(v));
+	}
+	
+	/**
+	 * If the filter fields String array contains "PASS" at the positions (1-based) in the positions short array, return true.
+	 * False otherwise
+	 * 
+	 * @param filterFields
+	 * @param positions
+	 * @return
+	 */
+	public static boolean areTheseFilterFieldsAPass(String [] filterFields, short[] positions) {
+		if (null != filterFields && filterFields.length > 0 
+				&& null != positions && positions.length > 0) {
+			
+			boolean allGood = true;
+			for (int i : positions) {
+				if (i > 0 && i <= filterFields.length) {
+					if ( ! VcfHeaderUtils.FILTER_PASS.equals(filterFields[i - 1])) {
+						allGood =  false;
+					}
+				} else {
+					allGood = false;
+				}
+			}
+			return allGood;
+		}
+		return false;
+	}
+	
+	public static boolean isRecordAPass(Map<String, String[]> ffMap, VcfFileMeta meta, String infoField, boolean compoundSnp) {
+		String [] filterArray = ffMap.get(VcfHeaderUtils.FORMAT_FILTER);
+		
+		Optional<Boolean> shortCut = getShortCutPassFail(filterArray);
+		if (shortCut.isPresent()) {
+			return shortCut.get().booleanValue();
+		}
+		
+		/*
+		 * if record is a regular snp, check to see if it is somatic
+		 * If somatic, need all samples to carry the PASS
+		 * If germline, need all control samples to carry the PASS
+		 * 
+		 * If its a compound snp and 
+		 */
+		String [] infoArr = ffMap.get(VcfHeaderUtils.FORMAT_INFO);
+		long somaticCount = null != infoArr ? Arrays.asList(infoArr).stream().filter(f -> f.contains(VcfHeaderUtils.INFO_SOMATIC)).count() : 0;
+		if (compoundSnp) {
+			
+			/*
+			 * If its a compound snp, there is an assumption that this will have only been called by 
+			 * 1 caller (qsnp) and also that qsnp was the first caller.
+			 */
+			
+			short [] positions = somaticCount > 0 ?  new short[]{(short) meta.getFirstControlSamplePos(), (short)meta.getFirstTestSamplePos()}
+													: new short[]{(short) meta.getFirstControlSamplePos()};
+			return areTheseFilterFieldsAPass(filterArray, positions);
+			
+		} else {
+			
+			/*
+			 * Single Nucleotide Polymorphism
+			 */
+			if (somaticCount == 0) {
+				return areTheseFilterFieldsAPass(filterArray, meta.getAllControlPositions().toArray());
+			} else {
+				/*
+				 * somatic, we need all fields to be PASS, but that is not the case (getShortCutPassFail didn't give us a pass)
+				 * and so will fall through to returning false
+				 */
+			}
+		}
+		
+		return false;
+	}
+	
+	public static Optional<Boolean> getShortCutPassFail(String [] filterArr) {
+		if (null == filterArr || filterArr.length == 0) {
+			return Optional.of(false);
+		}
+		
+		int passCount = 0;
+		for (String s : filterArr) {
+			if (VcfHeaderUtils.FILTER_PASS.equals(s)) {
+				passCount++;
+			}
+		}
+		
+		/*
+		 * If we have no PASS, return optional false
+		 */
+		if (passCount == 0) {
+			return Optional.of(false);
+		}
+		
+		/*
+		 * if all columns have a pass, return optional true
+		 */
+		if (passCount == filterArr.length) {
+			return Optional.of(true);
+		}
+		
+		/*
+		 * otherwise return empty optional
+		 */
+		return Optional.empty();
 	}
 	
 	/**
@@ -1306,38 +1397,53 @@ public class VcfUtils {
 		if (null == infos || infos.length == 0) {
 			return false;
 		}
-		long somCount =  Arrays.asList(infos).stream().filter(f ->null != f && f.contains(VcfHeaderUtils.INFO_SOMATIC)).count();
+		int somCount =  getSomaticCountFromFormatInfoFields(infos);
+		if (0 == somCount) {
+			return false;
+		}
+		
+		/*
+		 * need to see how many callers contributed to this call
+		 * If 1, then need a single SOMATIC
+		 * If 2, need 2 SOMATICs etc.
+		 */
+		OptionalInt callerCount = getCallerCount(info);
+		if (callerCount.isPresent()) {
+			return somCount >= callerCount.getAsInt();
+		}
+		
+		/*
+		 * default to pre-existing behaviour should caller count not be present
+		 */
 		return somCount * 2 >= infos.length;
 	}
 	
 	/**
-	 * return true if info field OR the specified format column contains SOMATIC
-	 * position is zero based
-	 * @param rec
-	 * @param formatColumn
+	 * Will return the number of callers used to make this call as depicted in the "IN=.." entry in the INFO field.
+	 * If the INFO field contains IN=1,2 then OptionalInt.of(2) will be returned
+	 * If the INFO field contains IN=1 or IN=2, then OptionalInt(1) will be returned
+	 * If the INFO field doesn't contain IN then OptionalInt.empty() will be returned
+	 * @param info
 	 * @return
 	 */
-	public static boolean isRecordSomatic(VcfRecord rec, int formatColumn) {
-		String info = rec.getInfo();
-		if ( ! StringUtils.isNullOrEmpty(info) && info.contains(VcfHeaderUtils.INFO_SOMATIC)) {
-			return true;
+	public static OptionalInt getCallerCount(String info) {
+		if ( ! StringUtils.isNullOrEmptyOrMissingData(info) && info.contains("IN=")) {
+			int commaCount = (int) new VcfInfoFieldRecord(info).getField(Constants.VCF_MERGE_INFO).chars().filter(c -> c == Constants.COMMA).count();
+			return OptionalInt.of(commaCount + 1);
 		}
-		
-		Map<String, String[]> m =rec.getFormatFieldsAsMap();
-		
-		if (m.isEmpty()) {
-			return false;
+		return OptionalInt.empty();
+	}
+
+	/**
+	 * Returns the number of times the string SOMATIC appears in the format info (INF) fields
+	 * @param infos
+	 * @return
+	 */
+	public static int getSomaticCountFromFormatInfoFields(String [] infos) {
+		if (null != infos && infos.length > 0) {
+			return (int) Arrays.asList(infos).stream().filter(f -> null != f && f.contains(VcfHeaderUtils.INFO_SOMATIC)).count();
 		}
-		String [] filter = m.get(VcfHeaderUtils.FORMAT_INFO);
-		if (null == filter) {
-			return false;
-		}
-		
-		if (filter.length > formatColumn) {
-			return filter[formatColumn].contains(VcfHeaderUtils.INFO_SOMATIC); 
-		}
-		
-		return false;
+		return 0;
 	}
 	
 	/**

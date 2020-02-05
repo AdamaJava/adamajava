@@ -33,7 +33,6 @@ import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.picard.SAMFileReaderFactory;
-import org.qcmg.pileup.QSnpRecord;
 import org.qcmg.vcf.VCFFileReader;
 
 public class VcfPipelineTest {
@@ -97,7 +96,6 @@ public class VcfPipelineTest {
 		assertEquals(true, ff.get(1).contains("./."));
 	}
 	
-	
 	@Test
 	public void classify() throws SnpException, Exception {
 		final File iniFile = testFolder.newFile("qsnp_vcf.ini");	
@@ -149,7 +147,6 @@ public class VcfPipelineTest {
 	public void classifySingleSample() throws SnpException, Exception {
 		final File iniFile = testFolder.newFile("qsnp_vcf.ini");	
 		final File testInputVcf = testFolder.newFile("test.vcf");
-//		final File testInputBam = testFolder.newFile("test.bam");
 		final File vcfOutput = testFolder.newFile("output.vcf");
 		
 		List<String> testVcfs = Arrays.asList(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT," chr1	11081	rs10218495	G	T	62.74	.	AC=2;AF=1.00;AN=2;DB;DP=2;FS=0.000;MLEAC=2;MLEAF=1.00;MQ=24.51;MQ0=0;QD=31.37;SOR=2.303	GT:AD:DP:GQ:PL	1/1:0,2:2:6:90,6,0",
@@ -158,7 +155,6 @@ public class VcfPipelineTest {
 		
 		IniFileGenerator.createRulesOnlyIni(iniFile);
 		IniFileGenerator.addInputFiles(iniFile, false, "testVcf = " + testInputVcf.getAbsolutePath());
-//		IniFileGenerator.addInputFiles(iniFile, false, "testBam = " + testInputBam.getAbsolutePath());
 		IniFileGenerator.addOutputFiles(iniFile, false, "vcf = " + vcfOutput.getAbsolutePath());
 		
 		// add runType to ini file
@@ -263,7 +259,32 @@ public class VcfPipelineTest {
 		
 		new VcfPipeline(new Ini(iniFile), new QExec("stackOverflow2", "test", null), true);
 		// check the vcf output file, minus CHROM line
-		assertEquals(vcfs.size()-1, noOfLinesInVCFOutputFile(vcfOutput));
+		assertEquals(vcfs.size() - 1, noOfLinesInVCFOutputFile(vcfOutput));
+	}
+	
+	@Test
+	public void compoundSnps() throws SnpException, Exception {
+		final File iniFile = testFolder.newFile("qsnp_vcf.ini");	
+		final File testInputVcf = testFolder.newFile("test.vcf");
+		final File testInputBam = testFolder.newFile("test.bam");
+		final File vcfOutput = testFolder.newFile("output.vcf");
+		
+		List<String> vcfs = Arrays.asList(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT+"s1",
+				"chrX	2710840	rs311168	C	T	.	.	AC=2;AF=1.00;AN=2;DP=31;FS=0.000;MLEAC=2;MLEAF=1.00;MQ=60.00;MQ0=0;QD=33.08;SOR=1.688;IN=1,2;DB;VLD;VAF=0.6125	GT:GD:DP:AD:GQ	1/1:T/T:20:1,19:50",
+				"chrX	2710841	rs311169	C	T	.	.	AC=2;AF=1.00;AN=2;DP=31;FS=0.000;MLEAC=2;MLEAF=1.00;MQ=60.00;MQ0=0;QD=33.08;SOR=1.688;IN=1,2;DB;VLD;VAF=0.6125	GT:GD:DP:AD:GQ	1/1:T/T:20:2,18:60");
+		createFile(testInputVcf, vcfs);
+		
+		IniFileGenerator.createRulesOnlyIni(iniFile);
+		IniFileGenerator.addInputFiles(iniFile, false, "testVcf = " + testInputVcf.getAbsolutePath());
+		IniFileGenerator.addInputFiles(iniFile, false, "testBam = " + testInputBam.getAbsolutePath());
+		IniFileGenerator.addOutputFiles(iniFile, false, "vcf = " + vcfOutput.getAbsolutePath());
+		
+		// add runType to ini file
+		IniFileGenerator.addStringToIniFile(iniFile, "[parameters]\nrunMode = vcf\nfilter = and (MAPQ > 10, CIGAR_M>34, MD_mismatch<=3)", true);	// append to file
+		
+		new VcfPipeline(new Ini(iniFile), new QExec("compoundSnp", "test", null), true);
+		// check the vcf output file, minus CHROM line
+		assertEquals(2, noOfLinesInVCFOutputFile(vcfOutput));
 	}
 	
 	@Test
@@ -743,30 +764,6 @@ public class VcfPipelineTest {
 		assertEquals("0/2", ffMap.get(VcfHeaderUtils.FORMAT_GENOTYPE)[1]);
 		assertEquals("71,28", ffMap.get(VcfHeaderUtils.FORMAT_ALLELIC_DEPTHS)[0]);
 		assertEquals("141,0,59", ffMap.get(VcfHeaderUtils.FORMAT_ALLELIC_DEPTHS)[1]);
-	}
-	
-	
-	@Test
-	public void doesQsnpRecordMergeTheUnderlyingVcfRecords() {
-		String [] params1 = "chr1	568824	.	C	T	351.77	.;MIN	AC=1;AF=0.500;AN=2;BaseQRankSum=0.662;ClippingRankSum=-0.489;DP=52;FS=33.273;MLEAC=1;MLEAF=0.500;MQ=36.25;MQ0=0;MQRankSum=-0.576;QD=6.76;ReadPosRankSum=1.835;SOR=2.608;SOMATIC;MR=25;NNS=25	GT:AD:DP:GQ:PL	0/1:40,12:52:99:380,0,2518".split("\t");
-		String [] params2 = "chr1	568824	.	C	T	351.77	.;MIN	AC=1;AF=0.500;AN=2;BaseQRankSum=0.662;ClippingRankSum=-0.489;DP=52;FS=33.273;MLEAC=1;MLEAF=0.500;MQ=36.25;MQ0=0;MQRankSum=-0.576;QD=6.76;ReadPosRankSum=1.835;SOR=2.608;SOMATIC;MR=15;NNS=15	GT:AD:DP:GQ:PL	1/1:50,22:62:99:380,0,2518".split("\t");
-		VcfRecord vcf1 = new VcfRecord(params1);
-		VcfRecord vcf2 = new VcfRecord(params2);
-		assertEquals(vcf1.getFormatFields().size(), 2);
-		assertEquals(vcf2.getFormatFields().size(), 2);
-		QSnpRecord snp1 = new QSnpRecord(vcf1);
-		QSnpRecord snp2 = new QSnpRecord(vcf2);
-		
-		TestVcfPipeline vp = new TestVcfPipeline();
-		QSnpRecord merged = vp.getQSnpRecord(snp1, snp2);
-		assertEquals(merged.getVcfRecord().getFormatFields().size(), 3);
-		
-		// header
-		assertEquals("GT:AD:DP:GQ:PL", merged.getVcfRecord().getFormatFields().get(0));
-		// control
-		assertEquals("0/1:40,12:52:99:380,0,2518", merged.getVcfRecord().getFormatFields().get(1));
-		// test
-		assertEquals("1/1:50,22:62:99:380,0,2518", merged.getVcfRecord().getFormatFields().get(2));
 	}
 	
 	private int noOfLinesInVCFOutputFile(File vcfOutput) throws IOException {

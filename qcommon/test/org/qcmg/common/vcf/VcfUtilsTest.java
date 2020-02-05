@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.stream.Collectors;
 
 import org.junit.Assert;
@@ -19,9 +20,37 @@ import org.qcmg.common.model.GenotypeEnum;
 import org.qcmg.common.model.MafConfidence;
 import org.qcmg.common.model.PileupElement;
 import org.qcmg.common.util.Constants;
+import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 
 public class VcfUtilsTest {
+	
+	private static final VcfFileMeta TWO_CALLER_TWO_SAMPLE;
+	private static final VcfFileMeta TWO_CALLER_ONE_SAMPLE;
+	private static final VcfFileMeta ONE_CALLER_TWO_SAMPLE;
+	
+	static {
+		VcfHeader header = new VcfHeader();
+		header.addOrReplace("##1:qControlBamUUID=control-bam-uuid");
+		header.addOrReplace("##1:qTestBamUUID=test-bam-uuid");
+		header.addOrReplace("##2:qControlBamUUID=control-bam-uuid");
+		header.addOrReplace("##2:qTestBamUUID=test-bam-uuid");
+		header.addOrReplace("#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	control-bam-uuid_1	test-bam-uuid_1	control-bam-uuid_2	test-bam-uuid_2");
+		TWO_CALLER_TWO_SAMPLE = new VcfFileMeta(header);
+		
+		header = new VcfHeader();
+		header.addOrReplace("##1:qTestBamUUID=test-bam-uuid");
+		header.addOrReplace("##2:qTestBamUUID=test-bam-uuid");
+		header.addOrReplace("#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	test-bam-uuid_1	test-bam-uuid_2");
+		TWO_CALLER_ONE_SAMPLE = new VcfFileMeta(header);
+		
+		header = new VcfHeader();
+		header.addOrReplace("##1:qControlBamUUID=control-bam-uuid");
+		header.addOrReplace("##1:qTestBamUUID=test-bam-uuid");
+		header.addOrReplace("#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	control-bam-uuid	test-bam-uuid");
+		ONE_CALLER_TWO_SAMPLE = new VcfFileMeta(header);
+	}
+	
 	
 	@Test
 	public void getAltFrequencyTest() throws Exception{
@@ -335,19 +364,19 @@ public class VcfUtilsTest {
 	
 	@Test
 	public void getOABSDetails() {
-		Map<String, int[]> map = VcfUtils.getAllelicCoverageFromOABS("A1[10]0[0]");
+		Map<String, int[]> map = VcfUtils.getAllelicCoverageWithStrand("A1[10]0[0]");
 		assertEquals(1, map.size());
 		assertEquals(1, map.get("A")[0]);
 		assertEquals(0, map.get("A")[1]);
 		
-		map = VcfUtils.getAllelicCoverageFromOABS("A1[10]0[0];B0[0]10[2]");
+		map = VcfUtils.getAllelicCoverageWithStrand("A1[10]0[0];B0[0]10[2]");
 		assertEquals(2, map.size());
 		assertEquals(1, map.get("A")[0]);
 		assertEquals(0, map.get("A")[1]);
 		assertEquals(0, map.get("B")[0]);
 		assertEquals(10, map.get("B")[1]);
 		
-		map = VcfUtils.getAllelicCoverageFromOABS("A1[10]0[0];B0[0]10[2];C12[44]21[33]");
+		map = VcfUtils.getAllelicCoverageWithStrand("A1[10]0[0];B0[0]10[2];C12[44]21[33]");
 		assertEquals(3, map.size());
 		assertEquals(1, map.get("A")[0]);
 		assertEquals(0, map.get("A")[1]);
@@ -457,22 +486,64 @@ public class VcfUtilsTest {
 	
 	@Test
 	public void isCS() {
-		VcfRecord rec =  new VcfRecord( new String[] {"1","1",".","A","."});
+		VcfRecord rec =  new VcfRecord( new String[] {"1","1",".","A","B"});
 		assertEquals(false, VcfUtils.isCompoundSnp(rec));
-		rec.setFormatFields(Arrays.asList("",""));
+		rec =  new VcfRecord( new String[] {"1","1",".","AA","B"});
 		assertEquals(false, VcfUtils.isCompoundSnp(rec));
-		rec.setFormatFields(Arrays.asList("ABCD","1"));
+		rec =  new VcfRecord( new String[] {"1","1",".","A","BB"});
 		assertEquals(false, VcfUtils.isCompoundSnp(rec));
-		rec.setFormatFields(Arrays.asList("ACDC","1"));
-		assertEquals(false, VcfUtils.isCompoundSnp(rec));
-		rec.setFormatFields(Arrays.asList("ACCR","1"));
-		assertEquals(false, VcfUtils.isCompoundSnp(rec));
-		rec.setFormatFields(Arrays.asList("ACCS","1"));
+		rec =  new VcfRecord( new String[] {"1","1",".","AA","BB"});
 		assertEquals(true, VcfUtils.isCompoundSnp(rec));
-		rec.setFormatFields(Arrays.asList("ACCS:GT","1:1"));
+		rec =  new VcfRecord( new String[] {"1","1",".","AA","BB,C"});
+		assertEquals(false, VcfUtils.isCompoundSnp(rec));
+		rec =  new VcfRecord( new String[] {"1","1",".","AA","BB,CC"});
 		assertEquals(true, VcfUtils.isCompoundSnp(rec));
-		rec.setFormatFields(Arrays.asList("GT:ACCS:GD","0:1:1"));
+		rec =  new VcfRecord( new String[] {"1","1",".","AA","BB,CC,D"});
+		assertEquals(false, VcfUtils.isCompoundSnp(rec));
+		rec =  new VcfRecord( new String[] {"1","1",".","AA","BB,CC,DDD"});
+		assertEquals(false, VcfUtils.isCompoundSnp(rec));
+		rec =  new VcfRecord( new String[] {"1","1",".","AA","BB,CC,DDDDD"});
+		assertEquals(false, VcfUtils.isCompoundSnp(rec));
+		rec =  new VcfRecord( new String[] {"1","1",".","AA","BB,CC,DD"});
 		assertEquals(true, VcfUtils.isCompoundSnp(rec));
+	}
+	
+	@Test
+	public void individualFilterFileds() {
+		assertEquals(false, VcfUtils.areTheseFilterFieldsAPass(null,  null));
+		assertEquals(false, VcfUtils.areTheseFilterFieldsAPass(new String[]{},  null));
+		assertEquals(false, VcfUtils.areTheseFilterFieldsAPass(new String[]{}, new short[]{}));
+		assertEquals(false, VcfUtils.areTheseFilterFieldsAPass(null, new short[]{}));
+		assertEquals(false, VcfUtils.areTheseFilterFieldsAPass(new String[]{"PASS"}, new short[]{0}));
+		assertEquals(true, VcfUtils.areTheseFilterFieldsAPass(new String[]{"PASS"}, new short[]{1}));
+		assertEquals(false, VcfUtils.areTheseFilterFieldsAPass(new String[]{"PASS"}, new short[]{2}));
+		assertEquals(false, VcfUtils.areTheseFilterFieldsAPass(new String[]{"PASSE"}, new short[]{1}));
+		assertEquals(false, VcfUtils.areTheseFilterFieldsAPass(new String[]{"pass"}, new short[]{1}));
+		assertEquals(true, VcfUtils.areTheseFilterFieldsAPass(new String[]{"PASS","FAIL"}, new short[]{1}));
+		assertEquals(false, VcfUtils.areTheseFilterFieldsAPass(new String[]{"PASS","FAIL"}, new short[]{2}));
+		assertEquals(false, VcfUtils.areTheseFilterFieldsAPass(new String[]{"PASS","FAIL"}, new short[]{1,2}));
+		assertEquals(true, VcfUtils.areTheseFilterFieldsAPass(new String[]{"PASS","PASS"}, new short[]{1,2}));
+	}
+	
+	@Test
+	public void shortcut() {
+		assertEquals(true, VcfUtils.getShortCutPassFail(null).isPresent());
+		assertEquals(false, VcfUtils.getShortCutPassFail(null).get());
+		assertEquals(true, VcfUtils.getShortCutPassFail(new String[]{}).isPresent());
+		assertEquals(false, VcfUtils.getShortCutPassFail(new String[]{}).get());
+		assertEquals(true, VcfUtils.getShortCutPassFail(new String[]{"FAIL"}).isPresent());
+		assertEquals(false, VcfUtils.getShortCutPassFail(new String[]{"FAIL"}).get());
+		assertEquals(true, VcfUtils.getShortCutPassFail(new String[]{"PASS"}).isPresent());
+		assertEquals(true, VcfUtils.getShortCutPassFail(new String[]{"PASS"}).get());
+		assertEquals(false, VcfUtils.getShortCutPassFail(new String[]{"PASS","FAIL"}).isPresent());
+		assertEquals(false, VcfUtils.getShortCutPassFail(new String[]{"PASS","FAIL"}).isPresent());
+		assertEquals(false, VcfUtils.getShortCutPassFail(new String[]{"FAIL","PASS"}).isPresent());
+		assertEquals(false, VcfUtils.getShortCutPassFail(new String[]{"FAIL","PASS","PASS"}).isPresent());
+		assertEquals(false, VcfUtils.getShortCutPassFail(new String[]{"FAIL","PASS","FAIL"}).isPresent());
+		assertEquals(true, VcfUtils.getShortCutPassFail(new String[]{"FAIL","FAIL","FAIL"}).isPresent());
+		assertEquals(false, VcfUtils.getShortCutPassFail(new String[]{"FAIL","FAIL","FAIL"}).get());
+		assertEquals(true, VcfUtils.getShortCutPassFail(new String[]{"PASS","PASS","PASS"}).isPresent());
+		assertEquals(true, VcfUtils.getShortCutPassFail(new String[]{"PASS","PASS","PASS"}).get());
 	}
 	
 	@Test
@@ -591,14 +662,42 @@ public class VcfUtilsTest {
 		rec.setFormatFields(Arrays.asList("INF",".","."));
 		assertEquals(false, VcfUtils.isRecordSomatic(rec));
 		rec.setFormatFields(Arrays.asList("INF",".","SOMATIC"));
+		assertEquals(false, VcfUtils.isRecordSomatic(rec));
+		rec.setInfo("FLANK=ACCCTGGAAGA;IN=1");
 		assertEquals(true, VcfUtils.isRecordSomatic(rec));
+		rec.setInfo("FLANK=ACCCTGGAAGA;IN=2");
+		assertEquals(true, VcfUtils.isRecordSomatic(rec));
+		rec.setInfo("FLANK=ACCCTGGAAGA;IN=1,2");
 		rec.setFormatFields(Arrays.asList("INF",".","SOMATIC",".","."));
 		assertEquals(false, VcfUtils.isRecordSomatic(rec));
 		rec.setFormatFields(Arrays.asList("INF",".","SOMATIC",".","SOMATIC"));
 		assertEquals(true, VcfUtils.isRecordSomatic(rec));
+		rec.setFormatFields(Arrays.asList("INF","SOMATIC","SOMATIC",".","SOMATIC"));
+		assertEquals(true, VcfUtils.isRecordSomatic(rec));
+		rec.setFormatFields(Arrays.asList("INF","SOMATIC","SOMATIC","SOMATIC","SOMATIC"));
+		assertEquals(true, VcfUtils.isRecordSomatic(rec));
 		rec.setFormatFields(Arrays.asList("INF",".","SOMATIC",".","SOMATIC","."));
+		assertEquals(true, VcfUtils.isRecordSomatic(rec));
+		rec.setInfo("FLANK=ACCCTGGAAGA;IN=1,2,3");
 		assertEquals(false, VcfUtils.isRecordSomatic(rec));
-		
+	}
+	
+	@Test
+	public void callerCount() {
+		assertEquals(OptionalInt.empty(), VcfUtils.getCallerCount(null));
+		assertEquals(OptionalInt.empty(), VcfUtils.getCallerCount(""));
+		assertEquals(OptionalInt.empty(), VcfUtils.getCallerCount("."));
+		assertEquals(OptionalInt.empty(), VcfUtils.getCallerCount("Hello"));
+		assertEquals(OptionalInt.empty(), VcfUtils.getCallerCount("there"));
+		assertEquals(OptionalInt.empty(), VcfUtils.getCallerCount("in=1"));
+		assertEquals(OptionalInt.empty(), VcfUtils.getCallerCount("in=1,2"));
+		assertEquals(OptionalInt.empty(), VcfUtils.getCallerCount("in=2"));
+		assertEquals(OptionalInt.of(1), VcfUtils.getCallerCount("IN=1"));
+		assertEquals(OptionalInt.of(1), VcfUtils.getCallerCount("IN=2"));
+		assertEquals(OptionalInt.of(1), VcfUtils.getCallerCount("IN=8"));
+		assertEquals(OptionalInt.of(2), VcfUtils.getCallerCount("IN=1,2"));
+		assertEquals(OptionalInt.of(3), VcfUtils.getCallerCount("IN=1,2,3"));
+		assertEquals(OptionalInt.of(3), VcfUtils.getCallerCount("IN=4,5,6"));
 	}
 	
 	@Test
@@ -633,7 +732,6 @@ public class VcfUtilsTest {
 		rec.setFilter("PASS_1;PASS_2");
 		assertEquals("PASS_1", VcfUtils.getFiltersEndingInSuffix(rec, "_1"));
 		assertEquals("PASS_2", VcfUtils.getFiltersEndingInSuffix(rec, "_2"));
-		
 	}
 	
 	@Test
@@ -741,7 +839,6 @@ public class VcfUtilsTest {
 		assertEquals(GenotypeEnum.GG, VcfUtils.calculateGenotypeEnum("0/0", 'G', 'G'));
 		assertEquals(GenotypeEnum.GG, VcfUtils.calculateGenotypeEnum("0/1", 'G', 'G'));
 		assertEquals(GenotypeEnum.GG, VcfUtils.calculateGenotypeEnum("1/1", 'G', 'G'));
-		
 	}
 	
 	@Test
@@ -759,13 +856,6 @@ public class VcfUtilsTest {
 		assertEquals("NOVELCOV=A:1,C:1,G:0,T:0,N:0,TOTAL:2", VcfUtils.getPileupElementAsString(pileups, true));
 		assertEquals("FULLCOV=A:1,C:1,G:0,T:0,N:0,TOTAL:2", VcfUtils.getPileupElementAsString(pileups, false));
 	}
-	
-//	@Test
-//	public void testGetMutationAndGTsRealLife() {
-//		assertArrayEquals(new String[] {"C", "0/1","0/1"} , VcfUtils.getMutationAndGTs("G",  GenotypeEnum.CG, GenotypeEnum.CG));
-//		assertArrayEquals(new String[] {"C", "1/1","1/1"} , VcfUtils.getMutationAndGTs("G",  GenotypeEnum.CC, GenotypeEnum.CC));
-//	}
-	
 	
 	@Test
 	public void getGTStringWithCommas() {
@@ -826,8 +916,6 @@ public class VcfUtilsTest {
 		assertEquals("CTTGT", VcfUtils.getUpdateAltString("CATTTGT", "CAT", "C"));
 	}
 	
-	
-	
 	@Test
 	public void isRecordAMnp() {
 		
@@ -869,7 +957,6 @@ public class VcfUtilsTest {
 		
 		rec = VcfUtils.resetAllel(rec,"A,AACCACC");
 		assertEquals(false, VcfUtils.isRecordAMnp(rec));
-		
 	}
 	
 	@Test
@@ -933,7 +1020,6 @@ public class VcfUtilsTest {
 		assertEquals("./.:anythinghere:.:0:.:blah:.", rec.getFormatFields().get(2));
 	}
 	
-	
 	@Test
 	public void additionalSamplesRealLife() {
 		VcfRecord rec = new VcfRecord( new String[] {"chr1","3418618",".","G","A",".",".","FLANK=CCGGCACCTCC;DB;DP=3;FS=0.000;MQ=60.00;MQ0=0;QD=32.74;SOR=2.833;SOMATIC;IN=1,2"
@@ -941,7 +1027,6 @@ public class VcfUtilsTest {
 				,"0/1:20:.:14:14:A3[23]11[24.18];G2[35]4[32]:.:.:."
 				,"0/0:7:COVT:.:.:A0[0]2[23.5];G2[36]3[35]:.:.:."
 				,"0/0:6:MIN:A3[23]11[24.18];G2[35]4[32]:.:.:SOMATIC"});
-		//VcfUtils.createVcfRecord("1", 1, "");
 		VcfUtils.addAdditionalSamplesToFormatField(rec, Arrays.asList("GT:AD:DP:FT:GQ:INF:MR:NNS:OABS","1/1:0,3:3:SBIASALT;COVT:9:SOMATIC:2:2:A0[0]2[23.5];G2[36]3[35]"));
 		assertEquals(5, rec.getFormatFields().size());
 		
@@ -949,7 +1034,6 @@ public class VcfUtilsTest {
 	@Test
 	public void additionalSamples() {
 		VcfRecord rec = new VcfRecord( new String[] {"1","1",".","ACCACCACC","."});
-		//VcfUtils.createVcfRecord("1", 1, "");
 		VcfUtils.addFormatFieldsToVcf(rec, Arrays.asList("GT:GD:AC:MR:NNS","0/1:A/C:A38[31.42],32[25],C11[27.64],5[36.6]:16:16","0/1:A/C:A75[31.96],57[29.32],C12[35.25],6[38]:18:16"));
 		VcfUtils.addAdditionalSamplesToFormatField(rec, Arrays.asList("GT:AD:DP:GQ:PL:GD:AC:MR:NNS","0/1:2,2:4:69:72,0,69:A/C:A101[29.56],51[27.63],C30[30.83],21[37.29],G1[12],0[0]:51:44",".:.:.:.:.:.:A191[31.2],147[27.37],C70[30.29],92[37.47],T0[0],1[37]:162:101"));
 		assertEquals(5, rec.getFormatFields().size());
@@ -1011,6 +1095,10 @@ public class VcfUtilsTest {
 		assertEquals(true, VcfUtils.isRecordAPass(rec));
 		rec.setFormatFields(Arrays.asList("GT:FT:INF", "0/1:PASS:.","1/1:PASS:SOMATIC", "0/0:PASS:.","1/1:PASS:SOMATIC"));
 		assertEquals(true, VcfUtils.isRecordAPass(rec));
+		rec.setFormatFields(Arrays.asList("GT:FT:INF", "0/1:PASS:.","1/1:COV:.", "0/0:PASS:.","1/1:COV:."));
+		assertEquals(true, VcfUtils.isRecordAPass(rec));
+		rec.setFormatFields(Arrays.asList("GT:FT:INF", "0/1:PASS:.","1/1:COV:.", "0/0:COV:.","1/1:PASS:."));
+		assertEquals(false, VcfUtils.isRecordAPass(rec));
 		rec.setFormatFields(Arrays.asList("GT:FT:INF", "0/1:PASS:.","1/1:PASS:.", "0/0:PASS:.","1/1:PASS:."));
 		assertEquals(true, VcfUtils.isRecordAPass(rec));
 		rec.setFormatFields(Arrays.asList("GT:FT:INF", "0/1:PASS:.","./.:.:.", "0/1:PASS:.","./.:.:."));
@@ -1025,6 +1113,32 @@ public class VcfUtilsTest {
 		assertEquals(false, VcfUtils.isRecordAPass(rec));
 		rec.setFormatFields(Arrays.asList("GT:FT", "0/1:PASS","1/1:PASS", "0/1:PASS","1/1:PASS"));
 		assertEquals(true, VcfUtils.isRecordAPass(rec));
+		rec.setFormatFields(Arrays.asList("GT:FT", "0/1:PASS","1/1:PASS", "./.:NCIG","./.:NCIG"));
+		assertEquals(false, VcfUtils.isRecordAPass(rec));
+	}
+	
+	@Test
+	public void isPassFirstCallerOnly() {
+		/*
+		 * chr1    9440005 rs28612519      A       G       .       .       FLANK=GGCATGTTGGC;IN=1;DB;VAF=0.5849;GERM=G:13:237:250:0;HOM=2,AGCCAGGCATaTTGGCTCACA;EFF=intergenic_region(MODIFIER||||||||||1) GT:AD:CCC:CCM:DP:EOR:FF:FT:INF:NNS:OABS ./.:.:.:4:.:.:.:COV:.:.:.       1/1:0,3:.:4:3:.:.:COV;SBIASCOV;NNS;MR:SOMATIC:3:G3[39.67]0[0]   ./.:.:.:1:.:.:.:COV:.:.:.       ./.:.:.:1:.:.:.:COV:.:.:.
+		 * chr1    13049064        rs200246942     G       T       .       .       FLANK=ACATGTTGAAG;IN=1;DB;GERM=T:129:133:262:0;HOM=2,GGGCAACATGgTGAAGCCTGG     GT:AD:CCC:CCM:DP:EOR:FF:FT:INF:NNS:OABS 0/1:42,4:Germline:22:46:G1[]1[]:G6;T3:MR:.:4:G25[35.48]17[40.53];T2[26.5]2[41]  0/0:75,4:ReferenceNoVariant:22:79:G0[]2[]:G10:PASS:.:.:G23[39.48]52[38.87];T0[0]4[41]   ./.:.:.:1:.:.:.:COV:.:.:.       ./.:.:.:1:.:.:.:COV:.:.:.
+		 */
+		VcfRecord rec = new VcfRecord( new String[] {"chr1","9440005","rs28612519","A","G",".",".","FLANK=GGCATGTTGGC;IN=1;DB;VAF=0.5849;GERM=G:13:237:250:0;HOM=2,AGCCAGGCATaTTGGCTCACA",
+				"GT:AD:CCC:CCM:DP:EOR:FF:FT:INF:NNS:OABS",
+				"./.:.:.:4:.:.:.:COV:.:.:.",
+				"1/1:0,3:.:4:3:.:.:COV;SBIASCOV;NNS;MR:SOMATIC:3:G3[39.67]0[0]",
+				"./.:.:.:1:.:.:.:COV:.:.:.",
+				"./.:.:.:1:.:.:.:COV:.:.:."});
+		assertEquals(false, VcfUtils.isRecordAPass(rec));
+		assertEquals(false, VcfUtils.isRecordAPass(rec, TWO_CALLER_TWO_SAMPLE));
+		rec = new VcfRecord( new String[] {"chr1","13049064","rs200246942","G","T",".",".","FLANK=ACATGTTGAAG;IN=1;DB;GERM=T:129:133:262:0;HOM=2,GGGCAACATGgTGAAGCCTGG",
+				"GT:AD:CCC:CCM:DP:EOR:FF:FT:INF:NNS:OABS",
+				"0/1:42,4:Germline:22:46:G1[]1[]:G6;T3:PASS:.:4:G25[35.48]17[40.53];T2[26.5]2[41]",
+				"0/0:75,4:ReferenceNoVariant:22:79:G0[]2[]:G10:PASS:.:.:G23[39.48]52[38.87];T0[0]4[41]",
+				"./.:.:.:1:.:.:.:COV:.:.:.",
+				"./.:.:.:1:.:.:.:COV:.:.:."});
+		assertEquals(false, VcfUtils.isRecordAPass(rec));
+		assertEquals(false, VcfUtils.isRecordAPass(rec, TWO_CALLER_TWO_SAMPLE));
 	}
 	
 	@Test
@@ -1036,6 +1150,7 @@ public class VcfUtilsTest {
 				"0/1:26,10:Germline:22:36:PASS:99:.:10:9:C13[39.69]11[39.73];T9[37]1[42]",
 				"0/0:.:LOH:22:80:PASS:.:.:.:.:C35[40.11]36[39.19];T8[38.88]1[42]"});
 		assertEquals(true, VcfUtils.isRecordAPass(rec));
+		assertEquals(true, VcfUtils.isRecordAPass(rec, TWO_CALLER_TWO_SAMPLE));
 		
 		rec = new VcfRecord( new String[] {"chr1","13418",".","G","A",".",".","FLANK=ACCCCAAGATC;IN=1,2;DB;VAF=0.1143",
 				"GT:AD:CCC:CCM:DP:FT:GQ:INF:MR:NNS:OABS",
@@ -1044,6 +1159,7 @@ public class VcfUtilsTest {
 				"0/1:45,6:Germline:22:51:PASS:65:.:6:6:A5[42]1[37];G26[38.92]22[37.36]",
 		"0/0:.:LOH:22:159:PASS:.:.:.:.:A4[39.5]2[42];G81[38.6]72[37.33]"});
 		assertEquals(true, VcfUtils.isRecordAPass(rec));
+		assertEquals(true, VcfUtils.isRecordAPass(rec, TWO_CALLER_TWO_SAMPLE));
 		
 		rec = new VcfRecord( new String[] {"chr1","13418",".","G","A",".",".","FLANK=ACCCCAAGATC;IN=1,2;DB;VAF=0.1143",
 				"GT:AD:CCC:CCM:DP:FT:GQ:INF:MR:NNS:OABS",
@@ -1052,14 +1168,16 @@ public class VcfUtilsTest {
 				"0/1:45,6:Germline:22:51:PASS:65:.:6:6:A5[42]1[37];G26[38.92]22[37.36]",
 		"0/0:.:LOH:22:159:.:.:.:.:.:A4[39.5]2[42];G81[38.6]72[37.33]"});
 		assertEquals(true, VcfUtils.isRecordAPass(rec));
+		assertEquals(true, VcfUtils.isRecordAPass(rec, TWO_CALLER_TWO_SAMPLE));
 		
 		rec = new VcfRecord( new String[] {"chr1","13418",".","G","A",".",".","FLANK=ACCCCAAGATC;IN=1,2;DB;VAF=0.1143",
 				"GT:AD:CCC:CCM:DP:FT:GQ:INF:MR:NNS:OABS",
 				"0/1:.:Germline:22:54:MIN:.:.:6:6:A5[42]1[37];G26[38.92]22[37.36]",
 				"0/0:.:LOH:22:159:PASS:.:.:.:.:A4[39.5]2[42];G81[38.6]72[37.33]",
 				"0/1:45,6:Germline:22:51:PASS:65:.:6:6:A5[42]1[37];G26[38.92]22[37.36]",
-		"0/0:.:LOH:22:159:PASS:.:.:.:.:A4[39.5]2[42];G81[38.6]72[37.33]"});
+				"0/0:.:LOH:22:159:PASS:.:.:.:.:A4[39.5]2[42];G81[38.6]72[37.33]"});
 		assertEquals(false, VcfUtils.isRecordAPass(rec));
+		assertEquals(false, VcfUtils.isRecordAPass(rec, TWO_CALLER_TWO_SAMPLE));
 	}
 	
 	@Test
@@ -1088,23 +1206,97 @@ public class VcfUtilsTest {
 		"0/1:.:LOH:22:159:PASS:.:SOMATIC:6:6:A4[39.5]2[42];G81[38.6]72[37.33]"});
 		assertEquals(true, VcfUtils.isRecordAPassOldSkool(rec));
 	}
+	
 	@Test
-	public void isPassControlTest() {
+	public void isPassFourSamplesCompoundNP() {
+		VcfRecord rec = new VcfRecord( new String[] {"chr1", "1066816",".","AA","CC"}); 
+		rec.setFormatFields(Arrays.asList("GT:FT", "1/1:MIN","1/1:MIN","1/1:MIN","1/1:MIN"));
+		assertEquals(false, VcfUtils.isRecordAPass(rec));
+		assertEquals(false, VcfUtils.isRecordAPass(rec, TWO_CALLER_TWO_SAMPLE));
+		rec.setFormatFields(Arrays.asList("GT:FT", "1/1:COV","1/1:PASS","./.:COV","./.:COV"));
+		assertEquals(false, VcfUtils.isRecordAPass(rec));
+		assertEquals(false, VcfUtils.isRecordAPass(rec, TWO_CALLER_TWO_SAMPLE));
+		rec.setFormatFields(Arrays.asList("GT:FT", "1/1:PASS","1/1:MIN","./.:COV","./.:COV"));
+		rec.setInfo("IN=1");
+		assertEquals(true, VcfUtils.isRecordAPass(rec, TWO_CALLER_TWO_SAMPLE));
+		assertEquals(false, VcfUtils.isRecordAPass(rec));
+	}
+	
+	@Test
+	public void isPassFourSamplesSinlgeNP() {
+		VcfRecord rec = new VcfRecord( new String[] {"chr1", "1066816",".","A","C"}); 
+		rec.setFormatFields(Arrays.asList("GT:FT", "1/1:MIN","1/1:MIN","1/1:MIN","1/1:MIN"));
+		assertEquals(false, VcfUtils.isRecordAPass(rec));
+		assertEquals(false, VcfUtils.isRecordAPass(rec, TWO_CALLER_TWO_SAMPLE));
+		rec.setFormatFields(Arrays.asList("GT:FT", "1/1:PASS","1/1:MIN","1/1:MIN","1/1:MIN"));
+		assertEquals(false, VcfUtils.isRecordAPass(rec));
+		assertEquals(false, VcfUtils.isRecordAPass(rec, TWO_CALLER_TWO_SAMPLE));
+		rec.setFormatFields(Arrays.asList("GT:FT", "1/1:PASS","1/1:PASS","1/1:MIN","1/1:MIN"));
+		assertEquals(false, VcfUtils.isRecordAPass(rec));
+		assertEquals(false, VcfUtils.isRecordAPass(rec, TWO_CALLER_TWO_SAMPLE));
+		rec.setFormatFields(Arrays.asList("GT:FT", "1/1:PASS","1/1:PASS","1/1:PASS","1/1:MIN"));
+		assertEquals(true, VcfUtils.isRecordAPass(rec));						// germline, so only looking at control columns
+		assertEquals(true, VcfUtils.isRecordAPass(rec, TWO_CALLER_TWO_SAMPLE));	// germline, so only looking at control columns
+		rec.setFormatFields(Arrays.asList("GT:FT", "1/1:PASS","1/1:PASS","1/1:PASS","1/1:PASS"));
+		assertEquals(true, VcfUtils.isRecordAPass(rec));
+		assertEquals(true, VcfUtils.isRecordAPass(rec, TWO_CALLER_TWO_SAMPLE));
+		rec.setFormatFields(Arrays.asList("GT:FT", "0/0:PASS","0/1:PASS","0/0:PASS","0/1:PASS"));
+		assertEquals(true, VcfUtils.isRecordAPass(rec));
+		assertEquals(true, VcfUtils.isRecordAPass(rec, TWO_CALLER_TWO_SAMPLE));
+		rec.setFormatFields(Arrays.asList("GT:FT", "0/0:PASS","0/1:PASS","0/0:COV","0/1:PASS"));
+		assertEquals(false, VcfUtils.isRecordAPass(rec));
+		assertEquals(false, VcfUtils.isRecordAPass(rec, TWO_CALLER_TWO_SAMPLE));
+		rec.setFormatFields(Arrays.asList("GT:FT:INF", "0/0:PASS:.","0/1:COV:SOMATIC","0/0:PASS:.","0/1:PASS:."));
+		assertEquals(false, VcfUtils.isRecordAPass(rec));
+		assertEquals(false, VcfUtils.isRecordAPass(rec, TWO_CALLER_TWO_SAMPLE));
+		rec.setFormatFields(Arrays.asList("GT:FT:INF", "0/0:PASS:.","0/1:COV:SOMATIC","0/0:PASS:.","0/1:PASS:."));
+		assertEquals(false, VcfUtils.isRecordAPass(rec));
+		assertEquals(false, VcfUtils.isRecordAPass(rec, TWO_CALLER_TWO_SAMPLE));
+		rec.setFormatFields(Arrays.asList("GT:FT:INF", "0/0:PASS:.","0/1:COV:.","0/0:PASS:.","0/1:PASS:SOMATIC"));
+		assertEquals(false, VcfUtils.isRecordAPass(rec));
+		assertEquals(false, VcfUtils.isRecordAPass(rec, TWO_CALLER_TWO_SAMPLE));
+		rec.setFormatFields(Arrays.asList("GT:FT:INF", "0/0:PASS:.","0/1:PASS:.","0/0:PASS:.","0/1:COV:."));
+		assertEquals(true, VcfUtils.isRecordAPass(rec));
+		assertEquals(true, VcfUtils.isRecordAPass(rec, TWO_CALLER_TWO_SAMPLE));
+		rec.setFormatFields(Arrays.asList("GT:FT:INF", "0/0:PASS:.","0/1:COV:.","0/0:PASS:.","0/1:COV:."));
+		assertEquals(true, VcfUtils.isRecordAPass(rec));
+		assertEquals(true, VcfUtils.isRecordAPass(rec, TWO_CALLER_TWO_SAMPLE));
+		rec.setFormatFields(Arrays.asList("GT:FT:INF", "0/0:COV:.","0/1:PASS:.","0/0:PASS:.","0/1:PASS:."));
+		assertEquals(false, VcfUtils.isRecordAPass(rec));
+		assertEquals(false, VcfUtils.isRecordAPass(rec, TWO_CALLER_TWO_SAMPLE));
+	}
+	
+	@Test
+	public void isPassTwoSamples() {
 		VcfRecord rec = new VcfRecord( new String[] {"chr1", "1066816",".","A","."}); 
 		rec.setFormatFields(Arrays.asList("GT:FT", "1/1:MIN","1/1:MIN"));
 		assertEquals(false, VcfUtils.isRecordAPass(rec));
+		assertEquals(false, VcfUtils.isRecordAPass(rec, ONE_CALLER_TWO_SAMPLE));
+		assertEquals(false, VcfUtils.isRecordAPass(rec, TWO_CALLER_ONE_SAMPLE));
 		rec.setFormatFields(Arrays.asList("GT:FT", "1/1:.","1/1:."));
 		assertEquals(false, VcfUtils.isRecordAPass(rec));
+		assertEquals(false, VcfUtils.isRecordAPass(rec, ONE_CALLER_TWO_SAMPLE));
+		assertEquals(false, VcfUtils.isRecordAPass(rec, TWO_CALLER_ONE_SAMPLE));
 		rec.setFormatFields(Arrays.asList("GT:FT", "1/1:PASS","1/1:."));
 		assertEquals(true, VcfUtils.isRecordAPass(rec));
+		assertEquals(true, VcfUtils.isRecordAPass(rec, ONE_CALLER_TWO_SAMPLE));		// germline and so only control need to be PASS
+		assertEquals(false, VcfUtils.isRecordAPass(rec, TWO_CALLER_ONE_SAMPLE));	// both callers need to be PASS
 		rec.setFormatFields(Arrays.asList("GT:FT", "1/1:.","1/1:PASS"));
 		assertEquals(false, VcfUtils.isRecordAPass(rec));
+		assertEquals(false, VcfUtils.isRecordAPass(rec, ONE_CALLER_TWO_SAMPLE));
+		assertEquals(false, VcfUtils.isRecordAPass(rec, TWO_CALLER_ONE_SAMPLE));
 		rec.setFormatFields(Arrays.asList("GT:FT", "1/1:PASS","1/1:PASS"));
 		assertEquals(true, VcfUtils.isRecordAPass(rec));
+		assertEquals(true, VcfUtils.isRecordAPass(rec, ONE_CALLER_TWO_SAMPLE));
+		assertEquals(true, VcfUtils.isRecordAPass(rec, TWO_CALLER_ONE_SAMPLE));
 		rec.setFormatFields(Arrays.asList("GT:FT", "1/1:PASS","0/1:PASS"));
 		assertEquals(true, VcfUtils.isRecordAPass(rec));
+		assertEquals(true, VcfUtils.isRecordAPass(rec, ONE_CALLER_TWO_SAMPLE));
+		assertEquals(true, VcfUtils.isRecordAPass(rec, TWO_CALLER_ONE_SAMPLE));
 		rec.setFormatFields(Arrays.asList("GT:FT", "0/1:PASS","1/2:PASS"));
 		assertEquals(true, VcfUtils.isRecordAPass(rec));
+		assertEquals(true, VcfUtils.isRecordAPass(rec,ONE_CALLER_TWO_SAMPLE));
+		assertEquals(true, VcfUtils.isRecordAPass(rec, TWO_CALLER_ONE_SAMPLE));
 	}
 	
 	@Test
@@ -1146,7 +1338,6 @@ public class VcfUtilsTest {
 		assertEquals(false, VcfUtils.samplesPass(null, null, null, null, null));
 		assertEquals(false, VcfUtils.samplesPass("", "", "", "", ""));
 		assertEquals(false, VcfUtils.samplesPass(".", ".", ".", ".", "."));
-//		assertEquals(false, VcfUtils.samplesPass("PASS", "5", "PASS", "SOMATIC", "5"));
 	}
 	
 	@Test
@@ -1185,7 +1376,6 @@ public class VcfUtilsTest {
 		assertEquals("12,20", VcfUtils.getAD("T", "A", "A10[10]10[20];T1[]11[];C22[1]33[5]"));
 		assertEquals("12,20,55", VcfUtils.getAD("T", "A,C", "A10[10]10[20];T1[]11[];C22[1]33[5]"));
 		assertEquals("0,20,55", VcfUtils.getAD("G", "A,C", "A10[10]10[20];T1[]11[];C22[1]33[5]"));
-		
 	}
 	
 	@Test
@@ -1316,13 +1506,11 @@ public class VcfUtilsTest {
 		assertEquals(false, VcfUtils.mutationInNormal(0, 0, 0, 0));
 		assertEquals(false, VcfUtils.mutationInNormal(0, 10, 1, 2));
 		assertEquals(false, VcfUtils.mutationInNormal(1, 10, 1, 2));
-//		assertEquals(true, VcfUtils.mutationInNormal(1, 10, 1, 2));
 		assertEquals(true, VcfUtils.mutationInNormal(2, 10, 1, 2));
 		assertEquals(false, VcfUtils.mutationInNormal(2, 10, 1, 3));
 		assertEquals(false, VcfUtils.mutationInNormal(2, 10, 25, 2));
 		assertEquals(false, VcfUtils.mutationInNormal(2, 10, 25, 3));
 		assertEquals(true, VcfUtils.mutationInNormal(2, 10, 20, 2));
-		
 		
 		assertEquals(false, VcfUtils.mutationInNormal(1, 24, 5, 3));
 		assertEquals(false, VcfUtils.mutationInNormal(3, 63, 5, 3));		// 3.15 = 0.05 * 63

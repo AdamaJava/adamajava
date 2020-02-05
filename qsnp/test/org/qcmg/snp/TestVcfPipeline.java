@@ -1,15 +1,10 @@
 package org.qcmg.snp;
 
-import java.util.List;
-
 import org.qcmg.common.meta.QExec;
 import org.qcmg.common.util.Constants;
-import org.qcmg.common.vcf.VcfRecord;
-import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
-import org.qcmg.pileup.QSnpRecord;
 
 public class TestVcfPipeline extends Pipeline {
 	
@@ -28,41 +23,6 @@ public class TestVcfPipeline extends Pipeline {
 		this.testVcfHeader = h;
 	}
 
-	QSnpRecord getQSnpRecord(QSnpRecord normal, QSnpRecord tumour) {
-		QSnpRecord qpr = null;
-		
-		//TODO need to merge the underlying VcfRecords should both exist
-		
-		if (null != normal && null != tumour) {
-			// create new VcfRecord
-			VcfRecord mergedVcf = normal.getVcfRecord();
-			// add filter and format fields
-			mergedVcf.addFilter(tumour.getVcfRecord().getFilter());
-			List<String> formatFields = mergedVcf.getFormatFields();
-			formatFields.add(tumour.getVcfRecord().getFormatFields().get(1));
-			mergedVcf.setFormatFields(formatFields);
-			
-			// create new QSnpRecord with the mergedVcf details
-			qpr = new QSnpRecord(mergedVcf);
-//			qpr.setNormalNucleotides(normal.getNormalNucleotides());
-//			qpr.setNormalGenotype(normal.getNormalGenotype());
-//			qpr.setTumourNucleotides(tumour.getTumourNucleotides());
-//			qpr.setTumourGenotype(tumour.getTumourGenotype());
-//			
-			
-		} else if (null != normal) {
-			qpr = normal;
-			// need to add a format field entry for the empty tumoursample
-			VcfUtils.addMissingDataToFormatFields(qpr.getVcfRecord(), 2);
-		} else {
-			// tumour only
-			qpr = tumour;
-			VcfUtils.addMissingDataToFormatFields(qpr.getVcfRecord(), 1);
-		}		
-//		qpr.setId(++mutationId);
-		return qpr;
-	}
-	
 	@Override
 	VcfHeader getExistingVCFHeaderDetails()  {
 		VcfHeader existingHeader = new VcfHeader();

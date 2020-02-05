@@ -352,19 +352,29 @@ public class VcfRecord implements Comparable<VcfRecord> {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj) return true;
-		if (obj == null) return false;
-		if (getClass() != obj.getClass()) return false;
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
 		
 		VcfRecord other = (VcfRecord) obj;
 		
 		//compare position
-		boolean flag = (cpp == null)? other.cpp == null : cpp.equals(other.cpp);
-		if( !flag ) return flag; 
+		boolean flag = (cpp == null) ? other.cpp == null : cpp.equals(other.cpp);
+		if ( ! flag ) {
+			return flag; 
+		}
 		
 		//compare ref if same position		
 		flag = (ref == null) ?  (other.ref == null) : ref.equals(other.ref);
-		if( !flag ) return flag; 
+		if( !flag ) {
+			return flag; 
+		}
 		
 		//compare alleles if same ref
 		flag = (alt == null) ? (other.alt == null) : alt.equals(other.alt);		
@@ -374,10 +384,12 @@ public class VcfRecord implements Comparable<VcfRecord> {
 	
 	@Override
 	public int compareTo(VcfRecord arg0) {
-		int Diff =  CHR_POS_COMPARATOR.compare(cpp, arg0.cpp);		
-		if(Diff != 0) return Diff; 
+		int diff =  CHR_POS_COMPARATOR.compare(cpp, arg0.cpp);		
+		if (diff != 0) {
+			return diff; 
+		}
 		
-		int l1 = (ref != null)? ref.length(): 0;
+		int l1 = (ref != null) ? ref.length() : 0;
 		int l2 = (arg0.ref != null) ? arg0.ref.length() : 0;		
 		return l1 - l2;
 	}

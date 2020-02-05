@@ -25,6 +25,7 @@ import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.util.IndelUtils.SVTYPE;
 import org.qcmg.common.vcf.ContentType;
+import org.qcmg.common.vcf.VcfFileMeta;
 import org.qcmg.common.vcf.VcfFormatFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
@@ -41,6 +42,32 @@ public class Vcf2mafTest {
     
     @org.junit.Rule
     public  TemporaryFolder testFolder = new TemporaryFolder();
+    
+    private static final VcfFileMeta TWO_CALLER_TWO_SAMPLE;
+	private static final VcfFileMeta TWO_CALLER_ONE_SAMPLE;
+	private static final VcfFileMeta ONE_CALLER_TWO_SAMPLE;
+	
+	static {
+		VcfHeader header = new VcfHeader();
+		header.addOrReplace("##1:qControlBamUUID=control-bam-uuid");
+		header.addOrReplace("##1:qTestBamUUID=test-bam-uuid");
+		header.addOrReplace("##2:qControlBamUUID=control-bam-uuid");
+		header.addOrReplace("##2:qTestBamUUID=test-bam-uuid");
+		header.addOrReplace("#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	control-bam-uuid_1	test-bam-uuid_1	control-bam-uuid_2	test-bam-uuid_2");
+		TWO_CALLER_TWO_SAMPLE = new VcfFileMeta(header);
+		
+		header = new VcfHeader();
+		header.addOrReplace("##1:qTestBamUUID=test-bam-uuid");
+		header.addOrReplace("##2:qTestBamUUID=test-bam-uuid");
+		header.addOrReplace("#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	test-bam-uuid_1	test-bam-uuid_2");
+		TWO_CALLER_ONE_SAMPLE = new VcfFileMeta(header);
+		
+		header = new VcfHeader();
+		header.addOrReplace("##1:qControlBamUUID=control-bam-uuid");
+		header.addOrReplace("##1:qTestBamUUID=test-bam-uuid");
+		header.addOrReplace("#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	control-bam-uuid	test-bam-uuid");
+		ONE_CALLER_TWO_SAMPLE = new VcfFileMeta(header);
+	}
     
      @Test
      public void isHC() {
@@ -119,45 +146,41 @@ public class Vcf2mafTest {
      private VcfHeader createMergedVcfHeader() {
          VcfHeader h = new VcfHeader();
          
-//have to remove empty line "##"         
+         //have to remove empty line "##"         
          Arrays.asList("##fileformat=VCFv4.2",
-"##fileDate=20160523",
-"##qUUID=209dec81-a127-4aa3-92b4-2c15c21b75c7",
-"##qSource=qannotate-2.0 (1170)",
-"##1:qUUID=7554fdcc-7230-400e-aefe-5c9a4c79907b",
-"##1:qSource=qSNP v2.0 (1170)",
-"##1:qDonorId=my_donor",
-"##1:qControlSample=my_control_sample",
-"##1:qTestSample=my_test_sample",
-"##1:qControlBam=/mnt/lustre/working/genomeinfo/study/uqccr_amplicon_ffpe/donors/psar_9031/aligned_read_group_sets/dna_primarytumour_externpsar20150414090_nolibkit_truseqampliconcancerpanel_bwakit0712_miseq.bam",
-"##1:qControlBamUUID=null",
-"##1:qTestBam=/mnt/lustre/working/genomeinfo/study/uqccr_amplicon_ffpe/donors/psar_9014/aligned_read_group_sets/dna_primarytumour_externpsar20150414076_nolibkit_truseqampliconcancerpanel_bwakit0712_miseq.bam",
-"##1:qTestBamUUID=null",
-"##1:qAnalysisId=e3afda85-469f-412b-8919-10cd31d2ca52",
-"##2:qUUID=aa7d805f-2ec8-4aea-b1e6-7bc410a41c4b",
-"##2:qSource=qSNP v2.0 (1170)",
-"##2:qDonorId=my_donor",
-"##2:qControlSample=my_control_sample",
-"##2:qTestSample=my_test_sample",
-"##2:qControlBam=/mnt/lustre/working/genomeinfo/study/uqccr_amplicon_ffpe/donors/psar_9031/aligned_read_group_sets/dna_primarytumour_externpsar20150414090_nolibkit_truseqampliconcancerpanel_bwakit0712_miseq.bam",
-"##2:qControlBamUUID=null",
-"##2:qTestBam=/mnt/lustre/working/genomeinfo/study/uqccr_amplicon_ffpe/donors/psar_9014/aligned_read_group_sets/dna_primarytumour_externpsar20150414076_nolibkit_truseqampliconcancerpanel_bwakit0712_miseq.bam",
-"##2:qTestBamUUID=null",
-"##2:qAnalysisId=3334e934-cb45-4215-9eb5-84b63d96a502",
-"##2:qControlVcf=/mnt/lustre/home/oliverH/q3testing/analysis/9/7/97b3715c-0a80-4115-844e-cc877b2cf409/controlGatkHCCV.vcf",
-"##2:qControlVcfUUID=null",
-"##2:qControlVcfGATKVersion=3.4-46-gbc02625",
-"##2:qTestVcf=/mnt/lustre/home/oliverH/q3testing/analysis/c/f/cfccdb1c-6c26-48e9-bd73-ad4ebd806aa6/testGatkHCCV.vcf",
-"##2:qTestVcfUUID=null",
-"##2:qTestVcfGATKVersion=3.4-46-gbc02625",
-"##INPUT=1,FILE=/mnt/lustre/home/oliverH/q3testing/analysis/e/3/e3afda85-469f-412b-8919-10cd31d2ca52/e3afda85-469f-412b-8919-10cd31d2ca52.vcf",
-//"##INPUT=2,FILE=/mnt/lustre/home/oliverH/q3testing/analysis/3/3/3334e934-cb45-4215-9eb5-84b63d96a502/3334e934-cb45-4215-9eb5-84b63d96a502.vcf").stream().forEach(h::parseHeaderLine);
-"##INPUT=2,FILE=/mnt/lustre/home/oliverH/q3testing/analysis/3/3/3334e934-cb45-4215-9eb5-84b63d96a502/3334e934-cb45-4215-9eb5-84b63d96a502.vcf").stream().forEach(h::addOrReplace);
-
+		"##fileDate=20160523",
+		"##qUUID=209dec81-a127-4aa3-92b4-2c15c21b75c7",
+		"##qSource=qannotate-2.0 (1170)",
+		"##1:qUUID=7554fdcc-7230-400e-aefe-5c9a4c79907b",
+		"##1:qSource=qSNP v2.0 (1170)",
+		"##1:qDonorId=my_donor",
+		"##1:qControlSample=my_control_sample",
+		"##1:qTestSample=my_test_sample",
+		"##1:qControlBam=/mnt/lustre/working/genomeinfo/study/uqccr_amplicon_ffpe/donors/psar_9031/aligned_read_group_sets/dna_primarytumour_externpsar20150414090_nolibkit_truseqampliconcancerpanel_bwakit0712_miseq.bam",
+		"##1:qControlBamUUID=null",
+		"##1:qTestBam=/mnt/lustre/working/genomeinfo/study/uqccr_amplicon_ffpe/donors/psar_9014/aligned_read_group_sets/dna_primarytumour_externpsar20150414076_nolibkit_truseqampliconcancerpanel_bwakit0712_miseq.bam",
+		"##1:qTestBamUUID=null",
+		"##1:qAnalysisId=e3afda85-469f-412b-8919-10cd31d2ca52",
+		"##2:qUUID=aa7d805f-2ec8-4aea-b1e6-7bc410a41c4b",
+		"##2:qSource=qSNP v2.0 (1170)",
+		"##2:qDonorId=my_donor",
+		"##2:qControlSample=my_control_sample",
+		"##2:qTestSample=my_test_sample",
+		"##2:qControlBam=/mnt/lustre/working/genomeinfo/study/uqccr_amplicon_ffpe/donors/psar_9031/aligned_read_group_sets/dna_primarytumour_externpsar20150414090_nolibkit_truseqampliconcancerpanel_bwakit0712_miseq.bam",
+		"##2:qControlBamUUID=null",
+		"##2:qTestBam=/mnt/lustre/working/genomeinfo/study/uqccr_amplicon_ffpe/donors/psar_9014/aligned_read_group_sets/dna_primarytumour_externpsar20150414076_nolibkit_truseqampliconcancerpanel_bwakit0712_miseq.bam",
+		"##2:qTestBamUUID=null",
+		"##2:qAnalysisId=3334e934-cb45-4215-9eb5-84b63d96a502",
+		"##2:qControlVcf=/mnt/lustre/home/oliverH/q3testing/analysis/9/7/97b3715c-0a80-4115-844e-cc877b2cf409/controlGatkHCCV.vcf",
+		"##2:qControlVcfUUID=null",
+		"##2:qControlVcfGATKVersion=3.4-46-gbc02625",
+		"##2:qTestVcf=/mnt/lustre/home/oliverH/q3testing/analysis/c/f/cfccdb1c-6c26-48e9-bd73-ad4ebd806aa6/testGatkHCCV.vcf",
+		"##2:qTestVcfUUID=null",
+		"##2:qTestVcfGATKVersion=3.4-46-gbc02625",
+		"##INPUT=1,FILE=/mnt/lustre/home/oliverH/q3testing/analysis/e/3/e3afda85-469f-412b-8919-10cd31d2ca52/e3afda85-469f-412b-8919-10cd31d2ca52.vcf",
+		"##INPUT=2,FILE=/mnt/lustre/home/oliverH/q3testing/analysis/3/3/3334e934-cb45-4215-9eb5-84b63d96a502/3334e934-cb45-4215-9eb5-84b63d96a502.vcf").stream().forEach(h::addOrReplace);
          return h;
      }
-     
-     
      
      @Test
      public void compoundSNPTest() {
@@ -201,6 +224,75 @@ public class Vcf2mafTest {
          assertEquals("null", maf.getColumnValue(MafElement.Amino_Acid_Change));
          assertEquals("ENST00000433342", maf.getColumnValue(MafElement.Transcript_ID));
          assertEquals("c.2237-80TG>CA", maf.getColumnValue(MafElement.CDS_Change));
+     }
+     
+     @Test
+     public void compoundSNPTest2() {
+    	 /*
+    	  * chr1    11836441        rs71492357      TG      CA      .       .       IN=1,2;DB;EFF=upstream_gene_variant(MODIFIER||2547||615|C1orf167|protein_coding|CODING|ENST00000444493||1|WARNING_TRANSCRIPT_NO_START_CODON),upstream_gene_variant(MODIFIER||3433||531|C1orf167|protein_coding|CODING|ENST00000449278||1|WARNING_TRANSCRIPT_NO_START_CODON),downstream_gene_variant(MODIFIER||693|||RP11-56N19.5|antisense|NON_CODING|ENST00000376620||1),intron_variant(MODIFIER|||c.314-80TG>CA|827|C1orf167|protein_coding|CODING|ENST00000312793|2|1|WARNING_TRANSCRIPT_NO_START_CODON),intron_variant(MODIFIER|||c.2237-80TG>CA|1473|C1orf167|protein_coding|CODING|ENST00000433342|9|1),intron_variant(MODIFIER|||n.1210-80TG>CA||C1orf167|processed_transcript|CODING|ENST00000484153|7|1)       GT:DP:FT:MR:NNS:OABS:INF        1/1:22:.:22:22:CA14[]8[];C_1[]0[];_A1[]0[]:.;CONF=HIGH  1/1:19:.:19:16:CA18[]1[]:.;.    1/1:22:.:22:22:CA14[]8[];C_1[]0[];_A1[]0[]:.;CONF=HIGH  1/1:19:.:19:16:CA18[]1[]:.;.
+    	  */
+    	 String[] array = {
+    			 "chr1","11836441","rs71492357","TG","CA",".",".","IN=1,2;DB;EFF=upstream_gene_variant(MODIFIER||2547||615|C1orf167|protein_coding|CODING|ENST00000444493||1|WARNING_TRANSCRIPT_NO_START_CODON),upstream_gene_variant(MODIFIER||3433||531|C1orf167|protein_coding|CODING|ENST00000449278||1|WARNING_TRANSCRIPT_NO_START_CODON),downstream_gene_variant(MODIFIER||693|||RP11-56N19.5|antisense|NON_CODING|ENST00000376620||1),intron_variant(MODIFIER|||c.314-80TG>CA|827|C1orf167|protein_coding|CODING|ENST00000312793|2|1|WARNING_TRANSCRIPT_NO_START_CODON),intron_variant(MODIFIER|||c.2237-80TG>CA|1473|C1orf167|protein_coding|CODING|ENST00000433342|9|1),intron_variant(MODIFIER|||n.1210-80TG>CA||C1orf167|processed_transcript|CODING|ENST00000484153|7|1)"
+    			 ,"GT:DP:FT:MR:NNS:OABS:INF"
+    			 ,"1/1:22:PASS:22:22:CA14[]8[];C_1[]0[];_A1[]0[]:."
+    			 ,"1/1:19:PASS:19:16:CA18[]1[]:."
+    			 ,"./.:.:COV:.:.:.:."
+    			 ,"./.:.:COV:.:.:.:."
+    	 };
+    	 
+    	 final VcfRecord vcf = new VcfRecord(array);
+    	 final Vcf2maf mode = new Vcf2maf(TWO_CALLER_TWO_SAMPLE);
+    	 SnpEffMafRecord maf = mode.converter(vcf);
+    	 
+    	 assertFalse(maf == null);        
+    	 assertEquals("TG", maf.getColumnValue(MafElement.Reference_Allele));    
+    	 assertEquals("CA", maf.getColumnValue(MafElement.Tumor_Seq_Allele1));
+    	 assertEquals("CA", maf.getColumnValue(MafElement.Tumor_Seq_Allele2));
+    	 assertEquals("CA", maf.getColumnValue(MafElement.Match_Norm_Seq_Allele1));
+    	 assertEquals("CA", maf.getColumnValue(MafElement.Match_Norm_Seq_Allele2));
+    	 
+    	 /*
+    	  * This should be a GERMLINE PASS as only the fist caller can call CSs and the second caller has no presence here
+    	  */
+    	 assertEquals("GERM", maf.getColumnValue(MafElement.Mutation_Status));
+    	 assertEquals("PASS", maf.getColumnValue(MafElement.Confidence));
+     }
+     
+     @Test
+     public void compoundSNPTest3() {
+    	 /*
+    	  * chrX	129362963	.	GG	AA	.	.	IN=1;HOM=4,GAAAACTCATggGGAGTGTGTG;EFF=missense_variant(MODERATE||ccccat/ccTTat|p.ProHis378ProTyr/c.1134CC>TT|737|ZNF280C|protein_coding|CODING|ENST00000370978||1),missense_variant(MODERATE||ccccat/ccTTat|p.ProHis378ProTyr/c.1134CC>TT|609|ZNF280C|protein_coding|CODING|ENST00000447817||1|WARNING_TRANSCRIPT_INCOMPLETE)	
+    	  * GT:AD:CCC:CCM:DP:FT:INF:NNS:OABS	
+    	  * 0/0:17,0:Reference:14:17:PASS:.:.:GG12[]5[]	
+    	  * 1/1:0,64:SomaticNoReference:14:65:PASS:SOMATIC:58:AA38[]26[];A_0[]1[];CA1[]0[]	
+    	  * ./.:.:.:1:.:COV:.:.:.	
+    	  * ./.:.:.:1:.:COV:.:.:.
+    	  */
+    	 String[] array = {
+    			 "chrX","129362963",".","GG","AA",".",".","IN=1;HOM=4,GAAAACTCATggGGAGTGTGTG"
+    			 ,"GT:AD:CCC:CCM:DP:FT:INF:NNS:OABS"
+    			 ,"0/0:17,0:Reference:14:17:PASS:.:.:GG12[]5[]"
+    			 ,"1/1:0,64:SomaticNoReference:14:65:PASS:SOMATIC:58:AA38[]26[];A_0[]1[];CA1[]0[]"
+    			 ,"./.:.:.:1:.:COV:.:.:."
+    			 ,"./.:.:.:1:.:COV:.:.:."
+    	 };
+    	 
+    	 final VcfRecord vcf = new VcfRecord(array);
+    	 final Vcf2maf mode = new Vcf2maf(TWO_CALLER_TWO_SAMPLE);
+    	 SnpEffMafRecord maf = mode.converter(vcf);
+    	 
+    	 assertFalse(maf == null);        
+    	 assertEquals("GG", maf.getColumnValue(MafElement.Reference_Allele));    
+    	 assertEquals("AA", maf.getColumnValue(MafElement.Tumor_Seq_Allele1));
+    	 assertEquals("AA", maf.getColumnValue(MafElement.Tumor_Seq_Allele2));
+    	 assertEquals("AA", maf.getColumnValue(MafElement.Match_Norm_Seq_Allele1));
+    	 assertEquals("AA", maf.getColumnValue(MafElement.Match_Norm_Seq_Allele2));
+    	 
+    	 /*
+    	  * This should be a SOMATIC PASS as only the fist caller can call CSs and the second caller has no presence here
+    	  */
+    	 assertEquals("SOMATIC", maf.getColumnValue(MafElement.Mutation_Status));
+    	 assertEquals("PASS", maf.getColumnValue(MafElement.Confidence));
      }
     
      //do it tomorrow
@@ -257,6 +349,31 @@ public class Vcf2mafTest {
          
          maf = v2m.converter(rec);
          assertEquals("PASS", maf.getColumnValue(MafElement.Confidence));
+     }
+     
+     @Test
+     public void confidenceFirstCallerOnly() {
+    	 
+    	 Vcf2maf v2m = new Vcf2maf(2,1, null, null, ContentType.MULTIPLE_CALLERS_MULTIPLE_SAMPLES);    //test column2; normal column 1            
+    	 VcfRecord rec = new VcfRecord( new String[] {"chr1","13302","rs180734498","C","T",".",".","FLANK=GGACATGCTGT;IN=1,2;DB;VAF=0.1143",
+    			 "GT:AD:CCC:CCM:DP:FT:GQ:INF:MR:NNS:OABS",
+    			 "0/1:.:Germline:23:34:PASS:.:.:10:9:C13[39.69]11[39.73];T9[37]1[42]",
+    			 "0/1:.:Germline:23:80:PASS:.:.:9:8:C35[40.11]36[39.19];T8[38.88]1[42]",
+    			 "0/1:26,10:Germline:22:36:PASS:99:.:10:9:C13[39.69]11[39.73];T9[37]1[42]",
+    	 "0/0:.:LOH:22:80:PASS:.:.:.:.:C35[40.11]36[39.19];T8[38.88]1[42]"});
+    	 
+    	 SnpEffMafRecord maf = v2m.converter(rec);
+    	 assertEquals("PASS", maf.getColumnValue(MafElement.Confidence));
+    	 
+    	 rec = new VcfRecord( new String[] {"chr1","13418",".","G","A",".",".","FLANK=ACCCCAAGATC;IN=1,2;DB;VAF=0.1143",
+    			 "GT:AD:CCC:CCM:DP:FT:GQ:INF:MR:NNS:OABS",
+    			 "0/1:.:Germline:22:54:PASS:.:.:6:6:A5[42]1[37];G26[38.92]22[37.36]",
+    			 "0/0:.:LOH:22:159:PASS:.:.:.:.:A4[39.5]2[42];G81[38.6]72[37.33]",
+    			 "0/1:45,6:Germline:22:51:PASS:65:.:6:6:A5[42]1[37];G26[38.92]22[37.36]",
+    	 "0/0:.:LOH:22:159:PASS:.:.:.:.:A4[39.5]2[42];G81[38.6]72[37.33]"});
+    	 
+    	 maf = v2m.converter(rec);
+    	 assertEquals("PASS", maf.getColumnValue(MafElement.Confidence));
      }
      
      @Test
@@ -691,36 +808,35 @@ public class Vcf2mafTest {
          File log = testFolder.newFile();
          File input = testFolder.newFile();
          File out = testFolder.newFile();
-            String[] str = {                
-                    VcfHeaderUtils.STANDARD_FILE_FORMAT + "=VCFv4.0",    
-                    VcfHeaderUtils.STANDARD_CONTROL_SAMPLE + "=CONTROL_sample",
-                    VcfHeaderUtils.STANDARD_TEST_SAMPLE + "=TEST_sample",    
-                    VcfHeaderUtils.STANDARD_TEST_BAMID + "=TEST_bamID",                
-                    VcfHeaderUtils.STANDARD_CONTROL_BAMID + "=CONTROL_bamID",                
-                    VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tCONTROL_bamID\tTEST_bamID",
-                    "chr1\t7722099\trs6698334\tC\tT\t.\t.\tBaseQRankSum=-0.736;ClippingRankSum=0.736;DP=3;FS=0.000;MQ=60.00;MQ0=0;MQRankSum=0.736;QD=14.92;ReadPosRankSum=0.736;SOR=0.223;IN=2;DB;VLD;VAF=0.06887;EFF=intron_variant(MODIFIER|||c.805+173C>T|1673|CAMTA1|protein_coding|CODING|ENST00000303635|8|1),intron_variant(MODIFIER|||c.805+173C>T|1659|CAMTA1|protein_coding|CODING|ENST00000439411|8|1)\tGT:AD:DP:GQ:FT:MR:NNS:OABS:INF\t.:.:.:.:.:.:.:.:CONF=ZERO\t.:.:.:.:.:.:.:.:.\t0/1:1,2:3:35:COVN8:2:2:C0[0]1[39];T1[35]1[37]:CONF=ZERO\t.:.:.:.:.:.:.:.:."};            
-                createVcf(input, str); 
-                try {
-                    Vcf2mafTest.createVcf(input, str);
-                    final String[] command = {"--mode", "vcf2maf",  "--log", log.getAbsolutePath(),  "-i", input.getAbsolutePath() , "-o" , out.getAbsolutePath()};
-                    au.edu.qimr.qannotate.Main.main(command);
-                } catch ( Exception e) {
-                    e.printStackTrace(); 
-                    fail(); 
-                }                
-                try(BufferedReader br = new BufferedReader(new FileReader(out));) {
-                    String line = null;
-                    while ((line = br.readLine()) != null) {
-                            if(line.startsWith("#") || line.startsWith(MafElement.Hugo_Symbol.name())) continue; //skip vcf header
-                            
-                        SnpEffMafRecord maf =  Vcf2mafIndelTest.toMafRecord(line);        
-                         assertTrue(maf.getColumnValue(16).equals("TEST_bamID"));
-                         assertEquals("CONTROL_bamID", maf.getColumnValue(MafElement.Matched_Norm_Sample_Barcode));     
-                         assertTrue(maf.getColumnValue(33).equals("TEST_sample"));
-                         assertEquals("TEST_bamID:CONTROL_bamID", maf.getColumnValue(MafElement.BAM_File));
-                    }    
-                }
-         
+        String[] str = {                
+                VcfHeaderUtils.STANDARD_FILE_FORMAT + "=VCFv4.0",    
+                VcfHeaderUtils.STANDARD_CONTROL_SAMPLE + "=CONTROL_sample",
+                VcfHeaderUtils.STANDARD_TEST_SAMPLE + "=TEST_sample",    
+                VcfHeaderUtils.STANDARD_TEST_BAMID + "=TEST_bamID",                
+                VcfHeaderUtils.STANDARD_CONTROL_BAMID + "=CONTROL_bamID",                
+                VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tCONTROL_bamID\tTEST_bamID",
+                "chr1\t7722099\trs6698334\tC\tT\t.\t.\tBaseQRankSum=-0.736;ClippingRankSum=0.736;DP=3;FS=0.000;MQ=60.00;MQ0=0;MQRankSum=0.736;QD=14.92;ReadPosRankSum=0.736;SOR=0.223;IN=2;DB;VLD;VAF=0.06887;EFF=intron_variant(MODIFIER|||c.805+173C>T|1673|CAMTA1|protein_coding|CODING|ENST00000303635|8|1),intron_variant(MODIFIER|||c.805+173C>T|1659|CAMTA1|protein_coding|CODING|ENST00000439411|8|1)\tGT:AD:DP:GQ:FT:MR:NNS:OABS:INF\t.:.:.:.:.:.:.:.:CONF=ZERO\t.:.:.:.:.:.:.:.:.\t0/1:1,2:3:35:COVN8:2:2:C0[0]1[39];T1[35]1[37]:CONF=ZERO\t.:.:.:.:.:.:.:.:."};            
+        createVcf(input, str); 
+        try {
+            Vcf2mafTest.createVcf(input, str);
+            final String[] command = {"--mode", "vcf2maf",  "--log", log.getAbsolutePath(),  "-i", input.getAbsolutePath() , "-o" , out.getAbsolutePath()};
+            au.edu.qimr.qannotate.Main.main(command);
+        } catch ( Exception e) {
+            e.printStackTrace(); 
+            fail(); 
+        }                
+        try(BufferedReader br = new BufferedReader(new FileReader(out));) {
+            String line = null;
+            while ((line = br.readLine()) != null) {
+                    if(line.startsWith("#") || line.startsWith(MafElement.Hugo_Symbol.name())) continue; //skip vcf header
+                    
+                SnpEffMafRecord maf =  Vcf2mafIndelTest.toMafRecord(line);        
+                 assertTrue(maf.getColumnValue(16).equals("TEST_bamID"));
+                 assertEquals("CONTROL_bamID", maf.getColumnValue(MafElement.Matched_Norm_Sample_Barcode));     
+                 assertTrue(maf.getColumnValue(33).equals("TEST_sample"));
+                 assertEquals("TEST_bamID:CONTROL_bamID", maf.getColumnValue(MafElement.BAM_File));
+            }    
+        }
      }
      
      @Ignore
@@ -896,8 +1012,6 @@ public class Vcf2mafTest {
         } catch (Exception e){
              fail(e.getMessage());
         }
-        
     }
-
 }
 

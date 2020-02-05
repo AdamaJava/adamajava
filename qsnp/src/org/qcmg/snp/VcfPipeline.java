@@ -12,12 +12,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -40,7 +36,6 @@ import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.common.model.Classification;
 import org.qcmg.snp.util.GenotypeUtil;
 import org.qcmg.snp.util.IniFileUtil;
-import org.qcmg.snp.util.PipelineUtil;
 import org.qcmg.vcf.VCFFileReader;
 
 
@@ -133,52 +128,8 @@ public final class VcfPipeline extends Pipeline {
 		classifyPileup();
 		logger.info("about to classify - DONE[" + snps.size() + "]");
 		
-		// compound snps!
-		logger.info("about to do compound snps");
-		compoundSnps();
-		logger.info("about to do compound snps - DONE");
-		
 		// write output
 		writeVCF(vcfFile);
-	}
-	
-	@Override
-	void compoundSnps() {
-		List<List<VcfRecord>> loloSnps = PipelineUtil.listOfListOfAdjacentVcfs(snps);
-		logger.info("Getting loloSnps [ " + loloSnps.size() + "] - DONE");
-		
-		if (loloSnps.isEmpty()) {
-			return;
-		}
-		
-		Set<VcfRecord> toRemove = new HashSet<>(1024 * 8);
-		
-		for (List<VcfRecord> loSnps : loloSnps) {
-			
-			Optional<VcfRecord> optionalVcf = PipelineUtil.createCompoundSnpGATK(loSnps, singleSampleMode);
-			
-			/*
-			 * if present, add to compound snps collection and remove from snps collection, if not present, do nowt
-			 */
-			if (optionalVcf.isPresent()) {
-				compoundSnps.add(optionalVcf.get());
-				toRemove.addAll(loSnps);
-			}
-		}
-		
-		if (toRemove.size() > 0) {
-			logger.info("About to call remove with toRemove size: " + toRemove.size());
-			Iterator<VcfRecord> iter = snps.iterator();
-			while (iter.hasNext()) {
-				VcfRecord v = iter.next();
-				if (toRemove.contains(v)) {
-					iter.remove();
-				}
-			}
-			logger.info("About to call remove with toRemove size: " + toRemove.size() + " - DONE");
-		}
-		
-		logger.info("Created " + compoundSnps.size() + " compound snps so far");
 	}
 	
 	void classifyPileup() {
@@ -391,5 +342,4 @@ public final class VcfPipeline extends Pipeline {
 		logger.tool("**** OTHER CONFIG ****");
 		logger.tool("mutationIdPrefix: " + mutationIdPrefix);
 	}
-
 }
