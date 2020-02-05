@@ -200,10 +200,6 @@ public class VcfUtils {
 		return ffl.stream().map(StringBuilder::toString).collect(Collectors.toList());
 	}
 	
-	public static Map<String, int[]> getAllelicCoverageFromOABS(String oabs) {
-		return getAllelicCoverageWithStrand(oabs);
-	}
-	
 	/**
 	 * calculates the AD for a sample based on the ref, alts, and OABS
 	 * Should be safe to use for snps and compound snps alike - yay
@@ -660,6 +656,17 @@ public class VcfUtils {
 		return false;
 	}
 	
+	/**
+	 * Takes a String representing the observed allele by strand (OABS) and returns a corresponding map where the keys are the bases seen, and the values are an int array containing counts on each strand
+	 * 
+	 * eg. A12[40]20[30];T5[34]9[18]
+	 * would be represented by the following map:
+	 * <A: int[]{12,20}>
+	 * <T: int[]{5,9}>
+	 * 
+	 * @param oabs
+	 * @return
+	 */
 	public static Map<String, int[]> getAllelicCoverageWithStrand(String oabs) {
 		
 		/*

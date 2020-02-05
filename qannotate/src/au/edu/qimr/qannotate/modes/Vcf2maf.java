@@ -181,12 +181,12 @@ public class Vcf2maf extends AbstractMode{
     			boolean isConsequence = isConsequence(maf.getColumnValue(MafElement.Transcript_BioType), rank); //55
     			boolean isSomatic = maf.getColumnValue(MafElement.Mutation_Status).equalsIgnoreCase(VcfHeaderUtils.INFO_SOMATIC); //26
     			if (isHighConfidence(maf)) {
-    				if (isSomatic){
+    				if (isSomatic) {
     					out_SP.println(sMaf);
     					outSPVcf.add(vcf);
     					no_SHC ++;
     					
-    					if(isConsequence){
+    					if (isConsequence){
     						out_SPC.println(sMaf);
     						outSPCVcf.add(vcf);
     						no_SHCC ++;
@@ -196,13 +196,13 @@ public class Vcf2maf extends AbstractMode{
     					outGPVcf.add(vcf);
     					no_GHC ++; 
     					 
-    					if(isConsequence){
+    					if (isConsequence){
     						out_GPC.println(sMaf);
     						outGPCVcf.add(vcf);
     						no_GHCC ++;
     					}
     				}   
-    			} 
+    			}
 			}
 		}
 		

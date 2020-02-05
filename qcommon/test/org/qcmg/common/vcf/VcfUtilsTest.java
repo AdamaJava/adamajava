@@ -364,19 +364,19 @@ public class VcfUtilsTest {
 	
 	@Test
 	public void getOABSDetails() {
-		Map<String, int[]> map = VcfUtils.getAllelicCoverageFromOABS("A1[10]0[0]");
+		Map<String, int[]> map = VcfUtils.getAllelicCoverageWithStrand("A1[10]0[0]");
 		assertEquals(1, map.size());
 		assertEquals(1, map.get("A")[0]);
 		assertEquals(0, map.get("A")[1]);
 		
-		map = VcfUtils.getAllelicCoverageFromOABS("A1[10]0[0];B0[0]10[2]");
+		map = VcfUtils.getAllelicCoverageWithStrand("A1[10]0[0];B0[0]10[2]");
 		assertEquals(2, map.size());
 		assertEquals(1, map.get("A")[0]);
 		assertEquals(0, map.get("A")[1]);
 		assertEquals(0, map.get("B")[0]);
 		assertEquals(10, map.get("B")[1]);
 		
-		map = VcfUtils.getAllelicCoverageFromOABS("A1[10]0[0];B0[0]10[2];C12[44]21[33]");
+		map = VcfUtils.getAllelicCoverageWithStrand("A1[10]0[0];B0[0]10[2];C12[44]21[33]");
 		assertEquals(3, map.size());
 		assertEquals(1, map.get("A")[0]);
 		assertEquals(0, map.get("A")[1]);
