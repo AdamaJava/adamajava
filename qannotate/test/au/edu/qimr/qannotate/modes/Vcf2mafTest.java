@@ -285,8 +285,8 @@ public class Vcf2mafTest {
     	 assertEquals("GG", maf.getColumnValue(MafElement.Reference_Allele));    
     	 assertEquals("AA", maf.getColumnValue(MafElement.Tumor_Seq_Allele1));
     	 assertEquals("AA", maf.getColumnValue(MafElement.Tumor_Seq_Allele2));
-    	 assertEquals("AA", maf.getColumnValue(MafElement.Match_Norm_Seq_Allele1));
-    	 assertEquals("AA", maf.getColumnValue(MafElement.Match_Norm_Seq_Allele2));
+    	 assertEquals("GG", maf.getColumnValue(MafElement.Match_Norm_Seq_Allele1));
+    	 assertEquals("GG", maf.getColumnValue(MafElement.Match_Norm_Seq_Allele2));
     	 
     	 /*
     	  * This should be a SOMATIC PASS as only the fist caller can call CSs and the second caller has no presence here
@@ -324,6 +324,48 @@ public class Vcf2mafTest {
     	 vcf = new VcfRecord(params);
     	 maf = v2m.converter(vcf);
     	 assertEquals("PASS", maf.getColumnValue(MafElement.QFlag));
+     }
+     
+     @Test
+     public void reversionToReference() {
+    	 Vcf2maf v2m = new Vcf2maf(2,1, null, null, ContentType.MULTIPLE_CALLERS_MULTIPLE_SAMPLES);    //test column2; normal column 1            
+    	 String[] parms = {"chr17","41244000","rs16942","T","C",".",".","FLANK=CTCCTCTCTGG;IN=1,2;DB;VLD;VAF=0.3242;GERM=C:6:166:172:0;HOM=3,AAGCTCTCCTtTCTGGACGCT",
+    			 "GT:AD:CCC:CCM:DP:EOR:FF:FT:GQ:INF:NNS:OABS:QL",
+    			 "0/1:23,16:Germline:22:39:C1[]1[];T2[]0[]:C1:PASS:.:.:16:C9[41]7[40.43];T11[38.64]12[39.92]:.",
+    			 "0/0:30,1:ReferenceNoVariant:22:31:T2[]0[]:T1:PASS:.:.:.:C0[0]1[41];T14[39.86]16[40.19]:.",
+    			 "0/1:22,17:Germline:21:39:.:.:PASS:99:.:.:.:615.77",
+    			 "./.:.:HomozygousLoss:21:.:.:.:PASS:.:NCIG:.:.:."};
+    	 
+    	 VcfRecord vcf = new VcfRecord(parms);
+    	 SnpEffMafRecord maf = v2m.converter(vcf);
+    	 assertEquals("T", maf.getColumnValue(MafElement.Reference_Allele));
+    	 assertEquals("T", maf.getColumnValue(MafElement.Tumor_Seq_Allele1));
+		 assertEquals("T", maf.getColumnValue(MafElement.Tumor_Seq_Allele2));
+		 assertEquals("T", maf.getColumnValue(MafElement.Match_Norm_Seq_Allele1));
+		 assertEquals("C", maf.getColumnValue(MafElement.Match_Norm_Seq_Allele2));
+		 assertEquals("PASS", maf.getColumnValue(MafElement.Confidence));
+		 assertEquals("GERM", maf.getColumnValue(MafElement.Mutation_Status));
+     }
+     
+     @Test
+     public void reversionToReference2() {
+    	 Vcf2maf v2m = new Vcf2maf(2,1, null, null, ContentType.MULTIPLE_CALLERS_MULTIPLE_SAMPLES);    //test column2; normal column 1            
+    	 String[] parms = {"chr17","41244936","rs799917","G","A",".",".","FLANK=AAAACAGAGCA;BaseQRankSum=2.014;ClippingRankSum=0.000;DP=46;ExcessHet=3.0103;FS=11.452;MQ=60.00;MQRankSum=0.000;QD=16.67;ReadPosRankSum=0.298;SOR=2.185;IN=1,2;DB;VLD;VAF=0.483;GERM=A:7:173:180:0;HOM=2,ATTTGAAAACgGAGCAAATGA",
+    			 "GT:AD:CCC:CCM:DP:EOR:FF:FT:GQ:INF:NNS:OABS:QL",
+    			 "0/1:25,21:Germline:22:46:A1[]0[];G1[]2[]:A2:PASS:.:.:21:A5[39.2]16[40.75];G13[39.46]12[38]:.",
+    			 "0/0:32,3:ReferenceNoVariant:22:35:G2[]1[]:G3:PASS:.:.:.:A3[41]0[0];G11[35.55]21[39]:.",
+    			 "0/1:25,21:Germline:21:46:.:.:PASS:99:.:.:.:766.77",
+    			 "./.:.:HomozygousLoss:21:.:.:.:PASS:.:NCIG:.:.:."};
+    	 
+    	 VcfRecord vcf = new VcfRecord(parms);
+    	 SnpEffMafRecord maf = v2m.converter(vcf);
+    	 assertEquals("G", maf.getColumnValue(MafElement.Reference_Allele));
+    	 assertEquals("G", maf.getColumnValue(MafElement.Tumor_Seq_Allele1));
+    	 assertEquals("G", maf.getColumnValue(MafElement.Tumor_Seq_Allele2));
+    	 assertEquals("G", maf.getColumnValue(MafElement.Match_Norm_Seq_Allele1));
+    	 assertEquals("A", maf.getColumnValue(MafElement.Match_Norm_Seq_Allele2));
+    	 assertEquals("PASS", maf.getColumnValue(MafElement.Confidence));
+    	 assertEquals("GERM", maf.getColumnValue(MafElement.Mutation_Status));
      }
      
      @Test
@@ -1008,7 +1050,7 @@ public class Vcf2mafTest {
         try{
             final String command = "-mode vcf2maf   --log " + log.getAbsolutePath() + " -i " + input.getAbsolutePath() + " --outdir " + out.getAbsolutePath();    
             final Executor exec = new Executor(command, "au.edu.qimr.qannotate.Main");            
-            assertEquals(0, exec.getErrCode());    
+            assertEquals(0, exec.getErrCode());
         } catch (Exception e){
              fail(e.getMessage());
         }
