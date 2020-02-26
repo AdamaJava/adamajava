@@ -1,4 +1,3 @@
-version = '2.0'
 apply plugin: 'application'
 mainClassName = 'org.qcmg.qprofiler2.QProfiler2'
 def scriptname = 'qprofiler2'
@@ -24,7 +23,6 @@ task fatJar(type: Jar ) {
 		
 		manifest {
 			attributes 'Implementation-Title': baseName,
-					   'Implementation-Version': "$version ($revision)",
 					   'Built-By': System.properties['user.name'],
 					   'Date': new java.util.Date().toString(),
 					   'Main-Class' : mainClassName,
