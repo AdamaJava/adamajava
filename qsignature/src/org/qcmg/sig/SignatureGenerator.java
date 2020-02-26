@@ -6,14 +6,6 @@
  */
 package org.qcmg.sig;
 
-import gnu.trove.set.TIntSet;
-import gnu.trove.set.hash.TIntHashSet;
-import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SAMReadGroupRecord;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SAMSequenceRecord;
-import htsjdk.samtools.SamReader;
-
 import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
@@ -24,18 +16,15 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -44,11 +33,9 @@ import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrPositionComparator;
 import org.qcmg.common.model.PileupElement;
-import org.qcmg.common.model.ReferenceNameComparator;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.FileUtils;
-import org.qcmg.common.util.ListUtils;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfPositionComparator;
 import org.qcmg.common.vcf.VcfRecord;
@@ -69,10 +56,28 @@ import org.qcmg.tab.TabbedFileReader;
 import org.qcmg.tab.TabbedRecord;
 import org.qcmg.vcf.VCFFileWriter;
 
+import gnu.trove.set.TIntSet;
+import gnu.trove.set.hash.TIntHashSet;
+import htsjdk.samtools.SAMFileHeader;
+import htsjdk.samtools.SAMReadGroupRecord;
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SamReader;
 
+
+/**
+ * 
+ * This class creates the traditional qsig vcf output file which has an entry for every position, regardless of coverage, and 
+ * contains coverage data in the following format:
+ * FULLCOV=A:0,C:2,G:0,T:0,N:0,TOTAL:2;NOVELCOV=A:0,C:2,G:0,T:0,N:0,TOTAL:2
+ * 
+ * This class has been deprecated because the newer SignatureGeneratorBespoke class does a better job of reporting coverage.
+ * It will only output an entry in the file if there is coverage, it includes read group specific output, and has more detailed header information.
+ * 
+ * @author oliverh
+ *
+ *@deprecated Superseded by SignatureGeneratorBespoke
+ */
 public class SignatureGenerator {
-	
-	private final static ReferenceNameComparator COMPARATOR = new ReferenceNameComparator();
 	
 	static QLogger logger;
 	private String logFile;
@@ -95,10 +100,10 @@ public class SignatureGenerator {
 	
 	Comparator<String> chrComparator;
 	
-	private final List<VcfRecord> snps = new ArrayList<VcfRecord>();
-	private final Map<VcfRecord, List<BaseStrandPosition>> results = new ConcurrentHashMap<VcfRecord, List<BaseStrandPosition>>();
-	private final AbstractQueue<SAMRecord> sams = new ConcurrentLinkedQueue<SAMRecord>();
-	private final Map<String, String[]> IlluminaArraysDesign = new ConcurrentHashMap<String, String[]>();
+	private final List<VcfRecord> snps = new ArrayList<>();
+	private final Map<VcfRecord, List<BaseStrandPosition>> results = new ConcurrentHashMap<>();
+	private final AbstractQueue<SAMRecord> sams = new ConcurrentLinkedQueue<>();
+	private final Map<String, String[]> illuminaArraysDesign = new ConcurrentHashMap<>();
 	
 	
 	public int engage() throws Exception {
@@ -147,9 +152,9 @@ public class SignatureGenerator {
 			logger.info("got following details from illumina file:" + illuminaFile.getName());
 			logger.info("patient: " + patient + ", sample: " + sample + ", inputType: " + inputType);
 					
-			if (null != inputType && inputType.length() == 4)
+			if (null != inputType && inputType.length() == 4) {
 				inputType = inputType.substring(1, 3);
-			
+			}
 			 
 			final VcfHeader header = getHeaderForQSigIlluminaFile(patient, sample, inputType, 
 					illuminaFile.getName(), cmdLineInputFiles[0]);
@@ -165,7 +170,9 @@ public class SignatureGenerator {
 			
 			// clean out results, and erase info field from snps
 			results.clear();
-			for (final VcfRecord vcf : snps) vcf.setInfo(null);
+			for (final VcfRecord vcf : snps) {
+				vcf.setInfo(null);
+			}
 		}		
 		
 		if (null != bamFiles &&  bamFiles.length > 0) {
@@ -209,14 +216,16 @@ public class SignatureGenerator {
 				
 				// clean out results, and erase info field from snps
 				results.clear();
-				for (final VcfRecord vcf : snps) vcf.setInfo(null);
+				for (final VcfRecord vcf : snps) {
+					vcf.setInfo(null);
+				}
 			}
 		}
 		
 		return exitStatus;
 	}
 	
-	private void loadIlluminaArraysDesign() throws Exception {
+	private void loadIlluminaArraysDesign() throws IOException {
 
 		// set to file specified by user if applicable
 		if (cmdLineInputFiles.length == 3) {
@@ -225,11 +234,11 @@ public class SignatureGenerator {
 		
 		// check that we can read the file
 		if (null != illumiaArraysDesign && FileUtils.canFileBeRead(illumiaArraysDesign)) {
-			try (TabbedFileReader reader=  new TabbedFileReader(new File(illumiaArraysDesign));) {
+			try (TabbedFileReader reader =  new TabbedFileReader(new File(illumiaArraysDesign));) {
 				for (final TabbedRecord rec : reader) {
 					final String [] params = TabTokenizer.tokenize(rec.getData());
 					final String id = params[0];
-					IlluminaArraysDesign.put(id, params);
+					illuminaArraysDesign.put(id, params);
 				}
 			}
 		} else {
@@ -275,48 +284,8 @@ public class SignatureGenerator {
 		}
 	}
 	
-//	void createComparatorFromSAMHeader(File fileName) throws IOException {
-//		if (null == fileName) throw new IllegalArgumentException("null file passed to createComparatorFromSAMHeader");
-//		
-//		final List<String> sortedContigs = new ArrayList<String>();
-//		
-//		try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(fileName)) {
-//			final SAMFileHeader header = reader.getFileHeader();
-//			for (final SAMSequenceRecord contig : header.getSequenceDictionary().getSequences()) {
-//				sortedContigs.add(contig.getSequenceName());
-//			}
-//		}
-//		
-//		// try and sort according to the ordering of the bam file that is about to be processed
-//		// otherwise, resort to alphabetic ordering and cross fingers...
-//		if ( ! sortedContigs.isEmpty()) {
-//			
-//			chrComparator = ListUtils.createComparatorFromList(sortedContigs);
-//			
-//			Collections.sort(snps, new Comparator<VcfRecord>() {
-//				@Override
-//				public int compare(VcfRecord o1, VcfRecord o2) {
-//					final int diff = chrComparator.compare(o1.getChromosome(), o2.getChromosome());
-//					if (diff != 0) return diff;
-//					return o1.getPosition() - o2.getPosition();
-//				}
-//			});
-//			
-//		} else {
-//			chrComparator = COMPARATOR;
-//			Collections.sort(snps, new VcfPositionComparator());
-//		}
-//		
-//		final Set<String> uniqueChrs = new HashSet<String>();
-//		logger.info("chr order:");
-//		for (final VcfRecord vcf : snps) {
-//			if (uniqueChrs.add(vcf.getChromosome())) {
-//				logger.info(vcf.getChromosome());
-//			}
-//		}
-//	}
 	
-	private void updateResults() throws Exception {
+	private void updateResults() {
 		// update the snps list with the details from the results map
 		
 		for (final Entry<VcfRecord, List<BaseStrandPosition>> entry : results.entrySet()) {
@@ -330,49 +299,46 @@ public class SignatureGenerator {
 				final StringBuilder novelStartBases = new StringBuilder();
 				TIntSet forwardStrand = new TIntHashSet();
 				TIntSet reverseStrand = new TIntHashSet();
-//				final Set<Integer> forwardStrand = new HashSet<Integer>();
-//				final Set<Integer> reverseStrand = new HashSet<Integer>();
 				
 				for (final BaseStrandPosition bsp : bsps) {
 					allBases.append(bsp.getBase());
 					
 					if (bsp.isForwardStrand()) {
-						if (forwardStrand.add(bsp.getStartPosition()))
+						if (forwardStrand.add(bsp.getStartPosition())) {
 							novelStartBases.append(bsp.getBase());
+						}
 					} else {
-						if (reverseStrand.add(bsp.getStartPosition()))
+						if (reverseStrand.add(bsp.getStartPosition())) {
 							novelStartBases.append(bsp.getBase());
+						}
 					}
 				}
 				
 				final List<PileupElement> pileup = PileupElementUtil.getPileupCounts(allBases.toString());
 				final List<PileupElement> novelStartPileup = PileupElementUtil.getPileupCounts(novelStartBases.toString());
-				String info = VcfUtils.getPileupElementAsString(pileup, false);
-				info += ";";
-				info += VcfUtils.getPileupElementAsString(novelStartPileup, true);
-				thisVCF.setInfo(info);
+				thisVCF.setInfo(VcfUtils.getPileupElementAsString(pileup, false) + ";" + VcfUtils.getPileupElementAsString(novelStartPileup, true));
 			}
 		}
 	}
 	
-	private void updateResultsIllumina(Map<ChrPosition, IlluminaRecord> iIlluminaMap) {
+	private void updateResultsIllumina(Map<ChrPosition, IlluminaRecord> illuminaMap) {
 		
 		// update the snps list with the details from the results map
 		for (final VcfRecord snp : snps) {
 			
 			// lookup corresponding snp in illumina map
-			final IlluminaRecord illRec = iIlluminaMap.get(ChrPointPosition.valueOf(snp.getChromosome(), snp.getPosition()));
-			if (null == illRec) continue;
+			final IlluminaRecord illRec = illuminaMap.get(ChrPointPosition.valueOf(snp.getChromosome(), snp.getPosition()));
+			if (null == illRec) {
+				continue;
+			}
 			
-			final String [] params = IlluminaArraysDesign.get(illRec.getSnpId());
-			if (null == params) continue;
-			
+			final String [] params = illuminaArraysDesign.get(illRec.getSnpId());
+			if (null == params) {
+				continue;
+			}
 			snp.setInfo(SignatureUtil.getCoverageStringForIlluminaRecord(illRec, params, 20));
-			
 		}
-		
 	}
-	
 	
 	private void writeVCFOutput(File bamFile, VcfHeader header) throws Exception {
 		// if we have an output folder defined, place the vcf files there, otherwise they will live next to the bams
@@ -389,8 +355,9 @@ public class SignatureGenerator {
 			
 			try (VCFFileWriter writer = new VCFFileWriter(outputVCFFile, true);){
 				// write header
-				for(final VcfHeaderRecord re: header)
+				for(final VcfHeaderRecord re: header) {
 					writer.addHeader(re.toString() );
+				}
 				
 				for (final VcfRecord vcf : snps) {
 					if (StringUtils.isNullOrEmpty(vcf.getInfo()) || Constants.MISSING_DATA_STRING.equals(vcf.getInfo())) {
@@ -406,19 +373,10 @@ public class SignatureGenerator {
 	}
 	
 	
-	private VcfHeader getBasicHeaderForQSig(final String bamName, final String snpFile, String ... bamHeaderInfo) throws Exception {
-		
-		String patient = null;
-		String library = null;
-		if (null != bamHeaderInfo && bamHeaderInfo.length > 0) {
-			patient = bamHeaderInfo[0];
-			library = bamHeaderInfo.length > 1 ? bamHeaderInfo[1] : null; 
-		}
+	private VcfHeader getBasicHeaderForQSig(final String bamName, final String snpFile, String ... bamHeaderInfo) {
 		
 		final VcfHeader header = new VcfHeader();
 		final DateFormat df = new SimpleDateFormat("yyyyMMdd");
-		final String version = SignatureGenerator.class.getPackage().getImplementationVersion();
-		final String pg = Messages.getProgramName();
 		final String fileDate = df.format(Calendar.getInstance().getTime());
 		final String uuid = QExec.createUUid();
 
@@ -430,9 +388,6 @@ public class SignatureGenerator {
 		header.addOrReplace("##snp_file=" + snpFile);
 		header.addFilter("BASE_QUALITY", "Base quality < " + minBaseQuality);
 		header.addFilter("MAPPING_QUALITY", "Mapping quality < " + minMappingQuality);
-//		header.add( new VcfHeaderFilter("##filter_q_score=10") );
-//		header.add( VcfHeaderUtils.addOrRepalce("##filter_match_qual=10"));		
-//		header.add( VcfHeaderUtils.addOrRepalce(VcfHeaderUtils.FILTER_LOW_QUAL,"REQUIRED: QUAL < 50.0") );
 		header.addInfo("FULLCOV", "-1", "String", "all bases at position");
 		header.addInfo("NOVELCOV",  "-1", "String", "bases at position from reads with novel starts");
   		header.addOrReplace(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE);
@@ -453,8 +408,7 @@ public class SignatureGenerator {
 	}
 	
 	private VcfHeader getHeaderForQSigIlluminaFile(final String patientId,  final String sample,
-			final String inputType, final String illuminaFileName, final String snpFile) throws Exception {
-
+			final String inputType, final String illuminaFileName, final String snpFile) {
  		
 		final VcfHeader header = new VcfHeader();
 		final DateFormat df = new SimpleDateFormat("yyyyMMdd");
@@ -465,14 +419,14 @@ public class SignatureGenerator {
 
 		//move input uuid into preuuid
 		header.addOrReplace(VcfHeaderUtils.CURRENT_FILE_FORMAT);		
-		header.addOrReplace(VcfHeaderUtils.STANDARD_FILE_DATE + Constants.EQ + fileDate );
-		header.addOrReplace(VcfHeaderUtils.STANDARD_UUID_LINE + Constants.EQ + uuid );
-		header.addOrReplace(VcfHeaderUtils.STANDARD_SOURCE_LINE + Constants.EQ + pg+"-"+version) ;
+		header.addOrReplace(VcfHeaderUtils.STANDARD_FILE_DATE + Constants.EQ + fileDate);
+		header.addOrReplace(VcfHeaderUtils.STANDARD_UUID_LINE + Constants.EQ + uuid);
+		header.addOrReplace(VcfHeaderUtils.STANDARD_SOURCE_LINE + Constants.EQ + pg + "-" + version) ;
 		header.addOrReplace(VcfHeaderUtils.STANDARD_DONOR_ID + Constants.EQ + patientId);
-		header.addOrReplace("##input_type=" + inputType );
-		header.addOrReplace( "##sample=" + sample ) ;
-		header.addOrReplace( "##bam_file=" + illuminaFileName ) ;		
-		header.addOrReplace("##snp_file=" + snpFile  );
+		header.addOrReplace("##input_type=" + inputType);
+		header.addOrReplace("##sample=" + sample);
+		header.addOrReplace("##bam_file=" + illuminaFileName);		
+		header.addOrReplace("##snp_file=" + snpFile);
 		header.addOrReplace("##genome=GRCh37_ICGC_standard_v2.fa\n");		
 		header.addOrReplace("##filter_q_score=10");
 		header.addOrReplace("##filter_match_qual=10");	
@@ -499,7 +453,7 @@ public class SignatureGenerator {
 		VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE+ "\n";*/
 	}
 	
-	private VcfHeader generateVcfHeader(File file, String snpChipFile) throws Exception {
+	private VcfHeader generateVcfHeader(File file, String snpChipFile) throws IOException {
 		// not hitting the LIMS anymore - get what we can from the bam header
 		final String [] bamHeaderInfo = new String[2];
 		try (SamReader samReader = SAMFileReaderFactory.createSAMFileReader(file);) {
@@ -528,18 +482,21 @@ public class SignatureGenerator {
 			final String currentChr = vcf.getChromosome();
 			while (arrayPosition < arraySize) {
 				vcf = snps.get(arrayPosition++);
-				if ( !  currentChr.equals(vcf.getChromosome()))
+				if ( !  currentChr.equals(vcf.getChromosome())) {
 					break;
+				}
 			}
 			
 		} else {
 			vcf = snps.get(arrayPosition++);
 			if (null != rec) {
 				while (arrayPosition < arraySize) {
-					if ( ! rec.getReferenceName().equals(vcf.getChromosome()))
+					if ( ! rec.getReferenceName().equals(vcf.getChromosome())) {
 						break;
-					if (rec.getAlignmentStart() <= vcf.getPosition())
+					}
+					if (rec.getAlignmentStart() <= vcf.getPosition()) {
 						break;
+					}
 					vcf = snps.get(arrayPosition++);
 				}
 			}
@@ -547,14 +504,16 @@ public class SignatureGenerator {
 	}
 	
 	private boolean match(SAMRecord rec, VcfRecord thisVcf, boolean updatePointer) {
-		//logger.info("vcf: " + thisVcf.getChromosome() + ":" + thisVcf.getPosition() + ", rec: " + rec.getReferenceName() + ":" + rec.getAlignmentStart());
-		if (null == thisVcf) return false;
+		if (null == thisVcf) {
+			return false;
+		}
 		
 		String samChr = rec.getReferenceName().startsWith(Constants.CHR) ? rec.getReferenceName() : Constants.CHR + rec.getReferenceName();
 		if (samChr.equals(thisVcf.getChromosome())) {
 			
-			if (rec.getAlignmentEnd() < thisVcf.getPosition())
+			if (rec.getAlignmentEnd() < thisVcf.getPosition()) {
 				return false;
+			}
 			
 			if (rec.getAlignmentStart() <= thisVcf.getPosition()) {
 				return true;
@@ -625,7 +584,9 @@ public class SignatureGenerator {
 		
 		if (indexInRead > -1 && indexInRead < sam.getReadLength()) {
 			
-			if (sam.getBaseQualities()[indexInRead] < minBaseQuality) return;
+			if (sam.getBaseQualities()[indexInRead] < minBaseQuality) {
+				return;
+			}
 			
 			final char c = sam.getReadString().charAt(indexInRead);
 			final int position = sam.getAlignmentStart();
@@ -633,16 +594,11 @@ public class SignatureGenerator {
 			
 			final BaseStrandPosition bsp = new BaseStrandPosition(c, ! negativeStrand, position);
 			
-			List<BaseStrandPosition> bsps = results.get(vcf);
-			if (null == bsps) {
-				bsps = new ArrayList<BaseStrandPosition>();
-				results.put(vcf, bsps);
-			}
-			bsps.add(bsp);
+			results.computeIfAbsent(vcf, f -> new ArrayList<>()).add(bsp);
 		}
 	}
 	
-	private void loadRandomSnpPositions(String randomSnpsFile) throws Exception {
+	private void loadRandomSnpPositions(String randomSnpsFile) throws IOException {
 		int count = 0;
 		try (TabbedFileReader reader = new TabbedFileReader(new File(randomSnpsFile));){
 			for (final TabbedRecord rec : reader) {
@@ -652,7 +608,7 @@ public class SignatureGenerator {
 				String ref = null;
 				if (params.length > 4 && null != params[4] && params[4].length() == 1) {
 					ref = params[4];
-				} else if (params.length > 3 && null != params[3] && params[3].length() == 1){
+				} else if (params.length > 3 && null != params[3] && params[3].length() == 1) {
 					// mouse file has ref at position 3 (0-based)
 					ref = params[3];
 				}
@@ -680,19 +636,21 @@ public class SignatureGenerator {
 			exitStatus = sp.setup(args);
 		} catch (final Exception e) {
 			exitStatus = 2;
-			if (null != logger)
+			if (null != logger) {
 				logger.error("Exception caught whilst running SignatureGenerator:", e);
-			else System.err.println("Exception caught whilst running SignatureGenerator");
+			} else {
+				System.err.println("Exception caught whilst running SignatureGenerator");
+			}
 			e.printStackTrace();
 		}
 		
-		if (null != logger)
+		if (null != logger) {
 			logger.logFinalExecutionStats(exitStatus);
-		
+		}
 		System.exit(exitStatus);
 	}
 	
-	protected int setup(String args[]) throws Exception{
+	protected int setup(String args[]) throws Exception {
 		int returnStatus = 1;
 		if (null == args || args.length == 0) {
 			System.err.println(Messages.GENERATOR_USAGE);
@@ -816,7 +774,9 @@ public class SignatureGenerator {
 					final SAMRecord sam = sams.poll();
 					if (null == sam) {
 						// if latch is zero, producer is done, and so are we
-						if (pLatch.getCount() == 0) break;
+						if (pLatch.getCount() == 0) {
+							break;
+						}
 						try {
 							Thread.sleep(10);
 						} catch (final InterruptedException e) {
@@ -838,9 +798,11 @@ public class SignatureGenerator {
 								VcfRecord tmpVCF = snps.get(arrayPosition + j++);
 								while (match(sam, tmpVCF, false)) {
 									updateResults(tmpVCF, sam);
-									if (arrayPosition + j < arraySize)
+									if (arrayPosition + j < arraySize) {
 										tmpVCF = snps.get(arrayPosition + j++);
-									else tmpVCF = null;
+									} else {
+										tmpVCF = null;
+									}
 								}
 							}
 						}

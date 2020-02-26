@@ -6,10 +6,6 @@
  */
 package org.qcmg.sig;
 
-import gnu.trove.map.hash.THashMap;
-import gnu.trove.map.hash.TIntByteHashMap;
-import gnu.trove.map.hash.TIntShortHashMap;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,7 +16,6 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.util.DonorUtils;
@@ -29,6 +24,9 @@ import org.qcmg.common.util.LoadReferencedClasses;
 import org.qcmg.sig.model.Comparison;
 import org.qcmg.sig.util.ComparisonUtil;
 import org.qcmg.sig.util.SignatureUtil;
+
+import gnu.trove.map.hash.THashMap;
+import gnu.trove.map.hash.TIntByteHashMap;
 
 /**
  * This class gets a list of all .qsig.vcf files from the supplied path.

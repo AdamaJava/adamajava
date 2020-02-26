@@ -46,6 +46,8 @@ import org.w3c.dom.Element;
  * If any comparison scores are less than the cutoff, they are added to a list, which is then emailed to interested parties informing them of the potential problem files
  *  
  * @author o.holmes
+ * 
+ * @deprecated Superseded by Compare
  *
  */
 public class SignatureCompareRelated {
@@ -57,7 +59,6 @@ public class SignatureCompareRelated {
 	
 	private float cutoff = 0.2f;
 	
-//	private String[] cmdLineInputFiles;
 	private String[] cmdLineOutputFiles;
 	private String outputXml;
 	private String[] paths;
@@ -71,11 +72,9 @@ public class SignatureCompareRelated {
 	private final Map<File, int[]> fileIdsAndCounts = new HashMap<>();
 	private final List<Comparison> allComparisons = new ArrayList<>();
 	
-//	private String email;
-//	private String emailSubject = "Qsignature Comparison: all bams vs donor snp chip";
 	private String logFile;
 	
-	List<String> suspiciousResults = new ArrayList<String>();
+	List<String> suspiciousResults = new ArrayList<>();
 	
 	private int engage() throws Exception {
 		
@@ -118,10 +117,10 @@ public class SignatureCompareRelated {
 		files = SignatureUtil.removeExcludedFilesFromList(files, excludes);
 		logger.info("Total number of files to be compared (minus excluded files): " + files.size());
 		
-		final Set<File> uniqueFiles = new HashSet<File>(files);
+		final Set<File> uniqueFiles = new HashSet<>(files);
 		logger.info("No of unique files: " + uniqueFiles.size());
 		
-		final List<File> orderedUniqueFiles = new ArrayList<File>();
+		final List<File> orderedUniqueFiles = new ArrayList<>();
 		for (File f : uniqueFiles) {
 			
 			if (null != additionalSearchStrings && additionalSearchStrings.length > 0) {
@@ -194,7 +193,6 @@ public class SignatureCompareRelated {
 				donorSnpChipData = SignatureUtil.getDonorSnpChipData(currentDonor, orderedSnpChipFiles);
 				if (donorSnpChipData.isEmpty()) {
 					logger.warn("No snp chip qsignature files for donor: " + currentDonor);
-//					suspiciousResults.add(currentDonor + "\t" + f.getName() + "\tNo snp chip qsignature files for donor: " + currentDonor);
 				} else {
 					donorSB.append("comparing against: \n");
 					for (File file : donorSnpChipData.keySet()) {
@@ -216,7 +214,9 @@ public class SignatureCompareRelated {
 					 // populate map with coverage details
 					 fileIdsAndCounts.get(f)[1] = ratios.size();
 					 
-					if (ratios.size() < 1000) logger.warn("low coverage (" + ratios.size() + ") for file " + f.getAbsolutePath());
+					if (ratios.size() < 1000) {
+						logger.warn("low coverage (" + ratios.size() + ") for file " + f.getAbsolutePath());
+					}
 				}
 				
 				List<Comparison> comparisons = new ArrayList<>();
@@ -248,12 +248,15 @@ public class SignatureCompareRelated {
 			logger.info("No suspicious results found");
 		} else {
 			logger.info("SUMMARY:");
-			for (String s : suspiciousResults) logger.info(s);
+			for (String s : suspiciousResults) {
+				logger.info(s);
+			}
 			//email();
 		}
 		
-		if (outputXml != null)
+		if (outputXml != null) {
 			writeXmlOutput();
+		}
 		
 		return exitStatus;
 	}
@@ -278,7 +281,6 @@ public class SignatureCompareRelated {
 		for (File f  : keys) {
 			int[] value = fileIdsAndCounts.get(f);
 			
-//			logger.info(value[0] + " : " +  f.getAbsolutePath() + " : " + value[1]);
 			Element fileE = doc.createElement("file");
 			fileE.setAttribute("id", value[0] + "");
 			fileE.setAttribute("name", f.getAbsolutePath());
@@ -286,7 +288,6 @@ public class SignatureCompareRelated {
 			filesE.appendChild(fileE);
 		}
 		// and now the comparisons
-//		logger.info("COMPARISONS: ");
 		
 		// list files
 		Element compsE = doc.createElement("comparisons");
@@ -294,13 +295,11 @@ public class SignatureCompareRelated {
 		for (Comparison comp : allComparisons) {
 			int id1 = fileIdsAndCounts.get(new File(comp.getMain()))[0];
 			int id2 = fileIdsAndCounts.get(new File(comp.getTest()))[0];
-//			logger.info(id1 + " vs " + id2 + " - score: " + comp.getScore() + " overlaping coverage: " + comp.getOverlapCoverage() + " no of calcs: " + comp.getNumberOfCalculations());
 			
 			String id = "id_" + id1 + "_vs_" + id2;
 			Element compE = doc.createElement(id);
 			compE.setAttribute("score", comp.getScore() + "");
 			compE.setAttribute("overlap", comp.getOverlapCoverage() + "");
-//			compE.setAttribute("calcs", comp.getNumberOfCalculations() + "");
 			compsE.appendChild(compE);
 		}
 		
@@ -332,17 +331,17 @@ public class SignatureCompareRelated {
 			exitStatus = sp.setup(args);
 		} catch (Exception e) {
 			exitStatus = 2;
-			if (null != logger)
+			if (null != logger) {
 				logger.error("Exception caught whilst running SignatureCompareRelated:", e);
-			else {
+			} else {
 				System.err.println("Exception caught whilst running SignatureCompareRelated: " + e.getMessage());
 				System.err.println(Messages.USAGE);
 			}
 		}
 		
-		if (null != logger)
+		if (null != logger) {
 			logger.logFinalExecutionStats(exitStatus);
-		
+		}
 		System.exit(exitStatus);
 	}
 	
@@ -377,23 +376,25 @@ public class SignatureCompareRelated {
 			if (null != paths && paths.length > 0) {
 				this.paths = paths;
 			}
-			if (null == paths) throw new QSignatureException("MISSING_DIRECTORY_OPTION");
+			if (null == paths) {
+				throw new QSignatureException("MISSING_DIRECTORY_OPTION");
+			}
 			
-			if (options.hasCutoff())
+			if (options.hasCutoff()) {
 				cutoff = options.getCutoff();
-			
-			if (options.hasSearchSuffixOption())
+			}
+			if (options.hasSearchSuffixOption()) {
 				searchSuffix = options.getSearchSuffix();
-			
-			if (options.hasSnpChipSearchSuffixOption())
+			}
+			if (options.hasSnpChipSearchSuffixOption()) {
 				snpChipSearchSuffix = options.getSnpChipSearchSuffix();
-			
-			if (options.hasAdditionalSearchStringOption())
+			}
+			if (options.hasAdditionalSearchStringOption()) {
 				additionalSearchStrings = options.getAdditionalSearchString();
-			
-			if (options.hasExcludeVcfsFileOption())
+			}
+			if (options.hasExcludeVcfsFileOption()) {
 				excludeVcfsFile = options.getExcludeVcfsFile();
-			
+			}
 			logger.logInitialExecutionStats("SignatureCompareRelated", SignatureCompareRelated.class.getPackage().getImplementationVersion(), args);
 			
 			return engage();

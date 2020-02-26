@@ -6,8 +6,6 @@
  */
 package org.qcmg.sig;
 
-import gnu.trove.map.hash.THashMap;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,7 +18,6 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
@@ -30,6 +27,8 @@ import org.qcmg.common.util.LoadReferencedClasses;
 import org.qcmg.sig.model.Comparison;
 import org.qcmg.sig.util.SignatureUtil;
 
+import gnu.trove.map.hash.THashMap;
+
 /**
  * This class gets a list of all .qsig.vcf files from the supplied path.
  * It then performs a comparison between them all, regardless of whether they are bam or snp chip files
@@ -38,6 +37,7 @@ import org.qcmg.sig.util.SignatureUtil;
  *  
  * @author o.holmes
  *
+ *@deprecated Superseded by Compare
  */
 public class SignatureCompareRelatedSimple {
 	
@@ -54,7 +54,6 @@ public class SignatureCompareRelatedSimple {
 	private String [] paths;
 	private String [] additionalSearchStrings;
 	private String donor;
-//	private static final String QSIG_SUFFIX = ".qsig.vcf";
 	
 	private String excludeVcfsFile;
 	private List<String> excludes;
@@ -64,7 +63,6 @@ public class SignatureCompareRelatedSimple {
 	private final List<Comparison> allComparisons = new ArrayList<>();
 	
 	private final Map<File, Map<ChrPosition, float[]>> cache = new THashMap<>(cacheSize * 2);
-//	private final Map<File, TIntShortHashMap> cache = new THashMap<>(cacheSize * 2);
 	
 	List<String> suspiciousResults = new ArrayList<>();
 	
@@ -98,8 +96,6 @@ public class SignatureCompareRelatedSimple {
 		}
 		
 		
-		
-		
 		/*
 		 * Match files on additionalSearchStrings
 		 */
@@ -130,27 +126,23 @@ public class SignatureCompareRelatedSimple {
 		
 		int size = files.size();
 		
-		for (int i = 0 ; i < size -1 ; i++) {
+		for (int i = 0 ; i < size - 1 ; i++) {
 			
 			File f1 = files.get(i);
 			Map<ChrPosition, float[]> ratios1 = getSignatureData(f1);
-//			TIntShortHashMap ratios1 = getSignatureData(f1);
 			
 			for (int j = i + 1 ; j < size ; j++) {
 				File f2 = files.get(j);
 				Map<ChrPosition, float[]> ratios2 = getSignatureData(f2);
-//				TIntShortHashMap ratios2 = getSignatureData(f2);
 				
 				Comparison comp = QSigCompareDistance.compareRatiosFloat(ratios1, ratios2, f1, f2, null);
 				logger.info(comp.toString());
-//				Comparison comp = ComparisonUtil.(ratios1, ratios2, f1, f2);
 				donorSB.append(comp.toString()).append("\n");
 				allComparisons.add(comp);
 			}
 			
 			// can now remove f1 from the cache as it is no longer required
 			Map<ChrPosition, float[]> m = cache.remove(f1);
-//			TIntShortHashMap m = cache.remove(f1);
 			m.clear();
 			m = null;
 		}
@@ -173,39 +165,12 @@ public class SignatureCompareRelatedSimple {
 			for (String s : suspiciousResults) logger.info(s);
 		}
 		
-		if (outputXml != null)
+		if (outputXml != null) {
 			SignatureUtil.writeXmlOutput(fileIdsAndCounts, allComparisons, outputXml);
-//		writeXmlOutput();
-		
+		}
 		return exitStatus;
 	}
 	
-//	TIntShortHashMap getSignatureData(File f) throws Exception {
-//		// check map to see if this data has already been loaded
-//		// if not - load
-//		TIntShortHashMap result = cache.get(f);
-//		if (result == null) {
-//			result = SignatureUtil.loadSignatureRatiosFloat(f, minimumCoverage);
-//			
-//			if (result.size() < 1000) {
-//				logger.warn("low coverage (" + result.size() + ") for file " + f.getAbsolutePath());
-//			}
-//			
-//			if (cache.size() < cacheSize) {
-//				cache.put(f, result);
-//			}
-//			fileIdsAndCounts.get(f)[1] = result.size();
-//			/*
-//			 * average coverage
-//			 */
-//			//TODO put this back in
-////			IntSummaryStatistics iss = result.values().stream()
-////				.mapToInt(array -> (int) array[4])
-////				.summaryStatistics();
-////			fileIdsAndCounts.get(f)[2] = (int) iss.getAverage();
-//		}
-//		return result;
-//	}
 	Map<ChrPosition, float[]> getSignatureData(File f) throws Exception {
 		// check map to see if this data has already been loaded
 		// if not - load
@@ -249,17 +214,17 @@ public class SignatureCompareRelatedSimple {
 			exitStatus = sp.setup(args);
 		} catch (Exception e) {
 			exitStatus = 2;
-			if (null != logger)
+			if (null != logger) {
 				logger.error("Exception caught whilst running SignatureCompareRelatedSimple:", e);
-			else {
+			} else {
 				System.err.println("Exception caught whilst running SignatureCompareRelatedSimple: " + e.getMessage());
 				System.err.println(Messages.USAGE);
 			}
 		}
 		
-		if (null != logger)
+		if (null != logger) {
 			logger.logFinalExecutionStats(exitStatus);
-		
+		}
 		System.exit(exitStatus);
 	}
 	
@@ -287,27 +252,29 @@ public class SignatureCompareRelatedSimple {
 			
 			
 			String [] cmdLineOutputFiles = options.getOutputFileNames();
-			if (null != cmdLineOutputFiles && cmdLineOutputFiles.length > 0)
+			if (null != cmdLineOutputFiles && cmdLineOutputFiles.length > 0) {
 				outputXml = cmdLineOutputFiles[0];
-			
+			}
 			String[] paths = options.getDirNames(); 
 			if (null != paths && paths.length > 0) {
 				this.paths = paths;
 			}
-			if (null == paths) throw new QSignatureException("MISSING_DIRECTORY_OPTION");
+			if (null == paths) {
+				throw new QSignatureException("MISSING_DIRECTORY_OPTION");
+			}
 			
-			if (options.hasCutoff())
+			if (options.hasCutoff()) {
 				cutoff = options.getCutoff();
-			
+			}
 			options.getMinCoverage().ifPresent(i -> {minimumCoverage = i.intValue();});
 			logger.tool("Setting minumim coverage to: " + minimumCoverage);
 			
 			additionalSearchStrings = options.getAdditionalSearchString();
 			logger.tool("Setting additionalSearchStrings to: " + Arrays.deepToString(additionalSearchStrings));
 			
-			if (options.hasExcludeVcfsFileOption())
+			if (options.hasExcludeVcfsFileOption()) {
 				excludeVcfsFile = options.getExcludeVcfsFile();
-			
+			}
 			logger.logInitialExecutionStats("SignatureCompareRelatedSimple", SignatureCompareRelatedSimple.class.getPackage().getImplementationVersion(), args);
 			
 			return engage();

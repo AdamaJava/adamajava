@@ -6,11 +6,6 @@
  */
 package org.qcmg.sig;
 
-import gnu.trove.map.hash.THashMap;
-import gnu.trove.map.hash.TIntShortHashMap;
-import gnu.trove.map.hash.TShortIntHashMap;
-import gnu.trove.set.hash.THashSet;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,16 +25,15 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import org.apache.commons.math3.util.Pair;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.LoadReferencedClasses;
-import org.qcmg.sig.model.Comparison;
-import org.qcmg.sig.model.SigMeta;
 import org.qcmg.sig.util.SignatureUtil;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+
+import gnu.trove.set.hash.THashSet;
 
 /**
  * This class gets a list of all .qsig.vcf files from the supplied path.
@@ -55,7 +49,6 @@ public class VariantAlleleFreqDist {
 	private static QLogger logger;
 	private int exitStatus;
 	
-	private float cutoff = 0.95f;
 	private int minimumCoverage = 10;
 	private int minimumRGCoverage = 10;
 	
@@ -67,12 +60,7 @@ public class VariantAlleleFreqDist {
 	private List<String> excludes;
 	private String logFile;
 	
-	private final Map<String, int[]> fileIdsAndCounts = new THashMap<>();
-	private final List<Comparison> allComparisons = new ArrayList<>();
-	
-	private final Map<File, Pair<SigMeta,TIntShortHashMap>> cache = new THashMap<>();
-	
-	List<String> suspiciousResults = new ArrayList<String>();
+	List<String> suspiciousResults = new ArrayList<>();
 	
 	private int engage() throws Exception {
 		
@@ -113,26 +101,18 @@ public class VariantAlleleFreqDist {
 			files = files.stream().filter(f -> p.test(f)).collect(Collectors.toList());
 		}
 		
-		
-//		final int numberOfFiles = files.size();
-//		final int numberOfComparisons = ((numberOfFiles * (numberOfFiles -1)) /2);
-//		logger.info("Should have " +numberOfComparisons + " comparisons, based on " + numberOfFiles + " input files");
-		
 		files.sort(FileUtils.FILE_COMPARATOR);
 		int size = files.size();
 		for (int i = 0 ; i < size ; i++) {
 			File f1 = files.get(i);
 			Map<Short, int[]> vafDist = SignatureUtil.getVariantAlleleFractionDistribution(f1, minimumCoverage);
 			writeXmlOutput(f1, vafDist,outputXml);
-//			TShortIntHashMap vafDist = SignatureUtil.getVariantAlleleFractionDistribution(f1, minimumCoverage);
-//			writeXmlOutput(f1, vafDist,outputXml);
 		}
 		
 		return exitStatus;
 	}
 	
 	public static void writeXmlOutput(File file, Map<Short, int[]> vafDist, String outputXml) throws ParserConfigurationException, TransformerException {
-//		public static void writeXmlOutput(File file, TShortIntHashMap vafDist, String outputXml) throws ParserConfigurationException, TransformerException {
 		DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
 		DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
 		
@@ -148,12 +128,10 @@ public class VariantAlleleFreqDist {
 		// write output xml file
 		// do it to console first...
 			
-			Element fileE = doc.createElement("file");
-			fileE.setAttribute("id",  "1");
-			fileE.setAttribute("name", file.getAbsolutePath());
-//			fileE.setAttribute("coverage", value[1] + "");
-//			fileE.setAttribute("average_coverage_at_positions", value[2] + "");
-			filesE.appendChild(fileE);
+		Element fileE = doc.createElement("file");
+		fileE.setAttribute("id",  "1");
+		fileE.setAttribute("name", file.getAbsolutePath());
+		filesE.appendChild(fileE);
 		
 		// list files
 		Element vafsE = doc.createElement("variant_allele_frequencies");
@@ -207,21 +185,21 @@ public class VariantAlleleFreqDist {
 			exitStatus = sp.setup(args);
 		} catch (Exception e) {
 			exitStatus = 2;
-			if (null != logger)
+			if (null != logger) {
 				logger.error("Exception caught whilst running VariantAlleleFreqDist:", e);
-			else {
+			} else {
 				System.err.println("Exception caught whilst running VariantAlleleFreqDist: " + e.getMessage());
 				System.err.println(Messages.USAGE);
 			}
 		}
 		
-		if (null != logger)
+		if (null != logger) {
 			logger.logFinalExecutionStats(exitStatus);
-		
+		}
 		System.exit(exitStatus);
 	}
 	
-	protected int setup(String args[]) throws Exception{
+	protected int setup(String args[]) throws Exception {
 		int returnStatus = 1;
 		if (null == args || args.length == 0) {
 			System.err.println(Messages.USAGE);
@@ -243,19 +221,16 @@ public class VariantAlleleFreqDist {
 			logFile = options.getLog();
 			logger = QLoggerFactory.getLogger(VariantAlleleFreqDist.class, logFile, options.getLogLevel());
 			
-			
 			String [] cmdLineOutputFiles = options.getOutputFileNames();
-			if (null != cmdLineOutputFiles && cmdLineOutputFiles.length > 0)
+			if (null != cmdLineOutputFiles && cmdLineOutputFiles.length > 0) {
 				outputXml = cmdLineOutputFiles[0];
-			
+			}
 			String[] paths = options.getDirNames(); 
 			if (null != paths && paths.length > 0) {
 				this.paths = paths;
 			}
-			if (null == paths || paths.length == 0) throw new QSignatureException("MISSING_DIRECTORY_OPTION");
-			
-			if (options.hasCutoff()) {
-				cutoff = options.getCutoff();
+			if (null == paths || paths.length == 0) {
+				throw new QSignatureException("MISSING_DIRECTORY_OPTION");
 			}
 			
 			options.getMinCoverage().ifPresent(i -> {minimumCoverage = i.intValue();});
@@ -266,9 +241,9 @@ public class VariantAlleleFreqDist {
 			additionalSearchStrings = options.getAdditionalSearchString();
 			logger.tool("Setting additionalSearchStrings to: " + Arrays.deepToString(additionalSearchStrings));
 			
-			if (options.hasExcludeVcfsFileOption())
+			if (options.hasExcludeVcfsFileOption()) {
 				excludeVcfsFile = options.getExcludeVcfsFile();
-			
+			}
 			logger.logInitialExecutionStats("VariantAlleleFreqDist", VariantAlleleFreqDist.class.getPackage().getImplementationVersion(), args);
 			
 			return engage();

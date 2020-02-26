@@ -6,9 +6,6 @@
  */
 package org.qcmg.sig;
 
-import gnu.trove.map.hash.THashMap;
-import gnu.trove.map.hash.TIntByteHashMap;
-
 import java.io.File;
 import java.util.AbstractQueue;
 import java.util.ArrayList;
@@ -37,6 +34,9 @@ import org.qcmg.sig.model.Comparison;
 import org.qcmg.sig.util.ComparisonUtil;
 import org.qcmg.sig.util.SignatureUtil;
 
+import gnu.trove.map.hash.THashMap;
+import gnu.trove.map.hash.TIntByteHashMap;
+
 /**
  * This class gets a list of all .qsig.vcf files from the supplied path.
  * It then performs a comparison between them all, regardless of whether they are bam or snp chip files
@@ -44,6 +44,8 @@ import org.qcmg.sig.util.SignatureUtil;
  * If any comparison scores are less than the cutoff, they are added to a list, which is then emailed to interested parties informing them of the potential problem files
  *  
  * @author o.holmes
+ * 
+ * @Deprecated Superseded by Compare
  *
  */
 public class SignatureCompareRelatedSimpleGenotypeMT {
@@ -100,12 +102,10 @@ public class SignatureCompareRelatedSimpleGenotypeMT {
 		logger.info("Total number of files to be compared (minus excluded files): " + files.size());
 		
 		
-		
 		if (files.isEmpty()) {
 			logger.warn("No files left after removing exlcuded files");
 			return 0;
 		}
-		
 		
 		/*
 		 * Match files on additionalSearchStrings
@@ -151,9 +151,9 @@ public class SignatureCompareRelatedSimpleGenotypeMT {
 		
 		logger.info("number of comparisons created: " + allComparisons.size());
 		logger.info("writing xml output");
-		if (outputXml != null)
+		if (outputXml != null) {
 			SignatureUtil.writeXmlOutput(fileIdsAndCounts, allComparisons, outputXml);
-//		writeXmlOutput();
+		}
 		
 		return exitStatus;
 	}
@@ -171,7 +171,9 @@ public class SignatureCompareRelatedSimpleGenotypeMT {
 					List<Comparison> myComps = new ArrayList<>();
 					while (true) {
 						Integer in = queue.poll();
-						if (null == in) break;
+						if (null == in) {
+							break;
+						}
 				
 						logger.info("performing comparison for : " + in.intValue());
 						
@@ -209,7 +211,9 @@ public class SignatureCompareRelatedSimpleGenotypeMT {
 			service.execute(() -> {
 					while (true) {
 						File f = queue.poll();
-						if (null == f) break;
+						if (null == f) {
+							break;
+						}
 				
 						logger.info("loading data from: " + f.getAbsolutePath());
 						
@@ -265,9 +269,9 @@ public class SignatureCompareRelatedSimpleGenotypeMT {
 		} catch (Exception e) {
 			exitStatus = 2;
 			if (null != logger)
-				logger.error("Exception caught whilst running SignatureCompareRelatedSimple:", e);
+				logger.error("Exception caught whilst running SignatureCompareRelatedSimpleGenotypeMT:", e);
 			else {
-				System.err.println("Exception caught whilst running SignatureCompareRelatedSimple: " + e.getMessage());
+				System.err.println("Exception caught whilst running SignatureCompareRelatedSimpleGenotypeMT: " + e.getMessage());
 				System.err.println(Messages.USAGE);
 			}
 		}
@@ -303,14 +307,16 @@ public class SignatureCompareRelatedSimpleGenotypeMT {
 			
 			
 			String [] cmdLineOutputFiles = options.getOutputFileNames();
-			if (null != cmdLineOutputFiles && cmdLineOutputFiles.length > 0)
+			if (null != cmdLineOutputFiles && cmdLineOutputFiles.length > 0) {
 				outputXml = cmdLineOutputFiles[0];
-			
+			}
 			String[] paths = options.getDirNames(); 
 			if (null != paths && paths.length > 0) {
 				this.paths = paths;
 			}
-			if (null == paths) throw new QSignatureException("MISSING_DIRECTORY_OPTION");
+			if (null == paths) {
+				throw new QSignatureException("MISSING_DIRECTORY_OPTION");
+			}
 			
 			options.getMinCoverage().ifPresent(i -> {minimumCoverage = i.intValue();});
 			options.getNoOfThreads().ifPresent(i -> {nThreads = Math.max(i.intValue(), nThreads);});
@@ -333,9 +339,9 @@ public class SignatureCompareRelatedSimpleGenotypeMT {
 			additionalSearchStrings = options.getAdditionalSearchString();
 			logger.tool("Setting additionalSearchStrings to: " + Arrays.deepToString(additionalSearchStrings));
 			
-			if (options.hasExcludeVcfsFileOption())
+			if (options.hasExcludeVcfsFileOption()) {
 				excludeVcfsFile = options.getExcludeVcfsFile();
-			
+			}
 			logger.logInitialExecutionStats("SignatureCompareRelatedSimpleGenotypeMT", SignatureCompareRelatedSimpleGenotypeMT.class.getPackage().getImplementationVersion(), args);
 			
 			return engage();

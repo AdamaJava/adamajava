@@ -7,9 +7,6 @@
 package org.qcmg.sig.util;
 
 import static java.util.Comparator.comparing;
-import gnu.trove.map.TMap;
-import gnu.trove.map.hash.THashMap;
-import gnu.trove.map.hash.TIntByteHashMap;
 
 import java.io.File;
 import java.io.IOException;
@@ -65,6 +62,10 @@ import org.qcmg.tab.TabbedRecord;
 import org.qcmg.vcf.VCFFileReader;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+
+import gnu.trove.map.TMap;
+import gnu.trove.map.hash.THashMap;
+import gnu.trove.map.hash.TIntByteHashMap;
 
 public class SignatureUtil {
 	
@@ -131,11 +132,11 @@ public class SignatureUtil {
 			
 			for (char c : BASES_NO_N) {
 				if (c1 == c && c2 == c) {
-					StringUtils.updateStringBuilder(sb, ""+(i1+i2), '-');
+					StringUtils.updateStringBuilder(sb, "" + (i1 + i2), '-');
 				} else if (c1 == c) {
-					StringUtils.updateStringBuilder(sb, ""+i1, '-');
+					StringUtils.updateStringBuilder(sb, "" + i1, '-');
 				} else if (c2 == c) {
-					StringUtils.updateStringBuilder(sb, ""+i2, '-');
+					StringUtils.updateStringBuilder(sb, "" + i2, '-');
 				} else {
 					StringUtils.updateStringBuilder(sb, "0", '-');
 				}
@@ -275,13 +276,19 @@ public class SignatureUtil {
 			
 			for (TabbedRecord vcfRecord : reader) {
 				line = vcfRecord.getData();
-				if (line.startsWith(Constants.HASH_STRING)) continue;
+				if (line.startsWith(Constants.HASH_STRING)) {
+					continue;
+				}
 				//do a brute force search for the empty coverage string before passing to tokenizer
 				// only populate ratios with non-zero values
 				// attempt to keep memory usage down...
-				if (line.indexOf(SHORT_CUT_EMPTY_COVERAGE) > -1) continue;
+				if (line.indexOf(SHORT_CUT_EMPTY_COVERAGE) > -1) {
+					continue;
+				}
 				// ignore entries that have nan in there
-				if (line.indexOf(NAN) > -1) continue;
+				if (line.indexOf(NAN) > -1) {
+					continue;
+				}
 				
 				String[] params = TabTokenizer.tokenize(line);
 				String coverage = params[7];
@@ -307,13 +314,19 @@ public class SignatureUtil {
 			
 			for (TabbedRecord vcfRecord : reader) {
 				line = vcfRecord.getData();
-				if (line.startsWith(Constants.HASH_STRING)) continue;
+				if (line.startsWith(Constants.HASH_STRING)) {
+					continue;
+				}
 				//do a brute force search for the empty coverage string before passing to tokenizer
 				// only populate ratios with non-zero values
 				// attempt to keep memory usage down...
-				if (line.indexOf(SHORT_CUT_EMPTY_COVERAGE) > -1) continue;
+				if (line.indexOf(SHORT_CUT_EMPTY_COVERAGE) > -1) {
+					continue;
+				}
 				// ignore entries that have nan in there
-				if (line.indexOf(NAN) > -1) continue;
+				if (line.indexOf(NAN) > -1) {
+					continue;
+				}
 				
 				String[] params = TabTokenizer.tokenize(line);
 				String coverage = params[7];
@@ -816,7 +829,7 @@ public class SignatureUtil {
 		String arrayGenotypoe = "";
 		if (BaseUtils.isAT(snpChar1) && BaseUtils.isCG(snpChar2)) {
 			if (illRec.getFirstAlleleCall() == 'A') {
-				arrayGenotypoe = ""+snpChar1;
+				arrayGenotypoe = "" + snpChar1;
 				
 				if (illRec.getSecondAlleleCall() == 'A') {
 					arrayGenotypoe += snpChar1;
@@ -824,7 +837,7 @@ public class SignatureUtil {
 					arrayGenotypoe += snpChar2;
 				}
 			} else if (illRec.getFirstAlleleCall() == 'B') {
-				arrayGenotypoe = ""+ snpChar2 + snpChar2;
+				arrayGenotypoe = "" + snpChar2 + snpChar2;
 			}
 		}
 		/*
@@ -841,7 +854,7 @@ public class SignatureUtil {
 				|| (snpChar1 == 'G' && snpChar2 == 'C')) {
 			
 			if (illRec.getFirstAlleleCall() == 'A' && "TOP".equalsIgnoreCase(illRec.getStrand())) {
-				arrayGenotypoe = ""+snpChar1;
+				arrayGenotypoe = "" + snpChar1;
 				
 				if (illRec.getSecondAlleleCall() == 'A') {
 					arrayGenotypoe += snpChar1;
@@ -849,14 +862,14 @@ public class SignatureUtil {
 					arrayGenotypoe += snpChar2;
 				}
 			} else if (illRec.getFirstAlleleCall() == 'A' && "BOT".equalsIgnoreCase(illRec.getStrand())) {
-				arrayGenotypoe = ""+snpChar2;
+				arrayGenotypoe = "" + snpChar2;
 				if (illRec.getSecondAlleleCall() == 'A') {
 					arrayGenotypoe += snpChar2;
 				} else if  (illRec.getSecondAlleleCall() == 'B') {
 					arrayGenotypoe += snpChar1;
 				}
 			} else if (illRec.getFirstAlleleCall() == 'B') {
-				arrayGenotypoe = ""+ snpChar2 + snpChar2;
+				arrayGenotypoe = "" + snpChar2 + snpChar2;
 			}
 		} else {
 			//# shouldn't happen, but here as a warning just in case

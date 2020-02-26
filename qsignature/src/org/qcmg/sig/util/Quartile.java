@@ -27,7 +27,7 @@ public class Quartile {
 	}
 	
 	public static List<Number> getPassingValues(List<? extends Number> numbers, double iQRMultiplier) {
-		List<Number> passingValues = new ArrayList<Number>();
+		List<Number> passingValues = new ArrayList<>();
 		
 		// get quartiles
 		double [] quartiles = quartile(numbers);
@@ -35,7 +35,9 @@ public class Quartile {
 		double cutoff = quartiles[0] - (iQRMultiplier * iqr);
 		
 		for (Number n : numbers) {
-			if (n.doubleValue() < cutoff) passingValues.add(n.doubleValue());
+			if (n.doubleValue() < cutoff) {
+				passingValues.add(n.doubleValue());
+			}
 		}
 		
 		return passingValues;
@@ -50,48 +52,13 @@ public class Quartile {
 	 * @return
 	 */
 	public static List<Number> getPassingValuesString(List<Comparison> comparisons, double iQRMultiplier) {
-//		List<Number> passingValues = new ArrayList<Number>();
 		
 		// get doubles from string
-		List<Double> doubles = new ArrayList<Double>();
+		List<Double> doubles = new ArrayList<>();
 		for (Comparison c : comparisons) {
 			doubles.add(c.getScore());
 		}
 		return getPassingValues(doubles, iQRMultiplier);
 		
-//		// get quartiles
-//		double [] quartiles = quartile(doubles);
-//		double iqr = quartiles[2] - quartiles[0];
-//		double cutoff = quartiles[0] - (iQRMultiplier * iqr);
-//		
-//		for (Number n : doubles) {
-//			if (n.doubleValue() < cutoff) passingValues.add(n.doubleValue());
-//		}
-//		
-//		return passingValues;
 	}
-//	public static List<Number> getPassingValuesString(List<String> numbers, double iQRMultiplier) {
-////		List<Number> passingValues = new ArrayList<Number>();
-//		
-//		// get doubles from string
-//		List<Double> doubles = new ArrayList<Double>();
-//		for (String s : numbers) {
-//			double d = Double.valueOf(s.substring(0, s.indexOf(":")));
-//			doubles.add(d);
-//			
-//		}
-//		return getPassingValues(doubles, iQRMultiplier);
-//		
-////		// get quartiles
-////		double [] quartiles = quartile(doubles);
-////		double iqr = quartiles[2] - quartiles[0];
-////		double cutoff = quartiles[0] - (iQRMultiplier * iqr);
-////		
-////		for (Number n : doubles) {
-////			if (n.doubleValue() < cutoff) passingValues.add(n.doubleValue());
-////		}
-////		
-////		return passingValues;
-//	}
-
 }

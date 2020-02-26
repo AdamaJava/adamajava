@@ -159,7 +159,7 @@ public class Compare {
 				/*
 				 * remove all from map
 				 */
-				result =new Pair<>(rgResults.getKey(), rgResults.getSecond().remove("all"));
+				result = new Pair<>(rgResults.getKey(), rgResults.getSecond().remove("all"));
 				
 				List<String> rgs = new ArrayList<>(rgResults.getSecond().keySet());
 				for (int i = 0 ; i < rgs.size() ; i++) {
