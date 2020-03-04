@@ -1,4 +1,3 @@
-version = '2.1.4'
 apply plugin: 'application'
 apply plugin: 'scala'
 

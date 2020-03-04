@@ -1,8 +1,6 @@
 import com.sun.org.apache.xalan.internal.xsltc.compiler.TestSeq;
 apply plugin: 'application'
 
-version = '0.1pre'
-
 mainClassName = 'org.qcmg.pileup.QPileup'
 def scriptname = 'qpileup'
 def isExecutable = true

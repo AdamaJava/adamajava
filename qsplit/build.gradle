@@ -1,4 +1,3 @@
-version = '0.1pre'
 apply plugin: 'application'
 
 mainClassName = 'org.qcmg.split.Main'
