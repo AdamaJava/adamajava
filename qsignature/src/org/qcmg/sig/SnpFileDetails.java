@@ -7,6 +7,7 @@
 package org.qcmg.sig;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,22 +20,26 @@ import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.tab.TabbedFileReader;
 import org.qcmg.tab.TabbedRecord;
 
+/**
+ * This class returns some (very) basic details on the snp positions file.
+ * 
+ * @author oliverh
+ *
+ */
 public class SnpFileDetails {
 	
 	private static QLogger logger;
 	private String logFile;
 	private String[] cmdLineInputFiles;
 	private int exitStatus;
-	private final List<VcfRecord> snps = new ArrayList<VcfRecord>();
+	private final List<VcfRecord> snps = new ArrayList<>();
 	
-	private int engage() throws Exception {
-		
+	private int engage() throws IOException {
 		loadRandomSnpPositions(cmdLineInputFiles[0]);
-		
 		return exitStatus;
 	}
 	
-	private void loadRandomSnpPositions(String randomSnpsFile) throws Exception {
+	private void loadRandomSnpPositions(String randomSnpsFile) throws IOException {
 		TabbedFileReader reader = new TabbedFileReader(new File(randomSnpsFile));
 		try {
 			int count = 0, emptyRefCount = 0, dashRef = 0;
@@ -57,16 +62,11 @@ public class SnpFileDetails {
 				String chr = params[0];
 				int position = Integer.parseInt(params[1]);
 						
-						//VcfUtils.createVcfRecord(chr, position, ref);
 				String alt = params.length > 5 ? params[5].replaceAll("/", ",") : null;
 
 				// Lynns new files are 1-based - no need to do any processing on th position
-				snps.add(new VcfRecord(new String[] {chr, position+"", params[2], ref, alt}));
+				snps.add(new VcfRecord(new String[] {chr, position + "", params[2], ref, alt}));
 			}
-			
-			// sort - this step is now done after retrieving the sequences from the bam header
-//			Collections.sort(snps, new VcfPositionComparator());
-			
 			
 			logger.info("Loaded " + snps.size() + " positions into map (should be equal to: " + count + ") empty refs: " + emptyRefCount
 					+ ", dash refs: " + dashRef);
@@ -82,15 +82,17 @@ public class SnpFileDetails {
 			exitStatus = sp.setup(args);
 		} catch (Exception e) {
 			exitStatus = 1;
-			if (null != logger)
-				logger.error("Exception caught whilst running QSignatureSequential:", e);
-			else System.err.println("Exception caught whilst running QSignatureSequential");
+			if (null != logger) {
+				logger.error("Exception caught whilst running SnpFileDetails:", e);
+			} else {
+				System.err.println("Exception caught whilst running SnpFileDetails");
+			}
 			e.printStackTrace();
 		}
 		
-		if (null != logger)
+		if (null != logger) {
 			logger.logFinalExecutionStats(exitStatus);
-		
+		}
 		System.exit(exitStatus);
 	}
 	

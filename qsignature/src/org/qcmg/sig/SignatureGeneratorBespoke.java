@@ -6,14 +6,6 @@
  */
 package org.qcmg.sig;
 
-import gnu.trove.map.TObjectIntMap;
-import gnu.trove.map.hash.THashMap;
-import gnu.trove.map.hash.TObjectIntHashMap;
-import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SAMReadGroupRecord;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SamReader;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -23,6 +15,7 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.AbstractQueue;
 import java.util.ArrayList;
@@ -62,7 +55,26 @@ import org.qcmg.sig.util.SignatureUtil;
 import org.qcmg.tab.TabbedFileReader;
 import org.qcmg.tab.TabbedRecord;
 
+import gnu.trove.map.TObjectIntMap;
+import gnu.trove.map.hash.THashMap;
+import gnu.trove.map.hash.TObjectIntHashMap;
+import htsjdk.samtools.SAMFileHeader;
+import htsjdk.samtools.SAMReadGroupRecord;
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SamReader;
 
+/**
+ * 
+ * This class creates the newer "besoke" qsig vcf output file which is more parsimonious with its outputting, and will only output a position if there is coverage.
+ *  
+ * Coverage data is shown in the following format:
+ * QAF=t:0-0-0-2,rg1:0-0-0-2,rg2:0-0-0-0
+ * 
+ * Read group coverage is displayed allowing the user to run the CompareRG class to determine if the read groups that make up the bam match each other.
+ * 
+ * @author oliverh
+ *
+ */
 public class SignatureGeneratorBespoke {
 	
 	static QLogger logger;
@@ -249,9 +261,9 @@ public class SignatureGeneratorBespoke {
 			logger.info("got following details from illumina file:" + illuminaFile.getName());
 			logger.info("patient: " + patient + ", sample: " + sample + ", inputType: " + inputType);
 					
-			if (null != inputType && inputType.length() == 4)
+			if (null != inputType && inputType.length() == 4) {
 				inputType = inputType.substring(1, 3);
-			
+			}
 			
 			/*
 			 * load data from snp chip fileinto map
@@ -277,7 +289,7 @@ public class SignatureGeneratorBespoke {
 		}		
 	}
 	
-	private void loadIlluminaArraysDesign() throws Exception {
+	private void loadIlluminaArraysDesign() throws IOException {
 
 		// set to file specified by user if applicable
 		if (cmdLineInputFiles.length == 3) {
@@ -300,7 +312,7 @@ public class SignatureGeneratorBespoke {
 
 	static void loadIlluminaData(File illuminaFile, Map<ChrPosition, IlluminaRecord> illuminaMap) throws IOException {
 		IlluminaRecord tempRec;
-		try (IlluminaFileReader reader = new IlluminaFileReader(illuminaFile);){
+		try (IlluminaFileReader reader = new IlluminaFileReader(illuminaFile);) {
 			for (final Record rec : reader) {
 				tempRec = (IlluminaRecord) rec;
 				
@@ -363,8 +375,7 @@ public class SignatureGeneratorBespoke {
 			}
 			final int [][] bsps = results.get(cp);
 			
-			if (null == bsps || bsps.length == 0) {
-			} else {
+			if (null != bsps && bsps.length > 0) {
 				final StringBuilder sb = new StringBuilder(cp.getChromosome());
 				sb.append(Constants.TAB);
 				sb.append(cp.getStartPosition());
@@ -435,9 +446,13 @@ public class SignatureGeneratorBespoke {
 			
 			// lookup corresponding snp in illumina map
 			final IlluminaRecord illRec = iIlluminaMap.get(ChrPointPosition.valueOf(snp.getChromosome(), snp.getPosition()));
-			if (null == illRec) continue;
+			if (null == illRec) {
+				continue;
+			}
 			final String [] params = illuminaArraysDesignMap.get(illRec.getSnpId());
-			if (null == params) continue;
+			if (null == params) {
+				continue;
+			}
 			
 			/*
 			 * add to resultsToWrite
@@ -522,7 +537,6 @@ public class SignatureGeneratorBespoke {
 					os.write(sb.toString().getBytes());
 				}
 			}
-			
 		} else {
 			logger.warn("Can't write to output vcf file: " + outputVCFFile.getAbsolutePath());
 		}
@@ -538,18 +552,21 @@ public class SignatureGeneratorBespoke {
 			final String currentChr = vcf.getChromosome();
 			while (arrayPosition < arraySize) {
 				vcf = snps.get(arrayPosition++);
-				if ( !  currentChr.equals(vcf.getChromosome()))
+				if ( !  currentChr.equals(vcf.getChromosome())) {
 					break;
+				}
 			}
 			
 		} else {
 			vcf = snps.get(arrayPosition++);
 			if (null != rec) {
 				while (arrayPosition < arraySize) {
-					if ( ! rec.getReferenceName().equals(vcf.getChromosome()))
+					if ( ! rec.getReferenceName().equals(vcf.getChromosome())) {
 						break;
-					if (rec.getAlignmentStart() <= vcf.getPosition())
+					}
+					if (rec.getAlignmentStart() <= vcf.getPosition()) {
 						break;
+					}
 					vcf = snps.get(arrayPosition++);
 				}
 			}
@@ -557,14 +574,16 @@ public class SignatureGeneratorBespoke {
 	}
 	
 	private boolean match(SAMRecord rec, VcfRecord thisVcf, boolean updatePointer) {
-		if (null == thisVcf) return false;
+		if (null == thisVcf) {
+			return false;
+		}
 		
 		String samChr = rec.getReferenceName().startsWith(Constants.CHR) ? rec.getReferenceName() : Constants.CHR + rec.getReferenceName();
 		if (samChr.equals(thisVcf.getChromosome())) {
 			
-			if (rec.getAlignmentEnd() < thisVcf.getPosition())
+			if (rec.getAlignmentEnd() < thisVcf.getPosition()) {
 				return false;
-			
+			}
 			if (rec.getAlignmentStart() <= thisVcf.getPosition()) {
 				return true;
 			}
@@ -643,14 +662,13 @@ public class SignatureGeneratorBespoke {
 				int rgPosition = rgIds.get(rgId);
 				int innerArrayPosition = c == 'A' ? 0 : (c == 'C' ? 1 : (c == 'G' ? 2 : (c == 'T' ? 3 : -1)));
 				if (innerArrayPosition > -1) {
-//					logger.info("rgPosition: " + rgPosition + ", innerArrayPosition: " + innerArrayPosition + ", rgIds.size(): " + rgIds.size() + ", rg: " + rgId);
 					results.computeIfAbsent(vcf.getChrPosition(), f -> new int[rgIds.size()][4])[rgPosition][innerArrayPosition]++;
 				}
 			}
 		}
 	}
 	
-	private void loadRandomSnpPositions(String randomSnpsFile) throws Exception {
+	private void loadRandomSnpPositions(String randomSnpsFile) throws IOException, NoSuchAlgorithmException {
 		int count = 0;
 		MessageDigest md = MessageDigest.getInstance("MD5");
 		try (BufferedReader in = new BufferedReader(new FileReader(randomSnpsFile));) {
@@ -662,7 +680,7 @@ public class SignatureGeneratorBespoke {
 				String ref = null;
 				if (params.length > 4 && null != params[4]) {
 					ref = params[4];
-				} else if (params.length > 3 && null != params[3]){
+				} else if (params.length > 3 && null != params[3]) {
 					// mouse file has ref at position 3 (0-based)
 					ref = params[3];
 				}
@@ -693,19 +711,21 @@ public class SignatureGeneratorBespoke {
 			exitStatus = sp.setup(args);
 		} catch (final Exception e) {
 			exitStatus = 2;
-			if (null != logger)
+			if (null != logger) {
 				logger.error("Exception caught whilst running SignatureGenerator:", e);
-			else System.err.println("Exception caught whilst running SignatureGenerator");
+			} else {
+				System.err.println("Exception caught whilst running SignatureGenerator");
+			}
 			e.printStackTrace();
 		}
 		
-		if (null != logger)
+		if (null != logger) {
 			logger.logFinalExecutionStats(exitStatus);
-		
+		}
 		System.exit(exitStatus);
 	}
 	
-	protected int setup(String args[]) throws Exception{
+	protected int setup(String args[]) throws Exception {
 		int returnStatus = 1;
 		if (null == args || args.length == 0) {
 			System.err.println(Messages.GENERATOR_USAGE);
@@ -837,7 +857,9 @@ public class SignatureGeneratorBespoke {
 					final SAMRecord sam = sams.poll();
 					if (null == sam) {
 						// if latch is zero, producer is done, and so are we
-						if (pLatch.getCount() == 0) break;
+						if (pLatch.getCount() == 0) {
+							break;
+						}
 						try {
 							Thread.sleep(10);
 						} catch (final InterruptedException e) {
@@ -858,9 +880,11 @@ public class SignatureGeneratorBespoke {
 								VcfRecord tmpVCF = snps.get(arrayPosition + j++);
 								while (match(sam, tmpVCF, false)) {
 									updateResults(tmpVCF, sam);
-									if (arrayPosition + j < arraySize)
+									if (arrayPosition + j < arraySize) {
 										tmpVCF = snps.get(arrayPosition + j++);
-									else tmpVCF = null;
+									} else {
+										tmpVCF = null;
+									}
 								}
 							}
 						}

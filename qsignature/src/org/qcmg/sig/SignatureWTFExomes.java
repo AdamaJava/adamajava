@@ -3,12 +3,8 @@
  */
 package org.qcmg.sig;
 
-import gnu.trove.map.hash.THashMap;
-import gnu.trove.map.hash.TIntByteHashMap;
-import gnu.trove.set.TIntSet;
-import gnu.trove.set.hash.TIntHashSet;
-
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -40,15 +36,20 @@ import org.qcmg.sig.util.SignatureUtil;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import gnu.trove.map.hash.THashMap;
+import gnu.trove.map.hash.TIntByteHashMap;
+import gnu.trove.set.TIntSet;
+import gnu.trove.set.hash.TIntHashSet;
+
 /**
- * This class gets a list of all .qsig.vcf files from the supplied path.
- * It then performs a comparison between them all, regardless of whether they are bam or snp chip files
- * An xml output file is produced
- * If any comparison scores are less than the cutoff, they are added to a list, which is then emailed to interested parties informing them of the potential problem files
+ * This class was originally conceived to try and find out why values for wxs and wgs differed so much.
+ * We have since accepted this difference and so this class is no longer required.
  *  
  * @author o.holmes
  *
+ *@deprecated
  */
+@Deprecated
 public class SignatureWTFExomes {
 	
 	private static QLogger logger;
@@ -73,7 +74,7 @@ public class SignatureWTFExomes {
 	
 	private final Map<File, TIntByteHashMap> cache = new THashMap<>(cacheSize * 2);
 	
-	List<String> suspiciousResults = new ArrayList<String>();
+	List<String> suspiciousResults = new ArrayList<>();
 	
 	private int engage() throws Exception {
 		
@@ -119,7 +120,7 @@ public class SignatureWTFExomes {
 			return 1;
 		}
 		
-		logger.info("Should have " + (files.size() -1) + " + " + (files.size() -2) + " ...  comparisons");
+		logger.info("Should have " + (files.size() - 1) + " + " + (files.size() - 2) + " ...  comparisons");
 		
 		Collections.sort(files, FileUtils.FILE_COMPARATOR);
 		
@@ -188,13 +189,13 @@ public class SignatureWTFExomes {
 			for (String s : suspiciousResults) logger.info(s);
 		}
 		
-		if (outputXml != null)
+		if (outputXml != null) {
 			writeXmlOutput();
-		
+		}
 		return exitStatus;
 	}
 	
-	TIntByteHashMap getSignatureData(File f) throws Exception {
+	TIntByteHashMap getSignatureData(File f) throws IOException {
 		// check map to see if this data has already been loaded
 		// if not - load
 		TIntByteHashMap result = cache.get(f);
@@ -210,15 +211,6 @@ public class SignatureWTFExomes {
 			cache.put(f, result);
 		}
 		fileIdsAndCounts.get(f)[1] = result.size();
-			/*
-			 * average coverage
-			 */
-			//TODO put this back in
-//			IntSummaryStatistics iss = result.values().stream()
-//				.mapToInt(array -> (int) array[4])
-//				.summaryStatistics();
-//			fileIdsAndCounts.get(f)[2] = (int) iss.getAverage();
-//		}
 		return result;
 	}
 	
@@ -291,17 +283,17 @@ public class SignatureWTFExomes {
 			exitStatus = sp.setup(args);
 		} catch (Exception e) {
 			exitStatus = 2;
-			if (null != logger)
-				logger.error("Exception caught whilst running SignatureCompareRelatedSimple:", e);
-			else {
-				System.err.println("Exception caught whilst running SignatureCompareRelatedSimple: " + e.getMessage());
+			if (null != logger) {
+				logger.error("Exception caught whilst running SignatureWTFExomes:", e);
+			} else {
+				System.err.println("Exception caught whilst running SignatureWTFExomes: " + e.getMessage());
 				System.err.println(Messages.USAGE);
 			}
 		}
 		
-		if (null != logger)
+		if (null != logger) {
 			logger.logFinalExecutionStats(exitStatus);
-		
+		}
 		System.exit(exitStatus);
 	}
 	
@@ -329,28 +321,30 @@ public class SignatureWTFExomes {
 			
 			
 			String [] cmdLineOutputFiles = options.getOutputFileNames();
-			if (null != cmdLineOutputFiles && cmdLineOutputFiles.length > 0)
+			if (null != cmdLineOutputFiles && cmdLineOutputFiles.length > 0) {
 				outputXml = cmdLineOutputFiles[0];
-			
+			}
 			String[] paths = options.getDirNames(); 
 			if (null != paths && paths.length > 0) {
 				this.paths = paths;
 			}
-			if (null == paths) throw new QSignatureException("MISSING_DIRECTORY_OPTION");
+			if (null == paths) {
+				throw new QSignatureException("MISSING_DIRECTORY_OPTION");
+			}
 			
-			if (options.hasCutoff())
+			if (options.hasCutoff()) {
 				cutoff = options.getCutoff();
-			
+			}
 			options.getMinCoverage().ifPresent(i -> {minimumCoverage = i.intValue();});
 			logger.tool("Setting minumim coverage to: " + minimumCoverage);
 			
 			additionalSearchStrings = options.getAdditionalSearchString();
 			logger.tool("Setting additionalSearchStrings to: " + Arrays.deepToString(additionalSearchStrings));
 			
-			if (options.hasExcludeVcfsFileOption())
+			if (options.hasExcludeVcfsFileOption()) {
 				excludeVcfsFile = options.getExcludeVcfsFile();
-			
-			logger.logInitialExecutionStats("SignatureCompareRelatedSimple", SignatureWTFExomes.class.getPackage().getImplementationVersion(), args);
+			}
+			logger.logInitialExecutionStats("SignatureWTFExomes", SignatureWTFExomes.class.getPackage().getImplementationVersion(), args);
 			
 			return engage();
 		}

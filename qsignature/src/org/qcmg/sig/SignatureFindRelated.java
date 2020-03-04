@@ -41,8 +41,11 @@ import org.qcmg.sig.util.SignatureUtil;
  * 
  * 
  * @author o.holmes
+ * 
+ * @deprecated Superseded by Compare
  *
  */
+@Deprecated
 public class SignatureFindRelated {
 	
 	private static QLogger logger;
@@ -56,7 +59,6 @@ public class SignatureFindRelated {
 	
 	private String[] cmdLineInputFiles;
 	private String path;
-	private String searchSuffix = ".qsig.vcf";
 	private String snpChipSearchSuffix = ".txt.qsig.vcf";
 	private String [] additionalSearchStrings;
 	
@@ -65,7 +67,6 @@ public class SignatureFindRelated {
 	
 	private Map<ChrPosition, ChrPosition>  positionsOfInterest;
 	
-	private String email;
 	private String logFile;
 	
 	private final AtomicInteger counter = new AtomicInteger();
@@ -108,19 +109,6 @@ public class SignatureFindRelated {
 		
 		for (File f : orderedSnpChipFiles) {
 			inputQueue.add(f);
-//			logger.debug("Will compare against: " + f.getAbsolutePath());
-//			
-//			Map<ChrPosition, double[]> ratios = SignatureUtil.loadSignatureRatios(f);
-//			if (ratios.size() < 1000) logger.warn("low coverage (" + ratios.size() + ") for file " + f.getAbsolutePath());
-//			
-//			Comparison comp = QSigCompareDistance.compareRatios(lostPatientRatio, ratios, patientQsigVcfFile, f, positionsOfInterest);
-//			comparisons.add(comp);
-//			
-//			logger.info(comp.toString());
-//		
-//			if (++noOfProcessedFiles % 100 == 0) {
-//				logger.info("hit " + noOfProcessedFiles + " files");
-//			}
 		}
 		
 		ExecutorService service = Executors.newFixedThreadPool(nThreads);		
@@ -131,7 +119,9 @@ public class SignatureFindRelated {
 			public void run() {
 				while (true) {
 					File f = inputQueue.poll();
-					if (null == f) break;
+					if (null == f) {
+						break;
+					}
 					
 					if (counter.incrementAndGet() % 100 == 0) {
 						logger.info("hit " + counter.get() + " files");
@@ -153,7 +143,9 @@ public class SignatureFindRelated {
 							e.printStackTrace();
 							break;
 						}
-					if (ratios.size() < 1000) logger.warn("low coverage (" + ratios.size() + ") for file " + f.getAbsolutePath());
+					if (ratios.size() < 1000) {
+						logger.warn("low coverage (" + ratios.size() + ") for file " + f.getAbsolutePath());
+					}
 					
 					Comparison comp = QSigCompareDistance.compareRatios(lostPatientRatio, ratios, patientQsigVcfFile, f, positionsOfInterest);
 					outputQueue.add(comp);
@@ -167,12 +159,6 @@ public class SignatureFindRelated {
 			logger.info("Timed out getting data from threads");
 			return -1;
 		}
-		
-		
-//		List<String> sortedList = new ArrayList<String>();
-//		for (Comparison comp : comparisons) {
-////			sortedList.add(result + " : " + comp.getTest().getAbsolutePath());
-//		}
 		
 		// interrogate results
 		List<Comparison> comparisons = new ArrayList<>(outputQueue);
@@ -236,12 +222,6 @@ public class SignatureFindRelated {
 			emailContent.append("No potential matches were found!");
 		}
 		
-		if (emailContent.length() > 0) {
-			// send email
-//			SignatureUtil.sendEmail("Qsignature Comparison: " + cmdLineInputFiles[0] + " vs the world", emailContent.toString(), email, logger);
-//			email(emailContent.toString());
-		}
-		
 		double totalSumOfSquares = 0.0;
 		for (Comparison comp : comparisons) {
 			double result = comp.getScore();
@@ -254,7 +234,9 @@ public class SignatureFindRelated {
 		for (Comparison comp : comparisons) {
 			double result = comp.getScore();
 			
-			if (result > cutoff) subSumOfSquares += FastMath.pow(result - mean, 2.0);
+			if (result > cutoff) {
+				subSumOfSquares += FastMath.pow(result - mean, 2.0);
+			}
 		}
 		logger.info("subSumOfSquares : " + subSumOfSquares);
 		double subSumOfSquaresTimes2 = (subSumOfSquares * 2.5);
@@ -272,17 +254,17 @@ public class SignatureFindRelated {
 			exitStatus = sp.setup(args);
 		} catch (Exception e) {
 			exitStatus = 2;
-			if (null != logger)
+			if (null != logger) {
 				logger.error("Exception caught whilst running SignatureFindRelated:", e);
-			else {
+			} else {
 				System.err.println("Exception caught whilst running SignatureFindRelated: " + e.getMessage());
 				System.err.println(Messages.USAGE);
 			}
 		}
 		
-		if (null != logger)
+		if (null != logger) {
 			logger.logFinalExecutionStats(exitStatus);
-		
+		}
 		System.exit(exitStatus);
 	}
 	
@@ -328,26 +310,22 @@ public class SignatureFindRelated {
 			if (null != paths && paths.length > 0) {
 				path = paths[0];
 			}
-			if (null == path) throw new QSignatureException("MISSING_DIRECTORY_OPTION");
+			if (null == path) {
+				throw new QSignatureException("MISSING_DIRECTORY_OPTION");
+			}
 			
-			if (options.hasCutoff())
+			if (options.hasCutoff()) {
 				cutoff = options.getCutoff();
-			
-			if (options.hasSearchSuffixOption())
-				searchSuffix = options.getSearchSuffix();
-			
-			if (options.hasSnpChipSearchSuffixOption())
+			}
+			if (options.hasSnpChipSearchSuffixOption()) {
 				snpChipSearchSuffix = options.getSnpChipSearchSuffix();
-			
-			if (options.hasAdditionalSearchStringOption())
+			}
+			if (options.hasAdditionalSearchStringOption()) {
 				additionalSearchStrings = options.getAdditionalSearchString();
-			
-			if (options.hasEmailOption())
-				email = options.getEmail();
-			
-			if (options.hasExcludeVcfsFileOption())
+			}
+			if (options.hasExcludeVcfsFileOption()) {
 				excludeVcfsFile = options.getExcludeVcfsFile();
-			
+			}
 			options.getNoOfThreads().ifPresent(i -> {nThreads = Math.max(i.intValue(), nThreads);});
 			
 			String [] positions = options.getPositions();

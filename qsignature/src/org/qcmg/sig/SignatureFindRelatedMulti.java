@@ -48,14 +48,16 @@ import org.qcmg.sig.util.SignatureUtil;
  * 
  * 
  * @author o.holmes
+ * 
+ * @deprecated Superseded by Compare
  *
  */
+@Deprecated
 public class SignatureFindRelatedMulti {
 	
 	private static QLogger logger;
 	private int exitStatus;
 	
-//	private ConcurrentMap<ChrPosition, double[]> lostPatientRatio = new ConcurrentHashMap<>();
 	private final ConcurrentMap<File, ConcurrentMap<ChrPosition, double[]>> lostPatientRatios = new ConcurrentHashMap<>();
 	
 	private List<File> orderedSnpChipFiles;
@@ -73,7 +75,6 @@ public class SignatureFindRelatedMulti {
 	
 	private Map<ChrPosition, ChrPosition>  positionsOfInterest;
 	
-//	private String email;
 	private String logFile;
 	
 	private final AtomicInteger counter = new AtomicInteger();
@@ -118,7 +119,6 @@ public class SignatureFindRelatedMulti {
 			logger.info( (ratios.size() < 1000 ? "low" : "") +  "coverage (" + ratios.size() + ") for file " + s);
 			
 			lostPatientRatios.put(f, ratios);
-			
 		}
 		
 		for (File f : orderedSnpChipFiles) {
@@ -294,7 +294,9 @@ public class SignatureFindRelatedMulti {
 				for (Comparison comp : fileSpecificComparisons) {
 					double result = comp.getScore();
 					
-					if (result > cutoff) subSumOfSquares += FastMath.pow(result - mean, 2.0);
+					if (result > cutoff) {
+						subSumOfSquares += FastMath.pow(result - mean, 2.0);
+					}
 				}
 				writer.write("subSumOfSquares : " + subSumOfSquares);
 				writer.newLine();
@@ -315,9 +317,9 @@ public class SignatureFindRelatedMulti {
 			exitStatus = sp.setup(args);
 		} catch (Exception e) {
 			exitStatus = 2;
-			if (null != logger)
+			if (null != logger) {
 				logger.error("Exception caught whilst running SignatureFindRelated:", e);
-			else {
+			} else {
 				System.err.println("Exception caught whilst running SignatureFindRelated: " + e.getMessage());
 				System.err.println(Messages.USAGE);
 			}
@@ -388,7 +390,6 @@ public class SignatureFindRelatedMulti {
 			if (options.hasExcludeVcfsFileOption())
 				excludeVcfsFile = options.getExcludeVcfsFile();
 			
-//			if (options.getNoOfThreads() > 0) nThreads = options.getNoOfThreads(); 
 			options.getNoOfThreads().ifPresent(i -> {nThreads = Math.max(i.intValue(), nThreads);});
 			
 			String [] positions = options.getPositions();

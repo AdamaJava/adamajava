@@ -7,7 +7,6 @@
 package org.qcmg.sig;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -40,7 +39,17 @@ import org.qcmg.tab.TabbedHeader;
 import org.qcmg.tab.TabbedRecord;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-
+/**
+ * This was the original compare class.
+ * It has now been superseded many times, with the latest "best practice" method being the Compare class.
+ * Deprecating, and will delete soon. 
+ * 
+ * 
+ * @author oliverh
+ *
+ *@deprecated
+ */
+@Deprecated
 public class QSigCompare {
 	
 	// make static
@@ -59,10 +68,10 @@ public class QSigCompare {
 	private int minCoverage = 10;
 	private float cutoff = 0.035f;
 	
-	private final  List<File> vcfFiles = new ArrayList<File>();
+	private final  List<File> vcfFiles = new ArrayList<>();
 	
-	private final Map<File, Map<ChrPosition, int[]>> fileRatios = new HashMap<File, Map<ChrPosition, int[]>>();
-	private final List<String[]> displayResults = new ArrayList<String[]>();
+	private final Map<File, Map<ChrPosition, int[]>> fileRatios = new HashMap<>();
+	private final List<String[]> displayResults = new ArrayList<>();
 	
 	private int engage() throws Exception {
 		
@@ -151,12 +160,12 @@ public class QSigCompare {
 		
 		// if no output specified, output to standard out
 		StreamResult result = null;
-		if (cmdLineOutputFiles == null || cmdLineOutputFiles.length < 1)
+		if (cmdLineOutputFiles == null || cmdLineOutputFiles.length < 1) {
 			result = new StreamResult(System.out );
-		else 
+		} else { 
 			result = new StreamResult(new File(cmdLineOutputFiles[0]));
-		 
-		 try {
+		}
+		try {
 			transformer.transform(source, result);
 		} catch (TransformerException e) {
 			logger.error("Can't transform file", e);
@@ -244,9 +253,15 @@ public class QSigCompare {
 		if (null == rating) throw new IllegalArgumentException("null rating passed to getFlag");
 		
 		// some hard-coded rules in here to start with
-		if (snpCount == 0) return "???";
-		if (rating.startsWith("B") && score < cutoffValue) return "???";
-		if (rating.startsWith("A") && score > cutoffValue) return "???";
+		if (snpCount == 0) {
+			return "???";
+		}
+		if (rating.startsWith("B") && score < cutoffValue) {
+			return "???";
+		}
+		if (rating.startsWith("A") && score > cutoffValue) {
+			return "???";
+		}
 		
 		return "OK";
 	}
@@ -267,20 +282,23 @@ public class QSigCompare {
 		if (null == s1 || null == s2 || s1.length < 3 || s2.length < 3) 
 			throw new IllegalArgumentException("invalid argument passed to getRating");
 		
-		if (Arrays.deepEquals(s1, s2)) return "AAA";
+		if (Arrays.deepEquals(s1, s2)) {
+			return "AAA";
+		}
 		
-		if (s1[0].equals(s2[0]) && s1[1].equals(s2[1]))
+		if (s1[0].equals(s2[0]) && s1[1].equals(s2[1])) {
 			return "AAB";
-		else if (s1[1].equals(s2[1]) && s1[2].equals(s2[2]))
+		} else if (s1[1].equals(s2[1]) && s1[2].equals(s2[2])) {
 			return "BAA";
-		else if (s1[0].equals(s2[0]) && s1[2].equals(s2[2]))
+		} else if (s1[0].equals(s2[0]) && s1[2].equals(s2[2])) {
 			return "ABA";
-		else if (s1[0].equals(s2[0]) )
+		} else if (s1[0].equals(s2[0])) {
 			return "ABB";
-		else if (s1[1].equals(s2[1]) )
+		} else if (s1[1].equals(s2[1])) {
 			return "BAB";
-		else if (s1[2].equals(s2[2]) )
+		} else if (s1[2].equals(s2[2])) {
 			return "BBA";
+		}
 		
 		return "BBB";
 	}
@@ -293,21 +311,27 @@ public class QSigCompare {
 			final int[] file1Ratio = file1RatiosEntry.getValue();
 			final int f1TotalCount = file1Ratio[1];
 			// both total counts must be above the minCoverage value
-			if (f1TotalCount < minCoverage) continue;
+			if (f1TotalCount < minCoverage) {
+				continue;
+			}
 			
 			final int[] file2Ratio = file2Ratios.get(file1RatiosEntry.getKey());
-			if (file2Ratio == null) continue;
+			if (file2Ratio == null) {
+				continue;
+			}
 			
 			// first entry in array is the non-ref count, the second is the total count
 			final int f2TotalCount = file2Ratio[1];
-			if (f2TotalCount < minCoverage) continue;
+			if (f2TotalCount < minCoverage) {
+				continue;
+			}
 			
 			final int f2NonRefCount = file2Ratio[0];
 			final int f1NonRefCount = file1Ratio[0];
 			
 			noOfPositionsUsed.incrementAndGet();
 			
-			totalDifference += Math.abs(((float)f1NonRefCount / f1TotalCount)- ((float)f2NonRefCount / f2TotalCount));
+			totalDifference += Math.abs(((float)f1NonRefCount / f1TotalCount) - ((float)f2NonRefCount / f2TotalCount));
 		}
 		
 		return totalDifference;
@@ -320,11 +344,9 @@ public class QSigCompare {
 		
 		for (TabbedRecord vcfRecord : reader) {
 			String[] params = TabTokenizer.tokenize(vcfRecord.getData());
-//			String[] params = tabbedPattern.split(vcfRecord.getData(), -1);
 			ChrPosition chrPos = ChrPointPosition.valueOf(params[0], Integer.parseInt(params[1]));
 			char ref = params[3].charAt(0);
 			if ('-' == ref || '.' == ref) {
-//				logger.warn("skipping position with ref = -");
 				continue;
 			}
 			String coverage = params[7];
@@ -359,7 +381,9 @@ public class QSigCompare {
 		
 		int[] baseCoverages = SignatureUtil.decipherCoverageString(coverage);
 		int total = baseCoverages[4];
-		if (total < 10) return null;
+		if (total < 10) {
+			return null;
+		}
 		
 		final double aFrac = (double) baseCoverages[0] / total;
 		final double cFrac = (double) baseCoverages[1] / total;
@@ -375,9 +399,15 @@ public class QSigCompare {
 	}
 	
 	public static double getDiscretisedValue(double initialValue) {
-		if (initialValue >= hom_up) return 1.0;
-		if (initialValue <= hom_low) return 0.0;
-		if (initialValue > het_low && initialValue < het_up) return 0.5;
+		if (initialValue >= hom_up) {
+			return 1.0;
+		}
+		if (initialValue <= hom_low) {
+			return 0.0;
+		}
+		if (initialValue > het_low && initialValue < het_up) {
+			return 0.5;
+		}
 		return DOUBLE_NAN;
 	}
 	
@@ -388,10 +418,18 @@ public class QSigCompare {
 		String snpFile = null;
 		for (Iterator<String> iter = header.iterator() ; iter.hasNext() ; ) {
 			String headerLine = iter.next();
-			if (headerLine.contains("patient_id")) patient = headerLine.substring(headerLine.indexOf("=") + 1);  
-			if (headerLine.contains("library")) library = headerLine.substring(headerLine.indexOf("=") + 1);  
-			if (headerLine.contains("input_type")) inputType = headerLine.substring(headerLine.indexOf("=") + 1);
-			if (headerLine.contains("snp_file")) snpFile = headerLine.substring(headerLine.indexOf("=") + 1);
+			if (headerLine.contains("patient_id")) {
+				patient = headerLine.substring(headerLine.indexOf("=") + 1);  
+			}
+			if (headerLine.contains("library")) {
+				library = headerLine.substring(headerLine.indexOf("=") + 1);  
+			}
+			if (headerLine.contains("input_type")) {
+				inputType = headerLine.substring(headerLine.indexOf("=") + 1);
+			}
+			if (headerLine.contains("snp_file")) {
+				snpFile = headerLine.substring(headerLine.indexOf("=") + 1);
+			}
 		}
 		return new String[] {patient, library, inputType, snpFile};
 	}
@@ -403,13 +441,16 @@ public class QSigCompare {
 			exitStatus = sp.setup(args);
 		} catch (Exception e) {
 			exitStatus = 1;
-			if (null != logger)
+			if (null != logger) {
 				logger.error("Exception caught whilst running QSigCompare:", e);
-			else System.err.println("Exception caught whilst running QSigCompare");
+			} else {
+				System.err.println("Exception caught whilst running QSigCompare");
+			}
 		}
 		
-		if (null != logger)
+		if (null != logger) {
 			logger.logFinalExecutionStats(exitStatus);
+		}
 		
 		System.exit(exitStatus);
 	}
@@ -463,8 +504,9 @@ public class QSigCompare {
 			
 			options.getMinCoverage().ifPresent(i -> {minCoverage = i.intValue();});
 			
-			if (options.getCutoff() > 0.0f)
+			if (options.getCutoff() > 0.0f) {
 				cutoff =  options.getCutoff();
+			}
 			
 			logger.tool("Will use minCoverage of: " + minCoverage + ", and a cutoff of: " + cutoff);
 			

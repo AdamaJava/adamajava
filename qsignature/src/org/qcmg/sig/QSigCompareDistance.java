@@ -45,7 +45,13 @@ import org.w3c.dom.Element;
 
 /**
  * The Class QSigCompareDistance.
+ * 
+ * This uses the Euclidean distance method to compare positions.
+ * This class has been superseded by the Compare class and so is deprecated. 
+ * 
+ * @deprecated
  */
+@Deprecated
 public class QSigCompareDistance {
 	
 	private static QLogger logger;
@@ -59,19 +65,21 @@ public class QSigCompareDistance {
 	private int minCoverage = 20;
 	private float cutoff = 0.035f;
 	
-	private final  List<File> vcfFiles = new ArrayList<File>();
-	private final Map<File, String[]> fileStats = new HashMap<File, String[]>();
+	private final  List<File> vcfFiles = new ArrayList<>();
+	private final Map<File, String[]> fileStats = new HashMap<>();
 	
-	private static final List<ChrPosition> snps = new ArrayList<ChrPosition>();
+	private static final List<ChrPosition> snps = new ArrayList<>();
 	
-	private Map<ChrPosition, double[]> currentFileRatios = new HashMap<ChrPosition, double[]>();
-	private final Map<File, Map<ChrPosition, double[]>> fileRatiosCache = new HashMap<File, Map<ChrPosition, double[]>>();
-	private final List<String[]> displayResults = new ArrayList<String[]>();
+	private Map<ChrPosition, double[]> currentFileRatios = new HashMap<>();
+	private final Map<File, Map<ChrPosition, double[]>> fileRatiosCache = new HashMap<>();
+	private final List<String[]> displayResults = new ArrayList<>();
 	
 	private int engage() throws Exception {
 		
 		// populate the random SNP Positions map
-		for (String s : cmdLineInputFiles) loadVcfFiles(s);
+		for (String s : cmdLineInputFiles) {
+			loadVcfFiles(s);
+		}
 		
 		if ( ! vcfFiles.isEmpty() || vcfFiles.size() == 1) {
 			// lets go
@@ -245,42 +253,19 @@ public class QSigCompareDistance {
 			file2Ratios = loadRatiosFromFile(f2);
 			
 			// cache f2 if instructed to do so
-			if (cacheF2) fileRatiosCache.put(f2, file2Ratios);
+			if (cacheF2) {
+				fileRatiosCache.put(f2, file2Ratios);
+			}
 		}
-		
-		// update fileStats
-//		String[] file1Data = fileStats.get(f1);
-//		if (null != file1Data && file1Data.length > 4 && StringUtils.isNullOrEmpty(file1Data[4]))
-//			file1Data[4] = getCoverageAcrossSnps(file1Ratios);
-		
-//		String[] file2Data  = fileStats.get(f2);
-//		if (null != file2Data && file2Data.length > 4 && StringUtils.isNullOrEmpty(file2Data[4]))
-//			file2Data[4] = getCoverageAcrossSnps(file2Ratios);
-		
-		
-//		AtomicIntegerArray noOfPositionsUsed = new AtomicIntegerArray(minCoverage);
 		
 		logger.info("about to compareRatios with sizes: " + file1Ratios.size() + " + " + file2Ratios.size());
 		double[] results = compareRatios(file1Ratios, file2Ratios);
 		final double avg = results[0] / results[1];
-		if (null != logger)
+		if (null != logger) {
 			logger.info("avg: " + avg + ", sum: " + results[0] + ", count: " + (int)results[1]);
-		else {
+		} else {
 			System.out.println("avg: " + avg + ", sum: " + results[0] + ", count: " + (int)results[1]);
 		}
-//		compareRatios(file1Ratios, file2Ratios, minCoverage, noOfPositionsUsed);
-		
-//		float [] totalDiffs = compareRatios(file1Ratios, file2Ratios, minCoverage, noOfPositionsUsed);
-//		
-//		String rating = getRating(f1, f2);
-//		for (int i = 0 , len = totalDiffs.length ; i < len ; i++) {
-//			
-//			float score = noOfPositionsUsed.get(i) == 0 ? Float.NaN : (totalDiffs[i] / noOfPositionsUsed.get(i));
-//			String flag = QSigCompare.getFlag(rating, score, noOfPositionsUsed.get(i), cutoff);
-//			
-//			displayResults.add(new String[] {"" + (vcfFiles.indexOf(f1) + 1) , "" +  (vcfFiles.indexOf(f2) + 1), 
-//					rating , ""+score , ""+noOfPositionsUsed.get(i) , flag, ""+(i+1)}); 
-//		}
 	}
 	
 	/**
@@ -302,7 +287,6 @@ public class QSigCompareDistance {
 	 */
 	public static double[] compareRatios(final Map<ChrPosition, double[]> file1Ratios,
 			final Map<ChrPosition, double[]> file2Ratios) {
-//		boolean debugMode = logger.isLevelEnabled(QLevel.DEBUG);
 		
 		int count = 0;
 		int noOfCalculations = 0;
@@ -318,13 +302,16 @@ public class QSigCompareDistance {
 				double tally = 0.0;
 				for (int i = 0 ; i < 4 ; i ++) {		// ACGT - should always have exactly 4 entries in arrays
 					final double file1Value =  file1Ratio[i];
-					if (Double.isNaN(file1Value)) continue;
+					if (Double.isNaN(file1Value)) {
+						continue;
+					}
 					final double file2Value =  file2Ratio[i];
-					if (Double.isNaN(file2Value)) continue;
+					if (Double.isNaN(file2Value)) {
+						continue;
+					}
 					
 					tally += Math.pow((file1Value - file2Value), 2);
 					noOfCalculations++;
-//					logger.info("tally: " + tally);
 				}
 				finalTally += Math.sqrt(tally);
 				count++;
@@ -346,10 +333,6 @@ public class QSigCompareDistance {
 	public static Comparison compareRatios(final Map<ChrPosition, double[]> file1Ratios, final Map<ChrPosition, double[]> file2Ratios, File file1, File file2) {
 		return compareRatios(file1Ratios, file2Ratios, file1, file2, null);
 	}
-//	public static Comparison compareRatios(final Map<ChrPosition, double[]> file1Ratios,
-//			final Map<ChrPosition, double[]> file2Ratios, File file1, File file2) {
-//		return compareRatios(file1Ratios, file2Ratios, file1, file2, null);
-//	}
 	
 	public static List<Comparison> compareRatios(Map<ChrPosition, double[]> file1Ratios, File f1,
 			ConcurrentMap<File, ConcurrentMap<ChrPosition, double[]>> mapOfRatios, Map<ChrPosition, ChrPosition>  positionsOfInterest) {
@@ -362,17 +345,6 @@ public class QSigCompareDistance {
 		
 		return comps;
 	}
-//	public static List<Comparison> compareRatios(Map<ChrPosition, double[]> file1Ratios, File f1,
-//			ConcurrentMap<File, ConcurrentMap<ChrPosition, double[]>> mapOfRatios, List<ChrPosition> positionsOfInterest) {
-//		
-//		List<Comparison> comps = new ArrayList<>();
-//		
-//		for (Entry<File, ConcurrentMap<ChrPosition, double[]>> entry : mapOfRatios.entrySet()) {
-//			comps.add(compareRatios(entry.getValue(), file1Ratios, entry.getKey(), f1, positionsOfInterest));
-//		}
-//		
-//		return comps;
-//	}
 	
 	/**
 	 * Compares the ratios of the 2 supplied maps, and returns a Comparison object
@@ -406,12 +378,8 @@ public class QSigCompareDistance {
 		boolean checkPositionsList = null != positionsOfInterest && ! positionsOfInterest.isEmpty();
 		
 		
-//		int overlapCount = 0, nonOverlapCount = 0;
 		int count = 0;
-//		int noOfCalculations = 0;
 		double finalTally = 0.0;
-//		long f1TotalCov = 0;
-//		long f2TotalCov = 0;
 		for (Entry<ChrPosition, double[]> file1RatiosEntry : file1Ratios.entrySet()) {
 			
 			// check to see if position is in the list of desired positions, if not continue
@@ -435,19 +403,12 @@ public class QSigCompareDistance {
 					if (Double.isNaN(file2Value)) continue;
 					
 					tally += FastMath.pow((file1Value - file2Value), 2);
-//					noOfCalculations++;
 				}
-//				System.out.println("about to add " + file1Ratio[4] + " to f1 tally at " + file1RatiosEntry.getKey().toString());
-//				System.out.println("about to add " + file2Ratio[4] + " to f2 tally at " + file1RatiosEntry.getKey().toString());
-//				f1TotalCov += file1Ratio[4];
-//				f2TotalCov += file2Ratio[4];
 				finalTally += FastMath.sqrt(tally);
 				count++;
 			}
 		}
 		Comparison comp = new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), finalTally, count);
-//		Comparison comp = new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), finalTally, count, noOfCalculations, f1TotalCov, f2TotalCov);
-//		System.out.println("overlapCount: " + overlapCount + ", nonOverlapCount: " + nonOverlapCount);
 		return comp;
 	}
 	public static Comparison compareRatiosFloat(final Map<ChrPosition, float[]> file1Ratios,
@@ -471,12 +432,8 @@ public class QSigCompareDistance {
 		boolean checkPositionsList = null != positionsOfInterest && ! positionsOfInterest.isEmpty();
 		
 		
-//		int overlapCount = 0, nonOverlapCount = 0;
 		int count = 0;
-//		int noOfCalculations = 0;
 		double finalTally = 0.0;
-//		long f1TotalCov = 0;
-//		long f2TotalCov = 0;
 		for (Entry<ChrPosition, float[]> file1RatiosEntry : file1Ratios.entrySet()) {
 			
 			// check to see if position is in the list of desired positions, if not continue
@@ -495,95 +452,25 @@ public class QSigCompareDistance {
 				float tally = 0.0f;
 				for (int i = 0 ; i < 4 ; i ++) {		// ACGT - should always have exactly 4 entries in arrays
 					final float file1Value =  file1Ratio[i];
-					if (Double.isNaN(file1Value)) continue;
+					if (Double.isNaN(file1Value)) {
+						continue;
+					}
 					final float file2Value =  file2Ratio[i];
-					if (Double.isNaN(file2Value)) continue;
+					if (Double.isNaN(file2Value)) {
+						continue;
+					}
 					
 					tally += FastMath.pow((file1Value - file2Value), 2);
-//					noOfCalculations++;
 				}
-//				System.out.println("about to add " + file1Ratio[4] + " to f1 tally at " + file1RatiosEntry.getKey().toString());
-//				System.out.println("about to add " + file2Ratio[4] + " to f2 tally at " + file1RatiosEntry.getKey().toString());
-//				f1TotalCov += file1Ratio[4];
-//				f2TotalCov += file2Ratio[4];
 				finalTally += FastMath.sqrt(tally);
 				count++;
 			}
 		}
 		Comparison comp = new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), finalTally, count);
-//		Comparison comp = new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), finalTally, count, noOfCalculations, f1TotalCov, f2TotalCov);
-//		System.out.println("overlapCount: " + overlapCount + ", nonOverlapCount: " + nonOverlapCount);
 		return comp;
 	}
-//	public static Comparison compareRatios(final Map<ChrPosition, double[]> file1Ratios,
-//			final Map<ChrPosition, double[]> file2Ratios, File file1, File file2, List<ChrPosition> positionsOfInterest) {
-//		
-//		if (null == file1Ratios || null == file2Ratios)
-//			throw new IllegalArgumentException("null maps passed to compareRatios");
-//		
-//		if (null == file1 || null == file2)
-//			throw new IllegalArgumentException("null files passed to compareRatios");
-//		
-//		if (file1Ratios.isEmpty() || file2Ratios.isEmpty())
-//			return  new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), 0, 0, 0);
-//		
-//		// if the files are the same, return a comparison object without doing the comparison
-//		if (file1.equals(file2)) {
-//			return  new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), 0, file1Ratios.size(), 0);
-//		}
-//		
-//		boolean checkPositionsList = null != positionsOfInterest && ! positionsOfInterest.isEmpty();
-//		
-////		int overlapCount = 0, nonOverlapCount = 0;
-//		int count = 0;
-//		int noOfCalculations = 0;
-//		double finalTally = 0.0;
-//		for (Entry<ChrPosition, double[]> file1RatiosEntry : file1Ratios.entrySet()) {
-//			
-//			// check to see if position is in the list of desired positions
-//			if (checkPositionsList) {
-//				boolean overlap = false;
-//				for (ChrPosition cp : positionsOfInterest) {
-//					if (ChrPositionUtils.doChrPositionsOverlap(file1RatiosEntry.getKey(), cp)) {
-//						// great
-//						overlap = true;
-//						break;
-//					}
-//				}
-//				if ( ! overlap)  {
-////					nonOverlapCount++;
-//					continue;
-//				} else {
-////					overlapCount++;
-//				}
-//			}
-//			
-//			// if coverage is zero, skip
-//			final double[] file1Ratio = file1RatiosEntry.getValue();
-//			final double[] file2Ratio = file2Ratios.get(file1RatiosEntry.getKey());
-//			if (null != file2Ratio) {
-//				
-//				double tally = 0.0;
-//				for (int i = 0 ; i < 4 ; i ++) {		// ACGT - should always have exactly 4 entries in arrays
-//					final double file1Value =  file1Ratio[i];
-//					if (Double.isNaN(file1Value)) continue;
-//					final double file2Value =  file2Ratio[i];
-//					if (Double.isNaN(file2Value)) continue;
-//					
-//					tally += FastMath.pow((file1Value - file2Value), 2);
-//					noOfCalculations++;
-//				}
-//				finalTally += FastMath.sqrt(tally);
-//				count++;
-//			}
-//		}
-//		Comparison comp = new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), finalTally, count, noOfCalculations);
-////		System.out.println("overlapCount: " + overlapCount + ", nonOverlapCount: " + nonOverlapCount);
-//		return comp;
-//	}
 	
 	private Map<ChrPosition, double[]> loadRatiosFromFile(File file) throws Exception {
-		//		private Map<ChrPosition, int[]> loadRatiosFromFile(TabbedFileReader reader) {
 		TabbedFileReader reader = new TabbedFileReader(file);
 		Map<ChrPosition, double[]> ratios = null;
 		int zeroCov = 0, invalidRefCount = 0;
@@ -592,14 +479,15 @@ public class QSigCompareDistance {
 			
 			boolean populateSnps = snps.isEmpty(); 
 			
-			ratios = new HashMap<ChrPosition, double[]>();
+			ratios = new HashMap<>();
 			
 			for (TabbedRecord vcfRecord : reader) {
 				String[] params = TabTokenizer.tokenize(vcfRecord.getData());
 				ChrPosition chrPos = ChrPointPosition.valueOf(params[0], Integer.parseInt(params[1]));
 				
-				if (populateSnps)
+				if (populateSnps) {
 					snps.add(chrPos);
+				}
 				
 				String coverage = params[7];
 				
@@ -612,15 +500,17 @@ public class QSigCompareDistance {
 				
 				char ref = params[3].charAt(0);
 				if ( ! BaseUtils.isACGTN(ref)) {
-					if ('-' != ref && '.' != ref)
+					if ('-' != ref && '.' != ref) {
 						logger.info("invalid reference base for record: " + Arrays.deepToString(params));
+					}
 					invalidRefCount++;
 					continue;
 				}
 				
 				double[] array = QSigCompare.getDiscretisedValuesFromCoverageString(coverage);
-				if (null != array)
+				if (null != array) {
 					ratios.put(chrPos, array);
+				}
 			}
 		} finally {
 			reader.close();
@@ -636,16 +526,17 @@ public class QSigCompareDistance {
 			exitStatus = sp.setup(args);
 		} catch (Exception e) {
 			exitStatus = 2;
-			if (null != logger)
+			if (null != logger) {
 				logger.error("Exception caught whilst running QSigCompareDistance:", e);
-			else {
+			} else {
 				System.err.println("Exception caught whilst running QSigCompareDistance: " + e.getMessage());
 				System.err.println(Messages.USAGE);
 			}
 		}
 		
-		if (null != logger)
+		if (null != logger) {
 			logger.logFinalExecutionStats(exitStatus);
+		}
 		
 		System.exit(exitStatus);
 	}
@@ -691,14 +582,16 @@ public class QSigCompareDistance {
 			if (null != options.getOutputFileNames()) {
 				cmdLineOutputFiles = options.getOutputFileNames();
 				for (String outputFile : cmdLineOutputFiles) {
-					if ( ! FileUtils.canFileBeWrittenTo(outputFile))
+					if ( ! FileUtils.canFileBeWrittenTo(outputFile)) {
 						throw new QSignatureException("OUTPUT_FILE_WRITE_ERROR", outputFile);
+					}
 				}
 			}
 			
 			options.getMinCoverage().ifPresent(i -> {minCoverage = i.intValue();});
-			if (options.getCutoff() > 0.0f)
+			if (options.getCutoff() > 0.0f) {
 				cutoff =  options.getCutoff();
+			}
 			
 			logger.logInitialExecutionStats("QSigCompareDistance", QSigCompareDistance.class.getPackage().getImplementationVersion(), args);
 			logger.tool("Will use minCoverage of: " + minCoverage + ", and a cutoff of: " + cutoff);

@@ -6,11 +6,6 @@
  */
 package org.qcmg.sig;
 
-import gnu.trove.map.TMap;
-import gnu.trove.map.hash.THashMap;
-import gnu.trove.map.hash.TIntByteHashMap;
-import gnu.trove.set.hash.THashSet;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,7 +29,6 @@ import org.apache.commons.math3.util.Pair;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.util.FileUtils;
-import org.qcmg.common.util.LoadReferencedClasses;
 import org.qcmg.sig.model.Comparison;
 import org.qcmg.sig.model.SigMeta;
 import org.qcmg.sig.util.ComparisonUtil;
@@ -42,16 +36,23 @@ import org.qcmg.sig.util.SignatureUtil;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import gnu.trove.map.TMap;
+import gnu.trove.map.hash.THashMap;
+import gnu.trove.map.hash.TIntByteHashMap;
+import gnu.trove.set.hash.THashSet;
+
 /**
  * This class gets a list of all bam.qsig.vcf files from the supplied path.
  * It then performs a comparison between the readgroups within each bam file.
+ * It does not perform any cross-bam-readgroup comparisons.
+ * eg. if the directory contains 2 bams that contain readgroup data, it will perform intra-readgroup comparisons for each of the files, but will not compare the readgroups of one bam with that of the other bam.
  * 
  * An xml output file is produced
  *  
  * @author o.holmes
  *
  */
-public class CompareRGGenotype {
+public class CompareRG {
 	
 	private static QLogger logger;
 	private int exitStatus;
@@ -155,6 +156,8 @@ public class CompareRGGenotype {
 						allComparisons.add(c);
 					}
 				}
+			} else {
+				logger.info("Will not include " + f.getAbsolutePath() + " in comparisons as it does not contain multiple readgroups");
 			}
 		}
 		
@@ -170,11 +173,14 @@ public class CompareRGGenotype {
 		} else {
 			logger.info("");
 			logger.info("Suspicious results SUMMARY:");
-			for (String s : suspiciousResults) logger.info(s);
+			for (String s : suspiciousResults) {
+				logger.info(s);
+			}
 		}
 		
-		if (outputXml != null)
+		if (outputXml != null) {
 			writeXmlOutput();
+		}
 		
 		return exitStatus;
 	}
@@ -217,7 +223,7 @@ public class CompareRGGenotype {
 				inputIds.put(i1, new int[] {i++, comp.getMainCoverage()});
 			}
 			if ( ! inputIds.containsKey(i2)) {
-				inputIds.put(i2, new int[] {i++,comp.getTestCoverage()});
+				inputIds.put(i2, new int[] {i++, comp.getTestCoverage()});
 			}
 		}
 		
@@ -236,7 +242,6 @@ public class CompareRGGenotype {
 			fileE.setAttribute("id", value[0] + "");
 			fileE.setAttribute("name", s);
 			fileE.setAttribute("coverage", value[1] + "");
-//			fileE.setAttribute("average_coverage_at_positions", value[2] + "");
 			filesE.appendChild(fileE);
 		}
 		
@@ -252,9 +257,6 @@ public class CompareRGGenotype {
 			compE.setAttribute("file2", id2 + "");
 			compE.setAttribute("score", comp.getScore() + "");
 			compE.setAttribute("overlap", comp.getOverlapCoverage() + "");
-//			compE.setAttribute("calcs", comp.getNumberOfCalculations() + "");
-//			compE.setAttribute("f1AveCovAtOverlaps", comp.getMainAveCovAtOverlaps() + "");
-//			compE.setAttribute("f2AveCovAtOverlaps", comp.getTestAveCovAtOverlaps() + "");
 			compsE.appendChild(compE);
 		}
 		
@@ -268,24 +270,25 @@ public class CompareRGGenotype {
 	}
 	
 	public static void main(String[] args) throws Exception {
-		LoadReferencedClasses.loadClasses(CompareRGGenotype.class);
+//		LoadReferencedClasses.loadClasses(CompareRG.class);
 		
-		CompareRGGenotype sp = new CompareRGGenotype();
+		CompareRG sp = new CompareRG();
 		int exitStatus = 0;
 		try {
 			exitStatus = sp.setup(args);
 		} catch (Exception e) {
 			exitStatus = 2;
 			if (null != logger)
-				logger.error("Exception caught whilst running CompareRGGenotype:", e);
+				logger.error("Exception caught whilst running CompareRG:", e);
 			else {
-				System.err.println("Exception caught whilst running CompareRGGenotype: " + e.getMessage());
+				System.err.println("Exception caught whilst running CompareRG: " + e.getMessage());
 				System.err.println(Messages.COMPARE_USAGE);
 			}
 		}
 		
-		if (null != logger)
+		if (null != logger) {
 			logger.logFinalExecutionStats(exitStatus);
+		}
 		
 		System.exit(exitStatus);
 	}
@@ -311,12 +314,13 @@ public class CompareRGGenotype {
 		} else {
 			// configure logging
 			logFile = options.getLog();
-			logger = QLoggerFactory.getLogger(CompareRGGenotype.class, logFile, options.getLogLevel());
+			logger = QLoggerFactory.getLogger(CompareRG.class, logFile, options.getLogLevel());
 			
 			
 			String [] cmdLineOutputFiles = options.getOutputFileNames();
-			if (null != cmdLineOutputFiles && cmdLineOutputFiles.length > 0)
+			if (null != cmdLineOutputFiles && cmdLineOutputFiles.length > 0) {
 				outputXml = cmdLineOutputFiles[0];
+			}
 			
 			String[] paths = options.getDirNames(); 
 			if (null != paths && paths.length > 0) {
@@ -337,10 +341,11 @@ public class CompareRGGenotype {
 			additionalSearchStrings = options.getAdditionalSearchString();
 			logger.tool("Setting additionalSearchStrings to: " + Arrays.deepToString(additionalSearchStrings));
 			
-			if (options.hasExcludeVcfsFileOption())
+			if (options.hasExcludeVcfsFileOption()) {
 				excludeVcfsFile = options.getExcludeVcfsFile();
+			}
 			
-			logger.logInitialExecutionStats("CompareRGGenotype", CompareRGGenotype.class.getPackage().getImplementationVersion(), args);
+			logger.logInitialExecutionStats("CompareRGGenotype", CompareRG.class.getPackage().getImplementationVersion(), args);
 			
 			return engage();
 		}

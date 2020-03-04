@@ -21,16 +21,26 @@ import org.qcmg.illumina.IlluminaFileReader;
 import org.qcmg.illumina.IlluminaRecord;
 import org.qcmg.record.Record;
 
+/**
+ * This class takes in 2 Illumina snp chip files as input 
+ * and categorises the difference in A allele percentage values as being
+ * either less then 1%, less than 5% or less than 10% concordant.
+ * This information is presented to the user in the generated log file, the path of which must be supplied by the user.
+ * 
+ * NOTE that it does not compare qsig.vcf.gz files as other comparers in this package do.
+ * 
+ * @author oliverh
+ *
+ */
 public class CompareIlluminaData {
 	
 	private static QLogger logger;
 	private String logFile;
 	private String[] cmdLineInputFiles;
-	private String[] cmdLineOutputFiles;
 	private int exitStatus;
 	
-	private final Map<ChrPosition, IlluminaRecord> normalIlluminaMap = new HashMap<ChrPosition, IlluminaRecord>();
-	private final Map<ChrPosition, IlluminaRecord> tumourIlluminaMap = new HashMap<ChrPosition, IlluminaRecord>();
+	private final Map<ChrPosition, IlluminaRecord> normalIlluminaMap = new HashMap<>();
+	private final Map<ChrPosition, IlluminaRecord> tumourIlluminaMap = new HashMap<>();
 	
 	public int engage() throws Exception {
 		
@@ -46,7 +56,7 @@ public class CompareIlluminaData {
 	
 	private void compareIlluminaData() {
 		
-		int sameCallInBoth = 0, diffCallInBoth = 0, count = 0, diffStrand = 0;
+		int count = 0, diffStrand = 0;
 		// will track 1, 5, and 10 percent
 		int [] callsInBothArray = new int[3]; 
 		
@@ -65,9 +75,6 @@ public class CompareIlluminaData {
 			}
 			count++;
 			
-//			if ( ! "TOP".equals(normalRec.getStrand()) && ! "BOT".equals(normalRec.getStrand())) {
-//				logger.warn("wrong strand field! " + normalRec.getStrand());
-//			}
 			// check bases and strand
 			if (normalRec.getStrand().equals(tumourRec.getStrand())) {
 			
@@ -89,113 +96,43 @@ public class CompareIlluminaData {
 			} else {
 				diffStrand++;
 			}
-			
-//			char nC1 = normalRec.getFirstAllele();
-//			char nC2 = normalRec.getSecondAllele();
-//			char tC1 = tumourRec.getFirstAllele();
-//			char tC2 = tumourRec.getSecondAllele();
-//			
-//			if (isHeterozygous(nC1, nC2) && isHeterozygous(tC1, tC2)) {
-//				// both are het
-//				bothHetCount ++ ;
-//			} else if (isHeterozygous(nC1, nC2)) {
-//				// normal is het, tumour is hom
-//				nHetTHomCount++;
-//			} else if (isHeterozygous(tC1, tC2)) {
-//				// normal is hom, tumour is het
-//				nHomTHetCount++;
-//			} else {
-//				// both hom
-//				bothHomCount++;
-//			}
 		}
+		
 		int percentageTotal = 0;
 		for (int i : callsInBothArray) {
 			percentageTotal+= i;
 		}
+		
 		logger.info("STATS:");
 		logger.info("sameCallInBoth (<1%): " + callsInBothArray[0] + ", (between 1% and 5%): " + callsInBothArray[1] 
 		                +  ", (between 5% and 10%): " + callsInBothArray[2] +", >= 10% diff: " +  (count - percentageTotal) + ", totalCount: " + count + ", diffStrand: " + diffStrand);
 		
 	}
-//	private void compareIlluminaData() {
-//		
-//		int bothHetCount = 0, bothHomCount = 0, nHetTHomCount = 0, nHomTHetCount = 0, count = 0;
-//		
-//		
-//		for (Entry<ChrPosition, IlluminaRecord> entry : normalIlluminaMap.entrySet()) {
-//			
-//			ChrPosition cp = entry.getKey();
-//			IlluminaRecord normalRec = entry.getValue();
-//			
-//			// get tumour equivalent
-//			IlluminaRecord tumourRec = tumourIlluminaMap.get(cp);
-//			
-//			if (null == tumourRec) {
-//				// only care about positions that have matching N&T illumina records
-//				continue;
-//			}
-//			count++;
-//			
-//			char nC1 = normalRec.getFirstAllele();
-//			char nC2 = normalRec.getSecondAllele();
-//			char tC1 = tumourRec.getFirstAllele();
-//			char tC2 = tumourRec.getSecondAllele();
-//			
-//			if (isHeterozygous(nC1, nC2) && isHeterozygous(tC1, tC2)) {
-//				// both are het
-//				bothHetCount ++ ;
-//			} else if (isHeterozygous(nC1, nC2)) {
-//				// normal is het, tumour is hom
-//				nHetTHomCount++;
-//			} else if (isHeterozygous(tC1, tC2)) {
-//				// normal is hom, tumour is het
-//				nHomTHetCount++;
-//			} else {
-//				// both hom
-//				bothHomCount++;
-//			}
-//		}
-//		
-//		logger.info("STATS:");
-//		logger.info("bothHetCount: " + bothHetCount + ", bothHomCount: " + bothHomCount + ", nHetTHomCount: " + nHetTHomCount
-//				+ ", nHomTHetCount: " + nHomTHetCount + ", totalCount: " + count);
-//		
-//	}
-	
-	public static final boolean isHeterozygous(char c1, char c2) {
-		return c1 != c2;
-	}
-	
 	
 	static void loadIlluminaData(File illuminaFile, Map<ChrPosition, IlluminaRecord> illuminaMap) throws IOException {
-		IlluminaFileReader reader = new IlluminaFileReader(illuminaFile);
-		IlluminaRecord tempRec;
-		try {
+		
+		try (IlluminaFileReader reader = new IlluminaFileReader(illuminaFile);) {
+			IlluminaRecord tempRec;
 			for (Record rec : reader) {
 				tempRec = (IlluminaRecord) rec;
 				
 				// only interested in illumina data if it has a gc score above 0.7, and a valid chromosome
-//				if (tempRec.getGCScore() >= 0.7f ) {
+				// get XY, 0 for chromosome
+				// ignore chromosome 0, and for XY, create 2 records, one for each!
+				
+				if (null != tempRec.getChr() && ! "0".equals(tempRec.getChr()) && tempRec.getGCScore() > 0.6999 ) {
 					
-					//get XY, 0 for chromosome
-					// ignore chromosome 0, and for XY, create 2 records, one for each!
-					if (null != tempRec.getChr() && ! "0".equals(tempRec.getChr()) && tempRec.getGCScore() > 0.6999 ) {
-						
-						if ("XY".equals(tempRec.getChr())) {
-							// add both X and Y to map
-							illuminaMap.put(ChrPointPosition.valueOf("chrX", tempRec.getStart()), tempRec);
-							illuminaMap.put(ChrPointPosition.valueOf("chrY", tempRec.getStart()), tempRec);
-							continue;
-						}
-						
-						// Illumina record chromosome does not contain "chr", whereas the positionRecordMap does - add
-						illuminaMap.put(ChrPointPosition.valueOf("chr" + tempRec.getChr(), tempRec.getStart()), tempRec);
+					if ("XY".equals(tempRec.getChr())) {
+						// add both X and Y to map
+						illuminaMap.put(ChrPointPosition.valueOf("chrX", tempRec.getStart()), tempRec);
+						illuminaMap.put(ChrPointPosition.valueOf("chrY", tempRec.getStart()), tempRec);
+						continue;
 					}
-//				}
+					
+					// Illumina record chromosome does not contain "chr", whereas the positionRecordMap does - add
+					illuminaMap.put(ChrPointPosition.valueOf("chr" + tempRec.getChr(), tempRec.getStart()), tempRec);
+				}
 			}
-		} finally{
-			reader.close();
 		}
 	}
 	
@@ -255,15 +192,6 @@ public class CompareIlluminaData {
 					if ( ! FileUtils.canFileBeRead(cmdLineInputFiles[i])) {
 						throw new QSignatureException("INPUT_FILE_READ_ERROR" , cmdLineInputFiles[i]);
 					}
-				}
-			}
-			
-			// check supplied output files can be written to
-			if (null != options.getOutputFileNames()) {
-				cmdLineOutputFiles = options.getOutputFileNames();
-				for (String outputFile : cmdLineOutputFiles) {
-					if ( ! FileUtils.canFileBeWrittenTo(outputFile))
-						throw new QSignatureException("OUTPUT_FILE_WRITE_ERROR", outputFile);
 				}
 			}
 			
