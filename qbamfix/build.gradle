@@ -1,4 +1,3 @@
-version = '0.2pre'
 apply plugin: 'application'
 
 mainClassName = 'org.qcmg.qbamfix.Main'
