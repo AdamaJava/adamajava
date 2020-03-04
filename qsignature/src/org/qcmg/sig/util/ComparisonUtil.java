@@ -22,9 +22,7 @@ import gnu.trove.map.hash.TIntShortHashMap;
 
 public class ComparisonUtil {
 	
-	public static final int MINIMUM_NO_OF_CALCULATIONS = 25000;
 	private static final QLogger logger = QLoggerFactory.getLogger(ComparisonUtil.class);
-	
 	
 	public static String getComparisonsBody(List<Comparison> comparisons) {
 		if (null == comparisons || comparisons.isEmpty()) {
@@ -53,10 +51,9 @@ public class ComparisonUtil {
 		}
 		
 		for (Comparison comp : comparisons) {
-			// only care about comparisons that had a large number of calculations
-//			if (comp.getNumberOfCalculations() < MINIMUM_NO_OF_CALCULATIONS)
-//				continue;
-			if (comp.getScore() > cutoff) return true;
+			if (comp.getScore() > cutoff) {
+				return true;
+			}
 		}
 		return false;
 	}

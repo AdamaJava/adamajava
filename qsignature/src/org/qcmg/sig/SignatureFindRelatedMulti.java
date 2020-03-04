@@ -48,8 +48,11 @@ import org.qcmg.sig.util.SignatureUtil;
  * 
  * 
  * @author o.holmes
+ * 
+ * @deprecated Superseded by Compare
  *
  */
+@Deprecated
 public class SignatureFindRelatedMulti {
 	
 	private static QLogger logger;

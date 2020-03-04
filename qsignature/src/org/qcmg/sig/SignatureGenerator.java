@@ -77,6 +77,7 @@ import htsjdk.samtools.SamReader;
  *
  *@deprecated Superseded by SignatureGeneratorBespoke
  */
+@Deprecated
 public class SignatureGenerator {
 	
 	static QLogger logger;

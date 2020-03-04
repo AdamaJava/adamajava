@@ -50,6 +50,7 @@ import org.w3c.dom.Element;
  * @deprecated Superseded by Compare
  *
  */
+@Deprecated
 public class SignatureCompareRelated {
 	
 	private static QLogger logger;
@@ -251,7 +252,6 @@ public class SignatureCompareRelated {
 			for (String s : suspiciousResults) {
 				logger.info(s);
 			}
-			//email();
 		}
 		
 		if (outputXml != null) {

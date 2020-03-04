@@ -39,7 +39,6 @@ import org.qcmg.tab.TabbedHeader;
 import org.qcmg.tab.TabbedRecord;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-
 /**
  * This was the original compare class.
  * It has now been superseded many times, with the latest "best practice" method being the Compare class.
@@ -50,6 +49,7 @@ import org.w3c.dom.Element;
  *
  *@deprecated
  */
+@Deprecated
 public class QSigCompare {
 	
 	// make static

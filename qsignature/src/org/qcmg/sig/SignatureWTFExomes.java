@@ -49,6 +49,7 @@ import gnu.trove.set.hash.TIntHashSet;
  *
  *@deprecated
  */
+@Deprecated
 public class SignatureWTFExomes {
 	
 	private static QLogger logger;

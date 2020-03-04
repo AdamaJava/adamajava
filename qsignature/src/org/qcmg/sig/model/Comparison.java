@@ -90,15 +90,11 @@ public class Comparison implements Comparable<Comparison> {
 	@Override
 	public int compareTo(Comparison o) {
 		
-		if (score < o.score) {
-			return -1;
+		if (score == o.score) {
+			// scores are equal - check overlapCoverage - greatest coverage wins
+			return overlapCoverage - o.overlapCoverage;
 		}
-		if (score > o.score) {
-			return 1;
-		}
-		
-		// scores are equal - check overlapCoverage - greatest coverage wins
-		return overlapCoverage - o.overlapCoverage;
+		return score > o.score ? 1 : -1;
 	}
 	 
 }

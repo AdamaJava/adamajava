@@ -39,6 +39,7 @@ import gnu.trove.map.hash.THashMap;
  *
  *@deprecated Superseded by Compare
  */
+@Deprecated
 public class SignatureCompareRelatedSimple {
 	
 	private static QLogger logger;

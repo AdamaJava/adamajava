@@ -45,6 +45,7 @@ import org.qcmg.sig.util.SignatureUtil;
  * @deprecated Superseded by Compare
  *
  */
+@Deprecated
 public class SignatureFindRelated {
 	
 	private static QLogger logger;

@@ -51,6 +51,7 @@ import org.w3c.dom.Element;
  * 
  * @deprecated
  */
+@Deprecated
 public class QSigCompareDistance {
 	
 	private static QLogger logger;
