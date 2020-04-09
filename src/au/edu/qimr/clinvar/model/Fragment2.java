@@ -11,13 +11,10 @@ public class Fragment2 implements Comparable<Fragment2> {
 	private ChrPosition cp;
 	private boolean actualLocationSet = false;
 	private boolean fs = true;
-	
-//	private final TIntArrayList fsReadPositions = new TIntArrayList(2);
-//	private final TIntArrayList rsReadPositions = new TIntArrayList(2);
-	private final TIntArrayList readPositions = new TIntArrayList(2);
+	private final TIntArrayList readPositions = new TIntArrayList();
 	
 	private String [] smithWatermanDiffs;
-	private final TIntArrayList overlapDistribution = new TIntArrayList(2);
+	private final TIntArrayList overlapDistribution = new TIntArrayList();
 	
 	public Fragment2(int id,String sequence) {
 		this.id = id;
@@ -35,13 +32,6 @@ public class Fragment2 implements Comparable<Fragment2> {
 		readPositions.add(pos);
 	}
 	
-//	public void setForwardStrandCount(TIntArrayList headers) {
-//		this.fsReadPositions.addAll(headers);
-//	}
-//	public void setReverseStrandCount(TIntArrayList rsHead) {
-//		this.rsReadPositions.addAll(rsHead);
-//	}
-	
 	public void setSWDiffs(String [] diffs) {
 		this.smithWatermanDiffs = diffs;
 	}
@@ -56,15 +46,6 @@ public class Fragment2 implements Comparable<Fragment2> {
 	public int getLength() {
 		return fragment.length();
 	}
-	
-//	public int getRecordCount() {
-//		return getFsCount() + getRsCount();
-//	}
-//	
-//	public boolean onBothStrands() {
-//		return getFsCount() > 0 && getRsCount() > 0;
-//	}
-
 
 	@Override
 	public int compareTo(Fragment2 b) {
@@ -90,14 +71,6 @@ public class Fragment2 implements Comparable<Fragment2> {
 		return readPositions.size();
 	}
 
-//	public int getFsCount() {
-//		return fsReadPositions.size() ;
-//	}
-//
-//	public int getRsCount() {
-//		return rsReadPositions.size() ;
-//	}
-	
 	public TIntArrayList getOverlapDistribution() {
 		return overlapDistribution;
 	}
