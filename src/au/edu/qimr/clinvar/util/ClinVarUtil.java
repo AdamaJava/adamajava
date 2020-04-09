@@ -478,7 +478,7 @@ public class ClinVarUtil {
 	public static int getSmithWatermanScore(String [] diffs) {
 		int score = -1;
 		if (null != diffs && diffs.length == 3) {
-			score = StringUtils.countMatches(diffs[1], '|');
+			score = StringUtils.countMatches(diffs[1], "|");
 		}
 		return score;
 	}
