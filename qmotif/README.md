@@ -35,3 +35,6 @@ Tool that runs against a BAM file searching for user-specified motifs
             -o /mydata/bamFile.telomere.bam
   ```
   Outputs are written to the files specified by the `output (o)` options.
+
+## More details
+More details can be found in the [qmotif](https://github.com/AdamaJava/adamajava/wiki/qMotif)  wiki page.
