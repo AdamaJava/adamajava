@@ -624,6 +624,69 @@ public class ClinVarUtil {
 		return mutations;
 	}
 	
+	public static List<String> getPositionRefAndAltFromSWNew(String [] smithWatermanDiffs) {
+		List<String> mutations = new ArrayList<>();
+		
+		String refSeq = smithWatermanDiffs[0];
+		String diffs = smithWatermanDiffs[1];
+		String binSeq = smithWatermanDiffs[2];
+		
+		
+		if (null != diffs && ! diffs.isEmpty()) {
+			
+			if (diffs.charAt(0) == ' ') {
+				logger.warn("First char in diffs string is empty string!!!");
+			}
+			int position = 0;
+			int span = 0;
+			int indelStartPosDiff = 0;
+			int indelStartPosRef = 0;
+			int insertionBaseCount = 0;
+			for (char c : diffs.toCharArray()) {
+				if (c != ' ') {
+					if (span > 0) {
+						// create indel
+						
+						int start = Math.max(0, indelStartPosDiff - 1);
+						String ref = refSeq.substring(start, indelStartPosDiff + span);
+						String alt = binSeq.substring(start, indelStartPosDiff + span);
+						mutations.add((indelStartPosRef - 1) + Constants.COLON_STRING +  StringUtils.remove(ref, Constants.MINUS) + Constants.SLASH_STRING +  StringUtils.remove(alt, Constants.MINUS));
+						// reset span
+						span = 0;
+					}
+					if (c == '.') {
+						// snp
+						char ref = refSeq.charAt(position);
+						char alt = binSeq.charAt(position);
+						mutations.add(((position - insertionBaseCount) + Constants.COLON_STRING +  ref + Constants.SLASH_STRING + alt));
+					}
+					
+				} else {
+					if (span == 0) {
+						indelStartPosRef = position - insertionBaseCount;
+						indelStartPosDiff = position;
+					}
+					span++;
+					// indel
+					// if this is an insertion, update insertionBaseCount
+					if (refSeq.charAt(position) == '-') {
+						insertionBaseCount++;
+					}
+				}
+				position++;
+			}
+			if (span > 0) {
+				// create indel
+				
+				int start = Math.max(0, indelStartPosDiff - 1);
+				String ref = refSeq.substring(start, indelStartPosDiff + span);
+				String alt = binSeq.substring(start, indelStartPosDiff + span);
+				mutations.add((indelStartPosRef - 1) + Constants.COLON_STRING +  StringUtils.remove(ref, Constants.MINUS) + Constants.SLASH_STRING +  StringUtils.remove(alt, Constants.MINUS));
+			}
+		}
+		return mutations;
+	}
+	
 	public static List<Probe> getAmpliconsOverlappingPosition(ChrPosition cp, Set<Probe> probes) {
 		if (null == cp) {
 			throw new IllegalArgumentException("Null ChrPosition object passed to CLinVarUtil.getAmpliconsOverlappingPosition");
@@ -1531,7 +1594,7 @@ public class ClinVarUtil {
 	 * @param vcf
 	 * @param ampliconMap
 	 */
-	public static void getCoverageStatsForVcf(VcfRecord vcf, Map<String, Map<Contig, List<Fragment2>>> contigAmpliconMap, StringBuilder fb, StringBuilder xFb) {
+	public static void getCoverageStatsForVcf(VcfRecord vcf, Map<String, Map<Contig, List<Fragment2>>> contigAmpliconMap, StringBuilder fb, StringBuilder xFb, int [] altAndTotalCoverage) {
 		if (null == vcf) throw new IllegalArgumentException("Null VcfRecord passed to ClinVarUitl.getCoverageStringAtPosition");
 		if (null == contigAmpliconMap) throw new IllegalArgumentException("Null ampliconMap passed to ClinVarUitl.getCoverageStringAtPosition");
 		
@@ -1542,31 +1605,33 @@ public class ClinVarUtil {
 		
 		ChrPosition cp  = vcf.getChrPosition();
 		int length = vcf.getRef().length();
-		Map<Contig, List<Fragment2>>ampliconMap = contigAmpliconMap.get(cp.getChromosome());
+		Map<Contig, List<Fragment2>> ampliconMap = contigAmpliconMap.get(cp.getChromosome());
 		
-		ampliconMap.entrySet().stream()
-			.filter(entry -> ChrPositionUtils.isChrPositionContained(entry.getKey().getPosition(), cp))
-			.forEach(entry -> {
-				ampliconCount.incrementAndGet();
-				entry.getValue().stream()
-				.filter(f -> f.getPosition() != null)
-				.filter(f -> ChrPositionUtils.isChrPositionContained(f.getPosition(), cp))
-				.forEach(f -> {
-					Optional<String> bases = FragmentUtil.getBasesAtPosition(cp, f, length);
-					bases.ifPresent(s -> {Pair<AtomicInteger, AtomicInteger> p = baseDist.computeIfAbsent(s, k ->new Pair<>(new AtomicInteger(), new AtomicInteger()));
-						p.getLeft().addAndGet(f.isForwardStrand() ? f.getRecordCount() : 0);
-						p.getRight().addAndGet( ! f.isForwardStrand() ? f.getRecordCount() : 0);
-						
-						fragmentCount.incrementAndGet();
-						readCount.addAndGet(f.getRecordCount());});
-//					Pair<AtomicInteger, AtomicInteger> p = baseDist.computeIfAbsent(bases., k ->new Pair<>(new AtomicInteger(), new AtomicInteger()));
-//					p.getLeft().addAndGet(f.getFsCount());
-//					p.getRight().addAndGet(f.getRsCount());
-//					
-//					fragmentCount.incrementAndGet();
-//					readCount.addAndGet(f.getRecordCount());
+		if (null != ampliconMap) {
+			ampliconMap.entrySet().stream()
+				.filter(entry -> ChrPositionUtils.isChrPositionContained(entry.getKey().getPosition(), cp))
+				.forEach(entry -> {
+					ampliconCount.incrementAndGet();
+					entry.getValue().stream()
+					.filter(f -> f.getPosition() != null)
+					.filter(f -> ChrPositionUtils.isChrPositionContained(f.getPosition(), cp))
+					.forEach(f -> {
+						Optional<String> bases = FragmentUtil.getBasesAtPosition(cp, f, length);
+						bases.ifPresent(s -> {Pair<AtomicInteger, AtomicInteger> p = baseDist.computeIfAbsent(s, k ->new Pair<>(new AtomicInteger(), new AtomicInteger()));
+							p.getLeft().addAndGet(f.isForwardStrand() ? f.getRecordCount() : 0);
+							p.getRight().addAndGet( ! f.isForwardStrand() ? f.getRecordCount() : 0);
+							
+							fragmentCount.incrementAndGet();
+							readCount.addAndGet(f.getRecordCount());});
+	//					Pair<AtomicInteger, AtomicInteger> p = baseDist.computeIfAbsent(bases., k ->new Pair<>(new AtomicInteger(), new AtomicInteger()));
+	//					p.getLeft().addAndGet(f.getFsCount());
+	//					p.getRight().addAndGet(f.getRsCount());
+	//					
+	//					fragmentCount.incrementAndGet();
+	//					readCount.addAndGet(f.getRecordCount());
+					});
 				});
-			});
+		}
 		
 		String oabs =  Constants.MISSING_DATA_STRING;
 //		String oabs =  baseDist.entrySet().stream().filter(e -> e.getKey() != null).sorted((e1,e2) -> e1.getKey().compareTo(e2.getKey())).map(e -> e.getKey() + e.getValue().getLeft().get() + "[]" + e.getValue().getRight().get() + "[]").collect(Collectors.joining(Constants.COMMA_STRING));
@@ -1580,17 +1645,36 @@ public class ClinVarUtil {
 		 * update vcf record in place
 		 */
 		List<String> ff = new ArrayList<>(3);
-		ff.add("DP:FB:MR:OABS" + (xFb.length() == 0 ? "" : ":XFB"));
-		ff.add(readCount + Constants.COLON_STRING 
-				+ fb.toString() + "/" + ampliconCount.get() + Constants.COMMA_STRING + fragmentCount.get() + Constants.COMMA_STRING + readCount.get() + Constants.COLON_STRING
-				+mrCount  + Constants.COLON_STRING
-				+ oabs +  (xFb.length() == 0 ? "" :(Constants.COLON_STRING + xFb.toString())));
+		ff.add("GT:AD:DP:FB:MR:OABS" + (xFb.length() == 0 ? "" : ":XFB"));
+		if (0 == readCount.get()) {
+			ff.add(".:.:.:.:.:.");
+		} else {
+			ff.add(getGT(altAndTotalCoverage) + Constants.COLON_STRING		// GT
+					+ (altAndTotalCoverage[1] - altAndTotalCoverage[0]) + Constants.COMMA_STRING + altAndTotalCoverage[0] + Constants.COLON_STRING	//AD
+					+ readCount.get() + Constants.COLON_STRING 				//DP
+					+ fb.toString() + "/" + ampliconCount.get() + Constants.COMMA_STRING + fragmentCount.get() + Constants.COMMA_STRING + readCount.get() + Constants.COLON_STRING	//FB
+					+ mrCount + Constants.COLON_STRING						//MR
+					+ oabs +  (xFb.length() == 0 ? "" :(Constants.COLON_STRING + xFb.toString())));	//XFB
+		}
 		vcf.setFormatFields(ff);
 ////		ff.add(mutationFragmentsDetails.toString() + "/" + ClinVarUtil.getCoverageStringAtPosition(entry.getKey().getChrPosition(), ampliconFragmentMap));
 //		entry.getKey().setFormatFields(ff);
 		
 //		return ampliconCount.get() + Constants.COMMA_STRING + fragmentCount.get() + Constants.COMMA_STRING + readCount.get();
 	}
+	
+	public static String getGT(int [] altAndTotalCoverage) {
+		double altPercentage = altAndTotalCoverage[1] > 0 ? ((double)altAndTotalCoverage[0] / altAndTotalCoverage[1]) : 0.0;
+		
+		if (altPercentage >= 0.7500000) {
+			return "1/1";
+		} else if (altPercentage >= 0.1000) {
+			return "0/1";
+		} else {
+			return "0/0";
+		}
+	}
+	
 	public static String getCoverageStringAtPosition(ChrPosition cp, Map<Contig, List<Fragment>> ampliconMap) {
 		if (null == cp) throw new IllegalArgumentException("Null CP passed to ClinVarUitl.getCoverageStringAtPosition");
 		if (null == ampliconMap) throw new IllegalArgumentException("Null ampliconMap passed to ClinVarUitl.getCoverageStringAtPosition");

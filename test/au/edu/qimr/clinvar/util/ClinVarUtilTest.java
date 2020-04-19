@@ -28,7 +28,10 @@ import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.util.ChrPositionUtils;
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.Pair;
+import org.qcmg.common.vcf.VcfRecord;
+import org.qcmg.common.vcf.VcfUtils;
 
 import au.edu.qimr.clinvar.model.Contig;
 import au.edu.qimr.clinvar.model.Bin;
@@ -140,6 +143,49 @@ public class ClinVarUtilTest {
 		
 		cp = ChrPointPosition.valueOf("1", 102);
 		assertEquals("2,2,13", ClinVarUtil.getCoverageStringAtPosition(cp, map));
+	}
+	
+	@Test
+	public void vcfRecordFormatField() {
+		Map<String, Map<Contig, List<Fragment2>>> contigAmpliconMap = new HashMap<>();
+		VcfRecord vcf = VcfUtils.createVcfRecord(new ChrPointPosition("chr1", 12345), ".", "A", "C");
+		ClinVarUtil.getCoverageStatsForVcf(vcf, contigAmpliconMap, new StringBuilder(), new StringBuilder(), new int[] {10,99});
+		assertEquals("GT:AD:DP:FB:MR:OABS	.:.:.:.:.:.", vcf.getFormatFieldStrings());
+		
+		
+		Map<Contig, List<Fragment2>> contig = new HashMap<>();
+		Fragment2 fragment = new Fragment2(1, "CCCCCCCCCCCCCCCCCCCC");
+		contig.put(new Contig(1, new ChrRangePosition("chr1", 12300, 12700)), Arrays.asList(fragment));
+		contigAmpliconMap.put("chr1", contig);
+		
+		/*
+		 * reset vcf record
+		 */
+		vcf = VcfUtils.createVcfRecord(new ChrPointPosition("chr1", 12345), ".", "A", "C");
+		ClinVarUtil.getCoverageStatsForVcf(vcf, contigAmpliconMap, new StringBuilder(), new StringBuilder(), new int[] {10,99});
+		assertEquals("GT:AD:DP:FB:MR:OABS	.:.:.:.:.:.", vcf.getFormatFieldStrings());
+		
+		/*
+		 * need to activate the fragment by setting position
+		 */
+		fragment.setPosition(new ChrPointPosition("chr1", 12345), true);
+		vcf = VcfUtils.createVcfRecord(new ChrPointPosition("chr1", 12345), ".", "A", "C");
+		ClinVarUtil.getCoverageStatsForVcf(vcf, contigAmpliconMap, new StringBuilder(), new StringBuilder(), new int[] {10,99});
+		assertEquals("GT:AD:DP:FB:MR:OABS	.:.:.:.:.:.", vcf.getFormatFieldStrings());
+		
+		/*
+		 * add some start positions
+		 */
+		fragment.addPosition(12345);
+		fragment.addPosition(12345);
+		fragment.addPosition(12345);
+		fragment.addPosition(12345);
+		fragment.addPosition(12345);
+		fragment.addPosition(12345);
+		vcf = VcfUtils.createVcfRecord(new ChrPointPosition("chr1", 12345), ".", "A", "C");
+		ClinVarUtil.getCoverageStatsForVcf(vcf, contigAmpliconMap, new StringBuilder(), new StringBuilder(), new int[] {10,99});
+//		assertEquals("GT:AD:DP:FB:MR:OABS	0/1:89,10:6/1,1,6:6:.", vcf.getFormatFieldStrings());
+		
 	}
 	
 	@Test
@@ -831,6 +877,32 @@ ACATTTCTATGGC	88793688,230131955,278981127,289687136,330071289,335353241,3486861
 		p = mutations.get(3);
 		assertEquals(Integer.valueOf(6), p.getLeft());
 		assertEquals("G/T", p.getRight());
+	}
+	
+	@Test
+	public void getMutationFromSWDataMultipleMutNew() {
+		String [] swData = new String[3];
+		swData[0] = "ACGTACGT";
+		swData[1] = "|..||..|";
+		swData[2] = "ATTTAGTG";
+		
+		List<String> mutations = ClinVarUtil.getPositionRefAndAltFromSWNew(swData);
+		assertEquals(4, mutations.size());
+		String p = mutations.get(0);
+		assertEquals("1", p.substring(0, p.indexOf(Constants.COLON_STRING)));
+		assertEquals("C/T", p.substring(p.indexOf(Constants.COLON_STRING) + 1));
+		
+		p = mutations.get(1);
+		assertEquals("2", p.substring(0, p.indexOf(Constants.COLON_STRING)));
+		assertEquals("G/T", p.substring(p.indexOf(Constants.COLON_STRING) + 1));
+		
+		p = mutations.get(2);
+		assertEquals("5", p.substring(0, p.indexOf(Constants.COLON_STRING)));
+		assertEquals("C/G",  p.substring(p.indexOf(Constants.COLON_STRING) + 1));
+		
+		p = mutations.get(3);
+		assertEquals("6", p.substring(0, p.indexOf(Constants.COLON_STRING)));
+		assertEquals("G/T", p.substring(p.indexOf(Constants.COLON_STRING) + 1));
 	}
 	
 	@Test

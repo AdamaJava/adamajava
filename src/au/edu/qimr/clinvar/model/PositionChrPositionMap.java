@@ -11,6 +11,7 @@ import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.util.ChrPositionUtils;
+import org.qcmg.common.util.Constants;
 
 public class PositionChrPositionMap {
 	
@@ -23,7 +24,7 @@ public class PositionChrPositionMap {
 	public void loadMap(List<String> chrPosStartPos) {
 		for (String s : chrPosStartPos) {
 			if (s.startsWith("##chr") || s.startsWith("##GL000")) {
-				String [] params = s.substring(2).split(":");
+				String [] params = s.substring(2).split(Constants.COLON_STRING);
 				int chrLength = Integer.parseInt(params[1]);
 				long startOffset = Long.parseLong(params[2]);
 				ChrPosition cp = new ChrRangePosition(params[0], 1, chrLength);

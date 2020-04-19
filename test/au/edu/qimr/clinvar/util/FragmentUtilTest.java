@@ -39,9 +39,17 @@ public class FragmentUtilTest {
 		ChrPosition cp = new ChrPointPosition("chr13", 28610098);
 		ChrPosition fCp = new ChrRangePosition("chr13", 28610098, 28610267);
 		Fragment2 f = new Fragment2(1, "CCAGGTCCAAGATGGTAATGGGTATCCATCCGAGAAACAGGACGCCTGACTTGCCGATGCTTCAGCGAGCACTTGAGGTTTCCCTGTAGAGAAGAACGTGTGAAATAAGCTCACTGGCTGGGCATAGTGGTTCACTCCTATAATACCAATACTTTGTGAAGCCAAGGTGG");
-		f.setPosition(fCp, true);;
+		f.setPosition(fCp, true);
 		
 		assertEquals("C", FragmentUtil.getBasesAtPosition(cp, f, 1).get());
+		assertEquals("CC", FragmentUtil.getBasesAtPosition(cp, f, 2).get());
+		assertEquals("CCA", FragmentUtil.getBasesAtPosition(cp, f, 3).get());
+		assertEquals("CCAG", FragmentUtil.getBasesAtPosition(cp, f, 4).get());
+		
+		assertEquals("G", FragmentUtil.getBasesAtPosition(new ChrPointPosition("chr13", 28610267), f, 1).get());
+		assertEquals(false, FragmentUtil.getBasesAtPosition(new ChrPointPosition("chr13", 28610267), f, 2).isPresent());	// off the edge of the fragment cp
+		assertEquals("GG", FragmentUtil.getBasesAtPosition(new ChrPointPosition("chr13", 28610266), f, 2).get());
+		assertEquals("GGTGG", FragmentUtil.getBasesAtPosition(new ChrPointPosition("chr13", 28610263), f, 5).get());
 	}
 	
 	@Test

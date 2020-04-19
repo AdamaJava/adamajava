@@ -12,6 +12,7 @@ import org.qcmg.qmule.SmithWatermanGotoh;
 
 import au.edu.qimr.clinvar.util.ClinVarUtil;
 import au.edu.qimr.clinvar.util.FragmentUtil;
+import au.edu.qimr.clinvar.util.PanelUtil;
 
 public class ClinVarTest {
 	
@@ -272,7 +273,7 @@ public class ClinVarTest {
 		Optional<String> basicOverlap = null;
 		long start = System.currentTimeMillis();
 		for (int i = 0 ; i < 1000 ; i++) {
-			basicOverlap = Q3Panel.createBasicFragment(s1, s2RevComp, 10);
+			basicOverlap = PanelUtil.createBasicFragment(s1, s2RevComp, 10);
 		}
 		System.out.println("time for basic: " + (System.currentTimeMillis() - start));
 		/*

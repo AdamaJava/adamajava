@@ -1,5 +1,6 @@
 package au.edu.qimr.clinvar.util;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.qcmg.common.log.QLogger;
@@ -49,6 +50,23 @@ public class FragmentUtil {
 			
 			return Optional.empty();
 		}
+	}
+	
+	/**
+	 * given a list of Fragment2 object, this method will return an int array which will have the 
+	 * forward strand record count as the first array element, 
+	 * and the reverse strand count as the second array element
+	 * @param fragments
+	 * @return
+	 */
+	public static int[] getCountsFromFragments(List<Fragment2> fragments) {
+		int [] counts = new int[2];
+		if (null != fragments) {
+			for (Fragment2 f : fragments) {
+				counts[f.isForwardStrand() ? 0 : 1] += f.getRecordCount();
+			}
+		}
+		return counts;
 	}
 
 }

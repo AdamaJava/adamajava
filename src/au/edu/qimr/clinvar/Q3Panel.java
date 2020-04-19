@@ -27,6 +27,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -92,12 +93,13 @@ import au.edu.qimr.clinvar.model.PositionChrPositionMap;
 import au.edu.qimr.clinvar.model.ReadOneTwoPosition;
 import au.edu.qimr.clinvar.util.ClinVarUtil;
 import au.edu.qimr.clinvar.util.FragmentUtil;
+import au.edu.qimr.clinvar.util.PanelUtil;
 
 public class Q3Panel {
 	
 	private static final Comparator<ChrPosition> COMPARATOR = new ChrPositionComparator();
 	
-	private static QLogger logger;
+	public static QLogger logger;
 	private static final int TILE_SIZE = 13;
 	private static final char [] AT = new char[]{'A','T'};
 	private static final String POISON_STRING = "the end";
@@ -136,6 +138,8 @@ public class Q3Panel {
 	final AtomicInteger outputMutations = new AtomicInteger();
 	
 	private boolean runExtendedFB = false;
+	
+	private boolean singleSampleMode = false;
 
 	
 //	private final Map<String, TIntArrayList> reads = new THashMap<>(1024 * 1024);
@@ -152,6 +156,7 @@ public class Q3Panel {
 //	private final Map<String, RawFragment> rawFragments = new ConcurrentHashMap<>(1024 * 1024);
 	private final Map<String, Fragment2> frags = new ConcurrentHashMap<>(1024 * 1024);
 	
+	private final Map<ChrPosition, Map<String, List<Fragment2>>> variants = new THashMap<>();
 	private final Map<VcfRecord, List<int[]>> vcfFragmentMap = new THashMap<>();
 	private final List<VcfRecord> filteredMutations = new ArrayList<>();
 	
@@ -174,7 +179,7 @@ public class Q3Panel {
 		readFastqsCreateFrags();
 		
 		/*
-		 * remove fragments with less than the minFragmentSeize number of records
+		 * remove fragments with less than the minFragmentSize number of records
 		 */
 		removeFragsMatchingLambda((e) -> e.getValue().getRecordCount() < minFragmentSize);
 		
@@ -204,6 +209,11 @@ public class Q3Panel {
 		logger.info("number of mutations created: " + vcfFragmentMap.size());
 		filterAndAnnotateMutations();
 		logger.info("number of filtered mutations remaining: " + filteredMutations.size());
+		
+		List<VcfRecord> vcfs = new ArrayList<>();
+		PanelUtil.createVcfRecordFromVariantMap(variants, contigFragmentMap, vcfs, minReadPercentage);
+		writeMutationsToFileNew(vcfs);
+		
 		writeMutationsToFile();
 		writeXml();
 		writeBam();
@@ -225,32 +235,19 @@ public class Q3Panel {
 		logger.info("in removeFragsMatchingLambda - DONE.  frags size: " + frags.size());
 	}
 	
-	public static Optional<String> createBasicFragment(String s1, String s2, int minOverlap) {
-		String s1End = s1.substring(s1.length() - minOverlap);
-		int index = s2.indexOf(s1End);
-		if (index > -1) {
-			/*
-			 * create overlap string
-			 */
-			return Optional.ofNullable(s1 + s2.substring(index + minOverlap));
-		} else {
-			/*
-			 * try s2End
-			 */
-			String s2End = s2.substring(s2.length() - minOverlap);
-			index = s1.indexOf(s2End);
-			if (index > -1) {
-				/*
-				 * create overlap string
-				 */
-				return Optional.ofNullable(s2 + s1.substring(index + minOverlap));
+	private void readFastqsCreateFrags() {
+		
+		/*
+		 * check to see if we are single sample mode - ie. both R1 and R2 are the same
+		 */
+		for (int i = 0 ; i < fastqR1Files.size() ; i++) {
+			String fq1 = fastqR1Files.get(i);
+			String fq2 = fastqR2Files.get(i);
+			
+			if (fq1.equals(fq2)) {
+				singleSampleMode = true;
 			}
 		}
-		
-		return Optional.empty();
-	}
-
-	private void readFastqsCreateFrags() {
 		
 		/*
 		 * setup an execution service - hard code thread count for now
@@ -282,35 +279,32 @@ public class Q3Panel {
 						if (++counter % 1000000 == 0) {
 							logger.info("hit: " + (counter / 1000000) +"M SW's... basicMatchCount: " + basicMatchCount);
 						}
-						String r2RevComp = SequenceUtil.reverseComplement(r2);
+						String r2RevComp = singleSampleMode ? r2 : SequenceUtil.reverseComplement(r2);
 						
 						boolean readsAreTheSame = r1.equals(r2RevComp);
 						if (readsAreTheSame) {
-							frags.computeIfAbsent(trimString(r1, trimFromEndsOfReads), v -> new Fragment2(fragmentId.incrementAndGet(), r1)).addPosition(rotp.getPosition());
+							frags.computeIfAbsent(PanelUtil.trimString(r1, trimFromEndsOfReads), v -> new Fragment2(fragmentId.incrementAndGet(), r1)).addPosition(rotp.getPosition());
 						} else {
 							
-							Optional<String> basicFragment = createBasicFragment(r1, r2RevComp, 10);
+							Optional<String> basicFragment = PanelUtil.createBasicFragment(r1, r2RevComp, 10);
 							if (basicFragment.isPresent()) {
 								basicMatchCount++;
-								frags.computeIfAbsent(trimString(basicFragment.get(), trimFromEndsOfReads), v -> new Fragment2(fragmentId.incrementAndGet(), basicFragment.get())).addPosition(rotp.getPosition());
+								frags.computeIfAbsent(PanelUtil.trimString(basicFragment.get(), trimFromEndsOfReads), v -> new Fragment2(fragmentId.incrementAndGet(), basicFragment.get())).addPosition(rotp.getPosition());
 //								readToFragMap.put(s, basicFragment.get());
 							} else {
 						
 								SmithWatermanGotoh nm = new SmithWatermanGotoh(r1, r2RevComp, 5, -4, 16, 4);
 								String [] newSwDiffs = nm.traceback();
-								String overlapMatches = newSwDiffs[1];
-								if (overlapMatches.indexOf(" ") > -1 || overlapMatches.indexOf('.') > -1) {
+								if (newSwDiffs[1].indexOf(" ") > -1 || newSwDiffs[1].indexOf('.') > -1) {
 								} else {
-									String overlap = newSwDiffs[0];
-									int overlapLength = overlapMatches.length();
-									if (overlapLength >= 10 && ! StringUtils.containsOnly(newSwDiffs[0], AT)) {
+									if (newSwDiffs[1].length() >= 10 && ! StringUtils.containsOnly(newSwDiffs[0], AT)) {
 										/*
 										 * Now build fragment
 										 * check to see which read starts with the overlap
 										 */
-										Optional<String> fragment = FragmentUtil.getFragmentString(r1,  r2RevComp, overlap);
+										Optional<String> fragment = FragmentUtil.getFragmentString(r1,  r2RevComp, newSwDiffs[0]);
 										if ( fragment.isPresent()) {
-											frags.computeIfAbsent(trimString(fragment.get(), trimFromEndsOfReads), v -> new Fragment2(fragmentId.incrementAndGet(), fragment.get())).addPosition(rotp.getPosition());
+											frags.computeIfAbsent(PanelUtil.trimString(fragment.get(), trimFromEndsOfReads), v -> new Fragment2(fragmentId.incrementAndGet(), fragment.get())).addPosition(rotp.getPosition());
 //											readToFragMap.put(s, fragment.get());
 										}
 									}
@@ -499,25 +493,6 @@ public class Q3Panel {
 		}
 	}
 
-	public static String trimString(String orig, int trimLength) {
-		if (trimLength <= 0) {
-			return orig;
-		}
-		/*
-		 * want to trim length from the start and end of the original string, so need to make sure that we have enough of orig to be able to do this
-		 */
-		int len = orig.length();
-		if (2 * trimLength >= len) {
-			/*
-			 * there would be no string left if we did this, so just log and return the original string
-			 */
-			logger.warn("in trimString with original string: " + orig + ", and trimLength: " + trimLength);
-			return orig;
-		} else {
-			return orig.substring(trimLength, len - trimLength);
-		}
-	}
-	
 	private void createContigElement(Element contigs, Contig p, List<Fragment2> frags) {
 		Element contig = new Element("Contig");
 		contigs.appendChild(contig);
@@ -788,9 +763,7 @@ public class Q3Panel {
 		int totalCoverage = overlappingFragments.stream()
 				.mapToInt(Fragment2::getRecordCount)
 				.sum();
-		int mutationCoverage = fragmentsCarryingMutation.stream()
-				.mapToInt( i -> i[2])
-				.sum();
+		int mutationCoverage = PanelUtil.getRecordCountFromIntPairs(fragmentsCarryingMutation);
 		
 		/*
 		 * add to format
@@ -800,13 +773,6 @@ public class Q3Panel {
 		double percentage = totalCoverage > 0 ? ((double)mutationCoverage / totalCoverage) * 100 : 0.0;
 		return percentage;
 	}
-	
-	public static int getRecordCountFromIntPairs(List<int[]> list) {
-		return list.stream()
-			.mapToInt(i -> i[2])
-			.sum();
-	}
-	
 	
 	private void writeBam() throws IOException {
 		
@@ -916,39 +882,49 @@ public class Q3Panel {
 		}
 		
 		vcfFragmentMap.entrySet().stream()
-		.filter((entry) -> getRecordCountFromIntPairs(entry.getValue()) >= minBinSize )
-		.filter((entry) -> getMutationCoveragePercentage(entry.getKey(), entry.getValue(), fragsByContig) >= minReadPercentage )
+		.filter((entry) -> PanelUtil.getRecordCountFromIntPairs(entry.getValue()) >= minBinSize )
+//		.filter((entry) -> getMutationCoveragePercentage(entry.getKey(), entry.getValue(), fragsByContig) >= minReadPercentage )
 		.sorted((e1, e2) -> {return e1.getKey().compareTo(e2.getKey());})
 		.forEach(entry -> {
 		
-			final StringBuilder fb = new StringBuilder();
-			final StringBuilder xFb = new StringBuilder();
-			int[] contigIds = new int[entry.getValue().size()];
-			int[] fragmentIds = new int[entry.getValue().size()];
-			AtomicInteger j = new AtomicInteger();
-			AtomicInteger readCount = new AtomicInteger();
-			entry.getValue().stream()
-				.forEach(i -> {
-					if (xFb.length() > 0) {
-						xFb.append(Constants.SEMI_COLON);
-					}
-					readCount.addAndGet(i[2]);
-					contigIds[j.get()] = i[0];
-					fragmentIds[j.getAndIncrement()] = i[2];
-					if (runExtendedFB) {
-						xFb.append(i[0]).append(Constants.COMMA).append(i[1]).append(Constants.COMMA).append(i[2]);
-					}
-				});
-			
-			fb.append(Arrays.stream(contigIds).distinct().count()).append(",");
-			fb.append(Arrays.stream(fragmentIds).distinct().count()).append(",");
-			fb.append(readCount.get());
-			
+			int [] altAndTotalCoverage = PanelUtil.getAltAndTotalCoverage(entry.getKey(), entry.getValue(), fragsByContig);
 			/*
-			 * update vcf format fields with FB
+			 * get percentage of alts from altAndTotalCoverage array and only proceed if we are over the threshold
 			 */
-			ClinVarUtil.getCoverageStatsForVcf(entry.getKey(), contigFragmentMapByContig, fb, xFb);
-			filteredMutations.add(entry.getKey());
+			double altPercentage = altAndTotalCoverage[1] > 0 ? ((double)altAndTotalCoverage[0] / altAndTotalCoverage[1]) * 100 : 0.0;
+			if (altPercentage >= minReadPercentage) {
+			
+				final StringBuilder fb = new StringBuilder();
+				final StringBuilder xFb = new StringBuilder();
+				int[] contigIds = new int[entry.getValue().size()];
+				int[] fragmentIds = new int[entry.getValue().size()];
+				AtomicInteger j = new AtomicInteger();
+				AtomicInteger readCount = new AtomicInteger();
+				entry.getValue().stream()
+					.forEach(i -> {
+						if (xFb.length() > 0) {
+							xFb.append(Constants.SEMI_COLON);
+						}
+						readCount.addAndGet(i[2]);
+						contigIds[j.get()] = i[0];
+						fragmentIds[j.getAndIncrement()] = i[2];
+						if (runExtendedFB) {
+							xFb.append(i[0]).append(Constants.COMMA).append(i[1]).append(Constants.COMMA).append(i[2]);
+						}
+					});
+				
+				fb.append(Arrays.stream(contigIds).distinct().count()).append(",");
+				fb.append(Arrays.stream(fragmentIds).distinct().count()).append(",");
+				fb.append(readCount.get());
+				
+				/*
+				 * update vcf format fields with FB and GT
+				 */
+				
+				
+				ClinVarUtil.getCoverageStatsForVcf(entry.getKey(), contigFragmentMapByContig, fb, xFb, altAndTotalCoverage);
+				filteredMutations.add(entry.getKey());
+			}
 		});
 		
 		
@@ -961,7 +937,8 @@ public class Q3Panel {
 		if ( ! StringUtils.isBlank(cosmicFile)) {
 			AtomicInteger cosmicCount = new AtomicInteger();
 			Map<ChrPosition, List<String[]>> cosmicData = new HashMap<>();
-			try (Stream<String> lines = Files.lines(Paths.get(cosmicFile), Charset.defaultCharset())) {
+			try (Stream<String> lines = PanelUtil.lines(Paths.get(cosmicFile))) {
+//				try (Stream<String> lines = Files.lines(Paths.get(cosmicFile), Charset.defaultCharset())) {
 				cosmicData = lines.filter(s -> ! s.startsWith("Gene name"))
 					.map(s -> TabTokenizer.tokenize(s))
 					.filter(p -> StringUtils.isNotEmpty(p[23]) && cosmicCount.incrementAndGet() > -1)
@@ -1005,7 +982,7 @@ public class Q3Panel {
 				cosmicHeaderDetails.addOrReplace("##INFO=<ID=CG,Number=.,Type=String,Description=\"Gene as reported by Cosmic\">");
 				cosmicHeaderDetails.addOrReplace("##INFO=<ID=CCDS,Number=.,Type=String,Description=\"CDS as reported by Cosmic\">");
 				
-			} catch (IOException e) {
+			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
@@ -1173,6 +1150,53 @@ public class Q3Panel {
 		}
 	}
 	
+	private void writeMutationsToFileNew(List<VcfRecord> vcfs) throws IOException {
+		String filename = outputFileNameBase + "_2.vcf";
+		try (VCFFileWriter writer = new VCFFileWriter(new File(filename))) {
+			
+			/*
+			 * Setup the VcfHeader
+			 */
+			final DateFormat df = new SimpleDateFormat("yyyyMMdd");
+			String date = df.format(Calendar.getInstance().getTime());
+			
+			header.addOrReplace(VcfHeaderUtils.CURRENT_FILE_FORMAT);		
+			header.addOrReplace(VcfHeaderUtils.STANDARD_FILE_DATE + "=" + date);		
+			header.addOrReplace(VcfHeaderUtils.STANDARD_UUID_LINE + "=" + QExec.createUUid());		
+			header.addOrReplace(VcfHeaderUtils.STANDARD_TEST_SAMPLE + "=sample1");		
+			VcfHeaderUtils.addQPGLine(header,1, "Q3Panel", exec.getToolVersion().getValue(), exec.getCommandLine().getValue(), date);
+			header.addFormat(VcfHeaderUtils.FORMAT_READ_DEPTH, ".","Integer",VcfHeaderUtils.FORMAT_READ_DEPTH_DESCRIPTION);
+			header.addFormat(VcfHeaderUtils.FORMAT_GENOTYPE, ".","String",VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS);
+			header.addFormat(VcfHeaderUtils.FORMAT_ALLELIC_DEPTHS, ".","String",VcfHeaderUtils.FORMAT_AD_DESC);
+			header.addFormat(VcfHeaderUtils.FORMAT_READ_DEPTH, ".","String",VcfHeaderUtils.FORMAT_READ_DEPTH_DESCRIPTION);
+			header.addFormat("FB", ".","String","Sum of contigs supporting the alt,sum of fragments supporting the alt,sum of read counts supporting the alt");
+			header.addFormat("FT", ".","String","Filters that have been applied to the sample");
+			header.addFormat(VcfHeaderUtils.FORMAT_MUTANT_READS, ".","Integer",VcfHeaderUtils.FORMAT_MUTANT_READS_DESC);
+			header.addFormat(VcfHeaderUtils.FORMAT_OBSERVED_ALLELES_BY_STRAND, ".","String",VcfHeaderUtils.FORMAT_OBSERVED_ALLELES_BY_STRAND_DESC);
+			header.addFormat("XFB", ".","String","Breakdown of Contig ids, Fragment ids and read counts supporting this mutation, along with total counts of contig, fragment, and reads for all reads at that location in the following format: ContigId,FragmentId,readCount;[...] / Sum of contigs at this position,sum of fragments at this position,sum of read counts at this position");//			header.addFormatLine(SnpUtils.END_OF_READ, ".","String","Indicates that the mutation occurred within the first or last 5 bp of all the reads contributing to the mutation. ");
+			header.addFilter(SnpUtils.END_OF_READ, "Indicates that the mutation occurred within the first or last 5 bp of all the reads contributing to the mutation");
+			header.addOrReplace(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "sample1");
+			header = VcfHeaderUtils.mergeHeaders(header, dbSnpHeaderDetails, true);
+			header = VcfHeaderUtils.mergeHeaders(header, cosmicHeaderDetails, true);
+			
+			
+			Iterator<VcfHeaderRecord> iter = header.iterator();
+			while (iter.hasNext()) {
+				writer.addHeader(iter.next().toString() );
+			}
+			vcfs.stream()
+			.sorted((e1, e2) -> {return e1.compareTo(e2);})
+			.forEach(entry -> {
+				try {
+					writer.add(entry);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			});
+			logger.info("number of mutations written to file (" + filename + "): " + vcfs.size());
+		}
+	}
+	
 	private List<Fragment2> getOverlappingFragments(ChrPosition cp) {
 		return frags.values().stream()
 				.filter(frag -> null != frag.getPosition())
@@ -1219,7 +1243,7 @@ public class Q3Panel {
 							String fragString = f.isForwardStrand() ? f.getSequence() : SequenceUtil.reverseComplement(f.getSequence());
 							int index = bufferedReference.indexOf(fragString);
 							if (index > -1) {
-								setActualCP(bufferedCP, index, f, fragString.length());
+								PanelUtil.setActualCP(bufferedCP, index, f, fragString.length());
 								actualCPReadCount.addAndGet(f.getRecordCount());
 								noOfExactMatches.incrementAndGet();
 								/*
@@ -1245,7 +1269,7 @@ public class Q3Panel {
 									String swRefMinusDeletions = StringUtils.remove(swDiffs[0], Constants.MINUS);
 									int offset = bufferedReference.indexOf(swRefMinusDeletions);
 									int refLength = swRefMinusDeletions.length();
-									setActualCP(bufferedCP, offset, f, refLength);
+									PanelUtil.setActualCP(bufferedCP, offset, f, refLength);
 									actualCPReadCount.addAndGet(f.getRecordCount());
 									
 								} else {
@@ -1325,11 +1349,15 @@ public class Q3Panel {
 									logger.warn("f: " + Arrays.stream(f.getSmithWatermanDiffs()).collect(Collectors.joining("\n")));
 								}
 								createMutation(f.getPosition(), position , ref, alt, entry.getKey().getId(), f.getId(), f.getRecordCount(), multipleMutations);
+								
+								variants.computeIfAbsent(new ChrPositionName(f.getPosition().getChromosome(), f.getPosition().getStartPosition() + position, f.getPosition().getStartPosition() + position + ref.length() - 1, ref),
+										func -> new HashMap<>(4)).computeIfAbsent(alt, func2 -> new ArrayList<>()).add(f);
 							}
 						}
 					});
 			});
 	}
+	
 	
 	private void createMutation(ChrPosition actualCP, int position, String ref, String alt, int contigId, int fragmentId, int fragmentRecordCount, boolean multipleMutations) {
 		int startPos = actualCP.getStartPosition() + position;
@@ -1358,16 +1386,6 @@ public class Q3Panel {
 	
 	
 	
-	private void setActualCP(ChrPosition bufferedCP, int offset, Fragment2 f, int referenceLength) {
-		final int startPosition =  bufferedCP.getStartPosition() + offset + 1;	// we are 1 based
-		// location needs to reflect reference bases consumed rather sequence length
-		ChrPosition actualCP = new ChrRangePosition(bufferedCP.getChromosome(), startPosition, startPosition + referenceLength -1);
-		/*
-		 * setting the actual (or final) position
-		 */
-		f.setPosition(actualCP, true);
-	}
-
 	private void loadTiledAlignerData() {
 		logger.info("in loadTiledAlignerData");
 		/*
