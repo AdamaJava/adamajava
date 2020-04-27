@@ -19,7 +19,7 @@ ext {
   timestamp = new java.text.SimpleDateFormat('yyyyMMddHHmmss').format(new
   java.util.Date()) 
 }
-version = 1.0
+System.properties['version'] = 1.0 
 
 def adamalib=file('adama/build/lib').absolutePath  
 subprojects {
@@ -62,6 +62,7 @@ subprojects {
       def classpath = project.configurations.runtime.collect { it.name }.join(' ')
       manifest {    
         attributes 'Implementation-Title': project.name,
+		   'Implementation-Version': System.properties['version'],
         	   'SVN-Version': revision,
                    'Built-By': System.properties['user.name'],
                    'Date': new java.util.Date().toString(),

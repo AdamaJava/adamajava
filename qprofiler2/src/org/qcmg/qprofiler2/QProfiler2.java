@@ -127,7 +127,7 @@ public class QProfiler2 {
 		root.setAttribute( "user", System.getProperty("user.name") );
 		root.setAttribute( "operatingSystem", System.getProperty("os.name") );
 		root.setAttribute( "version", version );
-		root.setAttribute("validationSchema", "qprofiler_2_0.xsd");
+		root.setAttribute("validationSchema", "qprofiler2.xsd");
 		XmlElementUtils.asXmlText(root, outputFile);		
 		 			
 		return exitStatus;
