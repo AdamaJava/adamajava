@@ -55,12 +55,12 @@ import org.qcmg.common.util.Pair;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.qmule.SmithWatermanGotoh;
 
-import au.edu.qimr.clinvar.model.Contig;
-import au.edu.qimr.clinvar.model.Bin;
-import au.edu.qimr.clinvar.model.Fragment;
-import au.edu.qimr.clinvar.model.Fragment2;
-import au.edu.qimr.clinvar.model.LongInt;
-import au.edu.qimr.clinvar.model.Probe;
+import au.edu.qimr.panel.model.Contig;
+import au.edu.qimr.panel.model.Bin;
+import au.edu.qimr.panel.model.Fragment;
+import au.edu.qimr.panel.model.Fragment2;
+import au.edu.qimr.panel.model.LongInt;
+import au.edu.qimr.panel.model.Probe;
 
 public class ClinVarUtil {
 	
