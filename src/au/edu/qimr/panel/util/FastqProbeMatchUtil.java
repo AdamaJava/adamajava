@@ -14,9 +14,9 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.string.StringUtils;
 
-import au.edu.qimr.clinvar.model.FastqProbeMatch;
-import au.edu.qimr.clinvar.model.IntPair;
-import au.edu.qimr.clinvar.model.Probe;
+import au.edu.qimr.panel.model.FastqProbeMatch;
+import au.edu.qimr.panel.model.IntPair;
+import au.edu.qimr.panel.model.Probe;
 
 public class FastqProbeMatchUtil {
 	private static QLogger logger =  QLoggerFactory.getLogger(FastqProbeMatchUtil.class);
