@@ -29,8 +29,8 @@ import org.qcmg.common.util.Constants;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 
-import au.edu.qimr.clinvar.model.Contig;
-import au.edu.qimr.clinvar.model.Fragment2;
+import au.edu.qimr.panel.model.Contig;
+import au.edu.qimr.panel.model.Fragment2;
 import gnu.trove.map.hash.THashMap;
 
 public class PanelUtil {
