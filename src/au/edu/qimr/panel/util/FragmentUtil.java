@@ -7,8 +7,8 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
 
-import au.edu.qimr.clinvar.model.Fragment;
-import au.edu.qimr.clinvar.model.Fragment2;
+import au.edu.qimr.panel.model.Fragment;
+import au.edu.qimr.panel.model.Fragment2;
 
 public class FragmentUtil {
 	private static final QLogger logger = QLoggerFactory.getLogger(FragmentUtil.class);
