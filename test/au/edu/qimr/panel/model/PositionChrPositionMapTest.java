@@ -1,4 +1,4 @@
-package au.edu.qimr.clinvar.model;
+package au.edu.qimr.panel.model;
 
 import static org.junit.Assert.assertEquals;
 

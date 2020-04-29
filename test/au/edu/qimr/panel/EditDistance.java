@@ -1,4 +1,4 @@
-package au.edu.qimr.clinvar;
+package au.edu.qimr.panel;
 
 import static org.junit.Assert.assertEquals;
 import htsjdk.samtools.util.SequenceUtil;

@@ -1,4 +1,4 @@
-package au.edu.qimr.clinvar.util;
+package au.edu.qimr.panel.util;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -14,9 +14,9 @@ import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrPositionName;
 import org.qcmg.common.vcf.VcfRecord;
 
-import au.edu.qimr.clinvar.model.Contig;
-import au.edu.qimr.clinvar.model.Fragment2;
-import au.edu.qimr.clinvar.util.PanelUtil;
+import au.edu.qimr.panel.model.Contig;
+import au.edu.qimr.panel.model.Fragment2;
+import au.edu.qimr.panel.util.PanelUtil;
 import gnu.trove.map.hash.THashMap;
 
 public class PanelUtilTest {

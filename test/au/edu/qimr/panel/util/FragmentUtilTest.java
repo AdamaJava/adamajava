@@ -1,4 +1,4 @@
-package au.edu.qimr.clinvar.util;
+package au.edu.qimr.panel.util;
 
 import static org.junit.Assert.*;
 import gnu.trove.list.array.TIntArrayList;
@@ -10,8 +10,8 @@ import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrRangePosition;
 
-import au.edu.qimr.clinvar.model.Fragment;
-import au.edu.qimr.clinvar.model.Fragment2;
+import au.edu.qimr.panel.model.Fragment;
+import au.edu.qimr.panel.model.Fragment2;
 
 public class FragmentUtilTest {
 

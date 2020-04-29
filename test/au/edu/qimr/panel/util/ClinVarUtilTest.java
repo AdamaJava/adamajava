@@ -1,4 +1,4 @@
-package au.edu.qimr.clinvar.util;
+package au.edu.qimr.panel.util;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -33,11 +33,11 @@ import org.qcmg.common.util.Pair;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 
-import au.edu.qimr.clinvar.model.Contig;
-import au.edu.qimr.clinvar.model.Bin;
-import au.edu.qimr.clinvar.model.Fragment;
-import au.edu.qimr.clinvar.model.Fragment2;
-import au.edu.qimr.clinvar.model.Probe;
+import au.edu.qimr.panel.model.Contig;
+import au.edu.qimr.panel.model.Bin;
+import au.edu.qimr.panel.model.Fragment;
+import au.edu.qimr.panel.model.Fragment2;
+import au.edu.qimr.panel.model.Probe;
 
 public class ClinVarUtilTest {
 	
