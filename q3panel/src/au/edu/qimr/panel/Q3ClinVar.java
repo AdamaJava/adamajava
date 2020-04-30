@@ -69,13 +69,13 @@ import org.qcmg.tab.TabbedHeader;
 import org.qcmg.tab.TabbedRecord;
 import org.qcmg.vcf.VCFFileWriter;
 
-import au.edu.qimr.clinvar.model.Bin;
-import au.edu.qimr.clinvar.model.FastqProbeMatch;
-import au.edu.qimr.clinvar.model.IntPair;
-import au.edu.qimr.clinvar.model.PositionChrPositionMap;
-import au.edu.qimr.clinvar.model.Probe;
-import au.edu.qimr.clinvar.util.ClinVarUtil;
-import au.edu.qimr.clinvar.util.FastqProbeMatchUtil;
+import au.edu.qimr.panel.model.Bin;
+import au.edu.qimr.panel.model.FastqProbeMatch;
+import au.edu.qimr.panel.model.IntPair;
+import au.edu.qimr.panel.model.PositionChrPositionMap;
+import au.edu.qimr.panel.model.Probe;
+import au.edu.qimr.panel.util.ClinVarUtil;
+import au.edu.qimr.panel.util.FastqProbeMatchUtil;
 
 public class Q3ClinVar {
 	
@@ -1784,7 +1784,7 @@ public class Q3ClinVar {
 			options.getLog().ifPresent((s) -> logFile = s);
 			version = Q3ClinVar.class.getPackage().getImplementationVersion();
 			logger = QLoggerFactory.getLogger(Q3ClinVar.class, logFile, options.getLogLevel().orElse(null));
-			qexec = logger.logInitialExecutionStats("q3clinvar", version, args, options.getUUID().orElse(null));
+			qexec = logger.logInitialExecutionStats("q3panel", version, args, options.getUUID().orElse(null));
 			
 			// get list of file names
 			fastqR1Files = options.getFastqsR1();

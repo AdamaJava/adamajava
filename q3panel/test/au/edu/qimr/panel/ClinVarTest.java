@@ -10,9 +10,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 import org.qcmg.qmule.SmithWatermanGotoh;
 
-import au.edu.qimr.clinvar.util.ClinVarUtil;
-import au.edu.qimr.clinvar.util.FragmentUtil;
-import au.edu.qimr.clinvar.util.PanelUtil;
+import au.edu.qimr.panel.util.ClinVarUtil;
+import au.edu.qimr.panel.util.FragmentUtil;
+import au.edu.qimr.panel.util.PanelUtil;
 
 public class ClinVarTest {
 	

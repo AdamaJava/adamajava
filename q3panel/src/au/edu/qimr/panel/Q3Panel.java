@@ -85,15 +85,15 @@ import org.qcmg.tab.TabbedRecord;
 import org.qcmg.vcf.VCFFileReader;
 import org.qcmg.vcf.VCFFileWriter;
 
-import au.edu.qimr.clinvar.model.Contig;
-import au.edu.qimr.clinvar.model.LongInt;
-import au.edu.qimr.clinvar.model.Fragment2;
-import au.edu.qimr.clinvar.model.IntPair;
-import au.edu.qimr.clinvar.model.PositionChrPositionMap;
-import au.edu.qimr.clinvar.model.ReadOneTwoPosition;
-import au.edu.qimr.clinvar.util.ClinVarUtil;
-import au.edu.qimr.clinvar.util.FragmentUtil;
-import au.edu.qimr.clinvar.util.PanelUtil;
+import au.edu.qimr.panel.model.Contig;
+import au.edu.qimr.panel.model.LongInt;
+import au.edu.qimr.panel.model.Fragment2;
+import au.edu.qimr.panel.model.IntPair;
+import au.edu.qimr.panel.model.PositionChrPositionMap;
+import au.edu.qimr.panel.model.ReadOneTwoPosition;
+import au.edu.qimr.panel.util.ClinVarUtil;
+import au.edu.qimr.panel.util.FragmentUtil;
+import au.edu.qimr.panel.util.PanelUtil;
 
 public class Q3Panel {
 	
