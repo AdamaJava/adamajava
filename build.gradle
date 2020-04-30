@@ -1,7 +1,7 @@
 version = '0.2.0'
 
-def mainclass = 'au.edu.qimr.clinvar.Q3ClinVar'
-def scriptname = 'q3clinvar'
+def mainclass = 'au.edu.qimr.panel.Q3ClinVar'
+def scriptname = 'q3panel'
 def isExecutable = true
 
 repositories {
