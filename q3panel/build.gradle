@@ -1,0 +1,21 @@
+apply plugin: 'application'
+
+mainClassName = 'au.edu.qimr.panel.Q3Panel'
+def scriptname = 'q3panel'
+def isExecutable = true
+
+
+dependencies {
+    configurations.compile.transitive = true
+
+    compile project(':qcommon')
+    compile project(':qmule')
+    compile project(':qio')
+
+    compile 'org.apache.commons:commons-lang3:3.4'
+    compile 'net.sf.trove4j:core:3.1.0'
+    compile 'net.sf.jopt-simple:jopt-simple:4.6'
+    compile 'com.github.samtools:htsjdk:2.14.1'
+
+    compile group: 'com.io7m.xom',name: 'xom', version: '1.2.10'
+}

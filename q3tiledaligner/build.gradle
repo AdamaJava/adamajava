@@ -1,0 +1,18 @@
+apply plugin: 'application'
+
+mainClassName = 'au.edu.qimr.tiledaligner.Q3TiledAligner'
+def scriptname = 'q3tiledaligner'
+def isExecutable = true
+
+
+dependencies {
+    configurations.compile.transitive = true
+    compile project(':qcommon')
+    compile project(':qmule')
+
+    compile 'com.github.samtools:htsjdk:2.14.1'
+    compile 'net.sf.trove4j:core:3.1.0'
+    compile 'org.apache.commons:commons-lang3:3.4'
+    compile 'net.sf.jopt-simple:jopt-simple:4.6'
+}
+
