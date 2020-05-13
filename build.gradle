@@ -1,36 +1,31 @@
-plugins {
-  id 'checkstyle'
-  id 'findbugs'
-  id 'eclipse'
-}
 defaultTasks "build"
+
+ext {   
+revision = "git rev-parse --short HEAD".execute().text.trim()
+adamalib = file('adama/build/lib').absolutePath  
+   
+//create version from verionId 
+new File("version.txt").withReader { verionId = it.readLine() + "-" + revision }  
+println "get id ${verionId} which will be used as tool version!"
+}
 allprojects {
-   apply plugin: 'java'
+   //apply plugin: 'java'
+   apply plugin: 'java-library'
+   apply plugin: 'eclipse'
+//   apply plugin: 'checkstyle'
+//   apply plugin: 'findbugs'
+   sourceCompatibility = 1.8
+
+   //default value is libs according to java plugin
+   libsDirName = "lib" 
+
    repositories { flatDir(dirs:"$projectDir/../lib"); mavenCentral() }
 }
 
-ext {
-  def proc = "git rev-parse --short HEAD".execute()
-  if (proc.waitFor() != 0) {
-	throw new RuntimeException('git version info gathering failed')
-  }
-  revision = proc.text.trim()
 
-  timestamp = new java.text.SimpleDateFormat('yyyyMMddHHmmss').format(new
-  java.util.Date()) 
-}
-System.properties['version'] = 1.0 
-
-def adamalib=file('adama/build/lib').absolutePath  
 subprojects {
-   apply plugin: 'eclipse'
-   apply plugin: 'checkstyle'
-   apply plugin: 'findbugs'
-   sourceCompatibility = 1.8
-   defaultTasks "build"
-   libsDirName = "lib"
+/*
    test.workingDir = getProperty('buildDir').getAbsolutePath() + '/classes/test'
-
   checkstyle {
     configFile = file('../config/google_check.xml')
     toolVersion = '8.15'
@@ -47,22 +42,21 @@ subprojects {
     }
   }
   checkstyleMain.onlyIf {project.hasProperty('checkstyle')}
-
    dependencies { testCompile 'junit:junit:4.10' }
-   
+  */ 
+
    sourceSets {
       main { java.srcDirs=['src']; resources.srcDirs=['src'] }
-      test { java.srcDirs=['test']; test.resources.srcDirs=['test'] }
+//      test { java.srcDirs=['test']; test.resources.srcDirs=['test'] }
    }      	
 
    jar.doFirst {
-      if(project.hasProperty('mainClassName') && project.getProperty('mainClassName') != null ) 
-	manifest.attributes 'Main-Class' : project.mainClassName 
 
-      def classpath = project.configurations.runtime.collect { it.name }.join(' ')
       manifest {    
+      	if(project.hasProperty('mainClassName') && project.getProperty('mainClassName') != null ) 
+		attributes 'Main-Class' : project.mainClassName 
         attributes 'Implementation-Title': project.name,
-		   'Implementation-Version': System.properties['version'],
+        	   'Implementation-Version': verionId,
         	   'SVN-Version': revision,
                    'Built-By': System.properties['user.name'],
                    'Date': new java.util.Date().toString(),
@@ -71,15 +65,10 @@ subprojects {
     }
 
     build.doLast {
-    	def jarname = project.name
-    	ant {
-      	    echo(file: "build/flat/${jarname}", message: "#!/bin/bash\njava -jar ${jarname}-${version}.jar \$@")
-            chmod(file: "build/flat/${jarname}", perm: "u+rwx")
-        }
-        println  "copying ${project} libs to " + file('adama/build/lib').absolutePath
-        copy { from configurations.compile, 'build/lib'; into file('build/flat') }
-        copy { from project.configurations.compile, 'build/lib'; into file('adama/build/lib') }
-        copy { from project.configurations.compile, 'build/lib'; into adamalib }
+	//libsDir default value is buildDir/libsDirName, so here is build/lib
+        println  "${project}: copy ${libsDir}  to  ${adamalib}"
+        copy { from configurations.compile,  libsDir; into file('build/flat') }
+        copy { from configurations.compile,  libsDir; into adamalib }
     }
 }
 
@@ -87,40 +76,32 @@ subprojects {
 build.doLast {
     delete(adamalib)
     mkdir (adamalib)
-    copy{ from 'lib'; into 'adama/build/lib'; include '**/*.so' }
-    println "should have copied from ${libsDirName} to " + adamalib
+    copy{ from libsDirName; into 'adama/build/lib'; include '**/*.so' }
+    println "${project} build.doLast: copied from ${libsDirName} to " + adamalib
 }
 
 task dist(type: Zip) {
-  def zippedDir = "${project.name}-${version}"
+  def zippedDir = "${project.name}"
   into(zippedDir){
     into ('lib') {  from 'adama/build/lib'}
     into ('licenses') { from 'adama/licenses' }
     into ('bin') { from 'adama/bin'; fileMode = 0755 }
+    println "${project} inside task dist"
   }
-  destinationDir = 'adama/build/distributions' as File
+  destinationDirectory = 'adama/build/distributions' as File
 }
 
-task timestamped_dist(type: Zip) {
-     def zippedDir = "${project.name}-${timestamp}"
-     destinationDir = new java.io.File("adama/build/timestamped_distributions")
-     version = "${timestamp}"
-     into(zippedDir) {
-       into('lib') { from 'adama/build/lib' }
-       into('bin') {  from 'adama/bin';  fileMode = 0755 }
-       into('licenses') {  from 'adama/licenses' }
-     }
- }
  
-  task latest_dist(type: Zip, dependsOn: timestamped_dist) {
-     def zippedDir = "${project.name}-${timestamp}"
-     destinationDir = new java.io.File("adama/build/timestamped_distributions")
-     version = "LATEST"
+  task latest_dist(type: Zip) {
+     archiveVersion = verionId
+     def zippedDir = "${project.name}"
+     destinationDirectory = new java.io.File("adama/build/latest_distributions")
      into(zippedDir) {
        into('lib') { from 'adama/build/lib' }
        into('bin') { from 'adama/bin'; fileMode = 0755 }
        into('licenses') { from 'adama/licenses' }
+       println "${project} inside task latest_dist"
      }
   }
 
-clean.doLast { ant { delete(dir: "adama/build") } ; subprojects {delete('adama/build/lib')} }
+clean.doLast { ant { delete(dir: "adama/build") }  }

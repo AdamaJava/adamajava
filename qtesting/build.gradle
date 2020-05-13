@@ -2,8 +2,7 @@ def isExecutable = false
 
 dependencies {
     configurations.compile.transitive = true	
-    compile project(':qio')
-	compile project(':qcommon')	
-	
+    api project(':qio')
+    api project(':qcommon')	
 }
 

@@ -7,12 +7,12 @@ def isExecutable = true
 dependencies {
     configurations.compile.transitive = true
 
-    compile project(':qcommon')
-    compile project(':qio')
-    compile project(':qpicard')
-    compile project(':qbamfilter')
+    api project(':qcommon')
+    api project(':qio')
+    api project(':qpicard')
+    api project(':qbamfilter')
 	
-    compile 'com.github.samtools:htsjdk:2.14.1'
-    compile 'net.sf.jopt-simple:jopt-simple:4.6'	
+    api 'com.github.samtools:htsjdk:2.14.1'
+    api 'net.sf.jopt-simple:jopt-simple:4.6'	
 }
 
