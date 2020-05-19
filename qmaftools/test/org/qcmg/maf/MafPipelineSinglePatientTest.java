@@ -1,12 +1,12 @@
 package org.qcmg.maf;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import junit.framework.Assert;
-
+import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -170,7 +170,7 @@ public class MafPipelineSinglePatientTest {
 	}
 	
 	@Test
-	public void testDateDirectoryFilter() {
+	public void testDateDirectoryFilter() throws IOException {
 		File testDir = testFolder.newFolder("test");
 		File [] foundFiles = FileUtils.findFiles(testDir.getAbsolutePath(), MafPipelineSinglePatient.dateDirectoryFilter);
 		Assert.assertEquals(0, foundFiles.length);
