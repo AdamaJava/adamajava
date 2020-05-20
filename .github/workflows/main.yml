@@ -1,17 +1,18 @@
-# This is a basic workflow to help you get started with Actions
+# This workflow increments /version.txt
 
-name: CI
+name: modify version.txt
 
-# Controls when the action will run. Triggers the workflow on push or pull request
+# Controls when the action will run. Triggers the workflow on push
 # events but only for the master branch
 on:
   push:
     branches: [ master ]
-
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+    paths-ignore:
+      - '.github/workflows/main.yml'
+      - 'version.txt'
 jobs:
-  # This workflow contains a single job called "build"
-  build:
+  # This workflow contains a single job called "Increment"
+  Increment:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
@@ -19,13 +20,16 @@ jobs:
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
-
-    # Runs a single command using the runners shell
-    - name: Run a one-line script
-      run: echo Hello, world!
-
-    # Runs a set of commands using the runners shell
-    - name: Run a multi-line script
+      with: 
+        token: ${{ secrets.CANWOOD_TOKEN_ACTION }}
+    # Runs a multi-line script using the runners shell
+    - name: Read increment and output version.txt
       run: |
-        echo Add other actions to build,
-        echo test, and deploy your project.
+        VER=$(cat version.txt)
+        VER=$((VER + 1))
+        echo $VER >version.txt
+    # Commits the updated version.txt to the repo
+    - uses: stefanzweifel/git-auto-commit-action@v4.2.0
+      with:
+        github-token: ${{ secrets.CANWOOD_TOKEN_ACTION }}
+        commit_message: Version incremented by Action
