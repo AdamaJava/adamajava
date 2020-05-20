@@ -316,8 +316,7 @@ public class MafPipelineSinglePatientTest {
 	public void testFilter2() {
 		// real life maf record
 		//ENSG00000228273 0       qcmg.uq.edu.au  37      7       100550291       100550291       +       Missense_Mutation       SNP     C       A       C       novel   null    QCMG-66-APGI_2353-ICGC_ABMJ_20110807_02_TD      QCMG-66-APGI_2353-ICGC_ABMJ_20110807_01_ND      C       C       null    null    null    null    null    Unknown Somatic null    Capture null    null    null    SOLID   C:23[24.75],20[27.46],A:0[0],6[24.86]   C:23[24.75],20[27.46],A:0[0],6[24.86]   C:26[25.1],33[26.9],A:1[30],18[28.17],T:0[0],1[2]       ENST00000379458 -888    -888    null    null    null
-		
-		
+				
 		MAFRecord maf = new MAFRecord();
 		maf.setVariantType(MutationType.SNP);
 		maf.setMafType(MafType.SNV_SOMATIC);
