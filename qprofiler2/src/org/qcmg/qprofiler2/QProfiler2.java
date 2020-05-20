@@ -129,7 +129,7 @@ public class QProfiler2 {
 		root.setAttribute( "operatingSystem", System.getProperty("os.name") );
 		root.setAttribute( "version", version );
 		root.setAttribute( "validationSchema", messages.getMessage("XSD_FILE") );
-		root.setAttribute( "md5sumOfSchema", messages.getMessage("XSD_FILE_md5sum") );
+		root.setAttribute( "md5OfSchema", messages.getMessage("XSD_FILE_md5") );
 		XmlElementUtils.asXmlText(root, outputFile);		
 		 			
 		return exitStatus;
