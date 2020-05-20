@@ -23,6 +23,7 @@ allprojects {
 }
 
 subprojects {
+
    //config spotbugs
    spotbugs {
 	ignoreFailures = true
@@ -36,7 +37,6 @@ subprojects {
 	checkstyleTest.enabled=false
    }
    checkstyleMain.onlyIf {project.hasProperty('checkstyle')}
-   test.workingDir = getProperty('buildDir').getAbsolutePath() + '/classes/test'
 
    repositories { 
 	flatDir(dirs:"$projectDir/../lib")
