@@ -16,20 +16,19 @@ test {
 dependencies {
     configurations.compile.transitive = true
 
-    implementation project(':qcommon')
-    implementation project(':qpicard')
-    implementation project(':qio')
-    implementation project(':qbamfilter')
+    api project(':qcommon')
+    api project(':qpicard')
+    api project(':qio')
+    api project(':qbamfilter')
 	
     ant {  untar(src: "../lib/hdf-java-2.8-bin.tar", dest: "build/deps") }
-	implementation 'com.github.samtools:htsjdk:2.14.1'
-	implementation 'net.sf.jopt-simple:jopt-simple:4.6'
-	implementation 'org.ini4j:ini4j:0.5.2'
-    implementation group: 'org.ini4j', name: 'ini4j', version: '0.5.2'
-    implementation name: 'jhdf'
-    implementation name: 'jhdf5'
-    implementation name: 'jhdfobj'  
-    implementation name: 'jhdf5obj'  
+    api 'com.github.samtools:htsjdk:2.14.1'
+    api 'net.sf.jopt-simple:jopt-simple:4.6'
+    api group: 'org.ini4j', name: 'ini4j', version: '0.5.2'
+    api name: 'jhdf'
+    api name: 'jhdf5'
+    api name: 'jhdfobj'  
+    api name: 'jhdf5obj'  
 
     testImplementation  'org.easymock:easymock:3.1'
 }
