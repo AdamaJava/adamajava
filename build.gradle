@@ -65,9 +65,9 @@ subprojects {
     }
 
     build.doLast {
-	println "${project}: copy ${configurations.compileClasspath.collect { File file -> file.name }} to ${adamalib} and build/flat"
-        copy { from configurations.compileClasspath,  libsDirectory; into file('build/flat') }
-        copy { from configurations.compileClasspath,  libsDirectory; into adamalib }
+	println "${project}: copy ${configurations.runtimeClasspath.collect { File file -> file.name }} to ${adamalib} and build/flat"
+        copy { from configurations.runtimeClasspath,  libsDirectory; into file('build/flat') }
+        copy { from configurations.runtimeClasspath,  libsDirectory; into adamalib }
     }
 }
 
