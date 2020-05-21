@@ -80,6 +80,7 @@ public class QSVPipeline {
 	private final String analysisId;
 	private final String resultsDir;
 	private long clipCount =0;
+	private Future<TIntObjectMap<int[]>> future;
 
 	public QSVPipeline(Options options, String resultsDir, Date analysisDate, String analysisId, QExec exec) throws Exception {
 
@@ -89,6 +90,26 @@ public class QSVPipeline {
 		this.tumorRecords = new TreeMap<>();
 		this.normalRecords = new TreeMap<>();
 		this.resultsDir = resultsDir;
+		
+		
+		/*
+		 * load tiled aligner data using future so that other tasks can proceed in background
+		 */
+		ExecutorService executor = Executors.newSingleThreadExecutor();
+		String tiledAlignerFile = options.getTiledAligner() == null ? "/reference/genomeinfo/q3clinvar/q3tiledaligner_5k.txt.gz" : options.getTiledAligner();
+		logger.info("loading tiled aligner cache: " + tiledAlignerFile);
+		
+		
+		Callable<TIntObjectMap<int[]>> callable = () -> {
+			return TiledAlignerLongMap.getCache(tiledAlignerFile, 64);
+		};
+		future = executor.submit(callable);
+		
+		
+//		TILED_ALIGNER_CACHE = TiledAlignerLongMap.getCache(tiledAlignerFile, 64);
+		logger.info("loading tiled aligner cache - DONE");
+		
+		
 
 		//copy ini file to output directory
 
@@ -208,35 +229,37 @@ public class QSVPipeline {
 		 * load tiled aligner cache
 		 */
 		//TODO remove hard-coded values
-		logger.info("loading tiled aligner cache");
-		TILED_ALIGNER_CACHE = TiledAlignerLongMap.getCache("/mnt/backedup/home/oliverH/qsv/regression/output.txt.gz", 64);
-		logger.info("loading tiled aligner cache - DONE");
+//		String tiledAlignerFile = options.getTiledAligner() == null ? "/reference/genomeinfo/q3clinvar/q3tiledaligner_5k.txt.gz" : options.getTiledAligner();
+//		logger.info("loading tiled aligner cache: " + tiledAlignerFile);
+//		TILED_ALIGNER_CACHE = TiledAlignerLongMap.getCache(tiledAlignerFile, 64);
+//		logger.info("loading tiled aligner cache - DONE");
 		
 
 		logger.debug("Test sample input BAM file size: " + tumor.getInputBamFile().length());
 
 		//annotation and filtering of bams
-		annotateAndFilterBams();           
+		annotateAndFilterBams();
 
-		//log info about annotation and filtering. 
+		//log info about annotation and filtering.
 		if (tumor.getFilteredBamFile() != null) {
 			logger.debug("Test sample filtered and sorted discordant pair file size: " + tumor.getFilteredBamFile().length());
-		}  
+		}
 		if (options.isTwoFileMode()) {
 			if (normal.getFilteredBamFile() != null) {
 				logger.debug("Control filtered and sorted BAM discordant pair file size: " + normal.getFilteredBamFile().length());
 			}            
-		}        
+		}
 
 		//Time for annotation and filtering to take place
-		Date filterDate = new Date();       
+		Date filterDate = new Date();
 		logger.info(QSVUtil.writeTime("Pre-processing time: ", analysisDate, filterDate));
 
 		//Run pair analysis 
-		if (options.runPairAnalysis()) {            	
+		if (options.runPairAnalysis()) {
 			extractPairs();
 			findPairClusters();            	
-		}  
+			logger.info("After running pair analysis, normalRecords.size: " + normalRecords.size() + ", tumorRecords.size: " + tumorRecords.size());
+		}
 		//Time for pair analysis
 		Date pairsDate = new Date();
 		if (options.runPairAnalysis()) {
@@ -254,12 +277,20 @@ public class QSVPipeline {
 
 		//write normal germline records
 		if (options.isQCMG() && options.isTwoFileMode()) {
+			logger.info("About to write normalRecords (normalRecords.size: " + normalRecords.size() + ")");
 			writer.writeQSVClusterRecords(normalRecords, false);
 			this.normalGermlineCounts = writer.getNormalGermlineCount().intValue();
+			logger.info("About to write normalRecords - DONE, normalGermlineCounts: " + normalGermlineCounts);
 		}
 
 		//if clip mode is chosen, run clip clustering. Somatic and germline Records will be written in the analysis 
 		if (options.runClipAnalysis() || options.isSplitRead()) {
+			/*
+			 * need to make sure our future is finished
+			 */
+			logger.info("waiting for tiled aligner");
+			TILED_ALIGNER_CACHE = future.get();
+			logger.info("waiting for tiled aligner - DONE");
 			findSoftClips(); 
 			logger.info(QSVUtil.writeTime("Soft clip clustering time: ", pairsDate, new Date()));
 		} else {
@@ -267,7 +298,7 @@ public class QSVPipeline {
 			writer.writeQSVClusterRecords(tumorRecords, true);
 		}
 
-		tumorRecords.clear();	            
+		tumorRecords.clear();
 		normalRecords.clear();
 
 		//write report of SV counts        
@@ -276,23 +307,23 @@ public class QSVPipeline {
 		}
 
 		//Find clusters time
-		logger.info(QSVUtil.writeTime("SV Analysis Time: ", pairsDate, new Date())); 
+		logger.info(QSVUtil.writeTime("SV Analysis Time: ", pairsDate, new Date()));
 
 		//Remove tmp directories
 		if (!QSVUtil.removeDirectory(new File(matePairDir))) {
 			logger.warn("Could not delete files from temporary directory");
-		}       
+		}
 		if (!QSVUtil.removeDirectory(new File(softclipDir))) {
 			logger.warn("Could not delete files from temporary directory");
-		}   
+		}
 
 		String runTime = QSVUtil.writeTime("Total run time: ", analysisDate, new Date());
 
 		if (options.runPairAnalysis()) {
 			somaticCounts = clusterCounts.getSomaticCounts();
 			germlineCounts = clusterCounts.getGermlineCounts();
-			normalGermlineCounts = clusterCounts.getNormalGermlineCounts();        	
-		}        
+			normalGermlineCounts = clusterCounts.getNormalGermlineCounts();
+		}
 
 		//write summary report
 		summaryReport.summarise(runTime, tumor, normal, options, somaticCounts, germlineCounts, normalGermlineCounts);

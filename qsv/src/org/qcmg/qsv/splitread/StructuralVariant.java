@@ -18,7 +18,6 @@ public class StructuralVariant {
 	String orientationCategory = null;
 	
 	public StructuralVariant() {
-		
 	}
 	
 	public StructuralVariant(String leftReference, String rightReference,
@@ -105,11 +104,10 @@ public class StructuralVariant {
 
 	public boolean splitReadEquals(StructuralVariant knownSV, String confidenceLevel, int buffer) {
 		
-		
-		if (orientationCategory.equals(knownSV.getOrientationCategory()) || confidenceLevel.equals(QSVConstants.LEVEL_SINGLE_CLIP)) {			
-			if (leftReference.equals(knownSV.getLeftReference()) && (rightReference.equals(knownSV.getRightReference()))) {				
-				if (leftBreakpoint >= knownSV.getLeftBreakpoint() - buffer && leftBreakpoint <= knownSV.getLeftBreakpoint()  + buffer) {					
-					if (rightBreakpoint >= knownSV.getRightBreakpoint() - buffer && rightBreakpoint <= knownSV.getRightBreakpoint() + buffer) {						
+		if (orientationCategory.equals(knownSV.getOrientationCategory()) || confidenceLevel.equals(QSVConstants.LEVEL_SINGLE_CLIP)) {
+			if (leftReference.equals(knownSV.getLeftReference()) && (rightReference.equals(knownSV.getRightReference()))) {
+				if (leftBreakpoint >= knownSV.getLeftBreakpoint() - buffer && leftBreakpoint <= knownSV.getLeftBreakpoint()  + buffer) {	
+					if (rightBreakpoint >= knownSV.getRightBreakpoint() - buffer && rightBreakpoint <= knownSV.getRightBreakpoint() + buffer) {
 						return true;
 					}
 				}
@@ -122,8 +120,5 @@ public class StructuralVariant {
 		String tempRef = leftReference;
 		leftReference = rightReference;
 		rightReference = tempRef;
-		
 	}
-	
-	
 }

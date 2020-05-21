@@ -11,6 +11,8 @@ import java.util.List;
 
 import org.qcmg.common.vcf.VcfRecord;
 
+import com.amazonaws.util.StringUtils;
+
 public class ChrPositionComparator implements Comparator<ChrPosition> {
 
 	private static final ReferenceNameComparator COMPARATOR = new ReferenceNameComparator();
@@ -48,7 +50,7 @@ public class ChrPositionComparator implements Comparator<ChrPosition> {
 	 * This method is useful if you have a list of contigs whose order you want to preserve.
 	 * eg. a sorted bam will in its  header have a list of contigs, and it is possible that you would like to sort chromosome (Strings) based on this order
 	 * 
-	 * If the list is empty of null, then then @link ReferenceNameComparator comparator will be returned.
+	 * If the list is empty or null, then then @link ReferenceNameComparator comparator will be returned.
 	 * 
 	 * @param chrNameComp
 	 * @return
@@ -62,8 +64,58 @@ public class ChrPositionComparator implements Comparator<ChrPosition> {
 				return list.indexOf(o1) - list.indexOf(o2);
 			}
 		};
-		
 	}
+	
+	public static Comparator<String> getChrNameComparatorForSingleString(String favouriteContig) {
+		
+		return	(StringUtils.isNullOrEmpty(favouriteContig)) ? COMPARATOR : 
+			new Comparator<String>() {
+			@Override
+			public int compare(String o1, String o2) {
+				if (o1.equalsIgnoreCase(favouriteContig)) {
+					if (o2.equalsIgnoreCase(favouriteContig)) {
+						return 0;
+					} else {
+						return -1;
+					}
+				} else if (o2.equalsIgnoreCase(favouriteContig)) {
+					return 1;
+				}
+				return COMPARATOR.compare(o1, o2);
+			}
+		};
+	}
+	
+	
+//	public static Comparator<ChrPosition> getChrNameComparatorFromCPList(List<ChrPosition> favouriteCPs) {
+//		
+//		
+//		return
+//			new Comparator<ChrPosition>() {
+//			@Override
+//			public int compare(ChrPosition o1, ChrPosition o2) {
+//				
+//				/*
+//				 * check to see if chromosome is in list of fav cps
+//				 */
+//				String cp1Contrig = o1.getChromosome();
+//				if ()
+//				
+//				
+//				
+//				if (o1.equalsIgnoreCase(favouriteContig)) {
+//					if (o2.equalsIgnoreCase(favouriteContig)) {
+//						return 0;
+//					} else {
+//						return -1;
+//					}
+//				} else if (o2.equalsIgnoreCase(favouriteContig)) {
+//					return 1;
+//				}
+//				return COMPARATOR.compare(o1, o2);
+//			}
+//		};
+//	}
 	
 	/**
 	 * Return a comparator for VCF records, preserving the order according to the supplied

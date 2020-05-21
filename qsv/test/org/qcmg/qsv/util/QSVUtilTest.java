@@ -95,6 +95,12 @@ public class QSVUtilTest {
 	public void testReorderByChromosome() {
 		assertTrue(QSVUtil.reorderByChromosomes("chr2", "chr1"));
 		assertFalse(QSVUtil.reorderByChromosomes("chr1", "chr2"));
+		assertTrue(QSVUtil.reorderByChromosomes("chr10", "chr2"));
+		assertTrue(QSVUtil.reorderByChromosomes("chr12", "chr1"));
+		assertFalse(QSVUtil.reorderByChromosomes("chr12", "chr12"));
+		assertFalse(QSVUtil.reorderByChromosomes("chr12", "chr13"));
+		assertFalse(QSVUtil.reorderByChromosomes("chr12", "chr21"));
+		assertTrue(QSVUtil.reorderByChromosomes("chr21", "chr12"));
 		assertTrue(QSVUtil.reorderByChromosomes("chrY", "chrX"));
 		assertTrue(QSVUtil.reorderByChromosomes("chrY", "chr1"));
 		assertTrue(QSVUtil.reorderByChromosomes("chrY", "chrMT"));
@@ -217,6 +223,15 @@ public class QSVUtilTest {
 		assertEquals(true, QSVUtil.highNCount("Hello, aNybody there?", 0.01));	// 1 in 21 >= 1%
 		assertEquals(false, QSVUtil.highNCount("Hello, anybody there?", 0.1));	// 1 in 21 ! >= 10%
 		assertEquals(false, QSVUtil.highNCount("Hello, aNybody there?", 0.1));	// 1 in 21 ! >= 10%
+	}
+	
+	@Test
+	public void nCount() throws QSVException{
+		/*
+		 * CTTTCTTGGCGAGAAAGGCCATGCGCCTGGCTTCTGCCNTCTCTCTCAGCNCTGCNGGGNCCTGAACAAAATNGNNNGGGACAGCACA
+		 */
+		assertEquals(false, QSVUtil.highNCount("CTTTCTTGGCGAGAAAGGCCATGCGCCTGGCTTCTGCCNTCTCTCTCAGCNCTGCNGGGNCCTGAACAAAATNGNNNGGGACAGCACA", 0.1));
+		assertEquals(true, QSVUtil.highNCount("CTTTCTTGGCGAGAAAGGCCATGCGCCTGGCTTCTGCCNTCTCTCTCAGCNCTGCNGGGNCCTGAACAAAATNGNNNGGGACAGCACA", 0.09));
 	}
 
 	@Test

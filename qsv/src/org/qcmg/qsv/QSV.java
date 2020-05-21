@@ -7,14 +7,22 @@
 package org.qcmg.qsv;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
+import java.util.Map.Entry;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicIntegerArray;
+import java.util.stream.Collectors;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.meta.QExec;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.LoadReferencedClasses;
+import org.qcmg.qsv.tiledaligner.TAClassifier;
 import org.qcmg.qsv.tiledaligner.TiledAlignerUtil;
 import org.qcmg.qsv.util.QSVUtil;
 
@@ -63,7 +71,7 @@ public class QSV {
 				} else {
 					
 					options.parseIniFile();					
-					LoadReferencedClasses.loadClasses(QSV.class);
+//					LoadReferencedClasses.loadClasses(QSV.class);
 					
 					//use analysis id to set up results folder
 					Date analysisDate = new Date();
@@ -90,6 +98,73 @@ public class QSV {
 					QSVPipeline pipeline = new QSVPipeline(options, resultsDirectory, analysisDate, analysisId, exec);
 					pipeline.runPipeline();
 					logger.info("SmithWaterman count: " + TiledAlignerUtil.swCounter.get());
+					logger.info("SmithWaterman splitconCounter: " + TiledAlignerUtil.splitconCounter.get());
+					logger.info("leaderboard distribution count: " + TiledAlignerUtil.iss.getCount() + ", max: " + TiledAlignerUtil.iss.getMax() + ", min: " + TiledAlignerUtil.iss.getMin() + ", average: " + TiledAlignerUtil.iss.getAverage() + ", count: " + TiledAlignerUtil.iss.getCount());
+					logger.info("dist:");
+					int [] keys = TiledAlignerUtil.leaderboardStats.keys();
+					Arrays.sort(keys);
+					for (int i : keys) {
+						logger.info("key: " + i + ", count: " + TiledAlignerUtil.leaderboardStats.get(i).get());
+					}
+					
+					
+					AtomicIntegerArray firstPositionDist = TiledAlignerUtil.taClassifierArrayPosition1;
+					System.out.println("First position dist:");
+					for (int i = 0 ; i < firstPositionDist.length() ; i++) {
+						if (firstPositionDist.get(i) > 0) {
+							System.out.println("classification: " + TAClassifier.getTAClassifier(i) + ", count: " + firstPositionDist.get(i));
+						}
+					}
+					
+					AtomicIntegerArray secondPositionDist = TiledAlignerUtil.taClassifierArrayPosition2;
+					System.out.println("Second position dist:");
+					for (int i = 0 ; i < secondPositionDist.length() ; i++) {
+						if (secondPositionDist.get(i) > 0) {
+							System.out.println("classification: " + TAClassifier.getTAClassifier(i) + ", count: " + secondPositionDist.get(i));
+						}
+					}
+					
+					ConcurrentMap<String, List<String>> sequenceMethodNameMap = TiledAlignerUtil.sequenceOriginatingMethodMap;
+					System.out.println("sequenceMethodNameMap stats, size: " + sequenceMethodNameMap.size());
+					
+					int longestSeq = 0;
+					int shortestSeq = Integer.MAX_VALUE;
+					int mostCalled = 0;
+					int leastCalled = Integer.MAX_VALUE;
+					for (Entry<String, List<String>> entry : sequenceMethodNameMap.entrySet()) {
+						int seqLength = entry.getKey().length();
+						int calledCount = entry.getValue().size();
+						if (calledCount > 5) {
+							System.out.println(entry.getKey() + " was called " + calledCount + " times by " + entry.getValue().stream().collect(Collectors.joining(", ")));
+						}
+						if (seqLength > longestSeq) {
+							longestSeq = seqLength;
+						}
+						if (seqLength < shortestSeq) {
+							shortestSeq = seqLength;
+						}
+						if (calledCount > mostCalled) {
+							mostCalled = calledCount;
+						}
+						if (calledCount < leastCalled) {
+							leastCalled = calledCount;
+						}
+					}
+					/*
+					 * get called dist
+					 */
+					int [] calledDist = new int [mostCalled + 1];
+					for ( List<String> values : sequenceMethodNameMap.values()) {
+						calledDist[values.size()]++;
+					}
+					for (int j = 0 ; j < mostCalled + 1 ; j++) {
+						if (calledDist[j] > 0) {
+							System.out.println("calledDist: number of times sequence was called: " + j + ", how often this occurred: " + calledDist[j]);
+						}
+					}
+					
+					System.out.println("sequenceMethodNameMap stats, longestSeq: " + longestSeq + ", shortestSeq: " + shortestSeq + ", mostCalled: " + mostCalled + ", leastCalled: " + leastCalled);
+					
 				}
 			}
 		} catch (Exception e) {

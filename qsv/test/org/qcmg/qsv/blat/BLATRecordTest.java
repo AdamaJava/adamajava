@@ -110,6 +110,108 @@ public class BLATRecordTest {
 	}
 	
 	@Test
+	public void sortingSameScore() {
+		BLATRecord br1 = new BLATRecord("25\t1\t0\t0\t2\t3\t1\t2\t-\tname\t30\t0\t29\tchr16\t12345\t23903405\t23903433\t2\t5,24\t0,5\t23903405,23903410");
+		BLATRecord br2 = new BLATRecord("25\t1\t0\t0\t2\t2\t2\t5\t-\tname\t30\t1\t29\tchr9\t12345\t107229780\t107229811\t3\t22,1,5\t1,2,24\t107229781,107229782,107229804");
+		BLATRecord br3 = new BLATRecord("25\t1\t0\t0\t2\t3\t1\t2\t+\tname\t30\t0\t29\tchr16\t12345\t23903405\t23903433\t2\t5,24\t0,5\t23903405,23903410");
+		BLATRecord br4 = new BLATRecord("25\t1\t0\t0\t2\t2\t2\t5\t+\tname\t30\t1\t29\tchr9\t12345\t107229780\t107229811\t3\t22,1,5\t1,2,24\t107229781,107229782,107229804");
+		List<BLATRecord> list = Arrays.asList(br1, br2, br3, br4);
+		
+		list.sort(null);
+		assertEquals(br3, list.get(3));
+	}
+	
+	@Test
+	public void realLifeSorting() {
+		List<BLATRecord> list = Arrays.asList(new BLATRecord("56	1	0	0	0	0	0	0	+	chr15_34031839_true_-	64	1	58	chr1	249250621	40831199	40831256	1	57,1,40831199,")
+		,new BLATRecord("56	1	0	0	0	0	0	0	+	chr15_34031839_true_-	64	6	63	chr1	249250621	45750240	45750297	1	57,	6,	45750240,")
+		,new BLATRecord("61	2	0	0	0	0	0	0	+	chr15_34031839_true_-	64	1	64	chr1	249250621	59834595	59834658	1	63,	1,	59834595,")
+		,new BLATRecord("57	1	0	0	0	0	0	0	+	chr15_34031839_true_-	64	2	60	chr1	249250621	60955804	60955862	1	58,	2,	60955804,")
+		,new BLATRecord("61	2	0	0	0	0	0	0	+	chr15_34031839_true_-	64	1	64	chr1	249250621	119394974	119395037	1	63,	1,	119394974,")
+		,new BLATRecord("62	2	0	0	0	0	0	0	+	chr15_34031839_true_-	64	0	64	chr1	249250621	146894945	146895009	1	64,	0,	146894945,")
+		,new BLATRecord("53	0	0	0	0	0	0	0	+	chr15_34031839_true_-	64	0	53	chr1	249250621	160752870	160752923	1	53,	0,	160752870,")
+		,new BLATRecord("62	2	0	0	0	0	0	0	+	chr15_34031839_true_-	64	0	64	chr10	135534747	10692820	10692884	1	64,	0,	10692820,")
+		,new BLATRecord("62	2	0	0	0	0	0	0	+	chr15_34031839_true_-	64	0	64	chr10	135534747	86039723	86039787	1	64,	0,	86039723,")
+		,new BLATRecord("62	2	0	0	0	0	0	0	+	chr15_34031839_true_-	64	0	64	chr10	135534747	111365204	111365268	1	64,	0,	111365204,")
+		,new BLATRecord("62	2	0	0	0	0	0	0	+	chr15_34031839_true_-	64	0	64	chr10	135534747	113863683	113863747	1	64,	0,	113863683,")
+		,new BLATRecord("63	1	0	0	0	0	0	0	+	chr15_34031839_true_-	64	0	64	chr10	135534747	127633806	127633870	1	64,	0,	127633806,")
+		,new BLATRecord("53	0	0	0	0	0	0	0	+	chr15_34031839_true_-	64	0	53	chr10	135534747	128365040	128365093	1	53,	0,	128365040,")
+		,new BLATRecord("58	1	0	0	0	0	0	0	+	chr15_34031839_true_-	64	0	59	chr11	135006516	38213290	38213349	1	59,	0,	38213290,")
+		,new BLATRecord("62	2	0	0	0	0	0	0	+	chr15_34031839_true_-	64	0	64	chr11	135006516	92869804	92869868	1	64,	0,	92869804,")
+		,new BLATRecord("61	2	0	0	0	0	0	0	+	chr15_34031839_true_-	64	1	64	chr11	135006516	95169380	95169443	1	63,	1,	95169380,")
+		,new BLATRecord("61	3	0	0	0	0	0	0	+	chr15_34031839_true_-	64	0	64	chr11	135006516	108244261	108244325	1	64,	0,	108244261,")
+		,new BLATRecord("56	2	0	0	0	0	0	0	+	chr15_34031839_true_-	64	0	58	chr11	135006516	108131353	108131411	1	58,	0,	108131353,")
+		,new BLATRecord("58	2	0	0	0	0	0	0	+	chr15_34031839_true_-	64	4	64	chr11	135006516	132189030	132189090	1	60,	4,	132189030,")
+		,new BLATRecord("58	1	0	0	0	0	0	0	+	chr15_34031839_true_-	64	1	60	chr12	133851895	11450590	11450649	1	59,	1,	11450590,")
+		,new BLATRecord("61	2	0	0	0	0	0	0	+	chr15_34031839_true_-	64	1	64	chr12	133851895	73788589	73788652	1	63,	1,	73788589,")
+		,new BLATRecord("62	2	0	0	0	0	0	0	+	chr15_34031839_true_-	64	0	64	chr13	115169878	30833495	30833559	1	64,	0,	30833495,")
+		,new BLATRecord("61	2	0	0	0	0	0	0	+	chr15_34031839_true_-	64	1	64	chr2	243199373	19505600	19505663	1	63,	1,	19505600,")
+		,new BLATRecord("61	2	0	0	0	0	0	0	+	chr15_34031839_true_-	64	1	64	chr2	243199373	43216615	43216678	1	63,	1,	43216615,")
+		,new BLATRecord("58	1	0	0	0	0	0	0	+	chr15_34031839_true_-	64	0	59	chr2	243199373	60416158	60416217	1	59,	0,	60416158,")
+		,new BLATRecord("62	2	0	0	0	0	0	0	+	chr15_34031839_true_-	64	0	64	chr2	243199373	63062613	63062677	1	64,	0,	63062613,")
+		,new BLATRecord("53	0	0	0	0	0	0	0	+	chr15_34031839_true_-	64	0	53	chr2	243199373	72291105	72291158	1	53,	0,	72291105,")
+		,new BLATRecord("61	3	0	0	0	0	0	0	+	chr15_34031839_true_-	64	0	64	chr2	243199373	83315928	83315992	1	64,	0,	83315928,")
+		,new BLATRecord("62	2	0	0	0	0	0	0	+	chr15_34031839_true_-	64	0	64	chr2	243199373	144618525	144618589	1	64,	0,	144618525,")
+		,new BLATRecord("53	0	0	0	0	0	0	0	+	chr15_34031839_true_-	64	0	53	chr2	243199373	154575960	154576013	1	53,	0,	154575960,")
+		,new BLATRecord("62	2	0	0	0	0	0	0	+	chr15_34031839_true_-	64	0	64	chr2	243199373	159379129	159379193	1	64,	0,	159379129,")
+		,new BLATRecord("55	1	0	0	0	0	0	0	+	chr15_34031839_true_-	64	3	59	chr2	243199373	159134650	159134706	1	56,	3,	159134650,")
+		,new BLATRecord("62	2	0	0	0	0	0	0	+	chr15_34031839_true_-	64	0	64	chr2	243199373	184714250	184714314	1	64,	0,	184714250,")
+		,new BLATRecord("62	2	0	0	0	0	0	0	+	chr15_34031839_true_-	64	0	64	chr2	243199373	186729324	186729388	1	64,	0,	186729324,")
+		,new BLATRecord("62	2	0	0	0	0	0	0	+	chr15_34031839_true_-	64	0	64	chr2	243199373	220796539	220796603	1	64,	0,	220796539,")
+		,new BLATRecord("58	1	0	0	0	0	0	0	+	chr15_34031839_true_-	64	1	60	chr3	198022430	851059	851118	1	59,	1,	851059,")
+		,new BLATRecord("55	0	0	0	0	0	0	0	+	chr15_34031839_true_-	64	0	55	chr3	198022430	1429244	1429299	1	55,	0,	1429244,")
+		,new BLATRecord("60	2	0	0	0	0	0	0	+	chr15_34031839_true_-	64	2	64	chr3	198022430	4004760	4004822	1	62,	2,	4004760,"));
+		
+		
+		list.sort(null);
+		BLATRecord br = list.get(list.size() - 1);
+		assertEquals(62, br.getScore());
+		assertEquals("chr10", br.getReference());
+		assertEquals('+', br.getStrand());
+		assertEquals(127633806 + 1, br.getStartPos());
+	}
+	
+	@Test
+	public void sortingSameScoreAndStrand() {
+		BLATRecord br1 = new BLATRecord("25\t1\t0\t0\t2\t3\t1\t2\t-\tname\t30\t0\t29\tchr1\t12345\t23903405\t23903433\t2\t5,24\t0,5\t23903405,23903410");
+		BLATRecord br2 = new BLATRecord("25\t1\t0\t0\t2\t3\t1\t2\t-\tname\t30\t0\t29\tchr16\t12345\t23903405\t23903433\t2\t5,24\t0,5\t23903405,23903410");
+		List<BLATRecord> list = Arrays.asList(br1, br2);
+		list.sort(null);
+		assertEquals(br1, list.get(1));
+		
+		br1 = new BLATRecord("25\t1\t0\t0\t2\t3\t1\t2\t+\tname\t30\t0\t29\tchr1\t12345\t23903405\t23903433\t2\t5,24\t0,5\t23903405,23903410");
+		br2 = new BLATRecord("25\t1\t0\t0\t2\t3\t1\t2\t+\tname\t30\t0\t29\tchr16\t12345\t23903405\t23903433\t2\t5,24\t0,5\t23903405,23903410");
+		list = Arrays.asList(br1, br2);
+		list.sort(null);
+		assertEquals(br1, list.get(1));
+		
+		br1 = new BLATRecord("25\t1\t0\t0\t2\t3\t1\t2\t-\tname\t30\t0\t29\tchr16\t12345\t23903405\t23903433\t2\t5,24\t0,5\t23903405,23903410");
+		br2 = new BLATRecord("25\t1\t0\t0\t2\t3\t1\t2\t+\tname\t30\t0\t29\tchr16\t12345\t23903405\t23903433\t2\t5,24\t0,5\t23903405,23903410");
+		list = Arrays.asList(br1, br2);
+		list.sort(null);
+		assertEquals(br2, list.get(1));
+		
+		br1 = new BLATRecord("25\t1\t0\t0\t2\t3\t1\t2\t-\tname\t30\t0\t29\tchr16\t12345\t23903405\t23903433\t2\t5,24\t0,5\t23903405,23903410");
+		br2 = new BLATRecord("25\t1\t0\t0\t2\t3\t1\t2\t-\tname\t30\t0\t29\tchr9\t12345\t23903405\t23903433\t2\t5,24\t0,5\t23903405,23903410");
+		list = Arrays.asList(br1, br2);
+		list.sort(null);
+		assertEquals(br1, list.get(1));
+		
+		br1 = new BLATRecord("25\t1\t0\t0\t2\t3\t1\t2\t-\tname\t30\t0\t29\tchr16\t12345\t23903405\t23903433\t2\t5,24\t0,5\t23903405,23903410");
+		br2 = new BLATRecord("26\t1\t0\t0\t2\t3\t1\t2\t-\tname\t30\t0\t29\tchr9\t12345\t23903405\t23903433\t2\t5,24\t0,5\t23903405,23903410");
+		list = Arrays.asList(br1, br2);
+		list.sort(null);
+		assertEquals(br2, list.get(1));
+		
+		br1 = new BLATRecord("27\t1\t0\t0\t2\t3\t1\t2\t-\tname\t30\t0\t29\tchr16\t12345\t23903405\t23903433\t2\t5,24\t0,5\t23903405,23903410");
+		br2 = new BLATRecord("26\t1\t0\t0\t2\t3\t1\t2\t-\tname\t30\t0\t29\tchr16\t12345\t23903405\t23903433\t2\t5,24\t0,5\t23903405,23903410");
+		list = Arrays.asList(br1, br2);
+		list.sort(null);
+		assertEquals(br1, list.get(1));
+	}
+	
+	
+	@Test
 	public void ctor() throws QSVException {
 		String ctor = "41\t1\t0\t0\t1\t4\t1\t5\t-\t12345_123455_12345\t70\t14\t60\tchr9\t141213431\t81359142\t81359189\t2\t17,25,\t10,31,\t81359142,81359164,";
 		BLATRecord br = new BLATRecord(ctor);

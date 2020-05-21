@@ -671,9 +671,8 @@ public class SoftClipCluster implements Comparable<SoftClipCluster> {
 	}
 
 	public String getSoftClipConsensusString(String svId) {
-		String tab = "\t";
-		return svId + tab + leftReference + tab + leftBreakpoint + tab + getLeftSoftClipConsensus() 
-				+ tab + rightReference + tab + rightBreakpoint + tab + getRightSoftClipConsensus(); 
+		return svId + TAB + leftReference + TAB + leftBreakpoint + TAB + getLeftSoftClipConsensus() 
+				+ TAB + rightReference + TAB + rightBreakpoint + TAB + getRightSoftClipConsensus(); 
 	}
 
 	private String getLeftSoftClipConsensus() {
@@ -692,6 +691,19 @@ public class SoftClipCluster implements Comparable<SoftClipCluster> {
 		}
 	}
 	
+	@Override
+	public String toString() {
+		return "SoftClipCluster [name=" + name + ", leftBreakpointObject=" + leftBreakpointObject
+				+ ", rightBreakpointObject=" + rightBreakpointObject + ", mutationType=" + mutationType
+				+ ", leftReference=" + leftReference + ", rightReference=" + rightReference + ", leftStrand="
+				+ leftStrand + ", rightStrand=" + rightStrand + ", leftBreakpoint=" + leftBreakpoint
+				+ ", rightBreakpoint=" + rightBreakpoint + ", hasClusterMatch=" + hasClusterMatch
+				+ ", hasMatchingBreakpoints=" + hasMatchingBreakpoints + ", rightMateStrand=" + rightMateStrand
+				+ ", leftMateStrand=" + leftMateStrand + ", hasClipMatch=" + hasClipMatch + ", oneSide=" + oneSide
+				+ ", rescuedClips=" + rescuedClips + ", alreadyMatched=" + alreadyMatched + ", orientationCategory="
+				+ orientationCategory + "]";
+	}
+
 	public String getMicrohomology(String clusterCategory) {
 		String nonTemp = getNonTemplateSequence(clusterCategory);
 		if (nonTemp.equals(QSVConstants.UNTESTED)) {

@@ -75,7 +75,7 @@ public class QSVCluster {
 		this.sampleId = sampleId;
 		this.leftReference = clusterRecord.getLeftReferenceName();
 		this.rightReference = clusterRecord.getRightReferenceName();
-		if (!isNormalGermline) {
+		if ( ! isNormalGermline) {
 			findGermline();
 		}
 	}	
@@ -96,11 +96,11 @@ public class QSVCluster {
 		return pairRecord;
 	}
 	
-	private String getLeftReference() {
+	public String getLeftReference() {
 		return this.leftReference;
 	}
 	
-	private String getRightReference() {
+	public String getRightReference() {
 		return this.rightReference;
 	}
 	
@@ -250,12 +250,11 @@ public class QSVCluster {
 		
 		//look for germline pair record
 		if (pairRecord != null) {
-			String type =  pairRecord.getType();			
+			String type =  pairRecord.getType();
 			if (type.equals("germline")) {
 				this.isGermline = true;
 			}
 		}
-		
 	}
 
 	/**
@@ -412,7 +411,10 @@ public class QSVCluster {
 	 * Levels range from 1-6. (1-3 are SV, 4 is potential germline, 5 is potential repeat, 6 is single sided clip)
 	 * @return confidence level 1-6
 	 */
-	public String getConfidenceLevel() {	
+	public String getConfidenceLevel() {
+		return getConfidenceLevel(false);
+	}
+	public String getConfidenceLevel(boolean log) {
 	    String cat = "";
 	    //check if it is a potential germline
 		if (getPotentialGermline()) {
@@ -422,6 +424,10 @@ public class QSVCluster {
 		} else {
 		    //Discordant pair and clip records present
 			if (pairRecord != null && clipRecords != null) {
+				
+				if (log) {
+					logger.info("getConfidenceLevel pairRecord != null && clipRecords != null");
+				}
 				 //double sided clip
 				 if (hasMatchingBreakpoints()) {
 					if (isPotentialSplitRead()) {
@@ -439,6 +445,9 @@ public class QSVCluster {
 				}	
 			//Discordant pair only
 			} else if (pairRecord != null) {
+				if (log) {
+					logger.info("getConfidenceLevel pairRecord != null");
+				}
 				if (isPotentialSplitRead()) {
 					cat =  QSVConstants.LEVEL_MID;
 				} else {
@@ -446,6 +455,9 @@ public class QSVCluster {
 				}
 			//Clip only
 			} else {
+				if (log) {
+					logger.info("getConfidenceLevel clipRecords != null");
+				}
 				//Double sided
 				if (hasMatchingBreakpoints()) {
 					if (isPotentialSplitRead()) {
@@ -456,12 +468,12 @@ public class QSVCluster {
 				//single sided
 				} else {
 					if (isPotentialSplitRead()) {							
-						cat =  QSVConstants.LEVEL_LOW;							
+						cat =  QSVConstants.LEVEL_LOW;
 					} else {
 						cat =  QSVConstants.LEVEL_SINGLE_CLIP;
 					}
 				}
-			}	
+			}
 		}
 		return cat;
 	}
@@ -598,8 +610,10 @@ public class QSVCluster {
 	 * @return
 	 * @throws Exception
 	 */
-	public boolean findSplitReadContig(QSVParameters p, QSVParameters n, String softclipDir, int consensusLength, boolean isQCMG, int minInsertSize, 
-			boolean singleSided, boolean isSplitRead, String referenceFile) throws Exception {
+	public boolean findSplitReadContig(QSVParameters p, boolean isSplitRead, String referenceFile) throws Exception {
+		return findSplitReadContig( p,  isSplitRead,  referenceFile, false);
+	}
+	public boolean findSplitReadContig(QSVParameters p, boolean isSplitRead, String referenceFile, boolean log) throws Exception {
 		boolean rescue = false;
 		
 		if ( ! isGermline && ! rescued) {
@@ -607,12 +621,24 @@ public class QSVCluster {
 			//if running split read mode, try to get a split read contig
 			if (isSplitRead) {
 				if (this.splitReadContig != null) {
-				    this.splitReadContig.findSplitRead();			
+					if (log) {
+						logger.info("findSplitReadContig, splitReadContig.getConsensus() before findSplitRead: " + splitReadContig.getConsensus());
+					}
+				    this.splitReadContig.findSplitRead(log);	
 					this.consensus = splitReadContig.getConsensus();
+					if (log) {
+						logger.info("findSplitReadContig, splitReadContig.getConsensus() after findSplitRead: " + splitReadContig.getConsensus());
+					}
 					this.potentialRepeatRegion = splitReadContig.getIsPotentialRepeatRegion();
 				
 					if (this.normalSplitReadContig != null) {
-						normalSplitReadContig.findSplitRead();
+						if (log) {
+							logger.info("findSplitReadContig, normalSplitReadContig.getConsensus() before findSplitRead: " + normalSplitReadContig.getConsensus());
+						}
+						normalSplitReadContig.findSplitRead(log);
+						if (log) {
+							logger.info("findSplitReadContig, normalSplitReadContig.getConsensus() after findSplitRead: " + normalSplitReadContig.getConsensus());
+						}
 					}						
 					rescue = true;					
 				}
@@ -937,18 +963,18 @@ public class QSVCluster {
 				SoftClipCluster c = getPrimarySoftClipCluster();				
 				clipMh = c.getMicrohomology(category);
 				splitReadMatch = getSplitReadClipClusterMatch(c);
-				logger.info("in getMicrohomology, svId: " + svId + ", SoftClipCluster.getSoftClipConsensusString: " + c.getSoftClipConsensusString(svId));
-				logger.info("in getMicrohomology, svId: " + svId + ", SoftClipCluster.hasMatchingBreakpoints: " + c.hasMatchingBreakpoints());
-				if (null != splitReadContig) {
-					logger.info("in getMicrohomology, svId: " + svId + ", splitReadContig.getLeftReference: " + splitReadContig.getLeftReference() + ", splitReadContig.getRightReference(): " + splitReadContig.getRightReference() + ", splitReadContig.getLeftBreakpoint(): " + splitReadContig.getLeftBreakpoint() + ", splitReadContig.getRightBreakpoint(): " + splitReadContig.getRightBreakpoint());
-				} else {
-					logger.info("in getMicrohomology, svId: " + svId + ", splitReadContig is NULL");
-				}
+//				logger.info("in getMicrohomology, svId: " + svId + ", SoftClipCluster.getSoftClipConsensusString: " + c.getSoftClipConsensusString(svId));
+//				logger.info("in getMicrohomology, svId: " + svId + ", SoftClipCluster.hasMatchingBreakpoints: " + c.hasMatchingBreakpoints());
+//				if (null != splitReadContig) {
+//					logger.info("in getMicrohomology, svId: " + svId + ", splitReadContig.getLeftReference: " + splitReadContig.getLeftReference() + ", splitReadContig.getRightReference(): " + splitReadContig.getRightReference() + ", splitReadContig.getLeftBreakpoint(): " + splitReadContig.getLeftBreakpoint() + ", splitReadContig.getRightBreakpoint(): " + splitReadContig.getRightBreakpoint());
+//				} else {
+//					logger.info("in getMicrohomology, svId: " + svId + ", splitReadContig is NULL");
+//				}
 			}
 		}
 		
-		logger.info("in getMicrohomology, details : " +  getClusterDetails(clipRecords, pairRecord, splitReadContig, this));
-		logger.info("in getMicrohomology, svId: " + svId + ", category: " + category + ", splitMh: " + splitMh + ", clipMh: " + clipMh+ ", splitReadMatch: " + splitReadMatch+ ", isPairWithSplitRead: " + isPairWithSplitRead());
+//		logger.info("in getMicrohomology, details : " +  getClusterDetails(clipRecords, pairRecord, splitReadContig, this));
+//		logger.info("in getMicrohomology, svId: " + svId + ", category: " + category + ", splitMh: " + splitMh + ", clipMh: " + clipMh+ ", splitReadMatch: " + splitReadMatch+ ", isPairWithSplitRead: " + isPairWithSplitRead());
 		//if the cluster is pair only with split read, or is a clip, but couldn't test for mh, return 
 		//split read mh
 		if (isPairWithSplitRead() || (clipMh.equals(QSVConstants.UNTESTED) && splitReadMatch)) {
@@ -1224,11 +1250,17 @@ public class QSVCluster {
 			return true;
 		} else {
 			String conf = getConfidenceLevel();
+			if ("chr10".equals(leftReference) && leftReference.equals(rightReference)) {
+				logger.info("conf: " + conf);
+			}
 			if (conf.equals(QSVConstants.LEVEL_SINGLE_CLIP)) {
 				return false;
 			} else if (conf.equals(QSVConstants.LEVEL_HIGH) || conf.equals(QSVConstants.LEVEL_MID) || conf.equals(QSVConstants.LEVEL_LOW)) {
 				return true;
 			} else {
+				if ("chr10".equals(leftReference) && leftReference.equals(rightReference)) {
+					logger.info("! (singleSidedClip() && !isPotentialSplitRead());: " + ! (singleSidedClip() && !isPotentialSplitRead()));
+				}
 				return ! (singleSidedClip() && !isPotentialSplitRead());
 			}
 		}
@@ -1291,6 +1323,13 @@ public class QSVCluster {
 			String softclipDir, Integer consensusLength, boolean isQCMG,
 			Integer minInsertSize, boolean singleSided, boolean isSplitRead,
 			String reference, String blatFile) throws Exception {
+		createSplitReadContig(cache, tumourParameters,  normalParameters, softclipDir,  consensusLength,  isQCMG, minInsertSize,  singleSided,  isSplitRead, reference,  blatFile, false);
+	}
+		public void createSplitReadContig(TIntObjectMap<int[]> cache,
+				QSVParameters tumourParameters, QSVParameters normalParameters,
+				String softclipDir, Integer consensusLength, boolean isQCMG,
+				Integer minInsertSize, boolean singleSided, boolean isSplitRead,
+				String reference, String blatFile, boolean log) throws Exception {
 		
 		if (!isGermline && !rescued) {
 			
@@ -1298,7 +1337,7 @@ public class QSVCluster {
 			    this.splitReadContig = new SplitReadContig(cache, tumourParameters, softclipDir, leftReference, rightReference, 
 						getLeftBreakpoint(), getRightBreakpoint(), 
 						findExpectedPairClassifications(), getClipContigSequence(), getConfidenceLevel(), 
-						getOrientationCategory(), reference, tumourParameters.getChromosomes(), hasSoftClipEvidence(), blatFile + ".tumour.fa");				
+						getOrientationCategory(), reference, tumourParameters.getChromosomes(), hasSoftClipEvidence(), blatFile + ".tumour.fa", log);				
 								
 				if (!potentialRepeatRegion && 
 						!getConfidenceLevel().equals(QSVConstants.LEVEL_REPEAT) &&  !getConfidenceLevel().equals(QSVConstants.LEVEL_GERMLINE) && normalParameters != null) {	
@@ -1306,7 +1345,7 @@ public class QSVCluster {
 					this.normalSplitReadContig = new SplitReadContig(cache, normalParameters, softclipDir, leftReference, rightReference, 
 								getLeftBreakpoint(), getRightBreakpoint(), 
 								findExpectedPairClassifications(), getClipContigSequence(), getConfidenceLevel(), 
-								getOrientationCategory(), reference, normalParameters.getChromosomes(), hasSoftClipEvidence(), blatFile + ".normal.fa");
+								getOrientationCategory(), reference, normalParameters.getChromosomes(), hasSoftClipEvidence(), blatFile + ".normal.fa", log);
 				}						
 			}
 		}		
@@ -1412,16 +1451,16 @@ public class QSVCluster {
 	 * @return tab string
 	 * @throws Exception
 	 */
-	private String toTabString() {
+	public String toTabString() {
 		StringBuilder sb = new StringBuilder();
 		String category = getOrientationCategory();				
 		String chrFrom = leftReference.replace("chr", "");
 	    String chrTo = rightReference.replace("chr", "");
 	    
 	    if (category.equals(QSVConstants.ORIENTATION_2)) {
-		    	String tmp = chrFrom;
-		    	chrFrom = chrTo;
-		    	chrTo = tmp;
+	    	String tmp = chrFrom;
+	    	chrFrom = chrTo;
+	    	chrTo = tmp;
 	    }
 
         sb.append(analysisId).append(TAB); // analysis_id
@@ -1451,9 +1490,9 @@ public class QSVCluster {
         sb.append(getConfidenceLevel()).append(TAB);
         sb.append(getMicrohomology()).append(TAB);
         sb.append(getNonTemplateSequence()).append(TAB);        
-	    	sb.append(getSplitReadBreakpointString()).append(TAB);
-	    	sb.append(getNormalSplitReadBreakpointString()).append(TAB);
-	    	sb.append(getEventNotes()).append(TAB);
+    	sb.append(getSplitReadBreakpointString()).append(TAB);
+    	sb.append(getNormalSplitReadBreakpointString()).append(TAB);
+    	sb.append(getEventNotes()).append(TAB);
         sb.append(this.consensus);
         return sb.toString();
 	}
@@ -1565,7 +1604,7 @@ public class QSVCluster {
 	/*
 	 * Verbose string header
 	 */
-	private String getHeader(String id) {
+	public String getHeader(String id) {
 		StringBuilder header = new StringBuilder();
 		String dis = "absent";
 		String clip = "absent";

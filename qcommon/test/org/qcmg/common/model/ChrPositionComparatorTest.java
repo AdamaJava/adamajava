@@ -31,6 +31,25 @@ public class ChrPositionComparatorTest {
 		assertEquals(v3, vcfs.get(2));
 		assertEquals(v4, vcfs.get(3));
 	}
+	
+	@Test
+	public void specialString() {
+		List<String> contigs = Arrays.asList("chr1","chr2", "chr3", "chr4");
+		Comparator<String> c = ChrPositionComparator.getChrNameComparatorForSingleString("chr2");
+		contigs.sort(c);
+		assertEquals("chr2", contigs.get(0));
+		assertEquals("chr1", contigs.get(1));
+		assertEquals("chr3", contigs.get(2));
+		assertEquals("chr4", contigs.get(3));
+		
+		contigs = Arrays.asList("chr1","chr2", "chr3", "chr4", "chr2");
+		contigs.sort(c);
+		assertEquals("chr2", contigs.get(0));
+		assertEquals("chr2", contigs.get(1));
+		assertEquals("chr1", contigs.get(2));
+		assertEquals("chr3", contigs.get(3));
+		assertEquals("chr4", contigs.get(4));
+	}
 
 	/**
 	 * Test case when reference list of contigs is a subset of contigs in the records to be sorted

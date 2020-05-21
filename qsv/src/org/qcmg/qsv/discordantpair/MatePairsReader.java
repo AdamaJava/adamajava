@@ -9,6 +9,7 @@ package org.qcmg.qsv.discordantpair;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -36,13 +37,13 @@ public class MatePairsReader {
 			String[] groups = zp.toString().split("_");
 			dirToRead = new String[groups.length];
 
-			for (int i=0; i<groups.length; i++) {
+			for (int i = 0; i < groups.length; i++) {
 				dirToRead[i] = matepairFilePath +  groups[i] + FILE_SEPERATOR;
 			}
 
 		} else {
-			this.dirToRead = new String[1];
-			dirToRead[0] = matepairFilePath + zp.getPairGroup() + FILE_SEPERATOR;
+			this.dirToRead = new String[] {matepairFilePath + zp.getPairGroup() + FILE_SEPERATOR};
+//			dirToRead[0] = matepairFilePath + zp.getPairGroup() + FILE_SEPERATOR;
 		}  
 
 		this.mateCount = 0;
@@ -82,21 +83,7 @@ public class MatePairsReader {
 
 					//contains ND or TD
 					if (s.contains(type)) {
-
-						String key = s.substring(0, s.indexOf("_"));
-						String value = dirString + s;
-
-						File file = new File(value);
-						
-						filesToRead.computeIfAbsent(key, f ->  new ArrayList<>()).add(file);
-						
-//						if (filesToRead.containsKey(key)) {  
-//							filesToRead.get(key).add(file);
-//						} else {
-//							List<File> list = new ArrayList<File>();
-//							list.add(file);
-//							filesToRead.put(key, list); // key: reference name | value: file
-//						}                     
+						filesToRead.computeIfAbsent(s.substring(0, s.indexOf("_")), f ->  new ArrayList<>()).add(new File(dirString + s));
 					}
 				}
 			}
@@ -107,7 +94,7 @@ public class MatePairsReader {
 		return this.categories;
 	}
 
-	public List<MatePair> getMatePairsListByFiles(List<File> files, boolean isFindMethod) throws Exception {
+	public List<MatePair> getMatePairsListByFiles(List<File> files, boolean isFindMethod) throws IOException {
 
 		List<MatePair> readPairs = new ArrayList<>();
 

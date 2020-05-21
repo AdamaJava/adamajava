@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 
+import org.qcmg.common.log.QLogger;
+import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.meta.KeyValue;
 import org.qcmg.common.meta.QDccMeta;
 import org.qcmg.common.meta.QExec;
@@ -18,6 +20,7 @@ import org.qcmg.common.meta.QToolMeta;
 import org.qcmg.qsv.Options;
 import org.qcmg.qsv.QSVCluster;
 import org.qcmg.qsv.QSVParameters;
+import org.qcmg.qsv.util.QSVConstants;
 import org.qcmg.qsv.util.QSVUtil;
 
 public class DCCReport extends QSVReport {	
@@ -32,7 +35,7 @@ public class DCCReport extends QSVReport {
 	private String normalFindType;
 	private String platform;
 	private QExec exec;
-	private static String TAB = "\t";
+	private QLogger logger =  QLoggerFactory.getLogger(DCCReport.class);
 	
 	public DCCReport(File file, Date runDate, String analysisId, QSVParameters tumor, QSVParameters normal, Options options, QExec exec) throws IOException {
 		super(file);
@@ -116,6 +119,8 @@ public class DCCReport extends QSVReport {
 		    		 if (r.printRecord(isSingleSided)) {
 		    			 String str = r.getDataString("dcc", tumourFindType, normalFindType, true, getValidationPlatform(platform)); 				 
 		    			 writer.write(str +  QSVUtil.getNewLine());    			 
+		    		 } else {
+		    			 logger.info("Not writing cluster to dcc file, cluster confidence: " + r.getConfidenceLevel() + ", " + r.getHeader(""));
 		    		 }
 		    	 }
 		}
@@ -124,7 +129,7 @@ public class DCCReport extends QSVReport {
 	private String getValidationPlatform(String platform) {
 		if (platform.equals("solid")) {
 			return "4";
-		} else if (platform.equals("illumina")) {
+		} else if (QSVConstants.DEFAULT_SEQ_PLATFORM.equals(platform)) {
 			return"60";
 		} else {
 			return "-999";
@@ -134,19 +139,13 @@ public class DCCReport extends QSVReport {
 	@Override
 	public String getHeader() {
 		
-		return "analysis_id"+TAB+"analyzed_sample_id"+TAB+"sv_id"+TAB+"placement"+TAB+"annotation"+TAB+"interpreted_annotation"+TAB+
-				"variant_type"+TAB+"chr_from"+TAB+"chr_from_bkpt"+TAB+"chr_from_strand"+TAB+"chr_from_range"
-				+TAB+"chr_from_flanking_seq"+TAB+"chr_to"+TAB+"chr_to_bkpt"+TAB+""
-                + "chr_to_strand"+TAB+"chr_to_range"+TAB+"chr_to_flanking_seq"+TAB+"microhomology_sequence"+TAB+"non_templated_sequence"+TAB+""
-                + "evidence"+TAB+"quality_score"+TAB+"probability"+TAB+"zygosity"+TAB+"validation_status"+TAB+""
-                + "validation_platform"+TAB+"db_xref"+TAB+"note"+TAB+"number_of_reads" +
-                ""+TAB+"number_of_normal_reads" +
-                ""+TAB+"number_of_low_qual_normal_reads" +
-                ""+TAB+"number_of_tumour_clips_pos1"+TAB+"number_of_tumour_clips_pos2"+TAB+
-                		"number_of_normal_clips_pos1"+TAB+"number_of_normal_clips_pos2" +                   
-                TAB+"category"+ TAB + "orientation_category" 
-                + TAB + "pairing_category" +TAB+"event_notes" 
-                + TAB + "contig" + QSVUtil.getNewLine();
+		return "analysis_id\tanalyzed_sample_id\tsv_id\tplacement\tannotation\tinterpreted_annotation\tvariant_type\t"
+				+ "chr_from\tchr_from_bkpt\tchr_from_strand\tchr_from_range\tchr_from_flanking_seq\tchr_to\tchr_to_bkpt\t"
+				+ "chr_to_strand\tchr_to_range\tchr_to_flanking_seq\tmicrohomology_sequence\tnon_templated_sequence\tevidence\t"
+				+ "quality_score\tprobability\tzygosity\tvalidation_status\tvalidation_platform\tdb_xref\tnote\tnumber_of_reads\t"
+                + "number_of_normal_reads\tnumber_of_low_qual_normal_reads\tnumber_of_tumour_clips_pos1\tnumber_of_tumour_clips_pos2\t"
+                + "number_of_normal_clips_pos1\tnumber_of_normal_clips_pos2\tcategory\torientation_category\t"
+                + "pairing_category\tevent_notes\tcontig\n";
 	}
 
 }

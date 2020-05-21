@@ -13,8 +13,12 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.qsv.QSVException;
 import org.qcmg.qsv.splitread.UnmappedRead;
 import org.qcmg.qsv.util.QSVUtil;
+
+import gnu.trove.map.TIntObjectMap;
+import gnu.trove.map.hash.TIntObjectHashMap;
 
 public class QSVAssemble {
 	
@@ -69,7 +73,7 @@ public class QSVAssemble {
 		return null;
 	}
 	
-	public ConsensusRead createFinalConsensusRead(boolean isLeft, boolean clipReverse, int bpPos) throws Exception {
+	public ConsensusRead createFinalConsensusRead(boolean isLeft, boolean clipReverse, int bpPos) {
 		fullClipSequence = clipContig.getSequence();
 		String finalClipString;
 		String finalReferenceString;
@@ -79,7 +83,7 @@ public class QSVAssemble {
 			finalReferenceString = "";				
 		} else {
 			if (isLeft) {					
-				int index = fullContigSequence.indexOf(fullClipSequence)+ fullClipSequence.length();
+				int index = fullContigSequence.indexOf(fullClipSequence) + fullClipSequence.length();
 				if (index != -1 && index < fullContigSequence.length()) {
 					finalClipString = fullContigSequence.substring(0, index); 
 					finalReferenceString = fullContigSequence.substring(index, fullContigSequence.length());
@@ -107,31 +111,37 @@ public class QSVAssemble {
 		}		
 	}
 
-	public ConsensusRead getFinalContig(List<UnmappedRead> inputSplitReads) throws Exception {
+	public ConsensusRead getFinalContig(List<UnmappedRead> inputSplitReads, boolean log) throws QSVException {
 		splitReads = new ArrayList<>();
+		if (log) {
+			logger.info("getFinalContig with inputSplitReads count: " + inputSplitReads.size());
+		}
 		for (UnmappedRead r: inputSplitReads) {
+			if (log) {
+				logger.info("getFinalContig read: " + r.getReadName() + ", " + r.getSequence());
+			}
 			splitReads.add(new Read(r.getReadName(), r.getSequence()));
 		}
 		
-		Read contig = getSplitReadsContigs(splitReads, clipContig, splitReads.size());
+		Read contig = getSplitReadsContigs(splitReads, splitReads.size(), log);
 		inputSplitReads = null;
 		if (contig != null) {
-			ConsensusRead r = new ConsensusRead(contig.getHeader(), contig.getSequence(), contig.getSequence(), contig.getSequence());
-			if (!QSVUtil.highNCount(r.getSequence(), 0.1)) {
-				return r;
+			String seq = contig.getSequence();
+			if ( ! QSVUtil.highNCount(seq, 0.1)) {
+				return new ConsensusRead(contig.getHeader(), seq, seq, seq);
 			}
 		} 
 		return null;
 	}
 	
-	public String assemble() throws Exception {		
+	public String assemble() {		
 		outputRead = clipContig;
 		
 		if (splitReads.size() > 0 && clipContig != null) {			
 			
 			clipContig.setHeader("clipContigFor");
 			splitReads.add(0, clipContig);
-			Read forSplitContig = getSplitReadsContigs(splitReads, clipContig, 1);		
+			Read forSplitContig = getSplitReadsContigs(splitReads, 1, false);		
 			removeRead(splitReads, clipContig);
 			
 			if (forSplitContig != null) {
@@ -140,7 +150,7 @@ public class QSVAssemble {
 				this.reverseClipContig = new Read("clipContigRev" + clipContig.getHeader(), QSVUtil.reverseComplement(clipContig.getSequence()));
 			}	
 			splitReads.add(0, reverseClipContig);
-			Read revSplitContig = getSplitReadsContigs(splitReads, reverseClipContig, 1);
+			Read revSplitContig = getSplitReadsContigs(splitReads, 1, false);
 			
 			if (revSplitContig != null) {
 				outputRead = new Read(revSplitContig.getHeader(), QSVUtil.reverseComplement(revSplitContig.getSequence()));	
@@ -171,34 +181,41 @@ public class QSVAssemble {
 		}
 	}
 	
-	private Read getSplitReadsContigs(List<Read> splitReads, Read seedContig, int size) throws Exception {
+	private Read getSplitReadsContigs(List<Read> splitReads, int size, boolean log) {
 		this.currentContig = null;
-		
+		if (log) {
+			logger.info("getSplitReadsContigs, splitReads size: " + splitReads.size());
+		}
 		for (int i = 0; i < size; i++) {
 			if (i < splitReads.size()) {
-				createSeed(i, splitReads.get(i), splitReads, false);				
+				createSeed(i, splitReads.get(i), splitReads);
+				if (log && i < splitReads.size()) {
+					logger.info("getSplitReadsContigs, created seed: " + (null != currentContig ? currentContig.getSequence() : "null") + " with i: " + i + ", read: " + splitReads.get(i).getSequence());
+				}
 			}
 		}
 		return currentContig;
 	}
 
-	private void createSeed(int currentIndex, Read seed, List<Read> reads, boolean isClips) throws Exception {
-		seed.createHashtable();
+	private void createSeed(int currentIndex, Read seed, List<Read> reads) {
+//		seed.createHashtable();
 
-		ConcurrentHashMap<Integer, ReadMatch> matches = new ConcurrentHashMap<>();
+//		ConcurrentHashMap<Integer, ReadMatch> matches = new ConcurrentHashMap<>();
 		
-		findMatches(currentIndex, seed, matches, reads);	
-		Alignment alignment = new Alignment(matches, seed);
+		TIntObjectMap<ReadMatch> matches = findMatches(currentIndex, seed, reads);	
+//		findMatches(currentIndex, seed, matches, reads);	
+		Alignment alignment = new Alignment(matches.valueCollection(), seed);
+//		Alignment alignment = new Alignment(matches, seed);
 		
-		if (alignmentSizeGreater(alignment.calculateLength())) {
-			Read contig = alignment.constructConsensusSequence();		
-			Iterator<ReadMatch> iter = alignment.getMatchingReads().iterator();	
+		if (alignmentSizeGreater(alignment.calculateLength(), currentContig)) {
+			Read contig = alignment.constructConsensusSequence();
+			Iterator<ReadMatch> iter = alignment.getMatchingReads().iterator();
 				
 			if (contig != null) {
 				if (contig.getSequence().contains(seed.getSequence())) {
 					
 					while (iter.hasNext()) {
-						Read read = iter.next().read();				
+						Read read = iter.next().read();
 						contig.setHeader(contig.getHeader() + "," + read.getHeader());
 						removeRead(reads, read);
 					}
@@ -213,14 +230,63 @@ public class QSVAssemble {
 			}
 		}
 	}
+	
+	private TIntObjectMap<ReadMatch> findMatches(int currentIndex, Read seed, List<Read> reads) {
+		TIntObjectMap<ReadMatch> map = new TIntObjectHashMap<>(reads.size());
+		for (int j = 0, size = reads.size() ; j < size ; j++) {
+			if (j != currentIndex){
 
-	private boolean alignmentSizeGreater(int alignmentLength) {
-		if (currentContig == null) {
-			return true;
-		} else if (alignmentLength > currentContig.length()) {
-			return true;
+				Read read = reads.get(j);
+				
+				String nextReadSeed = read.getSeed();
+				String nextReadReverseSeed = read.getReverseSeed();
+
+				if (seed.getHashtable().containsKey(nextReadSeed)) { //Forward extending
+					//Calculate relative position of the read against the seed.
+					
+//					matches.put(read.hashCode(), new ReadMatch(read, seed.getHashtable().get(nextReadSeed)));
+					map.put(read.hashCode(), new ReadMatch(read, seed.getHashtable().get(nextReadSeed)));
+				} else if (seed.getHashtable().containsKey(nextReadReverseSeed)) { //Reverse extending
+					//Calculate relative position of the read against the seed.
+//					matches.put(getIndex(reads, read), new ReadMatch(read, seed.getHashtable().get(nextReadReverseSeed) - read.length() - SEED_LENGTH));
+					map.put(getIndex(reads, read), new ReadMatch(read, seed.getHashtable().get(nextReadReverseSeed) - (read.length() - SEED_LENGTH)));
+				}
+			}			
 		}
-		return false;
+		return map;
+	}
+	
+	private void findMatches(int currentIndex, Read seed,
+			ConcurrentHashMap<Integer, ReadMatch> matches, List<Read> reads) {
+		int position;
+		for (int j=0, size = reads.size() ; j < size ; j++) {
+			if (j != currentIndex){
+
+				Read read = reads.get(j);
+				
+				String nextReadSeed = read.getSeed();
+				String nextReadReverseSeed = read.getReverseSeed();	
+
+				if (seed.getHashtable().containsKey(nextReadSeed)) { //Forward extending
+					//Calculate relative position of the read against the seed.
+					position = seed.getHashtable().get(nextReadSeed);
+					
+					matches.put(read.hashCode(), new ReadMatch(read, position));
+				} else if (seed.getHashtable().containsKey(nextReadReverseSeed)) { //Reverse extending
+					//Calculate relative position of the read against the seed.
+					position = seed.getHashtable().get(nextReadReverseSeed);
+//					System.out.println("position1: " + position + ", read.length(): " + read.length() + ", SEED_LENGTH: " + SEED_LENGTH + ", seed.getHashtable().get(nextReadReverseSeed): " + seed.getHashtable().get(nextReadReverseSeed));
+					position -= read.length() - SEED_LENGTH;
+//					System.out.println("position2: " + position);
+//					System.out.println("position3: " + (seed.getHashtable().get(nextReadReverseSeed) - (read.length() - SEED_LENGTH) ));
+					matches.put(getIndex(reads, read), new ReadMatch(read, position));
+				}
+			}			
+		}		
+	}
+
+	public static boolean alignmentSizeGreater(int alignmentLength, Read contig) {
+		return null == contig || alignmentLength > contig.length();
 	}
 
 	private void removeRead(List<Read> reads, Read read) {
@@ -241,38 +307,38 @@ public class QSVAssemble {
 		return index;
 	}
 
-	private void findMatches(int currentIndex, Read seed,
-			ConcurrentHashMap<Integer, ReadMatch> matches, List<Read> reads) {
-		int position;
-		for (int j = 0, size = reads.size() ; j < size ; j++) {
-			if (j != currentIndex){
-
-				Read read = reads.get(j);
-				
-				String nextReadSeed = read.getSeed();
-				String nextReadReverseSeed = read.getReverseSeed();			
-
-				if (seed.getHashtable().containsKey(nextReadSeed)) { //Forward extending
-					//Calculate relative position of the read against the seed.
-					position = seed.getHashtable().get(nextReadSeed);
-					
-					matches.put(read.hashCode(), new ReadMatch(read, position));
-				} else if (seed.getHashtable().containsKey(nextReadReverseSeed)) { //Reverse extending
-					//Calculate relative position of the read against the seed.
-					position = seed.getHashtable().get(nextReadReverseSeed);
-					position -= read.length() - SEED_LENGTH;
-					matches.put(getIndex(reads, read), new ReadMatch(read, position));
-				}
-			}			
-		}		
-	}
+	
+//	private void findMatches(int currentIndex, Read seed, ConcurrentHashMap<Integer, ReadMatch> matches, List<Read> reads) {
+//		int position;
+//		for (int j = 0, size = reads.size() ; j < size ; j++) {
+//			if (j != currentIndex){
+//				
+//				Read read = reads.get(j);
+//				
+//				String nextReadSeed = read.getSeed();
+//				String nextReadReverseSeed = read.getReverseSeed();
+//				
+//				if (seed.getHashtable().containsKey(nextReadSeed)) { //Forward extending
+//					//Calculate relative position of the read against the seed.
+//					position = seed.getHashtable().get(nextReadSeed);
+//					
+//					matches.put(read.hashCode(), new ReadMatch(read, position));
+//				} else if (seed.getHashtable().containsKey(nextReadReverseSeed)) { //Reverse extending
+//					//Calculate relative position of the read against the seed.
+//					position = seed.getHashtable().get(nextReadReverseSeed);
+//					position -= read.length() - SEED_LENGTH;
+//					matches.put(getIndex(reads, read), new ReadMatch(read, position));
+//				}
+//			}			
+//		}		
+//	}
 
 	public int getMatchingSplitReads() {
 		return matchingSplitReads;
 	}
 
-	public String getFinalClipContig(String leftConsensus, String rightConsensus) throws Exception {
-		this.clipReads = new ArrayList<Read>();
+	public String getFinalClipContig(String leftConsensus, String rightConsensus) throws QSVException {
+		this.clipReads = new ArrayList<>();
 		
 		if (leftConsensus.contains(rightConsensus)) {
 			return leftConsensus;
@@ -295,8 +361,8 @@ public class QSVAssemble {
 		}
 	}
 	
-	private String assembleFinalContig() throws Exception {
-		createSeed(0, clipReads.get(0), clipReads, true);
+	private String assembleFinalContig() throws QSVException {
+		createSeed(0, clipReads.get(0), clipReads);
 		
 		if (currentContig != null) {
 			if (currentContig.getHeader().split(",").length == 2 && ! QSVUtil.highNCount(currentContig.getSequence(), 0.1)) {

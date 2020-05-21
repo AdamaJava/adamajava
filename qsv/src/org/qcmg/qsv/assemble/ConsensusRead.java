@@ -11,7 +11,7 @@ public class ConsensusRead extends Read {
 	
 	final String clipMateSequence;
 	final String referenceSequence;
-
+	
 	public ConsensusRead(String header, String tsequence, String clipString, String referenceSequence) {
 		super(header, tsequence);	
 		this.clipMateSequence = clipString;

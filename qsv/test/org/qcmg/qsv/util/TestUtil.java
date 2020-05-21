@@ -28,6 +28,7 @@ import java.util.Set;
 
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.util.Constants;
+import org.qcmg.common.util.NumberUtils;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qsv.Options;
 import org.qcmg.qsv.QSVCluster;
@@ -42,7 +43,6 @@ import org.qcmg.qsv.softclip.Breakpoint;
 import org.qcmg.qsv.softclip.Clip;
 import org.qcmg.qsv.softclip.SoftClipCluster;
 import org.qcmg.qsv.tiledaligner.TiledAlignerLongMap;
-import org.qcmg.qsv.tiledaligner.TiledAlignerUtil;
 
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
@@ -899,7 +899,7 @@ public class TestUtil {
 				System.out.println("no tab in " + s);
 			}
 			String tile = s.substring(0, tabindex);
-			int tileInt = TiledAlignerUtil.convertTileToInt(tile);
+			int tileInt = NumberUtils.convertTileToInt(tile);
 			if (tileInt != -1) {
 				int [] positions = TiledAlignerLongMap.convertStringToIntArray(s.substring(tabindex + 1));
 				cache.put(tileInt, positions);

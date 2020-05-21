@@ -7,6 +7,7 @@
 package org.qcmg.qsv.assemble;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -27,6 +28,11 @@ public class Alignment {
 	{
 		this.seed = seed;
 		matchedReads = new ArrayList<ReadMatch>(reads.values());
+	}
+	public Alignment(Collection<ReadMatch> reads, Read seed)
+	{
+		this.seed = seed;
+		matchedReads = new ArrayList<>(reads);
 	}
 	
 	/*
@@ -117,8 +123,7 @@ public class Alignment {
 	 * If it can't determine the consensus base at that position than it stops extending the contig
 	 * in that direction.
 	 */
-	public Read constructConsensusSequence () throws Exception
-	{		
+	public Read constructConsensusSequence () {		
 		StringBuilder sb = new StringBuilder();
 		for (int i = start; i < length; i++) {
 			char cbase = getConsensusBase(i);

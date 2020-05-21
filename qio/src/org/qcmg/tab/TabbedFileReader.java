@@ -6,6 +6,7 @@
  */
 package org.qcmg.tab;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.Closeable;
 import java.io.File;
@@ -16,9 +17,7 @@ import java.io.InputStreamReader;
 import java.util.Iterator;
 import java.util.zip.GZIPInputStream;
 
-import org.qcmg.Utils.IOStreamUtils;
 import org.qcmg.common.util.FileUtils;
-import org.qcmg.vcf.VCFSerializer;
 
 public final class TabbedFileReader implements Closeable, Iterable<TabbedRecord> {
     private final File file;
@@ -28,7 +27,8 @@ public final class TabbedFileReader implements Closeable, Iterable<TabbedRecord>
     public TabbedFileReader(final File file, int bufferSize) throws IOException {
         this.file = file;
         boolean isGzip = FileUtils.isInputGZip( file);
-        try(InputStream stream = (isGzip) ? new GZIPInputStream(new FileInputStream(file), bufferSize) : new FileInputStream(file);) {
+//        try(InputStream stream = (isGzip) ? new GZIPInputStream(new BufferedInputStream(file, 1), bufferSize) : new FileInputStream(file);) {
+        	try(InputStream stream = (isGzip) ? new GZIPInputStream(new FileInputStream(file), bufferSize) : new FileInputStream(file);) {
         	BufferedReader in = new BufferedReader(new InputStreamReader(stream));        
         	header = TabbedSerializer.readHeader(in);       	
         } 

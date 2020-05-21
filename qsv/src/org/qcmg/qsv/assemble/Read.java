@@ -35,10 +35,10 @@ public class Read {
 			throw new IllegalArgumentException("Read sequence length less than SEED_LENGTH: " + sequenceLength + " < " + QSVAssemble.SEED_LENGTH);
 		}
 		
+		checkSequence();
+		
 		forwordSeed = String.copyValueOf(sequence, 0, QSVAssemble.SEED_LENGTH);
 		reverseSeed = String.copyValueOf(sequence, sequenceLength - QSVAssemble.SEED_LENGTH, QSVAssemble.SEED_LENGTH);
-		
-		checkSequence();
 	}
 	
 	public Read (String header, String sequence, boolean isReverse) {
@@ -108,12 +108,12 @@ public class Read {
 	public boolean positionWithin(int basePos, int readPos) {
 		return readPos <= basePos && basePos < (sequenceLength + readPos);
 	}
-	public boolean positionWithin(int basePos) {
-		return basePos >= 0 && basePos < sequenceLength;
-	}
+//	public boolean positionWithin(int basePos) {
+//		return basePos >= 0 && basePos < sequenceLength;
+//	}
 	
 	/*
-	 * Returns the base at a given postion when adjusted for the reads position.
+	 * Returns the base at a given position when adjusted for the reads position.
 	 */
 	public char charAt(int pos, int position) {
 		return sequence[pos - position];

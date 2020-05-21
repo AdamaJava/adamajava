@@ -261,6 +261,12 @@ public class StringUtils {
 	public static BitSet determineSequenceComplexity(String sequence) {
 		BitSet bs = new BitSet(4);
 		for (int i = 0, len = sequence.length() ; i < len ; i++) {
+			if (i > 4 && bs.cardinality() == 4) {
+				/*
+				 * no point continuing - all bases have been seen
+				 */
+				break;
+			}
 			switch (sequence.charAt(i)) {
 			case 'A': bs.set(0); break;
 			case 'C': bs.set(1); break;
@@ -488,6 +494,16 @@ public class StringUtils {
 		char [] array = new char[length];
 		Arrays.fill(array, c);
 		return new String(array);
+	}
+
+	public static int getCount(String s, char c) {
+		int matchCount = 0;
+		for (char c1 : s.toCharArray()) {
+			if (c1 == c) {
+				matchCount++;
+			}
+		}
+		return matchCount;
 	}
 
 }

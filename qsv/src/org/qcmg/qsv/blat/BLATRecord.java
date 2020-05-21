@@ -42,6 +42,9 @@ public class BLATRecord implements Comparable<BLATRecord> {
 				
 		this.score = Integer.parseInt(rawData[0]) - Integer.parseInt(rawData[1]) - Integer.parseInt(rawData[6]) - Integer.parseInt(rawData[4]);
 		this.name = rawData[9];
+		if (null == name) {
+			System.out.println("null name in BLATRecord: " + Arrays.deepToString(values));
+		}
 		this.reference = rawData[13];
 		this.blockCount = Integer.parseInt(rawData[17]);
 		this.size =  Integer.parseInt(rawData[10]);
@@ -116,6 +119,9 @@ public class BLATRecord implements Comparable<BLATRecord> {
 		return name;
 	}
 	public void setName(String name) {
+		if (null == name) {
+			System.out.println("setName null");
+		}
 		this.name = name;
 		this.rawData[9] = name;
 	}
@@ -291,6 +297,26 @@ public class BLATRecord implements Comparable<BLATRecord> {
 				return diff;
 			}
 			
+			/*
+			 * strand next
+			 */
+			if (strand == QSVUtil.PLUS) {
+				if (o.strand ==  QSVUtil.MINUS) {
+					return 1;
+				}
+			} else if (strand == QSVUtil.MINUS) {
+				if (o.strand ==  QSVUtil.PLUS) {
+					return -1;
+				}
+			}
+			
+			/*
+			 * finally chromosome - lexicographically sorted rather than numerically - thats what BLAT does...
+			 */
+			diff = o.reference.compareTo(reference);
+			if (diff != 0) {
+				return diff;
+			}
 			diff = o.rawData[0].compareTo(rawData[0]);
 //			diff = Integer.compare(Integer.parseInt(o.rawData[0]), Integer.parseInt(rawData[0]));
 			return diff;

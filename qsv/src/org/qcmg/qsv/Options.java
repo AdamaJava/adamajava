@@ -67,6 +67,7 @@ public class Options {
 	private String blatPort;
 	private String bitFile;
 	private String blatPath;
+	private String tiledAlignerFile;
 	private String mapper;
 	private String clipQuery;		
 	private String maxISizeCount;
@@ -148,7 +149,8 @@ public class Options {
 		
 		log = generalSection.get("log");
 		loglevel = generalSection.get("loglevel");
-		sampleName = generalSection.get("sample");		
+		sampleName = generalSection.get("sample");
+		tiledAlignerFile = generalSection.get("tiledAligner");
 		
 		if (log == null) {
 			log = sampleName + ".log";
@@ -724,6 +726,9 @@ public class Options {
 	
 	public String getSequencingPlatform() {
 		return sequencingPlatform;
+	}
+	public String getTiledAligner() {
+		return tiledAlignerFile;
 	}
 
 	public void setSequencingPlatform(String sequencingPlatform) {

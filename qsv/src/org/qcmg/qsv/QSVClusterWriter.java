@@ -16,12 +16,15 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.qcmg.common.log.QLogger;
+import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.gff3.GFF3FileReader;
 import org.qcmg.gff3.GFF3Record;
 import org.qcmg.qsv.discordantpair.DiscordantPairCluster;
 import org.qcmg.qsv.discordantpair.PairGroup;
 import org.qcmg.qsv.report.DCCReport;
 import org.qcmg.qsv.report.QSVClusterReport;
+import org.qcmg.qsv.softclip.FindClipClustersMT;
 
 /**
  * Class to write QSV cluster details to output files
@@ -30,6 +33,8 @@ import org.qcmg.qsv.report.QSVClusterReport;
  */
 public class QSVClusterWriter {
 
+	private static final QLogger logger = QLoggerFactory.getLogger(QSVClusterWriter.class);
+	
 	private final QSVParameters tumorParameters;
 	private final QSVParameters normalParameters;
 	private final AtomicInteger somaticCount = new AtomicInteger(0);
@@ -67,16 +72,7 @@ public class QSVClusterWriter {
 				Iterator<GFF3Record> it = reader.getRecordIterator();
 				while (it.hasNext()) {
 					GFF3Record g3 = it.next();
-					
 					gffMap.computeIfAbsent(g3.getSeqId(), f -> new ArrayList<>()).add(g3);
-//					
-//					if (gffMap.containsKey(g3.getSeqId())) {
-//						gffMap.get(g3.getSeqId()).add(g3);
-//					} else {
-//						List<GFF3Record> list = new ArrayList<>();
-//						list.add(g3);
-//						gffMap.put(g3.getSeqId(), list);					
-//					}
 				}
 			}
 		}
@@ -165,6 +161,15 @@ public class QSVClusterWriter {
 					} else {		    			
 						somaticRecords.add(record);    			
 					}
+				} else {
+					if ("chr7".equals(record.getLeftReference()) && record.getLeftReference().equals(record.getRightReference())) {
+						logger.info("Failed min insert size (" + minInsertSize + ") check: " + record.toTabString());
+					}
+				}
+			} else {
+				
+				if ("chr7".equals(record.getLeftReference()) && record.getLeftReference().equals(record.getRightReference())) {
+					logger.info("Failed printRecord check: " + record.toTabString());
 				}
 			}
 		}

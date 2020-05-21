@@ -26,6 +26,7 @@ import htsjdk.samtools.reference.FastaSequenceIndex;
 import htsjdk.samtools.reference.IndexedFastaSequenceFile;
 import htsjdk.samtools.reference.ReferenceSequence;
 import htsjdk.samtools.reference.ReferenceSequenceFile;
+import htsjdk.samtools.util.SequenceUtil;
 import htsjdk.samtools.SAMRecord;
 
 import org.qcmg.common.meta.QExec;
@@ -47,6 +48,12 @@ public class QSVUtil {
 	public static final char PLUS = '+';
 	public static final char MINUS = '-';
 	public static final char COLON = ':';
+	
+	public static final char A = 'A';
+	public static final char C = 'C';
+	public static final char G = 'G';
+	public static final char T = 'T';
+	public static final char N = 'N';
 	
 	public static ConcurrentMap<String, byte[]> REFERENCE;
 	public static final ReferenceNameComparator REF_NAME_COMP =  new ReferenceNameComparator();
@@ -169,23 +176,25 @@ public class QSVUtil {
 	 * @return the reverse complement
 	 */
 	public static String reverseComplement(String consensus) {
-		String reverse = "";
-
-		for (int i=consensus.length()-1; i>=0; i--) {
-			char pos = consensus.charAt(i);
-			if (pos == 'A') {
-				reverse += 'T';
-			} else if (pos == 'T') {
-				reverse += 'A';
-			} else if (pos == 'C') {
-				reverse += 'G';
-			} else if (pos == 'G') {
-				reverse += 'C';
-			} else {
-				reverse += 'N';
-			}
-		}
-		return reverse;		
+		return SequenceUtil.reverseComplement(consensus);
+		
+//		String reverse = "";
+//
+//		for (int i=consensus.length()-1; i>=0; i--) {
+//			char pos = consensus.charAt(i);
+//			if (pos == A) {
+//				reverse += T;
+//			} else if (pos == T) {
+//				reverse += A;
+//			} else if (pos == C) {
+//				reverse += G;
+//			} else if (pos == G) {
+//				reverse += C;
+//			} else {
+//				reverse += N;
+//			}
+//		}
+//		return reverse;		
 	}
 
 	/**
@@ -357,16 +366,39 @@ public class QSVUtil {
 		if (limit < 0 || limit > 1) {
 			throw new QSVException("INVALID_PERCENTAGE","QSVUtil.highNCount", "" + limit);
 		}
+		if (limit == 0) {
+			return true;
+		}
 		int count = 0;
 		int len = consensus.length();
+		int cutoff = (int) Math.ceil(len * limit);
 		for (int i = 0 ; i < len ; i++) {
 			if (consensus.charAt(i) == 'N' || consensus.charAt(i) == 'n') {
-				count++;
+				if (++count >= cutoff) {
+					return true;
+				}
 			}
 		}
 
-		return  (double) count/len >= limit;
+		return false;
 	}
+//	public static boolean highNCount(String consensus, double limit) throws QSVException {
+//		if (StringUtils.isNullOrEmpty(consensus)) {
+//			throw new QSVException("NULL_OR_EMPTY_STRING","QSVUtil.highNCount", consensus);
+//		}
+//		if (limit < 0 || limit > 1) {
+//			throw new QSVException("INVALID_PERCENTAGE","QSVUtil.highNCount", "" + limit);
+//		}
+//		int count = 0;
+//		int len = consensus.length();
+//		for (int i = 0 ; i < len ; i++) {
+//			if (consensus.charAt(i) == 'N' || consensus.charAt(i) == 'n') {
+//				count++;
+//			}
+//		}
+//		
+//		return  (double) count/len >= limit;
+//	}
 
 	/**
 	 * Gets the pair groups by orientation category.

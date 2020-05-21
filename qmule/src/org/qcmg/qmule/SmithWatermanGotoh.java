@@ -14,6 +14,21 @@ import java.util.Arrays;
 
 public class SmithWatermanGotoh {
 	
+	private static final int STOP = 0;
+	private static final int LEFT = 1;	
+	private static final int DIAGONAL = 2;
+	private static final int UP = 3;
+	private static final char GAP = '-';
+	private static final char EMPTY = ' ';
+	private static final char MISMATCH = '.';
+	private static final char MATCH = '|';
+	private static final short ONE = 1;
+	
+	private static final short [] SHORT_ARRAY_1 = new short[10000];
+	static {
+		arrayFill(SHORT_ARRAY_1);
+	}
+	
 	private final float gapOpen;
 	private final float gapExtend;
 	private final int matchScore;
@@ -28,19 +43,7 @@ public class SmithWatermanGotoh {
 	private int bestRow;
 	private int bestColumn;
 	private float bestScore;
-	private static final int STOP = 0;
-	private static final int LEFT = 1;	
-	private static final int DIAGONAL = 2;
-	private static final int UP = 3;
-	private static final char GAP = '-';
-	private static final char EMPTY = ' ';
-	private static final char MISMATCH = '.';
-	private static final char MATCH = '|';
-//	private static final String GAP = "-";
-//	private static final String EMPTY = " ";
-//	private static final String MISMATCH = ".";
-//	private static final String MATCH = "|";
-//	private static final String TAB = "";
+//	private short[] intialShortArraySetTo1;
 	
 	public SmithWatermanGotoh(File fileA, File fileB, int matchScore, int mismatchScore, float gapOpen, float gapExtend) throws IOException  {
 		
@@ -65,6 +68,7 @@ public class SmithWatermanGotoh {
 		this.mismatchScore =  mismatchScore;
 		this.rows = sequenceA.length() + 1;//i
 		this.columns = sequenceB.length() + 1;//j
+//		intialShortArraySetTo1 = Arrays.copyOf(SHORT_ARRAY_1, columns);
 		fillMatrix();
 	}
 	
@@ -108,7 +112,9 @@ public class SmithWatermanGotoh {
 //				dynamic programming algorithm and designated here Pij and Qij depend only on the values in the 
 //				current and previous row and column, as indicated below.
 		
+//		initializeNew();
 		initialize();
+//		afterInitialiseState();
 		
 		//storage for current calculations
 		float[] bestScores = new float[columns];//score if xi aligns to gap after yi		
@@ -121,115 +127,240 @@ public class SmithWatermanGotoh {
 		
 		float currentAnchorGapScore;// score if yi aligns to a gap after xi
 		float totalSimilarityScore;		
-		float bestScoreDiagonal;		
+		float bestScoreDiagonal;	
 		
 		//keep track of highset score for traceback
 		bestRow = 0;
 		bestColumn = 0;
 		bestScore = Float.NEGATIVE_INFINITY;
 		
-		float simScore, queryGapExtendScore, queryGapOpenScore, referenceGapExtendScore, referenceGapOpenScore;
+//		float referenceGapExtendScore, referenceGapOpenScore;
+//		float queryGapExtendScore, queryGapOpenScore, referenceGapExtendScore, referenceGapOpenScore;
+//		float simScore, queryGapExtendScore, queryGapOpenScore, referenceGapExtendScore, referenceGapOpenScore;
 		
-		for (int row = 1; row < rows; row++) {		
+		for (int row = 1; row < rows; row++) {
 			currentAnchorGapScore = Float.NEGATIVE_INFINITY;
 			bestScoreDiagonal = bestScores[0];
 			for (int column = 1; column < columns; column++) {
-				simScore = findSimilarity(row, column);
-				totalSimilarityScore = bestScoreDiagonal + simScore;								
+//				simScore = findSimilarity(row, column);
+//				totalSimilarityScore = bestScoreDiagonal + simScore;								
+//				totalSimilarityScore = bestScores[column - 1] + findSimilarity(row, column);								
+				totalSimilarityScore = bestScoreDiagonal + findSimilarity(row, column);								
 				
 				//calculate vertical/sequenceA gaps
-				queryGapExtendScore = queryGapScores[column] - gapExtend;
-				queryGapOpenScore = bestScores[column] - gapOpen;
+//				queryGapExtendScore = queryGapScores[column] - gapExtend;
+//				queryGapOpenScore = bestScores[column] - gapOpen;
 				
-				if (queryGapExtendScore > queryGapOpenScore) {
+				if (column > 1 && (queryGapScores[column] - gapExtend) > ( bestScores[column] - gapOpen)) {
 					//add extend score
-					queryGapScores[column] = queryGapExtendScore;
+					queryGapScores[column] = queryGapScores[column] - gapExtend;
 					//increase size of gap
 					verticalGaps[row][column] = (short) (verticalGaps[row - 1][column] + 1);  
 				} else {
 					//add open score
-					queryGapScores[column] = queryGapOpenScore; 
+					queryGapScores[column] =  bestScores[column] - gapOpen; 
 				}
+//				queryGapExtendScore = queryGapScores[column] - gapExtend;
+//				queryGapOpenScore = bestScores[column] - gapOpen;
+//				
+//				if (queryGapExtendScore > queryGapOpenScore) {
+//					//add extend score
+//					queryGapScores[column] = queryGapExtendScore;
+//					//increase size of gap
+//					verticalGaps[row][column] = (short) (verticalGaps[row - 1][column] + 1);  
+//				} else {
+//					//add open score
+//					queryGapScores[column] = queryGapOpenScore; 
+//				}
 				
 				//calculate horizontal gaps
-				referenceGapExtendScore = currentAnchorGapScore - gapExtend;
-				referenceGapOpenScore = bestScores[column-1] - gapOpen;
+//				referenceGapExtendScore = currentAnchorGapScore - gapExtend;
+//				referenceGapOpenScore = bestScores[column - 1] - gapOpen;
 				
-				if (referenceGapExtendScore > referenceGapOpenScore) {
+				if (column > 1 && currentAnchorGapScore - gapExtend > bestScores[column - 1] - gapOpen) {
 					//add extend score
-					currentAnchorGapScore = referenceGapExtendScore;
+					currentAnchorGapScore = currentAnchorGapScore - gapExtend;
 					//increase size of gap					
 					horizontalGaps[row][column] = (short) (horizontalGaps[row][column - 1] + 1);	
 				} else {
 					//add open score
-					currentAnchorGapScore = referenceGapOpenScore; 
+					currentAnchorGapScore = bestScores[column - 1] - gapOpen; 
 				}
+//				referenceGapExtendScore = currentAnchorGapScore - gapExtend;
+//				referenceGapOpenScore = bestScores[column - 1] - gapOpen;
+//				
+//				if (referenceGapExtendScore > referenceGapOpenScore) {
+//					//add extend score
+//					currentAnchorGapScore = referenceGapExtendScore;
+//					//increase size of gap					
+//					horizontalGaps[row][column] = (short) (horizontalGaps[row][column - 1] + 1);	
+//				} else {
+//					//add open score
+//					currentAnchorGapScore = referenceGapOpenScore; 
+//				}
 				
 				//test scores
 				bestScoreDiagonal = bestScores[column];
 				bestScores[column] = findMaximum(totalSimilarityScore, queryGapScores[column], currentAnchorGapScore);
 				
 				//determine trackback direction
-				float score = bestScores[column];
-				if (score == 0) {
+//				float score = bestScores[column];
+				if (bestScores[column] == 0) {
 					/*
 					 * don't think we need to set this as it should already be zero
 					 */
 //					pointerMatrix[row][column] = STOP;
-				} else if (score == totalSimilarityScore) {
+				} else if (bestScores[column] == totalSimilarityScore) {
 					pointerMatrix[row][column] = DIAGONAL;
-				} else if (score == queryGapScores[column]) {
+				} else if (bestScores[column] == queryGapScores[column]) {
 					pointerMatrix[row][column] = UP;
 				} else {
 					pointerMatrix[row][column] = LEFT;
 				}
 				
 				//set current cell if this is the best score
-				if (score > bestScore) {
+				if (bestScores[column] > bestScore) {
 					bestRow = row;
 					bestColumn = column;
-					bestScore = score;
+					bestScore = bestScores[column];
 				}				
+//				float score = bestScores[column];
+//				if (score == 0) {
+//					/*
+//					 * don't think we need to set this as it should already be zero
+//					 */
+////					pointerMatrix[row][column] = STOP;
+//				} else if (score == totalSimilarityScore) {
+//					pointerMatrix[row][column] = DIAGONAL;
+//				} else if (score == queryGapScores[column]) {
+//					pointerMatrix[row][column] = UP;
+//				} else {
+//					pointerMatrix[row][column] = LEFT;
+//				}
+//				
+//				//set current cell if this is the best score
+//				if (score > bestScore) {
+//					bestRow = row;
+//					bestColumn = column;
+//					bestScore = score;
+//				}				
 			}
 		}
 	}
 	
-//	public void afterInitialiseState() {
+	public void afterInitialiseState() {
+//		System.out.println("pointerMatrix: " + pointerMatrix.length);
+//		System.out.println("verticalGaps: " + verticalGaps.length);
+//		System.out.println("horizontalGaps: " + horizontalGaps.length);
 //		System.out.println("pointerMatrix: " + Arrays.deepToString(pointerMatrix));
 //		System.out.println("verticalGaps: " + Arrays.deepToString(verticalGaps));
 //		System.out.println("horizontalGaps: " + Arrays.deepToString(horizontalGaps));
-//	}
+	}
+	
+	private static final int SMALL = 32;
+
+	public static void arrayFill(short[] array) {
+	  int len = array.length;
+	  int lenB = len < SMALL ? len : SMALL;
+	  for (int i = 0; i < lenB; i++) {
+	    array[i] = ONE;
+	  }
+	  for (int i = lenB; i < len; i += i) {
+	    System.arraycopy(array, 0, array, i, len < i + i ? len - i : i);
+	  }
+	}
+	public static void arrayFill(short[] array1, short[] array2) {
+		int len = array1.length;
+		int lenB = len < SMALL ? len : SMALL;
+		for (int i = 0; i < lenB; i++) {
+			array1[i] = ONE;
+			array2[i] = ONE;
+		}
+		for (int i = lenB; i < len; i += i) {
+			System.arraycopy(array1, 0, array1, i, len < i + i ? len - i : i);
+			System.arraycopy(array1, 0, array2, i, len < i + i ? len - i : i);
+		}
+	}
+	public static void arrayFill(float[] array) {
+		int len = array.length;
+		int lenB = len < SMALL ? len : SMALL;
+		for (int i = 0; i < lenB; i++) {
+			array[i] = Float.NEGATIVE_INFINITY;
+		}
+		for (int i = lenB; i < len; i += i) {
+			System.arraycopy(array, 0, array, i, len < i + i ? len - i : i);
+		}
+	}
+	
+	public static void arrayFill2D(short[][] array, int length) {
+		int len = array.length;
+		int lenB = len < SMALL ? len : SMALL;
+		array[0] = Arrays.copyOf(SHORT_ARRAY_1, length);
+//		for (int i = 0; i < lenB; i++) {
+//			arrayFill(array[i]);
+////			Arrays.fill(array[i], (short)1);
+//		}
+//		for (int i = 1; i < len; i += i) {
+			System.arraycopy(array, 0, array, 1, len - 1);
+//		}
+	}
 
 	private void initialize() {
 		pointerMatrix = new int[rows][columns];
 		verticalGaps = new short[rows][columns];
 		horizontalGaps = new short[rows][columns];
+		short s = 1;
+		for (int row = 0; row < rows; row++) {
+			Arrays.fill(verticalGaps[row], s);
+			Arrays.fill(horizontalGaps[row], s);
+		}
+	}
+	
+	public static void fillArrays(short[][] array1, short[][] array2, short[] source, int length) {
+		for (int i = 0, len = array1.length; i < len ; i++) {
+//			System.arraycopy(source, 0, array1[i], 0, length);
+			array1[i] = source.clone();
+			array2[i] = source.clone();
+//			System.arraycopy(source, 0, array2[i], 0, length);
+		}
+	}
+	
+	private void initializeNew() {
+		pointerMatrix = new int[rows][columns];
+		verticalGaps = new short[rows][columns];
+		horizontalGaps = new short[rows][columns];
+		fillArrays(verticalGaps, horizontalGaps, Arrays.copyOf(SHORT_ARRAY_1, columns), columns);
+	}
+	
+	public static short[][] cloneArray(short[][] src) {
+	    int length = src.length;
+	    short[][] target = new short[length][src[0].length];
+	    for (int i = 0; i < length; i++) {
+	        System.arraycopy(src[i], 0, target[i], 0, src[i].length);
+	    }
+	    return target;
+	}
+	
+	private void initializeOld() {
+		pointerMatrix = new int[rows][columns];
+		verticalGaps = new short[rows][columns];
+		horizontalGaps = new short[rows][columns];
+		for (int i = 0; i < rows; i++) {
+			pointerMatrix[i][0] = STOP;
+			if (i == 0) {
+				for (int j = 0; j < columns; j++) {
+					pointerMatrix[0][j] = STOP;
+				}
+			}
+		}		
 		
 		for (int row = 0; row < rows; row++) {
-			Arrays.fill(verticalGaps[row], (short) 1);
-			Arrays.fill(horizontalGaps[row], (short) 1);
+			for (int column = 0; column < columns; column++) {
+				verticalGaps[row][column] = 1;
+				horizontalGaps[row][column] = 1;
+			}
 		}		
 	}
-//	private void initialize() {
-//		pointerMatrix = new int[rows][columns];
-//		verticalGaps = new short[rows][columns];
-//		horizontalGaps = new short[rows][columns];
-//		for (int i = 0; i < rows; i++) {
-//			pointerMatrix[i][0] = STOP;
-//			if (i == 0) {
-//				for (int j = 0; j < columns; j++) {
-//					pointerMatrix[0][j] = STOP;
-//				}
-//			}
-//		}		
-//		
-//		for (int row = 0; row < rows; row++) {
-//			for (int column = 0; column < columns; column++) {
-//				verticalGaps[row][column] = 1;
-//				horizontalGaps[row][column] = 1;
-//			}
-//		}		
-//	}
 	
 	public String[] traceback() {
 		StringBuilder alignmentA = new StringBuilder();
@@ -250,7 +381,7 @@ public class SmithWatermanGotoh {
 						alignmentA.append(GAP);
 						gapString.append(EMPTY);
 						alignmentB.append(sequenceB.charAt(--cs));
-					}					
+					}				
 					break;
 			
 				case DIAGONAL:
@@ -264,16 +395,16 @@ public class SmithWatermanGotoh {
 					} else {
 						gapString.append(MISMATCH);
 					}
-								    
+
 					break;
 			
 				case UP:
 					//vertical gap					
 					int vEnd = verticalGaps[rs][cs];
 					for (int i = 0; i < vEnd; i++) {
-						alignmentB.append(GAP);						
+						alignmentB.append(GAP);				
 						gapString.append(EMPTY);
-						alignmentA.append(sequenceA.charAt(--rs));						
+						alignmentA.append(sequenceA.charAt(--rs));
 					}					
 					break;
 					
@@ -420,18 +551,40 @@ public class SmithWatermanGotoh {
 	}
 	
 	public static void main(String[] args) throws IOException {
-//		String sequence1 = "GAATTCAG";
-//		String sequence2 = "GGATCGA";
+		String sequence1 = "GAATTCAG";
+		String sequence2 = "GGATCGA";
+		
+		SmithWatermanGotoh nm = new SmithWatermanGotoh(sequence1, sequence2, 5, -4, 16, 4);	
+		String [] results = nm.traceback();
+		for (String s : results) {
+			System.out.println(s);
+		}
+//		System.exit(1);
+		
 //		String sequence1 = "TTGGGCTAAA";
 //		String sequence2 = "TTGGGAACTAAA";
 //		String sequence1 = "ATCGCTTTATGTTTTTGGTTATTGGTTTTTTTGTATAGACCAAAGCAAAGAAAATAACAATAACACAGATGCGTTGGAGGCTGTTTAGGGGAGTGGGGTGGGAAAGTTGAGGGGCTTCCCTAGCGGCCTGGCGCCCTCTTTGCTGGGTCCTGCGGGTCCTCAGGGCTGCCTTGCATGTGGGAAGGACTAGAAGAGGCAAGCTGGGGAGCCAGGAGTGTTGGGGGA";
 //		String sequence2 = "ATCGCTTTATGTTTTTGGTTATTGGTTTTTTTGTATAGACCAAAGCAAAGAAAATAAAAATAACACAGATGCGTTGGAGGCTGTTTAGGGGAGTGGGGTGGGAAAGTTGAGGGGCTTCCCTAGCGGCCTGGCGCCCTCTTTGCTGGGTCCTGCTGGTCCTCAGGGCTGCCTTGCATGTGGGAAGGACTAGAAGAGGCAAGCTGGGGAGCCAGGAGTGTTGGGGGA";
-		String sequence1 = "TAACCCTGGCTATCATTCTGCTTTTCTTGGCTGTCTTTCAGATTTGACTTTATTTCTAAAAATATTTCAATGGGTCATATCACAGATTCTTTTTTTTTAAATTAAAGTAACATTTCCAATCTACTAATGCTAATACTGTTTCGTATTTATAGCTGGTTTGATGGAGTTGGACATGGCCATGGAACCAGACAGAAAAGCGGCTGTTAGTCACTGGCAGCAACAGTCCTAC";
-		String sequence2 = "CAACCCTGGCTATCATTCTGCTTTTCTTGGCTGTCTTTCAGATTTGACTTTATTTCTAAAAATATTTCAATGGGTCATATCACAGATTCTTTTTTTTTAAATTAAAGTAACATTTCCAATCTACTAATGCTAATACTGTTTCGTATTTATAGCTGGTTTGATGGAGTTGGACATGGCCATGGAACCAGACAGAAAAGCGGCTGTTAGTCACTGGCAGCAACAGTCCTAC";
+		sequence1 = "TAACCCTGGCTATCATTCTGCTTTTCTTGGCTGTCTTTCAGATTTGACTTTATTTCTAAAAATATTTCAATGGGTCATATCACAGATTCTTTTTTTTTAAATTAAAGTAACATTTCCAATCTACTAATGCTAATACTGTTTCGTATTTATAGCTGGTTTGATGGAGTTGGACATGGCCATGGAACCAGACAGAAAAGCGGCTGTTAGTCACTGGCAGCAACAGTCCTAC";
+		sequence2 = "CAACCCTGGCTATCATTCTGCTTTTCTTGGCTGTCTTTCAGATTTGACTTTATTTCTAAAAATATTTCAATGGGTCATATCACAGATTCTTTTTTTTTAAATTAAAGTAACATTTCCAATCTACTAATGCTAATACTGTTTCGTATTTATAGCTGGTTTGATGGAGTTGGACATGGCCATGGAACCAGACAGAAAAGCGGCTGTTAGTCACTGGCAGCAACAGTCCTAC";
 //		String sequence1 = "CGATTTCTTGATCACATAGACTTCCATTTTCTACTTTTTCTGAGGTTTCCTCTGGTCCTGGTATGAAGAATGTATTTACCCAAAAGTGAAACATTTTGTCCTAAAAAAAAAAAAAAAGAAAAGAAAAAGAAATGAAATGACATATTTAATTAATGATGTTTTATTTTTTTAAAAAAGAAAATCTGTCACCTATGTTAAACATTTGCAAAAAGTCAACAAAATAAAC";
 //		String sequence2 = "CGATTTCTTGATCACATAGACTTCCATTTTCTACTTTTTCTGAGGTTTCCTCTGGTCCTGGTATGAAGAATGTATTTACCCAAAAGTGAAACATTTTGTGCGAAAAAAAAAAAAGAAAAGAAAAAGAAATGAAATGACATATTTAATTAATGATGTTTTATTTTTTTAAAAAAGAAAATCTGTCACCTATGTTAAACATTTGCAAAAAGTCAACAAAATAAAC";
 //		String sequence1 = "AAATATGCTTCACTTCAGAAGACATTTTCAGGTCTTCACTATCAACTTCATTAGAAATCTGTTTTTCCAATTCAGTATTCACTGTATGTTGGGATGATACTACAAAATTCAGAACATTTGTTATGGCAATGTACAAACAAATTTTAAATTTTCTAACTATAGATATATAAAACATTTGGCTACACTAGAACTTAAATCAGAAGGTATTCATCAAAGCAGACAATT";
 //		String sequence2 = "GAATATGCTTCACTTCAGAAGACATTTTCATTTCTTCACTATCAGTCTCATTAGAAATCTGTTTTTCCAATTCGGTATTCACTGTATGTTGGGATGATATTACAAAATTCAGAACATTTGTTATGGTAATGTACAAACAAATTTTAAATTTTCTAACTATAGATATATAAAACATTTGGCTACACTAGAACTTAAATCAGAAGGTATTCATCAAAGCAGACAATT";
+		nm = new SmithWatermanGotoh(sequence1, sequence2, 5, -4, 16, 4);	
+		results = nm.traceback();
+		for (String s : results) {
+			System.out.println(s);
+		}
+		if ( ! results[0].equals("AACCCTGGCTATCATTCTGCTTTTCTTGGCTGTCTTTCAGATTTGACTTTATTTCTAAAAATATTTCAATGGGTCATATCACAGATTCTTTTTTTTTAAATTAAAGTAACATTTCCAATCTACTAATGCTAATACTGTTTCGTATTTATAGCTGGTTTGATGGAGTTGGACATGGCCATGGAACCAGACAGAAAAGCGGCTGTTAGTCACTGGCAGCAACAGTCCTAC")) {
+			throw new IllegalArgumentException("FAIL!!!");
+		}
+		if ( ! results[1].equals("||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||")) {
+			throw new IllegalArgumentException("FAIL!!!");
+		}
+		if ( ! results[2].equals("AACCCTGGCTATCATTCTGCTTTTCTTGGCTGTCTTTCAGATTTGACTTTATTTCTAAAAATATTTCAATGGGTCATATCACAGATTCTTTTTTTTTAAATTAAAGTAACATTTCCAATCTACTAATGCTAATACTGTTTCGTATTTATAGCTGGTTTGATGGAGTTGGACATGGCCATGGAACCAGACAGAAAAGCGGCTGTTAGTCACTGGCAGCAACAGTCCTAC")) {
+			throw new IllegalArgumentException("FAIL!!!");
+		}
 
 		String ref=("aaaagaaccaggagggcacatgggcatggggagtgatgaaccagagaaag"+
 				"ctgctgtctttctgggcaagtgccaagcaacggatcacccttgaccccta"+
@@ -454,46 +607,223 @@ public class SmithWatermanGotoh {
 //		String ref2 = "CAAGACCAGCCTGGCCAACATGGTGAAACCCCATCTCTACTAAAAATACAAAAACAAAATTAGCCAGGCATGGTGGTGGACACCTGTAATCCCAGCTACTCAGGAGGCCAAGGCAAGAAAATCACTTGAACCCAGGAGATGGAGGTTGCAGTGAGTCAAGATCGCACCACTGCACTCCAGCCTGGGTGACAGAGTGAGACTGTCTCAAAAAGAACCAGGAGGGCACATGGGCATGGGGAGTGATGAACCAGAGAAAGCTGCTGTCTTTCTGGGCAAGTGCCAAGCAACGGATCACCCTTGACCCCTAGGAAAGAAAAAGAAGAAAACCCGAGGTGATCATTTTAAACTTCGCTTCCGAAAAAACTTTCAGGCCCTGTTGGAGGAGCAGGTGAGAGGAGGGTCGGCCTGGGAGGACCCCACAGGGAAGGGGTGAGCCTGGCCCGGGCAGGTGTTCGCTGCGTGGGTGGGCGGAGGAGTTCTAGAGCCGGCCCCTTGTCTCTGCAGAACTTGAGTGTGGCCGAGGGCCCTAACTACCTGACGGCCTGTGCGGGACCCCCATCGCGGCCCCAGCGCCCCTTCTGTGCTGTCTGTGGCTTCCCATCCCCCTACACCTGTGTCAGCTGCGGTGCCCGGTACTGCACTGTGCGCTGTCTGGGGACCCACCAGGAGACCAGGTGAGCATGAGACCTGCTGTCCACTCCCACTCCCTCCTTCCCACAGCCTCCCCAGACCTCTCTCCCCTCATCCTGGCTTCCCCTCTGTCTGCAGGTGTCTGAAGTGGACTGTGTGAGCCTGGGCATTCCCAGAGAGGAAGGGCCGCTGTGCACTGCCCGGCCTTCAGAAAGACAGAATTTCATCACCCAATGCAGGGGGAGCTCTTCCTGGACCAAGGGAGGAGCCGCTCATTCACCCAACAAAACTGTGTCTTATCTGCCAGGAAAGACCAGCCTCACTCCTGGGAACTGTCTGGCAGGTAGGCTGGGCCCCCCAGTGCTGTTAGAATAAAAAGCCTCGTGCCGGAAGCCTTCCTGTTTGGTCGTGGTGTGTTTGAGGTGATGGTAATGGGTCACCCGTCTCTCCTGCTCACGGCTCTGTCTCTCTTCCTCCTGCCTCCCACTCACCCCTGCCACCGTCCGCCCCTCTGTGTCCCTGATCGCGAGAGATTCTGTCCCATTTTCCTGCCACCCCCGAGCCCCTGCCCTCCTTGGCTGCTTCTTTAAGTCTTTTTGGTTATTGATTTAGTTGTTTAAACTATTTTATTTATTTATTAGAGACAGGGTCTCGCACTGTAACCCAGGCTGGAGTGCAGTGGTGCGGTCTCAGCTCACTGCAACCTCTGCCTCCCAGGTTCAAGGGATTCTCCTGCCTCAGCCTCCCAAGTAACTGGGATTACAGGTG";
 		String seq = "TGGAAAGAAAAAGAAGAAAACCCGAGGTGATCATTTTAAACTTCGCTTCCGAAAAAAACTTTCAGGCCCTGTTGGAGGAGCAGAACTTGAGTGTGGCCGAGGGCCCTAACTACCTGACGGCCTGTGCGGGACCCCCATCGCGGCCCCAGCGCCCCTTCTGTGCTGTCTGTGGCTTCCCATCCCCCTACACCTGTGTCAGCTGCGGTGCCCGGTACTGCACTGTGCGCTGTCTGGGGACCCACCAGGAGACCAGGTGTCTGAAGTGGACTGTGTGAGCCTGGGCATTCCCAGAGAGGAAGGGCCGCTGTGCACTGCCCGGCCTTCAGAAAGACAGAATTTCATCACCCAATGCAGGGGGAGCTCTTCCTGGACCAAGGGAGGAGCCGCTCATTCACCCG";
 		
-		SmithWatermanGotoh nm = new SmithWatermanGotoh(ref2, seq, 4, -4, 4, 1);
+		nm = new SmithWatermanGotoh(ref2, seq, 4, -4, 4, 1);
 //		SmithWatermanGotoh nm = new SmithWatermanGotoh(sequence1, sequence2, 5, -4, 16, 4);	
-		String [] results = nm.traceback();
-		for (String s : results) {
-			System.out.println(s);
+		results = nm.traceback();
+		if ( ! results[0].equals("GGAAAGAAAAAGAAGAAAACCCGAGGTGATCATTTTAAACTTCGCTTCCG-AAAAAACTTTCAGGCCCTGTTGGAGGAGCAGGTGAGAGGAGGGTCGGCCTGGGAGGACCCCACAGGGAAGGGGTGAGCCTGGCCCGGGCAGGTGTTCGCTGCGTGGGTGGGCGGAGGAGTTCTAGAGCCGGCCCCTTGTCTCTGCAGAACTTGAGTGTGGCCGAGGGCCCTAACTACCTGACGGCCTGTGCGGGACCCCCATCGCGGCCCCAGCGCCCCTTCTGTGCTGTCTGTGGCTTCCCATCCCCCTACACCTGTGTCAGCTGCGGTGCCCGGTACTGCACTGTGCGCTGTCTGGGGACCCACCAGGAGACCAGGTGAGCATGAGACCTGCTGTCCACTCCCACTCCCTCCTTCCCACAGCCTCCCCAGACCTCTCTCCCCTCATCCTGGCTTCCCCTCTGTCTGCAGGTGTCTGAAGTGGACTGTGTGAGCCTGGGCATTCCCAGAGAGGAAGGGCCGCTGTGCACTGCCCGGCCTTCAGAAAGACAGAATTTCATCACCCAATGCAGGGGGAGCTCTTCCTGGACCAAGGGAGGAGCCGCTCATTCACCC")) {
+			throw new IllegalArgumentException("FAIL!!!");
 		}
+		if ( ! results[1].equals("|||||||||||||||||||||||||||||||||||||||||||||||||| |||||||||||||||||||||||||||                                                                                                                    |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||                                                                                              |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||")) {
+			throw new IllegalArgumentException("FAIL!!!");
+		}
+		if ( ! results[2].equals("GGAAAGAAAAAGAAGAAAACCCGAGGTGATCATTTTAAACTTCGCTTCCGAAAAAAACTTTCAGGCCCTGTTGGAGGA--------------------------------------------------------------------------------------------------------------------GCAGAACTTGAGTGTGGCCGAGGGCCCTAACTACCTGACGGCCTGTGCGGGACCCCCATCGCGGCCCCAGCGCCCCTTCTGTGCTGTCTGTGGCTTCCCATCCCCCTACACCTGTGTCAGCTGCGGTGCCCGGTACTGCACTGTGCGCTGTCTGGGGACCCACCAGGAGAC----------------------------------------------------------------------------------------------CAGGTGTCTGAAGTGGACTGTGTGAGCCTGGGCATTCCCAGAGAGGAAGGGCCGCTGTGCACTGCCCGGCCTTCAGAAAGACAGAATTTCATCACCCAATGCAGGGGGAGCTCTTCCTGGACCAAGGGAGGAGCCGCTCATTCACCC")) {
+			throw new IllegalArgumentException("FAIL!!!");
+		}
+//		for (String s : results) {
+//			System.out.println(s);
+//		}
 		nm = new SmithWatermanGotoh(ref2, seq, 5, -1, 1, 1);
 //		SmithWatermanGotoh nm = new SmithWatermanGotoh(sequence1, sequence2, 5, -4, 16, 4);	
 		results = nm.traceback();
-		for (String s : results) {
-			System.out.println(s);
+		if ( ! results[0].equals("TAGGAAAGAAAAAGAAGAAAACCCGAGGTGATCATTTTAAACTTCGCTTCCGAAAAAACTTTCAGGCCCTGTTGGAGGAGCAGGTGAGAGGAGGGTCGGCCTGGGAGGACCCCACAGGGAAGGGGTGAGCCTGGCCCGGGCAGGTGTTCGCTGCGTGGGTGGGCGGAGGAGTTCTAGAGCCGGCCCCTTGTCTCTGCAGAACTTGAGTGTGGCCGAGGGCCCTAACTACCTGACGGCCTGTGCGGGACCCCCATCGCGGCCCCAGCGCCCCTTCTGTGCTGTCTGTGGCTTCCCATCCCCCTACACCTGTGTCAGCTGCGGTGCCCGGTACTGCACTGTGCGCTGTCTGGGGACCCACCAGGAGACCAGGTGAGCATGAGACCTGCTGTCCACTCCCACTCCCTCCTTCCCACAGCCTCCCCAGACCTCTCTCCCCTCATCCTGGCTTCCCCTCTGTCTGCAGGTGTCTGAAGTGGACTGTGTGAGCCTGGGCATTCCCAGAGAGGAAGGGCCGCTGTGCACTGCCCGGCCTTCAGAAAGACAGAATTTCATCACCCAATGCAGGGGGAGCTCTTCCTGGACCAAGGGAGGAGCCGCTCATTCACCC")) {
+			throw new IllegalArgumentException("FAIL!!!");
 		}
+		if ( ! results[1].equals("| ||||||||||||||||||||||||||||||||||||||||||||||||||  ||||     |           |  | |   |          |     |            |            |          |||       | ||  ||   |       ||||     ||                 ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||  | ||     | |       |     |      |                          |       ||              |                  |  |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||")) {
+			throw new IllegalArgumentException("FAIL!!!");
+		}
+		if ( ! results[2].equals("T-GGAAAGAAAAAGAAGAAAACCCGAGGTGATCATTTTAAACTTCGCTTCCG--AAAA-----A-----------A--A-C---T----------T-----T------------C------------A----------GGC-------C-CT--GT---T-------GGAG-----GA-----------------GCAGAACTTGAGTGTGGCCGAGGGCCCTAACTACCTGACGGCCTGTGCGGGACCCCCATCGCGGCCCCAGCGCCCCTTCTGTGCTGTCTGTGGCTTCCCATCCCCCTACACCTGTGTCAGCTGCGGTGCCCGGTACTGCACTGTGCGCTGTCTGGGGA--C-CC-----A-C-------C-----A------G--------------------------G-------AG--------------A------------------C--CAGGTGTCTGAAGTGGACTGTGTGAGCCTGGGCATTCCCAGAGAGGAAGGGCCGCTGTGCACTGCCCGGCCTTCAGAAAGACAGAATTTCATCACCCAATGCAGGGGGAGCTCTTCCTGGACCAAGGGAGGAGCCGCTCATTCACCC")) {
+			throw new IllegalArgumentException("FAIL!!!");
+		}
+//		for (String s : results) {
+//			System.out.println(s);
+//		}
 		nm = new SmithWatermanGotoh(ref, seq, 5, -1, 1, 2);
 //		SmithWatermanGotoh nm = new SmithWatermanGotoh(sequence1, sequence2, 5, -4, 16, 4);	
 		results = nm.traceback();
-		for (String s : results) {
-			System.out.println(s);
+		if ( ! results[0].equals("TAGGAAAGAAAAAGAAGAAAACCCGAGGTGATCATTTTAAACTTCGCTTCCGAAAAAACTTTCAGGCCCTGTTGGAGGAGCAGGTGAGAGGAGGGTCGGCCTGGGAGGACCCCACAGGGAAGGGGTGAGCCTGGCCCGGGCAGGTGTTCGCTGCGTGGGTGGGCGGAGGAGTTCTAGAGCCGGCCCCTTGTCTCTGCAGAACTTGAGTGTGGCCGAGGGCCCTAACTACCTGACGGCCTGTGCGGGACCCCCATCGCGGCCCCAGCGCCCCTTCTGTGCTGTCTGTGGCTTCCCATCCCCCTACACCTGTGTCAGCTGCGGTGCCCGGTACTGCACTGTGCGCTGTCTGGGGACCCACCAGGAGACCAGGTGAGCATGAGACCTGCTGTCCACTCCCACTCCCTCCTTCCCACAGCCTCCCCAGACCTCTCTCCCCTCATCCTGGCTTCCCCTCTGTCTGCAGGTGTCTGAAGTGGACTGTGTGAGCCTGGGCATTCCCAGAGAGGAAGGGCCGCTGTGCACTGCCCGGCCTTCAGAAAGACAGAATTTCATCACCCAATGCAGGGGGAGCTCTTCCTGGACCAAGGGAGGAGCCGCTCATTCACCC")) {
+			throw new IllegalArgumentException("FAIL!!!");
 		}
+		if ( ! results[1].equals("| ||||||||||||||||||||||||||||||||||||||||||||||||||  ||||     |           |  | |   |          |     |            |            |          |||       | ||  ||   |       ||||     ||                 ||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||  | ||     | |       |     |      |                          |       ||              |                  |  |||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||")) {
+			throw new IllegalArgumentException("FAIL!!!");
+		}
+		if ( ! results[2].equals("T-GGAAAGAAAAAGAAGAAAACCCGAGGTGATCATTTTAAACTTCGCTTCCG--AAAA-----A-----------A--A-C---T----------T-----T------------C------------A----------GGC-------C-CT--GT---T-------GGAG-----GA-----------------GCAGAACTTGAGTGTGGCCGAGGGCCCTAACTACCTGACGGCCTGTGCGGGACCCCCATCGCGGCCCCAGCGCCCCTTCTGTGCTGTCTGTGGCTTCCCATCCCCCTACACCTGTGTCAGCTGCGGTGCCCGGTACTGCACTGTGCGCTGTCTGGGGA--C-CC-----A-C-------C-----A------G--------------------------G-------AG--------------A------------------C--CAGGTGTCTGAAGTGGACTGTGTGAGCCTGGGCATTCCCAGAGAGGAAGGGCCGCTGTGCACTGCCCGGCCTTCAGAAAGACAGAATTTCATCACCCAATGCAGGGGGAGCTCTTCCTGGACCAAGGGAGGAGCCGCTCATTCACCC")) {
+			throw new IllegalArgumentException("FAIL!!!");
+		}
+//		for (String s : results) {
+//			System.out.println(s);
+//		}
 		String seq5 = "GCCTATTGCAAGACCTGGAAGAAAGAAAAGTAACGATTCTTCTCGGCCAGAGAGAGAAGCATGACCGGTTTTGCATACCCTGTCCCCAGAAAAAGCACTCTAAGAGTAGGCGCGCTACTCCTGGGCGAGGAAACTGCGGAAGTGAGGCATTGGTGCCAGGTTCAAAGATGGCGCTGAGCAGCCAAGCGCAGAAGCGAAGAGAGGTCGGCAGCCGGCGGCCGTGGCCGGGCCGCGAGGTCTGGGACGGGGGGCG";
 		String ref5 = "ATCCTCTGGGTCAGTTTCTGTGGAATAAACTGTAAAGGCAAACGGTGGGACGCCCGAACCCGCCCGGCAGCCACGGTGGGACGCCCGAACCCGCCCGGCAGCCACGGTGGGACGCCCGAACCCGCCCGGCAGCCGCGCTGCGACCCCGCCTTCCCGCCCGCGTCGCTCCGCGCGGGGCCCGCGCCCTCACCGTCTCCCAGCGGATGCCCTGGACGGCCCTCCACTGCGAGGGCACGGACGCCACACCCAGGGTCTCGTCCTGCAGCGGCCCTGGCCGCCCCGGCCCCGGGCCGCTCGCAACCCCGACTGTCGCCAGCGCCGCAACACCAGCGCTTCCCGCCTGGCTGAGTGGCCCCGGCTGCGCGCGGGTTGCCATGGAGACGGTTCCGCCCTCTCGTGCGGACGCACTCAGGCGCGACCTCCGCCCCTACGCCGCCATGAGCGGAAAACGGGGAATGTGAGGCTGACGGCGCCATGTTTGAATTGGTCGCAGCGCCTCCTGCAAGACCTGGAAGAAAGAAAAGTAACGATTCTTCTCGGCCAGAGAGAGAAGCATGACCGGTTTTGCATACCCTGTCCCCAGAAAAAGCACTCTAAGAGTAGGCGCGCTACTCCTGGGCGAGGAAACTGCGGAAGTGAGGCATTGGTGCCAGGTTCAAAGATGGCGCTGAGCAGCCAAGCGCAGAAGCGAAGAGAGGGCGGCAGCCTGCGGCCGTGGCCGGCCCGCGAGGTCTGGGCCTGGGAGCGCAGATCTGGCTGAGCAGCTGATTCTTCCAGCAGATCCGAGAACCGCGCCACTCGAACAGGCTGTCACCTCGAAGCCAAGTGATCTCCCTTTAATCCTCAGTCTCTGTCTCAATAGAATGATGATGAAAAATATTCCTACGGAGATCCTAAATGTGGTTAAAAAGCTGGGAGGCCCAAATGAGGTCTTCTACAGAAACATGCTTATTAAATCGAAATTAAAAGCAAATAACTAAATAATGTGCCTACTGTGTGTCAGGCAAAGAGCCCAGAACGTCTCTTTCTTATTAAGTTCTCACCCTGAGGAAAGAATTGCTTTTTATACTATATTATGTCGTTCTGCCATTCCGCGCGCCCCACCGGAATTAAAAAAACTGGAGATTCTGACCTGAGGACTAAAAAATAAAAATAAAGAATAAACAAATAGGCCAGGTGCGGTGGCTCACACCTGTAATCCCGGTACTTTGAGAGGCCAAGGCAGGAGGATCGCTTGAAGCCAGGAGTTCGAA";
 		nm = new SmithWatermanGotoh(ref5, seq5, 2, -5, 5, 1);
 //			SmithWatermanGotoh nm = new SmithWatermanGotoh(sequence1, sequence2, 5, -4, 16, 4);	
 		results = nm.traceback();
-		for (String s : results) {
-			System.out.println(s);
+//		for (String s : results) {
+//			System.out.println(s);
+//		}
+		if ( ! results[0].equals("TGCAAGACCTGGAAGAAAGAAAAGTAACGATTCTTCTCGGCCAGAGAGAGAAGCATGACCGGTTTTGCATACCCTGTCCCCAGAAAAAGCACTCTAAGAGTAGGCGCGCTACTCCTGGGCGAGGAAACTGCGGAAGTGAGGCATTGGTGCCAGGTTCAAAGATGGCGCTGAGCAGCCAAGCGCAGAAGCGAAGAGAGGGCGGCAGCCTGCGGCCGTGGCCGGCCCGCGAGGTCTGGG")) {
+			throw new IllegalArgumentException("FAIL!!!");
+		}
+		if ( ! results[1].equals("||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||.||||||||.||||||||||||||.||||||||||||||")) {
+			throw new IllegalArgumentException("FAIL!!!");
+		}
+		if ( ! results[2].equals("TGCAAGACCTGGAAGAAAGAAAAGTAACGATTCTTCTCGGCCAGAGAGAGAAGCATGACCGGTTTTGCATACCCTGTCCCCAGAAAAAGCACTCTAAGAGTAGGCGCGCTACTCCTGGGCGAGGAAACTGCGGAAGTGAGGCATTGGTGCCAGGTTCAAAGATGGCGCTGAGCAGCCAAGCGCAGAAGCGAAGAGAGGTCGGCAGCCGGCGGCCGTGGCCGGGCCGCGAGGTCTGGG")) {
+			throw new IllegalArgumentException("FAIL!!!");
 		}
 		nm = new SmithWatermanGotoh(ref5, seq5, 5, -4, 16, 4);
 //		SmithWatermanGotoh nm = new SmithWatermanGotoh(sequence1, sequence2, 5, -4, 16, 4);	
 		results = nm.traceback();
-		for (String s : results) {
-			System.out.println(s);
+//		for (String s : results) {
+//			System.out.println(s);
+//		}
+		if ( ! results[0].equals("GCCTCCTGCAAGACCTGGAAGAAAGAAAAGTAACGATTCTTCTCGGCCAGAGAGAGAAGCATGACCGGTTTTGCATACCCTGTCCCCAGAAAAAGCACTCTAAGAGTAGGCGCGCTACTCCTGGGCGAGGAAACTGCGGAAGTGAGGCATTGGTGCCAGGTTCAAAGATGGCGCTGAGCAGCCAAGCGCAGAAGCGAAGAGAGGGCGGCAGCCTGCGGCCGTGGCCGGCCCGCGAGGTCTGGGCCTGGGAGCG")) {
+			throw new IllegalArgumentException("FAIL!!!");
+		}
+		if ( ! results[1].equals("||||..||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||.||||||||.||||||||||||||.||||||||||||||.|.|||.|||")) {
+			throw new IllegalArgumentException("FAIL!!!");
+		}
+		if ( ! results[2].equals("GCCTATTGCAAGACCTGGAAGAAAGAAAAGTAACGATTCTTCTCGGCCAGAGAGAGAAGCATGACCGGTTTTGCATACCCTGTCCCCAGAAAAAGCACTCTAAGAGTAGGCGCGCTACTCCTGGGCGAGGAAACTGCGGAAGTGAGGCATTGGTGCCAGGTTCAAAGATGGCGCTGAGCAGCCAAGCGCAGAAGCGAAGAGAGGTCGGCAGCCGGCGGCCGTGGCCGGGCCGCGAGGTCTGGGACGGGGGGCG")) {
+			throw new IllegalArgumentException("FAIL!!!");
 		}
 		
 		String r = "ACCATGGTATTTGTGTATCTAAACATACCTAAACATAGAAAAGGTACAGTAAAAATACAGTATTATAATCTTATGGGACCACCATCATATATGTGGTCGTCATTGACTGAGACATCATTAATGTGGTGCATGACTACTCCAATCAGTCCAGGAACAAATTAAAAAGATAAGGAGAAAAGTCAGTGCTTTGAGGCTCCACAACACCTTGCTGTGTCCATTTAGAGCAATTTACAGCTGTTGCTGTAATTAATGAAGCTATCTCCTCCCAGGCAAAGCCTTTGGTTGTGTTGGAGGGTACATCGCCAGCACGAGTTCTCTGATTGACACCGTACGGTCCTATGCTGCTGGCTTCATCTTCACCACCTCTCTGCCACCCATGCTGCTGGCTGGAGCCCTGGAGTCTGTGCGGATCCTGAAGAGCGCTGAGGGACGGGTGCTTCGCCGCCAGCACCAGCGCAACGTCAAACTCATGAGACAGATGCTAATGGATGCCGGCCTCCCTGTTGTCCACTGCCCCAGCCACATCATCCCTGTGCGGGTAATGGCCTGTCTCTGATTGGACTTGCCGTGGGGTGTGCCTCTACACATGATGTACGGATGTTCTGCTTCATACCTTCCTGAAGTTGGGCTTGAGCGGGGTGACTGCCAGGGCAGGGGTTGTAGCCAGCCACCCTCTGTCATGTTTCCGCCATTGGCTGACTTCACCAAGAGAAGAAAGCCTTTGAACCCAGCAGGCTGGGGCAGAAGTTCCCTCTCCGGAGCACTGACCTTAACAGGGTAAACACAGAGCTTGTATCTAGAAAGCTCCAGAAGCCTGAGCTTGGCCAGCTTTGAAGTATGGCTTTCTACTTAGTAAATTTCAAAATAGGTTTTGCCCTTCCCACTACAAATGGTAGCACTGTTGATGTCACAGTTGAATTAGTGTAATGAATACAGCTAGTATAACTGAATCTAGATTATACATCGTGGGTATGAGAGTCTGCTGGTACGAACAGAACCAGTGTTTTCTGATTAAAAATGTATTTCTTTTTAATAAGGTTTTGGTTCCCTGGTGTTCACGAAACAACACTGGCTTCTTTTAAATGACAGGTGTTTGGGCAGCGCTTTCCCTCTGCCCCAAGCTTGCATGTGTTGCTACAGTCTGGTCTTGAGCCTGAGCGTTGTGGGGACTGCGTTCGTTAGGATCTCTGCTAAGAGGTAGTCCTTCCTGTTGTGACCTTACCTTCTGCTCTCATTGAACTTAGGTTGCAGATGCTGCTAAAAACACAGAAGTCTGTGATGAACTAATGAGCAGACATAACATCTACGTGCAAGCAATCAATTACCCTACGGTGCCCCGGGGAGAAGAGCTCCTACGGATTGCCCCCACCCCTCACCACACAC";
 		String s = "CTGTTGTCCACTGCCCCAGCCACATCATCCCTGTGCGGGTTGCAGATGCTGCTAAAAACACAGAAGTCTGTGATGAACTAATGAGCAGACATAACATCTACGTGCAAGCAATCAATTACCCTACGGTGCCCCGGGGAGAAGAGCTCCTACGGATTGCCCCCACCCCTCACCACACACCCCAGATGATGAACTACTTCCTTGGTGAGTACCTGGGGAGCTGCTGGTGCCTCACTGAGGAGTTGCATAAAGCTGTCTTTGCAGTGTTTATAATTGAAGCCCTTCGGAGGGCTTCAGATTTGTTTCTTCTTCTTTTTTTATTTTTTTTTTTTTTTCCATTATTTTCGTTCTTTTTTCCCTTCCTTGGTTTTTTTTGCCCAATCCCT";
 		nm = new SmithWatermanGotoh(r, s, 4, -4, 4, 1);
 		results = nm.traceback();
+//		for (String s1 : results) {
+//			System.out.println(s1);
+//		}
+		if ( ! results[0].equals("CTGTTGTGACCTTA----CCTTCTGCTC---TCAT-----TGAACTTAGGTTGCAGATGCTGCTAAAAACACAGAAGTCTGTGATGAACTAATGAGCAGACATAACATCTACGTGCAAGCAATCAATTACCCTACGGTGCCCCGGGGAGAAGAGCTCCTACGGATTGCCCCCACCCCTCACCACACAC")) {
+			throw new IllegalArgumentException("FAIL!!!");
+		}
+		if ( ! results[1].equals("|||||||  ||  |    ||  |.|| |   ||||     ||  |  .||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||")) {
+			throw new IllegalArgumentException("FAIL!!!");
+		}
+		if ( ! results[2].equals("CTGTTGT--CC--ACTGCCC--CAGC-CACATCATCCCTGTG--C--GGGTTGCAGATGCTGCTAAAAACACAGAAGTCTGTGATGAACTAATGAGCAGACATAACATCTACGTGCAAGCAATCAATTACCCTACGGTGCCCCGGGGAGAAGAGCTCCTACGGATTGCCCCCACCCCTCACCACACAC")) {
+			throw new IllegalArgumentException("FAIL!!!");
+		}
+		
+		r = "TTATACATTCCTAAATAATATAATTTGTCTATTTTTGGCTTTATATAGATGGAATCAGATGATACGTGCTTTTTGCTCTTATCCTTATGTTTGTTAGATTCATATGGCCATATGTATGTTCTCTCTCACTCTTTCTAAGACATACCCACACACTCACTCACAAAACAGAAGAAAATGAAAGGTTACATTTTTCCAAACAAGAAATCCAAAACATGTTAGCAATATTACTTCAAAGACTCAAGTAATCCAAGTTCAGAGACTGAGACAGTCCATTCAGTGAGCCAAC";
+		s = "CATATGGCCATATGTAGAGATGGGGTTTCACCTTGTTAGCCAGGATGGTCTCGATCTCCTGACCTCATGATCCACCCGCCTCGGCC";
+		nm = new SmithWatermanGotoh(r, s, 5, -4, 16, 4);	
+		results = nm.traceback();
 		for (String s1 : results) {
 			System.out.println(s1);
 		}
+		
+		
+		r = "CCCACACACACACACCCCCACACACACCCCCACACCCACACACCCACACACCACACACACACACCCCCACACCCACCCCACACACCCACACACCCACACACCACACACACACCCACACACACCCATACCCACACCCACACACACCCACACACCCACACCCACACCCCACACACACTCACACCCCCCACACACCCACACACCCACACACACACCCACACACCCCCACACACATAACCACACACCCAGACACACCTCCCCACACA";
+		s = "CCCACACACACACCCACACACCCNCACANNNANAANAAGAAGAGATAGAGAGAAAAGTCAAAA";
+		nm = new SmithWatermanGotoh(r, s,  4, -4, 4, 1);	
+		results = nm.traceback();
+		for (String s1 : results) {
+			System.out.println(s1);
+		}
+		
+		/*
+		 * about to sw ref: TGATTCCCAGTATTCTGATGATCACCACAATTTCACTTTGGCCAAACTCTTTCTTCTTTCCCTATCACCACTCTCTCTCTTCCTCTCTCTCTTTCTCAATCTCTCTCTCTCACACACACACACACACCCACACCCACACACAGACACACCACACACACACACACACACACACACACTCTGACTGGTTGTTTGCATGTTTGCCTTATAAAAAGGTTAATCAACAGAATGGCAGGGAGTCTCCTCTG, fragString: TCTCTCTCTCTCTCTCTCTCACACACACACACACACCCACACCCC for cp: chr3:143908281
+		 */
+		r = "TGATTCCCAGTATTCTGATGATCACCACAATTTCACTTTGGCCAAACTCTTTCTTCTTTCCCTATCACCACTCTCTCTCTTCCTCTCTCTCTTTCTCAATCTCTCTCTCTCACACACACACACACACCCACACCCACACACAGACACACCACACACACACACACACACACACACACTCTGACTGGTTGTTTGCATGTTTGCCTTATAAAAAGGTTAATCAACAGAATGGCAGGGAGTCTCCTCTG,,";
+		s = "TCTCTCTCTCTCTCTCTCTCACACACACACACACACCCACACCCC";
+		nm = new SmithWatermanGotoh(r, s,  4, -4, 4, 0);	
+		results = nm.traceback();
+		for (String s1 : results) {
+			System.out.println(s1);
+		}
+		nm = new SmithWatermanGotoh(r, s, 5, -4, 16, 4);	
+		results = nm.traceback();
+		for (String s1 : results) {
+			System.out.println(s1);
+		}
+		
+		
+		/*
+		 * about to sw ref: AGCTGCTATTTATTCACTCAAAATATAAATATATTATACACCTTTTATGTAAAAGGCAGTCTAGCTCTCAAGAAGTGTGCAAGCTTGGCAGAGCCAATGAGATACACGTTCAACTAGGACAGAAATACTATCTTAACAAATGTCATTCCCAGAAATAATCAACACAGGTGAAAGAATTAGAGATGGGGAAAAGTCAAAAAATGAGAGAGGGAAAGGTTGCAGTGTGGAAAATAGCATTTAAATTCTAACCAAACTAGAATCAGACATATAGGAAAATCTAAAATAAAATCTGGGAGCCTTGAAGCCGGAGGAAGAATTAAGGAAATCTGTGTTCGGGAGGGAAAAGCAGAAGGGGCCTTCAAGTACAACTGAATTAAATCAAGATGGACTGCCAGTTCTAGAAAAAGACAAGTTTCTCCATTCCCCGTAAATGCTCAGGAGTAAACCCCAGTAGTCACAGCTGGGCCAGTCCCAACTTATACTCTGGGCAATCGAAACTCATTTGCCAAGCAGAGACTTGGACCATACTGCCTAGAACATGCCTACCATTCTTTCTTTATTCTTTTGAAAGAGTACTGCCACTCAAGTGACTTTTGCAATTGAGAGTCTGATTATCATCTCTATGCTGAAAATCCTTCAGATGTTTTCTCCATTAGGAATAATCCTCATCACCAGCTCTAAAGGCCTGCACAGTTGGCCCTTCCCATCCTCTTTAGCCTGTCTTCCTCATTATTTTTCTCCAGCATTTGACCTTCCCTACGTGCTGCCATGCTGCAACCTTGAAGACTTTTGCATGCTCTGACCTCCCTCTGAAAGTGCACCTTCCTCTACTATTTAACTGCTTAATTTCTTCCTCAACCCTAAACTTCTCCTTGATAGCACTTAACACAGTTGAAGTTTTGTATTTTTGTGTGGTTATTGATCATCTCCCCCACTAAAATGTAAGCTTTTAGAAGGGAGAAACCATCTCAGCTTTTGCACGTAGTGGGCTTAAAACATCTTTTGTGAATGGATGCAGACATTTAGGTGCTCATTAGGAAAGCTGAACAGTATGGTGGTTAATTTCAATATCATTTCCACTCATCTACTTACCTGTGGATCCCTCTGTAGTAAGAGTACATTAAATAAAGAAGTTTCTGTTTCTCATGAAAAAAGCCAAGCTTGTATGGTGAGCTGGGCAAAATCTTCAAGGGCACTTCCATCTTTTTTGCTGTGCGGCTATAAGCCCAGTGAAAAATCAGGGGCTTTATTACTAAAGAAAAAGGAGAGGACAGATATCTGGGCAATTTGCAGGCTTTGCAGTAATGCTTTATAAAGGTATTGTAGTAAGGATTAAATATTATATATAAGACTCTCTTAGCATATAGTCAGCACTCAATTAACTATGGCTGTTATTCTCTCTTCAACATATAGAGAATAAATTACTTACCTGAAAGACCTTCCTGCCCTTGGTTCTTTGGGCTTTTTTCAGCTCTTCATTTCTTTGTCTCTTTGTGCATTCATAGGTCAGATTACTTGGTTTACTATGTTTGTATACAGTTTACTGTAAATGTAGGGAGTACATTTCTGTTTTCCTTTTGATAGTTCATGGAGTAGTAGCCCCTCTCTCACGCCATTGGGACTTTGTTCTTCTTAGCCTCTTCATAATTCCTGTTTATGTAAAGTCAGCTTCCCCACAGCCAAGTTAAACTCTCTTAATCAAGTAGAGCCACGGATTTATTTTCTTCTCCTTGTGGGTGGTGCCATTTGAGTGTTGATCTGTCTTTCATAAAGCTGTACCTTGACATGTAAGGGGTCAGTAGTAGGGAGTGAGGAGGGATGTGAAGAGAGAATCAGTGAAAATGAAGTAGGCCAGTGCATGCTTATCTCTGACAGTTCTCTTTATTTCCTGTGAAGGCGATTGACCGAGGCCTGGCTTTTGAACTTGTCTATAGCCCTGCTATCAAAGACTCCACAATGAGAAGGTATACAATTTCCAGTGCCCTCAATTTGATGCAAATCTGCAAAGGAAAGGTATGGTTCTATAATTTTAGGATGTTTTTCGCATCTGGCAGTTTATTATTAGTAGTACACTGGAATTGTCAAACTGACTCCTTTTCCTTAAAGCAGAATGTTCTCATAGCATAGGAACAAATTCTGCCATTTCAGTGAGCTCTGCAAATTTTAAGGGAAAGAAAAATACCAAGGGAAGAATAATGTAAGGGAGAAAAAGATGTGTTGGAAGCCATATCTTTTGATAAAAATTTGCAATTTACATACTGTGAAAGAAAAGTCTAGAATAACAATGGTCCTCACTGAGTTGAATTAAGATATGTGACCTTTTCATCTTGTTTTTTAAACTTAATTCACCTTTACTAAGATCTGTTAGGAAAACATATTTTGTTTTTTATTACAGATTGCCTTTAGTTTGACATGAAGTCTTTTCATTTTTTTCACCTTAATTATTTACCTTATCTTTAAAAGAAGTTGGTATTTGAGCCTTAAATGTTAAAATATGATTACTGGCTATTTATATTATGAAACTCCTTTTTTTACATTTATCTAAGATTAATATTAGTCACTTTCTATTTTGTAGAATGTAATTATATCTAGTGCTGCAGAAAGGGTAAGTCTAGCATGAAGTACTTTGTTTTCATCTTTCAGGTTATAAAACTTTTCAGTTTCTAGGGGATAAATTAAAATAGTAAATGAATATTTGTTGCATTTTTTTCTATTTTAACTGCATTTGCTCATTGTAATTGCTAAATAGTAAAATTTATCCCCACTTTCTTTAGGCTTCAACTTTTGTTTATATAATCAGTTTTTCTTTTATACTGTTACAAAATGCCTTTCAAGCTTCTCTTATATTTTCAAAAGCTATGAAACCCATCAAAATTATAAGGACTTAAATTTATGTAATTTTTTTATTTTTGGATACTTAAATTTTCTATTAATTTGCTATAAGTCATTGAAATGTTATAAATAATTTTCTCATATCTACTCTTTGTTCATTTTATTTCAGCCTTTAGAAATAAGAGGGCCATATGACGTGGCAAATCTGTATCCTTTTCTGAGTAAAAAGTTGTTGACATTGTCTTTCAGGAAATTTTGAATTTGAAGTCGTATTATAGTTGAACATGTATTTTTCTCAACCTTTTACTGTAAGTTTACCAATTAATAACTTCAAAAATAAATTATATAACATTATAGAGAGCTTTATGCTTCTGTTTTTTAATTAATCATGAGATAGAAAAGAGGGAATGAGGGACTTCATATGATAAAAGCTTAGAGTTAAATGAGTCTTTTCTCAGATGCATGTTCCAGTTGGACTAAGAACTGCTGTTGAATTAATTAGCCTCTCAAGATGACCAGGTTAGCTGGCACTTTCTGTTATGTTTGTGTTAGTCTCGTGTCCTTGGGTGACTCTGGGTTGAAATCTTTAATGCTCCCCCAAGAGGCTTGCTGTTTGGGCTCTCTGAAAGTGACGCCAAGGCTGCGGTGTCCACCAACTGCCGAGCAGCGCTTCTCCATGGAGGTAAGCAAGTTCTTCCAGTACAAACTGAATGGTCATGTTAAAAGCAAGTCATTTTTACAGCCATACCTATTTTTATTGCCCTACCCTACAGAGTTCCTTTGGGATCATCTTTTCTCAACCTGTTCTAAACACAGTCATCAGTGTTTTCTCACCCTCACTTCAGGCTTTACTTTCTAAAGTTTGTAGAATGAATATAGTTTTCATTACAGAAATAAGTATTGAATAGTTCTTCCAGCTATACATGTGTGCTCCTGCCGACATTTTGATAGGCTTCTAATCTCCCTTCCTTCTTCTCCCTCACCAGAAGGCCATGCTTTCCCTGTTGAAAATCTCTGTTTTAGAGAACGGATATGTTAAAAATATGTGTTAAACTATTTATTAGGAAAACAAAACCAGCAAATACATTTTTAAAAATCCAACTAACAAAACATAGACTGTAACTTTTACATTTATTATAACTCAGAATGTTTCTTTTCTCATGTTTGCTTACATGGTCAAGTTGTGTCCAGACTGTACCTTTTTTATTTTTTTTTCTTTTTCTAAATAGAGACAGAGTCTCACTATGTTGCCCAGGCTGGTCTTGAACTCCTGGGCTCAAGCAATCCTCCTACCTCAGCCTCCCAAAGTGCTAGGATTACAGACATGAGCCACCATGCCCGGCCAGACTGTACATTTTTTACTCACATTTTGTATATGTACCTTTTCACTGACTGAGTTTCCTGCTCATCAGATGTTAAAAATTGAAAGTATGCTGAAACTTTGGAAAATGAAAGTGAAATTTTATTAAAACAATTTAAGCTTTTGATCACTGTTTTGTCTTCGTTATCTTTATAATTCTTAGGACTAGTTGTAGTGGTTAAGAAGCAATTTCATTGATATCACCCAAGTGAATTTTAAACTTCAAAGTAGATTGCTACATATAGACTGAGTTATTTGTCATATGAATAGCTAGGTTATTGAGGGCTTGTGTGTTGGGCTTTATTGATCTGATTTCCACTTGAGAGAACTGCTTATGTATTGGCTTGCCGTAAATTAGATGATTTTGCTTTTAGTTTCAACATTTTTAGTTTGAGATTTTTGTATTATGTAGCCTAGAACTCATCACATAAGCTTTGGGAGTGGTCAAATTAATGGAGATTTTGAATAATGATTTTCTTGAAATTAGGGAACAGTTGGTTCACACTTTGATAGTTCTGTCATTATTTTGATCTATTTTAAATAAACATTCATCAGGATTTTGAGTAACAGTTGGGGTTCCAAAATGGACTAAACAAGAAACAGAAACTAAAATATAAATACATACATAATTTTATATATAGGAAAATAGGAAGTCCTGCATTTGACTTTAAGAACTCAGCTATTCAGCATATAACACATAATATGTAAAGTATTTTTTTTTAGAATTTCTTTTTGTGGGTACATAGTATGTGTATATATTTATGGGGTACTGAGATATTTTGATATAGGCATGCAATGCATAATAATTACATCATGGAAAATGGGGTGTCCATCCCCTCAAGCATATGTCTTGTGTTATAAACAATCCAATTATGCTTTTTTAGTTATTTTTAAATATACAATTAAATTGTATTGACTATGGTCACCCTCTTGTGCTATCATATACTAGACCTTGTTCATTCTATTTTTTTTGTACCCATTAACCATCTTCACCTCCCTCTCAGCCCCCCACTACCCTTCCCAGCCTCTGGTAACCATCCTTCTACTTTCTGTCTCCAGGAGTTCAGTTGCTTTGATTTTTAGATCCCACAAACAAGTGAGAACATGTGATGTTTGTCTTTCTGTGTCTAAAATCAGGCTTTTATAGAAGCTAAACTTAAAGAAGACTTGTGAACTTTGGGTGGCATTACCATTCACCCCAGTGTACCCAGGACAGTTCTAGTTTATGCCTGCTGTTTCTGTGACCTTATTAGCACTTCTATTCCCTGAAGAGAGTCCTAAACTAGATGATAAAATATGGTTACCCTGGTTTTCGTTGCCATTGGGATCAGTATGAGACGGTAGTATGATGTGTTCTTAAGATTGCTAATTCAGCCTAGGTAATATTAGAAGAAATAAAGGATTCTGAGACAAGGAAATTCAAAGCCTCGTTATTATACTCTCATTGATGAAATCTCAGCCGGCATCTGTATCATTCTGAGTGCCACATTTAAGAAGGACAGCAGTGCACTGAAACACTATTGGAAAATGTCTACTCAGTCCTTAAAGGGTCTGGAAGCCTCATGATGAGAGGAATCACGAGGGTGGTGCAGACATGGATACCTGGCAAGCAGAAGAGTTGGGACACATGGTAGTTAGCTTTCAACTTGGAAGGCTTGCCACAGGAAATCAGAATTAGGTTCTTTGGGGGTCCAGAAATCTAGAAACCAATGAATAGCAATTCTGAGGAGGTTGTGGGGAAAGGACAGAGGAAAGAGGCCCAAGGTCAGGGTCTTTGGCCTGTGATTGATAAAGTTCATGCCCTCAATCAGCCCCTGGACCAAAATGAACCTGTTGGGGACACCTGCCTTAGCCCCTTGTGAACAAAATTATTCACTCGTAGATAATCCTTTAGATTTTCCTTGGCAAGATGATTAAAGGAAATACTATATGTGAAAACATTTTATAAACTAAAGCATACACAAATGTAACGTCTTGCTGTTACCAAGAAATGCATTTATTTTTAAAAGACACTAAAGAAATTAATGCATTTTGTTAAAAAGTGCTGATTTTCATAATGTTTATATTTCAGTTGATTTTTAGACTATGGGTACAGAAT, fragString: AAAGAATGTAATTATATCTAGTGCTGCAGAAAGGCCTTTAGAAATAAGAGGGCCATATGACGTGGCAAATCTAGGCTTGCTGTTTGGGCTCTCTGAAAGTGACGCCAAGGCTGCGGTGTCCACCAACTGCCGAGCAGCGCTTCTCCATGGAGAAACTAGAAAAACTGCTTTTGGAATTATCTCTACAGTGAAGAAACCTCGGCCATCAGAAGGAGATGAAGATTGTCTTCCAGCTTCCAAGAAAGCCAAGTGTGAGGGCTGAAAAGAATGCCCCAGTCTCTGTCAGCACC
+		 */
+		r = "AGCTGCTATTTATTCACTCAAAATATAAATATATTATACACCTTTTATGTAAAAGGCAGTCTAGCTCTCAAGAAGTGTGCAAGCTTGGCAGAGCCAATGAGATACACGTTCAACTAGGACAGAAATACTATCTTAACAAATGTCATTCCCAGAAATAATCAACACAGGTGAAAGAATTAGAGATGGGGAAAAGTCAAAAAATGAGAGAGGGAAAGGTTGCAGTGTGGAAAATAGCATTTAAATTCTAACCAAACTAGAATCAGACATATAGGAAAATCTAAAATAAAATCTGGGAGCCTTGAAGCCGGAGGAAGAATTAAGGAAATCTGTGTTCGGGAGGGAAAAGCAGAAGGGGCCTTCAAGTACAACTGAATTAAATCAAGATGGACTGCCAGTTCTAGAAAAAGACAAGTTTCTCCATTCCCCGTAAATGCTCAGGAGTAAACCCCAGTAGTCACAGCTGGGCCAGTCCCAACTTATACTCTGGGCAATCGAAACTCATTTGCCAAGCAGAGACTTGGACCATACTGCCTAGAACATGCCTACCATTCTTTCTTTATTCTTTTGAAAGAGTACTGCCACTCAAGTGACTTTTGCAATTGAGAGTCTGATTATCATCTCTATGCTGAAAATCCTTCAGATGTTTTCTCCATTAGGAATAATCCTCATCACCAGCTCTAAAGGCCTGCACAGTTGGCCCTTCCCATCCTCTTTAGCCTGTCTTCCTCATTATTTTTCTCCAGCATTTGACCTTCCCTACGTGCTGCCATGCTGCAACCTTGAAGACTTTTGCATGCTCTGACCTCCCTCTGAAAGTGCACCTTCCTCTACTATTTAACTGCTTAATTTCTTCCTCAACCCTAAACTTCTCCTTGATAGCACTTAACACAGTTGAAGTTTTGTATTTTTGTGTGGTTATTGATCATCTCCCCCACTAAAATGTAAGCTTTTAGAAGGGAGAAACCATCTCAGCTTTTGCACGTAGTGGGCTTAAAACATCTTTTGTGAATGGATGCAGACATTTAGGTGCTCATTAGGAAAGCTGAACAGTATGGTGGTTAATTTCAATATCATTTCCACTCATCTACTTACCTGTGGATCCCTCTGTAGTAAGAGTACATTAAATAAAGAAGTTTCTGTTTCTCATGAAAAAAGCCAAGCTTGTATGGTGAGCTGGGCAAAATCTTCAAGGGCACTTCCATCTTTTTTGCTGTGCGGCTATAAGCCCAGTGAAAAATCAGGGGCTTTATTACTAAAGAAAAAGGAGAGGACAGATATCTGGGCAATTTGCAGGCTTTGCAGTAATGCTTTATAAAGGTATTGTAGTAAGGATTAAATATTATATATAAGACTCTCTTAGCATATAGTCAGCACTCAATTAACTATGGCTGTTATTCTCTCTTCAACATATAGAGAATAAATTACTTACCTGAAAGACCTTCCTGCCCTTGGTTCTTTGGGCTTTTTTCAGCTCTTCATTTCTTTGTCTCTTTGTGCATTCATAGGTCAGATTACTTGGTTTACTATGTTTGTATACAGTTTACTGTAAATGTAGGGAGTACATTTCTGTTTTCCTTTTGATAGTTCATGGAGTAGTAGCCCCTCTCTCACGCCATTGGGACTTTGTTCTTCTTAGCCTCTTCATAATTCCTGTTTATGTAAAGTCAGCTTCCCCACAGCCAAGTTAAACTCTCTTAATCAAGTAGAGCCACGGATTTATTTTCTTCTCCTTGTGGGTGGTGCCATTTGAGTGTTGATCTGTCTTTCATAAAGCTGTACCTTGACATGTAAGGGGTCAGTAGTAGGGAGTGAGGAGGGATGTGAAGAGAGAATCAGTGAAAATGAAGTAGGCCAGTGCATGCTTATCTCTGACAGTTCTCTTTATTTCCTGTGAAGGCGATTGACCGAGGCCTGGCTTTTGAACTTGTCTATAGCCCTGCTATCAAAGACTCCACAATGAGAAGGTATACAATTTCCAGTGCCCTCAATTTGATGCAAATCTGCAAAGGAAAGGTATGGTTCTATAATTTTAGGATGTTTTTCGCATCTGGCAGTTTATTATTAGTAGTACACTGGAATTGTCAAACTGACTCCTTTTCCTTAAAGCAGAATGTTCTCATAGCATAGGAACAAATTCTGCCATTTCAGTGAGCTCTGCAAATTTTAAGGGAAAGAAAAATACCAAGGGAAGAATAATGTAAGGGAGAAAAAGATGTGTTGGAAGCCATATCTTTTGATAAAAATTTGCAATTTACATACTGTGAAAGAAAAGTCTAGAATAACAATGGTCCTCACTGAGTTGAATTAAGATATGTGACCTTTTCATCTTGTTTTTTAAACTTAATTCACCTTTACTAAGATCTGTTAGGAAAACATATTTTGTTTTTTATTACAGATTGCCTTTAGTTTGACATGAAGTCTTTTCATTTTTTTCACCTTAATTATTTACCTTATCTTTAAAAGAAGTTGGTATTTGAGCCTTAAATGTTAAAATATGATTACTGGCTATTTATATTATGAAACTCCTTTTTTTACATTTATCTAAGATTAATATTAGTCACTTTCTATTTTGTAGAATGTAATTATATCTAGTGCTGCAGAAAGGGTAAGTCTAGCATGAAGTACTTTGTTTTCATCTTTCAGGTTATAAAACTTTTCAGTTTCTAGGGGATAAATTAAAATAGTAAATGAATATTTGTTGCATTTTTTTCTATTTTAACTGCATTTGCTCATTGTAATTGCTAAATAGTAAAATTTATCCCCACTTTCTTTAGGCTTCAACTTTTGTTTATATAATCAGTTTTTCTTTTATACTGTTACAAAATGCCTTTCAAGCTTCTCTTATATTTTCAAAAGCTATGAAACCCATCAAAATTATAAGGACTTAAATTTATGTAATTTTTTTATTTTTGGATACTTAAATTTTCTATTAATTTGCTATAAGTCATTGAAATGTTATAAATAATTTTCTCATATCTACTCTTTGTTCATTTTATTTCAGCCTTTAGAAATAAGAGGGCCATATGACGTGGCAAATCTGTATCCTTTTCTGAGTAAAAAGTTGTTGACATTGTCTTTCAGGAAATTTTGAATTTGAAGTCGTATTATAGTTGAACATGTATTTTTCTCAACCTTTTACTGTAAGTTTACCAATTAATAACTTCAAAAATAAATTATATAACATTATAGAGAGCTTTATGCTTCTGTTTTTTAATTAATCATGAGATAGAAAAGAGGGAATGAGGGACTTCATATGATAAAAGCTTAGAGTTAAATGAGTCTTTTCTCAGATGCATGTTCCAGTTGGACTAAGAACTGCTGTTGAATTAATTAGCCTCTCAAGATGACCAGGTTAGCTGGCACTTTCTGTTATGTTTGTGTTAGTCTCGTGTCCTTGGGTGACTCTGGGTTGAAATCTTTAATGCTCCCCCAAGAGGCTTGCTGTTTGGGCTCTCTGAAAGTGACGCCAAGGCTGCGGTGTCCACCAACTGCCGAGCAGCGCTTCTCCATGGAGGTAAGCAAGTTCTTCCAGTACAAACTGAATGGTCATGTTAAAAGCAAGTCATTTTTACAGCCATACCTATTTTTATTGCCCTACCCTACAGAGTTCCTTTGGGATCATCTTTTCTCAACCTGTTCTAAACACAGTCATCAGTGTTTTCTCACCCTCACTTCAGGCTTTACTTTCTAAAGTTTGTAGAATGAATATAGTTTTCATTACAGAAATAAGTATTGAATAGTTCTTCCAGCTATACATGTGTGCTCCTGCCGACATTTTGATAGGCTTCTAATCTCCCTTCCTTCTTCTCCCTCACCAGAAGGCCATGCTTTCCCTGTTGAAAATCTCTGTTTTAGAGAACGGATATGTTAAAAATATGTGTTAAACTATTTATTAGGAAAACAAAACCAGCAAATACATTTTTAAAAATCCAACTAACAAAACATAGACTGTAACTTTTACATTTATTATAACTCAGAATGTTTCTTTTCTCATGTTTGCTTACATGGTCAAGTTGTGTCCAGACTGTACCTTTTTTATTTTTTTTTCTTTTTCTAAATAGAGACAGAGTCTCACTATGTTGCCCAGGCTGGTCTTGAACTCCTGGGCTCAAGCAATCCTCCTACCTCAGCCTCCCAAAGTGCTAGGATTACAGACATGAGCCACCATGCCCGGCCAGACTGTACATTTTTTACTCACATTTTGTATATGTACCTTTTCACTGACTGAGTTTCCTGCTCATCAGATGTTAAAAATTGAAAGTATGCTGAAACTTTGGAAAATGAAAGTGAAATTTTATTAAAACAATTTAAGCTTTTGATCACTGTTTTGTCTTCGTTATCTTTATAATTCTTAGGACTAGTTGTAGTGGTTAAGAAGCAATTTCATTGATATCACCCAAGTGAATTTTAAACTTCAAAGTAGATTGCTACATATAGACTGAGTTATTTGTCATATGAATAGCTAGGTTATTGAGGGCTTGTGTGTTGGGCTTTATTGATCTGATTTCCACTTGAGAGAACTGCTTATGTATTGGCTTGCCGTAAATTAGATGATTTTGCTTTTAGTTTCAACATTTTTAGTTTGAGATTTTTGTATTATGTAGCCTAGAACTCATCACATAAGCTTTGGGAGTGGTCAAATTAATGGAGATTTTGAATAATGATTTTCTTGAAATTAGGGAACAGTTGGTTCACACTTTGATAGTTCTGTCATTATTTTGATCTATTTTAAATAAACATTCATCAGGATTTTGAGTAACAGTTGGGGTTCCAAAATGGACTAAACAAGAAACAGAAACTAAAATATAAATACATACATAATTTTATATATAGGAAAATAGGAAGTCCTGCATTTGACTTTAAGAACTCAGCTATTCAGCATATAACACATAATATGTAAAGTATTTTTTTTTAGAATTTCTTTTTGTGGGTACATAGTATGTGTATATATTTATGGGGTACTGAGATATTTTGATATAGGCATGCAATGCATAATAATTACATCATGGAAAATGGGGTGTCCATCCCCTCAAGCATATGTCTTGTGTTATAAACAATCCAATTATGCTTTTTTAGTTATTTTTAAATATACAATTAAATTGTATTGACTATGGTCACCCTCTTGTGCTATCATATACTAGACCTTGTTCATTCTATTTTTTTTGTACCCATTAACCATCTTCACCTCCCTCTCAGCCCCCCACTACCCTTCCCAGCCTCTGGTAACCATCCTTCTACTTTCTGTCTCCAGGAGTTCAGTTGCTTTGATTTTTAGATCCCACAAACAAGTGAGAACATGTGATGTTTGTCTTTCTGTGTCTAAAATCAGGCTTTTATAGAAGCTAAACTTAAAGAAGACTTGTGAACTTTGGGTGGCATTACCATTCACCCCAGTGTACCCAGGACAGTTCTAGTTTATGCCTGCTGTTTCTGTGACCTTATTAGCACTTCTATTCCCTGAAGAGAGTCCTAAACTAGATGATAAAATATGGTTACCCTGGTTTTCGTTGCCATTGGGATCAGTATGAGACGGTAGTATGATGTGTTCTTAAGATTGCTAATTCAGCCTAGGTAATATTAGAAGAAATAAAGGATTCTGAGACAAGGAAATTCAAAGCCTCGTTATTATACTCTCATTGATGAAATCTCAGCCGGCATCTGTATCATTCTGAGTGCCACATTTAAGAAGGACAGCAGTGCACTGAAACACTATTGGAAAATGTCTACTCAGTCCTTAAAGGGTCTGGAAGCCTCATGATGAGAGGAATCACGAGGGTGGTGCAGACATGGATACCTGGCAAGCAGAAGAGTTGGGACACATGGTAGTTAGCTTTCAACTTGGAAGGCTTGCCACAGGAAATCAGAATTAGGTTCTTTGGGGGTCCAGAAATCTAGAAACCAATGAATAGCAATTCTGAGGAGGTTGTGGGGAAAGGACAGAGGAAAGAGGCCCAAGGTCAGGGTCTTTGGCCTGTGATTGATAAAGTTCATGCCCTCAATCAGCCCCTGGACCAAAATGAACCTGTTGGGGACACCTGCCTTAGCCCCTTGTGAACAAAATTATTCACTCGTAGATAATCCTTTAGATTTTCCTTGGCAAGATGATTAAAGGAAATACTATATGTGAAAACATTTTATAAACTAAAGCATACACAAATGTAACGTCTTGCTGTTACCAAGAAATGCATTTATTTTTAAAAGACACTAAAGAAATTAATGCATTTTGTTAAAAAGTGCTGATTTTCATAATGTTTATATTTCAGTTGATTTTTAGACTATGGGTACAGAAT";
+		s = "AAAGAATGTAATTATATCTAGTGCTGCAGAAAGGCCTTTAGAAATAAGAGGGCCATATGACGTGGCAAATCTAGGCTTGCTGTTTGGGCTCTCTGAAAGTGACGCCAAGGCTGCGGTGTCCACCAACTGCCGAGCAGCGCTTCTCCATGGAGAAACTAGAAAAACTGCTTTTGGAATTATCTCTACAGTGAAGAAACCTCGGCCATCAGAAGGAGATGAAGATTGTCTTCCAGCTTCCAAGAAAGCCAAGTGTGAGGGCTGAAAAGAATGCCCCAGTCTCTGTCAGCACC";
+		nm = new SmithWatermanGotoh(r, s,  4, -4, -2, 4);	
+		results = nm.traceback();
+		for (String s1 : results) {
+			System.out.println(s1);
+		}
+		nm = new SmithWatermanGotoh(r, s, 5, -4, 16, 4);	
+		results = nm.traceback();
+		for (String s1 : results) {
+			System.out.println(s1);
+		}
+		
+		
+		r = "AGCCACAAAGGAAACTTGAACAAAAAGTCACAATTTGTTCTTAGAAAAATTTATTCTCGATGGATTGATAGGTGCAGCAAACCACATGGGACATGTTTACCTACGTAACAAACCTGCACGTCCTGCACGTATATTCCAGAATTTAAAAGAACAATTTATTCTTATAAAGATGTCAATTCTCCCTGACTTCATAGGCTTAACATTTTATAACAATTTTAGAGTTTTTTCCCCAATCTGGACAAGCTGAGAACTCTCAGCAAATCTTAAACGATTTGAGGAGGAGGACATTTTTTAACGAAAAGAATACAAAATTAAGAAAACGAAATTAGGTAGAAAAGCTAACATTAACTAAAAACAAGAAAATAAATTACAAATATTTAAAAGCTGACAAATATAAAACATTACCAACTTAAATTCAGAAAAATATTTTTATTAATCGACTGCTTGATACACCTGTTATATTTTTCATTTTACTAACTGAATTATCAAATCTACAAGCTTATTTGCTACTTCTATTTGAAGTTTGTGTCTTTAATTACTGCTTTTCATTAGATCTGAAATTTTTTTATAATTTGCTTTTTTTTTTTTTTTTTTGAAATGGAGTCTTGTTCTGTCACCCAGGCTAGAGTGCAATGGCATGATCTCAGCTCACTGCAACATCTGCCTCCCGGGTTCCAGCAATTCTCCTGCCTCAGCCTCCTGAGTAGCTGGGATTACAAGCGTGTGCCACCACACCGGGCTAATTTTTGTATTTTTAATAGAGATGGGGTTTCACCATATTGGCCAGGCTGGTCTCGAACTTCTGACCTCGTGATCTGCCCACTGCGGCTTCCCAAAGTGCTAGGATTACAGGCGTGAGCCACTGTGCCCAGACTATAATTTGCTGCTTGATGTCAGAATAATTTCTATTAATTTCATTGTTCATCTTTAATCACCATTGTTTCATAGTCCAGTAATTTTCTGTATTTTCTGTTAAACTCTTCATATGTCTAAATCAGGAATCAGACATTTTTCATTTTTTTTTCTAAACTAGCCTAAAATTGTTTTTCTAAATTGCAGTTAAAATGGCATATTTGACCTTTGGTAACTTTTAAAATATTGACATATAATTAATATACCACAAAACTCACCCTTTAAAAATATGCATGATTCGGTGGCTTTTTATTATATTCACAAAGTTGTACAATAATCACCATTATCTATCTTCAACATTTTCATCACCCCCAGGAGAAATCTCATAACCATTAGAAACCATTCTCCCTTTTCCTCTTCTTCCAGCCCTTTGCAACCACTAATCTACTTTGTCTGATTTGCCTATTCTGGACATTTTGTATACATAGAATTATACAATATGTGACCGTTTGTGCAATGTTTATTAAATTTTGAATGAACTCTCTATTCATGCTCAGGTGTTCCTTCTGAGTCAGAAAATATATTTTAGAGTCTTTAAGATGTTGTGTACTTTGTGCTACAAGATCTCAATGCTTTATAATGGGCAAACCACCTCACTATCCTTAGACCCTTGAATACTAAGTTGGCATGGGTGATTAAAATACTACATGTAATGTAAAAGATAAATTCAAGAAGAACGTGTAACTTGGAAAATCTGAAGTAGTCAGCAACTTTAGGGACTGGGAAGGCAGCTTTCCCAGGGATAACTAAGTGATAAAGCGAACTGCGTCCAGAATATATTTTAAGTACTTACTAATGTGAAAGCATTGTGGAATCTTCACGTCTTCTAAAAGTCACGTTTTTACGTGACTGATTGCAAATGCAACATAAGGTTAAAGTTGCTCAGAACTTATTTCATTCTGTTGAAAAGACAAAACTGCGTTTGAATTATTCTTGTGTATACTTTAATTTCAGATGAATTTTGACAGTTAAAAGTTGGTTTGCTGTAGAACATGATTTTTCTGTTTTAGAGTAGCACACGATAATGGCATACATAAAGCAATTTGCTACTGGAGAATTTGTAGCAATATTTGATGTTTGGTTTATTTACTTATTTGAGTTCCCACTTTATTTTGTACATATTTTCCCTTATTTTGATTAATTCTCCATGAGCTATTTTGGATAAATAAAAGTCATATTTGTCCTTCTACCTTTATAGTTTTCCAGGCACTCATGTAAAAATTGATCAAATCTAGAAATCAATTGGGTGATTCCTAGAAATTTCTGTTACTTGAAGAACACAACTTTTTCATTGTGATCTCTGATGAATAAACCTTTTTCACTTAACAATTCAATACCTTCCTGTTGGGAGCAGGCCCCCCAAAATCTGGCGATAAACCAGCCCCAAAACTGGCCATAAACAATCTCTGCAGCACTGTAACATGTTCATAATGGCCCTAACGCCCAAGCTGGAAGGTTGTGGGTTTACAGGAATGAGGGCAAGGAACACCTGGCCTGCCCAGGGTGGAAAACCGCTTAAAGGCATTCTTAAGCTACAAACAATAGCATGAGCGATCTGTGCCTTAAGGACATGCTCCTGCTGCAGTTAACTAGCCTAACCTATTCCTTTAATTCGGCCCATCCCTTCCTTTCCCATAAGGGATACTTTCAGTTAATTTAACATCTATAGAAACAATGCTAATGACTGGTTTGCTGTCAGTAAATACGTGGGTAAATCTCTGTTGGGGGCTGTCAGTTCTGAAGGCTGCGAGACCCCTGATTTCCCACTTCACACCTCTGTATTTCTGTGTGTGTGTCTTTAATTCCTCTAGTGCTGCTAGGTTAGGGTCTCCCCAACCGAGCTTGTCTCCACACCTTCCACTGTTCTTCTTAGTACTTCAGCATAATACTGTATGTTCCTTCTTTGTCCTGCAAGACAACGGTAAAGTGCATTATAATTAATTTATGTGTAATCCAAGTAAACAAGCCTCATTGTGTTGTATGTGTCTTATGATTAAGAGCTCAATACATTTAATCTAGTCTGACAGTTTGCCTGGTGTAAGTCATGTGTGTCTTGTTAAAAAAAATTTAATAAGAACAAAACAACTGGGGGGAGGAGCCAAGATGGCCGAATAGGAACAGCTCCGGTCTACAGCTCCCAGTGTGAGCGACGCAGAAGACGGGTGATTTCTGCATTTCCATCTGAGGTACCGGGTTTGTCTCACTAGGGAGTGCCAGACAGTGGGCGCAGGCCAGTGGGTGCGCGCACCGTGCGCAAGCCGAAGCAGGGCGAGGCATTGCCTCACTTGGGAAGCGCAAGGGGTCAGGGAGTTCCCTTTCCGAGTCAAAGAAAGGGGTGACAGACGCACCTGGAAAATCGGGTCACTCCCACCCGAATATTGTGCTTTTCAGACCGGCTTAAAAAACGGCGAACCACGAGATTATATCCCACACCTGGCTGGGAGGGTCCTACGCCCACGGAATCTCGCTGACTGCTAGCACAGCAGTCTGAGATCAAACTGCAAGGCGGCAGCGAGGCTGGGGGAGGGGTGCCTGCTATTGCCCAGGCTTGCTTAGGTAAACAAAGCAGCCAGGAGGCTCGAACTGGGTGGAGCCCACCACAACTCAAGGAGGCCTGCCTGCCTCTGTAGGCTCCACCTCTGGGGGCAGGGCACAGACAAACAAAAAGACAGCAGTAACCTCTGCAGGCTTAAGTGTCCCTGTCTGACAGCTTTGAAGAGAGCAGTGGTTCTCCCAGCACGCAGCTGGAGATCTGAGAACCGGCAGACTGCCTCCTCAAGTGGGTCCCTGACCACTGACCCCTGACCCCCGAGCAGCCTAACTGGGAGGCACCCCGCAGCAGGGGCACACTGACACCTCACACGGCAGGGTATTCCAACAGACCTGCAGCTGAGGGTCCTGTCTGTTAGAAGGAAAACTAACAAACAGAAAGGACATCCACATCGAAAACCCATCTGTACATCACCATCATCAAAGACCAAAAGTAGATAAAACCACAAAGATGGGAAAAAAACAGAACAGAAAAACTGGAAACTCTAAAACGCAGAGCACCTCTCCTCCTCCAAAGGAACGCAGTTCCTCACCAGCAACGGAACAAAGCTGGATGGAGAATGACTTTGACGAGCTGAGAGAAGAAGGCTTCAGACGATCAAATTACTCTGAGCTACGGGAGGACATTCAAACCAAAGGCAAAGAAGTTGAAAACTTTGAAAAAAATTTAGAAGAATGTATAACTAGAATAACCAATACAGAGAAGTGCTTAAAGGAGCTGATGGAGCTGAAAACCAAGGCTCGAGAACTATGTGAAGAATGCAGAAGCCTCAGGAGCTGATGTGATCAACTGGAAGAAAGGGTATCAGCAATGGAAGATGAAATGAATGAAATGAAGTGAGAAGGGAAGTTTAGAGAAAAAAGAATAAAAATAAATGAGCAAAGCCTCCAAGAAATATGGGACTATGTGAAAAGACCAAATCTACGTCTGATTGGTGTACCTGAAAGTGATGGGGAGAATGGAACCAAGTTGGAAAACACTCTGCAGGATATTATCCAGGAGAACTTCCCAAATCTAGCAAGGCAGGCCAACGTTCAGATTCAGGAAATACAGAGAACGCCACAAAGATACTCCTCGAGAAGAGCAACTCCAAGACACATATTTCCTCATAATTGTCAGATTCACCAAAGTTGAAGGAAAAAATGTTAAGGGCAGCCAGAGAGAAAGGTCGGGTTACCCTCAAAGGGAAGCCCATCAGACTAACAGCGGATCTCTGGGCAGAAACCCTACAAGCCAGAAGAGAGTGGGGGCCAATATTCAACATTCTTAAAGAAAAGAATTTTCAACCCAGAATTTCATATCCAGCCAAACTAAGCTTCATAAGTGAAGGAGAAATAAAATACTTTACAGACAAGCAAATGCTGAGAGATTTTGTCACCACCAGGCCTGCCCTAAAAGAGCTCCTGAAGGAAGCGCTAAACATGGAAAGGAACAACCGGTACCAGCTGCTGCAAAATCATGCCAAAATGTAAAGACCATCAAGACTAGGAAGAAACTGCATCAACTAACAAGCAAAATAACCAGCTAACATCATAATGACAGGATCAAATTCACACATAACAATATTAACTTTAAATGTAAATGGACTAAATTCTCCAATTAAAAGACACAGACTGGCAAATTGGATAAAGAGTCAAGACCCATCAGTGTGCTGTATTCAGGAAACCCATCTCATGTGCAGAGACACACATAGGCTCAAAATAAAAGGATGGAGGAAGATCTACCAAGCAAATGGAAAACAAAAAAAGGCAGGGGTTGCAATCCTAGTCTCTGATAAAACAGACTTCAAACCAACAAAGATCAAAAGAGACAAAGAAGGCCATTACATAATGGTAAAGGGATCAATTCAACAAGAAGAGCTAACTATCCTAAATATATATGCACCCAATACAAGAGCACCCAGATTCATAAAGCAAGTCCTGAGTGACCTACAAAGAGACTTAGACACCCACACATTAATAATGGGAGACTTTAACACCCCACTGTCAACATTAGACAGATCAACGAGACAGAAAGTCAACAAGGATACCCAGGAATTGAACTCAGCTCTGCACCAAGTGGACCTAATAGACATCTACAGAACTCTCCACCCCAAATCAACAGAATATACATTTTTTTCAGCAGCACACCACACCTATTCCAAAATTGACCACATACTTGGAAGTAAAGCTCTCCTCAGCAAATGTAAAAGAACAGAAATTATAACAAACTATCTCTCAGACCACAGTGCAATCAAACTAGAACTCAGGATTAAGAATCTCACTCAAAGCCACTCAACTACCTGGAAACTGAACAACCTGCTCCTGAATGACTACTGGGTACATAACGAAATGAAGGCAGAAATAAAGATGTTCTTTGAAACCAACGAGAACAAAGACACAACATACCAGAATCTCTGGGATGCATTCAAAGCAGTGTGTAGAGGGAAATTTATAGCACTAAATGCCCACAAGAGAAAGCAGGAAAGATCCAAAATTGACACCCTAACATCACAATTAAAAGAACTAGAAAAGCAAGAGCAAACACATTCAAAAGCTAGCAGAAGGCAAGAAATAACTAAAATCAGAGCAGAACTGAAGGAAATAGAGACACAAAAACCCCTTCAAAAAAATCAATGAATCCAGGAGCTGGTTTTTTTGAAAGGATCAACAAAATTGATAGACCACTAGCAAGACTAATAAAGAAAAAGAGAAGAATCAAATAGACACAATAAAAAATA";
+		s = "CTGAAAACAGAAATAAAATACGCGCATTTATCCAGGTTAACCAAAACGGGAAATGTGTAACCCCTTAAATATTTTCTGGTGGAAATGCAGGTATCCTTGGAAAATGAAATAACACTATAGGGGGAGGAGCCAAGATGGCCGAATAGGAACAGCTCCGGTCTACAGCTCCCAGTGTGAGCAACG";
+		nm = new SmithWatermanGotoh(r, s,  4, -4, -2, 4);	
+		results = nm.traceback();
+		for (String s1 : results) {
+			System.out.println(s1);
+		}
+//		nm = new SmithWatermanGotoh(r, s,  4, -14, 20, 15);
+		nm = new SmithWatermanGotoh(r, s, 5, -6, 16, 10);
+		results = nm.traceback();
+		for (String s1 : results) {
+			System.out.println(s1);
+		}
+		
+		r = "AGTGCAGTGGTGCAATCTCGGCTCACTGCAACCTCCACTTCCCAGGTTCAAGCAGTTCTCCTGCCCCAGCCTCCCAAGTAGCTGGGACTACAGGCGTAAGCCACCATGCCCGGCTAATTTCTTTTGTATTTTAGTAGAGACCGGGTTTCACCGTTTTGCCCAGGCTGGTCTTGAACTCCTGAGCTCCGTCAACCCACCCACCTCGGCCTCCCAAAGTGCTAGGGTTACAGACATGAGCCACCCTGCCTGGCCTTTTTTTTTTTTTTTTTGAAACGGGGTTTCATTCTTGTTGCCCAGGCTGGAGTGCAATGGCATGATCTTGGCGTCGGCTTACTGCAACCTCCACCTCCCGGGTTCAAGCGATTATCCTGCCTCAGTCTCCTGAGTAGCTGGGATTACAGGCACACACCACCATGCCTGACTAATTTTTGTATTTTTAGTAGAGACGAGATTTCATCATGTTGGCCAGGCTGGTCTTGAACTCCTGACCTCAGGTGATCCACCTGCCTCGGCCTCCCGAAGTGCTGGGATTACAGGCATGAGCCACCATGCCTGACCTTACAATTCTTAAAAGAGTAGTGTACACATACTACAACCACTTCACCTCTCCTTCACAACTCAACTCTCTGCAATCTGGATTCAATCCTGACATTTCCTCATGTCTTATGGGCACGAATTTCACCTCTATGCAGCATTTAGCAATAAGTAACAACAGCTGGTAATTATTGAGTGTGCACATTCTGCCAGTCACTGTGTTAAGCACGTCACGTGCATTTTGGTTGATGCTTCCCAAGCTACAAATCAAACCCAATCTTTTTTCCAAGCTCTAGACTAGTATAGTGACAGGCACCACAAATCCATACAGATGAAAACAGAGCTCATTAGCAAAATCCCACTGCTGGATGTCTCCTGCTTGCCCTTCTAGTTCCACTTGCAACCCTTCCCCAACCTGCTCTGCACTCCGAGAGGCTGACCTTTGTGAATGGCCTCCCTGGACTCCCATGCCTCTAGCTTATGTTTGAAGAACCCAGTGGAGAGTCCCAGCAGAAAGCTGGAAGAAGACAGGAGAGTGAGGTAAGTGTATTGATTCCTCAGTCACCATCTGCTGTGGCCGTGTGGGCTGGCTGGGTCCACTTGGCTGTGTCCCTCTAGTGAAAGGCACAGCCGCTGTCATGCAGCCCTCATCGCATAGAGCCCCCCGGATTCCAGCAACTGCTCCCTTCTCTTTTCTCCTTCAGGAGTCACAGCCCCACTGCCAAAGCCACAGGGCCATGCACTGTCTCTGGGACATCACCCTACACCTGCCCGCACCTTTCAAGCAGCCTTTTTATTAAATGCTCCTCCTGTTACTTAATTGGAGTATGTCATCTTTTCTGACCAGAATGACGACTGACACATGCCCTCCCCATTCTCTATCTCTTTTTTTTAATTATTATTCTACTTTAAGTTCTAGGGTACATGTGCACAACGTGCAGGCTTGTTACATATGTATACATGTGCCATGTTGGTGTGCTGCACCCATTAACTTGTTATTTACATTAGGTGTATCTCCTAATGCTATCCCTCCCCCCTCCCCCCACCCTACAACAGGCCCAAGACGGTGTGTGATGTTCCCCACACACAGTGTGGCAATTCCTCAAGGATCTAGAAGTAGAAATACGATTTGACCCAGCGATCCCATTACTGGGTATATACCCGAAGGATTATAAATCATGCTGCTATAAAGACGCATGCACACATATGTTTATTGTGGCACTATTCTCTATTTCATTTAACGGAGTTGCTCCAACGTCATATTCCTAAAATGGAAACCAAGATGACCCTAGACTTCTTCACCCTCCCCTTTATACCCAGTAAGTCCTGCCCATTTTCCTTCAGGAACGCATTCCCCAAATCCACTCTCTCTTCTGAACCCCTGTTCTCATTTCGCTCACTGCGTCAGATTTCAGTTCTCCCTTCTCACTCCAGAAAGTTACAGTTCTAAAATGACAATCTGGGGAGAGGAGCCAAGATGGCCGAATAGGAACAGCTCCGGTCTACAGCTCCCAGTGTGAGCGACGCAGAAGACGGGTGATTTCTGCATTTCCATCTGAGGTACCGGGTTCATCTCACTAGGGAGTGCCAGACAGTGGGCGCAGGTCAGTGGGTGCGCGCACCGTGCGCGAGCCGAAGCAGGGCGAGGCATTGCCTCACTCGGGAAGCGCAAGGGGTCAGGGAGTTCCCATTCCGAGTCAAAGAAAGGGGTGACGGACTCACCTGGAAAATCGGGTCACTCCCACCCGAATATTGCGCTTTTCGGACCGGCGTAAAAAACGGCGCACCACGAGATTATGTCCCGCACCTGGCTCGGAGGGTCCTACGCCCACGGAGTCTCGCTGATTGCTAGCACAGCAGTCTGAGATCAAACTGCAAGGCGGCAGCGAGGCTGGGGGAGGGGCGCCCGCCATTGCCCAGGCTTGCTTAGGTAAACAAAGCAGCCTGGAAGCTCGAACTGGGTGGAGCCCACCACAGCTCAAGGAGGCCTGCCTGCCTCTGTAGGCTCCACCTCTGGGGGCAGGGCACAGACAAACAAAAAGACAGCAGTAACCTCTACAGACTTAAATGTCCCTGTCCGACAGCTTTGAAGAGAGCAGTGGTTCTCCCAGCACGCAGCTGGAGATCTGAGAACGGGCAGACTGCCTCCTCAAGTGGGTCCGTGACCCCTGACCCCCGAGCAGCCTAACTGGGAGGCACCACCCAGCAGGGGCACACTGACACCTCACACGGCAGGGTATTCCAACAGACCTGCAGCTGAGGGTCCTGTCTGTTAGAAGGAAAACTAACAAACAGAAAGGACATCCACACCAAAAACCCATCTGTACATCACCATCATCAAAGACCAAAAGTAGATAAAACCACAAAGATGGGGAAAAAACAGAACAGAAAAACGGGAAACTCTAAAACCCAGAGCGACTCTCCTCCTCCAAAGGAACGCAGTTCCTCACCAGCAACAGAACAAAGCTGGATGGAGAATGATTTTTACGAGCTGAGAGAAGAAGGCTTCAGACGATCAAATTACTCTGAGCTACGGGAGGACATTCAAACCAAAGGCAAAGAAGTTGAAAACTTTGAAAAAAATTTAGAAGAATGTATAACTAGAATAACCAATACAGAGAAGTGCTTAAAGGAGCTGATGGAGCTGAAAACCAAGGCTCGAGAACTACGTGAAGAATGCAGAAGCCTCAGGAGCCGATGCAATCAACTGGAAGAAAGGGTATCAGCGATGGAAGACGAAATGAATGAAATGAAGCGAGAAGGGAAGTTTAGAGAAAAAAGAATAAAAAGAAATGAGCAAAGCCTCCAAGAAATATGGGACCATGTGAAAAGACCAAATCTACGTCTGATTGGTGTACCTGAAAGTGATGGGGAGAATGGAACCAAGTTGGAAAACACTCTGCAGGATATTATCCAGGAGAACTTCCCCAATCTAGCAAGGCAGGCCAACGTTCACATTCAGGAAATACAGAGAACGCCACAGAGATACTCCTCGAGAAGAGCAACTCCAAGACACATAATTGTCAGATTCACCAAAGTTGAAATGAAGGAAAAAATGTTAAGGGCAGCCAGAGAGAAAGGTCGGGTTACCCTCAAAGGGAAGCCCATCAGACTAACAGCGGATCTCTCGGCAGAAACCCTACAAGCCAGAAGAGAGTGGGGGCCAATATTCAACATTCTTAAAGAAAAGAATTTTCAACCCAGAATTTCATATCCAGCCAAACTAAGCTTCATAAGTGAAGGAGAACTAAAATACTTTACAGACAAGCAAATGCTGCGAGATTTCGTCACGACCAGGCCTGCCCTAAAAGAGCCCCTGAAGGAAGCGCTAACCATGGAAAGGAACAACTGGTACCAGCCGCTGCAAAATCATGCCAAAATGTAAAGACCATCGAGACTAGGAAGAAACTGCATCAACTAACGAGCAAAATAACCAGCTAACATCATAATGACAGGATCAAATTCACACATAACAATATTAACTTTAAATGTAAATGGATTAAATGCTCCAATTAAAAGACACAGACTGGCAAATTGGATAAAGAGTCAAGACCCATCAGTGTGCTGTATTCAGGAAACCCATCTCACTTGCAGAGACACACATAGGCTCAAAATAAAAGGATGGAGGAAGATCTACCAAGCCAATGGAAAACA";
+		s = "CTGAAAACAGAAATAAAATACGCGCATTTATCCAGGTTAACCAAAACGGGAAATGTGTAACCCCTTAAATATTTTCTGGTGGAAATGCAGGTATCCTTGGAAAATGAAATAACACTATAGGGGGAGGAGCCAAGATGGCCGAATAGGAACAGCTCCGGTCTACAGCTCCCAGTGTGAGCAACGCCGAA";
+		nm = new SmithWatermanGotoh(r, s,  4, -4, -2, 4);	
+		results = nm.traceback();
+		for (String s1 : results) {
+			System.out.println(s1);
+		}
+		nm = new SmithWatermanGotoh(r, s, 5, -6, 16, 10);
+//		nm = new SmithWatermanGotoh(r, s, 4, -14, 20, 15);
+		results = nm.traceback();
+		for (String s1 : results) {
+			System.out.println(s1);
+		}
+		r = "aaaagaaccaggagggcacatgggcatggggagtgatgaaccagagaaagctgctgtctttctgggcaagtgccaagcaacggatcacccttgacccctaGGAAAGAAAAAGAAGAAAACCCGAGGTGATCATTTTAAACTTCGCTTCCGAAAAAACTTTCAGGCCCTGTTGGAGGAGCAGgtgagaggagggtcggcctgggaggaccccacagggaaggggtgagcctggcccgggcaggtgttcgctgcgtgggtgggcggaggagttctagagccggccccttgtctctgcagAACTTGAGTGTGGCCGAGGGCCCTAACTACCTGACGGCCTGTGCGGGACCCCCATCGCGGCCCCAGCGCCCCTTCTGTGCTGTCTGTGGCTTCCCATCCCCCTACACCTGTGTCAGCTGCGGTGCCCGGTACTGCACTGTGCGCTGTCTGGGGACCCACCAGGAGACCAGgtgagcatgagacctgctgtccactcccactccctccttcccacagcctccccagacctctctcccctcatcctggcttcccctctgtctgcagGTGTCTGAAGTGGACTGTGTGAGCCTGGGCATTCCCAGAGAGGAAGGGCCGCTGTGCACTGCCCGGCCTTCAGAAAGACAGAATTTCATCACCCAATGCAGGGGGAGCTCTTCCTGGACCAAGGGAGGAGCCGCTCATTCACCCaacaaaactgtgtcttatctgccaggaaagaccagcctcactcctgggaactgtctggcaggtaggctgggccccccagtgctgttagaataaaaagcct".toUpperCase().replaceAll(" ", "").replaceAll("\t", "");
+		s = "TGGAAAGAAAAAGAAGAAAACCCGAGGTGATCATTTTAAACTTCGCTTCCGAAAAAAACTTTCAGGCCCTGTTGGAGGAGCAGAACTTGAGTGTGGCCGAGGGCCCTAACTACCTGACGGCCTGTGCGGGACCCCCATCGCGGCCCCAGCGCCCCTTCTGTGCTGTCTGTGGCTTCCCATCCCCCTACACCTGTGTCAGCTGCGGTGCCCGGTACTGCACTGTGCGCTGTCTGGGGACCCACCAGGAGACCAGGTGTCTGAAGTGGACTGTGTGAGCCTGGGCATTCCCAGAGAGGAAGGGCCGCTGTGCACTGCCCGGCCTTCAGAAAGACAGAATTTCATCACCCAATGCAGGGGGAGCTCTTCCTGGACCAAGGGAGGAGCCGCTCATTCACCCG";
+		nm = new SmithWatermanGotoh(r, s,  4, -4, -2, 4);	
+		results = nm.traceback();
+		for (String s1 : results) {
+			System.out.println(s1);
+		}
+//		nm = new SmithWatermanGotoh(r, s, 5, -6, 16, 10);
+//		nm = new SmithWatermanGotoh(r, s, 4, -14, 20, 15);
+//		nm = new SmithWatermanGotoh(r, s,  5, -4, 16, 4);
+		nm = new SmithWatermanGotoh(r, s,   4, -4, 4, 1);
+		results = nm.traceback();
+		for (String s1 : results) {
+			System.out.println(s1);
+		}
+		
+		r = "GCCTGCTTTCTTACTTTTCTGCCCTCATATGACAAACTCCTCTGAGCCCTTTTCACCCTTAGGGGCCCAACTCAAGTGCCCGTCACTTCCATACCTCTATCAGCCAGAAAGGATGTGTCTGTGTCTGTCTGAGCTCTCTCACATTTACACTCTGCCTGATATCAGCTAGCCCTGGACACGCTGGGTGATAAATCCCCTCCTGTGTTCACCAAGTAATGGTTATGAGTGGGGACCCTGGAGCTGAGCCATCTGGGCTCCATCTTTGCTACATCACCTACTAGCTGTGTGACTTCTGGCTGGTTACTTAACGTCTCTGGGCCTGAGTTTTTTCATCTGTCAAATAAGGATAGTGATAATGGTAGCTACTTCACTGGGTTGTCGTGAGAACTAAATACACGTGGAGCACTTAGGGTGTACGTGTGGGTTTCCTGGGTGGCTGGCTAGGCCCTCCCCAGATGGTGGGAGGGGTCCCCCCAGAAGCAGCCCCTTGAATGCTCACCCTTTCTTGGCGAGAAAGGCCATGCGCCTGGCTTCTGCCTTCTCTCTCAGCACTGCAGGGTCCTGAACAAAATGGTCGGGCTGTGGAAAGGAGAGGAGACCAAATCTGGAGTCAGGAGCTGCCACATTTTCCTAAGCGGCGATGAGGCCCTGCTCAAGTGAAGCTTGTCGATGCCTCCATGCCAGGTGTGGGGGGAAGCTGCAGCCTGGCAGAGCGACGCCCAGGAATGGAGTGGGATTACTGTGGTCTGAGGTTTCCATTAGGAGCCCCCTGCCCCACCTCTTCCCTGAGCGGGTGGCAGCTGAAGGGACTGAGGCTTCCTGGACAGGCTGGTAGAGTGGATAGACCATAGTTATGGCATAACAATGACAAATGGGAGTGGTGGGGAAGCCAGGATGGCCACTGTGAGAGGCTGTGCAGGGCCCTGAAGACTGCGGGAGCCACCGTGGGAGCTAAGTGGTCCCGGGAGCTGCAGGCCTAGGCCTCACTGTGGCACCACTA";
+		s = "CTTTCTTGGCGAGAAAGGCCATGCGCCTGGCTTCTGCCNTCTCTCTCAGCNCTGCNGGGNCCTGAACAAAATNGNNNGGGACAGCACA";
+		nm = new SmithWatermanGotoh(r, s,  4, -4, 4, 1);
+		results = nm.traceback();
+		for (String s1 : results) {
+			System.out.println(s1);
+		}
+//		nm = new SmithWatermanGotoh(r, s, 5, -6, 16, 10);
+//		nm = new SmithWatermanGotoh(r, s, 4, -14, 20, 15);
+		nm = new SmithWatermanGotoh(r, s,  5, -4, 16, 4);
+//		nm = new SmithWatermanGotoh(r, s,   4, -4, 4, 1);
+		results = nm.traceback();
+		for (String s1 : results) {
+			System.out.println(s1);
+		}
+		
+//		r = "TGACTATGTCTTCTAGAATATTTCTAAGAAATTGCCTAAGTCACCACTGCTCACCAAGAGGCCTTTGTTTTTTCCTCTTCTTAACCATGGGAAAGGAATGTAGGAGGGTAGGGAGTGGATATTTTCTAACCTGGAAAAAACTCATTTTACCCTATATAATTTTTTTTAGCAAATTCCTTCTTTGCACTTACTCCACAATCTTTCCAAATTCTCCCAAATGCTCAAGCTTTTAAAAAACAAAAGACAGAAAGA";
+//		s = "CTTGCTAGGAGGGTAGGGAGTGGATTAAAAGATTGGACCAAAAAACTCATTTTACCCGGGG";
+//		nm = new SmithWatermanGotoh(r, s,  4, -4, -2, 4);	
+//		results = nm.traceback();
+//		for (String s1 : results) {
+//			System.out.println(s1);
+//		}
+//		nm = new SmithWatermanGotoh(r, s, 5, -4, 16, 14);	
+//		results = nm.traceback();
+//		for (String s1 : results) {
+//			System.out.println(s1);
+//		}
 //		String seq6 = "AACTTTTCGTCTCCCCGCGGATGCCCTGGACGGCCCTCCACTGCGAGGGCACGGACGCCACACCCAGGGTCTCGTCCTGCAGCGGCCCTGGCCGCCCCGGCCCCGGGCCGCTCGCAACCCCG";
 //		String ref6=("ccgcccggcagccacggtgggacgcccgaacccgcccggcagccgcgctg"+
 //				"cgaccccgccttcccgcccgcgtcgctccgcgcggggcccgcgccctcac"+
@@ -517,6 +847,36 @@ public class SmithWatermanGotoh {
 //		for (String s : results) {
 //			System.out.println(s);
 //		}
+		
+		nm = new SmithWatermanGotoh(r, s, 4, -4, 4, 1);
+		System.out.println("rows: " + nm.rows + ", columns: " + nm.columns);
+		int counter = 200;
+		long start = System.currentTimeMillis();
+		for (int i = 0 ; i < counter ; i++ ) {
+			nm.initializeOld();
+		}
+		System.out.println("time take to initialize old: " + (System.currentTimeMillis() - start));
+		start = System.currentTimeMillis();
+		for (int i = 0 ; i < counter ; i++ ) {
+			nm.initialize();
+		}
+		System.out.println("time take to initialize: " + (System.currentTimeMillis() - start));
+		start = System.currentTimeMillis();
+		for (int i = 0 ; i < counter ; i++ ) {
+			nm.initializeOld();
+		}
+		System.out.println("time take to initialize old: " + (System.currentTimeMillis() - start));
+		start = System.currentTimeMillis();
+		for (int i = 0 ; i < counter ; i++ ) {
+			nm.initializeNew();
+		}
+		System.out.println("time take to initialize new: " + (System.currentTimeMillis() - start));
+		
+		
+		
+		
+		
+		System.out.println("TESTS PASSED!");
 	}
 
 }

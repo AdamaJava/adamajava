@@ -48,7 +48,7 @@ public class FindDiscordantPairClustersMT implements Callable <Map<String, List<
 	private final boolean isQCMG;
 	private final String version;
 
-	private DiscordantPairCluster currentCluster;
+//	private DiscordantPairCluster currentCluster;
 	private final AtomicInteger somaticCount = new AtomicInteger();
 	private final AtomicInteger germlineCount = new AtomicInteger();
 	private final AtomicInteger normalgermlineCount = new AtomicInteger();
@@ -65,7 +65,7 @@ public class FindDiscordantPairClustersMT implements Callable <Map<String, List<
 		this.clusters = new ConcurrentHashMap<String, List<DiscordantPairCluster>>();
 		this.findReader = findReader;
 		this.compareReader = compareReader;
-		this.currentCluster = null;
+//		this.currentCluster = null;
 		this.clusterSize = findParameters.getClusterSize();
 		this.windowSize = findParameters.getUpperInsertSize();
 		this.clusterCounts = clusterCounts;
@@ -117,7 +117,7 @@ public class FindDiscordantPairClustersMT implements Callable <Map<String, List<
 		return this.clusters;
 	}
 
-	private void processByMatePairList() throws Exception {    
+	private void processByMatePairList() throws IOException {    
 
 		for (Entry<String, List<File>> entry : findReader.getFilesToRead().entrySet()) {
 
@@ -174,6 +174,7 @@ public class FindDiscordantPairClustersMT implements Callable <Map<String, List<
 		int finalRead = findMatePairs.size() - 1;
 		List<DiscordantPairCluster> tempClusters = new ArrayList<DiscordantPairCluster>();
 		//iterate through currentPairs and start defining clusters
+		DiscordantPairCluster currentCluster = null;
 		for (int i = 0, len = findMatePairs.size() ; i < len ;i++) {
 			//start the new cluster;
 			MatePair startPair = findMatePairs.get(i);

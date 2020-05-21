@@ -41,7 +41,7 @@ public class SummaryReport extends QSVReport {
 	}
 
 	@Override
-	public void writeReport() throws Exception {
+	public void writeReport() throws IOException {
 		try (BufferedWriter writer = new BufferedWriter(new FileWriter(file));) {
 		
 			if (options.isQCMG()) {
