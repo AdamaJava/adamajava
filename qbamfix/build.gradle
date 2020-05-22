@@ -7,11 +7,9 @@ def isExecutable = true
 dependencies {
     configurations.compile.transitive = true
 
-    compile project(':qcommon')
-    compile project(':qpicard')
-
-	compile 'com.github.samtools:htsjdk:2.14.1'
-	compile 'commons-cli:commons-cli:1.2'
-    
+    api project(':qcommon')
+    api project(':qpicard')
+    api 'com.github.samtools:htsjdk:2.14.1'
+    api 'commons-cli:commons-cli:1.2'
 }
 

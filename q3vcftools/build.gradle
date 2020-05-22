@@ -12,13 +12,13 @@ configurations {
 dependencies {
     configurations.compile.transitive = true
 
-    compile project(':qcommon')
-    compile project(':qio')
+    api project(':qcommon')
+    api project(':qio')
 
-    compile 'com.github.samtools:htsjdk:2.14.1'
-    compile 'net.sf.jopt-simple:jopt-simple:4.6'
-    compile 'net.sf.trove4j:core:3.1.0'
-    compile group: 'com.jcraft', name: 'jsch', version: '0.1.54'
-    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.4'
+    api 'com.github.samtools:htsjdk:2.14.1'
+    api 'net.sf.jopt-simple:jopt-simple:4.6'
+    api 'net.sf.trove4j:core:3.1.0'
+    api group: 'com.jcraft', name: 'jsch', version: '0.1.54'
+    api group: 'org.apache.commons', name: 'commons-lang3', version: '3.4'
 }
 
