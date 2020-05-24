@@ -1,9 +1,9 @@
 apply plugin: 'application'
-
 mainClassName = 'au.edu.qimr.qannotate.Main'
-
 def scriptname = 'qannotate'
 def isExecutable = true
+
+configurations { junit }
 
 /*
 * qannotate requires snpEff and the version currently used is 4.0e
@@ -19,12 +19,8 @@ def isExecutable = true
 *
 */
 
-configurations {
-    junit
-  }
 
 dependencies {
-    junit ('junit:junit:4.10')
     configurations.compile.transitive = true
 
     api project(':qcommon')
@@ -36,5 +32,3 @@ dependencies {
     api name: 'snpEff', version: '4.0e'	
 }
 
-//sourceSets.test.compileClasspath = configurations.junit + sourceSets.test.compileClasspath
-//sourceSets.test.runtimeClasspath = configurations.junit + sourceSets.test.runtimeClasspath
