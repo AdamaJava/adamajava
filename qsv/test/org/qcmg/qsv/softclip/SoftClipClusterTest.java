@@ -14,9 +14,6 @@ import java.util.HashSet;
 import java.util.Map;
 
 import htsjdk.samtools.SAMFileHeader.SortOrder;
-
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -243,7 +240,7 @@ public class SoftClipClusterTest {
 		String normalFile = testFolder.newFile("normal.bam").getAbsolutePath();
 		TestUtil.createHiseqBamFile(normalFile, PairGroup.AAC,
 				SortOrder.coordinate);
-		QSVParameters tumor = TestUtil.getQSVParameters(testFolder, tumourFile,
+		QSVParameters tumor = TestUtil.getQSVParameters(testFolder.getRoot(), tumourFile,
 				normalFile, true, "both", "both");
 		clip = TestUtil.setUpClipRecord("chr10", "chr10", true, true);
 
@@ -289,10 +286,8 @@ public class SoftClipClusterTest {
 		for (Clip c : clips) {
 			b.addTumourClip(c);
 		}
-//		b.setTumourClips(clips);
 		b.setMateReference(chr);
 		b.setMateBreakpoint(mateBreakpoint);
-//		b.setName("chr1-" + breakpoint + QSVUtil.MINUS + isLeft);
 		b.setStrand(strand);
 		b.setMateStrand(mateStrand);
 		return b;
@@ -307,8 +302,6 @@ public class SoftClipClusterTest {
 		for (Clip c : clips) {
 			b.addTumourClip(c);
 		}
-//		b.setTumourClips(clips);
-//		b.setName("chr1-" + breakpoint + QSVUtil.MINUS + isLeft);
 		b.setStrand(strand);
 		b.setMateStrand(mateStrand);
 		return b;

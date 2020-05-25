@@ -25,16 +25,17 @@ public class QSVPipelineTest {
    
     @Test
     public void testCreateOutputDirectory() throws Exception {
-    	String filteredNormalBam = testFolder.newFile("normalBam_filtered.bam").getAbsolutePath();
-    	String filteredTumorBam = testFolder.newFile("tumorBam_filtered.bam").getAbsolutePath();
-    	TestUtil.createBamFile(filteredNormalBam, PairGroup.AAC, SortOrder.queryname);
-		TestUtil.createBamFile(testFolder.newFile("normalBam_filtered.bam").getAbsolutePath(), PairGroup.AAC, SortOrder.queryname);
-        String[] optionsArray = TestUtil.getValidOptions(testFolder, filteredNormalBam, filteredTumorBam, "both", "both");
+    	File tmp = testFolder.newFolder();
+    	File fnormal = new File(tmp, "normalBam_filtered.bam");   	 
+    	File ftumor = new File(tmp, "tumorBam_filtered.bam");   
+    	TestUtil.createBamFile(fnormal.getAbsolutePath(), PairGroup.AAC, SortOrder.queryname);
+		TestUtil.createBamFile(ftumor.getAbsolutePath(), PairGroup.AAC, SortOrder.queryname);
+        String[] optionsArray = TestUtil.getValidOptions( testFolder.getRoot(), fnormal.getAbsolutePath(), ftumor.getAbsolutePath(), "both", "both");
         Options options = new Options(optionsArray);
         options.parseIniFile();
         String uuid = UUID.randomUUID().toString();
-        pipeline = new QSVPipeline(options, testFolder.getRoot().getAbsolutePath()  + FILE_SEPERATOR, new Date(), uuid, new QExec("qsv", "test", null, uuid));
-        String name = testFolder.getRoot().getAbsolutePath() + FILE_SEPERATOR + "test";
+        pipeline = new QSVPipeline(options, tmp.getAbsolutePath()  + FILE_SEPERATOR, new Date(), uuid, new QExec("qsv", "test", null, uuid));
+        String name = tmp.getAbsolutePath() + FILE_SEPERATOR + "test";
         pipeline.createOutputDirectory(name);        
         testFolder.delete();
         try {

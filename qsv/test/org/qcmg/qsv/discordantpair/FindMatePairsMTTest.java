@@ -45,7 +45,7 @@ public class FindMatePairsMTTest {
     public void setUp() throws Exception {
     		File tumorBam = TestUtil.createSamFile(testFolder.newFile("tumor.bam").getAbsolutePath(), SortOrder.queryname, false);
         File normalBam = TestUtil.createSamFile(testFolder.newFile("normal.bam").getAbsolutePath(), SortOrder.queryname, false);
-        QSVParameters p = TestUtil.getQSVParameters(testFolder, normalBam.getAbsolutePath(), tumorBam.getAbsolutePath(), true, "none", "pair");
+        QSVParameters p = TestUtil.getQSVParameters(testFolder.getRoot(), normalBam.getAbsolutePath(), tumorBam.getAbsolutePath(), true, "none", "pair");
         matePairDir = testFolder.getRoot().getAbsolutePath() + FILE_SEPERATOR + "matepair" + FILE_SEPERATOR;        
         
         findMatePairs = new FindMatePairsMT(Thread.currentThread(), countDownLatch, p, new AtomicInteger(), "test", matePairDir, true);
@@ -59,33 +59,6 @@ public class FindMatePairsMTTest {
         findMatePairs = null;
         matePairDir = null;
     }
-
-//    @Test
-//    public void testRun() throws InterruptedException, IOException {
-//    	 
-//        ExecutorService executorService = Executors.newFixedThreadPool(1);
-//        executorService.execute(findMatePairs);
-//        executorService.shutdown();
-//        countDownLatch.await();
-//       
-//        File sortedFile = findMatePairs.getQsvParameters().getFilteredBamFile();
-//        assertTrue(sortedFile.exists());
-//        assertTrue(sortedFile.length() > 0);        
-//        File matePairsFile = new File(matePairDir + FILE_SEPERATOR
-//                + "AAC" + FILE_SEPERATOR + "chr7-1_test_AAC");
-//
-//        assertTrue(matePairsFile.exists());
-//        assertTrue(matePairsFile.length() > 0);       
-//        List<MatePair> pairs = TestUtil.readInMatePairs(matePairsFile);
-//        assertEquals(1, pairs.size());
-//
-//        File matePairsFileCxx = new File(matePairDir + FILE_SEPERATOR + "Cxx" + FILE_SEPERATOR + "chr7-chrX-2_test_Cxx");
-//        assertTrue(matePairsFileCxx.exists());
-//        assertTrue(matePairsFileCxx.length() > 0);
-//
-//        List<MatePair> pairsCxx = TestUtil.readInMatePairs(matePairsFileCxx);
-//        assertEquals(1, pairsCxx.size());
-//    }
 
     @Test
     public void testSetUpPairClassificationWriters() throws Exception {

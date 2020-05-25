@@ -21,6 +21,7 @@ import org.qcmg.qsv.util.TestUtil;
 public class MatePairsWriterTest {
 
     private MatePairsWriter writer;
+    private File mateDir;
     private List<MatePair> matePairs;
     private static final String FILE_SEPERATOR = System.getProperty("file.separator");
 
@@ -29,11 +30,10 @@ public class MatePairsWriterTest {
 
     @Before
     public void setUp() throws Exception {
-        File mateDir = new File(testFolder.getRoot().toString() + FILE_SEPERATOR + PairClassification.AAC + FILE_SEPERATOR);
-        mateDir.mkdir();
-        writer = new MatePairsWriter(PairClassification.AAC, testFolder.getRoot().toString() + FILE_SEPERATOR, "test", "TD", "lmp");
-        matePairs = TestUtil.setupMatePairs(testFolder, PairGroup.AAC);
-//        matePairs = TestUtil.setupMatePairs();
+        mateDir = testFolder.newFolder(PairClassification.AAC + "" );  
+        
+        writer = new MatePairsWriter(PairClassification.AAC, testFolder.getRoot().toString()+FILE_SEPERATOR, "test", "TD", "lmp");
+        matePairs = TestUtil.setupMatePairs( PairGroup.AAC);
     }
 
     @After
@@ -52,7 +52,7 @@ public class MatePairsWriterTest {
     public void testWriteMatePairsToFile() throws IOException {
         writer.addNewMatePair(matePairs.get(0));
         writer.writeMatePairsToFile();
-        File file = new File(testFolder.getRoot().toString() + FILE_SEPERATOR + "AAC" + FILE_SEPERATOR + "chr7-1_TD_AAC");
+        File file = new File(mateDir, "chr7-1_TD_AAC");
         assertTrue(file.exists());
         assertTrue(file.length() > 100);
     }
