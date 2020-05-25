@@ -19,8 +19,12 @@ configurations { junit }
 *
 */
 
+configurations {  junit }
 
 dependencies {
+    //this junit is required by snpEff-4.0
+    junit ('junit:junit:4.10')
+
     configurations.compile.transitive = true
 
     api project(':qcommon')
@@ -31,4 +35,5 @@ dependencies {
     api 'net.sf.jopt-simple:jopt-simple:4.6'
     api name: 'snpEff', version: '4.0e'	
 }
-
+//have to specify test classpath for both snpEff and qannotate 
+sourceSets.test.runtimeClasspath = configurations.junit + sourceSets.test.runtimeClasspath
