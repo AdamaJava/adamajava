@@ -43,16 +43,22 @@ public class TestUtil {
 		}
 	}
 	
-	public static String setUpIniFile(TemporaryFolder testFolder, String mode,
+	public static String setUpIniFile(TemporaryFolder rootFolder, String mode,
 			String reference, String hdf, String bam, String outputDir, String readRange, String mergeHdf) throws IOException {
 		
-		//a new fresh file with a random name under the temporary folder. 
-		File iniFile = testFolder.newFile();
-		File logFile = testFolder.newFile();
+		//create a sub folder with randome name incase overwrite exiting file created by another call
+		File testFolder = rootFolder.newFolder();		
+		File iniFile = new File(testFolder, "test.ini");		
+		File fDB = new File(testFolder, "dbSNP.vcf");		
+		fDB.createNewFile();
+		File snpFile = new File(testFolder, "other.vcf");
+		snpFile.createNewFile();		
+		File gFile = new File(testFolder, "germline.vcf");
+		gFile.createNewFile();
+		
 		BufferedWriter out = new BufferedWriter(new FileWriter(iniFile));
 		out.write("[general]\n");
-		//out.write("log="+testFolder.newFile("log").getAbsolutePath()+"\n");
-		out.write("log="+logFile.getAbsolutePath() +"\n");
+		out.write("log="+ new File(testFolder, "log").getAbsolutePath()+"\n");
 		out.write("loglevel=INFO\n");
 		out.write("hdf="+hdf+"\n");
 		out.write("mode="+mode+"\n");
@@ -89,14 +95,10 @@ public class TestUtil {
     		out.write("window_count=1\n");
     		out.write("[metrics/snp]\n");
     		out.write("window_count=1\n");
-//    		out.write("dbSNP="+testFolder.newFile("dbSNP.vcf")+ "\n");
-//    		out.write("germlineDB="+testFolder.newFile("germline.vcf")+ "\n");
-    		out.write("dbSNP= dbSNP.vcf\n");
-    		out.write("germlineDB=germline.vcf\n");
-    		out.write("snp_file=other.vcf\n");
-    		
+    		out.write("dbSNP="+ fDB.getAbsolutePath() + "\n");
+    		out.write("germlineDB="+gFile.getAbsolutePath()+ "\n");
     		out.write("snp_file_format=vcf\n");
-//    		out.write("snp_file="+testFolder.newFile("other.vcf")+ "\n");
+    		out.write("snp_file="+snpFile.getAbsolutePath()+ "\n");
     		out.write("snp_file_annotation=TEST\n");
     		out.write("nonref_percent=1\n");
     		out.write("nonref_count=1\n");
