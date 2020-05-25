@@ -7,6 +7,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
@@ -25,20 +26,30 @@ import org.qcmg.qbasepileup.QBasePileupException;
 
 
 public class IndelPositionPileupTest {
+
+	@Rule
+    public TemporaryFolder testFolder = new TemporaryFolder() {};
 	
+	
+	
+
 	int[] cols = {23, 34, 25, 10, 12}; 
 	IndelPositionPileup p;	//somatic
 	IndelPositionPileup pG;
 	@Before
 	public void setUp() throws QBasePileupException, IOException {
+		File fnormalBam = testFolder.newFile("normal.bam");
+		File ftumourBam = testFolder.newFile("tumour.bam");
+		File fref = testFolder.newFile("reference.fa");
+		
 		String line = "date\ttumour\tind6\t2\tchr1\t3237948\t3237949\t1\t-999\t-999\tG\t-999\tGTC\tG/GTC\t\t-999\t-999\t-999\t-999\t-999\t-999\t-999\t-999\tPASS;\t--\t--\t--\t--";
 		IndelPosition positionSomatic  = new IndelPosition(line, false, "pindel", cols);
 		IndelPosition positionGermline = new IndelPosition(line, true, "pindel", cols);
-		Options optionS = createMockOptions();
-		Options optionG = createMockOptions();
+		Options optionS = createMockOptions(fref);
+		Options optionG = createMockOptions(fref);
 		IndexedFastaSequenceFile indexedFasta = createMockIndexedFasta();
-		p = new IndelPositionPileup(new InputBAM(testFolder.newFile("tumour.bam")), new InputBAM(testFolder.newFile("normal.bam")), positionSomatic, optionS, indexedFasta);
-		pG = new IndelPositionPileup(new InputBAM(testFolder.newFile("tumour.bam")), new InputBAM(testFolder.newFile("normal.bam")), positionGermline, optionG, indexedFasta);
+		p = new IndelPositionPileup(new InputBAM(ftumourBam), new InputBAM(fnormalBam), positionSomatic, optionS, indexedFasta);
+		pG = new IndelPositionPileup(new InputBAM(ftumourBam), new InputBAM(fnormalBam), positionGermline, optionG, indexedFasta);
 
 	}
 	
@@ -46,8 +57,6 @@ public class IndelPositionPileupTest {
 	public void tearDown() {
 		p = null;
 	}
-	@Rule
-    public TemporaryFolder testFolder = new TemporaryFolder();
 	
 	@Test
 	public void testToDCCString() throws QBasePileupException, IOException {
@@ -144,16 +153,17 @@ public class IndelPositionPileupTest {
 	}
 	
 	
-	private Options createMockOptions() throws IOException {
+	private Options createMockOptions(File fref) throws IOException {
 		Options options = createMock(Options.class);
+		
 		expect(options.getSoftClipWindow()).andReturn(new Integer(13));
 		expect(options.getSoftClipWindow()).andReturn(new Integer(13));
 		expect(options.getNearbyHomopolymerWindow()).andReturn(new Integer(10));
 		expect(options.getNearbyHomopolymerWindow()).andReturn(new Integer(10));
 		expect(options.getNearbyIndelWindow()).andReturn(new Integer(3));
-		expect(options.getNearbyIndelWindow()).andReturn(new Integer(3));
-		expect(options.getReference()).andReturn(testFolder.newFile("reference.fa"));
-		expect(options.getReference()).andReturn(testFolder.newFile("reference.fa"));
+		expect(options.getNearbyIndelWindow()).andReturn(new Integer(3));		
+		expect(options.getReference()).andReturn( fref);
+		expect(options.getReference()).andReturn( fref);
 		replay(options);
 		return options;
 	}

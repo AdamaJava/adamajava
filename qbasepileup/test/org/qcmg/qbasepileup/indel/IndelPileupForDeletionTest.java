@@ -6,6 +6,7 @@ import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import junit.runner.Version;
 
 import java.io.IOException;
 
@@ -33,6 +34,9 @@ public class IndelPileupForDeletionTest {
 	
 	@Before
 	public void setUp() throws QBasePileupException, IOException {
+		
+		System.out.println("//debug junit: " + Version.id());
+		
 		String line = "date\ttumour\tind6\t3\tchr1\t1008\t1008\t1\t-999\t-999\tA\t-999\t-\tA/-\t\t-999\t-999\t-999\t-999\t-999\t-999\t-999\t-999\tPASS\t--\t--\t--\t--";
 		Options options = createMock(Options.class);
 		expect(options.includeDuplicates()).andReturn(false);
@@ -154,7 +158,8 @@ public class IndelPileupForDeletionTest {
 		expect(options.includeDuplicates()).andReturn(false);
 		replay(options);
 		position = new IndelPosition(line, false, "pindel", cols);
-		pileup = new IndelPileup(options, new InputBAM(testFolder.newFile("tumour.bam")), position, testFolder.newFile("reference.fa"), 5, 10, 3, true);
+//		pileup = new IndelPileup(options, new InputBAM(testFolder.newFile("tumour.bam")), position, testFolder.newFile("reference.fa"), 5, 10, 3, true);
+		pileup = new IndelPileup(options, new InputBAM(testFolder.newFile("tumour1.bam")), position, testFolder.newFile("reference1.fa"), 5, 10, 3, true);
 		
 //		pileup.getIndelPosition().setEnd(1009);
 		record.setCigarString("8M1D92M");
@@ -184,7 +189,7 @@ public class IndelPileupForDeletionTest {
 		expect(options.includeDuplicates()).andReturn(false);
 		replay(options);
 		position = new IndelPosition(line, false, "pindel", cols);
-		pileup = new IndelPileup(options, new InputBAM(testFolder.newFile("tumour.bam")), position, testFolder.newFile("reference.fa"), 5, 10, 3, true);
+		pileup = new IndelPileup(options, new InputBAM(testFolder.newFile("tumour1.bam")), position, testFolder.newFile("reference1.fa"), 5, 10, 3, true);
 		
 		
 //		pileup.getIndelPosition().setLength(2);
