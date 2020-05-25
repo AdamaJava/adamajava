@@ -8,6 +8,9 @@ repositories {
     flatDir(dirs:"$buildDir/deps/hdf-java/lib")
 }
 
+//control the ordering of jars, make sure junit before <tool>.jar
+configurations { junit }
+
 dependencies {
     configurations.compile.transitive = true
     ant { untar(src: "../lib/hdf-java-2.8-bin.tar", dest: "build/deps") }
