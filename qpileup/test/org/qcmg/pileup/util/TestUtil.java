@@ -45,12 +45,15 @@ public class TestUtil {
 	
 	public static String setUpIniFile(TemporaryFolder testFolder, String mode,
 			String reference, String hdf, String bam, String outputDir, String readRange, String mergeHdf) throws IOException {
+		/*
 		File iniFile = testFolder.newFile("test.ini");
 		
 		if (iniFile.exists()) {
 			iniFile.delete();
-		}		
+		}	
+		*/	
 		
+		File iniFile = testFolder.newFile( );
 		BufferedWriter out = new BufferedWriter(new FileWriter(iniFile));
 		out.write("[general]\n");
 		out.write("log="+testFolder.newFile("log").getAbsolutePath()+"\n");
