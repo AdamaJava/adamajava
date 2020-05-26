@@ -158,10 +158,8 @@ public class IndelPileupForDeletionTest {
 		expect(options.includeDuplicates()).andReturn(false);
 		replay(options);
 		position = new IndelPosition(line, false, "pindel", cols);
-//		pileup = new IndelPileup(options, new InputBAM(testFolder.newFile("tumour.bam")), position, testFolder.newFile("reference.fa"), 5, 10, 3, true);
 		pileup = new IndelPileup(options, new InputBAM(testFolder.newFile("tumour1.bam")), position, testFolder.newFile("reference1.fa"), 5, 10, 3, true);
 		
-//		pileup.getIndelPosition().setEnd(1009);
 		record.setCigarString("8M1D92M");
 		assertEquals(1, pileup.getDeletionIndelLength(record));
 	}
