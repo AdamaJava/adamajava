@@ -12,6 +12,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.ResourceBundle;
 
 import javax.xml.parsers.ParserConfigurationException;
 import org.junit.After;
@@ -19,6 +20,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.qcmg.common.messages.QMessage;
 import org.qcmg.qprofiler2.QProfiler2;
 
 
@@ -133,6 +135,31 @@ public class QProfiler2Test {
 	}
 	
 	@Test
+	public void schmeFileTest() throws IOException {
+		QMessage messages = new QMessage(QProfiler2.class, ResourceBundle.getBundle("org.qcmg.qprofiler2.messages") );		
+		String schemaStr = "validationSchema=\"" + messages.getMessage("XSD_FILE") + "\"";
+		String md5Str = "md5OfSchema=\"" + messages.getMessage("XSD_FILE_md5") + "\"";
+		
+		File input = testFolder.newFile("input.sam"); 
+		//BAM with small header
+		createTestFile(input, null);
+		
+		File logFile = testFolder.newFile("qProfilerNode.log");
+		String[] args = {"-input",input.getAbsolutePath(), "-log", logFile.getAbsolutePath()};
+		try { 		
+			// print full header		
+			new QProfiler2().setup( args );	
+			assertTrue( Files.lines(Paths.get(  "qprofiler.xml")).filter(s -> s.contains(schemaStr)).count()== 1);	
+			assertTrue( Files.lines(Paths.get(  "qprofiler.xml")).filter(s -> s.contains(md5Str)).count()== 1);			
+		 
+		} catch (Exception qpe) {
+			fail("a QProfilerException for args: " + Arrays.toString(args));			 
+		}
+	
+
+	}
+	
+	@Test
 	public void bamHeaderOptionTest() throws IOException, ParserConfigurationException {
 		File input = testFolder.newFile("input.sam"); 
 		//BAM with small header
@@ -158,7 +185,8 @@ public class QProfiler2Test {
 			assertTrue( Files.lines(Paths.get("qprofiler.xml")).filter(s -> s.contains("<headerRecords TAG=\"PG\"")).count()== 1);	
 			assertTrue( Files.lines(Paths.get("qprofiler.xml")).filter(s -> s.contains("<headerRecords TAG=\"RG\"")).count()== 1);					
 			assertTrue( Files.lines(Paths.get("qprofiler.xml")).filter(s -> s.contains("@RG	ID:1959T")).count()== 1);
-			assertTrue( Files.lines(Paths.get("qprofiler.xml")).filter(s -> s.contains("@RG	ID:1959N")).count()== 1);						
+			assertTrue( Files.lines(Paths.get("qprofiler.xml")).filter(s -> s.contains("@RG	ID:1959N")).count()== 1);		
+		 
 		} catch (Exception qpe) {
 			fail("a QProfilerException for args: " + Arrays.toString(args));			 
 		}
