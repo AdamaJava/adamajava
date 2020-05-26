@@ -56,8 +56,6 @@ public class AnnotateFilterMTTest {
     public void setUp() throws IOException {        
       	normalBam = testFolder.newFile("normal.bam"); 
       	iniFile = testFolder.newFile("test.ini");
-//		File logFile = testFolder.newFile("test.log");
-
       	 setUpIniFile();
     }
     
@@ -75,12 +73,7 @@ public class AnnotateFilterMTTest {
 		File testBam =  testFolder.newFile("test.bam");
 		outputDir = testFolder.newFolder();
 		File reference = testFolder.newFile("reference_file");
-		
-//		File iniFile = testFolder.newFile("test.ini");		
-//		if (iniFile.exists()) {
-//			iniFile.delete();
-//		}		
-		
+				
 		try (BufferedWriter out = new BufferedWriter(new FileWriter(iniFile))) {
 			out.write("[general]" + Constants.NL);
 			out.write("log=" + logFile.getAbsolutePath() + Constants.NL);
@@ -122,11 +115,6 @@ public class AnnotateFilterMTTest {
 		 
 	}
     
-//	public static String[] getValidOptions() throws IOException {
-//			//String iniFile = setUpIniFile();
-//            return new String[] {"--ini", iniFile, "--tmp",  testFolder.getRoot().toString()};
-//    }
-    
     @Test
     public void setupQueryExecutor() throws Exception {
     	AbstractQueue<List<Chromosome>> readQueue = null;
@@ -136,7 +124,6 @@ public class AnnotateFilterMTTest {
 		CountDownLatch fLatch = null;
 		CountDownLatch wGoodLatch = null;
 		
-	   // String[] args = getValidOptions();
 	    String[] args = new String[] {"--ini", iniFile.getAbsolutePath(), "--tmp",  testFolder.getRoot().toString()};
 	    Options options = new Options(args);
 	    options.parseIniFile();
