@@ -30,7 +30,6 @@ public class OptionsTest {
 		Options options = TestUtil.getValidOptions(testFolder, "bootstrap", reference, "test.h5", bam, testFolder.getRoot().toString(), "all", "");
 		options.parseIniFile();
 		assertEquals("bootstrap", options.getMode());
-//		assertEquals(testFolder.getRoot().getAbsolutePath() + PileupConstants.FILE_SEPARATOR + "log", options.getLog());
 		assertEquals("INFO", options.getLogLevel());
 		assertEquals("test.h5", options.getHdfFile());
 		assertEquals(reference, options.getReferenceFile());
@@ -63,7 +62,6 @@ public class OptionsTest {
 		Options options = TestUtil.getValidOptions(testFolder, "view", reference, hdf, bam, testFolder.getRoot().toString(), "all", "");
 		options.parseIniFile();
 		assertEquals("view", options.getMode());
-//		assertEquals(testFolder.getRoot().getAbsolutePath() + PileupConstants.FILE_SEPARATOR + "log", options.getLog());
 		assertEquals("INFO", options.getLogLevel());
 		assertEquals(hdf, options.getHdfFile());
 		assertEquals(testFolder.getRoot().toString(), options.getOutputDir());
@@ -80,7 +78,6 @@ public class OptionsTest {
 		Options options = TestUtil.getValidOptions(testFolder, "merge", reference, mergeHDF, bam, testFolder.getRoot().toString(), "all", hdf);
 		options.parseIniFile();
 		assertEquals("merge", options.getMode());
-//		assertEquals(testFolder.getRoot().getAbsolutePath() + PileupConstants.FILE_SEPARATOR + "log", options.getLog());
 		assertEquals("INFO", options.getLogLevel());
 		assertEquals(mergeHDF, options.getHdfFile());
 		assertEquals(2, options.getInputHDFFiles().size());
@@ -97,7 +94,6 @@ public class OptionsTest {
 		Options options = TestUtil.getValidOptions(testFolder, "metrics", reference, hdf, bam, testFolder.getRoot().toString(), "all", null);
 		options.parseIniFile();
 		assertEquals("metrics", options.getMode());
-//		assertEquals(testFolder.getRoot().getAbsolutePath() + PileupConstants.FILE_SEPARATOR + "log", options.getLog());
 		assertEquals("INFO", options.getLogLevel());
 		assertEquals(hdf, options.getHdfFile());
 		TreeMap<String, Metric> metrics = options.getSummaryMetric().getMetrics();
