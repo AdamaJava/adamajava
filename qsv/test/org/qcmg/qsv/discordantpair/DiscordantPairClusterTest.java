@@ -21,7 +21,7 @@ public class DiscordantPairClusterTest {
 
     @Before
     public void setUp() throws IOException, Exception {
-        cluster = TestUtil.setupSolidCluster(PairGroup.AAC, "somatic", testFolder, "chr7", "chr7");
+        cluster = TestUtil.setupSolidCluster(PairGroup.AAC, "somatic", testFolder.newFolder(), "chr7", "chr7");
         assertEquals(cluster.getZp(), "AAC");
     }
 
@@ -29,20 +29,6 @@ public class DiscordantPairClusterTest {
     public void tearDown() {
         cluster = null;
     }
-
-//    @Test
-//    public void testSetters() {
-//        cluster.setLeftStart(1);
-//        assertEquals(1, cluster.getLeftStart());
-//        cluster.setLeftEnd(2);
-//        assertEquals(2, cluster.getLeftEnd());
-//        cluster.setRightStart(3);
-//        assertEquals(3, cluster.getRightStart());
-//        cluster.setRightEnd(4);
-//        assertEquals(4, cluster.getRightEnd());
-//
-//        assertEquals("somatic", cluster.getType());
-//    }
     
     @Test
     public void testFindLeftStartOfCluster() {    	
@@ -125,7 +111,7 @@ public class DiscordantPairClusterTest {
 	@Test
 	public void testFinalizeAndGermlineRescue() throws IOException, Exception {
 		cluster = null;
-		cluster = TestUtil.setupSolidCluster(PairGroup.AAC, "somatic", testFolder, "chr7", "chr7");
+		cluster = TestUtil.setupSolidCluster(PairGroup.AAC, "somatic", testFolder.newFolder(), "chr7", "chr7");
         assertEquals(cluster.getZp(), "AAC");
 		assertEquals("somatic", cluster.getType());
 		assertEquals(1, cluster.getId());

@@ -1,12 +1,12 @@
 package org.qcmg.maf;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import junit.framework.Assert;
-
+import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -170,15 +170,18 @@ public class MafPipelineSinglePatientTest {
 	}
 	
 	@Test
-	public void testDateDirectoryFilter() {
+	public void testDateDirectoryFilter() throws IOException {
 		File testDir = testFolder.newFolder("test");
 		File [] foundFiles = FileUtils.findFiles(testDir.getAbsolutePath(), MafPipelineSinglePatient.dateDirectoryFilter);
 		Assert.assertEquals(0, foundFiles.length);
 		
-		testFolder.newFolder("test/1234");
+		
+		 
+		//testFolder.newFolder("test/1234");
+		testFolder.newFolder("test","1234");
 		foundFiles = FileUtils.findFiles(testDir.getAbsolutePath(), MafPipelineSinglePatient.dateDirectoryFilter);
 		Assert.assertEquals(0, foundFiles.length);
-		testFolder.newFolder("test/12345678");
+		testFolder.newFolder("test", "12345678");
 		foundFiles = FileUtils.findFiles(testDir.getAbsolutePath(), MafPipelineSinglePatient.dateDirectoryFilter);
 		Assert.assertEquals(1, foundFiles.length);
 		
@@ -186,10 +189,10 @@ public class MafPipelineSinglePatientTest {
 		foundFiles = FileUtils.findFiles(testDir.getAbsolutePath(), MafPipelineSinglePatient.dateADirectoryFilter);
 		Assert.assertEquals(0, foundFiles.length);
 		
-		testFolder.newFolder("test/12345678_A");
+		testFolder.newFolder("test","12345678_A");
 		foundFiles = FileUtils.findFiles(testDir.getAbsolutePath(), MafPipelineSinglePatient.dateADirectoryFilter);
 		Assert.assertEquals(1, foundFiles.length);
-		testFolder.newFolder("test/20111231_A");
+		testFolder.newFolder("test","20111231_A");
 		foundFiles = FileUtils.findFiles(testDir.getAbsolutePath(), MafPipelineSinglePatient.dateADirectoryFilter);
 		Assert.assertEquals(2, foundFiles.length);
 		
@@ -197,18 +200,18 @@ public class MafPipelineSinglePatientTest {
 		foundFiles = FileUtils.findFiles(testDir.getAbsolutePath(), MafPipelineSinglePatient.patientDirectoryFilter);
 		Assert.assertEquals(0, foundFiles.length);
 		
-		testFolder.newFolder("test/APGI_1234");
+		testFolder.newFolder("test", "APGI_1234");
 		foundFiles = FileUtils.findFiles(testDir.getAbsolutePath(), MafPipelineSinglePatient.patientDirectoryFilter);
 		Assert.assertEquals(1, foundFiles.length);
-		testFolder.newFolder("test/APGI_5555");
+		testFolder.newFolder("test", "APGI_5555");
 		foundFiles = FileUtils.findFiles(testDir.getAbsolutePath(), MafPipelineSinglePatient.patientDirectoryFilter);
 		Assert.assertEquals(2, foundFiles.length);
 		
-		testFolder.newFolder("test/AGPI_1234");
+		testFolder.newFolder("test","AGPI_1234");
 		foundFiles = FileUtils.findFiles(testDir.getAbsolutePath(), MafPipelineSinglePatient.patientDirectoryFilter);
 		Assert.assertEquals(2, foundFiles.length);
 		
-		testFolder.newFolder("test/APGI_XXXX");
+		testFolder.newFolder("test", "APGI_XXXX");
 		foundFiles = FileUtils.findFiles(testDir.getAbsolutePath(), MafPipelineSinglePatient.patientDirectoryFilter);
 		Assert.assertEquals(2, foundFiles.length);
 	}

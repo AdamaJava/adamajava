@@ -8,10 +8,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 
-import junit.framework.Assert;
-
 import org.ini4j.InvalidFileFormatException;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -44,23 +43,24 @@ public class OptionsTest {
 
     @Test
     public void testGoodArgumentsFound() throws Exception {
-    	
-        String[] args = TestUtil.getValidOptions(testFolder, file1, file2, "both", "both");
+    	File tmp = testFolder.newFolder();
+        String[] args = TestUtil.getValidOptions(tmp, file1, file2, "both", "both");
         Options options = new Options(args);
         assertFalse(options.hasHelpOption());
         assertFalse(options.hasVersionOption());
-        assertEquals(options.getIniFile(), testFolder.getRoot().getAbsolutePath() + "/test.ini");
-        assertEquals(options.getTempDirName(), testFolder.getRoot().getAbsolutePath());
+        assertEquals(options.getIniFile(), tmp.getAbsolutePath() + "/test.ini");
+        assertEquals(options.getTempDirName(), tmp.getAbsolutePath());
     }
     
     @Test
     public void bgiPlatform() throws Exception {
-    	String[] args = TestUtil.getValidOptions(testFolder, file1, file2, "both", "both", true, "bwamem", "MGISeq2000");
+    	File tmp = testFolder.newFolder();
+    	String[] args = TestUtil.getValidOptions(tmp, file1, file2, "both", "both", true, "bwamem", "MGISeq2000");
     	Options options = new Options(args);
     	assertFalse(options.hasHelpOption());
     	assertFalse(options.hasVersionOption());
-    	assertEquals(options.getIniFile(), testFolder.getRoot().getAbsolutePath() + "/test.ini");
-    	assertEquals(options.getTempDirName(), testFolder.getRoot().getAbsolutePath());
+    	assertEquals(options.getIniFile(), tmp.getAbsolutePath() + "/test.ini");
+    	assertEquals(options.getTempDirName(), tmp.getAbsolutePath());
     	options.parseIniFile();
         options.detectBadOptions();
     	assertEquals("bgi", options.getPlatform());
@@ -69,12 +69,13 @@ public class OptionsTest {
     
     @Test
     public void bgiPlatformAgain() throws Exception {
-    	String[] args = TestUtil.getValidOptions(testFolder, file1, file2, "both", "both", true, "bwamem", "BGISeq500");
+    	File tmp = testFolder.newFolder();
+    	String[] args = TestUtil.getValidOptions(tmp, file1, file2, "both", "both", true, "bwamem", "BGISeq500");
     	Options options = new Options(args);
     	assertFalse(options.hasHelpOption());
     	assertFalse(options.hasVersionOption());
-    	assertEquals(options.getIniFile(), testFolder.getRoot().getAbsolutePath() + "/test.ini");
-    	assertEquals(options.getTempDirName(), testFolder.getRoot().getAbsolutePath());
+    	assertEquals(options.getIniFile(), tmp.getAbsolutePath() + "/test.ini");
+    	assertEquals(options.getTempDirName(), tmp.getAbsolutePath());
     	options.parseIniFile();
     	options.detectBadOptions();
     	assertEquals("bgi", options.getPlatform());
@@ -82,12 +83,13 @@ public class OptionsTest {
     }
     @Test
     public void novaSeq() throws Exception {
-    	String[] args = TestUtil.getValidOptions(testFolder, file1, file2, "both", "both", true, "bwamem", "NovaSeq");
+    	File tmp = testFolder.newFolder();
+    	String[] args = TestUtil.getValidOptions(tmp, file1, file2, "both", "both", true, "bwamem", "NovaSeq");
     	Options options = new Options(args);
     	assertFalse(options.hasHelpOption());
     	assertFalse(options.hasVersionOption());
-    	assertEquals(options.getIniFile(), testFolder.getRoot().getAbsolutePath() + "/test.ini");
-    	assertEquals(options.getTempDirName(), testFolder.getRoot().getAbsolutePath());
+    	assertEquals(options.getIniFile(), tmp.getAbsolutePath() + "/test.ini");
+    	assertEquals(options.getTempDirName(), tmp.getAbsolutePath());
     	options.parseIniFile();
     	options.detectBadOptions();
     	assertEquals("illumina", options.getPlatform());
@@ -96,12 +98,13 @@ public class OptionsTest {
     
     @Test
     public void nextSeq() throws Exception {
-    	String[] args = TestUtil.getValidOptions(testFolder, file1, file2, "both", "both", true, "bwamem", "NextSeq");
+    	File tmp = testFolder.newFolder();
+    	String[] args = TestUtil.getValidOptions( tmp, file1, file2, "both", "both", true, "bwamem", "NextSeq");
     	Options options = new Options(args);
     	assertFalse(options.hasHelpOption());
     	assertFalse(options.hasVersionOption());
-    	assertEquals(options.getIniFile(), testFolder.getRoot().getAbsolutePath() + "/test.ini");
-    	assertEquals(options.getTempDirName(), testFolder.getRoot().getAbsolutePath());
+    	assertEquals(options.getIniFile(), tmp.getAbsolutePath() + "/test.ini");
+    	assertEquals(options.getTempDirName(), tmp.getAbsolutePath());
     	options.parseIniFile();
     	options.detectBadOptions();
     	assertEquals("illumina", options.getPlatform());
@@ -110,26 +113,27 @@ public class OptionsTest {
     
     @Test(expected = QSVException.class)
     public void dummySeq() throws Exception {
-    	String[] args = TestUtil.getValidOptions(testFolder, file1, file2, "both", "both", true, "bwamem", "anySeqButHere");
+    	File tmp = testFolder.newFolder();
+    	String[] args = TestUtil.getValidOptions(tmp, file1, file2, "both", "both", true, "bwamem", "anySeqButHere");
     	Options options = new Options(args);
     	assertFalse(options.hasHelpOption());
     	assertFalse(options.hasVersionOption());
-    	assertEquals(options.getIniFile(), testFolder.getRoot().getAbsolutePath() + "/test.ini");
-    	assertEquals(options.getTempDirName(), testFolder.getRoot().getAbsolutePath());
+    	assertEquals(options.getIniFile(), tmp.getAbsolutePath() + "/test.ini");
+    	assertEquals(options.getTempDirName(), tmp.getAbsolutePath());
     	options.parseIniFile();
     }
     
     @Test
     public void testGoodIniFileOptions() throws Exception {
-    	
-        String[] args = TestUtil.getValidOptions(testFolder, file1, file2, "both", "both");
+    	File tmp = testFolder.newFolder();
+        String[] args = TestUtil.getValidOptions(tmp, file1, file2, "both", "both");
         Options options = new Options(args);
         options.parseIniFile();
         options.detectBadOptions();
         assertEquals(options.getLog(), "test.log");
         assertEquals(options.getLogLevel(), "DEBUG");
         assertEquals(options.getSampleName(), "test");
-        assertEquals(options.getOutputDirName(), testFolder.getRoot().toString());
+        assertEquals(options.getOutputDirName(), tmp.toString());
         assertTrue(options.getReference().contains("reference_file"));
         assertEquals(options.getPreprocessMode(), "both");
         assertEquals(options.getAnalysisMode(), "both");        
@@ -206,7 +210,8 @@ public class OptionsTest {
     
     @Test(expected = QSVException.class)
     public void testBadOptionsNoPairType() throws QSVException, InvalidFileFormatException, IOException {
-    	String[] args = TestUtil.getValidOptions(testFolder, file1, file2, "pair", "pair");
+    	File tmp = testFolder.newFolder();
+    	String[] args = TestUtil.getValidOptions(tmp, file1, file2, "pair", "pair");
     	Options options = new Options(args);
     	options.parseIniFile();
     	options.setPairingType("te");
@@ -215,7 +220,8 @@ public class OptionsTest {
     
     @Test(expected = QSVException.class)
     public void testBadOptionsNoMapper() throws QSVException, InvalidFileFormatException, IOException {
-    	String[] args = TestUtil.getValidOptions(testFolder, file1, file2, "pair", "pair");
+    	File tmp = testFolder.newFolder();
+    	String[] args = TestUtil.getValidOptions(tmp, file1, file2, "pair", "pair");
     	Options options = new Options(args);
     	options.parseIniFile();
     	options.setPairingType("pe");
@@ -225,7 +231,8 @@ public class OptionsTest {
     
     @Test(expected = QSVException.class)
     public void testBadOptionsNoTmpDir() throws QSVException, InvalidFileFormatException, IOException {
-    	String[] args = TestUtil.getValidOptions(testFolder, file1, file2, "both", "both");
+    	File tmp = testFolder.newFolder();
+    	String[] args = TestUtil.getValidOptions(tmp, file1, file2, "both", "both");
     	Options options = new Options(args);
     	options.parseIniFile();
         options.setTmpDir("/test");
@@ -244,55 +251,56 @@ public class OptionsTest {
  
     @Test(expected = QSVException.class)
     public void testBadOptionsNonExistentInputFile() throws Exception {
-    	 Options options = new Options(TestUtil.getInvalidOptions(testFolder, file1, "acd", "both", 5, 0, testFolder.getRoot().toString(), "acd"));
+    	File tmp = testFolder.newFolder();
+    	 Options options = new Options(TestUtil.getInvalidOptions(tmp, file1, "acd", "both", 5, 0, tmp.getAbsolutePath(), "acd"));
          options.parseIniFile();
          Assert.assertEquals("acd", options.getInputFile());
-//         options.detectBadOptions();
     }
     
     @Test(expected = QSVException.class)
     public void testBadOptionsNonExistentInputComparisonFile() throws Exception {
-    	 Options options = new Options(TestUtil.getInvalidOptions(testFolder, "acd", file2, "both", 5, 0, testFolder.getRoot().toString(), "acd"));
+    	File tmp = testFolder.newFolder();
+    	 Options options = new Options(TestUtil.getInvalidOptions(tmp, "acd", file2, "both", 5, 0, tmp.getAbsolutePath(), "acd"));
          options.parseIniFile();
          Assert.assertEquals("acd", options.getComparisonFile());
-//         options.detectBadOptions();
     }
 
     @Test(expected = QSVException.class)
     public void testBadOptionsNonexistentOutputDir() throws Exception {
-    	 Options options = new Options(TestUtil.getInvalidOptions(testFolder, file1, file2, "both", 5, 0, testFolder.getRoot().toString(), "acd"));
+    	File tmp = testFolder.newFolder();
+    	 Options options = new Options(TestUtil.getInvalidOptions(tmp, file1, file2, "both", 5, 0, tmp.getAbsolutePath(), "acd"));
          options.parseIniFile();
          Assert.assertEquals("acd", options.getOutputDirName());
-//         options.detectBadOptions();
     }
     
     @Test(expected = QSVException.class)
     public void testBadOptionsNoClusterSize() throws Exception {
-    	Options options = new Options(TestUtil.getInvalidOptions(testFolder, file1, file2, "both", 5, 0, testFolder.getRoot().toString(), testFolder.getRoot().toString()));
+    	File tmp = testFolder.newFolder();
+    	Options options = new Options(TestUtil.getInvalidOptions(tmp, file1, file2, "both", 5, 0, tmp.getAbsolutePath(), tmp.getAbsolutePath()));
     	options.parseIniFile();
         Assert.assertEquals(null, options.getClusterSize());
-//        options.detectBadOptions();
     }
     
     @Test(expected = QSVException.class)
     public void testBadOptionsWrongClusterSize() throws Exception {
-    	Options options = new Options(TestUtil.getInvalidOptions(testFolder, file1, file2, "both", 0, 2,testFolder.getRoot().toString(), testFolder.getRoot().toString()));
+    	File tmp = testFolder.newFolder();
+    	Options options = new Options(TestUtil.getInvalidOptions(tmp, file1, file2, "both", 0, 2,tmp.getAbsolutePath(), tmp.getAbsolutePath()));
     	options.parseIniFile();
         Assert.assertEquals(null, options.getClusterSize());
-//        options.detectBadOptions();
     }
 
     @Test(expected = QSVException.class)
     public void testBadOptionsWrongFilterSize() throws Exception {
-        Options options = new Options(TestUtil.getInvalidOptions(testFolder, file1, file2, "both", 5, 0, testFolder.getRoot().toString(), testFolder.getRoot().toString()));
+    	File tmp = testFolder.newFolder();
+        Options options = new Options(TestUtil.getInvalidOptions(tmp, file1, file2, "both", 5, 0, tmp.getAbsolutePath(), tmp.getAbsolutePath()));
         options.parseIniFile();
         Assert.assertEquals(Integer.valueOf(0), options.getFilterSize());
-//        options.detectBadOptions();
     }
 
     @Test(expected = QSVException.class)
     public void testBadOptionsNoFilterSize() throws Exception {
-    		Options options = new Options(TestUtil.getInvalidOptions(testFolder, file1, file2, "both", 5, 0, testFolder.getRoot().toString(), testFolder.getRoot().toString()));
+    	File tmp = testFolder.newFolder();
+    		Options options = new Options(TestUtil.getInvalidOptions(tmp, file1, file2, "both", 5, 0, tmp.getAbsolutePath(), tmp.getAbsolutePath()));
     		options.parseIniFile();
         Assert.assertEquals(null, options.getFilterSize());
 //        options.detectBadOptions();
@@ -300,7 +308,8 @@ public class OptionsTest {
     
     @Test
     public void outputOverride() throws IOException, QSVException {
-    	 	String[] args = TestUtil.getValidOptions(testFolder, file1, file2, "both", "both", false);
+    	File tmp = testFolder.newFolder();
+    	 	String[] args = TestUtil.getValidOptions(tmp, file1, file2, "both", "both", false);
     	 	Options options = new Options(args);
     	 	try {
     	 		options.parseIniFile();

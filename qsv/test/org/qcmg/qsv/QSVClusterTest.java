@@ -39,22 +39,20 @@ public class QSVClusterTest {
 	@Rule
 	public TemporaryFolder testFolder = new TemporaryFolder();
 	
-
-    
     @Test
     public void testFindGermline() throws IOException, Exception {
-    	record = TestUtil.setupQSVCluster(PairGroup.AAC, "germline", testFolder, "chr7", "chr7", true, false);    	
+    	record = TestUtil.setupQSVCluster(PairGroup.AAC, "germline", testFolder.newFolder(), "chr7", "chr7", true, false);    	
     	record.findGermline();    	
     	assertTrue(record.isGermline());
     	
-    	record = TestUtil.setupQSVCluster(PairGroup.AAC, "somatic", testFolder, "chr7", "chr7", false, false);    	
+    	record = TestUtil.setupQSVCluster(PairGroup.AAC, "somatic", testFolder.newFolder(), "chr7", "chr7", false, false);    	
     	record.findGermline();    	
     	assertFalse(record.isGermline());
     }
     
     @Test 
     public void testFindClipOverlap() throws IOException, Exception {
-    	record = TestUtil.setupQSVCluster(PairGroup.AAC, "germline", testFolder, "chr10", "chr10", true, false);    	
+    	record = TestUtil.setupQSVCluster(PairGroup.AAC, "germline", testFolder.newFolder(), "chr10", "chr10", true, false);    	
     	assertEquals(1, record.getClipRecords().size());
     	assertTrue(record.findClipOverlap(TestUtil.setUpClipRecord("chr10", "chr10", false, false)));
     	assertEquals(2, record.getClipRecords().size());
@@ -62,7 +60,7 @@ public class QSVClusterTest {
     
     @Test
     public void testFindClusterOverlapIsFalse() throws IOException, Exception {
-    	DiscordantPairCluster cluster = TestUtil.setupSolidCluster(PairGroup.AAC, "somatic", testFolder, "chr7", "chr7");
+    	DiscordantPairCluster cluster = TestUtil.setupSolidCluster(PairGroup.AAC, "somatic", testFolder.newFolder(), "chr7", "chr7");
     	record = new QSVCluster(cluster, false,  "id");
     	boolean test = record.findClusterOverlap(TestUtil.setUpClipRecord("chr10", "chr10", false, false));
     	assertFalse(test);
@@ -70,7 +68,7 @@ public class QSVClusterTest {
     
     @Test
     public void testFindClusterOverlapIsTrue() throws IOException, Exception {
-    	DiscordantPairCluster cluster = TestUtil.setupHiseqCluster("somatic", testFolder, "1");
+    	DiscordantPairCluster cluster = TestUtil.setupHiseqCluster("somatic", testFolder.newFolder(), "1");
     	record = new QSVCluster(cluster, false,  "id");
     	boolean test = record.findClusterOverlap(TestUtil.setUpClipRecord("chr10", "chr10", false, false));
     	assertTrue(test);
@@ -78,7 +76,7 @@ public class QSVClusterTest {
     
     @Test
     public void testGetOverlapWithCategory1() throws IOException, Exception {
-    	DiscordantPairCluster cluster = TestUtil.setupHiseqCluster("somatic", testFolder, "1");
+    	DiscordantPairCluster cluster = TestUtil.setupHiseqCluster("somatic", testFolder.newFolder(), "1");
     	record = new QSVCluster(cluster, false,  "id"); 	
 //    	89700049
 //    	89700300
@@ -93,7 +91,7 @@ public class QSVClusterTest {
     
     @Test
     public void testGetOverlapWithCategory2() throws IOException, Exception {
-    	DiscordantPairCluster cluster = TestUtil.setupHiseqCluster("somatic", testFolder, "2");
+    	DiscordantPairCluster cluster = TestUtil.setupHiseqCluster("somatic", testFolder.newFolder(), "2");
     	record = new QSVCluster(cluster, false,  "id");
     	assertFalse(record.getOverlap(true, 89700265));
     	assertTrue(record.getOverlap(true, 89700065));
@@ -103,7 +101,7 @@ public class QSVClusterTest {
     
     @Test
     public void testGetOverlapWithCategory3() throws IOException, Exception {
-    	DiscordantPairCluster cluster = TestUtil.setupHiseqCluster("somatic", testFolder, "3");
+    	DiscordantPairCluster cluster = TestUtil.setupHiseqCluster("somatic", testFolder.newFolder(), "3");
     	record = new QSVCluster(cluster, false,  "id");
     	assertFalse(record.getOverlap(true, 89700465));
     	assertTrue(record.getOverlap(true, 89700265));
@@ -113,7 +111,7 @@ public class QSVClusterTest {
     
     @Test
     public void testGetOverlapWithCategory4() throws IOException, Exception {
-    	DiscordantPairCluster cluster = TestUtil.setupHiseqCluster("somatic", testFolder, "4");
+    	DiscordantPairCluster cluster = TestUtil.setupHiseqCluster("somatic", testFolder.newFolder(), "4");
     	record = new QSVCluster(cluster, false,  "id");
     	assertFalse(record.getOverlap(true, 89700265));
     	assertTrue(record.getOverlap(true, 89700065));
@@ -123,7 +121,7 @@ public class QSVClusterTest {
     
     @Test
     public void testGetGermlineRatio() throws IOException, Exception {
-    	DiscordantPairCluster cluster = TestUtil.setupHiseqCluster("somatic", testFolder, "1");
+    	DiscordantPairCluster cluster = TestUtil.setupHiseqCluster("somatic", testFolder.newFolder(), "1");
     	MatePair m =cluster.getClusterMatePairs().get(0);    	
     	record = new QSVCluster(cluster, false,  "id");
     	
@@ -134,7 +132,7 @@ public class QSVClusterTest {
     
     @Test
     public void testGetDataString() throws Exception {
-    	DiscordantPairCluster cluster = TestUtil.setupHiseqCluster("somatic", testFolder, "1");
+    	DiscordantPairCluster cluster = TestUtil.setupHiseqCluster("somatic", testFolder.newFolder(), "1");
     	record = new QSVCluster(cluster, false,  "id");
     	record.addQSVClipRecord(TestUtil.setUpClipRecord("chr10", "chr10", false, false));
     	record.setIdParameters("sv1", "test", "testsample");
@@ -195,7 +193,7 @@ public class QSVClusterTest {
     @Test
     public void testConfidenceLevel() throws IOException, Exception {
     	//3
-    	DiscordantPairCluster cluster = TestUtil.setupHiseqCluster("somatic", testFolder, "1"); 	
+    	DiscordantPairCluster cluster = TestUtil.setupHiseqCluster("somatic", testFolder.newFolder(), "1"); 	
     	record = new QSVCluster(cluster, false,  "id");
     	assertEquals(QSVConstants.LEVEL_LOW, record.getConfidenceLevel());
     	
@@ -204,7 +202,7 @@ public class QSVClusterTest {
     	assertEquals(QSVConstants.LEVEL_GERMLINE, record.getConfidenceLevel());    	
     	
     	//1
-    	cluster = TestUtil.setupHiseqCluster("somatic", testFolder, "1");
+    	cluster = TestUtil.setupHiseqCluster("somatic", testFolder.newFolder(), "1");
     	record = new QSVCluster(cluster, false,  "id");
     	SoftClipCluster clip = TestUtil.setUpClipRecord("chr10", "chr10", false, false);
     	record.findClusterOverlap(clip);
@@ -215,7 +213,7 @@ public class QSVClusterTest {
     	assertEquals("1", record.getConfidenceLevel());  
     	
     	//2    	
-    	cluster = TestUtil.setupHiseqCluster("somatic", testFolder, "1");
+    	cluster = TestUtil.setupHiseqCluster("somatic", testFolder.newFolder(), "1");
     	record = new QSVCluster(cluster, false,  "id");
     	record.findClusterOverlap(TestUtil.setUpClipRecord("chr10", "chr10", false, true));
     	assertEquals(QSVConstants.LEVEL_LOW, record.getConfidenceLevel());  

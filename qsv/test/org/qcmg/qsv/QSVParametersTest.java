@@ -13,7 +13,6 @@ import java.util.Set;
 
 import htsjdk.samtools.SAMFileHeader.SortOrder;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -40,7 +39,7 @@ public class QSVParametersTest {
     @Test
     public void testParametersSetUpForNormal() throws Exception {    	
     	
-        QSVParameters p =  TestUtil.getQSVParameters(testFolder, normalBam.getAbsolutePath(),
+        QSVParameters p =  TestUtil.getQSVParameters(testFolder.getRoot(), normalBam.getAbsolutePath(),
         		tumorBam.getAbsolutePath(), false, "both", "both");       
         assertEquals(normalBam, p.getInputBamFile());
         assertEquals("normalBam.discordantpair.filtered.bam",
@@ -56,9 +55,7 @@ public class QSVParametersTest {
 
     @Test
     public void testParametersSetUpForTumor() throws Exception {
-    	File normalBam = testFolder.newFile("normalBam.bam");
-    	File tumorBam = testFolder.newFile("tumorBam.bam");
-        QSVParameters p = TestUtil.getQSVParameters(testFolder, normalBam.getAbsolutePath(),
+        QSVParameters p = TestUtil.getQSVParameters(testFolder.getRoot(), normalBam.getAbsolutePath(),       		
                 tumorBam.getAbsolutePath(), true, "both", "both");
         
         assertEquals(tumorBam, p.getInputBamFile());

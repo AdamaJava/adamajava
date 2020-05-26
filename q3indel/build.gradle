@@ -1,46 +1,25 @@
 apply plugin: 'application'
-apply plugin: 'scala'
 
 mainClassName = 'au.edu.qimr.indel.Main'
-def scriptname = 'q3pindel'
+def scriptname = 'q3indel'
 def isExecutable = true
 
-sourceSets {
-    main {
-        java {
-            srcDirs = ['src']
-        }
-        scala {
-            srcDirs = ['scala/src']
-        }
-    }
-    test {
-        scala {
-            srcDirs = ['test']
-        }
-        scala {
-            srcDirs = ['scala/test']
-        }
-    }
-}
-
+//control the ordering of jars, make sure junit before <tool>.jar
 configurations {
     junit
-}
+  }
 
 dependencies {
     configurations.compile.transitive = true
 
-    compile project(':qcommon')
-    compile project(':qio')
-    compile project(':qbamfilter')
-    compile project(':qpicard')
+    api project(':qcommon')
+    api project(':qio')
+    api project(':qbamfilter')
+    api project(':qpicard')
 
-    compile 'com.github.samtools:htsjdk:2.14.1'
-
-    compile 'org.scala-lang:scala-library:2.12.3'
-    compile 'net.sf.jopt-simple:jopt-simple:4.6'
-
-    compile group: 'org.ini4j', name: 'ini4j', version: '0.5.2'
+    api 'com.github.samtools:htsjdk:2.14.1'
+    api 'net.sf.jopt-simple:jopt-simple:4.6'
+    api group: 'org.ini4j', name: 'ini4j', version: '0.5.2'
 }
+
 

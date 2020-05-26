@@ -1,9 +1,9 @@
 apply plugin: 'application'
-
 mainClassName = 'au.edu.qimr.qannotate.Main'
-
 def scriptname = 'qannotate'
 def isExecutable = true
+
+configurations { junit }
 
 /*
 * qannotate requires snpEff and the version currently used is 4.0e
@@ -19,22 +19,21 @@ def isExecutable = true
 *
 */
 
-configurations {
-    junit
-  }
+configurations {  junit }
 
 dependencies {
+    //this junit is required by snpEff-4.0
     junit ('junit:junit:4.10')
+
     configurations.compile.transitive = true
 
-    compile project(':qcommon')
-    compile project(':qio')
-    compile project(':qbamfilter')
+    api project(':qcommon')
+    api project(':qio')
+    api project(':qbamfilter')
 
-    compile 'com.github.samtools:htsjdk:2.14.1'
-    compile 'net.sf.jopt-simple:jopt-simple:4.6'
-    compile name: 'snpEff', version: '4.0e'	
+    api 'com.github.samtools:htsjdk:2.14.1'
+    api 'net.sf.jopt-simple:jopt-simple:4.6'
+    api name: 'snpEff', version: '4.0e'	
 }
-
-sourceSets.test.compileClasspath = configurations.junit + sourceSets.test.compileClasspath
+//have to specify test classpath for both snpEff and qannotate 
 sourceSets.test.runtimeClasspath = configurations.junit + sourceSets.test.runtimeClasspath

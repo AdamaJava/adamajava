@@ -55,8 +55,8 @@ public class FindDiscorantPairClustersMTTest {
 		if (null == normalBam) {
 			normalBam = TestUtil.createBamFile(testFolder.newFile("normal.bam").getAbsolutePath(), PairGroup.AAC, SortOrder.coordinate);
 		}
-		tumor = TestUtil.getQSVParameters(testFolder, normalBam.getAbsolutePath(), tumorBam.getAbsolutePath(), true, "pair");
-		normal = TestUtil.getQSVParameters(testFolder, normalBam.getAbsolutePath(), tumorBam.getAbsolutePath(), false, "pair"); 
+		tumor = TestUtil.getQSVParameters(testFolder.getRoot(), normalBam.getAbsolutePath(), tumorBam.getAbsolutePath(), true, "pair");
+		normal = TestUtil.getQSVParameters(testFolder.getRoot(), normalBam.getAbsolutePath(), tumorBam.getAbsolutePath(), false, "pair"); 
 		matePairDir = testFolder.newFolder("matepair"); 
 		countReport = new SVCountReport(testFolder.newFile("report"), "test");
 	}
@@ -159,7 +159,7 @@ public class FindDiscorantPairClustersMTTest {
 		TestUtil.createTmpClusterFile(matePairDir.getAbsolutePath() + FILE_SEPERATOR, PairClassification.AAC, "chr7_test_ND_AAC");
 		findClusters = new FindDiscordantPairClustersMT(PairGroup.AAC, countDownLatch, findReader, compareReader, tumor, normal, countReport, "", true); 
 		List<MatePair> pairs = TestUtil.readInMatePairs(new File(matePairDir.getAbsolutePath() + FILE_SEPERATOR + "AAC" + FILE_SEPERATOR + "chr7_test_ND_AAC"));
-		findClusters.classifyClusters(Arrays.asList(TestUtil.setupSolidCluster(PairGroup.AAC, "somatic", testFolder, "chr7", "chr7")), pairs);
+		findClusters.classifyClusters(Arrays.asList(TestUtil.setupSolidCluster(PairGroup.AAC, "somatic", testFolder.getRoot(), "chr7", "chr7")), pairs);
 
 		assertEquals(1, findClusters.getClustersMap().get("germline").size());	
 	}
@@ -169,7 +169,7 @@ public class FindDiscorantPairClustersMTTest {
 		TestUtil.createTmpClusterFile(matePairDir.getAbsolutePath() + FILE_SEPERATOR, PairClassification.AAC, "chr7_test_ND_AAC");
 		findClusters = new FindDiscordantPairClustersMT(PairGroup.AAC, countDownLatch, findReader, compareReader, tumor, normal, countReport, query, true); 
 
-		findClusters.classifyClusters(Arrays.asList(TestUtil.setupSolidCluster(PairGroup.AAC, "somatic", testFolder, "chr7", "chr7")), Arrays.asList(new MatePair("722_126_792:20110412030837875,chr4,100,200,Cxx,129,false,722_126_792:20110412030837875,chr15,300,400,Cxx,65,false,F2F1\n")));
+		findClusters.classifyClusters(Arrays.asList(TestUtil.setupSolidCluster(PairGroup.AAC, "somatic", testFolder.getRoot(), "chr7", "chr7")), Arrays.asList(new MatePair("722_126_792:20110412030837875,chr4,100,200,Cxx,129,false,722_126_792:20110412030837875,chr15,300,400,Cxx,65,false,F2F1\n")));
 		assertEquals(1, findClusters.getClustersMap().get("somatic").size());	
 	}
 
@@ -178,7 +178,7 @@ public class FindDiscorantPairClustersMTTest {
 		TestUtil.createTmpClusterFile(matePairDir.getAbsolutePath() + FILE_SEPERATOR, PairClassification.AAC, "chr7_test_ND_AAC");
 		findClusters = new FindDiscordantPairClustersMT(PairGroup.AAC, countDownLatch, compareReader, findReader, normal, tumor, countReport, query, true); 
 
-		findClusters.classifyClusters(Arrays.asList(TestUtil.setupSolidCluster(PairGroup.AAC, "somatic", testFolder, "chr7", "chr7")), Collections.emptyList());
+		findClusters.classifyClusters(Arrays.asList(TestUtil.setupSolidCluster(PairGroup.AAC, "somatic", testFolder.getRoot(), "chr7", "chr7")), Collections.emptyList());
 
 		assertEquals(1, findClusters.getClustersMap().get("normal-germline").size());	
 	}

@@ -93,28 +93,12 @@ public class MatePairTest {
       
     @Test
     public void testGetPairClassificationFromSamRecord() throws QSVException, IOException, CloneNotSupportedException {
-//        SamReader read = SAMFileReaderFactory.createSAMFileReader(new File(fileName));
-//
-//        SAMRecordIterator iterator = read.iterator();
         SAMRecord record = (SAMRecord) records.get(0).clone();
         record.setAttribute("ZP", "C**");
         assertEquals("C**", record.getAttribute("ZP"));
         MatePair mate = new MatePair(record, record);
         assertEquals(PairClassification.Cxx, mate.getZpType());
-//        read.close();
     }
-//    @Test
-//    public void testGetPairClassificationFromSamRecord() throws QSVException, IOException {
-//    	SamReader read = SAMFileReaderFactory.createSAMFileReader(new File(fileName));
-//    	
-//    	SAMRecordIterator iterator = read.iterator();
-//    	SAMRecord record = iterator.next();
-//    	record.setAttribute("ZP", "C**");
-//    	assertEquals("C**", record.getAttribute("ZP"));
-//    	MatePair mate = new MatePair(record, record);
-//    	assertEquals(PairClassification.Cxx, mate.getZpType());
-//    	read.close();
-//    }
     
     @Test
     public void checkSortOrder() {

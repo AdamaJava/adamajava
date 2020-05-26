@@ -54,60 +54,58 @@ public class TestUtil {
 	private static final Set<Clip> LEFT_CLIPS_TRUE = getLeftClips(true);
 	private static final Set<Clip> LEFT_CLIPS_FALSE = getLeftClips(false);
 
-	public static String[] getValidOptions(final TemporaryFolder testFolder,
+	public static String[] getValidOptions(final File testFolder,
         final String normalBam, final String tumorBam, final String preprocessMode,
         final String analysisMode) throws IOException {
 		
 		return getValidOptions(testFolder,normalBam,tumorBam, preprocessMode,analysisMode, true);
     }
-//	public static String[] getValidOptions(final TemporaryFolder testFolder,
-//			final String normalBam, final String tumorBam, final String preprocessMode,
-//			final String analysisMode, boolean goodOutput, boolean bgi) throws IOException {
-//		
-//		return getValidOptions(testFolder,normalBam,tumorBam, preprocessMode,analysisMode, true, false);
-//	}
-	public static String[] getValidOptions(final TemporaryFolder testFolder,
+
+	public static String[] getValidOptions(final File testFolder,
 		final String normalBam, final String tumorBam, final String preprocessMode,
 		final String analysisMode, boolean goodOutput) throws IOException {
-		String iniFile = setUpIniFile(testFolder, preprocessMode, analysisMode, normalBam, tumorBam, 3, 1, testFolder.getRoot().toString(), testFolder.getRoot().toString(), goodOutput);
+		String iniFile = setUpIniFile(testFolder, preprocessMode, analysisMode, normalBam, tumorBam, 3, 1, testFolder.getAbsolutePath(),testFolder.getAbsolutePath(), goodOutput);
 		
-		return new String[] {"--ini", iniFile, "--tmp",  testFolder.getRoot().toString()};
+		
+		return new String[] {"--ini", iniFile, "--tmp",  testFolder.getAbsolutePath()};
 	}
-	public static String[] getValidOptions(final TemporaryFolder testFolder,
+	public static String[] getValidOptions(final File testFolder,
 			final String normalBam, final String tumorBam, final String preprocessMode,
 			final String analysisMode, boolean goodOutput, String mapper, String platform) throws IOException {
-		String iniFile = setUpIniFile(testFolder, preprocessMode, analysisMode, normalBam, tumorBam, 3, 1, testFolder.getRoot().toString(), testFolder.getRoot().toString(), goodOutput, mapper, platform);
+		String iniFile = setUpIniFile(testFolder, preprocessMode, analysisMode, normalBam, tumorBam, 3, 1, testFolder.getAbsolutePath(), testFolder.getAbsolutePath(), goodOutput, mapper, platform);
 		
-		return new String[] {"--ini", iniFile, "--tmp",  testFolder.getRoot().toString()};
+		return new String[] {"--ini", iniFile, "--tmp",  testFolder.getAbsolutePath()};
 	}
 
-	public static String[] getInvalidOptions(final TemporaryFolder testFolder,
+	public static String[] getInvalidOptions(final File testFolder,
         final String normalBam, final String tumorBam,
         final String mode, Integer clusterSize, Integer filterSize, String tmpDir, String outputDir) throws IOException {
    
 		String iniFile = setUpIniFile(testFolder, "both", mode, normalBam, tumorBam, clusterSize, filterSize, tmpDir, outputDir);
 		
-        return new String[] {"--ini", iniFile, "--tmp",  testFolder.getRoot().toString()};
+        return new String[] {"--ini", iniFile, "--tmp",  testFolder.getAbsolutePath()};
     }
 	
-	private static String setUpIniFile(final TemporaryFolder testFolder, String preprocessMode,
+	private static String setUpIniFile(final File testFolder, String preprocessMode,
         final String analysisMode, String normalBam, String tumorBam, int clusterSize, int filterSize, String tmpDir, String outputDir) throws IOException {
 		return setUpIniFile(testFolder,  preprocessMode, analysisMode,  normalBam,  tumorBam,  clusterSize,  filterSize,  tmpDir,  outputDir, true);
 	}
 	
-	private static String setUpIniFile(final TemporaryFolder testFolder, String preprocessMode,
+	private static String setUpIniFile(final File testFolder, String preprocessMode,
             final String analysisMode, String normalBam, String tumorBam, int clusterSize, int filterSize, String tmpDir, String outputDir, boolean goodOutput) throws IOException {
 		
 		return setUpIniFile(testFolder,  preprocessMode, analysisMode,  normalBam,  tumorBam,  clusterSize,  filterSize,  tmpDir,  outputDir,  goodOutput, "bioscope", "solid");
 	}
-	private static String setUpIniFile(final TemporaryFolder testFolder, String preprocessMode,
+	private static String setUpIniFile(final File testFolder, String preprocessMode,
 			final String analysisMode, String normalBam, String tumorBam, int clusterSize, int filterSize, String tmpDir, String outputDir, boolean goodOutput, String mapper, String sequencingPlatform) throws IOException {
 		
-		File iniFile = testFolder.newFile("test.ini");
-		File reference = testFolder.newFile("reference_file");
-		if (iniFile.exists()) {
-			iniFile.delete();
-		}		
+//		File iniFile = testFolder.newFile("test.ini");
+//		File reference = testFolder.newFile("reference_file");
+		
+		File iniFile = new File(testFolder, "test.ini");
+		File reference = new File(testFolder,"reference_file");
+		reference.createNewFile();
+				
 		
 		try (BufferedWriter out = new BufferedWriter(new FileWriter(iniFile))) {
 			out.write("[general]" + NEWLINE);
@@ -177,10 +175,17 @@ public class TestUtil {
 		return iniFile.getAbsolutePath();
 	}
 
-	public static DiscordantPairCluster setupSolidCluster(PairGroup zp, String clusterType, TemporaryFolder testfolder, String chr1, String chr2) throws Exception {
-		  List<MatePair> pairs = setupMatePairs(testfolder, zp);
+	public static DiscordantPairCluster setupSolidCluster(PairGroup zp, String clusterType, File testfolder, String chr1, String chr2) throws Exception {
+		  List<MatePair> pairs = setupMatePairs( zp);
 		  String query = "Cigar_M > 35 and option_SM > 14 and MD_mismatch < 3 and Flag_DuplicateRead == false ";
-		  String tumourFile = testfolder.newFile("tumor.bam").getAbsolutePath();
+		  
+		  //File tmpFolder = testfolder.newFolder();
+		  
+		  // String tumourFile = testfolder.newFile("tumor.bam").getAbsolutePath();
+		  File f = new File(testfolder, "tumor.bam");
+		  f.createNewFile(); //otherwise, file not exists		  
+		  String tumourFile = f.getAbsolutePath();
+		  
 		  createBamFile(tumourFile, zp, SortOrder.coordinate);
 	      QSVParameters tumor = TestUtil.getQSVParameters(testfolder, tumourFile, tumourFile, true, "both", "both");
 	      QSVParameters normal = TestUtil.getQSVParameters(testfolder, tumourFile, tumourFile, false, "both", "both");
@@ -202,7 +207,7 @@ public class TestUtil {
 	}
 
     
-    public static List<MatePair> setupMatePairs(TemporaryFolder testFolder, PairGroup pg) throws QSVException {
+    public static List<MatePair> setupMatePairs( PairGroup pg) throws QSVException {
 		List<SAMRecord> records = getAACSAMRecords(SortOrder.queryname);
         
         return Arrays.asList(
@@ -215,33 +220,35 @@ public class TestUtil {
         		);
 	}
     
-	public static QSVParameters getQSVParameters(final TemporaryFolder testFolder, final String normalBam, final String tumorBam,
+	public static QSVParameters getQSVParameters(final File testFolder, final String normalBam, final String tumorBam,
 			final boolean isTumor, final String analysisMode) throws Exception {
         Options options = new Options(getValidOptions(testFolder, normalBam, tumorBam, "both", analysisMode));
         options.parseIniFile();
      
-        String matepairsDir = testFolder.newFolder("matepair").toString() + FILE_SEPERATOR;
+        String matepairsDir = new File(testFolder, "matepair").getAbsolutePath() + FILE_SEPERATOR;
         for (PairClassification zp : PairClassification.values()) {
             File mateDir = new File(matepairsDir + zp.getPairingClassification() + FILE_SEPERATOR);
             mateDir.mkdir();
         }
         
-        QSVParameters p = new QSVParameters(options, isTumor, testFolder.getRoot().toString() + FILE_SEPERATOR, matepairsDir, new Date(), "test");
+        QSVParameters p = new QSVParameters(options, isTumor, testFolder.getAbsolutePath() + FILE_SEPERATOR, matepairsDir, new Date(), "test");
         return p;
     }
 
-	public static QSVParameters getQSVParameters(final TemporaryFolder testFolder, final String normalBam, final String tumorBam,
+	public static QSVParameters getQSVParameters(final File testFolder, final String normalBam, final String tumorBam,
             final boolean isTumor, final String preprocessMode, String analysisMode) throws Exception {
         Options options = new Options(getValidOptions(testFolder, normalBam, tumorBam,preprocessMode, analysisMode));
         options.parseIniFile();
 
-        String matepairsDir = testFolder.newFolder("matepair").toString() + FILE_SEPERATOR;
+        String matepairsDir = new File(testFolder, "matepair").getAbsolutePath() + FILE_SEPERATOR;
+        
         for (PairClassification zp : PairClassification.values()) {
             File mateDir = new File(matepairsDir + zp.getPairingClassification() + FILE_SEPERATOR);
             mateDir.mkdir();
         }
         
-        QSVParameters p = new QSVParameters(options, isTumor, testFolder.getRoot().toString() + FILE_SEPERATOR, matepairsDir, new Date(), "test");
+       // QSVParameters p = new QSVParameters(options, isTumor, testFolder.getRoot().toString() + FILE_SEPERATOR, matepairsDir, new Date(), "test");
+        QSVParameters p = new QSVParameters(options, isTumor, testFolder.getAbsolutePath() + FILE_SEPERATOR, matepairsDir, new Date(), "test");
         return p;
     }
     
@@ -660,7 +667,7 @@ public class TestUtil {
 		return pairs;
 	}
 
-	public static QSVCluster setupQSVCluster(PairGroup zp, String clusterType,TemporaryFolder testFolder, String chr1, String chr2, boolean isGermline, boolean isSingleSide) throws IOException, Exception {
+	public static QSVCluster setupQSVCluster(PairGroup zp, String clusterType,File testFolder, String chr1, String chr2, boolean isGermline, boolean isSingleSide) throws IOException, Exception {
 		DiscordantPairCluster cluster = setupSolidCluster(zp, clusterType, testFolder, chr1, chr2);
 		SoftClipCluster clip = setUpClipRecord(chr1, chr2, isGermline, isSingleSide);
 		
@@ -833,14 +840,16 @@ public class TestUtil {
 		return clips;
 	}
 
-	public static DiscordantPairCluster setupHiseqCluster(String clusterType, TemporaryFolder testFolder, String qPrimerCategory) throws IOException, Exception {
+	public static DiscordantPairCluster setupHiseqCluster(String clusterType, File testFolder, String qPrimerCategory) throws IOException, Exception {
 		  List<MatePair> pairs = new ArrayList<>();
 	      pairs.add(new MatePair("HWI-ST1240:47:D12NAACXX:7:1112:14008:49131:20120608113919562,chr10,89700049,89700149,AAC,97,false,HWI-ST1240:47:D12NAACXX:7:1112:14008:49131:20120608113919562,chr10,89712348,89712448,AAC,145,true,F1R2"));
 	      pairs.add(new MatePair("HWI-ST1240:47:D12NAACXX:4:1304:9295:38861:20120608092353631,chr10,89700053,89700153,AAC,97,false,HWI-ST1240:47:D12NAACXX:4:1304:9295:38861:20120608092353631,chr10,89712340,89712440,AAC,145,true,F1R2"));
 	      pairs.add(new MatePair("HWI-ST1240:47:D12NAACXX:7:1309:3779:55661:20120608113919562,chr10,89700060,89700160,AAC,97,false,HWI-ST1240:47:D12NAACXX:7:1309:3779:55661:20120608113919562,chr10,89712340,89712440,AAC,145,true,F1R2"));
 	      pairs.add(new MatePair("HWI-ST1240:47:D12NAACXX:6:2109:5161:48848:20120608110941621,chr10,89700064,89700164,AAC,97,false,HWI-ST1240:47:D12NAACXX:6:2109:5161:48848:20120608110941621,chr10,89712346,89712446,AAC,145,true,F1R2"));
 	      pairs.add(new MatePair("HWI-ST1240:47:D12NAACXX:8:1109:11792:69957:20120608020343585,chr10,89700200,89700300,AAC,161,false,HWI-ST1240:47:D12NAACXX:8:1109:11792:69957:20120608020343585,chr10,89712446,89712546,AAC,81,true,F2R1"));
-	      String tumourFile = testFolder.newFile("tumor.bam").getAbsolutePath();
+	      File f = new File(testFolder,"tumor.bam" );
+	      String tumourFile = f.getAbsolutePath();
+	      
 		  createHiseqBamFile(tumourFile, PairGroup.AAC, SortOrder.coordinate);
 	      QSVParameters tumor = TestUtil.getQSVParameters(testFolder, tumourFile, tumourFile, true, "both", "both");
 	      QSVParameters normal = TestUtil.getQSVParameters(testFolder, tumourFile, tumourFile, false, "both", "both");    

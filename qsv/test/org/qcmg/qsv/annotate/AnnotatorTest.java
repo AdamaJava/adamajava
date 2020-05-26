@@ -2,6 +2,7 @@ package org.qcmg.qsv.annotate;
 
 import static org.junit.Assert.assertEquals;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,10 +29,13 @@ public class AnnotatorTest {
     @Rule
     public TemporaryFolder testFolder = new TemporaryFolder();
     
+    private File ftest;
+    
     @Before
     public void setUp() throws IOException, Exception {
 	    	records = TestUtil.createSamBodyRecords(SortOrder.coordinate);
 	    	setupSequencingRuns();
+	    	ftest = testFolder.newFile("testFile");
     }
     
     private void setupSequencingRuns() {
@@ -92,7 +96,7 @@ public class AnnotatorTest {
     		RunTypeRecord r = new RunTypeRecord("20141216163713333", 300, 2700, "seq_mapped");
     		sequencingRuns.add(r);
     		
-    		 Annotator annotator = new Annotator(250, 2790, testFolder.newFile("testFile"), "pe", sequencingRuns, "pe", "bwa");
+    		 Annotator annotator = new Annotator(250, 2790, ftest, "pe", sequencingRuns, "pe", "bwa");
     		 annotator.setNHAttribute("bwa", rec);
     		 assertEquals(0, rec.getAttribute("NH"));
     		 
@@ -169,7 +173,7 @@ public class AnnotatorTest {
     	RunTypeRecord r = new RunTypeRecord("20141216163712514", 300, 1700, "seq_mapped");
     	sequencingRuns.add(r);
     	
-    	Annotator annotator = new Annotator(250, 1790, testFolder.newFile("testFile"), "pe", sequencingRuns, "pe", "bwa");
+    	Annotator annotator = new Annotator(250, 1790, ftest, "pe", sequencingRuns, "pe", "bwa");
     	
     	annotator.annotate(rec);
     	assertEquals(0, rec.getAttribute("NH"));
@@ -180,7 +184,7 @@ public class AnnotatorTest {
     	rec.setAttribute("ZP", null);
     	rec.setAttribute("NH", null);
     	
-    	annotator = new Annotator(250, 1790, testFolder.newFile("testFile"), "pe", sequencingRuns, "pe", "bwa-mem");
+    	annotator = new Annotator(250, 1790, ftest, "pe", sequencingRuns, "pe", "bwa-mem");
     	annotator.annotate(rec);
     	assertEquals("AAC", rec.getAttribute("ZP"));	// AAC are considered discordant
     	
@@ -258,7 +262,7 @@ public class AnnotatorTest {
 	@Test
     public void testLMPAnnotate() throws Exception {
 		//QSVParameters p = TestUtil.getQSVParameters(testFolder, testFolder.newFile("normal.bam").getAbsolutePath(), tumourBam.getAbsolutePath(), true, "none");
-        Annotator lmp = new Annotator(250, 2790, testFolder.newFile("testFile"), "lmp", sequencingRuns, "lmp", "bioscope");
+        Annotator lmp = new Annotator(250, 2790, ftest, "lmp", sequencingRuns, "lmp", "bioscope");
         //duplicate, passes vendor check
         SAMRecord r1 = records.get(0);
         r1.setFlags(1025);
@@ -302,7 +306,7 @@ public class AnnotatorTest {
     @Test
     public void testPEAnnotate() throws Exception {
     	//QSVParameters p = TestUtil.getQSVParameters(testFolder, testFolder.newFile("normal.bam").getAbsolutePath(), tumourBam.getAbsolutePath(), true, "none");
-        Annotator pe = new Annotator(250, 2790, testFolder.newFile("testFile"), "pe", sequencingRuns,  "lmp", "bioscope");
+        Annotator pe = new Annotator(250, 2790, ftest, "pe", sequencingRuns,  "lmp", "bioscope");
         //duplicate, passes vendor check
         SAMRecord r1 = records.get(0);
         r1.setFlags(1025);

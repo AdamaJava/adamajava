@@ -942,5 +942,9 @@ public final class Options {
 	}
 
 
+	//do not use it, testing only
+	 String getIniFile() {
+		return iniFile;
+	}
 
 }

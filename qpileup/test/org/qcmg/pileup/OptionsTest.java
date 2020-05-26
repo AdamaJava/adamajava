@@ -1,8 +1,9 @@
-package org.qcmg.qpileup;
+package org.qcmg.pileup;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.io.File;
 import java.util.TreeMap;
 
 
@@ -25,25 +26,35 @@ public class OptionsTest {
 	private String hdf = getClass().getResource("/resources/test.h5").getFile();
 	
 	@Test
-	public void testValidBootstrapOptions() throws Exception {
+	public void testValidBootstrapOptions() throws Exception {		
 		Options options = TestUtil.getValidOptions(testFolder, "bootstrap", reference, "test.h5", bam, testFolder.getRoot().toString(), "all", "");
 		options.parseIniFile();
 		assertEquals("bootstrap", options.getMode());
-		assertEquals(testFolder.getRoot().getAbsolutePath() + PileupConstants.FILE_SEPARATOR + "log", options.getLog());
 		assertEquals("INFO", options.getLogLevel());
 		assertEquals("test.h5", options.getHdfFile());
 		assertEquals(reference, options.getReferenceFile());
+		
+		//we don't know the sub folder name of temporaryFolder, have to work around
+		String tmpDir = new File( options.getIniFile()).getParent();
+		assertEquals(tmpDir + PileupConstants.FILE_SEPARATOR + "log", options.getLog());
+		
 	}
 	
 	@Test
 	public void testValidAddOptions() throws Exception {
+		
 		Options options = TestUtil.getValidOptions(testFolder, "add", reference, hdf, bam, testFolder.getRoot().toString(), "all", "");
+		
 		options.parseIniFile();
 		assertEquals("add", options.getMode());
-		assertEquals(testFolder.getRoot().getAbsolutePath() + PileupConstants.FILE_SEPARATOR + "log", options.getLog());
 		assertEquals("INFO", options.getLogLevel());
 		assertEquals(hdf, options.getHdfFile());
 		assertEquals(1, options.getBamFiles().size());
+		
+		//we don't know the sub folder name of temporaryFolder, have to work around
+		String tmpDir = new File( options.getIniFile()).getParent();
+		assertEquals(tmpDir + PileupConstants.FILE_SEPARATOR + "log", options.getLog());
+
 	}
 	
 	@Test
@@ -51,11 +62,14 @@ public class OptionsTest {
 		Options options = TestUtil.getValidOptions(testFolder, "view", reference, hdf, bam, testFolder.getRoot().toString(), "all", "");
 		options.parseIniFile();
 		assertEquals("view", options.getMode());
-		assertEquals(testFolder.getRoot().getAbsolutePath() + PileupConstants.FILE_SEPARATOR + "log", options.getLog());
 		assertEquals("INFO", options.getLogLevel());
 		assertEquals(hdf, options.getHdfFile());
 		assertEquals(testFolder.getRoot().toString(), options.getOutputDir());
 		assertEquals("all", options.getReadRanges().get(0));
+		
+		//we don't know the sub folder name of temporaryFolder, have to work around
+		String tmpDir = new File( options.getIniFile()).getParent();
+		assertEquals(tmpDir + PileupConstants.FILE_SEPARATOR + "log", options.getLog());		
 	}
 	
 	@Test
@@ -64,11 +78,15 @@ public class OptionsTest {
 		Options options = TestUtil.getValidOptions(testFolder, "merge", reference, mergeHDF, bam, testFolder.getRoot().toString(), "all", hdf);
 		options.parseIniFile();
 		assertEquals("merge", options.getMode());
-		assertEquals(testFolder.getRoot().getAbsolutePath() + PileupConstants.FILE_SEPARATOR + "log", options.getLog());
 		assertEquals("INFO", options.getLogLevel());
 		assertEquals(mergeHDF, options.getHdfFile());
 		assertEquals(2, options.getInputHDFFiles().size());
 		assertEquals(hdf, options.getInputHDFFiles().get(0));
+		
+		//we don't know the sub folder name of temporaryFolder, have to work around
+		String tmpDir = new File( options.getIniFile()).getParent();
+		assertEquals(tmpDir + PileupConstants.FILE_SEPARATOR + "log", options.getLog());
+		
 	}
 	
 	@Test
@@ -76,7 +94,6 @@ public class OptionsTest {
 		Options options = TestUtil.getValidOptions(testFolder, "metrics", reference, hdf, bam, testFolder.getRoot().toString(), "all", null);
 		options.parseIniFile();
 		assertEquals("metrics", options.getMode());
-		assertEquals(testFolder.getRoot().getAbsolutePath() + PileupConstants.FILE_SEPARATOR + "log", options.getLog());
 		assertEquals("INFO", options.getLogLevel());
 		assertEquals(hdf, options.getHdfFile());
 		TreeMap<String, Metric> metrics = options.getSummaryMetric().getMetrics();
@@ -86,7 +103,11 @@ public class OptionsTest {
 		assertTrue(metrics.containsKey(PileupConstants.METRIC_NONREFBASE));
 		assertTrue(metrics.containsKey(PileupConstants.METRIC_MAPPING));
 		assertTrue(metrics.containsKey(PileupConstants.METRIC_STRAND_BIAS));
-		assertTrue(metrics.containsKey(PileupConstants.METRIC_SNP));		
+		assertTrue(metrics.containsKey(PileupConstants.METRIC_SNP));	
+		
+		//we don't know the sub folder name of temporaryFolder, have to work around
+		String tmpDir = new File( options.getIniFile()).getParent();
+		assertEquals(tmpDir + PileupConstants.FILE_SEPARATOR + "log", options.getLog());
 	}
 	
 	@Test(expected=QPileupException.class)

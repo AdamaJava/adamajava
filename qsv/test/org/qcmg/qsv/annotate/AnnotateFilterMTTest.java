@@ -46,14 +46,17 @@ public class AnnotateFilterMTTest {
     QSVParameters parameters;
     
     @Rule
-    public static TemporaryFolder testFolder = new TemporaryFolder();
+    public TemporaryFolder testFolder = new TemporaryFolder();
+    
     public static File iniFile;
     public static File logFile;
     public static File outputDir;
 
     @Before
     public void setUp() throws IOException {        
-      	normalBam = testFolder.newFile("normal.bam");    	
+      	normalBam = testFolder.newFile("normal.bam"); 
+      	iniFile = testFolder.newFile("test.ini");
+      	 setUpIniFile();
     }
     
     @After
@@ -63,18 +66,14 @@ public class AnnotateFilterMTTest {
         normalBam = null;
     }
     
-    private static String setUpIniFile() throws IOException {
+    private void setUpIniFile() throws IOException {
 		
-		iniFile = testFolder.newFile("test.ini");
-		logFile = testFolder.newFile("test.log");
+		File logFile = testFolder.newFile("test.log");
 		File controlBam =  testFolder.newFile("control.bam");
 		File testBam =  testFolder.newFile("test.bam");
 		outputDir = testFolder.newFolder();
 		File reference = testFolder.newFile("reference_file");
-		if (iniFile.exists()) {
-			iniFile.delete();
-		}		
-		
+				
 		try (BufferedWriter out = new BufferedWriter(new FileWriter(iniFile))) {
 			out.write("[general]" + Constants.NL);
 			out.write("log=" + logFile.getAbsolutePath() + Constants.NL);
@@ -113,13 +112,8 @@ public class AnnotateFilterMTTest {
 	    	out.write("upper=2360" + Constants.NL + Constants.NL);
 	    	out.write("name=seq_mapped_1" + Constants.NL);
 		}
-		return iniFile.getAbsolutePath();
+		 
 	}
-    
-	public static String[] getValidOptions() throws IOException {
-			String iniFile = setUpIniFile();
-            return new String[] {"--ini", iniFile, "--tmp",  testFolder.getRoot().toString()};
-    }
     
     @Test
     public void setupQueryExecutor() throws Exception {
@@ -130,7 +124,7 @@ public class AnnotateFilterMTTest {
 		CountDownLatch fLatch = null;
 		CountDownLatch wGoodLatch = null;
 		
-	    String[] args = getValidOptions();
+	    String[] args = new String[] {"--ini", iniFile.getAbsolutePath(), "--tmp",  testFolder.getRoot().toString()};
 	    Options options = new Options(args);
 	    options.parseIniFile();
 	    String matepairsDir = null;
@@ -205,9 +199,9 @@ public class AnnotateFilterMTTest {
 		}
        	
         
-        parameters = TestUtil.getQSVParameters(testFolder, normalBam.getAbsolutePath(), tumorBam.getAbsolutePath(), true, "both");
+        parameters = TestUtil.getQSVParameters(testFolder.getRoot(), normalBam.getAbsolutePath(), tumorBam.getAbsolutePath(), true, "both");
 
-        String[] args = TestUtil.getValidOptions(testFolder, normalBam.getAbsolutePath(), tumorBam.getAbsolutePath(), mode, "both");
+        String[] args = TestUtil.getValidOptions(testFolder.getRoot(), normalBam.getAbsolutePath(), tumorBam.getAbsolutePath(), mode, "both");
         Options options = new Options(args);
         options.parseIniFile();
         AnnotateFilterMT w = new AnnotateFilterMT(Thread.currentThread(), countDownLatch, parameters, new AtomicInteger(), testFolder.getRoot().toString(), options);
