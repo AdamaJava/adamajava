@@ -33,7 +33,7 @@ public class IntLongPairs {
 	public IntLongPairs(IntLongPair pair1, IntLongPair pair2) {
 		pairs[0] = pair1;
 		pairs[1] = pair2;
-		Arrays.sort(pairs);
+//		Arrays.sort(pairs);
 	}
 	public IntLongPair[] getPairs() {
 		return pairs;

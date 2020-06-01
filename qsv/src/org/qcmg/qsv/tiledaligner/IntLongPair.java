@@ -1,6 +1,10 @@
 package org.qcmg.qsv.tiledaligner;
 
 public class IntLongPair implements Comparable<IntLongPair> {
+	@Override
+	public String toString() {
+		return "IntLongPair [i=" + i + ", l=" + l + "]";
+	}
 	private final int i;
 	private final long l;
 	public IntLongPair(int i, long l) {

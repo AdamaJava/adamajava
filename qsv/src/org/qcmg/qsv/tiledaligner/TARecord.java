@@ -16,10 +16,8 @@ import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.list.array.TLongArrayList;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.TLongIntMap;
-import gnu.trove.map.TLongLongMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 import gnu.trove.map.hash.TLongIntHashMap;
-import gnu.trove.map.hash.TLongLongHashMap;
 import gnu.trove.set.TLongSet;
 import gnu.trove.set.hash.TLongHashSet;
 
@@ -501,6 +499,16 @@ public class TARecord {
 		if (list.get(list.size() - 1) > CUTOFF)
 			bs.set(1);
 		return bs;
+	}
+	
+	public int getHightestTileCount() {
+		int [] keys = countAndStartPositionsMap.keys();
+		if (keys.length == 0) {
+			return -1;
+		} else if (keys.length > 1) {
+			Arrays.sort(keys);
+		}
+		return keys[keys.length - 1];
 	}
 	
 	public String getCountDist() {

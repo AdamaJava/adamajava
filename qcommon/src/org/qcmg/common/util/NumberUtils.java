@@ -194,6 +194,10 @@ public class NumberUtils {
 		default: return '\u0000';
 		}
 	}
+	
+	public static long getRefPositionFromLong(long l) {
+		return (long)((int)l);
+	}
 
 	public static Map<Integer, TLongList> getUpdatedMapWithLongsFallingInRanges(Map<Integer, TLongList> originalMap, List<long[]> ranges, int reverseComplementBit) {
 		

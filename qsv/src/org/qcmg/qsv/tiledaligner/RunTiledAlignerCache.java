@@ -89,6 +89,7 @@ public class RunTiledAlignerCache {
 		Map<String, String> sequenceNameMap = new HashMap<>();
 		int i = 0;
 		String key = "";
+		boolean recordsMustComeFromChromosomeInName = false;
 		for (String s : sequences) {
 			if (i % 2 ==0) {
 				key = s;
@@ -96,6 +97,9 @@ public class RunTiledAlignerCache {
 				/*
 				 * got value - add to map
 				 */
+				if (s.startsWith("splitcon")) {
+					recordsMustComeFromChromosomeInName = true;
+				}
 				sequenceNameMap.put(key, s);
 			}
 			i++;
@@ -112,7 +116,7 @@ public class RunTiledAlignerCache {
 		System.out.println("Time taken: "+ timeElapsed.toMillis() +" milliseconds");
 		
 		System.out.println("About to run runTiledAlignerCache with " + Arrays.deepToString(sequences));
-		Map<String, List<BLATRecord>> results = TiledAlignerUtil.runTiledAlignerCache(cache, sequenceNameMap, 13, "RunTiledAlignerCache.main", true, true);
+		Map<String, List<BLATRecord>> results = TiledAlignerUtil.runTiledAlignerCache(cache, sequenceNameMap, 13, "RunTiledAlignerCache.main", true, recordsMustComeFromChromosomeInName);
 		System.out.println("About to run runTiledAlignerCache - DONE");
 		
 		/*

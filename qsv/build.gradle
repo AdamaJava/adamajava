@@ -17,9 +17,9 @@ task deploy {
     ssh.run {
       session(remotes.avalon) {
         put from: 'build/lib/qsv-' + "$version" + '.jar', into: '/mnt/backedup/home/oliverH/qsv/bin'
- //       put from: 'build/flat/qmule-0.1pre.jar', into: '/mnt/backedup/home/oliverH/qsv/bin'
- //       put from: 'build/flat/qcommon-0.4.jar', into: '/mnt/backedup/home/oliverH/qsv/bin'
- //       put from: 'build/flat/qio-0.1.1.jar', into: '/mnt/backedup/home/oliverH/qsv/bin'
+  //      put from: 'build/flat/qmule-0.1pre.jar', into: '/mnt/backedup/home/oliverH/qsv/bin'
+        put from: 'build/flat/qcommon-0.4.jar', into: '/mnt/backedup/home/oliverH/qsv/bin'
+        put from: 'build/flat/qio-0.1.1.jar', into: '/mnt/backedup/home/oliverH/qsv/bin'
  //       put from: 'build/flat/htsjdk-2.14.1.jar', into: '/mnt/backedup/home/oliverH/qsv/bin'
  //       put from: 'build/flat/qpicard-1.1.jar', into: '/mnt/backedup/home/oliverH/qsv/bin'
  //       put from: 'build/flat/trove4j-3.0.3.jar', into: '/mnt/backedup/home/oliverH/qsv/bin'
@@ -30,6 +30,11 @@ task deploy {
 
 configurations {
         sshAntTask
+}
+
+task showArgs << {
+  defaultWord1 = word1 ?: "hi"
+  println "$defaultWord1 $word2"
 }
 
 mainClassName = 'org.qcmg.qsv.QSV'

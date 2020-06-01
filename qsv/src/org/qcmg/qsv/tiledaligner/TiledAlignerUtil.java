@@ -784,9 +784,7 @@ public class TiledAlignerUtil {
 			throw new IllegalArgumentException("ref or sequence (or both) supplied to ClinVarUtil.getSwDiffs were null. ref: " + ref + ", sequence: " + sequence);
 		}
 		
-		
 //		SmithWatermanGotoh nm = optimiseForGaps ? new SmithWatermanGotoh(ref, sequence, 5, -4, 16, 4) : new SmithWatermanGotoh(ref, sequence, 4, -4, 4, 1);
-		
 		
 		/*
 		 * If sequence has more than a couple of N's, use the original SW values
@@ -794,11 +792,7 @@ public class TiledAlignerUtil {
 		 * 
 		 */
 		int nCount = getInsertionCount(sequence, 'N');
-		boolean useOriginalValues = false;
-		if (nCount > 2) {
-			useOriginalValues = true;
-		}
-		
+		boolean useOriginalValues = nCount > 2;
 		
 		SmithWatermanGotoh nm = null;
 		
@@ -824,7 +818,7 @@ public class TiledAlignerUtil {
 		 */
 		
 		int insertionCount = getInsertionCount(diffs[1], ' ');
-		if (insertionCount >= 5 && optimiseForGaps && ! useOriginalValues) {
+		if (insertionCount >= 4 && optimiseForGaps && ! useOriginalValues) {
 			swCounter.incrementAndGet();
 			nm = new SmithWatermanGotoh(ref, sequence, 5, -4, 16, 4);	// original
 //			nm = new SmithWatermanGotoh(ref, sequence, 5, -6, 16, 10);	// increase gap penalty
@@ -954,7 +948,7 @@ public class TiledAlignerUtil {
 				/*
 				 * If we have a perfect match, don't bother examining the other positions (should there be any)
 				 */
-				break;
+//				break;
 			} else {
 			
 				if (debug) {
@@ -1492,6 +1486,7 @@ public class TiledAlignerUtil {
 			if (null == ref) {
 				//hmmm....
 				System.err.println("Unable to load contig: " + contig + " into cache");
+				System.out.println("Unable to load contig: " + contig + " into cache");
 			}
 		}
 		if (start <= 0 || stop > ref.length) {
@@ -1754,6 +1749,11 @@ public class TiledAlignerUtil {
 			throw new IllegalArgumentException("sequence length is less than or equals to the tile length! sequence: " + sequence + ", tile length: " + tileLength);
 		}
 		
+		
+		if (sequence.equals("GCAAGACTGTGTCTCAAAAAAAAACAAA")) {
+			log = true;
+		}
+		
 		sequenceOriginatingMethodMap.computeIfAbsent(sequence, f -> new ArrayList<>()).add(originatingMethod);
 		
 		List<BLATRecord> results = new ArrayList<>();
@@ -1903,112 +1903,157 @@ public class TiledAlignerUtil {
 			 * check to see if we have compound start positions
 			 * set window to be 10000 for now
 			 */
-			TLongIntMap compoundStartPositions = taRec.getBestCompoundStartPositions(10000, 100);
-//			System.out.println("compoundStartPositions: " + compoundStartPositions.)
-			if (compoundStartPositions.size() > 0) {
-				
-				if (log) {
-					System.out.println("compoundStartPositions size: " + compoundStartPositions.size());
-					compoundStartPositions.forEachEntry((l,i) -> {
-						System.out.println("compoundStartPositions l: " + l + ", i: " + i);
-						return true;
-					});
-				}
-				
-				List<ChrPosition> cpCountList = new ArrayList<>();
-				compoundStartPositions.forEachKey(key -> {
-					ChrPosition cp = headerMap.getChrPositionFromLongPosition(key, compoundStartPositions.get(key) + TILE_LENGTH - 1);		// add in the tile length uses
-					cpCountList.add(cp);
-					return true;
-				});
-				
-				if (log) {
-					System.out.println("cpCountList size: " + cpCountList.size());
-					
-					for (ChrPosition cp : cpCountList) {
-						System.out.println("cpCountList cp: " + ((ChrPositionName)cp).toString());
-					}
-				}
-				
-				/*
-				 * now create a list of ChePositions with the associated reference as the name
-				 */
-				boolean forwardStrand = false;
-				List<ChrPosition> cpCountListWithRef = new ArrayList<>();
-				for (ChrPosition cp : cpCountList) {
-					String ref =  getRefFromChrStartStop(cp.getChromosome(), cp.getStartPosition(), cp.getEndPosition());
-					forwardStrand = "F".equals(((ChrPositionName)cp).getName());
-					if (log) {
-						System.out.println("cpCountList cp: " + ((ChrPositionName)cp).toString() + ", ref: " + ref + ",fs: " + forwardStrand);
-					}
-					Optional<ChrPosition> optionalCP = getChrPositionWithReference(cp.getChromosome(), cp.getStartPosition(), forwardStrand ? sequence : revCompSequence, ref);
-					if (optionalCP.isPresent()) {
-						cpCountListWithRef.add(optionalCP.get());
-						if (log) {
-							System.out.println("cpCountList optional cp exists: " + ((ChrPositionName)optionalCP.get()).toString());
-						}
-					}
-				}
-				
-				if (cpCountListWithRef.size() > 0) {
-					BLATRecord br = new BLATRecord(getDetailsForBLATRecordNew(cpCountListWithRef, name, sequence));
-					System.out.println("adding br: " + br.toString());
-					results.add(br);
-				} else {
-					System.out.println("couldn't get enough cps for: " + compoundStartPositions.forEachEntry((l,i) -> {System.out.println("l: " + l + ", i: " + i);return true;}));
-				}
-				
-			}
+//			TLongIntMap compoundStartPositions = taRec.getBestCompoundStartPositions(10000, 100);
+////			System.out.println("compoundStartPositions: " + compoundStartPositions.)
+//			if (compoundStartPositions.size() > 0) {
+//				
+//				if (log) {
+//					System.out.println("compoundStartPositions size: " + compoundStartPositions.size());
+//					compoundStartPositions.forEachEntry((l,i) -> {
+//						System.out.println("compoundStartPositions l: " + l + ", i: " + i);
+//						return true;
+//					});
+//				}
+//				
+//				List<ChrPosition> cpCountList = new ArrayList<>();
+//				compoundStartPositions.forEachKey(key -> {
+//					ChrPosition cp = headerMap.getChrPositionFromLongPosition(key, compoundStartPositions.get(key) + TILE_LENGTH - 1);		// add in the tile length uses
+//					cpCountList.add(cp);
+//					return true;
+//				});
+//				
+//				if (log) {
+//					System.out.println("cpCountList size: " + cpCountList.size());
+//					
+//					for (ChrPosition cp : cpCountList) {
+//						System.out.println("cpCountList cp: " + ((ChrPositionName)cp).toString());
+//					}
+//				}
+//				
+//				/*
+//				 * now create a list of ChePositions with the associated reference as the name
+//				 */
+//				boolean forwardStrand = false;
+//				List<ChrPosition> cpCountListWithRef = new ArrayList<>();
+//				for (ChrPosition cp : cpCountList) {
+//					String ref =  getRefFromChrStartStop(cp.getChromosome(), cp.getStartPosition(), cp.getEndPosition());
+//					forwardStrand = "F".equals(((ChrPositionName)cp).getName());
+//					if (log) {
+//						System.out.println("cpCountList cp: " + ((ChrPositionName)cp).toString() + ", ref: " + ref + ",fs: " + forwardStrand);
+//					}
+//					Optional<ChrPosition> optionalCP = getChrPositionWithReference(cp.getChromosome(), cp.getStartPosition(), forwardStrand ? sequence : revCompSequence, ref);
+//					if (optionalCP.isPresent()) {
+//						cpCountListWithRef.add(optionalCP.get());
+//						if (log) {
+//							System.out.println("cpCountList optional cp exists: " + ((ChrPositionName)optionalCP.get()).toString());
+//						}
+//					}
+//				}
+//				
+//				if (cpCountListWithRef.size() > 0) {
+//					BLATRecord br = new BLATRecord(getDetailsForBLATRecordNew(cpCountListWithRef, name, sequence));
+//					System.out.println("adding br: " + br.toString());
+//					results.add(br);
+//				} else {
+//					System.out.println("couldn't get enough cps for: " + compoundStartPositions.forEachEntry((l,i) -> {System.out.println("l: " + l + ", i: " + i);return true;}));
+//				}
+//				
+//			}
 			
 			/*
 			 * get best start positions
 			 */
 			TLongList bestStartPositions = taRec.getStartPositions(12, true, 20);
 			boolean gotSplits = false;
+			boolean runSplits = null != name && name.startsWith("splitcon");
+			
+			
 			/*
-			 * if name contains splitread then we only want to include results that fall within the supplied contigs 
-			 * eg. splitcon_chr10_127633807_chr15_34031839
+			 * If the max tile count is low, try running the split to see if its made up of multiple entries.
+			 * If it is, and its not a split, may need to combine into a single BLATRecord
 			 */
-			if (null != name && name.startsWith("splitcon")) {
-//				String [] nameArray = name.split("_");
-//				long[] positionsOne = headerMap.getLongStartAndStopPositionFromChrPosition(new ChrPointPosition(nameArray[1], 1));
-//				long[] positionsTwo = headerMap.getLongStartAndStopPositionFromChrPosition(new ChrPointPosition(nameArray[3], 1));
+			int maxTileMatch = TARecordUtil.getExactMatchOnlyLengthFromPackedInt(taRec.getHightestTileCount());
+			System.out.println("name: " + name + ", maxTileMatch: " + maxTileMatch + ", sequence.length(): " + sequence.length());
+			
+			if (maxTileMatch < (0.7 * sequence.length()) && maxTileMatch >= (0.5 * sequence.length())) {
+				System.out.println("name: " + name + ", maxTileMatch: " + maxTileMatch + ", sequence.length(): " + sequence.length() + ", less then 70% of bases covered ( && >= 50%) - will look for splits!");
+				runSplits = true;
+			}
+			
+			if (runSplits) {
 				
 				System.out.println("about to run some splits, no of positions in TARecord:  name: " + name + ", " + taRec.getCountDist() + "");
 				TIntObjectMap<Set<IntLongPairs>> splits = TARecordUtil.getSplitStartPositions(taRec);
 				
-				List<BLATRecord> blatRecs = TARecordUtil.blatRecordsFromSplits(splits, name, taRec.getSequence().length(), headerMap);
-				System.out.println("splits blat record count: " + blatRecs.size());
-				if ( ! blatRecs.isEmpty()) {
-					results.addAll(blatRecs);
-					
-					int combinedScore = 0;
-					for (BLATRecord bt : blatRecs) {
-						combinedScore += bt.getScore();
-					}
-					
-					System.out.println("No need to smith waterman - have some records, combined score: " + combinedScore + ", seqLength: " + taRec.getSequence().length());
-					
-					/*
-					 * if we have more then 80% of bases covered, we cool, otherwise SW
-					 */
-					if (((double)combinedScore / taRec.getSequence().length()) >= 0.9) {
-						gotSplits = true;
+				if (splits.size() == 1 && splits.get(splits.keys()[0]).size() == 1) {
+					System.out.println("Have a sinlge splits - will examine to see if it is suitable for single record  name: " + name + ", " + taRec.getCountDist() + "");
+					String [] singleRecordSplits = TARecordUtil.areSplitsCloseEnoughToBeSingleRecord(splits.get(splits.keys()[0]).iterator().next(), name,  sequence.length(), headerMap, TILE_LENGTH);
+					if (null != singleRecordSplits && singleRecordSplits.length > 0) {
+						BLATRecord br = new BLATRecord(singleRecordSplits);
+						if (br.getScore() > (0.9 * sequence.length())) {
+							results.add(br);
+							gotSplits = true;
+						} else {
+							System.out.println("Single blat record from splits not good enough!!: " + br.toString() + ", seq: " + sequence);
+						}
 					}
 				} else {
-					System.out.println("No split record found for name: " + name);
+					System.out.println("about to run some splits, no of positions in TARecord:  name: " + name + ", " + taRec.getCountDist() + " DONE, breakdown of splits:");
+					System.out.println("splits.size(): " + splits.size());
+					for (int key : splits.keys()) {
+						Set<IntLongPairs> setOfPairs = splits.get(key);
+						System.out.println("splits key: " + key + ", setOfPairs.size(): " + setOfPairs.size());
+						for (IntLongPairs ilp : setOfPairs) {
+							System.out.println("splits key: " + key + ", IntLongPairs[0]: " + ilp.getPairs()[0].toString() +  ", IntLongPairs[1]: " + ilp.getPairs()[1].toString());
+						}
+					}
+					
 				}
 				
-				
-//				TLongIntMap map = TARecordUtil.getSplitPositions(taRec, positionsOne[0], positionsOne[1], positionsTwo[0], positionsTwo[1]);
-//				System.out.println("have a splitcon: " + name + ", map size: " + map.size());
-//				if (map.isEmpty()) {
-//					//bah
-//				} else {
-//					bestStartPositions = new TLongArrayList(map.keys());
-//				}
-				
+				/*
+				 * If we have our split from the areSplitsCloseEnoughToBeSingleRecord method, no need to go looking for more
+				 */
+				if ( ! gotSplits) {
+					
+					List<BLATRecord> blatRecs = TARecordUtil.blatRecordsFromSplits(splits, name, taRec.getSequence().length(), headerMap);
+					System.out.println("splits blat record count: " + blatRecs.size() + " for " + name);
+					if ( ! blatRecs.isEmpty()) {
+						
+						if (blatRecs.size() > 2) {
+							System.out.println("got more than 2 BLATRecs! here they are: " + blatRecs.size() + " for " + name);
+							for (BLATRecord bt : blatRecs) {
+								System.out.println("br: " + bt.toString());
+							}
+							System.out.println("got more than 2 BLATRecs! here they are - DONE for " + name);
+						}
+//						} else {
+						
+							/*
+							 * only proceed with just splits if we only have 2
+							 * don't really know what to do if we have more than 2...
+							 */
+							int combinedScore = 0;
+							for (BLATRecord bt : blatRecs) {
+								combinedScore += bt.getScore();
+							}
+							
+							/*
+							 * if we have more then 80% of bases covered, we cool, otherwise SW
+							 */
+							if (((double)combinedScore / taRec.getSequence().length()) >= 0.9) {
+								System.out.println("No need to smith waterman - have some records, combined score: " + combinedScore + ", seqLength: " + taRec.getSequence().length()  + " for " + name);
+								results.addAll(blatRecs);
+								gotSplits = true;
+							}
+//						}
+					} else {
+						System.out.println("No split record found for name: " + name);
+					}
+				}
 			}
+			
+			
+			
 			if ( ! gotSplits) {
 				TLongList bestStartPositionsUpdated = ListUtils.removeAdjacentPositionsInList(bestStartPositions, 200);
 	//		System.out.println("Number of entries in bestStartPositions: " + bestStartPositions.size() + ", Number of entries in bestStartPositionsUpdated (removed adjacent positions): " + bestStartPositionsUpdated.size());
