@@ -52,8 +52,9 @@ subprojects {
 
     jar.doFirst {
 	manifest { 
-	    if(project.hasProperty('mainClassName') && project.getProperty('mainClassName') != null ) 
+	    if(project.hasProperty('mainClassName') && project.getProperty('mainClassName') != null ) {
 		attributes 'Main-Class' : project.mainClassName 
+	    }
 	    attributes  'Implementation-Title': project.name,
 		'Implementation-Version': verionId,
 		'SVN-Version': revision,
