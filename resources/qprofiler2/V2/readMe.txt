@@ -1,1 +1,1 @@
-This folder store the newest schema file which valid the qprofiler2 xml output
+this schema file was updated on Wed Oct 9 16:33:03 2019. it is not yet released.
