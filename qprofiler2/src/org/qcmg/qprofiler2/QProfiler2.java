@@ -38,10 +38,10 @@ import org.qcmg.qprofiler2.fastq.FastqSummarizerMT;
 import org.qcmg.qprofiler2.vcf.VcfSummarizer;
 import org.w3c.dom.Element;
 
-//xmllint --noout --schema ~/PATH/Schema.xsd file.xml
 public class QProfiler2 {
 		
-	private static QLogger logger;	
+	private static QLogger logger;
+	private static QMessage messages;
 	private final static int NO_OF_PROCESORS = Runtime.getRuntime().availableProcessors();
 	private final static String USER_DIR = System.getProperty("user.dir");
 	private final static String FILE_SEPERATOR = System.getProperty("file.separator");	
@@ -127,7 +127,9 @@ public class QProfiler2 {
 		root.setAttribute( "user", System.getProperty("user.name") );
 		root.setAttribute( "operatingSystem", System.getProperty("os.name") );
 		root.setAttribute( "version", version );
-		root.setAttribute("validationSchema", "qprofiler_2_0.xsd");
+		//add md5 to identify of schema file
+		root.setAttribute( "validationSchema", messages.getMessage("XSD_FILE") );
+		root.setAttribute( "md5OfSchema", messages.getMessage("XSD_FILE_md5") );
 		XmlElementUtils.asXmlText(root, outputFile);		
 		 			
 		return exitStatus;
@@ -232,8 +234,10 @@ public class QProfiler2 {
 	
 	public int setup(String args[]) throws Exception{
 		int returnStatus = 1;
-		Options2 options = new Options2(args);
-		QMessage messages = options.getMessage();
+		Options2 options = new Options2(args);		
+		//assign messages to global level
+		messages = options.getMessage();
+		
 		if (options.hasHelpOption()) {
 			System.err.println(messages.getUsage()  );
 			options.displayHelp();
