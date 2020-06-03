@@ -1,2 +1,2 @@
-this schema file was updated on Wed Oct 9 16:33:03 2019. it is not yet released.
-MD5 (qprofiler2.xsd) = e7041d99891bfd585e357582b503c2e7
+This folder store the newest schema file which valid the qprofiler2 xml output. This file is still under develop and not yet released
+MD5 (qprofiler2_draft.xsd) = c13e21401a9527ccdf6ceed0dc557f93
