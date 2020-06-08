@@ -9,7 +9,7 @@ ext {
     adamalib = file('adama/build/lib').absolutePath
 
     //create version from verionId 
-    new File("version.txt").withReader { verionId = it.readLine() + "-" + revision }
+    file('version.txt').withReader { verionId = it.readLine() + "-" + revision }
 }
 allprojects {
     apply plugin: 'java-library'
