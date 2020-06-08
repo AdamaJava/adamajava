@@ -9,6 +9,8 @@ ext {
     adamalib = file('adama/build/lib').absolutePath
 
     //create version from verionId 
+    // by using the file construct, we can access the version.txt from the subprojects
+    // its better groovy/gradle too
     file('version.txt').withReader { verionId = it.readLine() + "-" + revision }
 }
 allprojects {

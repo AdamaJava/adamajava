@@ -10,6 +10,7 @@ configurations {
     junit
   }
 
+// q3indel has some scala classes that require the following task (along with the scalal plugin and api dependency)
 sourceSets {
         main { java.srcDirs=['src']; resources.srcDirs=['src']; scala.srcDirs=['scala/src'] }
         test { java.srcDirs=['test']; test.resources.srcDirs=['test'];scala.srcDirs=['scala/test'] }
