@@ -11,8 +11,6 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import htsjdk.samtools.SAMRecord;
-
 import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.string.StringUtils;
@@ -22,6 +20,8 @@ import org.qcmg.motif.util.MotifMode;
 import org.qcmg.motif.util.MotifUtils;
 import org.qcmg.motif.util.MotifsAndRegexes;
 import org.qcmg.motif.util.RegionCounter;
+
+import htsjdk.samtools.SAMRecord;
 
 public class MotifCoverageAlgorithm implements Algorithm {
 	
@@ -62,7 +62,9 @@ public class MotifCoverageAlgorithm implements Algorithm {
 
 	@Override
 	public boolean applyTo(final SAMRecord read, Map<ChrPosition, RegionCounter> regions) {
-		if (null == read) throw new IllegalArgumentException("Null SAMRecord passed to applyTo");
+		if (null == read) {
+			throw new IllegalArgumentException("Null SAMRecord passed to applyTo");
+		}
 		
 		String readString = read.getReadString();
 		
@@ -82,10 +84,14 @@ public class MotifCoverageAlgorithm implements Algorithm {
 			RegionCounter rc = getCounterFromMap(regions, cp);
 			
 			// throw exception if we don't have a region for this read
-			if (null == rc) throw new IllegalArgumentException("No RegionCounter exists for region: " + cp.toIGVString());
+			if (null == rc) {
+				throw new IllegalArgumentException("No RegionCounter exists for region: " + cp.toIGVString());
+			}
 			
 			// check that our region type can handle this type of read
-			if ( ! rc.getType().acceptRead( ! read.getReadUnmappedFlag())) return false;
+			if ( ! rc.getType().acceptRead( ! read.getReadUnmappedFlag())) {
+				return false;
+			}
 			
 			rc.updateStage1Coverage();
 			
@@ -138,7 +144,9 @@ public class MotifCoverageAlgorithm implements Algorithm {
 	}
 	
 	RegionCounter getCounterFromMap(Map<ChrPosition, RegionCounter> regions, ChrPosition read) {
-		if (null == regions) throw new IllegalArgumentException("Null map passed to getCounterFromMap");
+		if (null == regions) {
+			throw new IllegalArgumentException("Null map passed to getCounterFromMap");
+		}
 		
 		for (ChrPosition cp : regions.keySet()) {
 			if (ChrPositionUtils.doChrPositionsOverlapPositionOnly(read, cp)) {
@@ -155,7 +163,9 @@ public class MotifCoverageAlgorithm implements Algorithm {
  * @return
  */
 	boolean stageOneSearch(String readString) {
-		if (StringUtils.isNullOrEmpty(readString)) return false;
+		if (StringUtils.isNullOrEmpty(readString)) {
+			return false;
+		}
 		
 		boolean result = false;
 		

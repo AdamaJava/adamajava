@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -34,13 +33,14 @@ import org.qcmg.common.model.ChrPositionComparator;
 import org.qcmg.common.util.LoadReferencedClasses;
 import org.qcmg.motif.util.MotifConstants;
 import org.qcmg.motif.util.MotifMode;
-import org.qcmg.motif.util.MotifUtils;
 import org.qcmg.motif.util.MotifsAndRegexes;
 import org.qcmg.motif.util.RegionCounter;
 import org.qcmg.motif.util.RegionType;
 import org.qcmg.motif.util.SummaryStats;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+
+import gnu.trove.map.hash.THashMap;
 
 public final class Motif {
 	
@@ -59,11 +59,8 @@ public final class Motif {
 	}
 	
 	private void addToMap(Map<String, AtomicInteger> map, String key, AtomicInteger value) {
-		if (map.containsKey(key)) {
-			AtomicInteger existingValue = map.get(key);
-			existingValue.addAndGet(value.get());
-		} else {
-			map.put(key, value);
+		if (null != map && null != key && null != value) {
+			map.computeIfAbsent(key, f -> new AtomicInteger()).addAndGet(value.get());
 		}
 	}
 
@@ -211,23 +208,6 @@ public final class Motif {
 		countsE.appendChild(scaledGenomicE);
 		countsE.appendChild(coveredBasesE);
 		
-		// add the list of user defined includes
-//		Element includesE = doc.createElement("includes");
-//		summaryE.appendChild(includesE);
-//		
-//		List<ChrPosition> includes = new ArrayList<>();
-//		for (Entry<ChrPosition, RegionCounter> entry : results.entrySet()) {
-//			if (RegionType.INCLUDES == entry.getValue().getType()) {
-//				includes.add(entry.getKey());
-//			}
-//		}
-//		Collections.sort(includes);
-//		
-//		for (ChrPosition cp : includes) {
-//			Element includeE = doc.createElement("region");
-//			includesE.appendChild(includeE);
-//			includeE.setAttribute("chrPos", cp.toIGVString());
-//		}
 			
 		// list motifs
 		Element motifsE = doc.createElement("motifs");
@@ -235,25 +215,19 @@ public final class Motif {
 			
 		// get the unique list of motifs from results map
 		
-		Map<String, AtomicInteger> motifs = new HashMap<>();
+		Map<String, AtomicInteger> motifs = new THashMap<>();
 		Collection<RegionCounter> rcs = results.values();
 		for (RegionCounter rc : rcs) {
 			if (rc.hasMotifs()) {
-				if (null != rc.getMotifsForwardStrand()) {
-//					Map<String, AtomicInteger> motifsFS = rc.getMotifsForwardStrand();
-					Map<String, AtomicInteger> motifsFS = MotifUtils.convertStringArrayToMap(rc.getMotifsForwardStrand());
-					for (Entry<String, AtomicInteger> entry : motifsFS.entrySet()) {
-						// add to allMotifs if not already there
-						addToMap(motifs, entry.getKey(), entry.getValue());
-					}
+				Map<String, AtomicInteger> motifsFS = rc.getMotifsForwardStrand();
+				for (Entry<String, AtomicInteger> entry : motifsFS.entrySet()) {
+					// add to allMotifs if not already there
+					addToMap(motifs, entry.getKey(), entry.getValue());
 				}
-				if (null != rc.getMotifsReverseStrand()) {
-//					Map<String, AtomicInteger> motifsRS = rc.getMotifsReverseStrand();
-					Map<String, AtomicInteger> motifsRS = MotifUtils.convertStringArrayToMap(rc.getMotifsReverseStrand());
-					for (Entry<String, AtomicInteger> entry : motifsRS.entrySet()) {
-						// add to allMotifs if not already there
-						addToMap(motifs, entry.getKey(), entry.getValue());
-					}
+				Map<String, AtomicInteger> motifsRS = rc.getMotifsReverseStrand();
+				for (Entry<String, AtomicInteger> entry : motifsRS.entrySet()) {
+					// add to allMotifs if not already there
+					addToMap(motifs, entry.getKey(), entry.getValue());
 				}
 			}
 		}
@@ -290,27 +264,21 @@ public final class Motif {
 				regionsE.appendChild(regionE);
 				
 				// set motifs
-				if (null != rc.getMotifsForwardStrand()) {
-//					Map<String, AtomicInteger> motifsFS = rc.getMotifsForwardStrand();
-					Map<String, AtomicInteger> motifsFS = MotifUtils.convertStringArrayToMap(rc.getMotifsForwardStrand());
-					for (Entry<String, AtomicInteger> entry : motifsFS.entrySet()) {
-						Element motifFSE = doc.createElement("motif");
-						motifFSE.setAttribute("motifRef", (orderedMotifs.indexOf(entry.getKey()) + 1) + "");
-						motifFSE.setAttribute("number", entry.getValue().get() + "");
-						motifFSE.setAttribute("strand", "F");
-						regionE.appendChild(motifFSE);
-					}
+				Map<String, AtomicInteger> motifsFS = rc.getMotifsForwardStrand();
+				for (Entry<String, AtomicInteger> entry : motifsFS.entrySet()) {
+					Element motifFSE = doc.createElement("motif");
+					motifFSE.setAttribute("motifRef", (orderedMotifs.indexOf(entry.getKey()) + 1) + "");
+					motifFSE.setAttribute("number", entry.getValue().get() + "");
+					motifFSE.setAttribute("strand", "F");
+					regionE.appendChild(motifFSE);
 				}
-				if (null != rc.getMotifsReverseStrand()) {
-//					Map<String, AtomicInteger> motifsRS = rc.getMotifsReverseStrand();
-					Map<String, AtomicInteger> motifsRS = MotifUtils.convertStringArrayToMap(rc.getMotifsReverseStrand());
-					for (Entry<String, AtomicInteger> entry : motifsRS.entrySet()) {
-						Element motifFSE = doc.createElement("motif");
-						motifFSE.setAttribute("motifRef", (orderedMotifs.indexOf(entry.getKey()) +1) + "");
-						motifFSE.setAttribute("number", entry.getValue().get() + "");
-						motifFSE.setAttribute("strand", "R");
-						regionE.appendChild(motifFSE);
-					}
+				Map<String, AtomicInteger> motifsRS = rc.getMotifsReverseStrand();
+				for (Entry<String, AtomicInteger> entry : motifsRS.entrySet()) {
+					Element motifFSE = doc.createElement("motif");
+					motifFSE.setAttribute("motifRef", (orderedMotifs.indexOf(entry.getKey()) +1) + "");
+					motifFSE.setAttribute("number", entry.getValue().get() + "");
+					motifFSE.setAttribute("strand", "R");
+					regionE.appendChild(motifFSE);
 				}
 			}
 		}

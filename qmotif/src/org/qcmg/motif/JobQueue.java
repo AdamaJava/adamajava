@@ -7,7 +7,6 @@
 package org.qcmg.motif;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.AbstractQueue;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -19,16 +18,13 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-
-import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SAMFileHeader.SortOrder;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMFileWriter;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SAMSequenceRecord;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -37,13 +33,19 @@ import org.qcmg.common.model.ChrPositionComparator;
 import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.util.Pair;
 import org.qcmg.motif.util.MotifConstants;
-import org.qcmg.motif.util.MotifUtils;
 import org.qcmg.motif.util.MotifsAndRegexes;
 import org.qcmg.motif.util.RegionCounter;
 import org.qcmg.motif.util.SummaryStats;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.SAMOrBAMWriterFactory;
 import org.qcmg.qbamfilter.query.QueryExecutor;
+
+import htsjdk.samtools.SAMFileHeader;
+import htsjdk.samtools.SAMFileHeader.SortOrder;
+import htsjdk.samtools.SAMFileWriter;
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SAMSequenceRecord;
+import htsjdk.samtools.SamReader;
 
 public final class JobQueue {
 	
@@ -146,16 +148,21 @@ public final class JobQueue {
 		execute();
 	}
 
-	private void execute() throws Exception, IOException {
+	private void execute() throws Exception {
+		
+		/*
+		 * start the writing thread now
+		 */
+		CountDownLatch latch = new CountDownLatch(1);
+		ExecutorService executor =  Executors.newSingleThreadExecutor();
+		executor.execute(new Writing(outputQueue, Thread.currentThread(), latch));
+		
+		
 		logger.info("Queueing jobs");
 		queueJobs();
 		logger.info("Commencing processing of jobs...");
-		processJobs();
+		processJobs(latch);
 		logger.info("All jobs completed");
-		
-		logger.info("Writing output: " + outputQueue.size());
-		writeOutput();
-		logger.info("DONE - Writing output");
 		
 		logger.info("total number from input is " + countIn.get());
 		logger.info("total number of reads (satisfied by the query if query provided) count to coverage is " + countOut.get());
@@ -164,17 +171,11 @@ public final class JobQueue {
 		reduceResults();
 		logger.info("Final reduce step complete");
 //		logger.debug("Final reduced results: " + perIdPerCoverageBaseCounts);
+		executor.shutdown();
+		executor.awaitTermination(10, TimeUnit.HOURS);
+		
 	}
 	
-	private void writeOutput() {
-		if (outputQueue.isEmpty()) return;
-		try (SAMFileWriter writer= bamWriterFactory.getWriter()) {
-			for (SAMRecord rec : outputQueue) {
-				writer.addAlignment(rec);
-			}
-		}
-	}
-
 	private void queueJobs() throws Exception {
 		queueCoverageJobs();
 		queueTerminationJobs();
@@ -210,7 +211,9 @@ public final class JobQueue {
 		int motifIndex = 1;
 		
 		if (motifsAndRegexes.getMotifMode().stageTwoString()) {
-			for (String m : motifsAndRegexes.getStageTwoMotifs().getMotifs()) logger.info("motif " + motifIndex++ + ": " + m);
+			for (String m : motifsAndRegexes.getStageTwoMotifs().getMotifs()) {
+				logger.info("motif " + motifIndex++ + ": " + m);
+			}
 		}
 		
 		List<String> resultsList = new ArrayList<>();
@@ -235,46 +238,25 @@ public final class JobQueue {
 				int noOfMotifHitsFS = 0;
 				int noOfMotifHitsRS = 0;
 				
-				StringBuilder fs = null;
-				if (null != rc.getMotifsForwardStrand()) {
-					Map<String, AtomicInteger> motifsFS = MotifUtils.convertStringArrayToMap(rc.getMotifsForwardStrand());
+				if ( ! rc.getMotifsForwardStrand().isEmpty()) {
+					Map<String, AtomicInteger> motifsFS = rc.getMotifsForwardStrand();
 					noOfMotifsFS = motifsFS.size();
-					fs = new StringBuilder("FS: ");
-					int i = 0;
 					for (Entry<String, AtomicInteger> entry : motifsFS.entrySet()) {
 						// add to allMotifs if not already there
 						addToMap(allMotifs, entry.getKey(), entry.getValue());
-						
 						noOfMotifHitsFS += entry.getValue().get();
-						if (i++ > 1) fs.append(",");
-						fs.append(entry.getKey()).append("(").append(entry.getValue().get()).append(")");
-						
 						basesCoveredByMotifs += entry.getKey().length() * entry.getValue().intValue();
 					}
 				}
-				StringBuilder rs = null;
-				if (null != rc.getMotifsReverseStrand()) {
-					Map<String, AtomicInteger> motifsRS = MotifUtils.convertStringArrayToMap(rc.getMotifsReverseStrand());
+				if ( ! rc.getMotifsReverseStrand().isEmpty()) {
+					Map<String, AtomicInteger> motifsRS = rc.getMotifsReverseStrand();
 					noOfMotifsRS = motifsRS.size();
-					rs = new StringBuilder("RS: ");
-					int i = 0;
 					for (Entry<String, AtomicInteger> entry : motifsRS.entrySet()) {
 						// add to allMotifs if not already there
 						addToMap(allMotifs, entry.getKey(), entry.getValue());
-						
 						noOfMotifHitsRS += entry.getValue().get();
-						if (i++ > 1) rs.append(",");
-						rs.append(entry.getKey()).append("(").append(entry.getValue().get()).append(")");
-						
 						basesCoveredByMotifs += entry.getKey().length() * entry.getValue().intValue();
 					}
-				}
-				
-				String motifs = (null != fs ? fs.toString() : "");
-				
-				if (null != rs) {
-					if (motifs.length() > 0) motifs += " : ";
-					motifs += rs.toString();
 				}
 				
 				// overwrite motifs for now - may want to put big list of bumf back in there soon...
@@ -288,7 +270,7 @@ public final class JobQueue {
 				default:
 					break;
 				}
-				motifs = "Stage 1 coverage: " + rc.getStage1Coverage() + ", stage 2 coverage: " + rc.getStage2Coverage();
+				String motifs = "Stage 1 coverage: " + rc.getStage1Coverage() + ", stage 2 coverage: " + rc.getStage2Coverage();
 				motifs += ", # FS motifs: " + noOfMotifsFS + "(" + noOfMotifHitsFS + "), # RS motifs: " + noOfMotifsRS + "(" + noOfMotifHitsRS + ")";
 				
 				resultsList.add(orderedCP.toIGVString() + " [" + rc.getType() + "] : " + motifs);
@@ -297,7 +279,9 @@ public final class JobQueue {
 		
 		if ( ! resultsList.isEmpty()) {
 			logger.info("SUMMARY: (window size: " + windowSize + ")");
-			for (String s : resultsList) logger.info(s);
+			for (String s : resultsList) {
+				logger.info(s);
+			}
 			
 			logger.info("motif details:");
 			logger.info("No of unique motifs: " + allMotifs.size());
@@ -333,7 +317,7 @@ public final class JobQueue {
 		}
 	}
 
-	private void processJobs() throws Exception {
+	private void processJobs(CountDownLatch latch) throws Exception {
 		HashSet<WorkerThread> workerThreads = new HashSet<>();
 		for (int j = 0; j < numberThreads; j++) {
 			WorkerThread thread = new WorkerThread(jobQueue, loggerInfo, Thread.currentThread());
@@ -348,11 +332,60 @@ public final class JobQueue {
 			results.putAll(thread.getReducedResults());
 		}
 		logger.debug("Results from threads gathered, no of entries in results map: " + results.size());
+		latch.countDown();
 	}
 
 	
 	public SummaryStats getResults() {
 		return ss;
+	}
+	
+	private class Writing implements Runnable {
+		
+//		private final File file;
+		private final AbstractQueue<SAMRecord> queue;
+		private final Thread mainThread;
+		private final CountDownLatch latch;
+
+		public Writing(AbstractQueue<SAMRecord> q,  Thread mainThread, CountDownLatch latch) {
+			queue = q;
+//			file = f;
+			this.mainThread = mainThread;
+			this.latch = latch;
+		}
+
+		@Override
+		public void run() {
+			boolean run = true;
+			long count = 0;
+			SAMRecord record;
+			try (SAMFileWriter writer= bamWriterFactory.getWriter()) {
+				while (run) {
+					// when queue is empty,maybe filtering is done
+					if ((record = queue.poll()) == null) {
+						if (latch.getCount() == 0) {
+							/*
+							 * the queue could have been added to since our last check (we did have a quick sleep after all
+							 * Check size again before pulling the plug
+							 */
+							if (queue.isEmpty()) {
+								run = false;
+								logger.info("latch has counted down and queue is empty - exiting Writing thread, record written: " + count);
+							}
+						}
+					} else {
+						
+						
+						writer.addAlignment(record);
+						count++;
+						
+						if (count % 1000000 == 0) {
+							logger.info("have written " + count + " SAMRecords to file, queue size: " + queue.size());
+						}
+					}
+				}
+			}
+		}
 	}
 
 }

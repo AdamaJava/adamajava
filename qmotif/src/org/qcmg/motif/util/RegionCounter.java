@@ -6,15 +6,23 @@
  */
 package org.qcmg.motif.util;
 
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import org.qcmg.common.string.StringUtils;
+
+import gnu.trove.map.hash.THashMap;
 
 public class RegionCounter {
 	
+	private final static String MOTIF_DELIMITER = MotifUtils.M_D + "";
+	
 	private final RegionType type;
-	private StringBuilder motifsFS;
-	private StringBuilder motifsRS;
 	private int stage1Cov;
 	private int stage2Cov;
+	
+	private final Map<String, AtomicInteger> motifsFS = new THashMap<>(32);
+	private final Map<String, AtomicInteger> motifsRS = new THashMap<>(32);
 	
 	
 	public RegionCounter(RegionType type) {
@@ -22,27 +30,30 @@ public class RegionCounter {
 	}
 	
 	public void addMotif(String motif, boolean forwardStrand, boolean isMapped) {
-		if (StringUtils.isNullOrEmpty(motif)) throw new IllegalArgumentException("Null or empty motif passed to addMotif");
+		if (StringUtils.isNullOrEmpty(motif)) {
+			throw new IllegalArgumentException("Null or empty motif passed to addMotif");
+		}
 		
 		// should we check the type here and only increment if its an incremental type? - I think so
 		if (type.acceptRead(isMapped)) {
+			String [] motifs = new String[] {motif};
+			if (motif.indexOf(MotifUtils.M_D) > -1) {
+				motifs = motif.split(MOTIF_DELIMITER);
+			}
 			if (forwardStrand) {
-				if (null == motifsFS) {
-					motifsFS = new StringBuilder();
+				for (String m : motifs) {
+					motifsFS.computeIfAbsent(m, f -> new AtomicInteger()).incrementAndGet();
 				}
-				MotifUtils.addMotifToString(motifsFS, motif);
 			} else {
-				if (null == motifsRS) {
-					motifsRS =  new StringBuilder();
+				for (String m : motifs) {
+					motifsRS.computeIfAbsent(m, f -> new AtomicInteger()).incrementAndGet();
 				}
-				MotifUtils.addMotifToString(motifsRS, motif);
 			}
 		}
 	}
 	
 	public boolean hasMotifs() {
-		return (null != motifsFS && motifsFS.length() > 0)
-				|| (null != motifsRS && motifsRS.length() > 0);
+		return motifsFS.size() > 0 || motifsRS.size() > 0;
 	}
 	
 	public RegionType getType() {
@@ -55,11 +66,11 @@ public class RegionCounter {
 				+ ", motifsRS=" + motifsRS + "]";
 	}
 
-	public String getMotifsForwardStrand() {
-		return null == motifsFS ? null :  motifsFS.toString();
+	public Map<String, AtomicInteger> getMotifsForwardStrand() {
+		return motifsFS;
 	}
-	public  String getMotifsReverseStrand() {
-		return null == motifsRS ? null :  motifsRS.toString();
+	public  Map<String, AtomicInteger> getMotifsReverseStrand() {
+		return motifsRS;
 	}
 	
 	public void updateStage1Coverage() {

@@ -16,8 +16,8 @@ import java.util.stream.Collectors;
 
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrPositionComparator;
-import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.model.ChrPositionName;
+import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.Constants;
@@ -29,8 +29,9 @@ public class MotifUtils {
 	public static final char M_D = Constants.COLON;
 	
 	public static Map<String, AtomicInteger> convertStringArrayToMap(String data) {
-		if (StringUtils.isNullOrEmpty(data))
+		if (StringUtils.isNullOrEmpty(data)) {
 			throw new IllegalArgumentException("Null or empty String array passed to convertStringArrayToMap");
+		}
 		
 		String [] arrayData = data.indexOf(M_D) == -1 ? new String[] {data} : TabTokenizer.tokenize(data, M_D);
 		
