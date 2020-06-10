@@ -342,14 +342,12 @@ public final class JobQueue {
 	
 	private class Writing implements Runnable {
 		
-//		private final File file;
 		private final AbstractQueue<SAMRecord> queue;
 		private final Thread mainThread;
 		private final CountDownLatch latch;
 
 		public Writing(AbstractQueue<SAMRecord> q,  Thread mainThread, CountDownLatch latch) {
 			queue = q;
-//			file = f;
 			this.mainThread = mainThread;
 			this.latch = latch;
 		}
@@ -361,7 +359,6 @@ public final class JobQueue {
 			SAMRecord record;
 			try (SAMFileWriter writer= bamWriterFactory.getWriter()) {
 				while (run) {
-					// when queue is empty,maybe filtering is done
 					if ((record = queue.poll()) == null) {
 						if (latch.getCount() == 0) {
 							/*
