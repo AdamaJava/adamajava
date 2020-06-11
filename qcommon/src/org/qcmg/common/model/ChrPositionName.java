@@ -56,7 +56,7 @@ public class ChrPositionName extends ChrRangePosition implements ChrPosition {
 	public int hashCode() {
 	    int result = hashCode;
 	    if (result == 0) {
-	    	result = 17;
+			result = 17;
 			final int prime = 31;
 			result = super.hashCode();
 			result = prime * result + ((name == null) ? 0 : name.hashCode());

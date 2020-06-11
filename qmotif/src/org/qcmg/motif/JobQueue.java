@@ -170,7 +170,6 @@ public final class JobQueue {
 		logger.info("Performing final reduce step on results");
 		reduceResults();
 		logger.info("Final reduce step complete");
-//		logger.debug("Final reduced results: " + perIdPerCoverageBaseCounts);
 		executor.shutdown();
 		executor.awaitTermination(10, TimeUnit.HOURS);
 		
