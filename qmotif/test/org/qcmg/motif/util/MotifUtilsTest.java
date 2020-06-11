@@ -18,8 +18,6 @@ import org.qcmg.common.util.ChrPositionUtils;
 
 public class MotifUtilsTest {
 	
-//	public static final int buffer = 1000;
-	
 	@Test(expected=IllegalArgumentException.class)
 	public void nullString() {
 		MotifUtils.convertStringArrayToMap(null);
@@ -76,23 +74,7 @@ public class MotifUtilsTest {
 		assertEquals(newMotif + ":" + newMotif, existingMotif.toString());
 		MotifUtils.addMotifToString(existingMotif, newMotif);
 		assertEquals("ABCDEFG:ABCDEFG:ABCDEFG", existingMotif.toString());
-//		assertEquals(newMotif + MotifUtils.M_D + newMotif, existingMotif.toString());
 	}
-//	@Test
-//	public void addMotifToString() {
-//		Map<String, AtomicInteger> existingMotif = null;
-//		MotifUtils.addMotifToString(existingMotif, null);
-//		assertEquals(null,  existingMotif);
-//		String newMotif = "ABCDEFG";
-//		MotifUtils.addMotifToString(existingMotif, newMotif);
-//		assertEquals(null,  existingMotif);
-//		existingMotif =new HashMap<>();
-//		MotifUtils.addMotifToString(existingMotif, newMotif);
-//		assertEquals(true, existingMotif.containsKey(newMotif));
-//		MotifUtils.addMotifToString(existingMotif, newMotif);
-//		assertEquals(2, existingMotif.get(newMotif).intValue());
-////		assertEquals(newMotif + MotifUtils.M_D + newMotif, existingMotif.toString());
-//	}
 	
 	@Test(expected=IllegalArgumentException.class)
 	public void nullChromosome() {
@@ -140,17 +122,15 @@ public class MotifUtilsTest {
 			existingPositions.add(cp);
 		}
 		
-		List<ChrPosition> newPositions = new ArrayList<>();
-		ChrRangePosition cp = new ChrRangePosition("1", 1, 1000000);
-		newPositions.add(cp);
+		List<ChrPosition> newPositions = new ArrayList<>(2);
+		newPositions.add(new ChrRangePosition("1", 1, 1000000));
 		
 		List<ChrPosition> overlap = MotifUtils.getExistingOverlappingPositions(existingPositions, newPositions);
 		assertEquals(99, overlap.size());
 		
 		// change so that only 1overlap is in place
-		cp = new ChrRangePosition("1", 6009, 6100);
 		newPositions.clear();
-		newPositions.add(cp);
+		newPositions.add(new ChrRangePosition("1", 6009, 6100));
 		overlap = MotifUtils.getExistingOverlappingPositions(existingPositions, newPositions);
 		assertEquals(1, overlap.size());
 	}
@@ -188,8 +168,13 @@ public class MotifUtilsTest {
 		regions = MotifUtils.getRegionMap(new ChrRangePosition("1", 1, size), windowSize, null, new ArrayList<ChrPosition>());
 		assertEquals((size ) / windowSize, regions.size());
 		
-		size = 1000000;
+		size = 10000;
 		windowSize = 1;
+		regions = MotifUtils.getRegionMap(new ChrRangePosition("1", 1, size), windowSize, null, null);
+		assertEquals((size ) / windowSize, regions.size());
+		
+		size = 1000000;
+		windowSize = 100;
 		regions = MotifUtils.getRegionMap(new ChrRangePosition("1", 1, size), windowSize, null, null);
 		assertEquals((size ) / windowSize, regions.size());
 		
@@ -213,13 +198,11 @@ public class MotifUtilsTest {
 	
 	@Test
 	public void includesCoversWholeContig() {
-		List<ChrPosition> includes = new ArrayList<>();
+		List<ChrPosition> includes = new ArrayList<>(2);
 		ChrRangePosition includedCP = new ChrRangePosition("chr6_ssto_hap7", 1, 4928567);
 		includes.add(includedCP);
 		
 		Map<ChrPosition, RegionCounter> regions = MotifUtils.getRegionMap(new ChrRangePosition("chr6_ssto_hap7",1,  4928567), 100000, includes, null);
-		
-		//TODO this should be 1...
 		assertEquals(1, regions.size());
 		
 		// increase contig length by 1
@@ -234,15 +217,18 @@ public class MotifUtilsTest {
 	public void getRegionWithIncludesDirectSwap() {
 		int size = 100;
 		int windowSize = 10;
-		List<ChrPosition> includes = new ArrayList<>();
+		List<ChrPosition> includes = new ArrayList<>(2);
 		ChrRangePosition includedCP = new ChrRangePosition("1", 11, 20);
 		includes.add(includedCP);
-		Map<ChrPosition, RegionCounter> regions = MotifUtils.getRegionMap(new ChrRangePosition("1",1, size), windowSize, includes, null);
+		Map<ChrPosition, RegionCounter> regions = MotifUtils.getRegionMap(new ChrRangePosition("1", 1, size), windowSize, includes, null);
 		assertEquals(((size ) / windowSize), regions.size());
 		
 		for (Entry<ChrPosition, RegionCounter> entry : regions.entrySet()) {
-			if (entry.getKey().equals(includedCP)) assertEquals(RegionType.INCLUDES, entry.getValue().getType());
-			else assertEquals(RegionType.GENOMIC, entry.getValue().getType());
+			if (entry.getKey().equals(includedCP)) {
+				assertEquals(RegionType.INCLUDES, entry.getValue().getType());
+			} else {
+				assertEquals(RegionType.GENOMIC, entry.getValue().getType());
+			}
 		}
 		
 		// want to check that I have uniform coverage over my region
@@ -254,15 +240,18 @@ public class MotifUtilsTest {
 	public void getRegionWithIncludesPartialSwap() {
 		int size = 100;
 		int windowSize = 10;
-		List<ChrPosition> includes = new ArrayList<>();
+		List<ChrPosition> includes = new ArrayList<>(2);
 		ChrRangePosition includedCP = new ChrRangePosition("1", 12, 15);
 		includes.add(includedCP);
 		Map<ChrPosition, RegionCounter> regions = MotifUtils.getRegionMap(new ChrRangePosition("1", 1, size), windowSize, includes, null);
 		assertEquals(((size ) / windowSize) + 2, regions.size());
 		
 		for (Entry<ChrPosition, RegionCounter> entry : regions.entrySet()) {
-			if (entry.getKey().equals(includedCP)) assertEquals(RegionType.INCLUDES, entry.getValue().getType());
-			else assertEquals(RegionType.GENOMIC, entry.getValue().getType());
+			if (entry.getKey().equals(includedCP)) {
+				assertEquals(RegionType.INCLUDES, entry.getValue().getType());
+			} else {
+				assertEquals(RegionType.GENOMIC, entry.getValue().getType());
+			}
 		}
 		
 		// want to check that I have uniform coverage over my region
@@ -274,15 +263,18 @@ public class MotifUtilsTest {
 	public void getRegionWithIncludesMultipleSwap() {
 		int size = 100;
 		int windowSize = 10;
-		List<ChrPosition> includes = new ArrayList<>();
+		List<ChrPosition> includes = new ArrayList<>(2);
 		ChrRangePosition includedCP = new ChrRangePosition("1", 10, 50);
 		includes.add(includedCP);
 		Map<ChrPosition, RegionCounter> regions = MotifUtils.getRegionMap(new ChrRangePosition("1", 1, size), windowSize, includes, null);
 		assertEquals(7, regions.size());
 		
 		for (Entry<ChrPosition, RegionCounter> entry : regions.entrySet()) {
-			if (entry.getKey().equals(includedCP)) assertEquals(RegionType.INCLUDES, entry.getValue().getType());
-			else assertEquals(RegionType.GENOMIC, entry.getValue().getType());
+			if (entry.getKey().equals(includedCP)) {
+				assertEquals(RegionType.INCLUDES, entry.getValue().getType());
+			} else {
+				assertEquals(RegionType.GENOMIC, entry.getValue().getType());
+			}
 		}
 		
 		// want to check that I have uniform coverage over my region
@@ -294,15 +286,18 @@ public class MotifUtilsTest {
 	public void getRegionWithExcludesDirectSwap() {
 		int size = 100;
 		int windowSize = 10;
-		List<ChrPosition> excludes = new ArrayList<>();
+		List<ChrPosition> excludes = new ArrayList<>(2);
 		ChrRangePosition excludedCP = new ChrRangePosition("1", 11, 20);
 		excludes.add(excludedCP);
 		Map<ChrPosition, RegionCounter> regions = MotifUtils.getRegionMap(new ChrRangePosition("1", 1, size), windowSize, null, excludes);
 		assertEquals(((size ) / windowSize), regions.size());
 		
 		for (Entry<ChrPosition, RegionCounter> entry : regions.entrySet()) {
-			if (entry.getKey().equals(excludedCP)) assertEquals(RegionType.EXCLUDES, entry.getValue().getType());
-			else assertEquals(RegionType.GENOMIC, entry.getValue().getType());
+			if (entry.getKey().equals(excludedCP)) {
+				assertEquals(RegionType.EXCLUDES, entry.getValue().getType());
+			} else {
+				assertEquals(RegionType.GENOMIC, entry.getValue().getType());
+			}
 		}
 		
 		// want to check that I have uniform coverage over my region
@@ -314,15 +309,18 @@ public class MotifUtilsTest {
 	public void getRegionWithExcludesPartialSwap() {
 		int size = 100;
 		int windowSize = 10;
-		List<ChrPosition> excludes = new ArrayList<>();
+		List<ChrPosition> excludes = new ArrayList<>(2);
 		ChrRangePosition excludedCP = new ChrRangePosition("1", 10, 15);
 		excludes.add(excludedCP);
 		Map<ChrPosition, RegionCounter> regions = MotifUtils.getRegionMap(new ChrRangePosition("1",1, size), windowSize, null, excludes);
 		assertEquals(11, regions.size());
 		
 		for (Entry<ChrPosition, RegionCounter> entry : regions.entrySet()) {
-			if (entry.getKey().equals(excludedCP)) assertEquals(RegionType.EXCLUDES, entry.getValue().getType());
-			else assertEquals(RegionType.GENOMIC, entry.getValue().getType());
+			if (entry.getKey().equals(excludedCP)) {
+				assertEquals(RegionType.EXCLUDES, entry.getValue().getType());
+			} else {
+				assertEquals(RegionType.GENOMIC, entry.getValue().getType());
+			}
 		}
 		
 		// want to check that I have uniform coverage over my region
@@ -334,15 +332,18 @@ public class MotifUtilsTest {
 	public void getRegionWithExcludesMultipleSwap() {
 		int size = 100;
 		int windowSize = 10;
-		List<ChrPosition> excludes = new ArrayList<>();
+		List<ChrPosition> excludes = new ArrayList<>(2);
 		ChrRangePosition excludedCP = new ChrRangePosition("1", 10, 50);
 		excludes.add(excludedCP);
 		Map<ChrPosition, RegionCounter> regions = MotifUtils.getRegionMap(new ChrRangePosition("1", 1, size), windowSize, null, excludes);
 		assertEquals(7, regions.size());
 		
 		for (Entry<ChrPosition, RegionCounter> entry : regions.entrySet()) {
-			if (entry.getKey().equals(excludedCP)) assertEquals(RegionType.EXCLUDES, entry.getValue().getType());
-			else assertEquals(RegionType.GENOMIC, entry.getValue().getType());
+			if (entry.getKey().equals(excludedCP)) {
+				assertEquals(RegionType.EXCLUDES, entry.getValue().getType());
+			} else {
+				assertEquals(RegionType.GENOMIC, entry.getValue().getType());
+			}
 		}
 		
 		// want to check that I have uniform coverage over my region
@@ -350,12 +351,11 @@ public class MotifUtilsTest {
 		testUniformCoverage(regionChrPos, size);
 	}
 	
-	
 	@Test
 	public void getRegionWithIncludesAndExcludes() {
 		int size = 100;
 		int windowSize = 10;
-		List<ChrPosition> includes = new ArrayList<>();
+		List<ChrPosition> includes = new ArrayList<>(2);
 		ChrRangePosition includedCP = new ChrRangePosition("1", 5, 18);
 		includes.add(includedCP);
 		
@@ -374,7 +374,6 @@ public class MotifUtilsTest {
 		// want to check that I have uniform coverage over my region
 		Set<ChrPosition> regionChrPos = regions.keySet();
 		testUniformCoverage(regionChrPos, size);
-		
 	}
 	
 	
@@ -384,7 +383,7 @@ public class MotifUtilsTest {
 		ChrRangePosition contig = new ChrRangePosition("chr1", 1, 249250621);
 		
 		ChrRangePosition include = new ChrRangePosition("chr1", 10001,12464);
-		List<ChrPosition> includes = new ArrayList<>();
+		List<ChrPosition> includes = new ArrayList<>(2);
 		includes.add(include);
 		
 		int expectedRegions = contig.getLength() / windowSize;
@@ -402,7 +401,7 @@ public class MotifUtilsTest {
 		ChrRangePosition include1 = new ChrRangePosition("chr16", 60001,62033);
 		ChrRangePosition include2 = new ChrRangePosition("chr16", 90292753,90294752);
 		
-		List<ChrPosition> includes = new ArrayList<>();
+		List<ChrPosition> includes = new ArrayList<>(3);
 		includes.add(include1);
 		includes.add(include2);
 		Map<ChrPosition, RegionCounter> map = MotifUtils.getRegionMap(contig, windowSize, includes, null);
@@ -423,7 +422,6 @@ public class MotifUtilsTest {
 		Collections.reverse(list);
 		
 		assertEquals(expectedRegions + 4, map.size());
-		
 	}
 	
 	@Test
@@ -431,7 +429,7 @@ public class MotifUtilsTest {
 		int size = 59373566;
 		int windowSize = 10000;
 		
-		List<ChrPosition> includes = new ArrayList<>();
+		List<ChrPosition> includes = new ArrayList<>(3);
 		includes.add(ChrPositionUtils.getChrPositionFromString("chrY:10001-12033"));
 		includes.add(ChrPositionUtils.getChrPositionFromString("chrY:59360739-59363565"));
 		
@@ -444,7 +442,6 @@ public class MotifUtilsTest {
 		testUniformCoverage(regionChrPos, size, "chrY");
 	}
 
-	
 	private void testUniformCoverage(Set<ChrPosition> regionChrPos, int size) {
 		testUniformCoverage(regionChrPos, size, "1");
 	}
@@ -452,17 +449,20 @@ public class MotifUtilsTest {
 	private void testUniformCoverage(Set<ChrPosition> regionChrPos, int size, String chr) {
 		int[] coverage = new int[size];
 		// 1-based so populate the first entry
-		coverage[0] =1;
+		coverage[0] = 1;
 		
 		for (ChrPosition cp : regionChrPos) {
 			for (int i = cp.getStartPosition() ; i <= cp.getEndPosition() ; i++) {
-				if (i < size) coverage[i]++;
+				if (i < size) {
+					coverage[i]++;
+				}
 			}
 		}
 		
 		// each position in the array should be equal to 1
-		for (int i : coverage) assertEquals(1, i);
-		
+		for (int i : coverage) {
+			assertEquals(1, i);
+		}
 	}
 	
 }

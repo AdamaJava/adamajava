@@ -9,18 +9,18 @@ package org.qcmg.motif;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import htsjdk.samtools.reference.FastaSequenceFile;
-import htsjdk.samtools.reference.ReferenceSequence;
-
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrRangePosition;
+
+import gnu.trove.map.hash.THashMap;
+import htsjdk.samtools.reference.FastaSequenceFile;
+import htsjdk.samtools.reference.ReferenceSequence;
 
 
 public class ReferenceMotifFinder {
@@ -42,8 +42,8 @@ public class ReferenceMotifFinder {
 	QLogger logger;
 	String currentChr;
 	String currentRefSequence;
-	Map<ChrRangePosition, String> positionsWithMotifs = new HashMap<>(); 
-	Map<ChrRangePosition, String> positionsWithMotifsRegex = new HashMap<>(); 
+	Map<ChrRangePosition, String> positionsWithMotifs = new THashMap<>(); 
+	Map<ChrRangePosition, String> positionsWithMotifsRegex = new THashMap<>(); 
 	
 	public Map<ChrRangePosition, String> getPositionsWithMotifs() {
 		return positionsWithMotifsRegex;
