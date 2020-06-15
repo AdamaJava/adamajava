@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="admajava/xsd/qprofiler2/V2">
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="adamajava/xsd/qprofiler2/V2" 
+		   xmlns="adamajava/xsd/qprofiler2/V2" elementFormDefault="qualified" >
 
   <!-- simpleTypes -->
 <xs:simpleType name="nonEmptyString">
