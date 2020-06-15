@@ -130,7 +130,8 @@ public class QProfiler2 {
 		
 		//Since the XML Schema defines "targetNamespace", we have to declare the namespace in any XML 
 		root.setAttribute( "xmlns", messages.getMessage("XSD_NAMESPACE") );		 
-		root.setAttribute( "xmlns:xs", "http://www.wc3.org/2001XMLSchema-instance" );
+	  //root.setAttribute( "xmlns:xs", "http://www.wc3.org/2001XMLSchema-instance" );
+		root.setAttribute( "xmlns:xs", "http://www.w3.org/2001/XMLSchema-instance");
 		root.setAttribute( "xs:schemaLocation", messages.getMessage("XSD_NAMESPACE") + " " + messages.getMessage("XSD_FILE"));		
 		
 		//debug: keep it now in case xs:schemaLocation not work with ngscheck
