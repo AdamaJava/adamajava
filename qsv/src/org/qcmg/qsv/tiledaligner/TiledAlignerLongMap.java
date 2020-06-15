@@ -293,21 +293,45 @@ public class TiledAlignerLongMap {
 			if (s.charAt(0) != 'C') {
 				int commaIndex = s.indexOf(Constants.COMMA);
 				int oldCommaIndex = 0;
-				TIntList list = new TIntArrayList(500); 
+				int sizeOfArray = org.apache.commons.lang3.StringUtils.countMatches(s, Constants.COMMA);
+				int [] positionsArray = new int[sizeOfArray + 1];
+//				TIntList list = new TIntArrayList(); 
+				int i = 0;
 				while (commaIndex > -1) {
-					list.add((int)Long.parseLong(s.substring(oldCommaIndex, commaIndex)));
+					positionsArray[i++] = ((int)Long.parseLong(s.substring(oldCommaIndex, commaIndex)));
 					oldCommaIndex = commaIndex + 1;
 					commaIndex = s.indexOf(Constants.COMMA, oldCommaIndex);
 				}
 				/*
 				 * add last entry
 				 */
-				list.add((int)Long.parseLong(s.substring(oldCommaIndex)));
-				return list.toArray();
+				positionsArray[i] = ((int)Long.parseLong(s.substring(oldCommaIndex)));
+				return positionsArray;
 			}
 		}
 		return new int[] {};
 	}
+//	public static int[] convertStringToIntArray(String s) {
+//		if ( ! StringUtils.isNullOrEmpty(s)) {
+//			
+//			if (s.charAt(0) != 'C') {
+//				int commaIndex = s.indexOf(Constants.COMMA);
+//				int oldCommaIndex = 0;
+//				TIntList list = new TIntArrayList(); 
+//				while (commaIndex > -1) {
+//					list.add((int)Long.parseLong(s.substring(oldCommaIndex, commaIndex)));
+//					oldCommaIndex = commaIndex + 1;
+//					commaIndex = s.indexOf(Constants.COMMA, oldCommaIndex);
+//				}
+//				/*
+//				 * add last entry
+//				 */
+//				list.add((int)Long.parseLong(s.substring(oldCommaIndex)));
+//				return list.toArray();
+//			}
+//		}
+//		return new int[] {};
+//	}
 //	public static int[] convertStringToIntArray(String s) {
 //		if ( ! StringUtils.isNullOrEmpty(s)) {
 //			

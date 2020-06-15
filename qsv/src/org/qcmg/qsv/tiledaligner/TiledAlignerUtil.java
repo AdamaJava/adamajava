@@ -403,10 +403,10 @@ public class TiledAlignerUtil {
 			 * If we have a currentMaxCount that is greater than the remaining array length, then it is not possible to better that and so drop out
 			 * do that when currentMacCount is twice the remaining array length
 			 */
-			if ((array.length - i) * 2 < currentMaxCount) {
-				System.out.println("Breaking out of loop with currentMaxCount: " + currentMaxCount + ", and remaining array size: " + (array.length - i));
-				break;
-			}
+//			if ((array.length - i) * 2 < currentMaxCount) {
+//				System.out.println("Breaking out of loop with currentMaxCount: " + currentMaxCount + ", and remaining array size: " + (array.length - i));
+//				break;
+//			}
 			
 			long [] subArray = array[i];
 			if (null != subArray) {
@@ -1960,25 +1960,56 @@ public class TiledAlignerUtil {
 //				
 //			}
 			
+			
+			
 			/*
-			 * get best start positions
+			 * OK, no perfect match, so here is the plan
+			 * 
+			 * If our top match is less than 70% but more than 50%, we will look for splits
+			 * If possible, will create a single BLATRec from the splits, but must be on same chromosome, same strand, and not too far away (around 10000 bases)
+			 * If not possible, then will create multiple BLATRecords.
+			 * If we don't get any splits, fall through to smith-waterman
+			 * 
 			 */
-			TLongList bestStartPositions = taRec.getStartPositions(12, true, 20);
+			
 			boolean gotSplits = false;
 			boolean runSplits = null != name && name.startsWith("splitcon");
-			
 			
 			/*
 			 * If the max tile count is low, try running the split to see if its made up of multiple entries.
 			 * If it is, and its not a split, may need to combine into a single BLATRecord
 			 */
-			int maxTileMatch = TARecordUtil.getExactMatchOnlyLengthFromPackedInt(taRec.getHightestTileCount());
-			System.out.println("name: " + name + ", maxTileMatch: " + maxTileMatch + ", sequence.length(): " + sequence.length());
+			int maxTileMatch = NumberUtils.sumPackedInt(taRec.getHightestTileCount());
+			int commonTileCount = NumberUtils.getPartOfPackedInt(taRec.getHightestTileCount(), false);
+			int nCount = org.apache.commons.lang3.StringUtils.countMatches(sequence, 'N');
 			
-			if (maxTileMatch < (0.7 * sequence.length()) && maxTileMatch >= (0.5 * sequence.length())) {
+//			int maxTileMatch = TARecordUtil.getExactMatchOnlyLengthFromPackedInt(taRec.getHightestTileCount());
+			
+			if (maxTileMatch < (0.7 * sequence.length()) && (maxTileMatch + TILE_LENGTH - 1) >= (0.5 * sequence.length())) {
 				System.out.println("name: " + name + ", maxTileMatch: " + maxTileMatch + ", sequence.length(): " + sequence.length() + ", less then 70% of bases covered ( && >= 50%) - will look for splits!");
 				runSplits = true;
+			} else {
+				System.out.println("name: " + name + ", maxTileMatch: " + maxTileMatch + ", sequence.length(): " + sequence.length() + ", will not run splits");
 			}
+			
+			if (commonTileCount > (0.1 * sequence.length())) {
+				if (runSplits) {
+					System.out.println("Too many commonly occurring tiles to be able to run splts, commonTileCount: " + commonTileCount + ", sequence.length(): " + sequence.length() + ", maxTileMatch: " + maxTileMatch);
+				}
+				runSplits = false;
+			}
+			
+			/*
+			 * randomly chosen value for nCount cutoff
+			 */
+			if (nCount > 5) {
+				if (runSplits) {
+					System.out.println("Too many N's in sequence - won't run splits! nCount: " + nCount);
+				}
+				runSplits = false;
+			}
+			
+			
 			
 			if (runSplits) {
 				
@@ -1994,7 +2025,7 @@ public class TiledAlignerUtil {
 							results.add(br);
 							gotSplits = true;
 						} else {
-							System.out.println("Single blat record from splits not good enough!!: " + br.toString() + ", seq: " + sequence);
+							System.out.println("Single blat record from splits not good enough!!: " + br.toString() + ", sequence.length(): " + sequence.length() + ", seq: " + sequence);
 						}
 					}
 				} else {
@@ -2055,6 +2086,12 @@ public class TiledAlignerUtil {
 			
 			
 			if ( ! gotSplits) {
+				
+				/*
+				 * get best start positions
+				 */
+				TLongList bestStartPositions = taRec.getStartPositions(12, true, 20);
+				
 				TLongList bestStartPositionsUpdated = ListUtils.removeAdjacentPositionsInList(bestStartPositions, 200);
 	//		System.out.println("Number of entries in bestStartPositions: " + bestStartPositions.size() + ", Number of entries in bestStartPositionsUpdated (removed adjacent positions): " + bestStartPositionsUpdated.size());
 				/*

@@ -43,6 +43,7 @@ public class NumberUtilsTest {
 		assertEquals(15, NumberUtils.getPartOfPackedInt(packedInt, false));
 		assertEquals(51, NumberUtils.getPartOfPackedInt(3342336, true));
 		assertEquals(0, NumberUtils.getPartOfPackedInt(3342336, false));
+		assertEquals(35, NumberUtils.getPartOfPackedInt(2293760, true));
 		//3342336={4398963712090}
 	}
 	
@@ -277,6 +278,7 @@ public class NumberUtilsTest {
 		assertEquals(2, NumberUtils.sumPackedInt(2));
 		assertEquals(1, NumberUtils.sumPackedInt(65536));
 		assertEquals(2, NumberUtils.sumPackedInt(65537));
+		assertEquals(367, NumberUtils.sumPackedInt(23658502));
 	}
 	
 	@Test

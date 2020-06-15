@@ -659,10 +659,10 @@ public class SplitReadContig {
 
 
 
-		if (left != null & right != null) {
+		if (left != null && right != null) {
 
 			//rearrange
-			reorder();				
+			reorder();
 			leftSequence = null;
 			rightSequence = null;
 			splitreadSV.setReferences(left.getReference(), right.getReference());

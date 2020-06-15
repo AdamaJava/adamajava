@@ -3,6 +3,7 @@ package org.qcmg.qsv.tiledaligner;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -24,6 +25,7 @@ import gnu.trove.list.TLongList;
 import gnu.trove.list.array.TLongArrayList;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.TLongIntMap;
+import gnu.trove.map.hash.THashMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 import gnu.trove.map.hash.TLongIntHashMap;
 
@@ -35,7 +37,10 @@ public class TARecordUtil {
 	public static final int MIN_BLAT_SCORE = TiledAlignerUtil.MINIMUM_BLAT_RECORD_SCORE;
 	public static final int MIN_TILE_COUNT = MIN_BLAT_SCORE - TILE_LENGTH;
 	public static final int MAX_GAP_FOR_SINGLE_RECORD = 10000;
-	public static final int BUFFER = 5;
+	public static final int BUFFER = 10;
+	public static final int RANGE_BUFFER = 5;
+	public static final int MIN_BLAT_SCORE_MINUS_BUFFER = MIN_BLAT_SCORE - BUFFER;
+	public static final int MIN_BLAT_SCORE_MINUS_RANGE_BUFFER = MIN_BLAT_SCORE - RANGE_BUFFER;
 	public static final PositionChrPositionMap pcpm = new PositionChrPositionMap();
 	
 	
@@ -527,6 +532,89 @@ p: 3299927520776
 	}
 	
 	/**
+	 * This method takes a IntLongPairs object and returns a ChrPosition to int[] map, which is how the IntLongPairs is represented in a BLATRecord
+	 * The keys in the map can be sorted to get the ChrPositions in order.
+	 * 
+	 * This method also trims any overlaps that can commonly occur due to the nature of the tiled aligner approach
+	 * 
+	 * 
+	 * @param splits
+	 * @param seqLength
+	 * @param headerMap
+	 * @return
+	 */
+	public static Map<ChrPosition, int[]> getChrPositionAndBlocksFromSplits(IntLongPairs splits, int seqLength, PositionChrPositionMap headerMap) {
+		IntLongPair[] pairs = splits.getPairs();
+		
+		/*
+		 * sort by position in query string
+		 */
+		Arrays.sort(pairs, new Comparator<IntLongPair>(){
+			@Override
+			public int compare(IntLongPair o1, IntLongPair o2) {
+				return NumberUtils.getShortFromLong(o1.getLong(), 40) - NumberUtils.getShortFromLong(o2.getLong(), 40);
+			}
+		});
+		
+		int [][] ranges = new int[pairs.length][];
+		int i = 0;
+		for (IntLongPair ilp : pairs) {
+			ranges[i++] = new int[]{ NumberUtils.getShortFromLong(ilp.getLong(), TILE_OFFSET), getExactMatchOnlyLengthFromPackedInt(ilp.getInt())};
+//			ranges[i++] = new int[]{ NumberUtils.getShortFromLong(ilp.getLong(), TILE_OFFSET), getLengthFromPackedInt(ilp.getInt())};
+		}
+		
+		trimRangesToRemoveOverlap(ranges);
+		
+		Map<ChrPosition, int[]> results = new THashMap<>();
+		i = 0;
+		for (IntLongPair ilp : pairs) {
+			ChrPosition cp = headerMap.getChrPositionFromLongPosition(ilp.getLong(), ranges[i][1]);
+			results.put(cp, ranges[i]);
+			i++;
+		}
+		
+		return results;
+	}
+
+	/**
+	 * NOT SIDE EFFECT FREE
+	 * <br>
+	 * This method will update the values in the passed in  2D int array if there are overlapping values
+	 * It will attempt to remove any overlap from the larger of the 2 ranges should an overlap exist
+	 * 
+	 * It requires that the ranges array be sorted by position in query string
+	 * 
+	 * @param ranges
+	 */
+	public static void trimRangesToRemoveOverlap(int[][] ranges) {
+		/*
+		 * trim ranges if there is an overlap
+		 */
+		for (int j = 0 ; j < ranges.length - 1; j++) {
+			if (j + 1 < ranges.length) {
+				int [] thisIntArray = ranges[j];
+				int [] nextIntArray = ranges[j + 1];
+				
+				int diff = (thisIntArray[0] + thisIntArray[1]) - nextIntArray[0];
+				if (diff > 0) {
+					if ( thisIntArray[1] >= nextIntArray[1]) {
+						/*
+						 * update this, take diff away from length
+						 */
+						thisIntArray[1] = thisIntArray[1] - diff;
+					} else {
+						/*
+						 * update next array, take diff away from start (and length)
+						 */
+						nextIntArray[0] = nextIntArray[0] + diff;
+						nextIntArray[1] = nextIntArray[1] - diff;
+					}
+				}
+			}			
+		}
+	}
+	
+	/**
 	 * Only designed for 2 splits for now.....
 	 * 
 	 * @param splits
@@ -538,75 +626,37 @@ p: 3299927520776
 	 */
 	public static String[] blatRecordFromSplits(IntLongPairs splits, String name, int seqLength, PositionChrPositionMap headerMap, int tileLength) {
 		
-		int firstSplitLength =  getLengthFromPackedInt(splits.getPairs()[0].getInt());
-		int secondSplitLength =  getLengthFromPackedInt(splits.getPairs()[1].getInt());
-		
-		ChrPosition cp1 = headerMap.getChrPositionFromLongPosition(splits.getPairs()[0].getLong(), firstSplitLength - 1);
-		ChrPosition cp2 = headerMap.getChrPositionFromLongPosition(splits.getPairs()[1].getLong(), secondSplitLength - 1);
-		
+		Map<ChrPosition, int[]> chrPosBlocks = getChrPositionAndBlocksFromSplits(splits, seqLength, headerMap);
 		/*
-		 * quick check that contigs and strand are the same
+		 * order the keys
 		 */
-		if (cp1.getChromosome() != cp2.getChromosome() || cp1.getName() != cp2.getName()) {
-			System.out.println("unable to create single BLATRecord from splits as different contigs/strands are present. cp1: " + cp1.toString() + ", cp2: " + cp2.toString());
-			return new String[]{};
+		ChrPosition[] keys = new ChrPosition[chrPosBlocks.size()];
+		chrPosBlocks.keySet().toArray(keys);
+		Arrays.sort(keys);
+		
+		
+		boolean reverseStrand = keys[0].getName().equals("R");
+		/*
+		 * get length and qGapBases
+		 */
+		int length = 0;
+		int qGapBases = 0;
+		int tGapBases = 0;
+		for (int i = 0 ; i < keys.length - 1; i++) {
+			ChrPosition thisCp = keys[i];
+			int[] thisBlock = chrPosBlocks.get(thisCp);
+			length += thisCp.getLength() - 1; 
+			ChrPosition nextCp = keys[i + 1];
+			int[] nextBlock = chrPosBlocks.get(nextCp);
+			tGapBases += (nextCp.getStartPosition() - thisCp.getEndPosition());
+			qGapBases += nextBlock[0] - (thisBlock[1] + thisBlock[0]);
 		}
-		
-		int firstSplitTilePosition = NumberUtils.getShortFromLong(splits.getPairs()[0].getLong(), TILE_OFFSET);
-		int secondplitTilePosition = NumberUtils.getShortFromLong(splits.getPairs()[1].getLong(), TILE_OFFSET);
-		
-		int[] firstBlock = new int[] {firstSplitTilePosition, firstSplitLength};
-		int[] secondBlock = new int[] {secondplitTilePosition, secondSplitLength};
 		/*
-		 * sort
+		 * add last length
 		 */
-		ChrPosition firstCp = cp1;
-		ChrPosition secondCp = cp2;
-		if (cp1.getStartPosition() > cp2.getStartPosition()) {
-			firstCp = cp2;
-			secondCp = cp1;
-			firstBlock = new int[] {secondplitTilePosition, secondSplitLength};
-			secondBlock = new int[] {firstSplitTilePosition, firstSplitLength};
-		}
-		
-		/*
-		 * If positions overlap (quite common), then trim from the larger of the 2
-		 */
-		int diff = (firstBlock[0] + firstBlock[1]) - secondBlock[0];
-		if (diff > 0) {
-			int firstCpLength = firstCp.getLength();
-			int secondCpLength = secondCp.getLength();
-			if (firstCpLength >= secondCpLength) {
-				
-				if (diff > firstCp.getLength()) {
-					System.out.println("diff is greater than length! diff: " + diff + ", firstCp.getLength(): " + firstCp.getLength());
-					System.out.println("diff is greater than length! splits: " + splits.getPairs()[0].toString() + ", " + splits.getPairs()[1].toString() + ", name: " + name + ", seqLength: " + seqLength);
-					return new String[]{};
-				}
-				
-				ChrPosition newCP = new ChrPositionName(firstCp.getChromosome(), firstCp.getStartPosition(), firstCp.getEndPosition() - diff, firstCp.getName());
-				firstCp = newCP;
-				int[] newBlock = new int[]{firstBlock[0], firstBlock[1] - diff};
-				firstBlock = newBlock;
-			} else {
-				ChrPosition newCP = new ChrPositionName(secondCp.getChromosome(), secondCp.getStartPosition() + diff, secondCp.getEndPosition(), secondCp.getName());
-				secondCp = newCP;
-				int[] newBlock = new int[]{secondBlock[0] + diff, secondBlock[1]};
-				secondBlock = newBlock;
-			}
-		}
-		
-//		System.out.println("firstBlock: " + Arrays.toString(firstBlock));
-//		System.out.println("secondBlock: " + Arrays.toString(secondBlock));
-//		System.out.println("firstCp.getLength: " + firstCp.getLength());
-//		System.out.println("secondCp.getLength: " + secondCp.getLength());
-		
-		boolean reverseStrand = firstCp.getName().equals("R");
-		/*
-		 * build
-		 */
-		int length = firstCp.getLength() + secondCp.getLength();
-		int qGapBases = secondBlock[0] - firstBlock[1];
+		length += keys[keys.length - 1].getLength() - 1;
+//		int length = firstCp.getLength() + secondCp.getLength();
+//		int qGapBases = secondBlock[0] - firstBlock[1];
 		
 		
 		String[] array = new String[21];
@@ -616,8 +666,8 @@ p: 3299927520776
 		array[3] = "0";					//number of N's
 		array[4] = qGapBases > 0 ? "1" : "0";					// Q gap count
 		array[5] = "" + qGapBases;					// Q gap bases
-		array[6] = "1";					// T gap count
-		array[7] = "" + (secondCp.getStartPosition() - firstCp.getEndPosition());			// T gap bases
+		array[6] = "" + (keys.length - 1);					// T gap count
+		array[7] = "" + tGapBases;			// T gap bases
 		array[8] = reverseStrand ? "-" : "+";			// strand
 		array[9] = name;					// Q name
 		array[10] = seqLength + "";			// Q size
@@ -630,21 +680,132 @@ p: 3299927520776
 //		int start = reverseStrand ? (seqLength - positionInSequence - length) :  positionInSequence;
 //		int end = reverseStrand ?  (seqLength - positionInSequence) : positionInSequence + length;
 		
-		array[11] = "" + firstBlock[0];						// Q start
-		array[12] = "" + (secondBlock[0] + secondBlock[1]);	// Q end
-		array[13] = firstCp.getChromosome();			// T name
+		array[11] = "" + chrPosBlocks.get(keys[0])[0];						// Q start
+		// get last bloack
+		int[] lastBlock = chrPosBlocks.get(keys[keys.length - 1]);
+		array[12] = "" + (lastBlock[0] + lastBlock[1] - 1);	// Q end
+		array[13] = keys[0].getChromosome();			// T name
 		array[14] = "12345";							// T size
-		int tStart = firstCp.getStartPosition();
+		int tStart = keys[0].getStartPosition();
 		
 		array[15] = "" + tStart;						// T start
-		array[16] = "" + secondCp.getEndPosition();		// T end
-		array[17] = "2";								// block count
-		array[18] = "" + firstCp.getLength() + "," + secondCp.getLength();					// block sizes
-		array[19] = "" + firstBlock[0] + "," + secondBlock[0];								// Q block starts
-		array[20] = "" + firstCp.getStartPosition() + "," + secondCp.getStartPosition();	// T block starts
+		array[16] = "" + keys[keys.length - 1].getEndPosition();		// T end
+		array[17] = "" + keys.length;								// block count
+		array[18] = "" + Arrays.stream(keys).map(cp -> "" + (cp.getLength() - 1)).collect(Collectors.joining(","));					// block sizes
+		array[19] = "" + Arrays.stream(keys).map(cp -> "" + chrPosBlocks.get(cp)[0]).collect(Collectors.joining(","));					// Q block starts
+		array[20] = "" + Arrays.stream(keys).map(cp -> "" + cp.getStartPosition()).collect(Collectors.joining(","));	// T block starts
 		
 		return array;
 	}
+//	public static String[] blatRecordFromSplits(IntLongPairs splits, String name, int seqLength, PositionChrPositionMap headerMap, int tileLength) {
+//		IntLongPair[] pairs = splits.getPairs();
+//		int firstSplitLength =  getLengthFromPackedInt(pairs[0].getInt());
+//		int secondSplitLength =  getLengthFromPackedInt(pairs[1].getInt());
+//		
+//		ChrPosition cp1 = headerMap.getChrPositionFromLongPosition(pairs[0].getLong(), firstSplitLength - 1);
+//		ChrPosition cp2 = headerMap.getChrPositionFromLongPosition(pairs[1].getLong(), secondSplitLength - 1);
+//		
+//		/*
+//		 * quick check that contigs and strand are the same
+//		 */
+//		if (cp1.getChromosome() != cp2.getChromosome() || cp1.getName() != cp2.getName()) {
+//			System.out.println("unable to create single BLATRecord from splits as different contigs/strands are present. cp1: " + cp1.toString() + ", cp2: " + cp2.toString());
+//			return new String[]{};
+//		}
+//		
+//		int firstSplitTilePosition = NumberUtils.getShortFromLong(pairs[0].getLong(), TILE_OFFSET);
+//		int secondplitTilePosition = NumberUtils.getShortFromLong(pairs[1].getLong(), TILE_OFFSET);
+//		
+//		int[] firstBlock = new int[] {firstSplitTilePosition, firstSplitLength};
+//		int[] secondBlock = new int[] {secondplitTilePosition, secondSplitLength};
+//		/*
+//		 * sort
+//		 */
+//		ChrPosition firstCp = cp1;
+//		ChrPosition secondCp = cp2;
+//		if (cp1.getStartPosition() > cp2.getStartPosition()) {
+//			firstCp = cp2;
+//			secondCp = cp1;
+//			firstBlock = new int[] {secondplitTilePosition, secondSplitLength};
+//			secondBlock = new int[] {firstSplitTilePosition, firstSplitLength};
+//		}
+//		
+//		/*
+//		 * If positions overlap (quite common), then trim from the larger of the 2
+//		 */
+//		int diff = (firstBlock[0] + firstBlock[1]) - secondBlock[0];
+//		if (diff > 0) {
+//			int firstCpLength = firstCp.getLength();
+//			int secondCpLength = secondCp.getLength();
+//			if (firstCpLength >= secondCpLength) {
+//				
+//				if (diff > firstCp.getLength()) {
+//					System.out.println("diff is greater than length! diff: " + diff + ", firstCp.getLength(): " + firstCp.getLength());
+//					System.out.println("diff is greater than length! splits: " + pairs[0].toString() + ", " + pairs[1].toString() + ", name: " + name + ", seqLength: " + seqLength);
+//					return new String[]{};
+//				}
+//				
+//				ChrPosition newCP = new ChrPositionName(firstCp.getChromosome(), firstCp.getStartPosition(), firstCp.getEndPosition() - diff, firstCp.getName());
+//				firstCp = newCP;
+//				int[] newBlock = new int[]{firstBlock[0], firstBlock[1] - diff};
+//				firstBlock = newBlock;
+//			} else {
+//				ChrPosition newCP = new ChrPositionName(secondCp.getChromosome(), secondCp.getStartPosition() + diff, secondCp.getEndPosition(), secondCp.getName());
+//				secondCp = newCP;
+//				int[] newBlock = new int[]{secondBlock[0] + diff, secondBlock[1]};
+//				secondBlock = newBlock;
+//			}
+//		}
+//		
+////		System.out.println("firstBlock: " + Arrays.toString(firstBlock));
+////		System.out.println("secondBlock: " + Arrays.toString(secondBlock));
+////		System.out.println("firstCp.getLength: " + firstCp.getLength());
+////		System.out.println("secondCp.getLength: " + secondCp.getLength());
+//		
+//		boolean reverseStrand = firstCp.getName().equals("R");
+//		/*
+//		 * build
+//		 */
+//		int length = firstCp.getLength() + secondCp.getLength();
+//		int qGapBases = secondBlock[0] - firstBlock[1];
+//		
+//		
+//		String[] array = new String[21];
+//		array[0] = "" + length;	//number of matches
+//		array[1] = "0";					//number of mis-matches
+//		array[2] = "0";					//number of rep. matches
+//		array[3] = "0";					//number of N's
+//		array[4] = qGapBases > 0 ? "1" : "0";					// Q gap count
+//		array[5] = "" + qGapBases;					// Q gap bases
+//		array[6] = "1";					// T gap count
+//		array[7] = "" + (secondCp.getStartPosition() - firstCp.getEndPosition());			// T gap bases
+//		array[8] = reverseStrand ? "-" : "+";			// strand
+//		array[9] = name;					// Q name
+//		array[10] = seqLength + "";			// Q size
+//		
+//		/*
+//		 * start and end are strand dependent
+//		 * if we are on the forward, its the beginning of the first block, and end of the last
+//		 * if we are on reverse, need to reverse!
+//		 */
+////		int start = reverseStrand ? (seqLength - positionInSequence - length) :  positionInSequence;
+////		int end = reverseStrand ?  (seqLength - positionInSequence) : positionInSequence + length;
+//		
+//		array[11] = "" + firstBlock[0];						// Q start
+//		array[12] = "" + (secondBlock[0] + secondBlock[1]);	// Q end
+//		array[13] = firstCp.getChromosome();			// T name
+//		array[14] = "12345";							// T size
+//		int tStart = firstCp.getStartPosition();
+//		
+//		array[15] = "" + tStart;						// T start
+//		array[16] = "" + secondCp.getEndPosition();		// T end
+//		array[17] = "2";								// block count
+//		array[18] = "" + firstCp.getLength() + "," + secondCp.getLength();					// block sizes
+//		array[19] = "" + firstBlock[0] + "," + secondBlock[0];								// Q block starts
+//		array[20] = "" + firstCp.getStartPosition() + "," + secondCp.getStartPosition();	// T block starts
+//		
+//		return array;
+//	}
 	
 	/**
 	 * This method will examine the IntLongPair records within the supplied IntLongPairs object.
@@ -681,7 +842,7 @@ p: 3299927520776
 		TIntObjectMap<Set<IntLongPairs>> results = new TIntObjectHashMap<>();
 		TIntObjectMap<TLongList> countsAndStartPositions = record.getCounts();
 		
-		if ( ! countsAndStartPositions.isEmpty()) {
+		if (countsAndStartPositions.size() > 1 || (countsAndStartPositions.size() == 1 && countsAndStartPositions.get(countsAndStartPositions.keys()[0]).size() > 1 )) {
 		
 			int [] keys = countsAndStartPositions.keys();
 			Arrays.sort(keys);
@@ -699,16 +860,29 @@ p: 3299927520776
 				 * and so set a limit for the starting split - it should be in the top 3 (say) tile counts 
 				 */
 				int tileCountCutoff = keys.length - 3;
-				
+				boolean areWeDone = false;
 				for (int i = keys.length - 1 ; i >= 0 ; i--) {
+					if (areWeDone) {
+						break;
+					}
 					if (i > tileCountCutoff) {
 						int tileCountAndCommon = keys[i];
-						TLongList list =  countsAndStartPositions.get(tileCountAndCommon);
+						
+						/*
+						 * if we have more than 10% commonly occurring tiles, skip
+						 */
+						int commonlyOccurringTiles = NumberUtils.getPartOfPackedInt(tileCountAndCommon, false);
+						if (commonlyOccurringTiles > (0.1 * seqLength)) {
+							continue;
+						}
+						
+//						int tileCount = getLengthFromPackedInt(tileCountAndCommon);
 						int tileCount = NumberUtils.getPartOfPackedInt(tileCountAndCommon, true);
 						/*
 						 * only proceed if tileCount and tile length would give a score of 20
 						 */
 						if (tileCount >= MIN_TILE_COUNT) {
+							TLongList list =  countsAndStartPositions.get(tileCountAndCommon);
 							for (int j = 0 ; j < list.size() ; j ++) {
 								long l = list.get(j);
 								boolean isForwardStrand =  ! NumberUtils.isBitSet(l, REVERSE_COMPLEMENT_BIT);
@@ -717,60 +891,279 @@ p: 3299927520776
 								/*
 								 * see if there are any possible ranges
 								 */
-								List<int[]> ranges = getPossibleTileRanges(seqLength, tilePositionInSequence, TILE_LENGTH, tileCount, MIN_BLAT_SCORE - BUFFER,  ! isForwardStrand);
-								if (ranges.isEmpty()) {
+								List<int[]> ranges = getPossibleTileRanges(seqLength, tilePositionInSequence, TILE_LENGTH, tileCount, MIN_BLAT_SCORE_MINUS_RANGE_BUFFER,  ! isForwardStrand);
+//								List<int[]> ranges = getPossibleTileRanges(seqLength, tilePositionInSequence, TILE_LENGTH, tileCount, MIN_BLAT_SCORE,  ! isForwardStrand);
+//								List<int[]> ranges = getPossibleTileRanges(seqLength, tilePositionInSequence, TILE_LENGTH, tileCount, MIN_BLAT_SCORE - BUFFER,  ! isForwardStrand);
+								if ( ! ranges.isEmpty()) {
 									/*
-									 * No available ranges to fill, move onto next position 
+									 * deal with 2 scenarios here
+									 * First is where we have a single range. In this case if a match is found, and there is still room for another match, another attempt at a match is made
+									 * Second case is where we have 2 ranges.
+									 * 
+									 * Both of these scenarios could result in IntLongPairs that contain 3 IntLongPair objects
 									 */
-								} else {
-									for (int[] range : ranges) {
-										TIntObjectMap<TLongList> resultsForRange = getPositionsThatFitInRange(range, countsAndStartPositions, keys, TILE_LENGTH, seqLength);
+									
+									if (ranges.size() == 1) {
+										List<IntLongPair> resultsForRange = getPositionsThatFitInRange(ranges.get(0), countsAndStartPositions, keys, TILE_LENGTH, seqLength);
 										if ( ! resultsForRange.isEmpty()) {
+											
+											IntLongPairs pairs = getILPSFromLists(resultsForRange, null, new IntLongPair(tileCountAndCommon, l));
+													
 											/*
-											 * add to our results
+											 * check to see if we could fit an additional bit of sequence in here
 											 */
-											resultsForRange.forEachEntry((k,v) -> {
+											int[][] remainingRanges = getRemainingRangeFromIntLongPairs(pairs, seqLength);
+											if (remainingRanges.length > 0) {
+												System.out.println("Found " + remainingRanges.length + " remaining ranges for pairs: " + pairs.toString() + ", remaining ranges[0]: " + Arrays.toString(remainingRanges[0]));
+												for (int[] remainingRange : remainingRanges) {
+													List<IntLongPair> resultsForRemainingRange = getPositionsThatFitInRange(remainingRange, countsAndStartPositions, keys, TILE_LENGTH, seqLength);
+													if ( ! resultsForRemainingRange.isEmpty()) {
+														
+														System.out.println("Found " + resultsForRemainingRange.size() + " matches for remaining range: " + Arrays.toString(remainingRange));
+														
+														/*
+														 * sort and take largest again
+														 */
+//														resultsForRemainingRange.sort(null);
+														System.out.println("Adding new IntLongPair!");
+														pairs.addPair(resultsForRemainingRange.get(0));
+														
+														/*
+														 * don't want to add any more to this pair
+														 */
+//														break;
+														
+													} else {
+														System.out.println("Found NO matches for remaining range: " + Arrays.toString(remainingRange));
+													}
+												}
 												
 												/*
-												 * if the list has more than 1 entry, need to separate them out
+												 * go again....
 												 */
-												for (long vLong : v.toArray()){
-													
-													/*
-													 * pick the largest tileCount to be the first element in IntLongPairs
-													 * this avoids the need to sort, which takes a while
-													 */
-													IntLongPair p1 = new IntLongPair(tileCountAndCommon, l);
-													IntLongPair p2 = new IntLongPair(k, vLong);
-													if (k < tileCountAndCommon) {
-														IntLongPair tmp = p1;
-														p1 = p2;
-														p2 = tmp;
+												remainingRanges = getRemainingRangeFromIntLongPairs(pairs, seqLength);
+												if (remainingRanges.length > 0) {
+													System.out.println("Found " + remainingRanges.length + " remaining ranges for pairs: " + pairs.toString() + ", remaining ranges[0]: " + Arrays.toString(remainingRanges[0]));
+													for (int[] remainingRange : remainingRanges) {
+														List<IntLongPair> resultsForRemainingRange = getPositionsThatFitInRange(remainingRange, countsAndStartPositions, keys, TILE_LENGTH, seqLength);
+														if ( ! resultsForRemainingRange.isEmpty()) {
+															
+															System.out.println("Found " + resultsForRemainingRange.size() + " matches for remaining range: " + Arrays.toString(remainingRange));
+															
+															/*
+															 * sort and take largest again
+															 */
+//															resultsForRemainingRange.sort(null);
+															System.out.println("Adding new IntLongPair!");
+															pairs.addPair(resultsForRemainingRange.get(0));
+															
+															/*
+															 * don't want to add any more to this pair
+															 */
+//															break;
+															
+														} else {
+															System.out.println("Found NO matches for remaining range: " + Arrays.toString(remainingRange));
+														}
 													}
-													
-													IntLongPairs pairs = new IntLongPairs(p1, p2);
-													
-													Set<IntLongPairs> resultsListList = results.get(tileCountAndCommon + k);
-													if (null == resultsListList) {
-														resultsListList = new HashSet<>(4);
-														results.put(tileCountAndCommon + k, resultsListList);
-													}
-													resultsListList.add(pairs);
 												}
-												return true;
-											});
+												
+											} else {
+												System.out.println("No remaining ranges found for pairs: " + pairs.toString());
+											}
+											
+											Set<IntLongPairs> resultsListList = results.get(pairs.getIntTally());
+											if (null == resultsListList) {
+												resultsListList = new HashSet<>(4);
+												results.put(pairs.getIntTally(), resultsListList);
+											}
+											resultsListList.add(pairs);
+										}
+								
+									} else if (ranges.size() == 2) {
+										/*
+										 * 3 IntLongPair objects here
+										 * create the IntLongPairs object with ordered INtLongPair objects - makes the IntLongPairs.equals() and hashcode() valid
+										 */
+										List<IntLongPair> resultsForRange1 = getPositionsThatFitInRange(ranges.get(0), countsAndStartPositions, keys, TILE_LENGTH, seqLength);
+										List<IntLongPair> resultsForRange2 = getPositionsThatFitInRange(ranges.get(1), countsAndStartPositions, keys, TILE_LENGTH, seqLength);
+										if ( ! resultsForRange1.isEmpty() ||  ! resultsForRange2.isEmpty()) {
+											IntLongPairs pairs = getILPSFromLists(resultsForRange1, resultsForRange2, new IntLongPair(tileCountAndCommon, l));
+											
+											
+											/*
+											 * check to see if we could fit an additional bit of sequence in here
+											 */
+											int[][] remainingRanges = getRemainingRangeFromIntLongPairs(pairs, seqLength);
+											if (remainingRanges.length > 0) {
+												System.out.println("Found " + remainingRanges.length + " remaining ranges for pairs: " + pairs.toString() + ", remaining ranges[0]: " + Arrays.toString(remainingRanges[0]));
+												for (int[] remainingRange : remainingRanges) {
+													List<IntLongPair> resultsForRemainingRange = getPositionsThatFitInRange(remainingRange, countsAndStartPositions, keys, TILE_LENGTH, seqLength);
+													if ( ! resultsForRemainingRange.isEmpty()) {
+														
+														System.out.println("Found " + resultsForRemainingRange.size() + " matches for remaining range: " + Arrays.toString(remainingRange));
+														
+														/*
+														 * no need to sort as they are added to the list in a sorted manner
+														 */
+//														resultsForRemainingRange.sort(null);
+														System.out.println("Adding new IntLongPair!");
+														pairs.addPair(resultsForRemainingRange.get(0));
+														
+														/*
+														 * don't want to add any more to this pair
+														 */
+//														break;
+														
+													} else {
+														System.out.println("Found NO matches for remaining range: " + Arrays.toString(remainingRange));
+													}
+												}
+											}
+											
+											
+											
+											Set<IntLongPairs> resultsListList = results.get(pairs.getIntTally());
+											if (null == resultsListList) {
+												resultsListList = new HashSet<>(4);
+												results.put(pairs.getIntTally(), resultsListList);
+											}
+											resultsListList.add(pairs);
 										}
 									}
 								}
 							}
 						}
 					}
+					
+					
+					/*
+					 * check results, if we have covered all bases in seqLength with our splits, no need to go looking for more
+					 */
+					if ( ! results.isEmpty()) {
+						for (int key : results.keys()) {
+							if (NumberUtils.sumPackedInt(key) >= (0.95 * (seqLength - (2 * TILE_LENGTH)))) {
+								/*
+								 * done
+								 */
+								areWeDone = true;
+							}
+						}
+					}
 				}
 			}
 		}
-		
 		return results;
 	}
+	
+	public static IntLongPairs getILPSFromLists(List<IntLongPair> list1, List<IntLongPair> list2, IntLongPair pair) {
+		List<IntLongPair> results = new ArrayList<>(4);
+		if (null != list1 && ! list1.isEmpty()) {
+			/*
+			 * no need to sort as the elements are added to the array in a sorted order
+			 */
+			results.add(list1.get(0));
+		}
+		results.add(pair);
+		if (null != list2 && ! list2.isEmpty()) {
+			/*
+			 * no need to sort as the elements are added to the array in a sorted order
+			 */
+			results.add(list2.get(0));
+		}
+		results.sort(null);
+		return new IntLongPairs(results.toArray(new IntLongPair[]{}));
+	}
+	
+	
+	/**
+	 * Takes a map of positions (keyed by tileCount) and returns an ordered list of IntLongPair objects with the largest tileCount first
+	 * 
+	 * @param positions
+	 * @return
+	 */
+	public static List<IntLongPair> getIntLongPairFromMap(TIntObjectMap<TLongList> positions) {
+		List<IntLongPair> list = new ArrayList<>(positions.size() * 2);
+		
+		if ( ! positions.isEmpty()) {
+			/*
+			 * streams would be good here....
+			 */
+			positions.forEachEntry((k,v) -> {
+				for (long vLong : v.toArray()) {
+					list.add(new IntLongPair(k, vLong));
+				}
+				return true;
+			});
+			list.sort(null);
+		}
+		return list;
+	}
+	
+	
+	/**
+	 * 
+	 * @param ilp
+	 * @param seqLength
+	 * @return
+	 */
+	public static int[][] getRemainingRangeFromIntLongPairs(IntLongPairs ilp, int seqLength) {
+		return getRemainingRangeFromIntLongPairs(ilp, seqLength, TILE_LENGTH);
+	}
+	public static int[][] getRemainingRangeFromIntLongPairs(IntLongPairs ilp, int seqLength, int tileLength) {
+		
+		int tileLengthMinusOne = tileLength - 1;
+		/*
+		 * get tile start position and length for each IntLongPair
+		 */
+		
+		int basesCovered = IntLongPairsUtils.getBasesCoveredByIntLongPairs(ilp, tileLength);
+		
+		if (seqLength - basesCovered > MIN_BLAT_SCORE_MINUS_RANGE_BUFFER) {
+			IntLongPair[] pairs = ilp.getPairs();
+			
+			/*
+			 * sort pairs these by position in sequence
+			 */
+			Arrays.sort(pairs, new Comparator<IntLongPair>(){
+				@Override
+				public int compare(IntLongPair o1, IntLongPair o2) {
+					return NumberUtils.getShortFromLong(o1.getLong(), 40) - NumberUtils.getShortFromLong(o2.getLong(), 40);
+				}
+			});
+			
+			
+			/*
+			 * now loop through and add to list if there the gap between ranges or boundaries is large enough
+			 */
+			List<int[]> ranges = new ArrayList<>(4);
+			int lastEndPosition = 0;
+			for (IntLongPair pair : pairs) {
+				
+				int startPosition = NumberUtils.getShortFromLong(pair.getLong(), TILE_OFFSET);
+				boolean reverseStrand = NumberUtils.isBitSet(pair.getLong(), REVERSE_COMPLEMENT_BIT);
+				int tileCount = NumberUtils.getPartOfPackedInt(pair.getInt(), true);
+				if (reverseStrand) {
+					int [] forwardStrandStartAndStopPositions = getForwardStrandStartAndStop(startPosition, tileCount, TILE_LENGTH, seqLength);
+					startPosition = (short) forwardStrandStartAndStopPositions[0];
+				}
+				
+				if (startPosition - lastEndPosition > MIN_BLAT_SCORE_MINUS_RANGE_BUFFER) {
+					ranges.add(new int[]{lastEndPosition, startPosition - 1});
+				}
+				
+				lastEndPosition = startPosition + tileCount + tileLengthMinusOne;
+			}
+			
+			if (seqLength - lastEndPosition > MIN_BLAT_SCORE_MINUS_RANGE_BUFFER) {
+				ranges.add(new int[]{lastEndPosition, seqLength});
+			}
+			return ranges.toArray(new int[][]{});
+		}
+		
+		return new int[][]{};
+	}
+	
 	
 	/**
 	 * Given a length, a tile start position, the tile length, the tile count and the minimum acceptable size of a chunk, 
@@ -834,8 +1227,8 @@ p: 3299927520776
 		return results;
 	}
 	
-	public static TIntObjectMap<TLongList> getPositionsThatFitInRange(int[] range, TIntObjectMap<TLongList> countsAndStartPositions, int [] sortedKeys, int tileLength, int seqLength) {
-		TIntObjectMap<TLongList> results = new TIntObjectHashMap<>();
+	public static List<IntLongPair> getPositionsThatFitInRange(int[] range, TIntObjectMap<TLongList> countsAndStartPositions, int [] sortedKeys, int tileLength, int seqLength) {
+		List<IntLongPair> results = new ArrayList<>();
 		int maxTileCount = range[1] - range[0] - (tileLength - 1);
 		
 		/*
@@ -852,8 +1245,8 @@ p: 3299927520776
 				/*
 				 * with the tile count, now need to work out possible start positions
 				 */
-				int minTileStartPosition = range[0];
-				int maxTileStartPosition = Math.max(minTileStartPosition, range[1] - (tileCount + tileLength) + 1);
+//				int minTileStartPosition = range[0];
+//				int maxTileStartPosition = Math.max(minTileStartPosition, range[1] - (tileCount + tileLength) + 1);
 				
 				TLongList list =  countsAndStartPositions.get(sortedKeys[i]);
 				for (int j = 0 ; j < list.size() ; j ++) {
@@ -866,22 +1259,71 @@ p: 3299927520776
 						tileStartPosition = (short) forwardStrandStartAndStopPositions[0];
 						
 					}
-					if (tileStartPosition >= minTileStartPosition && tileStartPosition <= maxTileStartPosition) {
+					if (doesPositionFitWithinRange(range, tileStartPosition, tileCount, BUFFER)) {
 						/*
 						 * we have a keeper!
 						 */
-						TLongList resultsList = results.get(sortedKeys[i]);
-						if (null == resultsList) {
-							resultsList = new TLongArrayList();
-							results.put(sortedKeys[i], resultsList);
-						}
-						resultsList.add(l);
+						results.add(new IntLongPair(sortedKeys[i], l));
 					}
 				}
 			}
 		}
 		return results;
 	}
+	
+	public static boolean doesPositionFitWithinRange(int [] range, int startPosition, int tileCount, int buffer) {
+		return startPosition > (range[0] - buffer)
+				&& (startPosition + tileCount + TILE_LENGTH - 1) < (range[1] + buffer);
+	}
+	
+//	public static TIntObjectMap<TLongList> getPositionsThatFitInRange(int[] range, TIntObjectMap<TLongList> countsAndStartPositions, int [] sortedKeys, int tileLength, int seqLength) {
+//		TIntObjectMap<TLongList> results = new TIntObjectHashMap<>();
+//		int maxTileCount = range[1] - range[0] - (tileLength - 1);
+//		
+//		/*
+//		 * need to add a buffer to the maxTileCount
+//		 * as there are instances where there is an overlap
+//		 * see createTARec_chr8_125551528_split_withTileStartPositionsWithinRange above for an example
+//		 */
+//		maxTileCount += BUFFER;
+//		
+//		for (int i = sortedKeys.length - 1 ; i >= 0 ; i--) {
+//			int tileCount = NumberUtils.getPartOfPackedInt(sortedKeys[i], true);
+//			if (tileCount >= MIN_TILE_COUNT && tileCount <= maxTileCount) {
+//				
+//				/*
+//				 * with the tile count, now need to work out possible start positions
+//				 */
+//				int minTileStartPosition = range[0];
+//				int maxTileStartPosition = Math.max(minTileStartPosition, range[1] - (tileCount + tileLength) + 1);
+//				
+//				TLongList list =  countsAndStartPositions.get(sortedKeys[i]);
+//				for (int j = 0 ; j < list.size() ; j ++) {
+//					long l = list.get(j);
+//					boolean reverseStrand = NumberUtils.isBitSet(l, REVERSE_COMPLEMENT_BIT);
+//					short tileStartPosition = NumberUtils.getShortFromLong(l, TILE_OFFSET);
+//					
+//					if (reverseStrand) {
+//						int [] forwardStrandStartAndStopPositions = getForwardStrandStartAndStop(tileStartPosition, tileCount, TILE_LENGTH, seqLength);
+//						tileStartPosition = (short) forwardStrandStartAndStopPositions[0];
+//						
+//					}
+//					if (tileStartPosition >= minTileStartPosition && tileStartPosition <= maxTileStartPosition) {
+//						/*
+//						 * we have a keeper!
+//						 */
+//						TLongList resultsList = results.get(sortedKeys[i]);
+//						if (null == resultsList) {
+//							resultsList = new TLongArrayList();
+//							results.put(sortedKeys[i], resultsList);
+//						}
+//						resultsList.add(l);
+//					}
+//				}
+//			}
+//		}
+//		return results;
+//	}
 	
 	public static int[] getForwardStrandStartAndStop(int tileStartPositionRS, int tileCount, int tileLength, int seqLength) {
 		return new int[] {seqLength - tileStartPositionRS - (tileCount + tileLength) - 1, seqLength - tileStartPositionRS - 1};
