@@ -135,7 +135,7 @@ public class QProfiler2 {
 		root.setAttribute( "xs:schemaLocation", messages.getMessage("XSD_NAMESPACE") + " " + messages.getMessage("XSD_FILE"));		
 		
 		//debug: keep it now in case xs:schemaLocation not work with ngscheck
-		root.setAttribute( "validationSchema", messages.getMessage("XSD_NAMESPACE") + "/" + messages.getMessage("XSD_FILE") );
+		//root.setAttribute( "validationSchema", messages.getMessage("XSD_NAMESPACE") + "/" + messages.getMessage("XSD_FILE") );
 
 		XmlElementUtils.asXmlText(root, outputFile);		
 		 			
