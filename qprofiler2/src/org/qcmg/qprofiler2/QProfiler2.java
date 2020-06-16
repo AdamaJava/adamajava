@@ -129,9 +129,8 @@ public class QProfiler2 {
 		root.setAttribute( "version", version );
 		
 		//Since the XML Schema defines "targetNamespace", we have to declare the namespace in any XML 
-		root.setAttribute( "xmlns", messages.getMessage("XSD_NAMESPACE") );		 
-		root.setAttribute( "xmlns:xs", "http://www.w3.org/2001/XMLSchema-instance");
-		root.setAttribute( "xs:schemaLocation", messages.getMessage("XSD_NAMESPACE") + " " + messages.getMessage("XSD_FILE"));		
+		root.setAttribute( "xmlns", messages.getMessage("XSD_NAMESPACE") );
+		root.setAttribute( "validationSchema",  messages.getMessage("XSD_FILE"));		
 		
 		XmlElementUtils.asXmlText(root, outputFile);		
 		 			
