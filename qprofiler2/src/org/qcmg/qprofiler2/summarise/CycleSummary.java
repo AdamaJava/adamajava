@@ -124,6 +124,7 @@ public class CycleSummary<T> {
 	}
 
 	
+	@SuppressWarnings("unchecked")
 	private T getTypeFromInt(int l) {
 		if (type instanceof Integer)
 			return (T)Integer.valueOf(l);
@@ -288,15 +289,15 @@ public class CycleSummary<T> {
 			allValues.add( getTypeFromInt(getCycleKeyFromArrayPosition(i)[1] )  );	
 		}		
 		//order as ACGTN
-		if( type instanceof Character){		
-			
+		if( type instanceof Character){					
 			List<T> notATGC = new ArrayList<T>();
-			List<T> atgc = new ArrayList<T>();
+			
 			for( T v : allValues){
 				char v1 =   (Character)  v; 
 				if( v1 != 'A' &&   v1 != 'T' &&  v1 != 'G' &&  v1 != 'C') 
 				notATGC.add(v);						
-			}		 
+			}	
+			
 			allValues.removeAll(notATGC);
 			return   Stream.concat(allValues.stream().sorted(), notATGC.stream()).collect(Collectors.toCollection(LinkedHashSet::new));	
 		}else if( type instanceof Integer){	

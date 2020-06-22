@@ -154,7 +154,7 @@ public class FastqSummarizerMT implements Summarizer {
 							report.parseRecord(record);
 						} catch (Exception e) {
 							logger.error("record: " + record.toString());
-							logger.error("Error caught parsing FastqRecord with readHeader: " + record.getReadHeader(), e);
+							logger.error("Error caught parsing FastqRecord with readHeader: " + record.getReadName(), e);
 							throw e;
 						}
 					} else {

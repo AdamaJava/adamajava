@@ -1,4 +1,4 @@
-package org.qcmg.common.messages;
+package org.qcmg.qprofiler2;
 
 import java.text.MessageFormat;
 import java.util.ResourceBundle;

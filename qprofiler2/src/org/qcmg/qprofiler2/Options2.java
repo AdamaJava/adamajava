@@ -9,32 +9,31 @@
  * under the GNU GENERAL PUBLIC LICENSE Version 3, a copy of which is
  * included in this distribution as gplv3.txt.
  */
+
 package org.qcmg.qprofiler2;
 
 import java.util.List;
-import java.util.ResourceBundle;
-import org.qcmg.common.messages.QMessage;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
+import org.qcmg.common.messages.Messages;
 
 final class Options2 {
-	private static final QMessage messages = new QMessage(QProfiler2.class, ResourceBundle.getBundle("org.qcmg.qprofiler2.messages") );
+	private final static String msgResource = "org.qcmg.qprofiler2.messages";
 	
-	private static final String HELP_DESCRIPTION = messages.getMessage("HELP_OPTION_DESCRIPTION");
-	private static final String VERSION_DESCRIPTION = messages.getMessage("VERSION_OPTION_DESCRIPTION");
-	private static final String NO_OF_THREADS_OPTION_DESCRIPTION = messages.getMessage("NO_OF_THREADS_OPTION_DESCRIPTION");
-	
-	private static final String MAX_RECORDS_OPTION_DESCRIPTION = messages.getMessage("MAX_RECORDS_OPTION_DESCRIPTION");
-	private static final String LOG_OPTION_DESCRIPTION = messages.getMessage("LOG_OPTION_DESCRIPTION");
-	private static final String LOG_LEVEL_OPTION_DESCRIPTION = messages.getMessage("LOG_LEVEL_OPTION_DESCRIPTION");
-	private static final String OUTPUT_FILE_DESCRIPTION = messages.getMessage("OUTPUT_FILE_DESCRIPTION");
-	private static final String INPUT_FILE_DESCRIPTION = messages.getMessage("INPUT_FILE_DESCRIPTION");
-	private static final String INDEX_FILE_DESCRIPTION = messages.getMessage("INDEX_FILE_DESCRIPTION");
-	private static final String VALIDATION_STRINGENCY_OPTION_DESCRIPTION = messages.getMessage("VALIDATION_STRINGENCY_DESCRIPTION");
-	private static final String FULL_BAMHEADER_OPTION_DESCRIPTION = messages.getMessage("FULL_BAMHEADER_OPTION_DESCRIPTION");
+	private static final String HELP_DESCRIPTION = Messages.getMessage(msgResource, "HELP_OPTION_DESCRIPTION");	
+	private static final String VERSION_DESCRIPTION = Messages.getMessage(msgResource, "VERSION_OPTION_DESCRIPTION");
+	private static final String NO_OF_THREADS_OPTION_DESCRIPTION = Messages.getMessage(msgResource, "NO_OF_THREADS_OPTION_DESCRIPTION");	
+	private static final String MAX_RECORDS_OPTION_DESCRIPTION = Messages.getMessage(msgResource, "MAX_RECORDS_OPTION_DESCRIPTION");
+	private static final String LOG_OPTION_DESCRIPTION = Messages.getMessage(msgResource, "LOG_OPTION_DESCRIPTION");
+	private static final String LOG_LEVEL_OPTION_DESCRIPTION = Messages.getMessage(msgResource, "LOG_LEVEL_OPTION_DESCRIPTION");
+	private static final String OUTPUT_FILE_DESCRIPTION = Messages.getMessage(msgResource, "OUTPUT_FILE_DESCRIPTION");
+	private static final String INPUT_FILE_DESCRIPTION = Messages.getMessage(msgResource, "INPUT_FILE_DESCRIPTION");
+	private static final String INDEX_FILE_DESCRIPTION = Messages.getMessage(msgResource, "INDEX_FILE_DESCRIPTION");
+	private static final String VALIDATION_STRINGENCY_OPTION_DESCRIPTION = Messages.getMessage(msgResource, "VALIDATION_STRINGENCY_DESCRIPTION");
+	private static final String FULL_BAMHEADER_OPTION_DESCRIPTION = Messages.getMessage(msgResource, "FULL_BAMHEADER_OPTION_DESCRIPTION");
 	
 	//vcf mode
-	private static final String FORMAT_OPTION_DESCRIPTION = messages.getMessage("FORMAT_OPTION_DESCRIPTION");
+	private static final String FORMAT_OPTION_DESCRIPTION = Messages.getMessage(msgResource, "FORMAT_OPTION_DESCRIPTION");
 	private final String[] formats; //vcf mode		
 	
 	private final OptionParser parser = new OptionParser();
@@ -80,8 +79,7 @@ final class Options2 {
 		// maxRecords
 		Object maxRecordsObject = options.valueOf("maxRecords"); 
 		if (null != maxRecordsObject)
-			maxRecords =  (Integer) maxRecordsObject;
-		
+			maxRecords =  (Integer) maxRecordsObject;		
 		
 		// log file
 		log = (String) options.valueOf("log");
@@ -105,37 +103,70 @@ final class Options2 {
 		
 		// output
 		outputFileName = (String) options.valueOf("output");		
-		if ( ! options.nonOptionArguments().isEmpty())
-			throw new IllegalArgumentException(messages.getMessage("USAGE"));
+		if ( ! options.nonOptionArguments().isEmpty()) {
+			throw new IllegalArgumentException(Messages.getMessage(msgResource, "USAGE"));
+		}
 	}
 	
-	boolean hasFullBamHeaderOption() { return options.has("fullBamHeader") ; }
+	boolean hasFullBamHeaderOption() { 
+		return options.has("fullBamHeader") ; 
+	}
 
-	boolean hasVersionOption() { return options.has("version"); }
+	boolean hasVersionOption() { 
+		return options.has("version"); 
+	}
 
-	boolean hasHelpOption() { return options.has("help"); }
+	boolean hasHelpOption() { 
+		return options.has("help"); 
+	}
+		
+	boolean hasLogOption() { 
+		return options.has("log"); 
+	}
 	
-//	boolean hasNoHtmlOption() { return options.has("nohtml"); }
-	
-	boolean hasLogOption() { return options.has("log"); }
-	
-	boolean hasLogLevelOption() { 	return options.has("loglevel"); }
+	boolean hasLogLevelOption() { 
+		return options.has("loglevel"); 
+	}
 
-	String[] getFileNames() { return fileNames; }
+	String[] getFileNames() { 
+		return fileNames;
+	}
 
 
-	String[] getIndexFileNames() { 	return indexFileNames; }
+	String[] getIndexFileNames() { 	
+		return indexFileNames; 
+	}
 		
 	//vcf mode
-	String[] getFormats(){ return formats; }
+	String[] getFormats(){ 
+		return formats; 
+	}
 	
-	int getNoOfConsumerThreads() { 	return noOfConsumerThreads; }
-	int getNoOfProducerThreads() { 	return noOfProducerThreads; }	
-	int getMaxRecords() { return maxRecords; }	
-	QMessage getMessage(){ return messages;}
+	int getNoOfConsumerThreads() { 	
+		return noOfConsumerThreads; 
+	}
 	
-	String getLog() { 	return log; }
-	String getLogLevel() { 	return logLevel; }
+	int getNoOfProducerThreads() { 	
+		return noOfProducerThreads; 
+	}	
+	
+	int getMaxRecords() { 
+		return maxRecords; 
+	}	
+	
+	String getLog() { 	
+		return log; 
+	}
+	
+	String getLogLevel() { 	
+		return logLevel; 
+	}
+	
+	String getVersion() { 
+		return QProfiler2.class.getPackage().getImplementationTitle() +
+			", version " + QProfiler2.class.getPackage().getImplementationVersion();	
+	}
+	
 	public String getOutputFileName() { 	return outputFileName; }
 	void displayHelp() throws Exception { 	parser.printHelpOn(System.err); }
 	
