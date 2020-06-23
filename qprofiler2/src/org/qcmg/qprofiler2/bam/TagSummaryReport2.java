@@ -90,7 +90,8 @@ public class TagSummaryReport2 {
 					new Pair<String, Number>(ReadGroupSummary.READ_COUNT, mdTagCounts.get()));
 			for(int order = 0; order < 3; order ++) { 
 				//so choose 1st cycle base counts as read count, since all read at least have one base. 
-				tagMDMismatchByCycle[order].toXml( ele, BamSummaryReport2.sourceName[order], allReadsLineLengths[order].get(1) );
+				tagMDMismatchByCycle[order].toXml( ele, BamSummaryReport2.sourceName.get(order), allReadsLineLengths[order].get(1) );
+				
 			}
 					
 			for(String strand : new String[]{ "ForwardStrand", "ReverseStrand" }){				
@@ -102,7 +103,7 @@ public class TagSummaryReport2 {
 						if (l <= 0)  continue;
 						mdRefAltLengthsString.put(CycleSummaryUtils.getStringFromInt(m), new AtomicLong(l));					 
 					}
-					String name = BamSummaryReport2.sourceName[order] + strand; 				
+					String name = BamSummaryReport2.sourceName.get(order) + strand; 				
 					XmlUtils.outputTallyGroup(ele,  name, mdRefAltLengthsString, true, true);				
 				}		
 			}			

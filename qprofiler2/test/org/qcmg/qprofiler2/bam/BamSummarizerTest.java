@@ -305,17 +305,14 @@ public class BamSummarizerTest {
 	}
 	
 	public static void createTestSamFile(File file, List<String> data) {
-		PrintWriter out = null;
 		try {
-			out = new PrintWriter(new BufferedWriter(new FileWriter(file)));
+			PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(file)));
 			for (String line : data)  out.println(line);			 
 			out.close();
 		} catch (IOException e) {
 			Logger.getLogger("BamSummarizerTest").log( Level.WARNING,
 					"IOException caught whilst attempting to write to SAM test file: " + file, e);
-		} finally {
-			out.close();
-		}
+		} 
 	}
 
 }

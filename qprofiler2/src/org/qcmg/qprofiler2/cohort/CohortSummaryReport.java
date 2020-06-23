@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Optional;
 
 import org.qcmg.common.util.IndelUtils.SVTYPE;
@@ -15,8 +16,8 @@ import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Element;
 
 public class CohortSummaryReport extends SummaryReport {
-	public static String outputSeperate = "\t";	
-	public static String headerline = String.join( outputSeperate, new String[]{ "File","Sample" ,"ReportingCategory","VariantType","VariantCount","DbSnpProportion","TiTvRatio"});
+	public static final String outputSeperate = "\t";	
+	public static final String headerline = String.join( outputSeperate, new String[]{ "File","Sample" ,"ReportingCategory","VariantType","VariantCount","DbSnpProportion","TiTvRatio"});
 	
 	final String sampleId; 
 	final String file;	
@@ -61,7 +62,7 @@ public class CohortSummaryReport extends SummaryReport {
 		return new long[]{ sum_count, sum_db, sum_ti, sum_tv  };		
 	}
 	
-	class Category{
+	static class Category{
 		final String category; //eg. FORMAT:FT=PASS;FORMAT:INF=.
 		HashMap<String, Integer> variantsCounts = new HashMap<>();
 		HashMap<String, Integer> dbSnpCounts = new HashMap<>();
@@ -120,12 +121,12 @@ public class CohortSummaryReport extends SummaryReport {
 		 */
 		List<String> output(){
 			List<String> output = new ArrayList<>(); 
-			for(String type :  variantsCounts.keySet() ){	
+			for(Entry<String, Integer> entry :  variantsCounts.entrySet() ){	
 				StringBuilder sb = new StringBuilder(category);
-				sb.append(outputSeperate).append(type)
-				  .append(outputSeperate).append( variantsCounts.get(type) )
-				  .append(outputSeperate).append( String.format( "%.3f",  (double) dbSnpCounts.get(type) / variantsCounts.get(type) ))
-				  .append(outputSeperate).append( type.equals(SVTYPE.SNP.toVariantType()) ? titvRate : "-" );
+				sb.append(outputSeperate).append(entry.getKey())
+				  .append(outputSeperate).append(entry.getValue() )
+				  .append(outputSeperate).append( String.format( "%.3f",  (double) dbSnpCounts.get(entry.getKey()) / entry.getValue()  ))
+				  .append(outputSeperate).append( entry.getKey().equals(SVTYPE.SNP.toVariantType()) ? titvRate : "-" );
 				
 				output.add( sb.toString() );
 			}

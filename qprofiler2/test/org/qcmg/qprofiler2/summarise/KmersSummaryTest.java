@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -18,6 +19,8 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -32,14 +35,13 @@ import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SamReader;
 
 public class KmersSummaryTest {
-	@Rule
-	public TemporaryFolder testFolder = new TemporaryFolder();
-	private static File input;
+	@ClassRule
+	public static TemporaryFolder testFolder = new TemporaryFolder();
+	private static File input ;
 	
-	@Before
-	public void setUp() throws Exception{
-		input = testFolder.newFile("input.sam");
-		createTestSamFile();	
+	@BeforeClass
+	public static void setUp() throws Exception{
+		input = createTestSamFile();
 	}
 
 	@Test
@@ -306,8 +308,11 @@ public class KmersSummaryTest {
 		assertEquals( "", StringUtils.join(summary.getPopularKmerString(16,  3, false, 2), ",") );		
 				
 	}
-		
-	private static void createTestSamFile( ) {
+	
+	/*
+	 * here this method only called once, otherwise exception throw due to file "input.sam" exists
+	 */
+	private static File createTestSamFile( ) throws IOException {
 		List<String> data = new ArrayList<String>();
 		data.add("@HD	VN:1.0	SO:coordinate");
 		data.add("@RG	ID:1959T	SM:eBeads_20091110_CD	DS:rl=50");
@@ -318,13 +323,16 @@ public class KmersSummaryTest {
 		data.add("642_1887_1862	83	chr1	10167	1	5H10M	=	10176	59	CCTAACNCTG	.(01(\"!\"	RG:Z:1959T");	
  		//forward second in pair
 		data.add("970_1290_1068	163	chr1	10176	3	9M6H	=	10167	-59	CCTAACNCT	I&&HII%%I	RG:Z:1959T");
-				
+		
+		File input = testFolder.newFile("input.sam");
 		try(PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(input)) ) ) {
 			for (String line : data)   out.println(line);			 
 		} catch (IOException e) {
 			Logger.getLogger("KmersSummaryTest").log(
 					Level.WARNING, "IOException caught whilst attempting to write to SAM test file: " + input.getAbsolutePath(), e);
 		}  
+		
+		return input; 
 	}
 		 
 	@Test
@@ -337,13 +345,13 @@ public class KmersSummaryTest {
 		StringBuilder sb=new StringBuilder();
 		for(int i = 0; i < 200; i ++) sb.append(bases);
 		for(int i = 0; i < 100; i ++) {
-			summary.parseKmers(sb.toString().getBytes(), false, 1);	
+			summary.parseKmers(sb.toString().getBytes(StandardCharsets.UTF_8), false, 1);	
 		}
 		
 		//reach maximum 1000 base
 		for(int i = 0; i < (KmersSummary.maxCycleNo/bases.length() -200); i ++) sb.append(bases);		
 		assertTrue(sb.length() == KmersSummary.maxCycleNo);
-		summary.parseKmers(sb.toString().getBytes(), false, 1);	
+		summary.parseKmers(sb.toString().getBytes(StandardCharsets.UTF_8), false, 1);	
 		
 		assertTrue(summary.getCount(793, "TGCATG", 1 ) == 101 ); //cycle + 1 = 794 to xml
 		assertTrue(summary.getCount(797, "TGCATG", 1 ) == 1 ); //cycle + 1 = 794 to xml
@@ -352,7 +360,7 @@ public class KmersSummaryTest {
 		try {
 			sb.append("A");
 			assertTrue(sb.length() > KmersSummary.maxCycleNo);
-			summary.parseKmers(sb.toString().getBytes(), false, 1);	
+			summary.parseKmers(sb.toString().getBytes(StandardCharsets.UTF_8), false, 1);	
 			//must fail if no exception happen
 			assertFalse(true);
 		}catch(IllegalArgumentException e) {

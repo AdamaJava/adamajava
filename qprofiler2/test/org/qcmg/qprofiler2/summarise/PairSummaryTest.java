@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -24,18 +25,18 @@ import org.w3c.dom.Element;
 import htsjdk.samtools.SAMRecord;
 
 public class PairSummaryTest {
-	@Rule
-	public  TemporaryFolder testFolder = new TemporaryFolder();
-	public File input;
-
-	@Before
-	public void setup() throws IOException {
-		input = testFolder.newFile("testInputFile.sam");
-	}	
+	@ClassRule
+	public  static TemporaryFolder testFolder = new TemporaryFolder();
+//	public File input;
+//
+//	@Before
+//	public void setup() throws IOException {
+//		input = testFolder.newFile("testInputFile.sam");
+//	}	
 	
 	@Test
 	public void toSummaryXmlTest() throws Exception {	
-		
+		File input = testFolder.newFile("testInputFile.sam");
 		Element root = createPairRoot(input);		
 		List<Element> pairEles =  XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.SEQUENCE_METRICS)	
 				.stream().filter(e -> e.getAttribute(XmlUtils.NAME).equals( "properPairs" )).collect(Collectors.toList());	

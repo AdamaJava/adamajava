@@ -1,6 +1,7 @@
 package org.qcmg.qprofiler2.vcf;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,7 +19,6 @@ import org.qcmg.qprofiler2.summarise.SampleSummary;
 import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Element;
 
-
 public class VcfSummaryReport  extends SummaryReport {
 	public static final String seperator = Constants.COLON_STRING;		
 	public static final String Sample = "sample";	
@@ -28,12 +28,11 @@ public class VcfSummaryReport  extends SummaryReport {
 	//it allows the format field value eg. --formart FT=PASS, then it seperate value to PASS the others
 	private final String[] formatCategories;
 	Map< String, Map<String,SampleSummary> > summaries = new HashMap<>();
-	Map< String, AtomicLong > counts = new HashMap<>();
 	
 	public VcfSummaryReport(VcfHeader header, String[] formats){	     
 		this.vcfHeader = header;
 		this.formatCategories = formats; 
-		this.sampleIds = header.getSampleId(); 	
+		this.sampleIds = Arrays.copyOf(header.getSampleId(), header.getSampleId().length); 	
 	}
 	
 	public void toXml(Element parent) {
@@ -45,7 +44,6 @@ public class VcfSummaryReport  extends SummaryReport {
 		summaryToXml( parentElement  );		
 	}
 	
-
 	void parseRecord( VcfRecord  vcf ) {
 		updateRecordsInputed();
 		

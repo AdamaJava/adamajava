@@ -128,7 +128,7 @@ public class FastqSummarizerMT implements Summarizer {
 		return fastqSummaryReport;
 	}
 	
-	public static class Consumer implements Runnable {
+	static class Consumer implements Runnable {
 		private final Queue<FastqRecord> queue;
 		private final FastqSummaryReport report;
 		private final Thread mainThread;
@@ -174,7 +174,7 @@ public class FastqSummarizerMT implements Summarizer {
 		}
 	}
 	
-	public class Producer implements Runnable {
+	static class Producer implements Runnable {
 		private final File file;
 		private final Queue<FastqRecord> queue;
 		private final Thread mainThread;

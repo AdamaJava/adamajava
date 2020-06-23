@@ -74,21 +74,15 @@ public class CycleSummary<T> {
 	 * @param type
 	 * @param noOfCycles
 	 */
-	public CycleSummary(T type, final int noOfCycles) {
-		this(type, noOfCycles, type instanceof Character 
-				? DEFAULT_NO_OF_KEYS_CHARACTER : DEFAULT_NO_OF_KEYS_INTEGER);
-	}
-		
-	public CycleSummary(T type, final int noOfCycles, int noOfKeys) {
-		this.type = type;
-		
+	public CycleSummary(T type, final int noOfCycles) {		
+		this.type = type;		
+		int noOfKeys = type instanceof Character? DEFAULT_NO_OF_KEYS_CHARACTER : DEFAULT_NO_OF_KEYS_INTEGER;		
 		cycleMask.set(getMask(noOfCycles));
 		keyMask.set(getMask(noOfKeys));
 		int capacity = 1 << (cycleMask.get() + keyMask.get());
 		
 		maxCycleValue.set((1<<cycleMask.get()) -1);
-		maxKeyValue.set((1<<keyMask.get()) -1);
-		
+		maxKeyValue.set((1<<keyMask.get()) -1);		
 		tally = new AtomicLongArray(capacity);
 	}
 	

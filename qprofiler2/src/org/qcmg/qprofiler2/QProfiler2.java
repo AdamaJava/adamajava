@@ -40,17 +40,17 @@ import org.w3c.dom.Element;
 
 public class QProfiler2 {
 		
-	private final static String msgResource = "org.qcmg.qprofiler2.messages";
-	
-	private static QLogger logger;
+	private final static String msgResource = "org.qcmg.qprofiler2.messages";	
 	private final static int NO_OF_PROCESORS = Runtime.getRuntime().availableProcessors();
 	private final static String USER_DIR = System.getProperty("user.dir");
 	private final static String FILE_SEPERATOR = System.getProperty("file.separator");	
-	private static String[] cmdLineFiles;
-	private static String[] cmdLineIndexFiles;
-	private static String[] cmdLineFormats; //vcf mode	
-	private static ExecutorService exec;
-	private static String version;
+	
+	private QLogger logger;	
+	private String[] cmdLineFiles;
+	private String[] cmdLineIndexFiles;
+	private String[] cmdLineFormats; //vcf mode	
+	private ExecutorService exec;
+	private String version;
 	
 	private String outputFile = USER_DIR + FILE_SEPERATOR + "qprofiler.xml";
 	private int exitStatus;
@@ -224,8 +224,8 @@ public class QProfiler2 {
 		
 		QProfiler2 qp = new QProfiler2();
 		int exitStatus = qp.setup(args);
-		if (null != logger) {
-			logger.logFinalExecutionStats(exitStatus);
+		if (null != qp.logger) {
+			qp.logger.logFinalExecutionStats(exitStatus);
 		} else {
 			System.err.println("Exit status: " + exitStatus);
 		}

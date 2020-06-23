@@ -2,7 +2,6 @@ package org.qcmg.qprofiler2;
 
 
 import static org.junit.Assert.*;
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -13,16 +12,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.ResourceBundle;
-
 import javax.xml.parsers.ParserConfigurationException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.qcmg.common.messages.QMessage;
 import org.qcmg.qprofiler2.QProfiler2;
-
 
 public class QProfiler2Test {
 	
@@ -51,12 +47,11 @@ public class QProfiler2Test {
 	public void cleanup() throws IOException {
 		//delete qprofiler.xml which was default output
 		
-		String USER_DIR = System.getProperty("user.dir");	
-		String outputFile = ".xml";
-		
-		File[] files = (new File(USER_DIR)).listFiles(f->f.getName().contains(outputFile) );
-		for(File f : files) f.delete();
-		
+		String outputFile = System.getProperty("user.dir") + System.getProperty("file.separator") + "qprofiler.xml";
+		File output = new File(outputFile);
+		if(output.exists()) {
+			output.delete();
+		}
 	}
 
 	@Test

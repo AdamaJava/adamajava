@@ -18,15 +18,8 @@ import org.w3c.dom.Element;
 
 public class CycleSummaryTest {
 	
-	@Rule
-	public TemporaryFolder testFolder = new TemporaryFolder();
-	private static File input;
-	
-	@Before
-	public void setUp() throws Exception{
-		input = testFolder.newFile("input.sam");
-		createInputFile(input); 		
-	}
+	@ClassRule
+	public static TemporaryFolder testFolder = new TemporaryFolder();
 	
 	private  void checklength( Element root, String metricName, String pairName,int readCount, int cycle, String[] values, int[] counts ) throws Exception {
 		if(counts.length != values.length)
@@ -84,16 +77,31 @@ public class CycleSummaryTest {
 		checklength( root,  XmlUtils.QUAL_BASE , XmlUtils.SECOND_PAIR,1, 151, new String[] {"7" }, new int[] { 1} ) ;
 	}	
 
-	public static Element getSummarizedRoot() throws Exception{				
+	public static Element getSummarizedRoot() throws Exception{	
+		String input = createInputFile();
 		Element root = XmlElementUtils.createRootElement( "qProfiler", null);
 		BamSummarizer2 bs = new BamSummarizer2();
-		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize(input.getAbsolutePath()); 
+		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize(input); 
 		sr.toXml(root);
 		Assert.assertEquals(sr.getRecordsInputed(), 4);			
 		return root; 	
 	}
-			
-	public static void createInputFile(File input) throws IOException{
+	
+	/**
+	 * To create a new random file under current TemporaryFolder
+	 * @return new file name with full path
+	 * @throws IOException
+	 */
+	private static String createInputFile() throws IOException{
+		return createInputFile(testFolder);
+	}
+	
+	/**
+	 * To create a new random file under current specified TemporaryFolder
+	 * @return new file name with full path
+	 * @throws IOException
+	 */
+	public static String createInputFile(TemporaryFolder testFolder) throws IOException{
 		List<String> data = new ArrayList<String>();
         data.add("@HD	VN:1.0	SO:coordinate");
         data.add("@RG	ID:20150125163736341	SM:eBeads_20091110_CD	DS:rl=50");
@@ -124,10 +132,14 @@ public class CycleSummaryTest {
        		"GGGTTTGGGTGTGGGTGTGGGGTGGGGGGTGGGGTTGGGGTGGGGGGTTGGGGTGGGGTTAGGGTGGGGGTGGGGGTGAGGGTTAGGGTGGGGGTGAGGGTTTAGGGTTAGGGTTAGGGTTAGGGTTAGGGTTAGGGTTAGGTTAGGGTAG	" + 
        		"-7-7--<7J-<--F7-A--F-7--A7---<-7A7---<F7---FF-----F----FF7-7<JFJF7-J<--<-J7<77-FJA---F-77<--JAFF-F-<<J-FF<AFJJAJJJFFFJJJJJJJJJFJJJJJAJJJJJJJJJJFJAFFFFA	" + 
        		"ZC:i:6	MD:Z:53	PG:Z:MarkDuplicates.7	RG:Z:20150125163738010	NM:i:0	AS:i:53	XS:i:49");	      
-              
-        try(BufferedWriter out = new BufferedWriter(new FileWriter(input))){	    
+   
+        //create a new fresh file with a random name under the temporary folder.
+		File fl = testFolder.newFile();	
+        try(BufferedWriter out = new BufferedWriter(new FileWriter(fl))){	    
 			for (String line : data)  out.write(line + "\n");	               
-		}		
+		}	
+        
+        return fl.getAbsolutePath();
 	}	
 	
 }

@@ -9,7 +9,7 @@
  */
 package org.qcmg.qprofiler2.fastq;
 
-
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.atomic.AtomicLong;
 import htsjdk.samtools.fastq.FastqRecord;
 import htsjdk.samtools.SAMUtils;
@@ -100,7 +100,9 @@ public class FastqSummaryReport extends SummaryReport {
 	 * @return next row in file
 	 */
 	public void parseRecord(FastqRecord record) {
-		if( null == record ) return;
+		if( null == record ) { 
+			return;
+		}
 		 			
 		updateRecordsInputed();
 					 
@@ -112,22 +114,24 @@ public class FastqSummaryReport extends SummaryReport {
 		SummaryReportUtils.tallyQualScores( baseQualities, qualBadReadLineLengths );
 						
 		// SEQ
-		byte[] readBases = record.getReadString().getBytes();
+		byte[] readBases = record.getReadString().getBytes(StandardCharsets.UTF_8);
 		seqByCycle.parseByteData(readBases);
 		SummaryReportUtils.tallyBadReadsAsString( readBases, seqBadReadLineLengths );
 		//fastq base are all orignal forward, treat all as first of pair 
 		kmersSummary.parseKmers( readBases, false, 0 ); 
 		
 		String qualHeader = record.getBaseQualityHeader();			
-		// If header just contains "+" then FastqRecord has null for qual header
-		if ( ! StringUtils.isNullOrEmpty( qualHeader ))  
+		//If header just contains "+" then FastqRecord has null for qual header
+		if ( ! StringUtils.isNullOrEmpty( qualHeader )) {  
 			qualHeaderNotEqualToPlus.incrementAndGet();	
+		}
 		
-		String id = record.getReadName();//record.getReadHeader();		
+		String id = record.getReadName();		
 		try { readNameSummary.parseReadId( id );
 		} catch (Exception e) {
-			if ( errNumber.incrementAndGet() < ReportErrNumber )
+			if ( errNumber.incrementAndGet() < ReportErrNumber ) {
 				logger.error( "Invalid read id: " + id );
-		}		 						 			 	 
+			}
+		}
 	}
 }
