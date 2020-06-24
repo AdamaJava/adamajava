@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.lang3.StringUtils;
@@ -31,7 +32,7 @@ public class VcfSummaryReport  extends SummaryReport {
 	
 	public VcfSummaryReport(VcfHeader header, String[] formats){	     
 		this.vcfHeader = header;
-		this.formatCategories = formats; 
+		this.formatCategories = Arrays.copyOf(formats, formats.length); 	
 		this.sampleIds = Arrays.copyOf(header.getSampleId(), header.getSampleId().length); 	
 	}
 	
@@ -86,17 +87,18 @@ public class VcfSummaryReport  extends SummaryReport {
 		}	
 		
 		Element summaryElement =  XmlElementUtils.createSubElement(parent,  ProfileType.VCF.getReportName()+"Metrics" );		
-		for( String sample : summaries.keySet() ) {	
+		//for( String sample : summaries.keySet() ) {	
+		for( Entry<String, Map<String, SampleSummary>> sEntry : summaries.entrySet() ) {	
 			Element ele =  XmlElementUtils.createSubElement( summaryElement, Sample);
-			ele.setAttribute(XmlUtils.NAME, sample);
-						
-			for(String cates : summaries.get(sample).keySet() ) {			
+			ele.setAttribute(XmlUtils.NAME, sEntry.getKey());			
+			for(Entry<String, SampleSummary> entry : sEntry.getValue().entrySet() ) {
 				if( formatsTypes.isEmpty() ) {
-					summaries.get(sample).get(cates).toXML( ele, null, null );
-				}else {
-					summaries.get(sample).get(cates).toXML( ele, StringUtils.join( formatsTypes, seperator), cates );	
+					entry.getValue().toXML( ele, null, null );
+				} else {
+					entry.getValue().toXML( ele, StringUtils.join( formatsTypes, seperator), entry.getKey() );	
 				}
-			}			
+			}
+			
 		}		
 	}
 	

@@ -54,7 +54,7 @@ public class BamSummaryReport2 extends SummaryReport {
 
 	public static final Character cc = Character.MAX_VALUE;
 	public static final Integer ii = Integer.MAX_VALUE;	
-//	public static final String[] sourceName = new String[]{  };	
+	//Array in java is mutable, so set to final is meaningless, here we use unmodifiableList
 	public static final List<String> sourceName = Collections.unmodifiableList(Arrays.asList("unPaired", XmlUtils.FIRST_PAIR, XmlUtils.SECOND_PAIR));
 	
 	private final ConcurrentMap<String, ReadIDSummary> readIdSummary = new ConcurrentHashMap<String, ReadIDSummary>();

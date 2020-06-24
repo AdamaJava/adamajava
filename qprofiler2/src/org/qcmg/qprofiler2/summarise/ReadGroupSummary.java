@@ -3,6 +3,7 @@ package org.qcmg.qprofiler2.summarise;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -311,8 +312,8 @@ public class ReadGroupSummary {
 		}
 		
 		//add pairCounts into metrics elements
-		for(String name : metricEs.keySet()) {
-			metricEs.get(name).setAttribute(ReadGroupSummary.PAIR_COUNT, metricCounts.get(name).get()+"" );
+		for(Entry<String, Element> entry : metricEs.entrySet()) {
+			entry.getValue().setAttribute(ReadGroupSummary.PAIR_COUNT, metricCounts.get(entry.getKey()).get()+"" );
 		}
 		
 	}

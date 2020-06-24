@@ -43,7 +43,6 @@ public class SampleSummary {
 	Map<String, QCMGAtomicLongArray> summaryAD = new HashMap<>();
 	
 	AtomicLong counts = new AtomicLong();
-	QCMGAtomicLongArray sampleTrans = new QCMGAtomicLongArray(  SubsitutionEnum.values().length );	
 
 	private void increment(String key){	summary.computeIfAbsent(key, v -> new AtomicLong()).incrementAndGet(); }
 	

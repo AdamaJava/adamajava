@@ -1,14 +1,16 @@
 package org.qcmg.qprofiler2.summarise;
 
-
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
+
+import org.apache.commons.compress.utils.Charsets;
 import org.qcmg.common.model.QCMGAtomicLongArray;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.BaseUtils;
@@ -33,12 +35,13 @@ public class KmersSummary {
 	
 	public static final int maxKmers = 6; 	
 	public static final String atgc = "ATGC";  //make sure letter on same order
-	public static final String atgcn = "ATGCN";  //make sure letter on same order
-	public static final char[] atgcCharArray = new char[]{'A','T','G','C'};
-	public static final char[] atgcnCharArray = new char[]{'A','T','G','C','N'};
+	public static final String atgcn = "ATGCN";  //make sure letter on same order	
+	//Array in java is mutable, so set to final is meaningless, here we use unmodifiableList
+	public static final List<Character>  atgcCharArray = Collections.unmodifiableList(Arrays.asList('A','T','G','C'));
+	public static final List<Character>  atgcnCharArray = Collections.unmodifiableList(Arrays.asList('A','T','G','C','N'));
 	
 	private final int merLength; 
-	private final int[] mersIndex; 
+	private int[] mersIndex; 
 	private final String[] mersStrList; 
 	
 	public KmersSummary( int length ) {	
@@ -91,20 +94,23 @@ public class KmersSummary {
 	}
 	
 	public static String producer(final int k, final String mers , final boolean includeN){
-		if(k == 0 )  return mers;			
+		if(k == 0 ) {
+			return mers;			
+		}
 		
-		char[] cToUse = includeN ? atgcnCharArray : atgcCharArray;
+		List<Character> cToUse = includeN ? atgcnCharArray : atgcCharArray;
 		StringBuilder conStr = new StringBuilder();
 		for(char c : cToUse) {
 			StringUtils.updateStringBuilder(conStr, producer( k-1, mers + c,  includeN), Constants.COMMA);
 		}
+		
 		return conStr.toString();	
 	}
 
 	public String[] getPossibleKmerString(final int k, final boolean includeN){
 		//if require inital mers combination 
 		if( k == merLength && includeN && mersStrList != null ) {
-			return mersStrList; 
+			return Arrays.copyOf( mersStrList, mersStrList.length);
 		}
 		
 		//produce all possible kmers in String 
@@ -152,12 +158,13 @@ public class KmersSummary {
 	private int getEntry(byte[] mers){
 		int entry = 0; 
 		for(int i = 0, j = mers.length-1; i < mers.length; i ++, j-- ){
-			int no = 5; //default is 'N'
+			int no;
 			switch (mers[i]){
 				case 'A' : no = 1; break;
 				case 'C' : no = 2; break;
 				case 'G' : no = 3; break;
 				case 'T' : no = 4; break;
+				default : no = 5; break;
 			}
 			entry += no << ( j * 3 ); 	
 		}		

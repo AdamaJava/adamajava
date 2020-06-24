@@ -208,13 +208,13 @@ public class XmlUtils {
     public static Element outputValueNode(Element parent, String name, Number value) {        	
     	Element ele = XmlElementUtils.createSubElement(parent, VALUE);
     	ele.setAttribute(NAME, name);
-    	String v = String.valueOf(value);
-
     	if( value instanceof Double ) {
-    		v = String.format("%,.2f", (double)value);
-    	}
+    		ele.setTextContent(String.format("%,.2f", value )); 
+    	} else {
+    		//autoboxing
+    		ele.setTextContent(  value + "" ); 
+    	}  	
     	
-    	ele.setTextContent( v );    
     	return ele;
     }
     
@@ -245,16 +245,15 @@ public class XmlUtils {
 	}
     
     
-    private static <T> void outputTallys( Element ele, String name, Map<T, AtomicLong> tallys, boolean hasPercent) {
-    	
-    	double sum = hasPercent ? tallys.values().stream().mapToDouble( x -> (double) x.get() ).sum() : 0;	   	   	
-    	for(T t: tallys.keySet()) {
+    private static <T> void outputTallys( Element ele, String name, Map<T, AtomicLong> tallys, boolean hasPercent) {    	
+    	double sum = hasPercent ? tallys.values().stream().mapToDouble( x -> (double) x.get() ).sum() : 0;	   	   	    		
+    	for(Entry<T, AtomicLong> entry: tallys.entrySet()) {	
 			//skip zero value for output
-			if(tallys.get(t).get() == 0 ) continue;
-			double percent = (sum == 0)? 0 : 100 * (double)tallys.get(t).get() / sum;
+			if(entry.getValue().get() == 0 ) continue;
+			double percent = (sum == 0)? 0 : 100 * (double)entry.getValue().get() / sum;
 			Element ele1 = XmlElementUtils.createSubElement( ele, TALLY );
-			ele1.setAttribute( VALUE, String.valueOf( t ));
-			ele1.setAttribute( COUNT, String.valueOf( tallys.get(t).get() )); 
+			ele1.setAttribute( VALUE, String.valueOf( entry.getKey() ));
+			ele1.setAttribute( COUNT, String.valueOf( tallys.get(entry.getKey()).get() )); 
 			if( hasPercent == true) {
 				ele1.setAttribute(PERCENT, String.format("%,.2f", percent));	
 			}					
