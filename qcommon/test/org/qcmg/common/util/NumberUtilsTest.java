@@ -77,6 +77,7 @@ public class NumberUtilsTest {
 		assertEquals(4612785531289731794l, NumberUtils.addShortToLong(l, s, offset));
 		assertEquals(1000, NumberUtils.getShortFromLong(4612785531289731794l, offset));
 		assertEquals(l, NumberUtils.removeShortFromLong(4612785531289731794l, offset));
+//		assertEquals(l, NumberUtils.getRefPositionFromLong(4612785531289731794l));
 		
 		/*
 		 * try an even larger short value

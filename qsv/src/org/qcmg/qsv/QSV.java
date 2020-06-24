@@ -70,7 +70,7 @@ public class QSV {
 					System.err.println(Messages.getVersionMessage());			
 				} else {
 					
-					options.parseIniFile();					
+					options.parseIniFile();
 //					LoadReferencedClasses.loadClasses(QSV.class);
 					
 					//use analysis id to set up results folder

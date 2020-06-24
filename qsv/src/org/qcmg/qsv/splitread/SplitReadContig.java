@@ -507,10 +507,12 @@ public class SplitReadContig {
 				
 				if (log) {
 					logger.info("findSplitRead, getBlatResults size: " + records.size());
-					logger.info("findSplitRead, blat rec: " + records.get(0).toString());
 				}
 				
 				if (records.size() > 0) {
+					if (log) {
+						logger.info("findSplitRead, blat rec: " + records.get(0).toString());
+					}
 
 					parseConsensusAlign(records, log);
 					if ( ! isPotentialSplitRead && isTumour() && clipContig.length() > 0) {

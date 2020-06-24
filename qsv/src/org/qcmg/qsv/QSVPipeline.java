@@ -101,7 +101,7 @@ public class QSVPipeline {
 		
 		
 		Callable<TIntObjectMap<int[]>> callable = () -> {
-			return TiledAlignerLongMap.getCache(tiledAlignerFile, 64);
+			return TiledAlignerLongMap.getCache(tiledAlignerFile, 64, 2);
 		};
 		future = executor.submit(callable);
 		

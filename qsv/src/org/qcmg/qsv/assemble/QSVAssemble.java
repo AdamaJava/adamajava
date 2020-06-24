@@ -117,9 +117,6 @@ public class QSVAssemble {
 			logger.info("getFinalContig with inputSplitReads count: " + inputSplitReads.size());
 		}
 		for (UnmappedRead r: inputSplitReads) {
-			if (log) {
-				logger.info("getFinalContig read: " + r.getReadName() + ", " + r.getSequence());
-			}
 			splitReads.add(new Read(r.getReadName(), r.getSequence()));
 		}
 		

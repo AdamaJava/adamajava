@@ -93,17 +93,19 @@ public class PositionChrPositionMap {
 		 * Should only every have 1 range that encompasses a position....
 		 */
 		boolean reverseStrand = NumberUtils.isBitSet(position, TiledAlignerUtil.REVERSE_COMPLEMENT_BIT);
-		if (reverseStrand) {
-			/*
-			 * strip the strand from the long
-			 */
-			position = NumberUtils.stripBitFromLong(position, TiledAlignerUtil.REVERSE_COMPLEMENT_BIT);
-		}
-		
-		/*
-		 * remove the tile position in sequence short
-		 */
-		position = NumberUtils.removeShortFromLong(position, TiledAlignerUtil.POSITION_OF_TILE_IN_SEQUENCE_OFFSET);
+//		if (reverseStrand) {
+//			/*
+//			 * strip the strand from the long
+//			 */
+//			position = NumberUtils.stripBitFromLong(position, TiledAlignerUtil.REVERSE_COMPLEMENT_BIT);
+//		}
+//		
+//		/*
+//		 * remove the tile position in sequence short
+//		 */
+//		position = NumberUtils.removeShortFromLong(position, TiledAlignerUtil.POSITION_OF_TILE_IN_SEQUENCE_OFFSET);
+//		
+		position = NumberUtils.getLongPositionValueFromPackedLong(position, TiledAlignerUtil.POSITION_OF_TILE_IN_SEQUENCE_OFFSET, TiledAlignerUtil.REVERSE_COMPLEMENT_BIT);
 		
 		
 		for (Entry<ChrPosition, LongRange> entry : chrPosToPositionRange.entrySet()) {

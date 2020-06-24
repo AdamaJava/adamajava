@@ -599,22 +599,28 @@ public class TiledAlignerUtil {
 					 */
 					int position = NumberUtils.getPositionOfLongInArray(nextArray, l + i + 1);
 					
-					
-//					int position = Arrays.binarySearch(nextArray, l + i + 1);
 					if (position > -1) {
 						tally++;
 					} else {
-						int absPosition = Math.min(Math.abs(position) - 1, nextArray.length - 1);
-						if ((absPosition >= 0 && Math.abs((l + i + 1) - nextArray[absPosition]) < INDEL_GAP) 
-								|| (absPosition > 1 && Math.abs((l + i + 1) - nextArray[absPosition - 1]) < INDEL_GAP)) {
-							tally++;
-						}
+						
+						/*
+						 * no longer allow gaps - we want exact matches only, and then use splits mechanism to stitch together constituent chunks if necessary 
+						 * 
+						 * and so, if we don't have a match, or a commonly occurring tile, break out
+						 */
+						break;
+						
+						
+//						int absPosition = Math.min(Math.abs(position) - 1, nextArray.length - 1);
+//						if ((absPosition >= 0 && Math.abs((l + i + 1) - nextArray[absPosition]) < INDEL_GAP) 
+//								|| (absPosition > 1 && Math.abs((l + i + 1) - nextArray[absPosition - 1]) < INDEL_GAP)) {
+//							tally++;
+//						}
 					}
 				}
 			}
 		}
 		return NumberUtils.getTileCount(tally, commonTileTally);
-//		return tally;
 	}
 	
 	
@@ -798,7 +804,7 @@ public class TiledAlignerUtil {
 		
 		swCounter.incrementAndGet();
 		if (useOriginalValues) {
-			System.out.println("using original sw values as nCount is: " + nCount);
+//			System.out.println("using original sw values as nCount is: " + nCount);
 			nm = new SmithWatermanGotoh(ref, sequence, 5, -4, 16, 4);
 		} else {
 			nm = new SmithWatermanGotoh(ref, sequence, 4, -4, 4, 1);
@@ -918,7 +924,7 @@ public class TiledAlignerUtil {
 			tiledAlignerPositions.sort(Comparator.comparing(ChrPosition::getChromosome, ChrPositionComparator.getChrNameComparatorForSingleString(contig)));
 		}
 		
-		
+		int perfectMatchCount = 0;
 		
 		for (ChrPosition cp : tiledAlignerPositions) {
 			ChrPosition bufferedCP = new ChrRangePosition(cp.getChromosome(),  Math.max(1,cp.getStartPosition() - bufferToUse), cp.getStartPosition() + bufferToUse + sequence.length());
@@ -933,6 +939,7 @@ public class TiledAlignerUtil {
 			String fragString = forwardStrand ? sequence : SequenceUtil.reverseComplement(sequence);
 			int index = bufferedReference.indexOf(fragString);
 			if (index > -1) {
+				perfectMatchCount++;
 				if (debug) {
 					System.out.println("Got a perfect match using indexOf!!! " + cp.toIGVString());
 				}
@@ -999,6 +1006,16 @@ public class TiledAlignerUtil {
 //				}
 			}
 		}
+		
+		
+		/*
+		 * this is a little contentious - may need to be removed
+		 */
+		if (perfectMatchCount > 1) {
+			return Collections.emptyList();
+		}
+		
+		
 		return swResults;
 	}
 	
@@ -1649,7 +1666,7 @@ public class TiledAlignerUtil {
 				String [] names = entry.getValue().split(":");
 				name = names[0];
 			}
-			System.out.println("in runTiledAlignerCache, name: " + name);
+			System.out.println("in runTiledAlignerCache, name: " + name + ", seq: " + entry.getKey());
 			
 			List<BLATRecord> blatties = getBlatRecords(cache, entry.getKey(), entry.getValue(), tileLength, originatingMethod, log, recordsMustComeFromChrInName);
 			/*
@@ -1738,6 +1755,17 @@ public class TiledAlignerUtil {
 	//	public static List<BLATRecord> getBlatRecords(TIntObjectMap<int[]> cache, String sequence, String name, int tileLength, String originatingMethod) {
 //		return getBlatRecords(cache, sequence, name, tileLength, originatingMethod, false);
 //	}
+	
+	public static boolean happyWithSequence(String sequence) {
+		if (sequence.contains("CCCCCCCCCCCCCCCCCCCCCCC") 
+				|| sequence.contains("AAAAAAAAAAAAAAAAAAAAAAA")
+				|| sequence.contains("GGGGGGGGGGGGGGGGGGGGGGG")
+				|| sequence.contains("TTTTTTTTTTTTTTTTTTTTTTT")) {
+			return false;
+		}
+		return true;
+	}
+	
 	public static List<BLATRecord> getBlatRecords(TIntObjectMap<int[]> cache, String sequence, String name, int tileLength, String originatingMethod, boolean log, boolean recordsMustComeFromChrInName) {
 		if (null == cache || cache.isEmpty()) {
 			throw new IllegalArgumentException("Null or empty cache passed to getBlatRecords");
@@ -1748,6 +1776,17 @@ public class TiledAlignerUtil {
 		if (sequence.length() <= tileLength) {
 			throw new IllegalArgumentException("sequence length is less than or equals to the tile length! sequence: " + sequence + ", tile length: " + tileLength);
 		}
+		
+		if ( ! happyWithSequence(sequence)) {
+			System.out.println("too much repetition in sequence to proceed: " + sequence);
+			return Collections.emptyList();
+		}
+//		
+//		short[] baseDist = getBaseDistribution(sequence);
+//		if (isDistEvenlySpread(baseDist, sequence.length(), 1d)) {
+//			System.out.println("not enough diversity in sequence to proceed: " + sequence);
+//			return Collections.emptyList();
+//		}
 		
 		
 		if (sequence.equals("GCAAGACTGTGTCTCAAAAAAAAACAAA")) {
@@ -1979,22 +2018,32 @@ public class TiledAlignerUtil {
 			 * If the max tile count is low, try running the split to see if its made up of multiple entries.
 			 * If it is, and its not a split, may need to combine into a single BLATRecord
 			 */
-			int maxTileMatch = NumberUtils.sumPackedInt(taRec.getHightestTileCount());
+			int highestTileCount = taRec.getHightestTileCount();
+			if (highestTileCount <= 0) {
+				/*
+				 * we're done
+				 */
+				System.out.println("Found no tile matches for sequence: " + sequence);
+				return Collections.emptyList();
+			}
+			int currentMaxLength = TARecordUtil.getExactMatchOnlyLengthFromPackedInt(taRec.getHightestTileCount());
 			int commonTileCount = NumberUtils.getPartOfPackedInt(taRec.getHightestTileCount(), false);
 			int nCount = org.apache.commons.lang3.StringUtils.countMatches(sequence, 'N');
 			
 //			int maxTileMatch = TARecordUtil.getExactMatchOnlyLengthFromPackedInt(taRec.getHightestTileCount());
 			
-			if (maxTileMatch < (0.7 * sequence.length()) && (maxTileMatch + TILE_LENGTH - 1) >= (0.5 * sequence.length())) {
-				System.out.println("name: " + name + ", maxTileMatch: " + maxTileMatch + ", sequence.length(): " + sequence.length() + ", less then 70% of bases covered ( && >= 50%) - will look for splits!");
+			if (currentMaxLength < (0.7 * sequence.length()) && (currentMaxLength) >= (0.5 * sequence.length())) {
+				System.out.println("name: " + name + ", currentMaxLength: " + currentMaxLength + ", sequence.length(): " + sequence.length() + ", less then 70% of bases covered ( && >= 50%) - will look for splits!");
 				runSplits = true;
 			} else {
-				System.out.println("name: " + name + ", maxTileMatch: " + maxTileMatch + ", sequence.length(): " + sequence.length() + ", will not run splits");
+				if ( ! runSplits) {
+					System.out.println("name: " + name + ", currentMaxLength: " + currentMaxLength + ", sequence.length(): " + sequence.length() + ", will not run splits");
+				}
 			}
 			
 			if (commonTileCount > (0.1 * sequence.length())) {
 				if (runSplits) {
-					System.out.println("Too many commonly occurring tiles to be able to run splts, commonTileCount: " + commonTileCount + ", sequence.length(): " + sequence.length() + ", maxTileMatch: " + maxTileMatch);
+					System.out.println("Too many commonly occurring tiles to be able to run splts, commonTileCount: " + commonTileCount + ", sequence.length(): " + sequence.length() + ", maxTileMatch: " + currentMaxLength);
 				}
 				runSplits = false;
 			}
@@ -2027,6 +2076,7 @@ public class TiledAlignerUtil {
 						} else {
 							System.out.println("Single blat record from splits not good enough!!: " + br.toString() + ", sequence.length(): " + sequence.length() + ", seq: " + sequence);
 						}
+						
 					}
 				} else {
 					System.out.println("about to run some splits, no of positions in TARecord:  name: " + name + ", " + taRec.getCountDist() + " DONE, breakdown of splits:");
@@ -2046,43 +2096,33 @@ public class TiledAlignerUtil {
 				 */
 				if ( ! gotSplits) {
 					
-					List<BLATRecord> blatRecs = TARecordUtil.blatRecordsFromSplits(splits, name, taRec.getSequence().length(), headerMap);
+					List<BLATRecord[]> blatRecs = TARecordUtil.blatRecordsFromSplits(splits, name, taRec.getSequence().length(), headerMap);
 					System.out.println("splits blat record count: " + blatRecs.size() + " for " + name);
 					if ( ! blatRecs.isEmpty()) {
 						
-						if (blatRecs.size() > 2) {
-							System.out.println("got more than 2 BLATRecs! here they are: " + blatRecs.size() + " for " + name);
-							for (BLATRecord bt : blatRecs) {
-								System.out.println("br: " + bt.toString());
-							}
-							System.out.println("got more than 2 BLATRecs! here they are - DONE for " + name);
-						}
-//						} else {
-						
-							/*
-							 * only proceed with just splits if we only have 2
-							 * don't really know what to do if we have more than 2...
-							 */
+						for (BLATRecord[] recs : blatRecs) {
 							int combinedScore = 0;
-							for (BLATRecord bt : blatRecs) {
+							for (BLATRecord bt : recs) {
 								combinedScore += bt.getScore();
 							}
-							
 							/*
 							 * if we have more then 80% of bases covered, we cool, otherwise SW
 							 */
 							if (((double)combinedScore / taRec.getSequence().length()) >= 0.9) {
 								System.out.println("No need to smith waterman - have some records, combined score: " + combinedScore + ", seqLength: " + taRec.getSequence().length()  + " for " + name);
-								results.addAll(blatRecs);
+								for (BLATRecord bt : recs) {
+									results.add(bt);
+								}
 								gotSplits = true;
 							}
-//						}
+						}
+//					}
+						
 					} else {
 						System.out.println("No split record found for name: " + name);
 					}
 				}
 			}
-			
 			
 			
 			if ( ! gotSplits) {
@@ -2123,17 +2163,24 @@ public class TiledAlignerUtil {
 			}
 		}
 		
-		results.sort(null);
 		
-		if ( ! results.isEmpty()) {
-			BLATRecord bestBR = results.get(results.size() - 1);
-			long position = headerMap.getLongStartPositionFromChrPosition(new ChrPointPosition(bestBR.getReference(), bestBR.getStartPos()));
-			updateBestRecordDistribution(position, bestBR.getStrand() == '+', taRec, iss, headerMap, bestBR.getScore());
-		}
+		/*
+		 * only want unique results
+		 */
+		List<BLATRecord> uniqueResults = results.stream().distinct().collect(Collectors.toList());
+		
+		
+		uniqueResults.sort(null);
+		
+//		if ( ! uniqueResults.isEmpty()) {
+//			BLATRecord bestBR = uniqueResults.get(uniqueResults.size() - 1);
+//			long position = headerMap.getLongStartPositionFromChrPosition(new ChrPointPosition(bestBR.getReference(), bestBR.getStartPos()));
+//			updateBestRecordDistribution(position, bestBR.getStrand() == '+', taRec, iss, headerMap, bestBR.getScore());
+//		}
 		
 		
 		if (log) {
-			System.out.println("number of blat records for seq: " + sequence +", " + results.size() +", winner: " + (results.size() > 0 ? results.get(results.size() - 1).toString() : "-"));
+			System.out.println("number of blat records for seq: " + sequence +", " + uniqueResults.size() +", winner: " + (uniqueResults.size() > 0 ? uniqueResults.get(uniqueResults.size() - 1).toString() : "-"));
 		}
 		
 		
@@ -2144,15 +2191,52 @@ public class TiledAlignerUtil {
 			 */
 			String[] nameArray = name.split("_");
 			if ( ! nameArray[1].equals(nameArray[3])) {
-				System.out.println("got a splitcon: " + name + " with no of recs: " + results.size() + ", taRec: " + (null != taRec ? taRec.toString() : "null"));
-				for (BLATRecord br : results) {
+				System.out.println("got a splitcon: " + name + " with no of recs: " + uniqueResults.size() + ", taRec: " + (null != taRec ? taRec.toString() : "null"));
+				for (BLATRecord br : uniqueResults) {
 					System.out.println("splitcon rec: " + br);
 				}
 			}
 		}
 		
 		
-		return results;
+		return uniqueResults;
+	}
+	
+	public static short[] getBaseDistribution(String sequence) {
+		short[] baseDist = new short[5];
+		if ( ! StringUtils.isNullOrEmpty(sequence)) {
+			for (byte b : sequence.getBytes()) {
+				if (b == 'A') {
+					baseDist[0]++;
+				} else if (b == 'C') {
+					baseDist[1]++;
+				} else if (b == 'G') {
+					baseDist[2]++;
+				} else if (b == 'T') {
+					baseDist[3]++;
+				} else if (b == 'N') {
+					baseDist[4]++;
+				}
+			}
+		}
+		return baseDist;
+	}
+	
+	/**
+	 * This method will examine the first 4 elements in the short array to ensure that they are equal to or higher than the percentage value that is calculated based on the sequence length and percentage
+	 * @param dist
+	 * @param seqLength
+	 * @param percentage
+	 * @return
+	 */
+	public static boolean isDistEvenlySpread(short[] dist, int seqLength, double percentage) {
+		double percentageValue = seqLength * (percentage / 100);
+		for (int i = 0 ; i < 4 ; i++) {
+			if (dist[i] < percentageValue) {
+				return false;
+			}
+		}
+		return true;
 	}
 	
 	/**
@@ -2162,32 +2246,32 @@ public class TiledAlignerUtil {
 	 * @param iss
 	 */
 	private static DecimalFormat df2 = new DecimalFormat("#.##");
-	public static void updateBestRecordDistribution(long position, boolean isForwardStrand, TARecord tr, IntSummaryStatistics iss, PositionChrPositionMap headerMap, int score) {
-		if ( ! isForwardStrand) {
-			position = setReverseStrandBit(position);
-		}
-		int leaderBoardPosition = tr.getLeaderBoardPositionOfPosition(position);
-		if (leaderBoardPosition == -1) {
-			ChrPosition cp = headerMap.getChrPositionFromLongPosition(position);
-			System.out.println("Leaderboard == -1, position: " + position + ", TARecord: " + tr + ", cp: " + cp.toIGVString());
-//			System.exit(1);
-		}
-		if (leaderBoardPosition > 1) {
-			double perc = ((double)score / tr.getSequence().length()) * 100 ;
-			System.out.println("Leaderboard = " + leaderBoardPosition + ", score: " + score + ", length: " + tr.getSequence().length() + ", perc: " + df2.format(perc) + ", position: " + position + ", TARecord: " + tr.getCountDist());
-		}
-		AtomicInteger ai = leaderboardStats.putIfAbsent(leaderBoardPosition, new AtomicInteger(1));
-		if (null != ai) {
-			ai.incrementAndGet();
-		}
-		iss.accept(leaderBoardPosition);
-		
-		if (leaderBoardPosition == 1) {
-			taClassifierArrayPosition1.incrementAndGet(tr.getClassification().getPosition());
-		} else if (leaderBoardPosition == 2) {
-			taClassifierArrayPosition2.incrementAndGet(tr.getClassification().getPosition());
-		}
-	}
+//	public static void updateBestRecordDistribution(long position, boolean isForwardStrand, TARecord tr, IntSummaryStatistics iss, PositionChrPositionMap headerMap, int score) {
+//		if ( ! isForwardStrand) {
+//			position = setReverseStrandBit(position);
+//		}
+//		int leaderBoardPosition = tr.getLeaderBoardPositionOfPosition(position);
+//		if (leaderBoardPosition == -1) {
+//			ChrPosition cp = headerMap.getChrPositionFromLongPosition(position);
+//			System.out.println("Leaderboard == -1, position: " + position + ", TARecord: " + tr + ", cp: " + cp.toIGVString());
+////			System.exit(1);
+//		}
+//		if (leaderBoardPosition > 1) {
+//			double perc = ((double)score / tr.getSequence().length()) * 100 ;
+//			System.out.println("Leaderboard = " + leaderBoardPosition + ", score: " + score + ", length: " + tr.getSequence().length() + ", perc: " + df2.format(perc) + ", position: " + position + ", TARecord: " + tr.getCountDist());
+//		}
+//		AtomicInteger ai = leaderboardStats.putIfAbsent(leaderBoardPosition, new AtomicInteger(1));
+//		if (null != ai) {
+//			ai.incrementAndGet();
+//		}
+//		iss.accept(leaderBoardPosition);
+//		
+//		if (leaderBoardPosition == 1) {
+//			taClassifierArrayPosition1.incrementAndGet(tr.getClassification().getPosition());
+//		} else if (leaderBoardPosition == 2) {
+//			taClassifierArrayPosition2.incrementAndGet(tr.getClassification().getPosition());
+//		}
+//	}
 	
 	/**
 	 * Will perform a match of the cpRef against the supplied sequence, if they match then a new ChrPositionName object will be created and returned.

@@ -29,9 +29,7 @@ public class IntLongPairs {
 			return false;
 		return true;
 	}
-	/*
-	 * limiting to 2 for now
-	 */
+	
 	private IntLongPair[] pairs;
 	
 	public IntLongPairs(IntLongPair pair1, IntLongPair pair2) {

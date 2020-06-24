@@ -42,8 +42,11 @@ public class TiledAlignerLongMap {
 //	private static TLongObjectMap<int[]> map = new TLongObjectHashMap<>(64 * 1024 * 1024, 1f);
 	private static TIntObjectMap<int[]> map = new TIntObjectHashMap<>(68 * 1024 * 1024, 1f);
 	
-	
 	public static void getTiledDataInMap(String tiledAlignerFile, int bufferSize) throws IOException {
+		getTiledDataInMap(tiledAlignerFile, bufferSize, 1);
+	}
+	
+	public static void getTiledDataInMap(String tiledAlignerFile, int bufferSize, int threadPoolSize) throws IOException {
 		
 //		try (FileInputStream is = new FileInputStream(tiledAlignerFile) ;
 //				GZIPInputStream gzin = new GZIPInputStream(is);
@@ -84,7 +87,7 @@ public class TiledAlignerLongMap {
 		
 		AbstractQueue<String> queue = new LinkedBlockingQueue<>();
 		AtomicBoolean hasReaderFinished = new AtomicBoolean(false);
-		int threadPoolSize = 1;
+//		int threadPoolSize = 1;
 		ExecutorService e = Executors.newFixedThreadPool(threadPoolSize);
 //		e.execute(new Reader(queue, tiledAlignerFile, bufferSize, hasReaderFinished));
 		for (int i = 0 ; i < threadPoolSize ; i++) {
@@ -273,8 +276,11 @@ public class TiledAlignerLongMap {
 //	}
 	
 	public static TIntObjectMap<int[]> getCache(String tiledAlignerFile, int bufferSize) throws IOException {
+		return getCache(tiledAlignerFile, bufferSize, 1);
+	}
+	public static TIntObjectMap<int[]> getCache(String tiledAlignerFile, int bufferSize, int threadCount) throws IOException {
 		if (map.isEmpty()) {
-			getTiledDataInMap(tiledAlignerFile, bufferSize);
+			getTiledDataInMap(tiledAlignerFile, bufferSize, threadCount);
 		}
 		return map;
 	}

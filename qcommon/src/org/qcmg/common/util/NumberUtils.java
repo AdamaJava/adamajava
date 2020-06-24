@@ -20,6 +20,8 @@ import gnu.trove.map.hash.THashMap;
 public class NumberUtils {
 	
 	public static final int SHORT_DIVIDER = 16;
+	public static final int OFFSET = 40;
+	public static final int REV_COMP_BIT = 62;
 	
 	
 	public static int getTileCount(int actualCount, int commonTileCount) {
@@ -77,7 +79,7 @@ public class NumberUtils {
 	 * assumes that the array is sorted.
 	 * 
 	 * Try and minimise the number of calls to Arrays.binarySearch by checking size and boundary positions
-	 * Should not be more than 500 entries in the array 
+	 * Should not be more than 5000 entries in the array 
 	 * 
 	 * 
 	 * @param array
@@ -161,12 +163,36 @@ public class NumberUtils {
 	public static long addShortToLong(long l, short s, int offset) {
 		return l + ((long)s << offset);
 	}
+	public static long removeShortFromLong(long l) {
+		return removeShortFromLong(l, OFFSET);
+	}
 	public static long removeShortFromLong(long l, int offset) {
 		/*
 		 * first of all, get the short, then subtract from the long
 		 */
 		short s = getShortFromLong(l, offset);
 		return l - ((long)s << offset);
+	}
+	
+	public static long getLongPositionValueFromPackedLong(long l){
+		return getLongPositionValueFromPackedLong(l, OFFSET, REV_COMP_BIT);
+	}
+	public static long getLongPositionValueFromPackedLong(long l, int offset, int reverseCompBit){
+		/*
+		 * Need to loop through our map values, and check each one to see if the position falls within the range.
+		 * Should only every have 1 range that encompasses a position....
+		 */
+		if (NumberUtils.isBitSet(l, reverseCompBit)) {
+			/*
+			 * strip the strand from the long
+			 */
+			l = NumberUtils.stripBitFromLong(l, reverseCompBit);
+		}
+		
+		/*
+		 * remove the tile position in sequence short
+		 */
+		return NumberUtils.removeShortFromLong(l, offset);
 	}
 
 	public static int convertCharToInt(char c, boolean allowNs) {
@@ -195,9 +221,9 @@ public class NumberUtils {
 		}
 	}
 	
-	public static long getRefPositionFromLong(long l) {
-		return (long)((int)l);
-	}
+//	public static long getRefPositionFromLong(long l) {
+//		return (long)((int)l);
+//	}
 
 	public static Map<Integer, TLongList> getUpdatedMapWithLongsFallingInRanges(Map<Integer, TLongList> originalMap, List<long[]> ranges, int reverseComplementBit) {
 		

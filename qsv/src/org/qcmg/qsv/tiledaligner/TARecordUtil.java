@@ -8,16 +8,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import java.util.Set;
 
 import org.qcmg.common.model.ChrPosition;
-import org.qcmg.common.model.ChrPositionName;
-import org.qcmg.common.string.StringUtils;
-import org.qcmg.common.util.ChrPositionUtils;
-import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.NumberUtils;
 import org.qcmg.qsv.blat.BLATRecord;
 
@@ -27,7 +21,6 @@ import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.TLongIntMap;
 import gnu.trove.map.hash.THashMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
-import gnu.trove.map.hash.TLongIntHashMap;
 
 public class TARecordUtil {
 	
@@ -158,9 +151,9 @@ public class TARecordUtil {
 		TARecord r = createTARec_chr15_34031839_split_withTileStartPositionsWithinRange();
 		TIntObjectMap<Set<IntLongPairs>> splits = getSplitStartPositions(r);
 		System.out.println("trying out splitting, splits.size: " + splits.size());
-		List<BLATRecord> blatRecs = blatRecordsFromSplits(splits, "splitcon_chr10_127633807_chr15_34031839__true_1586132281792_839799", r.getSequence().length(), pcpm);
+		List<BLATRecord[]> blatRecs = blatRecordsFromSplits(splits, "splitcon_chr10_127633807_chr15_34031839__true_1586132281792_839799", r.getSequence().length(), pcpm);
 		System.out.println("blat record count: " + blatRecs.size());
-		for (BLATRecord br : blatRecs) {
+		for (BLATRecord br : blatRecs.get(0)) {
 			System.out.println("blat record: " + br.toString());
 		}
 		
@@ -181,7 +174,7 @@ public class TARecordUtil {
 		System.out.println("trying out splitting, splits.size: " + splits.size());
 		blatRecs = blatRecordsFromSplits(splits, "splitcon_chr8_125551528_chr8_125555328__true_1589928259240_726892", r.getSequence().length(), pcpm);
 		System.out.println("blat record count: " + blatRecs.size());
-		for (BLATRecord br : blatRecs) {
+		for (BLATRecord br : blatRecs.get(0)) {
 			System.out.println("blat record: " + br.toString());
 		}
 		
@@ -193,7 +186,7 @@ public class TARecordUtil {
 		System.out.println("trying out splitting, splits.size: " + splits.size());
 		blatRecs = blatRecordsFromSplits(splits, "splitcon_chr7_100867120_chr7_100867215", r.getSequence().length(), pcpm);
 		System.out.println("blat record count: " + blatRecs.size());
-		for (BLATRecord br : blatRecs) {
+		for (BLATRecord br : blatRecs.get(0)) {
 			System.out.println("blat record: " + br.toString());
 		}
 	}
@@ -457,7 +450,7 @@ p: 3299927520776
 		return listToREturn;
 	}
 	
-	public static List<BLATRecord> blatRecordsFromSplits(TIntObjectMap<Set<IntLongPairs>> splits, String name, int seqLength, PositionChrPositionMap headerMap) {
+	public static List<BLATRecord[]> blatRecordsFromSplits(TIntObjectMap<Set<IntLongPairs>> splits, String name, int seqLength, PositionChrPositionMap headerMap) {
 		if (null != splits && ! splits.isEmpty()) {
 		
 			/*
@@ -468,16 +461,15 @@ p: 3299927520776
 			int maxKey = keys[keys.length - 1];
 			Set<IntLongPairs> maxSplits = splits.get(maxKey);
 			
-			/*
-			 * hopefully we only have 1 entry here
-			 * If not, dunno....
-			 */
-			
-			List<BLATRecord> blats = new ArrayList<>();
+			List<BLATRecord[]> blats = new ArrayList<>(maxSplits.size() + 1);
 			for (IntLongPairs maxSplit : maxSplits) {
-				for (IntLongPair s : maxSplit.getPairs()) {
-					blats.add(new BLATRecord(blatRecordFromSplit(s, name, seqLength, headerMap)));
+				IntLongPair[] pairs = maxSplit.getPairs();
+				BLATRecord [] blatties = new BLATRecord[pairs.length];
+				for (int i = 0 ; i < pairs.length ; i++) {
+					blatties[i] = new BLATRecord(blatRecordFromSplit(pairs[i], name, seqLength, headerMap));
 				}
+				Arrays.sort(blatties);
+				blats.add(blatties);
 			}
 			return blats;
 		}
@@ -544,22 +536,16 @@ p: 3299927520776
 	 * @return
 	 */
 	public static Map<ChrPosition, int[]> getChrPositionAndBlocksFromSplits(IntLongPairs splits, int seqLength, PositionChrPositionMap headerMap) {
-		IntLongPair[] pairs = splits.getPairs();
-		
-		/*
-		 * sort by position in query string
-		 */
-		Arrays.sort(pairs, new Comparator<IntLongPair>(){
-			@Override
-			public int compare(IntLongPair o1, IntLongPair o2) {
-				return NumberUtils.getShortFromLong(o1.getLong(), 40) - NumberUtils.getShortFromLong(o2.getLong(), 40);
-			}
-		});
+		IntLongPair[] pairs = IntLongPairsUtils.sortIntLongPairs(splits, seqLength);
 		
 		int [][] ranges = new int[pairs.length][];
 		int i = 0;
 		for (IntLongPair ilp : pairs) {
-			ranges[i++] = new int[]{ NumberUtils.getShortFromLong(ilp.getLong(), TILE_OFFSET), getExactMatchOnlyLengthFromPackedInt(ilp.getInt())};
+			
+			/*
+			 * start position is dependent on whether the reverse complement bit has been set.
+			 */
+			ranges[i++] = new int[]{ IntLongPairsUtils.getStartPositionInSequence(ilp, seqLength), getExactMatchOnlyLengthFromPackedInt(ilp.getInt())};
 //			ranges[i++] = new int[]{ NumberUtils.getShortFromLong(ilp.getLong(), TILE_OFFSET), getLengthFromPackedInt(ilp.getInt())};
 		}
 		
@@ -615,7 +601,6 @@ p: 3299927520776
 	}
 	
 	/**
-	 * Only designed for 2 splits for now.....
 	 * 
 	 * @param splits
 	 * @param name
@@ -697,115 +682,6 @@ p: 3299927520776
 		
 		return array;
 	}
-//	public static String[] blatRecordFromSplits(IntLongPairs splits, String name, int seqLength, PositionChrPositionMap headerMap, int tileLength) {
-//		IntLongPair[] pairs = splits.getPairs();
-//		int firstSplitLength =  getLengthFromPackedInt(pairs[0].getInt());
-//		int secondSplitLength =  getLengthFromPackedInt(pairs[1].getInt());
-//		
-//		ChrPosition cp1 = headerMap.getChrPositionFromLongPosition(pairs[0].getLong(), firstSplitLength - 1);
-//		ChrPosition cp2 = headerMap.getChrPositionFromLongPosition(pairs[1].getLong(), secondSplitLength - 1);
-//		
-//		/*
-//		 * quick check that contigs and strand are the same
-//		 */
-//		if (cp1.getChromosome() != cp2.getChromosome() || cp1.getName() != cp2.getName()) {
-//			System.out.println("unable to create single BLATRecord from splits as different contigs/strands are present. cp1: " + cp1.toString() + ", cp2: " + cp2.toString());
-//			return new String[]{};
-//		}
-//		
-//		int firstSplitTilePosition = NumberUtils.getShortFromLong(pairs[0].getLong(), TILE_OFFSET);
-//		int secondplitTilePosition = NumberUtils.getShortFromLong(pairs[1].getLong(), TILE_OFFSET);
-//		
-//		int[] firstBlock = new int[] {firstSplitTilePosition, firstSplitLength};
-//		int[] secondBlock = new int[] {secondplitTilePosition, secondSplitLength};
-//		/*
-//		 * sort
-//		 */
-//		ChrPosition firstCp = cp1;
-//		ChrPosition secondCp = cp2;
-//		if (cp1.getStartPosition() > cp2.getStartPosition()) {
-//			firstCp = cp2;
-//			secondCp = cp1;
-//			firstBlock = new int[] {secondplitTilePosition, secondSplitLength};
-//			secondBlock = new int[] {firstSplitTilePosition, firstSplitLength};
-//		}
-//		
-//		/*
-//		 * If positions overlap (quite common), then trim from the larger of the 2
-//		 */
-//		int diff = (firstBlock[0] + firstBlock[1]) - secondBlock[0];
-//		if (diff > 0) {
-//			int firstCpLength = firstCp.getLength();
-//			int secondCpLength = secondCp.getLength();
-//			if (firstCpLength >= secondCpLength) {
-//				
-//				if (diff > firstCp.getLength()) {
-//					System.out.println("diff is greater than length! diff: " + diff + ", firstCp.getLength(): " + firstCp.getLength());
-//					System.out.println("diff is greater than length! splits: " + pairs[0].toString() + ", " + pairs[1].toString() + ", name: " + name + ", seqLength: " + seqLength);
-//					return new String[]{};
-//				}
-//				
-//				ChrPosition newCP = new ChrPositionName(firstCp.getChromosome(), firstCp.getStartPosition(), firstCp.getEndPosition() - diff, firstCp.getName());
-//				firstCp = newCP;
-//				int[] newBlock = new int[]{firstBlock[0], firstBlock[1] - diff};
-//				firstBlock = newBlock;
-//			} else {
-//				ChrPosition newCP = new ChrPositionName(secondCp.getChromosome(), secondCp.getStartPosition() + diff, secondCp.getEndPosition(), secondCp.getName());
-//				secondCp = newCP;
-//				int[] newBlock = new int[]{secondBlock[0] + diff, secondBlock[1]};
-//				secondBlock = newBlock;
-//			}
-//		}
-//		
-////		System.out.println("firstBlock: " + Arrays.toString(firstBlock));
-////		System.out.println("secondBlock: " + Arrays.toString(secondBlock));
-////		System.out.println("firstCp.getLength: " + firstCp.getLength());
-////		System.out.println("secondCp.getLength: " + secondCp.getLength());
-//		
-//		boolean reverseStrand = firstCp.getName().equals("R");
-//		/*
-//		 * build
-//		 */
-//		int length = firstCp.getLength() + secondCp.getLength();
-//		int qGapBases = secondBlock[0] - firstBlock[1];
-//		
-//		
-//		String[] array = new String[21];
-//		array[0] = "" + length;	//number of matches
-//		array[1] = "0";					//number of mis-matches
-//		array[2] = "0";					//number of rep. matches
-//		array[3] = "0";					//number of N's
-//		array[4] = qGapBases > 0 ? "1" : "0";					// Q gap count
-//		array[5] = "" + qGapBases;					// Q gap bases
-//		array[6] = "1";					// T gap count
-//		array[7] = "" + (secondCp.getStartPosition() - firstCp.getEndPosition());			// T gap bases
-//		array[8] = reverseStrand ? "-" : "+";			// strand
-//		array[9] = name;					// Q name
-//		array[10] = seqLength + "";			// Q size
-//		
-//		/*
-//		 * start and end are strand dependent
-//		 * if we are on the forward, its the beginning of the first block, and end of the last
-//		 * if we are on reverse, need to reverse!
-//		 */
-////		int start = reverseStrand ? (seqLength - positionInSequence - length) :  positionInSequence;
-////		int end = reverseStrand ?  (seqLength - positionInSequence) : positionInSequence + length;
-//		
-//		array[11] = "" + firstBlock[0];						// Q start
-//		array[12] = "" + (secondBlock[0] + secondBlock[1]);	// Q end
-//		array[13] = firstCp.getChromosome();			// T name
-//		array[14] = "12345";							// T size
-//		int tStart = firstCp.getStartPosition();
-//		
-//		array[15] = "" + tStart;						// T start
-//		array[16] = "" + secondCp.getEndPosition();		// T end
-//		array[17] = "2";								// block count
-//		array[18] = "" + firstCp.getLength() + "," + secondCp.getLength();					// block sizes
-//		array[19] = "" + firstBlock[0] + "," + secondBlock[0];								// Q block starts
-//		array[20] = "" + firstCp.getStartPosition() + "," + secondCp.getStartPosition();	// T block starts
-//		
-//		return array;
-//	}
 	
 	/**
 	 * This method will examine the IntLongPair records within the supplied IntLongPairs object.
@@ -820,20 +696,43 @@ p: 3299927520776
 		/*
 		 * check strand first
 		 */
-		if (NumberUtils.isBitSet(splits.getPairs()[0].getLong(), REVERSE_COMPLEMENT_BIT) == NumberUtils.isBitSet(splits.getPairs()[1].getLong(), REVERSE_COMPLEMENT_BIT)) {
-			/*
-			 * strands are the same - positions in ref next
-			 */
-			long firstPosition = NumberUtils.getRefPositionFromLong(splits.getPairs()[0].getLong());
-			long secondPosition = NumberUtils.getRefPositionFromLong(splits.getPairs()[1].getLong());
-			if (Math.abs(firstPosition - secondPosition) < MAX_GAP_FOR_SINGLE_RECORD) {
-				/*
-				 * by just looking at the numerical position, there is a chance that we will cross contig boundaries, but I would suspect that that chance is slim...
-				 */
-				String[] deetsForBlat = blatRecordFromSplits(splits,  name, seqLength, headerMap, tileLength);
-				return deetsForBlat;
+		
+		IntLongPair[] pairs = splits.getPairs();
+		boolean firstPositionIsRevComp = NumberUtils.isBitSet(pairs[0].getLong(), REVERSE_COMPLEMENT_BIT);
+		long firstPosition = NumberUtils.getLongPositionValueFromPackedLong(pairs[0].getLong());
+		boolean allGood = true;
+		for (int i = 1 ; i < pairs.length ; i++) {
+			if (NumberUtils.isBitSet(pairs[i].getLong(), REVERSE_COMPLEMENT_BIT) != firstPositionIsRevComp) {
+				allGood = false;
+				break;
+			}
+			long thisPosition = NumberUtils.getLongPositionValueFromPackedLong(pairs[i].getLong());
+			if (Math.abs(thisPosition - firstPosition) > MAX_GAP_FOR_SINGLE_RECORD) {
+				allGood = false;
+				break;
 			}
 		}
+		if (allGood) {
+			String[] deetsForBlat = blatRecordFromSplits(splits,  name, seqLength, headerMap, tileLength);
+			return deetsForBlat;
+		}
+		
+		
+		
+//		if (NumberUtils.isBitSet(splits.getPairs()[0].getLong(), REVERSE_COMPLEMENT_BIT) == NumberUtils.isBitSet(splits.getPairs()[1].getLong(), REVERSE_COMPLEMENT_BIT)) {
+//			/*
+//			 * strands are the same - positions in ref next
+//			 */
+//			long firstPosition = NumberUtils.removeShortFromLong(splits.getPairs()[0].getLong(),TILE_OFFSET );
+//			long secondPosition = NumberUtils.removeShortFromLong(splits.getPairs()[1].getLong(), TILE_OFFSET);
+//			if (Math.abs(firstPosition - secondPosition) < MAX_GAP_FOR_SINGLE_RECORD) {
+//				/*
+//				 * by just looking at the numerical position, there is a chance that we will cross contig boundaries, but I would suspect that that chance is slim...
+//				 */
+//				String[] deetsForBlat = blatRecordFromSplits(splits,  name, seqLength, headerMap, tileLength);
+//				return deetsForBlat;
+//			}
+//		}
 		return new String[]{};
 	}
 	
@@ -861,6 +760,7 @@ p: 3299927520776
 				 */
 				int tileCountCutoff = keys.length - 3;
 				boolean areWeDone = false;
+				boolean checkResults = true;
 				for (int i = keys.length - 1 ; i >= 0 ; i--) {
 					if (areWeDone) {
 						break;
@@ -978,6 +878,7 @@ p: 3299927520776
 												results.put(pairs.getIntTally(), resultsListList);
 											}
 											resultsListList.add(pairs);
+											checkResults = true;
 										}
 								
 									} else if (ranges.size() == 2) {
@@ -1029,6 +930,7 @@ p: 3299927520776
 												results.put(pairs.getIntTally(), resultsListList);
 											}
 											resultsListList.add(pairs);
+											checkResults = true;
 										}
 									}
 								}
@@ -1040,7 +942,7 @@ p: 3299927520776
 					/*
 					 * check results, if we have covered all bases in seqLength with our splits, no need to go looking for more
 					 */
-					if ( ! results.isEmpty()) {
+					if (checkResults &&  ! results.isEmpty()) {
 						for (int key : results.keys()) {
 							if (NumberUtils.sumPackedInt(key) >= (0.95 * (seqLength - (2 * TILE_LENGTH)))) {
 								/*
@@ -1049,6 +951,7 @@ p: 3299927520776
 								areWeDone = true;
 							}
 						}
+						checkResults = false;
 					}
 				}
 			}
@@ -1082,23 +985,23 @@ p: 3299927520776
 	 * @param positions
 	 * @return
 	 */
-	public static List<IntLongPair> getIntLongPairFromMap(TIntObjectMap<TLongList> positions) {
-		List<IntLongPair> list = new ArrayList<>(positions.size() * 2);
-		
-		if ( ! positions.isEmpty()) {
-			/*
-			 * streams would be good here....
-			 */
-			positions.forEachEntry((k,v) -> {
-				for (long vLong : v.toArray()) {
-					list.add(new IntLongPair(k, vLong));
-				}
-				return true;
-			});
-			list.sort(null);
-		}
-		return list;
-	}
+//	public static List<IntLongPair> getIntLongPairFromMap(TIntObjectMap<TLongList> positions) {
+//		List<IntLongPair> list = new ArrayList<>(positions.size() * 2);
+//		
+//		if ( ! positions.isEmpty()) {
+//			/*
+//			 * streams would be good here....
+//			 */
+//			positions.forEachEntry((k,v) -> {
+//				for (long vLong : v.toArray()) {
+//					list.add(new IntLongPair(k, vLong));
+//				}
+//				return true;
+//			});
+//			list.sort(null);
+//		}
+//		return list;
+//	}
 	
 	
 	/**
@@ -1117,20 +1020,10 @@ p: 3299927520776
 		 * get tile start position and length for each IntLongPair
 		 */
 		
-		int basesCovered = IntLongPairsUtils.getBasesCoveredByIntLongPairs(ilp, tileLength);
+		int basesCovered = IntLongPairsUtils.getBasesCoveredByIntLongPairs(ilp, seqLength, tileLength);
 		
 		if (seqLength - basesCovered > MIN_BLAT_SCORE_MINUS_RANGE_BUFFER) {
-			IntLongPair[] pairs = ilp.getPairs();
-			
-			/*
-			 * sort pairs these by position in sequence
-			 */
-			Arrays.sort(pairs, new Comparator<IntLongPair>(){
-				@Override
-				public int compare(IntLongPair o1, IntLongPair o2) {
-					return NumberUtils.getShortFromLong(o1.getLong(), 40) - NumberUtils.getShortFromLong(o2.getLong(), 40);
-				}
-			});
+			IntLongPair[] pairs = IntLongPairsUtils.sortIntLongPairs(ilp, seqLength);
 			
 			
 			/*
@@ -1326,7 +1219,14 @@ p: 3299927520776
 //	}
 	
 	public static int[] getForwardStrandStartAndStop(int tileStartPositionRS, int tileCount, int tileLength, int seqLength) {
-		return new int[] {seqLength - tileStartPositionRS - (tileCount + tileLength) - 1, seqLength - tileStartPositionRS - 1};
+		return getForwardStrandStartAndStop(tileStartPositionRS, tileCount, tileLength, seqLength, false);
+	}
+	public static int[] getForwardStrandStartAndStop(int tileStartPositionRS, int tileCount, int tileLength, int seqLength, boolean forwardStrand) {
+		if (forwardStrand) {
+			return new int[] {tileStartPositionRS, tileStartPositionRS + (tileCount + tileLength - 1)};
+		} else {
+			return new int[] {seqLength - tileStartPositionRS - (tileCount + tileLength) - 1, seqLength - tileStartPositionRS - 1};
+		}
 	}
 	
 	/**
