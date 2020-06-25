@@ -21,6 +21,7 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.qcmg.common.messages.Messages;
 import org.qcmg.qprofiler2.QProfiler2;
 
 public class QProfiler2Test {
@@ -130,9 +131,10 @@ public class QProfiler2Test {
 	
 	@Test
 	public void schmeFileTest() throws IOException {
-		QMessage messages = new QMessage(QProfiler2.class, ResourceBundle.getBundle("org.qcmg.qprofiler2.messages") );		
-		String schemaStr = "validationSchema=\"" + messages.getMessage("XSD_FILE") + "\"";
-		String md5Str = "md5OfSchema=\"" + messages.getMessage("XSD_FILE_md5") + "\"";
+		
+		String msgResource = "org.qcmg.qprofiler2.messages";		
+		String schemaStr = "validationSchema=\"" +  Messages.getMessage(msgResource,"XSD_FILE") + "\"";
+		String md5Str = "md5OfSchema=\"" + Messages.getMessage(msgResource, "XSD_FILE_md5") + "\"";
 		String input = BAM_FILE.getAbsolutePath();
 		
 		File logFile = testFolder.newFile("qProfilerNode.log");
