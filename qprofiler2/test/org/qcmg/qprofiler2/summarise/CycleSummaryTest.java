@@ -18,8 +18,8 @@ import org.w3c.dom.Element;
 
 public class CycleSummaryTest {
 	
-	@ClassRule
-	public static TemporaryFolder testFolder = new TemporaryFolder();
+	@Rule
+	public TemporaryFolder testFolder = new TemporaryFolder();
 	
 	private  void checklength( Element root, String metricName, String pairName,int readCount, int cycle, String[] values, int[] counts ) throws Exception {
 		if(counts.length != values.length)
@@ -77,8 +77,8 @@ public class CycleSummaryTest {
 		checklength( root,  XmlUtils.QUAL_BASE , XmlUtils.SECOND_PAIR,1, 151, new String[] {"7" }, new int[] { 1} ) ;
 	}	
 
-	public static Element getSummarizedRoot() throws Exception{	
-		String input = createInputFile();
+	private Element getSummarizedRoot() throws Exception{	
+		String input = CycleSummaryTest.createInputFile(testFolder);
 		Element root = XmlElementUtils.createRootElement( "qProfiler", null);
 		BamSummarizer2 bs = new BamSummarizer2();
 		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize(input); 
@@ -87,14 +87,6 @@ public class CycleSummaryTest {
 		return root; 	
 	}
 	
-	/**
-	 * To create a new random file under current TemporaryFolder
-	 * @return new file name with full path
-	 * @throws IOException
-	 */
-	private static String createInputFile() throws IOException{
-		return createInputFile(testFolder);
-	}
 	
 	/**
 	 * To create a new random file under current specified TemporaryFolder

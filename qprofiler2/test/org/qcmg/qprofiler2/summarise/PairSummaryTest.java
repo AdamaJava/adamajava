@@ -25,14 +25,8 @@ import org.w3c.dom.Element;
 import htsjdk.samtools.SAMRecord;
 
 public class PairSummaryTest {
-	@ClassRule
-	public  static TemporaryFolder testFolder = new TemporaryFolder();
-//	public File input;
-//
-//	@Before
-//	public void setup() throws IOException {
-//		input = testFolder.newFile("testInputFile.sam");
-//	}	
+	@Rule
+	public TemporaryFolder testFolder = new TemporaryFolder();
 	
 	@Test
 	public void toSummaryXmlTest() throws Exception {	

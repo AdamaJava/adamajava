@@ -24,15 +24,7 @@ import htsjdk.samtools.SAMTagUtil;
 
 public class TagSummaryReportTest {
 	@Rule
-	public  TemporaryFolder testFolder = new TemporaryFolder();
-	protected String INPUT_FILE;
-	final  SAMTagUtil STU = SAMTagUtil.getSingleton();
-	
-	@Before
-	public void setup() throws IOException {
-		INPUT_FILE = testFolder.newFile("input.sam").getAbsolutePath();
-	}
-	
+	public  TemporaryFolder testFolder = new TemporaryFolder();	
 	
 	@Test
 	public void simpleTest() throws Exception{
@@ -151,7 +143,7 @@ public class TagSummaryReportTest {
 			System.out.println(STU.makeStringTag(tag) + " : " + tag);					
 	}
 	
-	private void createMDerrFile() throws IOException{
+	private void createMDerrFile(String input) throws IOException{
 		List<String> data = new ArrayList<String>();
         data.add("@HD	VN:1.0	SO:coordinate");
         data.add("@RG	ID:1959T	SM:eBeads_20091110_CD	DS:rl=50");
@@ -164,14 +156,15 @@ public class TagSummaryReportTest {
 	    "########################################################################F==#F==#EGGGGGGE<=#FE1GGGGGGGGGGGGGF=?#GGGE@=#E@?#<=##	" + 
 	    "MD:Z:1T0C1A0G0G0T0C0G0G0T0T0T0C0T0A0T0C0T0A0C0N0T0T0C0A0A0A0T0T0C0C0T0C0C0C0T0G0T0A1G0A3G3A10G19T6T3T2	NH:i:1	HI:i:1	NM:i:47	AS:i:169	RG:Z:1959T");
 	
-		try(BufferedWriter out = new BufferedWriter(new FileWriter(INPUT_FILE))){	    
+		try(BufferedWriter out = new BufferedWriter(new FileWriter(input))){	    
 			for (String line : data)  out.write(line + "\n");	               
 		}	
 	}
 	
 	@Test
 	public void tempTest() throws Exception{
-		createMDerrFile();	
+		String INPUT_FILE = testFolder.newFile("input.sam").getAbsolutePath();
+		createMDerrFile(INPUT_FILE);	
 		Element root = XmlElementUtils.createRootElement("root",null);
 		BamSummarizer2 bs = new BamSummarizer2();
 		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize(INPUT_FILE); 

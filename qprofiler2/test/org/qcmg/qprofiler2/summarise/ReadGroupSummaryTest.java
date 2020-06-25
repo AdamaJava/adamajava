@@ -2,6 +2,8 @@ package org.qcmg.qprofiler2.summarise;
  
 import static org.junit.Assert.assertTrue;
 import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -29,12 +31,12 @@ import htsjdk.samtools.SamReader;
 
 public class ReadGroupSummaryTest {
 	
-	@Rule
-	public  TemporaryFolder testFolder = new TemporaryFolder();
-	File input;
+	@ClassRule
+	public static TemporaryFolder testFolder = new TemporaryFolder();
+	static File input;
 
-	@Before
-	public void setup() throws IOException {
+	@BeforeClass
+	public static void setup() throws IOException {
 		input = testFolder.newFile("testInputFile.sam");
 		createInputFile (input);
 	}	

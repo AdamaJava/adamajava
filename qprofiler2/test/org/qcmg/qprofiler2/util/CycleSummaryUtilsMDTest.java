@@ -24,12 +24,11 @@ import org.qcmg.qprofiler2.summarise.CycleSummaryTest;
 import org.qcmg.qprofiler2.util.CycleSummaryUtils;
 
 public class CycleSummaryUtilsMDTest {
-	@ClassRule
-	public  static TemporaryFolder testFolder = new TemporaryFolder();
+	@Rule
+	public TemporaryFolder testFolder = new TemporaryFolder();
 	
 	@Test
 	public void getBigMDCycleNoTest() throws IOException{
-//		File input = testFolder.newFile("input.bam");
 		String input = CycleSummaryTest.createInputFile(testFolder);
 		
 		@SuppressWarnings("unchecked")

@@ -10,6 +10,7 @@ import org.w3c.dom.Element;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMUtils;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.string.StringUtils;
@@ -25,14 +26,8 @@ import org.qcmg.qprofiler2.util.XmlUtils;
 
 public class BamSummaryReportTest {
 	
-	@ClassRule
-	public  static TemporaryFolder testFolder = new TemporaryFolder();
-//	public File input;
-//
-//	@Before
-//	public void setup() throws IOException {
-//		input = testFolder.newFile("testInputFile.sam");
-//	}	
+	@Rule
+	public  TemporaryFolder testFolder = new TemporaryFolder();
 			
 	@Test
 	public void testParseRNameAndPos() throws Exception {

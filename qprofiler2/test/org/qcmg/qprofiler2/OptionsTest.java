@@ -1,12 +1,10 @@
 package org.qcmg.qprofiler2;
 
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.qcmg.qprofiler2.Options2;
-
 
 public class OptionsTest {
 	public static final String FILE_1 = "file1.xml"; 
