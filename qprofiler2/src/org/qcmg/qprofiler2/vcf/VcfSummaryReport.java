@@ -1,9 +1,11 @@
 package org.qcmg.qprofiler2.vcf;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.lang3.StringUtils;
@@ -18,7 +20,6 @@ import org.qcmg.qprofiler2.summarise.SampleSummary;
 import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Element;
 
-
 public class VcfSummaryReport  extends SummaryReport {
 	public static final String seperator = Constants.COLON_STRING;		
 	public static final String Sample = "sample";	
@@ -28,12 +29,11 @@ public class VcfSummaryReport  extends SummaryReport {
 	//it allows the format field value eg. --formart FT=PASS, then it seperate value to PASS the others
 	private final String[] formatCategories;
 	Map< String, Map<String,SampleSummary> > summaries = new HashMap<>();
-	Map< String, AtomicLong > counts = new HashMap<>();
 	
 	public VcfSummaryReport(VcfHeader header, String[] formats){	     
 		this.vcfHeader = header;
-		this.formatCategories = formats; 
-		this.sampleIds = header.getSampleId(); 	
+		this.formatCategories = Arrays.copyOf(formats, formats.length); 	
+		this.sampleIds = Arrays.copyOf(header.getSampleId(), header.getSampleId().length); 	
 	}
 	
 	public void toXml(Element parent) {
@@ -45,7 +45,6 @@ public class VcfSummaryReport  extends SummaryReport {
 		summaryToXml( parentElement  );		
 	}
 	
-
 	void parseRecord( VcfRecord  vcf ) {
 		updateRecordsInputed();
 		
@@ -88,17 +87,18 @@ public class VcfSummaryReport  extends SummaryReport {
 		}	
 		
 		Element summaryElement =  XmlElementUtils.createSubElement(parent,  ProfileType.VCF.getReportName()+"Metrics" );		
-		for( String sample : summaries.keySet() ) {	
+		//for( String sample : summaries.keySet() ) {	
+		for( Entry<String, Map<String, SampleSummary>> sEntry : summaries.entrySet() ) {	
 			Element ele =  XmlElementUtils.createSubElement( summaryElement, Sample);
-			ele.setAttribute(XmlUtils.NAME, sample);
-						
-			for(String cates : summaries.get(sample).keySet() ) {			
+			ele.setAttribute(XmlUtils.NAME, sEntry.getKey());			
+			for(Entry<String, SampleSummary> entry : sEntry.getValue().entrySet() ) {
 				if( formatsTypes.isEmpty() ) {
-					summaries.get(sample).get(cates).toXML( ele, null, null );
-				}else {
-					summaries.get(sample).get(cates).toXML( ele, StringUtils.join( formatsTypes, seperator), cates );	
+					entry.getValue().toXML( ele, null, null );
+				} else {
+					entry.getValue().toXML( ele, StringUtils.join( formatsTypes, seperator), entry.getKey() );	
 				}
-			}			
+			}
+			
 		}		
 	}
 	

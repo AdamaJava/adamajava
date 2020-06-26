@@ -56,8 +56,6 @@ public class BamSummarizer2 implements Summarizer {
 		reader.close();
 		
 		SAMSequenceDictionary samSeqDict  = header.getSequenceDictionary();
-		//String bamHeader = reader.getFileHeader().getTextHeader();
-		List<SAMProgramRecord> pgLines = header.getProgramRecords();
 		List<String> readGroupIds = header.getReadGroups().stream().map( it -> it.getId()  ).collect(toList()); 		
 		readGroupIds.sort(Comparator.comparing( String::toString ) );//Natural order  
 		

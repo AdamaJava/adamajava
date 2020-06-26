@@ -2,7 +2,6 @@ package org.qcmg.qprofiler2;
 
 
 import static org.junit.Assert.*;
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -13,50 +12,43 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.ResourceBundle;
-
 import javax.xml.parsers.ParserConfigurationException;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.qcmg.common.messages.QMessage;
+import org.qcmg.common.messages.Messages;
 import org.qcmg.qprofiler2.QProfiler2;
-
 
 public class QProfiler2Test {
 	
 	private static final String DODGY_FILE_NAME =  "solid0039_20091125_DODGY.vcf";
-	private static final String XML_FILE_NAME =  "solid0039_20091125_1.xml";
 	private static final String GFF_FILE_NAME =  "solid0039_20091125_2.gff";
 	private static final String BAM_FILE_NAME =  "solid0039_20091125_2.sam";
 
 	
-	@Rule
-	public  TemporaryFolder testFolder = new TemporaryFolder();
-	public File GFF_FILE, BAM_FILE, XML_FILE, DODGY_FILE ;
+	@ClassRule
+	public static TemporaryFolder testFolder = new TemporaryFolder();
+	public static File BAM_FILE;
 	
-	@Before
-	public void setup() throws IOException {
-		GFF_FILE = testFolder.newFile(GFF_FILE_NAME);
+	@BeforeClass
+	public static void setup() throws IOException {
 		BAM_FILE = testFolder.newFile(BAM_FILE_NAME);
-		XML_FILE = testFolder.newFile(XML_FILE_NAME);
-		DODGY_FILE = testFolder.newFile(DODGY_FILE_NAME);
-		
-		createTestFile(DODGY_FILE, getDodgyFileContents());	
-		createTestFile(BAM_FILE, null);	
+ 		createTestFile(BAM_FILE, null);	
 	}
 	
-	@After
-	public void cleanup() throws IOException {
-		//delete qprofiler.xml which was default output
-		
-		String USER_DIR = System.getProperty("user.dir");	
-		String outputFile = ".xml";
-		
-		File[] files = (new File(USER_DIR)).listFiles(f->f.getName().contains(outputFile) );
-		for(File f : files) f.delete();
-		
+	@AfterClass
+	public  static void cleanup() throws IOException {
+		//delete qprofiler.xml which was default output		
+		String outputFile = System.getProperty("user.dir") + System.getProperty("file.separator") + "qprofiler.xml";
+		File output = new File(outputFile);
+		if(output.exists()) {
+			output.delete();
+		}
 	}
 
 	@Test
@@ -69,8 +61,10 @@ public class QProfiler2Test {
 		int exitStatus = new QProfiler2().setup(args);
 		assertEquals(0, exitStatus);
 		
+		File dodgyFile = testFolder.newFile(DODGY_FILE_NAME);
+		createTestFile(dodgyFile, getDodgyFileContents());			
 		//argument are correct input is doggy , the exception are caught
-		args = new String[] {"-log",  logFile.getAbsolutePath(), "-input", DODGY_FILE.getAbsolutePath(),
+		args = new String[] {"-log",  logFile.getAbsolutePath(), "-input", dodgyFile.getAbsolutePath(),
 				 "-o", outputFile.getAbsolutePath()};
 		exitStatus = new QProfiler2().setup(args);
 		assertEquals(1, exitStatus);
@@ -104,11 +98,12 @@ public class QProfiler2Test {
 	
 	@Test
 	public final void executeWithInvalidFileType() throws Exception {
+		File gffFile = testFolder.newFile(GFF_FILE_NAME);		
 		File logFile = testFolder.newFile("executeWithInvalidFileType.log");
 		File inputFile = testFolder.newFile("executeWithInvalidFileType.test");
 		
 		String[] args1 = {"-input",inputFile.getAbsolutePath(), "-log", logFile.getAbsolutePath()};
-		String[] args2 = new String[] {"-input",GFF_FILE.getAbsolutePath(), "-log", logFile.getAbsolutePath()};	
+		String[] args2 = new String[] {"-input",gffFile.getAbsolutePath(), "-log", logFile.getAbsolutePath()};	
 		
 		for(String[] args : new String[][] {args1, args2})
 			try {
@@ -136,16 +131,14 @@ public class QProfiler2Test {
 	
 	@Test
 	public void schmeFileTest() throws IOException {
-		QMessage messages = new QMessage(QProfiler2.class, ResourceBundle.getBundle("org.qcmg.qprofiler2.messages") );		
-		String schemaStr = "validationSchema=\"" + messages.getMessage("XSD_FILE") + "\"";
-		String md5Str = "md5OfSchema=\"" + messages.getMessage("XSD_FILE_md5") + "\"";
 		
-		File input = testFolder.newFile("input.sam"); 
-		//BAM with small header
-		createTestFile(input, null);
+		String msgResource = "org.qcmg.qprofiler2.messages";		
+		String schemaStr = "validationSchema=\"" +  Messages.getMessage(msgResource,"XSD_FILE") + "\"";
+		String md5Str = "md5OfSchema=\"" + Messages.getMessage(msgResource, "XSD_FILE_md5") + "\"";
+		String input = BAM_FILE.getAbsolutePath();
 		
 		File logFile = testFolder.newFile("qProfilerNode.log");
-		String[] args = {"-input",input.getAbsolutePath(), "-log", logFile.getAbsolutePath()};
+		String[] args = {"-input",input, "-log", logFile.getAbsolutePath()};
 		try { 		
 			// print full header		
 			new QProfiler2().setup( args );	
@@ -161,12 +154,10 @@ public class QProfiler2Test {
 	
 	@Test
 	public void bamHeaderOptionTest() throws IOException, ParserConfigurationException {
-		File input = testFolder.newFile("input.sam"); 
-		//BAM with small header
-		createTestFile(input, null);
 		
-		File logFile = testFolder.newFile("executeWithNonexistantInputFile.log");
-		String[] args = {"-input",input.getAbsolutePath(), "-log", logFile.getAbsolutePath()};
+		String input = BAM_FILE.getAbsolutePath();
+		File logFile = testFolder.newFile();
+		String[] args = {"-input", input , "-log", logFile.getAbsolutePath()};
 		try { 		
 			// print full header		
 			new QProfiler2().setup( args );		
@@ -178,7 +169,7 @@ public class QProfiler2Test {
 			assertTrue( Files.lines(Paths.get(  "qprofiler.xml")).filter(s -> s.contains("<headerRecords TAG=")).count()== 1);				
 			
 			//default mode, only HD and RG
-			args = new String[] {"-input",input.getAbsolutePath(), "-log", logFile.getAbsolutePath(), "--fullBamHeader"};
+			args = new String[] {"-input",input, "-log", logFile.getAbsolutePath(), "--fullBamHeader"};
 			new QProfiler2().setup( args );	
 			assertTrue( Files.lines(Paths.get(  "qprofiler.xml")).filter(s -> s.contains("<headerRecords TAG=\"HD\"")).count()== 1);	
 			assertTrue( Files.lines(Paths.get(  "qprofiler.xml")).filter(s -> s.contains("<headerRecords TAG=\"SQ\"")).count()== 1);			

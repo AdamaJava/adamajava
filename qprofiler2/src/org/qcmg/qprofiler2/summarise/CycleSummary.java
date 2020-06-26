@@ -36,22 +36,23 @@ public class CycleSummary<T> {
 	private static final int MAX_ARRAY_CAPACITY = 2048 * 2048;		// over 4 million
 		
 	/**
-	 * Quality scores are stored as ASCII representation of Phred-scale base quality + 33
-	 * From SAM spec 1.4:
-	 * [!-~]+
-	 * ! has an ascii score of 33
-	 * ~ has an ascii score of 126
-	 */
-	private static final int DEFAULT_NO_OF_KEYS_INTEGER = 128;
-	
-	/**
 	 * Sequence data
 	 * From SAM spec 1.4:
 	 * \*|[A-Za-z=.]+
 	 * * has an ascii score of 42
 	 * z has an ascii score of 122
+	 * 
+	 * Quality scores are stored as ASCII representation of Phred-scale base quality + 33
+	 * From SAM spec 1.4:
+	 * [!-~]+
+	 * ! has an ascii score of 33
+	 * ~ has an ascii score of 126
+	 * 
+	 * here both DEFAULT_NO_OF_KEYS_INTEGER and DEFAULT_NO_OF_KEYS_CHARACTER are 128.
+	 *  so just use one value 128 for key mask
+	 * 
 	 */
-	private static final int DEFAULT_NO_OF_KEYS_CHARACTER = 128;
+	private static final int DEFAULT_NO_OF_KEYS = 128;	
 		
 	// atomic boolean used as a lock when resizing the array
 	private final AtomicBoolean resizingInProgress = new AtomicBoolean(false);
@@ -74,21 +75,14 @@ public class CycleSummary<T> {
 	 * @param type
 	 * @param noOfCycles
 	 */
-	public CycleSummary(T type, final int noOfCycles) {
-		this(type, noOfCycles, type instanceof Character 
-				? DEFAULT_NO_OF_KEYS_CHARACTER : DEFAULT_NO_OF_KEYS_INTEGER);
-	}
-		
-	public CycleSummary(T type, final int noOfCycles, int noOfKeys) {
-		this.type = type;
-		
+	public CycleSummary(T type, final int noOfCycles) {		
+		this.type = type;		
 		cycleMask.set(getMask(noOfCycles));
-		keyMask.set(getMask(noOfKeys));
+		keyMask.set(getMask( DEFAULT_NO_OF_KEYS));
 		int capacity = 1 << (cycleMask.get() + keyMask.get());
 		
 		maxCycleValue.set((1<<cycleMask.get()) -1);
-		maxKeyValue.set((1<<keyMask.get()) -1);
-		
+		maxKeyValue.set((1<<keyMask.get()) -1);		
 		tally = new AtomicLongArray(capacity);
 	}
 	
@@ -124,6 +118,7 @@ public class CycleSummary<T> {
 	}
 
 	
+	@SuppressWarnings("unchecked")
 	private T getTypeFromInt(int l) {
 		if (type instanceof Integer)
 			return (T)Integer.valueOf(l);
@@ -288,15 +283,15 @@ public class CycleSummary<T> {
 			allValues.add( getTypeFromInt(getCycleKeyFromArrayPosition(i)[1] )  );	
 		}		
 		//order as ACGTN
-		if( type instanceof Character){		
-			
+		if( type instanceof Character){					
 			List<T> notATGC = new ArrayList<T>();
-			List<T> atgc = new ArrayList<T>();
+			
 			for( T v : allValues){
 				char v1 =   (Character)  v; 
 				if( v1 != 'A' &&   v1 != 'T' &&  v1 != 'G' &&  v1 != 'C') 
 				notATGC.add(v);						
-			}		 
+			}	
+			
 			allValues.removeAll(notATGC);
 			return   Stream.concat(allValues.stream().sorted(), notATGC.stream()).collect(Collectors.toCollection(LinkedHashSet::new));	
 		}else if( type instanceof Integer){	

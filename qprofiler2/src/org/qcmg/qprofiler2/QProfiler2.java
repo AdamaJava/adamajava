@@ -24,7 +24,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.qcmg.common.date.DateUtils;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
-import org.qcmg.common.messages.QMessage;
+import org.qcmg.common.messages.Messages;
 import org.qcmg.common.model.ProfileType;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.FileUtils;
@@ -40,16 +40,17 @@ import org.w3c.dom.Element;
 
 public class QProfiler2 {
 		
-	private static QLogger logger;
-	private static QMessage messages;
+	private final static String msgResource = "org.qcmg.qprofiler2.messages";	
 	private final static int NO_OF_PROCESORS = Runtime.getRuntime().availableProcessors();
 	private final static String USER_DIR = System.getProperty("user.dir");
 	private final static String FILE_SEPERATOR = System.getProperty("file.separator");	
-	private static String[] cmdLineFiles;
-	private static String[] cmdLineIndexFiles;
-	private static String[] cmdLineFormats; //vcf mode	
-	private static ExecutorService exec;
-	private static String version;
+	
+	private QLogger logger;	
+	private String[] cmdLineFiles;
+	private String[] cmdLineIndexFiles;
+	private String[] cmdLineFormats; //vcf mode	
+	private ExecutorService exec;
+	private String version;
 	
 	private String outputFile = USER_DIR + FILE_SEPERATOR + "qprofiler.xml";
 	private int exitStatus;
@@ -128,8 +129,8 @@ public class QProfiler2 {
 		root.setAttribute( "operatingSystem", System.getProperty("os.name") );
 		root.setAttribute( "version", version );
 		//add md5 to identify of schema file
-		root.setAttribute( "validationSchema", messages.getMessage("XSD_FILE") );
-		root.setAttribute( "md5OfSchema", messages.getMessage("XSD_FILE_md5") );
+		root.setAttribute( "validationSchema", Messages.getMessage(msgResource, "XSD_FILE") );
+		root.setAttribute( "md5OfSchema", Messages.getMessage(msgResource, "XSD_FILE_md5") );
 		XmlElementUtils.asXmlText(root, outputFile);		
 		 			
 		return exitStatus;
@@ -223,8 +224,8 @@ public class QProfiler2 {
 		
 		QProfiler2 qp = new QProfiler2();
 		int exitStatus = qp.setup(args);
-		if (null != logger) {
-			logger.logFinalExecutionStats(exitStatus);
+		if (null != qp.logger) {
+			qp.logger.logFinalExecutionStats(exitStatus);
 		} else {
 			System.err.println("Exit status: " + exitStatus);
 		}
@@ -234,21 +235,20 @@ public class QProfiler2 {
 	
 	public int setup(String args[]) throws Exception{
 		int returnStatus = 1;
-		Options2 options = new Options2(args);		
-		//assign messages to global level
-		messages = options.getMessage();
+		Options2 options = new Options2(args);
+		String usage = Messages.getMessage(msgResource, "USAGE");
 		
 		if (options.hasHelpOption()) {
-			System.err.println(messages.getUsage()  );
+			System.err.println( usage );
 			options.displayHelp();
 			returnStatus = 0;
 		} else if (options.hasVersionOption()) {
-			System.err.println(messages.getVersionMessage());
+			System.err.println(options.getVersion());
 			returnStatus = 0;
 		} else if (options.getFileNames().length < 1) {
-			System.err.println(messages.getUsage() );
+			System.err.println(usage );
 		} else if ( ! options.hasLogOption()) {
-			System.err.println(messages.getUsage() );
+			System.err.println(usage );
 		} else {
 			// configure logging
 			logFile = options.getLog();
@@ -259,12 +259,12 @@ public class QProfiler2 {
 			// get list of file names
 			cmdLineFiles = options.getFileNames();
 			if (cmdLineFiles.length < 1) {
-				throw new Exception( messages.getMessage("INSUFFICIENT_ARGUMENTS"));
+				throw new Exception( Messages.getMessage(msgResource, "INSUFFICIENT_ARGUMENTS"));
 			} else {
 				// loop through supplied files - check they can be read
 				for (int i = 0 ; i < cmdLineFiles.length ; i++ ) {
 					if ( ! FileUtils.canFileBeRead(cmdLineFiles[i])) {
-						throw new Exception( messages.getMessage("INPUT_FILE_ERROR" , cmdLineFiles[i]));
+						throw new Exception( Messages.getMessage(msgResource, "INPUT_FILE_ERROR" , cmdLineFiles[i]));
 					}
 				}
 			}
@@ -275,7 +275,7 @@ public class QProfiler2 {
 				if (FileUtils.canFileBeWrittenTo(optionsOutputFile)) {
 					outputFile = optionsOutputFile;
 				} else {
-					throw new Exception( messages.getMessage("OUTPUT_FILE_WRITE_ERROR"));
+					throw new Exception( Messages.getMessage(msgResource, "OUTPUT_FILE_WRITE_ERROR"));
 				}
 			}
 			

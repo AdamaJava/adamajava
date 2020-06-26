@@ -1,20 +1,15 @@
 package org.qcmg.qprofiler2.bam;
 
 import static org.junit.Assert.*;
-
 import java.io.File;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import javax.xml.parsers.ParserConfigurationException;
-
+import org.w3c.dom.Element;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMUtils;
-import htsjdk.samtools.fastq.FastqRecord;
-
-import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -22,25 +17,17 @@ import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.XmlElementUtils;
 import org.qcmg.picard.BwaPair.Pair;
 import org.qcmg.qprofiler2.bam.BamSummaryReport2;
-import org.qcmg.qprofiler2.fastq.FastqSummaryReport;
 import org.qcmg.qprofiler2.summarise.CycleSummaryTest;
 import org.qcmg.qprofiler2.summarise.PairSummaryTest;
 import org.qcmg.qprofiler2.summarise.PositionSummary;
 import org.qcmg.qprofiler2.summarise.ReadGroupSummary;
 import org.qcmg.qprofiler2.util.XmlUtils;
-import org.w3c.dom.Element;
 
 
 public class BamSummaryReportTest {
 	
 	@Rule
 	public  TemporaryFolder testFolder = new TemporaryFolder();
-	public File input;
-
-	@Before
-	public void setup() throws IOException {
-		input = testFolder.newFile("testInputFile.sam");
-	}	
 			
 	@Test
 	public void testParseRNameAndPos() throws Exception {
@@ -160,10 +147,10 @@ public class BamSummaryReportTest {
 	@Test
 	//check read length and rname, both ignor readgroup
 	public void checkLength_rname_mapq() throws Exception{ 
-		CycleSummaryTest.createInputFile(input);
+		String input = CycleSummaryTest.createInputFile(testFolder);
 		Element root = XmlElementUtils.createRootElement("root",null);
 		BamSummarizer2 bs = new BamSummarizer2();
-		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize( input.getAbsolutePath() ); 
+		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize( input ); 
 		sr.toXml(root);			
 		
 		//length
@@ -194,6 +181,7 @@ public class BamSummaryReportTest {
 	 */
 	@Test
 	public void checkTlen() throws Exception {
+		File input = testFolder.newFile("testInputFile.sam");
 		Element root = PairSummaryTest.createPairRoot( input);		
 		 
 

@@ -1,8 +1,8 @@
 package org.qcmg.qprofiler2.summarise;
 
+
 import java.util.concurrent.atomic.AtomicLong;
-import org.qcmg.common.log.QLogger;
-import org.qcmg.common.log.QLoggerFactory;
+
 import org.qcmg.common.model.QCMGAtomicLongArray;
 import org.qcmg.picard.BwaPair;
 import org.qcmg.picard.BwaPair.Pair;
@@ -35,15 +35,24 @@ public class PairSummary {
 	//pair in different reference
 	AtomicLong diffRef  = new AtomicLong();	
 	AtomicLong mateUnmapped  = new AtomicLong();	
-
 	AtomicLong firstOfPairNum  = new AtomicLong();
 	AtomicLong secondOfPairNum  = new AtomicLong();
+				
+	public long getFirstOfPairCounts() { 
+		return firstOfPairNum.get(); 
+	}
 	
-	protected QLogger logger = QLoggerFactory.getLogger(getClass());			
-	public long getFirstOfPairCounts() { return firstOfPairNum.get(); }
-	public long getSecondOfPairCounts(){ return secondOfPairNum.get(); }
-	public QCMGAtomicLongArray getoverlapCounts() { return overlapBase; }
-	public QCMGAtomicLongArray getTLENCounts() { return tLenOverall; }
+	public long getSecondOfPairCounts(){ 
+		return secondOfPairNum.get(); 
+	}
+	
+	public QCMGAtomicLongArray getoverlapCounts() {
+		return overlapBase; 
+	}
+	
+	public QCMGAtomicLongArray getTLENCounts() { 
+		return tLenOverall; 
+	}
 				
 	/**
 	 * This function can only process paired reads (including notProperMappedPair), this algorithm won't work properly for single segment reads

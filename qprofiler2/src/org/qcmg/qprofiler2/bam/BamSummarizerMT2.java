@@ -201,7 +201,7 @@ public class BamSummarizerMT2 implements Summarizer {
 		return totalSize;
 	}
 	
-	public static class SingleProducerConsumer implements Runnable {
+	static class SingleProducerConsumer implements Runnable {
 		private final AbstractQueue<SAMRecord> queue;
 		private final BamSummaryReport2 report;
 		private final Thread mainThread;
@@ -247,7 +247,7 @@ public class BamSummarizerMT2 implements Summarizer {
 		}
 	}
 	
-	public static class Consumer implements Runnable {
+	static class Consumer implements Runnable {
 		private final AbstractQueue<SAMRecord> [] queues;
 		private final BamSummaryReport2 report;
 		private final Thread mainThread;
@@ -315,7 +315,7 @@ public class BamSummarizerMT2 implements Summarizer {
 		}
 	}
 
-	public class Producer implements Runnable {
+	class Producer implements Runnable {
 		private final File file;
 		private final AbstractQueue<SAMRecord> queue;
 		private final Thread mainThread;
@@ -387,7 +387,7 @@ public class BamSummarizerMT2 implements Summarizer {
 			}
 		}
 	}
-	public class SingleProducer implements Runnable {
+	class SingleProducer implements Runnable {
 		private final File file;
 		private final AbstractQueue<SAMRecord> queue;
 		private final Thread mainThread;

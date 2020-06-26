@@ -13,9 +13,9 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Ignore;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.qprofiler2.bam.BamSummarizer2;
@@ -23,15 +23,18 @@ import org.qcmg.qprofiler2.bam.BamSummaryReport2;
 
 public class BamSummarizerTest {
 		
-	@Rule
-	public  TemporaryFolder testFolder = new TemporaryFolder();
-	public File SAM_INPUT_FILE ,SAM_DODGY_INPUT_FILE ;
-	
+	@ClassRule
+	public  static TemporaryFolder testFolder = new TemporaryFolder();
 
-	@Before
-	public void setup() throws IOException {
-		SAM_INPUT_FILE = testFolder.newFile("testInputFile.sam");
-		SAM_DODGY_INPUT_FILE = testFolder.newFile("testInputFileDodgy.sam");
+	private static String samInput;
+	private static String samDodgy;
+
+	@BeforeClass
+	public static void setup() throws IOException {
+		
+		File SAM_INPUT_FILE = testFolder.newFile("testInputFile.sam");
+		samInput = SAM_INPUT_FILE.getAbsolutePath();
+		samDodgy = testFolder.newFile("testInputFileDodgy.sam").getAbsolutePath();
 		createTestSamFile(SAM_INPUT_FILE, createValidSamData());
 	}
 
@@ -39,7 +42,7 @@ public class BamSummarizerTest {
 	@Test
 	public void testSummarize() throws Exception {
 		BamSummarizer2 bs = new BamSummarizer2();
-		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize(SAM_INPUT_FILE.getAbsolutePath());
+		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize(samInput);
 		assertNotNull(sr);
 		assertEquals(5, sr.getRecordsInputed());		// should be 5 records
 		testSummaryReport(sr);
@@ -49,7 +52,7 @@ public class BamSummarizerTest {
 	public void testSummarizeMaxRecords() throws Exception {
 		for (int i = 1 ; i < 6 ; i++) {
 			BamSummarizer2 bs = new BamSummarizer2( i, null, false);
-			BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize( SAM_INPUT_FILE.getAbsolutePath());
+			BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize( samInput);
 
 			assertNotNull(sr);
 			assertEquals(i, sr.getRecordsInputed());
@@ -57,7 +60,7 @@ public class BamSummarizerTest {
 		
 		// test with 0 value - should return everything
 		BamSummarizer2 bs = new BamSummarizer2( 0, null, true);
-		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize( SAM_INPUT_FILE.getAbsolutePath());
+		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize( samInput);
 		
 		assertNotNull(sr);
 		assertEquals(5, sr.getRecordsInputed());
@@ -67,7 +70,7 @@ public class BamSummarizerTest {
 	public void testSummarizeWithExcludesAll() throws Exception {
 		// no excludes defined - should return everything
 		BamSummarizer2 bs = new BamSummarizer2( 0, null, false);
-		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize( SAM_INPUT_FILE.getAbsolutePath());
+		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize( samInput);
 		
 		assertNotNull(sr);
 		assertEquals(5, sr.getRecordsInputed());
@@ -78,7 +81,7 @@ public class BamSummarizerTest {
 	public void testSummarizeWithExcludeCoverage() throws Exception {
 		// first check we are getting coverage info
 		BamSummarizer2 bs = new BamSummarizer2();
-		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize(SAM_INPUT_FILE.getAbsolutePath());
+		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize(samInput);
 		
 		assertNotNull(sr);
 		assertTrue(sr.getRNamePosition().size() == 1);
@@ -104,7 +107,7 @@ public class BamSummarizerTest {
 
 		BamSummarizer2 qs = new BamSummarizer2();
 		try {
-			qs.summarize(SAM_DODGY_INPUT_FILE.getAbsolutePath());
+			qs.summarize(samDodgy);
 			fail("Should have thrown an exception");
 		} catch (Exception e) {
 			assertTrue(e.getMessage().startsWith("Error parsing text SAM file. Not enough fields"));
@@ -119,7 +122,7 @@ public class BamSummarizerTest {
 
 		BamSummarizer2 qs = new BamSummarizer2();
 		try {
-			qs.summarize(SAM_DODGY_INPUT_FILE.getAbsolutePath());
+			qs.summarize(samDodgy);
 		} catch (Exception e) {
 			fail("Should have not thrown an Exception");
 		}
@@ -139,7 +142,7 @@ public class BamSummarizerTest {
 		
 		BamSummarizer2 qs = new BamSummarizer2();
 		try {
-			qs.summarize(SAM_DODGY_INPUT_FILE.getAbsolutePath());
+			qs.summarize(samDodgy);
 			fail("Should have thrown an Exception");
 		} catch (Exception e) {
 			assertTrue(e.getMessage().startsWith("Error parsing text SAM file. Not enough fields in tag"));
@@ -159,7 +162,7 @@ public class BamSummarizerTest {
 		
 		BamSummarizer2 qs = new BamSummarizer2();
 		try {
-			qs.summarize(SAM_DODGY_INPUT_FILE.getAbsolutePath());
+			qs.summarize(samDodgy);
 			fail("Should have thrown an Exception");
 		} catch (Exception e) {
 			assertTrue(e.getMessage().startsWith("Error parsing text SAM file. Not enough fields"));
@@ -180,7 +183,7 @@ public class BamSummarizerTest {
 
 		BamSummarizer2 qs = new BamSummarizer2();
 		try {
-			qs.summarize(SAM_DODGY_INPUT_FILE.getAbsolutePath());
+			qs.summarize(samDodgy);
 			fail("Should have thrown an Exception");
 		} catch (Exception e) { }
 
@@ -188,13 +191,13 @@ public class BamSummarizerTest {
 	}
 
 	private void deleteDodgyDataFile() {
-		File outputFile = new File(SAM_DODGY_INPUT_FILE.getAbsolutePath());
+		File outputFile = new File(samDodgy);
 		boolean deleted = outputFile.delete();
 		assertTrue(deleted);
 	}
 
 	private void createDodgyDataFile(List<String> dodgyData) {
-		createTestSamFile(SAM_DODGY_INPUT_FILE, dodgyData);
+		createTestSamFile(new File(samDodgy), dodgyData);
 	}
 	public static List<String> createValidSamData() {
 		List<String> data = new ArrayList<String>();
@@ -305,17 +308,14 @@ public class BamSummarizerTest {
 	}
 	
 	public static void createTestSamFile(File file, List<String> data) {
-		PrintWriter out = null;
 		try {
-			out = new PrintWriter(new BufferedWriter(new FileWriter(file)));
+			PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(file)));
 			for (String line : data)  out.println(line);			 
 			out.close();
 		} catch (IOException e) {
 			Logger.getLogger("BamSummarizerTest").log( Level.WARNING,
 					"IOException caught whilst attempting to write to SAM test file: " + file, e);
-		} finally {
-			out.close();
-		}
+		} 
 	}
 
 }

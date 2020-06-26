@@ -1,7 +1,8 @@
 package org.qcmg.qprofiler2.util;
 
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.TreeSet;
-import java.util.regex.Pattern;
 import org.qcmg.common.model.QCMGAtomicLongArray;
 import org.qcmg.common.util.BaseUtils;
 import org.qcmg.picard.util.SAMUtils;
@@ -52,7 +53,7 @@ public class CycleSummaryUtils {
 				}
 				
 				if (refBase == readBase) { 
-					return "Found refBase == altBase, md: " + mdData + " , cigar: " + cigar.toString() + ", seq: " + new String(readBases) + ", reverse strand: " +reverse; 
+					return "Found refBase == altBase, md: " + mdData + " , cigar: " + cigar.toString() + ", seq: " + new String(readBases,  StandardCharsets.UTF_8) + ", reverse strand: " +reverse; 
 				}
 				
 				int pos = position + additionalOffset;

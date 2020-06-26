@@ -3,8 +3,10 @@ package org.qcmg.qprofiler2.bam;
 import org.junit.rules.TemporaryFolder;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import org.junit.Before;
-import org.junit.Rule;
+import static org.junit.Assert.fail;
+
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 
 import java.io.File;
@@ -19,9 +21,7 @@ import java.util.UUID;
 
 import org.w3c.dom.Element;
 import org.qcmg.common.log.QLogger;
-import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.util.XmlElementUtils;
-import org.qcmg.qprofiler2.QProfiler2;
 import org.qcmg.qprofiler2.summarise.PairSummaryTest;
 import org.qcmg.qprofiler2.summarise.ReadGroupSummary;
 import org.qcmg.qprofiler2.util.XmlUtils;
@@ -35,21 +35,25 @@ import org.qcmg.qprofiler2.util.XmlUtils;
  *
  */
 public class BamSummaryReportMetricsTest {
-	@Rule
-	public  TemporaryFolder testFolder = new TemporaryFolder();
+	@ClassRule
+	public static  TemporaryFolder testFolder = new TemporaryFolder();
 	
-	Element root; 
+	static Element root; 
 	
-	@Before
-	public void setup() throws Exception {
-		root = XmlElementUtils.createRootElement("root",null); 
+	@BeforeClass
+    public static void beforeClassFunction(){         
+		try {
+			root = XmlElementUtils.createRootElement("root",null);
+			File input = testFolder.newFile("testInputFile.sam");
+			PairSummaryTest.createPairInputFile(input);
+			BamSummarizer2 bs = new BamSummarizer2();
+			//BamSummarizer2 bs = new BamSummarizer2( 200, null, true);
+			BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize(input.getAbsolutePath()); 		
+			sr.toXml(root);	
+		} catch (Exception e) {
+			fail("can't create root element!");
 		
-		File input = testFolder.newFile("testInputFile.sam");
-		PairSummaryTest.createPairInputFile(input);
-		BamSummarizer2 bs = new BamSummarizer2();
-		//BamSummarizer2 bs = new BamSummarizer2( 200, null, true);
-		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize(input.getAbsolutePath()); 		
-		sr.toXml(root);			
+		} 
 	}
 	
 	/**
@@ -94,10 +98,11 @@ public class BamSummaryReportMetricsTest {
 		
 	}
 	
-	@Test
+	
 	/**
 	 * tLen take properpair or notProperpair as input, due to RAM limitation, only count pair with tLen < 5000
 	 */
+	@Test
 	public void tLenTest() {	
 		Element tagE = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.TLEN).get(0);
 		for(String rg : new String[] {"1959T", "1959N", "unkown_readgroup_id" }) {
@@ -132,11 +137,12 @@ public class BamSummaryReportMetricsTest {
 		
 	}
 	
-	@Test
+	
 	/**
 	 * <bamSummary><readGroups>...<variableGroup name="countedReads"><value name="readCount">6</value>
 	 * <bamMetrics><CIGAR><readGroups>...<sequenceMetrics readCount="6">
 	 */
+	@Test
 	public void cigarTest() {
 		Element summaryE = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.BAM_SUMMARY).get(0);			
 		Element tagE = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.CIGAR).get(0);
@@ -154,7 +160,7 @@ public class BamSummaryReportMetricsTest {
 		}		
 	}
 	
-	@Test
+	
 	/**
 	 *<RNAME><sequenceMetrics readCount="6">
 	 *<SEQ> 
@@ -175,6 +181,7 @@ public class BamSummaryReportMetricsTest {
 	 * <sequenceMetrics name="properPairs">...<<value name="firstOfPairs"> and <value name="secondOfPairs">
 	 * 
 	 */
+	@Test
 	public void rnameQualSeqTest() {
 		String properCounts = getProperReadCount(null);
 		int freq = 0;
@@ -190,7 +197,7 @@ public class BamSummaryReportMetricsTest {
 		assertEquals( freq , 10);
 	}
 
-	@Test
+	
 	/**
 	 * <MAPQ><sequenceMetrics readCount="12">
 	 * <FLAG><sequenceMetrics readCount="12">
@@ -198,6 +205,7 @@ public class BamSummaryReportMetricsTest {
 	 * <bamSummary><sequenceMetrics name="Overall"><value name="Total reads including discarded reads">
 	 * 
 	 */
+	@Test
 	public void flagMapqTest() {
 		Element ele = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.BAM_SUMMARY).get(0);						
 		ele = getElementByFirst(ele, XmlUtils.VALUE,  k -> k.getAttribute(XmlUtils.NAME).equals("Total reads including discarded reads"));
@@ -211,7 +219,7 @@ public class BamSummaryReportMetricsTest {
 		}
 	}
 	
-	@Test
+	
 	/**
 	 * <bamMetrics><QNAME><readGroups><readGroup name="1959T"><sequenceMetrics name="qnameInfo" readCount="3">
 	 * readCount: total reads but excluds notProperpair, unmapped, duplicate and  discarded reads 
@@ -219,6 +227,7 @@ public class BamSummaryReportMetricsTest {
 	 * <bamSummary>..<value name="unpairedReads">
 	 * <sequenceMetrics name="properPairs">...<<value name="firstOfPairs"> and <value name="secondOfPairs">
 	 */
+	@Test
 	public void qNameTest() {
 		Element nameE = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.QNAME).get(0);
 		Element bamSummaryE = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.BAM_SUMMARY).get(0);
@@ -234,9 +243,6 @@ public class BamSummaryReportMetricsTest {
 		}			
 	}	
 	
-	
-		
-	@Test
 	/**
 	 * <bamMetrics><QNAME><readGroups><readGroup name="1959T"><sequenceMetrics name="qnameInfo" readCount="3">
 	 * <bamMetrics><POS><readGroups><readGroup name="1959T"><sequenceMetrics readCount="3">
@@ -245,6 +251,7 @@ public class BamSummaryReportMetricsTest {
 	 * <bamSummary>..<value name="unpairedReads">
 	 * <sequenceMetrics name="properPairs">...<<value name="firstOfPairs"> and <value name="secondOfPairs">
 	 */
+	@Test
 	public void qNamePosTest() {
 
 		Element tagE = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.POS).get(0);

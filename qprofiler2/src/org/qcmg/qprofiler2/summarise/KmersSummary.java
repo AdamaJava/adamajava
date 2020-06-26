@@ -1,12 +1,16 @@
 package org.qcmg.qprofiler2.summarise;
 
-
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
+
+import org.apache.commons.compress.utils.Charsets;
 import org.qcmg.common.model.QCMGAtomicLongArray;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.BaseUtils;
@@ -31,37 +35,41 @@ public class KmersSummary {
 	
 	public static final int maxKmers = 6; 	
 	public static final String atgc = "ATGC";  //make sure letter on same order
-	public static final String atgcn = "ATGCN";  //make sure letter on same order
-	public static final char[] atgcCharArray = new char[]{'A','T','G','C'};
-	public static final char[] atgcnCharArray = new char[]{'A','T','G','C','N'};
+	public static final String atgcn = "ATGCN";  //make sure letter on same order	
+	//Array in java is mutable, so set to final is meaningless, here we use unmodifiableList
+	public static final List<Character>  atgcCharArray = Collections.unmodifiableList(Arrays.asList('A','T','G','C'));
+	public static final List<Character>  atgcnCharArray = Collections.unmodifiableList(Arrays.asList('A','T','G','C','N'));
 	
 	private final int merLength; 
-	private final int[] mersIndex; 
+	private int[] mersIndex; 
 	private final String[] mersStrList; 
 	
 	public KmersSummary( int length ) {	
 		cycleNo = 0 ; //init 0, eventially store the biggest cycle number
+		this.merLength = length; 
 		
-		if(length > maxKmers ){ 			
-			System.err.println("array size exceed Integer.MAX_VALUE/2! please reduce kmers length below 6. ");
-			System.exit(1);
+		if(length > maxKmers ){			
+			this.mersIndex = null;
+			this.mersStrList = null;
+			System.err.println("array size exceed Integer.MAX_VALUE/2! please reduce kmers length below 6!");
+			return;
 		}
 		
  		//get max entry, that is the size of mersIndex array && init with -1
 		byte[] maxMers = new byte[length];
 		for(int i = 0; i < length; i++) maxMers[i] = 'N';
 		int maxEntry = getEntry( maxMers);
-		
-		this.merLength = length; 		
+						
 		this.mersIndex = new int[maxEntry+1];
 		for(int i = 0; i < mersIndex.length; i++) mersIndex[i] = -1; //init		
 							
 		// produce all possible kmers in String includeing N base
-		mersStrList = getPossibleKmerString(merLength, true);	
+		this.mersStrList = getPossibleKmerString(merLength, true);	
 				
 		//get all possible kmers in byte[] and assign an index for each byte combination
 		for(int i = 0; i < mersStrList.length; i ++ ){
-			int entry = getEntry(mersStrList[i].getBytes());
+			//UTF-8 is a good choice because it is always supported and can encode any character.
+			int entry = getEntry(mersStrList[i].getBytes(StandardCharsets.UTF_8));
 			mersIndex[ entry ] = i;
 		}	
 		
@@ -78,7 +86,7 @@ public class KmersSummary {
 		for(int m = 1; m < merLength; m ++){
 			String[] shortStrList = getPossibleKmerString(m, true);	
 			for(int i = 0; i < shortStrList.length; i ++ ){
-				int entry = getEntry( shortStrList[i].getBytes());
+				int entry = getEntry( shortStrList[i].getBytes(StandardCharsets.UTF_8));
 				mersIndex[ entry ] = index + i;
 			}
 			index += shortStrList.length; 
@@ -86,30 +94,34 @@ public class KmersSummary {
 	}
 	
 	public static String producer(final int k, final String mers , final boolean includeN){
-		if(k == 0 )  return mers;			
+		if(k == 0 ) {
+			return mers;			
+		}
 		
-		char[] cToUse = includeN ? atgcnCharArray : atgcCharArray;
+		List<Character> cToUse = includeN ? atgcnCharArray : atgcCharArray;
 		StringBuilder conStr = new StringBuilder();
 		for(char c : cToUse) {
 			StringUtils.updateStringBuilder(conStr, producer( k-1, mers + c,  includeN), Constants.COMMA);
 		}
+		
 		return conStr.toString();	
 	}
 
-	
 	public String[] getPossibleKmerString(final int k, final boolean includeN){
 		//if require inital mers combination 
-		if( k == merLength && includeN && mersStrList != null )  
-			return mersStrList; 
+		if( k == merLength && includeN && mersStrList != null ) {
+			return Arrays.copyOf( mersStrList, mersStrList.length);
+		}
 		
 		//produce all possible kmers in String 
-		String str1 = producer( k, "", includeN );			
-		return str1.split(Constants.COMMA_STRING);
+		String str1 = producer( k, "", includeN );	
+		String[] mers = str1.split(Constants.COMMA_STRING);
+		//arrays are always mutable, it return the reference, then you lose control over the contents your variable, violating encapsulation.
+		return Arrays.copyOf( mers, mers.length);
 	}	
 	public void parseKmers( byte[] readString, boolean reverse , int flagFirstOfPair) {
 		 if( readString.length > maxCycleNo ) {
-			 throw new IllegalArgumentException("Can't handle large read sequence, which length is greater than " + maxCycleNo + "!");
-			 
+			 throw new IllegalArgumentException("Can't handle large read sequence, which length is greater than " + maxCycleNo + "!");		 
 		 }
 		 //get the biggest cycle
 		 int c = readString.length - merLength + 1;	
@@ -146,12 +158,13 @@ public class KmersSummary {
 	private int getEntry(byte[] mers){
 		int entry = 0; 
 		for(int i = 0, j = mers.length-1; i < mers.length; i ++, j-- ){
-			int no = 5; //default is 'N'
+			int no;
 			switch (mers[i]){
 				case 'A' : no = 1; break;
 				case 'C' : no = 2; break;
 				case 'G' : no = 3; break;
 				case 'T' : no = 4; break;
+				default : no = 5; break;
 			}
 			entry += no << ( j * 3 ); 	
 		}		
@@ -174,7 +187,7 @@ public class KmersSummary {
 	 */
 	long getCount(final int cycle, Object mers, int flagFirstOfPair){  	
 		byte[] mer = null; 
-		if(mers instanceof String) mer = ((String) mers).getBytes();
+		if(mers instanceof String) mer = ((String) mers).getBytes(StandardCharsets.UTF_8);
 		if(mers instanceof byte[]) mer = (byte[]) mers; 
 		
 		// can't cope with more than 6 kmers
@@ -195,9 +208,9 @@ public class KmersSummary {
 		}
 		
 		long count = 0;	
-		for(int i = getPosition(cycle, small), j = getPosition(cycle, big); i <=j ; i ++ ) 
+		for(int i = getPosition(cycle, small), j = getPosition(cycle, big); i <=j ; i ++ ) {
 		  count +=  tally[flagFirstOfPair].get(i); 
- 	 			
+		}
 		return count; 		
 	}
 	
@@ -220,7 +233,7 @@ public class KmersSummary {
 			if (parsedCount[pair].get() <= 0 ) continue; 	
 			
 			//avoid kmers_null or kmers_unPaired in case have no pair
-			String name = BamSummaryReport2.sourceName[pair];
+			String name = BamSummaryReport2.sourceName.get(pair);
 			
 			//read may have no pair information such as fastq
 			if( isFastq ) {

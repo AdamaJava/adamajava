@@ -1,6 +1,8 @@
 package org.qcmg.qprofiler2.vcf;
 
 import java.io.File;
+import java.util.Arrays;
+
 import org.qcmg.common.date.DateUtils;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -16,7 +18,7 @@ public class VcfSummarizer implements Summarizer {
 	private int errNo = 0;
 	
 	public VcfSummarizer(String[] formatArgs) {
-		this.formats = formatArgs; 
+		this.formats = Arrays.copyOf( formatArgs, formatArgs.length ); 
 	}
 		
 	@Override

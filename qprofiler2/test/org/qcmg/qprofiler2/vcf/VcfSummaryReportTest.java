@@ -27,18 +27,9 @@ import org.w3c.dom.*;
 import java.io.*;
 
 public class VcfSummaryReportTest {
-	@Rule
-	public  TemporaryFolder testFolder = new TemporaryFolder();	
 	
 	private final static String inputfile = "input.vcf";
 	private final static String[] category = new String[] {"FT","INF"};
-	
-	@After
-	public void cleanup(){		
-		String dir = System.getProperty("user.dir");
-		for(File f : new File(dir).listFiles( (d, name) -> name.startsWith("output.")  || name.startsWith("input.")) ) 
-			f.delete();
-	}
 	
 	@Test
 	public void HeaderTest() throws Exception{
@@ -365,7 +356,7 @@ public class VcfSummaryReportTest {
 		Element ele = (Element) node.getFirstChild();
 		assertEquals( "FT:INF", ele.getAttribute("formats") );
 		assertEquals( ".:.", ele.getAttribute("values") );
-		assertSame(ele.getChildNodes().getLength(),3); // <sequenceMetrics>	
+		assertEquals(ele.getChildNodes().getLength(),3); // <sequenceMetrics>	
 		
 		//check SNV, there is no gt so no titv
 		Element snvE = (Element) ele.getFirstChild();		
