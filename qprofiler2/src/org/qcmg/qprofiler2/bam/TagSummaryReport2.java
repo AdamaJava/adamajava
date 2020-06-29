@@ -24,11 +24,11 @@ import htsjdk.samtools.SAMTagUtil;
  // for sam record tag information
 public class TagSummaryReport2 { 
 
-	public final static int ADDI_TAG_MAP_LIMIT = 100;
-	public final static int errReadLimit  = 10;	
-	public final static String seperator = Constants.COLON_STRING;	
+	public static final int ADDI_TAG_MAP_LIMIT = 100;
+	public static final int errReadLimit  = 10;	
+	public static final String seperator = Constants.COLON_STRING;	
 
-	private final static SAMTagUtil STU = SAMTagUtil.getSingleton();
+	private static final SAMTagUtil STU = SAMTagUtil.getSingleton();
 	private final short MD = STU.MD;	
 	
 	 //  TAGS		
@@ -46,19 +46,19 @@ public class TagSummaryReport2 {
 	
 	public void parseTAGs(final SAMRecord record )  { 
 				
-		for( SAMTagAndValue tag : record.getAttributes()) { 
-			if(tag.tag.equals("MD")) continue;
+		for ( SAMTagAndValue tag : record.getAttributes()) { 
+			if (tag.tag.equals("MD")) continue;
 			
 			 //  the type may be one of A (character), B (generalarray), f (real number), H (hexadecimal array), i (integer), or Z (string).
 	        // Note that H tag type is never written anymore, because B style is more compact.	         
 			String type = ":B";			
-			if(tag.value instanceof Integer) type = ":i";
+			if (tag.value instanceof Integer) type = ":i";
 			else if (tag.value instanceof Number ) type = ":f";
 			else if (tag.value instanceof String) type = ":Z";
 			else if (tag.value instanceof Character) type = ":A";
 
 			String key = tag.tag + type;
-			Map<String, AtomicLong> map = additionalTags.computeIfAbsent(key, k-> new ConcurrentSkipListMap<String, AtomicLong>());
+			Map<String, AtomicLong> map = additionalTags.computeIfAbsent(key, k -> new ConcurrentSkipListMap<String, AtomicLong>());
 			XmlUtils.updateMapWithLimit(map, tag.value+"", ADDI_TAG_MAP_LIMIT);				 
 		}
 						
@@ -77,7 +77,7 @@ public class TagSummaryReport2 {
 			if ( err != null && (( errMDReadNo ++) < errReadLimit)) logger.warn(record.getReadName() + ": " + err);
 			
 			 // this counts will be used to caculate % for MD
-			for( int i = 1; i <= record.getReadLength(); i ++ )
+			for ( int i = 1; i <= record.getReadLength(); i ++ )
 				allReadsLineLengths[order].increment(i);				
 		}		
 	}
@@ -85,17 +85,17 @@ public class TagSummaryReport2 {
 	public void toXml(Element parent) { 
 				
 		 // "tags:MD:Z" mismatchbycycle
-		if( mdTagCounts.get() > 0) { 
+		if ( mdTagCounts.get() > 0) { 
 			Element ele = XmlUtils.createMetricsNode(parent, "tags:MD:Z", 
 					new Pair<String, Number>(ReadGroupSummary.READ_COUNT, mdTagCounts.get()));
-			for(int order = 0; order < 3; order ++) { 
+			for (int order = 0; order < 3; order ++) { 
 				 // so choose 1st cycle base counts as read count, since all read at least have one base. 
 				tagMDMismatchByCycle[order].toXml( ele, BamSummaryReport2.sourceName.get(order), allReadsLineLengths[order].get(1) );
 				
 			}
 					
-			for(String strand : new String[] { "ForwardStrand", "ReverseStrand" }) { 				
-				for(int order = 0; order < 3; order ++) { 				
+			for (String strand : new String[] { "ForwardStrand", "ReverseStrand" }) { 				
+				for (int order = 0; order < 3; order ++) { 				
 					Map<String, AtomicLong> mdRefAltLengthsString = new HashMap<>();
 					QCMGAtomicLongArray mdRefAltLengths = (strand.contains("Forward"))? mdRefAltLengthsForward[order] : mdRefAltLengthsReverse[order];				
 					for (int m = 0 ; m < mdRefAltLengths.length() ; m++) { 

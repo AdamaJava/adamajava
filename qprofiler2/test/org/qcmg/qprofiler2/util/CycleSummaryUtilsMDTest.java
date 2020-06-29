@@ -41,11 +41,11 @@ public class CycleSummaryUtilsMDTest {
 		for (SAMRecord record : reader) { 
 			String value = (String) record.getAttribute("MD");
 			int order = (record.getFirstOfPairFlag())? 0 : 1;	 // 0: firstOfPair , 1: secondOfPair
-			if(order == 0) firstNo ++;
+			if (order == 0) firstNo ++;
 			else secondNo ++;
 			
 			 // this counts will be used to caculate % for MD
-			for( int i = 1; i <= record.getReadLength(); i ++ ) allReadsLineLengths[order].increment(i);
+			for ( int i = 1; i <= record.getReadLength(); i ++ ) allReadsLineLengths[order].increment(i);
 			
 			String err = CycleSummaryUtils.tallyMDMismatches(value, record.getCigar(), tagMDMismatchByCycle[order], record.getReadBases()  , record.getReadNegativeStrandFlag(), null, null);
 			assertEquals(err , null);
@@ -100,13 +100,13 @@ public class CycleSummaryUtilsMDTest {
 		assertEquals(98,cigar.getReadLength());
 		 // base seq checked
 		StringBuilder sb = new StringBuilder("ACCTA ACATC AGCAG TGCTT".replace(" ", ""));  // 20S
-		sb.append("TCAAT TACGT TCCTT GAACA CTGTG".replace(" ", ""));  // 25M (25th mismatch C->G)
+		sb.append("TCAAT TACGT TCCTT GAACA CTGTG".replace(" ", ""));  // 25M (25th mismatch C -> G)
 		sb.append("TC");  // 2I
-		sb.append("TTATG TCTTA TGTTA TGTCA TATAT TCATT ACATA TATAT ATTAC ATTACA".replace(" ", ""));  // (51M) (31th mismatch C->A)
+		sb.append("TTATG TCTTA TGTTA TGTCA TATAT TCATT ACATA TATAT ATTAC ATTACA".replace(" ", ""));  // (51M) (31th mismatch C -> A)
 		readBases = sb.toString().getBytes();
 		assertEquals(98,readBases.length);
 		
-		for(int i = 0; i < 10; i ++)
+		for (int i = 0; i < 10; i ++)
 			CycleSummaryUtils.tallyMDMismatches("24C30C20", cigar, summary, readBases, false, forwardArray, reverseArray);		
 		 //  would expect C>A on the forward as the mismatch happens before the insertion
 		for (int i = 0 ; i < forwardArray.length() ; i++) 
@@ -117,8 +117,8 @@ public class CycleSummaryUtilsMDTest {
 		 		
 		for (int i = 0 ; i < reverseArray.length() ; i++)  assertEquals(0, reverseArray.get(i));
 		 // check MD cycle
-		for( Integer cycle : summary.cycles() )
-			for( Character value : summary.getPossibleValues() ) { 
+		for ( Integer cycle : summary.cycles() )
+			for ( Character value : summary.getPossibleValues() ) { 
 				if ((cycle == 45 && value == 'G') || (cycle == 78 && value == 'A'))  // cycle should includes soft and insertion
 					assertEquals(10, summary.count(cycle, value));
 				else
@@ -126,7 +126,7 @@ public class CycleSummaryUtilsMDTest {
 			}
 
 		 // reverse string
-		for(int i = 0; i < 5; i ++)
+		for (int i = 0; i < 5; i ++)
 		CycleSummaryUtils.tallyMDMismatches("24C30C20", cigar, summary, readBases, true, forwardArray, reverseArray);
 		for (int i = 0 ; i < reverseArray.length() ; i++)  
 			if (i == CycleSummaryUtils.getIntFromChars('G', 'C') || i == CycleSummaryUtils.getIntFromChars('G', 'T')	) 
@@ -135,11 +135,11 @@ public class CycleSummaryUtilsMDTest {
 				assertEquals(0, reverseArray.get(i));
 				
  		 // check MD cycle
-		for( Integer cycle : summary.cycles() )
-			for( Character value : summary.getPossibleValues() ) { 
+		for ( Integer cycle : summary.cycles() )
+			for ( Character value : summary.getPossibleValues() ) { 
 				if ((cycle == 45 && value == 'G') || (cycle == 78 && value == 'A'))  // cycle should includes soft and insertion
 					assertEquals(10, summary.count(cycle, value));  // forward
-				else if((cycle == 21 && value == 'T') || (cycle == 54 && value == 'C'))  // reversed base and position
+				else if ((cycle == 21 && value == 'T') || (cycle == 54 && value == 'C'))  // reversed base and position
 					assertEquals(5, summary.count(cycle, value)) ;  // reverse		
 			}		
 	}

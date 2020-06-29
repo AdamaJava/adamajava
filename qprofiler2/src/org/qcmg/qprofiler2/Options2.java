@@ -18,7 +18,7 @@ import joptsimple.OptionSet;
 import org.qcmg.common.messages.Messages;
 
 final class Options2 { 
-	private final static String msgResource = "org.qcmg.qprofiler2.messages";
+	private static final String msgResource = "org.qcmg.qprofiler2.messages";
 	
 	private static final String HELP_DESCRIPTION = Messages.getMessage(msgResource, "HELP_OPTION_DESCRIPTION");	
 	private static final String VERSION_DESCRIPTION = Messages.getMessage(msgResource, "VERSION_OPTION_DESCRIPTION");

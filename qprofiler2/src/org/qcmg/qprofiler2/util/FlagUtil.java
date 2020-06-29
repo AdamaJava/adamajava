@@ -26,11 +26,11 @@ public class FlagUtil {
 		boolean readPaired = record.getReadPairedFlag();
 		
 		StringBuilder additionalData = new StringBuilder();
-		if (readPaired)
+		if (readPaired)  
 			additionalData.append("p");
-		if (readPaired && record.getProperPairFlag())
+		if (readPaired && record.getProperPairFlag())  
 			additionalData.append("P");
-		if (record.getReadUnmappedFlag())
+		if (record.getReadUnmappedFlag())  
 			additionalData.append("u");
 		if (readPaired && record.getMateUnmappedFlag())
 			additionalData.append("U");

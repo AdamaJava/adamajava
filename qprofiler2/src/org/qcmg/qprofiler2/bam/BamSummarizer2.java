@@ -40,7 +40,7 @@ public class BamSummarizer2 implements Summarizer {
 	private String validation;
 	private boolean isFullBamHeader;
 
-	private final static QLogger logger = QLoggerFactory.getLogger(BamSummarizer2.class);	
+	private static final QLogger logger = QLoggerFactory.getLogger(BamSummarizer2.class);	
 	public BamSummarizer2() { }	 //  default constructor	
 	public BamSummarizer2( int maxRecords, String validation, boolean isFullBamHeader) { 
 		this.maxRecords = maxRecords;

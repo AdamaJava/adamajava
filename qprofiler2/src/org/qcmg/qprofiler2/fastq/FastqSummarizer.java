@@ -32,7 +32,7 @@ import org.qcmg.qprofiler2.SummaryReport;
 
 public class FastqSummarizer implements Summarizer { 
 	
-	private final static QLogger logger = QLoggerFactory.getLogger(FastqSummarizer.class);
+	private static final QLogger logger = QLoggerFactory.getLogger(FastqSummarizer.class);
 	
 	 //  default constructor
 	public FastqSummarizer() { }	

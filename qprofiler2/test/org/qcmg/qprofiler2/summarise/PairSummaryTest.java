@@ -65,7 +65,7 @@ public class PairSummaryTest {
 		 // assertTrue( childEles.size() == 9 );
 		assertTrue( childEles.size() == 10 );
 		
-		for(Element ele : childEles) { 
+		for (Element ele : childEles) { 
 			switch (ele.getAttribute(XmlUtils.NAME)) { 
 				case "overlappedPairs": assertTrue( ele.getTextContent().equals(counts[0] + "") ); break;
 				case  "tlenUnder1500Pairs" : assertTrue( ele.getTextContent().equals(counts[1] + "") ); break;
@@ -94,7 +94,7 @@ public class PairSummaryTest {
 				
 		 // set tLen == 0, any second of pair
 		recorda.setInferredInsertSize( 0 );
-		for(int flag : new int[] { 129,131,147, 179}) { 
+		for (int flag : new int[] { 129,131,147, 179}) { 
 			recorda.setFlags(flag);
 			assertTrue(BwaPair.getOverlapBase(recorda) == 0); 
 			pairS.parse(recorda);
@@ -124,8 +124,8 @@ public class PairSummaryTest {
 		
 		 // ST-E00180:52:H5LNMCCXX:1:2101:31703:21983 65 chr1 34492938 60 95M55S = 34492938 0   
 		 // F5F3 forward firstOfPaie
-		 // s1 |--------------> e1			s1 |---------> e1
-		 // s2 |------------> e2		or 		s2 |------------> e2
+		 // s1 |------------- -> e1			s1 |-------- -> e1
+		 // s2 |----------- -> e2		or 		s2 |----------- -> e2
 		recorda.setFlags(65);
 		recorda.setCigarString("95M55S");
 		recorda.setAlignmentStart(34492938);
@@ -135,7 +135,7 @@ public class PairSummaryTest {
 	
 		
 		 // ST-E00180:52:H5LNMCCXX:1:1205:9993:36522 97 chr1 121484553 43 149M = 121484404 0   
-		 // outward firstOfPair   <---mate----|----read---->
+		 // outward firstOfPair   <---mate----|----read--- -> 
 		recorda.setFlags(97);
 		recorda.setCigarString("95M55S");		
 		recorda.setAlignmentStart(121484553);
@@ -147,7 +147,7 @@ public class PairSummaryTest {
 		assertTrue( pairS.near.get() == 0 );  // only one without overlap		
 		assertTrue( pairS.tLenOverall.get(0) == 4 ); 
 		
-		for(int i = 0 ; i < 96; i++) { 
+		for (int i = 0 ; i < 96; i++) { 
 			assertTrue( pairS.getoverlapCounts().get(i) == 0 );
 		}
 		

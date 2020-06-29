@@ -28,8 +28,8 @@ import java.io.*;
 
 public class VcfSummaryReportTest { 
 	
-	private final static String inputfile = "input.vcf";
-	private final static String[] category = new String[] { "FT","INF"};
+	private static final String inputfile = "input.vcf";
+	private static final String[] category = new String[] { "FT","INF"};
 	
 	@Test
 	public void HeaderTest() throws Exception { 
@@ -44,18 +44,18 @@ public class VcfSummaryReportTest {
 		assertTrue( child.getNodeName().equals( "vcfHeader") );
 		
 		int[] mark = { 0, 0, 0, 0, 0, 0 };
-		for( int i = 0; i < 6; i++ ) { 
+		for ( int i = 0; i < 6; i++ ) { 
 			Element headersEle =  (Element) child.getChildNodes().item(i);
 			assertEquals( "headerRecords" , headersEle .getNodeName() );
 			
 			 // check meta Information line
-			if( headersEle.getAttribute( "FIELD" ).equals( "MetaInformation" ) ) { 
+			if ( headersEle.getAttribute( "FIELD" ).equals( "MetaInformation" ) ) { 
 				mark[1] = 1;
-				for(int j = 0; j < 12; j ++) { 
+				for (int j = 0; j < 12; j ++) { 
 					Element recordEle = (Element) headersEle.getChildNodes().item(j);
 					assertEquals( "record" , recordEle .getNodeName() );
 					String key = recordEle.getAttribute(XmlUtils.NAME);
-					if(header.getRecords(key).size() == 1)
+					if (header.getRecords(key).size() == 1)
 						assertEquals( recordEle.getTextContent() , header.getRecords(key).get(0).toString() );
 					else
 						assertEquals( "INPUT" , key );
@@ -63,20 +63,20 @@ public class VcfSummaryReportTest {
 			}
 			
 			 // check structured meta information line	 
-			else if( headersEle.getAttribute( "FIELD" ).equals( "qPG" ) ) { 
+			else if ( headersEle.getAttribute( "FIELD" ).equals( "qPG" ) ) { 
 				mark[2] = 1;
-				for( Element ele : XmlElementUtils.getChildElementByTagName( headersEle, "record") )
+				for ( Element ele : XmlElementUtils.getChildElementByTagName( headersEle, "record") )
 					assertEquals( ele.getTextContent(), header.getIDRecord("qPG", ele.getAttribute(XmlUtils.NAME)).toString() );					
-			}else if( headersEle.getAttribute( "FIELD" ).equals( "FILTER" ) ) { 
+			} else if ( headersEle.getAttribute( "FIELD" ).equals( "FILTER" ) ) { 
 				mark[3] = 1;
 				assertEquals( 1, headersEle.getChildNodes().getLength() );
-			}else if( headersEle.getAttribute( "FIELD" ).equals( "FORMAT" ) ) { 
+			} else if ( headersEle.getAttribute( "FIELD" ).equals( "FORMAT" ) ) { 
 				mark[4] = 1;
 				assertEquals( 2, headersEle.getChildNodes().getLength() );
-			}else if( headersEle.getAttribute( "FIELD" ).equals( "INFO" ) ) { 
+			} else if ( headersEle.getAttribute( "FIELD" ).equals( "INFO" ) ) { 
 				mark[5] = 1;
 				assertEquals( 1, headersEle.getChildNodes().getLength() );
-			}else { 
+			} else { 
 				mark[0] = 1;
 				assertEquals( "headerline", headersEle.getAttribute( "FIELD" ));
 				assertEquals( header.getChrom().toString(), headersEle.getChildNodes().item(0).getTextContent());
@@ -101,12 +101,12 @@ public class VcfSummaryReportTest {
 		assertTrue(child.getChildNodes().getLength() == 4);
 		
 		 // the common part of each sample level xml
-		for(int sampleNo = 0; sampleNo < 4; sampleNo ++) { 
+		for (int sampleNo = 0; sampleNo < 4; sampleNo ++) { 
 			child = nreport.getChildNodes().item(1).getChildNodes().item(sampleNo); 
 			assertTrue( child.getNodeName().equals( VcfSummaryReport.Sample  ) );
 						
 			 // check each report
-			for(int j = 0; j < child.getChildNodes().getLength(); j++) { 
+			for (int j = 0; j < child.getChildNodes().getLength(); j++) { 
 				Node  node = child.getChildNodes().item(j);  // report node
 				assertEquals("report", node.getNodeName() );	
 				
@@ -115,7 +115,7 @@ public class VcfSummaryReportTest {
 				assertTrue(node.getChildNodes().getLength() > 0 );				
 				Element cnode = (Element) node.getChildNodes().item(0);
 				assertEquals(XmlUtils.SEQUENCE_METRICS, cnode.getNodeName() );
-				if(cnode.getAttribute(XmlUtils.NAME).equals(SVTYPE.SNP.toVariantType()))  
+				if (cnode.getAttribute(XmlUtils.NAME).equals(SVTYPE.SNP.toVariantType()))  
 					assertEquals( 2, XmlElementUtils.getChildElementByTagName(cnode, XmlUtils.VALUE).size() );					
 				 else  
 					assertEquals( 1,  XmlElementUtils.getChildElementByTagName(cnode, XmlUtils.VALUE).size() );				
@@ -133,8 +133,8 @@ public class VcfSummaryReportTest {
 						
 			 //  assertTrue( counts == 40*2 );			
 			String sample = child.getAttributes().getNamedItem( XmlUtils.NAME).getNodeValue();
-			if( sample.equals(lastSample) || sample.equals( "control2" ) )  checkLastSampleColumn(child);	
-			else if( sample.equals("test1"))
+			if ( sample.equals(lastSample) || sample.equals( "control2" ) )  checkLastSampleColumn(child);	
+			else if ( sample.equals("test1"))
 					checkTest1(child);
 			else
 				checkControl1(child);			
@@ -187,7 +187,7 @@ public class VcfSummaryReportTest {
 	private void checkTest1(Node child) { 
 		
 		 // check FT:INF
-		for(String value : new String[] { "5BP=3:SOMATIC;GERM=42,185",  "PASS:SOMATIC", "5BP=3:SOMATIC"  })
+		for (String value : new String[] { "5BP=3:SOMATIC;GERM=42,185",  "PASS:SOMATIC", "5BP=3:SOMATIC"  })
 		assertEquals( 1, XmlElementUtils.getOffspringElementByTagName( (Element) child,  "report" ).stream()
 				.filter( e -> e.getAttribute("values").equals(value) ).count() );		
 		 // check genotype
@@ -301,7 +301,7 @@ public class VcfSummaryReportTest {
 	  data.add("##FORMAT=<ID=INF,Number=.,Type=String,Description=\"Sample genotype information indicating if this genotype was 'called' (similar in concept to the INFO field). A semi-colon seperated list of information pertaining to this sample. Use ‘.’ to indicate the absence of information. These values should be described in the meta-information in the same way as INFOs\">");  	  	  
 	  data.add("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tcontrol1\ttest1\tcontrol2\t"+ lastSampleName);	
 	  
-	  for(int i = 0; i < 10; i++) { 	
+	  for (int i = 0; i < 10; i++) { 	
 		  data.add("chr1\t10177\trs201752861\tA\tC\t.\t.\tIN=1\tGT:AD:DP:FT:INF\t0/0:20,5:25:PASS:.\t0/1:49,48:97:5BP=3:SOMATIC;GERM=42,185\t.:.:.:.\t.:.:.:.");	
 		  data.add("chr1\t80930980\trs7354844\tG\tT,A\t.\t.\tIN=1\tGT:AD:DP:FT:GQ:INF\t1/1:.:29:PASS:.:.\t1/2:.:64:PASS:.:SOMATIC\t.:.:.:.\t.:.:.:.");
 		  data.add("chr21\t10725791\t.\tGG\tAA,TA\t.\t.\tIN=1\tGT:DP:FT:INF\t0/1:153:PASS:.\t0/2:143:PASS:SOMATIC\t.:.:.:.\t.:.:.:.");	 
@@ -360,13 +360,13 @@ public class VcfSummaryReportTest {
 		
 		 // check SNV, there is no gt so no titv
 		Element snvE = (Element) ele.getFirstChild();		
-		for( Element e : XmlElementUtils.getChildElementByTagName(snvE, XmlUtils.VALUE) )
-			if(e.getAttribute(XmlUtils.NAME).equals("inDBSNP"))  
+		for ( Element e : XmlElementUtils.getChildElementByTagName(snvE, XmlUtils.VALUE) )
+			if (e.getAttribute(XmlUtils.NAME).equals("inDBSNP"))  
 				assertEquals("20", e.getTextContent() );   // dbsnp always same for all sample
-			else if(e.getAttribute(XmlUtils.NAME).equals("TiTvRatio"))  
+			else if (e.getAttribute(XmlUtils.NAME).equals("TiTvRatio"))  
 				assertEquals("0.00", e.getTextContent() );
 			 					
-		for(int i = 0; i < 3; i ++) { 
+		for (int i = 0; i < 3; i ++) { 
 			Element e = (Element) ele.getChildNodes().item(i);
 			assertEquals(XmlUtils.SEQUENCE_METRICS, e.getNodeName() );						
 			assertEquals(1, XmlElementUtils.getChildElementByTagName( e, XmlUtils.VARIABLE_GROUP ).size());
@@ -375,7 +375,7 @@ public class VcfSummaryReportTest {
 			e1 = XmlElementUtils.getChildElement(e1,  XmlUtils.TALLY, 0);
 			assertEquals(".", e1.getAttribute(XmlUtils.VALUE));
 			
-			if( e.getAttribute( XmlUtils.NAME).equals(SVTYPE.SNP.toVariantType() )  ) 				
+			if ( e.getAttribute( XmlUtils.NAME).equals(SVTYPE.SNP.toVariantType() )  ) 				
 				assertEquals("20",  e1.getAttribute( XmlUtils.COUNT));
 			else 				
 				assertEquals("10",  e1.getAttribute( XmlUtils.COUNT));

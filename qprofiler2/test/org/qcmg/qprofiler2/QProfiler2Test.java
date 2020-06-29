@@ -46,7 +46,7 @@ public class QProfiler2Test {
 		 // delete qprofiler.xml which was default output		
 		String outputFile = System.getProperty("user.dir") + System.getProperty("file.separator") + "qprofiler.xml";
 		File output = new File(outputFile);
-		if(output.exists()) { 
+		if (output.exists()) { 
 			output.delete();
 		}
 	}
@@ -105,7 +105,7 @@ public class QProfiler2Test {
 		String[] args1 = { "-input",inputFile.getAbsolutePath(), "-log", logFile.getAbsolutePath()};
 		String[] args2 = new String[] { "-input",gffFile.getAbsolutePath(), "-log", logFile.getAbsolutePath()};	
 		
-		for(String[] args : new String[][] { args1, args2})
+		for (String[] args : new String[][] { args1, args2})
 			try { 
 				new QProfiler2().setup(args);
 				fail("Should have thrown a QProfilerException");
@@ -186,7 +186,7 @@ public class QProfiler2Test {
 	
 	private static void createTestFile(File file, List<String> data) { 
 		
-		if(data == null) { 		
+		if (data == null) { 		
 			data = new ArrayList<String>();
 	        data.add("@HD	VN:1.0	SO:coordinate");
 	        data.add("@RG	ID:1959T	SM:eBeads_20091110_CD	DS:rl=50");

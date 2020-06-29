@@ -22,7 +22,7 @@ import org.w3c.dom.NodeList;
 
 
 public class CohortSummarizer implements Summarizer { 
-	private final static QLogger logger = QLoggerFactory.getLogger(CohortSummarizer.class);
+	private static final QLogger logger = QLoggerFactory.getLogger(CohortSummarizer.class);
 	
 	List<CohortSummaryReport> reports = new ArrayList<>();
 	public CohortSummarizer( ) { }	
@@ -37,7 +37,7 @@ public class CohortSummarizer implements Summarizer {
 		doc.getDocumentElement().normalize();		
 		NodeList sampleNS =	 doc.getElementsByTagName("Sample");
 		
-		for(int i = 0; i < sampleNS.getLength(); i ++) { 
+		for (int i = 0; i < sampleNS.getLength(); i ++) { 
 			reports.add( new CohortSummaryReport(new File(file), (Element) sampleNS.item(i)) );
 		}
 		
@@ -50,12 +50,12 @@ public class CohortSummarizer implements Summarizer {
 		 // FileWriter is too convenient and spotbugs won't happy with it. We use OutputStreamWriter and specify a charset
 		try (Writer writer =  new OutputStreamWriter(new FileOutputStream(output), "UTF-8");) { 				
 			writer.write( "No\t" + CohortSummaryReport.headerline + "\n");
- 			for(CohortSummaryReport report : reports ) { 
+ 			for (CohortSummaryReport report : reports ) { 
 				 // output all category of each sample
-				for(String str : report.outputCounts())
+				for (String str : report.outputCounts())
 					writer.write(( order ++) + "\t" + str + "\n");
 				 // summry to log file
-				for(int i = 0; i < sumCounts.length; i++) { 
+				for (int i = 0; i < sumCounts.length; i++) { 
 					long[] reportCounts = report.getCountSum();					
 					sumCounts[i] += reportCounts[i];
 				}			

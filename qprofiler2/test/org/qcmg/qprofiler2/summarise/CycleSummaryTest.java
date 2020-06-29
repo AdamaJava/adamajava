@@ -22,7 +22,7 @@ public class CycleSummaryTest {
 	public TemporaryFolder testFolder = new TemporaryFolder();
 	
 	private  void checklength( Element root, String metricName, String pairName,int readCount, int cycle, String[] values, int[] counts ) throws Exception { 
-		if(counts.length != values.length)
+		if (counts.length != values.length)
 			throw new Exception("error: values size must be same to counts size");
 		
 		
@@ -42,7 +42,7 @@ public class CycleSummaryTest {
 		
 			
 		 // eg   QprofilerXmlUtils.seqLength + "_"+  QprofilerXmlUtils.FirstOfPair;
-		for(int i = 0; i < values.length; i ++) { 
+		for (int i = 0; i < values.length; i ++) { 
 			String v =  (metricName.contains("qual"))? ((byte) values[i].toCharArray()[0]-33) + ""   : (String)values[i] ;
 			String c = counts[i] + "";
 			long count = XmlElementUtils.getChildElementByTagName( ele, XmlUtils.TALLY ).stream()

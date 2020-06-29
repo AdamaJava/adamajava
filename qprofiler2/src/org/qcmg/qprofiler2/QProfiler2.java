@@ -40,10 +40,10 @@ import org.w3c.dom.Element;
 
 public class QProfiler2 { 
 		
-	private final static String msgResource = "org.qcmg.qprofiler2.messages";	
-	private final static int NO_OF_PROCESORS = Runtime.getRuntime().availableProcessors();
-	private final static String USER_DIR = System.getProperty("user.dir");
-	private final static String FILE_SEPERATOR = System.getProperty("file.separator");	
+	private static final String msgResource = "org.qcmg.qprofiler2.messages";	
+	private static final int NO_OF_PROCESORS = Runtime.getRuntime().availableProcessors();
+	private static final String USER_DIR = System.getProperty("user.dir");
+	private static final String FILE_SEPERATOR = System.getProperty("file.separator");	
 	
 	private QLogger logger;	
 	private String[] cmdLineFiles;
@@ -103,7 +103,7 @@ public class QProfiler2 {
 				
 		if ( ! sortedFiles.isEmpty()) { 						
 			 // do xmlSummary here
-			if(sortedFiles.containsKey(ProfileType.XML )) { 
+			if (sortedFiles.containsKey(ProfileType.XML )) { 
 				List<String> xmls = new ArrayList<>();
 				sortedFiles.remove( ProfileType.XML ).forEach(p -> xmls.add(  p.getLeft()));
 				processXmlFiles( xmls, outputFile);

@@ -86,12 +86,12 @@ public class ReadIDSummaryTest {
 		 // total 15 patterns
 		assertEquals( idSummary.patterns.keySet().size(), 15 );
 		Element ele = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.VARIABLE_GROUP).stream().filter( k -> k.getAttribute(XmlUtils.NAME).equals("QNAME Format") ).findFirst().get() ;
-		for(String pa : idSummary.patterns.keySet()) { 
-			if(pa.equals(ReadIdSummary.RnPattern.SevenColon_andMore.toString())) { 
+		for (String pa : idSummary.patterns.keySet()) { 
+			if (pa.equals(ReadIdSummary.RnPattern.SevenColon_andMore.toString())) { 
 				 // only <tally count="2" value="<Element1>:<Element2>:...:<Elementn>"/>
 				Element e = XmlElementUtils.getChildElementByTagName(ele, XmlUtils.TALLY) .stream().filter(k -> k.getAttribute(XmlUtils.VALUE).equals(pa.toString())).findFirst().get();
 				assertEquals( e.getAttribute(XmlUtils.COUNT), "2");
-			}else { 
+			} else { 
 				 // others <tally count="1" value="..."/>
 				Element e = XmlElementUtils.getChildElementByTagName(ele, XmlUtils.TALLY) .stream().filter(k -> k.getAttribute(XmlUtils.VALUE).equals(pa.toString())).findFirst().get();
 				assertEquals( e.getAttribute(XmlUtils.COUNT), "1");				
@@ -100,7 +100,7 @@ public class ReadIDSummaryTest {
 		
 		 // check <Element1..5>, last 2 element won't output, incase they are position and too many values
 		int order = 1;
-		for( int count : new int[] { 8,6,5,4,3} ) { 
+		for ( int count : new int[] { 8,6,5,4,3} ) { 
 			String name = "Element" + order;
 			
 			ele = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.VARIABLE_GROUP).stream().filter( k -> k.getAttribute(XmlUtils.NAME).equals(name)).findFirst().get();
@@ -162,7 +162,7 @@ public class ReadIDSummaryTest {
 	private void checkVariableGroup(Element root, String name, List<Pair<String, Integer>> valuePair) { 
 		Element ele = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.VARIABLE_GROUP).stream().filter( k -> k.getAttribute(XmlUtils.NAME).equals(name)).findFirst().get();
 		int total = 0;
-		for(Pair p : valuePair) { 
+		for (Pair p : valuePair) { 
 			Element e = XmlElementUtils.getChildElementByTagName( ele, XmlUtils.TALLY ).stream().filter(  k -> k.getAttribute(XmlUtils.VALUE ).equals(p.getLeft())).findFirst().get();
 			assertEquals( e.getAttribute(XmlUtils.COUNT), p.getRight() + "");
 			total += (Integer)p.getRight();
@@ -244,29 +244,29 @@ public class ReadIDSummaryTest {
 		ReadIdSummary idSummary = new ReadIdSummary();
 		
 		String name = "SRR3083868.";
-		for(int i = 1  ; i <= 10; i ++ ) idSummary.parseReadId(name + i);			
+		for (int i = 1  ; i <= 10; i ++ ) idSummary.parseReadId(name + i);			
 		 // only 9 of first 10 into random pool, another is inside uniq pool
-		assertTrue( idSummary.pool_random.size() == 9 );
+		assertTrue( idSummary.poolRandom.size() == 9 );
 	
-		for(int i = 11; i <= 1000; i ++)  idSummary.parseReadId(name + i);		 
+		for (int i = 11; i <= 1000; i ++)  idSummary.parseReadId(name + i);		 
 		 // uniq pool always one which is the first read since same pattern and column0
-		assertTrue( idSummary.pool_uniq.size() == 1 );					
+		assertTrue( idSummary.poolUniq.size() == 1 );					
 		assertTrue( idSummary.patterns.keySet().size() == 1 );			
- 		assertTrue( idSummary.pool_random.size() == 19 );
+ 		assertTrue( idSummary.poolRandom.size() == 19 );
 		 
 		name = "FCL300002639L1C017R084_";		
-		for(int i = 1001; i <= 1000000; i ++) idSummary.parseReadId(name + i);
+		for (int i = 1001; i <= 1000000; i ++) idSummary.parseReadId(name + i);
 		 // second pattern appears in the first 2M reads			
-		assertTrue( idSummary.pool_uniq.size() == 2 );
+		assertTrue( idSummary.poolUniq.size() == 2 );
 		 // because they are selected randomly, each time number are slightly different
 		 // assertTrue( idSummary.pool_random.size() == 119 );
 	
 		name = "FCL300002639L2C017R084_";  // new lane
-		for(int i = 1000001; i <= 2000000; i ++) idSummary.parseReadId(name + i);		
+		for (int i = 1000001; i <= 2000000; i ++) idSummary.parseReadId(name + i);		
 		name = "CL300002639L2C017R084_";   // new flowcell
-		for(int i = 2000001; i <= 3000000; i ++) idSummary.parseReadId(name + i);		
+		for (int i = 2000001; i <= 3000000; i ++) idSummary.parseReadId(name + i);		
 		name = "CL300002639L2C017R084";	  // new tile but not count into uniq
-		for(int i = 3000001; i <= 5000000; i ++) idSummary.parseReadId(name + i);		
+		for (int i = 3000001; i <= 5000000; i ++) idSummary.parseReadId(name + i);		
 		
 		assertTrue( idSummary.patterns.keySet().size() == 2 );
 		assertTrue( idSummary.patterns.get( RnPattern.NoColon_NCBI.toString() ).get() == 1000 );
@@ -284,8 +284,8 @@ public class ReadIDSummaryTest {
 		assertTrue( idSummary.tileNumbers.get("C017R").get() == 2000000 );		
 		assertTrue( idSummary.tileNumbers.get("C017R084").get() == 2999000 );
 		 // since we ignore tile for uniq check
-		assertTrue( idSummary.pool_uniq.size() == 4 );
-		assertTrue( idSummary.pool_random.size() <= ReadIdSummary.MAX_POOL_SIZE  );						
+		assertTrue( idSummary.poolUniq.size() == 4 );
+		assertTrue( idSummary.poolRandom.size() <= ReadIdSummary.MAX_POOL_SIZE  );						
 	}
 	
 	@Test
@@ -293,7 +293,7 @@ public class ReadIDSummaryTest {
 		ReadIdSummary idSummary = new ReadIdSummary();
 		
 		String prefix = "FCL300002639L2C017R";		 
-		for(int i = 0; i < 200; i++) { 
+		for (int i = 0; i < 200; i++) { 
 			idSummary.parseReadId(prefix + i + "_" +i);
 		}
 		

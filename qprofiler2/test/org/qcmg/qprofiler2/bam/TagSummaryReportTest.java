@@ -81,7 +81,7 @@ public class TagSummaryReportTest {
 		 // three of firstOfPair have four mutation base
 		String[] values = new String[] { "A", "T", "C", "C" };
 		String[] counts =  new String[] { "1", "10", "11", "37" };
-		for(int i = 0; i < counts.length; i++ ) { 
+		for (int i = 0; i < counts.length; i++ ) { 
 			
 			String count = counts[i];
 			Element vE = XmlElementUtils.getChildElementByTagName(ele, XmlUtils.BASE_CYCLE).stream().
@@ -180,8 +180,8 @@ public class TagSummaryReportTest {
 		record.setAttribute(STU.makeStringTag(STU.NM), new Integer(Integer.MAX_VALUE));
 		report.parseTAGs(record);
 		
-		for(int i = 0; i < 200; i++) { 	
-			for(int j = 0; j < 2; j ++) { 
+		for (int i = 0; i < 200; i++) { 	
+			for (int j = 0; j < 2; j ++) { 
 				record.setAttribute(STU.makeStringTag(STU.NM), new Integer(i+j));
 				report.parseTAGs(record);
 			}			

@@ -81,7 +81,7 @@ public class ReadGroupSummaryTest {
 		
 		 // count overlap assume both same length so min_end is below read end
 		 // hard clip both forward but proper pair
-		 // f3f5: 10075 -------->10111(firstofPair)   10200 ---------->
+		 // f3f5: 10075 ------- -> 10111(firstofPair)   10200 --------- -> 
 		data.add("243_146_5	67	chr1	10075	6	3H37M	=	10200	93	" +		 
 				"ACCCTAACCCTAACCCTAACCNTAACCCTAACCCAAC	+3?GH##;9@D7HI5,:IIB\"!\"II##>II$$BIIC3	" +
 				"RG:Z:1959T	CS:Z:T11010020320310312010320010320013320012232201032202	CQ:Z:**:921$795*#5:;##):<5&'/=,,9(2*#453-'%(.2$6&39$+4'");
@@ -201,11 +201,11 @@ public class ReadGroupSummaryTest {
 		ReadGroupSummary rgSumm = new ReadGroupSummary(rgid);		
 		SamReader reader = SAMFileReaderFactory.createSAMFileReaderAsStream(input, null, null);
 		for (SAMRecord record : reader) { 	
-			if(rgid == null)
+			if (rgid == null)
 				rgSumm.parseRecord(record);
-			else if( rgid.equals(XmlUtils.UNKNOWN_READGROUP) && record.getReadGroup() == null )
+			else if ( rgid.equals(XmlUtils.UNKNOWN_READGROUP) && record.getReadGroup() == null )
 				rgSumm.parseRecord(record);	
-			else if(record.getReadGroup() != null && record.getReadGroup().getId().equals( rgid)) 
+			else if (record.getReadGroup() != null && record.getReadGroup().getId().equals( rgid)) 
 				rgSumm.parseRecord(record);						 	 
 		}						
 		reader.close();
@@ -392,7 +392,7 @@ public class ReadGroupSummaryTest {
 		record.setReferenceName("chrY");
 				
 		ReadGroupSummary rgSumm = new ReadGroupSummary(null);
-		for(int flag : new int[] { 117, 69, 181}) { 
+		for (int flag : new int[] { 117, 69, 181}) { 
 			record.setFlags(flag);
 			rgSumm.parseRecord(record);
 		}
@@ -435,7 +435,7 @@ public class ReadGroupSummaryTest {
 
 		ReadGroupSummary rgSumm = new ReadGroupSummary(null);
 		 // 64: unpaired read, 65: not proper pair read
-		for(int flag : new int[] { 64, 65}) { 
+		for (int flag : new int[] { 64, 65}) { 
 			record.setFlags(flag);
 			rgSumm.parseRecord(record);
 		}	

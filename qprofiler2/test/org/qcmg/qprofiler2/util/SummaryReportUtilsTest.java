@@ -19,15 +19,15 @@ public class SummaryReportUtilsTest {
 		byte [] bytes = inputString.getBytes();
 		 		 
 		SummaryReportUtils.tallyQualScores(bytes, qualCount);		
-		for(int i = 0; i < 1000; i ++)
-			if(qualCount.get(i) > 0)
+		for (int i = 0; i < 1000; i ++)
+			if (qualCount.get(i) > 0)
 				System.out.println(i + " :: " + qualCount.get(i));
 		
-		for(byte c : bytes)
+		for (byte c : bytes)
 			System.out.print(c+"(" + (char)c +  "),");
 		System.out.println( "");
-		for(byte c : bytes)
-			if(c - 33 < 10)
+		for (byte c : bytes)
+			if (c - 33 < 10)
 				System.out.print((char) c+"(<10)");
 	}	
 	

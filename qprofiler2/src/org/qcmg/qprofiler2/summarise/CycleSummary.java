@@ -3,7 +3,9 @@
  * © Copyright QIMR Berghofer Medical Research Institute 2014-2016.
  *
  * This code is released under the terms outlined in the included LICENSE file.
+ * 
  */
+
 package org.qcmg.qprofiler2.summarise;
 
 import java.util.ArrayList;
@@ -29,6 +31,7 @@ import org.w3c.dom.Element;
 
 /**
  * Class that tallies by cycle using java generics 
+ * 
   */
 public class CycleSummary<T> { 
 	public static final String baseOnCycle = "cycle";
@@ -36,6 +39,7 @@ public class CycleSummary<T> {
 	private static final int MAX_ARRAY_CAPACITY = 2048 * 2048;		 //  over 4 million
 		
 	/**
+	 * 
 	 * Sequence data
 	 * From SAM spec 1.4:
 	 * \*|[A-Za-z=.]+
@@ -81,8 +85,8 @@ public class CycleSummary<T> {
 		keyMask.set(getMask( DEFAULT_NO_OF_KEYS));
 		int capacity = 1 << (cycleMask.get() + keyMask.get());
 		
-		maxCycleValue.set((1<<cycleMask.get()) -1);
-		maxKeyValue.set((1<<keyMask.get()) -1);		
+		maxCycleValue.set((1 << cycleMask.get()) - 1);
+		maxKeyValue.set((1 << keyMask.get()) - 1 );		
 		tally = new AtomicLongArray(capacity);
 	}
 	
@@ -120,11 +124,15 @@ public class CycleSummary<T> {
 	
 	@SuppressWarnings("unchecked")
 	private T getTypeFromInt(int l) { 
-		if (type instanceof Integer)
+		if (type instanceof Integer) { 
 			return (T)Integer.valueOf(l);
-		if (type instanceof Character)
+		}
+		
+		if (type instanceof Character) { 
 			return (T) Character.valueOf((char)l);
-		else return null;
+		} else {
+			return null;
+		}
 	}
 	
 	/**
@@ -133,13 +141,13 @@ public class CycleSummary<T> {
 	 * If the value at the specified cycle does not exist, it will be added to the map for that cycle.
 	 * 
 	 * @param cycle Integer the cycle that is being incremented
-	 * @param key the value for the specified cycle whose count is to b incremented
+	 * @param value for the specified cycle whose count is to b incremented
 	 */
 
 	public void increment(final int cycle, final int value) { 
-		if (cycle > maxCycleValue.get() || value > maxKeyValue.get())
+		if (cycle > maxCycleValue.get() || value > maxKeyValue.get()) {
 			resize(cycle, value);
-		
+		}
 		if (resizingInProgress.get()) { 
 			 //  CAS until resizing is complete
 			while  ( ! resizingInProgress.compareAndSet(false, false) ) { }
@@ -161,12 +169,13 @@ public class CycleSummary<T> {
 			int newCycleMask = -1;
 			if (cycle > maxCycleValue.get()) { 
 				newCycleMask = getMask(cycle); 
-				maxCycleValue.set((1<<newCycleMask) -1);
+				maxCycleValue.set((1 << newCycleMask) - 1);
 				resize = true;
 			}
+			
 			if (key > maxKeyValue.get()) { 
 				keyMask.set(getMask(key)); 
-				maxKeyValue.set((1<<keyMask.get()) -1);
+				maxKeyValue.set((1 << keyMask.get()) - 1);
 				resize = true;
 			}
 			
@@ -181,9 +190,9 @@ public class CycleSummary<T> {
 				int capacity = 1 << ((newCycleMask == -1 ? cycleMask.get() : newCycleMask) + keyMask.get());
 				
 				 //  check on new capacity
-				if (capacity > MAX_ARRAY_CAPACITY)
+				if (capacity > MAX_ARRAY_CAPACITY) {
 					throw new IllegalArgumentException("new AtomicLongArray is too large...");
-				
+				}
 				
 				 //  create new array
 				AtomicLongArray newTally = new AtomicLongArray(capacity);
@@ -205,7 +214,9 @@ public class CycleSummary<T> {
 				tally = newTally;
 				
 				 //  update cycleMask
-				if (newCycleMask > -1) cycleMask.set(newCycleMask);
+				if (newCycleMask > -1) {
+					cycleMask.set(newCycleMask);
+				}
 			}	
 		} catch (InterruptedException e) { 
 			e.printStackTrace();
@@ -228,7 +239,7 @@ public class CycleSummary<T> {
 	public long count(Integer cycle, T value) { 	
  
 		int v = (type instanceof Integer) ? (Integer) value : 
-			(type instanceof Character)? (Character)  value  : -1; 
+			(type instanceof Character) ? (Character)  value  : -1; 
 			
 		return  tally.get(getArrayPosition(cycle, v));
 	}
@@ -262,40 +273,44 @@ public class CycleSummary<T> {
 	public SortedSet<Integer> cycles() { 
 		HashSet<Integer> ts = new HashSet<Integer>();		
 		for (int i = 0 , length = tally.length() ; i < length ; i++) { 
-			if( tally.get(i) <= 0 ) continue;		 
+			if ( tally.get(i) <= 0 ) {
+				continue;		 
+			}
 			int [] cycleKey = getCycleKeyFromArrayPosition(i);
 			ts.add(cycleKey[0]);		
 		}		
-		return new TreeSet<Integer> (ts);
+		return new TreeSet<Integer>(ts);
 	}
 	
 	/**
-	 * 
-	 * @param cycle Integer cycle for which summary details should be returned
-	 * @return Returns a SortedSet of elements for a particular cycle of this summary object. Returns null if the summary does not contain the cycle
+	 *  Returns a SortedSet of elements for a particular cycle of this summary object. 
+	 *  Returns null if the summary does not contain the cycle.
+	 *  
 	 */
 	public Set<T> getPossibleValues() { 	
 		
 		HashSet<T> allValues = new HashSet<T>();
 		
 		for (int i = 0 , length = tally.length() ; i < length ; i++) { 
-			if( tally.get(i) <= 0 ) continue;
+			if ( tally.get(i) <= 0 ) {
+				continue;
+			}
 			allValues.add( getTypeFromInt(getCycleKeyFromArrayPosition(i)[1] )  );	
 		}		
 		 // order as ACGTN
-		if( type instanceof Character) { 					
+		if ( type instanceof Character) { 					
 			List<T> notATGC = new ArrayList<T>();
 			
-			for( T v : allValues) { 
+			for ( T v : allValues) { 
 				char v1 =   (Character)  v; 
-				if( v1 != 'A' &&   v1 != 'T' &&  v1 != 'G' &&  v1 != 'C') 
-				notATGC.add(v);						
+				if ( v1 != 'A' &&   v1 != 'T' &&  v1 != 'G' &&  v1 != 'C') {
+					notATGC.add(v);		
+				}				
 			}	
 			
 			allValues.removeAll(notATGC);
 			return   Stream.concat(allValues.stream().sorted(), notATGC.stream()).collect(Collectors.toCollection(LinkedHashSet::new));	
-		}else if( type instanceof Integer) { 	
-			
+		} else if ( type instanceof Integer) { 				
  			 // Integer reverse order for QUAL			 
 			TreeSet<T> treeSetObj = new TreeSet<T>( (i1,i2) -> ((Integer) i2).compareTo( (Integer) i1) );
 		    treeSetObj.addAll(allValues);
@@ -305,27 +320,31 @@ public class CycleSummary<T> {
 		return allValues; 
 	}
 
+	
 	/**
 	 * Adds an xml representation of the current object to the supplied parent element.
 	 * 
-	 * @param parent Element that the current objects xml representation will be added to
-	 * @param elementName String representing the name to be used when creating the element
+	 * @param metricEle is the root element
+	 * @param groupName is the first child element
+	 * @param readCount will attached to the readCount attribute
 	 */
 		
 	public void toXml( Element metricEle,  String groupName, long readCount ) { 
 		 // do nothing if no base detected
 		Set<T> possibles = getPossibleValues();
-		if( possibles == null || possibles.size() <= 0 ) return; 
+		if ( possibles == null || possibles.size() <= 0 ) {
+			return; 
+		}
 		 // String name = metricType == null ? metricName : metricName+"_"+ metricType;		
 		 	
 		Element ele = XmlUtils.createGroupNode( metricEle, groupName);	 // <category>   
-		ele.setAttribute(ReadGroupSummary.READ_COUNT, readCount+"");
+		ele.setAttribute(ReadGroupSummary.READ_COUNT, readCount + "");
 		for (Integer cycle : cycles()) { 
 			Map<T, AtomicLong> tallys = new LinkedHashMap<>();
 			
-			for(T t :  getPossibleValues()) 				 
+			for (T t :  getPossibleValues()) {			 
 				tallys.put(  t,new AtomicLong(count(cycle, t)));	
-			
+			}
 			
 			XmlUtils.outputCycleTallyGroup( ele, String.valueOf( cycle ), tallys, false );	
 		}		
@@ -340,46 +359,57 @@ public class CycleSummary<T> {
 		for (Integer cycle : cycles()) { 
 		
  			long sum = 0;
-			for(T t :  getPossibleValues()) 				
+			for (T t :  getPossibleValues()) {				
 				  sum += count(cycle, t) ;	
-			
+			}
 			 // only for the begin of cycle
-			if(previousTally == -1) previousTally = sum;
+			if (previousTally == -1) {
+				previousTally = sum;
+			}
 			if (sum != previousTally) { 
 				 //  record one cycle advance if base counts difference
 				 //  previousTally - count = the number of short reads				
-				map.put(cycle-1, new AtomicLong(previousTally - sum ));
+				map.put(cycle - 1, new AtomicLong(previousTally - sum ));
 				previousTally = sum;
 			}
 			last = cycle; 
 		}			
 		 //  pop the last entry into the map
-		if(previousTally> 0)
+		if (previousTally > 0) {
 			map.put( last, new AtomicLong(previousTally));		 
+		}
 		return map;
 	}
 	
-	public long getInputCounts() { return parseCounts.get();}
+	public long getInputCounts() { 
+		return parseCounts.get();
+	}
 	
 	public void parseByteData(final byte[] dataString) { 
-		if(dataString == null) return;
+		if (dataString == null) {
+			return;
+		}
 		parseCounts.incrementAndGet();
  			
 		for (int i = 0, size = dataString.length ; i < size ; i++) { 
 			int value = (type instanceof Integer) ? dataString[i] & 0xFF : 
-				(type instanceof Character)? dataString[i] : 0;
+				(type instanceof Character) ? dataString[i] : 0;
 			increment( i+1, value );
 		}						
 	}	
 	
 	public void parseStringData( String dataString,  int offset) { 
-		if (null == dataString) return; 
+		if (null == dataString) {
+			return; 
+		}
 		parseCounts.incrementAndGet();
 		
 		int size = dataString.length();
 		if (size > 0) { 				
 			 //  set offset to 0 if it is negative, or larger than the supplied string
-			if (offset < 0 || offset >= size) offset = 0;				
+			if (offset < 0 || offset >= size) {
+				offset = 0;				
+			}
 			for (int i = 1 + offset ; i <= size; i++) { 
 				increment(i - offset, dataString.charAt(i - 1));
 			}			 

@@ -27,14 +27,14 @@ public class QProfilerSummaryTest {
 	public void filenameTest() throws Exception { 
 		
 		 // test file name contains allowed special letters	
-		 // for(String name : new String[] { "in#:.sam", "in,.sam","input?.sam", "in*.sam","...sam", "input\n.sam"}) { 	
-		for(String name : new String[] { ",in#:.sam","...sam", "input\n.sam"}) { 	
+		 // for (String name : new String[] { "in#:.sam", "in,.sam","input?.sam", "in*.sam","...sam", "input\n.sam"}) { 	
+		for (String name : new String[] { ",in#:.sam","...sam", "input\n.sam"}) { 	
 			int exitStatus = run(name, name+".xml");	
 			assertEquals(0, exitStatus);	
 		}		
 		
 		 //  not allowed special letters		
-		for(String name : new String[] { "in/.sam", null})
+		for (String name : new String[] { "in/.sam", null})
 			try { 
 				run(name, name+".xml");				
 				fail();

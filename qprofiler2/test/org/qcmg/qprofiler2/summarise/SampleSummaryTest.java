@@ -76,13 +76,13 @@ public class SampleSummaryTest {
 	
 	private void checkTiTv( List<VcfRecord> records, String ratio, String ti, String tv) throws ParserConfigurationException { 
 		
-		 // new  VcfSummarizer(null); cause exception since for(Sting cat: null)
+		 // new  VcfSummarizer(null); cause exception since for (Sting cat: null)
 		 
 		Element root = XmlElementUtils.createRootElement("root", null) ;
 		SampleSummary summary = new SampleSummary();
-		for(VcfRecord re: records) summary.parseRecord( re, 1 );
+		for (VcfRecord re: records) summary.parseRecord( re, 1 );
 		summary.toXML( root,null, null );  
-		if(records.size() == 0) { 			
+		if (records.size() == 0) { 			
 			assertEquals( 0, XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.VALUE).size());			 
 			return; 
 		}
@@ -94,14 +94,14 @@ public class SampleSummaryTest {
 		assertEquals( ratio, subE.getTextContent());
 		
 		
-		if(ti != null) { 
+		if (ti != null) { 
 			subE = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.VARIABLE_GROUP).stream()
 					.filter( e -> e.getAttribute(XmlUtils.NAME).equals(SampleSummary.transitions)).findFirst().get();
 			assertEquals(ti, XmlElementUtils.getChildElement(subE, XmlUtils.TALLY, 0).getAttribute(XmlUtils.COUNT));
 			
 		}
 		
-		if(tv != null) { 
+		if (tv != null) { 
 			subE = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.VARIABLE_GROUP).stream()
 					.filter( e -> e.getAttribute(XmlUtils.NAME).equals(SampleSummary.transversions)).findFirst().get();
 			assertEquals(tv,  XmlElementUtils.getChildElement(subE, XmlUtils.TALLY, 0).getAttribute(XmlUtils.COUNT));

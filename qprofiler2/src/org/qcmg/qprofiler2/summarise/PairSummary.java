@@ -1,26 +1,27 @@
 package org.qcmg.qprofiler2.summarise;
 
-
 import java.util.concurrent.atomic.AtomicLong;
-
 import org.qcmg.common.model.QCMGAtomicLongArray;
 import org.qcmg.picard.BwaPair;
 import org.qcmg.picard.BwaPair.Pair;
 import org.qcmg.qprofiler2.util.XmlUtils;
-import org.w3c.dom.Element;
 import htsjdk.samtools.SAMRecord;
+import org.w3c.dom.Element;
 
 public class PairSummary { 		
 	public final Pair type;
 	public final Boolean isProperPair; 
-	public PairSummary( Pair pair, boolean isProper) { this.type = pair; this.isProperPair = isProper;}
+	public PairSummary( Pair pair, boolean isProper) { 
+		this.type = pair; 
+		this.isProperPair = isProper;
+	}
 	
 	 // fixed value
-	public final static int bigTlenValue = 10000;
-	public final static int smallTlenValue = 1500;
-	public final static int middleTlenValue = 5000;
-	public final static int rangeGap = 100;
-	public final static int segmentSize = 500;  // assume 
+	public static final int bigTlenValue = 10000;
+	public static final int smallTlenValue = 1500;
+	public static final int middleTlenValue = 5000;
+	public static final int rangeGap = 100;
+	public static final int segmentSize = 500;  // assume 
 	
 	AtomicLong near = new AtomicLong();
 	AtomicLong far = new AtomicLong();
@@ -61,47 +62,52 @@ public class PairSummary {
 	 * @param record is the paired reads
 	 */
 	public void parse(SAMRecord record ) { 	
-		if( !record.getReadPairedFlag()  ) { 
+		if ( !record.getReadPairedFlag()  ) { 
 			return; 
 		}
 		
-		if(record.getFirstOfPairFlag()) firstOfPairNum.incrementAndGet();
+		if (record.getFirstOfPairFlag()) firstOfPairNum.incrementAndGet();
 		else secondOfPairNum.incrementAndGet();
 		
 		int tLen =  record.getInferredInsertSize();			
 	
 		 // normally bam reads are mapped, if the mate is missing, we still count it to pair but no detailed pair` information
-		if( record.getMateUnmappedFlag() ) { mateUnmapped.incrementAndGet();  return;  }
+		if ( record.getMateUnmappedFlag() ) { 
+			mateUnmapped.incrementAndGet();  
+			return;  
+		}
 		 // pair from different reference, only look at first pair to avoid double counts
-		else if( !record.getReferenceName().equals( record.getMateReferenceName()) && record.getFirstOfPairFlag()) { 
+		else if ( !record.getReferenceName().equals( record.getMateReferenceName()) && record.getFirstOfPairFlag()) { 
 			diffRef.incrementAndGet();	
 			return; 
 		}	
 							
  		 // to avoid double counts, we only select one of Pair: tLen > 0 or firstOfPair with tLen==0;
- 		if( tLen < 0 || (tLen == 0 && !record.getFirstOfPairFlag()) ) { 
+ 		if ( tLen < 0 || (tLen == 0 && !record.getFirstOfPairFlag()) ) { 
  			return;
   		}
 		
 		 // only record popular tLen, since RAM too expensive??
  		 //  tLen bwt [0, 5000], single segment are also recorded 
-		if(tLen < middleTlenValue) tLenOverall.increment(tLen);
+		if (tLen < middleTlenValue) {
+			tLenOverall.increment(tLen);
+		}
 		 // first of Pair with tLen == 0
-		if( tLen == 0 ) { 
+		if ( tLen == 0 ) { 
 			zeroTlen.incrementAndGet();
 			return;
 		}
 		
 		 // classify tlen groups
 		int	overlap = BwaPair.getOverlapBase( record );
-		if( overlap > 0 ) { 
+		if ( overlap > 0 ) { 
 			overlapBase.increment(overlap);
 			tLenOverlap.increment(tLen);			
-		} else if( tLen < smallTlenValue  ) { 
+		} else if ( tLen < smallTlenValue  ) { 
 			near.incrementAndGet();	
-		} else if( tLen < bigTlenValue ) { 
+		} else if ( tLen < bigTlenValue ) { 
 			far.incrementAndGet();	
-		}else { //must be record.getInferredInsertSize() >= bigTlenValue
+		} else { //must be record.getInferredInsertSize() >= bigTlenValue
 			bigTlen.incrementAndGet();
 		}
 	}		
@@ -120,8 +126,8 @@ public class PairSummary {
 	 */
 	
 	void toSummaryXml(Element parent  ) { 	
-		long overlapPair = overlapBase.toMap().values().stream().mapToLong(e->e.get()).reduce(0, (x,y) -> x+y);
-		long pairCoutns = tLenOverall.toMap().values().stream().mapToLong(e->e.get()).reduce(0, (x,y) -> x+y);
+		long overlapPair = overlapBase.toMap().values().stream().mapToLong(e -> e.get()).reduce(0, (x,y) -> x + y);
+		long pairCoutns = tLenOverall.toMap().values().stream().mapToLong(e -> e.get()).reduce(0, (x,y) -> x + y);
 	
 		Element stats = XmlUtils.createGroupNode(parent, type.name());
 		XmlUtils.outputValueNode(stats, "firstOfPairs", firstOfPairNum.get());

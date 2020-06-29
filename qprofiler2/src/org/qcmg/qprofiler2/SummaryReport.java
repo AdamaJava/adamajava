@@ -58,7 +58,7 @@ public abstract class SummaryReport {
 	}
 	
 	public void setFileMd5() { 	
-		if(this.fileMd5 != null) { 
+		if (this.fileMd5 != null) { 
 			logger.warn("file md5 value is already caculated, please check why check again!!! ");
 			return; 
 		}
@@ -79,11 +79,11 @@ public abstract class SummaryReport {
 		element.setAttribute("startTime", this.startTime );
 		element.setAttribute("finishTime", this.finishTime );
 		
-		if(this.fileMd5 == null) { setFileMd5(); }
+		if (this.fileMd5 == null) { setFileMd5(); }
 		element.setAttribute("md5sum",this.fileMd5);
 				
 		 // don't list records_parsed on xml for BAM type
-		if(!reportType.equals(ProfileType.BAM)) { 
+		if (!reportType.equals(ProfileType.BAM)) { 
 			element.setAttribute("records_parsed", String.format("%,d", getRecordsInputed()) );	
 		}
 				

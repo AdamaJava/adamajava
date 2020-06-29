@@ -13,7 +13,7 @@ import org.qcmg.qprofiler2.SummaryReport;
 import org.qcmg.vcf.VCFFileReader;
 
 public class VcfSummarizer implements Summarizer { 
-	private final static QLogger logger = QLoggerFactory.getLogger(VcfSummarizer.class);
+	private static final QLogger logger = QLoggerFactory.getLogger(VcfSummarizer.class);
 	private String[] formats;
 	private int errNo = 0;
 	
@@ -29,7 +29,7 @@ public class VcfSummarizer implements Summarizer {
 		
 		try (VCFFileReader reader = new VCFFileReader(new File(input))  ) { 
 			VcfHeader header = reader.getHeader();
-			if(header == null || header.getSampleId() == null) { 
+			if (header == null || header.getSampleId() == null) { 
 				throw new Exception("Invalid Vcf Header: please specify Sample id after Format column on Header line!");
 			}
 			
@@ -42,10 +42,10 @@ public class VcfSummarizer implements Summarizer {
 				try { 
 					vcfSummaryReport.parseRecord( vcf );		
 					
-				}catch(Exception e) { 
-					if( ++errNo < 500 ) { 
+				} catch(Exception e) { 
+					if ( ++errNo < 500 ) { 
 						logger.warn("error in vcf record: " + vcf.toString());
-					}else { 
+					} else { 
 						throw e; 
 					}
 				}			

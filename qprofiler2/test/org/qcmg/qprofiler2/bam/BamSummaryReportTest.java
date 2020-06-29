@@ -101,7 +101,7 @@ public class BamSummaryReportTest {
 	}
 	
 	private void checklength(Element root, boolean isSeq,  String pairName, int[] values, int[] counts) throws Exception { 
-		if(counts.length != values.length)
+		if (counts.length != values.length)
 			throw new Exception("error: values size must be same to counts size");
 		
 		String nodeName = (isSeq)? XmlUtils.SEQ  : XmlUtils.QUAL ;
@@ -125,7 +125,7 @@ public class BamSummaryReportTest {
 		assertEquals(values.length, ele.getChildNodes().getLength());	
 			
 		 // eg   QprofilerXmlUtils.seqLength + "_"+  QprofilerXmlUtils.FirstOfPair;
-		for(int i = 0; i < values.length; i ++) { 
+		for (int i = 0; i < values.length; i ++) { 
 			String v = values[i] + "";
 			String c = counts[i] + "";
 			long count = XmlElementUtils.getChildElementByTagName( ele, XmlUtils.TALLY ).stream()
@@ -243,7 +243,7 @@ public class BamSummaryReportTest {
 		bsr.parseRecord(record);
 		bsr.toXml(root);
 		
-		for(Element ele: XmlElementUtils.getOffspringElementByTagName(root, "readGroup")) { 
+		for (Element ele: XmlElementUtils.getOffspringElementByTagName(root, "readGroup")) { 
 			assertEquals( ele.getAttribute("name"), "unknown_readgroup_id");
 		} 		
 	}
@@ -269,15 +269,15 @@ public class BamSummaryReportTest {
 		 // check each node, make sure both "unPaired" and "firstReadinPair" are reported
 		Element seqEle = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.SEQ).get(0);
 		assertEquals( XmlElementUtils.getChildElementByTagName(seqEle, XmlUtils.SEQUENCE_METRICS).size(), 6  );
-		for(Element ele : XmlElementUtils.getChildElementByTagName(seqEle, XmlUtils.SEQUENCE_METRICS)) { 
+		for (Element ele : XmlElementUtils.getChildElementByTagName(seqEle, XmlUtils.SEQUENCE_METRICS)) { 
 			assertEquals( ele.getAttribute( ReadGroupSummary.READ_COUNT ) ,  "2");			
 			assertEquals( XmlElementUtils.getChildElementByTagName(ele, XmlUtils.VARIABLE_GROUP).size(),2  );			
 			boolean hasUnpaired = false;
 			boolean hasFirst = false;
-			for(Element vele :  XmlElementUtils.getChildElementByTagName(ele, XmlUtils.VARIABLE_GROUP)  ) { 				
-				if(vele.getAttribute(XmlUtils.NAME).equals("unPaired")) { 
+			for (Element vele :  XmlElementUtils.getChildElementByTagName(ele, XmlUtils.VARIABLE_GROUP)  ) { 				
+				if (vele.getAttribute(XmlUtils.NAME).equals("unPaired")) { 
 					hasUnpaired = true;
-				}else if(vele.getAttribute(XmlUtils.NAME).equals(XmlUtils.FIRST_PAIR)) { 
+				} else if (vele.getAttribute(XmlUtils.NAME).equals(XmlUtils.FIRST_PAIR)) { 
 					hasFirst = true;
 				}				
 			}			

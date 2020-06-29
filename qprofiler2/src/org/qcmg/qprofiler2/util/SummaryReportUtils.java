@@ -87,7 +87,7 @@ public class SummaryReportUtils {
 				
 				long bases = 0,counts = 0;		
 				for (int i = 0; i < arrayLength ; i++) { 
-					if(array.get(i) <= 0) continue;
+					if (array.get(i) <= 0) continue;
 					counts += array.get(i);
 					bases += i * array.get(i);
 				}		
@@ -97,18 +97,18 @@ public class SummaryReportUtils {
 				long sum = 0; 
 				int medium = 0;
 				for (int i = 0; i < arrayLength; i++) { 
-					if(( sum += array.get(i)) > counts/2 ) { medium = i;  break; }
+					if (( sum += array.get(i)) > counts/2 ) { medium = i;  break; }
 				}
 				int min = 0;  // find the smallest non-zero value;
-				for(int i = 1; i < arrayLength; i ++) { 
-					if(array.get(i) > 0) { 
+				for (int i = 1; i < arrayLength; i ++) { 
+					if (array.get(i) > 0) { 
 						min  = i; break; 
 					}
 				}
 				
 				int max = 0;  // find the biggest non-zero value;
-				for(int i = (int) (arrayLength -1); i > 0; i--) { 
-					if(array.get(i) > 0) { 
+				for (int i = (int) (arrayLength -1); i > 0; i--) { 
+					if (array.get(i) > 0) { 
 						max = i; break;  
 					}
 				}
@@ -116,7 +116,7 @@ public class SummaryReportUtils {
 				int mode = 0;  // mode is the number of read which length is most popular
 				long highest = 0;
 				for (int i = 0; i < arrayLength ; i++) { 					
-					if(array.get(i) > highest) { 
+					if (array.get(i) > highest) { 
 						highest = array.get(i);
 						mode = i; 
 					}  	
