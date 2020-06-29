@@ -15,12 +15,12 @@ import htsjdk.samtools.SAMRecord;
 
 import org.qcmg.common.string.StringUtils;
 
-public class FlagUtil {
+public class FlagUtil { 
 	
 	private static SAMRecord record = new SAMRecord(null);
 	
 	
-	public static String getFlagString(int flags) {
+	public static String getFlagString(int flags) { 
 		record.setFlags(flags);
 		
 		boolean readPaired = record.getReadPairedFlag();

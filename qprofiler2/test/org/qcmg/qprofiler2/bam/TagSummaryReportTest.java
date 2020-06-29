@@ -22,66 +22,66 @@ import org.w3c.dom.Element;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMTagUtil;
 
-public class TagSummaryReportTest {
+public class TagSummaryReportTest { 
 	@Rule
 	public  TemporaryFolder testFolder = new TemporaryFolder();	
 	
 	@Test
-	public void simpleTest() throws Exception{
+	public void simpleTest() throws Exception { 
 		
 		TagSummaryReport2 report = new TagSummaryReport2();
 		SAMRecord record = new SAMRecord(null);
 		record.setReadName("TESTDATA");
 		
-		//first read
+		 // first read
 		record.setReadBases("ACCCT AACCC CAACC CTAAC CNTAA CCCTA ACCCA AC".replace(" ","" ).getBytes());
-		record.setFlags(67); 	//first of pair forward
-		record.setAttribute("MD", "A25A");  //(ref) A>C (base) in cycly 11 and 37
+		record.setFlags(67); 	 // first of pair forward
+		record.setAttribute("MD", "A25A");   // (ref) A>C (base) in cycly 11 and 37
 		record.setAttribute("RG", "first");
 		record.setCigarString("10S27M");		
 		report.parseTAGs(record);
 		
-		//second read
+		 // second read
 		record.setReadBases("ACCCT AACCC".replace(" ","" ).getBytes());
 		record.setCigarString( "10M" );
-		record.setAttribute( "MD", "T9" );  //ref T>A (Base) in cycle 1
+		record.setAttribute( "MD", "T9" );   // ref T>A (Base) in cycle 1
 		report.parseTAGs(record);
 		
-		//third read
-		record.setReadNegativeStrandFlag(true);  //ref A>T (base) in cycle 10 according to reverse
+		 // third read
+		record.setReadNegativeStrandFlag(true);   // ref A>T (base) in cycle 10 according to reverse
 		report.parseTAGs(record);
 		
-		//forth read invalid cigar so mutation and MD are ignored
+		 // forth read invalid cigar so mutation and MD are ignored
 		record.setReadBases("ACCCT AACCC A".replace(" ","" ).getBytes());
 		record.setAttribute("RG", "last");
 		report.parseTAGs(record);
 		
-		//check md counts
+		 // check md counts
 		Element root = XmlElementUtils.createRootElement( XmlUtils.TAG, null );
 		report.toXml( root );		
 		checkXml( root );				
 	}	
 		
-	private List<Element> getChildNameIs(Element parent, String eleName, String nameValue){		
+	private List<Element> getChildNameIs(Element parent, String eleName, String nameValue) { 		
 		return XmlElementUtils.getChildElementByTagName(parent,eleName).stream().
 			filter( e -> e.getAttribute( XmlUtils.NAME ).equals( nameValue ) ).collect(Collectors.toList());		
 	}
 	
-	private void checkXml(Element root){
+	private void checkXml(Element root) { 
 		 		
 		assertEquals( 2, XmlElementUtils.getChildElementByTagName( root, XmlUtils.SEQUENCE_METRICS ).size()  );				
 		
-		//<sequenceMetrics name="tags:MDM:Z">
+		 // <sequenceMetrics name="tags:MDM:Z">
 		Element metricE = getChildNameIs( root, XmlUtils.SEQUENCE_METRICS, "tags:MD:Z" ).get(0);
 		assertEquals( metricE.getChildNodes().getLength() , 3 );
 		
-		//check mutation on each base cycle
+		 // check mutation on each base cycle
 		Element ele = getChildNameIs( metricE, XmlUtils.VARIABLE_GROUP, XmlUtils.FIRST_PAIR ).get(0);
 		assertEquals(ele.getAttribute(ReadGroupSummary.READ_COUNT), "4");
-		//three of firstOfPair have four mutation base
+		 // three of firstOfPair have four mutation base
 		String[] values = new String[] { "A", "T", "C", "C" };
 		String[] counts =  new String[] { "1", "10", "11", "37" };
-		for(int i = 0; i < counts.length; i++ ) {
+		for(int i = 0; i < counts.length; i++ ) { 
 			
 			String count = counts[i];
 			Element vE = XmlElementUtils.getChildElementByTagName(ele, XmlUtils.BASE_CYCLE).stream().
@@ -92,20 +92,20 @@ public class TagSummaryReportTest {
 			assertEquals( vE.getAttribute(XmlUtils.COUNT), "1");
 		}
 		
-		//check mutaiton type on forward reads
+		 // check mutaiton type on forward reads
 		ele = getChildNameIs(metricE, XmlUtils.VARIABLE_GROUP, XmlUtils.FIRST_PAIR+"ForwardStrand" ).get(0);
 		assertEquals( 1, XmlElementUtils.getOffspringElementByTagName(ele, XmlUtils.TALLY).stream()
 			.filter(e -> e.getAttribute(XmlUtils.VALUE).equals("A>C") && e.getAttribute(XmlUtils.COUNT).equals("2") ).count() );
 		assertEquals( 1, XmlElementUtils.getOffspringElementByTagName(ele, XmlUtils.TALLY).stream()
 			.filter(e -> e.getAttribute(XmlUtils.VALUE).equals("T>A") && e.getAttribute(XmlUtils.COUNT).equals("1") ).count() );		
 		
-		//check mutaiton type on reverse reads
+		 // check mutaiton type on reverse reads
 		ele = getChildNameIs( metricE, XmlUtils.VARIABLE_GROUP, XmlUtils.FIRST_PAIR+"ReverseStrand" ).get(0);
 		assertEquals( 1, XmlElementUtils.getOffspringElementByTagName(ele, XmlUtils.TALLY).size());
 		assertEquals( 1, XmlElementUtils.getOffspringElementByTagName(ele, XmlUtils.TALLY).stream()
 				.filter(e -> e.getAttribute(XmlUtils.VALUE).equals("A>T") && e.getAttribute(XmlUtils.COUNT).equals("1") ).count() );
 		
-		//check tag RG
+		 // check tag RG
 		ele = getChildNameIs( root, XmlUtils.SEQUENCE_METRICS, "tags:RG:Z" ).get(0);
 		assertEquals( 1, XmlElementUtils.getOffspringElementByTagName(ele, XmlUtils.TALLY).stream()
 				.filter(e -> e.getAttribute(XmlUtils.VALUE).equals("first") && e.getAttribute(XmlUtils.COUNT).equals("3") ).count() );
@@ -115,7 +115,7 @@ public class TagSummaryReportTest {
 		
 	
 	@Ignore
-	public void testTagPosition() {
+	public void testTagPosition() { 
 		final  SAMTagUtil STU = SAMTagUtil.getSingleton();
 		final short CS = STU.CS;
 		final short CQ = STU.CQ;
@@ -125,25 +125,25 @@ public class TagSummaryReportTest {
 		final short NH = STU.NH;
 		final short MD = STU.MD;
 		final short IH = STU.IH;
-		// custom tags
+		 //  custom tags
 		final short ZM = STU.makeBinaryTag("ZM");
 		final short ZP = STU.makeBinaryTag("ZP");
 		final short ZF = STU.makeBinaryTag("ZF");
 		
-		short [] tags = {CS, CQ, RG, ZM, ZP, CM, ZF, SM, IH, NH, MD};
+		short [] tags = { CS, CQ, RG, ZM, ZP, CM, ZF, SM, IH, NH, MD};
 		
 		System.out.println("current");
 		for (short tag : tags) 
 			System.out.println(STU.makeStringTag(tag) + " : " + tag);
 		
 		System.out.println("ordered");
-		short [] orderedTags = {MD, ZF, RG, IH, NH,CM,SM,ZM,ZP, CQ, CS};
+		short [] orderedTags = { MD, ZF, RG, IH, NH,CM,SM,ZM,ZP, CQ, CS};
 		
 		for (short tag : orderedTags) 
 			System.out.println(STU.makeStringTag(tag) + " : " + tag);					
 	}
 	
-	private void createMDerrFile(String input) throws IOException{
+	private void createMDerrFile(String input) throws IOException { 
 		List<String> data = new ArrayList<String>();
         data.add("@HD	VN:1.0	SO:coordinate");
         data.add("@RG	ID:1959T	SM:eBeads_20091110_CD	DS:rl=50");
@@ -156,13 +156,13 @@ public class TagSummaryReportTest {
 	    "########################################################################F==#F==#EGGGGGGE<=#FE1GGGGGGGGGGGGGF=?#GGGE@=#E@?#<=##	" + 
 	    "MD:Z:1T0C1A0G0G0T0C0G0G0T0T0T0C0T0A0T0C0T0A0C0N0T0T0C0A0A0A0T0T0C0C0T0C0C0C0T0G0T0A1G0A3G3A10G19T6T3T2	NH:i:1	HI:i:1	NM:i:47	AS:i:169	RG:Z:1959T");
 	
-		try(BufferedWriter out = new BufferedWriter(new FileWriter(input))){	    
+		try(BufferedWriter out = new BufferedWriter(new FileWriter(input))) { 	    
 			for (String line : data)  out.write(line + "\n");	               
 		}	
 	}
 	
 	@Test
-	public void tempTest() throws Exception{
+	public void tempTest() throws Exception { 
 		String INPUT_FILE = testFolder.newFile("input.sam").getAbsolutePath();
 		createMDerrFile(INPUT_FILE);	
 		Element root = XmlElementUtils.createRootElement("root",null);
@@ -172,7 +172,7 @@ public class TagSummaryReportTest {
 	}	
 	
 	@Test
-	public void toXmlTest() throws ParserConfigurationException {
+	public void toXmlTest() throws ParserConfigurationException { 
 		final  SAMTagUtil STU = SAMTagUtil.getSingleton();
 		TagSummaryReport2 report = new TagSummaryReport2();
 		SAMRecord record = new SAMRecord(null);
@@ -180,8 +180,8 @@ public class TagSummaryReportTest {
 		record.setAttribute(STU.makeStringTag(STU.NM), new Integer(Integer.MAX_VALUE));
 		report.parseTAGs(record);
 		
-		for(int i = 0; i < 200; i++) {	
-			for(int j = 0; j < 2; j ++) {
+		for(int i = 0; i < 200; i++) { 	
+			for(int j = 0; j < 2; j ++) { 
 				record.setAttribute(STU.makeStringTag(STU.NM), new Integer(i+j));
 				report.parseTAGs(record);
 			}			

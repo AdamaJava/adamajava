@@ -20,7 +20,7 @@ import org.qcmg.common.model.ProfileType;
 import org.qcmg.common.util.FileUtils;
 import org.w3c.dom.Element;
 
-public abstract class SummaryReport {
+public abstract class SummaryReport { 
 	
 	private final AtomicLong recordsInputed = new AtomicLong();
 	
@@ -34,31 +34,31 @@ public abstract class SummaryReport {
 	/**
 	 * default constructor that sets up a logger for the subclass instance 
 	 */
-	public SummaryReport() {
+	public SummaryReport() { 
 		logger = QLoggerFactory.getLogger(getClass());
 	}
 
-	public long getRecordsInputed() {
+	public long getRecordsInputed() { 
 		return recordsInputed.get();
 	}
- 	public void updateRecordsInputed() {
+ 	public void updateRecordsInputed() { 
 		recordsInputed.incrementAndGet();
 	}
 
-	public void setStartTime(String startTime) {
+	public void setStartTime(String startTime) { 
 		this.startTime = startTime;
 	}
 
-	public void setFinishTime(String finishTime) {
+	public void setFinishTime(String finishTime) { 
 		this.finishTime = finishTime;
 	}
 
-	public void setFileName(String fileName) {
+	public void setFileName(String fileName) { 
 		this.fileName = fileName;
 	}
 	
-	public void setFileMd5() {	
-		if(this.fileMd5 != null) {
+	public void setFileMd5() { 	
+		if(this.fileMd5 != null) { 
 			logger.warn("file md5 value is already caculated, please check why check again!!! ");
 			return; 
 		}
@@ -68,36 +68,36 @@ public abstract class SummaryReport {
 		logger.info("md5 checksum is done!");		
 	}	
 	
-	protected Element init(Element parent, ProfileType reportType, Long noOfDuplicates,  Long maxRecords) {
+	protected Element init(Element parent, ProfileType reportType, Long noOfDuplicates,  Long maxRecords) { 
 		Element element = parent.getOwnerDocument().createElement(reportType.getReportName() + "Report");
 		parent.appendChild(element);
 				
-		element.setAttribute( "uuid", QExec.createUUid() ); //add uuid 
+		element.setAttribute( "uuid", QExec.createUUid() );  // add uuid 
 		element.setAttribute("file", this.fileName);
 
-		//xml reorganise
+		 // xml reorganise
 		element.setAttribute("startTime", this.startTime );
 		element.setAttribute("finishTime", this.finishTime );
 		
 		if(this.fileMd5 == null) { setFileMd5(); }
 		element.setAttribute("md5sum",this.fileMd5);
 				
-		//don't list records_parsed on xml for BAM type
-		if(!reportType.equals(ProfileType.BAM)) {
+		 // don't list records_parsed on xml for BAM type
+		if(!reportType.equals(ProfileType.BAM)) { 
 			element.setAttribute("records_parsed", String.format("%,d", getRecordsInputed()) );	
 		}
 				
-		if (null != maxRecords) {
+		if (null != maxRecords) { 
 			element.setAttribute("max_no_of_records", String.format("%,d",maxRecords) );
 		}
-		if (null != noOfDuplicates) {
+		if (null != noOfDuplicates) { 
 			element.setAttribute("duplicate_records", String.format("%,d", noOfDuplicates));
 		}
 		
 		return element;
 	}
 		
-	protected Element init(Element parent, ProfileType reportType) {
+	protected Element init(Element parent, ProfileType reportType) { 
 		return init(parent, reportType, null, null);
 	}
 		

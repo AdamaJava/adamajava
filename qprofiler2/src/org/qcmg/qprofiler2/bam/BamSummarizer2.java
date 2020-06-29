@@ -33,7 +33,7 @@ import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qprofiler2.Summarizer;
 import org.qcmg.qprofiler2.SummaryReport;
 
-public class BamSummarizer2 implements Summarizer {
+public class BamSummarizer2 implements Summarizer { 
 	public static final ValidationStringency DEFAULT_VS = ValidationStringency.SILENT;
 	
 	private int maxRecords;
@@ -41,23 +41,23 @@ public class BamSummarizer2 implements Summarizer {
 	private boolean isFullBamHeader;
 
 	private final static QLogger logger = QLoggerFactory.getLogger(BamSummarizer2.class);	
-	public BamSummarizer2() {}	// default constructor	
-	public BamSummarizer2( int maxRecords, String validation, boolean isFullBamHeader) {
+	public BamSummarizer2() { }	 //  default constructor	
+	public BamSummarizer2( int maxRecords, String validation, boolean isFullBamHeader) { 
 		this.maxRecords = maxRecords;
 		this.validation = validation;
 		this.isFullBamHeader = isFullBamHeader;
 	}	
 	
-	public static BamSummaryReport2 createReport(File file, int maxRecords, boolean isFullBamHeader) throws IOException{
+	public static BamSummaryReport2 createReport(File file, int maxRecords, boolean isFullBamHeader) throws IOException { 
 		
-		// create the SummaryReport
+		 //  create the SummaryReport
 		SamReader reader = SAMFileReaderFactory.createSAMFileReader(file);
 		SAMFileHeader header = reader.getFileHeader();
 		reader.close();
 		
 		SAMSequenceDictionary samSeqDict  = header.getSequenceDictionary();
 		List<String> readGroupIds = header.getReadGroups().stream().map( it -> it.getId()  ).collect(toList()); 		
-		readGroupIds.sort(Comparator.comparing( String::toString ) );//Natural order  
+		readGroupIds.sort(Comparator.comparing( String::toString ) ); // Natural order  
 		
 		BamSummaryReport2 bamSummaryReport = new BamSummaryReport2( maxRecords, isFullBamHeader );									
 		bamSummaryReport.setBamHeader(header, isFullBamHeader);		
@@ -71,23 +71,23 @@ public class BamSummarizer2 implements Summarizer {
 	
 
 	@Override
-	public SummaryReport summarize(String input, String index) throws Exception {
+	public SummaryReport summarize(String input, String index) throws Exception { 
 		ValidationStringency vs = null != validation ? ValidationStringency.valueOf(validation) : DEFAULT_VS;
 		SamReader reader = SAMFileReaderFactory.createSAMFileReaderAsStream(input, index, vs);
 		
-		// create the SummaryReport		
+		 //  create the SummaryReport		
         BamSummaryReport2 bamSummaryReport = createReport(new File(input),  maxRecords, isFullBamHeader);
       		
 		boolean logLevelEnabled = logger.isLevelEnabled(QLevel.DEBUG);		
 		long currentRecordCount = 0;
 	
-		for (SAMRecord samRecord : reader) {			
+		for (SAMRecord samRecord : reader) { 			
 			bamSummaryReport.parseRecord(samRecord);
 			currentRecordCount = bamSummaryReport.getRecordsInputed();				
 			if (logLevelEnabled && currentRecordCount % FEEDBACK_LINES_COUNT == 0) 
 				logger.debug("Records parsed: " + currentRecordCount);
 			 				
-			// if maxRecords is non-zero, stop when we hit it
+			 //  if maxRecords is non-zero, stop when we hit it
 			if (maxRecords > 0 && currentRecordCount == maxRecords)  break;			 
 		}			
 			

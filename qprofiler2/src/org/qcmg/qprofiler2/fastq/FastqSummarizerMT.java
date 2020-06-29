@@ -28,19 +28,19 @@ import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.qprofiler2.Summarizer;
 import org.qcmg.qprofiler2.SummaryReport;
 
-public class FastqSummarizerMT implements Summarizer {
+public class FastqSummarizerMT implements Summarizer { 
 	
 	final static QLogger logger = QLoggerFactory.getLogger(FastqSummarizerMT.class);
 	
 	private final int noOfConsumerThreads;
 	
-	public FastqSummarizerMT(int noOfThreads) {
+	public FastqSummarizerMT(int noOfThreads) { 
 		super();
 		this.noOfConsumerThreads = noOfThreads;
 	}
 	
 	@Override
-	public SummaryReport summarize(String file, String index) throws Exception {
+	public SummaryReport summarize(String file, String index) throws Exception { 
 		
 		Queue<FastqRecord> q  = new ConcurrentLinkedQueue<>();
 		
@@ -51,67 +51,67 @@ public class FastqSummarizerMT implements Summarizer {
 		fastqSummaryReport.setStartTime(DateUtils.getCurrentDateAsString());
 		
 		
-		// set the bam header		
+		 //  set the bam header		
 		logger.info("will create " + (noOfConsumerThreads -1 ) + " consumer threads");
 
 		final CountDownLatch pLatch = new CountDownLatch(1);
 		final CountDownLatch cLatch = new CountDownLatch(noOfConsumerThreads -1);
 		ExecutorService consumerThreads = Executors.newFixedThreadPool(noOfConsumerThreads - 1);
-		for (int i = 0 ; i < noOfConsumerThreads - 1 ; i++) {
+		for (int i = 0 ; i < noOfConsumerThreads - 1 ; i++) { 
 			consumerThreads.execute(new Consumer(q, fastqSummaryReport, Thread.currentThread(), cLatch, pLatch));
 		}
 		
-//		 setup and kick-off single Producer thread
+ // 		 setup and kick-off single Producer thread
 		ExecutorService producerThreads = Executors.newFixedThreadPool(1);
 		producerThreads.execute(new Producer(q, new File(file), Thread.currentThread(), pLatch,  cLatch));
 
-		// don't allow any new threads to start
+		 //  don't allow any new threads to start
 		producerThreads.shutdown();
 		consumerThreads.shutdown();
 		
-		// wait for threads to complete
-		try {
+		 //  wait for threads to complete
+		try { 
 			logger.info("waiting for Producer thread to finish");
 			pLatch.await();
 			logger.info("producer thread finished, queue size: " + q.size());
 			
-			if ( ! cLatch.await(30, TimeUnit.SECONDS)) {
+			if ( ! cLatch.await(30, TimeUnit.SECONDS)) { 
 			
-				// need to cater for scenario where all consumer threads have died...
-				// if after 10 seconds, the q size has not decreased - assume the consumer threads are no more...
+				 //  need to cater for scenario where all consumer threads have died...
+				 //  if after 10 seconds, the q size has not decreased - assume the consumer threads are no more...
 				int qSize = q.size();
 				int qSizeTheSameCounter = 0;
-				while (qSize > 0 && qSizeTheSameCounter < 10) {
+				while (qSize > 0 && qSizeTheSameCounter < 10) { 
 					Thread.sleep(1000);
-						if (qSize == q.size()) {
+						if (qSize == q.size()) { 
 						qSizeTheSameCounter++;
-					} else {
+					} else { 
 						qSize =q.size();
-						qSizeTheSameCounter = 0;	// reset to zero
+						qSizeTheSameCounter = 0;	 //  reset to zero
 					}
 				}
 				
-				// final sleep to allow threads to finish processing final record
+				 //  final sleep to allow threads to finish processing final record
 				cLatch.await(10, TimeUnit.SECONDS);
 				if (cLatch.getCount() > 0)
 					consumerThreads.shutdownNow();
 				
-			} else {
+			} else { 
 				logger.info("consumer threads finished");
 			}
 
-			// if there are items left on the queue - means that the consumer threads encountered errors and were unable to complete the processing
-			if (q.size()  > 0 ) {
+			 //  if there are items left on the queue - means that the consumer threads encountered errors and were unable to complete the processing
+			if (q.size()  > 0 ) { 
 				logger.error("no consumer threads available to process items [" + q.size() + "] on queue");
 				throw new Exception("Consumer threads were unable to process all items on the queue");
 			}
 			
 			logger.info("producer and consumer threads have completed");
-		} catch (InterruptedException e) {
-			// restore interrupted status
+		} catch (InterruptedException e) { 
+			 //  restore interrupted status
 			logger.info("current thread about to be interrupted...");
 			
-			// kill off any remaining threads
+			 //  kill off any remaining threads
 			producerThreads.shutdownNow();
 			consumerThreads.shutdownNow();
 			
@@ -128,14 +128,14 @@ public class FastqSummarizerMT implements Summarizer {
 		return fastqSummaryReport;
 	}
 	
-	static class Consumer implements Runnable {
+	static class Consumer implements Runnable { 
 		private final Queue<FastqRecord> queue;
 		private final FastqSummaryReport report;
 		private final Thread mainThread;
 		private final CountDownLatch cLatch;
 		private final CountDownLatch pLatch;
 		
-		Consumer(Queue<FastqRecord> q, FastqSummaryReport report, Thread mainThread, CountDownLatch cLatch, CountDownLatch pLatch) {
+		Consumer(Queue<FastqRecord> q, FastqSummaryReport report, Thread mainThread, CountDownLatch cLatch, CountDownLatch pLatch) { 
 			queue = q;
 			this.report = report;
 			this.mainThread = mainThread;
@@ -144,44 +144,44 @@ public class FastqSummarizerMT implements Summarizer {
 		}
 		
 		@Override
-		public void run() {
-			try {
+		public void run() { 
+			try { 
 				logger.debug("Start Consumer");
-				while ( true ) {
+				while ( true ) { 
 					FastqRecord record = queue.poll();
-					if (null != record) {
-						try {
+					if (null != record) { 
+						try { 
 							report.parseRecord(record);
-						} catch (Exception e) {
+						} catch (Exception e) { 
 							logger.error("record: " + record.toString());
 							logger.error("Error caught parsing FastqRecord with readHeader: " + record.getReadName(), e);
 							throw e;
 						}
-					} else {
+					} else { 
 						if (pLatch.getCount() == 0) break;
 						else Thread.sleep(5);
 					}
 				}
-			} catch (InterruptedException e) {
+			} catch (InterruptedException e) { 
 				logger.info(Thread.currentThread().getName() + " " + e.getMessage());
-			} catch (Exception e) {
+			} catch (Exception e) { 
 				logger.info(Thread.currentThread().getName() + " " + e.getMessage());
 				mainThread.interrupt();
-			} finally {
+			} finally { 
 				cLatch.countDown();
 				logger.debug("Consumer finished");
 			}
 		}
 	}
 	
-	static class Producer implements Runnable {
+	static class Producer implements Runnable { 
 		private final File file;
 		private final Queue<FastqRecord> queue;
 		private final Thread mainThread;
 		private final CountDownLatch cLatch;
 		private final CountDownLatch pLatch;
 		
-		Producer(Queue<FastqRecord> q, File f, Thread mainThread, CountDownLatch pLatch, CountDownLatch cLatch) {
+		Producer(Queue<FastqRecord> q, File f, Thread mainThread, CountDownLatch pLatch, CountDownLatch cLatch) { 
 			queue = q;
 			file = f;
 			this.mainThread = mainThread;
@@ -190,7 +190,7 @@ public class FastqSummarizerMT implements Summarizer {
 		}
 
 		@Override
-		public void run() {
+		public void run() { 
 			logger.debug("Start Producer");
 			
 			
@@ -200,38 +200,38 @@ public class FastqSummarizerMT implements Summarizer {
 			
 			final int counter = 1000000;
 			
-			try (FastqReader reader =  new FastqReader(file);) {
-				for (FastqRecord record : reader) {
+			try (FastqReader reader =  new FastqReader(file);) { 
+				for (FastqRecord record : reader) { 
 					queue.add(record);
 					
-					if (++count == counter) {
+					if (++count == counter) { 
 						millions++;
 						count = 0;
-						size = queue.size();//						end = System.currentTimeMillis();
+						size = queue.size(); // 						end = System.currentTimeMillis();
 						logger.info("added " + millions + "M, q.size: " + size);
 						
-						if (cLatch.getCount() == 0 && size > 0) {
+						if (cLatch.getCount() == 0 && size > 0) { 
 							logger.error("No consumer threads left, but queue is not empty");
 							break;
 						}
 						
-						// if q size is getting too large - give the Producer a rest
-						// having too many items in the queue seems to have a detrimental effect on performance.
-						while (size > 100000) {
+						 //  if q size is getting too large - give the Producer a rest
+						 //  having too many items in the queue seems to have a detrimental effect on performance.
+						while (size > 100000) { 
 							Thread.sleep(50);
 							size = queue.size();
-							if (cLatch.getCount() == 0) {
+							if (cLatch.getCount() == 0) { 
 								throw new Exception("No consumer threads left, but queue is not empty");
 							}
 						}
 					}
 				}
-			} catch (InterruptedException e) {
+			} catch (InterruptedException e) { 
 				logger.info(Thread.currentThread().getName() + " " + e.getMessage());
-			} catch (Exception e) {
+			} catch (Exception e) { 
 				logger.info(Thread.currentThread().getName() + " " + e.getMessage());
 				mainThread.interrupt();
-			} finally {
+			} finally { 
 				pLatch.countDown();
 			}
 		}

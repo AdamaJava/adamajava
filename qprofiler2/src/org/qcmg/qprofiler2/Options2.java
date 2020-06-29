@@ -17,7 +17,7 @@ import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import org.qcmg.common.messages.Messages;
 
-final class Options2 {
+final class Options2 { 
 	private final static String msgResource = "org.qcmg.qprofiler2.messages";
 	
 	private static final String HELP_DESCRIPTION = Messages.getMessage(msgResource, "HELP_OPTION_DESCRIPTION");	
@@ -32,9 +32,9 @@ final class Options2 {
 	private static final String VALIDATION_STRINGENCY_OPTION_DESCRIPTION = Messages.getMessage(msgResource, "VALIDATION_STRINGENCY_DESCRIPTION");
 	private static final String FULL_BAMHEADER_OPTION_DESCRIPTION = Messages.getMessage(msgResource, "FULL_BAMHEADER_OPTION_DESCRIPTION");
 	
-	//vcf mode
+	 // vcf mode
 	private static final String FORMAT_OPTION_DESCRIPTION = Messages.getMessage(msgResource, "FORMAT_OPTION_DESCRIPTION");
-	private final String[] formats; //vcf mode		
+	private final String[] formats;  // vcf mode		
 	
 	private final OptionParser parser = new OptionParser();
 	private final OptionSet options;
@@ -49,7 +49,7 @@ final class Options2 {
 	
 	
 	@SuppressWarnings("unchecked")
-	Options2(final String[] args) throws Exception {
+	Options2(final String[] args) throws Exception { 
 
 		parser.accepts("help", HELP_DESCRIPTION);
 		parser.accepts("version", VERSION_DESCRIPTION);		
@@ -67,43 +67,43 @@ final class Options2 {
 		parser.posixlyCorrect(true);
 		options = parser.parse(args);
 		
-		// no of threads - Consumer
+		 //  no of threads - Consumer
 		Object threadNumberConsumer = options.valueOf("ntConsumer"); 
 		if (null != threadNumberConsumer)
 			noOfConsumerThreads =  (Integer) threadNumberConsumer;
-		// no of threads - Producer
+		 //  no of threads - Producer
 		Object threadNumberProducer = options.valueOf("ntProducer"); 
 		if (null != threadNumberProducer)
 			noOfProducerThreads =  (Integer) threadNumberProducer;
 		
-		// maxRecords
+		 //  maxRecords
 		Object maxRecordsObject = options.valueOf("maxRecords"); 
 		if (null != maxRecordsObject)
 			maxRecords =  (Integer) maxRecordsObject;		
 		
-		// log file
+		 //  log file
 		log = (String) options.valueOf("log");
-		// logLevel
+		 //  logLevel
 		logLevel = (String) options.valueOf("loglevel");
 		
-		// vcf mode: format field name
+		 //  vcf mode: format field name
 		List<String> formatArgs = (List<String>) options.valuesOf("format");
 		formats = new String[formatArgs.size()];
 		formatArgs.toArray(formats);
 				
-		// inputs
+		 //  inputs
 		List<String> inputs = (List<String>) options.valuesOf("input");
 		fileNames = new String[inputs.size()];
 		inputs.toArray(fileNames);
 
-		// indexes
+		 //  indexes
 		List<String> indexes = (List<String>) options.valuesOf("index");
 		indexFileNames = new String[indexes.size()];
 		indexes.toArray(indexFileNames);
 		
-		// output
+		 //  output
 		outputFileName = (String) options.valueOf("output");		
-		if ( ! options.nonOptionArguments().isEmpty()) {
+		if ( ! options.nonOptionArguments().isEmpty()) { 
 			throw new IllegalArgumentException(Messages.getMessage(msgResource, "USAGE"));
 		}
 	}
@@ -137,8 +137,8 @@ final class Options2 {
 		return indexFileNames; 
 	}
 		
-	//vcf mode
-	String[] getFormats(){ 
+	 // vcf mode
+	String[] getFormats() { 
 		return formats; 
 	}
 	
@@ -170,8 +170,8 @@ final class Options2 {
 	public String getOutputFileName() { 	return outputFileName; }
 	void displayHelp() throws Exception { 	parser.printHelpOn(System.err); }
 	
-	String getValidation() {
-		if (options.has("validation")) {
+	String getValidation() { 
+		if (options.has("validation")) { 
 			return (String) options.valueOf("validation");
 		} else return null;
 	}

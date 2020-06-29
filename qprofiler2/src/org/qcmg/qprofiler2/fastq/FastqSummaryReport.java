@@ -9,6 +9,7 @@
  */
 package org.qcmg.qprofiler2.fastq;
 
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.atomic.AtomicLong;
 import htsjdk.samtools.fastq.FastqRecord;
@@ -22,12 +23,12 @@ import org.qcmg.qprofiler2.SummaryReport;
 import org.qcmg.qprofiler2.summarise.CycleSummary;
 import org.qcmg.qprofiler2.summarise.KmersSummary;
 import org.qcmg.qprofiler2.summarise.ReadGroupSummary;
-import org.qcmg.qprofiler2.summarise.ReadIDSummary;
+import org.qcmg.qprofiler2.summarise.ReadIdSummary;
 import org.qcmg.qprofiler2.util.SummaryReportUtils;
 import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Element;
 
-public class FastqSummaryReport extends SummaryReport {
+public class FastqSummaryReport extends SummaryReport { 
 	public final static String badBaseComment = " the number of reads containing a given number of bad bases (. or N) ";	
 	public final static String badQualComment = "the number of reads containing a given number of bases with bad quality scores (<10)";
 	
@@ -36,30 +37,30 @@ public class FastqSummaryReport extends SummaryReport {
 	private static final int ReportErrNumber = 100;
 	AtomicLong errNumber = new AtomicLong();	
 	
-	//SEQ
+	 // SEQ
 	private final CycleSummary<Character> seqByCycle = new CycleSummary<Character>(c, 512);
 	private final QCMGAtomicLongArray seqBadReadLineLengths = new QCMGAtomicLongArray(128);
-	private final KmersSummary kmersSummary = new KmersSummary( KmersSummary.maxKmers ); //default use biggest mers length
+	private final KmersSummary kmersSummary = new KmersSummary( KmersSummary.maxKmers );  // default use biggest mers length
 	
-	//QUAL
+	 // QUAL
 	private final CycleSummary<Integer> qualByCycleInteger = new CycleSummary<Integer>(i, 512);
 	private final QCMGAtomicLongArray qualBadReadLineLengths = new QCMGAtomicLongArray(128);
 		
 	AtomicLong qualHeaderNotEqualToPlus = new AtomicLong();		
-	private ReadIDSummary readNameSummary = new ReadIDSummary(); 
+	private ReadIdSummary readNameSummary = new ReadIdSummary(); 
 	
 	public FastqSummaryReport() { super(); }
-	public ReadIDSummary getReadIDSummary(){	return readNameSummary;	}
+	public ReadIdSummary getReadIDSummary() { 	return readNameSummary;	}
 	@Override
-	public void toXml(Element parent1) {		
+	public void toXml(Element parent1) { 		
 		Element parent = init( parent1, ProfileType.FASTQ, null, null );
 		parent = XmlElementUtils.createSubElement( parent, ProfileType.FASTQ.getReportName() +  XmlUtils.METRICS   );
 		
-		//header line:"analysis read name pattern for read group
+		 // header line:"analysis read name pattern for read group
 		Element element =   XmlElementUtils.createSubElement(parent, XmlUtils.QNAME ) ;							
 		readNameSummary.toXml(element );		
 		
-		//seq								 			
+		 // seq								 			
 		element =   XmlElementUtils.createSubElement(parent,XmlUtils.SEQ  ) ;
 		Pair<String, Number> rcPair = new Pair<>(ReadGroupSummary.READ_COUNT, seqByCycle.getInputCounts());
 		Element ele = XmlUtils.createMetricsNode( element, XmlUtils.SEQ_BASE , rcPair); 
@@ -73,12 +74,12 @@ public class FastqSummaryReport extends SummaryReport {
 		XmlUtils.outputTallyGroup( ele, XmlUtils.BAD_READ,   seqBadReadLineLengths.toMap(), true, true );	
 		XmlUtils.addCommentChild(ele, FastqSummaryReport.badBaseComment );
 		
-		//1mers is same to baseByCycle
-		for( int i : new int[] { 2, 3, KmersSummary.maxKmers } ) {
+		 // 1mers is same to baseByCycle
+		for( int i : new int[] { 2, 3, KmersSummary.maxKmers } ) { 
 			kmersSummary.toXml( element,i, true );	
 		}
 		
-		//QUAL
+		 // QUAL
 		element = XmlElementUtils.createSubElement(parent, XmlUtils.QUAL) ;
 		rcPair = new Pair<String, Number>(ReadGroupSummary.READ_COUNT, qualByCycleInteger.getInputCounts());	
 		ele = XmlUtils.createMetricsNode( element, XmlUtils.QUAL_BASE , rcPair); 
@@ -99,7 +100,7 @@ public class FastqSummaryReport extends SummaryReport {
 	 * 
 	 * @return next row in file
 	 */
-	public void parseRecord(FastqRecord record) {
+	public void parseRecord(FastqRecord record) { 
 		if( null == record ) { 
 			return;
 		}
@@ -109,7 +110,7 @@ public class FastqSummaryReport extends SummaryReport {
 		// QUAL   it also throw exception if fastq reads is invalid
 		byte[] baseQualities = SAMUtils.fastqToPhred( record.getBaseQualityString() );
 		
-		//read are raw sequence ignore the strand
+		// read are raw sequence ignore the strand
 		qualByCycleInteger.parseByteData( baseQualities );
 		SummaryReportUtils.tallyQualScores( baseQualities, qualBadReadLineLengths );
 						
@@ -117,19 +118,19 @@ public class FastqSummaryReport extends SummaryReport {
 		byte[] readBases = record.getReadString().getBytes(StandardCharsets.UTF_8);
 		seqByCycle.parseByteData(readBases);
 		SummaryReportUtils.tallyBadReadsAsString( readBases, seqBadReadLineLengths );
-		//fastq base are all orignal forward, treat all as first of pair 
+		// fastq base are all orignal forward, treat all as first of pair 
 		kmersSummary.parseKmers( readBases, false, 0 ); 
 		
-		String qualHeader = record.getBaseQualityHeader();			
-		//If header just contains "+" then FastqRecord has null for qual header
-		if ( ! StringUtils.isNullOrEmpty( qualHeader )) {  
+		String qualHeader = record.getBaseQualityHeader();		
+		 // If header just contains "+" then FastqRecord has null for qual header
+		if ( ! StringUtils.isNullOrEmpty( qualHeader )) { 
 			qualHeaderNotEqualToPlus.incrementAndGet();	
 		}
 		
 		String id = record.getReadName();		
 		try { readNameSummary.parseReadId( id );
-		} catch (Exception e) {
-			if ( errNumber.incrementAndGet() < ReportErrNumber ) {
+		} catch (Exception e) { 
+			if ( errNumber.incrementAndGet() < ReportErrNumber ) { 
 				logger.error( "Invalid read id: " + id );
 			}
 		}

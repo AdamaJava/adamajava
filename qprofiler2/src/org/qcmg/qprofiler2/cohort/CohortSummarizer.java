@@ -21,14 +21,14 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 
-public class CohortSummarizer implements Summarizer {
+public class CohortSummarizer implements Summarizer { 
 	private final static QLogger logger = QLoggerFactory.getLogger(CohortSummarizer.class);
 	
 	List<CohortSummaryReport> reports = new ArrayList<>();
 	public CohortSummarizer( ) { }	
 		
 	@Override
-	public SummaryReport summarize(String file, String index) throws Exception{
+	public SummaryReport summarize(String file, String index) throws Exception { 
 		logger.info("processing file " + file);
 		
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance(); 		 		
@@ -37,30 +37,30 @@ public class CohortSummarizer implements Summarizer {
 		doc.getDocumentElement().normalize();		
 		NodeList sampleNS =	 doc.getElementsByTagName("Sample");
 		
-		for(int i = 0; i < sampleNS.getLength(); i ++) {
+		for(int i = 0; i < sampleNS.getLength(); i ++) { 
 			reports.add( new CohortSummaryReport(new File(file), (Element) sampleNS.item(i)) );
 		}
 		
 		return null; 
 	}
 		 
-	public void  outputSumamry(  File output) throws IOException {		
-		long[] sumCounts = new long[]{0,0,0,0}; //for log file 
-		int order = 0; 	//output
-		//FileWriter is too convenient and spotbugs won't happy with it. We use OutputStreamWriter and specify a charset
-		try (Writer writer =  new OutputStreamWriter(new FileOutputStream(output), "UTF-8");) {  				
+	public void  outputSumamry(  File output) throws IOException { 		
+		long[] sumCounts = new long[] { 0,0,0,0};  // for log file 
+		int order = 0; 	 // output
+		 // FileWriter is too convenient and spotbugs won't happy with it. We use OutputStreamWriter and specify a charset
+		try (Writer writer =  new OutputStreamWriter(new FileOutputStream(output), "UTF-8");) { 				
 			writer.write( "No\t" + CohortSummaryReport.headerline + "\n");
- 			for(CohortSummaryReport report : reports ){
-				//output all category of each sample
+ 			for(CohortSummaryReport report : reports ) { 
+				 // output all category of each sample
 				for(String str : report.outputCounts())
 					writer.write(( order ++) + "\t" + str + "\n");
-				//summry to log file
-				for(int i = 0; i < sumCounts.length; i++){
+				 // summry to log file
+				for(int i = 0; i < sumCounts.length; i++) { 
 					long[] reportCounts = report.getCountSum();					
 					sumCounts[i] += reportCounts[i];
 				}			
 			}
-		} //end of try
+		}  // end of try
 		
  		String summary = "summary: \nVariantCount\tDbSnpProportion\tTiTvRatio\n";
  		summary += String.format("%d\t%.3f\t%.3f%n", sumCounts[0], 

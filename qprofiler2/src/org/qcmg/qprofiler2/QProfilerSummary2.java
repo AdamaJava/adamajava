@@ -24,7 +24,7 @@ import java.util.List;
 
 import org.w3c.dom.Element;
 
-public class QProfilerSummary2 {
+public class QProfilerSummary2 { 
 	private final List<SummaryReport> reports = new ArrayList<SummaryReport>();
 	private String startTime;
 	private String finishTime;
@@ -33,14 +33,14 @@ public class QProfilerSummary2 {
 	 * Sets startTime to the supplied String (I know...)
 	 * @param startTime String containing the time the reports started processing
 	 */
-	public void setStartTime(String startTime) {
+	public void setStartTime(String startTime) { 
 		this.startTime = startTime;
 	}
 	/**
 	 * Gets startTime.
 	 * @return execution start time for this report
 	 */
-	public String getStartTime() {
+	public String getStartTime() { 
 		return startTime;
 	}
 
@@ -48,14 +48,14 @@ public class QProfilerSummary2 {
 	 * Sets finishTime to the supplied String (I know...)
 	 * @param finishTime String containing the time the reports finished processing
 	 */
-	public void setFinishTime(String finishTime) {
+	public void setFinishTime(String finishTime) { 
 		this.finishTime = finishTime;
 	}
 	/**
 	 * Gets the finishTime
 	 * @return execution finish time for this report
 	 */
-	public String getFinishTime() {
+	public String getFinishTime() { 
 		return finishTime;
 	}
 
@@ -64,7 +64,7 @@ public class QProfilerSummary2 {
 	 * 
 	 * @param summaries List of SummaryReport objects to be added to the reports collection
 	 */
-	public void addSummaries( List<SummaryReport> summaries ) {
+	public void addSummaries( List<SummaryReport> summaries ) { 
 		if (null != summaries) 	reports.addAll(summaries);
 	}
 	
@@ -74,8 +74,8 @@ public class QProfilerSummary2 {
 	 * @param parent Element parent element that is passed to the subsequent <code>SummartReport.toXml</code> calls
 	 * @see  org.qcmg.qprofiler2.SummaryReport#toXml(Element)
 	 */
-	public void toXml( Element parent ) {
-		for (SummaryReport report : reports) {
+	public void toXml( Element parent ) { 
+		for (SummaryReport report : reports) { 
 			if ( null != report ) { 
 				report.toXml( parent );
 			}
