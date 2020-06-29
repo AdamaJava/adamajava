@@ -24,7 +24,7 @@ public class FastqSummaryReportTest {
 		 // seq read 1
 		String name = "NB551151:83:HWC2VBGX9:4:11401:16365:1025 1:N:0:NGTTAA";
 		String base = "AAAGGGG.N";
-		String qual = "#AAA //  // /";	
+		String qual = "#AAA/////";	
 		FastqRecord record = new FastqRecord(name, base, null, qual);
 		myList.add(record);
 		
