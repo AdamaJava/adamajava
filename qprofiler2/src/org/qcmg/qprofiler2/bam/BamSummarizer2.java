@@ -84,11 +84,14 @@ public class BamSummarizer2 implements Summarizer {
 		for (SAMRecord samRecord : reader) { 			
 			bamSummaryReport.parseRecord(samRecord);
 			currentRecordCount = bamSummaryReport.getRecordsInputed();				
-			if (logLevelEnabled && currentRecordCount % FEEDBACK_LINES_COUNT == 0) 
+			if (logLevelEnabled && currentRecordCount % FEEDBACK_LINES_COUNT == 0) {
 				logger.debug("Records parsed: " + currentRecordCount);
-			 				
+			}
+						 				
 			 //  if maxRecords is non-zero, stop when we hit it
-			if (maxRecords > 0 && currentRecordCount == maxRecords)  break;			 
+			if (maxRecords > 0 && currentRecordCount == maxRecords) {
+				break;			 
+			}
 		}			
 			
 		bamSummaryReport.cleanUp();

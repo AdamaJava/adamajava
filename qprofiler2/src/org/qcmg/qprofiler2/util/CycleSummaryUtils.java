@@ -33,7 +33,7 @@ public class CycleSummaryUtils {
 				while (++i < size && Character.isDigit(mdData.charAt(i))) { 
 					numberLength++;
 				}
-				position += Integer.parseInt(mdData.substring(i-numberLength, i));					
+				position += Integer.parseInt(mdData.substring(i - numberLength, i));					
 			} else if ( '^' == mdData.charAt(i) ) { 
 				deletion = true;
 				i++;
@@ -58,7 +58,8 @@ public class CycleSummaryUtils {
 				}
 				
 				if (refBase == readBase) { 
-					return "Found refBase == altBase, md: " + mdData + " , cigar: " + cigar.toString() + ", seq: " + new String(readBases,  StandardCharsets.UTF_8) + ", reverse strand: " +reverse; 
+					return "Found refBase == altBase, md: " + mdData + " , cigar: " + cigar.toString() + 
+							", seq: " + new String(readBases,  StandardCharsets.UTF_8) + ", reverse strand: " + reverse; 
 				}
 				
 				int pos = position + additionalOffset;
@@ -77,7 +78,11 @@ public class CycleSummaryUtils {
 				i++;
 				position++;
 				 
-			} else i++;	 //  need to increment this or could end up with infinite loop...			 
+			} else {
+				 //  need to increment this or could end up with infinite loop...	
+				i++;
+			 			 
+			}
 		}
 		
 		return null; 				
@@ -91,13 +96,16 @@ public class CycleSummaryUtils {
 	 */
 	 // public static int getBigMDCycleNo(CycleSummary<Character>[] mdCycles, float percent, long totalRecords ) { 
 	public static int getBigMDCycleNo(CycleSummary<Character>[] mdCycles, float percent, QCMGAtomicLongArray[] allReadsLineLengths ) { 
-		if (  mdCycles.length <= 0 ) return 0; 
+		if (  mdCycles.length <= 0 ) {
+			return 0; 
+		}
 		
 		 // get all cycle number
 		TreeSet<Integer> cycles = (TreeSet<Integer>) mdCycles[0].cycles();
-		for (int i = 1; i < mdCycles.length; i++) 
+		for (int i = 1; i < mdCycles.length; i++) {
 			cycles.addAll(mdCycles[i].cycles());
-				
+		}
+		
 		int mismatchingCycles = 0;
 		for (Integer cycle : cycles) { 
 			long count = 0, allReadsCount = 0;
@@ -105,8 +113,9 @@ public class CycleSummaryUtils {
 				count += SummaryReportUtils.getCountOfMapValues(mdCycles[i].getValue(cycle));	
 				allReadsCount += allReadsLineLengths[i].get(cycle);
 			}					
-			if ( (( (double) count / allReadsCount )) > percent) 	
-				mismatchingCycles++;		 		
+			if ( (( (double) count / allReadsCount )) > percent) {
+				mismatchingCycles++;
+			}	
 		}
 		
 		return mismatchingCycles; 
@@ -117,25 +126,28 @@ public class CycleSummaryUtils {
 	}
 	
 	private static boolean isInValidExtendedInDelete(char c) { 
-		if (! isInValidExtended(c))
-			return c == 'M' || c =='R';
-		else return true;
+		if (! isInValidExtended(c)) {
+			return c == 'M' || c == 'R';
+		} else {
+			return true;
+		}
 	}
 		
 	public static int getIntFromChars(final char ref, final char alt) { 
 		switch (ref) { 
-		case 'A':
-			return 'A' == alt ? 1 : ('C' == alt ? 2 : ('G' == alt ? 3 : ('T' == alt ? 4 : 5)));
-		case 'C':
-			return 'A' == alt ? 6 : ('C' == alt ? 7 : ('G' == alt ? 8 : ('T' == alt ? 9 : 10)));
-		case 'G':
-			return 'A' == alt ? 11 : ('C' == alt ? 12 : ('G' == alt ? 13 : ('T' == alt ? 14 : 15)));
-		case 'T':
-			return 'A' == alt ? 16 : ('C' == alt ? 17 : ('G' == alt ? 18 : ('T' == alt ? 19 : 20)));
-		case 'N':
-			return 'A' == alt ? 21 : ('C' == alt ? 22 : ('G' == alt ? 23 : ('T' == alt ? 24 : 25)));
+			case 'A':
+				return 'A' == alt ? 1 : ('C' == alt ? 2 : ('G' == alt ? 3 : ('T' == alt ? 4 : 5)));
+			case 'C':
+				return 'A' == alt ? 6 : ('C' == alt ? 7 : ('G' == alt ? 8 : ('T' == alt ? 9 : 10)));
+			case 'G':
+				return 'A' == alt ? 11 : ('C' == alt ? 12 : ('G' == alt ? 13 : ('T' == alt ? 14 : 15)));
+			case 'T':
+				return 'A' == alt ? 16 : ('C' == alt ? 17 : ('G' == alt ? 18 : ('T' == alt ? 19 : 20)));
+			case 'N':
+				return 'A' == alt ? 21 : ('C' == alt ? 22 : ('G' == alt ? 23 : ('T' == alt ? 24 : 25)));
+			default : return -1;
 		}
-		return -1;
+		
 	}
 	
 	public static String getStringFromInt(final int i) { 

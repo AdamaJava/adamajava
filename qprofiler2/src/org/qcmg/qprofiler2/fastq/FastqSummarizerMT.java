@@ -9,6 +9,7 @@
  * under the GNU GENERAL PUBLIC LICENSE Version 3, a copy of which is
  * included in this distribution as gplv3.txt.
  */
+
 package org.qcmg.qprofiler2.fastq;
 
 import java.io.File;
@@ -54,7 +55,7 @@ public class FastqSummarizerMT implements Summarizer {
 		logger.info("will create " + (noOfConsumerThreads - 1 ) + " consumer threads");
 
 		final CountDownLatch pLatch = new CountDownLatch(1);
-		final CountDownLatch cLatch = new CountDownLatch(noOfConsumerThreads -1);
+		final CountDownLatch cLatch = new CountDownLatch(noOfConsumerThreads - 1);
 		ExecutorService consumerThreads = Executors.newFixedThreadPool(noOfConsumerThreads - 1);
 		for (int i = 0 ; i < noOfConsumerThreads - 1 ; i ++) { 
 			consumerThreads.execute(new Consumer(q, fastqSummaryReport, Thread.currentThread(), cLatch, pLatch));
@@ -92,9 +93,9 @@ public class FastqSummarizerMT implements Summarizer {
 				
 				 //  final sleep to allow threads to finish processing final record
 				cLatch.await(10, TimeUnit.SECONDS);
-				if (cLatch.getCount() > 0)
+				if (cLatch.getCount() > 0) {
 					consumerThreads.shutdownNow();
-				
+				}
 			} else { 
 				logger.info("consumer threads finished");
 			}
@@ -157,8 +158,11 @@ public class FastqSummarizerMT implements Summarizer {
 							throw e;
 						}
 					} else { 
-						if (pLatch.getCount() == 0) break;
-						else Thread.sleep(5);
+						if (pLatch.getCount() == 0) {
+							break;
+						} else {
+							Thread.sleep(5);
+						}
 					}
 				}
 			} catch (InterruptedException e) { 

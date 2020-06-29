@@ -9,6 +9,7 @@
  * under the GNU GENERAL PUBLIC LICENSE Version 3, a copy of which is
  * included in this distribution as gplv3.txt.
  */
+
 package org.qcmg.qprofiler2.util;
 
 import java.util.Map;
@@ -41,8 +42,9 @@ public class SummaryReportUtils {
 		if (null != data) { 
 			int count = 0;
 			for (byte b : data) { 
-				if (isInValid((char) b))
+				if (isInValid((char) b)) {
 					count++;
+				}
 			}
 			array.increment(count);
 		}
@@ -64,80 +66,110 @@ public class SummaryReportUtils {
 			for (byte b : data) { 
 				 // When you do a bitwise AND of 0xFF and any value from 0 to 255, the result is the exact same as the value. 
 				 // And if any value higher than 255 still the result will be within 0-255.
-				if ((b & 0xFF) < 10)
+				if ((b & 0xFF) < 10) {
 					countUnderTen++;
+				}
 			}
 			array.increment(countUnderTen);
 		}
 	}
 	
-
-	
 	public static class TallyStats { 
-		private long min, max, mean, mode, medium, counts, bases;
+		private long min;
+		private long max;
+		private long mean;
+		private long mode;
+		private long medium;
+		private long counts;
+		private long bases;
 		
-			/**
-			 * 
-			 * @param array:  read counts at each array index position
-			 * @return the minimum, maximum, mean, mode, medium, sum of array elements ,  sum of array elements multiply it's index position;
-			 */
-			public   TallyStats(QCMGAtomicLongArray array) { 
-								
-				long arrayLength = null != array ? array.length() : 0;
-				
-				long bases = 0,counts = 0;		
-				for (int i = 0; i < arrayLength ; i++) { 
-					if (array.get(i) <= 0) continue;
-					counts += array.get(i);
-					bases += i * array.get(i);
-				}		
-				int mean = (counts == 0) ? 0: (int) (bases / counts);
-						
-				 //to avoid aray.get(0) >= 0 since 1(counts)/2== 0(counts/2) == 0
-				long sum = 0; 
-				int medium = 0;
-				for (int i = 0; i < arrayLength; i++) { 
-					if (( sum += array.get(i)) > counts/2 ) { medium = i;  break; }
+		/**
+		 * 
+		 * @param array is the  read counts at each array index position
+		 * @return the minimum, maximum, mean, mode, medium, sum of array elements ,  sum of array elements multiply it's index position;
+		 */
+		public   TallyStats(QCMGAtomicLongArray array) { 
+							
+			long arrayLength = null != array ? array.length() : 0;			
+			long bases = 0;
+			long counts = 0;	
+			
+			for (int i = 0; i < arrayLength ; i++) { 
+				if (array.get(i) <= 0) {
+					continue;
 				}
-				int min = 0;  // find the smallest non-zero value;
-				for (int i = 1; i < arrayLength; i ++) { 
-					if (array.get(i) > 0) { 
-						min  = i; break; 
-					}
+				counts += array.get(i);
+				bases += i * array.get(i);
+			}		
+			int mean = (counts == 0) ? 0 : (int) (bases / counts);
+					
+			 //to avoid aray.get(0) >= 0 since 1(counts)/2== 0(counts/2) == 0
+			long sum = 0; 
+			int medium = 0;
+			for (int i = 0; i < arrayLength; i++) { 
+				if (( sum += array.get(i)) > counts / 2 ) { 
+					medium = i;  break; 
 				}
-				
-				int max = 0;  // find the biggest non-zero value;
-				for (int i = (int) (arrayLength -1); i > 0; i--) { 
-					if (array.get(i) > 0) { 
-						max = i; break;  
-					}
+			}
+			int min = 0;  // find the smallest non-zero value;
+			for (int i = 1; i < arrayLength; i ++) { 
+				if (array.get(i) > 0) { 
+					min  = i; break; 
 				}
-				
-				int mode = 0;  // mode is the number of read which length is most popular
-				long highest = 0;
-				for (int i = 0; i < arrayLength ; i++) { 					
-					if (array.get(i) > highest) { 
-						highest = array.get(i);
-						mode = i; 
-					}  	
-				}
-				
-				this.min = min;
-				this.max = max;
-				this.mean = mean;
-				this.mode = mode;
-				this.medium = medium;
-				this.counts = counts;
-				this.bases = bases;
-				
 			}
 			
-			public long getMin() { return min;}
-			public long getMax() { return max;}
-			public long getMode() { return mode;}			
-			public long getMedium() { return medium;}
-			public long getMean() { return mean;}
-			public long getReadCounts() { return counts;}
-			public long getBaseCounts() { return bases;}	
+			int max = 0;  // find the biggest non-zero value;
+			for (int i = (int) (arrayLength - 1); i > 0; i --) { 
+				if (array.get(i) > 0) { 
+					max = i; 
+					break;  
+				}
+			}
+			
+			int mode = 0;  // mode is the number of read which length is most popular
+			long highest = 0;
+			for (int i = 0; i < arrayLength ; i++) { 					
+				if (array.get(i) > highest) { 
+					highest = array.get(i);
+					mode = i; 
+				}  	
+			}
+				
+			this.min = min;
+			this.max = max;
+			this.mean = mean;
+			this.mode = mode;
+			this.medium = medium;
+			this.counts = counts;
+			this.bases = bases;			
+		}
+			
+		public long getMin() { 
+			return min;
+		}
+		
+		public long getMax() { 
+			return max;
+		}
+		
+		public long getMode() {
+			return mode;
+		}		
+		
+		public long getMedium() { 
+			return medium;
+		}
+		
+		public long getMean() { 
+			return mean;
+		}
+		
+		public long getReadCounts() { 
+			return counts;
+		}
+		
+		public long getBaseCounts() {
+			return bases;
+		}	
 	}
 }

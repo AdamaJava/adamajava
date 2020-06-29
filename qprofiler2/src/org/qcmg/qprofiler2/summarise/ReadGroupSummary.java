@@ -248,8 +248,8 @@ public class ReadGroupSummary {
 		this.readlengthStats = new SummaryReportUtils.TallyStats( readLength );	
 		
 		int maxLenght = (int)readlengthStats.getMax();
-		QCMGAtomicLongArray trimedBase = new QCMGAtomicLongArray(maxLenght+1);	
-		for (int i = 0 ; i < forTrimLength.length() ; i++)	 { 			
+		QCMGAtomicLongArray trimedBase = new QCMGAtomicLongArray(maxLenght + 1);	
+		for (int i = 0 ; i < forTrimLength.length() ; i ++)	 { 			
 			if (forTrimLength.get(i) == 0 || maxLenght == i ) {
 				continue;
 			}
@@ -297,9 +297,9 @@ public class ReadGroupSummary {
 		
 		 // add overall information to current readgroup element	
 		long maxBases = getReadCount() * readlengthStats.getMax() ;
-		long lostBase = (duplicate.get() + unmapped.get() + notProperPairedReads.get()  ) * getMaxReadLength() +
-				trimBaseStats.getBaseCounts() + softclipStats.getBaseCounts() + hardclipStats.getBaseCounts() + overlapStats.getBaseCounts();
-		double lostPercent =  maxBases == 0? 0: 100 * (double) lostBase / maxBases ;	
+		long lostBase = (duplicate.get() + unmapped.get() + notProperPairedReads.get()  ) * getMaxReadLength() 
+				+ trimBaseStats.getBaseCounts() + softclipStats.getBaseCounts() + hardclipStats.getBaseCounts() + overlapStats.getBaseCounts();
+		double lostPercent =  maxBases == 0 ? 0 : 100 * (double) lostBase / maxBases ;	
 		
 		ele = XmlUtils.createGroupNode(rgElement, "countedReads" );
 		XmlUtils.outputValueNode(ele, UNPAIRED_READ,  unpaired.get());	
@@ -317,7 +317,7 @@ public class ReadGroupSummary {
 	public void pairSummary2Xml( Element parent ) { 
 		for (boolean isProper : new boolean[] { true, false}) { 
 			 // add to xml RG_Counts
-			String name = isProper? "properPairs" : "notProperPairs";
+			String name = isProper ? "properPairs" : "notProperPairs";
 			Element ele =  XmlUtils.createMetricsNode( parent, name, null );
 			long sum = 0;
 			for (PairSummary p : pairCategory.values()) { 
@@ -327,7 +327,7 @@ public class ReadGroupSummary {
 				}			
 			}
 			 // can't really count he pair number due to RAM limits, just pickup number of firstOfPair
-			ele.setAttribute( PAIR_COUNT, sum+"");  			
+			ele.setAttribute( PAIR_COUNT, sum + "");  			
 		}
 	}
 

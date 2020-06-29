@@ -110,7 +110,9 @@ public class TagSummaryReport2 {
 					QCMGAtomicLongArray mdRefAltLengths = (strand.contains("Forward"))? mdRefAltLengthsForward[order] : mdRefAltLengthsReverse[order];				
 					for (int m = 0 ; m < mdRefAltLengths.length() ; m++) { 
 						long l = mdRefAltLengths.get(m);
-						if (l <= 0)  continue;
+						if (l <= 0)  {
+							continue;
+						}
 						mdRefAltLengthsString.put(CycleSummaryUtils.getStringFromInt(m), new AtomicLong(l));					 
 					}
 					String name = BamSummaryReport2.sourceName.get(order) + strand; 				

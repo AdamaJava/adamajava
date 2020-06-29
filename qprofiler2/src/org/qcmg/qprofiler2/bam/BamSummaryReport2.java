@@ -59,7 +59,10 @@ public class BamSummaryReport2 extends SummaryReport {
 	private final ConcurrentMap<String, ReadIdSummary> readIdSummary = new ConcurrentHashMap<String, ReadIdSummary>();
 	 // SEQ first of pair, secondof pair, unpaired
 	@SuppressWarnings("unchecked")
-	private final CycleSummary<Character>[] seqByCycle= new CycleSummary[] { new CycleSummary<Character>(cc, 512), new CycleSummary<Character>(cc, 512), new CycleSummary<Character>(cc, 512)};
+	private final CycleSummary<Character>[] seqByCycle= new CycleSummary[]{
+		new CycleSummary<Character>(cc, 512), new CycleSummary<Character>(cc, 512), new CycleSummary<Character>(cc, 512)
+	};
+	
 	private final QCMGAtomicLongArray[] seqBadReadLineLengths = new QCMGAtomicLongArray[] { new QCMGAtomicLongArray(128), new QCMGAtomicLongArray(128), new QCMGAtomicLongArray(128)};
 
 	 // QUAL
@@ -408,7 +411,7 @@ public class BamSummaryReport2 extends SummaryReport {
 		long unmappedBase = 0;
 		long noncanonicalBase = 0;
 		long  trimBases = 0,overlappedBase = 0, softClippedBase = 0, hardClippedBase = 0;
-		long  readCount = 0, lostBase=0;  // baseCount = 0,
+		long  readCount = 0, lostBase = 0;  // baseCount = 0,
 		Element rgsElement = XmlElementUtils.createSubElement(summaryElement, XmlUtils.READGROUPS);		
 		for (ReadGroupSummary summary: rgSummaries.values()) { 					
 			try { 	
@@ -417,8 +420,8 @@ public class BamSummaryReport2 extends SummaryReport {
 				summary.readSummary2Xml(rgEle);
 				summary.pairSummary2Xml(rgEle); 
 				 // presummary
-				lostBase += summary.getDuplicateBase() + summary.getUnmappedBase() + summary.getnotPoperPairedBase() + 
-						summary.getTrimmedBase() + summary.getOverlappedBase() + summary.getSoftClippedBase() + summary.getHardClippedBase();
+				lostBase += summary.getDuplicateBase() + summary.getUnmappedBase() + summary.getnotPoperPairedBase() 
+					+ summary.getTrimmedBase() + summary.getOverlappedBase() + summary.getSoftClippedBase() + summary.getHardClippedBase();
 				maxBases += summary.getReadCount() * summary.getMaxReadLength();						
 				duplicateBase += summary.getDuplicateBase();
 				unmappedBase += summary.getUnmappedBase();

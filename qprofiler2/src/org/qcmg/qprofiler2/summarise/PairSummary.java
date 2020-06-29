@@ -66,8 +66,11 @@ public class PairSummary {
 			return; 
 		}
 		
-		if (record.getFirstOfPairFlag()) firstOfPairNum.incrementAndGet();
-		else secondOfPairNum.incrementAndGet();
+		if (record.getFirstOfPairFlag()) {
+			firstOfPairNum.incrementAndGet();
+		} else {
+			secondOfPairNum.incrementAndGet();
+		}
 		
 		int tLen =  record.getInferredInsertSize();			
 	
@@ -75,9 +78,8 @@ public class PairSummary {
 		if ( record.getMateUnmappedFlag() ) { 
 			mateUnmapped.incrementAndGet();  
 			return;  
-		}
-		 // pair from different reference, only look at first pair to avoid double counts
-		else if ( !record.getReferenceName().equals( record.getMateReferenceName()) && record.getFirstOfPairFlag()) { 
+		} else if ( !record.getReferenceName().equals( record.getMateReferenceName()) && record.getFirstOfPairFlag()) { 
+			 // pair from different reference, only look at first pair to avoid double counts			
 			diffRef.incrementAndGet();	
 			return; 
 		}	

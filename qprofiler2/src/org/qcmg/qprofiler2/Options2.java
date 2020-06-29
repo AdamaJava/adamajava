@@ -69,17 +69,20 @@ final class Options2 {
 		
 		 //  no of threads - Consumer
 		Object threadNumberConsumer = options.valueOf("ntConsumer"); 
-		if (null != threadNumberConsumer)
+		if (null != threadNumberConsumer) {
 			noOfConsumerThreads =  (Integer) threadNumberConsumer;
-		 //  no of threads - Producer
-		Object threadNumberProducer = options.valueOf("ntProducer"); 
-		if (null != threadNumberProducer)
-			noOfProducerThreads =  (Integer) threadNumberProducer;
+		}
 		
+		//  no of threads - Producer
+		Object threadNumberProducer = options.valueOf("ntProducer"); 
+		if (null != threadNumberProducer) {
+			noOfProducerThreads =  (Integer) threadNumberProducer;
+		}
 		 //  maxRecords
 		Object maxRecordsObject = options.valueOf("maxRecords"); 
-		if (null != maxRecordsObject)
-			maxRecords =  (Integer) maxRecordsObject;		
+		if (null != maxRecordsObject) {
+			maxRecords =  (Integer) maxRecordsObject;	
+		}	
 		
 		 //  log file
 		log = (String) options.valueOf("log");
@@ -163,17 +166,23 @@ final class Options2 {
 	}
 	
 	String getVersion() { 
-		return QProfiler2.class.getPackage().getImplementationTitle() +
-			", version " + QProfiler2.class.getPackage().getImplementationVersion();	
+		return QProfiler2.class.getPackage().getImplementationTitle() 
+				+ ", version " + QProfiler2.class.getPackage().getImplementationVersion();	
 	}
 	
-	public String getOutputFileName() { 	return outputFileName; }
-	void displayHelp() throws Exception { 	parser.printHelpOn(System.err); }
+	public String getOutputFileName() { 	
+		return outputFileName; 
+	}
+	
+	void displayHelp() throws Exception { 	
+		parser.printHelpOn(System.err);
+	}
 	
 	String getValidation() { 
 		if (options.has("validation")) { 
 			return (String) options.valueOf("validation");
-		} else return null;
+		} 	
+		return null;
 	}
 
 }

@@ -69,15 +69,11 @@ public class VcfSummaryReport  extends SummaryReport {
 					cates.add(   re.getField(cate) );					 
 				}
 			}	 
-			Map<String, SampleSummary> map =  summaries.computeIfAbsent( sampleIds[i-1], (k) -> new HashMap<String, SampleSummary>() );
+			Map<String, SampleSummary> map =  summaries.computeIfAbsent( sampleIds[i - 1], (k) -> new HashMap<String, SampleSummary>() );
 			map.computeIfAbsent( StringUtils.join( cates, seperator), (k) -> new SampleSummary() ).parseRecord( vcf, i ) ;
 		}				
 	}
 
-	/**
-	 * modifying now
-	 * @param parent
-	 */
 	void summaryToXml(Element parent) { 			
 		 // get list of types eg. FT:INF:CONF
 		List<String>  formatsTypes = new ArrayList<>();
@@ -86,7 +82,7 @@ public class VcfSummaryReport  extends SummaryReport {
 			formatsTypes.add( pos > 0 ? formatCategories[i].substring(0, pos) : formatCategories[i] );			
 		}	
 		
-		Element summaryElement =  XmlElementUtils.createSubElement(parent,  ProfileType.VCF.getReportName()+"Metrics" );		
+		Element summaryElement =  XmlElementUtils.createSubElement(parent,  ProfileType.VCF.getReportName() + "Metrics" );		
 		 // for ( String sample : summaries.keySet() ) { 	
 		for ( Entry<String, Map<String, SampleSummary>> sEntry : summaries.entrySet() ) { 	
 			Element ele =  XmlElementUtils.createSubElement( summaryElement, Sample);

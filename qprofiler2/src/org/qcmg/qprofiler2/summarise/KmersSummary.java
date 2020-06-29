@@ -57,13 +57,13 @@ public class KmersSummary {
 		
  		 // get max entry, that is the size of mersIndex array && init with -1
 		byte[] maxMers = new byte[length];
-		for (int i = 0; i < length; i++) {
+		for (int i = 0; i < length; i ++) {
 			maxMers[i] = 'N';
 		}
 		int maxEntry = getEntry( maxMers);
 						
-		this.mersIndex = new int[maxEntry+1];
-		for (int i = 0; i < mersIndex.length; i++) {
+		this.mersIndex = new int[maxEntry + 1];
+		for (int i = 0; i < mersIndex.length; i ++) {
 			mersIndex[i] = -1;  // init		
 		}
 							
@@ -136,7 +136,7 @@ public class KmersSummary {
 		  
 		 if (reverse) { 
 			 byte[] dataReverse = readString.clone(); 
-			 for (int i = dataReverse.length -1 , j = 0; i >= 0 ; i--, j++) { 
+			 for (int i = dataReverse.length -1 , j = 0; i >= 0 ; i --, j ++) { 
 				dataString[j] = (byte) BaseUtils.getComplement( (char) dataReverse[i] );
 			}
 		 }
@@ -164,14 +164,24 @@ public class KmersSummary {
 	 // just for fast caculate, the return value is not position of mers in QCMGArray
 	private int getEntry(byte[] mers) { 
 		int entry = 0; 
-		for (int i = 0, j = mers.length-1; i < mers.length; i ++, j-- ) { 
+		for (int i = 0, j = mers.length - 1; i < mers.length; i ++, j -- ) { 
 			int no;
 			switch (mers[i]) { 
-				case 'A' : no = 1; break;
-				case 'C' : no = 2; break;
-				case 'G' : no = 3; break;
-				case 'T' : no = 4; break;
-				default : no = 5; break;
+				case 'A' : 
+					no = 1; 
+					break;
+				case 'C' : 
+					no = 2;
+					break;
+				case 'G' : 
+					no = 3;
+					break;
+				case 'T' : 
+					no = 4;
+					break;
+				default : 
+					no = 5; 
+					break;
 			}
 			entry += no << ( j * 3 ); 	
 		}		
@@ -226,7 +236,7 @@ public class KmersSummary {
 		}
 		
 		long count = 0;	
-		for (int i = getPosition(cycle, small), j = getPosition(cycle, big); i <=j ; i ++ ) { 
+		for (int i = getPosition(cycle, small), j = getPosition(cycle, big); i <= j ; i ++ ) { 
 		  count +=  tally[flagFirstOfPair].get(i); 
 		}
 		return count; 		
@@ -234,6 +244,7 @@ public class KmersSummary {
 	
 	 
 	/**
+	 * create xml 
 	 * 
 	 * @param parent  is the parent element
 	 * @param klength is the length of kemers
@@ -292,7 +303,7 @@ public class KmersSummary {
 		 // select three positions: middle, middle of first half, middle of second half
 		int midCycle = cycleNo / 2; 
 		int bfMidCycle = (midCycle > 20 ) ? midCycle - 10 : (midCycle < kLength ) ? 0 : midCycle - kLength; 
-		int afMidCycle = (midCycle > 20 ) ? midCycle + 10 : (midCycle < kLength ) ? cycleNo-1 : midCycle + kLength; 
+		int afMidCycle = (midCycle > 20 ) ? midCycle + 10 : (midCycle < kLength ) ? cycleNo - 1 : midCycle + kLength; 
 						
 		long[] bfMidCycleCounts = getCounts(bfMidCycle, possibleMers,flagFristRead);
 		long[] afMidCycleCounts = getCounts(afMidCycle, possibleMers,flagFristRead);
@@ -307,7 +318,7 @@ public class KmersSummary {
 		 // get biggest popularNo  // 	String[] popularMers = new String[popularNo];
 		Set<String> popularMers = new HashSet<>();
 		for (int i = 0; i < popularNo; i ++ ) { 
-			long bigValue = sortCounts[sortCounts.length - i-1];
+			long bigValue = sortCounts[sortCounts.length - i - 1];
 			if ( bigValue == 0 ) break;  // find zero is meaningless
 			for (int j = 0; j < possibleMers.length; j ++) { 
 				if (bigValue == midCycleCounts[j] && !popularMers.contains(possibleMers[j])) { 

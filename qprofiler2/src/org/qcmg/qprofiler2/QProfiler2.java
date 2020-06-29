@@ -9,6 +9,7 @@
  * under the GNU GENERAL PUBLIC LICENSE Version 3, a copy of which is
  * included in this distribution as gplv3.txt.
  */
+
 package org.qcmg.qprofiler2;
 
 import java.io.File;
@@ -109,15 +110,18 @@ public class QProfiler2 {
 				processXmlFiles( xmls, outputFile);
 			}
 			 // after removed xml files				
-			if ( ! sortedFiles.isEmpty())			
+			if ( ! sortedFiles.isEmpty()) {		
 				processFiles( sortedFiles, root );	
-			else
+			} else {
 				 // no xml output required if no inputs except xml
 				return exitStatus; 
+			}
 		}
 		
 		 //  if we have a failure, exit now rather than creating a skeleton output file
-		if (exitStatus == 1) return exitStatus;
+		if (exitStatus == 1) {
+			return exitStatus;
+		}
 		logger.info("generating output xml file: " + outputFile);
 		
 		
@@ -138,10 +142,11 @@ public class QProfiler2 {
 	
 	private void processXmlFiles(List<String> files, String output)throws Exception { 			 				
 		final CohortSummarizer summarizer = new CohortSummarizer();
-		for (final String file :files) 
+		for (final String file :files) { 
 			 summarizer.summarize(file) ;
-			 
-		summarizer.outputSumamry(  new File( output+".tsv" ));
+		}
+		
+		summarizer.outputSumamry(  new File( output + ".tsv" ));
 	}
 	
 	/**
@@ -262,7 +267,7 @@ public class QProfiler2 {
 				throw new Exception( Messages.getMessage(msgResource, "INSUFFICIENT_ARGUMENTS"));
 			} else { 
 				 //  loop through supplied files - check they can be read
-				for (int i = 0 ; i < cmdLineFiles.length ; i++ ) { 
+				for (int i = 0 ; i < cmdLineFiles.length ; i ++ ) { 
 					if ( ! FileUtils.canFileBeRead(cmdLineFiles[i])) { 
 						throw new Exception( Messages.getMessage(msgResource, "INPUT_FILE_ERROR" , cmdLineFiles[i]));
 					}
@@ -287,9 +292,9 @@ public class QProfiler2 {
 			noOfConsumerThreads = options.getNoOfConsumerThreads();
 			noOfProducerThreads = Math.max(1, options.getNoOfProducerThreads());
 			if (noOfConsumerThreads > 0) { 
-				logger.tool("Running in multi-threaded mode (BAM files only). No of available processors: " + NO_OF_PROCESORS + 
-						", no of requested consumer threads: " + noOfConsumerThreads + ", producer threads: " + noOfProducerThreads +
-						", no of md5 checksum thread: 1");
+				logger.tool("Running in multi-threaded mode (BAM files only). No of available processors: " + NO_OF_PROCESORS 
+						+ ", no of requested consumer threads: " + noOfConsumerThreads + ", producer threads: " + noOfProducerThreads 
+						+ ", no of md5 checksum thread: 1");
 			} else { 
 				logger.tool("Running in single-threaded mode");
 			}

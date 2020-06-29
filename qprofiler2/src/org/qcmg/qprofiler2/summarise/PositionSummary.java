@@ -45,11 +45,12 @@ public class PositionSummary {
 		 // Natural order should only do once inside BamSummarizer2::createReport
 		readGroupIds = rgs; 
 		
-		min = new AtomicInteger(512*BUCKET_SIZE);
+		min = new AtomicInteger(512 * BUCKET_SIZE);
 		max = new AtomicInteger(0); 
 		rgCoverages = new QCMGAtomicLongArray[rgs.size()];
-		for (int i = 0; i < rgs.size(); i ++)
+		for (int i = 0; i < rgs.size(); i ++) {
 			rgCoverages[i] = new QCMGAtomicLongArray(512);
+		}			
 	}
 	
 	public int getMin() { 
@@ -61,7 +62,7 @@ public class PositionSummary {
 	}
 	
 	public int getBinNumber() { 
-		return (max.get()/BUCKET_SIZE) + 1;
+		return (max.get() / BUCKET_SIZE) + 1;
 	}
 
 	/**
@@ -71,7 +72,7 @@ public class PositionSummary {
 	public long getMaxRgCoverage() { 
 		if ( hasAddPosition  || maxRgs.isEmpty()) { 
 			maxRgs.clear();
-			for (int i = 0, length = (max.get()/BUCKET_SIZE) + 1; i < length ; i++) { 
+			for (int i = 0, length = (max.get() / BUCKET_SIZE) + 1; i < length ; i++) { 
 				long[] rgCov = new long[rgCoverages.length];				
 				for (int j = 0; j < rgCoverages.length; j ++) {
 					rgCov[j] = rgCoverages[j].get(i);
@@ -110,7 +111,7 @@ public class PositionSummary {
 		 // get nature order
 		int order = Collections.binarySearch( readGroupIds, rg, null);  
 		long count = 0;		 
-		for (int i = 0, max =getBinNumber() ; i < max ; i++) { 							
+		for (int i = 0, max = getBinNumber() ; i < max ; i ++) { 							
 			count += rgCoverages[order].get(i);
 		}
 		return count; 
@@ -124,7 +125,7 @@ public class PositionSummary {
 		Map<Integer, AtomicLong> singleRgCoverage = new TreeMap<Integer, AtomicLong>();	
 		 // get nature order
 		int order = Collections.binarySearch( readGroupIds, rg, null);  
-		for (int i = 0, max =getBinNumber() ; i < max ; i++) { 								
+		for (int i = 0, max = getBinNumber() ; i < max ; i ++) { 								
 			singleRgCoverage.put( i, new AtomicLong( rgCoverages[order].get(i)));
 		}
 		return singleRgCoverage;
@@ -148,7 +149,9 @@ public class PositionSummary {
 					} else {
 						tempMax = max.get();
 					}
-				} else break;
+				} else {
+					break;
+				}
 			}
 		}
 		
@@ -159,8 +162,7 @@ public class PositionSummary {
 				if (tempMin > position) { 
 					if (min.compareAndSet(tempMin, position)) {
 						break;
-					}
-					else {
+					} else {
 						tempMin = min.get();
 					}
 				} else break;

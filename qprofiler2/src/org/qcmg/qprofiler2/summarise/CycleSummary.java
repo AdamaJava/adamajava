@@ -394,7 +394,7 @@ public class CycleSummary<T> {
 		for (int i = 0, size = dataString.length ; i < size ; i++) { 
 			int value = (type instanceof Integer) ? dataString[i] & 0xFF : 
 				(type instanceof Character) ? dataString[i] : 0;
-			increment( i+1, value );
+			increment( i + 1, value );
 		}						
 	}	
 	

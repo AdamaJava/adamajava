@@ -97,8 +97,8 @@ static final int MAX_POOL_SIZE = 500;
 			case 3:					
 				if ( StringUtils.isNumeric(parts[1]) && StringUtils.isNumeric(parts[2])) {			
 					return RnPattern.TwoColon_Torrent;
-				} else if ( (parts[1] != null && parts[1].startsWith("L")) &&
-						(parts[2] != null && parts[2].startsWith("C"))) {
+				} else if ( (parts[1] != null && parts[1].startsWith("L")) 
+						&& (parts[2] != null && parts[2].startsWith("C"))) {
 					return  RnPattern.NoColon_BGI;
 				}
 				

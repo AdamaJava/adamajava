@@ -52,8 +52,9 @@ public class CohortSummarizer implements Summarizer {
 			writer.write( "No\t" + CohortSummaryReport.headerline + "\n");
  			for (CohortSummaryReport report : reports ) { 
 				 // output all category of each sample
-				for (String str : report.outputCounts())
+				for (String str : report.outputCounts()) {
 					writer.write(( order ++) + "\t" + str + "\n");
+				}
 				 // summry to log file
 				for (int i = 0; i < sumCounts.length; i++) { 
 					long[] reportCounts = report.getCountSum();					

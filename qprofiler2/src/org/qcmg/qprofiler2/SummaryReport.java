@@ -9,6 +9,7 @@
  * under the GNU GENERAL PUBLIC LICENSE Version 3, a copy of which is
  * included in this distribution as gplv3.txt.
  */
+
 package org.qcmg.qprofiler2;
 
 import java.util.concurrent.atomic.AtomicLong;
@@ -79,7 +80,10 @@ public abstract class SummaryReport {
 		element.setAttribute("startTime", this.startTime );
 		element.setAttribute("finishTime", this.finishTime );
 		
-		if (this.fileMd5 == null) { setFileMd5(); }
+		if (this.fileMd5 == null) { 
+			setFileMd5(); 
+		}
+		
 		element.setAttribute("md5sum",this.fileMd5);
 				
 		 // don't list records_parsed on xml for BAM type
