@@ -49,19 +49,18 @@ public class FastqSummarizerMT implements Summarizer {
 		final FastqSummaryReport fastqSummaryReport = new FastqSummaryReport();
 		fastqSummaryReport.setFileName(file );
 		fastqSummaryReport.setStartTime(DateUtils.getCurrentDateAsString());
-		
-		
+				
 		 //  set the bam header		
-		logger.info("will create " + (noOfConsumerThreads -1 ) + " consumer threads");
+		logger.info("will create " + (noOfConsumerThreads - 1 ) + " consumer threads");
 
 		final CountDownLatch pLatch = new CountDownLatch(1);
 		final CountDownLatch cLatch = new CountDownLatch(noOfConsumerThreads -1);
 		ExecutorService consumerThreads = Executors.newFixedThreadPool(noOfConsumerThreads - 1);
-		for (int i = 0 ; i < noOfConsumerThreads - 1 ; i++) { 
+		for (int i = 0 ; i < noOfConsumerThreads - 1 ; i ++) { 
 			consumerThreads.execute(new Consumer(q, fastqSummaryReport, Thread.currentThread(), cLatch, pLatch));
 		}
 		
- // 		 setup and kick-off single Producer thread
+		// 	setup and kick-off single Producer thread
 		ExecutorService producerThreads = Executors.newFixedThreadPool(1);
 		producerThreads.execute(new Producer(q, new File(file), Thread.currentThread(), pLatch,  cLatch));
 
@@ -86,7 +85,7 @@ public class FastqSummarizerMT implements Summarizer {
 						if (qSize == q.size()) { 
 						qSizeTheSameCounter++;
 					} else { 
-						qSize =q.size();
+						qSize = q.size();
 						qSizeTheSameCounter = 0;	 //  reset to zero
 					}
 				}

@@ -23,10 +23,10 @@ public class CohortSummaryReport extends SummaryReport {
 	final String file;	
 	List<Category> categories = new ArrayList<>();
 	
-	private long sum_ti = 0; 
-	private long sum_tv = 0;
-	private long sum_db = 0;
-	private long sum_count = 0;
+	private long sumTi = 0; 
+	private long sumTv = 0;
+	private long sumDb = 0;
+	private long sumCount = 0;
 	
 	CohortSummaryReport(File fxml, Element sampleNode) throws IOException { 
 		this.file = fxml.getCanonicalPath();
@@ -37,19 +37,26 @@ public class CohortSummaryReport extends SummaryReport {
 			categories.add(cat );
 			
 			 // summary
-			sum_ti += cat.ti;
-			sum_tv += cat.tv;
-			for (int db : cat.dbSnpCounts.values()) sum_db += db;
-			for (int count : cat.variantsCounts.values()) sum_count += count;			
+			sumTi += cat.ti;
+			sumTv += cat.tv;
+			for (int db : cat.dbSnpCounts.values()) {
+				sumDb += db;
+			}
+			for (int count : cat.variantsCounts.values()) {
+				sumCount += count;			
+			}
 		}
 				
 	}	
 	
 	List<String> outputCounts(  ) { 		 
 		List<String> output = new ArrayList<>(); 
-		for (Category cat: categories)
-			for (String str : cat.output())
+		for (Category cat: categories) {
+			for (String str : cat.output()) {
 				output.add(file + outputSeperate + sampleId + outputSeperate + str);
+				
+			}
+		}
 		
 		return output;
 	}	
@@ -59,7 +66,7 @@ public class CohortSummaryReport extends SummaryReport {
 	 * @return an array of total counts of variantCounts , dbsnp , ti and tv
 	 */
 	public long[] getCountSum() { 
-		return new long[] { sum_count, sum_db, sum_ti, sum_tv  };		
+		return new long[] { sumCount, sumDb, sumTi, sumTv  };		
 	}
 	
 	static class Category { 

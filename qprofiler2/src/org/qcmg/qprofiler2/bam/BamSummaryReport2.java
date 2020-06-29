@@ -315,7 +315,7 @@ public class BamSummaryReport2 extends SummaryReport {
 				}	
 			XmlUtils.outputTallyGroup(ele, sourceName.get(j) , tallys, true, true);		
 		}
-		ele.setAttribute(ReadGroupSummary.READ_COUNT, sum+"");		
+		ele.setAttribute(ReadGroupSummary.READ_COUNT, sum + "");		
 	}
 	
 	private void createPOS(Element parent) { 

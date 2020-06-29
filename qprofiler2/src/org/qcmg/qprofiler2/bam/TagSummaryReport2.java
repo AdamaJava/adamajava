@@ -29,7 +29,7 @@ public class TagSummaryReport2 {
 	public static final String seperator = Constants.COLON_STRING;	
 
 	private static final SAMTagUtil STU = SAMTagUtil.getSingleton();
-	private final short MD = STU.MD;	
+	private final short md = STU.MD;	
 	
 	 //  TAGS		
 	@SuppressWarnings("unchecked")
@@ -41,44 +41,54 @@ public class TagSummaryReport2 {
 	private final ConcurrentMap<String, ConcurrentSkipListMap<String, AtomicLong>> additionalTags = new ConcurrentSkipListMap<>();
 	private final ConcurrentMap<String, ConcurrentSkipListMap<Character, AtomicLong>> additionalCharacterTags = new ConcurrentSkipListMap<>();
 	protected QLogger logger = QLoggerFactory.getLogger(getClass());	
-	private long errMDReadNo = 0 ;	
+	private long errMdReadNo = 0 ;	
 	private AtomicLong mdTagCounts = new AtomicLong();
 	
 	public void parseTAGs(final SAMRecord record )  { 
 				
 		for ( SAMTagAndValue tag : record.getAttributes()) { 
-			if (tag.tag.equals("MD")) continue;
+			if (tag.tag.equals("MD")) {
+				continue;
+			}
 			
 			 //  the type may be one of A (character), B (generalarray), f (real number), H (hexadecimal array), i (integer), or Z (string).
 	        // Note that H tag type is never written anymore, because B style is more compact.	         
 			String type = ":B";			
-			if (tag.value instanceof Integer) type = ":i";
-			else if (tag.value instanceof Number ) type = ":f";
-			else if (tag.value instanceof String) type = ":Z";
-			else if (tag.value instanceof Character) type = ":A";
+			if (tag.value instanceof Integer) {
+				type = ":i";
+			} else if (tag.value instanceof Number ) {
+				type = ":f";
+			} else if (tag.value instanceof String) {
+				type = ":Z";
+			} else if (tag.value instanceof Character) {
+				type = ":A";
+			}
 
 			String key = tag.tag + type;
 			Map<String, AtomicLong> map = additionalTags.computeIfAbsent(key, k -> new ConcurrentSkipListMap<String, AtomicLong>());
-			XmlUtils.updateMapWithLimit(map, tag.value+"", ADDI_TAG_MAP_LIMIT);				 
+			XmlUtils.updateMapWithLimit(map, tag.value + "", ADDI_TAG_MAP_LIMIT);				 
 		}
 						
 		 // MD	 
-		String value = (String) record.getAttribute(MD);
+		String value = (String) record.getAttribute(md);
 		if (null != value) { 
 			mdTagCounts.incrementAndGet();
 			byte[] readBases = record.getReadBases();
-			boolean reverseStrand =record.getReadNegativeStrandFlag();		
+			boolean reverseStrand = record.getReadNegativeStrandFlag();		
 
 			 // 0: unpaired , 1: firstOfPair , 2: secondOfPair				
-			int order = (!record.getReadPairedFlag())? 0: (record.getFirstOfPairFlag())? 1 : 2;					
+			int order = (!record.getReadPairedFlag()) ? 0 : (record.getFirstOfPairFlag()) ? 1 : 2;					
 			String err = CycleSummaryUtils.tallyMDMismatches( value, record.getCigar(), tagMDMismatchByCycle[order], 
 					readBases, reverseStrand, mdRefAltLengthsForward[order], mdRefAltLengthsReverse[order]);
 			 // limit err message on log file
-			if ( err != null && (( errMDReadNo ++) < errReadLimit)) logger.warn(record.getReadName() + ": " + err);
+			if ( err != null && (( errMdReadNo ++) < errReadLimit)) {
+				logger.warn(record.getReadName() + ": " + err);
+			}
 			
 			 // this counts will be used to caculate % for MD
-			for ( int i = 1; i <= record.getReadLength(); i ++ )
-				allReadsLineLengths[order].increment(i);				
+			for ( int i = 1; i <= record.getReadLength(); i ++ ) {
+				allReadsLineLengths[order].increment(i);		
+			}		
 		}		
 	}
 	
@@ -125,7 +135,7 @@ public class TagSummaryReport2 {
 	
 		long counts = tallys.values().stream().mapToLong(x -> x.get()).sum();
 		
-		ele = XmlUtils.createMetricsNode(ele, "tags:"+tag, new Pair<String, Number>(ReadGroupSummary.READ_COUNT, counts));
+		ele = XmlUtils.createMetricsNode(ele, "tags:" + tag, new Pair<String, Number>(ReadGroupSummary.READ_COUNT, counts));
 			
 		String name = tag.substring(0, tag.indexOf(seperator));			
 		XmlUtils.outputTallyGroupWithSize(ele, name, tallys, ADDI_TAG_MAP_LIMIT, false);
