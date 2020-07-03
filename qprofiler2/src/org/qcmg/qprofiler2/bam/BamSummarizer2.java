@@ -21,7 +21,6 @@ import java.util.List;
 import htsjdk.samtools.SamReader;
 import htsjdk.samtools.ValidationStringency;
 import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SAMProgramRecord;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMSequenceDictionary;
 
@@ -50,7 +49,7 @@ public class BamSummarizer2 implements Summarizer {
 	
 	public static BamSummaryReport2 createReport(File file, int maxRecords, boolean isFullBamHeader) throws IOException { 
 		
-		 //  create the SummaryReport
+		//  create the SummaryReport
 		SamReader reader = SAMFileReaderFactory.createSAMFileReader(file);
 		SAMFileHeader header = reader.getFileHeader();
 		reader.close();
@@ -75,7 +74,7 @@ public class BamSummarizer2 implements Summarizer {
 		ValidationStringency vs = null != validation ? ValidationStringency.valueOf(validation) : DEFAULT_VS;
 		SamReader reader = SAMFileReaderFactory.createSAMFileReaderAsStream(input, index, vs);
 		
-		 //  create the SummaryReport		
+		//  create the SummaryReport		
         BamSummaryReport2 bamSummaryReport = createReport(new File(input),  maxRecords, isFullBamHeader);
       		
 		boolean logLevelEnabled = logger.isLevelEnabled(QLevel.DEBUG);		
@@ -88,7 +87,7 @@ public class BamSummarizer2 implements Summarizer {
 				logger.debug("Records parsed: " + currentRecordCount);
 			}
 						 				
-			 //  if maxRecords is non-zero, stop when we hit it
+			//  if maxRecords is non-zero, stop when we hit it
 			if (maxRecords > 0 && currentRecordCount == maxRecords) {
 				break;			 
 			}

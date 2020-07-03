@@ -26,7 +26,7 @@ public class CycleSummaryTest {
 			throw new Exception("error: values size must be same to counts size");
 		
 		
-		 // eg. <sequenceMetrics name="seqBase"><variableGroup name="firstReadInPair">	
+		// eg. <sequenceMetrics name="seqBase"><variableGroup name="firstReadInPair">	
 		List<Element> elements = XmlElementUtils.getOffspringElementByTagName( root, XmlUtils.VARIABLE_GROUP ).stream()
 			.filter( e -> e.getAttribute(XmlUtils.NAME).equals(pairName ) &&
 						 e.getAttribute(ReadGroupSummary.READ_COUNT).equals(readCount+"" ) &&
@@ -34,14 +34,14 @@ public class CycleSummaryTest {
 		Assert.assertEquals(elements.size(), 1);
 		
 
-		 // eg, <baseCycle cycle="1">
+		// eg, <baseCycle cycle="1">
 		Element ele = XmlElementUtils.getOffspringElementByTagName( elements.get(0), XmlUtils.BASE_CYCLE ).stream()
 			.filter( e -> e.getAttribute(XmlUtils.CYCLE).equals(cycle + "" )).findFirst().get();	
 		assertEquals(values.length, ele.getChildNodes().getLength());	
 		
 		
 			
-		 // eg   QprofilerXmlUtils.seqLength + "_"+  QprofilerXmlUtils.FirstOfPair;
+		// eg   QprofilerXmlUtils.seqLength + "_"+  QprofilerXmlUtils.FirstOfPair;
 		for (int i = 0; i < values.length; i ++) { 
 			String v =  (metricName.contains("qual"))? ((byte) values[i].toCharArray()[0]-33) + ""   : (String)values[i] ;
 			String c = counts[i] + "";
@@ -102,30 +102,30 @@ public class CycleSummaryTest {
         data.add("@SQ	SN:chr1	LN:249250621");
         data.add("@SQ	SN:chr11	LN:243199373");
 
-       // first in pair, inward properPair
+        // first in pair, inward properPair
         data.add("ST-E00129:119:H0F9NALXX:5:1107:21421:3401	99	chr1	10001	0	3S125M23S	=	10001	126	" + 
         		"CCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCAACCCTACCCCTAACCCCNNNNNNNNNNNNNNNNaa..MM	" + 
         		"AFFFAJJJJJ<JJFFJAJJAFJ-F<<<<AJAAJAFA<<J<JJJJJFFJJAJJAA-AAFJJJAFFJFJJF7-FF<F<FAJJJFJ-FFJJAJJFFAJ7F<AJF<A-FJ-FFAJJFJJJF<-A-7F-------77FJJAA---A<-7-A<FF7A	" +
         		"ZC:i:7	MD:Z:115A9	PG:Z:MarkDuplicates.7	RG:Z:20150125163736341	NM:i:1	AS:i:120	XS:i:117");
-         // second in pair	properPair	
+        // second in pair	properPair	
         data.add("ST-E00129:119:H0F9NALXX:5:1107:21421:3401	147	chr1	10001	0	25S126M	=	10001	-126	" + 
         		"CTACCCCACGCTCTCCCCACCTCCCTAACCCTAACCCTAACCCTAACCCTACCCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCAACCCTAACCCTAAaC.T	" + 
         		"7-------A-A7A--------<AAA--<A7-7--FFF7-7AFA---FA-7--JAJ<--JFA<<AFFFAFAAFJFA<FFJ7--FJFA--JJJJFFAJF-<-JJFJFFJFJFFFFFFJJJJJAAAJJFJFFFJJJJ<JJFJFFFFFFJAFA-A	" + 
         		"ZC:i:7	MD:Z:26A99	PG:Z:MarkDuplicates.7	RG:Z:20150125163736341	NM:i:1	AS:i:121	XS:i:117");
         
-        // first in pair inward, ProperPair mate duplicate
+       // first in pair inward, ProperPair mate duplicate
        data.add("ST-E00129:119:H0F9NALXX:7:1113:19016:29050	99	chr11	81194800	25	115M26S	=	81194989	189	" +
         		"TAGGGTTACGGTTAGGGTTAGGGTTAGGGTTAGGGTTAGGGTTAGGGTAGGGTTAGGGTTAGGGTTAGGGTTAGGGGTTAGGGGTTAGGGTTACGGTTAGGGTTAGGGGTTAGGGTTAGGGTGAGGGTGAGGGTGAGGGTG	" + 
         		"()FFFAFJJFJFJFJJJJFJFJFFFJJJF<AJFFJ<AJJFJ<JJFJJFJFJJ<JFFJJAJAJJA-FJJFA<-JAJJJF7AFAJFA-FJJJ<JJJFJAFJ<<JA<7FFJJ-7JJFJ--7AJJ7FFJFF-AAFJF-JFFJF7J7J	" + 
         		"ZC:i:6	MD:Z:8G84G21	PG:Z:MarkDuplicates.7	RG:Z:20150125163738010	NM:i:2	AS:i:105	XS:i:94");
 
-        // second in pair duplicate
+       // second in pair duplicate
        data.add("ST-E00129:119:H0F9NALXX:7:1113:19016:29050	1169	chr11	81194989	6	96S53M2S	=	81194800	-189	" + 
        		"GGGTTTGGGTGTGGGTGTGGGGTGGGGGGTGGGGTTGGGGTGGGGGGTTGGGGTGGGGTTAGGGTGGGGGTGGGGGTGAGGGTTAGGGTGGGGGTGAGGGTTTAGGGTTAGGGTTAGGGTTAGGGTTAGGGTTAGGGTTAGGTTAGGGTAG	" + 
        		"-7-7--<7J-<--F7-A--F-7--A7---<-7A7---<F7---FF-----F----FF7-7<JFJF7-J<--<-J7<77-FJA---F-77<--JAFF-F-<<J-FF<AFJJAJJJFFFJJJJJJJJJFJJJJJAJJJJJJJJJJFJAFFFFA	" + 
        		"ZC:i:6	MD:Z:53	PG:Z:MarkDuplicates.7	RG:Z:20150125163738010	NM:i:0	AS:i:53	XS:i:49");	      
    
-         // create a new fresh file with a random name under the temporary folder.
+        // create a new fresh file with a random name under the temporary folder.
 		File fl = testFolder.newFile();	
         try(BufferedWriter out = new BufferedWriter(new FileWriter(fl))) { 	    
 			for (String line : data)  out.write(line + "\n");	               

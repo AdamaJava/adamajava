@@ -50,12 +50,12 @@ public class ReadGroupSummaryTest {
         data.add("@SQ	SN:chr1	LN:249250621");
         data.add("@SQ	SN:chr11	LN:243199373");
 
-		 // unmapped first of pair
+		// unmapped first of pair
 		data.add("243_146_1	101	chr1	10075	0	*	=	10167	0	" +		 
 				"ACCCTAACCCTAACCCTAACCNTAACCCTAACCCAAC	+3?GH##;9@D7HI5,:IIB\"!\"II##>II$$BIIC3	" +
 				"RG:Z:1959T	CS:Z:T11010020320310312010320010320013320012232201032202	CQ:Z:**:921$795*#5:;##):<5&'/=,,9(2*#453-'%(.2$6&39$+4'");
  
-		 // duplicated
+		// duplicated
 		data.add("243_146_2	1171	chr1	10075	6	3H37M	=	10167	142	" +		 
 				"ACCCTAACCCTAACCCTAACCNTAACCCTAACCCAAC	+3?GH##;9@D7HI5,:IIB\"!\"II##>II$$BIIC3	" +
 				"RG:Z:1959T	CS:Z:T11010020320310312010320010320013320012232201032202	CQ:Z:**:921$795*#5:;##):<5&'/=,,9(2*#453-'%(.2$6&39$+4'");
@@ -64,51 +64,51 @@ public class ReadGroupSummaryTest {
 				"ACCCTAACCCTAACCCTAACCNTAACCCTAACCCAAC	+3?GH##;9@D7HI5,:IIB\"!\"II##>II$$BIIC3	" +
 				"RG:Z:1959T	CS:Z:T11010020320310312010320010320013320012232201032202	CQ:Z:**:921$795*#5:;##):<5&'/=,,9(2*#453-'%(.2$6&39$+4'");		
 		
-		 // secondary = not primary
+		// secondary = not primary
 		data.add("243_146_2	353	chr1	10075	6	3H37M	=	10167	142	" +		 
 				"ACCCTAACCCTAACCCTAACCNTAACCCTAACCCAAC	+3?GH##;9@D7HI5,:IIB\"!\"II##>II$$BIIC3	" +
 				"RG:Z:1959T	CS:Z:T11010020320310312010320010320013320012232201032202	CQ:Z:**:921$795*#5:;##):<5&'/=,,9(2*#453-'%(.2$6&39$+4'");
 				
-		 // vendorcheck failed
+		// vendorcheck failed
 		data.add("243_146_3	609	chr1	10075	6	3H37M	=	10167	142	" +		 
 				"ACCCTAACCCTAACCCTAACCNTAACCCTAACCCAAC	+3?GH##;9@D7HI5,:IIB\"!\"II##>II$$BIIC3	" +
 				"RG:Z:1959T	CS:Z:T11010020320310312010320010320013320012232201032202	CQ:Z:**:921$795*#5:;##):<5&'/=,,9(2*#453-'%(.2$6&39$+4'");		
 				
-		 // supplementary
+		// supplementary
 		data.add("243_146_5	2147	chr1	10075	6	3H37M	=	10167	142	" +		 
 				"ACCCTAACCCTAACCCTAACCNTAACCCTAACCCAAC	+3?GH##;9@D7HI5,:IIB\"!\"II##>II$$BIIC3	" +
 				"RG:Z:1959T	CS:Z:T11010020320310312010320010320013320012232201032202	CQ:Z:**:921$795*#5:;##):<5&'/=,,9(2*#453-'%(.2$6&39$+4'");
 		
-		 // count overlap assume both same length so min_end is below read end
-		 // hard clip both forward but proper pair
-		 // f3f5: 10075 ------- -> 10111(firstofPair)   10200 --------- -> 
+		// count overlap assume both same length so min_end is below read end
+		// hard clip both forward but proper pair
+		// f3f5: 10075 ------- -> 10111(firstofPair)   10200 --------- -> 
 		data.add("243_146_5	67	chr1	10075	6	3H37M	=	10200	93	" +		 
 				"ACCCTAACCCTAACCCTAACCNTAACCCTAACCCAAC	+3?GH##;9@D7HI5,:IIB\"!\"II##>II$$BIIC3	" +
 				"RG:Z:1959T	CS:Z:T11010020320310312010320010320013320012232201032202	CQ:Z:**:921$795*#5:;##):<5&'/=,,9(2*#453-'%(.2$6&39$+4'");
 				
-		 // overlap outward
-		 // forward ??? why -59, it should be reverse.mate_end -forward.read_start
+		// overlap outward
+		// forward ??? why -59, it should be reverse.mate_end -forward.read_start
 		data.add("970_1290_1068	163	chr1	10176	3	22M50D10M8H	=	10167	26	" +
 				"AACCTAACCCTAACCCTAACCCTAACCCTAAC	I&&HII%%IIII4CII=4?IIF0B((!!7F@+	RG:Z:1959T	" +
 				"CS:Z:G202023020023010023010023000.2301002302002330000000	CQ:Z:@A&*?=9%;?:A-(<?8&/1@?():(9!,,;&&,'35)69&)./?11)&=");		
-		 // reverse
+		// reverse
 		data.add("970_1290_1068	83	chr1	10167	1	5H35M	=	10176	-26	" +
 				"CCTAACNCTAACCTAACCCTAACCCTAACCCTAAC	.(01(\"!\"&####07=?$$246/##<>,($3HC3+	RG:Z:1959T	" +
 				"CS:Z:T11032031032301032201032311322310320133320110020210	CQ:Z:#)+90$*(%:##').',$,4*.####$#*##&,%$+$,&&)##$#'#$$)");
 		 			
-		 // below overlap  62  groupRG:Z:1959N. make sure overlap only calculate once.
-		 // 62 = min_end - max_start +1 = 10161 - 10075 + 1 = 62
-		 // trimmed, deletion forward   10075 (start~end) 10161
+		// below overlap  62  groupRG:Z:1959N. make sure overlap only calculate once.
+		// 62 = min_end - max_start +1 = 10161 - 10075 + 1 = 62
+		// trimmed, deletion forward   10075 (start~end) 10161
 		data.add("243_145_5	99	chr1	10075	6	15M50N22M	=	10100	175	" +		 
 				"ACCCTAACCCTAACCCTAACCNTAACCCTAACCCAAC	+3?GH##;9@D7HI5,:IIB\"!\"II##>II$$BIIC3	" +
 				"RG:Z:1959N	CS:Z:T11010020320310312010320010320013320012232201032202	CQ:Z:**:921$795*#5:;##):<5&'/=,,9(2*#453-'%(.2$6&39$+4'");
 
-		 // mate reverse   soft clip ???seqbase maybe wrong 10100 (start~end) 10249
+		// mate reverse   soft clip ???seqbase maybe wrong 10100 (start~end) 10249
 		data.add("243_145_5	147	chr1	10100	6	25M100D20M5S	=	10075	-175	" +		 
 				"ACCCTAACCCTAACCCTAACCNTAACCCTAACCCAACACCCTAACCCTAA	+3?GH##;9@D7HI5,:IIB\"!\"II##>II$$BIIC3II##>II$$BIIC3	" +
 				"RG:Z:1959N	CS:Z:T11010020320310312010320010320013320012232201032202	CQ:Z:**:921$795*#5:;##):<5&'/=,,9(2*#453-'%(.2$6&39$+4'");
 		
-		 // noRG, unpaired read should be counted but not belong to Pair and no Tlen
+		// noRG, unpaired read should be counted but not belong to Pair and no Tlen
 		data.add("NS500239:99	16	chr1	7480169	0	75M	*	0	0	AATGAATAGAAGGGTCCAGATCCAGTTCTAATTTGGGGTAGGGACTCAGTTTGTGTTTTTTCACGAGATGAAGAT	" + 
 				"EEEA<EEEEEE<<EE/AEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEAEEEEEEEEAEEEEEEEAAAAA	NH:i:14	HI:i:11	AS:i:73	NM:i:0	MD:Z:75	");
 		
@@ -169,7 +169,7 @@ public class ReadGroupSummaryTest {
 	 * @param percent: basePercent
 	 */
 	private void checkCountedReadStats(Element parent, String nodeName, int[] counts, String percent ) { 
-		 // check readCount		 
+		// check readCount		 
 		Element groupE =  XmlElementUtils.getChildElementByTagName(parent, XmlUtils.VARIABLE_GROUP)
 			.stream().filter(ele -> ele.getAttribute(XmlUtils.NAME).equals(nodeName)).findFirst().get() ;		   
 		assertTrue( checkChildValue(groupE, ReadGroupSummary.MIN, String.valueOf(counts[1] )));
@@ -221,10 +221,10 @@ public class ReadGroupSummaryTest {
 		rgSumm.readSummary2Xml( root );
 		
 						
-		 // must be after readSummary2Xml(root)
+		// must be after readSummary2Xml(root)
 		assertTrue(rgSumm.getReadCount() == 2);
 		
-		 // <sequenceMetrics name="baseLost">
+		// <sequenceMetrics name="baseLost">
 		Element root1 = XmlElementUtils.getChildElementByTagName(root, XmlUtils.SEQUENCE_METRICS)		
 				.stream().filter(ele -> ele.getAttribute(XmlUtils.NAME).equals( "basesLost" )).findFirst().get() ;	
 		checkBadReadStats(root1, "duplicateReads", 0, 0, "0.00");
@@ -236,13 +236,13 @@ public class ReadGroupSummaryTest {
 		checkCountedReadStats(root1, ReadGroupSummary.NODE_OVERLAP, new int[] { 1,62,62,62,62,62,62},"62.00");
 		
 		
-		 // <sequenceMetrics name="reads" readCount="2">					
+		// <sequenceMetrics name="reads" readCount="2">					
 		root1 = XmlElementUtils.getChildElementByTagName(root, XmlUtils.SEQUENCE_METRICS)		
 			.stream().filter(ele -> ele.getAttribute(XmlUtils.NAME).equals( "reads" )).findFirst().get() ;		
 		assertTrue( root1.getAttribute(ReadGroupSummary.READ_COUNT).equals("2"));
 		checkDiscardReads(root1, 0,0,0);
 		
-		 // check readCount
+		// check readCount
 		Element groupE =  XmlElementUtils.getChildElementByTagName(root1, XmlUtils.VARIABLE_GROUP)
 				.stream().filter(ele -> ele.getAttribute(XmlUtils.NAME).equals(ReadGroupSummary.NODE_READ_LENGTH)).findFirst().get() ;		   					
 		assertTrue( checkChildValue( groupE, ReadGroupSummary.MAX, "50" )); 	
@@ -253,7 +253,7 @@ public class ReadGroupSummaryTest {
 		assertTrue( checkChildValue( groupE, ReadGroupSummary.UNPAIRED_READ, "0" ));
 		assertTrue( checkChildValue( groupE, ReadGroupSummary.READ_COUNT, "2" )); 
 		assertTrue( checkChildValue( groupE, ReadGroupSummary.BASE_LOST_COUNT, "80" ));
-		 // here overlapped base is more than real base number since it alignment end may include skipping/deletion base
+		// here overlapped base is more than real base number since it alignment end may include skipping/deletion base
 		assertTrue( checkChildValue( groupE, ReadGroupSummary.BASE_LOST_PERCENT, "80.00" ));   
 		assertTrue( checkChildValue( groupE, ReadGroupSummary.BASE_COUNT, "100" ));
 		
@@ -265,10 +265,10 @@ public class ReadGroupSummaryTest {
 		ReadGroupSummary rgSumm = createRGElement(rgid );
 		Element root = XmlElementUtils.createRootElement("root",null);
 		rgSumm.readSummary2Xml(root);
-		 // must be after readSummary2Xml(root)
+		// must be after readSummary2Xml(root)
 		assertTrue(rgSumm.getReadCount() == 1);  // counted reads is  1	
 		
-		 // <sequenceMetrics name="baseLost">
+		// <sequenceMetrics name="baseLost">
 		Element root1 = XmlElementUtils.getChildElementByTagName(root, XmlUtils.SEQUENCE_METRICS)		
 				.stream().filter(ele -> ele.getAttribute(XmlUtils.NAME).equals( "basesLost" )).findFirst().get() ;	
 		checkBadReadStats(root1, "duplicateReads", 0, 0, "0.00");
@@ -279,14 +279,14 @@ public class ReadGroupSummaryTest {
 		checkCountedReadStats(root1, ReadGroupSummary.NODE_HARDCLIP  ,new int[] { 0, 0, 0, 0, 0,0,0}, "0.00");
 		checkCountedReadStats(root1, ReadGroupSummary.NODE_OVERLAP, new int[] { 0, 0, 0, 0, 0,0,0}, "0.00");
 				
-		 // <sequenceMetrics name="reads" readCount="2">					
+		// <sequenceMetrics name="reads" readCount="2">					
 		root1 = XmlElementUtils.getChildElementByTagName(root, XmlUtils.SEQUENCE_METRICS)		
 			.stream().filter(ele -> ele.getAttribute(XmlUtils.NAME).equals( "reads" )).findFirst().get() ;	
 		checktLen(root1, 0, 0,  0, 0,0);
 		assertTrue( root1.getAttribute(ReadGroupSummary.READ_COUNT).equals("1"));
 		checkDiscardReads(root1, 0,0,0);
 		
-		 // check readCount
+		// check readCount
 		Element groupE =  XmlElementUtils.getChildElementByTagName(root1, XmlUtils.VARIABLE_GROUP)
 				.stream().filter(ele -> ele.getAttribute(XmlUtils.NAME).equals(ReadGroupSummary.NODE_READ_LENGTH)).findFirst().get() ;		  		
 		assertTrue( checkChildValue( groupE, ReadGroupSummary.MAX, "75" )); 	
@@ -297,7 +297,7 @@ public class ReadGroupSummaryTest {
 		assertTrue( checkChildValue( groupE, ReadGroupSummary.READ_COUNT, "1" )); 
 		assertTrue( checkChildValue( groupE, ReadGroupSummary.UNPAIRED_READ, "1" ));
 		assertTrue( checkChildValue( groupE, ReadGroupSummary.BASE_LOST_COUNT, "0" ));
-		 // here overlapped base is more than real base number since it alignment end may include skipping/deletion base
+		// here overlapped base is more than real base number since it alignment end may include skipping/deletion base
 		assertTrue( checkChildValue( groupE, ReadGroupSummary.BASE_LOST_PERCENT, "0.00" ));   
 		assertTrue( checkChildValue( groupE, ReadGroupSummary.BASE_COUNT, "75" ));		
 		
@@ -313,7 +313,7 @@ public class ReadGroupSummaryTest {
 		rgSumm.readSummary2Xml(root);				
 		assertTrue(rgSumm.getReadCount() == 6);  // counted reads is 9-1-1-1 =6			
 				
-		 // <sequenceMetrics name="baseLost">
+		// <sequenceMetrics name="baseLost">
 		Element root1 = XmlElementUtils.getChildElementByTagName(root, XmlUtils.SEQUENCE_METRICS)		
 				.stream().filter(ele -> ele.getAttribute(XmlUtils.NAME).equals( "basesLost" )).findFirst().get() ;	
 		checkBadReadStats(root1, "duplicateReads", 2, 80, "33.33"); 
@@ -324,14 +324,14 @@ public class ReadGroupSummaryTest {
 		checkCountedReadStats(root1, ReadGroupSummary.NODE_OVERLAP, new int[] { 1 ,26,26,26,26,26,26},"10.83" );	
 		checkCountedReadStats(root1, ReadGroupSummary.NODE_HARDCLIP, new int[] { 3,3,8 ,5 ,3,5,16}, "6.67" );			
 				
-		 // <sequenceMetrics name="reads" readCount="2">					
+		// <sequenceMetrics name="reads" readCount="2">					
 		root1 = XmlElementUtils.getChildElementByTagName(root, XmlUtils.SEQUENCE_METRICS)		
 			.stream().filter(ele -> ele.getAttribute(XmlUtils.NAME).equals( "reads" )).findFirst().get() ;	
 		checktLen(root1,2, 93,  59, 26,93);
 		assertTrue( root1.getAttribute(ReadGroupSummary.READ_COUNT).equals("9"));
 		checkDiscardReads(root1, 1,1,1);
 		
-		 // check readCount
+		// check readCount
 		Element groupE =  XmlElementUtils.getChildElementByTagName(root1, XmlUtils.VARIABLE_GROUP)
 				.stream().filter(ele -> ele.getAttribute(XmlUtils.NAME).equals(ReadGroupSummary.NODE_READ_LENGTH)).findFirst().get() ;		   					
 		assertTrue( checkChildValue( groupE, ReadGroupSummary.MAX, "40" )); 	
@@ -342,7 +342,7 @@ public class ReadGroupSummaryTest {
 		assertTrue( checkChildValue( groupE, ReadGroupSummary.READ_COUNT, "6" )); 
 		assertTrue( checkChildValue( groupE, ReadGroupSummary.UNPAIRED_READ, "0" ));
 		assertTrue( checkChildValue( groupE, ReadGroupSummary.BASE_LOST_COUNT, "162" ));
-		 // here overlapped base is more than real base number since it alignment end may include skipping/deletion base
+		// here overlapped base is more than real base number since it alignment end may include skipping/deletion base
 		assertTrue( checkChildValue( groupE, ReadGroupSummary.BASE_LOST_PERCENT, "67.50" ));   
 		assertTrue( checkChildValue( groupE, ReadGroupSummary.BASE_COUNT, "240" ));				
 		
@@ -350,10 +350,10 @@ public class ReadGroupSummaryTest {
 		
 	@Test
 	public void overallTest() throws Exception { 
-		 // overall readgroup should manually  setMaxBases(long);
+		// overall readgroup should manually  setMaxBases(long);
 		Element root = XmlElementUtils.createRootElement("root",null);
 		BamSummarizer2 bs = new BamSummarizer2();
-		 // BamSummarizer2 bs = new BamSummarizer2( 200, null, true);
+		// BamSummarizer2 bs = new BamSummarizer2( 200, null, true);
 		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize(input.getAbsolutePath()); 
 		sr.toXml(root);	
 		
@@ -362,7 +362,7 @@ public class ReadGroupSummaryTest {
 		.stream().filter( ele -> ele.getAttribute(XmlUtils.NAME ).equals( XmlUtils.ALL_BASE_LOST  )).findFirst().get() ;	
 		assertTrue( checkChildValue( root1, ReadGroupSummary.READ_COUNT, "9" ));
 		assertTrue( checkChildValue( root1, ReadGroupSummary.BASE_COUNT , "415" ));	
-		 // duplicate 80/415=19.28
+		// duplicate 80/415=19.28
 		assertTrue( checkChildValue( root1, StringUtils.getJoinedString( ReadGroupSummary.NODE_DUPLICATE,   ReadGroupSummary.BASE_LOST_PERCENT, "_"), "19.28" ) );  // 80/415
 		assertTrue( checkChildValue( root1, StringUtils.getJoinedString( ReadGroupSummary.NODE_UNMAPPED, ReadGroupSummary.BASE_LOST_PERCENT, "_"), "9.64" ));   // 40/415
 		assertTrue( checkChildValue( root1, StringUtils.getJoinedString( ReadGroupSummary.NODE_NOT_PROPER_PAIR, ReadGroupSummary.BASE_LOST_PERCENT, "_"), "0.00" ));   // 0/415
@@ -396,28 +396,28 @@ public class ReadGroupSummaryTest {
 			record.setFlags(flag);
 			rgSumm.parseRecord(record);
 		}
-		 // add one more read with seq to avoid max lenght is zero
+		// add one more read with seq to avoid max lenght is zero
 		record.setReadBases(new byte[] { 1,2,3,4,5,6,7});
 		rgSumm.parseRecord(record);
 		
 		Element root = XmlElementUtils.createRootElement("root",null);
 		rgSumm.readSummary2Xml(root);
 		
-		 // <sequenceMetrics name="basesLost">
+		// <sequenceMetrics name="basesLost">
 		Element	root1 = XmlElementUtils.getChildElementByTagName(root, XmlUtils.SEQUENCE_METRICS)		
 						.stream().filter(ele -> ele.getAttribute(XmlUtils.NAME).equals( "basesLost" )).findFirst().get() ;	
 		checkCountedReadStats(root1, ReadGroupSummary.NODE_SOFTCLIP , new int[] { 0, 0, 0, 0, 0,0,0}, "0.00");
 		checkCountedReadStats(root1, ReadGroupSummary.NODE_HARDCLIP , new int[] { 0, 0, 0, 0, 0,0,0}, "0.00");
 		checkCountedReadStats(root1, ReadGroupSummary.NODE_TRIM , new int[] { 0, 0, 0, 0, 0,0,0}, "0.00");
 		
-		 // <sequenceMetrics name="reads"
+		// <sequenceMetrics name="reads"
 		root1  = XmlElementUtils.getChildElementByTagName(root, XmlUtils.SEQUENCE_METRICS)		
 				.stream().filter(ele -> ele.getAttribute(XmlUtils.NAME).equals( "reads" )).findFirst().get() ;	
 		assertTrue( root1.getAttribute(ReadGroupSummary.READ_COUNT).equals("4"));
 		checktLen(root1,0, 0,  0, 0,0);		
 		checkDiscardReads(root1, 0,0,0);
 		
-		 // <variableGroup name="countedReads">
+		// <variableGroup name="countedReads">
 		root1 = XmlElementUtils.getChildElementByTagName(root1, XmlUtils.VARIABLE_GROUP)
 				.stream().filter(ele -> ele.getAttribute(XmlUtils.NAME).equals("countedReads")).findFirst().get() ;	
 		assertTrue( checkChildValue( root1, ReadGroupSummary.READ_COUNT, "4" )); 
@@ -434,12 +434,12 @@ public class ReadGroupSummaryTest {
 		record.setReferenceName("chrY");
 
 		ReadGroupSummary rgSumm = new ReadGroupSummary(null);
-		 // 64: unpaired read, 65: not proper pair read
+		// 64: unpaired read, 65: not proper pair read
 		for (int flag : new int[] { 64, 65}) { 
 			record.setFlags(flag);
 			rgSumm.parseRecord(record);
 		}	
-		 // add one more read with seq to avoid max lenght is zero
+		// add one more read with seq to avoid max lenght is zero
 		record.setReadBases(new byte[] { 1,2,3,4,5,6,7});
 		rgSumm.parseRecord(record);
 		
@@ -455,7 +455,7 @@ public class ReadGroupSummaryTest {
 		assertTrue( checkChildValue( root1, ReadGroupSummary.BASE_LOST_COUNT, "21" ));		
 		
 		
-		 // <sequenceMetrics name="basesLost">
+		// <sequenceMetrics name="basesLost">
 		root1 = XmlElementUtils.getChildElementByTagName(root, XmlUtils.SEQUENCE_METRICS)		
 					.stream().filter(ele -> ele.getAttribute(XmlUtils.NAME).equals( "basesLost" )).findFirst().get() ;	
 		checkCountedReadStats(root1, ReadGroupSummary.NODE_SOFTCLIP , new int[] { 0, 0, 0, 0, 0,0,0}, "0.00");

@@ -36,7 +36,7 @@ public class CohortSummaryReport extends SummaryReport {
 			Category cat = new Category( ele.getAttribute(SampleSummary.values), ele ); 
 			categories.add(cat );
 			
-			 // summary
+			// summary
 			sumTi += cat.ti;
 			sumTv += cat.tv;
 			for (int db : cat.dbSnpCounts.values()) {
@@ -74,7 +74,7 @@ public class CohortSummaryReport extends SummaryReport {
 		HashMap<String, Integer> variantsCounts = new HashMap<>();
 		HashMap<String, Integer> dbSnpCounts = new HashMap<>();
 		
-		 // for snv only, there is only one svn for each report unde same category
+		// for snv only, there is only one svn for each report unde same category
 		final String titvRate; 
 		int ti = 0, tv = 0;
 						
@@ -83,9 +83,9 @@ public class CohortSummaryReport extends SummaryReport {
 			this.category = (name == null || name.isEmpty()) ? "-" : name; 
 			String titv = "-" ;
 			 
-			 // for (Element ele :QprofilerXmlUtils.getOffspringElementByTagName(report, SampleSummary.variantType)) { 
+			// for (Element ele :QprofilerXmlUtils.getOffspringElementByTagName(report, SampleSummary.variantType)) { 
 			for (Element ele :XmlElementUtils.getOffspringElementByTagName(report, XmlUtils.SEQUENCE_METRICS)) { 
-				 // record counts and dbsnp for all type variants
+				// record counts and dbsnp for all type variants
 				String type = ele.getAttribute(XmlUtils.NAME);	
 				int count = Integer.parseInt(ele.getAttribute("count"));
 				variantsCounts.put(type, count );
@@ -98,7 +98,7 @@ public class CohortSummaryReport extends SummaryReport {
 					e1 = XmlElementUtils.getChildElementByTagName(ele, XmlUtils.VALUE).stream().filter(e -> e.getAttribute(XmlUtils.NAME).equals(SampleSummary.tiTvRatio)).findFirst().get();				
 					titv = e1.getTextContent();	
 					
-					 // ti
+					// ti
 					Optional<Element> streams = XmlElementUtils.getChildElementByTagName(ele, XmlUtils.VARIABLE_GROUP).stream().filter(e -> e.getAttribute(XmlUtils.NAME).equals(SampleSummary.transitions)).findFirst();				
 					if ( streams.isPresent()   ) { 
 						List<Integer> sums = new ArrayList<>();						
@@ -107,7 +107,7 @@ public class CohortSummaryReport extends SummaryReport {
 						ti = sums.stream().mapToInt(i -> i.intValue()).sum();
 					} 
 					
-					 // tv
+					// tv
 					streams = XmlElementUtils.getChildElementByTagName(ele, XmlUtils.VARIABLE_GROUP).stream().filter(e -> e.getAttribute(XmlUtils.NAME).equals(SampleSummary.transversions)).findFirst() ;				
 					if ( streams.isPresent() ) { 
 						List<Integer> sums = new ArrayList<>();

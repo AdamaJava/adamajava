@@ -21,7 +21,7 @@ import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMRecord.SAMTagAndValue;
 import htsjdk.samtools.SAMTagUtil;
 
- // for sam record tag information
+// for sam record tag information
 public class TagSummaryReport2 { 
 
 	public static final int ADDI_TAG_MAP_LIMIT = 100;
@@ -31,7 +31,7 @@ public class TagSummaryReport2 {
 	private static final SAMTagUtil STU = SAMTagUtil.getSingleton();
 	private final short md = STU.MD;	
 	
-	 //  TAGS		
+	//  TAGS		
 	@SuppressWarnings("unchecked")
 	final CycleSummary<Character>[] tagMDMismatchByCycle = new CycleSummary[] { new CycleSummary<Character>(BamSummaryReport2.cc, 512), new CycleSummary<Character>(BamSummaryReport2.cc, 512), new CycleSummary<Character>(BamSummaryReport2.cc, 512)};	
 	private final QCMGAtomicLongArray[] mdRefAltLengthsForward = new QCMGAtomicLongArray[] { new QCMGAtomicLongArray(32), new QCMGAtomicLongArray(32), new QCMGAtomicLongArray(32)};	
@@ -51,8 +51,8 @@ public class TagSummaryReport2 {
 				continue;
 			}
 			
-			 //  the type may be one of A (character), B (generalarray), f (real number), H (hexadecimal array), i (integer), or Z (string).
-	        // Note that H tag type is never written anymore, because B style is more compact.	         
+			//  the type may be one of A (character), B (generalarray), f (real number), H (hexadecimal array), i (integer), or Z (string).
+			// Note that H tag type is never written anymore, because B style is more compact.	         
 			String type = ":B";			
 			if (tag.value instanceof Integer) {
 				type = ":i";
@@ -69,23 +69,23 @@ public class TagSummaryReport2 {
 			XmlUtils.updateMapWithLimit(map, tag.value + "", ADDI_TAG_MAP_LIMIT);				 
 		}
 						
-		 // MD	 
+		// MD	 
 		String value = (String) record.getAttribute(md);
 		if (null != value) { 
 			mdTagCounts.incrementAndGet();
 			byte[] readBases = record.getReadBases();
 			boolean reverseStrand = record.getReadNegativeStrandFlag();		
 
-			 // 0: unpaired , 1: firstOfPair , 2: secondOfPair				
+			// 0: unpaired , 1: firstOfPair , 2: secondOfPair				
 			int order = (!record.getReadPairedFlag()) ? 0 : (record.getFirstOfPairFlag()) ? 1 : 2;					
 			String err = CycleSummaryUtils.tallyMDMismatches( value, record.getCigar(), tagMDMismatchByCycle[order], 
 					readBases, reverseStrand, mdRefAltLengthsForward[order], mdRefAltLengthsReverse[order]);
-			 // limit err message on log file
+			// limit err message on log file
 			if ( err != null && (( errMdReadNo ++) < errReadLimit)) {
 				logger.warn(record.getReadName() + ": " + err);
 			}
 			
-			 // this counts will be used to caculate % for MD
+			// this counts will be used to caculate % for MD
 			for ( int i = 1; i <= record.getReadLength(); i ++ ) {
 				allReadsLineLengths[order].increment(i);		
 			}		
@@ -94,12 +94,12 @@ public class TagSummaryReport2 {
 	
 	public void toXml(Element parent) { 
 				
-		 // "tags:MD:Z" mismatchbycycle
+		// "tags:MD:Z" mismatchbycycle
 		if ( mdTagCounts.get() > 0) { 
 			Element ele = XmlUtils.createMetricsNode(parent, "tags:MD:Z", 
 					new Pair<String, Number>(ReadGroupSummary.READ_COUNT, mdTagCounts.get()));
 			for (int order = 0; order < 3; order ++) { 
-				 // so choose 1st cycle base counts as read count, since all read at least have one base. 
+				// so choose 1st cycle base counts as read count, since all read at least have one base. 
 				tagMDMismatchByCycle[order].toXml( ele, BamSummaryReport2.sourceName.get(order), allReadsLineLengths[order].get(1) );
 				
 			}
@@ -121,12 +121,12 @@ public class TagSummaryReport2 {
 			}			
 		}
 		
-		 //  additional tags includes RG
+		//  additional tags includes RG
 		for (Entry<String,  ConcurrentSkipListMap<String, AtomicLong>> entry : additionalTags.entrySet()) { 			
 			outputTag(parent, entry.getKey(),  entry.getValue());
 		}	
 		
-		 //  additional tagsChar
+		//  additional tagsChar
 		for (Entry<String,  ConcurrentSkipListMap<Character, AtomicLong>> entry : additionalCharacterTags.entrySet()) { 
 			outputTag(parent,  entry.getKey(),  entry.getValue());		
 		}

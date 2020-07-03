@@ -26,7 +26,7 @@ public class VcfSummaryReport  extends SummaryReport {
 	private final VcfHeader vcfHeader;	
 	private final String[] sampleIds; 
  
-	 // it allows the format field value eg. --formart FT=PASS, then it seperate value to PASS the others
+	// it allows the format field value eg. --formart FT=PASS, then it seperate value to PASS the others
 	private final String[] formatCategories;
 	Map<String, Map<String,SampleSummary>> summaries = new HashMap<>();
 	
@@ -52,13 +52,13 @@ public class VcfSummaryReport  extends SummaryReport {
 		if (sampleIds == null || formats.size() != sampleIds.length + 1) { 
 			logger.warn("missing/redundant sample column exists in vcf record: " + vcf.toSimpleString());
 		}
-		 // for each sample column
+		// for each sample column
 		for (int i = 1; i < formats.size(); i ++) { 
 			VcfFormatFieldRecord re = new VcfFormatFieldRecord(formats.get(0), formats.get(i));
 			 
 			List<String> cates = new ArrayList<>();
 			for (String cate : formatCategories ) { 
-				 // new
+				// new
 				int pos = cate.indexOf("="); 
 				if (pos > 0) { 
 					String formatKey = cate.substring(0, pos).trim();
@@ -75,7 +75,7 @@ public class VcfSummaryReport  extends SummaryReport {
 	}
 
 	void summaryToXml(Element parent) { 			
-		 // get list of types eg. FT:INF:CONF
+		// get list of types eg. FT:INF:CONF
 		List<String>  formatsTypes = new ArrayList<>();
 		for (int i = 0; i < formatCategories.length; i ++) { 
 			int pos = formatCategories[i].indexOf("=");
@@ -83,7 +83,7 @@ public class VcfSummaryReport  extends SummaryReport {
 		}	
 		
 		Element summaryElement =  XmlElementUtils.createSubElement(parent,  ProfileType.VCF.getReportName() + "Metrics" );		
-		 // for ( String sample : summaries.keySet() ) { 	
+		// for ( String sample : summaries.keySet() ) { 	
 		for ( Entry<String, Map<String, SampleSummary>> sEntry : summaries.entrySet() ) { 	
 			Element ele =  XmlElementUtils.createSubElement( summaryElement, Sample);
 			ele.setAttribute(XmlUtils.NAME, sEntry.getKey());			

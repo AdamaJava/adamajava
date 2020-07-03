@@ -19,7 +19,7 @@ import org.w3c.dom.Element;
 public class ReadGroupSummary { 
 
 	public static final int ERR_READ_LIMIT  = 10;	
-	 // xml node name 	
+	// xml node name 	
 	public static final String NODE_READGROUP = "readGroup";		
 	public static final String NODE_SOFTCLIP = "softClippedBases";
 	public static final String NODE_TRIM = "trimmedBases";	
@@ -48,18 +48,18 @@ public class ReadGroupSummary {
 	public static final String UNPAIRED_READ = "unpairedReads";
 	
 	 			
-	 // softclips, hardclips, read length; 	
+	// softclips, hardclips, read length; 	
 	QCMGAtomicLongArray softClip = new QCMGAtomicLongArray(128);
 	QCMGAtomicLongArray hardClip = new QCMGAtomicLongArray(128);
 	
-	 // record read length excluding the discard reads but includes duplicate,unmapped and nonCanonicalReads	
+	// record read length excluding the discard reads but includes duplicate,unmapped and nonCanonicalReads	
 	QCMGAtomicLongArray readLength = new QCMGAtomicLongArray(128);	
 	QCMGAtomicLongArray forTrimLength = new QCMGAtomicLongArray(128);	
 	private final ConcurrentMap<String, AtomicLong> cigarValuesCount = new ConcurrentHashMap<String, AtomicLong>();
-	 // must be concurrent set for multi threads
+	// must be concurrent set for multi threads
 	private final ConcurrentMap<Integer, PairSummary> pairCategory = new ConcurrentHashMap<>();
 
-	 // bad reads inforamtion
+	// bad reads inforamtion
 	AtomicLong duplicate = new AtomicLong();
 	AtomicLong secondary  = new AtomicLong();
 	AtomicLong supplementary  = new AtomicLong();
@@ -134,10 +134,10 @@ public class ReadGroupSummary {
 	 */
 	public boolean parseRecord( final SAMRecord record ) { 
 				
-		 // record input reads number
+		// record input reads number
 		inputReadCounts.incrementAndGet();  
 				
-		 // find discard reads and return false
+		// find discard reads and return false
 		if ( record.getSupplementaryAlignmentFlag()) { 			
 			supplementary.incrementAndGet();
 			return false;
@@ -149,8 +149,8 @@ public class ReadGroupSummary {
 			return false;
 		} 		
 		
-		 // parseing cigar
-		 // cigar string from reads including duplicateReads, nonCanonicalPairs and unmappedReads but excluding discardedReads (failed, secondary and supplementary).
+		// parseing cigar
+		// cigar string from reads including duplicateReads, nonCanonicalPairs and unmappedReads but excluding discardedReads (failed, secondary and supplementary).
 		int lHard = 0;
 		int lSoft = 0;
 		if (null != record.getCigar()) { 
@@ -170,7 +170,7 @@ public class ReadGroupSummary {
 		
 		readLength.increment(record.getReadLength() + lHard);	
 			
-		 // find mapped badly reads and return false	
+		// find mapped badly reads and return false	
 		if (record.getDuplicateReadFlag()) { 
 			duplicate.incrementAndGet();
 			return false;
@@ -181,13 +181,13 @@ public class ReadGroupSummary {
 			return false;
 		} 
 		
-		 // check pair orientaiton, tLen, mate
+		// check pair orientaiton, tLen, mate
 		if (record.getReadPairedFlag()) { 
 			BwaPair.Pair pairType = BwaPair.getPairType(record);
 			boolean isProper = record.getProperPairFlag();
 			int key = isProper ? pairType.id : pairType.id * -1;	
 			pairCategory.computeIfAbsent(key, e -> new PairSummary( pairType, isProper)).parse(record);
-			 // we always parse pairs but stop here if not ProperPair
+			// we always parse pairs but stop here if not ProperPair
 			if ( !isProper ) { 
 				notProperPairedReads.incrementAndGet();
 				return false;
@@ -203,8 +203,8 @@ public class ReadGroupSummary {
 		if (lSoft > 0) {
 			softClip.increment(lSoft);
 		}
-		 // record read length excluding the discard reads duplicate.get() + unmapped.get() + getnonCanonicalReadsCount();	
-		 // due to it for trimmed base caculation as well
+		// record read length excluding the discard reads duplicate.get() + unmapped.get() + getnonCanonicalReadsCount();	
+		// due to it for trimmed base caculation as well
 		forTrimLength.increment(record.getReadLength() + lHard);	
 			 				
 		return true;  
@@ -225,7 +225,7 @@ public class ReadGroupSummary {
 	 * eg. private long trimedBase = 0; 	
 	 */
 	public void preSummary() { 				
-		 // check overlap and tLen from pairSummary 
+		// check overlap and tLen from pairSummary 
 		QCMGAtomicLongArray overlapBase = new QCMGAtomicLongArray(PairSummary.segmentSize);	
 		QCMGAtomicLongArray tLenOverall = new QCMGAtomicLongArray(PairSummary.middleTlenValue);	  
 		for (PairSummary p : pairCategory.values()) { 
@@ -263,9 +263,9 @@ public class ReadGroupSummary {
 		
 		preSummary();
 	 		 
-		 // add to xml RG_Counts		
+		// add to xml RG_Counts		
 		Element rgElement = XmlUtils.createMetricsNode(parent,"basesLost", null);					
-		 // add discarded read Stats to readgroup summary	
+		// add discarded read Stats to readgroup summary	
 		badReadStats( rgElement, NODE_DUPLICATE, duplicate.get());
 		badReadStats( rgElement, NODE_UNMAPPED, unmapped.get() );		
 		badReadStats( rgElement, NODE_NOT_PROPER_PAIR, notProperPairedReads.get());
@@ -274,20 +274,20 @@ public class ReadGroupSummary {
 		lostBaseStats( rgElement, NODE_HARDCLIP, hardclipStats  );
 		lostBaseStats( rgElement, NODE_OVERLAP, overlapStats );
 				
-		 // create node for overall	
+		// create node for overall	
 		rgElement = XmlUtils.createMetricsNode(parent,"reads", new Pair<String, Number>(READ_COUNT, inputReadCounts.get()));		
 		Element ele = XmlUtils.createGroupNode(rgElement, XmlUtils.DISCARD_READS );
 		XmlUtils.outputValueNode(ele, "supplementaryAlignmentCount", supplementary.get());
 		XmlUtils.outputValueNode(ele, "secondaryAlignmentCount", secondary.get());
 		XmlUtils.outputValueNode(ele, "failedVendorQualityCount",failedVendorQuality.get());
 				
-		 // readLength and tLen
+		// readLength and tLen
 		for (String name : new String[] { NODE_READ_LENGTH, NODE_PAIR_TLEN}) { 
 			ele = XmlUtils.createGroupNode(rgElement, name );
 			SummaryReportUtils.TallyStats stats = name.equals(NODE_READ_LENGTH) ? readlengthStats : pairtLenStats;
 			String countName = name.equals(NODE_READ_LENGTH) ? READ_COUNT : PAIR_COUNT;			
-			 // readCount: includes duplicateReads, nonCanonicalPairs and unmappedReads but excludes discardedReads (failed, secondary and supplementary).
-			 // pairCount: only count properPaired reads which have a positive TLEN value or zero value but it is marked as firstOfPair						
+			// readCount: includes duplicateReads, nonCanonicalPairs and unmappedReads but excludes discardedReads (failed, secondary and supplementary).
+			// pairCount: only count properPaired reads which have a positive TLEN value or zero value but it is marked as firstOfPair						
 			XmlUtils.outputValueNode(ele, countName, stats.getReadCounts());	
 			XmlUtils.outputValueNode(ele, MAX, stats.getMax());
 			XmlUtils.outputValueNode(ele, MEAN, stats.getMean());
@@ -295,7 +295,7 @@ public class ReadGroupSummary {
 			XmlUtils.outputValueNode(ele, MEDIAN, stats.getMedium());				
 		}		
 		
-		 // add overall information to current readgroup element	
+		// add overall information to current readgroup element	
 		long maxBases = getReadCount() * readlengthStats.getMax() ;
 		long lostBase = (duplicate.get() + unmapped.get() + notProperPairedReads.get()  ) * getMaxReadLength() 
 				+ trimBaseStats.getBaseCounts() + softclipStats.getBaseCounts() + hardclipStats.getBaseCounts() + overlapStats.getBaseCounts();
@@ -303,20 +303,20 @@ public class ReadGroupSummary {
 		
 		ele = XmlUtils.createGroupNode(rgElement, "countedReads" );
 		XmlUtils.outputValueNode(ele, UNPAIRED_READ,  unpaired.get());	
-		 // READ_COUNT : includes duplicateReads, nonCanonicalPairs and unmappedReads but excludes discardedReads (failed, secondary and supplementary).						
+		// READ_COUNT : includes duplicateReads, nonCanonicalPairs and unmappedReads but excludes discardedReads (failed, secondary and supplementary).						
 		XmlUtils.outputValueNode( ele, READ_COUNT,  getReadCount() );
-		 // BASE_COUNT :  READ_COUNT  * readMaxLength
+		// BASE_COUNT :  READ_COUNT  * readMaxLength
 		XmlUtils.outputValueNode( ele, BASE_COUNT, maxBases);	
-		 // BASE_LOST_COUNT : readMaxLength * (duplicateReads + nonCanonicalPairs + unmappedReads) + trimmedBases + softClippedBases + hardClippedBases + overlappedBases				
+		// BASE_LOST_COUNT : readMaxLength * (duplicateReads + nonCanonicalPairs + unmappedReads) + trimmedBases + softClippedBases + hardClippedBases + overlappedBases				
 		XmlUtils.outputValueNode( ele, BASE_LOST_COUNT,  lostBase);	
-		 // basesLostPercent: basesLostCount / basesCount		
+		// basesLostPercent: basesLostCount / basesCount		
 		XmlUtils.outputValueNode( ele, BASE_LOST_PERCENT , lostPercent );	
 		
 	}
 	 	 
 	public void pairSummary2Xml( Element parent ) { 
 		for (boolean isProper : new boolean[] { true, false}) { 
-			 // add to xml RG_Counts
+			// add to xml RG_Counts
 			String name = isProper ? "properPairs" : "notProperPairs";
 			Element ele =  XmlUtils.createMetricsNode( parent, name, null );
 			long sum = 0;
@@ -326,7 +326,7 @@ public class ReadGroupSummary {
 					sum += p.getFirstOfPairCounts();
 				}			
 			}
-			 // can't really count he pair number due to RAM limits, just pickup number of firstOfPair
+			// can't really count he pair number due to RAM limits, just pickup number of firstOfPair
 			ele.setAttribute( PAIR_COUNT, sum + "");  			
 		}
 	}
@@ -336,30 +336,30 @@ public class ReadGroupSummary {
 		Map<String, AtomicLong> metricCounts = new HashMap<>();
 		for (PairSummary p : pairCategory.values()) { 
 			String name = p.isProperPair? "tLenInProperPair" : "tLenInNotProperPair";
-			 // sum all pairCounts belong to metrics section
+			// sum all pairCounts belong to metrics section
 			AtomicLong cPairs =  metricCounts.computeIfAbsent(name,  k ->  new AtomicLong());
 			cPairs.addAndGet(p.getTLENCounts().getSum());
-			 // output pair tLen to classified section
+			// output pair tLen to classified section
 			Element ele = metricEs.computeIfAbsent(name,  k -> XmlUtils.createMetricsNode( parent, k, null)); 
 			XmlUtils.outputTallyGroup( ele, p.type.name(), p.getTLENCounts().toMap(), false, true );  
 					
 			name = p.isProperPair ? "overlapBaseInProperPair" : "overlapBaseInNotProperPair";
-			 // sum all pairCounts belong to metrics section
+			// sum all pairCounts belong to metrics section
 			cPairs =  metricCounts.computeIfAbsent(name,  k  ->  new AtomicLong());
 			cPairs.addAndGet(p.getoverlapCounts().getSum());
-			 // output pair overlap to classified section
+			// output pair overlap to classified section
 			ele = metricEs.computeIfAbsent(name, k -> XmlUtils.createMetricsNode( parent, k, null));
 			XmlUtils.outputTallyGroup( ele, p.type.name(), p.getoverlapCounts().toMap(), false , true); 
 		}
 		
-		 // add pairCounts into metrics elements
+		// add pairCounts into metrics elements
 		for (Entry<String, Element> entry : metricEs.entrySet()) { 
 			entry.getValue().setAttribute(ReadGroupSummary.PAIR_COUNT, 
 					metricCounts.get(entry.getKey()).get() + "" );
 		}		
 	}
 	
-	 // for duplicate, unmapped and not proper paired reads
+	// for duplicate, unmapped and not proper paired reads
 	private void badReadStats(Element parent, String nodeName, long reads ) { 
 		Element ele = XmlUtils.createGroupNode(parent, nodeName);				
 		XmlUtils.outputValueNode(ele, READ_COUNT, reads);	
@@ -379,7 +379,7 @@ public class ReadGroupSummary {
 		XmlUtils.outputValueNode(ele, READ_COUNT, stats.getReadCounts());
 		XmlUtils.outputValueNode(ele, BASE_LOST_COUNT, stats.getBaseCounts());
 		
-		 // deal with boundary value, missing reads
+		// deal with boundary value, missing reads
 		double percentage = (maxBases == 0) ? 0 : 100 * (double) stats.getBaseCounts() /  maxBases ;				
 		XmlUtils.outputValueNode(ele, BASE_LOST_PERCENT,  percentage );		
 	}

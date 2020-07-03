@@ -16,7 +16,7 @@ public class PairSummary {
 		this.isProperPair = isProper;
 	}
 	
-	 // fixed value
+	// fixed value
 	public static final int bigTlenValue = 10000;
 	public static final int smallTlenValue = 1500;
 	public static final int middleTlenValue = 5000;
@@ -26,14 +26,14 @@ public class PairSummary {
 	AtomicLong near = new AtomicLong();
 	AtomicLong far = new AtomicLong();
 	AtomicLong bigTlen  = new AtomicLong();
-	AtomicLong zeroTlen  = new AtomicLong();  // only record the firstOfPair
+	AtomicLong zeroTlen  = new AtomicLong(); // only record the firstOfPair
 	 
 		
-	QCMGAtomicLongArray tLenOverall = new QCMGAtomicLongArray(middleTlenValue);	  // store count bwt [0, 5000]
-	QCMGAtomicLongArray tLenOverlap = new QCMGAtomicLongArray(segmentSize);	  // store count bwt [0, 1500]
+	QCMGAtomicLongArray tLenOverall = new QCMGAtomicLongArray(middleTlenValue);	 // store count bwt [0, 5000]
+	QCMGAtomicLongArray tLenOverlap = new QCMGAtomicLongArray(segmentSize);	 // store count bwt [0, 1500]
 	QCMGAtomicLongArray overlapBase = new QCMGAtomicLongArray(segmentSize);	
 	
-	 // pair in different reference
+	// pair in different reference
 	AtomicLong diffRef  = new AtomicLong();	
 	AtomicLong mateUnmapped  = new AtomicLong();	
 	AtomicLong firstOfPairNum  = new AtomicLong();
@@ -74,33 +74,33 @@ public class PairSummary {
 		
 		int tLen =  record.getInferredInsertSize();			
 	
-		 // normally bam reads are mapped, if the mate is missing, we still count it to pair but no detailed pair` information
+		// normally bam reads are mapped, if the mate is missing, we still count it to pair but no detailed pair` information
 		if ( record.getMateUnmappedFlag() ) { 
 			mateUnmapped.incrementAndGet();  
 			return;  
 		} else if ( !record.getReferenceName().equals( record.getMateReferenceName()) && record.getFirstOfPairFlag()) { 
-			 // pair from different reference, only look at first pair to avoid double counts			
+			// pair from different reference, only look at first pair to avoid double counts			
 			diffRef.incrementAndGet();	
 			return; 
 		}	
 							
- 		 // to avoid double counts, we only select one of Pair: tLen > 0 or firstOfPair with tLen==0;
+ 		// to avoid double counts, we only select one of Pair: tLen > 0 or firstOfPair with tLen==0;
  		if ( tLen < 0 || (tLen == 0 && !record.getFirstOfPairFlag()) ) { 
  			return;
   		}
 		
-		 // only record popular tLen, since RAM too expensive??
- 		 //  tLen bwt [0, 5000], single segment are also recorded 
+		// only record popular tLen, since RAM too expensive??
+ 		//  tLen bwt [0, 5000], single segment are also recorded 
 		if (tLen < middleTlenValue) {
 			tLenOverall.increment(tLen);
 		}
-		 // first of Pair with tLen == 0
+		// first of Pair with tLen == 0
 		if ( tLen == 0 ) { 
 			zeroTlen.incrementAndGet();
 			return;
 		}
 		
-		 // classify tlen groups
+		// classify tlen groups
 		int	overlap = BwaPair.getOverlapBase( record );
 		if ( overlap > 0 ) { 
 			overlapBase.increment(overlap);
@@ -109,7 +109,8 @@ public class PairSummary {
 			near.incrementAndGet();	
 		} else if ( tLen < bigTlenValue ) { 
 			far.incrementAndGet();	
-		} else { //must be record.getInferredInsertSize() >= bigTlenValue
+		} else { 
+			//must be record.getInferredInsertSize() >= bigTlenValue
 			bigTlen.incrementAndGet();
 		}
 	}		

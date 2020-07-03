@@ -63,14 +63,14 @@ public class BamSummarizerMT2 implements Summarizer {
 	public SummaryReport summarize(String input, String index) throws Exception { 		
 		
 		vs = null == validation ? BamSummarizer2.DEFAULT_VS : ValidationStringency.valueOf(validation);
-		 //  check to see if index file exists - if not, run in single producer mode as will not be able to perform indexed lookups
+		//  check to see if index file exists - if not, run in single producer mode as will not be able to perform indexed lookups
 		SamReader reader = SAMFileReaderFactory.createSAMFileReaderAsStream(input, index, vs);
 		if ( ! reader.hasIndex() && noOfProducerThreads > 1) { 
 			logger.warn("using 1 producer thread - no index found for bam file: " + input);
 			noOfProducerThreads = 1;
 		}	
 		
-		 // get sorted sequence for threads
+		// get sorted sequence for threads
 		final AbstractQueue<String> sequences = new ConcurrentLinkedQueue<>();
 		try { 
 			SAMFileHeader header = reader.getFileHeader();
@@ -83,7 +83,7 @@ public class BamSummarizerMT2 implements Summarizer {
 					return o2.getSequenceLength() - o1.getSequenceLength();
 				}
 			});
-			 //  add the unmapped reads marker
+			//  add the unmapped reads marker
 			sequences.add(UNMAPPED_READS);
 			for (SAMSequenceRecord rec : orderedSamSequences) { 
 				sequences.add(rec.getSequenceName());
@@ -114,7 +114,7 @@ public class BamSummarizerMT2 implements Summarizer {
 			 : new Consumer(queues, bamSummaryReport, Thread.currentThread(), cLatch, pLatch, i % noOfProducerThreads));
 		}
 		
-		 //  setpup and kick-off single Producer thread
+		//  setpup and kick-off single Producer thread
 		ExecutorService producerThreads = Executors.newFixedThreadPool(noOfProducerThreads);
 		if (noOfProducerThreads == 1) { 
 			producerThreads.execute(new SingleProducer(queues[0], file, Thread.currentThread(), pLatch, cLatch));
@@ -124,7 +124,7 @@ public class BamSummarizerMT2 implements Summarizer {
 			}
 		}
 
-		 // call another thread for md5 checksum
+		// call another thread for md5 checksum
 		ExecutorService md5Threads = Executors.newFixedThreadPool(1);
 		
 		Runnable runnableTask = () -> { 
@@ -133,12 +133,12 @@ public class BamSummarizerMT2 implements Summarizer {
 		
 		md5Threads.execute(runnableTask ) ;
 
-		 //  don't allow any new threads to start
+		//  don't allow any new threads to start
 		md5Threads.shutdown();
 		producerThreads.shutdown();
 		consumerThreads.shutdown();
 		
-		 //  wait for threads to complete
+		//  wait for threads to complete
 		try { 
 			logger.info("waiting for Producer thread to finish");
 			pLatch.await();
@@ -146,8 +146,8 @@ public class BamSummarizerMT2 implements Summarizer {
 			
 			if ( ! cLatch.await(30, TimeUnit.SECONDS)) { 
 			
-				 //  need to cater for scenario where all consumer threads have died...
-				 //  if after 10 seconds, the q size has not decreased - assume the consumer threads are no more...
+				// need to cater for scenario where all consumer threads have died...
+				// if after 10 seconds, the q size has not decreased - assume the consumer threads are no more...
 				int qSize =  getQueueSize(queues)  ;
 				int qSizeTheSameCounter = 0;
 				while (qSize > 0 && qSizeTheSameCounter < 10) { 
@@ -156,11 +156,11 @@ public class BamSummarizerMT2 implements Summarizer {
 						qSizeTheSameCounter++;
 					} else { 
 						qSize = getQueueSize(queues);
-						qSizeTheSameCounter = 0;	 //  reset to zero
+						qSizeTheSameCounter = 0;	// reset to zero
 					}
 				}
 				
-				 //  final sleep to allow threads to finish processing final record
+				// final sleep to allow threads to finish processing final record
 				if ( ! cLatch.await(10, TimeUnit.SECONDS)) { 
 					consumerThreads.shutdownNow();
 				}
@@ -169,7 +169,7 @@ public class BamSummarizerMT2 implements Summarizer {
 				logger.info("consumer threads finished");
 			}
 
-			 //  if there are items left on the queue - means that the consumer threads encountered errors and were unable to complete the processing
+			// if there are items left on the queue - means that the consumer threads encountered errors and were unable to complete the processing
 			if ( getQueueSize(queues)  > 0 ) { 
 				logger.error("no Consumer threads available to process items [" + getQueueSize(queues) + "] on queue");
 				throw new Exception("Consumer threads were unable to process all items on the queue");
@@ -177,10 +177,10 @@ public class BamSummarizerMT2 implements Summarizer {
 			
 			logger.info("producer and consumer threads have completed");
 		} catch (InterruptedException e) { 
-			 //  restore interrupted status
+			// restore interrupted status
 			logger.info("current thread about to be interrupted...");
 			
-			 //  kill off any remaining threads
+			// kill off any remaining threads
 			producerThreads.shutdownNow();
 			consumerThreads.shutdownNow();
 			
@@ -383,8 +383,8 @@ public class BamSummarizerMT2 implements Summarizer {
 								throw new Exception("No consumer threads left, but queue is not empty");
 							}
 							
-							 //  if q size is getting too large - give the Producer a rest
-							 //  having too many items in the queue seems to have a detrimental effect on performance.						
+							//  if q size is getting too large - give the Producer a rest
+							//  having too many items in the queue seems to have a detrimental effect on performance.						
 						} 
 						if (maxRecords > 0 && count == maxRecords) { 
 							break;
@@ -432,8 +432,8 @@ public class BamSummarizerMT2 implements Summarizer {
 				for (SAMRecord record : reader) { 					
 					queue.add(record);
 					
-					 //  if q size is getting too large - give the Producer a rest
-					 //  having too many items in the queue seems to have a detrimental effect on performance.
+					//  if q size is getting too large - give the Producer a rest
+					//  having too many items in the queue seems to have a detrimental effect on performance.
 					int size = queue.size();
 					while (size > 100000) { 
 						Thread.sleep(10);

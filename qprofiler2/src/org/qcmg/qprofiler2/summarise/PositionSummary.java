@@ -42,7 +42,7 @@ public class PositionSummary {
 	 * 
 	 */	
 	public PositionSummary(List<String> rgs) { 		
-		 // Natural order should only do once inside BamSummarizer2::createReport
+		// Natural order should only do once inside BamSummarizer2::createReport
 		readGroupIds = rgs; 
 		
 		min = new AtomicInteger(512 * BUCKET_SIZE);
@@ -78,11 +78,11 @@ public class PositionSummary {
 					rgCov[j] = rgCoverages[j].get(i);
 				}
 				Arrays.sort(rgCov);
-				maxRgs.add( rgCov[rgCoverages.length - 1 ]);    // get the max coverage of all readGroup at that position		
+				maxRgs.add( rgCov[rgCoverages.length - 1 ]);  // get the max coverage of all readGroup at that position		
 			}
 			hasAddPosition = false; 
 		}
-		 // stream is slow but we only use it once		
+		// stream is slow but we only use it once		
 		return maxRgs.stream().mapToLong(val -> val).sum();
 	}
 	
@@ -93,7 +93,7 @@ public class PositionSummary {
 	 */
 	public int getBigBinNumber(final long floorValue) { 
 		if ( hasAddPosition  || maxRgs.isEmpty())  {
-			getMaxRgCoverage();  // caculate the maxRgs 
+			getMaxRgCoverage(); // caculate the maxRgs 
 		}		
 		return  (int) maxRgs.stream().mapToLong(val -> val).filter(val -> val > floorValue).count();
 	}
@@ -108,7 +108,7 @@ public class PositionSummary {
 	}
 	
 	public long getTotalCountByRg(String rg) { 
-		 // get nature order
+		// get nature order
 		int order = Collections.binarySearch( readGroupIds, rg, null);  
 		long count = 0;		 
 		for (int i = 0, max = getBinNumber() ; i < max ; i ++) { 							
@@ -123,7 +123,7 @@ public class PositionSummary {
 	 */	
 	public Map<Integer,  AtomicLong> getCoverageByRg( String rg) { 
 		Map<Integer, AtomicLong> singleRgCoverage = new TreeMap<Integer, AtomicLong>();	
-		 // get nature order
+		// get nature order
 		int order = Collections.binarySearch( readGroupIds, rg, null);  
 		for (int i = 0, max = getBinNumber() ; i < max ; i ++) { 								
 			singleRgCoverage.put( i, new AtomicLong( rgCoverages[order].get(i)));
@@ -139,7 +139,7 @@ public class PositionSummary {
 	 */
 	public void addPosition(final int position, String  rgid  ) { 
 		
-		 //  my attempt at a non-blocking updating of max
+		//  my attempt at a non-blocking updating of max
 		int tempMax = max.get();
 		if (position > tempMax) { 
 			for (;;) { 
@@ -155,7 +155,7 @@ public class PositionSummary {
 			}
 		}
 		
-		 //  and now min....
+		//  and now min....
 		if (position < min.get()) { 
 			int tempMin = min.get();
 			for (;;) { 
@@ -168,13 +168,13 @@ public class PositionSummary {
 				} else break;
 			}
 		}
-		 // count for nominated rg on that position
-		 //  search for key rgid with natural ordering
+		// count for nominated rg on that position
+		//  search for key rgid with natural ordering
 	    int order = Collections.binarySearch( readGroupIds, rgid, null);  
 		if (order < 0 ) {
 			throw new IllegalArgumentException("can't find readGroup Id on Bam header: @RG ID:"+ rgid);
 		}
-		 // last element is the total counts on that position
+		// last element is the total counts on that position
 		rgCoverages[ order  ].increment(position / BUCKET_SIZE);  
 				
 		hasAddPosition = true;

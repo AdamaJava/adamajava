@@ -38,24 +38,24 @@ public class SummaryReportUtilsTest {
 				
 		byte[] qual = new byte[] { 1,1,1,1,1 };
 		SummaryReportUtils.tallyQualScores( qual, badQualCount );
-		 // so far one record with 5badbase
+		// so far one record with 5badbase
 		assertEquals((1), badQualCount.get(5));
 				
 		qual =  new byte[] { 1,2,3,4,5 };
 		SummaryReportUtils.tallyQualScores( qual, badQualCount );
-		 // so far two records with 5badbase
+		// so far two records with 5badbase
 		assertEquals((2), badQualCount.get(5));	
 		
 		qual = new byte[] { 1,2,3,9,9,10,11,12,13,14,15 };
 		SummaryReportUtils.tallyQualScores( qual, badQualCount);
-		 // so far three records with 5badbase
+		// so far three records with 5badbase
 		assertEquals((3), badQualCount.get(5));	
  	
 		qual =  new byte[] { 10,11,12,13,14,15 };
 		SummaryReportUtils.tallyQualScores( qual, badQualCount );
-		 // so far three records with 5badbase
+		// so far three records with 5badbase
 		assertEquals((3), badQualCount.get( 5) );
-		 // one read with 0badbase which is the last read
+		// one read with 0badbase which is the last read
 		assertEquals((1), badQualCount.get( 0) );	 		
 	}
 
@@ -80,7 +80,7 @@ public class SummaryReportUtilsTest {
 		assertEquals(1, map.get(10).get());
 		assertEquals(2, map.get(109).get());
 		
-		 //  adding 0 positions and size - should not affect anything...
+		// adding 0 positions and size - should not affect anything...
 		addPositionAndLengthToMap(map, 0, 0);
 		assertEquals(140, map.size());
 		assertNull(map.get(0));

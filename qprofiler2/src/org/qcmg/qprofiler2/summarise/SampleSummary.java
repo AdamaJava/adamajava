@@ -35,7 +35,7 @@ public class SampleSummary {
 	public static final String transversions = "Transversions";
 	public static final String dbSNP = "inDBSNP";
 		
-	 // allele frequency value range. eg. altBinSize = 10, each bin contain counts for variants which mutation allele percent is [0, 0.1]
+	// allele frequency value range. eg. altBinSize = 10, each bin contain counts for variants which mutation allele percent is [0, 0.1]
 	public static final int altBinSize = 20; 
 		
 	Set<String> gts = new HashSet<>();  // store possible genotyp 0/1, 0/0, ./1 ...
@@ -80,8 +80,8 @@ public class SampleSummary {
 			}
 		}
 		
-		 // java support modulus for float number; 
-		 // if reminding is zero, it count to previous bin	
+		// java support modulus for float number; 
+		// if reminding is zero, it count to previous bin	
 		int idp = Integer.parseInt(dp);
 		int total = vaf * altBinSize;
 		int bin = total / idp;
@@ -105,14 +105,14 @@ public class SampleSummary {
 		increment( type.name() );  // count svtype
 		increment( type + gt );	   // count genotype	
 						
-		 // variant allel frequence VAF	 
+		// variant allel frequence VAF	 
 		incrementGTAD(type , gt, format.getField(VcfHeaderUtils.FORMAT_ALLELIC_DEPTHS), format.getField(VcfHeaderUtils.FORMAT_READ_DEPTH), summaryAD);				
  								
 		if (isdbSNP) {
 			increment(  type.name() + "dbSNP");	 // dbsnp					
 		}
 		if (type.equals(SVTYPE.SNP)) { 
-			 // get Ti Tv counts based on GT value			
+			// get Ti Tv counts based on GT value			
 			String salt = vcf.getAlt().replace(",", "");
 			String sgt = gt.replace("|", "").replace("/", "").replace(".", "").replace("0", "");				
 			List<SubsitutionEnum> transTypes = new ArrayList<>();
@@ -136,9 +136,9 @@ public class SampleSummary {
 		}
 		
 		List<String> orderedGTs = new ArrayList<>( gts );
-		 // orderedGTs.sort(null);
+		// orderedGTs.sort(null);
 		for (SVTYPE type : SVTYPE.values()) { 	
-			 // only output non zero value
+			// only output non zero value
 			AtomicLong totalAL = summary.get( type.name());
 			if ( null == totalAL) {
 				continue;						
@@ -148,7 +148,7 @@ public class SampleSummary {
 			String key =  type.name() + "dbSNP";
 			XmlUtils.outputValueNode(reportE1, "inDBSNP", summary .containsKey(key) ? summary.get(key).get() : 0 ); 
 						
-			 // titv
+			// titv
 			if (type.equals(SVTYPE.SNP)) { 
 				Map<String, AtomicLong> tiFreq = new HashMap<>();
 				Map<String, AtomicLong> tvFreq = new HashMap<>();

@@ -36,7 +36,7 @@ import org.w3c.dom.Element;
 public class CycleSummary<T> { 
 	public static final String baseOnCycle = "cycle";
 	
-	private static final int MAX_ARRAY_CAPACITY = 2048 * 2048;		 //  over 4 million
+	private static final int MAX_ARRAY_CAPACITY = 2048 * 2048;		// over 4 million
 		
 	/**
 	 * 
@@ -58,10 +58,10 @@ public class CycleSummary<T> {
 	 */
 	private static final int DEFAULT_NO_OF_KEYS = 128;	
 		
-	 //  atomic boolean used as a lock when resizing the array
+	// atomic boolean used as a lock when resizing the array
 	private final AtomicBoolean resizingInProgress = new AtomicBoolean(false);
 	
-	 //  can be set in the constructor, but defaults to the Java default value
+	// can be set in the constructor, but defaults to the Java default value
 	private final  T type;
 	private final AtomicInteger cycleMask = new AtomicInteger();
 	private final AtomicInteger keyMask = new AtomicInteger();
@@ -92,7 +92,7 @@ public class CycleSummary<T> {
 	
 	public int getMask(int number) { 
 		
-		 //  get nearest power of two larger than number
+		// get nearest power of two larger than number
 		int maskShift = 1;
 		int mask = 1;
 		while (mask < number) { 
@@ -149,7 +149,7 @@ public class CycleSummary<T> {
 			resize(cycle, value);
 		}
 		if (resizingInProgress.get()) { 
-			 //  CAS until resizing is complete
+			// CAS until resizing is complete
 			while  ( ! resizingInProgress.compareAndSet(false, false) ) { }
 		}
 		tally.incrementAndGet(getArrayPosition(cycle, value));
@@ -157,15 +157,15 @@ public class CycleSummary<T> {
 		
 	private void resize(final int cycle, final int key) { 
 		
-		 //  find out if it is the cycle, key or both that are larger than current maximums
-		 //  lock
+		// find out if it is the cycle, key or both that are larger than current maximums
+		// lock
 		while ( ! resizingInProgress.compareAndSet(false, true)) { }
 		try { 	
-			 //  only resize if we still need to
-			 //  another thread may have already done this for us
+			// only resize if we still need to
+			// another thread may have already done this for us
 			boolean resize = false;	
 			
-			 //  re-set current maximums
+			// re-set current maximums
 			int newCycleMask = -1;
 			if (cycle > maxCycleValue.get()) { 
 				newCycleMask = getMask(cycle); 
@@ -181,26 +181,26 @@ public class CycleSummary<T> {
 			
 			if (resize) { 
 				
-				 //  sleep to allow any threads in CAS loop in increment method to complete
-				 //  resizing should not occur often so will not be too great a performance penalty
-				 //  and it SHOULD mean we keep the array in a consistent state 
+				// sleep to allow any threads in CAS loop in increment method to complete
+				// resizing should not occur often so will not be too great a performance penalty
+				// and it SHOULD mean we keep the array in a consistent state 
 				Thread.sleep(200);
 				
-				 //  get new capacity
+				// get new capacity
 				int capacity = 1 << ((newCycleMask == -1 ? cycleMask.get() : newCycleMask) + keyMask.get());
 				
-				 //  check on new capacity
+				// check on new capacity
 				if (capacity > MAX_ARRAY_CAPACITY) {
 					throw new IllegalArgumentException("new AtomicLongArray is too large...");
 				}
 				
-				 //  create new array
+				// create new array
 				AtomicLongArray newTally = new AtomicLongArray(capacity);
 				
-				 //  transfer data from existing tally to new tally
+				// transfer data from existing tally to new tally
 				for (int i = 0, length = tally.length() ; i < length ; i++) { 
 					
-					 //  retrieve existing data
+					// retrieve existing data
 					long value = tally.get(i);
 					if (value > 0) { 
 						int [] cycleKey = getCycleKeyFromArrayPosition(i);
@@ -213,7 +213,7 @@ public class CycleSummary<T> {
 				}
 				tally = newTally;
 				
-				 //  update cycleMask
+				// update cycleMask
 				if (newCycleMask > -1) {
 					cycleMask.set(newCycleMask);
 				}
@@ -221,7 +221,7 @@ public class CycleSummary<T> {
 		} catch (InterruptedException e) { 
 			e.printStackTrace();
 		} finally { 
-			 // unlock
+			// unlock
 			while ( ! resizingInProgress.compareAndSet(true, false)) { }
 		}
 	}
@@ -252,11 +252,11 @@ public class CycleSummary<T> {
 	 */
 	public ConcurrentMap<T, AtomicLong> getValue(Integer key) { 
 		ConcurrentMap<T, AtomicLong> cm = new ConcurrentHashMap<T, AtomicLong>();
-		 //  loop through keys to get ones with this cycle number
 		
+		// loop through keys to get ones with this cycle number		
 		for (int i = 0 , length = tally.length() ; i < length ; i++) { 
 			long arrayValue = tally.get(i);
-			 //  whole bunch of zeros in here - only want >0 values
+			// whole bunch of zeros in here - only want >0 values
 			if (arrayValue > 0) { 
 				int [] cycleKey = getCycleKeyFromArrayPosition(i);
 				if (cycleKey[0] == key.intValue()) { 
@@ -297,7 +297,7 @@ public class CycleSummary<T> {
 			}
 			allValues.add( getTypeFromInt(getCycleKeyFromArrayPosition(i)[1] )  );	
 		}		
-		 // order as ACGTN
+		// order as ACGTN
 		if ( type instanceof Character) { 					
 			List<T> notATGC = new ArrayList<T>();
 			
@@ -311,7 +311,7 @@ public class CycleSummary<T> {
 			allValues.removeAll(notATGC);
 			return   Stream.concat(allValues.stream().sorted(), notATGC.stream()).collect(Collectors.toCollection(LinkedHashSet::new));	
 		} else if ( type instanceof Integer) { 				
- 			 // Integer reverse order for QUAL			 
+ 			// Integer reverse order for QUAL			 
 			TreeSet<T> treeSetObj = new TreeSet<T>( (i1,i2) -> ((Integer) i2).compareTo( (Integer) i1) );
 		    treeSetObj.addAll(allValues);
 		    return treeSetObj; 
@@ -330,14 +330,13 @@ public class CycleSummary<T> {
 	 */
 		
 	public void toXml( Element metricEle,  String groupName, long readCount ) { 
-		 // do nothing if no base detected
+		// do nothing if no base detected
 		Set<T> possibles = getPossibleValues();
 		if ( possibles == null || possibles.size() <= 0 ) {
 			return; 
 		}
-		 // String name = metricType == null ? metricName : metricName+"_"+ metricType;		
 		 	
-		Element ele = XmlUtils.createGroupNode( metricEle, groupName);	 // <category>   
+		Element ele = XmlUtils.createGroupNode( metricEle, groupName);	// <category>   
 		ele.setAttribute(ReadGroupSummary.READ_COUNT, readCount + "");
 		for (Integer cycle : cycles()) { 
 			Map<T, AtomicLong> tallys = new LinkedHashMap<>();
@@ -350,7 +349,7 @@ public class CycleSummary<T> {
 		}		
 	}	
 
-	 // xu totalSize should be seprate to first and second of pair		
+	// xu totalSize should be seprate to first and second of pair		
 	public Map<Integer, AtomicLong> getLengthMapFromCycle() { 
 		Map<Integer, AtomicLong> map = new HashMap<Integer, AtomicLong>();		
 		
@@ -362,19 +361,19 @@ public class CycleSummary<T> {
 			for (T t :  getPossibleValues()) {				
 				  sum += count(cycle, t) ;	
 			}
-			 // only for the begin of cycle
+			// only for the begin of cycle
 			if (previousTally == -1) {
 				previousTally = sum;
 			}
 			if (sum != previousTally) { 
-				 //  record one cycle advance if base counts difference
-				 //  previousTally - count = the number of short reads				
+				// record one cycle advance if base counts difference
+				// previousTally - count = the number of short reads				
 				map.put(cycle - 1, new AtomicLong(previousTally - sum ));
 				previousTally = sum;
 			}
 			last = cycle; 
 		}			
-		 //  pop the last entry into the map
+		// pop the last entry into the map
 		if (previousTally > 0) {
 			map.put( last, new AtomicLong(previousTally));		 
 		}
@@ -406,7 +405,7 @@ public class CycleSummary<T> {
 		
 		int size = dataString.length();
 		if (size > 0) { 				
-			 //  set offset to 0 if it is negative, or larger than the supplied string
+			// set offset to 0 if it is negative, or larger than the supplied string
 			if (offset < 0 || offset >= size) {
 				offset = 0;				
 			}

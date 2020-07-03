@@ -43,7 +43,7 @@ public class QProfiler2Test {
 	
 	@AfterClass
 	public  static void cleanup() throws IOException { 
-		 // delete qprofiler.xml which was default output		
+		// delete qprofiler.xml which was default output		
 		String outputFile = System.getProperty("user.dir") + System.getProperty("file.separator") + "qprofiler.xml";
 		File output = new File(outputFile);
 		if (output.exists()) { 
@@ -55,7 +55,7 @@ public class QProfiler2Test {
 	public final void executeWithValidArguments() throws Exception { 
 		File logFile = testFolder.newFile("executeWithValidArguments.log");
 		File outputFile = testFolder.newFile("executeWithValidArguments.xml");
-		 // qprofiler2 accept two same input once type are XML, VCF, FASTQ or BAM
+		// qprofiler2 accept two same input once type are XML, VCF, FASTQ or BAM
 		String[] args = { "-log",  logFile.getAbsolutePath(), "-input", BAM_FILE.getAbsolutePath(),
 				"-input", BAM_FILE.getAbsolutePath(), "-o", outputFile.getAbsolutePath()};
 		int exitStatus = new QProfiler2().setup(args);
@@ -63,7 +63,7 @@ public class QProfiler2Test {
 		
 		File dodgyFile = testFolder.newFile(DODGY_FILE_NAME);
 		createTestFile(dodgyFile, getDodgyFileContents());			
-		 // argument are correct input is doggy , the exception are caught
+		// argument are correct input is doggy , the exception are caught
 		args = new String[] { "-log",  logFile.getAbsolutePath(), "-input", dodgyFile.getAbsolutePath(),
 				 "-o", outputFile.getAbsolutePath()};
 		exitStatus = new QProfiler2().setup(args);
@@ -140,7 +140,7 @@ public class QProfiler2Test {
 		File logFile = testFolder.newFile("qProfilerNode.log");
 		String[] args = { "-input",input, "-log", logFile.getAbsolutePath()};
 		try { 		
-			 //  print full header		
+			//  print full header		
 			new QProfiler2().setup( args );	
 			assertTrue( Files.lines(Paths.get(  "qprofiler.xml")).filter(s -> s.contains(schemaStr)).count()== 1);	
 			assertTrue( Files.lines(Paths.get(  "qprofiler.xml")).filter(s -> s.contains(md5Str)).count()== 1);			
@@ -159,16 +159,16 @@ public class QProfiler2Test {
 		File logFile = testFolder.newFile();
 		String[] args = { "-input", input , "-log", logFile.getAbsolutePath()};
 		try { 		
-			 //  print full header		
+			//  print full header		
 			new QProfiler2().setup( args );		
 			assertTrue( Files.lines(Paths.get(  "qprofiler.xml")).filter(s -> s.contains("<headerRecords TAG=\"HD\"")).count()== 1);	
 			assertTrue( Files.lines(Paths.get(  "qprofiler.xml")).filter(s -> s.contains("<headerRecords TAG=\"SQ\"")).count()== 1);
 			assertTrue( Files.lines(Paths.get("qprofiler.xml")).filter(s -> s.contains("<headerRecords TAG=\"PG\"")).count()== 0);	
 			assertTrue( Files.lines(Paths.get("qprofiler.xml")).filter(s -> s.contains("<headerRecords TAG=\"RG\"")).count()== 0);							
-			 // only one line for whole file
+			// only one line for whole file
 			assertTrue( Files.lines(Paths.get(  "qprofiler.xml")).filter(s -> s.contains("<headerRecords TAG=")).count()== 1);				
 			
-			 // default mode, only HD and RG
+			// default mode, only HD and RG
 			args = new String[] { "-input",input, "-log", logFile.getAbsolutePath(), "--fullBamHeader"};
 			new QProfiler2().setup( args );	
 			assertTrue( Files.lines(Paths.get(  "qprofiler.xml")).filter(s -> s.contains("<headerRecords TAG=\"HD\"")).count()== 1);	
@@ -194,7 +194,7 @@ public class QProfiler2Test {
 	        data.add("@PG	ID:SOLID-GffToSam	VN:1.4.3");
 	        data.add("@SQ	SN:chr1	LN:249250621");
 	        data.add("@SQ	SN:chr11	LN:243199373");
-			 // unmapped
+			// unmapped
 			data.add("243_146_1	101	chr1	10075	0	*	=	10167	0	" +		 
 					"ACCCTAACCCTAACCCTAACCNTAACCCTAACCCAAC	+3?GH##;9@D7HI5,:IIB\"!\"II##>II$$BIIC3	" +
 					"RG:Z:1959T	CS:Z:T11010020320310312010320010320013320012232201032202	CQ:Z:**:921$795*#5:;##):<5&'/=,,9(2*#453-'%(.2$6&39$+4'");

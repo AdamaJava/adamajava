@@ -25,7 +25,7 @@ public class CohortSummaryReportTest {
 	@Rule
 	public  TemporaryFolder testFolder = new TemporaryFolder();	
 	
-	private String sample = "https: // test.sample";
+	private String sample = "https://test.sample";
 	private static final String[] category = new String[] { "FT","INF"};
 		
 	@Test
@@ -34,7 +34,7 @@ public class CohortSummaryReportTest {
 		File input = testFolder.newFile("input.vcf");	
 		createInput( input);
 	
-		 // new  VcfSummarizer(null); cause exception since for (Sting cat: null)		 
+		// new  VcfSummarizer(null); cause exception since for (Sting cat: null)		 
 		Element root = XmlElementUtils.createRootElement( "qProfiler", null );		
 		VcfSummaryReport report = (VcfSummaryReport) ( new  VcfSummarizer(new String[0])).summarize( input.getAbsolutePath() );
 		report.toXml( root );				
@@ -46,13 +46,13 @@ public class CohortSummaryReportTest {
 		assertEquals(output.size(), 1);
 		String counts[] = output.get(0).split(CohortSummaryReport.outputSeperate );
 		
-		assertEquals( counts[0].trim(), input.getCanonicalPath() );   // input
-		assertEquals( counts[1].trim(), sample );    // sample
-		assertEquals( counts[2].trim(), "-" );      //ReportingCategory set to - if not exist
-		assertEquals( counts[3].trim(), "SNV" );	  //svn counts
-		assertEquals( counts[4].trim(), "30" );	  //svn counts
-		assertEquals( counts[5].trim(), "0.667" );	 //  dbsnp rate
-		assertEquals( counts[6].trim(), "0.50" );	    //titv
+		assertEquals( counts[0].trim(), input.getCanonicalPath() );  // input
+		assertEquals( counts[1].trim(), sample );   // sample
+		assertEquals( counts[2].trim(), "-" );     //ReportingCategory set to - if not exist
+		assertEquals( counts[3].trim(), "SNV" );	 //svn counts
+		assertEquals( counts[4].trim(), "30" );	 //svn counts
+		assertEquals( counts[5].trim(), "0.667" );	//  dbsnp rate
+		assertEquals( counts[6].trim(), "0.50" );	   //titv
 	}
 	
 	@Test

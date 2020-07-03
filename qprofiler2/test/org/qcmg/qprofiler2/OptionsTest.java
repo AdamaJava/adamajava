@@ -28,7 +28,7 @@ public class OptionsTest {
 		assertEquals(0, options.getMaxRecords());
 		assertEquals(0, options.getNoOfConsumerThreads());
 		
-		 //  and with multiple files
+		// and with multiple files
 		options = new Options2(new String[] { "-inp", FILE_1, "-inp", FILE_2, "--input", FILE_3, "--input", FILE_4});
 		assertEquals(4, options.getFileNames().length);
 		assertEquals(FILE_1, options.getFileNames()[0]);
@@ -48,29 +48,29 @@ public class OptionsTest {
 		assertEquals(2, options.getMaxRecords());
 		assertEquals(0, options.getNoOfConsumerThreads());
 		
-		 //  shortcut
+		// shortcut
 		options = new Options2(new String[] { "--m","10"});
 		assertEquals(10, options.getMaxRecords());
 		
-		 //  invalid option (needs to be integer)
+		// invalid option (needs to be integer)
 		try { 
 			new Options2(new String[] { "-max","matrices"});
 			fail("Should have thrown an exception");
 		} catch (Exception e) { }
 		
-		 //  more than 1 value, will throw an exception as they are considered to be nonoption arguments
+		// more than 1 value, will throw an exception as they are considered to be nonoption arguments
 		try { 
 			new Options2(new String[] { "--maxRecords","2","3","4","5"});
 			fail("Should have thrown an exception");
 		} catch (IllegalArgumentException e) { }
 		
-		 //  more than 1 value, will throw an exception as they are considered to be nonoption arguments
+		// more than 1 value, will throw an exception as they are considered to be nonoption arguments
 		try { 
 			new Options2(new String[] { "--maxRecords","2","--maxRecords","3","--maxRecords","4","--maxRecords","5"});
 			fail("Should have thrown an exception");
 		} catch (Exception e) { }
 		
-		 //  empty options
+		// empty options
 		try { 
 			new Options2(new String[] { "--maxRecords"});
 			fail("Should have thrown an exception");
@@ -84,14 +84,14 @@ public class OptionsTest {
 		assertEquals(0, options.getMaxRecords());
 		assertEquals(2, options.getNoOfConsumerThreads());
 		
-		 //  shortcut
+		// shortcut
 		options = new Options2(new String[] { "--ntC","10"});
 		assertEquals(10, options.getNoOfConsumerThreads());
-		 //  shortcut again
+		// shortcut again
 		options = new Options2(new String[] { "-ntP","11"});
 		assertEquals(11, options.getNoOfProducerThreads());
 		
-		 //  invalid option (needs to be integer)
+		// invalid option (needs to be integer)
 		try { 
 			new Options2(new String[] { "-ntP","matrices"});
 			fail("Should have thrown an exception");
@@ -99,7 +99,7 @@ public class OptionsTest {
 			assertTrue(true);
 		}
 		
-		 //  more than 1 value, will throw an exception as they are considered to be nonoption arguments
+		// more than 1 value, will throw an exception as they are considered to be nonoption arguments
 		try { 
 			new Options2(new String[] { "--ntC","2","3","4","5"});
 			fail("Should have thrown an exception");
@@ -107,7 +107,7 @@ public class OptionsTest {
 			assertTrue(true);
 		}
 		
-		 //  multiple values - will throw an exception
+		// multiple values - will throw an exception
 		try { 
 			new Options2(new String[] { "-ntP","2","-ntC","3","-ntC","4","-ntP","5"});
 			fail("Should have thrown an exception");
@@ -115,7 +115,7 @@ public class OptionsTest {
 			assertTrue(true);
 		}
 		
-		 //  empty options
+		// empty options
 		try { 
 			new Options2(new String[] { "--ntC"});
 			fail("Should have thrown an exception");

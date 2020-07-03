@@ -50,7 +50,7 @@ public class XmlUtils {
 	public static final String OVERALL = "Overall";
 	public static final String ALL_BASE_LOST = "OverallBasesLost";
 	 	
-	 // commly used on fastq bam
+	// commly used on fastq bam
 	public static final String QNAME = "QNAME";
 	public static final String FLAG = "FLAG";	
 	public static final String RNAME = "RNAME";
@@ -67,22 +67,23 @@ public class XmlUtils {
         if ( null == header) return;
         Element parent = XmlElementUtils.createSubElement(parent1, "bamHeader");
 
-        String cateName = "TAG";  // output bam header classified by "TAG"
-         // create header line
+        // output bam header classified by "TAG"
+        String cateName = "TAG";  
+        // create header line
         List<String> headers = new ArrayList<>();
         headers.add( String.format("@HD VN:%s GO:%s SO:%s", header.getVersion(), header.getGroupOrder(), header.getSortOrder()));
         createHeaderRecords(parent,cateName, "HD", "The header line", headers);
 
-         // <HeadRecords Category="SQ" Describe="Sequence">
-         // <HeadRecord>@SQ       SN:chr1 LN:249250621</HeadRecord>
+        // <HeadRecords Category="SQ" Describe="Sequence">
+        // <HeadRecord>@SQ       SN:chr1 LN:249250621</HeadRecord>
         createHeaderRecords(parent,cateName,  "SQ", "Reference sequence dictionary", header.getSequenceDictionary().getSequences());
       
         if (  isFullBamHeader) { 
-	         // RG
+	        // RG
 	        createHeaderRecords(parent, cateName, "RG", "Read group", header.getReadGroups());
-	         // PG
+	        // PG
 	        createHeaderRecords(parent, cateName, "PG", "Program", header.getProgramRecords());
-	         // CO
+	        // CO
 	        createHeaderRecords(parent, cateName, "CO", "Text comment", header.getComments());
         }
     }
@@ -94,7 +95,7 @@ public class XmlUtils {
                     element.setAttribute( "description", des);
                     for (T re: records) { 
                             Element elechild = XmlElementUtils.createSubElement(parent, RECORD );
-                             // set txt content
+                            // set txt content
                             if (re instanceof String) {
                                     elechild.setTextContent((String)re);
                             } else if (re instanceof AbstractSAMHeaderRecord) {
@@ -102,14 +103,14 @@ public class XmlUtils {
                             }else if (re instanceof VcfHeaderRecord) {
                                     elechild.setTextContent(((VcfHeaderRecord)re).toString());
                             }
-                             // set id
+                            // set id
                             if (re instanceof SAMSequenceRecord) { 
                                     elechild.setAttribute(NAME, ((SAMSequenceRecord)re).getSequenceName()  );
                             } else if (re instanceof SAMReadGroupRecord) { 
                                     elechild.setAttribute(NAME, ((SAMReadGroupRecord)re).getId()  );
                             } else if (re instanceof SAMProgramRecord) { 
                                 elechild.setAttribute(NAME, ((SAMProgramRecord)re).getId()  );
-                             //  elechild.setAttribute(Sname, ((SAMProgramRecord)re).getProgramName()  );
+                            //  elechild.setAttribute(Sname, ((SAMProgramRecord)re).getProgramName()  );
                                 
                             } else if (re instanceof VcfHeaderRecord) { 
                                     elechild.setAttribute(NAME,((VcfHeaderRecord) re).getId() != null 
@@ -130,7 +131,7 @@ public class XmlUtils {
         
         Element parent = XmlElementUtils.createSubElement(parent1, "vcfHeader");
          
-         // the last header line with #CHROM
+        // the last header line with #CHROM
         List<String> headers = new ArrayList<>();
         headers.add( header.getChrom().toString() );
         createHeaderRecords(parent, cateName , "headerline", "The header line", headers );
@@ -138,7 +139,7 @@ public class XmlUtils {
          // information line with key=value pair
         createHeaderRecords(parent, cateName , "MetaInformation", "Meta-information lines", header.getAllMetaRecords());
 
-         // get all structure record
+        // get all structure record
         HashMap<String, List<VcfHeaderRecord>> others = new HashMap<>();
         for (final VcfHeaderRecord re: header ) { 
             if (re.getId() == null) {
@@ -220,7 +221,7 @@ public class XmlUtils {
     	if ( value instanceof Double ) { 
     		ele.setTextContent(String.format("%,.2f", value )); 
     	} else { 
-    		 // autoboxing
+    		// autoboxing
     		ele.setTextContent(  value + "" ); 
     	}  	
     	
@@ -257,7 +258,7 @@ public class XmlUtils {
     private static <T> void outputTallys( Element ele, String name, Map<T, AtomicLong> tallys, boolean hasPercent) {   	
     	double sum = hasPercent ? tallys.values().stream().mapToDouble( x -> (double) x.get() ).sum() : 0;	   	   	    		
     	for (Entry<T, AtomicLong> entry: tallys.entrySet()) { 	
-			 // skip zero value for output
+			// skip zero value for output
 			if (entry.getValue().get() == 0 ) {
 				continue;
 			}
@@ -276,7 +277,7 @@ public class XmlUtils {
     		return null;
     	}
     	
-    	Element ele = createGroupNode( parent, name);	 // <category> 
+    	Element ele = createGroupNode( parent, name);	// <category> 
     	outputTallys( ele, name, tallys, hasPercent);
     	
     	if (outputSum) { 

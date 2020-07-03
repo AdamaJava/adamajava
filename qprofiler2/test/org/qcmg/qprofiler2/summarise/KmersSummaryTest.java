@@ -52,7 +52,7 @@ public class KmersSummaryTest {
 	}
 	
 	@Ignore 
-	 // speed test should be ignore due to time consuming
+	// speed test should be ignore due to time consuming
 	public void getPossibleKmerStringTest()  { 
 		KmersSummary summary = new KmersSummary(KmersSummary.maxKmers);
 		String [] kmers = summary.getPossibleKmerString(6, true);
@@ -60,12 +60,12 @@ public class KmersSummaryTest {
 		kmers = summary.getPossibleKmerString(6, false);
 		assertEquals((int)Math.pow(4,6), kmers.length);
 				
-		 // test speed between split and subString
+		// test speed between split and subString
 		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");  			
 		LocalDateTime now = LocalDateTime.now(); 
 		System.out.println(dtf.format(now)); 
 		
-		 // calling producer with split 101 times
+		// calling producer with split 101 times
 		String[] mers1 = summary.getPossibleKmerString(6, false);
 		for (int  i = 0; i < 100; i ++) { 
 			mers1 = summary.getPossibleKmerString(6, false);
@@ -84,7 +84,7 @@ public class KmersSummaryTest {
 			mers2.add(str.substring(0, pos)  );
 			str = str.substring(pos+1);				
 		}
-		mers2.add(str);  // add last mer
+		mers2.add(str); // add last mer
 		for (int  i = 0; i < 100; i ++) { 
 			str = KmersSummary.producer(6, "", false);
 			mers2 = new ArrayList<>();
@@ -93,7 +93,7 @@ public class KmersSummaryTest {
 				mers2.add( str.substring(0, pos)  );
 				str = str.substring(pos+1);		
 			}
-			mers2.add(str);  // add last mer			
+			mers2.add(str); // add last mer			
 		}
 		assertTrue(mers2.size() == 4096);
 		now = LocalDateTime.now(); 
@@ -111,10 +111,10 @@ public class KmersSummaryTest {
 			} 
 		}
  		
-		 // kmers3
-		 //  CAGNG TTAGG <= GTCNCAATCC <= CCTAACNCTG		 first  set to reverse 
+		// kmers3
+		//  CAGNG TTAGG <= GTCNCAATCC <= CCTAACNCTG		 first  set to reverse 
  		String[] bases1 = new String[] { "CAG","AGN","GNG","NGT" ,"GTT"};
- 		 //  AGNG TTAGG <= TCNCAATCC  <= CCTAACNCT		 second	 set to reverse
+ 		//  AGNG TTAGG <= TCNCAATCC  <= CCTAACNCT		 second	 set to reverse
  		String[] bases2 = new String[] { "AGN","GNG","NGT" ,"GTT"};
  		for (int i = 0; i < bases2.length; i++ ) { 
  			assertTrue(summary.getCount(i, bases1[i], 1 ) == 1);
@@ -131,35 +131,35 @@ public class KmersSummaryTest {
 		final String base1 = "CAGNGTTAGGTTTTT";
 		final String base2 = "CCCCGTTAGGTTTTTT";
 		KmersSummary summary = new KmersSummary(KmersSummary.maxKmers);	
-		 // prepair data base only no strand and pair info		
+		// prepair data base only no strand and pair info		
 		summary.parseKmers( base1.getBytes() , false, 0);
 		summary.parseKmers( base2.getBytes() , false, 0);
 		
 		Element root = XmlElementUtils.createRootElement("root", null);
 		summary.toXml(root, 2, true);
 				
-		 // only one <sequenceMetrics>
+		// only one <sequenceMetrics>
 		List<Element> eles = XmlElementUtils.getChildElementByTagName(root, XmlUtils.SEQUENCE_METRICS);
 		assertEquals(eles.size(), 1);
 		assertEquals(eles.get(0).getAttribute(XmlUtils.NAME), "2mers");
 		assertEquals(1, eles.get(0).getChildNodes().getLength());
 		
-		 // check <variableGroup...>
+		// check <variableGroup...>
 		Element ele = (Element)eles.get(0).getFirstChild();
 		assertEquals(ele.getAttribute(XmlUtils.NAME), "2mers") ;
-		 // base.length -3 
-		 // cycle number = base.length - KmersSummary.maxKmers = 16-6 that is [1,11]
+		// base.length -3 
+		// cycle number = base.length - KmersSummary.maxKmers = 16-6 that is [1,11]
 		assertEquals(11, ele.getChildNodes().getLength());
 		for (int i = 0; i < ele.getChildNodes().getLength(); i ++) { 
 			Element baseE = XmlElementUtils.getChildElement(ele, XmlUtils.BASE_CYCLE, i);
 			assertEquals(baseE.getAttribute(XmlUtils.CYCLE), (i+1) + "");
 		}	
 		
-		 // test unpaired bam reads
+		// test unpaired bam reads
 		root = XmlElementUtils.createRootElement("root", null);
 		summary.toXml(root, 2, false);
 		eles = XmlElementUtils.getChildElementByTagName(root, XmlUtils.SEQUENCE_METRICS);		
-		 // check <variableGroup...>
+		// check <variableGroup...>
 		ele = (Element)eles.get(0).getFirstChild();
 		assertEquals(ele.getAttribute(XmlUtils.NAME), "unPaired") ;
 				
@@ -178,8 +178,8 @@ public class KmersSummaryTest {
 		Element root = XmlElementUtils.createRootElement("root", null);
 		summary.toXml(root, 3, false);
 		
-		 // the popular kmers are based on counts on middle, middle of first half, middle of second half
-		 // in this testing case it look at firt cyle, middle cycle and last cycle
+		// the popular kmers are based on counts on middle, middle of first half, middle of second half
+		// in this testing case it look at firt cyle, middle cycle and last cycle
 		assertEquals( "GTT,CAG", StringUtils.join(summary.getPopularKmerString(16,  3, false, 1), ",") );
 		assertEquals( "TAA,CCT", StringUtils.join(summary.getPopularKmerString(16,  3, false, 2), ",") );
 			 
@@ -205,10 +205,10 @@ public class KmersSummaryTest {
 				assertTrue( tE.getAttribute( XmlUtils.VALUE ).equals("CAG"));			 
 		}
 		
-		 //  kmers3
-		 //  CAGNG TTAGG <= GTCNCAATCC <= CCTAACNCTG		 first reversed
+		//  kmers3
+		//  CAGNG TTAGG <= GTCNCAATCC <= CCTAACNCTG		 first reversed
  		String[] bases1 = new String[] { "CAG","AGN","GNG","NGT" ,"GTT"};		
- 		 //   CCTAACNCT		 second	forwarded	 				
+ 		//   CCTAACNCT		 second	forwarded	 				
  		String[] bases2 = new String[] { "CCT","CTA","TAA" ,"AAC"};  // ,"ACN", "CNC", "NCT"};
  
  		for (int i = 0; i < bases2.length; i++ ) { 
@@ -231,13 +231,13 @@ public class KmersSummaryTest {
 				summary.parseKmers(record.getReadBases(), false, order );				
 			} 
 		}		
-		  // kmers1
-		 //CCTA A CNCTG first
-		 //CCTA A CNCT  second
+		// kmers1
+		//CCTA A CNCTG first
+		//CCTA A CNCT  second
 		String[] bases = summary.getPossibleKmerString(1, true); 
 		for (int cycle = 0; cycle < 10; cycle ++) 
 			for ( String base : bases )
-				 // second read
+				// second read
 				if ((cycle == 0 || cycle == 1) && base.equals("C")) 
 			 		assertTrue(summary.getCount(cycle, base, 2 ) == 1);
 				else if (cycle == 2 && base.equals("T")) 
@@ -245,11 +245,11 @@ public class KmersSummaryTest {
 				else if (cycle == 3 && base.equals("A")) 
 			 		assertTrue(summary.getCount(cycle, base, 2) == 1);
 				else { 
-					 // short mers from second reads are discarded
+					// short mers from second reads are discarded
 					assertTrue(summary.getCount(cycle, base, 2 ) == 0);										
 				}
 		
-		  // kmers2
+		 // kmers2
 		 bases = summary.getPossibleKmerString(2, true); 	
 		 for (int cycle = 0; cycle < 10; cycle ++) 
 			for (String base : bases)
@@ -293,18 +293,18 @@ public class KmersSummaryTest {
 		 * 8 = 5+ mersNo
 		 */		
 		
-		 // CAGNG TTAGG TTTTT
-		 // CCCCG TTAGG TTTTT T
-		 // the mer with N won't belong to possible mer string
+		// CAGNG TTAGG TTTTT
+		// CCCCG TTAGG TTTTT T
+		// the mer with N won't belong to possible mer string
 		assertTrue( summary.getCount(2, "GNG", 1 ) == 1 );
 		assertTrue( summary.getCount(2, "CCG", 1 ) == 1 );
-		 // two same bases
+		// two same bases
 		assertTrue( summary.getCount(5, "TTA", 1 ) == 2 );	
 		assertTrue( summary.getCount(8, "GGT", 1 ) == 2 );	
 		
-		 // mers are not counted that is zero unless "TTA,GGT,CCG"
+		// mers are not counted that is zero unless "TTA,GGT,CCG"
 		assertEquals( "TTA,GGT,CCG", StringUtils.join( summary.getPopularKmerString(16,  3, false, 1), ",") );
-		 // nothing on second pair
+		// nothing on second pair
 		assertEquals( "", StringUtils.join(summary.getPopularKmerString(16,  3, false, 2), ",") );		
 				
 	}
@@ -319,9 +319,9 @@ public class KmersSummaryTest {
 		data.add("@SQ	SN:chr1	LN:249250621");
 		data.add("@CO	Test SAM file for use by KmersSummaryTest.java");
 		
-		 // reverse first in pair
+		// reverse first in pair
 		data.add("642_1887_1862	83	chr1	10167	1	5H10M	=	10176	59	CCTAACNCTG	.(01(\"!\"	RG:Z:1959T");	
- 		 // forward second in pair
+ 		// forward second in pair
 		data.add("970_1290_1068	163	chr1	10176	3	9M6H	=	10167	-59	CCTAACNCT	I&&HII%%I	RG:Z:1959T");
 		
 		File input = testFolder.newFile("input.sam");
@@ -340,15 +340,15 @@ public class KmersSummaryTest {
 		final String bases = "ATGC";
 		KmersSummary summary = new KmersSummary(KmersSummary.maxKmers);	
 		
-		 // due to summary.toXml(). getPopularKmerString(...).getPossibleKmerString(kLength, false)
-		 // any seq include 'N' will not be reported, it is better to skip 'N' for testing
+		// due to summary.toXml(). getPopularKmerString(...).getPossibleKmerString(kLength, false)
+		// any seq include 'N' will not be reported, it is better to skip 'N' for testing
 		StringBuilder sb=new StringBuilder();
 		for (int i = 0; i < 200; i ++) sb.append(bases);
 		for (int i = 0; i < 100; i ++) { 
 			summary.parseKmers(sb.toString().getBytes(StandardCharsets.UTF_8), false, 1);	
 		}
 		
-		 // reach maximum 1000 base
+		// reach maximum 1000 base
 		for (int i = 0; i < (KmersSummary.maxCycleNo/bases.length() -200); i ++) sb.append(bases);		
 		assertTrue(sb.length() == KmersSummary.maxCycleNo);
 		summary.parseKmers(sb.toString().getBytes(StandardCharsets.UTF_8), false, 1);	
@@ -356,15 +356,15 @@ public class KmersSummaryTest {
 		assertTrue(summary.getCount(793, "TGCATG", 1 ) == 101 );  // cycle + 1 = 794 to xml
 		assertTrue(summary.getCount(797, "TGCATG", 1 ) == 1 );  // cycle + 1 = 794 to xml
 						
-		 // test oversize sequence 
+		// test oversize sequence 
 		try { 
 			sb.append("A");
 			assertTrue(sb.length() > KmersSummary.maxCycleNo);
 			summary.parseKmers(sb.toString().getBytes(StandardCharsets.UTF_8), false, 1);	
-			 // must fail if no exception happen
+			// must fail if no exception happen
 			assertFalse(true);
 		}catch(IllegalArgumentException e) { 
-			 // expected exception due to large seq 
+			// expected exception due to large seq 
 			assertTrue(true);
 		}				
 	}	

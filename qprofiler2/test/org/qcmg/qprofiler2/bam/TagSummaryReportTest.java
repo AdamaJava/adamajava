@@ -33,30 +33,30 @@ public class TagSummaryReportTest {
 		SAMRecord record = new SAMRecord(null);
 		record.setReadName("TESTDATA");
 		
-		 // first read
+		// first read
 		record.setReadBases("ACCCT AACCC CAACC CTAAC CNTAA CCCTA ACCCA AC".replace(" ","" ).getBytes());
-		record.setFlags(67); 	 // first of pair forward
-		record.setAttribute("MD", "A25A");   // (ref) A>C (base) in cycly 11 and 37
+		record.setFlags(67); 	// first of pair forward
+		record.setAttribute("MD", "A25A"); // (ref) A>C (base) in cycly 11 and 37
 		record.setAttribute("RG", "first");
 		record.setCigarString("10S27M");		
 		report.parseTAGs(record);
 		
-		 // second read
+		// second read
 		record.setReadBases("ACCCT AACCC".replace(" ","" ).getBytes());
 		record.setCigarString( "10M" );
-		record.setAttribute( "MD", "T9" );   // ref T>A (Base) in cycle 1
+		record.setAttribute( "MD", "T9" ); // ref T>A (Base) in cycle 1
 		report.parseTAGs(record);
 		
-		 // third read
-		record.setReadNegativeStrandFlag(true);   // ref A>T (base) in cycle 10 according to reverse
+		// third read
+		record.setReadNegativeStrandFlag(true); // ref A>T (base) in cycle 10 according to reverse
 		report.parseTAGs(record);
 		
-		 // forth read invalid cigar so mutation and MD are ignored
+		// forth read invalid cigar so mutation and MD are ignored
 		record.setReadBases("ACCCT AACCC A".replace(" ","" ).getBytes());
 		record.setAttribute("RG", "last");
 		report.parseTAGs(record);
 		
-		 // check md counts
+		// check md counts
 		Element root = XmlElementUtils.createRootElement( XmlUtils.TAG, null );
 		report.toXml( root );		
 		checkXml( root );				
@@ -71,14 +71,14 @@ public class TagSummaryReportTest {
 		 		
 		assertEquals( 2, XmlElementUtils.getChildElementByTagName( root, XmlUtils.SEQUENCE_METRICS ).size()  );				
 		
-		 // <sequenceMetrics name="tags:MDM:Z">
+		// <sequenceMetrics name="tags:MDM:Z">
 		Element metricE = getChildNameIs( root, XmlUtils.SEQUENCE_METRICS, "tags:MD:Z" ).get(0);
 		assertEquals( metricE.getChildNodes().getLength() , 3 );
 		
-		 // check mutation on each base cycle
+		// check mutation on each base cycle
 		Element ele = getChildNameIs( metricE, XmlUtils.VARIABLE_GROUP, XmlUtils.FIRST_PAIR ).get(0);
 		assertEquals(ele.getAttribute(ReadGroupSummary.READ_COUNT), "4");
-		 // three of firstOfPair have four mutation base
+		// three of firstOfPair have four mutation base
 		String[] values = new String[] { "A", "T", "C", "C" };
 		String[] counts =  new String[] { "1", "10", "11", "37" };
 		for (int i = 0; i < counts.length; i++ ) { 
@@ -92,20 +92,20 @@ public class TagSummaryReportTest {
 			assertEquals( vE.getAttribute(XmlUtils.COUNT), "1");
 		}
 		
-		 // check mutaiton type on forward reads
+		// check mutaiton type on forward reads
 		ele = getChildNameIs(metricE, XmlUtils.VARIABLE_GROUP, XmlUtils.FIRST_PAIR+"ForwardStrand" ).get(0);
 		assertEquals( 1, XmlElementUtils.getOffspringElementByTagName(ele, XmlUtils.TALLY).stream()
 			.filter(e -> e.getAttribute(XmlUtils.VALUE).equals("A>C") && e.getAttribute(XmlUtils.COUNT).equals("2") ).count() );
 		assertEquals( 1, XmlElementUtils.getOffspringElementByTagName(ele, XmlUtils.TALLY).stream()
 			.filter(e -> e.getAttribute(XmlUtils.VALUE).equals("T>A") && e.getAttribute(XmlUtils.COUNT).equals("1") ).count() );		
 		
-		 // check mutaiton type on reverse reads
+		// check mutaiton type on reverse reads
 		ele = getChildNameIs( metricE, XmlUtils.VARIABLE_GROUP, XmlUtils.FIRST_PAIR+"ReverseStrand" ).get(0);
 		assertEquals( 1, XmlElementUtils.getOffspringElementByTagName(ele, XmlUtils.TALLY).size());
 		assertEquals( 1, XmlElementUtils.getOffspringElementByTagName(ele, XmlUtils.TALLY).stream()
 				.filter(e -> e.getAttribute(XmlUtils.VALUE).equals("A>T") && e.getAttribute(XmlUtils.COUNT).equals("1") ).count() );
 		
-		 // check tag RG
+		// check tag RG
 		ele = getChildNameIs( root, XmlUtils.SEQUENCE_METRICS, "tags:RG:Z" ).get(0);
 		assertEquals( 1, XmlElementUtils.getOffspringElementByTagName(ele, XmlUtils.TALLY).stream()
 				.filter(e -> e.getAttribute(XmlUtils.VALUE).equals("first") && e.getAttribute(XmlUtils.COUNT).equals("3") ).count() );
@@ -125,7 +125,7 @@ public class TagSummaryReportTest {
 		final short NH = STU.NH;
 		final short MD = STU.MD;
 		final short IH = STU.IH;
-		 //  custom tags
+		//  custom tags
 		final short ZM = STU.makeBinaryTag("ZM");
 		final short ZP = STU.makeBinaryTag("ZP");
 		final short ZF = STU.makeBinaryTag("ZF");

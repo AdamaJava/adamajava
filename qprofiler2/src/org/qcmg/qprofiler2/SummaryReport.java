@@ -76,7 +76,7 @@ public abstract class SummaryReport {
 		element.setAttribute( "uuid", QExec.createUUid() );  // add uuid 
 		element.setAttribute("file", this.fileName);
 
-		 // xml reorganise
+		// xml reorganise
 		element.setAttribute("startTime", this.startTime );
 		element.setAttribute("finishTime", this.finishTime );
 		
@@ -86,7 +86,7 @@ public abstract class SummaryReport {
 		
 		element.setAttribute("md5sum",this.fileMd5);
 				
-		 // don't list records_parsed on xml for BAM type
+		// don't list records_parsed on xml for BAM type
 		if (!reportType.equals(ProfileType.BAM)) { 
 			element.setAttribute("records_parsed", String.format("%,d", getRecordsInputed()) );	
 		}

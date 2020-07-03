@@ -43,14 +43,14 @@ public class BamSummaryReportTest {
 		assertEquals( position, returnedSummary.getMin() );
 		assertEquals( 1, returnedSummary.getCoverageByRg(rg).get(0).get() );
 		
-		 //  and again - min and max should stay the same, count should increase
+		// and again - min and max should stay the same, count should increase
 		bsr.parseRNameAndPos(rName, position,rg );
 		returnedSummary = bsr.getRNamePosition().get(rName);
 		assertEquals(position, returnedSummary.getMax());
 		assertEquals(position, returnedSummary.getMin());
 		assertEquals( 2, returnedSummary.getCoverageByRg(rg).get(0).get() );
 
-		 //  add another position to this rName
+		// add another position to this rName
 		position = 1000000;
 		bsr.parseRNameAndPos(rName, position,rg );
 		returnedSummary = bsr.getRNamePosition().get(rName);
@@ -58,7 +58,7 @@ public class BamSummaryReportTest {
 		assertEquals(999, returnedSummary.getMin());
 		assertEquals(1, returnedSummary.getCoverageByRg(rg).get(1).get() );
 		
-		 //  add another position to this rName
+		// add another position to this rName
 		position = 0;
 		bsr.parseRNameAndPos(rName, position,rg );
 		returnedSummary = bsr.getRNamePosition().get(rName);
@@ -67,7 +67,7 @@ public class BamSummaryReportTest {
 		assertEquals( 3, returnedSummary.getCoverageByRg(rg).get(0).get() );
 		assertEquals( 1, returnedSummary.getCoverageByRg(rg).get(1).get() );
 		
-		 //  add a new rname
+		// add a new rname
 		rName = "new rname";
 		bsr.parseRNameAndPos(rName, 0,rg );
 		returnedSummary = bsr.getRNamePosition().get(rName);

@@ -24,7 +24,7 @@ public class VcfSummarizer implements Summarizer {
 	@Override
 	public SummaryReport summarize(String input, String index) throws Exception { 
 	 		
-		 //  set logging level for printing of no of records parsed
+		// set logging level for printing of no of records parsed
 		VcfSummaryReport vcfSummaryReport; 
 		
 		try (VCFFileReader reader = new VCFFileReader(new File(input))  ) { 
@@ -37,7 +37,7 @@ public class VcfSummarizer implements Summarizer {
 			vcfSummaryReport.setFileName(input);
 			vcfSummaryReport.setStartTime(DateUtils.getCurrentDateAsString());
 		
-        	 // no chr in front of position
+        	// no chr in front of position
 			for (final VcfRecord vcf : reader) { 
 				try { 
 					vcfSummaryReport.parseRecord( vcf );		

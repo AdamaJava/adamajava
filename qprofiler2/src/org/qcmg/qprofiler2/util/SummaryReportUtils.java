@@ -64,8 +64,8 @@ public class SummaryReportUtils {
 		if (null != data) { 
 			int countUnderTen = 0;
 			for (byte b : data) { 
-				 // When you do a bitwise AND of 0xFF and any value from 0 to 255, the result is the exact same as the value. 
-				 // And if any value higher than 255 still the result will be within 0-255.
+				// When you do a bitwise AND of 0xFF and any value from 0 to 255, the result is the exact same as the value. 
+				// And if any value higher than 255 still the result will be within 0-255.
 				if ((b & 0xFF) < 10) {
 					countUnderTen++;
 				}
@@ -103,7 +103,7 @@ public class SummaryReportUtils {
 			}		
 			int mean = (counts == 0) ? 0 : (int) (bases / counts);
 					
-			 //to avoid aray.get(0) >= 0 since 1(counts)/2== 0(counts/2) == 0
+			// to avoid aray.get(0) >= 0 since 1(counts)/2== 0(counts/2) == 0
 			long sum = 0; 
 			int medium = 0;
 			for (int i = 0; i < arrayLength; i++) { 
@@ -111,14 +111,17 @@ public class SummaryReportUtils {
 					medium = i;  break; 
 				}
 			}
-			int min = 0;  // find the smallest non-zero value;
+			
+			// find the smallest non-zero value;
+			int min = 0;  
 			for (int i = 1; i < arrayLength; i ++) { 
 				if (array.get(i) > 0) { 
 					min  = i; break; 
 				}
 			}
 			
-			int max = 0;  // find the biggest non-zero value;
+			// find the biggest non-zero value;
+			int max = 0;  
 			for (int i = (int) (arrayLength - 1); i > 0; i --) { 
 				if (array.get(i) > 0) { 
 					max = i; 
@@ -126,7 +129,8 @@ public class SummaryReportUtils {
 				}
 			}
 			
-			int mode = 0;  // mode is the number of read which length is most popular
+			// mode is the number of read which length is most popular
+			int mode = 0;  
 			long highest = 0;
 			for (int i = 0; i < arrayLength ; i++) { 					
 				if (array.get(i) > highest) { 

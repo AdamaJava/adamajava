@@ -44,7 +44,7 @@ public class BamSummarizerTest {
 		BamSummarizer2 bs = new BamSummarizer2();
 		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize(samInput);
 		assertNotNull(sr);
-		assertEquals(5, sr.getRecordsInputed());		 //  should be 5 records
+		assertEquals(5, sr.getRecordsInputed());		// should be 5 records
 		testSummaryReport(sr);
 	}
 	
@@ -58,7 +58,7 @@ public class BamSummarizerTest {
 			assertEquals(i, sr.getRecordsInputed());
 		}
 		
-		 //  test with 0 value - should return everything
+		// test with 0 value - should return everything
 		BamSummarizer2 bs = new BamSummarizer2( 0, null, true);
 		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize( samInput);
 		
@@ -68,7 +68,7 @@ public class BamSummarizerTest {
 	
 	@Test
 	public void testSummarizeWithExcludesAll() throws Exception { 
-		 //  no excludes defined - should return everything
+		// no excludes defined - should return everything
 		BamSummarizer2 bs = new BamSummarizer2( 0, null, false);
 		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize( samInput);
 		
@@ -79,7 +79,7 @@ public class BamSummarizerTest {
 	
 	@Test
 	public void testSummarizeWithExcludeCoverage() throws Exception { 
-		 //  first check we are getting coverage info
+		// first check we are getting coverage info
 		BamSummarizer2 bs = new BamSummarizer2();
 		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize(samInput);
 		
@@ -90,12 +90,12 @@ public class BamSummarizerTest {
 
 	
 	private void testSummaryReport(BamSummaryReport2 sr) { 
-		 //  position 1
+		// position 1
 		assertEquals(0, sr.getSeqByCycle(1).count(1, 'A'));
 		assertEquals(2, sr.getSeqByCycle(1).count(1, 'T'));
 		assertEquals(2, sr.getSeqByCycle(1).count(1, 'G'));
 		assertEquals(0, sr.getSeqByCycle(1).count(1, 'C'));
-		 //  position 26
+		// position 26
 		assertEquals(3, sr.getSeqByCycle(1).count(26, 'T'));
 		assertEquals(0, sr.getSeqByCycle(1).count(26, 'C'));
 		assertEquals(1, sr.getSeqByCycle(1).count(26, 'G'));		

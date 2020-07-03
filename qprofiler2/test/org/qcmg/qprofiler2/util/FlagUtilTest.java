@@ -22,33 +22,34 @@ public class FlagUtilTest {
 	public void getValidFlags() { 
 		assertEquals("000000000000", FlagUtil.getFlagString(0));
 		assertEquals("000000000001, p", FlagUtil.getFlagString(1));
-		assertEquals("000000000010", FlagUtil.getFlagString(2));			 //  INVALID
-		assertEquals("000000000011, pP", FlagUtil.getFlagString(3));		 //  paired and in proper pair
-		assertEquals("000000000100, u", FlagUtil.getFlagString(4));		 // UNMAPPED
-		assertEquals("000000000101, pu", FlagUtil.getFlagString(5));		 // paired and UNMAPPED
-		assertEquals("000000000110, u", FlagUtil.getFlagString(6));			 // UNMAPPED
-		assertEquals("000000000111, pPu", FlagUtil.getFlagString(7));			 // UNMAPPED
-		assertEquals("000000001000", FlagUtil.getFlagString(8));			 // INVALID
+		assertEquals("000000000010", FlagUtil.getFlagString(2));			//  INVALID
+		assertEquals("000000000011, pP", FlagUtil.getFlagString(3));		//  paired and in proper pair
+		assertEquals("000000000100, u", FlagUtil.getFlagString(4));			// UNMAPPED
+		assertEquals("000000000101, pu", FlagUtil.getFlagString(5));		// paired and UNMAPPED
+		assertEquals("000000000110, u", FlagUtil.getFlagString(6));			// UNMAPPED
+		assertEquals("000000000111, pPu", FlagUtil.getFlagString(7));		// UNMAPPED
+		assertEquals("000000001000", FlagUtil.getFlagString(8));			// INVALID
 	}
 	
 	
 	/*
 	 * Bit Description
-0x1 template having multiple segments in sequencing
-0x2 each segment properly aligned according to the aligner
-0x4 segment unmapped
-0x8 next segment in the template unmapped
-0x10 SEQ being reverse complemented
-0x20 SEQ of the next segment in the template being reversed
-0x40 the first segment in the template
-0x80 the last segment in the template
-0x100 secondary alignment
-0x200 not passing quality controls
-0x400 PCR or optical duplicate
-0x800 supplementary alignment
+	 * 
+	 * 0x1 template having multiple segments in sequencing
+	 * 0x2 each segment properly aligned according to the aligner
+	 * 0x4 segment unmapped
+	 * 0x8 next segment in the template unmapped
+	 * 0x10 SEQ being reverse complemented
+	 * 0x20 SEQ of the next segment in the template being reversed
+	 * 0x40 the first segment in the template
+	 * 0x80 the last segment in the template
+	 * 0x100 secondary alignment
+	 * 0x200 not passing quality controls
+	 * 0x400 PCR or optical duplicate
+	 * 0x800 supplementary alignment
+	 * 
 	 */
-	
-	
+		
 	@Test
 	public void readPairedFlag() { 
 		
@@ -100,12 +101,12 @@ public class FlagUtilTest {
 		QCMGAtomicLongArray flagIntegerCount = new QCMGAtomicLongArray( 2048 );
 		Element root = XmlElementUtils.createRootElement("root", null);
 		
-		 // parse two flags
+		// parse two flags
 		flagIntegerCount.increment(99);		
 		flagIntegerCount.increment(147);
 		flagIntegerCount.increment(147);
 		
-		 // convert to map
+		// convert to map
 		long length = flagIntegerCount.length();
 		for (int i = 0 ; i < length ; i++) 
 			if (flagIntegerCount.get(i) > 0) { 
@@ -114,7 +115,7 @@ public class FlagUtilTest {
 			}				
 		XmlUtils.outputTallyGroup( root , "FLAG", flagBinaryCount, true, true);	
 		
-		 // check output
+		// check output
 		List<Element> tallys =  XmlElementUtils.getChildElementByTagName(XmlElementUtils.getChildElement( root, XmlUtils.VARIABLE_GROUP,0), XmlUtils.TALLY );
 		assertEquals( 2, tallys.size() );
 		

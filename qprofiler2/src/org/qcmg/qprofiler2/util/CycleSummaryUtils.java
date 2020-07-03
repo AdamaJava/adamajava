@@ -43,8 +43,8 @@ public class CycleSummaryUtils {
 					deletion = false; 				
 					continue; 
 				}
-				 //  got a letter - update summary with positio					 					
-				 //  check cigar to see if we need to adjust our offset due to insertions etc
+				//  got a letter - update summary with positio					 					
+				//  check cigar to see if we need to adjust our offset due to insertions etc
 				int additionalOffset = SAMUtils.getAdjustedReadOffset(cigar, position);	
 				if (position + additionalOffset > readBases.length) {
 					return "invalid MD string, position outside read Base!";
@@ -79,7 +79,7 @@ public class CycleSummaryUtils {
 				position++;
 				 
 			} else {
-				 //  need to increment this or could end up with infinite loop...	
+				//  need to increment this or could end up with infinite loop...	
 				i++;
 			 			 
 			}
@@ -87,6 +87,7 @@ public class CycleSummaryUtils {
 		
 		return null; 				
 	}
+	
 	/**
 	 * 
 	 * @param mdCycles
@@ -94,13 +95,12 @@ public class CycleSummaryUtils {
 	 * @param allReadsLineLengths
 	 * @return the number of cycle with big mismatch rate after combining all strand reads mismatch information
 	 */
-	 // public static int getBigMDCycleNo(CycleSummary<Character>[] mdCycles, float percent, long totalRecords ) { 
 	public static int getBigMDCycleNo(CycleSummary<Character>[] mdCycles, float percent, QCMGAtomicLongArray[] allReadsLineLengths ) { 
 		if (  mdCycles.length <= 0 ) {
 			return 0; 
 		}
 		
-		 // get all cycle number
+		// get all cycle number
 		TreeSet<Integer> cycles = (TreeSet<Integer>) mdCycles[0].cycles();
 		for (int i = 1; i < mdCycles.length; i++) {
 			cycles.addAll(mdCycles[i].cycles());
@@ -152,42 +152,42 @@ public class CycleSummaryUtils {
 	
 	public static String getStringFromInt(final int i) { 
 		switch (i) { 
-			 //  A's
+			//  A's
 			case 1: return "A>A";
 			case 2: return "A>C";
 			case 3: return "A>G";
 			case 4: return "A>T";
 			case 5: return "A>N";
 			
-			 // C's
+			// C's
 			case 6: return "C>A";
 			case 7: return "C>C";
 			case 8: return "C>G";
 			case 9: return "C>T";
 			case 10: return "C>N";
 			
-			 // G's
+			// G's
 			case 11: return "G>A";
 			case 12: return "G>C";
 			case 13: return "G>G";
 			case 14: return "G>T";
 			case 15: return "G>N";
 			
-			 // T's
+			// T's
 			case 16: return "T>A";
 			case 17: return "T>C";
 			case 18: return "T>G";
 			case 19: return "T>T";
 			case 20: return "T>N";
 			
-			 // N's
+			// N's
 			case 21: return "N>A";
 			case 22: return "N>C";
 			case 23: return "N>G";
 			case 24: return "N>T";
 			case 25: return "N>N";
 			
-			 //  hmmmm
+			//  hmmmm
 			case -1: return "???";
 		}
 		return null;
