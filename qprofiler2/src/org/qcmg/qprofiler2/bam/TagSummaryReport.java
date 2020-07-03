@@ -22,7 +22,7 @@ import htsjdk.samtools.SAMRecord.SAMTagAndValue;
 import htsjdk.samtools.SAMTagUtil;
 
 // for sam record tag information
-public class TagSummaryReport2 { 
+public class TagSummaryReport { 
 
 	public static final int ADDI_TAG_MAP_LIMIT = 100;
 	public static final int errReadLimit  = 10;	
@@ -33,7 +33,7 @@ public class TagSummaryReport2 {
 	
 	//  TAGS		
 	@SuppressWarnings("unchecked")
-	final CycleSummary<Character>[] tagMDMismatchByCycle = new CycleSummary[] { new CycleSummary<Character>(BamSummaryReport2.cc, 512), new CycleSummary<Character>(BamSummaryReport2.cc, 512), new CycleSummary<Character>(BamSummaryReport2.cc, 512)};	
+	final CycleSummary<Character>[] tagMDMismatchByCycle = new CycleSummary[] { new CycleSummary<Character>(BamSummaryReport.cc, 512), new CycleSummary<Character>(BamSummaryReport.cc, 512), new CycleSummary<Character>(BamSummaryReport.cc, 512)};	
 	private final QCMGAtomicLongArray[] mdRefAltLengthsForward = new QCMGAtomicLongArray[] { new QCMGAtomicLongArray(32), new QCMGAtomicLongArray(32), new QCMGAtomicLongArray(32)};	
 	private final QCMGAtomicLongArray[] mdRefAltLengthsReverse = new QCMGAtomicLongArray[] { new QCMGAtomicLongArray(32), new QCMGAtomicLongArray(32), new QCMGAtomicLongArray(32)};	
     final QCMGAtomicLongArray[] allReadsLineLengths = new QCMGAtomicLongArray[] { new QCMGAtomicLongArray(1024), new QCMGAtomicLongArray(1024), new QCMGAtomicLongArray(1024)};
@@ -100,7 +100,7 @@ public class TagSummaryReport2 {
 					new Pair<String, Number>(ReadGroupSummary.READ_COUNT, mdTagCounts.get()));
 			for (int order = 0; order < 3; order ++) { 
 				// so choose 1st cycle base counts as read count, since all read at least have one base. 
-				tagMDMismatchByCycle[order].toXml( ele, BamSummaryReport2.sourceName.get(order), allReadsLineLengths[order].get(1) );
+				tagMDMismatchByCycle[order].toXml( ele, BamSummaryReport.sourceName.get(order), allReadsLineLengths[order].get(1) );
 				
 			}
 					
@@ -115,7 +115,7 @@ public class TagSummaryReport2 {
 						}
 						mdRefAltLengthsString.put(CycleSummaryUtils.getStringFromInt(m), new AtomicLong(l));					 
 					}
-					String name = BamSummaryReport2.sourceName.get(order) + strand; 				
+					String name = BamSummaryReport.sourceName.get(order) + strand; 				
 					XmlUtils.outputTallyGroup(ele,  name, mdRefAltLengthsString, true, true);				
 				}		
 			}			

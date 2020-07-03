@@ -10,8 +10,8 @@ import java.util.stream.Collectors;
 import org.junit.*;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.util.XmlElementUtils;
-import org.qcmg.qprofiler2.bam.BamSummarizer2;
-import org.qcmg.qprofiler2.bam.BamSummaryReport2;
+import org.qcmg.qprofiler2.bam.BamSummarizer;
+import org.qcmg.qprofiler2.bam.BamSummaryReport;
 import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Element;
 
@@ -80,8 +80,8 @@ public class CycleSummaryTest {
 	private Element getSummarizedRoot() throws Exception { 	
 		String input = CycleSummaryTest.createInputFile(testFolder);
 		Element root = XmlElementUtils.createRootElement( "qProfiler", null);
-		BamSummarizer2 bs = new BamSummarizer2();
-		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize(input); 
+		BamSummarizer bs = new BamSummarizer();
+		BamSummaryReport sr = (BamSummaryReport) bs.summarize(input); 
 		sr.toXml(root);
 		Assert.assertEquals(sr.getRecordsInputed(), 4);			
 		return root; 	

@@ -17,8 +17,8 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.util.XmlElementUtils;
 import org.qcmg.picard.BwaPair;
-import org.qcmg.qprofiler2.bam.BamSummarizer2;
-import org.qcmg.qprofiler2.bam.BamSummaryReport2;
+import org.qcmg.qprofiler2.bam.BamSummarizer;
+import org.qcmg.qprofiler2.bam.BamSummaryReport;
 import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Element;
 
@@ -155,8 +155,8 @@ public class PairSummaryTest {
 
 	public static Element createPairRoot(File input) throws Exception { 
 		createPairInputFile(input);
-		BamSummarizer2 bs = new BamSummarizer2();
-		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize(input.getAbsolutePath()); 
+		BamSummarizer bs = new BamSummarizer();
+		BamSummaryReport sr = (BamSummaryReport) bs.summarize(input.getAbsolutePath()); 
 		Element root = XmlElementUtils.createRootElement("root",null);
 		sr.toXml(root);		
 		

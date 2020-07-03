@@ -39,9 +39,9 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class BamSummarizerMT2 implements Summarizer { 
+public class BamSummarizerMT implements Summarizer { 
 	
-	static final QLogger logger = QLoggerFactory.getLogger(BamSummarizerMT2.class);	
+	static final QLogger logger = QLoggerFactory.getLogger(BamSummarizerMT.class);	
 	private int noOfProducerThreads;
 	private final int noOfConsumerThreads;
 	private final int maxRecords;
@@ -50,7 +50,7 @@ public class BamSummarizerMT2 implements Summarizer {
 	ValidationStringency vs;
 	private static final String UNMAPPED_READS = "Unmapped";
 	
-	public BamSummarizerMT2(int noOfProducerThreads, int noOfThreads, int maxNoOfRecords, String validation,boolean isFullBamHeader) { 
+	public BamSummarizerMT(int noOfProducerThreads, int noOfThreads, int maxNoOfRecords, String validation,boolean isFullBamHeader) { 
 		super();
 		this.noOfProducerThreads = noOfProducerThreads;
 		this.noOfConsumerThreads = noOfThreads;
@@ -62,7 +62,7 @@ public class BamSummarizerMT2 implements Summarizer {
 	@Override
 	public SummaryReport summarize(String input, String index) throws Exception { 		
 		
-		vs = null == validation ? BamSummarizer2.DEFAULT_VS : ValidationStringency.valueOf(validation);
+		vs = null == validation ? BamSummarizer.DEFAULT_VS : ValidationStringency.valueOf(validation);
 		//  check to see if index file exists - if not, run in single producer mode as will not be able to perform indexed lookups
 		SamReader reader = SAMFileReaderFactory.createSAMFileReaderAsStream(input, index, vs);
 		if ( ! reader.hasIndex() && noOfProducerThreads > 1) { 
@@ -102,7 +102,7 @@ public class BamSummarizerMT2 implements Summarizer {
 		
 		final long start = System.currentTimeMillis();		
 		final File file = new File(input);
-		final BamSummaryReport2 bamSummaryReport =  BamSummarizer2.createReport(file,  maxRecords, isFullBamHeader );				 		
+		final BamSummaryReport bamSummaryReport =  BamSummarizer.createReport(file,  maxRecords, isFullBamHeader );				 		
 		logger.info("will create " + noOfConsumerThreads + " consumer threads");
 
 		final CountDownLatch pLatch = new CountDownLatch(noOfProducerThreads);
@@ -208,12 +208,12 @@ public class BamSummarizerMT2 implements Summarizer {
 	
 	static class SingleProducerConsumer implements Runnable { 
 		private final AbstractQueue<SAMRecord> queue;
-		private final BamSummaryReport2 report;
+		private final BamSummaryReport report;
 		private final Thread mainThread;
 		private final CountDownLatch coLatch;
 		private final CountDownLatch prLatch;
 		
-		SingleProducerConsumer(AbstractQueue<SAMRecord> q, BamSummaryReport2 report, Thread mainThread, CountDownLatch coLatch, CountDownLatch prLatch) { 
+		SingleProducerConsumer(AbstractQueue<SAMRecord> q, BamSummaryReport report, Thread mainThread, CountDownLatch coLatch, CountDownLatch prLatch) { 
 			queue = q;
 			this.report = report;
 			this.mainThread = mainThread;
@@ -255,14 +255,14 @@ public class BamSummarizerMT2 implements Summarizer {
 	
 	static class Consumer implements Runnable { 
 		private final AbstractQueue<SAMRecord> [] queues;
-		private final BamSummaryReport2 report;
+		private final BamSummaryReport report;
 		private final Thread mainThread;
 		private final CountDownLatch coLatch;
 		private final CountDownLatch prLatch;
 		private final int queueId;
 		private final int noOfQueues;
 		
-		Consumer(AbstractQueue<SAMRecord>[] queues, BamSummaryReport2 report, Thread mainThread, CountDownLatch coLatch, CountDownLatch prLatch, int queueId) { 
+		Consumer(AbstractQueue<SAMRecord>[] queues, BamSummaryReport report, Thread mainThread, CountDownLatch coLatch, CountDownLatch prLatch, int queueId) { 
 			this.queues = queues;
 			this.report = report;
 			this.mainThread = mainThread;
@@ -337,7 +337,7 @@ public class BamSummarizerMT2 implements Summarizer {
 		private final AbstractQueue<String> sequences;
 		private final QLogger log = QLoggerFactory.getLogger(Producer.class);
 		
-		Producer(AbstractQueue<SAMRecord> q, File f, Thread mainThread, CountDownLatch prLatch, CountDownLatch coLatch, AbstractQueue<String> sequences, BamSummaryReport2 report) { 
+		Producer(AbstractQueue<SAMRecord> q, File f, Thread mainThread, CountDownLatch prLatch, CountDownLatch coLatch, AbstractQueue<String> sequences, BamSummaryReport report) { 
 			queue = q;
 			file = f;
 			this.mainThread = mainThread;

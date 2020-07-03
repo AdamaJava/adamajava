@@ -31,8 +31,8 @@ import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.LoadReferencedClasses;
 import org.qcmg.common.util.XmlElementUtils;
-import org.qcmg.qprofiler2.bam.BamSummarizer2;
-import org.qcmg.qprofiler2.bam.BamSummarizerMT2;
+import org.qcmg.qprofiler2.bam.BamSummarizer;
+import org.qcmg.qprofiler2.bam.BamSummarizerMT;
 import org.qcmg.qprofiler2.cohort.CohortSummarizer;
 import org.qcmg.qprofiler2.fastq.FastqSummarizer;
 import org.qcmg.qprofiler2.fastq.FastqSummarizerMT;
@@ -75,7 +75,7 @@ public class QProfiler2 {
 		Element root = XmlElementUtils.createRootElement( "qProfiler", null);
 		
 		//  Create new Summary object ready to hold our processing
-		QProfilerSummary2 sol = new QProfilerSummary2();
+		QProfilerSummary sol = new QProfilerSummary();
 		sol.setStartTime(DateUtils.getCurrentDateAsString());
 				
 		/*
@@ -208,9 +208,9 @@ public class QProfiler2 {
 				break;
 			case BAM:
 				if (noOfConsumerThreads > 0) { 
-					summarizer = new BamSummarizerMT2(noOfProducerThreads, noOfConsumerThreads, maxRecords,  validation,  isFullBamHeader);
+					summarizer = new BamSummarizerMT(noOfProducerThreads, noOfConsumerThreads, maxRecords,  validation,  isFullBamHeader);
 				} else { 
-					summarizer = new BamSummarizer2( maxRecords, validation, isFullBamHeader);
+					summarizer = new BamSummarizer( maxRecords, validation, isFullBamHeader);
 				}
 				break;
 			case XML:
@@ -240,7 +240,7 @@ public class QProfiler2 {
 	
 	public int setup(String args[]) throws Exception { 
 		int returnStatus = 1;
-		Options2 options = new Options2(args);
+		Options options = new Options(args);
 		String usage = Messages.getMessage(msgResource, "USAGE");
 		
 		if (options.hasHelpOption()) { 

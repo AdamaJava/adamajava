@@ -49,7 +49,7 @@ import org.qcmg.qprofiler2.util.SummaryReportUtils;
 import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Element;
 
-public class BamSummaryReport2 extends SummaryReport { 	
+public class BamSummaryReport extends SummaryReport { 	
 
 	public static final Character cc = Character.MAX_VALUE;
 	public static final Integer ii = Integer.MAX_VALUE;	
@@ -82,7 +82,7 @@ public class BamSummaryReport2 extends SummaryReport {
 	private final ConcurrentMap<String, ReadGroupSummary> rgSummaries = new ConcurrentHashMap<>(); 
 			
 	private final KmersSummary kmersSummary = new KmersSummary( KmersSummary.maxKmers ); // default use biggest mers length
- 	private final TagSummaryReport2 tagReport = new TagSummaryReport2();
+ 	private final TagSummaryReport tagReport = new TagSummaryReport();
  	
 	private Long maxRecords;
 	private boolean isFullBamHeader;
@@ -90,7 +90,7 @@ public class BamSummaryReport2 extends SummaryReport {
 	private SAMSequenceDictionary samSeqDictionary;
 	private List<String> readGroupIds = Arrays.asList( XmlUtils.UNKNOWN_READGROUP ); // init	
 			
-	public BamSummaryReport2( int maxRecs, boolean isFullBamHeader ) { 
+	public BamSummaryReport( int maxRecs, boolean isFullBamHeader ) { 
 		super();		
 		if (maxRecs > 0) {
 			maxRecords = Long.valueOf(maxRecs);	

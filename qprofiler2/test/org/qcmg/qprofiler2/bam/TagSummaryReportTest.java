@@ -15,7 +15,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.util.XmlElementUtils;
-import org.qcmg.qprofiler2.bam.TagSummaryReport2;
+import org.qcmg.qprofiler2.bam.TagSummaryReport;
 import org.qcmg.qprofiler2.summarise.ReadGroupSummary;
 import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Element;
@@ -29,7 +29,7 @@ public class TagSummaryReportTest {
 	@Test
 	public void simpleTest() throws Exception { 
 		
-		TagSummaryReport2 report = new TagSummaryReport2();
+		TagSummaryReport report = new TagSummaryReport();
 		SAMRecord record = new SAMRecord(null);
 		record.setReadName("TESTDATA");
 		
@@ -166,15 +166,15 @@ public class TagSummaryReportTest {
 		String INPUT_FILE = testFolder.newFile("input.sam").getAbsolutePath();
 		createMDerrFile(INPUT_FILE);	
 		Element root = XmlElementUtils.createRootElement("root",null);
-		BamSummarizer2 bs = new BamSummarizer2();
-		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize(INPUT_FILE); 
+		BamSummarizer bs = new BamSummarizer();
+		BamSummaryReport sr = (BamSummaryReport) bs.summarize(INPUT_FILE); 
 		sr.toXml(root);	 
 	}	
 	
 	@Test
 	public void toXmlTest() throws ParserConfigurationException { 
 		final  SAMTagUtil STU = SAMTagUtil.getSingleton();
-		TagSummaryReport2 report = new TagSummaryReport2();
+		TagSummaryReport report = new TagSummaryReport();
 		SAMRecord record = new SAMRecord(null);
 		record.setReadName("TESTDATA");
 		record.setAttribute(STU.makeStringTag(STU.NM), new Integer(Integer.MAX_VALUE));
@@ -193,7 +193,7 @@ public class TagSummaryReportTest {
 		report.toXml( root );	
 		
 		Element ele = getChildNameIs( getChildNameIs( root, XmlUtils.SEQUENCE_METRICS, "tags:NM:Z" ).get(0), XmlUtils.VARIABLE_GROUP, "NM" ).get(0);
-		assertEquals( ele.getAttribute(XmlUtils.TALLY_COUNT) , TagSummaryReport2.ADDI_TAG_MAP_LIMIT+"+" ); 
+		assertEquals( ele.getAttribute(XmlUtils.TALLY_COUNT) , TagSummaryReport.ADDI_TAG_MAP_LIMIT+"+" ); 
 		assertEquals( ((Element)ele.getParentNode()).getAttribute(ReadGroupSummary.READ_COUNT) , "200" );		
 		assertEquals( XmlElementUtils.getChildElementByTagName(ele, XmlUtils.TALLY).size(), 101);
 		long findNo = XmlElementUtils.getChildElementByTagName(ele, XmlUtils.TALLY).stream()
@@ -202,7 +202,7 @@ public class TagSummaryReportTest {
 		
 		
 		ele = getChildNameIs( getChildNameIs( root, XmlUtils.SEQUENCE_METRICS, "tags:NM:i" ).get(0), XmlUtils.VARIABLE_GROUP, "NM" ).get(0);
-		assertEquals( ele.getAttribute(XmlUtils.TALLY_COUNT) , TagSummaryReport2.ADDI_TAG_MAP_LIMIT+"+" ); 
+		assertEquals( ele.getAttribute(XmlUtils.TALLY_COUNT) , TagSummaryReport.ADDI_TAG_MAP_LIMIT+"+" ); 
 		assertEquals( ((Element)ele.getParentNode()).getAttribute(ReadGroupSummary.READ_COUNT) , "401" );
 		assertEquals( XmlElementUtils.getChildElementByTagName(ele, XmlUtils.TALLY).size(), 101);
 		findNo = XmlElementUtils.getChildElementByTagName(ele, XmlUtils.TALLY).stream()

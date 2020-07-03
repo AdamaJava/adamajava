@@ -17,8 +17,8 @@ import java.util.List;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.qcmg.picard.SAMFileReaderFactory;
-import org.qcmg.qprofiler2.bam.BamSummarizer2;
-import org.qcmg.qprofiler2.bam.BamSummaryReport2;
+import org.qcmg.qprofiler2.bam.BamSummarizer;
+import org.qcmg.qprofiler2.bam.BamSummaryReport;
 import org.qcmg.qprofiler2.summarise.ReadGroupSummary;
 import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Element;
@@ -352,9 +352,9 @@ public class ReadGroupSummaryTest {
 	public void overallTest() throws Exception { 
 		// overall readgroup should manually  setMaxBases(long);
 		Element root = XmlElementUtils.createRootElement("root",null);
-		BamSummarizer2 bs = new BamSummarizer2();
+		BamSummarizer bs = new BamSummarizer();
 		// BamSummarizer2 bs = new BamSummarizer2( 200, null, true);
-		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize(input.getAbsolutePath()); 
+		BamSummaryReport sr = (BamSummaryReport) bs.summarize(input.getAbsolutePath()); 
 		sr.toXml(root);	
 		
 		root = XmlElementUtils.getOffspringElementByTagName( root, "bamSummary" ).get(0);

@@ -16,7 +16,7 @@ import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.XmlElementUtils;
 import org.qcmg.picard.BwaPair.Pair;
-import org.qcmg.qprofiler2.bam.BamSummaryReport2;
+import org.qcmg.qprofiler2.bam.BamSummaryReport;
 import org.qcmg.qprofiler2.summarise.CycleSummaryTest;
 import org.qcmg.qprofiler2.summarise.PairSummaryTest;
 import org.qcmg.qprofiler2.summarise.PositionSummary;
@@ -31,7 +31,7 @@ public class BamSummaryReportTest {
 			
 	@Test
 	public void testParseRNameAndPos() throws Exception { 
-		BamSummaryReport2 bsr = new BamSummaryReport2( -1, false);
+		BamSummaryReport bsr = new BamSummaryReport( -1, false);
 		final String rg = "rg1";
 		bsr.setReadGroups(Arrays.asList(rg) );
 		
@@ -149,8 +149,8 @@ public class BamSummaryReportTest {
 	public void checkLength_rname_mapq() throws Exception { 
 		String input = CycleSummaryTest.createInputFile(testFolder);
 		Element root = XmlElementUtils.createRootElement("root",null);
-		BamSummarizer2 bs = new BamSummarizer2();
-		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize( input ); 
+		BamSummarizer bs = new BamSummarizer();
+		BamSummaryReport sr = (BamSummaryReport) bs.summarize( input ); 
 		sr.toXml(root);			
 		
 		 // length
@@ -232,7 +232,7 @@ public class BamSummaryReportTest {
 	@Test
 	public void unKnownIdTest() throws Exception { 
 		final Element root = XmlElementUtils.createRootElement("root",null);
-		BamSummaryReport2 bsr = new BamSummaryReport2( -1, false);
+		BamSummaryReport bsr = new BamSummaryReport( -1, false);
 		SAMRecord record = new SAMRecord(null);
 		record.setReadName("243_146_1");
 		record.setBaseQualities(new byte[] { 1,2,3,4,5,6,7});
@@ -252,7 +252,7 @@ public class BamSummaryReportTest {
 
 	@Test
 	public void unpairedTest() throws ParserConfigurationException { 
-		BamSummaryReport2 report  = new BamSummaryReport2(3, false);	
+		BamSummaryReport report  = new BamSummaryReport(3, false);	
 		
 		SAMRecord record = new SAMRecord(null);
 		record.setReadName("TESTDATA");

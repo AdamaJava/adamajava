@@ -17,7 +17,7 @@ import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import org.qcmg.common.messages.Messages;
 
-final class Options2 { 
+final class Options { 
 	private static final String msgResource = "org.qcmg.qprofiler2.messages";
 	
 	private static final String HELP_DESCRIPTION = Messages.getMessage(msgResource, "HELP_OPTION_DESCRIPTION");	
@@ -49,7 +49,7 @@ final class Options2 {
 	
 	
 	@SuppressWarnings("unchecked")
-	Options2(final String[] args) throws Exception { 
+	Options(final String[] args) throws Exception { 
 
 		parser.accepts("help", HELP_DESCRIPTION);
 		parser.accepts("version", VERSION_DESCRIPTION);		

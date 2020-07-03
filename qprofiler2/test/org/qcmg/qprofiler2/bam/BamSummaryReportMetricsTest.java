@@ -46,9 +46,9 @@ public class BamSummaryReportMetricsTest {
 			root = XmlElementUtils.createRootElement("root",null);
 			File input = testFolder.newFile("testInputFile.sam");
 			PairSummaryTest.createPairInputFile(input);
-			BamSummarizer2 bs = new BamSummarizer2();
+			BamSummarizer bs = new BamSummarizer();
 			// BamSummarizer2 bs = new BamSummarizer2( 200, null, true);
-			BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize(input.getAbsolutePath()); 		
+			BamSummaryReport sr = (BamSummaryReport) bs.summarize(input.getAbsolutePath()); 		
 			sr.toXml(root);	
 		} catch (Exception e) { 
 			fail("can't create root element!");

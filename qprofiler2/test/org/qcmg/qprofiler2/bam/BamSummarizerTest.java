@@ -18,8 +18,8 @@ import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.qcmg.qprofiler2.bam.BamSummarizer2;
-import org.qcmg.qprofiler2.bam.BamSummaryReport2;
+import org.qcmg.qprofiler2.bam.BamSummarizer;
+import org.qcmg.qprofiler2.bam.BamSummaryReport;
 
 public class BamSummarizerTest { 
 		
@@ -41,8 +41,8 @@ public class BamSummarizerTest {
 
 	@Test
 	public void testSummarize() throws Exception { 
-		BamSummarizer2 bs = new BamSummarizer2();
-		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize(samInput);
+		BamSummarizer bs = new BamSummarizer();
+		BamSummaryReport sr = (BamSummaryReport) bs.summarize(samInput);
 		assertNotNull(sr);
 		assertEquals(5, sr.getRecordsInputed());		// should be 5 records
 		testSummaryReport(sr);
@@ -51,16 +51,16 @@ public class BamSummarizerTest {
 	@Test
 	public void testSummarizeMaxRecords() throws Exception { 
 		for (int i = 1 ; i < 6 ; i++) { 
-			BamSummarizer2 bs = new BamSummarizer2( i, null, false);
-			BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize( samInput);
+			BamSummarizer bs = new BamSummarizer( i, null, false);
+			BamSummaryReport sr = (BamSummaryReport) bs.summarize( samInput);
 
 			assertNotNull(sr);
 			assertEquals(i, sr.getRecordsInputed());
 		}
 		
 		// test with 0 value - should return everything
-		BamSummarizer2 bs = new BamSummarizer2( 0, null, true);
-		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize( samInput);
+		BamSummarizer bs = new BamSummarizer( 0, null, true);
+		BamSummaryReport sr = (BamSummaryReport) bs.summarize( samInput);
 		
 		assertNotNull(sr);
 		assertEquals(5, sr.getRecordsInputed());
@@ -69,8 +69,8 @@ public class BamSummarizerTest {
 	@Test
 	public void testSummarizeWithExcludesAll() throws Exception { 
 		// no excludes defined - should return everything
-		BamSummarizer2 bs = new BamSummarizer2( 0, null, false);
-		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize( samInput);
+		BamSummarizer bs = new BamSummarizer( 0, null, false);
+		BamSummaryReport sr = (BamSummaryReport) bs.summarize( samInput);
 		
 		assertNotNull(sr);
 		assertEquals(5, sr.getRecordsInputed());
@@ -80,8 +80,8 @@ public class BamSummarizerTest {
 	@Test
 	public void testSummarizeWithExcludeCoverage() throws Exception { 
 		// first check we are getting coverage info
-		BamSummarizer2 bs = new BamSummarizer2();
-		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize(samInput);
+		BamSummarizer bs = new BamSummarizer();
+		BamSummaryReport sr = (BamSummaryReport) bs.summarize(samInput);
 		
 		assertNotNull(sr);
 		assertTrue(sr.getRNamePosition().size() == 1);
@@ -89,7 +89,7 @@ public class BamSummarizerTest {
 	
 
 	
-	private void testSummaryReport(BamSummaryReport2 sr) { 
+	private void testSummaryReport(BamSummaryReport sr) { 
 		// position 1
 		assertEquals(0, sr.getSeqByCycle(1).count(1, 'A'));
 		assertEquals(2, sr.getSeqByCycle(1).count(1, 'T'));
@@ -105,7 +105,7 @@ public class BamSummarizerTest {
 	public void testSummarizeMissingData() throws Exception { 
 		createDodgyDataFile(createSamDataMissingData());
 
-		BamSummarizer2 qs = new BamSummarizer2();
+		BamSummarizer qs = new BamSummarizer();
 		try { 
 			qs.summarize(samDodgy);
 			fail("Should have thrown an exception");
@@ -120,7 +120,7 @@ public class BamSummarizerTest {
 	public void testSummarizeEmptyFile() throws Exception { 
 		createDodgyDataFile(new ArrayList<String>());
 
-		BamSummarizer2 qs = new BamSummarizer2();
+		BamSummarizer qs = new BamSummarizer();
 		try { 
 			qs.summarize(samDodgy);
 		} catch (Exception e) { 
@@ -140,7 +140,7 @@ public class BamSummarizerTest {
 		 * unfortunately, setting this flag means we miss other problems with the reads such as those described in this test
 		 */
 		
-		BamSummarizer2 qs = new BamSummarizer2();
+		BamSummarizer qs = new BamSummarizer();
 		try { 
 			qs.summarize(samDodgy);
 			fail("Should have thrown an Exception");
@@ -160,7 +160,7 @@ public class BamSummarizerTest {
 		 * unfortunately, setting this flag means we miss other problems with the reads such as those described in this test
 		 */
 		
-		BamSummarizer2 qs = new BamSummarizer2();
+		BamSummarizer qs = new BamSummarizer();
 		try { 
 			qs.summarize(samDodgy);
 			fail("Should have thrown an Exception");
@@ -181,7 +181,7 @@ public class BamSummarizerTest {
 		 * unfortunately, setting this flag means we miss other problems with the reads such as those described in this test
 		 */
 
-		BamSummarizer2 qs = new BamSummarizer2();
+		BamSummarizer qs = new BamSummarizer();
 		try { 
 			qs.summarize(samDodgy);
 			fail("Should have thrown an Exception");

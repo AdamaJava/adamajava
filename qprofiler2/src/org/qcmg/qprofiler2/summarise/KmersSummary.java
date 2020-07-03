@@ -16,7 +16,7 @@ import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.BaseUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.Pair;
-import org.qcmg.qprofiler2.bam.BamSummaryReport2;
+import org.qcmg.qprofiler2.bam.BamSummaryReport;
 import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Element;
 
@@ -265,7 +265,7 @@ public class KmersSummary {
 			}
 			
 			// avoid kmers_null or kmers_unPaired in case have no pair
-			String name = BamSummaryReport2.sourceName.get(pair);
+			String name = BamSummaryReport.sourceName.get(pair);
 			
 			// read may have no pair information such as fastq
 			if ( isFastq ) { 

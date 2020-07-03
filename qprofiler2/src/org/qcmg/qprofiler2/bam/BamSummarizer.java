@@ -32,22 +32,22 @@ import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qprofiler2.Summarizer;
 import org.qcmg.qprofiler2.SummaryReport;
 
-public class BamSummarizer2 implements Summarizer { 
+public class BamSummarizer implements Summarizer { 
 	public static final ValidationStringency DEFAULT_VS = ValidationStringency.SILENT;
 	
 	private int maxRecords;
 	private String validation;
 	private boolean isFullBamHeader;
 
-	private static final QLogger logger = QLoggerFactory.getLogger(BamSummarizer2.class);	
-	public BamSummarizer2() { }	 //  default constructor	
-	public BamSummarizer2( int maxRecords, String validation, boolean isFullBamHeader) { 
+	private static final QLogger logger = QLoggerFactory.getLogger(BamSummarizer.class);	
+	public BamSummarizer() { }	 //  default constructor	
+	public BamSummarizer( int maxRecords, String validation, boolean isFullBamHeader) { 
 		this.maxRecords = maxRecords;
 		this.validation = validation;
 		this.isFullBamHeader = isFullBamHeader;
 	}	
 	
-	public static BamSummaryReport2 createReport(File file, int maxRecords, boolean isFullBamHeader) throws IOException { 
+	public static BamSummaryReport createReport(File file, int maxRecords, boolean isFullBamHeader) throws IOException { 
 		
 		//  create the SummaryReport
 		SamReader reader = SAMFileReaderFactory.createSAMFileReader(file);
@@ -58,7 +58,7 @@ public class BamSummarizer2 implements Summarizer {
 		List<String> readGroupIds = header.getReadGroups().stream().map( it -> it.getId()  ).collect(toList()); 		
 		readGroupIds.sort(Comparator.comparing( String::toString ) ); // Natural order  
 		
-		BamSummaryReport2 bamSummaryReport = new BamSummaryReport2( maxRecords, isFullBamHeader );									
+		BamSummaryReport bamSummaryReport = new BamSummaryReport( maxRecords, isFullBamHeader );									
 		bamSummaryReport.setBamHeader(header, isFullBamHeader);		
 		bamSummaryReport.setSamSequenceDictionary(samSeqDict);
 		bamSummaryReport.setReadGroups(readGroupIds);		
@@ -75,7 +75,7 @@ public class BamSummarizer2 implements Summarizer {
 		SamReader reader = SAMFileReaderFactory.createSAMFileReaderAsStream(input, index, vs);
 		
 		//  create the SummaryReport		
-        BamSummaryReport2 bamSummaryReport = createReport(new File(input),  maxRecords, isFullBamHeader);
+        BamSummaryReport bamSummaryReport = createReport(new File(input),  maxRecords, isFullBamHeader);
       		
 		boolean logLevelEnabled = logger.isLevelEnabled(QLevel.DEBUG);		
 		long currentRecordCount = 0;
