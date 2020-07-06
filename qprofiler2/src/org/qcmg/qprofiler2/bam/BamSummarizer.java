@@ -41,7 +41,7 @@ public class BamSummarizer implements Summarizer {
 	private boolean isFullBamHeader;
 
 	private static final QLogger logger = QLoggerFactory.getLogger(BamSummarizer.class);	
-	public BamSummarizer() {}	 //  default constructor	
+	public BamSummarizer() {}	 // default constructor	
 	public BamSummarizer( int maxRecords, String validation, boolean isFullBamHeader) {
 		this.maxRecords = maxRecords;
 		this.validation = validation;
@@ -50,7 +50,7 @@ public class BamSummarizer implements Summarizer {
 	
 	public static BamSummaryReport createReport(File file, int maxRecords, boolean isFullBamHeader) throws IOException {
 		
-		//  create the SummaryReport
+		// create the SummaryReport
 		SamReader reader = SAMFileReaderFactory.createSAMFileReader(file);
 		SAMFileHeader header = reader.getFileHeader();
 		reader.close();
@@ -75,7 +75,7 @@ public class BamSummarizer implements Summarizer {
 		ValidationStringency vs = null != validation ? ValidationStringency.valueOf(validation) : DEFAULT_VS;
 		SamReader reader = SAMFileReaderFactory.createSAMFileReaderAsStream(input, index, vs);
 		
-		//  create the SummaryReport		
+		// create the SummaryReport		
         BamSummaryReport bamSummaryReport = createReport(new File(input),  maxRecords, isFullBamHeader);
       		
 		boolean logLevelEnabled = logger.isLevelEnabled(QLevel.DEBUG);		
@@ -88,7 +88,7 @@ public class BamSummarizer implements Summarizer {
 				logger.debug("Records parsed: " + currentRecordCount);
 			}
 						 				
-			//  if maxRecords is non-zero, stop when we hit it
+			// if maxRecords is non-zero, stop when we hit it
 			if (maxRecords > 0 && currentRecordCount == maxRecords) {
 				break;			 
 			}

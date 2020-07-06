@@ -27,8 +27,8 @@ public class PositionSummary {
 	
 	private final AtomicInteger min;
 	private final AtomicInteger max;
-	private final QCMGAtomicLongArray[] rgCoverages; //the coverage for each readgroup on that position   
-	private final List<String> readGroupIds;   // nature sorted
+	private final QCMGAtomicLongArray[] rgCoverages; // the coverage for each readgroup on that position   
+	private final List<String> readGroupIds; // nature sorted
 	
 	private final ArrayList<Long> maxRgs = new ArrayList<Long>();  // store the max coverage from all read group at each position;
 	private Boolean hasAddPosition = true;  // set to true after each time addPosition, set to false after getAverage
@@ -139,7 +139,7 @@ public class PositionSummary {
 	 */
 	public void addPosition(final int position, String  rgid  ) {
 		
-		//  my attempt at a non-blocking updating of max
+		// my attempt at a non-blocking updating of max
 		int tempMax = max.get();
 		if (position > tempMax) {
 			for (;;) {
@@ -155,7 +155,7 @@ public class PositionSummary {
 			}
 		}
 		
-		//  and now min....
+		// and now min....
 		if (position < min.get()) {
 			int tempMin = min.get();
 			for (;;) {
@@ -169,7 +169,7 @@ public class PositionSummary {
 			}
 		}
 		// count for nominated rg on that position
-		//  search for key rgid with natural ordering
+		// search for key rgid with natural ordering
 	    int order = Collections.binarySearch( readGroupIds, rgid, null);  
 		if (order < 0 ) {
 			throw new IllegalArgumentException("can't find readGroup Id on Bam header: @RG ID:"+ rgid);

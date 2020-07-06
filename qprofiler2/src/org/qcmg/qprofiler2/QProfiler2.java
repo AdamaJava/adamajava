@@ -74,7 +74,7 @@ public class QProfiler2 {
 	protected int engage() throws Exception {
 		Element root = XmlElementUtils.createRootElement( "qProfiler", null);
 		
-		//  Create new Summary object ready to hold our processing
+		// Create new Summary object ready to hold our processing
 		QProfilerSummary sol = new QProfilerSummary();
 		sol.setStartTime(DateUtils.getCurrentDateAsString());
 				
@@ -93,7 +93,7 @@ public class QProfiler2 {
 		for (int i = 0 ; i < cmdLineFiles.length ; i++) {
 			String f = cmdLineFiles[i];
 			 
-			//  see if we have a corresponding index
+			// see if we have a corresponding index
 			String index = null;
 			if (null != cmdLineIndexFiles && cmdLineIndexFiles.length > i) {
 				index = cmdLineIndexFiles[i];
@@ -118,7 +118,7 @@ public class QProfiler2 {
 			}
 		}
 		
-		//  if we have a failure, exit now rather than creating a skeleton output file
+		// if we have a failure, exit now rather than creating a skeleton output file
 		if (exitStatus == 1) {
 			return exitStatus;
 		}
@@ -182,12 +182,12 @@ public class QProfiler2 {
 			}
 		}
 		
-		//  don't allow any new tasks to be executed
+		// don't allow any new tasks to be executed
 		exec.shutdown();
 		try {
 			exec.awaitTermination(Constants.EXECUTOR_SERVICE_AWAIT_TERMINATION, TimeUnit.HOURS);
 		} catch (InterruptedException e) {
-			//  restore interrupted status
+			// restore interrupted status
 			Thread.currentThread().interrupt();
 		}
 	}
@@ -224,7 +224,7 @@ public class QProfiler2 {
 	}
 
 	public static void main(String args[]) throws Exception {
-		//  loads all classes in referenced jars into memory to avoid nightly build sheninegans
+		// loads all classes in referenced jars into memory to avoid nightly build sheninegans
 		LoadReferencedClasses.loadClasses(QProfiler2.class);
 		
 		QProfiler2 qp = new QProfiler2();
@@ -255,18 +255,18 @@ public class QProfiler2 {
 		} else if ( ! options.hasLogOption()) {
 			System.err.println(usage );
 		} else {
-			//  configure logging
+			// configure logging
 			logFile = options.getLog();
 			version = QProfiler2.class.getPackage().getImplementationVersion();
 			logger = QLoggerFactory.getLogger(QProfiler2.class, logFile, options.getLogLevel());
 			logger.logInitialExecutionStats("qprofiler", version, args);
 			
-			//  get list of file names
+			// get list of file names
 			cmdLineFiles = options.getFileNames();
 			if (cmdLineFiles.length < 1) {
 				throw new Exception( Messages.getMessage(msgResource, "INSUFFICIENT_ARGUMENTS"));
 			} else {
-				//  loop through supplied files - check they can be read
+				// loop through supplied files - check they can be read
 				for (int i = 0 ; i < cmdLineFiles.length ; i ++ ) {
 					if ( ! FileUtils.canFileBeRead(cmdLineFiles[i])) {
 						throw new Exception( Messages.getMessage(msgResource, "INPUT_FILE_ERROR" , cmdLineFiles[i]));
@@ -274,7 +274,7 @@ public class QProfiler2 {
 				}
 			}
 			
-			//  set outputfile - if supplied, check that it can be written to
+			// set outputfile - if supplied, check that it can be written to
 			if (null != options.getOutputFileName()) {
 				String optionsOutputFile = options.getOutputFileName();
 				if (FileUtils.canFileBeWrittenTo(optionsOutputFile)) {
@@ -288,7 +288,7 @@ public class QProfiler2 {
 			validation = options.getValidation();
 			cmdLineFormats = options.getFormats(); //vcf mode 			
 			
-			//  get no of threads
+			// get no of threads
 			noOfConsumerThreads = options.getNoOfConsumerThreads();
 			noOfProducerThreads = Math.max(1, options.getNoOfProducerThreads());
 			if (noOfConsumerThreads > 0) {
@@ -299,7 +299,7 @@ public class QProfiler2 {
 				logger.tool("Running in single-threaded mode");
 			}
 			
-			//  get max Record count
+			// get max Record count
 			maxRecords = options.getMaxRecords();
 			if (maxRecords > 0) {
 				logger.tool("Running in maxRecord mode (BAM files only). Will stop profiling after " + maxRecords + " records");
@@ -307,8 +307,8 @@ public class QProfiler2 {
 			
 			this.isFullBamHeader = options.hasFullBamHeaderOption();
 			
-			//  setup the ExecutorService thread pool
-			//  the size of the pool is the smaller of the no of files, and the NO_OF_PROCESSORS variable
+			// setup the ExecutorService thread pool
+			// the size of the pool is the smaller of the no of files, and the NO_OF_PROCESSORS variable
 			if (Math.min(cmdLineFiles.length, NO_OF_PROCESORS) < 1) {
 				throw new Exception("Not enough available processors to perform this task");	
 			} else {

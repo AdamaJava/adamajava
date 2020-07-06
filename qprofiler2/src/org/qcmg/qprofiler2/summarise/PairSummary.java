@@ -90,7 +90,7 @@ public class PairSummary {
   		}
 		
 		// only record popular tLen, since RAM too expensive??
- 		//  tLen bwt [0, 5000], single segment are also recorded 
+ 		// tLen bwt [0, 5000], single segment are also recorded 
 		if (tLen < middleTlenValue) {
 			tLenOverall.increment(tLen);
 		}

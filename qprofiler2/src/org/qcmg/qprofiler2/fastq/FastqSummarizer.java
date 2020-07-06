@@ -34,14 +34,14 @@ public class FastqSummarizer implements Summarizer {
 	
 	private static final QLogger logger = QLoggerFactory.getLogger(FastqSummarizer.class);
 	
-	 //  default constructor
+	// default constructor
 	public FastqSummarizer() {}	
 	
 	
 	@Override
 	public SummaryReport summarize(String file, String index) throws Exception {
 				
-		 //  create the SummaryReport
+		// create the SummaryReport
 		FastqSummaryReport fastqSummaryReport = new FastqSummaryReport();
 		fastqSummaryReport.setFileName(file );
 		fastqSummaryReport.setStartTime(DateUtils.getCurrentDateAsString());

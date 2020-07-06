@@ -71,11 +71,11 @@ public class BamSummaryReport extends SummaryReport {
 	private final QCMGAtomicLongArray[] qualBadReadLineLengths = new QCMGAtomicLongArray[] {new QCMGAtomicLongArray(128), new QCMGAtomicLongArray(128), new QCMGAtomicLongArray(128)};
 	private final QCMGAtomicLongArray[] mapQualityLengths = new QCMGAtomicLongArray[] {new QCMGAtomicLongArray(256), new QCMGAtomicLongArray(256), new QCMGAtomicLongArray(256)};
 	
-	//  FLAGS
+	// FLAGS
 	private final Map<String, AtomicLong> flagBinaryCount = new ConcurrentSkipListMap<String, AtomicLong>();// summary all read flag
 	private final QCMGAtomicLongArray flagIntegerCount = new QCMGAtomicLongArray( 2048 ); // count on each read
 
-	//  Coverage chr=>coveragesummary
+	// Coverage chr=>coveragesummary
 	private final ConcurrentMap<String, PositionSummary> rNamePosition = new ConcurrentHashMap<String, PositionSummary>(85);  	
 	private final QCMGAtomicLongArray p1Lengths = new QCMGAtomicLongArray(1024);
 	private final QCMGAtomicLongArray p2Lengths = new QCMGAtomicLongArray(1024);
@@ -301,7 +301,7 @@ public class BamSummaryReport extends SummaryReport {
 	}
 	
 	private void createMAPQ(Element parent) {
-		//   sourceName, mapQualityLengths
+		// sourceName, mapQualityLengths
 		if ( sourceName.size() == 0 ||  sourceName.size() != mapQualityLengths.length ) {
 			return;	
 		}
@@ -348,7 +348,7 @@ public class BamSummaryReport extends SummaryReport {
 		final int order = (!record.getReadPairedFlag()) ? 0 : 
 			(record.getFirstOfPairFlag()) ? 1 : 2;	
 		
-		//  MAPQ (Mapping Quality)
+		// MAPQ (Mapping Quality)
 		final int mapQ = record.getMappingQuality();
 		mapQualityLengths[order].increment(mapQ);
 
@@ -363,11 +363,11 @@ public class BamSummaryReport extends SummaryReport {
 			tagReport.parseTAGs(record);			
 		} 
 						
-		//  check if record has its fail or duplicate flag set. if so, miss out some of the summaries
+		// check if record has its fail or duplicate flag set. if so, miss out some of the summaries
 		ReadGroupSummary rgSumm = rgSummaries.computeIfAbsent(readGroup, k -> new ReadGroupSummary(k));	
 		if ( rgSumm.parseRecord(record) ) {
 						
-			//  SEQ 
+			// SEQ 
 			byte[] data = record.getReadBases();			
 			if (record.getReadNegativeStrandFlag()) {
 				SequenceUtil.reverseComplement(data );
@@ -376,7 +376,7 @@ public class BamSummaryReport extends SummaryReport {
 			SummaryReportUtils.tallyBadReadsAsString( record.getReadBases(), seqBadReadLineLengths[order] );	
 			kmersSummary.parseKmers( record.getReadBases(), record.getReadNegativeStrandFlag(), order );
 
-			//  QUAL 
+			// QUAL 
 			data = record.getBaseQualities();
 			if (record.getReadNegativeStrandFlag()) {
 				SequenceUtil.reverseQualities(data);
@@ -386,10 +386,10 @@ public class BamSummaryReport extends SummaryReport {
  			
  						
 			// TLen is done inside readGroupSummary.ParseRecord			
-			//  MRNM is same to RNAME
+			// MRNM is same to RNAME
  			
-			//  RNAME & POS			
-			parseRNameAndPos( record.getReferenceName(), record.getAlignmentStart(), readGroup );	//  Position value
+			// RNAME & POS			
+			parseRNameAndPos( record.getReferenceName(), record.getAlignmentStart(), readGroup );	// Position value
 			
 			// it is not include hard clip
 			if (record.getReadPairedFlag()) {

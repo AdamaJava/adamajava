@@ -43,8 +43,8 @@ public class CycleSummaryUtils {
 					deletion = false; 				
 					continue; 
 				}
-				//  got a letter - update summary with positio					 					
-				//  check cigar to see if we need to adjust our offset due to insertions etc
+				// got a letter - update summary with positio					 					
+				// check cigar to see if we need to adjust our offset due to insertions etc
 				int additionalOffset = SAMUtils.getAdjustedReadOffset(cigar, position);	
 				if (position + additionalOffset > readBases.length) {
 					return "invalid MD string, position outside read Base!";
@@ -79,7 +79,7 @@ public class CycleSummaryUtils {
 				position++;
 				 
 			} else {
-				//  need to increment this or could end up with infinite loop...	
+				// need to increment this or could end up with infinite loop...	
 				i++;
 			 			 
 			}
@@ -152,7 +152,7 @@ public class CycleSummaryUtils {
 	
 	public static String getStringFromInt(final int i) {
 		switch (i) {
-			//  A's
+			// A's
 			case 1: return "A>A";
 			case 2: return "A>C";
 			case 3: return "A>G";
@@ -187,7 +187,7 @@ public class CycleSummaryUtils {
 			case 24: return "N>T";
 			case 25: return "N>N";
 			
-			//  hmmmm
+			// hmmmm
 			case -1: return "???";
 		}
 		return null;

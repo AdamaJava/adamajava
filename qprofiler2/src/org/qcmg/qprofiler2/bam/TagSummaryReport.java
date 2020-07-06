@@ -31,7 +31,7 @@ public class TagSummaryReport {
 	private static final SAMTagUtil STU = SAMTagUtil.getSingleton();
 	private final short md = STU.MD;	
 	
-	//  TAGS		
+	// TAGS		
 	@SuppressWarnings("unchecked")
 	final CycleSummary<Character>[] tagMDMismatchByCycle = new CycleSummary[] {new CycleSummary<Character>(BamSummaryReport.cc, 512), new CycleSummary<Character>(BamSummaryReport.cc, 512), new CycleSummary<Character>(BamSummaryReport.cc, 512)};	
 	private final QCMGAtomicLongArray[] mdRefAltLengthsForward = new QCMGAtomicLongArray[] {new QCMGAtomicLongArray(32), new QCMGAtomicLongArray(32), new QCMGAtomicLongArray(32)};	
@@ -51,7 +51,7 @@ public class TagSummaryReport {
 				continue;
 			}
 			
-			//  the type may be one of A (character), B (generalarray), f (real number), H (hexadecimal array), i (integer), or Z (string).
+			// the type may be one of A (character), B (generalarray), f (real number), H (hexadecimal array), i (integer), or Z (string).
 			// Note that H tag type is never written anymore, because B style is more compact.	         
 			String type = ":B";			
 			if (tag.value instanceof Integer) {
@@ -121,12 +121,12 @@ public class TagSummaryReport {
 			}			
 		}
 		
-		//  additional tags includes RG
+		// additional tags includes RG
 		for (Entry<String,  ConcurrentSkipListMap<String, AtomicLong>> entry : additionalTags.entrySet()) {			
 			outputTag(parent, entry.getKey(),  entry.getValue());
 		}	
 		
-		//  additional tagsChar
+		// additional tagsChar
 		for (Entry<String,  ConcurrentSkipListMap<Character, AtomicLong>> entry : additionalCharacterTags.entrySet()) {
 			outputTag(parent,  entry.getKey(),  entry.getValue());		
 		}

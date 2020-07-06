@@ -31,8 +31,8 @@ static final int MAX_POOL_SIZE = 500;
 		TwoColon_Torrent("<Run Id>:<X Pos>:<Y Pos>"),  //pattern 4 :  eg. WR6H1:09838:13771 0ZT4V:02282:09455
 		ThreeColon("<Element1>:<Element2>:<Element3>:<Element4>"),  // not sure
 		FourColon("<Element1>:<Element2>:<Element3>:<Element4>:<Element5>"),
-		FourColon_OlderIllumina("<Instrument>:<Flow Cell Lane>:<Tile Number>:<X Pos>:<Y Pos><#Index></Pair>"), //   eg. hiseq2000: HWI-ST797_0059:3:2205:20826:152489#CTTGTA		
-		FourColon_OlderIlluminaWithoutIndex("<Instrument>:<Flow Cell Lane>:<Tile Number>:<X Pos>:<Y Pos>"), //    eg. hiseq2000: HWI-ST797_0059:3:2205:20826:152489
+		FourColon_OlderIllumina("<Instrument>:<Flow Cell Lane>:<Tile Number>:<X Pos>:<Y Pos><#Index></Pair>"), // eg. hiseq2000: HWI-ST797_0059:3:2205:20826:152489#CTTGTA		
+		FourColon_OlderIlluminaWithoutIndex("<Instrument>:<Flow Cell Lane>:<Tile Number>:<X Pos>:<Y Pos>"), // eg. hiseq2000: HWI-ST797_0059:3:2205:20826:152489
 		FiveColon("<Element1>:<Element2>:<Element3>:<Element4>:<Element5>:<Element6>"),  // not sure
 		SixColon("<Element1>:<Element2>:<Element3>:<Element4>:<Element5>:<Element6>:<Element7>"),  // not sure
 		SixColon_Illumina("<Instrument>:<Run Id>:<Flow Cell Id>:<Flow Cell Lane>:<Tile Number>:<X Pos>:<Y Pos>"),  // pattern 6 :  eg. MG00HS15:400:C4KC7ACXX:4:2104:11896:63394
@@ -53,7 +53,7 @@ static final int MAX_POOL_SIZE = 500;
 	List<String> poolRandom =  Collections.synchronizedList(new ArrayList<String>());  // collect random 500	
 	List<String> poolUniq =  Collections.synchronizedList(new ArrayList<String>());  // QNAME with different Element value	
 
-	//  overall qname information
+	// overall qname information
 	ConcurrentMap<String, AtomicLong> patterns = new ConcurrentHashMap<>();	
 	@SuppressWarnings("unchecked")
 	ConcurrentMap<String, AtomicLong>[] columns = new ConcurrentMap[7];
@@ -323,20 +323,20 @@ static final int MAX_POOL_SIZE = 500;
 		} 	
 		
 		if ( inputNo.get() <= 10) {
-			//  record first 10 QNAME
+			// record first 10 QNAME
 			poolRandom.add(readId);		
 		} else if (inputNo.get() <= 1000 ) {
-			//  1% of first 1000 QNAME, that is max of 10
+			// 1% of first 1000 QNAME, that is max of 10
 			if (inputNo.get() % 100 == 11 ) {
 				poolRandom.add(readId);
 			}
 		} else if (poolRandom.size() < MAX_POOL_SIZE) {	
-			//  1/10000 of first 5M, that is max of 500
+			// 1/10000 of first 5M, that is max of 500
 			if ((inputNo.get() % 1000 == 999 ) && (rd.nextInt(10 ) == 1)) {
 				poolRandom.add(readId);			
 			}
 		} else  if ((inputNo.get() % 100000 == 99999 ) && (rd.nextInt(10) > 5)) {
-			//  after 5Mth random (5/M)replace to above pool with 	
+			// after 5Mth random (5/M)replace to above pool with 	
 			int pos = rd.nextInt( poolRandom.size() - 1);
 			poolRandom.set(pos, readId);					
 		}

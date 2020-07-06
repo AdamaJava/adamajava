@@ -63,7 +63,7 @@ public class BamSummarizerMT implements Summarizer {
 	public SummaryReport summarize(String input, String index) throws Exception {		
 		
 		vs = null == validation ? BamSummarizer.DEFAULT_VS : ValidationStringency.valueOf(validation);
-		//  check to see if index file exists - if not, run in single producer mode as will not be able to perform indexed lookups
+		// check to see if index file exists - if not, run in single producer mode as will not be able to perform indexed lookups
 		SamReader reader = SAMFileReaderFactory.createSAMFileReaderAsStream(input, index, vs);
 		if ( ! reader.hasIndex() && noOfProducerThreads > 1) {
 			logger.warn("using 1 producer thread - no index found for bam file: " + input);
@@ -83,7 +83,7 @@ public class BamSummarizerMT implements Summarizer {
 					return o2.getSequenceLength() - o1.getSequenceLength();
 				}
 			});
-			//  add the unmapped reads marker
+			// add the unmapped reads marker
 			sequences.add(UNMAPPED_READS);
 			for (SAMSequenceRecord rec : orderedSamSequences) {
 				sequences.add(rec.getSequenceName());
@@ -114,7 +114,7 @@ public class BamSummarizerMT implements Summarizer {
 			 : new Consumer(queues, bamSummaryReport, Thread.currentThread(), cLatch, pLatch, i % noOfProducerThreads));
 		}
 		
-		//  setpup and kick-off single Producer thread
+		// setpup and kick-off single Producer thread
 		ExecutorService producerThreads = Executors.newFixedThreadPool(noOfProducerThreads);
 		if (noOfProducerThreads == 1) {
 			producerThreads.execute(new SingleProducer(queues[0], file, Thread.currentThread(), pLatch, cLatch));
@@ -133,12 +133,12 @@ public class BamSummarizerMT implements Summarizer {
 		
 		md5Threads.execute(runnableTask ) ;
 
-		//  don't allow any new threads to start
+		// don't allow any new threads to start
 		md5Threads.shutdown();
 		producerThreads.shutdown();
 		consumerThreads.shutdown();
 		
-		//  wait for threads to complete
+		// wait for threads to complete
 		try {
 			logger.info("waiting for Producer thread to finish");
 			pLatch.await();
@@ -383,8 +383,8 @@ public class BamSummarizerMT implements Summarizer {
 								throw new Exception("No consumer threads left, but queue is not empty");
 							}
 							
-							//  if q size is getting too large - give the Producer a rest
-							//  having too many items in the queue seems to have a detrimental effect on performance.						
+							// if q size is getting too large - give the Producer a rest
+							// having too many items in the queue seems to have a detrimental effect on performance.						
 						} 
 						if (maxRecords > 0 && count == maxRecords) {
 							break;
@@ -432,8 +432,8 @@ public class BamSummarizerMT implements Summarizer {
 				for (SAMRecord record : reader) {					
 					queue.add(record);
 					
-					//  if q size is getting too large - give the Producer a rest
-					//  having too many items in the queue seems to have a detrimental effect on performance.
+					// if q size is getting too large - give the Producer a rest
+					// having too many items in the queue seems to have a detrimental effect on performance.
 					int size = queue.size();
 					while (size > 100000) {
 						Thread.sleep(10);

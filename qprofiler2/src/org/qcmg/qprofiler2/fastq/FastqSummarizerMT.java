@@ -51,7 +51,7 @@ public class FastqSummarizerMT implements Summarizer {
 		fastqSummaryReport.setFileName(file );
 		fastqSummaryReport.setStartTime(DateUtils.getCurrentDateAsString());
 				
-		 //  set the bam header		
+		// set the bam header		
 		logger.info("will create " + (noOfConsumerThreads - 1 ) + " consumer threads");
 
 		final CountDownLatch pLatch = new CountDownLatch(1);
@@ -65,11 +65,11 @@ public class FastqSummarizerMT implements Summarizer {
 		ExecutorService producerThreads = Executors.newFixedThreadPool(1);
 		producerThreads.execute(new Producer(q, new File(file), Thread.currentThread(), pLatch,  cLatch));
 
-		 //  don't allow any new threads to start
+		// don't allow any new threads to start
 		producerThreads.shutdown();
 		consumerThreads.shutdown();
 		
-		 //  wait for threads to complete
+		// wait for threads to complete
 		try {
 			logger.info("waiting for Producer thread to finish");
 			pLatch.await();
@@ -77,8 +77,8 @@ public class FastqSummarizerMT implements Summarizer {
 			
 			if ( ! cLatch.await(30, TimeUnit.SECONDS)) {
 			
-				 //  need to cater for scenario where all consumer threads have died...
-				 //  if after 10 seconds, the q size has not decreased - assume the consumer threads are no more...
+				// need to cater for scenario where all consumer threads have died...
+				// if after 10 seconds, the q size has not decreased - assume the consumer threads are no more...
 				int qSize = q.size();
 				int qSizeTheSameCounter = 0;
 				while (qSize > 0 && qSizeTheSameCounter < 10) {
@@ -87,11 +87,11 @@ public class FastqSummarizerMT implements Summarizer {
 						qSizeTheSameCounter++;
 					} else {
 						qSize = q.size();
-						qSizeTheSameCounter = 0;	 //  reset to zero
+						qSizeTheSameCounter = 0;	// reset to zero
 					}
 				}
 				
-				 //  final sleep to allow threads to finish processing final record
+				// final sleep to allow threads to finish processing final record
 				cLatch.await(10, TimeUnit.SECONDS);
 				if (cLatch.getCount() > 0) {
 					consumerThreads.shutdownNow();
@@ -100,7 +100,7 @@ public class FastqSummarizerMT implements Summarizer {
 				logger.info("consumer threads finished");
 			}
 
-			 //  if there are items left on the queue - means that the consumer threads encountered errors and were unable to complete the processing
+			// if there are items left on the queue - means that the consumer threads encountered errors and were unable to complete the processing
 			if (q.size()  > 0 ) {
 				logger.error("no consumer threads available to process items [" + q.size() + "] on queue");
 				throw new Exception("Consumer threads were unable to process all items on the queue");
@@ -108,10 +108,10 @@ public class FastqSummarizerMT implements Summarizer {
 			
 			logger.info("producer and consumer threads have completed");
 		} catch (InterruptedException e) {
-			 //  restore interrupted status
+			// restore interrupted status
 			logger.info("current thread about to be interrupted...");
 			
-			 //  kill off any remaining threads
+			// kill off any remaining threads
 			producerThreads.shutdownNow();
 			consumerThreads.shutdownNow();
 			
@@ -218,8 +218,8 @@ public class FastqSummarizerMT implements Summarizer {
 							break;
 						}
 						
-						 //  if q size is getting too large - give the Producer a rest
-						 //  having too many items in the queue seems to have a detrimental effect on performance.
+						// if q size is getting too large - give the Producer a rest
+						// having too many items in the queue seems to have a detrimental effect on performance.
 						while (size > 100000) {
 							Thread.sleep(50);
 							size = queue.size();

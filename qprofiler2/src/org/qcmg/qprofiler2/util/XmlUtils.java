@@ -109,9 +109,7 @@ public class XmlUtils {
                             } else if (re instanceof SAMReadGroupRecord) {
                                     elechild.setAttribute(NAME, ((SAMReadGroupRecord)re).getId()  );
                             } else if (re instanceof SAMProgramRecord) {
-                                elechild.setAttribute(NAME, ((SAMProgramRecord)re).getId()  );
-                            //  elechild.setAttribute(Sname, ((SAMProgramRecord)re).getProgramName()  );
-                                
+                                elechild.setAttribute(NAME, ((SAMProgramRecord)re).getId()  );                                
                             } else if (re instanceof VcfHeaderRecord) {
                                     elechild.setAttribute(NAME,((VcfHeaderRecord) re).getId() != null 
                                     		? ((VcfHeaderRecord) re).getId() : ((VcfHeaderRecord) re).getMetaKey().replace("##", "") );
