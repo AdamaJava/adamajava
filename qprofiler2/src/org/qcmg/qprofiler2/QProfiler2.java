@@ -39,7 +39,7 @@ import org.qcmg.qprofiler2.fastq.FastqSummarizerMT;
 import org.qcmg.qprofiler2.vcf.VcfSummarizer;
 import org.w3c.dom.Element;
 
-public class QProfiler2 { 
+public class QProfiler2 {
 		
 	private static final String msgResource = "org.qcmg.qprofiler2.messages";	
 	private static final int NO_OF_PROCESORS = Runtime.getRuntime().availableProcessors();
@@ -71,7 +71,7 @@ public class QProfiler2 {
 	 * method is invoked so we can assume that the class fields are populated
 	 * and ready for us to use.
 	 */
-	protected int engage() throws Exception { 
+	protected int engage() throws Exception {
 		Element root = XmlElementUtils.createRootElement( "qProfiler", null);
 		
 		//  Create new Summary object ready to hold our processing
@@ -90,21 +90,21 @@ public class QProfiler2 {
 		
 		final Map<ProfileType, List<Pair<String, String>>> sortedFiles = new HashMap<>();
 		
-		for (int i = 0 ; i < cmdLineFiles.length ; i++) { 
+		for (int i = 0 ; i < cmdLineFiles.length ; i++) {
 			String f = cmdLineFiles[i];
 			 
 			//  see if we have a corresponding index
 			String index = null;
-			if (null != cmdLineIndexFiles && cmdLineIndexFiles.length > i) { 
+			if (null != cmdLineIndexFiles && cmdLineIndexFiles.length > i) {
 				index = cmdLineIndexFiles[i];
 			}
 			ProfileType type = ProfileType.getType2(f);
 			sortedFiles.computeIfAbsent(type, v -> new ArrayList<>()).add(Pair.of(f, index));
 		}		
 				
-		if ( ! sortedFiles.isEmpty()) { 						
+		if ( ! sortedFiles.isEmpty()) {						
 			// do xmlSummary here
-			if (sortedFiles.containsKey(ProfileType.XML )) { 
+			if (sortedFiles.containsKey(ProfileType.XML )) {
 				List<String> xmls = new ArrayList<>();
 				sortedFiles.remove( ProfileType.XML ).forEach(p -> xmls.add(  p.getLeft()));
 				processXmlFiles( xmls, outputFile);
@@ -140,9 +140,9 @@ public class QProfiler2 {
 		return exitStatus;
 	}
 	
-	private void processXmlFiles(List<String> files, String output)throws Exception { 			 				
+	private void processXmlFiles(List<String> files, String output)throws Exception {			 				
 		final CohortSummarizer summarizer = new CohortSummarizer();
-		for (final String file :files) { 
+		for (final String file :files) {
 			 summarizer.summarize(file) ;
 		}
 		
@@ -155,21 +155,21 @@ public class QProfiler2 {
 	 * @param gffFiles names of GFF files to be processed
 	 * @return SummaryReport objects for each file processed
 	 */	
-	private void processFiles(Map<ProfileType, List<Pair<String, String>>> files, Element root) throws RuntimeException { 		
-		for (Map.Entry<ProfileType, List<Pair<String, String>>> entry : files.entrySet()) { 			
-			for (final Pair<String, String> pair : entry.getValue()) { 
+	private void processFiles(Map<ProfileType, List<Pair<String, String>>> files, Element root) throws RuntimeException {		
+		for (Map.Entry<ProfileType, List<Pair<String, String>>> entry : files.entrySet()) {			
+			for (final Pair<String, String> pair : entry.getValue()) {
 				logger.info("processing file " + pair.getLeft());
 				final Summarizer summarizer = getSummarizer(entry.getKey());
-				if (null != summarizer) { 
-					Runnable task = new Runnable() { 
+				if (null != summarizer) {
+					Runnable task = new Runnable() {
 						@Override
-						public void run() { 
+						public void run() {
 							logger.info("running " + summarizer.getClass().getSimpleName());
 							SummaryReport sr = null;
-							try { 
+							try {
 								sr = summarizer.summarize(pair.getLeft(), pair.getRight());
 								sr.toXml(root);
-							} catch (Exception e) { 
+							} catch (Exception e) {
 								logger.error( "Exception caught whilst running summarizer for file: " + pair.getLeft(), e );
 								exitStatus = 1;
 								// throw new RuntimeException(e);
@@ -184,32 +184,32 @@ public class QProfiler2 {
 		
 		//  don't allow any new tasks to be executed
 		exec.shutdown();
-		try { 
+		try {
 			exec.awaitTermination(Constants.EXECUTOR_SERVICE_AWAIT_TERMINATION, TimeUnit.HOURS);
-		} catch (InterruptedException e) { 
+		} catch (InterruptedException e) {
 			//  restore interrupted status
 			Thread.currentThread().interrupt();
 		}
 	}
 	
-	private Summarizer getSummarizer(ProfileType key) { 
+	private Summarizer getSummarizer(ProfileType key) {
 		Summarizer summarizer = null;
-		if (null != key) { 
-			switch (key) { 
+		if (null != key) {
+			switch (key) {
 			case VCF: summarizer = new VcfSummarizer( cmdLineFormats );
 				break;
 			case FASTQ:
-				if (noOfConsumerThreads > 0) { 
+				if (noOfConsumerThreads > 0) {
 					summarizer = new FastqSummarizerMT(noOfConsumerThreads);
-				} else { 
+				} else {
 					// summarizer = new FastqSummarizer(cmdLineInclude);
 					summarizer = new FastqSummarizer();					
 				}
 				break;
 			case BAM:
-				if (noOfConsumerThreads > 0) { 
+				if (noOfConsumerThreads > 0) {
 					summarizer = new BamSummarizerMT(noOfProducerThreads, noOfConsumerThreads, maxRecords,  validation,  isFullBamHeader);
-				} else { 
+				} else {
 					summarizer = new BamSummarizer( maxRecords, validation, isFullBamHeader);
 				}
 				break;
@@ -223,38 +223,38 @@ public class QProfiler2 {
 		return summarizer;
 	}
 
-	public static void main(String args[]) throws Exception { 
+	public static void main(String args[]) throws Exception {
 		//  loads all classes in referenced jars into memory to avoid nightly build sheninegans
 		LoadReferencedClasses.loadClasses(QProfiler2.class);
 		
 		QProfiler2 qp = new QProfiler2();
 		int exitStatus = qp.setup(args);
-		if (null != qp.logger) { 
+		if (null != qp.logger) {
 			qp.logger.logFinalExecutionStats(exitStatus);
-		} else { 
+		} else {
 			System.err.println("Exit status: " + exitStatus);
 		}
 		
 		System.exit(exitStatus);
 	}
 	
-	public int setup(String args[]) throws Exception { 
+	public int setup(String args[]) throws Exception {
 		int returnStatus = 1;
 		Options options = new Options(args);
 		String usage = Messages.getMessage(msgResource, "USAGE");
 		
-		if (options.hasHelpOption()) { 
+		if (options.hasHelpOption()) {
 			System.err.println( usage );
 			options.displayHelp();
 			returnStatus = 0;
-		} else if (options.hasVersionOption()) { 
+		} else if (options.hasVersionOption()) {
 			System.err.println(options.getVersion());
 			returnStatus = 0;
-		} else if (options.getFileNames().length < 1) { 
+		} else if (options.getFileNames().length < 1) {
 			System.err.println(usage );
-		} else if ( ! options.hasLogOption()) { 
+		} else if ( ! options.hasLogOption()) {
 			System.err.println(usage );
-		} else { 
+		} else {
 			//  configure logging
 			logFile = options.getLog();
 			version = QProfiler2.class.getPackage().getImplementationVersion();
@@ -263,23 +263,23 @@ public class QProfiler2 {
 			
 			//  get list of file names
 			cmdLineFiles = options.getFileNames();
-			if (cmdLineFiles.length < 1) { 
+			if (cmdLineFiles.length < 1) {
 				throw new Exception( Messages.getMessage(msgResource, "INSUFFICIENT_ARGUMENTS"));
-			} else { 
+			} else {
 				//  loop through supplied files - check they can be read
-				for (int i = 0 ; i < cmdLineFiles.length ; i ++ ) { 
-					if ( ! FileUtils.canFileBeRead(cmdLineFiles[i])) { 
+				for (int i = 0 ; i < cmdLineFiles.length ; i ++ ) {
+					if ( ! FileUtils.canFileBeRead(cmdLineFiles[i])) {
 						throw new Exception( Messages.getMessage(msgResource, "INPUT_FILE_ERROR" , cmdLineFiles[i]));
 					}
 				}
 			}
 			
 			//  set outputfile - if supplied, check that it can be written to
-			if (null != options.getOutputFileName()) { 
+			if (null != options.getOutputFileName()) {
 				String optionsOutputFile = options.getOutputFileName();
-				if (FileUtils.canFileBeWrittenTo(optionsOutputFile)) { 
+				if (FileUtils.canFileBeWrittenTo(optionsOutputFile)) {
 					outputFile = optionsOutputFile;
-				} else { 
+				} else {
 					throw new Exception( Messages.getMessage(msgResource, "OUTPUT_FILE_WRITE_ERROR"));
 				}
 			}
@@ -291,17 +291,17 @@ public class QProfiler2 {
 			//  get no of threads
 			noOfConsumerThreads = options.getNoOfConsumerThreads();
 			noOfProducerThreads = Math.max(1, options.getNoOfProducerThreads());
-			if (noOfConsumerThreads > 0) { 
+			if (noOfConsumerThreads > 0) {
 				logger.tool("Running in multi-threaded mode (BAM files only). No of available processors: " + NO_OF_PROCESORS 
 						+ ", no of requested consumer threads: " + noOfConsumerThreads + ", producer threads: " + noOfProducerThreads 
 						+ ", no of md5 checksum thread: 1");
-			} else { 
+			} else {
 				logger.tool("Running in single-threaded mode");
 			}
 			
 			//  get max Record count
 			maxRecords = options.getMaxRecords();
-			if (maxRecords > 0) { 
+			if (maxRecords > 0) {
 				logger.tool("Running in maxRecord mode (BAM files only). Will stop profiling after " + maxRecords + " records");
 			}
 			
@@ -309,9 +309,9 @@ public class QProfiler2 {
 			
 			//  setup the ExecutorService thread pool
 			//  the size of the pool is the smaller of the no of files, and the NO_OF_PROCESSORS variable
-			if (Math.min(cmdLineFiles.length, NO_OF_PROCESORS) < 1) { 
+			if (Math.min(cmdLineFiles.length, NO_OF_PROCESORS) < 1) {
 				throw new Exception("Not enough available processors to perform this task");	
-			} else { 
+			} else {
 				exec = Executors.newFixedThreadPool(Math.min(cmdLineFiles.length, NO_OF_PROCESORS));
 				return engage();
 			}

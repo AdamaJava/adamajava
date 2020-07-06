@@ -32,8 +32,8 @@ import org.w3c.dom.Element;
 /**
  * Class that tallies by cycle using java generics 
  * 
-  */
-public class CycleSummary<T> { 
+ */
+public class CycleSummary<T> {
 	public static final String baseOnCycle = "cycle";
 	
 	private static final int MAX_ARRAY_CAPACITY = 2048 * 2048;		// over 4 million
@@ -79,7 +79,7 @@ public class CycleSummary<T> {
 	 * @param type
 	 * @param noOfCycles
 	 */
-	public CycleSummary(T type, final int noOfCycles) { 		
+	public CycleSummary(T type, final int noOfCycles) {		
 		this.type = type;		
 		cycleMask.set(getMask(noOfCycles));
 		keyMask.set(getMask( DEFAULT_NO_OF_KEYS));
@@ -90,12 +90,12 @@ public class CycleSummary<T> {
 		tally = new AtomicLongArray(capacity);
 	}
 	
-	public int getMask(int number) { 
+	public int getMask(int number) {
 		
 		// get nearest power of two larger than number
 		int maskShift = 1;
 		int mask = 1;
-		while (mask < number) { 
+		while (mask < number) {
 			++maskShift;
 			mask <<= 1;
 		}
@@ -103,7 +103,7 @@ public class CycleSummary<T> {
 		return maskShift;		
 	}
 	
-	public int getArrayPosition(int cycle, int key) { 
+	public int getArrayPosition(int cycle, int key) {
 		int result = cycle;
 		result += (key << cycleMask.get());
 		
@@ -115,20 +115,20 @@ public class CycleSummary<T> {
 	 * @param position of the array
 	 * @return a pair of cycle number and value which is stored in int. eg. array position 100, stores cycle 20 with 'A' (65)
 	 */
-	public int[] getCycleKeyFromArrayPosition(int position) { 
+	public int[] getCycleKeyFromArrayPosition(int position) {
 		int key = ( position >>> cycleMask.get());
 		int cycle  = position & (( 1 << cycleMask.get()) - 1);
-		return new int[] { cycle,key};
+		return new int[] {cycle,key};
 	}
 
 	
 	@SuppressWarnings("unchecked")
-	private T getTypeFromInt(int l) { 
-		if (type instanceof Integer) { 
+	private T getTypeFromInt(int l) {
+		if (type instanceof Integer) {
 			return (T)Integer.valueOf(l);
 		}
 		
-		if (type instanceof Character) { 
+		if (type instanceof Character) {
 			return (T) Character.valueOf((char)l);
 		} else {
 			return null;
@@ -144,42 +144,42 @@ public class CycleSummary<T> {
 	 * @param value for the specified cycle whose count is to b incremented
 	 */
 
-	public void increment(final int cycle, final int value) { 
+	public void increment(final int cycle, final int value) {
 		if (cycle > maxCycleValue.get() || value > maxKeyValue.get()) {
 			resize(cycle, value);
 		}
-		if (resizingInProgress.get()) { 
+		if (resizingInProgress.get()) {
 			// CAS until resizing is complete
-			while  ( ! resizingInProgress.compareAndSet(false, false) ) { }
+			while  ( ! resizingInProgress.compareAndSet(false, false) ) {}
 		}
 		tally.incrementAndGet(getArrayPosition(cycle, value));
 	}
 		
-	private void resize(final int cycle, final int key) { 
+	private void resize(final int cycle, final int key) {
 		
 		// find out if it is the cycle, key or both that are larger than current maximums
 		// lock
-		while ( ! resizingInProgress.compareAndSet(false, true)) { }
-		try { 	
+		while ( ! resizingInProgress.compareAndSet(false, true)) {}
+		try {	
 			// only resize if we still need to
 			// another thread may have already done this for us
 			boolean resize = false;	
 			
 			// re-set current maximums
 			int newCycleMask = -1;
-			if (cycle > maxCycleValue.get()) { 
+			if (cycle > maxCycleValue.get()) {
 				newCycleMask = getMask(cycle); 
 				maxCycleValue.set((1 << newCycleMask) - 1);
 				resize = true;
 			}
 			
-			if (key > maxKeyValue.get()) { 
+			if (key > maxKeyValue.get()) {
 				keyMask.set(getMask(key)); 
 				maxKeyValue.set((1 << keyMask.get()) - 1);
 				resize = true;
 			}
 			
-			if (resize) { 
+			if (resize) {
 				
 				// sleep to allow any threads in CAS loop in increment method to complete
 				// resizing should not occur often so will not be too great a performance penalty
@@ -198,11 +198,11 @@ public class CycleSummary<T> {
 				AtomicLongArray newTally = new AtomicLongArray(capacity);
 				
 				// transfer data from existing tally to new tally
-				for (int i = 0, length = tally.length() ; i < length ; i++) { 
+				for (int i = 0, length = tally.length() ; i < length ; i++) {
 					
 					// retrieve existing data
 					long value = tally.get(i);
-					if (value > 0) { 
+					if (value > 0) {
 						int [] cycleKey = getCycleKeyFromArrayPosition(i);
 						
 						int newArrayIndex = cycleKey[0];
@@ -218,11 +218,11 @@ public class CycleSummary<T> {
 					cycleMask.set(newCycleMask);
 				}
 			}	
-		} catch (InterruptedException e) { 
+		} catch (InterruptedException e) {
 			e.printStackTrace();
-		} finally { 
+		} finally {
 			// unlock
-			while ( ! resizingInProgress.compareAndSet(true, false)) { }
+			while ( ! resizingInProgress.compareAndSet(true, false)) {}
 		}
 	}
 	
@@ -236,7 +236,7 @@ public class CycleSummary<T> {
 	 * @return Integer relating to the count of .Defaults to zero if the cycle does not exist, 
 	 * or if the cycle does not contain the specified value <T>
 	 */	
-	public long count(Integer cycle, T value) { 	
+	public long count(Integer cycle, T value) {	
  
 		int v = (type instanceof Integer) ? (Integer) value : 
 			(type instanceof Character) ? (Character)  value  : -1; 
@@ -250,16 +250,16 @@ public class CycleSummary<T> {
 	 * @param key is the cycle number
 	 * @return a map of counts for each possible value on this cycle
 	 */
-	public ConcurrentMap<T, AtomicLong> getValue(Integer key) { 
+	public ConcurrentMap<T, AtomicLong> getValue(Integer key) {
 		ConcurrentMap<T, AtomicLong> cm = new ConcurrentHashMap<T, AtomicLong>();
 		
 		// loop through keys to get ones with this cycle number		
-		for (int i = 0 , length = tally.length() ; i < length ; i++) { 
+		for (int i = 0 , length = tally.length() ; i < length ; i++) {
 			long arrayValue = tally.get(i);
 			// whole bunch of zeros in here - only want >0 values
-			if (arrayValue > 0) { 
+			if (arrayValue > 0) {
 				int [] cycleKey = getCycleKeyFromArrayPosition(i);
-				if (cycleKey[0] == key.intValue()) { 
+				if (cycleKey[0] == key.intValue()) {
 					cm.put(getTypeFromInt(cycleKey[1]), new AtomicLong(arrayValue));
 				}
 			}
@@ -270,9 +270,9 @@ public class CycleSummary<T> {
 	 * 
 	 * @return SortedSet relating to the cycles currently held by this summary object.
 	 */
-	public SortedSet<Integer> cycles() { 
+	public SortedSet<Integer> cycles() {
 		HashSet<Integer> ts = new HashSet<Integer>();		
-		for (int i = 0 , length = tally.length() ; i < length ; i++) { 
+		for (int i = 0 , length = tally.length() ; i < length ; i++) {
 			if ( tally.get(i) <= 0 ) {
 				continue;		 
 			}
@@ -287,21 +287,21 @@ public class CycleSummary<T> {
 	 *  Returns null if the summary does not contain the cycle.
 	 *  
 	 */
-	public Set<T> getPossibleValues() { 	
+	public Set<T> getPossibleValues() {	
 		
 		HashSet<T> allValues = new HashSet<T>();
 		
-		for (int i = 0 , length = tally.length() ; i < length ; i++) { 
+		for (int i = 0 , length = tally.length() ; i < length ; i++) {
 			if ( tally.get(i) <= 0 ) {
 				continue;
 			}
 			allValues.add( getTypeFromInt(getCycleKeyFromArrayPosition(i)[1] )  );	
 		}		
 		// order as ACGTN
-		if ( type instanceof Character) { 					
+		if ( type instanceof Character) {					
 			List<T> notATGC = new ArrayList<T>();
 			
-			for ( T v : allValues) { 
+			for ( T v : allValues) {
 				char v1 =   (Character)  v; 
 				if ( v1 != 'A' &&   v1 != 'T' &&  v1 != 'G' &&  v1 != 'C') {
 					notATGC.add(v);		
@@ -310,7 +310,7 @@ public class CycleSummary<T> {
 			
 			allValues.removeAll(notATGC);
 			return   Stream.concat(allValues.stream().sorted(), notATGC.stream()).collect(Collectors.toCollection(LinkedHashSet::new));	
-		} else if ( type instanceof Integer) { 				
+		} else if ( type instanceof Integer) {				
  			// Integer reverse order for QUAL			 
 			TreeSet<T> treeSetObj = new TreeSet<T>( (i1,i2) -> ((Integer) i2).compareTo( (Integer) i1) );
 		    treeSetObj.addAll(allValues);
@@ -329,7 +329,7 @@ public class CycleSummary<T> {
 	 * @param readCount will attached to the readCount attribute
 	 */
 		
-	public void toXml( Element metricEle,  String groupName, long readCount ) { 
+	public void toXml( Element metricEle,  String groupName, long readCount ) {
 		// do nothing if no base detected
 		Set<T> possibles = getPossibleValues();
 		if ( possibles == null || possibles.size() <= 0 ) {
@@ -338,7 +338,7 @@ public class CycleSummary<T> {
 		 	
 		Element ele = XmlUtils.createGroupNode( metricEle, groupName);	// <category>   
 		ele.setAttribute(ReadGroupSummary.READ_COUNT, readCount + "");
-		for (Integer cycle : cycles()) { 
+		for (Integer cycle : cycles()) {
 			Map<T, AtomicLong> tallys = new LinkedHashMap<>();
 			
 			for (T t :  getPossibleValues()) {			 
@@ -350,12 +350,12 @@ public class CycleSummary<T> {
 	}	
 
 	// xu totalSize should be seprate to first and second of pair		
-	public Map<Integer, AtomicLong> getLengthMapFromCycle() { 
+	public Map<Integer, AtomicLong> getLengthMapFromCycle() {
 		Map<Integer, AtomicLong> map = new HashMap<Integer, AtomicLong>();		
 		
 		long previousTally = -1;	
 		Integer last = 0;
-		for (Integer cycle : cycles()) { 
+		for (Integer cycle : cycles()) {
 		
  			long sum = 0;
 			for (T t :  getPossibleValues()) {				
@@ -365,7 +365,7 @@ public class CycleSummary<T> {
 			if (previousTally == -1) {
 				previousTally = sum;
 			}
-			if (sum != previousTally) { 
+			if (sum != previousTally) {
 				// record one cycle advance if base counts difference
 				// previousTally - count = the number of short reads				
 				map.put(cycle - 1, new AtomicLong(previousTally - sum ));
@@ -380,36 +380,36 @@ public class CycleSummary<T> {
 		return map;
 	}
 	
-	public long getInputCounts() { 
+	public long getInputCounts() {
 		return parseCounts.get();
 	}
 	
-	public void parseByteData(final byte[] dataString) { 
+	public void parseByteData(final byte[] dataString) {
 		if (dataString == null) {
 			return;
 		}
 		parseCounts.incrementAndGet();
  			
-		for (int i = 0, size = dataString.length ; i < size ; i++) { 
+		for (int i = 0, size = dataString.length ; i < size ; i++) {
 			int value = (type instanceof Integer) ? dataString[i] & 0xFF : 
 				(type instanceof Character) ? dataString[i] : 0;
 			increment( i + 1, value );
 		}						
 	}	
 	
-	public void parseStringData( String dataString,  int offset) { 
+	public void parseStringData( String dataString,  int offset) {
 		if (null == dataString) {
 			return; 
 		}
 		parseCounts.incrementAndGet();
 		
 		int size = dataString.length();
-		if (size > 0) { 				
+		if (size > 0) {				
 			// set offset to 0 if it is negative, or larger than the supplied string
 			if (offset < 0 || offset >= size) {
 				offset = 0;				
 			}
-			for (int i = 1 + offset ; i <= size; i++) { 
+			for (int i = 1 + offset ; i <= size; i++) {
 				increment(i - offset, dataString.charAt(i - 1));
 			}			 
 		}	

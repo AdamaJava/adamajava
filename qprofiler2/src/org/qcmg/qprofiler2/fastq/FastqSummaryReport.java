@@ -28,7 +28,7 @@ import org.qcmg.qprofiler2.util.SummaryReportUtils;
 import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Element;
 
-public class FastqSummaryReport extends SummaryReport { 
+public class FastqSummaryReport extends SummaryReport {
 	public static final String badBaseComment = " the number of reads containing a given number of bad bases (. or N) ";	
 	public static final String badQualComment = "the number of reads containing a given number of bases with bad quality scores (<10)";
 	
@@ -49,15 +49,15 @@ public class FastqSummaryReport extends SummaryReport {
 	AtomicLong qualHeaderNotEqualToPlus = new AtomicLong();		
 	private ReadIdSummary readNameSummary = new ReadIdSummary(); 
 	
-	public FastqSummaryReport() { 
+	public FastqSummaryReport() {
 		super(); 
 	}
 	
-	public ReadIdSummary getReadIDSummary() { 	
+	public ReadIdSummary getReadIDSummary() {	
 		return readNameSummary;	
 	}
 	@Override
-	public void toXml(Element parent1) { 		
+	public void toXml(Element parent1) {		
 		Element parent = init( parent1, ProfileType.FASTQ, null, null );
 		parent = XmlElementUtils.createSubElement( parent, ProfileType.FASTQ.getReportName() +  XmlUtils.METRICS   );
 		
@@ -80,7 +80,7 @@ public class FastqSummaryReport extends SummaryReport {
 		XmlUtils.addCommentChild(ele, FastqSummaryReport.badBaseComment );
 		
 		 // 1mers is same to baseByCycle
-		for ( int i : new int[] { 2, 3, KmersSummary.maxKmers } ) { 
+		for ( int i : new int[] {2, 3, KmersSummary.maxKmers } ) {
 			kmersSummary.toXml( element,i, true );	
 		}
 		
@@ -105,8 +105,8 @@ public class FastqSummaryReport extends SummaryReport {
 	 * 
 	 * @return next row in file
 	 */
-	public void parseRecord(FastqRecord record) { 
-		if ( null == record ) { 
+	public void parseRecord(FastqRecord record) {
+		if ( null == record ) {
 			return;
 		}
 		 			
@@ -128,15 +128,15 @@ public class FastqSummaryReport extends SummaryReport {
 		
 		String qualHeader = record.getBaseQualityHeader();		
 		 // If header just contains "+" then FastqRecord has null for qual header
-		if ( ! StringUtils.isNullOrEmpty( qualHeader )) { 
+		if ( ! StringUtils.isNullOrEmpty( qualHeader )) {
 			qualHeaderNotEqualToPlus.incrementAndGet();	
 		}
 		
 		String id = record.getReadName();		
-		try { 
+		try {
 			readNameSummary.parseReadId( id );
-		} catch (Exception e) { 
-			if ( errNumber.incrementAndGet() < ReportErrNumber ) { 
+		} catch (Exception e) {
+			if ( errNumber.incrementAndGet() < ReportErrNumber ) {
 				logger.error( "Invalid read id: " + id );
 			}
 		}

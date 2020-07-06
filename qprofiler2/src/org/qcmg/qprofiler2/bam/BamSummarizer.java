@@ -9,6 +9,7 @@
  * under the GNU GENERAL PUBLIC LICENSE Version 3, a copy of which is
  * included in this distribution as gplv3.txt.
  */
+
 package org.qcmg.qprofiler2.bam;
 
 import static java.util.stream.Collectors.toList;
@@ -32,7 +33,7 @@ import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qprofiler2.Summarizer;
 import org.qcmg.qprofiler2.SummaryReport;
 
-public class BamSummarizer implements Summarizer { 
+public class BamSummarizer implements Summarizer {
 	public static final ValidationStringency DEFAULT_VS = ValidationStringency.SILENT;
 	
 	private int maxRecords;
@@ -40,14 +41,14 @@ public class BamSummarizer implements Summarizer {
 	private boolean isFullBamHeader;
 
 	private static final QLogger logger = QLoggerFactory.getLogger(BamSummarizer.class);	
-	public BamSummarizer() { }	 //  default constructor	
-	public BamSummarizer( int maxRecords, String validation, boolean isFullBamHeader) { 
+	public BamSummarizer() {}	 //  default constructor	
+	public BamSummarizer( int maxRecords, String validation, boolean isFullBamHeader) {
 		this.maxRecords = maxRecords;
 		this.validation = validation;
 		this.isFullBamHeader = isFullBamHeader;
 	}	
 	
-	public static BamSummaryReport createReport(File file, int maxRecords, boolean isFullBamHeader) throws IOException { 
+	public static BamSummaryReport createReport(File file, int maxRecords, boolean isFullBamHeader) throws IOException {
 		
 		//  create the SummaryReport
 		SamReader reader = SAMFileReaderFactory.createSAMFileReader(file);
@@ -70,7 +71,7 @@ public class BamSummarizer implements Summarizer {
 	
 
 	@Override
-	public SummaryReport summarize(String input, String index) throws Exception { 
+	public SummaryReport summarize(String input, String index) throws Exception {
 		ValidationStringency vs = null != validation ? ValidationStringency.valueOf(validation) : DEFAULT_VS;
 		SamReader reader = SAMFileReaderFactory.createSAMFileReaderAsStream(input, index, vs);
 		
@@ -80,7 +81,7 @@ public class BamSummarizer implements Summarizer {
 		boolean logLevelEnabled = logger.isLevelEnabled(QLevel.DEBUG);		
 		long currentRecordCount = 0;
 	
-		for (SAMRecord samRecord : reader) { 			
+		for (SAMRecord samRecord : reader) {			
 			bamSummaryReport.parseRecord(samRecord);
 			currentRecordCount = bamSummaryReport.getRecordsInputed();				
 			if (logLevelEnabled && currentRecordCount % FEEDBACK_LINES_COUNT == 0) {
@@ -94,7 +95,7 @@ public class BamSummarizer implements Summarizer {
 		}			
 			
 		bamSummaryReport.cleanUp();
-		logger.info("records parsed: "+ bamSummaryReport.getRecordsInputed());
+		logger.info("records parsed: " + bamSummaryReport.getRecordsInputed());
 		bamSummaryReport.setFinishTime(DateUtils.getCurrentDateAsString());
 		return bamSummaryReport;
 	}

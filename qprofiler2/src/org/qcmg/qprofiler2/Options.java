@@ -17,7 +17,7 @@ import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import org.qcmg.common.messages.Messages;
 
-final class Options { 
+final class Options {
 	private static final String msgResource = "org.qcmg.qprofiler2.messages";
 	
 	private static final String HELP_DESCRIPTION = Messages.getMessage(msgResource, "HELP_OPTION_DESCRIPTION");	
@@ -49,7 +49,7 @@ final class Options {
 	
 	
 	@SuppressWarnings("unchecked")
-	Options(final String[] args) throws Exception { 
+	Options(final String[] args) throws Exception {
 
 		parser.accepts("help", HELP_DESCRIPTION);
 		parser.accepts("version", VERSION_DESCRIPTION);		
@@ -67,119 +67,119 @@ final class Options {
 		parser.posixlyCorrect(true);
 		options = parser.parse(args);
 		
-		//  no of threads - Consumer
+		// no of threads - Consumer
 		Object threadNumberConsumer = options.valueOf("ntConsumer"); 
 		if (null != threadNumberConsumer) {
 			noOfConsumerThreads =  (Integer) threadNumberConsumer;
 		}
 		
-		//  no of threads - Producer
+		// no of threads - Producer
 		Object threadNumberProducer = options.valueOf("ntProducer"); 
 		if (null != threadNumberProducer) {
 			noOfProducerThreads =  (Integer) threadNumberProducer;
 		}
-		//  maxRecords
+		// maxRecords
 		Object maxRecordsObject = options.valueOf("maxRecords"); 
 		if (null != maxRecordsObject) {
 			maxRecords =  (Integer) maxRecordsObject;	
 		}	
 		
-		//  log file
+		// log file
 		log = (String) options.valueOf("log");
-		//  logLevel
+		// logLevel
 		logLevel = (String) options.valueOf("loglevel");
 		
-		//  vcf mode: format field name
+		// vcf mode: format field name
 		List<String> formatArgs = (List<String>) options.valuesOf("format");
 		formats = new String[formatArgs.size()];
 		formatArgs.toArray(formats);
 				
-		//  inputs
+		// inputs
 		List<String> inputs = (List<String>) options.valuesOf("input");
 		fileNames = new String[inputs.size()];
 		inputs.toArray(fileNames);
 
-		//  indexes
+		// indexes
 		List<String> indexes = (List<String>) options.valuesOf("index");
 		indexFileNames = new String[indexes.size()];
 		indexes.toArray(indexFileNames);
 		
-		//  output
+		// output
 		outputFileName = (String) options.valueOf("output");		
-		if ( ! options.nonOptionArguments().isEmpty()) { 
+		if ( ! options.nonOptionArguments().isEmpty()) {
 			throw new IllegalArgumentException(Messages.getMessage(msgResource, "USAGE"));
 		}
 	}
 	
-	boolean hasFullBamHeaderOption() { 
+	boolean hasFullBamHeaderOption() {
 		return options.has("fullBamHeader") ; 
 	}
 
-	boolean hasVersionOption() { 
+	boolean hasVersionOption() {
 		return options.has("version"); 
 	}
 
-	boolean hasHelpOption() { 
+	boolean hasHelpOption() {
 		return options.has("help"); 
 	}
 		
-	boolean hasLogOption() { 
+	boolean hasLogOption() {
 		return options.has("log"); 
 	}
 	
-	boolean hasLogLevelOption() { 
+	boolean hasLogLevelOption() {
 		return options.has("loglevel"); 
 	}
 
-	String[] getFileNames() { 
+	String[] getFileNames() {
 		return fileNames;
 	}
 
 
-	String[] getIndexFileNames() { 	
+	String[] getIndexFileNames() {	
 		return indexFileNames; 
 	}
 		
 	// vcf mode
-	String[] getFormats() { 
+	String[] getFormats() {
 		return formats; 
 	}
 	
-	int getNoOfConsumerThreads() { 	
+	int getNoOfConsumerThreads() {	
 		return noOfConsumerThreads; 
 	}
 	
-	int getNoOfProducerThreads() { 	
+	int getNoOfProducerThreads() {	
 		return noOfProducerThreads; 
 	}	
 	
-	int getMaxRecords() { 
+	int getMaxRecords() {
 		return maxRecords; 
 	}	
 	
-	String getLog() { 	
+	String getLog() {	
 		return log; 
 	}
 	
-	String getLogLevel() { 	
+	String getLogLevel() {	
 		return logLevel; 
 	}
 	
-	String getVersion() { 
+	String getVersion() {
 		return QProfiler2.class.getPackage().getImplementationTitle() 
 				+ ", version " + QProfiler2.class.getPackage().getImplementationVersion();	
 	}
 	
-	public String getOutputFileName() { 	
+	public String getOutputFileName() {	
 		return outputFileName; 
 	}
 	
-	void displayHelp() throws Exception { 	
+	void displayHelp() throws Exception {	
 		parser.printHelpOn(System.err);
 	}
 	
-	String getValidation() { 
-		if (options.has("validation")) { 
+	String getValidation() {
+		if (options.has("validation")) {
 			return (String) options.valueOf("validation");
 		} 	
 		return null;

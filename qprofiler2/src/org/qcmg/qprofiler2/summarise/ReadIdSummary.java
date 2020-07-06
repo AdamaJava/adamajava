@@ -16,14 +16,14 @@ import org.qcmg.common.util.Pair;
 import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Element;
 
-public class ReadIdSummary { 
+public class ReadIdSummary {
 static final int MAX_POOL_SIZE = 500;
 	static final int TALLY_SIZE = MAX_POOL_SIZE / 5;
 	
 	// pattern predict
-	public enum  RnPattern { 
+	public enum  RnPattern {
 		NoColon("<Element>"),  // not sure
-		NoColon_NCBI("<Run Id>.<Pos>"), // pattern 1 : no colon, short name [S|E][0-9] { 6}.[0-9]+  eg.  SRR3083868.47411824 99 chr1 10015 9 100M = 10028 113 ...
+		NoColon_NCBI("<Run Id>.<Pos>"), // pattern 1 : no colon, short name [S|E][0-9] {6}.[0-9]+  eg.  SRR3083868.47411824 99 chr1 10015 9 100M = 10028 113 ...
 		NoColon_NUN("<Pos>"), //pattern 2 : [no colon, NoColon name  0-9]+   eg. 322356 99 chr1 1115486 3 19M9S = 1115486 19
 		NoColon_BGI("<Flow Cell Id><Flow Cell Lane><Tile Number><Pos>"),  // pattern 3: eg. bgiseq500 : FCL300002639L1C017R084_416735  
 		OneColon("<Element1>:<Element2>"),  // not sure
@@ -40,11 +40,11 @@ static final int MAX_POOL_SIZE = 500;
 				
 		final String pattern ; 
 		
-		RnPattern(String str ) { 
+		RnPattern(String str ) {
 			this.pattern = str; 
 		}		
 		
-		public String toString() { 
+		public String toString() {
 			return pattern; 
 		}
 	}
@@ -58,7 +58,7 @@ static final int MAX_POOL_SIZE = 500;
 	@SuppressWarnings("unchecked")
 	ConcurrentMap<String, AtomicLong>[] columns = new ConcurrentMap[7];
 	 
-	{ 
+	{
 		 for (int i = 0; i < 7; i++ ) {
 			 columns[i] = new ConcurrentHashMap<>(); 
 		 }
@@ -80,11 +80,11 @@ static final int MAX_POOL_SIZE = 500;
 	 * @param parts split string of read name
 	 * @return RNPattern for that read name
 	 */
-	public   RnPattern getPattern(String[] parts) { 	
-		switch ( parts.length ) { 		
+	public   RnPattern getPattern(String[] parts) {	
+		switch ( parts.length ) {		
 						    
 			case 1:
-				if ( StringUtils.isNumeric( parts[0]) ) { 					
+				if ( StringUtils.isNumeric( parts[0]) ) {					
 					return  RnPattern.NoColon_NUN;						
 				}				
 			case 0:
@@ -107,31 +107,31 @@ static final int MAX_POOL_SIZE = 500;
 				return RnPattern.ThreeColon;     
 			case 5:
 				// <InstrumentS>:<lane>:<Tile Number>:<X Pos>:<Y Pos>
-				if (StringUtils.isNumeric(parts[3]) && StringUtils.isNumeric(parts[4])) { 
+				if (StringUtils.isNumeric(parts[3]) && StringUtils.isNumeric(parts[4])) {
 					return RnPattern.FourColon_OlderIlluminaWithoutIndex;
 				}
 				return RnPattern.FourColon;		
 			case 6:			
 				return RnPattern.FiveColon;  
 			case 7:
-				for (int i = 0; i < 5; i++) { 
-					 if (StringUtils.isNullOrEmpty(parts[i])) { 
+				for (int i = 0; i < 5; i++) {
+					 if (StringUtils.isNullOrEmpty(parts[i])) {
 						 return RnPattern.SixColon;
 					 }
 				 }
 				
-				if (StringUtils.isNumeric(parts[5]) && StringUtils.isNumeric(parts[6])) { 
+				if (StringUtils.isNumeric(parts[5]) && StringUtils.isNumeric(parts[6])) {
 					return RnPattern.SixColon_Illumina; 
 				} 
 				
 				// last two Elements are not number, allow null
 				boolean withIndex = (parts[5] == null || parts[5].startsWith("#"));
 				boolean withPair = (parts[6] == null ||  parts[5].startsWith("/"));			
-				if (withIndex || withPair) { 
-					if ( StringUtils.isNumeric(parts[3]) && StringUtils.isNumeric(parts[4])) { 
+				if (withIndex || withPair) {
+					if ( StringUtils.isNumeric(parts[3]) && StringUtils.isNumeric(parts[4])) {
 						if (parts[5] == null ) {
 							return RnPattern.FourColon_OlderIlluminaWithoutIndex;
-						} else { 
+						} else {
 							return RnPattern.FourColon_OlderIllumina;
 						}
 					}
@@ -143,35 +143,35 @@ static final int MAX_POOL_SIZE = 500;
 		}	
 	}	
 
-    String[] splitElements(String readId) { 
+    String[] splitElements(String readId) {
 		String[] parts = readId.split(Constants.COLON_STRING);
 		List<String> elements = new ArrayList<>();
 				
 		int pos = -1;				
-		if (parts.length == 1) { 
+		if (parts.length == 1) {
 			// check NCBI 
 			pos = parts[0].indexOf(".");	
-			if (pos > 0) { 
+			if (pos > 0) {
 				elements.add( parts[0].substring(0, pos ) );
 				elements.add( parts[0].substring( pos ) );		 
-			} else if (StringUtils.isNumeric( parts[0])) { 
+			} else if (StringUtils.isNumeric( parts[0])) {
 				// NoColon_NUN("<Pos>") 
 				elements.add( parts[0] );
-			} else if (!StringUtils.isNumeric( parts[0].substring(0,1))) { 
+			} else if (!StringUtils.isNumeric( parts[0].substring(0,1))) {
 				// if first char is not number then check BGI
 				// BGI L?C must appear after 5th
 				int  currentL = 5;
 				// String str = parts[0].substring(currentL);
-				while ((pos = parts[0].substring(currentL).indexOf("L")) != -1) { 
+				while ((pos = parts[0].substring(currentL).indexOf("L")) != -1) {
 					currentL += pos;
-					if (parts[0].substring(currentL + 2).startsWith("C")) { 
+					if (parts[0].substring(currentL + 2).startsWith("C")) {
 						pos = parts[0].substring(currentL + 2).indexOf("_");
 						String tile = pos > 0 ? parts[0].substring(currentL + 2,currentL + 2 + pos ) : null;
-						if (pos < 0) { 
+						if (pos < 0) {
 							pos = parts[0].substring(currentL + 2).indexOf("R");
 							tile = pos > 0 ? parts[0].substring(currentL + 2,currentL + 2 + pos + 1 ) : null;
 						}
-						if (tile != null) { 						
+						if (tile != null) {						
 							elements.add( parts[0].substring(0, currentL ));
 							elements.add( parts[0].substring(currentL, currentL + 2));						
 							elements.add( tile );
@@ -182,34 +182,34 @@ static final int MAX_POOL_SIZE = 500;
 				}				
 			}
 			
-		} else if (parts.length == 5) { 
+		} else if (parts.length == 5) {
 			// check index and pair for five element name pattern
 			String pair = null;
 			String index = null;
 			String yPos = parts[4]; 
 		    pos = parts[4].lastIndexOf("/");
-			if (pos > 0) { 
+			if (pos > 0) {
 				pair = parts[4].substring(pos); // put pair to 6th temporary
 				yPos = parts[4].substring(0, pos);
 			}
 			pos = yPos.lastIndexOf("#");				
-			if (pos > 0) { 								
+			if (pos > 0) {								
 				index = yPos.substring(pos); // put index	
 				yPos = yPos.substring(0, pos);	 // then change yPos value
 			}
 			
-			for (int i = 0; i < 4; i ++) { 
+			for (int i = 0; i < 4; i ++) {
 				elements.add(parts[i]); 
 			} 
 			
 			elements.add(yPos);
 			// return five elements or 7 elements
-			if (index != null || pair != null) { 
+			if (index != null || pair != null) {
 				elements.add(index);
 				elements.add(pair);		
 			}	
-		} else { 
-			for (int i = 0; i < parts.length; i ++) { 
+		} else {
+			for (int i = 0; i < parts.length; i ++) {
 				elements.add(parts[i]);						
 			}	
 		}	
@@ -217,18 +217,18 @@ static final int MAX_POOL_SIZE = 500;
 		return elements.toArray(new String[elements.size()]); 			
 	}
 	
-	public void parseReadId(String id) { 
+	public void parseReadId(String id) {
 		inputNo.incrementAndGet();
 		String readId = id.trim(); 
 		
 		// read id line may contain extra informtion, such as below from fastq file
 		// NB551151:83:HWC2VBGX9:4:13602:8142:7462 1:N:0:GGGGGG
 		// we have to remove all string after space	
-		try { 
+		try {
 			StringTokenizer st = new StringTokenizer(readId," \n\r\t");	
 			// only get first token as readId
 			readId = st.nextToken();
-		} catch ( NoSuchElementException e) { 
+		} catch ( NoSuchElementException e) {
 			// do nothing, just pass to next step. 
 		}
 		
@@ -238,7 +238,7 @@ static final int MAX_POOL_SIZE = 500;
 							
 		boolean isUpdated = false; 
 			 
-		switch ( pattern ) { 		
+		switch ( pattern ) {		
 			case NoColon : // do nothing			
 			case NoColon_NUN: // do nothing
 				break;
@@ -277,7 +277,7 @@ static final int MAX_POOL_SIZE = 500;
 		   case FourColon_OlderIllumina:
 				// FourColon_OlderIllumina("<InstrumentS>:<lane>:<tile>:<X Pos>:<Y Pos><#index></pair>"),
 				XmlUtils.updateMapWithLimit(indexes, elements[5],TALLY_SIZE);		
-				if (elements[6] != null) { 
+				if (elements[6] != null) {
 					XmlUtils.updateMapWithLimit(pairs, elements[6],TALLY_SIZE);	
 				} 
 				// no break here, below code work for both FourColon_OlderIllumina and FourColon_OlderIlluminaWithoutIndex
@@ -314,28 +314,28 @@ static final int MAX_POOL_SIZE = 500;
 	 * @param readId is the BAM or fastq read id
 	 * @param isUpdated should set to true if the readId is first time appear
 	 */
-	private void select2Queue( String readId, boolean isUpdated ) { 
+	private void select2Queue( String readId, boolean isUpdated ) {
 				
 		// record the first Qname for iron
-		if (  isUpdated  &&  poolUniq.size() < MAX_POOL_SIZE / 2 ) { 	
+		if (  isUpdated  &&  poolUniq.size() < MAX_POOL_SIZE / 2 ) {	
 			poolUniq.add(readId);	
 			return;
 		} 	
 		
-		if ( inputNo.get() <= 10) { 
+		if ( inputNo.get() <= 10) {
 			//  record first 10 QNAME
 			poolRandom.add(readId);		
-		} else if (inputNo.get() <= 1000 ) { 
+		} else if (inputNo.get() <= 1000 ) {
 			//  1% of first 1000 QNAME, that is max of 10
 			if (inputNo.get() % 100 == 11 ) {
 				poolRandom.add(readId);
 			}
-		} else if (poolRandom.size() < MAX_POOL_SIZE) { 	
+		} else if (poolRandom.size() < MAX_POOL_SIZE) {	
 			//  1/10000 of first 5M, that is max of 500
 			if ((inputNo.get() % 1000 == 999 ) && (rd.nextInt(10 ) == 1)) {
 				poolRandom.add(readId);			
 			}
-		} else  if ((inputNo.get() % 100000 == 99999 ) && (rd.nextInt(10) > 5)) { 
+		} else  if ((inputNo.get() % 100000 == 99999 ) && (rd.nextInt(10) > 5)) {
 			//  after 5Mth random (5/M)replace to above pool with 	
 			int pos = rd.nextInt( poolRandom.size() - 1);
 			poolRandom.set(pos, readId);					
@@ -343,7 +343,7 @@ static final int MAX_POOL_SIZE = 500;
 
 	}
 	
-	public long getInputReadNumber() { 
+	public long getInputReadNumber() {
 		return inputNo.get();
 	}
 	
@@ -354,12 +354,12 @@ static final int MAX_POOL_SIZE = 500;
 	 * @param ele is the start element to store the children branch information
 	 */
 		
-	public void toXml(Element ele) { 		
+	public void toXml(Element ele) {		
 		
 		Element element = XmlUtils.createMetricsNode(ele, "qnameInfo", new Pair<String, Number>(ReadGroupSummary.READ_COUNT, getInputReadNumber()));
 		XmlUtils.outputTallyGroup( element,  "QNAME Format", patterns , false , true);
-		for (int i = 0; i < columns.length; i ++) { 
-			if (columns[i].size() > 0) { 
+		for (int i = 0; i < columns.length; i ++) {
+			if (columns[i].size() > 0) {
 				XmlUtils.outputTallyGroup( element,  "Element" + (i + 1), columns[i] , false, true );
 			}
  		}
@@ -378,7 +378,7 @@ static final int MAX_POOL_SIZE = 500;
 		element = XmlUtils.createMetricsNode(ele, "qnameExample", null);
 		int size = Math.min(20,poolRandom.size());
 		element.appendChild(ele.getOwnerDocument().createComment(size + " QNAMEs are listed here, which are picked up randomly"));
-		for ( int i = 0; i < size ; i ++ ) { 
+		for ( int i = 0; i < size ; i ++ ) {
 			// in case there is only one element in the pool (unit test)
 			int pos = poolRandom.size() > 1 ? rd.nextInt( poolRandom.size() - 1) : 0 ;
 			XmlUtils.outputValueNode(element, poolRandom.get(pos), 1);

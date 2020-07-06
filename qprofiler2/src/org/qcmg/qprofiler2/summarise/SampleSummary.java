@@ -23,7 +23,7 @@ import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Element;
 
-public class SampleSummary { 	
+public class SampleSummary {
 	public static final String formats = "formats";
 	public static final String values = "values";
 	
@@ -57,7 +57,7 @@ public class SampleSummary {
 	 * @param dp is the value of DP from VCF format field
 	 * @param map is the pair of additional field from VCF format field
 	 */
-	public static void incrementGTAD(SVTYPE type,String gt, String ad, String dp, Map<String, QCMGAtomicLongArray> map) { 	
+	public static void incrementGTAD(SVTYPE type,String gt, String ad, String dp, Map<String, QCMGAtomicLongArray> map) {
 		
 		if ( ad == null || ad.contains(".") ||  gt == null || gt.contains(".")  ||  gt.equals("0/0") || gt.equals("0|0") ) {
 				return;		
@@ -137,7 +137,7 @@ public class SampleSummary {
 		
 		List<String> orderedGTs = new ArrayList<>( gts );
 		// orderedGTs.sort(null);
-		for (SVTYPE type : SVTYPE.values()) { 	
+		for (SVTYPE type : SVTYPE.values()) {
 			// only output non zero value
 			AtomicLong totalAL = summary.get( type.name());
 			if ( null == totalAL) {
@@ -158,7 +158,7 @@ public class SampleSummary {
 					if (tran.isTranstion() &&  summary.get(type.name()  + tran.name()) != null) { 
 						tiFreq.put(tran.toString(), summary.get(type.name() + tran.name()));
 						sumTi += summary.get(type.name() + tran.name()).get();
-					} else if ( tran.isTransversion() &&  summary.get(type.name() + tran.name()) != null) { 					 
+					} else if ( tran.isTransversion() &&  summary.get(type.name() + tran.name()) != null) {				 
 						tvFreq.put(tran.toString(), summary.get(type.name() + tran.name()));	
 						sumTv += summary.get(type.name() + tran.name()).get();
 					}
@@ -181,7 +181,7 @@ public class SampleSummary {
 			XmlUtils.outputTallyGroup( reportE1 , genotype, gtvalues, true , true);
 
 			QCMGAtomicLongArray array = summaryAD.get(type.name());
-			if (array != null ) { 					
+			if (array != null ) {				
 				Element cateEle = XmlUtils.outputBins(reportE1, VAF, array.toMap(), (100 / altBinSize));
 				if (cateEle.hasChildNodes()) { 
 					XmlUtils.addCommentChild(cateEle, "Each closedBin list the variant number belonging to variant allele frequency region ( start%, end% ].");

@@ -30,16 +30,16 @@ import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.qprofiler2.Summarizer;
 import org.qcmg.qprofiler2.SummaryReport;
 
-public class FastqSummarizer implements Summarizer { 
+public class FastqSummarizer implements Summarizer {
 	
 	private static final QLogger logger = QLoggerFactory.getLogger(FastqSummarizer.class);
 	
 	 //  default constructor
-	public FastqSummarizer() { }	
+	public FastqSummarizer() {}	
 	
 	
 	@Override
-	public SummaryReport summarize(String file, String index) throws Exception { 
+	public SummaryReport summarize(String file, String index) throws Exception {
 				
 		 //  create the SummaryReport
 		FastqSummaryReport fastqSummaryReport = new FastqSummaryReport();
@@ -47,14 +47,14 @@ public class FastqSummarizer implements Summarizer {
 		fastqSummaryReport.setStartTime(DateUtils.getCurrentDateAsString());
 		
 		long recordsParsed = 0;
-		try (FastqReader reader =  new FastqReader(new File(file))) { 
-			for (FastqRecord record : reader) { 
-				if (null != record) { 
+		try (FastqReader reader =  new FastqReader(new File(file))) {
+			for (FastqRecord record : reader) {
+				if (null != record) {
 					
 					fastqSummaryReport.parseRecord(record);
 					recordsParsed = fastqSummaryReport.getRecordsInputed();
 					
-					if (recordsParsed % (FEEDBACK_LINES_COUNT) == 0) { 
+					if (recordsParsed % (FEEDBACK_LINES_COUNT) == 0) {
 						logger.info("records parsed: " + (recordsParsed / FEEDBACK_LINES_COUNT) + "M");
 					}
 				}

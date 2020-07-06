@@ -8,10 +8,10 @@ import org.qcmg.qprofiler2.util.XmlUtils;
 import htsjdk.samtools.SAMRecord;
 import org.w3c.dom.Element;
 
-public class PairSummary { 		
+public class PairSummary {
 	public final Pair type;
 	public final Boolean isProperPair; 
-	public PairSummary( Pair pair, boolean isProper) { 
+	public PairSummary( Pair pair, boolean isProper) {
 		this.type = pair; 
 		this.isProperPair = isProper;
 	}
@@ -39,19 +39,19 @@ public class PairSummary {
 	AtomicLong firstOfPairNum  = new AtomicLong();
 	AtomicLong secondOfPairNum  = new AtomicLong();
 				
-	public long getFirstOfPairCounts() { 
+	public long getFirstOfPairCounts() {
 		return firstOfPairNum.get(); 
 	}
 	
-	public long getSecondOfPairCounts() { 
+	public long getSecondOfPairCounts() {
 		return secondOfPairNum.get(); 
 	}
 	
-	public QCMGAtomicLongArray getoverlapCounts() { 
+	public QCMGAtomicLongArray getoverlapCounts() {
 		return overlapBase; 
 	}
 	
-	public QCMGAtomicLongArray getTLENCounts() { 
+	public QCMGAtomicLongArray getTLENCounts() {
 		return tLenOverall; 
 	}
 				
@@ -61,8 +61,8 @@ public class PairSummary {
 	 * it's tLen, overlap information will be collected. 
 	 * @param record is the paired reads
 	 */
-	public void parse(SAMRecord record ) { 	
-		if ( !record.getReadPairedFlag()  ) { 
+	public void parse(SAMRecord record ) {	
+		if ( !record.getReadPairedFlag()  ) {
 			return; 
 		}
 		
@@ -75,17 +75,17 @@ public class PairSummary {
 		int tLen =  record.getInferredInsertSize();			
 	
 		// normally bam reads are mapped, if the mate is missing, we still count it to pair but no detailed pair` information
-		if ( record.getMateUnmappedFlag() ) { 
+		if ( record.getMateUnmappedFlag() ) {
 			mateUnmapped.incrementAndGet();  
 			return;  
-		} else if ( !record.getReferenceName().equals( record.getMateReferenceName()) && record.getFirstOfPairFlag()) { 
+		} else if ( !record.getReferenceName().equals( record.getMateReferenceName()) && record.getFirstOfPairFlag()) {
 			// pair from different reference, only look at first pair to avoid double counts			
 			diffRef.incrementAndGet();	
 			return; 
 		}	
 							
  		// to avoid double counts, we only select one of Pair: tLen > 0 or firstOfPair with tLen==0;
- 		if ( tLen < 0 || (tLen == 0 && !record.getFirstOfPairFlag()) ) { 
+ 		if ( tLen < 0 || (tLen == 0 && !record.getFirstOfPairFlag()) ) {
  			return;
   		}
 		
@@ -95,21 +95,21 @@ public class PairSummary {
 			tLenOverall.increment(tLen);
 		}
 		// first of Pair with tLen == 0
-		if ( tLen == 0 ) { 
+		if ( tLen == 0 ) {
 			zeroTlen.incrementAndGet();
 			return;
 		}
 		
 		// classify tlen groups
 		int	overlap = BwaPair.getOverlapBase( record );
-		if ( overlap > 0 ) { 
+		if ( overlap > 0 ) {
 			overlapBase.increment(overlap);
 			tLenOverlap.increment(tLen);			
-		} else if ( tLen < smallTlenValue  ) { 
+		} else if ( tLen < smallTlenValue  ) {
 			near.incrementAndGet();	
-		} else if ( tLen < bigTlenValue ) { 
+		} else if ( tLen < bigTlenValue ) {
 			far.incrementAndGet();	
-		} else { 
+		} else {
 			//must be record.getInferredInsertSize() >= bigTlenValue
 			bigTlen.incrementAndGet();
 		}
@@ -128,7 +128,7 @@ public class PairSummary {
 	 * @param parent element
 	 */
 	
-	void toSummaryXml(Element parent  ) { 	
+	void toSummaryXml(Element parent  ) {	
 		long overlapPair = overlapBase.toMap().values().stream().mapToLong(e -> e.get()).reduce(0, (x,y) -> x + y);
 		long pairCoutns = tLenOverall.toMap().values().stream().mapToLong(e -> e.get()).reduce(0, (x,y) -> x + y);
 	

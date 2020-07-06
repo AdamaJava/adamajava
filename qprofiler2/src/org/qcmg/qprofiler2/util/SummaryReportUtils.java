@@ -16,17 +16,17 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import org.qcmg.common.model.QCMGAtomicLongArray;
 
-public class SummaryReportUtils { 
+public class SummaryReportUtils {
 
 	/**
 	 * 
 	 * @param map of counts for each possible value at specified cycle
 	 * @return sum of counts for all possible value at specified cycle
 	 */
-	public static <T> long getCountOfMapValues(Map<T, AtomicLong> map) { 
+	public static <T> long getCountOfMapValues(Map<T, AtomicLong> map) {
 		long count = 0;
-		if (null != map) { 
-			for (AtomicLong ml : map.values()) { 
+		if (null != map) {
+			for (AtomicLong ml : map.values()) {
 				count += ml.get();
 			}
 		}
@@ -38,10 +38,10 @@ public class SummaryReportUtils {
 	 * @param data read base
 	 * @param array increment(number of invalid char)
 	 */
-	public static void tallyBadReadsAsString(byte[] data, QCMGAtomicLongArray array) { 
-		if (null != data) { 
+	public static void tallyBadReadsAsString(byte[] data, QCMGAtomicLongArray array) {
+		if (null != data) {
 			int count = 0;
-			for (byte b : data) { 
+			for (byte b : data) {
 				if (isInValid((char) b)) {
 					count++;
 				}
@@ -50,7 +50,7 @@ public class SummaryReportUtils {
 		}
 	}
 	
-	private static boolean isInValid(char c) { 
+	private static boolean isInValid(char c) {
 		return c == '.' || c == 'N';
 	}
 	
@@ -60,10 +60,10 @@ public class SummaryReportUtils {
 	 * 				FastqRecord.getBaseQualities() and samRecord.getBaseQualities() return array already -33
 	 * @param array an array to storre the bad base count for each bam record
 	 */
-	public static void tallyQualScores(byte [] data, QCMGAtomicLongArray array) { 
-		if (null != data) { 
+	public static void tallyQualScores(byte [] data, QCMGAtomicLongArray array) {
+		if (null != data) {
 			int countUnderTen = 0;
-			for (byte b : data) { 
+			for (byte b : data) {
 				// When you do a bitwise AND of 0xFF and any value from 0 to 255, the result is the exact same as the value. 
 				// And if any value higher than 255 still the result will be within 0-255.
 				if ((b & 0xFF) < 10) {
@@ -74,7 +74,7 @@ public class SummaryReportUtils {
 		}
 	}
 	
-	public static class TallyStats { 
+	public static class TallyStats {
 		private long min;
 		private long max;
 		private long mean;
@@ -88,13 +88,13 @@ public class SummaryReportUtils {
 		 * @param array is the  read counts at each array index position
 		 * @return the minimum, maximum, mean, mode, medium, sum of array elements ,  sum of array elements multiply it's index position;
 		 */
-		public   TallyStats(QCMGAtomicLongArray array) { 
+		public   TallyStats(QCMGAtomicLongArray array) {
 							
 			long arrayLength = null != array ? array.length() : 0;			
 			long bases = 0;
 			long counts = 0;	
 			
-			for (int i = 0; i < arrayLength ; i++) { 
+			for (int i = 0; i < arrayLength ; i++) {
 				if (array.get(i) <= 0) {
 					continue;
 				}
@@ -106,24 +106,24 @@ public class SummaryReportUtils {
 			// to avoid aray.get(0) >= 0 since 1(counts)/2== 0(counts/2) == 0
 			long sum = 0; 
 			int medium = 0;
-			for (int i = 0; i < arrayLength; i++) { 
-				if (( sum += array.get(i)) > counts / 2 ) { 
+			for (int i = 0; i < arrayLength; i++) {
+				if (( sum += array.get(i)) > counts / 2 ) {
 					medium = i;  break; 
 				}
 			}
 			
 			// find the smallest non-zero value;
 			int min = 0;  
-			for (int i = 1; i < arrayLength; i ++) { 
-				if (array.get(i) > 0) { 
+			for (int i = 1; i < arrayLength; i ++) {
+				if (array.get(i) > 0) {
 					min  = i; break; 
 				}
 			}
 			
 			// find the biggest non-zero value;
 			int max = 0;  
-			for (int i = (int) (arrayLength - 1); i > 0; i --) { 
-				if (array.get(i) > 0) { 
+			for (int i = (int) (arrayLength - 1); i > 0; i --) {
+				if (array.get(i) > 0) {
 					max = i; 
 					break;  
 				}
@@ -132,8 +132,8 @@ public class SummaryReportUtils {
 			// mode is the number of read which length is most popular
 			int mode = 0;  
 			long highest = 0;
-			for (int i = 0; i < arrayLength ; i++) { 					
-				if (array.get(i) > highest) { 
+			for (int i = 0; i < arrayLength ; i++) {					
+				if (array.get(i) > highest) {
 					highest = array.get(i);
 					mode = i; 
 				}  	
@@ -148,11 +148,11 @@ public class SummaryReportUtils {
 			this.bases = bases;			
 		}
 			
-		public long getMin() { 
+		public long getMin() {
 			return min;
 		}
 		
-		public long getMax() { 
+		public long getMax() {
 			return max;
 		}
 		
@@ -160,15 +160,15 @@ public class SummaryReportUtils {
 			return mode;
 		}		
 		
-		public long getMedium() { 
+		public long getMedium() {
 			return medium;
 		}
 		
-		public long getMean() { 
+		public long getMean() {
 			return mean;
 		}
 		
-		public long getReadCounts() { 
+		public long getReadCounts() {
 			return counts;
 		}
 		

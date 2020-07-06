@@ -22,7 +22,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.qcmg.common.model.QCMGAtomicLongArray;
 
-public class PositionSummary { 
+public class PositionSummary {
 	public static final int BUCKET_SIZE = 1000000;
 	
 	private final AtomicInteger min;
@@ -41,7 +41,7 @@ public class PositionSummary {
 	 * @param position sets the first position value of this summary record to position
 	 * 
 	 */	
-	public PositionSummary(List<String> rgs) { 		
+	public PositionSummary(List<String> rgs) {		
 		// Natural order should only do once inside BamSummarizer2::createReport
 		readGroupIds = rgs; 
 		
@@ -53,15 +53,15 @@ public class PositionSummary {
 		}			
 	}
 	
-	public int getMin() { 
+	public int getMin() {
 		return min.intValue();
 	}
 	
-	public int getMax() { 
+	public int getMax() {
 		return max.intValue(); 
 	}
 	
-	public int getBinNumber() { 
+	public int getBinNumber() {
 		return (max.get() / BUCKET_SIZE) + 1;
 	}
 
@@ -69,10 +69,10 @@ public class PositionSummary {
 	 * 
 	 * @return the max read coverage based on the max coverage from each read group and each position
 	 */
-	public long getMaxRgCoverage() { 
-		if ( hasAddPosition  || maxRgs.isEmpty()) { 
+	public long getMaxRgCoverage() {
+		if ( hasAddPosition  || maxRgs.isEmpty()) {
 			maxRgs.clear();
-			for (int i = 0, length = (max.get() / BUCKET_SIZE) + 1; i < length ; i++) { 
+			for (int i = 0, length = (max.get() / BUCKET_SIZE) + 1; i < length ; i++) {
 				long[] rgCov = new long[rgCoverages.length];				
 				for (int j = 0; j < rgCoverages.length; j ++) {
 					rgCov[j] = rgCoverages[j].get(i);
@@ -91,7 +91,7 @@ public class PositionSummary {
 	 * @param floorValue
 	 * @return return the bin number which max readgroup coverage over the floorValue
 	 */
-	public int getBigBinNumber(final long floorValue) { 
+	public int getBigBinNumber(final long floorValue) {
 		if ( hasAddPosition  || maxRgs.isEmpty())  {
 			getMaxRgCoverage(); // caculate the maxRgs 
 		}		
@@ -99,19 +99,19 @@ public class PositionSummary {
 	}
 		
 		
-	public long getTotalCount() { 
+	public long getTotalCount() {
 		long count = 0;	
-		for (String rg : readGroupIds) { 
+		for (String rg : readGroupIds) {
 			count += getTotalCountByRg( rg );			
 		}		
 		return count;
 	}
 	
-	public long getTotalCountByRg(String rg) { 
+	public long getTotalCountByRg(String rg) {
 		// get nature order
 		int order = Collections.binarySearch( readGroupIds, rg, null);  
 		long count = 0;		 
-		for (int i = 0, max = getBinNumber() ; i < max ; i ++) { 							
+		for (int i = 0, max = getBinNumber() ; i < max ; i ++) {							
 			count += rgCoverages[order].get(i);
 		}
 		return count; 
@@ -121,11 +121,11 @@ public class PositionSummary {
 	 * Returns a map which holds the coverage of positions binned by millions
 	 * each element of Map is  bin_order, reads number on that bin from specified read group> 
 	 */	
-	public Map<Integer,  AtomicLong> getCoverageByRg( String rg) { 
+	public Map<Integer,  AtomicLong> getCoverageByRg( String rg) {
 		Map<Integer, AtomicLong> singleRgCoverage = new TreeMap<Integer, AtomicLong>();	
 		// get nature order
 		int order = Collections.binarySearch( readGroupIds, rg, null);  
-		for (int i = 0, max = getBinNumber() ; i < max ; i ++) { 								
+		for (int i = 0, max = getBinNumber() ; i < max ; i ++) {								
 			singleRgCoverage.put( i, new AtomicLong( rgCoverages[order].get(i)));
 		}
 		return singleRgCoverage;
@@ -137,13 +137,13 @@ public class PositionSummary {
 	 * 
 	 * @param position int relating to the position being added to the summary
 	 */
-	public void addPosition(final int position, String  rgid  ) { 
+	public void addPosition(final int position, String  rgid  ) {
 		
 		//  my attempt at a non-blocking updating of max
 		int tempMax = max.get();
-		if (position > tempMax) { 
-			for (;;) { 
-				if (position > tempMax) { 
+		if (position > tempMax) {
+			for (;;) {
+				if (position > tempMax) {
 					if (max.compareAndSet(tempMax, position)) {
 						break;
 					} else {
@@ -156,10 +156,10 @@ public class PositionSummary {
 		}
 		
 		//  and now min....
-		if (position < min.get()) { 
+		if (position < min.get()) {
 			int tempMin = min.get();
-			for (;;) { 
-				if (tempMin > position) { 
+			for (;;) {
+				if (tempMin > position) {
 					if (min.compareAndSet(tempMin, position)) {
 						break;
 					} else {

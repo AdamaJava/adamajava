@@ -24,7 +24,7 @@ import java.util.List;
 
 import org.w3c.dom.Element;
 
-public class QProfilerSummary { 
+public class QProfilerSummary {
 	private final List<SummaryReport> reports = new ArrayList<SummaryReport>();
 	private String startTime;
 	private String finishTime;
@@ -34,7 +34,7 @@ public class QProfilerSummary {
 	 * 
 	 * @param startTime String containing the time the reports started processing
 	 */
-	public void setStartTime(String startTime) { 
+	public void setStartTime(String startTime) {
 		this.startTime = startTime;
 	}
 	
@@ -43,7 +43,7 @@ public class QProfilerSummary {
 	 * 
 	 * @return execution start time for this report
 	 */
-	public String getStartTime() { 
+	public String getStartTime() {
 		return startTime;
 	}
 
@@ -52,25 +52,25 @@ public class QProfilerSummary {
 	 * 
 	 * @param finishTime String containing the time the reports finished processing
 	 */
-	public void setFinishTime(String finishTime) { 
+	public void setFinishTime(String finishTime) {
 		this.finishTime = finishTime;
 	}
 	
 	/**
-	 * Gets the finishTime
+	 * Gets the finishTime.
 	 * 
 	 * @return execution finish time for this report
 	 */
-	public String getFinishTime() { 
+	public String getFinishTime() {
 		return finishTime;
 	}
 
 	/**
-	 * Add SummaryReport objects to the reports collection
+	 * Add SummaryReport objects to the reports collection.
 	 * 
 	 * @param summaries List of SummaryReport objects to be added to the reports collection
 	 */
-	public void addSummaries( List<SummaryReport> summaries ) { 
+	public void addSummaries( List<SummaryReport> summaries ) {
 		if (null != summaries) {
 			reports.addAll(summaries);
 		}
@@ -82,9 +82,9 @@ public class QProfilerSummary {
 	 * @param parent Element parent element that is passed to the subsequent <code>SummartReport.toXml</code> calls
 	 * @see  org.qcmg.qprofiler2.SummaryReport#toXml(Element)
 	 */
-	public void toXml( Element parent ) { 
-		for (SummaryReport report : reports) { 
-			if ( null != report ) { 
+	public void toXml( Element parent ) {
+		for (SummaryReport report : reports) {
+			if ( null != report ) {
 				report.toXml( parent );
 			}
 		}

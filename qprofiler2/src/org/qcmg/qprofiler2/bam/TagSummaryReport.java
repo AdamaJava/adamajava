@@ -22,7 +22,7 @@ import htsjdk.samtools.SAMRecord.SAMTagAndValue;
 import htsjdk.samtools.SAMTagUtil;
 
 // for sam record tag information
-public class TagSummaryReport { 
+public class TagSummaryReport {
 
 	public static final int ADDI_TAG_MAP_LIMIT = 100;
 	public static final int errReadLimit  = 10;	
@@ -33,10 +33,10 @@ public class TagSummaryReport {
 	
 	//  TAGS		
 	@SuppressWarnings("unchecked")
-	final CycleSummary<Character>[] tagMDMismatchByCycle = new CycleSummary[] { new CycleSummary<Character>(BamSummaryReport.cc, 512), new CycleSummary<Character>(BamSummaryReport.cc, 512), new CycleSummary<Character>(BamSummaryReport.cc, 512)};	
-	private final QCMGAtomicLongArray[] mdRefAltLengthsForward = new QCMGAtomicLongArray[] { new QCMGAtomicLongArray(32), new QCMGAtomicLongArray(32), new QCMGAtomicLongArray(32)};	
-	private final QCMGAtomicLongArray[] mdRefAltLengthsReverse = new QCMGAtomicLongArray[] { new QCMGAtomicLongArray(32), new QCMGAtomicLongArray(32), new QCMGAtomicLongArray(32)};	
-    final QCMGAtomicLongArray[] allReadsLineLengths = new QCMGAtomicLongArray[] { new QCMGAtomicLongArray(1024), new QCMGAtomicLongArray(1024), new QCMGAtomicLongArray(1024)};
+	final CycleSummary<Character>[] tagMDMismatchByCycle = new CycleSummary[] {new CycleSummary<Character>(BamSummaryReport.cc, 512), new CycleSummary<Character>(BamSummaryReport.cc, 512), new CycleSummary<Character>(BamSummaryReport.cc, 512)};	
+	private final QCMGAtomicLongArray[] mdRefAltLengthsForward = new QCMGAtomicLongArray[] {new QCMGAtomicLongArray(32), new QCMGAtomicLongArray(32), new QCMGAtomicLongArray(32)};	
+	private final QCMGAtomicLongArray[] mdRefAltLengthsReverse = new QCMGAtomicLongArray[] {new QCMGAtomicLongArray(32), new QCMGAtomicLongArray(32), new QCMGAtomicLongArray(32)};	
+    final QCMGAtomicLongArray[] allReadsLineLengths = new QCMGAtomicLongArray[] {new QCMGAtomicLongArray(1024), new QCMGAtomicLongArray(1024), new QCMGAtomicLongArray(1024)};
 
 	private final ConcurrentMap<String, ConcurrentSkipListMap<String, AtomicLong>> additionalTags = new ConcurrentSkipListMap<>();
 	private final ConcurrentMap<String, ConcurrentSkipListMap<Character, AtomicLong>> additionalCharacterTags = new ConcurrentSkipListMap<>();
@@ -44,9 +44,9 @@ public class TagSummaryReport {
 	private long errMdReadNo = 0 ;	
 	private AtomicLong mdTagCounts = new AtomicLong();
 	
-	public void parseTAGs(final SAMRecord record )  { 
+	public void parseTAGs(final SAMRecord record )  {
 				
-		for ( SAMTagAndValue tag : record.getAttributes()) { 
+		for ( SAMTagAndValue tag : record.getAttributes()) {
 			if (tag.tag.equals("MD")) {
 				continue;
 			}
@@ -71,7 +71,7 @@ public class TagSummaryReport {
 						
 		// MD	 
 		String value = (String) record.getAttribute(md);
-		if (null != value) { 
+		if (null != value) {
 			mdTagCounts.incrementAndGet();
 			byte[] readBases = record.getReadBases();
 			boolean reverseStrand = record.getReadNegativeStrandFlag();		
@@ -92,23 +92,23 @@ public class TagSummaryReport {
 		}		
 	}
 	
-	public void toXml(Element parent) { 
+	public void toXml(Element parent) {
 				
 		// "tags:MD:Z" mismatchbycycle
-		if ( mdTagCounts.get() > 0) { 
+		if ( mdTagCounts.get() > 0) {
 			Element ele = XmlUtils.createMetricsNode(parent, "tags:MD:Z", 
 					new Pair<String, Number>(ReadGroupSummary.READ_COUNT, mdTagCounts.get()));
-			for (int order = 0; order < 3; order ++) { 
+			for (int order = 0; order < 3; order ++) {
 				// so choose 1st cycle base counts as read count, since all read at least have one base. 
 				tagMDMismatchByCycle[order].toXml( ele, BamSummaryReport.sourceName.get(order), allReadsLineLengths[order].get(1) );
 				
 			}
 					
-			for (String strand : new String[] { "ForwardStrand", "ReverseStrand" }) { 				
-				for (int order = 0; order < 3; order ++) { 				
+			for (String strand : new String[] {"ForwardStrand", "ReverseStrand" }) {				
+				for (int order = 0; order < 3; order ++) {				
 					Map<String, AtomicLong> mdRefAltLengthsString = new HashMap<>();
 					QCMGAtomicLongArray mdRefAltLengths = (strand.contains("Forward"))? mdRefAltLengthsForward[order] : mdRefAltLengthsReverse[order];				
-					for (int m = 0 ; m < mdRefAltLengths.length() ; m++) { 
+					for (int m = 0 ; m < mdRefAltLengths.length() ; m++) {
 						long l = mdRefAltLengths.get(m);
 						if (l <= 0)  {
 							continue;
@@ -122,18 +122,18 @@ public class TagSummaryReport {
 		}
 		
 		//  additional tags includes RG
-		for (Entry<String,  ConcurrentSkipListMap<String, AtomicLong>> entry : additionalTags.entrySet()) { 			
+		for (Entry<String,  ConcurrentSkipListMap<String, AtomicLong>> entry : additionalTags.entrySet()) {			
 			outputTag(parent, entry.getKey(),  entry.getValue());
 		}	
 		
 		//  additional tagsChar
-		for (Entry<String,  ConcurrentSkipListMap<Character, AtomicLong>> entry : additionalCharacterTags.entrySet()) { 
+		for (Entry<String,  ConcurrentSkipListMap<Character, AtomicLong>> entry : additionalCharacterTags.entrySet()) {
 			outputTag(parent,  entry.getKey(),  entry.getValue());		
 		}
 	}
 	
 	
-	private <T> void outputTag(Element ele, String tag,  Map<T, AtomicLong> tallys) { 
+	private <T> void outputTag(Element ele, String tag,  Map<T, AtomicLong> tallys) {
 	
 		long counts = tallys.values().stream().mapToLong(x -> x.get()).sum();
 		

@@ -9,7 +9,7 @@
 
 package org.qcmg.qprofiler2;
 
-public interface Summarizer { 
+public interface Summarizer {
 	public static final int FEEDBACK_LINES_COUNT = 1000000;	
 	
 	/**
@@ -21,7 +21,7 @@ public interface Summarizer {
 	 * @throws Exception
 	 */
 	public SummaryReport summarize(String input, String index) throws Exception;
-	public default SummaryReport summarize(String input) throws Exception { 
+	public default SummaryReport summarize(String input) throws Exception {
 		return summarize(input, null);
 	}	
 	

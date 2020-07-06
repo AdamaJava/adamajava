@@ -8,10 +8,10 @@ import org.qcmg.picard.util.SAMUtils;
 import org.qcmg.qprofiler2.summarise.CycleSummary;
 import htsjdk.samtools.Cigar;
 
-public class CycleSummaryUtils { 
+public class CycleSummaryUtils {
 	
 	public static String tallyMDMismatches(final String mdData, Cigar cigar, final CycleSummary<Character> tagMDMismatchByCycle, 
-			final byte[] readBases, final boolean reverse, QCMGAtomicLongArray mdRefAltLengthsForward, QCMGAtomicLongArray mdRefAltLengthsReverse) { 
+			final byte[] readBases, final boolean reverse, QCMGAtomicLongArray mdRefAltLengthsForward, QCMGAtomicLongArray mdRefAltLengthsReverse) {
 		
 		if (null == mdData) {
 			return null; 
@@ -27,19 +27,19 @@ public class CycleSummaryUtils {
 				
 		boolean deletion = false;
 		int position = 1;
-		for (int i = 0, size = mdData.length() ; i < size ; ) { 
-			if (Character.isDigit(mdData.charAt(i))) { 								
+		for (int i = 0, size = mdData.length() ; i < size ; ) {
+			if (Character.isDigit(mdData.charAt(i))) {								
 				int numberLength = 1;
-				while (++i < size && Character.isDigit(mdData.charAt(i))) { 
+				while (++i < size && Character.isDigit(mdData.charAt(i))) {
 					numberLength++;
 				}
 				position += Integer.parseInt(mdData.substring(i - numberLength, i));					
-			} else if ( '^' == mdData.charAt(i) ) { 
+			} else if ( '^' == mdData.charAt(i) ) {
 				deletion = true;
 				i++;
-			} else if (isInValidExtended(mdData.charAt(i))) { 
-				if (deletion ) { 
-					while (++i < size && isInValidExtendedInDelete(mdData.charAt(i))) { }
+			} else if (isInValidExtended(mdData.charAt(i))) {
+				if (deletion ) {
+					while (++i < size && isInValidExtendedInDelete(mdData.charAt(i))) {}
 					deletion = false; 				
 					continue; 
 				}
@@ -52,12 +52,12 @@ public class CycleSummaryUtils {
 				
 				char readBase = (char)readBases[position - 1 + additionalOffset];
 				char refBase = mdData.charAt(i);					
-				if (reverse) { 
+				if (reverse) {
 					readBase = BaseUtils.getComplement( readBase );
 					refBase = BaseUtils.getComplement( refBase );			 
 				}
 				
-				if (refBase == readBase) { 
+				if (refBase == readBase) {
 					return "Found refBase == altBase, md: " + mdData + " , cigar: " + cigar.toString() + 
 							", seq: " + new String(readBases,  StandardCharsets.UTF_8) + ", reverse strand: " + reverse; 
 				}
@@ -95,7 +95,7 @@ public class CycleSummaryUtils {
 	 * @param allReadsLineLengths
 	 * @return the number of cycle with big mismatch rate after combining all strand reads mismatch information
 	 */
-	public static int getBigMDCycleNo(CycleSummary<Character>[] mdCycles, float percent, QCMGAtomicLongArray[] allReadsLineLengths ) { 
+	public static int getBigMDCycleNo(CycleSummary<Character>[] mdCycles, float percent, QCMGAtomicLongArray[] allReadsLineLengths ) {
 		if (  mdCycles.length <= 0 ) {
 			return 0; 
 		}
@@ -107,9 +107,9 @@ public class CycleSummaryUtils {
 		}
 		
 		int mismatchingCycles = 0;
-		for (Integer cycle : cycles) { 
+		for (Integer cycle : cycles) {
 			long count = 0, allReadsCount = 0;
-			for (int i = 0; i < mdCycles.length; i++) { 
+			for (int i = 0; i < mdCycles.length; i++) {
 				count += SummaryReportUtils.getCountOfMapValues(mdCycles[i].getValue(cycle));	
 				allReadsCount += allReadsLineLengths[i].get(cycle);
 			}					
@@ -121,11 +121,11 @@ public class CycleSummaryUtils {
 		return mismatchingCycles; 
 	}
   	
-	private static boolean isInValidExtended(char c) { 
+	private static boolean isInValidExtended(char c) {
 		return c == 'A' || c == 'C' || c == 'G' || c == 'T' || c == 'N';
 	}
 	
-	private static boolean isInValidExtendedInDelete(char c) { 
+	private static boolean isInValidExtendedInDelete(char c) {
 		if (! isInValidExtended(c)) {
 			return c == 'M' || c == 'R';
 		} else {
@@ -133,8 +133,8 @@ public class CycleSummaryUtils {
 		}
 	}
 		
-	public static int getIntFromChars(final char ref, final char alt) { 
-		switch (ref) { 
+	public static int getIntFromChars(final char ref, final char alt) {
+		switch (ref) {
 			case 'A':
 				return 'A' == alt ? 1 : ('C' == alt ? 2 : ('G' == alt ? 3 : ('T' == alt ? 4 : 5)));
 			case 'C':
@@ -150,8 +150,8 @@ public class CycleSummaryUtils {
 		
 	}
 	
-	public static String getStringFromInt(final int i) { 
-		switch (i) { 
+	public static String getStringFromInt(final int i) {
+		switch (i) {
 			//  A's
 			case 1: return "A>A";
 			case 2: return "A>C";
