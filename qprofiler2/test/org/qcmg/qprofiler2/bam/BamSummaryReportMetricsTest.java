@@ -34,15 +34,15 @@ import org.qcmg.qprofiler2.util.XmlUtils;
  * check <bamMetrics>...<sequenceMetrics name="..." readCount="...">.
  *
  */
-public class BamSummaryReportMetricsTest { 
+public class BamSummaryReportMetricsTest {
 	@ClassRule
 	public static  TemporaryFolder testFolder = new TemporaryFolder();
 	
 	static Element root; 
 	
 	@BeforeClass
-    public static void beforeClassFunction() {        
-		try { 
+    public static void beforeClassFunction() {
+		try {
 			root = XmlElementUtils.createRootElement("root",null);
 			File input = testFolder.newFile("testInputFile.sam");
 			PairSummaryTest.createPairInputFile(input);
@@ -50,7 +50,7 @@ public class BamSummaryReportMetricsTest {
 			// BamSummarizer2 bs = new BamSummarizer2( 200, null, true);
 			BamSummaryReport sr = (BamSummaryReport) bs.summarize(input.getAbsolutePath()); 		
 			sr.toXml(root);	
-		} catch (Exception e) { 
+		} catch (Exception e) {
 			fail("can't create root element!");
 		
 		} 
@@ -60,7 +60,7 @@ public class BamSummaryReportMetricsTest {
 	 * it take all inputed reads and then count the reads with nominated tag value; 
 	 */
 	@Test
-	public void tagTest() { 
+	public void tagTest() {
 		
 		Element bamSummaryE = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.BAM_SUMMARY).get(0);
 		
@@ -69,7 +69,7 @@ public class BamSummaryReportMetricsTest {
 				.filter(k -> k.getAttribute(XmlUtils.NAME).equals("tags:RG:Z")).findFirst().get();
 		
 		int scount = 0;
-		for (Element ele1 : XmlElementUtils.getOffspringElementByTagName(ele, XmlUtils.TALLY)) { 
+		for (Element ele1 : XmlElementUtils.getOffspringElementByTagName(ele, XmlUtils.TALLY)) {
 			String rg = ele1.getAttribute(XmlUtils.VALUE);
 			
 			// bamSummary			
@@ -85,11 +85,11 @@ public class BamSummaryReportMetricsTest {
 		// get tag read counts from grep command		
 		int tagMetriNo = (int) XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.SEQUENCE_METRICS).stream()
 				.filter(k -> k.getAttribute(XmlUtils.NAME).startsWith("tags:")).count();
-		String[] tags = new String[] { "tags:MD:Z", "tags:AS:i","tags:CQ:Z", "tags:CS:Z", "tags:HI:i" ,"tags:NH:i" , "tags:NM:i" };	
+		String[] tags = new String[] {"tags:MD:Z", "tags:AS:i","tags:CQ:Z", "tags:CS:Z", "tags:HI:i" ,"tags:NH:i" , "tags:NM:i" };	
 		assertEquals(tags.length+1, tagMetriNo);
 		
-		int[] readCounts = new int[] { 6, 6, 12, 12, 6, 6, 6 };		
-		for (int i = 0; i < tags.length; i ++) { 
+		int[] readCounts = new int[] {6, 6, 12, 12, 6, 6, 6 };		
+		for (int i = 0; i < tags.length; i ++) {
 			String tag = tags[i];
 			ele = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.SEQUENCE_METRICS).stream()
 					.filter(k -> k.getAttribute(XmlUtils.NAME).equals(tag)).findFirst().get();
@@ -103,12 +103,12 @@ public class BamSummaryReportMetricsTest {
 	 * tLen take properpair or notProperpair as input, due to RAM limitation, only count pair with tLen < 5000
 	 */
 	@Test
-	public void tLenTest() { 	
+	public void tLenTest() {	
 		Element tagE = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.TLEN).get(0);
-		for (String rg : new String[] { "1959T", "1959N", "unkown_readgroup_id" }) { 
+		for (String rg : new String[] {"1959T", "1959N", "unkown_readgroup_id" }) {
 			Element ele =getElementByFirst(tagE, "readGroup",  k -> k.getAttribute(XmlUtils.NAME).equals(rg));						
 			
-			// for (String mName: new String[] { "tLenInProperPair", "overlapBaseInProperPair" ,    })
+			// for (String mName: new String[] {"tLenInProperPair", "overlapBaseInProperPair" ,    })
 			// "tLenInProperPair" vs bamSummary
 			Element ele1 = getElementByFirst(ele, XmlUtils.SEQUENCE_METRICS,  k -> k.getAttribute(XmlUtils.NAME).equals("tLenInProperPair"));
 			String readCount = ele1 == null ? "0" : ele1.getAttribute(ReadGroupSummary.PAIR_COUNT);
@@ -143,10 +143,10 @@ public class BamSummaryReportMetricsTest {
 	 * <bamMetrics><CIGAR><readGroups>...<sequenceMetrics readCount="6">
 	 */
 	@Test
-	public void cigarTest() { 
+	public void cigarTest() {
 		Element summaryE = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.BAM_SUMMARY).get(0);			
 		Element tagE = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.CIGAR).get(0);
-		for (String rg : new String[] { "1959T", "1959N", "unknown_readgroup_id" }) { 
+		for (String rg : new String[] {"1959T", "1959N", "unknown_readgroup_id" }) {
 			// get counts from <bamMetrics>
 			Element ele =getElementByFirst(tagE, "readGroup",  k -> k.getAttribute(XmlUtils.NAME).equals(rg));
 			String readCount = XmlElementUtils.getChildElement(ele,  XmlUtils.SEQUENCE_METRICS, 0).getAttribute(ReadGroupSummary.READ_COUNT);
@@ -182,12 +182,12 @@ public class BamSummaryReportMetricsTest {
 	 * 
 	 */
 	@Test
-	public void rnameQualSeqTest() { 
+	public void rnameQualSeqTest() {
 		String properCounts = getProperReadCount(null);
 		int freq = 0;
-		for (String tagName : new String[] { XmlUtils.RNAME, XmlUtils.SEQ , XmlUtils.QUAL }) { 
+		for (String tagName : new String[] {XmlUtils.RNAME, XmlUtils.SEQ , XmlUtils.QUAL }) {
 			Element tagE = XmlElementUtils.getOffspringElementByTagName(root, tagName).get(0);
-			for (Element ele : XmlElementUtils.getChildElementByTagName(tagE, XmlUtils.SEQUENCE_METRICS)) { 
+			for (Element ele : XmlElementUtils.getChildElementByTagName(tagE, XmlUtils.SEQUENCE_METRICS)) {
 				
 				assertEquals( ele.getAttribute(ReadGroupSummary.READ_COUNT),properCounts);
 				freq ++;
@@ -206,12 +206,12 @@ public class BamSummaryReportMetricsTest {
 	 * 
 	 */
 	@Test
-	public void flagMapqTest() { 
+	public void flagMapqTest() {
 		Element ele = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.BAM_SUMMARY).get(0);						
 		ele = getElementByFirst(ele, XmlUtils.VALUE,  k -> k.getAttribute(XmlUtils.NAME).equals("Total reads including discarded reads"));
 		String totalCount = ele.getTextContent();
 		
-		for (String tagName : new String[] { XmlUtils.FLAG, XmlUtils.MAPQ }) { 
+		for (String tagName : new String[] {XmlUtils.FLAG, XmlUtils.MAPQ }) {
 			ele = XmlElementUtils.getOffspringElementByTagName(root, tagName).get(0);			
 			String readCount = XmlElementUtils.getChildElement(ele,  XmlUtils.SEQUENCE_METRICS, 0).getAttribute(ReadGroupSummary.READ_COUNT);
 						
@@ -228,11 +228,11 @@ public class BamSummaryReportMetricsTest {
 	 * <sequenceMetrics name="properPairs">...<<value name="firstOfPairs"> and <value name="secondOfPairs">
 	 */
 	@Test
-	public void qNameTest() { 
+	public void qNameTest() {
 		Element nameE = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.QNAME).get(0);
 		Element bamSummaryE = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.BAM_SUMMARY).get(0);
 		
-		for (String rg : new String[] { "1959T", "1959N", "unknown_readgroup_id" }) { 			
+		for (String rg : new String[] {"1959T", "1959N", "unknown_readgroup_id" }) {			
 			Element ele =getElementByFirst(nameE, "readGroup",  k -> k.getAttribute(XmlUtils.NAME).equals(rg));
 			String count1 = XmlElementUtils.getChildElement(ele,  XmlUtils.SEQUENCE_METRICS, 0).getAttribute(ReadGroupSummary.READ_COUNT);
 			
@@ -252,11 +252,11 @@ public class BamSummaryReportMetricsTest {
 	 * <sequenceMetrics name="properPairs">...<<value name="firstOfPairs"> and <value name="secondOfPairs">
 	 */
 	@Test
-	public void qNamePosTest() { 
+	public void qNamePosTest() {
 
 		Element tagE = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.POS).get(0);
 		
-		for (String rg : new String[] { "1959T", "1959N", "unknown_readgroup_id" }) { 			
+		for (String rg : new String[] {"1959T", "1959N", "unknown_readgroup_id" }) {			
 			Element ele =getElementByFirst(tagE, "readGroup",  k -> k.getAttribute(XmlUtils.NAME).equals(rg));
 		   
 			// test pos element for good reads only
@@ -266,7 +266,7 @@ public class BamSummaryReportMetricsTest {
 		}						
 	}
 		
-	private Element getElementByFirst(Element parent, String tagName, Predicate<? super Element> predicate ) { 
+	private Element getElementByFirst(Element parent, String tagName, Predicate<? super Element> predicate ) {
 				
 		return XmlElementUtils.getOffspringElementByTagName(parent, tagName).stream().filter( predicate).findFirst().orElse(null);		 
 	}
@@ -276,31 +276,31 @@ public class BamSummaryReportMetricsTest {
 	 * @param rg is readGroup. null means all readGroups
 	 * @return the properPaired read count or notPaired read count
 	 */
-	private String getProperReadCount(String rg) { 		
+	private String getProperReadCount(String rg) {		
 		int sum = getSummaryRgCounts(rg,"properPairs", null, k -> k.getAttribute(XmlUtils.NAME).equals("firstOfPairs") | k.getAttribute(XmlUtils.NAME).equals("secondOfPairs") );
 		sum +=  getSummaryRgCounts(rg, "reads", null,  k -> k.getAttribute(XmlUtils.NAME).equals("unpairedReads") );
 		return String.valueOf(sum); 		
 	}
 	
-	private int getSummaryRgCounts(String rg, String metricName, String variableName, Predicate<? super Element> filter) { 
+	private int getSummaryRgCounts(String rg, String metricName, String variableName, Predicate<? super Element> filter) {
 		
 		Element bamSummaryE = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.BAM_SUMMARY).get(0);
-		if (rg != null) { 
+		if (rg != null) {
 			bamSummaryE = getElementByFirst(bamSummaryE, "readGroup",  k -> k.getAttribute(XmlUtils.NAME).equals(rg));
 		}
 		List<Element> eles =  XmlElementUtils.getOffspringElementByTagName(bamSummaryE, XmlUtils.SEQUENCE_METRICS );
-		if ( metricName != null ) { 	
+		if ( metricName != null ) {	
 			eles = 	eles.stream().filter( k -> k.getAttribute(XmlUtils.NAME).equals( metricName ) ).collect( Collectors.toList());			
 		}
 		
 		int sum = 0;
-		for (Element ele : eles) { 
+		for (Element ele : eles) {
 			List<Element> eleVGs = XmlElementUtils.getOffspringElementByTagName( ele, XmlUtils.VARIABLE_GROUP );
-			if (variableName != null) { 
+			if (variableName != null) {
 				eleVGs = eleVGs.stream().filter( k -> k.getAttribute(XmlUtils.NAME).equals( variableName ) ).collect( Collectors.toList());			
 			}
 						
-			for (Element ele1 : eleVGs) { 
+			for (Element ele1 : eleVGs) {
 				sum+= XmlElementUtils.getOffspringElementByTagName(ele1, XmlUtils.VALUE).stream().filter( filter ) 
 						.mapToInt(k -> Integer.parseInt( k.getTextContent())).sum();
 			}
@@ -312,16 +312,16 @@ public class BamSummaryReportMetricsTest {
 	
 	
 	@Test
-	public void speedTest() throws IOException { 
+	public void speedTest() throws IOException {
 		List<String> myList  = new ArrayList<>();
 		
-		for (int i = 0; i < 101; i ++) { 
+		for (int i = 0; i < 101; i ++) {
 			myList.add(i + "::"+UUID.randomUUID().toString());
 		}
 		myList.sort( Comparator.comparing( String::toString ) );
 		
 		// test accuracy
-		for (int i = 0; i < 1000; i ++) { 
+		for (int i = 0; i < 1000; i ++) {
 			String str1 = myList.get(i%100);
 			int order = Collections.binarySearch( myList, str1, null); 
 			assertEquals(order, myList.indexOf(str1));
@@ -330,14 +330,14 @@ public class BamSummaryReportMetricsTest {
 		int freq = 10000;
 		String str;
 		long start = System.currentTimeMillis();		
-		for (int i = 0; i < freq; i ++) { 
+		for (int i = 0; i < freq; i ++) {
 			str = myList.get(i%100);
 			Collections.binarySearch( myList, str, null);  
 		}
 		QLogger.getRunTime(start, System.currentTimeMillis());
 		
 		start = System.currentTimeMillis();		
-		for (int i = 0; i < freq; i ++) { 
+		for (int i = 0; i < freq; i ++) {
 			str = myList.get(i%100);
 			myList.indexOf(str);
 		}

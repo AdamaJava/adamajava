@@ -9,13 +9,13 @@ import org.junit.Test;
 import org.qcmg.qprofiler2.summarise.PositionSummary;
 
 
-public class PositionSummaryTest { 
+public class PositionSummaryTest {
 	final String rg1 = "rg1";
 	final String rg2 = "rg2";
 	final String rg3 = "rg3";
 
 	@Test
-	public void testAddPositionMinMax() throws Exception { 
+	public void testAddPositionMinMax() throws Exception {
 		List<String> rgs = Arrays.asList( rg1, rg2 );
 		PositionSummary ps = new PositionSummary(rgs);
 		
@@ -41,7 +41,7 @@ public class PositionSummaryTest {
 	}
 	
 	@Test
-	public void testAddPositionMap() throws Exception { 
+	public void testAddPositionMap() throws Exception {
 		List<String> rgs = Arrays.asList(rg1, rg2, rg3);
 		PositionSummary ps = new PositionSummary(rgs);
 		

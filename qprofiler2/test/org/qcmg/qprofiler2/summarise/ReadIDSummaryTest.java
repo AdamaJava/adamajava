@@ -3,13 +3,9 @@ package org.qcmg.qprofiler2.summarise;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-
 import javax.xml.parsers.ParserConfigurationException;
-
 import org.junit.Test;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.Pair;
@@ -18,21 +14,20 @@ import org.qcmg.qprofiler2.summarise.ReadIdSummary.RnPattern;
 import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Element;
 
-
-public class ReadIDSummaryTest { 
+public class ReadIDSummaryTest {
 	
 	@Test
-	public void fastqIdTest() throws ParserConfigurationException { 
+	public void fastqIdTest() throws ParserConfigurationException {
 		ReadIdSummary idSummary = new ReadIdSummary();			
 		// accept empty string as id
 		RnPattern pa =  idSummary.getPattern( "".split(Constants.COLON_STRING));
 		assertTrue(pa.equals(RnPattern.NoColon ));
 		
 		// id not null
-		try { 
+		try {
 			idSummary.parseReadId(null);
 			fail("can't accept null id");
-		}catch(Exception e) { 
+		}catch(Exception e) {
 			// expect to catch exception			
 		}
 		
@@ -45,7 +40,7 @@ public class ReadIDSummaryTest {
 	}
 	
 	@Test
-	public void toXmlTest() throws ParserConfigurationException { 
+	public void toXmlTest() throws ParserConfigurationException {
 		ReadIdSummary idSummary = new ReadIdSummary();	
 		
 		// NoColon("<Element>")
@@ -86,12 +81,12 @@ public class ReadIDSummaryTest {
 		// total 15 patterns
 		assertEquals( idSummary.patterns.keySet().size(), 15 );
 		Element ele = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.VARIABLE_GROUP).stream().filter( k -> k.getAttribute(XmlUtils.NAME).equals("QNAME Format") ).findFirst().get() ;
-		for (String pa : idSummary.patterns.keySet()) { 
-			if (pa.equals(ReadIdSummary.RnPattern.SevenColon_andMore.toString())) { 
+		for (String pa : idSummary.patterns.keySet()) {
+			if (pa.equals(ReadIdSummary.RnPattern.SevenColon_andMore.toString())) {
 				// only <tally count="2" value="<Element1>:<Element2>:...:<Elementn>"/>
 				Element e = XmlElementUtils.getChildElementByTagName(ele, XmlUtils.TALLY) .stream().filter(k -> k.getAttribute(XmlUtils.VALUE).equals(pa.toString())).findFirst().get();
 				assertEquals( e.getAttribute(XmlUtils.COUNT), "2");
-			} else { 
+			} else {
 				// others <tally count="1" value="..."/>
 				Element e = XmlElementUtils.getChildElementByTagName(ele, XmlUtils.TALLY) .stream().filter(k -> k.getAttribute(XmlUtils.VALUE).equals(pa.toString())).findFirst().get();
 				assertEquals( e.getAttribute(XmlUtils.COUNT), "1");				
@@ -100,7 +95,7 @@ public class ReadIDSummaryTest {
 		
 		// check <Element1..5>, last 2 element won't output, incase they are position and too many values
 		int order = 1;
-		for ( int count : new int[] { 8,6,5,4,3} ) { 
+		for ( int count : new int[] {8,6,5,4,3} ) {
 			String name = "Element" + order;
 			
 			ele = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.VARIABLE_GROUP).stream().filter( k -> k.getAttribute(XmlUtils.NAME).equals(name)).findFirst().get();
@@ -113,7 +108,7 @@ public class ReadIDSummaryTest {
 		}
 		
 		// 3 instrument 
-		List<Pair<String, Integer>> valuePair = new ArrayList<Pair<String, Integer>>() { { 
+		List<Pair<String, Integer>> valuePair = new ArrayList<Pair<String, Integer>>() {{
 			add( new Pair<>("HWI-ST797_0059",2));
 			add( new Pair<>("MG00HS15",1) );
 		}};
@@ -121,14 +116,14 @@ public class ReadIDSummaryTest {
 		
 		
 		// Flow Cell Id
-		valuePair = new ArrayList<Pair<String, Integer>>() { { 
+		valuePair = new ArrayList<Pair<String, Integer>>() {{
 			add( new Pair<>("FCL300002639",1));
 			add( new Pair<>("C4KC7ACXX",1) );
 		}};
 		checkVariableGroup( root, "Flow Cell Id", valuePair  ) ;
 		
 		// Run Id
-		valuePair = new ArrayList<Pair<String, Integer>>() { { 
+		valuePair = new ArrayList<Pair<String, Integer>>() {{
 			add( new Pair<>("SRR3083868",1));
 			add( new Pair<>("WR6H1",1) );
 			add( new Pair<>("400",1) );
@@ -136,7 +131,7 @@ public class ReadIDSummaryTest {
 		checkVariableGroup( root, "Run Id", valuePair  ) ;
 		
 		//  Flow Cell Lane
-		valuePair = new ArrayList<Pair<String, Integer>>() { { 
+		valuePair = new ArrayList<Pair<String, Integer>>() {{
 			add( new Pair<>("L1",1) );
 			add( new Pair<>("3",2) );
 			add( new Pair<>("4",1) );
@@ -144,7 +139,7 @@ public class ReadIDSummaryTest {
 		checkVariableGroup( root, "Flow Cell Lane", valuePair  ) ;
 		
 		//  Tile Number
-		valuePair = new ArrayList<Pair<String, Integer>>() { { 
+		valuePair = new ArrayList<Pair<String, Integer>>() {{
 			add( new Pair<>("C017R084",1) );
 			add( new Pair<>("2205",2) );
 			add( new Pair<>("2104",1) );
@@ -152,17 +147,17 @@ public class ReadIDSummaryTest {
 		checkVariableGroup( root, "Tile Number", valuePair  ) ;
 		
 		//  Index
-		valuePair = new ArrayList<Pair<String, Integer>>() { { 
+		valuePair = new ArrayList<Pair<String, Integer>>() {{
 			add( new Pair<>("#CTTGTA",1) );
 		}};
 		checkVariableGroup( root, "Index", valuePair  ) ;			
 		
 	}
 	
-	private void checkVariableGroup(Element root, String name, List<Pair<String, Integer>> valuePair) { 
+	private void checkVariableGroup(Element root, String name, List<Pair<String, Integer>> valuePair) {
 		Element ele = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.VARIABLE_GROUP).stream().filter( k -> k.getAttribute(XmlUtils.NAME).equals(name)).findFirst().get();
 		int total = 0;
-		for (Pair p : valuePair) { 
+		for (Pair p : valuePair) {
 			Element e = XmlElementUtils.getChildElementByTagName( ele, XmlUtils.TALLY ).stream().filter(  k -> k.getAttribute(XmlUtils.VALUE ).equals(p.getLeft())).findFirst().get();
 			assertEquals( e.getAttribute(XmlUtils.COUNT), p.getRight() + "");
 			total += (Integer)p.getRight();
@@ -173,7 +168,7 @@ public class ReadIDSummaryTest {
 	
 		
 	@Test
- 	public void patternTest() { 
+ 	public void patternTest() {
 		ReadIdSummary idSummary = new ReadIdSummary();			
 		// NoColon("<element>"),
 		RnPattern pa =  idSummary.getPattern( "V100007022_3_001R018843237".split(Constants.COLON_STRING));
@@ -237,7 +232,7 @@ public class ReadIDSummaryTest {
 	}
 	
 	@Test
-	public void poolTest() { 
+	public void poolTest() {
  			
 		ReadIdSummary idSummary = new ReadIdSummary();
 		
@@ -287,11 +282,11 @@ public class ReadIDSummaryTest {
 	}
 	
 	@Test
-	public void bigTileNumberTest() { 
+	public void bigTileNumberTest() {
 		ReadIdSummary idSummary = new ReadIdSummary();
 		
 		String prefix = "FCL300002639L2C017R";		 
-		for (int i = 0; i < 200; i++) { 
+		for (int i = 0; i < 200; i++) {
 			idSummary.parseReadId(prefix + i + "_" +i);
 		}
 		
@@ -303,7 +298,7 @@ public class ReadIDSummaryTest {
 	}
 	
 	@Test
-	public void indexTest() { 
+	public void indexTest() {
 		 
 		String name = "HWI-ST567_0239:1:7:20610:49360#0";
 		

@@ -1,15 +1,11 @@
 package org.qcmg.qprofiler2.summarise;
 
-
 import javax.xml.parsers.ParserConfigurationException;
-
 import static org.junit.Assert.*;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.junit.Test;
 import org.qcmg.common.model.QCMGAtomicLongArray;
 import org.qcmg.common.util.IndelUtils.SVTYPE;
@@ -34,7 +30,7 @@ public class SampleSummaryTest {
 		assertEquals(1, map.size());
 		QCMGAtomicLongArray ar = map.get(SVTYPE.SNP.name());
 		
-		 // QCMGAtomicLongArray(final int initialCapacity)  double capacity 
+		// QCMGAtomicLongArray(final int initialCapacity)  double capacity 
 		assertEquals(2 * SampleSummary.altBinSize , ar.length());
 		assertEquals(1, ar.get( 10 * SampleSummary.altBinSize / 20 -1 ));
 	}
@@ -50,25 +46,25 @@ public class SampleSummaryTest {
 		List<VcfRecord> records = new ArrayList<>();
 		checkTiTv( records, null, null, null );  // empty
  
-		 // reset root and summary, add only one ti
+		// reset root and summary, add only one ti
 		records.add(tiRe);
 		checkTiTv( records, "0.00", "1", null );	 // only one ti
 						
-		 // reset root and summary, add only one tv
+		// reset root and summary, add only one tv
 		records.clear();
 		records.add(tvRe);
 		checkTiTv( records, "0.00", null, "1" );
 		
-		 // only one ti one tv
+		// only one ti one tv
 		records.add(tiRe); 
 		checkTiTv( records, "1.00", "1", "1" );
 		
-		 // one ti three tv
+		// one ti three tv
 		records.add(tvRe);
 		records.add(tvRe);
 		checkTiTv( records, "0.33", "1", "3" );
 						
-		 // two ti three tv
+		// two ti three tv
 		records.add(tiRe);
 		checkTiTv( records, "0.67", "2", "3" );
 
@@ -76,7 +72,7 @@ public class SampleSummaryTest {
 	
 	private void checkTiTv( List<VcfRecord> records, String ratio, String ti, String tv) throws ParserConfigurationException { 
 		
-		 // new  VcfSummarizer(null); cause exception since for (Sting cat: null)
+		// new  VcfSummarizer(null); cause exception since for (Sting cat: null)
 		 
 		Element root = XmlElementUtils.createRootElement("root", null) ;
 		SampleSummary summary = new SampleSummary();
@@ -88,7 +84,7 @@ public class SampleSummaryTest {
 		}
 			
 			
-		 // get <SNP TiTvRatio="0.00" Transitions="0" Transversions="1">
+		// get <SNP TiTvRatio="0.00" Transitions="0" Transversions="1">
 		Element subE = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.VALUE).stream()
 				.filter( e -> e.getAttribute(XmlUtils.NAME).equals(SampleSummary.tiTvRatio)).findFirst().get();								 
 		assertEquals( ratio, subE.getTextContent());

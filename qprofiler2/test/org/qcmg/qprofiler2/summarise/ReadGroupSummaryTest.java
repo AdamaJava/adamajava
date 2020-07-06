@@ -1,13 +1,10 @@
 package org.qcmg.qprofiler2.summarise;
  
 import static org.junit.Assert.assertTrue;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -15,33 +12,30 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import javax.xml.parsers.ParserConfigurationException;
-
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qprofiler2.bam.BamSummarizer;
 import org.qcmg.qprofiler2.bam.BamSummaryReport;
 import org.qcmg.qprofiler2.summarise.ReadGroupSummary;
 import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Element;
-
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.XmlElementUtils;
-
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SamReader;
 
-public class ReadGroupSummaryTest { 
+public class ReadGroupSummaryTest {
 	
 	@ClassRule
 	public static TemporaryFolder testFolder = new TemporaryFolder();
 	static File input;
 
 	@BeforeClass
-	public static void setup() throws IOException { 
+	public static void setup() throws IOException {
 		input = testFolder.newFile("testInputFile.sam");
 		createInputFile (input);
 	}	
 	 
-	public static void createInputFile(File input) throws IOException { 
+	public static void createInputFile(File input) throws IOException {
 		List<String> data = new ArrayList<String>();
         data.add("@HD	VN:1.0	SO:coordinate");
         data.add("@RG	ID:1959T	SM:eBeads_20091110_CD	DS:rl=50");
@@ -112,7 +106,7 @@ public class ReadGroupSummaryTest {
 		data.add("NS500239:99	16	chr1	7480169	0	75M	*	0	0	AATGAATAGAAGGGTCCAGATCCAGTTCTAATTTGGGGTAGGGACTCAGTTTGTGTTTTTTCACGAGATGAAGAT	" + 
 				"EEEA<EEEEEE<<EE/AEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEAEEEEEEEEAEEEEEEEAAAAA	NH:i:14	HI:i:11	AS:i:73	NM:i:0	MD:Z:75	");
 		
-		try(BufferedWriter out = new BufferedWriter(new FileWriter(input))) { 	    
+		try(BufferedWriter out = new BufferedWriter(new FileWriter(input))) {	    
 			for (String line : data)  out.write(line + "\n");	               
 		}		
 	}
@@ -121,7 +115,7 @@ public class ReadGroupSummaryTest {
 	 * 
 	 * @param ele:<sequenceMetrics name="reads"..>
 	 */
-	private void checktLen(Element parent, int pairCount, int max, int mean, int mode, int median) { 
+	private void checktLen(Element parent, int pairCount, int max, int mean, int mode, int median) {
 		Element ele = XmlElementUtils.getChildElementByTagName(parent, XmlUtils.VARIABLE_GROUP)
 		.stream().filter(e -> e.getAttribute(XmlUtils.NAME).equals("tLen")).findFirst().get() ;	
 		assertTrue( checkChildValue( ele, ReadGroupSummary.MAX, max+"" )); 	
@@ -134,9 +128,9 @@ public class ReadGroupSummaryTest {
 	/**
 	 * 
 	 * @param parent: <sequenceMetrics Name="reads" count="9">
-	 * @param counts: array of { totalReads, supplementaryReads, secondaryReads, failedReads}
+	 * @param counts: array of {totalReads, supplementaryReads, secondaryReads, failedReads}
 	 */
-	private void checkDiscardReads(Element parent, int supplementary, int secondary, int failedVendor) { 		
+	private void checkDiscardReads(Element parent, int supplementary, int secondary, int failedVendor) {		
 		Element ele1 = XmlElementUtils.getChildElementByTagName(parent, XmlUtils.VARIABLE_GROUP)
 				   .stream().filter(ele -> ele.getAttribute(XmlUtils.NAME).equals("discardedReads")).findFirst().get() ;				
 		assertTrue( checkChildValue(ele1,"supplementaryAlignmentCount", String.valueOf(supplementary)));
@@ -152,7 +146,7 @@ public class ReadGroupSummaryTest {
 	 * @param totalReads : total counted reads
 	 * @return
 	 */
-	private Element checkBadReadStats(Element parent, String name, int reads, int base, String percent ) { 		    
+	private Element checkBadReadStats(Element parent, String name, int reads, int base, String percent ) {		    
 		   Element groupE =  XmlElementUtils.getChildElementByTagName(parent, XmlUtils.VARIABLE_GROUP)
 				   .stream().filter(ele -> ele.getAttribute(XmlUtils.NAME).equals(name)).findFirst().get() ;		   
 			assertTrue( checkChildValue(groupE,"readCount", String.valueOf(reads)));
@@ -165,10 +159,10 @@ public class ReadGroupSummaryTest {
 	 * 
 	 * @param parent
 	 * @param nodeName
-	 * @param counts new int[] { reads, min, max, mean, mode, median, lostBase}
+	 * @param counts new int[] {reads, min, max, mean, mode, median, lostBase}
 	 * @param percent: basePercent
 	 */
-	private void checkCountedReadStats(Element parent, String nodeName, int[] counts, String percent ) { 
+	private void checkCountedReadStats(Element parent, String nodeName, int[] counts, String percent ) {
 		// check readCount		 
 		Element groupE =  XmlElementUtils.getChildElementByTagName(parent, XmlUtils.VARIABLE_GROUP)
 			.stream().filter(ele -> ele.getAttribute(XmlUtils.NAME).equals(nodeName)).findFirst().get() ;		   
@@ -182,7 +176,7 @@ public class ReadGroupSummaryTest {
 		assertTrue( checkChildValue(groupE, ReadGroupSummary.BASE_LOST_PERCENT, percent));		
 	}
 			
-	public static boolean checkChildValue(Element parent,String name, String value) { 
+	public static boolean checkChildValue(Element parent,String name, String value) {
 		 List<Element> eles = XmlElementUtils.getChildElementByTagName(parent, XmlUtils.VALUE);	
 		 Element ele = eles.stream().filter( e -> e.getAttribute(XmlUtils.NAME).equals(name)).findFirst().get() ;		 
 		 return ele.getTextContent().equals(value);		
@@ -196,11 +190,11 @@ public class ReadGroupSummaryTest {
 	 * @throws IOException
 	 * @throws ParserConfigurationException
 	 */
-	private ReadGroupSummary createRGElement(String rgid) throws IOException, ParserConfigurationException { 
+	private ReadGroupSummary createRGElement(String rgid) throws IOException, ParserConfigurationException {
 		
 		ReadGroupSummary rgSumm = new ReadGroupSummary(rgid);		
 		SamReader reader = SAMFileReaderFactory.createSAMFileReaderAsStream(input, null, null);
-		for (SAMRecord record : reader) { 	
+		for (SAMRecord record : reader) {	
 			if (rgid == null)
 				rgSumm.parseRecord(record);
 			else if ( rgid.equals(XmlUtils.UNKNOWN_READGROUP) && record.getReadGroup() == null )
@@ -214,7 +208,7 @@ public class ReadGroupSummaryTest {
 	}
 	
 	@Test
-	public void rgSmallTest() throws Exception { 		
+	public void rgSmallTest() throws Exception {		
 		String rgid = "1959N";  // here only test the pair from "1959N" 	
 		ReadGroupSummary rgSumm = createRGElement(rgid );
 		final Element root = XmlElementUtils.createRootElement("root",null);
@@ -231,9 +225,9 @@ public class ReadGroupSummaryTest {
 		checkBadReadStats(root1, "unmappedReads", 0, 0, "0.00" );
 		checkBadReadStats(root1, ReadGroupSummary.NODE_NOT_PROPER_PAIR, 0, 0, "0.00" );
 		checkBadReadStats(root1, "trimmedBases", 1, 13, "13.00" );
-		checkCountedReadStats(root1, ReadGroupSummary.NODE_SOFTCLIP , new int[] { 1, 5, 5, 5, 5, 5,5}, "5.00");
-		checkCountedReadStats(root1, ReadGroupSummary.NODE_HARDCLIP  ,new int[] { 0, 0, 0, 0, 0,0,0}, "0.00");
-		checkCountedReadStats(root1, ReadGroupSummary.NODE_OVERLAP, new int[] { 1,62,62,62,62,62,62},"62.00");
+		checkCountedReadStats(root1, ReadGroupSummary.NODE_SOFTCLIP , new int[] {1, 5, 5, 5, 5, 5,5}, "5.00");
+		checkCountedReadStats(root1, ReadGroupSummary.NODE_HARDCLIP  ,new int[] {0, 0, 0, 0, 0,0,0}, "0.00");
+		checkCountedReadStats(root1, ReadGroupSummary.NODE_OVERLAP, new int[] {1,62,62,62,62,62,62},"62.00");
 		
 		
 		// <sequenceMetrics name="reads" readCount="2">					
@@ -260,7 +254,7 @@ public class ReadGroupSummaryTest {
 	}
 	
 	@Test 
-	public void rgUnkownTest()throws Exception { 
+	public void rgUnkownTest()throws Exception {
 		String rgid = XmlUtils.UNKNOWN_READGROUP;  // here only test the pair from "1959N" 	
 		ReadGroupSummary rgSumm = createRGElement(rgid );
 		Element root = XmlElementUtils.createRootElement("root",null);
@@ -275,9 +269,9 @@ public class ReadGroupSummaryTest {
 		checkBadReadStats(root1, "unmappedReads", 0, 0, "0.00" );
 		checkBadReadStats(root1, "trimmedBases", 0, 0, "0.00" );
 		checkBadReadStats(root1, ReadGroupSummary.NODE_NOT_PROPER_PAIR, 0, 0, "0.00" );
-		checkCountedReadStats(root1, ReadGroupSummary.NODE_SOFTCLIP , new int[] { 0, 0, 0, 0, 0,0,0}, "0.00");
-		checkCountedReadStats(root1, ReadGroupSummary.NODE_HARDCLIP  ,new int[] { 0, 0, 0, 0, 0,0,0}, "0.00");
-		checkCountedReadStats(root1, ReadGroupSummary.NODE_OVERLAP, new int[] { 0, 0, 0, 0, 0,0,0}, "0.00");
+		checkCountedReadStats(root1, ReadGroupSummary.NODE_SOFTCLIP , new int[] {0, 0, 0, 0, 0,0,0}, "0.00");
+		checkCountedReadStats(root1, ReadGroupSummary.NODE_HARDCLIP  ,new int[] {0, 0, 0, 0, 0,0,0}, "0.00");
+		checkCountedReadStats(root1, ReadGroupSummary.NODE_OVERLAP, new int[] {0, 0, 0, 0, 0,0,0}, "0.00");
 				
 		// <sequenceMetrics name="reads" readCount="2">					
 		root1 = XmlElementUtils.getChildElementByTagName(root, XmlUtils.SEQUENCE_METRICS)		
@@ -305,7 +299,7 @@ public class ReadGroupSummaryTest {
 	}
 		
 	@Test
-	public void rgBigTest() throws Exception { 
+	public void rgBigTest() throws Exception {
 		
 		String rgid = "1959T";  
 		ReadGroupSummary rgSumm = createRGElement(rgid );
@@ -320,9 +314,9 @@ public class ReadGroupSummaryTest {
 		checkBadReadStats(root1, "unmappedReads", 1, 40, "16.67" );
 		checkBadReadStats(root1, "trimmedBases", 0, 0, "0.00" );
 		checkBadReadStats(root1, ReadGroupSummary.NODE_NOT_PROPER_PAIR, 0, 0, "0.00" );
-		checkCountedReadStats(root1, ReadGroupSummary.NODE_SOFTCLIP , new int[] { 0, 0, 0, 0, 0,0,0}, "0.00");
-		checkCountedReadStats(root1, ReadGroupSummary.NODE_OVERLAP, new int[] { 1 ,26,26,26,26,26,26},"10.83" );	
-		checkCountedReadStats(root1, ReadGroupSummary.NODE_HARDCLIP, new int[] { 3,3,8 ,5 ,3,5,16}, "6.67" );			
+		checkCountedReadStats(root1, ReadGroupSummary.NODE_SOFTCLIP , new int[] {0, 0, 0, 0, 0,0,0}, "0.00");
+		checkCountedReadStats(root1, ReadGroupSummary.NODE_OVERLAP, new int[] {1 ,26,26,26,26,26,26},"10.83" );	
+		checkCountedReadStats(root1, ReadGroupSummary.NODE_HARDCLIP, new int[] {3,3,8 ,5 ,3,5,16}, "6.67" );			
 				
 		// <sequenceMetrics name="reads" readCount="2">					
 		root1 = XmlElementUtils.getChildElementByTagName(root, XmlUtils.SEQUENCE_METRICS)		
@@ -349,7 +343,7 @@ public class ReadGroupSummaryTest {
 	}
 		
 	@Test
-	public void overallTest() throws Exception { 
+	public void overallTest() throws Exception {
 		// overall readgroup should manually  setMaxBases(long);
 		Element root = XmlElementUtils.createRootElement("root",null);
 		BamSummarizer bs = new BamSummarizer();
@@ -386,18 +380,18 @@ public class ReadGroupSummaryTest {
 	 * ST-E00110:380:H3NCKCCXY:3:2220:10084:38684	117	chrY	239007	0	*	=	239007	0	*	*	PG:Z:MarkDuplicates	RG:Z:c9516885-22af-4fbc-8acb-1dafeca5925d	AS:i:0	XS:i:0
  	 * ST-E00110:380:H3NCKCCXY:3:2120:3752:45329	69	chrY	239631	0	*	=	239631	0	*	*	PG:Z:MarkDuplicates	RG:Z:c9516885-22af-4fbc-8acb-1dafeca5925d	AS:i:0	XS:i:0
 	 */
-	public  void unMappedReadTest() throws Exception { 
+	public  void unMappedReadTest() throws Exception {
 		SAMRecord record = new SAMRecord(null);
 		record.setAlignmentStart(239007);
 		record.setReferenceName("chrY");
 				
 		ReadGroupSummary rgSumm = new ReadGroupSummary(null);
-		for (int flag : new int[] { 117, 69, 181}) { 
+		for (int flag : new int[] {117, 69, 181}) {
 			record.setFlags(flag);
 			rgSumm.parseRecord(record);
 		}
 		// add one more read with seq to avoid max lenght is zero
-		record.setReadBases(new byte[] { 1,2,3,4,5,6,7});
+		record.setReadBases(new byte[] {1,2,3,4,5,6,7});
 		rgSumm.parseRecord(record);
 		
 		Element root = XmlElementUtils.createRootElement("root",null);
@@ -406,9 +400,9 @@ public class ReadGroupSummaryTest {
 		// <sequenceMetrics name="basesLost">
 		Element	root1 = XmlElementUtils.getChildElementByTagName(root, XmlUtils.SEQUENCE_METRICS)		
 						.stream().filter(ele -> ele.getAttribute(XmlUtils.NAME).equals( "basesLost" )).findFirst().get() ;	
-		checkCountedReadStats(root1, ReadGroupSummary.NODE_SOFTCLIP , new int[] { 0, 0, 0, 0, 0,0,0}, "0.00");
-		checkCountedReadStats(root1, ReadGroupSummary.NODE_HARDCLIP , new int[] { 0, 0, 0, 0, 0,0,0}, "0.00");
-		checkCountedReadStats(root1, ReadGroupSummary.NODE_TRIM , new int[] { 0, 0, 0, 0, 0,0,0}, "0.00");
+		checkCountedReadStats(root1, ReadGroupSummary.NODE_SOFTCLIP , new int[] {0, 0, 0, 0, 0,0,0}, "0.00");
+		checkCountedReadStats(root1, ReadGroupSummary.NODE_HARDCLIP , new int[] {0, 0, 0, 0, 0,0,0}, "0.00");
+		checkCountedReadStats(root1, ReadGroupSummary.NODE_TRIM , new int[] {0, 0, 0, 0, 0,0,0}, "0.00");
 		
 		// <sequenceMetrics name="reads"
 		root1  = XmlElementUtils.getChildElementByTagName(root, XmlUtils.SEQUENCE_METRICS)		
@@ -428,19 +422,19 @@ public class ReadGroupSummaryTest {
 	}
 	
 	@Test
-	public void noSeqReadTest() throws Exception { 
+	public void noSeqReadTest() throws Exception {
 		SAMRecord record = new SAMRecord(null);
 		record.setAlignmentStart(239007);
 		record.setReferenceName("chrY");
 
 		ReadGroupSummary rgSumm = new ReadGroupSummary(null);
 		// 64: unpaired read, 65: not proper pair read
-		for (int flag : new int[] { 64, 65}) { 
+		for (int flag : new int[] {64, 65}) {
 			record.setFlags(flag);
 			rgSumm.parseRecord(record);
 		}	
 		// add one more read with seq to avoid max lenght is zero
-		record.setReadBases(new byte[] { 1,2,3,4,5,6,7});
+		record.setReadBases(new byte[] {1,2,3,4,5,6,7});
 		rgSumm.parseRecord(record);
 		
 		Element root = XmlElementUtils.createRootElement("root",null);
@@ -458,9 +452,9 @@ public class ReadGroupSummaryTest {
 		// <sequenceMetrics name="basesLost">
 		root1 = XmlElementUtils.getChildElementByTagName(root, XmlUtils.SEQUENCE_METRICS)		
 					.stream().filter(ele -> ele.getAttribute(XmlUtils.NAME).equals( "basesLost" )).findFirst().get() ;	
-		checkCountedReadStats(root1, ReadGroupSummary.NODE_SOFTCLIP , new int[] { 0, 0, 0, 0, 0,0,0}, "0.00");
-		checkCountedReadStats(root1, ReadGroupSummary.NODE_HARDCLIP , new int[] { 0, 0, 0, 0, 0,0,0}, "0.00");
-		checkCountedReadStats(root1, ReadGroupSummary.NODE_TRIM , new int[] { 1, 7,7, 7, 7,7,7}, "33.33");		
+		checkCountedReadStats(root1, ReadGroupSummary.NODE_SOFTCLIP , new int[] {0, 0, 0, 0, 0,0,0}, "0.00");
+		checkCountedReadStats(root1, ReadGroupSummary.NODE_HARDCLIP , new int[] {0, 0, 0, 0, 0,0,0}, "0.00");
+		checkCountedReadStats(root1, ReadGroupSummary.NODE_TRIM , new int[] {1, 7,7, 7, 7,7,7}, "33.33");		
 	}
 	
 	

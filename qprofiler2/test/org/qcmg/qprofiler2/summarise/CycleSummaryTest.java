@@ -16,12 +16,12 @@ import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Element;
 
 
-public class CycleSummaryTest { 
+public class CycleSummaryTest {
 	
 	@Rule
 	public TemporaryFolder testFolder = new TemporaryFolder();
 	
-	private  void checklength( Element root, String metricName, String pairName,int readCount, int cycle, String[] values, int[] counts ) throws Exception { 
+	private  void checklength( Element root, String metricName, String pairName,int readCount, int cycle, String[] values, int[] counts ) throws Exception {
 		if (counts.length != values.length)
 			throw new Exception("error: values size must be same to counts size");
 		
@@ -42,7 +42,7 @@ public class CycleSummaryTest {
 		
 			
 		// eg   QprofilerXmlUtils.seqLength + "_"+  QprofilerXmlUtils.FirstOfPair;
-		for (int i = 0; i < values.length; i ++) { 
+		for (int i = 0; i < values.length; i ++) {
 			String v =  (metricName.contains("qual"))? ((byte) values[i].toCharArray()[0]-33) + ""   : (String)values[i] ;
 			String c = counts[i] + "";
 			long count = XmlElementUtils.getChildElementByTagName( ele, XmlUtils.TALLY ).stream()
@@ -53,31 +53,31 @@ public class CycleSummaryTest {
 	}
 	
 	@Test
-	public void getBaseByCycleTest() throws Exception { 
+	public void getBaseByCycleTest() throws Exception {
  		Element root = getSummarizedRoot();			  
- 		checklength( root, XmlUtils.SEQ_BASE , XmlUtils.FIRST_PAIR,2, 1, new String[] { "C","T"}, new int[] { 1,1 } ) ;
- 		checklength( root, XmlUtils.SEQ_BASE , XmlUtils.FIRST_PAIR,2, 141, new String[] { "G","N"}, new int[] { 1,1 } ) ;
- 		checklength( root, XmlUtils.SEQ_BASE , XmlUtils.FIRST_PAIR,2, 142, new String[] { "N"}, new int[] { 1 } ) ;
- 		checklength( root, XmlUtils.SEQ_BASE , XmlUtils.FIRST_PAIR,2, 151, new String[] { "M" }, new int[] { 1 } ) ; 		
- 		checklength( root, XmlUtils.SEQ_BASE , XmlUtils.SECOND_PAIR ,1, 2, new String[] { "N"}, new int[] { 1} ) ;
- 		checklength( root, XmlUtils.SEQ_BASE , XmlUtils.SECOND_PAIR ,1, 4, new String[] { "T"}, new int[] { 1} ) ;
- 		checklength( root, XmlUtils.SEQ_BASE , XmlUtils.SECOND_PAIR ,1, 151, new String[] { "G"}, new int[] { 1} ) ; 		
+ 		checklength( root, XmlUtils.SEQ_BASE , XmlUtils.FIRST_PAIR,2, 1, new String[] {"C","T"}, new int[] {1,1 } ) ;
+ 		checklength( root, XmlUtils.SEQ_BASE , XmlUtils.FIRST_PAIR,2, 141, new String[] {"G","N"}, new int[] {1,1 } ) ;
+ 		checklength( root, XmlUtils.SEQ_BASE , XmlUtils.FIRST_PAIR,2, 142, new String[] {"N"}, new int[] {1 } ) ;
+ 		checklength( root, XmlUtils.SEQ_BASE , XmlUtils.FIRST_PAIR,2, 151, new String[] {"M" }, new int[] {1 } ) ; 		
+ 		checklength( root, XmlUtils.SEQ_BASE , XmlUtils.SECOND_PAIR ,1, 2, new String[] {"N"}, new int[] {1} ) ;
+ 		checklength( root, XmlUtils.SEQ_BASE , XmlUtils.SECOND_PAIR ,1, 4, new String[] {"T"}, new int[] {1} ) ;
+ 		checklength( root, XmlUtils.SEQ_BASE , XmlUtils.SECOND_PAIR ,1, 151, new String[] {"G"}, new int[] {1} ) ; 		
  	}
 	
 	@Test
-	public void getQualityByCycleTest() throws Exception { 
+	public void getQualityByCycleTest() throws Exception {
  		Element root = getSummarizedRoot();		
  		
- 		checklength( root,  XmlUtils.QUAL_BASE , XmlUtils.FIRST_PAIR, 2,1, new String[] { "A","("}, new int[] { 1,1 } ) ;
- 		checklength( root,  XmlUtils.QUAL_BASE , XmlUtils.FIRST_PAIR, 2,143, new String[] { "-","J"}, new int[] { 1, 1} ) ;
- 		checklength( root,  XmlUtils.QUAL_BASE , XmlUtils.FIRST_PAIR, 2,144, new String[] { "7"}, new int[] { 1 } ) ;
- 		checklength( root,  XmlUtils.QUAL_BASE , XmlUtils.FIRST_PAIR,2, 151, new String[] { "A"}, new int[] { 1 } ) ;		
-  		checklength( root,  XmlUtils.QUAL_BASE , XmlUtils.SECOND_PAIR,1, 1, new String[] { "A" }, new int[] { 1} ) ;	
-		checklength( root,  XmlUtils.QUAL_BASE , XmlUtils.SECOND_PAIR,1, 148, new String[] { "-" }, new int[] { 1} ) ;
-		checklength( root,  XmlUtils.QUAL_BASE , XmlUtils.SECOND_PAIR,1, 151, new String[] { "7" }, new int[] { 1} ) ;
+ 		checklength( root,  XmlUtils.QUAL_BASE , XmlUtils.FIRST_PAIR, 2,1, new String[] {"A","("}, new int[] {1,1 } ) ;
+ 		checklength( root,  XmlUtils.QUAL_BASE , XmlUtils.FIRST_PAIR, 2,143, new String[] {"-","J"}, new int[] {1, 1} ) ;
+ 		checklength( root,  XmlUtils.QUAL_BASE , XmlUtils.FIRST_PAIR, 2,144, new String[] {"7"}, new int[] {1 } ) ;
+ 		checklength( root,  XmlUtils.QUAL_BASE , XmlUtils.FIRST_PAIR,2, 151, new String[] {"A"}, new int[] {1 } ) ;		
+  		checklength( root,  XmlUtils.QUAL_BASE , XmlUtils.SECOND_PAIR,1, 1, new String[] {"A" }, new int[] {1} ) ;	
+		checklength( root,  XmlUtils.QUAL_BASE , XmlUtils.SECOND_PAIR,1, 148, new String[] {"-" }, new int[] {1} ) ;
+		checklength( root,  XmlUtils.QUAL_BASE , XmlUtils.SECOND_PAIR,1, 151, new String[] {"7" }, new int[] {1} ) ;
 	}	
 
-	private Element getSummarizedRoot() throws Exception { 	
+	private Element getSummarizedRoot() throws Exception {	
 		String input = CycleSummaryTest.createInputFile(testFolder);
 		Element root = XmlElementUtils.createRootElement( "qProfiler", null);
 		BamSummarizer bs = new BamSummarizer();
@@ -93,7 +93,7 @@ public class CycleSummaryTest {
 	 * @return new file name with full path
 	 * @throws IOException
 	 */
-	public static String createInputFile(TemporaryFolder testFolder) throws IOException { 
+	public static String createInputFile(TemporaryFolder testFolder) throws IOException {
 		List<String> data = new ArrayList<String>();
         data.add("@HD	VN:1.0	SO:coordinate");
         data.add("@RG	ID:20150125163736341	SM:eBeads_20091110_CD	DS:rl=50");
@@ -127,7 +127,7 @@ public class CycleSummaryTest {
    
         // create a new fresh file with a random name under the temporary folder.
 		File fl = testFolder.newFile();	
-        try(BufferedWriter out = new BufferedWriter(new FileWriter(fl))) { 	    
+        try(BufferedWriter out = new BufferedWriter(new FileWriter(fl))) {	    
 			for (String line : data)  out.write(line + "\n");	               
 		}	
         

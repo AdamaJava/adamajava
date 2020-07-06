@@ -10,10 +10,10 @@ import org.junit.Test;
 import org.qcmg.common.model.QCMGAtomicLongArray;
 import org.qcmg.qprofiler2.util.SummaryReportUtils;
 
-public class SummaryReportUtilsTest { 
+public class SummaryReportUtilsTest {
 		
 	@Ignore
-	public void testCompareWithSAMUtilsAgain() { 
+	public void testCompareWithSAMUtilsAgain() {
 		String inputString = "!''*((((***+))%%%++)(%%%%).1***-+*''))**55CCF>>>>>>CCCCCCC65";
 		QCMGAtomicLongArray qualCount = new QCMGAtomicLongArray(1000);
 		byte [] bytes = inputString.getBytes();
@@ -32,26 +32,26 @@ public class SummaryReportUtilsTest {
 	}	
 	
 	@Test
-	public void testTallyQualScoresValid() { 
+	public void testTallyQualScoresValid() {
 
 		QCMGAtomicLongArray badQualCount = new QCMGAtomicLongArray(15);
 				
-		byte[] qual = new byte[] { 1,1,1,1,1 };
+		byte[] qual = new byte[] {1,1,1,1,1 };
 		SummaryReportUtils.tallyQualScores( qual, badQualCount );
 		// so far one record with 5badbase
 		assertEquals((1), badQualCount.get(5));
 				
-		qual =  new byte[] { 1,2,3,4,5 };
+		qual =  new byte[] {1,2,3,4,5 };
 		SummaryReportUtils.tallyQualScores( qual, badQualCount );
 		// so far two records with 5badbase
 		assertEquals((2), badQualCount.get(5));	
 		
-		qual = new byte[] { 1,2,3,9,9,10,11,12,13,14,15 };
+		qual = new byte[] {1,2,3,9,9,10,11,12,13,14,15 };
 		SummaryReportUtils.tallyQualScores( qual, badQualCount);
 		// so far three records with 5badbase
 		assertEquals((3), badQualCount.get(5));	
  	
-		qual =  new byte[] { 10,11,12,13,14,15 };
+		qual =  new byte[] {10,11,12,13,14,15 };
 		SummaryReportUtils.tallyQualScores( qual, badQualCount );
 		// so far three records with 5badbase
 		assertEquals((3), badQualCount.get( 5) );
@@ -61,7 +61,7 @@ public class SummaryReportUtilsTest {
 
 	
 	@Test
-	public void testAddPositionAndLengthToMap() { 
+	public void testAddPositionAndLengthToMap() {
 		ConcurrentMap<Integer, AtomicLong> map = new ConcurrentHashMap<Integer, AtomicLong>();
 		addPositionAndLengthToMap(map, 10, 100);
 		
@@ -115,8 +115,8 @@ public class SummaryReportUtilsTest {
 	 * @param position
 	 * @param length
 	 */
-	private static void addPositionAndLengthToMap(ConcurrentMap<Integer, AtomicLong> map, int position, int length) { 
-		for (int i = position ; i < position + length ; i++) { 		
+	private static void addPositionAndLengthToMap(ConcurrentMap<Integer, AtomicLong> map, int position, int length) {
+		for (int i = position ; i < position + length ; i++) {		
 			map.computeIfAbsent( Integer.valueOf(i), k -> new AtomicLong(0)).incrementAndGet();		
 		}
 	}

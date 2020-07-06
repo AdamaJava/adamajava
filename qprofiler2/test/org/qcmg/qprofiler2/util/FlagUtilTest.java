@@ -1,29 +1,25 @@
 package org.qcmg.qprofiler2.util;
 
 import static org.junit.Assert.assertEquals;
-
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicLong;
-
 import javax.xml.parsers.ParserConfigurationException;
-
 import org.junit.Test;
 import org.qcmg.common.model.QCMGAtomicLongArray;
 import org.qcmg.common.util.XmlElementUtils;
 import org.qcmg.qprofiler2.util.FlagUtil;
 import org.w3c.dom.Element;
 
-public class FlagUtilTest { 
+public class FlagUtilTest {
 	
 	@Test
-	public void getValidFlags() { 
+	public void getValidFlags() {
 		assertEquals("000000000000", FlagUtil.getFlagString(0));
 		assertEquals("000000000001, p", FlagUtil.getFlagString(1));
-		assertEquals("000000000010", FlagUtil.getFlagString(2));			//  INVALID
-		assertEquals("000000000011, pP", FlagUtil.getFlagString(3));		//  paired and in proper pair
+		assertEquals("000000000010", FlagUtil.getFlagString(2));			// INVALID
+		assertEquals("000000000011, pP", FlagUtil.getFlagString(3));		// paired and in proper pair
 		assertEquals("000000000100, u", FlagUtil.getFlagString(4));			// UNMAPPED
 		assertEquals("000000000101, pu", FlagUtil.getFlagString(5));		// paired and UNMAPPED
 		assertEquals("000000000110, u", FlagUtil.getFlagString(6));			// UNMAPPED
@@ -51,44 +47,44 @@ public class FlagUtilTest {
 	 */
 		
 	@Test
-	public void readPairedFlag() { 
+	public void readPairedFlag() {
 		
-		for (int i = 1 ; i < 5000 ; i++) { 
+		for (int i = 1 ; i < 5000 ; i++) {
 			
-			if ((i & 0x1) == 1) { 
+			if ((i & 0x1) == 1) {
 				assertEquals(true, FlagUtil.getFlagString(i).contains("1, p"));
 			}
-			if ((i & 0x2) == 2 && (i & 0x1) == 1) { 
+			if ((i & 0x2) == 2 && (i & 0x1) == 1) {
 				assertEquals(true, FlagUtil.getFlagString(i).contains("1, pP"));
 			}
-			if ((i & 0x4) == 4) { 
+			if ((i & 0x4) == 4) {
 				assertEquals(true, FlagUtil.getFlagString(i).contains("u"));
 			}
-			if ((i & 0x8) == 8 && (i & 0x1) == 1) { 
+			if ((i & 0x8) == 8 && (i & 0x1) == 1) {
 				assertEquals(true, FlagUtil.getFlagString(i).contains("U"));
 			}
-			if ((i & 0x10) == 16) { 
+			if ((i & 0x10) == 16) {
 				assertEquals(true, FlagUtil.getFlagString(i).contains("r"));
 			}
-			if ((i & 0x20) == 32 && (i & 0x1) == 1) { 
+			if ((i & 0x20) == 32 && (i & 0x1) == 1) {
 				assertEquals(true, FlagUtil.getFlagString(i).contains("R"));
 			}
-			if ((i & 0x40) == 64 && (i & 0x1) == 1) { 
+			if ((i & 0x40) == 64 && (i & 0x1) == 1) {
 				assertEquals(true, FlagUtil.getFlagString(i).matches(".*1, p.*1.*"));
 			}
-			if ((i & 0x80) == 128 && (i & 0x1) == 1) { 
+			if ((i & 0x80) == 128 && (i & 0x1) == 1) {
 				assertEquals(true, FlagUtil.getFlagString(i).contains("2"));
 			}
-			if ((i & 0x100) == 256) { 
+			if ((i & 0x100) == 256) {
 				assertEquals(true, FlagUtil.getFlagString(i).contains("s"));
 			}
-			if ((i & 0x200) == 512) { 
+			if ((i & 0x200) == 512) {
 				assertEquals(true, FlagUtil.getFlagString(i).contains("f"));
 			}
-			if ((i & 0x400) == 1024) { 
+			if ((i & 0x400) == 1024) {
 				assertEquals(true, FlagUtil.getFlagString(i).contains("d"));
 			}
-			if ((i & 0x800) == 2048) { 
+			if ((i & 0x800) == 2048) {
 				assertEquals(true, FlagUtil.getFlagString(i).contains("b"));
 			}
 			
@@ -96,7 +92,7 @@ public class FlagUtilTest {
 	}
 	
 	@Test
-	public void flagXmlTest() throws ParserConfigurationException { 
+	public void flagXmlTest() throws ParserConfigurationException {
 		Map<String, AtomicLong> flagBinaryCount = new ConcurrentSkipListMap<String, AtomicLong>();
 		QCMGAtomicLongArray flagIntegerCount = new QCMGAtomicLongArray( 2048 );
 		Element root = XmlElementUtils.createRootElement("root", null);
@@ -109,7 +105,7 @@ public class FlagUtilTest {
 		// convert to map
 		long length = flagIntegerCount.length();
 		for (int i = 0 ; i < length ; i++) 
-			if (flagIntegerCount.get(i) > 0) { 
+			if (flagIntegerCount.get(i) > 0) {
 				String flagString = FlagUtil.getFlagString(i);
 				flagBinaryCount.put(flagString, new AtomicLong(flagIntegerCount.get(i)));
 			}				

@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.parsers.ParserConfigurationException;
-import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -22,12 +21,12 @@ import org.w3c.dom.Element;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMTagUtil;
 
-public class TagSummaryReportTest { 
+public class TagSummaryReportTest {
 	@Rule
 	public  TemporaryFolder testFolder = new TemporaryFolder();	
 	
 	@Test
-	public void simpleTest() throws Exception { 
+	public void simpleTest() throws Exception {
 		
 		TagSummaryReport report = new TagSummaryReport();
 		SAMRecord record = new SAMRecord(null);
@@ -62,12 +61,12 @@ public class TagSummaryReportTest {
 		checkXml( root );				
 	}	
 		
-	private List<Element> getChildNameIs(Element parent, String eleName, String nameValue) { 		
+	private List<Element> getChildNameIs(Element parent, String eleName, String nameValue) {		
 		return XmlElementUtils.getChildElementByTagName(parent,eleName).stream().
 			filter( e -> e.getAttribute( XmlUtils.NAME ).equals( nameValue ) ).collect(Collectors.toList());		
 	}
 	
-	private void checkXml(Element root) { 
+	private void checkXml(Element root) {
 		 		
 		assertEquals( 2, XmlElementUtils.getChildElementByTagName( root, XmlUtils.SEQUENCE_METRICS ).size()  );				
 		
@@ -79,9 +78,9 @@ public class TagSummaryReportTest {
 		Element ele = getChildNameIs( metricE, XmlUtils.VARIABLE_GROUP, XmlUtils.FIRST_PAIR ).get(0);
 		assertEquals(ele.getAttribute(ReadGroupSummary.READ_COUNT), "4");
 		// three of firstOfPair have four mutation base
-		String[] values = new String[] { "A", "T", "C", "C" };
-		String[] counts =  new String[] { "1", "10", "11", "37" };
-		for (int i = 0; i < counts.length; i++ ) { 
+		String[] values = new String[] {"A", "T", "C", "C"};
+		String[] counts =  new String[] {"1", "10", "11", "37"};
+		for (int i = 0; i < counts.length; i++ ) {
 			
 			String count = counts[i];
 			Element vE = XmlElementUtils.getChildElementByTagName(ele, XmlUtils.BASE_CYCLE).stream().
@@ -115,7 +114,7 @@ public class TagSummaryReportTest {
 		
 	
 	@Ignore
-	public void testTagPosition() { 
+	public void testTagPosition() {
 		final  SAMTagUtil STU = SAMTagUtil.getSingleton();
 		final short CS = STU.CS;
 		final short CQ = STU.CQ;
@@ -130,20 +129,20 @@ public class TagSummaryReportTest {
 		final short ZP = STU.makeBinaryTag("ZP");
 		final short ZF = STU.makeBinaryTag("ZF");
 		
-		short [] tags = { CS, CQ, RG, ZM, ZP, CM, ZF, SM, IH, NH, MD};
+		short [] tags = {CS, CQ, RG, ZM, ZP, CM, ZF, SM, IH, NH, MD};
 		
 		System.out.println("current");
 		for (short tag : tags) 
 			System.out.println(STU.makeStringTag(tag) + " : " + tag);
 		
 		System.out.println("ordered");
-		short [] orderedTags = { MD, ZF, RG, IH, NH,CM,SM,ZM,ZP, CQ, CS};
+		short [] orderedTags = {MD, ZF, RG, IH, NH,CM,SM,ZM,ZP, CQ, CS};
 		
 		for (short tag : orderedTags) 
 			System.out.println(STU.makeStringTag(tag) + " : " + tag);					
 	}
 	
-	private void createMDerrFile(String input) throws IOException { 
+	private void createMDerrFile(String input) throws IOException {
 		List<String> data = new ArrayList<String>();
         data.add("@HD	VN:1.0	SO:coordinate");
         data.add("@RG	ID:1959T	SM:eBeads_20091110_CD	DS:rl=50");
@@ -156,13 +155,13 @@ public class TagSummaryReportTest {
 	    "########################################################################F==#F==#EGGGGGGE<=#FE1GGGGGGGGGGGGGF=?#GGGE@=#E@?#<=##	" + 
 	    "MD:Z:1T0C1A0G0G0T0C0G0G0T0T0T0C0T0A0T0C0T0A0C0N0T0T0C0A0A0A0T0T0C0C0T0C0C0C0T0G0T0A1G0A3G3A10G19T6T3T2	NH:i:1	HI:i:1	NM:i:47	AS:i:169	RG:Z:1959T");
 	
-		try(BufferedWriter out = new BufferedWriter(new FileWriter(input))) { 	    
+		try(BufferedWriter out = new BufferedWriter(new FileWriter(input))) {	    
 			for (String line : data)  out.write(line + "\n");	               
 		}	
 	}
 	
 	@Test
-	public void tempTest() throws Exception { 
+	public void tempTest() throws Exception {
 		String INPUT_FILE = testFolder.newFile("input.sam").getAbsolutePath();
 		createMDerrFile(INPUT_FILE);	
 		Element root = XmlElementUtils.createRootElement("root",null);
@@ -172,7 +171,7 @@ public class TagSummaryReportTest {
 	}	
 	
 	@Test
-	public void toXmlTest() throws ParserConfigurationException { 
+	public void toXmlTest() throws ParserConfigurationException {
 		final  SAMTagUtil STU = SAMTagUtil.getSingleton();
 		TagSummaryReport report = new TagSummaryReport();
 		SAMRecord record = new SAMRecord(null);
@@ -180,8 +179,8 @@ public class TagSummaryReportTest {
 		record.setAttribute(STU.makeStringTag(STU.NM), new Integer(Integer.MAX_VALUE));
 		report.parseTAGs(record);
 		
-		for (int i = 0; i < 200; i++) { 	
-			for (int j = 0; j < 2; j ++) { 
+		for (int i = 0; i < 200; i++) {	
+			for (int j = 0; j < 2; j ++) {
 				record.setAttribute(STU.makeStringTag(STU.NM), new Integer(i+j));
 				report.parseTAGs(record);
 			}			

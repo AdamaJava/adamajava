@@ -1,18 +1,13 @@
 package org.qcmg.qprofiler2.util;
 
-
 import htsjdk.samtools.Cigar;
 import htsjdk.samtools.CigarElement;
 import htsjdk.samtools.CigarOperator;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SamReader;
-
 import static org.junit.Assert.*;
-
 import java.io.File;
 import java.io.IOException;
-
-import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -23,22 +18,22 @@ import org.qcmg.qprofiler2.summarise.CycleSummary;
 import org.qcmg.qprofiler2.summarise.CycleSummaryTest;
 import org.qcmg.qprofiler2.util.CycleSummaryUtils;
 
-public class CycleSummaryUtilsMDTest { 
+public class CycleSummaryUtilsMDTest {
 	@Rule
 	public TemporaryFolder testFolder = new TemporaryFolder();
 	
 	@Test
-	public void getBigMDCycleNoTest() throws IOException { 
+	public void getBigMDCycleNoTest() throws IOException {
 		String input = CycleSummaryTest.createInputFile(testFolder);
 		
 		@SuppressWarnings("unchecked")
-		final CycleSummary<Character>[] tagMDMismatchByCycle = new CycleSummary[] { new CycleSummary<Character>(Character.MAX_VALUE, 512), new CycleSummary<Character>(Character.MAX_VALUE, 512)};	
-		final QCMGAtomicLongArray[] allReadsLineLengths = new QCMGAtomicLongArray[] { new QCMGAtomicLongArray(1024), new QCMGAtomicLongArray(1024), new QCMGAtomicLongArray(1024)};
+		final CycleSummary<Character>[] tagMDMismatchByCycle = new CycleSummary[] {new CycleSummary<Character>(Character.MAX_VALUE, 512), new CycleSummary<Character>(Character.MAX_VALUE, 512)};	
+		final QCMGAtomicLongArray[] allReadsLineLengths = new QCMGAtomicLongArray[] {new QCMGAtomicLongArray(1024), new QCMGAtomicLongArray(1024), new QCMGAtomicLongArray(1024)};
 		
 		
 		SamReader reader = SAMFileReaderFactory.createSAMFileReader( new File(input));		
 		int count = 0, firstNo = 0, secondNo = 0;
-		for (SAMRecord record : reader) { 
+		for (SAMRecord record : reader) {
 			String value = (String) record.getAttribute("MD");
 			int order = (record.getFirstOfPairFlag())? 0 : 1;	// 0: firstOfPair , 1: secondOfPair
 			if (order == 0) firstNo ++;
@@ -72,7 +67,7 @@ public class CycleSummaryUtilsMDTest {
 	 * 3. insertion base will be skipped, won't count to mismatch
 	 */
 	@Test 	
-	public void testTallyMDMismatches() { 
+	public void testTallyMDMismatches() {
 		CycleSummary<Character> summary = new CycleSummary<Character>(Character.MAX_VALUE, 64);
 		QCMGAtomicLongArray forwardArray = new QCMGAtomicLongArray(32);
 		QCMGAtomicLongArray reverseArray = new QCMGAtomicLongArray(32);
@@ -119,7 +114,7 @@ public class CycleSummaryUtilsMDTest {
 		for (int i = 0 ; i < reverseArray.length() ; i++)  assertEquals(0, reverseArray.get(i));
 		// check MD cycle
 		for ( Integer cycle : summary.cycles() )
-			for ( Character value : summary.getPossibleValues() ) { 
+			for ( Character value : summary.getPossibleValues() ) {
 				if ((cycle == 45 && value == 'G') || (cycle == 78 && value == 'A'))  // cycle should includes soft and insertion
 					assertEquals(10, summary.count(cycle, value));
 				else
@@ -137,7 +132,7 @@ public class CycleSummaryUtilsMDTest {
 				
  		// check MD cycle
 		for ( Integer cycle : summary.cycles() )
-			for ( Character value : summary.getPossibleValues() ) { 
+			for ( Character value : summary.getPossibleValues() ) {
 				if ((cycle == 45 && value == 'G') || (cycle == 78 && value == 'A'))  // cycle should includes soft and insertion
 					assertEquals(10, summary.count(cycle, value));  // forward
 				else if ((cycle == 21 && value == 'T') || (cycle == 54 && value == 'C'))  // reversed base and position
@@ -147,7 +142,7 @@ public class CycleSummaryUtilsMDTest {
 	
 
 	@Test
-	public void TallyMDMismatchesInvalidMD() { 		
+	public void TallyMDMismatchesInvalidMD() {		
 		CycleSummary<Character> summary = new CycleSummary<Character>(Character.MAX_VALUE, 64);
 		final String readBasesString = "AAAAAAAAAACCCCCCCCCCGGGGGGGGGGTTTTTTTTTTAAAAAAAAAAT";
 		final byte[] readBases = readBasesString.getBytes();
@@ -191,7 +186,7 @@ public class CycleSummaryUtilsMDTest {
 	}
 	
 	@Test
-	public void tallyMDMismatchesDeletion() { 
+	public void tallyMDMismatchesDeletion() {
 		// md: 92^AA2G2T1 , cigar: 92M2D1M1I6M, 
 		// seq: GGATAGCTGTATACCCTTCAGGTCTTTTCCCCAAATACGATTGCCTAAAACAAAACATTATTAAAAGTTGTTCAAGGTCATGATCCTCCAACCTGTCTCT, reverse strand: false
 		QCMGAtomicLongArray forwardArray = new QCMGAtomicLongArray(32);
@@ -211,7 +206,7 @@ public class CycleSummaryUtilsMDTest {
 	}
 	
 	@Ignore
-	public void tallyMDMismatchesInsertion() { 
+	public void tallyMDMismatchesInsertion() {
 		// HWI-ST1445:86:C4CKMACXX:2:2308:11384:83325       163     chr1    450820  0       98I3M   =       450820  129     GTCTTTTTTTTTTTTTTTTTTTTTTTAAAAGGGGGGGGGCGGGGGGGCCCCCCCCTGTAACCCCAGCAATTTGGGGGACTGGGGGGGGGGGGTCTCTTGGG   BBBFFFFFFFFFFIIIIIFFFFFFB0<BBB#######################################################################   XA:i:2  MD:Z:0G0T0T2A1A1A0A0A0A0A0A0A0A0A0A0A0A1A0A0A0A0A0A0A3A0A0A0A0A0A0A0A0A0A0A1A1A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A23A1A0   NM:i:67 ZW:f:0.0
 		QCMGAtomicLongArray forwardArray = new QCMGAtomicLongArray(32);
 		QCMGAtomicLongArray reverseArray = new QCMGAtomicLongArray(32);
@@ -225,7 +220,7 @@ public class CycleSummaryUtilsMDTest {
 	}
 	
 	@Test
-	public void tallyMDMismatchesDeletion2() { 
+	public void tallyMDMismatchesDeletion2() {
 		// md: 94^AG2G1G0 , cigar: 94M2D1M1I4M, 
 		// seq: TCTCACATGAGAGTAACTAGCATCTTTCTCTCAGATGATGAAGATGATGAAGAGGAAGATGAAGAGGAAGAAATCGACGTGGTCACTGTGGAGACTGTCT, reverse strand: false
 		QCMGAtomicLongArray forwardArray = new QCMGAtomicLongArray(32);
@@ -244,7 +239,7 @@ public class CycleSummaryUtilsMDTest {
 	}
 	
 	@Test
-	public void tallyMDMismatchesNastyCigar() { 
+	public void tallyMDMismatchesNastyCigar() {
 		// md: 16A1T6A2^G5A6T1A0G2C4T0G2^A3^GA5T2T3T8 , cigar: 28M1D4M1I23M1D3M2D3M2I18M18S, 
 		// seq: AGTCTAGAGT CCAAAAGGAA TTCTTCCTCC TG*C*CTTTTCAT CCCTTTTTTT CACATCTTTC A*CC*TCCGCCGGG CCAATTTCT>TCAGTTCT CGTTTTAAGC, reverse strand: false
 		QCMGAtomicLongArray forwardArray = new QCMGAtomicLongArray(32);

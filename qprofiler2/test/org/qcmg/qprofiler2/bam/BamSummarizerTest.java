@@ -21,7 +21,7 @@ import org.junit.rules.TemporaryFolder;
 import org.qcmg.qprofiler2.bam.BamSummarizer;
 import org.qcmg.qprofiler2.bam.BamSummaryReport;
 
-public class BamSummarizerTest { 
+public class BamSummarizerTest {
 		
 	@ClassRule
 	public  static TemporaryFolder testFolder = new TemporaryFolder();
@@ -30,7 +30,7 @@ public class BamSummarizerTest {
 	private static String samDodgy;
 
 	@BeforeClass
-	public static void setup() throws IOException { 
+	public static void setup() throws IOException {
 		
 		File SAM_INPUT_FILE = testFolder.newFile("testInputFile.sam");
 		samInput = SAM_INPUT_FILE.getAbsolutePath();
@@ -40,7 +40,7 @@ public class BamSummarizerTest {
 
 
 	@Test
-	public void testSummarize() throws Exception { 
+	public void testSummarize() throws Exception {
 		BamSummarizer bs = new BamSummarizer();
 		BamSummaryReport sr = (BamSummaryReport) bs.summarize(samInput);
 		assertNotNull(sr);
@@ -49,8 +49,8 @@ public class BamSummarizerTest {
 	}
 	
 	@Test
-	public void testSummarizeMaxRecords() throws Exception { 
-		for (int i = 1 ; i < 6 ; i++) { 
+	public void testSummarizeMaxRecords() throws Exception {
+		for (int i = 1 ; i < 6 ; i++) {
 			BamSummarizer bs = new BamSummarizer( i, null, false);
 			BamSummaryReport sr = (BamSummaryReport) bs.summarize( samInput);
 
@@ -67,7 +67,7 @@ public class BamSummarizerTest {
 	}
 	
 	@Test
-	public void testSummarizeWithExcludesAll() throws Exception { 
+	public void testSummarizeWithExcludesAll() throws Exception {
 		// no excludes defined - should return everything
 		BamSummarizer bs = new BamSummarizer( 0, null, false);
 		BamSummaryReport sr = (BamSummaryReport) bs.summarize( samInput);
@@ -78,7 +78,7 @@ public class BamSummarizerTest {
 	}
 	
 	@Test
-	public void testSummarizeWithExcludeCoverage() throws Exception { 
+	public void testSummarizeWithExcludeCoverage() throws Exception {
 		// first check we are getting coverage info
 		BamSummarizer bs = new BamSummarizer();
 		BamSummaryReport sr = (BamSummaryReport) bs.summarize(samInput);
@@ -89,7 +89,7 @@ public class BamSummarizerTest {
 	
 
 	
-	private void testSummaryReport(BamSummaryReport sr) { 
+	private void testSummaryReport(BamSummaryReport sr) {
 		// position 1
 		assertEquals(0, sr.getSeqByCycle(1).count(1, 'A'));
 		assertEquals(2, sr.getSeqByCycle(1).count(1, 'T'));
@@ -102,14 +102,14 @@ public class BamSummarizerTest {
 	}
 
 	@Test
-	public void testSummarizeMissingData() throws Exception { 
+	public void testSummarizeMissingData() throws Exception {
 		createDodgyDataFile(createSamDataMissingData());
 
 		BamSummarizer qs = new BamSummarizer();
-		try { 
+		try {
 			qs.summarize(samDodgy);
 			fail("Should have thrown an exception");
-		} catch (Exception e) { 
+		} catch (Exception e) {
 			assertTrue(e.getMessage().startsWith("Error parsing text SAM file. Not enough fields"));
 		}
 
@@ -117,13 +117,13 @@ public class BamSummarizerTest {
 	}
 
 	@Test
-	public void testSummarizeEmptyFile() throws Exception { 
+	public void testSummarizeEmptyFile() throws Exception {
 		createDodgyDataFile(new ArrayList<String>());
 
 		BamSummarizer qs = new BamSummarizer();
-		try { 
+		try {
 			qs.summarize(samDodgy);
-		} catch (Exception e) { 
+		} catch (Exception e) {
 			fail("Should have not thrown an Exception");
 		}
 
@@ -131,7 +131,7 @@ public class BamSummarizerTest {
 	}
 
 	@Ignore
-	public void testSummarizeExtraData() throws Exception { 
+	public void testSummarizeExtraData() throws Exception {
 		createDodgyDataFile(createSamDataExtraData());
 
 		/*
@@ -141,17 +141,17 @@ public class BamSummarizerTest {
 		 */
 		
 		BamSummarizer qs = new BamSummarizer();
-		try { 
+		try {
 			qs.summarize(samDodgy);
 			fail("Should have thrown an Exception");
-		} catch (Exception e) { 
+		} catch (Exception e) {
 			assertTrue(e.getMessage().startsWith("Error parsing text SAM file. Not enough fields in tag"));
 		}
 
 		deleteDodgyDataFile();
 	}
 	@Test
-	public void testSummarizeExtraDataBWA() throws Exception { 
+	public void testSummarizeExtraDataBWA() throws Exception {
 		createDodgyDataFile(createSamDataMissingDataBWA());
 		
 		/*
@@ -161,10 +161,10 @@ public class BamSummarizerTest {
 		 */
 		
 		BamSummarizer qs = new BamSummarizer();
-		try { 
+		try {
 			qs.summarize(samDodgy);
 			fail("Should have thrown an Exception");
-		} catch (Exception e) { 
+		} catch (Exception e) {
 			assertTrue(e.getMessage().startsWith("Error parsing text SAM file. Not enough fields"));
 		}
 		
@@ -172,7 +172,7 @@ public class BamSummarizerTest {
 	}
 
 	@Ignore
-	public void testSummarizeNoHeader() throws Exception { 
+	public void testSummarizeNoHeader() throws Exception {
 		createDodgyDataFile(createSamDataBody());
 		
 		/*
@@ -182,39 +182,39 @@ public class BamSummarizerTest {
 		 */
 
 		BamSummarizer qs = new BamSummarizer();
-		try { 
+		try {
 			qs.summarize(samDodgy);
 			fail("Should have thrown an Exception");
-		} catch (Exception e) { }
+		} catch (Exception e) {}
 
 		deleteDodgyDataFile();
 	}
 
-	private void deleteDodgyDataFile() { 
+	private void deleteDodgyDataFile() {
 		File outputFile = new File(samDodgy);
 		boolean deleted = outputFile.delete();
 		assertTrue(deleted);
 	}
 
-	private void createDodgyDataFile(List<String> dodgyData) { 
+	private void createDodgyDataFile(List<String> dodgyData) {
 		createTestSamFile(new File(samDodgy), dodgyData);
 	}
-	public static List<String> createValidSamData() { 
+	public static List<String> createValidSamData() {
 		List<String> data = new ArrayList<String>();
 		
-		for (String dataEntry : createSamDataHeader()) { 
+		for (String dataEntry : createSamDataHeader()) {
 			data.add(dataEntry);
 		}
 		data.add("@CO	called by createValidSamData()");
 		
-		for (String dataEntry : createSamDataBody()) { 
+		for (String dataEntry : createSamDataBody()) {
 			data.add(dataEntry);
 		}
 		
 		return data;
 	}
 
-	private static List<String> createSamDataHeader() { 
+	private static List<String> createSamDataHeader() {
 		List<String> data = new ArrayList<String>();
 		data.add("@HD	VN:1.0	SO:coordinate");
 		data.add("@RG	ID:1959T	SM:eBeads_20091110_CD	DS:rl=50");
@@ -223,7 +223,7 @@ public class BamSummarizerTest {
 		data.add("@CO	Test SAM file for use by BamSummarizerTest.java");
 		return data;
 	}
-	private static List<String> createSamDataHeaderBWA() { 
+	private static List<String> createSamDataHeaderBWA() {
 		List<String> data = new ArrayList<String>();
 		data.add("@HD	VN:1.0	SO:coordinate");
 		data.add("@RG	ID:1959T	SM:eBeads_20091110_CD	DS:rl=50");
@@ -234,7 +234,7 @@ public class BamSummarizerTest {
 	}	
 	
 	 // updated qprofiler won't parse same strand pairs, so change it
-	private static List<String> createSamDataBody() { 
+	private static List<String> createSamDataBody() {
 		List<String> data = new ArrayList<String>();
 		 // reverse first
 		data.add("243_146_202	83	chr1	10075	6	13H37M	=	10167	142	" +
@@ -259,9 +259,9 @@ public class BamSummarizerTest {
 		return data;
 	}
 
-	private static List<String> createSamDataMissingData() { 
+	private static List<String> createSamDataMissingData() {
 		List<String> data = new ArrayList<String>();
-		for (String dataEntry : createSamDataHeader()) { 
+		for (String dataEntry : createSamDataHeader()) {
 			data.add(dataEntry);
 		}
 		data.add("@CO	called by createSamDataMissingData()");
@@ -269,9 +269,9 @@ public class BamSummarizerTest {
 		data.add("429_1353_1176	171	chr1	10245	29	47M3H");
 		return data;
 	}
-	private static List<String> createSamDataMissingDataBWA() { 
+	private static List<String> createSamDataMissingDataBWA() {
 		List<String> data = new ArrayList<String>();
-		for (String dataEntry : createSamDataHeaderBWA()) { 
+		for (String dataEntry : createSamDataHeaderBWA()) {
 			data.add(dataEntry);
 		}
 		data.add("@CO	called by createSamDataMissingData()");
@@ -280,14 +280,14 @@ public class BamSummarizerTest {
 		return data;
 	}
 
-	private static List<String> createSamDataExtraData() { 
+	private static List<String> createSamDataExtraData() {
 		List<String> data = new ArrayList<String>();
-		for (String dataEntry : createSamDataHeader()) { 
+		for (String dataEntry : createSamDataHeader()) {
 			data.add(dataEntry);
 		}
 		data.add("@CO	called by createSamlDataExtraData()");
 		
-		for (String dataEntry : createSamDataBody()) { 
+		for (String dataEntry : createSamDataBody()) {
 			data.add(dataEntry);
 		}
 		
@@ -307,12 +307,12 @@ public class BamSummarizerTest {
 		return data;
 	}
 	
-	public static void createTestSamFile(File file, List<String> data) { 
-		try { 
+	public static void createTestSamFile(File file, List<String> data) {
+		try {
 			PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(file)));
 			for (String line : data)  out.println(line);			 
 			out.close();
-		} catch (IOException e) { 
+		} catch (IOException e) {
 			Logger.getLogger("BamSummarizerTest").log( Level.WARNING,
 					"IOException caught whilst attempting to write to SAM test file: " + file, e);
 		} 

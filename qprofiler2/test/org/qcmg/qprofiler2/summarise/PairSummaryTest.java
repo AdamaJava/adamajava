@@ -9,9 +9,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import org.junit.Before;
-import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -21,15 +18,14 @@ import org.qcmg.qprofiler2.bam.BamSummarizer;
 import org.qcmg.qprofiler2.bam.BamSummaryReport;
 import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Element;
-
 import htsjdk.samtools.SAMRecord;
 
-public class PairSummaryTest { 
+public class PairSummaryTest {
 	@Rule
 	public TemporaryFolder testFolder = new TemporaryFolder();
 	
 	@Test
-	public void toSummaryXmlTest() throws Exception { 	
+	public void toSummaryXmlTest() throws Exception {	
 		File input = testFolder.newFile("testInputFile.sam");
 		Element root = createPairRoot(input);		
 		List<Element> pairEles =  XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.SEQUENCE_METRICS)	
@@ -37,26 +33,26 @@ public class PairSummaryTest {
 		
 		// only one inward pair but overlapped
 		Element ele = pairEles.stream().filter(e -> ( (Element) e.getParentNode()).getAttribute(XmlUtils.NAME).equals("1959N")).findFirst().get(); 		
-		checkVariableGroup( ele, "Inward", new int[] { 1,0,0,0,1,1,1, 0, 0,175,0} );
+		checkVariableGroup( ele, "Inward", new int[] {1,0,0,0,1,1,1, 0, 0,175,0} );
 
 		// five pairs
 		ele = pairEles.stream().filter(e -> ( (Element) e.getParentNode()).getAttribute(XmlUtils.NAME).equals("1959T")).findFirst().get();	
-		checkVariableGroup( ele, "F5F3", new int[] { 0,0,0,1,1,1,0, 0, 0,2025} ); // tlen=11205, 2015
-		checkVariableGroup( ele, "F3F5", new int[] { 0,1,1,0,1,1,1,0, 0,93} );  // paircounts only for number of firstOfpair
-		checkVariableGroup( ele, "Outward", new int[] { 2,0,0,0,2,1,3,0,0,13} );
+		checkVariableGroup( ele, "F5F3", new int[] {0,0,0,1,1,1,0, 0, 0,2025} ); // tlen=11205, 2015
+		checkVariableGroup( ele, "F3F5", new int[] {0,1,1,0,1,1,1,0, 0,93} );  // paircounts only for number of firstOfpair
+		checkVariableGroup( ele, "Outward", new int[] {2,0,0,0,2,1,3,0,0,13} );
 				
 		ele = pairEles.stream().filter(e -> ( (Element) e.getParentNode()).getAttribute(XmlUtils.NAME).equals(XmlUtils.UNKNOWN_READGROUP)).findFirst().get();	
-		checkVariableGroup( ele, "Inward", new int[] { 1,0,0,0,1,1,0,0,0,76 } );		
+		checkVariableGroup( ele, "Inward", new int[] {1,0,0,0,1,1,0,0,0,76 } );		
 			
 		// notProperPair
 		pairEles =  XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.SEQUENCE_METRICS)	
 				.stream().filter(e  -> e .getAttribute(XmlUtils.NAME).equals( "notProperPairs" )).collect(Collectors.toList());
 		ele = pairEles.stream().filter(e -> ( (Element) e.getParentNode()).getAttribute(XmlUtils.NAME).equals(XmlUtils.UNKNOWN_READGROUP)).findFirst().get();	
-		checkVariableGroup( ele, "F3F5", new int[] { 0,0,0,0,1,1,0,0,0, 0,1} );  // notProperPair
+		checkVariableGroup( ele, "F3F5", new int[] {0,0,0,0,1,1,0,0,0, 0,1} );  // notProperPair
 		
 	}
 	
-	private void checkVariableGroup(Element root, String name, int[] counts ) { 
+	private void checkVariableGroup(Element root, String name, int[] counts ) {
 		
 		Element variableEle = XmlElementUtils.getChildElementByTagName(root, XmlUtils.VARIABLE_GROUP).stream()
 			.filter(e -> e.getAttribute(XmlUtils.NAME).equals(name) ).findFirst().get();
@@ -65,8 +61,8 @@ public class PairSummaryTest {
 		// assertTrue( childEles.size() == 9 );
 		assertTrue( childEles.size() == 10 );
 		
-		for (Element ele : childEles) { 
-			switch (ele.getAttribute(XmlUtils.NAME)) { 
+		for (Element ele : childEles) {
+			switch (ele.getAttribute(XmlUtils.NAME)) {
 				case "overlappedPairs": assertTrue( ele.getTextContent().equals(counts[0] + "") ); break;
 				case  "tlenUnder1500Pairs" : assertTrue( ele.getTextContent().equals(counts[1] + "") ); break;
 				case  "tlenZeroPairs" : assertFalse( ele.getTextContent().equals( counts[9] +"" )   ); break;
@@ -83,7 +79,7 @@ public class PairSummaryTest {
 	}
 	
 	@Test
-	public void zeroMinusTlen() { 
+	public void zeroMinusTlen() {
 		PairSummary pairS = new PairSummary(BwaPair.Pair.Others, false );
 		SAMRecord recorda = new SAMRecord(null);	
 		recorda.setInferredInsertSize(-1000 );
@@ -94,7 +90,7 @@ public class PairSummaryTest {
 				
 		// set tLen == 0, any second of pair
 		recorda.setInferredInsertSize( 0 );
-		for (int flag : new int[] { 129,131,147, 179}) { 
+		for (int flag : new int[] {129,131,147, 179}) {
 			recorda.setFlags(flag);
 			assertTrue(BwaPair.getOverlapBase(recorda) == 0); 
 			pairS.parse(recorda);
@@ -147,13 +143,13 @@ public class PairSummaryTest {
 		assertTrue( pairS.near.get() == 0 );  // only one without overlap		
 		assertTrue( pairS.tLenOverall.get(0) == 4 ); 
 		
-		for (int i = 0 ; i < 96; i++) { 
+		for (int i = 0 ; i < 96; i++) {
 			assertTrue( pairS.getoverlapCounts().get(i) == 0 );
 		}
 		
 	}
 
-	public static Element createPairRoot(File input) throws Exception { 
+	public static Element createPairRoot(File input) throws Exception {
 		createPairInputFile(input);
 		BamSummarizer bs = new BamSummarizer();
 		BamSummaryReport sr = (BamSummaryReport) bs.summarize(input.getAbsolutePath()); 
@@ -164,24 +160,24 @@ public class PairSummaryTest {
 	}
 	
 
-	public static void createPairInputFile(File input) throws IOException { 
+	public static void createPairInputFile(File input) throws IOException {
 		
 		List<String> data = new ArrayList<>();
-		//  first read of proper mapped pair; proper pair (tlen > 0 will be counted), f5f3, tlen(2025>1500)
-		//  f5f3: 10075<--(F3:firstOfPair)    2015<--(F5:secondOfPair)
+		// first read of proper mapped pair; proper pair (tlen > 0 will be counted), f5f3, tlen(2025>1500)
+		// f5f3: 10075<--(F3:firstOfPair)    2015<--(F5:secondOfPair)
 		data.add("243_146_a	115	chr1	10075	6	3H37M	=	12100	2025	ACCCTAACCCTAACCCTAACCNTAACCCTAACCCAAC	+3?GH##;9@D7HI5,:IIB\"!\"II##>II$$BIIC3	" +
 				"RG:Z:1959T	CS:Z:T11010020320310312010320010320013320012232201032202	CQ:Z:**:921$795*#5:;##):<5&'/=,,9(2*#453-'%(.2$6&39$+4'");
 				
-		//  proper pair (second in pair tlen > 10,000  but not count to totalPairs) 
+		// proper pair (second in pair tlen > 10,000  but not count to totalPairs) 
 		// f3f5: 10075<--(F5:secongOfPair)    21100<--(F3:firstOfPair) 
 		data.add("243_146_b	179	chr1	10075	6	3H37M	=	21100	11025	ACCCTAACCCTAACCCTAACCNTAACCCTAACCCAAC	+3?GH##;9@D7HI5,:IIB\"!\"II##>II$$BIIC3	" +
 				"RG:Z:1959T	CS:Z:T11010020320310312010320010320013320012232201032202	CQ:Z:**:921$795*#5:;##):<5&'/=,,9(2*#453-'%(.2$6&39$+4'");
 		
-		//  canonical (second in pair tlen = 13  outward ) 
+		// canonical (second in pair tlen = 13  outward ) 
 		data.add("243_146_c	163	chr1	10075	6	3H37M	=	10050	13	ACCCTAACCCTAACCCTAACCNTAACCCTAACCCAAC	+3?GH##;9@D7HI5,:IIB\"!\"II##>II$$BIIC3	" +
 				"RG:Z:1959T	CS:Z:T11010020320310312010320010320013320012232201032202	CQ:Z:**:921$795*#5:;##):<5&'/=,,9(2*#453-'%(.2$6&39$+4'");
 
-		//  canonical  outward pair (second in pair tlen = -13 discard from pair ) 
+		// canonical  outward pair (second in pair tlen = -13 discard from pair ) 
 		data.add("243_146_d	163	chr1	10075	6	5H37M	=	10000	-36	ACCCTAACCCTAACCCTAACCNTAACCCTAACCCAAC	+3?GH##;9@D7HI5,:IIB\"!\"II##>II$$BIIC3	" +
 				"RG:Z:1959T	CS:Z:T11010020320310312010320010320013320012232201032202	CQ:Z:**:921$795*#5:;##):<5&'/=,,9(2*#453-'%(.2$6&39$+4'");		
 						
@@ -212,7 +208,7 @@ public class PairSummaryTest {
 		// 1959T: pairNumber==2, f3f5 tlen(1025 < 1500) pair;  and inward overlapped pair
 		ReadGroupSummaryTest.createInputFile(input);		
 		// append new pairs
-		try(BufferedWriter out = new BufferedWriter(new FileWriter(input, true))) { 	    
+		try(BufferedWriter out = new BufferedWriter(new FileWriter(input, true))) {	    
 			for (String line : data)  out.write(line + "\n");	               
 		}		
 	}	

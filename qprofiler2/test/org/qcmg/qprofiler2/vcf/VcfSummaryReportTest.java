@@ -4,12 +4,8 @@ import static org.junit.Assert.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
-
 import org.apache.commons.lang3.StringUtils;
-import org.junit.After;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.model.ProfileType;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.IndelUtils.SVTYPE;
@@ -26,32 +22,32 @@ import org.qcmg.qprofiler2.vcf.VcfSummaryReport;
 import org.w3c.dom.*;
 import java.io.*;
 
-public class VcfSummaryReportTest { 
+public class VcfSummaryReportTest {
 	
 	private static final String inputfile = "input.vcf";
-	private static final String[] category = new String[] { "FT","INF"};
+	private static final String[] category = new String[] {"FT","INF"};
 	
 	@Test
-	public void HeaderTest() throws Exception { 
+	public void HeaderTest() throws Exception {
 		File file =  new File( inputfile );
 		createVcfHeader( file );	
 		
 		VcfHeader header;
-		try (VCFFileReader reader = new VCFFileReader(file) ) { 	header = reader.getHeader(); }
+		try (VCFFileReader reader = new VCFFileReader(file) ) {	header = reader.getHeader(); }
 		
 		Node nreport = getXmlParentNode( file ) ;		
 		Node child = nreport.getChildNodes().item(0);
 		assertTrue( child.getNodeName().equals( "vcfHeader") );
 		
-		int[] mark = { 0, 0, 0, 0, 0, 0 };
-		for ( int i = 0; i < 6; i++ ) { 
+		int[] mark = {0, 0, 0, 0, 0, 0 };
+		for ( int i = 0; i < 6; i++ ) {
 			Element headersEle =  (Element) child.getChildNodes().item(i);
 			assertEquals( "headerRecords" , headersEle .getNodeName() );
 			
 			// check meta Information line
-			if ( headersEle.getAttribute( "FIELD" ).equals( "MetaInformation" ) ) { 
+			if ( headersEle.getAttribute( "FIELD" ).equals( "MetaInformation" ) ) {
 				mark[1] = 1;
-				for (int j = 0; j < 12; j ++) { 
+				for (int j = 0; j < 12; j ++) {
 					Element recordEle = (Element) headersEle.getChildNodes().item(j);
 					assertEquals( "record" , recordEle .getNodeName() );
 					String key = recordEle.getAttribute(XmlUtils.NAME);
@@ -63,20 +59,20 @@ public class VcfSummaryReportTest {
 			}
 			
 			// check structured meta information line	 
-			else if ( headersEle.getAttribute( "FIELD" ).equals( "qPG" ) ) { 
+			else if ( headersEle.getAttribute( "FIELD" ).equals( "qPG" ) ) {
 				mark[2] = 1;
 				for ( Element ele : XmlElementUtils.getChildElementByTagName( headersEle, "record") )
 					assertEquals( ele.getTextContent(), header.getIDRecord("qPG", ele.getAttribute(XmlUtils.NAME)).toString() );					
-			} else if ( headersEle.getAttribute( "FIELD" ).equals( "FILTER" ) ) { 
+			} else if ( headersEle.getAttribute( "FIELD" ).equals( "FILTER" ) ) {
 				mark[3] = 1;
 				assertEquals( 1, headersEle.getChildNodes().getLength() );
-			} else if ( headersEle.getAttribute( "FIELD" ).equals( "FORMAT" ) ) { 
+			} else if ( headersEle.getAttribute( "FIELD" ).equals( "FORMAT" ) ) {
 				mark[4] = 1;
 				assertEquals( 2, headersEle.getChildNodes().getLength() );
-			} else if ( headersEle.getAttribute( "FIELD" ).equals( "INFO" ) ) { 
+			} else if ( headersEle.getAttribute( "FIELD" ).equals( "INFO" ) ) {
 				mark[5] = 1;
 				assertEquals( 1, headersEle.getChildNodes().getLength() );
-			} else { 
+			} else {
 				mark[0] = 1;
 				assertEquals( "headerline", headersEle.getAttribute( "FIELD" ));
 				assertEquals( header.getChrom().toString(), headersEle.getChildNodes().item(0).getTextContent());
@@ -89,7 +85,7 @@ public class VcfSummaryReportTest {
 	}	
   
 	@Test
-	public void MetricsTest() throws Exception { 
+	public void MetricsTest() throws Exception {
 		final String lastSample = "http://special";
 		
 		File file = new File("input.vcf");
@@ -101,12 +97,12 @@ public class VcfSummaryReportTest {
 		assertTrue(child.getChildNodes().getLength() == 4);
 		
 		// the common part of each sample level xml
-		for (int sampleNo = 0; sampleNo < 4; sampleNo ++) { 
+		for (int sampleNo = 0; sampleNo < 4; sampleNo ++) {
 			child = nreport.getChildNodes().item(1).getChildNodes().item(sampleNo); 
 			assertTrue( child.getNodeName().equals( VcfSummaryReport.Sample  ) );
 						
 			// check each report
-			for (int j = 0; j < child.getChildNodes().getLength(); j++) { 
+			for (int j = 0; j < child.getChildNodes().getLength(); j++) {
 				Node  node = child.getChildNodes().item(j); // report node
 				assertEquals("report", node.getNodeName() );	
 				
@@ -144,7 +140,7 @@ public class VcfSummaryReportTest {
 		file.delete();			
 	}
 	
-	private void checkControl1(Node child) { 
+	private void checkControl1(Node child) {
 		
 		/** 
 		 * 0/0:20,5:25:PASS:.
@@ -183,10 +179,10 @@ public class VcfSummaryReportTest {
 	 * 0/2:143:PASS:SOMATIC
 	 * 1/2:1,32,32:66:5BP=3:SOMATIC
 	 */
-	private void checkTest1(Node child) { 
+	private void checkTest1(Node child) {
 		
 		// check FT:INF
-		for (String value : new String[] { "5BP=3:SOMATIC;GERM=42,185",  "PASS:SOMATIC", "5BP=3:SOMATIC"  })
+		for (String value : new String[] {"5BP=3:SOMATIC;GERM=42,185",  "PASS:SOMATIC", "5BP=3:SOMATIC"  })
 		assertEquals( 1, XmlElementUtils.getOffspringElementByTagName( (Element) child,  "report" ).stream()
 				.filter( e -> e.getAttribute("values").equals(value) ).count() );		
 		// check genotype
@@ -216,14 +212,14 @@ public class VcfSummaryReportTest {
 	 * it can deal with special char in sample name since updated qprofiler2 use Map<Ssample, Map<categor,SampleSummary>>
 	 * @throws IOException
 	 */
-	public void SampleWithSpecial() throws IOException { 
+	public void SampleWithSpecial() throws IOException {
 		 
 			// sample contain special letter same to the seperator
 			final String lastSample = "http" + Constants.COMMA + "last";				
 			File file = new File("input.vcf");
 			createVcfFile(lastSample, file);				
-			try { 
-				Summarizer summarizer  = new VcfSummarizer( new String[] { }  );
+			try {
+				Summarizer summarizer  = new VcfSummarizer( new String[] {}  );
 				SummaryReport sr = summarizer.summarize("input.vcf", null);				
 				Element root = XmlElementUtils.createRootElement("qProfiler", null);					
 				sr.toXml(root);				
@@ -232,11 +228,11 @@ public class VcfSummaryReportTest {
 				assertEquals(1, samples.stream().filter( e -> e.getAttribute(XmlUtils.NAME).equals(lastSample)).count()) ;	
 				assertEquals(4, XmlElementUtils.getOffspringElementByTagName(root, "report").size());
 				XmlElementUtils.getOffspringElementByTagName(root, "report").forEach(e -> assertEquals( 0, e.getAttributes().getLength()) );				 
-			} catch (Exception e) { fail("unexpected error"); }
+			} catch (Exception e) {fail("unexpected error"); }
 			
 			
-			try { 
-				Summarizer summarizer  = new VcfSummarizer(new String[] { "FT","INF"} );
+			try {
+				Summarizer summarizer  = new VcfSummarizer(new String[] {"FT","INF"} );
 				SummaryReport sr = summarizer.summarize("input.vcf", null);				
 				Element root = XmlElementUtils.createRootElement("qProfiler", null);					
 				sr.toXml(root);				
@@ -246,25 +242,25 @@ public class VcfSummaryReportTest {
 				assertEquals(6, XmlElementUtils.getOffspringElementByTagName(root, "report").size());				
 				Element child =  samples.stream().filter( e -> e.getAttribute(XmlUtils.NAME).equals("test1")).findFirst().get();
 				checkTest1(child);							 
-			} catch (Exception e) { fail("unexpected error"); }
+			} catch (Exception e) {fail("unexpected error"); }
 			
 			
 			 
-			try { 
+			try {
 				
 				QProfiler2 qp = new QProfiler2();
 				createVcfFile( lastSample.replace(Constants.COMMA_STRING, ""), file);				
 				int exitStatus = qp.setup( "--input input.vcf --output output.xml --log output.log".split(" ") );
 				assertTrue(0 == exitStatus);
-			} catch (Exception e) { 
+			} catch (Exception e) {
 				fail("unexpected error");
 			}
 			
 	}
 	
-	private Node getXmlParentNode( File input ) { 
+	private Node getXmlParentNode( File input ) {
 				
-		try (  VCFFileReader reader = new VCFFileReader(input ) ) { 			 
+		try (  VCFFileReader reader = new VCFFileReader(input ) ) {			 
 			VcfSummaryReport vcfSummaryReport  = new VcfSummaryReport( reader.getHeader(), category );					 		
 			for (final VcfRecord vcf : reader) vcfSummaryReport.parseRecord( vcf);			
 								 
@@ -275,7 +271,7 @@ public class VcfSummaryReportTest {
 			assertTrue(nreport.getNodeName().equals( ProfileType.VCF.getReportName()  + "Report"));
 			
 			return nreport;			
-		}catch (Exception e ) { 				 
+		}catch (Exception e ) {				 
 			e.printStackTrace();
 			fail("unexpected error during unit test");
 			return null; 
@@ -289,7 +285,7 @@ public class VcfSummaryReportTest {
 	 * @param inputfile
 	 * @throws IOException
 	 */
-	public static void createVcfFile(String lastSampleName, File inputfile) throws IOException { 
+	public static void createVcfFile(String lastSampleName, File inputfile) throws IOException {
 	  final List<String> data = new ArrayList<String>();
 	  data.add("##fileformat=VCFv4.2");	
 	  data.add("##SpecialChar= < & \" \t > ' ");	
@@ -300,14 +296,14 @@ public class VcfSummaryReportTest {
 	  data.add("##FORMAT=<ID=INF,Number=.,Type=String,Description=\"Sample genotype information indicating if this genotype was 'called' (similar in concept to the INFO field). A semi-colon seperated list of information pertaining to this sample. Use ‘.’ to indicate the absence of information. These values should be described in the meta-information in the same way as INFOs\">");  	  	  
 	  data.add("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tcontrol1\ttest1\tcontrol2\t"+ lastSampleName);	
 	  
-	  for (int i = 0; i < 10; i++) { 	
+	  for (int i = 0; i < 10; i++) {	
 		  data.add("chr1\t10177\trs201752861\tA\tC\t.\t.\tIN=1\tGT:AD:DP:FT:INF\t0/0:20,5:25:PASS:.\t0/1:49,48:97:5BP=3:SOMATIC;GERM=42,185\t.:.:.:.\t.:.:.:.");	
 		  data.add("chr1\t80930980\trs7354844\tG\tT,A\t.\t.\tIN=1\tGT:AD:DP:FT:GQ:INF\t1/1:.:29:PASS:.:.\t1/2:.:64:PASS:.:SOMATIC\t.:.:.:.\t.:.:.:.");
 		  data.add("chr21\t10725791\t.\tGG\tAA,TA\t.\t.\tIN=1\tGT:DP:FT:INF\t0/1:153:PASS:.\t0/2:143:PASS:SOMATIC\t.:.:.:.\t.:.:.:.");	 
 		  data.add("chr22\t48574793\t.\tCGC\tTAA,AAA\t.\t.\tIN=1,2\tGT:AD:DP:FT:INF\t1/1:5,30,1:36:PASS:.\t1/2:1,32,32:66:5BP=3:SOMATIC\t.:.:.:.\t.:.:.:.");			  
 	  }
 	  
-	  try( BufferedWriter out = new BufferedWriter( new FileWriter(inputfile) ); ) { 
+	  try( BufferedWriter out = new BufferedWriter( new FileWriter(inputfile) ); ) {
 	     for ( final String line : data )  out.write( line + "\n");
 	  }   
 					  		  
@@ -317,7 +313,7 @@ public class VcfSummaryReportTest {
 	 * @param inputfile: 
 	 * @throws IOException
 	 */
-	private static void  createVcfHeader( File inputfile ) throws IOException { 
+	private static void  createVcfHeader( File inputfile ) throws IOException {
 		  final List<String> data = new ArrayList<String>();
 		  data.add("##fileformat=null");
 		  data.add("##qUUID=612fd093-d806-43d2-9df1-0976ccd8d029");
@@ -342,13 +338,13 @@ public class VcfSummaryReportTest {
 		  data.add("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\t4a88db37-6b5a-430e-a318-1f82bb614447_1\t00b30292-ffcd-44f3-b7db-36749e3226ce_1\t4a88db37-6b5a-430e-a318-1f82bb614447_2\t00b30292-ffcd-44f3-b7db-36749e3226ce_2");
 		  data.add("##INPUT=2,FILE=/mnt/lustre/working/genomeinfo/share/temp/mock_analysis/1/6/1601fab0-b7d9-4363-85c6-dbf5e4a45967/1601fab0-b7d9-4363-85c6-dbf5e4a45967.vcf");
 		 
-		  try(BufferedWriter out = new BufferedWriter(new FileWriter(inputfile));) {     
+		  try(BufferedWriter out = new BufferedWriter(new FileWriter(inputfile));) {  
 		     for (final String line : data)  out.write(line + "\n");
 		  } 
 		  
 	}	
 	 
-	private void checkLastSampleColumn(Node node) { 
+	private void checkLastSampleColumn(Node node) {
 		
 		assertEquals(1, node.getChildNodes().getLength()); // only one <report>
 		
@@ -365,7 +361,7 @@ public class VcfSummaryReportTest {
 			else if (e.getAttribute(XmlUtils.NAME).equals("TiTvRatio"))  
 				assertEquals("0.00", e.getTextContent() );
 			 					
-		for (int i = 0; i < 3; i ++) { 
+		for (int i = 0; i < 3; i ++) {
 			Element e = (Element) ele.getChildNodes().item(i);
 			assertEquals(XmlUtils.SEQUENCE_METRICS, e.getNodeName() );						
 			assertEquals(1, XmlElementUtils.getChildElementByTagName( e, XmlUtils.VARIABLE_GROUP ).size());
