@@ -58,8 +58,8 @@ public class CycleSummaryUtils {
 				}
 				
 				if (refBase == readBase) {
-					return "Found refBase == altBase, md: " + mdData + " , cigar: " + cigar.toString() + 
-							", seq: " + new String(readBases,  StandardCharsets.UTF_8) + ", reverse strand: " + reverse; 
+					return "Found refBase == altBase, md: " + mdData + " , cigar: " + cigar.toString()
+						+ ", seq: " + new String(readBases,  StandardCharsets.UTF_8) + ", reverse strand: " + reverse; 
 				}
 				
 				int pos = position + additionalOffset;

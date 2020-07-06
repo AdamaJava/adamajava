@@ -165,14 +165,16 @@ public class PositionSummary {
 					} else {
 						tempMin = min.get();
 					}
-				} else break;
+				} else {
+					break;
+				}
 			}
 		}
 		// count for nominated rg on that position
 		// search for key rgid with natural ordering
 	    int order = Collections.binarySearch( readGroupIds, rgid, null);  
 		if (order < 0 ) {
-			throw new IllegalArgumentException("can't find readGroup Id on Bam header: @RG ID:"+ rgid);
+			throw new IllegalArgumentException("can't find readGroup Id on Bam header: @RG ID:" + rgid);
 		}
 		// last element is the total counts on that position
 		rgCoverages[ order  ].increment(position / BUCKET_SIZE);  

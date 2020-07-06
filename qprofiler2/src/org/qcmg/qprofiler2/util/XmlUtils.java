@@ -64,7 +64,9 @@ public class XmlUtils {
 	
    public static void bamHeaderToXml(Element parent1, SAMFileHeader header, boolean isFullBamHeader) {
 
-        if ( null == header) return;
+        if ( null == header) {
+        	return;
+        }
         Element parent = XmlElementUtils.createSubElement(parent1, "bamHeader");
 
         // output bam header classified by "TAG"
@@ -88,35 +90,35 @@ public class XmlUtils {
         }
     }
 
-    private static <T> void createHeaderRecords(Element parent, String cateName, String cateValue, String des, List<T > records) {
-            Element element = XmlElementUtils.createSubElement(parent, "headerRecords" );
-            if (records != null && !records.isEmpty()) {
-                    element.setAttribute( cateName, cateValue);
-                    element.setAttribute( "description", des);
-                    for (T re: records) {
-                            Element elechild = XmlElementUtils.createSubElement(parent, RECORD );
-                            // set txt content
-                            if (re instanceof String) {
-                                    elechild.setTextContent((String)re);
-                            } else if (re instanceof AbstractSAMHeaderRecord) {
-                                    elechild.setTextContent(((AbstractSAMHeaderRecord)re).getSAMString());
-                            }else if (re instanceof VcfHeaderRecord) {
-                                    elechild.setTextContent(((VcfHeaderRecord)re).toString());
-                            }
-                            // set id
-                            if (re instanceof SAMSequenceRecord) {
-                                    elechild.setAttribute(NAME, ((SAMSequenceRecord)re).getSequenceName()  );
-                            } else if (re instanceof SAMReadGroupRecord) {
-                                    elechild.setAttribute(NAME, ((SAMReadGroupRecord)re).getId()  );
-                            } else if (re instanceof SAMProgramRecord) {
-                                elechild.setAttribute(NAME, ((SAMProgramRecord)re).getId()  );                                
-                            } else if (re instanceof VcfHeaderRecord) {
-                                    elechild.setAttribute(NAME,((VcfHeaderRecord) re).getId() != null 
-                                    		? ((VcfHeaderRecord) re).getId() : ((VcfHeaderRecord) re).getMetaKey().replace("##", "") );
-                            }
-                            element.appendChild(elechild);
-                    }
+    private static <T> void createHeaderRecords(Element parent, String cateName, String cateValue, String des, List<T> records) {
+        Element element = XmlElementUtils.createSubElement(parent, "headerRecords");
+        if (records != null && !records.isEmpty()) {
+            element.setAttribute( cateName, cateValue);
+            element.setAttribute( "description", des);
+            for (T re: records) {
+                Element elechild = XmlElementUtils.createSubElement(parent, RECORD);
+                // set txt content
+                if (re instanceof String) {
+                	elechild.setTextContent((String)re);
+                } else if (re instanceof AbstractSAMHeaderRecord) {
+                	elechild.setTextContent(((AbstractSAMHeaderRecord)re).getSAMString());
+                } else if (re instanceof VcfHeaderRecord) {
+                	elechild.setTextContent(((VcfHeaderRecord)re).toString());
+                }
+                // set id
+                if (re instanceof SAMSequenceRecord) {
+                	elechild.setAttribute(NAME, ((SAMSequenceRecord)re).getSequenceName());
+                } else if (re instanceof SAMReadGroupRecord) {
+                	elechild.setAttribute(NAME, ((SAMReadGroupRecord)re).getId());
+                } else if (re instanceof SAMProgramRecord) {
+                    elechild.setAttribute(NAME, ((SAMProgramRecord)re).getId());                                
+                } else if (re instanceof VcfHeaderRecord) {
+                	elechild.setAttribute(NAME,((VcfHeaderRecord) re).getId() != null 
+                        ? ((VcfHeaderRecord) re).getId() : ((VcfHeaderRecord) re).getMetaKey().replace("##", ""));
+                }
+                element.appendChild(elechild);
             }
+        }
     }
 
     public static void vcfHeaderToXml(Element parent1, VcfHeader header) {
@@ -125,21 +127,20 @@ public class XmlUtils {
         	return;
         }
         
-        String cateName = "FIELD";  // output vcf header classified by "FIELD"
-        
+        String cateName = "FIELD";  // output vcf header classified by "FIELD"        
         Element parent = XmlElementUtils.createSubElement(parent1, "vcfHeader");
          
         // the last header line with #CHROM
         List<String> headers = new ArrayList<>();
-        headers.add( header.getChrom().toString() );
-        createHeaderRecords(parent, cateName , "headerline", "The header line", headers );
+        headers.add( header.getChrom().toString());
+        createHeaderRecords(parent, cateName , "headerline", "The header line", headers);
                         
-         // information line with key=value pair
+        // information line with key=value pair
         createHeaderRecords(parent, cateName , "MetaInformation", "Meta-information lines", header.getAllMetaRecords());
 
-        // get all structure record
+       // get all structure record
         HashMap<String, List<VcfHeaderRecord>> others = new HashMap<>();
-        for (final VcfHeaderRecord re: header ) {
+        for (final VcfHeaderRecord re: header) {
             if (re.getId() == null) {
             	continue;
             }
@@ -162,14 +163,14 @@ public class XmlUtils {
      * @param totalCounts store the counts into the pair of attribute name and value
      * @return the created element of sequenceMetrics
      */
-    public static Element createMetricsNode(Element parent,  String name, Pair<String, Number> totalCounts ) {	
-    	Element ele = XmlElementUtils.createSubElement( parent,  XmlUtils.SEQUENCE_METRICS );
+    public static Element createMetricsNode(Element parent,  String name, Pair<String, Number> totalCounts) {	
+    	Element ele = XmlElementUtils.createSubElement( parent,  XmlUtils.SEQUENCE_METRICS);
     						
-		if ( totalCounts != null ) {
+		if ( totalCounts != null) {
 			ele.setAttribute((String)totalCounts.getLeft(), String.valueOf( totalCounts.getRight()));		 
 		}
 		if (name != null) {
-			ele.setAttribute( NAME, name );
+			ele.setAttribute( NAME, name);
 		}
 				
 		return ele;        	
@@ -182,10 +183,11 @@ public class XmlUtils {
 	 * @return the created element of variableGroup
 	 */
     public static Element createGroupNode(Element parent, String name) {
-    	Element ele = XmlElementUtils.createSubElement( parent,  XmlUtils.VARIABLE_GROUP );	
+    	Element ele = XmlElementUtils.createSubElement( parent,  XmlUtils.VARIABLE_GROUP);	
     	ele.setAttribute( NAME, name); 
     	return ele;
     }
+    
     public static Element createGroupNode(Element parent, String name, Number totalcount) {
     	Element ele = createGroupNode(  parent,   name);
     	 ele.setAttribute( COUNT, String.valueOf(totalcount));  
@@ -199,7 +201,7 @@ public class XmlUtils {
 	 * @return the created element of baseCycle
 	 */
     public static Element createCycleNode(Element parent, String name) {
-    	Element ele = XmlElementUtils.createSubElement( parent,  BASE_CYCLE );	
+    	Element ele = XmlElementUtils.createSubElement( parent,  BASE_CYCLE);	
     	ele.setAttribute( CYCLE, name); 
     	return ele;
     }
@@ -216,11 +218,11 @@ public class XmlUtils {
     public static Element outputValueNode(Element parent, String name, Number value) {      	
     	Element ele = XmlElementUtils.createSubElement(parent, VALUE);
     	ele.setAttribute(NAME, name);
-    	if ( value instanceof Double ) {
-    		ele.setTextContent(String.format("%,.2f", value )); 
+    	if ( value instanceof Double) {
+    		ele.setTextContent(String.format("%,.2f", value)); 
     	} else {
     		// autoboxing
-    		ele.setTextContent(  value + "" ); 
+    		ele.setTextContent(  value + ""); 
     	}  	
     	
     	return ele;
@@ -229,9 +231,9 @@ public class XmlUtils {
     public static Element outputBins( Element parent, String name, Map<Integer, AtomicLong> bins, int binSize) {
     	
     	Element cateEle = XmlUtils.createGroupNode(parent, name);
-    	cateEle.setAttribute("binSize", binSize + "" );
+    	cateEle.setAttribute("binSize", binSize + "");
     	Element ele;
-    	for (Entry<Integer, AtomicLong> entry : bins.entrySet() ) {
+    	for (Entry<Integer, AtomicLong> entry : bins.entrySet()) {
     		if (entry.getValue().get() > 0) {
     			ele = XmlElementUtils.createSubElement(cateEle, CLOSED_BIN);
     	    	ele.setAttribute(START,  String.valueOf(entry.getKey() * binSize));   	    	
@@ -242,35 +244,35 @@ public class XmlUtils {
     	return cateEle;   	
     }
 	
-	public static <T> void outputTallyGroupWithSize(Element parent, String name, Map<T, AtomicLong> tallys, int sizeLimits, boolean outputSum ) {
+	public static <T> void outputTallyGroupWithSize(Element parent, String name, Map<T, AtomicLong> tallys, int sizeLimits, boolean outputSum) {
 		boolean hasPercent = tallys.size() > sizeLimits ? false : true;		
 		Element ele = outputTallyGroup(parent, name, tallys, hasPercent, outputSum) ;		
 		
 		if ( ele != null && tallys.size() > sizeLimits) {
 			ele.setAttribute(XmlUtils.TALLY_COUNT, sizeLimits + "+");	
-			ele.insertBefore(ele.getOwnerDocument().createComment( "here only list top " + sizeLimits + " tally element" ), ele.getFirstChild()) ;				
+			ele.insertBefore(ele.getOwnerDocument().createComment( "here only list top " + sizeLimits + " tally element"), ele.getFirstChild()) ;				
 		}
 	}
     
     
     private static <T> void outputTallys( Element ele, String name, Map<T, AtomicLong> tallys, boolean hasPercent) {  	
-    	double sum = hasPercent ? tallys.values().stream().mapToDouble( x -> (double) x.get() ).sum() : 0;	   	   	    		
+    	double sum = hasPercent ? tallys.values().stream().mapToDouble( x -> (double) x.get()).sum() : 0;	   	   	    		
     	for (Entry<T, AtomicLong> entry: tallys.entrySet()) {	
 			// skip zero value for output
-			if (entry.getValue().get() == 0 ) {
+			if (entry.getValue().get() == 0) {
 				continue;
 			}
 			double percent = (sum == 0) ? 0 : 100 * (double)entry.getValue().get() / sum;
-			Element ele1 = XmlElementUtils.createSubElement( ele, TALLY );
-			ele1.setAttribute( VALUE, String.valueOf( entry.getKey() ));
-			ele1.setAttribute( COUNT, String.valueOf( tallys.get(entry.getKey()).get() )); 
+			Element ele1 = XmlElementUtils.createSubElement( ele, TALLY);
+			ele1.setAttribute( VALUE, String.valueOf( entry.getKey()));
+			ele1.setAttribute( COUNT, String.valueOf( tallys.get(entry.getKey()).get())); 
 			if ( hasPercent == true) {
 				ele1.setAttribute(PERCENT, String.format("%,.2f", percent));	
 			}					
 		}  	    	
     }
    
-    public static  <T>Element outputTallyGroup( Element parent, String name, Map<T, AtomicLong> tallys, boolean hasPercent, boolean outputSum ) {
+    public static  <T>Element outputTallyGroup( Element parent, String name, Map<T, AtomicLong> tallys, boolean hasPercent, boolean outputSum) {
     	if (tallys == null || tallys.isEmpty()) {
     		return null;
     	}
@@ -279,7 +281,7 @@ public class XmlUtils {
     	outputTallys( ele, name, tallys, hasPercent);
     	
     	if (outputSum) {
-	    	long counts = tallys.values().stream().mapToLong( x -> (long) x.get() ).sum() ;	
+	    	long counts = tallys.values().stream().mapToLong( x -> (long) x.get()).sum() ;	
 	    	ele.setAttribute(COUNT, counts + "");
     	}
     	
@@ -287,16 +289,16 @@ public class XmlUtils {
     }
     
     
-    public static <T>  void outputCycleTallyGroup( Element parent, String name, Map<T, AtomicLong> tallys, boolean hasPercent ) {
+    public static <T>  void outputCycleTallyGroup( Element parent, String name, Map<T, AtomicLong> tallys, boolean hasPercent) {
     	if (tallys == null || tallys.isEmpty()) {
     		return;
     	}
     	       	
-    	Element ele = XmlElementUtils.createSubElement( parent,  BASE_CYCLE );	
+    	Element ele = XmlElementUtils.createSubElement( parent,  BASE_CYCLE);	
     	ele.setAttribute( CYCLE, name); 
  
-    	outputTallys(  ele,  name,  tallys,  hasPercent );  
-    	long counts = tallys.values().stream().mapToLong( x -> (long) x.get() ).sum() ;	
+    	outputTallys(  ele,  name,  tallys,  hasPercent);  
+    	long counts = tallys.values().stream().mapToLong( x -> (long) x.get()).sum() ;	
     	ele.setAttribute(COUNT, counts + "");
     }
     
@@ -308,7 +310,7 @@ public class XmlUtils {
     }
 
     public static Element createReadGroupNode( Element parent, String rgid) {
-     	Element ele = XmlElementUtils.createSubElement( parent, "readGroup" );
+     	Element ele = XmlElementUtils.createSubElement( parent, "readGroup");
     	ele.setAttribute(NAME, rgid);
     	return ele;
     }
@@ -328,7 +330,7 @@ public class XmlUtils {
 		boolean isNew = false;
 		String key1 = key;	 	
 		if (!map.containsKey(key1)) {
-			if (map.size() >= limitSize ) {
+			if (map.size() >= limitSize) {
 				key1 = XmlUtils.OTHER;
 			} else {
 				isNew = true; 

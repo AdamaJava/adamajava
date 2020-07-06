@@ -42,7 +42,7 @@ public class VcfSummarizer implements Summarizer {
 				try {
 					vcfSummaryReport.parseRecord( vcf );		
 					
-				} catch(Exception e) {
+				} catch (Exception e) {
 					if ( ++errNo < 500 ) {
 						logger.warn("error in vcf record: " + vcf.toString());
 					} else {

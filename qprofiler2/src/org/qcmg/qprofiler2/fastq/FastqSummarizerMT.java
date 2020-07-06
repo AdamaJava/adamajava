@@ -48,11 +48,11 @@ public class FastqSummarizerMT implements Summarizer {
 		long start = System.currentTimeMillis();
 		
 		final FastqSummaryReport fastqSummaryReport = new FastqSummaryReport();
-		fastqSummaryReport.setFileName(file );
+		fastqSummaryReport.setFileName(file);
 		fastqSummaryReport.setStartTime(DateUtils.getCurrentDateAsString());
 				
 		// set the bam header		
-		logger.info("will create " + (noOfConsumerThreads - 1 ) + " consumer threads");
+		logger.info("will create " + (noOfConsumerThreads - 1) + " consumer threads");
 
 		final CountDownLatch pLatch = new CountDownLatch(1);
 		final CountDownLatch cLatch = new CountDownLatch(noOfConsumerThreads - 1);
@@ -75,7 +75,7 @@ public class FastqSummarizerMT implements Summarizer {
 			pLatch.await();
 			logger.info("producer thread finished, queue size: " + q.size());
 			
-			if ( ! cLatch.await(30, TimeUnit.SECONDS)) {
+			if (! cLatch.await(30, TimeUnit.SECONDS)) {
 			
 				// need to cater for scenario where all consumer threads have died...
 				// if after 10 seconds, the q size has not decreased - assume the consumer threads are no more...
@@ -101,7 +101,7 @@ public class FastqSummarizerMT implements Summarizer {
 			}
 
 			// if there are items left on the queue - means that the consumer threads encountered errors and were unable to complete the processing
-			if (q.size()  > 0 ) {
+			if (q.size()  > 0) {
 				logger.error("no consumer threads available to process items [" + q.size() + "] on queue");
 				throw new Exception("Consumer threads were unable to process all items on the queue");
 			}
@@ -147,7 +147,7 @@ public class FastqSummarizerMT implements Summarizer {
 		public void run() {
 			try {
 				logger.debug("Start Consumer");
-				while ( true ) {
+				while (true) {
 					FastqRecord record = queue.poll();
 					if (null != record) {
 						try {

@@ -80,8 +80,7 @@ public class TagSummaryReportTest {
 		// three of firstOfPair have four mutation base
 		String[] values = new String[] {"A", "T", "C", "C"};
 		String[] counts =  new String[] {"1", "10", "11", "37"};
-		for (int i = 0; i < counts.length; i++ ) {
-			
+		for (int i = 0; i < counts.length; i++ ) {			
 			String count = counts[i];
 			Element vE = XmlElementUtils.getChildElementByTagName(ele, XmlUtils.BASE_CYCLE).stream().
 				filter( e -> e.getAttribute( XmlUtils.CYCLE ).equals( String.valueOf(count))  ).findFirst().get();		
@@ -132,14 +131,17 @@ public class TagSummaryReportTest {
 		short [] tags = {CS, CQ, RG, ZM, ZP, CM, ZF, SM, IH, NH, MD};
 		
 		System.out.println("current");
-		for (short tag : tags) 
+		for (short tag : tags) {
 			System.out.println(STU.makeStringTag(tag) + " : " + tag);
-		
+		}
+				
 		System.out.println("ordered");
 		short [] orderedTags = {MD, ZF, RG, IH, NH,CM,SM,ZM,ZP, CQ, CS};
 		
-		for (short tag : orderedTags) 
-			System.out.println(STU.makeStringTag(tag) + " : " + tag);					
+		for (short tag : orderedTags) {
+			System.out.println(STU.makeStringTag(tag) + " : " + tag);
+		}
+								
 	}
 	
 	private void createMDerrFile(String input) throws IOException {
@@ -155,8 +157,10 @@ public class TagSummaryReportTest {
 	    "########################################################################F==#F==#EGGGGGGE<=#FE1GGGGGGGGGGGGGF=?#GGGE@=#E@?#<=##	" + 
 	    "MD:Z:1T0C1A0G0G0T0C0G0G0T0T0T0C0T0A0T0C0T0A0C0N0T0T0C0A0A0A0T0T0C0C0T0C0C0C0T0G0T0A1G0A3G3A10G19T6T3T2	NH:i:1	HI:i:1	NM:i:47	AS:i:169	RG:Z:1959T");
 	
-		try(BufferedWriter out = new BufferedWriter(new FileWriter(input))) {	    
-			for (String line : data)  out.write(line + "\n");	               
+		try(BufferedWriter out = new BufferedWriter(new FileWriter(input))) {  
+			for (String line : data) {
+				out.write(line + "\n");             
+			}
 		}	
 	}
 	

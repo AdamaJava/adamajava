@@ -29,50 +29,49 @@ public class PairSummaryTest {
 		File input = testFolder.newFile("testInputFile.sam");
 		Element root = createPairRoot(input);		
 		List<Element> pairEles =  XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.SEQUENCE_METRICS)	
-				.stream().filter(e -> e.getAttribute(XmlUtils.NAME).equals( "properPairs" )).collect(Collectors.toList());	
+				.stream().filter(e -> e.getAttribute(XmlUtils.NAME).equals("properPairs")).collect(Collectors.toList());	
 		
 		// only one inward pair but overlapped
-		Element ele = pairEles.stream().filter(e -> ( (Element) e.getParentNode()).getAttribute(XmlUtils.NAME).equals("1959N")).findFirst().get(); 		
-		checkVariableGroup( ele, "Inward", new int[] {1,0,0,0,1,1,1, 0, 0,175,0} );
+		Element ele = pairEles.stream().filter(e -> ((Element) e.getParentNode()).getAttribute(XmlUtils.NAME).equals("1959N")).findFirst().get(); 		
+		checkVariableGroup(ele, "Inward", new int[] {1,0,0,0,1,1,1, 0, 0,175,0});
 
 		// five pairs
-		ele = pairEles.stream().filter(e -> ( (Element) e.getParentNode()).getAttribute(XmlUtils.NAME).equals("1959T")).findFirst().get();	
-		checkVariableGroup( ele, "F5F3", new int[] {0,0,0,1,1,1,0, 0, 0,2025} ); // tlen=11205, 2015
-		checkVariableGroup( ele, "F3F5", new int[] {0,1,1,0,1,1,1,0, 0,93} );  // paircounts only for number of firstOfpair
-		checkVariableGroup( ele, "Outward", new int[] {2,0,0,0,2,1,3,0,0,13} );
+		ele = pairEles.stream().filter(e -> ((Element) e.getParentNode()).getAttribute(XmlUtils.NAME).equals("1959T")).findFirst().get();	
+		checkVariableGroup(ele, "F5F3", new int[] {0,0,0,1,1,1,0, 0, 0,2025}); // tlen=11205, 2015
+		checkVariableGroup(ele, "F3F5", new int[] {0,1,1,0,1,1,1,0, 0,93});  // paircounts only for number of firstOfpair
+		checkVariableGroup(ele, "Outward", new int[] {2,0,0,0,2,1,3,0,0,13});
 				
-		ele = pairEles.stream().filter(e -> ( (Element) e.getParentNode()).getAttribute(XmlUtils.NAME).equals(XmlUtils.UNKNOWN_READGROUP)).findFirst().get();	
-		checkVariableGroup( ele, "Inward", new int[] {1,0,0,0,1,1,0,0,0,76 } );		
+		ele = pairEles.stream().filter(e -> ((Element) e.getParentNode()).getAttribute(XmlUtils.NAME).equals(XmlUtils.UNKNOWN_READGROUP)).findFirst().get();	
+		checkVariableGroup(ele, "Inward", new int[] {1,0,0,0,1,1,0,0,0,76 });		
 			
 		// notProperPair
 		pairEles =  XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.SEQUENCE_METRICS)	
-				.stream().filter(e  -> e .getAttribute(XmlUtils.NAME).equals( "notProperPairs" )).collect(Collectors.toList());
-		ele = pairEles.stream().filter(e -> ( (Element) e.getParentNode()).getAttribute(XmlUtils.NAME).equals(XmlUtils.UNKNOWN_READGROUP)).findFirst().get();	
-		checkVariableGroup( ele, "F3F5", new int[] {0,0,0,0,1,1,0,0,0, 0,1} );  // notProperPair
+				.stream().filter(e  -> e .getAttribute(XmlUtils.NAME).equals("notProperPairs")).collect(Collectors.toList());
+		ele = pairEles.stream().filter(e -> ((Element) e.getParentNode()).getAttribute(XmlUtils.NAME).equals(XmlUtils.UNKNOWN_READGROUP)).findFirst().get();	
+		checkVariableGroup(ele, "F3F5", new int[] {0,0,0,0,1,1,0,0,0, 0,1});  // notProperPair
 		
 	}
 	
-	private void checkVariableGroup(Element root, String name, int[] counts ) {
+	private void checkVariableGroup(Element root, String name, int[] counts) {
 		
 		Element variableEle = XmlElementUtils.getChildElementByTagName(root, XmlUtils.VARIABLE_GROUP).stream()
-			.filter(e -> e.getAttribute(XmlUtils.NAME).equals(name) ).findFirst().get();
+			.filter(e -> e.getAttribute(XmlUtils.NAME).equals(name)).findFirst().get();
 		
 		List<Element> childEles = XmlElementUtils.getChildElementByTagName(variableEle, XmlUtils.VALUE);
-		// assertTrue( childEles.size() == 9 );
-		assertTrue( childEles.size() == 10 );
+		assertTrue(childEles.size() == 10);
 		
 		for (Element ele : childEles) {
 			switch (ele.getAttribute(XmlUtils.NAME)) {
-				case "overlappedPairs": assertTrue( ele.getTextContent().equals(counts[0] + "") ); break;
-				case  "tlenUnder1500Pairs" : assertTrue( ele.getTextContent().equals(counts[1] + "") ); break;
-				case  "tlenZeroPairs" : assertFalse( ele.getTextContent().equals( counts[9] +"" )   ); break;
-				case  "tlenOver10000Pairs" : assertTrue( ele.getTextContent().equals(counts[2] + "") ); break;
-				case  "tlenBetween1500And10000Pairs" : assertTrue( ele.getTextContent().equals(counts[3] + "") ); break;
-				case  "pairCountUnderTlen5000" : assertTrue( ele.getTextContent().equals(counts[4] + "") ); break;
-				case  "firstOfPairs" : assertTrue( ele.getTextContent().equals(counts[5] + "") ); break;
-				case  "secondOfPairs" : assertTrue( ele.getTextContent().equals(counts[6] + "") ); break;
-				case  "mateUnmappedPair" : assertTrue( ele.getTextContent().equals(counts[7] + "") ); break;
-				case  "mateDifferentReferencePair" : assertTrue( ele.getTextContent().equals(counts[8] + "") ); break;
+				case "overlappedPairs": assertTrue(ele.getTextContent().equals(counts[0] + "")); break;
+				case  "tlenUnder1500Pairs" : assertTrue(ele.getTextContent().equals(counts[1] + "")); break;
+				case  "tlenZeroPairs" : assertFalse(ele.getTextContent().equals(counts[9] +"")); break;
+				case  "tlenOver10000Pairs" : assertTrue(ele.getTextContent().equals(counts[2] + "")); break;
+				case  "tlenBetween1500And10000Pairs" : assertTrue(ele.getTextContent().equals(counts[3] + "")); break;
+				case  "pairCountUnderTlen5000" : assertTrue(ele.getTextContent().equals(counts[4] + "")); break;
+				case  "firstOfPairs" : assertTrue(ele.getTextContent().equals(counts[5] + "")); break;
+				case  "secondOfPairs" : assertTrue(ele.getTextContent().equals(counts[6] + "")); break;
+				case  "mateUnmappedPair" : assertTrue(ele.getTextContent().equals(counts[7] + "")); break;
+				case  "mateDifferentReferencePair" : assertTrue(ele.getTextContent().equals(counts[8] + "")); break;
 				default: assertTrue(false);  // not allowed
 			}			
 		}	
@@ -80,16 +79,16 @@ public class PairSummaryTest {
 	
 	@Test
 	public void zeroMinusTlen() {
-		PairSummary pairS = new PairSummary(BwaPair.Pair.Others, false );
+		PairSummary pairS = new PairSummary(BwaPair.Pair.Others, false);
 		SAMRecord recorda = new SAMRecord(null);	
-		recorda.setInferredInsertSize(-1000 );
+		recorda.setInferredInsertSize(-1000);
 		assertTrue(BwaPair.getOverlapBase(recorda) == 0); 
-		recorda.setInferredInsertSize(-1 );
+		recorda.setInferredInsertSize(-1);
 		assertTrue(BwaPair.getOverlapBase(recorda) == 0); 
 		pairS.parse(recorda); //do nothing for unpaired read
 				
 		// set tLen == 0, any second of pair
-		recorda.setInferredInsertSize( 0 );
+		recorda.setInferredInsertSize(0);
 		for (int flag : new int[] {129,131,147, 179}) {
 			recorda.setFlags(flag);
 			assertTrue(BwaPair.getOverlapBase(recorda) == 0); 
@@ -112,9 +111,9 @@ public class PairSummaryTest {
 		// ST-E00180:52:H5LNMCCXX:1:2103:1720:24691 113 chr1 27775356 39 117S33M = 27775354 0
 		//     <-------|  F5F3 reverse firstOfPaie
 		// <-----------|
-		recorda.setCigarString( "117S33M" );
-		recorda.setAlignmentStart( 27775356 );
-		recorda.setMateAlignmentStart( 27775354 );
+		recorda.setCigarString("117S33M");
+		recorda.setAlignmentStart(27775356);
+		recorda.setMateAlignmentStart(27775354);
 		assertTrue(BwaPair.getOverlapBase(recorda) == 0); 
 		pairS.parse(recorda);
 		
@@ -139,12 +138,12 @@ public class PairSummaryTest {
 		assertTrue(BwaPair.getOverlapBase(recorda) == 0);
 		pairS.parse(recorda);
 		
-		assertTrue( pairS.getFirstOfPairCounts() == 4 );
-		assertTrue( pairS.near.get() == 0 );  // only one without overlap		
-		assertTrue( pairS.tLenOverall.get(0) == 4 ); 
+		assertTrue(pairS.getFirstOfPairCounts() == 4);
+		assertTrue(pairS.near.get() == 0);  // only one without overlap		
+		assertTrue(pairS.tLenOverall.get(0) == 4); 
 		
 		for (int i = 0 ; i < 96; i++) {
-			assertTrue( pairS.getoverlapCounts().get(i) == 0 );
+			assertTrue(pairS.getoverlapCounts().get(i) == 0);
 		}
 		
 	}
@@ -168,24 +167,24 @@ public class PairSummaryTest {
 		data.add("243_146_a	115	chr1	10075	6	3H37M	=	12100	2025	ACCCTAACCCTAACCCTAACCNTAACCCTAACCCAAC	+3?GH##;9@D7HI5,:IIB\"!\"II##>II$$BIIC3	" +
 				"RG:Z:1959T	CS:Z:T11010020320310312010320010320013320012232201032202	CQ:Z:**:921$795*#5:;##):<5&'/=,,9(2*#453-'%(.2$6&39$+4'");
 				
-		// proper pair (second in pair tlen > 10,000  but not count to totalPairs) 
-		// f3f5: 10075<--(F5:secongOfPair)    21100<--(F3:firstOfPair) 
+		// proper pair (second in pair tlen > 10,000  but not count to totalPairs)
+		// f3f5: 10075<--(F5:secongOfPair)    21100<--(F3:firstOfPair)
 		data.add("243_146_b	179	chr1	10075	6	3H37M	=	21100	11025	ACCCTAACCCTAACCCTAACCNTAACCCTAACCCAAC	+3?GH##;9@D7HI5,:IIB\"!\"II##>II$$BIIC3	" +
 				"RG:Z:1959T	CS:Z:T11010020320310312010320010320013320012232201032202	CQ:Z:**:921$795*#5:;##):<5&'/=,,9(2*#453-'%(.2$6&39$+4'");
 		
-		// canonical (second in pair tlen = 13  outward ) 
+		// canonical (second in pair tlen = 13  outward)
 		data.add("243_146_c	163	chr1	10075	6	3H37M	=	10050	13	ACCCTAACCCTAACCCTAACCNTAACCCTAACCCAAC	+3?GH##;9@D7HI5,:IIB\"!\"II##>II$$BIIC3	" +
 				"RG:Z:1959T	CS:Z:T11010020320310312010320010320013320012232201032202	CQ:Z:**:921$795*#5:;##):<5&'/=,,9(2*#453-'%(.2$6&39$+4'");
 
-		// canonical  outward pair (second in pair tlen = -13 discard from pair ) 
+		// canonical  outward pair (second in pair tlen = -13 discard from pair)
 		data.add("243_146_d	163	chr1	10075	6	5H37M	=	10000	-36	ACCCTAACCCTAACCCTAACCNTAACCCTAACCCAAC	+3?GH##;9@D7HI5,:IIB\"!\"II##>II$$BIIC3	" +
 				"RG:Z:1959T	CS:Z:T11010020320310312010320010320013320012232201032202	CQ:Z:**:921$795*#5:;##):<5&'/=,,9(2*#453-'%(.2$6&39$+4'");		
 						
-		// non-canonical pair (Not counted as pair as it is second in pair ) noRG and mate unmapped.
+		// non-canonical pair (Not counted as pair as it is second in pair) noRG and mate unmapped.
 		data.add("NS500239:a	25	chr1	7480169	0	75M	*	0	0	AATGAATAGAAGGGTCCAGATCCAGTTCTAATTTGGGGTAGGGACTCAGTTTGTGTTTTTTCACGAGATGAAGAT	" + 
 		"EEEA<EEEEEE<<EE/AEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEAEEEEEEEEAEEEEEEEAAAAA	NH:i:14	HI:i:11	AS:i:73	NM:i:0	MD:Z:75	");
 
-		// non-canonical pair noRG and mate unmapped. first in pair 
+		// non-canonical pair noRG and mate unmapped. first in pair
 		data.add("NS500239:b	89	chr1	7480169	0	75M	*	0	0	AATGAATAGAAGGGTCCAGATCCAGTTCTAATTTGGGGTAGGGACTCAGTTTGTGTTTTTTCACGAGATGAAGAT	" + 
 		"EEEA<EEEEEE<<EE/AEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEAEEEEEEEEAEEEEEEEAAAAA	NH:i:14	HI:i:11	AS:i:73	NM:i:0	MD:Z:75	");
 		
@@ -201,7 +200,6 @@ public class PairSummaryTest {
 		// F3F5: notProperPair, firstOfPair bothforward same start
 		data.add("NS500239:d	65	chr1	7480169	0	75M	=	7480169	0	AATGAATAGAAGGGTCCAGATCCAGTTCTAATTTGGGGTAGGGACTCAGTTTGTGTTTTTTCACGAGATGAAGAT	" + 
 				"EEEA<EEEEEE<<EE/AEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEAEEEEEEEEAEEEEEEEAAAAA	NH:i:14	HI:i:11	AS:i:73	NM:i:0	MD:Z:75	");
-
 				
 		// noRG: pairNumber==0
 		// 1959N: pairNumber==1, inward overlapped pair

@@ -33,7 +33,6 @@ public class ReadGroupSummary {
 	public static final String NODE_UNMAPPED = "unmappedReads";
 	public static final String NODE_NOT_PROPER_PAIR = "notProperPairs";
 	public static final String NODE_FAILED_VENDOR_QUALITY = "failedVendorQuality";
-
 		
 	public static final String MIN = "min";	
 	public static final String MAX = "max";
@@ -129,7 +128,8 @@ public class ReadGroupSummary {
 		
 	/**
 	 * classify record belongs (duplicate...) and count the number. If record is parsed, then count the hard/soft clip bases, pair mapping overlap bases and pairs information
-	 * @param record
+	 * 
+	 * @param record is a SAM record
 	 * @return true if record parsed; otherwise return false since record duplicate, supplementary, secondary, failedVendorQuality, unmapped or nonCanonical. 
 	 */
 	public boolean parseRecord( final SAMRecord record ) {
@@ -297,9 +297,9 @@ public class ReadGroupSummary {
 		
 		// add overall information to current readgroup element	
 		long maxBases = getReadCount() * readlengthStats.getMax() ;
-		long lostBase = (duplicate.get() + unmapped.get() + notProperPairedReads.get()  ) * getMaxReadLength() 
+		long lostBase = (duplicate.get() + unmapped.get() + notProperPairedReads.get()  ) * getMaxReadLength()
 				+ trimBaseStats.getBaseCounts() + softclipStats.getBaseCounts() + hardclipStats.getBaseCounts() + overlapStats.getBaseCounts();
-		double lostPercent =  maxBases == 0 ? 0 : 100 * (double) lostBase / maxBases ;	
+		final double lostPercent =  maxBases == 0 ? 0 : 100 * (double) lostBase / maxBases;	
 		
 		ele = XmlUtils.createGroupNode(rgElement, "countedReads" );
 		XmlUtils.outputValueNode(ele, UNPAIRED_READ,  unpaired.get());	
@@ -335,7 +335,7 @@ public class ReadGroupSummary {
 		Map<String, Element> metricEs = new HashMap<>();
 		Map<String, AtomicLong> metricCounts = new HashMap<>();
 		for (PairSummary p : pairCategory.values()) {
-			String name = p.isProperPair? "tLenInProperPair" : "tLenInNotProperPair";
+			String name = p.isProperPair ? "tLenInProperPair" : "tLenInNotProperPair";
 			// sum all pairCounts belong to metrics section
 			AtomicLong cPairs =  metricCounts.computeIfAbsent(name,  k ->  new AtomicLong());
 			cPairs.addAndGet(p.getTLENCounts().getSum());

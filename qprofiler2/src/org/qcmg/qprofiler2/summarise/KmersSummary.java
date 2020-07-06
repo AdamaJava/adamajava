@@ -9,8 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
-
-import org.apache.commons.compress.utils.Charsets;
 import org.qcmg.common.model.QCMGAtomicLongArray;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.BaseUtils;
@@ -136,7 +134,7 @@ public class KmersSummary {
 		  
 		 if (reverse) {
 			 byte[] dataReverse = readString.clone(); 
-			 for (int i = dataReverse.length -1 , j = 0; i >= 0 ; i --, j ++) {
+			 for (int i = dataReverse.length - 1 , j = 0; i >= 0 ; i --, j ++) {
 				dataString[j] = (byte) BaseUtils.getComplement( (char) dataReverse[i] );
 			}
 		 }
@@ -319,7 +317,9 @@ public class KmersSummary {
 		Set<String> popularMers = new HashSet<>();
 		for (int i = 0; i < popularNo; i ++ ) {
 			long bigValue = sortCounts[sortCounts.length - i - 1];
-			if ( bigValue == 0 ) break; // find zero is meaningless
+			if ( bigValue == 0 ) {
+				break; // find zero is meaningless
+			}
 			for (int j = 0; j < possibleMers.length; j ++) {
 				if (bigValue == midCycleCounts[j] && !popularMers.contains(possibleMers[j])) {
 					popularMers.add( possibleMers[j]);

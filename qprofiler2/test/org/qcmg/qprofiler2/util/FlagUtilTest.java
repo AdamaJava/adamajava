@@ -27,7 +27,6 @@ public class FlagUtilTest {
 		assertEquals("000000001000", FlagUtil.getFlagString(8));			// INVALID
 	}
 	
-	
 	/*
 	 * Bit Description
 	 * 
@@ -104,11 +103,12 @@ public class FlagUtilTest {
 		
 		// convert to map
 		long length = flagIntegerCount.length();
-		for (int i = 0 ; i < length ; i++) 
+		for (int i = 0 ; i < length ; i++) {
 			if (flagIntegerCount.get(i) > 0) {
 				String flagString = FlagUtil.getFlagString(i);
 				flagBinaryCount.put(flagString, new AtomicLong(flagIntegerCount.get(i)));
-			}				
+			}	
+		}			
 		XmlUtils.outputTallyGroup( root , "FLAG", flagBinaryCount, true, true);	
 		
 		// check output

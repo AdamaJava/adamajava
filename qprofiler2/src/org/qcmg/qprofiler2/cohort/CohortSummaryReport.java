@@ -17,7 +17,7 @@ import org.w3c.dom.Element;
 
 public class CohortSummaryReport extends SummaryReport {
 	public static final String outputSeperate = "\t";	
-	public static final String headerline = String.join( outputSeperate, new String[] {"File","Sample" ,"ReportingCategory","VariantType","VariantCount","DbSnpProportion","TiTvRatio"});
+	public static final String headerline = String.join(outputSeperate, new String[] {"File","Sample" ,"ReportingCategory","VariantType","VariantCount","DbSnpProportion","TiTvRatio"});
 	
 	final String sampleId; 
 	final String file;	
@@ -32,9 +32,9 @@ public class CohortSummaryReport extends SummaryReport {
 		this.file = fxml.getCanonicalPath();
 		this.sampleId = sampleNode.getAttribute(XmlUtils.NAME);
 		
-		for ( Element ele : XmlElementUtils.getChildElementByTagName( sampleNode, SampleSummary.report ) ) {
-			Category cat = new Category( ele.getAttribute(SampleSummary.values), ele ); 
-			categories.add(cat );
+		for (Element ele : XmlElementUtils.getChildElementByTagName(sampleNode, SampleSummary.report)) {
+			Category cat = new Category(ele.getAttribute(SampleSummary.values), ele); 
+			categories.add(cat);
 			
 			// summary
 			sumTi += cat.ti;
@@ -49,7 +49,7 @@ public class CohortSummaryReport extends SummaryReport {
 				
 	}	
 	
-	List<String> outputCounts(  ) {		 
+	List<String> outputCounts() {		 
 		List<String> output = new ArrayList<>(); 
 		for (Category cat: categories) {
 			for (String str : cat.output()) {
@@ -76,7 +76,8 @@ public class CohortSummaryReport extends SummaryReport {
 		
 		// for snv only, there is only one svn for each report unde same category
 		final String titvRate; 
-		int ti = 0, tv = 0;
+		int ti = 0;
+		int tv = 0;
 						
 		Category(String name, Element report) {
 					 
@@ -88,10 +89,10 @@ public class CohortSummaryReport extends SummaryReport {
 				// record counts and dbsnp for all type variants
 				String type = ele.getAttribute(XmlUtils.NAME);	
 				int count = Integer.parseInt(ele.getAttribute("count"));
-				variantsCounts.put(type, count );
+				variantsCounts.put(type, count);
 				
 				Element e1 = XmlElementUtils.getChildElementByTagName(ele, XmlUtils.VALUE).stream().filter(e -> e.getAttribute(XmlUtils.NAME).equals(SampleSummary.dbSNP)).findFirst().get();				
-				int db = Integer.parseInt( e1.getTextContent() );
+				int db = Integer.parseInt(e1.getTextContent());
 				dbSnpCounts.put(type, db);
 				
 				if (type.equals(SVTYPE.SNP.toVariantType())) {
@@ -100,22 +101,21 @@ public class CohortSummaryReport extends SummaryReport {
 					
 					// ti
 					Optional<Element> streams = XmlElementUtils.getChildElementByTagName(ele, XmlUtils.VARIABLE_GROUP).stream().filter(e -> e.getAttribute(XmlUtils.NAME).equals(SampleSummary.transitions)).findFirst();				
-					if ( streams.isPresent()   ) {
+					if (streams.isPresent()) {
 						List<Integer> sums = new ArrayList<>();						
 						XmlElementUtils.getChildElementByTagName(streams.get(), XmlUtils.TALLY).stream()
-							.forEach( e ->   sums.add(  Integer.parseInt(e.getAttribute(XmlUtils.COUNT)) ) );
+							.forEach(e ->   sums.add(Integer.parseInt(e.getAttribute(XmlUtils.COUNT))));
 						ti = sums.stream().mapToInt(i -> i.intValue()).sum();
 					} 
 					
 					// tv
 					streams = XmlElementUtils.getChildElementByTagName(ele, XmlUtils.VARIABLE_GROUP).stream().filter(e -> e.getAttribute(XmlUtils.NAME).equals(SampleSummary.transversions)).findFirst() ;				
-					if ( streams.isPresent() ) {
+					if (streams.isPresent()) {
 						List<Integer> sums = new ArrayList<>();
 						XmlElementUtils.getChildElementByTagName(streams.get(), XmlUtils.TALLY).stream()
-							.forEach( e ->   sums.add(  Integer.parseInt(e.getAttribute(XmlUtils.COUNT)) ) );
+							.forEach(e ->   sums.add(Integer.parseInt(e.getAttribute(XmlUtils.COUNT))));
 						tv = sums.stream().mapToInt(i -> i.intValue()).sum();
-					}
-					
+					}				
 				}
 			}
 			 
@@ -128,14 +128,14 @@ public class CohortSummaryReport extends SummaryReport {
 		 */
 		List<String> output() {
 			List<String> output = new ArrayList<>(); 
-			for (Entry<String, Integer> entry :  variantsCounts.entrySet() ) {	
+			for (Entry<String, Integer> entry :  variantsCounts.entrySet()) {	
 				StringBuilder sb = new StringBuilder(category);
 				sb.append(outputSeperate).append(entry.getKey())
-				  .append(outputSeperate).append(entry.getValue() )
-				  .append(outputSeperate).append( String.format( "%.3f",  (double) dbSnpCounts.get(entry.getKey()) / entry.getValue()  ))
-				  .append(outputSeperate).append( entry.getKey().equals(SVTYPE.SNP.toVariantType()) ? titvRate : "-" );
+				  .append(outputSeperate).append(entry.getValue())
+				  .append(outputSeperate).append(String.format("%.3f",  (double) dbSnpCounts.get(entry.getKey()) / entry.getValue()))
+				  .append(outputSeperate).append(entry.getKey().equals(SVTYPE.SNP.toVariantType()) ? titvRate : "-");
 				
-				output.add( sb.toString() );
+				output.add(sb.toString());
 			}
 			return output;
 		}		

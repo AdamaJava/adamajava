@@ -10,7 +10,7 @@
 package org.qcmg.qprofiler2;
 
 public interface Summarizer {
-	public static final int FEEDBACK_LINES_COUNT = 1000000;	
+	public static final int FEEDBACK_LINES_COUNT = 1000000;
 	
 	/**
 	 * Summarises the data held in the submitted file, returning a SummaryReport object

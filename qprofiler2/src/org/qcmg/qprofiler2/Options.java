@@ -166,7 +166,7 @@ final class Options {
 	}
 	
 	String getVersion() {
-		return QProfiler2.class.getPackage().getImplementationTitle() 
+		return QProfiler2.class.getPackage().getImplementationTitle()
 				+ ", version " + QProfiler2.class.getPackage().getImplementationVersion();	
 	}
 	

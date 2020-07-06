@@ -51,16 +51,16 @@ public class BamSummarizerTest {
 	@Test
 	public void testSummarizeMaxRecords() throws Exception {
 		for (int i = 1 ; i < 6 ; i++) {
-			BamSummarizer bs = new BamSummarizer( i, null, false);
-			BamSummaryReport sr = (BamSummaryReport) bs.summarize( samInput);
+			BamSummarizer bs = new BamSummarizer(i, null, false);
+			BamSummaryReport sr = (BamSummaryReport) bs.summarize(samInput);
 
 			assertNotNull(sr);
 			assertEquals(i, sr.getRecordsInputed());
 		}
 		
 		// test with 0 value - should return everything
-		BamSummarizer bs = new BamSummarizer( 0, null, true);
-		BamSummaryReport sr = (BamSummaryReport) bs.summarize( samInput);
+		BamSummarizer bs = new BamSummarizer(0, null, true);
+		BamSummaryReport sr = (BamSummaryReport) bs.summarize(samInput);
 		
 		assertNotNull(sr);
 		assertEquals(5, sr.getRecordsInputed());
@@ -69,8 +69,8 @@ public class BamSummarizerTest {
 	@Test
 	public void testSummarizeWithExcludesAll() throws Exception {
 		// no excludes defined - should return everything
-		BamSummarizer bs = new BamSummarizer( 0, null, false);
-		BamSummaryReport sr = (BamSummaryReport) bs.summarize( samInput);
+		BamSummarizer bs = new BamSummarizer(0, null, false);
+		BamSummaryReport sr = (BamSummaryReport) bs.summarize(samInput);
 		
 		assertNotNull(sr);
 		assertEquals(5, sr.getRecordsInputed());
@@ -313,7 +313,7 @@ public class BamSummarizerTest {
 			for (String line : data)  out.println(line);			 
 			out.close();
 		} catch (IOException e) {
-			Logger.getLogger("BamSummarizerTest").log( Level.WARNING,
+			Logger.getLogger("BamSummarizerTest").log(Level.WARNING,
 					"IOException caught whilst attempting to write to SAM test file: " + file, e);
 		} 
 	}

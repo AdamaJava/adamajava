@@ -107,7 +107,7 @@ public class TagSummaryReport {
 			for (String strand : new String[] {"ForwardStrand", "ReverseStrand" }) {				
 				for (int order = 0; order < 3; order ++) {				
 					Map<String, AtomicLong> mdRefAltLengthsString = new HashMap<>();
-					QCMGAtomicLongArray mdRefAltLengths = (strand.contains("Forward"))? mdRefAltLengthsForward[order] : mdRefAltLengthsReverse[order];				
+					QCMGAtomicLongArray mdRefAltLengths = (strand.contains("Forward")) ? mdRefAltLengthsForward[order] : mdRefAltLengthsReverse[order];				
 					for (int m = 0 ; m < mdRefAltLengths.length() ; m++) {
 						long l = mdRefAltLengths.get(m);
 						if (l <= 0)  {

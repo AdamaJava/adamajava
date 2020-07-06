@@ -80,7 +80,7 @@ public class ReadIDSummaryTest {
 		
 		// total 15 patterns
 		assertEquals( idSummary.patterns.keySet().size(), 15 );
-		Element ele = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.VARIABLE_GROUP).stream().filter( k -> k.getAttribute(XmlUtils.NAME).equals("QNAME Format") ).findFirst().get() ;
+		Element ele = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.VARIABLE_GROUP).stream().filter( k -> k.getAttribute(XmlUtils.NAME).equals("QNAME Format") ).findFirst().get();
 		for (String pa : idSummary.patterns.keySet()) {
 			if (pa.equals(ReadIdSummary.RnPattern.SevenColon_andMore.toString())) {
 				// only <tally count="2" value="<Element1>:<Element2>:...:<Elementn>"/>

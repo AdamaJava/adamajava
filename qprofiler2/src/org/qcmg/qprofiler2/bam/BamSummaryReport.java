@@ -59,7 +59,7 @@ public class BamSummaryReport extends SummaryReport {
 	private final ConcurrentMap<String, ReadIdSummary> readIdSummary = new ConcurrentHashMap<String, ReadIdSummary>();
 	// SEQ first of pair, secondof pair, unpaired
 	@SuppressWarnings("unchecked")
-	private final CycleSummary<Character>[] seqByCycle= new CycleSummary[]{
+	private final CycleSummary<Character>[] seqByCycle = new CycleSummary[] {
 		new CycleSummary<Character>(cc, 512), new CycleSummary<Character>(cc, 512), new CycleSummary<Character>(cc, 512)
 	};
 	
@@ -72,8 +72,8 @@ public class BamSummaryReport extends SummaryReport {
 	private final QCMGAtomicLongArray[] mapQualityLengths = new QCMGAtomicLongArray[] {new QCMGAtomicLongArray(256), new QCMGAtomicLongArray(256), new QCMGAtomicLongArray(256)};
 	
 	// FLAGS
-	private final Map<String, AtomicLong> flagBinaryCount = new ConcurrentSkipListMap<String, AtomicLong>();// summary all read flag
-	private final QCMGAtomicLongArray flagIntegerCount = new QCMGAtomicLongArray( 2048 ); // count on each read
+	private final Map<String, AtomicLong> flagBinaryCount = new ConcurrentSkipListMap<String, AtomicLong>(); // summary all read flag
+	private final QCMGAtomicLongArray flagIntegerCount = new QCMGAtomicLongArray(2048); // count on each read
 
 	// Coverage chr=>coveragesummary
 	private final ConcurrentMap<String, PositionSummary> rNamePosition = new ConcurrentHashMap<String, PositionSummary>(85);  	
@@ -81,16 +81,16 @@ public class BamSummaryReport extends SummaryReport {
 	private final QCMGAtomicLongArray p2Lengths = new QCMGAtomicLongArray(1024);
 	private final ConcurrentMap<String, ReadGroupSummary> rgSummaries = new ConcurrentHashMap<>(); 
 			
-	private final KmersSummary kmersSummary = new KmersSummary( KmersSummary.maxKmers ); // default use biggest mers length
+	private final KmersSummary kmersSummary = new KmersSummary(KmersSummary.maxKmers); // default use biggest mers length
  	private final TagSummaryReport tagReport = new TagSummaryReport();
  	
 	private Long maxRecords;
 	private boolean isFullBamHeader;
 	private SAMFileHeader bamHeader;
 	private SAMSequenceDictionary samSeqDictionary;
-	private List<String> readGroupIds = Arrays.asList( XmlUtils.UNKNOWN_READGROUP ); // init	
+	private List<String> readGroupIds = Arrays.asList(XmlUtils.UNKNOWN_READGROUP); // init	
 			
-	public BamSummaryReport( int maxRecs, boolean isFullBamHeader ) {
+	public BamSummaryReport(int maxRecs, boolean isFullBamHeader) {
 		super();		
 		if (maxRecs > 0) {
 			maxRecords = Long.valueOf(maxRecs);	
@@ -108,7 +108,7 @@ public class BamSummaryReport extends SummaryReport {
 		for (int i = 0 ; i < length ; i++) {
 			if (flagIntegerCount.get(i) > 0) {
 				String flagString = FlagUtil.getFlagString(i);
-				flagBinaryCount.put( flagString, new AtomicLong(flagIntegerCount.get(i)) );
+				flagBinaryCount.put(flagString, new AtomicLong(flagIntegerCount.get(i)));
 			}
 		}
 	}
@@ -129,44 +129,44 @@ public class BamSummaryReport extends SummaryReport {
 	10 SEQ String \*|[A-Za-z=.]+ segment SEQuence
 	11 QUAL 
 	 */
-	public void toXml( Element parent ) {
+	public void toXml(Element parent) {
 				
 		Element bamReportElement = init(parent, ProfileType.BAM, null,  maxRecords);		
 		XmlUtils.bamHeaderToXml(bamReportElement, bamHeader,  isFullBamHeader);
-		summaryToXml(bamReportElement ); 	// Summary for all read group
+		summaryToXml(bamReportElement); 	// Summary for all read group
 		
 		// create bamMertrics
-		bamReportElement = XmlElementUtils.createSubElement( bamReportElement, ProfileType.BAM.getReportName() + XmlUtils.METRICS );
-		createQNAME( XmlElementUtils.createSubElement( bamReportElement, XmlUtils.QNAME ));	
-		createFLAG( XmlElementUtils.createSubElement( bamReportElement, XmlUtils.FLAG )  );		
-		createRNAME( XmlElementUtils.createSubElement( bamReportElement, XmlUtils.RNAME  )); // it is same to RNEXT
-		createPOS( XmlElementUtils.createSubElement( bamReportElement,XmlUtils.POS ));	
-		createMAPQ( XmlElementUtils.createSubElement( bamReportElement, XmlUtils.MAPQ ));	
-		createCigar( XmlElementUtils.createSubElement( bamReportElement,XmlUtils.CIGAR ));
-		createTLen( XmlElementUtils.createSubElement( bamReportElement, XmlUtils.TLEN ));
-		createSeq( XmlElementUtils.createSubElement( bamReportElement, XmlUtils.SEQ)  );
-		createQual( XmlElementUtils.createSubElement( bamReportElement,XmlUtils.QUAL ));
-		tagReport.toXml( XmlElementUtils.createSubElement( bamReportElement, XmlUtils.TAG )); 
+		bamReportElement = XmlElementUtils.createSubElement(bamReportElement, ProfileType.BAM.getReportName() + XmlUtils.METRICS);
+		createQNAME(XmlElementUtils.createSubElement(bamReportElement, XmlUtils.QNAME));	
+		createFLAG(XmlElementUtils.createSubElement(bamReportElement, XmlUtils.FLAG));		
+		createRNAME(XmlElementUtils.createSubElement(bamReportElement, XmlUtils.RNAME)); // it is same to RNEXT
+		createPOS(XmlElementUtils.createSubElement(bamReportElement,XmlUtils.POS));	
+		createMAPQ(XmlElementUtils.createSubElement(bamReportElement, XmlUtils.MAPQ));	
+		createCigar(XmlElementUtils.createSubElement(bamReportElement,XmlUtils.CIGAR));
+		createTLen(XmlElementUtils.createSubElement(bamReportElement, XmlUtils.TLEN));
+		createSeq(XmlElementUtils.createSubElement(bamReportElement, XmlUtils.SEQ));
+		createQual(XmlElementUtils.createSubElement(bamReportElement,XmlUtils.QUAL));
+		tagReport.toXml(XmlElementUtils.createSubElement(bamReportElement, XmlUtils.TAG)); 
 
 	}
 	
-	private void createQNAME(Element parent ) {
+	private void createQNAME(Element parent) {
 		// read name will be under RT Tab	
 		Element rgsElement = XmlElementUtils.createSubElement(parent, XmlUtils.READGROUPS);
-		for ( Entry<String, ReadIdSummary> entry:  readIdSummary.entrySet()) {
+		for (Entry<String, ReadIdSummary> entry:  readIdSummary.entrySet()) {
 			// "analysis read name pattern for read group
 			Element ele = XmlUtils.createReadGroupNode(rgsElement, entry.getKey());
 			entry.getValue().toXml(ele);			
 		}
 	}
 	
-	private void createFLAG(Element parent ) {
-		 if ( null == flagBinaryCount || flagBinaryCount.isEmpty() ) {
+	private void createFLAG(Element parent) {
+		 if (null == flagBinaryCount || flagBinaryCount.isEmpty()) {
 			 return;		 
 		 }
-		 long counts = flagBinaryCount.values().stream().mapToLong( x -> (long) x.get() ).sum() ;			   	 
-		 Element ele = XmlUtils.createMetricsNode(parent,  null,  new Pair<String, Number>(ReadGroupSummary.READ_COUNT, counts) )	;		 
-	     XmlUtils.outputTallyGroup( ele , "FLAG", flagBinaryCount, true, false);		
+		 long counts = flagBinaryCount.values().stream().mapToLong(x -> (long) x.get()).sum() ;			   	 
+		 Element ele = XmlUtils.createMetricsNode(parent,  null,  new Pair<String, Number>(ReadGroupSummary.READ_COUNT, counts))	;		 
+	     XmlUtils.outputTallyGroup(ele , "FLAG", flagBinaryCount, true, false);		
 	}
  		
 	// <SEQ>
@@ -180,38 +180,38 @@ public class BamSummaryReport extends SummaryReport {
 		Pair<String, Number> rcPair = new Pair<>(ReadGroupSummary.READ_COUNT, counts);
 		
 		// sequenceBase	
-		Element ele = XmlUtils.createMetricsNode( parent,  XmlUtils.SEQ_BASE,  rcPair );	
+		Element ele = XmlUtils.createMetricsNode(parent,  XmlUtils.SEQ_BASE,  rcPair);	
 		for (int order = 0; order < 3; order++) {
-			seqByCycle[order].toXml( ele,  sourceName.get(order), seqByCycle[order].getInputCounts());
+			seqByCycle[order].toXml(ele,  sourceName.get(order), seqByCycle[order].getInputCounts());
 		}
 				
 		// seqLength
-		ele = XmlUtils.createMetricsNode( parent,  XmlUtils.SEQ_LENGTH,  rcPair); 
+		ele = XmlUtils.createMetricsNode(parent,  XmlUtils.SEQ_LENGTH,  rcPair); 
 		for (int order = 0; order < 3; order++) {
 			if (seqByCycle[order].getLengthMapFromCycle().isEmpty()) {
 				continue;
 			}
-			XmlUtils.outputTallyGroup( ele, sourceName.get(order) ,  seqByCycle[order].getLengthMapFromCycle(), true, true );		
+			XmlUtils.outputTallyGroup(ele, sourceName.get(order) ,  seqByCycle[order].getLengthMapFromCycle(), true, true);		
 		}
 		
 		// badBase: 
 		counts = 0;
 		for (int order = 0; order < 3; order++) {
-			counts += seqBadReadLineLengths[order].getSum();	
+			counts += seqBadReadLineLengths[order].getSum();
 		}
 		rcPair = new Pair<String, Number>(ReadGroupSummary.READ_COUNT, counts);
-		ele = XmlUtils.createMetricsNode( parent,  XmlUtils.BAD_READ,  rcPair); 
-		XmlUtils.addCommentChild(ele, FastqSummaryReport.badBaseComment );
+		ele = XmlUtils.createMetricsNode(parent,  XmlUtils.BAD_READ,  rcPair);
+		XmlUtils.addCommentChild(ele, FastqSummaryReport.badBaseComment);
 		for (int order = 0; order < 3; order++) {
-			if ( seqBadReadLineLengths[order].toMap().isEmpty() ) {
+			if (seqBadReadLineLengths[order].toMap().isEmpty()) {
 				continue;
 			}
-			XmlUtils.outputTallyGroup( ele, sourceName.get(order),  seqBadReadLineLengths[order].toMap(), true , true);			
+			XmlUtils.outputTallyGroup(ele, sourceName.get(order),  seqBadReadLineLengths[order].toMap(), true , true);	
 		}
 				
 		// 1mers is same to baseByCycle
-		for ( int i : new int[] {2, 3, KmersSummary.maxKmers } ) {
-			kmersSummary.toXml( parent,i, false);
+		for (int i : new int[] {2, 3, KmersSummary.maxKmers }) {
+			kmersSummary.toXml(parent,i, false);
 		}
 	}
 	
@@ -226,17 +226,17 @@ public class BamSummaryReport extends SummaryReport {
 		Pair<String, Number> rcPair = new Pair<>(ReadGroupSummary.READ_COUNT, counts);
 		
 		// "count on quality base",
-		Element ele = XmlUtils.createMetricsNode( parent,  XmlUtils.QUAL_BASE,  rcPair); 
+		Element ele = XmlUtils.createMetricsNode(parent,  XmlUtils.QUAL_BASE,  rcPair);
 		for (int order = 0; order < 3; order++) {	
 			qualByCycleInteger[order].toXml(ele, sourceName.get(order), qualByCycleInteger[order].getInputCounts());
 		}
 		// qual length
-		ele = XmlUtils.createMetricsNode( parent,  XmlUtils.QUAL_LENGTH,  rcPair); 
+		ele = XmlUtils.createMetricsNode(parent,  XmlUtils.QUAL_LENGTH,  rcPair);
 		for (int order = 0; order < 3; order++) {
 			if (qualByCycleInteger[order].getLengthMapFromCycle().isEmpty()) {
 				continue;		
 			}
-			XmlUtils.outputTallyGroup( ele, sourceName.get(order),  qualByCycleInteger[order].getLengthMapFromCycle(), true , true);	
+			XmlUtils.outputTallyGroup(ele, sourceName.get(order),  qualByCycleInteger[order].getLengthMapFromCycle(), true , true);	
 		}
 		
 		// badBase:  
@@ -246,35 +246,35 @@ public class BamSummaryReport extends SummaryReport {
 		}
 		rcPair = new Pair<String, Number>(ReadGroupSummary.READ_COUNT, counts);
 		
-		ele = XmlUtils.createMetricsNode( parent,  XmlUtils.BAD_READ,  rcPair); 
+		ele = XmlUtils.createMetricsNode(parent,  XmlUtils.BAD_READ,  rcPair);
 		XmlUtils.addCommentChild(ele, FastqSummaryReport.badQualComment);
 		for (int order = 0; order < 3; order++) {
-			if ( qualBadReadLineLengths[order].toMap().isEmpty() ) {
+			if (qualBadReadLineLengths[order].toMap().isEmpty()) {
 				continue;
 			}
-			XmlUtils.outputTallyGroup( ele, sourceName.get(order), qualBadReadLineLengths[order].toMap(), true , true);
+			XmlUtils.outputTallyGroup(ele, sourceName.get(order), qualBadReadLineLengths[order].toMap(), true , true);
 		}		
 	}	
 	
 	private void createTLen(Element parent) {
 		//ISIZE
-		parent = XmlElementUtils.createSubElement(parent, XmlUtils.READGROUPS );          
-        for (Entry<String, ReadGroupSummary> entry : rgSummaries.entrySet() ) {       
+		parent = XmlElementUtils.createSubElement(parent, XmlUtils.READGROUPS);          
+        for (Entry<String, ReadGroupSummary> entry : rgSummaries.entrySet()) {       
         	// output tLen inside pairSummary, eg. inward, f3f5
         	entry.getValue().pairTlen2Xml(XmlUtils.createReadGroupNode(parent, entry.getKey()));     	
         }	
 	}
 	
 	private void createCigar(Element parent) {	
-		parent = XmlElementUtils.createSubElement(parent, XmlUtils.READGROUPS );  
-		for ( Entry<String, ReadGroupSummary> entry : rgSummaries.entrySet() ) {
-			Element ele = XmlUtils.createMetricsNode( XmlUtils.createReadGroupNode(parent, entry.getKey()), null, 
+		parent = XmlElementUtils.createSubElement(parent, XmlUtils.READGROUPS);  
+		for (Entry<String, ReadGroupSummary> entry : rgSummaries.entrySet()) {
+			Element ele = XmlUtils.createMetricsNode(XmlUtils.createReadGroupNode(parent, entry.getKey()), null, 
        			new Pair<String, Number>(ReadGroupSummary.READ_COUNT,entry.getValue().getCigarReadCount()));
 			
         	// cigar string from reads including duplicateReads, notProperPairs and unmappedReads but excluding discardedReads (failed, secondary and supplementary).
         	Map<String, AtomicLong> tallys = new TreeMap<>(new CigarStringComparator());
-        	tallys.putAll(	entry.getValue().getCigarCount() );
-        	XmlUtils.outputTallyGroup( ele ,XmlUtils.CIGAR , tallys, true, false );				
+        	tallys.putAll(	entry.getValue().getCigarCount());
+        	XmlUtils.outputTallyGroup(ele ,XmlUtils.CIGAR , tallys, true, false);				
 		}		
 	}	
 	
@@ -284,9 +284,9 @@ public class BamSummaryReport extends SummaryReport {
 		}
 		Map<String, AtomicLong> tallys = new TreeMap<>(new ReferenceNameComparator());	
 		long readCount = 0;
-		for ( Entry<String, PositionSummary> entry : rNamePosition.entrySet() ) {
+		for (Entry<String, PositionSummary> entry : rNamePosition.entrySet()) {
 			PositionSummary posSum = entry.getValue();
-			if ( posSum == null ) {
+			if (posSum == null) {
 				continue;
 			}
 			
@@ -296,24 +296,24 @@ public class BamSummaryReport extends SummaryReport {
 				tallys.put(entry.getKey(), new AtomicLong(cov));
 			}
 		}
-		Element ele = XmlUtils.createMetricsNode(parent,  null,  new Pair<String, Number>(ReadGroupSummary.READ_COUNT,readCount) )	;		
-		XmlUtils.outputTallyGroup( ele, XmlUtils.RNAME, tallys, true, false );
+		Element ele = XmlUtils.createMetricsNode(parent,  null,  new Pair<String, Number>(ReadGroupSummary.READ_COUNT,readCount))	;		
+		XmlUtils.outputTallyGroup(ele, XmlUtils.RNAME, tallys, true, false);
 	}
 	
 	private void createMAPQ(Element parent) {
 		// sourceName, mapQualityLengths
-		if ( sourceName.size() == 0 ||  sourceName.size() != mapQualityLengths.length ) {
+		if (sourceName.size() == 0 ||  sourceName.size() != mapQualityLengths.length) {
 			return;	
 		}
 				
-		Element ele = XmlUtils.createMetricsNode( parent, null, null);	
+		Element ele = XmlUtils.createMetricsNode(parent, null, null);	
 		long sum = 0;
 		for (int j = 0; j < sourceName.size(); j ++) {		
 			Map<Integer, AtomicLong> tallys = new HashMap<>();
 			for (int i = 0; i < 256; i ++) {
 				if (mapQualityLengths[j].get(i) > 0) {
 					sum += mapQualityLengths[j].get(i);
-					tallys.put( i, new AtomicLong(mapQualityLengths[j].get(i)));
+					tallys.put(i, new AtomicLong(mapQualityLengths[j].get(i)));
 					}
 				}	
 			XmlUtils.outputTallyGroup(ele, sourceName.get(j) , tallys, true, true);		
@@ -322,12 +322,12 @@ public class BamSummaryReport extends SummaryReport {
 	}
 	
 	private void createPOS(Element parent) {
-		parent = XmlElementUtils.createSubElement( parent, XmlUtils.READGROUPS );
+		parent = XmlElementUtils.createSubElement(parent, XmlUtils.READGROUPS);
 		
-		for ( String rg :  rgSummaries.keySet()) {
-			long readCount = rNamePosition.values().stream().mapToLong( x -> x.getTotalCountByRg(rg) ).sum();
+		for (String rg :  rgSummaries.keySet()) {
+			long readCount = rNamePosition.values().stream().mapToLong(x -> x.getTotalCountByRg(rg)).sum();
 			Element ele = XmlUtils.createMetricsNode(XmlUtils.createReadGroupNode(parent, rg)  , null, new Pair<String, Number>(ReadGroupSummary.READ_COUNT, readCount));			
-			rNamePosition.keySet().stream().sorted(new ReferenceNameComparator()).forEach( ref -> 
+			rNamePosition.keySet().stream().sorted(new ReferenceNameComparator()).forEach(ref -> 
 				XmlUtils.outputBins(ele, ref, rNamePosition.get(ref).getCoverageByRg(rg), PositionSummary.BUCKET_SIZE));		
 		}
 	}
@@ -337,11 +337,11 @@ public class BamSummaryReport extends SummaryReport {
 	 * 
 	 * @param record SAMRecord next row in file
 	 */
-	public void parseRecord( final SAMRecord record ) {
+	public void parseRecord(final SAMRecord record) {
  		updateRecordsInputed();
  				
 		String readGroup = XmlUtils.UNKNOWN_READGROUP;
-		if (record.getReadGroup() != null && record.getReadGroup().getId() != null ) {
+		if (record.getReadGroup() != null && record.getReadGroup().getId() != null) {
 			readGroup = record.getReadGroup().getReadGroupId();								
 		}
 		
@@ -355,26 +355,26 @@ public class BamSummaryReport extends SummaryReport {
 		// summarize FLAGS for all reads includes bad reads
 		flagIntegerCount.increment(record.getFlags());
 		// summarize QName for each read group includes bad reads	
-		readIdSummary.computeIfAbsent( readGroup, (k) -> new ReadIdSummary() ).parseReadId( record.getReadName() );
+		readIdSummary.computeIfAbsent(readGroup, (k) -> new ReadIdSummary()).parseReadId(record.getReadName());
 		
 			
 		// excludes repeated reads for tags
-		if ( !record.getSupplementaryAlignmentFlag() &&	!record.isSecondaryAlignment() && !record.getReadFailsVendorQualityCheckFlag() ) {
+		if (!record.getSupplementaryAlignmentFlag() &&	!record.isSecondaryAlignment() && !record.getReadFailsVendorQualityCheckFlag()) {
 			tagReport.parseTAGs(record);			
 		} 
 						
 		// check if record has its fail or duplicate flag set. if so, miss out some of the summaries
 		ReadGroupSummary rgSumm = rgSummaries.computeIfAbsent(readGroup, k -> new ReadGroupSummary(k));	
-		if ( rgSumm.parseRecord(record) ) {
+		if (rgSumm.parseRecord(record)) {
 						
 			// SEQ 
 			byte[] data = record.getReadBases();			
 			if (record.getReadNegativeStrandFlag()) {
-				SequenceUtil.reverseComplement(data );
+				SequenceUtil.reverseComplement(data);
 			}		
-			seqByCycle[order].parseByteData(data );			
-			SummaryReportUtils.tallyBadReadsAsString( record.getReadBases(), seqBadReadLineLengths[order] );	
-			kmersSummary.parseKmers( record.getReadBases(), record.getReadNegativeStrandFlag(), order );
+			seqByCycle[order].parseByteData(data);			
+			SummaryReportUtils.tallyBadReadsAsString(record.getReadBases(), seqBadReadLineLengths[order]);	
+			kmersSummary.parseKmers(record.getReadBases(), record.getReadNegativeStrandFlag(), order);
 
 			// QUAL 
 			data = record.getBaseQualities();
@@ -382,14 +382,14 @@ public class BamSummaryReport extends SummaryReport {
 				SequenceUtil.reverseQualities(data);
 			}
 			qualByCycleInteger[order].parseByteData(data);
-			SummaryReportUtils.tallyQualScores( record.getBaseQualities(), qualBadReadLineLengths[order] );				
+			SummaryReportUtils.tallyQualScores(record.getBaseQualities(), qualBadReadLineLengths[order]);				
  			
  						
 			// TLen is done inside readGroupSummary.ParseRecord			
 			// MRNM is same to RNAME
  			
 			// RNAME & POS			
-			parseRNameAndPos( record.getReferenceName(), record.getAlignmentStart(), readGroup );	// Position value
+			parseRNameAndPos(record.getReferenceName(), record.getAlignmentStart(), readGroup);	// Position value
 			
 			// it is not include hard clip
 			if (record.getReadPairedFlag()) {
@@ -402,7 +402,7 @@ public class BamSummaryReport extends SummaryReport {
 		}
 	}
 		
-	private void summaryToXml( Element parent ) {
+	private void summaryToXml(Element parent) {
 		Element summaryElement = XmlElementUtils.createSubElement(parent, XmlUtils.BAM_SUMMARY);
 		
 		long  discardReads = 0;
@@ -420,7 +420,7 @@ public class BamSummaryReport extends SummaryReport {
 				summary.readSummary2Xml(rgEle);
 				summary.pairSummary2Xml(rgEle); 
 				// presummary
-				lostBase += summary.getDuplicateBase() + summary.getUnmappedBase() + summary.getnotPoperPairedBase() 
+				lostBase += summary.getDuplicateBase() + summary.getUnmappedBase() + summary.getnotPoperPairedBase()
 					+ summary.getTrimmedBase() + summary.getOverlappedBase() + summary.getSoftClippedBase() + summary.getHardClippedBase();
 				maxBases += summary.getReadCount() * summary.getMaxReadLength();						
 				duplicateBase += summary.getDuplicateBase();
@@ -439,7 +439,7 @@ public class BamSummaryReport extends SummaryReport {
 		}
 	
 		// overall readgroup 
-		// Element metricsE = XmlUtils.createMetricsNode(summaryElement, "summary1", new Pair( ReadGroupSummary.READ_COUNT, getRecordsInputed()));	
+		// Element metricsE = XmlUtils.createMetricsNode(summaryElement, "summary1", new Pair(ReadGroupSummary.READ_COUNT, getRecordsInputed()));	
 		Element metricsE = XmlUtils.createMetricsNode(summaryElement, XmlUtils.OVERALL, null);	
 		XmlUtils.outputValueNode(metricsE, "Number of cycles with greater than 1% mismatches",
 				CycleSummaryUtils.getBigMDCycleNo(tagReport.tagMDMismatchByCycle, (float) 0.01, tagReport.allReadsLineLengths));		
@@ -453,8 +453,8 @@ public class BamSummaryReport extends SummaryReport {
 					runningTally += (length.get(i) * i);
 				}
 			}			
-			String str = String.format("Average length of %s-of-pair reads", point == 1? "first" : "second");		
-			XmlUtils.outputValueNode(metricsE, str, total > 0 ? (int)(runningTally / total) : 0 );			
+			String str = String.format("Average length of %s-of-pair reads", point == 1 ? "first" : "second");
+			XmlUtils.outputValueNode(metricsE, str, total > 0 ? (int)(runningTally / total) : 0);			
 			point ++;
 		}
 		
@@ -473,35 +473,35 @@ public class BamSummaryReport extends SummaryReport {
 		XmlUtils.outputValueNode(metricsE, ReadGroupSummary.BASE_LOST_COUNT + "_" + ReadGroupSummary.BASE_LOST_PERCENT,  percentage);	
 
 		percentage = (maxBases == 0) ? 0 : 100 * (double) duplicateBase /  maxBases ;				
-		XmlUtils.outputValueNode(metricsE, ReadGroupSummary.NODE_DUPLICATE + "_" + ReadGroupSummary.BASE_LOST_PERCENT,  percentage );	
+		XmlUtils.outputValueNode(metricsE, ReadGroupSummary.NODE_DUPLICATE + "_" + ReadGroupSummary.BASE_LOST_PERCENT,  percentage);	
 		
 		percentage = (maxBases == 0) ? 0 : 100 * (double) unmappedBase /  maxBases ;				
-		XmlUtils.outputValueNode(metricsE, ReadGroupSummary.NODE_UNMAPPED + "_" + ReadGroupSummary.BASE_LOST_PERCENT,  percentage );	
+		XmlUtils.outputValueNode(metricsE, ReadGroupSummary.NODE_UNMAPPED + "_" + ReadGroupSummary.BASE_LOST_PERCENT,  percentage);	
 		
 		percentage = (maxBases == 0) ? 0 : 100 * (double) noncanonicalBase /  maxBases ;				
-		XmlUtils.outputValueNode(metricsE, ReadGroupSummary.NODE_NOT_PROPER_PAIR + "_" + ReadGroupSummary.BASE_LOST_PERCENT,  percentage );	
+		XmlUtils.outputValueNode(metricsE, ReadGroupSummary.NODE_NOT_PROPER_PAIR + "_" + ReadGroupSummary.BASE_LOST_PERCENT,  percentage);	
 		
 		percentage = (maxBases == 0) ? 0 : 100 * (double) trimBases /  maxBases ;				
-		XmlUtils.outputValueNode(metricsE, ReadGroupSummary.NODE_TRIM + "_" + ReadGroupSummary.BASE_LOST_PERCENT,  percentage );	
+		XmlUtils.outputValueNode(metricsE, ReadGroupSummary.NODE_TRIM + "_" + ReadGroupSummary.BASE_LOST_PERCENT,  percentage);	
 		
 		percentage = (maxBases == 0) ? 0 : 100 * (double) softClippedBase /  maxBases ;				
-		XmlUtils.outputValueNode(metricsE, ReadGroupSummary.NODE_SOFTCLIP + "_" + ReadGroupSummary.BASE_LOST_PERCENT,  percentage );	
+		XmlUtils.outputValueNode(metricsE, ReadGroupSummary.NODE_SOFTCLIP + "_" + ReadGroupSummary.BASE_LOST_PERCENT,  percentage);	
 		
 		percentage = (maxBases == 0) ? 0 : 100 * (double) hardClippedBase /  maxBases ;				
-		XmlUtils.outputValueNode(metricsE, ReadGroupSummary.NODE_HARDCLIP + "_" + ReadGroupSummary.BASE_LOST_PERCENT,  percentage );	
+		XmlUtils.outputValueNode(metricsE, ReadGroupSummary.NODE_HARDCLIP + "_" + ReadGroupSummary.BASE_LOST_PERCENT,  percentage);	
 		
 		percentage = (maxBases == 0) ? 0 : 100 * (double) overlappedBase /  maxBases ;				
-		XmlUtils.outputValueNode(metricsE, ReadGroupSummary.NODE_OVERLAP + "_" + ReadGroupSummary.BASE_LOST_PERCENT,  percentage );	
+		XmlUtils.outputValueNode(metricsE, ReadGroupSummary.NODE_OVERLAP + "_" + ReadGroupSummary.BASE_LOST_PERCENT,  percentage);	
 				
 	}
 		
-	void parseRNameAndPos( final String rName,  final int position, String rgid ) {
-		PositionSummary ps = (PositionSummary) rNamePosition.computeIfAbsent( rName, k -> new PositionSummary( readGroupIds) );
-		ps.addPosition( position, rgid );
+	void parseRNameAndPos(final String rName,  final int position, String rgid) {
+		PositionSummary ps = (PositionSummary) rNamePosition.computeIfAbsent(rName, k -> new PositionSummary(readGroupIds));
+		ps.addPosition(position, rgid);
 	}
 		
 	// setting
-	public void setBamHeader(SAMFileHeader header, boolean isFullBamHeader ) {
+	public void setBamHeader(SAMFileHeader header, boolean isFullBamHeader) {
 		this.bamHeader = header;	
 		this.isFullBamHeader = isFullBamHeader;
 	}
@@ -514,8 +514,8 @@ public class BamSummaryReport extends SummaryReport {
 	/////////////////////////////////////////////////////////////////////////
 	//  The following methods are used by the test classes
 	/////////////////////////////////////////////////////////////////////////
-	public void setReadGroups(List<String> ids ) {
-		readGroupIds = Stream.concat( ids.stream(), readGroupIds.stream()).collect(Collectors.toList()); 		
+	public void setReadGroups(List<String> ids) {
+		readGroupIds = Stream.concat(ids.stream(), readGroupIds.stream()).collect(Collectors.toList()); 		
 	}
 	
 	ConcurrentMap<String, PositionSummary> getRNamePosition() {

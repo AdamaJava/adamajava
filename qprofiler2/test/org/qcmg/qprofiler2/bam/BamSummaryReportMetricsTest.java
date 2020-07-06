@@ -47,7 +47,6 @@ public class BamSummaryReportMetricsTest {
 			File input = testFolder.newFile("testInputFile.sam");
 			PairSummaryTest.createPairInputFile(input);
 			BamSummarizer bs = new BamSummarizer();
-			// BamSummarizer2 bs = new BamSummarizer2( 200, null, true);
 			BamSummaryReport sr = (BamSummaryReport) bs.summarize(input.getAbsolutePath()); 		
 			sr.toXml(root);	
 		} catch (Exception e) {
@@ -76,11 +75,11 @@ public class BamSummaryReportMetricsTest {
 			Element ele2 = getElementByFirst(bamSummaryE, "readGroup",  k -> k.getAttribute(XmlUtils.NAME).equals(rg));
 			ele2 = getElementByFirst(ele2, XmlUtils.VARIABLE_GROUP ,  k -> k.getAttribute(XmlUtils.NAME).equals("countedReads"));
 			ele2 = getElementByFirst(ele2, XmlUtils.VALUE,  k -> k.getAttribute(XmlUtils.NAME).equals(ReadGroupSummary.READ_COUNT));
-			assertEquals( ele1.getAttribute(XmlUtils.COUNT) , ele2.getTextContent() );			
-			scount += Integer.parseInt(ele1.getAttribute(XmlUtils.COUNT)  );	
+			assertEquals(ele1.getAttribute(XmlUtils.COUNT) , ele2.getTextContent());			
+			scount += Integer.parseInt(ele1.getAttribute(XmlUtils.COUNT));	
 		}
 		
-		assertEquals(scount+"", ele.getAttribute(ReadGroupSummary.READ_COUNT) );
+		assertEquals(scount+"", ele.getAttribute(ReadGroupSummary.READ_COUNT));
 						 
 		// get tag read counts from grep command		
 		int tagMetriNo = (int) XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.SEQUENCE_METRICS).stream()
@@ -93,7 +92,7 @@ public class BamSummaryReportMetricsTest {
 			String tag = tags[i];
 			ele = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.SEQUENCE_METRICS).stream()
 					.filter(k -> k.getAttribute(XmlUtils.NAME).equals(tag)).findFirst().get();
-			assertEquals( ele.getAttribute( ReadGroupSummary.READ_COUNT ),readCounts[i]+ "" );
+			assertEquals(ele.getAttribute(ReadGroupSummary.READ_COUNT),readCounts[i]+ "");
 		}
 		
 	}
@@ -112,27 +111,27 @@ public class BamSummaryReportMetricsTest {
 			// "tLenInProperPair" vs bamSummary
 			Element ele1 = getElementByFirst(ele, XmlUtils.SEQUENCE_METRICS,  k -> k.getAttribute(XmlUtils.NAME).equals("tLenInProperPair"));
 			String readCount = ele1 == null ? "0" : ele1.getAttribute(ReadGroupSummary.PAIR_COUNT);
-			int summaryCount = getSummaryRgCounts( rg, "properPairs", null, k -> k.getAttribute(XmlUtils.NAME).equals("pairCountUnderTlen5000")) ;
-			assertEquals( readCount, summaryCount+"");
+			int summaryCount = getSummaryRgCounts(rg, "properPairs", null, k -> k.getAttribute(XmlUtils.NAME).equals("pairCountUnderTlen5000")) ;
+			assertEquals(readCount, summaryCount+"");
 			
 			// "overlapBaseInProperPair" vs bamSummary
 			ele1 = 	getElementByFirst(ele, XmlUtils.SEQUENCE_METRICS,  k -> k.getAttribute(XmlUtils.NAME).equals("overlapBaseInProperPair"));
 			readCount  = ele1 == null ? "0" : ele1.getAttribute(ReadGroupSummary.PAIR_COUNT);			
-			summaryCount = getSummaryRgCounts( rg, "properPairs", null, k -> k.getAttribute(XmlUtils.NAME).equals("overlappedPairs")) ;
-			assertEquals( readCount, summaryCount+"");
+			summaryCount = getSummaryRgCounts(rg, "properPairs", null, k -> k.getAttribute(XmlUtils.NAME).equals("overlappedPairs")) ;
+			assertEquals(readCount, summaryCount+"");
 			
 			// "tLenInNotProperPair"  vs bamSummary
 			ele1 = getElementByFirst(ele, XmlUtils.SEQUENCE_METRICS,  k -> k.getAttribute(XmlUtils.NAME).equals("tLenInNotProperPair"));
 			readCount  = ele1 == null ? "0" : ele1.getAttribute(ReadGroupSummary.PAIR_COUNT);			
-			summaryCount = getSummaryRgCounts( rg, "notProperPairs", null, k -> k.getAttribute(XmlUtils.NAME).equals("pairCountUnderTlen5000")) ;
-			assertEquals( readCount, summaryCount+"");
+			summaryCount = getSummaryRgCounts(rg, "notProperPairs", null, k -> k.getAttribute(XmlUtils.NAME).equals("pairCountUnderTlen5000")) ;
+			assertEquals(readCount, summaryCount+"");
 			
 			
 			// "overlapBaseInNotProperPair"  vs bamSummary			
-			ele1 = getElementByFirst(ele, XmlUtils.SEQUENCE_METRICS,  k -> k.getAttribute(XmlUtils.NAME).equals("overlapBaseInNotProperPair" ));
+			ele1 = getElementByFirst(ele, XmlUtils.SEQUENCE_METRICS,  k -> k.getAttribute(XmlUtils.NAME).equals("overlapBaseInNotProperPair"));
 			readCount  = ele1 == null ? "0" : ele1.getAttribute(ReadGroupSummary.PAIR_COUNT);	
-			summaryCount = getSummaryRgCounts( rg, "notProperPairs", null, k -> k.getAttribute(XmlUtils.NAME).equals("overlappedPairs")) ;
-			assertEquals( readCount, summaryCount+"");			
+			summaryCount = getSummaryRgCounts(rg, "notProperPairs", null, k -> k.getAttribute(XmlUtils.NAME).equals("overlappedPairs")) ;
+			assertEquals(readCount, summaryCount+"");			
 		}		
 		
 	}
@@ -156,7 +155,7 @@ public class BamSummaryReportMetricsTest {
 			ele = getElementByFirst(ele, XmlUtils.VARIABLE_GROUP,  k -> k.getAttribute(XmlUtils.NAME).equals("countedReads"));
 			ele = getElementByFirst(ele, XmlUtils.VALUE,  k -> k.getAttribute(XmlUtils.NAME).equals(ReadGroupSummary.READ_COUNT));
 			
-			assertEquals( readCount, ele.getTextContent());
+			assertEquals(readCount, ele.getTextContent());
 		}		
 	}
 	
@@ -189,12 +188,12 @@ public class BamSummaryReportMetricsTest {
 			Element tagE = XmlElementUtils.getOffspringElementByTagName(root, tagName).get(0);
 			for (Element ele : XmlElementUtils.getChildElementByTagName(tagE, XmlUtils.SEQUENCE_METRICS)) {
 				
-				assertEquals( ele.getAttribute(ReadGroupSummary.READ_COUNT),properCounts);
+				assertEquals(ele.getAttribute(ReadGroupSummary.READ_COUNT),properCounts);
 				freq ++;
 			}
 		}
 		// make sure totally checked 10 elements
-		assertEquals( freq , 10);
+		assertEquals(freq , 10);
 	}
 
 	
@@ -215,7 +214,7 @@ public class BamSummaryReportMetricsTest {
 			ele = XmlElementUtils.getOffspringElementByTagName(root, tagName).get(0);			
 			String readCount = XmlElementUtils.getChildElement(ele,  XmlUtils.SEQUENCE_METRICS, 0).getAttribute(ReadGroupSummary.READ_COUNT);
 						
-			assertTrue( totalCount.equals(readCount) );		
+			assertTrue(totalCount.equals(readCount));		
 		}
 	}
 	
@@ -266,9 +265,9 @@ public class BamSummaryReportMetricsTest {
 		}						
 	}
 		
-	private Element getElementByFirst(Element parent, String tagName, Predicate<? super Element> predicate ) {
+	private Element getElementByFirst(Element parent, String tagName, Predicate<? super Element> predicate) {
 				
-		return XmlElementUtils.getOffspringElementByTagName(parent, tagName).stream().filter( predicate).findFirst().orElse(null);		 
+		return XmlElementUtils.getOffspringElementByTagName(parent, tagName).stream().filter(predicate).findFirst().orElse(null);		 
 	}
 
 	/**
@@ -277,8 +276,8 @@ public class BamSummaryReportMetricsTest {
 	 * @return the properPaired read count or notPaired read count
 	 */
 	private String getProperReadCount(String rg) {		
-		int sum = getSummaryRgCounts(rg,"properPairs", null, k -> k.getAttribute(XmlUtils.NAME).equals("firstOfPairs") | k.getAttribute(XmlUtils.NAME).equals("secondOfPairs") );
-		sum +=  getSummaryRgCounts(rg, "reads", null,  k -> k.getAttribute(XmlUtils.NAME).equals("unpairedReads") );
+		int sum = getSummaryRgCounts(rg,"properPairs", null, k -> k.getAttribute(XmlUtils.NAME).equals("firstOfPairs") | k.getAttribute(XmlUtils.NAME).equals("secondOfPairs"));
+		sum +=  getSummaryRgCounts(rg, "reads", null,  k -> k.getAttribute(XmlUtils.NAME).equals("unpairedReads"));
 		return String.valueOf(sum); 		
 	}
 	
@@ -288,26 +287,25 @@ public class BamSummaryReportMetricsTest {
 		if (rg != null) {
 			bamSummaryE = getElementByFirst(bamSummaryE, "readGroup",  k -> k.getAttribute(XmlUtils.NAME).equals(rg));
 		}
-		List<Element> eles =  XmlElementUtils.getOffspringElementByTagName(bamSummaryE, XmlUtils.SEQUENCE_METRICS );
-		if ( metricName != null ) {	
-			eles = 	eles.stream().filter( k -> k.getAttribute(XmlUtils.NAME).equals( metricName ) ).collect( Collectors.toList());			
+		List<Element> eles =  XmlElementUtils.getOffspringElementByTagName(bamSummaryE, XmlUtils.SEQUENCE_METRICS);
+		if (metricName != null) {	
+			eles = 	eles.stream().filter(k -> k.getAttribute(XmlUtils.NAME).equals(metricName)).collect(Collectors.toList());			
 		}
 		
 		int sum = 0;
 		for (Element ele : eles) {
-			List<Element> eleVGs = XmlElementUtils.getOffspringElementByTagName( ele, XmlUtils.VARIABLE_GROUP );
+			List<Element> eleVGs = XmlElementUtils.getOffspringElementByTagName(ele, XmlUtils.VARIABLE_GROUP);
 			if (variableName != null) {
-				eleVGs = eleVGs.stream().filter( k -> k.getAttribute(XmlUtils.NAME).equals( variableName ) ).collect( Collectors.toList());			
+				eleVGs = eleVGs.stream().filter(k -> k.getAttribute(XmlUtils.NAME).equals(variableName)).collect(Collectors.toList());			
 			}
 						
 			for (Element ele1 : eleVGs) {
-				sum+= XmlElementUtils.getOffspringElementByTagName(ele1, XmlUtils.VALUE).stream().filter( filter ) 
-						.mapToInt(k -> Integer.parseInt( k.getTextContent())).sum();
+				sum += XmlElementUtils.getOffspringElementByTagName(ele1, XmlUtils.VALUE).stream().filter(filter)
+						.mapToInt(k -> Integer.parseInt(k.getTextContent())).sum();
 			}
 		}
 		
-		return sum; 
-		
+		return sum;		
 	}
 	
 	
@@ -318,12 +316,12 @@ public class BamSummaryReportMetricsTest {
 		for (int i = 0; i < 101; i ++) {
 			myList.add(i + "::"+UUID.randomUUID().toString());
 		}
-		myList.sort( Comparator.comparing( String::toString ) );
+		myList.sort(Comparator.comparing(String::toString));
 		
 		// test accuracy
 		for (int i = 0; i < 1000; i ++) {
 			String str1 = myList.get(i%100);
-			int order = Collections.binarySearch( myList, str1, null); 
+			int order = Collections.binarySearch(myList, str1, null); 
 			assertEquals(order, myList.indexOf(str1));
 		}
 		
@@ -332,7 +330,7 @@ public class BamSummaryReportMetricsTest {
 		long start = System.currentTimeMillis();		
 		for (int i = 0; i < freq; i ++) {
 			str = myList.get(i%100);
-			Collections.binarySearch( myList, str, null);  
+			Collections.binarySearch(myList, str, null);  
 		}
 		QLogger.getRunTime(start, System.currentTimeMillis());
 		

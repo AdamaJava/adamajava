@@ -44,7 +44,7 @@ public class SampleSummary {
 	
 	AtomicLong counts = new AtomicLong();
 
-	private void increment(String key) { 
+	private void increment(String key) {
 		summary.computeIfAbsent(key, v -> new AtomicLong()).incrementAndGet();
 	}
 	
@@ -59,7 +59,7 @@ public class SampleSummary {
 	 */
 	public static void incrementGTAD(SVTYPE type,String gt, String ad, String dp, Map<String, QCMGAtomicLongArray> map) {
 		
-		if ( ad == null || ad.contains(".") ||  gt == null || gt.contains(".")  ||  gt.equals("0/0") || gt.equals("0|0") ) {
+		if (ad == null || ad.contains(".") ||  gt == null || gt.contains(".")  ||  gt.equals("0/0") || gt.equals("0|0")) {
 				return;		
 		}
 		
@@ -69,12 +69,12 @@ public class SampleSummary {
 		/*
 		 *  vaf needs to equal the sum of all the numbers in the AD field, apart from the first number (which is the reference count)
 		 */
-		while (commaIndex > -1) { 
+		while (commaIndex > -1) {
 			int nextConmmaIndex = ad.indexOf(Constants.COMMA, commaIndex + 1);
-			if (nextConmmaIndex > -1) { 
+			if (nextConmmaIndex > -1) {
 				vaf += Integer.parseInt(ad.substring(commaIndex + 1, nextConmmaIndex));
 				commaIndex = nextConmmaIndex;
-			} else { 
+			} else {
 				vaf += Integer.parseInt(ad.substring(commaIndex + 1));
 				break;
 			}
@@ -85,15 +85,15 @@ public class SampleSummary {
 		int idp = Integer.parseInt(dp);
 		int total = vaf * altBinSize;
 		int bin = total / idp;
-		if (total % idp == 0 && bin > 0) { 
+		if (total % idp == 0 && bin > 0) {
 			bin -= 1;
 		}
-		map.computeIfAbsent( type.name() , (k) -> new QCMGAtomicLongArray(altBinSize )).increment( bin );
+		map.computeIfAbsent(type.name() , (k) -> new QCMGAtomicLongArray(altBinSize)).increment(bin);
 		
 	}
 		
 
-	public void parseRecord( VcfRecord  vcf, int formateOrder) { 
+	public void parseRecord(VcfRecord  vcf, int formateOrder) {
 		VcfFormatFieldRecord format = new VcfFormatFieldRecord(vcf.getFormatFields().get(0), vcf.getFormatFields().get(formateOrder));
 		counts.incrementAndGet();  // total number
 		SVTYPE type = IndelUtils.getVariantType(vcf.getRef(), vcf.getAlt());
@@ -102,89 +102,89 @@ public class SampleSummary {
 		String gt = format.getField(VcfHeaderUtils.FORMAT_GENOTYPE);  // GT
 		gts.add(gt);
 				
-		increment( type.name() );  // count svtype
-		increment( type + gt );	   // count genotype	
+		increment(type.name());  // count svtype
+		increment(type + gt);	   // count genotype	
 						
 		// variant allel frequence VAF	 
 		incrementGTAD(type , gt, format.getField(VcfHeaderUtils.FORMAT_ALLELIC_DEPTHS), format.getField(VcfHeaderUtils.FORMAT_READ_DEPTH), summaryAD);				
  								
 		if (isdbSNP) {
-			increment(  type.name() + "dbSNP");	 // dbsnp					
+			increment(type.name() + "dbSNP");	 // dbsnp					
 		}
-		if (type.equals(SVTYPE.SNP)) { 
+		if (type.equals(SVTYPE.SNP)) {
 			// get Ti Tv counts based on GT value			
 			String salt = vcf.getAlt().replace(",", "");
 			String sgt = gt.replace("|", "").replace("/", "").replace(".", "").replace("0", "");				
 			List<SubsitutionEnum> transTypes = new ArrayList<>();
 			new HashSet<Character>(sgt.chars().mapToObj(e -> (char)e).collect(Collectors.toList())).forEach(
-				c ->  transTypes.add( SubsitutionEnum.getTrans( vcf.getRef().charAt(0), salt.charAt( c - '1' ) )) 
+				c -> transTypes.add(SubsitutionEnum.getTrans(vcf.getRef().charAt(0), salt.charAt(c - '1')))
 			);
 						
-			for (SubsitutionEnum transType : transTypes) { 
-				increment( type.name() + transType.name() );					
+			for (SubsitutionEnum transType : transTypes) {
+				increment(type.name() + transType.name());					
 			}				
 		}		
 	}	
 	
 		
-	public void toXML(Element parent, String formats, String values ) { 
+	public void toXML(Element parent, String formats, String values) {
 		
 		Element reportE = XmlElementUtils.createSubElement(parent, report);
-		if (formats != null) { 
+		if (formats != null) {
 			reportE.setAttribute(SampleSummary.formats, formats);
 			reportE.setAttribute(SampleSummary.values, values);
 		}
 		
-		List<String> orderedGTs = new ArrayList<>( gts );
+		List<String> orderedGTs = new ArrayList<>(gts);
 		// orderedGTs.sort(null);
 		for (SVTYPE type : SVTYPE.values()) {
 			// only output non zero value
-			AtomicLong totalAL = summary.get( type.name());
-			if ( null == totalAL) {
+			AtomicLong totalAL = summary.get(type.name());
+			if (null == totalAL) {
 				continue;						
 			}
 						
-			Element reportE1  = XmlUtils.createMetricsNode( reportE,  type.toVariantType(),new Pair(XmlUtils.COUNT, totalAL) );
+			Element reportE1  = XmlUtils.createMetricsNode(reportE,  type.toVariantType(),new Pair(XmlUtils.COUNT, totalAL));
 			String key =  type.name() + "dbSNP";
-			XmlUtils.outputValueNode(reportE1, "inDBSNP", summary .containsKey(key) ? summary.get(key).get() : 0 ); 
+			XmlUtils.outputValueNode(reportE1, "inDBSNP", summary .containsKey(key) ? summary.get(key).get() : 0); 
 						
 			// titv
-			if (type.equals(SVTYPE.SNP)) { 
+			if (type.equals(SVTYPE.SNP)) {
 				Map<String, AtomicLong> tiFreq = new HashMap<>();
 				Map<String, AtomicLong> tvFreq = new HashMap<>();
 				
 				long sumTi = 0, sumTv = 0;
-				for (SubsitutionEnum tran: SubsitutionEnum.values()) { 
-					if (tran.isTranstion() &&  summary.get(type.name()  + tran.name()) != null) { 
+				for (SubsitutionEnum tran: SubsitutionEnum.values()) {
+					if (tran.isTranstion() &&  summary.get(type.name()  + tran.name()) != null) {
 						tiFreq.put(tran.toString(), summary.get(type.name() + tran.name()));
 						sumTi += summary.get(type.name() + tran.name()).get();
-					} else if ( tran.isTransversion() &&  summary.get(type.name() + tran.name()) != null) {				 
+					} else if (tran.isTransversion() &&  summary.get(type.name() + tran.name()) != null) {				 
 						tvFreq.put(tran.toString(), summary.get(type.name() + tran.name()));	
 						sumTv += summary.get(type.name() + tran.name()).get();
 					}
 				}
 				double rate = sumTi * sumTv == 0 ? 0 : (double) sumTi / sumTv;			 
-				XmlUtils.outputValueNode(reportE1, tiTvRatio,  rate );
+				XmlUtils.outputValueNode(reportE1, tiTvRatio,  rate);
 				 
 				XmlUtils.outputTallyGroup(reportE1 ,  transitions,  tiFreq, true, true);
 				XmlUtils.outputTallyGroup(reportE1 ,  transversions,  tvFreq, true, true);
 			}				
 						
 			Map<String, AtomicLong> gtvalues = new HashMap<>();
-			for (String gt : orderedGTs) { 
-				AtomicLong gtv =  summary.get( type.name() + gt );
+			for (String gt : orderedGTs) {
+				AtomicLong gtv =  summary.get(type.name() + gt);
 				if (gtv != null) {
-					gtvalues.put( gt, gtv );				
+					gtvalues.put(gt, gtv);				
 				}
 			}
 
-			XmlUtils.outputTallyGroup( reportE1 , genotype, gtvalues, true , true);
+			XmlUtils.outputTallyGroup(reportE1 , genotype, gtvalues, true , true);
 
 			QCMGAtomicLongArray array = summaryAD.get(type.name());
-			if (array != null ) {				
+			if (array != null) {				
 				Element cateEle = XmlUtils.outputBins(reportE1, VAF, array.toMap(), (100 / altBinSize));
-				if (cateEle.hasChildNodes()) { 
-					XmlUtils.addCommentChild(cateEle, "Each closedBin list the variant number belonging to variant allele frequency region ( start%, end% ].");
+				if (cateEle.hasChildNodes()) {
+					XmlUtils.addCommentChild(cateEle, "Each closedBin list the variant number belonging to variant allele frequency region (start%, end% ].");
 				}								
 			}
 
