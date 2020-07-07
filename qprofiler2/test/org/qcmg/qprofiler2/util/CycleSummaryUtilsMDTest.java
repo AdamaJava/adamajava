@@ -34,6 +34,9 @@ public class CycleSummaryUtilsMDTest {
 		SamReader reader = SAMFileReaderFactory.createSAMFileReader( new File(input));		
 		int count = 0, firstNo = 0, secondNo = 0;
 		for (SAMRecord record : reader) {
+			//debug
+			System.out.println(record.getSAMString());
+			
 			String value = (String) record.getAttribute("MD");
 			int order = (record.getFirstOfPairFlag())? 0 : 1;	// 0: firstOfPair , 1: secondOfPair
 			if (order == 0) firstNo ++;
