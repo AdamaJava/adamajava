@@ -75,13 +75,13 @@ public class SummaryReportUtils {
 	}
 	
 	public static class TallyStats {
-		private long min;
-		private long max;
-		private long mean;
-		private long mode;
-		private long medium;
-		private long counts;
-		private long bases;
+		private final long min;
+		private final long max;
+		private final long mean;
+		private final long mode;
+		private final long medium;
+		private final long counts;
+		private final long bases;
 		
 		/**
 		 * 
@@ -101,7 +101,7 @@ public class SummaryReportUtils {
 				counts += array.get(i);
 				bases += i * array.get(i);
 			}		
-			int mean = (counts == 0) ? 0 : (int) (bases / counts);
+			this.mean = (counts == 0) ? 0 : (int) (bases / counts);
 					
 			// to avoid aray.get(0) >= 0 since 1(counts)/2== 0(counts/2) == 0
 			long sum = 0; 
@@ -141,7 +141,6 @@ public class SummaryReportUtils {
 				
 			this.min = min;
 			this.max = max;
-			this.mean = mean;
 			this.mode = mode;
 			this.medium = medium;
 			this.counts = counts;

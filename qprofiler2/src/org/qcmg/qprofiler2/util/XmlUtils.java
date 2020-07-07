@@ -272,7 +272,7 @@ public class XmlUtils {
 		}  	    	
     }
    
-    public static  <T>Element outputTallyGroup( Element parent, String name, Map<T, AtomicLong> tallys, boolean hasPercent, boolean outputSum) {
+    public static  <T> Element outputTallyGroup( Element parent, String name, Map<T, AtomicLong> tallys, boolean hasPercent, boolean outputSum) {
     	if (tallys == null || tallys.isEmpty()) {
     		return null;
     	}
