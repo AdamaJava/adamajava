@@ -45,19 +45,16 @@ public class CohortSummaryReport extends SummaryReport {
 			for (int count : cat.variantsCounts.values()) {
 				sumCount += count;			
 			}
-		}
-				
+		}				
 	}	
 	
 	List<String> outputCounts() {		 
 		List<String> output = new ArrayList<>(); 
 		for (Category cat: categories) {
 			for (String str : cat.output()) {
-				output.add(file + outputSeperate + sampleId + outputSeperate + str);
-				
+				output.add(file + outputSeperate + sampleId + outputSeperate + str);				
 			}
-		}
-		
+		}		
 		return output;
 	}	
 	

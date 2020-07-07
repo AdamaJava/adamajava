@@ -29,14 +29,10 @@ public class CycleSummaryUtilsMDTest {
 		@SuppressWarnings("unchecked")
 		final CycleSummary<Character>[] tagMDMismatchByCycle = new CycleSummary[] {new CycleSummary<Character>(Character.MAX_VALUE, 512), new CycleSummary<Character>(Character.MAX_VALUE, 512)};	
 		final QCMGAtomicLongArray[] allReadsLineLengths = new QCMGAtomicLongArray[] {new QCMGAtomicLongArray(1024), new QCMGAtomicLongArray(1024), new QCMGAtomicLongArray(1024)};
-		
-		
+				
 		SamReader reader = SAMFileReaderFactory.createSAMFileReader( new File(input));		
 		int count = 0, firstNo = 0, secondNo = 0;
 		for (SAMRecord record : reader) {
-			//debug
-			System.out.println(record.getSAMString());
-			
 			String value = (String) record.getAttribute("MD");
 			int order = (record.getFirstOfPairFlag())? 0 : 1;	// 0: firstOfPair , 1: secondOfPair
 			if (order == 0) firstNo ++;
