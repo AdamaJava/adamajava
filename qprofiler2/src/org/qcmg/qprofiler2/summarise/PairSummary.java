@@ -11,7 +11,7 @@ import org.w3c.dom.Element;
 public class PairSummary {
 	public final Pair type;
 	public final Boolean isProperPair; 
-	public PairSummary( Pair pair, boolean isProper) {
+	public PairSummary(Pair pair, boolean isProper) {
 		this.type = pair; 
 		this.isProperPair = isProper;
 	}
@@ -61,8 +61,8 @@ public class PairSummary {
 	 * it's tLen, overlap information will be collected. 
 	 * @param record is the paired reads
 	 */
-	public void parse(SAMRecord record ) {	
-		if ( !record.getReadPairedFlag()  ) {
+	public void parse(SAMRecord record) {	
+		if (!record.getReadPairedFlag()) {
 			return; 
 		}
 		
@@ -75,17 +75,17 @@ public class PairSummary {
 		int tLen =  record.getInferredInsertSize();			
 	
 		// normally bam reads are mapped, if the mate is missing, we still count it to pair but no detailed pair` information
-		if ( record.getMateUnmappedFlag() ) {
+		if (record.getMateUnmappedFlag()) {
 			mateUnmapped.incrementAndGet();  
 			return;  
-		} else if ( !record.getReferenceName().equals( record.getMateReferenceName()) && record.getFirstOfPairFlag()) {
+		} else if (!record.getReferenceName().equals(record.getMateReferenceName()) && record.getFirstOfPairFlag()) {
 			// pair from different reference, only look at first pair to avoid double counts			
 			diffRef.incrementAndGet();	
 			return; 
 		}	
 							
  		// to avoid double counts, we only select one of Pair: tLen > 0 or firstOfPair with tLen==0;
- 		if ( tLen < 0 || (tLen == 0 && !record.getFirstOfPairFlag()) ) {
+ 		if (tLen < 0 || (tLen == 0 && !record.getFirstOfPairFlag())) {
  			return;
   		}
 		
@@ -95,19 +95,19 @@ public class PairSummary {
 			tLenOverall.increment(tLen);
 		}
 		// first of Pair with tLen == 0
-		if ( tLen == 0 ) {
+		if (tLen == 0) {
 			zeroTlen.incrementAndGet();
 			return;
 		}
 		
 		// classify tlen groups
-		int	overlap = BwaPair.getOverlapBase( record );
-		if ( overlap > 0 ) {
+		int	overlap = BwaPair.getOverlapBase(record);
+		if (overlap > 0) {
 			overlapBase.increment(overlap);
 			tLenOverlap.increment(tLen);			
-		} else if ( tLen < smallTlenValue  ) {
+		} else if (tLen < smallTlenValue) {
 			near.incrementAndGet();	
-		} else if ( tLen < bigTlenValue ) {
+		} else if (tLen < bigTlenValue) {
 			far.incrementAndGet();	
 		} else {
 			//must be record.getInferredInsertSize() >= bigTlenValue
@@ -128,21 +128,21 @@ public class PairSummary {
 	 * @param parent element
 	 */
 	
-	void toSummaryXml(Element parent  ) {	
+	void toSummaryXml(Element parent) {	
 		long overlapPair = overlapBase.toMap().values().stream().mapToLong(e -> e.get()).reduce(0, (x,y) -> x + y);
 		long pairCoutns = tLenOverall.toMap().values().stream().mapToLong(e -> e.get()).reduce(0, (x,y) -> x + y);
 	
 		Element stats = XmlUtils.createGroupNode(parent, type.name());
 		XmlUtils.outputValueNode(stats, "firstOfPairs", firstOfPairNum.get());
 		XmlUtils.outputValueNode(stats, "secondOfPairs", secondOfPairNum.get());
-		XmlUtils.outputValueNode( stats, "mateUnmappedPair", mateUnmapped.get() );
-		XmlUtils.outputValueNode( stats, "mateDifferentReferencePair", diffRef.get() );
+		XmlUtils.outputValueNode(stats, "mateUnmappedPair", mateUnmapped.get());
+		XmlUtils.outputValueNode(stats, "mateDifferentReferencePair", diffRef.get());
 		XmlUtils.outputValueNode(stats, "tlenZeroPairs", zeroTlen.get());
-		XmlUtils.outputValueNode(stats, "tlenUnder1500Pairs", near.get() );		 
-		XmlUtils.outputValueNode(stats, "tlenOver10000Pairs", bigTlen.get()  );
-		XmlUtils.outputValueNode(stats, "tlenBetween1500And10000Pairs",far.get() );	
+		XmlUtils.outputValueNode(stats, "tlenUnder1500Pairs", near.get());		 
+		XmlUtils.outputValueNode(stats, "tlenOver10000Pairs", bigTlen.get());
+		XmlUtils.outputValueNode(stats, "tlenBetween1500And10000Pairs",far.get());	
 		XmlUtils.outputValueNode(stats, "overlappedPairs", overlapPair);
-		XmlUtils.outputValueNode(stats, "pairCountUnderTlen5000", pairCoutns );		
+		XmlUtils.outputValueNode(stats, "pairCountUnderTlen5000", pairCoutns);		
 	}	
 	
 

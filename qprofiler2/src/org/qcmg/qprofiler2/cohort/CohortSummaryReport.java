@@ -63,7 +63,7 @@ public class CohortSummaryReport extends SummaryReport {
 	 * @return an array of total counts of variantCounts , dbsnp , ti and tv
 	 */
 	public long[] getCountSum() {
-		return new long[] {sumCount, sumDb, sumTi, sumTv  };		
+		return new long[] {sumCount, sumDb, sumTi, sumTv};		
 	}
 	
 	static class Category {

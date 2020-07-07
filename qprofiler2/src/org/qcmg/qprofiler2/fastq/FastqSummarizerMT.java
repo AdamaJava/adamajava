@@ -61,7 +61,7 @@ public class FastqSummarizerMT implements Summarizer {
 			consumerThreads.execute(new Consumer(q, fastqSummaryReport, Thread.currentThread(), cLatch, pLatch));
 		}
 		
-		// 	setup and kick-off single Producer thread
+		// setup and kick-off single Producer thread
 		ExecutorService producerThreads = Executors.newFixedThreadPool(1);
 		producerThreads.execute(new Producer(q, new File(file), Thread.currentThread(), pLatch,  cLatch));
 
@@ -210,7 +210,7 @@ public class FastqSummarizerMT implements Summarizer {
 					if (++count == counter) {
 						millions++;
 						count = 0;
-						size = queue.size(); // 						end = System.currentTimeMillis();
+						size = queue.size();
 						logger.info("added " + millions + "M, q.size: " + size);
 						
 						if (cLatch.getCount() == 0 && size > 0) {

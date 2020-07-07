@@ -48,11 +48,11 @@ public class CohortSummaryReportTest {
 		
 		assertEquals( counts[0].trim(), input.getCanonicalPath() );  // input
 		assertEquals( counts[1].trim(), sample );   // sample
-		assertEquals( counts[2].trim(), "-" );     //ReportingCategory set to - if not exist
-		assertEquals( counts[3].trim(), "SNV" );	 //svn counts
-		assertEquals( counts[4].trim(), "30" );	 //svn counts
+		assertEquals( counts[2].trim(), "-" );      // ReportingCategory set to - if not exist
+		assertEquals( counts[3].trim(), "SNV" );	// svn counts
+		assertEquals( counts[4].trim(), "30" );		// svn counts
 		assertEquals( counts[5].trim(), "0.667" );	//  dbsnp rate
-		assertEquals( counts[6].trim(), "0.50" );	   //titv
+		assertEquals( counts[6].trim(), "0.50" );	// titv
 	}
 	
 	@Test

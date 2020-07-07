@@ -35,14 +35,12 @@ public class SampleSummaryTest {
 		assertEquals(1, ar.get( 10 * SampleSummary.altBinSize / 20 -1 ));
 	}
 	
-
 	@Test
 	/**
 	 * check titv elements by different inputs, check the boundary value of titvratio, such as 0, round to half,etc 
 	 * @throws ParserConfigurationException
 	 */
-	public void titvTest() throws ParserConfigurationException { 
-		
+	public void titvTest() throws ParserConfigurationException { 		
 		List<VcfRecord> records = new ArrayList<>();
 		checkTiTv( records, null, null, null );  // empty
  
@@ -67,43 +65,35 @@ public class SampleSummaryTest {
 		// two ti three tv
 		records.add(tiRe);
 		checkTiTv( records, "0.67", "2", "3" );
-
 	}
 	
-	private void checkTiTv( List<VcfRecord> records, String ratio, String ti, String tv) throws ParserConfigurationException { 
-		
-		// new  VcfSummarizer(null); cause exception since for (Sting cat: null)
-		 
-		Element root = XmlElementUtils.createRootElement("root", null) ;
+	private void checkTiTv( List<VcfRecord> records, String ratio, String ti, String tv) throws ParserConfigurationException { 		
+		// new  VcfSummarizer(null); cause exception since for (Sting cat: null)		 
+		Element root = XmlElementUtils.createRootElement("root", null);
 		SampleSummary summary = new SampleSummary();
 		for (VcfRecord re: records) summary.parseRecord( re, 1 );
-		summary.toXML( root,null, null );  
-		if (records.size() == 0) { 			
-			assertEquals( 0, XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.VALUE).size());			 
-			return; 
+		summary.toXML( root,null, null );
+		if (records.size() == 0) {
+			assertEquals( 0, XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.VALUE).size());	 
+			return;
 		}
-			
-			
+						
 		// get <SNP TiTvRatio="0.00" Transitions="0" Transversions="1">
 		Element subE = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.VALUE).stream()
-				.filter( e -> e.getAttribute(XmlUtils.NAME).equals(SampleSummary.tiTvRatio)).findFirst().get();								 
+				.filter( e -> e.getAttribute(XmlUtils.NAME).equals(SampleSummary.tiTvRatio)).findFirst().get();						 
 		assertEquals( ratio, subE.getTextContent());
 		
 		
 		if (ti != null) { 
 			subE = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.VARIABLE_GROUP).stream()
 					.filter( e -> e.getAttribute(XmlUtils.NAME).equals(SampleSummary.transitions)).findFirst().get();
-			assertEquals(ti, XmlElementUtils.getChildElement(subE, XmlUtils.TALLY, 0).getAttribute(XmlUtils.COUNT));
-			
+			assertEquals(ti, XmlElementUtils.getChildElement(subE, XmlUtils.TALLY, 0).getAttribute(XmlUtils.COUNT));			
 		}
 		
-		if (tv != null) { 
+		if (tv != null) {
 			subE = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.VARIABLE_GROUP).stream()
 					.filter( e -> e.getAttribute(XmlUtils.NAME).equals(SampleSummary.transversions)).findFirst().get();
-			assertEquals(tv,  XmlElementUtils.getChildElement(subE, XmlUtils.TALLY, 0).getAttribute(XmlUtils.COUNT));
-			
-		}
-	
+			assertEquals(tv,  XmlElementUtils.getChildElement(subE, XmlUtils.TALLY, 0).getAttribute(XmlUtils.COUNT));			
+		}	
 	}
-
 }

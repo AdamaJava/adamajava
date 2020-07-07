@@ -24,9 +24,9 @@ public class CycleSummaryTest {
 			
 		// eg. <sequenceMetrics name="seqBase"><variableGroup name="firstReadInPair">
 		List<Element> elements = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.VARIABLE_GROUP).stream()
-			.filter(e -> e.getAttribute(XmlUtils.NAME).equals(pairName)&&
-						 e.getAttribute(ReadGroupSummary.READ_COUNT).equals(readCount+"") &&
-					 ((Element) e.getParentNode()).getAttribute(XmlUtils.NAME).equals(metricName)).collect(Collectors.toList());
+			.filter(e -> e.getAttribute(XmlUtils.NAME).equals(pairName)
+					&& e.getAttribute(ReadGroupSummary.READ_COUNT).equals(readCount+"")
+					&& ((Element) e.getParentNode()).getAttribute(XmlUtils.NAME).equals(metricName)).collect(Collectors.toList());
 		Assert.assertEquals(elements.size(), 1);
 		
 		// eg, <baseCycle cycle="1">

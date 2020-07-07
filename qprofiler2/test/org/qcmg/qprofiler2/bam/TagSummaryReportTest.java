@@ -123,7 +123,7 @@ public class TagSummaryReportTest {
 		final short NH = STU.NH;
 		final short MD = STU.MD;
 		final short IH = STU.IH;
-		//  custom tags
+		// custom tags
 		final short ZM = STU.makeBinaryTag("ZM");
 		final short ZP = STU.makeBinaryTag("ZP");
 		final short ZF = STU.makeBinaryTag("ZF");

@@ -43,7 +43,7 @@ public class SummaryReportUtils {
 			int count = 0;
 			for (byte b : data) {
 				if (isInValid((char) b)) {
-					count++;
+					count ++;
 				}
 			}
 			array.increment(count);

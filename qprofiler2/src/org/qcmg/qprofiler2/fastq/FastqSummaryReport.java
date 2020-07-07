@@ -40,7 +40,7 @@ public class FastqSummaryReport extends SummaryReport {
 	 // SEQ
 	private final CycleSummary<Character> seqByCycle = new CycleSummary<Character>(c, 512);
 	private final QCMGAtomicLongArray seqBadReadLineLengths = new QCMGAtomicLongArray(128);
-	private final KmersSummary kmersSummary = new KmersSummary( KmersSummary.maxKmers );  // default use biggest mers length
+	private final KmersSummary kmersSummary = new KmersSummary(KmersSummary.maxKmers);  // default use biggest mers length
 	
 	 // QUAL
 	private final CycleSummary<Integer> qualByCycleInteger = new CycleSummary<Integer>(i, 512);
@@ -58,45 +58,45 @@ public class FastqSummaryReport extends SummaryReport {
 	}
 	@Override
 	public void toXml(Element parent1) {		
-		Element parent = init( parent1, ProfileType.FASTQ, null, null );
-		parent = XmlElementUtils.createSubElement( parent, ProfileType.FASTQ.getReportName() +  XmlUtils.METRICS   );
+		Element parent = init(parent1, ProfileType.FASTQ, null, null);
+		parent = XmlElementUtils.createSubElement(parent, ProfileType.FASTQ.getReportName() + XmlUtils.METRICS);
 		
 		 // header line:"analysis read name pattern for read group
-		Element element =   XmlElementUtils.createSubElement(parent, XmlUtils.QNAME ) ;							
-		readNameSummary.toXml(element );		
+		Element element =   XmlElementUtils.createSubElement(parent, XmlUtils.QNAME) ;							
+		readNameSummary.toXml(element);		
 		
 		 // seq								 			
-		element =   XmlElementUtils.createSubElement(parent,XmlUtils.SEQ  ) ;
+		element =   XmlElementUtils.createSubElement(parent,XmlUtils.SEQ) ;
 		Pair<String, Number> rcPair = new Pair<>(ReadGroupSummary.READ_COUNT, seqByCycle.getInputCounts());
-		Element ele = XmlUtils.createMetricsNode( element, XmlUtils.SEQ_BASE , rcPair); 
-		seqByCycle.toXml( ele, XmlUtils.SEQ_BASE,seqByCycle.getInputCounts());
+		Element ele = XmlUtils.createMetricsNode(element, XmlUtils.SEQ_BASE , rcPair); 
+		seqByCycle.toXml(ele, XmlUtils.SEQ_BASE,seqByCycle.getInputCounts());
 		
-		ele = XmlUtils.createMetricsNode( element, XmlUtils.SEQ_LENGTH , rcPair); 
-		XmlUtils.outputTallyGroup( ele, XmlUtils.SEQ_LENGTH, seqByCycle.getLengthMapFromCycle(), true, true );
+		ele = XmlUtils.createMetricsNode(element, XmlUtils.SEQ_LENGTH , rcPair); 
+		XmlUtils.outputTallyGroup(ele, XmlUtils.SEQ_LENGTH, seqByCycle.getLengthMapFromCycle(), true, true);
 				
 		rcPair = new Pair<String, Number>(ReadGroupSummary.READ_COUNT, seqBadReadLineLengths.getSum());		
-		ele = XmlUtils.createMetricsNode( element, XmlUtils.BAD_READ, rcPair);
-		XmlUtils.outputTallyGroup( ele, XmlUtils.BAD_READ,   seqBadReadLineLengths.toMap(), true, true );	
-		XmlUtils.addCommentChild(ele, FastqSummaryReport.badBaseComment );
+		ele = XmlUtils.createMetricsNode(element, XmlUtils.BAD_READ, rcPair);
+		XmlUtils.outputTallyGroup(ele, XmlUtils.BAD_READ,   seqBadReadLineLengths.toMap(), true, true);	
+		XmlUtils.addCommentChild(ele, FastqSummaryReport.badBaseComment);
 		
 		 // 1mers is same to baseByCycle
-		for ( int i : new int[] {2, 3, KmersSummary.maxKmers } ) {
-			kmersSummary.toXml( element,i, true );	
+		for (int i : new int[] {2, 3, KmersSummary.maxKmers}) {
+			kmersSummary.toXml(element,i, true);	
 		}
 		
 		 // QUAL
 		element = XmlElementUtils.createSubElement(parent, XmlUtils.QUAL) ;
 		rcPair = new Pair<String, Number>(ReadGroupSummary.READ_COUNT, qualByCycleInteger.getInputCounts());	
-		ele = XmlUtils.createMetricsNode( element, XmlUtils.QUAL_BASE , rcPair); 
-		qualByCycleInteger.toXml( ele, XmlUtils.QUAL_BASE, qualByCycleInteger.getInputCounts()) ;
+		ele = XmlUtils.createMetricsNode(element, XmlUtils.QUAL_BASE , rcPair); 
+		qualByCycleInteger.toXml(ele, XmlUtils.QUAL_BASE, qualByCycleInteger.getInputCounts()) ;
 		
-		ele = XmlUtils.createMetricsNode( element, XmlUtils.QUAL_LENGTH, rcPair) ;
-		XmlUtils.outputTallyGroup( ele,  XmlUtils.QUAL_LENGTH,  qualByCycleInteger.getLengthMapFromCycle(), true, true ) ;	
+		ele = XmlUtils.createMetricsNode(element, XmlUtils.QUAL_LENGTH, rcPair) ;
+		XmlUtils.outputTallyGroup(ele,  XmlUtils.QUAL_LENGTH,  qualByCycleInteger.getLengthMapFromCycle(), true, true) ;	
 
 		rcPair = new Pair<String, Number>(ReadGroupSummary.READ_COUNT, qualBadReadLineLengths.getSum());	
-		ele = XmlUtils.createMetricsNode( element,  XmlUtils.BAD_READ, rcPair) ;
-		XmlUtils.outputTallyGroup( ele,  XmlUtils.BAD_READ ,  qualBadReadLineLengths.toMap(), false, true ) ;
-		XmlUtils.addCommentChild( ele, FastqSummaryReport.badQualComment );
+		ele = XmlUtils.createMetricsNode(element,  XmlUtils.BAD_READ, rcPair) ;
+		XmlUtils.outputTallyGroup(ele,  XmlUtils.BAD_READ ,  qualBadReadLineLengths.toMap(), false, true) ;
+		XmlUtils.addCommentChild(ele, FastqSummaryReport.badQualComment);
 		
  	}
 	
@@ -106,38 +106,38 @@ public class FastqSummaryReport extends SummaryReport {
 	 * @return next row in file
 	 */
 	public void parseRecord(FastqRecord record) {
-		if ( null == record ) {
+		if (null == record) {
 			return;
 		}
 		 			
 		updateRecordsInputed();
 					 
 		// QUAL   it also throw exception if fastq reads is invalid
-		byte[] baseQualities = SAMUtils.fastqToPhred( record.getBaseQualityString() );
+		byte[] baseQualities = SAMUtils.fastqToPhred(record.getBaseQualityString());
 		
 		// read are raw sequence ignore the strand
-		qualByCycleInteger.parseByteData( baseQualities );
-		SummaryReportUtils.tallyQualScores( baseQualities, qualBadReadLineLengths );
+		qualByCycleInteger.parseByteData(baseQualities);
+		SummaryReportUtils.tallyQualScores(baseQualities, qualBadReadLineLengths);
 						
 		// SEQ
 		byte[] readBases = record.getReadString().getBytes(StandardCharsets.UTF_8);
 		seqByCycle.parseByteData(readBases);
-		SummaryReportUtils.tallyBadReadsAsString( readBases, seqBadReadLineLengths );
+		SummaryReportUtils.tallyBadReadsAsString(readBases, seqBadReadLineLengths);
 		// fastq base are all orignal forward, treat all as first of pair 
-		kmersSummary.parseKmers( readBases, false, 0 ); 
+		kmersSummary.parseKmers(readBases, false, 0); 
 		
 		String qualHeader = record.getBaseQualityHeader();		
 		 // If header just contains "+" then FastqRecord has null for qual header
-		if ( ! StringUtils.isNullOrEmpty( qualHeader )) {
+		if (! StringUtils.isNullOrEmpty(qualHeader)) {
 			qualHeaderNotEqualToPlus.incrementAndGet();	
 		}
 		
 		String id = record.getReadName();		
 		try {
-			readNameSummary.parseReadId( id );
+			readNameSummary.parseReadId(id);
 		} catch (Exception e) {
-			if ( errNumber.incrementAndGet() < ReportErrNumber ) {
-				logger.error( "Invalid read id: " + id );
+			if (errNumber.incrementAndGet() < ReportErrNumber) {
+				logger.error("Invalid read id: " + id);
 			}
 		}
 	}

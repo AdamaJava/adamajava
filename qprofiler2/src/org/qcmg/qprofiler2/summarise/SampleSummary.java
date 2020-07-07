@@ -38,7 +38,7 @@ public class SampleSummary {
 	// allele frequency value range. eg. altBinSize = 10, each bin contain counts for variants which mutation allele percent is [0, 0.1]
 	public static final int altBinSize = 20; 
 		
-	Set<String> gts = new HashSet<>();  // store possible genotyp 0/1, 0/0, ./1 ...
+	Set<String> gts = new HashSet<>(); // store possible genotyp 0/1, 0/0, ./1 ...
 	Map<String, AtomicLong> summary = new HashMap<>();
 	Map<String, QCMGAtomicLongArray> summaryAD = new HashMap<>();
 	
@@ -59,15 +59,15 @@ public class SampleSummary {
 	 */
 	public static void incrementGTAD(SVTYPE type,String gt, String ad, String dp, Map<String, QCMGAtomicLongArray> map) {
 		
-		if (ad == null || ad.contains(".") ||  gt == null || gt.contains(".")  ||  gt.equals("0/0") || gt.equals("0|0")) {
+		if (ad == null || ad.contains(".") || gt == null || gt.contains(".") || gt.equals("0/0") || gt.equals("0|0")) {
 				return;		
 		}
 		
-		int commaIndex = ad.indexOf(Constants.COMMA);  
+		int commaIndex = ad.indexOf(Constants.COMMA);
 		int vaf = 0;
 		
 		/*
-		 *  vaf needs to equal the sum of all the numbers in the AD field, apart from the first number (which is the reference count)
+		 * vaf needs to equal the sum of all the numbers in the AD field, apart from the first number (which is the reference count)
 		 */
 		while (commaIndex > -1) {
 			int nextConmmaIndex = ad.indexOf(Constants.COMMA, commaIndex + 1);
@@ -93,17 +93,17 @@ public class SampleSummary {
 	}
 		
 
-	public void parseRecord(VcfRecord  vcf, int formateOrder) {
+	public void parseRecord(VcfRecord vcf, int formateOrder) {
 		VcfFormatFieldRecord format = new VcfFormatFieldRecord(vcf.getFormatFields().get(0), vcf.getFormatFields().get(formateOrder));
-		counts.incrementAndGet();  // total number
+		counts.incrementAndGet(); // total number
 		SVTYPE type = IndelUtils.getVariantType(vcf.getRef(), vcf.getAlt());
 		boolean isdbSNP = !StringUtils.isNullOrEmptyOrMissingData(vcf.getId());
 		
-		String gt = format.getField(VcfHeaderUtils.FORMAT_GENOTYPE);  // GT
+		String gt = format.getField(VcfHeaderUtils.FORMAT_GENOTYPE); // GT
 		gts.add(gt);
 				
-		increment(type.name());  // count svtype
-		increment(type + gt);	   // count genotype	
+		increment(type.name()); // count svtype
+		increment(type + gt);	// count genotype	
 						
 		// variant allel frequence VAF	 
 		incrementGTAD(type , gt, format.getField(VcfHeaderUtils.FORMAT_ALLELIC_DEPTHS), format.getField(VcfHeaderUtils.FORMAT_READ_DEPTH), summaryAD);				
@@ -144,8 +144,8 @@ public class SampleSummary {
 				continue;						
 			}
 						
-			Element reportE1  = XmlUtils.createMetricsNode(reportE,  type.toVariantType(),new Pair(XmlUtils.COUNT, totalAL));
-			String key =  type.name() + "dbSNP";
+			Element reportE1 = XmlUtils.createMetricsNode(reportE, type.toVariantType(),new Pair(XmlUtils.COUNT, totalAL));
+			String key = type.name() + "dbSNP";
 			XmlUtils.outputValueNode(reportE1, "inDBSNP", summary .containsKey(key) ? summary.get(key).get() : 0); 
 						
 			// titv
@@ -155,24 +155,24 @@ public class SampleSummary {
 				
 				long sumTi = 0, sumTv = 0;
 				for (SubsitutionEnum tran: SubsitutionEnum.values()) {
-					if (tran.isTranstion() &&  summary.get(type.name()  + tran.name()) != null) {
+					if (tran.isTranstion() && summary.get(type.name() + tran.name()) != null) {
 						tiFreq.put(tran.toString(), summary.get(type.name() + tran.name()));
 						sumTi += summary.get(type.name() + tran.name()).get();
-					} else if (tran.isTransversion() &&  summary.get(type.name() + tran.name()) != null) {				 
+					} else if (tran.isTransversion() && summary.get(type.name() + tran.name()) != null) {				 
 						tvFreq.put(tran.toString(), summary.get(type.name() + tran.name()));	
 						sumTv += summary.get(type.name() + tran.name()).get();
 					}
 				}
 				double rate = sumTi * sumTv == 0 ? 0 : (double) sumTi / sumTv;			 
-				XmlUtils.outputValueNode(reportE1, tiTvRatio,  rate);
+				XmlUtils.outputValueNode(reportE1, tiTvRatio, rate);
 				 
-				XmlUtils.outputTallyGroup(reportE1 ,  transitions,  tiFreq, true, true);
-				XmlUtils.outputTallyGroup(reportE1 ,  transversions,  tvFreq, true, true);
+				XmlUtils.outputTallyGroup(reportE1 , transitions, tiFreq, true, true);
+				XmlUtils.outputTallyGroup(reportE1 , transversions, tvFreq, true, true);
 			}				
 						
 			Map<String, AtomicLong> gtvalues = new HashMap<>();
 			for (String gt : orderedGTs) {
-				AtomicLong gtv =  summary.get(type.name() + gt);
+				AtomicLong gtv = summary.get(type.name() + gt);
 				if (gtv != null) {
 					gtvalues.put(gt, gtv);				
 				}

@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.lang3.StringUtils;
 import org.qcmg.common.model.ProfileType;
@@ -42,10 +41,10 @@ public class VcfSummaryReport  extends SummaryReport {
 		logger.info("outputing vcf header to xml...");
 		XmlUtils.vcfHeaderToXml(parentElement, vcfHeader);
 		logger.info("outputing sample information to xml...");
-		summaryToXml( parentElement  );		
+		summaryToXml(parentElement);		
 	}
 	
-	void parseRecord( VcfRecord  vcf ) {
+	void parseRecord(VcfRecord  vcf) {
 		updateRecordsInputed();
 		
 		List<String> formats = vcf.getFormatFields();
@@ -57,20 +56,20 @@ public class VcfSummaryReport  extends SummaryReport {
 			VcfFormatFieldRecord re = new VcfFormatFieldRecord(formats.get(0), formats.get(i));
 			 
 			List<String> cates = new ArrayList<>();
-			for (String cate : formatCategories ) {
+			for (String cate : formatCategories) {
 				// new
 				int pos = cate.indexOf("="); 
 				if (pos > 0) {
 					String formatKey = cate.substring(0, pos).trim();
 					String formatValue = cate.substring(pos + 1).trim();
-					cates.add(  re.getField(formatKey) == null ? null :
-							  re.getField(formatKey).equalsIgnoreCase(formatValue) ? formatValue : "Other"  );						
+					cates.add(re.getField(formatKey) == null ? null :
+							  re.getField(formatKey).equalsIgnoreCase(formatValue) ? formatValue : "Other");						
 				} else {					 
-					cates.add(   re.getField(cate) );					 
+					cates.add(re.getField(cate));					 
 				}
 			}	 
-			Map<String, SampleSummary> map =  summaries.computeIfAbsent( sampleIds[i - 1], (k) -> new HashMap<String, SampleSummary>() );
-			map.computeIfAbsent( StringUtils.join( cates, seperator), (k) -> new SampleSummary() ).parseRecord( vcf, i ) ;
+			Map<String, SampleSummary> map =  summaries.computeIfAbsent(sampleIds[i - 1], (k) -> new HashMap<String, SampleSummary>());
+			map.computeIfAbsent(StringUtils.join(cates, seperator), (k) -> new SampleSummary()).parseRecord(vcf, i) ;
 		}				
 	}
 
@@ -79,19 +78,18 @@ public class VcfSummaryReport  extends SummaryReport {
 		List<String>  formatsTypes = new ArrayList<>();
 		for (int i = 0; i < formatCategories.length; i ++) {
 			int pos = formatCategories[i].indexOf("=");
-			formatsTypes.add( pos > 0 ? formatCategories[i].substring(0, pos) : formatCategories[i] );			
+			formatsTypes.add(pos > 0 ? formatCategories[i].substring(0, pos) : formatCategories[i]);			
 		}	
 		
-		Element summaryElement =  XmlElementUtils.createSubElement(parent,  ProfileType.VCF.getReportName() + "Metrics" );		
-		// for ( String sample : summaries.keySet() ) {	
-		for ( Entry<String, Map<String, SampleSummary>> sEntry : summaries.entrySet() ) {	
-			Element ele =  XmlElementUtils.createSubElement( summaryElement, Sample);
+		Element summaryElement =  XmlElementUtils.createSubElement(parent,  ProfileType.VCF.getReportName() + "Metrics");
+		for (Entry<String, Map<String, SampleSummary>> sEntry : summaries.entrySet()) {	
+			Element ele =  XmlElementUtils.createSubElement(summaryElement, Sample);
 			ele.setAttribute(XmlUtils.NAME, sEntry.getKey());			
-			for (Entry<String, SampleSummary> entry : sEntry.getValue().entrySet() ) {
-				if ( formatsTypes.isEmpty() ) {
-					entry.getValue().toXML( ele, null, null );
+			for (Entry<String, SampleSummary> entry : sEntry.getValue().entrySet()) {
+				if (formatsTypes.isEmpty()) {
+					entry.getValue().toXML(ele, null, null);
 				} else {
-					entry.getValue().toXML( ele, StringUtils.join( formatsTypes, seperator), entry.getKey() );	
+					entry.getValue().toXML(ele, StringUtils.join(formatsTypes, seperator), entry.getKey());	
 				}
 			}
 			
