@@ -51,8 +51,7 @@ public class FlagUtil {
 		if (record.getDuplicateReadFlag())
 			additionalData.append("d");
 				
-		return  StringUtils
-		.padString(Integer.toBinaryString(flags), 12, '0', true) 
+		return  StringUtils.padString(Integer.toBinaryString(flags), 12, '0', true)
 		+ ((additionalData.length() > 0) ? ", " + additionalData : "");
 	}
 

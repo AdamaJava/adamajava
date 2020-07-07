@@ -19,15 +19,15 @@ public class SummaryReportUtilsTest {
 		byte [] bytes = inputString.getBytes();
 		 		 
 		SummaryReportUtils.tallyQualScores(bytes, qualCount);		
-		for(int i = 0; i < 1000; i ++)
-			if(qualCount.get(i) > 0)
+		for (int i = 0; i < 1000; i ++)
+			if (qualCount.get(i) > 0)
 				System.out.println(i + " :: " + qualCount.get(i));
 		
-		for(byte c : bytes)
+		for (byte c : bytes)
 			System.out.print(c+"(" + (char)c +  "),");
 		System.out.println( "");
-		for(byte c : bytes)
-			if(c - 33 < 10)
+		for (byte c : bytes)
+			if (c - 33 < 10)
 				System.out.print((char) c+"(<10)");
 	}	
 	
@@ -36,26 +36,26 @@ public class SummaryReportUtilsTest {
 
 		QCMGAtomicLongArray badQualCount = new QCMGAtomicLongArray(15);
 				
-		byte[] qual = new byte[] { 1,1,1,1,1 };
+		byte[] qual = new byte[] {1,1,1,1,1 };
 		SummaryReportUtils.tallyQualScores( qual, badQualCount );
-		//so far one record with 5badbase
+		// so far one record with 5badbase
 		assertEquals((1), badQualCount.get(5));
 				
-		qual =  new byte[] { 1,2,3,4,5 };
+		qual =  new byte[] {1,2,3,4,5 };
 		SummaryReportUtils.tallyQualScores( qual, badQualCount );
-		//so far two records with 5badbase
+		// so far two records with 5badbase
 		assertEquals((2), badQualCount.get(5));	
 		
-		qual = new byte[] { 1,2,3,9,9,10,11,12,13,14,15 };
+		qual = new byte[] {1,2,3,9,9,10,11,12,13,14,15 };
 		SummaryReportUtils.tallyQualScores( qual, badQualCount);
-		//so far three records with 5badbase
+		// so far three records with 5badbase
 		assertEquals((3), badQualCount.get(5));	
  	
-		qual =  new byte[] { 10,11,12,13,14,15 };
+		qual =  new byte[] {10,11,12,13,14,15 };
 		SummaryReportUtils.tallyQualScores( qual, badQualCount );
-		//so far three records with 5badbase
+		// so far three records with 5badbase
 		assertEquals((3), badQualCount.get( 5) );
-		//one read with 0badbase which is the last read
+		// one read with 0badbase which is the last read
 		assertEquals((1), badQualCount.get( 0) );	 		
 	}
 

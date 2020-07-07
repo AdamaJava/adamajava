@@ -28,7 +28,7 @@ public class PositionSummaryTest {
 		
 		assertEquals(123456, ps.getMin());
 		assertEquals(123459, ps.getMax());		
-		assertEquals(5, ps.getCoverageByRg(rgs.get(0)).get(0).get());//bin1
+		assertEquals(5, ps.getCoverageByRg(rgs.get(0)).get(0).get()); // bin1
 		
 		// add some smaller numbers
 		ps.addPosition(123, rg2);
@@ -36,8 +36,8 @@ public class PositionSummaryTest {
 		
 		assertEquals(123, ps.getMin());
 		assertEquals(123459, ps.getMax());
-		assertEquals(2, ps.getCoverageByRg(rgs.get(1)).get(0).get()); //bin0
-		assertEquals(5, ps.getCoverageByRg(rgs.get(0)).get(0).get()); //bin1
+		assertEquals(2, ps.getCoverageByRg(rgs.get(1)).get(0).get());  // bin0
+		assertEquals(5, ps.getCoverageByRg(rgs.get(0)).get(0).get());  // bin1
 	}
 	
 	@Test

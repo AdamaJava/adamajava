@@ -9,6 +9,7 @@
  * under the GNU GENERAL PUBLIC LICENSE Version 3, a copy of which is
  * included in this distribution as gplv3.txt.
  */
+
 package org.qcmg.qprofiler2.fastq;
 
 import java.io.File;
@@ -47,21 +48,20 @@ public class FastqSummarizerMT implements Summarizer {
 		long start = System.currentTimeMillis();
 		
 		final FastqSummaryReport fastqSummaryReport = new FastqSummaryReport();
-		fastqSummaryReport.setFileName(file );
+		fastqSummaryReport.setFileName(file);
 		fastqSummaryReport.setStartTime(DateUtils.getCurrentDateAsString());
-		
-		
+				
 		// set the bam header		
-		logger.info("will create " + (noOfConsumerThreads -1 ) + " consumer threads");
+		logger.info("will create " + (noOfConsumerThreads - 1) + " consumer threads");
 
 		final CountDownLatch pLatch = new CountDownLatch(1);
-		final CountDownLatch cLatch = new CountDownLatch(noOfConsumerThreads -1);
+		final CountDownLatch cLatch = new CountDownLatch(noOfConsumerThreads - 1);
 		ExecutorService consumerThreads = Executors.newFixedThreadPool(noOfConsumerThreads - 1);
-		for (int i = 0 ; i < noOfConsumerThreads - 1 ; i++) {
+		for (int i = 0 ; i < noOfConsumerThreads - 1 ; i ++) {
 			consumerThreads.execute(new Consumer(q, fastqSummaryReport, Thread.currentThread(), cLatch, pLatch));
 		}
 		
-//		 setup and kick-off single Producer thread
+		// setup and kick-off single Producer thread
 		ExecutorService producerThreads = Executors.newFixedThreadPool(1);
 		producerThreads.execute(new Producer(q, new File(file), Thread.currentThread(), pLatch,  cLatch));
 
@@ -75,7 +75,7 @@ public class FastqSummarizerMT implements Summarizer {
 			pLatch.await();
 			logger.info("producer thread finished, queue size: " + q.size());
 			
-			if ( ! cLatch.await(30, TimeUnit.SECONDS)) {
+			if (! cLatch.await(30, TimeUnit.SECONDS)) {
 			
 				// need to cater for scenario where all consumer threads have died...
 				// if after 10 seconds, the q size has not decreased - assume the consumer threads are no more...
@@ -86,22 +86,22 @@ public class FastqSummarizerMT implements Summarizer {
 						if (qSize == q.size()) {
 						qSizeTheSameCounter++;
 					} else {
-						qSize =q.size();
+						qSize = q.size();
 						qSizeTheSameCounter = 0;	// reset to zero
 					}
 				}
 				
 				// final sleep to allow threads to finish processing final record
 				cLatch.await(10, TimeUnit.SECONDS);
-				if (cLatch.getCount() > 0)
+				if (cLatch.getCount() > 0) {
 					consumerThreads.shutdownNow();
-				
+				}
 			} else {
 				logger.info("consumer threads finished");
 			}
 
 			// if there are items left on the queue - means that the consumer threads encountered errors and were unable to complete the processing
-			if (q.size()  > 0 ) {
+			if (q.size()  > 0) {
 				logger.error("no consumer threads available to process items [" + q.size() + "] on queue");
 				throw new Exception("Consumer threads were unable to process all items on the queue");
 			}
@@ -147,7 +147,7 @@ public class FastqSummarizerMT implements Summarizer {
 		public void run() {
 			try {
 				logger.debug("Start Consumer");
-				while ( true ) {
+				while (true) {
 					FastqRecord record = queue.poll();
 					if (null != record) {
 						try {
@@ -158,8 +158,11 @@ public class FastqSummarizerMT implements Summarizer {
 							throw e;
 						}
 					} else {
-						if (pLatch.getCount() == 0) break;
-						else Thread.sleep(5);
+						if (pLatch.getCount() == 0) {
+							break;
+						} else {
+							Thread.sleep(5);
+						}
 					}
 				}
 			} catch (InterruptedException e) {
@@ -207,7 +210,7 @@ public class FastqSummarizerMT implements Summarizer {
 					if (++count == counter) {
 						millions++;
 						count = 0;
-						size = queue.size();//						end = System.currentTimeMillis();
+						size = queue.size();
 						logger.info("added " + millions + "M, q.size: " + size);
 						
 						if (cLatch.getCount() == 0 && size > 0) {

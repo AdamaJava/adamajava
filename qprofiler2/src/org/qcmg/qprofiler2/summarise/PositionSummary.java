@@ -28,10 +28,10 @@ public class PositionSummary {
 	private final AtomicInteger min;
 	private final AtomicInteger max;
 	private final QCMGAtomicLongArray[] rgCoverages; // the coverage for each readgroup on that position   
-	private final List<String> readGroupIds;  //nature sorted
+	private final List<String> readGroupIds; // nature sorted
 	
-	private final ArrayList<Long> maxRgs = new ArrayList<Long>(); //store the max coverage from all read group at each position;
-	private Boolean hasAddPosition = true; //set to true after each time addPosition, set to false after getAverage
+	private final ArrayList<Long> maxRgs = new ArrayList<Long>();  // store the max coverage from all read group at each position;
+	private Boolean hasAddPosition = true;  // set to true after each time addPosition, set to false after getAverage
 		
 	/**
 	 * No default constructor defined as we don't want the initial values of 
@@ -42,41 +42,47 @@ public class PositionSummary {
 	 * 
 	 */	
 	public PositionSummary(List<String> rgs) {		
-		//Natural order should only do once inside BamSummarizer2::createReport
+		// Natural order should only do once inside BamSummarizer2::createReport
 		readGroupIds = rgs; 
 		
-		min = new AtomicInteger(512*BUCKET_SIZE);
+		min = new AtomicInteger(512 * BUCKET_SIZE);
 		max = new AtomicInteger(0); 
 		rgCoverages = new QCMGAtomicLongArray[rgs.size()];
-		for(int i = 0; i < rgs.size(); i ++)
+		for (int i = 0; i < rgs.size(); i ++) {
 			rgCoverages[i] = new QCMGAtomicLongArray(512);
+		}			
 	}
 	
-	public int getMin() { 	return min.intValue(); }
+	public int getMin() {
+		return min.intValue();
+	}
 	
-	public int getMax() {	return max.intValue(); }
+	public int getMax() {
+		return max.intValue(); 
+	}
 	
 	public int getBinNumber() {
-		return (max.get()/BUCKET_SIZE) + 1;
+		return (max.get() / BUCKET_SIZE) + 1;
 	}
 
 	/**
 	 * 
 	 * @return the max read coverage based on the max coverage from each read group and each position
 	 */
-	public long getMaxRgCoverage(){
-		if( hasAddPosition  || maxRgs.isEmpty()){
+	public long getMaxRgCoverage() {
+		if ( hasAddPosition  || maxRgs.isEmpty()) {
 			maxRgs.clear();
-			for (int i = 0, length = (max.get()/BUCKET_SIZE) + 1; i < length ; i++){
+			for (int i = 0, length = (max.get() / BUCKET_SIZE) + 1; i < length ; i++) {
 				long[] rgCov = new long[rgCoverages.length];				
-				for(int j = 0; j < rgCoverages.length; j ++)
+				for (int j = 0; j < rgCoverages.length; j ++) {
 					rgCov[j] = rgCoverages[j].get(i);
+				}
 				Arrays.sort(rgCov);
-				maxRgs.add( rgCov[rgCoverages.length - 1 ]);   //get the max coverage of all readGroup at that position		
+				maxRgs.add( rgCov[rgCoverages.length - 1 ]);  // get the max coverage of all readGroup at that position		
 			}
 			hasAddPosition = false; 
 		}
-		//stream is slow but we only use it once		
+		// stream is slow but we only use it once		
 		return maxRgs.stream().mapToLong(val -> val).sum();
 	}
 	
@@ -85,26 +91,27 @@ public class PositionSummary {
 	 * @param floorValue
 	 * @return return the bin number which max readgroup coverage over the floorValue
 	 */
-	public int getBigBinNumber(final long floorValue){
-		if( hasAddPosition  || maxRgs.isEmpty())  
-			getMaxRgCoverage(); //caculate the maxRgs 		
+	public int getBigBinNumber(final long floorValue) {
+		if ( hasAddPosition  || maxRgs.isEmpty())  {
+			getMaxRgCoverage(); // caculate the maxRgs 
+		}		
 		return  (int) maxRgs.stream().mapToLong(val -> val).filter(val -> val > floorValue).count();
 	}
 		
 		
 	public long getTotalCount() {
 		long count = 0;	
-		for(String rg : readGroupIds) {
+		for (String rg : readGroupIds) {
 			count += getTotalCountByRg( rg );			
 		}		
 		return count;
 	}
 	
 	public long getTotalCountByRg(String rg) {
-		//get nature order
+		// get nature order
 		int order = Collections.binarySearch( readGroupIds, rg, null);  
 		long count = 0;		 
-		for (int i = 0, max =getBinNumber() ; i < max ; i++){ 							
+		for (int i = 0, max = getBinNumber() ; i < max ; i ++) {							
 			count += rgCoverages[order].get(i);
 		}
 		return count; 
@@ -116,9 +123,9 @@ public class PositionSummary {
 	 */	
 	public Map<Integer,  AtomicLong> getCoverageByRg( String rg) {
 		Map<Integer, AtomicLong> singleRgCoverage = new TreeMap<Integer, AtomicLong>();	
-		//get nature order
+		// get nature order
 		int order = Collections.binarySearch( readGroupIds, rg, null);  
-		for (int i = 0, max =getBinNumber() ; i < max ; i++){ 								
+		for (int i = 0, max = getBinNumber() ; i < max ; i ++) {								
 			singleRgCoverage.put( i, new AtomicLong( rgCoverages[order].get(i)));
 		}
 		return singleRgCoverage;
@@ -137,9 +144,14 @@ public class PositionSummary {
 		if (position > tempMax) {
 			for (;;) {
 				if (position > tempMax) {
-					if (max.compareAndSet(tempMax, position)) break;
-					else tempMax = max.get();
-				} else break;
+					if (max.compareAndSet(tempMax, position)) {
+						break;
+					} else {
+						tempMax = max.get();
+					}
+				} else {
+					break;
+				}
 			}
 		}
 		
@@ -148,18 +160,23 @@ public class PositionSummary {
 			int tempMin = min.get();
 			for (;;) {
 				if (tempMin > position) {
-					if (min.compareAndSet(tempMin, position)) break;
-					else tempMin = min.get();
-				} else break;
+					if (min.compareAndSet(tempMin, position)) {
+						break;
+					} else {
+						tempMin = min.get();
+					}
+				} else {
+					break;
+				}
 			}
 		}
-		//count for nominated rg on that position
+		// count for nominated rg on that position
 		// search for key rgid with natural ordering
 	    int order = Collections.binarySearch( readGroupIds, rgid, null);  
-		if(order < 0 )
-			throw new IllegalArgumentException("can't find readGroup Id on Bam header: @RG ID:"+ rgid);
-		
-		//last element is the total counts on that position
+		if (order < 0 ) {
+			throw new IllegalArgumentException("can't find readGroup Id on Bam header: @RG ID:" + rgid);
+		}
+		// last element is the total counts on that position
 		rgCoverages[ order  ].increment(position / BUCKET_SIZE);  
 				
 		hasAddPosition = true;
