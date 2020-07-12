@@ -6,7 +6,6 @@
  */
 package org.qcmg.motif;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.BlockingQueue;
@@ -14,12 +13,13 @@ import java.util.concurrent.BlockingQueue;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
-import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.motif.util.RegionCounter;
+
+import gnu.trove.map.hash.THashMap;
 
 class WorkerThread extends Thread {
 	private final BlockingQueue<Job> inputQueue;
-	private final Map<ChrPosition, RegionCounter> reducedResults = new HashMap<>();
+	private final Map<ChrPosition, RegionCounter> reducedResults = new THashMap<>();
 	private final QLogger logger;
 	private final Thread mainThread;
 

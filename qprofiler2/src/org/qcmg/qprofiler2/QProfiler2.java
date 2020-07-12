@@ -9,6 +9,7 @@
  * under the GNU GENERAL PUBLIC LICENSE Version 3, a copy of which is
  * included in this distribution as gplv3.txt.
  */
+
 package org.qcmg.qprofiler2;
 
 import java.io.File;
@@ -24,14 +25,14 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.qcmg.common.date.DateUtils;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
-import org.qcmg.common.messages.QMessage;
+import org.qcmg.common.messages.Messages;
 import org.qcmg.common.model.ProfileType;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.LoadReferencedClasses;
 import org.qcmg.common.util.XmlElementUtils;
-import org.qcmg.qprofiler2.bam.BamSummarizer2;
-import org.qcmg.qprofiler2.bam.BamSummarizerMT2;
+import org.qcmg.qprofiler2.bam.BamSummarizer;
+import org.qcmg.qprofiler2.bam.BamSummarizerMT;
 import org.qcmg.qprofiler2.cohort.CohortSummarizer;
 import org.qcmg.qprofiler2.fastq.FastqSummarizer;
 import org.qcmg.qprofiler2.fastq.FastqSummarizerMT;
@@ -40,16 +41,17 @@ import org.w3c.dom.Element;
 
 public class QProfiler2 {
 		
-	private static QLogger logger;
-	private static QMessage messages;
-	private final static int NO_OF_PROCESORS = Runtime.getRuntime().availableProcessors();
-	private final static String USER_DIR = System.getProperty("user.dir");
-	private final static String FILE_SEPERATOR = System.getProperty("file.separator");	
-	private static String[] cmdLineFiles;
-	private static String[] cmdLineIndexFiles;
-	private static String[] cmdLineFormats; //vcf mode	
-	private static ExecutorService exec;
-	private static String version;
+	private static final String msgResource = "org.qcmg.qprofiler2.messages";	
+	private static final int NO_OF_PROCESORS = Runtime.getRuntime().availableProcessors();
+	private static final String USER_DIR = System.getProperty("user.dir");
+	private static final String FILE_SEPERATOR = System.getProperty("file.separator");	
+	
+	private QLogger logger;	
+	private String[] cmdLineFiles;
+	private String[] cmdLineIndexFiles;
+	private String[] cmdLineFormats;  // vcf mode	
+	private ExecutorService exec;
+	private String version;
 	
 	private String outputFile = USER_DIR + FILE_SEPERATOR + "qprofiler.xml";
 	private int exitStatus;
@@ -73,7 +75,7 @@ public class QProfiler2 {
 		Element root = XmlElementUtils.createRootElement( "qProfiler", null);
 		
 		// Create new Summary object ready to hold our processing
-		QProfilerSummary2 sol = new QProfilerSummary2();
+		QProfilerSummary sol = new QProfilerSummary();
 		sol.setStartTime(DateUtils.getCurrentDateAsString());
 				
 		/*
@@ -101,48 +103,49 @@ public class QProfiler2 {
 		}		
 				
 		if ( ! sortedFiles.isEmpty()) {						
-			//do xmlSummary here
-			if(sortedFiles.containsKey(ProfileType.XML )){
+			// do xmlSummary here
+			if (sortedFiles.containsKey(ProfileType.XML )) {
 				List<String> xmls = new ArrayList<>();
 				sortedFiles.remove( ProfileType.XML ).forEach(p -> xmls.add(  p.getLeft()));
 				processXmlFiles( xmls, outputFile);
 			}
-			//after removed xml files				
-			if ( ! sortedFiles.isEmpty())			
+			// after removed xml files				
+			if ( ! sortedFiles.isEmpty()) {		
 				processFiles( sortedFiles, root );	
-			else
-				//no xml output required if no inputs except xml
+			} else {
+				// no xml output required if no inputs except xml
 				return exitStatus; 
+			}
 		}
 		
 		// if we have a failure, exit now rather than creating a skeleton output file
-		if (exitStatus == 1) return exitStatus;
+		if (exitStatus == 1) {
+			return exitStatus;
+		}
 		logger.info("generating output xml file: " + outputFile);
-		
-		
-		//xml reorganise
+				
+		// xml reorganise
 		sol.setFinishTime(DateUtils.getCurrentDateAsString());		
 		root.setAttribute( "startTime",  sol.getStartTime() );
 		root.setAttribute( "finishTime", sol.getFinishTime() );		
 		root.setAttribute( "user", System.getProperty("user.name") );
 		root.setAttribute( "operatingSystem", System.getProperty("os.name") );
 		root.setAttribute( "version", version );
-		
 		//Since the XML Schema defines "targetNamespace", we have to declare the namespace in any XML 
-		root.setAttribute( "xmlns", messages.getMessage("XSD_NAMESPACE") );
-		root.setAttribute( "validationSchema",  messages.getMessage("XSD_FILE"));		
-		
+		root.setAttribute( "xmlns", Messages.getMessage(msgResource, "XSD_NAMESPACE") );
+		root.setAttribute( "validationSchema",  Messages.getMessage(msgResource, "XSD_FILE"));				
 		XmlElementUtils.asXmlText(root, outputFile);		
 		 			
 		return exitStatus;
 	}
 	
-	private void processXmlFiles(List<String> files, String output)throws Exception{			 				
+	private void processXmlFiles(List<String> files, String output)throws Exception {			 				
 		final CohortSummarizer summarizer = new CohortSummarizer();
-		for (final String file :files) 
+		for (final String file :files) {
 			 summarizer.summarize(file) ;
-			 
-		summarizer.outputSumamry(  new File( output+".tsv" ));
+		}
+		
+		summarizer.outputSumamry(  new File( output + ".tsv" ));
 	}
 	
 	/**
@@ -151,7 +154,7 @@ public class QProfiler2 {
 	 * @param gffFiles names of GFF files to be processed
 	 * @return SummaryReport objects for each file processed
 	 */	
-	private void processFiles(Map<ProfileType, List<Pair<String, String>>> files, Element root) throws RuntimeException{		
+	private void processFiles(Map<ProfileType, List<Pair<String, String>>> files, Element root) throws RuntimeException {		
 		for (Map.Entry<ProfileType, List<Pair<String, String>>> entry : files.entrySet()) {			
 			for (final Pair<String, String> pair : entry.getValue()) {
 				logger.info("processing file " + pair.getLeft());
@@ -168,7 +171,7 @@ public class QProfiler2 {
 							} catch (Exception e) {
 								logger.error( "Exception caught whilst running summarizer for file: " + pair.getLeft(), e );
 								exitStatus = 1;
-								//throw new RuntimeException(e);
+								// throw new RuntimeException(e);
 							}
 							logger.debug("done with " + summarizer.getClass());
 						}
@@ -198,15 +201,15 @@ public class QProfiler2 {
 				if (noOfConsumerThreads > 0) {
 					summarizer = new FastqSummarizerMT(noOfConsumerThreads);
 				} else {
-					//summarizer = new FastqSummarizer(cmdLineInclude);
+					// summarizer = new FastqSummarizer(cmdLineInclude);
 					summarizer = new FastqSummarizer();					
 				}
 				break;
 			case BAM:
 				if (noOfConsumerThreads > 0) {
-					summarizer = new BamSummarizerMT2(noOfProducerThreads, noOfConsumerThreads, maxRecords,  validation,  isFullBamHeader);
+					summarizer = new BamSummarizerMT(noOfProducerThreads, noOfConsumerThreads, maxRecords,  validation,  isFullBamHeader);
 				} else {
-					summarizer = new BamSummarizer2( maxRecords, validation, isFullBamHeader);
+					summarizer = new BamSummarizer( maxRecords, validation, isFullBamHeader);
 				}
 				break;
 			case XML:
@@ -219,14 +222,14 @@ public class QProfiler2 {
 		return summarizer;
 	}
 
-	public static void main(String args[]) throws Exception{
+	public static void main(String args[]) throws Exception {
 		// loads all classes in referenced jars into memory to avoid nightly build sheninegans
 		LoadReferencedClasses.loadClasses(QProfiler2.class);
 		
 		QProfiler2 qp = new QProfiler2();
 		int exitStatus = qp.setup(args);
-		if (null != logger) {
-			logger.logFinalExecutionStats(exitStatus);
+		if (null != qp.logger) {
+			qp.logger.logFinalExecutionStats(exitStatus);
 		} else {
 			System.err.println("Exit status: " + exitStatus);
 		}
@@ -234,23 +237,22 @@ public class QProfiler2 {
 		System.exit(exitStatus);
 	}
 	
-	public int setup(String args[]) throws Exception{
+	public int setup(String args[]) throws Exception {
 		int returnStatus = 1;
-		Options2 options = new Options2(args);		
-		//assign messages to global level
-		messages = options.getMessage();
+		Options options = new Options(args);
+		String usage = Messages.getMessage(msgResource, "USAGE");
 		
 		if (options.hasHelpOption()) {
-			System.err.println(messages.getUsage()  );
+			System.err.println( usage );
 			options.displayHelp();
 			returnStatus = 0;
 		} else if (options.hasVersionOption()) {
-			System.err.println(messages.getVersionMessage());
+			System.err.println(options.getVersion());
 			returnStatus = 0;
 		} else if (options.getFileNames().length < 1) {
-			System.err.println(messages.getUsage() );
+			System.err.println(usage );
 		} else if ( ! options.hasLogOption()) {
-			System.err.println(messages.getUsage() );
+			System.err.println(usage );
 		} else {
 			// configure logging
 			logFile = options.getLog();
@@ -261,12 +263,12 @@ public class QProfiler2 {
 			// get list of file names
 			cmdLineFiles = options.getFileNames();
 			if (cmdLineFiles.length < 1) {
-				throw new Exception( messages.getMessage("INSUFFICIENT_ARGUMENTS"));
+				throw new Exception( Messages.getMessage(msgResource, "INSUFFICIENT_ARGUMENTS"));
 			} else {
 				// loop through supplied files - check they can be read
-				for (int i = 0 ; i < cmdLineFiles.length ; i++ ) {
+				for (int i = 0 ; i < cmdLineFiles.length ; i ++ ) {
 					if ( ! FileUtils.canFileBeRead(cmdLineFiles[i])) {
-						throw new Exception( messages.getMessage("INPUT_FILE_ERROR" , cmdLineFiles[i]));
+						throw new Exception( Messages.getMessage(msgResource, "INPUT_FILE_ERROR" , cmdLineFiles[i]));
 					}
 				}
 			}
@@ -277,21 +279,21 @@ public class QProfiler2 {
 				if (FileUtils.canFileBeWrittenTo(optionsOutputFile)) {
 					outputFile = optionsOutputFile;
 				} else {
-					throw new Exception( messages.getMessage("OUTPUT_FILE_WRITE_ERROR"));
+					throw new Exception( Messages.getMessage(msgResource, "OUTPUT_FILE_WRITE_ERROR"));
 				}
 			}
 			
 			cmdLineIndexFiles = options.getIndexFileNames();
 			validation = options.getValidation();
-			cmdLineFormats = options.getFormats(); // vcf mode 			
+			cmdLineFormats = options.getFormats(); //vcf mode 			
 			
 			// get no of threads
 			noOfConsumerThreads = options.getNoOfConsumerThreads();
 			noOfProducerThreads = Math.max(1, options.getNoOfProducerThreads());
 			if (noOfConsumerThreads > 0) {
-				logger.tool("Running in multi-threaded mode (BAM files only). No of available processors: " + NO_OF_PROCESORS + 
-						", no of requested consumer threads: " + noOfConsumerThreads + ", producer threads: " + noOfProducerThreads +
-						", no of md5 checksum thread: 1");
+				logger.tool("Running in multi-threaded mode (BAM files only). No of available processors: " + NO_OF_PROCESORS 
+						+ ", no of requested consumer threads: " + noOfConsumerThreads + ", producer threads: " + noOfProducerThreads 
+						+ ", no of md5 checksum thread: 1");
 			} else {
 				logger.tool("Running in single-threaded mode");
 			}

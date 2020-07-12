@@ -23,6 +23,7 @@ public class ChrPositionName extends ChrRangePosition implements ChrPosition {
 	
 	
 	private final String name;
+	private volatile int hashCode;
 
 	public ChrPositionName(String chromosome, int position, int endPosition, String name) {
 		super(chromosome, position, endPosition);
@@ -53,9 +54,14 @@ public class ChrPositionName extends ChrRangePosition implements ChrPosition {
 	 */
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int result = super.hashCode();
-		result = prime * result + ((name == null) ? 0 : name.hashCode());
+	    int result = hashCode;
+	    if (result == 0) {
+			result = 17;
+			final int prime = 31;
+			result = super.hashCode();
+			result = prime * result + ((name == null) ? 0 : name.hashCode());
+			hashCode = result;
+	    }
 		return result;
 	}
 	/* (non-Javadoc)

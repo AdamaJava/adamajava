@@ -13,33 +13,36 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Ignore;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.qcmg.qprofiler2.bam.BamSummarizer2;
-import org.qcmg.qprofiler2.bam.BamSummaryReport2;
+import org.qcmg.qprofiler2.bam.BamSummarizer;
+import org.qcmg.qprofiler2.bam.BamSummaryReport;
 
 public class BamSummarizerTest {
 		
-	@Rule
-	public  TemporaryFolder testFolder = new TemporaryFolder();
-	public File SAM_INPUT_FILE ,SAM_DODGY_INPUT_FILE ;
-	
+	@ClassRule
+	public  static TemporaryFolder testFolder = new TemporaryFolder();
 
-	@Before
-	public void setup() throws IOException {
-		SAM_INPUT_FILE = testFolder.newFile("testInputFile.sam");
-		SAM_DODGY_INPUT_FILE = testFolder.newFile("testInputFileDodgy.sam");
+	private static String samInput;
+	private static String samDodgy;
+
+	@BeforeClass
+	public static void setup() throws IOException {
+		
+		File SAM_INPUT_FILE = testFolder.newFile("testInputFile.sam");
+		samInput = SAM_INPUT_FILE.getAbsolutePath();
+		samDodgy = testFolder.newFile("testInputFileDodgy.sam").getAbsolutePath();
 		createTestSamFile(SAM_INPUT_FILE, createValidSamData());
 	}
 
 
 	@Test
 	public void testSummarize() throws Exception {
-		BamSummarizer2 bs = new BamSummarizer2();
-		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize(SAM_INPUT_FILE.getAbsolutePath());
+		BamSummarizer bs = new BamSummarizer();
+		BamSummaryReport sr = (BamSummaryReport) bs.summarize(samInput);
 		assertNotNull(sr);
 		assertEquals(5, sr.getRecordsInputed());		// should be 5 records
 		testSummaryReport(sr);
@@ -48,16 +51,16 @@ public class BamSummarizerTest {
 	@Test
 	public void testSummarizeMaxRecords() throws Exception {
 		for (int i = 1 ; i < 6 ; i++) {
-			BamSummarizer2 bs = new BamSummarizer2( i, null, false);
-			BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize( SAM_INPUT_FILE.getAbsolutePath());
+			BamSummarizer bs = new BamSummarizer(i, null, false);
+			BamSummaryReport sr = (BamSummaryReport) bs.summarize(samInput);
 
 			assertNotNull(sr);
 			assertEquals(i, sr.getRecordsInputed());
 		}
 		
 		// test with 0 value - should return everything
-		BamSummarizer2 bs = new BamSummarizer2( 0, null, true);
-		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize( SAM_INPUT_FILE.getAbsolutePath());
+		BamSummarizer bs = new BamSummarizer(0, null, true);
+		BamSummaryReport sr = (BamSummaryReport) bs.summarize(samInput);
 		
 		assertNotNull(sr);
 		assertEquals(5, sr.getRecordsInputed());
@@ -66,8 +69,8 @@ public class BamSummarizerTest {
 	@Test
 	public void testSummarizeWithExcludesAll() throws Exception {
 		// no excludes defined - should return everything
-		BamSummarizer2 bs = new BamSummarizer2( 0, null, false);
-		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize( SAM_INPUT_FILE.getAbsolutePath());
+		BamSummarizer bs = new BamSummarizer(0, null, false);
+		BamSummaryReport sr = (BamSummaryReport) bs.summarize(samInput);
 		
 		assertNotNull(sr);
 		assertEquals(5, sr.getRecordsInputed());
@@ -77,8 +80,8 @@ public class BamSummarizerTest {
 	@Test
 	public void testSummarizeWithExcludeCoverage() throws Exception {
 		// first check we are getting coverage info
-		BamSummarizer2 bs = new BamSummarizer2();
-		BamSummaryReport2 sr = (BamSummaryReport2) bs.summarize(SAM_INPUT_FILE.getAbsolutePath());
+		BamSummarizer bs = new BamSummarizer();
+		BamSummaryReport sr = (BamSummaryReport) bs.summarize(samInput);
 		
 		assertNotNull(sr);
 		assertTrue(sr.getRNamePosition().size() == 1);
@@ -86,7 +89,7 @@ public class BamSummarizerTest {
 	
 
 	
-	private void testSummaryReport(BamSummaryReport2 sr) {
+	private void testSummaryReport(BamSummaryReport sr) {
 		// position 1
 		assertEquals(0, sr.getSeqByCycle(1).count(1, 'A'));
 		assertEquals(2, sr.getSeqByCycle(1).count(1, 'T'));
@@ -102,9 +105,9 @@ public class BamSummarizerTest {
 	public void testSummarizeMissingData() throws Exception {
 		createDodgyDataFile(createSamDataMissingData());
 
-		BamSummarizer2 qs = new BamSummarizer2();
+		BamSummarizer qs = new BamSummarizer();
 		try {
-			qs.summarize(SAM_DODGY_INPUT_FILE.getAbsolutePath());
+			qs.summarize(samDodgy);
 			fail("Should have thrown an exception");
 		} catch (Exception e) {
 			assertTrue(e.getMessage().startsWith("Error parsing text SAM file. Not enough fields"));
@@ -117,9 +120,9 @@ public class BamSummarizerTest {
 	public void testSummarizeEmptyFile() throws Exception {
 		createDodgyDataFile(new ArrayList<String>());
 
-		BamSummarizer2 qs = new BamSummarizer2();
+		BamSummarizer qs = new BamSummarizer();
 		try {
-			qs.summarize(SAM_DODGY_INPUT_FILE.getAbsolutePath());
+			qs.summarize(samDodgy);
 		} catch (Exception e) {
 			fail("Should have not thrown an Exception");
 		}
@@ -137,9 +140,9 @@ public class BamSummarizerTest {
 		 * unfortunately, setting this flag means we miss other problems with the reads such as those described in this test
 		 */
 		
-		BamSummarizer2 qs = new BamSummarizer2();
+		BamSummarizer qs = new BamSummarizer();
 		try {
-			qs.summarize(SAM_DODGY_INPUT_FILE.getAbsolutePath());
+			qs.summarize(samDodgy);
 			fail("Should have thrown an Exception");
 		} catch (Exception e) {
 			assertTrue(e.getMessage().startsWith("Error parsing text SAM file. Not enough fields in tag"));
@@ -157,9 +160,9 @@ public class BamSummarizerTest {
 		 * unfortunately, setting this flag means we miss other problems with the reads such as those described in this test
 		 */
 		
-		BamSummarizer2 qs = new BamSummarizer2();
+		BamSummarizer qs = new BamSummarizer();
 		try {
-			qs.summarize(SAM_DODGY_INPUT_FILE.getAbsolutePath());
+			qs.summarize(samDodgy);
 			fail("Should have thrown an Exception");
 		} catch (Exception e) {
 			assertTrue(e.getMessage().startsWith("Error parsing text SAM file. Not enough fields"));
@@ -178,23 +181,23 @@ public class BamSummarizerTest {
 		 * unfortunately, setting this flag means we miss other problems with the reads such as those described in this test
 		 */
 
-		BamSummarizer2 qs = new BamSummarizer2();
+		BamSummarizer qs = new BamSummarizer();
 		try {
-			qs.summarize(SAM_DODGY_INPUT_FILE.getAbsolutePath());
+			qs.summarize(samDodgy);
 			fail("Should have thrown an Exception");
-		} catch (Exception e) { }
+		} catch (Exception e) {}
 
 		deleteDodgyDataFile();
 	}
 
 	private void deleteDodgyDataFile() {
-		File outputFile = new File(SAM_DODGY_INPUT_FILE.getAbsolutePath());
+		File outputFile = new File(samDodgy);
 		boolean deleted = outputFile.delete();
 		assertTrue(deleted);
 	}
 
 	private void createDodgyDataFile(List<String> dodgyData) {
-		createTestSamFile(SAM_DODGY_INPUT_FILE, dodgyData);
+		createTestSamFile(new File(samDodgy), dodgyData);
 	}
 	public static List<String> createValidSamData() {
 		List<String> data = new ArrayList<String>();
@@ -230,26 +233,26 @@ public class BamSummarizerTest {
 		return data;
 	}	
 	
-	//updated qprofiler won't parse same strand pairs, so change it
+	 // updated qprofiler won't parse same strand pairs, so change it
 	private static List<String> createSamDataBody() {
 		List<String> data = new ArrayList<String>();
-		//reverse first
+		 // reverse first
 		data.add("243_146_202	83	chr1	10075	6	13H37M	=	10167	142	" +
 				"ACCCTAACCCTAACCCTAACCNTAACCCTAACCCAAC	+3?GH##;9@D7HI5,:IIB\"!\"II##>II$$BIIC3	" +
 				"RG:Z:1959T	CS:Z:T11010020320310312010320010320013320012232201032202	CQ:Z:**:921$795*#5:;##):<5&'/=,,9(2*#453-'%(.2$6&39$+4'");
-		//reverse first
+		 // reverse first
 		data.add("642_1887_1862	83	chr1	10167	1	15H35M	=	10176	59	" +
 				"CCTAACNCTAACCTAACCCTAACCCTAACCCTAAC	.(01(\"!\"&####07=?$$246/##<>,($3HC3+	RG:Z:1959T	" +
 				"CS:Z:T11032031032301032201032311322310320133320110020210	CQ:Z:#)+90$*(%:##').',$,4*.####$#*##&,%$+$,&&)##$#'#$$)");
-		//forward second
+		 // forward second
 		data.add("970_1290_1068	163	chr1	10176	3	42M8H	=	10167	-59	" +
 				"AACCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTA	I&&HII%%IIII4CII=4?IIF0B((!!7F@+129G))I>.6	RG:Z:1959T	" +
 				"CS:Z:G202023020023010023010023000.2301002302002330000000	CQ:Z:@A&*?=9%;?:A-(<?8&/1@?():(9!,,;&&,'35)69&)./?11)&=");
-		//reverse first
+		 // reverse first
 		data.add("681_1482_392	83	chr1	10236	20	10H40M	=	10242	56	" +
 				"AACCCTAACCCTAAACCCTAAACCCTAACCCTAACCCTAA	IIIIIIIIEBIIIIFFIIIIIIIIIIIIIIIIIIIIIIII	RG:Z:1959T	" +
 				"CS:Z:T00320010320010320010032001003200103200100320000320	CQ:Z::<=>:<==8;<;<==9=9?;5>8:<+<;795.89>2;;8<:.78<)1=5;");
-		//reverse first
+		 // reverse first
 		data.add("1997_1173_1256	83	chr1	10242	100	22H28M	chr1	10236	0	" +
 				"AACCCTAAACCCTAAACCCTAACCCTAA	IIII27IICHIIIIHIIIHIIIII$$II	RG:Z:1959T	" +
 				"CS:Z:G10300010320010032001003000100320000032000020001220	CQ:Z:5?8$2;>;:458=27597:/5;7:2973:3/9;18;6/:5+4,/85-,'(");
@@ -305,17 +308,14 @@ public class BamSummarizerTest {
 	}
 	
 	public static void createTestSamFile(File file, List<String> data) {
-		PrintWriter out = null;
 		try {
-			out = new PrintWriter(new BufferedWriter(new FileWriter(file)));
+			PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(file)));
 			for (String line : data)  out.println(line);			 
 			out.close();
 		} catch (IOException e) {
-			Logger.getLogger("BamSummarizerTest").log( Level.WARNING,
+			Logger.getLogger("BamSummarizerTest").log(Level.WARNING,
 					"IOException caught whilst attempting to write to SAM test file: " + file, e);
-		} finally {
-			out.close();
-		}
+		} 
 	}
 
 }

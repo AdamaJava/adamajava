@@ -9,6 +9,7 @@
  * under the GNU GENERAL PUBLIC LICENSE Version 3, a copy of which is
  * included in this distribution as gplv3.txt.
  */
+
 package org.qcmg.qprofiler2;
 
 import java.util.concurrent.atomic.AtomicLong;
@@ -58,7 +59,7 @@ public abstract class SummaryReport {
 	}
 	
 	public void setFileMd5() {	
-		if(this.fileMd5 != null) {
+		if (this.fileMd5 != null) {
 			logger.warn("file md5 value is already caculated, please check why check again!!! ");
 			return; 
 		}
@@ -72,18 +73,21 @@ public abstract class SummaryReport {
 		Element element = parent.getOwnerDocument().createElement(reportType.getReportName() + "Report");
 		parent.appendChild(element);
 				
-		element.setAttribute( "uuid", QExec.createUUid() ); //add uuid 
+		element.setAttribute( "uuid", QExec.createUUid() );  // add uuid 
 		element.setAttribute("file", this.fileName);
 
-		//xml reorganise
+		// xml reorganise
 		element.setAttribute("startTime", this.startTime );
 		element.setAttribute("finishTime", this.finishTime );
 		
-		if(this.fileMd5 == null) { setFileMd5(); }
+		if (this.fileMd5 == null) {
+			setFileMd5(); 
+		}
+		
 		element.setAttribute("md5sum",this.fileMd5);
 				
-		//don't list records_parsed on xml for BAM type
-		if(!reportType.equals(ProfileType.BAM)) {
+		// don't list records_parsed on xml for BAM type
+		if (!reportType.equals(ProfileType.BAM)) {
 			element.setAttribute("records_parsed", String.format("%,d", getRecordsInputed()) );	
 		}
 				

@@ -24,20 +24,23 @@ import java.util.List;
 
 import org.w3c.dom.Element;
 
-public class QProfilerSummary2 {
+public class QProfilerSummary {
 	private final List<SummaryReport> reports = new ArrayList<SummaryReport>();
 	private String startTime;
 	private String finishTime;
 	
 	/**
 	 * Sets startTime to the supplied String (I know...)
+	 * 
 	 * @param startTime String containing the time the reports started processing
 	 */
 	public void setStartTime(String startTime) {
 		this.startTime = startTime;
 	}
+	
 	/**
 	 * Gets startTime.
+	 * 
 	 * @return execution start time for this report
 	 */
 	public String getStartTime() {
@@ -46,13 +49,16 @@ public class QProfilerSummary2 {
 
 	/**
 	 * Sets finishTime to the supplied String (I know...)
+	 * 
 	 * @param finishTime String containing the time the reports finished processing
 	 */
 	public void setFinishTime(String finishTime) {
 		this.finishTime = finishTime;
 	}
+	
 	/**
-	 * Gets the finishTime
+	 * Gets the finishTime.
+	 * 
 	 * @return execution finish time for this report
 	 */
 	public String getFinishTime() {
@@ -60,12 +66,14 @@ public class QProfilerSummary2 {
 	}
 
 	/**
-	 * Add SummaryReport objects to the reports collection
+	 * Add SummaryReport objects to the reports collection.
 	 * 
 	 * @param summaries List of SummaryReport objects to be added to the reports collection
 	 */
 	public void addSummaries( List<SummaryReport> summaries ) {
-		if (null != summaries) 	reports.addAll(summaries);
+		if (null != summaries) {
+			reports.addAll(summaries);
+		}
 	}
 	
 	/**
@@ -76,16 +84,9 @@ public class QProfilerSummary2 {
 	 */
 	public void toXml( Element parent ) {
 		for (SummaryReport report : reports) {
-			if ( null != report ) { 
+			if ( null != report ) {
 				report.toXml( parent );
 			}
 		}
 	}
-	
-	/**
-	 * Writes the contents of the SummaryReports contained in the reports collection to a file
-	 * @param parent Element parent node that all SummaryReports are added to
-	 * @param filename String representing the output file name 
-	 * @throws Exception thrown if problems occur creating the output file and transforming the xml into the file
-	 */
 }
