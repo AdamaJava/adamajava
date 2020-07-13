@@ -131,16 +131,21 @@ public class QProfiler2Test {
 	
 	@Test
 	public void schmeFileTest() throws IOException {
-		String xmlns = "xmlns=\"adamajava/qprofiler2/V2\"";
-		String schemaStr = "validationSchema=\"https://purl.org/adamajava/xsd/qprofiler2/V2/qprofiler2.xsd\"";
+		String nameSpace = "https://adamajava.org/xsd/qprofiler2/v2";
+		String xmlns = "xmlns=\"" + nameSpace + "\"";
+		
+		//xsi:schemaLocation="https://adamajava.org/xsd/qprofiler2/v2 qprofiler2.xsd" 
+		String schemaXsi = "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"";
+		String schemaStr = "xsi:schemaLocation=\"" + nameSpace + " qprofiler2.xsd\"";
 		String input = BAM_FILE.getAbsolutePath();		
 		File logFile = testFolder.newFile("qProfilerNode.log");
 		String[] args = {"-input",input, "-log", logFile.getAbsolutePath()};
 		try {		
 			// print full header		
 			new QProfiler2().setup( args );	
-			assertTrue( Files.lines(Paths.get("qprofiler.xml")).filter(s -> s.contains(schemaStr)).count()== 1);	
-			assertTrue( Files.lines(Paths.get("qprofiler.xml")).filter(s -> s.contains(xmlns)).count()== 1);					 
+			assertTrue( Files.lines(Paths.get("qprofiler.xml")).filter(s -> s.contains(schemaStr)).count()== 1);
+			assertTrue( Files.lines(Paths.get("qprofiler.xml")).filter(s -> s.contains(schemaXsi)).count()== 1);
+			assertTrue( Files.lines(Paths.get("qprofiler.xml")).filter(s -> s.contains(xmlns)).count()== 1);			 
 		} catch (Exception qpe) {
 			fail("a QProfilerException for args: " + Arrays.toString(args));			 
 		}

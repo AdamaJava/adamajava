@@ -126,16 +126,20 @@ public class QProfiler2 {
 				
 		// xml reorganise
 		sol.setFinishTime(DateUtils.getCurrentDateAsString());		
-		root.setAttribute( "startTime",  sol.getStartTime() );
-		root.setAttribute( "finishTime", sol.getFinishTime() );		
+		root.setAttribute( "startTime",  sol.getStartTime());
+		root.setAttribute( "finishTime", sol.getFinishTime());		
 		root.setAttribute( "user", System.getProperty("user.name") );
-		root.setAttribute( "operatingSystem", System.getProperty("os.name") );
+		root.setAttribute( "operatingSystem", System.getProperty("os.name"));
 		root.setAttribute( "version", version );
-		//Since the XML Schema defines "targetNamespace", we have to declare the namespace in any XML 
-		root.setAttribute( "xmlns", Messages.getMessage(msgResource, "XSD_NAMESPACE") );
-		root.setAttribute( "validationSchema",  Messages.getMessage(msgResource, "XSD_FILE"));				
-		XmlElementUtils.asXmlText(root, outputFile);		
-		 			
+		
+		//declare the default namespace  
+		root.setAttribute( "xmlns", Messages.getMessage(msgResource, "XSD_NAMESPACE"));
+		
+		//set schema location
+		root.setAttribute( "xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");		
+		root.setAttribute( "xsi:schemaLocation",  Messages.getMessage(msgResource, "XSD_NAMESPACE")  + " " + Messages.getMessage(msgResource, "XSD_FILE"));	
+		
+		XmlElementUtils.asXmlText(root, outputFile);				 			
 		return exitStatus;
 	}
 	
