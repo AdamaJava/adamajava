@@ -14,8 +14,7 @@ public class Executor {
 	private final StreamConsumer errorStreamConsumer;
 	private final int errCode;
 
-	public Executor(String arguments, String qualifiedMainClassName)
-			throws IOException, InterruptedException {
+	public Executor(String arguments, String qualifiedMainClassName) throws IOException, InterruptedException {
 		String classpath = System.getProperty("java.class.path");
 		String javaCommand = "java -classpath " + classpath + " "
 				+ qualifiedMainClassName + " ";
@@ -31,8 +30,7 @@ public class Executor {
 		errCode = process.waitFor();
 	}
 	
-	public Executor(String [] arguments, String qualifiedMainClassName)
-	throws Exception {
+	public Executor(String [] arguments, String qualifiedMainClassName) throws Exception {
 		String classpath = System.getProperty("java.class.path");
 		String javaCommand = "java -classpath " + classpath + " "
 		+ qualifiedMainClassName + " ";
@@ -45,8 +43,7 @@ public class Executor {
 		errCode = process.waitFor();
 	}
 
-	public Executor(String jvmArgs, String arguments, String qualifiedMainClassName)
-			throws Exception {
+	public Executor(String jvmArgs, String arguments, String qualifiedMainClassName) throws Exception {
 		String classpath = System.getProperty("java.class.path");
 		String javaCommand = "java -classpath " + classpath + " " + jvmArgs + " "
 				+ qualifiedMainClassName + " ";

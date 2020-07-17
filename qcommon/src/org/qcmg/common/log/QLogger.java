@@ -289,11 +289,12 @@ public class QLogger {
 
 	public static String reconstructCommandLine(final String programName,
 			final String[] args) {
-		String result = programName;
+	 
+		StringBuffer result = new StringBuffer();
 		for (final String arg : args) {
-			result += " " + arg;
+			result.append(arg);
 		}
-		return result;
+		return result.toString();
 	}
 
 	// ///////////////////////////////////////

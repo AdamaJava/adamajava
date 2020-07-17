@@ -192,18 +192,21 @@ public class SnpUtils {
 	public static int getNNumberFromAnnotation(String annotation, String prefix) {
 		
 		int startIndex = annotation.indexOf(prefix) + prefix.length();
-		String numberString = "";
+		//String numberString = "";
+		StringBuffer numberString = new StringBuffer();
 		for (int i = startIndex, len = annotation.length() ; i < len ; i++) {
 			char c = annotation.charAt(i);
-			if (Character.isDigit(c))
-				numberString += c;
-			else break;
+			if (Character.isDigit(c)) {
+				numberString.append(c);
+			} else {
+				break;
+			}
 		}
 		
 		// deal with empty string case
 		if (numberString.length() == 0) throw new IllegalArgumentException("Invalid annotation passed to getNNumberFromAnnotation");
 		
-		return Integer.parseInt(numberString);
+		return Integer.parseInt(numberString.toString());
 	}
 	
 	/**
