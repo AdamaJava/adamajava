@@ -25,7 +25,7 @@ public class IntLongPairsUtils {
 			
 			int lastStop = 0;
 			for (IntLongPair ilp : pairsArray) {
-				int start = NumberUtils.getShortFromLong(ilp.getLong(), SHORT_OFFSET_IN_LONG);
+				int start = getStartPositionInSequence(ilp, seqLength);
 				int length = NumberUtils.getPartOfPackedInt(ilp.getInt(), true) + (tileLength - 1);
 				int diff = 0;
 				if (start < lastStop) {
@@ -49,7 +49,7 @@ public class IntLongPairsUtils {
 		 */
 		Arrays.sort(pairsArray, (Comparator<? super IntLongPair>) (IntLongPair o1, IntLongPair o2) -> {
 				/*
-				 * start positioms in sequence are always reported on the forward strand, and so no need to do any reverse strand magic (I think)
+				 * start positions in sequence are always reported on the forward strand, and so no need to do any reverse strand magic (I think)
 				*/
 //				return NumberUtils.getShortFromLong(o1.getLong(), SHORT_OFFSET_IN_LONG) -  NumberUtils.getShortFromLong(o2.getLong(), SHORT_OFFSET_IN_LONG);
 				
@@ -75,6 +75,21 @@ public class IntLongPairsUtils {
 //				return olInt - o2Int;
 //				 (NumberUtils.isBitSet(o1.getLong(), REVERSE_COMPLEMENT_BIT) ? seqLength - NumberUtils.getShortFromLong(o1.getLong(), SHORT_OFFSET_IN_LONG) - (NumberUtils.getPartOfPackedInt(o1.getInt(), true) + tileLength) - 1 : NumberUtils.getShortFromLong(o1.getLong(), SHORT_OFFSET_IN_LONG)) 
 //						- (NumberUtils.isBitSet(o2.getLong(), REVERSE_COMPLEMENT_BIT) ? seqLength - NumberUtils.getShortFromLong(o2.getLong(), SHORT_OFFSET_IN_LONG) - (NumberUtils.getPartOfPackedInt(o1.getInt(), true) + tileLength) - 1 : NumberUtils.getShortFromLong(o2.getLong(), SHORT_OFFSET_IN_LONG))
+		});
+		return pairsArray;
+	}
+	
+	public static IntLongPair[] sortIntLongPairsByPositionInSequence(IntLongPairs pairs) {
+		
+		IntLongPair[] pairsArray = pairs.getPairs();
+		/*
+		 * sort pairs by position in sequence
+		 */
+		Arrays.sort(pairsArray, (Comparator<? super IntLongPair>) (IntLongPair o1, IntLongPair o2) -> {
+			/*
+			 * start positioms in sequence are always reported on the forward strand, and so no need to do any reverse strand magic (I think)
+			 */
+				return NumberUtils.getShortFromLong(o1.getLong(), SHORT_OFFSET_IN_LONG) -  NumberUtils.getShortFromLong(o2.getLong(), SHORT_OFFSET_IN_LONG);
 		});
 		return pairsArray;
 	}

@@ -315,6 +315,45 @@ public class NumberUtils {
 		return new int[]{0,0};
 	}
 	
+	public static int[] getGapCounts(List<int[]> startPositionsAndLengths) {
+		if (null == startPositionsAndLengths || startPositionsAndLengths.size() == 1) {
+			return new int[]{0,0,0,0};
+		}
+		
+		int firstGapCount = 0;
+		int firstGapSizes = 0;
+		int firstLastGapEnd = 0;
+		int secondGapCount = 0;
+		int secondGapSizes = 0;
+		int secondLastGapEnd = 0;
+		for (int[] startPositionAndLength : startPositionsAndLengths) {
+			int firstStart = startPositionAndLength[0];
+			int secondStart = startPositionAndLength[2];
+			if (firstStart - firstLastGapEnd >= 1) {
+				firstGapCount++;
+				firstGapSizes += firstStart - firstLastGapEnd;
+			}
+			if (secondStart - secondLastGapEnd >= 1) {
+				secondGapCount++;
+				secondGapSizes += secondStart - secondLastGapEnd;
+			}
+			
+			firstLastGapEnd = firstStart + startPositionAndLength[1];
+			secondLastGapEnd = secondStart + startPositionAndLength[3];
+		}
+		
+		return new int[]{firstGapCount, firstGapSizes, secondGapCount, secondGapSizes};
+	}
+	
+	/**
+	 * @deprecated DONT USE THIS - MASSIVE BUG
+	 * @param positions
+	 * @param query
+	 * @param swString
+	 * @param target
+	 * @param offset
+	 * @return
+	 */
 	public static int[] getActualStartPositions(List<int[]> positions, boolean query, String swString, String target, int offset) {
 		int [] starts = new int[positions.size()];
 		int i = 0;

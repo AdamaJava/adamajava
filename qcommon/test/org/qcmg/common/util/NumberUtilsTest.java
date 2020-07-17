@@ -44,6 +44,8 @@ public class NumberUtilsTest {
 		assertEquals(51, NumberUtils.getPartOfPackedInt(3342336, true));
 		assertEquals(0, NumberUtils.getPartOfPackedInt(3342336, false));
 		assertEquals(35, NumberUtils.getPartOfPackedInt(2293760, true));
+		assertEquals(9, NumberUtils.getPartOfPackedInt(589824, true));
+		assertEquals(0, NumberUtils.getPartOfPackedInt(589824, false));
 		//3342336={4398963712090}
 	}
 	
@@ -217,8 +219,41 @@ public class NumberUtilsTest {
 		target = "CTTGCTAGGAGGGTAGGGAGTGGATTAAAAGATTGGACCAAAAAACTCATTTTACCCGGGG";
 		startPositions = NumberUtils.getAllStartPositions(swDiffs);
 		assertArrayEquals(new int[]{5, 39}, NumberUtils.getActualStartPositions(startPositions, true, swString, target, 0));
+	}
+	
+	@Test
+	public void getActualStarts2() {
+		String [] swDiffs = new String[] {  "TATAGA-GA--CAGCTGA---AA--------GAGCTGACGT-CTGGG-AC",
+											"|||| | ||  || ||.|   ||        |||  || || ||||| ||",
+											"TATA-ATGATTCA-CTCATTTAATATTTATTGAG--GA-GTGCTGGGTAC"};
+		List<int[]> startPositions = NumberUtils.getAllStartPositions(swDiffs);
+		assertEquals(11, startPositions.size());
+		assertArrayEquals(new int[]{0, 4,0,4}, startPositions.get(0));
+		assertArrayEquals(new int[]{4, 1,5,1}, startPositions.get(1));
+		assertArrayEquals(new int[]{6, 2,6,2}, startPositions.get(2));
+		assertArrayEquals(new int[]{10, 2,8,2}, startPositions.get(3));
+		assertArrayEquals(new int[]{12, 4,11,4}, startPositions.get(4));
+		assertArrayEquals(new int[]{19, 2,15,2}, startPositions.get(5));
+		assertArrayEquals(new int[]{29, 3,17,3}, startPositions.get(6));
 		
+		swDiffs = new String[] {  "TGATTCACTCATTTAATATTTATTGAGGAGTGCTGGGTACTAGGCCATTAGAAGAACAAACAACAACAACATAGGCCTGGACCTTGCACTTGCAGAGTTCACAGGCTAGAGAGGCACACAAGTTAAATATAGA-GA--CAGCTGA---AA--------GAGCTGACGT-CTGGG-AC",
+				"||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||| | ||  || ||.|   ||        |||  || || ||||| ||",
+				"TGATTCACTCATTTAATATTTATTGAGGAGTGCTGGGTACTAGGCCATTAGAAGAACAAACAACAACAACATAGGCCTGGACCTTGCACTTGCAGAGTTCACAGGCTAGAGAGGCACACAAGTTAAATATA-ATGATTCA-CTCATTTAATATTTATTGAG--GA-GTGCTGGGTAC"};
 		
+		startPositions = NumberUtils.getAllStartPositions(swDiffs);
+		assertEquals(11, startPositions.size());
+		assertArrayEquals(new int[]{0, 131,0,131}, startPositions.get(0));
+		assertArrayEquals(new int[]{131, 1,132,1}, startPositions.get(1));
+		assertArrayEquals(new int[]{133, 2,133,2}, startPositions.get(2));
+		assertArrayEquals(new int[]{137, 2,135,2}, startPositions.get(3));
+		assertArrayEquals(new int[]{139, 4,138,4}, startPositions.get(4));
+		assertArrayEquals(new int[]{146, 2,142,2}, startPositions.get(5));
+		assertArrayEquals(new int[]{156, 3,144,3}, startPositions.get(6));
+		
+		String swString = swDiffs[2].replaceAll("-", "");
+		String target = "ATGATTCACTCATTTAATATTTATTGAGGAGTGCTGGGTACTAGGCCATTAGAAGAACAAACAACAACAACATAGGCCTGGACCTTGCACTTGCAGAGTTCACAGGCTAGAGAGGCACACAAGTTAAATATAATGATTCACTCATTTAATATTTATTGAGGAGTGCTGGGTACTA";
+		int[] actualStartPositions = NumberUtils.getActualStartPositions(startPositions, true, swString, target, 0);
+		assertArrayEquals(new int[]{1, 131,133,137,139,146,156, 157, 158, 1259, 16}, actualStartPositions);
 	}
 	
 	@Test
@@ -256,6 +291,35 @@ public class NumberUtilsTest {
 		assertArrayEquals(new int[]{0,0}, NumberUtils.getBlockCountAndCount("ABCD---EFGH", ' '));
 		assertArrayEquals(new int[]{2,6}, NumberUtils.getBlockCountAndCount("ABCD---EFGH---", '-'));
 		assertArrayEquals(new int[]{2,6}, NumberUtils.getBlockCountAndCount("ABCD---EFGH---XXX", '-'));
+		assertArrayEquals(new int[]{4,5}, NumberUtils.getBlockCountAndCount("TATA-ATGATTCA-CTCATTTAATATTTATTGAG--GA-GTGCTGGGTAC", '-'));
+		assertArrayEquals(new int[]{6,16}, NumberUtils.getBlockCountAndCount("TATAGA-GA--CAGCTGA---AA--------GAGCTGACGT-CTGGG-AC", '-'));
+	}
+	@Test
+	public void getGapCountAndSizes() {
+		assertArrayEquals(new int[]{0,0,0,0}, NumberUtils.getGapCounts(null));
+		assertArrayEquals(new int[]{0,0,0,0}, NumberUtils.getGapCounts(Arrays.asList(new int[]{0,100,0,100})));
+		assertArrayEquals(new int[]{1,50,1,50}, NumberUtils.getGapCounts(Arrays.asList(new int[]{0,100,0,100}, new int[]{150,100,150,100})));
+		assertArrayEquals(new int[]{2,150,2,150}, NumberUtils.getGapCounts(Arrays.asList(new int[]{0,100,0,100}, new int[]{150,100,150,100}, new int[]{350,100,350,100})));
+	}
+	@Test
+	public void getGapCounts() {
+		String [] swDiffs = new String[] {  "TATAGA-GA--CAGCTGA---AA--------GAGCTGACGT-CTGGG-AC",
+				"|||| | ||  || ||.|   ||        |||  || || ||||| ||",
+				"TATA-ATGATTCA-CTCATTTAATATTTATTGAG--GA-GTGCTGGGTAC"};
+		List<int[]> startPositions = NumberUtils.getAllStartPositions(swDiffs);
+		assertEquals(11, startPositions.size());
+		assertArrayEquals(new int[]{4,5,6,16}, NumberUtils.getGapCounts(startPositions));
+		
+		
+		
+		
+//		assertArrayEquals(new int[]{0, 4,0,4}, startPositions.get(0));
+//		assertArrayEquals(new int[]{4, 1,5,1}, startPositions.get(1));
+//		assertArrayEquals(new int[]{6, 2,6,2}, startPositions.get(2));
+//		assertArrayEquals(new int[]{10, 2,8,2}, startPositions.get(3));
+//		assertArrayEquals(new int[]{12, 4,11,4}, startPositions.get(4));
+//		assertArrayEquals(new int[]{19, 2,15,2}, startPositions.get(5));
+//		assertArrayEquals(new int[]{29, 3,17,3}, startPositions.get(6));
 	}
 	
 	@Test

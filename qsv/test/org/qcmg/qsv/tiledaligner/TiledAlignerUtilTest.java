@@ -167,9 +167,13 @@ public class TiledAlignerUtilTest {
 		
 		Map<Integer, TLongList> map2 = TiledAlignerUtil.getTiles(map, "CATGTATCCAAGAACTTAAGAGTATAATAATAATAATA", 13, false);
 		assertEquals(false, map2.isEmpty());
-		assertArrayEquals(new long[] {1000}, map2.get(NumberUtils.getTileCount(13, 6)).toArray());
+		/*
+		 * need 1000 plus 6 << 40
+		 */
+		assertArrayEquals(new long[] {NumberUtils.addShortToLong(1000l, (short)6, 40)}, map2.get(NumberUtils.getTileCount(13, 0)).toArray());
+//		assertArrayEquals(new long[] {1000}, map2.get(NumberUtils.getTileCount(13, 6)).toArray());
 //		assertArrayEquals(new long[] {1000}, map2.get(19).toArray());
-		assertArrayEquals(new long[] {100, 2774027828l}, map2.get(NumberUtils.getTileCount(7, 6)).toArray());
+		assertArrayEquals(new long[] {100, 2774027828l}, map2.get(NumberUtils.getTileCount(6, 0)).toArray());
 //		assertArrayEquals(new long[] {100, 2774027828l}, map2.get(NumberUtils.getTileCount(6, 6)).toArray());
 	}
 	
@@ -750,7 +754,10 @@ start positions for tile: GCGGTGGCAGGCA", new TLongArrayList(new long[] {1893648
 		assertEquals("ACGT", SequenceUtil.reverseComplement("ACGT"));
 		assertEquals("ACGT", SequenceUtil.reverseComplement("ACGT"));
 		assertEquals("AAAANACAAAAAA", SequenceUtil.reverseComplement("TTTTTTGTNTTTT"));
+		assertEquals("CCAGCTTCTGTAGAAGTTTCTACAGAAACTTAGCAGTTTCTGTAGAAGTTTCTACAG", SequenceUtil.reverseComplement("CTGTAGAAACTTCTACAGAAACTGCTAAGTTTCTGTAGAAACTTCTACAGAAGCTGG"));
 		assertEquals("CTTGCTAGGAGGGTAGGGAGTGGATTAAAAGATTGGACCAAAAAACTCATTTTACCCGGGG", SequenceUtil.reverseComplement("CCCCGGGTAAAATGAGTTTTTTGGTCCAATCTTTTAATCCACTCCCTACCCTCCTAGCAAG"));
+		assertEquals("CCCCGGGTAAAATGAGTTTTTTATCCACTCCCTACCCTCCTAGCAAG", SequenceUtil.reverseComplement("CTTGCTAGGAGGGTAGGGAGTGGATAAAAAACTCATTTTACCCGGGG"));
+		assertEquals("TAGTACCCAGCACTCCTCAATAAATATTAAATGAGTGAATCATTATATTTAACTTGTGTGCCTCTCTAGCCTGTGAACTCTGCAAGTGCAAGGTCCAGGCCTATGTTGTTGTTGTTTGTTCTTCTAATGGCCTAGTACCCAGCACTCCTCAATAAATATTAAATGAGTGAATCAT", SequenceUtil.reverseComplement("ATGATTCACTCATTTAATATTTATTGAGGAGTGCTGGGTACTAGGCCATTAGAAGAACAAACAACAACAACATAGGCCTGGACCTTGCACTTGCAGAGTTCACAGGCTAGAGAGGCACACAAGTTAAATATAATGATTCACTCATTTAATATTTATTGAGGAGTGCTGGGTACTA"));
 	}
 	
 	@Test
@@ -814,9 +821,10 @@ start positions for tile: AATAATAATAATA", new TLongArrayList(new long[] {-922337
 		map.put("AATAATAATAATA", new TLongArrayList(new long[] {-9223372036854727213l}));
 		
 		Map<Integer, TLongList> map2 = TiledAlignerUtil.getTiles(map, "CATGTATCCAAGAACTTAAGAGTATAATAATAATAATA", 13, false);
-		assertArrayEquals(new long[] {2563614047l}, map2.get(15).toArray());
-		assertArrayEquals(new long[] {2774027828l}, map2.get(14).toArray());
-		assertArrayEquals(new long[] {181950606, 279169993, 299667247, 362134554, 386712950, 405883566, 638265975, 672501816, 723110115, 792300124, 807853514, 856030216, 914686592, 949793932, 1204759938, 1270950331, 1340746802, 1360010668, 1416778500, 1528475515, 1659965110, 1682709834, 1857480323, 2187777955l, 2339477441l, 2503261869l, 2568286387l, 2627328338l, 2865046880l, 2903924218l, 2956755988l, 3100356128l}, map2.get(13).toArray());
+		assertArrayEquals(new long[] {2563614047l}, map2.get(NumberUtils.getTileCount(9, 0)).toArray());
+//		assertArrayEquals(new long[] {2563614047l}, map2.get(15).toArray());
+//		assertArrayEquals(new long[] {2774027828l}, map2.get(14).toArray());
+//		assertArrayEquals(new long[] {181950606, 279169993, 299667247, 362134554, 386712950, 405883566, 638265975, 672501816, 723110115, 792300124, 807853514, 856030216, 914686592, 949793932, 1204759938, 1270950331, 1340746802, 1360010668, 1416778500, 1528475515, 1659965110, 1682709834, 1857480323, 2187777955l, 2339477441l, 2503261869l, 2568286387l, 2627328338l, 2865046880l, 2903924218l, 2956755988l, 3100356128l}, map2.get(13).toArray());
 //		assertArrayEquals(new long[] {181950606, 279169993, 299667247, 362134554, 386712950, 405883566, 638265975, 672501816, 723110115, 792300124, 807853514, 856030216, 914686592, 949793932, 1204759938, 1270950331, 1340746802, 1360010668, 1416778500, 1528475515, 1659965110, 1682709834, 1857480323, 2187777955l, 2339477441l, 2503261869l, 2568286387l, 2627328338l, 2865046880l, 2903924218l, 2956755988l, 3100356128l, 2774027829l, 2563614049l}, map2.get(13).toArray());
 		
 		
@@ -825,9 +833,9 @@ start positions for tile: AATAATAATAATA", new TLongArrayList(new long[] {-922337
 		 */
 		TARecord taRec = new TARecord("ATTAACTAATGGGCAAAATAACCAGTCAGCATCATAATG", map2);
 		int [] maxTileCounts = taRec.getTopNCounts(2, 3);
-		assertArrayEquals(new int[] {14,15}, maxTileCounts);
+		assertArrayEquals(new int[] {458752,589824}, maxTileCounts);
 		maxTileCounts = taRec.getTopNCounts(3, 3);
-		assertArrayEquals(new int[] {13, 14,15}, maxTileCounts);
+		assertArrayEquals(new int[] {393216, 458752,589824}, maxTileCounts);
 		
 		
 		TLongList bestStartPositions = taRec.getStartPositions(12, true, 10);
@@ -925,8 +933,59 @@ start positions for tile: AATAATAATAATA", new TLongArrayList(new long[] {-922337
 		 assertEquals(true, counts.containsKey(thirtyFive));
 		 assertEquals(true, counts.containsKey(thirtyThree));
 		 assertArrayEquals(new long[]{468349696}, counts.get(thirtyFive).toArray());
-		 assertArrayEquals(new long[]{468354005}, counts.get(thirtyThree).toArray());
+		 /*
+		  * the position in the sequence is now added to the long position
+		  * and so 468354005 becomes 468354005 + 43 (position of start position in sequence) << 40
+		  */
+		 assertArrayEquals(new long[]{NumberUtils.addShortToLong(468354005l, (short)43, 40)}, counts.get(thirtyThree).toArray());
 	}
+	
+	@Test
+	public void convertLongDoubleArrayToMap3() {
+		/*
+		 * This test has ome commonly occurring tiles in the middle
+		 * How should this be handled?
+		 */
+		long [][] array = new long[33][];
+		array[0] = new long[] {-1};
+		array[1] = new long[] {-1};
+		array[2] = new long[] {-1};
+		array[3] = new long[] {1884596169};
+		array[4] = new long[] {1884596170};
+		array[5] = new long[] {1884596171};
+		array[6] = new long[] {1884596172};
+		array[7] = new long[] {1884596173};
+		array[8] = new long[] {1884596174};
+		array[9] = new long[] {1884596175};
+		array[10] = new long[] {1884596176};
+		array[11] = new long[] {1884596177};
+		array[12] = new long[] {1884596178};
+		array[13] = new long[] {1884596179};
+		array[14] = new long[] {1884596180};
+		array[15] = new long[] {1884596181};
+		array[16] = new long[] {-1};
+		array[17] = new long[] {-1};
+		array[18] = new long[] {-1};
+		array[19] = new long[] {-1};
+		array[20] = new long[] {1884596186};
+		array[21] = new long[] {1884596187};
+		array[22] = new long[] {1884596188};
+		array[23] = new long[] {1884596189};
+		array[24] = new long[] {1884596190};
+		array[25] = new long[] {1884596191};
+		array[26] = new long[] {1884596192};
+		array[27] = new long[] {1884596193};
+		array[28] = new long[] {1884596194};
+		array[29] = new long[] {1884596195};
+		array[30] = new long[] {1884596196};
+		array[31] = new long[] {1884596197};
+		array[32] = new long[] {1884596198};
+		assertEquals(NumberUtils.getTileCount(30, 0), TiledAlignerUtil.nonContinuousCount(array, 1884596169, 4));
+	    Map<Integer, TLongList> counts = TiledAlignerUtil.convertLongDoubleArrayToMap(array);
+		assertEquals(1, counts.size());
+		assertEquals(true, counts.containsKey(NumberUtils.getTileCount(30, 3)));
+	}
+	
 	
 	@Test
 	public void convertLongDoubleArrayToMap() {
@@ -1288,6 +1347,7 @@ start positions for tile: AATAATAATAATA", new TLongArrayList(new long[] {-922337
 		assertEquals("1", blatDetails[5]); // q gap bases
 		assertEquals("0", blatDetails[6]); // t gap counts
 		assertEquals("0", blatDetails[7]); // t gap bases
+		assertEquals("+", blatDetails[8]); // strand
 		assertEquals("66", blatDetails[10]); // query size
 		assertEquals("1", blatDetails[11]); // query start
 		assertEquals("65", blatDetails[12]); // query end
@@ -1295,6 +1355,23 @@ start positions for tile: AATAATAATAATA", new TLongArrayList(new long[] {-922337
 		assertEquals("2", blatDetails[17]); // block size
 		assertEquals("44,20", blatDetails[18]); // block lengths
 		assertEquals("1,45", blatDetails[19]); // Q starts
+		
+//		blatDetails = TiledAlignerUtil.getDetailsForBLATRecordNew(bufferedCP, swDiffs, "GL000219.1_165002_true_+", seq, true, bufferedRef);
+//		assertEquals(21, blatDetails.length);
+//		assertEquals("57", blatDetails[0]); // matches
+//		assertEquals("7", blatDetails[1]); // mis-matches
+//		assertEquals("1", blatDetails[4]); // q gap counts
+//		assertEquals("1", blatDetails[5]); // q gap bases
+//		assertEquals("0", blatDetails[6]); // t gap counts
+//		assertEquals("0", blatDetails[7]); // t gap bases
+//		assertEquals("+", blatDetails[8]); // strand
+//		assertEquals("66", blatDetails[10]); // query size
+//		assertEquals("1", blatDetails[11]); // query start
+//		assertEquals("65", blatDetails[12]); // query end
+//		assertEquals("" + (seq.length() - 1), blatDetails[12]); // query end
+//		assertEquals("2", blatDetails[17]); // block size
+//		assertEquals("44,20", blatDetails[18]); // block lengths
+//		assertEquals("1,45", blatDetails[19]); // Q starts
 	}
 	
 	@Test
@@ -1317,6 +1394,7 @@ swDiffs: GCCTATTGCAAGACCTGGAAGAAAGAAAAGTAACGATTCTTCTCGGCCAGAGAGAGAAGCATGACCGGTTT
 		assertEquals("0", blatDetails[5]); // q gap bases
 		assertEquals("0", blatDetails[6]); // t gap counts
 		assertEquals("0", blatDetails[7]); // t gap bases
+		assertEquals("+", blatDetails[8]); // strand
 		assertEquals("" + seq.length(), blatDetails[10]); // query size
 		assertEquals("0", blatDetails[11]); // query start
 		assertEquals("" + seq.length(), blatDetails[12]); // query end
@@ -1324,6 +1402,23 @@ swDiffs: GCCTATTGCAAGACCTGGAAGAAAGAAAAGTAACGATTCTTCTCGGCCAGAGAGAGAAGCATGACCGGTTT
 		assertEquals("1", blatDetails[17]); // block size
 		assertEquals("" + seq.length(), blatDetails[18]); // block lengths
 		assertEquals("0", blatDetails[19]); // Q starts
+		
+//		blatDetails = TiledAlignerUtil.getDetailsForBLATRecordNew(bufferedCP, swDiffs, "GL000219.1_165002_true_+", seq, true, bufferedRef);
+//		assertEquals(21, blatDetails.length);
+//		assertEquals("245", blatDetails[0]); // matches
+//		assertEquals("8", blatDetails[1]); // mis-matches
+//		assertEquals("0", blatDetails[4]); // q gap counts
+//		assertEquals("0", blatDetails[5]); // q gap bases
+//		assertEquals("0", blatDetails[6]); // t gap counts
+//		assertEquals("0", blatDetails[7]); // t gap bases
+//		assertEquals("+", blatDetails[8]); // strand
+//		assertEquals("" + seq.length(), blatDetails[10]); // query size
+//		assertEquals("0", blatDetails[11]); // query start
+//		assertEquals("" + seq.length(), blatDetails[12]); // query end
+//		assertEquals("1", blatDetails[17]); // block size
+//		assertEquals("1", blatDetails[17]); // block size
+//		assertEquals("" + seq.length(), blatDetails[18]); // block lengths
+//		assertEquals("0", blatDetails[19]); // Q starts
 	}
 	
 	@Test
@@ -1346,12 +1441,29 @@ swDiffs: TATATATATATATATATATATACACAACCATTTTCCACATAGGCAGATTTATTTGCTGAAGTTACTTTGCA
 		assertEquals("62", blatDetails[5]); // q gap bases
 		assertEquals("0", blatDetails[6]); // t gap counts
 		assertEquals("0", blatDetails[7]); // t gap bases
+		assertEquals("+", blatDetails[8]); // strand
 		assertEquals("" + seq.length(), blatDetails[10]); // query size
 		assertEquals("0", blatDetails[11]); // query start
 		assertEquals("" + seq.length(), blatDetails[12]); // query end
 		assertEquals("4", blatDetails[17]); // block size
 		assertEquals("109,12,33,142", blatDetails[18]); // block lengths
 		assertEquals("0,109,121,154", blatDetails[19]); // Q starts
+		
+//		blatDetails = TiledAlignerUtil.getDetailsForBLATRecordNew(bufferedCP, swDiffs, "GL000219.1_165002_true_+", seq, true, bufferedRef);
+//		assertEquals(21, blatDetails.length);
+//		assertEquals("294", blatDetails[0]); // matches
+//		assertEquals("2", blatDetails[1]); // mis-matches
+//		assertEquals("3", blatDetails[4]); // q gap counts
+//		assertEquals("62", blatDetails[5]); // q gap bases
+//		assertEquals("0", blatDetails[6]); // t gap counts
+//		assertEquals("0", blatDetails[7]); // t gap bases
+//		assertEquals("+", blatDetails[8]); // strand
+//		assertEquals("" + seq.length(), blatDetails[10]); // query size
+//		assertEquals("0", blatDetails[11]); // query start
+//		assertEquals("" + seq.length(), blatDetails[12]); // query end
+//		assertEquals("4", blatDetails[17]); // block size
+//		assertEquals("109,12,33,142", blatDetails[18]); // block lengths
+//		assertEquals("0,109,121,154", blatDetails[19]); // Q starts
 	}
 	@Test
 	public void getBlatDetails4() {
@@ -1376,6 +1488,7 @@ swDiffs: CGTGGGGGTGGGATCCACTGAGCTAGAACACTTGGCTCCCTGGCTTTGGCCCCCTTTCCAGGGGAGTGAAC
 		assertEquals("4", blatDetails[5]); // q gap bases
 		assertEquals("1", blatDetails[6]); // t gap counts
 		assertEquals("4", blatDetails[7]); // t gap bases
+		assertEquals("+", blatDetails[8]); // strand
 		assertEquals("" + seq.length(), blatDetails[10]); // query size
 		assertEquals("0", blatDetails[11]); // query start
 		assertEquals("172", blatDetails[12]); // query end
@@ -1383,6 +1496,23 @@ swDiffs: CGTGGGGGTGGGATCCACTGAGCTAGAACACTTGGCTCCCTGGCTTTGGCCCCCTTTCCAGGGGAGTGAAC
 		assertEquals("143,12,13", blatDetails[18]); // block lengths
 		assertEquals("0,147,159", blatDetails[19]); // Q starts
 		assertEquals("165336,165479,165495", blatDetails[20]); // T starts
+		
+//		blatDetails = TiledAlignerUtil.getDetailsForBLATRecordNew(bufferedCP, swDiffs, "GL000219.1_165002_true_+", seq, true, bufferedRef);
+//		assertEquals(21, blatDetails.length);
+//		assertEquals("160", blatDetails[0]); // matches
+//		assertEquals("8", blatDetails[1]); // mis-matches
+//		assertEquals("1", blatDetails[4]); // q gap counts
+//		assertEquals("4", blatDetails[5]); // q gap bases
+//		assertEquals("1", blatDetails[6]); // t gap counts
+//		assertEquals("4", blatDetails[7]); // t gap bases
+//		assertEquals("+", blatDetails[8]); // strand
+//		assertEquals("" + seq.length(), blatDetails[10]); // query size
+//		assertEquals("0", blatDetails[11]); // query start
+//		assertEquals("172", blatDetails[12]); // query end
+//		assertEquals("3", blatDetails[17]); // block size
+//		assertEquals("143,12,13", blatDetails[18]); // block lengths
+//		assertEquals("0,147,159", blatDetails[19]); // Q starts
+//		assertEquals("165336,165479,165495", blatDetails[20]); // T starts
 	}
 	
 	@Test
@@ -1410,6 +1540,7 @@ swDiffs: CGTGGGGGTGGGATCCACTGAGCTAGAACACTTGGCTCCCTGGCTTTGGCCCCCTTTCCAGGGGAGTGAAC
 		assertEquals("94", blatDetails[5]); // q gap bases
 		assertEquals("0", blatDetails[6]); // t gap counts
 		assertEquals("0", blatDetails[7]); // t gap bases
+		assertEquals("+", blatDetails[8]); // strand
 		assertEquals("" + seq.length(), blatDetails[10]); // query size
 		assertEquals("0", blatDetails[11]); // query start
 		assertEquals("172", blatDetails[12]); // query end
@@ -1418,6 +1549,26 @@ swDiffs: CGTGGGGGTGGGATCCACTGAGCTAGAACACTTGGCTCCCTGGCTTTGGCCCCCTTTCCAGGGGAGTGAAC
 		assertEquals("0,66", blatDetails[19]); // Q starts
 		int templateBlock2Start = 100867054 + 66 + 94;
 		assertEquals("100867054," + templateBlock2Start, blatDetails[20]); // template starts
+		
+//		blatDetails = TiledAlignerUtil.getDetailsForBLATRecordNew(bufferedCP, swDiffs, "chr7:100867054+", seq, true, bufferedRef);
+//		assertEquals(21, blatDetails.length);
+//		assertEquals("172", blatDetails[0]); // matches
+//		assertEquals("0", blatDetails[1]); // mis-matches
+//		assertEquals("0", blatDetails[2]); //
+//		assertEquals("0", blatDetails[3]); // 
+//		assertEquals("1", blatDetails[4]); // q gap counts
+//		assertEquals("94", blatDetails[5]); // q gap bases
+//		assertEquals("0", blatDetails[6]); // t gap counts
+//		assertEquals("0", blatDetails[7]); // t gap bases
+//		assertEquals("+", blatDetails[8]); // strand
+//		assertEquals("" + seq.length(), blatDetails[10]); // query size
+//		assertEquals("0", blatDetails[11]); // query start
+//		assertEquals("172", blatDetails[12]); // query end
+//		assertEquals("2", blatDetails[17]); // block size
+//		assertEquals("66,106", blatDetails[18]); // block lengths
+//		assertEquals("0,66", blatDetails[19]); // Q starts
+////		int templateBlock2Start = 100867054 + 66 + 94;
+//		assertEquals("100867054," + templateBlock2Start, blatDetails[20]); // template starts
 	}
 	
 	@Test
@@ -1456,6 +1607,27 @@ swDiffs: CTTAAATATTTTCTGGTGGAAATGCAGGTAT-CCTTGGAAAATGAAAT-----------AACACTA-TAGG
 		assertEquals("119", blatDetails[19]); // Q starts
 		assertEquals("127633806", blatDetails[20]); // template starts
 		
+//		blatDetails = TiledAlignerUtil.getDetailsForBLATRecordNew(bufferedCP, swDiffs, "splitcon_chr10_127633807_chr15_34031839", seq, false, bufferedRef);
+//		assertEquals(21, blatDetails.length);
+//		assertEquals("63", blatDetails[0]); // matches
+//		assertEquals("1", blatDetails[1]); // mis-matches
+//		assertEquals("0", blatDetails[2]); //
+//		assertEquals("0", blatDetails[3]); // 
+//		assertEquals("0", blatDetails[4]); // q gap counts
+//		assertEquals("0", blatDetails[5]); // q gap bases
+//		assertEquals("0", blatDetails[6]); // t gap counts
+//		assertEquals("0", blatDetails[7]); // t gap bases
+//		assertEquals("-", blatDetails[8]); // strand
+//		assertEquals("" + seq.length(), blatDetails[10]); // query size
+//		assertEquals("5", blatDetails[11]); // query start
+//		assertEquals("69", blatDetails[12]); // query end
+//		assertEquals("127633806", blatDetails[15]); // target start
+//		assertEquals("127633870", blatDetails[16]); // target end
+//		assertEquals("1", blatDetails[17]); // block size
+//		assertEquals("64", blatDetails[18]); // block lengths
+//		assertEquals("119", blatDetails[19]); // Q starts
+//		assertEquals("127633806", blatDetails[20]); // template starts
+		
 	}
 	
 	@Test
@@ -1466,6 +1638,7 @@ swDiffs: CTTAAATATTTTCTGGTGGAAATGCAGGTAT-CCTTGGAAAATGAAAT-----------AACACTA-TAGG
 		String name = "chr21_10000005";
 		String bufferedRef = "TGACTATGTCTTCTAGAATATTTCTAAGAAATTGCCTAAGTCACCACTGCTCACCAAGAGGCCTTTGTTTTTTCCTCTTCTTAACCATGGGAAAGGAATGTAGGAGGGTAGGGAGTGGATATTTTCTAACCTGGAAAAAACTCATTTTACCCTATATAATTTTTTTTAGCAAATTCCTTCTTTGCACTTACTCCACAATCTTTCCAAATTCTCCCAAATGCTCAAGCTTTTAAAAAACAAAAGACAGAAAGA";
 		String seq = "CCCCGGGTAAAATGAGTTTTTTGGTCCAATCTTTTAATCCACTCCCTACCCTCCTAGCAAG";
+		String rev = "CTTGCTAGGAGGGTAGGGAGTGGATAAAAAACTCATTTTACCCGGGG";
 		ChrPosition bufferedCP = new ChrRangePosition("chr21", 9999905 , 9999905 + 200 + seq.length());	
 		String [] swDiffs = new String[] {     "TAGGAGGGTAGGGAGTGGATATTTTCTAACCTGGAAAAAACTCATTTTACCC",
 				                               "||||||||||||||||||||              ||||||||||||||||||",
@@ -1492,6 +1665,64 @@ swDiffs: CTTAAATATTTTCTGGTGGAAATGCAGGTAT-CCTTGGAAAATGAAAT-----------AACACTA-TAGG
 		assertEquals("20,18", blatDetails[18]); // block lengths
 		assertEquals("5,39", blatDetails[19]); // Q starts
 		assertEquals("10000005,10000039", blatDetails[20]); // template starts
+		
+//		blatDetails = TiledAlignerUtil.getDetailsForBLATRecordNew(bufferedCP, swDiffs, name, seq, false, bufferedRef);
+//		assertEquals(21, blatDetails.length);
+//		assertEquals("38", blatDetails[0]); // matches
+//		assertEquals("0", blatDetails[1]); // mis-matches
+//		assertEquals("0", blatDetails[2]); //
+//		assertEquals("0", blatDetails[3]); // 
+//		assertEquals("1", blatDetails[4]); // q gap counts
+//		assertEquals("14", blatDetails[5]); // q gap bases
+//		assertEquals("0", blatDetails[6]); // t gap counts
+//		assertEquals("0", blatDetails[7]); // t gap bases
+//		assertEquals("-", blatDetails[8]); // strand
+//		assertEquals(name, blatDetails[9]); // name
+//		assertEquals("" + seq.length(), blatDetails[10]); // query size
+//		assertEquals("4", blatDetails[11]); // query start
+//		assertEquals("56", blatDetails[12]); // query end
+//		assertEquals("10000005", blatDetails[15]); // target start
+//		assertEquals("10000057", blatDetails[16]); // target end
+//		assertEquals("2", blatDetails[17]); // block size
+//		assertEquals("20,18", blatDetails[18]); // block lengths
+//		assertEquals("5,39", blatDetails[19]); // Q starts
+//		assertEquals("10000005,10000039", blatDetails[20]); // template starts
+	}
+	@Test
+	public void getBlatDetails8() {
+		String name = "chr6_151381607";
+		String bufferedRef = "CCCTTTTGGTACACAATCCTCAGATGAACGGAGATGATTCATTAGGCCATTCTAGCTTAATGGATGCATCACTGTGCAACCACGCAAATGCCTCATTTCTGATTCACTCATTTAATATTTATTGAGGAGTGCTGGGTACTAGGCCATTAGAAGAACAAACAACAACAACATAGGCCTGGACCTTGCACTTGCAGAGTTCACAGGCTAGAGAGGCACACAAGTTAAATATAGAGACAGCTGAAAGAGCTGACGTCTGGGACAGAGGGAGCCCCCTGCTCCAGGAGCCAGGGAGCAGATGCCATGGGGGGCTGGCAGGGATAGGGAAGT";
+//		String seq = "ATGATTCACTCATTTAATATTTATTGAGGAGTGCTGGGTACTAGGCCATTAGAAGAACAAACAACAACAACATAGGCCTGGACCTTGCACTTGCAGAGTTCACAGGCTAGAGAGGCACACAAGTTAAATATAATGATTCACTCATTTAATATTTATTGAGGAGTGCTGGGTACTA";
+		String seq = "TAGTACCCAGCACTCCTCAATAAATATTAAATGAGTGAATCATTATATTTAACTTGTGTGCCTCTCTAGCCTGTGAACTCTGCAAGTGCAAGGTCCAGGCCTATGTTGTTGTTGTTTGTTCTTCTAATGGCCTAGTACCCAGCACTCCTCAATAAATATTAAATGAGTGAATCAT";
+		ChrPosition bufferedCP = new ChrRangePosition("chr6", 151381376 , 151381376 + 200 + seq.length());	
+		String [] swDiffs = new String[] {  "TGATTCACTCATTTAATATTTATTGAGGAGTGCTGGGTACTAGGCCATTAGAAGAACAAACAACAACAACATAGGCCTGGACCTTGCACTTGCAGAGTTCACAGGCTAGAGAGGCACACAAGTTAAATATAGA-GA--CAGCTGA---AA--------GAGCTGACGT-CTGGG-AC",
+											"||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||| | ||  || ||.|   ||        |||  || || ||||| ||",
+											"TGATTCACTCATTTAATATTTATTGAGGAGTGCTGGGTACTAGGCCATTAGAAGAACAAACAACAACAACATAGGCCTGGACCTTGCACTTGCAGAGTTCACAGGCTAGAGAGGCACACAAGTTAAATATA-ATGATTCA-CTCATTTAATATTTATTGAG--GA-GTGCTGGGTAC"};
+		
+		String [] blatDetails = TiledAlignerUtil.getDetailsForBLATRecord(bufferedCP, swDiffs, name, seq, false, bufferedRef);
+		assertEquals(21, blatDetails.length);
+		assertEquals("155", blatDetails[0]); // matches
+		assertEquals("1", blatDetails[1]); // mis-matches
+		assertEquals("0", blatDetails[2]); //
+		assertEquals("0", blatDetails[3]); // 
+		assertEquals("4", blatDetails[4]); // q gap counts
+		assertEquals("5", blatDetails[5]); // q gap bases
+		assertEquals("6", blatDetails[6]); // t gap counts
+		assertEquals("16", blatDetails[7]); // t gap bases
+		assertEquals("-", blatDetails[8]); // strand
+		assertEquals(name, blatDetails[9]); // name
+		assertEquals("" + seq.length(), blatDetails[10]); // query size
+		assertEquals("2", blatDetails[11]); // query start
+		assertEquals("174", blatDetails[12]); // query end
+		assertEquals("151381475", blatDetails[15]); // target start
+		assertEquals("151381636", blatDetails[16]); // target end
+		assertEquals("11", blatDetails[17]); // block size
+		assertEquals("131,1,2,2,4,2,3,2,2,5,2", blatDetails[18]); // block lengths
+		assertEquals("1,132,134,138,140,147,157,160,162,165,171", blatDetails[19]); // Q starts
+		assertEquals("151381475,151381607,151381608,151381610,151381613,151381617,151381619,151381624,151381627,151381629,151381634", blatDetails[20]); // template starts
+		/*
+		 * 144     155     1       0       0       4       5       6       16      -       chr6_151381607  175     134     174     chr6    12345   151381476       151381637       11      131,1,2,2,4,2,3,2,2,5,2 1,0,2,6,8,15,25,2,30,33,7       151381476,151378479,151378486,151378497,151378484,151378479,151378486,151378486,151378500,151378583,151378491
+		 */
 	}
 	
 	@Test
@@ -1611,7 +1842,7 @@ in getDetailsForBLATRecord with cp: ChrPositionName [chromosome=chr7, startPosit
 		assertEquals("0", blatRecDetails[5]);
 		assertEquals("1", blatRecDetails[6]);
 		assertEquals("" + (100866949 - 100866843), blatRecDetails[7]);	// Q gap bases
-		assertEquals("+", blatRecDetails[8]);
+		assertEquals("-", blatRecDetails[8]);
 		assertEquals("getBLATRecordFromCSRealLife3", blatRecDetails[9]);
 		assertEquals("" + seq.length(), blatRecDetails[10]);
 		assertEquals("0", blatRecDetails[11]);
@@ -1856,7 +2087,7 @@ in getDetailsForBLATRecord with cp: ChrPositionName [chromosome=chr7, startPosit
 		PositionChrPositionMap headerMap = new PositionChrPositionMap();
 		headerMap.loadMap(PositionChrPositionMap.grch37Positions);
 		ChrPosition cp = headerMap.getChrPositionFromLongPosition(1670562876);
-		boolean forwardStrand = "F".equals(((ChrPosBait)cp).getBait());
+		boolean forwardStrand = "F".equals(((ChrPositionName)cp).getName());
 		String ref = ("tccacatgatTCCTGGCCTGGGCGGATGCACTGGCAGTGGCAATGCTGGCCGTCTGGCAACTTTTctggggggag").toUpperCase();
 		Optional<ChrPosition> optionalCP = TiledAlignerUtil.getChrPositionWithReference(cp.getChromosome(), cp.getStartPosition(), forwardStrand ? seq : SequenceUtil.reverseComplement(seq), ref);
 		assertEquals(true, optionalCP.isPresent());
@@ -2175,36 +2406,39 @@ got perfect match on tiles, but not on sequence! cp:
 		assertEquals("GGTTGCAGATGCTGCTAAAAACACAGAAGTCTGTGATGAACTAATGAGCAGACATAACATCTACGTGCAAGCAATCAATTACCCTACGGTGCCCCGGGGAGAAGAGCTCCTACGGATTGCCCCCACCCCTCACCACACAC", swDiffs[2]);
 	}
 	
-	@Test
-	public void getBlatDetailsReverseStrand() {
-		/*
-		 * seq: CGTGGGGGTGGGATCCACTGAGCTAGAACACTTGGCTCCCTGGCTTTGGCCCCCTTTCCAGGGGAGTGAACAGTTCTGTCTTGCTGGTGTTCCAGGCGCCACTGGGGTATGAAAAATATTCCTGCAGCTAGCTCAGTGTCTTCTTGGCAATGTGGGCACTTTTTTGGTTCCATATGAATTTTAAAGTAGTTTTTTCCAATTCTGTGAAGAAA,
-		 *TTCAAGTGCAA--AACTGAGTGGCCATTTGG----GCAGACACTGAGCTAGCTGAAGGAGTTTTGTTTTCATACCCCAGTGGCGCCTGGAACGCCAGTGAGACAGAACTGTTCACTCCCCTGGAAAGGGGGCTGAAGCCAAGAAGCCAAGTGGTCTAGCTCAGTGGATCCCACCCC
-swDiffs: ||||..||.||  ||...||||.|||..|.|    |.|||||||||||||||||.||||.|.|  |||||||||||||||||||||||||||.||||..|||||||||||||||||||||||||||||||||..||||||.|.|||||||||.|||||||||||||||||||||||
-swDiffs: TTCATATGGAACCAAAAAAGTGCCCACATTGCCAAGAAGACACTGAGCTAGCTGCAGGAATAT--TTTTCATACCCCAGTGGCGCCTGGAACACCAGCAAGACAGAACTGTTCACTCCCCTGGAAAGGGGGCCAAAGCCAGGGAGCCAAGTGTTCTAGCTCAGTGGATCCCACCCC
-		 */
-		String bufferedRef = "CGTGGGGGTGGGATCCACTGAGCTAGAACACTTGGCTCCCTGGCTTTGGCCCCCTTTCCAGGGGAGTGAACAGTTCTGTCTTGCTGGTGTTCCAGGCGCCACTGGGGTATGAAAAATATTCCTGCAGCTAGCTCAGTGTCTACCCAAATGGCCACCTGGTTTTGTGCTTCAA";
-		String seq = "CGTGGGGGTGGGATCCACTGAGCTAGAACACTTGGCTCCCTGGCTTTGGCCCCCTTTCCAGGGGAGTGAACAGTTCTGTCTTGCTGGTGTTCCAGGCGCCACTGGGGTATGAAAAATATTCCTGCAGCTAGCTCAGTGTCTTCTTGGCAATGTGGGCACTTTTTTGGTTCCATATGAATTTTAAAGTAGTTTTTTCCAATTCTGTGAAGAAA";
-		ChrPosition bufferedCP = new ChrRangePosition("GL000219.1", 165336, 165602);	//GL000219.1:165336-165602
-		String [] swDiffs = new String[] {"TTCAAGTGCAA--AACTGAGTGGCCATTTGG----GCAGACACTGAGCTAGCTGAAGGAGTTTTGTTTTCATACCCCAGTGGCGCCTGGAACGCCAGTGAGACAGAACTGTTCACTCCCCTGGAAAGGGGGCTGAAGCCAAGAAGCCAAGTGGTCTAGCTCAGTGGATCCCACCCC", "||||..||.||  ||...||||.|||..|.|    |.|||||||||||||||||.||||.|.|  |||||||||||||||||||||||||||.||||..|||||||||||||||||||||||||||||||||..||||||.|.|||||||||.|||||||||||||||||||||||", "TTCATATGGAACCAAAAAAGTGCCCACATTGCCAAGAAGACACTGAGCTAGCTGCAGGAATAT--TTTTCATACCCCAGTGGCGCCTGGAACACCAGCAAGACAGAACTGTTCACTCCCCTGGAAAGGGGGCCAAAGCCAGGGAGCCAAGTGTTCTAGCTCAGTGGATCCCACCCC"};
-		
-		String [] blatDetails = TiledAlignerUtil.getDetailsForBLATRecord(bufferedCP, swDiffs, "GL000219.1_165002_true_+", seq, false, bufferedRef);
-		assertEquals(21, blatDetails.length);
-		assertEquals("146", blatDetails[0]); // matches
-		assertEquals("22", blatDetails[1]); // mis-matches
-		assertEquals("0", blatDetails[2]); // q gap counts
-		assertEquals("0", blatDetails[3]); // q gap bases
-		assertEquals("2", blatDetails[4]); // t gap counts
-		assertEquals("6", blatDetails[5]); // t gap bases
-		assertEquals("1", blatDetails[6]); // q gap bases
-		assertEquals("2", blatDetails[7]); // q gap bases
-		assertEquals("" + seq.length(), blatDetails[10]); // query size
-		assertEquals("34", blatDetails[11]); // query start
-		assertEquals("208", blatDetails[12]); // query end
-		assertEquals("2", blatDetails[17]); // block size
-		assertEquals("63,111", blatDetails[18]); // block lengths
-		assertEquals("34,97", blatDetails[19]); // Q starts
-	}
+//	@Test
+//	public void getBlatDetailsReverseStrand() {
+//		/*
+//		 * seq: CGTGGGGGTGGGATCCACTGAGCTAGAACACTTGGCTCCCTGGCTTTGGCCCCCTTTCCAGGGGAGTGAACAGTTCTGTCTTGCTGGTGTTCCAGGCGCCACTGGGGTATGAAAAATATTCCTGCAGCTAGCTCAGTGTCTTCTTGGCAATGTGGGCACTTTTTTGGTTCCATATGAATTTTAAAGTAGTTTTTTCCAATTCTGTGAAGAAA,
+//		 *TTCAAGTGCAA--AACTGAGTGGCCATTTGG----GCAGACACTGAGCTAGCTGAAGGAGTTTTGTTTTCATACCCCAGTGGCGCCTGGAACGCCAGTGAGACAGAACTGTTCACTCCCCTGGAAAGGGGGCTGAAGCCAAGAAGCCAAGTGGTCTAGCTCAGTGGATCCCACCCC
+//swDiffs: ||||..||.||  ||...||||.|||..|.|    |.|||||||||||||||||.||||.|.|  |||||||||||||||||||||||||||.||||..|||||||||||||||||||||||||||||||||..||||||.|.|||||||||.|||||||||||||||||||||||
+//swDiffs: TTCATATGGAACCAAAAAAGTGCCCACATTGCCAAGAAGACACTGAGCTAGCTGCAGGAATAT--TTTTCATACCCCAGTGGCGCCTGGAACACCAGCAAGACAGAACTGTTCACTCCCCTGGAAAGGGGGCCAAAGCCAGGGAGCCAAGTGTTCTAGCTCAGTGGATCCCACCCC
+//		 */
+//		String bufferedRef = "CGTGGGGGTGGGATCCACTGAGCTAGAACACTTGGCTCCCTGGCTTTGGCCCCCTTTCCAGGGGAGTGAACAGTTCTGTCTTGCTGGTGTTCCAGGCGCCACTGGGGTATGAAAAATATTCCTGCAGCTAGCTCAGTGTCTTCTTGGCAATGTGGGCACTTTTTTGGTTCCATATGAATTTTAAAGTAGTTTTTTCCAATTCTGTGAAGAAA";
+//		String seq = "CGTGGGGGTGGGATCCACTGAGCTAGAACACTTGGCTCCCTGGCTTTGGCCCCCTTTCCAGGGGAGTGAACAGTTCTGTCTTGCTGGTGTTCCAGGCGCCACTGGGGTATGAAAAATATTCCTGCAGCTAGCTCAGTGTCTACCCAAATGGCCACCTGGTTTTGTGCTTCAA";
+//		ChrPosition bufferedCP = new ChrRangePosition("GL000219.1", 165336, 165602);	//GL000219.1:165336-165602
+//		String [] swDiffs = new String[] {	"TTCAAGTGCAA--AACTGAGTGGCCATTTGG----GCAGACACTGAGCTAGCTGAAGGAGTTTTGTTTTCATACCCCAGTGGCGCCTGGAACGCCAGTGAGACAGAACTGTTCACTCCCCTGGAAAGGGGGCTGAAGCCAAGAAGCCAAGTGGTCTAGCTCAGTGGATCCCACCCC", 
+//											"||||..||.||  ||...||||.|||..|.|    |.|||||||||||||||||.||||.|.|  |||||||||||||||||||||||||||.||||..|||||||||||||||||||||||||||||||||..||||||.|.|||||||||.|||||||||||||||||||||||", 
+//											"TTCATATGGAACCAAAAAAGTGCCCACATTGCCAAGAAGACACTGAGCTAGCTGCAGGAATAT--TTTTCATACCCCAGTGGCGCCTGGAACACCAGCAAGACAGAACTGTTCACTCCCCTGGAAAGGGGGCCAAAGCCAGGGAGCCAAGTGTTCTAGCTCAGTGGATCCCACCCC"};
+//		
+//		String [] blatDetails = TiledAlignerUtil.getDetailsForBLATRecordNew(bufferedCP, swDiffs, "GL000219.1_165002_true_+", seq, false, bufferedRef);
+//		assertEquals(21, blatDetails.length);
+//		assertEquals("146", blatDetails[0]); // matches
+//		assertEquals("22", blatDetails[1]); // mis-matches
+//		assertEquals("0", blatDetails[2]); // repMatches - Number of bases that match but are part of repeats
+//		assertEquals("0", blatDetails[3]); // Number of "N" bases
+//		assertEquals("1", blatDetails[4]); //Number of inserts in query
+//		assertEquals("2", blatDetails[5]); // Number of bases inserted in query
+//		assertEquals("2", blatDetails[6]); // Number of inserts in target
+//		assertEquals("6", blatDetails[7]); // Number of bases inserted in target
+//		assertEquals("-", blatDetails[8]); //strand
+//		assertEquals("" + seq.length(), blatDetails[10]); // query size
+//		assertEquals("4", blatDetails[11]); // query start
+//		assertEquals("178", blatDetails[12]); // query end
+//		assertEquals("4", blatDetails[17]); // block size
+//		assertEquals("11,18,28,111", blatDetails[18]); // block lengths
+//		assertEquals("34,97", blatDetails[19]); // Q starts
+//	}
 	
 	@Test
 	public void stipStrandFromLong() {

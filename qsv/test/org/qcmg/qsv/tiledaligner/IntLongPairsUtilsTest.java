@@ -32,6 +32,31 @@ public class IntLongPairsUtilsTest {
 	}
 	
 	@Test
+	public void getCoveredBases2() {
+		/*
+		 * {8=[IntLongPairs [pairs=[IntLongPair [i=786432, l=4611722303067418037], IntLongPair [i=1572864, l=4611691516741840313]]]]}
+		 * IntLongPairs [pairs=[IntLongPair [i=786432, l=4611722303067418037], IntLongPair [i=1572864, l=4611691516741840313]]]
+		 */
+		IntLongPair p1 = new IntLongPair(786432, 4611722303067418037l);
+		IntLongPair p2 = new IntLongPair(1572864, 4611691516741840313l);
+		
+		assertEquals(24 + 36 - 8, IntLongPairsUtils.getBasesCoveredByIntLongPairs(new IntLongPairs(p1, p2), 57, 13));
+		
+	}
+	
+	@Test
+	public void sortingRS() {
+		/*
+		 * [IntLongPair [i=1572864, l=4611691516741840313], IntLongPair [i=786432, l=4611722303067418037]]
+		 */
+		IntLongPair p1 = new IntLongPair(1572864, 4611691516741840313l);
+		IntLongPair p2 = new IntLongPair(786432, 4611722303067418037l);
+		IntLongPairs pairs = new IntLongPairs(new IntLongPair[]{p1, p2});
+		IntLongPair[] sortedPairs = IntLongPairsUtils.sortIntLongPairs(pairs, 57);
+		assertEquals(p2, sortedPairs[0]);
+		assertEquals(p1, sortedPairs[1]);
+	}
+	@Test
 	public void sorting() {
 		IntLongPair p1 = new IntLongPair(589824, 315561373177018l);
 		IntLongPair p2 = new IntLongPair(17956864, 1536005032);

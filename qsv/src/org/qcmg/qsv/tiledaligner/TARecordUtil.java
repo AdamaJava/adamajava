@@ -2,6 +2,7 @@ package org.qcmg.qsv.tiledaligner;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -12,6 +13,8 @@ import java.util.stream.Collectors;
 import java.util.Set;
 
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrPositionName;
+import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.NumberUtils;
 import org.qcmg.qsv.blat.BLATRecord;
 
@@ -29,7 +32,8 @@ public class TARecordUtil {
 	public static final int REVERSE_COMPLEMENT_BIT = TiledAlignerUtil.REVERSE_COMPLEMENT_BIT;
 	public static final int MIN_BLAT_SCORE = TiledAlignerUtil.MINIMUM_BLAT_RECORD_SCORE;
 	public static final int MIN_TILE_COUNT = MIN_BLAT_SCORE - TILE_LENGTH;
-	public static final int MAX_GAP_FOR_SINGLE_RECORD = 10000;
+	public static final int MAX_GAP_FOR_SINGLE_RECORD = 500000;
+//	public static final int MAX_GAP_FOR_SINGLE_RECORD = 10000;
 	public static final int BUFFER = 10;
 	public static final int RANGE_BUFFER = 5;
 	public static final int MIN_BLAT_SCORE_MINUS_BUFFER = MIN_BLAT_SCORE - BUFFER;
@@ -539,29 +543,107 @@ p: 3299927520776
 		IntLongPair[] pairs = IntLongPairsUtils.sortIntLongPairs(splits, seqLength);
 		
 		int [][] ranges = new int[pairs.length][];
+		ChrPosition[] cps = new ChrPosition[pairs.length];
 		int i = 0;
 		for (IntLongPair ilp : pairs) {
 			
 			/*
 			 * start position is dependent on whether the reverse complement bit has been set.
 			 */
-			ranges[i++] = new int[]{ IntLongPairsUtils.getStartPositionInSequence(ilp, seqLength), getExactMatchOnlyLengthFromPackedInt(ilp.getInt())};
-//			ranges[i++] = new int[]{ NumberUtils.getShortFromLong(ilp.getLong(), TILE_OFFSET), getLengthFromPackedInt(ilp.getInt())};
-		}
-		
-		trimRangesToRemoveOverlap(ranges);
-		
-		Map<ChrPosition, int[]> results = new THashMap<>();
-		i = 0;
-		for (IntLongPair ilp : pairs) {
-			ChrPosition cp = headerMap.getChrPositionFromLongPosition(ilp.getLong(), ranges[i][1]);
-			results.put(cp, ranges[i]);
+			ranges[i] = new int[]{ IntLongPairsUtils.getStartPositionInSequence(ilp, seqLength), getExactMatchOnlyLengthFromPackedInt(ilp.getInt())};
+//			ranges[i] = new int[]{ NumberUtils.getShortFromLong(ilp.getLong(), TILE_OFFSET), getExactMatchOnlyLengthFromPackedInt(ilp.getInt())};
+			cps[i] = headerMap.getChrPositionFromLongPosition(ilp.getLong(), ranges[i][1]);
 			i++;
 		}
 		
+		trimRangesToRemoveOverlap(ranges, cps);
+		
+		Map<ChrPosition, int[]> results = new THashMap<>();
+		
+		for (int j = 0 ; j < pairs.length ; j++) {
+			results.put(cps[j], ranges[j]);
+		}
+		
+		
+		
+		
+//		for (IntLongPair ilp : pairs) {
+//			ChrPosition cp = headerMap.getChrPositionFromLongPosition(ilp.getLong(), ranges[i][1]);
+//			results.put(cp, ranges[i]);
+//			i++;
+//		}
+		
 		return results;
 	}
+//	public static Map<ChrPosition, int[]> getChrPositionAndBlocksFromSplits(IntLongPairs splits, int seqLength, PositionChrPositionMap headerMap) {
+//		IntLongPair[] pairs = IntLongPairsUtils.sortIntLongPairs(splits, seqLength);
+//		
+//		int [][] ranges = new int[pairs.length][];
+//		int i = 0;
+//		for (IntLongPair ilp : pairs) {
+//			
+//			/*
+//			 * start position is dependent on whether the reverse complement bit has been set.
+//			 */
+//			ranges[i++] = new int[]{ IntLongPairsUtils.getStartPositionInSequence(ilp, seqLength), getExactMatchOnlyLengthFromPackedInt(ilp.getInt())};
+////			ranges[i++] = new int[]{ NumberUtils.getShortFromLong(ilp.getLong(), TILE_OFFSET), getLengthFromPackedInt(ilp.getInt())};
+//		}
+//		
+//		trimRangesToRemoveOverlap(ranges);
+//		
+//		Map<ChrPosition, int[]> results = new THashMap<>();
+//		i = 0;
+//		for (IntLongPair ilp : pairs) {
+//			ChrPosition cp = headerMap.getChrPositionFromLongPosition(ilp.getLong(), ranges[i][1]);
+//			results.put(cp, ranges[i]);
+//			i++;
+//		}
+//		
+//		return results;
+//	}
 
+	/**
+	 * NOT SIDE EFFECT FREE
+	 * <br>
+	 * This method will update the values in the passed in  2D int array if there are overlapping values
+	 * It will attempt to remove any overlap from the larger of the 2 ranges should an overlap exist
+	 * 
+	 * It requires that the ranges array be sorted by position in query string
+	 * 
+	 * @param ranges
+	 */
+	public static void trimRangesToRemoveOverlap(int[][] ranges, ChrPosition[] cps) {
+		/*
+		 * trim ranges if there is an overlap
+		 */
+		for (int j = 0 ; j < ranges.length - 1; j++) {
+			if (j + 1 < ranges.length) {
+				int [] thisIntArray = ranges[j];
+				int [] nextIntArray = ranges[j + 1];
+				
+				int diff = (thisIntArray[0] + thisIntArray[1]) - nextIntArray[0];
+				if (diff > 0) {
+					if ( thisIntArray[1] >= nextIntArray[1]) {
+						/*
+						 * update this, take diff away from length
+						 */
+						thisIntArray[1] = thisIntArray[1] - diff;
+						ChrPosition orig = cps[j];
+						cps[j] = new ChrPositionName(orig.getChromosome(), orig.getStartPosition(), orig.getEndPosition() - diff, orig.getName());
+					} else {
+						/*
+						 * update next array, take diff away from start (and length)
+						 */
+						nextIntArray[0] = nextIntArray[0] + diff;
+						nextIntArray[1] = nextIntArray[1] - diff;
+						
+						ChrPosition orig = cps[j + 1];
+						cps[j + 1] = new ChrPositionName(orig.getChromosome(), orig.getStartPosition() + diff, orig.getEndPosition(), orig.getName());
+					}
+				}
+			}			
+		}
+	}
 	/**
 	 * NOT SIDE EFFECT FREE
 	 * <br>
@@ -619,22 +701,41 @@ p: 3299927520776
 		chrPosBlocks.keySet().toArray(keys);
 		Arrays.sort(keys);
 		
+		List<int[]> values = new ArrayList<>(chrPosBlocks.values());
+		values.sort((int[] array1, int[] array2) -> array1[0] - array2[0]);
+
+		int qGapBases = 0;
+		
+		for (int i = 0 ; i < values.size() - 1; i++) {
+			int [] thisBlock = values.get(i);
+			int [] nextBlock = values.get(i + 1);
+			qGapBases += nextBlock[0] - (thisBlock[1] + thisBlock[0]);
+		}
+		
 		
 		boolean reverseStrand = keys[0].getName().equals("R");
 		/*
 		 * get length and qGapBases
 		 */
 		int length = 0;
-		int qGapBases = 0;
 		int tGapBases = 0;
 		for (int i = 0 ; i < keys.length - 1; i++) {
 			ChrPosition thisCp = keys[i];
-			int[] thisBlock = chrPosBlocks.get(thisCp);
+//			int[] thisBlock = chrPosBlocks.get(thisCp);
 			length += thisCp.getLength() - 1; 
 			ChrPosition nextCp = keys[i + 1];
-			int[] nextBlock = chrPosBlocks.get(nextCp);
+			
+			
+			/*
+			 * If either of these ChrPositions are wholly contained within the other, then return
+			 */
+			if (ChrPositionUtils.isChrPositionContained(thisCp, nextCp) || ChrPositionUtils.isChrPositionContained(nextCp, thisCp)) {
+				return new String[]{};
+			}
+			
+//			int[] nextBlock = chrPosBlocks.get(nextCp);
 			tGapBases += (nextCp.getStartPosition() - thisCp.getEndPosition());
-			qGapBases += nextBlock[0] - (thisBlock[1] + thisBlock[0]);
+//			qGapBases += nextBlock[0] - (thisBlock[1] + thisBlock[0]);
 		}
 		/*
 		 * add last length
@@ -713,8 +814,30 @@ p: 3299927520776
 			}
 		}
 		if (allGood) {
-			String[] deetsForBlat = blatRecordFromSplits(splits,  name, seqLength, headerMap, tileLength);
-			return deetsForBlat;
+			
+			/*
+			 * final check here is to sort the positions genomically, and then make sure that each 
+			 */
+			Arrays.sort(pairs, (pair1, pair2) -> Long.compare(NumberUtils.getLongPositionValueFromPackedLong(pair1.getLong()), NumberUtils.getLongPositionValueFromPackedLong(pair2.getLong())));
+			boolean orderCorrect = true;
+			long lastPosition = -1;
+			int lastSeqPosition = -1;
+			for (IntLongPair pair : pairs) {
+				long thisPosition = NumberUtils.getLongPositionValueFromPackedLong(pair.getLong());
+				int thisSeqPosition = NumberUtils.getShortFromLong(pair.getLong(), TILE_OFFSET);
+				if (lastSeqPosition > -1) {
+					if (thisSeqPosition < lastSeqPosition) {
+						orderCorrect = false;
+						break;
+					}
+				}
+				lastSeqPosition = thisSeqPosition;
+			}
+			
+			if (orderCorrect) {
+				String[] deetsForBlat = blatRecordFromSplits(splits,  name, seqLength, headerMap, tileLength);
+				return deetsForBlat;
+			}
 		}
 		
 		
@@ -787,6 +910,8 @@ p: 3299927520776
 								long l = list.get(j);
 								boolean isForwardStrand =  ! NumberUtils.isBitSet(l, REVERSE_COMPLEMENT_BIT);
 								short tilePositionInSequence = NumberUtils.getShortFromLong(l, TILE_OFFSET);
+								long positionInGenome = NumberUtils.getLongPositionValueFromPackedLong(l);
+								long positionInGenomeEnd = positionInGenome + tileCount + (TILE_LENGTH - 1);
 								
 								/*
 								 * see if there are any possible ranges
@@ -804,7 +929,7 @@ p: 3299927520776
 									 */
 									
 									if (ranges.size() == 1) {
-										List<IntLongPair> resultsForRange = getPositionsThatFitInRange(ranges.get(0), countsAndStartPositions, keys, TILE_LENGTH, seqLength);
+										List<IntLongPair> resultsForRange = getPositionsThatFitInRange(ranges.get(0), positionInGenome, positionInGenomeEnd, countsAndStartPositions, keys, TILE_LENGTH, seqLength);
 										if ( ! resultsForRange.isEmpty()) {
 											
 											IntLongPairs pairs = getILPSFromLists(resultsForRange, null, new IntLongPair(tileCountAndCommon, l));
@@ -816,7 +941,7 @@ p: 3299927520776
 											if (remainingRanges.length > 0) {
 												System.out.println("Found " + remainingRanges.length + " remaining ranges for pairs: " + pairs.toString() + ", remaining ranges[0]: " + Arrays.toString(remainingRanges[0]));
 												for (int[] remainingRange : remainingRanges) {
-													List<IntLongPair> resultsForRemainingRange = getPositionsThatFitInRange(remainingRange, countsAndStartPositions, keys, TILE_LENGTH, seqLength);
+													List<IntLongPair> resultsForRemainingRange = getPositionsThatFitInRange(remainingRange, positionInGenome, positionInGenomeEnd, countsAndStartPositions, keys, TILE_LENGTH, seqLength);
 													if ( ! resultsForRemainingRange.isEmpty()) {
 														
 														System.out.println("Found " + resultsForRemainingRange.size() + " matches for remaining range: " + Arrays.toString(remainingRange));
@@ -845,7 +970,7 @@ p: 3299927520776
 												if (remainingRanges.length > 0) {
 													System.out.println("Found " + remainingRanges.length + " remaining ranges for pairs: " + pairs.toString() + ", remaining ranges[0]: " + Arrays.toString(remainingRanges[0]));
 													for (int[] remainingRange : remainingRanges) {
-														List<IntLongPair> resultsForRemainingRange = getPositionsThatFitInRange(remainingRange, countsAndStartPositions, keys, TILE_LENGTH, seqLength);
+														List<IntLongPair> resultsForRemainingRange = getPositionsThatFitInRange(remainingRange, positionInGenome, positionInGenomeEnd, countsAndStartPositions, keys, TILE_LENGTH, seqLength);
 														if ( ! resultsForRemainingRange.isEmpty()) {
 															
 															System.out.println("Found " + resultsForRemainingRange.size() + " matches for remaining range: " + Arrays.toString(remainingRange));
@@ -872,12 +997,16 @@ p: 3299927520776
 												System.out.println("No remaining ranges found for pairs: " + pairs.toString());
 											}
 											
-											Set<IntLongPairs> resultsListList = results.get(pairs.getIntTally());
-											if (null == resultsListList) {
-												resultsListList = new HashSet<>(4);
-												results.put(pairs.getIntTally(), resultsListList);
+											Set<IntLongPairs> resultsListList = results.putIfAbsent(IntLongPairsUtils.getBasesCoveredByIntLongPairs(pairs, seqLength, TILE_LENGTH), new HashSet<>(Arrays.asList(pairs)));
+											if (null != resultsListList) {
+												resultsListList.add(pairs);
 											}
-											resultsListList.add(pairs);
+//											Set<IntLongPairs> resultsListList = results.get(pairs.getIntTally());
+//											if (null == resultsListList) {
+//												resultsListList = new HashSet<>(4);
+//												results.put(pairs.getIntTally(), resultsListList);
+//											}
+//											resultsListList.add(pairs);
 											checkResults = true;
 										}
 								
@@ -886,8 +1015,8 @@ p: 3299927520776
 										 * 3 IntLongPair objects here
 										 * create the IntLongPairs object with ordered INtLongPair objects - makes the IntLongPairs.equals() and hashcode() valid
 										 */
-										List<IntLongPair> resultsForRange1 = getPositionsThatFitInRange(ranges.get(0), countsAndStartPositions, keys, TILE_LENGTH, seqLength);
-										List<IntLongPair> resultsForRange2 = getPositionsThatFitInRange(ranges.get(1), countsAndStartPositions, keys, TILE_LENGTH, seqLength);
+										List<IntLongPair> resultsForRange1 = getPositionsThatFitInRange(ranges.get(0), positionInGenome, positionInGenomeEnd, countsAndStartPositions, keys, TILE_LENGTH, seqLength);
+										List<IntLongPair> resultsForRange2 = getPositionsThatFitInRange(ranges.get(1), positionInGenome, positionInGenomeEnd, countsAndStartPositions, keys, TILE_LENGTH, seqLength);
 										if ( ! resultsForRange1.isEmpty() ||  ! resultsForRange2.isEmpty()) {
 											IntLongPairs pairs = getILPSFromLists(resultsForRange1, resultsForRange2, new IntLongPair(tileCountAndCommon, l));
 											
@@ -899,7 +1028,7 @@ p: 3299927520776
 											if (remainingRanges.length > 0) {
 												System.out.println("Found " + remainingRanges.length + " remaining ranges for pairs: " + pairs.toString() + ", remaining ranges[0]: " + Arrays.toString(remainingRanges[0]));
 												for (int[] remainingRange : remainingRanges) {
-													List<IntLongPair> resultsForRemainingRange = getPositionsThatFitInRange(remainingRange, countsAndStartPositions, keys, TILE_LENGTH, seqLength);
+													List<IntLongPair> resultsForRemainingRange = getPositionsThatFitInRange(remainingRange, positionInGenome, positionInGenomeEnd, countsAndStartPositions, keys, TILE_LENGTH, seqLength);
 													if ( ! resultsForRemainingRange.isEmpty()) {
 														
 														System.out.println("Found " + resultsForRemainingRange.size() + " matches for remaining range: " + Arrays.toString(remainingRange));
@@ -923,13 +1052,17 @@ p: 3299927520776
 											}
 											
 											
-											
-											Set<IntLongPairs> resultsListList = results.get(pairs.getIntTally());
-											if (null == resultsListList) {
-												resultsListList = new HashSet<>(4);
-												results.put(pairs.getIntTally(), resultsListList);
+											Set<IntLongPairs> resultsListList = results.putIfAbsent(IntLongPairsUtils.getBasesCoveredByIntLongPairs(pairs, seqLength, TILE_LENGTH), new HashSet<>(Arrays.asList(pairs)));
+											if (null != resultsListList) {
+												resultsListList.add(pairs);
 											}
-											resultsListList.add(pairs);
+											
+//											Set<IntLongPairs> resultsListList = results.get(pairs.getIntTally());
+//											if (null == resultsListList) {
+//												resultsListList = new HashSet<>(4);
+//												results.put(pairs.getIntTally(), resultsListList);
+//											}
+//											resultsListList.add(pairs);
 											checkResults = true;
 										}
 									}
@@ -944,7 +1077,7 @@ p: 3299927520776
 					 */
 					if (checkResults &&  ! results.isEmpty()) {
 						for (int key : results.keys()) {
-							if (NumberUtils.sumPackedInt(key) >= (0.95 * (seqLength - (2 * TILE_LENGTH)))) {
+							if (key >= (0.95 * seqLength)) {
 								/*
 								 * done
 								 */
@@ -1120,7 +1253,7 @@ p: 3299927520776
 		return results;
 	}
 	
-	public static List<IntLongPair> getPositionsThatFitInRange(int[] range, TIntObjectMap<TLongList> countsAndStartPositions, int [] sortedKeys, int tileLength, int seqLength) {
+	public static List<IntLongPair> getPositionsThatFitInRange(int[] range, long genomicPositionStart, long genomicPositionEnd, TIntObjectMap<TLongList> countsAndStartPositions, int [] sortedKeys, int tileLength, int seqLength) {
 		List<IntLongPair> results = new ArrayList<>();
 		int maxTileCount = range[1] - range[0] - (tileLength - 1);
 		
@@ -1147,6 +1280,7 @@ p: 3299927520776
 					boolean reverseStrand = NumberUtils.isBitSet(l, REVERSE_COMPLEMENT_BIT);
 					short tileStartPosition = NumberUtils.getShortFromLong(l, TILE_OFFSET);
 					
+					
 					if (reverseStrand) {
 						int [] forwardStrandStartAndStopPositions = getForwardStrandStartAndStop(tileStartPosition, tileCount, TILE_LENGTH, seqLength);
 						tileStartPosition = (short) forwardStrandStartAndStopPositions[0];
@@ -1154,14 +1288,41 @@ p: 3299927520776
 					}
 					if (doesPositionFitWithinRange(range, tileStartPosition, tileCount, BUFFER)) {
 						/*
-						 * we have a keeper!
+						 * now need to check to see if the genomic coordinates have too great an overlap
+						 * This happens when sequences contain repetitive regions
 						 */
-						results.add(new IntLongPair(sortedKeys[i], l));
+						long thisGenomicPositionStart = NumberUtils.getLongPositionValueFromPackedLong(l);
+						long thisGenomicPositionEnd = thisGenomicPositionStart + tileCount + (tileLength - 1);
+						
+						if ( ! doGenomicPositionsOverlap(thisGenomicPositionStart, thisGenomicPositionEnd, genomicPositionStart, genomicPositionEnd, BUFFER)) {
+							/*
+							 * we have a keeper!
+							 */
+							results.add(new IntLongPair(sortedKeys[i], l));
+						}
 					}
 				}
 			}
 		}
 		return results;
+	}
+	
+	public static boolean doGenomicPositionsOverlap(long positionOneStart, long positionOneEnd, long positionTwoStart, long positionTwoEnd, int buffer) {
+		if (positionOneStart > positionTwoEnd || positionTwoStart > positionOneEnd) {
+			return false;
+		}
+		
+		if (positionOneStart > positionTwoStart && positionOneStart < positionTwoEnd) {
+			if (positionTwoEnd - positionOneStart < buffer){
+				return false;
+			}
+		}
+		if (positionTwoStart > positionOneStart && positionTwoStart < positionOneEnd) {
+			if (positionOneEnd - positionTwoStart < buffer){
+				return false;
+			}
+		}
+		return true;
 	}
 	
 	public static boolean doesPositionFitWithinRange(int [] range, int startPosition, int tileCount, int buffer) {
@@ -1225,7 +1386,7 @@ p: 3299927520776
 		if (forwardStrand) {
 			return new int[] {tileStartPositionRS, tileStartPositionRS + (tileCount + tileLength - 1)};
 		} else {
-			return new int[] {seqLength - tileStartPositionRS - (tileCount + tileLength) - 1, seqLength - tileStartPositionRS - 1};
+			return new int[] {seqLength - (tileStartPositionRS + tileCount + tileLength - 1), seqLength - tileStartPositionRS};
 		}
 	}
 	

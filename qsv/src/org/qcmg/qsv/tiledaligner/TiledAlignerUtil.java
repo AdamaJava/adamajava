@@ -592,6 +592,13 @@ public class TiledAlignerUtil {
 			if (null != nextArray) {
 				if (nextArray.length == 1 && nextArray[0] < 0) {
 					commonTileTally++;
+					
+					
+					/*
+					 * Lets try breaking out if we get a commonly occurring tile
+					 */
+					
+//					break;
 				} else {
 					
 					/*
@@ -620,6 +627,15 @@ public class TiledAlignerUtil {
 				}
 			}
 		}
+		
+		/*
+		 * If the commonTallyCount is less than the tally, incorporate it into the tally
+		 */
+		if (tally > commonTileTally) {
+			tally += commonTileTally;
+			commonTileTally = 0;
+		}
+		
 		return NumberUtils.getTileCount(tally, commonTileTally);
 	}
 	
@@ -824,7 +840,8 @@ public class TiledAlignerUtil {
 		 */
 		
 		int insertionCount = getInsertionCount(diffs[1], ' ');
-		if (insertionCount >= 4 && optimiseForGaps && ! useOriginalValues) {
+		if (insertionCount >= 4 &&  ! useOriginalValues) {
+//			if (insertionCount >= 4 && optimiseForGaps && ! useOriginalValues) {
 			swCounter.incrementAndGet();
 			nm = new SmithWatermanGotoh(ref, sequence, 5, -4, 16, 4);	// original
 //			nm = new SmithWatermanGotoh(ref, sequence, 5, -6, 16, 10);	// increase gap penalty
@@ -1080,7 +1097,17 @@ public class TiledAlignerUtil {
 			return blockCount;
 		}
 	}
-	
+
+	/**
+	 * @deprecated Please only use this method with a single ChrPosition in the list
+	 * results are unintuitive if more than 1 is used....
+	 * 
+	 * @param positions
+	 * @param name
+	 * @param sequence
+	 * @param forwardStrand
+	 * @return
+	 */
 	public static String[] getDetailsForBLATRecord(List<ChrPosition> positions, String name,  String sequence, boolean forwardStrand) {
 		System.out.println("getDetailsForBLATRecord with positions: " + positions.stream().map(ChrPosition::toString).collect(Collectors.joining(",")) + ", name: " + name + ", sequence: " + sequence + ", fs: " + forwardStrand);
 		
@@ -1284,18 +1311,93 @@ public class TiledAlignerUtil {
 		}
 		return updatedList;
 	}
+//	public static String[] getDetailsForBLATRecord(ChrPosition bufferredCP, String [] swDiffs, String name, String sequence, boolean forwardStrand, String bufferedReference) {
+//		
+//		String refFromSW = swDiffs[0].replaceAll("-", "");
+//		List<Range<Integer>> blocks = NumberUtils.getBlockStartPositions(swDiffs[2], forwardStrand ? sequence : SequenceUtil.reverseComplement(sequence));
+//		List<int[]> blocksArray = NumberUtils.getBlockStartPositionsNew(swDiffs[2], forwardStrand ? sequence : SequenceUtil.reverseComplement(sequence));
+//		List<int[]> blocksArrayReference = NumberUtils.getBlockStartPositionsNew(swDiffs[2], refFromSW);
+//		List<int[]> allStartPositions = NumberUtils.getAllStartPositions(swDiffs);
+//		int [] queryBlockCountAndCounts = NumberUtils.getBlockCountAndCount(swDiffs[2], '-');
+//		int [] targetBlockCountAndCounts = NumberUtils.getBlockCountAndCount(swDiffs[0], '-');
+//		int [] queryStartPositions = NumberUtils.getActualStartPositions(allStartPositions, true, swDiffs[2].replaceAll("-", ""), forwardStrand ? sequence : SequenceUtil.reverseComplement(sequence), 0);
+//		int [] targetStartPositions = NumberUtils.getActualStartPositions(allStartPositions, false, refFromSW, bufferedReference, bufferredCP.getStartPosition());
+//		
+//		int nCount =  StringUtils.getCount(swDiffs[2], 'N');
+//		int misMatchCount =  StringUtils.getCount(swDiffs[1], '.');
+//		if (nCount > 0 && misMatchCount > 0) {
+//			misMatchCount -= nCount;
+//		}
+//		String [] array = new String[21];
+//		array[0] = "" + StringUtils.getCount(swDiffs[1], '|');		//number of matches
+//		array[1] = "" + misMatchCount;					//number of mis-matches
+//		array[2] = "0";									//number of rep. matches
+//		array[3] = "" + nCount;							//number of N's
+//		array[4] = "" + queryBlockCountAndCounts[0];	// Q gap count
+////		array[4] = "" + (blocksArray.size() - 1);	// Q gap count
+////		array[4] = "" + getInsertionCount(swDiffs[0]);	// Q gap count
+//		array[5] = "" + queryBlockCountAndCounts[1];		// Q gap bases
+//		array[6] = "" + targetBlockCountAndCounts[0];			// T gap count
+//		array[7] = "" + targetBlockCountAndCounts[1];		// T gap bases
+//		array[8] = forwardStrand ? "+" : "-";			// strand
+//		array[9] = name;								// Q name
+//		array[10] = sequence.length() + "";				// Q size
+//		
+//		/*
+//		 * start and end are strand dependent
+//		 * if we are on the forward, its the beginning of the first bloack, and end of the last
+//		 * if we are on reverse, need to reverse!
+//		 */
+//		int start = forwardStrand ?  blocks.get(0).getMinimum().intValue() : (sequence.length() - blocks.get(blocks.size() - 1).getMaximum().intValue());
+//		int end = forwardStrand ?  blocks.get(blocks.size() - 1).getMaximum().intValue() : (sequence.length() - blocks.get(0).getMinimum().intValue());
+//		
+//		array[11] = "" + start;							// Q start
+//		array[12] = "" + end;	// Q end
+//		array[13] = bufferredCP.getChromosome();			// T name
+//		array[14] = "12345";								// T size
+//		int indexOfRefInBufferedRef = StringUtils.indexOfSubStringInString(bufferedReference, refFromSW);
+//		int tStart = indexOfRefInBufferedRef + bufferredCP.getStartPosition();
+//		
+////		if (bufferredCP.getChromosome().equals("chr20")) {
+////			System.out.println("bufferedReference: " + bufferedReference);
+////			System.out.println("swDiffs[0]: " + swDiffs[0]);
+////			System.out.println("bufferredCP.getStartPosition(): " + bufferredCP.getStartPosition());
+////			System.out.println("tStart: " + tStart);
+////		}
+//		
+//		array[15] = "" + tStart;								// T start
+//		array[16] = "" + (refFromSW.length() + tStart);			// T end
+//		
+//		array[17] = "" + allStartPositions.size();					// block count
+//		array[18] = allStartPositions.stream().map(b -> "" + (b[1])).collect(Collectors.joining(Constants.COMMA_STRING));	// block sizes
+//		array[19] = NumberUtils.getArrayAsCommaSeperatedString(queryStartPositions);					// Q block starts
+//		array[20] = NumberUtils.getArrayAsCommaSeperatedString(targetStartPositions);;			// T block starts
+////		array[17] = "" + allStartPositions.size();					// block count
+////		array[18] = allStartPositions.stream().map(b -> "" + (b[1])).collect(Collectors.joining(Constants.COMMA_STRING));	// block sizes
+////		array[19] = allStartPositions.stream().map(b -> "" + b[0]).collect(Collectors.joining(Constants.COMMA_STRING));						// Q block starts
+////		array[20] = allStartPositions.stream().map(b -> "" + (b[2] + tStart)).collect(Collectors.joining(Constants.COMMA_STRING));			// T block starts
+////		array[17] = "" + blocks.size();					// block count
+////		array[18] = blocks.stream().map(b -> "" + (b.getMaximum() - b.getMinimum())).collect(Collectors.joining(Constants.COMMA_STRING));	// block sizes
+////		array[19] = blocks.stream().map(b -> "" + b.getMinimum()).collect(Collectors.joining(Constants.COMMA_STRING));						// Q block starts
+////		array[20] = blocks.stream().map(b -> "" + (b.getMinimum() + tStart)).collect(Collectors.joining(Constants.COMMA_STRING));			// T block starts
+//		
+//		return array;
+//	}
 	public static String[] getDetailsForBLATRecord(ChrPosition bufferredCP, String [] swDiffs, String name, String sequence, boolean forwardStrand, String bufferedReference) {
 		
 		String refFromSW = swDiffs[0].replaceAll("-", "");
-		List<Range<Integer>> blocks = NumberUtils.getBlockStartPositions(swDiffs[2], forwardStrand ? sequence : SequenceUtil.reverseComplement(sequence));
-		List<int[]> blocksArray = NumberUtils.getBlockStartPositionsNew(swDiffs[2], forwardStrand ? sequence : SequenceUtil.reverseComplement(sequence));
-		List<int[]> blocksArrayReference = NumberUtils.getBlockStartPositionsNew(swDiffs[2], refFromSW);
+		String seqFromSW = swDiffs[2].replaceAll("-", "");
+		String sequenceToUse = forwardStrand ? sequence : SequenceUtil.reverseComplement(sequence);
+//		List<Range<Integer>> blocks = NumberUtils.getBlockStartPositions(swDiffs[2], sequenceToUse);
 		List<int[]> allStartPositions = NumberUtils.getAllStartPositions(swDiffs);
 		int [] queryBlockCountAndCounts = NumberUtils.getBlockCountAndCount(swDiffs[2], '-');
 		int [] targetBlockCountAndCounts = NumberUtils.getBlockCountAndCount(swDiffs[0], '-');
-		int [] queryStartPositions = NumberUtils.getActualStartPositions(allStartPositions, true, swDiffs[2].replaceAll("-", ""), forwardStrand ? sequence : SequenceUtil.reverseComplement(sequence), 0);
-		int [] targetStartPositions = NumberUtils.getActualStartPositions(allStartPositions, false, refFromSW, bufferedReference, bufferredCP.getStartPosition());
 		
+		int seqOffset = sequenceToUse.indexOf(seqFromSW);
+		
+		
+//		int [] queryStartPositions = NumberUtils.getActualStartPositions(allStartPositions, true, swDiffs[2].replaceAll("-", ""), forwardStrand ? sequence : SequenceUtil.reverseComplement(sequence), 0);
+//		int [] targetStartPositions = NumberUtils.getActualStartPositions(allStartPositions, false, refFromSW, bufferedReference, bufferredCP.getStartPosition());
 		int nCount =  StringUtils.getCount(swDiffs[2], 'N');
 		int misMatchCount =  StringUtils.getCount(swDiffs[1], '.');
 		if (nCount > 0 && misMatchCount > 0) {
@@ -1307,8 +1409,6 @@ public class TiledAlignerUtil {
 		array[2] = "0";									//number of rep. matches
 		array[3] = "" + nCount;							//number of N's
 		array[4] = "" + queryBlockCountAndCounts[0];	// Q gap count
-//		array[4] = "" + (blocksArray.size() - 1);	// Q gap count
-//		array[4] = "" + getInsertionCount(swDiffs[0]);	// Q gap count
 		array[5] = "" + queryBlockCountAndCounts[1];		// Q gap bases
 		array[6] = "" + targetBlockCountAndCounts[0];			// T gap count
 		array[7] = "" + targetBlockCountAndCounts[1];		// T gap bases
@@ -1321,8 +1421,10 @@ public class TiledAlignerUtil {
 		 * if we are on the forward, its the beginning of the first bloack, and end of the last
 		 * if we are on reverse, need to reverse!
 		 */
-		int start = forwardStrand ?  blocks.get(0).getMinimum().intValue() : (sequence.length() - blocks.get(blocks.size() - 1).getMaximum().intValue());
-		int end = forwardStrand ?  blocks.get(blocks.size() - 1).getMaximum().intValue() : (sequence.length() - blocks.get(0).getMinimum().intValue());
+		int start =  forwardStrand ?  seqOffset + allStartPositions.get(0)[0] : (sequence.length() - (seqOffset + allStartPositions.get(allStartPositions.size() - 1)[0] + allStartPositions.get(allStartPositions.size() - 1)[1]));
+		int end =  forwardStrand ?  (seqOffset + allStartPositions.get(allStartPositions.size() - 1)[0] + allStartPositions.get(allStartPositions.size() - 1)[1]) : (sequence.length() - (seqOffset + allStartPositions.get(0)[0]));
+//		int start = forwardStrand ?  blocks.get(0).getMinimum().intValue() : (sequence.length() - blocks.get(blocks.size() - 1).getMaximum().intValue());
+//		int end = forwardStrand ?  blocks.get(blocks.size() - 1).getMaximum().intValue() : (sequence.length() - blocks.get(0).getMinimum().intValue());
 		
 		array[11] = "" + start;							// Q start
 		array[12] = "" + end;	// Q end
@@ -1331,28 +1433,15 @@ public class TiledAlignerUtil {
 		int indexOfRefInBufferedRef = StringUtils.indexOfSubStringInString(bufferedReference, refFromSW);
 		int tStart = indexOfRefInBufferedRef + bufferredCP.getStartPosition();
 		
-//		if (bufferredCP.getChromosome().equals("chr20")) {
-//			System.out.println("bufferedReference: " + bufferedReference);
-//			System.out.println("swDiffs[0]: " + swDiffs[0]);
-//			System.out.println("bufferredCP.getStartPosition(): " + bufferredCP.getStartPosition());
-//			System.out.println("tStart: " + tStart);
-//		}
-		
 		array[15] = "" + tStart;								// T start
 		array[16] = "" + (refFromSW.length() + tStart);			// T end
 		
 		array[17] = "" + allStartPositions.size();					// block count
 		array[18] = allStartPositions.stream().map(b -> "" + (b[1])).collect(Collectors.joining(Constants.COMMA_STRING));	// block sizes
-		array[19] = NumberUtils.getArrayAsCommaSeperatedString(queryStartPositions);					// Q block starts
-		array[20] = NumberUtils.getArrayAsCommaSeperatedString(targetStartPositions);;			// T block starts
-//		array[17] = "" + allStartPositions.size();					// block count
-//		array[18] = allStartPositions.stream().map(b -> "" + (b[1])).collect(Collectors.joining(Constants.COMMA_STRING));	// block sizes
-//		array[19] = allStartPositions.stream().map(b -> "" + b[0]).collect(Collectors.joining(Constants.COMMA_STRING));						// Q block starts
-//		array[20] = allStartPositions.stream().map(b -> "" + (b[2] + tStart)).collect(Collectors.joining(Constants.COMMA_STRING));			// T block starts
-//		array[17] = "" + blocks.size();					// block count
-//		array[18] = blocks.stream().map(b -> "" + (b.getMaximum() - b.getMinimum())).collect(Collectors.joining(Constants.COMMA_STRING));	// block sizes
-//		array[19] = blocks.stream().map(b -> "" + b.getMinimum()).collect(Collectors.joining(Constants.COMMA_STRING));						// Q block starts
-//		array[20] = blocks.stream().map(b -> "" + (b.getMinimum() + tStart)).collect(Collectors.joining(Constants.COMMA_STRING));			// T block starts
+		array[19] = allStartPositions.stream().map(b -> "" + (b[0] + seqOffset)).collect(Collectors.joining(Constants.COMMA_STRING));	// block sizes					// Q block starts
+		array[20] = allStartPositions.stream().map(b -> "" + (b[2] + tStart)).collect(Collectors.joining(Constants.COMMA_STRING));	// block sizes			// T block starts
+//		array[19] = NumberUtils.getArrayAsCommaSeperatedString(queryStartPositions);					// Q block starts
+//		array[20] = NumberUtils.getArrayAsCommaSeperatedString(targetStartPositions);;			// T block starts
 		
 		return array;
 	}
