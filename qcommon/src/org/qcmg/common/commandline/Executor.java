@@ -64,13 +64,4 @@ public class Executor {
 		return errCode;		
 	}
 
-
-//	public boolean isSuccessful() {
-//		return 0 == errCode;
-//	}
-//
-//
-//	public boolean isFailure() {
-//		return 0 != errCode;
-//	}
 }
