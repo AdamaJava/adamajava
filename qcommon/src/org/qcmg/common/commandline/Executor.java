@@ -10,57 +10,47 @@ import java.io.IOException;
 import java.util.Arrays;
 
 public class Executor {
-	private final String execCommand; 
 	
-	private  StreamConsumer outputStreamConsumer;
-	private  StreamConsumer errorStreamConsumer;
-	private  int errCode;	
-	boolean alreadyExecuted = false;	
+	private final StreamConsumer outputStreamConsumer;
+	private final StreamConsumer errorStreamConsumer;
+	private final int errCode;	
 	
-	public Executor(String arguments, String qualifiedMainClassName) throws IOException, InterruptedException {
-		String classpath = System.getProperty("java.class.path");
-		String javaCommand = "java -classpath " + classpath + " "
-				+ qualifiedMainClassName + " ";
-		this.execCommand = javaCommand + arguments;
+	public Executor(String arguments, String qualifiedMainClassName) throws IOException, InterruptedException {			
+		this("java -classpath " + System.getProperty("java.class.path") + " " + qualifiedMainClassName + " " + arguments);
 	}
 	
-	public Executor(String [] arguments, String qualifiedMainClassName) throws Exception {
-		String classpath = System.getProperty("java.class.path");
-		String javaCommand = "java -classpath " + classpath + " "
-		+ qualifiedMainClassName + " ";
-		this.execCommand = javaCommand + Arrays.toString(arguments);
+	public Executor(String [] arguments, String qualifiedMainClassName) throws IOException, InterruptedException {				
+		this("java -classpath " + System.getProperty("java.class.path") + " " + qualifiedMainClassName + " " + Arrays.toString(arguments) );		
 	}
 
-	public Executor(String jvmArgs, String arguments, String qualifiedMainClassName) throws Exception {
-		String classpath = System.getProperty("java.class.path");
-		String javaCommand = "java -classpath " + classpath + " " + jvmArgs + " "
-				+ qualifiedMainClassName + " ";
-		this.execCommand = javaCommand + arguments;
+	public Executor(String jvmArgs, String arguments, String qualifiedMainClassName) throws IOException, InterruptedException {
+		this("java -classpath " + System.getProperty("java.class.path") + " " + jvmArgs + " " + qualifiedMainClassName + " " + arguments);				
 	}
 
-	public Executor(String execCommand) throws Exception {
-		this.execCommand = execCommand;
-	}
-
-	public StreamConsumer getOutputStreamConsumer() {
-		return outputStreamConsumer;
-	}
-
-	public StreamConsumer getErrorStreamConsumer() {
-		return errorStreamConsumer;
-	}
-
-	public int getErrCode() throws IOException, InterruptedException {
-		if( alreadyExecuted) { return errCode; }
-		
+	public Executor(String execCommand) throws IOException, InterruptedException {
 		Process process = Runtime.getRuntime().exec(execCommand);
 		outputStreamConsumer = new StreamConsumer(process.getInputStream());
 		errorStreamConsumer = new StreamConsumer(process.getErrorStream());
-		outputStreamConsumer.start();;
-		errorStreamConsumer.start();;
-		errCode = process.waitFor();		
-		alreadyExecuted =  true;
-		
+		//has to call run() rather than start() inside the construtor
+		outputStreamConsumer.run();
+		errorStreamConsumer.run();
+		errCode = process.waitFor();			
+	}
+	
+
+	public StreamConsumer getOutputStreamConsumer() {		
+		return outputStreamConsumer;
+	}
+
+	public StreamConsumer getErrorStreamConsumer() {		
+		return errorStreamConsumer;
+	}
+
+	/**
+	 * 
+	 * @return 0 indicate succeed; others indicate failed
+	 */
+	public int getErrCode() {	
 		return errCode;		
 	}
 

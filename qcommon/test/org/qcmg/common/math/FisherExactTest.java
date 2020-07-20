@@ -27,16 +27,17 @@ public class FisherExactTest {
 	
 	@Test
 	public void testFactorialBigDecimal() {
-		assertEquals(BigDecimal.ONE, FisherExact.factorialBigDecimal(0));
-		assertEquals(BigDecimal.ONE, FisherExact.factorialBigDecimal(1));
-		assertEquals(new BigDecimal(2), FisherExact.factorialBigDecimal(2));
-		assertEquals(new BigDecimal(6), FisherExact.factorialBigDecimal(3));
-		assertEquals(new BigDecimal(24), FisherExact.factorialBigDecimal(4));
-		assertEquals(new BigDecimal(120), FisherExact.factorialBigDecimal(5));
-		assertEquals(new BigDecimal(720), FisherExact.factorialBigDecimal(6));
+		FisherExact fish = new FisherExact(true);
+		assertEquals(BigDecimal.ONE, fish.factorialBigDecimal(0));
+		assertEquals(BigDecimal.ONE, fish.factorialBigDecimal(1));
+		assertEquals(new BigDecimal(2), fish.factorialBigDecimal(2));
+		assertEquals(new BigDecimal(6), fish.factorialBigDecimal(3));
+		assertEquals(new BigDecimal(24), fish.factorialBigDecimal(4));
+		assertEquals(new BigDecimal(120), fish.factorialBigDecimal(5));
+		assertEquals(new BigDecimal(720), fish.factorialBigDecimal(6));
 		
 		// and now some meatier numbers
-		assertEquals(new BigDecimal(2432902008176640000l), FisherExact.factorialBigDecimal(20));
+		assertEquals(new BigDecimal(2432902008176640000l), fish.factorialBigDecimal(20));
 	}
 	
 	@Test
@@ -44,7 +45,7 @@ public class FisherExactTest {
 		assertEquals(0.023, FisherExact.getTwoTailedFET(2, 7, 8, 2), 0.0001);		// http://dogsbody.psych.mun.ca/VassarStats/ch8a.html
 		assertEquals(0.0476, FisherExact.getTwoTailedFET(5, 0, 1, 4), 0.0001);	// http://mathworld.wolfram.com/FishersExactTest.html
 		assertEquals(0.002759, FisherExact.getTwoTailedFET(1, 9, 11, 3), 0.00001);
-		assertEquals(true, FisherExact.fisherExact2(1,72,42,24) < 0.00001);
+		assertEquals(true, (new FisherExact()).exact2(1,72,42,24) < 0.00001);
 	}
 	
 	@Test
@@ -57,17 +58,20 @@ public class FisherExactTest {
 	
 	@Test
 	public void testFisherExact() {
-		assertEquals(0.001346076, FisherExact.fisherExact(1, 9, 11, 3), 0.00001);
-		assertEquals(0.001346076, FisherExact.fisherExactMath(1, 9, 11, 3), 0.00001);
+		FisherExact fish = new FisherExact(true);
+		assertEquals(0.001346076, fish.exact(1, 9, 11, 3), 0.00001);
+		assertEquals(0.001346076, fish.exactMath(1, 9, 11, 3), 0.00001);
 	}
 	@Test
 	public void testFisherExact2() {
-		assertEquals(0.001346076, FisherExact.fisherExact2(1, 9, 11, 3), 0.00001);
+		FisherExact fish = new FisherExact(true);
+		assertEquals(0.001346076, fish.exact2(1, 9, 11, 3), 0.00001);
 	}
 	@Test
 	public void testFisherExact3() {
-		assertEquals(0.182, FisherExact.fisherExact(2,5,3,1), 0.001);
-		assertEquals(0.182, FisherExact.fisherExact2(2,5,3,1), 0.001);
+		FisherExact fish = new FisherExact(true);
+		assertEquals(0.182, fish.exact(2,5,3,1), 0.001);
+		assertEquals(0.182, fish.exact2(2,5,3,1), 0.001);
 	}
 	
 	@Test
@@ -87,34 +91,27 @@ public class FisherExactTest {
 			result += (FisherExact.getTwoTailedFET(random.nextInt(100), random.nextInt(100), random.nextInt(100), random.nextInt(100)));
 		}
 		System.out.println("with cache turned on: " + (System.currentTimeMillis() - start) + " - result: " + result);
-		System.out.println("cache size: " + FisherExact.cache.size());
-		FisherExact.cache.clear();
-		
-		FisherExact.USE_CACHE = false;
+		//System.out.println("cache size: " + FisherExact.cache.size());
+			
 		result = 0.0;
 		start = System.currentTimeMillis();
 		for (int i = 0 ; i < noOfLoops ; i++) {
-			result += (FisherExact.getTwoTailedFET(random.nextInt(100), random.nextInt(100), random.nextInt(100), random.nextInt(100)));
+			result += (FisherExact.getTwoTailedFET(random.nextInt(100), random.nextInt(100), random.nextInt(100), random.nextInt(100),false));
 		}
 		System.out.println("with cache turned off: " + (System.currentTimeMillis() - start) + " - result: " + result);
-		System.out.println("cache size: " + FisherExact.cache.size());
+
 		
-		FisherExact.USE_CACHE = true;
 		result = 0.0;
 		start = System.currentTimeMillis();
 		for (int i = 0 ; i < noOfLoops ; i++) {
 			result += (FisherExact.getTwoTailedFET(random.nextInt(100), random.nextInt(100), random.nextInt(100), random.nextInt(100)));
 		}
 		System.out.println("with cache turned on: " + (System.currentTimeMillis() - start) + " - result: " + result);
-		System.out.println("cache size: " + FisherExact.cache.size());
+
 	}
 	
 	@Ignore
 	public void testLargeNumbersSpeed() {
-//		long start = System.currentTimeMillis();
-//		double result = FisherExact.getTwoTailedFET(532, 1228, 1246, 2729);
-//		System.out.println("time taken: " + (System.currentTimeMillis() - start) + ", result: " + result);
-		
 		 long start = System.currentTimeMillis();
 		double result = FisherExact.getTwoTailedFETMath(1580, 31987, 3217, 52834);
 		System.out.println("time taken Math: " + (System.currentTimeMillis() - start) + ", result: " + result);
