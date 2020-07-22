@@ -20,8 +20,8 @@ public class LoadReferencedClasses {
 	
 	
 	public static final <T> void loadClasses(final Class<T> clazz) throws URISyntaxException, IOException, ClassNotFoundException {
-		final long start = System.currentTimeMillis();
-		final long mem = Runtime.getRuntime().freeMemory();
+//		final long start = System.currentTimeMillis();
+//		final long mem = Runtime.getRuntime().freeMemory();
 		
 		final File thisJarFile = new File(clazz.getProtectionDomain().getCodeSource().getLocation().toURI());
 		if (null != thisJarFile && FileUtils.isFileTypeValid(thisJarFile, "jar")) {

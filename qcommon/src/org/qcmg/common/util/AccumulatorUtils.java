@@ -25,6 +25,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.qcmg.common.model.Accumulator;
 import org.qcmg.common.model.GenotypeEnum;
+import org.qcmg.common.model.PileupElement;
 import org.qcmg.common.model.Rule;
 import org.qcmg.common.string.StringUtils;
 
@@ -464,6 +465,33 @@ public class AccumulatorUtils {
 				return -1;
 			return o.quality - quality;
 		}
+		
+		//you need to implement the equals method thus overriding the default compareTo
+		@Override 
+		public boolean equals(Object o) { 
+			if (o == this) { 
+	            return true; 
+	        } 
+			
+			if (!(o instanceof BaseDetails)) { 
+	            return false; 
+	        } 
+			
+			  return compareTo((BaseDetails) o) == 0; 
+		} 
+		
+		@Override  
+		public int hashCode() {
+			/*not very sure, previous code 
+			 * getCountAndQualCombo(int[] array) {...
+			 * long count = array[FORWARD_STRAND_COUNT] + array[REVERSE_STRAND_COUNT];	
+			 * return (count << 32) + quality;
+			 * 		
+			 * here we shift 16 bits for int	 	
+			*/
+		    return (count << 16) + quality;
+		  }
+		
 	}
 	
 	/**

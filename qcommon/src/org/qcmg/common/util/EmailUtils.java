@@ -27,7 +27,7 @@ public class EmailUtils {
 		
 		String errorMessage = null; 
 		if(size > 0) {
-			errorMessage = new String(errorStream);
+			errorMessage = new String(errorStream, "UTF-8");
 		}
 		if (logger != null) logger.info("email sending exit status: " + emalExitStatus + ", msg: " + errorMessage);
 		

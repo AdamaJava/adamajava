@@ -118,5 +118,24 @@ public class PileupElementLite implements Comparable<PileupElementLite> {
 		// only interested in the total count for the purposes or ordering
 		return o.getTotalCount() - getTotalCount();
 	}
+	
+	//you need to implement the equals method thus overriding the default compareTo
+	@Override 
+	public boolean equals(Object o) { 
+		if (o == this) { 
+            return true; 
+        } 
+		
+		if (!(o instanceof PileupElementLite)) { 
+            return false; 
+        } 
+		
+		  return compareTo((PileupElementLite) o) == 0; 
+	} 
+	
+	@Override  
+	public int hashCode() {
+	    return getTotalCount();
+	  }
 
 }

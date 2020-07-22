@@ -397,15 +397,20 @@ public class FileUtils {
 	 *             if either of the files cannot be found in the filesystem.
 	 */
 	public static void copyFile(final File fromFile, final File toFile) throws IOException, FileNotFoundException {
-		InputStream instream = new FileInputStream(fromFile);
-		OutputStream outstream = new FileOutputStream(toFile);
-		byte[] buf = new byte[1024];
-		int len;
-		while ((len = instream.read(buf)) > 0) {
-			outstream.write(buf, 0, len);
+		
+		
+		try(InputStream instream = new FileInputStream(fromFile);
+				OutputStream outstream = new FileOutputStream(toFile);){
+			byte[] buf = new byte[1024];
+			int len;
+			while ((len = instream.read(buf)) > 0) {
+				outstream.write(buf, 0, len);
+			}
 		}
-		instream.close();
-		outstream.close();
+		
+		
+//		instream.close();
+//		outstream.close();
 	}
 
 	/**

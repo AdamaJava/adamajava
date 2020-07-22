@@ -30,9 +30,11 @@ public class PileupElement implements Comparable<PileupElement> {
 	public char getBase() {
 		return base;
 	}
+	
 	public void setBase(char base) {
 		this.base = base;
 	}
+	
 	public int getForwardCount() {
 		return forwardCount;
 	}
@@ -47,6 +49,7 @@ public class PileupElement implements Comparable<PileupElement> {
 		if (b != Byte.MIN_VALUE)
 			addForwardQuality(b);
 	}
+	
 	public void incrementForwardCount() {
 		forwardCount++;
 	}
@@ -73,11 +76,29 @@ public class PileupElement implements Comparable<PileupElement> {
 	public boolean isFoundOnBothStrands() {
 		return forwardCount > 0 && reverseCount > 0;
 	}
-
+	@Override
 	public int compareTo(PileupElement o) {
 		// only interested in the total count for the purposes or ordering
 		return o.getTotalCount() - getTotalCount();
 	}
+	
+	//you need to implement the equals method thus overriding the default compareTo
+	@Override 
+	public boolean equals(Object o) { 
+		if (o == this) { 
+            return true; 
+        } 
+		
+		if (!(o instanceof PileupElement)) { 
+            return false; 
+        } 
+		
+		  return compareTo((PileupElement) o) == 0; 
+	} 
+	@Override  
+	public int hashCode() {
+	    return getTotalCount();
+	  }
 	
 	public void addForwardQuality(byte b) {
 		forwardQualities.add(b);

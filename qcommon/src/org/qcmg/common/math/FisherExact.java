@@ -35,8 +35,9 @@ public class FisherExact {
 	public FisherExact() { this(true); }
 	
 	public BigDecimal factorialBigDecimal(final int number) {
+		if (cache == null) {return null; }
 		
-		if (cache != null && cache.containsKey(number)) {
+		if (cache.containsKey(number)) {
 			return cache.get(number);
 		}
 		
@@ -46,20 +47,15 @@ public class FisherExact {
 		// if number is <= 20 use longs and convert to BD at the end
 		if (number <= 20)  {
 			result = new BigDecimal(factorial(number));
-		} else {
-		
+		} else {		
 			result = BigDecimal.ONE;
 			int tempNumber = number;
 			while (tempNumber > 1) {
 				result = result.multiply(new BigDecimal(tempNumber--));
 			}
 		}
-		
-		if (cache != null ) {
-			cache.putIfAbsent(number,result);
-		}
-		
-		
+				 
+		cache.put(number,result);		
 		return result;
 	}
 	
@@ -126,23 +122,19 @@ public class FisherExact {
 	}
 	
 	private BigDecimal binomialCoefficient(int n, int k) {
+		if (binomialCoefficientCache == null) { return null; }
+		
 		String key = n + ":" + k;
 		// check cache to see if we have an existing entry for this binomial coefficient
-		BigDecimal result = null;
+		BigDecimal result = binomialCoefficientCache.get(key);
 		
-		if (binomialCoefficientCache != null && binomialCoefficientCache.containsKey(key)) {
-			result = binomialCoefficientCache.get(key);
-		} else {
-		
+		// create a new entry if not exists
+		if (result == null) {			 		
 			BigDecimal top = factorialBigDecimal(n);
 			BigDecimal bottom1 = factorialBigDecimal(k);
-			BigDecimal bottom2 = factorialBigDecimal(n-k);
-		
-			result = top.divide(bottom1.multiply(bottom2), MathContext.DECIMAL128);
-			
-			if (binomialCoefficientCache != null) {
-				binomialCoefficientCache.putIfAbsent(key, result);
-			}
+			BigDecimal bottom2 = factorialBigDecimal(n-k);		
+			result = top.divide(bottom1.multiply(bottom2), MathContext.DECIMAL128);			 
+			binomialCoefficientCache.put(key, result);			 
 		}
 		
 		return result;
