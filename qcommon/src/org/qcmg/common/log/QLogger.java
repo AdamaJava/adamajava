@@ -294,12 +294,11 @@ public class QLogger {
 		exec("ExitStatus " + exitStatus);
 	}
 
-	public static String reconstructCommandLine(final String programName,
-			final String[] args) {
+	public static String reconstructCommandLine(final String programName, final String[] args) {
 	 
-		StringBuffer result = new StringBuffer();
+		StringBuffer result = new StringBuffer(programName);
 		for (final String arg : args) {
-			result.append(arg);
+			result.append(" ").append(arg);
 		}
 		return result.toString();
 	}
