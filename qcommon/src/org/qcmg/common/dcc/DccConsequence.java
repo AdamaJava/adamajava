@@ -130,7 +130,7 @@ public enum DccConsequence {
 		MutationType type1 = MutationType.isSubstitution(type) ? MutationType.SNP : type; 
 		
 		//String returnString = "";
-		StringBuffer returnString = new StringBuffer();
+		StringBuilder returnString = new StringBuilder();
 		for (DccConsequence dcEnum : values()) {
 			String str = (returnString.length() > 0 ? "," : "");
 			if (dcEnum.name.equals(name) && dcEnum.containsType(type1)) {				

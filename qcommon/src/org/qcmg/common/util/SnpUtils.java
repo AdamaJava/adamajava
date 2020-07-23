@@ -193,7 +193,7 @@ public class SnpUtils {
 		
 		int startIndex = annotation.indexOf(prefix) + prefix.length();
 		//String numberString = "";
-		StringBuffer numberString = new StringBuffer();
+		StringBuilder numberString = new StringBuilder();
 		for (int i = startIndex, len = annotation.length() ; i < len ; i++) {
 			char c = annotation.charAt(i);
 			if (Character.isDigit(c)) {

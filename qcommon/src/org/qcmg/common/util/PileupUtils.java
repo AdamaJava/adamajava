@@ -73,7 +73,7 @@ public class PileupUtils {
 		if (null == params) throw new IllegalArgumentException("null string array passed to getBases");
 		if (null == startPositions) throw new IllegalArgumentException("null int array passed to getBases");
 				 
-		StringBuffer bases= new StringBuffer();
+		StringBuilder bases= new StringBuilder();
 		for (int i : startPositions) {
 			bases.append(params[i + 1]);
 		}
@@ -92,7 +92,7 @@ public class PileupUtils {
 		if (null == params) throw new IllegalArgumentException("null string array passed to getQualities");
 		if (null == startPositions) throw new IllegalArgumentException("null int array passed to getQualities");
 		
-		StringBuffer qualities = new StringBuffer();
+		StringBuilder qualities = new StringBuilder();
 		for (int i : startPositions) {
 			qualities.append(params[i + 2]);
 		}

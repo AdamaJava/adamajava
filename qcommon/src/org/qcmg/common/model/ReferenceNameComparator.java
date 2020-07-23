@@ -55,7 +55,7 @@ public class ReferenceNameComparator implements Comparator<String> , Serializabl
 		// assume number is at beginning of string
 		// eg 17_ctg5_hap1
 		 
-		StringBuffer returnString = new StringBuffer();
+		StringBuilder returnString = new StringBuilder();
 		for (int i = 0, len = string.length() ; i < len; i++) {
 			char c = string.charAt(i);
 			if (Character.isDigit(c)) returnString.append(c);
