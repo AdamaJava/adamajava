@@ -266,27 +266,6 @@ public class QLogger {
         return time;
 	}
 	
-//	/**
-//	 * it is dibious to call garbage collection, please use tools like VisualVM, 
-//	 * or get estimate RAM usage without call gc 
-//	 * 
-//	 * @return
-//	 */
-//	@Deprecated
-//	public static String getUsedMemory(){
-//		final long MEGABYTE = 1024L * 1024L;
-//
-//		Runtime runtime = Runtime.getRuntime();
-//		runtime.gc();	
-//		long MTotal =  runtime.totalMemory() / MEGABYTE;
-////		long MUsed = MTotal - runtime.freeMemory() / MEGABYTE;
-//		long MMax = runtime.maxMemory() / MEGABYTE;		 
-//		
-//		return   String.format("ResourcesUsed: mem=%dM; vmem=%dM.", MTotal,MMax);
-//		 
-//	}
-	
-	
 	public void logFinalExecutionStats(final int exitStatus, long startTime) {
 		
 		exec("StopTime " + DateUtils.getCurrentDateAsString());
@@ -295,8 +274,11 @@ public class QLogger {
 	}
 
 	public static String reconstructCommandLine(final String programName, final String[] args) {
-	 
-		StringBuffer result = new StringBuffer(programName);
+	    
+		//can't  new StringBuffer(programName), in case programName == null in some unit tests
+		StringBuffer result = new StringBuffer();
+		//append(null) is OK, it return null string
+		result.append(programName);
 		for (final String arg : args) {
 			result.append(" ").append(arg);
 		}
