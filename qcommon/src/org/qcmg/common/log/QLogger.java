@@ -276,7 +276,7 @@ public class QLogger {
 	public static String reconstructCommandLine(final String programName, final String[] args) {
 	    
 		//can't  new StringBuffer(programName), in case programName == null in some unit tests
-		StringBuffer result = new StringBuffer();
+		StringBuilder result = new StringBuilder();
 		//append(null) is OK, it return null string
 		result.append(programName);
 		for (final String arg : args) {
