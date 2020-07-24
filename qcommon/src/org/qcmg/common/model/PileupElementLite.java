@@ -118,24 +118,31 @@ public class PileupElementLite implements Comparable<PileupElementLite> {
 		// only interested in the total count for the purposes or ordering
 		return o.getTotalCount() - getTotalCount();
 	}
-	
-	//you need to implement the equals method thus overriding the default compareTo
-	@Override 
-	public boolean equals(Object o) { 
-		if (o == this) { 
-            return true; 
-        } 
-		
-		if (!(o instanceof PileupElementLite)) { 
-            return false; 
-        } 
-		
-		  return compareTo((PileupElementLite) o) == 0; 
-	} 
-	
-	@Override  
+
+	@Override
 	public int hashCode() {
-	    return getTotalCount();
-	  }
+		final int prime = 31;
+		int result = 1;
+		result = prime * result
+				+ ((readNameHashStrandPositionQualitys == null) ? 0 : readNameHashStrandPositionQualitys.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		PileupElementLite other = (PileupElementLite) obj;
+		if (readNameHashStrandPositionQualitys == null) {
+			if (other.readNameHashStrandPositionQualitys != null)
+				return false;
+		} else if (!readNameHashStrandPositionQualitys.equals(other.readNameHashStrandPositionQualitys))
+			return false;
+		return true;
+	}
 
 }
