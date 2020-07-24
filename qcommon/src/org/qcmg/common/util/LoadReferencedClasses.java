@@ -20,12 +20,9 @@ public class LoadReferencedClasses {
 	
 	
 	public static final <T> void loadClasses(final Class<T> clazz) throws URISyntaxException, IOException, ClassNotFoundException {
-//		final long start = System.currentTimeMillis();
-//		final long mem = Runtime.getRuntime().freeMemory();
 		
 		final File thisJarFile = new File(clazz.getProtectionDomain().getCodeSource().getLocation().toURI());
 		if (null != thisJarFile && FileUtils.isFileTypeValid(thisJarFile, "jar")) {
-//			System.out.println("BEFORE: no of loaded packages: " + Package.getPackages().length);
 		
 			// create JarFile and extract info from manifest
 			final JarFile jf = new JarFile(thisJarFile);
@@ -48,26 +45,18 @@ public class LoadReferencedClasses {
 							e.printStackTrace();
 						}
 					}
-//					System.out.println("time taken: " + (System.currentTimeMillis() - start));
-//					System.out.println("mem used:  " + (mem - Runtime.getRuntime().freeMemory()));
-//					System.out.println("AFTER: no of loaded packages: " + Package.getPackages().length);
 				} else {
 					System.err.println("couldn't locate Class-Path attribute in jar manifest file");
 				}
 			} finally {
 				jf.close();
 			}
-		} else {
-			// we could be running from eclipse in which case the supplied clazz would not have an associated jar file
-//			System.out.println("Null jar file, or invalid file type");
-		}
+		} 
 	}
 	
 	static final <T> void loadClassesInJar(JarFile jarFile, Class<T> clazz, boolean closeFile) throws IOException, ClassNotFoundException {
 		if (null != jarFile) {
-			
-//			System.out.println("loading classes from jar file: " + jarFile.getName());
-			
+						
 			try {
 				Enumeration<JarEntry> enums = jarFile.entries();
 				while (enums.hasMoreElements()) {
@@ -76,12 +65,10 @@ public class LoadReferencedClasses {
 						String classToLoad = je.getName().replace(".class", "").replaceAll(FILE_SEPARATOR, ".");
 						try {
 							//classToLoad = classToLoad.replaceAll(FILE_SEPARATOR, ".");
-//							System.out.println("about to load class: " + classToLoad);
 							clazz.getClassLoader().loadClass(classToLoad);
 						} catch (NoClassDefFoundError e) {	
 							//XXX catching errors is not recommended, but is necessary in this instance
 							// Ignoring - have seen instances where classes refer to other classes not included in the jar file
-//							System.err.println("could not load class: " + classToLoad);
 						}
 					}
 				}
