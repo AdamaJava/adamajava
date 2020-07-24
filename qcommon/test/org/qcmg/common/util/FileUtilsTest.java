@@ -59,19 +59,21 @@ public class FileUtilsTest {
 	
 	@Test
 	public void testFileCheckSum() throws IOException{
-		String[] fnames = new String[] { "test.output.gz", "test.output" };
+	//	String[] fnames = new String[] { "test.output.gz", "test.output" };
+		File[] fs = new File[] {tempFolder.newFile("test.output.gz"), tempFolder.newFile("test.output")};
 		//create same files
-		for(String output: fnames) 		 
+		for(File output: fs) {		 
 			try(Writer writer = new FileWriter(output);) {				
 				for(int i = 0; i < 10; i++ ) writer.write("testing...");		 
-			} 		
-		Assert.assertTrue( FileUtils.getFileCheckSum(fnames[0]).equals(FileUtils.getFileCheckSum(fnames[1])) );		
+			} 	
+		}	
+		Assert.assertTrue( FileUtils.getFileCheckSum(fs[0].getAbsolutePath()).equals(FileUtils.getFileCheckSum(fs[1].getAbsolutePath())) );		
 		
 		//change one of file
-		try(Writer writer = new FileWriter(fnames[1], true);) {				
+		try(Writer writer = new FileWriter(fs[1], true);) {				
 			writer.write("testing...");		 
 		}		
-		Assert.assertTrue( !FileUtils.getFileCheckSum(fnames[0]).equals(FileUtils.getFileCheckSum(fnames[1])) );	
+		Assert.assertTrue( !FileUtils.getFileCheckSum(fs[0].getAbsolutePath()).equals(FileUtils.getFileCheckSum(fs[1].getAbsolutePath())) );	
 		
 	}
 	
@@ -178,8 +180,8 @@ public class FileUtilsTest {
 	}
 	
 	@Test
-	public void testIsInputGzip()    {
-		String[] fnames = new String[] { "test.output.gz", "test.output" };
+	public void testIsInputGzip() throws IOException    {
+		String[] fnames = new String[] { tempFolder.newFile("test.output.gz").getAbsolutePath(), tempFolder.newFile("test.output").getAbsolutePath()   };
 		//create testing data		
 		for(String output: fnames) 		 
 			try {
