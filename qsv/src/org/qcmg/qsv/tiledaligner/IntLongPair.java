@@ -1,9 +1,17 @@
 package org.qcmg.qsv.tiledaligner;
 
+import java.util.Arrays;
+
+import org.qcmg.common.util.NumberUtils;
+
 public class IntLongPair implements Comparable<IntLongPair> {
 	@Override
 	public String toString() {
 		return "IntLongPair [i=" + i + ", l=" + l + "]";
+	}
+	public String toDetailedString() {
+		return "ILP [i=" + Arrays.toString(NumberUtils.splitIntInto2(i)) + ", l strand: " + NumberUtils.isBitSet(l, 62) + ", position in seq:" + NumberUtils.getShortFromLong(l, 40) + ", position: " + NumberUtils.getLongPositionValueFromPackedLong(l) + "]";
+		
 	}
 	private final int i;
 	private final long l;

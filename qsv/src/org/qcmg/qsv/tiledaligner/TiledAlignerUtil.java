@@ -1855,7 +1855,7 @@ public class TiledAlignerUtil {
 		return true;
 	}
 	
-	public static List<BLATRecord> getBlatRecords(TIntObjectMap<int[]> cache, String sequence, String name, int tileLength, String originatingMethod, boolean log, boolean recordsMustComeFromChrInName) {
+	public static List<BLATRecord> getBlatRecords(TIntObjectMap<int[]> cache, String sequence, final String name, int tileLength, String originatingMethod, boolean log, boolean recordsMustComeFromChrInName) {
 		if (null == cache || cache.isEmpty()) {
 			throw new IllegalArgumentException("Null or empty cache passed to getBlatRecords");
 		}
@@ -2153,32 +2153,51 @@ public class TiledAlignerUtil {
 				
 				System.out.println("about to run some splits, no of positions in TARecord:  name: " + name + ", " + taRec.getCountDist() + "");
 				TIntObjectMap<Set<IntLongPairs>> splits = TARecordUtil.getSplitStartPositions(taRec);
+				List<IntLongPairs> potentialSplits = new ArrayList<>();
+				splits.forEachValue(s -> potentialSplits.addAll(s.stream().collect(Collectors.toList())));
+				System.out.println("Number of IntLongPairs in potentialSplits list: " + potentialSplits.size());
+				/*
+				 * loop through them all, if valid single record splits, create BLAT recs, otherwise fall through to SW
+				 */
+				int passingScore = (int)(0.9 * sequence.length());
+				results.addAll(potentialSplits.stream()
+						.filter(ilp -> IntLongPairsUtils.isIntLongPairsAValidSingleRecord(ilp))
+						.map(ilp ->  TARecordUtil.blatRecordFromSplits(ilp, name, sequence.length(), headerMap, TILE_LENGTH))
+						.map(s -> new BLATRecord(s))
+						.filter(br -> br.getScore() > passingScore)
+						.collect(Collectors.toList()));
 				
-				if (splits.size() == 1 && splits.get(splits.keys()[0]).size() == 1) {
-					System.out.println("Have a sinlge splits - will examine to see if it is suitable for single record  name: " + name + ", " + taRec.getCountDist() + "");
-					String [] singleRecordSplits = TARecordUtil.areSplitsCloseEnoughToBeSingleRecord(splits.get(splits.keys()[0]).iterator().next(), name,  sequence.length(), headerMap, TILE_LENGTH);
-					if (null != singleRecordSplits && singleRecordSplits.length > 0) {
-						BLATRecord br = new BLATRecord(singleRecordSplits);
-						if (br.getScore() > (0.9 * sequence.length())) {
-							results.add(br);
-							gotSplits = true;
-						} else {
-							System.out.println("Single blat record from splits not good enough!!: " + br.toString() + ", sequence.length(): " + sequence.length() + ", seq: " + sequence);
-						}
-						
-					}
-				} else {
-					System.out.println("about to run some splits, no of positions in TARecord:  name: " + name + ", " + taRec.getCountDist() + " DONE, breakdown of splits:");
-					System.out.println("splits.size(): " + splits.size());
-					for (int key : splits.keys()) {
-						Set<IntLongPairs> setOfPairs = splits.get(key);
-						System.out.println("splits key: " + key + ", setOfPairs.size(): " + setOfPairs.size());
-						for (IntLongPairs ilp : setOfPairs) {
-							System.out.println("splits key: " + key + ", IntLongPairs[0]: " + ilp.getPairs()[0].toString() +  ", IntLongPairs[1]: " + ilp.getPairs()[1].toString());
-						}
-					}
-					
+				System.out.println("Number of records in results after looking in potentialSplits list: " + results.size());
+				
+				if (results.size() > 0) {
+					gotSplits = true;
 				}
+				
+//				if (splits.size() == 1 && splits.get(splits.keys()[0]).size() == 1) {
+//					System.out.println("Have a sinlge splits - will examine to see if it is suitable for single record  name: " + name + ", " + taRec.getCountDist() + "");
+//					String [] singleRecordSplits = TARecordUtil.areSplitsCloseEnoughToBeSingleRecord(splits.get(splits.keys()[0]).iterator().next(), name,  sequence.length(), headerMap, TILE_LENGTH);
+//					if (null != singleRecordSplits && singleRecordSplits.length > 0) {
+//						BLATRecord br = new BLATRecord(singleRecordSplits);
+//						if (br.getScore() > (0.9 * sequence.length())) {
+//							results.add(br);
+//							gotSplits = true;
+//						} else {
+//							System.out.println("Single blat record from splits not good enough!!: " + br.toString() + ", sequence.length(): " + sequence.length() + ", seq: " + sequence);
+//						}
+//						
+//					}
+//				} else {
+//					System.out.println("about to run some splits, no of positions in TARecord:  name: " + name + ", " + taRec.getCountDist() + " DONE, breakdown of splits:");
+//					System.out.println("splits.size(): " + splits.size());
+//					for (int key : splits.keys()) {
+//						Set<IntLongPairs> setOfPairs = splits.get(key);
+//						System.out.println("splits key: " + key + ", setOfPairs.size(): " + setOfPairs.size());
+//						for (IntLongPairs ilp : setOfPairs) {
+//							System.out.println("splits key: " + key + ", IntLongPairs[0]: " + ilp.getPairs()[0].toString() +  ", IntLongPairs[1]: " + ilp.getPairs()[1].toString());
+//						}
+//					}
+//					
+//				}
 				
 				/*
 				 * If we have our split from the areSplitsCloseEnoughToBeSingleRecord method, no need to go looking for more
@@ -2233,11 +2252,7 @@ public class TiledAlignerUtil {
 					}
 				}
 				
-				if (name == null) {
-					System.out.println("setting name with seq " + sequence + ", and originating method: " + originatingMethod);
-					name = "name";
-				}
-				List<String[]> swResults = getSmithWaterman(tiledAlignerCPs, sequence, name, log);
+				List<String[]> swResults = getSmithWaterman(tiledAlignerCPs, sequence, name != null ? name : "name", log);
 				for (String [] array : swResults) {
 	//				if (debug) {
 	//					System.out.println("about to be turned into a blat record: " + Arrays.deepToString(array));

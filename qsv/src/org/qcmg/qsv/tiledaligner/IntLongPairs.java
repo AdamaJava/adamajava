@@ -1,6 +1,7 @@
 package org.qcmg.qsv.tiledaligner;
 
 import java.util.Arrays;
+import java.util.stream.Collectors;
 
 public class IntLongPairs {
 	
@@ -8,6 +9,9 @@ public class IntLongPairs {
 	@Override
 	public String toString() {
 		return "IntLongPairs [pairs=" + Arrays.toString(pairs) + "]";
+	}
+	public String toDetailedString() {
+		return "ILPs [pairs=" + Arrays.stream(pairs).map(IntLongPair::toDetailedString).collect(Collectors.joining(",")) + "]";
 	}
 	@Override
 	public int hashCode() {

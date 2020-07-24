@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.Set;
 
@@ -521,7 +522,7 @@ p: 3299927520776
 		array[16] = "" + (length + tStart);			// T end
 		array[17] = "1";							// block count
 		array[18] = "" + length;					// block sizes
-		array[19] = "" + start;						// Q block starts
+		array[19] = "" + positionInSequence;		// Q block starts
 		array[20] = "" + tStart;					// T block starts
 		
 		return array;
@@ -778,7 +779,7 @@ p: 3299927520776
 		array[16] = "" + keys[keys.length - 1].getEndPosition();		// T end
 		array[17] = "" + keys.length;								// block count
 		array[18] = "" + Arrays.stream(keys).map(cp -> "" + (cp.getLength() - 1)).collect(Collectors.joining(","));					// block sizes
-		array[19] = "" + Arrays.stream(keys).map(cp -> "" + chrPosBlocks.get(cp)[0]).collect(Collectors.joining(","));					// Q block starts
+		array[19] = "" + Arrays.stream(keys).map(cp -> "" + (cp.getName().equals("R") ? seqLength - (chrPosBlocks.get(cp)[0] + chrPosBlocks.get(cp)[1]) : chrPosBlocks.get(cp)[0])).collect(Collectors.joining(","));				// Q block starts, strand dependent
 		array[20] = "" + Arrays.stream(keys).map(cp -> "" + cp.getStartPosition()).collect(Collectors.joining(","));	// T block starts
 		
 		return array;
@@ -820,10 +821,8 @@ p: 3299927520776
 			 */
 			Arrays.sort(pairs, (pair1, pair2) -> Long.compare(NumberUtils.getLongPositionValueFromPackedLong(pair1.getLong()), NumberUtils.getLongPositionValueFromPackedLong(pair2.getLong())));
 			boolean orderCorrect = true;
-			long lastPosition = -1;
 			int lastSeqPosition = -1;
 			for (IntLongPair pair : pairs) {
-				long thisPosition = NumberUtils.getLongPositionValueFromPackedLong(pair.getLong());
 				int thisSeqPosition = NumberUtils.getShortFromLong(pair.getLong(), TILE_OFFSET);
 				if (lastSeqPosition > -1) {
 					if (thisSeqPosition < lastSeqPosition) {
@@ -840,22 +839,6 @@ p: 3299927520776
 			}
 		}
 		
-		
-		
-//		if (NumberUtils.isBitSet(splits.getPairs()[0].getLong(), REVERSE_COMPLEMENT_BIT) == NumberUtils.isBitSet(splits.getPairs()[1].getLong(), REVERSE_COMPLEMENT_BIT)) {
-//			/*
-//			 * strands are the same - positions in ref next
-//			 */
-//			long firstPosition = NumberUtils.removeShortFromLong(splits.getPairs()[0].getLong(),TILE_OFFSET );
-//			long secondPosition = NumberUtils.removeShortFromLong(splits.getPairs()[1].getLong(), TILE_OFFSET);
-//			if (Math.abs(firstPosition - secondPosition) < MAX_GAP_FOR_SINGLE_RECORD) {
-//				/*
-//				 * by just looking at the numerical position, there is a chance that we will cross contig boundaries, but I would suspect that that chance is slim...
-//				 */
-//				String[] deetsForBlat = blatRecordFromSplits(splits,  name, seqLength, headerMap, tileLength);
-//				return deetsForBlat;
-//			}
-//		}
 		return new String[]{};
 	}
 	
@@ -885,10 +868,10 @@ p: 3299927520776
 				boolean areWeDone = false;
 				boolean checkResults = true;
 				for (int i = keys.length - 1 ; i >= 0 ; i--) {
-					if (areWeDone) {
-						break;
-					}
-					if (i > tileCountCutoff) {
+//					if (areWeDone) {
+//						break;
+//					}
+					if (i >= tileCountCutoff) {
 						int tileCountAndCommon = keys[i];
 						
 						/*
@@ -1075,17 +1058,17 @@ p: 3299927520776
 					/*
 					 * check results, if we have covered all bases in seqLength with our splits, no need to go looking for more
 					 */
-					if (checkResults &&  ! results.isEmpty()) {
-						for (int key : results.keys()) {
-							if (key >= (0.95 * seqLength)) {
-								/*
-								 * done
-								 */
-								areWeDone = true;
-							}
-						}
-						checkResults = false;
-					}
+//					if (checkResults &&  ! results.isEmpty()) {
+//						for (int key : results.keys()) {
+//							if (key >= (0.95 * seqLength)) {
+//								/*
+//								 * done
+//								 */
+//								areWeDone = true;
+//							}
+//						}
+//						checkResults = false;
+//					}
 				}
 			}
 		}
@@ -1094,22 +1077,126 @@ p: 3299927520776
 	
 	public static IntLongPairs getILPSFromLists(List<IntLongPair> list1, List<IntLongPair> list2, IntLongPair pair) {
 		List<IntLongPair> results = new ArrayList<>(4);
-		if (null != list1 && ! list1.isEmpty()) {
-			/*
-			 * no need to sort as the elements are added to the array in a sorted order
-			 */
-			results.add(list1.get(0));
-		}
 		results.add(pair);
-		if (null != list2 && ! list2.isEmpty()) {
-			/*
-			 * no need to sort as the elements are added to the array in a sorted order
-			 */
-			results.add(list2.get(0));
-		}
+		Optional<IntLongPair> list1ILP = getBestILPFromList(list1, pair);
+		list1ILP.ifPresent(ilp -> results.add(ilp));
+		Optional<IntLongPair> list2ILP = getBestILPFromList(list2, pair);
+		list2ILP.ifPresent(ilp -> results.add(ilp));
 		results.sort(null);
 		return new IntLongPairs(results.toArray(new IntLongPair[]{}));
 	}
+	
+	public static Optional<IntLongPair> getBestILPFromList(List<IntLongPair> list, IntLongPair p1) {
+		/*
+		 * check list, if only 1 entry, easy.
+		 * If more than one, sort by ability to make single record, tile count, and then by strand and closeness to originating IntLongPair (p1 here)
+		 */
+		if (null != list && ! list.isEmpty()) {
+			if (list.size() > 1) {
+			
+				/*
+				 * sort by tile count, strand, and location
+				 */
+				boolean p1OnForwardStrand = NumberUtils.isBitSet(p1.getLong(), REVERSE_COMPLEMENT_BIT);
+				long p1Position = NumberUtils.getLongPositionValueFromPackedLong(p1.getLong());
+				list.sort((IntLongPair ilp1, IntLongPair  ilp2) -> {
+					/*
+					 * valid for single record first
+					 */
+					boolean ilp1Valid = IntLongPairsUtils.isIntLongPairsAValidSingleRecord(p1, ilp1);
+					boolean ilp2Valid = IntLongPairsUtils.isIntLongPairsAValidSingleRecord(p1, ilp2);
+					if (ilp1Valid && ! ilp2Valid) {
+						return -1;
+					} else 	if ( ! ilp1Valid && ilp2Valid) {
+						return 1;
+					}
+					
+					/*
+					 * tile count
+					 */
+					int diff = 	NumberUtils.getPartOfPackedInt(ilp2.getInt(), true) - NumberUtils.getPartOfPackedInt(ilp1.getInt(), true);
+					if (diff != 0) {
+						return diff;
+					}
+					/*
+					 * strand
+					 */
+					if ( NumberUtils.isBitSet(ilp1.getLong(), REVERSE_COMPLEMENT_BIT) == p1OnForwardStrand
+							&& NumberUtils.isBitSet(ilp2.getLong(), REVERSE_COMPLEMENT_BIT) != p1OnForwardStrand) {
+						diff = -1;
+					} else if ( NumberUtils.isBitSet(ilp2.getLong(), REVERSE_COMPLEMENT_BIT) == p1OnForwardStrand
+							&& NumberUtils.isBitSet(ilp1.getLong(), REVERSE_COMPLEMENT_BIT) != p1OnForwardStrand) {
+						diff = 1;
+					}
+					if (diff != 0) {
+						return diff;
+					}
+					/*
+					 * proximity to original ILP
+					 */
+					long ilp1Diff = Math.abs( NumberUtils.getLongPositionValueFromPackedLong(ilp1.getLong()) - p1Position);
+					long ilp2Diff = Math.abs( NumberUtils.getLongPositionValueFromPackedLong(ilp2.getLong()) - p1Position);
+					return (ilp1Diff < ilp2Diff) ? -1 : 1;
+				
+				});
+			}
+			
+			return Optional.of(list.get(0));
+			
+		} else {
+			return Optional.empty();
+		}
+	}
+//	public static Optional<IntLongPair> getBestILPFromList(List<IntLongPair> list, IntLongPair p1) {
+//		/*
+//		 * check list, if only 1 entry, easy.
+//		 * If more than one, sort by tile count, and then by strand and closeness to originating IntLongPair (p1 here)
+//		 */
+//		if (null != list && ! list.isEmpty()) {
+//			if (list.size() > 1) {
+//				
+//				/*
+//				 * sort by tile count, strand, and location
+//				 */
+//				boolean p1OnForwardStrand = NumberUtils.isBitSet(p1.getLong(), REVERSE_COMPLEMENT_BIT);
+//				long p1Position = NumberUtils.getLongPositionValueFromPackedLong(p1.getLong());
+//				list.sort((IntLongPair ilp1, IntLongPair  ilp2) -> {
+//					/*
+//					 * tile count
+//					 */
+//					int diff = 	NumberUtils.getPartOfPackedInt(ilp2.getInt(), true) - NumberUtils.getPartOfPackedInt(ilp1.getInt(), true);
+//					if (diff != 0) {
+//						return diff;
+//					}
+//					/*
+//					 * strand
+//					 */
+//					if ( NumberUtils.isBitSet(ilp1.getLong(), REVERSE_COMPLEMENT_BIT) == p1OnForwardStrand
+//							&& NumberUtils.isBitSet(ilp2.getLong(), REVERSE_COMPLEMENT_BIT) != p1OnForwardStrand) {
+//						diff = -1;
+//					} else if ( NumberUtils.isBitSet(ilp2.getLong(), REVERSE_COMPLEMENT_BIT) == p1OnForwardStrand
+//							&& NumberUtils.isBitSet(ilp1.getLong(), REVERSE_COMPLEMENT_BIT) != p1OnForwardStrand) {
+//						diff = 1;
+//					}
+//					if (diff != 0) {
+//						return diff;
+//					}
+//					/*
+//					 * proximity to original ILP
+//					 */
+//					long ilp1Diff = Math.abs( NumberUtils.getLongPositionValueFromPackedLong(ilp1.getLong()) - p1Position);
+//					long ilp2Diff = Math.abs( NumberUtils.getLongPositionValueFromPackedLong(ilp2.getLong()) - p1Position);
+//					return (ilp1Diff < ilp2Diff) ? -1 : 1;
+//					
+//				});
+//			}
+//			
+//			return Optional.of(list.get(0));
+//			
+//		} else {
+//			return Optional.empty();
+//		}
+//	}
 	
 	
 	/**

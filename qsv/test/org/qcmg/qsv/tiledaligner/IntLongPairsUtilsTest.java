@@ -102,6 +102,104 @@ public class IntLongPairsUtilsTest {
 	}
 	
 	@Test
+	public void validForSingleRec() {
+		IntLongPair p1 = new IntLongPair(2752512, 4611705811171869861l);
+		IntLongPair p2 = new IntLongPair(786432, 4611775080404419812l);
+		IntLongPair p3 = new IntLongPair(720896, 87962594069495l);
+		IntLongPairs pairs = new IntLongPairs(new IntLongPair[]{p1, p2, p3});
+		assertEquals(false, IntLongPairsUtils.isIntLongPairsAValidSingleRecord(pairs));
+		
+		p1 = new IntLongPair(7012352, 75868643634102l);
+		p2 = new IntLongPair(3145728, 4611816862119100198l);
+		pairs = new IntLongPairs(new IntLongPair[]{p1, p2});
+		assertEquals(false, IntLongPairsUtils.isIntLongPairsAValidSingleRecord(pairs));
+		
+		p1 = new IntLongPair(786432, 4611722303067418037l);
+		p2 = new IntLongPair(1572864, 4611691516741840313l);
+		pairs = new IntLongPairs(new IntLongPair[]{p1, p2});
+		assertEquals(false, IntLongPairsUtils.isIntLongPairsAValidSingleRecord(pairs));
+		
+		/*
+		 * correctly formed ILPs
+		 */
+		p1 = new IntLongPair(NumberUtils.pack2IntsInto1(20, 0), NumberUtils.addShortToLong(1000l, (short)0, 40));
+		p2 = new IntLongPair(NumberUtils.pack2IntsInto1(15, 0), NumberUtils.addShortToLong(2000l, (short)40, 40));
+		pairs = new IntLongPairs(new IntLongPair[]{p1, p2});
+		assertEquals(true, IntLongPairsUtils.isIntLongPairsAValidSingleRecord(pairs));
+		
+		/*
+		 * stretch out the genomic distance a bit...
+		 */
+		p1 = new IntLongPair(NumberUtils.pack2IntsInto1(20, 0), NumberUtils.addShortToLong(100000l, (short)0, 40));
+		p2 = new IntLongPair(NumberUtils.pack2IntsInto1(15, 0), NumberUtils.addShortToLong(599999l, (short)40, 40));
+		pairs = new IntLongPairs(new IntLongPair[]{p1, p2});
+		assertEquals(true, IntLongPairsUtils.isIntLongPairsAValidSingleRecord(pairs));
+		
+		/*
+		 * stretch out the genomic distance a bit too far...
+		 */
+		p1 = new IntLongPair(NumberUtils.pack2IntsInto1(20, 0), NumberUtils.addShortToLong(100000l, (short)0, 40));
+		p2 = new IntLongPair(NumberUtils.pack2IntsInto1(15, 0), NumberUtils.addShortToLong(600001l, (short)40, 40));
+		pairs = new IntLongPairs(new IntLongPair[]{p1, p2});
+		assertEquals(false, IntLongPairsUtils.isIntLongPairsAValidSingleRecord(pairs));
+	}
+	
+	@Test
+	public void validForSingleRecWrongSeqOrder() {
+		IntLongPair p1 = new IntLongPair(NumberUtils.pack2IntsInto1(20, 0), NumberUtils.addShortToLong(2000l, (short)0, 40));
+		IntLongPair p2 = new IntLongPair(NumberUtils.pack2IntsInto1(15, 0), NumberUtils.addShortToLong(1000l, (short)40, 40));
+		IntLongPairs pairs = new IntLongPairs(new IntLongPair[]{p1, p2});
+		assertEquals(false, IntLongPairsUtils.isIntLongPairsAValidSingleRecord(pairs));
+		
+		p1 = new IntLongPair(NumberUtils.pack2IntsInto1(20, 0), NumberUtils.addShortToLong(1000l, (short)40, 40));
+		p2 = new IntLongPair(NumberUtils.pack2IntsInto1(15, 0), NumberUtils.addShortToLong(2000l, (short)0, 40));
+		pairs = new IntLongPairs(new IntLongPair[]{p1, p2});
+		assertEquals(false, IntLongPairsUtils.isIntLongPairsAValidSingleRecord(pairs));
+		
+		p1 = new IntLongPair(NumberUtils.pack2IntsInto1(20, 0), NumberUtils.addShortToLong(3000l, (short)40, 40));
+		p2 = new IntLongPair(NumberUtils.pack2IntsInto1(15, 0), NumberUtils.addShortToLong(2000l, (short)0, 40));
+		pairs = new IntLongPairs(new IntLongPair[]{p1, p2});
+		assertEquals(true, IntLongPairsUtils.isIntLongPairsAValidSingleRecord(pairs));
+	}
+	@Test
+	public void validForSingleRecWrongStrand() {
+		IntLongPair p1 = new IntLongPair(NumberUtils.pack2IntsInto1(20, 0), NumberUtils.addShortToLong(NumberUtils.setBit(100l, 62), (short)0, 40));
+		IntLongPair p2 = new IntLongPair(NumberUtils.pack2IntsInto1(15, 0), NumberUtils.addShortToLong(1000l, (short)40, 40));
+		IntLongPairs pairs = new IntLongPairs(new IntLongPair[]{p1, p2});
+		assertEquals(false, IntLongPairsUtils.isIntLongPairsAValidSingleRecord(pairs));
+		
+		p1 = new IntLongPair(NumberUtils.pack2IntsInto1(20, 0), NumberUtils.addShortToLong(NumberUtils.setBit(100l, 62), (short)0, 40));
+		p2 = new IntLongPair(NumberUtils.pack2IntsInto1(15, 0), NumberUtils.addShortToLong(NumberUtils.setBit(200l, 62), (short)0, 40));
+		pairs = new IntLongPairs(new IntLongPair[]{p1, p2});
+		assertEquals(true, IntLongPairsUtils.isIntLongPairsAValidSingleRecord(pairs));
+		
+		p1 = new IntLongPair(NumberUtils.pack2IntsInto1(20, 0), NumberUtils.addShortToLong(100l, (short)0, 40));
+		p2 = new IntLongPair(NumberUtils.pack2IntsInto1(15, 0), NumberUtils.addShortToLong(NumberUtils.setBit(200l, 62), (short)0, 40));
+		pairs = new IntLongPairs(new IntLongPair[]{p1, p2});
+		assertEquals(false, IntLongPairsUtils.isIntLongPairsAValidSingleRecord(pairs));
+	}
+	
+	@Test
+	public void isValidRealLife1() {
+		/*
+		 * IntLongPairs [pairs=[IntLongPair [i=1048576, l=4611712409752715004], IntLongPair [i=851968, l=4611688220496904249]]]
+		 * IntLongPairs [pairs=[IntLongPair [i=917504, l=4611714608830778186], IntLongPair [i=851968, l=4611688220550996199]]]
+		 * IntLongPairs [pairs=[IntLongPair [i=1048576, l=4611712409807521324], IntLongPair [i=851968, l=4611688220550996199]]]
+		 */
+		IntLongPairs p = new IntLongPairs(new IntLongPair(1048576, 4611712409752715004l), new IntLongPair(851968, 4611688220496904249l));
+		assertEquals(false, IntLongPairsUtils.isIntLongPairsAValidSingleRecord(p));
+		p = new IntLongPairs(new IntLongPair(917504, 4611714608830778186l), new IntLongPair(851968, 4611688220550996199l));
+		assertEquals(false, IntLongPairsUtils.isIntLongPairsAValidSingleRecord(p));
+		p = new IntLongPairs(new IntLongPair(1048576, 4611712409807521324l), new IntLongPair(851968, 4611688220550996199l));
+		assertEquals(false, IntLongPairsUtils.isIntLongPairsAValidSingleRecord(p));
+		
+		IntLongPair p11 = new IntLongPair(NumberUtils.getTileCount(12,0), 4611716807799226451l);
+		IntLongPair p6 = new IntLongPair(NumberUtils.getTileCount(13,0), 4611688220496904249l);
+		p = new IntLongPairs(p11, p6);
+		assertEquals(true, IntLongPairsUtils.isIntLongPairsAValidSingleRecord(p));
+	}
+	
+	@Test
 	public void getStartPos() {
 		IntLongPair p1 = new IntLongPair(2752512, 4611705811171869861l);
 		assertEquals(33, IntLongPairsUtils.getStartPositionInSequence(p1, 105));
@@ -127,7 +225,6 @@ public class IntLongPairsUtilsTest {
 		set.add(pairs);
 		set.add(pairs2);
 		assertEquals(1, set.size());
-		
 	}
 
 }
