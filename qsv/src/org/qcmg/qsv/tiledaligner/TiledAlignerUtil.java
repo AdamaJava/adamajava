@@ -53,6 +53,7 @@ import htsjdk.samtools.reference.FastaSequenceIndex;
 import htsjdk.samtools.reference.IndexedFastaSequenceFile;
 import htsjdk.samtools.reference.ReferenceSequence;
 import htsjdk.samtools.util.SequenceUtil;
+import htsjdk.samtools.util.SequenceUtil.SequenceListsDifferException;
 
 public class TiledAlignerUtil {
 	
@@ -1935,14 +1936,6 @@ public class TiledAlignerUtil {
 			}
 		}
 		
-//		if (log) {
-//			System.out.println("about to setup TARecord with seq: " + sequence + " map size: " + map1.size());
-//			for (Entry<Integer, TLongList> entry : map1.entrySet()) {
-//				System.out.println("about to setup TARecord with map1 entry key: " + entry.getKey() + " value: ");
-//				entry.getValue().forEach(l -> {System.out.println("value in list: " + l); return true;});
-//			}
-//		}
-		
 		TARecord taRec = new TARecord(sequence, map1);
 		boolean needToRunSW = true;
 		
@@ -1963,7 +1956,8 @@ public class TiledAlignerUtil {
 				/*
 				 * only proceed if all bases are represented in this string
 				 */
-				if (StringUtils.determineSequenceComplexity(sequence).cardinality() == 4) {
+				int seqComplexity = StringUtils.determineSequenceComplexity(sequence).cardinality();
+				if (seqComplexity == 4 || (seqComplexity >= 2 && sequence.length() >= 50)) {
 					int buffer = 10;
 					/*
 					 * only want to return BLATRecords that have a score of greater than MINIMUM_BLAT_RECORD_SCORE (20), and in the case of the perfect match, than means sequence length needs to be more than 20
@@ -2155,7 +2149,6 @@ public class TiledAlignerUtil {
 				TIntObjectMap<Set<IntLongPairs>> splits = TARecordUtil.getSplitStartPositions(taRec);
 				List<IntLongPairs> potentialSplits = new ArrayList<>();
 				splits.forEachValue(s -> potentialSplits.addAll(s.stream().collect(Collectors.toList())));
-				System.out.println("Number of IntLongPairs in potentialSplits list: " + potentialSplits.size());
 				/*
 				 * loop through them all, if valid single record splits, create BLAT recs, otherwise fall through to SW
 				 */
@@ -2164,14 +2157,21 @@ public class TiledAlignerUtil {
 						.filter(ilp -> IntLongPairsUtils.isIntLongPairsAValidSingleRecord(ilp))
 						.map(ilp ->  TARecordUtil.blatRecordFromSplits(ilp, name, sequence.length(), headerMap, TILE_LENGTH))
 						.map(s -> new BLATRecord(s))
-						.filter(br -> br.getScore() > passingScore)
+//						.filter(br -> br.getScore() > passingScore)
 						.collect(Collectors.toList()));
 				
-				System.out.println("Number of records in results after looking in potentialSplits list: " + results.size());
+				System.out.println("Number of IntLongPairs in potentialSplits list: " + potentialSplits.size() + ", # of records in results after examining potentialSplits: " + results.size());
 				
-				if (results.size() > 0) {
-					gotSplits = true;
-				}
+				/*
+				 * check to see if we have a record that meets the passing score
+				 * if so, set getSplits to true, which means no need to smith waterman
+				 */
+				
+				gotSplits = results.stream().anyMatch(br -> br.getScore() > passingScore);
+				
+//				if (results.size() > 0) {
+//					gotSplits = true;
+//				}
 				
 //				if (splits.size() == 1 && splits.get(splits.keys()[0]).size() == 1) {
 //					System.out.println("Have a sinlge splits - will examine to see if it is suitable for single record  name: " + name + ", " + taRec.getCountDist() + "");
@@ -2227,7 +2227,7 @@ public class TiledAlignerUtil {
 //					}
 						
 					} else {
-						System.out.println("No split record found for name: " + name);
+						System.out.println("No split record found for name: " + name + ", gotSplits: " + gotSplits);
 					}
 				}
 			}
@@ -2240,19 +2240,20 @@ public class TiledAlignerUtil {
 				 */
 				TLongList bestStartPositions = taRec.getStartPositions(12, true, 20);
 				
-				TLongList bestStartPositionsUpdated = ListUtils.removeAdjacentPositionsInList(bestStartPositions, 200);
+//				TLongList bestStartPositionsUpdated = ListUtils.removeAdjacentPositionsInList(bestStartPositions, 200);
 	//		System.out.println("Number of entries in bestStartPositions: " + bestStartPositions.size() + ", Number of entries in bestStartPositionsUpdated (removed adjacent positions): " + bestStartPositionsUpdated.size());
 				/*
 				 * smith waterman
 				 */
-				List<ChrPosition> tiledAlignerCPs = Arrays.stream(bestStartPositionsUpdated.toArray()).mapToObj(l -> headerMap.getChrPositionFromLongPosition(l)).filter(cp -> null != cp).collect(Collectors.toList());
+				List<ChrPosition> tiledAlignerCPs = Arrays.stream(bestStartPositions.toArray()).mapToObj(l -> headerMap.getChrPositionFromLongPosition(l)).filter(cp -> null != cp).collect(Collectors.toList());
+				List<ChrPosition> tiledAlignerCPsUpdated =  ListUtils.removeAdjacentPositionsInList(tiledAlignerCPs, sequence.length() < 100 ? 350 : 1700);
 				if (log) {
-					for (ChrPosition cp : tiledAlignerCPs) {
+					for (ChrPosition cp : tiledAlignerCPsUpdated) {
 						System.out.println("will look at " + cp.toIGVString() + ", strand: " + ((ChrPositionName)cp).getName());
 					}
 				}
 				
-				List<String[]> swResults = getSmithWaterman(tiledAlignerCPs, sequence, name != null ? name : "name", log);
+				List<String[]> swResults = getSmithWaterman(tiledAlignerCPsUpdated, sequence, name != null ? name : "name", log);
 				for (String [] array : swResults) {
 	//				if (debug) {
 	//					System.out.println("about to be turned into a blat record: " + Arrays.deepToString(array));

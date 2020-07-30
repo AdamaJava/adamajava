@@ -45,9 +45,6 @@ public class IntLongPairs {
 		if (pairs.length < 2) {
 			throw new IllegalArgumentException("attempt to instantiate IntLongPairs with array of invalid length! " + Arrays.deepToString(pairs));
 		}
-		/*
-		 * maybe need to check that we are not adding an array that is not exactly 3 in length
-		 */
 		this.pairs = pairs;
 	}
 	
@@ -64,13 +61,5 @@ public class IntLongPairs {
 	
 	public IntLongPair[] getPairs() {
 		return pairs;
-	}
-	
-	public int getIntTally() {
-		int tally = 0;
-		for (IntLongPair ilp : pairs) {
-			tally += ilp.getInt();
-		}
-		return tally;
 	}
 }

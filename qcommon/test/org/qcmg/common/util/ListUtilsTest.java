@@ -10,6 +10,8 @@ import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.qcmg.common.model.ChrPointPosition;
+import org.qcmg.common.model.ChrPosition;
 
 import gnu.trove.list.TLongList;
 import gnu.trove.list.array.TLongArrayList;
@@ -38,7 +40,6 @@ public class ListUtilsTest {
 		assertEquals(6, ListUtils.positionOfStringInArray(new String[]{"A","A","C","C","G","G","T","T"}, "T"));
 		assertEquals(2, ListUtils.positionOfStringInArray(new String[]{"A","A","C","C","G","G","T","T"}, "C"));
 	}
-	
 	
 	@Test
 	public void removeAdjacent() {
@@ -78,6 +79,13 @@ public class ListUtilsTest {
 	}
 	
 	@Test
+	public void removeAdjacent4() {
+		TLongList list = new TLongArrayList(new long[] {26607815});
+		TLongList newList = ListUtils.removeAdjacentPositionsInList(list, 100);
+		assertEquals(1, newList.size());
+	}
+	
+	@Test
 	public void removeAdjacent3() {
 		TLongList list = new TLongArrayList(new long[] {26607815, 26607796, 26607788, 26607785, 26607782, 26607779, 26607776, 26607855, 26607821, 26607818});
 		TLongList newList = ListUtils.removeAdjacentPositionsInList(list, 100);
@@ -90,6 +98,50 @@ public class ListUtilsTest {
 		
 		newList = ListUtils.removeAdjacentPositionsInList(list);
 		assertEquals(10, newList.size());
+		
+		list = new TLongArrayList(new long[] {78868334, 78868440, 10369912, 16511867, 22857170, 46150507, 51073516, 81109614, 112165843, 126502850});
+		newList = ListUtils.removeAdjacentPositionsInList(list, 200);
+		assertEquals(9, newList.size());
+		assertEquals(false, newList.contains(78868440));
+	}
+	
+	@Test
+	public void removeAdjacentChrPos() {
+		List<ChrPosition> list = Arrays.asList(new ChrPointPosition("chrX", 10369912), 
+				new ChrPointPosition("chrX", 16511867), 
+				new ChrPointPosition("chrX", 78868334), 
+				new ChrPointPosition("chrX", 22857170), 
+				new ChrPointPosition("chrX", 46150507), 
+				new ChrPointPosition("chrX", 51073516), 
+				new ChrPointPosition("chrX", 78868440), 
+				new ChrPointPosition("chrX", 81109614), 
+				new ChrPointPosition("chrX", 112165843), 
+				new ChrPointPosition("chrX", 126502850));
+		List<ChrPosition> newList = ListUtils.removeAdjacentPositionsInList(list, 200);
+		assertEquals(9, newList.size());
+		assertEquals(false, newList.contains(new ChrPointPosition("chrX", 78868440)));
+	}
+	
+	@Test
+	public void removeAdjacentChrPos2() {
+		List<ChrPosition> list = Arrays.asList(new ChrPointPosition("chr21", 11125016), 
+				new ChrPointPosition("chr21", 11125294), 
+				new ChrPointPosition("chr21", 11126661)); 
+		List<ChrPosition> newList = ListUtils.removeAdjacentPositionsInList(list, 200);
+		assertEquals(3, newList.size());
+		
+		newList = ListUtils.removeAdjacentPositionsInList(list, 300);
+		assertEquals(2, newList.size());
+		
+		newList = ListUtils.removeAdjacentPositionsInList(list, 1700);
+		assertEquals(1, newList.size());
+	}
+	
+	@Test
+	public void removeAdjacentChrPosSingleEntry() {
+		List<ChrPosition> list = Arrays.asList(new ChrPointPosition("chrX", 10369912)); 
+		List<ChrPosition> newList = ListUtils.removeAdjacentPositionsInList(list, 200);
+		assertEquals(1, newList.size());
 	}
 	
 	@Test
@@ -178,5 +230,4 @@ public class ListUtilsTest {
 		Assert.assertEquals("B", unsortedList.get(3));
 		Assert.assertEquals("A", unsortedList.get(4));
 	}
-
 }

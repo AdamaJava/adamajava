@@ -323,79 +323,8 @@ public class TARecord {
 				}
 			}
 		}
-		
-		
-		
-			
-			
-			
-//			if (size - 2 >= 0) {
-//				if (countAndStartPositionsMap.get(keys[size - 2]).size() + list.size() < maxCutoff) {
-//					list.addAll(countAndStartPositionsMap.get(keys[size - 2]));
-//				}
-//			}
-//		}
-//		
-//		/*
-//		 * add in thrid place too, it it meets out strict criteria...
-//		 */
-//		if (list.size() < maxCutoff) {
-//			if (size - 3 >= 0) {
-//				if (countAndStartPositionsMap.get(keys[size - 3]).size() + list.size() < maxCutoff) {
-//					list.addAll(countAndStartPositionsMap.get(keys[size - 3]));
-//				}
-//			}
-//		}
-//		
-		
-		
-		
-//		if (list.size() < 50) {
-//		
-//			for (int i = size - 2 ; i >= 0 ; i--) {
-//				int subListSize = 	countAndStartPositionsMap.get(keys[i]).size();
-//				if (list.size() + subListSize < 50) {
-//					list.addAll(countAndStartPositionsMap.get(keys[i]));
-//				}
-//			}
-//		}
-		
 		return list;
 	}
-//	public TLongList getStartPositions(int matchingTileMinimumCount, boolean bothStrandsMustBePresent, int maxNumberOfStartPositions) {
-//		TLongList list = new TLongArrayList();
-//		
-//		if (null == countAndStartPositionsMap || countAndStartPositionsMap.isEmpty()) {
-//			return list;
-//		}
-//		
-//		int [] keys = countAndStartPositionsMap.keys();
-//		Arrays.sort(keys);
-//		
-//		/*
-//		 * If we have the maximumTileCount or a tileCount that is very high (over 100) then only return the top 3
-//		 */
-//		boolean limitNumberOfPositions = (keys[keys.length - 1] > 100 || keys[keys.length - 1] == (sequence.length() - TiledAlignerUtil.TILE_LENGTH + 1));
-//		
-////		list.addAll(countAndStartPositionsMap.get(keys[keys.length - 1]));
-//		for (int i = keys.length - 1 ; list.size() <= maxNumberOfStartPositions && (limitNumberOfPositions ? i >= Math.max(0, keys.length - 3) : i >= 0) ; i--) {
-//			if (keys[i] >= matchingTileMinimumCount) {
-//				list.addAll(countAndStartPositionsMap.get(keys[i]));
-//			}
-//		}
-//		
-//		if (bothStrandsMustBePresent) {
-//			BitSet bs = areBothStrandsRepresented(list);
-//			if ( ! bs.get(0)) {
-//				list.addAll(getStartPositionsByStrand(countAndStartPositionsMap, true));
-//			}
-//			if ( ! bs.get(1)) {
-//				list.addAll(getStartPositionsByStrand(countAndStartPositionsMap, false));
-//			}
-//		}
-//		
-//		return list;
-//	}
 	
 	public TAClassifier getClassification() {
 		int perfectMatchCount = sequence.length() - TiledAlignerUtil.TILE_LENGTH + 1;

@@ -6,8 +6,11 @@
  */
 package org.qcmg.common.util;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+
+import org.qcmg.common.model.ChrPosition;
 
 import gnu.trove.list.TLongList;
 import gnu.trove.list.array.TLongArrayList;
@@ -66,7 +69,7 @@ public class ListUtils {
 		TLongList list = new TLongArrayList();
 		if (null != originalList) {
 			int size = originalList.size();
-			if (size > 0) {
+			if (size > 1) {
 				originalList.sort();
 				long current = originalList.get(0);
 				list.add(current);
@@ -78,6 +81,31 @@ public class ListUtils {
 						previous = current;
 					}
 				}
+			} else if (size == 1) {
+				list.add(originalList.get(0));
+			}
+		}
+		return list;
+	}
+	
+	public static List<ChrPosition> removeAdjacentPositionsInList(List<ChrPosition> originalList, int buffer) {
+		List<ChrPosition> list = new ArrayList<>();
+		if (null != originalList) {
+			int size = originalList.size();
+			if (size > 1) {
+				originalList.sort(null);
+				ChrPosition current = originalList.get(0);
+				list.add(current);
+				ChrPosition previous = current;
+				for (int i = 1 ;  i < size ; i++) {
+					current = originalList.get(i);
+					if ( ! current.getChromosome().equals(previous.getChromosome()) || Math.abs(current.getStartPosition() - previous.getStartPosition()) > buffer) { 
+						list.add(current);
+						previous = current;
+					}
+				}
+			} else if (size == 1) {
+				list.add(originalList.get(0));
 			}
 		}
 		return list;

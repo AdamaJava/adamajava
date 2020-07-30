@@ -2,7 +2,9 @@ package org.qcmg.qsv.tiledaligner;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.junit.Test;
@@ -161,6 +163,61 @@ public class IntLongPairsUtilsTest {
 		pairs = new IntLongPairs(new IntLongPair[]{p1, p2});
 		assertEquals(true, IntLongPairsUtils.isIntLongPairsAValidSingleRecord(pairs));
 	}
+	
+	@Test
+	public void getBestMatching() {
+		/*
+		 * list
+		 * [IntLongPair [i=2555905, l=160529393802964], IntLongPair [i=2228225, l=103354788666256], IntLongPair [i=786433, l=120946983753377], IntLongPair [i=720897, l=120946996001436], IntLongPair [i=720897, l=120947046443537], 
+		 * IntLongPair [i=655361, l=117648551146731], IntLongPair [i=655361, l=122046505277795], IntLongPair [i=655361, l=122046603764683], IntLongPair [i=655360, l=4611864140062071056], IntLongPair [i=589825, l=83563602760479], 
+		 * IntLongPair [i=589825, l=117648490513400], IntLongPair [i=589825, l=120947011893536], IntLongPair [i=589825, l=123145998326992]]
+		 * pair
+		 * IntLongPairs [pairs=[IntLongPair [i=4390912, l=695655218], IntLongPair [i=5570561, l=217703998447365]]]
+		 * seqLength: 295
+		 */
+		IntLongPairs pairs = new IntLongPairs(new IntLongPair(4390912,695655218), new IntLongPair(5570561, 217703998447365l));
+		List<IntLongPair> potentials = Arrays.asList(
+				new IntLongPair(2555905, 160529393802964l),
+				new IntLongPair(2228225, 103354788666256l),
+				new IntLongPair(786433, 120946983753377l),
+				new IntLongPair(720897, 120946996001436l),
+				new IntLongPair(720897, 120947046443537l),
+				new IntLongPair(655361, 117648551146731l),
+				new IntLongPair(655361, 122046505277795l),
+				new IntLongPair(655361, 122046603764683l),
+				new IntLongPair(655361, 4611864140062071056l),
+				new IntLongPair(589825, 83563602760479l),
+				new IntLongPair(589825, 117648490513400l),
+				new IntLongPair(589825, 120947011893536l),
+				new IntLongPair(589825, 123145998326992l));
+		
+		System.out.println("pairs: " + pairs.toDetailedString());
+		for (IntLongPair ilp : potentials) {
+			System.out.println("potential partners: " + ilp.toDetailedString());
+		}
+		
+		IntLongPairsUtils.addBestILPtoPairs(pairs, potentials);
+		
+		System.out.println("pairs: " + pairs.toDetailedString());
+		assertEquals(4, pairs.getPairs().length);
+		Arrays.sort(pairs.getPairs());
+		assertEquals(true, Arrays.binarySearch(pairs.getPairs(), new IntLongPair(2555905, 160529393802964l)) >= 0);
+		assertEquals(true, Arrays.binarySearch(pairs.getPairs(), new IntLongPair(2228225, 103354788666256l)) >= 0);
+	}
+	
+	
+	@Test
+	public void isSubset() {
+		
+		List<IntLongPairs> existingPairs = Arrays.asList(new IntLongPairs(new IntLongPair[]{new IntLongPair(10,1000), new IntLongPair(20, 2000), new IntLongPair(30, 3000)}));
+		assertEquals(true, IntLongPairsUtils.isPairsASubSetOfExistingPairs(existingPairs, new IntLongPairs(new IntLongPair(10,1000), new IntLongPair(20, 2000))));
+		assertEquals(true, IntLongPairsUtils.isPairsASubSetOfExistingPairs(existingPairs, new IntLongPairs(new IntLongPair(10,1000), new IntLongPair(30, 3000))));
+		assertEquals(true, IntLongPairsUtils.isPairsASubSetOfExistingPairs(existingPairs, new IntLongPairs(new IntLongPair(20,2000), new IntLongPair(30, 3000))));
+		assertEquals(false, IntLongPairsUtils.isPairsASubSetOfExistingPairs(existingPairs, new IntLongPairs(new IntLongPair(40,4000), new IntLongPair(30, 3000))));
+		assertEquals(false, IntLongPairsUtils.isPairsASubSetOfExistingPairs(existingPairs, new IntLongPairs(new IntLongPair(20,2000), new IntLongPair(40, 4000))));
+		assertEquals(false, IntLongPairsUtils.isPairsASubSetOfExistingPairs(existingPairs, new IntLongPairs(new IntLongPair(40,4000), new IntLongPair(10, 1000))));
+	}
+	
 	@Test
 	public void validForSingleRecWrongStrand() {
 		IntLongPair p1 = new IntLongPair(NumberUtils.pack2IntsInto1(20, 0), NumberUtils.addShortToLong(NumberUtils.setBit(100l, 62), (short)0, 40));
@@ -177,6 +234,28 @@ public class IntLongPairsUtilsTest {
 		p2 = new IntLongPair(NumberUtils.pack2IntsInto1(15, 0), NumberUtils.addShortToLong(NumberUtils.setBit(200l, 62), (short)0, 40));
 		pairs = new IntLongPairs(new IntLongPair[]{p1, p2});
 		assertEquals(false, IntLongPairsUtils.isIntLongPairsAValidSingleRecord(pairs));
+	}
+	
+	@Test
+	public void addToPairs() {
+		/*
+		 * IntLongPairs [pairs=[IntLongPair [i=3801095, l=20892605523929], IntLongPair [i=8192022, l=157232047215073]]]
+		 * [IntLongPair [i=2097164, l=90161838073880], IntLongPair [i=851982, l=127545233418298]]
+		 */
+		
+		IntLongPairs p = new IntLongPairs(new IntLongPair(3801095, 20892605523929l), new IntLongPair(8192022, 157232047215073l));
+		List<IntLongPair> listOfILPs = Arrays.asList(new IntLongPair(2097164, 90161838073880l), new IntLongPair(851982, 127545233418298l));
+		
+		System.out.println("pairs: " + p.toDetailedString());
+		for (IntLongPair ilp : listOfILPs) {
+			System.out.println("potential partners: " + ilp.toDetailedString());
+		}
+		
+		IntLongPairsUtils.addBestILPtoPairs(p, listOfILPs);
+		
+		assertEquals(3, p.getPairs().length);
+		assertEquals(-1, Arrays.binarySearch(p.getPairs(), new IntLongPair(2097164, 90161838073880l)));
+		
 	}
 	
 	@Test

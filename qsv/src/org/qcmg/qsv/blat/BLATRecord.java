@@ -340,17 +340,12 @@ public class BLATRecord implements Comparable<BLATRecord> {
 				return diff;
 			}
 			diff = o.rawData[0].compareTo(rawData[0]);
-//			diff = Integer.compare(Integer.parseInt(o.rawData[0]), Integer.parseInt(rawData[0]));
 			return diff;
 		}
 	}
 
 	@Override 
 	public String toString() {
-//		StringBuilder b = new StringBuilder(Constants.TAB_STRING);
-//		for (String s: rawData) {
-//			b.append(s).append(Constants.TAB);
-//		}
 		return getScore() + Constants.TAB_STRING + Arrays.stream(rawData).collect(Collectors.joining(Constants.TAB_STRING));
 	}
 

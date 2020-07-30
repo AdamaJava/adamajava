@@ -10,7 +10,7 @@ public class IntLongPair implements Comparable<IntLongPair> {
 		return "IntLongPair [i=" + i + ", l=" + l + "]";
 	}
 	public String toDetailedString() {
-		return "ILP [i=" + Arrays.toString(NumberUtils.splitIntInto2(i)) + ", l strand: " + NumberUtils.isBitSet(l, 62) + ", position in seq:" + NumberUtils.getShortFromLong(l, 40) + ", position: " + NumberUtils.getLongPositionValueFromPackedLong(l) + "]";
+		return "ILP [i=" + Arrays.toString(NumberUtils.splitIntInto2(i)) + ", l strand: " +  (NumberUtils.isBitSet(l, 62) ? "-" : "+") + ", position in seq:" + NumberUtils.getShortFromLong(l, 40) + ", position: " + NumberUtils.getLongPositionValueFromPackedLong(l) + "]";
 		
 	}
 	private final int i;
@@ -58,7 +58,4 @@ public class IntLongPair implements Comparable<IntLongPair> {
 		}
 		return 0;
 	}
-	
-	
-
 }

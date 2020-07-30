@@ -2,6 +2,7 @@ package org.qcmg.qsv.tiledaligner;
 
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.List;
 
 import org.qcmg.common.util.NumberUtils;
 
@@ -116,7 +117,68 @@ public class IntLongPairsUtils {
 			 */
 			return NumberUtils.getShortFromLong(pair.getLong(), SHORT_OFFSET_IN_LONG);
 		}
+	}
+	
+	/**
+	 * 
+	 * Add the entry in the list of IntLongPair's that most suitably matches the existing IntLongPairs.
+	 * Need to match on strand, sequence location and genomic location
+	 * 
+	 * If its the case that the existing IntLongPair elements in the IntLongPairs are not matching (ie. on different strands, or far apart), then the strand matching and genomic position matching are not important.
+	 * Sequence matching should always be considered.
+	 * 
+	 * 
+	 * @param pairs
+	 * @param list
+	 */
+	public static void addBestILPtoPairs(IntLongPairs pairs, List<IntLongPair> list) {
 		
+		boolean potentialSingleSample = isIntLongPairsAValidSingleRecord(pairs.getPairs());
+		
+		if (potentialSingleSample) {
+			IntLongPair [] expandedArray = Arrays.copyOf(pairs.getPairs(), pairs.getPairs().length + 1);
+			
+			for (IntLongPair ilp : list) {
+				/*
+				 * first check that this ilp is not already in the pair
+				 */
+				if (Arrays.binarySearch(pairs.getPairs(), ilp) < 0) {
+					
+					/*
+					 * also check that this ilp is not totally encompassed by other ilps in this pair
+					 */
+					int potentialILPSeqStart = NumberUtils.getShortFromLong(ilp.getLong(), SHORT_OFFSET_IN_LONG);
+					int potentialILPSeqEnd = potentialILPSeqStart + NumberUtils.getPartOfPackedInt(ilp.getInt(), true) + TILE_LENGTH - 1;
+					int potentialBasesThisCouldFill = potentialILPSeqEnd - potentialILPSeqStart;
+					for (IntLongPair pILP : pairs.getPairs()) {
+						int thispILPSeqStart = NumberUtils.getShortFromLong(pILP.getLong(), SHORT_OFFSET_IN_LONG);
+						int thispILPSeqEnd = thispILPSeqStart + NumberUtils.getPartOfPackedInt(pILP.getInt(), true) + TILE_LENGTH - 1;
+						if (potentialILPSeqStart > thispILPSeqStart && potentialILPSeqStart < thispILPSeqEnd) {
+							potentialBasesThisCouldFill =- (thispILPSeqEnd - potentialILPSeqStart);
+						} else if (potentialILPSeqEnd > thispILPSeqEnd && potentialILPSeqEnd < thispILPSeqEnd) {
+							potentialBasesThisCouldFill =- (potentialILPSeqEnd - thispILPSeqStart);
+						}
+					}
+					
+					if (potentialBasesThisCouldFill >= 10){
+				
+						expandedArray[pairs.getPairs().length] = ilp;
+						if (isIntLongPairsAValidSingleRecord(expandedArray)) {
+							pairs.addPair(ilp);
+							/*
+							 * resize expanded Array as there may be more that can fit!
+							 */
+							expandedArray = Arrays.copyOf(pairs.getPairs(), pairs.getPairs().length + 1);
+						}
+					}
+				}
+			}
+		} else {
+			/*
+			 * just add the first one in list as it is sorted by size
+			 */
+			pairs.addPair(list.get(0));
+		}
 	}
 	
 	/**
@@ -171,4 +233,36 @@ public class IntLongPairsUtils {
 		return isValid;
 	}
 
+	/**
+	 * This method will return true if the potentialPair is part of a larger pair in the supplied existingPairs list
+	 * 
+	 * eg. potentialPair could be [IntLongPair(1,100), IntLongPair(2,200)]
+	 * and in the existingPairs list could be [IntLongPair(1,100), IntLongPair(2,200), IntLongPair(3,300)]
+	 * 
+	 * If this was the case, then true would be returned.
+	 * 
+	 * @param existingPairs
+	 * @param potentialPair
+	 * @return
+	 */
+	public static boolean isPairsASubSetOfExistingPairs(List<IntLongPairs> existingPairs, IntLongPairs potentialPair) {
+		
+		for (IntLongPairs existingPair : existingPairs) {
+			
+			/*
+			 * need to sort, or binary search will not work
+			 */
+			Arrays.sort(existingPair.getPairs());
+			int matchesThisPair = 0;
+			for (IntLongPair ilp : potentialPair.getPairs()) {
+				if (Arrays.binarySearch(existingPair.getPairs(), ilp) >= 0) {
+					matchesThisPair++;
+				}
+			}
+			if (matchesThisPair == potentialPair.getPairs().length) {
+				return true;
+			}
+		}
+		return false;
+	}
 }
