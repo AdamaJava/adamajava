@@ -25,6 +25,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.qcmg.common.model.Accumulator;
 import org.qcmg.common.model.GenotypeEnum;
+import org.qcmg.common.model.PileupElement;
 import org.qcmg.common.model.Rule;
 import org.qcmg.common.string.StringUtils;
 

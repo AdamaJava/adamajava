@@ -6,6 +6,9 @@
  */
 package org.qcmg.common.util;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import org.qcmg.common.log.QLogger;
@@ -38,7 +41,7 @@ public class BaseUtils {
 	private static final QLogger logger = QLoggerFactory.getLogger(BaseUtils.class);
 
 	public final static int MAX_UNSIGNED_SHORT_VALUE = 1 + (Short.MAX_VALUE * 2);
-	public final static int[] EMPTY_DIST_ARRAY = new int[]{0,0,0,0};
+//	protected final static int[] EMPTY_DIST_ARRAY = new int[]{0,0,0,0}; only used once
 	public final static char A = 'A';
 	public final static char T = 'T';
 	public final static char C = 'C';
@@ -275,7 +278,8 @@ public class BaseUtils {
 		
 	public static Optional<int[]> decodeDistribution(long code) {
 		if (code == 0) {
-			return Optional.of(EMPTY_DIST_ARRAY);
+ 			//moved from final static int[] EMPTY_DIST_ARRAY = new int[]{0,0,0,0};  
+			return Optional.of( new int[]{0,0,0,0} );
 		}
 		if (code == Long.MIN_VALUE) {
 			logger.warn("Distribution overflow!");

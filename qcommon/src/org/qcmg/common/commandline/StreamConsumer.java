@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class StreamConsumer extends Thread {
@@ -27,7 +28,8 @@ public class StreamConsumer extends Thread {
 	@Override
 	public void run() {
 		List<String> results = new ArrayList<>();
-		try (InputStreamReader isr = new InputStreamReader(is);
+		//specify a charset to avoid the application behaviour to vary between platforms
+		try (InputStreamReader isr = new InputStreamReader(is,"UTF8");
 			BufferedReader br = new BufferedReader(isr);) {
 			String line = null;
 			while ((line = br.readLine()) != null) {
@@ -42,6 +44,9 @@ public class StreamConsumer extends Thread {
 	}
 
 	public String[] getLines() {
-		return lines;
+		
+		//return a copy of the object rather than a reference of mutable array
+		//return lines;
+		return Arrays.copyOf( lines, lines.length );
 	}
 }
