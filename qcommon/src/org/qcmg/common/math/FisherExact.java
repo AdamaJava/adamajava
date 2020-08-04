@@ -12,6 +12,7 @@ import java.util.concurrent.ConcurrentMap;
 import org.apache.commons.math3.util.ArithmeticUtils;
 import org.apache.commons.math3.util.FastMath;
 
+@Deprecated
 public class FisherExact {
 	private static final int FACTORIAL_CACHE_SIZE = 1024 * 32;
 	
