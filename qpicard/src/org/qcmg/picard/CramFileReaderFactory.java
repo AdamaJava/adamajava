@@ -17,6 +17,13 @@ import htsjdk.samtools.cram.ref.ReferenceSource;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 
+@Deprecated
+/**
+ * 
+ * @author christix
+ *
+ * This class is under construction, it is not clear whether further develop is required or not. 
+ */
 public class CramFileReaderFactory {
 	private static final ValidationStringency DefaultStringency = ValidationStringency.SILENT;	
 	private static final QLogger logger = QLoggerFactory.getLogger(CramFileReaderFactory.class);	
