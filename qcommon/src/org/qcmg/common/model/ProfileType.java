@@ -32,6 +32,7 @@ public enum ProfileType {
 	private static final String QUAL_EXTENSION = "qual";
 	private static final String BAM_EXTENSION = "bam";
 	private static final String SAM_EXTENSION = "sam";
+	private static final String CRAM_EXTENSION = "cram";
 	private static final String XML_EXTENSION = "xml";
 	private static final String MA_EXTENSION = "ma";
 	private static final String FASTQ_EXTENSION = "fastq";
@@ -42,6 +43,7 @@ public enum ProfileType {
 	private static final String GZ_EXTENSION = "gz";
 	private static final String VCF_EXTENSION = "vcf";
 	private static final String VCF_GZ_EXTENSION = "vcf.gz";
+	
 	
 	/**
 	 * get file type for qprofiler
@@ -101,7 +103,7 @@ public enum ProfileType {
 	    	ext = s.substring(i+1).toLowerCase();
 	    }
 	    
-	    if (BAM_EXTENSION.equals(ext) || SAM_EXTENSION.equals(ext))
+	    if (BAM_EXTENSION.equals(ext) || SAM_EXTENSION.equals(ext) || ext.contentEquals(CRAM_EXTENSION))
 	    	return ProfileType.BAM;
 	    if (XML_EXTENSION.equals(ext))
 	    	return ProfileType.XML;
@@ -113,5 +115,4 @@ public enum ProfileType {
 	    throw new IllegalArgumentException("Unsupported file type "+ ext);
 	}
 
-	
 }
