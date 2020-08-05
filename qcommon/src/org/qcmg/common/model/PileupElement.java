@@ -30,9 +30,11 @@ public class PileupElement implements Comparable<PileupElement> {
 	public char getBase() {
 		return base;
 	}
+	
 	public void setBase(char base) {
 		this.base = base;
 	}
+	
 	public int getForwardCount() {
 		return forwardCount;
 	}
@@ -47,6 +49,7 @@ public class PileupElement implements Comparable<PileupElement> {
 		if (b != Byte.MIN_VALUE)
 			addForwardQuality(b);
 	}
+	
 	public void incrementForwardCount() {
 		forwardCount++;
 	}
@@ -73,10 +76,47 @@ public class PileupElement implements Comparable<PileupElement> {
 	public boolean isFoundOnBothStrands() {
 		return forwardCount > 0 && reverseCount > 0;
 	}
-
+	@Override
 	public int compareTo(PileupElement o) {
 		// only interested in the total count for the purposes or ordering
 		return o.getTotalCount() - getTotalCount();
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		PileupElement other = (PileupElement) obj;
+		if (base != other.base)
+			return false;
+		if (forwardCount != other.forwardCount)
+			return false;
+		if (forwardQualities == null) {
+			if (other.forwardQualities != null)
+				return false;
+		} else if (!forwardQualities.equals(other.forwardQualities))
+			return false;
+		if (reverseCount != other.reverseCount)
+			return false;
+		if (reverseQualities == null) {
+			if (other.reverseQualities != null)
+				return false;
+		} else if (!reverseQualities.equals(other.reverseQualities))
+			return false;
+		return true;
+	} 
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + base + forwardCount + reverseCount;
+		result += (forwardQualities == null) ? 0 : forwardQualities.hashCode();
+		result += (reverseQualities == null) ? 0 : reverseQualities.hashCode();
+		return result;
 	}
 	
 	public void addForwardQuality(byte b) {

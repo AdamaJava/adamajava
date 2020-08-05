@@ -426,13 +426,17 @@ public class StringUtils {
 	 */
 	@SuppressWarnings("unchecked")
 	public static <T extends Number> T string2Number(String str, Class<T> clazz){
-		T rate = (clazz.equals(Integer.class))? (T) new Integer(0): (T) new Float(0);		
+		T rate;	
 		try{
 			if(clazz.equals(Integer.class)){ 
 				rate = (T)  Integer.valueOf(str); 
-			}else
+			}else {
 				rate = (T)  Float.valueOf(str); 
-		}catch(NullPointerException | NumberFormatException  e){} //do nothing
+			}
+		}catch(NullPointerException | NumberFormatException  e){
+			//otherwise set to 0
+			rate = (clazz.equals(Integer.class))? (T) Integer.valueOf(0): (T) Float.valueOf(0);			
+		}  
 
 		return  rate;
 	}

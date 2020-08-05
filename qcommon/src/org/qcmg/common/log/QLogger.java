@@ -266,20 +266,6 @@ public class QLogger {
         return time;
 	}
 	
-	public static String getUsedMemory(){
-		final long MEGABYTE = 1024L * 1024L;
-
-		Runtime runtime = Runtime.getRuntime();
-		runtime.gc();	
-		long MTotal =  runtime.totalMemory() / MEGABYTE;
-//		long MUsed = MTotal - runtime.freeMemory() / MEGABYTE;
-		long MMax = runtime.maxMemory() / MEGABYTE;		 
-		
-		return   String.format("ResourcesUsed: mem=%dM; vmem=%dM.", MTotal,MMax);
-		 
-	}
-	
-	
 	public void logFinalExecutionStats(final int exitStatus, long startTime) {
 		
 		exec("StopTime " + DateUtils.getCurrentDateAsString());
@@ -287,13 +273,16 @@ public class QLogger {
 		exec("ExitStatus " + exitStatus);
 	}
 
-	public static String reconstructCommandLine(final String programName,
-			final String[] args) {
-		String result = programName;
+	public static String reconstructCommandLine(final String programName, final String[] args) {
+	    
+		//can't  new StringBuffer(programName), in case programName == null in some unit tests
+		StringBuilder result = new StringBuilder();
+		//append(null) is OK, it return null string
+		result.append(programName);
 		for (final String arg : args) {
-			result += " " + arg;
+			result.append(" ").append(arg);
 		}
-		return result;
+		return result.toString();
 	}
 
 	// ///////////////////////////////////////

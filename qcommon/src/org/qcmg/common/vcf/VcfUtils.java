@@ -335,11 +335,12 @@ public class VcfUtils {
 		if (null != pileups) {
 			for (final PileupElement pe : pileups) {
 				switch (pe.getBase()) {
-				case 'A': a = pe.getTotalCount(); break;
-				case 'C': c = pe.getTotalCount(); break;
-				case 'G': g = pe.getTotalCount(); break;
-				case 'T': t = pe.getTotalCount(); break;
-				case 'N': n = pe.getTotalCount(); break;
+					case 'A': a = pe.getTotalCount(); break;
+					case 'C': c = pe.getTotalCount(); break;
+					case 'G': g = pe.getTotalCount(); break;
+					case 'T': t = pe.getTotalCount(); break;
+					case 'N': n = pe.getTotalCount(); break;
+					//default do nothing
 				}
 			}
 		}
@@ -462,8 +463,8 @@ public class VcfUtils {
 				|| StringUtils.isNullOrEmptyOrMissingData(ref)) {
 			return new String[]{};
 		}
-		int gt1 = Integer.valueOf(genotype.charAt(0) + "");
-		int gt2 = Integer.valueOf(genotype.charAt(2) + "");
+		int gt1 = Integer.parseInt(genotype.charAt(0) + "");
+		int gt2 = Integer.parseInt(genotype.charAt(2) + "");
 		
 		String[] array = new String[2];
 		String [] altsArr = alts.split(Constants.COMMA_STRING);
@@ -924,10 +925,10 @@ public class VcfUtils {
 			return oldAD;
 		}
 		String [] adArray = TabTokenizer.tokenize(oldAD, Constants.COMMA);
-		int newgt1 = Integer.valueOf("" + newGt.charAt(0));
-		int newgt2 = Integer.valueOf("" + newGt.charAt(2));
-		int oldgt1 = Integer.valueOf("" + oldGt.charAt(0));
-		int oldgt2 = Integer.valueOf("" + oldGt.charAt(2));
+		int newgt1 = Integer.parseInt("" + newGt.charAt(0));
+		int newgt2 = Integer.parseInt("" + newGt.charAt(2));
+		int oldgt1 = Integer.parseInt("" + oldGt.charAt(0));
+		int oldgt2 = Integer.parseInt("" + oldGt.charAt(2));
 		
 		if (Math.max(oldgt1, oldgt2) >= Math.max(newgt1, newgt2)) {
 			return oldAD;
@@ -1492,6 +1493,7 @@ public class VcfUtils {
 						}
 					}
 					if ( ! match) {
+						//the loop normally only repeat once or twice, so "+" andStringBuffer is similar
 						existingAlt += Constants.COMMA_STRING + ns;
 					}
 				}

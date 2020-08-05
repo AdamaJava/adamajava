@@ -124,30 +124,30 @@ public enum DccConsequence {
 	}
 	
 	public static String getMafName(String name, MutationType type, int mutationType) {
+		if (null == name) { return null; }
 		
 		// we haven't defined all the snp types here - so if its a type snp, set to SNP
-		if (MutationType.isSubstitution(type)) type = MutationType.SNP;
+		MutationType type1 = MutationType.isSubstitution(type) ? MutationType.SNP : type; 
 		
-		String returnString = "";
-		if (null != name) {
-			for (DccConsequence dcEnum : values()) {
-				if (dcEnum.name.equals(name) && dcEnum.containsType(type)) {
-					if (dcEnum.mutationTypeSpecific) {
-						switch (mutationType) {
-						case 2:	//Insertion
-							returnString += (returnString.length() > 0 ? "," : "") + dcEnum.mafName + "Ins";
-							break;
-						case 3:	//Deletion
-							returnString += (returnString.length() > 0 ? "," : "") + dcEnum.mafName + "Del";
-							break;
-						}
-					} else {
-						returnString += (returnString.length() > 0 ? "," : "") + dcEnum.mafName;
-					}
-				}
-			}
+		//String returnString = "";
+		StringBuilder returnString = new StringBuilder();
+		for (DccConsequence dcEnum : values()) {
+			String str = (returnString.length() > 0 ? "," : "");
+			if (dcEnum.name.equals(name) && dcEnum.containsType(type1)) {				
+				if(! dcEnum.mutationTypeSpecific ) {
+					//add: (returnString.length() > 0 ? "," : "") + dcEnum.mafName;
+					returnString.append(str).append(dcEnum.mafName);
+				} else if(mutationType == 2 ) {
+					//add: (returnString.length() > 0 ? "," : "") + dcEnum.mafName + "Ins";
+					returnString.append(str).append( dcEnum.mafName).append("Ins");
+				} else if(mutationType == 3 ) {
+					//add: (returnString.length() > 0 ? "," : "") + dcEnum.mafName + "Del";
+					returnString.append(str).append( dcEnum.mafName).append("Del");
+				} //others do nothing
+			}			
 		}
-		return returnString.length() > 0 ? returnString : null;
+		 
+		return returnString.length() > 0 ? returnString.toString() : null;
 	}
 	
 	public static boolean passesMafNameFilter(String mafName) {
@@ -202,7 +202,7 @@ public enum DccConsequence {
 	
 	private boolean containsType(MutationType type) {
 		for (MutationType t : this.types) {
-			if (t == type) return true;
+			if (t == type) { return true;}
 		}
 		return false;
 	}
