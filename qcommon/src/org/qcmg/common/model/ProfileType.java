@@ -103,7 +103,7 @@ public enum ProfileType {
 	    	ext = s.substring(i+1).toLowerCase();
 	    }
 	    
-	    if (BAM_EXTENSION.equals(ext) || SAM_EXTENSION.equals(ext) || ext.equals(CRAM_EXTENSION))
+	    if (BAM_EXTENSION.equals(ext) || SAM_EXTENSION.equals(ext) || CRAM_EXTENSION.equals(ext))
 	    	return ProfileType.BAM;
 	    if (XML_EXTENSION.equals(ext))
 	    	return ProfileType.XML;
