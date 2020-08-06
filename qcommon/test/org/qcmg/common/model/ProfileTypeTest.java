@@ -39,9 +39,14 @@ public class ProfileTypeTest {
 	public void bams() throws Exception {
 		assertEquals( ProfileType.BAM, ProfileType.getType2(("blah.sam")) );
 		assertEquals( ProfileType.BAM, ProfileType.getType1(("blah.bam")) );
+		assertEquals( ProfileType.BAM, ProfileType.getType2(("blah.cram")) );
 		try {
 			ProfileType.getType1(("blah.bam123"));
 			Assert.fail("should have barfed");
+		} catch ( IllegalArgumentException e ) { }
+		try {
+			ProfileType.getType1(("blah.cram"));
+			Assert.fail("not expected to reach here!");
 		} catch ( IllegalArgumentException e ) {    }
 		
 		

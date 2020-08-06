@@ -17,6 +17,7 @@ import org.w3c.dom.ls.LSSerializer;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.nio.charset.Charset;
 
 
 public class XmlElementUtils{ 	
@@ -90,7 +91,7 @@ public class XmlElementUtils{
 			DOMImplementationLS	impl = (DOMImplementationLS) DOMImplementationRegistry.newInstance().getDOMImplementation("XML 3.0 LS 3.0");	
 	        LSSerializer serializer = impl.createLSSerializer();
 	        LSOutput output = impl.createLSOutput();
-	        output.setCharacterStream(new OutputStreamWriter(new FileOutputStream(filename)));
+	        output.setCharacterStream(new OutputStreamWriter(new FileOutputStream(filename), Charset.forName("UTF-8")));
 	        serializer.write(parent.getOwnerDocument(), output);
 		}catch( ClassNotFoundException | InstantiationException | IllegalAccessException | ClassCastException | IOException ex){
 			ex.printStackTrace();

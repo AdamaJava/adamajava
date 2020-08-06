@@ -397,15 +397,20 @@ public class FileUtils {
 	 *             if either of the files cannot be found in the filesystem.
 	 */
 	public static void copyFile(final File fromFile, final File toFile) throws IOException, FileNotFoundException {
-		InputStream instream = new FileInputStream(fromFile);
-		OutputStream outstream = new FileOutputStream(toFile);
-		byte[] buf = new byte[1024];
-		int len;
-		while ((len = instream.read(buf)) > 0) {
-			outstream.write(buf, 0, len);
+		
+		
+		try(InputStream instream = new FileInputStream(fromFile);
+				OutputStream outstream = new FileOutputStream(toFile);){
+			byte[] buf = new byte[1024];
+			int len;
+			while ((len = instream.read(buf)) > 0) {
+				outstream.write(buf, 0, len);
+			}
 		}
-		instream.close();
-		outstream.close();
+		
+		
+//		instream.close();
+//		outstream.close();
 	}
 
 	/**
@@ -456,44 +461,46 @@ public class FileUtils {
 		
 		// check that directory exists and is writable
 		// this will throw an IOExcpetion if the file path is incorrect
-		// if it returns true, do nowt, otherwise - rename existing file
-		if (origFile.createNewFile()) {
-			
+		// if it returns true, do nowt, otherwise - rename existing file		
+		if (origFile.createNewFile()) {			
 			// delete the file straight away - don't want empty files lying around
-			origFile.delete();
-			
-		} else {
+			if(!origFile.delete()) {
+				throw new IOException("file can't delete");
+			}	
+			return;
+		} 		
+		 
 
 //		 if file already exists, backup by renaming
-			Matcher matcher = fileVersionPattern.matcher(origFile.getCanonicalPath());
-			boolean matchFound = matcher.find();
+		Matcher matcher = fileVersionPattern.matcher(origFile.getCanonicalPath());
+		boolean matchFound = matcher.find();
 
-			// Determine the name we will use to rename the current file
-			String fileStem = null;
-			Integer fileVersion = 0;
-			if (!matchFound) {
-				// Original filename has no version so create new filename by
-				// appending ".1"
-				fileStem = origFile.getCanonicalPath();
-				fileVersion = 1;
-			} else {
-				// Original filename has version so create new filename by
-				// incrementing version
-				fileStem = matcher.group(1);
-				fileVersion = Integer.parseInt(matcher.group(2)) + 1;
-			}
-
-			// If new filename already exists then we need to rename that file
-			// also so let's use some recursion
-			File newFile = new File(fileStem + "." + fileVersion);
-			if (newFile.canRead())  
-				backupFileByRenaming(newFile.getCanonicalPath());
-
-			// Finally we get the rename origFile to newFile!
-			if (!origFile.renameTo(newFile)) { 
-				throw new RuntimeException("Unable to rename file from " + origFile.getName() + " to " + newFile.getName());
-			}
+		// Determine the name we will use to rename the current file
+		String fileStem = null;
+		Integer fileVersion = 0;
+		if (!matchFound) {
+			// Original filename has no version so create new filename by
+			// appending ".1"
+			fileStem = origFile.getCanonicalPath();
+			fileVersion = 1;
+		} else {
+			// Original filename has version so create new filename by
+			// incrementing version
+			fileStem = matcher.group(1);
+			fileVersion = Integer.parseInt(matcher.group(2)) + 1;
 		}
+
+		// If new filename already exists then we need to rename that file
+		// also so let's use some recursion
+		File newFile = new File(fileStem + "." + fileVersion);
+		if (newFile.canRead())  
+			backupFileByRenaming(newFile.getCanonicalPath());
+
+		// Finally we get the rename origFile to newFile!
+		if (!origFile.renameTo(newFile)) { 
+			throw new RuntimeException("Unable to rename file from " + origFile.getName() + " to " + newFile.getName());
+		}
+		 
 	}
 
 

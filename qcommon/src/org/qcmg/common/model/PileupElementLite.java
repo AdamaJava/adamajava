@@ -119,4 +119,30 @@ public class PileupElementLite implements Comparable<PileupElementLite> {
 		return o.getTotalCount() - getTotalCount();
 	}
 
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result
+				+ ((readNameHashStrandPositionQualitys == null) ? 0 : readNameHashStrandPositionQualitys.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		PileupElementLite other = (PileupElementLite) obj;
+		if (readNameHashStrandPositionQualitys == null) {
+			if (other.readNameHashStrandPositionQualitys != null)
+				return false;
+		} else if (!readNameHashStrandPositionQualitys.equals(other.readNameHashStrandPositionQualitys))
+			return false;
+		return true;
+	}
+
 }

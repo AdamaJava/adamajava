@@ -189,13 +189,14 @@ public class AWSSigner {
         MessageDigest md = null;
         try {
             md = MessageDigest.getInstance("SHA-256");
+            byte[] digestBytes = md.digest(input);
+            return DatatypeConverter.printHexBinary(digestBytes).toLowerCase();
         } catch (NoSuchAlgorithmException e) {
             // (should!) never get here:
             // https://docs.oracle.com/javase/8/docs/api/java/security/MessageDigest.html
             // says "(e)very implementation of the Java platform is required to
             // support ... SHA-256"
-        }
-        byte[] digestBytes = md.digest(input);
-        return DatatypeConverter.printHexBinary(digestBytes).toLowerCase();
+        	return null; 
+        }        
     }
 }
