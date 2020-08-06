@@ -1,6 +1,5 @@
 package org.qcmg.qprofiler2;
 
-
 import static org.junit.Assert.*;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -11,14 +10,10 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.ResourceBundle;
 import javax.xml.parsers.ParserConfigurationException;
-import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.messages.Messages;
@@ -29,7 +24,6 @@ public class QProfiler2Test {
 	private static final String DODGY_FILE_NAME =  "solid0039_20091125_DODGY.vcf";
 	private static final String GFF_FILE_NAME =  "solid0039_20091125_2.gff";
 	private static final String BAM_FILE_NAME =  "solid0039_20091125_2.sam";
-
 	
 	@ClassRule
 	public static TemporaryFolder testFolder = new TemporaryFolder();
@@ -87,13 +81,13 @@ public class QProfiler2Test {
 	public final void executeWithInvalidArgs() throws Exception {
 		File logFile = testFolder.newFile("executeWithInvalidArguments.log");
 				
-		String[] args2 = new String[] {"-input", BAM_FILE.getAbsolutePath(), "-log",logFile.getAbsolutePath(), "-include","html,all,matricies,coverage", };
+		String[] args2 = new String[] {"-input", BAM_FILE.getAbsolutePath(), "-log",logFile.getAbsolutePath(), "-include", "html,all,matricies,coverage" };
 		try {
 			new QProfiler2().setup(args2);
 			fail("no exception should have been thrown from executeWithExcludeArgs()");			 
 		} catch (Exception e) {
 			assertEquals("'i' is not a recognized option", e.getMessage() );
-		}		
+		}
 	}
 	
 	@Test
@@ -105,14 +99,14 @@ public class QProfiler2Test {
 		String[] args1 = {"-input",inputFile.getAbsolutePath(), "-log", logFile.getAbsolutePath()};
 		String[] args2 = new String[] {"-input",gffFile.getAbsolutePath(), "-log", logFile.getAbsolutePath()};	
 		
-		for (String[] args : new String[][] {args1, args2})
+		for (String[] args : new String[][] {args1, args2}) {
 			try {
 				new QProfiler2().setup(args);
 				fail("Should have thrown a QProfilerException");
 			} catch (Exception qpe) {
 				assertTrue(qpe.getMessage().contains( "Unsupported file type" ));
 			}
-				
+		}	
 	}
 	
 	@Test
@@ -143,13 +137,10 @@ public class QProfiler2Test {
 			// print full header		
 			new QProfiler2().setup( args );	
 			assertTrue( Files.lines(Paths.get(  "qprofiler.xml")).filter(s -> s.contains(schemaStr)).count()== 1);	
-			assertTrue( Files.lines(Paths.get(  "qprofiler.xml")).filter(s -> s.contains(md5Str)).count()== 1);			
-		 
+			assertTrue( Files.lines(Paths.get(  "qprofiler.xml")).filter(s -> s.contains(md5Str)).count()== 1);					 
 		} catch (Exception qpe) {
 			fail("a QProfilerException for args: " + Arrays.toString(args));			 
 		}
-	
-
 	}
 	
 	@Test
@@ -160,14 +151,13 @@ public class QProfiler2Test {
 		String[] args = {"-input", input , "-log", logFile.getAbsolutePath()};
 		try {		
 			// print full header		
-			new QProfiler2().setup( args );		
-			assertTrue( Files.lines(Paths.get(  "qprofiler.xml")).filter(s -> s.contains("<headerRecords TAG=\"HD\"")).count()== 1);	
-			assertTrue( Files.lines(Paths.get(  "qprofiler.xml")).filter(s -> s.contains("<headerRecords TAG=\"SQ\"")).count()== 1);
+			new QProfiler2().setup( args );	
+			assertTrue( Files.lines(Paths.get("qprofiler.xml")).filter(s -> s.contains("<headerRecords TAG=\"HD\"")).count()== 1);	
+			assertTrue( Files.lines(Paths.get("qprofiler.xml")).filter(s -> s.contains("<headerRecords TAG=\"SQ\"")).count()== 1);
 			assertTrue( Files.lines(Paths.get("qprofiler.xml")).filter(s -> s.contains("<headerRecords TAG=\"PG\"")).count()== 0);	
 			assertTrue( Files.lines(Paths.get("qprofiler.xml")).filter(s -> s.contains("<headerRecords TAG=\"RG\"")).count()== 0);							
 			// only one line for whole file
-			assertTrue( Files.lines(Paths.get(  "qprofiler.xml")).filter(s -> s.contains("<headerRecords TAG=")).count()== 1);				
-			
+			assertTrue( Files.lines(Paths.get(  "qprofiler.xml")).filter(s -> s.contains("<headerRecords TAG=")).count()== 1);						
 			// default mode, only HD and RG
 			args = new String[] {"-input",input, "-log", logFile.getAbsolutePath(), "--fullBamHeader"};
 			new QProfiler2().setup( args );	
@@ -176,12 +166,10 @@ public class QProfiler2Test {
 			assertTrue( Files.lines(Paths.get("qprofiler.xml")).filter(s -> s.contains("<headerRecords TAG=\"PG\"")).count()== 1);	
 			assertTrue( Files.lines(Paths.get("qprofiler.xml")).filter(s -> s.contains("<headerRecords TAG=\"RG\"")).count()== 1);					
 			assertTrue( Files.lines(Paths.get("qprofiler.xml")).filter(s -> s.contains("@RG	ID:1959T")).count()== 1);
-			assertTrue( Files.lines(Paths.get("qprofiler.xml")).filter(s -> s.contains("@RG	ID:1959N")).count()== 1);		
-		 
+			assertTrue( Files.lines(Paths.get("qprofiler.xml")).filter(s -> s.contains("@RG	ID:1959N")).count()== 1);				 
 		} catch (Exception qpe) {
-			fail("a QProfilerException for args: " + Arrays.toString(args));			 
+			fail("a QProfilerException for args: " + Arrays.toString(args));		 
 		}
-				
 	}
 	
 	private static void createTestFile(File file, List<String> data) {
@@ -205,8 +193,7 @@ public class QProfiler2Test {
 		}catch (IOException e) {
 			System.err.println("IOException caught whilst attempting to write to test file: " + file.getAbsolutePath());
 			e.printStackTrace();
-		}
-		
+		}		
 	}
 	
 	private List<String> getDodgyFileContents() {
