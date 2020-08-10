@@ -125,19 +125,20 @@ public class QProfiler2Test {
 	
 	@Test
 	public void schmeFileTest() throws IOException {
+		String nameSpace = "https://adamajava.org/xsd/qprofiler2/v2";
+		String xmlns = "xmlns=\"" + nameSpace + "\"";
 		
-		String msgResource = "org.qcmg.qprofiler2.messages";		
-		String schemaStr = "validationSchema=\"" +  Messages.getMessage(msgResource,"XSD_FILE") + "\"";
-		String md5Str = "md5OfSchema=\"" + Messages.getMessage(msgResource, "XSD_FILE_md5") + "\"";
-		String input = BAM_FILE.getAbsolutePath();
-		
+		String schemaXsi = "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"";
+		String schemaStr = "xsi:schemaLocation=\"" + nameSpace + " https://purl.org/adamajava/xsd/qprofiler2/v2/qprofiler2.xsd\"";
+		String input = BAM_FILE.getAbsolutePath();		
 		File logFile = testFolder.newFile("qProfilerNode.log");
 		String[] args = {"-input",input, "-log", logFile.getAbsolutePath()};
 		try {		
 			// print full header		
 			new QProfiler2().setup( args );	
-			assertTrue( Files.lines(Paths.get(  "qprofiler.xml")).filter(s -> s.contains(schemaStr)).count()== 1);	
-			assertTrue( Files.lines(Paths.get(  "qprofiler.xml")).filter(s -> s.contains(md5Str)).count()== 1);					 
+			assertTrue( Files.lines(Paths.get("qprofiler.xml")).filter(s -> s.contains(schemaStr)).count()== 1);
+			assertTrue( Files.lines(Paths.get("qprofiler.xml")).filter(s -> s.contains(schemaXsi)).count()== 1);
+			assertTrue( Files.lines(Paths.get("qprofiler.xml")).filter(s -> s.contains(xmlns)).count()== 1);			 
 		} catch (Exception qpe) {
 			fail("a QProfilerException for args: " + Arrays.toString(args));			 
 		}
