@@ -11,6 +11,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrPositionName;
 
 import gnu.trove.list.TLongList;
 import gnu.trove.list.array.TLongArrayList;
@@ -99,7 +100,9 @@ public class ListUtils {
 				ChrPosition previous = current;
 				for (int i = 1 ;  i < size ; i++) {
 					current = originalList.get(i);
-					if ( ! current.getChromosome().equals(previous.getChromosome()) || Math.abs(current.getStartPosition() - previous.getStartPosition()) > buffer) { 
+					if ( ( current instanceof ChrPositionName && previous instanceof ChrPositionName && ! ((ChrPositionName)current).getName().equals(((ChrPositionName)previous).getName())) 
+							|| ! current.getChromosome().equals(previous.getChromosome()) 
+							|| Math.abs(current.getStartPosition() - previous.getStartPosition()) > buffer) { 
 						list.add(current);
 						previous = current;
 					}

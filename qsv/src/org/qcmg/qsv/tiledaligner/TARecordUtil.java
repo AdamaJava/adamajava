@@ -594,7 +594,19 @@ public class TARecordUtil {
 						 */
 						thisIntArray[1] = thisIntArray[1] - diff;
 						ChrPosition orig = cps[j];
-						cps[j] = new ChrPositionName(orig.getChromosome(), orig.getStartPosition(), orig.getEndPosition() - diff, orig.getName());
+						if (diff >= orig.getLength()) {
+							System.out.println("Diff is greater the cp length! diff: " + diff + ", cp length: " + orig.getLength());
+							System.out.println("ranges:");
+							for (int [] range : ranges) {
+								System.out.println("range: " + Arrays.toString(range));
+							}
+							System.out.println("cps:");
+							for (ChrPosition cp : cps) {
+								System.out.println("cp: " + cp.toIGVString());
+							}
+						} else {
+							cps[j] = new ChrPositionName(orig.getChromosome(), orig.getStartPosition(), orig.getEndPosition() - diff, orig.getName());
+						}
 					} else {
 						/*
 						 * update next array, take diff away from start (and length)
@@ -603,7 +615,21 @@ public class TARecordUtil {
 						nextIntArray[1] = nextIntArray[1] - diff;
 						
 						ChrPosition orig = cps[j + 1];
-						cps[j + 1] = new ChrPositionName(orig.getChromosome(), orig.getStartPosition() + diff, orig.getEndPosition(), orig.getName());
+						
+						if (diff >= orig.getLength()) {
+							System.out.println("Diff is greater the cp length! diff: " + diff + ", cp length: " + orig.getLength());
+							System.out.println("ranges:");
+							for (int [] range : ranges) {
+								System.out.println("range: " + Arrays.toString(range));
+							}
+							System.out.println("cps:");
+							for (ChrPosition cp : cps) {
+								System.out.println("cp: " + cp.toIGVString());
+							}
+						} else {
+						
+							cps[j + 1] = new ChrPositionName(orig.getChromosome(), orig.getStartPosition() + diff, orig.getEndPosition(), orig.getName());
+						}
 					}
 				}
 			}			

@@ -45,6 +45,7 @@ import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.TLongIntMap;
 import gnu.trove.map.hash.THashMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
+import gnu.trove.map.hash.TLongIntHashMap;
 import gnu.trove.set.TLongSet;
 import gnu.trove.set.hash.TLongHashSet;
 import htsjdk.samtools.SAMSequenceDictionary;
@@ -66,6 +67,12 @@ public class TiledAlignerUtil {
 //	public static final int SMITH_WATERMAN_BUFFER_SIZE_TIER_1 = 100;
 //	public static final int SMITH_WATERMAN_BUFFER_SIZE_TIER_2 = 500;
 	public static final int INDEL_GAP = 50;
+	
+	public static final String REPEAT_A = "AAAAAAAAAAAAAAAAAAAAAAA";
+	public static final String REPEAT_C = "CCCCCCCCCCCCCCCCCCCCCCC";
+	public static final String REPEAT_G = "GGGGGGGGGGGGGGGGGGGGGGG";
+	public static final String REPEAT_T = "TTTTTTTTTTTTTTTTTTTTTTT";
+	public static final String[] REPEATS = new String[]{REPEAT_A, REPEAT_C, REPEAT_G, REPEAT_T};
 	
 	public static final int MINIMUM_BLAT_RECORD_SCORE = 20;
 	
@@ -395,19 +402,10 @@ public class TiledAlignerUtil {
 		 */
 		int commonTileCount = 0;
 		boolean useCommonTileCount = true;
-		TLongSet allPositions = new TLongHashSet(4 * 1024);
+		TLongIntMap positionCountMap = new TLongIntHashMap(1024);
 		int currentMaxCount = 0;
 		
 		for (int i = 0 ; i < array.length - 1 ; i++) {
-			
-			/*
-			 * If we have a currentMaxCount that is greater than the remaining array length, then it is not possible to better that and so drop out
-			 * do that when currentMacCount is twice the remaining array length
-			 */
-//			if ((array.length - i) * 2 < currentMaxCount) {
-//				System.out.println("Breaking out of loop with currentMaxCount: " + currentMaxCount + ", and remaining array size: " + (array.length - i));
-//				break;
-//			}
 			
 			long [] subArray = array[i];
 			if (null != subArray) {
@@ -418,12 +416,6 @@ public class TiledAlignerUtil {
 					 */
 					if (l < 0) {
 						commonTileCount++;
-						continue;
-					}
-					/*
-					 * If we already have this start position, don't bother examining it further
-					 */
-					if (allPositions.contains(l)) {
 						continue;
 					}
 					
@@ -437,13 +429,26 @@ public class TiledAlignerUtil {
 							currentMaxCount = exactMatchComponent;
 						}
 						if (exactMatchComponent > 5) {
+							
 							/*
-							 * we want to add the tile position into the long as this will aid split contig sequences
+							 * check to see if we have already recorded this in the positionCountMap
 							 */
-							long longToUse = NumberUtils.addShortToLong(l, (short) i, POSITION_OF_TILE_IN_SEQUENCE_OFFSET);
-							map.computeIfAbsent(useCommonTileCount ? tally + (short)commonTileCount : tally, f -> new TLongArrayList()).add(longToUse);
-							for (int k = 0 ; k < exactMatchComponent ; k++) {
-								allPositions.add(l + k);
+							
+							boolean alreadyRepresented = false;
+							for (int z = 0 ; z <= i ; z++) {
+								if ( positionCountMap.get(l - z) >= exactMatchComponent + z) {
+									alreadyRepresented = true;
+									break;
+								}
+							}
+							if ( ! alreadyRepresented) {
+								/*
+								 * add
+								 * we want to add the tile position into the long as this will aid split contig sequences
+								 */
+								long longToUse = NumberUtils.addShortToLong(l, (short) i, POSITION_OF_TILE_IN_SEQUENCE_OFFSET);
+								map.computeIfAbsent(useCommonTileCount ? tally + (short)commonTileCount : tally, f -> new TLongArrayList()).add(longToUse);
+								positionCountMap.put(l, exactMatchComponent);
 							}
 						}
 					}
@@ -1847,13 +1852,81 @@ public class TiledAlignerUtil {
 //	}
 	
 	public static boolean happyWithSequence(String sequence) {
-		if (sequence.contains("CCCCCCCCCCCCCCCCCCCCCCC") 
-				|| sequence.contains("AAAAAAAAAAAAAAAAAAAAAAA")
-				|| sequence.contains("GGGGGGGGGGGGGGGGGGGGGGG")
-				|| sequence.contains("TTTTTTTTTTTTTTTTTTTTTTT")) {
-			return false;
-		}
-		return true;
+		
+//		if (Arrays.stream(REPEATS).anyMatch(s -> sequence.contains(s))) {
+			
+			return  ! Arrays.stream(REPEATS).filter(s -> sequence.contains(s)).anyMatch(s -> {
+				int index = sequence.indexOf(s);
+				int tally = s.length();
+				while (index != -1) {
+					index = sequence.indexOf(s, index + 1);
+					if (index > -1) {
+						tally ++;
+					}
+				}
+ 				return  ((double)tally / sequence.length()) > 0.25;
+			});
+//		}
+//		return true;
+		
+		
+//		if (sequence.contains(REPEAT_C) 
+//				|| sequence.contains(REPEAT_A)
+//				|| sequence.contains(REPEAT_G)
+//				|| sequence.contains(REPEAT_T)) {
+//			
+//			/*
+//			 * get length of repeat region, and examine as a percentage of total length
+//			 */
+//			if (sequence.contains(REPEAT_C) ) {
+//				int tally = REPEAT_C.length();
+//				int index = sequence.indexOf(REPEAT_C);
+//				while (index != -1) {
+//					index = sequence.indexOf(REPEAT_C, index + 1);
+//					tally ++;
+//				}
+// 				if (((double)tally / sequence.length()) > 0.25) {
+// 					return false;
+// 				}
+//			}
+//			if (sequence.contains(REPEAT_A) ) {
+//				int tally = 23;
+//				int index = sequence.indexOf(REPEAT_A);
+//				while (index != -1) {
+//					index = sequence.indexOf(REPEAT_A, index + 1);
+//					tally ++;
+//				}
+//				if (((double)tally / sequence.length()) > 0.25) {
+//					return false;
+//				}
+//			}
+//			if (sequence.contains(REPEAT_G) ) {
+//				int tally = 23;
+//				int index = sequence.indexOf(REPEAT_G);
+//				while (index != -1) {
+//					index = sequence.indexOf(REPEAT_G, index + 1);
+//					tally ++;
+//				}
+//				if (((double)tally / sequence.length()) > 0.25) {
+//					return false;
+//				}
+//			}
+//			if (sequence.contains(REPEAT_T) ) {
+//				int tally = 23;
+//				int index = sequence.indexOf(REPEAT_T);
+//				while (index != -1) {
+//					index = sequence.indexOf(REPEAT_T, index + 1);
+//					tally ++;
+//				}
+//				if (((double)tally / sequence.length()) > 0.25) {
+//					return false;
+//				}
+//			}
+//			
+//			
+//			return false;
+//		}
+//		return true;
 	}
 	
 	public static List<BLATRecord> getBlatRecords(TIntObjectMap<int[]> cache, String sequence, final String name, int tileLength, String originatingMethod, boolean log, boolean recordsMustComeFromChrInName) {
@@ -2156,6 +2229,7 @@ public class TiledAlignerUtil {
 				results.addAll(potentialSplits.stream()
 						.filter(ilp -> IntLongPairsUtils.isIntLongPairsAValidSingleRecord(ilp))
 						.map(ilp ->  TARecordUtil.blatRecordFromSplits(ilp, name, sequence.length(), headerMap, TILE_LENGTH))
+						.filter(sa -> sa.length > 0)
 						.map(s -> new BLATRecord(s))
 //						.filter(br -> br.getScore() > passingScore)
 						.collect(Collectors.toList()));

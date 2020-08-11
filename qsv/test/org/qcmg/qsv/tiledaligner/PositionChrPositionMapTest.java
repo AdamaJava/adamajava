@@ -109,6 +109,8 @@ public class PositionChrPositionMapTest {
 		System.out.println("2136488151: " +  map.getChrPositionFromLongPosition(2136488151).toIGVString());
 		System.out.println("2412006194: " +  map.getChrPositionFromLongPosition(2412006194l).toIGVString());
 		System.out.println("4611687118316934048: " +  map.getChrPositionFromLongPosition(4611687118316934048l).toIGVString());
+		System.out.println("80267450632041: " +  map.getChrPositionFromLongPosition(80267450632041l).toIGVString());
+		System.out.println("4611823460482664201: " +  map.getChrPositionFromLongPosition(4611823460482664201l).toIGVString());
 //		Found start position within range: 2341317558 that has tile count: 107
 //		Found start position within range: 1681646586 that has tile count: 43
 //		Found start position within range: 2387069827 that has tile count: 42

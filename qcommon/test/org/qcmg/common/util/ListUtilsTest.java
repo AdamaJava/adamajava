@@ -12,6 +12,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrPositionName;
 
 import gnu.trove.list.TLongList;
 import gnu.trove.list.array.TLongArrayList;
@@ -134,6 +135,35 @@ public class ListUtilsTest {
 		assertEquals(2, newList.size());
 		
 		newList = ListUtils.removeAdjacentPositionsInList(list, 1700);
+		assertEquals(1, newList.size());
+	}
+	
+	@Test
+	public void removeAdjacentChrPosDifferentStrand() {
+		
+		/*
+		 * 80267450632041: chrMT:16222-16222
+4611823460482664201: chrMT:16126-16126
+		 * In this instance, I would want both positions to remain despite their proximity, as they are on different strands
+		 */
+		List<ChrPosition> list = Arrays.asList(new ChrPositionName("chrMT", 16126, 16126, "R"), 
+				new ChrPositionName("chrMT", 16222, 16222, "F")); 
+		List<ChrPosition> newList = ListUtils.removeAdjacentPositionsInList(list, 200);
+		assertEquals(2, newList.size());
+		
+		list = Arrays.asList(new ChrPositionName("chrMT", 16126, 16126, "R"), 
+				new ChrPositionName("chrMT", 16222, 16222, "R")); 
+		newList = ListUtils.removeAdjacentPositionsInList(list, 200);
+		assertEquals(1, newList.size());
+		
+		list = Arrays.asList(new ChrPositionName("chrMT", 16126, 16126, "F"), 
+				new ChrPositionName("chrMT", 16222, 16222, "F")); 
+		newList = ListUtils.removeAdjacentPositionsInList(list, 200);
+		assertEquals(1, newList.size());
+		
+		list = Arrays.asList(new ChrPointPosition("chrMT", 16126), 
+				new ChrPointPosition("chrMT", 16222)); 
+		newList = ListUtils.removeAdjacentPositionsInList(list, 200);
 		assertEquals(1, newList.size());
 	}
 	

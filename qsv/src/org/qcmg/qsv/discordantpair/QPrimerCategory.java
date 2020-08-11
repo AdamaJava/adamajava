@@ -324,6 +324,24 @@ public class QPrimerCategory {
 		}
 	}
 	
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		//left
+		sb.append(leftChr).append(Constants.COLON);
+		sb.append(startLeft).append('-');
+		sb.append(endLeft).append(Constants.TAB);
+		//right
+		sb.append(rightChr).append(Constants.COLON);
+		sb.append(startRight).append('-');
+		sb.append(endRight).append(Constants.TAB);
+		
+		sb.append(reverseFlag).append(Constants.TAB);
+		sb.append(primaryCategoryNo).append(Constants.TAB);
+		sb.append(mixedCategories);
+		
+		return sb.toString();
+	}
 	public String toString(String svId) {
 		StringBuilder sb = new StringBuilder(svId);
 		sb.append(Constants.TAB);

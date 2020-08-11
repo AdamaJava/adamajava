@@ -14,8 +14,6 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.AbstractQueue;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -47,7 +45,6 @@ import org.qcmg.qsv.QSVCluster;
 import org.qcmg.qsv.QSVClusterWriter;
 import org.qcmg.qsv.QSVException;
 import org.qcmg.qsv.QSVParameters;
-import org.qcmg.qsv.blat.BLAT;
 import org.qcmg.qsv.blat.BLATRecord;
 import org.qcmg.qsv.discordantpair.DiscordantPairCluster;
 import org.qcmg.qsv.discordantpair.PairGroup;
@@ -65,9 +62,10 @@ public class FindClipClustersMT  {
 	
 	public static final String UNMAPPED = "unmapped";
 	
-	public static final String chromosomeToDebug = "chr2:chr13";
-	public static final String chromosomeToDebugSingle = "chr2";
-	public static final int positionToDebug = 128667746;
+	public static final boolean useDebugging = true;
+	public static final String chromosomeToDebug = "chr19:chr19";
+	public static final String chromosomeToDebugSingle = "chr19";
+	public static final int positionToDebug = 37284335;
 
 	private static final QLogger logger = QLoggerFactory.getLogger(FindClipClustersMT.class);
 	private final int sleepUnit = 10;
@@ -323,10 +321,10 @@ public class FindClipClustersMT  {
 
 	public static List<SoftClipCluster> getProperClipSVs(String key, List<SoftClipCluster> bpList) {
 		logger.info("Potential records to find SVs in " + key + " is: " + bpList.size());
-		Collections.sort(bpList);		 
+		bpList.sort(null);
 		Map<SoftClipCluster, Boolean> clipRecords = new HashMap<>();
 		Iterator<SoftClipCluster> iterator = bpList.iterator();
-		int i=0;
+		int i = 0;
 		int count = 0;
 		while (iterator.hasNext()) {
 			SoftClipCluster recordOne = iterator.next();
@@ -355,7 +353,7 @@ public class FindClipClustersMT  {
 		/*
 		 * debugging
 		 */
-		if (chromosomeToDebug.equals(key)) {
+		if (useDebugging && chromosomeToDebug.equals(key)) {
 			for (SoftClipCluster scc : clipRecords.keySet()) {
 				logger.info("scc for " + key + " in getProperClipSVs: " + scc.getSoftClipConsensusString("blah"));
 			}
@@ -367,7 +365,7 @@ public class FindClipClustersMT  {
 	}
 
 	public static void findOverlaps(String key, List<QSVCluster> records, List<DiscordantPairCluster> clusters, List<SoftClipCluster> clips, String sampleId) {
-		boolean debug = chromosomeToDebug.equals(key);
+		boolean debug = useDebugging && chromosomeToDebug.equals(key);
 		Iterator<DiscordantPairCluster> iter = clusters.iterator();
 		
 		if (debug) {
@@ -397,7 +395,7 @@ public class FindClipClustersMT  {
 
 			QSVCluster record = new QSVCluster(cluster, false, sampleId);
 			if (debug) {
-				logger.info("in findOverlaps with record: " + cluster.toString());
+				logger.info("in findOverlaps with record: " + record.toTabString());
 			}
 			for (SoftClipCluster potentialClip : clips) {
 //			Iterator<SoftClipCluster> clipIter = clips.iterator();
@@ -533,7 +531,7 @@ public class FindClipClustersMT  {
 
 	private void rescueQSVRecords(String key, List<QSVCluster> inputClusters) throws Exception {
 		
-		boolean log = chromosomeToDebug.equals(key);
+		boolean log = useDebugging && chromosomeToDebug.equals(key);
 		
 		logger.info("Finding split read alignments in " + inputClusters.size() + " records for " + key);
 		int count = 0;
@@ -749,7 +747,7 @@ public class FindClipClustersMT  {
 
 		private void clusterSoftClips(Chromosome chromosome) throws Exception {
 			
-			boolean log = chromosomeToDebugSingle.equals(chromosome.getName());
+			boolean log = useDebugging && chromosomeToDebugSingle.equals(chromosome.getName());
 
 			TreeMap<Integer, Breakpoint> leftPositions = new TreeMap<>();
 			TreeMap<Integer, Breakpoint> rightPositions = new TreeMap<>();
@@ -838,7 +836,7 @@ public class FindClipClustersMT  {
 //			}
 
 			
-			boolean log = chromosomeToDebugSingle.equals(chromosome.getName());
+			boolean log = useDebugging && chromosomeToDebugSingle.equals(chromosome.getName());
 			if (log) {
 				logger.info("queueIn size: " + queueIn.size());
 			}
@@ -1041,8 +1039,8 @@ public class FindClipClustersMT  {
 				BLATRecord blatR = blatRecords.get(r.getName());
 				if (null != blatR) {
 					
-//					logger.info("breakpoint: " + r.toString());
 					logger.info("blat: " + blatR.toString());
+					logger.info("breakpoint: " + r.toLowConfidenceString() + ", blat: " + blatR.toString());
 
 					boolean matchingBreakpoint = r.findMateBreakpoint(blatR);
 
@@ -1481,8 +1479,8 @@ public class FindClipClustersMT  {
 //							blat.execute(blatFile + ".normal.fa", blatFile + ".normal.psl");
 //						}
 						for (QSVCluster cluster: inputClusters) {
-							boolean log = cluster.toTabString().contains("" + positionToDebug);
-							if (log) {
+							boolean log = useDebugging && cluster.toTabString().contains("" + positionToDebug);
+							if ( log) {
 								logger.info("rescue clipping about to call findSplitReadContig, cluster: " + cluster.toTabString());
 								logger.info("rescue clipping about to call findSplitReadContig, getConfidenceLevel: " + cluster.getConfidenceLevel(true));
 								logger.info("rescue clipping about to call findSplitReadContig, isPotentialSplitRead: " + cluster.isPotentialSplitRead());
