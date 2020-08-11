@@ -1775,158 +1775,30 @@ public class TiledAlignerUtil {
 			results.put(entry.getKey(), blatties);
 		}
 		return results;
-		
-		
-		/*
-		 * run through sequences
-		 */
-//		int tilePerfectMatchCount = 0;
-//		int noMatch = 0;
-//		DoubleSummaryStatistics stats = new DoubleSummaryStatistics();
-//		for (String s : sequences) {
-//			boolean debug = false;
-//			String debugString = "GGCCGGGCGCGGTGGCTCACGCCTGTAATCCCAGCACTTTGGGAGGCCGAGGCGGGCGGATCACNNGGTCA"; 
-////			String debugString = "GGGAGGAACAACCCACCCCACGAGAACCTGTCAGCCGGAAGAGGCTCTGGCGGGAGAGCCCACAGCCTGCCTTGGTGTTCACTGGGAGAGGACACAGACTGGGCCTGGTCACTCATGTCCCAACTTCAGATGGAAGGAGAGATGGAGCCCAGCAGGGGCAGGGCCCTGGGGCTCCCTGGTGTTTTCTCTTCTCTGGGCCTTGCTTCCAGGTCCGCCCATTGCTACGTGTAGCGGAGGAACAGCTAGAGAGCTGACACAGCCTACAGGAGACGGGGAGGGCTTCAGGTGGGTCTCCTCCTTTCTCCCTCTG"; 
-//			if (s.equals(debugString)) {
-//				System.out.println("Found sequence - setting debug to true");
-//				debug = true;
-//			}
-//			
-//			
-//			if (debug) {
-//				int length = debugString.length();
-//				for (int i = 0 ; i < length - tileLength + 1 ; i++) {
-//					String firstTile = debugString.substring(i, i + tileLength);
-//					int firstTileInt = convertTileToInt(firstTile);
-//					int [] cacheValue = cache.get(firstTileInt);
-//					System.out.println("firstTile: " + firstTile + ", firstTileInt: " + firstTileInt + ", in cache? " + (null != cacheValue ? Arrays.toString(cacheValue) : "null"));
-//				}
-//			}
-//			
-//			
-//			Map<Integer, TLongList> map1 = getCountStartPositionsMapUsingCache(cache, s, tileLength, false);
-//			Map<Integer, TLongList> map2 = getCountStartPositionsMapUsingCache(cache, s, tileLength, true);
-//			
-//			if (debug) {
-//				System.out.println("map1 size: " + map1.size());
-//				System.out.println("map2 size: " + map2.size());
-//			}
-//			
-//			for (Entry<Integer, TLongList> entry : map2.entrySet()) {
-//				map1.computeIfAbsent(entry.getKey(), f -> new TLongArrayList()).addAll(entry.getValue());
-//			}
-//			if (debug) {
-//				System.out.println("after combining with map2, map1 size: " + map1.size());
-//			}
-//			if (null != map1 && ! map1.isEmpty()) {
-//				List<Integer> sortedCounts = new ArrayList<>(map1.keySet());
-//				sortedCounts.sort(null);
-//				int sequenceLength = s.length();
-//				int tileCountForPerfectMatch = sequenceLength - (tileLength - 1);
-//				int maxCount = sortedCounts.get(sortedCounts.size() - 1);
-//				if (maxCount ==  tileCountForPerfectMatch) {
-//					tilePerfectMatchCount++;
-//				}
-//				stats.accept((double) maxCount / tileCountForPerfectMatch );
-//				System.out.println("max tile count: " + maxCount + ", perfect match tile count: " + tileCountForPerfectMatch + ", seq length: " + sequenceLength + (maxCount > 5 ? "" : ", seq: " + s));
-//			} else {
-//				System.out.println("null or empty map for seqeunce: " + s);
-//				noMatch++;
-//			}
-////			if (debug) {
-////				System.exit(1);
-////			}
-//		}
-//		System.out.println("noMatch: " + noMatch);
-//		System.out.println("tilePerfectMatchCount: " + tilePerfectMatchCount);
-//		System.out.println("stats average tileCount / perfectMatchTileCount: " + stats.getAverage());
-//		System.out.println("stats max tileCount / perfectMatchTileCount: " + stats.getMax());
-//		System.out.println("stats min tileCount / perfectMatchTileCount: " + stats.getMin());
-//		System.out.println("stats count: " + stats.getCount());
-//		return null;
-		
 	}
 	
-	//	public static List<BLATRecord> getBlatRecords(TIntObjectMap<int[]> cache, String sequence, String name, int tileLength, String originatingMethod) {
-//		return getBlatRecords(cache, sequence, name, tileLength, originatingMethod, false);
-//	}
-	
-	public static boolean happyWithSequence(String sequence) {
+	/**
+	 * Looking to see if the sequence is full of single base repeats (ie. AAAAA)
+	 * If there are single base repeat regions of greater then 23 bases in length, we examine them to see if the length of the single base repeat is greater than 25% of the sequence length.
+	 * If it is, false is returned, true otherwise
+	 * 
+	 * 
+	 * @param sequence
+	 * @return
+	 */
+	public static boolean doesSequenceHaveMostlySibgleBaseRepeats(String sequence) {
 		
-//		if (Arrays.stream(REPEATS).anyMatch(s -> sequence.contains(s))) {
-			
-			return  ! Arrays.stream(REPEATS).filter(s -> sequence.contains(s)).anyMatch(s -> {
-				int index = sequence.indexOf(s);
-				int tally = s.length();
-				while (index != -1) {
-					index = sequence.indexOf(s, index + 1);
-					if (index > -1) {
-						tally ++;
-					}
+		return  ! Arrays.stream(REPEATS).filter(s -> sequence.contains(s)).anyMatch(s -> {
+			int index = sequence.indexOf(s);
+			int tally = s.length();
+			while (index != -1) {
+				index = sequence.indexOf(s, index + 1);
+				if (index > -1) {
+					tally ++;
 				}
- 				return  ((double)tally / sequence.length()) > 0.25;
-			});
-//		}
-//		return true;
-		
-		
-//		if (sequence.contains(REPEAT_C) 
-//				|| sequence.contains(REPEAT_A)
-//				|| sequence.contains(REPEAT_G)
-//				|| sequence.contains(REPEAT_T)) {
-//			
-//			/*
-//			 * get length of repeat region, and examine as a percentage of total length
-//			 */
-//			if (sequence.contains(REPEAT_C) ) {
-//				int tally = REPEAT_C.length();
-//				int index = sequence.indexOf(REPEAT_C);
-//				while (index != -1) {
-//					index = sequence.indexOf(REPEAT_C, index + 1);
-//					tally ++;
-//				}
-// 				if (((double)tally / sequence.length()) > 0.25) {
-// 					return false;
-// 				}
-//			}
-//			if (sequence.contains(REPEAT_A) ) {
-//				int tally = 23;
-//				int index = sequence.indexOf(REPEAT_A);
-//				while (index != -1) {
-//					index = sequence.indexOf(REPEAT_A, index + 1);
-//					tally ++;
-//				}
-//				if (((double)tally / sequence.length()) > 0.25) {
-//					return false;
-//				}
-//			}
-//			if (sequence.contains(REPEAT_G) ) {
-//				int tally = 23;
-//				int index = sequence.indexOf(REPEAT_G);
-//				while (index != -1) {
-//					index = sequence.indexOf(REPEAT_G, index + 1);
-//					tally ++;
-//				}
-//				if (((double)tally / sequence.length()) > 0.25) {
-//					return false;
-//				}
-//			}
-//			if (sequence.contains(REPEAT_T) ) {
-//				int tally = 23;
-//				int index = sequence.indexOf(REPEAT_T);
-//				while (index != -1) {
-//					index = sequence.indexOf(REPEAT_T, index + 1);
-//					tally ++;
-//				}
-//				if (((double)tally / sequence.length()) > 0.25) {
-//					return false;
-//				}
-//			}
-//			
-//			
-//			return false;
-//		}
-//		return true;
+			}
+			return  ((double)tally / sequence.length()) > 0.25;
+		});
 	}
 	
 	public static List<BLATRecord> getBlatRecords(TIntObjectMap<int[]> cache, String sequence, final String name, int tileLength, String originatingMethod, boolean log, boolean recordsMustComeFromChrInName) {
@@ -1940,7 +1812,7 @@ public class TiledAlignerUtil {
 			throw new IllegalArgumentException("sequence length is less than or equals to the tile length! sequence: " + sequence + ", tile length: " + tileLength);
 		}
 		
-		if ( ! happyWithSequence(sequence)) {
+		if ( ! doesSequenceHaveMostlySibgleBaseRepeats(sequence)) {
 			System.out.println("too much repetition in sequence to proceed: " + sequence);
 			return Collections.emptyList();
 		}
