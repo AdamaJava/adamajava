@@ -1,7 +1,7 @@
 package au.edu.qimr.indel;
 
-import org.qcmg.common.log.QLogger;
 import au.edu.qimr.indel.pileup.IndelMT;
+import org.qcmg.common.log.QLogger;
 import org.qcmg.common.util.LoadReferencedClasses;
 
 public class Main {
