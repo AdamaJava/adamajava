@@ -10,15 +10,14 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import joptsimple.OptionParser;
+import joptsimple.OptionSet;
 import org.ini4j.Ini;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.meta.QExec;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
-
-import joptsimple.OptionParser;
-import joptsimple.OptionSet;
 
 public class Options {
 
