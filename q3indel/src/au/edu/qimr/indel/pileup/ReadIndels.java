@@ -273,26 +273,26 @@ public class ReadIndels {
 		return header;	
 	}
 	
-	int getCounts_newIndel() { 
+	int getCountsNewIndel() { 
 		return counts[0];
 	}
 	
-	int getCounts_overlapIndel() { 
+	int getCountsOverlapIndel() { 
 		return counts[1];
 	}
-	int getCounts_multiIndel() {
+	int getCountsMultiIndel() {
 		return counts[2];
 	}
 	
-	int getCounts_inputLine() { 
+	int getCountsInputLine() { 
 		return counts[3]; 
 	}	
 	
-	int getCounts_inputMultiAlt() { 
+	int getCountsInputMultiAlt() { 
 		return counts[4];
 	}
 	
-	int getCounts_totalIndel() {
+	int getCountsTotalIndel() {
 		return positionRecordMap.size();
 	}
 }

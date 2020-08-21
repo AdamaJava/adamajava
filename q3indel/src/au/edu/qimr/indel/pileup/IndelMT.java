@@ -226,25 +226,25 @@ public class IndelMT {
 			//first load control
 			if (options.getControlInputVcf() != null) {
 				indelload.loadIndels(options.getControlInputVcf(),options.getRunMode());	
-				if (indelload.getCounts_newIndel() != indelload.getCounts_totalIndel()) {
-					logger.warn("ERROR: Found " + indelload.getCounts_newIndel() 
-					+ " indels from control input, but it is not the same as the number of indel inside MAP, which is " + indelload.getCounts_totalIndel());
+				if (indelload.getCountsNewIndel() != indelload.getCountsTotalIndel()) {
+					logger.warn("ERROR: Found " + indelload.getCountsNewIndel() 
+					+ " indels from control input, but it is not the same as the number of indel inside MAP, which is " + indelload.getCountsTotalIndel());
 				
 				}
-				logger.info(indelload.getCounts_newIndel() + " indels are found from control vcf input.");
-				logger.info(indelload.getCounts_multiIndel() + " indels are split from multi alleles in control vcf.");
-				logger.info(indelload.getCounts_inputLine() + " variant records exsit inside control vcf input.");
-				logger.info(indelload.getCounts_inputMultiAlt() + " variant records with multi alleles exsits inside control vcf input.");
+				logger.info(indelload.getCountsNewIndel() + " indels are found from control vcf input.");
+				logger.info(indelload.getCountsMultiIndel() + " indels are split from multi alleles in control vcf.");
+				logger.info(indelload.getCountsInputLine() + " variant records exsit inside control vcf input.");
+				logger.info(indelload.getCountsInputMultiAlt() + " variant records with multi alleles exsits inside control vcf input.");
 			}	
 			//then test second column
 			if (options.getTestInputVcf() != null) { 
 				indelload.appendTestIndels(options.getTestInputVcf());				
-				logger.info(indelload.getCounts_inputLine() + " variant records exsit inside test vcf input.");
-				logger.info(indelload.getCounts_inputMultiAlt() + " variants record with multi alleles exsits inside test vcf input.");	
-				logger.info(indelload.getCounts_multiIndel() + " indels are split from multi alleles inside test vcf");					
-				logger.info(indelload.getCounts_newIndel() + " new indels are found in test vcf input only.");
-				logger.info(indelload.getCounts_overlapIndel() + " indels are found in both control and test vcf inputs.");
-				logger.info((indelload.getCounts_totalIndel() - indelload.getCounts_newIndel() - indelload.getCounts_overlapIndel()) 
+				logger.info(indelload.getCountsInputLine() + " variant records exsit inside test vcf input.");
+				logger.info(indelload.getCountsInputMultiAlt() + " variants record with multi alleles exsits inside test vcf input.");	
+				logger.info(indelload.getCountsMultiIndel() + " indels are split from multi alleles inside test vcf");					
+				logger.info(indelload.getCountsNewIndel() + " new indels are found in test vcf input only.");
+				logger.info(indelload.getCountsOverlapIndel() + " indels are found in both control and test vcf inputs.");
+				logger.info((indelload.getCountsTotalIndel() - indelload.getCountsNewIndel() - indelload.getCountsOverlapIndel()) 
 						+  " indels are found in control vcf input only." );				
 			}				
 		} else if (options.getRunMode().equalsIgnoreCase("pindel")) { 	
