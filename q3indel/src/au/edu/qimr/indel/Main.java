@@ -1,9 +1,8 @@
 package au.edu.qimr.indel;
 
+import au.edu.qimr.indel.pileup.IndelMT;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.util.LoadReferencedClasses;
-
-import au.edu.qimr.indel.pileup.IndelMT;
 
 public class Main {
 	
@@ -58,8 +57,11 @@ public class Main {
  					
 		} catch (Exception e) {				
 			String errStr = Q3IndelException.getStrackTrace(e);			
-			if (null != logger)  logger.error(errStr);
-			else  System.err.print(errStr);
+			if (null != logger) {
+				logger.error(errStr);
+			} else {
+				System.err.print(errStr);
+			}
 			exitStatus = 1;			 
 		}
 		 
