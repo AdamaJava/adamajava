@@ -59,19 +59,21 @@ public class FileUtilsTest {
 	
 	@Test
 	public void testFileCheckSum() throws IOException{
-		String[] fnames = new String[] { "test.output.gz", "test.output" };
+	//	String[] fnames = new String[] { "test.output.gz", "test.output" };
+		File[] fs = new File[] {tempFolder.newFile("test.output.gz"), tempFolder.newFile("test.output")};
 		//create same files
-		for(String output: fnames) 		 
+		for(File output: fs) {		 
 			try(Writer writer = new FileWriter(output);) {				
 				for(int i = 0; i < 10; i++ ) writer.write("testing...");		 
-			} 		
-		Assert.assertTrue( FileUtils.getFileCheckSum(fnames[0]).equals(FileUtils.getFileCheckSum(fnames[1])) );		
+			} 	
+		}	
+		Assert.assertTrue( FileUtils.getFileCheckSum(fs[0].getAbsolutePath()).equals(FileUtils.getFileCheckSum(fs[1].getAbsolutePath())) );		
 		
 		//change one of file
-		try(Writer writer = new FileWriter(fnames[1], true);) {				
+		try(Writer writer = new FileWriter(fs[1], true);) {				
 			writer.write("testing...");		 
 		}		
-		Assert.assertTrue( !FileUtils.getFileCheckSum(fnames[0]).equals(FileUtils.getFileCheckSum(fnames[1])) );	
+		Assert.assertTrue( !FileUtils.getFileCheckSum(fs[0].getAbsolutePath()).equals(FileUtils.getFileCheckSum(fs[1].getAbsolutePath())) );	
 		
 	}
 	
@@ -178,8 +180,8 @@ public class FileUtilsTest {
 	}
 	
 	@Test
-	public void testIsInputGzip()    {
-		String[] fnames = new String[] { "test.output.gz", "test.output" };
+	public void testIsInputGzip() throws IOException    {
+		String[] fnames = new String[] { tempFolder.newFile("test.output.gz").getAbsolutePath(), tempFolder.newFile("test.output").getAbsolutePath()   };
 		//create testing data		
 		for(String output: fnames) 		 
 			try {
@@ -365,8 +367,6 @@ public class FileUtilsTest {
 			Assert.fail("Should have thrown an exception");
 		} catch (IllegalArgumentException iae) {}
 		
-//		File file = tempFolder.newFile("test");
-		
 		Assert.assertEquals(0, FileUtils.findDirectories(tempFolder.getRoot().getAbsolutePath(), "test", false).length);
 		
 		File dir = tempFolder.newFolder("testing");
@@ -413,34 +413,40 @@ public class FileUtilsTest {
 	
 	
 	@Test
-	public void testBackupFileByRenaming() throws Exception{
-		String backupFileName = TEST_FILENAME + ".1";
+	public void testBackupFileByRenaming() throws Exception{	
+		String backupFileName1 = TEST_FILENAME + ".1";
 		String backupFileName2 = TEST_FILENAME + ".2";
-		File backupFile = new File(backupFileName);
-		File backupFile2 = new File(backupFileName2);
-		File currentFile = new File(TEST_FILENAME);
+		
+		//try to make file under temp folder
+		String path = tempFolder.getRoot().getAbsolutePath() + "/";
+		File currentFile = new File(path + TEST_FILENAME );   //new File(TEST_FILENAME);	
+		File backupFile1 = new File(path + backupFileName1);    //new File(backupFileName1);		
+		File backupFile2 = new File(path + backupFileName2);   //new File(backupFileName2);
+		
 		
 		try {
-			FileUtils.backupFileByRenaming(TEST_FILENAME);
+		//	FileUtils.backupFileByRenaming(TEST_FILENAME);
+			FileUtils.backupFileByRenaming(currentFile.getAbsolutePath() );
 		} catch (IOException e) {
 			fail("Should not have thrown Exception");
 			e.printStackTrace();
 		}
 		// current file should be create-able, but no backup should have been made
 		Assert.assertTrue(currentFile.createNewFile());
-		Assert.assertFalse(backupFile.exists());
+		Assert.assertFalse(backupFile1.exists());
+		
 		
 		// try again
-		FileUtils.backupFileByRenaming(TEST_FILENAME);
+		FileUtils.backupFileByRenaming(currentFile.getAbsolutePath());
 		// should have created a backup file by renaming the orig file
-		Assert.assertTrue(backupFile.exists());
+		Assert.assertTrue(backupFile1.exists());
 		Assert.assertFalse(currentFile.exists());
 		
 		// one last time
 		currentFile.createNewFile();
-		FileUtils.backupFileByRenaming(TEST_FILENAME);
+		FileUtils.backupFileByRenaming(currentFile.getAbsolutePath());
 		// should have created a backup file by renaming the orig file
-		assertTrue(backupFile.exists());
+		assertTrue(backupFile1.exists());
 		assertTrue(backupFile2.exists());
 		assertFalse(currentFile.exists());
 	}
@@ -457,7 +463,7 @@ public class FileUtilsTest {
 		}
 	    
 	}
-	
+
 	private static final String TEST_FILENAME = "StaticMethodTest.test";
 	
 	@After
