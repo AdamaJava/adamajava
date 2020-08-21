@@ -281,7 +281,6 @@
 			<xs:attribute type="xs:string" name="operatingSystem" use="optional"/>
 		    <xs:attribute type="xs:string" name="user" use="optional"/>
 		    <xs:attribute type="xs:string" name="version" use="optional"/>	 
-		    <xs:attribute type="xs:string" name="validationSchema" use="optional"/>	 
 		</xs:complexType>
 		
 		<!--uuid attribute must be unique and exist  --> 	
