@@ -30,6 +30,16 @@ subprojects {
 	ignoreFailures = true
 	spotbugsTest.enabled = false
     }
+    //output to html, the default is xml
+    spotbugsMain {
+        reports {
+            html {
+                enabled = true
+                destination = file("$buildDir/reports/spotbugs/spotbugs.html")
+                stylesheet = 'fancy-hist.xsl'
+            }
+        }
+    }
 
     //config checkstyle
     checkstyle {

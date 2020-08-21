@@ -33,7 +33,7 @@ public class StreamGroup<RecordType> {
 		this.operations = operations;
 		this.eosInstance = endOfStreamInstance;
 		this.iterable = iterable;
-		this.entries = entries;
+		this.entries = Arrays.copyOf(entries, entries.length);
 		startStreams();
 		for (Thread thread : streams) {
 			thread.join();
@@ -55,7 +55,8 @@ public class StreamGroup<RecordType> {
 		operations.add(operation);
 		this.eosInstance = endOfStreamInstance;
 		this.iterable = iterable;
-		this.entries = entries;
+		//Storing a copy of the object is better approach in many situations
+		this.entries = Arrays.copyOf(entries, entries.length);
 	}
 
 	public void startStreams() throws InterruptedException {

@@ -23,9 +23,12 @@ public class EmailUtils {
 		
 		byte[] errorStream = new byte[1024];
 		java.io.InputStream isError = p.getErrorStream();
-		isError.read(errorStream);
+		int size = isError.read(errorStream);
 		
-		String errorMessage = new String(errorStream);
+		String errorMessage = null; 
+		if(size > 0) {
+			errorMessage = new String(errorStream, "UTF-8");
+		}
 		if (logger != null) logger.info("email sending exit status: " + emalExitStatus + ", msg: " + errorMessage);
 		
 		return emalExitStatus;

@@ -13,7 +13,9 @@ import com.typesafe.config.ConfigFactory;
  */
 public class Settings {
 
-    public final String s3RegionKey = "aws.s3Region";
+	//final static means compile-time constant
+    //just final means it's a constant but is initialized at run-time
+    public static final String s3RegionKey = "aws.s3Region";
 
     public final Region s3Region;
 
