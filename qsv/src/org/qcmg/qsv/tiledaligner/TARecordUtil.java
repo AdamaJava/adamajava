@@ -448,11 +448,11 @@ public class TARecordUtil {
 	}
 	
 	public static TLongList getLongList(long ... list) {
-		TLongList listToREturn = new TLongArrayList(list.length + 1);
+		TLongList listToReturn = new TLongArrayList(list.length + 1);
 		for (long l : list) {
-			listToREturn.add(l);
+			listToReturn.add(l);
 		}
-		return listToREturn;
+		return listToReturn;
 	}
 	
 	public static List<BLATRecord[]> blatRecordsFromSplits(TIntObjectMap<Set<IntLongPairs>> splits, String name, int seqLength, PositionChrPositionMap headerMap) {
@@ -462,6 +462,7 @@ public class TARecordUtil {
 			 * get the highest scoring list of splits
 			 */
 			int [] keys = splits.keys();
+//			keys = sortTileCount(keys);
 			Arrays.sort(keys);
 			int maxKey = keys[keys.length - 1];
 			Set<IntLongPairs> maxSplits = splits.get(maxKey);
@@ -489,11 +490,12 @@ public class TARecordUtil {
 		ChrPosition cp = headerMap.getChrPositionFromLongPosition(split.getLong());
 		boolean reverseStrand = NumberUtils.isBitSet(split.getLong(), REVERSE_COMPLEMENT_BIT);
 		int length = NumberUtils.getPartOfPackedInt(split.getInt(), true) + tileLength - 1;
+		int mismatch = NumberUtils.getPartOfPackedInt(split.getInt(), false);
 		int positionInSequence = NumberUtils.getShortFromLong(split.getLong(), TILE_OFFSET);
 		
 		String[] array = new String[21];
 		array[0] = "" + length;	//number of matches
-		array[1] = "0";					//number of mis-matches
+		array[1] = "" + mismatch;		//number of mis-matches
 		array[2] = "0";					//number of rep. matches
 		array[3] = "0";					//number of N's
 		array[4] = "0";					// Q gap count
@@ -738,7 +740,7 @@ public class TARecordUtil {
 		
 		String[] array = new String[21];
 		array[0] = "" + length;	//number of matches
-		array[1] = "0";					//number of mis-matches
+		array[1] = "" + IntLongPairsUtils.getMismatches(splits);	//number of mis-matches
 		array[2] = "0";					//number of rep. matches
 		array[3] = "0";					//number of N's
 		array[4] = qGapBases > 0 ? "1" : "0";					// Q gap count
@@ -832,6 +834,32 @@ public class TARecordUtil {
 		return new String[]{};
 	}
 	
+	/**
+	 * tile counts hold a combination of tile matches and mismatch count.
+	 * NEed to take the mismatch count away from the tile count.
+	 * 
+	 * Favour tile counts that have zero mismatches over those that have mismatches
+	 * eg.
+	 * tile count of 40 is better than tile count of 41 with a mismatch count of 1.
+	 * 
+	 * @param tileCounts
+	 * @return
+	 */
+	public static int[] sortTileCount(int[] tileCounts) {
+		
+		
+//		Arrays.sort(tileCounts);
+		return Arrays.stream(tileCounts)
+				.mapToObj(k -> NumberUtils.splitIntInto2(k))
+				.sorted((a,b) -> {int diff = Integer.compare((a[0] - a[1]), (b[0] - b[1]));
+				                if (diff == 0) {
+				                	diff = b[1] - a[1];
+				                }
+								return diff;})
+				.mapToInt(a -> NumberUtils.pack2IntsInto1(a[0], a[1]))
+				.toArray();
+	}
+	
 	
 	public static TIntObjectMap<Set<IntLongPairs>> getSplitStartPositions(TARecord record) {
 		TIntObjectMap<Set<IntLongPairs>> results = new TIntObjectHashMap<>();
@@ -840,7 +868,7 @@ public class TARecordUtil {
 		if (countsAndStartPositions.size() > 1 || (countsAndStartPositions.size() == 1 && countsAndStartPositions.get(countsAndStartPositions.keys()[0]).size() > 1 )) {
 		
 			int [] keys = countsAndStartPositions.keys();
-			Arrays.sort(keys);
+			keys = sortTileCount(keys);
 			int maxTileCount = getLengthFromPackedInt(keys[keys.length - 1]);
 			int seqLength = record.getSequence().length();
 			
@@ -1109,10 +1137,20 @@ public class TARecordUtil {
 					/*
 					 * tile count
 					 */
-					int diff = 	NumberUtils.getPartOfPackedInt(ilp2.getInt(), true) - NumberUtils.getPartOfPackedInt(ilp1.getInt(), true);
+					int [] ilp1Array = NumberUtils.splitIntInto2(ilp1.getInt());
+					int [] ilp2Array = NumberUtils.splitIntInto2(ilp2.getInt());
+					int diff = 	Integer.compare(ilp2Array[0] - ilp2Array[1], ilp1Array[0] - ilp1Array[1]);
+					if (diff == 0) {
+						diff = ilp1Array[1] - ilp2Array[1];
+					}
 					if (diff != 0) {
 						return diff;
 					}
+					
+//					int diff = 	NumberUtils.getPartOfPackedInt(ilp2.getInt(), true) - NumberUtils.getPartOfPackedInt(ilp1.getInt(), true);
+//					if (diff != 0) {
+//						return diff;
+//					}
 					/*
 					 * strand
 					 */
@@ -1292,7 +1330,6 @@ public class TARecordUtil {
 		/*
 		 * need to add a buffer to the maxTileCount
 		 * as there are instances where there is an overlap
-		 * see createTARec_chr8_125551528_split_withTileStartPositionsWithinRange above for an example
 		 */
 		
 		int bufferToUse = seqLength > 120 ? BUFFER * 7 : BUFFER;
@@ -1424,67 +1461,4 @@ public class TARecordUtil {
 		int tileCounts = NumberUtils.getPartOfPackedInt(packedInt, true);
 		return tileCounts + tileLength - 1;
 	}
-	
-//	public static TIntObjectMap<TLongList> getPotentialSplits(int currentTileCount, int startForwardStrand, int stopForwardStrand, int seqLength, TIntObjectMap<TLongList> countsAndStartPositions) {
-//		int [] keys = countsAndStartPositions.keys();
-//		Arrays.sort(keys);
-//		
-//		TIntObjectMap<TLongList> potentialSplits = new TIntObjectHashMap<>();
-//		int maxTileCount = stopForwardStrand - startForwardStrand - TILE_LENGTH;
-//		
-//		for (int i = keys.length - 1 ; i >= 0 ; i--) {
-//			if (keys[i] <= currentTileCount) {
-//				int tileCount = NumberUtils.getPartOfPackedInt(keys[i], true);
-//				/*
-//				 * only proceed if the tile length is less than the other part of the split but also greater than 20 
-//				 */
-//				if (tileCount <= maxTileCount && tileCount >= (MIN_TILE_COUNT)) {
-//					int diff = maxTileCount - tileCount;
-//					TLongList list =  countsAndStartPositions.get(keys[i]);
-//					for (int j = 0 ; j < list.size() ; j ++) {
-//						long l = list.get(j);
-//						
-//						if (l == 4611816862119100198l) {
-//							//here we are
-//							System.out.println("got our fella");
-//						}
-//						/*
-//						 * get strand as we will need to flip the tile position if on reverse
-//						 */
-//						boolean isReverseStrand =  NumberUtils.isBitSet(l, REVERSE_COMPLEMENT_BIT);
-//						
-//						/*
-//						 * check to see if tile position in sequence is greater than supplied value 
-//						 */
-//						short tilePositionInSequence = NumberUtils.getShortFromLong(l, TILE_OFFSET);
-//						if (isReverseStrand) {
-//							tilePositionInSequence = (short) (seqLength - tilePositionInSequence - tileCount - TILE_LENGTH);
-//						}
-//						/*
-//						 * if this long is on the reverse
-//						 */
-//						if (tilePositionInSequence >= startForwardStrand && tilePositionInSequence <= (stopForwardStrand - diff)) {
-//							/*
-//							 * we can keep this long
-//							 */
-//							TLongList listOfLongs = potentialSplits.get(keys[i]);
-//							if (null == listOfLongs) {
-//								listOfLongs = new TLongArrayList();
-//								potentialSplits.putIfAbsent(keys[i], listOfLongs);
-//							}
-//							listOfLongs.add(l);
-//						}
-//					}
-//				}
-//				if ( ! potentialSplits.isEmpty()) {
-//					/*
-//					 * no need to look for any more as we will just be decreasing the tile count
-//					 */
-//					break;
-//				}
-//			}
-//		}
-//		return potentialSplits;
-//	}
-
 }

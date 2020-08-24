@@ -296,7 +296,7 @@ public class TARecord {
 	
 	public TLongList getStartPositions(int matchingTileMinimumCount, boolean bothStrandsMustBePresent, int maxNumberOfStartPositions) {
 		int maxCutoff = 50;
-		int topN = 2;
+		int topN = 3;
 		TLongList list = new TLongArrayList(maxCutoff + 10);
 		
 		if (null == countAndStartPositionsMap || countAndStartPositionsMap.isEmpty()) {
@@ -304,7 +304,9 @@ public class TARecord {
 		}
 		
 		int [] keys = countAndStartPositionsMap.keys();
-		Arrays.sort(keys);
+		keys = TARecordUtil.sortTileCount(keys);
+//		keys = Arrays.stream(keys).mapToObj(k -> NumberUtils.splitIntInto2(k)).sorted((a,b) -> Integer.compare((a[0] - a[1]), (b[0] - b[1]))).mapToInt(a -> NumberUtils.pack2IntsInto1(a[0], a[1])).toArray();
+//		Arrays.sort(keys);
 		
 		/*
 		 * get the top 3 (if present)

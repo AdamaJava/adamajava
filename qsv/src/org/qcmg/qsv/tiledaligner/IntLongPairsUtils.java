@@ -154,9 +154,9 @@ public class IntLongPairsUtils {
 						int thispILPSeqStart = NumberUtils.getShortFromLong(pILP.getLong(), SHORT_OFFSET_IN_LONG);
 						int thispILPSeqEnd = thispILPSeqStart + NumberUtils.getPartOfPackedInt(pILP.getInt(), true) + TILE_LENGTH - 1;
 						if (potentialILPSeqStart > thispILPSeqStart && potentialILPSeqStart < thispILPSeqEnd) {
-							potentialBasesThisCouldFill =- (thispILPSeqEnd - potentialILPSeqStart);
+							potentialBasesThisCouldFill -= (thispILPSeqEnd - potentialILPSeqStart);
 						} else if (potentialILPSeqEnd > thispILPSeqEnd && potentialILPSeqEnd < thispILPSeqEnd) {
-							potentialBasesThisCouldFill =- (potentialILPSeqEnd - thispILPSeqStart);
+							potentialBasesThisCouldFill -= (potentialILPSeqEnd - thispILPSeqStart);
 						}
 					}
 					
@@ -231,6 +231,25 @@ public class IntLongPairsUtils {
 			}
 		}
 		return isValid;
+	}
+	
+	/**
+	 * 
+	 * Tallies up the mismatches in the supplied IntLongPairs object.
+	 * Returns 0 if supplied IntLongPairs object is null/empty/contains no mismatches...
+	 * 
+	 * @param ilp
+	 * @return
+	 */
+	public static int getMismatches(IntLongPairs ilp) {
+		int mismatchTally = 0;
+		if (null != ilp) {
+			IntLongPair[] array = ilp.getPairs();
+			for (IntLongPair a : array) {
+				mismatchTally += NumberUtils.getPartOfPackedInt(a.getInt(), false);
+			}
+		}
+		return mismatchTally;
 	}
 
 	/**

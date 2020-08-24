@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.IntSummaryStatistics;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -268,25 +269,109 @@ public class TiledAlignerUtil {
 				}
 				
 				
-				array[i] = rc ? addReverseComplementToArray(list.toArray()) : list.toArray();
+				array[i] = list.toArray();
+//				array[i] = rc ? addReverseComplementToArray(list.toArray()) : list.toArray();
 				
 				System.out.println("start positions for tile: " + tile + ": " + Arrays.toString(list.toArray()));
 			} else {
 				array[i] = null;
 			}
 		}
-		return convertLongDoubleArrayToMap(array);
+		return convertLongDoubleArrayToMap(array, rc);
 	}
 	
 	public static Map<Integer, TLongList> getCountStartPositionsMapUsingCache(TIntObjectMap<int[]> cache, String contig, int tileSize, boolean rc) {
 		return getCountStartPositionsMapUsingCache(cache, contig, tileSize, rc, false);
 	}
 	public static Map<Integer, TLongList> getCountStartPositionsMapUsingCache(TIntObjectMap<int[]> cache, String contig, int tileSize, boolean rc, boolean debug) {
+		
+		long [][] array = getStartPositionsArray( cache,  contig,  tileSize,  rc,  debug);
+		
+		
+//		int length = contig.length();
+//		int arraySize = length - tileSize + 1;
+//		if (arraySize <= 0) {
+//			System.out.println("array size is less than zero! contig: " + contig);
+//			return Collections.emptyMap();
+//		}
+//		long [][] array = new long[arraySize][];
+//		for (int i = 0 ; i < arraySize ; i++) {
+//			String tile = contig.substring(i, i + tileSize);
+//			int tileInt = NumberUtils.convertTileToInt(tile);
+//			/*
+//			 * if the tile contains a N, add all variants of this tile to the array
+//			 */
+//			TLongList list = new TLongArrayList();
+//			int[] startPositionsForTile = cache.get(tileInt);
+//			if (null != startPositionsForTile) {
+//				if (startPositionsForTile.length > 0) {
+//					list.addAll(Arrays.stream(startPositionsForTile).mapToLong(m -> Integer.toUnsignedLong(m)).toArray());
+//				} else {
+//					/*
+//					 * empty array indicates a commonly occurring tile. Add -1 to the list, as that is what used to happen for common tiles
+//					 */
+//					list.add(-1);
+//				}
+//			}
+////			if (null != startPositionsForTile && startPositionsForTile.length > 0) {
+////				list.addAll(Arrays.stream(startPositionsForTile).mapToLong(m -> Integer.toUnsignedLong(m)).toArray());
+////			}
+//			if (tile.indexOf('N') > -1) {
+//				List<String> alternativeTiles = getAlternativeSequences(tile);
+//				for (String s : alternativeTiles) {
+//					int tileInt2 = NumberUtils.convertTileToInt(s);
+//					int[] altArray = cache.get(tileInt2);
+//					if (null != altArray && altArray.length > 0) {
+//						list.addAll(Arrays.stream(altArray).mapToLong(m -> Integer.toUnsignedLong(m)).toArray());
+//					}
+//				}
+//			}
+//			
+//			if (list.isEmpty()) {
+//				array[i] = null;
+//				if (debug) {
+//					System.out.println("NO start positions for tile: " + tile);
+//				}
+//			} else {
+//				/*
+//				 * check list, if we have a commonly occurring number (-ve) then remove all other numbers
+//				 */
+////				if (list.size() > 1) {
+////					list.sort();
+////					long l = list.get(0);
+////					if (l < 0) {
+////						list.clear();
+////						list.add(l);
+////					}
+////				}
+//				array[i] = rc ? addReverseComplementToArray(list.toArray()) : list.toArray();
+//				if (debug) {
+//					System.out.println("start positions for tile: " + tile + ": " + Arrays.toString(list.toArray()));
+//				}
+//			}
+//		}
+		return convertLongDoubleArrayToMap(array, rc);
+	}
+	
+	public static long [][] getStartPositionsArray(TIntObjectMap<int[]> cache, String contig, int tileSize, boolean rc) {
+		return getStartPositionsArray(cache, contig, tileSize, rc, false);
+	}
+	/**
+	 * Returns the start positions for the tiles that make up this sequence
+	 * 
+	 * @param cache
+	 * @param contig
+	 * @param tileSize
+	 * @param rc
+	 * @param debug
+	 * @return
+	 */
+	public static long [][] getStartPositionsArray(TIntObjectMap<int[]> cache, String contig, int tileSize, boolean rc, boolean debug) {
 		int length = contig.length();
-		int arraySize = length - tileSize + 1;
+		int arraySize = (length - tileSize) + 1;
 		if (arraySize <= 0) {
 			System.out.println("array size is less than zero! contig: " + contig);
-			return Collections.emptyMap();
+			return new long[0][];
 		}
 		long [][] array = new long[arraySize][];
 		for (int i = 0 ; i < arraySize ; i++) {
@@ -295,8 +380,8 @@ public class TiledAlignerUtil {
 			/*
 			 * if the tile contains a N, add all variants of this tile to the array
 			 */
-			TLongList list = new TLongArrayList();
 			int[] startPositionsForTile = cache.get(tileInt);
+			TLongList list = new TLongArrayList(null != startPositionsForTile ? startPositionsForTile.length + 1 : 2);
 			if (null != startPositionsForTile) {
 				if (startPositionsForTile.length > 0) {
 					list.addAll(Arrays.stream(startPositionsForTile).mapToLong(m -> Integer.toUnsignedLong(m)).toArray());
@@ -307,19 +392,16 @@ public class TiledAlignerUtil {
 					list.add(-1);
 				}
 			}
-//			if (null != startPositionsForTile && startPositionsForTile.length > 0) {
-//				list.addAll(Arrays.stream(startPositionsForTile).mapToLong(m -> Integer.toUnsignedLong(m)).toArray());
+//			if (tile.indexOf('N') > -1) {
+//				List<String> alternativeTiles = getAlternativeSequences(tile);
+//				for (String s : alternativeTiles) {
+//					int tileInt2 = NumberUtils.convertTileToInt(s);
+//					int[] altArray = cache.get(tileInt2);
+//					if (null != altArray && altArray.length > 0) {
+//						list.addAll(Arrays.stream(altArray).mapToLong(m -> Integer.toUnsignedLong(m)).toArray());
+//					}
+//				}
 //			}
-			if (tile.indexOf('N') > -1) {
-				List<String> alternativeTiles = getAlternativeSequences(tile);
-				for (String s : alternativeTiles) {
-					int tileInt2 = NumberUtils.convertTileToInt(s);
-					int[] altArray = cache.get(tileInt2);
-					if (null != altArray && altArray.length > 0) {
-						list.addAll(Arrays.stream(altArray).mapToLong(m -> Integer.toUnsignedLong(m)).toArray());
-					}
-				}
-			}
 			
 			if (list.isEmpty()) {
 				array[i] = null;
@@ -327,24 +409,14 @@ public class TiledAlignerUtil {
 					System.out.println("NO start positions for tile: " + tile);
 				}
 			} else {
-				/*
-				 * check list, if we have a commonly occurring number (-ve) then remove all other numbers
-				 */
-//				if (list.size() > 1) {
-//					list.sort();
-//					long l = list.get(0);
-//					if (l < 0) {
-//						list.clear();
-//						list.add(l);
-//					}
-//				}
-				array[i] = rc ? addReverseComplementToArray(list.toArray()) : list.toArray();
+				array[i] = list.toArray();
+//				array[i] = rc ? addReverseComplementToArray(list.toArray()) : list.toArray();
 				if (debug) {
 					System.out.println("start positions for tile: " + tile + ": " + Arrays.toString(list.toArray()));
 				}
 			}
 		}
-		return convertLongDoubleArrayToMap(array);
+		return array;
 	}
 	
 	
@@ -355,13 +427,13 @@ public class TiledAlignerUtil {
 	 * @param array
 	 * @return
 	 */
-	public static long[] addReverseComplementToArray(long [] array) {
-		long [] newArray = new long[array.length];
-		for (int i = 0, len = array.length ; i < len ; i++) {
-			newArray[i] = NumberUtils.isBitSet(array[i], REVERSE_COMPLEMENT_BIT) ? array[i] : NumberUtils.setBit(array[i], REVERSE_COMPLEMENT_BIT);
-		}
-		return newArray;
-	}
+//	public static long[] addReverseComplementToArray(long [] array) {
+//		long [] newArray = new long[array.length];
+//		for (int i = 0, len = array.length ; i < len ; i++) {
+//			newArray[i] = NumberUtils.isBitSet(array[i], REVERSE_COMPLEMENT_BIT) ? array[i] : NumberUtils.setBit(array[i], REVERSE_COMPLEMENT_BIT);
+//		}
+//		return newArray;
+//	}
 	
 	
 	/**
@@ -386,22 +458,27 @@ public class TiledAlignerUtil {
 	 * @param array
 	 * @return map containing count of continuous matching tiles, along with list of start positions
 	 */
-	public static Map<Integer, TLongList> convertLongDoubleArrayToMap(long [][] array) {
+	public static Map<Integer, TLongList> convertLongDoubleArrayToMap(long [][] array, boolean rc) {
 		/*
 		 * sort the arrays so that Arrays search functions can be used
+		 * 
+		 * don't think we need to sort here as the start positions should be sorted in the file, and in the cache
+		 * 
+		 * Ha! we DO need to sort, because we have added the reverse complement flag onto long positions.....
+		 * 
 		 */
-		for (long [] subArray : array) {
-			if (null != subArray && subArray.length > 1) {
-				Arrays.sort(subArray);
-			}
-		}
+//		for (long [] subArray : array) {
+//			if (null != subArray && subArray.length > 1) {
+//				Arrays.sort(subArray);
+//			}
+//		}
 		Map<Integer, TLongList> map = new HashMap<>();
 		
 		/*
 		 * get number of commonly occurring tiles at beginning of 2D array 
 		 */
-		int commonTileCount = 0;
-		boolean useCommonTileCount = true;
+//		int commonTileCount = 0;
+//		boolean useCommonTileCount = true;
 		TLongIntMap positionCountMap = new TLongIntHashMap(1024);
 		int currentMaxCount = 0;
 		
@@ -415,7 +492,7 @@ public class TiledAlignerUtil {
 					 * if long is negative, then it is a commonly occurring tile - ignore these for now
 					 */
 					if (l < 0) {
-						commonTileCount++;
+//						commonTileCount++;
 						continue;
 					}
 					
@@ -447,7 +524,11 @@ public class TiledAlignerUtil {
 								 * we want to add the tile position into the long as this will aid split contig sequences
 								 */
 								long longToUse = NumberUtils.addShortToLong(l, (short) i, POSITION_OF_TILE_IN_SEQUENCE_OFFSET);
-								map.computeIfAbsent(useCommonTileCount ? tally + (short)commonTileCount : tally, f -> new TLongArrayList()).add(longToUse);
+								if (rc) {
+									longToUse = NumberUtils.setBit(longToUse, REVERSE_COMPLEMENT_BIT);
+								}
+								map.computeIfAbsent(tally, f -> new TLongArrayList()).add(longToUse);
+//								map.computeIfAbsent(useCommonTileCount ? tally + (short)commonTileCount : tally, f -> new TLongArrayList()).add(longToUse);
 								positionCountMap.put(l, exactMatchComponent);
 							}
 						}
@@ -458,6 +539,109 @@ public class TiledAlignerUtil {
 		
 		return map;
 	}
+	
+	
+	/**
+	 * 
+	 * @param array
+	 * @return
+	 */
+	public static TLongList getShortCutPositionsForSmithwaterman(long [][] array) {
+		TLongList results = new TLongArrayList();
+		if (null != array && array.length > 0) {
+			
+			int lengthMinusOne = array.length - 1;
+			long [] firstArray = array[0];
+			long [] lastArray = array[lengthMinusOne];
+			if (null != firstArray && null != lastArray) {
+				
+				for (long l : firstArray) {
+					int position = NumberUtils.getPositionOfLongInArray(lastArray, l + lengthMinusOne);
+					if (position >= 0) {
+						/*
+						 * we have a match!
+						 */
+						results.add(l);
+					}
+				}
+			}
+		}
+		return results;
+	}
+	
+	
+//	public static Map<Integer, TLongList> convertLongDoubleArrayToMap(long [][] array) {
+//		/*
+//		 * sort the arrays so that Arrays search functions can be used
+//		 */
+//		for (long [] subArray : array) {
+//			if (null != subArray && subArray.length > 1) {
+//				Arrays.sort(subArray);
+//			}
+//		}
+//		Map<Integer, TLongList> map = new HashMap<>();
+//		
+//		/*
+//		 * get number of commonly occurring tiles at beginning of 2D array 
+//		 */
+//		int commonTileCount = 0;
+//		boolean useCommonTileCount = true;
+//		TLongIntMap positionCountMap = new TLongIntHashMap(1024);
+//		int currentMaxCount = 0;
+//		
+//		for (int i = 0 ; i < array.length - 1 ; i++) {
+//			
+//			long [] subArray = array[i];
+//			if (null != subArray) {
+//				for (long l : subArray) {
+//					
+//					/*
+//					 * if long is negative, then it is a commonly occurring tile - ignore these for now
+//					 */
+//					if (l < 0) {
+//						commonTileCount++;
+//						continue;
+//					}
+//					
+//					/*
+//					 * check the next array to see if we can find a +1 match
+//					 */
+//					int tally = nonContinuousCount(array, l, i + 1);
+//					if (tally > 65536) {
+//						int exactMatchComponent = NumberUtils.getPartOfPackedInt(tally, true);
+//						if (exactMatchComponent > currentMaxCount) {
+//							currentMaxCount = exactMatchComponent;
+//						}
+//						if (exactMatchComponent > 5) {
+//							
+//							/*
+//							 * check to see if we have already recorded this in the positionCountMap
+//							 */
+//							
+//							boolean alreadyRepresented = false;
+//							for (int z = 0 ; z <= i ; z++) {
+//								if ( positionCountMap.get(l - z) >= exactMatchComponent + z) {
+//									alreadyRepresented = true;
+//									break;
+//								}
+//							}
+//							if ( ! alreadyRepresented) {
+//								/*
+//								 * add
+//								 * we want to add the tile position into the long as this will aid split contig sequences
+//								 */
+//								long longToUse = NumberUtils.addShortToLong(l, (short) i, POSITION_OF_TILE_IN_SEQUENCE_OFFSET);
+//								map.computeIfAbsent(useCommonTileCount ? tally + (short)commonTileCount : tally, f -> new TLongArrayList()).add(longToUse);
+//								positionCountMap.put(l, exactMatchComponent);
+//							}
+//						}
+//					}
+//				}
+//			}
+//		}
+//		
+//		return map;
+//	}
 	/**
 	 * The 2D long array contains the start positions of tiles that match the string that was queried
 	 * This method takes that array and return a map that has a count of the continuous blocks of tiles, along with a list of the start positions.
@@ -465,110 +649,102 @@ public class TiledAlignerUtil {
 	 * @param array
 	 * @return map containing count of continuous matching tiles, along with list of start positions
 	 */
-	public static Map<Integer, TLongList> convertLongDoubleArrayToMapOld(long [][] array) {
-//		long start = System.currentTimeMillis();
-		/*
-		 * sort the arrays so that Arrays search functions can be used
-		 */
-		for (long [] subArray : array) {
-			if (null != subArray && subArray.length > 1) {
-				Arrays.sort(subArray);
-			}
-		}
-		Map<Integer, TLongList> map = new HashMap<>();
-		
-		/*
-		 * get number of commonly occurring tiles at beginning of 2D array 
-		 */
-		int commonTileCount = 0;
-		boolean useCommonTileCount = true;
-		TLongSet startPositions = new TLongHashSet(4 * 1024);
-		int currentMaxCount = 0;
-		
-		for (int i = 0 ; i < array.length - 1 ; i++) {
-			
-			
-			/*
-			 * If we have a currentMaxCount that is greater than the remaining array length, then it is not possible to better that and so drop out
-			 * do that when currentMacCount is twice the remaining array length
-			 */
-			if ((array.length - i) * 2 < currentMaxCount) {
-				System.out.println("Breaking out of loop with currentMaxCount: " + currentMaxCount + ", and remaining array size: " + (array.length - i));
-				break;
-			}
-			
-			long [] subArray = array[i];
-			if (null != subArray) {
-				for (long l : subArray) {
-					
-					/*
-					 * if long is negative, then it is a commonly occurring tile - ignore these for now
-					 */
-					if (l < 0) {
-						commonTileCount++;
-						continue;
-					}
-					/*
-					 * If we already have this start position (plus any offset), don't bother examining it further
-					 */
-					boolean positionAlreadyNoted = false;
-					if ( ! startPositions.isEmpty()) {
-						for (int j = i ; j >= 0 ; j--) {
-							if (startPositions.contains(l - j)) {
-								positionAlreadyNoted = true;
-								break;	// change to break
-							}
-						}
-					}
-					if (positionAlreadyNoted) {
-						continue;
-					}
-					
-					/*
-					 * check the next array to see if we can find a +1 match
-					 */
-					int tally = nonContinuousCount(array, l, i + 1);
-//					int tally = nonContinuousCount(array, l, i + 1) + (useCommonTileCount ? commonTileCount : 0);
-					//				int tally = continuousCount(array, l, i + 1);
-					int exactMatchComponent = NumberUtils.getPartOfPackedInt(tally, true);
-					if (exactMatchComponent > currentMaxCount) {
-						currentMaxCount = exactMatchComponent;
-					}
-					if (exactMatchComponent > 1) {
-//						if (exactMatchComponent > 1) {
-						
-						map.computeIfAbsent(useCommonTileCount ? tally + (short)commonTileCount : tally, f -> new TLongArrayList()).add(l);
-//						if (tally > 20) {
-//							System.out.println("adding " + l + " to startPositions");
-//						}
-//						for (int k = 0 ; k < exactMatchComponent ; k++) {
-//							allPositions.add(l + k);
-//						}
-						startPositions.add(l);
-					}
-				}
-			}
-			
-			/*
-			 * Check to see if the highest key in the map is equal to the length of our array (minus 1 each time this iteration is performed)
-			 * if it is then we have a perfect match and we can exit
-			 * otherwise, keep looping....
-			 */
-			if (currentMaxCount == array.length - i ) {
-				break;
-			}
-//			if (i == commonTileCount) {
-//				useCommonTileCount = false;
+//	public static Map<Integer, TLongList> convertLongDoubleArrayToMapOld(long [][] array) {
+////		long start = System.currentTimeMillis();
+//		/*
+//		 * sort the arrays so that Arrays search functions can be used
+//		 */
+//		for (long [] subArray : array) {
+//			if (null != subArray && subArray.length > 1) {
+//				Arrays.sort(subArray);
 //			}
-		}
-		
-//		System.out.println("number of start positions: " + startPositions.size());
-//		System.out.println("Time taken in convertLongDoubleArrayToMap: " + (System.currentTimeMillis() - start));
-		return map;
-	}
-	
-	
-	
+//		}
+//		Map<Integer, TLongList> map = new HashMap<>();
+//		
+//		/*
+//		 * get number of commonly occurring tiles at beginning of 2D array 
+//		 */
+////		int commonTileCount = 0;
+////		boolean useCommonTileCount = true;
+//		TLongSet startPositions = new TLongHashSet(4 * 1024);
+//		int currentMaxCount = 0;
+//		
+//		for (int i = 0 ; i < array.length - 1 ; i++) {
+//			
+//			
+//			/*
+//			 * If we have a currentMaxCount that is greater than the remaining array length, then it is not possible to better that and so drop out
+//			 * do that when currentMacCount is twice the remaining array length
+//			 */
+//			if ((array.length - i) * 2 < currentMaxCount) {
+//				System.out.println("Breaking out of loop with currentMaxCount: " + currentMaxCount + ", and remaining array size: " + (array.length - i));
+//				break;
+//			}
+//			
+//			long [] subArray = array[i];
+//			if (null != subArray) {
+//				for (long l : subArray) {
+//					
+//					/*
+//					 * if long is negative, then it is a commonly occurring tile - ignore these for now
+//					 */
+//					if (l < 0) {
+////						commonTileCount++;
+//						continue;
+//					}
+//					/*
+//					 * If we already have this start position (plus any offset), don't bother examining it further
+//					 */
+//					boolean positionAlreadyNoted = false;
+//					if ( ! startPositions.isEmpty()) {
+//						for (int j = i ; j >= 0 ; j--) {
+//							if (startPositions.contains(l - j)) {
+//								positionAlreadyNoted = true;
+//								break;	// change to break
+//							}
+//						}
+//					}
+//					if (positionAlreadyNoted) {
+//						continue;
+//					}
+//					
+//					/*
+//					 * check the next array to see if we can find a +1 match
+//					 */
+//					int tally = nonContinuousCount(array, l, i + 1);
+////					int tally = nonContinuousCount(array, l, i + 1) + (useCommonTileCount ? commonTileCount : 0);
+//					//				int tally = continuousCount(array, l, i + 1);
+//					int exactMatchComponent = NumberUtils.getPartOfPackedInt(tally, true);
+//					if (exactMatchComponent > currentMaxCount) {
+//						currentMaxCount = exactMatchComponent;
+//					}
+//					if (exactMatchComponent > 1) {
+////						if (exactMatchComponent > 1) {
+//						
+//						map.computeIfAbsent(tally, f -> new TLongArrayList()).add(l);
+////						map.computeIfAbsent(useCommonTileCount ? tally + (short)commonTileCount : tally, f -> new TLongArrayList()).add(l);
+////						if (tally > 20) {
+////							System.out.println("adding " + l + " to startPositions");
+////						}
+////						for (int k = 0 ; k < exactMatchComponent ; k++) {
+////							allPositions.add(l + k);
+////						}
+//						startPositions.add(l);
+//					}
+//				}
+//			}
+//			
+//			/*
+//			 * Check to see if the highest key in the map is equal to the length of our array (minus 1 each time this iteration is performed)
+//			 * if it is then we have a perfect match and we can exit
+//			 * otherwise, keep looping....
+//			 */
+//			if (currentMaxCount == array.length - i ) {
+//				break;
+//			}
+//		}
+//		return map;
+//	}
 	
 //	public static int continuousCount(long [][] array, long l, int arrayStartPosition) {
 //		int tally = 0;
@@ -591,6 +767,7 @@ public class TiledAlignerUtil {
 	public static int nonContinuousCount(long [][] array, long l, int arrayStartPosition) {
 		int tally = 1;	// start at 1
 		int commonTileTally = 0;
+		int mismatchTally = 0;
 		int arrayLength = array.length;
 		
 		for (int i = 0 ; i < arrayLength - arrayStartPosition ; i++) {
@@ -616,6 +793,26 @@ public class TiledAlignerUtil {
 						tally++;
 					} else {
 						
+						
+						/*
+						 * check to see if this position was a mismatch
+						 * by jumping ahead 13
+						 */
+						if (arrayStartPosition + i + 13 < arrayLength) {
+							nextArray = array[arrayStartPosition + i + 13];
+							if (null != nextArray && nextArray.length > 0 && nextArray[0] != -1) {
+								position = NumberUtils.getPositionOfLongInArray(nextArray, l + i + 14);
+								if (position > -1) {
+									i += 12;
+									tally += 13;
+									mismatchTally++;
+									continue;
+								}
+							}
+						}
+						
+						
+						
 						/*
 						 * no longer allow gaps - we want exact matches only, and then use splits mechanism to stitch together constituent chunks if necessary 
 						 * 
@@ -639,11 +836,68 @@ public class TiledAlignerUtil {
 		 */
 		if (tally > commonTileTally) {
 			tally += commonTileTally;
-			commonTileTally = 0;
+//			commonTileTally = 0;
 		}
 		
-		return NumberUtils.getTileCount(tally, commonTileTally);
+		return NumberUtils.getTileCount(tally, mismatchTally);
 	}
+//	public static int nonContinuousCount(long [][] array, long l, int arrayStartPosition) {
+//		int tally = 1;	// start at 1
+//		int commonTileTally = 0;
+//		int mismatchTally = 0;
+//		int arrayLength = array.length;
+//		
+//		for (int i = 0 ; i < arrayLength - arrayStartPosition ; i++) {
+//			long [] nextArray = array[arrayStartPosition + i];
+//			if (null != nextArray) {
+//				if (nextArray.length == 1 && nextArray[0] < 0) {
+//					commonTileTally++;
+//					
+//					
+//					/*
+//					 * Lets try breaking out if we get a commonly occurring tile
+//					 */
+//					
+////					break;
+//				} else {
+//					
+//					/*
+//					 * try and reduce the occurrences of binary searching
+//					 */
+//					int position = NumberUtils.getPositionOfLongInArray(nextArray, l + i + 1);
+//					
+//					if (position > -1) {
+//						tally++;
+//					} else {
+//						
+//						/*
+//						 * no longer allow gaps - we want exact matches only, and then use splits mechanism to stitch together constituent chunks if necessary 
+//						 * 
+//						 * and so, if we don't have a match, or a commonly occurring tile, break out
+//						 */
+//						break;
+//						
+//						
+////						int absPosition = Math.min(Math.abs(position) - 1, nextArray.length - 1);
+////						if ((absPosition >= 0 && Math.abs((l + i + 1) - nextArray[absPosition]) < INDEL_GAP) 
+////								|| (absPosition > 1 && Math.abs((l + i + 1) - nextArray[absPosition - 1]) < INDEL_GAP)) {
+////							tally++;
+////						}
+//					}
+//				}
+//			}
+//		}
+//		
+//		/*
+//		 * If the commonTallyCount is less than the tally, incorporate it into the tally
+//		 */
+//		if (tally > commonTileTally) {
+//			tally += commonTileTally;
+//			commonTileTally = 0;
+//		}
+//		
+//		return NumberUtils.getTileCount(tally, commonTileTally);
+//	}
 	
 	
 	
@@ -1816,25 +2070,24 @@ public class TiledAlignerUtil {
 			System.out.println("too much repetition in sequence to proceed: " + sequence);
 			return Collections.emptyList();
 		}
-//		
-//		short[] baseDist = getBaseDistribution(sequence);
-//		if (isDistEvenlySpread(baseDist, sequence.length(), 1d)) {
-//			System.out.println("not enough diversity in sequence to proceed: " + sequence);
-//			return Collections.emptyList();
-//		}
-		
-		
-		if (sequence.equals("GCAAGACTGTGTCTCAAAAAAAAACAAA")) {
-			log = true;
-		}
 		
 		sequenceOriginatingMethodMap.computeIfAbsent(sequence, f -> new ArrayList<>()).add(originatingMethod);
 		
 		List<BLATRecord> results = new ArrayList<>();
 		String revCompSequence = SequenceUtil.reverseComplement(sequence);
 		
-		Map<Integer, TLongList> map1 = getCountStartPositionsMapUsingCache(cache, sequence, tileLength, false, log);
-		Map<Integer, TLongList> map2 = getCountStartPositionsMapUsingCache(cache, revCompSequence, tileLength, true, log);
+		long [][] startPositions = getStartPositionsArray(cache, sequence, tileLength, false, log);
+		long [][] startPositionsRC = getStartPositionsArray(cache, revCompSequence, tileLength, true, log);
+		
+		TLongList potentialMatches = getShortCutPositionsForSmithwaterman(startPositions);
+		TLongList potentialMatchesRC = getShortCutPositionsForSmithwaterman(startPositionsRC);
+		
+		
+		
+		Map<Integer, TLongList> map1 = convertLongDoubleArrayToMap(startPositions, false);
+		Map<Integer, TLongList> map2 = convertLongDoubleArrayToMap(startPositionsRC, true);
+//		Map<Integer, TLongList> map1 = getCountStartPositionsMapUsingCache(cache, sequence, tileLength, false, log);
+//		Map<Integer, TLongList> map2 = getCountStartPositionsMapUsingCache(cache, revCompSequence, tileLength, true, log);
 		for (Entry<Integer, TLongList> entry : map2.entrySet()) {
 			map1.computeIfAbsent(entry.getKey(), f -> new TLongArrayList()).addAll(entry.getValue());
 		}
@@ -2232,6 +2485,14 @@ public class TiledAlignerUtil {
 		
 		if (log) {
 			System.out.println("number of blat records for seq: " + sequence +", " + uniqueResults.size() +", winner: " + (uniqueResults.size() > 0 ? uniqueResults.get(uniqueResults.size() - 1).toString() : "-"));
+		}
+		if (potentialMatches.size() > 0 || potentialMatchesRC.size() > 0) {
+//			String potentialMatchesString = Arrays.stream(potentialMatches.toArray()).mapToObj(l -> headerMap.getChrPositionFromLongPosition(l)).filter(cp -> null != cp).map(ChrPosition::toIGVString).collect(Collectors.joining(","));
+//			String potentialMatchesStringRC = Arrays.stream(potentialMatchesRC.toArray()).mapToObj(l -> headerMap.getChrPositionFromLongPosition(l)).filter(cp -> null != cp).map(ChrPosition::toIGVString).collect(Collectors.joining(","));
+//			
+//			System.out.println("shortcut!!! potentialMatches.size: " + potentialMatches.size() + ", potentialMatchesRC.size(): " 
+//		+ potentialMatchesRC.size() + ", winning blat: " + (uniqueResults.size() > 0 ? uniqueResults.get(uniqueResults.size() - 1).toString() : "-") + ", potentialMatchesString: " + potentialMatchesString + ", potentialMatchesStringRC: " + potentialMatchesStringRC);
+			System.out.println("shortcut!!! potentialMatches.size: " + potentialMatches.size() + ", potentialMatchesRC.size(): " + potentialMatchesRC.size() + ", uniqueResults.size(): " + uniqueResults.size() + ", name: " + name + ", seq length: " + sequence.length() + ", seq: " + sequence);
 		}
 		
 		

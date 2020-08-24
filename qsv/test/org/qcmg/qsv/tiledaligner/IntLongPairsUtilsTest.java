@@ -78,6 +78,34 @@ public class IntLongPairsUtilsTest {
 	}
 	
 	@Test
+	public void getMismatches() {
+		IntLongPair p1 = new IntLongPair(7012352, 75868643634102l);
+		IntLongPair p2 = new IntLongPair(3145728, 4611816862119100198l);
+		IntLongPairs pairs = new IntLongPairs(new IntLongPair[]{p1, p2});
+		assertEquals(0, IntLongPairsUtils.getMismatches(pairs));
+		
+		p1 = new IntLongPair(NumberUtils.pack2IntsInto1(15, 0), 100000000l);
+		p2 = new IntLongPair(NumberUtils.pack2IntsInto1(15, 0), 200000000l);
+		pairs = new IntLongPairs(new IntLongPair[]{p1, p2});
+		assertEquals(0, IntLongPairsUtils.getMismatches(pairs));
+		
+		p1 = new IntLongPair(NumberUtils.pack2IntsInto1(15, 1), 100000000l);
+		p2 = new IntLongPair(NumberUtils.pack2IntsInto1(15, 0), 200000000l);
+		pairs = new IntLongPairs(new IntLongPair[]{p1, p2});
+		assertEquals(1, IntLongPairsUtils.getMismatches(pairs));
+		
+		p1 = new IntLongPair(NumberUtils.pack2IntsInto1(15, 0), 100000000l);
+		p2 = new IntLongPair(NumberUtils.pack2IntsInto1(15, 1), 200000000l);
+		pairs = new IntLongPairs(new IntLongPair[]{p1, p2});
+		assertEquals(1, IntLongPairsUtils.getMismatches(pairs));
+		
+		p1 = new IntLongPair(NumberUtils.pack2IntsInto1(15, 20), 100000000l);
+		p2 = new IntLongPair(NumberUtils.pack2IntsInto1(15, 1), 200000000l);
+		pairs = new IntLongPairs(new IntLongPair[]{p1, p2});
+		assertEquals(21, IntLongPairsUtils.getMismatches(pairs));
+	}
+	
+	@Test
 	public void sorting3() {
 //IntLongPairs [pairs=[IntLongPair [i=2752512, l=4611705811171869861], IntLongPair [i=786432, l=4611775080404419812], IntLongPair [i=720896, l=87962594069495]]
 		IntLongPair p1 = new IntLongPair(2752512, 4611705811171869861l);
