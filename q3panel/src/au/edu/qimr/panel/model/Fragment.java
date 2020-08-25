@@ -37,6 +37,7 @@ public class Fragment implements Comparable<Fragment> {
 	public void setSWDiffs(String [] diffs) {
 		this.smithWatermanDiffs = diffs;
 	}
+	
 	public String [] getSmithWatermanDiffs() {
 		return smithWatermanDiffs;
 	}
@@ -105,15 +106,14 @@ public class Fragment implements Comparable<Fragment> {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
+		
+		if (this == obj) return true;
+		if (obj == null) return false;
+		if (getClass() != obj.getClass()) return false;
+		
 		Fragment other = (Fragment) obj;
-		if (id != other.id)
-			return false;
+		if (id != other.id) return false;
+		
 		return true;
 	}
 }

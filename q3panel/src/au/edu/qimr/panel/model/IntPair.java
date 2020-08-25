@@ -39,17 +39,15 @@ public class IntPair implements Comparable<IntPair> {
 	
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
+		
+		if (this == obj) return true;
+		if (obj == null) return false;
+		if (getClass() != obj.getClass()) return false;
+		
 		IntPair other = (IntPair) obj;
-		if (int1 != other.int1)
-			return false;
-		if (int2 != other.int2)
-			return false;
+		if (int1 != other.int1) return false;
+		if (int2 != other.int2) return false;
+		
 		return true;
 	}
 	

@@ -69,19 +69,17 @@ public class FastqProbeMatchUtil {
 	
 	public static <T> void incrementCount(Map<T, AtomicInteger> map, T data) {
 
-		if (null == map || null == data)
+		if (null == map || null == data) {
 			throw new AssertionError("Null map or data found in FastqProbeMatchUtil.incrementCount");
+		}
 		
 		AtomicInteger currentCount = map.get(data);
 		if (null == currentCount) {
 			currentCount = map.put(data, new AtomicInteger(1));
-			if (null == currentCount)
-				return;
+			if (null == currentCount) return;
 		}
 		currentCount.incrementAndGet();
 	}
-	
-	
 	
 	public static void getStats(Set<FastqProbeMatch> set) {
 		

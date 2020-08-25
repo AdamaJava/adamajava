@@ -1270,7 +1270,8 @@ public class Q3Panel {
 								}
 								createMutation(f.getPosition(), position , ref, alt, entry.getKey().getId(), f.getId(), f.getRecordCount(), multipleMutations);	
 								variants.computeIfAbsent(new ChrPositionName(f.getPosition().getChromosome(), f.getPosition().getStartPosition() + position, 
-										f.getPosition().getStartPosition() + position + ref.length() - 1, ref), func -> new HashMap<>(4)).computeIfAbsent(alt, func2 -> new ArrayList<>()).add(f);
+										f.getPosition().getStartPosition() + position + ref.length() - 1, ref), 
+										func -> new HashMap<>(4)).computeIfAbsent(alt, func2 -> new ArrayList<>()).add(f);
 							}
 						}
 					});
@@ -1471,7 +1472,6 @@ public class Q3Panel {
 		AtomicInteger positionFoundReadCount = new AtomicInteger();
 		AtomicInteger noPositionFound = new AtomicInteger();
 		AtomicInteger noPositionFoundReadCount = new AtomicInteger();
-		AtomicInteger addingToFragment = new AtomicInteger();
 		
 		/*
 		 * setup threads to monitor queue and create fragments
@@ -1571,11 +1571,11 @@ public class Q3Panel {
 		}
 		logger.info("positionFound count: " + positionFound.get() + " which contain " + positionFoundReadCount.get() + " reads,  noPositionFound count: " 
 				+ noPositionFound.get() + ", which contain " + noPositionFoundReadCount.get() + " reads");
-		logger.info("addingToFragment: " + addingToFragment.get());
 		logger.info("in digestTiledData - DONE");
 	}
 	
 	private String getRefFromChrPos(ChrPosition cp) {
+		
 		String referenceSeq = null;
 		String chr = cp.getChromosome();
 		byte[] ref = referenceCache.get(chr);
@@ -1592,9 +1592,10 @@ public class Q3Panel {
 				e.printStackTrace();
 			}
 		}
-		if (cp.getStartPosition() <= 0 || cp.getEndPosition() > ref.length) {
+		if (cp.getStartPosition() <= 0 || cp.getEndPosition() > ref.length) { 
 			logger.warn("ChrPosition goes beyond edge of contig: " + cp.toIGVString() + ", ref length: " + ref.length);
-		}
+		} 
+		
 		byte [] refPortion = Arrays.copyOfRange(referenceCache.get(chr), cp.getStartPosition(), (cp.getEndPosition() > ref.length ? ref.length : cp.getEndPosition()));
 		referenceSeq = new String(refPortion);
 		
@@ -1692,11 +1693,9 @@ public class Q3Panel {
 			logger.info("bamFilterDepth is " + bamFilterDepth);
 			logger.info("trimFromEndsOfReads is " + trimFromEndsOfReads);
 			logger.info("threadCount is " + threadCount);
-			
-			
+						
 			return engage();
 		}
 		return returnStatus;
 	}
-
 }

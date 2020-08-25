@@ -1229,7 +1229,7 @@ public class ClinVarUtil {
 		int finalStart = expectedStart + additionalOffset;
 		int finalEnd = expectedEnd + additionalOffset + span;
 		
-		if (finalStart >=finalEnd) {
+		if (finalStart >= finalEnd) {
 			logger.warn("finalStart: " + finalStart + " is greater than finalEnd: " + finalEnd);
 		} else if (finalStart < 0) {
 			logger.warn("finalStart: " + finalStart + " is less than 0");
@@ -1276,7 +1276,7 @@ public class ClinVarUtil {
 			while (noOfSlides < initialLength &&  ! t.equals(s)) {
 				noOfSlides--;
 				s = s.substring(1);
-				t = t.substring(0, t.length() -1);
+				t = t.substring(0, t.length() - 1);
 			}
 		}
 		return noOfSlides;
@@ -1393,10 +1393,10 @@ public class ClinVarUtil {
 	
 	private static String getConcordanceDetail(char c , int count, boolean insertion) {
 		switch (c) {
-		case '|' : return count + "=";
-		case '.' : return count + "X";
-		case ' ' : return count + (insertion ? "I" : "D");
-		default: return null;
+			case '|' : return count + "=";
+			case '.' : return count + "X";
+			case ' ' : return count + (insertion ? "I" : "D");
+			default: return null;
 		}
 	}
 	
@@ -1503,7 +1503,7 @@ public class ClinVarUtil {
 					.filter(f -> ChrPositionUtils.isChrPositionContained(f.getPosition(), cp))
 					.forEach(f -> {
 						Optional<String> bases = FragmentUtil.getBasesAtPosition(cp, f, length);
-						bases.ifPresent(s -> {Pair<AtomicInteger, AtomicInteger> p = baseDist.computeIfAbsent(s, k -> new Pair<>(new AtomicInteger(), new AtomicInteger()));
+						bases.ifPresent(s -> { Pair<AtomicInteger, AtomicInteger> p = baseDist.computeIfAbsent(s, k -> new Pair<>(new AtomicInteger(), new AtomicInteger()));
 							p.getLeft().addAndGet(f.isForwardStrand() ? f.getRecordCount() : 0);
 							p.getRight().addAndGet( ! f.isForwardStrand() ? f.getRecordCount() : 0);
 							
@@ -1532,9 +1532,10 @@ public class ClinVarUtil {
 			ff.add(getGT(altAndTotalCoverage) + Constants.COLON_STRING		// GT
 					+ (altAndTotalCoverage[1] - altAndTotalCoverage[0]) + Constants.COMMA_STRING + altAndTotalCoverage[0] + Constants.COLON_STRING	//AD
 					+ readCount.get() + Constants.COLON_STRING 				//DP
-					+ fb.toString() + "/" + ampliconCount.get() + Constants.COMMA_STRING + fragmentCount.get() + Constants.COMMA_STRING + readCount.get() + Constants.COLON_STRING	//FB
+					//FB
+					+ fb.toString() + "/" + ampliconCount.get() + Constants.COMMA_STRING + fragmentCount.get() + Constants.COMMA_STRING + readCount.get() + Constants.COLON_STRING
 					+ mrCount + Constants.COLON_STRING						//MR
-					+ oabs +  (xFb.length() == 0 ? "" :(Constants.COLON_STRING + xFb.toString())));	//XFB
+					+ oabs +  (xFb.length() == 0 ? "" : (Constants.COLON_STRING + xFb.toString())));	//XFB
 		}
 		vcf.setFormatFields(ff);
 	}

@@ -85,7 +85,7 @@ public class PanelUtil {
 			
 			String oabs = getOABS(basesAndCounts);
 			
-			String[] gtAdAlts = getGTADAlts(basesAndCounts, ref, minAltPercentage);
+			String[] gtAdAlts = getGTADalts(basesAndCounts, ref, minAltPercentage);
 			
 			/*
 			 * create vcf record and add to list
@@ -107,7 +107,7 @@ public class PanelUtil {
 		return 0;
 	}
 	
-	public static String[] getGTADAlts(Map<String, int[]> basesAndCounts, String ref, int minPercentage) {
+	public static String[] getGTADalts(Map<String, int[]> basesAndCounts, String ref, int minPercentage) {
 		String [] gtAdAlts = new String[]{".",".","."};
 		if (null != basesAndCounts && ! basesAndCounts.isEmpty() && null != ref && ref.length() > 0) {
 			List<String> twoLargestAlleles = getTwoLargestAlleles(basesAndCounts, minPercentage);

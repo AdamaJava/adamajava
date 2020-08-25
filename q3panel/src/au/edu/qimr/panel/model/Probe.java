@@ -61,25 +61,22 @@ public class Probe implements Comparable<Probe> {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
+		
+		if (this == obj) return true;
+		if (obj == null) return false;
+		if (getClass() != obj.getClass()) return false;
+		
 		Probe other = (Probe) obj;
 		if (dlsoSeq == null) {
-			if (other.dlsoSeq != null)
-				return false;
-		} else if (!dlsoSeq.equals(other.dlsoSeq))
-			return false;
-		if (id != other.id)
-			return false;
+			if (other.dlsoSeq != null) return false;
+		} else if (!dlsoSeq.equals(other.dlsoSeq)) return false;
+		
+		if (id != other.id) return false;
+		
 		if (ulsoSeq == null) {
-			if (other.ulsoSeq != null)
-				return false;
-		} else if (!ulsoSeq.equals(other.ulsoSeq))
-			return false;
+			if (other.ulsoSeq != null) return false;
+		} else if (!ulsoSeq.equals(other.ulsoSeq)) return false;
+		
 		return true;
 	}
 	

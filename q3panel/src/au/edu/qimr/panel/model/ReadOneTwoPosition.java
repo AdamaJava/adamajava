@@ -24,25 +24,19 @@ public class ReadOneTwoPosition {
 	
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
+		
+		if (this == obj) return true;
+		if (obj == null) return false;
+		if (getClass() != obj.getClass()) return false;
 		ReadOneTwoPosition other = (ReadOneTwoPosition) obj;
-		if (position != other.position)
-			return false;
+		if (position != other.position) return false;
 		if (r1 == null) {
-			if (other.r1 != null)
-				return false;
-		} else if (!r1.equals(other.r1))
-			return false;
+			if (other.r1 != null) return false;
+		} else if (!r1.equals(other.r1)) return false;
 		if (r2 == null) {
-			if (other.r2 != null)
-				return false;
-		} else if (!r2.equals(other.r2))
-			return false;
+			if (other.r2 != null) return false;
+		} else if (!r2.equals(other.r2)) return false;
+		
 		return true;
 	}
 

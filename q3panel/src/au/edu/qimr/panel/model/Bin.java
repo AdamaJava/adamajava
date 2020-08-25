@@ -148,18 +148,17 @@ public class Bin implements Comparable<Bin> {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
+		
+		if (this == obj) return true;
+		if (obj == null) return false;
+		if (getClass() != obj.getClass()) return false;
+		
 		Bin other = (Bin) obj;
 		if (sequence == null) {
-			if (other.sequence != null)
-				return false;
-		} else if (!sequence.equals(other.sequence))
-			return false;
+			if (other.sequence != null) return false;
+		} else 
+			if (!sequence.equals(other.sequence)) return false;
+		
 		return true;
 	}
 
@@ -191,6 +190,7 @@ public class Bin implements Comparable<Bin> {
 	public void setBestTiledLocation(ChrPosition cp) {
 		this.bestTiledLocation = cp;
 	}
+	
 	public ChrPosition getBestTiledLocation() {
 		return bestTiledLocation;
 	}
