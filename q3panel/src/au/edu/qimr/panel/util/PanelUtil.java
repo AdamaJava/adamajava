@@ -234,7 +234,7 @@ public class PanelUtil {
 	public static void setActualCP(ChrPosition bufferedCP, int offset, Fragment2 f, int referenceLength) {
 		final int startPosition =  bufferedCP.getStartPosition() + offset + 1;	// we are 1 based
 		// location needs to reflect reference bases consumed rather sequence length
-		ChrPosition actualCP = new ChrRangePosition(bufferedCP.getChromosome(), startPosition, startPosition + referenceLength -1);
+		ChrPosition actualCP = new ChrRangePosition(bufferedCP.getChromosome(), startPosition, startPosition + referenceLength - 1);
 		/*
 		 * setting the actual (or final) position
 		 */

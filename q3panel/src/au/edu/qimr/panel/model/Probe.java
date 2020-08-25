@@ -64,7 +64,9 @@ public class Probe implements Comparable<Probe> {
 		
 		if (this == obj) return true;
 		if (obj == null) return false;
-		if (getClass() != obj.getClass()) return false;
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
 		
 		Probe other = (Probe) obj;
 		if (dlsoSeq == null) {

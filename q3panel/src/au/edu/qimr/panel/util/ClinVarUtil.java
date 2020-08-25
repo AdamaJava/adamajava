@@ -1080,7 +1080,8 @@ public class ClinVarUtil {
 			writer.addAlignment(rec);
 		} else {
 			SAMRecord rec = createSAMRecord(header, cigar,ampliconId, f.getId(), binSize, refSeq, f.getPosition().getChromosome(), 
-					f.getPosition().getStartPosition(), offset, SequenceUtil.reverseComplement(f.getSequence()), i, mappingQuality, false,  "readPositionsCount: " + f.getRecordCount());
+					f.getPosition().getStartPosition(),  offset, SequenceUtil.reverseComplement(f.getSequence()), i, mappingQuality,
+					false, "readPositionsCount: " + f.getRecordCount());
 			writer.addAlignment(rec);
 		}		
 	}
@@ -1135,10 +1136,13 @@ public class ClinVarUtil {
 		return rec;
 	}
 
-	public static SAMRecord createSAMRecord(SAMFileHeader header, Cigar cigar, int probeId, int binId, int binSize, String referenceSeq, String chr, int position, int offset, String binSeq, int i, int mappingQuality) {
+	public static SAMRecord createSAMRecord(SAMFileHeader header, Cigar cigar, int probeId, int binId, int binSize, String referenceSeq, 
+			String chr, int position, int offset, String binSeq, int i, int mappingQuality) { 
+		
 		if (org.qcmg.common.string.StringUtils.isNullOrEmpty(referenceSeq)) {
 			throw new IllegalArgumentException("Null or empty reference passed to ClinVarUtil.createSAMRecord: " + referenceSeq);
 		}
+		
 		if (null == cigar) {
 			throw new IllegalArgumentException("Null cigar passed to ClinVarUtil.createSAMRecord");
 		}
@@ -1359,47 +1363,6 @@ public class ClinVarUtil {
 			return cigar;
 	}
 	
-	/**
-	 * Return a string based representation of the number of matches and indels, similar to the MD tag in a BAM record
-	 * 
-	 * @param swDiffs
-	 * @return
-	 */
-	public static String getSWDetails(String [] swDiffs) {
-		
-		if (doesSWContainSnpOrIndel(swDiffs)) {
-		
-			StringBuilder sb = new StringBuilder();
-			char lastChar = '\u0000';
-			int i = 0;
-			int count = 0;
-			for (char c : swDiffs[1].toCharArray()) {
-				if (i > 0 && c != lastChar) {
-					sb.append(getConcordanceDetail(lastChar, count, swDiffs[0].charAt(i - count) == '-'));
-					count = 0;
-				}
-				lastChar = c;
-				count++;
-				i++;
-			}
-			if (count > 0) {
-				sb.append(getConcordanceDetail(lastChar, count, swDiffs[0].charAt(i - 1 - count) == '-'));
-			}
-			return sb.length() > 0 ? sb.toString() : null;
-		} else {
-			return swDiffs[0].length() + "=";
-		}
-	}
-	
-	private static String getConcordanceDetail(char c , int count, boolean insertion) {
-		switch (c) {
-			case '|' : return count + "=";
-			case '.' : return count + "X";
-			case ' ' : return count + (insertion ? "I" : "D");
-			default: return null;
-		}
-	}
-	
 	public static Cigar getCigarForIndels(String referenceSequence, String binSeq, String [] swDiffs, ChrPosition cp) {
 		int offset = 0;
 		if (StringUtils.remove(swDiffs[0], Constants.MINUS).length() != referenceSequence.length()) {
@@ -1473,6 +1436,47 @@ public class ClinVarUtil {
 	}
 	
 	/**
+	 * Return a string based representation of the number of matches and indels, similar to the MD tag in a BAM record
+	 * 
+	 * @param swDiffs
+	 * @return
+	 */
+	public static String getSWDetails(String [] swDiffs) {
+		
+		if (doesSWContainSnpOrIndel(swDiffs)) {
+		
+			StringBuilder sb = new StringBuilder();
+			char lastChar = '\u0000';
+			int i = 0;
+			int count = 0;
+			for (char c : swDiffs[1].toCharArray()) {
+				if (i > 0 && c != lastChar) {
+					sb.append(getConcordanceDetail(lastChar, count, swDiffs[0].charAt(i - count) == '-'));
+					count = 0;
+				}
+				lastChar = c;
+				count++;
+				i++;
+			}
+			if (count > 0) {
+				sb.append(getConcordanceDetail(lastChar, count, swDiffs[0].charAt(i - 1 - count) == '-'));
+			}
+			return sb.length() > 0 ? sb.toString() : null;
+		} else {
+			return swDiffs[0].length() + "=";
+		}
+	}
+	
+	private static String getConcordanceDetail(char c , int count, boolean insertion) {
+		switch (c) {
+			case '|' : return count + "=";
+			case '.' : return count + "X";
+			case ' ' : return count + (insertion ? "I" : "D");
+			default: return null;
+		}
+	}	
+	
+	/**
 	 * This method calculates the coverage and OABS for this vcf record, and updated the record in place.
 	 * 
 	 * NOT SIDE EFFECT FREE
@@ -1501,12 +1505,12 @@ public class ClinVarUtil {
 					entry.getValue().stream()
 					.filter(f -> f.getPosition() != null)
 					.filter(f -> ChrPositionUtils.isChrPositionContained(f.getPosition(), cp))
-					.forEach(f -> {
-						Optional<String> bases = FragmentUtil.getBasesAtPosition(cp, f, length);
-						bases.ifPresent(s -> { Pair<AtomicInteger, AtomicInteger> p = baseDist.computeIfAbsent(s, k -> new Pair<>(new AtomicInteger(), new AtomicInteger()));
+					.forEach(f -> { 
+						Optional<String> bases = FragmentUtil.getBasesAtPosition(cp, f, length);		
+						bases.ifPresent(s -> { 
+							Pair<AtomicInteger, AtomicInteger> p = baseDist.computeIfAbsent(s, k -> new Pair<>(new AtomicInteger(), new AtomicInteger()));
 							p.getLeft().addAndGet(f.isForwardStrand() ? f.getRecordCount() : 0);
-							p.getRight().addAndGet( ! f.isForwardStrand() ? f.getRecordCount() : 0);
-							
+							p.getRight().addAndGet( ! f.isForwardStrand() ? f.getRecordCount() : 0);							
 							fragmentCount.incrementAndGet();
 							readCount.addAndGet(f.getRecordCount());
 						});

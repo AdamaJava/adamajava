@@ -97,6 +97,7 @@ public class FastqProbeMatch {
 	public void setOverlapLevenshteinEditDistance(int overlapEditDistance) {
 		this.overlapLevenshteinEditDistance = overlapEditDistance;
 	}
+	
 	public int getOverlapBasicEditDistance() {
 		return overlapBasicEditDistance;
 	}

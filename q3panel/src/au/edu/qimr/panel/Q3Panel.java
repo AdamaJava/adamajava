@@ -373,9 +373,9 @@ public class Q3Panel {
 	}
 
 	/**
-	 * Only runs when we have both a bed and a transcripts file present
+	 * Only runs when we have both a bed and a transcripts file present.
 	 * 
-	 * @throws IOException 
+	 * @throws IOException if create file reader error occurs.
 	 */
 	private void loadTranscripts() throws IOException {
 		
@@ -1498,7 +1498,8 @@ public class Q3Panel {
 						 * Get the best (ie. positions with more than 2 tiles aligned to it) positions for each strand
 						 */
 						List<LongInt> resultsList = ClinVarUtil.getBestStartPositionLongInt(tilePositions, TILE_SIZE, maxIndelLength, tiledDiffThreshold, tileMatchThreshold);
-						List<LongInt> rcResultsList = ClinVarUtil.getBestStartPositionLongInt(rcTilePositions, TILE_SIZE, maxIndelLength, tiledDiffThreshold, tileMatchThreshold);
+						List<LongInt> rcResultsList = ClinVarUtil.getBestStartPositionLongInt(rcTilePositions, 
+								TILE_SIZE, maxIndelLength, tiledDiffThreshold, tileMatchThreshold);
 						
 						ChrPosition bestTiledCp = null;
 						
@@ -1617,7 +1618,7 @@ public class Q3Panel {
 		System.exit(exitStatus);
 	}
 	
-	protected int setup(String args[]) throws Exception {
+	protected int setup(String[] args) throws Exception {
 		int returnStatus = 1;
 		Options options = new Options(args);
 

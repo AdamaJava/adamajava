@@ -58,7 +58,8 @@ public class Bin implements Comparable<Bin> {
 	}
 	
 	/**
-	 * Clears and populates the possivlePositionsSWDiffsMap with the supplied map
+	 * Clears and populates the possivlePositionsSWDiffsMap with the supplied map.
+	 * 
 	 * @param seDiffs
 	 */
 	public void addPossiblePositions(Map<ChrPosition, String []> seDiffs) {
@@ -156,8 +157,9 @@ public class Bin implements Comparable<Bin> {
 		Bin other = (Bin) obj;
 		if (sequence == null) {
 			if (other.sequence != null) return false;
-		} else 
-			if (!sequence.equals(other.sequence)) return false;
+		} else if (!sequence.equals(other.sequence)) {
+			return false;
+		}
 		
 		return true;
 	}
