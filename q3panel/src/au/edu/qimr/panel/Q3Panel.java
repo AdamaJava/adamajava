@@ -1,8 +1,18 @@
 package au.edu.qimr.panel;
 
+import au.edu.qimr.panel.model.Contig;
+import au.edu.qimr.panel.model.Fragment2;
+import au.edu.qimr.panel.model.IntPair;
+
+import au.edu.qimr.panel.model.LongInt;
+import au.edu.qimr.panel.model.PositionChrPositionMap;
+import au.edu.qimr.panel.model.ReadOneTwoPosition;
+import au.edu.qimr.panel.util.ClinVarUtil;
+import au.edu.qimr.panel.util.FragmentUtil;
+import au.edu.qimr.panel.util.PanelUtil;
+
 import gnu.trove.list.array.TLongArrayList;
 import gnu.trove.map.hash.THashMap;
-import gnu.trove.procedure.TLongProcedure;
 import htsjdk.samtools.Cigar;
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMFileHeader.SortOrder;
@@ -19,15 +29,14 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
+
 import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Collection;
+
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -75,25 +84,17 @@ import org.qcmg.common.util.SnpUtils;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
-import org.qcmg.common.vcf.header.*;
+import org.qcmg.common.vcf.header.VcfHeader;
+import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils.VcfInfoType;
 import org.qcmg.qmule.SmithWatermanGotoh;
+
 import org.qcmg.tab.TabbedFileReader;
 import org.qcmg.tab.TabbedHeader;
 import org.qcmg.tab.TabbedRecord;
 import org.qcmg.vcf.VCFFileReader;
 import org.qcmg.vcf.VCFFileWriter;
-
-import au.edu.qimr.panel.model.Contig;
-import au.edu.qimr.panel.model.LongInt;
-import au.edu.qimr.panel.model.Fragment2;
-import au.edu.qimr.panel.model.IntPair;
-import au.edu.qimr.panel.model.PositionChrPositionMap;
-import au.edu.qimr.panel.model.ReadOneTwoPosition;
-import au.edu.qimr.panel.util.ClinVarUtil;
-import au.edu.qimr.panel.util.FragmentUtil;
-import au.edu.qimr.panel.util.PanelUtil;
 
 public class Q3Panel {
 	
@@ -104,8 +105,7 @@ public class Q3Panel {
 	private static final char [] AT = new char[]{'A','T'};
 	private static final String POISON_STRING = "the end";
 	
-	private QExec exec;
-	
+	private QExec exec;	
 	private static List<String> fastqR1Files;
 	private static List<String> fastqR2Files;
 	private static String version;
@@ -116,7 +116,6 @@ public class Q3Panel {
 	private String refTiledAlignmentFile;
 	private String refFileName;
 	private final int tiledDiffThreshold = 1;
-	private final int swDiffThreshold = 2;
 	private final int tileMatchThreshold = 2;
 	private final int maxIndelLength = 5;
 	private int fastqRecordCount;
@@ -137,14 +136,9 @@ public class Q3Panel {
 	private int trimFromEndsOfReads = 0;
 	final AtomicInteger outputMutations = new AtomicInteger();
 	
-	private boolean runExtendedFB = false;
-	
+	private boolean runExtendedFB = false;	
 	private boolean singleSampleMode = false;
-
 	
-//	private final Map<String, TIntArrayList> reads = new THashMap<>(1024 * 1024);
-//	private final Map<String, String> readToFragMap = new ConcurrentHashMap<>(1024 * 1024);
-//	private final Map<String, List<StringBuilder>> reads = new HashMap<>(1024 * 1024);
 	private final Map<IntPair, AtomicInteger> readLengthDistribution = new THashMap<>(4);
 	private final Map<String, String> frequentlyOccurringRefTiles = new ConcurrentHashMap<>();
 	private final Map<String, TLongArrayList> refTilesPositions = new ConcurrentHashMap<>();
@@ -153,7 +147,6 @@ public class Q3Panel {
 	
 	private final Map<String, byte[]> referenceCache = new THashMap<>();
 	
-//	private final Map<String, RawFragment> rawFragments = new ConcurrentHashMap<>(1024 * 1024);
 	private final Map<String, Fragment2> frags = new ConcurrentHashMap<>(1024 * 1024);
 	
 	private final Map<ChrPosition, Map<String, List<Fragment2>>> variants = new THashMap<>();
@@ -170,8 +163,6 @@ public class Q3Panel {
 	private VcfHeader header = new VcfHeader();
 	
 	private int exitStatus;
-	private final int rawFragmentId = 1;
-	private final int fragmentId = 1;
 	private String cosmicFile;
 	private String dbSNPFile;
 	
@@ -218,7 +209,7 @@ public class Q3Panel {
 		writeXml();
 		writeBam();
 		
-		logger.info("number of fastq records: " +fastqRecordCount);
+		logger.info("number of fastq records: " + fastqRecordCount);
 		return exitStatus;
 	}
 	
@@ -277,37 +268,34 @@ public class Q3Panel {
 							break;
 						}
 						if (++counter % 1000000 == 0) {
-							logger.info("hit: " + (counter / 1000000) +"M SW's... basicMatchCount: " + basicMatchCount);
+							logger.info("hit: " + (counter / 1000000) + "M SW's... basicMatchCount: " + basicMatchCount);
 						}
 						String r2RevComp = singleSampleMode ? r2 : SequenceUtil.reverseComplement(r2);
 						
 						boolean readsAreTheSame = r1.equals(r2RevComp);
 						if (readsAreTheSame) {
-							frags.computeIfAbsent(PanelUtil.trimString(r1, trimFromEndsOfReads), v -> new Fragment2(fragmentId.incrementAndGet(), r1)).addPosition(rotp.getPosition());
-						} else {
-							
+							frags.computeIfAbsent(PanelUtil.trimString(r1, trimFromEndsOfReads), v 
+									-> new Fragment2(fragmentId.incrementAndGet(), r1)).addPosition(rotp.getPosition());
+						} else {						
 							Optional<String> basicFragment = PanelUtil.createBasicFragment(r1, r2RevComp, 10);
 							if (basicFragment.isPresent()) {
 								basicMatchCount++;
-								frags.computeIfAbsent(PanelUtil.trimString(basicFragment.get(), trimFromEndsOfReads), v -> new Fragment2(fragmentId.incrementAndGet(), basicFragment.get())).addPosition(rotp.getPosition());
-//								readToFragMap.put(s, basicFragment.get());
-							} else {
-						
+								frags.computeIfAbsent(PanelUtil.trimString(basicFragment.get(), trimFromEndsOfReads), v 
+										-> new Fragment2(fragmentId.incrementAndGet(), basicFragment.get())).addPosition(rotp.getPosition());
+ 							} else {						
 								SmithWatermanGotoh nm = new SmithWatermanGotoh(r1, r2RevComp, 5, -4, 16, 4);
 								String [] newSwDiffs = nm.traceback();
-								if (newSwDiffs[1].indexOf(" ") > -1 || newSwDiffs[1].indexOf('.') > -1) {
-								} else {
-									if (newSwDiffs[1].length() >= 10 && ! StringUtils.containsOnly(newSwDiffs[0], AT)) {
-										/*
-										 * Now build fragment
-										 * check to see which read starts with the overlap
-										 */
-										Optional<String> fragment = FragmentUtil.getFragmentString(r1,  r2RevComp, newSwDiffs[0]);
-										if ( fragment.isPresent()) {
-											frags.computeIfAbsent(PanelUtil.trimString(fragment.get(), trimFromEndsOfReads), v -> new Fragment2(fragmentId.incrementAndGet(), fragment.get())).addPosition(rotp.getPosition());
-//											readToFragMap.put(s, fragment.get());
-										}
-									}
+								if (newSwDiffs[1].indexOf(" ") <= -1 && newSwDiffs[1].indexOf('.') <= -1 	
+									&& newSwDiffs[1].length() >= 10 && ! StringUtils.containsOnly(newSwDiffs[0], AT)) {
+									/*
+									 * Now build fragment
+									 * check to see which read starts with the overlap
+									 */
+									Optional<String> fragment = FragmentUtil.getFragmentString(r1,  r2RevComp, newSwDiffs[0]);
+									if ( fragment.isPresent()) {
+										frags.computeIfAbsent(PanelUtil.trimString(fragment.get(), trimFromEndsOfReads), v 
+												-> new Fragment2(fragmentId.incrementAndGet(), fragment.get())).addPosition(rotp.getPosition());
+									}									
 								}
 							}
 						}
@@ -315,7 +303,6 @@ public class Q3Panel {
 						try {
 							Thread.sleep(5);
 						} catch (Exception e) {
-							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
 					}
@@ -336,9 +323,7 @@ public class Q3Panel {
 		/*
 		 *  read in a fastq file and lets see if we get some matches
 		 *  Keep stats on read lengths
-		 */
-		
-		
+		 */		
 		for (int i = 0 ; i < fastqR1Files.size() ; i++) {
 			String fq1 = fastqR1Files.get(i);
 			String fq2 = fastqR2Files.get(i);
@@ -355,13 +340,13 @@ public class Q3Panel {
 					
 					queue.add(new ReadOneTwoPosition(rec.getReadString(), rec2.getReadString(), fastqCount));
 					
-						IntPair ip = new IntPair(rec.getReadString().length(), rec2.getReadString().length());
-						if (ip.getInt1() == ip.getInt2()) {
-							sameReadLength++;
-						}
-						readLengthDistribution.computeIfAbsent(ip, v -> new AtomicInteger()).incrementAndGet();
+					IntPair ip = new IntPair(rec.getReadString().length(), rec2.getReadString().length());
+					if (ip.getInt1() == ip.getInt2()) { 
+						sameReadLength++;
 					}
+					readLengthDistribution.computeIfAbsent(ip, v -> new AtomicInteger()).incrementAndGet();
 				}
+			}
 			logger.info("reading records from " + fq1 + " and " + fq2 + " - DONE, queue size: " + queue.size() + ", frags size: " + frags.size());
 		}
 		
@@ -369,25 +354,27 @@ public class Q3Panel {
 		for (int i = 0 ; i < threadCount ; i++) {
 			queue.add(new ReadOneTwoPosition(POISON_STRING, POISON_STRING, -1));
 		}
+		
 		try {
 			service.awaitTermination(12, TimeUnit.HOURS);
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
-		logger.info("number of unique fragments: " + frags.size() + ", from " + fastqCount + " fastq records, number with same read length: " + sameReadLength + " : " + ((double)sameReadLength / fastqCount) * 100 + "%");
+		logger.info("number of unique fragments: " + frags.size() + ", from " + fastqCount + " fastq records, number with same read length: " + sameReadLength + " : " 
+				+ ((double)sameReadLength / fastqCount) * 100 + "%");
 		logger.info("read length breakdown:");
 		
-		readLengthDistribution.entrySet().stream()
-			.sorted((e1, e2) -> {return e1.getKey().compareTo(e2.getKey());})
-			.forEach(entry -> logger.info("r1: " + entry.getKey().getInt1() + ", r2: " + entry.getKey().getInt2() + ", count: " +entry.getValue().intValue()));
+		readLengthDistribution.entrySet().stream().sorted((e1, e2) -> {
+				return e1.getKey().compareTo(e2.getKey());
+			}).forEach(entry -> logger.info("r1: " + entry.getKey().getInt1() + ", r2: " + entry.getKey().getInt2() + ", count: " + entry.getValue().intValue()));
 		
 		fastqRecordCount = fastqCount;
 	}
 
 	/**
 	 * Only runs when we have both a bed and a transcripts file present
+	 * 
 	 * @throws IOException 
 	 */
 	private void loadTranscripts() throws IOException {
@@ -409,7 +396,7 @@ public class Q3Panel {
 				for (TabbedRecord rec : reader) {
 					String contig = rec.getData().substring(0, rec.getData().indexOf(Constants.TAB));
 					if (uniqueChrs.containsKey(contig)) {
-						String [] params= TabTokenizer.tokenize(rec.getData());
+						String [] params = TabTokenizer.tokenize(rec.getData());
 						String [] column8 = params[8].split(Constants.SEMI_COLON_STRING); 
 						Optional<String> optionalId = Arrays.stream(column8).filter(s -> s.trim().startsWith("transcript_id")).findAny();
 						Optional<String> optionalExonNumber = Arrays.stream(column8).filter(s -> s.trim().startsWith("exon_number")).findAny();
@@ -427,8 +414,7 @@ public class Q3Panel {
 							exonNumber = optionalExonNumber.get().substring(index1 + 13, index2);
 						}
 						
-						if (null == currentTranscriptId || ! currentTranscriptId.equals(id)) {
-							
+						if (null == currentTranscriptId || ! currentTranscriptId.equals(id)) {							
 							if (null != currentTranscriptId) {
 								Transcript t = transcripts.get(currentTranscriptId);
 								ChrPosition tcp = new ChrRangePosition(params[0], t.getStart(), t.getEnd());
@@ -464,14 +450,12 @@ public class Q3Panel {
 							transcripts.put(id, t);
 						}
 						switch (params[2]) {
-						case "exon":
-							t.addExon(new ChrPositionName(params[0], Integer.parseInt(params[3]), Integer.parseInt(params[4]), exonNumber));
-							break;
-						case "CDS":
-							t.addCDS(new ChrPositionName(params[0], Integer.parseInt(params[3]), Integer.parseInt(params[4]), exonNumber));
-							break;
-						default:
-							logger.debug("Ignoring " + params[2]);
+							case "exon": t.addExon(new ChrPositionName(params[0], Integer.parseInt(params[3]), Integer.parseInt(params[4]), exonNumber));
+								break;
+							case "CDS": t.addCDS(new ChrPositionName(params[0], Integer.parseInt(params[3]), Integer.parseInt(params[4]), exonNumber));
+								break;
+							default:  logger.debug("Ignoring " + params[2]);
+								break;						
 						}
 					}
 				}
@@ -505,7 +489,6 @@ public class Q3Panel {
 		contig.addAttribute(new Attribute("number_of_fragments", "" + frags.size()));
 
 		AtomicInteger readCount = new AtomicInteger();
-//		int readCount = 0;
 		Element fragments = new Element("Fragments");
 		contig.appendChild(fragments);
 		frags.stream()
@@ -543,9 +526,9 @@ public class Q3Panel {
 		q3pElement.addAttribute(new Attribute("reference", refFileName));
 		q3pElement.addAttribute(new Attribute("tiled_reference", refTiledAlignmentFile));
 		q3pElement.addAttribute(new Attribute("bed", null != bedFile ? bedFile : "-"));
-		q3pElement.addAttribute(new Attribute("bed_amplicon_count", ""+bedToAmpliconMap.size()));
+		q3pElement.addAttribute(new Attribute("bed_amplicon_count", "" + bedToAmpliconMap.size()));
 		q3pElement.addAttribute(new Attribute("vcf", outputFileNameBase + ".vcf"));
-		q3pElement.addAttribute(new Attribute("vcf_variant_count", ""+outputMutations.get()));
+		q3pElement.addAttribute(new Attribute("vcf_variant_count", "" + outputMutations.get()));
 		for (int i = 0 ; i < fastqR1Files.size() ; i++) {
 			String r1 = fastqR1Files.get(i);
 			String r2 = fastqR2Files.get(i);
@@ -565,13 +548,13 @@ public class Q3Panel {
 		 * read length dist
 		 */
 		Element rls = new Element("ReadLengths");
-		readLengthDistribution.entrySet().stream()
-			.sorted((e1, e2) -> {return e1.getKey().compareTo(e2.getKey());})
-			.forEach(entry -> {
+		readLengthDistribution.entrySet().stream().sorted((e1, e2) -> {
+				return e1.getKey().compareTo(e2.getKey());
+			}).forEach(entry -> {
 				Element rl = new Element("ReadLength");
-				rl.addAttribute(new Attribute("r1", ""+entry.getKey().getInt1()));
-				rl.addAttribute(new Attribute("r2", ""+entry.getKey().getInt2()));
-				rl.addAttribute(new Attribute("count", ""+entry.getValue().intValue()));
+				rl.addAttribute(new Attribute("r1", "" + entry.getKey().getInt1()));
+				rl.addAttribute(new Attribute("r2", "" + entry.getKey().getInt2()));
+				rl.addAttribute(new Attribute("count", "" + entry.getValue().intValue()));
 				rls.appendChild(rl);
 			});
 	
@@ -629,13 +612,10 @@ public class Q3Panel {
 		 */
 		Element transcriptsE = new Element("Transcripts");
 		q3pElement.appendChild(transcriptsE);
-		transcripts.values().stream()
-			.sorted()
-			.forEach(v -> {
+		transcripts.values().stream().sorted().forEach(v -> {
 			
 			Element transcript = new Element("Transcript");
-			transcriptsE.appendChild(transcript);
-			
+			transcriptsE.appendChild(transcript);			
 			transcript.addAttribute(new Attribute("id", "" + v.getId()));
 			transcript.addAttribute(new Attribute("type", "" + v.getType()));
 			transcript.addAttribute(new Attribute("gene", "" + v.getGene()));
@@ -677,7 +657,6 @@ public class Q3Panel {
 		// write output
 		Document doc = new Document(q3pElement);
 		try (OutputStream os = new GZIPOutputStream(new FileOutputStream(outputFileNameBase + ".q3p.xml.gz"), 1024 * 1024)) {
-//		try (OutputStream os = new FileOutputStream(new File(outputFileNameBase + ".q3p.xml"));){
 			Serializer serializer = new Serializer(os, "ISO-8859-1");
 	        serializer.setIndent(4);
 	        serializer.setMaxLength(64);
@@ -733,10 +712,9 @@ public class Q3Panel {
 					
 					if (beds.size() > 1) {
 						logger.info("Found " + beds.size() + " bed positions that are contained by this contig " + a.getPosition().toIGVString());
-						beds.stream().forEach(b ->logger.info("bed: " + b.toString()));
+						beds.stream().forEach(b -> logger.info("bed: " + b.toString()));
 					}
-				});
-			
+				});			
 		}
 	}
 	
@@ -750,46 +728,26 @@ public class Q3Panel {
 		contigFragmentMap.entrySet().stream()
 			.forEach(entry -> {
 				int recordCount = entry.getValue().stream().mapToInt(Fragment2::getRecordCount).sum();
-				logger.info("Contig " + entry.getKey().getId() + " " + entry.getKey().getPosition().toIGVString() + " has " + entry.getValue().size() + " fragments with a total of " + recordCount + " records (" + ((double) recordCount / fastqRecordCount) * 100 + "%)");
+				logger.info("Contig " + entry.getKey().getId() + " " + entry.getKey().getPosition().toIGVString() + " has " + entry.getValue().size() 
+						+ " fragments with a total of " + recordCount + " records (" + ((double) recordCount / fastqRecordCount) * 100 + "%)");
 			});
-	}
-
-	private double getMutationCoveragePercentage(VcfRecord vcf, List<int[]> fragmentsCarryingMutation, Map<String, List<Fragment2>> fragsByContig) {
-		/*
-		 * Get the total coverage at this position, along with the total alt coverage
-		 * Update the DP and MR format fields of this vcf record with this info
-		 */
-		List<Fragment2> overlappingFragments = ClinVarUtil.getOverlappingFragments(vcf.getChrPosition(), fragsByContig);
-		int totalCoverage = overlappingFragments.stream()
-				.mapToInt(Fragment2::getRecordCount)
-				.sum();
-		int mutationCoverage = PanelUtil.getRecordCountFromIntPairs(fragmentsCarryingMutation);
-		
-		/*
-		 * add to format
-		 */
-		VcfUtils.addFormatFieldsToVcf(vcf, Arrays.asList("DP,MR", totalCoverage + Constants.COLON_STRING + mutationCoverage), true, Constants.COMMA);
-		
-		double percentage = totalCoverage > 0 ? ((double)mutationCoverage / totalCoverage) * 100 : 0.0;
-		return percentage;
 	}
 	
 	private void writeBam() throws IOException {
 		
-		String outputFileName = outputFileNameBase + ".bam";
-		File bamFile = new File(outputFileName);
 		SAMFileHeader header = new SAMFileHeader();
 		header.setSequenceDictionary(ClinVarUtil.getSequenceDictionaryFromFragments(frags.values()));
 		header.setSortOrder(SortOrder.coordinate);
+		
 		SAMFileWriterFactory.setDefaultCreateIndexWhileWriting(true);
 		SAMFileWriterFactory factory = new SAMFileWriterFactory();
 		factory.setCreateIndex(true);
+		String outputFileName = outputFileNameBase + ".bam";
+		File bamFile = new File(outputFileName);
 		SAMFileWriter writer = factory.makeSAMOrBAMWriter(header, false, bamFile);
 		
 		final AtomicLong recordCount = new AtomicLong();
-		try {
-
-			
+		try {			
 			frags.values().stream()
 				.filter(f -> f.getPosition() != null)
 				.filter(f -> f.getRecordCount() >= bamFilterDepth)
@@ -819,10 +777,8 @@ public class Q3Panel {
 					/*
 					 * Deal with exact matches first
 					 */
-//					boolean containsSnp = ClinVarUtil.doesSWContainSnp(swDiffs);
 					boolean containsIndel = ClinVarUtil.doesSWContainIndel(swDiffs);
-					
-					
+									
 					if (containsIndel) {
 						String ref = StringUtils.remove(swDiffs[0], Constants.MINUS);
 						Cigar cigar = ClinVarUtil.getCigarForIndels(ref,   f.getSequence(), swDiffs,  f.getPosition());
@@ -848,21 +804,13 @@ public class Q3Panel {
 							ClinVarUtil.addSAMRecordToWriter(header, writer, cigar, contigId.get(), swDiffs[0], f, 0, mappingQuality);
 						} else {
 							logger.info("snps only but length differs, swDiffs[1].length(): " + swDiffs[1].length() + ", f.getLength(): " + f.getLength());
-						}
-						
-					}
-					
-				});
-				
-			
-			
-			
+						}						
+					}					
+				});			
 		} finally {
 			writer.close();
 		}
-//		logger.info("indelDiffLength: " + indelDiffLength + ", indelSameLength: " + indelSameLength);
 		logger.info("No of records written to bam file: " + recordCount.longValue());
-//		logger.info("No of records written to bam file: " + recordCount + ", no of bins with same seq size as ref: " + sameSize +", and diff size: " + diffSize + ", indelCount: " + indelCount + ", noDiffInFirs20: " + noDiffInFirs20);
 	}
 	
 	private void filterAndAnnotateMutations() throws IOException {
@@ -882,26 +830,22 @@ public class Q3Panel {
 		}
 		
 		vcfFragmentMap.entrySet().stream()
-		.filter((entry) -> PanelUtil.getRecordCountFromIntPairs(entry.getValue()) >= minBinSize )
-//		.filter((entry) -> getMutationCoveragePercentage(entry.getKey(), entry.getValue(), fragsByContig) >= minReadPercentage )
-		.sorted((e1, e2) -> {return e1.getKey().compareTo(e2.getKey());})
-		.forEach(entry -> {
-		
+		.filter((entry) -> PanelUtil.getRecordCountFromIntPairs(entry.getValue()) >= minBinSize ).sorted((e1, e2) -> {
+			return e1.getKey().compareTo(e2.getKey());
+		}).forEach(entry -> {		
 			int [] altAndTotalCoverage = PanelUtil.getAltAndTotalCoverage(entry.getKey(), entry.getValue(), fragsByContig);
 			/*
 			 * get percentage of alts from altAndTotalCoverage array and only proceed if we are over the threshold
 			 */
 			double altPercentage = altAndTotalCoverage[1] > 0 ? ((double)altAndTotalCoverage[0] / altAndTotalCoverage[1]) * 100 : 0.0;
-			if (altPercentage >= minReadPercentage) {
-			
+			if (altPercentage >= minReadPercentage) {			
 				final StringBuilder fb = new StringBuilder();
 				final StringBuilder xFb = new StringBuilder();
 				int[] contigIds = new int[entry.getValue().size()];
 				int[] fragmentIds = new int[entry.getValue().size()];
 				AtomicInteger j = new AtomicInteger();
 				AtomicInteger readCount = new AtomicInteger();
-				entry.getValue().stream()
-					.forEach(i -> {
+				entry.getValue().stream().forEach(i -> {
 						if (xFb.length() > 0) {
 							xFb.append(Constants.SEMI_COLON);
 						}
@@ -919,15 +863,12 @@ public class Q3Panel {
 				
 				/*
 				 * update vcf format fields with FB and GT
-				 */
-				
-				
+				 */				
 				ClinVarUtil.getCoverageStatsForVcf(entry.getKey(), contigFragmentMapByContig, fb, xFb, altAndTotalCoverage);
 				filteredMutations.add(entry.getKey());
 			}
 		});
-		
-		
+				
 		Map<ChrPosition, List<VcfRecord>> cpVcfMap = filteredMutations.stream()
 				.collect(Collectors.groupingBy(VcfRecord::getChrPosition));
 				
@@ -938,7 +879,6 @@ public class Q3Panel {
 			AtomicInteger cosmicCount = new AtomicInteger();
 			Map<ChrPosition, List<String[]>> cosmicData = new HashMap<>();
 			try (Stream<String> lines = PanelUtil.lines(Paths.get(cosmicFile))) {
-//				try (Stream<String> lines = Files.lines(Paths.get(cosmicFile), Charset.defaultCharset())) {
 				cosmicData = lines.filter(s -> ! s.startsWith("Gene name"))
 					.map(s -> TabTokenizer.tokenize(s))
 					.filter(p -> StringUtils.isNotEmpty(p[23]) && cosmicCount.incrementAndGet() > -1)
@@ -951,8 +891,7 @@ public class Q3Panel {
 				
 				logger.info("no of entries in cosmicData: " + cosmicData.size() + " with total cosmic record count: " + mutationCosmicRecordCount);
 				
-				cosmicData.entrySet().stream()
-					.forEach(entry-> {
+				cosmicData.entrySet().stream().forEach( entry -> {
 						logger.info("k: " + entry.getKey().toIGVString());
 						String genes = entry.getValue().stream()
 							.map(p -> p[0])
@@ -975,7 +914,6 @@ public class Q3Panel {
 						vcfs.stream()
 							.forEach(v -> {
 								v.appendId(cosmicId);
-	//							v.setId(v.getId().equals(".") ? cosmicId : v.getId() + ";" + cosmicId);
 								v.appendInfo("CCDS=" + cds + ";CG=" + genes);
 							});
 					});
@@ -992,21 +930,18 @@ public class Q3Panel {
 		 */
 		if ( ! StringUtils.isBlank(dbSNPFile)) {
 			logger.info("Reading in dbsnp data from: " + dbSNPFile);
-			try (VCFFileReader reader= new VCFFileReader( dbSNPFile )) {
-				
+			try ( VCFFileReader reader = new VCFFileReader( dbSNPFile )) {				
 				VcfHeaderRecord re = reader.getHeader().firstMatchedRecord(VcfHeaderUtils.STANDARD_DBSNP_LINE);
-				if( re!= null )
+				if ( re != null ) {
 					dbSnpHeaderDetails.addOrReplace(String.format("##INFO=<ID=%s,Number=0,Type=%s,Description=\"%s\",Source=%s,Version=%s>",
 							VcfHeaderUtils.INFO_DB, VcfInfoType.Flag.name(),
 							VcfHeaderUtils.INFO_DB_DESC, dbSNPFile,re.getMetaValue()  ));
-				
+				}
 				
 				re = reader.getHeader().getInfoRecord(VcfHeaderUtils.INFO_CAF);
-				if( re != null)
-					dbSnpHeaderDetails.addInfo(VcfHeaderUtils.INFO_VAF, ".", "String", VcfHeaderUtils.INFO_VAF_DESC);
+				if ( re != null ) dbSnpHeaderDetails.addInfo(VcfHeaderUtils.INFO_VAF, ".", "String", VcfHeaderUtils.INFO_VAF_DESC);
 				re = reader.getHeader().getInfoRecord(VcfHeaderUtils.INFO_VLD);
-				if(re != null)
-					dbSnpHeaderDetails.addOrReplace(re);				
+				if (re != null) dbSnpHeaderDetails.addOrReplace(re);				
 				
 				dbSnpHeaderDetails.addInfo("DB_CDS", ".", "String", "Reference and Alt alleles as reported by dbSNP");
 				
@@ -1025,18 +960,18 @@ public class Q3Panel {
 						/*
 						 * Taken from ftp://ftp.ncbi.nih.gov/snp/specs/00--VCF_README.txt
 						 * 
-	A note about the position.
-	
-	The RSPOS tag is the position of the SNP in dbSNP and the position reported in
-	column 2 may differ from the RSPOS tag.  All alleles for an INDEL or multi-byte
-	SNP must begin with the same nucleotide and to accomplish this, the preceeding
-	base pair is prefixed to each allele and the position of this base pair is 
-	reported.
-	Also, if all of the alleles consist of the same repeated sequence or a deletion
-	the beginning of the repeat is calculated and the preceeding base pair is 
-	reported.
-	For example, if the variations are AT/ATAT/-, the position in column 2 is
-	the location of the first repeat (AT) minus one.
+							A note about the position.
+							
+							The RSPOS tag is the position of the SNP in dbSNP and the position reported in
+							column 2 may differ from the RSPOS tag.  All alleles for an INDEL or multi-byte
+							SNP must begin with the same nucleotide and to accomplish this, the preceeding
+							base pair is prefixed to each allele and the position of this base pair is 
+							reported.
+							Also, if all of the alleles consist of the same repeated sequence or a deletion
+							the beginning of the repeat is calculated and the preceeding base pair is 
+							reported.
+							For example, if the variations are AT/ATAT/-, the position in column 2 is
+							the location of the first repeat (AT) minus one.
 						 */
 						
 						final int end =  dbSNPVcf.getRef().length() +  (start - 1);
@@ -1044,18 +979,14 @@ public class Q3Panel {
 					}
 					
 					List<VcfRecord> mutations = cpVcfMap.get(chrPos);
-					if (null == mutations || mutations.isEmpty()) {
-						continue;
-					}
+					if (null == mutations || mutations.isEmpty()) continue;					 
 					
 					mutationDbSnpRecordCount++;
 					
 					for (VcfRecord mut : mutations) {
-//						logger.info("Found dbsnp record: " + dbSNPVcf.toString() + " for mutation: " + mut.toString());
 						mut.appendId(dbSNPVcf.getId());
 						mut.appendInfo(VcfHeaderUtils.INFO_DB);
 						mut.appendInfo("DB_CDS=" + dbSNPVcf.getRef() + ">" + dbSNPVcf.getAlt());
-//						logger.info("updated mut: " + mut.toString());
 					}
 				}
 			}
@@ -1088,7 +1019,6 @@ public class Q3Panel {
 				});
 				
 			});
-//			logger.info("vcf: " + vcf.toString() + ", middleOfReadCount: " + middleOfReadCount.get() + ", endOfReadCount: " + endOfReadCount.get());
 			
 			/*
 			 * Add filter to vcf if we only have end of reads - may want to be a little more strict than this
@@ -1098,7 +1028,6 @@ public class Q3Panel {
 				 * add to format filter rather than filter
 				 */
 				VcfUtils.addFormatFieldsToVcf(vcf, Arrays.asList("FT", SnpUtils.END_OF_READ + Constants.EQ +  endOfReadCount.get()), true, Constants.COMMA);
-//					VcfUtils.updateFilter(vcf, SnpUtils.END_OF_READ + Constants.EQ +  endOfReadCount.get());
 			}
 		});
 		
@@ -1126,7 +1055,8 @@ public class Q3Panel {
 			header.addFormat("FT", ".","String","Filters that have been applied to the sample");
 			header.addFormat(VcfHeaderUtils.FORMAT_MUTANT_READS, ".","Integer",VcfHeaderUtils.FORMAT_MUTANT_READS_DESC);
 			header.addFormat(VcfHeaderUtils.FORMAT_OBSERVED_ALLELES_BY_STRAND, ".","String",VcfHeaderUtils.FORMAT_OBSERVED_ALLELES_BY_STRAND_DESC);
-			header.addFormat("XFB", ".","String","Breakdown of Contig ids, Fragment ids and read counts supporting this mutation, along with total counts of contig, fragment, and reads for all reads at that location in the following format: ContigId,FragmentId,readCount;[...] / Sum of contigs at this position,sum of fragments at this position,sum of read counts at this position");//			header.addFormatLine(SnpUtils.END_OF_READ, ".","String","Indicates that the mutation occurred within the first or last 5 bp of all the reads contributing to the mutation. ");
+			header.addFormat("XFB", ".","String","Breakdown of Contig ids, Fragment ids and read counts supporting this mutation, along with total counts of contig, fragment,"
+					+ " and reads for all reads at that location in the following format: ContigId,FragmentId,readCount;[...] / Sum of contigs at this position, sum of fragments at this position,sum of read counts at this position");
 			header.addFilter(SnpUtils.END_OF_READ, "Indicates that the mutation occurred within the first or last 5 bp of all the reads contributing to the mutation");
 			header.addOrReplace(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "sample1");
 			header = VcfHeaderUtils.mergeHeaders(header, dbSnpHeaderDetails, true);
@@ -1136,9 +1066,9 @@ public class Q3Panel {
 			while (iter.hasNext()) {
 				writer.addHeader(iter.next().toString() );
 			}
-			filteredMutations.stream()
-				.sorted((e1, e2) -> {return e1.compareTo(e2);})
-				.forEach(entry -> {
+			filteredMutations.stream().sorted((e1, e2) -> {
+					return e1.compareTo(e2);
+				}).forEach(entry -> {
 					try {
 						writer.add(entry);
 						outputMutations.incrementAndGet();
@@ -1173,20 +1103,21 @@ public class Q3Panel {
 			header.addFormat("FT", ".","String","Filters that have been applied to the sample");
 			header.addFormat(VcfHeaderUtils.FORMAT_MUTANT_READS, ".","Integer",VcfHeaderUtils.FORMAT_MUTANT_READS_DESC);
 			header.addFormat(VcfHeaderUtils.FORMAT_OBSERVED_ALLELES_BY_STRAND, ".","String",VcfHeaderUtils.FORMAT_OBSERVED_ALLELES_BY_STRAND_DESC);
-			header.addFormat("XFB", ".","String","Breakdown of Contig ids, Fragment ids and read counts supporting this mutation, along with total counts of contig, fragment, and reads for all reads at that location in the following format: ContigId,FragmentId,readCount;[...] / Sum of contigs at this position,sum of fragments at this position,sum of read counts at this position");//			header.addFormatLine(SnpUtils.END_OF_READ, ".","String","Indicates that the mutation occurred within the first or last 5 bp of all the reads contributing to the mutation. ");
+			header.addFormat("XFB", ".","String","Breakdown of Contig ids, Fragment ids and read counts supporting this mutation,"
+					+ " along with total counts of contig, fragment, and reads for all reads at that location in the following format: ContigId,FragmentId,readCount;[...] "
+					+ "/ Sum of contigs at this position,sum of fragments at this position,sum of read counts at this position");
 			header.addFilter(SnpUtils.END_OF_READ, "Indicates that the mutation occurred within the first or last 5 bp of all the reads contributing to the mutation");
 			header.addOrReplace(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "sample1");
 			header = VcfHeaderUtils.mergeHeaders(header, dbSnpHeaderDetails, true);
 			header = VcfHeaderUtils.mergeHeaders(header, cosmicHeaderDetails, true);
-			
-			
+						
 			Iterator<VcfHeaderRecord> iter = header.iterator();
 			while (iter.hasNext()) {
 				writer.addHeader(iter.next().toString() );
 			}
-			vcfs.stream()
-			.sorted((e1, e2) -> {return e1.compareTo(e2);})
-			.forEach(entry -> {
+			vcfs.stream().sorted((e1, e2) -> {
+				return e1.compareTo(e2);
+			}).forEach(entry -> {
 				try {
 					writer.add(entry);
 				} catch (Exception e) {
@@ -1195,15 +1126,7 @@ public class Q3Panel {
 			});
 			logger.info("number of mutations written to file (" + filename + "): " + vcfs.size());
 		}
-	}
-	
-	private List<Fragment2> getOverlappingFragments(ChrPosition cp) {
-		return frags.values().stream()
-				.filter(frag -> null != frag.getPosition())
-				.filter(frag -> ChrPositionUtils.doChrPositionsOverlap(cp, frag.getPosition()))
-				.collect(Collectors.toList());
-	}
-	
+	}	
 	
 	private void getActualLocationForFrags() {
 		
@@ -1229,12 +1152,13 @@ public class Q3Panel {
 					Fragment2 f = queue.poll();
 					if (null != f) {
 						if (++counter % 1000000 == 0) {
-							logger.info("hit: " + (counter / 1000000) +"M Frags...");
+							logger.info("hit: " + (counter / 1000000) + "M Frags...");
 						}
 						
 						ChrPosition bestTiledCP = f.getPosition();
 						if (null != bestTiledCP) {
-							ChrPosition bufferedCP = new ChrRangePosition(bestTiledCP.getChromosome(),  Math.max(1,bestTiledCP.getStartPosition() - 100), bestTiledCP.getStartPosition() + 100 + f.getLength());
+							ChrPosition bufferedCP = new ChrRangePosition(bestTiledCP.getChromosome(),  
+									Math.max(1,bestTiledCP.getStartPosition() - 100), bestTiledCP.getStartPosition() + 100 + f.getLength());
 							String bufferedReference = getRefFromChrPos(bufferedCP);
 							
 							/*
@@ -1299,7 +1223,6 @@ public class Q3Panel {
 		try {
 			service.awaitTermination(12, TimeUnit.HOURS);
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -1332,10 +1255,6 @@ public class Q3Panel {
 						
 						boolean multipleMutations = (f.getLength() - swScore) >= multiMutationThreshold;
 						
-//						if (entry.getKey().getId() == 8 || f.getId() == 6282) {
-//							logger.info("entry.getKey().getId(): " +entry.getKey().getId() + ", frag: " + f.getId() + ", length: " + f.getLength()  + ", score: " + swScore + " multipleMutations: " + multipleMutations);
-//						}
-//						
 						List<Pair<Integer, String>> mutations = ClinVarUtil.getPositionRefAndAltFromSW(smithWatermanDiffs);
 						if ( ! mutations.isEmpty()) {
 							for (Pair<Integer, String> mutation : mutations) {
@@ -1350,8 +1269,8 @@ public class Q3Panel {
 								}
 								createMutation(f.getPosition(), position , ref, alt, entry.getKey().getId(), f.getId(), f.getRecordCount(), multipleMutations);
 								
-								variants.computeIfAbsent(new ChrPositionName(f.getPosition().getChromosome(), f.getPosition().getStartPosition() + position, f.getPosition().getStartPosition() + position + ref.length() - 1, ref),
-										func -> new HashMap<>(4)).computeIfAbsent(alt, func2 -> new ArrayList<>()).add(f);
+								variants.computeIfAbsent(new ChrPositionName(f.getPosition().getChromosome(), f.getPosition().getStartPosition() + position, f.getPosition().getStartPosition() 
+										+ position + ref.length() - 1, ref), func -> new HashMap<>(4)).computeIfAbsent(alt, func2 -> new ArrayList<>()).add(f);
 							}
 						}
 					});
@@ -1361,14 +1280,12 @@ public class Q3Panel {
 	
 	private void createMutation(ChrPosition actualCP, int position, String ref, String alt, int contigId, int fragmentId, int fragmentRecordCount, boolean multipleMutations) {
 		int startPos = actualCP.getStartPosition() + position;
-//		int endPos =  startPos + ref.length() -1 ;
 		VcfRecord vcf = VcfUtils.createVcfRecord(ChrPointPosition.valueOf(actualCP.getChromosome(),  startPos), "."/*id*/, ref, alt);
 		if (multipleMutations) {
 			/*
 			 * add to format filter field
 			 */
 			VcfUtils.addFormatFieldsToVcf(vcf, Arrays.asList("FT", "MM"), true, Constants.COMMA);
-//			vcf.addFilter("MM");
 		}
 		
 		List<int[]> existingFragmentIds = vcfFragmentMap.get(vcf);
@@ -1393,7 +1310,6 @@ public class Q3Panel {
 		 */
 		Set<String> fragmentTiles = new HashSet<>();
 		for (String fragment : frags.keySet()) {
-//			for (String fragment : rawFragments.keySet()) {
 			String revComp = SequenceUtil.reverseComplement(fragment);
 			int sLength = fragment.length();
 			int noOfTiles = sLength / TILE_SIZE;
@@ -1430,10 +1346,9 @@ public class Q3Panel {
 							break;
 						}
 						if (++counter % 1000000 == 0) {
-							logger.info("hit: " + (counter / 1000000) +"M tiles...");
+							logger.info("hit: " + (counter / 1000000) + "M tiles...");
 						}
-						
-						
+											
 						String tile = s.substring(0, TILE_SIZE);
 						if (fragmentTiles.contains(tile)) {
 							String countOrPosition = s.substring(s.indexOf(Constants.TAB) + 1);
@@ -1460,7 +1375,6 @@ public class Q3Panel {
 						try {
 							Thread.sleep(5);
 						} catch (Exception e) {
-							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
 					}
@@ -1502,7 +1416,6 @@ public class Q3Panel {
 				queue.add(POISON_STRING);
 			}
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -1510,7 +1423,6 @@ public class Q3Panel {
 		try {
 			service.awaitTermination(12, TimeUnit.HOURS);
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -1573,7 +1485,7 @@ public class Q3Panel {
 					Fragment2 rf = queue.poll();
 					if (null != rf) {
 						if (++counter % 1000000 == 0) {
-							logger.info("hit: " + (counter / 1000000) +"M frags...");
+							logger.info("hit: " + (counter / 1000000) + "M frags...");
 						}
 						
 						String fragment = rf.getSequence();
@@ -1607,8 +1519,6 @@ public class Q3Panel {
 							 */
 							if (resultsList.size() == 1 ||  resultsList.get(1).getInt() <  bestTileCount) {
 								bestTiledCp = positionToActualLocation.getChrPositionFromLongPosition(resultsList.get(0).getLong());
-//							} else {
-//								logger.info("results.length: " + results.length + ", resultsMap.get(bestTileCount).size(): " + resultsMap.get(bestTileCount).size());
 							}
 						} else if (tiledDiffThreshold + bestTileCount < rcBestTileCount) {
 							/*
@@ -1619,13 +1529,10 @@ public class Q3Panel {
 								forwardStrand = false;
 							}
 						}
-						
-						
+											
 						if (null != bestTiledCp) {
 							positionFound.incrementAndGet();
-							positionFoundReadCount.addAndGet(rf.getRecordCount());
-							
-							
+							positionFoundReadCount.addAndGet(rf.getRecordCount());							
 							rf.setForwardStrand(forwardStrand);
 							/*
 							 * Set position - not the final one yet
@@ -1661,30 +1568,12 @@ public class Q3Panel {
 		try {
 			service.awaitTermination(12, TimeUnit.HOURS);
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		logger.info("positionFound count: " + positionFound.get() + " which contain " + positionFoundReadCount.get() + " reads,  noPositionFound count: " + noPositionFound.get() + ", which contain "+ noPositionFoundReadCount.get() + " reads");
+		logger.info("positionFound count: " + positionFound.get() + " which contain " + positionFoundReadCount.get() + " reads,  noPositionFound count: " 
+				+ noPositionFound.get() + ", which contain " + noPositionFoundReadCount.get() + " reads");
 		logger.info("addingToFragment: " + addingToFragment.get());
 		logger.info("in digestTiledData - DONE");
-	}
-	
-	
-	private Map<ChrPosition, String[]> getSWScores(TLongArrayList positionsList, final String binSequence ) throws IOException {
-		final Map<ChrPosition, String[]> positionSWDiffMap = new HashMap<>(positionsList.size() * 2);
-		final int buffer = 300;
-		positionsList.forEach(new TLongProcedure() {
-			@Override
-			public boolean execute(long position) {
-				ChrPosition cp = positionToActualLocation.getChrPositionFromLongPosition(position);
-				ChrPosition refCp =  new ChrRangePosition(cp.getChromosome(), Math.max(1, cp.getStartPosition() - buffer), cp.getStartPosition() + binSequence.length() + buffer);
-//				ChrPosition refCp = positionToActualLocation.getBufferedChrPositionFromLongPosition(position, binSequence.length(), 200);
-				String ref = getRefFromChrPos(refCp);
-				positionSWDiffMap.put(cp, ClinVarUtil.getSwDiffs(ref, binSequence));
-				return true;
-			}
-		});
-		return positionSWDiffMap;
 	}
 	
 	private String getRefFromChrPos(ChrPosition cp) {
@@ -1696,7 +1585,7 @@ public class Q3Panel {
 			 * Load from file
 			 */
 			FastaSequenceIndex index = new FastaSequenceIndex(new File(refFileName + ".fai"));
-			try (IndexedFastaSequenceFile refFile = new IndexedFastaSequenceFile(new File(refFileName), index);) {;
+			try (IndexedFastaSequenceFile refFile = new IndexedFastaSequenceFile(new File(refFileName), index);) {
 				ReferenceSequence refSeq = refFile.getSequence(chr);
 				ref = refSeq.getBases();
 				referenceCache.put(chr, ref);
@@ -1728,7 +1617,7 @@ public class Q3Panel {
 		System.exit(exitStatus);
 	}
 	
-	protected int setup(String args[]) throws Exception{
+	protected int setup(String args[]) throws Exception {
 		int returnStatus = 1;
 		Options options = new Options(args);
 

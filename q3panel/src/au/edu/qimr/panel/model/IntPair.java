@@ -1,6 +1,6 @@
 package au.edu.qimr.panel.model;
 
-public class IntPair implements Comparable<IntPair>{
+public class IntPair implements Comparable <IntPair> { 
 	
 	private  int int1;
 	private  int int2;

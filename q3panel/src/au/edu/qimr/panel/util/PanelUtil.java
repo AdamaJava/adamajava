@@ -1,5 +1,8 @@
 package au.edu.qimr.panel.util;
 
+import au.edu.qimr.panel.model.Contig;
+import au.edu.qimr.panel.model.Fragment2;
+import gnu.trove.map.hash.THashMap;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.Closeable;
@@ -13,13 +16,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.Set;
+
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.GZIPInputStream;
-
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
@@ -28,10 +31,6 @@ import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
-
-import au.edu.qimr.panel.model.Contig;
-import au.edu.qimr.panel.model.Fragment2;
-import gnu.trove.map.hash.THashMap;
 
 public class PanelUtil {
 	
@@ -45,7 +44,8 @@ public class PanelUtil {
 	 * @param contigFragmentMap
 	 * @param vcfs
 	 */
-	public static void createVcfRecordFromVariantMap(Map<ChrPosition, Map<String, List<Fragment2>>> variants, Map<Contig, List<Fragment2>> contigFragmentMap, List<VcfRecord> vcfs, int minAltPercentage) {
+	public static void createVcfRecordFromVariantMap(Map<ChrPosition, Map<String, List<Fragment2>>> variants, 
+			Map<Contig, List<Fragment2>> contigFragmentMap, List<VcfRecord> vcfs, int minAltPercentage) {
 		
 		for (Entry<ChrPosition, Map<String, List<Fragment2>>> entry : variants.entrySet()) {
 			String ref = entry.getKey().getName();
@@ -83,9 +83,6 @@ public class PanelUtil {
 				basesAndCounts.put(entry2.getKey(), FragmentUtil.getCountsFromFragments(entry2.getValue()));
 			}
 			
-//			for (Entry<String, int[]> entry3 : basesAndCounts.entrySet()) {
-//				System.out.println("bases: " + entry3.getKey() + ", counts: " + Arrays.toString(entry3.getValue()));
-//			}
 			String oabs = getOABS(basesAndCounts);
 			
 			String[] gtAdAlts = getGTADAlts(basesAndCounts, ref, minAltPercentage);
@@ -96,14 +93,15 @@ public class PanelUtil {
 			 */
 			if ( ! gtAdAlts[0].equals("0/0")) {
 				VcfRecord vcf = VcfUtils.createVcfRecord(entry.getKey(), Constants.MISSING_DATA_STRING, ref, gtAdAlts[2]);
-				vcf.setFormatFields(Arrays.asList("GT:AD:DP:OABS", gtAdAlts[0] + Constants.COLON + gtAdAlts[1] + Constants.COLON + basesAndCounts.values().stream().mapToInt(a -> a[0] + a[1]).sum() + Constants.COLON + oabs));
+				vcf.setFormatFields(Arrays.asList("GT:AD:DP:OABS", gtAdAlts[0] + Constants.COLON + gtAdAlts[1] + Constants.COLON 
+						+ basesAndCounts.values().stream().mapToInt(a -> a[0] + a[1]).sum() + Constants.COLON + oabs));
 				vcfs.add(vcf);
 			}
 		}
 	}
 	
 	public static int getSumOfArray(int [] array) {
-		if (null != array && array.length == 2){
+		if (null != array && array.length == 2) {
 			return array[0] + array[1];
 		}
 		return 0;
@@ -144,8 +142,8 @@ public class PanelUtil {
 	public static List<String> getTwoLargestAlleles(Map<String, int[]> basesAndCounts, int minPercentage) {
 		List<String> alleles = new ArrayList<>(3);
 		int totalCoverage = basesAndCounts.values().stream().mapToInt(a -> a[0] + a[1]).sum();
-		alleles = basesAndCounts.entrySet().stream().filter(e -> ((double)(e.getValue()[0] + e.getValue()[1])/totalCoverage) * 100 >= minPercentage)
-				.sorted((e1, e2) -> {
+		alleles = basesAndCounts.entrySet().stream().filter(e -> 
+			((double)(e.getValue()[0] + e.getValue()[1]) / totalCoverage) * 100 >= minPercentage).sorted((e1, e2) -> {
 					int diff = (e1.getValue()[0] + e1.getValue()[1]) - (e2.getValue()[0] + e2.getValue()[1]);
 					if (diff == 0) {
 						diff = e1.getKey().compareTo(e2.getKey());
@@ -159,69 +157,7 @@ public class PanelUtil {
 		
 		return alleles;
 	}
-	
-//	public static String getGTAndAD(Map<String, int[]> basesAndCounts, String ref) {
-//		if (null != basesAndCounts && ! basesAndCounts.isEmpty() && null != ref && ref.length() > 0) {
-//			int [] refArray = basesAndCounts.get(ref);
-//			int refCount = null != refArray ? refArray[0] + refArray[1] : 0;
-//			int totalCoverage = basesAndCounts.values().stream().mapToInt(a -> a[0] + a[1]).sum();
-//			
-//			/*
-//			 * we are assuming here that the ref count does not equal the total count, which would indicate that there was no mutation at this position
-//			 */
-//			if (refCount != totalCoverage) {
-//			
-//				if (null == refArray) {
-//					/*
-//					 * no ref
-//					 */
-//					if (basesAndCounts.size() == 1) {
-//						return "1/1:0," + totalCoverage;
-//					} else if (basesAndCounts.size() == 2) {
-//						
-//							/*
-//							 * alt count needs to be more than 10% to make it
-//							 */
-//							if (basesAndCounts.values().stream().mapToInt(a -> a[0] + a[1]).filter(s -> ((double)s/totalCoverage) >= 0.1000).count() == basesAndCounts.size()) {
-//								return "1/2:" + basesAndCounts.values().stream().map(a -> "" + a[0] + a[1]).collect(Collectors.joining(","));
-//							} else {
-//								return "1/1:" + basesAndCounts.values().stream().mapToInt(a -> a[0] + a[1]).filter(s -> ((double)s/totalCoverage) >= 0.1000).sum();
-//							}
-//					} else {
-//						/*
-//						 * deal with 3 alts
-//						 */
-//					}
-//				} else {
-//					if (basesAndCounts.size() == 2) {
-//						int altCount = totalCoverage - refCount;
-//						double altPercentage = (double)altCount / totalCoverage;
-//						if (altPercentage >= 0.750000) {
-//							return "1/1:" + refCount + "," + altCount;
-//						} else if (altPercentage >= 0.10000) {
-//							return "0/1:" + refCount + "," + altCount;
-//						}
-//					} else if (basesAndCounts.size() == 3) {
-//						/*
-//						 * find the largest 2 alleles and report them
-//						 */
-//						if (basesAndCounts.values().stream().mapToInt(a -> a[0] + a[1]).filter(s -> ((double)s/totalCoverage) >= 0.1000).count() == basesAndCounts.size()) {
-//							
-//						} 
-//						
-//					} else {
-//						/*
-//						 * hmm
-//						 */
-//					}
-//				}
-//			} else {
-//				return "0/0:" + refCount;
-//			}
-//		}
-//		return ".:.";
-//	}
-	
+		
 	public static String getOABS(Map<String, int[]> basesAndCounts) {
 		return basesAndCounts.entrySet().stream()
 				.sorted((e1, e2) -> e1.getKey().compareTo(e2.getKey()))
