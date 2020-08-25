@@ -52,6 +52,7 @@ public class FastqProbeMatchUtil {
 		return null == fpm.getRead1Probe() 
 				&& null == fpm.getRead2Probe();
 	}
+	
 	/**
 	 * Both reads have a match, although they may not be the same...
 	 */
@@ -61,11 +62,9 @@ public class FastqProbeMatchUtil {
 				|| null == fpm.getRead1Probe() && null != fpm.getRead2Probe());
 	}
 	
-	
 	public static boolean doesFPMMatchProbe(FastqProbeMatch fpm, Probe p) {
-		return ! neitherReadsHaveAMatch(fpm)
-				&& (null != fpm.getRead1Probe() && p.equals(fpm.getRead1Probe())
-						|| null != fpm.getRead2Probe() && p.equals(fpm.getRead2Probe()));
+		return ! neitherReadsHaveAMatch(fpm) && (null != fpm.getRead1Probe() 
+				&& p.equals(fpm.getRead1Probe()) || null != fpm.getRead2Probe() && p.equals(fpm.getRead2Probe()));
 	}
 	
 	public static <T> void incrementCount(Map<T, AtomicInteger> map, T data) {
@@ -89,12 +88,12 @@ public class FastqProbeMatchUtil {
 		int bothReadsHaveAMatch = 0;
 		int sameMatch = 0;
 		Map<IntPair, AtomicInteger> sameMatchScores = new HashMap<>();
-		int differentMatches = 0;
 		Map<IntPair, AtomicInteger> differentMatchesScores = new HashMap<>();
 		int neitherHaveAMatch = 0;
 		int justOneMatch = 0;
 		Map<IntPair, AtomicInteger> justOneMatchScores = new HashMap<>();
 		int count = set.size();
+		int differentMatches = 0;
 		
 		for (FastqProbeMatch fpm : set) {
 			
@@ -111,8 +110,7 @@ public class FastqProbeMatchUtil {
 					if (isMultiMatched(fpm)) {
 						differentMatches++;
 						incrementCount(differentMatchesScores, fpm.getScore());
-					}
-					
+					}					
 				} else {
 					justOneMatch++;
 					incrementCount(justOneMatchScores, fpm.getScore());
@@ -142,8 +140,7 @@ public class FastqProbeMatchUtil {
 			logger.info("different match score: " + score + ", count: " + differentMatchesScores.get(score).get());
 		}
 	}
-	
-	
+		
 	public static void createFragment(FastqProbeMatch fpm) {
 		// only do this if we have same probe for r1 and r2 for now...
 		if (isProperlyMatched(fpm)) {
@@ -169,15 +166,12 @@ public class FastqProbeMatchUtil {
 				String r2OverlapRC = SequenceUtil.reverseComplement(r2Overlap);
 				
 				if (StringUtils.isNullOrEmpty(r1Overlap) || StringUtils.isNullOrEmpty(r2OverlapRC)) {
-	//				logger.info("frag: " + frag);
 					logger.info("r1: " + r1);
 					logger.info("r2: " + r2);
 					logger.info("r1Overlap: " + r1Overlap);
 					logger.info("r2Overlap: " + r2Overlap);
 					logger.info("r2OverlapRC: " + r2OverlapRC);
 					logger.info("expectedFragLen: " + expectedFragLen + ", combinedReadLen: " + combinedReadLen + ", expectedOverlap: " + expectedOverlap);
-					
-	//				logger.info("r1OverlapRC: " + r1OverlapRC);
 				}
 				int [] distances = ClinVarUtil.getBasicAndLevenshteinEditDistances(r1Overlap, r2OverlapRC);
 				fpm.setOverlapBasicEditDistance(distances[0]);
@@ -193,13 +187,6 @@ public class FastqProbeMatchUtil {
 					// lets create a fragment!!!
 					String frag = r1 + SequenceUtil.reverseComplement(r2.substring(0,r2.length() - expectedOverlap));
 					fpm.setFragment(frag);
-	//				logger.info("frag: " + frag);
-	//				logger.info("r1: " + r1);
-	//				logger.info("r2: " + r2);
-	//				logger.info("r1Overlap: " + r1Overlap);
-	//				logger.info("r2Overlap: " + r2Overlap);
-	//				logger.info("r1OverlapRC: " + r1OverlapRC);
-	//				logger.info("frag length: " + frag.length() + ", expectedFragLen: " + expectedFragLen);
 				} else if (distances[0] > 10) {
 					// calculate sliding value
 					int slideValue = ClinVarUtil.noOfSlidesToGetPerfectMatch(r1Overlap, r2OverlapRC);

@@ -30,6 +30,7 @@ public class Contig implements Comparable<Contig> {
 	public ChrPosition getInitialFragmentPosition() {
 		return initialFragmentPosition;
 	}
+	
 	public ChrPosition getPosition() {
 		return position;
 	}

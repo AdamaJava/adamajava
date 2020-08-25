@@ -13,6 +13,7 @@ public class LongInt {
 	public long getLong() {
 		return l;
 	}
+	
 	public int getInt() {
 		return i;
 	}

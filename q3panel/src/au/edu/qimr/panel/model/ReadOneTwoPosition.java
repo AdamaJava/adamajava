@@ -11,9 +11,7 @@ public class ReadOneTwoPosition {
 		this.r2 = r2;
 		this.position = pos;
 	}
-	
-	
-	
+		
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -23,6 +21,7 @@ public class ReadOneTwoPosition {
 		result = prime * result + ((r2 == null) ? 0 : r2.hashCode());
 		return result;
 	}
+	
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
@@ -47,8 +46,6 @@ public class ReadOneTwoPosition {
 		return true;
 	}
 
-
-
 	public String getR1() {
 		return r1;
 	}
@@ -60,5 +57,4 @@ public class ReadOneTwoPosition {
 	public int getPosition() {
 		return position;
 	}
-
 }

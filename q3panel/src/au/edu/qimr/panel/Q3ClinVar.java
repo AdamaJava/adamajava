@@ -920,7 +920,7 @@ public class Q3ClinVar {
 					if (b.getRecordCount() >= binRecordCount) {						
 						if ( ! onlyUseBinsThatMatchAmplicons || (null != b.getBestTiledLocation() 
 								&& ClinVarUtil.doChrPosOverlap(ampliconCP, b.getBestTiledLocation()))) {							
-							String binSeq = reverseComplementSequence ? SequenceUtil.reverseComplement(b.getSequence()) :  b.getSequence();							
+							String binSeq = reverseComplementSequence ? SequenceUtil.reverseComplement(b.getSequence()) : b.getSequence();	
 							// check that ref length is equal to bin length
 							// if shorter, get a longer ref
 							int lengthDiff = binSeq.length() - bufferedRef.length();
@@ -942,7 +942,7 @@ public class Q3ClinVar {
 		}
 	}
 
-	private void writeHaplotypesCsv(boolean filter) throws IOException {
+	private void writeHaplotypesCsv(boolean filter) throws IOException { 
 		
 		/*
 		 * Write haplotype file before rolling up mutations

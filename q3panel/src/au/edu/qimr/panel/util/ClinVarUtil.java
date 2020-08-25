@@ -144,7 +144,6 @@ public class ClinVarUtil {
 				.collect(Collectors.toList());
 	}
 	
-	
 	/**
 	 * 
 	 * @param dist
@@ -720,6 +719,7 @@ public class ClinVarUtil {
 		
 		return dict;
 	}
+	
 	public static SAMSequenceDictionary getSequenceDictionaryFromFragments(Collection<Fragment2> fragments) {
 		if (null == fragments) {
 			throw new IllegalArgumentException("Null List<Probe> passed to ClinVarUtil.getSequenceDictionaryFromProbes");
@@ -829,8 +829,7 @@ public class ClinVarUtil {
 		
 		if (calcMD) record.setAttribute(SAMTag.MD.name(), str.toString());
 		if (calcNM) record.setAttribute(SAMTag.NM.name(), nm);
-}
-	
+	}
 	
 	public static String[] rescueSWData(String[] diffs, String ref, String binSeq) {
 		if (null == diffs) {
@@ -861,15 +860,12 @@ public class ClinVarUtil {
 				if (refIndex > -1) {
 					int positionInRef = refIndex + swRef.length();
 					if (ref.length() < positionInRef + lengthDiff) {
-						logger.warn("ref.length() < positionInRef + lengthDiff, ref.length(): " + ref.length() + ", positionInRef: " + positionInRef + ", lengthDiff: " + lengthDiff + ", ref: " + ref + ", binSeq: " + binSeq);
-					} else {
-						
+						logger.warn("ref.length() < positionInRef + lengthDiff, ref.length(): " + ref.length() 
+							+ ", positionInRef: " + positionInRef + ", lengthDiff: " + lengthDiff + ", ref: " + ref + ", binSeq: " + binSeq);
+					} else {					
 						String missingRefBases = ref.substring(positionInRef, positionInRef + lengthDiff);
-						
-						
-						if (missingBinSeqBases.equals(missingRefBases) || missingBinSeqBases.length() != missingRefBases.length()) {
-							// oh dear
-						} else {
+												
+						if ( !missingBinSeqBases.equals(missingRefBases) && missingBinSeqBases.length() == missingRefBases.length()) {	
 							diffs[0] += missingRefBases;
 							StringBuilder sb = new StringBuilder(lengthDiff);
 							for (int i = 0 ; i < lengthDiff ; i++) {
@@ -877,14 +873,11 @@ public class ClinVarUtil {
 							}
 							diffs[1] += sb.toString();
 							diffs[2] += missingBinSeqBases;
-						}
-						
+						}						
 					}
 				} else {
 					logger.warn(" refIndex = ref.indexOf(swRef) == -1!!!");
-				}
-				
-				
+				}								
 			} else if (binSeq.endsWith(swBinSeq)) {
 				// need to get the first few bases
 				String missingBinSeqBases = binSeq.substring(0, lengthDiff);
@@ -908,7 +901,6 @@ public class ClinVarUtil {
 		}
 		return diffs;
 	}
-	
 	
 	public static String getSortedBBString(String bb, String ref) {
 		String [] params = bb.split(";");
@@ -954,16 +946,19 @@ public class ClinVarUtil {
 		return sb.toString();
 	}
 	
+
 	/**
 	 * Returns a representation of the supplied position as seen in the supplied amplicon and bins in the following format:
 	 * base,count, ampliconId(total reads in amplicon),binId1(count),binId2(count).....
 	 * 
-	 * @param cp
+	 * @param vcf
 	 * @param overlappingProbes
 	 * @param probeBinDist
+	 * @param minBinSize
+	 * @param diagnosticMode
+	 * @param useBinsCloseToAmplicon
 	 * @return
 	 */
-	
 	public static String getAmpliconDistribution(VcfRecord vcf, List<Probe> overlappingProbes, 
 			Map<Probe, List<Bin>> probeBinDist, int minBinSize, boolean diagnosticMode, boolean useBinsCloseToAmplicon) {
 		StringBuilder sb = new StringBuilder();
@@ -1268,11 +1263,11 @@ public class ClinVarUtil {
 		while (noOfSlides < initialLength &&  ! t.equals(s)) {
 			noOfSlides++;
 			t = t.substring(1);
-			s = s.substring(0, s.length() -1);
+			s = s.substring(0, s.length() - 1);
 		}
 		
 		// need a reliable check to see if noOfSlides is sufficiently large to trigger a RHS slide
-		if (noOfSlides >= initialLength -1) {
+		if (noOfSlides >= initialLength - 1) {
 			//perform a RHS slide
 			s = s1;
 			t = t1;
@@ -1297,7 +1292,7 @@ public class ClinVarUtil {
 		} else {
 			// do basic distancing next
 			int ed = getBasicEditDistance(s, t);
-			return ed > 1 ? new int[]{ ed, StringUtils.getLevenshteinDistance(s,t) } :  new int[]{ ed, ed };
+			return ed > 1 ? new int[] { ed, StringUtils.getLevenshteinDistance(s,t) } :  new int[]{ ed, ed };
 		}
 	}
 
@@ -1332,7 +1327,7 @@ public class ClinVarUtil {
 					int indelPosition = mutation.getLeft().intValue() + 1 + offset;
 					
 					if (mutArray[0].length() == 1) {
-//													// insertion
+						// insertion
 						if (indelPosition > 0) {
 							// create cigar element up to this position
 							CigarElement match = new CigarElement(indelPosition - lastPosition, CigarOperator.MATCH_OR_MISMATCH);
@@ -1366,6 +1361,7 @@ public class ClinVarUtil {
 	
 	/**
 	 * Return a string based representation of the number of matches and indels, similar to the MD tag in a BAM record
+	 * 
 	 * @param swDiffs
 	 * @return
 	 */

@@ -1056,7 +1056,8 @@ public class Q3Panel {
 			header.addFormat(VcfHeaderUtils.FORMAT_MUTANT_READS, ".","Integer",VcfHeaderUtils.FORMAT_MUTANT_READS_DESC);
 			header.addFormat(VcfHeaderUtils.FORMAT_OBSERVED_ALLELES_BY_STRAND, ".","String",VcfHeaderUtils.FORMAT_OBSERVED_ALLELES_BY_STRAND_DESC);
 			header.addFormat("XFB", ".","String","Breakdown of Contig ids, Fragment ids and read counts supporting this mutation, along with total counts of contig, fragment,"
-					+ " and reads for all reads at that location in the following format: ContigId,FragmentId,readCount;[...] / Sum of contigs at this position, sum of fragments at this position,sum of read counts at this position");
+					+ " and reads for all reads at that location in the following format: ContigId,FragmentId,readCount;[...] / Sum of contigs at this position,"
+					+ " sum of fragments at this position,sum of read counts at this position");
 			header.addFilter(SnpUtils.END_OF_READ, "Indicates that the mutation occurred within the first or last 5 bp of all the reads contributing to the mutation");
 			header.addOrReplace(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "sample1");
 			header = VcfHeaderUtils.mergeHeaders(header, dbSnpHeaderDetails, true);
@@ -1267,16 +1268,14 @@ public class Q3Panel {
 									logger.warn("ref is equal to alt: " + mutString);
 									logger.warn("f: " + Arrays.stream(f.getSmithWatermanDiffs()).collect(Collectors.joining("\n")));
 								}
-								createMutation(f.getPosition(), position , ref, alt, entry.getKey().getId(), f.getId(), f.getRecordCount(), multipleMutations);
-								
-								variants.computeIfAbsent(new ChrPositionName(f.getPosition().getChromosome(), f.getPosition().getStartPosition() + position, f.getPosition().getStartPosition() 
-										+ position + ref.length() - 1, ref), func -> new HashMap<>(4)).computeIfAbsent(alt, func2 -> new ArrayList<>()).add(f);
+								createMutation(f.getPosition(), position , ref, alt, entry.getKey().getId(), f.getId(), f.getRecordCount(), multipleMutations);	
+								variants.computeIfAbsent(new ChrPositionName(f.getPosition().getChromosome(), f.getPosition().getStartPosition() + position, 
+										f.getPosition().getStartPosition() + position + ref.length() - 1, ref), func -> new HashMap<>(4)).computeIfAbsent(alt, func2 -> new ArrayList<>()).add(f);
 							}
 						}
 					});
 			});
 	}
-	
 	
 	private void createMutation(ChrPosition actualCP, int position, String ref, String alt, int contigId, int fragmentId, int fragmentRecordCount, boolean multipleMutations) {
 		int startPos = actualCP.getStartPosition() + position;
