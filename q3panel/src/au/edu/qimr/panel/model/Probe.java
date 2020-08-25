@@ -69,13 +69,17 @@ public class Probe implements Comparable<Probe> {
 		Probe other = (Probe) obj;
 		if (dlsoSeq == null) {
 			if (other.dlsoSeq != null) return false;
-		} else if (!dlsoSeq.equals(other.dlsoSeq)) return false;
+		} else if (!dlsoSeq.equals(other.dlsoSeq)) {
+			return false;
+		}
 		
 		if (id != other.id) return false;
 		
 		if (ulsoSeq == null) {
 			if (other.ulsoSeq != null) return false;
-		} else if (!ulsoSeq.equals(other.ulsoSeq)) return false;
+		} else  if (!ulsoSeq.equals(other.ulsoSeq)) {
+			return false;
+		}
 		
 		return true;
 	}

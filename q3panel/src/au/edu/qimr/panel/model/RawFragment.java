@@ -60,7 +60,9 @@ public class RawFragment implements Comparable<RawFragment> {
 		RawFragment other = (RawFragment) obj;
 		if (fragment == null) {
 			if (other.fragment != null) return false;
-		} else if (!fragment.equals(other.fragment)) return false;
+		} else if (!fragment.equals(other.fragment)) {
+			return false;
+		}
 		
 		return true;
 	}
