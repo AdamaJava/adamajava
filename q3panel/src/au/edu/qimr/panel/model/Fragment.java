@@ -8,27 +8,20 @@ public class Fragment implements Comparable<Fragment> {
 	
 	private final int id;
 	private final String fragment;
-//	private final int fragmentLength;
 	private final  ChrPosition bestTiledLocation;
 	
 	private final TIntArrayList fsReadPositions = new TIntArrayList();
 	private final TIntArrayList rsReadPositions = new TIntArrayList();
-//	private final List<StringBuilder> fsHeaders = new ArrayList<>(2);
-//	private final List<StringBuilder> rsHeaders = new ArrayList<>(2);
 	
 	private ChrPosition actualLocation;
 	private String [] smithWatermanDiffs;
 	private final TIntArrayList overlapDistribution;
 	
 	public Fragment(int id,String sequence, TIntArrayList fsHeaders, TIntArrayList rsHeaders, ChrPosition bestTiledLocation, TIntArrayList overlapDist) {
-//		public Fragment(int id,String sequence, List<StringBuilder> fsHeaders, List<StringBuilder> rsHeaders, ChrPosition bestTiledLocation, TIntArrayList overlapDist) {
 		this.id = id;
 		this.fragment = sequence;
-//		this.fragmentLength = null != this.fragment ? this.fragment.length() : 0;
 		this.fsReadPositions.addAll(fsHeaders);
 		this.rsReadPositions.addAll(rsHeaders);
-//		this.fsHeaders.addAll(fsHeaders);
-//		this.rsHeaders.addAll(rsHeaders);
 		this.bestTiledLocation = bestTiledLocation;
 		this.overlapDistribution = overlapDist;
 	}
@@ -36,19 +29,15 @@ public class Fragment implements Comparable<Fragment> {
 	public void setForwardStrandCount(TIntArrayList headers) {
 		this.fsReadPositions.addAll(headers);
 	}
+	
 	public void setReverseStrandCount(TIntArrayList rsHead) {
 		this.rsReadPositions.addAll(rsHead);
 	}
-//	public void setForwardStrandCount(List<StringBuilder> headers) {
-//		this.fsHeaders.addAll(headers);
-//	}
-//	public void setReverseStrandCount(List<StringBuilder> rsHead) {
-//		this.rsHeaders.addAll(rsHead);
-//	}
 	
 	public void setSWDiffs(String [] diffs) {
 		this.smithWatermanDiffs = diffs;
 	}
+	
 	public String [] getSmithWatermanDiffs() {
 		return smithWatermanDiffs;
 	}
@@ -82,6 +71,7 @@ public class Fragment implements Comparable<Fragment> {
 	public void setActualPosition(ChrPosition actualCP) {
 		this.actualLocation = actualCP;
 	}
+	
 	public ChrPosition  getActualPosition() {
 		return actualLocation;
 	}
@@ -93,12 +83,6 @@ public class Fragment implements Comparable<Fragment> {
 	public int getFsCount() {
 		return fsReadPositions.size() ;
 	}
-//	public List<StringBuilder> getFsHeaders() {
-//		return fsHeaders;
-//	}
-//	public List<StringBuilder> getRsHeaders() {
-//		return rsHeaders;
-//	}
 
 	public int getRsCount() {
 		return rsReadPositions.size() ;
@@ -122,16 +106,14 @@ public class Fragment implements Comparable<Fragment> {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
+		
+		if (this == obj) return true;
+		if (obj == null) return false;
+		if (getClass() != obj.getClass()) return false;
+		
 		Fragment other = (Fragment) obj;
-		if (id != other.id)
-			return false;
+		if (id != other.id) return false;
+		
 		return true;
 	}
-
 }

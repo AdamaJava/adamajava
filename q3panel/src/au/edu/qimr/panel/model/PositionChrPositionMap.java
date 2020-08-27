@@ -28,7 +28,7 @@ public class PositionChrPositionMap {
 				int chrLength = Integer.parseInt(params[1]);
 				long startOffset = Long.parseLong(params[2]);
 				ChrPosition cp = new ChrRangePosition(params[0], 1, chrLength);
-				LongRange range = new LongRange(startOffset, startOffset + chrLength -1);
+				LongRange range = new LongRange(startOffset, startOffset + chrLength - 1);
 				chrPosToPositionRange.put(cp,  range);
 			}
 		}
@@ -36,6 +36,7 @@ public class PositionChrPositionMap {
 	
 	/**
 	 * Return the start position of the ChrPosition object as a long primative
+	 * 
 	 * @param cp
 	 * @return
 	 */
@@ -111,12 +112,13 @@ public class PositionChrPositionMap {
 			this.from = from;
 			this.to = to;
 		}
+		
 		public boolean isPositionWithinRange(long position) {
 			return from <= position && position <= to;
 		}
+		
 		public long getFrom() {
 			return from;
 		}
 	}
-
 }

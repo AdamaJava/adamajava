@@ -12,8 +12,9 @@ import org.qcmg.common.string.StringUtils;
 
 public class Bin implements Comparable<Bin> {
 	
-	private final static int MAX_NUMBER_OF_DIFFERENCES = 16;		// increase this if we want to allow reads containing more than 16 bases diff from sequence
-	private final static QLogger logger = QLoggerFactory.getLogger(Bin.class);
+	// increase this if we want to allow reads containing more than 16 bases diff from sequence
+	private static final int MAX_NUMBER_OF_DIFFERENCES = 16;			
+	private static final QLogger logger = QLoggerFactory.getLogger(Bin.class);
 	
 	private final int id;
 	private final String sequence;
@@ -22,7 +23,7 @@ public class Bin implements Comparable<Bin> {
 	private final Map<PosBase, AtomicInteger> diffs = new HashMap<>();
 	private String [] smithWatermanDiffs;
 	
-	private final Map<ChrPosition, String [] > possiblePositionSWDiffsMap = new HashMap<>(4);
+	private final Map<ChrPosition, String []> possiblePositionSWDiffsMap = new HashMap<>(4);
 	
 	private ChrPosition bestTiledLocation;
 	private long position;
@@ -39,21 +40,26 @@ public class Bin implements Comparable<Bin> {
 	public void setSWDiffs(String [] diffs) {
 		this.smithWatermanDiffs = diffs;
 	}
+	
 	public String [] getSmithWatermanDiffs() {
 		return smithWatermanDiffs;
 	}
+	
 	public String [] getSmithWatermanDiffs(ChrPosition cp) {
 		return possiblePositionSWDiffsMap.get(cp);
 	}
-	public Map<ChrPosition, String [] > getSmithWatermanDiffsMap() {
+	
+	public Map<ChrPosition, String []> getSmithWatermanDiffsMap() {
 		return possiblePositionSWDiffsMap;
 	}
 	
 	public void addPossiblePosition(ChrPosition cp, String [] seDiffs) {
 		possiblePositionSWDiffsMap.put(cp, seDiffs);
 	}
+	
 	/**
-	 * Clears and populates the possivlePositionsSWDiffsMap with the supplied map
+	 * Clears and populates the possivlePositionsSWDiffsMap with the supplied map.
+	 * 
 	 * @param seDiffs
 	 */
 	public void addPossiblePositions(Map<ChrPosition, String []> seDiffs) {
@@ -61,8 +67,7 @@ public class Bin implements Comparable<Bin> {
 	}
 	
 	public void addSequence(String sequenceToAdd) {
-		// need position and base at which this differs from sequence
-		
+		// need position and base at which this differs from sequence		
 		if (StringUtils.isNullOrEmpty(sequenceToAdd)) {
 			throw new IllegalArgumentException("Null or empty sequence passed to Bin.addSequence(): " + sequenceToAdd);
 		}
@@ -71,8 +76,7 @@ public class Bin implements Comparable<Bin> {
 			throw new IllegalArgumentException("Sequence passed to Bin.addSequence() is a different length to bins sequence: " + sequence + ", sequenceToAdd: " + sequenceToAdd);
 		}
 		
-		// walk the 2 strings, noting the position and base of any differences
-		
+		// walk the 2 strings, noting the position and base of any differences		
 		int totalDiffs = 0;
 		for (int i = 0 ; i < length ; i++) {
 			char a = sequence.charAt(i);
@@ -88,7 +92,8 @@ public class Bin implements Comparable<Bin> {
 		if (totalDiffs < MAX_NUMBER_OF_DIFFERENCES) {
 			counts[totalDiffs]++;
 		} else {
-			logger.warn("More than " + MAX_NUMBER_OF_DIFFERENCES + " differences found between sequence: " + sequence + " and sequenceToAdd: " + sequenceToAdd + ", no of diffs: " + totalDiffs);
+			logger.warn("More than " + MAX_NUMBER_OF_DIFFERENCES + " differences found between sequence: " + sequence + " and sequenceToAdd: " 
+					+ sequenceToAdd + ", no of diffs: " + totalDiffs);
 		}
 	}
 	
@@ -102,7 +107,7 @@ public class Bin implements Comparable<Bin> {
 	
 	public String getDifferences() {
 		if ( ! diffs.isEmpty()) {
-			StringBuilder sb =new StringBuilder();
+			StringBuilder sb = new StringBuilder();
 			for (Entry<PosBase, AtomicInteger> entry : diffs.entrySet()) {
 				sb.append(entry.getKey().getPos()).append(":").append(entry.getKey().getBase()).append(":").append(entry.getValue().get()).append(",");
 			}
@@ -144,18 +149,18 @@ public class Bin implements Comparable<Bin> {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
+		
+		if (this == obj) return true;
+		if (obj == null) return false;
+		if (getClass() != obj.getClass()) return false;
+		
 		Bin other = (Bin) obj;
 		if (sequence == null) {
-			if (other.sequence != null)
-				return false;
-		} else if (!sequence.equals(other.sequence))
+			if (other.sequence != null) return false;
+		} else if (!sequence.equals(other.sequence)) {
 			return false;
+		}
+		
 		return true;
 	}
 
@@ -187,6 +192,7 @@ public class Bin implements Comparable<Bin> {
 	public void setBestTiledLocation(ChrPosition cp) {
 		this.bestTiledLocation = cp;
 	}
+	
 	public ChrPosition getBestTiledLocation() {
 		return bestTiledLocation;
 	}

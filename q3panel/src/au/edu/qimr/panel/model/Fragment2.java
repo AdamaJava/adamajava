@@ -24,6 +24,7 @@ public class Fragment2 implements Comparable<Fragment2> {
 	public void setForwardStrand(boolean fs) {
 		this.fs = fs;
 	}
+	
 	public boolean isForwardStrand() {
 		return fs;
 	}
@@ -35,6 +36,7 @@ public class Fragment2 implements Comparable<Fragment2> {
 	public void setSWDiffs(String [] diffs) {
 		this.smithWatermanDiffs = diffs;
 	}
+	
 	public String [] getSmithWatermanDiffs() {
 		return smithWatermanDiffs;
 	}
@@ -60,9 +62,11 @@ public class Fragment2 implements Comparable<Fragment2> {
 		this.cp = cp;
 		actualLocationSet = actual;
 	}
+	
 	public ChrPosition  getPosition() {
 		return cp;
 	}
+	
 	public boolean isActualPositionSet() {
 		return actualLocationSet;
 	}
@@ -89,16 +93,13 @@ public class Fragment2 implements Comparable<Fragment2> {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
+		if (this == obj) return true;
+		if (obj == null) return false;
+		if (getClass() != obj.getClass()) return false;
+		
 		Fragment2 other = (Fragment2) obj;
-		if (id != other.id)
-			return false;
+		if (id != other.id) return false;
+		
 		return true;
 	}
-
 }

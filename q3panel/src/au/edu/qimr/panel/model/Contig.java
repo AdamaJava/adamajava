@@ -30,12 +30,13 @@ public class Contig implements Comparable<Contig> {
 	public ChrPosition getInitialFragmentPosition() {
 		return initialFragmentPosition;
 	}
+	
 	public ChrPosition getPosition() {
 		return position;
 	}
 
 	@Override
-	public int hashCode() {
+	public int hashCode() { 
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + id;
@@ -43,16 +44,15 @@ public class Contig implements Comparable<Contig> {
 	}
 
 	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
+	public boolean equals(Object obj) { 
+		
+		if (this == obj) return true;
+		if (obj == null) return false;
+		if (getClass() != obj.getClass()) return false;
+		
 		Contig other = (Contig) obj;
-		if (id != other.id)
-			return false;
+		if (id != other.id) return false;
+		
 		return true;
 	}
 

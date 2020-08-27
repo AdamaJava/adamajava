@@ -5,7 +5,7 @@ import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrRangePosition;
 
-public class Probe implements Comparable<Probe>{
+public class Probe implements Comparable<Probe> { 
 	
 	public static final int DEFAULT_BUFFER_SIZE = 20;
 	private static QLogger logger = QLoggerFactory.getLogger(Probe.class);
@@ -30,7 +30,8 @@ public class Probe implements Comparable<Probe>{
 	
 	private final ChrPosition cp;
 	
-	public Probe(int id, String dlsoSeq, String dlsoSeqRC, String ulsoSeq, String ulsoSeqRC, int p1Start, int p1End, int p2Start, int p2End, String subseq, int ssStart, int ssEnd, String chr, boolean forwardStrand, String name) {
+	public Probe(int id, String dlsoSeq, String dlsoSeqRC, String ulsoSeq, String ulsoSeqRC, int p1Start, 
+			int p1End, int p2Start, int p2End, String subseq, int ssStart, int ssEnd, String chr, boolean forwardStrand, String name) {
 		this.id = id;
 		this.dlsoSeq = dlsoSeq;
 		this.dlsoSeqRC = dlsoSeqRC;
@@ -60,25 +61,28 @@ public class Probe implements Comparable<Probe>{
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
+		
+		if (this == obj) return true;
+		if (obj == null) return false;
+		if (getClass() != obj.getClass()) {
 			return false;
-		if (getClass() != obj.getClass())
-			return false;
+		}
+		
 		Probe other = (Probe) obj;
 		if (dlsoSeq == null) {
-			if (other.dlsoSeq != null)
-				return false;
-		} else if (!dlsoSeq.equals(other.dlsoSeq))
+			if (other.dlsoSeq != null) return false;
+		} else if (!dlsoSeq.equals(other.dlsoSeq)) {
 			return false;
-		if (id != other.id)
-			return false;
+		}
+		
+		if (id != other.id) return false;
+		
 		if (ulsoSeq == null) {
-			if (other.ulsoSeq != null)
-				return false;
-		} else if (!ulsoSeq.equals(other.ulsoSeq))
+			if (other.ulsoSeq != null) return false;
+		} else  if (!ulsoSeq.equals(other.ulsoSeq)) {
 			return false;
+		}
+		
 		return true;
 	}
 	
@@ -95,13 +99,13 @@ public class Probe implements Comparable<Probe>{
 	
 	public String getReferenceSequence() {
 		int start = cp.getStartPosition();
-//		int end = cp.getEndPosition();
 		int seqStartPos = start - subseqStart;
 		String ref = subseq.substring(seqStartPos, cp.getLength() + seqStartPos);
 
 		// reference sequence is always reported on the +ve strand in the primer xml files
 		return ref; 	
 	}
+	
 	public String getBufferedReferenceSequence() {
 		return getBufferedReferenceSequence(DEFAULT_BUFFER_SIZE);
 	}
@@ -117,12 +121,13 @@ public class Probe implements Comparable<Probe>{
 	public int getDlsoPrimerLength() {
 		return primer1End - primer1Start + 1;
 	}
+	
 	public int getUlsoPrimerLength() {
 		return primer2End - primer2Start + 1;
 	}
+	
 	public int getExpectedFragmentLength() {
 		return cp.getLength();
-//		return primer2End - primer1Start + 1;
 	}
 
 	public int getId() {
@@ -172,5 +177,4 @@ public class Probe implements Comparable<Probe>{
 	public String getName() {
 		return name;
 	}
-
 }

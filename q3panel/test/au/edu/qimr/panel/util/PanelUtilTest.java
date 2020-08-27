@@ -95,33 +95,33 @@ public class PanelUtilTest {
 	@Test
 	public void getGTAndAD() {
 		Map<String, int[]> map = new THashMap<>();
-		assertArrayEquals(new String[]{".",".","."}, PanelUtil.getGTADAlts(null, null, 10));
-		assertArrayEquals(new String[]{".",".","."}, PanelUtil.getGTADAlts(map, null, 10));
-		assertArrayEquals(new String[]{".",".","."}, PanelUtil.getGTADAlts(map, "", 10));
+		assertArrayEquals(new String[]{".",".","."}, PanelUtil.getGTADalts(null, null, 10));
+		assertArrayEquals(new String[]{".",".","."}, PanelUtil.getGTADalts(map, null, 10));
+		assertArrayEquals(new String[]{".",".","."}, PanelUtil.getGTADalts(map, "", 10));
 		map.put("A", new int[]{1,0});
-		assertArrayEquals(new String[]{".",".","."}, PanelUtil.getGTADAlts(map, "", 10));
-		assertArrayEquals(new String[]{"0/0","1","."}, PanelUtil.getGTADAlts(map, "A", 10));
-		assertArrayEquals(new String[]{"1/1","0,1","A"}, PanelUtil.getGTADAlts(map, "C", 10));
-		assertArrayEquals(new String[]{"1/1","0,1","A"}, PanelUtil.getGTADAlts(map, "G", 10));
-		assertArrayEquals(new String[]{"1/1","0,1","A"}, PanelUtil.getGTADAlts(map, "T", 10));
+		assertArrayEquals(new String[]{".",".","."}, PanelUtil.getGTADalts(map, "", 10));
+		assertArrayEquals(new String[]{"0/0","1","."}, PanelUtil.getGTADalts(map, "A", 10));
+		assertArrayEquals(new String[]{"1/1","0,1","A"}, PanelUtil.getGTADalts(map, "C", 10));
+		assertArrayEquals(new String[]{"1/1","0,1","A"}, PanelUtil.getGTADalts(map, "G", 10));
+		assertArrayEquals(new String[]{"1/1","0,1","A"}, PanelUtil.getGTADalts(map, "T", 10));
 		map.put("C", new int[]{1,0});
-		assertArrayEquals(new String[]{"0/1","1,1","C"}, PanelUtil.getGTADAlts(map, "A", 10));
-		assertArrayEquals(new String[]{"0/1","1,1","A"}, PanelUtil.getGTADAlts(map, "C", 10));
-		assertArrayEquals(new String[]{"1/2","0,1,1","A,C"}, PanelUtil.getGTADAlts(map, "G", 10));
-		assertArrayEquals(new String[]{"1/2","0,1,1","A,C"}, PanelUtil.getGTADAlts(map, "T", 10));
+		assertArrayEquals(new String[]{"0/1","1,1","C"}, PanelUtil.getGTADalts(map, "A", 10));
+		assertArrayEquals(new String[]{"0/1","1,1","A"}, PanelUtil.getGTADalts(map, "C", 10));
+		assertArrayEquals(new String[]{"1/2","0,1,1","A,C"}, PanelUtil.getGTADalts(map, "G", 10));
+		assertArrayEquals(new String[]{"1/2","0,1,1","A,C"}, PanelUtil.getGTADalts(map, "T", 10));
 		
 		
 		map.put("A", new int[]{5,6});
 		map.put("C", new int[]{1,0});
-		assertArrayEquals(new String[]{"0/0","11","."}, PanelUtil.getGTADAlts(map, "A", 10));
-		assertArrayEquals(new String[]{"1/1","1,11","A"}, PanelUtil.getGTADAlts(map, "C", 10));
-		assertArrayEquals(new String[]{"1/1","0,11","A"}, PanelUtil.getGTADAlts(map, "G", 10));
-		assertArrayEquals(new String[]{"1/1","0,11","A"}, PanelUtil.getGTADAlts(map, "T", 10));
+		assertArrayEquals(new String[]{"0/0","11","."}, PanelUtil.getGTADalts(map, "A", 10));
+		assertArrayEquals(new String[]{"1/1","1,11","A"}, PanelUtil.getGTADalts(map, "C", 10));
+		assertArrayEquals(new String[]{"1/1","0,11","A"}, PanelUtil.getGTADalts(map, "G", 10));
+		assertArrayEquals(new String[]{"1/1","0,11","A"}, PanelUtil.getGTADalts(map, "T", 10));
 		map.put("C", new int[]{1,1});
-		assertArrayEquals(new String[]{"0/1","11,2","C"}, PanelUtil.getGTADAlts(map, "A", 10));
-		assertArrayEquals(new String[]{"0/1","2,11","A"}, PanelUtil.getGTADAlts(map, "C", 10));
-		assertArrayEquals(new String[]{"1/2","0,2,11","C,A"}, PanelUtil.getGTADAlts(map, "G", 10));
-		assertArrayEquals(new String[]{"1/2","0,2,11","C,A"}, PanelUtil.getGTADAlts(map, "T", 10));
+		assertArrayEquals(new String[]{"0/1","11,2","C"}, PanelUtil.getGTADalts(map, "A", 10));
+		assertArrayEquals(new String[]{"0/1","2,11","A"}, PanelUtil.getGTADalts(map, "C", 10));
+		assertArrayEquals(new String[]{"1/2","0,2,11","C,A"}, PanelUtil.getGTADalts(map, "G", 10));
+		assertArrayEquals(new String[]{"1/2","0,2,11","C,A"}, PanelUtil.getGTADalts(map, "T", 10));
 		
 		
 		

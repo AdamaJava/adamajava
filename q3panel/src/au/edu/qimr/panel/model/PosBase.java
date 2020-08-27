@@ -20,18 +20,16 @@ public class PosBase {
 	}
 
 	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
+	public boolean equals(Object obj) { 
+		
+		if (this == obj) return true;
+		if (obj == null) return false;
+		if (getClass() != obj.getClass()) return false;
+		
 		PosBase other = (PosBase) obj;
-		if (base != other.base)
-			return false;
-		if (pos != other.pos)
-			return false;
+		if (base != other.base) return false;
+		if (pos != other.pos) return false;
+		
 		return true;
 	}
 

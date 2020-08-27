@@ -2,25 +2,19 @@ package au.edu.qimr.panel.model;
 
 import htsjdk.samtools.fastq.FastqRecord;
 
-
 public class FastqProbeMatch {
 
 	private final int id;
 	private final FastqRecord read1;
 	private final FastqRecord read2;
 	private  Probe read1Probe;
-	private Probe read2Probe;
-	
-	private final IntPair score;
-	
+	private Probe read2Probe;	
+	private final IntPair score;	
 	private int expectedReadOverlapLength;
 	private int overlapBasicEditDistance;
 	private int overlapLevenshteinEditDistance;
-	private int slide;
-	
+	private int slide;	
 	private String fragment;
-//	private int read1EditDistance = 0;
-//	private int read2EditDistance = 0;
 	
 	public FastqProbeMatch(int id, FastqRecord read1, FastqRecord read2) {
 		this.id = id;
@@ -70,16 +64,6 @@ public class FastqProbeMatch {
 		this.read2Probe = read2Probe;
 		this.score.setInt2(distance);
 	}
-
-//	public void setRead1EditDistance(int read1EditDistance) {
-//		this.score.setRead1EditDistance(read1EditDistance);
-////		this.read1EditDistance = read1EditDistance;
-//	}
-
-//	public void setRead2EditDistance(int read2EditDistance) {
-//		this.score.setRead2EditDistance(read2EditDistance);
-////		this.read2EditDistance = read2EditDistance;
-//	}
 	
 	public IntPair getScore() {
 		return score;
@@ -95,15 +79,14 @@ public class FastqProbeMatch {
 	
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
+		
+		if (this == obj) return true;
+		if (obj == null) return false;
+		if (getClass() != obj.getClass()) return false;
+		
 		FastqProbeMatch other = (FastqProbeMatch) obj;
-		if (id != other.id)
-			return false;
+		if (id != other.id) return false;
+		
 		return true;
 	}
 
@@ -114,6 +97,7 @@ public class FastqProbeMatch {
 	public void setOverlapLevenshteinEditDistance(int overlapEditDistance) {
 		this.overlapLevenshteinEditDistance = overlapEditDistance;
 	}
+	
 	public int getOverlapBasicEditDistance() {
 		return overlapBasicEditDistance;
 	}
@@ -133,6 +117,7 @@ public class FastqProbeMatch {
 	public void setSlideValue(int slideValue) {
 		this.slide = slideValue;
 	}
+	
 	public int getSlideValue() {
 		return slide;
 	}
@@ -143,6 +128,5 @@ public class FastqProbeMatch {
 
 	public void setFragment(String fragment) {
 		this.fragment = fragment;
-	}
-	
+	}	
 }

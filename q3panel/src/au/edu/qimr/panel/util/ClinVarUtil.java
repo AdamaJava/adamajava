@@ -1,5 +1,12 @@
 package au.edu.qimr.panel.util;
 
+import au.edu.qimr.panel.model.Bin;
+import au.edu.qimr.panel.model.Contig;
+import au.edu.qimr.panel.model.Fragment;
+import au.edu.qimr.panel.model.Fragment2;
+import au.edu.qimr.panel.model.LongInt;
+import au.edu.qimr.panel.model.Probe;
+
 import gnu.trove.iterator.TLongIterator;
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.list.array.TLongArrayList;
@@ -43,8 +50,8 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
-
 import org.apache.commons.lang3.StringUtils;
+
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
@@ -54,13 +61,6 @@ import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.Pair;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.qmule.SmithWatermanGotoh;
-
-import au.edu.qimr.panel.model.Contig;
-import au.edu.qimr.panel.model.Bin;
-import au.edu.qimr.panel.model.Fragment;
-import au.edu.qimr.panel.model.Fragment2;
-import au.edu.qimr.panel.model.LongInt;
-import au.edu.qimr.panel.model.Probe;
 
 public class ClinVarUtil {
 	
@@ -73,12 +73,15 @@ public class ClinVarUtil {
 	public static boolean doesSWContainSnpOrIndel(String [] diffs) {
 		return doesSWContainSnp(diffs) || doesSWContainIndel(diffs);
 	}
+	
 	public static boolean doesSWContainSnp(String [] diffs) {
 		return diffs[1].contains(".");
 	}
+	
 	public static boolean doesSWContainIndel(String [] diffs) {
 		return diffs[1].contains(" ");
 	}
+	
 	public static String[] getSwDiffs(String ref, String sequence) {
 		return getSwDiffs(ref, sequence, false);
 	}
@@ -131,19 +134,15 @@ public class ClinVarUtil {
 		return diffs;
 	}
 	
-	
-	
 	public static List<Fragment2> getOverlappingFragments(ChrPosition cp, Map<String, List<Fragment2>> fragsByContig) {
 		List<Fragment2> frags = fragsByContig.get(cp.getChromosome());
 		if (null == frags || frags.isEmpty()) {
 			return Collections.emptyList();
 		}
 		return frags.stream()
-//				.filter(frag -> null != frag.getActualPosition())
 				.filter(frag -> ChrPositionUtils.doChrPositionsOverlapPositionOnly(cp, frag.getPosition()))
 				.collect(Collectors.toList());
 	}
-	
 	
 	/**
 	 * 
@@ -161,9 +160,9 @@ public class ClinVarUtil {
 			public boolean execute(int i) {
 				map.adjustOrPutValue(i, 1, 1);
 				return true;
-			}});
-		
-		
+			} 
+		} );
+				
 		StringBuilder sb = new StringBuilder();
 		int[] keys = map.keys();
 		Arrays.sort(keys);
@@ -176,20 +175,19 @@ public class ClinVarUtil {
 		return sb.toString();
 	}
 	
-	
 	public static TLongArrayList getSingleArray(TIntObjectHashMap<TLongArrayList> map) {
 		final TLongArrayList results = new TLongArrayList();
-		map.forEachEntry(new TIntObjectProcedure<TLongArrayList>(){
+		map.forEachEntry(new TIntObjectProcedure<TLongArrayList>() {
 			@Override
 			public boolean execute(int i, TLongArrayList longList) {
 				results.addAll(longList);
 				return true;
-			}});
+			} 
+		} );
 		return results;
 	}
 	
-	public static int [] getDoubleEditDistance(String read1, String read2, String primer1, String primer2, int editDistanceCutoff) {
-		
+	public static int [] getDoubleEditDistance(String read1, String read2, String primer1, String primer2, int editDistanceCutoff) {		
 		int editDistance = getEditDistance(read1, primer1, editDistanceCutoff + 1);
 		int editDistance2 = Integer.MAX_VALUE;
 		
@@ -228,13 +226,14 @@ public class ClinVarUtil {
 		final TIntIntHashMap dist = new TIntIntHashMap();
 		final StringBuilder sb = new StringBuilder();
 		
-		editDistances.forEach(new TIntProcedure(){
+		editDistances.forEach(new TIntProcedure() {
 			@Override
 			public boolean execute(int ed) {
 				int existingValue = dist.get(ed);
 				dist.put(ed, existingValue + 1);
 				return true;
-		}});
+			} 
+		} );
 		dist.forEachEntry(new TIntIntProcedure() {
 			@Override
 			public boolean execute(int arg0, int arg1) {
@@ -270,11 +269,9 @@ public class ClinVarUtil {
 	}
 	
 	public static TIntObjectHashMap<TLongArrayList> getBestStartPosition(long [][] tilePositions, int tileLength, int indelOffset, int tiledDiffThreshold, int minNumberOfTiles) {
-//		public static long[] getBestStartPosition(long [][] tilePositions, int tileLength, int indelOffset, int tiledDiffThreshold) {
 		TLongIntMap positionAndTiles = new TLongIntHashMap(64);
 		int noOfTiles = tilePositions.length;
 		long startPos = -1;
-//		int cutoff = (noOfTiles - minNumberOfTiles -1) > 0 ? noOfTiles - minNumberOfTiles-1 : noOfTiles;
 		int maxNumberOfHits = 0;
 		for (int i = 0 ; i < noOfTiles ; i++) {
 			
@@ -299,10 +296,9 @@ public class ClinVarUtil {
 					continue;
 				}
 				int tileDepth = 1;
-//				positionAndTiles.put(startPos, 1);
 				int numberOfHits = 1;
 				
-				for (int k = i +1; k < noOfTiles ; k++) {
+				for (int k = i + 1; k < noOfTiles ; k++) {
 					/*
 					 * Exact matching only for the moment - need to traverse array and use indelOffset
 					 */
@@ -316,7 +312,6 @@ public class ClinVarUtil {
 						}
 						if (l >= from) {
 							// match!
-//							positionAndTiles.increment(startPos);
 							numberOfHits++;
 							break;
 						}
@@ -334,31 +329,18 @@ public class ClinVarUtil {
 					}
 				}
 			}
-			
-			
-			
-			/*
-			 * If we have a match for all tiles, exit!
-			 * Only do this at the first iteration
-			 */
-//			if (positionAndTiles.containsValue(noOfTiles - i)) {
-//				return reduceStartPositionsAndTileCount(positionAndTiles, tiledDiffThreshold, minNumberOfTiles, tileLength);
-//			}
+						
 		}
 		return reduceStartPositionsAndTileCount(positionAndTiles, tiledDiffThreshold, minNumberOfTiles, tileLength);
 	}
 	
 	public static List<LongInt> getBestStartPositionLongInt(long [][] tilePositions, int tileLength, int indelOffset, int tiledDiffThreshold, int minNumberOfTiles) {
-//		public static long[] getBestStartPosition(long [][] tilePositions, int tileLength, int indelOffset, int tiledDiffThreshold) {
-//		TLongIntMap positionAndTiles = new TLongIntHashMap(64);
 		List<LongInt> positionAndTiles = new ArrayList<>();
 		int noOfTiles = tilePositions.length;
 		long startPos = -1;
-//		int cutoff = (noOfTiles - minNumberOfTiles -1) > 0 ? noOfTiles - minNumberOfTiles-1 : noOfTiles;
 		int maxNumberOfHits = 0;
 		for (int i = 0 ; i < noOfTiles ; i++) {
-			
-			
+						
 			/*
 			 * if there is no chance of reaching the maxNumberIOfHits in this iteration, continue
 			 */
@@ -379,10 +361,9 @@ public class ClinVarUtil {
 					continue;
 				}
 				int tileDepth = 1;
-//				positionAndTiles.put(startPos, 1);
 				int numberOfHits = 1;
 				
-				for (int k = i +1; k < noOfTiles ; k++) {
+				for (int k = i + 1; k < noOfTiles ; k++) {
 					/*
 					 * Exact matching only for the moment - need to traverse array and use indelOffset
 					 */
@@ -396,7 +377,6 @@ public class ClinVarUtil {
 						}
 						if (l >= from) {
 							// match!
-//							positionAndTiles.increment(startPos);
 							numberOfHits++;
 							break;
 						}
@@ -413,16 +393,14 @@ public class ClinVarUtil {
 						maxNumberOfHits = numberOfHits;
 					}
 				}
-			}
-			
+			}			
 		}
-		
-		
+			
 		/*
 		 * filter out positions that have tile counts below the allowed amount, and sort by tile count (largest first)
 		 */
-		return positionAndTiles.stream().filter(li -> li.getInt() >= minNumberOfTiles).sorted((li1, li2) -> li2.getInt() - li1.getInt()).collect(Collectors.toList());
-//		return reduceStartPositionsAndTileCount(positionAndTiles, tiledDiffThreshold, minNumberOfTiles, tileLength);
+		return positionAndTiles.stream().filter(li -> li.getInt() >= minNumberOfTiles).sorted((li1, li2) 
+				-> li2.getInt() - li1.getInt()).collect(Collectors.toList());
 	}
 	
 	/**
@@ -461,8 +439,6 @@ public class ClinVarUtil {
 			return map.get(maxKey).get(0);
 		}
 		return null;
-//		List<ChrPosition> maxScoringPositions = scoresToPositionMap.lastEntry().getValue();
-//		return maxScoringPositions.size() == 1 ? maxScoringPositions.get(0) : null;
 	}
 	
 	
@@ -520,12 +496,13 @@ public class ClinVarUtil {
 				}
 			}
 			// do the removal
-			toRemove.forEach(new TLongProcedure(){
+			toRemove.forEach(new TLongProcedure() {
 				@Override
 				public boolean execute(long l) {
 					positionAndTiles.remove(l);
 					return true;
-				}});
+				}
+			} );
 		}
 		
 		int [] tileCounts = positionAndTiles.values();
@@ -534,7 +511,7 @@ public class ClinVarUtil {
 			return new TIntObjectHashMap<TLongArrayList>(0);
 		}
 		Arrays.sort(tileCounts);
-		final int bestTileCount = tileCounts[tileCountsLength -1];
+		final int bestTileCount = tileCounts[tileCountsLength - 1];
 		final int tileCountCutoff = Math.max(bestTileCount - tiledDiffThreshold, minNoOfTiles);
 		
 		final TIntObjectHashMap<TLongArrayList> resultsMap = new TIntObjectHashMap<>(tileCountsLength);
@@ -581,13 +558,14 @@ public class ClinVarUtil {
 			int insertionBaseCount = 0;
 			for (char c : diffs.toCharArray()) {
 				if (c != ' ') {
-					if (span >0) {
+					if (span > 0) {
 						// create indel
 						
 						int start = Math.max(0, indelStartPosDiff - 1);
 						String ref = refSeq.substring(start, indelStartPosDiff + span);
 						String alt = binSeq.substring(start, indelStartPosDiff + span);
-						mutations.add(new Pair<Integer, String>(indelStartPosRef - 1, StringUtils.remove(ref, Constants.MINUS) +"/" +  StringUtils.remove(alt, Constants.MINUS)));
+						mutations.add(new Pair<Integer, String>(indelStartPosRef - 1, 
+								StringUtils.remove(ref, Constants.MINUS) + "/" +  StringUtils.remove(alt, Constants.MINUS))); 
 						// reset span
 						span = 0;
 					}
@@ -612,13 +590,12 @@ public class ClinVarUtil {
 				}
 				position++;
 			}
-			if (span >0) {
-				// create indel
-				
+			if (span > 0) {
+				// create indel				
 				int start = Math.max(0, indelStartPosDiff - 1);
 				String ref = refSeq.substring(start, indelStartPosDiff + span);
 				String alt = binSeq.substring(start, indelStartPosDiff + span);
-				mutations.add(new Pair<Integer, String>(indelStartPosRef - 1, StringUtils.remove(ref, Constants.MINUS) +"/" +  StringUtils.remove(alt, Constants.MINUS)));
+				mutations.add(new Pair<Integer, String>(indelStartPosRef - 1, StringUtils.remove(ref, Constants.MINUS) + "/" +  StringUtils.remove(alt, Constants.MINUS)));
 			}
 		}
 		return mutations;
@@ -630,10 +607,8 @@ public class ClinVarUtil {
 		String refSeq = smithWatermanDiffs[0];
 		String diffs = smithWatermanDiffs[1];
 		String binSeq = smithWatermanDiffs[2];
-		
-		
-		if (null != diffs && ! diffs.isEmpty()) {
-			
+				
+		if (null != diffs && ! diffs.isEmpty()) {			
 			if (diffs.charAt(0) == ' ') {
 				logger.warn("First char in diffs string is empty string!!!");
 			}
@@ -650,7 +625,8 @@ public class ClinVarUtil {
 						int start = Math.max(0, indelStartPosDiff - 1);
 						String ref = refSeq.substring(start, indelStartPosDiff + span);
 						String alt = binSeq.substring(start, indelStartPosDiff + span);
-						mutations.add((indelStartPosRef - 1) + Constants.COLON_STRING +  StringUtils.remove(ref, Constants.MINUS) + Constants.SLASH_STRING +  StringUtils.remove(alt, Constants.MINUS));
+						mutations.add((indelStartPosRef - 1) + Constants.COLON_STRING +  StringUtils.remove(ref, Constants.MINUS) 
+							+ Constants.SLASH_STRING +  StringUtils.remove(alt, Constants.MINUS));
 						// reset span
 						span = 0;
 					}
@@ -681,7 +657,8 @@ public class ClinVarUtil {
 				int start = Math.max(0, indelStartPosDiff - 1);
 				String ref = refSeq.substring(start, indelStartPosDiff + span);
 				String alt = binSeq.substring(start, indelStartPosDiff + span);
-				mutations.add((indelStartPosRef - 1) + Constants.COLON_STRING +  StringUtils.remove(ref, Constants.MINUS) + Constants.SLASH_STRING +  StringUtils.remove(alt, Constants.MINUS));
+				mutations.add((indelStartPosRef - 1) + Constants.COLON_STRING +  StringUtils.remove(ref, Constants.MINUS) 
+					+ Constants.SLASH_STRING +  StringUtils.remove(alt, Constants.MINUS));
 			}
 		}
 		return mutations;
@@ -742,6 +719,7 @@ public class ClinVarUtil {
 		
 		return dict;
 	}
+	
 	public static SAMSequenceDictionary getSequenceDictionaryFromFragments(Collection<Fragment2> fragments) {
 		if (null == fragments) {
 			throw new IllegalArgumentException("Null List<Probe> passed to ClinVarUtil.getSequenceDictionaryFromProbes");
@@ -772,14 +750,14 @@ public class ClinVarUtil {
 	
 	/**
 	 * Copied from Picard - used for testing only
-	 * @param record
-	 * @param ref
-	 * @param calcMD
+	 * 
+	 * @param record is an input SAM record
+	 * @param ref is byte array stores mapped reference base
+	 * @param calcMD 
 	 * @param calcNM
 	 */
 	public static void calculateMdAndNmTags(final SAMRecord record, final byte[] ref, final boolean calcMD, final boolean calcNM) {
-		if (!calcMD && !calcNM)
-		return;
+		if (!calcMD && !calcNM) return;
 		
 		final Cigar cigar = record.getCigar();
 		final List<CigarElement> cigarElements = cigar.getCigarElements();
@@ -799,11 +777,12 @@ public class ClinVarUtil {
 				for (j = 0; j < length; ++j) {
 					final int z = y + j;
 					
-					if (ref.length <= x + j) break; // out of boundary
+					if (ref.length <= x + j) {
+						break; // out of boundary
+					}
 					
 					int c1 = 0;
 					int c2 = 0;
-					// try {
 					c1 = seq[z];
 					c2 = ref[x + j];
 					
@@ -817,23 +796,31 @@ public class ClinVarUtil {
 						++nm;
 					}
 				}
-				if (j < length) break;
+				if (j < length) {
+					break;
+				}
 				x += length;
 				y += length;
 			} else if (op == CigarOperator.DELETION) {
 				str.append(u);
 				str.append('^');
 				for (j = 0; j < length; ++j) {
-				if (ref[x + j] == 0) break;
+				if (ref[x + j] == 0) {
+					break;
+				}
 				str.appendCodePoint(ref[x + j]);
 				}
 				u = 0;
-				if (j < length) break;
+				if (j < length) {
+					break;
+				}
 				x += length;
 				nm += length;
 			} else if (op == CigarOperator.INSERTION || op == CigarOperator.SOFT_CLIP) {
 				y += length;
-				if (op == CigarOperator.INSERTION) nm += length;
+				if (op == CigarOperator.INSERTION) {
+					nm += length;
+				}
 			} else if (op == CigarOperator.SKIPPED_REGION) {
 				x += length;
 			}
@@ -842,8 +829,7 @@ public class ClinVarUtil {
 		
 		if (calcMD) record.setAttribute(SAMTag.MD.name(), str.toString());
 		if (calcNM) record.setAttribute(SAMTag.NM.name(), nm);
-}
-	
+	}
 	
 	public static String[] rescueSWData(String[] diffs, String ref, String binSeq) {
 		if (null == diffs) {
@@ -874,77 +860,47 @@ public class ClinVarUtil {
 				if (refIndex > -1) {
 					int positionInRef = refIndex + swRef.length();
 					if (ref.length() < positionInRef + lengthDiff) {
-						logger.warn("ref.length() < positionInRef + lengthDiff, ref.length(): " + ref.length() + ", positionInRef: " + positionInRef + ", lengthDiff: " + lengthDiff + ", ref: " + ref + ", binSeq: " + binSeq);
-					} else {
-						
+						logger.warn("ref.length() < positionInRef + lengthDiff, ref.length(): " + ref.length() 
+							+ ", positionInRef: " + positionInRef + ", lengthDiff: " + lengthDiff + ", ref: " + ref + ", binSeq: " + binSeq);
+					} else {					
 						String missingRefBases = ref.substring(positionInRef, positionInRef + lengthDiff);
-						
-						
-						if (missingBinSeqBases.equals(missingRefBases) || missingBinSeqBases.length() != missingRefBases.length()) {
-//							logger.info("missingBinSeqBases.equals(missingRefBases) || missingBinSeqBases.length() != missingRefBases.length(), missingBinSeqBases: " + missingBinSeqBases + ", missingRefBases: " + missingRefBases);
-							// oh dear
-						} else {
-//							if (lengthDiff > 1) {
-//								logger.info("adding " + missingRefBases + ">" + missingBinSeqBases + " to sw diffs");
-//							}
+												
+						if ( !missingBinSeqBases.equals(missingRefBases) && missingBinSeqBases.length() == missingRefBases.length()) {	
 							diffs[0] += missingRefBases;
 							StringBuilder sb = new StringBuilder(lengthDiff);
 							for (int i = 0 ; i < lengthDiff ; i++) {
 								sb.append((missingRefBases.charAt(i) == missingBinSeqBases.charAt(i)) ? '|' : Constants.MISSING_DATA);
-//								diffs[1] += (missingRefBases.charAt(i) == missingBinSeqBases.charAt(i)) ? "|" : Constants.MISSING_DATA_STRING;
 							}
 							diffs[1] += sb.toString();
 							diffs[2] += missingBinSeqBases;
-						}
-						
+						}						
 					}
 				} else {
 					logger.warn(" refIndex = ref.indexOf(swRef) == -1!!!");
-				}
-				
-				
+				}								
 			} else if (binSeq.endsWith(swBinSeq)) {
 				// need to get the first few bases
 				String missingBinSeqBases = binSeq.substring(0, lengthDiff);
 				
 				int refIndex = ref.indexOf(swRef); 
 				if (refIndex > -1) {
-					if (refIndex - lengthDiff < 0) {
-//						logger.warn("refIndex - lengthDiff is lt 0, refIndex:  " + refIndex + ", lengthDiff: " + lengthDiff + ", ref: " + ref + ", binSeq: " + binSeq);
-//						for (String s : diffs) {
-//							logger.warn("s: " + s);
-//						}
-					}
-					String missingRefBases = ref.substring(Math.max(0, refIndex - lengthDiff), refIndex);
-					
-					if (missingBinSeqBases.equals(missingRefBases) || missingBinSeqBases.length() != missingRefBases.length()) {
-//						logger.info("missingBinSeqBases.equals(missingRefBases) || missingBinSeqBases.length() != missingRefBases.length(), missingBinSeqBases: " + missingBinSeqBases + ", missingRefBases: " + missingRefBases);
-						// oh dear
-					} else {
-//						if (lengthDiff > 1) {
-//							logger.info("adding " + missingRefBases + ">" + missingBinSeqBases + " to sw diffs");
-//						}
+					String missingRefBases = ref.substring(Math.max(0, refIndex - lengthDiff), refIndex);					
+					if (!missingBinSeqBases.equals(missingRefBases) && missingBinSeqBases.length() == missingRefBases.length()) {						
 						diffs[0] = missingRefBases + diffs[0];
 						StringBuilder sb = new StringBuilder(lengthDiff);
 						for (int i = 0 ; i < lengthDiff; i++) {
 							sb.append((missingRefBases.charAt(i) == missingBinSeqBases.charAt(i)) ? '|' : Constants.MISSING_DATA);
-//							diffs[1] =  ((missingRefBases.charAt(i) == missingBinSeqBases.charAt(i)) ? "|" : Constants.MISSING_DATA_STRING) + diffs[1];
 						}
 						diffs[1] = sb.toString() + diffs[1];
 						diffs[2] = missingBinSeqBases + diffs[2];
-					}
-						
+					}						
 				} else {
 					logger.warn(" refIndex = ref.indexOf(swRef) == -1!!!");
-				}
-				
-//			} else {
-//				logger.warn("binSeq neither startsWith norEndsWith swBinSeq. binSeq: " + binSeq + ", swBinSeq: " + swBinSeq);
+				}				
 			}
 		}
 		return diffs;
 	}
-	
 	
 	public static String getSortedBBString(String bb, String ref) {
 		String [] params = bb.split(";");
@@ -961,7 +917,7 @@ public class ClinVarUtil {
 			}
 		}
 		
-		Collections.sort(sizeSortedList, new Comparator<String>(){
+		Collections.sort(sizeSortedList, new Comparator<String>() {
 			@Override
 			public int compare(String arg0, String arg1) {
 				int arg0Tally = Integer.valueOf(arg0.split(",")[1]);
@@ -990,19 +946,19 @@ public class ClinVarUtil {
 		return sb.toString();
 	}
 	
+
 	/**
 	 * Returns a representation of the supplied position as seen in the supplied amplicon and bins in the following format:
 	 * base,count, ampliconId(total reads in amplicon),binId1(count),binId2(count).....
-	 * @param cp
+	 * 
+	 * @param vcf
 	 * @param overlappingProbes
 	 * @param probeBinDist
+	 * @param minBinSize
+	 * @param diagnosticMode
+	 * @param useBinsCloseToAmplicon
 	 * @return
 	 */
-//	public static String getAmpliconDistribution(VcfRecord vcf, List<Probe> overlappingProbes, 
-//			Map<Probe, List<Bin>> probeBinDist, int minBinSize) {
-//		return getAmpliconDistribution(vcf, overlappingProbes, probeBinDist, minBinSize, false);
-//	}
-	
 	public static String getAmpliconDistribution(VcfRecord vcf, List<Probe> overlappingProbes, 
 			Map<Probe, List<Bin>> probeBinDist, int minBinSize, boolean diagnosticMode, boolean useBinsCloseToAmplicon) {
 		StringBuilder sb = new StringBuilder();
@@ -1039,7 +995,7 @@ public class ClinVarUtil {
 		// convert map to sb
 		for (Entry<String, List<Pair<Probe, Bin>>> entry : baseDist.entrySet()) {
 			String bases = entry.getKey();
-			List <Pair<Probe, Bin>> probeBinList = entry.getValue();
+			List<Pair<Probe, Bin>> probeBinList = entry.getValue();
 			int tally = 0;
 			for (Pair<Probe, Bin> pair : probeBinList) {
 				tally += pair.getRight().getRecordCount();
@@ -1085,18 +1041,13 @@ public class ClinVarUtil {
 		if (null == smithWatermanDiffs) {
 			logger.warn("bin does not contain sw diffs!!! bin: " + bin.getId() + ", probe: " + amplicon.getId() + ", vcf cp: " + vcf.getChrPosition().toIGVString());
 		}
-//		String probeRef = amplicon.getReferenceSequence();
 		// remove any indel characters - only checking
 		String swRef = smithWatermanDiffs[0].replace("-", "");
 		int subRefPosition = amplicon.getSubReferencePosition(swRef);
-//		int offset = probeRef.indexOf(swRef);
 		
 		if ( subRefPosition == -1) {
 			logger.warn("amplicon.getSubReferencePosition(swRef) == -1!!! probe (id:bin.id: " + amplicon.getId() + ":" + bin.getId() + "), swRef: " + swRef);
 		}
-//		if ( offset == -1) {
-//			logger.warn("probeRef.indexOf(swRef) == -1!!! probe (id:bin.id: " + amplicon.getId() + ":" + bin.getId() + ") , probe ref: " + probeRef + ", swRef: " + swRef);
-//		}
 		
 		int length = vcf.getChrPosition().getLength();
 		int positionInString = getZeroBasedPositionInString(vcf.getChrPosition().getStartPosition(), subRefPosition);
@@ -1111,49 +1062,32 @@ public class ClinVarUtil {
 		return new Cigar(ces);
 	}
 	
-	
-	public static void addSAMRecordToWriter(SAMFileHeader header, SAMFileWriter writer, Cigar cigar, int probeId, int binId, int binSize, String referenceSeq, String chr, int position, int offset, String binSeq) {
+	public static void addSAMRecordToWriter(SAMFileHeader header, SAMFileWriter writer, Cigar cigar, int probeId, int binId, 
+			int binSize, String referenceSeq, String chr, int position, int offset, String binSeq) {
 		addSAMRecordToWriter( header, writer, cigar, probeId, binId, binSize, referenceSeq, chr, position, offset, binSeq, 60);
 	}
-	public static void addSAMRecordToWriter(SAMFileHeader header, SAMFileWriter writer, Cigar cigar, int ampliconId, String refSeq, Fragment2 f,  int offset, int mappingQuality) {
-//		public static void addSAMRecordToWriter(SAMFileHeader header, SAMFileWriter writer, Cigar cigar, int probeId, int binId, int binSize, String referenceSeq, String chr, int position, int offset, String binSeq, int mappingQuality) {
+	
+	public static void addSAMRecordToWriter(SAMFileHeader header, SAMFileWriter writer, Cigar cigar, int ampliconId, 
+			String refSeq, Fragment2 f,  int offset, int mappingQuality) {
 		/*
 		 * Setup some common properties on the sam record
 		 */
 		int binSize = f.getRecordCount();
 		int i = 0;
 		if (f.isForwardStrand()) {
-			SAMRecord rec = createSAMRecord(header, cigar,ampliconId, f.getId(), binSize, refSeq, f.getPosition().getChromosome(), f.getPosition().getStartPosition(), offset, f.getSequence(), i, mappingQuality, true, "readPositionsCount: " + f.getRecordCount());
+			SAMRecord rec = createSAMRecord(header, cigar,ampliconId, f.getId(), binSize, refSeq, f.getPosition().getChromosome(), 
+					f.getPosition().getStartPosition(), offset, f.getSequence(), i, mappingQuality, true, "readPositionsCount: " + f.getRecordCount());
 			writer.addAlignment(rec);
 		} else {
-			SAMRecord rec = createSAMRecord(header, cigar,ampliconId, f.getId(), binSize, refSeq, f.getPosition().getChromosome(), f.getPosition().getStartPosition(), offset, SequenceUtil.reverseComplement(f.getSequence()), i, mappingQuality, false,  "readPositionsCount: " + f.getRecordCount());
+			SAMRecord rec = createSAMRecord(header, cigar,ampliconId, f.getId(), binSize, refSeq, f.getPosition().getChromosome(), 
+					f.getPosition().getStartPosition(),  offset, SequenceUtil.reverseComplement(f.getSequence()), i, mappingQuality,
+					false, "readPositionsCount: " + f.getRecordCount());
 			writer.addAlignment(rec);
-		}
-//		if ( ! f.getFsHeaders().isEmpty()) {
-//			SAMRecord rec = createSAMRecord(header, cigar,ampliconId, f.getId(), binSize, refSeq, f.getActualPosition().getChromosome(), f.getActualPosition().getStartPosition(), offset, f.getSequence(), i, mappingQuality, true, f.getFsHeaders().get(0).toString());
-//			writer.addAlignment(rec);
-//		}
-//		for (StringBuilder sb : f.getFsHeaders()) {
-//			SAMRecord rec = createSAMRecord(header, cigar,ampliconId, f.getId(), binSize, refSeq, f.getActualPosition().getChromosome(), f.getActualPosition().getStartPosition(), offset, f.getSequence(), i, mappingQuality, true, sb.toString());
-//			writer.addAlignment(rec);
-//		}
-//		if ( f.getRsCount() > 0) {
-//			SAMRecord rec = createSAMRecord(header, cigar,ampliconId, f.getId(), binSize, refSeq, f.getActualPosition().getChromosome(), f.getActualPosition().getStartPosition(), offset, f.getSequence(), i, mappingQuality, false,  "readPositionsCount: " + f.getRsCount());
-//			writer.addAlignment(rec);
-//			
-//		}
-//		if ( ! f.getRsHeaders().isEmpty()) {
-//			SAMRecord rec = createSAMRecord(header, cigar,ampliconId, f.getId(), binSize, refSeq, f.getActualPosition().getChromosome(), f.getActualPosition().getStartPosition(), offset, f.getSequence(), i, mappingQuality, false, f.getRsHeaders().get(0).toString());
-//			writer.addAlignment(rec);
-//			
-//		}
-//		for (StringBuilder sb : f.getRsHeaders()) {
-//			SAMRecord rec = createSAMRecord(header, cigar,ampliconId, f.getId(), binSize, refSeq, f.getActualPosition().getChromosome(), f.getActualPosition().getStartPosition(), offset, f.getSequence(), i, mappingQuality, false, sb.toString());
-//			writer.addAlignment(rec);
-//		}
-		
+		}		
 	}
-	public static void addSAMRecordToWriter(SAMFileHeader header, SAMFileWriter writer, Cigar cigar, int probeId, int binId, int binSize, String referenceSeq, String chr, int position, int offset, String binSeq, int mappingQuality) {
+	
+	public static void addSAMRecordToWriter(SAMFileHeader header, SAMFileWriter writer, Cigar cigar, int probeId, int binId, int binSize, 
+			String referenceSeq, String chr, int position, int offset, String binSeq, int mappingQuality) {
 		/*
 		 * Setup some common properties on the sam record
 		 */
@@ -1164,13 +1098,17 @@ public class ClinVarUtil {
 		}
 	}
 	
-	public static SAMRecord createSAMRecord(SAMFileHeader header, Cigar cigar, int probeId, int binId, int binSize, String referenceSeq, String chr, int position, int offset, String binSeq, int i) {
+	public static SAMRecord createSAMRecord(SAMFileHeader header, Cigar cigar, int probeId, int binId, int binSize, String referenceSeq, 
+			String chr, int position, int offset, String binSeq, int i) {
 		return createSAMRecord(header, cigar, probeId, binId, binSize, referenceSeq, chr, position, offset, binSeq, i, 60);
 	}
-	public static SAMRecord createSAMRecord(SAMFileHeader header, Cigar cigar, int probeId, int binId, int binSize, String referenceSeq, String chr, int position, int offset, String binSeq, int i, int mappingQuality, boolean forwardStrand, String readName) {
+	
+	public static SAMRecord createSAMRecord(SAMFileHeader header, Cigar cigar, int probeId, int binId, int binSize, String referenceSeq,
+			String chr, int position, int offset, String binSeq, int i, int mappingQuality, boolean forwardStrand, String readName) {
 		if (org.qcmg.common.string.StringUtils.isNullOrEmpty(referenceSeq)) {
 			throw new IllegalArgumentException("Null or empty reference passed to ClinVarUtil.createSAMRecord: " + referenceSeq);
 		}
+		
 		if (null == cigar) {
 			throw new IllegalArgumentException("Null cigar passed to ClinVarUtil.createSAMRecord");
 		}
@@ -1191,50 +1129,20 @@ public class ClinVarUtil {
 		 * Reset once MD and NM have been calculated and set
 		 */
 		rec.setAlignmentStart(1);
-		
-//		logger.info("about to call calculateMdAndNmTags with : " + rec.getSAMString() + ", referenceSeq.substring(offset).getBytes(): " + referenceSeq.substring(offset));
-		
+				
 		SequenceUtil.calculateMdAndNmTags(rec, referenceSeq.substring(offset).getBytes(), true, true);
 		rec.setAlignmentStart(position + offset);
 		
 		return rec;
 	}
-//	public static SAMRecord createSAMRecord(SAMFileHeader header, Cigar cigar, int probeId, int binId, int binSize, String referenceSeq, String chr, int position, int offset, String binSeq, int i, int mappingQuality, boolean forwardStrand, String readName) {
-//		if (org.qcmg.common.string.StringUtils.isNullOrEmpty(referenceSeq)) {
-//			throw new IllegalArgumentException("Null or empty reference passed to ClinVarUtil.createSAMRecord: " + referenceSeq);
-//		}
-//		if (null == cigar) {
-//			throw new IllegalArgumentException("Null cigar passed to ClinVarUtil.createSAMRecord");
-//		}
-//		
-//		SAMRecord rec = new SAMRecord(header);
-//		rec.setReadName(readName);
-//		rec.setReadNegativeStrandFlag( ! forwardStrand);
-//		rec.setReferenceName(chr);
-//		rec.setReadString(binSeq);
-//		rec.setAttribute("ai", probeId);
-//		rec.setAttribute("bi", binId);
-//		rec.setAttribute("CT",  probeId + "_" + binId + "_" + (i + 1) + "_of_" + binSize);
-//		rec.setMappingQuality(mappingQuality);
-//		rec.setCigar(cigar);
-//		/*
-//		 * Set the alignment start to 1, which is a hack to get around picards calculateMdAndNmTags method which is expecting the entire ref for the chromosome in question
-//		 * and we only have the amplicon ref seq.
-//		 * Reset once MD and NM have been calculated and set
-//		 */
-//		rec.setAlignmentStart(1);
-//		
-////		logger.info("about to call calculateMdAndNmTags with : " + rec.getSAMString() + ", referenceSeq.substring(offset).getBytes(): " + referenceSeq.substring(offset));
-//		
-//		SequenceUtil.calculateMdAndNmTags(rec, referenceSeq.substring(offset).getBytes(), true, true);
-//		rec.setAlignmentStart(position + offset);
-//		
-//		return rec;
-//	}
-	public static SAMRecord createSAMRecord(SAMFileHeader header, Cigar cigar, int probeId, int binId, int binSize, String referenceSeq, String chr, int position, int offset, String binSeq, int i, int mappingQuality) {
+
+	public static SAMRecord createSAMRecord(SAMFileHeader header, Cigar cigar, int probeId, int binId, int binSize, String referenceSeq, 
+			String chr, int position, int offset, String binSeq, int i, int mappingQuality) { 
+		
 		if (org.qcmg.common.string.StringUtils.isNullOrEmpty(referenceSeq)) {
 			throw new IllegalArgumentException("Null or empty reference passed to ClinVarUtil.createSAMRecord: " + referenceSeq);
 		}
+		
 		if (null == cigar) {
 			throw new IllegalArgumentException("Null cigar passed to ClinVarUtil.createSAMRecord");
 		}
@@ -1281,7 +1189,6 @@ public class ClinVarUtil {
 			 * This happens when the bin is shorter than (starts after) the amplicon.
 			 * In this situation, we need to return null
 			 */
-//			logger.info("bin " + bin.getId() + ", in amplicon " + amplicon.getId() + " has an offset of " + offset + ", which means that it starts after the position we are interested in " + vcf.getChrPosition().toIGVString());
 			return null;
 		}
 		if (expectedEnd > binSequenceLength) {
@@ -1289,10 +1196,6 @@ public class ClinVarUtil {
 			 * This happens when the bin is shorter (ends before) the amplicon.
 			 * Return null
 			 */
-//			logger.warn("Expected end: " + expectedEnd + ", is greater than the length of the bin sequence: " + binSequenceLength);
-//			for (String s : smithWatermanDiffs) {
-//				logger.warn("s: " + s);
-//			}
 			return null;
 		}
 		
@@ -1308,19 +1211,11 @@ public class ClinVarUtil {
 					if ('-' == smithWatermanDiffs[0].charAt(i)) {
 						// insertion
 						additionalOffset++;
-//					} else if ('-' == smithWatermanDiffs[2].charAt(i)) {
-//						//deletion
-//						additionalOffset--;
-//					} else {
-//						//!@##$!!! something else-tion
-//						logger.warn("Should have found either an indel at position " + i + " in smithWatermanDiffs[0] or smithWatermanDiffs[2]");
 					}
 				}
 			}
-		} else {
-			// no additional offset required 
-		}
-		
+		}   // no additional offset required 
+	 
 		
 		/*
 		 *  next get the span of the event
@@ -1338,7 +1233,7 @@ public class ClinVarUtil {
 		int finalStart = expectedStart + additionalOffset;
 		int finalEnd = expectedEnd + additionalOffset + span;
 		
-		if (finalStart >=finalEnd) {
+		if (finalStart >= finalEnd) {
 			logger.warn("finalStart: " + finalStart + " is greater than finalEnd: " + finalEnd);
 		} else if (finalStart < 0) {
 			logger.warn("finalStart: " + finalStart + " is less than 0");
@@ -1372,11 +1267,11 @@ public class ClinVarUtil {
 		while (noOfSlides < initialLength &&  ! t.equals(s)) {
 			noOfSlides++;
 			t = t.substring(1);
-			s = s.substring(0, s.length() -1);
+			s = s.substring(0, s.length() - 1);
 		}
 		
 		// need a reliable check to see if noOfSlides is sufficiently large to trigger a RHS slide
-		if (noOfSlides >= initialLength -1) {
+		if (noOfSlides >= initialLength - 1) {
 			//perform a RHS slide
 			s = s1;
 			t = t1;
@@ -1385,7 +1280,7 @@ public class ClinVarUtil {
 			while (noOfSlides < initialLength &&  ! t.equals(s)) {
 				noOfSlides--;
 				s = s.substring(1);
-				t = t.substring(0, t.length() -1);
+				t = t.substring(0, t.length() - 1);
 			}
 		}
 		return noOfSlides;
@@ -1401,7 +1296,7 @@ public class ClinVarUtil {
 		} else {
 			// do basic distancing next
 			int ed = getBasicEditDistance(s, t);
-			return ed > 1 ? new int[]{ ed, StringUtils.getLevenshteinDistance(s,t) } :  new int[]{ ed, ed };
+			return ed > 1 ? new int[] { ed, StringUtils.getLevenshteinDistance(s,t) } :  new int[]{ ed, ed };
 		}
 	}
 
@@ -1436,7 +1331,7 @@ public class ClinVarUtil {
 					int indelPosition = mutation.getLeft().intValue() + 1 + offset;
 					
 					if (mutArray[0].length() == 1) {
-//													// insertion
+						// insertion
 						if (indelPosition > 0) {
 							// create cigar element up to this position
 							CigarElement match = new CigarElement(indelPosition - lastPosition, CigarOperator.MATCH_OR_MISMATCH);
@@ -1466,46 +1361,6 @@ public class ClinVarUtil {
 			}
 			Cigar cigar = new Cigar(ces);
 			return cigar;
-	}
-	
-	/**
-	 * Return a string based representation of the number of matches and indels, similar to the MD tag in a BAM record
-	 * @param swDiffs
-	 * @return
-	 */
-	public static String getSWDetails(String [] swDiffs) {
-		
-		if (doesSWContainSnpOrIndel(swDiffs)) {
-		
-			StringBuilder sb = new StringBuilder();
-			char lastChar = '\u0000';
-			int i = 0;
-			int count = 0;
-			for (char c : swDiffs[1].toCharArray()) {
-				if (i > 0 && c != lastChar) {
-					sb.append(getConcordanceDetail(lastChar, count, swDiffs[0].charAt(i - count) == '-'));
-					count = 0;
-				}
-				lastChar = c;
-				count++;
-				i++;
-			}
-			if (count > 0) {
-				sb.append(getConcordanceDetail(lastChar, count, swDiffs[0].charAt(i - 1 - count) == '-'));
-			}
-			return sb.length() > 0 ? sb.toString() : null;
-		} else {
-			return swDiffs[0].length() + "=";
-		}
-	}
-	
-	private static String getConcordanceDetail(char c , int count, boolean insertion) {
-		switch (c) {
-		case '|' : return count + "=";
-		case '.' : return count + "X";
-		case ' ' : return count + (insertion ? "I" : "D");
-		default: return null;
-		}
 	}
 	
 	public static Cigar getCigarForIndels(String referenceSequence, String binSeq, String [] swDiffs, ChrPosition cp) {
@@ -1547,7 +1402,6 @@ public class ClinVarUtil {
 						ces.add(match);
 						ces.add(insertion);
 						lastPosition = indelPosition ;
-//						lastPosition = indelPosition + insertionLength;
 					}
 				} else {
 					// deletion
@@ -1564,8 +1418,7 @@ public class ClinVarUtil {
 					}
 				}
 			}
-		}
-		
+		}		
 		
 		/*
 		 * get size of cigar, and add final M if required
@@ -1577,14 +1430,51 @@ public class ClinVarUtil {
 			ces.add(new CigarElement(readSize - cigarSize, CigarOperator.MATCH_OR_MISMATCH));
 		}
 		
-//		if (lastPosition + 1 < swDiffs[0].length()) {
-//			CigarElement match = new CigarElement(swDiffs[0].length() - lastPosition, CigarOperator.MATCH_OR_MISMATCH);
-//			ces.add(match);
-//		}
 		Cigar cigar = new Cigar(ces);
 		
 		return cigar;
 	}
+	
+	/**
+	 * Return a string based representation of the number of matches and indels, similar to the MD tag in a BAM record
+	 * 
+	 * @param swDiffs
+	 * @return
+	 */
+	public static String getSWDetails(String [] swDiffs) {
+		
+		if (doesSWContainSnpOrIndel(swDiffs)) {
+		
+			StringBuilder sb = new StringBuilder();
+			char lastChar = '\u0000';
+			int i = 0;
+			int count = 0;
+			for (char c : swDiffs[1].toCharArray()) {
+				if (i > 0 && c != lastChar) {
+					sb.append(getConcordanceDetail(lastChar, count, swDiffs[0].charAt(i - count) == '-'));
+					count = 0;
+				}
+				lastChar = c;
+				count++;
+				i++;
+			}
+			if (count > 0) {
+				sb.append(getConcordanceDetail(lastChar, count, swDiffs[0].charAt(i - 1 - count) == '-'));
+			}
+			return sb.length() > 0 ? sb.toString() : null;
+		} else {
+			return swDiffs[0].length() + "=";
+		}
+	}
+	
+	private static String getConcordanceDetail(char c , int count, boolean insertion) {
+		switch (c) {
+			case '|' : return count + "=";
+			case '.' : return count + "X";
+			case ' ' : return count + (insertion ? "I" : "D");
+			default: return null;
+		}
+	}	
 	
 	/**
 	 * This method calculates the coverage and OABS for this vcf record, and updated the record in place.
@@ -1615,26 +1505,20 @@ public class ClinVarUtil {
 					entry.getValue().stream()
 					.filter(f -> f.getPosition() != null)
 					.filter(f -> ChrPositionUtils.isChrPositionContained(f.getPosition(), cp))
-					.forEach(f -> {
-						Optional<String> bases = FragmentUtil.getBasesAtPosition(cp, f, length);
-						bases.ifPresent(s -> {Pair<AtomicInteger, AtomicInteger> p = baseDist.computeIfAbsent(s, k ->new Pair<>(new AtomicInteger(), new AtomicInteger()));
+					.forEach(f -> { 
+						Optional<String> bases = FragmentUtil.getBasesAtPosition(cp, f, length);		
+						bases.ifPresent(s -> { 
+							Pair<AtomicInteger, AtomicInteger> p = baseDist.computeIfAbsent(s, k -> new Pair<>(new AtomicInteger(), new AtomicInteger()));
 							p.getLeft().addAndGet(f.isForwardStrand() ? f.getRecordCount() : 0);
-							p.getRight().addAndGet( ! f.isForwardStrand() ? f.getRecordCount() : 0);
-							
+							p.getRight().addAndGet( ! f.isForwardStrand() ? f.getRecordCount() : 0);							
 							fragmentCount.incrementAndGet();
-							readCount.addAndGet(f.getRecordCount());});
-	//					Pair<AtomicInteger, AtomicInteger> p = baseDist.computeIfAbsent(bases., k ->new Pair<>(new AtomicInteger(), new AtomicInteger()));
-	//					p.getLeft().addAndGet(f.getFsCount());
-	//					p.getRight().addAndGet(f.getRsCount());
-	//					
-	//					fragmentCount.incrementAndGet();
-	//					readCount.addAndGet(f.getRecordCount());
+							readCount.addAndGet(f.getRecordCount());
+						});
 					});
 				});
 		}
 		
 		String oabs =  Constants.MISSING_DATA_STRING;
-//		String oabs =  baseDist.entrySet().stream().filter(e -> e.getKey() != null).sorted((e1,e2) -> e1.getKey().compareTo(e2.getKey())).map(e -> e.getKey() + e.getValue().getLeft().get() + "[]" + e.getValue().getRight().get() + "[]").collect(Collectors.joining(Constants.COMMA_STRING));
 		Pair<AtomicInteger, AtomicInteger> p = baseDist.get(vcf.getAlt());
 		int mrCount = 0;
 		if (null != p) {
@@ -1652,15 +1536,12 @@ public class ClinVarUtil {
 			ff.add(getGT(altAndTotalCoverage) + Constants.COLON_STRING		// GT
 					+ (altAndTotalCoverage[1] - altAndTotalCoverage[0]) + Constants.COMMA_STRING + altAndTotalCoverage[0] + Constants.COLON_STRING	//AD
 					+ readCount.get() + Constants.COLON_STRING 				//DP
-					+ fb.toString() + "/" + ampliconCount.get() + Constants.COMMA_STRING + fragmentCount.get() + Constants.COMMA_STRING + readCount.get() + Constants.COLON_STRING	//FB
+					//FB
+					+ fb.toString() + "/" + ampliconCount.get() + Constants.COMMA_STRING + fragmentCount.get() + Constants.COMMA_STRING + readCount.get() + Constants.COLON_STRING
 					+ mrCount + Constants.COLON_STRING						//MR
-					+ oabs +  (xFb.length() == 0 ? "" :(Constants.COLON_STRING + xFb.toString())));	//XFB
+					+ oabs +  (xFb.length() == 0 ? "" : (Constants.COLON_STRING + xFb.toString())));	//XFB
 		}
 		vcf.setFormatFields(ff);
-////		ff.add(mutationFragmentsDetails.toString() + "/" + ClinVarUtil.getCoverageStringAtPosition(entry.getKey().getChrPosition(), ampliconFragmentMap));
-//		entry.getKey().setFormatFields(ff);
-		
-//		return ampliconCount.get() + Constants.COMMA_STRING + fragmentCount.get() + Constants.COMMA_STRING + readCount.get();
 	}
 	
 	public static String getGT(int [] altAndTotalCoverage) {
@@ -1705,7 +1586,6 @@ public class ClinVarUtil {
 				.filter(f -> f.getPosition() != null)
 				.sorted(( f1, f2) -> Integer.compare(f2.getRecordCount(), f1.getRecordCount()))
 				.collect(Collectors.toList());
-//		Collections.sort(sortedFrags, (Fragment f1, Fragment  f2) -> Integer.compare(f2.getRecordCount(), f1.getRecordCount()));
 		
 		Map<Contig, List<Fragment2>> ampliconGroupings = new HashMap<>();
 		Set<Fragment2> toRemove = new HashSet<>();
@@ -1715,7 +1595,6 @@ public class ClinVarUtil {
 			if (toRemove.contains(f)) {
 				continue;
 			}
-//			logger.info("creating amplicon based on fragment record count: " + f.getRecordCount());
 			/*
 			 * create ampliconGroupings entry
 			 */
@@ -1758,7 +1637,7 @@ public class ClinVarUtil {
 	
 	
 	
-	public static boolean areAllListPositionsWithinBoundary(TLongArrayList list, long start, long end) {
+	public static boolean areAllListPositionsWithinBoundary(TLongArrayList list, long start, long end) { 
 		TLongIterator iter = list.iterator();
 		while (iter.hasNext()) {
 			long l = iter.next();

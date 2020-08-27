@@ -6,13 +6,13 @@
  * under the GNU GENERAL PUBLIC LICENSE Version 3, a copy of which is
  * included in this distribution as gplv3.txt.
  */
+
 package au.edu.qimr.panel;
 
 import java.text.MessageFormat;
 import java.util.ResourceBundle;
 
-final class Messages {
-	
+final class Messages {	
     static final ResourceBundle messages = ResourceBundle.getBundle("au.edu.qimr.panel.messages");
     static final String COLON = ": ";
     static final String ERROR_PREFIX = Messages.getProgramName() + COLON;

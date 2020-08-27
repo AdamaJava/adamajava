@@ -13,6 +13,7 @@ public class LongInt {
 	public long getLong() {
 		return l;
 	}
+	
 	public int getInt() {
 		return i;
 	}
@@ -28,18 +29,15 @@ public class LongInt {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
+		
+		if (this == obj) return true;
+		if (obj == null) return false;
+		if (getClass() != obj.getClass()) return false;
+		
 		LongInt other = (LongInt) obj;
-		if (i != other.i)
-			return false;
-		if (l != other.l)
-			return false;
+		if (i != other.i) return false;
+		if (l != other.l) return false;
+		
 		return true;
 	}
-
 }

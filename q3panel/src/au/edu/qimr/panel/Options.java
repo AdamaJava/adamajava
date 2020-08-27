@@ -6,11 +6,11 @@
  * under the GNU GENERAL PUBLIC LICENSE Version 3, a copy of which is
  * included in this distribution as gplv3.txt.
  */
+
 package au.edu.qimr.panel;
 
 import java.util.List;
 import java.util.Optional;
-
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 
@@ -18,22 +18,14 @@ final class Options {
 
 	private static final String HELP_DESCRIPTION = Messages.getMessage("HELP_OPTION_DESCRIPTION");
 	private static final String VERSION_DESCRIPTION = Messages.getMessage("VERSION_OPTION_DESCRIPTION");
-	private static final String NO_OF_THREADS_OPTION_DESCRIPTION = Messages.getMessage("NO_OF_THREADS_OPTION_DESCRIPTION");
-	private static final String INCLUDE_OPTION_DESCRIPTION = Messages.getMessage("INCLUDE_OPTION_DESCRIPTION");
-	private static final String TAGS_OPTION_DESCRIPTION = Messages.getMessage("TAGS_OPTION_DESCRIPTION");
-	private static final String TAGS_INT_OPTION_DESCRIPTION = Messages.getMessage("TAGS_INT_OPTION_DESCRIPTION");
-	private static final String TAGS_CHAR_OPTION_DESCRIPTION = Messages.getMessage("TAGS_CHAR_OPTION_DESCRIPTION");
-	private static final String MAX_RECORDS_OPTION_DESCRIPTION = Messages.getMessage("MAX_RECORDS_OPTION_DESCRIPTION");
 	private static final String LOG_OPTION_DESCRIPTION = Messages.getMessage("LOG_OPTION_DESCRIPTION");
 	private static final String MIN_BIN_SIZE_OPTION_DESCRIPTION = Messages.getMessage("MIN_BIN_SIZE_OPTION_DESCRIPTION");
 	private static final String LOG_LEVEL_OPTION_DESCRIPTION = Messages.getMessage("LOG_LEVEL_OPTION_DESCRIPTION");
 	private static final String OUTPUT_FILE_DESCRIPTION = Messages.getMessage("OUTPUT_FILE_DESCRIPTION");
 	private static final String INPUT_FILE_DESCRIPTION = Messages.getMessage("INPUT_FILE_DESCRIPTION");
-	private static final String NO_HTML_DESCRIPTION = Messages.getMessage("NO_HTML_OPTION_DESCRIPTION");
-	
+	private static final String TAGS_CHAR_OPTION_DESCRIPTION = Messages.getMessage("TAGS_CHAR_OPTION_DESCRIPTION");	
 	private final OptionParser parser = new OptionParser();
 	private final OptionSet options;
-//	private final List<String> fileNames;
 	private final List<String> fastqsR1;
 	private final List<String> fastqsR2;
 	private boolean extendedFB = false;
@@ -75,9 +67,7 @@ final class Options {
 		
 		// inputs
 		fastqsR1 = (List<String>) options.valuesOf("fastqsR1");
-		fastqsR2 = (List<String>) options.valuesOf("fastqsR2");
-		
-		
+		fastqsR2 = (List<String>) options.valuesOf("fastqsR2");		
 		extendedFB = options.has("extendedFB");
 	}
 
@@ -96,33 +86,43 @@ final class Options {
 	Optional<Integer> getMinBinSize() {
 		return  Optional.ofNullable((Integer) options.valueOf("minBinSize"));
 	}
+	
 	Optional<Integer> getMinFragmentSize() {
 		return  Optional.ofNullable((Integer) options.valueOf("minFragmentSize"));
 	}
+	
 	Optional<Integer> getMinReadPercentageSize() {
 		return  Optional.ofNullable( (Integer) options.valueOf("minReadPercentage"));
 	}
+	
 	Optional<Integer> getTiledDiffThreshold() {
 		return  Optional.ofNullable( (Integer) options.valueOf("tiledDiffThreshold"));
 	}
+	
 	Optional<Integer> getSwDiffThreshold() {
 		return  Optional.ofNullable( (Integer) options.valueOf("swDiffThreshold"));
 	}
+	
 	Optional<Integer> getTileMatchThreshold() {
 		return  Optional.ofNullable((Integer) options.valueOf("tileMatchThreshold"));
 	}
+	
 	Optional<Integer> getMaxIndelLength() {
 		return  Optional.ofNullable((Integer) options.valueOf("maxIndelLength"));
 	}
+	
 	Optional<Integer> getAmpliconBoundary() {
 		return  Optional.ofNullable( (Integer) options.valueOf("ampliconBoundary"));
 	}
+	
 	Optional<Integer> getBamFilterDepth() {
 		return  Optional.ofNullable( (Integer) options.valueOf("bamFilterDepth"));
 	}
+	
 	Optional<Integer> getTrimFromEndsOfReads() {
 		return  Optional.ofNullable( (Integer) options.valueOf("trimFromEndsOfReads"));
 	}
+	
 	Optional<Integer> getNumberOfThreads() {
 		return  Optional.ofNullable( (Integer) options.valueOf("numberOfThreads"));
 	}
@@ -130,9 +130,11 @@ final class Options {
 	Optional<String> getXml() {
 		return Optional.ofNullable((String) options.valueOf("xml"));
 	}
+	
 	Optional<String> getCosmicFile() {
 		return Optional.ofNullable((String) options.valueOf("cosmic"));
 	}
+	
 	Optional<String> getDbSnpFile() {
 		return Optional.ofNullable( (String) options.valueOf("dbsnp"));
 	}
@@ -148,6 +150,7 @@ final class Options {
 	List<String> getFastqsR1() {
 		return fastqsR1;
 	}
+	
 	List<String> getFastqsR2() {
 		return fastqsR2;
 	}
@@ -155,15 +158,19 @@ final class Options {
 	Optional<String> getLog() {
 		return  Optional.ofNullable((String) options.valueOf("log"));
 	}
+	
 	Optional<String> getLogLevel() {
 		return Optional.ofNullable((String) options.valueOf("loglevel"));
 	}
+	
 	public Optional<String> getOutputFileName() {
 		return Optional.ofNullable((String) options.valueOf("output"));
 	}
+	
 	public Optional<String> getTiledRefFileName() {
 		return Optional.ofNullable((String) options.valueOf("tiledRef"));
 	}
+	
 	public Optional<String> getRefFileName() {
 		return Optional.ofNullable((String) options.valueOf("ref"));
 	}

@@ -1,5 +1,13 @@
 package au.edu.qimr.panel;
 
+import au.edu.qimr.panel.model.Bin;
+import au.edu.qimr.panel.model.FastqProbeMatch;
+import au.edu.qimr.panel.model.IntPair;
+import au.edu.qimr.panel.model.PositionChrPositionMap;
+import au.edu.qimr.panel.model.Probe;
+import au.edu.qimr.panel.util.ClinVarUtil;
+import au.edu.qimr.panel.util.FastqProbeMatchUtil;
+
 import gnu.trove.list.array.TIntArrayList;
 import gnu.trove.list.array.TLongArrayList;
 import gnu.trove.map.hash.TIntObjectHashMap;
@@ -55,33 +63,25 @@ import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrPositionComparator;
 import org.qcmg.common.model.ChrRangePosition;
-import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.LoadReferencedClasses;
 import org.qcmg.common.util.Pair;
 import org.qcmg.common.util.TabTokenizer;
+
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
-import org.qcmg.common.vcf.header.*;
+import org.qcmg.common.vcf.header.VcfHeader;
+import org.qcmg.common.vcf.header.VcfHeaderRecord;
+import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.tab.TabbedFileReader;
 import org.qcmg.tab.TabbedHeader;
 import org.qcmg.tab.TabbedRecord;
 import org.qcmg.vcf.VCFFileWriter;
 
-import au.edu.qimr.panel.model.Bin;
-import au.edu.qimr.panel.model.FastqProbeMatch;
-import au.edu.qimr.panel.model.IntPair;
-import au.edu.qimr.panel.model.PositionChrPositionMap;
-import au.edu.qimr.panel.model.Probe;
-import au.edu.qimr.panel.util.ClinVarUtil;
-import au.edu.qimr.panel.util.FastqProbeMatchUtil;
-
 public class Q3ClinVar {
 	
 	private static QLogger logger;
-	
-	
 	private static final int TILE_SIZE = 13;
 	private static List<String> fastqR1Files;
 	private static List<String> fastqR2Files;
@@ -106,8 +106,7 @@ public class Q3ClinVar {
 	private final Set<Probe> probeSet = new TreeSet<>();
 	private final Map<Probe, List<Bin>> probeBinDist = new HashMap<>();
 	private final Map<VcfRecord, List<Pair<Probe, Bin>>> mutations = new HashMap<>();
-//	private final Map<Probe, IntPair> probeReadCountMap = new HashMap<>();
-	
+ 	
 	private final Map<Probe, List<FastqProbeMatch>> probeDist = new HashMap<>();
 	private final Map<Probe, Map<String, AtomicInteger>> probeFragments = new HashMap<>();
 	private final Map<Probe, Map<IntPair, AtomicInteger>> probeMatchMap = new HashMap<>();
@@ -119,70 +118,61 @@ public class Q3ClinVar {
 	private final Map<String, TLongArrayList> refTilesPositions = new HashMap<>();
 	private final PositionChrPositionMap positionToActualLocation = new PositionChrPositionMap();
 	private final Map<String, byte[]> referenceCache = new HashMap<>();
-	
-	
-	protected int engage() throws Exception {
 		
-		try {
-			parseAmpliconManifestXmlFile();
-			
-			readFastqFiles();
-			matchReadsToProbes();
-			
-			FastqProbeMatchUtil.getStats(matches);
-			
-			logger.info("Rescue reads using edit distances");
-			findNonExactMatches();
-			FastqProbeMatchUtil.getStats(matches);
-			
-			setupFragments();
-			writeAmpliconDetails();
-			binFragments();
-			writeAmpliconDetailsAgain();
-			
-			/*
-			 *  Empty some no longer needed collections - we may need the memory...
-			 */
-			matches.clear();
-			probeSequences.clear();
-			probeLengthMapR1.clear();
-			probeLengthMapR2.clear();
-			probeFragments.clear();
-			probeMatchMap.clear();
-			probeDist.clear();
-			
-			/*
-			 * Loops through the bins, and populates the mutations collection
-			 * This needs to be run before we can output any variants
-			 */
-			extractMutationsFromBins(false, minBinSize);
-			
-			writeHaplotypesCsv(false);
-			
-//			writeDiagnosticOutput(false);
-			
-			writeBam(false);
-			
-			loadTiledAlignerData();
-			/*
-			 * Write output files again, this time filtering out bins if they don't sit close to the amplicon they have been assigned to
-			 */
-			mutations.clear();
-			extractMutationsFromBins(true, minBinSize);
-			writeHaplotypesCsv(true);
-//			writeDiagnosticOutput(true);
-			writeBam(true);
-			writeAmpliconPerformanceCsv();
-			writeDodgyBinReport();
-			
-//			writeOutput();
-		} finally {
-		}
+	protected int engage() throws Exception {
+		parseAmpliconManifestXmlFile();
+		
+		readFastqFiles();
+		matchReadsToProbes();
+		
+		FastqProbeMatchUtil.getStats(matches);
+		
+		logger.info("Rescue reads using edit distances");
+		findNonExactMatches();
+		FastqProbeMatchUtil.getStats(matches);
+		
+		setupFragments();
+		writeAmpliconDetails();
+		binFragments();
+		writeAmpliconDetailsAgain();
+		
+		/*
+		 *  Empty some no longer needed collections - we may need the memory...
+		 */
+		matches.clear();
+		probeSequences.clear();
+		probeLengthMapR1.clear();
+		probeLengthMapR2.clear();
+		probeFragments.clear();
+		probeMatchMap.clear();
+		probeDist.clear();
+		
+		/*
+		 * Loops through the bins, and populates the mutations collection
+		 * This needs to be run before we can output any variants
+		 */
+		extractMutationsFromBins(false, minBinSize);
+		
+		writeHaplotypesCsv(false);
+		
+		writeBam(false);
+		
+		loadTiledAlignerData();
+		/*
+		 * Write output files again, this time filtering out bins if they don't sit close to the amplicon they have been assigned to
+		 */
+		mutations.clear();
+		extractMutationsFromBins(true, minBinSize);
+		writeHaplotypesCsv(true);
+		writeBam(true);
+		writeAmpliconPerformanceCsv();
+		writeDodgyBinReport();
+
 		return exitStatus;
 	}
 
 	private void writeDodgyBinReport() throws IOException {
-		try (FileWriter writer = new FileWriter(new File(outputFileNameBase +"lost_bins.txt"))) {
+		try (FileWriter writer = new FileWriter(new File(outputFileNameBase + "lost_bins.txt"))) { 
 			
 			for (Probe probe : probeSet) {
 				List<Bin> allBins = probeBinDist.get(probe);
@@ -197,11 +187,7 @@ public class Q3ClinVar {
 						bins.add(b);
 					}
 				}
-				
-//				if (probe.getId() == 544) {
-//					logger.info("no of bins: " + allBins.size() + ", binSet: " + binsSet.size());
-//				}
-				
+
 				StringBuilder sb = null;
 				if ( ! bins.isEmpty()) {
 					// sort list by no of records
@@ -244,7 +230,8 @@ public class Q3ClinVar {
 					if (null != b.getBestTiledLocation()) {
 						sb.append("\nAlternate\t");
 						boolean sameStrandAsAmplicon = b.getSmithWatermanDiffs(b.getBestTiledLocation())[2].replace("-","").equals(b.getSequence());
-						sb.append(b.getBestTiledLocation().getStartPosition()).append(':').append(probe.reverseComplementSequence() ? (sameStrandAsAmplicon ? "+" : "-") : (sameStrandAsAmplicon ? "-" : "+"));
+						sb.append(b.getBestTiledLocation().getStartPosition()).append(':').append(probe.reverseComplementSequence() 
+								? (sameStrandAsAmplicon ? "+" : "-") : (sameStrandAsAmplicon ? "-" : "+"));
 						sb.append("\tSwScore: ");
 						sb.append(ClinVarUtil.getSmithWatermanScore(b.getSmithWatermanDiffs(b.getBestTiledLocation())));
 						sb.append("\nR\t");
@@ -258,8 +245,8 @@ public class Q3ClinVar {
 						for (Entry<ChrPosition, String []> entry2 : b.getSmithWatermanDiffsMap().entrySet()) {
 							sb.append("\nAlternate\t");
 							boolean sameStrandAsAmplicon = entry2.getValue()[2].replace("-","").equals(b.getSequence());
-							sb.append(entry2.getKey().getStartPosition()).append(':').append(probe.reverseComplementSequence() ? (sameStrandAsAmplicon ? "+" : "-") : (sameStrandAsAmplicon ? "-" : "+"));
-//							sb.append(entry2.getKey().toStartPositionString());
+							sb.append(entry2.getKey().getStartPosition()).append(':').append(probe.reverseComplementSequence() 
+									? (sameStrandAsAmplicon ? "+" : "-") : (sameStrandAsAmplicon ? "-" : "+"));
 							sb.append("\tSwScore: ");
 							sb.append(ClinVarUtil.getSmithWatermanScore(entry2.getValue()));
 							sb.append("\nR\t");
@@ -311,7 +298,7 @@ public class Q3ClinVar {
 			boolean secondReadMatchFound = false;
 			// loop through the maps searching for a match
 			for (Integer pl : primerLengthsR1) {
-				String read =read1.substring(0, pl.intValue());
+				String read = read1.substring(0, pl.intValue());
 					
 				Map<String, Probe> map = probeLengthMapR1.get(pl);
 					
@@ -329,7 +316,6 @@ public class Q3ClinVar {
 							// set read2 probe
 							fpm.setRead2Probe(p, 0);
 							mateMatchCount++;
-//							updateMap(p, probeDist);
 						}
 						// no need to look at other maps
 						break;
@@ -352,7 +338,8 @@ public class Q3ClinVar {
 					}
 				}
 		}
-		logger.info("no of records in fastq file: " + matches.size() + ", and no of records that started with a probe in our set: " + matchCount + " and no whose mate also matched: " + mateMatchCount);
+		logger.info("no of records in fastq file: " + matches.size() + ", and no of records that started with a probe in our set: " 
+				+ matchCount + " and no whose mate also matched: " + mateMatchCount);
 	}
 	
 
@@ -404,8 +391,6 @@ public class Q3ClinVar {
 			int p2End = -1;
 			int ssStart = -1;
 			int ssEnd = -1;
-//				int start = -1;
-//				int end = -1;
 			
 			Elements probeElements = probe.getChildElements();
 		
@@ -440,12 +425,6 @@ public class Q3ClinVar {
 				} else  if ("Name_no_spaces".equals(probeSubElement.getQualifiedName())) {
 					name =  probeSubElement.getValue();
 				} 
-// 					if ("Start_Position".equals(probeSubElement.getQualifiedName())) {
-// 						start =  Integer.parseInt(probeSubElement.getValue());
-// 					}
-// 					if ("End_Position".equals(probeSubElement.getQualifiedName())) {
-// 						end =  Integer.parseInt(probeSubElement.getValue());
-// 					}
 			}
 			
 			Probe p = new Probe(id, dlsoSeq, dlsoSeqRC, ulsoSeq, ulsoSeqRC, p1Start, p1End, p2Start, p2End, subseq, ssStart, ssEnd, chr, forwardStrand, name);
@@ -505,8 +484,6 @@ public class Q3ClinVar {
 		logger.info("loading genome tiles alignment data");
 		
 		try (TabbedFileReader reader = new TabbedFileReader(new File(refTiledAlignmentFile))) {
-//			try (TabbedFileReader reader = new TabbedFileReader(new File(refTiledAlignmentFile));
-//					FileWriter writer = new FileWriter(new File(refTiledAlignmentFile + ".condensed"))) {
 			
 			TabbedHeader header = reader.getHeader();
 			List<String> headerList = new ArrayList<>();
@@ -514,9 +491,6 @@ public class Q3ClinVar {
 				headerList.add(head);
 			}
 			positionToActualLocation.loadMap(headerList);
-//			for (String head : header) {
-//				writer.write(head + "\n");
-//			}
 			int i = 0;
 			for (TabbedRecord rec : reader) {
 				if (++i % 1000000 == 0) {
@@ -542,7 +516,6 @@ public class Q3ClinVar {
 						// create TLongArrayList from 
 						refTilesPositions.put(tile, positionsList);
 					}
-//					writer.write(rec.getData() + "\n");
 				}
 			}
 		}
@@ -555,14 +528,14 @@ public class Q3ClinVar {
 		logger.info("no of entries in refTilesPositions: " + refTilesPositionsSize);
 		logger.info("Unique tiles in amplicons: " + diff);
 		
-		int bestLocationSet = 0, bestLocationNotSet = 0;
+		int bestLocationSet = 0;
+		int bestLocationNotSet = 0;
 		
 		for (Entry<Probe,List<Bin>> entry : probeBinDist.entrySet()) {
 			Map<ChrPosition, AtomicInteger> binLocationDistribution = new HashMap<>();
 			Probe p = entry.getKey();
 			ChrPosition ampliconCP = p.getCp();
 			long ampliconStartLongPosition = positionToActualLocation.getLongStartPositionFromChrPosition(ampliconCP);
-//			logger.info("Looking at probe: " + p.getId() +", which has " +  entry.getValue().size() + " bins");
 			
 			for (Bin b : entry.getValue()) {
 				String fragment = b.getSequence();
@@ -619,8 +592,6 @@ public class Q3ClinVar {
 				 */
 				TIntObjectHashMap<TLongArrayList> resultsMap = ClinVarUtil.getBestStartPosition(tilePositions, TILE_SIZE, maxIndelLength, tiledDiffThreshold, tileMatchThreshold);
 				TIntObjectHashMap<TLongArrayList> rcResultsMap = ClinVarUtil.getBestStartPosition(rcTilePositions, TILE_SIZE, maxIndelLength, tiledDiffThreshold, tileMatchThreshold);
-//				long [] results = ClinVarUtil.getBestStartPosition(tilePositions, TILE_SIZE, 5, tiledDiffThreshold);
-//				long [] rcResults = ClinVarUtil.getBestStartPosition(rcTilePositions, TILE_SIZE, 5, tiledDiffThreshold);
 				
 				ChrPosition bestTiledCp = null;
 				int [] results = resultsMap.keys();
@@ -635,13 +606,12 @@ public class Q3ClinVar {
 				/*
 				 * get best tile counts - could be zero if no matches above our threshold of 2...
 				 */
-				int bestTileCount = results.length > 0 ? results[results.length -1] : 0;
-				int rcBestTileCount = rcResults.length > 0 ? rcResults[rcResults.length -1] : 0;
+				int bestTileCount = results.length > 0 ? results[results.length - 1] : 0;
+				int rcBestTileCount = rcResults.length > 0 ? rcResults[rcResults.length - 1] : 0;
 				/*
 				 * If all the best positions overlap the amplicon position - great
 				 */
 				if (ClinVarUtil.areAllPositionsClose(resultsMap.valueCollection(), rcResultsMap.valueCollection(), ampliconStartLongPosition, 200)) {
-//					logger.info("all positions are close");
 					bestTiledCp = ampliconCP;
 				} else {
 				
@@ -683,17 +653,14 @@ public class Q3ClinVar {
 					/*
 					 * Haven't got a best tiled location, or the location is not near the amplicon, so lets generate some SW diffs, and choose the best location based on those
 					 */
-//					logger.info("about to run a bunch of sw");
 					
 					if (bestTileCount > 1) {
 						TLongArrayList list = ClinVarUtil.getSingleArray(resultsMap);
-//						logger.info("list size: " + list.size() + ", bestTileCount: " + bestTileCount);
 						Map<ChrPosition, String[]> scores = getSWScores(list, b.getSequence());
 						b.addPossiblePositions(scores);
 					}
 					if (rcBestTileCount > 1) {
 						TLongArrayList rclist = ClinVarUtil.getSingleArray(rcResultsMap);
-//						logger.info("rclist size: " + rclist.size() + ", rcBestTileCount: " + rcBestTileCount);
 						Map<ChrPosition, String[]> scores = getSWScores(rclist, SequenceUtil.reverseComplement(b.getSequence()));
 						b.addPossiblePositions(scores);
 					}
@@ -701,9 +668,7 @@ public class Q3ClinVar {
 					if (null != bestTiledCp) {
 						b.setBestTiledLocation(bestTiledCp);
 						updateMap(bestTiledCp, binLocationDistribution);
-					} else {
-//						logger.info("not able to set best tiled location for bin: " + b.getId() + ", no in b.getSmithWatermanDiffsMap(): " + b.getSmithWatermanDiffsMap().size());
-					}
+					} 
 				}
 				/*
 				 * has best location been set?
@@ -732,23 +697,7 @@ public class Q3ClinVar {
 			}
 		}
 		logger.info("bestLocationSet count: " + bestLocationSet + ", not set count: " + bestLocationNotSet);
-//		logger.info("singleLocation: " + singleLocation + ", perfectMatch: " + perfectMatch + ", multiple Loci: " + multiLoci + ", unknown: " + unknown);
-//		logger.info("bothStrandsWin: " + bothStrandsWin + ", existingStrandWins: " + existingStrandWins + ", rcStrandWins: " + rcStrandWins);
 	}
-	
-//	private Map<ChrPosition, String[]> getSWScores(long [] positionCountArray, String binSequence ) throws IOException {
-//		Map<ChrPosition, String[]> positionSWDiffMap = new HashMap<>(positionCountArray.length);
-//		int noOfCompetingPositions = positionCountArray.length / 2;
-//		for (int i = 0 ; i < noOfCompetingPositions ; i++) {
-//			long position = positionCountArray[i * 2];
-//			ChrPosition cp = positionToActualLocation.getChrPositionFromLongPosition(position);
-//			ChrPosition refCp = positionToActualLocation.getBufferedChrPositionFromLongPosition(position, binSequence.length(), 200);
-//			
-//			String ref = getRefFromChrPos(refCp);
-//			positionSWDiffMap.put(cp, ClinVarUtil.getSwDiffs(ref, binSequence));
-//		}
-//		return positionSWDiffMap;
-//	}
 	
 	private Map<ChrPosition, String[]> getSWScores(TLongArrayList positionsList, final String binSequence ) throws IOException {
 		final Map<ChrPosition, String[]> positionSWDiffMap = new HashMap<>(positionsList.size() * 2);
@@ -758,7 +707,6 @@ public class Q3ClinVar {
 			public boolean execute(long position) {
 				ChrPosition cp = positionToActualLocation.getChrPositionFromLongPosition(position);
 				ChrPosition refCp =  new ChrRangePosition(cp.getChromosome(), Math.max(1, cp.getStartPosition() - buffer), cp.getStartPosition() + binSequence.length() + buffer);
-//				ChrPosition refCp = positionToActualLocation.getBufferedChrPositionFromLongPosition(position, binSequence.length(), 200);
 				String ref = getRefFromChrPos(refCp);
 				positionSWDiffMap.put(cp, ClinVarUtil.getSwDiffs(ref, binSequence));
 				return true;
@@ -776,7 +724,7 @@ public class Q3ClinVar {
 			 * Load from file
 			 */
 			FastaSequenceIndex index = new FastaSequenceIndex(new File(refFileName + ".fai"));
-			try (IndexedFastaSequenceFile refFile = new IndexedFastaSequenceFile(new File(refFileName), index);) {;
+			try (IndexedFastaSequenceFile refFile = new IndexedFastaSequenceFile(new File(refFileName), index);) { 
 				ReferenceSequence refSeq = refFile.getSequence(chr);
 				ref = refSeq.getBases();
 				referenceCache.put(chr, ref);
@@ -793,103 +741,9 @@ public class Q3ClinVar {
 		return referenceSeq;
 	}
 
-	private void writeDiagnosticOutput(boolean filter) throws IOException {
-		
-		List<FastqProbeMatch> multiMatched = new ArrayList<>();
-		List<FastqProbeMatch> oneEndMatched = new ArrayList<>();
-		List<FastqProbeMatch> noEndsMatched = new ArrayList<>();
-		List<FastqProbeMatch> noFragment = new ArrayList<>();
-		
-		for (FastqProbeMatch fpm : matches) {
-			
-			if (FastqProbeMatchUtil.isMultiMatched(fpm)) {
-				multiMatched.add(fpm);
-			} else if (FastqProbeMatchUtil.neitherReadsHaveAMatch(fpm)) {
-				noEndsMatched.add(fpm);
-			} else if (FastqProbeMatchUtil.onlyOneReadHasAMatch(fpm)) {
-				oneEndMatched.add(fpm);
-			} else if (StringUtils.isNullOrEmpty(fpm.getFragment())) {
-				noFragment.add(fpm);
-			}
-		}
-		
-		logger.info("multiMatched: " + multiMatched.size());
-		logger.info("oneEndMatched: " + oneEndMatched.size());
-		logger.info("noEndsMatched: " + noEndsMatched.size());
-		logger.info("noFragment: " + noFragment.size());
-		
-		String outputFileName = filter ? outputDir+".diagnostic.multi.matched.filtered.csv" : outputDir+".diagnostic.multi.matched.csv";
-		
-		if ( ! multiMatched.isEmpty()) {
-			try (FileWriter writer = new FileWriter(new File(outputFileName))){;
-				writer.write("r1_probe_id,r2_probe_id,r1,r2" );
-				writer.write("\n");
-				
-				for (FastqProbeMatch fpm : multiMatched) {
-					writer.write(fpm.getRead1Probe().getId() + "," + fpm.getRead2Probe().getId() + "," + fpm.getRead1().getReadString() + "," + fpm.getRead2().getReadString());
-					writer.write("\n");
-				}
-				writer.flush();
-			}
-		}
-		
-		outputFileName = filter ? outputDir+".diagnostic.no.fragment.filtered.csv" : outputDir+".diagnostic.no.fragment.csv";
-		if ( ! noFragment.isEmpty()) {
-			try (FileWriter writer = new FileWriter(new File(outputFileName))){;
-			writer.write("r1_probe_id,r2_probe_id,r1,r2" );
-			writer.write("\n");
-			
-			for (FastqProbeMatch fpm : noFragment) {
-				writer.write(fpm.getRead1Probe().getId() + "," + fpm.getRead2Probe().getId() + "," + fpm.getRead1().getReadString() + "," + fpm.getRead2().getReadString());
-				writer.write("\n");
-			}
-			writer.flush();
-			}
-		}
-		
-		outputFileName = filter ? outputDir+".diagnostic.one.end.matched.filtered.csv" : outputDir+".diagnostic.one.end.matched.csv";
-		if ( ! oneEndMatched.isEmpty()) {
-			try (FileWriter writer = new FileWriter(new File(outputFileName))){;
-			writer.write("r1_probe_id,r2_probe_id,r1,r2" );
-			writer.write("\n");
-			
-			for (FastqProbeMatch fpm : oneEndMatched) {
-				String p1 = null != fpm.getRead1Probe() ? fpm.getRead1Probe().getId() + "" : "-";
-				String p2 = null != fpm.getRead2Probe() ? fpm.getRead2Probe().getId() + "" : "-";
-				writer.write(p1 + "," + p2 + "," + fpm.getRead1().getReadString() + "," + fpm.getRead2().getReadString());
-				writer.write("\n");
-			}
-			writer.flush();
-			}
-		}
-		
-		outputFileName = filter ? outputDir+".diagnostic.no.end.matched.filtered.csv" : outputDir+".diagnostic.no.end.matched.csv";
-		if ( ! noEndsMatched.isEmpty()) {
-			try (FileWriter writer = new FileWriter(new File(outputFileName))){;
-			writer.write("r1,r2" );
-			writer.write("\n");
-			
-			for (FastqProbeMatch fpm : noEndsMatched) {
-				writer.write(fpm.getRead1().getReadString() + "," + fpm.getRead2().getReadString());
-				writer.write("\n");
-			}
-			writer.flush();
-			}
-		}
-	}
-	
 	private void writeAmpliconPerformanceCsv() throws IOException {
 		
-		DecimalFormat df = new DecimalFormat("#.##");
-		
-//		List<Probe> coordSortedProbes = new ArrayList<>(probeSet);
-//		Collections.sort(coordSortedProbes, new Comparator<Probe>() {
-//			@Override
-//			public int compare(Probe o1, Probe o2) {
-//				return o1.getCp().compareTo(o2.getCp());
-//			}
-//		});
-		
+		DecimalFormat df = new DecimalFormat("#.##");				
 		final int fastqRecordCount = matches.size();
 		
 		try (FileWriter writer = new FileWriter(new File(outputFileNameBase + "amplicon_performance.csv" ))) {
@@ -903,9 +757,9 @@ public class Q3ClinVar {
 			writer.write("#Number of fastq records: " + fastqRecordCount + Constants.NEW_LINE);
 			writer.write("#Number of amplicons: " + probeSet.size() + Constants.NEW_LINE);
 			writer.write("#\n");
-			writer.write("amplicon_id,amplicon_name,amplicon_position,number_of_reads,number_of_reads_percentage,number_of_bins,bins_on_target,bins_on_target_percentage,reads_on_target,reads_on_target_percentage\n" );
+			writer.write("amplicon_id,amplicon_name,amplicon_position,number_of_reads,number_of_reads_percentage,"
+					+ "number_of_bins,bins_on_target,bins_on_target_percentage,reads_on_target,reads_on_target_percentage\n" );
 			
-//			for (Probe p : coordSortedProbes) {
 			for (Probe p : probeSet) {
 				ChrPosition ampliconCP = p.getCp();
 				List<Bin> bins = probeBinDist.get(p);
@@ -927,8 +781,8 @@ public class Q3ClinVar {
 				double binsOnTargetPercentage = binCount > 0 ? ((double)binsOnTarget / binCount) * 100 : 0;
 				double readsOnTargetPercentage = recordCount > 0 ? ((double)readsOnTarget / recordCount) * 100 : 0;
 				
-				writer.write(p.getId() + "," + p.getName() + "," + p.getCp().toIGVString() + "," + recordCount + "," +df.format(recordCountPercentage) + "," 
-				+ binCount + "," + binsOnTarget + "," +df.format(binsOnTargetPercentage) + "," + readsOnTarget + "," + df.format(readsOnTargetPercentage) + "\n");
+				writer.write(p.getId() + "," + p.getName() + "," + p.getCp().toIGVString() + "," + recordCount + "," + df.format(recordCountPercentage) + "," 
+						+ binCount + "," + binsOnTarget + "," + df.format(binsOnTargetPercentage) + "," + readsOnTarget + "," + df.format(readsOnTargetPercentage) + "\n");
 				
 			}
 			writer.flush();
@@ -938,31 +792,26 @@ public class Q3ClinVar {
 	private void writeBam(boolean filter) throws IOException {
 		
 		List<Probe> coordSortedProbes = new ArrayList<>(probeSet);
-		Comparator<ChrPosition> COMPARATOR = new ChrPositionComparator();
+		Comparator<ChrPosition> comparator = new ChrPositionComparator();
 		Collections.sort(coordSortedProbes, new Comparator<Probe>() {
 			@Override
 			public int compare(Probe o1, Probe o2) {
-				return COMPARATOR.compare(o1.getCp(), o2.getCp());
+				return comparator.compare(o1.getCp(), o2.getCp());
 			}
 		});
 		
-		String outputFileName = filter ? outputFileNameBase + "bam" : outputFileNameBase + "diag.unbinned.bam";
-		File bamFile = new File(outputFileName);
 		SAMFileHeader header = new SAMFileHeader();
 		header.setSequenceDictionary(ClinVarUtil.getSequenceDictionaryFromProbes(coordSortedProbes));
 		header.setSortOrder(SortOrder.coordinate);
 		SAMFileWriterFactory.setDefaultCreateIndexWhileWriting(true);
 		SAMFileWriterFactory factory = new SAMFileWriterFactory();
 		factory.setCreateIndex(true);
+		String outputFileName = filter ? outputFileNameBase + "bam" : outputFileNameBase + "diag.unbinned.bam";
+		File bamFile = new File(outputFileName);		
 		SAMFileWriter writer = factory.makeSAMOrBAMWriter(header, false, bamFile);
 		
 		long recordCount = 0;
-//		int indelCount = 0;
-//		int indelSameLength = 0;
-//		int indelDiffLength = 0;
-//		int sameSize = 0, diffSize = 0, noDiffInFirs20 = 0;
 		try {
-
 			/*
 			 * loop through probes
 			 * output bins of size greater than minBinSize 
@@ -975,10 +824,8 @@ public class Q3ClinVar {
 				final String bufferedReferenceSequence = p.getBufferedReferenceSequence();
 				List<Bin> bins = probeBinDist.get(p);
 				if (null != bins) {
-					for (Bin b : bins) {
-						
-						if ( ! filter || (null != b.getBestTiledLocation() && ClinVarUtil.doChrPosOverlap(ampliconCP, b.getBestTiledLocation()))) {
-						
+					for (Bin b : bins) {						
+						if ( ! filter || (null != b.getBestTiledLocation() && ClinVarUtil.doChrPosOverlap(ampliconCP, b.getBestTiledLocation()))) {				
 							int binId = b.getId();
 							recordCount += b.getRecordCount();
 							
@@ -996,11 +843,6 @@ public class Q3ClinVar {
 								bufferedOffset = bufferedReferenceSequence.indexOf(binSeq);
 								if (bufferedOffset >= 0) {
 									logger.debug("got a match against the buffered reference!!! p: " + p.getId() + ", bin: " + b.getId());
-//									if (p.getId() == 121 && b.getId() == 1272) {
-//										logger.info("referenceSequence: " + referenceSequence);
-//										logger.info("bufferedReferenceSequence: " + bufferedReferenceSequence);
-//										logger.info("binSeq: " + binSeq);
-//									}
 								}
 							}
 							if (offset >= 0) {
@@ -1008,47 +850,48 @@ public class Q3ClinVar {
 								 * Perfect Match
 								 */
 								Cigar cigar = ClinVarUtil.getCigarForMatchMisMatchOnly(b.getLength());
-								ClinVarUtil.addSAMRecordToWriter(header, writer, cigar, probeId, binId,  b.getRecordCount(), referenceSequence, p.getCp().getChromosome(), p.getCp().getStartPosition(), offset, binSeq);
+								ClinVarUtil.addSAMRecordToWriter(header, writer, cigar, probeId, binId,  b.getRecordCount(), referenceSequence, 
+										p.getCp().getChromosome(), p.getCp().getStartPosition(), offset, binSeq);
 								
 							} else if (bufferedOffset >= 0) {
 								/*
 								 * Perfect Match against buffered reference
 								 */
 								Cigar cigar = ClinVarUtil.getCigarForMatchMisMatchOnly(b.getLength());
-								ClinVarUtil.addSAMRecordToWriter(header, writer, cigar, probeId, binId,  b.getRecordCount(), bufferedReferenceSequence, p.getCp().getChromosome(), p.getCp().getStartPosition() - 10, bufferedOffset, binSeq);
+								ClinVarUtil.addSAMRecordToWriter(header, writer, cigar, probeId, binId,  b.getRecordCount(), bufferedReferenceSequence, 
+										p.getCp().getChromosome(), p.getCp().getStartPosition() - 10, bufferedOffset, binSeq);
 								
-							} else {
-								
+							} else {								
 								/*
 								 * bin sequence differs from reference
 								 */
 								String [] swDiffs = b.getSmithWatermanDiffs();
 								
-								if (null != swDiffs) {
-									if ( ! swDiffs[1].contains(" ")) {
+								if (null != swDiffs) { 
+									if ( ! swDiffs[1].contains(" ")) { 
 										/*
 										 * Only snps
 										 */
 										if (swDiffs[1].length() == referenceSequence.length()) {
 											// just snps and same length
 											Cigar cigar = ClinVarUtil.getCigarForMatchMisMatchOnly(b.getLength());
-											ClinVarUtil.addSAMRecordToWriter(header, writer, cigar, probeId, binId,  b.getRecordCount(), referenceSequence, p.getCp().getChromosome(), p.getCp().getStartPosition(), 0, binSeq);
+											ClinVarUtil.addSAMRecordToWriter(header, writer, cigar, probeId, binId,  b.getRecordCount(), referenceSequence, 
+													p.getCp().getChromosome(), p.getCp().getStartPosition(), 0, binSeq);
 										} else {
-											logger.debug("only snps but diff length to ref. bin: " + b.getId() + ", p: " + p.getId() + ", binSeq: " + binSeq + ", ref: " + referenceSequence);
-											for (String s : swDiffs) {
-												logger.debug("s: " + s);
-											}
+											logger.debug("only snps but diff length to ref. bin: " + b.getId() + ", p: " 
+													+ p.getId() + ", binSeq: " + binSeq + ", ref: " + referenceSequence);
+											for (String s : swDiffs) logger.debug("s: " + s);
+											 
 											Cigar cigar = ClinVarUtil.getCigarForMatchMisMatchOnly(b.getLength());
-											ClinVarUtil.addSAMRecordToWriter(header, writer, cigar, probeId, binId,  b.getRecordCount(), referenceSequence, p.getCp().getChromosome(), p.getCp().getStartPosition(), 0, binSeq);
+											ClinVarUtil.addSAMRecordToWriter(header, writer, cigar, probeId, binId,  b.getRecordCount(), referenceSequence, 
+													p.getCp().getChromosome(), p.getCp().getStartPosition(), 0, binSeq);
 										}
-									} else {
-										
+									} else {						
 										Cigar cigar = ClinVarUtil.getCigarForIndels( referenceSequence,  binSeq, swDiffs,  p,  b);
-										ClinVarUtil.addSAMRecordToWriter(header, writer, cigar, probeId, binId,  b.getRecordCount(), referenceSequence, p.getCp().getChromosome(), p.getCp().getStartPosition(), 0, binSeq);
+										ClinVarUtil.addSAMRecordToWriter(header, writer, cigar, probeId, binId,  b.getRecordCount(), referenceSequence, 
+												p.getCp().getChromosome(), p.getCp().getStartPosition(), 0, binSeq);
 									}
-								} else {
-//									logger.warn("Not generating SAMRecord for bin: " + b.getId() + " as no sw diffs. getRecordCount: " + b.getRecordCount());
-								}
+								} 
 							}
 						}
 					}
@@ -1057,9 +900,7 @@ public class Q3ClinVar {
 		} finally {
 			writer.close();
 		}
-//		logger.info("indelDiffLength: " + indelDiffLength + ", indelSameLength: " + indelSameLength);
 		logger.info("No of records written to bam file: " + recordCount);
-//		logger.info("No of records written to bam file: " + recordCount + ", no of bins with same seq size as ref: " + sameSize +", and diff size: " + diffSize + ", indelCount: " + indelCount + ", noDiffInFirs20: " + noDiffInFirs20);
 	}
 	
 	
@@ -1073,17 +914,13 @@ public class Q3ClinVar {
 			boolean reverseComplementSequence = p.reverseComplementSequence();
 			
 			// get largest bin
-			if (null != bins && ! bins.isEmpty()) {
-				
-				for (Bin b : bins) {
-					
+			if (null != bins && ! bins.isEmpty()) {				
+				for (Bin b : bins) {					
 					// only care about bins that have more than 10 reads
-					if (b.getRecordCount() >= binRecordCount) {
-						
-						if ( ! onlyUseBinsThatMatchAmplicons || (null != b.getBestTiledLocation() && ClinVarUtil.doChrPosOverlap(ampliconCP, b.getBestTiledLocation()))) {
-							
-							String binSeq = reverseComplementSequence ? SequenceUtil.reverseComplement(b.getSequence()) :  b.getSequence();
-							
+					if (b.getRecordCount() >= binRecordCount) {						
+						if ( ! onlyUseBinsThatMatchAmplicons || (null != b.getBestTiledLocation() 
+								&& ClinVarUtil.doChrPosOverlap(ampliconCP, b.getBestTiledLocation()))) {							
+							String binSeq = reverseComplementSequence ? SequenceUtil.reverseComplement(b.getSequence()) : b.getSequence();	
 							// check that ref length is equal to bin length
 							// if shorter, get a longer ref
 							int lengthDiff = binSeq.length() - bufferedRef.length();
@@ -1095,12 +932,6 @@ public class Q3ClinVar {
 							String [] diffs =  ClinVarUtil.getSwDiffs(bufferedRef, binSeq, true);
 							b.setSWDiffs(diffs);
 							
-//							if (p.getId() == 42) {
-//								logger.info("probe: " + p.getId() + ", forward strand: " + p.isOnForwardStrand() + ", size: " + b.getRecordCount() + ", ref: " + ref + ", binSeq: " + binSeq);
-//								for (String s : b.getSmithWatermanDiffs()) {
-//									logger.info(s);
-//								}
-//							}
 							if ( ! bufferedRef.contains(binSeq)) {
 								createMutations(p, b);
 							}
@@ -1111,7 +942,7 @@ public class Q3ClinVar {
 		}
 	}
 
-	private void writeHaplotypesCsv(boolean filter) throws IOException {
+	private void writeHaplotypesCsv(boolean filter) throws IOException { 
 		
 		/*
 		 * Write haplotype file before rolling up mutations
@@ -1144,7 +975,7 @@ public class Q3ClinVar {
 			List<Probe> orderedProbes = new ArrayList<>(mutationsByBin.keySet());
 			Collections.sort(orderedProbes);
 		
-			try (FileWriter writer = new FileWriter(new File(outputFileNameBase +"haplotypes.csv"))) {
+			try (FileWriter writer = new FileWriter(new File(outputFileNameBase + "haplotypes.csv"))) { 
 				
 				/*
 				 * Setup the header
@@ -1152,12 +983,11 @@ public class Q3ClinVar {
 				writer.write("#amplicon_id,amplicon_name,amplicon_position,bin_id,bin_read_count,mutations\n");
 				
 				for (Probe probe : probeSet) {
-//					for (Probe probe : orderedProbes) {
-					
 					Set<Bin> binsSet = new HashSet<>();
 					if (mutationsByBin.containsKey(probe)) {
 						binsSet.addAll(mutationsByBin.get(probe).keySet());
 					}
+					
 					binsSet.addAll( getEligibleBins(probe));
 					Bin[] orderedBins = new Bin[binsSet.size()];
 					orderedBins = binsSet.toArray(orderedBins);
@@ -1166,11 +996,8 @@ public class Q3ClinVar {
 					if (probe.getId() == 531) {
 						logger.info("probe: " + probe.getId() + ", no of bins to use in haplotype report: " + orderedBins.length);
 					}
-//					List<Bin> orderedBins = new ArrayList<>(binsSet);
-//					Collections.sort(orderedBins);
 					
-					for (Bin b : orderedBins) {
-						
+					for (Bin b : orderedBins) {					
 						StringBuilder sb = new StringBuilder();
 						sb.append(probe.getId());
 						sb.append(Constants.COMMA);
@@ -1184,13 +1011,14 @@ public class Q3ClinVar {
 						
 						if (mutationsByBin.containsKey(probe)) {
 							List<VcfRecord> vcfs = mutationsByBin.get(probe).get(b);
-							if (null != vcfs &&  ! vcfs.isEmpty()) {
+							if (null != vcfs &&  ! vcfs.isEmpty()) { 
 								sb.append(Constants.COMMA);
 								Collections.sort(vcfs);
-								for (VcfRecord vcf : vcfs) {
-									sb.append(vcf.getChromosome()).append(Constants.COLON).append(vcf.getPosition()).append(vcf.getRef()).append(">").append(vcf.getAlt()).append(Constants.SEMI_COLON);
+								for (VcfRecord vcf : vcfs) { 
+									sb.append(vcf.getChromosome()).append(Constants.COLON).append(vcf.getPosition()).append(vcf.getRef()).append(">")
+										.append(vcf.getAlt()).append(Constants.SEMI_COLON);
 								}
-								sb.deleteCharAt(sb.length() -1);
+								sb.deleteCharAt(sb.length() - 1);
 							}
 						}
 						sb.append("\n");
@@ -1220,22 +1048,19 @@ public class Q3ClinVar {
 		header.addOrReplace( VcfHeaderUtils.STANDARD_FILE_DATE + "=" + df.format(Calendar.getInstance().getTime()));	
 		header.addOrReplace( VcfHeaderUtils.STANDARD_UUID_LINE + "=" + QExec.createUUid());
 		header.addOrReplace( VcfHeaderUtils.STANDARD_SOURCE_LINE + "=q3ClinVar");		 	
-		header.addFormat("BB", ".","String","Breakdown of Bins containing more than 1 read at this position in the following format: Base,NumberOfReadsSupportingBase,NumberOfAmplicons/NumberOfBins.... "
+		header.addFormat("BB", ".","String","Breakdown of Bins containing more than 1 read at this position in the following format:"
+				+ " Base,NumberOfReadsSupportingBase,NumberOfAmplicons/NumberOfBins.... "
 				+ "NOTE that only bins with number of reads greater than " + minBinSize + " will be shown here");
 		header.addOrReplace( VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT);
 		
-		
-		
-		//make a new header
-		
-		
-		String outputFileName = filter ?  outputFileNameBase+"vcf" : outputFileNameBase+"diag.unfiltered.vcf";
+		//make a new header		
+		String outputFileName = filter ? outputFileNameBase + "vcf" : outputFileNameBase + "diag.unfiltered.vcf";
 		try (VCFFileWriter writer = new VCFFileWriter(new File(outputFileName))) {
 			
 			/*
 			 * Setup the VcfHeader
 			 */			
-			for(VcfHeaderRecord re : header){
+			for (VcfHeaderRecord re : header) { 
 				writer.addHeader(re.toString() );
 			}
 			
@@ -1258,13 +1083,13 @@ public class Q3ClinVar {
 			}
 		}
 
-		outputFileName = filter ?  outputFileNameBase+"diag.detailed.vcf" : outputFileNameBase+"diag.unfiltered_detailed.vcf";
+		outputFileName = filter ?  outputFileNameBase + "diag.detailed.vcf" : outputFileNameBase + "diag.unfiltered_detailed.vcf";
 		try (VCFFileWriter writer = new VCFFileWriter(new File(outputFileName))) {
 			
 			/*
 			 * Setup the VcfHeader
 			 */
-			for(VcfHeaderRecord re : header){
+			for (VcfHeaderRecord re : header) { 
 				writer.addHeader(re.toString() );
 			}
 						
@@ -1278,6 +1103,7 @@ public class Q3ClinVar {
 				if (overlappingProbes.isEmpty()) {
 					logger.warn("Found no amplicons overlapping position: " + vcf.getChrPosition());
 				}
+				
 				String format = ClinVarUtil.getAmpliconDistribution(vcf, overlappingProbes, probeBinDist, minBinSize, true, filter);
 				List<String> ff = new ArrayList<>(4);
 				ff.add("BB");
@@ -1311,7 +1137,8 @@ public class Q3ClinVar {
 			 */
 			for (VcfRecord vcf2 : mutations.keySet()) {
 				if (vcf != vcf2) {
-					if (vcf.getChrPosition().getChromosome().equals(vcf2.getChrPosition().getChromosome()) && vcf.getChrPosition().getStartPosition() == vcf2.getChrPosition().getStartPosition()) {
+					if (vcf.getChrPosition().getChromosome().equals(vcf2.getChrPosition().getChromosome()) 
+							&& vcf.getChrPosition().getStartPosition() == vcf2.getChrPosition().getStartPosition()) {
 						
 						ChrPosition cp = ChrPointPosition.valueOf(vcf.getChrPosition().getChromosome(), vcf.getChrPosition().getStartPosition());
 						Set<VcfRecord> records = potentialRollups.get(cp);
@@ -1326,26 +1153,17 @@ public class Q3ClinVar {
 			}
 		}
 		logger.info("number of positions in potentialRollups: " + potentialRollups.size() );
-		
-		
-//		for (Entry<ChrPosition, Set<VcfRecord>> entry : potentialRollups.entrySet()) {
-//			for (VcfRecord vcf: entry.getValue()) {
-//				logger.info("vcf: " + vcf.toString());
-//			}
-//		}
-		
+				
 		/*
 		 * Rollup
 		 */
 		for (Entry<ChrPosition, Set<VcfRecord>> entry : potentialRollups.entrySet()) {
-			VcfRecord mergedRecord = VcfUtils.mergeVcfRecords(entry.getValue());
-			
+			VcfRecord mergedRecord = VcfUtils.mergeVcfRecords(entry.getValue());			
 			for (VcfRecord vcf: entry.getValue()) {
 				mutations.remove(vcf);
 			}
 			mutations.put(mergedRecord,null);
-		}
-		
+		}		
 	}
 
 	private void createMutations(Probe p, Bin b) {
@@ -1353,9 +1171,7 @@ public class Q3ClinVar {
 		String [] smithWatermanDiffs = b.getSmithWatermanDiffs();
 		List<Pair<Integer, String>> mutations = ClinVarUtil.getPositionRefAndAltFromSW(smithWatermanDiffs);
 		
-		if ( ! mutations.isEmpty()) {
-		
-//			String probeRef = p.getReferenceSequence();
+		if ( ! mutations.isEmpty()) {		
 			// remove any indel characters - only checking
 			String swRef = smithWatermanDiffs[0].replace("-", "");
 			int startPositionOfSWDiffs = p.getSubReferencePosition(swRef);
@@ -1363,11 +1179,6 @@ public class Q3ClinVar {
 			if ( startPositionOfSWDiffs == -1) {
 				logger.warn("p.getSubReferencePosition(swRef) == -1!!! probe (id:bin.id: " + p.getId() + ":" + b.getId() + ") , swRef: " + swRef);
 			}
-//			int offset = probeRef.indexOf(swRef);
-//			
-//			if ( offset == -1) {
-//				logger.warn("probeRef.indexOf(swRef) == -1!!! probe (id:bin.id: " + p.getId() + ":" + b.getId() + ") , probe ref: " + probeRef + ", swRef: " + swRef);
-//			}
 			
 			for (Pair<Integer, String> mutation : mutations) {
 				int position = mutation.getLeft().intValue();
@@ -1375,17 +1186,12 @@ public class Q3ClinVar {
 				int slashIndex = mutString.indexOf('/');
 				String ref = mutString.substring(0, slashIndex);
 				String alt = mutString.substring(slashIndex + 1);
-	//			if (p.getId() == 542 && b.getId() == 87424 ) {
-	//				logger.info("position: " + position + ", mutString: " + mutString);
-	//			}
 				createMutation(p, b, position + startPositionOfSWDiffs, ref, alt);
 			}
 		}
 	}
 	
 	private void createMutation(Probe p, Bin b, int position, String ref, String alt) {
-//		int startPos = p.getCp().getPosition() + position;
-//		int endPos = ref.length() > 1 ? startPos + (ref.length() -1 ) : startPos;
 		VcfRecord vcf = VcfUtils.createVcfRecord( ChrPointPosition.valueOf(p.getCp().getChromosome(),  position), "."/*id*/, ref, alt);
 		List<Pair<Probe, Bin>> existingBins = mutations.get(vcf);
 		if (null == existingBins) {
@@ -1462,7 +1268,7 @@ public class Q3ClinVar {
 		// write output
 		Document doc = new Document(amplicons);
 		File binnedOutput = new File(outputFileNameBase + "amplicons.xml");
-		try (OutputStream os = new FileOutputStream(binnedOutput);){
+		try (OutputStream os = new FileOutputStream(binnedOutput);) {
 			 Serializer serializer = new Serializer(os, "ISO-8859-1");
 		        serializer.setIndent(4);
 		        serializer.setMaxLength(64);
@@ -1494,15 +1300,15 @@ public class Q3ClinVar {
 		
 		// loop through single bins and see if we can assign to a bigger bin
 		Iterator<Bin> iter = singleBins.iterator();
-		while(iter.hasNext()) {
+		while (iter.hasNext()) { 
 			Bin sb = iter.next();
 			// loop through multi bins
-			for (Bin mb : multipleBins) {
+			for (Bin mb : multipleBins) { 
 				// need to have the same length
-				if (sb.getLength() == mb.getLength()) {
+				if (sb.getLength() == mb.getLength()) { 
 					// need to have a BED of 1
 					int basicEditDistance = ClinVarUtil.getBasicEditDistance(sb.getSequence(), mb.getSequence());
-					if (basicEditDistance == 1) {
+					if (basicEditDistance == 1) { 
 						
 						// roll sb into mb
 						mb.addSequence(sb.getSequence());
@@ -1539,8 +1345,7 @@ public class Q3ClinVar {
 					if (editDistances[0] <= maxSingleEditDistance 
 							&& editDistances[1] <= maxSingleEditDistance) {
 						
-						// it could be the case that we have already found a matching probe, so make sure this match is better!!!
-						
+						// it could be the case that we have already found a matching probe, so make sure this match is better!!!						
 						if (FastqProbeMatchUtil.neitherReadsHaveAMatch(fpm)) {
 							fpm.setRead1Probe(p, editDistances[0]);
 							fpm.setRead2Probe(p, editDistances[1]);
@@ -1566,8 +1371,7 @@ public class Q3ClinVar {
 						} else {
 							// already have some probes set...
 							logger.warn("have to determine which match is best...");
-						}
-						
+						}						
 					}
 				}
 				
@@ -1666,34 +1470,34 @@ public class Q3ClinVar {
 			
 			// fragments next
 			Map<String, AtomicInteger> frags = probeFragments.get(p);
-			if (null != frags && ! frags.isEmpty()) {
+			if (null != frags && ! frags.isEmpty()) { 
 				
 				TIntArrayList fragMatches = new TIntArrayList();
-				for (Entry<String, AtomicInteger> entry : frags.entrySet()) {
+				for (Entry<String, AtomicInteger> entry : frags.entrySet()) { 
 					if (entry.getKey() != null) {
 						Element fragment = new Element("Fragment");
 						fragments.appendChild(fragment);
-						fragment.addAttribute(new Attribute("fragment_length", "" + (entry.getKey().startsWith("+++") || entry.getKey().startsWith("---") ? entry.getKey().length() - 3 : entry.getKey().length())));
+						fragment.addAttribute(new Attribute("fragment_length", "" + (entry.getKey().startsWith("+++") 
+								|| entry.getKey().startsWith("---") ? entry.getKey().length() - 3 : entry.getKey().length())));
 						fragment.addAttribute(new Attribute("record_count", "" + entry.getValue().get()));
 						fragment.appendChild(entry.getKey());
 						fragMatches.add(entry.getValue().get());
 					}
 				}
-				if (fragMatches.size() > 1) {
+				if (fragMatches.size() > 1) { 
 					fragments.addAttribute(new Attribute("fragment_breakdown", "" + ClinVarUtil.breakdownEditDistanceDistribution(fragMatches)));
 				}
 			}
 		}
-//		logger.info("no of probes with secondary bin contains > 10% of reads: " + noOfProbesWithLargeSecondaryBin);
 		
 		// write output
 		Document doc = new Document(amplicons);
-		try (OutputStream os = new FileOutputStream(new File(outputFileNameBase + "diag.unbinned_amplicons.xml"));){
+		try (OutputStream os = new FileOutputStream(new File(outputFileNameBase + "diag.unbinned_amplicons.xml"));) { 
 			 Serializer serializer = new Serializer(os, "ISO-8859-1");
 		        serializer.setIndent(4);
 		        serializer.setMaxLength(64);
 		        serializer.write(doc);  
-		} catch (IOException e) {
+		} catch (IOException e) { 
 			e.printStackTrace();
 		}
 	}
@@ -1723,7 +1527,6 @@ public class Q3ClinVar {
 				}
 			}
 			
-//			probeReadCountMap.put(p, new IntPair(fpms.size(), fragmentExists));
 			// add some attributtes
 			fragments.addAttribute(new Attribute("total_number_of_reads", "" + fpms.size()));
 			fragments.addAttribute(new Attribute("reads_containing_fragments", "" + fragmentExists));
@@ -1766,7 +1569,7 @@ public class Q3ClinVar {
 		System.exit(exitStatus);
 	}
 	
-	protected int setup(String args[]) throws Exception{
+	protected int setup(String args[]) throws Exception {
 		int returnStatus = 1;
 		Options options = new Options(args);
 
@@ -1810,7 +1613,7 @@ public class Q3ClinVar {
 				throw new Exception("OUTPUT_FILE_WRITE_ERROR");
 			}
 			// setup output file name base - use UUID
-			//TODO switch to UUID from qexec when ready to roll
+			// switch to UUID from qexec when ready to roll
 			outputFileNameBase = outputDir + Constants.FILE_SEPARATOR + qexec.getUuid().getValue() + ".q3cv.";
 			
 			options.getTiledRefFileName().ifPresent((s) -> refTiledAlignmentFile = s);
@@ -1827,12 +1630,10 @@ public class Q3ClinVar {
 			logger.info("tiledDiffThreshold is " + tiledDiffThreshold);
 			logger.info("swDiffThreshold is " + swDiffThreshold);
 			logger.info("tileMatchThreshold is " + tileMatchThreshold);
-			logger.info("maxIndelLength is " + maxIndelLength);
-			
+			logger.info("maxIndelLength is " + maxIndelLength);			
 			
 			return engage();
 		}
 		return returnStatus;
 	}
-
 }
