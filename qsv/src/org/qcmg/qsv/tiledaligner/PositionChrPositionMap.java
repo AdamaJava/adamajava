@@ -93,27 +93,11 @@ public class PositionChrPositionMap {
 		 * Should only every have 1 range that encompasses a position....
 		 */
 		boolean reverseStrand = NumberUtils.isBitSet(position, TiledAlignerUtil.REVERSE_COMPLEMENT_BIT);
-//		if (reverseStrand) {
-//			/*
-//			 * strip the strand from the long
-//			 */
-//			position = NumberUtils.stripBitFromLong(position, TiledAlignerUtil.REVERSE_COMPLEMENT_BIT);
-//		}
-//		
-//		/*
-//		 * remove the tile position in sequence short
-//		 */
-//		position = NumberUtils.removeShortFromLong(position, TiledAlignerUtil.POSITION_OF_TILE_IN_SEQUENCE_OFFSET);
-//		
 		position = NumberUtils.getLongPositionValueFromPackedLong(position, TiledAlignerUtil.POSITION_OF_TILE_IN_SEQUENCE_OFFSET, TiledAlignerUtil.REVERSE_COMPLEMENT_BIT);
-		
 		
 		for (Entry<ChrPosition, LongRange> entry : chrPosToPositionRange.entrySet()) {
 			LongRange lr = entry.getValue();
 			
-			/*
-			 * remove strand bit from long
-			 */
 			
 			if (lr.isPositionWithinRange(position)) {
 				/*
@@ -135,11 +119,13 @@ public class PositionChrPositionMap {
 		return null;
 	}
 	
-	public ChrPosition getBufferedChrPositionFromLongPosition(long position, int length, int buffer) {
+	public ChrPosition getBufferedChrPositionFromLongPosition(long position, int length, int lhsBuffer, int rhsBuffer) {
 		/*
 		 * Need to loop through our map values, and check each one to see if the position falls within the range.
 		 * Should only ever have 1 range that encompasses a position....
 		 */
+		boolean reverseStrand = NumberUtils.isBitSet(position, TiledAlignerUtil.REVERSE_COMPLEMENT_BIT);
+		position = NumberUtils.getLongPositionValueFromPackedLong(position, TiledAlignerUtil.POSITION_OF_TILE_IN_SEQUENCE_OFFSET, TiledAlignerUtil.REVERSE_COMPLEMENT_BIT);
 		
 		for (Entry<ChrPosition, LongRange> entry : chrPosToPositionRange.entrySet()) {
 			LongRange lr = entry.getValue();
@@ -153,7 +139,7 @@ public class PositionChrPositionMap {
 					logger.warn("positionWithinContig can't be cast to int without overflow!!!");
 				}
 				
-				return new ChrRangePosition(entry.getKey().getChromosome(), Math.max(1, (int) positionWithinContig - buffer), (int) positionWithinContig + length + buffer);
+				return new ChrPositionName(entry.getKey().getChromosome(), Math.max(1, (int) positionWithinContig - lhsBuffer), (int) positionWithinContig + length + rhsBuffer, (reverseStrand ? "R" : "F"));
 			}
 		}
 		logger.warn("could not find ChrPosition for postion: " + position);

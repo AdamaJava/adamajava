@@ -836,7 +836,7 @@ public class TARecordUtil {
 	
 	/**
 	 * tile counts hold a combination of tile matches and mismatch count.
-	 * NEed to take the mismatch count away from the tile count.
+	 * Need to take the mismatch count away from the tile count.
 	 * 
 	 * Favour tile counts that have zero mismatches over those that have mismatches
 	 * eg.
@@ -875,217 +875,215 @@ public class TARecordUtil {
 			/*
 			 * if our max tile count is less than 1/3 (randomly plucked..) then don't proceed as we will just end up with a range of splits that don't cover much of the sequence.
 			 */
-			if (maxTileCount >= (seqLength / 3)) {
+			if (maxTileCount >= (seqLength / 4)) {
 			
 				/*
 				 * we don't want to look for splits right down in the weeds (where the tile count is low, but the number of start positions are high), as there will likely be plenty of low quality splits
 				 * and so set a limit for the starting split - it should be in the top 3 (say) tile counts 
 				 */
-				int tileCountCutoff = keys.length - 3;
+				int minTileCountCutoff = Math.max(keys.length - 3, 0);
 				boolean areWeDone = false;
 				boolean checkResults = true;
-				for (int i = keys.length - 1 ; i >= 0 ; i--) {
+				for (int i = keys.length - 1 ; i >= minTileCountCutoff ; i--) {
 					if (areWeDone) {
 						break;
 					}
-					if (i >= tileCountCutoff) {
-						int tileCountAndCommon = keys[i];
-						
-						/*
-						 * if we have more than 10% commonly occurring tiles, skip
-						 */
-						int commonlyOccurringTiles = NumberUtils.getPartOfPackedInt(tileCountAndCommon, false);
-						if (commonlyOccurringTiles > (0.1 * seqLength)) {
-							continue;
-						}
-						
+					int tileCountAndCommon = keys[i];
+					
+					/*
+					 * if we have more than 10% commonly occurring tiles, skip
+					 */
+					int commonlyOccurringTiles = NumberUtils.getPartOfPackedInt(tileCountAndCommon, false);
+					if (commonlyOccurringTiles > (0.1 * seqLength)) {
+						continue;
+					}
+					
 //						int tileCount = getLengthFromPackedInt(tileCountAndCommon);
-						int tileCount = NumberUtils.getPartOfPackedInt(tileCountAndCommon, true);
-						/*
-						 * only proceed if tileCount and tile length would give a score of 20
-						 */
-						if (tileCount >= MIN_TILE_COUNT) {
-							TLongList list =  countsAndStartPositions.get(tileCountAndCommon);
-							for (int j = 0 ; j < list.size() ; j ++) {
-								long l = list.get(j);
-								boolean isForwardStrand =  ! NumberUtils.isBitSet(l, REVERSE_COMPLEMENT_BIT);
-								short tilePositionInSequence = NumberUtils.getShortFromLong(l, TILE_OFFSET);
-								long positionInGenome = NumberUtils.getLongPositionValueFromPackedLong(l);
-								long positionInGenomeEnd = positionInGenome + tileCount + (TILE_LENGTH - 1);
-								
-								/*
-								 * see if there are any possible ranges
-								 */
-								List<int[]> ranges = getPossibleTileRanges(seqLength, tilePositionInSequence, TILE_LENGTH, tileCount, MIN_BLAT_SCORE_MINUS_RANGE_BUFFER,  ! isForwardStrand);
+					int tileCount = NumberUtils.getPartOfPackedInt(tileCountAndCommon, true);
+					/*
+					 * only proceed if tileCount and tile length would give a score of 20
+					 */
+					if (tileCount >= MIN_TILE_COUNT) {
+						TLongList list =  countsAndStartPositions.get(tileCountAndCommon);
+						for (int j = 0 ; j < list.size() ; j ++) {
+							long l = list.get(j);
+							boolean isForwardStrand =  ! NumberUtils.isBitSet(l, REVERSE_COMPLEMENT_BIT);
+							short tilePositionInSequence = NumberUtils.getShortFromLong(l, TILE_OFFSET);
+							long positionInGenome = NumberUtils.getLongPositionValueFromPackedLong(l);
+							long positionInGenomeEnd = positionInGenome + tileCount + (TILE_LENGTH - 1);
+							
+							/*
+							 * see if there are any possible ranges
+							 */
+							List<int[]> ranges = getPossibleTileRanges(seqLength, tilePositionInSequence, TILE_LENGTH, tileCount, MIN_BLAT_SCORE_MINUS_RANGE_BUFFER,  ! isForwardStrand);
 //								List<int[]> ranges = getPossibleTileRanges(seqLength, tilePositionInSequence, TILE_LENGTH, tileCount, MIN_BLAT_SCORE,  ! isForwardStrand);
 //								List<int[]> ranges = getPossibleTileRanges(seqLength, tilePositionInSequence, TILE_LENGTH, tileCount, MIN_BLAT_SCORE - BUFFER,  ! isForwardStrand);
-								if ( ! ranges.isEmpty()) {
-									/*
-									 * deal with 2 scenarios here
-									 * First is where we have a single range. In this case if a match is found, and there is still room for another match, another attempt at a match is made
-									 * Second case is where we have 2 ranges.
-									 * 
-									 * Both of these scenarios could result in IntLongPairs that contain 3 IntLongPair objects
-									 */
-									
-									if (ranges.size() == 1) {
-										List<IntLongPair> resultsForRange = getPositionsThatFitInRange(ranges.get(0), positionInGenome, positionInGenomeEnd, countsAndStartPositions, keys, TILE_LENGTH, seqLength, i);
-										if ( ! resultsForRange.isEmpty()) {
-											
-											IntLongPairs pairs = getILPSFromLists(resultsForRange, null, new IntLongPair(tileCountAndCommon, l));
-													
-											/*
-											 * check to see if we could fit an additional bit of sequence in here
-											 */
-											int[][] remainingRanges = getRemainingRangeFromIntLongPairs(pairs, seqLength);
-											if (remainingRanges.length > 0) {
+							if ( ! ranges.isEmpty()) {
+								/*
+								 * deal with 2 scenarios here
+								 * First is where we have a single range. In this case if a match is found, and there is still room for another match, another attempt at a match is made
+								 * Second case is where we have 2 ranges.
+								 * 
+								 * Both of these scenarios could result in IntLongPairs that contain 3 IntLongPair objects
+								 */
+								
+								if (ranges.size() == 1) {
+									List<IntLongPair> resultsForRange = getPositionsThatFitInRange(ranges.get(0), positionInGenome, positionInGenomeEnd, countsAndStartPositions, keys, TILE_LENGTH, seqLength, i);
+									if ( ! resultsForRange.isEmpty()) {
+										
+										IntLongPairs pairs = getILPSFromLists(resultsForRange, null, new IntLongPair(tileCountAndCommon, l));
+												
+										/*
+										 * check to see if we could fit an additional bit of sequence in here
+										 */
+										int[][] remainingRanges = getRemainingRangeFromIntLongPairs(pairs, seqLength);
+										if (remainingRanges.length > 0) {
 //												System.out.println("Found " + remainingRanges.length + " remaining ranges for pairs: " + pairs.toString() + ", remaining ranges[0]: " + Arrays.toString(remainingRanges[0]));
+											for (int[] remainingRange : remainingRanges) {
+												List<IntLongPair> resultsForRemainingRange = getPositionsThatFitInRange(remainingRange, positionInGenome, positionInGenomeEnd, countsAndStartPositions, keys, TILE_LENGTH, seqLength, i);
+												if ( ! resultsForRemainingRange.isEmpty()) {
+													
+//														System.out.println("Found " + resultsForRemainingRange.size() + " matches for remaining range: " + Arrays.toString(remainingRange));
+													
+//														System.out.println("Adding new IntLongPair!");
+													IntLongPairsUtils.addBestILPtoPairs(pairs, resultsForRemainingRange);
+//														pairs.addPair(resultsForRemainingRange.get(0));
+													
+													/*
+													 * don't want to add any more to this pair
+													 */
+//														break;
+													
+//													} else {
+//														System.out.println("Found NO matches for remaining range: " + Arrays.toString(remainingRange));
+												}
+											}
+											
+											/*
+											 * go again....
+											 */
+											remainingRanges = getRemainingRangeFromIntLongPairs(pairs, seqLength);
+											if (remainingRanges.length > 0) {
+//													System.out.println("Found " + remainingRanges.length + " remaining ranges for pairs: " + pairs.toString() + ", remaining ranges[0]: " + Arrays.toString(remainingRanges[0]));
 												for (int[] remainingRange : remainingRanges) {
 													List<IntLongPair> resultsForRemainingRange = getPositionsThatFitInRange(remainingRange, positionInGenome, positionInGenomeEnd, countsAndStartPositions, keys, TILE_LENGTH, seqLength, i);
 													if ( ! resultsForRemainingRange.isEmpty()) {
 														
-//														System.out.println("Found " + resultsForRemainingRange.size() + " matches for remaining range: " + Arrays.toString(remainingRange));
-														
-//														System.out.println("Adding new IntLongPair!");
-														IntLongPairsUtils.addBestILPtoPairs(pairs, resultsForRemainingRange);
-//														pairs.addPair(resultsForRemainingRange.get(0));
+//															System.out.println("Found " + resultsForRemainingRange.size() + " matches for remaining range: " + Arrays.toString(remainingRange));
 														
 														/*
-														 * don't want to add any more to this pair
+														 * sort and take largest again
 														 */
-//														break;
-														
-//													} else {
-//														System.out.println("Found NO matches for remaining range: " + Arrays.toString(remainingRange));
-													}
-												}
-												
-												/*
-												 * go again....
-												 */
-												remainingRanges = getRemainingRangeFromIntLongPairs(pairs, seqLength);
-												if (remainingRanges.length > 0) {
-//													System.out.println("Found " + remainingRanges.length + " remaining ranges for pairs: " + pairs.toString() + ", remaining ranges[0]: " + Arrays.toString(remainingRanges[0]));
-													for (int[] remainingRange : remainingRanges) {
-														List<IntLongPair> resultsForRemainingRange = getPositionsThatFitInRange(remainingRange, positionInGenome, positionInGenomeEnd, countsAndStartPositions, keys, TILE_LENGTH, seqLength, i);
-														if ( ! resultsForRemainingRange.isEmpty()) {
-															
-//															System.out.println("Found " + resultsForRemainingRange.size() + " matches for remaining range: " + Arrays.toString(remainingRange));
-															
-															/*
-															 * sort and take largest again
-															 */
 //															resultsForRemainingRange.sort(null);
 //															System.out.println("Adding new IntLongPair!");
-															IntLongPairsUtils.addBestILPtoPairs(pairs, resultsForRemainingRange);
-//															pairs.addPair(resultsForRemainingRange.get(0));
-															
-															/*
-															 * don't want to add any more to this pair
-															 */
-//															break;
-															
-//														} else {
-//															System.out.println("Found NO matches for remaining range: " + Arrays.toString(remainingRange));
-														}
-													}
-												}
-												
-//											} else {
-//												System.out.println("No remaining ranges found for pairs: " + pairs.toString());
-											}
-											
-											/*
-											 * check that pairs is not a subset of existing pairs
-											 */
-											if ( ! IntLongPairsUtils.isPairsASubSetOfExistingPairs(getPairsFromMap(results), pairs)) {
-												Set<IntLongPairs> resultsListList = results.putIfAbsent(IntLongPairsUtils.getBasesCoveredByIntLongPairs(pairs, seqLength, TILE_LENGTH), new HashSet<>(Arrays.asList(pairs)));
-												if (null != resultsListList) {
-													resultsListList.add(pairs);
-												}
-												checkResults = true;
-											}
-										}
-								
-									} else if (ranges.size() == 2) {
-										/*
-										 * 3 IntLongPair objects here
-										 * create the IntLongPairs object with ordered INtLongPair objects - makes the IntLongPairs.equals() and hashcode() valid
-										 */
-										List<IntLongPair> resultsForRange1 = getPositionsThatFitInRange(ranges.get(0), positionInGenome, positionInGenomeEnd, countsAndStartPositions, keys, TILE_LENGTH, seqLength, i);
-										List<IntLongPair> resultsForRange2 = getPositionsThatFitInRange(ranges.get(1), positionInGenome, positionInGenomeEnd, countsAndStartPositions, keys, TILE_LENGTH, seqLength, i);
-										if ( ! resultsForRange1.isEmpty() ||  ! resultsForRange2.isEmpty()) {
-											IntLongPairs pairs = getILPSFromLists(resultsForRange1, resultsForRange2, new IntLongPair(tileCountAndCommon, l));
-											
-											
-											/*
-											 * check to see if we could fit an additional bit of sequence in here
-											 */
-											int[][] remainingRanges = getRemainingRangeFromIntLongPairs(pairs, seqLength);
-											if (remainingRanges.length > 0) {
-//												System.out.println("Found " + remainingRanges.length + " remaining ranges for pairs: " + pairs.toString() + ", remaining ranges[0]: " + Arrays.toString(remainingRanges[0]));
-												for (int[] remainingRange : remainingRanges) {
-													List<IntLongPair> resultsForRemainingRange = getPositionsThatFitInRange(remainingRange, positionInGenome, positionInGenomeEnd, countsAndStartPositions, keys, TILE_LENGTH, seqLength, i);
-													if ( ! resultsForRemainingRange.isEmpty()) {
-														
-//														System.out.println("Found " + resultsForRemainingRange.size() + " matches for remaining range: " + Arrays.toString(remainingRange));
-														
-														/*
-														 * no need to sort as they are added to the list in a sorted manner
-														 */
-//														resultsForRemainingRange.sort(null);
-//														System.out.println("Adding new IntLongPair!");
 														IntLongPairsUtils.addBestILPtoPairs(pairs, resultsForRemainingRange);
-//														pairs.addPair(resultsForRemainingRange.get(0));
+//															pairs.addPair(resultsForRemainingRange.get(0));
 														
 														/*
 														 * don't want to add any more to this pair
 														 */
-//														break;
+//															break;
 														
-//													} else {
-//														System.out.println("Found NO matches for remaining range: " + Arrays.toString(remainingRange));
+//														} else {
+//															System.out.println("Found NO matches for remaining range: " + Arrays.toString(remainingRange));
 													}
 												}
 											}
 											
-											/*
-											 * check that pairs is not a subset of existing pairs
-											 */
-											if ( ! IntLongPairsUtils.isPairsASubSetOfExistingPairs(getPairsFromMap(results), pairs)) {
-												Set<IntLongPairs> resultsListList = results.putIfAbsent(IntLongPairsUtils.getBasesCoveredByIntLongPairs(pairs, seqLength, TILE_LENGTH), new HashSet<>(Arrays.asList(pairs)));
-												if (null != resultsListList) {
-													resultsListList.add(pairs);
-												}
-												checkResults = true;
+//											} else {
+//												System.out.println("No remaining ranges found for pairs: " + pairs.toString());
+										}
+										
+										/*
+										 * check that pairs is not a subset of existing pairs
+										 */
+										if ( ! IntLongPairsUtils.isPairsASubSetOfExistingPairs(getPairsFromMap(results), pairs)) {
+											Set<IntLongPairs> resultsListList = results.putIfAbsent(IntLongPairsUtils.getBasesCoveredByIntLongPairs(pairs, seqLength, TILE_LENGTH), new HashSet<>(Arrays.asList(pairs)));
+											if (null != resultsListList) {
+												resultsListList.add(pairs);
 											}
+											checkResults = true;
+										}
+									}
+							
+								} else if (ranges.size() == 2) {
+									/*
+									 * 3 IntLongPair objects here
+									 * create the IntLongPairs object with ordered INtLongPair objects - makes the IntLongPairs.equals() and hashcode() valid
+									 */
+									List<IntLongPair> resultsForRange1 = getPositionsThatFitInRange(ranges.get(0), positionInGenome, positionInGenomeEnd, countsAndStartPositions, keys, TILE_LENGTH, seqLength, i);
+									List<IntLongPair> resultsForRange2 = getPositionsThatFitInRange(ranges.get(1), positionInGenome, positionInGenomeEnd, countsAndStartPositions, keys, TILE_LENGTH, seqLength, i);
+									if ( ! resultsForRange1.isEmpty() ||  ! resultsForRange2.isEmpty()) {
+										IntLongPairs pairs = getILPSFromLists(resultsForRange1, resultsForRange2, new IntLongPair(tileCountAndCommon, l));
+										
+										
+										/*
+										 * check to see if we could fit an additional bit of sequence in here
+										 */
+										int[][] remainingRanges = getRemainingRangeFromIntLongPairs(pairs, seqLength);
+										if (remainingRanges.length > 0) {
+//												System.out.println("Found " + remainingRanges.length + " remaining ranges for pairs: " + pairs.toString() + ", remaining ranges[0]: " + Arrays.toString(remainingRanges[0]));
+											for (int[] remainingRange : remainingRanges) {
+												List<IntLongPair> resultsForRemainingRange = getPositionsThatFitInRange(remainingRange, positionInGenome, positionInGenomeEnd, countsAndStartPositions, keys, TILE_LENGTH, seqLength, i);
+												if ( ! resultsForRemainingRange.isEmpty()) {
+													
+//														System.out.println("Found " + resultsForRemainingRange.size() + " matches for remaining range: " + Arrays.toString(remainingRange));
+													
+													/*
+													 * no need to sort as they are added to the list in a sorted manner
+													 */
+//														resultsForRemainingRange.sort(null);
+//														System.out.println("Adding new IntLongPair!");
+													IntLongPairsUtils.addBestILPtoPairs(pairs, resultsForRemainingRange);
+//														pairs.addPair(resultsForRemainingRange.get(0));
+													
+													/*
+													 * don't want to add any more to this pair
+													 */
+//														break;
+													
+//													} else {
+//														System.out.println("Found NO matches for remaining range: " + Arrays.toString(remainingRange));
+												}
+											}
+										}
+										
+										/*
+										 * check that pairs is not a subset of existing pairs
+										 */
+										if ( ! IntLongPairsUtils.isPairsASubSetOfExistingPairs(getPairsFromMap(results), pairs)) {
+											Set<IntLongPairs> resultsListList = results.putIfAbsent(IntLongPairsUtils.getBasesCoveredByIntLongPairs(pairs, seqLength, TILE_LENGTH), new HashSet<>(Arrays.asList(pairs)));
+											if (null != resultsListList) {
+												resultsListList.add(pairs);
+											}
+											checkResults = true;
+										}
 //											Set<IntLongPairs> resultsListList = results.putIfAbsent(IntLongPairsUtils.getBasesCoveredByIntLongPairs(pairs, seqLength, TILE_LENGTH), new HashSet<>(Arrays.asList(pairs)));
 //											if (null != resultsListList) {
 //												resultsListList.add(pairs);
 //											}
-										}
 									}
 								}
 							}
 						}
 					}
+				}
 					
 					
-					/*
-					 * check results, if we have covered all bases in seqLength with our splits, no need to go looking for more
-					 */
-					if (checkResults &&  ! results.isEmpty()) {
-						for (int key : results.keys()) {
-							if (key == seqLength) {
-								/*
-								 * done
-								 */
-								areWeDone = true;
-								break;
-							}
+				/*
+				 * check results, if we have covered all bases in seqLength with our splits, no need to go looking for more
+				 */
+				if (checkResults &&  ! results.isEmpty()) {
+					for (int key : results.keys()) {
+						if (key == seqLength) {
+							/*
+							 * done
+							 */
+							areWeDone = true;
+							break;
 						}
-						checkResults = false;
 					}
+					checkResults = false;
 				}
 			}
 		}
@@ -1445,7 +1443,7 @@ public class TARecordUtil {
 		return getLengthFromPackedInt(packedInt, TILE_LENGTH);
 	}
 	public static int getLengthFromPackedInt(int packedInt, int tileLength) {
-		int tileCounts = NumberUtils.sumPackedInt(packedInt);
+		int tileCounts = NumberUtils.minusPackedInt(packedInt);
 		return tileCounts + tileLength - 1;
 	}
 	

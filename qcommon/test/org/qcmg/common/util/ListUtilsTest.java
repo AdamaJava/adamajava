@@ -85,6 +85,20 @@ public class ListUtilsTest {
 		TLongList newList = ListUtils.removeAdjacentPositionsInList(list, 100);
 		assertEquals(1, newList.size());
 	}
+	@Test
+	public void removeAdjacent5() {
+		TLongList list = new TLongArrayList(new long[] {26607815l, 26607815l, 26607815l, 26607815l, 26607815l});
+		TLongList newList = ListUtils.removeAdjacentPositionsInList(list, 100);
+		assertEquals(1, newList.size());
+		
+		list = new TLongArrayList(new long[] {4611821261297089557l, 4611821261297089557l, 4611821261297089557l, 4611821261297089557l, 4611821261297089557l});
+		newList = ListUtils.removeAdjacentPositionsInList(list, 100);
+		assertEquals(1, newList.size());
+		
+		list = new TLongArrayList(new long[] {4611821261297089557l, 4611821261297089557l, 4611821261297089557l,26607815l, 26607815l, 26607815l, 26607815l, 26607815l, 4611821261297089557l, 4611821261297089557l});
+		newList = ListUtils.removeAdjacentPositionsInList(list, 100);
+		assertEquals(2, newList.size());
+	}
 	
 	@Test
 	public void removeAdjacent3() {

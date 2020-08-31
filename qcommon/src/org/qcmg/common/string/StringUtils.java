@@ -505,5 +505,4 @@ public class StringUtils {
 		}
 		return matchCount;
 	}
-
 }

@@ -12,6 +12,7 @@ import java.util.Map.Entry;
 import java.util.Optional;
 
 import org.apache.commons.lang3.Range;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrPositionName;
@@ -25,9 +26,21 @@ import org.qcmg.qsv.blat.BLATRecord;
 import gnu.trove.list.TLongList;
 import gnu.trove.list.array.TLongArrayList;
 import gnu.trove.map.TIntObjectMap;
+import gnu.trove.map.TLongIntMap;
 import htsjdk.samtools.util.SequenceUtil;
 
 public class TiledAlignerUtilTest {
+	
+	public static PositionChrPositionMap pcpm;
+	
+	@BeforeClass
+	public static void setup() {
+		/*
+		 * setup cache
+		 */
+		pcpm = new PositionChrPositionMap();
+		pcpm.loadMap(PositionChrPositionMap.grch37Positions);
+	}
 	
 	@Test
 	public void tileInput() {
@@ -226,11 +239,15 @@ public class TiledAlignerUtilTest {
 		TARecord taRec = new TARecord("CTCCCTCCCCCTTCTTTCTTCCTCCTTCCCTCCTTC", map2);
 		
 		TLongList bestStartPositions = taRec.getStartPositions(12, true, 1000);
+		TLongIntMap bestStartPositionsMap = taRec.getStartPositions();
+		assertEquals(bestStartPositions.size(), bestStartPositionsMap.size());
 		assertEquals(false, bestStartPositions.contains(305656168l));
 		bestStartPositions = taRec.getStartPositions(2, true, 3000);
 		assertEquals(4,  bestStartPositions.size());
+		assertEquals(bestStartPositions.size(), bestStartPositionsMap.size());
 		bestStartPositions = taRec.getStartPositions(12, true, 10);
 		assertEquals(4,  bestStartPositions.size());
+		assertEquals(bestStartPositions.size(), bestStartPositionsMap.size());
 	}
 	@Test
 	public void getBEstStartPosition5() {
@@ -309,6 +326,68 @@ start positions for tile: GCGGTGGCAGGCA", new TLongArrayList(new long[] {1893648
 		//1953542017l
 		assertArrayEquals(new long[] {112750457,1445522850,1673097818,2515761254l}, map2.get(NumberUtils.getTileCount(12, 0)).toArray());
 		assertEquals(true, map2.get(NumberUtils.getTileCount(4, 15)).contains(1953542030l));
+	}
+	@Test
+	public void getBEstStartPosition7() {
+		
+		Map<String, TLongList> map = new HashMap<>();
+		
+		map.put("TCCCTCCCTTCCT", new TLongArrayList(new long[] {2386760682l}));
+		map.put("CCCTCCCTTCCTC", new TLongArrayList(new long[] {2386760683l}));
+		map.put("CCTCCCTTCCTCT", new TLongArrayList(new long[] {2386760684l}));
+		map.put("CTCCCTTCCTCTT", new TLongArrayList(new long[] {2386760685l}));
+		map.put("TCCCTTCCTCTTT", new TLongArrayList(new long[] {2386760686l}));
+		map.put("CCCTTCCTCTTTC", new TLongArrayList(new long[] {2386760687l}));
+		map.put("CCTTCCTCTTTCT", new TLongArrayList(new long[] {2386760688l}));
+		map.put("CTTCCTCTTTCTG", new TLongArrayList(new long[] {2386760689l}));
+		map.put("TTCCTCTTTCTGT", new TLongArrayList(new long[] {2386760690l}));
+		map.put("TCCTCTTTCTGTC", new TLongArrayList(new long[] {2386760691l}));
+		map.put("CCTCTTTCTGTCT", new TLongArrayList(new long[] {2386760692l}));
+		map.put("CTCTTTCTGTCTT", new TLongArrayList(new long[] {2386760693l}));
+		map.put("TCTTTCTGTCTTT", new TLongArrayList(new long[] {2386760694l}));
+		map.put("CTTTCTGTCTTTT", new TLongArrayList(new long[] {2386760695l}));
+		map.put("TTTCTGTCTTTTC", new TLongArrayList(new long[] {2386760696l}));
+		map.put("TTCTGTCTTTTCT", new TLongArrayList(new long[] {2386760697l}));
+		map.put("TCTGTCTTTTCTT", new TLongArrayList(new long[] {2386760698l}));
+		map.put("CTGTCTTTTCTTC", new TLongArrayList(new long[] {2386760699l}));
+		map.put("TGTCTTTTCTTCC", new TLongArrayList(new long[] {2386760700l}));
+		map.put("GTCTTTTCTTCCT", new TLongArrayList(new long[] {2386760701l}));
+		map.put("TCTTTTCTTCCTT", new TLongArrayList(new long[] {2386760702l}));
+		map.put("CTTTTCTTCCTTC", new TLongArrayList(new long[] {2386760703l}));
+		map.put("TTTTCTTCCTTCC", new TLongArrayList(new long[] {2386760704l}));
+		map.put("TTTCTTCCTTCCT", new TLongArrayList(new long[] {2386760705l}));
+		map.put("TTCTTCCTTCCTT", new TLongArrayList(new long[] {2386760706l}));
+		map.put("TCTTCCTTCCTTC", new TLongArrayList(new long[] {2386760707l}));
+		
+		map.put("CTTCCTTCCTTCA", new TLongArrayList(new long[] {100}));
+		map.put("TTCCTTCCTTCAT", new TLongArrayList(new long[] {200}));
+		map.put("TCCTTCCTTCATT", new TLongArrayList(new long[] {300}));
+		map.put("CCTTCCTTCATTT", new TLongArrayList(new long[] {400}));
+		map.put("CTTCCTTCATTTC", new TLongArrayList(new long[] {500}));
+		map.put("TTCCTTCATTTCT", new TLongArrayList(new long[] {600}));
+		map.put("TCCTTCATTTCTT", new TLongArrayList(new long[] {700}));
+		map.put("CCTTCATTTCTTT", new TLongArrayList(new long[] {800}));
+		map.put("CTTCATTTCTTTC", new TLongArrayList(new long[] {900}));
+		map.put("TTCATTTCTTTCT", new TLongArrayList(new long[] {10}));
+		map.put("TCATTTCTTTCTC", new TLongArrayList(new long[] {11}));
+		map.put("CATTTCTTTCTCT", new TLongArrayList(new long[] {12}));
+		map.put("ATTTCTTTCTCTT", new TLongArrayList(new long[] {13}));
+		
+		map.put("TTTCTTTCTCTTT", new TLongArrayList(new long[] {-1}));
+		map.put("TTCTTTCTCTTTC", new TLongArrayList(new long[] {2386760722l}));
+//		map.put("TCTTTCTCTTTCT", new TLongArrayList(new long[] {-1}));
+//		map.put("CTTTCTCTTTCTC", new TLongArrayList(new long[] {2386741793l, 2387887276l}));
+		
+		Map<Integer, TLongList> map2 = TiledAlignerUtil.getTiles(map, "TCCCTCCCTTCCTCTTTCTGTCTTTTCTTCCTTCCTTCATTTCTTTCTCTTTC", 13, false);
+		assertEquals(1, map2.size());
+		List<Integer> keys = new ArrayList<>(map2.keySet());
+		keys.sort(null);
+		for (int i = keys.size() - 1; i >= 0 ; i--) {
+			System.out.println("key: " + keys.get(i) + ", counts: " + Arrays.toString(NumberUtils.splitIntInto2(keys.get(i))) + ", positions: " + map2.get(keys.get(i)).toString());
+		}
+		
+		assertEquals(1, map2.get(NumberUtils.getTileCount(41, 1)).size());
+		assertEquals(2386760682l, map2.get(NumberUtils.getTileCount(41, 1)).get(0));
 	}
 	
 	@Test
@@ -480,6 +559,7 @@ start positions for tile: GCGGTGGCAGGCA", new TLongArrayList(new long[] {1893648
 		
 		
 		Map<Integer, TLongList> map2 = TiledAlignerUtil.getTiles(map, "GGCCGAGGCGGGTGGATCATGAGGTCAGGAGATCGAGACCATCCTGGCTAACAAGGTGAAACCCCATCTCTACATATGGCCATATG", 13, true);
+		System.out.println("map2 size: " + map2.size());
 		List<Integer> keys = new ArrayList<>(map2.keySet());
 		keys.sort(null);
 		for (int i = keys.size() - 1; i >= 0 ; i--) {
@@ -1058,6 +1138,48 @@ start positions for tile: AATAATAATAATA", new TLongArrayList(new long[] {-922337
 		array[32] = new long[] {3300};
 		assertArrayEquals(new int[]{29,1}, NumberUtils.splitIntInto2(TiledAlignerUtil.nonContinuousCount(array, 1, 1)));
 	}
+	@Test
+	public void convertLongDoubleArrayToMap6() {
+		/*
+		 * This test has one mismatch in the middle
+		 * How should this be handled?
+		 */
+		long [][] array = new long[33][];
+		array[0] = new long[] {1};
+		array[1] = new long[] {2};
+		array[2] = new long[] {3};
+		array[3] = new long[] {4};
+		array[4] = new long[] {5};
+		array[5] = new long[] {6};
+		array[6] = new long[] {7};
+		array[7] = new long[] {8};
+		array[8] = new long[] {9};
+		array[9] = new long[] {10};
+		array[10] = new long[] {1006};
+		array[11] = new long[] {1884596177};
+		array[12] = new long[] {1884596178};
+		array[13] = new long[] {1884596179};
+		array[14] = new long[] {1884596180};
+		array[15] = new long[] {1884596181};
+		array[16] = new long[] {1212341234};
+		array[17] = new long[] {443263245};
+		array[18] = new long[] {2146543563};
+		array[19] = new long[] {1223563456};
+		array[20] = new long[] {1884596186};
+		array[21] = new long[] {1884596187};
+		array[22] = new long[] {1884596188};
+		array[23] = new long[] {-1};
+		array[24] = new long[] {25};
+		array[25] = new long[] {26};
+		array[26] = new long[] {27};
+		array[27] = new long[] {28};
+		array[28] = new long[] {29};
+		array[29] = new long[] {3000};
+		array[30] = new long[] {3100};
+		array[31] = new long[] {3200};
+		array[32] = new long[] {3300};
+		assertArrayEquals(new int[]{29,1}, NumberUtils.splitIntInto2(TiledAlignerUtil.nonContinuousCount(array, 1, 1)));
+	}
 	
 	
 	@Test
@@ -1364,13 +1486,36 @@ start positions for tile: AATAATAATAATA", new TLongArrayList(new long[] {-922337
 	}
 	
 	@Test
+	public void getBufferedCP() {
+		long l = 4611694817313131386l;
+		int matches = 34 + 12;
+		int seqLength = 68;
+		ChrPosition cp = TiledAlignerUtil.getBufferedChrPosition(l, seqLength, matches, pcpm);
+		assertEquals("chr21", cp.getChromosome());
+		assertEquals(11122420, cp.getStartPosition());
+	}
+	
+	@Test
+	public void getBufferedCP2() {
+		long l = NumberUtils.addShortToLong(130, (short)30, TiledAlignerUtil.POSITION_OF_TILE_IN_SEQUENCE_OFFSET);
+		int matches = 40 - 12;
+		int seqLength = 100;
+		ChrPosition cp = TiledAlignerUtil.getBufferedChrPosition(l, seqLength, matches, pcpm);
+		assertEquals("chr1", cp.getChromosome());
+		assertEquals(79, cp.getStartPosition());
+		assertEquals(219, cp.getEndPosition());
+	}
+	
+	@Test
 	public void getInsertionCountAgain() {
 		assertEquals(0, TiledAlignerUtil.getInsertionCount("", ' '));
+		assertEquals(0, TiledAlignerUtil.getInsertionCount("||||||", ' '));
 		assertEquals(0, TiledAlignerUtil.getInsertionCount("||||||", ' '));
 		assertEquals(0, TiledAlignerUtil.getInsertionCount("||||||.|", ' '));
 		assertEquals(1, TiledAlignerUtil.getInsertionCount("||||||.|||||| ||||", ' '));
 		assertEquals(1, TiledAlignerUtil.getInsertionCount("||||||.||||||    ||||", ' '));
 		assertEquals(17, TiledAlignerUtil.getInsertionCount("|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||   |||    | ||  |    |||.||        ||    |.|| |.|||        |||||||   || ||||| ||| |.||||   ||.|||.|.||||.|   |||.|||  ||  .|||||", ' '));
+		assertEquals(10, TiledAlignerUtil.getInsertionCount("|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||   |||    | ||  |    |||.||        ||    |.|| |.|||        |||||||   || ||||| ||| |.||||   ||.|||.|.||||.|   |||.|||  ||  .|||||", '.'));
 	}
 	
 	@Test

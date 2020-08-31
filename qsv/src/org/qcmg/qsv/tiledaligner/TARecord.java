@@ -18,6 +18,7 @@ import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.TLongIntMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 import gnu.trove.map.hash.TLongIntHashMap;
+import gnu.trove.procedure.TLongProcedure;
 import gnu.trove.set.TLongSet;
 import gnu.trove.set.hash.TLongHashSet;
 
@@ -326,6 +327,55 @@ public class TARecord {
 			}
 		}
 		return list;
+	}
+	
+	public TLongIntMap getStartPositions() {
+		int maxCutoff = 50;
+		int topN = 3;
+		TLongIntMap map = new TLongIntHashMap();
+		
+		if (null == countAndStartPositionsMap || countAndStartPositionsMap.isEmpty()) {
+			return map;
+		}
+		
+		int [] keys = countAndStartPositionsMap.keys();
+		keys = TARecordUtil.sortTileCount(keys);
+//		keys = Arrays.stream(keys).mapToObj(k -> NumberUtils.splitIntInto2(k)).sorted((a,b) -> Integer.compare((a[0] - a[1]), (b[0] - b[1]))).mapToInt(a -> NumberUtils.pack2IntsInto1(a[0], a[1])).toArray();
+//		Arrays.sort(keys);
+		
+		/*
+		 * get the top 3 (if present)
+		 * or less if by adding the next set, the total size of list will exceed lets saaaaaaaay 50
+		 */
+		int size = keys.length;
+		
+		
+		for (int i = size - 1, min = Math.max(0,  size - 1 - topN) ; i >= min ; i--) {
+			final int key = keys[i];
+			if (i == size - 1) {
+				countAndStartPositionsMap.get(key).forEach(new TLongProcedure(){
+					@Override
+					public boolean execute(long l) {
+						map.put(l, key);
+						return true;
+					}
+				});
+//				list.addAll(countAndStartPositionsMap.get(keys[i]).forEach(l -> new IntLongPair(keys[i], l)));
+			} else {
+				
+				if (countAndStartPositionsMap.get(key).size() + map.size() < maxCutoff) {
+					countAndStartPositionsMap.get(key).forEach(new TLongProcedure(){
+						@Override
+						public boolean execute(long l) {
+							map.put(l, key);
+							return true;
+						}
+					});
+//					list.addAll(countAndStartPositionsMap.get(keys[i]));
+				}
+			}
+		}
+		return map;
 	}
 	
 	public TAClassifier getClassification() {

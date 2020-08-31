@@ -60,6 +60,12 @@ public class NumberUtils {
 	public static int sumPackedInt(int toSum, int divider) {
 		return (toSum >> divider) + (short) toSum;
 	}
+	public static int minusPackedInt(int toSum) {
+		return minusPackedInt(toSum, SHORT_DIVIDER);
+	}
+	public static int minusPackedInt(int toSum, int divider) {
+		return (toSum >> divider) - (short) toSum;
+	}
 	
 	public static int getPartOfPackedInt(int packedInt, boolean firstPart) {
 		return getPartOfPackedInt(packedInt, firstPart, SHORT_DIVIDER);

@@ -360,4 +360,8 @@ public class BLATRecord implements Comparable<BLATRecord> {
 	public int getNonTempBases() {
 		return this.nonTempBases;
 	}
+	
+	public int getMisMatches() {
+		return Integer.valueOf(rawData[1]);
+	}
 }

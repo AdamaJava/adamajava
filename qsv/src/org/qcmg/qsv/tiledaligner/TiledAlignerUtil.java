@@ -47,6 +47,7 @@ import gnu.trove.map.TLongIntMap;
 import gnu.trove.map.hash.THashMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 import gnu.trove.map.hash.TLongIntHashMap;
+import gnu.trove.procedure.TLongIntProcedure;
 import gnu.trove.set.TLongSet;
 import gnu.trove.set.hash.TLongHashSet;
 import htsjdk.samtools.SAMSequenceDictionary;
@@ -60,6 +61,7 @@ import htsjdk.samtools.util.SequenceUtil.SequenceListsDifferException;
 public class TiledAlignerUtil {
 	
 	public static final int TILE_LENGTH = 13;
+	public static final int TILE_LENGTH_MINUS_ONE = TILE_LENGTH - 1;
 	public static final int REVERSE_COMPLEMENT_BIT = 62;
 	public static final int COMMON_OCCURING_TILE_BIT = 63;
 	public static final int POSITION_OF_TILE_IN_SEQUENCE_OFFSET = 40;
@@ -776,12 +778,6 @@ public class TiledAlignerUtil {
 				if (nextArray.length == 1 && nextArray[0] < 0) {
 					commonTileTally++;
 					
-					
-					/*
-					 * Lets try breaking out if we get a commonly occurring tile
-					 */
-					
-//					break;
 				} else {
 					
 					/*
@@ -800,13 +796,33 @@ public class TiledAlignerUtil {
 						 */
 						if (arrayStartPosition + i + 13 < arrayLength) {
 							nextArray = array[arrayStartPosition + i + 13];
-							if (null != nextArray && nextArray.length > 0 && nextArray[0] != -1) {
-								position = NumberUtils.getPositionOfLongInArray(nextArray, l + i + 14);
-								if (position > -1) {
-									i += 12;
-									tally += 13;
-									mismatchTally++;
-									continue;
+							if (null != nextArray && nextArray.length > 0) {
+								if (nextArray[0] != -1) {
+							
+									position = NumberUtils.getPositionOfLongInArray(nextArray, l + i + 14);
+									if (position > -1) {
+										i += 13;
+										tally += 13;
+										mismatchTally++;
+										continue;
+									}
+								} else if (nextArray.length == 1 && nextArray[0] == -1){
+									/*
+									 * allow a common occurring tile after the snp
+									 */
+									if (arrayStartPosition + i + 14 < arrayLength) {
+										nextArray = array[arrayStartPosition + i + 14];
+										if (null != nextArray && nextArray.length > 0 && nextArray[0] != -1) {
+											position = NumberUtils.getPositionOfLongInArray(nextArray, l + i + 15);
+											if (position > -1) {
+												commonTileTally++;
+												i += 14;	// plus one
+												tally += 14;	// kept the same, as we will add the common tile count at the end
+												mismatchTally++;
+												continue;
+											}
+										}
+									}
 								}
 							}
 						}
@@ -1148,6 +1164,109 @@ public class TiledAlignerUtil {
 //		}
 		return diffs;
 	}
+	
+	public static int[] getCountsFromSWString(String swDiff) {
+		int [] counts = new int[3];
+		for (char c1 : swDiff.toCharArray()) {
+			if (c1 == '|') {
+				counts[0]++;
+			} else if (c1 == '.') {
+				counts[1]++;
+			} else if (c1 == ' ') {
+				counts[2]++;
+			}
+		}
+		return counts;
+	}
+	
+	public static String[] getIntelligentSwDiffs(String ref, String sequence) {
+		if (org.qcmg.common.string.StringUtils.isNullOrEmpty(ref)
+				|| org.qcmg.common.string.StringUtils.isNullOrEmpty(sequence)) {
+			throw new IllegalArgumentException("ref or sequence (or both) supplied to ClinVarUtil.getSwDiffs were null. ref: " + ref + ", sequence: " + sequence);
+		}
+		
+		
+		/*
+		 * run a strict and lenient
+		 * return the one with the highest score (that is valid - ie. less than 10% mismatch, less than 6 blocks)
+		 */
+		SmithWatermanGotoh nmLenient = new SmithWatermanGotoh(ref, sequence, 5, -4, 16, 4);
+		SmithWatermanGotoh nmStrict = new SmithWatermanGotoh(ref, sequence, 4, -14, 14, 1);
+		String [] diffsLenient = nmLenient.traceback();
+		String [] diffsStrict = nmStrict.traceback();
+		
+		/*
+		 * running 2 sw's per query...
+		 */
+		swCounter.addAndGet(2);
+		
+		int [] scoresLenient = getCountsFromSWString(diffsLenient[1]);
+		int [] scoresStrict = getCountsFromSWString(diffsStrict[1]);
+		
+		if ((scoresLenient[0] - scoresLenient[1] - scoresLenient[2]) > (scoresStrict[0] - scoresStrict[1] - scoresStrict[2])) {
+//			System.out.println("Going with Lenient!");
+			return diffsLenient;
+		} else {
+//			System.out.println("Going with Strict!");
+			return diffsStrict;
+		}
+		
+		
+		/*
+		 * use strict SW - see how that pans out
+		 */
+//		boolean useOriginalValues = nCount > 2;
+//		SmithWatermanGotoh nm = null;
+//		swCounter.incrementAndGet();
+//		if (useOriginalValues) {
+//			System.out.println("using original sw values as nCount is: " + nCount);
+//			nm = new SmithWatermanGotoh(ref, sequence, 5, -4, 16, 4);
+//		} else {
+//			nm = new SmithWatermanGotoh(ref, sequence, 4, -14, 14, 1);
+//		}
+		
+		
+		// this one is great!
+//		SmithWatermanGotoh nm = new SmithWatermanGotoh(ref, sequence, 4, -14, 14, 1);
+		
+		/*
+		 * If sequence has more than a couple of N's, use the original SW values
+		 * which are: 5, -4, 16, 4
+		 * 
+		 */
+//		int nCount = getInsertionCount(sequence, 'N');
+//		boolean useOriginalValues = nCount > 2;
+//		
+//		SmithWatermanGotoh nm = null;
+//		
+//		swCounter.incrementAndGet();
+//		if (useOriginalValues) {
+////			System.out.println("using original sw values as nCount is: " + nCount);
+//			nm = new SmithWatermanGotoh(ref, sequence, 5, -4, 16, 4);
+//		} else {
+//			nm = new SmithWatermanGotoh(ref, sequence, 4, -4, 4, 1);
+//		}
+//		
+//		/*
+//		 * get number of insertions - if more than 5, go for traditional sw
+//		 *
+//		 */
+//		
+//		int insertionCount = getInsertionCount(diffs[1], ' ');
+//		if (insertionCount >= 4 &&  ! useOriginalValues) {
+////			if (insertionCount >= 4 && optimiseForGaps && ! useOriginalValues) {
+//			swCounter.incrementAndGet();
+//			nm = new SmithWatermanGotoh(ref, sequence, 5, -4, 16, 4);	// original
+////			nm = new SmithWatermanGotoh(ref, sequence, 5, -6, 16, 10);	// increase gap penalty
+//			String [] newDiffs = nm.traceback();
+//			int insertionCountForNewDiffs = getInsertionCount(newDiffs[1], ' ');
+//			if (insertionCountForNewDiffs < insertionCount) {
+////				if (insertionCountForNewDiffs < insertionCount && getSWScore(newDiffs[1])  >= getSWScore(diffs[1]) ) {
+//				diffs = newDiffs;
+//			}
+//		}
+//		return diffs;
+	}
 
 	/**
 	 * try to mirror this on the BLATRecord score which is matches - mismatches - number of insertions in ref - number of insertions in query
@@ -1294,6 +1413,158 @@ public class TiledAlignerUtil {
 		
 		
 		return swResults;
+	}
+	
+	public static List<String []> getSmithWaterman(TLongIntMap tiledAlignerPositions, String sequence, String name, PositionChrPositionMap pcpm, boolean debug, int misMatchCutoffPercentage, int blockCountCutoff) {
+		List<String [] > swResults = new ArrayList<>();
+		int bufferToUse = sequence.length() < 100 ? SMITH_WATERMAN_BUFFER_SIZE_TIER_1 : SMITH_WATERMAN_BUFFER_SIZE_TIER_2;
+		int maxScore = sequence.length();
+		int passingPercentScore = (int) (maxScore * 0.99);
+		
+		/*
+		 * sort list of cps by contig(s) that appears in name
+		 */
+		boolean optimiseForGaps = false;
+		if (null != name) {
+			String [] nameArray = name.split("_");
+			String contig = nameArray[0];
+			if (contig.startsWith("splitcon")) {
+				/*
+				 * also want different chromosomes
+				 */
+				if (nameArray.length >= 4 && nameArray[1].equals(nameArray[3])) {
+					optimiseForGaps = true;
+				}
+				splitconCounter.incrementAndGet();
+				contig = nameArray[1];
+			}
+		}
+		
+		int perfectMatchCount = 0;
+		double misMatchCutoff = (((double)misMatchCutoffPercentage) / 100) * maxScore;
+		
+		
+		/*
+		 * sort positions by tile count so that we have highest matches first
+		 */
+		TIntObjectMap<TLongList> tiledAlignerPositionsMap = new TIntObjectHashMap<>();
+		tiledAlignerPositions.forEachEntry(new TLongIntProcedure() {
+			@Override
+			public boolean execute(long l, int i) {
+				TLongList longList = tiledAlignerPositionsMap.get(i);
+				if (null == longList) {
+					longList = new TLongArrayList();
+					tiledAlignerPositionsMap.put(i,  longList);
+				}
+				longList.add(l);
+				return true;
+			}
+		});
+		int [] sortedKeys = TARecordUtil.sortTileCount(tiledAlignerPositionsMap.keys());
+		
+		String sequenceRC = SequenceUtil.reverseComplement(sequence);
+		int nCount = StringUtils.getCount(sequence, 'N');
+		
+		for (int key : sortedKeys) {
+			int matchLength = NumberUtils.getPartOfPackedInt(key, true) + TILE_LENGTH_MINUS_ONE;
+			for (long l : tiledAlignerPositionsMap.get(key).toArray()) {
+				
+				short sequenceOffset = NumberUtils.getShortFromLong(l, POSITION_OF_TILE_IN_SEQUENCE_OFFSET);
+//				long genomicStartPosition = NumberUtils.getLongPositionValueFromPackedLong(l);
+				boolean reverseComplement = NumberUtils.isBitSet(l, REVERSE_COMPLEMENT_BIT);
+				
+				int lhsBuffer = sequenceOffset == 0 ? 0 : sequenceOffset + 20;
+				int rhsBuffer = sequenceOffset + matchLength == sequence.length() ? 0 : sequence.length() - (sequenceOffset + matchLength) + 20;
+				
+				ChrPosition bufferedCP = getBufferedChrPosition(l, sequence.length(), matchLength, pcpm);
+//				short sequenceOffset = NumberUtils.getShortFromLong(l, POSITION_OF_TILE_IN_SEQUENCE_OFFSET);
+////				long genomicStartPosition = NumberUtils.getLongPositionValueFromPackedLong(l);
+//				boolean reverseComplement = NumberUtils.isBitSet(l, REVERSE_COMPLEMENT_BIT);
+//				
+//				int lhsBuffer = sequenceOffset == 0 ? 0 : sequenceOffset + 20;
+//				int rhsBuffer = sequenceOffset + matchLength == sequence.length() ? 0 : sequence.length() - (sequenceOffset + matchLength) + 20;
+//				
+//				ChrPosition bufferedCP = pcpm.getBufferedChrPositionFromLongPosition(l, sequence.length() - sequenceOffset, lhsBuffer, rhsBuffer);
+				String bufferedReference = getRefFromChrPos(bufferedCP);
+				
+				String fragString = reverseComplement ? sequenceRC : sequence;
+				
+				/*
+				 * perform and indexOf to see if we have an exact match!
+				 */
+				int index = bufferedReference.indexOf(fragString);
+				
+				if (index > -1) {
+					perfectMatchCount++;
+					if (debug) {
+						System.out.println("Got a perfect match using indexOf!!! " + bufferedCP.getChromosome() + ":" + (bufferedCP.getStartPosition() + lhsBuffer));
+					}
+					/*
+					 * create matching swdiffs array
+					 */
+					String[] swMatches = new String[3];
+					swMatches[0] = fragString;
+					swMatches[1] = org.apache.commons.lang3.StringUtils.repeat('|', fragString.length());
+					swMatches[2] = fragString;
+					String [] blatDetails = getDetailsForBLATRecord(bufferedCP, swMatches, name, sequence, ! reverseComplement, bufferedReference);
+					swResults.add(blatDetails);
+				} else {
+					
+					if (debug) {
+						System.out.println("about to sw ref: " + bufferedReference + ", fragString: " + fragString + " for cp: " + bufferedCP.getChromosome() + ":" +  (bufferedCP.getStartPosition() + lhsBuffer) + ", optimiseForGaps: " + optimiseForGaps + ", lhsBuffer: " + lhsBuffer + ", rhsBuffer: " + rhsBuffer);
+					}
+					String [] swDiffs = getIntelligentSwDiffs(bufferedReference, fragString);
+					
+					/*
+					 * check for mismatches and blocks
+					 * If we don't pass the cutoffs, don't create the BLATRecord object
+					 */
+					int mismatchCount = StringUtils.getCount(swDiffs[1], '.') - nCount;
+					if (mismatchCount < misMatchCutoff && getBlockStartPositions(swDiffs).size() < blockCountCutoff) {
+						
+						int score = getSWScore(swDiffs[1]);
+						
+						if (debug) {
+							if (score > 30) {
+								for (String s : swDiffs) {
+									System.out.println("swDiffs: " + s);
+								}
+								System.out.println("sw score: " + score + ", fragString length: " + fragString.length());
+							}
+						}
+						
+						String [] blatDetails = getDetailsForBLATRecord(bufferedCP, swDiffs, name, sequence, ! reverseComplement, bufferedReference);
+						swResults.add(blatDetails);
+						if (score == maxScore) {
+							System.out.println("max score [" + maxScore + "] (seq length: " + sequence.length() + "), has been reached - exiting sw! " + Arrays.deepToString(blatDetails));
+							break;
+						} else if (score > passingPercentScore) {
+							System.out.println("passing percentage score [" + passingPercentScore + "] (seq length: " + sequence.length() + "), has been reached - exiting sw! " + Arrays.deepToString(blatDetails));
+							break;
+						}
+					} else {
+						System.out.println("sw diffs did not pass the mismatch (" + mismatchCount + " and allowed up to " + misMatchCutoff + "), or block (" + blockCountCutoff + "), cutoff requirements");
+						if (debug) {
+							for (String s : swDiffs) {
+								System.out.println("swDiffs: " + s);
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		return swResults;
+	}
+	
+	public static ChrPosition getBufferedChrPosition(long packedLong, int sequenceLength, int matchLength, PositionChrPositionMap pcpm) {
+		
+		short sequenceOffset = NumberUtils.getShortFromLong(packedLong, POSITION_OF_TILE_IN_SEQUENCE_OFFSET);
+		int lhsBuffer = sequenceOffset == 0 ? 0 : sequenceOffset + 20;
+		int rhsBuffer = sequenceOffset + matchLength == sequenceLength ? 0 : 20;
+		
+		ChrPosition bufferedCP = pcpm.getBufferedChrPositionFromLongPosition(packedLong, sequenceLength - sequenceOffset, lhsBuffer, rhsBuffer);
+		return bufferedCP;
 	}
 	
 	/**
@@ -2438,6 +2709,16 @@ public class TiledAlignerUtil {
 				 * get best start positions
 				 */
 				TLongList bestStartPositions = taRec.getStartPositions(12, true, 20);
+				TLongIntMap bestStartPositionsMap = taRec.getStartPositions();
+//				long [] bestStartPositionsMapKeys = bestStartPositionsMap.keys();
+//				TLongList bestStartPositionsMapKeysUpdated =  ListUtils.removeAdjacentPositionsInList(new TLongArrayList(bestStartPositionsMapKeys), sequence.length() < 100 ? 350 : 1700);
+//				bestStartPositionsMap.retainEntries(new TLongIntProcedure(){
+//					@Override
+//					public boolean execute(long l, int i) {
+//						return bestStartPositionsMapKeysUpdated.contains(l);
+//					}
+//				});
+				
 				
 //				TLongList bestStartPositionsUpdated = ListUtils.removeAdjacentPositionsInList(bestStartPositions, 200);
 	//		System.out.println("Number of entries in bestStartPositions: " + bestStartPositions.size() + ", Number of entries in bestStartPositionsUpdated (removed adjacent positions): " + bestStartPositionsUpdated.size());
@@ -2450,18 +2731,23 @@ public class TiledAlignerUtil {
 					for (ChrPosition cp : tiledAlignerCPsUpdated) {
 						System.out.println("will look at " + cp.toIGVString() + ", strand: " + ((ChrPositionName)cp).getName());
 					}
+					System.out.println("Number of entries in bestStartPositionsMap: " + bestStartPositionsMap.size());
 				}
 				
-				List<String[]> swResults = getSmithWaterman(tiledAlignerCPsUpdated, sequence, name != null ? name : "name", log);
+				int misMatchCutoff = (int) (0.1 * sequence.length());
+				
+				List<String[]> swResults = getSmithWaterman(bestStartPositionsMap, sequence, name != null ? name : "name", headerMap, log, 10, 6);
+//				List<String[]> swResults = getSmithWaterman(tiledAlignerCPsUpdated, sequence, name != null ? name : "name", log);
 				for (String [] array : swResults) {
 	//				if (debug) {
 	//					System.out.println("about to be turned into a blat record: " + Arrays.deepToString(array));
 	//				}
 					BLATRecord br = new BLATRecord(array);
-					if (br.getScore() > MINIMUM_BLAT_RECORD_SCORE) {
+					if (br.getScore() > MINIMUM_BLAT_RECORD_SCORE && br.getMisMatches() <= misMatchCutoff && br.getBlockCount() < 6) {
+//						if (br.getScore() > MINIMUM_BLAT_RECORD_SCORE) {
 						results.add(br);
 					} else if (log) {
-						System.out.println("BLAT record score is below the cutoff of " + MINIMUM_BLAT_RECORD_SCORE + ": " + br);
+						System.out.println("BLAT record score is below the cutoff of " + MINIMUM_BLAT_RECORD_SCORE + " or has too many mismatches, or too many (>6) blocks " + br);
 					}
 				}
 			}

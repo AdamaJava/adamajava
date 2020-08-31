@@ -9,10 +9,12 @@ package org.qcmg.common.util;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrPositionName;
 
+import gnu.trove.function.TLongFunction;
 import gnu.trove.list.TLongList;
 import gnu.trove.list.array.TLongArrayList;
 
@@ -64,20 +66,48 @@ public class ListUtils {
 	}
 	
 	public static TLongList removeAdjacentPositionsInList(TLongList originalList) {
-		return removeAdjacentPositionsInList(originalList,ADJACENT_POSITION_BUFFER );
+		return removeAdjacentPositionsInList(originalList, ADJACENT_POSITION_BUFFER);
 	}
 	public static TLongList removeAdjacentPositionsInList(TLongList originalList, int buffer) {
 		TLongList list = new TLongArrayList();
 		if (null != originalList) {
 			int size = originalList.size();
 			if (size > 1) {
-				originalList.sort();
-				long current = originalList.get(0);
+				
+				/*
+				 * need to sort based on the losition information in the long, whilst also preserving the seq position and strand information
+				 * and so conver to list of Long objects where a custom comparator can be applied
+				 */
+				List<Long> origValueInNewList = new ArrayList<>(size + 1);
+				originalList.transformValues(new TLongFunction() {
+					@Override
+					public long execute(long l) {
+						origValueInNewList.add(l);
+						return l;
+					}
+				});
+				
+				System.out.println("About to sort list of Longs: " + origValueInNewList.stream().map(l -> Long.toString(l)).collect(Collectors.joining(",")));
+				origValueInNewList.sort((l1, l2) -> {
+					int diff = Long.compare(NumberUtils.getLongPositionValueFromPackedLong(l1), NumberUtils.getLongPositionValueFromPackedLong(l2));
+					if (0 == diff) {
+						System.out.println("Got same positions in list!!!: " + l1);
+					}
+					return diff;
+//					long diff = NumberUtils.getLongPositionValueFromPackedLong(l1) - NumberUtils.getLongPositionValueFromPackedLong(l2);
+//					if (diff > 0) {
+//						return 1;
+//					} else {
+//						return -1;
+//					}
+				});
+		
+				long current = origValueInNewList.get(0);
 				list.add(current);
 				long previous = current;
 				for (int i = 1 ;  i < size ; i++) {
-					current = originalList.get(i);
-					if (current - previous > buffer) {
+					current = origValueInNewList.get(i);
+					if (NumberUtils.getLongPositionValueFromPackedLong(current) - NumberUtils.getLongPositionValueFromPackedLong(previous) > buffer) {
 						list.add(current);
 						previous = current;
 					}
@@ -113,6 +143,7 @@ public class ListUtils {
 		}
 		return list;
 	}
+	
 //	public static TLongList removeAdjacentPositionsInList(TLongList originalList, int buffer) {
 //		TLongSet set = new TLongHashSet(originalList.size() * 2);
 //		originalList.sort();

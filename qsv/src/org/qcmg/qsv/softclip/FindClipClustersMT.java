@@ -63,9 +63,9 @@ public class FindClipClustersMT  {
 	public static final String UNMAPPED = "unmapped";
 	
 	public static final boolean useDebugging = true;
-	public static final String chromosomeToDebug = "chr19:chr19";
-	public static final String chromosomeToDebugSingle = "chr19";
-	public static final int positionToDebug = 37284335;
+	public static final String chromosomeToDebug = "chr2:chr2";
+	public static final String chromosomeToDebugSingle = "chr2";
+	public static final int positionToDebug = 59769659;
 
 	private static final QLogger logger = QLoggerFactory.getLogger(FindClipClustersMT.class);
 	private final int sleepUnit = 10;
