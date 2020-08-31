@@ -14,7 +14,7 @@ While the repository contains code for dozens of utilities, the list below shows
 * [qSignature](/p/adamajava/wiki/qSignature/) - a method for detecting potential sample mix-ups using distance measurements between SNP alleles that are common to pairs of samples of interest
 * [qMotif](/p/adamajava/wiki/qMotif/) - search for motifs in a BAM file 
 
-Some QCMG tools have been released as separate SourceForge Projects
+Some QCMG tools have been released as separate SourceForge Projects.
 
 * [qPure](https://sourceforge.net/projects/qpure/?source=directory)
 
