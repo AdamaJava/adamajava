@@ -48,7 +48,7 @@ public class GenerateTiledAlignerFile {
 	private byte currentChrIndex;
 	
 	private final int tileSize = 13;
-	private final int positionsCutoff = 4999;
+	private int positionsCutoff = 5000;
 	
 	private final Map<String, TLongArrayList> tilesAndPositions = new HashMap<>(1024 * 1024 * 96);		// should prevent a resize - we are expecting 64Mish
 	private final Map<String, AtomicInteger> tilesAndCounts = new HashMap<>();
@@ -96,7 +96,7 @@ public class GenerateTiledAlignerFile {
 							tilesAndPositions.put(tile, positions);
 						}
 						
-						if (positions.size() < positionsCutoff) {
+						if (positions.size() <= positionsCutoff) {
 							positions.add(longPosition);
 						} else {
 							// time to bump this into the counts map, and remove from positions map
@@ -136,7 +136,7 @@ public class GenerateTiledAlignerFile {
 			writer.write(("##q3TiledAligner version: " + version + "\n").getBytes());
 			writer.write(("##RunBy: " + System.getProperty("user.name") + "\n").getBytes());
 			writer.write(("##RunOn: " + DateUtils.getCurrentDateAsString() + "\n").getBytes());
-			writer.write(("##List of positions/Count cutoff: " + (positionsCutoff + 1) + "\n").getBytes());
+			writer.write(("##List of positions/Count cutoff: " + positionsCutoff + "\n").getBytes());
 			writer.write(("##Tile length: " + tileSize + "\n").getBytes());
 			writer.write(("##Number of tiles: " + orderedTiles.size() + "\n").getBytes());
 			
@@ -172,53 +172,6 @@ public class GenerateTiledAlignerFile {
 				writer.write(sb.toString().getBytes());
 			}
 		}
-		
-		
-		
-		
-//		
-//		try (FileWriter writer = new FileWriter(new File(outputFile))) {
-//			/*
-//			 * Some header info
-//			 * 		tool, version, date, runBy, ref file used, column headers
-//			 */
-//			writer.write("##q3TiledAligner version: " + version + "\n");
-//			writer.write("##RunBy: " + System.getProperty("user.name") + "\n");
-//			writer.write("##RunOn: " + DateUtils.getCurrentDateAsString() + "\n");
-//			writer.write("##List of positions/Count cutoff: " + (positionsCutoff + 1) + "\n");
-//			writer.write("##Tile length: " + tileSize + "\n");
-//			writer.write("##Number of tiles: " + orderedTiles.size() + "\n");
-//			
-//			writer.write("##contig:contigLength:longPosition\n");
-//			for (String s : chrLengthPosition) {
-//				writer.write("##" + s + "\n");
-//			}
-//			
-//			writer.write("#Tile\tlist of positions OR count (C12345)\n");
-//			
-//			for (String tile : orderedTiles) {
-//				final StringBuilder sb = new StringBuilder(tile + Constants.TAB);
-//				TLongArrayList positions = tilesAndPositions.get(tile);
-//				if (null != positions) {
-//					positions.forEach(new TLongProcedure() {
-//						@Override
-//						public boolean execute(long l) {
-//							sb.append(l).append(Constants.COMMA);
-//							return true;
-//						}
-//					});
-//					
-//					// remove trailing comma
-//					sb.setLength(sb.length() - 1);
-//				} else {
-//					// get counts
-//					AtomicInteger ai = tilesAndCounts.get(tile);
-//					sb.append('C').append(ai.get());
-//				}
-//				sb.append("\n");
-//				writer.write(sb.toString());
-//			}
-//		}
 	}
 
 	void loadNextReferenceSequence() {
@@ -304,6 +257,8 @@ public class GenerateTiledAlignerFile {
 			if ( ! FileUtils.isFileNameGZip(new File(outputFile))) {
 				throw new Exception(Messages.getMessage("OUTPUT_FILE_NEEDS_TO_BE_GZIP"));
 			}
+			
+			options.getPositionsCutoff().ifPresent(i -> positionsCutoff = i);
 			
 			return engage();
 		}

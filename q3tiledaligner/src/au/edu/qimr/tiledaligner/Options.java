@@ -9,6 +9,8 @@
 
 package au.edu.qimr.tiledaligner;
 
+import java.util.OptionalInt;
+
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 
@@ -18,6 +20,7 @@ final class Options {
 	private static final String VERSION_DESCRIPTION = Messages.getMessage("VERSION_OPTION_DESCRIPTION");
 	private static final String LOG_OPTION_DESCRIPTION = Messages.getMessage("LOG_OPTION_DESCRIPTION");
 	private static final String LOG_LEVEL_OPTION_DESCRIPTION = Messages.getMessage("LOG_LEVEL_OPTION_DESCRIPTION");
+	private static final String POSITIONS_CUTOFF_OPTION_DESCRIPTION = Messages.getMessage("POSITIONS_CUTOFF_OPTION_DESCRIPTION");
 	private static final String OUTPUT_FILE_DESCRIPTION = Messages.getMessage("OUTPUT_FILE_DESCRIPTION");
 	private static final String INPUT_FILE_DESCRIPTION = Messages.getMessage("INPUT_FILE_DESCRIPTION");
 	
@@ -25,7 +28,7 @@ final class Options {
 	private final OptionSet options;
 	private final String outputFileName;
 	private final String log;
-	private final Integer minBinSize;
+	private final Integer positionsCutoff;
 	private final String input;
 	private final String logLevel;
 
@@ -36,6 +39,7 @@ final class Options {
 		parser.accepts("input", INPUT_FILE_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("output", OUTPUT_FILE_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("log", LOG_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
+		parser.accepts("positionsCutoff", POSITIONS_CUTOFF_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
 		parser.accepts("loglevel", LOG_LEVEL_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.posixlyCorrect(true);
 
@@ -46,7 +50,7 @@ final class Options {
 		// logLevel
 		logLevel = (String) options.valueOf("loglevel");
 		
-		minBinSize =  (Integer) options.valueOf("minBinSize");
+		positionsCutoff =  (Integer) options.valueOf("positionsCutoff");
 		input = (String) options.valueOf("input");
 		
 		// output
@@ -81,8 +85,8 @@ final class Options {
 		return options.has("loglevel");
 	}
 	
-	Integer getMinBinSize() {
-		return minBinSize;
+	OptionalInt getPositionsCutoff() {
+		return null != positionsCutoff ? OptionalInt.of(positionsCutoff.intValue()) : OptionalInt.empty();
 	}
 	
 	String getInput() {
