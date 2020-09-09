@@ -127,7 +127,7 @@ public class AnnotateFilterMTTest {
 		AbstractQueue<SAMRecord> writeQueue = null;
 		AbstractQueue<SAMRecord> writeClipQueue = null;
 		Thread mainThread = null;
-		CountDownLatch readLatch = null;
+//		CountDownLatch readLatch = null;
 		CountDownLatch fLatch = null;
 		CountDownLatch wGoodLatch = null;
 		
@@ -137,7 +137,7 @@ public class AnnotateFilterMTTest {
 	    String matepairsDir = null;
 		QSVParameters p = new QSVParameters(options, true, testFolder.getRoot().toString() , matepairsDir , new Date(), "test");
 		AnnotateFilterMT afmt = new AnnotateFilterMT(Thread.currentThread(), wGoodLatch, p, null, null, options);
-		afmt.new AnnotationFiltering(readQueue, writeQueue, writeClipQueue, mainThread, readLatch, fLatch, wGoodLatch);
+		afmt.new AnnotationFiltering(readQueue, writeQueue, writeClipQueue, mainThread, fLatch, wGoodLatch);
     	
 	    	try {
 	    		new QueryExecutor("and(Cigar_M > 35, option_SM > 10, MD_mismatch < 3, Flag_DuplicateRead == false)");

@@ -143,12 +143,14 @@ public class Annotator  {
 					countZp(lmp.getZPAnnotation());		           
 					lmp = null;
 					//paired end
-				} else if (annotatorType.equals("pe")){
-					PairedEndRecord pe = new PairedEndRecord(record, lower, upper);
-					pe.createZPAnnotation();
-
-					countZp(pe.getZPAnnotation());		                 
-					pe = null;
+				} else if (annotatorType.equals("pe")) {
+					countZp(PairedEndRecord.createZPAnnotation(record, lower, upper));
+					
+//					PairedEndRecord pe = new PairedEndRecord(record, lower, upper);
+//					pe.createZPAnnotation();
+//					
+//					countZp(pe.getZPAnnotation());
+//					pe = null;
 					//illumna mate pair    
 				} else if (annotatorType.equals("imp")){			    	
 					IlluminaLongMatePairRecord imp = new IlluminaLongMatePairRecord(record, lower, upper);
@@ -200,16 +202,17 @@ public class Annotator  {
 	}
 
 	private void countZp(String zpAnnotation) {
-		AtomicLong al =zpToCount.get(zpAnnotation); 
-		if (null == al) {
-			AtomicLong newValue = new AtomicLong(1);
-			al = zpToCount.putIfAbsent(zpAnnotation, newValue);
-			if (null != al) {
-				newValue.addAndGet(al.get());
-			}
-		} else {
-			al.incrementAndGet();
-		}
+		zpToCount.computeIfAbsent(zpAnnotation, f -> new AtomicLong()).incrementAndGet();
+//		AtomicLong al = zpToCount.get(zpAnnotation);
+//		if (null == al) {
+//			AtomicLong newValue = new AtomicLong(1);
+//			al = zpToCount.putIfAbsent(zpAnnotation, newValue);
+//			if (null != al) {
+//				newValue.addAndGet(al.get());
+//			}
+//		} else {
+//			al.incrementAndGet();
+//		}
 	}
 
 	/*
@@ -363,7 +366,7 @@ public class Annotator  {
 		} else if (mapper.equals("bwa-mem")) {
 			if (record.getReadUnmappedFlag() || record.getNotPrimaryAlignmentFlag()) {
 				record.setAttribute("NH", 0);
-			} else if (record.getAttribute("SA") != null) {				
+			} else if (record.getAttribute("SA") != null) {			
 				String xa = (String) record.getAttribute("SA");
 				int value = xa.split(";").length + 1;
 				record.setAttribute("NH", value);

@@ -190,33 +190,88 @@ public class TARecordUtilTest {
 	}
 	
 	@Test
-	public void trimRanges() {
+	public void overlapingReference() {
+		/*
+		 * IntLongPairs [pairs=[IntLongPair [i=7274496, l=309020158], IntLongPair [i=8781824, l=135240239236658]]]
+		 */
+		int seqLength = 269;
+		IntLongPairs pairs = new IntLongPairs(new IntLongPair(7274496, 309020158), new IntLongPair(8781824, 135240239236658l));
+		
+		Map<ChrPosition, int[]> map = TARecordUtil.getChrPositionAndBlocksFromSplits(pairs, seqLength, pcpm);
+		assertEquals(2, map.size());
+		
+		
+		String[] singleBlatRecArray = TARecordUtil.blatRecordFromSplits(pairs, "blah", seqLength, pcpm, TARecordUtil.TILE_LENGTH);
+		BLATRecord singleBR = new BLATRecord(singleBlatRecArray);
+		System.out.println("blat record: " + singleBR.toString());
+		assertEquals(196, singleBR.getScore());
+	}
+	
+	@Test
+	public void trimRangesWithChrPositionAgain() {
 		int[][] ranges = new int[2][];
 		ranges[0] = new int[]{0,100};
 		ranges[1] = new int[]{100,200};
+		/*
+		 * setup a corresponding CP array
+		 */
+		ChrPosition[] cps = new ChrPosition[2];
+		cps[0] = new ChrPositionName("chr1", 0, 100, "");
+		cps[1] = new ChrPositionName("chr1", 50, 250, "");
 		
+		TARecordUtil.trimRangesToRemoveOverlap(ranges, cps);
+		assertEquals(2, ranges.length);
+		assertArrayEquals(new int[]{0,100}, ranges[0]);
+		assertArrayEquals(new int[]{150,150}, ranges[1]);
+		assertEquals(new ChrPositionName("chr1", 0, 100, ""), cps[0]);
+		assertEquals(new ChrPositionName("chr1", 100, 250, ""), cps[1]);
+	}
+	
+	@Test
+	public void trimRangesWithChrPosition() {
+		int[][] ranges = new int[2][];
+		ranges[0] = new int[]{0,100};
+		ranges[1] = new int[]{100,200};
+		/*
+		 * setup a corresponding CP array
+		 */
+		ChrPosition[] cps = new ChrPosition[2];
+		cps[0] = new ChrPositionName("chr1", 0, 100, "");
+		cps[1] = new ChrPositionName("chr1", 100, 300, "");
+				
 		/*
 		 * this method will modify the array in place
 		 */
-		TARecordUtil.trimRangesToRemoveOverlap(ranges);
+		TARecordUtil.trimRangesToRemoveOverlap(ranges, cps);
 		assertEquals(2, ranges.length);
 		assertArrayEquals(new int[]{0,100}, ranges[0]);
 		assertArrayEquals(new int[]{100,200}, ranges[1]);
+		assertEquals(new ChrPositionName("chr1", 0, 100, ""), cps[0]);
+		assertEquals(new ChrPositionName("chr1", 100, 300, ""), cps[1]);
 		
 		ranges[0] = new int[]{0,110};
 		ranges[1] = new int[]{100,200};
-		TARecordUtil.trimRangesToRemoveOverlap(ranges);
+		cps[0] = new ChrPositionName("chr1", 0, 110, "");
+		cps[1] = new ChrPositionName("chr1", 100, 300, "");
+		TARecordUtil.trimRangesToRemoveOverlap(ranges, cps);
 		assertEquals(2, ranges.length);
 		assertArrayEquals(new int[]{0,110}, ranges[0]);
 		assertArrayEquals(new int[]{110,190}, ranges[1]);
+		assertEquals(new ChrPositionName("chr1", 0, 110, ""), cps[0]);
+		assertEquals(new ChrPositionName("chr1", 110, 300, ""), cps[1]);
 		
 		ranges[0] = new int[]{0,110};
 		ranges[1] = new int[]{200,100};
-		TARecordUtil.trimRangesToRemoveOverlap(ranges);
+		cps[0] = new ChrPositionName("chr1", 0, 110, "");
+		cps[1] = new ChrPositionName("chr1", 200, 300, "");
+		TARecordUtil.trimRangesToRemoveOverlap(ranges, cps);
 		assertEquals(2, ranges.length);
 		assertArrayEquals(new int[]{0,110}, ranges[0]);
 		assertArrayEquals(new int[]{200,100}, ranges[1]);
+		assertEquals(new ChrPositionName("chr1", 0, 110, ""), cps[0]);
+		assertEquals(new ChrPositionName("chr1", 200, 300, ""), cps[1]);
 	}
+	
 	@Test
 	public void trimRangesAgain() {
 		int[][] ranges = new int[3][];
@@ -225,31 +280,54 @@ public class TARecordUtilTest {
 		ranges[2] = new int[]{200,100};
 		
 		/*
+		 * setup a corresponding CP array
+		 */
+		ChrPosition[] cps = new ChrPosition[3];
+		cps[0] = new ChrPositionName("chr1", 0, 100, "");
+		cps[1] = new ChrPositionName("chr1", 100, 200, "");
+		cps[2] = new ChrPositionName("chr1", 200, 300, "");
+		
+		/*
 		 * this method will modify the array in place
 		 */
-		TARecordUtil.trimRangesToRemoveOverlap(ranges);
+		TARecordUtil.trimRangesToRemoveOverlap(ranges, cps);
 		assertEquals(3, ranges.length);
 		assertArrayEquals(new int[]{0,100}, ranges[0]);
 		assertArrayEquals(new int[]{100,100}, ranges[1]);
 		assertArrayEquals(new int[]{200,100}, ranges[2]);
+		assertEquals(new ChrPositionName("chr1", 0, 100, ""), cps[0]);
+		assertEquals(new ChrPositionName("chr1", 100, 200, ""), cps[1]);
+		assertEquals(new ChrPositionName("chr1", 200, 300, ""), cps[2]);
 		
 		ranges[0] = new int[]{0,110};
 		ranges[1] = new int[]{100,100};
 		ranges[2] = new int[]{200,100};
-		TARecordUtil.trimRangesToRemoveOverlap(ranges);
+		cps[0] = new ChrPositionName("chr1", 0, 110, "");
+		cps[1] = new ChrPositionName("chr1", 100, 200, "");
+		cps[2] = new ChrPositionName("chr1", 200, 300, "");
+		TARecordUtil.trimRangesToRemoveOverlap(ranges, cps);
 		assertEquals(3, ranges.length);
 		assertArrayEquals(new int[]{0,100}, ranges[0]);
 		assertArrayEquals(new int[]{100,100}, ranges[1]);
 		assertArrayEquals(new int[]{200,100}, ranges[2]);
+		assertEquals(new ChrPositionName("chr1", 0, 100, ""), cps[0]);
+		assertEquals(new ChrPositionName("chr1", 100, 200, ""), cps[1]);
+		assertEquals(new ChrPositionName("chr1", 200, 300, ""), cps[2]);
 		
 		ranges[0] = new int[]{0,110};
 		ranges[1] = new int[]{100,100};
 		ranges[2] = new int[]{150,200};
-		TARecordUtil.trimRangesToRemoveOverlap(ranges);
+		cps[0] = new ChrPositionName("chr1", 0, 110, "");
+		cps[1] = new ChrPositionName("chr1", 100, 200, "");
+		cps[2] = new ChrPositionName("chr1", 150, 350, "");
+		TARecordUtil.trimRangesToRemoveOverlap(ranges, cps);
 		assertEquals(3, ranges.length);
 		assertArrayEquals(new int[]{0,100}, ranges[0]);
 		assertArrayEquals(new int[]{100,100}, ranges[1]);
 		assertArrayEquals(new int[]{200,150}, ranges[2]);
+		assertEquals(new ChrPositionName("chr1", 0, 100, ""), cps[0]);
+		assertEquals(new ChrPositionName("chr1", 100, 200, ""), cps[1]);
+		assertEquals(new ChrPositionName("chr1", 200, 350, ""), cps[2]);
 	}
 	
 	@Test
@@ -1660,6 +1738,63 @@ p: 4611730001741593112
 		assertEquals(1, results.size());
 		System.out.println(results.get(0).toString());
 		assertEquals(0, results.stream().filter(br -> br.getScore() >= passingScore).count());
+	}
+	
+	@Test
+	public void realLifeSplits26() {
+		/*
+		 *  splitcon_chr2_59769597_chr2_59769659__true_1599457097433_514634-,
+		 */
+		String seq = "GCATGGTTCTAGGATCACAGAATGTTCTCCATGAAGACTTTCCCATTCATTGATGGATTAATTGACTGGTTGTCCTTCATATCCTGCACTAACCTCTATTACAGCATGGAGAGGTACTTTTGTATGGATTAATTGACTGGTTGTCCTTCATATCCTGCACTAACCTCTATTACAGCATGGAGAGGTACTTTTGTTTCTCTGTCCCACTGCTACAACCCCTTCCCCTCACTTCTCATGGCTTCTCAGTAGAAAAAGACCAAACTTAGACA";
+		Map<Integer, TLongList> countPosition = new HashMap<>();
+		String name = "splitcon_chr2_59769597_chr2_59769659__true_1599457097433_514634";
+		
+		countPosition.put(NumberUtils.getTileCount(134, 0), TARecordUtil.getLongList(135240239236658l));
+		countPosition.put(NumberUtils.getTileCount(111, 0), TARecordUtil.getLongList(309020158));
+		countPosition.put(NumberUtils.getTileCount(7, 0), TARecordUtil.getLongList(4611922413758236086l));
+		countPosition.put(NumberUtils.getTileCount(6, 0), TARecordUtil.getLongList(23090107560703l));
+		
+		System.out.println("seq length: " + seq.length());
+		for (Entry<Integer, TLongList> entry : countPosition.entrySet()) {
+			for (long l : entry.getValue().toArray()) {
+				System.out.println("tile count: " + Arrays.toString(NumberUtils.splitIntInto2(entry.getKey())) + ", long position: " + (NumberUtils.isBitSet(l, 62) ? "- " : "+ ") + NumberUtils.getLongPositionValueFromPackedLong(l) + ", start position in sequence: " + IntLongPairsUtils.getStartPositionInSequence( new IntLongPair(entry.getKey(), l), seq.length()));
+			}
+		}
+		
+		TARecord r =  new TARecord(seq, countPosition);
+		TIntObjectMap<Set<IntLongPairs>> splits = TARecordUtil.getSplitStartPositions(r);
+		
+		List<IntLongPairs> potentialSplits = new ArrayList<>();
+		splits.forEachValue(s -> potentialSplits.addAll(s.stream().collect(Collectors.toList())));
+		System.out.println("Number of IntLongPairs in potentialSplits list: " + potentialSplits.size());
+		for (IntLongPairs ilps : potentialSplits) {
+			System.out.println("ilps: " + ilps.toString());
+		}
+		/*
+		 * loop through them all, if valid single record splits, create BLAT recs, otherwise fall through to SW
+		 */
+		int passingScore = (int)(0.9 * seq.length());
+		List<BLATRecord> results = new ArrayList<>();
+		results.addAll(potentialSplits.stream()
+				.filter(ilp -> IntLongPairsUtils.isIntLongPairsAValidSingleRecord(ilp))
+				.map(ilp ->  TARecordUtil.blatRecordFromSplits(ilp, name, seq.length(), pcpm, 13))
+				.map(s -> new BLATRecord(s))
+//				.filter(br -> br.getScore() > passingScore)
+				.collect(Collectors.toList()));
+		
+		System.out.println("Number of records in results after looking in potentialSplits list: " + results.size());
+		assertEquals("268	269	0	0	0	0	0	1	-71	+	splitcon_chr2_59769597_chr2_59769659__true_1599457097433_514634	269	0	268	chr2	12345	59769536	59769734	2	123,146	0,123	59769536,59769588", results.get(0).toString());
+		List<BLATRecord[]> blatRecs = TARecordUtil.blatRecordsFromSplits(splits, name, seq.length(), pcpm);
+		assertEquals(1, blatRecs.size());
+		
+		for (BLATRecord[] brs : blatRecs) {
+			for (BLATRecord br: brs) {
+				System.out.println("br from brs: " + br.toString());
+			}
+		}
+		assertEquals(1, results.size());
+		System.out.println(results.get(0).toString());
+		assertEquals(1, results.stream().filter(br -> br.getScore() >= passingScore).count());
 	}
 	
 	@Test

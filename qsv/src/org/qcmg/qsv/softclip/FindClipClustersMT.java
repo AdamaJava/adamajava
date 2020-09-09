@@ -873,7 +873,7 @@ public class FindClipClustersMT  {
 			// blat for the matching breakpoint
 			int size = breakpoints.size();
 			logger.info("Running BLAT to find matching positions for " + size + " breakpoints on " + chromosome.getName());
-			Map<String, List<Breakpoint>> breakpointMap = blatBreakpoints(breakpoints, chromosomeToDebugSingle.equals(chromosome.getName()));
+			Map<String, List<Breakpoint>> breakpointMap = blatBreakpoints(breakpoints, useDebugging && chromosomeToDebugSingle.equals(chromosome.getName()));
 			logger.info("Finished running BLAT to find matching positions for " + size + " breakpoints on " + chromosome.getName() + ", breakpointMap: " + breakpointMap.entrySet().stream().map(e -> e.getKey() + ":" + e.getValue().size()).collect(Collectors.joining(",")));
 			return breakpointMap;
 		}

@@ -31,14 +31,14 @@ public class PairedEndRecordTest {
     
     @Before
     public void setUp() throws IOException {
-    		if (records.isEmpty()) {
-	    		File file = TestUtil.createSamFile(testFolder.newFile("test.bam").getAbsolutePath(), SortOrder.unsorted, true);
+		if (records.isEmpty()) {
+    		File file = TestUtil.createSamFile(testFolder.newFile("test.bam").getAbsolutePath(), SortOrder.unsorted, true);
 	        try (final SamReader sam = SAMFileReaderFactory.createSAMFileReader(file)){//new SAMFileReader(file);) {
 		        for (final SAMRecord samRecord : sam) {
 		        		records.add(samRecord);
 		        }
 	        }
-    		}
+		}
     }
     
     @Test    
@@ -260,6 +260,37 @@ public class PairedEndRecordTest {
     		rec.setAttribute("NH", null);
     		assertZPAnnotation(rec, 3, QSVConstants.Z_STAR_STAR);
     		assertZPAnnotation(rec, 19, QSVConstants.Z_STAR_STAR);
+    }
+    
+    @Test
+    public void createZPAnnotationStatic() {
+    	SAMRecord rec = records.get(0);
+    	rec.setFlags(1024);
+    	assertEquals(QSVConstants.Z_STAR_STAR, PairedEndRecord.createZPAnnotation(rec, 120, 5000));
+    	assertZPAnnotation(rec, 1024, QSVConstants.Z_STAR_STAR);
+    	
+    	// set NH attribute
+    	rec.setAttribute("NH", Integer.valueOf(1));
+    	assertEquals(QSVConstants.Z_STAR_STAR, PairedEndRecord.createZPAnnotation(rec, 120, 5000));
+    	assertZPAnnotation(rec, 1024, QSVConstants.Z_STAR_STAR);
+    	
+    	rec.setFlags(11);
+    	assertEquals(QSVConstants.D_STAR_STAR, PairedEndRecord.createZPAnnotation(rec, 120, 5000));
+    	assertZPAnnotation(rec, 11, QSVConstants.D_STAR_STAR);
+    	rec.setFlags(515);
+    	
+    	
+    	// set NH to zero and set mate to diff strand
+    	rec.setAttribute("NH", Integer.valueOf(0));
+    	rec.setFlags(3);
+    	assertEquals(QSVConstants.Z_STAR_STAR, PairedEndRecord.createZPAnnotation(rec, 120, 5000));
+    	assertZPAnnotation(rec, 3, QSVConstants.Z_STAR_STAR);
+    	rec.setAttribute("NH", null);
+    	assertEquals(QSVConstants.Z_STAR_STAR, PairedEndRecord.createZPAnnotation(rec, 120, 5000));
+    	assertZPAnnotation(rec, 3, QSVConstants.Z_STAR_STAR);
+    	rec.setFlags(19);
+    	assertEquals(QSVConstants.Z_STAR_STAR, PairedEndRecord.createZPAnnotation(rec, 120, 5000));
+    	assertZPAnnotation(rec, 19, QSVConstants.Z_STAR_STAR);
     }
     
     @Test

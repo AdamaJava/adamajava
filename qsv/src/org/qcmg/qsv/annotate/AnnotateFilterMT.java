@@ -20,6 +20,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMFileHeader.SortOrder;
@@ -32,6 +33,7 @@ import htsjdk.samtools.SAMRecordIterator;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.model.ReferenceNameComparator;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.picard.HeaderUtils;
 import org.qcmg.picard.SAMFileReaderFactory;
@@ -128,7 +130,15 @@ public class AnnotateFilterMT implements Runnable {
 	public void run() {
 
 		// create queue to get the chromosomes to reads
-		final AbstractQueue<List<Chromosome>> readQueue = new ConcurrentLinkedQueue<List<Chromosome>>();
+//		final AbstractQueue<List<Chromosome>> readQueue = new ConcurrentLinkedQueue<List<Chromosome>>();
+		final AbstractQueue<List<Chromosome>> readQueue = new ConcurrentLinkedQueue<>(parameters.getChromosomes()
+				.entrySet()
+				.stream()
+				.sorted((e1, e2) -> new ReferenceNameComparator().compare(e1.getKey(), e2.getKey()))
+				.map(e -> e.getValue())
+				.collect(Collectors.toList()));
+
+		logger.info("readQueue setup with " + readQueue.size() + " lists of chromosomes");
 
 		// create queue to store the satisfied BAM records for discordant pairs
 		final AbstractQueue<SAMRecord> writeQueue = new ConcurrentLinkedQueue<SAMRecord>();
@@ -136,25 +146,25 @@ public class AnnotateFilterMT implements Runnable {
 		// create queue to store the satisfied BAM records for clips and unmapped reads
 		final AbstractQueue<SAMRecord> writeClipQueue = new ConcurrentLinkedQueue<SAMRecord>();
 
-		final CountDownLatch readLatch = new CountDownLatch(1); // reading thread
+//		final CountDownLatch readLatch = new CountDownLatch(1); // reading thread
 		final CountDownLatch filterLatch = new CountDownLatch(noOfThreads); // annotating filtering threads
 		final CountDownLatch writeLatch = new CountDownLatch(2); // writing thread for satisfied records
 
 		// set up executor services
-		final ExecutorService readThread = new CustomThreadPoolExecutor(1, exitStatus, logger);
+//		final ExecutorService readThread = new CustomThreadPoolExecutor(1, exitStatus, logger);
 		final ExecutorService filterThreads = new CustomThreadPoolExecutor(noOfThreads, exitStatus, logger);
 		final ExecutorService writeThreads = new CustomThreadPoolExecutor(2, exitStatus, logger);
 
 		try {
 
-			// kick-off single reading thread
-			readThread.execute(new Reading(readQueue, Thread.currentThread(), readLatch, filterLatch));
-			readThread.shutdown();
+//			// kick-off single reading thread
+//			readThread.execute(new Reading(readQueue, Thread.currentThread(), readLatch, filterLatch));
+//			readThread.shutdown();
 
 			// kick-off filtering thread
 			for (int i = 0; i < noOfThreads; i++) {
 				filterThreads.execute(new AnnotationFiltering(readQueue,
-						writeQueue, writeClipQueue, Thread.currentThread(), readLatch,
+						writeQueue, writeClipQueue, Thread.currentThread(), 
 						filterLatch, writeLatch));
 			}
 			filterThreads.shutdown();
@@ -167,7 +177,7 @@ public class AnnotateFilterMT implements Runnable {
 			writeThreads.shutdown();
 
 			logger.info("waiting for  threads to finish (max wait will be 20 hours)");
-			readThread.awaitTermination(60, TimeUnit.HOURS);
+//			readThread.awaitTermination(60, TimeUnit.HOURS);
 			filterThreads.awaitTermination(60, TimeUnit.HOURS);
 			writeThreads.awaitTermination(60, TimeUnit.HOURS);
 
@@ -195,7 +205,7 @@ public class AnnotateFilterMT implements Runnable {
 			}
 		} finally {
 			// kill off any remaining threads            	
-			readThread.shutdownNow();
+//			readThread.shutdownNow();
 			writeThreads.shutdownNow();
 			filterThreads.shutdownNow();
 			mainLatch.countDown();
@@ -291,7 +301,7 @@ public class AnnotateFilterMT implements Runnable {
 		private final AbstractQueue<List<Chromosome>> queueIn;
 		private final AbstractQueue<SAMRecord> queueOutPair;
 		private final Thread mainThread;
-		private final CountDownLatch readLatch;
+//		private final CountDownLatch readLatch;
 		private final CountDownLatch filterLatch;
 		private final CountDownLatch writeLatch;
 		private int countOutputSleep;
@@ -303,13 +313,13 @@ public class AnnotateFilterMT implements Runnable {
 
 		public AnnotationFiltering(AbstractQueue<List<Chromosome>> readQueue,
 				AbstractQueue<SAMRecord> writeQueue, AbstractQueue<SAMRecord> writeClipQueue, Thread mainThread,
-				CountDownLatch readLatch, CountDownLatch fLatch,
+				CountDownLatch fLatch,
 				CountDownLatch wGoodLatch) throws Exception {
 			this.queueIn = readQueue;
 			this.queueOutPair = writeQueue;
 			this.queueOutClip = writeClipQueue;
 			this.mainThread = mainThread;
-			this.readLatch = readLatch;
+//			this.readLatch = readLatch;
 			this.filterLatch = fLatch;
 			this.writeLatch = wGoodLatch;
 			if (runPair && ! StringUtils.isNullOrEmpty(query)) {
@@ -337,10 +347,11 @@ public class AnnotateFilterMT implements Runnable {
 					chromosomes = queueIn.poll();               
 
 					if (chromosomes == null) {
+						run = false;
 						// must check whether reading thread finished first.
-						if (readLatch.getCount() == 0) {
-							run = false;
-						}
+//						if (readLatch.getCount() == 0) {
+//							run = false;
+//						}
 
 						// qIn maybe filled again during sleep, so sleep should
 						// be secondly

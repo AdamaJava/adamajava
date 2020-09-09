@@ -577,6 +577,8 @@ public class TARecordUtil {
 	 * 
 	 * It requires that the ranges array be sorted by position in query string
 	 * 
+	 * Also need to check to see if the genomic ranges overlap, and trim accordingly if they do
+	 * 
 	 * @param ranges
 	 */
 	public static void trimRangesToRemoveOverlap(int[][] ranges, ChrPosition[] cps) {
@@ -587,6 +589,8 @@ public class TARecordUtil {
 			if (j + 1 < ranges.length) {
 				int [] thisIntArray = ranges[j];
 				int [] nextIntArray = ranges[j + 1];
+				ChrPosition thisCP = cps[j];
+				ChrPosition nextCP = cps[j + 1];
 				
 				int diff = (thisIntArray[0] + thisIntArray[1]) - nextIntArray[0];
 				if (diff > 0) {
@@ -595,9 +599,9 @@ public class TARecordUtil {
 						 * update this, take diff away from length
 						 */
 						thisIntArray[1] = thisIntArray[1] - diff;
-						ChrPosition orig = cps[j];
-						if (diff >= orig.getLength()) {
-							System.out.println("Diff is greater the cp length! diff: " + diff + ", cp length: " + orig.getLength());
+//						ChrPosition orig = cps[j];
+						if (diff >= thisCP.getLength()) {
+							System.out.println("Diff is greater the cp length! diff: " + diff + ", cp length: " + thisCP.getLength());
 							System.out.println("ranges:");
 							for (int [] range : ranges) {
 								System.out.println("range: " + Arrays.toString(range));
@@ -607,7 +611,7 @@ public class TARecordUtil {
 								System.out.println("cp: " + cp.toIGVString());
 							}
 						} else {
-							cps[j] = new ChrPositionName(orig.getChromosome(), orig.getStartPosition(), orig.getEndPosition() - diff, orig.getName());
+							cps[j] = new ChrPositionName(thisCP.getChromosome(), thisCP.getStartPosition(), thisCP.getEndPosition() - diff, thisCP.getName());
 						}
 					} else {
 						/*
@@ -616,10 +620,10 @@ public class TARecordUtil {
 						nextIntArray[0] = nextIntArray[0] + diff;
 						nextIntArray[1] = nextIntArray[1] - diff;
 						
-						ChrPosition orig = cps[j + 1];
+//						ChrPosition orig = cps[j + 1];
 						
-						if (diff >= orig.getLength()) {
-							System.out.println("Diff is greater the cp length! diff: " + diff + ", cp length: " + orig.getLength());
+						if (diff >= nextCP.getLength()) {
+							System.out.println("Diff is greater the cp length! diff: " + diff + ", cp length: " + nextCP.getLength());
 							System.out.println("ranges:");
 							for (int [] range : ranges) {
 								System.out.println("range: " + Arrays.toString(range));
@@ -630,45 +634,59 @@ public class TARecordUtil {
 							}
 						} else {
 						
-							cps[j + 1] = new ChrPositionName(orig.getChromosome(), orig.getStartPosition() + diff, orig.getEndPosition(), orig.getName());
+							cps[j + 1] = new ChrPositionName(nextCP.getChromosome(), nextCP.getStartPosition() + diff, nextCP.getEndPosition(), nextCP.getName());
 						}
 					}
-				}
-			}			
-		}
-	}
-	/**
-	 * NOT SIDE EFFECT FREE
-	 * <br>
-	 * This method will update the values in the passed in  2D int array if there are overlapping values
-	 * It will attempt to remove any overlap from the larger of the 2 ranges should an overlap exist
-	 * 
-	 * It requires that the ranges array be sorted by position in query string
-	 * 
-	 * @param ranges
-	 */
-	public static void trimRangesToRemoveOverlap(int[][] ranges) {
-		/*
-		 * trim ranges if there is an overlap
-		 */
-		for (int j = 0 ; j < ranges.length - 1; j++) {
-			if (j + 1 < ranges.length) {
-				int [] thisIntArray = ranges[j];
-				int [] nextIntArray = ranges[j + 1];
-				
-				int diff = (thisIntArray[0] + thisIntArray[1]) - nextIntArray[0];
-				if (diff > 0) {
-					if ( thisIntArray[1] >= nextIntArray[1]) {
-						/*
-						 * update this, take diff away from length
-						 */
-						thisIntArray[1] = thisIntArray[1] - diff;
-					} else {
-						/*
-						 * update next array, take diff away from start (and length)
-						 */
-						nextIntArray[0] = nextIntArray[0] + diff;
-						nextIntArray[1] = nextIntArray[1] - diff;
+				} else {
+					/*
+					 * now need to check that the reference positions don't overlap (ChrPosition array)
+					 */
+					int diffRef = thisCP.getEndPosition() - nextCP.getStartPosition();
+					if (diffRef > 0) {
+						if ( thisIntArray[1] >= nextIntArray[1]) {
+							/*
+							 * update this, take diff away from length
+							 */
+							thisIntArray[1] = thisIntArray[1] - diffRef;
+//						ChrPosition orig = cps[j];
+							if (diffRef >= thisCP.getLength()) {
+								System.out.println("Diff is greater the cp length! diff: " + diffRef + ", cp length: " + thisCP.getLength());
+								System.out.println("ranges:");
+								for (int [] range : ranges) {
+									System.out.println("range: " + Arrays.toString(range));
+								}
+								System.out.println("cps:");
+								for (ChrPosition cp : cps) {
+									System.out.println("cp: " + cp.toIGVString());
+								}
+							} else {
+								cps[j] = new ChrPositionName(thisCP.getChromosome(), thisCP.getStartPosition(), thisCP.getEndPosition() - diffRef, thisCP.getName());
+							}
+						} else {
+							/*
+							 * update next array, take diff away from start (and length)
+							 */
+							nextIntArray[0] = nextIntArray[0] + diffRef;
+							nextIntArray[1] = nextIntArray[1] - diffRef;
+							
+//						ChrPosition orig = cps[j + 1];
+							
+							if (diffRef >= nextCP.getLength()) {
+								System.out.println("Diff is greater the cp length! diff: " + diffRef + ", cp length: " + nextCP.getLength());
+								System.out.println("ranges:");
+								for (int [] range : ranges) {
+									System.out.println("range: " + Arrays.toString(range));
+								}
+								System.out.println("cps:");
+								for (ChrPosition cp : cps) {
+									System.out.println("cp: " + cp.toIGVString());
+								}
+							} else {
+								
+								cps[j + 1] = new ChrPositionName(nextCP.getChromosome(), nextCP.getStartPosition() + diffRef, nextCP.getEndPosition(), nextCP.getName());
+							}
+						}
+						
 					}
 				}
 			}			
@@ -1330,7 +1348,8 @@ public class TARecordUtil {
 		 * as there are instances where there is an overlap
 		 */
 		
-		int bufferToUse = seqLength > 120 ? BUFFER * 7 : BUFFER;
+		int bufferToUse = (int)(seqLength  * 0.35);
+//		int bufferToUse = seqLength > 120 ? BUFFER * 7 : BUFFER;
 		
 		maxTileCount += bufferToUse;
 		
