@@ -6,6 +6,7 @@
  * under the GNU GENERAL PUBLIC LICENSE Version 3, a copy of which is
  * included in this distribution as gplv3.txt.
  */
+
 package au.edu.qimr.tiledaligner;
 
 import java.text.MessageFormat;
