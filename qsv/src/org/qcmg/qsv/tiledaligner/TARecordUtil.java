@@ -640,8 +640,10 @@ public class TARecordUtil {
 				} else {
 					/*
 					 * now need to check that the reference positions don't overlap (ChrPosition array)
+					 * ALSO need to take into account whether the sequence was reverse complemented
 					 */
-					int diffRef = thisCP.getEndPosition() - nextCP.getStartPosition();
+					boolean reverseComplemented = "R".equals(thisCP.getName());
+					int diffRef = reverseComplemented ? nextCP.getEndPosition() - thisCP.getStartPosition() :  thisCP.getEndPosition() - nextCP.getStartPosition();
 					if (diffRef > 0) {
 						if ( thisIntArray[1] >= nextIntArray[1]) {
 							/*
@@ -660,7 +662,11 @@ public class TARecordUtil {
 									System.out.println("cp: " + cp.toIGVString());
 								}
 							} else {
-								cps[j] = new ChrPositionName(thisCP.getChromosome(), thisCP.getStartPosition(), thisCP.getEndPosition() - diffRef, thisCP.getName());
+								if (reverseComplemented) {
+									cps[j] = new ChrPositionName(thisCP.getChromosome(), thisCP.getStartPosition() + diffRef, thisCP.getEndPosition(), thisCP.getName());
+								} else {
+									cps[j] = new ChrPositionName(thisCP.getChromosome(), thisCP.getStartPosition(), thisCP.getEndPosition() - diffRef, thisCP.getName());
+								}
 							}
 						} else {
 							/*
@@ -682,8 +688,11 @@ public class TARecordUtil {
 									System.out.println("cp: " + cp.toIGVString());
 								}
 							} else {
-								
-								cps[j + 1] = new ChrPositionName(nextCP.getChromosome(), nextCP.getStartPosition() + diffRef, nextCP.getEndPosition(), nextCP.getName());
+								if (reverseComplemented) {
+									cps[j + 1] = new ChrPositionName(nextCP.getChromosome(), nextCP.getStartPosition(), nextCP.getEndPosition() - diffRef, nextCP.getName());
+								} else {
+									cps[j + 1] = new ChrPositionName(nextCP.getChromosome(), nextCP.getStartPosition() + diffRef, nextCP.getEndPosition(), nextCP.getName());
+								}
 							}
 						}
 						

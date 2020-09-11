@@ -706,6 +706,18 @@ public class SplitReadContig {
 					logger.warn("left.getQueryStart() or getQueryEnd > length!! left.getQueryStart(): " + left.getQueryStart() + ",left.getQueryEnd(): " + left.getQueryEnd() + ", length: " + length + ", consensus: " + consensus);
 					logger.warn("right.getQueryStart() or getQueryEnd > length!! right.getQueryStart(): " + right.getQueryStart() + ",right.getQueryEnd(): " + right.getQueryEnd() + ", length: " + length + ", consensus: " + consensus);
 				}
+				if (left.getQueryStart() < 1) {
+					logger.warn("left.getQueryStart() is less than 1: " + left.getQueryStart() + ", left: " + left.toString() + ", consensus: " + consensus);
+				}
+				if (left.getQueryEnd() >= length) {
+					logger.warn("left.getQueryEnd() is >= consensus length: " + left.getQueryEnd() + ", left: " + left.toString() + ", consensus: " + consensus);
+				}
+				if (right.getQueryStart() < 1) {
+					logger.warn("right.getQueryStart() is less than 1: " + right.getQueryStart() + ", right: " + right.toString() + ", consensus: " + consensus);
+				}
+				if (right.getQueryEnd() >= length) {
+					logger.warn("right.getQueryEnd() is >= consensus length: " + right.getQueryEnd() + ", right: " + right.toString() + ", consensus: " + consensus);
+				}
 				leftSequence = consensus.substring(left.getQueryStart() - 1, left.getQueryEnd());
 				rightSequence = consensus.substring(right.getQueryStart() - 1, right.getQueryEnd());
 

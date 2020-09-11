@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.IntSummaryStatistics;
 import java.util.Iterator;
 import java.util.List;
@@ -1189,6 +1190,9 @@ public class TiledAlignerUtil {
 		int nCount = StringUtils.getCount(sequence, 'N');
 		maxMisMatchCount += nCount;
 		boolean preferLenient = nCount > 2;
+		
+//		System.out.println("preferLenient: " + preferLenient + ", preferStrict: " + preferStrict);
+		
 		/*
 		 * if there is no preference, or they are both preferred (!?!#) return based on score
 		 */
@@ -1242,6 +1246,20 @@ public class TiledAlignerUtil {
 			if (lenientPassesTest) {
 				return diffsLenient;
 			}
+			
+			/*
+			 * now run strict
+			 */
+			SmithWatermanGotoh nmStrict = new SmithWatermanGotoh(ref, sequence, 4, -14, 14, 1);
+			String [] diffsStrict = nmStrict.traceback();
+			int [] scoresStrict = getCountsFromSWString(diffsStrict[1]);
+			boolean strictPassesTest = scoresStrict[1] < maxMisMatchCount && getInsertionCount(diffsStrict[1]) < maxBlockCount;
+			
+			swCounter.addAndGet(1);
+			if (strictPassesTest) {
+				return diffsStrict;
+			}
+			
 		} else if (preferStrict) {
 			SmithWatermanGotoh nmStrict = new SmithWatermanGotoh(ref, sequence, 4, -14, 14, 1);
 			String [] diffsStrict = nmStrict.traceback();
@@ -1251,6 +1269,18 @@ public class TiledAlignerUtil {
 			swCounter.addAndGet(1);
 			if (strictPassesTest) {
 				return diffsStrict;
+			}
+			/*
+			 * now run lenient
+			 */
+			SmithWatermanGotoh nmLenient = new SmithWatermanGotoh(ref, sequence, 5, -4, 16, 4);
+			String [] diffsLenient = nmLenient.traceback();
+			int [] scoresLenient = getCountsFromSWString(diffsLenient[1]);
+			
+			swCounter.addAndGet(1);
+			boolean lenientPassesTest = scoresLenient[1] < maxMisMatchCount && getInsertionCount(diffsLenient[1]) < maxBlockCount;
+			if (lenientPassesTest) {
+				return diffsLenient;
 			}
 		}
 		return new String[]{};
@@ -1443,7 +1473,7 @@ public class TiledAlignerUtil {
 		int [] sortedKeys = TARecordUtil.sortTileCount(tiledAlignerPositionsMap.keys());
 		
 		String sequenceRC = SequenceUtil.reverseComplement(sequence);
-		int nCount = StringUtils.getCount(sequence, 'N');
+		Set<ChrPosition> swsAlreadyPerformed = new HashSet<>(sortedKeys.length * 2);
 		
 		for (int key : sortedKeys) {
 			int matchLength = NumberUtils.getPartOfPackedInt(key, true) + TILE_LENGTH_MINUS_ONE;
@@ -1454,95 +1484,99 @@ public class TiledAlignerUtil {
 				boolean reverseComplement = NumberUtils.isBitSet(l, REVERSE_COMPLEMENT_BIT);
 				
 				ChrPosition bufferedCP = getBufferedChrPosition(l, sequence.length(), matchLength, pcpm, 20);
-				String bufferedReference = getRefFromChrPos(bufferedCP);
-				String fragString = reverseComplement ? sequenceRC : sequence;
 				
-				/*
-				 * perform and indexOf to see if we have an exact match!
-				 */
-				int index = bufferedReference.indexOf(fragString);
-				
-				if (index > -1) {
-//					perfectMatchCount++;
-					if (debug) {
-						System.out.println("Got a perfect match using indexOf!!! " + bufferedCP.getChromosome() + ":" + (bufferedCP.getStartPosition()));
-					}
-					/*
-					 * create matching swdiffs array
-					 */
-					String[] swMatches = new String[3];
-					swMatches[0] = fragString;
-					swMatches[1] = org.apache.commons.lang3.StringUtils.repeat('|', fragString.length());
-					swMatches[2] = fragString;
-					String [] blatDetails = getDetailsForBLATRecord(bufferedCP, swMatches, name, sequence, ! reverseComplement, bufferedReference);
-					swResults.add(blatDetails);
-				} else {
-					
-					if (debug) {
-						System.out.println("about to sw ref: " + bufferedReference + ", fragString: " + fragString + " for cp: " + bufferedCP.getChromosome() + ":" +  (bufferedCP.getStartPosition()));
-//						System.out.println("about to sw ref: " + bufferedReference + ", fragString: " + fragString + " for cp: " + bufferedCP.getChromosome() + ":" +  (bufferedCP.getStartPosition()) + ", optimiseForGaps: " + optimiseForGaps + ", lhsBuffer: " + lhsBuffer + ", rhsBuffer: " + rhsBuffer);
-					}
+				if ( ! swsAlreadyPerformed.contains(bufferedCP)) {
+					swsAlreadyPerformed.add(bufferedCP);
+					String bufferedReference = getRefFromChrPos(bufferedCP);
+					String fragString = reverseComplement ? sequenceRC : sequence;
 					
 					/*
-					 * this method will only return a populated string array if valid results have been found (ie. passed the filters)
-					 * and so can add directly to collection
+					 * perform and indexOf to see if we have an exact match!
 					 */
-					String [] swDiffs = getIntelligentSwDiffs(bufferedReference, fragString, misMatchCutoff, blockCountCutoff, preferStrictSW);
-					if (swDiffs.length > 0) {
-						int score = getSWScore(swDiffs[1]);
+					int index = bufferedReference.indexOf(fragString);
+					
+					if (index > -1) {
+	//					perfectMatchCount++;
 						if (debug) {
-							if (score > 30) {
-								for (String s : swDiffs) {
-									System.out.println("swDiffs: " + s);
-								}
-								System.out.println("sw score: " + score + ", fragString length: " + fragString.length());
-							}
+							System.out.println("Got a perfect match using indexOf!!! " + bufferedCP.getChromosome() + ":" + (bufferedCP.getStartPosition()));
+						}
+						/*
+						 * create matching swdiffs array
+						 */
+						String[] swMatches = new String[3];
+						swMatches[0] = fragString;
+						swMatches[1] = org.apache.commons.lang3.StringUtils.repeat('|', fragString.length());
+						swMatches[2] = fragString;
+						String [] blatDetails = getDetailsForBLATRecord(bufferedCP, swMatches, name, sequence, ! reverseComplement, bufferedReference);
+						swResults.add(blatDetails);
+					} else {
+						
+						if (debug) {
+							System.out.println("about to sw ref: " + bufferedReference + ", fragString: " + fragString + " for cp: " + bufferedCP.getChromosome() + ":" +  (bufferedCP.getStartPosition()));
+	//						System.out.println("about to sw ref: " + bufferedReference + ", fragString: " + fragString + " for cp: " + bufferedCP.getChromosome() + ":" +  (bufferedCP.getStartPosition()) + ", optimiseForGaps: " + optimiseForGaps + ", lhsBuffer: " + lhsBuffer + ", rhsBuffer: " + rhsBuffer);
 						}
 						
-						String [] blatDetails = getDetailsForBLATRecord(bufferedCP, swDiffs, name, sequence, ! reverseComplement, bufferedReference);
-						swResults.add(blatDetails);
-						if (score == maxScore) {
-							System.out.println("max score [" + maxScore + "] (seq length: " + sequence.length() + "), has been reached - exiting sw! " + Arrays.deepToString(blatDetails));
-							break;
-						} else if (score > passingPercentScore) {
-							System.out.println("passing percentage score [" + passingPercentScore + "] (seq length: " + sequence.length() + "), has been reached - exiting sw! " + Arrays.deepToString(blatDetails));
-							break;
+						/*
+						 * this method will only return a populated string array if valid results have been found (ie. passed the filters)
+						 * and so can add directly to collection
+						 */
+						String [] swDiffs = getIntelligentSwDiffs(bufferedReference, fragString, misMatchCutoff, blockCountCutoff, preferStrictSW);
+						if (swDiffs.length > 0) {
+							int score = getSWScore(swDiffs[1]);
+							if (debug) {
+								if (score > 30) {
+									for (String s : swDiffs) {
+										System.out.println("swDiffs: " + s);
+									}
+									System.out.println("sw score: " + score + ", fragString length: " + fragString.length());
+								}
+							}
+							
+							String [] blatDetails = getDetailsForBLATRecord(bufferedCP, swDiffs, name, sequence, ! reverseComplement, bufferedReference);
+							swResults.add(blatDetails);
+							if (score == maxScore) {
+								System.out.println("max score [" + maxScore + "] (seq length: " + sequence.length() + "), has been reached - exiting sw! " + Arrays.deepToString(blatDetails));
+								break;
+							} else if (score > passingPercentScore) {
+								System.out.println("passing percentage score [" + passingPercentScore + "] (seq length: " + sequence.length() + "), has been reached - exiting sw! " + Arrays.deepToString(blatDetails));
+								break;
+							}
 						}
+						/*
+						 * check for mismatches and blocks
+						 * If we don't pass the cutoffs, don't create the BLATRecord object
+						 */
+	//					int mismatchCount = StringUtils.getCount(swDiffs[1], '.') - nCount;
+	//					if (mismatchCount < misMatchCutoff && getBlockStartPositions(swDiffs).size() < blockCountCutoff) {
+	//						
+	//						
+	//						if (debug) {
+	//							if (score > 30) {
+	//								for (String s : swDiffs) {
+	//									System.out.println("swDiffs: " + s);
+	//								}
+	//								System.out.println("sw score: " + score + ", fragString length: " + fragString.length());
+	//							}
+	//						}
+	//						
+	//						String [] blatDetails = getDetailsForBLATRecord(bufferedCP, swDiffs, name, sequence, ! reverseComplement, bufferedReference);
+	//						swResults.add(blatDetails);
+	//						if (score == maxScore) {
+	//							System.out.println("max score [" + maxScore + "] (seq length: " + sequence.length() + "), has been reached - exiting sw! " + Arrays.deepToString(blatDetails));
+	//							break;
+	//						} else if (score > passingPercentScore) {
+	//							System.out.println("passing percentage score [" + passingPercentScore + "] (seq length: " + sequence.length() + "), has been reached - exiting sw! " + Arrays.deepToString(blatDetails));
+	//							break;
+	//						}
+	//					} else {
+	//						if (debug) {
+	//							System.out.println("sw diffs did not pass the mismatch (" + mismatchCount + " and allowed up to " + misMatchCutoff + "), or block (" + blockCountCutoff + "), cutoff requirements");
+	//							for (String s : swDiffs) {
+	//								System.out.println("swDiffs: " + s);
+	//							}
+	//						}
+	//					}
 					}
-					/*
-					 * check for mismatches and blocks
-					 * If we don't pass the cutoffs, don't create the BLATRecord object
-					 */
-//					int mismatchCount = StringUtils.getCount(swDiffs[1], '.') - nCount;
-//					if (mismatchCount < misMatchCutoff && getBlockStartPositions(swDiffs).size() < blockCountCutoff) {
-//						
-//						
-//						if (debug) {
-//							if (score > 30) {
-//								for (String s : swDiffs) {
-//									System.out.println("swDiffs: " + s);
-//								}
-//								System.out.println("sw score: " + score + ", fragString length: " + fragString.length());
-//							}
-//						}
-//						
-//						String [] blatDetails = getDetailsForBLATRecord(bufferedCP, swDiffs, name, sequence, ! reverseComplement, bufferedReference);
-//						swResults.add(blatDetails);
-//						if (score == maxScore) {
-//							System.out.println("max score [" + maxScore + "] (seq length: " + sequence.length() + "), has been reached - exiting sw! " + Arrays.deepToString(blatDetails));
-//							break;
-//						} else if (score > passingPercentScore) {
-//							System.out.println("passing percentage score [" + passingPercentScore + "] (seq length: " + sequence.length() + "), has been reached - exiting sw! " + Arrays.deepToString(blatDetails));
-//							break;
-//						}
-//					} else {
-//						if (debug) {
-//							System.out.println("sw diffs did not pass the mismatch (" + mismatchCount + " and allowed up to " + misMatchCutoff + "), or block (" + blockCountCutoff + "), cutoff requirements");
-//							for (String s : swDiffs) {
-//								System.out.println("swDiffs: " + s);
-//							}
-//						}
-//					}
 				}
 			}
 		}
@@ -2645,6 +2679,10 @@ public class TiledAlignerUtil {
 				TLongList bestStartPositions = taRec.getStartPositions(12, true, 20);
 				TLongIntMap bestStartPositionsMap = taRec.getStartPositions();
 //				long [] bestStartPositionsMapKeys = bestStartPositionsMap.keys();
+//				System.out.println("bestStartPositionsMapKeys: " + Arrays.toString(bestStartPositionsMapKeys));
+//				for (long l : bestStartPositionsMapKeys) {
+//					System.out.println("long in bestStartPositionsMapKeys: " + l + ", position: " + NumberUtils.getLongPositionValueFromPackedLong(l));
+//				}
 //				TLongList bestStartPositionsMapKeysUpdated =  ListUtils.removeAdjacentPositionsInList(new TLongArrayList(bestStartPositionsMapKeys), sequence.length() < 100 ? 350 : 1700);
 //				bestStartPositionsMap.retainEntries(new TLongIntProcedure(){
 //					@Override
@@ -2677,7 +2715,7 @@ public class TiledAlignerUtil {
 	//					System.out.println("about to be turned into a blat record: " + Arrays.deepToString(array));
 	//				}
 					BLATRecord br = new BLATRecord(array);
-					if (br.getScore() > MINIMUM_BLAT_RECORD_SCORE && br.getMisMatches() <= misMatchCutoff && br.getBlockCount() < 6) {
+					if (br.getScore() > MINIMUM_BLAT_RECORD_SCORE && br.getMisMatches() <= misMatchCutoff && br.getBlockCount() <= 6) {
 //						if (br.getScore() > MINIMUM_BLAT_RECORD_SCORE) {
 						results.add(br);
 					} else if (log) {

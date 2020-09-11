@@ -200,6 +200,25 @@ public class TARecordUtilTest {
 		Map<ChrPosition, int[]> map = TARecordUtil.getChrPositionAndBlocksFromSplits(pairs, seqLength, pcpm);
 		assertEquals(2, map.size());
 		
+		String[] singleBlatRecArray = TARecordUtil.blatRecordFromSplits(pairs, "blah", seqLength, pcpm, TARecordUtil.TILE_LENGTH);
+		BLATRecord singleBR = new BLATRecord(singleBlatRecArray);
+		System.out.println("blat record: " + singleBR.toString());
+		assertEquals(196, singleBR.getScore());
+	}
+	
+	@Test
+	public void negativeLengthSplits() {
+		/*
+		 * IntLongPairs [pairs=[IntLongPair [i=1900544, l=4611967496085375606], IntLongPair [i=2097152, l=4612018073620253348], IntLongPair [i=3538946, l=4611749792783075755], IntLongPair [i=6881281, l=4611833355666786810]]]
+		 */
+		int seqLength = 358;
+		IntLongPairs pairs = new IntLongPairs(new IntLongPair[]{new IntLongPair(1900544, 4611967496085375606l), 
+				new IntLongPair(2097152, 4612018073620253348l), 
+				new IntLongPair(3538946, 4611749792783075755l), 
+				new IntLongPair(6881281, 4611833355666786810l)});
+		
+		Map<ChrPosition, int[]> map = TARecordUtil.getChrPositionAndBlocksFromSplits(pairs, seqLength, pcpm);
+		assertEquals(4, map.size());
 		
 		String[] singleBlatRecArray = TARecordUtil.blatRecordFromSplits(pairs, "blah", seqLength, pcpm, TARecordUtil.TILE_LENGTH);
 		BLATRecord singleBR = new BLATRecord(singleBlatRecArray);
@@ -225,6 +244,70 @@ public class TARecordUtilTest {
 		assertArrayEquals(new int[]{150,150}, ranges[1]);
 		assertEquals(new ChrPositionName("chr1", 0, 100, ""), cps[0]);
 		assertEquals(new ChrPositionName("chr1", 100, 250, ""), cps[1]);
+	}
+	
+	@Test
+	public void trimRangesWithChrPositionRC() {
+		/*
+		 * [[12, 44], [61, 41], [107, 117], [234, 66]]
+		 */
+		int[][] ranges = new int[2][];
+		ranges[0] = new int[]{12,44};
+		ranges[1] = new int[]{61,41};
+		/*
+		 * setup a corresponding CP array
+		 * [ChrPositionName [chromosome=chr19, startPosition=21832769, endPosition=21832813, name=R], ChrPositionName [chromosome=chr19, startPosition=21832723, endPosition=21832764, name=R], ChrPositionName [chromosome=chr19, startPosition=21832599, endPosition=21832716, name=R], ChrPositionName [chromosome=chr19, startPosition=21832520, endPosition=21832586, name=R]]
+		 */
+		ChrPosition[] cps = new ChrPosition[2];
+		cps[0] = new ChrPositionName("chr19", 21832769, 21832813, "R");
+		cps[1] = new ChrPositionName("chr19", 21832723, 21832764, "R");
+		
+		TARecordUtil.trimRangesToRemoveOverlap(ranges, cps);
+		assertEquals(2, ranges.length);
+		assertArrayEquals(new int[]{12,44}, ranges[0]);
+		assertArrayEquals(new int[]{61,41}, ranges[1]);
+		assertEquals(new ChrPositionName("chr19", 21832769, 21832813, "R"), cps[0]);
+		assertEquals(new ChrPositionName("chr19", 21832723, 21832764, "R"), cps[1]);
+		
+		/*
+		 * and now lets engineer it so that the ChrPosition needs to take a trim
+		 */
+		ranges[0] = new int[]{12,54};	// added 10
+		ranges[1] = new int[]{61,41};
+		cps[0] = new ChrPositionName("chr19", 21832769, 21832823, "R");		// added 10
+		cps[1] = new ChrPositionName("chr19", 21832723, 21832764, "R");
+		TARecordUtil.trimRangesToRemoveOverlap(ranges, cps);
+		assertEquals(2, ranges.length);
+		assertArrayEquals(new int[]{12,49}, ranges[0]);
+		assertArrayEquals(new int[]{61,41}, ranges[1]);
+		assertEquals(new ChrPositionName("chr19", 21832769, 21832818, "R"), cps[0]);
+		assertEquals(new ChrPositionName("chr19", 21832723, 21832764, "R"), cps[1]);
+		
+		ranges[0] = new int[]{12,44};
+		ranges[1] = new int[]{61,41};
+		cps[0] = new ChrPositionName("chr19", 21832769, 21832813, "R");
+		cps[1] = new ChrPositionName("chr19", 21832743, 21832784, "R");		// moved 20 bp closer to neighbour 
+		TARecordUtil.trimRangesToRemoveOverlap(ranges, cps);
+		assertEquals(2, ranges.length);
+		assertArrayEquals(new int[]{12,44 - 15}, ranges[0]);
+		assertArrayEquals(new int[]{61,41}, ranges[1]);
+		assertEquals(new ChrPositionName("chr19", 21832784, 21832813, "R"), cps[0]);
+		assertEquals(new ChrPositionName("chr19", 21832743, 21832784, "R"), cps[1]);
+		
+		/*
+		 * and again with the second CP requireing adjustment this time
+		 */
+		ranges[0] = new int[]{12,44};
+		ranges[1] = new int[]{61,51};
+		cps[0] = new ChrPositionName("chr19", 21832769, 21832813, "R");
+		cps[1] = new ChrPositionName("chr19", 21832743, 21832794, "R");		// moved 20 bp closer to neighbour 
+		TARecordUtil.trimRangesToRemoveOverlap(ranges, cps);
+		assertEquals(2, ranges.length);
+		assertArrayEquals(new int[]{12,44}, ranges[0]);
+		assertArrayEquals(new int[]{61 + 25,51 - 25}, ranges[1]);
+		assertEquals(new ChrPositionName("chr19", 21832769, 21832813, "R"), cps[0]);
+		assertEquals(new ChrPositionName("chr19", 21832743, 21832769, "R"), cps[1]);
+		
 	}
 	
 	@Test
@@ -1783,7 +1866,7 @@ p: 4611730001741593112
 				.collect(Collectors.toList()));
 		
 		System.out.println("Number of records in results after looking in potentialSplits list: " + results.size());
-		assertEquals("268	269	0	0	0	0	0	1	-71	+	splitcon_chr2_59769597_chr2_59769659__true_1599457097433_514634	269	0	268	chr2	12345	59769536	59769734	2	123,146	0,123	59769536,59769588", results.get(0).toString());
+		assertEquals("196	198	0	0	0	1	71	1	0	+	splitcon_chr2_59769597_chr2_59769659__true_1599457097433_514634	269	0	268	chr2	12345	59769536	59769734	2	123,75	0,194	59769536,59769659", results.get(0).toString());
 		List<BLATRecord[]> blatRecs = TARecordUtil.blatRecordsFromSplits(splits, name, seq.length(), pcpm);
 		assertEquals(1, blatRecs.size());
 		
@@ -1794,7 +1877,74 @@ p: 4611730001741593112
 		}
 		assertEquals(1, results.size());
 		System.out.println(results.get(0).toString());
-		assertEquals(1, results.stream().filter(br -> br.getScore() >= passingScore).count());
+		assertEquals(0, results.stream().filter(br -> br.getScore() >= passingScore).count());
+	}
+	
+	@Test
+	public void realLifeSplits27() {
+		/*
+		 *  splitcon_chr19_21832833_chr19_21916389_4_true_1599654284052_407169-,
+		 */
+		String seq = "AAACAGGAAATAAGAAAAGACATATCTACAAGAAACACATAAAAGTGTAACAATGAGGTGATTTCTGCAGATCAGCAGACTTAGTCTTTCCCCCTGCTGGCTGAGGAATCTGGGCAGTCCAGATGTATGGAATTTCTCCCAGTGAAGCACACCCCCTTCACCAAGAAGCAGCCAGAGTGCCTTGTTAAATGGTTCCTGAATCCTGTGCATCCTGACTGAGTGAGACCCCCCACAACAGGCATTGTAAGACAACTTATACAGAAGTATTCCCAGTGTCATCAGCTCAGTGCCCATCTGGGATAAAGCTTACCGATGAAGGAGCAAGCAGTCCTCTCTGCTGTTCTACACACTCCACTGG";
+		Map<Integer, TLongList> countPosition = new HashMap<>();
+		String name = "splitcon_chr19_21832833_chr19_21916389_4_true_1599654284052_407169";
+		
+		countPosition.put(NumberUtils.getTileCount(166, 0), TARecordUtil.getLongList(50580216238402l));
+		countPosition.put(NumberUtils.getTileCount(105, 1), TARecordUtil.getLongList(4611833355666786810l));
+		countPosition.put(NumberUtils.getTileCount(70, 0), TARecordUtil.getLongList(4611872938085386782l));
+		countPosition.put(NumberUtils.getTileCount(64, 2), TARecordUtil.getLongList(255089379004927l));
+		countPosition.put(NumberUtils.getTileCount(54, 2), TARecordUtil.getLongList(4611749792783075755l));
+		countPosition.put(NumberUtils.getTileCount(38, 1), TARecordUtil.getLongList(284776192954906l));
+		countPosition.put(NumberUtils.getTileCount(32, 0), TARecordUtil.getLongList(4612018073620253348l));
+		countPosition.put(NumberUtils.getTileCount(29, 0), TARecordUtil.getLongList(4611967496084773614l, 4611967496085375606l));
+		countPosition.put(NumberUtils.getTileCount(27, 1), TARecordUtil.getLongList(4611780579108653511l));
+		countPosition.put(NumberUtils.getTileCount(25, 0), TARecordUtil.getLongList(300169355743784l));
+		countPosition.put(NumberUtils.getTileCount(20, 1), TARecordUtil.getLongList(109953843632685l));
+		countPosition.put(NumberUtils.getTileCount(20, 0), TARecordUtil.getLongList(13196820893984l));
+		
+		System.out.println("seq length: " + seq.length());
+		for (Entry<Integer, TLongList> entry : countPosition.entrySet()) {
+			for (long l : entry.getValue().toArray()) {
+				System.out.println("tile count: " + Arrays.toString(NumberUtils.splitIntInto2(entry.getKey())) + ", long position: " + (NumberUtils.isBitSet(l, 62) ? "- " : "+ ") + NumberUtils.getLongPositionValueFromPackedLong(l) + ", start position in sequence: " + IntLongPairsUtils.getStartPositionInSequence( new IntLongPair(entry.getKey(), l), seq.length()));
+			}
+		}
+		
+		TARecord r =  new TARecord(seq, countPosition);
+		TIntObjectMap<Set<IntLongPairs>> splits = TARecordUtil.getSplitStartPositions(r);
+		
+		List<IntLongPairs> potentialSplits = new ArrayList<>();
+		splits.forEachValue(s -> potentialSplits.addAll(s.stream().collect(Collectors.toList())));
+		System.out.println("Number of IntLongPairs in potentialSplits list: " + potentialSplits.size());
+		for (IntLongPairs ilps : potentialSplits) {
+			System.out.println("ilps: " + ilps.toString());
+		}
+		/*
+		 * loop through them all, if valid single record splits, create BLAT recs, otherwise fall through to SW
+		 */
+		int passingScore = (int)(0.9 * seq.length());
+		List<BLATRecord> results = new ArrayList<>();
+		results.addAll(potentialSplits.stream()
+				.filter(ilp -> IntLongPairsUtils.isIntLongPairsAValidSingleRecord(ilp))
+				.map(ilp ->  TARecordUtil.blatRecordFromSplits(ilp, name, seq.length(), pcpm, 13))
+				.map(s -> new BLATRecord(s))
+//				.filter(br -> br.getScore() > passingScore)
+				.collect(Collectors.toList()));
+		
+		System.out.println("Number of records in results after looking in potentialSplits list: " + results.size());
+		assertEquals("261	268	3	0	0	1	20	3	25	-	splitcon_chr19_21832833_chr19_21916389_4_true_1599654284052_407169	358	234	55	chr19	12345	21832520	21832813	4	66,117,41,44	58,134,256,302	21832520,21832599,21832723,21832769", results.get(0).toString());
+		assertEquals("281	286	2	0	0	1	10	2	13	+	splitcon_chr19_21832833_chr19_21916389_4_true_1599654284052_407169	358	12	307	chr19	12345	21916349	21916648	3	32,178,76	12,46,232	21916349,21916383,21916572", results.get(1).toString());
+		assertEquals("227	233	2	0	0	1	55	3	60	-	splitcon_chr19_21832833_chr19_21916389_4_true_1599654284052_407169	358	234	55	chr19	12345	21832520	21832813	4	66,82,41,44	58,170,256,302	21832520,21832635,21832723,21832769", results.get(2).toString());
+		List<BLATRecord[]> blatRecs = TARecordUtil.blatRecordsFromSplits(splits, name, seq.length(), pcpm);
+		assertEquals(1, blatRecs.size());
+		
+		for (BLATRecord[] brs : blatRecs) {
+			for (BLATRecord br: brs) {
+				System.out.println("br from brs: " + br.toString());
+			}
+		}
+		assertEquals(3, results.size());
+		System.out.println(results.get(0).toString());
+		assertEquals(0, results.stream().filter(br -> br.getScore() >= passingScore).count());
 	}
 	
 	@Test

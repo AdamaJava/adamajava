@@ -62,7 +62,7 @@ public class FindClipClustersMT  {
 	
 	public static final String UNMAPPED = "unmapped";
 	
-	public static final boolean useDebugging = true;
+	public static final boolean useDebugging = false;
 	public static final String chromosomeToDebug = "chr2:chr2";
 	public static final String chromosomeToDebugSingle = "chr2";
 	public static final int positionToDebug = 59769659;

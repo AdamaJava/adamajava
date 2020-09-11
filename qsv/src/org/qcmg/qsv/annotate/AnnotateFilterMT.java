@@ -485,19 +485,18 @@ public class AnnotateFilterMT implements Runnable {
 		private boolean pileupSoftClips(BufferedWriter writer, SAMRecord record, int start, int end, Chromosome chromosome) throws Exception {
 			if (record.getReadUnmappedFlag()) {
 				unmappedCount.incrementAndGet();
-				QSVUtil.writeUnmappedRecord(writer, record, start, end, parameters.isTumor());						
+				QSVUtil.writeUnmappedRecord(writer, record, start, end, parameters.isTumor());
 				return add2queue(record, queueOutClip, start);
 			}
-
 
 			//see if clips pass the filter
 			if (clipQueryEx.Execute(record)) {
 				goodClipCount.incrementAndGet();
-				SoftClipStaticMethods.writeSoftClipRecord(writer, record, start, end, chromosome.getName());    			
+				SoftClipStaticMethods.writeSoftClipRecord(writer, record, start, end, chromosome.getName());
 				return add2queue(record, queueOutClip, start);
 			} else {
 				return true;
-			}			
+			}
 		}
 
 		/*

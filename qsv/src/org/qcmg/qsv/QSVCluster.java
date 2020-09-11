@@ -1250,17 +1250,11 @@ public class QSVCluster {
 			return true;
 		} else {
 			String conf = getConfidenceLevel();
-			if ("chr10".equals(leftReference) && leftReference.equals(rightReference)) {
-				logger.info("conf: " + conf);
-			}
 			if (conf.equals(QSVConstants.LEVEL_SINGLE_CLIP)) {
 				return false;
 			} else if (conf.equals(QSVConstants.LEVEL_HIGH) || conf.equals(QSVConstants.LEVEL_MID) || conf.equals(QSVConstants.LEVEL_LOW)) {
 				return true;
 			} else {
-				if ("chr10".equals(leftReference) && leftReference.equals(rightReference)) {
-					logger.info("! (singleSidedClip() && !isPotentialSplitRead());: " + ! (singleSidedClip() && !isPotentialSplitRead()));
-				}
 				return ! (singleSidedClip() && !isPotentialSplitRead());
 			}
 		}
