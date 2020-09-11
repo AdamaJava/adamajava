@@ -1357,7 +1357,8 @@ public class TARecordUtil {
 		 * as there are instances where there is an overlap
 		 */
 		
-		int bufferToUse = (int)(seqLength  * 0.35);
+		int bufferToUse = (int)(seqLength  * 0.4);
+//		int bufferToUse = (int)(seqLength  * 0.35);
 //		int bufferToUse = seqLength > 120 ? BUFFER * 7 : BUFFER;
 		
 		maxTileCount += bufferToUse;
