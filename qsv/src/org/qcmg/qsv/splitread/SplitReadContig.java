@@ -709,13 +709,13 @@ public class SplitReadContig {
 				if (left.getQueryStart() < 1) {
 					logger.warn("left.getQueryStart() is less than 1: " + left.getQueryStart() + ", left: " + left.toString() + ", consensus: " + consensus);
 				}
-				if (left.getQueryEnd() >= length) {
+				if (left.getQueryEnd() > length) {
 					logger.warn("left.getQueryEnd() is >= consensus length: " + left.getQueryEnd() + ", left: " + left.toString() + ", consensus: " + consensus);
 				}
 				if (right.getQueryStart() < 1) {
 					logger.warn("right.getQueryStart() is less than 1: " + right.getQueryStart() + ", right: " + right.toString() + ", consensus: " + consensus);
 				}
-				if (right.getQueryEnd() >= length) {
+				if (right.getQueryEnd() > length) {
 					logger.warn("right.getQueryEnd() is >= consensus length: " + right.getQueryEnd() + ", right: " + right.toString() + ", consensus: " + consensus);
 				}
 				leftSequence = consensus.substring(left.getQueryStart() - 1, left.getQueryEnd());

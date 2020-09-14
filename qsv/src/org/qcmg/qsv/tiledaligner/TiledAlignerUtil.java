@@ -801,7 +801,7 @@ public class TiledAlignerUtil {
 									position = NumberUtils.getPositionOfLongInArray(nextArray, l + i + 14);
 									if (position > -1) {
 										i += 13;
-										tally += 13;
+										tally += 14;
 										mismatchTally++;
 										continue;
 									}
@@ -1700,6 +1700,11 @@ public class TiledAlignerUtil {
 			positionsToUse = checkForOverlappingSequence(positions, sequence);
 			numberOfPositions = positionsToUse.size();
 		}
+		
+		if (numberOfPositions == 0) {
+			return new String[]{};
+		}
+		
 		for (ChrPosition cp : positionsToUse) {
 			if (lastEnd > 0) {
 				totalGapSize += cp.getStartPosition() - lastEnd;

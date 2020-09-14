@@ -169,7 +169,11 @@ public class SplitReadContigTest {
 		right = pair.getRight();
 		assertEquals(false, left == null);
 		assertEquals(false, right == null);
-		assertEquals(212, right.getQueryEnd().intValue());
+		assertEquals(151, right.getQueryStart().intValue());
+		assertEquals(213, right.getQueryEnd().intValue());
+		assertEquals(1, left.getQueryStart().intValue());
+		assertEquals(159, left.getQueryEnd().intValue());
+//		assertEquals(212, right.getQueryEnd().intValue());
 		
 	}
 	@Test
@@ -202,7 +206,10 @@ public class SplitReadContigTest {
 		System.out.println("right getQueryStart: " + right.getQueryStart().intValue());
 		System.out.println("right getQueryEnd: " + right.getQueryEnd().intValue());
 		
-		assertEquals(212, right.getQueryEnd().intValue());
+		assertEquals(1, right.getQueryStart().intValue());
+		assertEquals(60, right.getQueryEnd().intValue());
+		assertEquals(40, left.getQueryStart().intValue());
+		assertEquals(194, left.getQueryEnd().intValue());
 		
 	}
 	
@@ -211,7 +218,11 @@ public class SplitReadContigTest {
 		SplitReadAlignment newAlign = new SplitReadAlignment(new BLATRecord("215	1	0	0	0	0	0	0	+	splitcon_chr7_101126970_chr7_156838178__true_1557450089062_845461	232	15	231	chr7	12345	101127272	101127488	1	216	15	101127287".split("\t")));
 		assertEquals(false, SplitReadContig.passesNewAlignmentFilters(newAlign, 101126970, 156838178, "6", 232));
 	}
-	
+	@Test
+	public void passesNewAlignmentFilters2() {
+		SplitReadAlignment newAlign = new SplitReadAlignment("chr15",'+',	24397930	,24398008	,152	,230);
+		assertEquals(true, SplitReadContig.passesNewAlignmentFilters(newAlign, 23831661, 23992703, "6", 230));
+	}
 	
 	@Test
 	public void testLeftLower() throws UnsupportedEncodingException, QSVException {
@@ -608,7 +619,8 @@ public class SplitReadContigTest {
 //		splitReadContig = new SplitReadContig(blat, p, leftReference, rightReference, leftBreakpoint, 
 //				rightBreakpoint, orientation);
 		splitReadContig.setConsensus(consensus);
-		splitReadContig.setConfidenceLevel("6");
+		splitReadContig.setConfidenceLevel(QSVConstants.LEVEL_HIGH);
+//		splitReadContig.setConfidenceLevel("6");
 		splitReadContig.parseConsensusAlign(records);
 		assertTrue(splitReadContig.getIsPotentialSplitRead());
 		assertEquals(splitReadContig.getOrientationCategory(), orientation);
