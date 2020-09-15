@@ -1,0 +1,29 @@
+site_name: AdamaJava
+site_description: AdamaJava next-generation sequencing software system
+site_author: Genome Informatics Group at QIMR Berghofer MRI
+
+repo_url: https://github.com/adamajava/adamajava/
+
+nav:
+- Home: index.md
+- AdamaJava:
+    - Introduction: intro.md
+    - qbamfilter: qbamfilter/index.md
+    - qbasepileup: qbasepileup/index.md
+    - qcnv: qcnv/index.md
+    - qcoverage: qcoverage/index.md
+    - qmito: qmito/index.md
+    - qmotif: qmotif/index.md
+    - qmule: qmule/index.md
+    - qpileup: qpileup/index.md
+    - qprofiler: qprofiler/index.md
+    - qsignature: qsignature/index.md
+    - qsnp: qsnp/index.md
+    - qsv: qsv/index.md
+    - qvisualise: qvisualise/index.md
+
+theme:
+    name: readthedocs
+    collapse_navigation: true
+    titles_only: false
+    sticky_navigation: true

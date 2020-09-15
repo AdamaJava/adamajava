@@ -1,0 +1,268 @@
+# qmotif v1.0
+
+_This document refers to an old version of qMotif.  The current version
+is [1.2](qmotif_1_2.md)_
+
+`qmotif` runs against a BAM file searching for user specified nucleotide 
+motifs.
+qmotif was created to search for reads that contained canonical
+and degenerate forms of the telomeric TTAGGG repeat.
+
+
+## Installation
+
+qmotif requires java 7 and (ideally) a multi-core machine with at least 20GB of RAM.  To install:
+
+* Download the [qmotif tar file](http://sourceforge.net/projects/adamajava/files/qmotif.tar.bz2/download).
+* Untar the tar file into a directory of your choice.
+* Invoke java with the qmotif jar file
+
+When you untar the qmotif tar file, you should see java jar files for qmotif and its dependencies:
+
+~~~~{.text}
+$ tar xjvf qmotif.tar.bz2
+x antlr-3.2.jar
+x jopt-simple-3.2.jar
+x picard-1.110.jar
+x qbamfilter-1.0pre.jar
+x qcommon-0.1pre.jar
+x qpicard-0.1pre.jar
+X qio-0.1pre.jar
+x qmotif-1.0.jar
+x sam-1.110.jar
+x qmotif.ini
+~~~~
+
+The `qmotif.jar` jar file contains the qmotif code and the other jar files
+contain libraries that are used by qmotif.
+
+## Usage
+
+~~~~{.text}
+java -Xmx20g -jar qmotif-1.0.jar \
+    -n 8 \
+    --bam /mydata/bamFile.bam \
+    --bai /mydata/bamFile.bam.bai \
+    --log /mydata/bamFile.bam.qmotif.log \
+    --loglevel DEBUG \
+    -i /mydata/qmotif.ini \
+    -o /mydata/bamFile.bam.qmotif.xml \
+    -o /mydata/bamFile.telomere.bam
+~~~~
+
+## Options
+
+The following command line options are supported:
+
+Option  | Required | Description
+--------|----------|------------
+i       | Yes      | Configuration file in INI format.  This file is designed to contain parameters that are likely to be fixed for a given type of analysis.  So the general idea is that you test parameters in the INI file until you are happy and then you use that single INI file with all of the BAM files that are part of this analysis.
+bam     | Yes      | BAM file on which to operate.
+bai     | Yes      | Index file for the BAM file being processed.
+log     | Yes      | Log file.
+loglevel| No       | Level of verbosity of logging.  The default level is INFO and valid values are INFO, DEBUG.
+n       | No       | Number of threads to use when running qmotif. Defaults to 1.
+o       | Yes      | Output XML file containing the motifs found and the regions they were found in. 
+o       | Yes      | Output BAM file containing the reads that matched the stage1 search regex/string
+
+## Config file
+
+The qmotif config file is in the standard INI-file format and has 3 sections,
+PARAMS, INCLUDES, and EXCLUDES.  The PARAMS sections lists the search
+criteria along with other customisable parameters, the INCLUDES section 
+contains a list of genomic regions that are to be targeted for analysis, and
+the EXCLUDES section contains a list of genomic regions that are to be 
+excluded from analysis.
+
+Lines can be commented out by prepending a `;` character as can be seen in 
+the example below where a number of different stage1 and stage2 motif 
+parameters appear but only one of each type is ''not'' commented out.
+
+An example ini file follows:
+
+~~~~{.text}
+[PARAMS]
+stage1_motif_string=TTAGGGTTAGGGTTAGGG
+;stage1_motif_string=TTAGGGTTAGGGTTAGGGTTAGGG
+;stage2_motif_string=TTAGGG
+stage2_motif_regex=(...GGG){2,}|(CCC...){2,}
+;stage2_motif_regex=((TTA|TCA|TTC|GTA|TGA|TTG|TAA|ATA|CTA|TTT|TTAA)GGG){2,}|(CCC(TAA|TGA|GAA|TAC|TCA|CAA|TTA|TAT|TAG|AAA|TTAA)){2,}
+revcomp=true
+window_size=10000
+cutoff_size=5
+
+[INCLUDES]
+; name    regions (sequence:start-stop)
+chr1p   chr1:10001-12464
+chr1q   chr1:249237907-249240620
+chr2p   chr2:10001-12592
+chr2q   chr2:243187373-243189372
+chr2xA  chr2:243150480-243154648
+chr3p   chr3:60001-62000
+chr3q   chr3:197960430-197962429
+chr3xB  chr3:197897576-197903397
+chr4p   chr4:10001-12193
+chr4q   chr4:191041613-191044275
+chr5p   chr5:10001-13806
+chr5q   chr5:180903260-180905259
+chr6p   chr6:60001-62000
+chr6q   chr6:171053067-171055066
+...
+
+[EXCLUDES]
+; regions (sequence:start-stop)
+;chr1:143274114-143274336
+~~~~
+
+This table shows the parameters that can be specified in `[PARAMS]` :
+
+Parameter           | Example                   | Description
+--------------------|---------------------------|------------
+stage1_motif_string | TTAGGGTTAGGG              | String that reads are matched against in the stage 1 match.  More than one string can be specified separated by commas.
+stage1_motif_regex  | (...GGG){2,}&verbar;(CCC...){2,} | Regular expression that reads are matched against in the stage 1 match.
+stage2_motif_string | TTAGGGTTAGGG              | As per `stage1_motif_string` but for the second stage matching.
+stage2_motif_regex  | (...GGG){2,}&vert;(CCC...){2,} | As per `stage1_motif_regex` but for the second stage matching.
+revcomp             | true                      | If this parameter is
+set to true then the reverse complement is also matched for any motifs specified in `stage1_motif_string` or `stage2_motif_string`.  It has no effect if the `_regex` parameters are used so any regex should include the reverse complement if you care about it.
+window_size         | 10000                     | For GENOMIC regions (see below), this is the size of the windows that are considered for reporting.  If window_size is not specified, the default value is 10000.
+cutoff_size         | 5                         | Regions with less than this number of matching reads are not reported.  This was intended to remove noise in the output XML file by removing regions with read counts below a useful threshold.  The default is 10 so if you want all regions with even a single matching read to be reported then you need to explicitly set a value of 0 for this parameter.
+
+The `_string` and `_regex` parameters are mutually exclusive within a stage,
+i.e. you can set either `stage1_motif_string` or `stage1_motif_regex` but 
+not both.
+
+## How it works
+
+Every single read in the BAM is put through the stage1 match (string or 
+regex). If the read passes the stage1 match, we decide which region of
+the BAM the read falls within and depending on the type of region (see
+table below for a discussion of region types), the read may or may not
+go on to stage2 matching.  If the read passes the stage1 match, the 
+`stage1Cov` tally for the region is incremented.
+
+Stage2 involves another match against the read sequence. Again, the match
+could be against a string or a regex but this time, the actual matches are
+retrieved and a tally is kept for each region of how many of which motifs
+were seen in reads from that region. If the read passes the stage2 match,
+the `stage2Cov` tally for the region is incremented.
+
+The 2-stage matching system was specificly designed to help us with speed
+so in practice, we always use quick string matching for stage1 and only 
+reads that pass stage1 (potentially) go on to the much slower regex match
+in stage2.  There is no reason why you _must_ do it this way but this is 
+how we designed the system.  This is worth understanding because if you 
+decide to use a stage1 regex on a large BAM, your runtimes could blow out
+significantly.  And if you use string matching in stage2, your tally of 
+motifs will of course be very simple.
+
+The reference genome is split into regions of 4 different types: INCLUDES,
+EXCLUDES, UNMAPPED, and GENOMIC.  Depending on the region, mapped reads 
+or unmapped reads or both types may be considered for stage2 matching.
+All reads are always put through stage1 so region type only becomes a 
+factor for stage2 matching.
+
+Region Type | Reads passed to stage2 match | Description
+------------|------------------------------|------------
+INCLUDES | mapped, unmapped | These regions are specified in the ini file and are the regions of particular interest. In the case of telomere analysis, these are regions that are defined as telomeric.  All reads from pairs that fall within these regions are analysed, i.e. mapped reads and unmapped reads where the paired read maps within the region.
+EXCLUDES | neither | These regions are specified in the ini file but in this case these are regions that we specifically want to exclude from the analysis.  For example, in the case of telomeres these might include centromeric regions or non-telomeric places in the genome that are known to contain the telomeric motif and so should be actively ignored.  EXCLUDE regions are still analysed and reported (only unmapped reads are included) but this gives us a mechanism to ensure that the region will not appear in any GENOMIC windows.
+GENOMIC | unmapped | All other regions in the genome not covered by INCLUDES and EXCLUDES. Only unmapped reads are included in analysis of these regions. The size of each GENOMIC region is determined by the window_size entry in the ini file. The length of the chromosome is divided by the window size to give the number of genomic regions.  Note that INCLUDES and EXCLUDES are overlaid on top of GENOMIC regions so if one of then occurs in the middle of a GENOMIC window, that window is split into two smaller windows on either side of the INCLUDE/EXCLUDE.  This means that you need to pay attention to the `chrPos` attribute of `region` elements in the XML to work out how big the region is - you can't assume they are all the `window_size` bases. 
+UNMAPPED | unmapped | Single region for all pairs where both reads are unmapped.  Obviously only unmapped reads are included in this analysis.
+
+A matching example - a read with the following sequence:
+
+~~~~{.text}
+ACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCT
+~~~~
+
+will pass the stage1 check (assuming a filter of TTAGGGTTAGGGTTAGGG with revcomp set to true)
+and will add the following string to the list of matches for the region:
+
+~~~~
+CCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAA
+~~~~
+
+which is identical to the read sequence apart from the first character and the last 4 characters.
+
+This information is gathered for all reads in all regions and summarised in the output xml file.
+An output bam file is also produced which contains only the reads that passed both the stage1 and stage2 filters.
+
+## Output
+
+### XML
+
+Sample XML output from motif:
+
+~~~~
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<qmotif>
+  <summary bam="/path/to/my/bamfile.bam">
+    <counts>
+      <windowSize count="10000"/>
+      <cutoff count="5"/>
+      <totalReadCount count="1809130333"/>
+      <noOfMotifs count="34497"/>
+      <rawUnmapped count="15452"/>
+      <rawIncludes count="107983"/>
+      <rawGenomic count="214"/>
+      <scaledUnmapped count="8541"/>
+      <scaledIncludes count="59687"/>
+      <scaledGenomic count="118"/>
+    </counts>
+  </summary>
+  <motifs>
+    <motif id="1" motif="AAAGGGAGAGGGGGAGGGGGAGGG" noOfHits="1"/>
+    <motif id="2" motif="AAAGGGATAGGG" noOfHits="2"/>
+    <motif id="3" motif="AAAGGGATTGGGCTAGGGATAGGGTTAGGGGTAGGG" noOfHits="1"/>
+    <motif id="4" motif="AAAGGGCTAGGG" noOfHits="1"/>
+    <motif id="5" motif="AAAGGGGAAGGG" noOfHits="1"/>
+    ...
+  </motifs>
+  <regions>
+    <region chrPos="chr1:0-9999" stage1Cov="30" stage2Cov="30" type="genomic">
+      <motif id="16087" number="3" strand="R"/>
+      <motif id="28504" number="1" strand="R"/>
+      <motif id="16053" number="1" strand="R"/>
+      <motif id="30640" number="1" strand="R"/>
+      <motif id="22632" number="2" strand="R"/>
+      ...
+    </region>
+    <region chrPos="chr1:10000-10000" stage1Cov="6" stage2Cov="6" type="genomic">
+      <motif id="25994" number="6" strand="F"/>
+    </region>
+    <region chrPos="chr1:10001-12464" stage1Cov="1805" stage2Cov="1805" type="includes">
+      <motif id="397" number="1" strand="F"/>
+      <motif id="26591" number="1" strand="F"/>
+      <motif id="7782" number="1" strand="F"/>
+      <motif id="18961" number="1" strand="F"/>
+      <motif id="3065" number="1" strand="F"/>
+      ...
+    </region>
+    ...
+    <region chrPos="unmapped:0-9999" stage1Cov="15452" stage2Cov="15452" type="unmapped">
+      <motif id="5017" number="3" strand="F"/>
+      <motif id="19855" number="1" strand="F"/>
+      <motif id="20772" number="5" strand="F"/>
+      <motif id="20256" number="1" strand="F"/>
+      <motif id="18776" number="1" strand="F"/>
+      ...
+    </region>
+  </regions>
+</qmotif>
+~~~~
+
+The output file has 3 sections:
+
+* summary - the input parameters plus any parameters that were not specified but that have defaults
+* motifs - an entry for each stage2_motif found along with a count of the total number of times the motif was seen
+* regions - counts of the different motifs seen in each of the regions (INCLUDES, EXCLUDES, GENOMIC, UNMAPPED) where each motif ID relates to one of the motif elements in "motifs"
+
+## BAM ##
+
+Any reads that pass the stage 1 filter will make it into the output bam file, as long as the region that the read is in allows that type of read. For example:
+
+ * If the read falls within an INCLUDES region, passes the stage 1 filter, and is mapped or unmapped, then it will make it into the bam.
+ * If the read falls within an GENOMIC, or UNMAPPED region, passes the stage 1 filter, and is mapped it will NOT make it into the bam.
+ * If the read is unmapped and passes the filter, then it will make it into the bam.
+ * If the read is in an EXCLUDES region, then it will not make it into the bam, regardless of filters and mapped status.
+
+Output bams are coordinate sorted by default.
