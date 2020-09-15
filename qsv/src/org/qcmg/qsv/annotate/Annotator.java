@@ -21,15 +21,15 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import javax.xml.bind.Marshaller;
 
-import htsjdk.samtools.SAMReadGroupRecord;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SAMTagUtil;
-
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.util.Constants;
 import org.qcmg.qsv.QSVException;
 import org.qcmg.qsv.util.QSVConstants;
+
+import htsjdk.samtools.SAMReadGroupRecord;
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SAMTagUtil;
 
 /**
  * 
@@ -58,7 +58,6 @@ public class Annotator  {
 	private final AtomicLong unrecognizedCount = new AtomicLong();
 	private final AtomicLong singletons = new AtomicLong();
 	private final AtomicLong duplicates = new AtomicLong();
-//	private final AtomicLong totalCount = new AtomicLong();
 	private final String annotatorType;
 	private final List<RunTypeRecord> sequencingRuns;
 	private final ConcurrentMap <String, RunTypeRecord> sequencingRunsMap;
@@ -106,7 +105,7 @@ public class Annotator  {
 		//		record.getAttribute("NH");
 
 		//need to set it based on mapper and pairing type
-		if (record.getAttribute("NH") == null) {
+		if (record.getAttribute(QSVConstants.NH_SHORT) == null) {
 			if ( ! pairingType.equals("lmp")) {
 				setNHAttribute(mapper, record);
 			}

@@ -21,14 +21,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import htsjdk.samtools.reference.FastaSequenceFile;
-import htsjdk.samtools.reference.FastaSequenceIndex;
-import htsjdk.samtools.reference.IndexedFastaSequenceFile;
-import htsjdk.samtools.reference.ReferenceSequence;
-import htsjdk.samtools.reference.ReferenceSequenceFile;
-import htsjdk.samtools.SAMReadGroupRecord;
-import htsjdk.samtools.SAMRecord;
-
 import org.qcmg.common.meta.QExec;
 import org.qcmg.common.model.ReferenceNameComparator;
 import org.qcmg.common.string.StringUtils;
@@ -37,7 +29,14 @@ import org.qcmg.qsv.QSVException;
 import org.qcmg.qsv.discordantpair.MatePair;
 import org.qcmg.qsv.discordantpair.PairClassification;
 import org.qcmg.qsv.discordantpair.PairGroup;
-import org.qcmg.qsv.splitread.UnmappedRead;
+
+import htsjdk.samtools.SAMReadGroupRecord;
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.reference.FastaSequenceFile;
+import htsjdk.samtools.reference.FastaSequenceIndex;
+import htsjdk.samtools.reference.IndexedFastaSequenceFile;
+import htsjdk.samtools.reference.ReferenceSequence;
+import htsjdk.samtools.reference.ReferenceSequenceFile;
 
 
 /**
@@ -477,17 +476,6 @@ public class QSVUtil {
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 * @throws QSVException 
 	 */
-	public static void writeUnmappedRecord(BufferedWriter writer,
-			SAMRecord record, Integer start, Integer end, String name, String chr, String softClipDir, boolean isTumour) throws IOException, QSVException {
-
-		if (createRecord(record.getMateAlignmentStart(), start, end)) {
-			if ( ! QSVUtil.highNCount(record.getReadString(), 0.2)) {
-				UnmappedRead read = new UnmappedRead(record, isTumour);
-				writer.write(read.toTmpString());				
-			}
-		}		
-	}
-
 	public static void writeUnmappedRecord(BufferedWriter writer, SAMRecord record, Integer start, Integer end, boolean isTumour) throws IOException, QSVException {
 		SAMReadGroupRecord rg = record.getReadGroup();
 		writeUnmappedRecord( writer, record, (rg != null ? rg.getId() : Constants.EMPTY_STRING), start, end,  isTumour);

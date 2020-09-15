@@ -10,14 +10,14 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.List;
 
+import org.qcmg.common.util.Constants;
+import org.qcmg.qsv.QSVParameters;
+import org.qcmg.qsv.util.QSVUtil;
+
 import htsjdk.samtools.CigarElement;
 import htsjdk.samtools.CigarOperator;
 import htsjdk.samtools.SAMReadGroupRecord;
 import htsjdk.samtools.SAMRecord;
-
-import org.qcmg.common.util.Constants;
-import org.qcmg.qsv.QSVParameters;
-import org.qcmg.qsv.util.QSVUtil;
 
 public class SoftClipStaticMethods {
 	
@@ -34,7 +34,7 @@ public class SoftClipStaticMethods {
 		}
 	}
 	
-	public static Clip createSoftClipRecord(SAMRecord record, Integer start, Integer end, String chromosome) {
+	public static Clip createSoftClipRecord(SAMRecord record, String rgId, Integer start, Integer end, String chromosome) {
 		if ( ! record.getReadUnmappedFlag()) {
 			List<CigarElement> elements = record.getCigar().getCigarElements();
 			
@@ -51,7 +51,7 @@ public class SoftClipStaticMethods {
 					int len = first.getLength();
 					String sequence = sequenceString.substring(0, len);
 					String alignedSequence = sequenceString.substring(len);
-					return new Clip(record, bpPos, sequence,alignedSequence, Clip.LEFT);
+					return new Clip(record, rgId, bpPos, sequence,alignedSequence, Clip.LEFT);
 				}			
 			} else if (last.getOperator().equals(CigarOperator.S)) {
 				
@@ -61,7 +61,7 @@ public class SoftClipStaticMethods {
 					int seqLen = sequenceString.length() - last.getLength();
 					String sequence = sequenceString.substring(seqLen);
 					String alignedSequence = sequenceString.substring(0, seqLen);
-					return new Clip(record, bpPos, sequence, alignedSequence, Clip.RIGHT);				
+					return new Clip(record, rgId, bpPos, sequence, alignedSequence, Clip.RIGHT);				
 				}			
 			}			
 		}		

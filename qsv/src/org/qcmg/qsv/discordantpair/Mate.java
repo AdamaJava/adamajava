@@ -28,16 +28,16 @@ public class Mate {
         this.zp = zp;
     }
 
-    public Mate(SAMRecord samRecord) {
-        this.readName = samRecord.getReadName() + ":" + samRecord.getReadGroup().getId();
-        this.start = samRecord.getAlignmentStart();
-        this.end = samRecord.getAlignmentEnd();
-        this.referenceName = samRecord.getReferenceName();
-        this.negOrientation = samRecord.getReadNegativeStrandFlag();
-        this.flags = samRecord.getFlags();
-        
-        String tmpZP = (String) samRecord.getAttribute("ZP");
-        this.zp = tmpZP.equals("C**") ? "Cxx" : tmpZP;
+    public Mate(SAMRecord samRecord, String rgId) {
+    	this.readName = samRecord.getReadName() + ":" + rgId;
+    	this.start = samRecord.getAlignmentStart();
+    	this.end = samRecord.getAlignmentEnd();
+    	this.referenceName = samRecord.getReferenceName();
+    	this.negOrientation = samRecord.getReadNegativeStrandFlag();
+    	this.flags = samRecord.getFlags();
+    	
+    	String tmpZP = (String) samRecord.getAttribute("ZP");
+    	this.zp = tmpZP.equals("C**") ? "Cxx" : tmpZP;
     }
 
     public String getReferenceName() {

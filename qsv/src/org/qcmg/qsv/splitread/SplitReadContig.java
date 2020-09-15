@@ -22,10 +22,6 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SAMRecordIterator;
-
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.picard.SAMFileReaderFactory;
@@ -38,6 +34,10 @@ import org.qcmg.qsv.blat.BLAT;
 import org.qcmg.qsv.blat.BLATRecord;
 import org.qcmg.qsv.util.QSVConstants;
 import org.qcmg.qsv.util.QSVUtil;
+
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SAMRecordIterator;
+import htsjdk.samtools.SamReader;
 
 public class SplitReadContig {
 
@@ -371,8 +371,6 @@ public class SplitReadContig {
 
 	private void readSplitReads(SamReader reader, Map<String, UnmappedRead[]> map, List<UnmappedRead> splitReads, 
 			String reference, int intBreakpoint, Set<String> expectedPairClassifications) throws QSVException {
-		//		SAMFileReader.setDefaultValidationStringency(ValidationStringency.SILENT);  
-		//        SamReader reader = SAMFileReaderFactory.createSAMFileReader(parameters.getInputBamFile(), "silent");
 		int buffer = parameters.getUpperInsertSize().intValue() + 200;
 		int count = 0;
 		
@@ -384,7 +382,10 @@ public class SplitReadContig {
 			SAMRecord r = iter.next();	 
 
 			if ( ! r.getDuplicateReadFlag()) {
-				if (readGroupIds.contains(r.getReadGroup().getId())) {
+				
+				String readGroupId = r.getReadGroup().getId();
+				
+				if (readGroupIds.contains(readGroupId)) {
 					if (r.getReadUnmappedFlag() || r.getCigarString().contains("S")) {
 						count++;
 						if (count > 1000) {
@@ -400,14 +401,14 @@ public class SplitReadContig {
 						 * otherwise we will get exceptions later on...
 						 */
 						if (r.getReadLength() >= QSVAssemble.SEED_LENGTH) {
-							splitReads.add(new UnmappedRead(r, true));
+							splitReads.add(new UnmappedRead(r, readGroupId, true));
 							if (r.getReadUnmappedFlag()) {
-								splitReads.add(new UnmappedRead(r, true, true));
+								splitReads.add(new UnmappedRead(r, readGroupId, true, true));
 							}
 						}
 					} else {
 
-						parameters.getAnnotator().annotate(r);
+						parameters.getAnnotator().annotate(r, readGroupId);
 						String zp = (String) r.getAttribute("ZP");
 						if (expectedPairClassifications.contains(zp)) {
 
@@ -419,14 +420,14 @@ public class SplitReadContig {
 								break;
 							} else {
 								if (r.getReadLength() >= QSVAssemble.SEED_LENGTH) {
-									String key = r.getReadName() + ":" + r.getReadGroup().getId();
+									String key = r.getReadName() + ":" + readGroupId;
 									UnmappedRead[] arr = map.get(key);
 									
 									if (null == arr) {
-										arr = new UnmappedRead[]{new UnmappedRead(r, true), null};
+										arr = new UnmappedRead[]{new UnmappedRead(r, readGroupId, true), null};
 										map.put(key, arr);
 									} else {
-										UnmappedRead newRead = new UnmappedRead(r, true);
+										UnmappedRead newRead = new UnmappedRead(r, readGroupId, true);
 										if (newRead.getBpPos().intValue() != arr[0].getBpPos().intValue()) {
 											arr[1] = newRead;
 										}

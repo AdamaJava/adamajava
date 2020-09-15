@@ -19,11 +19,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMReadGroupRecord;
-import htsjdk.samtools.SAMRecord;
-
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.util.Constants;
@@ -32,6 +27,11 @@ import org.qcmg.qsv.QSVException;
 import org.qcmg.qsv.annotate.RunTypeRecord;
 import org.qcmg.qsv.util.CustomThreadPoolExecutor;
 import org.qcmg.qsv.util.QSVUtil;
+
+import htsjdk.samtools.SAMFileHeader;
+import htsjdk.samtools.SAMReadGroupRecord;
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SamReader;
 
 
 public class SAMRecordCounterMT {
@@ -266,11 +266,10 @@ public class SAMRecordCounterMT {
 	                        }
 
 	                    } else {
-	                        // check to see if max records found for all reads	
-	                    	if (record.getReadGroup() != null) {
-		        				String rdId = record.getReadGroup().getId();				
-		        						        					
-	        					runRecords.get(rdId).addToMap(record.getInferredInsertSize());		        				
+	                        // check to see if max records found for all reads
+	                    	SAMReadGroupRecord srgr = record.getReadGroup();
+	                    	if (srgr != null) {
+	        					runRecords.get(srgr.getId()).addToMap(record.getInferredInsertSize());		        				
 	                    	}
 
 	                    } // end else
@@ -292,8 +291,4 @@ public class SAMRecordCounterMT {
 	            }
 	        }
 	  }
-
-//	public int getExitStatus() {
-//		return exitStatus.intValue();
-//	}
 }
