@@ -21,15 +21,15 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import javax.xml.bind.Marshaller;
 
-import htsjdk.samtools.SAMReadGroupRecord;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SAMTagUtil;
-
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.util.Constants;
 import org.qcmg.qsv.QSVException;
 import org.qcmg.qsv.util.QSVConstants;
+
+import htsjdk.samtools.SAMReadGroupRecord;
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SAMTagUtil;
 
 /**
  * 
@@ -160,11 +160,9 @@ public class Annotator  {
 					lmp = null;
 					//paired end
 				} else if (annotatorType.equals("pe")){
-					PairedEndRecord pe = new PairedEndRecord(record, lower, upper);
-					pe.createZPAnnotation();
-
-					countZp(pe.getZPAnnotation());		                 
-					pe = null;
+					String zpAnnotation = ZPAnnotator.createZPAnnotation(record, lower, upper);
+					record.setAttribute(QSVConstants.ZP, zpAnnotation);
+					countZp(zpAnnotation);	
 					//illumna mate pair    
 				} else if (annotatorType.equals("imp")){			    	
 					IlluminaLongMatePairRecord imp = new IlluminaLongMatePairRecord(record, lower, upper);
