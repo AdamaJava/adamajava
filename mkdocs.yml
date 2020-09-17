@@ -14,13 +14,13 @@ nav:
     - qcoverage: docs/qcoverage/index.md
     - qmito: docs/qmito/index.md
     - qmotif: docs/qmotif/index.md
-    - qmule: docs/qmule/index.md
+    - qmule: qmule/index.md
     - qpileup: docs/qpileup/index.md
     - qprofiler: docs/qprofiler/index.md
     - qsignature: docs/qsignature/index.md
     - qsnp: docs/qsnp/index.md
     - qsv: docs/qsv/index.md
-    - qvisualise: docs/qvisualise/index.md
+    - qvisualise: qvisualise/index.md
 
 theme:
     name: readthedocs
