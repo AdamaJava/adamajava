@@ -20,6 +20,7 @@ import java.util.Map;
 import org.qcmg.common.commandline.BlockingExecutor;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.model.BLATRecord;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.qsv.QSVException;
 import org.qcmg.qsv.QSVParameters;

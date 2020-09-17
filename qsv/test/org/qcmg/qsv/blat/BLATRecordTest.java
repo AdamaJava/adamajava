@@ -3,6 +3,7 @@ package org.qcmg.qsv.blat;
 import static org.junit.Assert.*;
 
 import org.junit.Test;
+import org.qcmg.common.model.BLATRecord;
 import org.qcmg.qsv.QSVException;
 import org.qcmg.qsv.util.QSVConstants;
 import org.qcmg.qsv.util.QSVUtil;

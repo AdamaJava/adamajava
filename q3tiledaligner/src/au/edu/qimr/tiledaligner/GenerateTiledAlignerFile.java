@@ -136,6 +136,7 @@ public class GenerateTiledAlignerFile {
 			writer.write(("##q3TiledAligner version: " + version + "\n").getBytes());
 			writer.write(("##RunBy: " + System.getProperty("user.name") + "\n").getBytes());
 			writer.write(("##RunOn: " + DateUtils.getCurrentDateAsString() + "\n").getBytes());
+			writer.write(("##Reference: " + inputFile + "\n").getBytes());
 			writer.write(("##List of positions/Count cutoff: " + positionsCutoff + "\n").getBytes());
 			writer.write(("##Tile length: " + tileSize + "\n").getBytes());
 			writer.write(("##Number of tiles: " + orderedTiles.size() + "\n").getBytes());

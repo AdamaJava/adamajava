@@ -27,12 +27,12 @@ import java.util.List;
 import java.util.Set;
 
 import org.junit.rules.TemporaryFolder;
+import org.qcmg.common.model.BLATRecord;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qsv.Options;
 import org.qcmg.qsv.QSVCluster;
 import org.qcmg.qsv.QSVException;
 import org.qcmg.qsv.QSVParameters;
-import org.qcmg.qsv.blat.BLATRecord;
 import org.qcmg.qsv.discordantpair.DiscordantPairCluster;
 import org.qcmg.qsv.discordantpair.MatePair;
 import org.qcmg.qsv.discordantpair.PairClassification;

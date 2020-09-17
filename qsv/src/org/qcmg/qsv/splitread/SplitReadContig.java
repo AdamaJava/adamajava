@@ -28,6 +28,7 @@ import htsjdk.samtools.SAMRecordIterator;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.model.BLATRecord;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qsv.Chromosome;
 import org.qcmg.qsv.QSVException;
@@ -35,7 +36,6 @@ import org.qcmg.qsv.QSVParameters;
 import org.qcmg.qsv.assemble.ConsensusRead;
 import org.qcmg.qsv.assemble.QSVAssemble;
 import org.qcmg.qsv.blat.BLAT;
-import org.qcmg.qsv.blat.BLATRecord;
 import org.qcmg.qsv.util.QSVConstants;
 import org.qcmg.qsv.util.QSVUtil;
 

@@ -6,7 +6,7 @@
  */
 package org.qcmg.qsv.splitread;
 
-import org.qcmg.qsv.blat.BLATRecord;
+import org.qcmg.common.model.BLATRecord;
 import org.qcmg.qsv.util.QSVUtil;
 
 public class SplitReadAlignment {
