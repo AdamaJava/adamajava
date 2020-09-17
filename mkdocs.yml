@@ -5,21 +5,21 @@ site_author: Genome Informatics Group at QIMR Berghofer MRI
 repo_url: https://github.com/adamajava/adamajava/
 
 nav:
-- Home: docs/index.md
+- Home: index.md
 - AdamaJava:
-    - Introduction: docs/intro.md
-    - qbamfilter: docs/qbamfilter/index.md
-    - qbasepileup: docs/qbasepileup/index.md
-    - qcnv: docs/qcnv/index.md
-    - qcoverage: docs/qcoverage/index.md
-    - qmito: docs/qmito/index.md
-    - qmotif: docs/qmotif/index.md
-    - qmule: qmule/index.md
-    - qpileup: docs/qpileup/index.md
-    - qprofiler: docs/qprofiler/index.md
-    - qsignature: docs/qsignature/index.md
-    - qsnp: docs/qsnp/index.md
-    - qsv: docs/qsv/index.md
+    - Introduction: intro.md
+    - qbamfilter: qbamfilter/index.md
+    - qbasepileup: qbasepileup/index.md
+    - qcnv: qcnv/index.md
+    - qcoverage: qcoverage/index.md
+    - qmito: qmito/index.md
+    - qmotif: qmotif/index.md
+    - qmule: index.md
+    - qpileup: qpileup/index.md
+    - qprofiler: qprofiler/index.md
+    - qsignature: qsignature/index.md
+    - qsnp: qsnp/index.md
+    - qsv: qsv/index.md
     - qvisualise: qvisualise/index.md
 
 theme:
