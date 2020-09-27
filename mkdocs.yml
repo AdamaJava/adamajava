@@ -14,7 +14,7 @@ nav:
     - qcoverage: qcoverage/index.md
     - qmito: qmito/index.md
     - qmotif: qmotif/index.md
-    - qmule: qmule/index.md
+    - qmule: index.md
     - qpileup: qpileup/index.md
     - qprofiler: qprofiler/index.md
     - qsignature: qsignature/index.md
