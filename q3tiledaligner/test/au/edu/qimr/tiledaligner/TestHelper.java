@@ -1,5 +1,7 @@
 package au.edu.qimr.tiledaligner;
 
+import au.edu.qimr.tiledaligner.util.TiledAlignerUtil;
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -105,7 +107,7 @@ public class TestHelper {
 			int tabindex = s.indexOf(Constants.TAB);
 			String tile = s.substring(0, tabindex);
 			int tileLong = NumberUtils.convertTileToInt(tile);
-			int [] positions = ReadTiledAligerFile.convertStringToIntArray(s.substring(tabindex + 1));
+			int [] positions = TiledAlignerUtil.convertStringToIntArray(s.substring(tabindex + 1));
 			map.put(tileLong, positions);
 		}
 		return map;

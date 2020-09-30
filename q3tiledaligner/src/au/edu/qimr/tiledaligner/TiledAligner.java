@@ -83,7 +83,7 @@ public class TiledAligner {
 					if (tileLong == -1) {
 						invalidCount++;
 					} else {
-						int [] existingArray = map.put(tileLong, ReadTiledAligerFile.convertStringToIntArray(rec.substring(TILE_LENGTH + 1)));
+						int [] existingArray = map.put(tileLong, TiledAlignerUtil.convertStringToIntArray(rec.substring(TILE_LENGTH + 1)));
 						if (null != existingArray) {
 							logger.warn("already have an entry for tile: " + tile);
 						}

@@ -1,5 +1,7 @@
 package au.edu.qimr.tiledaligner;
 
+import au.edu.qimr.tiledaligner.util.TiledAlignerUtil;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.AbstractQueue;
@@ -9,7 +11,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.NumberUtils;
 import org.qcmg.string.StringFileReader;
@@ -89,7 +90,7 @@ public class ReadTiledAligerFile {
 					if (tileLong == -1) {
 						invalidCount++;
 					} else {
-						int [] existingArray = map.put(tileLong, convertStringToIntArray(s.substring(tabindex + 1)));
+						int [] existingArray = map.put(tileLong, TiledAlignerUtil.convertStringToIntArray(s.substring(tabindex + 1)));
 						if (null != existingArray) {
 							System.out.println("already have an entry for tile: " + tile);
 						}
@@ -109,37 +110,6 @@ public class ReadTiledAligerFile {
 			getTiledDataInMap(tiledAlignerFile, bufferSize, threadCount);
 		}
 		return map;
-	}
-	
-	/**
-	 * Converts a String consisting of a list of longs into an int array.
-	 * If the String starts with a 'C' this corresponds to 'Count' and is followed by the
-	 *  number of times in the genome this particular tile was found
-	 *   In this instance, we will return an empty array
-	 * @param s
-	 * @return
-	 */
-	public static int[] convertStringToIntArray(String s) {
-		if ( ! StringUtils.isNullOrEmpty(s)) {
-			
-			if (s.charAt(0) != 'C') {
-				int commaIndex = s.indexOf(Constants.COMMA);
-				int oldCommaIndex = 0;
-				int [] positionsArray = new int[org.apache.commons.lang3.StringUtils.countMatches(s, Constants.COMMA) + 1];
-				int i = 0;
-				while (commaIndex > -1) {
-					positionsArray[i++] = ((int)Long.parseLong(s.substring(oldCommaIndex, commaIndex)));
-					oldCommaIndex = commaIndex + 1;
-					commaIndex = s.indexOf(Constants.COMMA, oldCommaIndex);
-				}
-				/*
-				 * add last entry
-				 */
-				positionsArray[i] = ((int)Long.parseLong(s.substring(oldCommaIndex)));
-				return positionsArray;
-			}
-		}
-		return new int[] {};
 	}
 	
 	public static void main(String[] args) throws IOException {
