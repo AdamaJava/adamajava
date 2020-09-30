@@ -9,8 +9,8 @@ public class TiledAlignerLongMapTest {
 
 	@Test
 	public void convertStringToINtArray() {
-		assertArrayEquals(new int[] {1,2,3}, TiledAlignerLongMap.convertStringToIntArray("1,2,3"));
-		assertArrayEquals(new int[] {1,2,3,-1294967296}, TiledAlignerLongMap.convertStringToIntArray("1,2,3,3000000000"));
+		assertArrayEquals(new int[] {1,2,3}, ReadTiledAligerFile.convertStringToIntArray("1,2,3"));
+		assertArrayEquals(new int[] {1,2,3,-1294967296}, ReadTiledAligerFile.convertStringToIntArray("1,2,3,3000000000"));
 	}
 	
 	@Test

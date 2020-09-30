@@ -15,11 +15,11 @@ public class ReferenceUtil {
 	public static Map<String, byte[]> referenceCache = new THashMap<>();
 	
 	public static String getRefFromChrStartStop(String refFile, String contig, int start, int stop) {
-		
-		byte[] ref = referenceCache.get(refFile + contig);
+		String refContig = refFile + contig;
+		byte[] ref = referenceCache.get(refContig);
 		if ( null == ref) {
 			loadIntoReferenceCache(refFile, contig);
-			ref = referenceCache.get(refFile + contig);
+			ref = referenceCache.get(refContig);
 			if (null == ref) {
 				//hmmm....
 				System.err.println("Unable to load contig: " + contig + " into cache");
@@ -29,10 +29,9 @@ public class ReferenceUtil {
 		if (start <= 0 || stop > ref.length) {
 			System.out.println("ChrPosition goes beyond edge of contig: " + contig + ":" + start + "-" + stop + ", ref length: " + ref.length);
 		}
-		byte [] refPortion = Arrays.copyOfRange(referenceCache.get(contig), (start < 0 ? 0 : start), (stop >= ref.length ? ref.length - 1 : stop));
-		String referenceSeq = new String(refPortion);
+		byte [] refPortion = Arrays.copyOfRange(referenceCache.get(refContig), (start < 0 ? 0 : start), (stop >= ref.length ? ref.length - 1 : stop));
 		
-		return referenceSeq;
+		return new String(refPortion);
 	}
 	
 	public static void loadIntoReferenceCache(String refFileName, String contig) {

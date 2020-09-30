@@ -17,7 +17,7 @@ import org.qcmg.string.StringFileReader;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
 
-public class TiledAlignerLongMap {
+public class ReadTiledAligerFile {
 	
 	
 	private static TIntObjectMap<int[]> map = new TIntObjectHashMap<>(68 * 1024 * 1024, 1f);
@@ -61,80 +61,7 @@ public class TiledAlignerLongMap {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-	
-//		System.exit(1);
-		
-//		
-//		try (StringFileReader reader = new StringFileReader(new File(tiledAlignerFile))) {
-//			
-//			int i = 0;
-//			int invalidCount = 0;
-//			for (String rec : reader) {
-//				if (++i % 1000000 == 0) {
-//					System.out.println("hit " + (i / 1000000) + "M records free mem: " + Runtime.getRuntime().freeMemory() + ", map size: " + map.size());
-//				}
-//				int tabindex = rec.indexOf(Constants.TAB);
-//				String tile = rec.substring(0, tabindex);
-//				int tileLong = TiledAlignerUtil.convertTileToInt(tile);
-//				if (tileLong == -1) {
-////				if (tile.indexOf('N') > -1 || tile.indexOf('M') > -1) {
-//					invalidCount++;
-//				} else {
-//	//				long tileLong = TiledAlignerUtil.convertTileToLong(tile);
-////					if (tileLong == 63887556) {
-////						System.out.println("tile: " + tile);
-////					}
-//					int [] existingArray = map.put(tileLong, convertStringToIntArray(rec.substring(tabindex + 1)));
-//	//				String s = map.put(tileLong, data.substring(tabindex + 1));
-//					if (null != existingArray) {
-//						System.out.println("already have an entry for tile: " + tile);
-//					}
-//				}
-//				
-//			}
-//			
-//			System.out.println("map size: " + map.size() + ", number of tiles with invalid chars: " + invalidCount);
-//				
-//		} catch (IOException e) {
-//			e.printStackTrace();
-//		}
 	}
-//	public static void getTiledDataInMap(String tiledAlignerFile) {
-//		try (TabbedFileReader reader = new TabbedFileReader(new File(tiledAlignerFile))) {
-//			
-//			int i = 0;
-//			int invalidCount = 0;
-//			for (TabbedRecord rec : reader) {
-//				if (++i % 1000000 == 0) {
-//					System.out.println("hit " + (i / 1000000) + "M records free mem: " + Runtime.getRuntime().freeMemory() + ", map size: " + map.size());
-//				}
-//				String data = rec.getData();
-//				int tabindex = data.indexOf(Constants.TAB);
-//				String tile = data.substring(0, tabindex);
-//				int tileLong = TiledAlignerUtil.convertTileToInt(tile);
-//				if (tileLong == -1) {
-////				if (tile.indexOf('N') > -1 || tile.indexOf('M') > -1) {
-//					invalidCount++;
-//				} else {
-//					//				long tileLong = TiledAlignerUtil.convertTileToLong(tile);
-////					if (tileLong == 63887556) {
-////						System.out.println("tile: " + tile);
-////					}
-//					int [] existingArray = map.put(tileLong, convertStringToIntArray(data.substring(tabindex + 1)));
-//					//				String s = map.put(tileLong, data.substring(tabindex + 1));
-//					if (null != existingArray) {
-//						System.out.println("already have an entry for tile: " + tile);
-//					}
-//				}
-//				
-//			}
-//			
-//			System.out.println("map size: " + map.size() + ", number of tiles with invalid chars: " + invalidCount);
-//			
-//		} catch (IOException e) {
-//			e.printStackTrace();
-//		}
-//	}
 	
 	static class Worker implements Runnable {
 		private AbstractQueue<String> queue;
@@ -152,7 +79,6 @@ public class TiledAlignerLongMap {
 				e.printStackTrace();
 			}
 			System.out.println("Worker started...");
-			int count = 0;
 			String s = null;
 			int invalidCount = 0;
 			while ( ! ((s = queue.poll()) == null && hasReaderFinished.get())) {
@@ -199,8 +125,7 @@ public class TiledAlignerLongMap {
 			if (s.charAt(0) != 'C') {
 				int commaIndex = s.indexOf(Constants.COMMA);
 				int oldCommaIndex = 0;
-				int sizeOfArray = org.apache.commons.lang3.StringUtils.countMatches(s, Constants.COMMA);
-				int [] positionsArray = new int[sizeOfArray + 1];
+				int [] positionsArray = new int[org.apache.commons.lang3.StringUtils.countMatches(s, Constants.COMMA) + 1];
 				int i = 0;
 				while (commaIndex > -1) {
 					positionsArray[i++] = ((int)Long.parseLong(s.substring(oldCommaIndex, commaIndex)));

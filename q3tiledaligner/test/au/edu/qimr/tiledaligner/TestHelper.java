@@ -105,7 +105,7 @@ public class TestHelper {
 			int tabindex = s.indexOf(Constants.TAB);
 			String tile = s.substring(0, tabindex);
 			int tileLong = NumberUtils.convertTileToInt(tile);
-			int [] positions = TiledAlignerLongMap.convertStringToIntArray(s.substring(tabindex + 1));
+			int [] positions = ReadTiledAligerFile.convertStringToIntArray(s.substring(tabindex + 1));
 			map.put(tileLong, positions);
 		}
 		return map;

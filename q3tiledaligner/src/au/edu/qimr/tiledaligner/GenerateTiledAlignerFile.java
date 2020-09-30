@@ -240,8 +240,14 @@ public class GenerateTiledAlignerFile {
 			logger = QLoggerFactory.getLogger(GenerateTiledAlignerFile.class, logFile, options.getLogLevel());
 			logger.logInitialExecutionStats("GenerateTiledAlignerFile", version, args);
 			
-			// get list of file names
-			inputFile = options.getInput();
+			// get input reference file
+			options.getReference().ifPresent(r -> inputFile = r);
+			if (null == inputFile) {
+				System.err.println("No reference file supplied!!!");
+				System.err.println(Messages.USAGE);
+				options.displayHelp();
+				return 1;
+			}
 			
 			// set outputfile - if supplied, check that it can be written to
 			if (null != options.getOutputFileName()) {
@@ -251,6 +257,11 @@ public class GenerateTiledAlignerFile {
 				} else {
 					throw new Exception("OUTPUT_FILE_WRITE_ERROR");
 				}
+			} else {
+				System.err.println("No output file supplied!!!");
+				System.err.println(Messages.USAGE);
+				options.displayHelp();
+				return 1;
 			}
 			/*
 			 * final check is to make sure output is a gzip file
