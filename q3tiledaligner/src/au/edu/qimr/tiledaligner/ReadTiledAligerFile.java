@@ -21,7 +21,7 @@ import gnu.trove.map.hash.TIntObjectHashMap;
 public class ReadTiledAligerFile {
 	
 	
-	private static TIntObjectMap<int[]> map = new TIntObjectHashMap<>(68 * 1024 * 1024, 1f);
+	private static TIntObjectMap<int[]> map = new TIntObjectHashMap<>(1024);
 	
 	public static void getTiledDataInMap(String tiledAlignerFile, int bufferSize) throws IOException {
 		getTiledDataInMap(tiledAlignerFile, bufferSize, 1);
