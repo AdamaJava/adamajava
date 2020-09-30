@@ -1,0 +1,56 @@
+site_name: AdamaJava
+site_description: AdamaJava next-generation sequencing software system
+site_author: Genome Informatics Group at QIMR Berghofer MRI
+
+repo_url: https://github.com/adamajava/adamajava/
+
+nav:
+- Home: index.md
+- AdamaJava:
+    - Introduction: intro.md
+    - qbamfilter:
+        - "Introduction": qbamfilter/index.md
+        - "query language": qbamfilter/qbamfilter_query.md
+    - qbasepileup: 
+        - Introduction: qbasepileup/index.md
+        - "snp mode": qbasepileup/qbasepileup_snp_mode.md
+        - "compoundsnp mode": qbasepileup/qbasepileup_compound_snp_mode.md
+        - "indel mode": qbasepileup/qbasepileup_indel_mode.md
+    - qcnv: qcnv/index.md
+    - qcoverage: qcoverage/index.md
+    - qmito: qmito/index.md
+    - qmotif:
+        - "Introduction": qmotif/index.md
+        - "qmotif v1.0": qmotif/qmotif_1_0.md
+        - "qmotif v1.2": qmotif/qmotif_1_2.md
+    - qmule:
+        - Introduction: qmule/index.md
+        - "AlignerCompare mode": qmule/qmule_aligner_compare_mode.md
+        - "BamMismatchCounts mode": qmule/qmule_bam_mismatch_counts_mode.md
+        - "MafFilter mode": qmule/qmule_maf_filter_mode.md
+        - "Subsample mode": qmule/qmule_subsample_mode.md
+    - qpileup:
+        - "Introduction": qpileup/index.md
+        - "bootstrap mode": qpileup/qpileup_bootstrap_mode.md
+        - "view mode": qpileup/qpileup_view_mode.md
+    - qprofiler:
+        - "Introduction": qprofiler/index.md
+        - "qprofiler v1.0": qprofiler/qprofiler_1_0.md
+        - "qprofiler v2.0": qprofiler/qprofiler_2_0.md
+    - qsignature:
+        - "Introduction": qsignature/index.md
+        - "SignatureGenerator mode": qsignature/qsignature_signature_generator_mode.md
+        - "SignatureCompareRelatedSimple mode": qsignature/qsignature_signature_compare_related_simple_mode.md
+    - qsnp:
+        - "Introduction": qsnp/index.md
+        - "qsnp v1.0": qsnp/qsnp_v1_0.md
+        - "qsnp v2.0": qsnp/qsnp_v2_0.md
+        - "qsnp .ini file": qsnp/qsnp_ini.md
+    - qsv: qsv/index.md
+    - qvisualise: qvisualise/index.md
+
+theme:
+    name: readthedocs
+    collapse_navigation: true
+    titles_only: false
+    sticky_navigation: true
