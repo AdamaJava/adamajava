@@ -159,11 +159,9 @@ public class Annotator  {
 					lmp = null;
 					//paired end
 				} else if (annotatorType.equals("pe")){
-					PairedEndRecord pe = new PairedEndRecord(record, lower, upper);
-					pe.createZPAnnotation();
-
-					countZp(pe.getZPAnnotation());		                 
-					pe = null;
+					String zpAnnotation = ZPAnnotator.createZPAnnotation(record, lower, upper);
+					record.setAttribute(QSVConstants.ZP, zpAnnotation);
+					countZp(zpAnnotation);	
 					//illumna mate pair    
 				} else if (annotatorType.equals("imp")){			    	
 					IlluminaLongMatePairRecord imp = new IlluminaLongMatePairRecord(record, lower, upper);

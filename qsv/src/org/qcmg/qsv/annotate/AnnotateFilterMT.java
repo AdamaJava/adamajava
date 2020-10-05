@@ -20,17 +20,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
-import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SAMFileHeader.SortOrder;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMFileWriter;
-import htsjdk.samtools.SAMFileWriterFactory;
-import htsjdk.samtools.SAMReadGroupRecord;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SAMRecordIterator;
-
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.model.ReferenceNameComparator;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.picard.HeaderUtils;
@@ -46,6 +38,15 @@ import org.qcmg.qsv.softclip.SoftClipStaticMethods;
 import org.qcmg.qsv.util.CustomThreadPoolExecutor;
 import org.qcmg.qsv.util.QSVConstants;
 import org.qcmg.qsv.util.QSVUtil;
+
+import htsjdk.samtools.SAMFileHeader;
+import htsjdk.samtools.SAMFileHeader.SortOrder;
+import htsjdk.samtools.SAMFileWriter;
+import htsjdk.samtools.SAMFileWriterFactory;
+import htsjdk.samtools.SAMReadGroupRecord;
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SAMRecordIterator;
+import htsjdk.samtools.SamReader;
 
 /**
  * Class to annotate discordant read pairs and filter 
@@ -127,8 +128,14 @@ public class AnnotateFilterMT implements Runnable {
 	@Override
 	public void run() {
 
-		// create queue to get the chromosomes to reads
-		final AbstractQueue<List<Chromosome>> readQueue = new ConcurrentLinkedQueue<>(parameters.getChromosomes().values().stream().collect(Collectors.toList()));
+		// create sorted queue to get the chromosomes to reads
+		final AbstractQueue<List<Chromosome>> readQueue = new ConcurrentLinkedQueue<>(parameters.getChromosomes()
+				.entrySet()
+				.stream()
+				.sorted((e1, e2) -> new ReferenceNameComparator().compare(e1.getKey(), e2.getKey()))
+				.map(e -> e.getValue())
+				.collect(Collectors.toList()));
+		
 		logger.info("readQueue setup with " + readQueue.size() + " lists of chromosomes");
 
 		// create queue to store the satisfied BAM records for discordant pairs
