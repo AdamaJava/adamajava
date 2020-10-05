@@ -476,11 +476,7 @@ public class QSVUtil {
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 * @throws QSVException 
 	 */
-	public static void writeUnmappedRecord(BufferedWriter writer, SAMRecord record, Integer start, Integer end, boolean isTumour) throws IOException, QSVException {
-		SAMReadGroupRecord rg = record.getReadGroup();
-		writeUnmappedRecord( writer, record, (rg != null ? rg.getId() : Constants.EMPTY_STRING), start, end,  isTumour);
-	}
-	public static void writeUnmappedRecord(BufferedWriter writer, SAMRecord record, String rgId, Integer start, Integer end, boolean isTumour) throws IOException, QSVException {
+	public static void writeUnmappedRecord(BufferedWriter writer, SAMRecord record, String rgId, int start, int end, boolean isTumour) throws IOException, QSVException {
 
 		int recordStart = record.getMateAlignmentStart();
 
@@ -507,11 +503,8 @@ public class QSVUtil {
 	 * @param chrEnd the chr end
 	 * @return true, if successful
 	 */
-	public static boolean createRecord(int bpPos, Integer chrStart, Integer chrEnd) {
-
-		return chrStart == null && chrEnd == null
-				|| (null != chrStart && bpPos >= chrStart.intValue() && null != chrEnd && bpPos <= chrEnd.intValue());
-
+	public static boolean createRecord(int bpPos, int chrStart, int chrEnd) {
+		return  bpPos >= chrStart &&  bpPos <= chrEnd;
 	}
 
 	/**

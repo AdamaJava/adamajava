@@ -262,7 +262,6 @@ public class QSVUtilTest {
 	
 	@Test
 	public void createRecord() {
-		assertEquals(true, QSVUtil.createRecord(0, null, null));
 		assertEquals(true, QSVUtil.createRecord(0, 0, 0));
 		assertEquals(true, QSVUtil.createRecord(0, 0, 10));
 		assertEquals(true, QSVUtil.createRecord(0, -10, 10));
