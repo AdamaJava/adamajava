@@ -12,9 +12,6 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMRecord;
-
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.picard.SAMFileReaderFactory;
@@ -22,6 +19,9 @@ import org.qcmg.qsv.QSVException;
 import org.qcmg.qsv.QSVParameters;
 import org.qcmg.qsv.util.QSVConstants;
 import org.qcmg.qsv.util.QSVUtil;
+
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SamReader;
 
 public class FindMatePairsMT implements Runnable {
 
@@ -78,20 +78,21 @@ public class FindMatePairsMT implements Runnable {
 		setUpPairingClassificationWriters();
 		SAMRecord previousRecord = null;
 		// stores records with same read name to check for read groups
-		Map<String, SAMRecord> potentialMatches = new HashMap<String, SAMRecord>();
+		Map<String, SAMRecord> potentialMatches = new HashMap<>();
 
 		try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(qsvParameters.getFilteredBamFile(), "silent");) {
 
 			for (SAMRecord currentRecord : reader) {
 				totalCount++;
-				String key = currentRecord.getReadName() + ":" + currentRecord.getReadGroup().getId();
+				String currentRecordReadGroupId = currentRecord.getReadGroup().getId();
+				String key = currentRecord.getReadName() + ":" + currentRecordReadGroupId;
 
 				// check to see if there are previous matches
 				
 				SAMRecord recordFromMap = potentialMatches.get(key);
 				
 				if (null != recordFromMap) {
-					if (passesMateFiltering(recordFromMap, currentRecord)) {
+					if (passesMateFiltering(recordFromMap, currentRecord, currentRecordReadGroupId)) {
 						addMatePairToWriter(recordFromMap, currentRecord);
 						matePairCount++;
 						potentialMatches.remove(key);
@@ -103,7 +104,7 @@ public class FindMatePairsMT implements Runnable {
 					if (previousRecord != null) {
 						// same read name
 						if (previousRecord.getReadName().equals(currentRecord.getReadName())) {                       
-							if (passesMateFiltering(previousRecord, currentRecord)) {
+							if (passesMateFiltering(previousRecord, currentRecord, currentRecordReadGroupId)) {
 								addMatePairToWriter(previousRecord, currentRecord);
 								matePairCount++;
 								previousRecord = null;
@@ -139,10 +140,9 @@ public class FindMatePairsMT implements Runnable {
 		}
 	}
 
-	private boolean passesMateFiltering(SAMRecord previousRecord,
-			SAMRecord currentRecord) throws Exception {
+	private boolean passesMateFiltering(SAMRecord previousRecord, SAMRecord currentRecord, String currentReadGroupId) throws Exception {
 
-		if ( ! previousRecord.getReadGroup().getId().equals(currentRecord.getReadGroup().getId())) {
+		if ( ! previousRecord.getReadGroup().getId().equals(currentReadGroupId)) {
 			return false;
 		} else if (previousRecord.getNotPrimaryAlignmentFlag() || currentRecord.getNotPrimaryAlignmentFlag()) {
 			return false;
@@ -159,7 +159,7 @@ public class FindMatePairsMT implements Runnable {
 		} else if ( ! passesMateFiltering(currentRecord)) {
 			return false; 
 		} else {
-			if ( ! previousRecord.getAttribute("ZP").equals(currentRecord.getAttribute("ZP"))) {
+			if ( ! previousRecord.getAttribute(QSVConstants.ZP_SHORT).equals(currentRecord.getAttribute(QSVConstants.ZP_SHORT))) {
 				logger.info(previousRecord.getSAMString());
 				logger.info(currentRecord.getSAMString());
 				throw new Exception("ZP Mismatch: " + previousRecord.getSAMString() + QSVUtil.getNewLine() + currentRecord.getSAMString());
@@ -169,7 +169,7 @@ public class FindMatePairsMT implements Runnable {
 	}
 
 	public void addMatePairToWriter(SAMRecord firstRecord, SAMRecord secondRecord) throws IOException, QSVException {
-		String zpString = (String) secondRecord.getAttribute("ZP");
+		String zpString = (String) secondRecord.getAttribute(QSVConstants.ZP_SHORT);
 
 		if (zpString.equals("C**")) {
 			zpString = "Cxx";
@@ -228,7 +228,7 @@ public class FindMatePairsMT implements Runnable {
 	}
 
 	public static boolean passesZPFilter(SAMRecord samRecord) {
-		String zp = (String) samRecord.getAttribute("ZP");
+		String zp = (String) samRecord.getAttribute(QSVConstants.ZP_SHORT);
 		return  ! zp.equals("Z**") &&  ! zp.contains("X");
 	}
 

@@ -6,9 +6,9 @@
  */
 package org.qcmg.qsv.splitread;
 
-import htsjdk.samtools.SAMRecord;
-
 import org.qcmg.qsv.util.QSVUtil;
+
+import htsjdk.samtools.SAMRecord;
 
 public class UnmappedRead {
 	
@@ -18,8 +18,8 @@ public class UnmappedRead {
 	private final String sequence;
 	private final boolean isTumour;
 
-	public UnmappedRead(SAMRecord record, boolean isTumour) {
-		this(record, isTumour, false);
+	public UnmappedRead(SAMRecord record, String readGroupId, boolean isTumour) {
+		this(record, readGroupId, isTumour, false);
 	}
 	
 	public UnmappedRead(String line, boolean isTumour) {
@@ -31,8 +31,8 @@ public class UnmappedRead {
 		this.isTumour = isTumour;
 	}
 	
-	public UnmappedRead(SAMRecord record, boolean isTumour, boolean isReverse) {
-		this.readName = record.getReadName() + ":" + (record.getReadGroup() != null ? record.getReadGroup().getId() : "");
+	public UnmappedRead(SAMRecord record, String readGroupId, boolean isTumour, boolean isReverse) {
+		this.readName = record.getReadName() + ":" + (readGroupId != null ? readGroupId : "");
 		this.reference = record.getReferenceName();		
 		this.bpPos = record.getAlignmentStart();
 		this.sequence = isReverse ? QSVUtil.reverseComplement(record.getReadString()) : record.getReadString() ;

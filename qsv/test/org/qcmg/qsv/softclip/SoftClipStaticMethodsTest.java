@@ -9,16 +9,16 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import htsjdk.samtools.SAMFileHeader.SortOrder;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMRecord;
-
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qsv.util.QSVUtil;
 import org.qcmg.qsv.util.TestUtil;
+
+import htsjdk.samtools.SAMFileHeader.SortOrder;
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SamReader;
 
 public class SoftClipStaticMethodsTest {
 	
@@ -33,7 +33,7 @@ public class SoftClipStaticMethodsTest {
         SAMRecord record = getSAMRecords(11); 
         
         //left clip
-		Clip leftClip = SoftClipStaticMethods.createSoftClipRecord(record, 89712340, 89712350, "chr10");
+		Clip leftClip = SoftClipStaticMethods.createSoftClipRecord(record, record.getReadGroup().getId(), 89712340, 89712350, "chr10");
 		assertTrue(leftClip.isLeft());
 		assertEquals(59, leftClip.getLength());
 		assertEquals("AAAGATCAACCTGTCCTAAGTCATATAATCTCTTTGTGTAAGAGATTATACTTTGTGTA", leftClip.getClipSequence());
@@ -45,7 +45,7 @@ public class SoftClipStaticMethodsTest {
 		
 		SAMRecord record = getSAMRecords(5); 
 		//right clip		
-		Clip rightClip = SoftClipStaticMethods.createSoftClipRecord(record, 89699960, 89700400, "chr10");
+		Clip rightClip = SoftClipStaticMethods.createSoftClipRecord(record, record.getReadGroup().getId(), 89699960, 89700400, "chr10");
 		assertEquals(14, rightClip.getLength());
 		assertEquals("GAGATTATACTTTG", rightClip.getClipSequence());
 		assertEquals(record.getAlignmentEnd(), rightClip.getBpPos());
@@ -56,8 +56,8 @@ public class SoftClipStaticMethodsTest {
 		
 		SAMRecord record = getSAMRecords(5); 
 		//right clip
-		SoftClipStaticMethods.createSoftClipRecord(record, 89700213, 89700213, "chr10");
-		Clip rightClip = SoftClipStaticMethods.createSoftClipRecord(record, 89712341, 89712341, "chr10");
+		SoftClipStaticMethods.createSoftClipRecord(record, record.getReadGroup().getId(), 89700213, 89700213, "chr10");
+		Clip rightClip = SoftClipStaticMethods.createSoftClipRecord(record, record.getReadGroup().getId(), 89712341, 89712341, "chr10");
 		assertNull(rightClip);
 	}
 	

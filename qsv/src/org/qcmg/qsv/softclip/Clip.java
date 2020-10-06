@@ -6,8 +6,6 @@
  */
 package org.qcmg.qsv.softclip;
 
-import htsjdk.samtools.SAMRecord;
-
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.string.StringUtils;
@@ -15,6 +13,8 @@ import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.qsv.QSVException;
 import org.qcmg.qsv.util.QSVUtil;
+
+import htsjdk.samtools.SAMRecord;
 
 public class Clip implements Comparable<Clip>{
 	
@@ -32,8 +32,8 @@ public class Clip implements Comparable<Clip>{
 	private final String referenceSequence;
 	private final String readSequence;
 
-	public Clip(SAMRecord record, int bpPos, String sequence, String aligned, String side) {
-		this.readName = record.getReadName() + ":" + (record.getReadGroup() != null ? record.getReadGroup().getId() : "");
+	public Clip(SAMRecord record, String rgId, int bpPos, String sequence, String aligned, String side) {
+		this.readName = record.getReadName() + ":" + (rgId != null ? rgId : "");
 		this.readSequence = record.getReadString();
 		if (StringUtils.isNullOrEmpty(readSequence)) {
 			logger.warn("Null or empty read sequence for record: " + record.getSAMString());
