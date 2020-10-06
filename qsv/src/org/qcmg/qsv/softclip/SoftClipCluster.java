@@ -17,11 +17,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SAMRecordIterator;
-import htsjdk.samtools.ValidationStringency;
-
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qsv.QSVParameters;
 import org.qcmg.qsv.assemble.QSVAssemble;
@@ -29,6 +24,11 @@ import org.qcmg.qsv.blat.BLAT;
 import org.qcmg.qsv.splitread.UnmappedRead;
 import org.qcmg.qsv.util.QSVConstants;
 import org.qcmg.qsv.util.QSVUtil;
+
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SAMRecordIterator;
+import htsjdk.samtools.SamReader;
+import htsjdk.samtools.ValidationStringency;
 
 public class SoftClipCluster implements Comparable<SoftClipCluster> {
 	
@@ -517,17 +517,18 @@ public class SoftClipCluster implements Comparable<SoftClipCluster> {
     
     		while (iter.hasNext()) {
 	        	SAMRecord r = iter.next();	
+	        	String readGroupId = r.getReadGroup().getId();
 	        	
-        		if (readGroupIds.contains(r.getReadGroup().getId())) {
+        		if (readGroupIds.contains(readGroupId)) {
 	        		if (r.getReadUnmappedFlag()) {
 		        		count++;
 		        		if (count > 5000) {
-		    	        		break;
+	    	        		break;
 		    	        }
-		        		UnmappedRead splitRead = new UnmappedRead(r, isTumour);
+		        		UnmappedRead splitRead = new UnmappedRead(r, readGroupId, isTumour);
 		        		List<UnmappedRead> reads = splitReads.get(splitRead.getBpPos());
 		        		if (null == reads) {
-		        			reads = new ArrayList<UnmappedRead>();
+		        			reads = new ArrayList<>();
 		        			splitReads.put(splitRead.getBpPos(), reads);
 		        		}
 		        		reads.add(splitRead);
@@ -538,7 +539,7 @@ public class SoftClipCluster implements Comparable<SoftClipCluster> {
 			        		if (count > 5000) {
 			        			break;
 			    	        }
-			        		Clip c = SoftClipStaticMethods.createSoftClipRecord(r, bpStart, bpEnd, reference);
+			        		Clip c = SoftClipStaticMethods.createSoftClipRecord(r, readGroupId, bpStart, bpEnd, reference);
 			        		if (c != null) {     			
 		        				if (c.isLeft()) {
 		        					Breakpoint b = leftMap.get(c.getBpPos());

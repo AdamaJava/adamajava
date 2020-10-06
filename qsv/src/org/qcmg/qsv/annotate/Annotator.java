@@ -58,7 +58,6 @@ public class Annotator  {
 	private final AtomicLong unrecognizedCount = new AtomicLong();
 	private final AtomicLong singletons = new AtomicLong();
 	private final AtomicLong duplicates = new AtomicLong();
-//	private final AtomicLong totalCount = new AtomicLong();
 	private final String annotatorType;
 	private final List<RunTypeRecord> sequencingRuns;
 	private final ConcurrentMap <String, RunTypeRecord> sequencingRunsMap;
@@ -106,7 +105,7 @@ public class Annotator  {
 		//		record.getAttribute("NH");
 
 		//need to set it based on mapper and pairing type
-		if (record.getAttribute("NH") == null) {
+		if (record.getAttribute(QSVConstants.NH_SHORT) == null) {
 			if ( ! pairingType.equals("lmp")) {
 				setNHAttribute(mapper, record);
 			}

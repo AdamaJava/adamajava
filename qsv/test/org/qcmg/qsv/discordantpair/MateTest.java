@@ -5,10 +5,6 @@ import static org.junit.Assert.assertEquals;
 import java.io.File;
 import java.io.IOException;
 
-import htsjdk.samtools.SAMFileHeader.SortOrder;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMRecord;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -17,6 +13,10 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qsv.util.TestUtil;
+
+import htsjdk.samtools.SAMFileHeader.SortOrder;
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SamReader;
 
 public class MateTest {
 
@@ -55,7 +55,7 @@ public class MateTest {
     public void testSAMRecordConstructor() throws IOException {
         SamReader read = SAMFileReaderFactory.createSAMFileReader(new File(fileName));
         SAMRecord record = read.iterator().next();
-        Mate samMate = new Mate(record);
+        Mate samMate = new Mate(record, record.getReadGroup().getId());
         read.close();
         assertEquals("254_166_1407:20110221052813657", samMate.getReadName());
         assertEquals(140191044, samMate.getStart());
