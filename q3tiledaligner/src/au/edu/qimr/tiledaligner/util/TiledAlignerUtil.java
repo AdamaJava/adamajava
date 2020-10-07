@@ -288,7 +288,7 @@ public class TiledAlignerUtil {
 		/*
 		 * get number of commonly occurring tiles at beginning of 2D array 
 		 */
-		TLongIntMap positionCountMap = new TLongIntHashMap(1024);
+		TLongIntMap positionCountMap = new TLongIntHashMap();
 		int currentMaxCount = 0;
 		
 		for (int i = 0 ; i < array.length - 1 ; i++) {
