@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.qcmg.common.log.QLogger;
@@ -59,10 +60,12 @@ public class TiledAligner {
 		
 		Map<String, List<BLATRecord>> results = TiledAlignerUtil.runTiledAlignerCache(reference, map, sequenceToNameMap, TILE_LENGTH, "TiledAligner", true, recordsMustComeFromChrInName);
 		
-//		List<BLATRecord> blatRecords = TiledAlignerUtil.getBlatRecords(reference, map, sequence, name, TILE_LENGTH, "TiledAligner", true, false);
-		
-		
-		
+		for (Entry<String, List<BLATRecord>> result : results.entrySet()) {
+			logger.info("name: " + result.getKey());
+			for (BLATRecord br : result.getValue()) {
+				logger.info("rec: " + br.toString());
+			}
+		}
 		return 0;
 	}
 	
@@ -96,7 +99,7 @@ public class TiledAligner {
 					}
 				}
 				if (++i % 1000000 == 0) {
-					logger.info("hit " + (i / 1000000) + "M records free mem: " + Runtime.getRuntime().freeMemory() + ", map size: " + map.size());
+					logger.info("hit " + (i / 1000000) + "M, map size: " + map.size());
 				}
 			}
 			logger.info("Time taken with buffer size: " + bufferSize + "kb is: " + (System.currentTimeMillis() - start) + ", invalidCount: " + invalidCount);

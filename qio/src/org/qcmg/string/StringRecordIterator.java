@@ -12,8 +12,10 @@ import java.util.NoSuchElementException;
 public final class StringRecordIterator implements Iterator<String> {
     private final BufferedReader reader;
     private String next;
+    private final String headerDiscriminator;
 
-    public StringRecordIterator(final InputStream stream) {
+    public StringRecordIterator(final InputStream stream, String headerDiscriminator) {
+    	this.headerDiscriminator = headerDiscriminator;
         InputStreamReader streamReader = new InputStreamReader(stream);
         reader = new BufferedReader(streamReader);
         readNext();
@@ -32,7 +34,7 @@ public final class StringRecordIterator implements Iterator<String> {
 
     private void readNext() {
         try {
-    		next = StringSerializer.nextRecord(reader);
+    		next = StringSerializer.nextRecord(reader, headerDiscriminator);
     	} catch (NoSuchElementException e) {
             throw e;
     	} catch (Exception ex) {

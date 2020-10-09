@@ -7,38 +7,31 @@
 package org.qcmg.string;
 
 import java.io.BufferedReader;
-
-import static org.qcmg.common.util.Constants.HASH_STRING;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.qcmg.common.util.Constants;
-
 public final class StringSerializer {
 	
-    public static StringHeader readHeader(final BufferedReader reader) throws IOException {
+    public static StringHeader readHeader(final BufferedReader reader, String headerDiscriminator) throws IOException {
 		List<String> headerLines = new ArrayList<>();
 		String line = reader.readLine();
-		while (null != line && line.charAt(0) == Constants.HASH) {
-//			while (null != line && line.startsWith(HASH_STRING)) {
+		while (null != line && line.startsWith(headerDiscriminator)) {
 		    headerLines.add(line);
 		    line = reader.readLine();
 		}
 		return new StringHeader(headerLines);
 	}
 
-	private static String nextNonheaderLine(final BufferedReader reader) throws IOException {
+	private static String nextNonheaderLine(final BufferedReader reader, String headerDiscriminator) throws IOException {
 		String line = reader.readLine();
-		while (null != line && line.charAt(0) == Constants.HASH) {
-//			while (null != line && line.startsWith(HASH_STRING)) {
+		while (null != line && line.startsWith(headerDiscriminator)) {
 			line = reader.readLine();
 		}
 		return line;
 	}
 
-	public static String nextRecord(final BufferedReader reader) throws IOException {
-		return nextNonheaderLine(reader);
+	public static String nextRecord(final BufferedReader reader, String headerDiscriminator) throws IOException {
+		return nextNonheaderLine(reader, headerDiscriminator);
 	}
 }

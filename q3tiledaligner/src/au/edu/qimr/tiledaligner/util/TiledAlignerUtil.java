@@ -1460,6 +1460,16 @@ public class TiledAlignerUtil {
 					logger.info("splitcon rec: " + br);
 				}
 			}
+		} else {
+			/*
+			 * remove BLATRecords that are overlapping
+			 * Don't want to do this for splicon records, as overlapping records is a feature...
+			 */
+			logger.info("will remove overlapping records. uniqueResults size: " + uniqueResults.size());
+			List<BLATRecord> nonOverlappingRecs = BLATRecordUtil.removeOverlappingRecords(uniqueResults);
+			nonOverlappingRecs.sort(null);
+			logger.info("will remove overlapping records - DONE. nonOverlappingRecs size: " + nonOverlappingRecs.size());
+			return nonOverlappingRecs;
 		}
 		
 		

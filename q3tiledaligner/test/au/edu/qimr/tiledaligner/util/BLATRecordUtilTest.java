@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Test;
+import org.qcmg.common.model.BLATRecord;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrPositionName;
 import org.qcmg.common.model.ChrRangePosition;
@@ -66,7 +67,6 @@ swDiffs: GCCTATTGCAAGACCTGGAAGAAAGAAAAGTAACGATTCTTCTCGGCCAGAGAGAGAAGCATGACCGGTTT
 		assertEquals("" + seq.length(), blatDetails[10]); // query size
 		assertEquals("0", blatDetails[11]); // query start
 		assertEquals("" + seq.length(), blatDetails[12]); // query end
-		assertEquals("1", blatDetails[17]); // block size
 		assertEquals("1", blatDetails[17]); // block size
 		assertEquals("" + seq.length(), blatDetails[18]); // block lengths
 		assertEquals("0", blatDetails[19]); // Q starts
@@ -379,6 +379,34 @@ in getDetailsForBLATRecord with cp: ChrPositionName [chromosome=chr7, startPosit
 		assertEquals("50", blatRecDetails[18]);
 		assertEquals("0", blatRecDetails[19]);
 		assertEquals("3240987", blatRecDetails[20]);
+	}
+	
+	@Test
+	public void removeOverlappingRecs() {
+		BLATRecord r1 = new BLATRecord("34\t0\t0\t0\t0\t0\t0\t0\t+\tchr6_168677484_false_+\t95\t0\t34\tchr6\t171115067\t168677450\t168677484\t1\t34\t0\t168677450");
+		BLATRecord r2 = new BLATRecord("63\t0\t0\t0\t0\t0\t0\t0\t+\tchr6_168677484_false_+\t95\t32\t95\tchr6\t171115067\t168677414\t168677477\t1\t63\t32\t168677414");
+		BLATRecord r3 = new BLATRecord("68\t0\t0\t0\t0\t0\t0\t0\t+\tchr6_168677484_false_+\t95\t0\t68\tchr6\t171115067\t168677416\t168677484\t1\t68\t0\t168677416");
+		List<BLATRecord> recs = Arrays.asList(r1, r2, r3);
+		
+		List<BLATRecord> nonOverlappingRecs = BLATRecordUtil.removeOverlappingRecords(recs);
+		assertEquals(1, nonOverlappingRecs.size());
+		assertEquals(r3, nonOverlappingRecs.get(0));	// should be the record with the highest score that is left
+	}
+	
+	@Test
+	public void doRecordsOverlap() {
+		String bufferedRef = "GCCTCCTGCAAGACCTGGAAGAAAGAAAAGTAACGATTCTTCTCGGCCAGAGAGAGAAGCATGACCGGTTTTGCATACCCTGTCCCCAGAAAAAGCACTCTAAGAGTAGGCGCGCTACTCCTGGGCGAGGAAACTGCGGAAGTGAGGCATTGGTGCCAGGTTCAAAGATGGCGCTGAGCAGCCAAGCGCAGAAGCGAAGAGAGGGCGGCAGCCTGCGGCCGTGGCCGGCCCGCGAGGTCTGGGCCTGGGAGCG";
+		String seq = "GCCTATTGCAAGACCTGGAAGAAAGAAAAGTAACGATTCTTCTCGGCCAGAGAGAGAAGCATGACCGGTTTTGCATACCCTGTCCCCAGAAAAAGCACTCTAAGAGTAGGCGCGCTACTCCTGGGCGAGGAAACTGCGGAAGTGAGGCATTGGTGCCAGGTTCAAAGATGGCGCTGAGCAGCCAAGCGCAGAAGCGAAGAGAGGTCGGCAGCCGGCGGCCGTGGCCGGGCCGCGAGGTCTGGGACGGGGGGCG";
+		ChrPosition bufferedCP = new ChrRangePosition("GL000219.1", 16536, 165602);	//GL000219.1:165336-165602
+		String [] swDiffs = new String[] {"GCCTCCTGCAAGACCTGGAAGAAAGAAAAGTAACGATTCTTCTCGGCCAGAGAGAGAAGCATGACCGGTTTTGCATACCCTGTCCCCAGAAAAAGCACTCTAAGAGTAGGCGCGCTACTCCTGGGCGAGGAAACTGCGGAAGTGAGGCATTGGTGCCAGGTTCAAAGATGGCGCTGAGCAGCCAAGCGCAGAAGCGAAGAGAGGGCGGCAGCCTGCGGCCGTGGCCGGCCCGCGAGGTCTGGGCCTGGGAGCG", "||||..||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||.||||||||.||||||||||||||.||||||||||||||.|.|||.|||", "GCCTATTGCAAGACCTGGAAGAAAGAAAAGTAACGATTCTTCTCGGCCAGAGAGAGAAGCATGACCGGTTTTGCATACCCTGTCCCCAGAAAAAGCACTCTAAGAGTAGGCGCGCTACTCCTGGGCGAGGAAACTGCGGAAGTGAGGCATTGGTGCCAGGTTCAAAGATGGCGCTGAGCAGCCAAGCGCAGAAGCGAAGAGAGGTCGGCAGCCGGCGGCCGTGGCCGGGCCGCGAGGTCTGGGACGGGGGGCG"};
+		
+		String [] blatDetails1 = BLATRecordUtil.getDetailsForBLATRecord(bufferedCP, swDiffs, "GL000219.1_165002_true_+", seq, true, bufferedRef);
+		BLATRecord r1 = new BLATRecord(blatDetails1);
+		bufferedCP = new ChrRangePosition("GL000219.1", 16546, 165612);	//GL000219.1:165336-165602
+		String [] blatDetails2 = BLATRecordUtil.getDetailsForBLATRecord(bufferedCP, swDiffs, "GL000219.1_165002_true_+", seq, true, bufferedRef);
+		BLATRecord r2 = new BLATRecord(blatDetails2);
+		
+		assertEquals(true, BLATRecordUtil.doRecordsOverlapReference(r1, r2));
 	}
 
 }

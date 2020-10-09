@@ -2,11 +2,13 @@ package au.edu.qimr.tiledaligner.util;
 
 import au.edu.qimr.tiledaligner.PositionChrPositionMap;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+import org.qcmg.common.model.BLATRecord;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
@@ -193,6 +195,67 @@ public class BLATRecordUtil {
 		array[20] = positionsToUse.stream().map(b -> "" + b.getStartPosition()).collect(Collectors.joining(Constants.COMMA_STRING));			// T block starts
 		
 		return array;
+	}
+	
+	/**
+	 * 
+	 * 
+	 * @param originalList
+	 * @return
+	 */
+	public static List<BLATRecord> removeOverlappingRecords(List<BLATRecord> originalList) {
+		if (originalList.size() < 2) {
+			return originalList;
+		}
+		
+		List<BLATRecord> nonOverlappingList = new ArrayList<>(originalList.size());
+		
+		/*
+		 * sort the original list 
+		 */
+		originalList.sort(null);
+		/*
+		 * add the entry with the highest score to the new list
+		 */
+		int size = originalList.size();
+		nonOverlappingList.add(originalList.get(size - 1));
+		
+		for (int i = size - 2 ; i >= 0 ; i--) {
+			if ( ! doesRecordOverlapEntriesInList(nonOverlappingList, originalList.get(i))) {
+				nonOverlappingList.add(originalList.get(i));
+			}
+		}
+		return nonOverlappingList;
+		
+	}
+	
+	public static boolean doesRecordOverlapEntriesInList(List<BLATRecord> records, BLATRecord record) {
+		
+		/*
+		 * nothing for it but to iterate over the list, examining each pair
+		 */
+		for (BLATRecord r : records) {
+			if (doRecordsOverlapReference(r, record)) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	public static boolean doRecordsOverlapReference(BLATRecord r1, BLATRecord r2) {
+		
+		if (r1.getReference().equals(r2.getReference())) {
+			int r1Start = r1.getStartPos();
+			int r1End = r1.getEndPos();
+			int r2Start = r2.getStartPos();
+			int r2End = r2.getEndPos();
+			
+			if ((r2Start >= r1Start && r2Start < r1End) || (r2End > r1Start && r2End <= r1End)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 }

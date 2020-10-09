@@ -10,15 +10,14 @@ import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.Closeable;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.zip.GZIPInputStream;
 
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.FileUtils;
 
 public final class StringFileReader implements Closeable, Iterable<String> {
@@ -27,30 +26,24 @@ public final class StringFileReader implements Closeable, Iterable<String> {
     private final InputStream fin;
     private final BufferedInputStream in;
     private final StringHeader header;
+    private final CharSequence headerDiscriminator;
     public static final int DEFAULT_BUFFER_SIZE = 65536;
 
     public StringFileReader(final File file, int bufferSize) throws IOException {
+    	this(file, bufferSize, Constants.HASH_STRING);
+    }
+    public StringFileReader(final File file, int bufferSize, CharSequence headerDiscriminator) throws IOException {
         this.file = file;
+        this.headerDiscriminator = headerDiscriminator;
         boolean isGzip = FileUtils.isInputGZip( file);
-        
-        
-        
         
         try (InputStream fin = Files.newInputStream(file.toPath());
         	BufferedInputStream in = new BufferedInputStream(fin, DEFAULT_BUFFER_SIZE);
        		InputStream stream = (isGzip) ? new GZIPInputStream(in, bufferSize) : in;
         	BufferedReader bin = new BufferedReader(new InputStreamReader(stream)); ) {
         		
-        	header = StringSerializer.readHeader(bin);
-        	
+        	header = StringSerializer.readHeader(bin, headerDiscriminator.toString());
         }
-        
-        
-        
-//        try(InputStream stream = (isGzip) ? new GZIPInputStream(new FileInputStream(file), bufferSize) : new FileInputStream(file);) {
-//        	BufferedReader in = new BufferedReader(new InputStreamReader(stream));        
-//        	header = StringSerializer.readHeader(in);       	
-//        } 
         
         //  create a new stream rather a closed one
         fin = Files.newInputStream(file.toPath());
@@ -72,7 +65,7 @@ public final class StringFileReader implements Closeable, Iterable<String> {
     }
 
     public StringRecordIterator getRecordIterator() {
-        return new StringRecordIterator(inputStream);
+        return new StringRecordIterator(inputStream, headerDiscriminator.toString());
     }
 
     @Override
