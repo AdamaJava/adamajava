@@ -18,6 +18,7 @@ final class Messages {
     static final String COLON = ": ";
     static final String ERROR_PREFIX = Messages.getProgramName() + COLON;
     static final String USAGE =	Messages.getMessage("USAGE");
+    static final String TILED_ALIGNER_USAGE =	Messages.getMessage("TILED_ALIGNER_USAGE");
 
     static String getMessage(final String identifier) {
         return messages.getString(identifier);

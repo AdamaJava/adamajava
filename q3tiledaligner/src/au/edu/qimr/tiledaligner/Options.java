@@ -9,6 +9,7 @@
 
 package au.edu.qimr.tiledaligner;
 
+import java.util.Optional;
 import java.util.OptionalInt;
 
 import joptsimple.OptionParser;
@@ -23,6 +24,9 @@ final class Options {
 	private static final String POSITIONS_CUTOFF_OPTION_DESCRIPTION = Messages.getMessage("POSITIONS_CUTOFF_OPTION_DESCRIPTION");
 	private static final String OUTPUT_FILE_DESCRIPTION = Messages.getMessage("OUTPUT_FILE_DESCRIPTION");
 	private static final String INPUT_FILE_DESCRIPTION = Messages.getMessage("INPUT_FILE_DESCRIPTION");
+	private static final String REF_FILE_DESCRIPTION = Messages.getMessage("REF_FILE_DESCRIPTION");
+	private static final String SEQUENCE_DESCRIPTION = Messages.getMessage("SEQUENCE_DESCRIPTION");
+	private static final String NAME_DESCRIPTION = Messages.getMessage("NAME_DESCRIPTION");
 	
 	private final OptionParser parser = new OptionParser();
 	private final OptionSet options;
@@ -30,6 +34,9 @@ final class Options {
 	private final String log;
 	private final Integer positionsCutoff;
 	private final String input;
+	private final String reference;
+	private final String sequence;
+	private final String name;
 	private final String logLevel;
 
 	@SuppressWarnings("unchecked")
@@ -37,6 +44,9 @@ final class Options {
 		parser.accepts("help", HELP_DESCRIPTION);
 		parser.accepts("version", VERSION_DESCRIPTION);
 		parser.accepts("input", INPUT_FILE_DESCRIPTION).withRequiredArg().ofType(String.class);
+		parser.accepts("reference", REF_FILE_DESCRIPTION).withRequiredArg().ofType(String.class);
+		parser.accepts("sequence", SEQUENCE_DESCRIPTION).withRequiredArg().ofType(String.class);
+		parser.accepts("name", NAME_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("output", OUTPUT_FILE_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("log", LOG_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("positionsCutoff", POSITIONS_CUTOFF_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
@@ -52,6 +62,9 @@ final class Options {
 		
 		positionsCutoff =  (Integer) options.valueOf("positionsCutoff");
 		input = (String) options.valueOf("input");
+		reference = (String) options.valueOf("reference");
+		sequence = (String) options.valueOf("sequence");
+		name = (String) options.valueOf("name");
 		
 		// output
 		outputFileName = (String) options.valueOf("output");
@@ -91,6 +104,15 @@ final class Options {
 	
 	String getInput() {
 		return input;
+	}
+	Optional<String> getReference() {
+		return Optional.ofNullable(reference);
+	}
+	Optional<String> getSequence() {
+		return Optional.ofNullable(sequence);
+	}
+	Optional<String> getName() {
+		return Optional.ofNullable(name);
 	}
 
 	String getLog() {

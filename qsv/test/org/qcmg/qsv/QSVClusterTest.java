@@ -20,7 +20,7 @@ import java.util.concurrent.ConcurrentMap;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.qcmg.qsv.blat.BLATRecord;
+import org.qcmg.common.model.BLATRecord;
 import org.qcmg.qsv.discordantpair.DiscordantPairCluster;
 import org.qcmg.qsv.discordantpair.MatePair;
 import org.qcmg.qsv.discordantpair.PairGroup;

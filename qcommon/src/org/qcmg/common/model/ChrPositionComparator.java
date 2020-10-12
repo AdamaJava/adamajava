@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.vcf.VcfRecord;
 
 public class ChrPositionComparator implements Comparator<ChrPosition>, Serializable  {
@@ -148,6 +149,26 @@ public class ChrPositionComparator implements Comparator<ChrPosition>, Serializa
 	 */
 	public static Comparator<ChrPosition> getCPComparatorForGRCh37() {
 		return getComparator(getChrNameComparator(contigs));
+	}
+	
+	public static Comparator<String> getChrNameComparatorForSingleString(String favouriteContig) {
+		
+		return	(StringUtils.isNullOrEmpty(favouriteContig)) ? COMPARATOR : 
+			new Comparator<String>() {
+			@Override
+			public int compare(String o1, String o2) {
+				if (o1.equalsIgnoreCase(favouriteContig)) {
+					if (o2.equalsIgnoreCase(favouriteContig)) {
+						return 0;
+					} else {
+						return -1;
+					}
+				} else if (o2.equalsIgnoreCase(favouriteContig)) {
+					return 1;
+				}
+				return COMPARATOR.compare(o1, o2);
+			}
+		};
 	}
 	
 
