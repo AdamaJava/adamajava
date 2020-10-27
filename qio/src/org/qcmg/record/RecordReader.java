@@ -44,14 +44,15 @@ public abstract class RecordReader<T> implements Closeable, Iterable<T> {
     }
       
     public RecordReader(final File file, int bufferSize, CharSequence headerPrefix, Charset charset) throws IOException {
+
         this.file = file;
         boolean isGzip = FileUtils.isInputGZip( file);
         InputStream inputStream =  (isGzip) ? new GZIPInputStream(new FileInputStream(file)) : new FileInputStream(file);  
         InputStreamReader streamReader = new InputStreamReader(inputStream, charset);
         bin = new BufferedReader(streamReader, bufferSize);
                
-        nextLine = bin.readLine();  
-         
+        nextLine = bin.readLine();        
+        
 		//return first line if no header prefix specified
 		if(headerPrefix == null ) return; 		
 		
@@ -59,7 +60,7 @@ public abstract class RecordReader<T> implements Closeable, Iterable<T> {
 		while ( null != nextLine && nextLine.startsWith(headerPrefix+"") ) {
 			nextLine = bin.readLine();
 			headerLines.add(nextLine);
-		}       
+		}  
     }
     
  /**
@@ -89,8 +90,10 @@ public abstract class RecordReader<T> implements Closeable, Iterable<T> {
             	String line = nextLine;
             	nextLine = null; //in case exception happen, same line repeatedly
             	try {
+            		T rec = readRecord(line);
+            		//this step should after readRecord, incase record cross multi lines
         			nextLine = bin.readLine();
-        			return parseRecord(line);
+        			return rec;
         		} catch (Exception e) {
         			throw new RuntimeException(e.getMessage());
          		}
@@ -99,6 +102,9 @@ public abstract class RecordReader<T> implements Closeable, Iterable<T> {
         
         return iter;
     }	
-		
-	public abstract T parseRecord(String line) throws Exception; 
+	
+	//some record cross multi lines, eg id\nseq\n, this method may call bin.readLine() inside
+	public abstract T readRecord(String line) throws Exception;
+
+
 }

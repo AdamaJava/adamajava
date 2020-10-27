@@ -2,7 +2,7 @@ package org.qcmg.simple;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.qcmg.record.SimpleRecord;
+import org.qcmg.record.FastaRecord;
 
 
 public class SimpleSerializerTest {
@@ -112,7 +112,7 @@ public class SimpleSerializerTest {
 	
 	@Test
 	public void testParseRecords() throws Exception {
-		SimpleRecord record;
+		FastaRecord record;
 		
 		// real record
 		record = SimpleSerializer.parseRecord(">123", "G0103200103201032001033001032001032001032001032001");

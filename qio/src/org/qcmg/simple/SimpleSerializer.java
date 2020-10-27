@@ -6,7 +6,7 @@ package org.qcmg.simple;
 import java.io.BufferedReader;
 import java.io.IOException;
 
-import org.qcmg.record.SimpleRecord;
+import org.qcmg.record.FastaRecord;
 
 public final class SimpleSerializer {
 	
@@ -22,8 +22,8 @@ public final class SimpleSerializer {
 		return line;
 	}
 
-	public static SimpleRecord nextRecord(final BufferedReader reader) throws Exception {
-		SimpleRecord result = null;
+	public static FastaRecord nextRecord(final BufferedReader reader) throws Exception {
+		FastaRecord result = null;
 
 		String id = nextNonheaderLine(reader);
 		String sequence = reader.readLine();
@@ -49,9 +49,9 @@ public final class SimpleSerializer {
 		return sequence;
 	}
 
-	static SimpleRecord parseRecord(final String id, final String sequence)
+	static FastaRecord parseRecord(final String id, final String sequence)
 			throws Exception {
-		return new SimpleRecord(parseID(id), parseSequence(sequence));
+		return new FastaRecord(parseID(id), parseSequence(sequence));
 	}
 
 }
