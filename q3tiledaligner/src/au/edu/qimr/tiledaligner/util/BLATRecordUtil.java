@@ -197,6 +197,105 @@ public class BLATRecordUtil {
 		return array;
 	}
 	
+	public static String[] getDetailsForBLATRecord(ChrPosition position, int misMatchCount, int queryStartPosition, String name,  String sequence, boolean forwardStrand) {
+//		System.out.println("getDetailsForBLATRecord with positions: " + positions.stream().map(ChrPosition::toString).collect(Collectors.joining(",")) + ", name: " + name + ", sequence: " + sequence + ", fs: " + forwardStrand);
+		
+		int totalMatches = position.getLength() - 1;
+		int lastEnd = position.getEndPosition();
+		
+		String [] array = new String[21];
+		array[0] = "" + totalMatches;		//number of matches
+		array[1] = misMatchCount + "";		//number of mis-matches
+		array[2] = "0";		//number of rep. matches
+		array[3] = "0";		//number of N's
+		array[4] = "0";		// T gap count
+		array[5] = "0";		// T gap bases
+		array[6] = "0";		// Q gap count
+		array[7] = "0";		// Q gap bases
+		array[8] = forwardStrand ? "+" : "-";		// strand
+		array[9] = name;							// Q name
+		array[10] = sequence.length() + "";			// Q size
+		array[11] = "" + sequence.indexOf(position.getName());					// Q start
+		array[12] = "" + (sequence.indexOf(position.getName()) + totalMatches);	// Q end
+		array[13] = position.getChromosome();									// T name
+		Integer contigLength =  getChromosomeSize(position.getChromosome());
+		array[14] = contigLength == null ? "12345" : contigLength.toString();	// T size
+		int tStart = position.getStartPosition();
+		
+		array[15] = "" + tStart;				// T start
+		array[16] = "" + lastEnd;				// T end
+		
+		array[17] = "1";						// block count
+		array[18] = "" + totalMatches;			// block sizes
+		array[19] = "" + queryStartPosition;	// Q block starts
+		array[20] = "" + tStart;				// T block starts
+		
+		return array;
+	}
+	
+	/**
+	 * Examine the supplied list of BLATRecords and if there are any that can be merged into a single BLATRecord, then do so, removing the constituent records from the returned list
+	 * 
+	 * Only merge records that contain a single block (for now...)
+	 * 
+	 * @param blatRecords
+	 * @return
+	 */
+//	public static List<BLATRecord> mergeBLATRecords(List<BLATRecord> blatRecords) {
+//		if (null == blatRecords || blatRecords.size() <= 1) {
+//			return blatRecords;
+//		}
+//		int size = blatRecords.size();
+//		List<BLATRecord> mergedBlatRecords = new ArrayList<>(size);
+//		blatRecords.sort(null);
+//		
+//		/*
+//		 * largest first
+//		 */
+//		BLATRecord br = blatRecords.get(size - 1);
+//		if (br.getBlockCount() == 1) {
+//			/*
+//			 * we have a candidate
+//			 */
+//		}
+//		
+//		
+//		
+//		return mergedBlatRecords;
+//	}
+	
+	/**
+	 * needs to be:
+	 * - same chromosome
+	 * - same strand
+	 * - within 500k bp
+	 * - not overlapping (within buffer)
+	 * - block size of 1
+	 * 
+	 *  
+	 * @param record
+	 * @param potentialMatches
+	 * @return
+	 */
+//	public static BLATRecord getPotentialMatch(BLATRecord record, List<BLATRecord> potentialMatches) {
+//		List<int[]> potentialRanges = TARecordUtil.getPossibleTileRanges(record.getSize(), record.getQueryStart(), record.getQueryEnd() - record.getQueryEnd(), 20, record.getStrand() == '-');
+//		if (potentialRanges.size() > 0) {
+//			for (BLATRecord br : potentialMatches) {
+//				if (br.getBlockCount() == 1
+//						&& br.getReference().equals(record.getReference())
+//						&& br.getStrand() == record.getStrand()
+//						&& Math.abs(br.getStartPos() - record.getStartPos()) < 500000) {
+//					
+//					
+//					
+//				}
+//			}
+//		}
+//		return null;
+//	}
+	
+	
+	
 	/**
 	 * 
 	 * 

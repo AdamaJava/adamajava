@@ -409,6 +409,13 @@ public class TiledAlignerUtil {
 					
 					if (position > -1) {
 						tally++;
+						/*
+						 * if we have commonly occurring tiles, add to tally, and reset common tile count
+						 */
+						if (commonTileTally > 0) {
+							tally += commonTileTally;
+							commonTileTally = 0;
+						}
 					} else {
 						
 						
@@ -893,7 +900,8 @@ public class TiledAlignerUtil {
 				
 				boolean reverseComplement = NumberUtils.isBitSet(l, REVERSE_COMPLEMENT_BIT);
 				
-				ChrPosition bufferedCP = getBufferedChrPosition(l, sequence.length(), matchLength, pcpm, 20);
+				ChrPosition bufferedCP = getBufferedChrPosition(l, sequence.length(), matchLength, pcpm, 60);
+//				ChrPosition bufferedCP = getBufferedChrPosition(l, sequence.length(), matchLength, pcpm, 20);
 				
 				if ( ! swsAlreadyPerformed.contains(bufferedCP)) {
 					swsAlreadyPerformed.add(bufferedCP);
@@ -949,6 +957,42 @@ public class TiledAlignerUtil {
 								logger.info("passing percentage score [" + passingPercentScore + "] (seq length: " + sequence.length() + "), has been reached - exiting sw! " + Arrays.deepToString(blatDetails));
 								break;
 							}
+						} else {
+							/*
+							 * SW wasn't able to return records within the filtering criteria
+							 * Lets see if we can manually create one based on the tile count
+							 */
+							int misMatchCount = NumberUtils.getPartOfPackedInt(key, false);
+							if ((matchLength - misMatchCount) > MINIMUM_BLAT_RECORD_SCORE) {
+								
+								logger.info("SW couldn't put this down whilst passing the filters - will attempt to create based on tile counts alone. l: " + l + ", matchLength: " + matchLength + ", misMatchCount: " + misMatchCount);
+								
+								ChrPosition cp = pcpm.getChrPositionFromLongPosition(l);
+								boolean forwardStrand = "F".equals(((ChrPositionName)cp).getName());
+								int buffer = 10;
+								/*
+								 * need to check that reference for this position matches the sequence we have
+								 * This is because we may have some errors due to our commonly occurring tiles.....
+								 */
+								String ref =  ReferenceUtil.getRefFromChrStartStop(refFile, cp.getChromosome(), cp.getStartPosition() - buffer, cp.getStartPosition() + sequence.length() + buffer);
+								int startPositionsInSequence = NumberUtils.getShortFromLong(l, POSITION_OF_TILE_IN_SEQUENCE_OFFSET);
+								int stopPositionInSequence = startPositionsInSequence + matchLength;
+								String subSequence = sequence.substring(startPositionsInSequence, stopPositionInSequence);
+								String subSequenceRC = sequenceRC.substring(sequenceRC.length() - stopPositionInSequence, (sequenceRC.length() - stopPositionInSequence) + matchLength);
+								
+								Optional<ChrPosition> optionalCP = getChrPositionWithReference(cp.getChromosome(), cp.getStartPosition(), forwardStrand ? subSequence : subSequenceRC, ref);
+								if (optionalCP.isPresent()) {
+									logger.info("optionalCP: " + optionalCP.toString());
+								
+									String [] blatDetails = BLATRecordUtil.getDetailsForBLATRecord(optionalCP.get(), misMatchCount, NumberUtils.getShortFromLong(l, POSITION_OF_TILE_IN_SEQUENCE_OFFSET), name, sequence, forwardStrand);
+									if (blatDetails.length > 0) {
+										logger.info("adding to swResutls: " + Arrays.deepToString(blatDetails));
+										swResults.add(blatDetails);
+									}
+								} else {
+									logger.info("Couldn't create CP!: " + cp.getChromosome() + ", " + cp.getStartPosition() + ", " +  (forwardStrand ? subSequence : subSequenceRC) + ", " + ref);
+								}
+							}
 						}
 					}
 				}
@@ -957,6 +1001,7 @@ public class TiledAlignerUtil {
 		
 		return swResults;
 	}
+	
 	
 	public static ChrPosition getBufferedChrPosition(long packedLong, int sequenceLength, int matchLength, PositionChrPositionMap pcpm) {
 		return getBufferedChrPosition(packedLong, sequenceLength, matchLength, pcpm, 20);
@@ -1015,7 +1060,7 @@ public class TiledAlignerUtil {
 	}
 	
 	public static int getInsertionCount(String s) {
-		return getInsertionCount(s, '-');
+		return getInsertionCount(s, ' ');
 	}
 	public static int getInsertionCount(String s, char c) {
 		int dashIndex = s.indexOf(c);
@@ -1146,6 +1191,43 @@ public class TiledAlignerUtil {
 		return results;
 	}
 	
+	/**
+	 * 
+	 * Returns the number (if any) of commonly occurring tiles at the start of the sequence
+	 * This will help to determine if a potential perfect match is present
+	 * 
+	 * @param startPositions
+	 * @return
+	 */
+	public static int[] getCommonTileCountsAtStart(long [][] startPositions) {
+		int [] tally = new int[2];
+		if (null != startPositions) {
+			for (long[] sp : startPositions) {
+				/*
+				 * commonly occurring tiles have a single entry, that is -1
+				 */
+				if (null != sp) {
+					if (sp.length == 1 && sp[0] == -1) {
+						tally [0] ++;
+					} else {
+						/*
+						 * as soon as we don't have a commonly occurring tile, break out of the loop
+						 */
+						break;
+					}
+				}
+			}
+			
+			/*
+			 * get total count of common tiles
+			 */
+			tally [1] = (int)Arrays.stream(startPositions).filter(la -> null != la && la.length == 1 && la[0] == -1).count();
+		}
+		return tally;
+	}
+	
+	
+	
 	public static List<BLATRecord> getBlatRecords(String refFile, TIntObjectMap<int[]> cache, String sequence, final String name, int tileLength, String originatingMethod, boolean log, boolean recordsMustComeFromChrInName) {
 		if (null == cache || cache.isEmpty()) {
 			throw new IllegalArgumentException("Null or empty cache passed to getBlatRecords");
@@ -1167,6 +1249,14 @@ public class TiledAlignerUtil {
 		
 		long [][] startPositions = getStartPositionsArray(cache, sequence, tileLength, false, log);
 		long [][] startPositionsRC = getStartPositionsArray(cache, revCompSequence, tileLength, true, log);
+		
+		int [] commonTilesCount = getCommonTileCountsAtStart(startPositions);
+		int [] commonTilesCountRC = getCommonTileCountsAtStart(startPositionsRC);
+		int commonTileCountAtStart = commonTilesCount[0];
+		int commonTileCountAtStartRC = commonTilesCountRC[0];
+		if (commonTileCountAtStart > 0 || commonTileCountAtStartRC > 0) {
+			logger.info("commonTileCountAtStart: " + commonTileCountAtStart + " (total: " + commonTilesCount[1] + "), commonTileCountAtStartRC: " + commonTileCountAtStartRC + " (total: " + commonTilesCountRC[1] + ")");
+		}
 		
 		TLongList potentialMatches = getShortCutPositionsForSmithwaterman(startPositions);
 		TLongList potentialMatchesRC = getShortCutPositionsForSmithwaterman(startPositionsRC);
@@ -1226,10 +1316,42 @@ public class TiledAlignerUtil {
 		TARecord taRec = new TARecord(sequence, map1);
 		boolean needToRunSW = true;
 		
+		TLongList perfectMatches = new TLongArrayList();
+//		if (commonTileCountAtStart > 0 || commonTileCountAtStartRC > 0) {
+		/*
+		 * Check to see if we have any potential perfect matches taking into account the common tile count
+		 */
+		int maxTileCount = sequence.length() - (TILE_LENGTH_MINUS_ONE);
+		int halfMaxTileCount = maxTileCount / 2;
+		
+		/*
+		 * if the common tile count is >= half of the max tile count, don't add to perfect match
+		 */
+		addEntriesToListIfExistInMap(commonTileCountAtStart, map1, perfectMatches, maxTileCount, halfMaxTileCount, false);
+		addEntriesToListIfExistInMap(commonTileCountAtStartRC, map1, perfectMatches, maxTileCount, halfMaxTileCount, true);
+		
+//		if (commonTileCountAtStartRC < halfMaxTileCount) {
+//			int tileCountWithCommonCountRC = NumberUtils.pack2IntsInto1(maxTileCount - commonTileCountAtStartRC, 0);
+//			TLongList tileCountWithCommonCountPositionsRC = map1.get(tileCountWithCommonCountRC);
+//			if (null != tileCountWithCommonCountPositionsRC) {
+//				/*
+//				 * only add positions that DO have RC bit set
+//				 */
+//				int tally = 0;
+//				for (long l : tileCountWithCommonCountPositionsRC.toArray()) {
+//					if (NumberUtils.isBitSet(l, REVERSE_COMPLEMENT_BIT)) {
+//						tally++;
+//						perfectMatches.add(l);
+//					}
+//				}
+//				logger.info("added " + tally + " RC positions to perfect matches list");
+//			}
+//		}
+		
 		/*
 		 * If we have a perfect match here, don't bother doing any SW
 		 */
-		TLongList perfectMatches = taRec.getPerfectMatchPositions();
+//		TLongList perfectMatches = taRec.getPerfectMatchPositions();
 		if (log) {
 			logger.info("Perfect match? " + (null != perfectMatches && ! perfectMatches.isEmpty()));
 		}
@@ -1460,20 +1582,39 @@ public class TiledAlignerUtil {
 					logger.info("splitcon rec: " + br);
 				}
 			}
-		} else {
-			/*
-			 * remove BLATRecords that are overlapping
-			 * Don't want to do this for splicon records, as overlapping records is a feature...
-			 */
-			logger.info("will remove overlapping records. uniqueResults size: " + uniqueResults.size());
-			List<BLATRecord> nonOverlappingRecs = BLATRecordUtil.removeOverlappingRecords(uniqueResults);
-			nonOverlappingRecs.sort(null);
-			logger.info("will remove overlapping records - DONE. nonOverlappingRecs size: " + nonOverlappingRecs.size());
-			return nonOverlappingRecs;
 		}
+		/*
+		 * remove BLATRecords that are overlapping
+		 * Don't want to do this for splicon records, as overlapping records is a feature...
+		 */
+		List<BLATRecord> nonOverlappingRecs = BLATRecordUtil.removeOverlappingRecords(uniqueResults);
+		nonOverlappingRecs.sort(null);
+		logger.info("Removed overlapping records. Previous count: " + uniqueResults.size() + ", new count (nonOverlappingRecs size): " + nonOverlappingRecs.size());
+		return nonOverlappingRecs;
 		
 		
-		return uniqueResults;
+//		return uniqueResults;
+	}
+
+	private static void addEntriesToListIfExistInMap(int commonTileCountAtStart, Map<Integer, TLongList> map1, TLongList perfectMatches, int maxTileCount, int halfMaxTileCount, boolean rc) {
+		if (commonTileCountAtStart < halfMaxTileCount) {
+			int tileCountWithCommonCount = NumberUtils.pack2IntsInto1(maxTileCount - commonTileCountAtStart, 0);
+			TLongList tileCountWithCommonCountPositions = map1.get(tileCountWithCommonCount);
+			if (null != tileCountWithCommonCountPositions) {
+				/*
+				 * only add positions that DO NOT have RC bit set with rc = false, or DO have RC bit set and rc = true
+				 */
+				int tally = 0;
+				for (long l : tileCountWithCommonCountPositions.toArray()) {
+					boolean isRC = NumberUtils.isBitSet(l, REVERSE_COMPLEMENT_BIT);
+					if ((rc && isRC) || (! rc && ! isRC)) {
+						perfectMatches.add(l);
+						tally++;
+					}
+				}
+				logger.info("added " + tally + " positions to perfect matches list, rc: " + rc);
+			}
+		}
 	}
 	
 	public static short[] getBaseDistribution(String sequence) {

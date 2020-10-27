@@ -157,11 +157,22 @@ public class IntLongPairsUtil {
 					for (IntLongPair pILP : pairs.getPairs()) {
 						int thispILPSeqStart = NumberUtils.getShortFromLong(pILP.getLong(), SHORT_OFFSET_IN_LONG);
 						int thispILPSeqEnd = thispILPSeqStart + NumberUtils.getPartOfPackedInt(pILP.getInt(), true) + TILE_LENGTH - 1;
-						if (potentialILPSeqStart > thispILPSeqStart && potentialILPSeqStart < thispILPSeqEnd) {
-							potentialBasesThisCouldFill -= (thispILPSeqEnd - potentialILPSeqStart);
-						} else if (potentialILPSeqEnd > thispILPSeqEnd && potentialILPSeqEnd < thispILPSeqEnd) {
-							potentialBasesThisCouldFill -= (potentialILPSeqEnd - thispILPSeqStart);
+						
+						if (potentialILPSeqStart >= thispILPSeqEnd || potentialILPSeqEnd <= thispILPSeqStart) {
+							/*
+							 * all good
+							 */
+						} else {
+							if (potentialILPSeqStart >= thispILPSeqStart && potentialILPSeqStart < thispILPSeqEnd) {
+								potentialBasesThisCouldFill -= (thispILPSeqEnd - potentialILPSeqStart);
+							} else if (potentialILPSeqEnd >= thispILPSeqStart && potentialILPSeqEnd < thispILPSeqEnd) {
+								potentialBasesThisCouldFill -= (potentialILPSeqEnd - thispILPSeqStart);
+							} else {
+								potentialBasesThisCouldFill -= (thispILPSeqEnd - thispILPSeqStart);
+							}
 						}
+						
+						
 					}
 					
 					if (potentialBasesThisCouldFill >= 10){

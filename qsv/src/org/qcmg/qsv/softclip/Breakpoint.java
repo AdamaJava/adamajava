@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -34,9 +35,11 @@ import org.qcmg.qsv.QSVParameters;
 import org.qcmg.qsv.assemble.ConsensusRead;
 import org.qcmg.qsv.assemble.QSVAssemble;
 import org.qcmg.qsv.assemble.Read;
-import org.qcmg.qsv.blat.BLAT;
 import org.qcmg.qsv.splitread.UnmappedRead;
 import org.qcmg.qsv.util.QSVUtil;
+
+import au.edu.qimr.tiledaligner.util.TiledAlignerUtil;
+import gnu.trove.map.TIntObjectMap;
 
 public class Breakpoint implements Comparable<Breakpoint>{
 	
@@ -392,16 +395,46 @@ public class Breakpoint implements Comparable<Breakpoint>{
 		}
 	}
 
+//	public static String calculateConsensus(char strand, int length, boolean isClipConsensus, Set<Clip> tumourClips, Set<Clip> normalClips, boolean isGermline) {
+//		
+//		
+//		int [][] bases = new int[length][5];		
+//		for (Clip c: tumourClips) {
+//			if (strand == c.getStrand()) {
+//				if (isClipConsensus) {
+//					c.getClipBases(bases);
+//				} else {
+//					c.getReferenceBases(bases);
+//				}
+//			}
+//		}
+//		if (isGermline) {
+//			for (Clip c: normalClips) {
+//				if (strand == c.getStrand()) {
+//					if (isClipConsensus) {
+//						c.getClipBases(bases);
+//					} else {
+//						c.getReferenceBases(bases);
+//					}
+//				}
+//			}
+//		}		
+//		
+//		String currentConsensus = getBaseCountString(bases);
+//		if (QSVUtil.MINUS == strand) {
+//			currentConsensus = QSVUtil.reverseComplement(currentConsensus);
+//		} 
+//		return currentConsensus;		
+//	}
 	public static String calculateConsensus(char strand, int length, boolean isClipConsensus, Set<Clip> tumourClips, Set<Clip> normalClips, boolean isGermline) {
 		
-		
-		int [][] bases = new int[length][5];		
+		int [][] bases = new int[length][5];
 		for (Clip c: tumourClips) {
 			if (strand == c.getStrand()) {
 				if (isClipConsensus) {
-					c.getClipBases(bases);
+					Clip.getClipBases(bases, c.isLeft(), c.getClipSequence());
 				} else {
-					c.getReferenceBases(bases);
+					Clip.getReferenceBases(bases, c.isLeft(), c.getReferenceSequence());
 				}
 			}
 		}
@@ -409,9 +442,9 @@ public class Breakpoint implements Comparable<Breakpoint>{
 			for (Clip c: normalClips) {
 				if (strand == c.getStrand()) {
 					if (isClipConsensus) {
-						c.getClipBases(bases);
+						Clip.getClipBases(bases, c.isLeft(), c.getClipSequence());
 					} else {
-						c.getReferenceBases(bases);
+						Clip.getReferenceBases(bases, c.isLeft(), c.getReferenceSequence());
 					}
 				}
 			}
@@ -568,29 +601,47 @@ public class Breakpoint implements Comparable<Breakpoint>{
 		return clips.stream().map(Clip::toString).collect(Collectors.joining(Constants.EMPTY_STRING));
 	}
 
-	public boolean findRescuedMateBreakpoint(BLAT blat, QSVParameters p, String softclipDir) throws Exception {
-		
-		String base = softclipDir + QSVUtil.getFileSeparator() + getName();
-		String fa = base + ".fa";
+//	public boolean findRescuedMateBreakpoint(BLAT blat, QSVParameters p, String softclipDir) throws Exception {
+//		
+//		String base = softclipDir + QSVUtil.getFileSeparator() + getName();
+//		String fa = base + ".fa";
+//		String mateConsensus = getMateConsensus();
+//		
+//		if ( ! StringUtils.isNullOrEmpty(mateConsensus) ) {
+//								
+//			try (FileWriter fw = new FileWriter(new File(fa));
+//					BufferedWriter writer = new BufferedWriter(fw);) {
+//				
+//				writer.write(">" + getName() + QSVUtil.NEW_LINE);
+//				writer.write(mateConsensus + QSVUtil.NEW_LINE);
+//				writer.write(QSVUtil.NEW_LINE);
+//			}
+//		}
+//		
+//		String outFile = base + ".psl";
+//		
+//		Map<String, BLATRecord> blatMap = blat.align(fa, outFile);
+//		
+//		BLATRecord record = blatMap.get(getName());
+//		return findMateBreakpoint(record);
+//	}
+	
+	public boolean findRescuedMateBreakpoint(TIntObjectMap<int[]> cache, QSVParameters p, String softclipDir) throws Exception {
 		String mateConsensus = getMateConsensus();
 		
 		if ( ! StringUtils.isNullOrEmpty(mateConsensus) ) {
-								
-			try (FileWriter fw = new FileWriter(new File(fa));
-					BufferedWriter writer = new BufferedWriter(fw);) {
-				
-				writer.write(">" + getName() + QSVUtil.NEW_LINE);
-				writer.write(mateConsensus + QSVUtil.NEW_LINE);
-				writer.write(QSVUtil.NEW_LINE);
+			System.out.println("looking for " + mateConsensus);
+			Map<String, String> seqNameMap = new HashMap<>(2);
+			seqNameMap.put(mateConsensus, getName());
+			Map<String, List<BLATRecord>> blatMap = TiledAlignerUtil.runTiledAlignerCache(p.getReference(), cache, seqNameMap, 13, "Breakpoint.findRescuedMateBreakpoint", false);
+			if (null != blatMap && ! blatMap.isEmpty()) {
+				List<BLATRecord> recs = blatMap.get(mateConsensus);
+				if (null != recs && ! recs.isEmpty()) {
+					return findMateBreakpoint(recs.get(recs.size() - 1));
+				}
 			}
 		}
-		
-		String outFile = base + ".psl";
-		
-		Map<String, BLATRecord> blatMap = blat.align(fa, outFile);
-		
-		BLATRecord record = blatMap.get(getName());
-		return findMateBreakpoint(record);
+		return false;
 	}
 
 	public String getMateConsensus() {

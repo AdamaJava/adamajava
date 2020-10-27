@@ -143,6 +143,46 @@ public class TiledAlignerUtilTest {
 	}
 	
 	@Test
+	public void getCommonTIleCounts() {
+		String s = "TGAGCCGAGATCCCGCCACTGCACTCCAGCCTGGGCGACAGAGCGAGACTCCGTCTCAAAAAAAAAAAAAAA";
+		String recVomp = SequenceUtil.reverseComplement(s);
+		System.out.println("recVomp: " + recVomp);
+		
+		String r = "TTTTTTTTTTTTTTTGAGACGGAGTCTCGCTCTGTCGCCCAGGCTGGAGTGCAGTGGCGGGATCTCGGCTCA";
+				
+		long [][] startPositions = new long[18][];
+		startPositions[0] = new long[] {-1};	// all T's
+		startPositions[1] = new long[] {-1};	// all T's
+		startPositions[2] = new long[] {-1};	// all T's
+		startPositions[3] = new long[] {-1};	// TTTTTTTTTTTTG
+		startPositions[4] = new long[] {-1};	// TTTTTTTTTTTGA
+		startPositions[5] = new long[] {-1};	// TTTTTTTTTTGAG
+		startPositions[6] = new long[] {-1};	// TTTTTTTTTGAGA
+		startPositions[7] = new long[] {-1};	// TTTTTTTTGAGAC
+		startPositions[8] = new long[] {-1};	// TTTTTTTGAGACG
+		startPositions[9] = new long[] {-1};	// TTTTTTTGAGACG
+		startPositions[10] = new long[] {-1};	// TTTTTTTGAGACG
+		startPositions[11] = new long[] {-1};	// TTTTTTTGAGACG
+		startPositions[12] = new long[] {-1};	// TTTTTTTGAGACG
+		startPositions[13] = new long[] {-1};	// TTTTTTTGAGACG
+		startPositions[14] = new long[] {-1};	// GAGACGGAGTCTC
+		startPositions[15] = new long[] {-1};	// AGACGGAGTCTCG
+		startPositions[16] = new long[] {-1};	// GACGGAGTCTCGC
+		startPositions[17] = new long[] {-1};	// GACGGAGTCTCGC
+		assertEquals(18, TiledAlignerUtil.getCommonTileCountsAtStart(startPositions));
+		
+		startPositions[17] = new long[] {1,2,3,4,5};	// GACGGAGTCTCGC
+		assertEquals(17, TiledAlignerUtil.getCommonTileCountsAtStart(startPositions));
+		
+		startPositions[10] = new long[] {1,2,3,4,5};	// GACGGAGTCTCGC
+		assertEquals(10, TiledAlignerUtil.getCommonTileCountsAtStart(startPositions));
+		
+		startPositions[4] = new long[] {1,2,3,4,5};	// GACGGAGTCTCGC
+		assertEquals(4, TiledAlignerUtil.getCommonTileCountsAtStart(startPositions));
+		
+	}
+	
+	@Test
 	public void getBestStartPositionInsertion() {
 		/*
 		 * CATGTATCCAAGAACTTAAGAGTATAATAATAATAATA

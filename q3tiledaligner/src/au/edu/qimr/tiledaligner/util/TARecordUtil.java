@@ -921,10 +921,10 @@ public class TARecordUtil {
 					/*
 					 * if we have more than 10% commonly occurring tiles, skip
 					 */
-					int commonlyOccurringTiles = NumberUtils.getPartOfPackedInt(tileCountAndCommon, false);
-					if (commonlyOccurringTiles > (0.1 * seqLength)) {
-						continue;
-					}
+//					int commonlyOccurringTiles = NumberUtils.getPartOfPackedInt(tileCountAndCommon, false);
+//					if (commonlyOccurringTiles > (0.1 * seqLength)) {
+//						continue;
+//					}
 					
 //						int tileCount = getLengthFromPackedInt(tileCountAndCommon);
 					int tileCount = NumberUtils.getPartOfPackedInt(tileCountAndCommon, true);
@@ -1322,24 +1322,54 @@ public class TARecordUtil {
 		return getPossibleTileRanges(totalLength, startTilePosition, tileLength, tileCount, minLength, false);
 	}
 	public static List<int[]> getPossibleTileRanges(int totalLength, int startTilePosition, int tileLength, int tileCount, int minLength, boolean reverseStrand) {
+		
+		return getPossibleTileRanges(totalLength, startTilePosition, tileLength + tileCount, minLength, reverseStrand);
+//		List<int[]> results = new ArrayList<>(3);
+//		
+//		/*
+//		 * check to see if there is space for a range before the startTilePosition
+//		 */
+//		int endPosition = startTilePosition + tileLength + tileCount;
+//		if (reverseStrand) {
+//			/*
+//			 * startTilePosition is now end position
+//			 * and start position is tileCount + tileLength from the end
+//			 */
+//			endPosition = totalLength - startTilePosition;
+//			startTilePosition = endPosition - tileLength - tileCount;
+//		}
+//		
+//		
+//		if (startTilePosition >= (minLength)) {
+//			results.add(new int[]{0, startTilePosition - 1});
+//		}
+//		if (endPosition < (totalLength - minLength)) {
+//			results.add(new int[]{endPosition, totalLength});
+//		}
+//		
+//		return results;
+	}
+	
+	public static List<int[]> getPossibleTileRanges(int totalLength, int startPosition, int length, int minLength, boolean reverseStrand) {
 		List<int[]> results = new ArrayList<>(3);
 		
 		/*
 		 * check to see if there is space for a range before the startTilePosition
 		 */
-		int endPosition = startTilePosition + tileLength + tileCount;
+		int endPosition = startPosition + length;
 		if (reverseStrand) {
 			/*
 			 * startTilePosition is now end position
 			 * and start position is tileCount + tileLength from the end
 			 */
-			endPosition = totalLength - startTilePosition;
-			startTilePosition = endPosition - tileLength - tileCount;
+			endPosition = totalLength - startPosition;
+			startPosition = totalLength - (startPosition + length);
+//			startPosition = endPosition - tileLength - tileCount;
 		}
 		
 		
-		if (startTilePosition >= (minLength)) {
-			results.add(new int[]{0, startTilePosition - 1});
+		if (startPosition >= (minLength)) {
+			results.add(new int[]{0, startPosition - 1});
 		}
 		if (endPosition < (totalLength - minLength)) {
 			results.add(new int[]{endPosition, totalLength});
