@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.NumberUtils;
-import org.qcmg.string.StringFileReader;
+import org.qcmg.record.StringFileReader;
 
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
