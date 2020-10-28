@@ -50,7 +50,6 @@ import org.qcmg.illumina.IlluminaRecord;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.util.BAMFileUtils;
 import org.qcmg.picard.util.SAMUtils;
-import org.qcmg.record.Record;
 import org.qcmg.sig.util.SignatureUtil;
 import org.qcmg.tab.TabbedFileReader;
 import org.qcmg.tab.TabbedRecord;
@@ -311,10 +310,9 @@ public class SignatureGeneratorBespoke {
 	}
 
 	static void loadIlluminaData(File illuminaFile, Map<ChrPosition, IlluminaRecord> illuminaMap) throws IOException {
-		IlluminaRecord tempRec;
+		;
 		try (IlluminaFileReader reader = new IlluminaFileReader(illuminaFile);) {
-			for (final Record rec : reader) {
-				tempRec = (IlluminaRecord) rec;
+			for (final IlluminaRecord tempRec : reader) {
 				
 				// only interested in illumina data if it has a gc score above 0.7, and a valid chromosome
 				// ignore chromosome 0, and for XY, create 2 records, one for each!

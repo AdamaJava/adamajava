@@ -19,7 +19,6 @@ import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.illumina.IlluminaFileReader;
 import org.qcmg.illumina.IlluminaRecord;
-import org.qcmg.record.Record;
 
 /**
  * This class takes in 2 Illumina snp chip files as input 
@@ -112,9 +111,8 @@ public class CompareIlluminaData {
 	static void loadIlluminaData(File illuminaFile, Map<ChrPosition, IlluminaRecord> illuminaMap) throws IOException {
 		
 		try (IlluminaFileReader reader = new IlluminaFileReader(illuminaFile);) {
-			IlluminaRecord tempRec;
-			for (Record rec : reader) {
-				tempRec = (IlluminaRecord) rec;
+			 
+			for (IlluminaRecord tempRec : reader) {
 				
 				// only interested in illumina data if it has a gc score above 0.7, and a valid chromosome
 				// get XY, 0 for chromosome
