@@ -4,9 +4,9 @@
 package org.qcmg.illumina;
 
 import org.qcmg.common.string.StringUtils;
-import org.qcmg.record.Record;
+import org.qcmg.common.util.TabTokenizer;
 
-public class IlluminaRecord implements Record {
+public class IlluminaRecord  {
 	
 	private String chr;
 	private int start;
@@ -40,8 +40,10 @@ public class IlluminaRecord implements Record {
 	 * Constructor that takes in a String array, retrieving pertinent fields from the array to populate the record
 	 * 
 	 * @param rawIlluminaData String[] representing a line in the raw Illumina data file
+	 * @throws Exception 
 	 */
 	public IlluminaRecord(String [] rawIlluminaData) {
+
 		// chromosome and position defined in the raw Illumina data file relate to an old version
 		// of the genome (hg18), so instead, we use the dbSNP id to get the more recent 
 		//(hg19) chromosome and position details from the dbSNP file at a later date
@@ -66,7 +68,6 @@ public class IlluminaRecord implements Record {
 		firstAlleleCall = rawIlluminaData[14].charAt(0);
 		secondAlleleCall = rawIlluminaData[15].charAt(0);
 		strand = rawIlluminaData[22];		// use customer strand rather than illumina strand
-//		strand = rawIlluminaData[21];
 	}
 	
 	

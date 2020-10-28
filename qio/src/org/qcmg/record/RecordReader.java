@@ -28,8 +28,9 @@ public abstract class RecordReader<T> implements Closeable, Iterable<T> {
     public static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
     
     protected final File file;
+    //only allow create once
     protected final BufferedReader bin;
-    private T next; 
+    protected T next; 
     
     protected List<String> headerLines = new ArrayList<>();
     public RecordReader(final File file) throws IOException { this(file, DEFAULT_BUFFER_SIZE); }
@@ -49,24 +50,36 @@ public abstract class RecordReader<T> implements Closeable, Iterable<T> {
         InputStream inputStream =  (isGzip) ? new GZIPInputStream(new FileInputStream(file)) : new FileInputStream(file);  
         InputStreamReader streamReader = new InputStreamReader(inputStream, charset);
         bin = new BufferedReader(streamReader, bufferSize);
-               
-        String nextLine = bin.readLine();        
-        
-		//return first line if no header prefix specified
-		if(headerPrefix == null ) return; 		
-		
-		//reader header, hence file pointer to first line after header
-		while ( null != nextLine && nextLine.startsWith(headerPrefix+"") ) {
-			nextLine = bin.readLine();
-			headerLines.add(nextLine);
-		}  
-		
+               		
+        String nextLine = readHeader(headerPrefix);//bin.readLine();        
+
 		//get first record, set to null for empty file
 		try {
 			next = nextLine == null? null : readRecord(nextLine);
 		}catch(Exception e) {
 			throw new IOException("error during retrive first record " + e.getMessage());
 		}
+    }
+    /**
+     * this method is overridable in subclass, eg illumina file have different header patten
+     * 
+     * @param headerPrefix
+     * @return the first line just after header
+     * @throws IOException
+     */
+    public String readHeader(CharSequence headerPrefix ) throws IOException{
+    	String nextLine = bin.readLine();
+    	if(headerPrefix == null) return nextLine;
+    	 
+    	
+		//reader header, hence file pointer to first line after header
+		while ( headerPrefix != null &&null != nextLine && nextLine.startsWith(headerPrefix+"") ) {				
+			headerLines.add(nextLine);
+			//reset current read line
+			nextLine = bin.readLine();
+		} 
+		
+		return nextLine;
     }
     
  /**
