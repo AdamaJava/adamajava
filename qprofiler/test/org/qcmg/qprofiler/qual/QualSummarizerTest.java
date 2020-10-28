@@ -49,6 +49,8 @@ public class QualSummarizerTest {
 			qs.summarize(new File(QUAL_DODGY_INPUT_FILE));
 			Assert.fail("Should have thrown an exception");
 		} catch (Exception e ) {
+			//debug
+			System.out.println(e.getMessage());
 			Assert.assertTrue(e.getMessage().startsWith("Bad id"));
 		}
 		
