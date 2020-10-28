@@ -3,8 +3,6 @@ package org.qcmg.gff;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.qcmg.record.Record;
-
 /**
  * @author jpearson
  * @version $Id: GffRecord.java,v 1.8 2009/08/17 20:17:35 jbeckstr Exp $
@@ -22,7 +20,7 @@ import org.qcmg.record.Record;
  *          4,13,13,27,14,19,4,23,16,19,9,14; r=20_2; s=a20; u=0,1 10.
  *          [comments]
  */
-public class GFFRecord implements Record {
+public class GffRecord {
 
 	// private String originalLine; // original line
 	private String seqname; // read ID
@@ -45,7 +43,7 @@ public class GFFRecord implements Record {
 	 * @throws Exception
 	 * @throws QProfilerException
 	 */
-	public GFFRecord(String[] fields) throws Exception {
+	public GffRecord(String[] fields) throws Exception {
 		// public GffRecord( String textRecord, String delimiter ) {
 		// this(); // call constructor 0
 		// originalLine = textRecord;

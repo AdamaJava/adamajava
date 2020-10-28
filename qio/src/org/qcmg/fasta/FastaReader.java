@@ -1,14 +1,13 @@
-package org.qcmg.record;
+package org.qcmg.fasta;
 
 import java.io.File;
 import java.io.IOException;
+import org.qcmg.record.RecordReader;
 
-
-public class FastaReader extends RecordReader<FastaRecord> {
+public final class FastaReader extends RecordReader<FastaRecord> {
 	private static final String ID_PREFIX = ">";
 	private static final String HEADER_PREFIX = "#";
-	
-	
+		
 	public FastaReader(File file) throws IOException {
 		super(file, HEADER_PREFIX);
 	}
@@ -27,9 +26,7 @@ public class FastaReader extends RecordReader<FastaRecord> {
 		if (seq.startsWith(ID_PREFIX)) {
 			throw new Exception("Bad sequence format: " + seq);
 		}
-		
-		FastaRecord rec = (FastaRecord) new  org.qcmg.record.FastaRecord(id, seq);
-		
-		return rec;
+				
+		return new FastaRecord(id, seq);
 	}
 }

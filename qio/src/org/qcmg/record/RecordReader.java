@@ -93,7 +93,7 @@ public abstract class RecordReader<T> implements Closeable, Iterable<T> {
             		T rec = readRecord(line);
             		//this step should after readRecord, incase record cross multi lines
         			nextLine = bin.readLine();
-        			return rec;
+         			return rec;
         		} catch (Exception e) {
         			throw new RuntimeException(e.getMessage());
          		}

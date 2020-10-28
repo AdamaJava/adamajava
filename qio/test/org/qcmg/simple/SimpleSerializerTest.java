@@ -2,7 +2,7 @@ package org.qcmg.simple;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.qcmg.record.FastaRecord;
+import org.qcmg.fasta.FastaRecord;
 
 
 public class SimpleSerializerTest {

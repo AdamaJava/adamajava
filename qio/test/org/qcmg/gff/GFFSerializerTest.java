@@ -100,7 +100,7 @@ public class GFFSerializerTest {
 	
 	@Test
 	public void testParseRecord() throws Exception {
-		GFFRecord record;
+		GffRecord record;
 		
 		// 8 values
 		record = GFFSerializer.parseRecord("this	is	a	0	1	0.0	works	OK");
@@ -113,7 +113,7 @@ public class GFFSerializerTest {
 	
 	@Test
 	public void testParseRecordWithAttributes() throws Exception {
-		GFFRecord record;
+		GffRecord record;
 		
 		// real record containing attributes
 		record = GFFSerializer.parseRecord("1	solid	read	10148	10190	14.4	-	.	" +
