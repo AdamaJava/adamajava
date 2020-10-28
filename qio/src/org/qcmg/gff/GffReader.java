@@ -1,12 +1,14 @@
 package org.qcmg.gff;
 
 import java.io.File;
+import java.io.IOException;
+
 import org.qcmg.record.RecordReader;
 
 public final class GffReader extends RecordReader<GffRecord> {
 	public static final String TAB_DELIMITER = "\t";
 	
-	public GffReader(File file) throws Exception {
+	public GffReader(File file) throws IOException {
 		super(file);
 	}
 
