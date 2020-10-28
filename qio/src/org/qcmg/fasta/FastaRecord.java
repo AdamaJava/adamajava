@@ -10,7 +10,7 @@ package org.qcmg.fasta;
  * Each record is split over two lines. The first line starts with '>' followed by the ID, 
  * the subsequent line contains the colour space sequence
  * 
- *  @author oholmes
+ *  @author oholmes christina
  */
 public class FastaRecord {
 
