@@ -32,17 +32,17 @@ public abstract class RecordReader<T> implements Closeable, Iterable<T> {
     private T next; 
     
     protected List<String> headerLines = new ArrayList<>();
-    public RecordReader(final File file) throws Exception { this(file, DEFAULT_BUFFER_SIZE); }
+    public RecordReader(final File file) throws IOException { this(file, DEFAULT_BUFFER_SIZE); }
     
-    public RecordReader(final File file, int bufferSize) throws Exception {
+    public RecordReader(final File file, int bufferSize) throws IOException {
     	this(file, bufferSize, DEFAULT_HEADER_PREFIX, DEFAULT_CHARSET);
     } 
     
-    public RecordReader(final File file, CharSequence headerPrefix) throws Exception { 
+    public RecordReader(final File file, CharSequence headerPrefix) throws IOException { 
     	this(file, DEFAULT_BUFFER_SIZE, headerPrefix, DEFAULT_CHARSET); 
     }
       
-    public RecordReader(final File file, int bufferSize, CharSequence headerPrefix, Charset charset) throws Exception {
+    public RecordReader(final File file, int bufferSize, CharSequence headerPrefix, Charset charset) throws IOException {
 
         this.file = file;
         boolean isGzip = FileUtils.isInputGZip( file);
@@ -62,7 +62,11 @@ public abstract class RecordReader<T> implements Closeable, Iterable<T> {
 		}  
 		
 		//get first record, set to null for empty file
-		next = nextLine == null? null : readRecord(nextLine);
+		try {
+			next = nextLine == null? null : readRecord(nextLine);
+		}catch(Exception e) {
+			throw new IOException("error during retrive first record " + e.getMessage());
+		}
     }
     
  /**
