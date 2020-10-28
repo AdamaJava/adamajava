@@ -39,7 +39,6 @@ import org.qcmg.pileup.PileupFileReader;
 import org.qcmg.qmule.Messages;
 import org.qcmg.qmule.Options;
 import org.qcmg.qmule.QMuleException;
-import org.qcmg.record.Record;
 import org.qcmg.vcf.VCFFileReader;
 
 public class SnpPicker {
@@ -547,10 +546,8 @@ public class SnpPicker {
 		}
 		
 		if (null != reader) {
-			IlluminaRecord tempRec;
-			for (Record rec : reader) {
-				tempRec = (IlluminaRecord) rec;
-				illuminaMap.put(tempRec.getSnpId(), tempRec);
+			for (IlluminaRecord rec : reader) {				 
+				illuminaMap.put(rec.getSnpId(), rec);
 			}
 			try {
 				reader.close();
