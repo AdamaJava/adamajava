@@ -617,7 +617,6 @@ public class SnpPicker {
 				
 				if (null != value) {
 					value.setDbSnpID(illuminaRec.getSnpId());
-//					value.setIlluminaAlt(illuminaRec.getRefGenomeRefSNPAllele());
 					value.setIlluminaRef(illuminaRec.getSnp());
 					value.setIllAllele1(illuminaRec.getFirstAllele());
 					value.setIllAllele2(illuminaRec.getSecondAllele());
@@ -637,7 +636,6 @@ public class SnpPicker {
 		char dbSnpStrand = dbSnpRec.getStrand().charAt(0);
 		illuminaRec.setChr(dbSnpRec.getChromosome());
 		illuminaRec.setStart(dbSnpRec.getChromosomePosition());
-//		illuminaRec.setRefGenomeRefSNPAllele(dbSnpRec.getRefGenome() + "__" + dbSnpRec.getVariant());
 		
 		// now gets a bit more interesting
 		char strand;
@@ -645,16 +643,8 @@ public class SnpPicker {
 		if (BaseUtils.areGenotypesEqual(dbSnpRec.getVariant(), illuminaRec.getSnp())) {
 			strand = dbSnpStrand;
 		} else strand = '+' == dbSnpStrand ? '-' : '+';
-//		if (illuminaRec.getReference().charAt(1) == dbAlleles.charAt(0) && 
-//				illuminaRec.getReference().charAt(3) == dbAlleles.charAt(2)) {
-//			strand = dbSnpStrand;
-//		} else strand = '+' == dbSnpStrand ? '-' : '+';
 		
 		// no longer switch the illumina snp call, but the actual allele data
-//		if ('-' == strand)
-//			illuminaRec.setReference(BaseUtils.getComplementFromString(illuminaRec.getReference()));
-//		else
-//			illuminaRec.setReference(illuminaRec.getReference().substring(1, illuminaRec.getReference().length()-1));
 		if ('-' == strand) {
 			illuminaRec.setFirstAllele(BaseUtils.getComplement(illuminaRec.getFirstAllele()));
 			illuminaRec.setSecondAllele(BaseUtils.getComplement(illuminaRec.getSecondAllele()));
@@ -670,15 +660,7 @@ public class SnpPicker {
 		if (null == ref || DEFAULT_CHAR == alleleOne || DEFAULT_CHAR == alleleTwo)
 			return false;
 		return ref.charAt(0) != alleleOne || ref.charAt(0) != alleleTwo;
-	}
-//	private boolean isSnp(String ref, String genotype) {
-//		if (null == ref || null == genotype)
-//			return false;
-//		// assume ref is of type A
-//		// assume genotype is of the form A/G
-//		return ref.charAt(0) != genotype.charAt(0) || ref.charAt(0) != genotype.charAt(2); 
-//	}
-	
+	}	
 	
 	private void outputVariantData() {
 		FileWriter allRecordsWriter = null;
@@ -708,12 +690,10 @@ public class SnpPicker {
 			
 			ChrPosition id;
 			VariantRecord value;
-//			String chr;
 			
 			for (Map.Entry<ChrPosition, VariantRecord> entry : sortedVariantMap.entrySet()) {
 				id = entry.getKey();
 				value = entry.getValue();
-//				chr = ( ! id.getChromosome().startsWith("GL") ? "chr" : "") + id.getChromosome();
 				
 				try {
 					allRecordsWriter.write(id.getChromosome() + "\t" +
