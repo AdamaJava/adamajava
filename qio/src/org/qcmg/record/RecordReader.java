@@ -18,7 +18,6 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.zip.GZIPInputStream;
 import org.qcmg.common.util.FileUtils;
 
@@ -30,20 +29,20 @@ public abstract class RecordReader<T> implements Closeable, Iterable<T> {
     
     protected final File file;
     protected final BufferedReader bin;
-    private String nextLine;
+    private T next; 
     
     protected List<String> headerLines = new ArrayList<>();
-    public RecordReader(final File file) throws IOException { this(file, DEFAULT_BUFFER_SIZE); }
+    public RecordReader(final File file) throws Exception { this(file, DEFAULT_BUFFER_SIZE); }
     
-    public RecordReader(final File file, int bufferSize) throws IOException {
+    public RecordReader(final File file, int bufferSize) throws Exception {
     	this(file, bufferSize, DEFAULT_HEADER_PREFIX, DEFAULT_CHARSET);
     } 
     
-    public RecordReader(final File file, CharSequence headerPrefix) throws IOException { 
+    public RecordReader(final File file, CharSequence headerPrefix) throws Exception { 
     	this(file, DEFAULT_BUFFER_SIZE, headerPrefix, DEFAULT_CHARSET); 
     }
       
-    public RecordReader(final File file, int bufferSize, CharSequence headerPrefix, Charset charset) throws IOException {
+    public RecordReader(final File file, int bufferSize, CharSequence headerPrefix, Charset charset) throws Exception {
 
         this.file = file;
         boolean isGzip = FileUtils.isInputGZip( file);
@@ -51,7 +50,7 @@ public abstract class RecordReader<T> implements Closeable, Iterable<T> {
         InputStreamReader streamReader = new InputStreamReader(inputStream, charset);
         bin = new BufferedReader(streamReader, bufferSize);
                
-        nextLine = bin.readLine();        
+        String nextLine = bin.readLine();        
         
 		//return first line if no header prefix specified
 		if(headerPrefix == null ) return; 		
@@ -61,6 +60,9 @@ public abstract class RecordReader<T> implements Closeable, Iterable<T> {
 			nextLine = bin.readLine();
 			headerLines.add(nextLine);
 		}  
+		
+		//get first record, set to null for empty file
+		next = nextLine == null? null : readRecord(nextLine);
     }
     
  /**
@@ -81,19 +83,24 @@ public abstract class RecordReader<T> implements Closeable, Iterable<T> {
 	public Iterator<T> iterator() {		
 		Iterator<T> iter = new Iterator<T>() {
             @Override
-            public boolean hasNext() { return null != nextLine;  }
+            public boolean hasNext() { 
+            	return null != next;  
+            }
             
 			@Override
-            public T next() {
-            	if(nextLine == null) throw new NoSuchElementException();
-            	          	
-            	String line = nextLine;
-            	nextLine = null; //in case exception happen, same line repeatedly
-            	try {
-            		T rec = readRecord(line);
-            		//this step should after readRecord, incase record cross multi lines
-        			nextLine = bin.readLine();
-         			return rec;
+			//return the stored record (next), even it is null
+            public T next() {            	          	
+            	T rec = next; 
+            	next = null; //in case exception happen, same line repeatedly
+            	
+            	try {  
+            		//get next record, it may read  multi lines
+            		String line = bin.readLine();           		
+            		if(line != null ) {
+            			next = readRecord( line );
+            		}
+            		
+           			return rec;
         		} catch (Exception e) {
         			throw new RuntimeException(e.getMessage());
          		}
