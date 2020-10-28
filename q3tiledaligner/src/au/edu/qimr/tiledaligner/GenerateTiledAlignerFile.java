@@ -136,6 +136,7 @@ public class GenerateTiledAlignerFile {
 			writer.write(("##q3TiledAligner version: " + version + "\n").getBytes());
 			writer.write(("##RunBy: " + System.getProperty("user.name") + "\n").getBytes());
 			writer.write(("##RunOn: " + DateUtils.getCurrentDateAsString() + "\n").getBytes());
+			writer.write(("##Reference: " + inputFile + "\n").getBytes());
 			writer.write(("##List of positions/Count cutoff: " + positionsCutoff + "\n").getBytes());
 			writer.write(("##Tile length: " + tileSize + "\n").getBytes());
 			writer.write(("##Number of tiles: " + orderedTiles.size() + "\n").getBytes());
@@ -239,8 +240,14 @@ public class GenerateTiledAlignerFile {
 			logger = QLoggerFactory.getLogger(GenerateTiledAlignerFile.class, logFile, options.getLogLevel());
 			logger.logInitialExecutionStats("GenerateTiledAlignerFile", version, args);
 			
-			// get list of file names
-			inputFile = options.getInput();
+			// get input reference file
+			options.getReference().ifPresent(r -> inputFile = r);
+			if (null == inputFile) {
+				System.err.println("No reference file supplied!!!");
+				System.err.println(Messages.USAGE);
+				options.displayHelp();
+				return 1;
+			}
 			
 			// set outputfile - if supplied, check that it can be written to
 			if (null != options.getOutputFileName()) {
@@ -250,6 +257,11 @@ public class GenerateTiledAlignerFile {
 				} else {
 					throw new Exception("OUTPUT_FILE_WRITE_ERROR");
 				}
+			} else {
+				System.err.println("No output file supplied!!!");
+				System.err.println(Messages.USAGE);
+				options.displayHelp();
+				return 1;
 			}
 			/*
 			 * final check is to make sure output is a gzip file

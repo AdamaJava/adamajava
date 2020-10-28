@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.model.BLATRecord;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.qsv.QSVException;
@@ -34,7 +35,6 @@ import org.qcmg.qsv.assemble.ConsensusRead;
 import org.qcmg.qsv.assemble.QSVAssemble;
 import org.qcmg.qsv.assemble.Read;
 import org.qcmg.qsv.blat.BLAT;
-import org.qcmg.qsv.blat.BLATRecord;
 import org.qcmg.qsv.splitread.UnmappedRead;
 import org.qcmg.qsv.util.QSVUtil;
 

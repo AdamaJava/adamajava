@@ -17,11 +17,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SAMRecordIterator;
-import htsjdk.samtools.ValidationStringency;
-
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qsv.QSVParameters;
 import org.qcmg.qsv.annotate.Annotator;
@@ -31,6 +26,11 @@ import org.qcmg.qsv.discordantpair.MatePair.ReadMateRightEndComparator;
 import org.qcmg.qsv.discordantpair.MatePair.ReadMateRightStartComparator;
 import org.qcmg.qsv.util.QSVConstants;
 import org.qcmg.qsv.util.QSVUtil;
+
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SAMRecordIterator;
+import htsjdk.samtools.SamReader;
+import htsjdk.samtools.ValidationStringency;
 
 /**
  * Class to represent discordant pair evidence for an SV
@@ -50,7 +50,6 @@ public class DiscordantPairCluster {
 	private final int windowSize;
 	private final String sampleType;
 	private final Map<String, AtomicInteger> strandOrientations;    
-//	private final int qPrimerThreshold;
 
 	private int lowConfidenceNormalMatePairs;
 	private int leftStart = -1;
@@ -79,7 +78,6 @@ public class DiscordantPairCluster {
 		this.sampleType = findParameters.getFindType();
 		this.windowSize = findParameters.getUpperInsertSize();
 		this.strandOrientations = new HashMap<>(8);
-//		this.qPrimerThreshold = findParameters.getqPrimerThreshold();
 		this.lowConfidenceNormalMatePairs = 0;
 		this.isQCMG = isQCMG;
 	}
@@ -535,17 +533,18 @@ public class DiscordantPairCluster {
 
 		 while (iter.hasNext()) {
 			 SAMRecord r = iter.next();
+			 String readGroupId = r.getReadGroup().getId();
 
-			 if (readGroupIds.contains(r.getReadGroup().getId())) {
+			 if (readGroupIds.contains(readGroupId)) {
 
-				 annotator.annotate(r);
+				 annotator.annotate(r, readGroupId);
 
-				 if (passesZPFilter((String) r.getAttribute("ZP"), zp1, zp2)) {
-					 String key = "normal" + r.getReadName() + ":" + r.getReadGroup().getId();
+				 if (passesZPFilter((String) r.getAttribute(QSVConstants.ZP_SHORT), zp1, zp2)) {
+					 String key = "normal" + r.getReadName() + ":" + readGroupId;
 					 
 					 SAMRecord[] arr = map.get(key);
 					 if (null == arr) {
-						 map.put(key, new SAMRecord[]{r,null});
+						 map.put(key, new SAMRecord[]{r, null});
 					 } else {
 						 if ( ! r.equals(arr[0])) {
 							 arr[1] = r;
@@ -554,14 +553,14 @@ public class DiscordantPairCluster {
 				 } else {
 					 annotator.annotateByTumorISize(findParameters.getLowerInsertSize(), findParameters.getUpperInsertSize(), r);
 
-					 if (passesZPFilter((String) r.getAttribute("ZP"), zp1, zp2)) {
+					 if (passesZPFilter((String) r.getAttribute(QSVConstants.ZP_SHORT), zp1, zp2)) {
 
-						 String key = "tumour" + r.getReadName() + ":" + r.getReadGroup().getId();
+						 String key = "tumour" + r.getReadName() + ":" + readGroupId;
 						 
 						 
 						 SAMRecord[] arr = map.get(key);
 						 if (null == arr) {
-							 map.put(key, new SAMRecord[]{r,null});
+							 map.put(key, new SAMRecord[]{r, null});
 						 } else {
 							 if ( ! r.equals(arr[0])) {
 								 arr[1] = r;

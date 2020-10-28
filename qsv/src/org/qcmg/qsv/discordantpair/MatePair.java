@@ -12,13 +12,13 @@ import static org.qcmg.common.util.Constants.TAB;
 import java.io.Serializable;
 import java.util.Comparator;
 
-import htsjdk.samtools.SAMRecord;
-
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.qsv.QSVException;
 import org.qcmg.qsv.util.QSVConstants;
 import org.qcmg.qsv.util.QSVUtil;
+
+import htsjdk.samtools.SAMRecord;
 
 public class MatePair implements Comparable<MatePair> {
 
@@ -31,9 +31,11 @@ public class MatePair implements Comparable<MatePair> {
 	private final String pairOrder;
 
 	public MatePair(SAMRecord leftRecord, SAMRecord rightRecord) throws QSVException {
-		this.readName = leftRecord.getReadName() + ":" + leftRecord.getReadGroup().getId();
+		String leftReadGroupId = leftRecord.getReadGroup().getId();
+		this.readName = leftRecord.getReadName() + ":" + leftReadGroupId;
 
-		String check = rightRecord.getReadName() + ":" + rightRecord.getReadGroup().getId();
+		String rightReadGroupId = rightRecord.getReadGroup().getId();
+		String check = rightRecord.getReadName() + ":" + rightReadGroupId;
 
 		if ( ! (check.equals(readName))) {
 			logger.info("Left" + readName);
@@ -41,8 +43,8 @@ public class MatePair implements Comparable<MatePair> {
 			throw new QSVException("PAIR_ERROR");
 		}
 		this.zp = PairClassification.valueOf(getPairClassificationFromSamRecord(leftRecord));
-		this.leftMate = new Mate(leftRecord);
-		this.rightMate = new Mate(rightRecord);
+		this.leftMate = new Mate(leftRecord, leftReadGroupId);
+		this.rightMate = new Mate(rightRecord, rightReadGroupId);
 		boolean needToSwap = checkSortOrder();
 		this.pairOrder = setPairOrder(needToSwap ? rightRecord : leftRecord);
 	}
