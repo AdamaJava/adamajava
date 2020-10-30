@@ -104,8 +104,23 @@ public class IlluminaFileTestTest {
 				 
 				if(count == 0) {
 					//add more
-					???
-					Assert.assertEquals("cnvi0000657", re.getSnpId());
+					Assert.assertEquals("cnvi0000657", re.getSnpId());				
+					Assert.assertEquals(0.0f, re.getGCScore(), 0.00000);	
+					Assert.assertEquals('-', re.getFirstAlleleForward());						
+					Assert.assertEquals('-', re.getSecondAlleleForward());					
+					Assert.assertEquals('-', re.getFirstAllele());					
+					Assert.assertEquals('-', re.getSecondAllele());					
+					Assert.assertEquals(true, re.isHom());					
+					Assert.assertEquals('-', re.getFirstAlleleCall());					
+					Assert.assertEquals('-', re.getSecondAlleleCall());					
+					Assert.assertEquals("6", re.getChr());
+					Assert.assertEquals(160513181, re.getStart());
+					Assert.assertEquals("[A/G]", re.getSnp());
+					Assert.assertEquals("TOP", re.getStrand());
+					Assert.assertEquals(17348, re.getRawX());
+					Assert.assertEquals(1140, re.getRawY());					
+					Assert.assertEquals(0.01f, re.getbAlleleFreq(), 0.00000);						
+					Assert.assertEquals(-0.1054f, re.getLogRRatio(), 0.00000);					
 				} else {
 					Assert.assertEquals(4231843, re.getStart());
 				}
