@@ -15,6 +15,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.qcmg.common.log.QLogger;
+import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.BLATRecord;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrPositionName;
@@ -41,6 +43,8 @@ public class TARecordUtil {
 	public static final int MIN_BLAT_SCORE_MINUS_BUFFER = MIN_BLAT_SCORE - BUFFER;
 	public static final int MIN_BLAT_SCORE_MINUS_RANGE_BUFFER = MIN_BLAT_SCORE - RANGE_BUFFER;
 	public static final PositionChrPositionMap pcpm = new PositionChrPositionMap();
+	
+	private static final QLogger logger = QLoggerFactory.getLogger(TARecordUtil.class);
 	
 	
 	/**
@@ -483,6 +487,81 @@ public class TARecordUtil {
 		return Collections.emptyList();
 		
 	}
+	
+	/**
+	 * If the ILPs can form a single BLAT record, then return that, otherwise, return as few BLAT records as possible. ie. if there are 3 ILPs in the pair, and 2 can be combined to form a single BLAT rec then do so
+	 * 
+	 * @param splits
+	 * @param name
+	 * @param seqLength
+	 * @param headerMap
+	 * @return
+	 */
+	public static List<BLATRecord[]> blatRecordsFromSplitsNew(TIntObjectMap<Set<IntLongPairs>> splits, String name, int seqLength, PositionChrPositionMap headerMap) {
+		if (null != splits && ! splits.isEmpty()) {
+			
+			/*
+			 * get the highest scoring list of splits
+			 */
+			int [] keys = splits.keys();
+//			keys = sortTileCount(keys);
+			Arrays.sort(keys);
+			int maxKey = keys[keys.length - 1];
+			
+			Set<IntLongPairs> maxSplits = splits.get(maxKey);
+			logger.info("Number of splits: " + splits.size() + ", number of splits with max coverage: " + maxSplits.size());
+			
+			List<BLATRecord[]> blats = new ArrayList<>(maxSplits.size() + 1);
+			for (IntLongPairs maxSplitILPs : maxSplits) {
+				BLATRecord [] blatties = null;
+				/*
+				 * will attempt to create a single BLAT record
+				 */
+				if (IntLongPairsUtil.isIntLongPairsAValidSingleRecord(maxSplitILPs)) {
+					blatties = new BLATRecord[] {new BLATRecord(TARecordUtil.blatRecordFromSplits(maxSplitILPs, name, seqLength, headerMap, TILE_LENGTH))};
+				} else {
+					
+					IntLongPair[] pairs = maxSplitILPs.getPairs();
+					logger.info("createing BLAT records, number of constituent ILPs in ILPS: " + pairs.length);
+					if (pairs.length < 3) {
+						/*
+						 * return a BLAT record for each constituent in the maxSplitILPs
+						 */
+						blatties = new BLATRecord[pairs.length];
+						for (int i = 0 ; i < pairs.length ; i++) {
+							blatties[i] = new BLATRecord(blatRecordFromSplit(pairs[i], name, seqLength, headerMap));
+						}
+						Arrays.sort(blatties);
+					} else {
+						
+						/*
+						 * from constituent ILPs, find largst, and then see if any combination of adding other ILPs results in a single BLAT record
+						 */
+						Optional<IntLongPairs> oSingleBLATRec = IntLongPairsUtil.getSingleBLATRecordFromILPs(maxSplitILPs);
+						if (oSingleBLATRec.isPresent()) {
+							/*
+							 * need to find the ILPs that didn't make it into the ILPS so that they can be added as seperate BLAT records
+							 */
+							List<IntLongPair> rejectedILPs = IntLongPairsUtil.getRejectedILPs(maxSplitILPs, oSingleBLATRec.get());
+							logger.info("found optional singleBLATRecord! Number of rejected ILPs: " + rejectedILPs.size());
+							
+							blatties = new BLATRecord[rejectedILPs.size() + 1];
+							for (int i = 0 ; i < rejectedILPs.size() ; i++) {
+								blatties[i] = new BLATRecord(blatRecordFromSplit(rejectedILPs.get(i), name, seqLength, headerMap));
+							}
+							blatties[blatties.length - 1] = new BLATRecord(blatRecordFromSplits(oSingleBLATRec.get(), name, seqLength, headerMap, TILE_LENGTH));
+							
+							Arrays.sort(blatties);
+						}
+					}
+				}
+				blats.add(blatties);
+			}
+			return blats;
+		}
+		return Collections.emptyList();
+	}
+	
 	public static String[] blatRecordFromSplit(IntLongPair split, String name, int seqLength, PositionChrPositionMap headerMap) {
 		return blatRecordFromSplit(split, name, seqLength, headerMap, TILE_LENGTH);
 	}
@@ -1135,6 +1214,13 @@ public class TARecordUtil {
 		return new IntLongPairs(results.toArray(new IntLongPair[]{}));
 	}
 	
+	/**
+	 * This will only return an OPtional that is not empty if it is within <code>MAX_GAP_FOR_SINGLE_RECORD</code> bases of the primary <code>IntLongPair</code>
+	 * 
+	 * @param list
+	 * @param p1 Primary <code>IntLongPair</code>
+	 * @return
+	 */
 	public static Optional<IntLongPair> getBestILPFromList(List<IntLongPair> list, IntLongPair p1) {
 		/*
 		 * check list, if only 1 entry, easy.
@@ -1200,7 +1286,15 @@ public class TARecordUtil {
 				});
 			}
 			
-			return Optional.of(list.get(0));
+			/*
+			 * if leading candidate is too far away from original entry, return empty optional
+			 */
+			IntLongPair ilp = list.get(0);
+//			long p1Position = NumberUtils.getLongPositionValueFromPackedLong(p1.getLong());
+//			long ilpPosition = NumberUtils.getLongPositionValueFromPackedLong(ilp.getLong());
+//			
+//			return Math.abs(p1Position - ilpPosition) < MAX_GAP_FOR_SINGLE_RECORD ? Optional.of(ilp) : Optional.empty();
+			return Optional.of(ilp);
 			
 		} else {
 			return Optional.empty();
@@ -1388,7 +1482,7 @@ public class TARecordUtil {
 		 * as there are instances where there is an overlap
 		 */
 		
-		int bufferToUse = (int)(seqLength  * 0.4);
+		int bufferToUse = (int)(seqLength  * 0.4) + 1;
 //		int bufferToUse = (int)(seqLength  * 0.35);
 //		int bufferToUse = seqLength > 120 ? BUFFER * 7 : BUFFER;
 		

@@ -4,9 +4,11 @@ package au.edu.qimr.tiledaligner.util;
 import au.edu.qimr.tiledaligner.model.IntLongPair;
 import au.edu.qimr.tiledaligner.model.IntLongPairs;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 import org.qcmg.common.util.NumberUtils;
 
@@ -44,6 +46,23 @@ public class IntLongPairsUtil {
 			}
 		}
 		return lengthTally;
+	}
+	
+	/**
+	 * Naive method that just calculates the number of matches of the constituent ILPs in the ILPS
+	 * DOES NOT take into account any overlap, and so should not be used
+	 * @param pairs
+	 * @return
+	 */
+	public static final int getNaiveBasesCoveredByIntLongPairs(IntLongPairs pairs) {
+		if (null != pairs) {
+			int tally = 0;
+			for (IntLongPair ilp : pairs.getPairs()) {
+				tally += NumberUtils.minusPackedInt(ilp.getInt());
+			}
+			return tally;
+		}
+		return 0;
 	}
 	
 	public static IntLongPair[] sortIntLongPairs(IntLongPairs pairs, int seqLength) {
@@ -210,6 +229,12 @@ public class IntLongPairsUtil {
 	public static boolean isIntLongPairsAValidSingleRecord(IntLongPairs pairs) {
 		return isIntLongPairsAValidSingleRecord(pairs.getPairs());
 	}
+	public static boolean isIntLongPairsAValidSingleRecord(IntLongPairs pairs, IntLongPair potentialNewPartOfPair) {
+		IntLongPair[] pairsArray = pairs.getPairs();
+		pairsArray = Arrays.copyOf(pairsArray, pairsArray.length + 1);
+		pairsArray[pairsArray.length - 1] = potentialNewPartOfPair;
+		return isIntLongPairsAValidSingleRecord(pairsArray);
+	}
 	
 	public static boolean isIntLongPairsAValidSingleRecord(IntLongPair ... pairsArray) {
 		
@@ -266,6 +291,58 @@ public class IntLongPairsUtil {
 		}
 		return mismatchTally;
 	}
+	
+	/**
+	 * This method will take an existing IntLongPairs object and try to make a single BLAT record from it.
+	 * It may be that all elements in the IntLongPairs object contribute towards the single BLAT record, and it may be that none of them do (in which case an empty Optional will be returned).
+	 * 
+	 * @param existingPairs
+	 * @return
+	 */
+	public static Optional<IntLongPairs> getSingleBLATRecordFromILPs(IntLongPairs existingPairs) {
+		
+		if (isIntLongPairsAValidSingleRecord(existingPairs)) {
+			return Optional.of(existingPairs);
+		}
+		
+		IntLongPair[] constituents = existingPairs.getPairs();
+		Arrays.sort(constituents);
+		
+		List<IntLongPairs> results = new ArrayList<>();
+		
+		for (int i = constituents.length - 1; i >= 0 ; i--) {
+			IntLongPairs newPairs = null;
+			IntLongPair ilp = constituents[i];
+			for (int j = i - 1 ; j >= 0 ; j--) {
+				IntLongPair ilp2 = constituents[j];
+				if (null == newPairs) {
+					if (isIntLongPairsAValidSingleRecord(ilp, ilp2)) {
+						newPairs = new IntLongPairs(ilp, ilp2);
+					}
+				} else {
+					if (isIntLongPairsAValidSingleRecord(newPairs, ilp2)) {
+						newPairs.addPair(ilp2);
+					}
+				}
+			}
+			if (newPairs != null) {
+				results.add(newPairs);
+			}
+		}
+		
+		/*
+		 * check the results list
+		 * return the one with the highest coverage
+		 */
+		if (results.size() == 1) {
+			return Optional.of(results.get(0));
+		} else if (results.size() > 1) {
+			results.sort((ilp1, ilp2) -> Integer.compare(getNaiveBasesCoveredByIntLongPairs(ilp1), getNaiveBasesCoveredByIntLongPairs(ilp2)));
+			return Optional.of(results.get(results.size() - 1));
+		}
+		
+		return Optional.empty();
+	}
 
 	/**
 	 * This method will return true if the potentialPair is part of a larger pair in the supplied existingPairs list
@@ -298,5 +375,31 @@ public class IntLongPairsUtil {
 			}
 		}
 		return false;
+	}
+	
+	public static boolean isILPinILPS(IntLongPairs pairs, IntLongPair ilp) {
+		for (IntLongPair pairsILP : pairs.getPairs()) {
+			if (pairsILP.equals(ilp)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Lists the ILPs that were in the original ILPS but not in the single record ILPS
+	 * @param originalILPS
+	 * @param singleRecordILPS
+	 * @return
+	 */
+	public static List<IntLongPair> getRejectedILPs(IntLongPairs originalILPS, IntLongPairs singleRecordILPS) {
+		List<IntLongPair> rejects = new ArrayList<>();
+		
+		for (IntLongPair ilp : originalILPS.getPairs()) {
+			if ( ! isILPinILPS(singleRecordILPS, ilp)) {
+				rejects.add(ilp);
+			}
+		}
+		return rejects;
 	}
 }

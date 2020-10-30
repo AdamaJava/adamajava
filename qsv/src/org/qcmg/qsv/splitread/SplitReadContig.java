@@ -450,13 +450,10 @@ public class SplitReadContig {
 				List<BLATRecord> records = getBlatResults(TiledAlignerUtil.runTiledAlignerCache(parameters.getReference(), cache, sequenceNameMap, TiledAlignerUtil.TILE_LENGTH, "SplitReadContig.findSplitRead", log, true),  knownSV.getLeftReference(), knownSV.getRightReference(), name, consensus, log);
 				
 				if (log) {
-					logger.info("findSplitRead, getBlatResults size: " + records.size());
+					logger.info("findSplitRead, getBlatResults size: " + records.size() + ", blat rec scores: " + records.stream().map(br -> br.getScore() + "").collect(Collectors.joining(",")));
 				}
 				
 				if (records.size() > 0) {
-					if (log) {
-						logger.info("findSplitRead, blat rec scores: " + records.stream().map(br -> br.getScore() + "").collect(Collectors.joining(",")));
-					}
 
 					parseConsensusAlign(records);
 					if ( ! isPotentialSplitRead && isTumour() && clipContig.length() > 0) {
@@ -476,8 +473,7 @@ public class SplitReadContig {
 							records = alignConsensus(TiledAlignerUtil.runTiledAlignerCache(parameters.getReference(), cache, sequenceNameMap, TiledAlignerUtil.TILE_LENGTH, "SplitReadContig.findSplitRead", log, true), name + "_clip", clipContig, knownSV.getLeftReference(), knownSV.getRightReference());			
 							if (records.size() > 0) {
 								if (log) {
-									logger.info("findSplitRead, about to call parseConsensusAlign again, records.size: " + records.size());
-									logger.info("findSplitRead, about to call parseConsensusAlign again, blat rec: " + records.get(0).toString());
+									logger.info("findSplitRead, about to call parseConsensusAlign again, records.size: " + records.size() + ", top rec: " + records.get(records.size() - 1).toString());
 								}
 								parseConsensusAlign(records);
 								if ( ! isPotentialSplitRead && isTumour()) {
@@ -650,8 +646,30 @@ public static List<BLATRecord> alignConsensus(Map<String, List<BLATRecord>> blat
 			if (splitreadSV.getOrientationCategory() != null) {
 
 				String orientationCategory = splitreadSV.getOrientationCategory();
-				leftSequence = consensus.substring(left.getQueryStart() - 1, left.getQueryEnd());
-				rightSequence = consensus.substring(right.getQueryStart() - 1, right.getQueryEnd());
+				
+				int length = consensus.length();
+				if (left.getQueryStart() > length || left.getQueryEnd() > length) {
+					logger.warn("left.getQueryStart() or getQueryEnd > length!! left.getQueryStart(): " + left.getQueryStart() + ",left.getQueryEnd(): " + left.getQueryEnd() + ", length: " + length + ", consensus: " + consensus);
+					logger.warn("right.getQueryStart() or getQueryEnd > length!! right.getQueryStart(): " + right.getQueryStart() + ",right.getQueryEnd(): " + right.getQueryEnd() + ", length: " + length + ", consensus: " + consensus);
+				} else if (right.getQueryStart() > length || right.getQueryEnd() > length) {
+					logger.warn("left.getQueryStart() or getQueryEnd > length!! left.getQueryStart(): " + left.getQueryStart() + ",left.getQueryEnd(): " + left.getQueryEnd() + ", length: " + length + ", consensus: " + consensus);
+					logger.warn("right.getQueryStart() or getQueryEnd > length!! right.getQueryStart(): " + right.getQueryStart() + ",right.getQueryEnd(): " + right.getQueryEnd() + ", length: " + length + ", consensus: " + consensus);
+				}
+				if (left.getQueryStart() < 1) {
+					logger.warn("left.getQueryStart() is less than 1: " + left.getQueryStart() + ", left: " + left.toString() + ", consensus: " + consensus);
+				}
+				if (left.getQueryEnd() > length) {
+					logger.warn("left.getQueryEnd() is >= consensus length: " + left.getQueryEnd() + ", left: " + left.toString() + ", consensus: " + consensus);
+				}
+				if (right.getQueryStart() < 1) {
+					logger.warn("right.getQueryStart() is less than 1: " + right.getQueryStart() + ", right: " + right.toString() + ", consensus: " + consensus);
+				}
+				if (right.getQueryEnd() > length) {
+					logger.warn("right.getQueryEnd() is >= consensus length: " + right.getQueryEnd() + ", right: " + right.toString() + ", consensus: " + consensus);
+				}
+				
+				leftSequence = consensus.substring(Math.max(0,  left.getQueryStart() - 1), Math.min(length, left.getQueryEnd()));
+				rightSequence = consensus.substring(Math.max(0, right.getQueryStart() - 1), Math.min(length, right.getQueryEnd()));
 
 				if (needToReverseComplement(orientationCategory, left.getStrand())) {
 					leftSequence = QSVUtil.reverseComplement(leftSequence);

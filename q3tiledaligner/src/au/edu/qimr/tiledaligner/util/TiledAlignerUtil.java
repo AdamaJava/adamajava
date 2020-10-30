@@ -974,24 +974,26 @@ public class TiledAlignerUtil {
 								 * need to check that reference for this position matches the sequence we have
 								 * This is because we may have some errors due to our commonly occurring tiles.....
 								 */
-								String ref =  ReferenceUtil.getRefFromChrStartStop(refFile, cp.getChromosome(), cp.getStartPosition() - buffer, cp.getStartPosition() + sequence.length() + buffer);
+//								String ref =  ReferenceUtil.getRefFromChrStartStop(refFile, cp.getChromosome(), cp.getStartPosition() - buffer, cp.getStartPosition() + sequence.length() + buffer);
 								int startPositionsInSequence = NumberUtils.getShortFromLong(l, POSITION_OF_TILE_IN_SEQUENCE_OFFSET);
 								int stopPositionInSequence = startPositionsInSequence + matchLength;
 								String subSequence = sequence.substring(startPositionsInSequence, stopPositionInSequence);
 								String subSequenceRC = sequenceRC.substring(sequenceRC.length() - stopPositionInSequence, (sequenceRC.length() - stopPositionInSequence) + matchLength);
 								
-								Optional<ChrPosition> optionalCP = getChrPositionWithReference(cp.getChromosome(), cp.getStartPosition(), forwardStrand ? subSequence : subSequenceRC, ref);
-								if (optionalCP.isPresent()) {
-									logger.info("optionalCP: " + optionalCP.toString());
+								ChrPosition cp2 = new ChrPositionName(cp.getChromosome(), cp.getStartPosition(), cp.getStartPosition() + matchLength, forwardStrand ? subSequence : subSequenceRC);
 								
-									String [] blatDetails = BLATRecordUtil.getDetailsForBLATRecord(optionalCP.get(), misMatchCount, NumberUtils.getShortFromLong(l, POSITION_OF_TILE_IN_SEQUENCE_OFFSET), name, sequence, forwardStrand);
+//								Optional<ChrPosition> optionalCP = getChrPositionWithReference(cp.getChromosome(), cp.getStartPosition(), forwardStrand ? subSequence : subSequenceRC, ref);
+//								if (optionalCP.isPresent()) {
+									logger.info("cp2: " + cp2.toIGVString());
+								
+									String [] blatDetails = BLATRecordUtil.getDetailsForBLATRecord(cp2, misMatchCount, NumberUtils.getShortFromLong(l, POSITION_OF_TILE_IN_SEQUENCE_OFFSET), name, sequence, forwardStrand);
 									if (blatDetails.length > 0) {
 										logger.info("adding to swResutls: " + Arrays.deepToString(blatDetails));
 										swResults.add(blatDetails);
 									}
-								} else {
-									logger.info("Couldn't create CP!: " + cp.getChromosome() + ", " + cp.getStartPosition() + ", " +  (forwardStrand ? subSequence : subSequenceRC) + ", " + ref);
-								}
+//								} else {
+//									logger.info("Couldn't create CP!: " + cp.getChromosome() + ", " + cp.getStartPosition() + ", " +  (forwardStrand ? subSequence : subSequenceRC) + ", " + ref);
+//								}
 							}
 						}
 					}
@@ -1463,6 +1465,16 @@ public class TiledAlignerUtil {
 			
 			if (runSplits) {
 				
+				
+				/*
+				 * 2 things we are looking for here:
+				 * 
+				 * 1. a single BLAT record that encompasses multiple (2 or more) ILPs. These need to be on the same chromosome, strand and within 500000 bases of each other
+				 * 2. multiple BLAT records that encompass the sequence. These BLAT records could be on different chromosomes and be far apart, and be on different strands. They can also be composed of more than 1 ILP. eg. 2 BLAT records, 1 is composed by a single ILP on chr1, + strand. THe other BLAT record
+				 * is composed from 2 ILPs that are on chr2, within 500000 bases of each other and on the same strand
+				 * 
+				 */
+				
 				logger.info("about to run some splits, no of positions in TARecord:  name: " + name + ", " + taRec.getCountDist() + "");
 				TIntObjectMap<Set<IntLongPairs>> splits = TARecordUtil.getSplitStartPositions(taRec);
 				List<IntLongPairs> potentialSplits = new ArrayList<>();
@@ -1493,24 +1505,28 @@ public class TiledAlignerUtil {
 				 */
 				if ( ! gotSplits) {
 					
-					List<BLATRecord[]> blatRecs = TARecordUtil.blatRecordsFromSplits(splits, name, taRec.getSequence().length(), headerMap);
+					List<BLATRecord[]> blatRecs = TARecordUtil.blatRecordsFromSplitsNew(splits, name, taRec.getSequence().length(), headerMap);
+//					List<BLATRecord[]> blatRecs = TARecordUtil.blatRecordsFromSplits(splits, name, taRec.getSequence().length(), headerMap);
 					logger.info("splits blat record count: " + blatRecs.size() + " for " + name);
 					if ( ! blatRecs.isEmpty()) {
 						
 						for (BLATRecord[] recs : blatRecs) {
-							int combinedScore = 0;
-							for (BLATRecord bt : recs) {
-								combinedScore += bt.getScore();
-							}
-							/*
-							 * if we have more then 80% of bases covered, we cool, otherwise SW
-							 */
-							if (((double)combinedScore / taRec.getSequence().length()) >= 0.9) {
-								logger.info("No need to smith waterman - have some records, combined score: " + combinedScore + ", seqLength: " + taRec.getSequence().length()  + " for " + name);
+							if (null != recs) {
+								int combinedScore = 0;
 								for (BLATRecord bt : recs) {
-									results.add(bt);
+									logger.info("BLAT rec from splits: " + bt.toString());
+									combinedScore += bt.getScore();
 								}
-								gotSplits = true;
+								/*
+								 * if we have more then 80% of bases covered, we cool, otherwise SW
+								 */
+								if (((double)combinedScore / taRec.getSequence().length()) >= 0.9) {
+									logger.info("No need to smith waterman - have some records, combined score: " + combinedScore + ", seqLength: " + taRec.getSequence().length()  + " for " + name);
+									for (BLATRecord bt : recs) {
+										results.add(bt);
+									}
+									gotSplits = true;
+								}
 							}
 						}
 //					}
