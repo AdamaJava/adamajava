@@ -11,9 +11,10 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.string.StringUtils;
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.FileUtils;
-import org.qcmg.tab.TabbedFileReader;
-import org.qcmg.tab.TabbedRecord;
+import org.qcmg.record.StringFileReader;
+
 
 public class TabbedDataLoader {
 	
@@ -21,13 +22,13 @@ public class TabbedDataLoader {
 	private static final QLogger logger = QLoggerFactory.getLogger(TabbedDataLoader.class);
 	
 	
-	public static void loadTabbedData(String tabbedDataFile, int position, Map<ChrPosition, TabbedRecord> collection) throws Exception {
+	public static void loadTabbedData(String tabbedDataFile, int position, Map<ChrPosition, String> collection) throws Exception {
 		if (FileUtils.canFileBeRead(tabbedDataFile)) {
 			
-			TabbedFileReader reader = new TabbedFileReader(new File(tabbedDataFile));
+			StringFileReader reader = new StringFileReader(new File(tabbedDataFile), Constants.HASH_STRING);
 			try {
-				for (TabbedRecord tr : reader) {
-					String [] params = tabbedPattern.split(tr.getData());
+				for (String tr : reader) {
+					String [] params = tabbedPattern.split(tr);
 					String chrPosition = getStringFromArray(params, position);
 					
 					if (null != chrPosition) {

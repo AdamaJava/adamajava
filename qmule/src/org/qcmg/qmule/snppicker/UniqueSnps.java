@@ -17,12 +17,13 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrRangePosition;
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.FileUtils;
+import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.qmule.Messages;
 import org.qcmg.qmule.Options;
 import org.qcmg.qmule.QMuleException;
-import org.qcmg.tab.TabbedFileReader;
-import org.qcmg.tab.TabbedRecord;
+import org.qcmg.record.StringFileReader;
 
 public class UniqueSnps {
 	
@@ -34,10 +35,8 @@ public class UniqueSnps {
 	
 	private static QLogger logger;
 	
-//	private static Map<ChrPosition,TabbedRecord> qSnpPileup = new HashMap<ChrPosition,TabbedRecord>(10000);
-//	private static Map<ChrPosition,TabbedRecord> gatkVcfs = new HashMap<ChrPosition,TabbedRecord>(10000);
-	private static Map<ChrPosition,TabbedRecord> verifiedSNPs = new HashMap<ChrPosition,TabbedRecord>(500);
-	private static Map<ChrPosition,TabbedRecord> unVerifiedSNPs = new HashMap<ChrPosition,TabbedRecord>(10000);
+	private static Map<ChrPosition,String> verifiedSNPs = new HashMap<ChrPosition,String>(500);
+	private static Map<ChrPosition,String> unVerifiedSNPs = new HashMap<ChrPosition,String>(10000);
 	
 	private static final Pattern tabbedPattern = Pattern.compile("[\\t]");
 	
@@ -52,24 +51,8 @@ public class UniqueSnps {
 		loadUnverifiedSnps(cmdLineInputFiles[0]);
 		logger.info("loaded "  + unVerifiedSNPs.size() + " entries into the un-verifiedSNPs map");
 		if (unVerifiedSNPs.isEmpty()) exitStatus = 1;
-		
-		
-//		examine(args[2]);
-//		if (runQPileup) {
-//			// load the existing pileup into memory
-//			logger.info("running in pileup mode");
-//			loadUnverifiedSnps(args[0]);
-//			logger.info("loaded "  + qSnpPileup.size() + " entries into the pileup map");
-//		} else {
-//			logger.info("running in vcf mode");
-//			loadGatkData(args[0]);
-//			logger.info("loaded "  + gatkVcfs.size() + " entries into the vcf map");
-//			examineVCFs(args[2]);
-//		}
-		
-		
-		// load the existing pileup into memory
-		
+				
+		// load the existing pileup into memory		
 		examine(cmdLineOutputFiles[0]);
 		logger.info("goodbye...");
 		
@@ -80,84 +63,43 @@ public class UniqueSnps {
 	private static void examine(String outputFile) throws IOException {
 		if (FileUtils.canFileBeWrittenTo(outputFile)) {
 			
-			int totalCount = 0, uniqueClassA = 0, uniqueClassB = 0, uniqueClassC = 0;
-			
-			FileWriter writer = new FileWriter(new File(outputFile));
-		
-			// loop through the verified snps
-			
-			try {
-				for (final Map.Entry<ChrPosition,TabbedRecord> unVerifiedEntry : unVerifiedSNPs.entrySet()) {
-					TabbedRecord unVerifiedRecord = unVerifiedEntry.getValue();
-					String [] params = tabbedPattern.split(unVerifiedRecord.getData());
+			int totalCount = 0, uniqueClassA = 0, uniqueClassB = 0;		
+			try(FileWriter writer = new FileWriter(new File(outputFile));) {
+				for (final Map.Entry<ChrPosition,String> unVerifiedEntry : unVerifiedSNPs.entrySet()) {
+					String unVerifiedRecord = unVerifiedEntry.getValue();
+					String [] params = TabTokenizer.tokenize(unVerifiedRecord);
 					String consequenceType = params[22];
 					if (consequenceType.contains("STOP") || consequenceType.contains("NON_SYNONYMOUS")) {
 					
 						++totalCount;
 						
-						TabbedRecord verifiedRecord = verifiedSNPs.get(unVerifiedEntry.getKey());
+						String verifiedRecord = verifiedSNPs.get(unVerifiedEntry.getKey());
 						
 						if (null == verifiedRecord) {
 							String annotation = params[params.length-1];
 							if ("--".equals(annotation)) {
 								++uniqueClassA;
-								writer.write(unVerifiedRecord.getData() + "\n");
+								writer.write(unVerifiedRecord + "\n");
 							} else if ("less than 12 reads coverage in normal".equals(annotation)
 									|| "less than 3 reads coverage in normal".equals(annotation)) {
 								++uniqueClassB;
-								writer.write(unVerifiedRecord.getData() + "\n");
+								writer.write(unVerifiedRecord + "\n");
 							}
 						}
 					}
 				}
-			} finally {
-				writer.close();
-			}
+			} 
 			logger.info("totalCount: " + totalCount + ", uniqueQSnpCount (class A): " + uniqueClassA + ", uniqueQSnpCount (class B): " + uniqueClassB );
 		}
-	}
-	
-//	private static void examineVCFs(String outputFile) throws IOException {
-//		if (FileUtils.canFileBeWrittenTo(outputFile)) {
-//			
-//			int totalCount = 0, uniqueQSnpClassACount = 0, uniqueQSnpClassBCount = 0;
-//			
-//			FileWriter writer = new FileWriter(new File(outputFile));
-//			
-//			// loop through the verified snps
-//			
-//			for (final Map.Entry<ChrPosition,TabbedRecord> entry : qSnpPileup.entrySet()) {
-//				++totalCount;
-//				TabbedRecord verifiedRecord = verifiedSNPs.get(entry.getKey());
-//				TabbedRecord qSnpRecord = entry.getValue();
-//				
-//				if (null == verifiedRecord) {
-//					String [] params = tabbedPattern.split(qSnpRecord.getPileup());
-//					String annotation = params[params.length-1];
-//					if ("--".equals(annotation)) {
-//						++uniqueQSnpClassACount;
-//						writer.write(qSnpRecord.getPileup() + "\n");
-//					} else if ("less than 12 reads coverage in normal".equals(annotation)) {
-//						++uniqueQSnpClassBCount;
-//						writer.write(qSnpRecord.getPileup() + "\n");
-//					}
-//				}
-//			}
-//			
-//			writer.close();
-//			logger.info("totalCount: " + totalCount + ", uniqueQSnpCount (class A): " + uniqueQSnpClassACount + ", uniqueQSnpCount (class B): " + uniqueQSnpClassBCount );
-//		}
-//	}
-	
+	}	
 	
 	private static void loadUnverifiedSnps(String file) throws Exception {
 		if (FileUtils.canFileBeRead(file)) {
-			TabbedFileReader reader  = new TabbedFileReader(new File(file));
+			StringFileReader reader  = new StringFileReader(new File(file));
 			try {
-				for (TabbedRecord tr : reader) {
-					String [] params = tabbedPattern.split(tr.getData());
+				for (String tr : reader) {
+					String [] params = tabbedPattern.split(tr);
 					String chrPosition = params[params.length-2];
-//					logger.info("chrPosition: " + chrPosition);
 					int start = Integer.parseInt(chrPosition.substring(chrPosition.indexOf("-")));
 					ChrPosition chrPos = new ChrRangePosition(chrPosition.substring(0, chrPosition.indexOf(":")-1), start, start);					
 					unVerifiedSNPs.put(chrPos,tr);
@@ -168,28 +110,13 @@ public class UniqueSnps {
 		}
 	}
 	
-//	private static void loadGatkData(String pileupFile) throws IOException {
-//		if (FileUtils.canFileBeRead(pileupFile)) {
-//			TabbedFileReader reader  = new TabbedFileReader(new File(pileupFile));
-//			for (TabbedRecord pr : reader) {
-//				String [] params = tabbedPattern.split(pr.getPileup());
-//				String chrPosition = params[params.length-2];
-////				logger.info("chrPosition: " + chrPosition);
-//				ChrPosition chrPos = new ChrPosition(chrPosition.substring(0, chrPosition.indexOf(":")-1), Integer.parseInt(chrPosition.substring(chrPosition.indexOf("-"))));
-//				
-//				gatkVcfs.put(chrPos,pr);
-//			}
-//			reader.close();
-//		}
-//	}
-	
 	private void loadVerifiedSnps(String verifiedSnpFile) throws Exception {
 		if (FileUtils.canFileBeRead(verifiedSnpFile)) {
 			
-			TabbedFileReader reader  = new TabbedFileReader(new File(verifiedSnpFile));
-			try {
-				for (TabbedRecord tr : reader) {
-					String [] params = tabbedPattern.split(tr.getData());
+			
+			try(StringFileReader reader  = new StringFileReader(new File(verifiedSnpFile,Constants.HASH_STRING));) {
+				for (String tr : reader) {
+					String [] params = TabTokenizer.tokenize(tr);
 					String chrPosition = params[2];
 	//				logger.info("chrPosition: " + chrPosition);
 					int start =  Integer.parseInt(chrPosition.substring(chrPosition.indexOf("-")));
@@ -197,9 +124,7 @@ public class UniqueSnps {
 					
 					verifiedSNPs.put(chrPos,tr);
 				}
-			} finally {
-				reader.close();
-			}
+			}  
 		}
 	}
 	

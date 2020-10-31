@@ -12,7 +12,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -23,12 +22,11 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrPositionName;
-import org.qcmg.common.model.ChrRangePosition;
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.LoadReferencedClasses;
-import org.qcmg.tab.TabbedFileReader;
-import org.qcmg.tab.TabbedRecord;
-
+import org.qcmg.common.util.TabTokenizer;
+import org.qcmg.record.StringFileReader;
 
 public class AnnotateDCCWithGFFRegions {	
 
@@ -37,20 +35,20 @@ public class AnnotateDCCWithGFFRegions {
 	private String[] cmdLineOutputFiles;
 	private List<String> chromosomes = new ArrayList<String>();
 	private final int exitStatus = 0;
-	private Map<String, TreeMap<ChrPosition, TabbedRecord>> inputRecords = new HashMap<String, TreeMap<ChrPosition, TabbedRecord>>();
-	private final Map<String, TreeMap<ChrPosition, TabbedRecord>> compareRecords = new HashMap<String, TreeMap<ChrPosition, TabbedRecord>>();
+	private Map<String, TreeMap<ChrPosition, String>> inputRecords = new HashMap<String, TreeMap<ChrPosition, String>>();
+	private final Map<String, TreeMap<ChrPosition, String>> compareRecords = new HashMap<String, TreeMap<ChrPosition, String>>();
 	private int overlapCount = 0;
 	private int notOverlappingCount = 0;
 	private int recordCount;
 	private Vector<String> inputFileHeader = new Vector<String>();
 	private String inputFileType;
-	private String compareFileType;
+//	private String compareFileType;
 	private static QLogger logger;
 	private static final String MAF = "maf";
 	private static final String GFF3 = "gff3";
-	private static final String BED = "bed";
-	private static final String VCF = "vcf";
-	private static final String TAB = "txt";
+//	private static final String BED = "bed";
+//	private static final String VCF = "vcf";
+//	private static final String TAB = "txt";
 	private static final String DCC1 = "dcc1";
 	private static final String DCCQ = "dccq";
 	private BufferedWriter outputFileWriter;
@@ -106,27 +104,18 @@ public class AnnotateDCCWithGFFRegions {
 		return name;
 	}
 	
-	private int loadGFFFile(String file, Map<String, TreeMap<ChrPosition, TabbedRecord>> records) throws Exception {
-		TabbedFileReader reader = new TabbedFileReader(new File(file));
+	private int loadGFFFile(String file, Map<String, TreeMap<ChrPosition, String>> records) throws Exception {
+		
 		int recordCount = 0;
-		try {		
-			
-			Iterator<TabbedRecord> iterator = reader.getRecordIterator();
-
-			while (iterator.hasNext()) {
-				
-				TabbedRecord tab = iterator.next();
-				
-				if (tab.getData().startsWith("#")) {					
-					continue;
-				}				
+		try (StringFileReader reader = new StringFileReader(new File(file), Constants.HASH_STRING);){	
+			for (String tab : reader ) {				
 				recordCount++;
 				ChrPosition chrPos = getChrPosition(GFF3, tab, Integer.toString(recordCount));
 				String key = chrPos.getChromosome().replace("chr", "");				
 				if (records.containsKey(key)) {
 					records.get(key).put(chrPos, tab);
 				} else {
-					TreeMap<ChrPosition, TabbedRecord> map = new TreeMap<ChrPosition, TabbedRecord>();
+					TreeMap<ChrPosition, String> map = new TreeMap<ChrPosition, String>();
 					map.put(chrPos, tab);
 					records.put(key,map);
 				}
@@ -134,37 +123,22 @@ public class AnnotateDCCWithGFFRegions {
 					chromosomes.add(key);
 				}
 			}
-		} finally {		
-			reader.close();
-		}		
+		} 	
 				
 		logger.info("loaded gff file, total records: " + recordCount);
 		return recordCount;
 	}
 	
 	private int loadDCCFile(String file, Vector<String> header, String fileType) throws Exception {
-		TabbedFileReader reader = new TabbedFileReader(new File(file));
-		
 		int recordCount = 0;
-		try {		
-			 
-			Iterator<TabbedRecord> iterator = reader.getRecordIterator();
-			
+		try (StringFileReader reader = new StringFileReader(new File(file), Constants.HASH_STRING);){					
 			if (reader.getHeader() != null) {
-				Iterator<String> iter = reader.getHeader().iterator();
-				while (iter.hasNext()) {					
-					header.add(iter.next());
+				for(String re : reader.getHeader()) {
+ 					header.add(re);
 				}
 			}
-			while (iterator.hasNext()) {
-				
-				TabbedRecord inputRecord = iterator.next();
-				if (inputRecord.getData().startsWith("#") || inputRecord.getData().startsWith("Hugo") || inputRecord.getData().startsWith("analysis") ||
-						inputRecord.getData().startsWith("mutation")) {					
-					header.add(inputRecord.getData());
-					continue;
-				}
-				
+			
+			for (String inputRecord : reader ) {	
 				if (header.size() > 0) {
 					parseDCCHeader(header, fileType);
 					logger.info("Column of DCC file to annotate: " + QCMGFLAG_COLUMN_INDEX);
@@ -175,24 +149,23 @@ public class AnnotateDCCWithGFFRegions {
 				recordCount++;
 				ChrPosition chrPos = getChrPosition(fileType, inputRecord, null);
 				String key = chrPos.getChromosome().replace("chr", "");
-				TreeMap<ChrPosition, TabbedRecord> compareMap = compareRecords.get(key);
+				TreeMap<ChrPosition, String> compareMap = compareRecords.get(key);
 				boolean isOverlapping = false;
 				if (compareMap != null) {					
 					//check to see if it is overlapping with the comparison reference region
-					for (Entry<ChrPosition, TabbedRecord> compareEntry : compareMap.entrySet()) {
+					for (Entry<ChrPosition, String> compareEntry : compareMap.entrySet()) {
 						ChrPosition comparePos = compareEntry.getKey();
 						if (comparePos.getEndPosition() < chrPos.getStartPosition()) {
 							continue;
 						} else if (comparePos.getStartPosition() > chrPos.getEndPosition()) {
 							break;
 						} else {
-							String[] vals = inputRecord.getDataArray();	
-							
+							String[] vals = TabTokenizer.tokenize(inputRecord);
 							if (annotation != null) {
 								String oldInfo = vals[QCMGFLAG_COLUMN_INDEX];
-								if (!oldInfo.contains("GERM") && tabbedRecordMatchesCompareRecord(chrPos, inputRecord, compareEntry)) {	
+								if (!oldInfo.contains("GERM") && StringMatchesCompareRecord(chrPos, inputRecord, compareEntry)) {	
 									if (annotation != null && !oldInfo.contains("GERM")) {											
-										if (annotateWithGermline(vals, compareEntry.getValue().getDataArray())) {
+										if (annotateWithGermline(vals, TabTokenizer.tokenize(compareEntry.getValue()))) {
 											isOverlapping = true;	
 											if (!oldInfo.equals("") && !oldInfo.endsWith(";")) {
 												oldInfo += ";";
@@ -203,7 +176,7 @@ public class AnnotateDCCWithGFFRegions {
 									}	
 								}
 							} else {
-								if (tabbedRecordFallsInCompareRecord(chrPos, inputRecord, compareEntry)) {								
+								if (StringFallsInCompareRecord(chrPos, inputRecord, compareEntry)) {								
 									isOverlapping = true;											
 									String oldInfo = vals[QCMGFLAG_COLUMN_INDEX];
 									//annotate with gff feature
@@ -232,21 +205,18 @@ public class AnnotateDCCWithGFFRegions {
 					logger.info("Processed records: " + recordCount);	
 				}
 			} 
-		} finally {
-			reader.close();
-		}
+		} 
 		return recordCount;
 	}
 
-	private TabbedRecord buildOutputString(TabbedRecord inputRecord, String[] vals,
-			String oldInfo) {
+	private String buildOutputString(String inputRecord, String[] vals, String oldInfo) {
 		vals[QCMGFLAG_COLUMN_INDEX] = oldInfo;
 		String data= "";
 		for (String s: vals) {
 			data += s + "\t";
 		}
-		inputRecord.setData(data);
-		return inputRecord;
+		 
+		return data;
 	}
 
 	private boolean annotateWithGermline(String[] inputValues, String[] gffValues) throws QMuleException {	
@@ -265,14 +235,14 @@ public class AnnotateDCCWithGFFRegions {
 		return false;
 	}
 	
-	private int getPatientCount(String[] attribs) {
-		for (String s: attribs) {
-			if (s.startsWith("PatientCount")) {
-				return new Integer(s.split("=")[1]);
-			}			
-		}
-		return 0;
-	}
+//	private int getPatientCount(String[] attribs) {
+//		for (String s: attribs) {
+//			if (s.startsWith("PatientCount")) {
+//				return new Integer(s.split("=")[1]);
+//			}			
+//		}
+//		return 0;
+//	}
 
 	private String getGFF3Motif(String[] attribs) {
 		
@@ -366,9 +336,9 @@ public class AnnotateDCCWithGFFRegions {
 		QCMGFLAG_COLUMN_INDEX = qCMGFLAG_COLUMN_INDEX;
 	}
 
-	public String getFeatures(TabbedRecord record) {
+	public String getFeatures(String record) {
 		StringBuilder sb = new StringBuilder();	
-		String[] vals = record.getDataArray();
+		String[] vals = TabTokenizer.tokenize(record);
 		if (features == null && annotation == null) {			
 			sb.append(vals[getFeatureIndex("feature")] + ";");
 		} else if (features != null){
@@ -421,16 +391,15 @@ public class AnnotateDCCWithGFFRegions {
 		return -1;
 	}
 
-	private void writeRecord(TabbedRecord record) throws IOException {
-		if (!record.getData().endsWith("\n")) {
-			record.setData(record.getData() + "\n");
-		}
-		outputFileWriter.write(record.getData());		
+	private void writeRecord(String record) throws IOException {
+
+		String re = record.endsWith("\n")? record : (record + "\n");
+		outputFileWriter.write(re);		
 	}
 
-	private ChrPosition getChrPosition(String inputFileType, TabbedRecord tab, String name) throws Exception {
+	private ChrPosition getChrPosition(String inputFileType, String tab, String name) throws Exception {
 		
-		String[] values = tab.getData().split("\t");
+		String[] values = TabTokenizer.tokenize(tab);
 		ChrPosition chr = null;
 		int chrIndex = 0;
 		int startIndex = 0;
@@ -468,17 +437,17 @@ public class AnnotateDCCWithGFFRegions {
 		return chr;
 	}	
 	
-	private boolean tabbedRecordMatchesCompareRecord(ChrPosition inputChrPos,
-			TabbedRecord inputRecord,
-			Entry<ChrPosition, TabbedRecord> compareEntry) {
+	private boolean StringMatchesCompareRecord(ChrPosition inputChrPos,
+			String inputRecord,
+			Entry<ChrPosition, String> compareEntry) {
 		if (compareEntry != null) {
 			ChrPosition compareChrPos = compareEntry.getKey();
 			if ((inputChrPos.getStartPosition() == compareChrPos.getStartPosition() 
 					&& inputChrPos.getEndPosition() == compareChrPos.getEndPosition())) {
 				//check strand if this option is provided
 				if (stranded) {
-					String inputStrand = inputRecord.getDataArray()[DCC_STRAND_INDEX];
-					String compareStrand = compareEntry.getValue().getDataArray()[GFF_STRAND_INDEX];
+					String inputStrand = TabTokenizer.tokenize(inputRecord)[DCC_STRAND_INDEX];
+					String compareStrand = TabTokenizer.tokenize(compareEntry.getValue())[GFF_STRAND_INDEX];
 					if (inputStrand.equals(compareStrand)) {
 						return true;
 					}
@@ -490,7 +459,7 @@ public class AnnotateDCCWithGFFRegions {
 		return false;
 	}
 	
-	private boolean tabbedRecordFallsInCompareRecord(ChrPosition inputChrPos, TabbedRecord inputRecord, Entry<ChrPosition, TabbedRecord> entry) {
+	private boolean StringFallsInCompareRecord(ChrPosition inputChrPos, String inputRecord, Entry<ChrPosition, String> entry) {
 		if (entry != null) {
 			ChrPosition compareChrPos = entry.getKey();
 			if ((inputChrPos.getStartPosition() >= compareChrPos.getStartPosition() && inputChrPos.getStartPosition() <= compareChrPos.getEndPosition()) ||
@@ -498,8 +467,8 @@ public class AnnotateDCCWithGFFRegions {
 					|| (inputChrPos.getStartPosition() <= compareChrPos.getStartPosition() && inputChrPos.getEndPosition() >= compareChrPos.getEndPosition())) {
 				//check strand if this option is provided
 				if (stranded) {
-					String inputStrand = inputRecord.getDataArray()[DCC_STRAND_INDEX];
-					String compareStrand = entry.getValue().getDataArray()[GFF_STRAND_INDEX];
+					String inputStrand = TabTokenizer.tokenize(inputRecord)[DCC_STRAND_INDEX];
+					String compareStrand = TabTokenizer.tokenize(entry.getValue())[GFF_STRAND_INDEX];
 					if (inputStrand.equals(compareStrand)) {
 						return true;
 					}
@@ -654,12 +623,12 @@ public class AnnotateDCCWithGFFRegions {
 		this.cmdLineOutputFiles = cmdLineOutputFiles;
 	}
 
-	public Map<String, TreeMap<ChrPosition, TabbedRecord>> getInputRecords() {
+	public Map<String, TreeMap<ChrPosition, String>> getInputRecords() {
 		return inputRecords;
 	}
 
 	public void setInputRecords(
-			Map<String, TreeMap<ChrPosition, TabbedRecord>> inputRecords) {
+			Map<String, TreeMap<ChrPosition, String>> inputRecords) {
 		this.inputRecords = inputRecords;
 	}
 

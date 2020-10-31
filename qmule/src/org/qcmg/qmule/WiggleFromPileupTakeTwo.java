@@ -22,8 +22,8 @@ import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.LoadReferencedClasses;
 import org.qcmg.common.util.PileupUtils;
 import org.qcmg.common.util.TabTokenizer;
-import org.qcmg.gff3.GFF3FileReader;
-import org.qcmg.gff3.GFF3Record;
+import org.qcmg.gff3.Gff3FileReader;
+import org.qcmg.gff3.Gff3Record;
 import org.qcmg.pileup.PileupFileReader;
 
 public class WiggleFromPileupTakeTwo {
@@ -78,10 +78,10 @@ public class WiggleFromPileupTakeTwo {
 	}
 	
 	private void loadGffFile() throws Exception {
-		GFF3FileReader reader =  new GFF3FileReader(new File(cmdLineInputFiles[1]));
+		Gff3FileReader reader =  new Gff3FileReader(new File(cmdLineInputFiles[1]));
 		try {
 			int totalNoOfbaits = 0, ignoredBaits = 0;
-			for (GFF3Record record : reader) {
+			for (Gff3Record record : reader) {
 				totalNoOfbaits++;
 				if (isGff3RecordCorrectType(record.getType())) {
 					populateRegionsOfInterest(record);
@@ -94,7 +94,7 @@ public class WiggleFromPileupTakeTwo {
 		}
 	}
 	
-	private void populateRegionsOfInterest(GFF3Record record) {
+	private void populateRegionsOfInterest(Gff3Record record) {
 		// get collection corresponding to chromosome
 		PriorityQueue<PositionRange> ranges = regionsOfInterest.get(record.getSeqId());
 		if (null == ranges) {

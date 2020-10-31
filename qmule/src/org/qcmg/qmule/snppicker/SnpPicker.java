@@ -30,8 +30,8 @@ import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.dbsnp.Dbsnp130Record;
 import org.qcmg.dbsnp.DbsnpFileReader;
-import org.qcmg.gff3.GFF3FileReader;
-import org.qcmg.gff3.GFF3Record;
+import org.qcmg.gff3.Gff3FileReader;
+import org.qcmg.gff3.Gff3Record;
 import org.qcmg.illumina.IlluminaFileReader;
 import org.qcmg.illumina.IlluminaRecord;
 import org.qcmg.picard.QJumper;
@@ -45,8 +45,6 @@ public class SnpPicker {
 	
 	private static final char DEFAULT_CHAR = '\u0000';
 	private static QLogger logger;
-//	private static DecimalFormat df = new DecimalFormat("0.0000");
-	
 	private String logFile;
 	private String[] cmdLineInputFiles;
 	private String[] cmdLineOutputFiles;
@@ -54,18 +52,13 @@ public class SnpPicker {
 	
 	private static boolean isNormal;
 	
-//	private static final Pattern tabbedPattern = Pattern.compile("[\\t]");
-	
 	Map<String, IlluminaRecord> illuminaMap = new HashMap<String, IlluminaRecord>(1000000,0.99f);	// not expecting more than 1000000
 	
 	Map<ChrPosition, VariantRecord> variantMap = new HashMap<ChrPosition, VariantRecord>(2000000);
 	
 	// map to hold chromosome conversion data
 	Map<String, String> gffToQCMG = new HashMap<String, String>(100, 0.99f);
-	
-//	List<IlluminaRecord> illuminaRecords = new ArrayList<IlluminaRecord>();
-//	List<Dbsnp130Record> dbSNPRecords = new ArrayList<Dbsnp130Record>(13000000);
-	
+		
 	private int engage() throws Exception {
 		
 		// populate the chromosome conversion map
@@ -74,29 +67,19 @@ public class SnpPicker {
 		logger.info("about to load chromosome conversion data - DONE");
 		
 		// we are working off the raw illumina data here - first convert it into filtered format, and use that as the input
-
 		logger.info("About to load raw illumina data");
 		loadRawIlluminaData();
-//		logger.info("No of variant records: " + variantMap.size() + " in file: " + cmdLineInputFiles[0]);
 		
 		logger.info("About to load gff3 data");
 		loadGff3Data();
 		logger.info("No of variant records: " + variantMap.size());
-		
-//		logger.info("About to load vcf data");
-//		loadVCFData();
-//		logger.info("No of variant records: " + variantMap.size());
-		
+				
 		logger.info("About to load qsnp data");
 		loadQSnpData();
-		logger.info("No of variant records: " + variantMap.size());
-		
-		
-		
+		logger.info("No of variant records: " + variantMap.size());		
 		
 		logger.info("About to load dbSNP data");
 		loadDbSnpData();
-//		logger.info("No of variant records: " + variantMap.size());
 		
 		// update variantMap with details from illuminaMap
 		logger.info("About to load filtered illumina data into variant map");
@@ -128,7 +111,6 @@ public class SnpPicker {
 		VariantRecord rec;
 		StringBuilder pileup = new StringBuilder();
 		List<SAMRecord> reads;
-//		String chr;
 		int position;
 		int offset;
 		
@@ -136,9 +118,7 @@ public class SnpPicker {
 		for (Map.Entry<ChrPosition, VariantRecord> entry : variantMap.entrySet()) {
 			// only want pileup if we have gff or vcf data
 			rec = entry.getValue();
-			if (DEFAULT_CHAR != rec.getGffRef() || null != rec.getVcfGenotype()) {
-//				chr = ( ! entry.getKey().getChromosome().startsWith("GL") ? "chr" : "") + entry.getKey().getChromosome();
-				
+			if (DEFAULT_CHAR != rec.getGffRef() || null != rec.getVcfGenotype()) {				
 				reads = qj.getRecordsAtPosition(entry.getKey().getChromosome(), entry.getKey().getStartPosition());
 				// do something with the reads
 				position = entry.getKey().getStartPosition();
@@ -301,7 +281,6 @@ public class SnpPicker {
 
 	private String getGenotypeMatchInfo(VariantRecord record) {
 		Genotype illuminaGen = BaseUtils.getGenotype(record.getIllAllele1() , record.getIllAllele2());
-//		String illuminaGen = record.getIlluminaRef();
 		Genotype gffGen = BaseUtils.getGenotypeFromIUPACCode(record.getGffGenotype());
 		Genotype vcfGen = null;
 		if (DEFAULT_CHAR != record.getVcfAlt())
@@ -315,10 +294,6 @@ public class SnpPicker {
 		else if (illuminaGen.equals(gffGen)) result = "IG";
 		else if (illuminaGen.equals(vcfGen)) result = "IV";
 		else if (null != gffGen && gffGen.equals(vcfGen)) result = "GV";
-//		if (doStringsMatch(illuminaGen, gffGen) && doStringsMatch(illuminaGen, vcfGen)) result = "IGV";
-//		else if (doStringsMatch(illuminaGen, gffGen)) result = "IG";
-//		else if (doStringsMatch(illuminaGen, vcfGen)) result = "IV";
-//		else if (doStringsMatch(gffGen, vcfGen)) result = "GV";
 		
 		return result;
 	}
@@ -381,7 +356,6 @@ public class SnpPicker {
 						logger.info("updated " + updateCount + " variant records with dbSNP ids");
 				}
 				
-//				dbSNPRecords.add(rec);
 				if (++noOfDbSnps % 1000000 == 0)
 					logger.info("hit " + noOfDbSnps + " dbSnp records");
 			}
@@ -455,10 +429,8 @@ public class SnpPicker {
 			VariantRecord value;
 			
 			for (String rec : reader) {
-//				for (PileupRecord rec : reader) {
 				// got some work to do here - need to split the pileup attribute to construct the object
 				String [] params =  TabTokenizer.tokenize(rec);
-//				String [] params =  tabbedPattern.split(rec.getPileup(), -1);
 				
 				// skip if the tumour genotype is null
 				String genotype = params[params.length-(isNormal ? 2 : 1)];
@@ -472,7 +444,6 @@ public class SnpPicker {
 						variantMap.put(id, value);
 					}
 					value.setVcfRef(params[2].charAt(0));
-	//				value.setVcfAlt(rec.getAlt());
 					value.setVcfGenotype(genotype);
 					vcfCount++;
 				}
@@ -489,9 +460,9 @@ public class SnpPicker {
 
 	private void loadGff3Data() {
 		String gff3File = cmdLineInputFiles[1];
-		GFF3FileReader reader = null;
+		Gff3FileReader reader = null;
 		try {
-			reader = new GFF3FileReader(new File(gff3File));
+			reader = new Gff3FileReader(new File(gff3File));
 		} catch (Exception e) {
 			logger.error("Exception caught whilst trying to instantiate GFF3FileReader", e);
 			exitStatus = -1;
@@ -503,7 +474,7 @@ public class SnpPicker {
 			VariantRecord value;
 			String chr;
 			
-			for (GFF3Record rec : reader) {
+			for (Gff3Record rec : reader) {
 				// get QCMG chromosome from map
 				chr = gffToQCMG.get(rec.getSeqId());
 				
@@ -517,7 +488,6 @@ public class SnpPicker {
 				String attributes = rec.getAttributes();
 				char genotype = attributes.charAt(attributes.indexOf("genotype=")+9);
 				char reference = attributes.charAt(attributes.indexOf("reference=")+10);
-//				value.setGffAlt(genotype+"");
 				value.setGffGenotype(genotype);
 				value.setGffRef(reference);
 				gff3Count++;
@@ -558,41 +528,6 @@ public class SnpPicker {
 		}
 		logger.info("Loaded " + illuminaMap.size() + " entries into the illumina map");
 	}
-	
-//	private void loadIlluminaData() {
-//		String illuminaFile = cmdLineInputFiles[0];
-//		IlluminaFileReader reader = null;
-//		try {
-//			reader = new IlluminaFileReader(new File(illuminaFile));
-//		} catch (Exception e) {
-//			logger.error("Error caught whilst trying to instantiate IlluminaFileReader", e);
-//			exitStatus = -1;
-//		}
-//		
-//		if (null != reader) {
-//			VariantID id;
-//			IlluminaRecord tempRec;
-//			
-//			for (Record rec : reader) {
-//				tempRec = (IlluminaRecord) rec;
-//				
-//				id = new VariantID(tempRec.getChr(), tempRec.getStart());
-//				
-//				VariantRecord value = variantMap.get(id);
-//				if (null == value) {
-//					value = new VariantRecord();
-//					variantMap.put(id, value);
-//				}
-//				value.setIlluminaSNP(tempRec.getSnp());
-//			}
-//			try {
-//				reader.close();
-//			} catch (IOException e) {
-//				logger.error("IOException caught whilst trying to close IlluminaFileReader", e);
-//				exitStatus = -1;
-//			}
-//		}
-//	}
 
 	private void convertIlluminaToVariant() {
 		ChrPosition id;

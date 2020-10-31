@@ -16,12 +16,12 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrRangePosition;
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.LoadReferencedClasses;
-import org.qcmg.tab.TabbedFileReader;
-import org.qcmg.tab.TabbedFileWriter;
-import org.qcmg.tab.TabbedHeader;
-import org.qcmg.tab.TabbedRecord;
+import org.qcmg.common.util.TabTokenizer;
+import org.qcmg.record.RecordWriter;
+import org.qcmg.record.StringFileReader;
 
 public class MAF2DCC1 {
 	
@@ -30,7 +30,7 @@ public class MAF2DCC1 {
 	private final List<File> dccFiles = new ArrayList<File>();
 	private File outputDccFile;
 	private static QLogger logger;
-	private Map<ChrPosition, List<TabbedRecord>> mafRecords = new HashMap<>();
+	private Map<ChrPosition, List<String>> mafRecords = new HashMap<>();
 	private int inputMafRecordCount;
 	private int[] mafColumnIndexes;
 	private int[] dccColumnIndexes;
@@ -49,11 +49,11 @@ public class MAF2DCC1 {
 		return outputDccFile;
 	}
 
-	public Map<ChrPosition, List<TabbedRecord>> getMafRecords() {
+	public Map<ChrPosition, List<String>> getMafRecords() {
 		return mafRecords;
 	}
 
-	public void setMafRecords(Map<ChrPosition, List<TabbedRecord>> mafRecords) {
+	public void setMafRecords(Map<ChrPosition, List<String>> mafRecords) {
 		this.mafRecords = mafRecords;
 	}
 
@@ -170,7 +170,7 @@ public class MAF2DCC1 {
 		
 		int countInMaf = 0;
 		
-		try (TabbedFileWriter writer = new TabbedFileWriter(outputDccFile);) {
+		try (RecordWriter<String> writer = new RecordWriter<String>(outputDccFile);) {
 			for (int i=0; i<dccFiles.size(); i++) {
 				countInMaf += compare(dccFiles.get(i), i+1, writer);
 			}
@@ -195,14 +195,14 @@ public class MAF2DCC1 {
 	}
 
 	private void readMafFile() throws Exception {
-		TabbedFileReader reader = new TabbedFileReader(mafFile);	
+		StringFileReader reader = new StringFileReader(mafFile);	
 		try {
 			int count = 0;
 			boolean checkForMissingColumnIndex = true;
-			for (TabbedRecord rec : reader) {
+			for (String rec : reader) {
 				count++;
 				//header
-				if (rec.getData().startsWith("Hugo")) {
+				if (rec.startsWith("Hugo")) {
 					mafColumnIndexes = findColumnIndexesFromHeader(rec);
 				} else {
 					// only need to do this once
@@ -224,21 +224,20 @@ public class MAF2DCC1 {
 		}
 	}
 	
-	private int compare(File dccFile, int count, TabbedFileWriter writer) throws Exception {
+	private int compare(File dccFile, int count, RecordWriter<String> writer) throws Exception {
 		logger.info("Looking in dcc file: " + dccFile.getAbsolutePath());
 		int countInMaf = 0;
 		int total = 0;
 		boolean checkForMissingColumnIndex = true;
 		
-		try (TabbedFileReader reader = new TabbedFileReader(dccFile);) {
-			if (count == 1) {
-				TabbedHeader header = reader.getHeader();		
-				writer.addHeader(header);
+		try (StringFileReader reader = new StringFileReader(dccFile, Constants.HASH_STRING);) {
+			if (count == 1) {	
+				writer.addHeader(reader.getHeader());
 			}
-			for (TabbedRecord rec : reader) {
+			for (String rec : reader) {
 				//header
 				
-				if (rec.getData().startsWith("analysis_id")) {
+				if (rec.startsWith("analysis_id")) {
 					//mutation id column
 					dccColumnIndexes = findColumnIndexesFromHeader(rec);
 					if (count == 1) {					
@@ -255,7 +254,7 @@ public class MAF2DCC1 {
 						}
 						checkForMissingColumnIndex = false;
 					}
-					String[] strArray = rec.getDataArray();
+					String[] strArray = TabTokenizer.tokenize(rec);
 					String chr = strArray[dccColumnIndexes[0]].replace("chr", "");
 					if (chr.equals("M")) {
 						chr += "T";
@@ -272,8 +271,8 @@ public class MAF2DCC1 {
 		return countInMaf;
 	}
 
-	public void addToMafRecordMap(TabbedRecord rec, int count) throws QMuleException {
-		String[] strArray = rec.getDataArray();
+	public void addToMafRecordMap(String rec, int count) throws QMuleException {
+		String[] strArray = TabTokenizer.tokenize(rec);
 		
 		//need to screw around with chr1 vs 1 vs chrMT vs chrM 
 		String chr = strArray[mafColumnIndexes[0]].replace("chr", "");
@@ -283,9 +282,9 @@ public class MAF2DCC1 {
 		}
 		ChrPosition chrPos = new ChrRangePosition(chr, Integer.valueOf(strArray[mafColumnIndexes[1]]), Integer.valueOf(strArray[mafColumnIndexes[2]]));
 		
-		List<TabbedRecord> recordsAtThisPosition = mafRecords.get(chrPos);
+		List<String> recordsAtThisPosition = mafRecords.get(chrPos);
 		if (null == recordsAtThisPosition) {
-			recordsAtThisPosition = new ArrayList<TabbedRecord>(2);
+			recordsAtThisPosition = new ArrayList<String>(2);
 			mafRecords.put(chrPos, recordsAtThisPosition);		
 		}
 		recordsAtThisPosition.add(rec);
@@ -301,9 +300,9 @@ public class MAF2DCC1 {
 		return false;
 	}
 
-	public int[] findColumnIndexesFromHeader(TabbedRecord rec) {
+	public int[] findColumnIndexesFromHeader(String rec) {
 		int[] mutationColumns = {-1, -1, -1, -1, -1, -1};
-		String[] strArray = rec.getDataArray();
+		String[] strArray = TabTokenizer.tokenize(rec);
 		for (int i=0; i<strArray.length; i++) {
 			String name = strArray[i];
 			if (name.equalsIgnoreCase("chromosome")) {
@@ -324,11 +323,11 @@ public class MAF2DCC1 {
 		return mutationColumns;
 	}
 
-	public boolean recordInMaf(ChrPosition dccChrPos, TabbedRecord dccRec) throws QMuleException {	
+	public boolean recordInMaf(ChrPosition dccChrPos, String dccRec) throws QMuleException {	
 		int matches = 0;
 		boolean matchFound = false;
 		
-		List<TabbedRecord> recordsAtThisPosition = mafRecords.get(dccChrPos);
+		List<String> recordsAtThisPosition = mafRecords.get(dccChrPos);
 		if (null != recordsAtThisPosition && ! recordsAtThisPosition.isEmpty()) {
 			
 			if (recordsAtThisPosition.size() > 1) {
@@ -336,9 +335,9 @@ public class MAF2DCC1 {
 			}
 			
 			// check to see if any of the records match our dccRec
-			List<TabbedRecord> recordsToRemove = new ArrayList<>(2);
+			List<String> recordsToRemove = new ArrayList<>(2);
 			
-			for (TabbedRecord tr : recordsAtThisPosition) {
+			for (String tr : recordsAtThisPosition) {
 				if (matchOtherColumns(tr, dccRec)) {
 					matches++;
 					if (matches > 1) {
@@ -363,9 +362,9 @@ public class MAF2DCC1 {
 		return matchFound;
 	}
 	
-	public boolean matchOtherColumns(TabbedRecord mafRec, TabbedRecord dccRec) {
-		String[] mafValues = mafRec.getDataArray();
-		String[] dccValues = dccRec.getDataArray();
+	public boolean matchOtherColumns(String mafRec, String dccRec) {
+		String[] mafValues = TabTokenizer.tokenize(mafRec);
+		String[] dccValues = TabTokenizer.tokenize(dccRec);
 
 		if (mode.equals("snp")) {
 			if (matchingMutation(mafValues[mafColumnIndexes[3]], dccValues[dccColumnIndexes[3]])) {

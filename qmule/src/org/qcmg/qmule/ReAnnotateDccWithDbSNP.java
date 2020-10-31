@@ -21,11 +21,11 @@ import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrPositionComparator;
 import org.qcmg.common.string.StringUtils;
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfRecord;
-import org.qcmg.tab.TabbedFileReader;
-import org.qcmg.tab.TabbedRecord;
+import org.qcmg.record.StringFileReader;
 import org.qcmg.vcf.VCFFileReader;
 
 public class ReAnnotateDccWithDbSNP {
@@ -83,30 +83,22 @@ public class ReAnnotateDccWithDbSNP {
 	
 	private void loadDccFile() throws Exception {
 		logger.info("Attempting to load dcc data");
-		TabbedFileReader reader = new TabbedFileReader(new File(cmdLineInputFiles[0]));
+		
 		int count = 0;
-		try {
-			for (TabbedRecord rec : reader) {
+		try (StringFileReader reader = new StringFileReader(new File(cmdLineInputFiles[0],Constants.HASH_STRING));){
+			for (String rec : reader) {
 				if (++count == 1) {		// header line
-					header = rec.getData();
+					header = rec;
 					continue;
 				}
-				String[] params = TabTokenizer.tokenize(rec.getData());
+				String[] params = TabTokenizer.tokenize(rec);
 				ChrPosition cp = ChrPointPosition.valueOf(params[4], Integer.parseInt(params[5]));
 				
 				// reset dbsnpid
 				params[20] = null;
-//				StringBuilder sb = new StringBuilder();
-//				for (String s : params) {
-//					if (sb.length() > 0) sb.append('\t');
-//					sb.append(s);
-//				}
-//				rec.setData(sb.toString());
 				dccs.put(cp, params);
 			}
-		} finally {
-			reader.close();
-		}
+		} 
 		logger.info("Attempting to load dcc data - DONE with " + dccs.size() + " entries");
 	}
 	

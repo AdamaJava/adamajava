@@ -22,10 +22,10 @@ import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrPositionName;
 import org.qcmg.common.model.ChrRangePosition;
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.FileUtils;
-import org.qcmg.tab.TabbedFileReader;
-import org.qcmg.tab.TabbedRecord;
-
+import org.qcmg.common.util.TabTokenizer;
+import org.qcmg.record.StringFileReader;
 
 public class CompareReferenceRegions {	
 	
@@ -70,8 +70,8 @@ public class CompareReferenceRegions {
 		
 		for (String c: chromosomes) {
 			logger.info("Getting records for chromosome: " + c);
-			Map<ChrPosition, TabbedRecord> inputRecords = readRecords(inputFile, c); 
-			Map<ChrPosition, TabbedRecord> compareRecords = readRecords(comparisonFile, c);			
+			Map<ChrPosition, String> inputRecords = readRecords(inputFile, c); 
+			Map<ChrPosition, String> compareRecords = readRecords(comparisonFile, c);			
 			compareRecords(inputRecords, compareRecords, outputOverlapFile, outputNoOverlapFile);			
 		}
 		logSummary();		
@@ -98,8 +98,8 @@ public class CompareReferenceRegions {
 		
 		for (String c: chromosomes) {
 			logger.info("Getting records for chromosome: " + c);
-			Map<ChrPosition, TabbedRecord> inputRecords = readRecords(inputFile, c); 
-			Map<ChrPosition, TabbedRecord> compareRecords = readRecords(comparisonFile, c);			
+			Map<ChrPosition, String> inputRecords = readRecords(inputFile, c); 
+			Map<ChrPosition, String> compareRecords = readRecords(comparisonFile, c);			
 			compareRecordsAndAnnotate(inputRecords, compareRecords, outputOverlapFile);			
 		}
 		logSummary();	
@@ -129,12 +129,12 @@ public class CompareReferenceRegions {
 		
 		for (String c: chromosomes) {
 			logger.info("Getting records for chromosome: " + c);
-			Map<ChrPosition, TabbedRecord> inputRecords = readRecords(primaryInputFile, c); 
+			Map<ChrPosition, String> inputRecords = readRecords(primaryInputFile, c); 
 			counts[0] += inputRecords.size();
 			for (int i=1; i<cmdLineInputFiles.length; i++) {
 				File compareFile = new File(cmdLineInputFiles[i]);
 				 
-				Map<ChrPosition, TabbedRecord> compareRecords = readRecords(compareFile, c);
+				Map<ChrPosition, String> compareRecords = readRecords(compareFile, c);
 				counts[i] += compareRecords.size();
 				compareOverlapRecords(c, inputRecords, compareRecords, getFileType(primaryInputFile));	
 			}		
@@ -176,13 +176,13 @@ public class CompareReferenceRegions {
 			
 			for (String c: chromosomes) {
 				logger.info("Getting records for chromosome: " + c);
-				Map<ChrPosition, TabbedRecord> inputRecords = readRecords(primaryInputFile, c); 
-				Map<ChrPosition, TabbedRecord> compareRecords = new TreeMap<ChrPosition, TabbedRecord>();
+				Map<ChrPosition, String> inputRecords = readRecords(primaryInputFile, c); 
+				Map<ChrPosition, String> compareRecords = new TreeMap<ChrPosition, String>();
 				counts[f] += inputRecords.size();
 				for (int i=0; i<cmdLineInputFiles.length; i++) {					
 					if (i != f) {						
 						File compareFile = new File(cmdLineInputFiles[i]);				 
-						Map<ChrPosition, TabbedRecord> currentRecords = readRecords(compareFile, c);
+						Map<ChrPosition, String> currentRecords = readRecords(compareFile, c);
 						counts[i] = counts[i] + currentRecords.size();
 						compareRecords.putAll(currentRecords);						
 					}
@@ -202,11 +202,11 @@ public class CompareReferenceRegions {
 		}			
 	}
 
-	public void compareOverlapRecords(String chromosome, Map<ChrPosition, TabbedRecord> inputRecords, Map<ChrPosition, TabbedRecord> compareRecords, String inputFileType) throws Exception {
+	public void compareOverlapRecords(String chromosome, Map<ChrPosition, String> inputRecords, Map<ChrPosition, String> compareRecords, String inputFileType) throws Exception {
 		
-		Iterator<Entry<ChrPosition, TabbedRecord>> entries = inputRecords.entrySet().iterator();
+		Iterator<Entry<ChrPosition, String>> entries = inputRecords.entrySet().iterator();
 		while (entries.hasNext()) {
-		    Entry<ChrPosition, TabbedRecord> entry = entries.next();
+		    Entry<ChrPosition, String> entry = entries.next();
 		    			
 			boolean isOverlapping = compareRecord(entry, compareRecords, inputFileType);		 
 		
@@ -220,13 +220,13 @@ public class CompareReferenceRegions {
 		}			
 	}
 	
-	private void compareRecordsAndAnnotate(Map<ChrPosition, TabbedRecord> inputRecords,
-			Map<ChrPosition, TabbedRecord> compareRecords,
+	private void compareRecordsAndAnnotate(Map<ChrPosition, String> inputRecords,
+			Map<ChrPosition, String> compareRecords,
 			File outputOverlapFile) throws Exception {
 		BufferedWriter overlapWriter = new BufferedWriter(new FileWriter(outputOverlapFile, true));
 		
 		try {
-			for (Entry<ChrPosition, TabbedRecord> entry : inputRecords.entrySet()) {				
+			for (Entry<ChrPosition, String> entry : inputRecords.entrySet()) {				
 				recordCount++;				
 				boolean isOverlapping = compareRecord(entry, compareRecords, null);		 
 			
@@ -242,14 +242,14 @@ public class CompareReferenceRegions {
 		}		
 	}
 
-	private void compareRecords(Map<ChrPosition, TabbedRecord> inputRecords,
-			Map<ChrPosition, TabbedRecord> compareRecords,
+	private void compareRecords(Map<ChrPosition, String> inputRecords,
+			Map<ChrPosition, String> compareRecords,
 			File outputOverlapFile, File outputNoOverlapFile) throws Exception {
 		BufferedWriter overlapWriter = new BufferedWriter(new FileWriter(outputOverlapFile, true));
 		BufferedWriter noOverlapWriter = new BufferedWriter(new FileWriter(outputNoOverlapFile, true));
 		
 		try {
-			for (Entry<ChrPosition, TabbedRecord> entry : inputRecords.entrySet()) {
+			for (Entry<ChrPosition, String> entry : inputRecords.entrySet()) {
 				
 				recordCount++;			
 				
@@ -273,22 +273,22 @@ public class CompareReferenceRegions {
 		}		
 	}
 	
-	private boolean compareRecord(Entry<ChrPosition, TabbedRecord> entry, Map<ChrPosition, TabbedRecord> compareRecords, String inputFileType) throws Exception {
+	private boolean compareRecord(Entry<ChrPosition, String> entry, Map<ChrPosition, String> compareRecords, String inputFileType) throws Exception {
 		ChrPosition inputChrPos = entry.getKey();
-		TabbedRecord inputRecord = entry.getValue();
+		String inputRecord = entry.getValue();
 		boolean isOverlapping = false;
 		//check to see if it is overlapping with the comparison reference region
-		for (Entry<ChrPosition, TabbedRecord> compareEntry : compareRecords.entrySet()) {
+		for (Entry<ChrPosition, String> compareEntry : compareRecords.entrySet()) {
 			ChrPosition comparePos = compareEntry.getKey();
 			if (comparePos.getEndPosition() < inputChrPos.getStartPosition()) {
 				continue;
 			} else if (comparePos.getStartPosition() > inputChrPos.getEndPosition()) {
 				break;
 			} else {
-				if (tabbedRecordFallsInCompareRecord(inputChrPos, inputRecord, compareEntry)) {								
+				if (StringFallsInCompareRecord(inputChrPos, inputRecord, compareEntry)) {								
 					isOverlapping = true;							
 					if (mode.equals(MODE_ANNOTATE)) {
-						String[] values = inputRecord.getDataArray();
+						String[] values = TabTokenizer.tokenize(inputRecord);
 						String oldVal = values[column];
 						if (oldVal.equals("")) {
 							values[column] = annotation;
@@ -303,12 +303,12 @@ public class CompareReferenceRegions {
 						for (String s: values) {
 							data += s + "\t";
 						}
-						inputRecord.setData(data);
+						inputRecord = data;
 					}
 					if (mode.equals(MODE_INTERSECT)) {
 						//change the ends??
-						int[] indexes = getChrIndex(inputFileType, entry.getValue().getData().split("\t"));
-						String[] array = inputRecord.getDataArray();
+						int[] indexes = getChrIndex(inputFileType, TabTokenizer.tokenize(entry.getValue()));
+						String[] array = TabTokenizer.tokenize(inputRecord);
 						
 						if (inputChrPos.getStartPosition() > compareEntry.getKey().getStartPosition()) {							
 							array[indexes[1]] =  Integer.toString(compareEntry.getKey().getStartPosition());
@@ -320,7 +320,7 @@ public class CompareReferenceRegions {
 						for (String s: array) {
 							data += s + "\t";
 						}
-						inputRecord.setData(data);
+						inputRecord = data;
 						entry.setValue(inputRecord);
 					}
 				}
@@ -330,35 +330,27 @@ public class CompareReferenceRegions {
 	}
 	
 	
-	private void writeRecords(Map<ChrPosition, TabbedRecord> records, File outputFile) throws IOException {
+	private void writeRecords(Map<ChrPosition, String> records, File outputFile) throws IOException {
 		BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile, true));
 		
-		for (Entry<ChrPosition, TabbedRecord> entry: records.entrySet()) {
+		for (Entry<ChrPosition, String> entry: records.entrySet()) {
 			writeRecord(writer, entry.getValue());
 		}
 		writer.close();
 	}
 
-	private void writeRecord(BufferedWriter writer, TabbedRecord record) throws IOException {
-		if (!record.getData().endsWith("\n")) {
-			record.setData(record.getData() + "\n");
-		}
-		writer.write(record.getData());		
+	private void writeRecord(BufferedWriter writer, String record) throws IOException {
+		String re = record.endsWith("\n") ? record : record + "\n";
+		writer.write(re);		
 	}
 
-	private TreeMap<ChrPosition, TabbedRecord> readRecords(File inputFile, String chromosome) throws Exception {
+	private TreeMap<ChrPosition, String> readRecords(File inputFile, String chromosome) throws Exception {
 		
-		TabbedFileReader reader = new TabbedFileReader(inputFile);
-		TreeMap<ChrPosition, TabbedRecord> records = new TreeMap<ChrPosition, TabbedRecord>();
+		TreeMap<ChrPosition, String> records = new TreeMap<ChrPosition, String>();
 		String fileType = getFileType(inputFile);
-			try {		
-				
-				Iterator<TabbedRecord> iterator = reader.getRecordIterator();
-
-				while (iterator.hasNext()) {
-					
-					TabbedRecord tab = iterator.next();					
-					if (tab.getData().startsWith("#") || tab.getData().startsWith("Hugo") || tab.getData().startsWith("analysis") || tab.getData().startsWith("Chr") ) {					
+			try (StringFileReader reader = new StringFileReader(inputFile, Constants.HASH_STRING);){		
+				for (String tab : reader) {
+					if (tab.startsWith("Hugo") || tab.startsWith("analysis") || tab.startsWith("Chr") ) {					
 						continue;
 					}
 					ChrPosition chrPos = getChrPosition(fileType, tab);								
@@ -367,9 +359,7 @@ public class CompareReferenceRegions {
 					}
 				}
 				
-			} finally {		
-				reader.close();
-			}		
+			} 	
 			
 		return records;
 	}
@@ -386,42 +376,31 @@ public class CompareReferenceRegions {
 	}
 
 	private void setUp(File file, File outputFileOne, File outputFileTwo) throws Exception {
-		TabbedFileReader reader = new TabbedFileReader(file);
-		Iterator<TabbedRecord> iterator = reader.getRecordIterator();
 		
-		String fileType = getFileType(file);
-		List<String> header = new ArrayList<String>();
-		if (reader.getHeader() != null) {
-			Iterator<String> iter = reader.getHeader().iterator();
-			while (iter.hasNext()) {					
-				header.add(iter.next());
+
+		try(StringFileReader reader = new StringFileReader(file, Constants.HASH_STRING);) {
+			List<String> header = reader.getHeader();			
+			for(String tab : reader) {				
+				if ( tab.startsWith("Hugo") || tab.startsWith("analysis") || tab.startsWith("Chr") ) {					
+					header.add(tab);
+					continue;
+				}
+				
+				String fileType = getFileType(file);
+				ChrPosition	chrPos = getChrPosition(fileType, tab);										
+				
+				if (!chromosomes.contains(chrPos.getChromosome())) {
+					chromosomes.add(chrPos.getChromosome());
+				}
 			}
+			
+			if (outputFileOne != null) {
+				writeHeader(header, outputFileOne);
+			} 
+			if (outputFileTwo != null) {
+				writeHeader(header, outputFileTwo);
+			} 
 		}
-		
-		while (iterator.hasNext()) {
-			
-			TabbedRecord tab = iterator.next();	
-			
-			if (tab.getData().startsWith("#") || tab.getData().startsWith("Hugo") || tab.getData().startsWith("analysis") || tab.getData().startsWith("Chr") ) {					
-				header.add(tab.getData());
-				continue;
-			}
-		
-			ChrPosition	chrPos = getChrPosition(fileType, tab);										
-			
-			if (!chromosomes.contains(chrPos.getChromosome())) {
-				chromosomes.add(chrPos.getChromosome());
-			}
-		}
-		reader.close();
-		
-		if (outputFileOne != null) {
-			writeHeader(header, outputFileOne);
-		} 
-		if (outputFileTwo != null) {
-			writeHeader(header, outputFileTwo);
-		} 
-		
 	}
 
 	private int[] getChrIndex(String inputFileType, String[] values) throws Exception {		
@@ -475,8 +454,8 @@ public class CompareReferenceRegions {
 		return arr;
 	}
 	
-	private ChrPosition getChrPosition(String inputFileType, TabbedRecord tab) throws Exception {
-		String[] values = tab.getData().split("\t");
+	private ChrPosition getChrPosition(String inputFileType, String tab) throws Exception {
+		String[] values = TabTokenizer.tokenize(tab);
 		ChrPosition chr = null;
 		
 		int[] indexes = getChrIndex(inputFileType, values);
@@ -503,7 +482,7 @@ public class CompareReferenceRegions {
 		return chr;
 	}
 
-	private boolean tabbedRecordFallsInCompareRecord(ChrPosition inputChrPos, TabbedRecord inputRecord, Entry<ChrPosition, TabbedRecord> entry) {
+	private boolean StringFallsInCompareRecord(ChrPosition inputChrPos, String inputRecord, Entry<ChrPosition, String> entry) {
 		if (entry != null) {
 			ChrPosition compareChrPos = entry.getKey();
 			if ((inputChrPos.getStartPosition() >= compareChrPos.getStartPosition() && inputChrPos.getStartPosition() <= compareChrPos.getEndPosition()) ||

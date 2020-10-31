@@ -11,10 +11,9 @@ import org.qcmg.common.util.FileUtils;
 import org.qcmg.qmule.Messages;
 import org.qcmg.qmule.Options;
 import org.qcmg.qmule.QMuleException;
-import org.qcmg.tab.TabbedFileReader;
-import org.qcmg.tab.TabbedFileWriter;
-import org.qcmg.tab.TabbedHeader;
-import org.qcmg.tab.TabbedRecord;
+import org.qcmg.record.RecordWriter;
+import org.qcmg.record.StringFileReader;
+
 
 public class ConvertVcfChr {
 	
@@ -31,28 +30,20 @@ public class ConvertVcfChr {
 	private int engage() throws Exception {
 		
 		// load 
-		if (FileUtils.canFileBeRead(cmdLineInputFiles[0])) {
-			TabbedFileReader reader  = new TabbedFileReader(new File(cmdLineInputFiles[0]));
-			TabbedHeader header = reader.getHeader();
+		if (!FileUtils.canFileBeRead(cmdLineInputFiles[0])) return exitStatus;
 			
-			TabbedFileWriter writer = new TabbedFileWriter(new File(cmdLineOutputFiles[0]));
-			writer.addHeader(header);
+		try(	StringFileReader reader  = new StringFileReader(new File(cmdLineInputFiles[0]));
+				RecordWriter<String> writer = new RecordWriter<>(new File(cmdLineOutputFiles[0])); ) {
 			
-			try {
-				for (TabbedRecord tabRec : reader) {
-					if ( ! tabRec.getData().startsWith(CHR)) {
-						tabRec.setData(CHR + tabRec.getData());
-					}
-					writer.add(tabRec);
+			writer.addHeader(reader.getHeader());		 
+			for (String tabRec : reader) {
+				if ( ! tabRec.startsWith(CHR)) {
+					tabRec = CHR + tabRec;
 				}
-			} finally {
-				try {
-					writer.close();
-				} finally {
-					reader.close();
-				}
-			}
+				writer.add(tabRec);
+			}			 
 		}
+		
 		return exitStatus;
 	}
 	

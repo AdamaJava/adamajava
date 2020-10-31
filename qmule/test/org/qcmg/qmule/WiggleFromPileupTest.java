@@ -27,7 +27,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.commandline.Executor;
 import org.qcmg.common.util.FileUtils;
-import org.qcmg.gff3.GFF3Record;
+import org.qcmg.gff3.Gff3Record;
 
 public class WiggleFromPileupTest {
 	@Rule
@@ -63,14 +63,14 @@ public class WiggleFromPileupTest {
 	
 	@Test
 	public void testIsPositionInBaitSingleGff() {
-		GFF3Record gff = new GFF3Record();
+		Gff3Record gff = new Gff3Record();
 		gff.setSeqId("chr1");
 		gff.setStart(1);
 		gff.setEnd(10);
 		
-		List<GFF3Record> gffs = new ArrayList<GFF3Record>();
+		List<Gff3Record> gffs = new ArrayList<Gff3Record>();
 		gffs.add(gff);
-		Iterator<GFF3Record> iter = gffs.iterator();
+		Iterator<Gff3Record> iter = gffs.iterator();
 //		WiggleFromPileup.setGffRecord(gff);
 		
 		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chr0", 0, iter, iter.next()));
@@ -98,24 +98,24 @@ public class WiggleFromPileupTest {
 	
 	@Test
 	public void testIsPositionInBaitMultipleGff() {
-		GFF3Record gff1 = new GFF3Record();
+		Gff3Record gff1 = new Gff3Record();
 		gff1.setSeqId("chr1");
 		gff1.setStart(1);
 		gff1.setEnd(10);
-		GFF3Record gff2 = new GFF3Record();
+		Gff3Record gff2 = new Gff3Record();
 		gff2.setSeqId("chr1");
 		gff2.setStart(11);
 		gff2.setEnd(20);
-		GFF3Record gff3 = new GFF3Record();
+		Gff3Record gff3 = new Gff3Record();
 		gff3.setSeqId("chr1");
 		gff3.setStart(31);
 		gff3.setEnd(40);
 		
-		List<GFF3Record> gffs = new ArrayList<GFF3Record>();
+		List<Gff3Record> gffs = new ArrayList<Gff3Record>();
 		gffs.add(gff1);
 		gffs.add(gff2);
 		gffs.add(gff3);
-		Iterator<GFF3Record> iter = gffs.iterator();
+		Iterator<Gff3Record> iter = gffs.iterator();
 		
 		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chr1", 0, iter, iter.next()));
 		
@@ -138,39 +138,39 @@ public class WiggleFromPileupTest {
 	
 	@Test
 	public void testIsPositionInBaitMultipleGffMultipleChromosomes() {
-		GFF3Record gff1 = new GFF3Record();
+		Gff3Record gff1 = new Gff3Record();
 		gff1.setSeqId("chr1");
 		gff1.setStart(1);
 		gff1.setEnd(10);
-		GFF3Record gff2 = new GFF3Record();
+		Gff3Record gff2 = new Gff3Record();
 		gff2.setSeqId("chr1");
 		gff2.setStart(11);
 		gff2.setEnd(20);
-		GFF3Record gff3 = new GFF3Record();
+		Gff3Record gff3 = new Gff3Record();
 		gff3.setSeqId("chr1");
 		gff3.setStart(31);
 		gff3.setEnd(40);
-		GFF3Record gff4 = new GFF3Record();
+		Gff3Record gff4 = new Gff3Record();
 		gff4.setSeqId("chr2");
 		gff4.setStart(15);
 		gff4.setEnd(25);
-		GFF3Record gff5 = new GFF3Record();
+		Gff3Record gff5 = new Gff3Record();
 		gff5.setSeqId("chr2");
 		gff5.setStart(26);
 		gff5.setEnd(40);
-		GFF3Record gff6 = new GFF3Record();
+		Gff3Record gff6 = new Gff3Record();
 		gff6.setSeqId("chrX");
 		gff6.setStart(100026);
 		gff6.setEnd(100040);
 		
-		List<GFF3Record> gffs = new ArrayList<GFF3Record>();
+		List<Gff3Record> gffs = new ArrayList<Gff3Record>();
 		gffs.add(gff1);
 		gffs.add(gff2);
 		gffs.add(gff3);
 		gffs.add(gff4);
 		gffs.add(gff5);
 		gffs.add(gff6);
-		Iterator<GFF3Record> iter = gffs.iterator();
+		Iterator<Gff3Record> iter = gffs.iterator();
 		
 		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chr0", 0, iter, iter.next()));
 		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chr1", 0, iter, gff1));

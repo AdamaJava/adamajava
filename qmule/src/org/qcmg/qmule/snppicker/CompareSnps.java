@@ -23,15 +23,15 @@ import org.qcmg.qmule.Options;
 import org.qcmg.qmule.QMuleException;
 import org.qcmg.qmule.util.IGVBatchFileGenerator;
 import org.qcmg.qmule.util.TabbedDataLoader;
-import org.qcmg.tab.TabbedRecord;
+
 
 public class CompareSnps {
 	
-	private final ConcurrentMap<ChrPosition, TabbedRecord> firstSnpMap = new ConcurrentHashMap<ChrPosition, TabbedRecord>(30000); //not expecting more than 100000
-	private final ConcurrentMap<ChrPosition, TabbedRecord> secondSnpMap = new ConcurrentHashMap<ChrPosition, TabbedRecord>(30000);
+	private final ConcurrentMap<ChrPosition, String> firstSnpMap = new ConcurrentHashMap<ChrPosition, String>(30000); //not expecting more than 100000
+	private final ConcurrentMap<ChrPosition, String> secondSnpMap = new ConcurrentHashMap<ChrPosition, String>(30000);
 	private final List<ChrPosition> firstList = new ArrayList<ChrPosition>();
 	private final List<ChrPosition> secondList = new ArrayList<ChrPosition>();
-//	private final ConcurrentMap<ChrPosition, TabbedRecord> uniqueTumourVCFMap = new ConcurrentHashMap<ChrPosition, TabbedRecord>(40000);
+//	private final ConcurrentMap<ChrPosition, String> uniqueTumourVCFMap = new ConcurrentHashMap<ChrPosition, String>(40000);
 	
 	private static QLogger logger;
 	
@@ -72,14 +72,14 @@ public class CompareSnps {
 		int commonSnps = 0, commonAndAlsoClassABStopNonSynon = 0;
 		
 		// loop through first set
-		for (Entry<ChrPosition, TabbedRecord> entry : firstSnpMap.entrySet()) {
+		for (Entry<ChrPosition, String> entry : firstSnpMap.entrySet()) {
 			
-			TabbedRecord firstRecord = entry.getValue();
+			String firstRecord = entry.getValue();
 			
 			if (isClassAB(firstRecord, -1) && isStopNonSynonymous(firstRecord, 22)) {
 				firstMapCount++;
 				
-				TabbedRecord secondRecord = secondSnpMap.get(entry.getKey());
+				String secondRecord = secondSnpMap.get(entry.getKey());
 				if (null == secondRecord || ! (isClassAB(secondRecord, -1) && isStopNonSynonymous(secondRecord, 22))) {
 					uniqueToFirstMap++;
 					firstList.add(entry.getKey());
@@ -95,14 +95,14 @@ public class CompareSnps {
 		}
 		
 		// loop through second set
-		for (Entry<ChrPosition, TabbedRecord> entry : secondSnpMap.entrySet()) {
+		for (Entry<ChrPosition, String> entry : secondSnpMap.entrySet()) {
 			
-			TabbedRecord secondRecord = entry.getValue();
+			String secondRecord = entry.getValue();
 			
 			if (isClassAB(secondRecord, -1) && isStopNonSynonymous(secondRecord, 22)) {
 				secondMapCount++;
 				
-				TabbedRecord firstRecord = firstSnpMap.get(entry.getKey());
+				String firstRecord = firstSnpMap.get(entry.getKey());
 				if (null == firstRecord || ! (isClassAB(firstRecord, -1) && isStopNonSynonymous(firstRecord, 22))) {
 					uniqueToSecondMap++;
 					secondList.add(entry.getKey());
@@ -124,9 +124,9 @@ public class CompareSnps {
 	
 	
 	
-	protected static boolean isClassAB(TabbedRecord record, int index) {
-		if (null == record || null == record.getData()) throw new IllegalArgumentException("null or empty Tabbed record");
-		String [] params = TabbedDataLoader.tabbedPattern.split(record.getData());
+	protected static boolean isClassAB(String record, int index) {
+		if (null == record || null == record) throw new IllegalArgumentException("null or empty Tabbed record");
+		String [] params = TabbedDataLoader.tabbedPattern.split(record);
 		String qcmgFlag = TabbedDataLoader.getStringFromArray(params, index);
 		
 		return SnpUtils.isClassAorB(qcmgFlag);
@@ -135,9 +135,9 @@ public class CompareSnps {
 		
 	}
 	
-	protected static boolean isStopNonSynonymous(TabbedRecord record, int index) {
-		if (null == record || null == record.getData()) throw new IllegalArgumentException("null or empty Tabbed record");
-		String [] params = TabbedDataLoader.tabbedPattern.split(record.getData());
+	protected static boolean isStopNonSynonymous(String record, int index) {
+		if (null == record || null == record) throw new IllegalArgumentException("null or empty Tabbed record");
+		String [] params = TabbedDataLoader.tabbedPattern.split(record);
 //		String consequenceType = params[index];
 		String consequenceType = TabbedDataLoader.getStringFromArray(params, index);
 		

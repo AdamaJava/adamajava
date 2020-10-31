@@ -21,8 +21,8 @@ import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ReferenceNameComparator;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.PileupUtils;
-import org.qcmg.gff3.GFF3FileReader;
-import org.qcmg.gff3.GFF3Record;
+import org.qcmg.gff3.Gff3FileReader;
+import org.qcmg.gff3.Gff3Record;
 import org.qcmg.gff3.GFF3RecordChromosomeAndPositionComparator;
 import org.qcmg.pileup.PileupFileReader;
 
@@ -43,10 +43,10 @@ public class WiggleFromPileup {
 	
 	private int lastPosition;
 	
-	private final List<GFF3Record> gffs = new ArrayList<GFF3Record>();
+	private final List<Gff3Record> gffs = new ArrayList<Gff3Record>();
 	
-	private static GFF3Record gffRecord;
-	private static Iterator<GFF3Record> iter;
+	private static Gff3Record gffRecord;
+	private static Iterator<Gff3Record> iter;
 	
 	private final static ReferenceNameComparator COMPARATOR = new ReferenceNameComparator();
 	private final static GFF3RecordChromosomeAndPositionComparator CHR_POS_COMP = new GFF3RecordChromosomeAndPositionComparator();
@@ -74,10 +74,10 @@ public class WiggleFromPileup {
 	}
 	
 	private void loadGffFile() throws Exception {
-		GFF3FileReader reader =  new GFF3FileReader(new File(cmdLineInputFiles[1]));
+		Gff3FileReader reader =  new Gff3FileReader(new File(cmdLineInputFiles[1]));
 		try {
 			int totalNoOfbaits = 0, ignoredBaits = 0;
-			for (GFF3Record record : reader) {
+			for (Gff3Record record : reader) {
 				totalNoOfbaits++;
 				if (isGff3RecordBait(record.getType())) {
 					gffs.add(record);
@@ -93,20 +93,13 @@ public class WiggleFromPileup {
 	protected static boolean isGff3RecordBait(String type) {
 		return "exon".equals(type);
 	}
-//	protected static boolean isGff3RecordBait(String type) {
-//		return "bait_1_100".equals(type)
-//		|| "bait".equals(type)
-//		|| "highbait".equals(type)
-//		|| "lowbait".equals(type);
-//	}
+
 	
 	private void initialise() {
 		noOfNormalFiles = PileupUtils.getNoOfFilesFromPileupFormat(pileupFormat, 'N');
 		noOfTumourFiles = PileupUtils.getNoOfFilesFromPileupFormat(pileupFormat, 'T');
 		normalStartPositions = PileupUtils.getStartPositions(noOfNormalFiles, noOfTumourFiles, true);
 		tumourStartPositions = PileupUtils.getStartPositions(noOfNormalFiles, noOfTumourFiles, false);
-		
-//		logger.info("start positions: " + Arrays.deepToString(normalStartPositions) + ", " + Arrays.deepToString(tumourStartPositions));
 	}
 	
 	private void parsePileup() throws Exception {
@@ -154,7 +147,7 @@ public class WiggleFromPileup {
 		return writer;
 	}
 	
-	protected static boolean isPositionInBait(String chromosome, int position, Iterator<GFF3Record> iter, GFF3Record currentRecord) {
+	protected static boolean isPositionInBait(String chromosome, int position, Iterator<Gff3Record> iter, Gff3Record currentRecord) {
 		
 		if (chromosome.equals(currentRecord.getSeqId())) {
 		
@@ -176,7 +169,7 @@ public class WiggleFromPileup {
 	}
 
 	private static boolean advanceGff3Record(String chromosome, int position,
-			Iterator<GFF3Record> iter) {
+			Iterator<Gff3Record> iter) {
 		if ( ! iter.hasNext()) {
 			// no more entries in gffs
 			return false;
@@ -192,7 +185,6 @@ public class WiggleFromPileup {
 		int position = Integer.parseInt(paramString.substring(firstTabIndex+1, paramString.indexOf('\t', firstTabIndex+1)));
 		
 		if ( ! isPositionInBait(chromosome, position, iter, getGffRecord())) return;
-//		if ( ! isPositionInBait(chromosome, position)) return;
 		
 		if (position != lastPosition +1 ||  ! currentChromosome.equalsIgnoreCase(chromosome)) {
 			// add new header to the StringBuilder
@@ -292,11 +284,11 @@ public class WiggleFromPileup {
 		return returnStatus;
 	}
 
-	protected static void setGffRecord(GFF3Record gffRecord) {
+	protected static void setGffRecord(Gff3Record gffRecord) {
 		WiggleFromPileup.gffRecord = gffRecord;
 	}
 
-	protected static GFF3Record getGffRecord() {
+	protected static Gff3Record getGffRecord() {
 		return gffRecord;
 	}
 }

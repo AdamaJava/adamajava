@@ -7,11 +7,11 @@ import java.io.File;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.TabTokenizer;
-import org.qcmg.tab.TabbedFileReader;
-import org.qcmg.tab.TabbedFileWriter;
-import org.qcmg.tab.TabbedHeader;
-import org.qcmg.tab.TabbedRecord;
+import org.qcmg.record.RecordWriter;
+import org.qcmg.record.StringFileReader;
+
 
 public class DbSnpChrLiftover {
 	
@@ -26,17 +26,15 @@ public class DbSnpChrLiftover {
 	public DbSnpChrLiftover() {}
 	
 	private void getUniqueChrNames() throws Exception {
-		TabbedFileReader reader = new TabbedFileReader(new File(inputVCF));
-		TabbedFileWriter writer = new TabbedFileWriter(new File(outputVCF));
-		try {
-			
-			TabbedHeader header = reader.getHeader();
-			
+		
+		try(StringFileReader reader = new StringFileReader(new File(inputVCF, Constants.HASH_STRING ));
+				RecordWriter<String> writer = new RecordWriter<>(new File(outputVCF));) {
+	
 			// writer out header
-			writer.addHeader(header);
+			writer.addHeader(reader.getHeader());
 			
-			for (TabbedRecord record : reader) {
-				String [] params = TabTokenizer.tokenize(record.getData()); 
+			for (String record : reader) {
+				String [] params = TabTokenizer.tokenize(record); 
 				String chr = params[0];
 				uniqueChrNames.add(chr);
 				
@@ -49,18 +47,9 @@ public class DbSnpChrLiftover {
 					if (i < len-1) sb.append(TAB);
 				}
 				
-				record.setData(sb.toString());
-				
-				writer.add(record);
-			}
-			
-		} finally {
-			try {
-				writer.close();
-			} finally {
-				reader.close();
-			}
-		}
+				writer.add(sb.toString());
+			}	
+		} 
 		
 		
 		for (String chr : uniqueChrNames) {
