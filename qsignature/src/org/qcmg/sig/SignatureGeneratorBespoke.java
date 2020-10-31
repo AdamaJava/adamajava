@@ -51,8 +51,7 @@ import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.util.BAMFileUtils;
 import org.qcmg.picard.util.SAMUtils;
 import org.qcmg.sig.util.SignatureUtil;
-import org.qcmg.tab.TabbedFileReader;
-import org.qcmg.tab.TabbedRecord;
+import org.qcmg.record.StringFileReader;
 
 import gnu.trove.map.TObjectIntMap;
 import gnu.trove.map.hash.THashMap;
@@ -297,9 +296,9 @@ public class SignatureGeneratorBespoke {
 		
 		// check that we can read the file
 		if (null != illumiaArraysDesign && FileUtils.canFileBeRead(illumiaArraysDesign)) {
-			try (TabbedFileReader reader=  new TabbedFileReader(new File(illumiaArraysDesign));) {
-				for (final TabbedRecord rec : reader) {
-					final String [] params = TabTokenizer.tokenize(rec.getData());
+			try (StringFileReader reader=  new StringFileReader(new File(illumiaArraysDesign));) {
+				for (final String rec : reader) {
+					final String [] params = TabTokenizer.tokenize(rec);
 					final String id = params[0];
 					illuminaArraysDesignMap.put(id, params);
 				}

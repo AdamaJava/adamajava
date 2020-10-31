@@ -93,6 +93,9 @@ public class CompareTest {
 		assertEquals(true, o.exists());
 		List<String> outputData = Files.readAllLines(Paths.get(o.getAbsolutePath()));
 		assertEquals(10, outputData.size());		// 10 lines means 1 comparison
+		
+		//debug
+		System.out.println("bespokeVsTraditionalBAM() outputData.get(7) :" + outputData.get(7));
 		assertEquals("<comparison file1=\"1\" file2=\"2\" overlap=\"4\" score=\"1.0\"/>", outputData.get(7));
 	}
 	

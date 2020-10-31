@@ -1,7 +1,6 @@
 package org.qcmg.sig;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -18,301 +17,16 @@ import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.SAMSequenceRecord;
 
-import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
-import org.qcmg.common.commandline.Executor;
-import org.qcmg.common.log.QLoggerFactory;
-import org.qcmg.common.util.BaseUtils;
-import org.qcmg.common.util.IlluminaUtils;
-import org.qcmg.common.util.TabTokenizer;
-import org.qcmg.common.vcf.VcfRecord;
-import org.qcmg.illumina.IlluminaRecord;
 import org.qcmg.picard.SAMOrBAMWriterFactory;
 import org.qcmg.picard.util.SAMUtils;
-import org.qcmg.sig.util.SignatureUtil;
-import org.qcmg.vcf.VCFFileReader;
 
 public class SignatureGeneratorTest {
 	
 	@Rule
 	public  TemporaryFolder testFolder = new TemporaryFolder();
 	
-	public SignatureGenerator qss;
-	
-	@Before
-	public void setup() {
-		qss = new SignatureGenerator();
-		qss.logger = QLoggerFactory.getLogger(SignatureGeneratorTest.class);
-	}
-	
-	
-	
-	@Test
-	public void testPatientRegex() {
-		Assert.assertEquals(true, "APGI_1992".matches(SignatureUtil.PATIENT_REGEX));
-		Assert.assertEquals(false, "APG_1992".matches(SignatureUtil.PATIENT_REGEX));
-		Assert.assertEquals(false, "APGI_992".matches(SignatureUtil.PATIENT_REGEX));
-		Assert.assertEquals(false, "APGI_19922".matches(SignatureUtil.PATIENT_REGEX));
-		Assert.assertEquals(true, "PPPP_1234".matches(SignatureUtil.PATIENT_REGEX));
-		Assert.assertEquals(true, "PPPP_1234.exome.ND.bam".substring(0,9).matches(SignatureUtil.PATIENT_REGEX));
-	}
-	
-	@Test
-	public void testUpdateResultsIllumina() {
-		String illRecString = "rs9349115	5636391030_R02C01	G	G	0.7370			78	1081258	0	C	C	G	G	B	B	6	39330207	0.7923	1.0000	[C/G]	TOP	BOT		0.922	0.938	0.102	0.835	1780	10559	0.9912	0.2395";
-		char ref = 'C';
-		String result = updateResultsIllumina(illRecString, ref);
-		assertEquals(true, result.contains("C:20,G:3"));
-//		
-		illRecString = "rs1738240	5636391030_R02C01	A	A	0.8534			78	546817	0	A	A	T	T	A	A	6	38763733	0.8261	1.0000	[T/C]	BOT	TOP		0.021	1.517	1.469	0.048	17587	1072	0.0076	-0.2979";
-		ref = 'C';
-		result = updateResultsIllumina(illRecString, ref);
-		assertEquals(true, result.contains("T:16"));
-		
-		illRecString = "rs235501	5636391030_R02C01	C	C	0.8590			78	643550	0	C	C	G	G	A	A	1	171556165	0.8302	1.0000	[G/C]	BOT	TOP		0.006	1.144	1.133	0.011	13745	905	0.0000	-0.0755";
-		ref = 'G';
-		result = updateResultsIllumina(illRecString, ref);
-		assertEquals(true, result.contains("C:17"));
-	}
-	
-//	@Test
-//	public void testCreateComparatorFromSAMHeader() throws IOException {
-////		SignatureGenerator qss = new SignatureGenerator();
-////		qss.logger = QLoggerFactory.getLogger(SignatureGeneratorTest.class);
-//		try {
-//			qss.createComparatorFromSAMHeader(null);
-//			Assert.fail("Should have thrown an IAE");
-//		} catch (final IllegalArgumentException iae) {}
-//		
-//		final File bamFile = testFolder.newFile("bamFile");
-//		getBamFile(bamFile, false, true);
-//		qss.createComparatorFromSAMHeader(bamFile);
-//
-//		// no seq in header - should default to ReferenceNameComparator sorting
-//		int i = qss.chrComparator.compare("chr1", "chr2");
-//		assertEquals(true, i < 0);
-//		i = qss.chrComparator.compare("chr10", "chr2");
-//		assertEquals(true, i > 0);
-//		
-//		// header is ordered chr5, 4, 3, 2, 1
-//		getBamFile(bamFile, true, true);
-//		qss.createComparatorFromSAMHeader(bamFile);
-//		i = qss.chrComparator.compare("chr1", "chr2");
-//		assertEquals(true, i < 0);
-//	}
-	
-//	@Test
-//	public void doesComparatorWorkForNonChrs() throws IOException {
-//		
-//		final File bamFile = testFolder.newFile("bamFile");
-//		getBamFile(bamFile, false, true);
-//		qss.createComparatorFromSAMHeader(bamFile);
-//
-//		// no seq in header - should default to ReferenceNameComparator sorting
-//		int i = qss.chrComparator.compare("chr1", "chr2");
-//		assertEquals(true, i < 0);
-//		i = qss.chrComparator.compare("chr10", "chr2");
-//		assertEquals(true, i > 0);
-//		
-//		getBamFile(bamFile, true, false);
-//		
-//		qss.createComparatorFromSAMHeader(bamFile);
-//		i = qss.chrComparator.compare("1", "2");
-//		assertEquals(true, i < 0);
-//	}
-	
-	
-	/**
-	 * Method has been copied from QSignatureSequential.updateResultsIllumina
-	 * 
-	 * @see SignatureGenerator#updateResultsIllumina
-	 */
-	private String updateResultsIllumina(String illRecString, char ref) {
-		final int snpChipCoverageValue = 20;
-		final IlluminaRecord illRec = new IlluminaRecord(TabTokenizer.tokenize(illRecString));
-		
-		final int[] alleleCounts = IlluminaUtils.getAllelicCounts(snpChipCoverageValue, illRec.getLogRRatio(), illRec.getRawX(), illRec.getRawY());
-		String illuminaAlleles = null;
-		if (illRec.getSnp().length() == 5) {
-			illuminaAlleles = illRec.getSnp().substring(1, 4);
-		} else {
-			System.out.println("unable to process snp: " + illRec.getSnp());
-		}
-		assertEquals(false, null == illuminaAlleles);
-		
-		// need to check that the alleles are valid
-		if ( ! BaseUtils.isACGTN(illuminaAlleles.charAt(0)) || ! BaseUtils.isACGTN(illuminaAlleles.charAt(2)) ) {
-			System.out.println("invalid bases in illumina genotype: " + illuminaAlleles);
-		}
-		
-		final String illuminaCall = illRec.getFirstAlleleCall() + "" + illRec.getSecondAlleleCall();
-		System.out.println("illuminaCall: " + illuminaCall);
-		
-		if ("--".equals(illuminaCall))  {
-			System.out.println("dodgy illumina call: --");
-		}
-		
-		char illGenChar1 = illuminaAlleles.charAt(0);
-		char illGenChar2 = illuminaAlleles.charAt(1);
-		if ('/' == illGenChar2) {
-			if (illuminaAlleles.length() < 3)
-				throw new IllegalArgumentException("invalid illumina genotype specified: " + illuminaAlleles);
-			illGenChar2 = illuminaAlleles.charAt(2);
-		}
-		
-		final boolean complement = ref != illGenChar1 && ref != illGenChar2;
-		final boolean newComplement = isComplemented(illuminaCall, illuminaAlleles, illRec.getFirstAlleleForward(), illRec.getSecondAlleleForward());
-		final char[] alleleAB = getAlleleAandB(illuminaAlleles, illRec.getStrand());
-		System.out.println("old complement: " + complement + ", new complement: " + newComplement);
-			if (complement) {
-			illGenChar1 = BaseUtils.getComplement(illGenChar1);
-			illGenChar2 = BaseUtils.getComplement(illGenChar2);
-		}
-		final String result = SignatureUtil.getCoverageStringFromCharsAndInts(alleleAB[0], alleleAB[1], alleleCounts[0], alleleCounts[1]);
-		System.out.println(result);
-		return result;
-	}
-	
-	private boolean isComplemented(String illuminaCall, String snp, char allele1Forward, char allele2Forward) {
-		boolean complement = false;
-		final char snp1 = snp.charAt(0);
-		char snp2 = snp.charAt(1);
-		if ('/' == snp2) {
-			if (snp.length() < 3)
-				throw new IllegalArgumentException("invalid illumina genotype specified: " + snp);
-			snp2 = snp.charAt(2);
-		}
-		
-		if ("AA".equals(illuminaCall)) {
-			complement = (allele1Forward != snp1);
-		} else if ("AB".equals(illuminaCall)) {
-			complement = (allele1Forward != snp1);
-		} else if ("BB".equals(illuminaCall)) {
-			complement = (allele2Forward != snp2);
-		}
-		
-		return complement;
-	}
-	
-	private char[] getAlleleAandB(String snp, String strand) {
-		final char[] alleleAB = new char[2];
-		final char snp1 = snp.charAt(0);
-		char snp2 = snp.charAt(1);
-		if ('/' == snp2) {
-			if (snp.length() < 3)
-				throw new IllegalArgumentException("invalid illumina genotype specified: " + snp);
-			snp2 = snp.charAt(2);
-		}
-		
-		if (BaseUtils.isAT(snp1) && BaseUtils.isAT(snp2)) {
-			// A/T or T/A - need strand
-			if ("TOP".equals(strand)) {
-				alleleAB[0] = 'A';
-				alleleAB[1] = 'T';
-			} else {
-				alleleAB[0] = 'T';
-				alleleAB[1] = 'A';
-			}
-		} else if (BaseUtils.isCG(snp1) && BaseUtils.isCG(snp2)) {
-			// C/G or G/C  - need strand
-			if ("TOP".equals(strand)) {
-				alleleAB[0] = 'C';
-				alleleAB[1] = 'G';
-			} else {
-				alleleAB[0] = 'G';
-				alleleAB[1] = 'C';
-			}
-		} else {
-			// A/G or A/C or G/A or C/A - no strand required
-			alleleAB[0] = snp1;
-			alleleAB[1] = snp2;
-		}
-		
-		return alleleAB;
-	}
-	
-	private Executor execute(final String command) throws Exception {
-		return new Executor(command, "org.qcmg.sig.SignatureGenerator");
-	}
-	
-    @Test
-	public void runProcessWithEmptySnpChipFile() throws Exception {
-    	final File positionsOfInterestFile = testFolder.newFile("runProcessWithEmptySnpChipFile.txt");
-    	final File snpChipFile = testFolder.newFile("runProcessWithEmptySnpChipFile_snpChip.txt");
-    	final File illuminaArraysDesignFile = testFolder.newFile("runProcessWithEmptySnpChipFile_snpChipIAD.txt");
-    	final File logFile = testFolder.newFile("runProcessWithEmptySnpChipFile.log");
-    	final File outputFile = testFolder.newFile("runProcessWithEmptySnpChipFile.qsig.vcf");
-//    	getBamFile(snpChipFile, true, null);
-
-		ExpectedException.none();
-		final Executor exec = execute("--log " + logFile.getAbsolutePath() + " -i " + positionsOfInterestFile.getAbsolutePath() + " -i " + snpChipFile.getAbsolutePath()+ " -i " + illuminaArraysDesignFile.getAbsolutePath());
-		assertTrue(0 == exec.getErrCode());
-
-		assertTrue(outputFile.exists());
-	}
-    
-    @Test
-    public void runProcessWithSnpChipFile() throws Exception {
-    	final File positionsOfInterestFile = testFolder.newFile("runProcessWithSnpChipFile.txt");
-    	final File illuminaArraysDesignFile = testFolder.newFile("runProcessWithSnpChipFileIAD.txt");
-    	final File snpChipFile = testFolder.newFile("runProcessWithSnpChipFile_snpChip.txt");
-    	final File logFile = testFolder.newFile("runProcessWithSnpChipFile.log");
-    	final String outputFIleName = snpChipFile.getAbsolutePath() + ".qsig.vcf.gz";
-    	final File outputFile = new File(outputFIleName);
-    	
-    	writeSnpChipFile(snpChipFile);
-    	writeSnpPositionsFile(positionsOfInterestFile);
-    	writeIlluminaArraysDesignFile(illuminaArraysDesignFile);
-//    	getBamFile(snpChipFile, true, null);
-    	
-    	final int exitStatus = qss.setup(new String[] {"--log" , logFile.getAbsolutePath(), "-i" , positionsOfInterestFile.getAbsolutePath(), "-i" , snpChipFile.getAbsolutePath(),  "-i" , illuminaArraysDesignFile.getAbsolutePath()} );
-    	assertEquals(0, exitStatus);
-    	
-    	assertTrue(outputFile.exists());
-   	
-    	final List<VcfRecord> recs = new ArrayList<>();
-    	try (VCFFileReader reader = new VCFFileReader(outputFile);) {    			
-	    	for (final VcfRecord rec : reader) 
-	    		recs.add(rec);
-    	}
-       	
-    	assertEquals(6, recs.size());
-    }
-    
-    
-    @Test
-    public void runProcessWithHG19BamFile() throws Exception {
-	    	final File positionsOfInterestFile = testFolder.newFile("runProcessWithHG19BamFile.snps.txt");
-	    	final File illuminaArraysDesignFile = testFolder.newFile("runProcessWithHG19BamFile.illuminaarray.txt");
-	    	final File bamFile = testFolder.newFile("runProcessWithHG19BamFile.bam");
-	    	final File logFile = testFolder.newFile("runProcessWithHG19BamFile.log");
-	    	final String outputFIleName = bamFile.getAbsolutePath() + ".qsig.vcf.gz";
-	    	final File outputFile = new File(outputFIleName);
-	    	
-	    	writeSnpPositionsFile(positionsOfInterestFile);
-	    	writeIlluminaArraysDesignFile(illuminaArraysDesignFile);
-	    	getBamFile(bamFile, true, false);
-	    	
-	    	final int exitStatus = qss.setup(new String[] {"--log" , logFile.getAbsolutePath(), "-i" , positionsOfInterestFile.getAbsolutePath(), "-i" , bamFile.getAbsolutePath(),  "-i" , illuminaArraysDesignFile.getAbsolutePath()} );
-	    	assertEquals(0, exitStatus);
-	    	
-	    	assertTrue(outputFile.exists());
-	   	
-	    	final List<VcfRecord> recs = new ArrayList<>();
-	    	try (VCFFileReader reader = new VCFFileReader(outputFile);) {    			
-		    	for (final VcfRecord rec : reader) {
-		    		recs.add(rec);
-		    		System.out.println("rec: " + rec.toString());
-		    	}
-	    	}
-	       	
-	    	assertEquals(6, recs.size());
-    }
-    
     static void writeSnpChipFile(File snpChipFile) throws IOException {
 	    	try (Writer writer = new FileWriter(snpChipFile);) {
 		    	writer.write("[Header]\n");
@@ -331,6 +45,7 @@ public class SignatureGeneratorTest {
 		    	writer.write("rs1000002	WG0227768_DNAG01_LP6005273_DNA_G01	A	A	0.8183	AOCS_094_6_7	UQueensland_Grimmond2	157	719472	0	A	A	A	A	A	A	3	183635768	0.8018	0.4106	[A/G]	TOP	TOP		0.039	0.745	0.702	0.043	5494	277	0.0000	0.4090\n");
 	    	}
     }
+    
     static void writeIlluminaArraysDesignFile(File illuminaArraysDesign) throws IOException {
 	    	try (Writer writer = new FileWriter(illuminaArraysDesign);) {
 	    		writer.write("#dbSNP Id	Reference Genome	dbSNP alleles	Chr	Position(hg19)	dbSNP Strand	IlluminaDesign	ComplementArrayCalls?\n");
@@ -342,6 +57,7 @@ public class SignatureGeneratorTest {
 			writer.write("rs10000023	G	G/T	chr4	95733906	+	[T/G]	no\n");
 	    	}
     }
+    
     static void writeSnpPositionsFile(File snpPositions) throws IOException {
 	    	try (Writer writer = new FileWriter(snpPositions);) {
 	    		writer.write("chr3	183635768	random_1016708	C	RANDOM_POSITION\n");
@@ -356,6 +72,7 @@ public class SignatureGeneratorTest {
     static void getBamFile(File bamFile, boolean validHeader, boolean useChrs) {
     	getBamFile(bamFile,  validHeader,  useChrs, false);
     }
+    
     static void getBamFile(File bamFile, boolean validHeader, boolean useChrs, boolean addReadGroupToHeaderAndRecords) {
 	    	final SAMFileHeader header = getHeader(validHeader, useChrs, addReadGroupToHeaderAndRecords);
 	    	List<SAMRecord> data = getRecords(useChrs, header, true, addReadGroupToHeaderAndRecords);
@@ -407,9 +124,8 @@ public class SignatureGeneratorTest {
 		
 		return header;
 	}
-	private static List<SAMRecord> getRecords(boolean useChr, SAMFileHeader header, boolean isValid) {
-		return  getRecords( useChr,  header,  isValid, false); 
-	}	
+ 
+	
 	private static List<SAMRecord> getRecords(boolean useChr, SAMFileHeader header, boolean isValid, boolean addRG) {
 		List<SAMRecord> records = new ArrayList<>();
 //		records.add("HS2000-152_756:1:1316:11602:65138	89	chr1	9993	25	100M	=	9993	0	TCTTCCGATCTCCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTA	B@??BBCCB<>BCBB?:BAA?9-A;?2;@ECA=;7BEE?=7D9@@8.C;B8=.HGDBBBCCD::*GGD:?*FDGFCA>EIHEEBEAEFDFFC=+?DD@@@	X0:i:1	X1:i:0	ZC:i:9	MD:Z:0C0T0G6A0A89	PG:Z:MarkDuplicates	RG:Z:20130325103517169	XG:i:0	AM:i:0	NM:i:5	SM:i:25	XM:i:5	XN:i:8	XO:i:0	XT:A:U");
