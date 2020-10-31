@@ -23,7 +23,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.qcmg.common.commandline.Executor;
 import org.qcmg.gff3.GFF3FileWriter;
-import org.qcmg.gff3.GFF3Record;
+import org.qcmg.gff3.Gff3Record;
 
 public class PhysicalCoverageTest {
 	static String inputBam;
@@ -62,7 +62,7 @@ public class PhysicalCoverageTest {
 	}
 
 	private File createGFF3File(final int start, final int end) throws IOException {
-		GFF3Record record = new GFF3Record();
+		Gff3Record record = new Gff3Record();
 		record.setSeqId("chr1");
 		record.setType("exon");
 		record.setStart(start);

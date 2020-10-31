@@ -16,8 +16,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.qcmg.gff3.GFF3FileReader;
-import org.qcmg.gff3.GFF3Record;
+import org.qcmg.gff3.Gff3FileReader;
+import org.qcmg.gff3.Gff3Record;
 import org.qcmg.qsv.discordantpair.DiscordantPairCluster;
 import org.qcmg.qsv.discordantpair.PairGroup;
 import org.qcmg.qsv.report.DCCReport;
@@ -42,7 +42,7 @@ public class QSVClusterWriter {
 	private final int minInsertSize;
 	private final String validationPlatform;
 	private final List<String> gffFiles;
-	private final Map<String, List<GFF3Record>> gffMap;
+	private final Map<String, List<Gff3Record>> gffMap;
 
 	public QSVClusterWriter(QSVParameters tumor, QSVParameters normal, boolean isQCMG, String analysisId, boolean singleSided, boolean twoFileMode, int minInsertSize, String validationPlatform, List<String> gffFiles) throws IOException {
 		this.tumorParameters = tumor;
@@ -58,19 +58,19 @@ public class QSVClusterWriter {
 
 	}
 
-	private Map<String, List<GFF3Record>> parseGFFFiles() throws IOException {
-		Map<String, List<GFF3Record>> gffMap = new HashMap<>();
+	private Map<String, List<Gff3Record>> parseGFFFiles() throws IOException {
+		Map<String, List<Gff3Record>> gffMap = new HashMap<>();
 		for (String file: gffFiles) {
 
-			try (GFF3FileReader reader = new GFF3FileReader(new File(file));) {
+			try (Gff3FileReader reader = new Gff3FileReader(new File(file));) {
 
-				Iterator<GFF3Record> it = reader.getRecordIterator();
+				Iterator<Gff3Record> it = reader.getRecordIterator();
 				while (it.hasNext()) {
-					GFF3Record g3 = it.next();
+					Gff3Record g3 = it.next();
 					if (gffMap.containsKey(g3.getSeqId())) {
 						gffMap.get(g3.getSeqId()).add(g3);
 					} else {
-						List<GFF3Record> list = new ArrayList<>();
+						List<Gff3Record> list = new ArrayList<>();
 						list.add(g3);
 						gffMap.put(g3.getSeqId(), list);					
 					}

@@ -28,10 +28,10 @@ import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.FileUtils;
-import org.qcmg.gff3.GFF3FileReader;
-import org.qcmg.gff3.GFF3Record;
+import org.qcmg.gff3.Gff3FileReader;
+import org.qcmg.gff3.Gff3Record;
 import org.qcmg.maf.util.MafUtils;
-import org.qcmg.tab.TabbedFileReader;
+import org.qcmg.tab.StringFileReader;
 import org.qcmg.tab.TabbedHeader;
 import org.qcmg.tab.TabbedRecord;
 
@@ -103,10 +103,10 @@ public class MafAddStuff {
 	
 	private void getGffTypes(String gff3File) throws Exception {
 		Map<String, Map<ChrPosition, String>> gffTypes = new HashMap<String, Map<ChrPosition, String>>();
-		GFF3FileReader reader = new GFF3FileReader(new File(gff3File));
+		Gff3FileReader reader = new Gff3FileReader(new File(gff3File));
 		try {
 			int  count = 0;
-			for (GFF3Record rec : reader) {
+			for (Gff3Record rec : reader) {
 				String chr = rec.getSeqId();
 				Map<ChrPosition, String> thisMap = gffTypes.get(chr);
 				if (null == thisMap) {
@@ -170,7 +170,7 @@ public class MafAddStuff {
 	private void writeMafOutput(String inputMafFile, String outputMafFile) throws Exception {
 		if (fastaCPGDataMap.isEmpty() && chrPosGffType.isEmpty()) return;
 		
-		TabbedFileReader reader = new TabbedFileReader(new File(inputMafFile));
+		StringFileReader reader = new StringFileReader(new File(inputMafFile));
 		TabbedHeader header = reader.getHeader();
 		FileWriter writer = new FileWriter(new File(outputMafFile), false);
 		

@@ -31,7 +31,7 @@ import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.NumberUtils;
 import org.qcmg.qmule.SmithWatermanGotoh;
-import org.qcmg.tab.TabbedFileReader;
+import org.qcmg.tab.StringFileReader;
 import org.qcmg.tab.TabbedHeader;
 import org.qcmg.tab.TabbedRecord;
 
@@ -482,7 +482,7 @@ public class TiledAlignerUtil {
 	 * @param tiledInput
 	 */
 	public static void getTiledDataInMap(String tiledAlignerFile,  Map<String, String> tiledInput) {
-		try (TabbedFileReader reader = new TabbedFileReader(new File(tiledAlignerFile))) {
+		try (StringFileReader reader = new StringFileReader(new File(tiledAlignerFile))) {
 			
 			int i = 0;
 			int matches = 0;
@@ -514,7 +514,7 @@ public class TiledAlignerUtil {
 	}
 	
 	public static TabbedHeader getTiledAlignerHeader(String file) throws IOException {
-		try (TabbedFileReader reader = new TabbedFileReader(new File(file))) {
+		try (StringFileReader reader = new StringFileReader(new File(file))) {
 			return reader.getHeader();
 		}
 	}

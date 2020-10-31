@@ -24,7 +24,7 @@ import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.util.FileUtils;
-import org.qcmg.tab.TabbedFileReader;
+import org.qcmg.tab.StringFileReader;
 import org.qcmg.tab.TabbedHeader;
 import org.qcmg.tab.TabbedRecord;
 
@@ -77,7 +77,7 @@ public class MafAddCPG {
 	}
 	
 	private void loadPositionsOfInterest(String mafFile) throws Exception {
-		TabbedFileReader reader = new TabbedFileReader(new File(mafFile));
+		StringFileReader reader = new StringFileReader(new File(mafFile));
 		try {
 			
 			int count = 0;
@@ -103,7 +103,7 @@ public class MafAddCPG {
 	private void writeMafOutput(String inputMafFile, String outputMafFile) throws Exception {
 		if (positionsOfInterestMap.isEmpty()) return;
 		
-		TabbedFileReader reader = new TabbedFileReader(new File(inputMafFile));
+		StringFileReader reader = new StringFileReader(new File(inputMafFile));
 		TabbedHeader header = reader.getHeader();
 		FileWriter writer = new FileWriter(new File(outputMafFile), false);
 		

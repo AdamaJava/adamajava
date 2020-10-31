@@ -25,7 +25,7 @@ import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.qsv.QSVException;
 import org.qcmg.qsv.QSVParameters;
 import org.qcmg.qsv.util.QSVUtil;
-import org.qcmg.tab.TabbedFileReader;
+import org.qcmg.tab.StringFileReader;
 import org.qcmg.tab.TabbedRecord;
 
 /**
@@ -89,7 +89,7 @@ public class BLAT {
 		Map<String, BLATRecord> records = new HashMap<>();
 		File blatOutput = new File(blatOutputFile);
 		
-		try (TabbedFileReader reader = new TabbedFileReader(blatOutput);) {
+		try (StringFileReader reader = new StringFileReader(blatOutput);) {
 			for (TabbedRecord tab: reader) {
 				BLATRecord record = new BLATRecord(TabTokenizer.tokenize(tab.getData())); 
 				if (record.isValid()) {
@@ -176,7 +176,7 @@ public class BLAT {
 		List<BLATRecord> records = new ArrayList<>();
 		
 		File out = new File(outFile);
-		try (TabbedFileReader reader = new TabbedFileReader(out);) {
+		try (StringFileReader reader = new StringFileReader(out);) {
 
 			for (TabbedRecord tab: reader) {
 				BLATRecord record = new BLATRecord(TabTokenizer.tokenize(tab.getData()));
@@ -207,7 +207,7 @@ public class BLAT {
 		
 		List<BLATRecord> records = new ArrayList<>();
 		
-		try (TabbedFileReader reader = new TabbedFileReader(outFile);) {
+		try (StringFileReader reader = new StringFileReader(outFile);) {
 
 			for (TabbedRecord tab: reader) {
 				BLATRecord record = new BLATRecord(TabTokenizer.tokenize(tab.getData())); 	

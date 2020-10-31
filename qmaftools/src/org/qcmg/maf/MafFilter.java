@@ -21,7 +21,7 @@ import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.SnpUtils;
 import org.qcmg.maf.util.MafUtils;
 import org.qcmg.picard.util.PileupElementUtil;
-import org.qcmg.tab.TabbedFileReader;
+import org.qcmg.tab.StringFileReader;
 import org.qcmg.tab.TabbedRecord;
 
 public class MafFilter {
@@ -89,7 +89,7 @@ public class MafFilter {
 	}
 	
 	private void loadKRASFile(String krasFile) throws Exception {
-		TabbedFileReader reader = new TabbedFileReader(new File(krasFile));
+		StringFileReader reader = new StringFileReader(new File(krasFile));
 		try {
 			int high = 0, noise = 0, fail = 0, count = 0;
 			
@@ -190,7 +190,7 @@ public class MafFilter {
 	}
 	
 	private void loadFile(File file) throws Exception {
-		TabbedFileReader reader = new TabbedFileReader(file);
+		StringFileReader reader = new StringFileReader(file);
 		try {
 			
 			int high = 0, noise = 0, fail = 0, count = 0;

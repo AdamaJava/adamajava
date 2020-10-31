@@ -22,9 +22,9 @@ import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.FileUtils;
-import org.qcmg.gff3.GFF3FileReader;
-import org.qcmg.gff3.GFF3Record;
-import org.qcmg.tab.TabbedFileReader;
+import org.qcmg.gff3.Gff3FileReader;
+import org.qcmg.gff3.Gff3Record;
+import org.qcmg.tab.StringFileReader;
 import org.qcmg.tab.TabbedHeader;
 import org.qcmg.tab.TabbedRecord;
 
@@ -66,10 +66,10 @@ public class MafAddGffBait {
 	}
 	
 	private void populateGffTypes(String gff3File) throws Exception {
-		GFF3FileReader reader = new GFF3FileReader(new File(gff3File));
+		Gff3FileReader reader = new Gff3FileReader(new File(gff3File));
 		try {
 			int  count = 0;
-			for (GFF3Record rec : reader) {
+			for (Gff3Record rec : reader) {
 				String chr = rec.getSeqId();
 				Map<ChrPosition, String> thisMap = gffTypes.get(chr);
 				if (null == thisMap) {
@@ -114,7 +114,7 @@ public class MafAddGffBait {
 	}
 	
 	private void loadPositionsOfInterest(String mafFile) throws Exception {
-		TabbedFileReader reader = new TabbedFileReader(new File(mafFile));
+		StringFileReader reader = new StringFileReader(new File(mafFile));
 		try {
 			
 			int count = 0;
@@ -139,7 +139,7 @@ public class MafAddGffBait {
 	private void writeMafOutput(String inputMafFile, String outputMafFile) throws Exception {
 		if (positionsOfInterestMap.isEmpty()) return;
 		
-		TabbedFileReader reader = new TabbedFileReader(new File(inputMafFile));
+		StringFileReader reader = new StringFileReader(new File(inputMafFile));
 		TabbedHeader header = reader.getHeader();
 		FileWriter writer = new FileWriter(new File(outputMafFile), false);
 		

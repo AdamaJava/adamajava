@@ -51,14 +51,14 @@ import org.qcmg.common.util.DonorUtils;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.SnpUtils;
 import org.qcmg.common.util.TabTokenizer;
-import org.qcmg.gff3.GFF3FileReader;
-import org.qcmg.gff3.GFF3Record;
+import org.qcmg.gff3.Gff3FileReader;
+import org.qcmg.gff3.Gff3Record;
 import org.qcmg.maf.util.FilterOptions;
 import org.qcmg.maf.util.MafFilterUtils;
 import org.qcmg.maf.util.MafUtils;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.util.SAMUtils;
-import org.qcmg.tab.TabbedFileReader;
+import org.qcmg.tab.StringFileReader;
 import org.qcmg.tab.TabbedHeader;
 import org.qcmg.tab.TabbedRecord;
 
@@ -166,7 +166,7 @@ public abstract class MafPipelineNew {
 	protected String getDccMetaData() throws Exception {
 		// get dcc meta info from file, and prepend to header
 		TabbedHeader header = null;
-		try (TabbedFileReader reader = new TabbedFileReader(new File(dccqFile))){
+		try (StringFileReader reader = new StringFileReader(new File(dccqFile))){
 			header = reader.getHeader();
 		}
 		
@@ -400,12 +400,12 @@ public abstract class MafPipelineNew {
 			logger.info("number of records requiring gff data: " + gffs.size());
 //			GFF3FileReader reader = new GFF3FileReader(new File(gffFile));
 	//		Map<String, Map<ChrPosition, String>> gffTypes = new HashMap<String, Map<ChrPosition, String>>();
-			try (GFF3FileReader reader = new GFF3FileReader(new File(gffFile))) {
+			try (Gff3FileReader reader = new Gff3FileReader(new File(gffFile))) {
 				int  count = 0, updatedCount  = 0;
 				List<ChrPosBait> relevantList = null;
 				String currentChr = null;
 				
-				for (GFF3Record rec : reader) {
+				for (Gff3Record rec : reader) {
 					String chr = rec.getSeqId();
 					
 					if (count == 0) {
@@ -516,7 +516,7 @@ public abstract class MafPipelineNew {
 			String identifier = mafType.isIndel() ? "Insertion" : "Substitution";
 			
 			int count = 0, chrPosCount = 0, chrPosMutCount=0;
-			try (TabbedFileReader reader = new TabbedFileReader(new File(cosmicFile));) {
+			try (StringFileReader reader = new StringFileReader(new File(cosmicFile));) {
 				for (TabbedRecord rec : reader) {
 					if (StringUtils.isNullOrEmpty(rec.getData())) continue;	// blank lines in file.... my god.....
 					if (rec.getData().startsWith("Gene name")) continue;		//header line
@@ -630,7 +630,7 @@ public abstract class MafPipelineNew {
 	}
 
 	void loadKRASData() throws Exception {
-		try (TabbedFileReader reader = new TabbedFileReader(new File(krasFile));) {
+		try (StringFileReader reader = new StringFileReader(new File(krasFile));) {
 			int count = 0, validCount = 0, alreadyPresent = 0, alreadyPresentSameVerification = 0;
 			
 			for (TabbedRecord rec : reader) {

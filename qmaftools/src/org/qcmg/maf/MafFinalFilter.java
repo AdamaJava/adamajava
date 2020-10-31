@@ -13,7 +13,7 @@ import java.util.regex.Pattern;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.util.FileUtils;
-import org.qcmg.tab.TabbedFileReader;
+import org.qcmg.tab.StringFileReader;
 import org.qcmg.tab.TabbedHeader;
 import org.qcmg.tab.TabbedRecord;
 
@@ -43,7 +43,7 @@ public class MafFinalFilter {
 	}
 	
 	private void filterMafFile(String inputFile, String outputMafFile) throws Exception {
-		TabbedFileReader reader = new TabbedFileReader(new File(inputFile));
+		StringFileReader reader = new StringFileReader(new File(inputFile));
 		
 		TabbedHeader header = reader.getHeader();
 		FileWriter writer = new FileWriter(new File(outputMafFile), false);

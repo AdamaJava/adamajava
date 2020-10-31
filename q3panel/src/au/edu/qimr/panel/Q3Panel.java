@@ -90,7 +90,7 @@ import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils.VcfInfoType;
 import org.qcmg.qmule.SmithWatermanGotoh;
 
-import org.qcmg.tab.TabbedFileReader;
+import org.qcmg.tab.StringFileReader;
 import org.qcmg.tab.TabbedHeader;
 import org.qcmg.tab.TabbedRecord;
 import org.qcmg.vcf.VCFFileReader;
@@ -391,7 +391,7 @@ public class Q3Panel {
 					
 			logger.info("Number of unique chromosomes in bed file: " + uniqueChrs.size());
 			
-			try (TabbedFileReader reader = new TabbedFileReader(new File(geneTranscriptsFile))) {
+			try (StringFileReader reader = new StringFileReader(new File(geneTranscriptsFile))) {
 				String currentTranscriptId = null;
 				for (TabbedRecord rec : reader) {
 					String contig = rec.getData().substring(0, rec.getData().indexOf(Constants.TAB));
@@ -672,7 +672,7 @@ public class Q3Panel {
 		 */
 		if (bedFile != null && new File(bedFile).exists()) {
 			int bedId = 0;
-			try (TabbedFileReader reader = new TabbedFileReader(new File(bedFile));) {
+			try (StringFileReader reader = new StringFileReader(new File(bedFile));) {
 				for (TabbedRecord rec : reader) {
 					String [] params = TabTokenizer.tokenize(rec.getData());
 					ChrPosition cp = new ChrRangePosition(params[0], Integer.parseInt(params[1]), Integer.parseInt(params[2]));
@@ -1394,7 +1394,7 @@ public class Q3Panel {
 		
 		logger.info("loading genome tiles alignment data");
 		
-		try (TabbedFileReader reader = new TabbedFileReader(new File(refTiledAlignmentFile))) {
+		try (StringFileReader reader = new StringFileReader(new File(refTiledAlignmentFile))) {
 			
 			TabbedHeader header = reader.getHeader();
 			List<String> headerList = new ArrayList<>();

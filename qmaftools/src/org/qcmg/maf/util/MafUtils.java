@@ -39,7 +39,7 @@ import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.maf.QMafException;
 import org.qcmg.picard.util.PileupElementUtil;
 import org.qcmg.picard.util.QDccMetaFactory;
-import org.qcmg.tab.TabbedFileReader;
+import org.qcmg.tab.StringFileReader;
 import org.qcmg.tab.TabbedHeader;
 import org.qcmg.tab.TabbedRecord;
 
@@ -86,7 +86,7 @@ public class MafUtils {
 	}
 	
 	public static void loadEntrezMapping(String fileName, Map<String, Set<Integer>> ensemblToEntrez) throws Exception {
-		TabbedFileReader reader = new TabbedFileReader(new File(fileName));
+		StringFileReader reader = new StringFileReader(new File(fileName));
 		try {
 			int count = 0;
 			for (TabbedRecord rec : reader) {
@@ -120,7 +120,7 @@ public class MafUtils {
 	}
 	
 	public static void loadCanonicalTranscriptMapping(String fileName, Map<String, String> ensemblGeneToCanonicalTranscript) throws Exception {
-		TabbedFileReader reader = new TabbedFileReader(new File(fileName));
+		StringFileReader reader = new StringFileReader(new File(fileName));
 		try {
 			int count = 0;
 			for (TabbedRecord rec : reader) {
@@ -151,7 +151,7 @@ public class MafUtils {
 	}
 	
 	public static void getVerifiedData(String fileName, String patientId, Map<String, Map<ChrPosition, TorrentVerificationStatus>> verifiedData) throws Exception {
-		TabbedFileReader reader = new TabbedFileReader(new File(fileName));
+		StringFileReader reader = new StringFileReader(new File(fileName));
 		try {
 			int verifiedYes = 0, verifiedNo = 0;
 			for (TabbedRecord rec : reader) {
@@ -196,7 +196,7 @@ public class MafUtils {
 				snpIdMap.put(maf.getDbSnpId(), maf);
 		}
 		
-		TabbedFileReader reader = new TabbedFileReader(new File(fileName));
+		StringFileReader reader = new StringFileReader(new File(fileName));
 		try {
 			
 			for (TabbedRecord rec : reader) {
@@ -337,7 +337,7 @@ public class MafUtils {
 	}
 	
 	public static void loadDCCFile(File fileName, String patientId, Map<ChrPosition, TorrentVerificationStatus> verifiedData, List<MAFRecord> mafs, Map<String, Set<Integer>> ensemblToEntrez, MutationType type) throws Exception {
-		TabbedFileReader reader = new TabbedFileReader(fileName);
+		StringFileReader reader = new StringFileReader(fileName);
 		TabbedHeader header = reader.getHeader();
 		
 		// should be able to glean some useful info from the header
@@ -412,7 +412,7 @@ public class MafUtils {
 			List<MAFRecord> mafs, Map<String, Set<Integer>> ensemblToEntrez, MafType mafType) throws IOException, Exception {
 		
 		
-		try (TabbedFileReader reader = new TabbedFileReader(new File(dccqFile));) {
+		try (StringFileReader reader = new StringFileReader(new File(dccqFile));) {
 			TabbedHeader header = reader.getHeader();
 			
 			QDccMeta dccMeta = QDccMetaFactory.getDccMeta(header);
@@ -1118,7 +1118,7 @@ public class MafUtils {
 	
 	
 	public static void loadPositionsOfInterest(String mafFile, Collection<ChrPosition> positionsOfInterest ) throws Exception {
-		TabbedFileReader reader = new TabbedFileReader(new File(mafFile));
+		StringFileReader reader = new StringFileReader(new File(mafFile));
 		try {
 			
 			int count = 0;

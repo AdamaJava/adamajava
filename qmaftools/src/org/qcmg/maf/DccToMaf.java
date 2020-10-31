@@ -20,7 +20,7 @@ import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.TorrentVerificationStatus;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.maf.util.MafUtils;
-import org.qcmg.tab.TabbedFileReader;
+import org.qcmg.tab.StringFileReader;
 import org.qcmg.tab.TabbedHeader;
 import org.qcmg.tab.TabbedRecord;
 
@@ -95,7 +95,7 @@ public class DccToMaf {
 	}
 	
 	private void getPatientId(String fileName) throws Exception {
-		TabbedFileReader reader = new TabbedFileReader(new File(fileName));
+		StringFileReader reader = new StringFileReader(new File(fileName));
 		TabbedHeader header = reader.getHeader();
 		
 		try {
@@ -109,7 +109,7 @@ public class DccToMaf {
 	}
 	
 	private void loadFile(String fileName) throws Exception {
-		TabbedFileReader reader = new TabbedFileReader(new File(fileName));
+		StringFileReader reader = new StringFileReader(new File(fileName));
 		TabbedHeader header = reader.getHeader();
 		
 		// should be able to glean some useful info from the header

@@ -8,7 +8,7 @@ import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.qcmg.common.util.Pair;
-import org.qcmg.gff3.GFF3Record;
+import org.qcmg.gff3.Gff3Record;
 
 public class CoverageJobTest {
 	
@@ -17,10 +17,10 @@ public class CoverageJobTest {
 	
 	@Test
 	public void testConstructCoverageMap() throws Exception {
-		HashSet<GFF3Record> features = new HashSet<GFF3Record>();
-		HashMap<String, HashSet<GFF3Record>> refToFeaturesMap = new HashMap<String, HashSet<GFF3Record>>();
+		HashSet<Gff3Record> features = new HashSet<Gff3Record>();
+		HashMap<String, HashSet<Gff3Record>> refToFeaturesMap = new HashMap<String, HashSet<Gff3Record>>();
 		
-		GFF3Record gff = new GFF3Record();
+		Gff3Record gff = new Gff3Record();
 		gff.setStart(100);
 		gff.setEnd(200);
 		
@@ -54,14 +54,14 @@ public class CoverageJobTest {
 	}
 	@Test
 	public void testConstructCoverageMapManyFeatures() throws Exception {
-		HashSet<GFF3Record> features = new HashSet<GFF3Record>();
-		HashMap<String, HashSet<GFF3Record>> refToFeaturesMap = new HashMap<String, HashSet<GFF3Record>>();
+		HashSet<Gff3Record> features = new HashSet<Gff3Record>();
+		HashMap<String, HashSet<Gff3Record>> refToFeaturesMap = new HashMap<String, HashSet<Gff3Record>>();
 		
 		int gffRange = 100;
 		
 		for (int i = 1 ; i < 1000 ; i++) {
 			int startPosition = i *  1000;
-			GFF3Record gff = new GFF3Record();
+			Gff3Record gff = new Gff3Record();
 			gff.setStart(startPosition);
 			gff.setEnd(startPosition + gffRange);
 			features.add(gff);
@@ -78,7 +78,7 @@ public class CoverageJobTest {
 		constructCoverageMapOld(arrayOld, features);
 		
 		Assert.assertEquals(arraySize, arrayNew.length);
-		for (GFF3Record gff : features) {
+		for (Gff3Record gff : features) {
 			int start = gff.getStart() -1;
 			int end = gff.getEnd();
 			for (int i = start ; i < end && i < arraySize; i++) {
@@ -96,14 +96,14 @@ public class CoverageJobTest {
 	
 	@Ignore
 	public void testConstructCoverageMapPerformance() throws Exception {
-		HashSet<GFF3Record> features = new HashSet<GFF3Record>();
-		HashMap<String, HashSet<GFF3Record>> refToFeaturesMap = new HashMap<String, HashSet<GFF3Record>>();
+		HashSet<Gff3Record> features = new HashSet<Gff3Record>();
+		HashMap<String, HashSet<Gff3Record>> refToFeaturesMap = new HashMap<String, HashSet<Gff3Record>>();
 		
 		int gffRange = 100;
 		
 		for (int i = 1 ; i < 10000 ; i++) {
 			int startPosition = i *  1000;
-			GFF3Record gff = new GFF3Record();
+			Gff3Record gff = new Gff3Record();
 			gff.setStart(startPosition);
 			gff.setEnd(startPosition + gffRange);
 			features.add(gff);
@@ -124,7 +124,7 @@ public class CoverageJobTest {
 		System.out.println("Old: " + (System.nanoTime() - startTime));
 		
 		Assert.assertEquals(arraySize, arrayNew.length);
-		for (GFF3Record gff : features) {
+		for (Gff3Record gff : features) {
 			int start = gff.getStart() -1;
 			int end = gff.getEnd();
 			for (int i = start ; i < end && i < arraySize; i++) {
@@ -155,13 +155,13 @@ public class CoverageJobTest {
 	}
 	
 	
-	private void constructCoverageMapOld(int [] perBaseCoverages, HashSet<GFF3Record> features) {
+	private void constructCoverageMapOld(int [] perBaseCoverages, HashSet<Gff3Record> features) {
 		// Initially set all values to -1 for no coverage at that coordinate
 		for (int i = 0; i < perBaseCoverages.length; i++) {
 			perBaseCoverages[i] = -1;
 		}
 		// For all coordinates where a feature exists, set to zero coverage
-		for (GFF3Record feature : features) {
+		for (Gff3Record feature : features) {
 			for (int coord = feature.getStart(); coord <= feature.getEnd(); coord++) {
 				// GFF3 format uses 1-based feature coordinates; avoid problem
 				// of GFF3 accidentally containing 0 coordinate

@@ -74,7 +74,7 @@ import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
-import org.qcmg.tab.TabbedFileReader;
+import org.qcmg.tab.StringFileReader;
 import org.qcmg.tab.TabbedHeader;
 import org.qcmg.tab.TabbedRecord;
 import org.qcmg.vcf.VCFFileWriter;
@@ -483,7 +483,7 @@ public class Q3ClinVar {
 		
 		logger.info("loading genome tiles alignment data");
 		
-		try (TabbedFileReader reader = new TabbedFileReader(new File(refTiledAlignmentFile))) {
+		try (StringFileReader reader = new StringFileReader(new File(refTiledAlignmentFile))) {
 			
 			TabbedHeader header = reader.getHeader();
 			List<String> headerList = new ArrayList<>();

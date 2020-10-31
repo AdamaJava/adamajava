@@ -18,7 +18,7 @@ import java.util.concurrent.ConcurrentMap;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.util.Constants;
-import org.qcmg.gff3.GFF3Record;
+import org.qcmg.gff3.Gff3Record;
 import org.qcmg.qsv.blat.BLAT;
 import org.qcmg.qsv.discordantpair.DiscordantPairCluster;
 import org.qcmg.qsv.discordantpair.QPrimerCategory;
@@ -1085,7 +1085,7 @@ public class QSVCluster {
 	 * see if it overlaps with a region in the gff file
 	 * @param gffMap map of the gff3 records to compare the SV against
 	 */
-	public void checkGFF(Map<String, List<GFF3Record>> gffMap) {
+	public void checkGFF(Map<String, List<Gff3Record>> gffMap) {
 		String ref1 = leftReference;
 		String ref2 = rightReference;
 		if (getOrientationCategory().equals(QSVConstants.ORIENTATION_2)) {
@@ -1094,12 +1094,12 @@ public class QSVCluster {
 		}                                                    
 		List<String> features = new ArrayList<>();
 		if (!ref1.equals(ref2)) {
-			List<GFF3Record> leftRecords = gffMap.get(ref1);
-			List<GFF3Record> rightRecords = gffMap.get(ref2);
+			List<Gff3Record> leftRecords = gffMap.get(ref1);
+			List<Gff3Record> rightRecords = gffMap.get(ref2);
 			features.addAll(findGFFFeatureOverlap("pos1", leftRecords, (getFinalLeftBreakpoint())));
 			features.addAll(findGFFFeatureOverlap("pos2", rightRecords, (getFinalRightBreakpoint())));
 		} else {
-			List<GFF3Record> records = gffMap.get(leftReference);
+			List<Gff3Record> records = gffMap.get(leftReference);
 			features.addAll(findGFFFeatureOverlap("pos1", records, (getFinalLeftBreakpoint())));
 			features.addAll(findGFFFeatureOverlap("pos2", records, (getFinalRightBreakpoint())));			
 		}
@@ -1119,10 +1119,10 @@ public class QSVCluster {
 	/*
 	 * Find overlap between SV breakpoint and GFF feature 
 	 */
-	private List<String> findGFFFeatureOverlap(String pos, List<GFF3Record> gffRecords, int breakpoint) {
+	private List<String> findGFFFeatureOverlap(String pos, List<Gff3Record> gffRecords, int breakpoint) {
 		List<String> features = new ArrayList<>();
 		if (gffRecords != null) {
-			for (GFF3Record r: gffRecords) {
+			for (Gff3Record r: gffRecords) {
 				if (breakpoint >= r.getStart() && breakpoint <= r.getEnd()) {
 					features.add(pos + "=" + r.getType());				
 				}

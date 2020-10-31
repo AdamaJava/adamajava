@@ -46,12 +46,12 @@ import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.Pair;
 import org.qcmg.common.util.SnpUtils;
-import org.qcmg.gff3.GFF3FileReader;
-import org.qcmg.gff3.GFF3Record;
+import org.qcmg.gff3.Gff3FileReader;
+import org.qcmg.gff3.Gff3Record;
 import org.qcmg.maf.util.MafUtils;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.util.SAMUtils;
-import org.qcmg.tab.TabbedFileReader;
+import org.qcmg.tab.StringFileReader;
 import org.qcmg.tab.TabbedHeader;
 import org.qcmg.tab.TabbedRecord;
 
@@ -284,9 +284,9 @@ public abstract class MafPipeline {
 			
 			File f = filePair.getLeft();
 			somGerm = f.getAbsolutePath().contains("Somatic") ? "Somatic" :  f.getAbsolutePath().contains("Germline") ? "Germline" : "";
-			TabbedFileReader reader = null;
+			StringFileReader reader = null;
 			try {
-				reader = new TabbedFileReader(f);
+				reader = new StringFileReader(f);
 				header = reader.getHeader();
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -296,9 +296,9 @@ public abstract class MafPipeline {
 		} else if (filePair.getRight() != null) {
 			File f = filePair.getRight();
 			somGerm = f.getAbsolutePath().contains("Somatic") ? "Somatic" :  f.getAbsolutePath().contains("Germline") ? "Germline" : "";
-			TabbedFileReader reader = null;
+			StringFileReader reader = null;
 			try {
-				reader = new TabbedFileReader(f);
+				reader = new StringFileReader(f);
 				header = reader.getHeader();
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -543,11 +543,11 @@ public abstract class MafPipeline {
 		// if file is null, skip this stage
 		if ( ! StringUtils.isNullOrEmpty(gffFile) && ! gffs.isEmpty()) {
 			logger.info("number of records requiring gff data: " + gffs.size());
-			GFF3FileReader reader = new GFF3FileReader(new File(gffFile));
+			Gff3FileReader reader = new Gff3FileReader(new File(gffFile));
 	//		Map<String, Map<ChrPosition, String>> gffTypes = new HashMap<String, Map<ChrPosition, String>>();
 			try {
 				int  count = 0, updatedCount  = 0;
-				for (GFF3Record rec : reader) {
+				for (Gff3Record rec : reader) {
 					String chr = rec.getSeqId();
 					
 					ChrPosition cp = new ChrRangePosition(chr, rec.getStart(), rec.getEnd());
@@ -615,7 +615,7 @@ public abstract class MafPipeline {
 	}
 
 	void loadKRASData() throws Exception {
-		TabbedFileReader reader = new TabbedFileReader(new File(krasFile));
+		StringFileReader reader = new StringFileReader(new File(krasFile));
 		try {
 			int count = 0, validCount = 0, alreadyPresent = 0, alreadyPresentSameVerification = 0;
 			

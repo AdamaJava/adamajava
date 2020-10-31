@@ -23,7 +23,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.qcmg.common.commandline.Executor;
 import org.qcmg.gff3.GFF3FileWriter;
-import org.qcmg.gff3.GFF3Record;
+import org.qcmg.gff3.Gff3Record;
 
 public class MultiBamPhysicalCoverageTest {
 	
@@ -33,7 +33,7 @@ public class MultiBamPhysicalCoverageTest {
 	static String inputBai2;
 	static Path tmpDir;
 	private File fOutput;
-	static GFF3Record record;
+	static Gff3Record record;
 	
 	@Rule
 	public ExpectedException thrown = ExpectedException.none();
@@ -48,7 +48,7 @@ public class MultiBamPhysicalCoverageTest {
 		 SequenceCoverageTest.createCoverageBam(inputBam, SequenceCoverageTest.getAACSAMRecords(SortOrder.coordinate), SequenceCoverageTest.createSamHeaderObject(SortOrder.coordinate));
 		 SequenceCoverageTest.createCoverageBam(inputBam2, SequenceCoverageTest.getAACSAMRecords(SortOrder.coordinate), SequenceCoverageTest.createSamHeaderObject(SortOrder.coordinate));
 		 
-		record = new GFF3Record();
+		record = new Gff3Record();
 		record.setSeqId("chr1");
 		record.setType("exon");
 		record.setScore(".");
