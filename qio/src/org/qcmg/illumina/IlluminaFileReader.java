@@ -41,7 +41,7 @@ public final class IlluminaFileReader extends RecordReader<IlluminaRecord> {
     }
  
 	@Override
-	public IlluminaRecord readRecord(String line) throws Exception {
+	public IlluminaRecord getRecord(String line) throws Exception {
 		String[] dataArray = TabTokenizer.tokenize(line);
 		
 		// raw Illumina data has 32 fields... and the first one is an integer

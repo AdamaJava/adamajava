@@ -34,13 +34,13 @@ public class GffReaderTest {
 		
 			// test empty string
 			try {
-				reader.readRecord("");
+				reader.getRecord("");
 				Assert.fail("Should have thrown an Exception");
 			} catch (Exception e) {
 				Assert.assertEquals("Not enough fields in the Record", e.getMessage());
 			}
 			try {
-				reader.readRecord("								");
+				reader.getRecord("								");
 				Assert.fail("Should have thrown an Exception");
 			} catch (Exception e) {
 				Assert.assertEquals("Not enough fields in the Record", e.getMessage());
@@ -48,7 +48,7 @@ public class GffReaderTest {
 			
 			// test null
 			try {
-				reader.readRecord(null);
+				reader.getRecord(null);
 				Assert.fail("Should have thrown an Exception");
 			} catch (AssertionError e) {
 				Assert.assertEquals("Record was null", e.getMessage());
@@ -56,7 +56,7 @@ public class GffReaderTest {
 			
 			// string with fewer than 8 entries
 			try {
-				reader.readRecord("1	2	3	4	5	6	");
+				reader.getRecord("1	2	3	4	5	6	");
 				Assert.fail("Should have thrown an Exception");
 			} catch (Exception e) {
 				Assert.assertEquals("Not enough fields in the Record", e.getMessage());
@@ -70,20 +70,20 @@ public class GffReaderTest {
 		GffReader reader = new GffReader(EMPTY_FILE);		
 		// test null
 		try {
-			reader.readRecord(null);
+			reader.getRecord(null);
 			Assert.fail("Should have thrown an exception");
 		} catch (AssertionError e) {
 			Assert.assertEquals("Record was null", e.getMessage());
 		}
 		// test empty string
 		try {
-			reader.readRecord("");
+			reader.getRecord("");
 			Assert.fail("Should have thrown an Exception");
 		} catch (Exception e) {
 			Assert.assertEquals("Not enough fields in the Record", e.getMessage());
 		}
 		try {
-			reader.readRecord("								");
+			reader.getRecord("								");
 			Assert.fail("Should have thrown an Exception");
 		} catch (Exception e) {
 			Assert.assertEquals("Not enough fields in the Record", e.getMessage());
@@ -96,7 +96,7 @@ public class GffReaderTest {
 	public void testParseRecord() throws Exception {
 		try (GffReader reader = new GffReader(EMPTY_FILE);){
 			// 8 values
-			GffRecord record = reader.readRecord("this	is	a	0	1	0.0	works	OK");
+			GffRecord record = reader.getRecord("this	is	a	0	1	0.0	works	OK");
 			Assert.assertNotNull(record);
 			Assert.assertEquals("this", record.getSeqname());
 			Assert.assertEquals("OK", record.getFrame());		
@@ -108,7 +108,7 @@ public class GffReaderTest {
 		try (GffReader reader = new GffReader(EMPTY_FILE);	){
 			
 			// real record containing attributes
-			GffRecord record = reader.readRecord("1	solid	read	10148	10190	14.4	-	.	" +
+			GffRecord record = reader.getRecord("1	solid	read	10148	10190	14.4	-	.	" +
 					"aID=1212_1636_246;at=F3;b=GGTTAGGGTTAGGTTAGGGTTAGGGTTAGGGTTAGGGTTAGGG;" +
 					"g=G0103200103201032001033001032001032001032001032001;mq=43;o=0;" +
 					"q=31,30,32,26,26,26,23,24,29,31,31,23,25,18,14,20,18,11,27,22,18,23,2,18,29,20,25,11,19,18," +
@@ -128,7 +128,7 @@ public class GffReaderTest {
 	@Test
 	public void testParseRecordWithInvalidAttributes() throws Exception {
 		try (GffReader reader = new GffReader(EMPTY_FILE);	){
-			reader.readRecord("sequence	source	feature	0	1	99.99	strand	frame	attributes");
+			reader.getRecord("sequence	source	feature	0	1	99.99	strand	frame	attributes");
 			Assert.fail("Should have thrown an exception");
 		} catch (Exception e) {
 			Assert.assertEquals("Attribute [attributes] is badly formed", e.getMessage());

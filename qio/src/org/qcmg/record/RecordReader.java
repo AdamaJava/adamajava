@@ -55,7 +55,7 @@ public abstract class RecordReader<T> implements Closeable, Iterable<T> {
 
 		//get first record, set to null for empty file
 		try {
-			next = nextLine == null? null : readRecord(nextLine);
+			next = nextLine == null? null : getRecord(nextLine);
 		}catch(Exception e) {
 			throw new IOException("error during retrive first record " + e.getMessage());
 		}
@@ -114,7 +114,7 @@ public abstract class RecordReader<T> implements Closeable, Iterable<T> {
             		//get next record, it may read  multi lines
             		String line = bin.readLine();           		
             		if(line != null ) {
-            			next = readRecord( line );
+            			next = getRecord( line );
             		}
             		
            			return rec;
@@ -128,7 +128,7 @@ public abstract class RecordReader<T> implements Closeable, Iterable<T> {
     }	
 	
 	//some record cross multi lines, eg id\nseq\n, this method may call bin.readLine() inside
-	public abstract T readRecord(String line) throws Exception;
+	public abstract T getRecord(String line) throws Exception;
 
 
 }

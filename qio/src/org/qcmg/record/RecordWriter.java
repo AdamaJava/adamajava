@@ -10,6 +10,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.util.List;
 import java.util.zip.GZIPOutputStream;
 import org.qcmg.common.util.FileUtils;
 
@@ -32,6 +33,11 @@ public final class RecordWriter<T> implements Closeable {
 		bos.write(header);
 		//String NEW_LINE = System.getProperty("line.separator");same to below
 		bos.newLine();
+	}
+	public void addHeader(List<String> header) throws IOException {
+		for(String str : header) {
+			addHeader(str);
+		}
 	}
 	
 	public void add(final T record) throws IOException {

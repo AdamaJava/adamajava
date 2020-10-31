@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <appender name="STDOUT" class="io.symphonia.lambda.logging.DefaultConsoleAppender">
+        <encoder>
+            <pattern>[%date{ISO8601}] %X{AWSRequestId:-NO-REQUEST-ID} %-5.-5level %logger{5} - %msg%n</pattern>
+        </encoder>
+    </appender>
+    <root level="info">
+        <appender-ref ref="STDOUT" />
+    </root>
+</configuration>

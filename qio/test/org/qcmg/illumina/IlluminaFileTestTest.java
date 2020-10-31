@@ -46,25 +46,25 @@ public class IlluminaFileTestTest {
 
 		try {
 			// test empty string
-			reader.readRecord("");
+			reader.getRecord("");
 			Assert.fail("Should have thrown an Exception");
 		} catch (Exception e) {}
 		
 		// string that does not start with 'chr' 
 		try {
-			reader.readRecord("testing testing 123");
+			reader.getRecord("testing testing 123");
 			Assert.fail("Should have thrown an Exception");
 		} catch (Exception e) {}
 		
 		// string containing 'chr' but not at the start..
 		try {
-			reader.readRecord("this is a chr1 test");
+			reader.getRecord("this is a chr1 test");
 			Assert.fail("Should have thrown an Exception");
 		} catch (Exception e) {}
 		
 		// string that is not the right length
 		try {
-			reader.readRecord(invalidInputString);
+			reader.getRecord(invalidInputString);
 			Assert.fail("Should have thrown an Exception");
 		} catch (Exception e) {
 			Assert.assertEquals(true, e.getMessage().startsWith("Bad Illumina data format"));
@@ -80,7 +80,7 @@ public class IlluminaFileTestTest {
 
 		// real record
 		// inputString = "chr12	126890980	-	rs1000000	0.8379	C	C	hom	[T/C]	G__C/T";
-		IlluminaRecord record = reader.readRecord(rawInputString);
+		IlluminaRecord record = reader.getRecord(rawInputString);
 		Assert.assertNotNull(record);
 		Assert.assertEquals("4", record.getChr());	// we now parse chr and position for Illumina records 
 		Assert.assertEquals(77661528, record.getStart());

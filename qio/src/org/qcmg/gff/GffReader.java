@@ -13,7 +13,7 @@ public final class GffReader extends RecordReader<GffRecord> {
 	}
 
 	@Override
-	public GffRecord readRecord(String line) throws Exception {
+	public GffRecord getRecord(String line) throws Exception {
 		if (null == line) {
 			throw new AssertionError("Record was null");
 		}

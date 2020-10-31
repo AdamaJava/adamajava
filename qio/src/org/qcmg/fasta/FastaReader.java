@@ -13,7 +13,6 @@ import org.qcmg.record.RecordReader;
  *
  */
 public final class FastaReader extends RecordReader<FastaRecord> {
-	private static final String ID_PREFIX = ">";
 	private static final String HEADER_PREFIX = "#";
 		
 	public FastaReader(File file) throws Exception {
@@ -21,20 +20,13 @@ public final class FastaReader extends RecordReader<FastaRecord> {
 	}
 
 	@Override
-	public FastaRecord readRecord(String line) throws Exception {
+	/**
+	 * it has to read two line to construct one record
+	 */
+	public FastaRecord getRecord(String line) throws Exception {
 		String id = line;
 		String seq = bin.readLine();
-		
-		//id start with <
-		if ( ! id.startsWith(ID_PREFIX)) {
-			throw new Exception("Bad id format: " + id);
-		}
-		
-		//seq should not start with < 
-		if (seq.startsWith(ID_PREFIX)) {
-			throw new Exception("Bad sequence format: " + seq);
-		}
-				
+						
 		return new FastaRecord(id, seq);
 	}
 }

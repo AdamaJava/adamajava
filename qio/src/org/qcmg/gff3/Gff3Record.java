@@ -3,8 +3,9 @@
  */
 package org.qcmg.gff3;
 
+import org.qcmg.common.util.TabTokenizer;
 
-public class GFF3Record {
+public class Gff3Record {
 
     protected String seqId;
     protected String source;
@@ -16,6 +17,27 @@ public class GFF3Record {
     protected String phase;
     protected String attributes;
     protected String rawData;
+    
+    public Gff3Record() {}
+	public Gff3Record(final String line) throws Exception {
+		String[] params = TabTokenizer.tokenize(line);
+		if (8 > params.length) {
+			throw new Exception("Bad GFF3 format. Insufficient columns: '" + line + "'");
+		}
+		 
+		setRawData(line);
+		setSeqId(params[0]);
+		setSource(params[1]);
+		setType(params[2]);
+		setStart(Integer.parseInt(params[3]));
+		setEnd(Integer.parseInt(params[4]));
+		setScore(params[5]);
+		setStrand(params[6]);
+		setPhase(params[7]);
+		if (8 < params.length) {
+			setAttributes(params[8]);
+		}		 
+	} 
 
     /**
      * Gets the value of the seqId property.

@@ -4,7 +4,6 @@
 package org.qcmg.illumina;
 
 import org.qcmg.common.string.StringUtils;
-import org.qcmg.common.util.TabTokenizer;
 
 public class IlluminaRecord  {
 	
@@ -43,7 +42,6 @@ public class IlluminaRecord  {
 	 * @throws Exception 
 	 */
 	public IlluminaRecord(String [] rawIlluminaData) {
-
 		// chromosome and position defined in the raw Illumina data file relate to an old version
 		// of the genome (hg18), so instead, we use the dbSNP id to get the more recent 
 		//(hg19) chromosome and position details from the dbSNP file at a later date

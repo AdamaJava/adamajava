@@ -3,15 +3,20 @@
  */
 package org.qcmg.tab;
 
+import org.qcmg.common.util.TabTokenizer;
 
 public class TabbedRecord {
 	private String data;
+	
+	public TabbedRecord(String line) { this.data = line;};
 	
 	public String getData() {
 		return data;
 	}
 	public String[] getDataArray() {
-		return data.replace("\"", "").split("\t");
+		return TabTokenizer.tokenize(data);
+				
+			//	data.replace("\"", "").split("\t");
 	}
 	public void setData(String data) {
 		this.data = data;

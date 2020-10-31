@@ -13,25 +13,38 @@ package org.qcmg.fasta;
  *  @author oholmes christina
  */
 public class FastaRecord {
+	private static final String ID_PREFIX = ">";
 
 	private String id;
 	private String data;
 	
-	public FastaRecord(String id, String data) {
-		this.id = id;
-		this.data = data;
+	public FastaRecord(String id, String data) throws Exception {
+		setId(id);
+		setData(data);		
 	}
 	
-	public void setId(String id) {
+	public FastaRecord() {}
+
+	public void setId(String id) throws Exception {
+		//id start with <
+		if ( ! id.startsWith(ID_PREFIX)) {
+			throw new Exception("Bad id format: " + id);
+		}
 		this.id = id;
 	}
+	
 	public String getId() {
 		return id;
 	}
 	
-	public void setData(String data) {
+	public void setData(String data) throws Exception {
+		//seq should not start with < 
+		if (data.startsWith(ID_PREFIX)) {
+			throw new Exception("Bad sequence format: " + data);
+		}
 		this.data = data;
 	}
+	
 	public String getData() {
 		return data;
 	}
