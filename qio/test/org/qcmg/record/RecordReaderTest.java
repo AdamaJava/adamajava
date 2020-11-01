@@ -27,8 +27,8 @@ public class RecordReaderTest {
 	public void headerFileTest() throws IOException {		
 		//'<>' cannot be used with anonymous classes but it is included java 9
 		try(StringFileReader reader = new StringFileReader(VCF_INPUT_FILE)) {
-			//no header line
-			assertEquals(reader.getHeader().size(), 0);			
+			//3 header line start with #
+			assertEquals(reader.getHeader().size(), 3);			
 		} 
 			
 		try(StringFileReader reader = new StringFileReader(VCF_INPUT_FILE, "#")) {			 

@@ -30,6 +30,7 @@ import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.dbsnp.Dbsnp130Record;
 import org.qcmg.dbsnp.DbsnpFileReader;
+//import org.qcmg.dbsnp.DbsnpFileReader;
 import org.qcmg.gff3.Gff3FileReader;
 import org.qcmg.gff3.Gff3Record;
 import org.qcmg.illumina.IlluminaFileReader;
@@ -139,30 +140,20 @@ public class SnpPicker {
 
 	private void loadChromosomeConversionData() {
 		String chrConvFile = cmdLineInputFiles[4];
-		ChrConvFileReader reader = null;
-		try {
-			reader = new ChrConvFileReader(new File(chrConvFile));
+ 
+		try(ChrConvFileReader reader = new ChrConvFileReader(new File(chrConvFile));) {
+			for (ChromosomeConversionRecord record : reader) {
+				// add extra map inserts here as required
+				// diBayes field is no longer present in chr conv file
+				// gffToQCMG.put(record.getDiBayes(), record.getQcmg());
+				// guessing we want ensemble in here as the key
+				gffToQCMG.put(record.getEnsembleV55(), record.getQcmg());
+			}			
 		} catch (Exception e) {
 			logger.error("Exception caught whilst trying to instantiate ChrConvFileReader", e);
 			exitStatus = -1;
 		}
-		
-		if (null != reader) {
-			for (ChromosomeConversionRecord record : reader) {
-				// add extra map inserts here as required
-				// diBayes field is no longer present in chr conv file
-//				gffToQCMG.put(record.getDiBayes(), record.getQcmg());
-				// guessing we want ensemble in here as the key
-				gffToQCMG.put(record.getEnsembleV55(), record.getQcmg());
-			}
-			
-			try {
-				reader.close();
-			} catch (IOException e) {
-				logger.error("IOException caught whilst trying to close ChrConvFileReader", e);
-				exitStatus = -1;
-			}
-		}
+		 
 	}
 
 	private void displayStats() {
@@ -298,26 +289,13 @@ public class SnpPicker {
 		return result;
 	}
 	
-	private boolean doStringsMatch(String a, String b) {
-		return null == a ? false : a.equals(b);
-	}
-
 	private void loadDbSnpData() {
-		// update records with dbsnp info
-		// should be second of the input files
+		// update records with dbsnp info, should be second of the input files
 		String dbSNPFile = cmdLineInputFiles[3];
-		DbsnpFileReader dbSNPReader = null;
-		try {
-			dbSNPReader = new DbsnpFileReader(new File(dbSNPFile));
-		} catch (Exception e) {
-			logger.error("Error caught whilst trying to instantiate DbsnpFileReader", e);
-			exitStatus = -1;
-		}
 
 		int updateCount = 0;
 		int noOfDbSnps = 0;
-		if (null != dbSNPReader) {
-			
+		try (DbsnpFileReader dbSNPReader = new DbsnpFileReader(new File(dbSNPFile));){
 			ChrPosition varId;
 			VariantRecord varRec;
 			IlluminaRecord illRec;
@@ -330,7 +308,7 @@ public class SnpPicker {
 					if (null != illRec.getChr()) {
 						logger.info("illumina rec: " + illRec.getChr() + ":" + illRec.getStart() + ":" + illRec.getSnpId() +" has already been updated - dbSNP: " + rec.getChromosome() + ":" + rec.getChromosomePosition() + ":" + rec.getRefSnp());
 						// dbSNP id has more than 1 chr and position - create another IlluminaRecord in the variantMap
-						//TODO deal with multiple dbSnps for same id here!!!
+						// deal with multiple dbSnps for same id here!!!
 					} else {
 						updateIlluminaRecord(illRec, rec);
 					}
@@ -361,56 +339,14 @@ public class SnpPicker {
 			}
 			
 			logger.info("match count for dbSnp and Illumina: " + illuminaDbSnpCount);
-			
-			try {
-				dbSNPReader.close();
-			} catch (IOException e) {
-				logger.error("IOException caught whilst trying to close DbsnpFileReader", e);
-				exitStatus = -1;
-			}
+		
+		} catch (Exception e) {
+			logger.error("Error caught whilst trying to instantiate DbsnpFileReader", e);
+			exitStatus = -1;
 		}
 		
 		logger.info("No of dbSnp records: " + noOfDbSnps + " in file: " + dbSNPFile);
 		logger.info("No of updated variant records: " + updateCount);
-	}
-	
-	private void loadVCFData() {
-		String vcfFile = cmdLineInputFiles[2];
-		VCFFileReader reader = null;
-		try {
-			reader = new VCFFileReader(new File(vcfFile));
-		} catch (Exception e) {
-			logger.error("Error caught whilst trying to instantiate VCFFileReader", e);
-			exitStatus = -1;
-		}
-		
-		if (null != reader) {
-			int vcfCount = 0;
-			ChrPosition id;
-			VariantRecord value;
-			
-			for (VcfRecord rec : reader) {
-				
-				id = ChrPointPosition.valueOf(rec.getChromosome(), rec.getPosition());
-				
-				value = variantMap.get(id);
-				if (null == value) {
-					value = new VariantRecord();
-					variantMap.put(id, value);
-				}
-				value.setVcfRef(rec.getRefChar());
-				value.setVcfAlt(rec.getAlt().charAt(0));
-				value.setVcfGenotype(VcfUtils.getGenotypeFromGATKVCFRecord(rec));
-				vcfCount++;
-			}
-			logger.info("there were " + vcfCount + " records in the vcf file");
-			try {
-				reader.close();
-			} catch (IOException e) {
-				logger.error("IOException caught whilst trying to close VCFFileReader", e);
-				exitStatus = -1;
-			}
-		}
 	}
 	
 	private void loadQSnpData() {
