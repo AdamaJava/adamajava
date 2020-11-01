@@ -5,8 +5,7 @@ package org.qcmg.gff3;
 
 import java.util.Comparator;
 
-public class GFF3RecordPositionComparator implements
-		Comparator<Gff3Record> {
+public class GFF3RecordPositionComparator implements Comparator<Gff3Record> {
 	public int compare(Gff3Record recordA, Gff3Record recordB) {
 		return compareStart(recordA, recordB) + compareEnd(recordA, recordB);
 	}

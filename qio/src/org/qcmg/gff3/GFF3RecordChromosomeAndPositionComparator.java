@@ -7,8 +7,7 @@ import java.util.Comparator;
 
 import org.qcmg.common.model.ReferenceNameComparator;
 
-public class GFF3RecordChromosomeAndPositionComparator implements
-		Comparator<Gff3Record> {
+public class GFF3RecordChromosomeAndPositionComparator implements Comparator<Gff3Record> {
 	
 	private static final Comparator<String> chrComp = new ReferenceNameComparator();
 	

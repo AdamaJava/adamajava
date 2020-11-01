@@ -2,11 +2,14 @@ package org.qcmg.record;
 
 import java.io.File;
 import java.io.IOException;
+import org.qcmg.common.util.Constants;
 
 public class StringFileReader  extends RecordReader<String> {
-
+	private static final String HEADER_PREFIX = Constants.HASH_STRING;
+	
+ 
 	public StringFileReader(File file) throws IOException {
-		super(file);
+		super(file, HEADER_PREFIX);
 	}
 
 	public StringFileReader(File file, CharSequence headerPrefix) throws IOException {

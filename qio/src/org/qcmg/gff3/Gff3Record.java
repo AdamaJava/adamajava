@@ -3,6 +3,7 @@
  */
 package org.qcmg.gff3;
 
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.TabTokenizer;
 
 public class Gff3Record {
@@ -262,5 +263,20 @@ public class Gff3Record {
     public void setRawData(String value) {
         this.rawData = value;
     }
+    
+	public String toString() {
+		StringBuilder result = new StringBuilder(getSeqId()).append(Constants.TAB);
+		result.append(getSource()).append(Constants.TAB);
+		result.append(getType()).append(Constants.TAB);
+		result.append(getStart()).append(Constants.TAB);
+		result.append(getEnd()).append(Constants.TAB);
+		result.append(getScore()).append(Constants.TAB);
+		result.append(getStrand()).append(Constants.TAB);
+		result.append(getPhase()).append(Constants.TAB);
+		if (null != getAttributes()) {
+			result.append(getAttributes());
+		}
+		return result.toString();
+	}
 
 }

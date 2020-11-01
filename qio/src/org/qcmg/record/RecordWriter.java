@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.zip.GZIPOutputStream;
 import org.qcmg.common.util.FileUtils;
 
-public final class RecordWriter<T> implements Closeable {
+public class RecordWriter<T> implements Closeable {
 	private final File file;
 	private final BufferedWriter bos;
 
