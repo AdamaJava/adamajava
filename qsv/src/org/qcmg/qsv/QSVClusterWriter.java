@@ -63,10 +63,10 @@ public class QSVClusterWriter {
 		for (String file: gffFiles) {
 
 			try (Gff3FileReader reader = new Gff3FileReader(new File(file));) {
-
-				Iterator<Gff3Record> it = reader.getRecordIterator();
-				while (it.hasNext()) {
-					Gff3Record g3 = it.next();
+				for(Gff3Record rec: reader) {
+//				Iterator<Gff3Record> it = reader.getRecordIterator();
+//				while (it.hasNext()) {
+					Gff3Record g3 = rec;
 					if (gffMap.containsKey(g3.getSeqId())) {
 						gffMap.get(g3.getSeqId()).add(g3);
 					} else {

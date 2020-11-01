@@ -25,8 +25,7 @@ import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.qsv.QSVException;
 import org.qcmg.qsv.QSVParameters;
 import org.qcmg.qsv.util.QSVUtil;
-import org.qcmg.tab.StringFileReader;
-import org.qcmg.tab.TabbedRecord;
+import org.qcmg.record.StringFileReader;
 
 /**
  * Class to launch BLAT
@@ -90,8 +89,8 @@ public class BLAT {
 		File blatOutput = new File(blatOutputFile);
 		
 		try (StringFileReader reader = new StringFileReader(blatOutput);) {
-			for (TabbedRecord tab: reader) {
-				BLATRecord record = new BLATRecord(TabTokenizer.tokenize(tab.getData())); 
+			for (String tab: reader) {
+				BLATRecord record = new BLATRecord(TabTokenizer.tokenize(tab)); 
 				if (record.isValid()) {
 					BLATRecord previous = records.get(record.getName());
 					if (null == previous || record.getScore() > previous.getScore()) {
@@ -178,8 +177,8 @@ public class BLAT {
 		File out = new File(outFile);
 		try (StringFileReader reader = new StringFileReader(out);) {
 
-			for (TabbedRecord tab: reader) {
-				BLATRecord record = new BLATRecord(TabTokenizer.tokenize(tab.getData()));
+			for (String tab: reader) {
+				BLATRecord record = new BLATRecord(TabTokenizer.tokenize(tab));
 				if (record.isValid()) {
 					if (leftReference != null && rightReference != null) {
 						if (record.getReference().equals(leftReference) || record.getReference().equals(rightReference)) {
@@ -209,8 +208,8 @@ public class BLAT {
 		
 		try (StringFileReader reader = new StringFileReader(outFile);) {
 
-			for (TabbedRecord tab: reader) {
-				BLATRecord record = new BLATRecord(TabTokenizer.tokenize(tab.getData())); 	
+			for (String tab: reader) {
+				BLATRecord record = new BLATRecord(TabTokenizer.tokenize(tab)); 	
 				
 				if (record.isValid() && record.getName().equals(name)) {
 					if (leftReference != null && rightReference != null) {
