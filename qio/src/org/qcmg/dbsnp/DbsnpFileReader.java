@@ -3,37 +3,41 @@
  */
 package org.qcmg.dbsnp;
 
-import java.io.Closeable;
+
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.Iterator;
+import org.qcmg.common.util.TabTokenizer;
+import org.qcmg.record.RecordReader;
 
+public final class DbsnpFileReader extends RecordReader<Dbsnp130Record> {
+	 
+    public DbsnpFileReader(final File file) throws IOException { super(file); }
 
-public final class DbsnpFileReader implements Closeable, Iterable<Dbsnp130Record> {
-    private final File file;
-    private final InputStream inputStream;
-
-    public DbsnpFileReader(final File file) throws IOException {
-        this.file = file;
-        FileInputStream fileStream = new FileInputStream(file);
-        inputStream = fileStream;
-    }
-
-    public Iterator<Dbsnp130Record> iterator() {
-        return getRecordIterator();
-    }
-
-    public DbsnpRecordIterator getRecordIterator() {
-        return new DbsnpRecordIterator(inputStream);
-    }
-
-    public void close() throws IOException {
-    	inputStream.close();
-    }
-
-    public File getFile() {
-        return file;
-    }
+	@Override
+	public Dbsnp130Record getRecord(String line) throws Exception {
+		String[] params = TabTokenizer.tokenize(line);
+		if (2 > params.length) {
+			throw new Exception("Bad dbSNP130 format");
+		}
+		Dbsnp130Record result = new Dbsnp130Record();
+		result.setChromosome(params[0]);
+		// convert the 0-based dbSNP format into 1-based, to be consistant with
+		// the rest of our tools
+		result.setChromosomePosition(Integer.parseInt(params[1]) + 1);
+		if (2 < params.length) {
+			result.setRefSnp(params[2]);
+		}
+		if (3 < params.length) {
+			result.setStrand(params[3]);
+		}
+		if (4 < params.length) {
+			// occasionally get bits of sequence here - in this case, leave
+			// blank
+			result.setRefGenome(params[4].length() > 10 ? null : params[4]);
+		}
+		if (5 < params.length) {
+			result.setVariant(params[5]);
+		}
+		return result;
+	}
 }
