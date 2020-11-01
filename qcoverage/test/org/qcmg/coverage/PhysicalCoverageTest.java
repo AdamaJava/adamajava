@@ -22,7 +22,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.qcmg.common.commandline.Executor;
-import org.qcmg.gff3.GFF3FileWriter;
+import org.qcmg.record.RecordWriter;
 import org.qcmg.gff3.Gff3Record;
 
 public class PhysicalCoverageTest {
@@ -72,7 +72,7 @@ public class PhysicalCoverageTest {
 		record.setStrand("+");
 
 		File file = new File(tmpDir + "/test" + start +"-" + end + ".gff3");
-		try (GFF3FileWriter writer = new GFF3FileWriter(file)) {
+		try (RecordWriter<Gff3Record> writer = new RecordWriter<>(file)) {
 			writer.add(record);
 		}
 		

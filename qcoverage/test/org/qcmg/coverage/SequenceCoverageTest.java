@@ -33,7 +33,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.commandline.Executor;
-import org.qcmg.gff3.GFF3FileWriter;
+import org.qcmg.record.RecordWriter;
 import org.qcmg.gff3.Gff3Record;
 import org.qcmg.picard.SAMFileReaderFactory;
 
@@ -109,7 +109,7 @@ public class SequenceCoverageTest {
 		record.setSource(".");
 		record.setStrand("+");
 
-		try (GFF3FileWriter writer = new GFF3FileWriter(file)) {
+		try (RecordWriter<Gff3Record> writer = new RecordWriter<>(file)) {
 			writer.add(record);
 		}
 	}
