@@ -58,9 +58,7 @@ import org.qcmg.maf.util.MafFilterUtils;
 import org.qcmg.maf.util.MafUtils;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.util.SAMUtils;
-import org.qcmg.tab.StringFileReader;
-import org.qcmg.tab.TabbedHeader;
-import org.qcmg.tab.TabbedRecord;
+import org.qcmg.record.StringFileReader;
 
 public abstract class MafPipelineNew {
 	
@@ -165,7 +163,7 @@ public abstract class MafPipelineNew {
 
 	protected String getDccMetaData() throws Exception {
 		// get dcc meta info from file, and prepend to header
-		TabbedHeader header = null;
+		List<String> header = null;
 		try (StringFileReader reader = new StringFileReader(new File(dccqFile))){
 			header = reader.getHeader();
 		}
@@ -517,13 +515,13 @@ public abstract class MafPipelineNew {
 			
 			int count = 0, chrPosCount = 0, chrPosMutCount=0;
 			try (StringFileReader reader = new StringFileReader(new File(cosmicFile));) {
-				for (TabbedRecord rec : reader) {
-					if (StringUtils.isNullOrEmpty(rec.getData())) continue;	// blank lines in file.... my god.....
-					if (rec.getData().startsWith("Gene name")) continue;		//header line
-					if (rec.getData().contains(identifier)) {
+				for (String rec : reader) {
+					if (StringUtils.isNullOrEmpty(rec)) continue;	// blank lines in file.... my god.....
+					if (rec.startsWith("Gene name")) continue;		//header line
+					if (rec.contains(identifier)) {
 						boolean forwardStrand = true;
 						count++;
-						String [] params = TabTokenizer.tokenize(rec.getData());
+						String [] params = TabTokenizer.tokenize(rec);
 						String chrPos = params[19];
 						if (params[20] != null && params[20] == "-") forwardStrand = false;
 						if (StringUtils.isNullOrEmpty(chrPos)) {
@@ -531,7 +529,7 @@ public abstract class MafPipelineNew {
 							if (params[18] != null && params[18] == "-") forwardStrand = false;
 						}
 						if (StringUtils.isNullOrEmpty(chrPos)) {
-//							logger.info("skipping record due to no position info for: " + rec.getData());
+//							logger.info("skipping record due to no position info for: " + rec);
 							continue;
 						}
 						chrPosCount++;
@@ -633,9 +631,9 @@ public abstract class MafPipelineNew {
 		try (StringFileReader reader = new StringFileReader(new File(krasFile));) {
 			int count = 0, validCount = 0, alreadyPresent = 0, alreadyPresentSameVerification = 0;
 			
-			for (TabbedRecord rec : reader) {
+			for (String rec : reader) {
 				count++;
-				String[] params = tabbedPattern.split(rec.getData(), -1);
+				String[] params = tabbedPattern.split(rec, -1);
 				String chr = params[4];
 				String position = params[5];
 				String id = params[15];
@@ -653,7 +651,7 @@ public abstract class MafPipelineNew {
 						
 							if (id.contains(lowCovPatient)) {
 								lowCov = true;
-								logger.info("Skipping KRAS record: " + rec.getData() + " - belongs to low coverage patient");
+								logger.info("Skipping KRAS record: " + rec + " - belongs to low coverage patient");
 								continue;
 							}
 						}

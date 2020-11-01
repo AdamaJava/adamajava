@@ -51,9 +51,7 @@ import org.qcmg.gff3.Gff3Record;
 import org.qcmg.maf.util.MafUtils;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.util.SAMUtils;
-import org.qcmg.tab.StringFileReader;
-import org.qcmg.tab.TabbedHeader;
-import org.qcmg.tab.TabbedRecord;
+import org.qcmg.record.StringFileReader;
 
 public abstract class MafPipeline {
 	
@@ -278,33 +276,24 @@ public abstract class MafPipeline {
 		// get file - get dcc meta info from file, and prepend to header
 		Pair<File, File> filePair = patientsAndFiles.get(patient);
 		// try snp one first, then indel
-		TabbedHeader header = null;
+		List<String> header = null;
 		String somGerm = "";
-		if (filePair.getLeft() != null) {
-			
+		if (filePair.getLeft() != null) {			
 			File f = filePair.getLeft();
 			somGerm = f.getAbsolutePath().contains("Somatic") ? "Somatic" :  f.getAbsolutePath().contains("Germline") ? "Germline" : "";
-			StringFileReader reader = null;
-			try {
-				reader = new StringFileReader(f);
+			try(StringFileReader reader = new StringFileReader(f);) {			
 				header = reader.getHeader();
 			} catch (Exception e) {
 				e.printStackTrace();
-			} finally {
-				reader.close();
-			}
+			} 
 		} else if (filePair.getRight() != null) {
 			File f = filePair.getRight();
 			somGerm = f.getAbsolutePath().contains("Somatic") ? "Somatic" :  f.getAbsolutePath().contains("Germline") ? "Germline" : "";
-			StringFileReader reader = null;
-			try {
-				reader = new StringFileReader(f);
+			try(StringFileReader reader = new StringFileReader(f);) {				
 				header = reader.getHeader();
 			} catch (Exception e) {
 				e.printStackTrace();
-			} finally {
-				reader.close();
-			}
+			} 
 		}
 		
 		StringBuilder sb = new StringBuilder();
@@ -320,26 +309,6 @@ public abstract class MafPipeline {
 		
 		return new String[] {somGerm, dccMetaInfo};
 	}
-//	void writeFinalPREFilteredOutput() throws IOException {
-//		
-//		// get lists of high and low conf mafs
-//		List<MAFRecord> highConfMafs = new ArrayList<MAFRecord>();
-//		List<MAFRecord> lowConfMafs = new ArrayList<MAFRecord>();
-//		
-//		for (MAFRecord maf : filteredMafs) {
-//			if (maf.isHighConf()) {
-//				highConfMafs.add(maf);
-//				continue;
-//			}
-//			if (maf.isLowConf()) {
-//				lowConfMafs.add(maf);
-//				continue;
-//			}
-//		}
-//		
-//		MafUtils.writeMafOutput(outputDirectory + FS +  "highConfidencePreFilter.maf", highConfMafs, MafUtils.HEADER_WITH_CONFIDENCE_CPG, true);
-//		MafUtils.writeMafOutput(outputDirectory + FS +  "lowConfidencePreFilter.maf", lowConfMafs, MafUtils.HEADER_WITH_CONFIDENCE_CPG, true);
-//	}
 	
 	void addNovelStartsMT(String bamFilePathPart1, String bamFilePathPart2, String bamFilePattern) throws Exception {
 		logger.info("adding novel starts");
@@ -363,7 +332,6 @@ public abstract class MafPipeline {
 			}
 		}
 		
-//		CountDownLatch latch = new CountDownLatch(100);
 		int poolSize = 2;
 		ExecutorService executor = Executors.newFixedThreadPool(poolSize);
 		
@@ -615,13 +583,13 @@ public abstract class MafPipeline {
 	}
 
 	void loadKRASData() throws Exception {
-		StringFileReader reader = new StringFileReader(new File(krasFile));
-		try {
+		
+		try(StringFileReader reader = new StringFileReader(new File(krasFile));) {
 			int count = 0, validCount = 0, alreadyPresent = 0, alreadyPresentSameVerification = 0;
 			
-			for (TabbedRecord rec : reader) {
+			for (String rec : reader) {
 				count++;
-				String[] params = tabbedPattern.split(rec.getData(), -1);
+				String[] params = tabbedPattern.split(rec, -1);
 				String chr = params[4];
 				String position = params[5];
 				String id = params[15];
@@ -639,7 +607,7 @@ public abstract class MafPipeline {
 						
 							if (id.contains(lowCovPatient)) {
 								lowCov = true;
-								logger.info("Skipping KRAS record: " + rec.getData() + " - belongs to low coverage patient");
+								logger.info("Skipping KRAS record: " + rec + " - belongs to low coverage patient");
 								continue;
 							}
 						}
@@ -678,9 +646,7 @@ public abstract class MafPipeline {
 				}
 			}
 			logger.info("KRAS file - count: " + count + ", validCount: " + validCount + ", alreadyPresent: " + alreadyPresent + ", alreadyPresentSameVerification: " + alreadyPresentSameVerification);
-		} finally {
-			reader.close();
-		}
+		} 
 	}
 	
 	void checkAlleleFraction() {
