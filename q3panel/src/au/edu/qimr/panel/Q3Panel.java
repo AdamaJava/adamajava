@@ -90,9 +90,7 @@ import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils.VcfInfoType;
 import org.qcmg.qmule.SmithWatermanGotoh;
 
-import org.qcmg.tab.StringFileReader;
-import org.qcmg.tab.TabbedHeader;
-import org.qcmg.tab.TabbedRecord;
+import org.qcmg.record.StringFileReader;
 import org.qcmg.vcf.VCFFileReader;
 import org.qcmg.vcf.VCFFileWriter;
 
@@ -393,10 +391,10 @@ public class Q3Panel {
 			
 			try (StringFileReader reader = new StringFileReader(new File(geneTranscriptsFile))) {
 				String currentTranscriptId = null;
-				for (TabbedRecord rec : reader) {
-					String contig = rec.getData().substring(0, rec.getData().indexOf(Constants.TAB));
+				for (String rec : reader) {
+					String contig = rec.substring(0, rec.indexOf(Constants.TAB));
 					if (uniqueChrs.containsKey(contig)) {
-						String [] params = TabTokenizer.tokenize(rec.getData());
+						String [] params = TabTokenizer.tokenize(rec);
 						String [] column8 = params[8].split(Constants.SEMI_COLON_STRING); 
 						Optional<String> optionalId = Arrays.stream(column8).filter(s -> s.trim().startsWith("transcript_id")).findAny();
 						Optional<String> optionalExonNumber = Arrays.stream(column8).filter(s -> s.trim().startsWith("exon_number")).findAny();
@@ -673,8 +671,8 @@ public class Q3Panel {
 		if (bedFile != null && new File(bedFile).exists()) {
 			int bedId = 0;
 			try (StringFileReader reader = new StringFileReader(new File(bedFile));) {
-				for (TabbedRecord rec : reader) {
-					String [] params = TabTokenizer.tokenize(rec.getData());
+				for (String rec : reader) {
+					String [] params = TabTokenizer.tokenize(rec);
 					ChrPosition cp = new ChrRangePosition(params[0], Integer.parseInt(params[1]), Integer.parseInt(params[2]));
 					bedToAmpliconMap.put(new Contig(++bedId, cp), new ArrayList<Contig>(1));
 				}
@@ -1396,18 +1394,16 @@ public class Q3Panel {
 		
 		try (StringFileReader reader = new StringFileReader(new File(refTiledAlignmentFile))) {
 			
-			TabbedHeader header = reader.getHeader();
-			List<String> headerList = new ArrayList<>();
-			for (String head : header) {
-				headerList.add(head);
-			}
+		 
+			List<String> headerList = reader.getHeader();
+			 
 			positionToActualLocation.loadMap(headerList);
 			int i = 0;
-			for (TabbedRecord rec : reader) {
+			for (String rec : reader) {
 				if (++i % 1000000 == 0) {
 					logger.info("hit " + (i / 1000000) + "M records");
 				}
-				queue.add(rec.getData());
+				queue.add(rec);
 			}
 			/*
 			 * kill off threads waiting on queue
