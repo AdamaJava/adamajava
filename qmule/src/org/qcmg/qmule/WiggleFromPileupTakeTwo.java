@@ -24,7 +24,7 @@ import org.qcmg.common.util.PileupUtils;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.gff3.GFF3FileReader;
 import org.qcmg.gff3.GFF3Record;
-import org.qcmg.pileup.PileupFileReader;
+import org.qcmg.qmule.qio.pileup.PileupFileReader;
 
 public class WiggleFromPileupTakeTwo {
 	

@@ -21,7 +21,7 @@ import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.PileupUtils;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.picard.util.PileupElementUtil;
-import org.qcmg.pileup.PileupFileReader;
+import org.qcmg.qmule.qio.pileup.PileupFileReader;
 
 public class TranscriptomeMule {
 	

@@ -1,9 +1,10 @@
-package org.qcmg.pileup;
+package org.qcmg.qmule.qio.pileup;
 
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 import org.qcmg.common.util.SnpUtils;
+import org.qcmg.qmule.qio.pileup.QSnpRecord;
 
 public class QSnpRecordTest {
 	

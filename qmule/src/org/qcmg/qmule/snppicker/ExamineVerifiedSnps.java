@@ -19,10 +19,10 @@ import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
-import org.qcmg.pileup.QPileupFileReader;
-import org.qcmg.pileup.QSnpRecord;
-import org.qcmg.pileup.VerifiedSnpFileReader;
-import org.qcmg.pileup.VerifiedSnpRecord;
+import org.qcmg.qmule.qio.pileup.QPileupFileReader;
+import org.qcmg.qmule.qio.pileup.QSnpRecord;
+import org.qcmg.qmule.qio.pileup.VerifiedSnpFileReader;
+import org.qcmg.qmule.qio.pileup.VerifiedSnpRecord;
 import org.qcmg.vcf.VCFFileReader;
 
 public class ExamineVerifiedSnps {

@@ -9,7 +9,7 @@
 //
 
 
-package org.qcmg.dbsnp;
+package org.qcmg.qmule.qio.dbsnp;
 
 
 

@@ -4,7 +4,7 @@
  *
  * This code is released under the terms outlined in the included LICENSE file.
  */
-package org.qcmg.pileup;
+package org.qcmg.qmule.qio.pileup;
 
 
 import org.qcmg.common.model.Accumulator;

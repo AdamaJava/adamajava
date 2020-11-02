@@ -18,8 +18,6 @@ import java.util.Properties;
 
 import htsjdk.samtools.SAMRecord;
 
-import org.qcmg.chrconv.ChrConvFileReader;
-import org.qcmg.chrconv.ChromosomeConversionRecord;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPointPosition;
@@ -33,13 +31,15 @@ import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
-import org.qcmg.germlinedb.GermlineDBFileReader;
-import org.qcmg.germlinedb.GermlineDBRecord;
 import org.qcmg.picard.QJumper;
-import org.qcmg.pileup.QSnpRecord;
 import org.qcmg.qmule.Messages;
 import org.qcmg.qmule.Options;
 import org.qcmg.qmule.Options.Ids;
+import org.qcmg.qmule.qio.chrconv.ChrConvFileReader;
+import org.qcmg.qmule.qio.chrconv.ChromosomeConversionRecord;
+import org.qcmg.qmule.qio.germlinedb.GermlineDBFileReader;
+import org.qcmg.qmule.qio.germlinedb.GermlineDBRecord;
+import org.qcmg.qmule.qio.pileup.QSnpRecord;
 import org.qcmg.qmule.QMuleException;
 import org.qcmg.vcf.VCFFileReader;
 

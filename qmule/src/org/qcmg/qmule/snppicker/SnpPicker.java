@@ -16,8 +16,6 @@ import java.util.TreeMap;
 
 import htsjdk.samtools.SAMRecord;
 
-import org.qcmg.chrconv.ChrConvFileReader;
-import org.qcmg.chrconv.ChromosomeConversionRecord;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPointPosition;
@@ -28,17 +26,19 @@ import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
-import org.qcmg.dbsnp.Dbsnp130Record;
-import org.qcmg.dbsnp.DbsnpFileReader;
 import org.qcmg.gff3.GFF3FileReader;
 import org.qcmg.gff3.GFF3Record;
 import org.qcmg.illumina.IlluminaFileReader;
 import org.qcmg.illumina.IlluminaRecord;
 import org.qcmg.picard.QJumper;
-import org.qcmg.pileup.PileupFileReader;
 import org.qcmg.qmule.Messages;
 import org.qcmg.qmule.Options;
 import org.qcmg.qmule.QMuleException;
+import org.qcmg.qmule.qio.chrconv.ChrConvFileReader;
+import org.qcmg.qmule.qio.chrconv.ChromosomeConversionRecord;
+import org.qcmg.qmule.qio.dbsnp.Dbsnp130Record;
+import org.qcmg.qmule.qio.dbsnp.DbsnpFileReader;
+import org.qcmg.qmule.qio.pileup.PileupFileReader;
 import org.qcmg.record.Record;
 import org.qcmg.vcf.VCFFileReader;
 
