@@ -49,11 +49,9 @@ import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.util.BAMFileUtils;
 import org.qcmg.picard.util.PileupElementUtil;
 import org.qcmg.picard.util.SAMUtils;
-import org.qcmg.record.Record;
+import org.qcmg.record.StringFileReader;
 import org.qcmg.sig.model.BaseStrandPosition;
 import org.qcmg.sig.util.SignatureUtil;
-import org.qcmg.tab.TabbedFileReader;
-import org.qcmg.tab.TabbedRecord;
 import org.qcmg.vcf.VCFFileWriter;
 
 import gnu.trove.set.TIntSet;
@@ -235,9 +233,9 @@ public class SignatureGenerator {
 		
 		// check that we can read the file
 		if (null != illumiaArraysDesign && FileUtils.canFileBeRead(illumiaArraysDesign)) {
-			try (TabbedFileReader reader =  new TabbedFileReader(new File(illumiaArraysDesign));) {
-				for (final TabbedRecord rec : reader) {
-					final String [] params = TabTokenizer.tokenize(rec.getData());
+			try (StringFileReader reader =  new StringFileReader(new File(illumiaArraysDesign));) {
+				for (final String rec : reader) {
+					final String [] params = TabTokenizer.tokenize(rec);
 					final String id = params[0];
 					illuminaArraysDesign.put(id, params);
 				}
@@ -248,11 +246,9 @@ public class SignatureGenerator {
 	}
 
 	static void loadIlluminaData(File illuminaFile, Map<ChrPosition, IlluminaRecord> illuminaMap) throws IOException {
-		IlluminaRecord tempRec;
+	 
 		try (IlluminaFileReader reader = new IlluminaFileReader(illuminaFile);){
-			for (final Record rec : reader) {
-				tempRec = (IlluminaRecord) rec;
-				
+			for (final IlluminaRecord tempRec  : reader) {			
 				// only interested in illumina data if it has a gc score above 0.7, and a valid chromosome
 				// ignore chromosome 0, and for XY, create 2 records, one for each!
 				// skip if the B allele ratio or Log R ratios are NaN
@@ -601,10 +597,10 @@ public class SignatureGenerator {
 	
 	private void loadRandomSnpPositions(String randomSnpsFile) throws IOException {
 		int count = 0;
-		try (TabbedFileReader reader = new TabbedFileReader(new File(randomSnpsFile));){
-			for (final TabbedRecord rec : reader) {
+		try (StringFileReader reader = new StringFileReader(new File(randomSnpsFile));){
+			for (final String rec : reader) {
 				++count;
-				final String[] params = TabTokenizer.tokenize(rec.getData());
+				final String[] params = TabTokenizer.tokenize(rec);
 				
 				String ref = null;
 				if (params.length > 4 && null != params[4] && params[4].length() == 1) {
