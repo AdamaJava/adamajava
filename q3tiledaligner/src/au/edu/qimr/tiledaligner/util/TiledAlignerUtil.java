@@ -31,9 +31,7 @@ import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.NumberUtils;
 import org.qcmg.qmule.SmithWatermanGotoh;
-import org.qcmg.tab.TabbedFileReader;
-import org.qcmg.tab.TabbedHeader;
-import org.qcmg.tab.TabbedRecord;
+import org.qcmg.record.StringFileReader;
 
 import gnu.trove.list.TLongList;
 import gnu.trove.list.array.TLongArrayList;
@@ -482,20 +480,20 @@ public class TiledAlignerUtil {
 	 * @param tiledInput
 	 */
 	public static void getTiledDataInMap(String tiledAlignerFile,  Map<String, String> tiledInput) {
-		try (TabbedFileReader reader = new TabbedFileReader(new File(tiledAlignerFile))) {
+		try (StringFileReader reader = new StringFileReader(new File(tiledAlignerFile))) {
 			
 			int i = 0;
 			int matches = 0;
 			int mapSize = tiledInput.size();
-			for (TabbedRecord rec : reader) {
+			for (String rec : reader) {
 				if (++i % 1000000 == 0) {
 					logger.info("hit " + (i / 1000000) + "M records, matches: " + matches);
 				}
-				String data = rec.getData();
-				int tabindex = data.indexOf(Constants.TAB);
-				if (tiledInput.containsKey(data.substring(0, tabindex))) {
+				
+				int tabindex = rec.indexOf(Constants.TAB);
+				if (tiledInput.containsKey(rec.substring(0, tabindex))) {
 					matches++;
-					tiledInput.put(data.substring(0, tabindex), data.substring(tabindex + 1));
+					tiledInput.put(rec.substring(0, tabindex), rec.substring(tabindex + 1));
 					
 					/*
 					 * If we have found all elements in the map - might as well stop looking
@@ -513,8 +511,8 @@ public class TiledAlignerUtil {
 		}
 	}
 	
-	public static TabbedHeader getTiledAlignerHeader(String file) throws IOException {
-		try (TabbedFileReader reader = new TabbedFileReader(new File(file))) {
+	public static List<String> getTiledAlignerHeader(String file) throws IOException {
+		try (StringFileReader reader = new StringFileReader(new File(file))) {
 			return reader.getHeader();
 		}
 	}
