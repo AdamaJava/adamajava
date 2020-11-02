@@ -7,7 +7,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.regex.Pattern;
 
-import org.qcmg.gff3.GFF3Record;
+//import org.qcmg.gff3.GFF3Record;
 import org.qcmg.unused.record.Serializer;
 
 public final class PrimerInputRecordSerializer extends
