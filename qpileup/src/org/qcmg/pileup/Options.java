@@ -41,8 +41,7 @@ import org.qcmg.pileup.metrics.SnpMetric;
 import org.qcmg.pileup.metrics.StrandBiasMetric;
 import org.qcmg.pileup.metrics.SummaryMetric;
 import org.qcmg.pileup.model.StrandEnum;
-import org.qcmg.tab.TabbedFileReader;
-import org.qcmg.tab.TabbedRecord;
+import org.qcmg.record.StringFileReader;
 
 public final class Options {	
 	
@@ -144,48 +143,49 @@ public final class Options {
 	}
 	
 	private void getRangesFromRangeFile(String rangeFile, String viewGroup) throws Exception {
-		TabbedFileReader reader = new TabbedFileReader(new File(rangeFile));
+		try(StringFileReader reader = new StringFileReader(new File(rangeFile));){
 	
-		Iterator<TabbedRecord> iterator = reader.getRecordIterator();
-		positionMap = new HashMap<String, TreeMap<Integer, String>>();
-		while (iterator.hasNext()) {
-			
-			TabbedRecord tab = iterator.next();
-			
-			if (tab.getData().startsWith("#") || tab.getData().startsWith("Hugo") || tab.getData().startsWith("analysis")) {					
-				continue;
-			}
-			String[] data = tab.getData().split("\t");
-			if (rangeFile.endsWith("gff3")) {				
-				String range = data[0] + ":" + data[3] + "-" + data[4];
+			//Iterator<TabbedRecord> iterator = reader.getRecordIterator();
+			positionMap = new HashMap<String, TreeMap<Integer, String>>();
+//			while (iterator.hasNext()) {
+			for(String tab : reader) {
 				
-				graphRangeInfoMap.put(range, data[8]);			
-				readRanges.add(range);
-			} else {
-				String range = data[0] + "\t" + data[1] + "\t" + data[1];
-				if (data[0].equals("chrXY")) {
-					range = "chrX" + ":" + data[1] + "-" + data[1];
+				//TabbedRecord tab = iterator.next();
+				
+				if (tab.startsWith("#") || tab.startsWith("Hugo") || tab.startsWith("analysis")) {					
+					continue;
 				}
-				int pos = new Integer(data[1]);
-				if (positionMap.containsKey(data[0])) {
-					positionMap.get(data[0]).put(pos, range);
+				String[] data = tab.split("\t");
+				if (rangeFile.endsWith("gff3")) {				
+					String range = data[0] + ":" + data[3] + "-" + data[4];
+					
+					graphRangeInfoMap.put(range, data[8]);			
+					readRanges.add(range);
 				} else {
-					TreeMap<Integer, String> treemap = new TreeMap<Integer, String>();
-					treemap.put(pos, range);
-					positionMap.put(data[0], treemap);
+					String range = data[0] + "\t" + data[1] + "\t" + data[1];
+					if (data[0].equals("chrXY")) {
+						range = "chrX" + ":" + data[1] + "-" + data[1];
+					}
+					int pos = new Integer(data[1]);
+					if (positionMap.containsKey(data[0])) {
+						positionMap.get(data[0]).put(pos, range);
+					} else {
+						TreeMap<Integer, String> treemap = new TreeMap<Integer, String>();
+						treemap.put(pos, range);
+						positionMap.put(data[0], treemap);
+						
+					}
+					//graphRangeInfoMap.put(range, "");	
 					
 				}
-				//graphRangeInfoMap.put(range, "");	
-				
 			}
-		}
-		
+		}	
 		for (Entry<String, TreeMap<Integer, String>> e: positionMap.entrySet()) {
 			TreeMap<Integer, String> map = e.getValue();
 			readRanges.add(e.getKey() + ":" + (map.firstKey()-10) + "-" + (map.lastKey()+10));
 		}
 		
-		reader.close();
+	//	reader.close();
 	}
 
 	public Map<String, String> getGraphRangeInfoMap() {
