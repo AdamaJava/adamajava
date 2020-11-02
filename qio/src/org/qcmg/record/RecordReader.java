@@ -69,11 +69,14 @@ public abstract class RecordReader<T> implements Closeable, Iterable<T> {
      */
     public String readHeader(CharSequence headerPrefix ) throws IOException{
     	String nextLine = bin.readLine();
-    	if(headerPrefix == null) return nextLine;
-    	 
+    	
+    	//empty file
+    	if( nextLine == null ) return null;   	
+   	
+    	if(headerPrefix == null) return nextLine;   	 
     	
 		//reader header, hence file pointer to first line after header
-		while ( headerPrefix != null &&null != nextLine && nextLine.startsWith(headerPrefix+"") ) {				
+		while ( headerPrefix != null && null != nextLine && nextLine.startsWith(headerPrefix+"") ) {				
 			headerLines.add(nextLine);
 			//reset current read line
 			nextLine = bin.readLine();

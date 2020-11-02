@@ -21,6 +21,10 @@ public final class IlluminaFileReader extends RecordReader<IlluminaRecord> {
 	@Override
     public String readHeader(CharSequence headerPrefix ) throws IOException{
     	String nextLine = bin.readLine();
+    	
+    	//empty file
+    	if( nextLine == null ) return null;   	
+    	
     	//check the first header line
     	if(headerPrefix == null || !nextLine.startsWith(headerPrefix+"") ) return nextLine;
     	    	
