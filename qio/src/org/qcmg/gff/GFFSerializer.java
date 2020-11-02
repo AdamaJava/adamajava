@@ -8,7 +8,7 @@ package org.qcmg.gff;
 import java.io.BufferedReader;
 import java.io.IOException;
 
-import org.qcmg.record.Record;
+import org.qcmg.unused.record.Record;
 
 public final class GFFSerializer {
 

@@ -2,7 +2,7 @@ package org.qcmg.gff;
 
 import java.io.InputStream;
 
-import org.qcmg.record.AbstractRecordIterator;
+import org.qcmg.unused.record.AbstractRecordIterator;
 
 public class GFFIterator extends AbstractRecordIterator {
 

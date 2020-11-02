@@ -3,8 +3,8 @@ package org.qcmg.gff;
 import java.io.File;
 import java.io.IOException;
 
-import org.qcmg.reader.AbstractReader;
-import org.qcmg.record.AbstractRecordIterator;
+import org.qcmg.unused.reader.AbstractReader;
+import org.qcmg.unused.record.AbstractRecordIterator;
 
 public class GFFReader extends AbstractReader {
 

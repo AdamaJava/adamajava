@@ -3,7 +3,7 @@ package org.qcmg.gff;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.qcmg.record.Record;
+import org.qcmg.unused.record.Record;
 
 /**
  * @author jpearson

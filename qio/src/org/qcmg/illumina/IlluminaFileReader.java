@@ -6,7 +6,7 @@ package org.qcmg.illumina;
 import java.io.File;
 import java.io.IOException;
 
-import org.qcmg.reader.AbstractReader;
+import org.qcmg.unused.reader.AbstractReader;
 
 public final class IlluminaFileReader extends AbstractReader {
 

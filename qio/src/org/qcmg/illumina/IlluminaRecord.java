@@ -4,7 +4,7 @@
 package org.qcmg.illumina;
 
 import org.qcmg.common.string.StringUtils;
-import org.qcmg.record.Record;
+import org.qcmg.unused.record.Record;
 
 public class IlluminaRecord implements Record {
 	
