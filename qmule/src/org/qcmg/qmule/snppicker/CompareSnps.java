@@ -21,9 +21,9 @@ import org.qcmg.common.util.SnpUtils;
 import org.qcmg.qmule.Messages;
 import org.qcmg.qmule.Options;
 import org.qcmg.qmule.QMuleException;
+import org.qcmg.qmule.qio.tab.TabbedRecord;
 import org.qcmg.qmule.util.IGVBatchFileGenerator;
 import org.qcmg.qmule.util.TabbedDataLoader;
-import org.qcmg.tab.TabbedRecord;
 
 public class CompareSnps {
 	

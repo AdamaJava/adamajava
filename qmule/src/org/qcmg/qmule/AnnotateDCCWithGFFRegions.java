@@ -26,8 +26,8 @@ import org.qcmg.common.model.ChrPositionName;
 import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.LoadReferencedClasses;
-import org.qcmg.tab.TabbedFileReader;
-import org.qcmg.tab.TabbedRecord;
+import org.qcmg.qmule.qio.tab.TabbedFileReader;
+import org.qcmg.qmule.qio.tab.TabbedRecord;
 
 
 public class AnnotateDCCWithGFFRegions {	

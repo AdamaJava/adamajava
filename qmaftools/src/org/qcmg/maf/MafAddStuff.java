@@ -9,8 +9,8 @@ package org.qcmg.maf;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -28,12 +28,10 @@ import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.FileUtils;
-import org.qcmg.gff3.GFF3FileReader;
-import org.qcmg.gff3.GFF3Record;
+import org.qcmg.gff3.Gff3FileReader;
+import org.qcmg.gff3.Gff3Record;
 import org.qcmg.maf.util.MafUtils;
-import org.qcmg.tab.TabbedFileReader;
-import org.qcmg.tab.TabbedHeader;
-import org.qcmg.tab.TabbedRecord;
+import org.qcmg.record.StringFileReader;
 
 public class MafAddStuff {
 	
@@ -92,7 +90,7 @@ public class MafAddStuff {
 				Interval newInt =  picardLiftover.liftOver(oldInt);
 				logger.info("oldInt: " + oldInt + ", new Int: " + newInt);
 				
-				mafPositionsOfInterestLiftover.put(cp, new ChrRangePosition(newInt.getSequence().substring(3), newInt.getStart(), newInt.getEnd()));
+				mafPositionsOfInterestLiftover.put(cp, new ChrRangePosition(newInt.getContig().substring(3), newInt.getStart(), newInt.getEnd()));
 			}
 		} else {
 			for (ChrPosition cp : mafPositionsOfInterest) {
@@ -103,10 +101,10 @@ public class MafAddStuff {
 	
 	private void getGffTypes(String gff3File) throws Exception {
 		Map<String, Map<ChrPosition, String>> gffTypes = new HashMap<String, Map<ChrPosition, String>>();
-		GFF3FileReader reader = new GFF3FileReader(new File(gff3File));
+		Gff3FileReader reader = new Gff3FileReader(new File(gff3File));
 		try {
 			int  count = 0;
-			for (GFF3Record rec : reader) {
+			for (Gff3Record rec : reader) {
 				String chr = rec.getSeqId();
 				Map<ChrPosition, String> thisMap = gffTypes.get(chr);
 				if (null == thisMap) {
@@ -148,36 +146,32 @@ public class MafAddStuff {
 		logger.info("no of entries in chrPosGffType: " + chrPosGffType.size());
 	}
 	
-	private void getFastaData(String refFile) throws FileNotFoundException {
-		IndexedFastaSequenceFile fasta = new IndexedFastaSequenceFile(new File(refFile));
+	private void getFastaData(String refFile) throws IOException {
+		try(IndexedFastaSequenceFile fasta = new IndexedFastaSequenceFile(new File(refFile));){
 		
-		for (ChrPosition cp : mafPositionsOfInterestLiftover.values()) {
-			String chr = MafUtils.getFullChrFromMafChr(cp.getChromosome());
-			
-			logger.info("retrieveing info for ChrPos: " + chr + ", " + (cp.getStartPosition() - noOfBases) + "-" + (cp.getEndPosition() + noOfBases));
-			ReferenceSequence seq = null;
-			try {
-				seq = fasta.getSubsequenceAt(chr, cp.getStartPosition() - noOfBases, cp.getEndPosition() + noOfBases);
-			} catch (UnsupportedOperationException  pe) {
-				logger.error("Exception caught in getFastaData",pe);
+			for (ChrPosition cp : mafPositionsOfInterestLiftover.values()) {
+				String chr = MafUtils.getFullChrFromMafChr(cp.getChromosome());
+				
+				logger.info("retrieveing info for ChrPos: " + chr + ", " + (cp.getStartPosition() - noOfBases) + "-" + (cp.getEndPosition() + noOfBases));
+				ReferenceSequence seq = null;
+				try {
+					seq = fasta.getSubsequenceAt(chr, cp.getStartPosition() - noOfBases, cp.getEndPosition() + noOfBases);
+				} catch (UnsupportedOperationException  pe) {
+					logger.error("Exception caught in getFastaData",pe);
+				}
+				if (null != seq)
+					fastaCPGDataMap.put(cp, new String(seq.getBases()));
 			}
-			if (null != seq)
-				fastaCPGDataMap.put(cp, new String(seq.getBases()));
+			logger.info("no of entries in CPG map: " + fastaCPGDataMap.size());
 		}
-		logger.info("no of entries in CPG map: " + fastaCPGDataMap.size());
 	}
 	
 	private void writeMafOutput(String inputMafFile, String outputMafFile) throws Exception {
 		if (fastaCPGDataMap.isEmpty() && chrPosGffType.isEmpty()) return;
-		
-		TabbedFileReader reader = new TabbedFileReader(new File(inputMafFile));
-		TabbedHeader header = reader.getHeader();
-		FileWriter writer = new FileWriter(new File(outputMafFile), false);
-		
 		int count = 0;
-		try {
-			for (Iterator<String> iter = header.iterator() ; iter.hasNext() ;) {
-				String headerLine = iter.next();
+		try(StringFileReader reader = new StringFileReader(new File(inputMafFile));
+				FileWriter writer = new FileWriter(new File(outputMafFile), false);) {
+			for (String headerLine : reader.getHeader()) {
 				if (headerLine.startsWith("#version")) {
 					writer.write(headerLine + "\n");
 				} else {
@@ -185,14 +179,14 @@ public class MafAddStuff {
 				}
 			}
 			
-			for (TabbedRecord rec : reader) {
+			for (String rec : reader) {
 				// first line is part of header
-				if (count++ == 0 && (rec.getData().startsWith("Hugo_Symbol"))) {
-					writer.write(rec.getData() +  "\tCPG\tGff3_Bait\n");
+				if (count++ == 0 && (rec.startsWith("Hugo_Symbol"))) {
+					writer.write(rec +  "\tCPG\tGff3_Bait\n");
 					continue;
 				}
 				
-				String[] params = tabbedPattern.split(rec.getData(), -1);
+				String[] params = tabbedPattern.split(rec, -1);
 				String chr = params[4];
 				int startPos = Integer.parseInt(params[5]);
 				int endPos = Integer.parseInt(params[6]);
@@ -207,7 +201,7 @@ public class MafAddStuff {
 					if (null == cp)
 						logger.warn("null entry in mafPositionsOfInterestLiftover map ");
 					
-					//FIXME - upping the version number by 1
+					//upping the version number by 1
 					if (params[3].startsWith("hg") || params[3].startsWith("GRCh")) {
 						
 					} else {
@@ -246,15 +240,8 @@ public class MafAddStuff {
 				
 				writer.write(sb.toString());
 			}
-			logger.info("written " + count + " maf records to file");
-			
-		} finally {
-			try {
-				writer.close();
-			} finally {
-				reader.close();
-			}
-		}
+			logger.info("written " + count + " maf records to file");		
+		} 
 	}
 	
 	public static void main(String[] args) throws Exception {

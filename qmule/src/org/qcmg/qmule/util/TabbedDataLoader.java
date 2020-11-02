@@ -12,8 +12,8 @@ import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.FileUtils;
-import org.qcmg.tab.TabbedFileReader;
-import org.qcmg.tab.TabbedRecord;
+import org.qcmg.qmule.qio.tab.TabbedFileReader;
+import org.qcmg.qmule.qio.tab.TabbedRecord;
 
 public class TabbedDataLoader {
 	

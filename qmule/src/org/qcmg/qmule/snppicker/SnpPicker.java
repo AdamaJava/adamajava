@@ -39,7 +39,7 @@ import org.qcmg.qmule.qio.chrconv.ChromosomeConversionRecord;
 import org.qcmg.qmule.qio.dbsnp.Dbsnp130Record;
 import org.qcmg.qmule.qio.dbsnp.DbsnpFileReader;
 import org.qcmg.qmule.qio.pileup.PileupFileReader;
-import org.qcmg.record.Record;
+import org.qcmg.unused.record.Record;
 import org.qcmg.vcf.VCFFileReader;
 
 public class SnpPicker {

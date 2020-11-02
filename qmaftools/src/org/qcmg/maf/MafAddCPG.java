@@ -9,6 +9,7 @@ package org.qcmg.maf;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -24,9 +25,7 @@ import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.util.FileUtils;
-import org.qcmg.tab.TabbedFileReader;
-import org.qcmg.tab.TabbedHeader;
-import org.qcmg.tab.TabbedRecord;
+import org.qcmg.record.StringFileReader;
 
 public class MafAddCPG {
 	
@@ -62,30 +61,30 @@ public class MafAddCPG {
 		return exitStatus;
 	}
 	
-	private void populatePositionsOfInterest(String refFile) throws FileNotFoundException {
-		IndexedFastaSequenceFile fasta = new IndexedFastaSequenceFile(new File(refFile));
+	private void populatePositionsOfInterest(String refFile) throws IOException {
+		try(IndexedFastaSequenceFile fasta = new IndexedFastaSequenceFile(new File(refFile));){
 		
-		for (ChrPosition cp : positionsOfInterestSet) {
-			String chr = "chr" + cp.getChromosome();
-			if ("chrM".equals(chr)) chr = "chrMT";
-			
-			ReferenceSequence seq = fasta.getSubsequenceAt(chr, cp.getStartPosition(), cp.getEndPosition());
-			positionsOfInterestMap.put(cp, new String(seq.getBases()));
+			for (ChrPosition cp : positionsOfInterestSet) {
+				String chr = "chr" + cp.getChromosome();
+				if ("chrM".equals(chr)) chr = "chrMT";
+				
+				ReferenceSequence seq = fasta.getSubsequenceAt(chr, cp.getStartPosition(), cp.getEndPosition());
+				positionsOfInterestMap.put(cp, new String(seq.getBases()));
+			}
+			logger.info("no of entries in map: " + positionsOfInterestMap.size());
 		}
-		logger.info("no of entries in map: " + positionsOfInterestMap.size());
-			
 	}
 	
 	private void loadPositionsOfInterest(String mafFile) throws Exception {
-		TabbedFileReader reader = new TabbedFileReader(new File(mafFile));
-		try {
+		
+		try(StringFileReader reader = new StringFileReader(new File(mafFile));) {
 			
 			int count = 0;
 			
-			for (TabbedRecord rec : reader) {
+			for (String rec : reader) {
 				if (count++ == 0) continue;	// first line is header
 				
-				String[] params = tabbedPattern.split(rec.getData(), -1);
+				String[] params = tabbedPattern.split(rec, -1);
 				String chr = params[4];
 				int startPos = Integer.parseInt(params[5]);
 				int endPos = Integer.parseInt(params[6]);
@@ -95,43 +94,33 @@ public class MafAddCPG {
 			}
 			logger.info("for file: " + mafFile + " no of records: " + count + ", no of entries in chrpos set: " + positionsOfInterestSet.size());
 			
-		} finally {
-			reader.close();
-		}
+		} 
 	}
 	
 	private void writeMafOutput(String inputMafFile, String outputMafFile) throws Exception {
 		if (positionsOfInterestMap.isEmpty()) return;
 		
-		TabbedFileReader reader = new TabbedFileReader(new File(inputMafFile));
-		TabbedHeader header = reader.getHeader();
-		FileWriter writer = new FileWriter(new File(outputMafFile), false);
-		
-		int count = 0;
-		
-		try {
-			for (Iterator<String> iter = header.iterator() ; iter.hasNext() ;) {
-				String headerLine = iter.next();
+		int count = 0;		
+		try (StringFileReader reader = new StringFileReader(new File(inputMafFile));
+				FileWriter writer = new FileWriter(new File(outputMafFile), false); ){
+			for (String headerLine: reader.getHeader() ) {
 				if (headerLine.startsWith("#version")) {
 					writer.write(headerLine + "\n");
 				} else {
 					// add CPG column header to end of line
-//					if (headerLine.indexOf("\n") != -1)
-//						writer.write(headerLine.replace("\n", "\tCPG\n"));
-//					else 
-						writer.write(headerLine +  "\tCPG\n");
+					writer.write(headerLine +  "\tCPG\n");
 				}
 			}
 //			writer.write(MafUtils.HEADER_WITH_CPG);
 			
-			for (TabbedRecord rec : reader) {
+			for (String rec : reader) {
 				// first line is part of header
-				if (count++ == 0 && (rec.getData().startsWith("Hugo_Symbol"))) {
-					writer.write(rec.getData() +  "\tCPG\n");
+				if (count++ == 0 && (rec.startsWith("Hugo_Symbol"))) {
+					writer.write(rec +  "\tCPG\n");
 					continue;
 				}
 				
-				String[] params = tabbedPattern.split(rec.getData(), -1);
+				String[] params = tabbedPattern.split(rec, -1);
 				String chr = params[4];
 				int startPos = Integer.parseInt(params[5]);
 				int endPos = Integer.parseInt(params[6]);
@@ -146,19 +135,12 @@ public class MafAddCPG {
 						logger.warn("reference base: " + ref + " does not equal base retrieved for cpg purposes: " 
 								+ bases.charAt(noOfBases) + " at chrpos: " + cp.toString());
 					}
-					writer.write(rec.getData() + "\t" + bases + "\n");
+					writer.write(rec + "\t" + bases + "\n");
 				} else { 
 					logger.warn("no reference bases for chr pos: " + cp.toString());
 				}
 			}
 			logger.info("written " + count + " maf records to file");
-			
-		} finally {
-			try {
-				writer.close();
-			} finally {
-				reader.close();
-			}
 		}
 	}
 	
@@ -169,9 +151,11 @@ public class MafAddCPG {
 			exitStatus = sp.setup(args);
 		} catch (Exception e) {
 			exitStatus = 1;
-			if (null != logger)
+			if (null != logger) {
 				logger.error("Exception caught whilst running MafAddCPG:", e);
-			else System.err.println("Exception caught whilst running MafAddCPG");
+			} else {
+				System.err.println("Exception caught whilst running MafAddCPG");
+			}
 		}
 		
 		if (null != logger)
