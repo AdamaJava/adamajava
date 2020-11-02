@@ -1,4 +1,4 @@
-package org.qcmg.illumina;
+package org.qcmg.qmule.qio.illumina;
 
 import java.io.BufferedReader;
 import java.io.File;

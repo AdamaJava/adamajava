@@ -7,8 +7,8 @@ import java.util.List;
 import junit.framework.Assert;
 
 import org.junit.Test;
-import org.qcmg.gff3.GFF3Record;
-import org.qcmg.gff3.GFF3RecordChromosomeAndPositionComparator;
+import org.qcmg.qmule.qio.gff3.GFF3Record;
+import org.qcmg.qmule.qio.gff3.GFF3RecordChromosomeAndPositionComparator;
 
 public class ChrPosComparatorTest {
 	

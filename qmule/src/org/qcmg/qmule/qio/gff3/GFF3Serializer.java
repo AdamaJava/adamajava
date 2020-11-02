@@ -4,7 +4,7 @@
  *
  * This code is released under the terms outlined in the included LICENSE file.
  */
-package org.qcmg.gff3;
+package org.qcmg.qmule.qio.gff3;
 
 import java.io.BufferedReader;
 import java.io.IOException;

@@ -21,9 +21,9 @@ import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ReferenceNameComparator;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.PileupUtils;
-import org.qcmg.gff3.GFF3FileReader;
-import org.qcmg.gff3.GFF3Record;
-import org.qcmg.gff3.GFF3RecordChromosomeAndPositionComparator;
+import org.qcmg.qmule.qio.gff3.GFF3FileReader;
+import org.qcmg.qmule.qio.gff3.GFF3Record;
+import org.qcmg.qmule.qio.gff3.GFF3RecordChromosomeAndPositionComparator;
 import org.qcmg.qmule.qio.pileup.PileupFileReader;
 
 public class WiggleFromPileup {

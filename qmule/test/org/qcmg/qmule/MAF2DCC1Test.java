@@ -21,7 +21,7 @@ import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrPositionName;
 import org.qcmg.common.model.ChrRangePosition;
-import org.qcmg.tab.TabbedRecord;
+import org.qcmg.qmule.qio.tab.TabbedRecord;
 
 public class MAF2DCC1Test {
 	

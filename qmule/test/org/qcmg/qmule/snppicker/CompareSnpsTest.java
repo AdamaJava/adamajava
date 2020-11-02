@@ -5,7 +5,7 @@ import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.qcmg.common.util.SnpUtils;
-import org.qcmg.tab.TabbedRecord;
+import org.qcmg.qmule.qio.tab.TabbedRecord;
 
 public class CompareSnpsTest {
 	

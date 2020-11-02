@@ -27,7 +27,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.commandline.Executor;
 import org.qcmg.common.util.FileUtils;
-import org.qcmg.gff3.GFF3Record;
+import org.qcmg.qmule.qio.gff3.GFF3Record;
 
 public class WiggleFromPileupTest {
 	@Rule
