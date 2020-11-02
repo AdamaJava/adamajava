@@ -31,8 +31,8 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.Pair;
-import org.qcmg.gff3.GFF3FileReader;
-import org.qcmg.gff3.GFF3Record;
+import org.qcmg.gff3.Gff3FileReader;
+import org.qcmg.gff3.Gff3Record;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qbamfilter.query.QueryExecutor;
 
@@ -43,7 +43,7 @@ public final class JobQueue {
 	private int numberFeatures = 0;
 	private final File gff3File;
 	private final HashSet<String> refNames = new HashSet<String>();
-	private final HashMap<String, HashSet<GFF3Record>> perRefnameFeatures = new HashMap<String, HashSet<GFF3Record>>();
+	private final HashMap<String, HashSet<Gff3Record>> perRefnameFeatures = new HashMap<String, HashSet<Gff3Record>>();
 	private final HashMap<String, Integer> perRefnameLengths = new HashMap<String, Integer>();
 	private final HashMap<Integer, HashSet<String>> perLengthRefnames = new HashMap<Integer, HashSet<String>>();
 	private final HashSet<Pair<File, File>> filePairs;
@@ -150,13 +150,13 @@ public final class JobQueue {
 
 	private void loadFeatures() throws Exception, IOException {
 		identifyRefNames();
-		GFF3FileReader featureReader = new GFF3FileReader(gff3File);
-		for (final GFF3Record feature : featureReader) {
+		Gff3FileReader featureReader = new Gff3FileReader(gff3File);
+		for (final Gff3Record feature : featureReader) {
 			String ref = feature.getSeqId();
 			if (refNames.contains(ref)) {
-				HashSet<GFF3Record> features = perRefnameFeatures.get(ref);
+				HashSet<Gff3Record> features = perRefnameFeatures.get(ref);
 				if (null == features) {
-					features = new HashSet<GFF3Record>();
+					features = new HashSet<Gff3Record>();
 					perRefnameFeatures.put(ref, features);
 				}
 				features.add(feature);
@@ -182,8 +182,8 @@ public final class JobQueue {
 		
 		Map<String, Integer> gff3RefNames = new HashMap<>();
 		final StringBuilder gffErrors = new StringBuilder();
-		try (GFF3FileReader gff3Reader = new GFF3FileReader(gff3File);) {
-			for (GFF3Record record : gff3Reader) {
+		try (Gff3FileReader gff3Reader = new Gff3FileReader(gff3File);) {
+			for (Gff3Record record : gff3Reader) {
 				if (isGff3RecordValid(record)) {
 					numberFeatures++;
 					String refName = record.getSeqId();
@@ -232,7 +232,7 @@ public final class JobQueue {
 	 * @param record
 	 * @return
 	 */
-	public static boolean isGff3RecordValid(GFF3Record record) {
+	public static boolean isGff3RecordValid(Gff3Record record) {
 		return null != record && record.getStart() <= record.getEnd();
 	}
 	
