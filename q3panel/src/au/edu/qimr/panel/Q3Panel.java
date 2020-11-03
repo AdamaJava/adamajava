@@ -90,7 +90,7 @@ import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils.VcfInfoType;
 import org.qcmg.qio.record.StringFileReader;
 import org.qcmg.qio.vcf.VCFFileReader;
-import org.qcmg.qio.vcf.VCFFileWriter;
+import org.qcmg.qio.record.RecordWriter;
 import org.qcmg.qmule.SmithWatermanGotoh;
 
 public class Q3Panel {
@@ -928,16 +928,16 @@ public class Q3Panel {
 		if ( ! StringUtils.isBlank(dbSNPFile)) {
 			logger.info("Reading in dbsnp data from: " + dbSNPFile);
 			try ( VCFFileReader reader = new VCFFileReader( dbSNPFile )) {				
-				VcfHeaderRecord re = reader.getHeader().firstMatchedRecord(VcfHeaderUtils.STANDARD_DBSNP_LINE);
+				VcfHeaderRecord re = reader.getVcfHeader().firstMatchedRecord(VcfHeaderUtils.STANDARD_DBSNP_LINE);
 				if ( re != null ) {
 					dbSnpHeaderDetails.addOrReplace(String.format("##INFO=<ID=%s,Number=0,Type=%s,Description=\"%s\",Source=%s,Version=%s>",
 							VcfHeaderUtils.INFO_DB, VcfInfoType.Flag.name(),
 							VcfHeaderUtils.INFO_DB_DESC, dbSNPFile,re.getMetaValue()  ));
 				}
 				
-				re = reader.getHeader().getInfoRecord(VcfHeaderUtils.INFO_CAF);
+				re = reader.getVcfHeader().getInfoRecord(VcfHeaderUtils.INFO_CAF);
 				if ( re != null ) dbSnpHeaderDetails.addInfo(VcfHeaderUtils.INFO_VAF, ".", "String", VcfHeaderUtils.INFO_VAF_DESC);
-				re = reader.getHeader().getInfoRecord(VcfHeaderUtils.INFO_VLD);
+				re = reader.getVcfHeader().getInfoRecord(VcfHeaderUtils.INFO_VLD);
 				if (re != null) dbSnpHeaderDetails.addOrReplace(re);				
 				
 				dbSnpHeaderDetails.addInfo("DB_CDS", ".", "String", "Reference and Alt alleles as reported by dbSNP");
@@ -1035,7 +1035,7 @@ public class Q3Panel {
 	}
 
 	private void writeMutationsToFile() throws IOException {
-		try (VCFFileWriter writer = new VCFFileWriter(new File(outputFileNameBase + ".vcf"))) {
+		try (RecordWriter<VcfRecord> writer = new RecordWriter<>(new File(outputFileNameBase + ".vcf"))) {
 			
 			/*
 			 * Setup the VcfHeader
@@ -1080,7 +1080,7 @@ public class Q3Panel {
 	
 	private void writeMutationsToFileNew(List<VcfRecord> vcfs) throws IOException {
 		String filename = outputFileNameBase + "_2.vcf";
-		try (VCFFileWriter writer = new VCFFileWriter(new File(filename))) {
+		try (RecordWriter<VcfRecord> writer = new RecordWriter<>(new File(filename))) {
 			
 			/*
 			 * Setup the VcfHeader
