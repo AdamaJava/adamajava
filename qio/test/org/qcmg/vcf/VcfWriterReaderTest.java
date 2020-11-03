@@ -12,10 +12,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.util.FileUtils;
+import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.qio.vcf.VCFFileReader;
-import org.qcmg.qio.vcf.VCFFileWriter;
+import org.qcmg.qio.record.RecordWriter;
 
 public class VcfWriterReaderTest {
 	
@@ -28,7 +29,7 @@ public class VcfWriterReaderTest {
 	public void getHeaderFromZippedVcfFileUsingStreams() throws IOException {
 		File file =  testFolder.newFile("header.vcf.gz");
 		
-		try(VCFFileWriter writer = new VCFFileWriter(file) ){
+		try(RecordWriter<VcfRecord> writer = new RecordWriter<>(file) ){
 			 writer.addHeader(Arrays.stream(vcfStrings).collect(Collectors.joining("\n")));
 		}
 		assertEquals(true, FileUtils.isInputGZip(file) );
@@ -37,8 +38,8 @@ public class VcfWriterReaderTest {
 		 * Should be able to get the header back out
 		 */
 		VcfHeader header = null;
-		try(VCFFileReader reader = VCFFileReader.createStream(file)){
-			header = reader.getHeader();
+		try(VCFFileReader reader = new VCFFileReader(file)){
+			header = reader.getVcfHeader();
 		}
 		assertEquals(true, null != header);
 		assertEquals(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE, header.getChrom().toString());
@@ -46,23 +47,23 @@ public class VcfWriterReaderTest {
 		assertEquals("##test=test", header.getAllMetaRecords().get(0).toString());
 	}
 	
+
 	@Test
 	public void getHeaderFromZippedVcfFile() throws IOException {
 		File file =  testFolder.newFile("header.vcf.gz");
 		
-		try(VCFFileWriter writer = new VCFFileWriter(file) ){
+		try(RecordWriter<VcfRecord> writer = new RecordWriter<>(file) ){
 			writer.addHeader(Arrays.stream(vcfStrings).collect(Collectors.joining("\n")));
 		}
 		assertEquals(true, FileUtils.isInputGZip(file) );
-		
-		
+				
 		/*
 		 * Should be able to get the header back out
 		 */
 		VcfHeader header = null;
 		
 		try(VCFFileReader reader = new VCFFileReader(file) ){
-			header = reader.getHeader();
+			header = reader.getVcfHeader();
 		}
 		assertEquals(true, null != header);
 		assertEquals(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE, header.getChrom().toString());
@@ -77,7 +78,7 @@ public class VcfWriterReaderTest {
 		for(int i = 0; i < fnames.length; i ++){ 
 			File file = testFolder.newFile(fnames[i]);
 			//create writer
-			try(VCFFileWriter writer = new VCFFileWriter(file) ){
+			try(RecordWriter<VcfRecord> writer = new RecordWriter<>(file) ){
 				 writer.addHeader(vcfStrings[i]);				
 			} catch (Exception e) { fail(); }
 			
@@ -110,7 +111,7 @@ public class VcfWriterReaderTest {
 		File file =  testFolder.newFile("output.vcf");
 		
 		//create new file 
-		try(VCFFileWriter writer = new VCFFileWriter(file) ){
+		try(RecordWriter<VcfRecord> writer = new RecordWriter<>(file) ){
 			 writer.addHeader(vcfStrings[0]);				
 		} catch (Exception e) { fail(); }
 		
@@ -121,14 +122,14 @@ public class VcfWriterReaderTest {
 		
 		
 		//append to file
-		try(VCFFileWriter writer = VCFFileWriter.createAppendVcfWriter(file)   ){
+		try(RecordWriter<VcfRecord> writer = new RecordWriter<>(file)   ){
 			 writer.addHeader(vcfStrings[1]);				
 		} catch (Exception e) { fail(); }
 		
 		//now it become a valid vcf file
 		try(VCFFileReader reader = new VCFFileReader(file);){ 
 			Assert.assertFalse( FileUtils.isInputGZip(file) );	
-			Assert.assertTrue( reader.getHeader().getAllMetaRecords().size() == 1);	
+			Assert.assertTrue( reader.getVcfHeader().getAllMetaRecords().size() == 1);	
 			Assert.assertTrue(file.delete());
 			
 		} catch (Exception e) {fail(); }		
