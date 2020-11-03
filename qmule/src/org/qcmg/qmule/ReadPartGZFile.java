@@ -21,7 +21,7 @@ import java.util.zip.GZIPInputStream;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.util.FileUtils;
-import org.qcmg.qio.vcf.VCFSerializer;
+//import org.qcmg.qio.vcf.VCFSerializer;
 
 
 public class ReadPartGZFile {

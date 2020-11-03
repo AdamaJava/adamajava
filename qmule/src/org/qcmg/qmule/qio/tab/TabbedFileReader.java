@@ -18,7 +18,7 @@ import java.util.zip.GZIPInputStream;
 
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.qio.Utils.IOStreamUtils;
-import org.qcmg.qio.vcf.VCFSerializer;
+//import org.qcmg.qio.vcf.VCFSerializer;
 
 public final class TabbedFileReader implements Closeable, Iterable<TabbedRecord> {
     private final File file;
