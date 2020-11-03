@@ -25,7 +25,7 @@ import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.qio.vcf.VCFFileReader;
-import org.qcmg.qio.vcf.VCFFileWriter;
+import org.qcmg.qio.record.RecordWriter;
 
 import au.edu.qimr.vcftools.util.MergeUtils;
 
@@ -74,12 +74,12 @@ public class MergeSameSamples {
 		headers = new VcfHeader[vcfFiles.length];
 		contentTypes = new ContentType[vcfFiles.length];
 		try (VCFFileReader reader = new VCFFileReader(new File(vcfFiles[0]))) {
-			headers[0] = reader.getHeader();
+			headers[0] = reader.getVcfHeader();
 			VcfFileMeta meta = new VcfFileMeta(headers[0]);
 			contentTypes[0] = meta.getType();
 		}
 		try (VCFFileReader reader = new VCFFileReader(new File(vcfFiles[1]))) {
-			headers[1] = reader.getHeader();
+			headers[1] = reader.getVcfHeader();
 			VcfFileMeta meta = new VcfFileMeta(headers[1]);
 			contentTypes[1] = meta.getType();
 		}
@@ -138,7 +138,7 @@ public class MergeSameSamples {
 		recs.sort(null);
 		
 		logger.info("writing output [" + recs.size() + " records]");
-		try (VCFFileWriter writer = new VCFFileWriter(new File(outputFileName))) {
+		try (RecordWriter<VcfRecord> writer = new RecordWriter<>(new File(outputFileName))) {
 			Iterator<VcfHeaderRecord> iter =mergedHeader.iterator(); 
 			while (iter.hasNext()) {
 				writer.addHeader(iter.next().toString());
