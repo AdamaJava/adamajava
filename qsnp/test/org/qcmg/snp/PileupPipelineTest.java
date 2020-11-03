@@ -6,8 +6,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import junit.framework.Assert;
-
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
@@ -15,9 +14,8 @@ import org.qcmg.common.commandline.Executor;
 import org.qcmg.common.model.PileupElement;
 import org.qcmg.common.model.Rule;
 import org.qcmg.common.vcf.VcfRecord;
-import org.qcmg.tab.TabbedFileReader;
-import org.qcmg.tab.TabbedRecord;
-import org.qcmg.vcf.VCFFileReader;
+import org.qcmg.qio.record.StringFileReader;
+ import org.qcmg.qio.vcf.VCFFileReader;
 
 public class PileupPipelineTest {
  
@@ -107,9 +105,9 @@ public class PileupPipelineTest {
 	}
 	
 	public static String getFileHeader(File file) throws Exception {
-		try (TabbedFileReader reader = new TabbedFileReader(file);) {
-			for (final TabbedRecord vcf : reader) {
-				if (vcf.getData().startsWith("analysis")) return vcf.getData();
+		try (StringFileReader reader = new StringFileReader(file);) {
+			for (final String vcf : reader) {
+				if (vcf.startsWith("analysis")) return vcf;
 			}
 		}
 		return "no header line found";

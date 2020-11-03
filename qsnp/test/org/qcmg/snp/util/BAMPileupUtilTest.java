@@ -3,16 +3,13 @@ package org.qcmg.snp.util;
 import java.util.ArrayList;
 import java.util.List;
 
-import junit.framework.Assert;
 import htsjdk.samtools.SAMRecord;
 
+import org.junit.Assert;
 import org.junit.Test;
-import org.qcmg.common.model.GenotypeEnum;
 import org.qcmg.common.model.QSnpGATKRecord;
-import org.qcmg.common.util.SnpUtils;
-import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
-import org.qcmg.pileup.QSnpRecord;
+import org.qcmg.qio.pileup.QSnpRecord;
 import org.qcmg.snp.util.QJumperWorker.Mode;
 
 public class BAMPileupUtilTest {

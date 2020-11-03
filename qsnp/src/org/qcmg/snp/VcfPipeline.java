@@ -36,7 +36,7 @@ import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.common.model.Classification;
 import org.qcmg.snp.util.GenotypeUtil;
 import org.qcmg.snp.util.IniFileUtil;
-import org.qcmg.vcf.VCFFileReader;
+import org.qcmg.qio.vcf.VCFFileReader;
 
 
 /**

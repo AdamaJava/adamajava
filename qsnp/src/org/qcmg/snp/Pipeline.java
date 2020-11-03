@@ -87,7 +87,7 @@ import org.qcmg.snp.util.GenotypeUtil;
 import org.qcmg.snp.util.IniFileUtil;
 import org.qcmg.snp.util.PipelineUtil;
 import org.qcmg.snp.util.RulesUtil;
-import org.qcmg.vcf.VCFFileWriter;
+import org.qcmg.qio.vcf.VCFFileWriter;
 
 public abstract class Pipeline {
 	
