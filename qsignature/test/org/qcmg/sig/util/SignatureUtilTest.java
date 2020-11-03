@@ -21,7 +21,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.util.ChrPositionCache;
-import org.qcmg.illumina.IlluminaRecord;
+import org.qcmg.qio.illumina.IlluminaRecord;
 import org.qcmg.sig.CompareTest;
 import org.qcmg.sig.model.Comparison;
 import org.qcmg.sig.model.SigMeta;

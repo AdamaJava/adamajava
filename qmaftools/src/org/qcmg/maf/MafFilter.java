@@ -21,7 +21,7 @@ import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.SnpUtils;
 import org.qcmg.maf.util.MafUtils;
 import org.qcmg.picard.util.PileupElementUtil;
-import org.qcmg.record.StringFileReader;
+import org.qcmg.qio.record.StringFileReader;
 
 public class MafFilter {
 	

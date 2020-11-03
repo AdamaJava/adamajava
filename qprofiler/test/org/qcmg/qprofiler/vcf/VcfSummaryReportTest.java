@@ -20,7 +20,7 @@ import org.qcmg.common.model.ProfileType;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
-import org.qcmg.vcf.VCFFileReader;
+import org.qcmg.qio.vcf.VCFFileReader;
 import org.qcmg.qprofiler.QProfilerSummary;
 import org.qcmg.qprofiler.report.SummaryReport;
 import org.qcmg.qprofiler.vcf.VcfSummaryReport;

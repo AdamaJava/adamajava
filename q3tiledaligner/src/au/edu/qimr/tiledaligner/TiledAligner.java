@@ -16,7 +16,7 @@ import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.BLATRecord;
 import org.qcmg.common.util.LoadReferencedClasses;
 import org.qcmg.common.util.NumberUtils;
-import org.qcmg.record.StringFileReader;
+import org.qcmg.qio.record.StringFileReader;
 
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;

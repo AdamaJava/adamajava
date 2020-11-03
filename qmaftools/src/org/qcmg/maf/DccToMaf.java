@@ -20,7 +20,7 @@ import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.TorrentVerificationStatus;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.maf.util.MafUtils;
-import org.qcmg.record.StringFileReader;
+import org.qcmg.qio.record.StringFileReader;
 
 public class DccToMaf {
 	

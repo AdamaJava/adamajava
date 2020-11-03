@@ -24,9 +24,9 @@ import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfRecord;
+import org.qcmg.qio.vcf.VCFFileReader;
 import org.qcmg.qmule.qio.tab.TabbedFileReader;
 import org.qcmg.qmule.qio.tab.TabbedRecord;
-import org.qcmg.vcf.VCFFileReader;
 
 public class ReAnnotateDccWithDbSNP {
 	

@@ -13,7 +13,8 @@ import org.junit.Test;
 import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.*;
-import org.qcmg.vcf.VCFFileReader;
+import org.qcmg.qio.vcf.VCFFileReader;
+
 import au.edu.qimr.indel.Support;
 import au.edu.qimr.indel.IniFileTest;
 import au.edu.qimr.indel.Options;

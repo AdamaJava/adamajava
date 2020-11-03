@@ -8,7 +8,7 @@ import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.qcmg.common.util.Pair;
-import org.qcmg.gff3.Gff3Record;
+import org.qcmg.qio.gff3.Gff3Record;
 
 public class CoverageJobTest {
 	

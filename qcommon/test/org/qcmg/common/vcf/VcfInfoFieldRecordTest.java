@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Assert;
 import org.junit.Test;
 import org.qcmg.common.util.Constants;
+import org.qcmg.common.vcf.VcfInfoFieldRecord;
 
 public class VcfInfoFieldRecordTest {
 	

@@ -15,8 +15,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.qcmg.gff3.Gff3FileReader;
-import org.qcmg.gff3.Gff3Record;
+import org.qcmg.qio.gff3.Gff3FileReader;
+import org.qcmg.qio.gff3.Gff3Record;
 import org.qcmg.qsv.discordantpair.DiscordantPairCluster;
 import org.qcmg.qsv.discordantpair.PairGroup;
 import org.qcmg.qsv.report.DCCReport;

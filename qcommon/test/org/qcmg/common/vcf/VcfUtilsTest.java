@@ -20,6 +20,10 @@ import org.qcmg.common.model.GenotypeEnum;
 import org.qcmg.common.model.MafConfidence;
 import org.qcmg.common.model.PileupElement;
 import org.qcmg.common.util.Constants;
+import org.qcmg.common.vcf.VcfFileMeta;
+import org.qcmg.common.vcf.VcfFormatFieldRecord;
+import org.qcmg.common.vcf.VcfRecord;
+import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 

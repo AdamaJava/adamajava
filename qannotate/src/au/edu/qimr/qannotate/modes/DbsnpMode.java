@@ -24,7 +24,7 @@ import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils.VcfInfoType;
-import org.qcmg.vcf.VCFFileReader;
+import org.qcmg.qio.vcf.VCFFileReader;
 
 import au.edu.qimr.qannotate.Options;
 

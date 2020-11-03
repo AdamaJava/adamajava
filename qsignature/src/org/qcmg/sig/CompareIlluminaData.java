@@ -17,8 +17,8 @@ import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.util.FileUtils;
-import org.qcmg.illumina.IlluminaFileReader;
-import org.qcmg.illumina.IlluminaRecord;
+import org.qcmg.qio.illumina.IlluminaFileReader;
+import org.qcmg.qio.illumina.IlluminaRecord;
 
 /**
  * This class takes in 2 Illumina snp chip files as input 

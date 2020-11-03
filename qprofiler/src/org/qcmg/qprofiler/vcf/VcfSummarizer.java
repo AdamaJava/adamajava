@@ -9,10 +9,10 @@ import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
+import org.qcmg.qio.vcf.VCFFileReader;
+import org.qcmg.qio.vcf.VCFFileWriter;
 import org.qcmg.qprofiler.report.SummaryReport;
 import org.qcmg.qprofiler.summarise.Summarizer;
-import org.qcmg.vcf.VCFFileReader;
-import org.qcmg.vcf.VCFFileWriter;
 
 public class VcfSummarizer implements Summarizer {
 	private final static QLogger logger = QLoggerFactory.getLogger(VcfSummarizer.class);

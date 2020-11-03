@@ -36,8 +36,8 @@ import org.qcmg.pileup.metrics.record.SnpRecord;
 import org.qcmg.pileup.model.Chromosome;
 import org.qcmg.pileup.model.QPileupRecord;
 import org.qcmg.pileup.model.StrandEnum;
-import org.qcmg.record.StringFileReader;
-import org.qcmg.vcf.VCFFileReader;
+import org.qcmg.qio.record.StringFileReader;
+import org.qcmg.qio.vcf.VCFFileReader;
 
 
 public class SnpMetric extends Metric {

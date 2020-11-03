@@ -13,6 +13,7 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.qcmg.common.model.ProfileType;
+import org.qcmg.qio.fasta.FastaRecord;
 import org.qcmg.qprofiler.report.SummaryReport;
 
 import org.qcmg.qprofiler.util.SummaryReportUtils;
@@ -61,7 +62,7 @@ public class FastaSummaryReport extends SummaryReport {
 	 * 
 	 * @return next row in file
 	 */
-	public void parseRecord(SimpleRecord record) {
+	public void parseRecord(FastaRecord record) {
 		if (null != record) {
 			
 			String data = record.getData();

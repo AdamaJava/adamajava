@@ -88,11 +88,10 @@ import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils.VcfInfoType;
+import org.qcmg.qio.record.StringFileReader;
+import org.qcmg.qio.vcf.VCFFileReader;
+import org.qcmg.qio.vcf.VCFFileWriter;
 import org.qcmg.qmule.SmithWatermanGotoh;
-
-import org.qcmg.record.StringFileReader;
-import org.qcmg.vcf.VCFFileReader;
-import org.qcmg.vcf.VCFFileWriter;
 
 public class Q3Panel {
 	

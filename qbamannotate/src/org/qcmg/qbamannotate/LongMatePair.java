@@ -18,13 +18,14 @@ import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamSource;
+
+import org.qcmg.qio.ma.MADirection;
+import org.qcmg.qio.ma.MARecord;
+
 import javax.xml.transform.stream.StreamResult;
 import java.io.*;
 
 import htsjdk.samtools.SAMRecord;
-
-import org.qcmg.ma.MADirection;
-import org.qcmg.ma.MARecord;
 
 public class LongMatePair extends AnnotatorType {
 	final int isizeLowerLimit;

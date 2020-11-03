@@ -33,7 +33,7 @@ import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.TabTokenizer;
-import org.qcmg.record.StringFileReader;
+import org.qcmg.qio.record.StringFileReader;
 import org.qcmg.sig.util.SignatureUtil;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;

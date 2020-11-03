@@ -11,6 +11,7 @@ import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.TabTokenizer;
+import org.qcmg.common.vcf.VcfRecord;
 
 public class VcfRecordTest {
 

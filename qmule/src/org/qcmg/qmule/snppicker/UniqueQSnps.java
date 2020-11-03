@@ -19,7 +19,7 @@ import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.TabTokenizer;
-import org.qcmg.qmule.qio.pileup.PileupFileReader;
+import org.qcmg.qio.pileup.PileupFileReader;
 
 public class UniqueQSnps {
 	

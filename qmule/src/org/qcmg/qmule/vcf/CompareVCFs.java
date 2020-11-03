@@ -27,10 +27,10 @@ import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.picard.QJumper;
 import org.qcmg.picard.util.SAMUtils;
+import org.qcmg.qio.vcf.VCFFileReader;
 import org.qcmg.qmule.Messages;
 import org.qcmg.qmule.Options;
 import org.qcmg.qmule.QMuleException;
-import org.qcmg.vcf.VCFFileReader;
 
 public class CompareVCFs {
 	

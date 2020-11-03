@@ -25,8 +25,8 @@ import org.qcmg.common.date.DateUtils;
 import org.qcmg.common.log.QLevel;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
-import org.qcmg.fasta.FastaReader;
-import org.qcmg.fasta.FastaRecord;
+import org.qcmg.qio.fasta.FastaReader;
+import org.qcmg.qio.fasta.FastaRecord;
 import org.qcmg.qprofiler.report.SummaryReport;
 import org.qcmg.qprofiler.summarise.Summarizer;
 
@@ -61,7 +61,7 @@ public class FastaSummarizer implements Summarizer {
 			for (FastaRecord record : reader) {
 				if (null != record) {
 					
-					fastaSummaryReport.parseRecord((FastaRecord) record);
+					fastaSummaryReport.parseRecord(record);
 					recordsParsed = fastaSummaryReport.getRecordsParsed();
 					
 					if (isLevelEnabled && recordsParsed % (FEEDBACK_LINES_COUNT * 2) == 0) {

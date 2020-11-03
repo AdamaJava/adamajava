@@ -24,8 +24,8 @@ import org.qcmg.common.date.DateUtils;
 import org.qcmg.common.log.QLevel;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
-import org.qcmg.gff.GffReader;
-import org.qcmg.gff.GffRecord;
+import org.qcmg.qio.gff.GffReader;
+import org.qcmg.qio.gff.GffRecord;
 import org.qcmg.qprofiler.report.SummaryReport;
 import org.qcmg.qprofiler.summarise.Summarizer;
 

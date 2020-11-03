@@ -4,7 +4,7 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 import org.qcmg.common.util.SnpUtils;
-import org.qcmg.qmule.qio.pileup.QSnpRecord;
+import org.qcmg.qio.pileup.QSnpRecord;
 
 public class QSnpRecordTest {
 	

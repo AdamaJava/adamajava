@@ -27,6 +27,8 @@ import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.picard.QJumper;
+import org.qcmg.qio.pileup.PileupFileReader;
+import org.qcmg.qio.vcf.VCFFileReader;
 import org.qcmg.qmule.Messages;
 import org.qcmg.qmule.Options;
 import org.qcmg.qmule.QMuleException;
@@ -38,9 +40,7 @@ import org.qcmg.qmule.qio.gff3.GFF3FileReader;
 import org.qcmg.qmule.qio.gff3.GFF3Record;
 import org.qcmg.qmule.qio.illumina.IlluminaFileReader;
 import org.qcmg.qmule.qio.illumina.IlluminaRecord;
-import org.qcmg.qmule.qio.pileup.PileupFileReader;
 import org.qcmg.unused.record.Record;
-import org.qcmg.vcf.VCFFileReader;
 
 public class SnpPicker {
 	

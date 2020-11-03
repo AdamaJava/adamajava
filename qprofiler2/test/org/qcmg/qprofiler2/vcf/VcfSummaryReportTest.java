@@ -12,7 +12,7 @@ import org.qcmg.common.util.IndelUtils.SVTYPE;
 import org.qcmg.common.util.XmlElementUtils;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
-import org.qcmg.vcf.VCFFileReader;
+import org.qcmg.qio.vcf.VCFFileReader;
 import org.qcmg.qprofiler2.QProfiler2;
 import org.qcmg.qprofiler2.Summarizer;
 import org.qcmg.qprofiler2.SummaryReport;

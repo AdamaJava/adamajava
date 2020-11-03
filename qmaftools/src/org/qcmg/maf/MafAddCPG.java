@@ -25,7 +25,7 @@ import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.util.FileUtils;
-import org.qcmg.record.StringFileReader;
+import org.qcmg.qio.record.StringFileReader;
 
 public class MafAddCPG {
 	

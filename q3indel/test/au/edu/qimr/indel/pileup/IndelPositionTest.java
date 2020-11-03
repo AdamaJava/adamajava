@@ -17,7 +17,7 @@ import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
-import org.qcmg.vcf.VCFFileReader;
+import org.qcmg.qio.vcf.VCFFileReader;
 
 import au.edu.qimr.indel.Support;
 import au.edu.qimr.indel.IniFileTest;

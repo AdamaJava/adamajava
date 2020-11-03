@@ -14,8 +14,8 @@ import org.qcmg.common.date.DateUtils;
 import org.qcmg.common.log.QLevel;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
-import org.qcmg.ma.MAFileReader;
-import org.qcmg.ma.MARecord;
+import org.qcmg.qio.ma.MAFileReader;
+import org.qcmg.qio.ma.MARecord;
 import org.qcmg.qprofiler.report.SummaryReport;
 import org.qcmg.qprofiler.summarise.Summarizer;
 

@@ -35,9 +35,9 @@ import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.util.BaseUtils;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.TabTokenizer;
+import org.qcmg.qio.record.StringFileReader;
 import org.qcmg.sig.model.Comparison;
 import org.qcmg.sig.util.SignatureUtil;
-import org.qcmg.record.StringFileReader;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 

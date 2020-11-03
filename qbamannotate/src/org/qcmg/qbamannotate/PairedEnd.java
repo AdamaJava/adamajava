@@ -14,10 +14,10 @@ import java.util.Map;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
 
-import htsjdk.samtools.SAMRecord;
+import org.qcmg.qio.ma.MADirection;
+import org.qcmg.qio.ma.MARecord;
 
-import org.qcmg.ma.MADirection;
-import org.qcmg.ma.MARecord;
+import htsjdk.samtools.SAMRecord;
 
 public class PairedEnd extends AnnotatorType {
 	final int isizeLowerLimit;

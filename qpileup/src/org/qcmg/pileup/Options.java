@@ -16,7 +16,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -41,7 +40,7 @@ import org.qcmg.pileup.metrics.SnpMetric;
 import org.qcmg.pileup.metrics.StrandBiasMetric;
 import org.qcmg.pileup.metrics.SummaryMetric;
 import org.qcmg.pileup.model.StrandEnum;
-import org.qcmg.record.StringFileReader;
+import org.qcmg.qio.record.StringFileReader;
 
 public final class Options {	
 	

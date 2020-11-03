@@ -17,7 +17,7 @@ import org.qcmg.common.model.MafConfidence;
 import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
-import org.qcmg.vcf.VCFFileReader;
+import org.qcmg.qio.vcf.VCFFileReader;
 
 import au.edu.qimr.qannotate.Main;
 

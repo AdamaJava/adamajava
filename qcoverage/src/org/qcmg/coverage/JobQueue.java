@@ -31,10 +31,10 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.Pair;
-import org.qcmg.gff3.Gff3FileReader;
-import org.qcmg.gff3.Gff3Record;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qbamfilter.query.QueryExecutor;
+import org.qcmg.qio.gff3.Gff3FileReader;
+import org.qcmg.qio.gff3.Gff3Record;
 
 public final class JobQueue {
 	private final HashMap<String, HashMap<Integer, AtomicLong>> perIdPerCoverageBaseCounts = new HashMap<String, HashMap<Integer, AtomicLong>>();

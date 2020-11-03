@@ -11,6 +11,7 @@ import htsjdk.tribble.readers.TabixReader;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
+import org.qcmg.qio.vcf.VCFFileReader;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -23,7 +24,6 @@ import java.util.Map.Entry;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrRangePosition;
-import org.qcmg.vcf.VCFFileReader;
 
 
 public class QueryCADDLib {

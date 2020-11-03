@@ -51,14 +51,14 @@ import org.qcmg.common.util.DonorUtils;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.SnpUtils;
 import org.qcmg.common.util.TabTokenizer;
-import org.qcmg.gff3.Gff3FileReader;
-import org.qcmg.gff3.Gff3Record;
 import org.qcmg.maf.util.FilterOptions;
 import org.qcmg.maf.util.MafFilterUtils;
 import org.qcmg.maf.util.MafUtils;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.util.SAMUtils;
-import org.qcmg.record.StringFileReader;
+import org.qcmg.qio.gff3.Gff3FileReader;
+import org.qcmg.qio.gff3.Gff3Record;
+import org.qcmg.qio.record.StringFileReader;
 
 public abstract class MafPipelineNew {
 	

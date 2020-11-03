@@ -15,7 +15,7 @@ import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.qcmg.gff.GffReader;
+import org.qcmg.qio.gff.GffReader;
 
 public class QProfilerTest {
 	

@@ -30,8 +30,8 @@ import org.qcmg.common.model.ChrPositionName;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.NumberUtils;
+import org.qcmg.qio.record.StringFileReader;
 import org.qcmg.qmule.SmithWatermanGotoh;
-import org.qcmg.record.StringFileReader;
 
 import gnu.trove.list.TLongList;
 import gnu.trove.list.array.TLongArrayList;

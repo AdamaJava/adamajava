@@ -8,7 +8,7 @@ import java.io.IOException;
 import org.junit.After;
 import org.junit.Test;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
-import org.qcmg.vcf.VCFFileReader;
+import org.qcmg.qio.vcf.VCFFileReader;
 
 import au.edu.qimr.qannotate.modes.DbsnpModeTest;
 import au.edu.qimr.qannotate.modes.Vcf2mafTest;

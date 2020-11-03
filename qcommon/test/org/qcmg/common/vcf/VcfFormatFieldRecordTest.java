@@ -3,6 +3,8 @@ package org.qcmg.common.vcf;
 import static org.junit.Assert.*;
 
 import org.qcmg.common.util.Constants;
+import org.qcmg.common.vcf.VcfFormatFieldRecord;
+import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.junit.Test;
 

@@ -53,12 +53,11 @@ import org.qcmg.common.util.NumberUtils;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
-import org.qcmg.illumina.IlluminaRecord;
+import org.qcmg.qio.illumina.IlluminaRecord;
+import org.qcmg.qio.record.StringFileReader;
+import org.qcmg.qio.vcf.VCFFileReader;
 import org.qcmg.sig.model.Comparison;
 import org.qcmg.sig.model.SigMeta;
-import org.qcmg.record.StringFileReader;
-
-import org.qcmg.vcf.VCFFileReader;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 

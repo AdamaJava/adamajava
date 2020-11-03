@@ -19,8 +19,8 @@ import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
-import org.qcmg.vcf.VCFFileReader;
-import org.qcmg.vcf.VCFFileWriter;
+import org.qcmg.qio.vcf.VCFFileReader;
+import org.qcmg.qio.vcf.VCFFileWriter;
 
 import au.edu.qimr.qannotate.Options;
 import htsjdk.tribble.readers.TabixReader;

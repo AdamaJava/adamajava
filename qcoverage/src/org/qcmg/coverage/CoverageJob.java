@@ -19,9 +19,9 @@ import htsjdk.samtools.SAMRecord;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.util.Pair;
-import org.qcmg.gff3.Gff3Record;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qbamfilter.query.QueryExecutor;
+import org.qcmg.qio.gff3.Gff3Record;
 
 class CoverageJob implements Job {
 	private final int refLength;

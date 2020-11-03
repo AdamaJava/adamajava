@@ -30,11 +30,11 @@ import org.qcmg.common.util.BaseUtils;
 import org.qcmg.common.util.IlluminaUtils;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfRecord;
-import org.qcmg.illumina.IlluminaRecord;
 import org.qcmg.picard.SAMOrBAMWriterFactory;
 import org.qcmg.picard.util.SAMUtils;
+import org.qcmg.qio.illumina.IlluminaRecord;
+import org.qcmg.qio.vcf.VCFFileReader;
 import org.qcmg.sig.util.SignatureUtil;
-import org.qcmg.vcf.VCFFileReader;
 
 public class SignatureGeneratorTest {
 	

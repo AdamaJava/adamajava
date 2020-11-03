@@ -9,8 +9,8 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.util.IndelUtils.SVTYPE;
-import org.qcmg.common.util.Pair;
 import org.qcmg.common.vcf.VcfRecord;
+import org.qcmg.common.util.Pair;
 
 import htsjdk.samtools.SAMRecord;
 

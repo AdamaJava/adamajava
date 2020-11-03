@@ -39,7 +39,7 @@ import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.maf.QMafException;
 import org.qcmg.picard.util.PileupElementUtil;
 import org.qcmg.picard.util.QDccMetaFactory;
-import org.qcmg.record.StringFileReader;
+import org.qcmg.qio.record.StringFileReader;
 
 public class MafUtils {
 	private static final ReferenceNameComparator chrComp = new ReferenceNameComparator();

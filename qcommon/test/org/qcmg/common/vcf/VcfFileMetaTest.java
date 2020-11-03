@@ -10,6 +10,8 @@ import java.util.Map.Entry;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.qcmg.common.vcf.ContentType;
+import org.qcmg.common.vcf.VcfFileMeta;
 import org.qcmg.common.vcf.header.VcfHeader;
 
 public class VcfFileMetaTest {

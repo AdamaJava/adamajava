@@ -45,13 +45,13 @@ import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
-import org.qcmg.illumina.IlluminaFileReader;
-import org.qcmg.illumina.IlluminaRecord;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.util.BAMFileUtils;
 import org.qcmg.picard.util.SAMUtils;
+import org.qcmg.qio.illumina.IlluminaFileReader;
+import org.qcmg.qio.illumina.IlluminaRecord;
+import org.qcmg.qio.record.StringFileReader;
 import org.qcmg.sig.util.SignatureUtil;
-import org.qcmg.record.StringFileReader;
 
 import gnu.trove.map.TObjectIntMap;
 import gnu.trove.map.hash.THashMap;

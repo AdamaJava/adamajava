@@ -21,8 +21,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.qcmg.common.commandline.Executor;
-import org.qcmg.record.RecordWriter;
-import org.qcmg.gff3.Gff3Record;
+import org.qcmg.qio.gff3.Gff3Record;
+import org.qcmg.qio.record.RecordWriter;
 
 public class QueryPhysicalCoverageTest {
 	static String inputBam;

@@ -25,8 +25,8 @@ import org.qcmg.common.date.DateUtils;
 import org.qcmg.common.log.QLevel;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
-import org.qcmg.fasta.FastaRecord;
-import org.qcmg.fasta.FastaReader;
+import org.qcmg.qio.fasta.FastaReader;
+import org.qcmg.qio.fasta.FastaRecord;
 import org.qcmg.qprofiler.report.SummaryReport;
 import org.qcmg.qprofiler.summarise.Summarizer;
 
@@ -57,8 +57,6 @@ public class QualSummarizer implements Summarizer {
 			for (FastaRecord record : reader) {
 				if (null != record) {
 					
-					//debug
-					System.out.println("debug: " + record.getId());
 					try {
 						qualSummaryReport.parseRecord( record);
 					} catch (Exception e) {

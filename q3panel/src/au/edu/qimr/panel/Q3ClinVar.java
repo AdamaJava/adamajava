@@ -68,14 +68,13 @@ import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.LoadReferencedClasses;
 import org.qcmg.common.util.Pair;
 import org.qcmg.common.util.TabTokenizer;
-
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
-import org.qcmg.record.StringFileReader;
-import org.qcmg.vcf.VCFFileWriter;
+import org.qcmg.qio.record.StringFileReader;
+import org.qcmg.qio.vcf.VCFFileWriter;
 
 public class Q3ClinVar {
 	

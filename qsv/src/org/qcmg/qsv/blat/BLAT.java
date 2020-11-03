@@ -22,10 +22,10 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.BLATRecord;
 import org.qcmg.common.util.TabTokenizer;
+import org.qcmg.qio.record.StringFileReader;
 import org.qcmg.qsv.QSVException;
 import org.qcmg.qsv.QSVParameters;
 import org.qcmg.qsv.util.QSVUtil;
-import org.qcmg.record.StringFileReader;
 
 /**
  * Class to launch BLAT

@@ -28,10 +28,10 @@ import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.FileUtils;
-import org.qcmg.gff3.Gff3FileReader;
-import org.qcmg.gff3.Gff3Record;
 import org.qcmg.maf.util.MafUtils;
-import org.qcmg.record.StringFileReader;
+import org.qcmg.qio.gff3.Gff3FileReader;
+import org.qcmg.qio.gff3.Gff3Record;
+import org.qcmg.qio.record.StringFileReader;
 
 public class MafAddStuff {
 	

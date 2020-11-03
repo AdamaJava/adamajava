@@ -32,6 +32,8 @@ import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.picard.QJumper;
+import org.qcmg.qio.pileup.QSnpRecord;
+import org.qcmg.qio.vcf.VCFFileReader;
 import org.qcmg.qmule.Messages;
 import org.qcmg.qmule.Options;
 import org.qcmg.qmule.Options.Ids;
@@ -39,9 +41,7 @@ import org.qcmg.qmule.qio.chrconv.ChrConvFileReader;
 import org.qcmg.qmule.qio.chrconv.ChromosomeConversionRecord;
 import org.qcmg.qmule.qio.germlinedb.GermlineDBFileReader;
 import org.qcmg.qmule.qio.germlinedb.GermlineDBRecord;
-import org.qcmg.qmule.qio.pileup.QSnpRecord;
 import org.qcmg.qmule.QMuleException;
-import org.qcmg.vcf.VCFFileReader;
 
 public class GatkUniqueSnps {
 	

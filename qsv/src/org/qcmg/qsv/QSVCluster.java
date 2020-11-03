@@ -18,7 +18,7 @@ import java.util.concurrent.ConcurrentMap;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.util.Constants;
-import org.qcmg.gff3.Gff3Record;
+import org.qcmg.qio.gff3.Gff3Record;
 import org.qcmg.qsv.blat.BLAT;
 import org.qcmg.qsv.discordantpair.DiscordantPairCluster;
 import org.qcmg.qsv.discordantpair.QPrimerCategory;
