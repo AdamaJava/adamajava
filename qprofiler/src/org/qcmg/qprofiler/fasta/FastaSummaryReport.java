@@ -18,7 +18,7 @@ import org.qcmg.qprofiler.report.SummaryReport;
 import org.qcmg.qprofiler.util.SummaryReportUtils;
 import org.qcmg.qvisualise.util.SummaryByCycle;
 import org.qcmg.qvisualise.util.SummaryByCycleUtils;
-import org.qcmg.record.SimpleRecord;
+import org.qcmg.unused.record.SimpleRecord;
 import org.w3c.dom.Element;
 
 public class FastaSummaryReport extends SummaryReport {

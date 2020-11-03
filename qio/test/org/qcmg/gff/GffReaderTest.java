@@ -15,6 +15,8 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.qcmg.qio.gff.GffReader;
+import org.qcmg.qio.gff.GffRecord;
 
 public class GffReaderTest {
 	private static File EMPTY_FILE ;

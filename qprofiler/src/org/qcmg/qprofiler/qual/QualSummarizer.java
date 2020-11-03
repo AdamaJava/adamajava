@@ -25,11 +25,11 @@ import org.qcmg.common.date.DateUtils;
 import org.qcmg.common.log.QLevel;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.fasta.FastaRecord;
+import org.qcmg.fasta.FastaReader;
 import org.qcmg.qprofiler.report.SummaryReport;
 import org.qcmg.qprofiler.summarise.Summarizer;
-import org.qcmg.record.Record;
-import org.qcmg.record.SimpleRecord;
-import org.qcmg.simple.SimpleFileReader;
+
 
 public class QualSummarizer implements Summarizer {
 	
@@ -44,8 +44,6 @@ public class QualSummarizer implements Summarizer {
 	
 	@Override
 	public SummaryReport summarize(String input, String index, String[] regions) throws Exception {
-		
-		
 
 		// create the SummaryReport
 		QualSummaryReport qualSummaryReport = new QualSummaryReport(excludes);
@@ -55,12 +53,14 @@ public class QualSummarizer implements Summarizer {
 		// set logging level for printing of no of records parsed
 		final boolean isLevelEnabled = logger.isLevelEnabled(QLevel.DEBUG);
 		
-		try (SimpleFileReader reader = new SimpleFileReader(new File(input));){
-			for (Record record : reader) {
+		try (FastaReader reader = new FastaReader(new File(input));){
+			for (FastaRecord record : reader) {
 				if (null != record) {
 					
+					//debug
+					System.out.println("debug: " + record.getId());
 					try {
-						qualSummaryReport.parseRecord((SimpleRecord) record);
+						qualSummaryReport.parseRecord( record);
 					} catch (Exception e) {
 						logger.error("Exception caught in QualSummarizer, number of records parsed: " 
 								+ qualSummaryReport.getRecordsParsed());

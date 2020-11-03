@@ -14,6 +14,8 @@ import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
+import org.qcmg.qio.vcf.VCFFileReader;
+import org.qcmg.qio.vcf.VCFFileWriter;
 
 public class VcfWriterReaderTest {
 	
