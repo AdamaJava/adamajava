@@ -206,7 +206,7 @@ public class SignatureGeneratorBespokeTest {
 	    		recs.add(rec);
 	    		System.out.println("rec: " + rec.toString());
 	    	}
-	    	VcfHeader header = reader.getHeader();
+	    	VcfHeader header = reader.getVcfHeader();
 //	    	header.getAllMetaRecords().stream().forEach(System.out::println);
 	    	assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg0=null")));
     	}
@@ -245,7 +245,7 @@ public class SignatureGeneratorBespokeTest {
 				recs.add(rec);
 				System.out.println("rec: " + rec.toString());
 			}
-			VcfHeader header = reader.getHeader();
+			VcfHeader header = reader.getVcfHeader();
 	    	header.getAllMetaRecords().stream().forEach(System.out::println);
 			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg0=null")));
 			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg1=20130325103517169")));

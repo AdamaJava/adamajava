@@ -50,7 +50,7 @@ import org.qcmg.picard.util.SAMUtils;
 import org.qcmg.qio.illumina.IlluminaFileReader;
 import org.qcmg.qio.illumina.IlluminaRecord;
 import org.qcmg.qio.record.StringFileReader;
-import org.qcmg.qio.vcf.VCFFileWriter;
+import org.qcmg.qio.record.RecordWriter;
 import org.qcmg.sig.model.BaseStrandPosition;
 import org.qcmg.sig.util.SignatureUtil;
 
@@ -350,7 +350,7 @@ public class SignatureGenerator {
 		// check that can wriite to new file
 		if (FileUtils.canFileBeWrittenTo(outputVCFFile)) {
 			
-			try (VCFFileWriter writer = new VCFFileWriter(outputVCFFile, true);){
+			try (RecordWriter<VcfRecord> writer = new RecordWriter<>(outputVCFFile, true);){
 				// write header
 				for(final VcfHeaderRecord re: header) {
 					writer.addHeader(re.toString() );
