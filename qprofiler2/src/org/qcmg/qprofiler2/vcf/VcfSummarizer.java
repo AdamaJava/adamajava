@@ -28,7 +28,7 @@ public class VcfSummarizer implements Summarizer {
 		VcfSummaryReport vcfSummaryReport; 
 		
 		try (VCFFileReader reader = new VCFFileReader(new File(input))  ) {
-			VcfHeader header = reader.getHeader();
+			VcfHeader header = reader.getVcfHeader();
 			if (header == null || header.getSampleId() == null) {
 				throw new Exception("Invalid Vcf Header: please specify Sample id after Format column on Header line!");
 			}

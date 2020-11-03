@@ -33,7 +33,7 @@ public class VcfSummaryReportTest {
 		createVcfHeader( file);	
 		
 		VcfHeader header;
-		try (VCFFileReader reader = new VCFFileReader(file)) {	header = reader.getHeader(); }
+		try (VCFFileReader reader = new VCFFileReader(file)) {	header = reader.getVcfHeader(); }
 		
 		Node nreport = getXmlParentNode( file) ;		
 		Node child = nreport.getChildNodes().item(0);
@@ -261,7 +261,7 @@ public class VcfSummaryReportTest {
 	private Node getXmlParentNode( File input) {
 				
 		try (  VCFFileReader reader = new VCFFileReader(input)) {			 
-			VcfSummaryReport vcfSummaryReport  = new VcfSummaryReport( reader.getHeader(), category);					 		
+			VcfSummaryReport vcfSummaryReport  = new VcfSummaryReport( reader.getVcfHeader(), category);					 		
 			for (final VcfRecord vcf : reader) vcfSummaryReport.parseRecord( vcf);			
 								 
 			Element root = XmlElementUtils.createRootElement("qProfiler", null);					
