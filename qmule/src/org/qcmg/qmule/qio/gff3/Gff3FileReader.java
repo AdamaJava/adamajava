@@ -4,19 +4,41 @@
  *
  * This code is released under the terms outlined in the included LICENSE file.
  */
-package org.qcmg.gff3;
+package org.qcmg.qmule.qio.gff3;
 
+import java.io.Closeable;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import org.qcmg.record.RecordReader;
+import java.io.InputStream;
+import java.util.Iterator;
 
-public final class Gff3FileReader extends RecordReader<Gff3Record> {
-	public Gff3FileReader(File file) throws IOException {
-		super(file, "#");
-	}
+public final class GFF3FileReader implements Closeable, Iterable<GFF3Record> {
+    private final File file;
+    private final InputStream inputStream;
 
-	@Override
-	public Gff3Record getRecord(String line) throws Exception {
-		return new Gff3Record(line);
-	}
+    public GFF3FileReader(final File file) throws FileNotFoundException {
+        this.file = file;
+        FileInputStream fileStream = new FileInputStream(file);
+        inputStream = fileStream;
+    }
+
+    @Override
+	public Iterator<GFF3Record> iterator() {
+        return getRecordIterator();
+    }
+
+    public GFF3RecordIterator getRecordIterator() {
+        return new GFF3RecordIterator(inputStream);
+    }
+
+    @Override
+	public void close() throws IOException {
+    	inputStream.close();
+    }
+
+    public File getFile() {
+        return file;
+    }
 }
