@@ -59,7 +59,7 @@ public class ReadIndels {
 		int[] counts = {0,0,0,0,0}; //{0th::indelNew, 1st::indelOverlap,2nd::indelMultiAlt,3rd::inLines, 4th::inMultiAlt}
     	//merge variants  
         try (VCFFileReader reader = new VCFFileReader(f)) {
-        		header = VcfHeaderUtils.mergeHeaders(header, reader.getHeader(), false);
+        		header = VcfHeaderUtils.mergeHeaders(header, reader.getVcfHeader(), false);
 			for (final VcfRecord re : reader) {	
 				
 				counts[3] ++; //inLines ++;
@@ -162,9 +162,9 @@ public class ReadIndels {
 		
         try (VCFFileReader reader = new VCFFileReader(f)) {
 	        	if (header == null) { 
-	        		header = reader.getHeader();	
+	        		header = reader.getVcfHeader();	
 	        	} else { 
-	        		header = VcfHeaderUtils.mergeHeaders(header, reader.getHeader(), false);
+	        		header = VcfHeaderUtils.mergeHeaders(header, reader.getVcfHeader(), false);
 	        	} 
 	        	//no chr in front of position
 			for (final VcfRecord re : reader) { 

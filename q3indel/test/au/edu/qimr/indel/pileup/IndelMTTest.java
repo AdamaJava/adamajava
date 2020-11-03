@@ -92,7 +92,7 @@ public class IndelMTTest {
 		VcfRecord record = null;
 		VcfHeader header = null; 
 		try (VCFFileReader reader = new VCFFileReader(IniFileTest.output)) {
-			header = reader.getHeader();
+			header = reader.getVcfHeader();
 			for (VcfRecord re : reader) {
 				passNo ++;
 				record = re; 
