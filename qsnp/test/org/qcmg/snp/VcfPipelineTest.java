@@ -647,7 +647,7 @@ public class VcfPipelineTest {
 		  vp.testVcfFile = vcfFile.getAbsolutePath();
 		  VcfHeader headerFromFile = null;
 		  try (VCFFileReader reader = new VCFFileReader(vcfFile);) {
-			  headerFromFile = reader.getHeader();
+			  headerFromFile = reader.getVcfHeader();
 		  }
 		  vp.setTestVcfHeader(headerFromFile);
 		  
@@ -699,7 +699,7 @@ public class VcfPipelineTest {
 		  
 		  VcfHeader finalHeader = null;
 		  try (VCFFileReader reader2 = new VCFFileReader(qsnpVcfFile);) {
-		  		finalHeader = reader2.getHeader();
+		  		finalHeader = reader2.getVcfHeader();
 		  }
 		  
 		  List<VcfHeaderRecord> finalHeaderRecords = new ArrayList<>();

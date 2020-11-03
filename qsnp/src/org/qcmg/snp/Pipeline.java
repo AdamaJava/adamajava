@@ -87,7 +87,7 @@ import org.qcmg.snp.util.GenotypeUtil;
 import org.qcmg.snp.util.IniFileUtil;
 import org.qcmg.snp.util.PipelineUtil;
 import org.qcmg.snp.util.RulesUtil;
-import org.qcmg.qio.vcf.VCFFileWriter;
+import org.qcmg.qio.record.RecordWriter;
 
 public abstract class Pipeline {
 	
@@ -359,7 +359,7 @@ public abstract class Pipeline {
 		}
 		snps.sort(refFileContigs.isEmpty() ? null : ChrPositionComparator.getVcfRecordComparator(refFileContigs));
 
-		try (VCFFileWriter writer = new VCFFileWriter(new File(outputFileName));) {			
+		try (RecordWriter<VcfRecord> writer = new RecordWriter<>(new File(outputFileName));) {			
 			final VcfHeader header = getHeaderForQSnp(patientId, controlSampleId, testSampleId, "qSNP v" + Main.version, normalBamIds, tumourBamIds, qexec.getUuid().getValue());
 			VcfHeaderUtils.addQPGLineToHeader(header, qexec.getToolName().getValue(), qexec.getToolVersion().getValue(), qexec.getCommandLine().getValue() 
 					+ (StringUtils.isNullOrEmpty(runMode) ? "" : " [runMode: " + runMode + "]"));

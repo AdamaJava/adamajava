@@ -36,9 +36,9 @@ import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
+import org.qcmg.qio.record.RecordWriter;
 import org.qcmg.qio.record.StringFileReader;
 import org.qcmg.qio.vcf.VCFFileReader;
-import org.qcmg.qio.vcf.VCFFileWriter;
 
 public class BuildCommonSnpsVcf {
 	private static QLogger logger;
@@ -173,7 +173,7 @@ public class BuildCommonSnpsVcf {
 		final List<ChrPosition> orderedList = new ArrayList<ChrPosition>(snpPositions.keySet());
 		Collections.sort(orderedList, new ChrPositionComparator());
 		
-		try (VCFFileWriter writer = new VCFFileWriter(new File(outputFileName));) {
+		try (RecordWriter<VcfRecord> writer = new RecordWriter<>(new File(outputFileName));) {
 			final VcfHeader header = getHeaderForCommonSnps(searchString, searchDirectory, additionalSearchStrings, mapOfFilesAndIds);
 			for(final VcfHeaderRecord re : header)
 				writer.addHeader(re.toString());

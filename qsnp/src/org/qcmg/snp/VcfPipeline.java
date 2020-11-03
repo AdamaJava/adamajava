@@ -307,9 +307,9 @@ public final class VcfPipeline extends Pipeline {
 			
 			try (VCFFileReader reader  = new VCFFileReader(new File(vcfFile));) {
 				if (isControl) {
-					controlVcfHeader = reader.getHeader();
+					controlVcfHeader = reader.getVcfHeader();
 				} else {
-					testVcfHeader = reader.getHeader();
+					testVcfHeader = reader.getVcfHeader();
 				}
 				for (final VcfRecord qpr : reader) {
 					
