@@ -34,7 +34,7 @@ public class VcfSummaryReportTest {
 		
 		File file = createVcfHeader( );	
 		VcfHeader header;
-		try (VCFFileReader reader = new VCFFileReader(file) ){ 	header = reader.getHeader(); }
+		try (VCFFileReader reader = new VCFFileReader(file) ){ 	header = reader.getVcfHeader(); }
 		
 		Node nreport = getXmlParentNode( file ) ;		
 		Node child = nreport.getChildNodes().item(0);
@@ -259,7 +259,7 @@ public class VcfSummaryReportTest {
 			
 			VcfSummaryReport vcfSummaryReport; 
 			VcfHeader header;			
-			header = reader.getHeader();
+			header = reader.getVcfHeader();
 			vcfSummaryReport = new VcfSummaryReport( header );		
 			for (final VcfRecord vcf : reader)  	
 				vcfSummaryReport.parseRecord( vcf);			

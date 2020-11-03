@@ -7,10 +7,7 @@ import org.qcmg.common.log.QLevel;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.vcf.VcfRecord;
-import org.qcmg.common.vcf.header.VcfHeader;
-import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.qio.vcf.VCFFileReader;
-import org.qcmg.qio.vcf.VCFFileWriter;
 import org.qcmg.qprofiler.report.SummaryReport;
 import org.qcmg.qprofiler.summarise.Summarizer;
 
@@ -21,11 +18,10 @@ public class VcfSummarizer implements Summarizer {
 	public SummaryReport summarize(String input, String index, String[] regions) throws Exception{
 		
 		// set logging level for printing of no of records parsed
-		final boolean isLevelEnabled = logger.isLevelEnabled(QLevel.DEBUG);
 		VcfSummaryReport vcfSummaryReport; 
 		
 		try (VCFFileReader reader = new VCFFileReader(new File(input))) {
-			vcfSummaryReport = new VcfSummaryReport(reader.getHeader());
+			vcfSummaryReport = new VcfSummaryReport(reader.getVcfHeader());
 			vcfSummaryReport.setFileName(input);
 			vcfSummaryReport.setStartTime(DateUtils.getCurrentDateAsString());
 		
