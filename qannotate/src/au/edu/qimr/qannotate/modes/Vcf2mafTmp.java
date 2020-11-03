@@ -89,14 +89,14 @@ public class Vcf2mafTmp extends AbstractMode{
 		//make output file name		 
 		try(VCFFileReader reader = new VCFFileReader(new File( option.getInputFileName()))){
 			//get control and test sample column			
-			SampleColumn column = SampleColumn.getSampleColumn(option.getTestSample(), option.getControlSample() , reader.getHeader());
+			SampleColumn column = SampleColumn.getSampleColumn(option.getTestSample(), option.getControlSample() , reader.getVcfHeader());
 			this.test_column = column.getTestSampleColumn();
 			this.control_column = column.getControlSampleColumn();
 			this.testSample = column.getTestSample();
 			this.controlSample = column.getControlSample();				
 			this.testBamId = column.getTestBamId();
 			this.controlBamId = column.getControlBamId();
-			this.donorId = option.getDonorId() == null? SampleColumn.getDonorId(reader.getHeader()) : option.getDonorId();
+			this.donorId = option.getDonorId() == null? SampleColumn.getDonorId(reader.getVcfHeader()) : option.getDonorId();
 		
 			logger.info(String.format("test Sample %s is located on column %d after FORMAT", testSample, test_column));
 			logger.info(String.format("control Sample %s is located on column %d after FORMAT", controlSample, control_column));
@@ -139,7 +139,7 @@ public class Vcf2mafTmp extends AbstractMode{
 				){
 			
 			reheader( option.getCommandLine(), option.getInputFileName());				
-			createVcfHeaders(reader.getHeader(), outSHCCVcf, outSHCVcf, outGHCCVcf, outGHCVcf);			
+			createVcfHeaders(reader.getVcfHeader(), outSHCCVcf, outSHCVcf, outGHCCVcf, outGHCVcf);			
 			createMafHeader(out,out_SHCC,out_SHC,out_GHCC,out_GHC); //out_SLCC,out_SLC,out_GLCC,out_GLC);						
 			for (final VcfRecord vcf : reader) {
 				

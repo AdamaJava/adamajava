@@ -39,15 +39,15 @@ public class SampleColumnTest {
 		
         	Vcf2mafTest.createVcf(sHeader);                
         	try(VCFFileReader reader = new VCFFileReader(input); ){
-    			SampleColumn column = SampleColumn.getSampleColumn(null, null , reader.getHeader());
+    			SampleColumn column = SampleColumn.getSampleColumn(null, null , reader.getVcfHeader());
     			assertTrue(column.getControlSample().equals("CONTROL_sample"));
     			assertTrue(column.getTestSample().equals("TEST_sample"));
     			
-    			column = SampleColumn.getSampleColumn("alignment#test", "grfli:control" , reader.getHeader());
+    			column = SampleColumn.getSampleColumn("alignment#test", "grfli:control" , reader.getVcfHeader());
        			assertTrue(column.getControlSample().equals("control"));
        			assertTrue(column.getTestSample().equals("test")); 		
        			
-       			column = SampleColumn.getSampleColumn("alignment,test", "grfli:align#control" , reader.getHeader());
+       			column = SampleColumn.getSampleColumn("alignment,test", "grfli:align#control" , reader.getVcfHeader());
        			assertTrue(column.getControlSample().equals("control"));
       			assertTrue(column.getTestSample().equals("alignment,test")); 	
 	        }catch(Exception e){
@@ -63,7 +63,7 @@ public class SampleColumnTest {
 		 			
     	Vcf2mafTest.createVcf(  sHeader );                
     	try(VCFFileReader reader = new VCFFileReader(input); ){
-			SampleColumn column = SampleColumn.getSampleColumn(null, null , reader.getHeader());
+			SampleColumn column = SampleColumn.getSampleColumn(null, null , reader.getVcfHeader());
 			assertTrue(column.getControlSample().equals("CONTROL_sample"));
 			assertTrue(column.getTestSample().equals("TEST_sample"));
 			assertTrue(column.getControlBamId() .equals("CONTROL_bamID"));
@@ -88,7 +88,7 @@ public class SampleColumnTest {
 		 			
     	Vcf2mafTest.createVcf(  Sheader );                
     	try(VCFFileReader reader = new VCFFileReader(input); ){
-			SampleColumn column = SampleColumn.getSampleColumn(null, null , reader.getHeader());
+			SampleColumn column = SampleColumn.getSampleColumn(null, null , reader.getVcfHeader());
 			assertTrue(column.getControlSample().equals("CONTROL_sample"));
 			assertTrue(column.getTestSample().equals("TEST_sample"));
 			assertTrue(column.getControlBamId() .equals("CONTROL_bamID"));
@@ -109,7 +109,7 @@ public class SampleColumnTest {
 		 			
     	Vcf2mafTest.createVcf(  sHeader );                
     	try(VCFFileReader reader = new VCFFileReader(input); ){
-			SampleColumn column = SampleColumn.getSampleColumn(null, null , reader.getHeader());
+			SampleColumn column = SampleColumn.getSampleColumn(null, null , reader.getVcfHeader());
 			assertTrue(column.getControlSample().equals("CONTROL_sample"));
 			assertTrue(column.getTestSample().equals("TEST_sample"));
 			assertTrue(column.getControlBamId() .equals("CONTROL_bam"));
@@ -128,7 +128,7 @@ public class SampleColumnTest {
 		 			
     	Vcf2mafTest.createVcf(  sHeader );                
     	try(VCFFileReader reader = new VCFFileReader(input); ){
-			SampleColumn column = SampleColumn.getSampleColumn(null, null , reader.getHeader());
+			SampleColumn column = SampleColumn.getSampleColumn(null, null , reader.getVcfHeader());
 			assertTrue(column.getControlSample().equals("CONTROL_sample"));
 			assertTrue(column.getTestSample().equals("TEST_sample"));
 			assertTrue(column.getControlBamId() .equals("bamid_1"));

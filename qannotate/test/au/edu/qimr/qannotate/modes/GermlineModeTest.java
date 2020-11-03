@@ -70,7 +70,7 @@ public class GermlineModeTest {
 		try(VCFFileReader reader = new VCFFileReader(out)){
 			 
 			 //check header
-			VcfHeader header = reader.getHeader();	
+			VcfHeader header = reader.getVcfHeader();	
 			assertEquals(false, header.getFilterRecord(VcfHeaderUtils.FILTER_GERMLINE) != null);
 
 			//check records

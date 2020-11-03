@@ -168,7 +168,7 @@ public class DbsnpModeTest {
 		mode.writeVCF(new File(outputName));
 
 		try (VCFFileReader reader = new VCFFileReader(outputName)) {
-			VcfHeader header = reader.getHeader();	
+			VcfHeader header = reader.getVcfHeader();	
 			assertEquals( header.getInfoRecord(VcfHeaderUtils.INFO_VLD)!= null, true);
 		}		 
 	}		

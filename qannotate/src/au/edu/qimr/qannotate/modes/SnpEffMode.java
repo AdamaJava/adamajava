@@ -20,7 +20,7 @@ import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.qio.vcf.VCFFileReader;
-import org.qcmg.qio.vcf.VCFFileWriter;
+import org.qcmg.qio.record.RecordWriter;
 
 import au.edu.qimr.qannotate.Options;
 import ca.mcgill.mcb.pcingola.snpEffect.commandLine.SnpEff;
@@ -48,7 +48,7 @@ public class SnpEffMode extends AbstractMode{
 		
 		//reheader
         if (ok) { 
-	        	header = new VCFFileReader(tmpFile).getHeader();
+	        	header = new VCFFileReader(tmpFile).getVcfHeader();
 	        	reheader(options.getCommandLine(),options.getInputFileName())	;	
 	        	writeVCF(new File( options.getOutputFileName()) );
 			logger.tool("reheader snpEFF output to " +   options.getOutputFileName());
@@ -63,7 +63,7 @@ public class SnpEffMode extends AbstractMode{
 		long counts = 0;
 		List<ChrPosition> pc = new ArrayList<>();
 		try(VCFFileReader reader = new VCFFileReader(new File( tmpFile));
-				VCFFileWriter writer = new VCFFileWriter(outputFile )){
+				RecordWriter<VcfRecord> writer = new RecordWriter<>(outputFile )){
 								
 	        	for(final VcfHeaderRecord record: header) {
 	        		writer.addHeader(record.toString());

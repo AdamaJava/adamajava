@@ -20,7 +20,7 @@ import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.qio.vcf.VCFFileReader;
-import org.qcmg.qio.vcf.VCFFileWriter;
+import org.qcmg.qio.record.RecordWriter;
 
 import au.edu.qimr.qannotate.Options;
 import htsjdk.tribble.readers.TabixReader;
@@ -55,7 +55,7 @@ public class  CaddMode extends AbstractMode{
 		int start = 1;
 		
 		try (VCFFileReader reader = new VCFFileReader(input);
-				VCFFileWriter writer = new VCFFileWriter( output)){
+				RecordWriter<VcfRecord> writer = new RecordWriter<>( output)){
 			
 			//reheader first
         	reheader(options.getCommandLine(),options.getInputFileName())	;
@@ -93,7 +93,7 @@ public class  CaddMode extends AbstractMode{
 		logger.info("total query CADD library time is " + blockNo);
 	}
 	
-	private void addAnnotation(String chr, int start, int end, TabixReader[] tabixs, VCFFileWriter writer) throws Exception {
+	private void addAnnotation(String chr, int start, int end, TabixReader[] tabixs, RecordWriter<VcfRecord> writer) throws Exception {
 		
 	    	String line; 
 	    	String[] eles;

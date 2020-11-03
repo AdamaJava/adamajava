@@ -50,7 +50,7 @@ import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.qio.vcf.VCFFileReader;
-import org.qcmg.qio.vcf.VCFFileWriter;
+import org.qcmg.qio.record.RecordWriter;
 
 public class Vcf2maf extends AbstractMode {
 	
@@ -109,7 +109,7 @@ public class Vcf2maf extends AbstractMode {
 		try (VCFFileReader reader = new VCFFileReader(new File( option.getInputFileName()))) {
 			//get control and test sample column			
 			
-			meta = new VcfFileMeta(reader.getHeader());
+			meta = new VcfFileMeta(reader.getVcfHeader());
 			this.contentType = meta.getType();
 			this.testColumn = meta.getFirstTestSamplePos();
 			
@@ -120,7 +120,7 @@ public class Vcf2maf extends AbstractMode {
 			meta.getFirstControlSample().ifPresent((s) -> this.controlSample = s);
 			meta.getFirstControlBamUUID().ifPresent((s) -> this.controlBamId = s);
 			meta.getFirstTestBamUUID().ifPresent((s) -> this.testBamId = s);
-			this.donorId = option.getDonorId() == null ? SampleColumn.getDonorId(reader.getHeader()) : option.getDonorId();
+			this.donorId = option.getDonorId() == null ? SampleColumn.getDonorId(reader.getVcfHeader()) : option.getDonorId();
 		
 			logger.info(String.format("Test Sample %s is located on column %d after FORMAT", testSample, testColumn));
 			if (ContentType.multipleSamples(contentType)) {
@@ -161,15 +161,15 @@ public class Vcf2maf extends AbstractMode {
 				PrintWriter out_SP = new PrintWriter(sP);
 				PrintWriter out_GPC = new PrintWriter(gPC);
 				PrintWriter out_GP = new PrintWriter(gP);
-				VCFFileWriter outSPCVcf = new VCFFileWriter(new File(sPCVcf), true);
-				VCFFileWriter outSPVcf = new VCFFileWriter(new File(sPVcf), true);
-				VCFFileWriter outGPCVcf = new VCFFileWriter(new File(gPCVcf), true);
-				VCFFileWriter outGPVcf = new VCFFileWriter(new File(gPVcf), true);
+				RecordWriter<VcfRecord> outSPCVcf = new RecordWriter<>(new File(sPCVcf), true);
+				RecordWriter<VcfRecord> outSPVcf = new RecordWriter<>(new File(sPVcf), true);
+				RecordWriter<VcfRecord> outGPCVcf = new RecordWriter<>(new File(gPCVcf), true);
+				RecordWriter<VcfRecord> outGPVcf = new RecordWriter<>(new File(gPVcf), true);
 				) {
 			
 			reheader( option.getCommandLine(), option.getInputFileName());			
 			createMafHeader(out,out_SPC,out_SP,out_GPC,out_GP);
-			createVcfHeaders(reader.getHeader(), outSPCVcf, outSPVcf, outGPCVcf, outGPVcf);
+			createVcfHeaders(reader.getVcfHeader(), outSPCVcf, outSPVcf, outGPCVcf, outGPVcf);
 			
 			for (final VcfRecord vcf : reader) {
 				
@@ -257,7 +257,7 @@ public class Vcf2maf extends AbstractMode {
 		}		
 	}
 	
-	private static void createVcfHeaders(VcfHeader header, VCFFileWriter ... writers) throws IOException {
+	private static void createVcfHeaders(VcfHeader header, RecordWriter<VcfRecord> ... writers) throws IOException {
 		StringBuilder sb = new StringBuilder();
 		for (VcfHeaderRecord rec : header) {
 			if (sb.length() > 0) {
@@ -266,7 +266,7 @@ public class Vcf2maf extends AbstractMode {
 			sb.append(rec.toString());
 		}
 		
-		for (VCFFileWriter w : writers) {
+		for (RecordWriter<VcfRecord> w : writers) {
 			w.addHeader(sb.toString());
 		}
 	}

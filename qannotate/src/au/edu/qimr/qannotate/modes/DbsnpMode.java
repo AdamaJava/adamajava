@@ -67,18 +67,18 @@ public class DbsnpMode extends AbstractMode{
 		 				 
 		try (VCFFileReader reader= new VCFFileReader( dbSNPFile )) {
 			//add dbSNP version into header		
-			VcfHeaderRecord dbre = reader.getHeader().firstMatchedRecord(VcfHeaderUtils.STANDARD_DBSNP_LINE);
+			VcfHeaderRecord dbre = reader.getVcfHeader().firstMatchedRecord(VcfHeaderUtils.STANDARD_DBSNP_LINE);
 			 
 			if (dbre != null)  
 				header.addOrReplace(String.format("##INFO=<ID=%s,Number=0,Type=%s,Description=\"%s\">",
 								VcfHeaderUtils.INFO_DB, VcfInfoType.Flag.name(),
 								VcfHeaderUtils.INFO_DB_DESC )  );  		
 		 
-			if (reader.getHeader().getInfoRecord(VcfHeaderUtils.INFO_CAF) != null )	
+			if (reader.getVcfHeader().getInfoRecord(VcfHeaderUtils.INFO_CAF) != null )	
 				header.addOrReplace( String.format("##INFO=<ID=%s,Number=.,Type=String,Description=\"%s\">", VcfHeaderUtils.INFO_VAF, VcfHeaderUtils.INFO_VAF_DESC  )	);
 
-			if (reader.getHeader().getInfoRecord(VcfHeaderUtils.INFO_VLD) != null )	
-				header.addOrReplace( reader.getHeader().getInfoRecord(VcfHeaderUtils.INFO_VLD));
+			if (reader.getVcfHeader().getInfoRecord(VcfHeaderUtils.INFO_VLD) != null )	
+				header.addOrReplace( reader.getVcfHeader().getInfoRecord(VcfHeaderUtils.INFO_VLD));
 		 
 			int dbSnpNo = 0;
 			for (final VcfRecord dbSNPVcf : reader) {

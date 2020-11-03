@@ -32,8 +32,7 @@ import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils.VcfInfoType;
 import org.qcmg.qio.vcf.VCFFileReader;
-import org.qcmg.qio.vcf.VCFFileWriter;
-
+import org.qcmg.qio.record.RecordWriter;
 import au.edu.qimr.qannotate.Main;
 import au.edu.qimr.qannotate.Options;
 import htsjdk.samtools.SAMSequenceRecord;
@@ -82,10 +81,10 @@ public class MakeValidMode extends AbstractMode {
 	private void processVcfFile(String input, String output, String cmd, String ref) throws FileNotFoundException, IOException {
 		File inputFile = new File(input);
 		
-		try (VCFFileReader reader = VCFFileReader.createStream(inputFile);
-				VCFFileWriter writer = new VCFFileWriter(new File(output));) {
+		try (VCFFileReader reader = new VCFFileReader(inputFile);
+				RecordWriter<VcfRecord> writer = new RecordWriter<>(new File(output));) {
 			
-			VcfHeader inputHeader = reader.getHeader();
+			VcfHeader inputHeader = reader.getVcfHeader();
 			
 			/*
 			 * check that input file is in need of a valid makeover

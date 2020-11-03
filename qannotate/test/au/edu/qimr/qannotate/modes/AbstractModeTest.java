@@ -26,7 +26,6 @@ import org.qcmg.qio.vcf.VCFFileReader;
 
 import au.edu.qimr.qannotate.utils.SampleColumn;
 
-
 public class AbstractModeTest {
 	public static String outputName = "output.vcf";
 	public static String inputName = "input.vcf";
@@ -80,7 +79,7 @@ public class AbstractModeTest {
 		
         try (VCFFileReader reader = new VCFFileReader(new File(outputName))) {
 	        	int i = 0;
-	        	for (VcfHeaderRecord re :  reader.getHeader()) {
+	        	for (VcfHeaderRecord re :  reader.getVcfHeader()) {
 	        		if (re.toString().startsWith(VcfHeaderUtils.STANDARD_UUID_LINE)) {
 	        			// new UUID should have been inserted by now
 	        			assertEquals(false, "abcd_12345678_xzy_999666333".equals(StringUtils.getValueFromKey(re.getMetaValue(), VcfHeaderUtils.STANDARD_UUID_LINE)));
