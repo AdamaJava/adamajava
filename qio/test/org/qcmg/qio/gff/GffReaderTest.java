@@ -1,4 +1,4 @@
-package org.qcmg.gff;
+package org.qcmg.qio.gff;
 
 import java.io.BufferedWriter;
 import java.io.File;

@@ -37,7 +37,7 @@ import org.qcmg.pileup.PileupFileReader;
 import org.qcmg.qmule.Messages;
 import org.qcmg.qmule.Options;
 import org.qcmg.qmule.QMuleException;
-import org.qcmg.qmule.record.Record;
+import org.qcmg.record.Record;
 import org.qcmg.unused.illumina.IlluminaFileReader;
 import org.qcmg.unused.illumina.IlluminaRecord;
 import org.qcmg.vcf.VCFFileReader;
