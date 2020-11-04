@@ -22,11 +22,10 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.BLATRecord;
 import org.qcmg.common.util.TabTokenizer;
+import org.qcmg.qio.record.StringFileReader;
 import org.qcmg.qsv.QSVException;
 import org.qcmg.qsv.QSVParameters;
 import org.qcmg.qsv.util.QSVUtil;
-import org.qcmg.tab.TabbedFileReader;
-import org.qcmg.tab.TabbedRecord;
 
 /**
  * Class to launch BLAT
@@ -89,9 +88,9 @@ public class BLAT {
 		Map<String, BLATRecord> records = new HashMap<>();
 		File blatOutput = new File(blatOutputFile);
 		
-		try (TabbedFileReader reader = new TabbedFileReader(blatOutput);) {
-			for (TabbedRecord tab: reader) {
-				BLATRecord record = new BLATRecord(TabTokenizer.tokenize(tab.getData())); 
+		try (StringFileReader reader = new StringFileReader(blatOutput);) {
+			for (String tab: reader) {
+				BLATRecord record = new BLATRecord(TabTokenizer.tokenize(tab)); 
 				if (record.isValid()) {
 					BLATRecord previous = records.get(record.getName());
 					if (null == previous || record.getScore() > previous.getScore()) {
@@ -176,10 +175,10 @@ public class BLAT {
 		List<BLATRecord> records = new ArrayList<>();
 		
 		File out = new File(outFile);
-		try (TabbedFileReader reader = new TabbedFileReader(out);) {
+		try (StringFileReader reader = new StringFileReader(out);) {
 
-			for (TabbedRecord tab: reader) {
-				BLATRecord record = new BLATRecord(TabTokenizer.tokenize(tab.getData()));
+			for (String tab: reader) {
+				BLATRecord record = new BLATRecord(TabTokenizer.tokenize(tab));
 				if (record.isValid()) {
 					if (leftReference != null && rightReference != null) {
 						if (record.getReference().equals(leftReference) || record.getReference().equals(rightReference)) {
@@ -207,10 +206,10 @@ public class BLAT {
 		
 		List<BLATRecord> records = new ArrayList<>();
 		
-		try (TabbedFileReader reader = new TabbedFileReader(outFile);) {
+		try (StringFileReader reader = new StringFileReader(outFile);) {
 
-			for (TabbedRecord tab: reader) {
-				BLATRecord record = new BLATRecord(TabTokenizer.tokenize(tab.getData())); 	
+			for (String tab: reader) {
+				BLATRecord record = new BLATRecord(TabTokenizer.tokenize(tab)); 	
 				
 				if (record.isValid() && record.getName().equals(name)) {
 					if (leftReference != null && rightReference != null) {
