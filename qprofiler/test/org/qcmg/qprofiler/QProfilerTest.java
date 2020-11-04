@@ -15,7 +15,7 @@ import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.qcmg.gff.GFFReader;
+import org.qcmg.qio.gff.GffReader;
 
 public class QProfilerTest {
 	
@@ -118,9 +118,9 @@ public class QProfilerTest {
 	
 	@Ignore
 	public final void executeWithCorruptGffFile() throws Exception {
-		GFFReader reader = null;
+		GffReader reader = null;
 		try {
-			reader = new GFFReader(DODGY_GFF_FILE_NAME_FILE);
+			reader = new GffReader(DODGY_GFF_FILE_NAME_FILE);
 			Assert.fail("Should have thrown an Exception");
 		} catch (Exception e) {
 			Assert.assertEquals("Not enough fields in the Record", e.getMessage());

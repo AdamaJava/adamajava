@@ -25,11 +25,12 @@ import org.qcmg.common.date.DateUtils;
 import org.qcmg.common.log.QLevel;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.qio.fasta.FastaReader;
+import org.qcmg.qio.fasta.FastaRecord;
 import org.qcmg.qprofiler.report.SummaryReport;
 import org.qcmg.qprofiler.summarise.Summarizer;
-import org.qcmg.record.Record;
-import org.qcmg.record.SimpleRecord;
-import org.qcmg.simple.SimpleFileReader;
+
+//import org.qcmg.simple.SimpleFileReader;
 
 
 public class FastaSummarizer implements Summarizer {
@@ -56,11 +57,11 @@ public class FastaSummarizer implements Summarizer {
 		long recordsParsed = 0;
 		
 		
-		try (SimpleFileReader reader =  new SimpleFileReader(new File(input));){
-			for (Record record : reader) {
+		try (FastaReader reader =  new FastaReader(new File(input));){
+			for (FastaRecord record : reader) {
 				if (null != record) {
 					
-					fastaSummaryReport.parseRecord((SimpleRecord) record);
+					fastaSummaryReport.parseRecord(record);
 					recordsParsed = fastaSummaryReport.getRecordsParsed();
 					
 					if (isLevelEnabled && recordsParsed % (FEEDBACK_LINES_COUNT * 2) == 0) {
