@@ -33,9 +33,9 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.commandline.Executor;
-import org.qcmg.gff3.GFF3FileWriter;
-import org.qcmg.gff3.GFF3Record;
 import org.qcmg.picard.SAMFileReaderFactory;
+import org.qcmg.qio.gff3.Gff3Record;
+import org.qcmg.qio.record.RecordWriter;
 
 public class SequenceCoverageTest {
 	
@@ -100,7 +100,7 @@ public class SequenceCoverageTest {
 	}
 
 	private void createGFF3File(final int start, final int end, File file) throws IOException {
-		GFF3Record record = new GFF3Record();
+		Gff3Record record = new Gff3Record();
 		record.setSeqId("chr1");
 		record.setType("exon");
 		record.setStart(start);
@@ -109,7 +109,7 @@ public class SequenceCoverageTest {
 		record.setSource(".");
 		record.setStrand("+");
 
-		try (GFF3FileWriter writer = new GFF3FileWriter(file)) {
+		try (RecordWriter<Gff3Record> writer = new RecordWriter<>(file)) {
 			writer.add(record);
 		}
 	}

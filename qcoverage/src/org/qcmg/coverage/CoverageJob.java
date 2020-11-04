@@ -19,14 +19,14 @@ import htsjdk.samtools.SAMRecord;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.util.Pair;
-import org.qcmg.gff3.GFF3Record;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qbamfilter.query.QueryExecutor;
+import org.qcmg.qio.gff3.Gff3Record;
 
 class CoverageJob implements Job {
 	private final int refLength;
 	private final String refName;
-	private final HashSet<GFF3Record> features;
+	private final HashSet<Gff3Record> features;
 	private int[] perBaseCoverages; // Uses 0-based coordinate indexing
 	private final HashMap<String, HashMap<Integer, AtomicLong>> idToCoverageToBaseCountMap = new HashMap<String, HashMap<Integer, AtomicLong>>();
 	private final QLogger logger;
@@ -38,12 +38,12 @@ class CoverageJob implements Job {
 	private final ReadsNumberCounter counterOut;
 	private boolean fullyPopulated;
 
-	CoverageJob(final String refName, final int refLength, final HashMap<String, HashSet<GFF3Record>> refToFeaturesMap,
+	CoverageJob(final String refName, final int refLength, final HashMap<String, HashSet<Gff3Record>> refToFeaturesMap,
 			final HashSet<Pair<File, File>> filePairs, final QueryExecutor filter,
 			final boolean perFeatureFlag, final Algorithm algorithm, final ReadsNumberCounter counterIn,final ReadsNumberCounter counterOut) throws Exception {
 		this(refName, refLength, refToFeaturesMap, filePairs, filter, perFeatureFlag, algorithm, counterIn, counterOut, null);
 	}
-	CoverageJob(final String refName, final int refLength, final HashMap<String, HashSet<GFF3Record>> refToFeaturesMap,
+	CoverageJob(final String refName, final int refLength, final HashMap<String, HashSet<Gff3Record>> refToFeaturesMap,
 			final HashSet<Pair<File, File>> filePairs, final QueryExecutor filter,
 			final boolean perFeatureFlag, final Algorithm algorithm, final ReadsNumberCounter counterIn,final ReadsNumberCounter counterOut, final String validation) throws Exception {
 		assert (refLength > -1);
@@ -103,7 +103,7 @@ class CoverageJob implements Job {
 		
 		logger.debug("in constructCoverageMap with array length: " + perBaseCoverages.length);
 		// For all coordinates where a feature exists, set to zero coverage
-		for (GFF3Record feature : features) {
+		for (Gff3Record feature : features) {
 			int start = feature.getStart();
 			
 			if (start == 0)
@@ -179,7 +179,7 @@ class CoverageJob implements Job {
 	}
 
 	private void assembleResults() {
-		for (GFF3Record feature : features) {
+		for (Gff3Record feature : features) {
 			String id = null;
 			if (perFeatureFlag) {
 				id = feature.getRawData();
