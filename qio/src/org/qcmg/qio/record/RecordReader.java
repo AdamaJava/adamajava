@@ -15,6 +15,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -127,8 +128,9 @@ public abstract class RecordReader<T> implements Closeable, Iterable<T> {
             		}
             		
            			return rec;
-        		} catch (Exception e) {
-        			throw new RuntimeException(e.getMessage());
+        		} catch (IOException e) {
+        			//here we only catch IO exception
+        			throw new UncheckedIOException(e); 
          		}
             }
         };
