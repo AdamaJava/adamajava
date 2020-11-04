@@ -9,9 +9,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
 
+import org.qcmg.qmule.exception.RecordIteratorException;
 import org.qcmg.qmule.record.AbstractRecordIterator;
 import org.qcmg.qmule.record.Record;
-import org.qcmg.unused.exception.RecordIteratorException;
 
 public abstract class AbstractReader implements Reader, Iterable<Record> {
 	

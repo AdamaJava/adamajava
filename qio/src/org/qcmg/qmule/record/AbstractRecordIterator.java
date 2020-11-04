@@ -9,7 +9,7 @@ import java.io.InputStreamReader;
 import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.qcmg.unused.exception.RecordIteratorException;
+import org.qcmg.qmule.exception.RecordIteratorException;
 
 public abstract class AbstractRecordIterator implements Iterator<Record> {
 
