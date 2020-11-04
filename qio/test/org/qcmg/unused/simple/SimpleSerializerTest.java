@@ -1,8 +1,8 @@
-package org.qcmg.simple;
+package org.qcmg.unused.simple;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.qcmg.record.SimpleRecord;
+import org.qcmg.qmule.record.SimpleRecord;
 
 
 public class SimpleSerializerTest {
