@@ -12,13 +12,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
-
-import junit.framework.Assert;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -27,9 +22,8 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.commandline.Executor;
 import org.qcmg.common.util.FileUtils;
-import org.qcmg.qmule.gff3.GFF3Record;
 
-public class WiggleFromPileupTest {
+public class WiggleFromPileupTakeTwoTest {
 	@Rule
 	public TemporaryFolder tempFolder = new TemporaryFolder();
 	@Rule
@@ -61,163 +55,163 @@ public class WiggleFromPileupTest {
 	}
 	
 	
-	@Test
-	public void testIsPositionInBaitSingleGff() {
-		GFF3Record gff = new GFF3Record();
-		gff.setSeqId("chr1");
-		gff.setStart(1);
-		gff.setEnd(10);
-		
-		List<GFF3Record> gffs = new ArrayList<GFF3Record>();
-		gffs.add(gff);
-		Iterator<GFF3Record> iter = gffs.iterator();
-//		WiggleFromPileup.setGffRecord(gff);
-		
-		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chr0", 0, iter, iter.next()));
-		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chr1", 0, iter, gff));
-		Assert.assertEquals(true, WiggleFromPileup.isPositionInBait("chr1", 1, iter, gff));
-		Assert.assertEquals(true, WiggleFromPileup.isPositionInBait("chr1", 10, iter, gff));
-		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chr1", 11, iter, gff));
-		
-		gff.setSeqId("chrX");
-		gff.setStart(1000123);
-		gff.setEnd(1000223);
-		
-//		WiggleFromPileup.setGffRecord(gff);
-		
-		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chrX", 0, iter, gff));
-		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chrX", 1, iter, gff));
-		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chrx", 1000124, iter, gff));
-		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chrx", 11, iter, gff));
-		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chrX", 11, iter, gff));
-		Assert.assertEquals(true, WiggleFromPileup.isPositionInBait("chrX", 1000123, iter, gff));
-		Assert.assertEquals(true, WiggleFromPileup.isPositionInBait("chrX", 1000124, iter, gff));
-		Assert.assertEquals(true, WiggleFromPileup.isPositionInBait("chrX", 1000223, iter, gff));
-		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chrX", 1000224, iter, gff));
-	}
+//	@Test
+//	public void testIsPositionInBaitSingleGff() {
+//		GFF3Record gff = new GFF3Record();
+//		gff.setSeqId("chr1");
+//		gff.setStart(1);
+//		gff.setEnd(10);
+//		
+//		List<GFF3Record> gffs = new ArrayList<GFF3Record>();
+//		gffs.add(gff);
+//		Iterator<GFF3Record> iter = gffs.iterator();
+////		WiggleFromPileup.setGffRecord(gff);
+//		
+//		Assert.assertEquals(false, WiggleFromPileupTakeTwo.isPositionInBait("chr0", 0, iter, iter.next()));
+//		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chr1", 0, iter, gff));
+//		Assert.assertEquals(true, WiggleFromPileup.isPositionInBait("chr1", 1, iter, gff));
+//		Assert.assertEquals(true, WiggleFromPileup.isPositionInBait("chr1", 10, iter, gff));
+//		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chr1", 11, iter, gff));
+//		
+//		gff.setSeqId("chrX");
+//		gff.setStart(1000123);
+//		gff.setEnd(1000223);
+//		
+////		WiggleFromPileup.setGffRecord(gff);
+//		
+//		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chrX", 0, iter, gff));
+//		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chrX", 1, iter, gff));
+//		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chrx", 1000124, iter, gff));
+//		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chrx", 11, iter, gff));
+//		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chrX", 11, iter, gff));
+//		Assert.assertEquals(true, WiggleFromPileup.isPositionInBait("chrX", 1000123, iter, gff));
+//		Assert.assertEquals(true, WiggleFromPileup.isPositionInBait("chrX", 1000124, iter, gff));
+//		Assert.assertEquals(true, WiggleFromPileup.isPositionInBait("chrX", 1000223, iter, gff));
+//		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chrX", 1000224, iter, gff));
+//	}
 	
-	@Test
-	public void testIsPositionInBaitMultipleGff() {
-		GFF3Record gff1 = new GFF3Record();
-		gff1.setSeqId("chr1");
-		gff1.setStart(1);
-		gff1.setEnd(10);
-		GFF3Record gff2 = new GFF3Record();
-		gff2.setSeqId("chr1");
-		gff2.setStart(11);
-		gff2.setEnd(20);
-		GFF3Record gff3 = new GFF3Record();
-		gff3.setSeqId("chr1");
-		gff3.setStart(31);
-		gff3.setEnd(40);
-		
-		List<GFF3Record> gffs = new ArrayList<GFF3Record>();
-		gffs.add(gff1);
-		gffs.add(gff2);
-		gffs.add(gff3);
-		Iterator<GFF3Record> iter = gffs.iterator();
-		
-		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chr1", 0, iter, iter.next()));
-		
-//		Assert.assertEquals(gff1, WiggleFromPileup.getGffRecord());
-		Assert.assertEquals(true, WiggleFromPileup.isPositionInBait("chr1", 1, iter, gff1));
-		Assert.assertEquals(true, WiggleFromPileup.isPositionInBait("chr1", 10, iter, gff1));
-		Assert.assertEquals(true, WiggleFromPileup.isPositionInBait("chr1", 11, iter, gff1));
-		// iterator should have been advanced
-		Assert.assertEquals(gff2, WiggleFromPileup.getGffRecord());
-		Assert.assertEquals(true, WiggleFromPileup.isPositionInBait("chr1", 20, iter, gff2));
-		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chr1", 21, iter, gff2));
-		// iterator should have been advanced
-		Assert.assertEquals(gff3, WiggleFromPileup.getGffRecord());
-		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chr1", 29, iter, gff3));
-		Assert.assertEquals(true, WiggleFromPileup.isPositionInBait("chr1", 31, iter, gff3));
-		Assert.assertEquals(true, WiggleFromPileup.isPositionInBait("chr1", 40, iter, gff3));
-		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chr1", 41, iter, gff3));
-		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chr1", 141, iter, gff3));
-	}
+//	@Test
+//	public void testIsPositionInBaitMultipleGff() {
+//		GFF3Record gff1 = new GFF3Record();
+//		gff1.setSeqId("chr1");
+//		gff1.setStart(1);
+//		gff1.setEnd(10);
+//		GFF3Record gff2 = new GFF3Record();
+//		gff2.setSeqId("chr1");
+//		gff2.setStart(11);
+//		gff2.setEnd(20);
+//		GFF3Record gff3 = new GFF3Record();
+//		gff3.setSeqId("chr1");
+//		gff3.setStart(31);
+//		gff3.setEnd(40);
+//		
+//		List<GFF3Record> gffs = new ArrayList<GFF3Record>();
+//		gffs.add(gff1);
+//		gffs.add(gff2);
+//		gffs.add(gff3);
+//		Iterator<GFF3Record> iter = gffs.iterator();
+//		
+//		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chr1", 0, iter, iter.next()));
+//		
+////		Assert.assertEquals(gff1, WiggleFromPileup.getGffRecord());
+//		Assert.assertEquals(true, WiggleFromPileup.isPositionInBait("chr1", 1, iter, gff1));
+//		Assert.assertEquals(true, WiggleFromPileup.isPositionInBait("chr1", 10, iter, gff1));
+//		Assert.assertEquals(true, WiggleFromPileup.isPositionInBait("chr1", 11, iter, gff1));
+//		// iterator should have been advanced
+//		Assert.assertEquals(gff2, WiggleFromPileup.getGffRecord());
+//		Assert.assertEquals(true, WiggleFromPileup.isPositionInBait("chr1", 20, iter, gff2));
+//		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chr1", 21, iter, gff2));
+//		// iterator should have been advanced
+//		Assert.assertEquals(gff3, WiggleFromPileup.getGffRecord());
+//		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chr1", 29, iter, gff3));
+//		Assert.assertEquals(true, WiggleFromPileup.isPositionInBait("chr1", 31, iter, gff3));
+//		Assert.assertEquals(true, WiggleFromPileup.isPositionInBait("chr1", 40, iter, gff3));
+//		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chr1", 41, iter, gff3));
+//		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chr1", 141, iter, gff3));
+//	}
 	
-	@Test
-	public void testIsPositionInBaitMultipleGffMultipleChromosomes() {
-		GFF3Record gff1 = new GFF3Record();
-		gff1.setSeqId("chr1");
-		gff1.setStart(1);
-		gff1.setEnd(10);
-		GFF3Record gff2 = new GFF3Record();
-		gff2.setSeqId("chr1");
-		gff2.setStart(11);
-		gff2.setEnd(20);
-		GFF3Record gff3 = new GFF3Record();
-		gff3.setSeqId("chr1");
-		gff3.setStart(31);
-		gff3.setEnd(40);
-		GFF3Record gff4 = new GFF3Record();
-		gff4.setSeqId("chr2");
-		gff4.setStart(15);
-		gff4.setEnd(25);
-		GFF3Record gff5 = new GFF3Record();
-		gff5.setSeqId("chr2");
-		gff5.setStart(26);
-		gff5.setEnd(40);
-		GFF3Record gff6 = new GFF3Record();
-		gff6.setSeqId("chrX");
-		gff6.setStart(100026);
-		gff6.setEnd(100040);
-		
-		List<GFF3Record> gffs = new ArrayList<GFF3Record>();
-		gffs.add(gff1);
-		gffs.add(gff2);
-		gffs.add(gff3);
-		gffs.add(gff4);
-		gffs.add(gff5);
-		gffs.add(gff6);
-		Iterator<GFF3Record> iter = gffs.iterator();
-		
-		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chr0", 0, iter, iter.next()));
-		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chr1", 0, iter, gff1));
-		
-//		Assert.assertEquals(gff1, WiggleFromPileup.getGffRecord());
-		Assert.assertEquals(true, WiggleFromPileup.isPositionInBait("chr1", 1, iter, gff1));
-		Assert.assertEquals(true, WiggleFromPileup.isPositionInBait("chr1", 10, iter, gff1));
-		Assert.assertEquals(true, WiggleFromPileup.isPositionInBait("chr1", 11, iter, gff1));
-		// iterator should have been advanced
-		Assert.assertEquals(gff2, WiggleFromPileup.getGffRecord());
-		Assert.assertEquals(true, WiggleFromPileup.isPositionInBait("chr1", 20, iter, gff2));
-		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chr1", 21, iter, gff2));
-		// iterator should have been advanced
-		Assert.assertEquals(gff3, WiggleFromPileup.getGffRecord());
-		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chr1", 29, iter, gff3));
-		Assert.assertEquals(true, WiggleFromPileup.isPositionInBait("chr1", 31, iter, gff3));
-		Assert.assertEquals(true, WiggleFromPileup.isPositionInBait("chr1", 40, iter, gff3));
-		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chr1", 41, iter, gff3));
-		// iterator should have been advanced
-		Assert.assertEquals(gff4, WiggleFromPileup.getGffRecord());
-		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chr1", 141, iter, gff4));
-		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chr1", 142, iter, gff4));
-		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chr1", 1000142, iter, gff4));
-		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chr2", 1, iter, gff4));
-		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chr2", 2, iter, gff4));
-		Assert.assertEquals(true, WiggleFromPileup.isPositionInBait("chr2", 15, iter, gff4));
-		Assert.assertEquals(true, WiggleFromPileup.isPositionInBait("chr2", 25, iter, gff4));
-		Assert.assertEquals(true, WiggleFromPileup.isPositionInBait("chr2", 26, iter, gff4));
-		// iterator should have been advanced
-		Assert.assertEquals(gff5, WiggleFromPileup.getGffRecord());
-		Assert.assertEquals(true, WiggleFromPileup.isPositionInBait("chr2", 40, iter, gff5));
-		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chr2", 41, iter, gff5));
-		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chr3", 15, iter, gff5));
-		// iterator should have been advanced
-		Assert.assertEquals(gff6, WiggleFromPileup.getGffRecord());
-		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chr3", 10015, iter, gff6));
-		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chr4", 10015, iter, gff6));
-		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chr5", 10015, iter, gff6));
-		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chr15", 10015, iter, gff6));
-		Assert.assertEquals(true, WiggleFromPileup.isPositionInBait("chrX", 100026, iter, gff6));
-		
-	}
+//	@Test
+//	public void testIsPositionInBaitMultipleGffMultipleChromosomes() {
+//		GFF3Record gff1 = new GFF3Record();
+//		gff1.setSeqId("chr1");
+//		gff1.setStart(1);
+//		gff1.setEnd(10);
+//		GFF3Record gff2 = new GFF3Record();
+//		gff2.setSeqId("chr1");
+//		gff2.setStart(11);
+//		gff2.setEnd(20);
+//		GFF3Record gff3 = new GFF3Record();
+//		gff3.setSeqId("chr1");
+//		gff3.setStart(31);
+//		gff3.setEnd(40);
+//		GFF3Record gff4 = new GFF3Record();
+//		gff4.setSeqId("chr2");
+//		gff4.setStart(15);
+//		gff4.setEnd(25);
+//		GFF3Record gff5 = new GFF3Record();
+//		gff5.setSeqId("chr2");
+//		gff5.setStart(26);
+//		gff5.setEnd(40);
+//		GFF3Record gff6 = new GFF3Record();
+//		gff6.setSeqId("chrX");
+//		gff6.setStart(100026);
+//		gff6.setEnd(100040);
+//		
+//		List<GFF3Record> gffs = new ArrayList<GFF3Record>();
+//		gffs.add(gff1);
+//		gffs.add(gff2);
+//		gffs.add(gff3);
+//		gffs.add(gff4);
+//		gffs.add(gff5);
+//		gffs.add(gff6);
+//		Iterator<GFF3Record> iter = gffs.iterator();
+//		
+//		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chr0", 0, iter, iter.next()));
+//		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chr1", 0, iter, gff1));
+//		
+////		Assert.assertEquals(gff1, WiggleFromPileup.getGffRecord());
+//		Assert.assertEquals(true, WiggleFromPileup.isPositionInBait("chr1", 1, iter, gff1));
+//		Assert.assertEquals(true, WiggleFromPileup.isPositionInBait("chr1", 10, iter, gff1));
+//		Assert.assertEquals(true, WiggleFromPileup.isPositionInBait("chr1", 11, iter, gff1));
+//		// iterator should have been advanced
+//		Assert.assertEquals(gff2, WiggleFromPileup.getGffRecord());
+//		Assert.assertEquals(true, WiggleFromPileup.isPositionInBait("chr1", 20, iter, gff2));
+//		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chr1", 21, iter, gff2));
+//		// iterator should have been advanced
+//		Assert.assertEquals(gff3, WiggleFromPileup.getGffRecord());
+//		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chr1", 29, iter, gff3));
+//		Assert.assertEquals(true, WiggleFromPileup.isPositionInBait("chr1", 31, iter, gff3));
+//		Assert.assertEquals(true, WiggleFromPileup.isPositionInBait("chr1", 40, iter, gff3));
+//		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chr1", 41, iter, gff3));
+//		// iterator should have been advanced
+//		Assert.assertEquals(gff4, WiggleFromPileup.getGffRecord());
+//		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chr1", 141, iter, gff4));
+//		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chr1", 142, iter, gff4));
+//		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chr1", 1000142, iter, gff4));
+//		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chr2", 1, iter, gff4));
+//		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chr2", 2, iter, gff4));
+//		Assert.assertEquals(true, WiggleFromPileup.isPositionInBait("chr2", 15, iter, gff4));
+//		Assert.assertEquals(true, WiggleFromPileup.isPositionInBait("chr2", 25, iter, gff4));
+//		Assert.assertEquals(true, WiggleFromPileup.isPositionInBait("chr2", 26, iter, gff4));
+//		// iterator should have been advanced
+//		Assert.assertEquals(gff5, WiggleFromPileup.getGffRecord());
+//		Assert.assertEquals(true, WiggleFromPileup.isPositionInBait("chr2", 40, iter, gff5));
+//		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chr2", 41, iter, gff5));
+//		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chr3", 15, iter, gff5));
+//		// iterator should have been advanced
+//		Assert.assertEquals(gff6, WiggleFromPileup.getGffRecord());
+//		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chr3", 10015, iter, gff6));
+//		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chr4", 10015, iter, gff6));
+//		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chr5", 10015, iter, gff6));
+//		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chr15", 10015, iter, gff6));
+//		Assert.assertEquals(true, WiggleFromPileup.isPositionInBait("chrX", 100026, iter, gff6));
+//		
+//	}
 	
 	@Test
 	public final void callWithNoArgs() throws Exception {
 		String command = "";
-		Executor exec = new Executor(command, "org.qcmg.qmule.WiggleFromPileup");
+		Executor exec = new Executor(command, "org.qcmg.qmule.WiggleFromPileupTakeTwo");
 		assertTrue(1 == exec.getErrCode());
 		assertTrue(0 == exec.getOutputStreamConsumer().getLines().length);
 		assertTrue(0 < exec.getErrorStreamConsumer().getLines().length);
@@ -226,7 +220,7 @@ public class WiggleFromPileupTest {
 	@Test
 	public final void callWithNoInputFile() throws Exception {
 		String command = "-log ./logfile -o " + tempFolder.getRoot().getAbsolutePath();
-		Executor exec = new Executor(command, "org.qcmg.qmule.WiggleFromPileup");
+		Executor exec = new Executor(command, "org.qcmg.qmule.WiggleFromPileupTakeTwo");
 		assertTrue(1 == exec.getErrCode());
 		assertTrue(0 == exec.getOutputStreamConsumer().getLines().length);
 		assertTrue(0 < exec.getErrorStreamConsumer().getLines().length);
@@ -235,7 +229,7 @@ public class WiggleFromPileupTest {
 	@Test
 	public final void callWithMissingArgs() throws Exception {
 		String command = "-log ./logfile -o blah.wiggle -i " + pileupFile.getAbsolutePath();
-		Executor exec = new Executor(command, "org.qcmg.qmule.WiggleFromPileup");
+		Executor exec = new Executor(command, "org.qcmg.qmule.WiggleFromPileupTakeTwo");
 		assertTrue(1 == exec.getErrCode());
 		assertTrue(0 == exec.getOutputStreamConsumer().getLines().length);
 		assertTrue(0 < exec.getErrorStreamConsumer().getLines().length);
@@ -246,8 +240,9 @@ public class WiggleFromPileupTest {
 		ExpectedException.none();
 		String command = "-log ./logfile  -pileupFormat NNTT -normalCoverage 1 -tumourCoverage 1 -i " + pileupFile.getAbsolutePath() 
 		+ " -i " + gff3File.getAbsolutePath()
+		+ " -gffRegions exon"
 		+ " -o " + wiggleFile.getAbsolutePath();
-		Executor exec = new Executor(command, "org.qcmg.qmule.WiggleFromPileup");
+		Executor exec = new Executor(command, "org.qcmg.qmule.WiggleFromPileupTakeTwo");
 		assertEquals(0, exec.getErrCode());
 		assertTrue(0 == exec.getOutputStreamConsumer().getLines().length);
 		
@@ -261,8 +256,9 @@ public class WiggleFromPileupTest {
 		ExpectedException.none();
 		String command = "-log ./logfile  -pileupFormat NNTT -normalCoverage 50 -tumourCoverage 50 -i " + pileupFile.getAbsolutePath() 
 		+ " -i " + gff3File.getAbsolutePath()
+		+ " -gffRegions exon"
 		+ " -o " + wiggleFile.getAbsolutePath();
-		Executor exec = new Executor(command, "org.qcmg.qmule.WiggleFromPileup");
+		Executor exec = new Executor(command, "org.qcmg.qmule.WiggleFromPileupTakeTwo");
 		assertEquals(0, exec.getErrCode());
 		assertTrue(0 == exec.getOutputStreamConsumer().getLines().length);
 		
@@ -276,8 +272,9 @@ public class WiggleFromPileupTest {
 		ExpectedException.none();
 		String command = "-log ./logfile  -pileupFormat NNTT -normalCoverage 20 -tumourCoverage 20 -i " + pileupFileGZIP.getAbsolutePath() 
 		+ " -i " + gff3File.getAbsolutePath()
+		+ " -gffRegions exon"
 		+ " -o " + wiggleFileGZIP.getAbsolutePath();
-		Executor exec = new Executor(command, "org.qcmg.qmule.WiggleFromPileup");
+		Executor exec = new Executor(command, "org.qcmg.qmule.WiggleFromPileupTakeTwo");
 		assertEquals(0, exec.getErrCode());
 		assertTrue(0 == exec.getOutputStreamConsumer().getLines().length);
 		
@@ -341,7 +338,7 @@ public class WiggleFromPileupTest {
 	
 	private void createGFF3File(File pileupFile) throws IOException {
 		
-		OutputStream os = FileUtils.isFileNameGZip(pileupFile) ? new GZIPOutputStream( new FileOutputStream(pileupFile)) 
+		OutputStream os = FileUtils.isFileNameGZip( pileupFile) ? new GZIPOutputStream( new FileOutputStream(pileupFile)) 
 		: new FileOutputStream(pileupFile);
 		
 //		OutputStream os = new FileOutputStream(pileupFile);

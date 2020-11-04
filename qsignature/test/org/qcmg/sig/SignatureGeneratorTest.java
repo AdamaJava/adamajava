@@ -33,7 +33,7 @@ import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.picard.SAMOrBAMWriterFactory;
 import org.qcmg.picard.util.SAMUtils;
 import org.qcmg.qio.illumina.IlluminaRecord;
-import org.qcmg.qio.vcf.VCFFileReader;
+import org.qcmg.vcf.VCFFileReader;
 import org.qcmg.sig.util.SignatureUtil;
 
 public class SignatureGeneratorTest {
