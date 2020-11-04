@@ -33,7 +33,9 @@ public abstract class RecordReader<T> implements Closeable, Iterable<T> {
     protected T next; 
     
     protected List<String> headerLines = new ArrayList<>();
-    public RecordReader(final File file) throws IOException { this(file, DEFAULT_BUFFER_SIZE); }
+    public RecordReader(final File file) throws IOException { 
+    	this(file, DEFAULT_BUFFER_SIZE);
+    }
     
     public RecordReader(final File file, int bufferSize) throws IOException {
     	this(file, bufferSize, DEFAULT_HEADER_PREFIX, DEFAULT_CHARSET);
@@ -51,13 +53,13 @@ public abstract class RecordReader<T> implements Closeable, Iterable<T> {
         InputStreamReader streamReader = new InputStreamReader(inputStream, charset);
         bin = new BufferedReader(streamReader, bufferSize);
                		
-        String nextLine = readHeader(headerPrefix);//bin.readLine();        
+        String nextLine = readHeaderAndReturnFirstNonHeaderLine(headerPrefix);//bin.readLine();        
 
 		//get first record, set to null for empty file
 		try {
 			next = nextLine == null? null : getRecord(nextLine);
 		}catch(Exception e) {
-			throw new IOException("error during retrive first record " + e.getMessage());
+			throw new IOException("error during retrieve first record" + e.getMessage());
 		}
     }
     /**
@@ -67,7 +69,7 @@ public abstract class RecordReader<T> implements Closeable, Iterable<T> {
      * @return the first line just after header
      * @throws IOException
      */
-    public String readHeader(CharSequence headerPrefix ) throws IOException{
+    public String readHeaderAndReturnFirstNonHeaderLine(CharSequence headerPrefix ) throws IOException{
     	String nextLine = bin.readLine();
     	
     	//empty file
@@ -76,7 +78,7 @@ public abstract class RecordReader<T> implements Closeable, Iterable<T> {
     	if(headerPrefix == null) return nextLine;   	 
     	
 		//reader header, hence file pointer to first line after header
-		while ( headerPrefix != null && null != nextLine && nextLine.startsWith(headerPrefix+"") ) {				
+		while ( null != nextLine && nextLine.startsWith(headerPrefix+"") ) {				
 			headerLines.add(nextLine);
 			//reset current read line
 			nextLine = bin.readLine();
@@ -95,9 +97,13 @@ public abstract class RecordReader<T> implements Closeable, Iterable<T> {
     /**
      * Here, BufferedReader.close() calls InputStreamReader.close(), which API told us that it Closes the stream and releases any system resources associated with it.
      */
-    public void close() throws IOException { bin.close();  }
+    public void close() throws IOException { 
+    	bin.close();  
+    }
 
-    public File getFile() {  return file; }
+    public File getFile() {
+    	return file;
+    }
 
 	@Override
 	public Iterator<T> iterator() {		
@@ -131,7 +137,7 @@ public abstract class RecordReader<T> implements Closeable, Iterable<T> {
     }	
 	
 	//some record cross multi lines, eg id\nseq\n, this method may call bin.readLine() inside
-	public abstract T getRecord(String line) throws Exception;
+	public abstract T getRecord(String line);
 
 
 }
