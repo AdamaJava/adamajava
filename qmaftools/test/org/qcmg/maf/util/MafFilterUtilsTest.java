@@ -8,8 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import junit.framework.Assert;
-
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -20,7 +19,6 @@ import org.qcmg.common.model.MafType;
 import org.qcmg.common.util.SnpUtils;
 import org.qcmg.maf.MafPipelineNew;
 import org.qcmg.maf.QMafException;
-import org.qcmg.tab.TabbedRecord;
 
 public class MafFilterUtilsTest {
 	
@@ -163,10 +161,8 @@ public class MafFilterUtilsTest {
 	public void testCheckMAFForMINIndelRealLifeData() throws QMafException {
 		List<MAFRecord> mafs = new ArrayList<MAFRecord>();
 		Map<String, Set<Integer>> ensemblToEntrez = new HashMap<String, Set<Integer>>();
-		TabbedRecord data = new TabbedRecord();
 		String s = "7PrimaryTumour_ind63058	2	chr19	53651845	53651846	1	-999	-999	T	-999	TTC	T>TTC		-999	-999	-999	-999	-999	-99	-999	-999	15;150;76;71;1;3;0	11;200;56;51;2;0;0;	--	intron_variant,feature_truncation,intron_variant,feature_truncation,intron_variant,feature_truncation,intron_variant,feature_truncation,intron_variant,feature_truncation,intron_variant,feature_truncation,downstream_gene_variant,downstream_gene_variant	-888,-888,-888,-888,-888,-888,-888,-888,-888,-888,-888,-888,-888,-888	-888,-888,-888,-888,-888,-888,-888,-888,-888,-888,-888,-888,-888,-888	-88	ENSG00000197937,ENSG00000197937,ENSG00000197937,ENSG00000197937,ENSG00000197937,ENSG00000197937,ENSG00000197937,ENSG00000197937,ENSG00000197937,ENSG00000197937,ENSG00000197937,ENSG00000197937,ENSG00000197937,ENSG00000197937	ENST00000601804,ENST00000601804,ENST00000334197,ENST00000334197,ENST00000452676,ENST00000452676,ENST00000597183,ENST00000597183,ENST00000601469,ENST00000601469,ENST00000595967,ENST00000595967,ENST00000595710,ENST00000599096	70	-999	ZNF347,ZNF347,ZNF347,ZNF347,ZNF347,ZNF347,ZNF347,ZNF347,ZNF347,ZNF347,ZNF347,ZNF347,ZNF347,ZNF347	--	--	--	chr19:53651845-53651846	PASS;MIN	--";
-//		s = s.replaceAll("\\s+", "\t");
-		data.setData(s);
+		String data = s;
 		
 		MafUtils.convertDccToMaf(data, "7PrimaryTumour_ind63058", "controlSampleID", "tumourSampleID", null, mafs, ensemblToEntrez, true, true);
 		
@@ -175,8 +171,7 @@ public class MafFilterUtilsTest {
 		maf.setMafType(MafType.INDEL_SOMATIC);
 		
 		MafFilterUtils.checkMAFForMIN(maf);
-		assertEquals(SnpUtils.PASS + ";" + SnpUtils.MUTATION_IN_NORMAL, maf.getFlag());
-		
+		assertEquals(SnpUtils.PASS + ";" + SnpUtils.MUTATION_IN_NORMAL, maf.getFlag());	
 	}
 	
 	@Test
@@ -486,9 +481,8 @@ public class MafFilterUtilsTest {
 		List<MAFRecord> mafs = new ArrayList<MAFRecord>();
 		Map<String, Set<Integer>> ensemblToEntrez = new HashMap<String, Set<Integer>>();
 		String s = "AOCS_067_SNP_54973      1       17      30965850        30965850        1       -888    -888    T       T/T     C/T     T>C     -999    -999    0.12844960008474762     19      2       2       -888    -999    -999    T:0[0],12[33.83]        C:0[0],5[7.6],T:1[40],13[23]    5       missense_variant,missense_variant,non_coding_exon_variant,nc_transcript_variant,missense_variant,intron_variant,nc_transcript_variant,non_coding_exon_variant,nc_transcript_variant     N867D,N779D,-888,-888,N867D,-888,-888,-888,-888 2904T>C,2879T>C,546T>C,546T>C,2871T>C,-888,-888,505T>C,505T>C   PF06017,PF06017,PF06017 ENSG00000176658,ENSG00000176658,ENSG00000176658,ENSG00000176658,ENSG00000176658,,,ENSG00000176658,ENSG00000176658       ENST00000318217,ENST00000394649,ENST00000577352,ENST00000577352,ENST00000579584,ENST00000582272,ENST00000582272,ENST00000581059,ENST00000581059 70      -999    MYO1D,MYO1D,MYO1D,MYO1D,MYO1D,,,MYO1D,MYO1D     PF06017,PF06017,PF06017 pfam,pfam,pfam  Myosin_tail_2,Myosin_tail_2,Myosin_tail_2       chr17:30965850-30965850 PASS    TCGATCTACCT";
-		TabbedRecord data = new TabbedRecord();
 		s = s.replaceAll("\\s+", "\t");
-		data.setData(s);
+		String data = s;
 		
 		MafUtils.convertDccToMaf(data, "AOCS_067", "controlSampleID", "tumourSampleID", null, mafs, ensemblToEntrez, true, true);
 		
@@ -502,9 +496,8 @@ public class MafFilterUtilsTest {
 		List<MAFRecord> mafs = new ArrayList<MAFRecord>();
 		Map<String, Set<Integer>> ensemblToEntrez = new HashMap<String, Set<Integer>>();
 		String s = "aba9fc0c_7f03_417f_b087_2e8ab1a45e42_ICGC-ABMJ-20120706-01_ind353976	3	chr11	62638311	62638313	1	-999	-999	TAA	-999	---	TAA/---	1	-999	-999	-999	-999	-999	-999	-99	-999	0;46;37;0;1;0;1	0;34;30;0;0;0;0	--	splice_donor_variant,intron_variant,feature_truncation,splice_donor_variant,intron_variant,feature_truncation,intron_variant,feature_truncation,intron_variant,feature_truncation,intron_variant,feature_truncation,splice_donor_variant,intron_variant,feature_truncation	-888,-888,-888,-888,-888,-888,-888,-888,-888,-888,-888,-888,-888,-888,-888	-888,-888,-888,-888,-888,-888,-888,-888,-888,-888,-888,-888,-888,-888,-888	-888	ENSG00000168003,ENSG00000168003,ENSG00000168003,ENSG00000168003,ENSG00000168003,ENSG00000168003,ENSG00000168003,ENSG00000168003,ENSG00000168003,ENSG00000168003,ENSG00000168003,ENSG00000168003,ENSG00000168003,ENSG00000168003,ENSG00000168003	ENST00000377892,ENST00000377892,ENST00000377892,ENST00000377890,ENST00000377890,ENST00000377890,ENST00000377891,ENST00000377891,ENST00000377889,ENST00000377889,ENST00000535296,ENST00000535296,ENST00000538084,ENST00000538084,ENST00000538084	70	-999	SLC3A2,SLC3A2,SLC3A2,SLC3A2,SLC3A2,SLC3A2,SLC3A2,SLC3A2,SLC3A2,SLC3A2,SLC3A2,SLC3A2,SLC3A2,SLC3A2,SLC3A2	--	--	--	chr11:62638311-62638313	PASS;NNS;HOMADJ_2	--";
-		TabbedRecord data = new TabbedRecord();
 		s = s.replaceAll("\\s+", "\t");
-		data.setData(s);
+		String data = s;
 		
 		MafUtils.convertDccToMaf(data, "", "controlSampleID", "tumourSampleID", null, mafs, ensemblToEntrez, true, true);
 		
@@ -518,9 +511,8 @@ public class MafFilterUtilsTest {
 		List<MAFRecord> mafs = new ArrayList<MAFRecord>();
 		Map<String, Set<Integer>> ensemblToEntrez = new HashMap<String, Set<Integer>>();
 		String s = "e3201e6a_2b36_4f04_8eb8_3c71ca2dc59d_ICGC-DBPC-20130205-124_ind14587	2	chr17	39411682	39411683	1	-999	-999	---------------	-99	ACCACCTGCTGCAGG	---------------/ACCACCTGCTGCAGG		-999	-999	-999	-999	-999	-999	-999	-999	0;32;32;0[0|0];0;0;11	0;37;37;0[0|0];0;0;7;\"2_discontiguous_CTGCTGCAGGaccacctgctgcaggACCACCTGCT\"	--	downstream_gene_variant,frameshift_variant,feature_truncation	-888,RT15RT,RT15RT	-888,47->ACCACCTGCTGCAGG,47->ACCACCTGCTGCAGG	-888	ENSG00000241595,ENSG00000198083,ENSG00000198083	ENST00000334109,ENST00000394008,ENST00000394008	70	-999	KRTAP9-4,KRTAP9-9,KRTAP9-9	--	--	--	chr17:39411682-39411683	PASS;NNS;HOMADJ_2	--";
-		TabbedRecord data = new TabbedRecord();
 		s = s.replaceAll("\\s+", "\t");
-		data.setData(s);
+		String data = s;
 		
 		MafUtils.convertDccToMaf(data, "", "controlSampleID", "tumourSampleID", null, mafs, ensemblToEntrez, false, true);
 		

@@ -21,11 +21,11 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.util.ChrPositionCache;
-import org.qcmg.illumina.IlluminaRecord;
+import org.qcmg.qio.illumina.IlluminaRecord;
 import org.qcmg.sig.CompareTest;
 import org.qcmg.sig.model.Comparison;
 import org.qcmg.sig.model.SigMeta;
-import org.qcmg.tab.TabbedHeader;
+
 
 public class SignatureUtilTest {
 	
@@ -117,8 +117,8 @@ public class SignatureUtilTest {
 	
 	@Test
 	public void doesOldStyleHeaderReturnASigMeta() {
-		TabbedHeader h = new TabbedHeader(BAM_HEADER_OLD_SKOOL);
-		Optional<Pair<SigMeta, Map<String, String>>> optional = SignatureUtil.getSigMetaAndRGsFromHeader(h);
+		//TabbedHeader h = new TabbedHeader(BAM_HEADER_OLD_SKOOL);
+		Optional<Pair<SigMeta, Map<String, String>>> optional = SignatureUtil.getSigMetaAndRGsFromHeader(BAM_HEADER_OLD_SKOOL);
 		assertEquals(true, optional.isPresent());
 		SigMeta sm = optional.get().getKey();
 		assertEquals(false, sm.isValid());
@@ -136,18 +136,21 @@ public class SignatureUtilTest {
 	@Test
 	public void getSigMetaEmptyHeader() {
 		assertEquals(Optional.empty(), SignatureUtil.getSigMetaAndRGsFromHeader(null));
-		TabbedHeader h = new TabbedHeader(null);
-		Optional<Pair<SigMeta, Map<String, String>>> o =SignatureUtil.getSigMetaAndRGsFromHeader(h); 
-		assertEquals(true, o.isPresent());
-	
-		assertEquals(false, o.get().getFirst().isValid());		// invalid SigMeta
-		assertEquals(true, o.get().getSecond().isEmpty());	// empty rg map
+		
+		
+		//new TabbedHeader(null); will create an empty list, but now it will not
+		//TabbedHeader h = new TabbedHeader(null);
+//		Optional<Pair<SigMeta, Map<String, String>>> o =SignatureUtil.getSigMetaAndRGsFromHeader(null); 
+//		assertEquals(true, o.isPresent());
+//	
+//		assertEquals(false, o.get().getFirst().isValid());		// invalid SigMeta
+//		assertEquals(true, o.get().getSecond().isEmpty());	// empty rg map
 	}
 	
 	@Test
 	public void getSigMetaBam() {
-		TabbedHeader h = new TabbedHeader(BAM_HEADER);
-		Optional<Pair<SigMeta, Map<String, String>>> o =SignatureUtil.getSigMetaAndRGsFromHeader(h); 
+		//TabbedHeader h = new TabbedHeader(BAM_HEADER);
+		Optional<Pair<SigMeta, Map<String, String>>> o =SignatureUtil.getSigMetaAndRGsFromHeader(BAM_HEADER); 
 		assertEquals(true, o.isPresent());
 		
 		assertEquals(true, o.get().getFirst().isValid());			// valid SigMeta
@@ -162,8 +165,8 @@ public class SignatureUtilTest {
 	
 	@Test
 	public void getSigMetaSnpChip() {
-		TabbedHeader h = new TabbedHeader(SNP_CHIP_HEADER);
-		Optional<Pair<SigMeta, Map<String, String>>> o =SignatureUtil.getSigMetaAndRGsFromHeader(h); 
+		//TabbedHeader h = new TabbedHeader(SNP_CHIP_HEADER);
+		Optional<Pair<SigMeta, Map<String, String>>> o =SignatureUtil.getSigMetaAndRGsFromHeader(SNP_CHIP_HEADER); 
 		assertEquals(true, o.isPresent());
 		
 		assertEquals(true, o.get().getFirst().isValid());			// valid SigMeta
@@ -173,13 +176,13 @@ public class SignatureUtilTest {
 	
 	@Test
 	public void canSigMEtasBeCompared() {
-		TabbedHeader h = new TabbedHeader(SNP_CHIP_HEADER);
-		Optional<Pair<SigMeta, Map<String, String>>> o =SignatureUtil.getSigMetaAndRGsFromHeader(h); 
+		//TabbedHeader h = new TabbedHeader(SNP_CHIP_HEADER);
+		Optional<Pair<SigMeta, Map<String, String>>> o =SignatureUtil.getSigMetaAndRGsFromHeader(SNP_CHIP_HEADER); 
 		assertEquals(true, o.isPresent());
 		SigMeta snpChpSM = o.get().getFirst();
 		
-		h = new TabbedHeader(BAM_HEADER);
-		o =SignatureUtil.getSigMetaAndRGsFromHeader(h); 
+		//h = new TabbedHeader(BAM_HEADER);
+		o =SignatureUtil.getSigMetaAndRGsFromHeader(BAM_HEADER); 
 		assertEquals(true, o.isPresent());
 		SigMeta bamSM = o.get().getFirst();
 		

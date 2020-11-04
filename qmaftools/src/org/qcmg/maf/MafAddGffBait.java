@@ -22,11 +22,9 @@ import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.FileUtils;
-import org.qcmg.gff3.GFF3FileReader;
-import org.qcmg.gff3.GFF3Record;
-import org.qcmg.tab.TabbedFileReader;
-import org.qcmg.tab.TabbedHeader;
-import org.qcmg.tab.TabbedRecord;
+import org.qcmg.qio.gff3.Gff3FileReader;
+import org.qcmg.qio.gff3.Gff3Record;
+import org.qcmg.qio.record.StringFileReader;
 
 public class MafAddGffBait {
 	
@@ -37,10 +35,8 @@ public class MafAddGffBait {
 	private String[] cmdLineInputFiles;
 	private String[] cmdLineOutputFiles;
 	private int exitStatus;
-//	private final int noOfBases = 5;
 	
 	Map<ChrPosition, String> positionsOfInterestMap = new HashMap<ChrPosition, String>();
-//	List<ChrPosition> positionsOfInterestList = new ArrayList<ChrPosition>();
 	SortedSet<ChrPosition> positionsOfInterestSet = new TreeSet<ChrPosition>();
 	Map<String, Map<ChrPosition, String>> gffTypes = new HashMap<String, Map<ChrPosition, String>>();
 	
@@ -53,12 +49,10 @@ public class MafAddGffBait {
 		// populate the positionsOfInterest map with reference data from the fasta file
 		logger.info("populating positions of interest from gff file: " + cmdLineInputFiles[1]);
 		populateGffTypes(cmdLineInputFiles[1]);
-		logger.info("populating positions of interest from gff file: " + cmdLineInputFiles[1] + " - DONE");
-		
+		logger.info("populating positions of interest from gff file: " + cmdLineInputFiles[1] + " - DONE");		
 		populatePositionsOfInterest();
 		
-		// output new maf file with additional column
-		
+		// output new maf file with additional column		
 		logger.info("write output: " + cmdLineOutputFiles[0]);
 		writeMafOutput(cmdLineInputFiles[0], cmdLineOutputFiles[0]);
 		
@@ -66,10 +60,10 @@ public class MafAddGffBait {
 	}
 	
 	private void populateGffTypes(String gff3File) throws Exception {
-		GFF3FileReader reader = new GFF3FileReader(new File(gff3File));
+		Gff3FileReader reader = new Gff3FileReader(new File(gff3File));
 		try {
 			int  count = 0;
-			for (GFF3Record rec : reader) {
+			for (Gff3Record rec : reader) {
 				String chr = rec.getSeqId();
 				Map<ChrPosition, String> thisMap = gffTypes.get(chr);
 				if (null == thisMap) {
@@ -114,14 +108,14 @@ public class MafAddGffBait {
 	}
 	
 	private void loadPositionsOfInterest(String mafFile) throws Exception {
-		TabbedFileReader reader = new TabbedFileReader(new File(mafFile));
-		try {
+		
+		try(StringFileReader reader = new StringFileReader(new File(mafFile));) {
 			
 			int count = 0;
 			
-			for (TabbedRecord rec : reader) {
+			for (String rec : reader) {
 				count++;
-				String[] params = tabbedPattern.split(rec.getData(), -1);
+				String[] params = tabbedPattern.split(rec, -1);
 				String chr = params[4];
 				int startPos = Integer.parseInt(params[5]);
 				int endPos = Integer.parseInt(params[6]);
@@ -131,23 +125,16 @@ public class MafAddGffBait {
 			}
 			logger.info("for file: " + mafFile + " no of records: " + count + ", no of entries in chrpos set: " + positionsOfInterestSet.size());
 			
-		} finally {
-			reader.close();
-		}
+		} 
 	}
 	
 	private void writeMafOutput(String inputMafFile, String outputMafFile) throws Exception {
 		if (positionsOfInterestMap.isEmpty()) return;
 		
-		TabbedFileReader reader = new TabbedFileReader(new File(inputMafFile));
-		TabbedHeader header = reader.getHeader();
-		FileWriter writer = new FileWriter(new File(outputMafFile), false);
-		
-		int count = 0;
-		
-		try {
-			for (Iterator<String> iter = header.iterator() ; iter.hasNext() ;) {
-				String headerLine = iter.next();
+		try(StringFileReader reader = new StringFileReader(new File(inputMafFile));
+				FileWriter writer = new FileWriter(new File(outputMafFile), false);) {		
+			int count = 0;		
+			for (String headerLine : reader.getHeader()) {
 				if (headerLine.startsWith("#version")) {
 					writer.write(headerLine + "\n");
 				} else {
@@ -155,39 +142,22 @@ public class MafAddGffBait {
 				}
 			}
 			
-			for (TabbedRecord rec : reader) {
+			for (String rec : reader) {
 				count++;
-				String[] params = tabbedPattern.split(rec.getData(), -1);
+				String[] params = tabbedPattern.split(rec, -1);
 				String chr = params[4];
 				int startPos = Integer.parseInt(params[5]);
-				int endPos = Integer.parseInt(params[6]);
-				
-//				String fullChr = "chr" + chr;
-//				if ("chrM".equals(fullChr)) fullChr = "chrMT";
-//				
-//				ChrPosition chrCompliantCP = new ChrPosition(fullChr, startPos, endPos);
-				
+				int endPos = Integer.parseInt(params[6]);				
 				
 				ChrPosition cp = new ChrRangePosition(chr, startPos, endPos);
 				String gff3Type = positionsOfInterestMap.get(cp);
 				if (null != gff3Type) {
-//					if ('-' != ref && ref != gff3Type.charAt(noOfBases)) {
-//						logger.warn("reference base: " + ref + " does not equal base retrieved for cpg purposes: " 
-//								+ gff3Type.charAt(noOfBases) + " at chrpos: " + cp.toString());
-//					}
-					writer.write(rec.getData() + "\t" + gff3Type + "\n");
+					writer.write(rec + "\t" + gff3Type + "\n");
 				} else { 
 					logger.warn("no type for chr pos: " + cp.toString());
 				}
 			}
-			logger.info("written " + count + " maf records to file");
-			
-		} finally {
-			try {
-				writer.close();
-			} finally {
-				reader.close();
-			}
+			logger.info("written " + count + " maf records to file");			
 		}
 	}
 	

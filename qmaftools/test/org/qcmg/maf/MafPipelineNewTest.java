@@ -17,7 +17,6 @@ import org.qcmg.common.util.SnpUtils;
 import org.qcmg.maf.util.FilterOptions;
 import org.qcmg.maf.util.MafFilterUtils;
 import org.qcmg.maf.util.MafUtils;
-import org.qcmg.tab.TabbedRecord;
 
 public class MafPipelineNewTest {
 	
@@ -108,9 +107,8 @@ public class MafPipelineNewTest {
 		List<MAFRecord> mafs = new ArrayList<MAFRecord>();
 		Map<String, Set<Integer>> ensemblToEntrez = new HashMap<String, Set<Integer>>();
 		String s = "aba9fc0c_7f03_417f_b087_2e8ab1a45e42_ICGC-ABMJ-20120706-01_ind353976	3	chr11	62638311	62638313	1	-999	-999	TAA	-999	---	TAA/---	1	-999	-999	-999	-999	-999	-999	-99	-999	0;46;37;0;1;0;1	0;34;30;0;0;0;0	--	splice_donor_variant,intron_variant,feature_truncation,splice_donor_variant,intron_variant,feature_truncation,intron_variant,feature_truncation,intron_variant,feature_truncation,intron_variant,feature_truncation,splice_donor_variant,intron_variant,feature_truncation	-888,-888,-888,-888,-888,-888,-888,-888,-888,-888,-888,-888,-888,-888,-888	-888,-888,-888,-888,-888,-888,-888,-888,-888,-888,-888,-888,-888,-888,-888	-888	ENSG00000168003,ENSG00000168003,ENSG00000168003,ENSG00000168003,ENSG00000168003,ENSG00000168003,ENSG00000168003,ENSG00000168003,ENSG00000168003,ENSG00000168003,ENSG00000168003,ENSG00000168003,ENSG00000168003,ENSG00000168003,ENSG00000168003	ENST00000377892,ENST00000377892,ENST00000377892,ENST00000377890,ENST00000377890,ENST00000377890,ENST00000377891,ENST00000377891,ENST00000377889,ENST00000377889,ENST00000535296,ENST00000535296,ENST00000538084,ENST00000538084,ENST00000538084	70	-999	SLC3A2,SLC3A2,SLC3A2,SLC3A2,SLC3A2,SLC3A2,SLC3A2,SLC3A2,SLC3A2,SLC3A2,SLC3A2,SLC3A2,SLC3A2,SLC3A2,SLC3A2	--	--	--	chr11:62638311-62638313	PASS;NNS;HOMADJ_2	--";
-		TabbedRecord data = new TabbedRecord();
 		s = s.replaceAll("\\s+", "\t");
-		data.setData(s);
+		String data = s;
 		
 		MafUtils.convertDccToMaf(data, "", "controlSampleID", "tumourSampleID", null, mafs, ensemblToEntrez, true, true);
 		FilterOptions fo = new FilterOptions();

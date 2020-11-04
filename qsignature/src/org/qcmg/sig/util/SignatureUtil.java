@@ -53,13 +53,11 @@ import org.qcmg.common.util.NumberUtils;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
-import org.qcmg.illumina.IlluminaRecord;
+import org.qcmg.qio.illumina.IlluminaRecord;
+import org.qcmg.qio.record.StringFileReader;
+import org.qcmg.qio.vcf.VCFFileReader;
 import org.qcmg.sig.model.Comparison;
 import org.qcmg.sig.model.SigMeta;
-import org.qcmg.tab.TabbedFileReader;
-import org.qcmg.tab.TabbedHeader;
-import org.qcmg.tab.TabbedRecord;
-import org.qcmg.vcf.VCFFileReader;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -271,11 +269,12 @@ public class SignatureUtil {
 			throw new IllegalArgumentException("Null file object passed to loadSignatureRatios");
 		}
 		
-		try (TabbedFileReader reader = new TabbedFileReader(file)) {
+		try (StringFileReader reader = new StringFileReader(file)) {
 			String line;
 			
-			for (TabbedRecord vcfRecord : reader) {
-				line = vcfRecord.getData();
+			for (String vcfRecord : reader) {
+				line = vcfRecord;
+				
 				if (line.startsWith(Constants.HASH_STRING)) {
 					continue;
 				}
@@ -309,11 +308,11 @@ public class SignatureUtil {
 			throw new IllegalArgumentException("Null file object passed to loadSignatureRatios");
 		}
 		
-		try (TabbedFileReader reader = new TabbedFileReader(file)) {
+		try (StringFileReader reader = new StringFileReader(file)) {
 			String line;
 			
-			for (TabbedRecord vcfRecord : reader) {
-				line = vcfRecord.getData();
+			for (String vcfRecord : reader) {
+				line = vcfRecord;
 				if (line.startsWith(Constants.HASH_STRING)) {
 					continue;
 				}
@@ -353,11 +352,11 @@ public class SignatureUtil {
 			throw new IllegalArgumentException("Null file object passed to loadSignatureRatios");
 		}
 		
-		try (TabbedFileReader reader = new TabbedFileReader(file)) {
+		try (StringFileReader reader = new StringFileReader(file)) {
 			String line;
 			
-			for (TabbedRecord vcfRecord : reader) {
-				line = vcfRecord.getData();
+			for (String vcfRecord : reader) {
+				line = vcfRecord;
 				if (line.startsWith(Constants.HASH_STRING)) {
 					continue;
 				}
@@ -403,7 +402,7 @@ public class SignatureUtil {
 		return ratios;
 	}
 	
-	public static  Optional<Pair<SigMeta, Map<String, String>>> getSigMetaAndRGsFromHeader(final TabbedHeader h) {
+	public static  Optional<Pair<SigMeta, Map<String, String>>> getSigMetaAndRGsFromHeader(List<String> h) {
 		if (null == h) {
 			return Optional.empty();
 		} else {
@@ -503,8 +502,8 @@ public class SignatureUtil {
 		Map<String, String> rgIds = Collections.emptyMap();
 		SigMeta sm = null;
 		
-		try (TabbedFileReader reader = new TabbedFileReader(file)) {
-			TabbedHeader h = reader.getHeader();
+		try (StringFileReader reader = new StringFileReader(file, "#")) {
+			List<String> h = reader.getHeader();
 			
 			Optional<Pair<SigMeta, Map<String, String>>> metaAndRGsO = getSigMetaAndRGsFromHeader(h);
 			if (metaAndRGsO.isPresent()) {
@@ -523,7 +522,7 @@ public class SignatureUtil {
 	}
 	
 	public static void getDataFromBespolkeLayout(File file, int minCoverage, int minRGCoverage, TIntByteHashMap ratios,
-			TMap<String, TIntByteHashMap> rgRatios, Map<String, String> rgIds, TabbedFileReader reader) {
+			TMap<String, TIntByteHashMap> rgRatios, Map<String, String> rgIds, StringFileReader reader) {
 		int noOfRGs = rgIds.size();
 		logger.debug("Number of rgs for  " + file.getAbsolutePath() + " is " + noOfRGs);
 		
@@ -531,8 +530,8 @@ public class SignatureUtil {
 		
 		AtomicInteger cachePosition = new AtomicInteger();
 		
-		for (TabbedRecord vcfRecord : reader) {
-			line = vcfRecord.getData();
+		for (String vcfRecord : reader) {
+			line = vcfRecord;
 			if (line.startsWith(Constants.HASH_STRING)) {
 				continue;
 			}
