@@ -1,7 +1,7 @@
 /**
  * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
-package org.qcmg.pileup;
+package org.qcmg.qmule.dbsnp;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -9,11 +9,12 @@ import java.io.InputStreamReader;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-public final class VerifiedSnpRecordIterator implements Iterator<VerifiedSnpRecord> {
-    private final BufferedReader reader;
-    private VerifiedSnpRecord next;
 
-    public VerifiedSnpRecordIterator(final InputStream stream) {
+public final class DbsnpRecordIterator implements Iterator<Dbsnp130Record> {
+    private final BufferedReader reader;
+    private Dbsnp130Record next;
+
+    public DbsnpRecordIterator(final InputStream stream) {
         InputStreamReader streamReader = new InputStreamReader(stream);
         reader = new BufferedReader(streamReader);
         readNext();
@@ -23,18 +24,18 @@ public final class VerifiedSnpRecordIterator implements Iterator<VerifiedSnpReco
         return null != next;
     }
 
-    public VerifiedSnpRecord next() {
+    public Dbsnp130Record next() {
         if (!hasNext()) {
             throw new NoSuchElementException();
         }
-        VerifiedSnpRecord result = next;
+        Dbsnp130Record result = next;
         readNext();
         return result;
     }
 
     private void readNext() {
         try {
-            next = VerifiedSnpSerializer.nextRecord(reader);
+            next = DbsnpSerializer.nextRecord(reader);
         } catch (NoSuchElementException e) {
             throw e;
         } catch (Exception ex) {
@@ -42,7 +43,6 @@ public final class VerifiedSnpRecordIterator implements Iterator<VerifiedSnpReco
         }
     }
 
-    @SuppressWarnings("unchecked")
     public void remove() {
         throw new UnsupportedOperationException();
     }

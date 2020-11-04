@@ -1,7 +1,7 @@
 /**
  * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
-package org.qcmg.germlinedb;
+package org.qcmg.qmule.chrconv;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -9,41 +9,48 @@ import java.io.InputStreamReader;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-public final class GermlineDBRecordIterator implements Iterator<GermlineDBRecord> {
-    private final BufferedReader reader;
-    private GermlineDBRecord next;
+public class ChrConvRecordIterator implements Iterator<ChromosomeConversionRecord>{
 
-    public GermlineDBRecordIterator(final InputStream stream) {
-        InputStreamReader streamReader = new InputStreamReader(stream);
-        reader = new BufferedReader(streamReader);
-        readNext();
-    }
+	private final BufferedReader reader;
+    private ChromosomeConversionRecord next;
 
+    public ChrConvRecordIterator(final InputStream stream) {
+	        InputStreamReader streamReader = new InputStreamReader(stream);
+	        reader = new BufferedReader(streamReader);
+        	readNext();
+	    }
+
+    @Override
     public boolean hasNext() {
         return null != next;
     }
 
-    public GermlineDBRecord next() {
+    @Override
+    public ChromosomeConversionRecord next() {
         if (!hasNext()) {
             throw new NoSuchElementException();
         }
-        GermlineDBRecord result = next;
+        ChromosomeConversionRecord result = next;
         readNext();
         return result;
     }
 
     private void readNext() {
         try {
-            next = GermlineDBSerializer.nextRecord(reader);
+            next = ChrConvSerializer.nextRecord(reader);
         } catch (NoSuchElementException e) {
+        	e.printStackTrace();
             throw e;
         } catch (Exception ex) {
-            throw new RuntimeException(ex.getMessage(), ex);
+        	ex.printStackTrace();
+        	next = null;
+        	throw new NoSuchElementException(ex.getMessage());
         }
     }
 
-    @SuppressWarnings("unchecked")
+    @Override
     public void remove() {
         throw new UnsupportedOperationException();
     }
+
 }
