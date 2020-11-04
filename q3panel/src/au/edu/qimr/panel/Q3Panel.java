@@ -88,13 +88,10 @@ import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils.VcfInfoType;
-import org.qcmg.qmule.SmithWatermanGotoh;
-
-import org.qcmg.tab.TabbedFileReader;
-import org.qcmg.tab.TabbedHeader;
-import org.qcmg.tab.TabbedRecord;
+import org.qcmg.qio.record.StringFileReader;
 import org.qcmg.vcf.VCFFileReader;
-import org.qcmg.vcf.VCFFileWriter;
+import org.qcmg.qio.record.RecordWriter;
+import org.qcmg.qmule.SmithWatermanGotoh;
 
 public class Q3Panel {
 	
@@ -391,12 +388,12 @@ public class Q3Panel {
 					
 			logger.info("Number of unique chromosomes in bed file: " + uniqueChrs.size());
 			
-			try (TabbedFileReader reader = new TabbedFileReader(new File(geneTranscriptsFile))) {
+			try (StringFileReader reader = new StringFileReader(new File(geneTranscriptsFile))) {
 				String currentTranscriptId = null;
-				for (TabbedRecord rec : reader) {
-					String contig = rec.getData().substring(0, rec.getData().indexOf(Constants.TAB));
+				for (String rec : reader) {
+					String contig = rec.substring(0, rec.indexOf(Constants.TAB));
 					if (uniqueChrs.containsKey(contig)) {
-						String [] params = TabTokenizer.tokenize(rec.getData());
+						String [] params = TabTokenizer.tokenize(rec);
 						String [] column8 = params[8].split(Constants.SEMI_COLON_STRING); 
 						Optional<String> optionalId = Arrays.stream(column8).filter(s -> s.trim().startsWith("transcript_id")).findAny();
 						Optional<String> optionalExonNumber = Arrays.stream(column8).filter(s -> s.trim().startsWith("exon_number")).findAny();
@@ -672,9 +669,9 @@ public class Q3Panel {
 		 */
 		if (bedFile != null && new File(bedFile).exists()) {
 			int bedId = 0;
-			try (TabbedFileReader reader = new TabbedFileReader(new File(bedFile));) {
-				for (TabbedRecord rec : reader) {
-					String [] params = TabTokenizer.tokenize(rec.getData());
+			try (StringFileReader reader = new StringFileReader(new File(bedFile));) {
+				for (String rec : reader) {
+					String [] params = TabTokenizer.tokenize(rec);
 					ChrPosition cp = new ChrRangePosition(params[0], Integer.parseInt(params[1]), Integer.parseInt(params[2]));
 					bedToAmpliconMap.put(new Contig(++bedId, cp), new ArrayList<Contig>(1));
 				}
@@ -1038,7 +1035,7 @@ public class Q3Panel {
 	}
 
 	private void writeMutationsToFile() throws IOException {
-		try (VCFFileWriter writer = new VCFFileWriter(new File(outputFileNameBase + ".vcf"))) {
+		try (RecordWriter<VcfRecord> writer = new RecordWriter<>(new File(outputFileNameBase + ".vcf"))) {
 			
 			/*
 			 * Setup the VcfHeader
@@ -1083,7 +1080,7 @@ public class Q3Panel {
 	
 	private void writeMutationsToFileNew(List<VcfRecord> vcfs) throws IOException {
 		String filename = outputFileNameBase + "_2.vcf";
-		try (VCFFileWriter writer = new VCFFileWriter(new File(filename))) {
+		try (RecordWriter<VcfRecord> writer = new RecordWriter<>(new File(filename))) {
 			
 			/*
 			 * Setup the VcfHeader
@@ -1394,20 +1391,18 @@ public class Q3Panel {
 		
 		logger.info("loading genome tiles alignment data");
 		
-		try (TabbedFileReader reader = new TabbedFileReader(new File(refTiledAlignmentFile))) {
+		try (StringFileReader reader = new StringFileReader(new File(refTiledAlignmentFile))) {
 			
-			TabbedHeader header = reader.getHeader();
-			List<String> headerList = new ArrayList<>();
-			for (String head : header) {
-				headerList.add(head);
-			}
+		 
+			List<String> headerList = reader.getHeader();
+			 
 			positionToActualLocation.loadMap(headerList);
 			int i = 0;
-			for (TabbedRecord rec : reader) {
+			for (String rec : reader) {
 				if (++i % 1000000 == 0) {
 					logger.info("hit " + (i / 1000000) + "M records");
 				}
-				queue.add(rec.getData());
+				queue.add(rec);
 			}
 			/*
 			 * kill off threads waiting on queue

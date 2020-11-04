@@ -68,16 +68,13 @@ import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.LoadReferencedClasses;
 import org.qcmg.common.util.Pair;
 import org.qcmg.common.util.TabTokenizer;
-
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
-import org.qcmg.tab.TabbedFileReader;
-import org.qcmg.tab.TabbedHeader;
-import org.qcmg.tab.TabbedRecord;
-import org.qcmg.vcf.VCFFileWriter;
+import org.qcmg.qio.record.StringFileReader;
+import org.qcmg.qio.record.RecordWriter;
 
 public class Q3ClinVar {
 	
@@ -483,22 +480,18 @@ public class Q3ClinVar {
 		
 		logger.info("loading genome tiles alignment data");
 		
-		try (TabbedFileReader reader = new TabbedFileReader(new File(refTiledAlignmentFile))) {
+		try (StringFileReader reader = new StringFileReader(new File(refTiledAlignmentFile))) {		 
+			List<String> headerList = reader.getHeader();
 			
-			TabbedHeader header = reader.getHeader();
-			List<String> headerList = new ArrayList<>();
-			for (String head : header) {
-				headerList.add(head);
-			}
 			positionToActualLocation.loadMap(headerList);
 			int i = 0;
-			for (TabbedRecord rec : reader) {
+			for (String rec : reader) {
 				if (++i % 1000000 == 0) {
 					logger.info("hit " + (i / 1000000) + "M records");
 				}
-				String tile = rec.getData().substring(0, TILE_SIZE);
+				String tile = rec.substring(0, TILE_SIZE);
 				if (ampliconTiles.contains(tile)) {
-					String countOrPosition = rec.getData().substring(rec.getData().indexOf('\t') + 1);
+					String countOrPosition = rec.substring(rec.indexOf('\t') + 1);
 					if (countOrPosition.charAt(0) == 'C') {
 						frequentlyOccurringRefTiles.add(tile);
 					} else {
@@ -1055,7 +1048,7 @@ public class Q3ClinVar {
 		
 		//make a new header		
 		String outputFileName = filter ? outputFileNameBase + "vcf" : outputFileNameBase + "diag.unfiltered.vcf";
-		try (VCFFileWriter writer = new VCFFileWriter(new File(outputFileName))) {
+		try (RecordWriter<VcfRecord> writer = new RecordWriter<>(new File(outputFileName))) {
 			
 			/*
 			 * Setup the VcfHeader
@@ -1084,7 +1077,7 @@ public class Q3ClinVar {
 		}
 
 		outputFileName = filter ?  outputFileNameBase + "diag.detailed.vcf" : outputFileNameBase + "diag.unfiltered_detailed.vcf";
-		try (VCFFileWriter writer = new VCFFileWriter(new File(outputFileName))) {
+		try (RecordWriter<VcfRecord> writer = new RecordWriter<>(new File(outputFileName))) {
 			
 			/*
 			 * Setup the VcfHeader
