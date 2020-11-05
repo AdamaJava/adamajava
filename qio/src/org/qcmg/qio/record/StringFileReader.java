@@ -23,7 +23,7 @@ public class StringFileReader  extends RecordReader<String> {
 	@Override
 	public String getRecord(String line) {
 		if( null == line) {
-			throw new NullPointerException("can't convert null string to record!");
+			throw new IllegalArgumentException("can't take null string as input in getRecord(String)!");
 		}
 		return line;
 	}	

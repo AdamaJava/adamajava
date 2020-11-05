@@ -55,12 +55,14 @@ public abstract class RecordReader<T> implements Closeable, Iterable<T> {
         bin = new BufferedReader(streamReader, bufferSize);
                		
         String nextLine = readHeaderAndReturnFirstNonHeaderLine(headerPrefix);//bin.readLine();        
-
-		//get first record, set to null for empty file
+		
 		try {
+			//get first record, set to null for empty file
 			next = nextLine == null? null : getRecord(nextLine);
 		}catch(Exception e) {
-			throw new IOException("error during retrieve first record" + e.getMessage());
+			//exception happen during convert string of next to a record. 
+			//here, we convert any unchecked exception to IllegalArgument 
+			throw new IllegalArgumentException("error during the retrieval of the first record" + e.getMessage());
 		}
     }
     /**
@@ -79,7 +81,7 @@ public abstract class RecordReader<T> implements Closeable, Iterable<T> {
     	if(headerPrefix == null) return nextLine;   	 
     	
 		//reader header, hence file pointer to first line after header
-		while ( null != nextLine && nextLine.startsWith(headerPrefix+"") ) {				
+		while ( nextLine.startsWith(headerPrefix+"") ) {				
 			headerLines.add(nextLine);
 			//reset current read line
 			nextLine = bin.readLine();
