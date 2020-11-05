@@ -62,7 +62,7 @@ public abstract class RecordReader<T> implements Closeable, Iterable<T> {
 		}catch(Exception e) {
 			//exception happen during convert string of next to a record. 
 			//here, we convert any unchecked exception to IllegalArgument 
-			throw new IllegalArgumentException("error during the retrieval of the first record" + e.getMessage());
+			throw new IllegalArgumentException(e.getMessage()+ " (retrieval of the first record)");
 		}
     }
     /**
