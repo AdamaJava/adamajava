@@ -21,10 +21,10 @@ public class StringFileReader  extends RecordReader<String> {
 	}
 
 	@Override
+	/**
+	 * return input self even it is null
+	 */
 	public String getRecord(String line) {
-		if( null == line) {
-			throw new IllegalArgumentException("can't take null string as input in getRecord(String)!");
-		}
 		return line;
 	}	
 }
