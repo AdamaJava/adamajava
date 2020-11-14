@@ -1605,7 +1605,7 @@ public class Q3Panel {
 	
 	public static void main(String[] args) throws Exception {
 		// loads all classes in referenced jars into memory to avoid nightly build sheninegans
-		//LoadReferencedClasses.loadClasses(Q3Panel.class);
+		LoadReferencedClasses.loadClasses(Q3Panel.class);
 		
 		Q3Panel qp = new Q3Panel();
 		int exitStatus = qp.setup(args);
