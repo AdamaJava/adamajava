@@ -4,7 +4,7 @@
  *
  * This code is released under the terms outlined in the included LICENSE file.
  */
-package org.qcmg.qmule;
+package org.qcmg.common.model;
 
 
 import java.io.File;

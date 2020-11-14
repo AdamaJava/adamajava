@@ -30,7 +30,7 @@ import org.qcmg.common.model.ChrPositionName;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.NumberUtils;
-import org.qcmg.qmule.SmithWatermanGotoh;
+import org.qcmg.common.model.SmithWatermanGotoh;
 import org.qcmg.tab.TabbedFileReader;
 import org.qcmg.tab.TabbedHeader;
 import org.qcmg.tab.TabbedRecord;

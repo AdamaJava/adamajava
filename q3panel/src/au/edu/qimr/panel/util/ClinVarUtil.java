@@ -60,7 +60,7 @@ import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.Pair;
 import org.qcmg.common.vcf.VcfRecord;
-import org.qcmg.qmule.SmithWatermanGotoh;
+import org.qcmg.common.model.SmithWatermanGotoh;
 
 public class ClinVarUtil {
 	

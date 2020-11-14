@@ -88,7 +88,7 @@ import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils.VcfInfoType;
-import org.qcmg.qmule.SmithWatermanGotoh;
+import org.qcmg.common.model.SmithWatermanGotoh;
 
 import org.qcmg.tab.TabbedFileReader;
 import org.qcmg.tab.TabbedHeader;
@@ -1605,7 +1605,7 @@ public class Q3Panel {
 	
 	public static void main(String[] args) throws Exception {
 		// loads all classes in referenced jars into memory to avoid nightly build sheninegans
-		LoadReferencedClasses.loadClasses(Q3Panel.class);
+		//LoadReferencedClasses.loadClasses(Q3Panel.class);
 		
 		Q3Panel qp = new Q3Panel();
 		int exitStatus = qp.setup(args);

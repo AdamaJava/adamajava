@@ -5,10 +5,11 @@ import static org.junit.Assert.assertEquals;
 import java.util.Arrays;
 import java.util.List;
 
+import org.junit.Test;
 import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrPositionName;
-import org.testng.annotations.Test;
+//import org.testng.annotations.Test;
 
 public class PositionChrPositionMapTest {
 	

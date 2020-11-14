@@ -131,7 +131,7 @@ public class TiledAligner {
 	
 	public static void main(String[] args) throws Exception {
 		// loads all classes in referenced jars into memory to avoid nightly build sheninegans
-		LoadReferencedClasses.loadClasses(TiledAligner.class);
+		//LoadReferencedClasses.loadClasses(TiledAligner.class);
 		
 		TiledAligner qp = new TiledAligner();
 		int exitStatus = qp.setup(args);
