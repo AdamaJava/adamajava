@@ -9,7 +9,6 @@ import org.junit.Test;
 import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrPositionName;
-//import org.testng.annotations.Test;
 
 public class PositionChrPositionMapTest {
 	
