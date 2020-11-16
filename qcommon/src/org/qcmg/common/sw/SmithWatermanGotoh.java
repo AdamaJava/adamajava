@@ -4,7 +4,7 @@
  *
  * This code is released under the terms outlined in the included LICENSE file.
  */
-package org.qcmg.common.model;
+package org.qcmg.common.sw;
 
 
 import java.io.File;
