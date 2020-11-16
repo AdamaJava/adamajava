@@ -1,6 +1,6 @@
 apply plugin: 'application'
 
-mainClassName = 'au.edu.qimr.vcftools.Merge'
+mainClassName = 'au.edu.qimr.vcftools.MergeSameSamples'
 def scriptname = 'q3vcftools'
 def isExecutable = true
 

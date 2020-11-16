@@ -8,7 +8,7 @@ import htsjdk.samtools.util.SequenceUtil;
 
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
-import org.qcmg.qmule.SmithWatermanGotoh;
+import org.qcmg.common.sw.SmithWatermanGotoh;
 
 import au.edu.qimr.panel.util.ClinVarUtil;
 import au.edu.qimr.panel.util.FragmentUtil;
