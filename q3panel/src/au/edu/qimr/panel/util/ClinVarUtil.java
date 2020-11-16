@@ -56,11 +56,11 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrRangePosition;
+import org.qcmg.common.sw.SmithWatermanGotoh;
 import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.Pair;
 import org.qcmg.common.vcf.VcfRecord;
-import org.qcmg.common.model.SmithWatermanGotoh;
 
 public class ClinVarUtil {
 	
