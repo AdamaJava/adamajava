@@ -4,10 +4,9 @@
  *
  * This code is released under the terms outlined in the included LICENSE file.
  */
+
 package org.qcmg.qio.record;
 
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.io.BufferedReader;
 import java.io.Closeable;
 import java.io.File;
@@ -16,6 +15,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -34,6 +36,7 @@ public abstract class RecordReader<T> implements Closeable, Iterable<T> {
     protected T next; 
     
     protected List<String> headerLines = new ArrayList<>();
+    
     public RecordReader(final File file) throws IOException { 
     	this(file, DEFAULT_BUFFER_SIZE);
     }
@@ -58,11 +61,11 @@ public abstract class RecordReader<T> implements Closeable, Iterable<T> {
 		
 		try {
 			//get first record, set to null for empty file
-			next = nextLine == null? null : getRecord(nextLine);
-		}catch(Exception e) {
+			next = nextLine == null ? null : getRecord(nextLine);
+		} catch (Exception e) {
 			//exception happen during convert string of next to a record. 
 			//here, we convert any unchecked exception to IllegalArgument 
-			throw new IllegalArgumentException(e.getMessage()+ " (retrieval of the first record)");
+			throw new IllegalArgumentException(e.getMessage() + " (retrieval of the first record)");
 		}
     }
     /**
@@ -72,16 +75,16 @@ public abstract class RecordReader<T> implements Closeable, Iterable<T> {
      * @return the first line just after header
      * @throws IOException
      */
-    public String readHeaderAndReturnFirstNonHeaderLine(CharSequence headerPrefix ) throws IOException{
+    public String readHeaderAndReturnFirstNonHeaderLine(CharSequence headerPrefix ) throws IOException {
 
 
     	String nextLine = bin.readLine();
     	
     	//keep empty header and return first nonHeaderline
-    	if(headerPrefix == null) return nextLine;   	   	
+    	if (headerPrefix == null) return nextLine;   	   	
     	
 		//reader header, hence file pointer to first line after header
-		while ( nextLine != null && nextLine.startsWith(headerPrefix+"") ) {				
+		while ( nextLine != null && nextLine.startsWith(headerPrefix + "") ) {				
 			headerLines.add(nextLine);
 			//reset current read line
 			nextLine = bin.readLine();
@@ -94,7 +97,9 @@ public abstract class RecordReader<T> implements Closeable, Iterable<T> {
   * This reader can maxmum take Integer.max lines of file header. Please make other header if bigger than this. 
   * @return a list of header lines
   */
-    public List<String>  getHeader() { return headerLines; }
+    public List<String>  getHeader() { 
+    	return headerLines;
+    }
 
     @Override
     /**
@@ -125,7 +130,7 @@ public abstract class RecordReader<T> implements Closeable, Iterable<T> {
             	try {  
             		//get next record, it may read  multi lines
             		String line = bin.readLine();           		
-            		if(line != null ) {
+            		if ( line != null ) {
             			next = getRecord( line );
             		}
             		

@@ -1,6 +1,7 @@
 /**
  * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
+
 package org.qcmg.qio.record;
 
 import java.io.BufferedWriter;
@@ -12,8 +13,8 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.List;
 import java.util.zip.GZIPOutputStream;
-import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.Constants;
+import org.qcmg.common.util.FileUtils;
 
 public class RecordWriter<T> implements Closeable {
 	private final File file;
@@ -36,12 +37,12 @@ public class RecordWriter<T> implements Closeable {
 	 * @throws IOException
 	 */
 	public void addHeader(final String header) throws IOException {
-		String line = header.endsWith(Constants.NL_STRING)? header : header + Constants.NL;
+		String line = header.endsWith(Constants.NL_STRING) ? header : header + Constants.NL;
 		bos.write(line);
 	}
 	
 	public void addHeader(List<String> header) throws IOException {
-		for(String str : header) {			
+		for (String str : header) {			
 			addHeader(str);
 		}
 	}
@@ -52,8 +53,8 @@ public class RecordWriter<T> implements Closeable {
 	 * @throws IOException
 	 */
 	public void add(final T record) throws IOException {		
-		String encoded = record instanceof String? (String) record : record.toString();
-		String line = encoded.endsWith(Constants.NL_STRING)? encoded : encoded + Constants.NL;
+		String encoded = record instanceof String ? (String) record : record.toString();
+		String line = encoded.endsWith(Constants.NL_STRING) ? encoded : encoded + Constants.NL;
 		bos.write(line);
 	}
 
