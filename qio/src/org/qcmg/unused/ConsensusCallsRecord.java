@@ -9,7 +9,7 @@
 //
 
 
-package org.qcmg.consensuscalls;
+package org.qcmg.unused;
 
 import java.util.ArrayList;
 import java.util.List;

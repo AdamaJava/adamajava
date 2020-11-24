@@ -4,7 +4,7 @@
  *
  * This code is released under the terms outlined in the included LICENSE file.
  */
-package org.qcmg.maf;
+package org.qcmg.unused;
 
 import java.io.BufferedReader;
 import java.io.IOException;

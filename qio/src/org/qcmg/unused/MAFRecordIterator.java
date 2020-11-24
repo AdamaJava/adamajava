@@ -1,7 +1,10 @@
 /**
- * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ * © Copyright The University of Queensland 2010-2014.
+ * © Copyright QIMR Berghofer Medical Research Institute 2014-2016.
+ *
+ * This code is released under the terms outlined in the included LICENSE file.
  */
-package org.qcmg.genesymbol;
+package org.qcmg.unused;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -9,11 +12,13 @@ import java.io.InputStreamReader;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-public final class GeneSymbolRecordIterator implements Iterator<GeneSymbolRecord> {
-    private final BufferedReader reader;
-    private GeneSymbolRecord next;
+import org.qcmg.common.maf.MAFRecord;
 
-    public GeneSymbolRecordIterator(final InputStream stream) {
+public final class MAFRecordIterator implements Iterator<MAFRecord> {
+    private final BufferedReader reader;
+    private MAFRecord next;
+
+    public MAFRecordIterator(final InputStream stream) {
         InputStreamReader streamReader = new InputStreamReader(stream);
         reader = new BufferedReader(streamReader);
         readNext();
@@ -23,18 +28,18 @@ public final class GeneSymbolRecordIterator implements Iterator<GeneSymbolRecord
         return null != next;
     }
 
-    public GeneSymbolRecord next() {
+    public MAFRecord next() {
         if (!hasNext()) {
             throw new NoSuchElementException();
         }
-        GeneSymbolRecord result = next;
+        MAFRecord result = next;
         readNext();
         return result;
     }
 
     private void readNext() {
         try {
-            next = GeneSymbolSerializer.nextRecord(reader);
+            next = MAFSerializer.nextRecord(reader);
         } catch (NoSuchElementException e) {
             throw e;
         } catch (Exception ex) {

@@ -1,7 +1,7 @@
 /**
  * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
-package org.qcmg.bed;
+package org.qcmg.unused;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -9,11 +9,11 @@ import java.io.InputStreamReader;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-public final class BEDRecordIterator implements Iterator<BEDRecord> {
+public final class GeneSymbolRecordIterator implements Iterator<GeneSymbolRecord> {
     private final BufferedReader reader;
-    private BEDRecord next;
+    private GeneSymbolRecord next;
 
-    public BEDRecordIterator(final InputStream stream) {
+    public GeneSymbolRecordIterator(final InputStream stream) {
         InputStreamReader streamReader = new InputStreamReader(stream);
         reader = new BufferedReader(streamReader);
         readNext();
@@ -23,18 +23,18 @@ public final class BEDRecordIterator implements Iterator<BEDRecord> {
         return null != next;
     }
 
-    public BEDRecord next() {
+    public GeneSymbolRecord next() {
         if (!hasNext()) {
             throw new NoSuchElementException();
         }
-        BEDRecord result = next;
+        GeneSymbolRecord result = next;
         readNext();
         return result;
     }
 
     private void readNext() {
         try {
-            next = BEDSerializer.nextRecord(reader);
+            next = GeneSymbolSerializer.nextRecord(reader);
         } catch (NoSuchElementException e) {
             throw e;
         } catch (Exception ex) {
