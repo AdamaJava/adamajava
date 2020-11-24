@@ -6,9 +6,9 @@ package org.qcmg.qmule;
 import java.io.File;
 import java.io.IOException;
 
-import org.qcmg.germlinedb.GermlineDBFileReader;
-import org.qcmg.germlinedb.GermlineDBFileWriter;
-import org.qcmg.germlinedb.GermlineDBRecord;
+import org.qcmg.qmule.io.GermlineDBFileReader;
+import org.qcmg.qmule.io.GermlineDBFileWriter;
+import org.qcmg.qmule.io.GermlineDBRecord;
 
 public class GermlineDBStripper {
 	
