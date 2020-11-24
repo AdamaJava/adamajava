@@ -9,7 +9,7 @@
 //
 
 
-package org.qcmg.primeroutput;
+package org.qcmg.unused;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
