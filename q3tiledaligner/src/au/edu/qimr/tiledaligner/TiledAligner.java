@@ -16,11 +16,10 @@ import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.BLATRecord;
 import org.qcmg.common.util.LoadReferencedClasses;
 import org.qcmg.common.util.NumberUtils;
-import org.qcmg.string.StringFileReader;
+import org.qcmg.qio.record.StringFileReader;
 
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.hash.TIntObjectHashMap;
-import htsjdk.samtools.reference.FastaSequenceFile;
 import htsjdk.samtools.util.SequenceUtil;
 
 public class TiledAligner {
@@ -30,18 +29,15 @@ public class TiledAligner {
 	
 	private static String version;
 	private String logFile;
-	private String outputFile;
 	private String inputFile;
 	private String reference;
 	private String sequence;
 	private String name;
-	private FastaSequenceFile sequenceFile;
-	
+
 	protected int engage() throws Exception {
 		
 		logger.info("Lets go!");
-		
-		
+				
 		/*
 		 * split sequence into tiles so that we can build up a map containing just the tiles of interest from the 
 		 */
