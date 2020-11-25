@@ -33,8 +33,6 @@ import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.NumberUtils;
 
 import org.qcmg.qio.record.StringFileReader;
-import org.qcmg.qmule.SmithWatermanGotoh;
-
 import gnu.trove.list.TLongList;
 import gnu.trove.list.array.TLongArrayList;
 import gnu.trove.map.TIntObjectMap;
