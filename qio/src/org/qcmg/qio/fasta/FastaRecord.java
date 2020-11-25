@@ -18,17 +18,17 @@ public class FastaRecord {
 	private String id;
 	private String data;
 	
-	public FastaRecord(String id, String data) throws Exception {
+	public FastaRecord(String id, String data) {
 		setId(id);
 		setData(data);		
 	}
 	
 	public FastaRecord() {}
 
-	public void setId(String id) throws Exception {
+	public void setId(String id) {
 		//id start with <
 		if ( ! id.startsWith(ID_PREFIX)) {
-			throw new Exception("Bad id format: " + id);
+			throw new IllegalArgumentException("Bad id format: " + id);
 		}
 		this.id = id;
 	}
@@ -37,10 +37,10 @@ public class FastaRecord {
 		return id;
 	}
 	
-	public void setData(String data) throws Exception {
+	public void setData(String data) {
 		//seq should not start with < 
 		if (data.startsWith(ID_PREFIX)) {
-			throw new Exception("Bad sequence format: " + data);
+			throw new IllegalArgumentException("Bad sequence format: " + data);
 		}
 		this.data = data;
 	}

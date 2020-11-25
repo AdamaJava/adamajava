@@ -43,7 +43,7 @@ public class GffRecord {
 	 * @throws Exception
 	 * @throws QProfilerException
 	 */
-	public GffRecord(String[] fields) throws Exception {
+	public GffRecord(String[] fields) {
 		// public GffRecord( String textRecord, String delimiter ) {
 		// this(); // call constructor 0
 		// originalLine = textRecord;
@@ -67,7 +67,7 @@ public class GffRecord {
 			for (int i = 0; i < tmpattribs.length; i++) {
 				String[] attrFields = tmpattribs[i].split("=");
 				if (attrFields.length < 2) {
-					throw new Exception("Attribute [" + tmpattribs[i]
+					throw new IllegalArgumentException("Attribute [" + tmpattribs[i]
 							+ "] is badly formed");
 				}
 				attributes.put(attrFields[0], attrFields[1]);

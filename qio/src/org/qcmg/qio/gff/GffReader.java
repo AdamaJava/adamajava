@@ -13,7 +13,7 @@ public final class GffReader extends RecordReader<GffRecord> {
 	}
 
 	@Override
-	public GffRecord getRecord(String line) throws Exception {
+	public GffRecord getRecord(String line) {
 		if (null == line) {
 			throw new AssertionError("Record was null");
 		}
@@ -21,7 +21,7 @@ public final class GffReader extends RecordReader<GffRecord> {
 		String[] fields = line.split(TAB_DELIMITER);
 
 		if (fields.length < 8) {
-			throw new Exception("Not enough fields in the Record");
+			throw new IllegalArgumentException("Not enough fields in the Record");
 		}
 		
 		return new GffRecord(fields);		

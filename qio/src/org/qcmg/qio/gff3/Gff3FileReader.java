@@ -20,7 +20,7 @@ public final class Gff3FileReader extends RecordReader<Gff3Record> {
 	}
 
 	@Override
-	public Gff3Record getRecord(String line) throws Exception {
-		return new Gff3Record(line);
+	public Gff3Record getRecord(String line) {
+			return new Gff3Record(line);		 
 	}
 }

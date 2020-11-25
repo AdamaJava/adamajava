@@ -132,7 +132,7 @@ public abstract class RecordReader<T> implements Closeable, Iterable<T> {
         		} catch (IOException e) {
         			//here we only catch IO exception
         			throw new UncheckedIOException(e); 
-         		}
+         		} 
             }
         };
         

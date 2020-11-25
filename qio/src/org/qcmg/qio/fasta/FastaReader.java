@@ -5,6 +5,7 @@
 package org.qcmg.qio.fasta;
 
 import java.io.File;
+import java.io.IOException;
 
 import org.qcmg.qio.record.RecordReader;
 
@@ -24,10 +25,14 @@ public final class FastaReader extends RecordReader<FastaRecord> {
 	/**
 	 * it has to read two line to construct one record
 	 */
-	public FastaRecord getRecord(String line) throws Exception {
+	public FastaRecord getRecord(String line) {
 		String id = line;
-		String seq = bin.readLine();
-						
+		String seq = null;
+		try {
+			seq = bin.readLine();			
+		} catch (IOException e) {
+			e.printStackTrace();			 
+		}						
 		return new FastaRecord(id, seq);
 	}
 }
