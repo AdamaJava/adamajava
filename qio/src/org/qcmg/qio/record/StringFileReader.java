@@ -21,7 +21,10 @@ public class StringFileReader  extends RecordReader<String> {
 	}
 
 	@Override
-	public String getRecord(String line) throws Exception {
+	/**
+	 * return input self even it is null
+	 */
+	public String getRecord(String line) {
 		return line;
 	}	
 }
