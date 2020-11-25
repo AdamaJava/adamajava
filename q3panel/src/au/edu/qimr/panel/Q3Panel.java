@@ -74,6 +74,7 @@ import org.qcmg.common.model.ChrPositionComparator;
 import org.qcmg.common.model.ChrPositionName;
 import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.model.Transcript;
+import org.qcmg.common.sw.SmithWatermanGotoh;
 import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.FileUtils;

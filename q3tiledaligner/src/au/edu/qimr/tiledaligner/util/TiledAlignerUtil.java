@@ -28,8 +28,10 @@ import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrPositionName;
 import org.qcmg.common.string.StringUtils;
+import org.qcmg.common.sw.SmithWatermanGotoh;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.NumberUtils;
+
 import org.qcmg.qio.record.StringFileReader;
 import org.qcmg.qmule.SmithWatermanGotoh;
 
