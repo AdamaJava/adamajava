@@ -1,6 +1,8 @@
 /**
  * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ * @deprecated since it is no longer used.
  */
+
 package org.qcmg.unused.primerdesignsummary;
 
 import java.io.BufferedReader;
@@ -9,6 +11,7 @@ import java.util.regex.Pattern;
 
 import org.qcmg.qmule.record.Serializer;
 
+@Deprecated
 public final class PrimerDesignRecordSerializer extends Serializer<PrimerDesignRecord> {
 	public PrimerDesignRecord parseRecord(final String line) throws Exception {
 		String[] params = tabbedPattern.split(line);

@@ -1,6 +1,8 @@
 /**
  * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ * @deprecated since it is no longer used.
  */
+
 package org.qcmg.unused.primerinput;
 
 import java.io.Closeable;
@@ -9,6 +11,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
+@Deprecated
 public final class PrimerInputFileWriter implements Closeable {
 	private static final String EQUALS = "=";
 	private static final PrimerInputRecordSerializer serializer = new PrimerInputRecordSerializer();

@@ -1,12 +1,15 @@
 /**
  * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ * @deprecated since it is no longer used.
  */
+
 package org.qcmg.unused.primerinput;
 
 import java.io.File;
 
 import org.qcmg.unused.reader.FileReader;
 
+@Deprecated
 public class PrimerInputFileReader extends FileReader<PrimerInputRecord> {
 	private final static PrimerInputRecordSerializer serializer =
 		new PrimerInputRecordSerializer();

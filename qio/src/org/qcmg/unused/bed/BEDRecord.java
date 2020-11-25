@@ -1,10 +1,11 @@
 /**
  * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ * @deprecated since it is no longer used.
  */
+
 package org.qcmg.unused.bed;
 
-
-
+@Deprecated
 public class BEDRecord {
 	
 	private final static char T = '\t';

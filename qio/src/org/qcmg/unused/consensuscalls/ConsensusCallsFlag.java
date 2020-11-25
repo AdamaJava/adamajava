@@ -3,7 +3,7 @@
  */
 package org.qcmg.unused.consensuscalls;
 
-
+@Deprecated
 public enum ConsensusCallsFlag {
 
     H_1("h1"),

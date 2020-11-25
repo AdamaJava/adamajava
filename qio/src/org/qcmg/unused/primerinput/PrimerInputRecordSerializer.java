@@ -1,6 +1,8 @@
 /**
  * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+  * @deprecated since it is no longer used.
  */
+
 package org.qcmg.unused.primerinput;
 
 import java.io.BufferedReader;
@@ -10,6 +12,7 @@ import java.util.regex.Pattern;
 import org.qcmg.qmule.gff3.GFF3Record;
 import org.qcmg.qmule.record.Serializer;
 
+@Deprecated
 public final class PrimerInputRecordSerializer extends
 		Serializer<PrimerInputRecord> {
 	private final static String SEQUENCE_ID = "SEQUENCE_ID";

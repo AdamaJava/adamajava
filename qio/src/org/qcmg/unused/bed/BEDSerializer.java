@@ -1,5 +1,6 @@
 /**
  * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
+ * @deprecated since it is no longer used.
  */
 package org.qcmg.unused.bed;
 
@@ -7,6 +8,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.regex.Pattern;
 
+@Deprecated
 public final class BEDSerializer {
 	private static final Pattern tabbedPattern = Pattern.compile("[\\t]");
 	private static final String DEFAULT_HEADER_PREFIX = "#";
