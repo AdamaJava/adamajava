@@ -57,16 +57,10 @@ public abstract class RecordReader<T> implements Closeable, Iterable<T> {
         InputStreamReader streamReader = new InputStreamReader(inputStream, charset);
         bin = new BufferedReader(streamReader, bufferSize);
                		
-        String nextLine = readHeaderAndReturnFirstNonHeaderLine(headerPrefix);//bin.readLine();        
+        String nextLine = readHeaderAndReturnFirstNonHeaderLine(headerPrefix);        
+		//get first record, set to null for empty file
+		next = nextLine == null ? null : getRecord(nextLine);
 		
-		try {
-			//get first record, set to null for empty file
-			next = nextLine == null ? null : getRecord(nextLine);
-		} catch (Exception e) {
-			//exception happen during convert string of next to a record. 
-			//here, we convert any unchecked exception to IllegalArgument 
-			throw new IllegalArgumentException(e.getMessage() + " (retrieval of the first record)");
-		}
     }
     /**
      * this method is overridable in subclass, eg illumina file have different header patten
