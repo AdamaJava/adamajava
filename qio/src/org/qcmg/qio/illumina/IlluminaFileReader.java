@@ -18,7 +18,8 @@ public final class IlluminaFileReader extends RecordReader<IlluminaRecord> {
 		super(file, DEFAULT_BUFFER_SIZE, HEADER_LINE, DEFAULT_CHARSET);
 	}
 	
-    public String readHeader(CharSequence headerPrefix ) throws IOException {
+	@Override
+    public String readHeaderAndReturnFirstNonHeaderLine(CharSequence headerPrefix ) throws IOException {
     	String nextLine = bin.readLine();
     	
     	//empty file
@@ -49,7 +50,7 @@ public final class IlluminaFileReader extends RecordReader<IlluminaRecord> {
 		
 		// raw Illumina data has 32 fields... and the first one is an integer
 		if (dataArray.length != 32) {
-			throw new IllegalArgumentException("Bad Illumina data format - expecting 32 fields but saw " + dataArray.length);
+			throw new IllegalArgumentException("Bad Illumina data format - expecting 32 fields but saw " + dataArray.length + ":\n " + line);
 		}
 		
 		return new IlluminaRecord(  dataArray );
