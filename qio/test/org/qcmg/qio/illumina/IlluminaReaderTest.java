@@ -1,8 +1,6 @@
 package org.qcmg.qio.illumina;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 
@@ -12,7 +10,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 
-public class IlluminaSerializerTest {
+public class IlluminaReaderTest {
 	private static String invalidInputString = "chr12	126890980	-	rs1000000	0.8379	C	C	hom	[T/C]";
 	
 	private static final String rawInputString = "rs10002311	4802094023_R02C01	A	A	" +
