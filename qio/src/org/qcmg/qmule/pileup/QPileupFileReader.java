@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
 
-import org.qcmg.pileup.QSnpRecord;
+import org.qcmg.common.model.QSnpRecord;
 
 public final class QPileupFileReader implements Closeable, Iterable<QSnpRecord> {
     private final File file;

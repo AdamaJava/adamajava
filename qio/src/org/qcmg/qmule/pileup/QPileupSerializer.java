@@ -11,8 +11,8 @@ import java.io.IOException;
 import java.util.regex.Pattern;
 
 import org.qcmg.common.model.Classification;
+import org.qcmg.common.model.QSnpRecord;
 import org.qcmg.common.util.BaseUtils;
-import org.qcmg.pileup.QSnpRecord;
 import org.qcmg.common.model.Classification;
 
 public final class QPileupSerializer {

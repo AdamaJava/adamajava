@@ -9,7 +9,7 @@ import java.io.InputStreamReader;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-import org.qcmg.pileup.QSnpRecord;
+import org.qcmg.common.model.QSnpRecord;
 
 public final class QPileupRecordIterator implements Iterator<QSnpRecord> {
     private final BufferedReader reader;
