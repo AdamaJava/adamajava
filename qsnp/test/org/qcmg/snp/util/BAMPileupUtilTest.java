@@ -12,7 +12,7 @@ import org.qcmg.common.model.QSnpGATKRecord;
 import org.qcmg.common.util.SnpUtils;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
-import org.qcmg.pileup.QSnpRecord;
+import org.qcmg.common.model.QSnpRecord;
 import org.qcmg.snp.util.QJumperWorker.Mode;
 
 public class BAMPileupUtilTest {
