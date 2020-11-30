@@ -20,9 +20,8 @@ import org.ini4j.Ini;
 import org.qcmg.common.meta.QExec;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.string.StringUtils;
-import org.qcmg.pileup.PileupFileReader;
-import org.qcmg.pileup.QSnpRecord;
-import org.qcmg.common.model.Classification;
+import org.qcmg.common.model.QSnpRecord;
+import org.qcmg.qio.record.StringFileReader;
 import org.qcmg.snp.util.IniFileUtil;
 import org.qcmg.snp.util.QJumperWorker;
 import org.qcmg.snp.util.QJumperWorker.Mode;
@@ -166,17 +165,13 @@ public final class PileupPipeline extends Pipeline {
 //	}
 
 	private void walkPileup(String pileupFileName) throws Exception {
-		PileupFileReader reader = new PileupFileReader(new File(pileupFileName));
-		long count = 0;
-		try {
+		try( StringFileReader reader = new StringFileReader(new File(pileupFileName));){
+			long count = 0;		 
 			for (String record : reader) {
-//				parsePileup(record);
 				if (++count % 1000000 == 0)
 					logger.info("hit " + count + " pileup records, with " + mutationId + " keepers.");
 			}
-		} finally {
-			reader.close();
-		}
+		}  
 	}
 	
 }
