@@ -1,8 +1,9 @@
-package org.qcmg.pileup;
+package org.qcmg.common.model;
 
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
+import org.qcmg.common.model.QSnpRecord;
 import org.qcmg.common.util.SnpUtils;
 
 public class QSnpRecordTest {
