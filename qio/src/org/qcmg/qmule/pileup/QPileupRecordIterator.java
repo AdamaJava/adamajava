@@ -1,13 +1,15 @@
 /**
  * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
-package org.qcmg.pileup;
+package org.qcmg.qmule.pileup;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+
+import org.qcmg.pileup.QSnpRecord;
 
 public final class QPileupRecordIterator implements Iterator<QSnpRecord> {
     private final BufferedReader reader;

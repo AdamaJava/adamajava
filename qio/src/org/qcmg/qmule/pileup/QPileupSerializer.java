@@ -4,7 +4,7 @@
  *
  * This code is released under the terms outlined in the included LICENSE file.
  */
-package org.qcmg.pileup;
+package org.qcmg.qmule.pileup;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -12,6 +12,7 @@ import java.util.regex.Pattern;
 
 import org.qcmg.common.model.Classification;
 import org.qcmg.common.util.BaseUtils;
+import org.qcmg.pileup.QSnpRecord;
 import org.qcmg.common.model.Classification;
 
 public final class QPileupSerializer {
