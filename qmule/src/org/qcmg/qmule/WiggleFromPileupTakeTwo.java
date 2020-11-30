@@ -24,7 +24,8 @@ import org.qcmg.common.util.PileupUtils;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.qmule.gff3.GFF3FileReader;
 import org.qcmg.qmule.gff3.GFF3Record;
-import org.qcmg.pileup.PileupFileReader;
+//import org.qcmg.pileup.PileupFileReader;
+import org.qcmg.qio.record.StringFileReader;
 
 public class WiggleFromPileupTakeTwo {
 	
@@ -136,7 +137,7 @@ public class WiggleFromPileupTakeTwo {
 	private void parsePileup() throws Exception {
 		Writer writer = getWriter(cmdLineOutputFiles[0]);
 		
-		PileupFileReader reader = new PileupFileReader(new File(cmdLineInputFiles[0]));
+		StringFileReader reader = new StringFileReader(new File(cmdLineInputFiles[0]));
 		StringBuilder sb = new StringBuilder();
 		try {
 			for (String pr : reader) {

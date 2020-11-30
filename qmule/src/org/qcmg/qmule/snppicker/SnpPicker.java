@@ -33,13 +33,14 @@ import org.qcmg.qmule.dbsnp.DbsnpFileReader;
 import org.qcmg.qmule.gff3.GFF3FileReader;
 import org.qcmg.qmule.gff3.GFF3Record;
 import org.qcmg.picard.QJumper;
-import org.qcmg.pileup.PileupFileReader;
+//import org.qcmg.pileup.PileupFileReader;
 import org.qcmg.qmule.Messages;
 import org.qcmg.qmule.Options;
 import org.qcmg.qmule.QMuleException;
 import org.qcmg.qmule.record.Record;
 import org.qcmg.qio.illumina.IlluminaFileReader;
 import org.qcmg.qio.illumina.IlluminaRecord;
+import org.qcmg.qio.record.StringFileReader;
 import org.qcmg.vcf.VCFFileReader;
 
 public class SnpPicker {
@@ -442,24 +443,15 @@ public class SnpPicker {
 	
 	private void loadQSnpData() {
 		String qSnpFile = cmdLineInputFiles[2];
-		PileupFileReader reader = null;
-		try {
-			reader = new PileupFileReader(new File(qSnpFile));
-		} catch (Exception e) {
-			logger.error("Error caught whilst trying to instantiate PileupFileReader", e);
-			exitStatus = -1;
-		}
-		
-		if (null != reader) {
+		 
+		try(StringFileReader reader = new StringFileReader(new File(qSnpFile))) {
 			int vcfCount = 0;
 			ChrPosition id;
 			VariantRecord value;
 			
 			for (String rec : reader) {
-//				for (PileupRecord rec : reader) {
 				// got some work to do here - need to split the pileup attribute to construct the object
 				String [] params =  TabTokenizer.tokenize(rec);
-//				String [] params =  tabbedPattern.split(rec.getPileup(), -1);
 				
 				// skip if the tumour genotype is null
 				String genotype = params[params.length-(isNormal ? 2 : 1)];
@@ -473,19 +465,18 @@ public class SnpPicker {
 						variantMap.put(id, value);
 					}
 					value.setVcfRef(params[2].charAt(0));
-	//				value.setVcfAlt(rec.getAlt());
 					value.setVcfGenotype(genotype);
 					vcfCount++;
 				}
 			}
 			logger.info("there were " + vcfCount + " records in the	qsnp file");
-			try {
-				reader.close();
-			} catch (IOException e) {
-				logger.error("IOException caught whilst trying to close PileupFileReader", e);
-				exitStatus = -1;
-			}
+			 
+			 
+		} catch (IOException e) {
+			logger.error("Error caught whilst trying to instantiate PileupFileReader", e);
+			exitStatus = -1;
 		}
+		
 	}
 
 	private void loadGff3Data() {

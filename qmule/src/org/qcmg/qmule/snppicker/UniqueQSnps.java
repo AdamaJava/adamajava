@@ -19,7 +19,7 @@ import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.TabTokenizer;
-import org.qcmg.pileup.PileupFileReader;
+import org.qcmg.qio.record.StringFileReader;
 
 public class UniqueQSnps {
 	
@@ -141,59 +141,56 @@ public class UniqueQSnps {
 	
 	private static void loadQPileup(String pileupFile) throws Exception {
 		if (FileUtils.canFileBeRead(pileupFile)) {
-			PileupFileReader reader  = new PileupFileReader(new File(pileupFile));
-			for (String pr : reader) {
-//				for (PileupRecord pr : reader) {
-				String [] params = TabTokenizer.tokenize(pr);
-//				String [] params = tabbedPattern.split(pr.getPileup());
-				String chrPosition = params[params.length-2];
-//				logger.info("chrPosition: " + chrPosition);
-				//TODO refactor to use StringUtils.getChrPositionFromString()
-				int start = Integer.parseInt(chrPosition.substring(chrPosition.indexOf("-")));
-				ChrPosition chrPos = new ChrRangePosition(chrPosition.substring(0, chrPosition.indexOf(":")-1), start, start);						 
-				
-				qSnpPileup.put(chrPos,pr);
+			try( StringFileReader reader  = new StringFileReader(new File(pileupFile));){
+				for (String pr : reader) {
+					String [] params = TabTokenizer.tokenize(pr);
+					String chrPosition = params[params.length-2];
+					int start = Integer.parseInt(chrPosition.substring(chrPosition.indexOf("-")));
+					ChrPosition chrPos = new ChrRangePosition(chrPosition.substring(0, chrPosition.indexOf(":")-1), start, start);						 
+					
+					qSnpPileup.put(chrPos,pr);
+				}
+				reader.close();
 			}
-			reader.close();
 		}
 	}
 	
 	private static void loadGatkData(String pileupFile) throws Exception {
 		if (FileUtils.canFileBeRead(pileupFile)) {
-			PileupFileReader reader  = new PileupFileReader(new File(pileupFile));
-			for (String pr : reader) {
-//				for (PileupRecord pr : reader) {
-				String [] params = TabTokenizer.tokenize(pr);
-//				String [] params = tabbedPattern.split(pr.getPileup());
-				String chrPosition = params[params.length-2];
-//				logger.info("chrPosition: " + chrPosition);
-				//TODO refactor to use StringUtils.getChrPositionFromString()
-				int start = Integer.parseInt(chrPosition.substring(chrPosition.indexOf("-")));
-				ChrPosition chrPos = new ChrRangePosition(chrPosition.substring(0, chrPosition.indexOf(":")-1), start, start);
-				
-				gatkVcfs.put(chrPos,pr);
+			try( StringFileReader reader  = new StringFileReader(new File(pileupFile));){
+				for (String pr : reader) {
+	//				for (PileupRecord pr : reader) {
+					String [] params = TabTokenizer.tokenize(pr);
+	//				String [] params = tabbedPattern.split(pr.getPileup());
+					String chrPosition = params[params.length-2];
+	//				logger.info("chrPosition: " + chrPosition);
+					//TODO refactor to use StringUtils.getChrPositionFromString()
+					int start = Integer.parseInt(chrPosition.substring(chrPosition.indexOf("-")));
+					ChrPosition chrPos = new ChrRangePosition(chrPosition.substring(0, chrPosition.indexOf(":")-1), start, start);
+					
+					gatkVcfs.put(chrPos,pr);
+				}
 			}
-			reader.close();
 		}
 	}
 	
 	private static void loadVerifiedSnps(String verifiedSnpFile) throws Exception {
 		if (FileUtils.canFileBeRead(verifiedSnpFile)) {
 			
-			PileupFileReader reader  = new PileupFileReader(new File(verifiedSnpFile));
-			for (String pr : reader) {
-//				for (PileupRecord pr : reader) {
-				String [] params = TabTokenizer.tokenize(pr);
-//				String [] params = tabbedPattern.split(pr.getPileup());
-				String chrPosition = params[2];
-//				logger.info("chrPosition: " + chrPosition);
-				//TODO refactor to use StringUtils.getChrPositionFromString()
-				int start = Integer.parseInt(chrPosition.substring(chrPosition.indexOf("-")));
-				ChrPosition chrPos = new ChrRangePosition(chrPosition.substring(0, chrPosition.indexOf(":")-1), start, start);
-				
-				verifiedSNPs.put(chrPos,pr);
+			try( StringFileReader reader  = new StringFileReader(new File(verifiedSnpFile));){
+				for (String pr : reader) {
+	//				for (PileupRecord pr : reader) {
+					String [] params = TabTokenizer.tokenize(pr);
+	//				String [] params = tabbedPattern.split(pr.getPileup());
+					String chrPosition = params[2];
+	//				logger.info("chrPosition: " + chrPosition);
+					//TODO refactor to use StringUtils.getChrPositionFromString()
+					int start = Integer.parseInt(chrPosition.substring(chrPosition.indexOf("-")));
+					ChrPosition chrPos = new ChrRangePosition(chrPosition.substring(0, chrPosition.indexOf(":")-1), start, start);
+					
+					verifiedSNPs.put(chrPos,pr);
+				}
 			}
-			reader.close();
 		}
 	}
 	

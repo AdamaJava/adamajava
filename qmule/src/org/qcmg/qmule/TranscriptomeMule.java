@@ -21,7 +21,8 @@ import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.PileupUtils;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.picard.util.PileupElementUtil;
-import org.qcmg.pileup.PileupFileReader;
+//import org.qcmg.pileup.PileupFileReader;
+import org.qcmg.qio.record.StringFileReader;
 
 public class TranscriptomeMule {
 	
@@ -119,7 +120,7 @@ public class TranscriptomeMule {
 	}
 	
 	private void walkPileup(String pileupFileName) throws Exception {
-		PileupFileReader reader = new PileupFileReader(new File(pileupFileName));
+		StringFileReader reader = new StringFileReader(new File(pileupFileName));
 		int count = 0;
 		try {
 			for (String record : reader) {

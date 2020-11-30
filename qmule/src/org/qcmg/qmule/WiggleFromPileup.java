@@ -24,7 +24,8 @@ import org.qcmg.common.util.PileupUtils;
 import org.qcmg.qmule.gff3.GFF3FileReader;
 import org.qcmg.qmule.gff3.GFF3Record;
 import org.qcmg.qmule.gff3.GFF3RecordChromosomeAndPositionComparator;
-import org.qcmg.pileup.PileupFileReader;
+//import org.qcmg.pileup.PileupFileReader;
+import org.qcmg.qio.record.StringFileReader;
 
 public class WiggleFromPileup {
 	
@@ -119,7 +120,7 @@ public class WiggleFromPileup {
 			throw new RuntimeException("Unable to set next Gff record");
 		}
 		
-		PileupFileReader reader = new PileupFileReader(new File(cmdLineInputFiles[0]));
+		StringFileReader reader = new StringFileReader(new File(cmdLineInputFiles[0]));
 		StringBuilder sb = new StringBuilder();
 		try {
 			for (String pr : reader) {
