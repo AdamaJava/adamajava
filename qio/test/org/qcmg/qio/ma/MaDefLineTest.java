@@ -9,7 +9,7 @@ import org.junit.Test;
 import org.qcmg.qio.ma.MaDefLine;
 import org.qcmg.qio.ma.MaDirection;
 
-public class MADefLineTest
+public class MaDefLineTest
 {
     @Test
     public final void create() throws Exception

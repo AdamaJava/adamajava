@@ -7,7 +7,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.qcmg.qio.ma.MaMapping;
 
-public class MAMappingTest
+public class MaMappingTest
 {
     @Test
     public final void createMAMapping() {

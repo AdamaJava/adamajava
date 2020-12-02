@@ -12,7 +12,7 @@ import org.qcmg.qio.ma.MaDefLine;
 import org.qcmg.qio.ma.MaDirection;
 import org.qcmg.qio.ma.MaRecord;
 
-public class MARecordTest
+public class MaRecordTest
 {
 
     @Test

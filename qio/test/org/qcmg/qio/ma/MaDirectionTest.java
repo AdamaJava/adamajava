@@ -9,7 +9,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.qcmg.qio.ma.MaDirection;
 
-public final class MADirectionTest
+public final class MaDirectionTest
 {
     @Rule
     public ExpectedException thrown = ExpectedException.none();
