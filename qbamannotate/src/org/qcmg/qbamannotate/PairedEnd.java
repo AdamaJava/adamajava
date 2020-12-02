@@ -14,8 +14,8 @@ import java.util.Map;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
 
-import org.qcmg.ma.MaDirection;
-import org.qcmg.ma.MaRecord;
+import org.qcmg.qio.ma.MaDirection;
+import org.qcmg.qio.ma.MaRecord;
 
 import htsjdk.samtools.SAMRecord;
 

@@ -8,7 +8,7 @@ package org.qcmg.qbamannotate;
 
 import java.util.regex.Pattern;
 
-import org.qcmg.ma.MaRecord;
+import org.qcmg.qio.ma.MaRecord;
 
 import htsjdk.samtools.SAMRecord;
 

@@ -15,10 +15,10 @@ import htsjdk.samtools.SAMFileWriter;
 import htsjdk.samtools.SAMFileWriterFactory;
 import htsjdk.samtools.SAMRecord;
 
-import org.qcmg.ma.MaFileReader;
-import org.qcmg.ma.MaRecord;
 import org.qcmg.picard.HeaderUtils;
 import org.qcmg.picard.SAMFileReaderFactory;
+import org.qcmg.qio.ma.MaFileReader;
+import org.qcmg.qio.ma.MaRecord;
 
 public final class Annotator {
 	private final boolean modifyProgramLine;

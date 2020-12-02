@@ -19,8 +19,8 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamSource;
 
-import org.qcmg.ma.MaDirection;
-import org.qcmg.ma.MaRecord;
+import org.qcmg.qio.ma.MaDirection;
+import org.qcmg.qio.ma.MaRecord;
 
 import javax.xml.transform.stream.StreamResult;
 import java.io.*;

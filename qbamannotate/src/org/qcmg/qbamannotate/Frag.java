@@ -6,8 +6,8 @@
  */
 package org.qcmg.qbamannotate;
 
-import org.qcmg.ma.MaDirection;
-import org.qcmg.ma.MaRecord;
+import org.qcmg.qio.ma.MaDirection;
+import org.qcmg.qio.ma.MaRecord;
 
 import htsjdk.samtools.SAMRecord;
 
