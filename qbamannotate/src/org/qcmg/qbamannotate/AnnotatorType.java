@@ -8,7 +8,7 @@ package org.qcmg.qbamannotate;
 
 import java.util.regex.Pattern;
 
-import org.qcmg.ma.MARecord;
+import org.qcmg.ma.MaRecord;
 
 import htsjdk.samtools.SAMRecord;
 
@@ -19,7 +19,7 @@ public abstract class AnnotatorType {
 	public abstract boolean annotate(final SAMRecord record) throws Exception;
 
 	public abstract boolean annotate(final SAMRecord record,
-			final MARecord maRecord) throws Exception;
+			final MaRecord maRecord) throws Exception;
 
 	public void markRecordUnmatched(final SAMRecord record) {
 		Object zmObj = record.getAttribute("ZM");
@@ -47,7 +47,7 @@ public abstract class AnnotatorType {
 		record.setAttribute("ZM", Integer.toString(n));
 	}
 
-	static int compareTriplet(final SAMRecord record, final MARecord maRecord) {
+	static int compareTriplet(final SAMRecord record, final MaRecord maRecord) {
 		return compareTriplet(record.getReadName(), maRecord.getDefLine()
 				.getReadName());
 	}

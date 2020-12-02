@@ -15,8 +15,8 @@ import htsjdk.samtools.SAMFileWriter;
 import htsjdk.samtools.SAMFileWriterFactory;
 import htsjdk.samtools.SAMRecord;
 
-import org.qcmg.ma.MAFileReader;
-import org.qcmg.ma.MARecord;
+import org.qcmg.ma.MaFileReader;
+import org.qcmg.ma.MaRecord;
 import org.qcmg.picard.HeaderUtils;
 import org.qcmg.picard.SAMFileReaderFactory;
 
@@ -31,10 +31,10 @@ public final class Annotator {
 	private SAMFileWriter fileWriter;
 	private SAMFileHeader header;
 	private SamReader samFileReader;
-	private MAFileReader maFileReader;
+	private MaFileReader maFileReader;
 	private Iterator<SAMRecord> samIterator;
-	private Iterator<MARecord> maIterator;
-	private MARecord nextMARecord;
+	private Iterator<MaRecord> maIterator;
+	private MaRecord nextMARecord;
 	private SAMRecord nextSAMRecord;
 	private AnnotatorType type = new Frag();
 
@@ -140,7 +140,7 @@ public final class Annotator {
 	private void marchAndAnnotate() throws Exception {
 		try {
 			samFileReader = SAMFileReaderFactory.createSAMFileReader( inputBAMFile) ; //new SAMFileReader(inputBAMFile);
-			maFileReader = new MAFileReader(inputMAFile);
+			maFileReader = new MaFileReader(inputMAFile);
 			header = samFileReader.getFileHeader();
 			header.setSortOrder(SAMFileHeader.SortOrder.unsorted);
 			if (modifyProgramLine) {

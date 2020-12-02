@@ -137,7 +137,7 @@ public class GffReaderTest {
 		}
 	}
 	
-	private static void createTestFile(String fileName, List<String> data) {
+	public static void createTestFile(String fileName, List<String> data) {
 
 		PrintWriter out;
 		try {

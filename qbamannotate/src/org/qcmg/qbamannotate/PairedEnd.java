@@ -14,17 +14,17 @@ import java.util.Map;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
 
-import htsjdk.samtools.SAMRecord;
+import org.qcmg.ma.MaDirection;
+import org.qcmg.ma.MaRecord;
 
-import org.qcmg.ma.MADirection;
-import org.qcmg.ma.MARecord;
+import htsjdk.samtools.SAMRecord;
 
 public class PairedEnd extends AnnotatorType {
 	final int isizeLowerLimit;
 	final int isizeUpperLimit;
 	private String zpAnnotation;
 	private SAMRecord record;
-	private MARecord maRecord;
+	private MaRecord maRecord;
 	private int annotatedCount = 0;
 	private final Map<String, Integer> zpToCount = new HashMap<String, Integer>();
 	private String xmlReport;
@@ -57,7 +57,7 @@ public class PairedEnd extends AnnotatorType {
 	}
 
 	@Override
-	public boolean annotate(SAMRecord record, MARecord maRecord)
+	public boolean annotate(SAMRecord record, MaRecord maRecord)
 			throws Exception {
 		this.record = record;
 		this.maRecord = maRecord;
@@ -90,10 +90,10 @@ public class PairedEnd extends AnnotatorType {
 
 	private void performZMAnnotation() {
 		assert 0 == compareTriplet(record, maRecord);
-		if (maRecord.getDefLine().getDirection() == MADirection.F3
+		if (maRecord.getDefLine().getDirection() == MaDirection.F3
 				&& record.getReadPairedFlag() && record.getFirstOfPairFlag()) {
 			setZMAttribute();
-		} else if (maRecord.getDefLine().getDirection() == MADirection.F5
+		} else if (maRecord.getDefLine().getDirection() == MaDirection.F5
 				&& record.getReadPairedFlag() && record.getSecondOfPairFlag()) {
 			setZMAttribute();
 		} else {

@@ -18,20 +18,21 @@ import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamSource;
+
+import org.qcmg.ma.MaDirection;
+import org.qcmg.ma.MaRecord;
+
 import javax.xml.transform.stream.StreamResult;
 import java.io.*;
 
 import htsjdk.samtools.SAMRecord;
-
-import org.qcmg.ma.MADirection;
-import org.qcmg.ma.MARecord;
 
 public class LongMatePair extends AnnotatorType {
 	final int isizeLowerLimit;
 	final int isizeUpperLimit;
 	private String zpAnnotation;
 	private SAMRecord record;
-	private MARecord maRecord;
+	private MaRecord maRecord;
 	private int annotatedCount = 0;
 	private final Map<String, Integer> zpToCount = new HashMap<String, Integer>();
 	private String xmlReport;
@@ -65,7 +66,7 @@ public class LongMatePair extends AnnotatorType {
 	}
 
 	@Override
-	public boolean annotate(SAMRecord record, MARecord maRecord) throws Exception {
+	public boolean annotate(SAMRecord record, MaRecord maRecord) throws Exception {
 		this.record = record;
 		this.maRecord = maRecord;
 		performZMAnnotation();
@@ -96,10 +97,10 @@ public class LongMatePair extends AnnotatorType {
 
 	private void performZMAnnotation() {
 		assert 0 == compareTriplet(record, maRecord);
-		if (maRecord.getDefLine().getDirection() == MADirection.F3
+		if (maRecord.getDefLine().getDirection() == MaDirection.F3
 				&& record.getReadPairedFlag() && record.getFirstOfPairFlag()) {
 			setZMAttribute();
-		} else if (maRecord.getDefLine().getDirection() == MADirection.R3
+		} else if (maRecord.getDefLine().getDirection() == MaDirection.R3
 				&& record.getReadPairedFlag() && record.getSecondOfPairFlag()) {
 			setZMAttribute();
 		} else {

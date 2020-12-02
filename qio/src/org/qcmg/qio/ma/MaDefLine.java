@@ -1,26 +1,24 @@
 /**
  * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
-package org.qcmg.ma;
+package org.qcmg.qio.ma;
 
 import java.util.Iterator;
 import java.util.Vector;
 
-public final class MADefLine {
+public final class MaDefLine {
     private final String readName;
-    private final MADirection direction;
-    private final Vector<MAMapping> mappings = new Vector<MAMapping>();
+    private final MaDirection direction;
+    private final Vector<MaMapping> mappings = new Vector<MaMapping>();
 
-    public MADefLine(final String readName, final MADirection direction)
-            throws Exception {
+    public MaDefLine(final String readName, final MaDirection direction) {
         this.readName = readName;
         this.direction = direction;
     }
 
-    public MADefLine(final String readName, final MADirection direction,
-            final Vector<MAMapping> mappings) throws Exception {
+    public MaDefLine(final String readName, final MaDirection direction, final Vector<MaMapping> mappings) {
         this(readName, direction);
-        for (final MAMapping mapping : mappings) {
+        for (final MaMapping mapping : mappings) {
             this.mappings.add(mapping);
         }
     }
@@ -29,7 +27,7 @@ public final class MADefLine {
         return readName;
     }
 
-    public MADirection getDirection() {
+    public MaDirection getDirection() {
         return direction;
     }
 
@@ -41,11 +39,11 @@ public final class MADefLine {
         return mappings.size();
     }
 
-    public Iterator<MAMapping> iterator() {
+    public Iterator<MaMapping> iterator() {
         return getMappingIterator();
     }
 
-    public Iterator<MAMapping> getMappingIterator() {
+    public Iterator<MaMapping> getMappingIterator() {
         return mappings.iterator();
     }
 }
