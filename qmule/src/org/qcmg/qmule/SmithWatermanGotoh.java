@@ -12,6 +12,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Arrays;
 
+import htsjdk.samtools.util.SequenceUtil;
+
 public class SmithWatermanGotoh {
 	
 	private final float gapOpen;
@@ -374,6 +376,54 @@ public class SmithWatermanGotoh {
 		for (String s : results) {
 			System.out.println(s);
 		}
+		
+		
+		String r = "GGTCCACTCTACTCCAATATGATCTCATTTCAATCCTTACCTTAATTATACCTGCAAAGACTCTATTTCCAAATAAGGTCACATTCTGAGGTTCTCGACGAACATGAATTTTGGGTGGGCACTATTCAATCCACTATATAAATTTAACACACCATTTTAGTATTGACCATAACATGTTATAAAATTTCATATCATTGAATTATTTATACATATTATTTGTTAACACGAATCAGT";
+		String s = "GGTCCACTCTACTCCAATATGATCTCATTTCAATCCTTACCTTAATTATACCTGCAAAGACTGGTCCACTCTACTCCAATATGATCTCATTTCAATCCTTACCTTAATTATACCTGCAAAGACTGGTCCACTCTACTCCAATATGATCTCATTTCAATCCTTACCTTAATTATA";
+		nm = new SmithWatermanGotoh(r, s,    5, -4, 16, 4);
+		results = nm.traceback();
+		for (String s1 : results) {
+			System.out.println(s1);
+		}
+		nm = new SmithWatermanGotoh(r, s,    4, -14, 14, 1);
+//		nm = new SmithWatermanGotoh(r, s,   5, -4, 16, 4);
+//		nm = new SmithWatermanGotoh(r, s,   4, -4, 3, 1);
+//		nm = new SmithWatermanGotoh(r, s,  15, -14, 9, 4);
+		results = nm.traceback();
+		for (String s1 : results) {
+			System.out.println(s1);
+		}
+		r = "AAATATATAATCTCAGTTAATCATGTGTTGATACGATGGGTGCAGATAAGGATGTATTAAGGGATATATGATGTGTGCAGATAGGGATATTCTAGATCTATTTTAAATATGTAATAATAGTGGGGGGATTGGTTTATTTTTAGCCTGTTTACCTTAAGAACATATATAATCTCAGTTAATTATGTGTTGATACAATAGGTGAAGATAGGGATATATGAAGGAATCTATGCAAACTCAAGATAATCACACTTAATTTTTTAAAGTGCAAGTGAGAACACAAATCATTTCTAG";
+		s = "GGATTGAAAATATTCATGGCATTTGGGAAGAAGAGAAAGGGCAGGTCTTTGCAGTATGCTTCTAGATCTATTTTAAATATGTAATAATAGTGGAGGGATCAGTTTATTTTTAGCCTGTTTACCTTAAGAACATATATAATCTCAGTTAATTATGTGTTGATACAATAGGTGAAGATAGGGATATATGAAGGAATCTATGCAAACTCAAGATAATCACACTTAATTTTTTAAAGTGCAAGTGAGAACACAAATCATTTCTAG";
+		nm = new SmithWatermanGotoh(r, s,    5, -4, 16, 4);
+		results = nm.traceback();
+		for (String s1 : results) {
+			System.out.println(s1);
+		}
+		nm = new SmithWatermanGotoh(r, s,    4, -14, 14, 1);
+//		nm = new SmithWatermanGotoh(r, s,   5, -4, 16, 4);
+//		nm = new SmithWatermanGotoh(r, s,   4, -4, 3, 1);
+//		nm = new SmithWatermanGotoh(r, s,  15, -14, 9, 4);
+		results = nm.traceback();
+		for (String s1 : results) {
+			System.out.println(s1);
+		}
+		r = "ACTGGTCTCGAACCCCTAACCTCAAGTGATTCACCCACCTTGGCCTCCCAAATTGCTGGGATTACAGGCGTGAGCCAGTATGCCTGGCCACAAGTCATACTTTAAATCACATATGATATTACTTTTAATTACTTTTTTTT";
+		s = "ATTACAGGCGGGAGCCACTACTCCTGGCCACAAGTCATACTTTAAATCACATATGATATTACTTTTAATTACTTTTTTTT";
+		nm = new SmithWatermanGotoh(r, s,    5, -4, 16, 4);
+		results = nm.traceback();
+		for (String s1 : results) {
+			System.out.println(s1);
+		}
+		nm = new SmithWatermanGotoh(r, s,    4, -14, 14, 1);
+//		nm = new SmithWatermanGotoh(r, s,   5, -4, 16, 4);
+//		nm = new SmithWatermanGotoh(r, s,   4, -4, 3, 1);
+//		nm = new SmithWatermanGotoh(r, s,  15, -14, 9, 4);
+		results = nm.traceback();
+		for (String s1 : results) {
+			System.out.println(s1);
+		}
+		
 	}
 
 }

@@ -518,7 +518,10 @@ public class TARecordUtil {
 				 * will attempt to create a single BLAT record
 				 */
 				if (IntLongPairsUtil.isIntLongPairsAValidSingleRecord(maxSplitILPs)) {
-					blatties = new BLATRecord[] {new BLATRecord(TARecordUtil.blatRecordFromSplits(maxSplitILPs, name, seqLength, headerMap, TILE_LENGTH))};
+					String [] blatData = TARecordUtil.blatRecordFromSplits(maxSplitILPs, name, seqLength, headerMap, TILE_LENGTH);
+					if (null != blatData && blatData.length > 0) {
+						blatties = new BLATRecord[] {new BLATRecord(blatData)};
+					}
 				} else {
 					
 					IntLongPair[] pairs = maxSplitILPs.getPairs();
@@ -529,7 +532,10 @@ public class TARecordUtil {
 						 */
 						blatties = new BLATRecord[pairs.length];
 						for (int i = 0 ; i < pairs.length ; i++) {
-							blatties[i] = new BLATRecord(blatRecordFromSplit(pairs[i], name, seqLength, headerMap));
+							String [] blatARray = blatRecordFromSplit(pairs[i], name, seqLength, headerMap);
+							if (null != blatARray && blatARray.length > 0) {
+								blatties[i] = new BLATRecord(blatARray);
+							}
 						}
 						Arrays.sort(blatties);
 					} else {
@@ -540,22 +546,32 @@ public class TARecordUtil {
 						Optional<IntLongPairs> oSingleBLATRec = IntLongPairsUtil.getSingleBLATRecordFromILPs(maxSplitILPs);
 						if (oSingleBLATRec.isPresent()) {
 							/*
-							 * need to find the ILPs that didn't make it into the ILPS so that they can be added as seperate BLAT records
+							 * need to find the ILPs that didn't make it into the ILPS so that they can be added as separate BLAT records
 							 */
 							List<IntLongPair> rejectedILPs = IntLongPairsUtil.getRejectedILPs(maxSplitILPs, oSingleBLATRec.get());
 							logger.info("found optional singleBLATRecord! Number of rejected ILPs: " + rejectedILPs.size());
 							
 							blatties = new BLATRecord[rejectedILPs.size() + 1];
 							for (int i = 0 ; i < rejectedILPs.size() ; i++) {
-								blatties[i] = new BLATRecord(blatRecordFromSplit(rejectedILPs.get(i), name, seqLength, headerMap));
+								String [] blatArray = blatRecordFromSplit(rejectedILPs.get(i), name, seqLength, headerMap);
+								if (null != blatArray && blatArray.length > 0) {
+									blatties[i] = new BLATRecord(blatArray);
+								}
 							}
-							blatties[blatties.length - 1] = new BLATRecord(blatRecordFromSplits(oSingleBLATRec.get(), name, seqLength, headerMap, TILE_LENGTH));
+							String [] blatArray = blatRecordFromSplits(oSingleBLATRec.get(), name, seqLength, headerMap, TILE_LENGTH);	
+							if (null != blatArray && blatArray.length > 0) {
+								blatties[blatties.length - 1] = new BLATRecord(blatArray);
+							}
 							
-							Arrays.sort(blatties);
+							if (null != blatties && blatties.length > 1) {
+								Arrays.sort(blatties);
+							}
 						}
 					}
 				}
-				blats.add(blatties);
+				if (null != blatties && blatties.length > 0) {
+					blats.add(blatties);
+				}
 			}
 			return blats;
 		}
@@ -681,14 +697,12 @@ public class TARecordUtil {
 						thisIntArray[1] = thisIntArray[1] - diff;
 //						ChrPosition orig = cps[j];
 						if (diff >= thisCP.getLength()) {
-							System.out.println("Diff is greater the cp length! diff: " + diff + ", cp length: " + thisCP.getLength());
-							System.out.println("ranges:");
+							logger.warn("Diff is greater the cp length! diff: " + diff + ", cp length: " + thisCP.getLength());
 							for (int [] range : ranges) {
-								System.out.println("range: " + Arrays.toString(range));
+								logger.warn("range: " + Arrays.toString(range));
 							}
-							System.out.println("cps:");
 							for (ChrPosition cp : cps) {
-								System.out.println("cp: " + cp.toIGVString());
+								logger.warn("cp: " + cp.toIGVString());
 							}
 						} else {
 							cps[j] = new ChrPositionName(thisCP.getChromosome(), thisCP.getStartPosition(), thisCP.getEndPosition() - diff, thisCP.getName());
@@ -703,14 +717,12 @@ public class TARecordUtil {
 //						ChrPosition orig = cps[j + 1];
 						
 						if (diff >= nextCP.getLength()) {
-							System.out.println("Diff is greater the cp length! diff: " + diff + ", cp length: " + nextCP.getLength());
-							System.out.println("ranges:");
+							logger.warn("Diff is greater the cp length! diff: " + diff + ", cp length: " + nextCP.getLength());
 							for (int [] range : ranges) {
-								System.out.println("range: " + Arrays.toString(range));
+								logger.warn("range: " + Arrays.toString(range));
 							}
-							System.out.println("cps:");
 							for (ChrPosition cp : cps) {
-								System.out.println("cp: " + cp.toIGVString());
+								logger.warn("cp: " + cp.toIGVString());
 							}
 						} else {
 						
@@ -732,14 +744,12 @@ public class TARecordUtil {
 							thisIntArray[1] = thisIntArray[1] - diffRef;
 //						ChrPosition orig = cps[j];
 							if (diffRef >= thisCP.getLength()) {
-								System.out.println("Diff is greater the cp length! diff: " + diffRef + ", cp length: " + thisCP.getLength());
-								System.out.println("ranges:");
+								logger.warn("Diff is greater the cp length! diff: " + diffRef + ", cp length: " + thisCP.getLength());
 								for (int [] range : ranges) {
-									System.out.println("range: " + Arrays.toString(range));
+									logger.warn("range: " + Arrays.toString(range));
 								}
-								System.out.println("cps:");
 								for (ChrPosition cp : cps) {
-									System.out.println("cp: " + cp.toIGVString());
+									logger.warn("cp: " + cp.toIGVString());
 								}
 							} else {
 								if (reverseComplemented) {
@@ -758,14 +768,12 @@ public class TARecordUtil {
 //						ChrPosition orig = cps[j + 1];
 							
 							if (diffRef >= nextCP.getLength()) {
-								System.out.println("Diff is greater the cp length! diff: " + diffRef + ", cp length: " + nextCP.getLength());
-								System.out.println("ranges:");
+								logger.warn("Diff is greater the cp length! diff: " + diffRef + ", cp length: " + nextCP.getLength());
 								for (int [] range : ranges) {
-									System.out.println("range: " + Arrays.toString(range));
+									logger.warn("range: " + Arrays.toString(range));
 								}
-								System.out.println("cps:");
 								for (ChrPosition cp : cps) {
-									System.out.println("cp: " + cp.toIGVString());
+									logger.warn("cp: " + cp.toIGVString());
 								}
 							} else {
 								if (reverseComplemented) {
@@ -1508,7 +1516,7 @@ public class TARecordUtil {
 					
 					
 					if (reverseStrand) {
-						int [] forwardStrandStartAndStopPositions = getForwardStrandStartAndStop(tileStartPosition, tileCount, TILE_LENGTH, seqLength);
+						int [] forwardStrandStartAndStopPositions = getForwardStrandStartAndStop(tileStartPosition, tileCount, tileLength, seqLength);
 						tileStartPosition = (short) forwardStrandStartAndStopPositions[0];
 						
 					}
@@ -1520,7 +1528,9 @@ public class TARecordUtil {
 						long thisGenomicPositionStart = NumberUtils.getLongPositionValueFromPackedLong(l);
 						long thisGenomicPositionEnd = thisGenomicPositionStart + tileCount + (tileLength - 1);
 						
-						if ( ! doGenomicPositionsOverlap(thisGenomicPositionStart, thisGenomicPositionEnd, genomicPositionStart, genomicPositionEnd, bufferToUse)) {
+						int buffer = (int)Math.max((thisGenomicPositionEnd - thisGenomicPositionStart) / 2, (genomicPositionEnd - genomicPositionStart) / 2);
+						
+						if ( ! doGenomicPositionsOverlap(thisGenomicPositionStart, thisGenomicPositionEnd, genomicPositionStart, genomicPositionEnd, buffer)) {
 							/*
 							 * we have a keeper!
 							 */
@@ -1533,35 +1543,37 @@ public class TARecordUtil {
 		return results;
 	}
 	
+	/**
+	 * If the overlap is more than 50% of both ranges, return true
+	 * 
+	 * @param positionOneStart
+	 * @param positionOneEnd
+	 * @param positionTwoStart
+	 * @param positionTwoEnd
+	 * @param buffer
+	 * @return
+	 */
 	public static boolean doGenomicPositionsOverlap(long positionOneStart, long positionOneEnd, long positionTwoStart, long positionTwoEnd, int buffer) {
-		if (positionOneStart > positionTwoEnd || positionTwoStart > positionOneEnd) {
-			return false;
+		long overlap = NumberUtils.getOverlap(positionOneStart, positionOneEnd, positionTwoStart, positionTwoEnd);
+		
+		if ((positionOneEnd - positionOneStart) - overlap <= TILE_LENGTH) {
+			return true;
 		}
 		
-		if (positionOneStart > positionTwoStart && positionOneStart < positionTwoEnd) {
-			if (positionTwoEnd - positionOneStart < buffer){
-				return false;
-			}
-		}
-		if (positionTwoStart > positionOneStart && positionTwoStart < positionOneEnd) {
-			if (positionOneEnd - positionTwoStart < buffer){
-				return false;
-			}
-		}
-		return true;
+//		if ((float) overlap / (positionOneEnd - positionOneStart) < 0.5) {
+//			return false;
+//		}
+//		if ((float) overlap / (positionTwoEnd - positionTwoStart) < 0.5) {
+//			return false;
+//		}
+//		return true;	
+				
+		return overlap >= buffer;
 	}
 	
 	public static int getRangesOverlap(int [] range, int range2Start, int range2End) {
-		if (range2Start < range2End) {
-			if (range2Start >= range[0] && range2Start < range[1]) {
-				return Math.min(range[1], range2End) - range2Start;
-			} else if (range2End > range[0] && range2End <= range[1]) {
-				return range2End - range[0];
-			} else if (range2Start < range[0] && range2End > range[1]) {
-				return range[1] - range[0];
-			}
-		}
-		return 0;
+		long overlap = NumberUtils.getOverlap(range[0], range[1], range2Start, range2End);
+		return (int)overlap;
 	}
 	
 	public static boolean doesPositionFitWithinRange(int [] range, int startPosition, int tileCount, int buffer) {

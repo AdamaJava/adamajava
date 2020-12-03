@@ -5,15 +5,16 @@ import static org.junit.Assert.assertEquals;
 import java.util.Arrays;
 import java.util.List;
 
+import org.junit.Test;
 import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrPositionName;
-import org.testng.annotations.Test;
 
 public class PositionChrPositionMapTest {
 	
 	@Test
 	public void loadMap() {
+		
 		List<String> data = getMapData();
 		PositionChrPositionMap map = new PositionChrPositionMap();
 		map.loadMap(data);
@@ -115,6 +116,7 @@ public class PositionChrPositionMapTest {
 		System.out.println("2719061437: " +  map.getChrPositionFromLongPosition(2719061437l).toIGVString());
 		System.out.println("2792721623: " +  map.getChrPositionFromLongPosition(2792721623l).toIGVString());
 		System.out.println("chr15:79474963: " +  map.getLongStartPositionFromChrPosition(new ChrPointPosition("chr15", 79474963)));
+		System.out.println("chr13:51701287: " +  map.getLongStartPositionFromChrPosition(new ChrPointPosition("chr13", 51701287)));
 //		Found start position within range: 2341317558 that has tile count: 107
 //		Found start position within range: 1681646586 that has tile count: 43
 //		Found start position within range: 2387069827 that has tile count: 42

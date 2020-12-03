@@ -508,10 +508,13 @@ public class TARecord {
 	
 	@Override
 	public String toString() {
-		int [] counts = getTopNCounts(3, 3);
+		int [] sortedCounts = countAndStartPositionsMap.keys();
+		if (sortedCounts.length > 0) {
+			Arrays.sort(sortedCounts);
+		}
 		
-		return sequence + ", top 3 tile counts: " + Arrays.toString(counts) 
-				+ ", number of start positions: " + countAndStartPositionsMap.get(counts[counts.length - 1]).size();
+		return sequence + ", countAndStartPositionsMap.size(): " + countAndStartPositionsMap.size() 
+				+ ", top entry: " + (sortedCounts.length > 0 ? sortedCounts[sortedCounts.length - 1] : 0) + ", number of positions at top entry : " + (sortedCounts.length > 0 ? countAndStartPositionsMap.get(sortedCounts[sortedCounts.length - 1]) : 0);
 	}
 
 }

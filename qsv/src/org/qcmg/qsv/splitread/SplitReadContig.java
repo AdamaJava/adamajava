@@ -411,7 +411,7 @@ public class SplitReadContig {
 				for (BLATRecord record : recs) {
 					if (record.isValid() && record.getName().equals(name)) {
 						if (debug) {
-							System.out.println("SplitReadContig BLAT rec (valid): " + record.toString());
+							logger.info("SplitReadContig BLAT rec (valid): " + record.toString());
 						}
 						if (leftReference != null && rightReference != null) {
 							if (record.getReference().equals(leftReference) || record.getReference().equals(rightReference)) {
@@ -424,7 +424,7 @@ public class SplitReadContig {
 						}
 					} else {
 						if (debug) {
-							System.out.println("SplitReadContig BLAT rec (INVALID): " + record.toString());
+							logger.info("SplitReadContig BLAT rec (INVALID): " + record.toString());
 						}
 					}
 				}

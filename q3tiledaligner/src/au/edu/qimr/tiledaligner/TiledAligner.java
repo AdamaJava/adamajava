@@ -58,7 +58,7 @@ public class TiledAligner {
 		
 		boolean recordsMustComeFromChrInName = null != name && name.contains("splitcon");
 		
-		Map<String, List<BLATRecord>> results = TiledAlignerUtil.runTiledAlignerCache(reference, map, sequenceToNameMap, TILE_LENGTH, "TiledAligner", true, recordsMustComeFromChrInName);
+		Map<String, List<BLATRecord>> results = TiledAlignerUtil.runTiledAlignerCacheSWAll(reference, map, sequenceToNameMap, TILE_LENGTH, "TiledAligner", true, recordsMustComeFromChrInName);
 		
 		for (Entry<String, List<BLATRecord>> result : results.entrySet()) {
 			logger.info("name: " + result.getKey());

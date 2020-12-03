@@ -1188,17 +1188,13 @@ public class FindClipClustersMT  {
 						//Rescue clipping
 
 						String blatFile = softClipDir + QSVUtil.getFileSeparator() + UUID.randomUUID();
-						boolean log = true;
+						boolean log = false;
 						for (QSVCluster cluster: inputClusters) {
 //							boolean log = cluster.toTabString().contains("" + positionToDebug);
 							cluster.rescueClippping(cache, tumourParameters, normalParameters, softclipDir, consensusLength, minInsertSize);
-							if (log) {
-								logger.info("rescue clipping about to call createSplitReadContig");
-							}
+							logger.debug("rescue clipping about to call createSplitReadContig");
 							cluster.createSplitReadContig(cache, tumourParameters, normalParameters, softclipDir, consensusLength, isQCMG, minInsertSize, singleSided, isSplitRead, reference, blatFile, log);
-							if (log) {
-								logger.info("rescue clipping, cluster: " + cluster.toTabString());
-							}
+							logger.debug("rescue clipping, cluster: " + cluster.toTabString());
 //							cluster.rescueClippping(blat, tumourParameters, normalParameters, softclipDir, consensusLength, minInsertSize);
 //							cluster.createSplitReadContig(blat, tumourParameters, normalParameters, softclipDir, consensusLength, isQCMG, minInsertSize, singleSided, isSplitRead, reference, blatFile);               		 
 						}
@@ -1209,22 +1205,15 @@ public class FindClipClustersMT  {
 //							blat.execute(blatFile + ".normal.fa", blatFile + ".normal.psl");
 //						}
 						for (QSVCluster cluster: inputClusters) {
-							if ( log) {
-								logger.info("rescue clipping about to call findSplitReadContig, cluster: " + cluster.toTabString());
-								logger.info("rescue clipping about to call findSplitReadContig, getConfidenceLevel: " + cluster.getConfidenceLevel(true));
-								logger.info("rescue clipping about to call findSplitReadContig, isPotentialSplitRead: " + cluster.isPotentialSplitRead());
-//								logger.info("rescue clipping about to call findSplitReadContig, cluster clipRecord: " + cluster.getClipRecords().get(0));
-								logger.info("tumourParameters getChromosomes size " + tumourParameters.getChromosomes().size());
-								logger.info("isSplitRead: " + isSplitRead);
-//								logger.info("reference: " + reference);
-							}
+							logger.debug("rescue clipping about to call findSplitReadContig, cluster: " + cluster.toTabString());
+							logger.debug("rescue clipping about to call findSplitReadContig, getConfidenceLevel: " + cluster.getConfidenceLevel(true));
+							logger.debug("rescue clipping about to call findSplitReadContig, isPotentialSplitRead: " + cluster.isPotentialSplitRead());
+							logger.debug("tumourParameters getChromosomes size " + tumourParameters.getChromosomes().size());
+							logger.debug("isSplitRead: " + isSplitRead);
 							cluster.findSplitReadContig(tumourParameters, isSplitRead, reference, log);
-							if (log) {
-								logger.info("rescue clipping called findSplitReadContig, cluster: " + cluster.toTabString());
-								logger.info("rescue clipping called findSplitReadContig, getConfidenceLevel: " + cluster.getConfidenceLevel(true));
-								logger.info("rescue clipping called findSplitReadContig, isPotentialSplitRead: " + cluster.isPotentialSplitRead());
-//								logger.info("rescue clipping called findSplitReadContig, cluster clipRecord: " + cluster.getClipRecords().get(0));
-							}
+							logger.debug("rescue clipping called findSplitReadContig, cluster: " + cluster.toTabString());
+							logger.debug("rescue clipping called findSplitReadContig, getConfidenceLevel: " + cluster.getConfidenceLevel(true));
+							logger.debug("rescue clipping called findSplitReadContig, isPotentialSplitRead: " + cluster.isPotentialSplitRead());
 							clusters.add(cluster);
 						}
 

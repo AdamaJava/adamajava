@@ -426,7 +426,7 @@ public class QSVCluster {
 			if (pairRecord != null && clipRecords != null) {
 				
 				if (log) {
-					logger.info("getConfidenceLevel pairRecord != null && clipRecords != null");
+					logger.debug("getConfidenceLevel pairRecord != null && clipRecords != null");
 				}
 				 //double sided clip
 				 if (hasMatchingBreakpoints()) {
@@ -446,7 +446,7 @@ public class QSVCluster {
 			//Discordant pair only
 			} else if (pairRecord != null) {
 				if (log) {
-					logger.info("getConfidenceLevel pairRecord != null");
+					logger.debug("getConfidenceLevel pairRecord != null");
 				}
 				if (isPotentialSplitRead()) {
 					cat =  QSVConstants.LEVEL_MID;
@@ -456,7 +456,7 @@ public class QSVCluster {
 			//Clip only
 			} else {
 				if (log) {
-					logger.info("getConfidenceLevel clipRecords != null");
+					logger.debug("getConfidenceLevel clipRecords != null");
 				}
 				//Double sided
 				if (hasMatchingBreakpoints()) {

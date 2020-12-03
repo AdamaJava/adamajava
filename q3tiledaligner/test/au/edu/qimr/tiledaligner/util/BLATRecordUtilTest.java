@@ -5,12 +5,14 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.Test;
 import org.qcmg.common.model.BLATRecord;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrPositionName;
 import org.qcmg.common.model.ChrRangePosition;
+import org.qcmg.common.string.StringUtils;
 
 public class BLATRecordUtilTest {
 
@@ -171,6 +173,97 @@ swDiffs: CGTGGGGGTGGGATCCACTGAGCTAGAACACTTGGCTCCCTGGCTTTGGCCCCCTTTCCAGGGGAGTGAAC
 	}
 	
 	@Test
+	public void merge() {
+		List<BLATRecord> recs = Arrays.asList(
+			new BLATRecord("22	0	0	0	0	0	0	0	+	chr6_114264515_true_+	79	0	22	chr6	171115067	114262231	114262253	1	22	0	114262231"),
+			new BLATRecord("58	0	0	0	0	0	0	0	+	chr6_114264515_true_+	79	21	79	chr6	171115067	114262871	114262929	1	58	21	114262871")
+		);
+		
+		Optional<BLATRecord> mergedRec = BLATRecordUtil.mergeBLATRecs(recs, 0);
+		assertEquals(true, mergedRec.isPresent());
+		assertEquals("78	79	0	0	0	0	0	1	619	+	chr6_114264515_true_+	79	0	79	chr6	171115067	114262231	114262929	2	22,57	0,22	114262231,114262872", mergedRec.get().toString());
+	}
+	
+	@Test
+	public void merge2() {
+		List<BLATRecord> recs = Arrays.asList(
+				new BLATRecord("255	0	0	0	1	94	0	0	+	splitcon_chr7_100867120_chr7_100867215__true_1605137694083_663070	398	79	334	chr7	159138663	100866949	100867298	2	171,84	79,250	100866949,100867214"),
+				new BLATRecord("58	0	0	0	0	0	0	0	+	chr6_114264515_true_+	79	21	79	chr6	171115067	114262871	114262929	1	58	21	114262871")
+				);
+		
+		Optional<BLATRecord> mergedRec = BLATRecordUtil.mergeBLATRecs(recs, 0);
+		assertEquals(true, mergedRec.isPresent());
+		assertEquals("78	79	0	0	0	0	0	1	619	+	chr6_114264515_true_+	79	0	79	chr6	171115067	114262231	114262929	2	22,57	0,22	114262231,114262872", mergedRec.get().toString());
+	}
+	
+	@Test
+	public void merge3() {
+		List<BLATRecord> recs = Arrays.asList(
+				new BLATRecord("45	0	0	0	0	0	0	0	+	splitcon_chr19_47884249_chr19_47884442_1_true_1606876103304_406441_clip	154	108	153	chr19	59128983	47884441	47884486	1	45	108	47884441"),
+				new BLATRecord("109	0	0	0	0	0	0	0	+	splitcon_chr19_47884249_chr19_47884442_1_true_1606876103304_406441_clip	154	0	109	chr19	59128983	47884140	47884249	1	109	0	47884140")
+				);
+		
+		Optional<BLATRecord> mergedRec = BLATRecordUtil.mergeBLATRecs(recs, 0);
+		assertEquals(true, mergedRec.isPresent());
+		assertEquals("152	153	0	0	0	0	0	1	193	+	splitcon_chr19_47884249_chr19_47884442_1_true_1606876103304_406441_clip	154	0	153	chr19	59128983	47884140	47884486	2	108,45	0,108	47884140,47884441", mergedRec.get().toString());
+	}
+	
+	@Test
+	public void getCoverageAndOverlap() {
+		List<BLATRecord> recs = Arrays.asList(
+				new BLATRecord("255	0	0	0	1	94	0	0	+	splitcon_chr7_100867120_chr7_100867215__true_1605137694083_663070	398	79	334	chr7	159138663	100866949	100867298	2	171,84	79,250	100866949,100867214"),
+				new BLATRecord("58	0	0	0	0	0	0	0	+	chr6_114264515_true_+	79	21	79	chr6	171115067	114262871	114262929	1	58	21	114262871")
+				);
+		
+		Optional<int[]> stats = BLATRecordUtil.getCombinedNonOverlappingScore(recs);
+		assertEquals(true, stats.isPresent());
+		assertArrayEquals(new int[] {313, 0}, stats.get());
+		
+		recs = Arrays.asList(
+				new BLATRecord("58	0	0	0	0	0	0	0	+	chr6_114264515_true_+	79	21	79	chr6	171115067	114262871	114262929	1	58	21	114262871"),
+				new BLATRecord("58	0	0	0	0	0	0	0	+	chr6_114264515_true_+	79	21	79	chr6	171115067	114262871	114262929	1	58	21	114262871")
+				);
+		
+		stats = BLATRecordUtil.getCombinedNonOverlappingScore(recs);
+		assertEquals(true, stats.isPresent());
+		assertArrayEquals(new int[] {58, 58}, stats.get());
+		
+		recs = Arrays.asList(
+				new BLATRecord("21	0	0	0	0	0	0	0	+	chr6_114264515_true_+	79	0	21	chr6	171115067	114262871	114262929	1	58	21	114262871"),
+				new BLATRecord("58	0	0	0	0	0	0	0	+	chr6_114264515_true_+	79	21	79	chr6	171115067	114262871	114262929	1	58	21	114262871")
+				);
+		
+		stats = BLATRecordUtil.getCombinedNonOverlappingScore(recs);
+		assertEquals(true, stats.isPresent());
+		assertArrayEquals(new int[] {79, 0}, stats.get());
+		
+		recs = Arrays.asList(
+				new BLATRecord("50	0	0	0	0	0	0	0	+	chr6_114264515_true_+	79	0	50	chr6	171115067	114262871	114262929	1	58	21	114262871"),
+				new BLATRecord("58	0	0	0	0	0	0	0	+	chr6_114264515_true_+	79	21	79	chr6	171115067	114262871	114262929	1	58	21	114262871")
+				);
+		
+		stats = BLATRecordUtil.getCombinedNonOverlappingScore(recs);
+		assertEquals(true, stats.isPresent());
+		assertArrayEquals(new int[] {79, 29}, stats.get());
+	}
+	
+	@Test
+	public void splitsShortCut() {
+		String seq = "GTCAAATTCAGGGGTTGCTGAGCTGTTCTGATTTGGTTCCTTTGGTATCTGTTTTTTCACCACTGTTGTCCTTGGATTTATCTTCTTCCTTAACGTCTGTTTTTTTGTCCTCTGTTTCTTTCTTATCTTCTTCAATTCTAGCTTTCTTTGCTCCTTTCTTATGATCAGCCACATTTCTTCGACCTCCTTCTCCTTCATCCTCAGAATCTGAGAATTCTTCATCACAAGCTATCCGCTTGTCTGATGCTCGAATAGAAATTCTCTTGTCTGGATCTTCTCCATCTTCATCTCCACTGTCTTCATGAACAGCATCTTCTGG";
+		
+		int[][]startPositionsAndLengths = new int[4][];
+		startPositionsAndLengths[0] = new int[] {0,0,39};
+		startPositionsAndLengths[1] = new int[] {658,39,59};
+		startPositionsAndLengths[2] = new int[] {2302,98,154};
+		startPositionsAndLengths[3] = new int[] {3229,252,67};
+		
+		ChrPosition bufferredCP = new ChrRangePosition("chr6", 114262214, 114262214 + 3283);
+		
+		BLATRecord br = BLATRecordUtil.getRecordFromStartPositionsAndLengths(bufferredCP, startPositionsAndLengths, "splitcon_chr6_114262929_chr6_114264515__true_1605145420035_711092", seq, true);
+		assertEquals("316	319	0	0	0	0	0	3	2974	+	splitcon_chr6_114262929_chr6_114264515__true_1605145420035_711092	319	0	319	chr6	171115067	114262214	114265510	4	39,59,154,67	0,39,98,252	114262214,114262872,114264516,114265443", br.toString());
+	}
+	
+	@Test
 	public void getBlatDetails6() {
 		/*
 		 * swDiffs: 
@@ -205,6 +298,20 @@ swDiffs: CTTAAATATTTTCTGGTGGAAATGCAGGTAT-CCTTGGAAAATGAAAT-----------AACACTA-TAGG
 		assertEquals("64", blatDetails[18]); // block lengths
 		assertEquals("119", blatDetails[19]); // Q starts
 		assertEquals("127633806", blatDetails[20]); // template starts
+	}
+	
+	@Test
+	public void findRecordInRange() {
+		List<BLATRecord> recs = Arrays.asList(
+				new BLATRecord("65	2	0	0	0	0	0	0	-	splitcon_chr10_127633807_chr15_34031839__true_1604619619623_732066	188	4	71	chr10	135534747	86039721	86039788	1	67	117	86039721"),
+				new BLATRecord("64	1	0	0	0	0	0	0	-	splitcon_chr10_127633807_chr15_34031839__true_1604619619623_732066	188	4	69	chr10	135534747	127633806	127633871	1	65	119	127633806"),
+				new BLATRecord("65	2	0	0	0	0	0	0	+	splitcon_chr10_127633807_chr15_34031839__true_1604619619623_732066	188	4	71	chr10	135534747	1273430	1273497	1	67	4	1273430"),
+				new BLATRecord("76	1	0	0	2	2	2	7	-	splitcon_chr10_127633807_chr15_34031839__true_1604619619623_732066	188	4	88	chr15	102531392	82162994	82163073	5	7,3,2,4,61	100,107,114,119,123	82162994,82163002,82163005,82163007,82163012"),
+				new BLATRecord("75	2	0	0	1	3	1	1	-	splitcon_chr10_127633807_chr15_34031839__true_1604619619623_732066	188	7	85	chr10	135534747	111365186	111365266	3	11,3,63	103,115,118	111365186,111365197,111365203")
+				);
+		Optional<BLATRecord> optionalBR = BLATRecordUtil.findRecordInRange(recs, 0, 69);
+		assertEquals(true, optionalBR.isPresent());
+		assertEquals(new BLATRecord("64	1	0	0	0	0	0	0	-	splitcon_chr10_127633807_chr15_34031839__true_1604619619623_732066	188	4	69	chr10	135534747	127633806	127633871	1	65	119	127633806"), optionalBR.get());
 	}
 	
 	@Test

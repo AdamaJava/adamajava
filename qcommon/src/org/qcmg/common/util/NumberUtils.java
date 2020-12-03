@@ -2,6 +2,7 @@ package org.qcmg.common.util;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -289,11 +290,105 @@ public class NumberUtils {
 		return ranges;
 	}
 	
+	
+	public static int[][] getRemainingRanges(int totalLength, int[][] existingRanges, int minSize) {
+		
+		/*
+		 * sort the array
+		 */
+		Arrays.sort(existingRanges, Comparator.comparingInt(arr -> arr[0]));
+		
+		/*
+		 * now loop through and add to list if there the gap between ranges or boundaries is large enough
+		 */
+		List<int[]> ranges = new ArrayList<>(4);
+		int lastEndPosition = 0;
+		for (int [] existingRange : existingRanges) {
+				
+//				int startPosition = NumberUtils.getShortFromLong(pair.getLong(), TILE_OFFSET);
+//				boolean reverseStrand = NumberUtils.isBitSet(pair.getLong(), REVERSE_COMPLEMENT_BIT);
+//				int tileCount = NumberUtils.getPartOfPackedInt(pair.getInt(), true);
+//				if (reverseStrand) {
+//					int [] forwardStrandStartAndStopPositions = getForwardStrandStartAndStop(startPosition, tileCount, TILE_LENGTH, seqLength);
+//					startPosition = (short) forwardStrandStartAndStopPositions[0];
+//				}
+				
+			if (existingRange[0] - lastEndPosition > minSize) {
+				ranges.add(new int[]{lastEndPosition, existingRange[0] - 1});
+			}
+				
+			lastEndPosition = existingRange[1];
+		}
+			
+		if (totalLength - lastEndPosition > minSize) {
+			ranges.add(new int[]{lastEndPosition, totalLength});
+		}
+		return ranges.toArray(new int[][]{});
+	}
+	
+	/**
+	 * Looks for value in the suplied array.
+	 * If it is present, then walk from that point in the array onwards and check for an incremental (+1) value. Tally the number of consecutive incremental values and return the tally.
+	 * If the supplied value is not present in the supplied array, return 0;
+	 * @param value
+	 * @param array
+	 * @return
+	 */
+	public static int getContinuousCountFromValue(int value, int [] array) {
+		return getContinuousCountFromValue(value, array, true);
+	}
+	public static int getContinuousCountFromValue(int value, int [] array, boolean leftToRight) {
+		/*
+		 * need to get position in array of value - use binary search as array is sorted
+		 */
+		int startPosition = Arrays.binarySearch(array, value);
+		if (startPosition < 0) {
+			return 0;
+		}
+		/*
+		 * have a match, so start with 1
+		 */
+		int continuousCount = 1;
+		if (leftToRight) {
+			for (int i = startPosition + 1, j = 1 ; i < array.length ; i++, j++) {
+				if (array[i] == value + j) {
+					continuousCount++;
+				} else {
+					break;
+				}
+			}
+		} else {
+			/*
+			 * right to left
+			 */
+			for (int i = startPosition - 1, j = 1 ; i >= 0 ; i--, j++) {
+				if (array[i] == value - j) {
+					continuousCount++;
+				} else {
+					break;
+				}
+			}
+		}
+		return continuousCount;
+	}
+	
 	public static int minusPackedInt(int toSum) {
 		return minusPackedInt(toSum, SHORT_DIVIDER);
 	}
 	public static int minusPackedInt(int toSum, int divider) {
 		return (toSum >> divider) - (short) toSum;
+	}
+	
+	public static long getOverlap(long start1, long end1, long start2, long end2) {
+		
+		if (start1 >= start2 && start1 <= end2) {
+			return Math.min(end1, end2) - start1;
+		}
+		if (start2 >= start1 && start2 <= end1) {
+			return Math.min(end1, end2) - start2;
+		}
+		
+		return 0;
 	}
 	
 	public static Map<Integer, TLongList> getUpdatedMapWithLongsFallingInRanges(Map<Integer, TLongList> originalMap, List<long[]> ranges, int reverseComplementBit) {
