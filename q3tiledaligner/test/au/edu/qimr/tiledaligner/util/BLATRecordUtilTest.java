@@ -187,13 +187,46 @@ swDiffs: CGTGGGGGTGGGATCCACTGAGCTAGAACACTTGGCTCCCTGGCTTTGGCCCCCTTTCCAGGGGAGTGAAC
 	@Test
 	public void merge2() {
 		List<BLATRecord> recs = Arrays.asList(
-				new BLATRecord("255	0	0	0	1	94	0	0	+	splitcon_chr7_100867120_chr7_100867215__true_1605137694083_663070	398	79	334	chr7	159138663	100866949	100867298	2	171,84	79,250	100866949,100867214"),
-				new BLATRecord("58	0	0	0	0	0	0	0	+	chr6_114264515_true_+	79	21	79	chr6	171115067	114262871	114262929	1	58	21	114262871")
+				new BLATRecord("58	0	0	0	0	0	0	0	+	chr6_114264515_true_+	79	21	79	chr6	171115067	114262871	114262929	1	58	21	114262871"),
+				new BLATRecord("22	0	0	0	0	0	0	0	+	chr6_114264515_true_+	79	0	22	chr6	171115067	114262231	114262253	1	22	0	114262231")
 				);
 		
 		Optional<BLATRecord> mergedRec = BLATRecordUtil.mergeBLATRecs(recs, 0);
 		assertEquals(true, mergedRec.isPresent());
 		assertEquals("78	79	0	0	0	0	0	1	619	+	chr6_114264515_true_+	79	0	79	chr6	171115067	114262231	114262929	2	22,57	0,22	114262231,114262872", mergedRec.get().toString());
+		
+		/*
+		 * different contig
+		 */
+		recs = Arrays.asList(
+				new BLATRecord("58	0	0	0	0	0	0	0	+	chr6_114264515_true_+	79	21	79	chr6	171115067	114262871	114262929	1	58	21	114262871"),
+				new BLATRecord("22	0	0	0	0	0	0	0	+	chr6_114264515_true_+	79	0	22	chr7	171115067	114262231	114262253	1	22	0	114262231")
+				);
+		
+		mergedRec = BLATRecordUtil.mergeBLATRecs(recs, 0);
+		assertEquals(false, mergedRec.isPresent());
+		
+		/*
+		 * different strand
+		 */
+		recs = Arrays.asList(
+				new BLATRecord("58	0	0	0	0	0	0	0	-	chr6_114264515_true_+	79	21	79	chr6	171115067	114262871	114262929	1	58	21	114262871"),
+				new BLATRecord("22	0	0	0	0	0	0	0	+	chr6_114264515_true_+	79	0	22	chr6	171115067	114262231	114262253	1	22	0	114262231")
+				);
+		
+		mergedRec = BLATRecordUtil.mergeBLATRecs(recs, 0);
+		assertEquals(false, mergedRec.isPresent());
+		
+		/*
+		 * far away
+		 */
+		recs = Arrays.asList(
+				new BLATRecord("58	0	0	0	0	0	0	0	-	chr6_114264515_true_+	79	21	79	chr6	171115067	114262871	114262929	1	58	21	114262871"),
+				new BLATRecord("22	0	0	0	0	0	0	0	+	chr6_114264515_true_+	79	0	22	chr6	171115067	14262231	14262253	1	22	0	14262231")
+				);
+		
+		mergedRec = BLATRecordUtil.mergeBLATRecs(recs, 0);
+		assertEquals(false, mergedRec.isPresent());
 	}
 	
 	@Test

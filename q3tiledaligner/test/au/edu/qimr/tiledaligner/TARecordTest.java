@@ -181,9 +181,8 @@ public class TARecordTest {
 		for (Entry<Integer, TLongList> entry : map2.entrySet()) {
 			System.out.println("entry getKey: " + Arrays.toString(NumberUtils.splitIntInto2(entry.getKey())) + ", list size: " + entry.getValue().size());
 		}
-		assertEquals(2, map2.size());
-		assertEquals(true, map2.containsKey(NumberUtils.pack2IntsInto1(18, 0)));
-		assertEquals(true, map2.containsKey(NumberUtils.pack2IntsInto1(20, 0)));
+		assertEquals(1, map2.size());
+		assertEquals(true, map2.containsKey(NumberUtils.pack2IntsInto1(67, 0)));
 //		assertArrayEquals(new long[] {1240342426l}, map2.get(NumberUtils.pack2IntsInto1(18, 0)).toArray());
 //		assertArrayEquals(new long[] {1240342426l}, map2.get(NumberUtils.pack2IntsInto1(20, 0)).toArray());
 		

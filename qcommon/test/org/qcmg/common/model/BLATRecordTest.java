@@ -85,7 +85,7 @@ public class BLATRecordTest {
 		
 		list.sort(null);
 		assertEquals(br1, list.get(5));
-		assertEquals(br6, list.get(0));
+		assertEquals(br2, list.get(0));
 	}
 	
 	@Test
@@ -97,6 +97,7 @@ public class BLATRecordTest {
 		List<BLATRecord> list = Arrays.asList(br1, br2, br3, br4);
 		
 		list.sort(null);
+		assertEquals(br2, list.get(0));
 		assertEquals(br3, list.get(3));
 	}
 	
@@ -111,8 +112,8 @@ public class BLATRecordTest {
 		List<BLATRecord> list = Arrays.asList(br1, br2, br3, br4, br5, br6);
 		
 		list.sort(null);
-		assertEquals(br6, list.get(0));
-		assertEquals(br1, list.get(5));
+		assertEquals(br1, list.get(0));
+		assertEquals(br6, list.get(5));
 	}
 	
 	@Test

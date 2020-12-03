@@ -858,7 +858,7 @@ public class TiledAlignerUtil {
 				/*
 				 * both pass the test, return the one with the highest score
 				 */
-				if ((scoresLenient[0] - scoresLenient[1] - (2 * scoresLenient[2])) > (scoresStrict[0] - scoresStrict[1] - (2 * scoresStrict[2]))) {
+				if ((scoresLenient[0] - scoresLenient[1] - (1.5 * scoresLenient[2])) >= (scoresStrict[0] - scoresStrict[1] - (1.5 * scoresStrict[2]))) {
 					return diffsLenient;
 				} else {
 					return diffsStrict;

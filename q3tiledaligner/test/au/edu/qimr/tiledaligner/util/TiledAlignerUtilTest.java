@@ -143,12 +143,13 @@ public class TiledAlignerUtilTest {
 	}
 	
 	@Test
-	public void getCommonTIleCounts() {
+	public void getCommonTileCounts() {
+		/*
 		String s = "TGAGCCGAGATCCCGCCACTGCACTCCAGCCTGGGCGACAGAGCGAGACTCCGTCTCAAAAAAAAAAAAAAA";
 		String recVomp = SequenceUtil.reverseComplement(s);
 		System.out.println("recVomp: " + recVomp);
-		
 		String r = "TTTTTTTTTTTTTTTGAGACGGAGTCTCGCTCTGTCGCCCAGGCTGGAGTGCAGTGGCGGGATCTCGGCTCA";
+		 */
 				
 		long [][] startPositions = new long[18][];
 		startPositions[0] = new long[] {-1};	// all T's
@@ -169,17 +170,16 @@ public class TiledAlignerUtilTest {
 		startPositions[15] = new long[] {-1};	// AGACGGAGTCTCG
 		startPositions[16] = new long[] {-1};	// GACGGAGTCTCGC
 		startPositions[17] = new long[] {-1};	// GACGGAGTCTCGC
-		assertEquals(18, TiledAlignerUtil.getCommonTileCountsAtStart(startPositions));
+		assertArrayEquals(new int[] {18, 18}, TiledAlignerUtil.getCommonTileCountsAtStart(startPositions));
 		
 		startPositions[17] = new long[] {1,2,3,4,5};	// GACGGAGTCTCGC
-		assertEquals(17, TiledAlignerUtil.getCommonTileCountsAtStart(startPositions));
+		assertArrayEquals(new int[] {17, 17}, TiledAlignerUtil.getCommonTileCountsAtStart(startPositions));
 		
 		startPositions[10] = new long[] {1,2,3,4,5};	// GACGGAGTCTCGC
-		assertEquals(10, TiledAlignerUtil.getCommonTileCountsAtStart(startPositions));
+		assertArrayEquals(new int[] {10, 16}, TiledAlignerUtil.getCommonTileCountsAtStart(startPositions));
 		
 		startPositions[4] = new long[] {1,2,3,4,5};	// GACGGAGTCTCGC
-		assertEquals(4, TiledAlignerUtil.getCommonTileCountsAtStart(startPositions));
-		
+		assertArrayEquals(new int[] {4, 15}, TiledAlignerUtil.getCommonTileCountsAtStart(startPositions));
 	}
 	
 	@Test
@@ -1003,21 +1003,8 @@ public class TiledAlignerUtilTest {
 		for (long key : shortcuts.keys()) {
 			System.out.println("key: " + key + ", value: " + shortcuts.get(key));
 		}
-		assertEquals(15, shortcuts.size());
-		
-		assertEquals(1176804192, shortcuts.keys()[0]);
-		
-		array[0] = new long[]{1176804192l};
-		array[67] = new long[]{90351255, 439695611, 777771917, 1094002331, 1167523024, 1176804877};
-		shortcuts = TiledAlignerUtil.getShortCutPositionsForSmithwaterman(array, 500000);
-		assertEquals(1, shortcuts.size());
-		assertEquals(1176804192, shortcuts.keys()[0]);
-		
-		array[0] = new long[]{1176804192l};
-		array[67] = new long[]{1176804877, 1228579535, 1354039040, 1561128813, 1856882536, 1870698140, 1890031905, 2113951585, 2617800701l, 2683547413l, 2742508068l, 2770451401l};
-		shortcuts = TiledAlignerUtil.getShortCutPositionsForSmithwaterman(array, 500000);
-		assertEquals(1, shortcuts.size());
-		assertEquals(1176804192, shortcuts.keys()[0]);
+		assertEquals(16, shortcuts.size());
+		assertEquals(224969540, shortcuts.keys()[0]);
 	}
 	
 	@Test
@@ -1037,15 +1024,11 @@ ATTACAGGCGGGAGCCACTACTCCTGGCCACAAGTCATACTTTAAATCACATATGATATTACTTTTAATTACTTTTTTTT
 		assertEquals("ATTACAGGCGTGAGCCAGTATGCCTGGCCACAAGTCATACTTTAAATCACATATGATATTACTTTTAATTACTTTTTTTT", blat[0]);
 		assertEquals("||||||||||.||||||.||..||||||||||||||||||||||||||||||||||||||||||||||||||||||||||", blat[1]);
 		assertEquals("ATTACAGGCGGGAGCCACTACTCCTGGCCACAAGTCATACTTTAAATCACATATGATATTACTTTTAATTACTTTTTTTT", blat[2]);
-			
-
 	}
 
 	@Test
 	public void shortcutWithBuffer3() {
 		long[][] array = new long[156][];
-//		array[0]   = new long[]{606094298l, 606176416l, 615146839l, 615537578l, 627558838l, 631401721l, 640546751l, 642398095l, 642696323l, 655479079l, 664904518l, 673173100l, 689688077l, 690037414l, 693015097l, 693493015l, 698377815l, 724599170l, 728298466l, 728757517l, 729923351l, 736135567l, 753289992l, 767226249l, 767380580l, 769297808l, 774887585l, 778621035l, 787012211l, 792509591l, 796491551l, 804010090l, 813433634l, 814193370l, 824578175l, 829030919l, 837802063l, 842436707l, 842466933l, 873963116l, 873986277l, 875482506l, 879557181l, 880674945l, 893172460l, 894874169l, 899681242l, 903645854l, 913569994l, 913941169l, 914999973l, 923848030l, 934927010l, 938309537l, 938929796l, 939674894l, 943499295l, 950069077l, 954411236l, 968911785l, 986181351l, 987022104l, 994954083l, 1007790024l, 1008575765l, 1021359360l, 1021382415l, 1035076560l, 1044250140l, 1049780701l, 1053649727l, 1054842140l, 1060527761l, 1072424381l, 1078281612l, 1082462649l, 1082740404l, 1093969881l, 1098484040l, 1098972472l, 1109422649l, 1112036071l, 1116716590l, 1146977588l, 1151175179l, 1152987662l, 1152994072l, 1162386213l, 1167871568l, 1169656137l, 1170887605l, 1171012136l, 1185648726l, 1199150223l, 1201245479l, 1212085895l, 1213447867l, 1215169984l, 1234361563l, 1235046787l, 1236166327l, 1238392759l, 1239162280l, 1240448576l, 1240641595l, 1246406118l, 1249276941l, 1261703000l,	1265463010l, 1266762408l, 1281773329l, 1284811066l, 1286398985l, 1297411603l, 1299636605l, 1302429531l, 1302530484l, 1303192576l, 1304923975l, 1306058378l, 1306152938l, 1306181000l, 1306687255l, 1306699020l, 1307619946l, 1307983801l, 1310013984l, 1310314324l, 1331411109l, 1331597865l, 1331969064l, 1338772240l, 1338884900l, 1340409631l, 1340423545l, 1342923296l, 1350696295l, 1351033506l, 1358032896l, 1358600087l, 1362313151l, 1362552817l, 1364473147l, 1366034251l, 1372690912l, 1372929247l, 1380993982l, 1385968324l, 1386348008l, 1396848627l, 1398421062l, 1398947423l, 1408591115l, 1411040115l, 1411380520l, 1412469105l, 1414913349l, 1415459803l, 1416689777l, 1418029290l,	1421262051l, 1426941443l, 1434058251l, 1435015728l, 1456989261l, 1460142889l, 1480906938l, 1482169950l, 1485566541l, 1487257705l, 1487740125l, 1491297735l, 1491464885l, 1492937470l, 1498064988l, 1499239825l, 1517186617l, 1524493472l, 1530897629l, 1532955427l, 1538041098l, 1538080245l, 1539462659l, 1545031141l, 1545817382l, 1561553306l, 1570186015l, 1611715244l, 1614085226l, 1619653659l, 1620210578l, 1633762960l, 1638007018l, 1638111733l, 1638529006l, 1639893623l, 1645301217l, 1646275021l, 1652734763l, 1655014941l, 1655281005l, 1663565978l, 1665866105l, 1666158148l, 1670638574l, 1671450404l, 1671746574l, 1674750535l, 1678754948l, 1681433946l, 1690182828l, 1692344274l,	1695617838l, 1697842231l, 1701945193l, 1702939629l, 1707519701l, 1712852456l, 1715512231l, 1731012581l, 1733063209l, 1735092140l, 1737053357l, 1743883462l, 1750526614l, 1762521239l, 1774867092l, 1774977035l, 1776661707l, 1780718837l, 1784837525l, 1791867380l, 1796878729l, 1799185659l, 1801290071l, 1803345228l, 1803481959l, 1805129348l, 1807811838l, 1808717014l, 1820656914l, 1823952317l, 1825478639l, 1830204506l, 1832638940l, 1833996099l, 1834200783l, 1837181468l, 1842243108l, 1846707630l, 1848667039l, 1859331403l, 1861682814l, 1862146813l, 1863152909l, 1863179837l, 1877600982l, 1877610767l, 1880726136l, 1881238019l, 1885327634l, 1886687880l, 1887336234l, 1889313935l,	1906860427l, 1910290917l, 1914505973l, 1918752481l, 1921202701l, 1923641007l, 1923641203l, 1929565470l, 1929639416l, 1934443694l, 1935103689l, 1936312461l, 1938499828l, 1951491114l, 1951645679l, 1951941497l, 1958809008l, 1976213925l, 1977938900l, 1982651003l, 2000831667l, 2000919728l, 2001757418l, 2002119790l, 2007101456l, 2016959803l, 2018591754l, 2031201276l, 2035272470l, 2047821912l, 2056312725l, 2059401331l, 2060132622l, 2067202508l, 2069332696l, 2070724456l, 2073957188l, 2076200783l, 2076201087l, 2082265162l, 2103816082l, 2110099503l, 2110347416l, 2116841004l, 2116898491l, 2129402015l, 2134658876l, 2136467589l, 2136488151l, 2136778431l, 2138315155l, 2146629887l,	2156031188l, 2156343845l, 2158066856l, 2158704428l, 2179631696l, 2180832076l, 2183377712l, 2184373859l, 2190818475l, 2192836696l, 2221992280l, 2233225318l, 2235229564l, 2236100450l, 2244250777l, 2258781794l, 2268004752l, 2269997546l, 2270060336l, 2270661904l, 2273548978l, 2277069045l, 2289600014l, 2299281462l, 2299877331l, 2300600676l, 2301655612l, 2304403286l, 2330304626l, 2335678887l, 2343048104l, 2349326458l, 2356220277l, 2367636821l, 2367919138l, 2370835969l, 2371697627l, 2372235163l, 2373083992l, 2376326877l, 2381864291l, 2382614009l, 2386427367l, 2387489893l, 2387782193l, 2392524566l, 2392957431l, 2396923999l, 2402539102l, 2410303405l, 2411764833l, 2412006194l,	2414429561l, 2416455327l, 2424555116l, 2425323383l, 2428669816l, 2431165689l, 2431270310l, 2431702573l, 2432063631l, 2432157503l, 2433286439l, 2439249054l, 2439350773l, 2439605226l, 2440090755l, 2440994684l, 2456601701l, 2456790984l, 2472639609l, 2476782478l, 2477110266l, 2479493816l, 2480065684l, 2480221164l, 2483225911l, 2485621668l, 2489951403l, 2501502267l, 2501737974l, 2501997245l, 2502272541l, 2502277695l, 2502573882l, 2504277545l, 2515510915l, 2519556642l, 2526569111l, 2527606783l, 2529592189l, 2530188240l, 2539617219l, 2541043604l, 2542661144l, 2545441865l, 2546483067l, 2556538892l, 2556915558l, 2557500730l, 2559078704l, 2564560197l, 2565251594l, 2566306922l,	2568105458l, 2570341324l, 2571552804l, 2572454284l, 2574236386l, 2574835192l, 2576427831l, 2576812189l, 2593642401l, 2616416158l, 2626683701l, 2627817227l, 2632753065l, 2632876178l, 2641555626l, 2650702681l, 2651929469l, 2660346944l, 2660794461l, 2661033085l, 2661183950l, 2664602753l, 2665075508l, 2665605418l, 2667094985l, 2670379792l, 2671609427l, 2672734953l, 2672806253l, 2676650348l, 2680929808l, 2692768122l, 2695642404l, 2696742225l, 2698407963l, 2700854668l, 2701848797l, 2703400699l, 2705698837l, 2705781853l, 2708050056l, 2710705217l, 2712298238l, 2714911642l, 2717144877l, 2718220364l, 2722397417l, 2726035495l, 2726957319l, 2727410554l, 2727958542l, 2738448006l,	2739388596l, 2749431488l, 2749451970l, 2753160085l, 2755561526l, 2757775738l, 2764384875l, 2770241169l, 2770684117l, 2771794831l, 2778317848l, 2796075145l, 2812226734l, 2815828727l, 2816229420l, 2817167416l, 2853881929l, 2854586270l, 2856314768l, 2856456656l, 2856594119l, 2859684231l, 2861255033l, 2863193336l, 2864270509l, 2870249722l, 2870973452l, 2876167087l, 2878854903l, 2882875004l, 2886556489l, 2888024126l, 2890321133l, 2895705352l, 2898074822l, 2900510069l, 2905073723l, 2907292687l, 2911005624l, 2912298989l, 2928943194l, 2934245908l, 2935123631l, 2951134448l, 2954772822l, 2958691492l, 2962980866l, 2981135449l, 2981641158l, 3003961665l, 3008052728l, 3009811428l,	3012322302l, 3014388919l, 3016207767l, 3019569175l, 3038095564l};
-//		array[155] = new long[]{5858715l, 109284984l, 199457757l, 211859302l, 252611523l, 300093067l, 378356697l, 383528066l, 504890884l, 542934802l, 562983771l, 640328772l, 649207738l, 686209323l, 695044635l, 751704976l, 839732924l, 875931157l, 957910939l, 1030408835l, 1044430688l, 1056785142l, 1106614519l, 1171573126l, 1290758123l, 1305276673l, 1367413728l, 1408148655l, 1452947052l, 1472539057l, 1474419442l, 1501419311l, 1536452443l, 1547513013l, 1611433855l, 1661895138l, 1661957428l, 1813520150l, 1817440415l, 1858870505l, 1862609534l, 1873175818l, 1886418037l, 1929836367l, 1933823466l, 1935760124l, 1939405361l, 1958655917l, 2011627345l, 2066663091l, 2077370576l, 2136488292l, 2267904068l, 2298108581l, 2390066189l, 2390442781l, 2392170172l, 2393049279l, 2401080690l, 2413956870l, 2498511517l, 2499783343l, 2546110198l, 2556133224l, 2556224518l, 2580220334l, 2601321720l, 2623859083l, 2671436523l, 2703254313l, 2704566331l, 2728012601l, 2744689595l, 2756359427l, 2765601311l, 2863659957l, 2952430816l, 3025431263l};
 		array[0]   = new long[]{2134658876l, 2136467589l, 2136488151l, 2136778431l, 2138315155l};
 		array[155] = new long[]{640328772l, 649207738l, 686209323l, 695044635l, 751704976l, 839732924l, 875931157l, 957910939l, 2136488292l, 2267904068l, 2298108581l, 2390066189l, 2390442781l, 2392170172l, 2393049279l, 2401080690l};
 		TLongIntMap shortcuts = TiledAlignerUtil.getShortCutPositionsForSmithwaterman(array, 500000);
@@ -1054,20 +1037,7 @@ ATTACAGGCGGGAGCCACTACTCCTGGCCACAAGTCATACTTTAAATCACATATGATATTACTTTTAATTACTTTTTTTT
 			System.out.println("key: " + key + ", value: " + shortcuts.get(key));
 		}
 		assertEquals(3, shortcuts.size());
-		
-		assertEquals(1176804192, shortcuts.keys()[0]);
-		
-		array[0] = new long[]{1176804192l};
-		array[67] = new long[]{90351255, 439695611, 777771917, 1094002331, 1167523024, 1176804877};
-		shortcuts = TiledAlignerUtil.getShortCutPositionsForSmithwaterman(array, 500000);
-		assertEquals(1, shortcuts.size());
-		assertEquals(1176804192, shortcuts.keys()[0]);
-		
-		array[0] = new long[]{1176804192l};
-		array[67] = new long[]{1176804877, 1228579535, 1354039040, 1561128813, 1856882536, 1870698140, 1890031905, 2113951585, 2617800701l, 2683547413l, 2742508068l, 2770451401l};
-		shortcuts = TiledAlignerUtil.getShortCutPositionsForSmithwaterman(array, 500000);
-		assertEquals(1, shortcuts.size());
-		assertEquals(1176804192, shortcuts.keys()[0]);
+		assertEquals(2136467589, shortcuts.keys()[0]);
 	}
 	
 	@Test
@@ -1200,45 +1170,45 @@ ATTACAGGCGGGAGCCACTACTCCTGGCCACAAGTCATACTTTAAATCACATATGATATTACTTTTAATTACTTTTTTTT
 		 * commonly occurring tiles ( the -ve ones here) are only added to the tally score if there are fewer commonly occurring tiles than there are matching tiles
 		 * This is not the case here.
 		 */
-		assertEquals(1, map2.size());
+		assertEquals(2, map2.size());
 		List<Integer> keys = new ArrayList<>(map2.keySet());
 		keys.sort(null);
 		for (int i = keys.size() - 1; i >= 0 ; i--) {
 			System.out.println("key: " + keys.get(i) + ", counts: " + Arrays.toString(NumberUtils.splitIntInto2(keys.get(i))) + ", positions: " + map2.get(keys.get(i)).toString());
 		}
-		assertArrayEquals(new long[] {163961462, 269911080, 379579117}, map2.get(NumberUtils.pack2IntsInto1(6, 0)).toArray());
+		assertArrayEquals(new long[] {163961462, 269911080, 379579117}, map2.get(NumberUtils.pack2IntsInto1(13, 0)).toArray());
 		/*
 		 * add some more tiles and positions
 		 */
 		map.put("CAAAATAACCAGT", new TLongArrayList(new long[] {49717858, 50512040, 84488408, 86551467, 88813839, 103294135, 146649282, 153328901, 167285249, 175744936, 175963480, 207371375, 225560633, 228785691, 247387147, 261064621, 269911093, 298791283, 298960184, 310514481, 314454599, 318099739, 318165214, 328194892, 351804845, 360718986, 367166183, 373817277, 379579130, 383305679}));
 		map2 = TiledAlignerUtil.getTiles(map, "ATTAACTAATGGGCAAAATAACCAGT", 13, false);
-		assertEquals(2, map2.size());
+		assertEquals(3, map2.size());
 		keys = new ArrayList<>(map2.keySet());
 		keys.sort(null);
 		for (int i = keys.size() - 1; i >= 0 ; i--) {
 			System.out.println("key: " + keys.get(i) + ", counts: " + Arrays.toString(NumberUtils.splitIntInto2(keys.get(i))) + ", positions: " + map2.get(keys.get(i)).toString());
 		}
-		assertArrayEquals(new long[] {163961462}, map2.get(NumberUtils.pack2IntsInto1(6, 0)).toArray());
-		assertArrayEquals(new long[] {269911080, 379579117}, map2.get(NumberUtils.pack2IntsInto1(7, 0)).toArray());
+		assertArrayEquals(new long[] {163961462}, map2.get(NumberUtils.pack2IntsInto1(13, 0)).toArray());
+		assertArrayEquals(new long[] {269911080, 379579117}, map2.get(NumberUtils.pack2IntsInto1(14, 0)).toArray());
 		map2 = TiledAlignerUtil.getTiles(map, "ATTAACTAATGGGCAAAATAACCAGTCAGCATCATAATG", 13, false);
-		assertEquals(2, map2.size());
+		assertEquals(3, map2.size());
 		keys = new ArrayList<>(map2.keySet());
 		keys.sort(null);
 		for (int i = keys.size() - 1; i >= 0 ; i--) {
 			System.out.println("key: " + keys.get(i) + ", counts: " + Arrays.toString(NumberUtils.splitIntInto2(keys.get(i))) + ", positions: " + map2.get(keys.get(i)).toString());
 		}
-		assertArrayEquals(new long[] {163961462}, map2.get(NumberUtils.pack2IntsInto1(6, 0)).toArray());
-		assertArrayEquals(new long[] {269911080, 379579117}, map2.get(NumberUtils.pack2IntsInto1(7, 0)).toArray());
+		assertArrayEquals(new long[] {163961462}, map2.get(NumberUtils.pack2IntsInto1(13, 0)).toArray());
+		assertArrayEquals(new long[] {269911080, 379579117}, map2.get(NumberUtils.pack2IntsInto1(14, 0)).toArray());
 		
 		/*
 		 * create a TARecord 
 		 */
 		TARecord taRec = new TARecord("ATTAACTAATGGGCAAAATAACCAGTCAGCATCATAATG", map2);
 		int [] maxTileCounts = taRec.getTopNCounts(3, 3);
-		assertArrayEquals(new int[] {NumberUtils.pack2IntsInto1(6, 0), NumberUtils.pack2IntsInto1(7, 0)}, maxTileCounts);
+		assertArrayEquals(new int[] {NumberUtils.pack2IntsInto1(11, 0), NumberUtils.pack2IntsInto1(13, 0), NumberUtils.pack2IntsInto1(14, 0)}, maxTileCounts);
 		
 		TLongList bestStartPositions = taRec.getStartPositionsForCount(maxTileCounts);
-		assertEquals(3, bestStartPositions.size());
+		assertEquals(6, bestStartPositions.size());
 		assertEquals(true, bestStartPositions.contains(269911080));
 		assertEquals(true, bestStartPositions.contains(379579117));
 		assertEquals(true, bestStartPositions.contains(163961462));
@@ -1428,11 +1398,16 @@ ATTACAGGCGGGAGCCACTACTCCTGGCCACAAGTCATACTTTAAATCACATATGATATTACTTTTAATTACTTTTTTTT
 	@Test
 	public void getInsertionCount() {
 		assertEquals(0, TiledAlignerUtil.getInsertionCount("ABCD"));
-		assertEquals(1, TiledAlignerUtil.getInsertionCount("ABCD-XYZ"));
-		assertEquals(1, TiledAlignerUtil.getInsertionCount("ABCD--XYZ"));
-		assertEquals(1, TiledAlignerUtil.getInsertionCount("ABCD---XYZ"));
-		assertEquals(1, TiledAlignerUtil.getInsertionCount("ABCD------XYZ"));
-		assertEquals(2, TiledAlignerUtil.getInsertionCount("ABCD------XYZ-123"));
+		assertEquals(0, TiledAlignerUtil.getInsertionCount("ABCD-XYZ"));
+		assertEquals(1, TiledAlignerUtil.getInsertionCount("ABCD-XYZ", '-'));
+		assertEquals(0, TiledAlignerUtil.getInsertionCount("ABCD--XYZ"));
+		assertEquals(1, TiledAlignerUtil.getInsertionCount("ABCD--XYZ", '-'));
+		assertEquals(0, TiledAlignerUtil.getInsertionCount("ABCD---XYZ"));
+		assertEquals(1, TiledAlignerUtil.getInsertionCount("ABCD---XYZ", '-'));
+		assertEquals(0, TiledAlignerUtil.getInsertionCount("ABCD------XYZ"));
+		assertEquals(1, TiledAlignerUtil.getInsertionCount("ABCD------XYZ", '-'));
+		assertEquals(0, TiledAlignerUtil.getInsertionCount("ABCD------XYZ-123"));
+		assertEquals(2, TiledAlignerUtil.getInsertionCount("ABCD------XYZ-123",'-'));
 	}
 	
 	@Test

@@ -1911,19 +1911,8 @@ public class TARecordUtilTest {
 		System.out.println("Number of records in results after looking in potentialSplits list: " + results.size());
 		
 		assertEquals(0, results.size());
-		assertEquals(0, results.stream().filter(br -> br.getScore() >= passingScore).count());
-//		assertEquals("168	169	0	0	0	0	0	1	301	+	splitcon_chr14_64866810_chr14_64867112__true_1603769470012_401600_clip	169	0	168	chr14	12345	64866772	64867242	2	105,64	0,105	64866772,64867178", results.get(0).toString());
 		List<BLATRecord[]> blatRecs = TARecordUtil.blatRecordsFromSplitsNew(splits, name, seq.length(), pcpm);
-		assertEquals(1, blatRecs.size());
-		assertEquals(2, blatRecs.get(0).length);
-		assertEquals("21	21	0	0	0	0	0	0	0	+	splitcon_chr17_80666697_chr17_80666858__true_1603769669765_514144	312	3	24	chr17	12345	36324761	36324782	1	21	3	36324761", blatRecs.get(0)[0].toString());
-		assertEquals("258	261	2	0	0	0	0	1	160	+	splitcon_chr17_80666697_chr17_80666858__true_1603769669765_514144	312	45	305	chr17	12345	80666575	80666996	2	132,129	45,177	80666575,80666867", blatRecs.get(0)[1].toString());
-		
-//		for (BLATRecord[] brs : blatRecs) {
-//			for (BLATRecord br: brs) {
-//				System.out.println("br from brs: " + br.toString());
-//			}
-//		}
+		assertEquals(0, blatRecs.size());
 	}
 	@Test
 	public void realLifeSplits33() {
@@ -2036,9 +2025,8 @@ public class TARecordUtilTest {
 		assertEquals("252	255	2	0	0	0	0	1	159	+	splitcon_chr6_153932501_chr6_153932720_1_true_1606270441498_475180	261	6	260	chr6	12345	153932406	153932820	2	144,111	6,150	153932406,153932709", results.get(0).toString());
 		List<BLATRecord[]> blatRecs = TARecordUtil.blatRecordsFromSplitsNew(splits, name, seq.length(), pcpm);
 		assertEquals(1, blatRecs.size());
-		assertEquals(2, blatRecs.get(0).length);
-		assertEquals("25	25	0	0	0	0	0	0	0	+	splitcon_chr7_25345087_chr7_25345211__false_1604284945574_644092	371	33	58	chr7	12345	148563703	148563728	1	25	33	148563703", blatRecs.get(0)[0].toString());
-		assertEquals("242	245	0	0	0	1	2	2	123	+	splitcon_chr7_25345087_chr7_25345211__false_1604284945574_644092	371	124	370	chr7	12345	25344983	25345351	3	104,46,95	124,228,276	25344983,25345210,25345256", blatRecs.get(0)[1].toString());
+		assertEquals(1, blatRecs.get(0).length);
+		assertEquals("252	255	2	0	0	0	0	1	159	+	splitcon_chr6_153932501_chr6_153932720_1_true_1606270441498_475180	261	6	260	chr6	12345	153932406	153932820	2	144,111	6,150	153932406,153932709", blatRecs.get(0)[0].toString());
 		
 //		for (BLATRecord[] brs : blatRecs) {
 //			for (BLATRecord br: brs) {
