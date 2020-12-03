@@ -28,7 +28,7 @@ dependencies {
     configurations.compile.transitive = true
 
     api project(':qcommon')
-    api project(':qio')
+//    api project(':qio')
     api project(':qbamfilter')
 
     api 'com.github.samtools:htsjdk:2.14.1'
