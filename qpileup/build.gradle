@@ -19,6 +19,7 @@ dependencies {
     api project(':qcommon')
     api project(':qpicard')
     api project(':qbamfilter')
+    api project(':qio')
 	
     ant {  untar(src: "../lib/hdf-java-2.8-bin.tar", dest: "build/deps") }
     api 'com.github.samtools:htsjdk:2.14.1'
