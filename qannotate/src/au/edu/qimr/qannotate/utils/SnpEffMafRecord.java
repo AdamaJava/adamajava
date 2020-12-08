@@ -34,9 +34,9 @@ public class SnpEffMafRecord {
 	}
 	
 	//all 58 set methods
-	public String getMafLine() {
-		return getMafLine(true);
-	}
+//	public String getMafLine() {
+//		return getMafLine(true);
+//	}
 	
 	public String getMafLine(boolean hasACSNP) {
 		return Arrays.stream( hasACSNP ? values : Arrays.copyOfRange(values, 0, 62) ).collect(Collectors.joining(Constants.TAB_STRING));
