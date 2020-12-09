@@ -7,17 +7,23 @@ import static org.junit.Assert.fail;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.commandline.Executor;
 import org.qcmg.common.string.StringUtils;
+import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.IndelUtils.SVTYPE;
 import org.qcmg.common.vcf.ContentType;
 import org.qcmg.common.vcf.VcfRecord;
@@ -35,26 +41,6 @@ public class Vcf2mafIndelTest {
     @org.junit.Rule
     public  TemporaryFolder testFolder = new TemporaryFolder();
     
-//     static String inputName = DbsnpModeTest.inputName;    
-//    static String outputDir = new File(inputName).getAbsoluteFile().getParent() + "/output";
-//    static String outputMafName = "output.maf";
-//    static String logName = "output.log"; 
- 
-//    @After
-//    public void deleteIO() throws IOException{
-//       
-//        File dir = new java.io.File( "." ).getCanonicalFile();
-//        File[] files = dir.listFiles();
-//        if (null != files) {
-//            for(File f: files){ 
-//                if(    f.getName().endsWith(".vcf")  ||  f.getName().contains(".log") || f.getName().endsWith(".maf") ||  f.getName().contains("output")){            
-//                    f.delete();    
-//                }      
-//            }
-//        }
-//        Vcf2mafTest.deleteIO();        
-//    }
-    
     @Test
     public void frame_Shift_Test() throws IOException  {
         File input = testFolder.newFile();
@@ -68,8 +54,8 @@ public class Vcf2mafIndelTest {
             };
             
             try{
-                    Vcf2mafTest.createVcf(input, str);                
-                    final Vcf2maf v2m = new Vcf2maf(1,2, null, null, ContentType.MULTIPLE_CALLERS_MULTIPLE_SAMPLES);    
+                    createVcf(input, str);                
+                    final Vcf2maf v2m = new Vcf2maf(1,2, null, null, ContentType.MULTIPLE_CALLERS_MULTIPLE_SAMPLES,false);    
                     try(VCFFileReader reader = new VCFFileReader(input); ){
                      for (final VcfRecord vcf : reader){
                          SnpEffMafRecord maf  = v2m.converter(vcf);
@@ -118,7 +104,7 @@ public class Vcf2mafIndelTest {
                        
         };
             try {
-                Vcf2mafTest.createVcf(input, str);
+                createVcf(input, str);
                 final String[] command = {"--mode", "vcf2maf",  "--log", log.getAbsolutePath(),  "-i", input.getAbsolutePath() , "-output" , out.getAbsolutePath()};
                 au.edu.qimr.qannotate.Main.main(command);
             } catch ( Exception e) {
@@ -131,7 +117,7 @@ public class Vcf2mafIndelTest {
                 while ((line = br.readLine()) != null) {
                         if(line.startsWith("#") || line.startsWith(MafElement.Hugo_Symbol.name())) continue; //skip vcf header
                         
-                    SnpEffMafRecord maf =  toMafRecord(line);        
+                    SnpEffMafRecord maf =  toMafRecord(line,false);        
                      assertTrue(maf.getColumnValue(16).equals("TEST_bamID"));
                      assertTrue(maf.getColumnValue(17).equals("CONTROL_bamID"));     
                      assertTrue(maf.getColumnValue(33).equals("TEST_sample"));
@@ -187,7 +173,8 @@ public class Vcf2mafIndelTest {
             }
     }
     
-    @Test
+   // @Test
+    @Ignore
     public void indelOutDirTest() throws Exception{
          File log = testFolder.newFile();
          File input = testFolder.newFile();
@@ -206,7 +193,7 @@ public class Vcf2mafIndelTest {
         };
            
 
-            Vcf2mafTest.createVcf(input, str);             
+        createVcf(input, str);             
             
         final String command = "--mode vcf2maf  --log " + log.getAbsolutePath() + " -i " + input.getAbsolutePath() + " --outdir " + out.getAbsolutePath();            
         final Executor exec = new Executor(command, "au.edu.qimr.qannotate.Main");            
@@ -220,7 +207,7 @@ public class Vcf2mafIndelTest {
             if(!delline.isPresent())
                 Assert.fail("missing DEL variants");                
             //split string to maf record               
-            SnpEffMafRecord maf =  toMafRecord(delline.get());
+            SnpEffMafRecord maf =  toMafRecord(delline.get(), false);
             
             //"chr1\t16864\t.\tGCA\tG
             assertTrue(maf.getColumnValue(5).equals("1") );
@@ -261,7 +248,7 @@ public class Vcf2mafIndelTest {
             Optional<String> insline = lines.filter(s -> s.contains("INS")).filter(s -> s.contains("23114")).findFirst();
             if(!insline.isPresent())
                 Assert.fail("missing INS variants");                
-            SnpEffMafRecord maf =  toMafRecord(insline.get());
+            SnpEffMafRecord maf =  toMafRecord(insline.get(),false);
                
             //"chr1\t16864\t.\tGCA\tG
             assertTrue(maf.getColumnValue(5).equals("2") );
@@ -318,7 +305,7 @@ public class Vcf2mafIndelTest {
         };
            
         try {
-            Vcf2mafTest.createVcf(input, str);
+            createVcf(input, str);
             final String[] command = {"--mode", "vcf2maf",  "--log", log.getAbsolutePath(),  "-i", input.getAbsolutePath() , "-o" , out.getAbsolutePath()};
             au.edu.qimr.qannotate.Main.main(command);
         } catch ( Exception e) {
@@ -331,7 +318,7 @@ public class Vcf2mafIndelTest {
             while ((line = br.readLine()) != null) {
                     if(line.startsWith("#") || line.startsWith(MafElement.Hugo_Symbol.name())) continue; //skip vcf header
                     
-                SnpEffMafRecord maf =  toMafRecord(line);               
+                SnpEffMafRecord maf =  toMafRecord(line,false);               
                 assertTrue( maf.getColumnValue( MafElement.BAM_File).equals("TEST_bamID:CONTROL_bam")) ;
                 assertTrue( maf.getColumnValue( MafElement.Tumor_Sample_Barcode).equals("TEST_bamID")) ;
                 assertTrue( maf.getColumnValue( MafElement.Matched_Norm_Sample_Barcode).equals("CONTROL_bam")) ;
@@ -341,13 +328,14 @@ public class Vcf2mafIndelTest {
         }catch(Exception e){    fail(e.getMessage()); }
     }
     
-    public static SnpEffMafRecord toMafRecord(String line) {
+    public static SnpEffMafRecord toMafRecord(String line, boolean hasACLAP) {
         //split string to maf record
         SnpEffMafRecord maf = new SnpEffMafRecord();
         String[] eles = line.split("\\t");
         System.out.println("eles.length: " + eles.length);
         //last two optional column for acsnp
-        assertTrue(eles.length == MafElement.values().length);
+        int no = hasACLAP? MafElement.values().length : MafElement.values().length - 2; 
+        assertTrue(eles.length == no);
              
         for(int i = 0; i < eles.length; i ++){
         //    maf.setColumnValue( MafElement.getByColumnNo( i+1), ""); //wipe off all default value
@@ -355,6 +343,19 @@ public class Vcf2mafIndelTest {
         }
         return maf;         
     }    
-    
+    /**
+     * 
+     * @param str is the vcf string
+     * @return a vcf file
+     */
+    public static void createVcf(File input, String[] str) {
+		 
+		try(PrintWriter out = new PrintWriter(new FileWriter(input));) {
+			out.println(Arrays.stream(str).collect(Collectors.joining(Constants.NL_STRING)));          
+		} catch (IOException e) {
+			fail("exception during writing to file in TemporaryFolder!");
+		} 
+
+    } 
 }
 

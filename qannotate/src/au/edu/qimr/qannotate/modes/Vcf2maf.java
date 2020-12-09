@@ -75,7 +75,7 @@ public class Vcf2maf extends AbstractMode {
 	private VcfFileMeta meta;
 	
 	//for unit test
-	Vcf2maf(int test_column, int control_column, String test, String control, ContentType contentType) { 
+	Vcf2maf(int test_column, int control_column, String test, String control, ContentType contentType, boolean aclap) { 
 		center = SnpEffMafRecord.center;
 		sequencer = SnpEffMafRecord.Unknown;
 		this.donorId = SnpEffMafRecord.Unknown;
@@ -86,7 +86,7 @@ public class Vcf2maf extends AbstractMode {
 		this.testBamId = null;
 		this.controlBamId = null;
 		this.contentType = contentType;
-		this.hasACLAP = false;
+		this.hasACLAP = aclap;
 	}
 	
 	//for unit test
@@ -111,7 +111,7 @@ public class Vcf2maf extends AbstractMode {
 		//make output file name		 
 		try (VCFFileReader reader = new VCFFileReader(new File( option.getInputFileName()))) {
 			VcfHeader vh = reader.getHeader();
-			this.hasACLAP = header.getFormatRecord(VcfHeaderUtils.FORMAT_ACLAP) == null? false : true;
+			this.hasACLAP = vh.getFormatRecord(VcfHeaderUtils.FORMAT_ACLAP) == null? false : true;
 			
 			//get control and test sample column										
 			meta = new VcfFileMeta(vh);
