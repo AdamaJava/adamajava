@@ -62,15 +62,15 @@ public class Vcf2maf extends AbstractMode {
 	private final String center;
 	private final String sequencer;
 	private final String donorId;	 
+	private final ContentType contentType;
+	//private boolean hasACLAP = false;	ignore ACLAP in vcf2maf mode
+	private final int testColumn;
+	
 	private  String testSample;
 	private  String controlSample;
 	private String testBamId;
 	private String controlBamId;
-	private final int testColumn;
-	private int controlColumn;
-	private final ContentType contentType;
-	private boolean hasACLAP = false;
-	
+	private int controlColumn;	
 	private VcfFileMeta meta;
 	
 	//for unit test
@@ -107,9 +107,10 @@ public class Vcf2maf extends AbstractMode {
 		
 		//make output file name		 
 		try (VCFFileReader reader = new VCFFileReader(new File( option.getInputFileName()))) {
-			//get control and test sample column			
+			VcfHeader vh = reader.getHeader();
 			
-			meta = new VcfFileMeta(reader.getHeader());
+			//get control and test sample column										
+			meta = new VcfFileMeta(vh);
 			this.contentType = meta.getType();
 			this.testColumn = meta.getFirstTestSamplePos();
 			
@@ -175,7 +176,7 @@ public class Vcf2maf extends AbstractMode {
 				
     			noIn ++;
     			SnpEffMafRecord maf = converter(vcf);
-    			String sMaf = maf.getMafLine();
+    			String sMaf = maf.getMafLine(); //get line without ACLAP columns
     			out.println(sMaf);
     			noOut ++;
     			int rank = Integer.parseInt(maf.getColumnValue( MafElement.Consequence_rank));//40
@@ -287,19 +288,15 @@ public class Vcf2maf extends AbstractMode {
 			for (VcfHeaderRecord re: header.getInfoRecords()) {
 				write.println(re.toString());
 			}
-			
-			//if vcf header contain ACSNP descripion  then we have to output to maf file
-			if ( header.getFormatRecord(VcfHeaderUtils.FORMAT_ACLAP) != null ) {
-				hasACLAP = true;
-			}
  			
 			for (MafElement ele: EnumSet.allOf( MafElement.class)) {
-				if (hasACLAP || (!hasACLAP && ele.getColumnNumber() < 63)) {
+				//ignore ACLAP in vcf2maf mode
+				if(ele.getColumnNumber() < 63) {
 					write.println(ele.getDescriptionLine());
-				}
+				} 
 			}
  			
-			write.println(SnpEffMafRecord.getSnpEffMafHeaderline(hasACLAP));	 
+			write.println(SnpEffMafRecord.getSnpEffMafHeaderline(false));	 
 		 }	 
 	}
 
