@@ -346,6 +346,15 @@ swDiffs: CTTAAATATTTTCTGGTGGAAATGCAGGTAT-CCTTGGAAAATGAAAT-----------AACACTA-TAGG
 		assertEquals(true, optionalBR.isPresent());
 		assertEquals(new BLATRecord("64	1	0	0	0	0	0	0	-	splitcon_chr10_127633807_chr15_34031839__true_1604619619623_732066	188	4	69	chr10	135534747	127633806	127633871	1	65	119	127633806"), optionalBR.get());
 	}
+	@Test
+	public void findRecordInRange2() {
+		List<BLATRecord> recs = Arrays.asList(
+				new BLATRecord("105	0	0	0	0	0	0	0	+	splitcon_chr7_124989445_chr7_124989504__true_1607391016216_844626	281	176	281	chr7	159138663	124989542	124989647	1	105	176	124989542")
+				);
+		Optional<BLATRecord> optionalBR = BLATRecordUtil.findRecordInRange(recs, 152, 281);
+		assertEquals(true, optionalBR.isPresent());
+		assertEquals(new BLATRecord("105	0	0	0	0	0	0	0	+	splitcon_chr7_124989445_chr7_124989504__true_1607391016216_844626	281	176	281	chr7	159138663	124989542	124989647	1	105	176	124989542"), optionalBR.get());
+	}
 	
 	@Test
 	public void getBlatDetails8() {

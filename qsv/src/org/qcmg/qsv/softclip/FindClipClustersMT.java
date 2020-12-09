@@ -654,6 +654,7 @@ public class FindClipClustersMT  {
 
 			// blat for the matching breakpoint
 			int size = breakpoints.size();
+			breakpoints.sort(null);
 			logger.info("Running BLAT to find matching positions for " + size + " breakpoints on " + chromosome.getName());
 			Map<String, List<Breakpoint>> breakpointMap = blatBreakpoints(breakpoints, false);	
 			logger.info("Finished running BLAT to find matching positions for " + size + " breakpoints on " + chromosome.getName());
@@ -731,11 +732,9 @@ public class FindClipClustersMT  {
 				 * This gives me possibly many BLATRecords per sequence. Here, we only want the "best" record (the one with the highest score)
 				 */
 				Map<String, List<BLATRecord>> allBlatRecords = TiledAlignerUtil.runTiledAlignerCache(tumourParameters.getReference(), cache, sequenceNameMapToSendToTiledAligner, 13, "FindClipClustersMT.blatBreakpoints", false);
-				if (log) {
-					logger.info("in blatBreakpoints all, allBlatRecords size: " + allBlatRecords.size());
-					for (Entry<String, List<BLATRecord>> entry : allBlatRecords.entrySet()) {
-						logger.info("in blatBreakpoints all: key: " + entry.getKey() + ", blat recs: " + entry.getValue().stream().map(BLATRecord::toString).collect(Collectors.joining(",")));
-					}
+				logger.debug("in blatBreakpoints all, allBlatRecords size: " + allBlatRecords.size());
+				for (Entry<String, List<BLATRecord>> entry : allBlatRecords.entrySet()) {
+					logger.debug("in blatBreakpoints all: key: " + entry.getKey() + ", blat recs: " + entry.getValue().stream().map(BLATRecord::toString).collect(Collectors.joining(",")));
 				}
 				
 				
@@ -747,11 +746,9 @@ public class FindClipClustersMT  {
 				for (Entry <String, List<BLATRecord>> entry : allBlatRecords.entrySet()) {
 					bestBlatRecords.put(sequenceNameMapToSendToTiledAligner.get(entry.getKey()), null == entry.getValue() || entry.getValue().isEmpty() ? null : entry.getValue().get(entry.getValue().size() - 1));
 				}
-				if (log) {
-					logger.info("in blatBreakpoints best, bestBlatRecords size: " + bestBlatRecords.size());
-					for (Entry<String, BLATRecord> entry : bestBlatRecords.entrySet()) {
-						logger.info("in blatBreakpoints best: key: " + entry.getKey() + ", blat rec: " + (null == entry.getValue() ? "null" : entry.getValue().toString()));
-					}
+				logger.debug("in blatBreakpoints best, bestBlatRecords size: " + bestBlatRecords.size());
+				for (Entry<String, BLATRecord> entry : bestBlatRecords.entrySet()) {
+					logger.debug("in blatBreakpoints best: key: " + entry.getKey() + ", blat rec: " + (null == entry.getValue() ? "null" : entry.getValue().toString()));
 				}
 				/*
 				 * get copy of list of breakpoints, as they are cleared upon calling matchBlatBreakpoints

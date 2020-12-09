@@ -522,6 +522,16 @@ public class TiledAlignerUtilTest {
 	}
 	
 	@Test
+	public void getSoCalledInteligentSW3() {
+		String ref = "CATTTAAAATTAATGTTGTTCTGTGTGAATTTGATCCTGTCATCATGATTCTAGCTGGTTATTTTGCAGACTTTTTTATGTGGTTGCTTCATAGTGTTACTGATCTGTGTACTTCAATGTGTTTTGGTAGTGGCTGATAATTGTTTTTCATTTCCATATTTAATGCTTCCTTCAGGAGCTCTTGTAAGGCAGGCCTGGTGGTGATGTATTCCCTCAGCATTTGCTTGTCTGAAAAGGATCTTATTTCTCTTTTGTTTATGAAG";
+		String seq = "GAAGGGTGTTCTGTGTGAGGTTGAGGCTGTCGTCATGATGCTAGCTGGTTATTGTGCAGACTTGTTTATGTGGTTGCTTCATAGTGTGACTGATCTGTGTACTTACATGTGTTTTGGTAGTGGCTGATAATTGTTTTTCATTTCCATATTTAATGCTTCCTTCAGGAGCTCTTGTAAGGCAGGCCTGGTTGTGATGTATTCCCTCAGCATTTGCTTGTCTGAAAAGGATCTTATTTCTCTTTTGTTTATGAAG";
+		String [] bestSW = TiledAlignerUtil.getIntelligentSwDiffs(ref, seq);
+		
+		assertEquals(3, bestSW.length);
+		assertEquals("||.|.||||||||||||..||||..|||||.|||||||.|||||||||||||.|||||||||.|||||||||||||||||||||||.||||||||||||||||..|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||.|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||", bestSW[1]);
+	}
+	
+	@Test
 	public void getBestStartPositions8() {
 		Map	<String, TLongList> map = new HashMap<>();
 		map.put("TTATTAAAGAGGG", new TLongArrayList(new long[]{ 468349696l, 468465329l}));

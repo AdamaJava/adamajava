@@ -1115,6 +1115,14 @@ public class TiledAlignerUtil {
 		ChrPosition bufferedCP = pcpm.getBufferedChrPositionFromLongPosition(packedLong, sequenceLength - sequenceOffset, lhsBuffer, rhsBuffer);
 		return bufferedCP;
 	}
+	public static ChrPosition getBufferedChrPosition(long packedLong, int matchLength, PositionChrPositionMap pcpm, int [] buffers) {
+		
+		int lhsBuffer = buffers[0];
+		int rhsBuffer = buffers[1];
+		
+		ChrPosition bufferedCP = pcpm.getBufferedChrPositionFromLongPosition(packedLong, matchLength, lhsBuffer, rhsBuffer);
+		return bufferedCP;
+	}
 	
 	/**
 	 * 
@@ -1269,6 +1277,7 @@ public class TiledAlignerUtil {
 			logger.info("in runTiledAlignerCache, name: " + name + ", seq: " + entry.getKey());
 			
 			List<BLATRecord> blatties = getBlatRecordsSWAll(refFile, cache, entry.getKey(), entry.getValue(), tileLength, originatingMethod, log, recordsMustComeFromChrInName);
+			blatties.sort(null);
 			/*
 			 * populate the name field on the BLATRecord with the value, if present - otherwise just leave as the default
 			 */
@@ -1928,6 +1937,7 @@ public class TiledAlignerUtil {
 			int currentMaxScore = 0;
 			int thisIterationMaxScore = 0;
 			int passingScore = (int)(seqLength * 0.95);
+			int passingScore99 = (int)(seqLength * 0.99);
 			boolean finalIteration = false;
 			int iterationCount = 0;
 			
@@ -2017,11 +2027,47 @@ public class TiledAlignerUtil {
 			logger.debug("after shortcut mode, results is following size: " + results.size());
 			
 			
+			boolean runSW = true;
+			
+			/*
+			 * splits next is highest record is not yet over the passing score
+			 */
+			List<BLATRecord> splitsList = new ArrayList<>();
+			if (results.isEmpty() || results.get(results.size() - 1).getScore() < passingScore99) {
+				
+				logger.debug("about to run some splits, no of positions in TARecord:  name: " + name + ", " + taRec.getCountDist());
+				TIntObjectMap<Set<IntLongPairs>> splitsMap = TARecordUtil.getSplitStartPositions(taRec);
+				List<IntLongPairs> potentialSplits = new ArrayList<>();
+				splitsMap.forEachValue(s -> potentialSplits.addAll(s.stream().collect(Collectors.toList())));
+				/*
+				 * loop through them all, if valid single record splits, create BLAT recs, otherwise fall through to SW
+				 */
+				splitsList.addAll(potentialSplits.stream()
+						.filter(ilp -> IntLongPairsUtil.isIntLongPairsAValidSingleRecord(ilp))
+						.map(ilp ->  TARecordUtil.blatRecordFromSplits(ilp, name, sequence.length(), headerMap, TILE_LENGTH))
+						.filter(sa -> sa.length > 0)
+						.map(s -> new BLATRecord(s))
+						//				.filter(br -> br.getScore() > passingScore)
+						.collect(Collectors.toList()));
+				logger.debug("after splits mode, splitsList is following size: " + splitsList.size());
+				splitsList.sort(null);
+				
+				if ( ! splitsList.isEmpty() && splitsList.get(splitsList.size() - 1).getScore() >= passingScore99) {
+					logger.debug("top score from splits: " + splitsList.get(splitsList.size() - 1).getScore() + ", no need to run sw!");
+					runSW = false;
+					results.addAll(splitsList);
+				} else {
+					if ( ! splitsList.isEmpty()) {
+						logger.debug("top score from splits: " + splitsList.get(splitsList.size() - 1).getScore() + ", will run sw!");
+					}
+				}
+			}
+			
+			
 			/*
 			 * check what we currently have in results
 			 * if we are over 95% don't bother with the SW
 			 */
-			boolean runSW = true;
 //			if ( ! results.isEmpty()) {
 //				results.sort(null);
 //				int maxScore = results.get(results.size() - 1).getScore();
@@ -2033,7 +2079,7 @@ public class TiledAlignerUtil {
 			
 			if (runSW && sortedKeys.size() > 0) {
 				int swCount = 0;
-				int swCountCutoff = 90;
+				int swCountCutoff = 80;
 				
 				boolean limitReached = false;
 				
@@ -2153,6 +2199,9 @@ public class TiledAlignerUtil {
 						if (null != missingRanges && missingRanges.length > 0) {
 							logger.debug("missing ranges: " + Arrays.deepToString(missingRanges));
 							for (int [] missingRange : missingRanges) {
+								logger.debug("missing ranges: " + Arrays.deepToString(missingRanges));
+								
+								
 								Optional<BLATRecord> optionalBR = BLATRecordUtil.findRecordInRange(results, missingRange[0], missingRange[1]);
 								if (optionalBR.isPresent()) {
 									/*
@@ -2167,6 +2216,7 @@ public class TiledAlignerUtil {
 							
 						}
 						if ( ! splitsResults.isEmpty()) {
+							splitsResults.sort(null);
 							boolean returnSplits = true;
 //							if ( ! splits) {
 							logger.debug("will look for a possible merged rec with splitResults: " + splitsResults.stream().map(BLATRecord::toString).collect(Collectors.joining(",")));
@@ -2182,7 +2232,7 @@ public class TiledAlignerUtil {
 								if (coverageAndOverlapO.isPresent()) {
 									int [] coverageAndOverlap = coverageAndOverlapO.get();
 									if (coverageAndOverlap[0] > passingScore && coverageAndOverlap[0] > (coverageAndOverlap[1] * 2)) {
-										logger.info("Returning splits results, coverageAndOverlap[0] > passingScore && coverageAndOverlap[0] > (coverageAndOverlap[1] * 2");
+										logger.info("Returning splits results, coverageAndOverlap[0] > passingScore && coverageAndOverlap[0] > (coverageAndOverlap[1] * 2)");
 										return splitsResults;
 									}
 								}
@@ -2191,28 +2241,38 @@ public class TiledAlignerUtil {
 						}
 					}
 				}
-			}
-			/*
-			 * splits next is highest record is not yet over the passing score
-			 */
-			if (results.isEmpty() || results.get(results.size() - 1).getScore() < passingScore) {
 				
-				logger.debug("about to run some splits, no of positions in TARecord:  name: " + name + ", " + taRec.getCountDist() + "");
-				TIntObjectMap<Set<IntLongPairs>> splitsMap = TARecordUtil.getSplitStartPositions(taRec);
-				List<IntLongPairs> potentialSplits = new ArrayList<>();
-				splitsMap.forEachValue(s -> potentialSplits.addAll(s.stream().collect(Collectors.toList())));
-				/*
-				 * loop through them all, if valid single record splits, create BLAT recs, otherwise fall through to SW
-				 */
-				results.addAll(potentialSplits.stream()
-						.filter(ilp -> IntLongPairsUtil.isIntLongPairsAValidSingleRecord(ilp))
-						.map(ilp ->  TARecordUtil.blatRecordFromSplits(ilp, name, sequence.length(), headerMap, TILE_LENGTH))
-						.filter(sa -> sa.length > 0)
-						.map(s -> new BLATRecord(s))
-						//				.filter(br -> br.getScore() > passingScore)
-						.collect(Collectors.toList()));
-				logger.debug("after splits mode, results is following size: " + results.size());
+				if ( ! splitsList.isEmpty() ) {
+					int topSPlitsScore = splitsList.get(splitsList.size() - 1).getScore();
+					results.sort(null);
+					int topOtherRecordsScore =  results.get(results.size() - 1).getScore();
+					if (topSPlitsScore > topOtherRecordsScore) {
+						logger.debug("adding splitList entries to results");
+						results.addAll(splitsList);
+					}
+				}
 			}
+//			/*
+//			 * splits next is highest record is not yet over the passing score
+//			 */
+//			if (results.isEmpty() || results.get(results.size() - 1).getScore() < passingScore99) {
+//				
+//				logger.debug("about to run some splits, no of positions in TARecord:  name: " + name + ", " + taRec.getCountDist() + "");
+//				TIntObjectMap<Set<IntLongPairs>> splitsMap = TARecordUtil.getSplitStartPositions(taRec);
+//				List<IntLongPairs> potentialSplits = new ArrayList<>();
+//				splitsMap.forEachValue(s -> potentialSplits.addAll(s.stream().collect(Collectors.toList())));
+//				/*
+//				 * loop through them all, if valid single record splits, create BLAT recs, otherwise fall through to SW
+//				 */
+//				results.addAll(potentialSplits.stream()
+//						.filter(ilp -> IntLongPairsUtil.isIntLongPairsAValidSingleRecord(ilp))
+//						.map(ilp ->  TARecordUtil.blatRecordFromSplits(ilp, name, sequence.length(), headerMap, TILE_LENGTH))
+//						.filter(sa -> sa.length > 0)
+//						.map(s -> new BLATRecord(s))
+//						//				.filter(br -> br.getScore() > passingScore)
+//						.collect(Collectors.toList()));
+//				logger.debug("after splits mode, results is following size: " + results.size());
+//			}
 		}
 		
 		
@@ -2263,7 +2323,12 @@ public class TiledAlignerUtil {
 		
 		logger.debug("details so far... seqLength: " + seqLength + ", startPositionInSequence: " + startPositionInSequence + ", length: " + length + ", revComp: " + reverseComplement + ", startCommonTileCount: " + startCommonTileCount + ", endCommonTileCount: " + endCommonTileCount);
 		
-		ChrPosition bufferedCP = getBufferedChrPosition(l, seqLength, length, headerMap, 60, preferStrictSW);
+		
+		int[] buffersToUse = BLATRecordUtil.getBuffers(seqLength, startPositionInSequence, startPositionInSequence + length, preferStrictSW, allCommonTiles, 60, 5);
+		
+		
+		ChrPosition bufferedCP = getBufferedChrPosition(l, length, headerMap,buffersToUse);
+//		ChrPosition bufferedCP = getBufferedChrPosition(l, seqLength, length, headerMap, 60, preferStrictSW);
 		String bufferedReference = getRefFromChrPos(bufferedCP, refFile);
 //		String fragString =  sequence;
 		String fragString = reverseComplement ? revCompSequence : sequence;

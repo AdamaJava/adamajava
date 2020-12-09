@@ -338,6 +338,40 @@ public class BLATRecordUtil {
 		return Optional.ofNullable(bestMatch);
 	}
 	
+	public static int[] getBuffers(int seqLength, int startPos, int endPos, boolean split, int [] commonTilePositions, int standardBuffer, int splitBuffer) {
+		int lhsBuffer = startPos == 0 ? 0 : split ? startPos + splitBuffer : standardBuffer + startPos;
+		int rhsBuffer = endPos == seqLength ? 0 : split ? splitBuffer + (seqLength - endPos) : standardBuffer + (seqLength - endPos);
+//		
+//		if (split) {
+//			if (startPos > 0) {
+//				/*
+//				 * examine commonTilePositions
+//				 */
+//				int commonTileCountAtStart = NumberUtils.getContinuousCountFromValue(startPos - 1, commonTilePositions, false);
+//				
+//				if (commonTileCountAtStart > 0) {
+//					/*
+//					 * get count of common tiles at start of this sequence segment
+//					 */
+//					lhsBuffer += commonTileCountAtStart; 
+//				}
+//			}
+//			if (endPos < seqLength) {
+//				/*
+//				 * examine commonTilePositions
+//				 */
+//				int commonTileCountAtEnd = NumberUtils.getContinuousCountFromValue(endPos - 1, commonTilePositions, true);
+//				if (commonTileCountAtEnd > 0) {
+//					/*
+//					 * get count of common tiles at start of this sequence segment
+//					 */
+//					rhsBuffer += commonTileCountAtEnd; 
+//				}
+//			}
+//		}
+		return new int[] {lhsBuffer, rhsBuffer};
+	}
+	
 	
 	/**
 	 * will attempt to merge all the BLAT records in the supplies list into a single BLAT record.
