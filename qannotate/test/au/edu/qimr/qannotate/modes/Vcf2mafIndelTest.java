@@ -18,7 +18,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.commandline.Executor;
@@ -55,7 +54,7 @@ public class Vcf2mafIndelTest {
             
             try{
                     createVcf(input, str);                
-                    final Vcf2maf v2m = new Vcf2maf(1,2, null, null, ContentType.MULTIPLE_CALLERS_MULTIPLE_SAMPLES,false);    
+                    final Vcf2maf v2m = new Vcf2maf(1,2, null, null, ContentType.MULTIPLE_CALLERS_MULTIPLE_SAMPLES);    
                     try(VCFFileReader reader = new VCFFileReader(input); ){
                      for (final VcfRecord vcf : reader){
                          SnpEffMafRecord maf  = v2m.converter(vcf);
@@ -174,7 +173,6 @@ public class Vcf2mafIndelTest {
     }
     
    // @Test
-    @Ignore
     public void indelOutDirTest() throws Exception{
          File log = testFolder.newFile();
          File input = testFolder.newFile();
@@ -332,14 +330,12 @@ public class Vcf2mafIndelTest {
         //split string to maf record
         SnpEffMafRecord maf = new SnpEffMafRecord();
         String[] eles = line.split("\\t");
-        System.out.println("eles.length: " + eles.length);
         //last two optional column for acsnp
         int no = hasACLAP? MafElement.values().length : MafElement.values().length - 2; 
         assertTrue(eles.length == no);
              
         for(int i = 0; i < eles.length; i ++){
-        //    maf.setColumnValue( MafElement.getByColumnNo( i+1), ""); //wipe off all default value
-                maf.setColumnValue( MafElement.getByColumnNo( i+1), eles[i]);           
+            maf.setColumnValue( MafElement.getByColumnNo( i+1), eles[i]);           
         }
         return maf;         
     }    

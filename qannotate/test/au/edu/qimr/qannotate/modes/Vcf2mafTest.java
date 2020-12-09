@@ -181,7 +181,7 @@ public class Vcf2mafTest {
         };
         
         final VcfRecord vcf = new VcfRecord(array);
-        final Vcf2maf mode = new Vcf2maf(2, 1, "TEST", "CONTROL", ContentType.MULTIPLE_CALLERS_MULTIPLE_SAMPLES,false); 
+        final Vcf2maf mode = new Vcf2maf(2, 1, "TEST", "CONTROL", ContentType.MULTIPLE_CALLERS_MULTIPLE_SAMPLES); 
         SnpEffMafRecord maf = mode.converter(vcf);
 
         assertFalse(maf == null);        
@@ -283,7 +283,7 @@ public class Vcf2mafTest {
      @Test
      public void confidenceTest() {
          
-         final Vcf2maf v2m = new Vcf2maf(2,1, null, null, ContentType.MULTIPLE_CALLERS_MULTIPLE_SAMPLES, false);    //test column2; normal column 1            
+         final Vcf2maf v2m = new Vcf2maf(2,1, null, null, ContentType.MULTIPLE_CALLERS_MULTIPLE_SAMPLES);    //test column2; normal column 1            
          final String[] parms = {"chr1","16534646","rs221058","C","G",".",".","FLANK=CTGGCGAGGCT;BaseQRankSum=0.337;ClippingRankSum=-0.625;DP=17;FS=0.000;MQ=60.00;MQ0=0;MQRankSum=-0.818;QD=15.22;ReadPosRankSum=-1.491;SOR=0.836;IN=1,2;DB;VLD;VAF=0.2062;EFF=missense_variant(MODERATE|MISSENSE|Ggc/Cgc|p.Gly163Arg/c.487G>C|802|ARHGEF19|protein_coding|CODING|ENST00000270747|3|1),upstream_gene_variant(MODIFIER||1625||167|ARHGEF19|protein_coding|CODING|ENST00000441785||1|WARNING_TRANSCRIPT_NO_START_CODON),upstream_gene_variant(MODIFIER||1625|||ARHGEF19|processed_transcript|CODING|ENST00000478210||1),upstream_gene_variant(MODIFIER||1608||305|ARHGEF19|protein_coding|CODING|ENST00000449495||1|WARNING_TRANSCRIPT_INCOMPLETE),upstream_gene_variant(MODIFIER||1169|||ARHGEF19|processed_transcript|CODING|ENST00000471928||1),upstream_gene_variant(MODIFIER||1140|||ARHGEF19|processed_transcript|CODING|ENST00000478117||1)"
                  ,"GT:DP:FT:MR:NNS:OABS:INF:AD:GQ","0/1:17:.:9:9:C2[33]6[31.33];G2[33]7[37.29]:PASS:.:.","0/0:14:.:.:.:C3[35]9[35.44];G0[0]2[40]:PASS.:.:.","0/1:17:.:9:9:C2[33]6[31.33];G2[33]7[37.29]:PASS:8,9:99",".:.:SAT3:.:.:C3[35]9[35.44];G0[0]2[40]:.;.:.:."};
          
@@ -294,7 +294,7 @@ public class Vcf2mafTest {
      
      @Test
      public void filterField() {
-    	 Vcf2maf v2m = new Vcf2maf(2,1, null, null, ContentType.MULTIPLE_CALLERS_MULTIPLE_SAMPLES,false);    //test column2; normal column 1            
+    	 Vcf2maf v2m = new Vcf2maf(2,1, null, null, ContentType.MULTIPLE_CALLERS_MULTIPLE_SAMPLES);    //test column2; normal column 1            
     	 String[] parms = {"chr1","16534646","rs221058","C","G",".",".","FLANK=CTGGCGAGGCT;BaseQRankSum=0.337;ClippingRankSum=-0.625;DP=17;FS=0.000;MQ=60.00;MQ0=0;MQRankSum=-0.818;QD=15.22;ReadPosRankSum=-1.491;SOR=0.836;IN=1,2;DB;VLD;VAF=0.2062;EFF=missense_variant(MODERATE|MISSENSE|Ggc/Cgc|p.Gly163Arg/c.487G>C|802|ARHGEF19|protein_coding|CODING|ENST00000270747|3|1),upstream_gene_variant(MODIFIER||1625||167|ARHGEF19|protein_coding|CODING|ENST00000441785||1|WARNING_TRANSCRIPT_NO_START_CODON),upstream_gene_variant(MODIFIER||1625|||ARHGEF19|processed_transcript|CODING|ENST00000478210||1),upstream_gene_variant(MODIFIER||1608||305|ARHGEF19|protein_coding|CODING|ENST00000449495||1|WARNING_TRANSCRIPT_INCOMPLETE),upstream_gene_variant(MODIFIER||1169|||ARHGEF19|processed_transcript|CODING|ENST00000471928||1),upstream_gene_variant(MODIFIER||1140|||ARHGEF19|processed_transcript|CODING|ENST00000478117||1)"
     			 ,"GT:DP:FT:MR:NNS:OABS:INF:AD:GQ","0/1:17:.:9:9:C2[33]6[31.33];G2[33]7[37.29]:PASS:.:.","0/0:14:.:.:.:C3[35]9[35.44];G0[0]2[40]:PASS.:.:.","0/1:17:.:9:9:C2[33]6[31.33];G2[33]7[37.29]:PASS:8,9:99",".:.:SAT3:.:.:C3[35]9[35.44];G0[0]2[40]:.;.:.:."};
     	 
@@ -312,7 +312,7 @@ public class Vcf2mafTest {
      
      @Test
      public void reversionToReference() {
-    	 Vcf2maf v2m = new Vcf2maf(2,1, null, null, ContentType.MULTIPLE_CALLERS_MULTIPLE_SAMPLES,false);    //test column2; normal column 1            
+    	 Vcf2maf v2m = new Vcf2maf(2,1, null, null, ContentType.MULTIPLE_CALLERS_MULTIPLE_SAMPLES);    //test column2; normal column 1            
     	 String[] parms = {"chr17","41244000","rs16942","T","C",".",".","FLANK=CTCCTCTCTGG;IN=1,2;DB;VLD;VAF=0.3242;GERM=C:6:166:172:0;HOM=3,AAGCTCTCCTtTCTGGACGCT",
     			 "GT:AD:CCC:CCM:DP:EOR:FF:FT:GQ:INF:NNS:OABS:QL",
     			 "0/1:23,16:Germline:22:39:C1[]1[];T2[]0[]:C1:PASS:.:.:16:C9[41]7[40.43];T11[38.64]12[39.92]:.",
@@ -333,7 +333,7 @@ public class Vcf2mafTest {
      
      @Test
      public void reversionToReference2() {
-    	 Vcf2maf v2m = new Vcf2maf(2,1, null, null, ContentType.MULTIPLE_CALLERS_MULTIPLE_SAMPLES,false);     //test column2; normal column 1            
+    	 Vcf2maf v2m = new Vcf2maf(2,1, null, null, ContentType.MULTIPLE_CALLERS_MULTIPLE_SAMPLES);     //test column2; normal column 1            
     	 String[] parms = {"chr17","41244936","rs799917","G","A",".",".","FLANK=AAAACAGAGCA;BaseQRankSum=2.014;ClippingRankSum=0.000;DP=46;ExcessHet=3.0103;FS=11.452;MQ=60.00;MQRankSum=0.000;QD=16.67;ReadPosRankSum=0.298;SOR=2.185;IN=1,2;DB;VLD;VAF=0.483;GERM=A:7:173:180:0;HOM=2,ATTTGAAAACgGAGCAAATGA",
     			 "GT:AD:CCC:CCM:DP:EOR:FF:FT:GQ:INF:NNS:OABS:QL",
     			 "0/1:25,21:Germline:22:46:A1[]0[];G1[]2[]:A2:PASS:.:.:21:A5[39.2]16[40.75];G13[39.46]12[38]:.",
@@ -355,7 +355,7 @@ public class Vcf2mafTest {
      @Test
      public void confidenceRealLife() {
          
-         Vcf2maf v2m = new Vcf2maf(2,1, null, null, ContentType.MULTIPLE_CALLERS_MULTIPLE_SAMPLES,false);    //test column2; normal column 1            
+         Vcf2maf v2m = new Vcf2maf(2,1, null, null, ContentType.MULTIPLE_CALLERS_MULTIPLE_SAMPLES);    //test column2; normal column 1            
          VcfRecord rec = new VcfRecord( new String[] {"chr1","13302","rs180734498","C","T",".",".","FLANK=GGACATGCTGT;IN=1,2;DB;VAF=0.1143",
                     "GT:AD:CCC:CCM:DP:FT:GQ:INF:MR:NNS:OABS",
                     "0/1:.:Germline:23:34:PASS:.:.:10:9:C13[39.69]11[39.73];T9[37]1[42]",
@@ -380,7 +380,7 @@ public class Vcf2mafTest {
      @Test
      public void confidenceFirstCallerOnly() {
     	 
-    	 Vcf2maf v2m = new Vcf2maf(2,1, null, null, ContentType.MULTIPLE_CALLERS_MULTIPLE_SAMPLES,false);     //test column2; normal column 1            
+    	 Vcf2maf v2m = new Vcf2maf(2,1, null, null, ContentType.MULTIPLE_CALLERS_MULTIPLE_SAMPLES);     //test column2; normal column 1            
     	 VcfRecord rec = new VcfRecord( new String[] {"chr1","13302","rs180734498","C","T",".",".","FLANK=GGACATGCTGT;IN=1,2;DB;VAF=0.1143",
     			 "GT:AD:CCC:CCM:DP:FT:GQ:INF:MR:NNS:OABS",
     			 "0/1:.:Germline:23:34:PASS:.:.:10:9:C13[39.69]11[39.73];T9[37]1[42]",
@@ -405,7 +405,7 @@ public class Vcf2mafTest {
      @Test
      public void somaticAndGermlinePASSBecomesGermline() {
          
-         Vcf2maf v2m = new Vcf2maf(2,1, null, null, ContentType.MULTIPLE_CALLERS_MULTIPLE_SAMPLES,false);    //test column2; normal column 1            
+         Vcf2maf v2m = new Vcf2maf(2,1, null, null, ContentType.MULTIPLE_CALLERS_MULTIPLE_SAMPLES);    //test column2; normal column 1            
          VcfRecord rec = new VcfRecord( new String[] {"chr1","13302","rs180734498","C","T",".",".","FLANK=GGACATGCTGT;IN=1,2;DB;VAF=0.1143",
                  "GT:AD:CCC:CCM:DP:FT:GQ:INF:NNS:OABS",
                  "0/1:24,10:Germline:23:34:PASS:.:.:9:C13[39.69]11[39.73];T9[37]1[42]",
@@ -421,7 +421,7 @@ public class Vcf2mafTest {
      @Test
      public void ifGermlineOnlyLookAtControl() {
          
-         Vcf2maf v2m = new Vcf2maf(2,1, null, null, ContentType.MULTIPLE_CALLERS_MULTIPLE_SAMPLES,false);    //test column2; normal column 1            
+         Vcf2maf v2m = new Vcf2maf(2,1, null, null, ContentType.MULTIPLE_CALLERS_MULTIPLE_SAMPLES);    //test column2; normal column 1            
          VcfRecord rec = new VcfRecord( new String[] {"chr1","13302","rs180734498","C","T",".",".","FLANK=GGACATGCTGT;IN=1,2",
                  "GT:AD:CCC:CCM:DP:FT:GQ:INF:MR:NNS:OABS",
                  "0/1:.:Germline:23:34:PASS:.:.:10:9:C13[39.69]11[39.73];T9[37]1[42]",
@@ -510,7 +510,7 @@ public class Vcf2mafTest {
      @Test
      public void flankNoteTest(){
         VcfRecord vcf = new VcfRecord.Builder("chrY",22012840,"C").allele("A").build();
-        final Vcf2maf v2m = new Vcf2maf(2,1, null, null, ContentType.MULTIPLE_CALLERS_MULTIPLE_SAMPLES,false);    //test column2; normal column 1            
+        final Vcf2maf v2m = new Vcf2maf(2,1, null, null, ContentType.MULTIPLE_CALLERS_MULTIPLE_SAMPLES);    //test column2; normal column 1            
         
         //get flank first
         vcf.setInfo("HOM=28,CTTTTCTTTCaTTTTTTTTTT;FLANK=CTTTCATTTTT");                
@@ -540,7 +540,7 @@ public class Vcf2mafTest {
      
      @Test 
      public void tumourAlleleTest() {
-		final Vcf2maf v2m = new Vcf2maf(2,1, null, null, ContentType.MULTIPLE_CALLERS_MULTIPLE_SAMPLES,false);     //test column2; normal column 1            
+		final Vcf2maf v2m = new Vcf2maf(2,1, null, null, ContentType.MULTIPLE_CALLERS_MULTIPLE_SAMPLES);     //test column2; normal column 1            
 		String[] parms = {"chr1","19595137","rs2235795","C","T",".",".","FLANK=ATACGTGGCCT;DP=9;FS=0.000;MQ=60.00;MQ0=0;QD=28.75;SOR=1.402;IN=1,2;DB;VLD;VAF=0.6584;EFF=missense_variant(MODERATE|MISSENSE|Gcg/Acg|p.Ala77Thr/c.229G>A|153|AKR7L|protein_coding|CODING|ENST00000420396|4|1),downstream_gene_variant(MODIFIER||1890|||AKR7L|retained_intron|CODING|ENST00000493176||1),non_coding_exon_variant(MODIFIER|||n.431G>A||AKR7L|polymorphic_pseudogene|CODING|ENST00000457194|4|1),non_coding_exon_variant(MODIFIER|||n.763G>A||AKR7L|polymorphic_pseudogene|CODING|ENST00000429712|6|1)"
 		    ,"GT:DP:FT:MR:NNS:OABS:INF:AD:GQ"
 		    ,"1/1:9:COVN12:9:9:T6[36.67]3[37.67]:.:.:."
@@ -613,7 +613,7 @@ public class Vcf2mafTest {
      public void converterTest() {
          
              final SnpEffMafRecord snpEffREc = new SnpEffMafRecord();            
-            final Vcf2maf v2m = new Vcf2maf(2,1, null, null, ContentType.MULTIPLE_CALLERS_MULTIPLE_SAMPLES,false);     //test column2; normal column 1            
+            final Vcf2maf v2m = new Vcf2maf(2,1, null, null, ContentType.MULTIPLE_CALLERS_MULTIPLE_SAMPLES);     //test column2; normal column 1            
             final String[] parms = {"chr1","19595137","rs2235795","C","T",".",".","FLANK=ATACGTGGCCT;DP=9;FS=0.000;MQ=60.00;MQ0=0;QD=28.75;SOR=1.402;IN=1,2;DB;VLD;VAF=0.6584;EFF=missense_variant(MODERATE|MISSENSE|Gcg/Acg|p.Ala77Thr/c.229G>A|153|AKR7L|protein_coding|CODING|ENST00000420396|4|1),downstream_gene_variant(MODIFIER||1890|||AKR7L|retained_intron|CODING|ENST00000493176||1),non_coding_exon_variant(MODIFIER|||n.431G>A||AKR7L|polymorphic_pseudogene|CODING|ENST00000457194|4|1),non_coding_exon_variant(MODIFIER|||n.763G>A||AKR7L|polymorphic_pseudogene|CODING|ENST00000429712|6|1)"
                     ,"GT:DP:FT:MR:NNS:OABS:INF:AD:GQ"
                     ,"1/1:9:COVN12:9:9:T6[36.67]3[37.67]:.:.:."
@@ -695,7 +695,7 @@ public class Vcf2mafTest {
      public void converterMergedRecHC() {
          
          final SnpEffMafRecord Dmaf = new SnpEffMafRecord();            
-         final Vcf2maf v2m = new Vcf2maf(2,1, null, null, ContentType.MULTIPLE_CALLERS_MULTIPLE_SAMPLES,false);     //test column2; normal column 1            
+         final Vcf2maf v2m = new Vcf2maf(2,1, null, null, ContentType.MULTIPLE_CALLERS_MULTIPLE_SAMPLES);     //test column2; normal column 1            
          final String[] parms = {"chr1","11938210",".","GC","AA",".",".","IN=1,2;EFF=non_coding_exon_variant(MODIFIER|||n.384GC>AA||RP5-934G17.6|processed_pseudogene|NON_CODING|ENST00000438808|1|1)","GT:DP:FT:MR:NNS:OABS:INF","1/1:17:.:17:16:AA9[]8[];_A2[]1[]:.;CONF=HIGH","1/1:12:.:12:12:AA9[]3[]:.;.","1/1:17:.:17:16:AA9[]8[];_A2[]1[]:.;CONF=HIGH","1/1:12:.:12:12:AA9[]3[]:.;."};
          
          final VcfRecord vcf = new VcfRecord(parms);
@@ -745,7 +745,7 @@ public class Vcf2mafTest {
          
          String[] str = {"chr1","240975611","rs7537530","C","G",".","PASS_1;PASS_2","FLANK=GATAGGCACTA;AC=2;AF=1.00;AN=2;DP=15;FS=0.000;MLEAC=2;MLEAF=1.00;MQ=60.00;MQ0=0;QD=28.59;SOR=4.047;IN=1,2;DB;VLD;VAF=0.6979;HOM=2,TATGAGATAGgCACTATTAAT;CONF=HIGH_1,HIGH_2;EFF=intron_variant(MODIFIER|||c.879-268G>C|451|RGS7|protein_coding|CODING|ENST00000331110|13|1),intron_variant(MODIFIER|||c.798-268G>C|424|RGS7|protein_coding|CODING|ENST00000348120|10|1),intron_variant(MODIFIER|||c.957-268G>C|469|RGS7|protein_coding|CODING|ENST00000366562|12|1),intron_variant(MODIFIER|||c.957-268G>C|477|RGS7|protein_coding|CODING|ENST00000366563|13|1) intron_variant(MODIFIER|||c.957-268G>C|469|RGS7|protein_coding|CODING|ENST00000366564|13|1),intron_variant(MODIFIER|||c.957-268G>C|487|RGS7|protein_coding|CODING|ENST00000366565|13|1),intron_variant(MODIFIER|||c.798-268G>C|424|RGS7|protein_coding|CODING|ENST00000401882|10|1),intron_variant(MODIFIER|||c.957-268G>C|495|RGS7|protein_coding|CODING|ENST00000407727|12|1),intron_variant(MODIFIER|||c.450-268G>C|326|RGS7|protein_coding|CODING|ENST00000440928|6|1|WARNING_TRANSCRIPT_NO_START_CODON),intron_variant(MODIFIER|||c.705-268G>C|393|RGS7|protein_coding|CODING|ENST00000446183|13|1)","GT:GD:AC:MR:NNS:AD:DP:GQ:PL","1/1&1/1:G/G&G/G:G1[33],14[32.93]&G1[33],14[32.93]:15&15:14&14:0,15:15:45:628,45,0","1/1&1/1:G/G&G/G:G1[32],7[33.43]&G1[32],7[33.43]:8&8:6&6:0,8:8:27:374,27,0"};
          
-         Vcf2maf v2m = new Vcf2maf(1,2, null, null, ContentType.MULTIPLE_CALLERS_MULTIPLE_SAMPLES,false);    
+         Vcf2maf v2m = new Vcf2maf(1,2, null, null, ContentType.MULTIPLE_CALLERS_MULTIPLE_SAMPLES);    
          SnpEffMafRecord maf  = v2m.converter(new VcfRecord(str));    
          assertEquals("ENST00000407727", maf.getColumnValue(MafElement.Transcript_ID));
          assertEquals("c.957-268G>C", maf.getColumnValue(MafElement.CDS_Change));
@@ -769,7 +769,7 @@ public class Vcf2mafTest {
                  + "intron_variant(MODIFIER|||c.1503-143AT>CA|1634|PIK3C2B|protein_coding|CODING|ENST00000367187|8|1),"
                  + "intron_variant(MODIFIER|||c.1503-143AT>CA|1606|PIK3C2B|protein_coding|CODING|ENST00000424712|8|1);"
                  + "END=204429213","ACCS","TG,1,3,_T,0,1"};
-         Vcf2maf v2m = new Vcf2maf(1,2, null, null, ContentType.MULTIPLE_CALLERS_MULTIPLE_SAMPLES,false);    
+         Vcf2maf v2m = new Vcf2maf(1,2, null, null, ContentType.MULTIPLE_CALLERS_MULTIPLE_SAMPLES);    
          v2m.converter(new VcfRecord(str));
          
      }
@@ -793,7 +793,7 @@ public class Vcf2mafTest {
                  + "non_coding_exon_variant(MODIFIER|||n.82GT>AA||BRAF|nonsense_mediated_decay|CODING|ENST00000479537|2|1);END=140453137    "
                  + "ACCS    AC,14,20,A_,1,0    AC,33,36,A_,1,0,TC,1,0,TT,8,10,_C,0,2"};
                  
-         Vcf2maf v2m = new Vcf2maf(1,2, null, null, ContentType.MULTIPLE_CALLERS_MULTIPLE_SAMPLES,false);     
+         Vcf2maf v2m = new Vcf2maf(1,2, null, null, ContentType.MULTIPLE_CALLERS_MULTIPLE_SAMPLES);     
          SnpEffMafRecord maf  = v2m.converter( new VcfRecord(str));
          assertTrue(maf.getColumnValue(51+1).equals("p.Val600Lys"));
           assertTrue(maf.getColumnValue(50+1).equals("ENST00000288602"));
@@ -804,7 +804,7 @@ public class Vcf2mafTest {
      @Ignore
      public void defaultValueTest() {
              final SnpEffMafRecord Dmaf = new SnpEffMafRecord();            
-            final Vcf2maf v2m = new Vcf2maf(2,1, null, null, ContentType.MULTIPLE_CALLERS_MULTIPLE_SAMPLES,false);     //test column2; normal column 1
+            final Vcf2maf v2m = new Vcf2maf(2,1, null, null, ContentType.MULTIPLE_CALLERS_MULTIPLE_SAMPLES);     //test column2; normal column 1
             final String[] parms = {"chrY","22012840",".","CT","AT","."  ,  "."  ,  "."  ,  "."  ,  "." ,  "."};
 
              final VcfRecord vcf = new VcfRecord(parms);
@@ -833,7 +833,7 @@ public class Vcf2mafTest {
         String[] str = {
             "GL000236.1","7127",".","T","C",".","MR;MIUN","SOMATIC;MR=4;NNS=4;FS=CCAGCCTATTT;EFF=non_coding_exon_variant(MODIFIER|||n.1313T>C||CU179654.1|processed_pseudogene|NON_CODING|ENST00000400789|1|1);CONF=ZERO","GT:GD:AC:MR:NNS","0/0:T/T:T9[37.11],18[38.33]:.:4","0/1:C/T:C1[12],3[41],T19[35.58],30[33.63]:.:5"};            
             
-         final Vcf2maf v2m = new Vcf2maf(1,1, null, null, ContentType.MULTIPLE_CALLERS_MULTIPLE_SAMPLES,false);    
+         final Vcf2maf v2m = new Vcf2maf(1,1, null, null, ContentType.MULTIPLE_CALLERS_MULTIPLE_SAMPLES);    
         SnpEffMafRecord maf  = v2m.converter(new VcfRecord(str));
         assertTrue( maf.getColumnValue(36).equals(maf.getColumnValue(37)) );
         assertTrue( maf.getColumnValue(16).equals(SnpEffMafRecord.Null));

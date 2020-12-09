@@ -63,8 +63,7 @@ public class Vcf2maf extends AbstractMode {
 	private final String sequencer;
 	private final String donorId;	 
 	private final ContentType contentType;
-	//private boolean hasACLAP = false;	
-	private final boolean hasACLAP;	
+	//private boolean hasACLAP = false;	ignore ACLAP in vcf2maf mode
 	private final int testColumn;
 	
 	private  String testSample;
@@ -75,7 +74,7 @@ public class Vcf2maf extends AbstractMode {
 	private VcfFileMeta meta;
 	
 	//for unit test
-	Vcf2maf(int test_column, int control_column, String test, String control, ContentType contentType, boolean aclap) { 
+	Vcf2maf(int test_column, int control_column, String test, String control, ContentType contentType) { 
 		center = SnpEffMafRecord.center;
 		sequencer = SnpEffMafRecord.Unknown;
 		this.donorId = SnpEffMafRecord.Unknown;
@@ -86,7 +85,6 @@ public class Vcf2maf extends AbstractMode {
 		this.testBamId = null;
 		this.controlBamId = null;
 		this.contentType = contentType;
-		this.hasACLAP = aclap;
 	}
 	
 	//for unit test
@@ -100,7 +98,6 @@ public class Vcf2maf extends AbstractMode {
 		this.testColumn = meta.getFirstTestSamplePos();
 		this.controlColumn = meta.getFirstControlSamplePos();
 		this.contentType = meta.getType();
-		this.hasACLAP = false;
 	}
  
 	//EFF= Effect ( Effect_Impact | Functional_Class | Codon_Change | Amino_Acid_Change| Amino_Acid_Length | Gene_Name | Transcript_BioType | Gene_Coding | Transcript_ID | Exon_Rank  | Genotype_Number [ | ERRORS | WARNINGS ] )	
@@ -111,7 +108,6 @@ public class Vcf2maf extends AbstractMode {
 		//make output file name		 
 		try (VCFFileReader reader = new VCFFileReader(new File( option.getInputFileName()))) {
 			VcfHeader vh = reader.getHeader();
-			this.hasACLAP = vh.getFormatRecord(VcfHeaderUtils.FORMAT_ACLAP) == null? false : true;
 			
 			//get control and test sample column										
 			meta = new VcfFileMeta(vh);
@@ -180,7 +176,7 @@ public class Vcf2maf extends AbstractMode {
 				
     			noIn ++;
     			SnpEffMafRecord maf = converter(vcf);
-    			String sMaf = maf.getMafLine(this.hasACLAP);
+    			String sMaf = maf.getMafLine(); //get line without ACLAP columns
     			out.println(sMaf);
     			noOut ++;
     			int rank = Integer.parseInt(maf.getColumnValue( MafElement.Consequence_rank));//40
@@ -292,19 +288,15 @@ public class Vcf2maf extends AbstractMode {
 			for (VcfHeaderRecord re: header.getInfoRecords()) {
 				write.println(re.toString());
 			}
-			
-//			//if vcf header contain ACLAP descripion  then we have to output to maf file
-//			if ( header.getFormatRecord(VcfHeaderUtils.FORMAT_ACLAP) != null ) {
-//				hasACLAP = true;
-//			}
  			
 			for (MafElement ele: EnumSet.allOf( MafElement.class)) {
-				if (hasACLAP || (!hasACLAP && ele.getColumnNumber() < 63)) {
+				//ignore ACLAP in vcf2maf mode
+				if(ele.getColumnNumber() < 63) {
 					write.println(ele.getDescriptionLine());
-				}
+				} 
 			}
  			
-			write.println(SnpEffMafRecord.getSnpEffMafHeaderline(hasACLAP));	 
+			write.println(SnpEffMafRecord.getSnpEffMafHeaderline(false));	 
 		 }	 
 	}
 

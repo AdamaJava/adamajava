@@ -100,8 +100,11 @@ public class Vcf2mafRunTest {
        try(BufferedReader br = new BufferedReader(new FileReader(out));) {
            String line = null;
            while ((line = br.readLine()) != null) {
-                   if(line.startsWith("#") || line.startsWith(MafElement.Hugo_Symbol.name())) continue; //skip vcf header                   
-               SnpEffMafRecord maf =  Vcf2mafIndelTest.toMafRecord(line, false);        
+                if(line.startsWith("#") || line.startsWith(MafElement.Hugo_Symbol.name())) continue; //skip vcf header                   
+                //won't output last two column about ACLAP in any case of vcf2maf mode
+                assertEquals(62, line.split("\\t").length);
+
+                SnpEffMafRecord maf =  Vcf2mafIndelTest.toMafRecord(line, false);        
                 assertTrue(maf.getColumnValue(16).equals("TEST_bamID"));
                 assertEquals("CONTROL_bamID", maf.getColumnValue(MafElement.Matched_Norm_Sample_Barcode));     
                 assertTrue(maf.getColumnValue(33).equals("TEST_sample"));
@@ -111,7 +114,8 @@ public class Vcf2mafRunTest {
     	   fail("exception during checking the output of vcf2maf!");
        } 
     }    
- 
+    
+    
     @Test
     public void hasACLAPtest() throws IOException {
         
@@ -125,20 +129,22 @@ public class Vcf2mafRunTest {
                "chr10\t200\trs386746181\tTG\tCC\t.\tPASS\tSOMATIC;DB;CONF=HIGH;"
                        + "\tACCS\tTG,29,36,_G,0,1\tCC,4,12,TG,15,12" };
 
-//       File out = runModeTest( str);
-//       
-//       try(BufferedReader br = new BufferedReader(new FileReader(out));) {
-//           String line = null;
-//           while ((line = br.readLine()) != null) {
-//                   if(line.startsWith("#") || line.startsWith(MafElement.Hugo_Symbol.name())) continue; //skip vcf header
-//                   
-//               SnpEffMafRecord maf =  Vcf2mafIndelTest.toMafRecord(line);  
-//               if(maf.getColumnValue(6) == 100) {
-//            	  assertEquals( maf.getMafLine(true),  );
-//            	   
-//               }
-//               }
-//           }
+       File out = runMainTest(false, str); // output to dir
+       
+       try(BufferedReader br = new BufferedReader(new FileReader(out));) {
+           String line = null;
+           while ((line = br.readLine()) != null) {
+               if(line.startsWith("#") || line.startsWith(MafElement.Hugo_Symbol.name())) continue; //skip vcf header
+               //won't output last two column even there is ACLAP in vcf header
+               assertEquals(62, line.split("\\t").length);
+                  
+               //must set to false, since ignore ACLAP
+               SnpEffMafRecord maf =  Vcf2mafIndelTest.toMafRecord(line, false);  
+         	   assertEquals(maf.getColumnValue(63), SnpEffMafRecord.Null ); 
+        	   assertEquals(maf.getColumnValue(63), SnpEffMafRecord.Null );            	   
+         
+           }
+       }
     	
     } 
     
