@@ -33,9 +33,13 @@ public class SnpEffMafRecord {
 		}	
 	}
 	
-	//all 58 set methods
+	
+	/**
+	 * 
+	 * @return join all maf column excludes last two columns
+	 */
 	public String getMafLine() {
-		return getMafLine(true);
+		return getMafLine(false);
 	}
 	
 	public String getMafLine(boolean hasACSNP) {

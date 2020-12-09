@@ -14,7 +14,7 @@ public class SnpEffMafRecordTest {
 	public void toMafString() {
 		SnpEffMafRecord rec = new SnpEffMafRecord();
 		
-		assertEquals(MafElement.values().length , rec.getMafLine().split(Constants.TAB_STRING).length);
+		assertEquals(MafElement.values().length , rec.getMafLine(true).split(Constants.TAB_STRING).length);
 	}
 	
 	@Test
