@@ -1,6 +1,16 @@
+/**
+ * © Copyright QIMR Berghofer Medical Research Institute 2014-2020.
+ *
+ * This code is released under the terms outlined in the included LICENSE file.
+ */
+
 package au.edu.qimr.tiledaligner;
 
 import au.edu.qimr.tiledaligner.util.TiledAlignerUtil;
+
+import gnu.trove.TCollections;
+import gnu.trove.map.TIntObjectMap;
+import gnu.trove.map.hash.TIntObjectHashMap;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,10 +24,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.NumberUtils;
 import org.qcmg.string.StringFileReader;
-
-import gnu.trove.TCollections;
-import gnu.trove.map.TIntObjectMap;
-import gnu.trove.map.hash.TIntObjectHashMap;
 
 public class ReadTiledAligerFile {
 	

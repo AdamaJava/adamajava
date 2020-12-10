@@ -1,7 +1,12 @@
+/**
+ * © Copyright QIMR Berghofer Medical Research Institute 2014-2020.
+ *
+ * This code is released under the terms outlined in the included LICENSE file.
+ */
+
 package au.edu.qimr.tiledaligner.util;
 
 import au.edu.qimr.tiledaligner.PositionChrPositionMap;
-import au.edu.qimr.tiledaligner.model.IntLongPairs;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -14,7 +19,6 @@ import java.util.stream.Collectors;
 import org.qcmg.common.model.BLATRecord;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.string.StringUtils;
-import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.NumberUtils;
 
@@ -49,8 +53,6 @@ public class BLATRecordUtil {
 		int [] queryBlockCountAndCounts = NumberUtils.getBlockCountAndCount(swDiffs[2], '-');
 		int [] targetBlockCountAndCounts = NumberUtils.getBlockCountAndCount(swDiffs[0], '-');
 		
-		
-//		int seqOffset = sequence.indexOf(seqFromSW);
 		int seqOffset = sequenceToUse.indexOf(seqFromSW);
 		
 		int nCount =  StringUtils.getCount(swDiffs[2], 'N');
@@ -78,8 +80,6 @@ public class BLATRecordUtil {
 		 */
 		int start =  forwardStrand ?  seqOffset + allStartPositions.get(0)[0] : (sequence.length() - (seqOffset + allStartPositions.get(allStartPositions.size() - 1)[0] + allStartPositions.get(allStartPositions.size() - 1)[1]));
 		int end =  forwardStrand ?  (seqOffset + allStartPositions.get(allStartPositions.size() - 1)[0] + allStartPositions.get(allStartPositions.size() - 1)[1]) : (sequence.length() - (seqOffset + allStartPositions.get(0)[0]));
-//		int start = forwardStrand ?  blocks.get(0).getMinimum().intValue() : (sequence.length() - blocks.get(blocks.size() - 1).getMaximum().intValue());
-//		int end = forwardStrand ?  blocks.get(blocks.size() - 1).getMaximum().intValue() : (sequence.length() - blocks.get(0).getMinimum().intValue());
 		
 		array[11] = "" + start;							// Q start
 		array[12] = "" + end;	// Q end
@@ -149,23 +149,11 @@ public class BLATRecordUtil {
 		array[9] = name;								// Q name
 		array[10] = sequence.length() + "";				// Q size
 		
-		/*
-		 * start and end are strand dependent
-		 * if we are on the forward, its the beginning of the first bloack, and end of the last
-		 * if we are on reverse, need to reverse!
-		 */
-//		int start =  forwardStrand ?  seqOffset + allStartPositions.get(0)[0] : (sequence.length() - (seqOffset + allStartPositions.get(allStartPositions.size() - 1)[0] + allStartPositions.get(allStartPositions.size() - 1)[1]));
-//		int end =  forwardStrand ?  (seqOffset + allStartPositions.get(allStartPositions.size() - 1)[0] + allStartPositions.get(allStartPositions.size() - 1)[1]) : (sequence.length() - (seqOffset + allStartPositions.get(0)[0]));
-//		int start = forwardStrand ?  blocks.get(0).getMinimum().intValue() : (sequence.length() - blocks.get(blocks.size() - 1).getMaximum().intValue());
-//		int end = forwardStrand ?  blocks.get(blocks.size() - 1).getMaximum().intValue() : (sequence.length() - blocks.get(0).getMinimum().intValue());
-		
 		array[11] = "" + startPositionsAndLengths[0][1];							// Q start
 		array[12] = "" + (startPositionsAndLengths[startPositionsAndLengths.length - 1][1] + startPositionsAndLengths[startPositionsAndLengths.length - 1][2]);	// Q end
 		array[13] = bufferredCP.getChromosome();			// T name
 		Integer contigLength =  getChromosomeSize(bufferredCP.getChromosome());
 		array[14] = contigLength == null ? "12345" : contigLength.toString();								// T size
-//		int indexOfRefInBufferedRef = StringUtils.indexOfSubStringInString(bufferedReference, refFromSW);
-//		int tStart = indexOfRefInBufferedRef + bufferredCP.getStartPosition();
 		
 		array[15] = "" + (referenceOffset + startPositionsAndLengths[0][0]);								// T start
 		array[16] = "" + (referenceOffset + startPositionsAndLengths[startPositionsAndLengths.length - 1][0] + startPositionsAndLengths[startPositionsAndLengths.length - 1][2]);			// T end
@@ -221,7 +209,6 @@ public class BLATRecordUtil {
 	 * @return
 	 */
 	public static String[] getDetailsForBLATRecord(List<ChrPosition> positions, String name,  String sequence, boolean forwardStrand) {
-//		System.out.println("getDetailsForBLATRecord with positions: " + positions.stream().map(ChrPosition::toString).collect(Collectors.joining(",")) + ", name: " + name + ", sequence: " + sequence + ", fs: " + forwardStrand);
 		
 		int totalGapSize = 0;
 		int totalMatches = 0;
@@ -282,7 +269,6 @@ public class BLATRecordUtil {
 	}
 	
 	public static String[] getDetailsForBLATRecord(ChrPosition position, int misMatchCount, int queryStartPosition, String name,  String sequence, boolean forwardStrand) {
-//		System.out.println("getDetailsForBLATRecord with positions: " + positions.stream().map(ChrPosition::toString).collect(Collectors.joining(",")) + ", name: " + name + ", sequence: " + sequence + ", fs: " + forwardStrand);
 		
 		int totalMatches = position.getLength() - 1;
 		int lastEnd = position.getEndPosition();
@@ -316,7 +302,6 @@ public class BLATRecordUtil {
 		
 		return array;
 	}
-	
 	
 	public static Optional<BLATRecord> findRecordInRange(List<BLATRecord> recs, int queryStart, int queryStop) {
 		BLATRecord bestMatch = null;
@@ -492,27 +477,15 @@ public class BLATRecordUtil {
 		array[4] = qGapCount > 0 ? "1" : "0";		// Q gap count
 		array[5] = "" + qGapCount;					// Q gap bases
 		array[6] = tGapCount > 0 ? "1" : "0" ;		// T gap count
-//		array[6] = "" + (keys.length - 1);			// T gap count
 		array[7] = "" + tGapCount;					// T gap bases
 		array[8] = "" + thisRec.getStrand();		// strand
 		array[9] = thisRec.getName();				// Q name
 		array[10] = thisRec.getSize() + "";			// Q size
 		
-		/*
-		 * start and end are strand dependent
-		 * if we are on the forward, its the beginning of the first block, and end of the last
-		 * if we are on reverse, need to reverse!
-		 */
-//		int start = reverseStrand ? (seqLength - positionInSequence - length) :  positionInSequence;
-//		int end = reverseStrand ?  (seqLength - positionInSequence) : positionInSequence + length;
-		
 		array[11] = "" + queryStarts[0];						// Q start
-		// get last bloack
-//		int[] lastBlock = chrPosBlocks.get(keys[keys.length - 1]);
 		array[12] = "" + (queryStarts[queryStarts.length - 1] + blockLengths[blockLengths.length - 1]);	// Q end
 		array[13] = thisRec.getReference();				// T name
 		array[14] = "" + thisRec.getChromsomeLength();	// T size
-//		int tStart = keys[0].getStartPosition();
 		
 		array[15] = "" + templateStarts[0];						// T start
 		array[16] = "" + (templateStarts[templateStarts.length - 1] + blockLengths[blockLengths.length - 1]);		// T end
@@ -523,68 +496,6 @@ public class BLATRecordUtil {
 		
 		return Optional.of(new BLATRecord(array));
 	}
-	
-	
-	/**
-	 * Examine the supplied list of BLATRecords and if there are any that can be merged into a single BLATRecord, then do so, removing the constituent records from the returned list
-	 * 
-	 * Only merge records that contain a single block (for now...)
-	 * 
-	 * @param blatRecords
-	 * @return
-	 */
-//	public static List<BLATRecord> mergeBLATRecords(List<BLATRecord> blatRecords) {
-//		if (null == blatRecords || blatRecords.size() <= 1) {
-//			return blatRecords;
-//		}
-//		int size = blatRecords.size();
-//		List<BLATRecord> mergedBlatRecords = new ArrayList<>(size);
-//		blatRecords.sort(null);
-//		
-//		/*
-//		 * largest first
-//		 */
-//		BLATRecord br = blatRecords.get(size - 1);
-//		if (br.getBlockCount() == 1) {
-//			/*
-//			 * we have a candidate
-//			 */
-//		}
-//		
-//		
-//		
-//		return mergedBlatRecords;
-//	}
-	
-	/**
-	 * needs to be:
-	 * - same chromosome
-	 * - same strand
-	 * - within 500k bp
-	 * - not overlapping (within buffer)
-	 * - block size of 1
-	 * 
-	 *  
-	 * @param record
-	 * @param potentialMatches
-	 * @return
-	 */
-//	public static BLATRecord getPotentialMatch(BLATRecord record, List<BLATRecord> potentialMatches) {
-//		List<int[]> potentialRanges = TARecordUtil.getPossibleTileRanges(record.getSize(), record.getQueryStart(), record.getQueryEnd() - record.getQueryEnd(), 20, record.getStrand() == '-');
-//		if (potentialRanges.size() > 0) {
-//			for (BLATRecord br : potentialMatches) {
-//				if (br.getBlockCount() == 1
-//						&& br.getReference().equals(record.getReference())
-//						&& br.getStrand() == record.getStrand()
-//						&& Math.abs(br.getStartPos() - record.getStartPos()) < 500000) {
-//					
-//					
-//					
-//				}
-//			}
-//		}
-//		return null;
-//	}
 	
 	
 	/**
@@ -621,17 +532,23 @@ public class BLATRecordUtil {
 	}
 	
 	/**
-	 * 
+	 * Creates a new list, and populates it with BLATReords from the supplied list that do not overlap each other.
+	 * This is done by sorting the original list, and inserting into the nes list the largest entry from the original list.
 	 * 
 	 * @param originalList
 	 * @return
 	 */
 	public static List<BLATRecord> removeOverlappingRecords(List<BLATRecord> originalList) {
-		if (originalList.size() < 2) {
+		if (null == originalList) {
+			throw new IllegalArgumentException("Null list supplied as argument to removeOverlappingRecords!");
+		}
+		
+		int size = originalList.size();
+		if (size < 2) {
 			return originalList;
 		}
 		
-		List<BLATRecord> nonOverlappingList = new ArrayList<>(originalList.size());
+		List<BLATRecord> nonOverlappingList = new ArrayList<>(size);
 		
 		/*
 		 * sort the original list 
@@ -640,7 +557,6 @@ public class BLATRecordUtil {
 		/*
 		 * add the entry with the highest score to the new list
 		 */
-		int size = originalList.size();
 		nonOverlappingList.add(originalList.get(size - 1));
 		
 		for (int i = size - 2 ; i >= 0 ; i--) {
@@ -651,23 +567,43 @@ public class BLATRecordUtil {
 		return nonOverlappingList;
 	}
 	
+	/**
+	 *  Checks the supplied list of BLATRecords to see if any of them overlap the supplied BLATRecord.
+	 *  Loops through the list and uses {@code doRecordsOverlapReference} to make this determination.
+	 *  Will return true as soon as a record is found in the list that overlaps the main record.
+	 *   
+	 * @see doRecordsOverlapReference
+	 * @param records
+	 * @param record
+	 * @return
+	 */
 	public static boolean doesRecordOverlapEntriesInList(List<BLATRecord> records, BLATRecord record) {
 		
 		/*
 		 * nothing for it but to iterate over the list, examining each pair
 		 */
-		for (BLATRecord r : records) {
-			if (doRecordsOverlapReference(r, record)) {
-				return true;
+		if (null != records) {
+			for (BLATRecord r : records) {
+				if (doRecordsOverlapReference(r, record)) {
+					return true;
+				}
 			}
 		}
 		
 		return false;
 	}
 	
+	/**
+	 * Looks at the 2 supplied BLATRecord objects. If they are both not null, and on the same chromosome, 
+	 * them their start and end positions are examined to see if there is any overlap.
+	 * Returns true if there is, false otherwise.
+	 * 
+	 * @param r1
+	 * @param r2
+	 * @return
+	 */
 	public static boolean doRecordsOverlapReference(BLATRecord r1, BLATRecord r2) {
-		
-		if (r1.getReference().equals(r2.getReference())) {
+		if (null != r1 && null != r2 && r1.getReference().equals(r2.getReference())) {
 			int r1Start = r1.getStartPos();
 			int r1End = r1.getEndPos();
 			int r2Start = r2.getStartPos();

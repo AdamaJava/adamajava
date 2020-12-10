@@ -1,3 +1,9 @@
+/**
+ * © Copyright QIMR Berghofer Medical Research Institute 2014-2020.
+ *
+ * This code is released under the terms outlined in the included LICENSE file.
+ */
+
 package au.edu.qimr.tiledaligner.util;
 
 import au.edu.qimr.tiledaligner.PositionChrPositionMap;
@@ -303,7 +309,6 @@ public class TiledAlignerUtil {
 					 * if long is negative, then it is a commonly occurring tile - ignore these for now
 					 */
 					if (l < 0) {
-//						commonTileCount++;
 						continue;
 					}
 					
@@ -339,7 +344,6 @@ public class TiledAlignerUtil {
 									longToUse = NumberUtils.setBit(longToUse, REVERSE_COMPLEMENT_BIT);
 								}
 								map.computeIfAbsent(tally, f -> new TLongArrayList()).add(longToUse);
-//								map.computeIfAbsent(useCommonTileCount ? tally + (short)commonTileCount : tally, f -> new TLongArrayList()).add(longToUse);
 								positionCountMap.put(l, exactMatchComponent);
 							}
 						}
@@ -607,17 +611,12 @@ public class TiledAlignerUtil {
 						
 						
 						if (missingBinSeqBases.equals(missingRefBases) || missingBinSeqBases.length() != missingRefBases.length()) {
-//							logger.info("missingBinSeqBases.equals(missingRefBases) || missingBinSeqBases.length() != missingRefBases.length(), missingBinSeqBases: " + missingBinSeqBases + ", missingRefBases: " + missingRefBases);
 							// oh dear
 						} else {
-//							if (lengthDiff > 1) {
-//								logger.info("adding " + missingRefBases + ">" + missingBinSeqBases + " to sw diffs");
-//							}
 							diffs[0] += missingRefBases;
 							StringBuilder sb = new StringBuilder(lengthDiff);
 							for (int i = 0 ; i < lengthDiff ; i++) {
 								sb.append((missingRefBases.charAt(i) == missingBinSeqBases.charAt(i)) ? '|' : Constants.MISSING_DATA);
-//								diffs[1] += (missingRefBases.charAt(i) == missingBinSeqBases.charAt(i)) ? "|" : Constants.MISSING_DATA_STRING;
 							}
 							diffs[1] += sb.toString();
 							diffs[2] += missingBinSeqBases;
@@ -638,7 +637,6 @@ public class TiledAlignerUtil {
 					String missingRefBases = ref.substring(Math.max(0, refIndex - lengthDiff), refIndex);
 					
 					if (missingBinSeqBases.equals(missingRefBases) || missingBinSeqBases.length() != missingRefBases.length()) {
-//						logger.info("missingBinSeqBases.equals(missingRefBases) || missingBinSeqBases.length() != missingRefBases.length(), missingBinSeqBases: " + missingBinSeqBases + ", missingRefBases: " + missingRefBases);
 						// oh dear
 					} else {
 						diffs[0] = missingRefBases + diffs[0];
@@ -690,7 +688,6 @@ public class TiledAlignerUtil {
 		
 		int insertionCount = getInsertionCount(diffs[1], ' ');
 		if (insertionCount >= 4 &&  ! useOriginalValues) {
-//			if (insertionCount >= 4 && optimiseForGaps && ! useOriginalValues) {
 			swCounter.incrementAndGet();
 			nm = new SmithWatermanGotoh(ref, sequence, 5, -4, 16, 4);	// original
 			String [] newDiffs = nm.traceback();
@@ -981,7 +978,6 @@ public class TiledAlignerUtil {
 								
 								ChrPosition cp = pcpm.getChrPositionFromLongPosition(l);
 								boolean forwardStrand = "F".equals(((ChrPositionName)cp).getName());
-								int buffer = 10;
 								/*
 								 * need to check that reference for this position matches the sequence we have
 								 * This is because we may have some errors due to our commonly occurring tiles.....
@@ -1006,7 +1002,6 @@ public class TiledAlignerUtil {
 				}
 			}
 		}
-		
 		return swResults;
 	}
 	
@@ -1063,7 +1058,6 @@ public class TiledAlignerUtil {
 			if (thisChar == ' ') {
 				if (previousChar != ' ') {
 					ranges.add(Range.between(startPosition - 1, i - 1));
-//					startPosition = i + 1;
 				}
 			} else {
 				if (previousChar == ' ') {
@@ -1386,7 +1380,6 @@ public class TiledAlignerUtil {
 		boolean needToRunSW = true;
 		
 		TLongList perfectMatches = new TLongArrayList();
-//		if (commonTileCountAtStart > 0 || commonTileCountAtStartRC > 0) {
 		/*
 		 * Check to see if we have any potential perfect matches taking into account the common tile count
 		 */
@@ -1554,7 +1547,6 @@ public class TiledAlignerUtil {
 				if ( ! gotSplits) {
 					
 					List<BLATRecord[]> blatRecs = TARecordUtil.blatRecordsFromSplitsNew(splits, name, taRec.getSequence().length(), headerMap);
-//					List<BLATRecord[]> blatRecs = TARecordUtil.blatRecordsFromSplits(splits, name, taRec.getSequence().length(), headerMap);
 					logger.info("splits blat record count: " + blatRecs.size() + " for " + name);
 					if ( ! blatRecs.isEmpty()) {
 						
@@ -1577,8 +1569,6 @@ public class TiledAlignerUtil {
 								}
 							}
 						}
-//					}
-						
 					} else {
 						logger.info("No split record found for name: " + name + ", gotSplits: " + gotSplits);
 					}
@@ -2205,13 +2195,11 @@ public class TiledAlignerUtil {
 			 * this method will only return a populated string array if valid results have been found (ie. passed the filters)
 			 * and so can add directly to collection
 			 */
-//			int passingPercentScore = (int) (seqLength * 0.99);
 			float misMatchCutoff = 0.1f * seqLength;			// looking at a 10% max mismatch rate
 			
 			
 			String [] swDiffs = getIntelligentSwDiffs(bufferedReference, fragString, misMatchCutoff, 6, preferStrictSW);
 			if (swDiffs.length > 0) {
-//				int score = getSWScore(swDiffs[1]);
 					
 				String [] blatDetails = BLATRecordUtil.getDetailsForBLATRecord(bufferedCP, swDiffs, name, sequence, ! reverseComplement, bufferedReference);
 				if (null != blatDetails && blatDetails.length > 0) {
@@ -2238,7 +2226,6 @@ public class TiledAlignerUtil {
 		int[][] startPositionsAndLengths = StringUtils.getStartPositionsAndLengthOfSubStrings(bufferedReference, fragString);
 		int splitsLengthTally = 0;
 		for (int [] array : startPositionsAndLengths) {
-//			logger.info("start positions and length: " + Arrays.toString(array));
 			splitsLengthTally += array[2];
 		}
 		logger.debug("name: " + name + ", splits length: " + length + ", seqLength: + " + sequence.length() + ", number of blocks: " + startPositionsAndLengths.length + ", tally: " + splitsLengthTally);
@@ -2271,7 +2258,6 @@ public class TiledAlignerUtil {
 			ChrPosition cp2 = new ChrPositionName(cp.getChromosome(), cp.getStartPosition(), cp.getStartPosition() + length, forwardStrand ? subSequence : subSequenceRC);
 			String [] blatDetails = BLATRecordUtil.getDetailsForBLATRecord(cp2, mismatchCount, NumberUtils.getShortFromLong(l, POSITION_OF_TILE_IN_SEQUENCE_OFFSET), name, sequence, forwardStrand);
 			if (blatDetails.length > 0) {
-	//								logger.info("adding to swResutls: " + Arrays.deepToString(blatDetails));
 				return new BLATRecord(blatDetails);
 			}
 		}

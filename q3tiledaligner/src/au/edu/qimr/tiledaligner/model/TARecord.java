@@ -1,3 +1,9 @@
+/**
+ * © Copyright QIMR Berghofer Medical Research Institute 2014-2020.
+ *
+ * This code is released under the terms outlined in the included LICENSE file.
+ */
+
 package au.edu.qimr.tiledaligner.model;
 
 import au.edu.qimr.tiledaligner.util.TARecordUtil;
@@ -105,7 +111,6 @@ public class TARecord {
 	 */
 	public TLongList getPerfectMatchPositions() {
 		int perfectMatchCount = sequence.length() - TiledAlignerUtil.TILE_LENGTH + 1;
-//		System.out.println("in getPerfectMatchPositions with sequence.length(): " + sequence.length() + " and perfectMatchCount: " + perfectMatchCount);
 		
 		/*
 		 * convert this number to tile count that includes common tiles, although set the common tile count to zero for exact match
@@ -150,7 +155,6 @@ public class TARecord {
 								long l2 = subList.get(m);
 								long absoluteDiff = Math.abs(l - l2);
 								if (absoluteDiff < window) {
-//									if (absoluteDiff < window && absoluteDiff > TiledAlignerUtil.TILE_LENGTH * (i - k)) {
 									/*
 									 * Check to see if the combined lengths of these regions equal more than 30% of the sequence length
 									 * if so, insert an entry into the map!
@@ -159,7 +163,6 @@ public class TARecord {
 										map.put(l, keys[i] + TiledAlignerUtil.TILE_LENGTH - 1);
 										map.put(l2, keys[k] + TiledAlignerUtil.TILE_LENGTH - 1);
 									}
-//									System.out.println("added " + l + ":" + (keys[i] + TiledAlignerUtil.TILE_LENGTH - 1) + ", and " + l2 + ":" + (keys[k] + TiledAlignerUtil.TILE_LENGTH - 1) + " to map!");
 								}
 							}
 						}
@@ -210,7 +213,6 @@ public class TARecord {
 									long l2 = subList.get(m);
 									long absoluteDiff = Math.abs(l - l2);
 									if ((absoluteDiff < window) && (absoluteDiff > minimumDistanceApart)) {
-	//									if (absoluteDiff < window && absoluteDiff > TiledAlignerUtil.TILE_LENGTH * (i - k)) {
 										/*
 										 * Check to see if the combined lengths of these regions equal more than 30% of the sequence length
 										 * if so, insert an entry into the map!
@@ -221,7 +223,6 @@ public class TARecord {
 											alreadyAddedLongs.add(l);
 											alreadyAddedLongs.add(l2);
 										}
-	//									System.out.println("added " + l + ":" + (keys[i] + TiledAlignerUtil.TILE_LENGTH - 1) + ", and " + l2 + ":" + (keys[k] + TiledAlignerUtil.TILE_LENGTH - 1) + " to map!");
 									}
 								}
 							}
@@ -309,8 +310,6 @@ public class TARecord {
 		
 		int [] keys = countAndStartPositionsMap.keys();
 		keys = TARecordUtil.sortTileCount(keys);
-//		keys = Arrays.stream(keys).mapToObj(k -> NumberUtils.splitIntInto2(k)).sorted((a,b) -> Integer.compare((a[0] - a[1]), (b[0] - b[1]))).mapToInt(a -> NumberUtils.pack2IntsInto1(a[0], a[1])).toArray();
-//		Arrays.sort(keys);
 		
 		/*
 		 * get the top 3 (if present)
@@ -343,8 +342,6 @@ public class TARecord {
 		
 		int [] keys = countAndStartPositionsMap.keys();
 		keys = TARecordUtil.sortTileCount(keys);
-//		keys = Arrays.stream(keys).mapToObj(k -> NumberUtils.splitIntInto2(k)).sorted((a,b) -> Integer.compare((a[0] - a[1]), (b[0] - b[1]))).mapToInt(a -> NumberUtils.pack2IntsInto1(a[0], a[1])).toArray();
-//		Arrays.sort(keys);
 		
 		/*
 		 * get the top 3 (if present)
@@ -363,7 +360,6 @@ public class TARecord {
 						return true;
 					}
 				});
-//				list.addAll(countAndStartPositionsMap.get(keys[i]).forEach(l -> new IntLongPair(keys[i], l)));
 			} else {
 				
 				if (countAndStartPositionsMap.get(key).size() + map.size() < maxCutoff) {
@@ -374,49 +370,11 @@ public class TARecord {
 							return true;
 						}
 					});
-//					list.addAll(countAndStartPositionsMap.get(keys[i]));
 				}
 			}
 		}
 		return map;
 	}
-	
-//	public TAClassifier getClassification() {
-//		int perfectMatchCount = sequence.length() - TiledAlignerUtil.TILE_LENGTH + 1;
-//		int [] keys = countAndStartPositionsMap.keys();
-//		Arrays.sort(keys);
-//		
-//		
-//		int maxCount = keys[keys.length - 1];
-//		TLongList list = countAndStartPositionsMap.get(maxCount);
-//		int listSize = list.size();
-//		
-//		if (maxCount == perfectMatchCount) {
-//			if (listSize == 1) {
-//				return TAClassifier.PM_SE;
-//			} else if (listSize < 100) {
-//				return TAClassifier.PM_LTOHE;
-//			} else {
-//				return TAClassifier.PM_MTOHE;
-//			}
-//		}
-//		
-//		int quartile = perfectMatchCount / 4;
-//		
-//		for (int i = 1 ; i < 5 ; i++) {
-//			if (maxCount > perfectMatchCount - ( i * quartile)) {
-//				if (listSize == 1) {
-//					return i == 1 ? TAClassifier.FIRST_Q_SE : (i == 2 ? TAClassifier.SECOND_Q_SE : (i == 3 ? TAClassifier.THIRD_Q_SE : TAClassifier.FOURTH_Q_SE)) ;
-//				} else if (listSize < 100) {
-//					return i == 1 ? TAClassifier.FIRST_Q_LTOHE : (i == 2 ? TAClassifier.SECOND_Q_LTOHE : (i == 3 ? TAClassifier.THIRD_Q_LTOHE : TAClassifier.FOURTH_Q_LTOHE)) ;
-//				} else {
-//					return i == 1 ? TAClassifier.FIRST_Q_MTOHE : (i == 2 ? TAClassifier.SECOND_Q_MTOHE : (i == 3 ? TAClassifier.THIRD_Q_MTOHE : TAClassifier.FOURTH_Q_MTOHE)) ;
-//				}
-//			}
-//		}
-//		return TAClassifier.UNKNOWN;
-//	}
-	
 	
 	public TLongList getStartPositionsForCount(int count) {
 		return countAndStartPositionsMap.get(count);

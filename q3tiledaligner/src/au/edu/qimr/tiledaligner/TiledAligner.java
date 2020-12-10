@@ -1,6 +1,16 @@
+/**
+ * © Copyright QIMR Berghofer Medical Research Institute 2014-2020.
+ *
+ * This code is released under the terms outlined in the included LICENSE file.
+ */
+
 package au.edu.qimr.tiledaligner;
 
 import au.edu.qimr.tiledaligner.util.TiledAlignerUtil;
+
+import gnu.trove.map.TIntObjectMap;
+import gnu.trove.map.hash.TIntObjectHashMap;
+import htsjdk.samtools.util.SequenceUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,14 +24,8 @@ import java.util.Set;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.BLATRecord;
-import org.qcmg.common.util.LoadReferencedClasses;
 import org.qcmg.common.util.NumberUtils;
 import org.qcmg.string.StringFileReader;
-
-import gnu.trove.map.TIntObjectMap;
-import gnu.trove.map.hash.TIntObjectHashMap;
-import htsjdk.samtools.reference.FastaSequenceFile;
-import htsjdk.samtools.util.SequenceUtil;
 
 public class TiledAligner {
 	
@@ -30,12 +34,10 @@ public class TiledAligner {
 	
 	private static String version;
 	private String logFile;
-	private String outputFile;
 	private String inputFile;
 	private String reference;
 	private String sequence;
 	private String name;
-	private FastaSequenceFile sequenceFile;
 	
 	protected int engage() throws Exception {
 		

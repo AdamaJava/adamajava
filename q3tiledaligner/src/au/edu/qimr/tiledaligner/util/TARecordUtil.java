@@ -1,3 +1,9 @@
+/**
+ * © Copyright QIMR Berghofer Medical Research Institute 2014-2020.
+ *
+ * This code is released under the terms outlined in the included LICENSE file.
+ */
+
 package au.edu.qimr.tiledaligner.util;
 
 import au.edu.qimr.tiledaligner.PositionChrPositionMap;
@@ -37,7 +43,6 @@ public class TARecordUtil {
 	public static final int MIN_BLAT_SCORE = TiledAlignerUtil.MINIMUM_BLAT_RECORD_SCORE;
 	public static final int MIN_TILE_COUNT = MIN_BLAT_SCORE - TILE_LENGTH;
 	public static final int MAX_GAP_FOR_SINGLE_RECORD = 500000;
-//	public static final int MAX_GAP_FOR_SINGLE_RECORD = 10000;
 	public static final int BUFFER = 10;
 	public static final int RANGE_BUFFER = 5;
 	public static final int MIN_BLAT_SCORE_MINUS_BUFFER = MIN_BLAT_SCORE - BUFFER;
@@ -86,367 +91,7 @@ public class TARecordUtil {
 	 * @param record
 	 * @return
 	 */
-//	public static boolean taRecSuitableForAlternativeAlignment(TARecord record) {
-//		
-//		TLongIntMap positions = record.getCompoundStartPositions(10000);
-//		System.out.println("positions size: " + positions.size());
-//		positions.forEachEntry((l,i) -> {System.out.println("p.key: " + l + ", value: " + NumberUtils.getPartOfPackedInt(i, true)); return true;});
-//		
-//		TLongIntMap bestPositions = record.getBestCompoundStartPositions(10000, 100);
-//		System.out.println("bestPositions size: " + bestPositions.size());
-//		bestPositions.forEachEntry((l,i) -> {System.out.println("p.key: " + l + ", value: " + NumberUtils.getPartOfPackedInt(i, true)); return true;}); 
-//		
-//		
-//		return false;
-//	}
 	
-//	public static void main(String[] args) {
-//		String seq = "AAAGAATGTAATTATATCTAGTGCTGCAGAAAGGCCTTTAGAAATAAGAGGGCCATATGACGTGGCAAATCTAGGCTTGCTGTTTGGGCTCTCTGAAAGTGACGCCAAGGCTGCGGTGTCCACCAACTGCCGAGCAGCGCTTCTCCATGGAGAAACTAGAAAAACTGCTTTTGGAATTATCTCTACAGTGAAGAAACCTCGGCCATCAGAAGGAGATGAAGATTGTCTTCCAGCTTCCAAGAAAGCCAAGTGTGAGGGCTGAAAAGAATGCCCCAGTCTCTGTCAGCACC";
-//		Map<Integer, TLongList> countPosition = new HashMap<>();
-//		
-//		System.out.println("38 in fancy speak: " + NumberUtils.getTileCount(38,0));
-//		
-//		countPosition.put(NumberUtils.getTileCount(127,0), getLongList(1773033468));
-//		countPosition.put(NumberUtils.getTileCount(68,0), getLongList(1773029213));
-//		countPosition.put(NumberUtils.getTileCount(27,0), getLongList(1773028779));
-//		countPosition.put(NumberUtils.getTileCount(20,0), getLongList(1773028352));
-//		countPosition.put(NumberUtils.getTileCount(9,0), getLongList(849417735));
-//		countPosition.put(NumberUtils.getTileCount(7,0), getLongList(1871817837));
-//		countPosition.put(NumberUtils.getTileCount(6,0), getLongList(489936744l, 2519505810l, 841100535, 723777900, 2692250839l, 4611686020551367800l, 4611686020113723373l, 4611686019028499874l));
-//		
-//		
-//		TARecord rec = new TARecord(seq, countPosition);
-//		
-//		System.out.println("taRecSuitableForSmithWaterman: " + taRecSuitableForAlternativeAlignment(rec));
-//		
-//		
-//		/*
-//		 * the next record should not return any compound collections
-//		 */
-//		countPosition.clear();
-//		countPosition.put(NumberUtils.getTileCount(48,0), getLongList(2859915179l));
-//		countPosition.put(NumberUtils.getTileCount(8,0), getLongList(4611686021185871748l, 4611686020065615314l, 4611686018836134883l));
-//		countPosition.put(NumberUtils.getTileCount(7,0), getLongList(1224943698,1338097123, 1666708881, 2625345865l, 4611686020564558640l ,4611686019732189580l, 4611686019861845410l));
-//		
-//		
-//		rec = new TARecord(seq, countPosition);
-//		
-//		System.out.println("taRecSuitableForSmithWaterman: " + taRecSuitableForAlternativeAlignment(rec));
-//		
-//		/*
-//		 * not sure about this one
-//		 */
-//		countPosition.clear();
-//		countPosition.put(3276800, getLongList(2960694027l, 4611686019344588891l));
-//		countPosition.put(3145728, getLongList( 1529683796,1808006950, 1414478922, 4611686018507797949l, 4611686018820208328l, 4611686018982675941l, 4611686019880971921l,4611686020699639737l));
-//		countPosition.put(3080192, getLongList(841241781, 1506401925, 4611686019453818857l, 4611686021350488568l, 4611686021377430294l, 4611686019868196139l));
-//		countPosition.put(3014656, getLongList(660178815, 4611686018650962746l, 4611686019038669433l));
-//		countPosition.put(2949120, getLongList(1854121183, 555571942, 1114302415, 1162194121, 1178038352, 1520149521, 4611686018899658818l));
-//		countPosition.put(2883584, getLongList(833646922, 2389448732l, 4611686019787516765l));
-//		countPosition.put(2818048, getLongList(493879239, 435979951));
-//		countPosition.put(2752512, getLongList(308804068, 2187940672l, 2976557677l, 4611686019587760389l));
-//		
-//		countPosition.put(2490368, getLongList(59423804l,71979384l,83729291l,93975158l,142876166l,187566804l,192469715l,220418500l,247850478l,253941183l,374416071l,417095586l,497408217l,551277875l,608528841l,706315597l,714088822l,750416990l,769499316l,771098131l,824337991l,838056866l,855744329l,857963556l,866413318l,895043313l,914749180l,924361520l,939306705l,940317247l,974223445l,979509072l,1014545680l,1031749100l,1060154771l,1161692896l,1166698867l,1167479231l,1175566911l,1176089652l,1179501823l,1179965258l,1201685740l,1204429206l,1259440483l,1266161170l,1276755723l,1303319345l,1344742780l,1469032147l,1477155070l,1545295560l,1560696325l,1611280683l,1616198903l,1632071601l,1652339098l,1685660463l,1767488409l,1772143959l,1843149141l,1876207525l,1891367552l,1907810459l,1958318134l,1996259151l,1996679039l,2041844790l,2060349162l,2063973408l,2081199656l,2248306566l,2248592468l,2263039458l,2286288121l,2346360670l,2389375993l,2391338123l,2401504351l,2463893120l,2471633094l,2471652471l,2531386020l,2581902778l,2589333518l,2618512633l,2626553819l,2770693696l,2913782304l,2937755607l,2968109697l,2987640855l,3022598920l,3027768542l,3039615440l,3061304939l,3062938687l,3063819698l,3099852764l,943785683l,1492068194l,2266263179l,4611686018493418114l,4611686018532595346l,4611686018532706752l,4611686018570519606l,4611686018600344299l,4611686018601740806l,4611686018623582384l,4611686018664576649l,4611686018687780735l,4611686018693419499l,4611686018712984153l,4611686018789905896l,4611686018806261063l,4611686018836790119l,4611686018851036521l,4611686018858342890l,4611686018863350959l,4611686018923789007l,4611686018937740732l,4611686018941868518l,4611686018943974828l,4611686018966668474l,4611686018974272199l,4611686018997656675l,4611686019009238639l,4611686019010062594l,4611686019023119259l,4611686019061319841l,4611686019131877386l,4611686019176294789l,4611686019184020258l,4611686019193509073l,4611686019194062093l,4611686019218552898l,4611686019225358506l,4611686019238736189l,4611686019313517037l,4611686019347646404l,4611686019393974014l,4611686019399132811l,4611686019413869527l,4611686019425883875l,4611686019433715280l,4611686019447361730l,4611686019475414375l,4611686019481850383l,4611686019492353849l,4611686019495822461l,4611686019514747747l,4611686019561416869l,4611686019563634221l,4611686019574443301l,4611686019623277697l,4611686019646581956l,4611686019691505001l,4611686019691727328l,4611686019693773209l,4611686019726802750l,4611686019754265961l,4611686019754467870l,4611686019771248499l,4611686019797149840l,4611686019808590594l,4611686019856531594l,4611686019882370118l,4611686019890453211l,4611686019893977368l,4611686019916571505l,4611686019919785895l,4611686019950093310l,4611686019957639890l,4611686020082114006l,4611686020082753435l,4611686020088937195l,4611686020119540462l,4611686020138997964l,4611686020190249298l,4611686020208309723l,4611686020219339210l,4611686020279874929l,4611686020330352845l,4611686020333435009l,4611686020381916652l,4611686020383533855l,4611686020391852827l,4611686020399670282l,4611686020420339503l,4611686020422810295l,4611686020430264699l,4611686020433798325l,4611686020490575377l,4611686020505091845l,4611686020547214584l,4611686020562914619l,4611686020565003948l,4611686020646390372l,4611686020653003800l,4611686020672504338l,4611686020786003420l,4611686020976970174l,4611686020992158429l,4611686021022736816l,4611686021153064004l,4611686021158748852l,4611686021219165383l,4611686021310249820l,4611686021371660304l,4611686021383202151l,4611686021383970356l,4611686021386888468l,4611686021403739980l,4611686021411708604l,4611686021438806689l,4611686021459831641l,4611686021465470380l,4611686021469171938l,4611686021478988717l,4611686021479368873l,4611686021482870541l,4611686021486803747l,4611686021490138285l,4611686021491019259l,4611686021528498270l,4611686018571431810l));
-//		
-//		
-//		rec = new TARecord("CGTTGCTCACACTGGGAGCTGTAGACCGGAGCTGTTCCTATTCGGCCATCTTGGCTCCTCCCCC", countPosition);
-//		
-//		System.out.println("taRecSuitableForSmithWaterman: " + taRecSuitableForAlternativeAlignment(rec));
-//		
-////		getSplitPositions(createTARec_chr15_34031839_split(), 1680373145, 1680373145 + 135534747, 2307285721l, 2307285721l + 102531392);
-//		
-//		pcpm.loadMap(PositionChrPositionMap.grch37Positions);
-//		
-//		System.out.println("trying out splitting");
-//		TARecord r = createTARec_chr15_34031839_split_withTileStartPositionsWithinRange();
-//		TIntObjectMap<Set<IntLongPairs>> splits = getSplitStartPositions(r);
-//		System.out.println("trying out splitting, splits.size: " + splits.size());
-//		List<BLATRecord[]> blatRecs = blatRecordsFromSplits(splits, "splitcon_chr10_127633807_chr15_34031839__true_1586132281792_839799", r.getSequence().length(), pcpm);
-//		System.out.println("blat record count: " + blatRecs.size());
-//		for (BLATRecord br : blatRecs.get(0)) {
-//			System.out.println("blat record: " + br.toString());
-//		}
-//		
-//		/*
-//		 * from qsv:
-//		 * 119     119     0       0       0       0       0       0       0       +       splitcon_chr10_127633807_chr15_34031839__true_1586132281792_839799      188     69      188     chr15   12345   34031838        34031957        1       119     69      34031838
-//		 * 65      67      2       0       0       0       0       0       0       -       splitcon_chr10_127633807_chr15_34031839__true_1586132281792_839799      188     0       69      chr10   12345   127633806       127633875       1       69      119     127633806
-//		 * 
-//		 * from here:
-//		 * 60	60	0	0	0	0	0	0	0	-	splitcon_chr10_127633807_chr15_34031839__true_1586132281792_839799	188	9	69	chr10	12345	127633806	127633866	1	60	119	127633806
-// 		 * 119	119	0	0	0	0	0	0	0	+	splitcon_chr10_127633807_chr15_34031839__true_1586132281792_839799	188	69	188	chr15	12345	34031838	34031957	1	119	69	34031838
-//		 */
-//		
-//		
-//		
-//		r = createTARec_chr8_125551528_split_withTileStartPositionsWithinRange();
-//		splits = getSplitStartPositions(r);
-//		System.out.println("trying out splitting, splits.size: " + splits.size());
-//		blatRecs = blatRecordsFromSplits(splits, "splitcon_chr8_125551528_chr8_125555328__true_1589928259240_726892", r.getSequence().length(), pcpm);
-//		System.out.println("blat record count: " + blatRecs.size());
-//		for (BLATRecord br : blatRecs.get(0)) {
-//			System.out.println("blat record: " + br.toString());
-//		}
-//		
-//		
-//		
-//		//createTARec_splitcon_chr7_100867120_chr7_100867215
-//		r = createTARec_splitcon_chr7_100867120_chr7_100867215();
-//		splits = getSplitStartPositions(r);
-//		System.out.println("trying out splitting, splits.size: " + splits.size());
-//		blatRecs = blatRecordsFromSplits(splits, "splitcon_chr7_100867120_chr7_100867215", r.getSequence().length(), pcpm);
-//		System.out.println("blat record count: " + blatRecs.size());
-//		for (BLATRecord br : blatRecs.get(0)) {
-//			System.out.println("blat record: " + br.toString());
-//		}
-//	}
-	
-	
-//	public static TARecord createTARecord() {
-//		String seq = "AAAGAATGTAATTATATCTAGTGCTGCAGAAAGGCCTTTAGAAATAAGAGGGCCATATGACGTGGCAAATCTAGGCTTGCTGTTTGGGCTCTCTGAAAGTGACGCCAAGGCTGCGGTGTCCACCAACTGCCGAGCAGCGCTTCTCCATGGAGAAACTAGAAAAACTGCTTTTGGAATTATCTCTACAGTGAAGAAACCTCGGCCATCAGAAGGAGATGAAGATTGTCTTCCAGCTTCCAAGAAAGCCAAGTGTGAGGGCTGAAAAGAATGCCCCAGTCTCTGTCAGCACC";
-//		Map<Integer, TLongList> countPosition = new HashMap<>();
-//		
-//		countPosition.put(8323072, getLongList(1773033468));
-//		countPosition.put(1769472, getLongList(1773028779));
-//		countPosition.put(589824, getLongList(849417735));
-//		countPosition.put(524288, getLongList(1871817837));
-//		countPosition.put(458752, getLongList(489936744,2519505810l,841100535,723777900, 2692250839l,4611686020551367800l, 4611686020113723373l,4611686019028499874l));
-//		countPosition.put(393216, getLongList(2590425720l, 1213578263,1275022186, 3022457391l, 4611686020263048134l, 4611686019266487298l, 4611686019044195867l, 4611686018535246479l, 4611686018514089669l, 4611686020558051630l, 4611686020710517289l, 4611686018604963266l, 4611686020650563757l, 4611686021085481831l, 4611686018519835715l, 4611686020197744473l, 4611686018975194550l, 4611686020139682797l, 4611686018611751762l, 4611686019333492255l, 4611686020725560615l, 4611686019472767768l, 4611686019265594152l, 4611686019588474803l, 4611686020068315911l, 4611686021325807621l, 4611686020929619672l, 4611686019614000954l, 4611686021073078339l));
-//		
-//		
-//		countPosition.put(4456448, getLongList(1773029213));
-//		countPosition.put(1310720, getLongList(1773028352));
-//		
-//		TARecord rec = new TARecord(seq, countPosition);
-//		return rec;
-//	}
-//	
-//	public static TARecord createTARec_chr15_34031839_split() {
-//		/*
-//		 * splitcon_chr10_127633807_chr15_34031839
-//		 */
-//		String seq = "TTCGGCGTTGCTCACACTGGGAGCTGTAGACCGGAGCTGTTCCTATTCGGCCATCTTGGCTCCTCCCCCTATAGTGTTATTTCATTTTCCAAGGATACCTGCATTTCCACCAGAAAATATTTAAGGGGTTACACATTTCCCGTTTTGGTTAACCTGGATAAATGCGCGTATTTTATTTCTGTTTTCAG";
-//		Map<Integer, TLongList> countPosition = new HashMap<>();
-//		
-//		countPosition.put(3342336, getLongList(917200986, 4611686019268629681l));
-//		countPosition.put(3276800, getLongList(4611686021388081931l));
-//		countPosition.put(3211264, getLongList(392820424, 4611686019841866826l));
-//		countPosition.put(3145728, getLongList(80410045l,555288037l,1453584017l,2272251833l,4611686019957071700l,4611686020235394854l));
-//		countPosition.put(3080192, getLongList(1026430953l,2923100664l,2950042390l,1440808235l,4611686019933789829l));
-//		countPosition.put(3014656, getLongList(223574842l,611281529l,4611686019087566719l));
-//		countPosition.put(2949120, getLongList(472270914l,58740652l,432146535l,4611686018921267141l,4611686020281509087l,4611686018982959846l,4611686019541690319l,4611686019589582025l,4611686019605426256l,4611686019947537425l));
-//		countPosition.put(2883584, getLongList(1360128861l,855953047l,2911039236l,4611686018924132828l,4611686019261034826l,4611686020816836636l));
-//		countPosition.put(2818048, getLongList(1140157854l,1187575884l,1681646586l,2930823348l,4611686020897215369l,4611686019075024747l,4611686018792400455l,4611686019018591529l,4611686019282413711l,4611686020193800769l,4611686018863367855l));
-//		countPosition.put(7012352, getLongList(2341317558l));
-//		countPosition.put(2752512, getLongList(1160372485l,35037654l,169226777l,170064290l,307865270l,545855294l,590079559l,898276097l,960024381l,1061962185l,1147621313l,1172620199l,1215575699l,1344546577l,1475039753l,1481135695l,1489366131l,1848876640l,2123168685l,2387069827l,2483681389l,2727155027l,2770651358l,2944511489l,4611686018599671290l,4611686018836017654l,4611686019133035956l,4611686019139021341l,4611686019675789035l,4611686019760451753l,4611686019999276630l,4611686020080100993l,4611686020219126251l,4611686020236126087l,4611686020658156826l,4611686020892837724l,4611686020897215520l,4611686020909866188l,4611686021225286132l,4611686021458919982l,4611686018736191972l,4611686020615328576l,4611686021403945581l,4611686021274257912l));
-//		
-//		System.out.println("lowest count: " + NumberUtils.getPartOfPackedInt(2752512, true));
-//		
-//		TARecord rec = new TARecord(seq, countPosition);
-//		return rec;
-//	}
-	
-//	public static TARecord createTARec_chr15_34031839_split_withTileStartPositions() {
-//		/*
-//		 * splitcon_chr10_127633807_chr15_34031839
-//		 */
-//		String seq = "TTCGGCGTTGCTCACACTGGGAGCTGTAGACCGGAGCTGTTCCTATTCGGCCATCTTGGCTCCTCCCCCTATAGTGTTATTTCATTTTCCAAGGATACCTGCATTTCCACCAGAAAATATTTAAGGGGTTACACATTTCCCGTTTTGGTTAACCTGGATAAATGCGCGTATTTTATTTCTGTTTTCAG";
-//		Map<Integer, TLongList> countPosition = new HashMap<>();
-//		
-//		/*
-//		 * match count: [107, 0], number of starts: 1
-//p: 75868643634102
-//match count: [51, 0], number of starts: 2
-//p: 4398963712090
-//p: 4611812463105823921
-//match count: [50, 0], number of starts: 1
-//p: 4611817962783415051
-//match count: [49, 0], number of starts: 2
-//p: 9895997470408
-//p: 4611821259772083274
-//match count: [48, 0], number of starts: 6
-//p: 9895685060029
-//p: 9896159938021
-//p: 9897058234001
-//p: 9897876901817
-//p: 4611816861840777044
-//p: 4611816862119100198
-//match count: [47, 0], number of starts: 5
-//p: 9896631080937
-//p: 9898527750648
-//p: 9898554692374
-//p: 10996557085995
-//p: 4611817961329122949
-//match count: [46, 0], number of starts: 3
-//p: 9895828224826
-//p: 9896215931513
-//p: 4611819059994527615
-//match count: [45, 0], number of starts: 10
-//match count: [44, 0], number of starts: 6
-//p: 9896964778845
-//p: 17593041997463
-//p: 17595097083652
-//p: 4611813562272954844
-//p: 4611821259191251274
-//p: 4611821260747053084
-//		 */
-//		
-//		countPosition.put(7012352, getLongList(75868643634102l));
-//		countPosition.put(3342336, getLongList(4398963712090l, 4611812463105823921l));
-//		countPosition.put(3276800, getLongList(4611817962783415051l));
-//		countPosition.put(3211264, getLongList(9895997470408l, 4611821259772083274l));
-//		countPosition.put(3145728, getLongList(9895685060029l,9896159938021l,9897058234001l,9897876901817l,4611816861840777044l,4611816862119100198l));	// 4611816862119100198l is the one we want!!!
-//		countPosition.put(3080192, getLongList(9896631080937l,9898527750648l,9898554692374l,10996557085995l,4611817961329122949l));
-//		countPosition.put(3014656, getLongList(9895828224826l,9896215931513l,4611819059994527615l));
-//		countPosition.put(2883584, getLongList(9896964778845l,17593041997463l,17595097083652l,4611813562272954844l,4611821259191251274l,4611821260747053084l));
-//		TARecord rec = new TARecord(seq, countPosition);
-//		return rec;
-//	}
-	
-//	public static TARecord createTARec_chr15_34031839_split_withTileStartPositionsWithinRange() {
-//		/*
-//		 * splitcon_chr10_127633807_chr15_34031839
-//		 */
-//		String seq = "TTCGGCGTTGCTCACACTGGGAGCTGTAGACCGGAGCTGTTCCTATTCGGCCATCTTGGCTCCTCCCCCTATAGTGTTATTTCATTTTCCAAGGATACCTGCATTTCCACCAGAAAATATTTAAGGGGTTACACATTTCCCGTTTTGGTTAACCTGGATAAATGCGCGTATTTTATTTCTGTTTTCAG";
-//		Map<Integer, TLongList> countPosition = new HashMap<>();
-//		
-//		/*
-//		 * match count: [107, 0], number of starts: 1
-//p: 75868643634102
-//match count: [48, 0], number of starts: 1
-//p: 4611816862119100198
-//match count: [44, 0], number of starts: 1
-//p: 4611821260747053084
-//match count: [43, 0], number of starts: 2
-//p: 17593867691002
-//p: 4611814663054250561
-//match count: [42, 0], number of starts: 3
-//p: 17594573114243
-//p: 4611815762591203819
-//p: 4611815762608203655
-//match count: [41, 0], number of starts: 12
-//p: 17593872835136
-//p: 17593884743111
-//p: 17593973560642
-//p: 17593999726488
-//p: 17594546763755
-//p: 17594567136894
-//p: 4611816862002159212
-//p: 4611816862074935759
-//p: 4611816862656098325
-//p: 4611816862669844665
-//p: 4611816862676796898
-//p: 4611816862705450293
-//		 */
-//		
-//		countPosition.put(7012352, getLongList(75868643634102l));
-//		countPosition.put(3145728, getLongList(4611816862119100198l));	// 4611816862119100198l is the one we want!!!
-//		TARecord rec = new TARecord(seq, countPosition);
-//		return rec;
-//	}
-	
-//	public static TARecord createTARec_chr8_125551528_split_withTileStartPositionsWithinRange() {
-//		/*
-//		 * splitcon_chr8_125551528_chr8_125555328__true_1589928259240_726892
-//		 */
-//		String seq = "CGCGGCCGGGGAAGGTCAGCGCCGTAATGGCGTTCTTGGCGTCGGGACCCTACCTGACCCATCAGCAAAAGGTGTTGCGGCTTTATAAGCGGGCGCTACGCCACCTCGAGTCGTGGTGCGTCCAGAGAGACAAATACCGATACTTTGCTTGTTTGATGAGAGCCCGGTTTGAAGAACATAAGAATGAAAAGGATATGGCGAAGGCCACCCAGCTGCTGAAGGAGGCCGAGGAAGAATTCTGGTACCGTCAGCATCCAC";
-//		Map<Integer, TLongList> countPosition = new HashMap<>();
-//		
-//		/*
-//		 *match count: [121, 0], number of starts: 1
-//p: 137440471823016
-//match count: [115, 0], number of starts: 1
-//p: 1518347092
-//match count: [23, 0], number of starts: 1
-//p: 4611703612118049933
-//match count: [20, 0], number of starts: 1
-//p: 4611728900885488804
-//match count: [17, 0], number of starts: 1
-//p: 4611754189652927675
-//match count: [12, 0], number of starts: 1
-//p: 4611789374025016524
-//match count: [7, 0], number of starts: 1
-//p: 4611896026652910893
-//		 */
-//		
-//		countPosition.put(NumberUtils.getTileCount(121, 0), getLongList(137440471823016l));
-//		countPosition.put(NumberUtils.getTileCount(115, 0), getLongList(1518347092));
-//		
-//		TARecord rec = new TARecord(seq, countPosition);
-//		return rec;
-//	}
-	
-//	public static TARecord createTARec_splitcon_chr7_100867120_chr7_100867215() {
-//		/*
-//		 * splitcon_chr7_100867120_chr7_100867215
-//		 */
-//		String seq = "TGGAAAGAAAAAGAAGAAAACCCGAGGTGATCATTTTAAACTTCGCTTCCGAAAAAAACTTTCAGGCCCTGTTGGAGGAGCAGAACTTGAGTGTGGCCGAGGGCCCTAACTACCTGACGGCCTGTGCGGGACCCCCATCGCGGCCCCAGCGCCCCTTCTGTGCTGTCTGTGGCTTCCCATCCCCCTACACCTGTGTCAGCTGCGGTGCCCGGTACTGCACTGTGCGCTGTCTGGGGACCCACCAGGAGACCAGGTGTCTGAAGTGGACTGTGTGAGCCTGGGCATTCCCAGAGAGGAAGGGCCGCTGTGCACTGCCCGGCCTTCAGAAAGACAGAATTTCATCACCCAATGCAGGGGGAGCTCTTCCTGGACCAAGGGAGGAGCCGCTCATTCACCCG";
-//		Map<Integer, TLongList> countPosition = new HashMap<>();
-//		
-//		/*
-//		 *match count: [165, 2], number of starts: 1
-//p: 86862753118281
-//match count: [135, 2], number of starts: 1
-//p: 274879241468242
-//match count: [61, 2], number of starts: 1
-//p: 1100846151560
-//match count: [8, 2], number of starts: 1
-//p: 69270567073733
-//match count: [7, 2], number of starts: 4
-//p: 3299873399669
-//p: 4611801468519265617
-//p: 4611849846975127200
-//p: 4611925713246426543
-//match count: [6, 2], number of starts: 2
-//p: 3299862685429
-//p: 3299927520776
-//		 */
-//		
-//		countPosition.put(NumberUtils.getTileCount(165, 2), getLongList(86862753118281l));
-//		countPosition.put(NumberUtils.getTileCount(135, 2), getLongList(274879241468242l));
-//		countPosition.put(NumberUtils.getTileCount(61, 2), getLongList(1100846151560l));
-//		
-//		TARecord rec = new TARecord(seq, countPosition);
-//		return rec;
-//	}
-	
-	/**
-	 * The purpose of this method is to examine if there are 2 sets of start positions, potentially miles apart (different contigs) that could make up the sequence
-	 * Not sure on the best way of doing this, but will start by finding the largest start position, seeing how many tiles the second chunk would need to be composed of and going from there....
-	 * 
-	 * @param record
-	 * @return
-	 */
-//	public static TLongIntMap getSplitPositions(TARecord record, long firstContigStart, long firstContigStop, long secondContigStart, long secondContigStop) {
-//		
-//		long firstContigStartRS = NumberUtils.setBit(firstContigStart, TiledAlignerUtil.REVERSE_COMPLEMENT_BIT);
-//		long firstContigStopRS = NumberUtils.setBit(firstContigStop, TiledAlignerUtil.REVERSE_COMPLEMENT_BIT);
-//		long secondContigStartRS = NumberUtils.setBit(secondContigStart, TiledAlignerUtil.REVERSE_COMPLEMENT_BIT);
-//		long secondContigStopRS = NumberUtils.setBit(secondContigStop, TiledAlignerUtil.REVERSE_COMPLEMENT_BIT);
-//		
-//		TLongList perfectMAtchPositions = record.getPerfectMatchPositions();
-//		TLongIntMap map = new TLongIntHashMap();
-//		if (null == perfectMAtchPositions || perfectMAtchPositions.isEmpty()) {
-//			
-//			TIntObjectMap<TLongList> countsAndStartPosisions = record.getCounts();
-//			
-//			int [] keys = countsAndStartPosisions.keys();
-//			Arrays.sort(keys);
-//			
-//			for (int i = keys.length - 1 ; i >= 0 ; i--) {
-//				TLongList list =  countsAndStartPosisions.get(keys[i]);
-//				for (int j = 0 ; j < list.size() ; j ++) {
-//					if (inRange(list.get(j), firstContigStart, firstContigStop, secondContigStart, secondContigStop)
-//							|| inRange(list.get(j), firstContigStartRS, firstContigStopRS, secondContigStartRS, secondContigStopRS)) {
-//						System.out.println("Found start position within range: " + list.get(j) + " that has tile count: " + NumberUtils.getPartOfPackedInt(keys[i], true));
-//						map.put(list.get(j), keys[i]);					
-//					}
-//				}
-//			}
-//			System.out.println("Number of entries in split map = " + map.size());
-//		}
-//		return map;
-//	}
 	
 	public static boolean inRange(long position, long startOne, long stopOne, long startTwo, long stopTwo) {
 		return (position >= startOne && position <= stopOne) || (position >= startTwo && position <= stopTwo);
@@ -650,7 +295,6 @@ public class TARecordUtil {
 			 * start position is dependent on whether the reverse complement bit has been set.
 			 */
 			ranges[i] = new int[]{ IntLongPairsUtil.getStartPositionInSequence(ilp, seqLength), getExactMatchOnlyLengthFromPackedInt(ilp.getInt())};
-//			ranges[i] = new int[]{ NumberUtils.getShortFromLong(ilp.getLong(), TILE_OFFSET), getExactMatchOnlyLengthFromPackedInt(ilp.getInt())};
 			cps[i] = headerMap.getChrPositionFromLongPosition(ilp.getLong(), ranges[i][1]);
 			i++;
 		}
@@ -695,7 +339,6 @@ public class TARecordUtil {
 						 * update this, take diff away from length
 						 */
 						thisIntArray[1] = thisIntArray[1] - diff;
-//						ChrPosition orig = cps[j];
 						if (diff >= thisCP.getLength()) {
 							logger.warn("Diff is greater the cp length! diff: " + diff + ", cp length: " + thisCP.getLength());
 							for (int [] range : ranges) {
@@ -713,8 +356,6 @@ public class TARecordUtil {
 						 */
 						nextIntArray[0] = nextIntArray[0] + diff;
 						nextIntArray[1] = nextIntArray[1] - diff;
-						
-//						ChrPosition orig = cps[j + 1];
 						
 						if (diff >= nextCP.getLength()) {
 							logger.warn("Diff is greater the cp length! diff: " + diff + ", cp length: " + nextCP.getLength());
@@ -742,7 +383,6 @@ public class TARecordUtil {
 							 * update this, take diff away from length
 							 */
 							thisIntArray[1] = thisIntArray[1] - diffRef;
-//						ChrPosition orig = cps[j];
 							if (diffRef >= thisCP.getLength()) {
 								logger.warn("Diff is greater the cp length! diff: " + diffRef + ", cp length: " + thisCP.getLength());
 								for (int [] range : ranges) {
@@ -764,8 +404,6 @@ public class TARecordUtil {
 							 */
 							nextIntArray[0] = nextIntArray[0] + diffRef;
 							nextIntArray[1] = nextIntArray[1] - diffRef;
-							
-//						ChrPosition orig = cps[j + 1];
 							
 							if (diffRef >= nextCP.getLength()) {
 								logger.warn("Diff is greater the cp length! diff: " + diffRef + ", cp length: " + nextCP.getLength());
@@ -841,17 +479,12 @@ public class TARecordUtil {
 				return new String[]{};
 			}
 			
-//			int[] nextBlock = chrPosBlocks.get(nextCp);
 			tGapBases += (nextCp.getStartPosition() - thisCp.getEndPosition());
-//			qGapBases += nextBlock[0] - (thisBlock[1] + thisBlock[0]);
 		}
 		/*
 		 * add last length
 		 */
 		length += keys[keys.length - 1].getLength() - 1;
-//		int length = firstCp.getLength() + secondCp.getLength();
-//		int qGapBases = secondBlock[0] - firstBlock[1];
-		
 		
 		String[] array = new String[21];
 		array[0] = "" + length;	//number of matches
@@ -866,13 +499,6 @@ public class TARecordUtil {
 		array[9] = name;					// Q name
 		array[10] = seqLength + "";			// Q size
 		
-		/*
-		 * start and end are strand dependent
-		 * if we are on the forward, its the beginning of the first block, and end of the last
-		 * if we are on reverse, need to reverse!
-		 */
-//		int start = reverseStrand ? (seqLength - positionInSequence - length) :  positionInSequence;
-//		int end = reverseStrand ?  (seqLength - positionInSequence) : positionInSequence + length;
 		
 		array[11] = "" + chrPosBlocks.get(keys[0])[0];						// Q start
 		// get last bloack
@@ -962,8 +588,6 @@ public class TARecordUtil {
 	 */
 	public static int[] sortTileCount(int[] tileCounts) {
 		
-		
-//		Arrays.sort(tileCounts);
 		return Arrays.stream(tileCounts)
 				.mapToObj(k -> NumberUtils.splitIntInto2(k))
 				.sorted((a,b) -> {int diff = Integer.compare((a[0] - a[1]), (b[0] - b[1]));
@@ -1004,16 +628,6 @@ public class TARecordUtil {
 						break;
 					}
 					int tileCountAndCommon = keys[i];
-					
-					/*
-					 * if we have more than 10% commonly occurring tiles, skip
-					 */
-//					int commonlyOccurringTiles = NumberUtils.getPartOfPackedInt(tileCountAndCommon, false);
-//					if (commonlyOccurringTiles > (0.1 * seqLength)) {
-//						continue;
-//					}
-					
-//						int tileCount = getLengthFromPackedInt(tileCountAndCommon);
 					int tileCount = NumberUtils.getPartOfPackedInt(tileCountAndCommon, true);
 					/*
 					 * only proceed if tileCount and tile length would give a score of 20
@@ -1031,8 +645,6 @@ public class TARecordUtil {
 							 * see if there are any possible ranges
 							 */
 							List<int[]> ranges = getPossibleTileRanges(seqLength, tilePositionInSequence, TILE_LENGTH, tileCount, MIN_BLAT_SCORE_MINUS_RANGE_BUFFER,  ! isForwardStrand);
-//								List<int[]> ranges = getPossibleTileRanges(seqLength, tilePositionInSequence, TILE_LENGTH, tileCount, MIN_BLAT_SCORE,  ! isForwardStrand);
-//								List<int[]> ranges = getPossibleTileRanges(seqLength, tilePositionInSequence, TILE_LENGTH, tileCount, MIN_BLAT_SCORE - BUFFER,  ! isForwardStrand);
 							if ( ! ranges.isEmpty()) {
 								/*
 								 * deal with 2 scenarios here
@@ -1057,20 +669,7 @@ public class TARecordUtil {
 											for (int[] remainingRange : remainingRanges) {
 												List<IntLongPair> resultsForRemainingRange = getPositionsThatFitInRange(remainingRange, positionInGenome, positionInGenomeEnd, countsAndStartPositions, keys, TILE_LENGTH, seqLength, i);
 												if ( ! resultsForRemainingRange.isEmpty()) {
-													
-//														System.out.println("Found " + resultsForRemainingRange.size() + " matches for remaining range: " + Arrays.toString(remainingRange));
-													
-//														System.out.println("Adding new IntLongPair!");
 													IntLongPairsUtil.addBestILPtoPairs(pairs, resultsForRemainingRange);
-//														pairs.addPair(resultsForRemainingRange.get(0));
-													
-													/*
-													 * don't want to add any more to this pair
-													 */
-//														break;
-													
-//													} else {
-//														System.out.println("Found NO matches for remaining range: " + Arrays.toString(remainingRange));
 												}
 											}
 											
@@ -1084,29 +683,13 @@ public class TARecordUtil {
 													List<IntLongPair> resultsForRemainingRange = getPositionsThatFitInRange(remainingRange, positionInGenome, positionInGenomeEnd, countsAndStartPositions, keys, TILE_LENGTH, seqLength, i);
 													if ( ! resultsForRemainingRange.isEmpty()) {
 														
-//															System.out.println("Found " + resultsForRemainingRange.size() + " matches for remaining range: " + Arrays.toString(remainingRange));
-														
 														/*
 														 * sort and take largest again
 														 */
-//															resultsForRemainingRange.sort(null);
-//															System.out.println("Adding new IntLongPair!");
 														IntLongPairsUtil.addBestILPtoPairs(pairs, resultsForRemainingRange);
-//															pairs.addPair(resultsForRemainingRange.get(0));
-														
-														/*
-														 * don't want to add any more to this pair
-														 */
-//															break;
-														
-//														} else {
-//															System.out.println("Found NO matches for remaining range: " + Arrays.toString(remainingRange));
 													}
 												}
 											}
-											
-//											} else {
-//												System.out.println("No remaining ranges found for pairs: " + pairs.toString());
 										}
 										
 										/*
@@ -1142,23 +725,10 @@ public class TARecordUtil {
 												List<IntLongPair> resultsForRemainingRange = getPositionsThatFitInRange(remainingRange, positionInGenome, positionInGenomeEnd, countsAndStartPositions, keys, TILE_LENGTH, seqLength, i);
 												if ( ! resultsForRemainingRange.isEmpty()) {
 													
-//														System.out.println("Found " + resultsForRemainingRange.size() + " matches for remaining range: " + Arrays.toString(remainingRange));
-													
 													/*
 													 * no need to sort as they are added to the list in a sorted manner
 													 */
-//														resultsForRemainingRange.sort(null);
-//														System.out.println("Adding new IntLongPair!");
 													IntLongPairsUtil.addBestILPtoPairs(pairs, resultsForRemainingRange);
-//														pairs.addPair(resultsForRemainingRange.get(0));
-													
-													/*
-													 * don't want to add any more to this pair
-													 */
-//														break;
-													
-//													} else {
-//														System.out.println("Found NO matches for remaining range: " + Arrays.toString(remainingRange));
 												}
 											}
 										}
@@ -1173,10 +743,6 @@ public class TARecordUtil {
 											}
 											checkResults = true;
 										}
-//											Set<IntLongPairs> resultsListList = results.putIfAbsent(IntLongPairsUtils.getBasesCoveredByIntLongPairs(pairs, seqLength, TILE_LENGTH), new HashSet<>(Arrays.asList(pairs)));
-//											if (null != resultsListList) {
-//												resultsListList.add(pairs);
-//											}
 									}
 								}
 							}
@@ -1267,10 +833,6 @@ public class TARecordUtil {
 						return diff;
 					}
 					
-//					int diff = 	NumberUtils.getPartOfPackedInt(ilp2.getInt(), true) - NumberUtils.getPartOfPackedInt(ilp1.getInt(), true);
-//					if (diff != 0) {
-//						return diff;
-//					}
 					/*
 					 * strand
 					 */
@@ -1298,41 +860,12 @@ public class TARecordUtil {
 			 * if leading candidate is too far away from original entry, return empty optional
 			 */
 			IntLongPair ilp = list.get(0);
-//			long p1Position = NumberUtils.getLongPositionValueFromPackedLong(p1.getLong());
-//			long ilpPosition = NumberUtils.getLongPositionValueFromPackedLong(ilp.getLong());
-//			
-//			return Math.abs(p1Position - ilpPosition) < MAX_GAP_FOR_SINGLE_RECORD ? Optional.of(ilp) : Optional.empty();
 			return Optional.of(ilp);
 			
 		} else {
 			return Optional.empty();
 		}
 	}
-	
-	/**
-	 * Takes a map of positions (keyed by tileCount) and returns an ordered list of IntLongPair objects with the largest tileCount first
-	 * 
-	 * @param positions
-	 * @return
-	 */
-//	public static List<IntLongPair> getIntLongPairFromMap(TIntObjectMap<TLongList> positions) {
-//		List<IntLongPair> list = new ArrayList<>(positions.size() * 2);
-//		
-//		if ( ! positions.isEmpty()) {
-//			/*
-//			 * streams would be good here....
-//			 */
-//			positions.forEachEntry((k,v) -> {
-//				for (long vLong : v.toArray()) {
-//					list.add(new IntLongPair(k, vLong));
-//				}
-//				return true;
-//			});
-//			list.sort(null);
-//		}
-//		return list;
-//	}
-	
 	
 	/**
 	 * 
@@ -1426,30 +959,6 @@ public class TARecordUtil {
 	public static List<int[]> getPossibleTileRanges(int totalLength, int startTilePosition, int tileLength, int tileCount, int minLength, boolean reverseStrand) {
 		
 		return getPossibleTileRanges(totalLength, startTilePosition, tileLength + tileCount, minLength, reverseStrand);
-//		List<int[]> results = new ArrayList<>(3);
-//		
-//		/*
-//		 * check to see if there is space for a range before the startTilePosition
-//		 */
-//		int endPosition = startTilePosition + tileLength + tileCount;
-//		if (reverseStrand) {
-//			/*
-//			 * startTilePosition is now end position
-//			 * and start position is tileCount + tileLength from the end
-//			 */
-//			endPosition = totalLength - startTilePosition;
-//			startTilePosition = endPosition - tileLength - tileCount;
-//		}
-//		
-//		
-//		if (startTilePosition >= (minLength)) {
-//			results.add(new int[]{0, startTilePosition - 1});
-//		}
-//		if (endPosition < (totalLength - minLength)) {
-//			results.add(new int[]{endPosition, totalLength});
-//		}
-//		
-//		return results;
 	}
 	
 	public static List<int[]> getPossibleTileRanges(int totalLength, int startPosition, int length, int minLength, boolean reverseStrand) {
@@ -1466,7 +975,6 @@ public class TARecordUtil {
 			 */
 			endPosition = totalLength - startPosition;
 			startPosition = totalLength - (startPosition + length);
-//			startPosition = endPosition - tileLength - tileCount;
 		}
 		
 		
@@ -1481,7 +989,6 @@ public class TARecordUtil {
 	}
 	
 	public static List<IntLongPair> getPositionsThatFitInRange(int[] range, long genomicPositionStart, long genomicPositionEnd, TIntObjectMap<TLongList> countsAndStartPositions, int [] sortedKeys, int tileLength, int seqLength, int positionInArray) {
-//		public static List<IntLongPair> getPositionsThatFitInRange(int[] range, long genomicPositionStart, long genomicPositionEnd, TIntObjectMap<TLongList> countsAndStartPositions, int [] sortedKeys, int tileLength, int seqLength) {
 		List<IntLongPair> results = new ArrayList<>();
 		int maxTileCount = range[1] - range[0] - (tileLength - 1);
 		
@@ -1491,22 +998,16 @@ public class TARecordUtil {
 		 */
 		
 		int bufferToUse = (int)(seqLength  * 0.4) + 1;
-//		int bufferToUse = (int)(seqLength  * 0.35);
-//		int bufferToUse = seqLength > 120 ? BUFFER * 7 : BUFFER;
 		
 		maxTileCount += bufferToUse;
 		
 		for (int i = positionInArray ; i >= 0 ; i--) {
-//			for (int i = sortedKeys.length - 1 ; i >= 0 ; i--) {
 			int tileCount = NumberUtils.getPartOfPackedInt(sortedKeys[i], true);
-//			if (tileCount >= MIN_TILE_COUNT) {
 				if (tileCount >= MIN_TILE_COUNT && tileCount <= maxTileCount) {
 				
 				/*
 				 * with the tile count, now need to work out possible start positions
 				 */
-//				int minTileStartPosition = range[0];
-//				int maxTileStartPosition = Math.max(minTileStartPosition, range[1] - (tileCount + tileLength) + 1);
 				
 				TLongList list =  countsAndStartPositions.get(sortedKeys[i]);
 				for (int j = 0 ; j < list.size() ; j ++) {
@@ -1560,14 +1061,6 @@ public class TARecordUtil {
 			return true;
 		}
 		
-//		if ((float) overlap / (positionOneEnd - positionOneStart) < 0.5) {
-//			return false;
-//		}
-//		if ((float) overlap / (positionTwoEnd - positionTwoStart) < 0.5) {
-//			return false;
-//		}
-//		return true;	
-				
 		return overlap >= buffer;
 	}
 	
