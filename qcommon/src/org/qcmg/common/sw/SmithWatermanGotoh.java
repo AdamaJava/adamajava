@@ -12,8 +12,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Arrays;
 
-import htsjdk.samtools.util.SequenceUtil;
-
 public class SmithWatermanGotoh {
 	
 	private final float gapOpen;
