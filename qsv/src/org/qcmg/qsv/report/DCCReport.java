@@ -1,6 +1,7 @@
 /**
  * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
+
 package org.qcmg.qsv.report;
 
 import java.io.BufferedWriter;
@@ -32,7 +33,6 @@ public class DCCReport extends QSVReport {
 	private String normalFindType;
 	private String platform;
 	private QExec exec;
-	private static String TAB = "\t";
 	
 	public DCCReport(File file, Date runDate, String analysisId, QSVParameters tumor, QSVParameters normal, Options options, QExec exec) throws IOException {
 		super(file);
@@ -136,19 +136,12 @@ public class DCCReport extends QSVReport {
 	@Override
 	public String getHeader() {
 		
-		return "analysis_id"+TAB+"analyzed_sample_id"+TAB+"sv_id"+TAB+"placement"+TAB+"annotation"+TAB+"interpreted_annotation"+TAB+
-				"variant_type"+TAB+"chr_from"+TAB+"chr_from_bkpt"+TAB+"chr_from_strand"+TAB+"chr_from_range"
-				+TAB+"chr_from_flanking_seq"+TAB+"chr_to"+TAB+"chr_to_bkpt"+TAB+""
-                + "chr_to_strand"+TAB+"chr_to_range"+TAB+"chr_to_flanking_seq"+TAB+"microhomology_sequence"+TAB+"non_templated_sequence"+TAB+""
-                + "evidence"+TAB+"quality_score"+TAB+"probability"+TAB+"zygosity"+TAB+"validation_status"+TAB+""
-                + "validation_platform"+TAB+"db_xref"+TAB+"note"+TAB+"number_of_reads" +
-                ""+TAB+"number_of_normal_reads" +
-                ""+TAB+"number_of_low_qual_normal_reads" +
-                ""+TAB+"number_of_tumour_clips_pos1"+TAB+"number_of_tumour_clips_pos2"+TAB+
-                		"number_of_normal_clips_pos1"+TAB+"number_of_normal_clips_pos2" +                   
-                TAB+"category"+ TAB + "orientation_category" 
-                + TAB + "pairing_category" +TAB+"event_notes" 
-                + TAB + "contig" + QSVUtil.getNewLine();
+		return "analysis_id\tanalyzed_sample_id\tsv_id\tplacement\tannotation\tinterpreted_annotation\t"
+				+ "variant_type\tchr_from\tchr_from_bkpt\tchr_from_strand\tchr_from_range\tchr_from_flanking_seq\tchr_to\tchr_to_bkpt\t"
+                + "chr_to_strand\tchr_to_range\tchr_to_flanking_seq\tmicrohomology_sequence\tnon_templated_sequence\t"
+                + "evidence\tquality_score\tprobability\tzygosity\tvalidation_status\tvalidation_platform\tdb_xref\tnote\tnumber_of_reads\t"
+                + "number_of_normal_reads\tnumber_of_low_qual_normal_reads\tnumber_of_tumour_clips_pos1\tnumber_of_tumour_clips_pos2\t"
+                + "number_of_normal_clips_pos1\tnumber_of_normal_clips_pos2\tcategory\torientation_category\tpairing_category\tevent_notes\tcontig" + QSVUtil.getNewLine();
 	}
 
 }

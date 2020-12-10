@@ -4,8 +4,12 @@
  *
  * This code is released under the terms outlined in the included LICENSE file.
  */
+
 package org.qcmg.qsv.softclip;
 
+import au.edu.qimr.tiledaligner.util.TiledAlignerUtil;
+
+import gnu.trove.map.TIntObjectMap;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -13,8 +17,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.AbstractQueue;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -54,9 +56,6 @@ import org.qcmg.qsv.splitread.UnmappedRead;
 import org.qcmg.qsv.util.CustomThreadPoolExecutor;
 import org.qcmg.qsv.util.QSVUtil;
 
-import au.edu.qimr.tiledaligner.util.TiledAlignerUtil;
-import gnu.trove.map.TIntObjectMap;
-
 public class FindClipClustersMT  {
 
 	private static final String LOW_CONF_FILE_HEADER = "reference\tposition\tmutation_type\tclip_type\tpos_clips\tneg_clips\tconsensus" + QSVUtil.NEW_LINE;
@@ -69,7 +68,6 @@ public class FindClipClustersMT  {
 	private final String softClipDir;
 	private final ConcurrentHashMap<String, List<SoftClipCluster>> clipRecordsMap = new ConcurrentHashMap<String, List<SoftClipCluster>>();
 	private final ConcurrentHashMap<PairGroup, Map<String, List<DiscordantPairCluster>>> tumorClusterRecords;
-//	private final BLAT blat;
 	private final TIntObjectMap<int[]> cache;
 	private final boolean singleSided;
 	private final boolean isSplitRead;
@@ -88,36 +86,6 @@ public class FindClipClustersMT  {
 	private final QSVClusterWriter qsvRecordWriter;
 	private final int CLIP_SIZE;
 
-//	public FindClipClustersMT(QSVParameters tumourParameters, QSVParameters normalParameters, String softclipDir, BLAT blat2, Map<PairGroup, Map<String, List<DiscordantPairCluster>>> tumorClusterRecords, Options options, String analysisId, long clipCount) throws Exception {
-//		this.noOfThreads = clipCount > 5000000 ? 1 : 3;
-//		this.noOfFinalThreads = clipCount > 5000000 ? 4 : 10;
-//		this.defineThreadNo = clipCount > 5000000 ? 2 : 4;
-//
-//		logger.info("Total clips: " + clipCount + ", will use " + noOfThreads + " main threads, " + noOfFinalThreads + " final threads and " + defineThreadNo + " define threads");
-//
-//		this.softClipDir = softclipDir;
-//		this.isSplitRead = options.isSplitRead();
-//		this.tumourParameters = tumourParameters; 
-//		this.normalParameters = normalParameters;
-////		this.blat = blat2;   
-//		this.tumorClusterRecords = new ConcurrentHashMap<PairGroup, Map<String, List<DiscordantPairCluster>>>(tumorClusterRecords);        
-//		this.isQCMG = options.isQCMG();
-//		this.singleSided = options.singleSided();
-//		this.CONSENSUS_LENGTH = options.getConsensusLength().intValue();
-//		this.CLIP_SIZE = options.getClipSize().intValue() -1;
-//		this.MIN_INSERT_SIZE =  options.getMinInsertSize().intValue();
-//		this.reference = options.getReference();
-//		this.runClip = ! options.getAnalysisMode().equals("pair");
-//		this.platform = options.getPlatform();
-//		this.translocationOnly = options.getIncludeTranslocations();
-//		this.allChromosomes = options.allChromosomes();
-//		this.lowConfidenceFile = tumourParameters.getResultsDir() + "_no_blat_alignment.txt";
-//
-//		logger.info("Minimum clip size: " + (CLIP_SIZE + 1));
-//		logger.info("Minimum clip consensus length: " + CONSENSUS_LENGTH);
-//		createLowConfidenceFile();
-//		this.qsvRecordWriter =  new QSVClusterWriter(tumourParameters, normalParameters, isQCMG, analysisId, singleSided, (normalParameters != null), MIN_INSERT_SIZE, platform, options.getGffFiles());
-//	}
 	public FindClipClustersMT(QSVParameters tumourParameters, QSVParameters normalParameters, String softclipDir, Map<PairGroup, Map<String, List<DiscordantPairCluster>>> tumorClusterRecords, Options options, String analysisId, long clipCount, TIntObjectMap<int[]> cache) throws Exception {
 //		public FindClipClustersMT(QSVParameters tumourParameters, QSVParameters normalParameters, String softclipDir, BLAT blat2, Map<PairGroup, Map<String, List<DiscordantPairCluster>>> tumorClusterRecords, Options options, String analysisId, long clipCount) throws Exception {
 		this.noOfThreads = clipCount > 5000000 ? 1 : 3;
@@ -125,17 +93,11 @@ public class FindClipClustersMT  {
 		this.defineThreadNo = clipCount > 5000000 ? 2 : 4;
 
 		logger.info("Total clips: " + clipCount + ", will use " + noOfThreads + " main threads, " + noOfFinalThreads + " final threads and " + defineThreadNo + " define threads");
-//		if (clipCount > 5000000) {
-//			noOfThreads = 1;
-//			defineThreadNo = 2;
-//			noOfFinalThreads = 4;
-//		}
 
 		this.softClipDir = softclipDir;
 		this.isSplitRead = options.isSplitRead();
 		this.tumourParameters = tumourParameters; 
 		this.normalParameters = normalParameters;
-//		this.blat = blat2;
 		this.cache = cache;
 		this.tumorClusterRecords = new ConcurrentHashMap<PairGroup, Map<String, List<DiscordantPairCluster>>>(tumorClusterRecords);        
 		this.isQCMG = options.isQCMG();
@@ -152,14 +114,8 @@ public class FindClipClustersMT  {
 
 		logger.info("Minimum clip size: " + (CLIP_SIZE + 1));
 		logger.info("Minimum clip consensus length: " + CONSENSUS_LENGTH);
-//		this.CLIP_SIZE--;
 		createLowConfidenceFile();
 		this.qsvRecordWriter =  new QSVClusterWriter(tumourParameters, normalParameters, isQCMG, analysisId, singleSided, (normalParameters != null), MIN_INSERT_SIZE, platform, options.getGffFiles());
-//		if (normalParameters == null) {
-//			this.qsvRecordWriter =  new QSVClusterWriter(tumourParameters, normalParameters, isQCMG, analysisId, singleSided, false, MIN_INSERT_SIZE, platform, options.getGffFiles());
-//		} else {
-//			this.qsvRecordWriter =  new QSVClusterWriter(tumourParameters, normalParameters, isQCMG, analysisId, singleSided, true, MIN_INSERT_SIZE, platform, options.getGffFiles());
-//		}
 	}
 
 	private void createLowConfidenceFile() throws IOException {
@@ -379,7 +335,7 @@ public class FindClipClustersMT  {
 
 				QSVCluster record = new QSVCluster(clip, tumourParameters.getSampleId());
 				//find matches
-				for (int j=i+1; j < size ; j++) {
+				for (int j = i + 1; j < size ; j++) {
 					SoftClipCluster clip2 = clips.get(j);
 					if (record.findClipOverlap(clip2)) {
 						clip2.setHasClipMatch(true);
@@ -411,36 +367,6 @@ public class FindClipClustersMT  {
 		}	
 		logger.info("Finished finding split read alignments for "+ key +", number processed: " + count);
 	}
-
-//	private void rescueQSVRecords(String key, List<QSVCluster> inputClusters) throws Exception {
-//
-//		logger.info("Finding split read alignments in "+ inputClusters.size()+" records for " + key);
-//		int count = 0;
-//
-//		String blatFile = softClipDir + QSVUtil.getFileSeparator() + UUID.randomUUID();
-//		for (QSVCluster cluster: inputClusters) {
-//			cluster.rescueClippping(blat, tumourParameters, normalParameters, softClipDir, CONSENSUS_LENGTH, MIN_INSERT_SIZE);
-//			cluster.createSplitReadContig(blat, tumourParameters, normalParameters, softClipDir, CONSENSUS_LENGTH, isQCMG, MIN_INSERT_SIZE, singleSided, isSplitRead, reference, blatFile);               		 
-//		}
-//		if (new File(blatFile + ".tumour.fa").exists()) {
-//			blat.execute(blatFile + ".tumour.fa", blatFile + ".tumour.psl");
-//		}
-//		if (new File(blatFile + ".normal.fa").exists()) {
-//			blat.execute(blatFile + ".normal.fa", blatFile + ".normal.psl");
-//		}
-//
-//		for (QSVCluster r: inputClusters) {
-//			boolean rescued = r.findSplitReadContig(blat, tumourParameters, normalParameters, softClipDir, CONSENSUS_LENGTH, isQCMG, MIN_INSERT_SIZE, singleSided, isSplitRead, reference);
-//			if (rescued) {
-//				count++;
-//			}
-//		}	
-//		new File(blatFile + ".tumour.fa").delete();
-//		new File(blatFile + ".tumour.psl").delete();
-//		new File(blatFile + ".normal.fa").delete();
-//		new File(blatFile + ".normal.psl").delete();
-//		logger.info("Finished finding split read alignments for "+ key +", number processed: " + count);
-//	}
 
 	private List<DiscordantPairCluster> getTumourClustersByReferenceKey(String key) {
 		List<DiscordantPairCluster> list = new ArrayList<DiscordantPairCluster>();
@@ -689,44 +615,11 @@ public class FindClipClustersMT  {
 			}
 		}
 
-//		private Map<String, List<Breakpoint>> blatBreakpoints(List<Breakpoint> breakpoints) throws Exception {
-//			
-//			if ( ! breakpoints.isEmpty()) {
-//				String base = softClipDir + QSVParameters.FILE_SEPERATOR + tumourParameters.getFindType() + "_breakpoint." + chromosome.getName();
-//				base = base.replace(" ","");
-//				String fastaFile = base + ".fa";
-//				
-//				File fasta = new File(fastaFile);
-//				try (FileWriter fw = new FileWriter(fasta);
-//						BufferedWriter writer = new BufferedWriter(fw);) {
-//					
-//					for (Breakpoint r : breakpoints) {
-//						if (r.getMateConsensus() != null) {
-//							writer.write(">" + r.getName() + QSVUtil.NEW_LINE);
-//							writer.write(r.getMateConsensus() + QSVUtil.NEW_LINE);
-//						}
-//					}
-//				}
-//	
-//				String blatOutputFile = base + ".psl";
-//	
-//				Map<String, BLATRecord>  blatRecords = blat.align(fastaFile, blatOutputFile);
-//				
-//				//delete the generated files
-//				Files.deleteIfExists(fasta.toPath());
-//				Files.deleteIfExists(Paths.get(blatOutputFile));
-//	
-//				return matchBlatBreakpoints(breakpoints, blatRecords);
-//			}
-//			return Collections.emptyMap();
-//		}
-		
 		private Map<String, List<Breakpoint>> blatBreakpoints(List<Breakpoint> breakpoints, boolean log) throws Exception {
 			
 			if ( ! breakpoints.isEmpty()) {
 				
 				Map<String, String> sequenceNameMapToSendToTiledAligner = breakpoints.stream().filter(b -> b.getMateConsensus() != null).collect(Collectors.toMap(b -> b.getMateConsensus(), b -> b.getName(), (s, a) -> s + ", " + a));
-//				List<String> sequencesToSendToTiledAligner = breakpoints.stream().map(Breakpoint::getMateConsensus).filter(s -> null != s).collect(Collectors.toList());
 	
 				/*
 				 * This gives me possibly many BLATRecords per sequence. Here, we only want the "best" record (the one with the highest score)
@@ -832,7 +725,7 @@ public class FindClipClustersMT  {
 								UnmappedRead r = new UnmappedRead(line, isTumour);
 								List<UnmappedRead> reads = splitReads.get(r.getBpPos());
 								if (null == reads) {
-									reads = new ArrayList<UnmappedRead>();
+									reads = new ArrayList<>();
 									splitReads.put(r.getBpPos(), reads);
 								}
 								reads.add(r);
@@ -889,17 +782,17 @@ public class FindClipClustersMT  {
 		private void rescueCurrentQSVRecords(String key, List<QSVCluster> records) throws Exception {
 
 			if (records.size() > 0) {
-				logger.info("Finding split read alignments in "+ records.size()+" records for " + key);
+				logger.info("Finding split read alignments in " + records.size() + " records for " + key);
 				AbstractQueue<List<QSVCluster>> queueIn = new ConcurrentLinkedQueue<List<QSVCluster>>();
 
 				int listSize = 50;
 				for (int i = 0; i < records.size(); i += listSize) {
-					if (((records.size())-i) < listSize) {						
+					if (((records.size()) - i) < listSize) {						
 						queueIn.add(records.subList(i, records.size()));
 						break;
 					}
 					if (i % listSize == 0) {						
-						queueIn.add(records.subList(i, i+listSize));
+						queueIn.add(records.subList(i, i + listSize));
 					}							
 				}	
 				currentQsvRecords = null;
@@ -908,7 +801,6 @@ public class FindClipClustersMT  {
 				Set<Future<List<QSVCluster>>> set = new HashSet<Future<List<QSVCluster>>>();
 
 				for (int i = 0; i < defineThreadNo; i++) {
-//					Callable<List<QSVCluster>> callable = new RescueRecord(queueIn, mainThread, countDownLatch, CLIP_SIZE, false, blat, tumourParameters, normalParameters, softClipDir, CONSENSUS_LENGTH, isQCMG, MIN_INSERT_SIZE, singleSided, isSplitRead, reference);
 					Callable<List<QSVCluster>> callable = new RescueRecord(queueIn, mainThread, countDownLatch, CLIP_SIZE, false, cache, tumourParameters, normalParameters, softClipDir, CONSENSUS_LENGTH, isQCMG, MIN_INSERT_SIZE, singleSided, isSplitRead, reference);
 					Future<List<QSVCluster>> future = executorService.submit(callable);
 					set.add(future);

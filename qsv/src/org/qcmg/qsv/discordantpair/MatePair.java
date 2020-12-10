@@ -4,6 +4,7 @@
  *
  * This code is released under the terms outlined in the included LICENSE file.
  */
+
 package org.qcmg.qsv.discordantpair;
 
 import static org.qcmg.common.util.Constants.COMMA;
@@ -12,13 +13,14 @@ import static org.qcmg.common.util.Constants.TAB;
 import java.io.Serializable;
 import java.util.Comparator;
 
+import htsjdk.samtools.SAMRecord;
+
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.qsv.QSVException;
 import org.qcmg.qsv.util.QSVConstants;
 import org.qcmg.qsv.util.QSVUtil;
 
-import htsjdk.samtools.SAMRecord;
 
 public class MatePair implements Comparable<MatePair> {
 
@@ -222,7 +224,7 @@ public class MatePair implements Comparable<MatePair> {
 
 	@Override
 	public int hashCode() {
-		return 31*readName.hashCode();
+		return 31 * readName.hashCode();
 	}
 
 	@Override
@@ -306,7 +308,7 @@ public class MatePair implements Comparable<MatePair> {
 	}
 
 	public String getSVCategoryForPE() {
-		String pc =zp.toString();
+		String pc = zp.toString();
 		if ((pc.equals("Cxx") || pc.equals("AAC")) && (pairOrder.equals("F2R1") || pairOrder.equals("F1R2"))) {
 			return QSVConstants.ORIENTATION_1;				
 		} else if ((pc.equals("AAB") && (pairOrder.equals("R1F2") || pairOrder.equals("R2F1")))  || (pc.equals("Cxx") || pc.equals("ABA") || pc.equals("ABC") || pc.equals("AAB") || pc.equals("ABB")) && (pairOrder.equals("R1F2") || pairOrder.equals("R2F1"))) {

@@ -4,6 +4,7 @@
  *
  * This code is released under the terms outlined in the included LICENSE file.
  */
+
 package org.qcmg.qsv.discordantpair;
 
 import java.io.IOException;
@@ -11,6 +12,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SamReader;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -20,8 +24,6 @@ import org.qcmg.qsv.QSVParameters;
 import org.qcmg.qsv.util.QSVConstants;
 import org.qcmg.qsv.util.QSVUtil;
 
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SamReader;
 
 public class FindMatePairsMT implements Runnable {
 
@@ -134,12 +136,18 @@ public class FindMatePairsMT implements Runnable {
 			}
 		}
 		logger.info("Finished extracting pairs for file: " + qsvParameters.getFilteredBamFile());
-		logger.info(qsvParameters.getFindType() + " file pairs found: " + matePairCount + " (reads:"+matePairCount*2 +") | Unmatched reads: " + singletonCount + " | Total: " + totalCount);
+		logger.info(qsvParameters.getFindType() + " file pairs found: " + matePairCount + " (reads:" + matePairCount * 2 + ") | Unmatched reads: " + singletonCount + " | Total: " + totalCount);
 		if (totalCount < 1000) {
 			logger.warn("Less than 1000 mate pairs were found. The input bam file may not be sorted and filtered correctly");
 		}
 	}
 
+	public boolean passesMateFiltering(SAMRecord samRecord) {
+		return ! samRecord.getMateUnmappedFlag()
+				&& passesZPFilter(samRecord)
+				&& matesMapToChromosome(samRecord);
+	}
+	
 	private boolean passesMateFiltering(SAMRecord previousRecord, SAMRecord currentRecord, String currentReadGroupId) throws Exception {
 
 		if ( ! previousRecord.getReadGroup().getId().equals(currentReadGroupId)) {
@@ -205,14 +213,6 @@ public class FindMatePairsMT implements Runnable {
 			MatePairsWriter type = new MatePairsWriter(zp, matePairDir, outName, mutType, qsvParameters.getPairingType());          
 			matePairWritersMap.put(zp, type);
 		}
-	}
-
-	public boolean passesMateFiltering(SAMRecord samRecord) {
-
-		return ! samRecord.getMateUnmappedFlag()
-				&& passesZPFilter(samRecord)
-				&& matesMapToChromosome(samRecord);
-
 	}
 
 	private boolean matesMapToChromosome(SAMRecord samRecord) {
