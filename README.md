@@ -1,6 +1,13 @@
-The AdamaJava project holds code for variant callers and pipeline tools related to next-generation sequencing (NGS).  The code was created by members of the Queensland Centre for Medical Genomics ([QCMG](http://www.qcmg.org)) as part of their participation in the International Cancer Genome Consortium ([ICGC](http://www.icgc.org)).  The code is now being developed and maintained by the [Genome Informatics Group](http://www.qimrberghofer.edu.au/lab/genome-informatics/) at the [QIMR Berghofer Medical Research Institute](http://www.qimrberghofer.edu.au).
+The AdamaJava project holds code for variant callers and pipeline tools related to next-generation sequencing (NGS).
+The code was created by members of the Queensland Centre for Medical
+Genomics at The University of Queensland as part of their participation in the International Cancer Genome Consortium ([ICGC](http://www.icgc.org)).
 
-While the repository contains code for dozens of utilities, the list below shows tools that are considered robust enough to be released for general use.  Most are written in Java and require version 1.8.  Some tools and helper scripts may be written in other languages, primarily perl and groovy.  Some tools have dependencies on other software.
+The code is now being developed and maintained by the [Genome Informatics Group](https://www.qimrberghofer.edu.au/our-research/cancer/genome-informatics/) at the [QIMR Berghofer Medical Research Institute](https://www.qimrberghofer.edu.au).
+Documentation for the project is maintained in Markdown format and committed in the docs directory. To view the documentation, see the [AdamaJava project](https://adamajava.readthedocs.io/en/latest) at [Read the Docs](https://readthedocs.org/).
+
+While the repository contains code for dozens of utilities, the list below shows tools that are considered robust enough to be released for general use.
+Most are written in Java and require version 1.8.
+Some tools have dependencies on other software applications and libraries.
 
 * qAmplicon - design primer pairs for variant verification
 * qCnv - a pre-processor for copy number variant (CNV) calling
@@ -14,6 +21,11 @@ While the repository contains code for dozens of utilities, the list below shows
 * qSignature - a method for detecting potential sample mix-ups using distance measurements between SNP alleles that are common to pairs of samples of interest
 * qMotif - search for motifs in a BAM file 
 
-Some QCMG tools have been released as separate SourceForge Projects.
+Some tools developed at QCMG have been released as separate projects:
 
-* [qPure](https://sourceforge.net/projects/qpure/?source=directory)
+* [qPure](https://sourceforge.net/projects/qpure)
+
+Some related tools may be written in other languages and exist in other repositories including:
+
+* [adamaperl](https://github.com/AdamaJava/adamaperl)
+* [adamar](https://github.com/AdamaJava/adamar)

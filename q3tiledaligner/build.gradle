@@ -1,6 +1,6 @@
 apply plugin: 'application'
 
-mainClassName = 'au.edu.qimr.tiledaligner.Q3TiledAligner'
+mainClassName = 'au.edu.qimr.tiledaligner.TiledAligner'
 def scriptname = 'q3tiledaligner'
 def isExecutable = true
 
@@ -8,7 +8,7 @@ def isExecutable = true
 dependencies {
     configurations.compile.transitive = true
     api project(':qcommon')
-    api project(':qmule')
+    api project(':qio')
 
     api 'com.github.samtools:htsjdk:2.14.1'
     api 'net.sf.trove4j:core:3.1.0'
