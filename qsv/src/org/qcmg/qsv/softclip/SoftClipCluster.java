@@ -20,11 +20,11 @@ import java.util.TreeMap;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qsv.QSVParameters;
 import org.qcmg.qsv.assemble.QSVAssemble;
-import org.qcmg.qsv.blat.BLAT;
 import org.qcmg.qsv.splitread.UnmappedRead;
 import org.qcmg.qsv.util.QSVConstants;
 import org.qcmg.qsv.util.QSVUtil;
 
+import gnu.trove.map.TIntObjectMap;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMRecordIterator;
 import htsjdk.samtools.SamReader;
@@ -417,7 +417,22 @@ public class SoftClipCluster implements Comparable<SoftClipCluster> {
 		return this.name + TAB + rightBreakpoint + TAB + rightStrand + TAB + rightMateStrand + TAB + size; 
 	}
 
-	public void rescueClips(QSVParameters p, BLAT blat, File tumourFile, File normalFile, String softclipDir, int consensusLength, int chrBuffer, Integer minInsertSize) throws Exception {
+//	public void rescueClips(QSVParameters p, BLAT blat, File tumourFile, File normalFile, String softclipDir, int consensusLength, int chrBuffer, Integer minInsertSize) throws Exception {
+//		
+//		Map<Integer, Breakpoint> leftMap = new HashMap<>();
+//		Map<Integer, Breakpoint> rightMap = new HashMap<>();
+//		TreeMap<Integer, List<UnmappedRead>> splitReads = new TreeMap<>();
+//		Integer bp = getOrphanBreakpoint();
+//		String ref = getOrphanReference();
+//			
+//		
+//		if (bp != null) {
+//			readRescuedClips(tumourFile, true, ref, bp, leftMap, rightMap, splitReads, consensusLength, chrBuffer, minInsertSize, p.getReadGroupIds(), p.getPairingType());
+//			readRescuedClips(normalFile, false, ref, bp, leftMap, rightMap, splitReads, consensusLength, chrBuffer, minInsertSize, p.getReadGroupIds(), p.getPairingType());
+//		}		
+//		findMaxRescueBreakpoint(p, blat, leftMap, rightMap, splitReads, softclipDir);
+//	}
+	public void rescueClips(QSVParameters p, TIntObjectMap<int[]> cache, File tumourFile, File normalFile, String softclipDir, int consensusLength, int chrBuffer, Integer minInsertSize) throws Exception {
 		
 		Map<Integer, Breakpoint> leftMap = new HashMap<>();
 		Map<Integer, Breakpoint> rightMap = new HashMap<>();
@@ -430,10 +445,10 @@ public class SoftClipCluster implements Comparable<SoftClipCluster> {
 			readRescuedClips(tumourFile, true, ref, bp, leftMap, rightMap, splitReads, consensusLength, chrBuffer, minInsertSize, p.getReadGroupIds(), p.getPairingType());
 			readRescuedClips(normalFile, false, ref, bp, leftMap, rightMap, splitReads, consensusLength, chrBuffer, minInsertSize, p.getReadGroupIds(), p.getPairingType());
 		}		
-		findMaxRescueBreakpoint(p, blat, leftMap, rightMap, splitReads, softclipDir);
+		findMaxRescueBreakpoint(p, cache, leftMap, rightMap, splitReads, softclipDir);
 	}
-	
-	public void findMaxRescueBreakpoint(QSVParameters p, BLAT blat, Map<Integer, Breakpoint> leftMap,
+	public void findMaxRescueBreakpoint(QSVParameters p, TIntObjectMap<int[]> cache,
+			Map<Integer, Breakpoint> leftMap,
 			Map<Integer, Breakpoint> rightMap, TreeMap<Integer, List<UnmappedRead>> splitReads, String softclipDir) throws Exception {
 
 		//find maximum breakpoint
@@ -465,7 +480,7 @@ public class SoftClipCluster implements Comparable<SoftClipCluster> {
 		if (maxLengthBp != null) {
 			
 			if (maxLengthBp.getMateConsensus().length() > 20) {
-				boolean match = maxLengthBp.findRescuedMateBreakpoint(blat, p, softclipDir);
+				boolean match = maxLengthBp.findRescuedMateBreakpoint(cache, p, softclipDir);
 				
 				if (match) {
 					if (this.getSingleBreakpoint() != null) {
@@ -489,6 +504,62 @@ public class SoftClipCluster implements Comparable<SoftClipCluster> {
 			} 
 		}
 	}	
+//	public void findMaxRescueBreakpoint(QSVParameters p, BLAT blat, Map<Integer, Breakpoint> leftMap,
+//			Map<Integer, Breakpoint> rightMap, TreeMap<Integer, List<UnmappedRead>> splitReads, String softclipDir) throws Exception {
+//
+//		//find maximum breakpoint
+//		Breakpoint maxLengthBp = null;
+//		int maxLength = 0;
+//		int buffer = p.getUpperInsertSize() + 100;		
+//
+//		for (Breakpoint b : leftMap.values()) {
+//			
+//			if (b.getMaxBreakpoint(buffer, splitReads, maxLength)) {
+//				if (b.getBreakpoint().intValue() != this.getSingleBreakpoint().getBreakpoint().intValue()) {
+//					
+//					maxLengthBp = b;
+//					maxLength = b.getMateConsensus().length();
+//				}
+//			}
+//		}
+//		
+//		for (Breakpoint b: rightMap.values()) {
+//			
+//			if (b.getMaxBreakpoint(buffer, splitReads, maxLength)) {
+//				if (b.getBreakpoint().intValue() != this.getSingleBreakpoint().getBreakpoint().intValue()) {
+//					maxLengthBp = b;
+//					maxLength = b.getMateConsensus().length();
+//				}
+//			}
+//		}
+//
+//		if (maxLengthBp != null) {
+//			
+//			if (maxLengthBp.getMateConsensus().length() > 20) {
+//				boolean match = maxLengthBp.findRescuedMateBreakpoint(blat, p, softclipDir);
+//				
+//				if (match) {
+//					if (this.getSingleBreakpoint() != null) {
+//						if (this.findMatchingBreakpoints(new SoftClipCluster(maxLengthBp))) {
+//							maxLengthBp.setRescued(false);
+//							
+//							if (leftBreakpointObject == null) {
+//								leftBreakpointObject = maxLengthBp;								
+//							} else {
+//								rightBreakpointObject = maxLengthBp;	
+//							}
+//							
+//							rescuedClips = true;
+//							oneSide = false;
+//							setStartAndEnd();
+//							this.mutationType = defineMutationType();
+//							hasMatchingBreakpoints = true;
+//						}
+//					}
+//				}
+//			} 
+//		}
+//	}	
 
 	String getOrphanReference() {
 		if (leftBreakpointObject == null) {

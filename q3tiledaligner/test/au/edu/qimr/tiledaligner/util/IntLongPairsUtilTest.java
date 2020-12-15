@@ -236,6 +236,23 @@ public class IntLongPairsUtilTest {
 		assertEquals(true, Arrays.binarySearch(pairs.getPairs(), new IntLongPair(2228225, 103354788666256l)) >= 0);
 	}
 	
+	@Test
+	public void getBestMatching2() {
+		/*
+		 * 2 of these ILPs are representing the same part of the sequence, and hence, only 1 should be added to the pair
+		 * 
+		 * ilps: IntLongPairs [pairs=[IntLongPair [i=1441792, l=360641246066435], IntLongPair [i=1441792, l=402422687921951], IntLongPair [i=1441792, l=402422687921989], IntLongPair [i=3801088, l=279277385610937], IntLongPair [i=13303810, l=54977013544407]]]
+		 */
+		IntLongPairs pairs = new IntLongPairs(new IntLongPair(13303810,54977013544407l), new IntLongPair(3801088, 279277385610937l));
+		List<IntLongPair> potentials = Arrays.asList(
+				new IntLongPair(1441792, 360641246066435l),
+				new IntLongPair(1441792, 402422687921951l),
+				new IntLongPair(1441792, 402422687921989l));
+		IntLongPairsUtil.addBestILPtoPairs(pairs, potentials);
+		System.out.println("pairs: " + pairs.toDetailedString());
+		assertEquals(4, pairs.getPairs().length);
+	}
+	
 	
 	@Test
 	public void isSubset() {
@@ -286,7 +303,6 @@ public class IntLongPairsUtilTest {
 		
 		assertEquals(3, p.getPairs().length);
 		assertEquals(-1, Arrays.binarySearch(p.getPairs(), new IntLongPair(2097164, 90161838073880l)));
-		
 	}
 	
 	@Test
@@ -306,6 +322,19 @@ public class IntLongPairsUtilTest {
 		IntLongPair p11 = new IntLongPair(NumberUtils.getTileCount(12,0), 4611716807799226451l);
 		IntLongPair p6 = new IntLongPair(NumberUtils.getTileCount(13,0), 4611688220496904249l);
 		p = new IntLongPairs(p11, p6);
+		assertEquals(true, IntLongPairsUtil.isIntLongPairsAValidSingleRecord(p));
+	}
+	
+	@Test
+	public void isValidRealLife2() {
+		/*
+		 * 
+		 * ilps: IntLongPairs [pairs=[IntLongPair [i=1441792, l=360641246066435], IntLongPair [i=1441792, l=402422687921951], IntLongPair [i=1441792, l=402422687921989], IntLongPair [i=3801088, l=279277385610937], IntLongPair [i=13303810, l=54977013544407]]]
+		 */
+		IntLongPairs p = new IntLongPairs(new IntLongPair(1441792, 360641246066435l), new IntLongPair(1441792, 402422687921951l));
+		p.addPair(new IntLongPair(1441792, 402422687921989l));
+		p.addPair(new IntLongPair(3801088, 279277385610937l));
+		p.addPair(new IntLongPair(13303810, 54977013544407l));
 		assertEquals(true, IntLongPairsUtil.isIntLongPairsAValidSingleRecord(p));
 	}
 	

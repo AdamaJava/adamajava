@@ -118,6 +118,7 @@ public class TestUtil {
 				out.write("output="+outputDir + NEWLINE);
 			}
 			out.write("reference=" + reference.getAbsolutePath() + NEWLINE);
+			out.write("tiled_aligner=" + reference.getAbsolutePath() + NEWLINE);
 			out.write("isize_records=all" + NEWLINE);
 			out.write("qcmg=true" + NEWLINE);
 			

@@ -83,6 +83,7 @@ public class AnnotateFilterMTTest {
 			out.write("sv_analysis=pair"+ Constants.NL);		
 			out.write("output="+outputDir.getAbsolutePath() + Constants.NL);
 			out.write("reference=" + reference.getAbsolutePath() + Constants.NL);
+			out.write("tiled_aligner=" + reference.getAbsolutePath() + Constants.NL);
 			out.write("platform=illumina" + Constants.NL);
 			out.write("min_insert_size=50" + Constants.NL);
 			

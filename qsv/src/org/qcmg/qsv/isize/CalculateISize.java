@@ -1,6 +1,7 @@
 /**
  * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
+
 package org.qcmg.qsv.isize;
 
 import java.util.Map;
@@ -117,9 +118,9 @@ public class CalculateISize {
 
 
 	int findMaxIndex(double[] array) {
-		double max=0; 
+		double max = 0; 
 		int idx = -1;
-		for (int i=0; i<array.length; i++) {
+		for (int i = 0; i < array.length; i++) {
 			if (array[i] > max) {
 				max = array[i];
 				idx = i;
@@ -131,7 +132,7 @@ public class CalculateISize {
 	private int findMinIndex(double[] array) {
 		double min=array[0]; 
 		int idx = 0;
-		for (int i=1; i<array.length; i++) {
+		for (int i = 1; i < array.length; i++) {
 			if (array[i] < min) {
 				min = array[i];
 				idx = i;
@@ -144,7 +145,7 @@ public class CalculateISize {
 		double[] x = new double[xyMap.size()];
 		double[] y = new double[xyMap.size()];
 
-		int index =0;
+		int index = 0;
 		for (Entry<Integer, Double> entry: xyMap.entrySet()) {
 			x[index] = entry.getKey().doubleValue();
 			y[index] = entry.getValue().doubleValue();
@@ -152,13 +153,13 @@ public class CalculateISize {
 		}
 		
 		double[] y2 = new double[xyMap.size()];		
-		int length = xyMap.size() -1;
+		int length = xyMap.size() - 1;
 		
-		y2[0] = (y[1] - y[0])/(x[1] - x[0]);
-		y2[length] = (y[length] - y[length-1])/(x[length] - x[length-1]);
+		y2[0] = (y[1] - y[0]) / (x[1] - x[0]);
+		y2[length] = (y[length] - y[length - 1]) / (x[length] - x[length - 1]);
 		
 		for (int i=1; i<length; i++) {
-			y2[i] = (y[i+1]-y[i-1])/(x[i+1]-x[i-1]);
+			y2[i] = (y[i + 1] - y[i - 1]) / (x[i + 1] - x[i - 1]);
 		}
 		
 		return y2;

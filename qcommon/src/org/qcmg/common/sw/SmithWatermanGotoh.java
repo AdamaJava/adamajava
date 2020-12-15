@@ -10,6 +10,7 @@ package org.qcmg.common.sw;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Arrays;
 
 public class SmithWatermanGotoh {
 	
@@ -21,16 +22,18 @@ public class SmithWatermanGotoh {
 	private final String sequenceB;
 	private final int rows;
 	private final int columns;
-	private int[][] pointerMatrix;
+	private byte[][] pointerMatrix;
+//	private int[][] pointerMatrix;
 	private short[][] verticalGaps;
 	private short[][] horizontalGaps;
 	private int bestRow;
 	private int bestColumn;
 	private float bestScore;
-	private static final int STOP = 0;
-	private static final int LEFT = 1;	
-	private static final int DIAGONAL = 2;
-	private static final int UP = 3;
+	private static final byte ONE = 1;
+	private static final byte STOP = 0;
+	private static final byte LEFT = ONE;
+	private static final byte DIAGONAL = 2;
+	private static final byte UP = 3;
 	private static final String GAP = "-";
 	private static final String EMPTY = " ";
 	private static final String MISMATCH = ".";
@@ -71,15 +74,14 @@ public class SmithWatermanGotoh {
 	        while ((ch = inputStream.read()) != -1) {
 	            buffer.append((char)ch);
 	        }
-	        inputStream.close();
 	        
 	        String seq = buffer.toString();
 	        
 	        if (seq.startsWith(">")) {
-		        	int index = seq.indexOf("\n");
-		        	return seq.substring(index, seq.length()).replace("\n", "").toUpperCase();
+	        	int index = seq.indexOf("\n");
+	        	return seq.substring(index, seq.length()).replace("\n", "").toUpperCase();
 	        } else {
-	        		return seq.replace("\n", "").toUpperCase();
+        		return seq.replace("\n", "").toUpperCase();
 	        }
 		}
 	}
@@ -109,7 +111,7 @@ public class SmithWatermanGotoh {
 		float[] bestScores = new float[columns];//score if xi aligns to gap after yi		
 		float[] queryGapScores = new float[columns];//best score of alignment x1..xi to y1..yi
 		
-		for (int i=0; i<columns; i++) {
+		for (int i = 0; i < columns; i++) {
 			queryGapScores[i] = Float.NEGATIVE_INFINITY;
 			bestScores[i] = 0;
 		}
@@ -125,10 +127,10 @@ public class SmithWatermanGotoh {
 		
 		float simScore, queryGapExtendScore, queryGapOpenScore, referenceGapExtendScore, referenceGapOpenScore;
 		
-		for (int row=1; row<rows; row++) {		
+		for (int row = 1; row < rows; row++) {		
 			currentAnchorGapScore = Float.NEGATIVE_INFINITY;
 			bestScoreDiagonal = bestScores[0];
-			for (int column=1; column<columns; column++) {
+			for (int column = 1; column < columns; column++) {
 				simScore = findSimilarity(row, column);
 				totalSimilarityScore = bestScoreDiagonal + simScore;								
 				
@@ -140,7 +142,7 @@ public class SmithWatermanGotoh {
 					//add extend score
 					queryGapScores[column] = queryGapExtendScore;
 					//increase size of gap
-					int gapLength = verticalGaps[row-1][column] + 1;
+					int gapLength = verticalGaps[row - 1][column] + 1;
 					verticalGaps[row][column] = (short) gapLength;  
 				} else {
 					//add open score
@@ -149,13 +151,13 @@ public class SmithWatermanGotoh {
 				
 				//calculate horizontal gaps
 				referenceGapExtendScore = currentAnchorGapScore - gapExtend;
-				referenceGapOpenScore = bestScores[column-1] - gapOpen;
+				referenceGapOpenScore = bestScores[column - 1] - gapOpen;
 				
 				if (referenceGapExtendScore > referenceGapOpenScore) {
 					//add extend score
 					currentAnchorGapScore = referenceGapExtendScore;
 					//increase size of gap					
-					short gapLength = (short) (horizontalGaps[row][column-1] + 1);					
+					short gapLength = (short) (horizontalGaps[row][column - 1] + 1);					
 					horizontalGaps[row][column] = gapLength;  
 				} else {
 					//add open score
@@ -190,25 +192,34 @@ public class SmithWatermanGotoh {
 
 
 	private void initialize() {
-		pointerMatrix = new int[rows][columns];
+		pointerMatrix = new byte[rows][columns];
 		verticalGaps = new short[rows][columns];
 		horizontalGaps = new short[rows][columns];
-		for (int i=0; i<rows; i++) {
-			pointerMatrix[i][0] = STOP;
-			if (i==0) {
-				for (int j=0; j<columns; j++) {
-					pointerMatrix[0][j] = STOP;
-				}
-			}
-		}		
-		
-		for (int row=0; row<rows; row++) {
-			for (int column=0; column<columns; column++) {
-				verticalGaps[row][column] = 1;
-				horizontalGaps[row][column] = 1;
-			}
-		}		
+		for (int row = 0; row < rows; row++) {
+			Arrays.fill(verticalGaps[row], ONE);
+			Arrays.fill(horizontalGaps[row], ONE);
+		}
 	}
+//	private void initialize() {
+//		pointerMatrix = new int[rows][columns];
+//		verticalGaps = new short[rows][columns];
+//		horizontalGaps = new short[rows][columns];
+//		for (int i = 0; i < rows; i++) {
+//			pointerMatrix[i][0] = STOP;
+//			if (i == 0) {
+//				for (int j = 0; j < columns; j++) {
+//					pointerMatrix[0][j] = STOP;
+//				}
+//			}
+//		}		
+//		
+//		for (int row = 0; row < rows; row++) {
+//			for (int column = 0; column < columns; column++) {
+//				verticalGaps[row][column] = 1;
+//				horizontalGaps[row][column] = 1;
+//			}
+//		}		
+//	}
 	
 	public String[] traceback() {
 		StringBuilder alignmentA = new StringBuilder();
@@ -225,7 +236,7 @@ public class SmithWatermanGotoh {
 					
 				    //horizontal gap
 					int hEnd = horizontalGaps[rs][cs];
-					for (int i=0; i<hEnd; i++) {
+					for (int i = 0; i < hEnd; i++) {
 						alignmentA.append(GAP);
 						gapString.append(EMPTY);
 						alignmentB.append(sequenceB.charAt(--cs)).append(TAB);
@@ -249,7 +260,7 @@ public class SmithWatermanGotoh {
 				case UP:
 					//vertical gap					
 					int vEnd = verticalGaps[rs][cs];
-					for (int i=0; i<vEnd; i++) {
+					for (int i = 0; i < vEnd; i++) {
 						alignmentB.append(GAP);						
 						gapString.append(EMPTY);
 						alignmentA.append(sequenceA.charAt(--rs)).append(TAB);						
@@ -331,14 +342,14 @@ public class SmithWatermanGotoh {
 //	}
 	
 	private int findSimilarity(int row, int column) {
-		if (sequenceA.charAt(row-1) == sequenceB.charAt(column-1)) {
+		if (sequenceA.charAt(row - 1) == sequenceB.charAt(column - 1)) {
 			return matchScore;
 		} 
 		return mismatchScore;
 	}
 
 	private float findMaximum(float valueA, float valueB, float valueC) {
-		if (valueA <=0 && valueB <=0 && valueC <=0) {
+		if (valueA <= 0 && valueB <= 0 && valueC <= 0) {
 			return 0;
 		}
 		return Math.max(valueA, Math.max(valueB, valueC));
@@ -363,6 +374,70 @@ public class SmithWatermanGotoh {
 		for (String s : results) {
 			System.out.println(s);
 		}
+		
+		
+		String r = "GGTCCACTCTACTCCAATATGATCTCATTTCAATCCTTACCTTAATTATACCTGCAAAGACTCTATTTCCAAATAAGGTCACATTCTGAGGTTCTCGACGAACATGAATTTTGGGTGGGCACTATTCAATCCACTATATAAATTTAACACACCATTTTAGTATTGACCATAACATGTTATAAAATTTCATATCATTGAATTATTTATACATATTATTTGTTAACACGAATCAGT";
+		String s = "GGTCCACTCTACTCCAATATGATCTCATTTCAATCCTTACCTTAATTATACCTGCAAAGACTGGTCCACTCTACTCCAATATGATCTCATTTCAATCCTTACCTTAATTATACCTGCAAAGACTGGTCCACTCTACTCCAATATGATCTCATTTCAATCCTTACCTTAATTATA";
+		nm = new SmithWatermanGotoh(r, s,    5, -4, 16, 4);
+		results = nm.traceback();
+		for (String s1 : results) {
+			System.out.println(s1);
+		}
+		nm = new SmithWatermanGotoh(r, s,    4, -14, 14, 1);
+//		nm = new SmithWatermanGotoh(r, s,   5, -4, 16, 4);
+//		nm = new SmithWatermanGotoh(r, s,   4, -4, 3, 1);
+//		nm = new SmithWatermanGotoh(r, s,  15, -14, 9, 4);
+		results = nm.traceback();
+		for (String s1 : results) {
+			System.out.println(s1);
+		}
+		r = "AAATATATAATCTCAGTTAATCATGTGTTGATACGATGGGTGCAGATAAGGATGTATTAAGGGATATATGATGTGTGCAGATAGGGATATTCTAGATCTATTTTAAATATGTAATAATAGTGGGGGGATTGGTTTATTTTTAGCCTGTTTACCTTAAGAACATATATAATCTCAGTTAATTATGTGTTGATACAATAGGTGAAGATAGGGATATATGAAGGAATCTATGCAAACTCAAGATAATCACACTTAATTTTTTAAAGTGCAAGTGAGAACACAAATCATTTCTAG";
+		s = "GGATTGAAAATATTCATGGCATTTGGGAAGAAGAGAAAGGGCAGGTCTTTGCAGTATGCTTCTAGATCTATTTTAAATATGTAATAATAGTGGAGGGATCAGTTTATTTTTAGCCTGTTTACCTTAAGAACATATATAATCTCAGTTAATTATGTGTTGATACAATAGGTGAAGATAGGGATATATGAAGGAATCTATGCAAACTCAAGATAATCACACTTAATTTTTTAAAGTGCAAGTGAGAACACAAATCATTTCTAG";
+		nm = new SmithWatermanGotoh(r, s,    5, -4, 16, 4);
+		results = nm.traceback();
+		for (String s1 : results) {
+			System.out.println(s1);
+		}
+		nm = new SmithWatermanGotoh(r, s,    4, -14, 14, 1);
+//		nm = new SmithWatermanGotoh(r, s,   5, -4, 16, 4);
+//		nm = new SmithWatermanGotoh(r, s,   4, -4, 3, 1);
+//		nm = new SmithWatermanGotoh(r, s,  15, -14, 9, 4);
+		results = nm.traceback();
+		for (String s1 : results) {
+			System.out.println(s1);
+		}
+		r = "ACTGGTCTCGAACCCCTAACCTCAAGTGATTCACCCACCTTGGCCTCCCAAATTGCTGGGATTACAGGCGTGAGCCAGTATGCCTGGCCACAAGTCATACTTTAAATCACATATGATATTACTTTTAATTACTTTTTTTT";
+		s = "ATTACAGGCGGGAGCCACTACTCCTGGCCACAAGTCATACTTTAAATCACATATGATATTACTTTTAATTACTTTTTTTT";
+		nm = new SmithWatermanGotoh(r, s,    5, -4, 16, 4);
+		results = nm.traceback();
+		for (String s1 : results) {
+			System.out.println(s1);
+		}
+		nm = new SmithWatermanGotoh(r, s,    4, -14, 14, 1);
+//		nm = new SmithWatermanGotoh(r, s,   5, -4, 16, 4);
+//		nm = new SmithWatermanGotoh(r, s,   4, -4, 3, 1);
+//		nm = new SmithWatermanGotoh(r, s,  15, -14, 9, 4);
+		results = nm.traceback();
+		for (String s1 : results) {
+			System.out.println(s1);
+		}
+//		r = "CATTTAAAATTAATGTTGTTCTGTGTGAATTTGATCCTGTCATCATGATTCTAGCTGGTTATTTTGCAGACTTTTTTATGTGGTTGCTTCATAGTGTTACTGATCTGTGTACTTCAATGTGTTTTGGTAGTGGCTGATAATTGTTTTTCATTTCCATATTTAATGCTTCCTTCAGGAGCTCTTGTAAGGCAGGCCTGGTGGTGATGTATTCCCTCAGCATTTGCTTGTCTGAAAAGGATCTTATTTCTCTTTTGTTTATGAAG";
+		r = "TAATGTTGTTCTGTGTGAATTTGATCCTGTCATCATGATTCTAGCTGGTTATTTTGCAGACTTTTTTATGTGGTTGCTTCATAGTGTTACTGATCTGTGTACTTCAATGTGTTTTGGTAGTGGCTGATAATTGTTTTTCATTTCCATATTTAATGCTTCCTTCAGGAGCTCTTGTAAGGCAGGCCTGGTGGTGATGTATTCCCTCAGCATTTGCTTGTCTGAAAAGGATCTTATTTCTCTTTTGTTTATGAAG";
+		s = "GAAGGGTGTTCTGTGTGAGGTTGAGGCTGTCGTCATGATGCTAGCTGGTTATTGTGCAGACTTGTTTATGTGGTTGCTTCATAGTGTGACTGATCTGTGTACTTACATGTGTTTTGGTAGTGGCTGATAATTGTTTTTCATTTCCATATTTAATGCTTCCTTCAGGAGCTCTTGTAAGGCAGGCCTGGTTGTGATGTATTCCCTCAGCATTTGCTTGTCTGAAAAGGATCTTATTTCTCTTTTGTTTATGAAG";
+		nm = new SmithWatermanGotoh(r, s,    5, -4, 16, 4);
+		results = nm.traceback();
+		for (String s1 : results) {
+			System.out.println(s1);
+		}
+		nm = new SmithWatermanGotoh(r, s,    4, -14, 14, 1);
+//		nm = new SmithWatermanGotoh(r, s,   5, -4, 16, 4);
+//		nm = new SmithWatermanGotoh(r, s,   4, -4, 3, 1);
+//		nm = new SmithWatermanGotoh(r, s,  15, -14, 9, 4);
+		results = nm.traceback();
+		for (String s1 : results) {
+			System.out.println(s1);
+		}
+		
 	}
 
 }

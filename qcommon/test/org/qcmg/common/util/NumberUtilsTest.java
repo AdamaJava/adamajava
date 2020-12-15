@@ -3,8 +3,6 @@ package org.qcmg.common.util;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
-import java.util.Arrays;
-
 import org.junit.Test;
 
 public class NumberUtilsTest {
@@ -30,6 +28,41 @@ public class NumberUtilsTest {
 		
 		assertEquals(851974, NumberUtils.pack2IntsInto1(13, 6));
 		assertEquals(((13 << NumberUtils.SHORT_DIVIDER) + 6), NumberUtils.pack2IntsInto1(13, 6));
+	}
+	
+	@Test
+	public void getContinousCountFromArray() {
+		int [] array = new int[] {29,43,44,45,136,150,151,152,226,231,232,233,234,235,236};
+		assertEquals(0, NumberUtils.getContinuousCountFromValue(0, array));
+		assertEquals(1, NumberUtils.getContinuousCountFromValue(29, array));
+		assertEquals(0, NumberUtils.getContinuousCountFromValue(42, array));
+		assertEquals(3, NumberUtils.getContinuousCountFromValue(43, array));
+		assertEquals(1, NumberUtils.getContinuousCountFromValue(45, array));
+		assertEquals(0, NumberUtils.getContinuousCountFromValue(46, array));
+		assertEquals(0, NumberUtils.getContinuousCountFromValue(149, array));
+		assertEquals(3, NumberUtils.getContinuousCountFromValue(150, array));
+		assertEquals(1, NumberUtils.getContinuousCountFromValue(226, array));
+		assertEquals(6, NumberUtils.getContinuousCountFromValue(231, array));
+		array = new int[] {0,1,2,3,4,5,6,7,8,9,10};
+		assertEquals(11, NumberUtils.getContinuousCountFromValue(0, array));
+	}
+	
+	@Test
+	public void getContinousCountFromArrayRtoL() {
+		int [] array = new int[] {29,43,44,45,136,150,151,152,226,231,232,233,234,235,236};
+		assertEquals(0, NumberUtils.getContinuousCountFromValue(0, array, false));
+		assertEquals(1, NumberUtils.getContinuousCountFromValue(29, array, false));
+		assertEquals(0, NumberUtils.getContinuousCountFromValue(42, array, false));
+		assertEquals(1, NumberUtils.getContinuousCountFromValue(43, array, false));
+		assertEquals(3, NumberUtils.getContinuousCountFromValue(45, array, false));
+		assertEquals(0, NumberUtils.getContinuousCountFromValue(46, array, false));
+		assertEquals(0, NumberUtils.getContinuousCountFromValue(149, array, false));
+		assertEquals(1, NumberUtils.getContinuousCountFromValue(150, array, false));
+		assertEquals(1, NumberUtils.getContinuousCountFromValue(226, array, false));
+		assertEquals(1, NumberUtils.getContinuousCountFromValue(231, array, false));
+		array = new int[] {0,1,2,3,4,5,6,7,8,9,10};
+		assertEquals(1, NumberUtils.getContinuousCountFromValue(0, array, false));
+		assertEquals(11, NumberUtils.getContinuousCountFromValue(10, array, false));
 	}
 	
 	@Test
@@ -78,6 +111,36 @@ public class NumberUtilsTest {
 		assertEquals(2, NumberUtils.sumPackedInt(2));
 		assertEquals(1, NumberUtils.sumPackedInt(65536));
 		assertEquals(2, NumberUtils.sumPackedInt(65537));
+	}
+	
+	@Test
+	public void getOverlap() {
+		assertEquals(1, NumberUtils.getOverlap(1, 2, 1, 2));
+		assertEquals(0, NumberUtils.getOverlap(1, 1, 1, 1));
+		assertEquals(10, NumberUtils.getOverlap(10, 20, 10, 20));
+		assertEquals(10, NumberUtils.getOverlap(10, 20, 10, 30));
+		assertEquals(10, NumberUtils.getOverlap(10, 20, 01, 30));
+		assertEquals(10, NumberUtils.getOverlap(2, 25, 10, 20));
+		assertEquals(0, NumberUtils.getOverlap(2, 25, 30, 40));
+		assertEquals(0, NumberUtils.getOverlap(20, 250, 10, 19));
+		assertEquals(1, NumberUtils.getOverlap(20, 250, 10, 21));
+		assertEquals(1, NumberUtils.getOverlap(19, 250, 10, 20));
+	}
+	
+	@Test
+	public void getRangesOverlap() {
+		assertEquals(0, NumberUtils.getOverlap(1, 100, 100, 200));
+		assertEquals(0, NumberUtils.getOverlap(1, 100, 1, 1));
+		assertEquals(1, NumberUtils.getOverlap(1, 100, 1, 2));
+		assertEquals(60, NumberUtils.getOverlap(1, 100, 20, 80));
+		assertEquals(99, NumberUtils.getOverlap(1, 100, 1, 200));
+		assertEquals(0, NumberUtils.getOverlap(100, 200, 1, 100));
+		assertEquals(1, NumberUtils.getOverlap(100, 200, 99, 101));
+		assertEquals(50, NumberUtils.getOverlap(100, 200, 99, 150));
+		assertEquals(100, NumberUtils.getOverlap(100, 200, 99, 2000));
+		assertEquals(100, NumberUtils.getOverlap(100, 200, 99, 201));
+		
+		assertEquals(12, NumberUtils.getOverlap(0, 12, 0, 161));
 	}
 	
 }

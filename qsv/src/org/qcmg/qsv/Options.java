@@ -50,7 +50,7 @@ public class Options {
 	private String sampleName;
 	private Integer filterSize;
 	private Integer clusterSize;
-	private String tempDirName;	
+	private String tempDirName;
 	private String preprocessMode;
 	private String analysisMode;
 	private String comparisonFileAbbreviation;
@@ -68,7 +68,8 @@ public class Options {
 	private String bitFile;
 	private String blatPath;
 	private String mapper;
-	private String clipQuery;		
+	private String clipQuery;
+	private String tiledAlignerFile;
 	private String maxISizeCount;
 	private boolean isQCMG = false;
 	private boolean isSplitRead = true;
@@ -148,7 +149,8 @@ public class Options {
 		
 		log = generalSection.get("log");
 		loglevel = generalSection.get("loglevel");
-		sampleName = generalSection.get("sample");		
+		sampleName = generalSection.get("sample");
+		tiledAlignerFile = generalSection.get("tiled_aligner");
 		
 		if (log == null) {
 			log = sampleName + ".log";
@@ -404,6 +406,10 @@ public class Options {
 			if (reference == null && isQCMG) {
 				throw new QSVException("NULL_REFERENCE_FILE");
 			}
+		}
+		
+		if (tiledAlignerFile == null || ! new File(tiledAlignerFile).canRead()) {
+			throw new QSVException("NO_TILED_ALIGNER_FILE", tiledAlignerFile);	
 		}
 		
 		if (null == inputFile) {
@@ -720,6 +726,9 @@ public class Options {
 
 	public String getSequencingPlatform() {
 		return sequencingPlatform;
+	}
+	public String getTiledAligner() {
+		return tiledAlignerFile;
 	}
 
 	public void setSequencingPlatform(String sequencingPlatform) {

@@ -1,3 +1,9 @@
+/**
+ * © Copyright QIMR Berghofer Medical Research Institute 2014-2020.
+ *
+ * This code is released under the terms outlined in the included LICENSE file.
+ */
+
 package au.edu.qimr.tiledaligner;
 
 import au.edu.qimr.tiledaligner.util.TiledAlignerUtil;
@@ -135,8 +141,12 @@ public class PositionChrPositionMap {
 					// oops
 					logger.warn("positionWithinContig can't be cast to int without overflow!!!");
 				}
-				
-				return new ChrPositionName(entry.getKey().getChromosome(), Math.max(1, (int) positionWithinContig - lhsBuffer), (int) positionWithinContig + length + rhsBuffer, (reverseStrand ? "R" : "F"));
+				int startPosition = (int) positionWithinContig - lhsBuffer;
+				int endPosition = (int) positionWithinContig + length + rhsBuffer;
+				if (endPosition <= startPosition) {
+					logger.error("end position is before (or equal to) start position! startPos: " + startPosition  + ", end position: " + endPosition + ", long position: " + position + ", length: " + length + ", lhsBuffer: " + lhsBuffer + ", rhsBuffer: " + rhsBuffer); 
+				}
+				return new ChrPositionName(entry.getKey().getChromosome(), Math.max(1, startPosition), endPosition, (reverseStrand ? "R" : "F"));
 			}
 		}
 		logger.warn("could not find ChrPosition for postion: " + position);

@@ -232,38 +232,38 @@ public class SoftClipClusterTest {
 		assertEquals(5, clip.getClipCount(false, false));
 	}
 
-	@Test
-	public void testRescueClips() throws Exception {
-		String tumourFile = testFolder.newFile("tumor.bam").getAbsolutePath();
-		TestUtil.createHiseqBamFile(tumourFile, PairGroup.AAC,
-				SortOrder.coordinate);
-		String normalFile = testFolder.newFile("normal.bam").getAbsolutePath();
-		TestUtil.createHiseqBamFile(normalFile, PairGroup.AAC,
-				SortOrder.coordinate);
-		QSVParameters tumor = TestUtil.getQSVParameters(testFolder.getRoot(), tumourFile,
-				normalFile, true, "both", "both");
-		clip = TestUtil.setUpClipRecord("chr10", "chr10", true, true);
-
-		assertNull(clip.getRightBreakpointObject());
-		assertEquals(6, clip.getClipCount(true, true));
-		assertEquals(0, clip.getClipCount(true, false));
-
-		BLAT blat = createMock(BLAT.class);
-		Map<String, BLATRecord> expected = new HashMap<String, BLATRecord>();
-		String value = "48\t1\t0\t0\t2\t0\t3\t0\t+\tchr10_89712341_true_+\t66\t0\t48\tchr10\t135534747\t89700251\t89700299\t1\t48,\t0,\t89700251,";
-
-		expected.put("chr10_89712341_true_+", new BLATRecord(value.split("\t")));
-		expect(
-				blat.align(testFolder.newFile("chr10_89712341_true_+.fa")
-						.getAbsolutePath(),
-						testFolder.newFile("chr10_89712341_true_+.psl")
-								.getAbsolutePath())).andReturn(expected);
-		replay(blat);
-
-		clip.rescueClips(tumor, blat, new File(tumourFile),
-				new File(normalFile), testFolder.getRoot().toString(), 20, 200,
-				50);
-	}
+//	@Test
+//	public void testRescueClips() throws Exception {
+//		String tumourFile = testFolder.newFile("tumor.bam").getAbsolutePath();
+//		TestUtil.createHiseqBamFile(tumourFile, PairGroup.AAC,
+//				SortOrder.coordinate);
+//		String normalFile = testFolder.newFile("normal.bam").getAbsolutePath();
+//		TestUtil.createHiseqBamFile(normalFile, PairGroup.AAC,
+//				SortOrder.coordinate);
+//		QSVParameters tumor = TestUtil.getQSVParameters(testFolder.getRoot(), tumourFile,
+//				normalFile, true, "both", "both");
+//		clip = TestUtil.setUpClipRecord("chr10", "chr10", true, true);
+//
+//		assertNull(clip.getRightBreakpointObject());
+//		assertEquals(6, clip.getClipCount(true, true));
+//		assertEquals(0, clip.getClipCount(true, false));
+//
+//		BLAT blat = createMock(BLAT.class);
+//		Map<String, BLATRecord> expected = new HashMap<String, BLATRecord>();
+//		String value = "48\t1\t0\t0\t2\t0\t3\t0\t+\tchr10_89712341_true_+\t66\t0\t48\tchr10\t135534747\t89700251\t89700299\t1\t48,\t0,\t89700251,";
+//
+//		expected.put("chr10_89712341_true_+", new BLATRecord(value.split("\t")));
+//		expect(
+//				blat.align(testFolder.newFile("chr10_89712341_true_+.fa")
+//						.getAbsolutePath(),
+//						testFolder.newFile("chr10_89712341_true_+.psl")
+//								.getAbsolutePath())).andReturn(expected);
+//		replay(blat);
+//
+//		clip.rescueClips(tumor, blat, new File(tumourFile),
+//				new File(normalFile), testFolder.getRoot().toString(), 20, 200,
+//				50);
+//	}
 
 	@Test
 	public void testGetOrphanBreakpoint() throws Exception {

@@ -25,7 +25,6 @@ import org.qcmg.common.model.BLATRecord;
 import org.qcmg.qsv.QSVException;
 import org.qcmg.qsv.QSVParameters;
 import org.qcmg.qsv.assemble.ConsensusRead;
-import org.qcmg.qsv.blat.BLAT;
 import org.qcmg.qsv.splitread.UnmappedRead;
 import org.qcmg.qsv.util.QSVUtil;
 import org.qcmg.qsv.util.TestUtil;
@@ -469,32 +468,32 @@ READ:AGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAGGGCAGGGATCAATTCCTTAATATCTTAGGAAGACT
 		assertEquals(OptionalInt.empty(), Breakpoint.compare("chr2", 10, "chr1", 20));
 	}
 	
-	@Test
-	public void testFindRescuedMateBreakpoint() throws Exception {
-		breakpoint = new Breakpoint(89712341, "chr10", true, -1, -1);	
-		HashSet<Clip> set = new HashSet<Clip>();
-		set.add(new Clip("test,chr10,89712341,+,left,ACTTTGAAAAAACAGTAATTAA,ACTTTGAAAAAACAGTAATT,AA"));	
-		set.add(new Clip("test2,chr10,89712341,+,left,ACTTTGAAAAAACAGTAATTAA,ACTTTGAAAAAACAGTAATT,AA"));
-		for (Clip c : set) {
-			breakpoint.addTumourClip(c);
-		}
-		breakpoint.setStrand(QSVUtil.PLUS);
-		String name = breakpoint.getName();
-		BLAT blat = createMock(BLAT.class);
-		String softClipDir = testFolder.newFolder().getAbsolutePath();
-		Map<String, BLATRecord> expected = new HashMap<String, BLATRecord>();
-        String value = "48\t1\t0\t0\t2\t0\t3\t0\t-\tchr10_89712341_true_+\t66\t0\t48\tchr10\t135534747\t89700251\t89700299\t1\t48,\t0,\t89700251,";
-	    expected.put(name, new BLATRecord(value));
-		expect(blat.align(softClipDir + QSVUtil.getFileSeparator() +  (name + ".fa"), softClipDir + QSVUtil.getFileSeparator() + name + ".psl")).andReturn(expected);
-		replay(blat);
-        QSVParameters p = createMock(QSVParameters.class);             
-        
-        assertTrue(breakpoint.findRescuedMateBreakpoint(blat, p, softClipDir));
-        assertEquals(QSVUtil.MINUS, breakpoint.getMateStrand());
-        // not so because we have now set isLeft to be true, rather than the default value which is false
-        assertEquals(89700252, breakpoint.getMateBreakpoint());
-        assertEquals("chr10", breakpoint.getMateReference());
-	}
+//	@Test
+//	public void testFindRescuedMateBreakpoint() throws Exception {
+//		breakpoint = new Breakpoint(89712341, "chr10", true, -1, -1);	
+//		HashSet<Clip> set = new HashSet<Clip>();
+//		set.add(new Clip("test,chr10,89712341,+,left,ACTTTGAAAAAACAGTAATTAA,ACTTTGAAAAAACAGTAATT,AA"));	
+//		set.add(new Clip("test2,chr10,89712341,+,left,ACTTTGAAAAAACAGTAATTAA,ACTTTGAAAAAACAGTAATT,AA"));
+//		for (Clip c : set) {
+//			breakpoint.addTumourClip(c);
+//		}
+//		breakpoint.setStrand(QSVUtil.PLUS);
+//		String name = breakpoint.getName();
+//		BLAT blat = createMock(BLAT.class);
+//		String softClipDir = testFolder.newFolder().getAbsolutePath();
+//		Map<String, BLATRecord> expected = new HashMap<String, BLATRecord>();
+//        String value = "48\t1\t0\t0\t2\t0\t3\t0\t-\tchr10_89712341_true_+\t66\t0\t48\tchr10\t135534747\t89700251\t89700299\t1\t48,\t0,\t89700251,";
+//	    expected.put(name, new BLATRecord(value));
+//		expect(blat.align(softClipDir + QSVUtil.getFileSeparator() +  (name + ".fa"), softClipDir + QSVUtil.getFileSeparator() + name + ".psl")).andReturn(expected);
+//		replay(blat);
+//        QSVParameters p = createMock(QSVParameters.class);             
+//        
+//        assertTrue(breakpoint.findRescuedMateBreakpoint(blat, p, softClipDir));
+//        assertEquals(QSVUtil.MINUS, breakpoint.getMateStrand());
+//        // not so because we have now set isLeft to be true, rather than the default value which is false
+//        assertEquals(89700252, breakpoint.getMateBreakpoint());
+//        assertEquals("chr10", breakpoint.getMateReference());
+//	}
 
 	private void assertStrand(char strand1, char strand2, boolean isGermline,
 			int posStrandCount, int negStrandCount) throws QSVException {

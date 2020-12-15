@@ -53,6 +53,42 @@ public class StringUtils {
 		}
 	}
 	
+	
+	public static int[][] getStartPositionsAndLengthOfSubStrings(String reference, String sequence) {
+		List<int[]> results = new ArrayList<>();
+		int previousRefStartPosision = 0;
+		for (int i = 0, maxLength = sequence.length() - 13; i < maxLength ; i++) {
+			String nextSeqTile = sequence.substring(i, i + 13);
+			int refNextStartPosition = reference.indexOf(nextSeqTile, previousRefStartPosision);
+			if (refNextStartPosition > -1) {
+				int nextBlockLength = getLengthOfSubStringMatch(reference.substring(refNextStartPosition), sequence.substring(i), true);
+				results.add(new int[] {refNextStartPosition, i, nextBlockLength});
+				i += (nextBlockLength - 1);
+				previousRefStartPosision = refNextStartPosition + nextBlockLength;
+			}
+		}
+		
+		return results.toArray(new int[][] {});
+	}
+	
+	public static int getLengthOfSubStringMatch(String reference, String sequence, boolean forwards) {
+		int currentTally = 0;
+		for (int i = 0; i < reference.length() && i < sequence.length(); i++) {
+			char refC = reference.charAt(i);
+			char seqC = sequence.charAt(i);
+			
+			if (refC == seqC) {
+				currentTally++;
+			} else {
+				/*
+				 * no longer have a match - bail and return currentTally
+				 */
+				break; 
+			}
+		}
+		return currentTally;
+	}
+	
 	/**
 	 * * Pads a String <code>s</code> to take up <code>n</code>
 	 * characters, padding with char <code>c</code> on the
