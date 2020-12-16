@@ -4,6 +4,7 @@
  *
  * This code is released under the terms outlined in the included LICENSE file.
  */
+
 package org.qcmg.qsv.discordantpair;
 
 import java.util.ArrayList;
@@ -102,11 +103,9 @@ public class QPrimerCategory {
 		countCategories(clusterMatePairs);
 		
 		if (map.size() == 0) {
-			primaryCategoryNo= "unknown";
+			primaryCategoryNo = "unknown";
 		} else {
- 		
 			findCategoryNo();
-		
 			findQPrimerSites(clusterLeftStart, clusterLeftEnd, clusterRightStart, clusterRightEnd);
 		}
 	}
@@ -175,8 +174,7 @@ public class QPrimerCategory {
 		}
 	}
 
-	private void setCat1PEEnds(int clusterLeftStart, int clusterLeftEnd,
-			int clusterRightStart, int clusterRightEnd) {
+	private void setCat1PEEnds(int clusterLeftStart, int clusterLeftEnd, int clusterRightStart, int clusterRightEnd) {
 		startLeft = clusterLeftStart;
 		endLeft = clusterLeftEnd - 50;
 		startRight = clusterRightStart + 50;
@@ -230,33 +228,33 @@ public class QPrimerCategory {
 
 	private void setStandardEnds(int clusterLeftStart, int clusterLeftEnd, int clusterRightStart, int clusterRightEnd) {
 		
-		endLeft = (int) Math.ceil(((double)clusterLeftEnd + clusterLeftStart)/ 2);	
+		endLeft = (int) Math.ceil(((double)clusterLeftEnd + clusterLeftStart) / 2);	
 		startLeft = endLeft-499;
-		if (startLeft<clusterLeftStart) {
+		if (startLeft < clusterLeftStart) {
 			startLeft = clusterLeftStart;
 		}
 		
-		startRight = (int) Math.ceil(((double)clusterRightEnd + clusterRightStart)/2);
+		startRight = (int) Math.ceil(((double)clusterRightEnd + clusterRightStart) / 2);
 		
 		endRight = startRight + 499;
-		if (endRight>clusterRightEnd) {
+		if (endRight > clusterRightEnd) {
 			endRight = clusterRightEnd;
 		}		
 	}
 	
 	private void setCat4Ends(int clusterLeftStart, int clusterLeftEnd, int clusterRightStart, int clusterRightEnd) {
 		
-		startLeft = (int) Math.ceil(((double)clusterLeftEnd + clusterLeftStart)/2);
+		startLeft = (int) Math.ceil(((double)clusterLeftEnd + clusterLeftStart) / 2);
 		
-		endLeft = startLeft+499;
-		if (endLeft>clusterLeftEnd) {
+		endLeft = startLeft + 499;
+		if (endLeft > clusterLeftEnd) {
 			endLeft = clusterLeftEnd;
 		}
 		
-		endRight = (int) Math.ceil(((double)clusterRightEnd + clusterRightStart)/2);	
+		endRight = (int) Math.ceil(((double)clusterRightEnd + clusterRightStart) / 2);	
 		
 		startRight = endRight - 499;
-		if (startRight<clusterRightStart) {
+		if (startRight < clusterRightStart) {
 			startRight = clusterRightStart;
 		}		
 	}
@@ -268,17 +266,17 @@ public class QPrimerCategory {
 		
 		leftChr = tempLeft;
 		rightChr = tempRight;
-		endLeft = (int) Math.ceil(((double)clusterRightEnd + clusterRightStart)/2);	
+		endLeft = (int) Math.ceil(((double)clusterRightEnd + clusterRightStart) / 2);	
 		
-		startLeft = endLeft-499;
-		if (startLeft<clusterRightStart) {
+		startLeft = endLeft - 499;
+		if (startLeft < clusterRightStart) {
 			startLeft = clusterRightStart;
 		}
 		
-		startRight = (int) Math.ceil(((double)clusterLeftEnd + clusterLeftStart)/2);
+		startRight = (int) Math.ceil(((double)clusterLeftEnd + clusterLeftStart) / 2);
 
 		endRight = startRight + 499;
-		if (endRight>clusterLeftEnd) {
+		if (endRight > clusterLeftEnd) {
 			endRight = clusterLeftEnd;
 		}
 	}

@@ -34,7 +34,6 @@ import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.meta.QExec;
 import org.qcmg.qsv.annotate.AnnotateFilterMT;
 import org.qcmg.qsv.annotate.PairingStats;
-import org.qcmg.qsv.blat.BLAT;
 import org.qcmg.qsv.discordantpair.DiscordantPairCluster;
 import org.qcmg.qsv.discordantpair.FindDiscordantPairClustersMT;
 import org.qcmg.qsv.discordantpair.FindMatePairsMT;
@@ -48,6 +47,9 @@ import org.qcmg.qsv.softclip.FindClipClustersMT;
 import org.qcmg.qsv.util.CustomThreadPoolExecutor;
 import org.qcmg.qsv.util.QSVConstants;
 import org.qcmg.qsv.util.QSVUtil;
+import au.edu.qimr.tiledaligner.ReadTiledAligerFile;
+
+import gnu.trove.map.TIntObjectMap;
 
 /**
  * 
@@ -56,6 +58,7 @@ import org.qcmg.qsv.util.QSVUtil;
  */
 public class QSVPipeline {
 
+	public static TIntObjectMap<int[]> TILED_ALIGNER_CACHE;
 
 	private final QLogger logger = QLoggerFactory.getLogger(QSVPipeline.class);
 	private static final String FILE_SEPERATOR = System.getProperty("file.separator");
@@ -76,6 +79,7 @@ public class QSVPipeline {
 	private final String analysisId;
 	private final String resultsDir;
 	private long clipCount = 0;
+	private Future<TIntObjectMap<int[]>> future;
 
 	public QSVPipeline(Options options, String resultsDir, Date analysisDate, String analysisId, QExec exec) throws Exception {
 
@@ -85,7 +89,18 @@ public class QSVPipeline {
 		this.tumorRecords = new TreeMap<>();
 		this.normalRecords = new TreeMap<>();
 		this.resultsDir = resultsDir;
-
+		
+		/*
+		 * load tiled aligner data using future so that other tasks can proceed in background
+		 */
+		ExecutorService executor = Executors.newSingleThreadExecutor();
+		String tiledAlignerFile = options.getTiledAligner() == null ? "/reference/genomeinfo/q3clinvar/q3tiledaligner_5k.txt.gz" : options.getTiledAligner();
+		logger.info("loading tiled aligner cache: " + tiledAlignerFile);
+		
+		Callable<TIntObjectMap<int[]>> callable = () -> {
+			return ReadTiledAligerFile.getCache(tiledAlignerFile, 64, 2);
+		};
+		future = executor.submit(callable);
 		//copy ini file to output directory
 
 		Path path = Files.copy(Paths.get(options.getIniFile()), Paths.get(resultsDir + FILE_SEPERATOR + new File(options.getIniFile()).getName()), StandardCopyOption.REPLACE_EXISTING);
@@ -247,6 +262,13 @@ public class QSVPipeline {
 
 		//if clip mode is chosen, run clip clustering. Somatic and germline Records will be written in the analysis 
 		if (options.runClipAnalysis() || options.isSplitRead()) {
+			/*
+			 * need to make sure our future is finished
+			 */
+			logger.info("waiting for tiled aligner");
+			TILED_ALIGNER_CACHE = future.get();
+			logger.info("waiting for tiled aligner - DONE");
+			
 			findSoftClips(); 
 			logger.info(QSVUtil.writeTime("Soft clip clustering time: ", pairsDate, new Date()));
 		} else {
@@ -479,16 +501,17 @@ public class QSVPipeline {
 	 */
 	private void findSoftClips() throws Exception {
 
-		BLAT blat = new BLAT(options.getBlatServer(), options.getBlatPort(), options.getBlatPath());
+//		BLAT blat = new BLAT(options.getBlatServer(), options.getBlatPort(), options.getBlatPath());
 
-		FindClipClustersMT worker = new FindClipClustersMT(tumor, normal, softclipDir, blat, tumorRecords, options, analysisId, clipCount);
+		FindClipClustersMT worker = new FindClipClustersMT(tumor, normal, softclipDir, tumorRecords, options, analysisId, clipCount, TILED_ALIGNER_CACHE);
+//		FindClipClustersMT worker = new FindClipClustersMT(tumor, normal, softclipDir, blat, tumorRecords, options, analysisId, clipCount);
 		worker.execute();
 
 		this.somaticCounts = worker.getQSVRecordWriter().getSomaticCount().intValue();
 		this.germlineCounts = worker.getQSVRecordWriter().getGermlineCount().intValue();
 
 		// log some blat stats
-		logger.info("BLAT server was accessed " + blat.getExecuteCount() + " times");
+//		logger.info("BLAT server was accessed " + blat.getExecuteCount() + " times");
 		
 		if (worker.getExitStatus().intValue() >= 1) {
 			throw new QSVException("CLIP_CLUSTER_EXCEPTION");

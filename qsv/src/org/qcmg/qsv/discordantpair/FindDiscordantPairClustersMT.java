@@ -173,7 +173,7 @@ public class FindDiscordantPairClustersMT implements Callable <Map<String, List<
 		int startPos = -1;
 		int range = -1;
 		int finalRead = findMatePairs.size() - 1;
-		List<DiscordantPairCluster> tempClusters = new ArrayList<DiscordantPairCluster>();
+		List<DiscordantPairCluster> tempClusters = new ArrayList<>();
 		//iterate through currentPairs and start defining clusters
 		for (int i = 0, len = findMatePairs.size() ; i < len ;i++) {
 			//start the new cluster;
@@ -187,7 +187,7 @@ public class FindDiscordantPairClustersMT implements Callable <Map<String, List<
 //			currentCluster.getClusterMatePairs().add(startPair);
 
 			//start adding mate pairs to the cluster
-			for (int j=i+1 ; j< len ; j++) {
+			for (int j = i + 1 ; j < len ; j++) {
 				MatePair currentPair = findMatePairs.get(j);
 
 //				currentCluster.findLeftEndOfCluster();
@@ -263,8 +263,7 @@ public class FindDiscordantPairClustersMT implements Callable <Map<String, List<
 	}
 
 	/**
-	 * Filter clusters by the parameters for comparison to determine the
-	 * mutation type (somatic, germline)
+	 * Filter clusters by the parameters for comparison to determine the mutation type (somatic, germline).
 	 * 
 	 * @param tempClusters the unfiltered list of clusters
 	 * @param compareMatePairsList 

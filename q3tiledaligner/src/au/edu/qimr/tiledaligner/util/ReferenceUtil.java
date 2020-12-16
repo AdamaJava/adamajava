@@ -1,14 +1,20 @@
-package au.edu.qimr.tiledaligner.util;
+/**
+ * © Copyright QIMR Berghofer Medical Research Institute 2014-2020.
+ *
+ * This code is released under the terms outlined in the included LICENSE file.
+ */
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Map;
+package au.edu.qimr.tiledaligner.util;
 
 import gnu.trove.map.hash.THashMap;
 import htsjdk.samtools.reference.FastaSequenceIndex;
 import htsjdk.samtools.reference.IndexedFastaSequenceFile;
 import htsjdk.samtools.reference.ReferenceSequence;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Map;
 
 public class ReferenceUtil {
 	
@@ -35,13 +41,9 @@ public class ReferenceUtil {
 	}
 	
 	public static void loadIntoReferenceCache(String refFileName, String contig) {
-//		String refFileName = "/reference/genomes/GRCh37_ICGC_standard_v2/indexes/BWAKIT_0.7.12/GRCh37_ICGC_standard_v2.fa";
 		
 		FastaSequenceIndex index = new FastaSequenceIndex(new File(refFileName + ".fai"));
 		try (IndexedFastaSequenceFile refFile = new IndexedFastaSequenceFile(new File(refFileName), index);) {
-//			if (null == dictionary) {
-//				dictionary = refFile.getSequenceDictionary();
-//			}
 			ReferenceSequence refSeq = refFile.getSequence(contig);
 			byte[] ref = refSeq.getBases();
 			referenceCache.put(refFileName + contig, ref);

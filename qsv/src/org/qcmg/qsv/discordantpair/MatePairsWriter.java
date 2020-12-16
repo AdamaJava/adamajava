@@ -1,6 +1,7 @@
 /**
  * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
+
 package org.qcmg.qsv.discordantpair;
 
 import java.io.BufferedWriter;
@@ -10,7 +11,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
-
 
 import org.qcmg.qsv.QSVException;
 

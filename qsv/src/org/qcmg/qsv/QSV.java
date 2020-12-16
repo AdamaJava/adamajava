@@ -62,7 +62,6 @@ public class QSV {
 				} else {
 					
 					options.parseIniFile();					
-					LoadReferencedClasses.loadClasses(QSV.class);
 					
 					//use analysis id to set up results folder
 					Date analysisDate = new Date();

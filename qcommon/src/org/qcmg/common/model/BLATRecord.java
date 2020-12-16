@@ -137,6 +137,14 @@ public class BLATRecord implements Comparable<BLATRecord> {
 		return size;
 	}
 	
+	public int getQueryLength() {
+		return getQueryEnd() - (getQueryStart() - 1);
+	}
+	
+	public int getQueryGapCount() {
+		return Integer.parseInt(rawData[4]);
+	}
+	
 	public int getMatchCount() {
 		return Integer.parseInt(rawData[0]);
 	}
@@ -174,6 +182,9 @@ public class BLATRecord implements Comparable<BLATRecord> {
 
 	public int getQueryEnd() {
 		return Integer.parseInt(rawData[12]);
+	}
+	public int getChromsomeLength() {
+		return Integer.parseInt(rawData[14]);
 	}
 	
 	public int getScore() {

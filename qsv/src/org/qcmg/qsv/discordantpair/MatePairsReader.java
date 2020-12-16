@@ -4,6 +4,7 @@
  *
  * This code is released under the terms outlined in the included LICENSE file.
  */
+
 package org.qcmg.qsv.discordantpair;
 
 import java.io.BufferedReader;
@@ -36,7 +37,7 @@ public class MatePairsReader {
 			String[] groups = zp.toString().split("_");
 			dirToRead = new String[groups.length];
 
-			for (int i=0; i<groups.length; i++) {
+			for (int i = 0; i < groups.length; i++) {
 				dirToRead[i] = matepairFilePath +  groups[i] + FILE_SEPERATOR;
 			}
 
@@ -91,7 +92,7 @@ public class MatePairsReader {
 						if (filesToRead.containsKey(key)) {  
 							filesToRead.get(key).add(file);
 						} else {
-							List<File> list = new ArrayList<File>();
+							List<File> list = new ArrayList<>();
 							list.add(file);
 							filesToRead.put(key, list); // key: reference name | value: file
 						}                     
@@ -107,7 +108,7 @@ public class MatePairsReader {
 
 	public List<MatePair> getMatePairsListByFiles(List<File> files, boolean isFindMethod) throws Exception {
 
-		List<MatePair> readPairs = new ArrayList<MatePair>();
+		List<MatePair> readPairs = new ArrayList<>();
 
 		for (File file : files) {
 			try (FileReader fileReader = new FileReader(file);

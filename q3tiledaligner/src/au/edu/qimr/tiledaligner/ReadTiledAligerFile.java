@@ -1,6 +1,16 @@
+/**
+ * © Copyright QIMR Berghofer Medical Research Institute 2014-2020.
+ *
+ * This code is released under the terms outlined in the included LICENSE file.
+ */
+
 package au.edu.qimr.tiledaligner;
 
 import au.edu.qimr.tiledaligner.util.TiledAlignerUtil;
+
+import gnu.trove.TCollections;
+import gnu.trove.map.TIntObjectMap;
+import gnu.trove.map.hash.TIntObjectHashMap;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,13 +25,10 @@ import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.NumberUtils;
 import org.qcmg.qio.record.StringFileReader;
 
-import gnu.trove.map.TIntObjectMap;
-import gnu.trove.map.hash.TIntObjectHashMap;
-
 public class ReadTiledAligerFile {
 	
 	
-	private static TIntObjectMap<int[]> map = new TIntObjectHashMap<>(1024);
+	private static TIntObjectMap<int[]> map = TCollections.synchronizedMap(new TIntObjectHashMap<>(1024 * 8));
 	
 	public static void getTiledDataInMap(String tiledAlignerFile, int bufferSize) throws IOException {
 		getTiledDataInMap(tiledAlignerFile, bufferSize, 1);
@@ -90,7 +97,9 @@ public class ReadTiledAligerFile {
 					if (tileLong == -1) {
 						invalidCount++;
 					} else {
-						int [] existingArray = map.put(tileLong, TiledAlignerUtil.convertStringToIntArray(s.substring(tabindex + 1)));
+//						System.out.println("s: " + s);
+						int [] newArray = TiledAlignerUtil.convertStringToIntArray(s.substring(tabindex + 1));
+						int [] existingArray = map.put(tileLong, newArray);
 						if (null != existingArray) {
 							System.out.println("already have an entry for tile: " + tile);
 						}
