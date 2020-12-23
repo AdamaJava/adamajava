@@ -183,8 +183,6 @@ public class FindDiscordantPairClustersMT implements Callable <Map<String, List<
 
 			startPos = startPair.getLeftMate().getStart();
 			range = startPos + windowSize;
-//			currentCluster = new DiscordantPairCluster(startPair.getLeftMate().getReferenceName(), startPair.getRightMate().getReferenceName(), zp.getPairGroup(), findParameters, isQCMG);
-//			currentCluster.getClusterMatePairs().add(startPair);
 
 			//start adding mate pairs to the cluster
 			for (int j = i + 1 ; j < len ; j++) {
@@ -340,12 +338,6 @@ public class FindDiscordantPairClustersMT implements Callable <Map<String, List<
 								e.printStackTrace();
 								callingThread.interrupt();
 							}           
-		
-							//do pileup for somatic
-		
-		//					if (tempClusters.size() < 3000) {           	   
-								// cluster.findPileup(findParameters, compareParameters);
-		//					}
 						}
 					} else {         
 						normalgermlineCount.incrementAndGet();
@@ -359,7 +351,6 @@ public class FindDiscordantPairClustersMT implements Callable <Map<String, List<
 					} 
 					addToClustersMap(cluster);
 				} else {
-//					logger.info("no more clusters - have processed :" + count);
 					break;
 				}
 			}

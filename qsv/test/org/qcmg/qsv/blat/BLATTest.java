@@ -52,8 +52,8 @@ public class BLATTest {
 //		assertEquals(record.getMismatch(), 1);
 //		assertEquals(record.gettGapCount(), 3);
 //		assertEquals(record.getqGapCount(), 2);
-		assertEquals(record.getName(), "chr10-89712341-true-pos");
-		assertEquals(record.getReference(), "chr10");
+		assertEquals(record.getQName(), "chr10-89712341-true-pos");
+		assertEquals(record.getTName(), "chr10");
 		assertEquals(record.getQueryStart(), (1));
 		assertEquals(record.getQueryEnd(), (48));
 		assertEquals(record.getStartPos(), (89700252));
@@ -68,7 +68,7 @@ public class BLATTest {
 		// only the record with the highest score makes it into the map as they all have the same name
 		assertEquals(1, results.size());
 		BLATRecord rec = results.get("12345_123455_12345");
-		assertEquals("chrMT", rec.getReference());
+		assertEquals("chrMT", rec.getTName());
 	}
 	
 	public String setUpBlatOutputFile() throws IOException {

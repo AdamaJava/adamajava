@@ -7,6 +7,8 @@
 package au.edu.qimr.tiledaligner.util;
 
 import au.edu.qimr.tiledaligner.PositionChrPositionMap;
+import au.edu.qimr.tiledaligner.model.IntLongPair;
+import au.edu.qimr.tiledaligner.model.IntLongPairs;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,6 +21,7 @@ import java.util.stream.Collectors;
 import org.qcmg.common.model.BLATRecord;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.string.StringUtils;
+import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.NumberUtils;
 
@@ -44,7 +47,7 @@ public class BLATRecordUtil {
 		return CHR_SIZE_MAP.get(chr);
 	}
 	
-	public static String[] getDetailsForBLATRecord(ChrPosition bufferredCP, String [] swDiffs, String name, String sequence, boolean forwardStrand, String bufferedReference) {
+	public static BLATRecord getBLATRecord(ChrPosition bufferredCP, String [] swDiffs, String name, String sequence, boolean forwardStrand, String bufferedReference) {
 			
 		String refFromSW = swDiffs[0].replaceAll("-", "");
 		String seqFromSW = swDiffs[2].replaceAll("-", "");
@@ -60,52 +63,42 @@ public class BLATRecordUtil {
 		if (nCount > 0 && misMatchCount > 0) {
 			misMatchCount -= nCount;
 		}
-		String [] array = new String[21];
-		array[0] = "" + StringUtils.getCount(swDiffs[1], '|');		//number of matches
-		array[1] = "" + misMatchCount;					//number of mis-matches
-		array[2] = "0";									//number of rep. matches
-		array[3] = "" + nCount;							//number of N's
-		array[4] = "" + queryBlockCountAndCounts[0];	// Q gap count
-		array[5] = "" + queryBlockCountAndCounts[1];		// Q gap bases
-		array[6] = "" + targetBlockCountAndCounts[0];			// T gap count
-		array[7] = "" + targetBlockCountAndCounts[1];		// T gap bases
-		array[8] = forwardStrand ? "+" : "-";			// strand
-		array[9] = name;								// Q name
-		array[10] = sequence.length() + "";				// Q size
-		
-		/*
-		 * start and end are strand dependent
-		 * if we are on the forward, its the beginning of the first bloack, and end of the last
-		 * if we are on reverse, need to reverse!
-		 */
-		int start =  forwardStrand ?  seqOffset + allStartPositions.get(0)[0] : (sequence.length() - (seqOffset + allStartPositions.get(allStartPositions.size() - 1)[0] + allStartPositions.get(allStartPositions.size() - 1)[1]));
-		int end =  forwardStrand ?  (seqOffset + allStartPositions.get(allStartPositions.size() - 1)[0] + allStartPositions.get(allStartPositions.size() - 1)[1]) : (sequence.length() - (seqOffset + allStartPositions.get(0)[0]));
-		
-		array[11] = "" + start;							// Q start
-		array[12] = "" + end;	// Q end
-		array[13] = bufferredCP.getChromosome();			// T name
+		int qStart =  forwardStrand ?  seqOffset + allStartPositions.get(0)[0] : (sequence.length() - (seqOffset + allStartPositions.get(allStartPositions.size() - 1)[0] + allStartPositions.get(allStartPositions.size() - 1)[1]));
+		int qEnd =  forwardStrand ?  (seqOffset + allStartPositions.get(allStartPositions.size() - 1)[0] + allStartPositions.get(allStartPositions.size() - 1)[1]) : (sequence.length() - (seqOffset + allStartPositions.get(0)[0]));
 		Integer contigLength =  getChromosomeSize(bufferredCP.getChromosome());
-		array[14] = contigLength == null ? "12345" : contigLength.toString();								// T size
 		int indexOfRefInBufferedRef = StringUtils.indexOfSubStringInString(bufferedReference, refFromSW);
 		int tStart = indexOfRefInBufferedRef + bufferredCP.getStartPosition();
 		
-		array[15] = "" + tStart;								// T start
-		array[16] = "" + (refFromSW.length() + tStart);			// T end
-		
-		array[17] = "" + allStartPositions.size();					// block count
-		array[18] = allStartPositions.stream().map(b -> "" + (b[1])).collect(Collectors.joining(Constants.COMMA_STRING));	// block sizes
-		array[19] = allStartPositions.stream().map(b -> "" + (b[0] + seqOffset)).collect(Collectors.joining(Constants.COMMA_STRING));	// block sizes					// Q block starts
-		array[20] = allStartPositions.stream().map(b -> "" + (b[2] + tStart)).collect(Collectors.joining(Constants.COMMA_STRING));	// block sizes			// T block starts
-		
-		return array;
+		BLATRecord br = new BLATRecord.Builder()
+				.withMatch(StringUtils.getCount(swDiffs[1], '|'))
+				.withMisMatch(misMatchCount)
+				.withRepMatch(0)
+				.withNCount(nCount)
+				.withQNumInsert(queryBlockCountAndCounts[0])
+				.withQBaseInsert(queryBlockCountAndCounts[1])
+				.withTNumInsert(targetBlockCountAndCounts[0])
+				.withTBaseInsert(targetBlockCountAndCounts[1])
+				.withStrand(forwardStrand ? '+' : '-')
+				.withQName(name)
+				.withSize(sequence.length())
+				.withQStart(qStart)
+				.withQEnd(qEnd)
+				.withTName(bufferredCP.getChromosome())
+				.withTSize(contigLength == null ? 1000000000 : contigLength)
+				.withTStart(tStart)
+				.withTEnd(refFromSW.length() + tStart)
+				.withBlockCount(allStartPositions.size())
+				.withBlockSizes(allStartPositions.stream().map(b -> "" + b[1]).collect(Collectors.joining(Constants.COMMA_STRING)))
+				.withQStarts(allStartPositions.stream().map(b -> "" + (b[0] + seqOffset)).collect(Collectors.joining(Constants.COMMA_STRING)))
+				.withTStarts(allStartPositions.stream().map(b -> "" + (b[2] + tStart)).collect(Collectors.joining(Constants.COMMA_STRING)))
+				.build();
+		return br;
 	}
 	
 	public static BLATRecord getRecordFromStartPositionsAndLengths(ChrPosition bufferredCP, int[][] startPositionsAndLengths, String name, String sequence, boolean forwardStrand) {
 		
 		String sequenceToUse = forwardStrand ? sequence : SequenceUtil.reverseComplement(sequence);
 		int referenceOffset = bufferredCP.getStartPosition();
-		
-//		int seqOffset = sequence.indexOf(seqFromSW);
 		
 		int nCount =  StringUtils.getCount(sequenceToUse, 'N');
 		int matchCount = 0;
@@ -136,66 +129,65 @@ public class BLATRecordUtil {
 		if (nCount > 0 && misMatchCount > 0) {
 			misMatchCount -= nCount;
 		}
-		String [] array = new String[21];
-		array[0] = "" + matchCount;		//number of matches
-		array[1] = "" + misMatchCount;					//number of mis-matches
-		array[2] = "0";									//number of rep. matches
-		array[3] = "" + nCount;							//number of N's
-		array[4] = "" + qGapCount;	// Q gap count
-		array[5] = "" + qGap;		// Q gap bases
-		array[6] = "" + tGapCount;			// T gap count
-		array[7] = "" + tGap;		// T gap bases
-		array[8] = forwardStrand ? "+" : "-";			// strand
-		array[9] = name;								// Q name
-		array[10] = sequence.length() + "";				// Q size
-		
-		array[11] = "" + startPositionsAndLengths[0][1];							// Q start
-		array[12] = "" + (startPositionsAndLengths[startPositionsAndLengths.length - 1][1] + startPositionsAndLengths[startPositionsAndLengths.length - 1][2]);	// Q end
-		array[13] = bufferredCP.getChromosome();			// T name
 		Integer contigLength =  getChromosomeSize(bufferredCP.getChromosome());
-		array[14] = contigLength == null ? "12345" : contigLength.toString();								// T size
 		
-		array[15] = "" + (referenceOffset + startPositionsAndLengths[0][0]);								// T start
-		array[16] = "" + (referenceOffset + startPositionsAndLengths[startPositionsAndLengths.length - 1][0] + startPositionsAndLengths[startPositionsAndLengths.length - 1][2]);			// T end
 		
-		array[17] = "" + startPositionsAndLengths.length;					// block count
-		array[18] = Arrays.stream(startPositionsAndLengths).map(b -> "" + b[2]).collect(Collectors.joining(Constants.COMMA_STRING));	// block sizes
-		array[19] = Arrays.stream(startPositionsAndLengths).map(b -> "" + b[1]).collect(Collectors.joining(Constants.COMMA_STRING));	// block sizes					// Q block starts
-		array[20] = Arrays.stream(startPositionsAndLengths).map(b -> "" + (referenceOffset + b[0])).collect(Collectors.joining(Constants.COMMA_STRING));	// block sizes			// T block starts
-		
-		return new BLATRecord(array);
+		BLATRecord br = new BLATRecord.Builder()
+				.withMatch(matchCount)
+				.withMisMatch(misMatchCount)
+				.withRepMatch(0)
+				.withNCount(nCount)
+				.withQNumInsert(qGapCount)
+				.withQBaseInsert(qGap)
+				.withTNumInsert(tGapCount)
+				.withTBaseInsert(tGap)
+				.withStrand(forwardStrand ? '+' : '-')
+				.withQName(name)
+				.withSize(sequence.length())
+				.withQStart(startPositionsAndLengths[0][1])
+				.withQEnd((startPositionsAndLengths[startPositionsAndLengths.length - 1][1] + startPositionsAndLengths[startPositionsAndLengths.length - 1][2]))
+				.withTName(bufferredCP.getChromosome())
+				.withTSize(contigLength == null ? 1000000000 : contigLength)
+				.withTStart(referenceOffset + startPositionsAndLengths[0][0])
+				.withTEnd(referenceOffset + startPositionsAndLengths[startPositionsAndLengths.length - 1][0] + startPositionsAndLengths[startPositionsAndLengths.length - 1][2])
+				.withBlockCount(startPositionsAndLengths.length)
+				.withBlockSizes(Arrays.stream(startPositionsAndLengths).map(b -> "" + b[2]).collect(Collectors.joining(Constants.COMMA_STRING)))
+				.withQStarts(Arrays.stream(startPositionsAndLengths).map(b -> "" + b[1]).collect(Collectors.joining(Constants.COMMA_STRING)))
+				.withTStarts(Arrays.stream(startPositionsAndLengths).map(b -> "" + (referenceOffset + b[0])).collect(Collectors.joining(Constants.COMMA_STRING)))
+				.build();
+		return br;
 	}
 
-	public static String[] getDetailsForBLATRecordPerfectMatch(ChrPosition cp, String name, String sequence, boolean forwardStrand) {
+	public static BLATRecord getDetailsForBLATRecordPerfectMatch(ChrPosition cp, String name, String sequence, boolean forwardStrand) {
 		
 		int sequenceLength = sequence.length();
-		String [] array = new String[21];
-		array[0] = "" + sequenceLength; 		//number of matches
-		array[1] = "0" ;		//number of mis-matches
-		array[2] = "0";		//number of rep. matches
-		array[3] = "0";		//number of N's
-		array[4] = "0";		// Q gap count
-		array[5] = "0";		// Q gap bases
-		array[6] = "0";		// T gap count
-		array[7] = "0";		// T gap bases
-		array[8] = forwardStrand ? "+" : "-";		// strand
-		array[9] = name;							// Q name
-		array[10] = sequenceLength + "";			// Q size
-		array[11] = "0";							// Q start
-		array[12] = "" + (sequenceLength - 1);		// Q end
-		array[13] = cp.getChromosome();				// T name
 		Integer contigLength =  getChromosomeSize(cp.getChromosome());
-		array[14] = contigLength == null ? "12345" : contigLength.toString();								// T size
 		int tStart = cp.getStartPosition();
 		
-		array[15] = "" + tStart;					// T start
-		array[16] = "" + (sequenceLength + tStart);	// T end
-		
-		array[17] = "1";							// block count
-		array[18] = "" + sequenceLength;			// block sizes
-		array[19] = "0";							// Q block starts
-		array[20] = "" + cp.getStartPosition();		// T block starts
-		return array;
+		BLATRecord br = new BLATRecord.Builder()
+				.withMatch(sequenceLength)
+				.withMisMatch(0)
+				.withRepMatch(0)
+				.withNCount(0)
+				.withQNumInsert(0)
+				.withQBaseInsert(0)
+				.withTNumInsert(0)
+				.withTBaseInsert(0)
+				.withStrand(forwardStrand ? '+' : '-')
+				.withQName(name)
+				.withSize(sequenceLength)
+				.withQStart(0)
+				.withQEnd(sequenceLength - 1)
+				.withTName(cp.getChromosome())
+				.withTSize(contigLength == null ? 1000000000 : contigLength)
+				.withTStart( tStart)
+				.withTEnd(sequenceLength + tStart)
+				.withBlockCount(1)
+				.withBlockSizes("" + sequenceLength)
+				.withQStarts("0")
+				.withTStarts("" + tStart)
+				.build();
+		return br;
 	}
 
 	/**
@@ -208,7 +200,7 @@ public class BLATRecordUtil {
 	 * @param forwardStrand
 	 * @return
 	 */
-	public static String[] getDetailsForBLATRecord(List<ChrPosition> positions, String name,  String sequence, boolean forwardStrand) {
+	public static Optional<BLATRecord> getDetailsForBLATRecord(List<ChrPosition> positions, String name,  String sequence, boolean forwardStrand) {
 		
 		int totalGapSize = 0;
 		int totalMatches = 0;
@@ -227,7 +219,7 @@ public class BLATRecordUtil {
 		}
 		
 		if (numberOfPositions == 0) {
-			return new String[]{};
+			return Optional.empty();
 		}
 		
 		for (ChrPosition cp : positionsToUse) {
@@ -237,70 +229,66 @@ public class BLATRecordUtil {
 			totalMatches += cp.getLength() - 1;
 			lastEnd = cp.getEndPosition();
 		}
-		
-		String [] array = new String[21];
-		array[0] = "" + totalMatches;		//number of matches
-		array[1] = "0";		//number of mis-matches
-		array[2] = "0";		//number of rep. matches
-		array[3] = "0";		//number of N's
-		array[4] = "0";	// T gap count
-		array[5] = "0";		// T gap bases
-		array[6] = "" + (numberOfPositions - 1);		// Q gap count
-		array[7] = "" + totalGapSize;				// Q gap bases
-		array[8] = forwardStrand ? "+" : "-";		// strand
-		array[9] = name;							// Q name
-		array[10] = sequence.length() + "";			// Q size
-		array[11] = "" + sequence.indexOf(positionsToUse.get(0).getName());					// Q start
-		array[12] = "" + (sequence.indexOf(positionsToUse.get(numberOfPositions - 1).getName()) + positionsToUse.get(numberOfPositions - 1).getLength() - 1);	// Q end
-		array[13] = positionsToUse.get(0).getChromosome();			// T name
 		Integer contigLength =  getChromosomeSize(positionsToUse.get(0).getChromosome());
-		array[14] = contigLength == null ? "12345" : contigLength.toString();								// T size
 		int tStart = positionsToUse.get(0).getStartPosition();
 		
-		array[15] = "" + tStart;								// T start
-		array[16] = "" + (positions.get(numberOfPositions - 1).getEndPosition());		// T end
-		
-		array[17] = "" + numberOfPositions;					// block count
-		array[18] = positionsToUse.stream().map(b -> "" + (b.getLength() - 1)).collect(Collectors.joining(Constants.COMMA_STRING));	// block sizes
-		array[19] = positionsToUse.stream().map(b -> "" + sequence.indexOf(b.getName())).collect(Collectors.joining(Constants.COMMA_STRING));						// Q block starts
-		array[20] = positionsToUse.stream().map(b -> "" + b.getStartPosition()).collect(Collectors.joining(Constants.COMMA_STRING));			// T block starts
-		
-		return array;
+		BLATRecord br = new BLATRecord.Builder()
+				.withMatch(totalMatches)
+				.withMisMatch(0)
+				.withRepMatch(0)
+				.withNCount(0)
+				.withQNumInsert(0)
+				.withQBaseInsert(0)
+				.withTNumInsert(numberOfPositions - 1)
+				.withTBaseInsert(totalGapSize)
+				.withStrand(forwardStrand ? '+' : '-')
+				.withQName(name)
+				.withSize(sequence.length())
+				.withQStart(sequence.indexOf(positionsToUse.get(0).getName()))
+				.withQEnd(sequence.indexOf(positionsToUse.get(numberOfPositions - 1).getName()) + positionsToUse.get(numberOfPositions - 1).getLength() - 1)
+				.withTName(positionsToUse.get(0).getChromosome())
+				.withTSize(contigLength == null ? 1000000000 : contigLength)
+				.withTStart(tStart)
+				.withTEnd(positions.get(numberOfPositions - 1).getEndPosition())
+				.withBlockCount(numberOfPositions)
+				.withBlockSizes(positionsToUse.stream().map(b -> "" + (b.getLength() - 1)).collect(Collectors.joining(Constants.COMMA_STRING)))
+				.withQStarts(positionsToUse.stream().map(b -> "" + sequence.indexOf(b.getName())).collect(Collectors.joining(Constants.COMMA_STRING)))
+				.withTStarts(positionsToUse.stream().map(b -> "" + b.getStartPosition()).collect(Collectors.joining(Constants.COMMA_STRING)))
+				.build();
+		return Optional.of(br);
 	}
 	
-	public static String[] getDetailsForBLATRecord(ChrPosition position, int misMatchCount, int queryStartPosition, String name,  String sequence, boolean forwardStrand) {
+	public static BLATRecord getDetailsForBLATRecord(ChrPosition position, int misMatchCount, int queryStartPosition, String name,  String sequence, boolean forwardStrand) {
 		
 		int totalMatches = position.getLength() - 1;
 		int lastEnd = position.getEndPosition();
-		
-		String [] array = new String[21];
-		array[0] = "" + totalMatches;		//number of matches
-		array[1] = misMatchCount + "";		//number of mis-matches
-		array[2] = "0";		//number of rep. matches
-		array[3] = "0";		//number of N's
-		array[4] = "0";		// T gap count
-		array[5] = "0";		// T gap bases
-		array[6] = "0";		// Q gap count
-		array[7] = "0";		// Q gap bases
-		array[8] = forwardStrand ? "+" : "-";		// strand
-		array[9] = name;							// Q name
-		array[10] = sequence.length() + "";			// Q size
-		array[11] = "" + sequence.indexOf(position.getName());					// Q start
-		array[12] = "" + (sequence.indexOf(position.getName()) + totalMatches);	// Q end
-		array[13] = position.getChromosome();									// T name
+		int qStart = sequence.indexOf(position.getName());
 		Integer contigLength =  getChromosomeSize(position.getChromosome());
-		array[14] = contigLength == null ? "12345" : contigLength.toString();	// T size
-		int tStart = position.getStartPosition();
 		
-		array[15] = "" + tStart;				// T start
-		array[16] = "" + lastEnd;				// T end
-		
-		array[17] = "1";						// block count
-		array[18] = "" + totalMatches;			// block sizes
-		array[19] = "" + queryStartPosition;	// Q block starts
-		array[20] = "" + tStart;				// T block starts
-		
-		return array;
+		BLATRecord br = new BLATRecord.Builder()
+				.withMatch(totalMatches)
+				.withMisMatch(misMatchCount)
+				.withRepMatch(0)
+				.withNCount(0)
+				.withQNumInsert(0)
+				.withQBaseInsert(0)
+				.withTNumInsert(0)
+				.withTBaseInsert(0)
+				.withStrand(forwardStrand ? '+' : '-')
+				.withQName(name)
+				.withSize(sequence.length())
+				.withQStart(qStart)
+				.withQEnd(qStart + totalMatches)
+				.withTName(position.getChromosome())
+				.withTSize(contigLength == null ? 1000000000 : contigLength)
+				.withTStart( position.getStartPosition())
+				.withTEnd(lastEnd)
+				.withBlockCount(1)
+				.withBlockSizes("" + totalMatches)
+				.withQStarts("" + queryStartPosition)
+				.withTStarts("" + position.getStartPosition())
+				.build();
+		return br;
 	}
 	
 	public static Optional<BLATRecord> findRecordInRange(List<BLATRecord> recs, int queryStart, int queryStop) {
@@ -326,34 +314,40 @@ public class BLATRecordUtil {
 	public static int[] getBuffers(int seqLength, int startPos, int endPos, boolean split, int [] commonTilePositions, int standardBuffer, int splitBuffer) {
 		int lhsBuffer = startPos == 0 ? 0 : split ? startPos + splitBuffer : standardBuffer + startPos;
 		int rhsBuffer = endPos == seqLength ? 0 : split ? splitBuffer + (seqLength - endPos) : standardBuffer + (seqLength - endPos);
-//		
-//		if (split) {
-//			if (startPos > 0) {
-//				/*
-//				 * examine commonTilePositions
-//				 */
-//				int commonTileCountAtStart = NumberUtils.getContinuousCountFromValue(startPos - 1, commonTilePositions, false);
-//				
-//				if (commonTileCountAtStart > 0) {
-//					/*
-//					 * get count of common tiles at start of this sequence segment
-//					 */
-//					lhsBuffer += commonTileCountAtStart; 
-//				}
-//			}
-//			if (endPos < seqLength) {
-//				/*
-//				 * examine commonTilePositions
-//				 */
-//				int commonTileCountAtEnd = NumberUtils.getContinuousCountFromValue(endPos - 1, commonTilePositions, true);
-//				if (commonTileCountAtEnd > 0) {
-//					/*
-//					 * get count of common tiles at start of this sequence segment
-//					 */
-//					rhsBuffer += commonTileCountAtEnd; 
-//				}
-//			}
-//		}
+		return new int[] {lhsBuffer, rhsBuffer};
+	}
+	
+	public static int[] getBuffersUsingOverlaps(int seqLength, int startPos, int endPos, boolean split, int [] commonTilePositions, int standardBuffer, int splitBuffer) {
+		int lhsBuffer = startPos == 0 ? 0 : split ? startPos + splitBuffer : standardBuffer + startPos;
+		int rhsBuffer = endPos == seqLength ? 0 : split ? splitBuffer + (seqLength - endPos) : standardBuffer + (seqLength - endPos);
+		
+		if (split) {
+			if (startPos > 0) {
+				/*
+				 * examine commonTilePositions
+				 */
+				int commonTileCountAtStart = NumberUtils.getContinuousCountFromValue(startPos - 1, commonTilePositions, false);
+				
+				if (commonTileCountAtStart > 0) {
+					/*
+					 * get count of common tiles at start of this sequence segment
+					 */
+					lhsBuffer += commonTileCountAtStart; 
+				}
+			}
+			if (endPos < seqLength) {
+				/*
+				 * examine commonTilePositions
+				 */
+				int commonTileCountAtEnd = NumberUtils.getContinuousCountFromValue(endPos - 1, commonTilePositions, true);
+				if (commonTileCountAtEnd > 0) {
+					/*
+					 * get count of common tiles at start of this sequence segment
+					 */
+					rhsBuffer += commonTileCountAtEnd; 
+				}
+			}
+		}
 		return new int[] {lhsBuffer, rhsBuffer};
 	}
 	
@@ -380,7 +374,7 @@ public class BLATRecordUtil {
 			for (int j = i + 1 ; j < records.size() ; j++) {
 				BLATRecord nextRec = records.get(j);
 				
-				if ( ! rec.getReference().equals(nextRec.getReference())
+				if ( ! rec.getTName().equals(nextRec.getTName())
 						|| rec.getStrand() != nextRec.getStrand()
 						|| Math.abs(rec.getStartPos() - nextRec.getStartPos()) > 500000) {
 					return Optional.empty();
@@ -469,34 +463,31 @@ public class BLATRecordUtil {
 			mismatchCount += nextRec.getMisMatches();
 		}
 		
-		String[] array = new String[21];
-		array[0] = "" + Arrays.stream(blockLengths).sum();	//number of matches
-		array[1] = "" + mismatchCount;	//number of mis-matches
-		array[2] = "0";					//number of rep. matches
-		array[3] = "" + nCount;			//number of N's
-		array[4] = qGapCount > 0 ? "1" : "0";		// Q gap count
-		array[5] = "" + qGapCount;					// Q gap bases
-		array[6] = tGapCount > 0 ? "1" : "0" ;		// T gap count
-		array[7] = "" + tGapCount;					// T gap bases
-		array[8] = "" + thisRec.getStrand();		// strand
-		array[9] = thisRec.getName();				// Q name
-		array[10] = thisRec.getSize() + "";			// Q size
-		
-		array[11] = "" + queryStarts[0];						// Q start
-		array[12] = "" + (queryStarts[queryStarts.length - 1] + blockLengths[blockLengths.length - 1]);	// Q end
-		array[13] = thisRec.getReference();				// T name
-		array[14] = "" + thisRec.getChromsomeLength();	// T size
-		
-		array[15] = "" + templateStarts[0];						// T start
-		array[16] = "" + (templateStarts[templateStarts.length - 1] + blockLengths[blockLengths.length - 1]);		// T end
-		array[17] = "" + blockLengths.length;								// block count
-		array[18] = Arrays.stream(blockLengths).mapToObj(i -> "" + i).collect(Collectors.joining(","));					// block sizes
-		array[19] = Arrays.stream(queryStarts).mapToObj(i -> "" + i).collect(Collectors.joining(","));				// Q block starts, strand dependent
-		array[20] = Arrays.stream(templateStarts).mapToObj(i -> "" + i).collect(Collectors.joining(","));	// T block starts
-		
-		return Optional.of(new BLATRecord(array));
+		BLATRecord br = new BLATRecord.Builder()
+				.withMatch(Arrays.stream(blockLengths).sum())
+				.withMisMatch(mismatchCount)
+				.withRepMatch(0)
+				.withNCount(nCount)
+				.withQNumInsert(qGapCount > 0 ? 1 : 0)
+				.withQBaseInsert(qGapCount)
+				.withTNumInsert(tGapCount > 0 ? 1 : 0)
+				.withTBaseInsert(tGapCount)
+				.withStrand(thisRec.getStrand())
+				.withQName(thisRec.getQName())
+				.withSize(thisRec.getSize())
+				.withQStart(queryStarts[0])
+				.withQEnd(queryStarts[queryStarts.length - 1] + blockLengths[blockLengths.length - 1])
+				.withTName(thisRec.getTName())
+				.withTSize(thisRec.getChromsomeLength())
+				.withTStart(templateStarts[0])
+				.withTEnd((templateStarts[templateStarts.length - 1] + blockLengths[blockLengths.length - 1]))
+				.withBlockCount(blockLengths.length)
+				.withBlockSizes(Arrays.stream(blockLengths).mapToObj(i -> "" + i).collect(Collectors.joining(",")))
+				.withQStarts(Arrays.stream(queryStarts).mapToObj(i -> "" + i).collect(Collectors.joining(",")))
+				.withTStarts(Arrays.stream(templateStarts).mapToObj(i -> "" + i).collect(Collectors.joining(",")))
+				.build();
+		return Optional.of(br);
 	}
-	
 	
 	/**
 	 * Returns an int array (optional).
@@ -603,7 +594,7 @@ public class BLATRecordUtil {
 	 * @return
 	 */
 	public static boolean doRecordsOverlapReference(BLATRecord r1, BLATRecord r2) {
-		if (null != r1 && null != r2 && r1.getReference().equals(r2.getReference())) {
+		if (null != r1 && null != r2 && r1.getTName().equals(r2.getTName())) {
 			int r1Start = r1.getStartPos();
 			int r1End = r1.getEndPos();
 			int r2Start = r2.getStartPos();
@@ -614,5 +605,130 @@ public class BLATRecordUtil {
 			}
 		}
 		return false;
+	}
+
+	public static BLATRecord blatRecordFromSplit(IntLongPair split, String name, int seqLength, PositionChrPositionMap headerMap, int tileLength) {
+		ChrPosition cp = headerMap.getChrPositionFromLongPosition(split.getLong());
+		boolean reverseStrand = NumberUtils.isBitSet(split.getLong(), TARecordUtil.REVERSE_COMPLEMENT_BIT);
+		int length = NumberUtils.getPartOfPackedInt(split.getInt(), true) + tileLength - 1;
+		int mismatch = NumberUtils.getPartOfPackedInt(split.getInt(), false);
+		int positionInSequence = NumberUtils.getShortFromLong(split.getLong(), TARecordUtil.TILE_OFFSET);
+		int qStart = reverseStrand ? (seqLength - positionInSequence - length) :  positionInSequence;
+		int qEnd = reverseStrand ?  (seqLength - positionInSequence) : positionInSequence + length;
+		Integer contigLength =  getChromosomeSize(cp.getChromosome());
+		int tStart = cp.getStartPosition();
+		
+		BLATRecord br = new BLATRecord.Builder()
+				.withMatch(length)
+				.withMisMatch(mismatch)
+				.withRepMatch(0)
+				.withNCount(0)
+				.withQNumInsert(0)
+				.withQBaseInsert(0)
+				.withTNumInsert(0)
+				.withTBaseInsert(0)
+				.withStrand(reverseStrand ? '-' : '+')
+				.withQName(name)
+				.withSize(seqLength)
+				.withQStart(qStart)
+				.withQEnd(qEnd)
+				.withTName(cp.getChromosome())
+				.withTSize(contigLength == null ? 1000000000 : contigLength)
+				.withTStart( tStart)
+				.withTEnd(tStart + length)
+				.withBlockCount(1)
+				.withBlockSizes("" + length)
+				.withQStarts("" + positionInSequence)
+				.withTStarts("" + tStart)
+				.build();
+		return br;
+	}
+
+	public static BLATRecord blatRecordFromSplit(IntLongPair split, String name, int seqLength, PositionChrPositionMap headerMap) {
+		return blatRecordFromSplit(split, name, seqLength, headerMap, TARecordUtil.TILE_LENGTH);
+	}
+
+	/**
+	 * 
+	 * @param splits
+	 * @param name
+	 * @param seqLength
+	 * @param headerMap
+	 * @param tileLength
+	 * @return
+	 */
+	public static Optional<BLATRecord> blatRecordFromSplits(IntLongPairs splits, String name, int seqLength, PositionChrPositionMap headerMap, int tileLength) {
+		
+		Map<ChrPosition, int[]> chrPosBlocks = TARecordUtil.getChrPositionAndBlocksFromSplits(splits, seqLength, headerMap);
+		/*
+		 * order the keys
+		 */
+		ChrPosition[] keys = new ChrPosition[chrPosBlocks.size()];
+		chrPosBlocks.keySet().toArray(keys);
+		Arrays.sort(keys);
+		
+		List<int[]> values = new ArrayList<>(chrPosBlocks.values());
+		values.sort((int[] array1, int[] array2) -> array1[0] - array2[0]);
+
+		int qGapBases = 0;
+		
+		for (int i = 0 ; i < values.size() - 1; i++) {
+			int [] thisBlock = values.get(i);
+			int [] nextBlock = values.get(i + 1);
+			qGapBases += nextBlock[0] - (thisBlock[1] + thisBlock[0]);
+		}
+		
+		boolean reverseStrand = keys[0].getName().equals("R");
+		/*
+		 * get length and qGapBases
+		 */
+		int length = 0;
+		int tGapBases = 0;
+		for (int i = 0 ; i < keys.length - 1; i++) {
+			ChrPosition thisCp = keys[i];
+			length += thisCp.getLength() - 1; 
+			ChrPosition nextCp = keys[i + 1];
+			
+			/*
+			 * If either of these ChrPositions are wholly contained within the other, then return
+			 */
+			if (ChrPositionUtils.isChrPositionContained(thisCp, nextCp) || ChrPositionUtils.isChrPositionContained(nextCp, thisCp)) {
+				return Optional.empty();
+			}
+			
+			tGapBases += (nextCp.getStartPosition() - thisCp.getEndPosition());
+		}
+		/*
+		 * add last length
+		 */
+		length += keys[keys.length - 1].getLength() - 1;
+		int[] lastBlock = chrPosBlocks.get(keys[keys.length - 1]);
+		Integer contigLength =  getChromosomeSize(keys[0].getChromosome());
+		int tStart = keys[0].getStartPosition();
+		
+		BLATRecord br = new BLATRecord.Builder()
+				.withMatch(length)
+				.withMisMatch(IntLongPairsUtil.getMismatches(splits))
+				.withRepMatch(0)
+				.withNCount(0)
+				.withQNumInsert(qGapBases > 0 ? 1 : 0)
+				.withQBaseInsert(qGapBases)
+				.withTNumInsert(keys.length - 1)
+				.withTBaseInsert(tGapBases)
+				.withStrand(reverseStrand ? '-' : '+')
+				.withQName(name)
+				.withSize(seqLength)
+				.withQStart(chrPosBlocks.get(keys[0])[0])
+				.withQEnd(lastBlock[0] + lastBlock[1] - 1)
+				.withTName(keys[0].getChromosome())
+				.withTSize(contigLength == null ? 1000000000 : contigLength)
+				.withTStart( tStart)
+				.withTEnd(keys[keys.length - 1].getEndPosition())
+				.withBlockCount(keys.length)
+				.withBlockSizes(Arrays.stream(keys).map(cp -> "" + (cp.getLength() - 1)).collect(Collectors.joining(",")))
+				.withQStarts(Arrays.stream(keys).map(cp -> "" + (cp.getName().equals("R") ? seqLength - (chrPosBlocks.get(cp)[0] + chrPosBlocks.get(cp)[1]) : chrPosBlocks.get(cp)[0])).collect(Collectors.joining(",")))
+				.withTStarts(Arrays.stream(keys).map(cp -> "" + cp.getStartPosition()).collect(Collectors.joining(",")))
+				.build();
+		return Optional.of(br);
 	}
 }
