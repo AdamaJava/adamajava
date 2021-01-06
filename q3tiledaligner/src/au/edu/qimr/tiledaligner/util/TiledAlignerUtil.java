@@ -857,14 +857,12 @@ public class TiledAlignerUtil {
 	 * @return
 	 */
 	public static int getSWScore(String diffs) {
-		int matchCount = 0, mismatchCount = 0, gapCount = 0;
+		int matchCount = 0, mismatchCount = 0; 
 		for (char c : diffs.toCharArray()) {
 			if ('|' == c) {
 				matchCount++;
 			} else if ('.' == c) {
 				mismatchCount++;
-			} else if (' ' == c) {
-//				gapCount++;
 			} else {
 				logger.warn("found [" + c + "] in sw diffs string!!!");
 			}
