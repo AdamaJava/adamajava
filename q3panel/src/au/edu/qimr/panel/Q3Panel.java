@@ -173,7 +173,12 @@ public class Q3Panel {
 		 */
 		removeFragsMatchingLambda((e) -> e.getValue().getRecordCount() < minFragmentSize);
 		
-		loadTiledAlignerData();
+		/*
+		 * don't attempt to load the tiled aliger file if it has not been supplied!
+		 */
+		if (null != refTiledAlignmentFile) {
+			loadTiledAlignerData();
+		}
 		/*
 		 * need to wait for cfLoadTiledAlignerData before digesting tiled data
 		 */
@@ -522,8 +527,8 @@ public class Q3Panel {
 		q3pElement.addAttribute(new Attribute("run_by_user", exec.getRunBy().getValue()));
 		q3pElement.addAttribute(new Attribute("records_parsed", "" + fastqRecordCount));
 		q3pElement.addAttribute(new Attribute("version", exec.getToolVersion().getValue()));
-		q3pElement.addAttribute(new Attribute("reference", refFileName));
-		q3pElement.addAttribute(new Attribute("tiled_reference", refTiledAlignmentFile));
+		q3pElement.addAttribute(new Attribute("reference", null != refFileName ? refFileName : "-"));
+		q3pElement.addAttribute(new Attribute("tiled_reference", null != refTiledAlignmentFile ? refTiledAlignmentFile : "-"));
 		q3pElement.addAttribute(new Attribute("bed", null != bedFile ? bedFile : "-"));
 		q3pElement.addAttribute(new Attribute("bed_amplicon_count", "" + bedToAmpliconMap.size()));
 		q3pElement.addAttribute(new Attribute("vcf", outputFileNameBase + ".vcf"));
@@ -534,13 +539,13 @@ public class Q3Panel {
 			q3pElement.addAttribute(new Attribute("fastq_1", r1));
 			q3pElement.addAttribute(new Attribute("fastq_2", r2));
 		}
-		q3pElement.addAttribute(new Attribute("dbSnp", dbSNPFile));
+		q3pElement.addAttribute(new Attribute("dbSnp", null != dbSNPFile ? dbSNPFile : "-"));
 		q3pElement.addAttribute(new Attribute("dbSnp_total_count", dbSnpTotalCount + ""));
 		q3pElement.addAttribute(new Attribute("dbSnp_mutation_count", mutationDbSnpRecordCount + ""));
-		q3pElement.addAttribute(new Attribute("COSMIC", cosmicFile));
+		q3pElement.addAttribute(new Attribute("COSMIC", null != cosmicFile ? cosmicFile : "-"));
 		q3pElement.addAttribute(new Attribute("cosmic_total_count", cosmicTotalCount + ""));
 		q3pElement.addAttribute(new Attribute("cosmic_mutation_count", mutationCosmicRecordCount + ""));
-		q3pElement.addAttribute(new Attribute("gene_transcripts", geneTranscriptsFile));
+		q3pElement.addAttribute(new Attribute("gene_transcripts", null != geneTranscriptsFile ? geneTranscriptsFile : "-"));
 		q3pElement.addAttribute(new Attribute("gene_transcripts_count", transcripts.size() + ""));
 		
 		/*
@@ -1604,7 +1609,7 @@ public class Q3Panel {
 	
 	public static void main(String[] args) throws Exception {
 		// loads all classes in referenced jars into memory to avoid nightly build sheninegans
-		LoadReferencedClasses.loadClasses(Q3Panel.class);
+//		LoadReferencedClasses.loadClasses(Q3Panel.class);
 		
 		Q3Panel qp = new Q3Panel();
 		int exitStatus = qp.setup(args);
@@ -1644,7 +1649,7 @@ public class Q3Panel {
 			fastqR1Files = options.getFastqsR1();
 			fastqR2Files = options.getFastqsR2();
 			/*
-			 * There should be hte same number of r1 and r2 files, and this number should be greater than zero
+			 * There should be the same number of r1 and r2 files, and this number should be greater than zero
 			 */
 			if (fastqR1Files.isEmpty() || fastqR1Files.size() != fastqR2Files.size()) {
 				throw new Exception("INSUFFICIENT_ARGUMENTS");
