@@ -190,7 +190,9 @@ public class Q3Panel {
 		 */
 		removeFragsMatchingLambda((e) -> e.getValue().getPosition() == null);
 		
-		getActualLocationForFrags();
+		if (null != refFileName) {
+			getActualLocationForFrags();
+		}
 		
 		removeFragsMatchingLambda((e) ->  ! e.getValue().isActualPositionSet());
 		
