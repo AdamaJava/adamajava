@@ -31,7 +31,7 @@ public class SplitReadAlignment {
 	}
 	
 	public SplitReadAlignment(BLATRecord r) {
-		this.reference = r.getReference();
+		this.reference = r.getTName();
 		this.positiveStrand = r.getStrand()  == QSVUtil.PLUS;
 		this.startPos = r.getStartPos();
 		this.endPos = r.getEndPos();

@@ -305,18 +305,9 @@ public class NumberUtils {
 		int lastEndPosition = 0;
 		for (int [] existingRange : existingRanges) {
 				
-//				int startPosition = NumberUtils.getShortFromLong(pair.getLong(), TILE_OFFSET);
-//				boolean reverseStrand = NumberUtils.isBitSet(pair.getLong(), REVERSE_COMPLEMENT_BIT);
-//				int tileCount = NumberUtils.getPartOfPackedInt(pair.getInt(), true);
-//				if (reverseStrand) {
-//					int [] forwardStrandStartAndStopPositions = getForwardStrandStartAndStop(startPosition, tileCount, TILE_LENGTH, seqLength);
-//					startPosition = (short) forwardStrandStartAndStopPositions[0];
-//				}
-				
 			if (existingRange[0] - lastEndPosition > minSize) {
 				ranges.add(new int[]{lastEndPosition, existingRange[0] - 1});
 			}
-				
 			lastEndPosition = existingRange[1];
 		}
 			

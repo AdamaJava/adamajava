@@ -91,11 +91,11 @@ public class BLAT {
 		
 		try (TabbedFileReader reader = new TabbedFileReader(blatOutput);) {
 			for (TabbedRecord tab: reader) {
-				BLATRecord record = new BLATRecord(TabTokenizer.tokenize(tab.getData())); 
+				BLATRecord record = new BLATRecord.Builder(TabTokenizer.tokenize(tab.getData())).build(); 
 				if (record.isValid()) {
-					BLATRecord previous = records.get(record.getName());
+					BLATRecord previous = records.get(record.getQName());
 					if (null == previous || record.getScore() > previous.getScore()) {
-						records.put(record.getName(), record);
+						records.put(record.getQName(), record);
 					}
 				}
 			}
@@ -179,10 +179,10 @@ public class BLAT {
 		try (TabbedFileReader reader = new TabbedFileReader(out);) {
 
 			for (TabbedRecord tab: reader) {
-				BLATRecord record = new BLATRecord(TabTokenizer.tokenize(tab.getData()));
+				BLATRecord record = new BLATRecord.Builder(TabTokenizer.tokenize(tab.getData())).build();
 				if (record.isValid()) {
 					if (leftReference != null && rightReference != null) {
-						if (record.getReference().equals(leftReference) || record.getReference().equals(rightReference)) {
+						if (record.getTName().equals(leftReference) || record.getTName().equals(rightReference)) {
 							records.add(record);				
 						}
 					} else {
@@ -210,11 +210,11 @@ public class BLAT {
 		try (TabbedFileReader reader = new TabbedFileReader(outFile);) {
 
 			for (TabbedRecord tab: reader) {
-				BLATRecord record = new BLATRecord(TabTokenizer.tokenize(tab.getData())); 	
+				BLATRecord record = new BLATRecord.Builder(TabTokenizer.tokenize(tab.getData())).build();
 				
-				if (record.isValid() && record.getName().equals(name)) {
+				if (record.isValid() && record.getQName().equals(name)) {
 					if (leftReference != null && rightReference != null) {
-						if (record.getReference().equals(leftReference) || record.getReference().equals(rightReference)) {
+						if (record.getTName().equals(leftReference) || record.getTName().equals(rightReference)) {
 							records.add(record);				
 						}
 					} else {

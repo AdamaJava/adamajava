@@ -692,7 +692,7 @@ public class TestUtil {
 			b.setMateBreakpoint(89712341);
 			b.setMateReference("chr10");
 			b.setMateStrand(QSVUtil.MINUS);
-			b.setBlatRecord(new BLATRecord(value2.split("\t")));
+			b.setBlatRecord(new BLATRecord.Builder(value2.split("\t")).build());
 			return new SoftClipCluster(b);
 		} else {
 			return new SoftClipCluster(getBreakpoint(true, isGermline, 20, false), getBreakpoint(false, isGermline, 20, false));
@@ -730,10 +730,10 @@ public class TestUtil {
 		breakpoint.defineBreakpoint(3, false, null);
 		if (isLeft) {
 			String value2 = "46\t0\t0\t2\t0\t0\t0\t0\t-\tchr10-89700299-false-neg\t66\t0\t48\tchr10\t135534747\t89712340\t89712388\t1\t48,\t18,\t89712340,";
-			breakpoint.setBlatRecord(new BLATRecord(value2.split("\t")));
+			breakpoint.setBlatRecord(new BLATRecord.Builder(value2.split("\t")).build());
 		} else {
 			String value = "48\t1\t0\t0\t2\t0\t3\t0\t+\tchr10-89712341-true-pos\t66\t0\t48\tchr10\t135534747\t89700251\t89700299\t1\t48,\t0,\t89700251,";
-			breakpoint.setBlatRecord(new BLATRecord(value.split("\t")));
+			breakpoint.setBlatRecord(new BLATRecord.Builder(value.split("\t")).build());
 		}
 		if (breakpoint.getStrand() == QSVUtil.PLUS) {
 			breakpoint.setMateStrand(QSVUtil.PLUS);
@@ -774,10 +774,10 @@ public class TestUtil {
 		breakpoint.defineBreakpoint(3, false, null);
 		if (isLeft) {
 			String value2 = "46\t0\t0\t2\t0\t0\t0\t0\t-\tchr10-89700299-false-neg\t66\t0\t48\tchr10\t135534747\t89712340\t89712388\t1\t48,\t18,\t89712340,";
-			breakpoint.setBlatRecord(new BLATRecord(value2.split("\t")));
+			breakpoint.setBlatRecord(new BLATRecord.Builder(value2.split("\t")).build());
 		} else {
 			String value = "48\t1\t0\t0\t2\t0\t3\t0\t+\tchr10-89712341-true-pos\t66\t0\t48\tchr10\t135534747\t89700251\t89700299\t1\t48,\t0,\t89700251,";
-			breakpoint.setBlatRecord(new BLATRecord(value.split("\t")));
+			breakpoint.setBlatRecord(new BLATRecord.Builder(value.split("\t")).build());
 		}
 		if (breakpoint.getStrand() == QSVUtil.PLUS) {
 			breakpoint.setMateStrand(QSVUtil.PLUS);

@@ -55,7 +55,6 @@ public class ReadTiledAligerFile {
 			}
 			System.out.println("Time taken with buffer size: " + bufferSize + "kb is: " + (System.currentTimeMillis() - start));
 		} catch (IOException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		} finally {
 			System.out.println("finished reading from file - setting hasReaderFinished to true");
@@ -66,7 +65,6 @@ public class ReadTiledAligerFile {
 		try {
 			e.awaitTermination(1, TimeUnit.HOURS);
 		} catch (InterruptedException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 	}
@@ -97,7 +95,6 @@ public class ReadTiledAligerFile {
 					if (tileLong == -1) {
 						invalidCount++;
 					} else {
-//						System.out.println("s: " + s);
 						int [] newArray = TiledAlignerUtil.convertStringToIntArray(s.substring(tabindex + 1));
 						int [] existingArray = map.put(tileLong, newArray);
 						if (null != existingArray) {
@@ -109,7 +106,6 @@ public class ReadTiledAligerFile {
 			System.out.println("Worker has finished! invalidCount: " + invalidCount + ", map size: " + map.size());
 		}
 	}
-	
 	
 	public static TIntObjectMap<int[]> getCache(String tiledAlignerFile, int bufferSize) throws IOException {
 		return getCache(tiledAlignerFile, bufferSize, 1);
@@ -124,6 +120,5 @@ public class ReadTiledAligerFile {
 	public static void main(String[] args) throws IOException {
 		getTiledDataInMap(args[0], Integer.parseInt(args[1]));
 	}
-
 }
 
