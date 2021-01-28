@@ -27,7 +27,7 @@ import htsjdk.samtools.ValidationStringency;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.string.StringUtils;
-import org.qcmg.picard.s3.S3AwareURLStreamHandlerFactory;
+import org.qcmg.protocol.s3.S3AwareURLStreamHandlerFactory;
 
 public class SAMFileReaderFactory {
 //	EnumSet<Option> defultOption = SamReaderFactory.Option.DEFAULTS;
