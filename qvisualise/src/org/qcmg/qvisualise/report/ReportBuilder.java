@@ -20,8 +20,6 @@ import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicLongArray;
 
-import org.qcmg.common.log.QLogger;
-import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.CigarStringComparator;
 import org.qcmg.common.model.MAPQMiniMatrix;
 import org.qcmg.common.model.ProfileType;
@@ -40,7 +38,7 @@ import org.w3c.dom.NodeList;
 
 public class ReportBuilder {
 	
-	private static final QLogger logger = QLoggerFactory.getLogger(ReportBuilder.class);	
+//	private static final QLogger logger = QLoggerFactory.getLogger(ReportBuilder.class);	
 	private static final String ISIZE = "TLEN";
 	private static final String UNMAPPED = "Unmapped";
 	private static final String DUPLICATE = "Duplicate";
