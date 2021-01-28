@@ -1,4 +1,4 @@
-package org.qcmg.picard.s3;
+package org.qcmg.protocol.s3;
 
 import java.net.URLStreamHandler;
 import java.net.URLStreamHandlerFactory;

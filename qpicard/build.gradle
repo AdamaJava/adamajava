@@ -3,6 +3,7 @@ def isExecutable = false
 dependencies {
     configurations.compile.transitive = true   
     api project(':qcommon')
+    api project(':qio')
 	
     api 'com.github.broadinstitute:picard:1.130'
     api 'com.github.samtools:htsjdk:2.14.1'
