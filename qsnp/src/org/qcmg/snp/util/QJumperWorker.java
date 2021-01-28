@@ -14,7 +14,7 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.QSnpGATKRecord;
 import org.qcmg.picard.QJumper;
-import org.qcmg.pileup.QSnpRecord;
+import org.qcmg.common.model.QSnpRecord;
 
 public class QJumperWorker<T> implements Runnable {
 	

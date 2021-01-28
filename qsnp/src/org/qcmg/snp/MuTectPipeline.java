@@ -36,7 +36,7 @@ import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.util.SAMUtils;
-import org.qcmg.pileup.QSnpRecord;
+import org.qcmg.common.model.QSnpRecord;
 import org.qcmg.common.model.Classification;
 import org.qcmg.snp.util.IniFileUtil;
 import org.qcmg.tab.TabbedFileReader;

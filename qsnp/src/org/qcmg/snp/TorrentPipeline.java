@@ -28,7 +28,7 @@ import org.qcmg.common.util.Pair;
 import org.qcmg.picard.QJumper;
 import org.qcmg.picard.util.PileupElementUtil;
 import org.qcmg.picard.util.SAMUtils;
-import org.qcmg.pileup.QSnpRecord;
+import org.qcmg.common.model.QSnpRecord;
 import org.qcmg.snp.filters.AdjacentIndelFilter;
 import org.qcmg.snp.filters.EndOfReadFilter;
 import org.qcmg.snp.filters.MultipleAdjacentSnpsFilter;
