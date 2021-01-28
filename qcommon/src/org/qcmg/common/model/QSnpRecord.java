@@ -4,13 +4,9 @@
  *
  * This code is released under the terms outlined in the included LICENSE file.
  */
-package org.qcmg.pileup;
+package org.qcmg.common.model;
 
 
-import org.qcmg.common.model.Accumulator;
-import org.qcmg.common.model.ChrPosition;
-import org.qcmg.common.model.Classification;
-import org.qcmg.common.model.GenotypeEnum;
 import org.qcmg.common.vcf.VcfRecord;
 
 @Deprecated
