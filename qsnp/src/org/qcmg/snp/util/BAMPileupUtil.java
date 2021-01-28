@@ -18,7 +18,7 @@ import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.QSnpGATKRecord;
 import org.qcmg.picard.util.PileupElementUtil;
 import org.qcmg.picard.util.SAMUtils;
-import org.qcmg.pileup.QSnpRecord;
+import org.qcmg.common.model.QSnpRecord;
 import org.qcmg.snp.util.QJumperWorker.Mode;
 
 public class BAMPileupUtil {
