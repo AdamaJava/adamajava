@@ -91,7 +91,7 @@ public class BLAT {
  
 		try (StringFileReader reader = new StringFileReader(blatOutput);) {
 			for (String tab: reader) {
-				BLATRecord record = new BLATRecord(TabTokenizer.tokenize(tab)); 
+				BLATRecord record = new BLATRecord.Builder(TabTokenizer.tokenize(tab)).build(); 
 				if (record.isValid()) {
 					BLATRecord previous = records.get(record.getQName());
 					if (null == previous || record.getScore() > previous.getScore()) {
@@ -179,7 +179,7 @@ public class BLAT {
 		try (StringFileReader reader = new StringFileReader(out);) {
 
 			for (String tab: reader) {
-				BLATRecord record = new BLATRecord(TabTokenizer.tokenize(tab));
+				BLATRecord record =  new BLATRecord.Builder(TabTokenizer.tokenize(tab)).build(); 
 				if (record.isValid()) {
 					if (leftReference != null && rightReference != null) {
 						if (record.getTName().equals(leftReference) || record.getTName().equals(rightReference)) {
@@ -211,7 +211,7 @@ public class BLAT {
 
  
 			for (String tab: reader) {
-				BLATRecord record = new BLATRecord(TabTokenizer.tokenize(tab)); 				
+				BLATRecord record = new BLATRecord.Builder(TabTokenizer.tokenize(tab)).build(); 				
 				if (record.isValid() && record.getQName().equals(name)) {
 					if (leftReference != null && rightReference != null) {
 						if (record.getTName().equals(leftReference) || record.getTName().equals(rightReference)) {
