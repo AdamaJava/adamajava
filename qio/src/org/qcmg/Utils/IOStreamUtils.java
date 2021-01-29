@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.io.PushbackInputStream;
 import java.util.zip.GZIPInputStream;
 
+@Deprecated
 public class IOStreamUtils {
     
     /**
