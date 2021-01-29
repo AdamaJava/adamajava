@@ -143,6 +143,7 @@ public class QVisualiseTest {
 	
 	@Test
 	public final void executeWithOptions() throws Exception {
+		PrintStream origin = System.err;
 		ByteArrayOutputStream errContent = new ByteArrayOutputStream();
 		System.setErr(new PrintStream(errContent));
 		
@@ -156,7 +157,7 @@ public class QVisualiseTest {
 		new QVisualise().setup(args);
 		assertTrue(errContent.toString().contains("null, version null"));
 		
-		System.setErr(null);
+		System.setErr(origin);
 	}
 	
 	
