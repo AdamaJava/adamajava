@@ -11,7 +11,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.qcmg.common.util.SnpUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
-import org.qcmg.pileup.QSnpRecord;
+import org.qcmg.common.model.QSnpRecord;
 
 public class GatkUniqueSnpsTest {
 	
