@@ -30,8 +30,10 @@ public class ReferenceUtil {
 				//hmmm....
 				System.err.println("Unable to load contig: " + contig + " into cache");
 				System.out.println("Unable to load contig: " + contig + " into cache");
+				throw new IllegalArgumentException("Unable to load contig: " + contig + " into cache");
 			}
 		}
+		
 		if (start <= 0 || stop > ref.length) {
 			System.out.println("ChrPosition goes beyond edge of contig: " + contig + ":" + start + "-" + stop + ", ref length: " + ref.length);
 		}

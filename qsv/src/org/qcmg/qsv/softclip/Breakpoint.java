@@ -286,9 +286,6 @@ public class Breakpoint implements Comparable<Breakpoint>{
 				this.clipConsensusReads = tumourClips.size() + normalClips.size();
 				if (splitConRead != null) {
 					this.splitConsensusReads = assemble.getMatchingSplitReads();					
-					if (!isRescue) {						
-						//logger.info(isLeft + " " + strand + " assemble from " + this.reference + " " +  this.breakpoint + " " + splitConRead.getClipMateSequence() + " " + splitConsensusReads + " " + splitConRead.getClipMateSequence().length());
-					}
 					
 					String header = splitConRead.getHeader();
 					parseMatchingSplitReads(header, tumourSplitReads);
@@ -297,9 +294,6 @@ public class Breakpoint implements Comparable<Breakpoint>{
 					return splitConRead;
 				} else {
 					this.splitConsensusReads = 0;
-					if (!isRescue) {
-						//logger.info(strand + " de novo from " + this.reference + " " +  this.breakpoint + " " + conRead.getClipMateSequence() + " " + splitConsensusReads + " " + conRead.getClipMateSequence().length());
-					}
 					tumourSplitReads = null;
 					normalSplitReads = null;
 					return conRead;
@@ -395,37 +389,6 @@ public class Breakpoint implements Comparable<Breakpoint>{
 		}
 	}
 
-//	public static String calculateConsensus(char strand, int length, boolean isClipConsensus, Set<Clip> tumourClips, Set<Clip> normalClips, boolean isGermline) {
-//		
-//		
-//		int [][] bases = new int[length][5];		
-//		for (Clip c: tumourClips) {
-//			if (strand == c.getStrand()) {
-//				if (isClipConsensus) {
-//					c.getClipBases(bases);
-//				} else {
-//					c.getReferenceBases(bases);
-//				}
-//			}
-//		}
-//		if (isGermline) {
-//			for (Clip c: normalClips) {
-//				if (strand == c.getStrand()) {
-//					if (isClipConsensus) {
-//						c.getClipBases(bases);
-//					} else {
-//						c.getReferenceBases(bases);
-//					}
-//				}
-//			}
-//		}		
-//		
-//		String currentConsensus = getBaseCountString(bases);
-//		if (QSVUtil.MINUS == strand) {
-//			currentConsensus = QSVUtil.reverseComplement(currentConsensus);
-//		} 
-//		return currentConsensus;		
-//	}
 	public static String calculateConsensus(char strand, int length, boolean isClipConsensus, Set<Clip> tumourClips, Set<Clip> normalClips, boolean isGermline) {
 		
 		int [][] bases = new int[length][5];
@@ -527,7 +490,7 @@ public class Breakpoint implements Comparable<Breakpoint>{
 		if (mateRecord != null) {
 			Integer mateBp =  mateRecord.calculateMateBreakpoint(isLeft, reference, breakpoint, (positiveStrand ? QSVUtil.PLUS : QSVUtil.MINUS));
 			if (mateBp != null) {
-				mateReference = mateRecord.getReference();
+				mateReference = mateRecord.getTName();
 				setMateStrand(mateRecord.getStrand());
 				mateBreakpoint = mateBp;
 				blatRecord = mateRecord;
@@ -601,31 +564,6 @@ public class Breakpoint implements Comparable<Breakpoint>{
 		return clips.stream().map(Clip::toString).collect(Collectors.joining(Constants.EMPTY_STRING));
 	}
 
-//	public boolean findRescuedMateBreakpoint(BLAT blat, QSVParameters p, String softclipDir) throws Exception {
-//		
-//		String base = softclipDir + QSVUtil.getFileSeparator() + getName();
-//		String fa = base + ".fa";
-//		String mateConsensus = getMateConsensus();
-//		
-//		if ( ! StringUtils.isNullOrEmpty(mateConsensus) ) {
-//								
-//			try (FileWriter fw = new FileWriter(new File(fa));
-//					BufferedWriter writer = new BufferedWriter(fw);) {
-//				
-//				writer.write(">" + getName() + QSVUtil.NEW_LINE);
-//				writer.write(mateConsensus + QSVUtil.NEW_LINE);
-//				writer.write(QSVUtil.NEW_LINE);
-//			}
-//		}
-//		
-//		String outFile = base + ".psl";
-//		
-//		Map<String, BLATRecord> blatMap = blat.align(fa, outFile);
-//		
-//		BLATRecord record = blatMap.get(getName());
-//		return findMateBreakpoint(record);
-//	}
-	
 	public boolean findRescuedMateBreakpoint(TIntObjectMap<int[]> cache, QSVParameters p, String softclipDir) throws Exception {
 		String mateConsensus = getMateConsensus();
 		

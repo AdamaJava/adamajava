@@ -501,18 +501,12 @@ public class QSVPipeline {
 	 */
 	private void findSoftClips() throws Exception {
 
-//		BLAT blat = new BLAT(options.getBlatServer(), options.getBlatPort(), options.getBlatPath());
-
 		FindClipClustersMT worker = new FindClipClustersMT(tumor, normal, softclipDir, tumorRecords, options, analysisId, clipCount, TILED_ALIGNER_CACHE);
-//		FindClipClustersMT worker = new FindClipClustersMT(tumor, normal, softclipDir, blat, tumorRecords, options, analysisId, clipCount);
 		worker.execute();
 
 		this.somaticCounts = worker.getQSVRecordWriter().getSomaticCount().intValue();
 		this.germlineCounts = worker.getQSVRecordWriter().getGermlineCount().intValue();
 
-		// log some blat stats
-//		logger.info("BLAT server was accessed " + blat.getExecuteCount() + " times");
-		
 		if (worker.getExitStatus().intValue() >= 1) {
 			throw new QSVException("CLIP_CLUSTER_EXCEPTION");
 		}          

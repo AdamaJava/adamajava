@@ -409,17 +409,17 @@ public class SplitReadContig {
 			List<BLATRecord> recs = blatRecords.get(sequence);
 			if (null != recs) {
 				for (BLATRecord record : recs) {
-					if (record.isValid() && record.getName().equals(name)) {
+					if (record.isValid() && record.getQName().equals(name)) {
 						if (debug) {
 							logger.info("SplitReadContig BLAT rec (valid): " + record.toString());
 						}
 						if (leftReference != null && rightReference != null) {
-							if (record.getReference().equals(leftReference) || record.getReference().equals(rightReference)) {
-								record.setName(name);
+							if (record.getTName().equals(leftReference) || record.getTName().equals(rightReference)) {
+								record.setQName(name);
 								records.add(record);				
 							}
 						} else {
-							record.setName(name);
+							record.setQName(name);
 							records.add(record);
 						}
 					} else {
@@ -503,7 +503,7 @@ public static List<BLATRecord> alignConsensus(Map<String, List<BLATRecord>> blat
 				for (BLATRecord record : recs) {
 					if (record.isValid()) {
 						if (leftReference != null && rightReference != null) {
-							if (record.getReference().equals(leftReference) || record.getReference().equals(rightReference)) {
+							if (record.getTName().equals(leftReference) || record.getTName().equals(rightReference)) {
 								records.add(record);				
 							}
 						} else {
@@ -606,10 +606,10 @@ public static List<BLATRecord> alignConsensus(Map<String, List<BLATRecord>> blat
 			List<BLATRecord> rightRecords = new ArrayList<>();
 
 			for (BLATRecord r: records) {
-				if (r.getReference().equals(knownSV.getLeftReference())) {
+				if (r.getTName().equals(knownSV.getLeftReference())) {
 					leftRecords.add(r);
 				}
-				if (r.getReference().equals(knownSV.getRightReference())) {
+				if (r.getTName().equals(knownSV.getRightReference())) {
 					rightRecords.add(r);
 				}
 			}
@@ -932,14 +932,14 @@ public static List<BLATRecord> alignConsensus(Map<String, List<BLATRecord>> blat
 		
 		int[] starts = record.getUnmodifiedStarts();
 		int[] blocks = record.getBlockSizes();
-		int[] startPoses = record.gettStarts();
+		int[] startPoses = record.getTStarts();
 		if (starts != null && blocks != null && startPoses != null) {
 			for (int i = 0; i < record.getBlockCount(); i ++) {
 				int startPos = startPoses[i];
 				int endPos = startPos + blocks[i] - 1;
 				int start = starts[i];
 				int end = start + blocks[i] - 1;
-				SplitReadAlignment newAlign = new SplitReadAlignment(record.getReference(), record.getStrand(), startPos, endPos, start, end);
+				SplitReadAlignment newAlign = new SplitReadAlignment(record.getTName(), record.getStrand(), startPos, endPos, start, end);
 				if (passesNewAlignmentFilters(newAlign, confidenceLevel, knownSV.getLeftBreakpoint().intValue(), knownSV.getRightBreakpoint().intValue(), length)) {
 					if (left == null && right == null) {
 						left = newAlign;
@@ -961,14 +961,14 @@ public static List<BLATRecord> alignConsensus(Map<String, List<BLATRecord>> blat
 
 		int[] starts = record.getUnmodifiedStarts();
 		int[] blocks = record.getBlockSizes();
-		int[] startPoses = record.gettStarts();
+		int[] startPoses = record.getTStarts();
 		if (starts != null && blocks != null && startPoses != null) {
 			for (int i = 0; i < record.getBlockCount(); i ++) {
 				int startPos = startPoses[i];
 				int endPos = startPos + blocks[i] - 1;
 				int start = starts[i];
 				int end = start + blocks[i] - 1;
-				SplitReadAlignment newAlign = new SplitReadAlignment(record.getReference(), record.getStrand(), startPos, endPos, start, end);
+				SplitReadAlignment newAlign = new SplitReadAlignment(record.getTName(), record.getStrand(), startPos, endPos, start, end);
 				if (passesNewAlignmentFilters(newAlign, confidenceLevel, knownSV.getLeftBreakpoint().intValue(), knownSV.getRightBreakpoint().intValue(), length)) {
 					if (left == null && right == null) {
 						left = newAlign;
@@ -1078,7 +1078,7 @@ public static List<BLATRecord> alignConsensus(Map<String, List<BLATRecord>> blat
 	public static SplitReadAlignment getPutativeOtherAlignment(Integer queryStart, Integer queryEnd, BLATRecord r, SplitReadAlignment singleSplitReadAlignment, int length, String confidenceLevel, int svLhsBp, int svRhsBp) {
 		int[] starts = r.getUnmodifiedStarts();
 		int[] blocks = r.getBlockSizes();
-		int[] startPoses = r.gettStarts();
+		int[] startPoses = r.getTStarts();
 		SplitReadAlignment align = null;
 		int difference = length;
 		if (r.getBlockCount() > 1) {
@@ -1087,7 +1087,7 @@ public static List<BLATRecord> alignConsensus(Map<String, List<BLATRecord>> blat
 				int end = start + blocks[i] - 1;
 				int startPos = startPoses[i];
 				int endPos = startPos + blocks[i] - 1;				
-				align = new SplitReadAlignment(r.getReference(), r.getStrand(), startPos, endPos, start, end);
+				align = new SplitReadAlignment(r.getTName(), r.getStrand(), startPos, endPos, start, end);
 				if ( ! align.equals(singleSplitReadAlignment) && passesNewAlignmentFilters(align, confidenceLevel, svLhsBp, svRhsBp, length)) {
 					return getAlignmentDifference(queryStart, queryEnd, difference, align, confidenceLevel, svLhsBp, svRhsBp, length);
 				} else {

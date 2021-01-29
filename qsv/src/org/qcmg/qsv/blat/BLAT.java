@@ -88,13 +88,14 @@ public class BLAT {
 		Map<String, BLATRecord> records = new HashMap<>();
 		File blatOutput = new File(blatOutputFile);
 		
+ 
 		try (StringFileReader reader = new StringFileReader(blatOutput);) {
 			for (String tab: reader) {
 				BLATRecord record = new BLATRecord(TabTokenizer.tokenize(tab)); 
 				if (record.isValid()) {
-					BLATRecord previous = records.get(record.getName());
+					BLATRecord previous = records.get(record.getQName());
 					if (null == previous || record.getScore() > previous.getScore()) {
-						records.put(record.getName(), record);
+						records.put(record.getQName(), record);
 					}
 				}
 			}
@@ -181,7 +182,7 @@ public class BLAT {
 				BLATRecord record = new BLATRecord(TabTokenizer.tokenize(tab));
 				if (record.isValid()) {
 					if (leftReference != null && rightReference != null) {
-						if (record.getReference().equals(leftReference) || record.getReference().equals(rightReference)) {
+						if (record.getTName().equals(leftReference) || record.getTName().equals(rightReference)) {
 							records.add(record);				
 						}
 					} else {
@@ -208,12 +209,12 @@ public class BLAT {
 		
 		try (StringFileReader reader = new StringFileReader(outFile);) {
 
+ 
 			for (String tab: reader) {
-				BLATRecord record = new BLATRecord(TabTokenizer.tokenize(tab)); 	
-				
-				if (record.isValid() && record.getName().equals(name)) {
+				BLATRecord record = new BLATRecord(TabTokenizer.tokenize(tab)); 				
+				if (record.isValid() && record.getQName().equals(name)) {
 					if (leftReference != null && rightReference != null) {
-						if (record.getReference().equals(leftReference) || record.getReference().equals(rightReference)) {
+						if (record.getTName().equals(leftReference) || record.getTName().equals(rightReference)) {
 							records.add(record);				
 						}
 					} else {

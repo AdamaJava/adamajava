@@ -81,13 +81,10 @@ public class FindSoftClipClustersMTTest {
         String value = "48\t1\t0\t0\t2\t0\t3\t0\t+\tchr10_89712341_true_+\t66\t0\t48\tchr10\t135534747\t89700251\t89700299\t1\t48,\t0,\t89700251,";
         String value2 = "46\t0\t0\t2\t0\t0\t0\t0\t-\tchr10_89700299_false_-\t66\t0\t48\tchr10\t135534747\t89712340\t89712388\t1\t48,\t18,\t89712340,";
         
-        expected.put("chr10_89712341_true_+", new BLATRecord(value.split("\t")));
-        expected.put("chr10_89700299_false_-", new BLATRecord(value2.split("\t")));
+        expected.put("chr10_89712341_true_+", new BLATRecord.Builder(value.split("\t")).build());
+        expected.put("chr10_89700299_false_-", new BLATRecord.Builder(value2.split("\t")).build());
         expect(blat.align(softClipDir.getAbsolutePath() + QSVUtil.getFileSeparator() + ("TD_breakpoint.chr10.fa"), softClipDir.getAbsolutePath() + QSVUtil.getFileSeparator() + ("TD_breakpoint.chr10.psl"))).andReturn(expected);
        
-//        List<BLATRecord> splitList1 = new ArrayList<>();
-//        String value3 = "262\t1\t0\t\t1\t18\t1\t12041\t+\tsplitcon-chr10-89700299-chr10-89712341\t281\t0\t281\tchr10\t135534747\t89700191\t89712495\t2\t108,155,\t0,126,\t89700191,89712340,";        
-//        splitList1.add(new BLATRecord(value3.split("\t")));
         expect(blat.alignConsensus(softClipDir.getAbsolutePath(), "splitcon-chr7-140189108-chr7-140191044", "TGGCCTTTAGAAGTAGGAGAAGTACAGAGTACTTTGCCATTTTAAGGCCCGGAAAATGAGGTTGTCGAGTCATGCA", "chr7", "chr7")).andReturn(new ArrayList<BLATRecord>());
         expect(blat.alignConsensus(softClipDir.getAbsolutePath(), "splitcon-chr7-140189108-chr7-140191044", "TGGCCTTTAGAAGTAGGAGAAGTACAGAGTACTTTGCCATTTTAAGGCCCGGAAAATGAGGTTGTCGAGTCATGCA", "chr7", "chr7")).andReturn(new ArrayList<BLATRecord>());
         expect(blat.alignConsensus(softClipDir.getAbsolutePath(), "splitcon-chr10-89700299-chr10-89712341", "TTGTTTCACAAAACGAACAGATCTGCAAAGATCAACCTGTCCTAAGTCATATAATCTCTTTGTGTAAGAGATTATACTTTGTGTAAGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAGGGCAGGGATCAATTCCTTAATATCTTAGGA", "chr10", "chr10")).andReturn(new ArrayList<BLATRecord>());
@@ -95,7 +92,6 @@ public class FindSoftClipClustersMTTest {
         
         replay(blat);
         FindClipClustersMT worker = new FindClipClustersMT(tumor, normal, softClipDir.getAbsolutePath(), tumorClusterRecords,  options, "analysisId", 200, new TIntObjectHashMap<int[]>());
-//		FindClipClustersMT worker = new FindClipClustersMT(tumor, normal, softClipDir.getAbsolutePath(), blat, tumorClusterRecords,  options, "analysisId", 200);
 		String key = "";
 		List<SoftClipCluster> clusters = new ArrayList<>();
 		List<SoftClipCluster> results = worker.getProperClipSVs(key, clusters);
@@ -140,8 +136,8 @@ public class FindSoftClipClustersMTTest {
         String value = "48\t1\t0\t0\t2\t0\t3\t0\t+\tchr10_89712341_true_+\t66\t0\t48\tchr10\t135534747\t89700251\t89700299\t1\t48,\t0,\t89700251,";
         String value2 = "46\t0\t0\t2\t0\t0\t0\t0\t-\tchr10_89700299_false_-\t66\t0\t48\tchr10\t135534747\t89712340\t89712388\t1\t48,\t18,\t89712340,";
         
-        expected.put("chr10_89712341_true_+", new BLATRecord(value.split("\t")));
-        expected.put("chr10_89700299_false_-", new BLATRecord(value2.split("\t")));
+        expected.put("chr10_89712341_true_+", new BLATRecord.Builder(value.split("\t")).build());
+        expected.put("chr10_89700299_false_-", new BLATRecord.Builder(value2.split("\t")).build());
         expect(blat.align(softClipDir.getAbsolutePath() + QSVUtil.getFileSeparator() + ("TD_breakpoint.chr10.fa"), softClipDir.getAbsolutePath() + QSVUtil.getFileSeparator() + ("TD_breakpoint.chr10.psl"))).andReturn(expected);
        
         expect(blat.alignConsensus(softClipDir.getAbsolutePath(), "splitcon-chr7-140189108-chr7-140191044", "TGGCCTTTAGAAGTAGGAGAAGTACAGAGTACTTTGCCATTTTAAGGCCCGGAAAATGAGGTTGTCGAGTCATGCA", "chr7", "chr7")).andReturn(new ArrayList<BLATRecord>());
@@ -151,15 +147,11 @@ public class FindSoftClipClustersMTTest {
         
         replay(blat);
 		
-//		FindClipClustersMT worker = new FindClipClustersMT(tumor, normal, softClipDir.getAbsolutePath(), blat, tumorClusterRecords,  options, "analysisId", 200);
 		FindClipClustersMT worker = new FindClipClustersMT(tumor, normal, softClipDir.getAbsolutePath(), tumorClusterRecords,  options, "analysisId", 200, new TIntObjectHashMap<int[]>());
         worker.execute();
         
-//        assertEquals(0, worker.getExitStatus().intValue());
-//        assertEquals(2, worker.getQSVRecordWriter().getSomaticCount().intValue());
         assertEquals(0, worker.getQSVRecordWriter().getGermlineCount().intValue());
 	}
-
 
 	private void writeSoftClipFiles(File softClipDir) throws IOException {
 		try (BufferedWriter writer = new BufferedWriter(new FileWriter(new File(softClipDir + QSVUtil.getFileSeparator() + "TD.chr10.clip")));) {

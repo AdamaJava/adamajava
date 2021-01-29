@@ -19,14 +19,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.BLATRecord;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrPositionName;
-import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.NumberUtils;
 
 import gnu.trove.list.TLongList;
@@ -122,7 +120,7 @@ public class TARecordUtil {
 				IntLongPair[] pairs = maxSplit.getPairs();
 				BLATRecord [] blatties = new BLATRecord[pairs.length];
 				for (int i = 0 ; i < pairs.length ; i++) {
-					blatties[i] = new BLATRecord(blatRecordFromSplit(pairs[i], name, seqLength, headerMap));
+					blatties[i] = BLATRecordUtil.blatRecordFromSplit(pairs[i], name, seqLength, headerMap);
 				}
 				Arrays.sort(blatties);
 				blats.add(blatties);
@@ -163,9 +161,9 @@ public class TARecordUtil {
 				 * will attempt to create a single BLAT record
 				 */
 				if (IntLongPairsUtil.isIntLongPairsAValidSingleRecord(maxSplitILPs)) {
-					String [] blatData = TARecordUtil.blatRecordFromSplits(maxSplitILPs, name, seqLength, headerMap, TILE_LENGTH);
-					if (null != blatData && blatData.length > 0) {
-						blatties = new BLATRecord[] {new BLATRecord(blatData)};
+					Optional<BLATRecord> oBR = BLATRecordUtil.blatRecordFromSplits(maxSplitILPs, name, seqLength, headerMap, TILE_LENGTH);
+					if (oBR.isPresent()) {
+						blatties = new BLATRecord[] {oBR.get()};
 					}
 				} else {
 					
@@ -177,10 +175,10 @@ public class TARecordUtil {
 						 */
 						blatties = new BLATRecord[pairs.length];
 						for (int i = 0 ; i < pairs.length ; i++) {
-							String [] blatARray = blatRecordFromSplit(pairs[i], name, seqLength, headerMap);
-							if (null != blatARray && blatARray.length > 0) {
-								blatties[i] = new BLATRecord(blatARray);
-							}
+							blatties[i] = BLATRecordUtil.blatRecordFromSplit(pairs[i], name, seqLength, headerMap);
+//							if (null != blatARray && blatARray.length > 0) {
+//								blatties[i] = new BLATRecord.Builder(blatARray).build();
+//							}
 						}
 						Arrays.sort(blatties);
 					} else {
@@ -198,15 +196,19 @@ public class TARecordUtil {
 							
 							blatties = new BLATRecord[rejectedILPs.size() + 1];
 							for (int i = 0 ; i < rejectedILPs.size() ; i++) {
-								String [] blatArray = blatRecordFromSplit(rejectedILPs.get(i), name, seqLength, headerMap);
-								if (null != blatArray && blatArray.length > 0) {
-									blatties[i] = new BLATRecord(blatArray);
-								}
+								blatties[i] = BLATRecordUtil.blatRecordFromSplit(rejectedILPs.get(i), name, seqLength, headerMap);
+//								if (null != blatArray && blatArray.length > 0) {
+//									blatties[i] = new BLATRecord.Builder(blatArray).build();
+//								}
 							}
-							String [] blatArray = blatRecordFromSplits(oSingleBLATRec.get(), name, seqLength, headerMap, TILE_LENGTH);	
-							if (null != blatArray && blatArray.length > 0) {
-								blatties[blatties.length - 1] = new BLATRecord(blatArray);
+							Optional<BLATRecord> oBR = BLATRecordUtil.blatRecordFromSplits(oSingleBLATRec.get(), name, seqLength, headerMap, TILE_LENGTH);	
+//							String [] blatArray = BLATRecordUtil.blatRecordFromSplits(oSingleBLATRec.get(), name, seqLength, headerMap, TILE_LENGTH);
+							if (oBR.isPresent()) {
+								blatties[blatties.length - 1] = oBR.get();
 							}
+//							if (null != blatArray && blatArray.length > 0) {
+//								blatties[blatties.length - 1] = new BLATRecord.Builder(blatArray).build();
+//							}
 							
 							if (null != blatties && blatties.length > 1) {
 								Arrays.sort(blatties);
@@ -221,54 +223,6 @@ public class TARecordUtil {
 			return blats;
 		}
 		return Collections.emptyList();
-	}
-	
-	public static String[] blatRecordFromSplit(IntLongPair split, String name, int seqLength, PositionChrPositionMap headerMap) {
-		return blatRecordFromSplit(split, name, seqLength, headerMap, TILE_LENGTH);
-	}
-	
-	public static String[] blatRecordFromSplit(IntLongPair split, String name, int seqLength, PositionChrPositionMap headerMap, int tileLength) {
-		ChrPosition cp = headerMap.getChrPositionFromLongPosition(split.getLong());
-		boolean reverseStrand = NumberUtils.isBitSet(split.getLong(), REVERSE_COMPLEMENT_BIT);
-		int length = NumberUtils.getPartOfPackedInt(split.getInt(), true) + tileLength - 1;
-		int mismatch = NumberUtils.getPartOfPackedInt(split.getInt(), false);
-		int positionInSequence = NumberUtils.getShortFromLong(split.getLong(), TILE_OFFSET);
-		
-		String[] array = new String[21];
-		array[0] = "" + length;	//number of matches
-		array[1] = "" + mismatch;		//number of mis-matches
-		array[2] = "0";					//number of rep. matches
-		array[3] = "0";					//number of N's
-		array[4] = "0";					// Q gap count
-		array[5] = "0";					// Q gap bases
-		array[6] = "0";					// T gap count
-		array[7] = "0";					// T gap bases
-		array[8] = reverseStrand ? "-" : "+";			// strand
-		array[9] = name;					// Q name
-		array[10] = seqLength + "";			// Q size
-		
-		/*
-		 * start and end are strand dependent
-		 * if we are on the forward, its the beginning of the first bloak, and end of the last
-		 * if we are on reverse, need to reverse!
-		 */
-		int start = reverseStrand ? (seqLength - positionInSequence - length) :  positionInSequence;
-		int end = reverseStrand ?  (seqLength - positionInSequence) : positionInSequence + length;
-		
-		array[11] = "" + start;			// Q start
-		array[12] = "" + end;	// Q end
-		array[13] = cp.getChromosome();			// T name
-		array[14] = "12345";					// T size
-		int tStart = cp.getStartPosition();
-		
-		array[15] = "" + tStart;					// T start
-		array[16] = "" + (length + tStart);			// T end
-		array[17] = "1";							// block count
-		array[18] = "" + length;					// block sizes
-		array[19] = "" + positionInSequence;		// Q block starts
-		array[20] = "" + tStart;					// T block starts
-		
-		return array;
 	}
 	
 	/**
@@ -429,96 +383,6 @@ public class TARecordUtil {
 	}
 	
 	/**
-	 * 
-	 * @param splits
-	 * @param name
-	 * @param seqLength
-	 * @param headerMap
-	 * @param tileLength
-	 * @return
-	 */
-	public static String[] blatRecordFromSplits(IntLongPairs splits, String name, int seqLength, PositionChrPositionMap headerMap, int tileLength) {
-		
-		Map<ChrPosition, int[]> chrPosBlocks = getChrPositionAndBlocksFromSplits(splits, seqLength, headerMap);
-		/*
-		 * order the keys
-		 */
-		ChrPosition[] keys = new ChrPosition[chrPosBlocks.size()];
-		chrPosBlocks.keySet().toArray(keys);
-		Arrays.sort(keys);
-		
-		List<int[]> values = new ArrayList<>(chrPosBlocks.values());
-		values.sort((int[] array1, int[] array2) -> array1[0] - array2[0]);
-
-		int qGapBases = 0;
-		
-		for (int i = 0 ; i < values.size() - 1; i++) {
-			int [] thisBlock = values.get(i);
-			int [] nextBlock = values.get(i + 1);
-			qGapBases += nextBlock[0] - (thisBlock[1] + thisBlock[0]);
-		}
-		
-		
-		boolean reverseStrand = keys[0].getName().equals("R");
-		/*
-		 * get length and qGapBases
-		 */
-		int length = 0;
-		int tGapBases = 0;
-		for (int i = 0 ; i < keys.length - 1; i++) {
-			ChrPosition thisCp = keys[i];
-//			int[] thisBlock = chrPosBlocks.get(thisCp);
-			length += thisCp.getLength() - 1; 
-			ChrPosition nextCp = keys[i + 1];
-			
-			
-			/*
-			 * If either of these ChrPositions are wholly contained within the other, then return
-			 */
-			if (ChrPositionUtils.isChrPositionContained(thisCp, nextCp) || ChrPositionUtils.isChrPositionContained(nextCp, thisCp)) {
-				return new String[]{};
-			}
-			
-			tGapBases += (nextCp.getStartPosition() - thisCp.getEndPosition());
-		}
-		/*
-		 * add last length
-		 */
-		length += keys[keys.length - 1].getLength() - 1;
-		
-		String[] array = new String[21];
-		array[0] = "" + length;	//number of matches
-		array[1] = "" + IntLongPairsUtil.getMismatches(splits);	//number of mis-matches
-		array[2] = "0";					//number of rep. matches
-		array[3] = "0";					//number of N's
-		array[4] = qGapBases > 0 ? "1" : "0";					// Q gap count
-		array[5] = "" + qGapBases;					// Q gap bases
-		array[6] = "" + (keys.length - 1);					// T gap count
-		array[7] = "" + tGapBases;			// T gap bases
-		array[8] = reverseStrand ? "-" : "+";			// strand
-		array[9] = name;					// Q name
-		array[10] = seqLength + "";			// Q size
-		
-		
-		array[11] = "" + chrPosBlocks.get(keys[0])[0];						// Q start
-		// get last bloack
-		int[] lastBlock = chrPosBlocks.get(keys[keys.length - 1]);
-		array[12] = "" + (lastBlock[0] + lastBlock[1] - 1);	// Q end
-		array[13] = keys[0].getChromosome();			// T name
-		array[14] = "12345";							// T size
-		int tStart = keys[0].getStartPosition();
-		
-		array[15] = "" + tStart;						// T start
-		array[16] = "" + keys[keys.length - 1].getEndPosition();		// T end
-		array[17] = "" + keys.length;								// block count
-		array[18] = "" + Arrays.stream(keys).map(cp -> "" + (cp.getLength() - 1)).collect(Collectors.joining(","));					// block sizes
-		array[19] = "" + Arrays.stream(keys).map(cp -> "" + (cp.getName().equals("R") ? seqLength - (chrPosBlocks.get(cp)[0] + chrPosBlocks.get(cp)[1]) : chrPosBlocks.get(cp)[0])).collect(Collectors.joining(","));				// Q block starts, strand dependent
-		array[20] = "" + Arrays.stream(keys).map(cp -> "" + cp.getStartPosition()).collect(Collectors.joining(","));	// T block starts
-		
-		return array;
-	}
-	
-	/**
 	 * This method will examine the IntLongPair records within the supplied IntLongPairs object.
 	 * 
 	 * If they are within 10kb of each other, and on the same strand, we can potentially combine them into a single BLATRecord.
@@ -527,7 +391,7 @@ public class TARecordUtil {
 	 * @param splits
 	 * @return
 	 */
-	public static String[] areSplitsCloseEnoughToBeSingleRecord(IntLongPairs splits, String name,  int seqLength, PositionChrPositionMap headerMap, int tileLength) {
+	public static Optional<BLATRecord> areSplitsCloseEnoughToBeSingleRecord(IntLongPairs splits, String name,  int seqLength, PositionChrPositionMap headerMap, int tileLength) {
 		/*
 		 * check strand first
 		 */
@@ -567,12 +431,12 @@ public class TARecordUtil {
 			}
 			
 			if (orderCorrect) {
-				String[] deetsForBlat = blatRecordFromSplits(splits,  name, seqLength, headerMap, tileLength);
-				return deetsForBlat;
+				Optional<BLATRecord> oBR = BLATRecordUtil.blatRecordFromSplits(splits,  name, seqLength, headerMap, tileLength);
+				return oBR;
 			}
 		}
 		
-		return new String[]{};
+		return Optional.empty();
 	}
 	
 	/**

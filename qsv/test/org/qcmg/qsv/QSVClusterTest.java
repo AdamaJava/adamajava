@@ -172,7 +172,7 @@ public class QSVClusterTest {
 		b.setMateBreakpoint(89712341);
 		b.setMateReference("chr10");
 		b.setMateStrand(QSVUtil.MINUS);
-		b.setBlatRecord(new BLATRecord(value2.split("\t")));
+		b.setBlatRecord(new BLATRecord.Builder(value2.split("\t")).build());
 		Collection<Clip> clips = TestUtil.getRightClips(false);
 		for (Clip c : clips) {
 			b.addNormalClip(c);

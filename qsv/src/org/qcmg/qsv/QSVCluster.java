@@ -4,6 +4,7 @@
  *
  * This code is released under the terms outlined in the included LICENSE file.
  */
+
 package org.qcmg.qsv;
 
 import java.io.File;
@@ -606,44 +607,6 @@ public class QSVCluster {
 	 * @return
 	 * @throws Exception
 	 */
-//	public boolean findSplitReadContig(QSVParameters p, QSVParameters n, String softclipDir, int consensusLength, boolean isQCMG, int minInsertSize, boolean singleSided, boolean isSplitRead, String referenceFile) throws Exception {
-//		boolean rescue = false;
-//		
-//		
-//		if ( ! isGermline && ! rescued) {
-//			
-//			//if running split read mode, try to get a split read contig
-//			if (isSplitRead) {
-//					if (this.splitReadContig != null) {
-//					    this.splitReadContig.findSplitRead();			
-//						this.consensus = splitReadContig.getConsensus();
-//						
-//						this.potentialRepeatRegion = splitReadContig.getIsPotentialRepeatRegion();
-//					
-//						if (this.normalSplitReadContig != null) {
-//							normalSplitReadContig.findSplitRead();
-//						}						
-//						rescue = true;					
-//					}
-//			}
-//
-//			if (referenceFile != null) {
-//				if ((leftReferenceFlank == null && rightReferenceFlank == null) ||
-//						(Constants.EMPTY_STRING.equals(leftReferenceFlank) && Constants.EMPTY_STRING.equals(rightReferenceFlank))) {
-//					
-//					getReferenceFlank(new File(referenceFile), p.getChromosomes());
-//				}
-//			}
-//
-//		} else {
-//			if (this.consensus == null) {
-//				this.consensus = "";
-//			}			
-//		}
-//		
-//		this.rescued = true;
-//		return rescue;
-//	}
 	public boolean findSplitReadContig(QSVParameters p, boolean isSplitRead, String referenceFile) throws Exception {
 		return findSplitReadContig( p,  isSplitRead,  referenceFile, false);
 	}
@@ -695,45 +658,6 @@ public class QSVCluster {
 		this.rescued = true;
 		return rescue;
 	}
-//	public boolean findSplitReadContig(BLAT blat, QSVParameters p, QSVParameters n, String softclipDir, int consensusLength, boolean isQCMG, int minInsertSize, 
-//			boolean singleSided, boolean isSplitRead, String referenceFile) throws Exception {
-//		boolean rescue = false;
-//		
-//		
-//		if ( ! isGermline && ! rescued) {
-//			
-//			//if running split read mode, try to get a split read contig
-//			if (isSplitRead) {
-//				if (this.splitReadContig != null) {
-//					this.splitReadContig.findSplitRead();			
-//					this.consensus = splitReadContig.getConsensus();
-//					
-//					this.potentialRepeatRegion = splitReadContig.getIsPotentialRepeatRegion();
-//					
-//					if (this.normalSplitReadContig != null) {
-//						normalSplitReadContig.findSplitRead();
-//					}						
-//					rescue = true;					
-//				}
-//			}
-//			
-//			if (referenceFile != null) {
-//				if ((leftReferenceFlank == null && rightReferenceFlank == null) ||
-//						(Constants.EMPTY_STRING.equals(leftReferenceFlank) && Constants.EMPTY_STRING.equals(rightReferenceFlank))) {
-//					
-//					getReferenceFlank(new File(referenceFile), p.getChromosomes());
-//				}
-//			}
-//			
-//		} else {
-//			if (this.consensus == null) {
-//				this.consensus = "";
-//			}			
-//		}
-//		
-//		this.rescued = true;
-//		return rescue;
-//	}
 
 	/*
 	 * For dcc file - get the 200bp upstream and downstream of each breakpoint
@@ -827,19 +751,6 @@ public class QSVCluster {
 	/*
 	 * For one sided clips, go back to bam to see if clips at the other breakpoint can be rescues
 	 */
-//	private void rescueClipping(BLAT blat, QSVParameters p, QSVParameters n, String softclipDir, int consensusLength, int minInsertSize) throws Exception {
-//		if (clipRecords != null) {
-//			for (SoftClipCluster r: clipRecords) {
-//				if ( ! r.hasMatchingBreakpoints()) {
-//					if (n == null) {
-//						r.rescueClips(p, blat, p.getClippedBamFile(), null, softclipDir, consensusLength, 5, minInsertSize);
-//					} else {
-//						r.rescueClips(p, blat, p.getClippedBamFile(), n.getInputBamFile(), softclipDir, consensusLength, 5, minInsertSize);
-//					}
-//				}
-//			}
-//		}
-//	}
 	private void rescueClipping(TIntObjectMap<int[]> cache, QSVParameters p, QSVParameters n, String softclipDir, int consensusLength, int minInsertSize) throws Exception {
 		if (clipRecords != null) {
 			for (SoftClipCluster r: clipRecords) {
@@ -1279,19 +1190,6 @@ public class QSVCluster {
 	 * @param minInsertSize
 	 * @throws Exception
 	 */
-//	public void rescueClippping(BLAT blat, QSVParameters tumourParameters,
-//			QSVParameters normalParameters, String softclipDir,
-//			Integer consensusLength, Integer minInsertSize) throws Exception {
-//		if ( ! isGermline && ! rescued) {
-//			
-//			//one sided evidence or none at all
-//			if (clipRecords != null) {	
-//				if ( ! hasMatchingBreakpoints()) {					
-//					rescueClipping(blat, tumourParameters, normalParameters, softclipDir, consensusLength, minInsertSize);
-//				}
-//			}
-//		}		
-//	}
 	public void rescueClippping(TIntObjectMap<int[]> cache, QSVParameters tumourParameters,	QSVParameters normalParameters, String softclipDir,
 			Integer consensusLength, Integer minInsertSize) throws Exception {
 		if ( ! isGermline && ! rescued) {
@@ -1352,31 +1250,6 @@ public class QSVCluster {
 			}
 		}		
 	}
-//	public void createSplitReadContig(BLAT blat,
-//			QSVParameters tumourParameters, QSVParameters normalParameters,
-//			String softclipDir, Integer consensusLength, boolean isQCMG,
-//			Integer minInsertSize, boolean singleSided, boolean isSplitRead,
-//			String reference, String blatFile) throws Exception {
-//		
-//		if (!isGermline && !rescued) {
-//			
-//			if (isSplitRead) {	
-//			    this.splitReadContig = new SplitReadContig(blat, tumourParameters, softclipDir, leftReference, rightReference, 
-//						getLeftBreakpoint(), getRightBreakpoint(), 
-//						findExpectedPairClassifications(), getClipContigSequence(), getConfidenceLevel(), 
-//						getOrientationCategory(), reference, tumourParameters.getChromosomes(), hasSoftClipEvidence(), blatFile + ".tumour.fa");				
-//								
-//				if (!potentialRepeatRegion && 
-//						!getConfidenceLevel().equals(QSVConstants.LEVEL_REPEAT) &&  !getConfidenceLevel().equals(QSVConstants.LEVEL_GERMLINE) && normalParameters != null) {	
-//					
-//					this.normalSplitReadContig = new SplitReadContig(blat, normalParameters, softclipDir, leftReference, rightReference, 
-//								getLeftBreakpoint(), getRightBreakpoint(), 
-//								findExpectedPairClassifications(), getClipContigSequence(), getConfidenceLevel(), 
-//								getOrientationCategory(), reference, normalParameters.getChromosomes(), hasSoftClipEvidence(), blatFile + ".normal.fa");
-//				}						
-//			}
-//		}		
-//	}
 	
 	/**
 	 * Returns details of the SV cluster in a tab delimited string

@@ -199,7 +199,7 @@ READ:GTTCTGGAATCCTGTGTGAGGGACAAACATTCAGACCACTGCAGGATTGTTCAGGAATCCTATCTGAGGGACAAA
 				,"CTCAGAAAACAGCATTAGTGTTTTGCAATCCTATGGGAGGGACAACATTCACACCCTTGTAGCAGAGTTCTGGAATCCTGTGTGAGGGACAAACATTCAGACCACTGCAGGATTGTTCAGGAATCCTATCTGAGGGACAAACATGCAGACCCTCACAGCAGTGTTCT"
 				,"CTCAGAAAACAGCATTAGTGTTTTGCAATCCTATGGGAGGGACAACATTCACACCCTTGTAGCAGA","GTTCTGGAATCCTGTGTGAGGGACAAACATTCAGACCACTGCAGGATTGTTCAGGAATCCTATCTGAGGGACAAACATGCAGACCCTCACAGCAGTGTTCT"));
 		
-		BLATRecord r = new BLATRecord("52	4	0	0	0	0	1	1	+	GL000219.1_165002_true_+	66	9	65	GL000219.1	179198	165421	165478	2	36,20,	9,45,	165421,165458,");
+		BLATRecord r = new BLATRecord.Builder("52	4	0	0	0	0	1	1	+	GL000219.1_165002_true_+	66	9	65	GL000219.1	179198	165421	165478	2	36,20,	9,45,	165421,165458,").build();
 		
 		assertEquals(0, b.getMateBreakpoint());
 		assertEquals(true, b.findMateBreakpoint(r));
@@ -209,7 +209,7 @@ READ:GTTCTGGAATCCTGTGTGAGGGACAAACATTCAGACCACTGCAGGATTGTTCAGGAATCCTATCTGAGGGACAAA
 		/*
 		 * try and match to another blat record - aligned by the tiled aligner of course...
 		 */
-		BLATRecord r2 = new BLATRecord("57	7	0	0	1	1	0	0	+	name	66	-1	64	GL000219.1	12345	165414	165479	2	43,19	1,46	165415,165460");
+		BLATRecord r2 = new BLATRecord.Builder("57	7	0	0	1	1	0	0	+	name	66	-1	64	GL000219.1	12345	165414	165479	2	43,19	1,46	165415,165460").build();
 		assertEquals(true, b.findMateBreakpoint(r2));
 		assertEquals(165479, b.getMateBreakpoint());			// out by 1
 		assertEquals("GL000219.1", b.getMateReference());
@@ -249,7 +249,7 @@ READ:AGCCACCCTTTCACCCAGGTGCTCTGTCACAGGGAGATGAGAGTTTTATCTATAAGCCTCTGACTGGGGCTGCTG
 		/*
 		 * try and match to another blat record - aligned by the tiled aligner of course...
 		 */
-		BLATRecord r2 = new BLATRecord("25	0	0	0	0	0	0	0	+	name	25	0	25	chr11	12345	18918919	18918944	1	24	1	18918920");
+		BLATRecord r2 = new BLATRecord.Builder("25	0	0	0	0	0	0	0	+	name	25	0	25	chr11	12345	18918919	18918944	1	24	1	18918920").build();
 		assertEquals(true, b.findMateBreakpoint(r2));
 		assertEquals(18918920, b.getMateBreakpoint());			// out by 1
 		assertEquals("chr11", b.getMateReference());
@@ -262,7 +262,7 @@ READ:AGCCACCCTTTCACCCAGGTGCTCTGTCACAGGGAGATGAGAGTTTTATCTATAAGCCTCTGACTGGGGCTGCTG
 		
 		String value = "42	1	0	0	0	0	0	0	+	name	59	0	43	chr10	135534747	89700259	89700301	1	42	1	89700259";
 		String[] values =value.split("\t");
-		BLATRecord tiledAlignerBlatRecord = new BLATRecord(values);
+		BLATRecord tiledAlignerBlatRecord = new BLATRecord.Builder(values).build();
 		
 		assertEquals(true, breakpoint.findMateBreakpoint(tiledAlignerBlatRecord));
 		assertEquals(QSVUtil.PLUS, breakpoint.getMateStrand());
@@ -314,7 +314,7 @@ READ:AGCCACCCTTTCACCCAGGTGCTCTGTCACAGGGAGATGAGAGTTTTATCTATAAGCCTCTGACTGGGGCTGCTG
 	public void testFindMateBreakpointIsTrue() throws Exception {
 		String value = "48\t1\t0\t0\t2\t0\t3\t0\t+\tchr10-89712341-true-pos\t66\t0\t48\tchr10\t135534747\t89700251\t89700299\t1\t48,\t0,\t89700251,";
 		String[] values =value.split("\t");
-		BLATRecord record = new BLATRecord(values);
+		BLATRecord record = new BLATRecord.Builder(values).build();
 		
 		breakpoint = TestUtil.getBreakpoint(true, false, 20, false);
 		assertTrue(breakpoint.findMateBreakpoint(record));
@@ -328,7 +328,7 @@ READ:AGCCACCCTTTCACCCAGGTGCTCTGTCACAGGGAGATGAGAGTTTTATCTATAAGCCTCTGACTGGGGCTGCTG
 	public void testFindMateBreakpointIsTrueWithNoChr() throws Exception {
 		String value = "48\t1\t0\t0\t2\t0\t3\t0\t+\t10-89712341-true-pos\t66\t0\t48\tchr10\t135534747\t89700251\t89700299\t1\t48,\t0,\t89700251,";
 		String[] values =value.split("\t");
-		BLATRecord record = new BLATRecord(values);
+		BLATRecord record = new BLATRecord.Builder(values).build();
 		
 		breakpoint = TestUtil.getBreakpointNoChr(true, false, 20);
 		assertEquals(true, breakpoint.findMateBreakpoint(record));
@@ -343,7 +343,7 @@ READ:AGCCACCCTTTCACCCAGGTGCTCTGTCACAGGGAGATGAGAGTTTTATCTATAAGCCTCTGACTGGGGCTGCTG
 	public void testFindMateBreakpointWithReordering() throws Exception {
 		String value = "48\t1\t0\t0\t2\t0\t3\t0\t+\tchr10-89712341-true-pos\t66\t0\t48\tchr7\t135534747\t89700251\t89700299\t1\t48,\t0,\t89700251,";
 		String[] values =value.split("\t");
-		BLATRecord record = new BLATRecord(values);
+		BLATRecord record = new BLATRecord.Builder(values).build();
 		
 		breakpoint = TestUtil.getBreakpoint(false, false, 20, false);
 		assertTrue(breakpoint.findMateBreakpoint(record));
@@ -468,33 +468,6 @@ READ:AGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAGGGCAGGGATCAATTCCTTAATATCTTAGGAAGACT
 		assertEquals(OptionalInt.empty(), Breakpoint.compare("chr2", 10, "chr1", 20));
 	}
 	
-//	@Test
-//	public void testFindRescuedMateBreakpoint() throws Exception {
-//		breakpoint = new Breakpoint(89712341, "chr10", true, -1, -1);	
-//		HashSet<Clip> set = new HashSet<Clip>();
-//		set.add(new Clip("test,chr10,89712341,+,left,ACTTTGAAAAAACAGTAATTAA,ACTTTGAAAAAACAGTAATT,AA"));	
-//		set.add(new Clip("test2,chr10,89712341,+,left,ACTTTGAAAAAACAGTAATTAA,ACTTTGAAAAAACAGTAATT,AA"));
-//		for (Clip c : set) {
-//			breakpoint.addTumourClip(c);
-//		}
-//		breakpoint.setStrand(QSVUtil.PLUS);
-//		String name = breakpoint.getName();
-//		BLAT blat = createMock(BLAT.class);
-//		String softClipDir = testFolder.newFolder().getAbsolutePath();
-//		Map<String, BLATRecord> expected = new HashMap<String, BLATRecord>();
-//        String value = "48\t1\t0\t0\t2\t0\t3\t0\t-\tchr10_89712341_true_+\t66\t0\t48\tchr10\t135534747\t89700251\t89700299\t1\t48,\t0,\t89700251,";
-//	    expected.put(name, new BLATRecord(value));
-//		expect(blat.align(softClipDir + QSVUtil.getFileSeparator() +  (name + ".fa"), softClipDir + QSVUtil.getFileSeparator() + name + ".psl")).andReturn(expected);
-//		replay(blat);
-//        QSVParameters p = createMock(QSVParameters.class);             
-//        
-//        assertTrue(breakpoint.findRescuedMateBreakpoint(blat, p, softClipDir));
-//        assertEquals(QSVUtil.MINUS, breakpoint.getMateStrand());
-//        // not so because we have now set isLeft to be true, rather than the default value which is false
-//        assertEquals(89700252, breakpoint.getMateBreakpoint());
-//        assertEquals("chr10", breakpoint.getMateReference());
-//	}
-
 	private void assertStrand(char strand1, char strand2, boolean isGermline,
 			int posStrandCount, int negStrandCount) throws QSVException {
 		breakpoint = new Breakpoint(1, "reference", true, 1, 1);	

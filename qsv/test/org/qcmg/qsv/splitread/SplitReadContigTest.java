@@ -212,8 +212,8 @@ public class SplitReadContigTest {
 		 * r2: 74		118	39	0	0	3	3	2	2	-	splitcon_chr7_101126970_chr7_156838178__true_1557450089062_845461	232	-1	144	chr7	12345	100341191	100341351	2	14,145	-1,-1	100341190,100341190	, 
 		 * left: null, right: null, lhsBp: 101126970, rhsBp: 156838178, confidenceLevel: 6, length: 232
 		 */
-		BLATRecord r1 = new BLATRecord("215	1	0	0	0	0	0	0	+	splitcon_chr7_101126970_chr7_156838178__true_1557450089062_845461	232	15	231	chr7	12345	101127272	101127488	1	216	15	101127287".split("\t"));
-		BLATRecord r2 = new BLATRecord("118	39	0	0	3	3	2	2	-	splitcon_chr7_101126970_chr7_156838178__true_1557450089062_845461	232	-1	144	chr7	12345	100341191	100341351	2	14,145	-1,-1	100341190,100341190".split("\t"));
+		BLATRecord r1 = new BLATRecord.Builder("215	1	0	0	0	0	0	0	+	splitcon_chr7_101126970_chr7_156838178__true_1557450089062_845461	232	15	231	chr7	12345	101127272	101127488	1	216	15	101127287".split("\t")).build();
+		BLATRecord r2 = new BLATRecord.Builder("118	39	0	0	3	3	2	2	-	splitcon_chr7_101126970_chr7_156838178__true_1557450089062_845461	232	-1	144	chr7	12345	100341191	100341351	2	14,145	-1,-1	100341190,100341190".split("\t")).build();
 		SplitReadAlignment left = null;
 		SplitReadAlignment right = null;
 		int lhsBp = 101126970;
@@ -235,8 +235,8 @@ public class SplitReadContigTest {
 		 *r2: 116		146	22	0	0	2	26	6	-	name	212	-1	110	chr9	12345	79456284	79456454	2	63,111	-1,-1	79456283,79456283	, 
 		 *left: null, right: null, lhsBp: 22496527, rhsBp: 22504346, confidenceLevel: 6, length: 212
 		 */
-		BLATRecord r1 = new BLATRecord("160	8	0	0	4	4	4	4	+	name	212	0	172	chr9	12345	22496387	22496559	2	159,13	0,159	22496387,22496546".split("\t"));
-		BLATRecord r2 = new BLATRecord("146	22	0	0	2	2	6	6	-	name	212	-1	110	chr9	12345	79456284	79456454	2	63,111	-1,-1	79456283,79456283".split("\t"));
+		BLATRecord r1 = new BLATRecord.Builder("160	8	0	0	4	4	4	4	+	name	212	0	172	chr9	12345	22496387	22496559	2	159,13	0,159	22496387,22496546".split("\t")).build();
+		BLATRecord r2 = new BLATRecord.Builder("146	22	0	0	2	2	6	6	-	name	212	-1	110	chr9	12345	79456284	79456454	2	63,111	-1,-1	79456283,79456283".split("\t")).build();
 		SplitReadAlignment left = null;
 		SplitReadAlignment right = null;
 		int lhsBp = 22496527;
@@ -252,8 +252,6 @@ public class SplitReadContigTest {
 		assertEquals(213, right.getQueryEnd().intValue());
 		assertEquals(1, left.getQueryStart().intValue());
 		assertEquals(159, left.getQueryEnd().intValue());
-//		assertEquals(212, right.getQueryEnd().intValue());
-		
 	}
 	
 	@Test
@@ -263,8 +261,8 @@ public class SplitReadContigTest {
 		 *r2: 105        144     11      0       0       13      39      15      25      +       name    194     0	194     chr8    12345   136848254       136848434       16      60,1,1,9,3,52,9,4,4,11,7,2,5,4,2,20     0,1,1,62,9,74,126,74,139,143,130,25,163,144,1,174       136848254,136848255,136848255,136848316,136848263,136848328,136848380,136848328,136848393,136848397,136848384,136848279,136848417,136848398,136848255,136848428, 
 		 *left: null, right: null, lhsBp: 136848311, rhsBp: 136887903, confidenceLevel: 6, length: 194
 		 */
-		BLATRecord r1 = new BLATRecord("172	3	0	0	7	19	7	23	+	name	194	0	194	chr8	12345	136887841	136888039	8	4,2,3,13,6,9,2,155	0,4,6,9,22,28,37,39	136887841,136887845,136887847,136887850,136887863,136887869,136887878,136887880".split("\t"));
-		BLATRecord r2 = new BLATRecord("144	11	0	0	13	39	15	25	+	name	194	0	194	chr8	12345	136848254	136848434	16	60,1,1,9,3,52,9,4,4,11,7,2,5,4,2,20	0,1,1,62,9,74,126,74,139,143,130,25,163,144,1,174	136848254,136848255,136848255,136848316,136848263,136848328,136848380,136848328,136848393,136848397,136848384,136848279,136848417,136848398,136848255,136848428".split("\t"));
+		BLATRecord r1 = new BLATRecord.Builder("172	3	0	0	7	19	7	23	+	name	194	0	194	chr8	12345	136887841	136888039	8	4,2,3,13,6,9,2,155	0,4,6,9,22,28,37,39	136887841,136887845,136887847,136887850,136887863,136887869,136887878,136887880".split("\t")).build();
+		BLATRecord r2 = new BLATRecord.Builder("144	11	0	0	13	39	15	25	+	name	194	0	194	chr8	12345	136848254	136848434	16	60,1,1,9,3,52,9,4,4,11,7,2,5,4,2,20	0,1,1,62,9,74,126,74,139,143,130,25,163,144,1,174	136848254,136848255,136848255,136848316,136848263,136848328,136848380,136848328,136848393,136848397,136848384,136848279,136848417,136848398,136848255,136848428".split("\t")).build();
 		SplitReadAlignment left = null;
 		SplitReadAlignment right = null;
 		int lhsBp = 136848311;
@@ -290,12 +288,11 @@ public class SplitReadContigTest {
 		assertEquals(60, right.getQueryEnd().intValue());
 		assertEquals(40, left.getQueryStart().intValue());
 		assertEquals(194, left.getQueryEnd().intValue());
-		
 	}
 	
 	@Test
 	public void passesNewAlignmentFilters() {
-		SplitReadAlignment newAlign = new SplitReadAlignment(new BLATRecord("215	1	0	0	0	0	0	0	+	splitcon_chr7_101126970_chr7_156838178__true_1557450089062_845461	232	15	231	chr7	12345	101127272	101127488	1	216	15	101127287".split("\t")));
+		SplitReadAlignment newAlign = new SplitReadAlignment(new BLATRecord.Builder("215	1	0	0	0	0	0	0	+	splitcon_chr7_101126970_chr7_156838178__true_1557450089062_845461	232	15	231	chr7	12345	101127272	101127488	1	216	15	101127287".split("\t")).build());
 		assertEquals(false, SplitReadContig.passesNewAlignmentFilters(newAlign, "6", 101126970, 156838178, 232));
 	}
 	@Test
@@ -313,7 +310,7 @@ public class SplitReadContigTest {
 		SplitReadAlignment right = null;
 		StructuralVariant knownSV = new StructuralVariant("chr7", "chr7", 100867120, 100867215, null);
 		
-		BLATRecord record = new BLATRecord("395	0	0	0	1	1	2	210	+	splitcon_chr7_100867120_chr7_100867215__true_1584581279378_768689	398	1	397	chr7	12345	100866756	100867361	3	78,171,147	1,79,250	100866757,100866835,100867006,");
+		BLATRecord record = new BLATRecord.Builder("395	0	0	0	1	1	2	210	+	splitcon_chr7_100867120_chr7_100867215__true_1584581279378_768689	398	1	397	chr7	12345	100866756	100867361	3	78,171,147	1,79,250	100866757,100866835,100867006,").build();
 		Pair<SplitReadAlignment, SplitReadAlignment> pair = SplitReadContig.getBestBlocksFromBLAT(record, true, left, right, "6",  knownSV, 398);
 		assertEquals(true, pair.getLeft() != null);
 		assertEquals(true, pair.getRight() != null);
@@ -328,7 +325,7 @@ public class SplitReadContigTest {
 		SplitReadAlignment right = null;
 		StructuralVariant knownSV = new StructuralVariant("chr7", "chr7", 100867120, 100867215, null);
 		
-		BLATRecord record = new BLATRecord("172	0	0	0	0	0	1	94	+	name	172	0	172	chr7	12345	100867054	100867320	2	66,106	0,66	100867054,100867120,");
+		BLATRecord record = new BLATRecord.Builder("172	0	0	0	0	0	1	94	+	name	172	0	172	chr7	12345	100867054	100867320	2	66,106	0,66	100867054,100867120,").build();
 		Pair<SplitReadAlignment, SplitReadAlignment> pair = SplitReadContig.getBestBlocksFromBLAT(record, true, left, right, "6", knownSV, 172);
 		assertEquals(true, pair.getLeft() != null);
 		assertEquals(true, pair.getRight() != null);
@@ -350,10 +347,10 @@ public class SplitReadContigTest {
 		SplitReadAlignment right = null;
 		StructuralVariant knownSV = new StructuralVariant("chr10", "chr15", 127633807, 34031839, null);
 		
-		BLATRecord record = new BLATRecord("104	20	0	0	1	1	3	13	-	splitcon_chr10_127633807_chr15_34031839__true_1587614939343_235036	188	63	188	chr10	12345	127633738	127633875	4	31,16,7,71	63,94,110,117	127633801,127633833,127633860,127633868,");
+		BLATRecord record = new BLATRecord.Builder("104	20	0	0	1	1	3	13	-	splitcon_chr10_127633807_chr15_34031839__true_1587614939343_235036	188	63	188	chr10	12345	127633738	127633875	4	31,16,7,71	63,94,110,117	127633801,127633833,127633860,127633868,").build();
 		Pair<SplitReadAlignment, SplitReadAlignment> pair = SplitReadContig.getBestBlocksFromBLAT(record, true, left, right, "6", knownSV, 188);
-//		assertEquals(true, pair.getLeft() != null);
-//		assertEquals(true, pair.getRight() != null);
+		assertEquals(true, pair.getLeft() != null);
+		assertEquals(true, pair.getRight() == null);
 		
 		System.out.println("left: " + pair.getLeft());
 		System.out.println("right: " + pair.getRight());
@@ -364,11 +361,10 @@ public class SplitReadContigTest {
 		 * 67      2       0       0       0       0       0       0       -       splitcon_chr10_127633807_chr15_34031839__true_1586132281792_839799      188     0       69      chr10   135534747       127633806       127633875       1       69,     119,    127633806,
 		 */
 		
-		BLATRecord blatRecord = new BLATRecord("67	2	0	0	0	0	0	0	-	splitcon_chr10_127633807_chr15_34031839__true_1586132281792_839799	188	0	69	chr10	135534747	127633806	127633875	1	69,	119,	127633806,");
+		BLATRecord blatRecord = new BLATRecord.Builder("67	2	0	0	0	0	0	0	-	splitcon_chr10_127633807_chr15_34031839__true_1586132281792_839799	188	0	69	chr10	135534747	127633806	127633875	1	69,	119,	127633806,").build();
 		knownSV = new StructuralVariant("chr10", "chr15", 127633807, 34031839, null);
 		pair = SplitReadContig.getBestBlocksFromBLAT(blatRecord, true, left, right, "6", knownSV, 188);
 		assertEquals(true, pair.getLeft() != null);
-//		assertEquals(true, pair.getRight() != null);
 		System.out.println("left: " + pair.getLeft());
 		System.out.println("right: " + pair.getRight());
 	}
@@ -468,8 +464,8 @@ public class SplitReadContigTest {
 	@Test
 	public void testCheckBlockSize() throws QSVException {
 		createStandardObject(1);
-		assertFalse(SplitReadContig.checkBlockSize(new BLATRecord("187\t5\t0\t0\t2\t61\t1\t17709\t-\tsplitcon_chr22_21353096_chr22_21566646_3_true\t253\t0\t253\tchr22\t51304566\t25002854\t25020755\t3\t17,10,165,\t0,22,88,\t25002854,25002871,25020590,\t")));
-		assertTrue(SplitReadContig.checkBlockSize(new BLATRecord("187\t5\t0\t0\t2\t61\t1\t17709\t-\tsplitcon_chr22_21353096_chr22_21566646_3_true\t253\t0\t253\tchr22\t51304566\t25002854\t25020755\t2\t270,165,\t22,88,\t25002854,25020590,\t")));
+		assertFalse(SplitReadContig.checkBlockSize(new BLATRecord.Builder("187\t5\t0\t0\t2\t61\t1\t17709\t-\tsplitcon_chr22_21353096_chr22_21566646_3_true\t253\t0\t253\tchr22\t51304566\t25002854\t25020755\t3\t17,10,165,\t0,22,88,\t25002854,25002871,25020590,\t").build()));
+		assertTrue(SplitReadContig.checkBlockSize(new BLATRecord.Builder("187\t5\t0\t0\t2\t61\t1\t17709\t-\tsplitcon_chr22_21353096_chr22_21566646_3_true\t253\t0\t253\tchr22\t51304566\t25002854\t25020755\t2\t270,165,\t22,88,\t25002854,25020590,\t").build()));
 	}
 	
 	@Test
@@ -482,7 +478,6 @@ public class SplitReadContigTest {
 	public void testMatchingQueryString() {
 		createStandardObject(1);
 		assertEquals(true, SplitReadContig.matchingQueryString(286, 85, 232, left, 282));
-//		assertEquals(Integer.valueOf(5), splitReadContig.matchingQueryString(286, 85, 232, left, 282));
 		assertEquals(false, SplitReadContig.matchingQueryString(286, 20, 232, left, 282));
 		assertEquals(true, SplitReadContig.matchingQueryString(286, 1, 95, right, 282));
 		assertEquals(false, SplitReadContig.matchingQueryString(286, 20, 232, right, 282));
@@ -504,7 +499,6 @@ public class SplitReadContigTest {
 		blat = createMock(BLAT.class);
 		replay(blat);
 		splitReadContig = new SplitReadContig(new TIntObjectHashMap<int[]>(), p, "chr10", "chr10", 89700299, 89712341, QSVConstants.ORIENTATION_1);
-//		splitReadContig = new SplitReadContig(blat, p, "chr10", "chr10", 89700299, 89712341, QSVConstants.ORIENTATION_1);
 		splitReadContig.setConsensus("CAGATAGGCAACAGATCGAGACCTTGTTTCACAAAACGAACAGATCTGCAAAGATCAACCTGTCCTAAGTCATATAATCTCTTTGTGTAAGAGATTATACTTTGTGTAAGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAGGGCAGGGATCAATTCCTTAATATCTTAGGAAGACTAGGTATTGACAGTAATGGTGACAAAGCAATGAAAAGGAAAGGAAGAAGTGATAAGACATGGCAGCAAGCTGAAGTATGATGAGTAAAGAATAGGAATCA");				
 		left = new SplitReadAlignment("chr10", QSVUtil.PLUS, 89700210, 89700299, 1, 90);
 		right = new SplitReadAlignment("chr10", QSVUtil.PLUS, 89712341, 89712514, 109, 282);
@@ -513,7 +507,7 @@ public class SplitReadContigTest {
 
 	@Test
 	public void testOrientation1() throws Exception {
-		records.add(new BLATRecord("263\t1\t0\t0\t1\t18\t1\t12041\t+\tsplitcon-chr10_89700299_chr10_89712341_1_true\t282\t0\t282\tchr10\t135534747\t89700209\t89712514\t2\t90,174,\t0,108,\t89700209,89712340,\t"));
+		records.add(new BLATRecord.Builder("263\t1\t0\t0\t1\t18\t1\t12041\t+\tsplitcon-chr10_89700299_chr10_89712341_1_true\t282\t0\t282\tchr10\t135534747\t89700209\t89712514\t2\t90,174,\t0,108,\t89700209,89712340,\t").build());
 		createStandardObject(2);
 		testOrientationCategory("chr10", "chr10", 89700299, 89712341, QSVConstants.ORIENTATION_1, 
 			"CAGATAGGCAACAGATCGAGACCTTGTTTCACAAAACGAACAGATCTGCAAAGATCAACCTGTCCTAAGTCATATAATCTCTTTGTGTAAGAGATTATACTTTGTGTAAGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAGGGCAGGGATCAATTCCTTAATATCTTAGGAAGACTAGGTATTGACAGTAATGGTGACAAAGCAATGAAAAGGAAAGGAAGAAGTGATAAGACATGGCAGCAAGCTGAAGTATGATGAGTAAAGAATAGGAATCA");		
@@ -525,8 +519,8 @@ public class SplitReadContigTest {
 	public void testOrientation2() throws Exception {
 		
 		createStandardObject(2);
-		records.add(new BLATRecord("103\t0\t0\t0\t0\t0\t0\t0\t+\tsplitcon-chr7_104612302_chr7_104485067_2_true\t255\t0\t103\tchr7\t159138663\t104612199\t104612302\t1\t103,\t0,\t104612199,\t"));
-		records.add(new BLATRecord("154\t0\t0\t0\t0\t0\t0\t0\t+\tsplitcon-chr7_104612302_chr7_104485067_2_true\t255\t101\t255\tchr7\t159138663\t104485066\t104485220\t1\t154,\t101,\t104485066,\t"));
+		records.add(new BLATRecord.Builder("103\t0\t0\t0\t0\t0\t0\t0\t+\tsplitcon-chr7_104612302_chr7_104485067_2_true\t255\t0\t103\tchr7\t159138663\t104612199\t104612302\t1\t103,\t0,\t104612199,\t").build());
+		records.add(new BLATRecord.Builder("154\t0\t0\t0\t0\t0\t0\t0\t+\tsplitcon-chr7_104612302_chr7_104485067_2_true\t255\t101\t255\tchr7\t159138663\t104485066\t104485220\t1\t154,\t101,\t104485066,\t").build());
 
 		testOrientationCategory("chr7", "chr7", 104485067, 104612302, QSVConstants.ORIENTATION_2, 
 			"ACTGGTCTGTTCAAATAGTGTGTAATTCAAAGCAATTGCTGCTCCCTAGGCAGGAATTTACAATTGCTACATGTGAAGGGAGGATAATGTGTCATTCCAAGGGTATTGCCTGAGGAAACCAAAGATAAAATAAAAACAACAATGATGTCTAACTCTTAGATAATGCTTGGTATTGACTAGGAATATTCTTTCCTTGTAGAATAATAGAGATATTCTAAGTATTTCTTTTCTTTCTTTTTTGAGACGCAATTTTGC");		
@@ -538,11 +532,11 @@ public class SplitReadContigTest {
 	@Test
 	public void testOrientation3() throws Exception {
 		createStandardObject(2);
-		records.add(new BLATRecord("78\t8\t0\t0\t0\t0\t0\t0\t-\tsplitcon-chr15_23831661_chr15_23992703_3_false\t230\t144\t230\tchr15\t102531392\t24563867\t24563953\t1\t86,\t0,\t24563867,\t"));
-		records.add(new BLATRecord("80\t6\t0\t0\t0\t0\t0\t0\t-\tsplitcon-chr15_23831661_chr15_23992703_3_false\t230\t144\t230\tchr15\t102531392\t24928398\t24928484\t1\t86,\t0,\t24928398,\t"));
-		records.add(new BLATRecord("80\t6\t0\t0\t0\t0\t0\t0\t-\tsplitcon-chr15_23831661_chr15_23992703_3_false\t230\t144\t230\tchr15\t102531392\t24771250\t24771336\t1\t86,\t0,\t24771250,\t"));
-		records.add(new BLATRecord("86\t0\t0\t0\t0\t0\t0\t0\t-\tsplitcon-chr15_23831661_chr15_23992703_3_false\t230\t144\t230\tchr15\t102531392\t23831575\t23831661\t1\t86,\t0,\t23831575,\t"));
-		records.add(new BLATRecord("225\t5\t0\t0\t0\t0\t2\t405222\t+\tsplitcon-chr15_23831661_chr15_23992703_3_false\t230\t0\t230\tchr15\t102531392\t23992556\t24398008\t3\t147,4,79,\t0,147,151,\t23992556,23993156,24397929,\t"));
+		records.add(new BLATRecord.Builder("78\t8\t0\t0\t0\t0\t0\t0\t-\tsplitcon-chr15_23831661_chr15_23992703_3_false\t230\t144\t230\tchr15\t102531392\t24563867\t24563953\t1\t86,\t0,\t24563867,\t").build());
+		records.add(new BLATRecord.Builder("80\t6\t0\t0\t0\t0\t0\t0\t-\tsplitcon-chr15_23831661_chr15_23992703_3_false\t230\t144\t230\tchr15\t102531392\t24928398\t24928484\t1\t86,\t0,\t24928398,\t").build());
+		records.add(new BLATRecord.Builder("80\t6\t0\t0\t0\t0\t0\t0\t-\tsplitcon-chr15_23831661_chr15_23992703_3_false\t230\t144\t230\tchr15\t102531392\t24771250\t24771336\t1\t86,\t0,\t24771250,\t").build());
+		records.add(new BLATRecord.Builder("86\t0\t0\t0\t0\t0\t0\t0\t-\tsplitcon-chr15_23831661_chr15_23992703_3_false\t230\t144\t230\tchr15\t102531392\t23831575\t23831661\t1\t86,\t0,\t23831575,\t").build());
+		records.add(new BLATRecord.Builder("225\t5\t0\t0\t0\t0\t2\t405222\t+\tsplitcon-chr15_23831661_chr15_23992703_3_false\t230\t0\t230\tchr15\t102531392\t23992556\t24398008\t3\t147,4,79,\t0,147,151,\t23992556,23993156,24397929,\t").build());
 	
 		testOrientationCategory("chr15", "chr15", 
 				23831661,23992703, QSVConstants.ORIENTATION_3, 
@@ -554,8 +548,8 @@ public class SplitReadContigTest {
 	@Test
 	public void testOrientation4() throws Exception {
 		createStandardObject(2);
-		records.add(new BLATRecord("90\t0\t0\t0\t0\t0\t0\t0\t-\tsplitcon-chr3_24565106_chr3_24566179_3_true\t266\t0\t90\tchr3\t198022430\t24565105\t24565195\t1\t90,\t176,\t24565105,\t"));
-		records.add(new BLATRecord("178\t1\t0\t0\t0\t0\t0\t0\t+\tsplitcon-chr3_24565106_chr3_24566179_3_true\t266\t87\t266\tchr3\t198022430\t24566178\t24566357\t1\t179,\t87,\t24566178,\t"));
+		records.add(new BLATRecord.Builder("90\t0\t0\t0\t0\t0\t0\t0\t-\tsplitcon-chr3_24565106_chr3_24566179_3_true\t266\t0\t90\tchr3\t198022430\t24565105\t24565195\t1\t90,\t176,\t24565105,\t").build());
+		records.add(new BLATRecord.Builder("178\t1\t0\t0\t0\t0\t0\t0\t+\tsplitcon-chr3_24565106_chr3_24566179_3_true\t266\t87\t266\tchr3\t198022430\t24566178\t24566357\t1\t179,\t87,\t24566178,\t").build());
 	
 		testOrientationCategory("chr3", "chr3", 24565106,24566179, QSVConstants.ORIENTATION_4, 
 			"TTCATAACCAACAATATGTAGGAAGCCATTATCTGAAGTGTAAGCAACTGCATAGTGCTATTTTAATTATGCATTGCAGGGAAACTGTGAGCAGAGCTATATATTTAGGTAGACTGCTCTCAGGCAGAATGAAACACGATGGCACCTGCCACTCACGACCAGGAACCAAACAGGAAAGAATCCAAATTCTGTGTTTACAGGGCTTTCATGCTCAGTAAAATGCATAAGCACTTTTATTAGGGTTCTTAAAATTAGAAATCTATACT");		
@@ -565,8 +559,8 @@ public class SplitReadContigTest {
 	
 	@Test
 	public void testTranslocationOrientation1() throws Exception {
-		records.add(new BLATRecord("100\t0\t0\t0\t0\t0\t0\t0\t+\tsplitcon-chr10_13231026_chr17_12656098_1_true\t204\t0\t100\tchr10\t135534747\t13230926\t13231026\t1\t100,\t0,\t13230926,\t"));
-		records.add(new BLATRecord("100\t0\t0\t0\t0\t0\t0\t0\t+\tsplitcon-chr10_13231026_chr17_12656098_1_true\t204\t104\t204\tchr17\t81195210\t12656099\t12656199\t1\t100,\t104,\t12656099,\t"));
+		records.add(new BLATRecord.Builder("100\t0\t0\t0\t0\t0\t0\t0\t+\tsplitcon-chr10_13231026_chr17_12656098_1_true\t204\t0\t100\tchr10\t135534747\t13230926\t13231026\t1\t100,\t0,\t13230926,\t").build());
+		records.add(new BLATRecord.Builder("100\t0\t0\t0\t0\t0\t0\t0\t+\tsplitcon-chr10_13231026_chr17_12656098_1_true\t204\t104\t204\tchr17\t81195210\t12656099\t12656199\t1\t100,\t104,\t12656099,\t").build());
 		createStandardObject(2);
 		testOrientationCategory("chr10", "chr17", 13231026, 12656098, QSVConstants.ORIENTATION_1, 
 			"AGCTCAGCGCAAAGCGTGCGGATCTGCAGTCCACCTTCTCTGGAGGACGAATTCCAAAGAAGTTTGCCCGCAGAGGCACCAGCCTCAAAGAACGGCTGTGTTTTAGCAGCCTGAATGGGGGCTCTGTTCCTTCTGAGCTGGATGGGCTGGACTCCGAGAAGGACAAGATGCTGGTGGAGAAGCAGAAGGTGATCAATGAACTCA");		
@@ -575,8 +569,8 @@ public class SplitReadContigTest {
 	@Test
 	public void testTranslocationOrientation2() throws Exception {
 		createStandardObject(2);
-		records.add(new BLATRecord("100\t0\t0\t0\t0\t0\t0\t0\t-\tsplitcon-chr17_12656199_chr10_13230926_2_true\t204\t0\t100\tchr10\t135534747\t13230926\t13231026\t1\t100,\t104,\t13230926,\t"));
-		records.add(new BLATRecord("100\t0\t0\t0\t0\t0\t0\t0\t-\tsplitcon-chr17_12656199_chr10_13230926_2_true\t204\t104\t204\tchr17\t81195210\t12656099\t12656199\t1\t100,\t0,\t12656099,\t"));
+		records.add(new BLATRecord.Builder("100\t0\t0\t0\t0\t0\t0\t0\t-\tsplitcon-chr17_12656199_chr10_13230926_2_true\t204\t0\t100\tchr10\t135534747\t13230926\t13231026\t1\t100,\t104,\t13230926,\t").build());
+		records.add(new BLATRecord.Builder("100\t0\t0\t0\t0\t0\t0\t0\t-\tsplitcon-chr17_12656199_chr10_13230926_2_true\t204\t104\t204\tchr17\t81195210\t12656099\t12656199\t1\t100,\t0,\t12656099,\t").build());
 		
 		testOrientationCategory("chr10", "chr17", 13230926, 12656199, QSVConstants.ORIENTATION_2, 
 			"CACAGCCGTTCTTTGAGGCTGGTGCCTCTGCGGGCAAACTTCTTTGGAATTCGTCCTCCAGAGAAGGTGGACTGCAGATCCGCACGCTTTGCGCTGAGCTAAAATGAGTTCATTGATCACCTTCTGCTTCTCCACCAGCATCTTGTCCTTCTCGGAGTCCAGCCCATCCAGCTCAGAAGGAACAGAGCCCCCATTCAGGCTGCT");		
@@ -586,8 +580,8 @@ public class SplitReadContigTest {
 	@Test
 	public void testTranslocationOrientation3() throws Exception {
 		createStandardObject(2);
-		records.add(new BLATRecord("100\t0\t0\t0\t0\t0\t0\t0\t+\tsplitcon-chr10_13231026_chr17_12656200_3_true\t204\t0\t100\tchr17\t81195210\t12656099\t12656199\t1\t100,\t0,\t12656099,\t"));
-		records.add(new BLATRecord("100\t0\t0\t0\t0\t0\t0\t0\t-\tsplitcon-chr10_13231026_chr17_12656200_3_true\t204\t104\t204\tchr10\t135534747\t13230926\t13231026\t1\t100,\t0,\t13230926,\t"));
+		records.add(new BLATRecord.Builder("100\t0\t0\t0\t0\t0\t0\t0\t+\tsplitcon-chr10_13231026_chr17_12656200_3_true\t204\t0\t100\tchr17\t81195210\t12656099\t12656199\t1\t100,\t0,\t12656099,\t").build());
+		records.add(new BLATRecord.Builder("100\t0\t0\t0\t0\t0\t0\t0\t-\tsplitcon-chr10_13231026_chr17_12656200_3_true\t204\t104\t204\tchr10\t135534747\t13230926\t13231026\t1\t100,\t0,\t13230926,\t").build());
 	
 		testOrientationCategory("chr10", "chr17", 13231026, 12656200, QSVConstants.ORIENTATION_3, 
 			"AGCAGCCTGAATGGGGGCTCTGTTCCTTCTGAGCTGGATGGGCTGGACTCCGAGAAGGACAAGATGCTGGTGGAGAAGCAGAAGGTGATCAATGAACTCAAAAACACAGCCGTTCTTTGAGGCTGGTGCCTCTGCGGGCAAACTTCTTTGGAATTCGTCCTCCAGAGAAGGTGGACTGCAGATCCGCACGCTTTGCGCTGAGCT");		
@@ -596,31 +590,17 @@ public class SplitReadContigTest {
 	@Test
 	public void testTranslocationOrientation4() throws Exception {
 		createStandardObject(2);
-		records.add(new BLATRecord("100\t0\t0\t0\t0\t0\t0\t0\t-\tsplitcon-chr10_13230927_chr17_12656100_4_false\t204\t0\t100\tchr17\t81195210\t12656099\t12656199\t1\t100,\t104,\t12656099,\t"));
-		records.add(new BLATRecord("101\t0\t0\t0\t0\t0\t0\t0\t+\tsplitcon-chr10_13230927_chr17_12656100_4_false\t204\t103\t204\tchr10\t135534747\t13230925\t13231026\t1\t101,\t103,\t13230925,\t"));
+		records.add(new BLATRecord.Builder("100\t0\t0\t0\t0\t0\t0\t0\t-\tsplitcon-chr10_13230927_chr17_12656100_4_false\t204\t0\t100\tchr17\t81195210\t12656099\t12656199\t1\t100,\t104,\t12656099,\t").build());
+		records.add(new BLATRecord.Builder("101\t0\t0\t0\t0\t0\t0\t0\t+\tsplitcon-chr10_13230927_chr17_12656100_4_false\t204\t103\t204\tchr10\t135534747\t13230925\t13231026\t1\t101,\t103,\t13230925,\t").build());
 		testOrientationCategory("chr10", "chr17", 13230927, 12656100, QSVConstants.ORIENTATION_4, 
 			"TGAGTTCATTGATCACCTTCTGCTTCTCCACCAGCATCTTGTCCTTCTCGGAGTCCAGCCCATCCAGCTCAGAAGGAACAGAGCCCCCATTCAGGCTGCTAAAAAGCTCAGCGCAAAGCGTGCGGATCTGCAGTCCACCTTCTCTGGAGGACGAATTCCAAAGAAGTTTGCCCGCAGAGGCACCAGCCTCAAAGAACGGCTGTG");		
 	}
-
-//	private void testOrientationCategory(String leftReference, String rightReference, 
-//			int leftBreakpoint, int rightBreakpoint, String orientation, String consensus) throws Exception {
-//		splitReadContig = new SplitReadContig(blat, p, leftReference, rightReference, leftBreakpoint, 
-//				rightBreakpoint, orientation);
-//		splitReadContig.setConsensus(consensus);
-//		splitReadContig.setConfidenceLevel(QSVConstants.LEVEL_HIGH);
-//		splitReadContig.parseConsensusAlign(records);
-//		assertTrue(splitReadContig.getIsPotentialSplitRead());
-//		assertEquals(splitReadContig.getOrientationCategory(), orientation);
-//	}
 	private void testOrientationCategory(String leftReference, String rightReference, 
 			int leftBreakpoint, int rightBreakpoint, String orientation, String consensus) throws Exception {
 		splitReadContig = new SplitReadContig(new TIntObjectHashMap<int[]>(), p, leftReference, rightReference, leftBreakpoint, 
 				rightBreakpoint, orientation);
-//		splitReadContig = new SplitReadContig(blat, p, leftReference, rightReference, leftBreakpoint, 
-//				rightBreakpoint, orientation);
 		splitReadContig.setConsensus(consensus);
 		splitReadContig.setConfidenceLevel(QSVConstants.LEVEL_HIGH);
-//		splitReadContig.setConfidenceLevel("6");
 		splitReadContig.parseConsensusAlign(records);
 		assertTrue(splitReadContig.getIsPotentialSplitRead());
 		assertEquals(splitReadContig.getOrientationCategory(), orientation);

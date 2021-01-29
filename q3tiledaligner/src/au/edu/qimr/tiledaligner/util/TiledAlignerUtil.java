@@ -871,8 +871,8 @@ public class TiledAlignerUtil {
 	}
 	
 	
-	public static List<String []> getSmithWaterman(String refFile, TLongIntMap tiledAlignerPositions, String sequence, String name, PositionChrPositionMap pcpm, boolean debug, int misMatchCutoffPercentage, int blockCountCutoff) {
-		List<String [] > swResults = new ArrayList<>();
+	public static List<BLATRecord> getSmithWaterman(String refFile, TLongIntMap tiledAlignerPositions, String sequence, String name, PositionChrPositionMap pcpm, boolean debug, int misMatchCutoffPercentage, int blockCountCutoff) {
+		List<BLATRecord> swResults = new ArrayList<>();
 		int maxScore = sequence.length();
 		int passingPercentScore = (int) (maxScore * 0.99);
 		float misMatchCutoff = (((float)misMatchCutoffPercentage) / 100) * maxScore;
@@ -929,8 +929,8 @@ public class TiledAlignerUtil {
 						swMatches[0] = fragString;
 						swMatches[1] = org.apache.commons.lang3.StringUtils.repeat('|', fragString.length());
 						swMatches[2] = fragString;
-						String [] blatDetails = BLATRecordUtil.getDetailsForBLATRecord(bufferedCP, swMatches, name, sequence, ! reverseComplement, bufferedReference);
-						swResults.add(blatDetails);
+						BLATRecord br = BLATRecordUtil.getBLATRecord(bufferedCP, swMatches, name, sequence, ! reverseComplement, bufferedReference);
+						swResults.add(br);
 					} else {
 						
 						if (debug) {
@@ -953,13 +953,13 @@ public class TiledAlignerUtil {
 								}
 							}
 							
-							String [] blatDetails = BLATRecordUtil.getDetailsForBLATRecord(bufferedCP, swDiffs, name, sequence, ! reverseComplement, bufferedReference);
-							swResults.add(blatDetails);
+							BLATRecord br = BLATRecordUtil.getBLATRecord(bufferedCP, swDiffs, name, sequence, ! reverseComplement, bufferedReference);
+							swResults.add(br);
 							if (score == maxScore) {
-								logger.info("max score [" + maxScore + "] (seq length: " + sequence.length() + "), has been reached - exiting sw! " + Arrays.deepToString(blatDetails));
+								logger.info("max score [" + maxScore + "] (seq length: " + sequence.length() + "), has been reached - exiting sw! " + br.toString());
 								break;
 							} else if (score > passingPercentScore) {
-								logger.info("passing percentage score [" + passingPercentScore + "] (seq length: " + sequence.length() + "), has been reached - exiting sw! " + Arrays.deepToString(blatDetails));
+								logger.info("passing percentage score [" + passingPercentScore + "] (seq length: " + sequence.length() + "), has been reached - exiting sw! " + br.toString());
 								break;
 							}
 						} else {
@@ -987,11 +987,9 @@ public class TiledAlignerUtil {
 								
 								logger.info("cp2: " + cp2.toIGVString());
 							
-								String [] blatDetails = BLATRecordUtil.getDetailsForBLATRecord(cp2, misMatchCount, NumberUtils.getShortFromLong(l, POSITION_OF_TILE_IN_SEQUENCE_OFFSET), name, sequence, forwardStrand);
-								if (blatDetails.length > 0) {
-									logger.info("adding to swResutls: " + Arrays.deepToString(blatDetails));
-									swResults.add(blatDetails);
-								}
+								BLATRecord br = BLATRecordUtil.getDetailsForBLATRecord(cp2, misMatchCount, NumberUtils.getShortFromLong(l, POSITION_OF_TILE_IN_SEQUENCE_OFFSET), name, sequence, forwardStrand);
+								logger.info("adding to swResutls: " + br.toString());
+								swResults.add(br);
 							}
 						}
 					}
@@ -1194,7 +1192,7 @@ public class TiledAlignerUtil {
 			 */
 			if (null != entry.getValue()) {
 				for (BLATRecord b : blatties) {
-					b.setName(entry.getValue());
+					b.setQName(entry.getValue());
 				}
 			}
 			results.put(entry.getKey(), blatties);
@@ -1222,7 +1220,7 @@ public class TiledAlignerUtil {
 			 */
 			if (null != entry.getValue()) {
 				for (BLATRecord b : blatties) {
-					b.setName(entry.getValue());
+					b.setQName(entry.getValue());
 				}
 			}
 			results.put(entry.getKey(), blatties);
@@ -1427,7 +1425,8 @@ public class TiledAlignerUtil {
 							if (optionalCP.isPresent()) {
 								logger.debug("got a perfect match!  cp: " + cp.toIGVString() + ", ref: " + ref + ", sequence: " + sequence);
 								needToRunSW = false;
-								results.add(new BLATRecord(BLATRecordUtil.getDetailsForBLATRecord(Arrays.asList(optionalCP.get()), name, forwardStrand ? sequence : revCompSequence, forwardStrand)));
+								Optional<BLATRecord> oBR = BLATRecordUtil.getDetailsForBLATRecord(Arrays.asList(optionalCP.get()), name, forwardStrand ? sequence : revCompSequence, forwardStrand);
+								oBR.ifPresent(br -> results.add(br));
 								/*
 								 * If we have reached the max number of perfect matches, bail
 								 */
@@ -1522,9 +1521,9 @@ public class TiledAlignerUtil {
 				int passingScore = (int)(0.9 * sequence.length());
 				results.addAll(potentialSplits.stream()
 						.filter(ilp -> IntLongPairsUtil.isIntLongPairsAValidSingleRecord(ilp))
-						.map(ilp ->  TARecordUtil.blatRecordFromSplits(ilp, name, sequence.length(), headerMap, TILE_LENGTH))
-						.filter(sa -> sa.length > 0)
-						.map(s -> new BLATRecord(s))
+						.map(ilp ->  BLATRecordUtil.blatRecordFromSplits(ilp, name, sequence.length(), headerMap, TILE_LENGTH))
+						.filter(obr -> obr.isPresent())
+						.map(obr -> obr.get())
 //						.filter(br -> br.getScore() > passingScore)
 						.collect(Collectors.toList()));
 				
@@ -1592,13 +1591,12 @@ public class TiledAlignerUtil {
 				
 				int misMatchCutoff = (int) (0.1 * sequence.length());
 				
-				List<String[]> swResults = getSmithWaterman(refFile, bestStartPositionsMap, sequence, name != null ? name : "name", headerMap, log, 10, 6);
-				for (String [] array : swResults) {
-					BLATRecord br = new BLATRecord(array);
-					if (br.getScore() > MINIMUM_BLAT_RECORD_SCORE && br.getMisMatches() <= misMatchCutoff && br.getBlockCount() <= 6) {
-						results.add(br);
+				List<BLATRecord> swResults = getSmithWaterman(refFile, bestStartPositionsMap, sequence, name != null ? name : "name", headerMap, log, 10, 6);
+				for (BLATRecord swBR : swResults) {
+					if (swBR.getScore() > MINIMUM_BLAT_RECORD_SCORE && swBR.getMisMatches() <= misMatchCutoff && swBR.getBlockCount() <= 6) {
+						results.add(swBR);
 					} else if (log) {
-						logger.debug("BLAT record score is below the cutoff of " + MINIMUM_BLAT_RECORD_SCORE + " or has too many mismatches, or too many (>6) blocks " + br);
+						logger.debug("BLAT record score is below the cutoff of " + MINIMUM_BLAT_RECORD_SCORE + " or has too many mismatches, or too many (>6) blocks " + swBR);
 					}
 				}
 			}
@@ -1784,7 +1782,8 @@ public class TiledAlignerUtil {
 							if (optionalCP.isPresent()) {
 								logger.debug("got a perfect match!  cp: " + cp.toIGVString() + ", ref: " + ref + ", sequence: " + sequence);
 								needToRunSW = false;
-								results.add(new BLATRecord(BLATRecordUtil.getDetailsForBLATRecord(Arrays.asList(optionalCP.get()), name, forwardStrand ? sequence : revCompSequence, forwardStrand)));
+								Optional<BLATRecord> oBR = BLATRecordUtil.getDetailsForBLATRecord(Arrays.asList(optionalCP.get()), name, forwardStrand ? sequence : revCompSequence, forwardStrand);
+								oBR.ifPresent(br -> results.add(br));
 							} else {
 								logger.debug("got perfect match on tiles, but not on sequence! cp: " + cp.toIGVString() + ", ref: " + ref + ", sequence: " + sequence);
 							}
@@ -1915,9 +1914,9 @@ public class TiledAlignerUtil {
 				 */
 				splitsList.addAll(potentialSplits.stream()
 						.filter(ilp -> IntLongPairsUtil.isIntLongPairsAValidSingleRecord(ilp))
-						.map(ilp ->  TARecordUtil.blatRecordFromSplits(ilp, name, sequence.length(), headerMap, TILE_LENGTH))
-						.filter(sa -> sa.length > 0)
-						.map(s -> new BLATRecord(s))
+						.map(ilp ->  BLATRecordUtil.blatRecordFromSplits(ilp, name, sequence.length(), headerMap, TILE_LENGTH))
+						.filter(obr -> obr.isPresent())
+						.map(obr -> obr.get())
 						//				.filter(br -> br.getScore() > passingScore)
 						.collect(Collectors.toList()));
 				logger.debug("after splits mode, splitsList is following size: " + splitsList.size());
@@ -2182,8 +2181,7 @@ public class TiledAlignerUtil {
 			swMatches[0] = fragString;
 			swMatches[1] = org.apache.commons.lang3.StringUtils.repeat('|', seqLength);
 			swMatches[2] = fragString;
-			String [] blatDetails = BLATRecordUtil.getDetailsForBLATRecord(bufferedCP, swMatches, name, sequence, ! reverseComplement, bufferedReference);
-			br = new BLATRecord(blatDetails);
+			br = BLATRecordUtil.getBLATRecord(bufferedCP, swMatches, name, sequence, ! reverseComplement, bufferedReference);
 		} else {
 				
 			logger.debug("about to sw ref: " + bufferedReference + ", fragString: " + fragString + " for cp: " + bufferedCP.getChromosome() + ":" +  (bufferedCP.getStartPosition()));
@@ -2193,14 +2191,9 @@ public class TiledAlignerUtil {
 			 */
 			float misMatchCutoff = 0.1f * seqLength;			// looking at a 10% max mismatch rate
 			
-			
 			String [] swDiffs = getIntelligentSwDiffs(bufferedReference, fragString, misMatchCutoff, 6, preferStrictSW);
 			if (swDiffs.length > 0) {
-					
-				String [] blatDetails = BLATRecordUtil.getDetailsForBLATRecord(bufferedCP, swDiffs, name, sequence, ! reverseComplement, bufferedReference);
-				if (null != blatDetails && blatDetails.length > 0) {
-					br = new BLATRecord(blatDetails);
-				}
+				br = BLATRecordUtil.getBLATRecord(bufferedCP, swDiffs, name, sequence, ! reverseComplement, bufferedReference);
 			}
 		}
 		return br;
@@ -2252,10 +2245,7 @@ public class TiledAlignerUtil {
 			String subSequenceRC = revCompSequence.substring(seqLength - stopPositionInSequence, (seqLength - stopPositionInSequence) + length);
 			
 			ChrPosition cp2 = new ChrPositionName(cp.getChromosome(), cp.getStartPosition(), cp.getStartPosition() + length, forwardStrand ? subSequence : subSequenceRC);
-			String [] blatDetails = BLATRecordUtil.getDetailsForBLATRecord(cp2, mismatchCount, NumberUtils.getShortFromLong(l, POSITION_OF_TILE_IN_SEQUENCE_OFFSET), name, sequence, forwardStrand);
-			if (blatDetails.length > 0) {
-				return new BLATRecord(blatDetails);
-			}
+			return BLATRecordUtil.getDetailsForBLATRecord(cp2, mismatchCount, NumberUtils.getShortFromLong(l, POSITION_OF_TILE_IN_SEQUENCE_OFFSET), name, sequence, forwardStrand);
 		}
 		return null;
 	}
