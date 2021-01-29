@@ -16,13 +16,10 @@ public class Report {
 	
 	private final ProfileType type;
 	private final String fileName;
-//	private final long recordParsed;
 	private final String recordParsed;
-//	private final long duplicates;
 	private final String duplicates;
 	private List<ChartTab> tabs;	
 	
-	//xu
 	private String runBy = null;
 	private String runOn = null;
 	private String version = null;
@@ -35,14 +32,6 @@ public class Report {
 		this.duplicates = duplicates;
 		tabs = new ArrayList<ChartTab>();
 	}
-	
-//	public Report(ProfileType type, String fileName, long records, long duplicates) {
-//	this.type = type;
-//	this.fileName = fileName;
-//	this.recordParsed = records;
-//	this.duplicates = duplicates;
-//	tabs = new ArrayList<ChartTab>();
-//}	
 	
 	
 	public void addTab(ChartTab tab) {
@@ -84,7 +73,6 @@ public class Report {
 	public String getVersion(){
 		return version;
 	}
-	
 	
 	public void setRunBy(String str){
 		 runBy = str;
