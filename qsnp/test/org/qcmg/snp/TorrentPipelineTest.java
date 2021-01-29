@@ -1,16 +1,7 @@
 package org.qcmg.snp;
 
-import java.io.IOException;
 
-import junit.framework.Assert;
-
-import org.junit.Test;
-import org.qcmg.common.model.ChrPointPosition;
-import org.qcmg.common.model.ChrPosition;
-import org.qcmg.common.model.GenotypeEnum;
-import org.qcmg.common.util.SnpUtils;
-import org.qcmg.pileup.QSnpRecord;
-
+@Deprecated
 public class TorrentPipelineTest {
 
 	

@@ -36,10 +36,9 @@ import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
-import org.qcmg.tab.TabbedFileReader;
-import org.qcmg.tab.TabbedRecord;
+import org.qcmg.qio.record.RecordWriter;
+import org.qcmg.qio.record.StringFileReader;
 import org.qcmg.vcf.VCFFileReader;
-import org.qcmg.vcf.VCFFileWriter;
 
 public class BuildCommonSnpsVcf {
 	private static QLogger logger;
@@ -174,7 +173,7 @@ public class BuildCommonSnpsVcf {
 		final List<ChrPosition> orderedList = new ArrayList<ChrPosition>(snpPositions.keySet());
 		Collections.sort(orderedList, new ChrPositionComparator());
 		
-		try (VCFFileWriter writer = new VCFFileWriter(new File(outputFileName));) {
+		try (RecordWriter<VcfRecord> writer = new RecordWriter<>(new File(outputFileName));) {
 			final VcfHeader header = getHeaderForCommonSnps(searchString, searchDirectory, additionalSearchStrings, mapOfFilesAndIds);
 			for(final VcfHeaderRecord re : header)
 				writer.addHeader(re.toString());
@@ -219,13 +218,13 @@ public class BuildCommonSnpsVcf {
 	
 	private void processDccFile(File f, Integer id) throws Exception {
 		// read in data from file.
-		try (TabbedFileReader reader = new TabbedFileReader(f);) {
+		try (StringFileReader reader = new StringFileReader(f);) {
 			int i = 0;
-			for (final TabbedRecord rec : reader) {
+			for (final String rec : reader) {
 				// ignore header line
 				if (i++ == 0) continue;
 				
-				final String [] params = TabTokenizer.tokenize(rec.getData());
+				final String [] params = TabTokenizer.tokenize(rec);
 				final ChrPosition cp = ChrPointPosition.valueOf(params[4], Integer.parseInt(params[5]));
 				final String ref = params[10];
 				final String alt = getAltFromMutation(params, 13);		// can eventually change this to the last element in the file
@@ -274,13 +273,13 @@ public class BuildCommonSnpsVcf {
 	
 	private void processMafFile(File f, Integer id) throws Exception {
 		// read in data from file.
-		try (TabbedFileReader reader = new TabbedFileReader(f);) {
+		try (StringFileReader reader = new StringFileReader(f);) {
 			int i = 0;
-			for (final TabbedRecord rec : reader) {
+			for (final String rec : reader) {
 				// ignore header line
 				if (i++ == 0) continue;
 				
-				final String [] params = TabTokenizer.tokenize(rec.getData(), 15);		// only need data from the first 15 columns
+				final String [] params = TabTokenizer.tokenize(rec, 15);		// only need data from the first 15 columns
 				final ChrPosition cp = new ChrRangePosition(params[4], Integer.parseInt(params[5]), Integer.parseInt(params[6]));
 				final String ref = params[10];
 				final String alt1 = params[11];

@@ -31,16 +31,15 @@ import org.qcmg.common.model.Accumulator;
 import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.GenotypeEnum;
+import org.qcmg.common.model.QSnpRecord;
 import org.qcmg.common.model.ReferenceNameComparator;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.util.SAMUtils;
-import org.qcmg.pileup.QSnpRecord;
 import org.qcmg.common.model.Classification;
 import org.qcmg.snp.util.IniFileUtil;
-import org.qcmg.tab.TabbedFileReader;
-import org.qcmg.tab.TabbedRecord;
+import org.qcmg.qio.record.StringFileReader;
 
 /**
  */
@@ -70,9 +69,11 @@ public final class MuTectPipeline extends Pipeline {
 		ingestIni(iniFile);
 		
 		// setup normalBam and tumourBam variables
-		if (null != testBams && testBams.length > 0)
+		if (null != testBams && testBams.length > 0) {
 			tumourBam = testBams[0];
-		else throw new SnpException("No tumour bam file specified");
+		} else {
+			throw new SnpException("No tumour bam file specified");
+		}
 		
 		
 		
@@ -88,75 +89,10 @@ public final class MuTectPipeline extends Pipeline {
 		
 		// add novel starts
 		logger.info("about to get novel starts");
-		addNovelStarts();
 		logger.info("about to get novel starts - DONE");
-		
-		// time for post-processing
-//		classifyPileup();
-		
+				
 		// write output
 		writeVCF(vcfFile);
-	}
-	
-	
-//	@Override
-//	String getDccMetaData() throws Exception {
-//		if (null == controlBams || controlBams.length == 0 || 
-//				StringUtils.isNullOrEmpty(controlBams[0]) 
-//				|| null == testBams || testBams.length == 0 
-//				|| StringUtils.isNullOrEmpty(testBams[0])) return null;
-//		
-//		SAMFileHeader controlHeader = SAMFileReaderFactory.createSAMFileReader(new File(controlBams[0])).getFileHeader();
-//		SAMFileHeader analysisHeader = SAMFileReaderFactory.createSAMFileReader(new File(testBams[0])).getFileHeader();
-//		
-//		QDccMeta dccMeta = QDccMetaFactory.getDccMeta(qexec, controlHeader, analysisHeader, "MuTect");
-//		
-//		return dccMeta.getDCCMetaDataToString();
-//	}
-	
-	private void addNovelStarts() throws IOException {
-		
-//		try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(tumourBam))) {
-			
-//			for (Entry<ChrPosition, QSnpRecord> entry : positionRecordMap.entrySet()) {
-//				
-//				ChrPosition cp = entry.getKey();
-//				QSnpRecord rec = entry.getValue();
-//				List<SAMRecord> sams = new ArrayList<>(); 
-//				
-//				SAMRecordIterator iter = reader.queryOverlapping(cp.getChromosome(), cp.getStartPosition(), cp.getEndPosition());
-//				while (iter.hasNext()) {
-//					SAMRecord sam = iter.next();
-//					if (SAMUtils.isSAMRecordValidForVariantCalling(sam)) sams.add(sam);
-//				}
-//				iter.close();
-//				
-//				// now get the novel starts
-//				Accumulator acc = SAMUtils.getAccumulatorFromReads(sams, cp.getStartPosition());
-//				
-//				String altString = rec.getAlt();
-//				if (altString.length() > 1) {
-//					logger.warn("alt string: " + altString + " in MuTectPipeline.addNovelStarts");
-//				}
-//				char alt = altString.charAt(0);
-//				String refString = rec.getRef();
-//				if (refString.length() > 1) {
-//					logger.warn("ref string: " + refString + " in MuTectPipeline.addNovelStarts");
-//				}
-//				char ref = refString.charAt(0);
-//				
-//				int nsCount = acc.getNovelStartsCountForBase(alt);
-//				rec.setTumourNovelStartCount(nsCount);
-//				
-////				rec.setTumourNucleotides(acc.getPileupElementString());
-//				
-//				// check for strand bias
-//				PileupElementLite pel = acc.getLargestVariant(ref);
-//				if (null != pel && ! pel.isFoundOnBothStrands()) {
-//					VcfUtils.updateFilter(rec.getVcfRecord(), SnpUtils.STRAND_BIAS_ALT);
-//				}
-//			}
-//		}
 	}
 
 	/**
@@ -211,14 +147,7 @@ public final class MuTectPipeline extends Pipeline {
 		int tumourRefCount = Integer.parseInt(mtData[20]);
 		int tumourAltCount = Integer.parseInt(mtData[21]);
 		
-		QSnpRecord rec = new QSnpRecord(mtData[0], Integer.parseInt(mtData[1]), mtData[3], mtData[4]);
-//		rec.setRef(ref);
-//		rec.setAlt(alt);
-//		rec.setMutation(ref + Constants.MUT_DELIM + alt);
-//		rec.setNormalCount(normalRefCount + normalAltCount);
-//		rec.setTumourCount(tumourRefCount + tumourAltCount);
-//		rec.setNormalGenotype(GenotypeEnum.getGenotypeEnum(mtData[28].charAt(0), mtData[28].charAt(1)));
-		
+		QSnpRecord rec = new QSnpRecord(mtData[0], Integer.parseInt(mtData[1]), mtData[3], mtData[4]);		
 		if (tumourRefCount > 0 && tumourAltCount > 0) {
 			rec.setTumourGenotype(GenotypeEnum.getGenotypeEnum(ref, alt));
 		} else if (tumourAltCount > 0) {
@@ -229,13 +158,11 @@ public final class MuTectPipeline extends Pipeline {
 		// all on the forward strand...
 		// division by zero
 		String ND = null;
-//		String normalPileup = null;
 		if (normalRefCount > 0) {
 			double normalRefQuality = Double.parseDouble(mtData[32]);
 			double aveQual = normalRefQuality / normalRefCount;
 			
 			ND = ref + normalRefCount + "[" + NF.format(aveQual) + "]0[0]";
-//			normalPileup = "" + ref;
 		}
 		
 		if (normalAltCount > 0) {
@@ -247,49 +174,20 @@ public final class MuTectPipeline extends Pipeline {
 			} else {
 				ND += ";" + alt + normalAltCount + "[" + NF.format(aveQual) + "]0[0]";
 			}
-			
-//			normalPileup = null == normalPileup ? "" + alt : "" + ref + alt;
 		}
-//		rec.setNormalNucleotides(ND);
-//		rec.setNormalPileup(normalPileup);
 		
 		// hard-coding all to somatic
 		rec.setClassification(Classification.SOMATIC);
 		
 		return rec;
 	}
-	
-//	private  QSnpRecord getQSnpRecord(QSnpGATKRecord normal, QSnpGATKRecord tumour) {
-//		QSnpRecord qpr = new QSnpRecord();
-//		qpr.setId(++mutationId);
-//		
-//		if (null != normal) {
-//			qpr.setChromosome(normal.getChromosome());
-//			qpr.setPosition(normal.getPosition());
-//			qpr.setRef(normal.getRef());
-//			qpr.setNormalGenotype(normal.getGenotypeEnum());
-//			qpr.setAnnotation(normal.getAnnotation());
-//			// tumour fields
-//			qpr.setTumourGenotype(null == tumour ? null : tumour.getGenotypeEnum());
-//			qpr.setTumourCount(null == tumour ? 0 :  VcfUtils.getDPFromFormatField(tumour.getGenotype()));
-//			
-//		} else if (null != tumour) {
-//			qpr.setChromosome(tumour.getChromosome());
-//			qpr.setPosition(tumour.getPosition());
-//			qpr.setRef(tumour.getRef());
-//			qpr.setTumourGenotype(tumour.getGenotypeEnum());
-//			qpr.setTumourCount(VcfUtils.getDPFromFormatField(tumour.getGenotype()));
-//		}
-//		
-//		return qpr;
-//	}
-	
+		
 	private static void loadMuTectOutput(String muTectOutput, Map<ChrPosition, String[]> map) {
-		try (TabbedFileReader reader = new TabbedFileReader(new File(muTectOutput))) {
+		try (StringFileReader reader = new StringFileReader(new File(muTectOutput))) {
 			int noOfRecords = 0;
-			for (TabbedRecord rec : reader) {
+			for (String rec : reader) {
 				if (noOfRecords++ > 0) {		// header line in mutect output doesn't have '#'
-					String [] params = TabTokenizer.tokenize(rec.getData());
+					String [] params = TabTokenizer.tokenize(rec);
 					map.put(ChrPointPosition.valueOf(params[0], Integer.parseInt(params[1])), params);
 				}
 			}
@@ -313,19 +211,7 @@ public final class MuTectPipeline extends Pipeline {
 		
 		logger.tool("**** OTHER CONFIG ****");
 		logger.tool("mutationIdPrefix: " + mutationIdPrefix);
-	}
-
-//	@Override
-//	protected String getFormattedRecord(QSnpRecord record, final String ensemblChr) {
-//		return record.getDCCDataNSFlankingSeq(mutationIdPrefix, ensemblChr);
-//	}
-//
-//	@Override
-//	protected String getOutputHeader(boolean isSomatic) {
-//		if (isSomatic) return HeaderUtil.DCC_SOMATIC_HEADER;
-//		else return HeaderUtil.DCC_GERMLINE_HEADER;
-//	}
-	
+	}	
 	
 	/**
 	 * Class that reads SAMRecords from a Queue and after checking that they satisfy some criteria 
@@ -334,23 +220,17 @@ public final class MuTectPipeline extends Pipeline {
 	 * 
 	 */
 	public class Pileup implements Runnable {
-//		private final String bamFile;
 		private final SamReader reader;
-		private final boolean isNormal;
 		private final ConcurrentMap<ChrPosition , Accumulator> pileupMap;
 		private int arraySize;
 		private int arrayPosition;
 		private ChrPosition cp;
 		private Comparator<String> chrComparator;
-//		private  List<ChrPosition> snps;
 		private final CountDownLatch latch;
 		
 		public Pileup(final String bamFile, final CountDownLatch latch, final boolean isNormal) {
-//			this.bamFile = bamFile;
-			this.isNormal = isNormal;
 			pileupMap = isNormal ? normalPileup : tumourPileup;
 			reader = SAMFileReaderFactory.createSAMFileReader(new File(bamFile));
-//			snps = new ArrayList<ChrPosition>(positionRecordMap.keySet());
 			this.latch = latch;
 		}
 		
@@ -403,32 +283,7 @@ public final class MuTectPipeline extends Pipeline {
 				cp = null;
 				return;
 			}
-			if (null != cp) {
-				// update QSnpRecord with our findings
-				Accumulator acc = pileupMap.remove(cp);
-				if (null != acc) {
-//					QSnpRecord rec = positionRecordMap.get(cp);
-					
-//					String refString = rec.getRef();
-//					if (refString.length() > 1) {
-//						logger.warn("ref string: " + refString + " in MuTectPipeline.advanceCPAndPosition");
-//					}
-//					char ref = refString.charAt(0);
-					
-//					PileupElementLite pel = acc.getLargestVariant(ref);
-//					if (isNormal) {
-////						rec.setNormalNucleotides(acc.getPileupElementString());
-////						rec.setNormalCount(acc.getCoverage());
-////						rec.setNormalPileup(acc.getPileup());
-////						rec.setNormalNovelStartCount(null != pel ? pel.getNovelStartCount() : 0);
-//					} else {
-//						// tumour fields
-////						rec.setTumourCount(acc.getCoverage());
-////						rec.setTumourNucleotides(acc.getPileupElementString());
-////						rec.setTumourNovelStartCount(null != pel ? pel.getNovelStartCount() : 0);
-//					}
-				}
-			}
+
 			cp = snps.get(arrayPosition++).getChrPosition();
 		}
 		
