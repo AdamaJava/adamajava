@@ -20,13 +20,10 @@ import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicLongArray;
 
-import org.qcmg.common.log.QLogger;
-import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.CigarStringComparator;
 import org.qcmg.common.model.MAPQMiniMatrix;
 import org.qcmg.common.model.ProfileType;
 import org.qcmg.common.model.ReferenceNameComparator;
-//import org.qcmg.common.model.SummaryByCycle;
 import org.qcmg.qvisualise.ChartTab;
 import org.qcmg.qvisualise.Messages;
 import org.qcmg.qvisualise.QVisualiseException;
@@ -40,7 +37,6 @@ import org.w3c.dom.NodeList;
 
 public class ReportBuilder {
 	
-	private static final QLogger logger = QLoggerFactory.getLogger(ReportBuilder.class);	
 	private static final String ISIZE = "TLEN";
 	private static final String UNMAPPED = "Unmapped";
 	private static final String DUPLICATE = "Duplicate";
@@ -287,7 +283,6 @@ public class ReportBuilder {
 						}
 					}					
 					
-					//*****start xu										
 					ChartTab ct = new ChartTab("Summary", "summ" + reportID);
 					String str = HTMLReportUtils.generateGoogleDataForTableStringMap(summaryMap, ct.getName()+1, "Property", "Value"  );	
 					
@@ -317,7 +312,6 @@ public class ReportBuilder {
 					List<ChartTab> chartTabs = report.getTabs();
 					chartTabs.add(0, ct);				
 					report.setTabs(chartTabs);
-					//*****end xu		
 				} else {
 					System.out.println("summaryNodes was null");
 				}

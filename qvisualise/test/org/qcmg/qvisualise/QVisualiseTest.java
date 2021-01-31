@@ -1,12 +1,14 @@
 package org.qcmg.qvisualise;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
-
-import junit.framework.Assert;
 
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -30,14 +32,14 @@ public class QVisualiseTest {
 		try {
 			QVisualise qv = new QVisualise();
 			qv.setup(args);
-			Assert.fail("Should have thrown an exception");
+			fail("Should have thrown an exception");
 		} catch (Exception e) {}
 		
 		String[] args2 = {"-input","file1.xml", "-i","ifile2.xml","-output","file2.xml", "-out","file3.xml"};
 		try {
 			QVisualise qv = new QVisualise();
 			qv.setup(args2);
-			Assert.fail("Should have thrown an exception");
+			fail("Should have thrown an exception");
 		} catch (Exception e) {}
 	}
 	
@@ -47,10 +49,10 @@ public class QVisualiseTest {
 		try {
 			QVisualise qv = new QVisualise();
 			int exitStatus = qv.setup(args);
-			Assert.assertEquals(1, exitStatus);
+			assertEquals(1, exitStatus);
 		} catch (Exception e) {
 			e.printStackTrace();
-			Assert.fail("no exception should have been thrown from executeWithNoArgs()");
+			fail("no exception should have been thrown from executeWithNoArgs()");
 		}
 	}
 	
@@ -63,9 +65,9 @@ public class QVisualiseTest {
 		String[] args = {"-input",inputFile.getAbsolutePath()};
 		try {
 			int exitStatus = new QVisualise().setup(args);
-			Assert.assertEquals(1, exitStatus);
+			assertEquals(1, exitStatus);
 		} catch (QVisualiseException qpe) {
-			Assert.fail("Should NOT have thrown a QVisualiseException");
+			fail("Should NOT have thrown a QVisualiseException");
 		}
 		
 		//fail due to missing content in input file
@@ -73,9 +75,9 @@ public class QVisualiseTest {
 		String[] args2 = {"-input",inputFile.getAbsolutePath(), "-log",logFile.getAbsolutePath()};
 		try {
 			int exitStatus = new QVisualise().setup(args2);
-			Assert.assertEquals(0, exitStatus);
+			assertEquals(0, exitStatus);
 		} catch (QVisualiseException qpe) {
-			Assert.fail("Should NOT have thrown a QVisualiseException");
+			fail("Should NOT have thrown a QVisualiseException");
 		}
 	}
 	
@@ -86,9 +88,9 @@ public class QVisualiseTest {
 		// will fail due to missing log file
 		try {
 			int exitStatus = new QVisualise().setup(args);
-			Assert.assertTrue(1 == exitStatus);
+			assertTrue(1 == exitStatus);
 		} catch (QVisualiseException qpe) {
-			Assert.fail("Should have thrown a QVisualiseException");
+			fail("Should have thrown a QVisualiseException");
 		}
 		
 		File inputFile = testFolder.newFile(TEST_XML);
@@ -100,18 +102,18 @@ public class QVisualiseTest {
 		// will fail due to empty file
 		try {
 			new QVisualise().setup(args2);
-			Assert.fail("Should have thrown a QVisualiseException");
+			fail("Should have thrown a QVisualiseException");
 		} catch (QVisualiseException qpe) {
-			Assert.assertEquals(true, qpe.getMessage().startsWith("Empty input file"));
+			assertEquals(true, qpe.getMessage().startsWith("Empty input file"));
 		}
 		
 		createSkeletonProfilerFile(inputFile);
 		// will succeed
 		try {
 			int exitStatus = new QVisualise().setup(args2);
-			Assert.assertTrue(0 == exitStatus);
+			assertTrue(0 == exitStatus);
 		} catch (QVisualiseException qpe) {
-			Assert.fail("Should not have thrown a QVisualiseException");
+			fail("Should not have thrown a QVisualiseException");
 		}
 	}
 	
@@ -121,9 +123,9 @@ public class QVisualiseTest {
 		String[] args = {"-input",TEST_TEST, "-log",logFile.getAbsolutePath()};
 		try {
 			new QVisualise().setup(args);
-			Assert.fail("Should have thrown a QVisualiseException");
+			fail("Should have thrown a QVisualiseException");
 		} catch (QVisualiseException qpe) {
-			Assert.assertTrue(qpe.getMessage().startsWith("Unsupported file type"));
+			 assertTrue(qpe.getMessage().startsWith("Unsupported file type"));
 		}
 	}
 	
@@ -133,28 +135,29 @@ public class QVisualiseTest {
 		String[] args = {"-input",TEST_XML, "-output",TEST_XML, "-log", logFile.getAbsolutePath()};
 		try {
 			new QVisualise().setup(args);
-			Assert.fail("Should have thrown a QVisualiseException");
+			fail("Should have thrown a QVisualiseException");
 		} catch (QVisualiseException qpe) {
-			Assert.assertTrue(qpe.getMessage().startsWith("Unsupported file type"));
+			assertTrue(qpe.getMessage().startsWith("Unsupported file type"));
 		}
 	}
 	
 	@Test
 	public final void executeWithOptions() throws Exception {
+		PrintStream origin = System.err;
 		ByteArrayOutputStream errContent = new ByteArrayOutputStream();
 		System.setErr(new PrintStream(errContent));
 		
 		String[] args = {"-h"};
 		new QVisualise().setup(args);
-		Assert.assertTrue(errContent.toString().contains(Messages.USAGE));
+		assertTrue(errContent.toString().contains(Messages.USAGE));
 		
 		errContent.reset();
 		
 		args[0] = "-v";
 		new QVisualise().setup(args);
-		Assert.assertTrue(errContent.toString().contains("null, version null"));
+		assertTrue(errContent.toString().contains("null, version null"));
 		
-		System.setErr(null);
+		System.setErr(origin);
 	}
 	
 	
