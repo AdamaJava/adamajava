@@ -14,6 +14,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import static org.junit.Assert.assertEquals;
 
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Test;
 import org.qcmg.qprofiler.bam.BamSummarizer;
 import org.qcmg.qprofiler.bam.BamSummaryReport;
@@ -21,8 +22,6 @@ import org.qcmg.qprofiler.util.SummaryReportUtils;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.NodeList;
-
-import junit.framework.Assert;
 
 public class ReadGroupSummaryTest {
 	private static final String INPUT_FILE = "input.sam";

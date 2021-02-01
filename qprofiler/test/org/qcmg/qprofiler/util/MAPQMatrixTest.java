@@ -8,8 +8,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicLong;
 
-import junit.framework.Assert;
-
+import org.junit.Assert;
 import org.junit.Test;
 import org.qcmg.common.model.MAPQMiniMatrix;
 import org.qcmg.qprofiler.util.MAPQMatrix;
