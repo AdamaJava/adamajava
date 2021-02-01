@@ -13,6 +13,7 @@ import java.util.regex.Pattern;
 import org.qcmg.common.model.Classification;
 import org.qcmg.common.util.BaseUtils;
 import org.qcmg.common.model.Classification;
+import org.qcmg.common.model.QSnpRecord;
 
 public final class QPileupSerializer {
 	private static final Pattern tabbedPattern = Pattern.compile("[\\t]");

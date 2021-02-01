@@ -1,4 +1,4 @@
-package org.qcmg.pileup;
+package org.qcmg.common.model;
 
 import static org.junit.Assert.assertEquals;
 

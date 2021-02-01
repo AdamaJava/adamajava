@@ -16,9 +16,10 @@ import htsjdk.samtools.SAMRecord;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.QSnpGATKRecord;
+import org.qcmg.common.model.QSnpRecord;
 import org.qcmg.picard.util.PileupElementUtil;
 import org.qcmg.picard.util.SAMUtils;
-import org.qcmg.pileup.QSnpRecord;
+
 import org.qcmg.snp.util.QJumperWorker.Mode;
 
 public class BAMPileupUtil {
@@ -61,8 +62,6 @@ public class BAMPileupUtil {
 	public static void examinePileupSNP(final List<SAMRecord> sams, final QSnpRecord record, final Mode mode) {
 		String pileup = "", qualities = "";
 		
-//		final char mutation = Mode.QSNP_MUTATION_IN_NORMAL == mode ? 
-//				record.getMutation().charAt(record.getMutation().length()-1) : '\u0000';
 		
 		for (final SAMRecord sam : sams ) {
 			
@@ -81,10 +80,6 @@ public class BAMPileupUtil {
 				if (Mode.QSNP_MUTATION_IN_NORMAL == mode) {
 					// both chars should always be upper case at this point
 					assert ! Character.isLowerCase(c);
-//					if (c == mutation) {
-//						VcfUtils.updateFilter(record.getVcfRecord(), SnpUtils.MUTATION_IN_UNFILTERED_NORMAL);
-//						return;
-//					}
 				}
 				
 				pileup += sam.getReadNegativeStrandFlag() ? Character.toLowerCase(c) : c;
@@ -133,7 +128,6 @@ public class BAMPileupUtil {
 		Integer sm = record.getIntegerAttribute("SM");
 		return ! record.getDuplicateReadFlag() 
 			&& (null != sm && sm.intValue() > SM_CUTOFF)
-//			&& tallyMDMismatches(record.getStringAttribute("MD")) < MD_CUTOFF	// 
 			&& ((record.getReadPairedFlag() && record.getSecondOfPairFlag() && record.getProperPairFlag()) 
 					|| tallyCigarMatchMismatches(record.getCigar()) > CIGAR_CUTOFF);
 		

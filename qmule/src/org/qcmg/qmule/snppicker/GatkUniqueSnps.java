@@ -28,7 +28,6 @@ import org.qcmg.common.model.Classification;
 import org.qcmg.common.model.GenotypeEnum;
 import org.qcmg.common.model.QSnpGATKRecord;
 import org.qcmg.common.util.BaseUtils;
-import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
@@ -36,7 +35,7 @@ import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.germlinedb.GermlineDBFileReader;
 import org.qcmg.germlinedb.GermlineDBRecord;
 import org.qcmg.picard.QJumper;
-import org.qcmg.pileup.QSnpRecord;
+import org.qcmg.common.model.QSnpRecord;
 import org.qcmg.qmule.Messages;
 import org.qcmg.qmule.Options;
 import org.qcmg.qmule.Options.Ids;
@@ -45,13 +44,10 @@ import org.qcmg.vcf.VCFFileReader;
 
 public class GatkUniqueSnps {
 	
-//	private static final QLogger logger = QLoggerFactory.getLogger(GatkUniqueSnps.class);
 	private static QLogger logger;
 	
 	private static Map<ChrPosition,QSnpGATKRecord> tumourRecords = new HashMap<ChrPosition,QSnpGATKRecord>(100000);
 	private static Map<ChrPosition,QSnpGATKRecord> normalRecords = new HashMap<ChrPosition,QSnpGATKRecord>(100000);
-	
-//	private static Map<ChrPosition,VCFRecord> classABRecords = new HashMap<ChrPosition,VCFRecord>(100000);
 	private static List<QSnpRecord> qPileupRecords = new ArrayList<QSnpRecord>(15000);
 	
 	// map to hold chromosome conversion data
@@ -65,10 +61,6 @@ public class GatkUniqueSnps {
 	private String patientId;
 	private String somaticAnalysisId;
 	private String germlineAnalysisId;
-//	private String analysisId;
-//	private static final String mutationIdPrefix = "APGI_1992_";
-//	private static final String analysisId = "qcmg_ssm_20110524_1";
-//	private static final String tumourSampleId = "ICGC-ABMP-20091203-06-TD";
 	
 	
 	private String[] cmdLineInputFiles;
@@ -80,11 +72,8 @@ public class GatkUniqueSnps {
 	
 	private static String bamFile1;
 	private static String bamFile1Index;
-//	private static String bamFile2;
-//	private static String bamFile2Index;
 	
 	private static QJumper jumper1;
-//	private static QJumper jumper2;
 	
 	public int engage() throws Exception {
 		
@@ -99,16 +88,10 @@ public class GatkUniqueSnps {
 		logger.info("loaded " + tumourRecords.size() + " tumour vcf's");
 		
 		bamFile1 = cmdLineInputFiles[2];
-		bamFile1Index = cmdLineInputFiles[3];
-//		bamFile2 = args[4];
-//		bamFile2Index = args[5];
-		
+		bamFile1Index = cmdLineInputFiles[3];		
 		
 		jumper1 = new QJumper();
-		jumper1.setupReader(bamFile1, bamFile1Index);
-//		jumper2 = new QJumper();
-//		jumper2.setupReader(bamFile2, bamFile2Index);
-		
+		jumper1.setupReader(bamFile1, bamFile1Index);		
 		
 		logger.info("about to call examine");
 		examine();
@@ -267,39 +250,7 @@ public class GatkUniqueSnps {
 	public static void getPileup(QJumper jumper, QSnpRecord record) throws Exception {
 		
 		final List<SAMRecord> firstSet = jumper.getRecordsAtPosition(record.getChromosome(), record.getPosition());
-//		List<SAMRecord> secondSet = jumper2.getRecordsAtPosition(record.getChromosome(), record.getPosition());
-		
-		
-		examinePileup(firstSet, record);
-		
-		
-//		char mutation = record.getMutation().charAt(record.getMutation().length() -1);
-//		boolean mutationFoundInNormal = false;
-//		int normalCoverage = 0;
-//		for (SAMRecord sam : firstSet ) {
-//			if ( ! sam.getDuplicateReadFlag()) {
-//				++normalCoverage;
-//				
-//				// need to get the base at the position
-//				int offset = record.getPosition() - sam.getAlignmentStart();
-//				if (offset < 0) throw new Exception("invalid start position!!!");
-//				
-//				if (sam.getReadBases()[offset] == mutation) {
-//					mutationFoundInNormal = true;
-//					break;
-//				}
-//			}
-//		}
-//		
-//		if (mutationFoundInNormal) {
-//			record.addAnnotation("mutation also found in pileup of normal");
-//		}
-//		
-//		record.setNormalCount(normalCoverage);
-//		
-//		if (normalCoverage < 12)
-//			record.addAnnotation("less than 12 reads coverage in normal");
-		
+		examinePileup(firstSet, record);		
 	}
 	
 	
@@ -314,19 +265,15 @@ public class GatkUniqueSnps {
 				++normalCoverage;
 				
 				// need to get the base at the position
-//				int offset = record.getPosition() - sam.getUnclippedStart();
 				int offset = record.getPosition() - sam.getAlignmentStart();
 				if (offset < 0) throw new Exception("invalid start position!!!: "+ sam.format());
 				
 				if (offset >= sam.getReadLength()) {
-//					throw new Exception("offset [position: " + record.getPosition() + ", read start pos(unclipped): " + sam.getUnclippedStart() + ", read end pos(unclipped): " + sam.getUnclippedEnd()+ "] is larger than read length!!!: " + sam.format());
-					// set to last entry in sequence
 					offset = sam.getReadLength() -1; 
 				}
 				
 				if (sam.getReadBases()[offset] == mutation) {
-					mutationFoundInNormal = true;
-//					break;
+					mutationFoundInNormal = true;//					break;
 				}
 			}
 		}
@@ -335,38 +282,13 @@ public class GatkUniqueSnps {
 			VcfUtils.updateFilter(record.getVcfRecord(), VcfHeaderUtils.FILTER_MUTATION_IN_NORMAL);
 		}
 		
-//		record.setNormalCount(normalCoverage);
-		
 		if (normalCoverage < 12) {
 			VcfUtils.updateFilter(record.getVcfRecord(), VcfHeaderUtils.FILTER_COVERAGE);
 		}
 		
 		
 	}
-	
-	
-//	private static void getPileup(VCFRecord record) {
-//		
-//		List<SAMRecord> firstSet = jumper1.getRecordsAtPosition(record.getChromosome(), record.getPosition());
-////		List<SAMRecord> secondSet = jumper2.getRecordsAtPosition(record.getChromosome(), record.getPosition());
-//		
-//		int normalCoverage = 0;
-//		for (SAMRecord sam : firstSet ) {
-//			if ( ! sam.getDuplicateReadFlag())
-//				++normalCoverage;
-//		}
-//		
-//		
-////		int normalCoverage = firstSet.size();
-////		int normalCoverage = firstSet.size() + secondSet.size();
-//		record.setNormalCoverage(normalCoverage);
-//		
-//		if (normalCoverage < 12)
-//			record.addAnnotation("less than 12 reads coverage in normal");
-//		
-//	}
-	
-	
+		
 	private static void addGermlineDBData(String germlineDBFile) throws IOException {
 		
 		final GermlineDBFileReader reader = new GermlineDBFileReader(new File(germlineDBFile));
