@@ -6,8 +6,8 @@
  */
 package org.qcmg.qbamannotate;
 
-import org.qcmg.ma.MADirection;
-import org.qcmg.ma.MARecord;
+import org.qcmg.qio.ma.MaDirection;
+import org.qcmg.qio.ma.MaRecord;
 
 import htsjdk.samtools.SAMRecord;
 
@@ -19,7 +19,7 @@ public class Frag extends AnnotatorType {
 	}
 
 	@Override
-	public boolean annotate(SAMRecord record, MARecord maRecord) throws Exception {
+	public boolean annotate(SAMRecord record, MaRecord maRecord) throws Exception {
 		int n = maRecord.getDefLine().getNumberMappings();
 		setZMAttribute(record, n);
 		return annotate(record);
