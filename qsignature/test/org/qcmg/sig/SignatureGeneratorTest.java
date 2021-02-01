@@ -67,7 +67,7 @@ public class SignatureGeneratorTest {
 		char ref = 'C';
 		String result = updateResultsIllumina(illRecString, ref);
 		assertEquals(true, result.contains("C:20,G:3"));
-//		
+		
 		illRecString = "rs1738240	5636391030_R02C01	A	A	0.8534			78	546817	0	A	A	T	T	A	A	6	38763733	0.8261	1.0000	[T/C]	BOT	TOP		0.021	1.517	1.469	0.048	17587	1072	0.0076	-0.2979";
 		ref = 'C';
 		result = updateResultsIllumina(illRecString, ref);
@@ -219,7 +219,6 @@ public class SignatureGeneratorTest {
     	writeSnpChipFile(snpChipFile);
     	writeSnpPositionsFile(positionsOfInterestFile);
     	writeIlluminaArraysDesignFile(illuminaArraysDesignFile);
-//    	getBamFile(snpChipFile, true, null);
     	
     	final int exitStatus = qss.setup(new String[] {"--log" , logFile.getAbsolutePath(), "-i" , positionsOfInterestFile.getAbsolutePath(), "-i" , snpChipFile.getAbsolutePath(),  "-i" , illuminaArraysDesignFile.getAbsolutePath()} );
     	assertEquals(0, exitStatus);
@@ -311,7 +310,6 @@ public class SignatureGeneratorTest {
     static void getBamFile(File bamFile, boolean validHeader, boolean useChrs, boolean addReadGroupToHeaderAndRecords) {
 	    	final SAMFileHeader header = getHeader(validHeader, useChrs, addReadGroupToHeaderAndRecords);
 	    	List<SAMRecord> data = getRecords(useChrs, header, true, addReadGroupToHeaderAndRecords);
-	//    	if ( ! validHeader) header.setSequenceDictionary(new SAMSequenceDictionary());
 	    	final SAMOrBAMWriterFactory factory = new SAMOrBAMWriterFactory(header, false, bamFile, false);
 	    	try {
 	    		final SAMFileWriter writer = factory.getWriter();
