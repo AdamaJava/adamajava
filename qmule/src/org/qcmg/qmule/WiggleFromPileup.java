@@ -74,8 +74,8 @@ public class WiggleFromPileup {
 	}
 	
 	private void loadGffFile() throws Exception {
-		Gff3FileReader reader =  new Gff3FileReader(new File(cmdLineInputFiles[1]));
-		try {
+		
+		try(Gff3FileReader reader =  new Gff3FileReader(new File(cmdLineInputFiles[1]));) {
 			int totalNoOfbaits = 0, ignoredBaits = 0;
 			for (Gff3Record record : reader) {
 				totalNoOfbaits++;
@@ -85,9 +85,7 @@ public class WiggleFromPileup {
 			}
 			
 			logger.info("loaded gff3 file, total no of baits: " + totalNoOfbaits + ", entries in collection: " + gffs.size() + ", entries that didn't make it: " + ignoredBaits);
-		} finally {
-			reader.close();
-		}
+		} 
 	}
 	
 	protected static boolean isGff3RecordBait(String type) {
