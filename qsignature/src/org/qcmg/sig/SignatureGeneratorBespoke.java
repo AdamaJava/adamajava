@@ -45,15 +45,13 @@ import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
-import org.qcmg.illumina.IlluminaFileReader;
-import org.qcmg.illumina.IlluminaRecord;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.util.BAMFileUtils;
 import org.qcmg.picard.util.SAMUtils;
-import org.qcmg.record.Record;
+import org.qcmg.qio.illumina.IlluminaFileReader;
+import org.qcmg.qio.illumina.IlluminaRecord;
+import org.qcmg.qio.record.StringFileReader;
 import org.qcmg.sig.util.SignatureUtil;
-import org.qcmg.tab.TabbedFileReader;
-import org.qcmg.tab.TabbedRecord;
 
 import gnu.trove.map.TObjectIntMap;
 import gnu.trove.map.hash.THashMap;
@@ -298,9 +296,9 @@ public class SignatureGeneratorBespoke {
 		
 		// check that we can read the file
 		if (null != illumiaArraysDesign && FileUtils.canFileBeRead(illumiaArraysDesign)) {
-			try (TabbedFileReader reader=  new TabbedFileReader(new File(illumiaArraysDesign));) {
-				for (final TabbedRecord rec : reader) {
-					final String [] params = TabTokenizer.tokenize(rec.getData());
+			try (StringFileReader reader=  new StringFileReader(new File(illumiaArraysDesign));) {
+				for (final String rec : reader) {
+					final String [] params = TabTokenizer.tokenize(rec);
 					final String id = params[0];
 					illuminaArraysDesignMap.put(id, params);
 				}
@@ -311,10 +309,9 @@ public class SignatureGeneratorBespoke {
 	}
 
 	static void loadIlluminaData(File illuminaFile, Map<ChrPosition, IlluminaRecord> illuminaMap) throws IOException {
-		IlluminaRecord tempRec;
+		;
 		try (IlluminaFileReader reader = new IlluminaFileReader(illuminaFile);) {
-			for (final Record rec : reader) {
-				tempRec = (IlluminaRecord) rec;
+			for (final IlluminaRecord tempRec : reader) {
 				
 				// only interested in illumina data if it has a gc score above 0.7, and a valid chromosome
 				// ignore chromosome 0, and for XY, create 2 records, one for each!

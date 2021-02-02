@@ -17,8 +17,7 @@ import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfRecord;
-import org.qcmg.tab.TabbedFileReader;
-import org.qcmg.tab.TabbedRecord;
+import org.qcmg.qio.record.StringFileReader;
 
 /**
  * This class returns some (very) basic details on the snp positions file.
@@ -40,23 +39,23 @@ public class SnpFileDetails {
 	}
 	
 	private void loadRandomSnpPositions(String randomSnpsFile) throws IOException {
-		TabbedFileReader reader = new TabbedFileReader(new File(randomSnpsFile));
+		StringFileReader reader = new StringFileReader(new File(randomSnpsFile));
 		try {
 			int count = 0, emptyRefCount = 0, dashRef = 0;
-			for (TabbedRecord rec : reader) {
+			for (String rec : reader) {
 				++count;
-				String[] params = TabTokenizer.tokenize(rec.getData());
+				String[] params = TabTokenizer.tokenize(rec);
 				
 				String ref = null;
 				if (params.length > 4 && ! StringUtils.isNullOrEmpty(params[4])) {
 					ref = params[4];
 					if ("-".equals(ref) || ".".equals(ref)) {
 						dashRef++;
-						logger.info("dash ref: " + rec.getData());
+						logger.info("dash ref: " + rec);
 					}
 				} else {
 					emptyRefCount++;
-					logger.info("empty ref: " + rec.getData());
+					logger.info("empty ref: " + rec);
 				}
 				
 				String chr = params[0];

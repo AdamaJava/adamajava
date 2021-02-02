@@ -1,12 +1,11 @@
 /**
  * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
-package org.qcmg.illumina;
+package org.qcmg.qio.illumina;
 
 import org.qcmg.common.string.StringUtils;
-import org.qcmg.record.Record;
 
-public class IlluminaRecord implements Record {
+public class IlluminaRecord  {
 	
 	private String chr;
 	private int start;
@@ -40,6 +39,7 @@ public class IlluminaRecord implements Record {
 	 * Constructor that takes in a String array, retrieving pertinent fields from the array to populate the record
 	 * 
 	 * @param rawIlluminaData String[] representing a line in the raw Illumina data file
+	 * @throws Exception 
 	 */
 	public IlluminaRecord(String [] rawIlluminaData) {
 		// chromosome and position defined in the raw Illumina data file relate to an old version
@@ -66,7 +66,6 @@ public class IlluminaRecord implements Record {
 		firstAlleleCall = rawIlluminaData[14].charAt(0);
 		secondAlleleCall = rawIlluminaData[15].charAt(0);
 		strand = rawIlluminaData[22];		// use customer strand rather than illumina strand
-//		strand = rawIlluminaData[21];
 	}
 	
 	
