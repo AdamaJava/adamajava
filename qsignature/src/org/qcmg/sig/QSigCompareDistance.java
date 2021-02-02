@@ -35,11 +35,9 @@ import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.util.BaseUtils;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.TabTokenizer;
+import org.qcmg.qio.record.StringFileReader;
 import org.qcmg.sig.model.Comparison;
 import org.qcmg.sig.util.SignatureUtil;
-import org.qcmg.tab.TabbedFileReader;
-import org.qcmg.tab.TabbedHeader;
-import org.qcmg.tab.TabbedRecord;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -221,16 +219,14 @@ public class QSigCompareDistance {
 		String[] metadata = fileStats.get(file);
 		if (null == metadata) {
 			metadata = new String[5];
-			TabbedFileReader vcf1 = new TabbedFileReader(file);
-			try {
-				TabbedHeader vcfHeader1 = vcf1.getHeader();
+			
+			try (StringFileReader vcf1 = new StringFileReader(file);){
+				List<String> vcfHeader1 = vcf1.getHeader();
 				String [] vcfHeaderDetails = QSigCompare.getDetailsFromVCFHeader(vcfHeader1);
 				for (int i = 0 ; i < vcfHeaderDetails.length ; i++) {
 					metadata[i] = vcfHeaderDetails[i];
 				}
-			} finally {
-				vcf1.close();
-			}
+			} 
 			fileStats.put(file, metadata);
 		}
 	}
@@ -471,7 +467,7 @@ public class QSigCompareDistance {
 	}
 	
 	private Map<ChrPosition, double[]> loadRatiosFromFile(File file) throws Exception {
-		TabbedFileReader reader = new TabbedFileReader(file);
+		StringFileReader reader = new StringFileReader(file);
 		Map<ChrPosition, double[]> ratios = null;
 		int zeroCov = 0, invalidRefCount = 0;
 		try {
@@ -481,8 +477,8 @@ public class QSigCompareDistance {
 			
 			ratios = new HashMap<>();
 			
-			for (TabbedRecord vcfRecord : reader) {
-				String[] params = TabTokenizer.tokenize(vcfRecord.getData());
+			for (String vcfRecord : reader) {
+				String[] params = TabTokenizer.tokenize(vcfRecord);
 				ChrPosition chrPos = ChrPointPosition.valueOf(params[0], Integer.parseInt(params[1]));
 				
 				if (populateSnps) {
