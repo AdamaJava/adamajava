@@ -343,7 +343,6 @@ public class WiggleFromPileupTest {
 		OutputStream os = FileUtils.isFileNameGZip(pileupFile) ? new GZIPOutputStream( new FileOutputStream(pileupFile)) 
 		: new FileOutputStream(pileupFile);
 		
-//		OutputStream os = new FileOutputStream(pileupFile);
 		PrintStream ps = new PrintStream(os);
 		
 		
@@ -385,44 +384,6 @@ public class WiggleFromPileupTest {
 		ps.println("chr1	simple_segmenter.pl[v2940]	exon_1_100	18449	18548	.	+	.	ID=gnl|exon_1_100");
 		ps.println("chr1	simple_segmenter.pl[v2940]	exon_2_100	18549	18648	.	+	.	ID=gnl|exon_2_100");
 		ps.println("chr1	simple_segmenter.pl[v2940]	exon_3_100	18649	18848	.	+	.	ID=gnl|exon_3_100");
-//		ps.println("##gff-version 3");
-//		ps.println("# Created by: simple_segmenter.pl[v2940]");
-//		ps.println("# Created on: Tue May 24 01:48:54 2011");
-//		ps.println("# Commandline: -v -g -l -i SureSelect_All_Exon_50mb_filtered_baits_1-200_20110524.gff3 -o SureSelect_All_Exon_50mb_filtered_baits_1-200_20110524_shoulders.gff3 -f bait,100,100,100 -f highbait,300 -f lowbait");
-//		ps.println("chr1	simple_segmenter.pl[v2940]	fill	1	14166	.	.	.	ID=gnl|fill");
-//		ps.println("chr1	simple_segmenter.pl[v2940]	bait_3_100	14167	14266	.	+	.	ID=gnl|bait_3_100");
-//		ps.println("chr1	simple_segmenter.pl[v2940]	bait_2_100	14267	14366	.	+	.	ID=gnl|bait_2_100");
-//		ps.println("chr1	simple_segmenter.pl[v2940]	bait_1_100	14367	14466	.	+	.	ID=gnl|bait_1_100");
-//		ps.println("chr1	SureSelect_All_Exon_50mb_with_annotation.hg19.bed	bait	14467	14587	.	+	.	ID=ens|ENST00000423562,ens|ENST00000438504,ens|ENST00000488147,ref|NR_024540,ref|WASH7P");
-//		ps.println("chr1	simple_segmenter.pl[v2940]	bait_1_100	14588	14638	.	+	.	ID=gnl|bait_1_100");
-//		ps.println("chr1	SureSelect_All_Exon_50mb_with_annotation.hg19.bed	bait	14639	14883	.	+	.	ID=ens|ENST00000423562,ens|ENST00000438504,ens|ENST00000488147,ref|NR_024540,ref|WASH7P");
-//		ps.println("chr1	simple_segmenter.pl[v2940]	bait_1_100	14884	14942	.	+	.	ID=gnl|bait_1_100");
-//		ps.println("chr1	SureSelect_All_Exon_50mb_with_annotation.hg19.bed	bait	14943	15064	.	+	.	ID=ens|ENST00000423562,ens|ENST00000438504,ens|ENST00000488147,ref|NR_024540,ref|WASH7P");
-//		ps.println("chr1	simple_segmenter.pl[v2940]	bait_1_100	15065	15164	.	+	.	ID=gnl|bait_1_100");
-//		ps.println("chr1	simple_segmenter.pl[v2940]	bait_2_100	15165	15264	.	+	.	ID=gnl|bait_2_100");
-//		ps.println("chr1	simple_segmenter.pl[v2940]	bait_3_100	15265	15364	.	+	.	ID=gnl|bait_3_100");
-//		ps.println("chr1	simple_segmenter.pl[v2940]	fill	15365	15370	.	.	.	ID=gnl|fill");
-//		ps.println("chr1	simple_segmenter.pl[v2940]	bait_3_100	15371	15470	.	+	.	ID=gnl|bait_3_100");
-//		ps.println("chr1	simple_segmenter.pl[v2940]	bait_2_100	15471	15570	.	+	.	ID=gnl|bait_2_100");
-//		ps.println("chr1	simple_segmenter.pl[v2940]	bait_1_100	15571	15670	.	+	.	ID=gnl|bait_1_100");
-//		ps.println("chr1	SureSelect_All_Exon_50mb_with_annotation.hg19.bed	bait	15671	15990	.	+	.	ID=ens|ENST00000423562,ens|ENST00000438504,ens|ENST00000488147,ref|NR_024540,ref|WASH7P");
-//		ps.println("chr1	simple_segmenter.pl[v2940]	bait_1_100	15991	16090	.	+	.	ID=gnl|bait_1_100");
-//		ps.println("chr1	simple_segmenter.pl[v2940]	bait_2_100	16091	16190	.	+	.	ID=gnl|bait_2_100");
-//		ps.println("chr1	simple_segmenter.pl[v2940]	bait_3_100	16191	16390	.	+	.	ID=gnl|bait_3_100");
-//		ps.println("chr1	simple_segmenter.pl[v2940]	bait_2_100	16391	16490	.	+	.	ID=gnl|bait_2_100");
-//		ps.println("chr1	simple_segmenter.pl[v2940]	bait_1_100	16491	16590	.	+	.	ID=gnl|bait_1_100");
-//		ps.println("chr1	SureSelect_All_Exon_50mb_with_annotation.hg19.bed	bait	16591	16719	.	+	.	ID=ens|ENST00000423562,ens|ENST00000438504,ens|ENST00000488147,ref|NR_024540,ref|WASH7P");
-//		ps.println("chr1	simple_segmenter.pl[v2940]	bait_1_100	16720	16749	.	+	.	ID=gnl|bait_1_100");
-//		ps.println("chr1	SureSelect_All_Exon_50mb_with_annotation.hg19.bed	bait	16750	17074	.	+	.	ID=ens|ENST00000423562,ens|ENST00000438504,ens|ENST00000488147,ref|NR_024540,ref|WASH7P");
-//		ps.println("chr1	simple_segmenter.pl[v2940]	bait_1_100	17075	17177	.	+	.	ID=gnl|bait_1_100");
-//		ps.println("chr1	SureSelect_All_Exon_50mb_with_annotation.hg19.bed	bait	17178	17420	.	+	.	ID=ens|ENST00000423562,ens|ENST00000438504,ens|ENST00000488147,ref|NR_024540,ref|WASH7P");
-//		ps.println("chr1	simple_segmenter.pl[v2940]	bait_1_100	17421	17442	.	+	.	ID=gnl|bait_1_100");
-//		ps.println("chr1	SureSelect_All_Exon_50mb_with_annotation.hg19.bed	bait	17443	18108	.	+	.	ID=ens|ENST00000423562,ens|ENST00000430492,ens|ENST00000438504,ens|ENST00000488147,ref|NR_024540,ref|WASH7P");
-//		ps.println("chr1	simple_segmenter.pl[v2940]	bait_1_100	18109	18202	.	+	.	ID=gnl|bait_1_100");
-//		ps.println("chr1	SureSelect_All_Exon_50mb_with_annotation.hg19.bed	bait	18203	18448	.	+	.	ID=ens|ENST00000423562,ens|ENST00000430492,ens|ENST00000438504,ens|ENST00000488147,ref|NR_024540,ref|WASH7P");
-//		ps.println("chr1	simple_segmenter.pl[v2940]	bait_1_100	18449	18548	.	+	.	ID=gnl|bait_1_100");
-//		ps.println("chr1	simple_segmenter.pl[v2940]	bait_2_100	18549	18648	.	+	.	ID=gnl|bait_2_100");
-//		ps.println("chr1	simple_segmenter.pl[v2940]	bait_3_100	18649	18848	.	+	.	ID=gnl|bait_3_100");
 		
 		ps.close();
 		os.close();
