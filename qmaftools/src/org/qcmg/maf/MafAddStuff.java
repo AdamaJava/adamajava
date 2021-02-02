@@ -28,8 +28,8 @@ import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.FileUtils;
-import org.qcmg.gff3.GFF3FileReader;
-import org.qcmg.gff3.GFF3Record;
+import org.qcmg.qio.gff3.Gff3FileReader;
+import org.qcmg.qio.gff3.Gff3Record;
 import org.qcmg.maf.util.MafUtils;
 import org.qcmg.tab.TabbedFileReader;
 import org.qcmg.tab.TabbedHeader;
@@ -69,10 +69,10 @@ public class MafAddStuff {
 		getFastaData(fastaFile);
 		logger.info("populating fastaCPGDataMap data from file: " + fastaFile + " - DONE");
 		
-		// load gff3 bait info
-		logger.info("populating gff3 types from file: " + gffFile);
+		// load Gff3 bait info
+		logger.info("populating Gff3 types from file: " + gffFile);
 		getGffTypes(gffFile);
-		logger.info("populating gff3 types from file: " + gffFile + " - DONE");
+		logger.info("populating Gff3 types from file: " + gffFile + " - DONE");
 		// output new maf file with additional columns
 		
 		int i = 0;
@@ -101,12 +101,12 @@ public class MafAddStuff {
 		}
 	}
 	
-	private void getGffTypes(String gff3File) throws Exception {
+	private void getGffTypes(String Gff3File) throws Exception {
 		Map<String, Map<ChrPosition, String>> gffTypes = new HashMap<String, Map<ChrPosition, String>>();
-		GFF3FileReader reader = new GFF3FileReader(new File(gff3File));
+		Gff3FileReader reader = new Gff3FileReader(new File(Gff3File));
 		try {
 			int  count = 0;
-			for (GFF3Record rec : reader) {
+			for (Gff3Record rec : reader) {
 				String chr = rec.getSeqId();
 				Map<ChrPosition, String> thisMap = gffTypes.get(chr);
 				if (null == thisMap) {
@@ -120,7 +120,7 @@ public class MafAddStuff {
 		} finally {
 			reader.close();
 		}
-		logger.info("loaded all gff3 data, now populating map with relevent positions");
+		logger.info("loaded all Gff3 data, now populating map with relevent positions");
 		
 		// now populate chrpos map with gff type
 		for (ChrPosition cp : mafPositionsOfInterestLiftover.values()) {
@@ -139,7 +139,7 @@ public class MafAddStuff {
 							chrPosGffType.put(cp, type + "," + entry.getValue());
 						}
 						
-						// single position - won't have multiple gff3 regions
+						// single position - won't have multiple Gff3 regions
 						if (cp.getStartPosition() == cp.getEndPosition()) break;
 					}
 				}
@@ -228,8 +228,8 @@ public class MafAddStuff {
 					logger.warn("no reference bases for chr pos: " + cp.toString());
 				}
 				
-				String gff3Type = chrPosGffType.get(cp);
-				if (null == gff3Type) {
+				String Gff3Type = chrPosGffType.get(cp);
+				if (null == Gff3Type) {
 					logger.warn("no gff type for chr pos: " + cp.toString());
 				}
 				
@@ -241,7 +241,7 @@ public class MafAddStuff {
 				sb.append("\t");
 				sb.append(cpgBases);
 				sb.append("\t");
-				sb.append(gff3Type);
+				sb.append(Gff3Type);
 				sb.append("\n");
 				
 				writer.write(sb.toString());
