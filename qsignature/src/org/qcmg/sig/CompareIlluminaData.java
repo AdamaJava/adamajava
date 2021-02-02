@@ -17,9 +17,8 @@ import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.util.FileUtils;
-import org.qcmg.illumina.IlluminaFileReader;
-import org.qcmg.illumina.IlluminaRecord;
-import org.qcmg.record.Record;
+import org.qcmg.qio.illumina.IlluminaFileReader;
+import org.qcmg.qio.illumina.IlluminaRecord;
 
 /**
  * This class takes in 2 Illumina snp chip files as input 
@@ -112,25 +111,24 @@ public class CompareIlluminaData {
 	static void loadIlluminaData(File illuminaFile, Map<ChrPosition, IlluminaRecord> illuminaMap) throws IOException {
 		
 		try (IlluminaFileReader reader = new IlluminaFileReader(illuminaFile);) {
-			IlluminaRecord tempRec;
-			for (Record rec : reader) {
-				tempRec = (IlluminaRecord) rec;
-				
+			 
+			for (IlluminaRecord rec : reader) {
+				 				
 				// only interested in illumina data if it has a gc score above 0.7, and a valid chromosome
 				// get XY, 0 for chromosome
 				// ignore chromosome 0, and for XY, create 2 records, one for each!
 				
-				if (null != tempRec.getChr() && ! "0".equals(tempRec.getChr()) && tempRec.getGCScore() > 0.6999 ) {
+				if (null != rec.getChr() && ! "0".equals(rec.getChr()) && rec.getGCScore() > 0.6999 ) {
 					
-					if ("XY".equals(tempRec.getChr())) {
+					if ("XY".equals(rec.getChr())) {
 						// add both X and Y to map
-						illuminaMap.put(ChrPointPosition.valueOf("chrX", tempRec.getStart()), tempRec);
-						illuminaMap.put(ChrPointPosition.valueOf("chrY", tempRec.getStart()), tempRec);
+						illuminaMap.put(ChrPointPosition.valueOf("chrX", rec.getStart()), rec);
+						illuminaMap.put(ChrPointPosition.valueOf("chrY", rec.getStart()), rec);
 						continue;
 					}
 					
 					// Illumina record chromosome does not contain "chr", whereas the positionRecordMap does - add
-					illuminaMap.put(ChrPointPosition.valueOf("chr" + tempRec.getChr(), tempRec.getStart()), tempRec);
+					illuminaMap.put(ChrPointPosition.valueOf("chr" + rec.getChr(), rec.getStart()), rec);
 				}
 			}
 		}

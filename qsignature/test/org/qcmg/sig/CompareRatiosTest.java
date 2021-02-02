@@ -1,11 +1,11 @@
 package org.qcmg.sig;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicIntegerArray;
-
-import junit.framework.Assert;
 
 import org.junit.Test;
 import org.qcmg.common.model.ChrPointPosition;
@@ -29,19 +29,19 @@ public class CompareRatiosTest {
 		float[] oldResults = compareRatiosOld(f1Ratios, f2Ratios, 20, oldPositionsUsed);
 		
 		
-		Assert.assertEquals(20, results.length);
-		Assert.assertEquals(20, oldResults.length);
+		assertEquals(20, results.length);
+		assertEquals(20, oldResults.length);
 		for (int i = 0 ; i < 10 ; i++) {
-			Assert.assertEquals(0.0f, results[i]);
-			Assert.assertEquals(1, positionsUsed.get(i));
-			Assert.assertEquals(0.0f, oldResults[i]);
-			Assert.assertEquals(1, oldPositionsUsed.get(i));
+			assertEquals(0.0f, results[i],0.01);
+			assertEquals(1, positionsUsed.get(i));
+			assertEquals(0.0f, oldResults[i],0.01);
+			assertEquals(1, oldPositionsUsed.get(i));
 		}
 		for (int i = 10 ; i < 20 ; i++) {
-			Assert.assertEquals(0.0f, results[i]);
-			Assert.assertEquals(0, positionsUsed.get(i));
-			Assert.assertEquals(0.0f, oldResults[i]);
-			Assert.assertEquals(0, oldPositionsUsed.get(i));
+			assertEquals(0.0f, results[i],0.01);
+			assertEquals(0, positionsUsed.get(i));
+			assertEquals(0.0f, oldResults[i],0.01);
+			assertEquals(0, oldPositionsUsed.get(i));
 		}
 		
 		f1Ratios.put(cp1, new int[]{5, 10});
@@ -49,14 +49,14 @@ public class CompareRatiosTest {
 		positionsUsed = new AtomicIntegerArray(20); 
 		results = compareRatios(f1Ratios, f2Ratios, 20, positionsUsed);
 		
-		Assert.assertEquals(20, results.length);
+		assertEquals(20, results.length);
 		for (int i = 0 ; i < 10 ; i++) {
-			Assert.assertEquals(0.5f, results[i]);
-			Assert.assertEquals(1, positionsUsed.get(i));
+			assertEquals(0.5f, results[i],0.01);
+			assertEquals(1, positionsUsed.get(i));
 		}
 		for (int i = 10 ; i < 20 ; i++) {
-			Assert.assertEquals(0.0f, results[i]);
-			Assert.assertEquals(0, positionsUsed.get(i));
+			assertEquals(0.0f, results[i],0.01);
+			assertEquals(0, positionsUsed.get(i));
 		}
 	}
 	@Test
@@ -72,10 +72,10 @@ public class CompareRatiosTest {
 		
 		float[] results = compareRatios(f1Ratios, f2Ratios, 20, positionsUsed);
 		
-		Assert.assertEquals(20, results.length);
+		assertEquals(20, results.length);
 		for (int i = 0 ; i < 20 ; i++) {
-			Assert.assertEquals(0.0f, results[i]);
-			Assert.assertEquals(0, positionsUsed.get(i));
+			assertEquals(0.0f, results[i],0.01);
+			assertEquals(0, positionsUsed.get(i));
 		}
 	}
 	
@@ -91,10 +91,10 @@ public class CompareRatiosTest {
 		
 		float[] results = compareRatios(f1Ratios, f2Ratios, 20, positionsUsed);
 		
-		Assert.assertEquals(20, results.length);
+		assertEquals(20, results.length);
 		for (int i = 0 ; i < 20 ; i++) {
-			Assert.assertEquals(0.0f, results[i]);
-			Assert.assertEquals(0, positionsUsed.get(i));
+			assertEquals(0.0f, results[i],0.01);
+			assertEquals(0, positionsUsed.get(i));
 		}
 	}
 	
@@ -133,43 +133,10 @@ public class CompareRatiosTest {
 		}
 		
 		return results;
-		
-		
-		
-		
-//		public static float compareRatios(final String s1, final String s2,
-//				final Map<ChrPosition, int[]> file1Ratios,
-//				final Map<ChrPosition, int[]> file2Ratios, final int minCoverage) {
-//		float totalDifference = 0f;
-//		
-//		for (Entry<ChrPosition, int[]> file1RatiosEntry : file1Ratios.entrySet()) {
-//			final int[] file1Ratio = file1RatiosEntry.getValue();
-//			final int f1TotalCount = file1Ratio[1];
-//			// both total counts must be above the minCoverage value
-//			if (f1TotalCount < minCoverage) continue;
-//			
-//			final int[] file2Ratio = file2Ratios.get(file1RatiosEntry.getKey());
-//			if (file2Ratio == null) continue;
-//			
-//			// first entry in array is the non-ref count, the second is the total count
-//			final int f2TotalCount = file2Ratio[1];
-//			if (f2TotalCount < minCoverage) continue;
-//			
-//			final int f2NonRefCount = file2Ratio[0];
-//			final int f1NonRefCount = file1Ratio[0];
-//			
-//			noOfPOsitionsUsed.incrementAndGet();
-//			
-//			totalDifference += Math.abs(((float)f1NonRefCount / f1TotalCount)- ((float)f2NonRefCount / f2TotalCount));
-//		}
-//		
-//		return totalDifference;
 	}
+	
 	public static float[] compareRatiosOld(final Map<ChrPosition, int[]> file1Ratios,
 			final Map<ChrPosition, int[]> file2Ratios, final int maxCoverage, AtomicIntegerArray noOfPOsitionsUsed) {
-//		public static float compareRatios(final String s1, final String s2,
-//				final Map<ChrPosition, int[]> file1Ratios,
-//				final Map<ChrPosition, int[]> file2Ratios, final int minCoverage) {
 		float [] totalDifference = new float[maxCoverage];
 		
 		for (Entry<ChrPosition, int[]> file1RatiosEntry : file1Ratios.entrySet()) {
@@ -192,16 +159,6 @@ public class CompareRatiosTest {
 				totalDifference[i] += differenceAtThisPosition;
 				noOfPOsitionsUsed.incrementAndGet(i);
 			}
-//			
-//			for (int i = maxCoverage ; i > 0 ; i--) {
-//				// both total counts must be above the minCoverage value
-//				if (f1TotalCount < i) continue;
-//				
-//				// only calculate differenceAtThisPosition if it is zero, as this will be the same regardless of coverage
-//				if (differenceAtThisPosition == 0f)
-//					differenceAtThisPosition = Math.abs(((float)f1NonRefCount / f1TotalCount)- ((float)f2NonRefCount / f2TotalCount));
-//				
-//			}
 		}
 		
 		return totalDifference;

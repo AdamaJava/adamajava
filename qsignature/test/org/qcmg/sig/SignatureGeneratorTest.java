@@ -30,11 +30,11 @@ import org.qcmg.common.util.BaseUtils;
 import org.qcmg.common.util.IlluminaUtils;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfRecord;
-import org.qcmg.illumina.IlluminaRecord;
 import org.qcmg.picard.SAMOrBAMWriterFactory;
 import org.qcmg.picard.util.SAMUtils;
-import org.qcmg.sig.util.SignatureUtil;
+import org.qcmg.qio.illumina.IlluminaRecord;
 import org.qcmg.vcf.VCFFileReader;
+import org.qcmg.sig.util.SignatureUtil;
 
 public class SignatureGeneratorTest {
 	
@@ -67,7 +67,7 @@ public class SignatureGeneratorTest {
 		char ref = 'C';
 		String result = updateResultsIllumina(illRecString, ref);
 		assertEquals(true, result.contains("C:20,G:3"));
-//		
+		
 		illRecString = "rs1738240	5636391030_R02C01	A	A	0.8534			78	546817	0	A	A	T	T	A	A	6	38763733	0.8261	1.0000	[T/C]	BOT	TOP		0.021	1.517	1.469	0.048	17587	1072	0.0076	-0.2979";
 		ref = 'C';
 		result = updateResultsIllumina(illRecString, ref);
@@ -78,52 +78,6 @@ public class SignatureGeneratorTest {
 		result = updateResultsIllumina(illRecString, ref);
 		assertEquals(true, result.contains("C:17"));
 	}
-	
-//	@Test
-//	public void testCreateComparatorFromSAMHeader() throws IOException {
-////		SignatureGenerator qss = new SignatureGenerator();
-////		qss.logger = QLoggerFactory.getLogger(SignatureGeneratorTest.class);
-//		try {
-//			qss.createComparatorFromSAMHeader(null);
-//			Assert.fail("Should have thrown an IAE");
-//		} catch (final IllegalArgumentException iae) {}
-//		
-//		final File bamFile = testFolder.newFile("bamFile");
-//		getBamFile(bamFile, false, true);
-//		qss.createComparatorFromSAMHeader(bamFile);
-//
-//		// no seq in header - should default to ReferenceNameComparator sorting
-//		int i = qss.chrComparator.compare("chr1", "chr2");
-//		assertEquals(true, i < 0);
-//		i = qss.chrComparator.compare("chr10", "chr2");
-//		assertEquals(true, i > 0);
-//		
-//		// header is ordered chr5, 4, 3, 2, 1
-//		getBamFile(bamFile, true, true);
-//		qss.createComparatorFromSAMHeader(bamFile);
-//		i = qss.chrComparator.compare("chr1", "chr2");
-//		assertEquals(true, i < 0);
-//	}
-	
-//	@Test
-//	public void doesComparatorWorkForNonChrs() throws IOException {
-//		
-//		final File bamFile = testFolder.newFile("bamFile");
-//		getBamFile(bamFile, false, true);
-//		qss.createComparatorFromSAMHeader(bamFile);
-//
-//		// no seq in header - should default to ReferenceNameComparator sorting
-//		int i = qss.chrComparator.compare("chr1", "chr2");
-//		assertEquals(true, i < 0);
-//		i = qss.chrComparator.compare("chr10", "chr2");
-//		assertEquals(true, i > 0);
-//		
-//		getBamFile(bamFile, true, false);
-//		
-//		qss.createComparatorFromSAMHeader(bamFile);
-//		i = qss.chrComparator.compare("1", "2");
-//		assertEquals(true, i < 0);
-//	}
 	
 	
 	/**
@@ -238,7 +192,7 @@ public class SignatureGeneratorTest {
 	private Executor execute(final String command) throws Exception {
 		return new Executor(command, "org.qcmg.sig.SignatureGenerator");
 	}
-	
+
     @Test
 	public void runProcessWithEmptySnpChipFile() throws Exception {
     	final File positionsOfInterestFile = testFolder.newFile("runProcessWithEmptySnpChipFile.txt");
@@ -246,12 +200,10 @@ public class SignatureGeneratorTest {
     	final File illuminaArraysDesignFile = testFolder.newFile("runProcessWithEmptySnpChipFile_snpChipIAD.txt");
     	final File logFile = testFolder.newFile("runProcessWithEmptySnpChipFile.log");
     	final File outputFile = testFolder.newFile("runProcessWithEmptySnpChipFile.qsig.vcf");
-//    	getBamFile(snpChipFile, true, null);
-
+    	
 		ExpectedException.none();
 		final Executor exec = execute("--log " + logFile.getAbsolutePath() + " -i " + positionsOfInterestFile.getAbsolutePath() + " -i " + snpChipFile.getAbsolutePath()+ " -i " + illuminaArraysDesignFile.getAbsolutePath());
 		assertTrue(0 == exec.getErrCode());
-
 		assertTrue(outputFile.exists());
 	}
     
@@ -267,7 +219,6 @@ public class SignatureGeneratorTest {
     	writeSnpChipFile(snpChipFile);
     	writeSnpPositionsFile(positionsOfInterestFile);
     	writeIlluminaArraysDesignFile(illuminaArraysDesignFile);
-//    	getBamFile(snpChipFile, true, null);
     	
     	final int exitStatus = qss.setup(new String[] {"--log" , logFile.getAbsolutePath(), "-i" , positionsOfInterestFile.getAbsolutePath(), "-i" , snpChipFile.getAbsolutePath(),  "-i" , illuminaArraysDesignFile.getAbsolutePath()} );
     	assertEquals(0, exitStatus);
@@ -359,7 +310,6 @@ public class SignatureGeneratorTest {
     static void getBamFile(File bamFile, boolean validHeader, boolean useChrs, boolean addReadGroupToHeaderAndRecords) {
 	    	final SAMFileHeader header = getHeader(validHeader, useChrs, addReadGroupToHeaderAndRecords);
 	    	List<SAMRecord> data = getRecords(useChrs, header, true, addReadGroupToHeaderAndRecords);
-	//    	if ( ! validHeader) header.setSequenceDictionary(new SAMSequenceDictionary());
 	    	final SAMOrBAMWriterFactory factory = new SAMOrBAMWriterFactory(header, false, bamFile, false);
 	    	try {
 	    		final SAMFileWriter writer = factory.getWriter();

@@ -33,10 +33,8 @@ import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.TabTokenizer;
+import org.qcmg.qio.record.StringFileReader;
 import org.qcmg.sig.util.SignatureUtil;
-import org.qcmg.tab.TabbedFileReader;
-import org.qcmg.tab.TabbedHeader;
-import org.qcmg.tab.TabbedRecord;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 /**
@@ -117,7 +115,7 @@ public class QSigCompare {
 			
 			String [] fileAttributes = null;
 //			TabbedFileReader reader = null;
-			try (TabbedFileReader reader = new TabbedFileReader(f)){
+			try (StringFileReader reader = new StringFileReader(f)){
 				fileAttributes = getDetailsFromVCFHeader(reader.getHeader());
 			} catch (Exception e) {
 				logger.error("Couldn't retrieve file attributes", e);
@@ -197,14 +195,14 @@ public class QSigCompare {
 	}
 	
 	private void doComparison(File f1, File f2) throws Exception {
-		TabbedFileReader vcf1 = new TabbedFileReader(f1);
-		TabbedFileReader vcf2 = new TabbedFileReader(f2);
+		StringFileReader vcf1 = new StringFileReader(f1);
+		StringFileReader vcf2 = new StringFileReader(f2);
 		String [] s1PatientAndType = null; 
 		String [] s2PatientAndType = null;
 		
 		try {
-			TabbedHeader vcfHeader1 = vcf1.getHeader();
-			TabbedHeader vcfHeader2 = vcf2.getHeader();
+			List<String> vcfHeader1 = vcf1.getHeader();
+			List<String> vcfHeader2 = vcf2.getHeader();
 			
 			s1PatientAndType = getDetailsFromVCFHeader(vcfHeader1);
 			s2PatientAndType = getDetailsFromVCFHeader(vcfHeader2);
@@ -337,13 +335,13 @@ public class QSigCompare {
 		return totalDifference;
 	}
 	
-	private Map<ChrPosition, int[]> loadRatiosFromFile(TabbedFileReader reader) {
+	private Map<ChrPosition, int[]> loadRatiosFromFile(StringFileReader reader) {
 		logger.info("loading ratios from file: " + reader.getFile().getAbsolutePath());
 		
 		Map<ChrPosition, int[]> ratios = new HashMap<ChrPosition, int[]>();
 		
-		for (TabbedRecord vcfRecord : reader) {
-			String[] params = TabTokenizer.tokenize(vcfRecord.getData());
+		for (String vcfRecord : reader) {
+			String[] params = TabTokenizer.tokenize(vcfRecord);
 			ChrPosition chrPos = ChrPointPosition.valueOf(params[0], Integer.parseInt(params[1]));
 			char ref = params[3].charAt(0);
 			if ('-' == ref || '.' == ref) {
@@ -411,13 +409,13 @@ public class QSigCompare {
 		return DOUBLE_NAN;
 	}
 	
-	public static String [] getDetailsFromVCFHeader(TabbedHeader header) {
+	public static String [] getDetailsFromVCFHeader(List<String> header) {
 		String patient = null;
 		String library = null;
 		String inputType = null;
 		String snpFile = null;
-		for (Iterator<String> iter = header.iterator() ; iter.hasNext() ; ) {
-			String headerLine = iter.next();
+		//for (Iterator<String> iter = header.iterator() ; iter.hasNext() ; ) {
+		for (String headerLine : header) {
 			if (headerLine.contains("patient_id")) {
 				patient = headerLine.substring(headerLine.indexOf("=") + 1);  
 			}
