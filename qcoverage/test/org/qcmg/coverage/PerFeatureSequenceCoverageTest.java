@@ -22,8 +22,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.qcmg.common.commandline.Executor;
-import org.qcmg.gff3.GFF3FileWriter;
-import org.qcmg.gff3.GFF3Record;
+import org.qcmg.qio.gff3.Gff3Record;
+import org.qcmg.qio.record.RecordWriter;
 
 public class PerFeatureSequenceCoverageTest {
 	static String inputBam;
@@ -62,7 +62,7 @@ public class PerFeatureSequenceCoverageTest {
 	}
 
 	private File createGFF3File(final int start, final int end) throws IOException {
-		GFF3Record record = new GFF3Record();
+		Gff3Record record = new Gff3Record();
 		record.setSeqId("chr1");
 		record.setType("exon");
 		record.setStart(start);
@@ -72,7 +72,7 @@ public class PerFeatureSequenceCoverageTest {
 		record.setStrand("+");
 
 		File file = new File(tmpDir + "/test" + start +"-" + end + ".gff3");
-		try (GFF3FileWriter writer = new GFF3FileWriter(file)) {
+		try (RecordWriter<Gff3Record> writer = new RecordWriter<>(file)) {
 			writer.add(record);
 		}
 		
