@@ -36,7 +36,7 @@ import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.util.QBamIdFactory;
 import org.qcmg.qbamfilter.query.QueryExecutor;
-import org.qcmg.vcf.VCFFileWriter;
+import org.qcmg.qio.vcf.VCFFileWriter;
 
 public class IndelMT {
 	public static final int MAXRAMREADS = 1500; //maximum number of total reads in RAM

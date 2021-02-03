@@ -13,7 +13,7 @@ import org.junit.Test;
 import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.*;
-import org.qcmg.vcf.VCFFileReader;
+import org.qcmg.qio.vcf.VcfFileReader;
 import au.edu.qimr.indel.Support;
 import au.edu.qimr.indel.IniFileTest;
 import au.edu.qimr.indel.Options;
@@ -59,7 +59,7 @@ public class IndelMTTest {
 		//check output	
 		int line = 0;
 		VcfRecord record = null;
-		try (VCFFileReader reader = new VCFFileReader(IniFileTest.output)) {
+		try (VcfFileReader reader = new VcfFileReader(IniFileTest.output)) {
 			for (VcfRecord re : reader) {	
 				line ++;
 				record = re; 	
@@ -90,8 +90,8 @@ public class IndelMTTest {
 		int passNo = 0;
 		VcfRecord record = null;
 		VcfHeader header = null; 
-		try (VCFFileReader reader = new VCFFileReader(IniFileTest.output)) {
-			header = reader.getHeader();
+		try (VcfFileReader reader = new VcfFileReader(IniFileTest.output)) {
+			header = reader.getVcfHeader();
 			for (VcfRecord re : reader) {
 				passNo ++;
 				record = re; 

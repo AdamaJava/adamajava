@@ -12,7 +12,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.vcf.VcfRecord;
-import org.qcmg.vcf.VCFFileReader;
+import org.qcmg.qio.vcf.VcfFileReader;
 
 import au.edu.qimr.indel.IniFileTest;
 import au.edu.qimr.indel.Support;
@@ -45,7 +45,7 @@ public class SingleModeTest {
 				 null, new File(IndelPositionTest.inputIndel), null, outputVcfFile);		
 		 Support.runQ3IndelNoHom(iniFile.getAbsolutePath());
 		 
-		 try (VCFFileReader reader = new VCFFileReader(outputVcfFile)) {				 
+		 try (VcfFileReader reader = new VcfFileReader(outputVcfFile)) {				 
 			 for (VcfRecord re : reader)  											
 				if(re.getChromosome().equals("chrY")){
 					assertEquals(".", re.getSampleFormatRecord(2).getField("ACINDEL"));
@@ -63,7 +63,7 @@ public class SingleModeTest {
 				  new File(IndelPositionTest.inputIndel),null, null, outputVcfFile);		
 		 Support.runQ3IndelNoHom(iniFile.getAbsolutePath());
 		 
-		 try (VCFFileReader reader = new VCFFileReader(outputVcfFile)) {				 
+		 try (VcfFileReader reader = new VcfFileReader(outputVcfFile)) {				 
 			 for (VcfRecord re : reader)  											
 				if(re.getChromosome().equals("chrY")){
 					assertTrue(re.getSampleFormatRecord(1).getField("ACINDEL").equals(".") );

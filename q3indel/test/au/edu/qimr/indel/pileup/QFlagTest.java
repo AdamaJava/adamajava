@@ -14,7 +14,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.vcf.VcfRecord;
-import org.qcmg.vcf.VCFFileReader;
+import org.qcmg.qio.vcf.VcfFileReader;
 
 import au.edu.qimr.indel.IniFileTest;
 import au.edu.qimr.indel.Support;
@@ -63,7 +63,7 @@ public class QFlagTest {
 		Support.runQ3IndelNoHom( ini.getAbsolutePath());
 		 
 		//gemline since control 100% supporting even only one record	
-		try (VCFFileReader reader = new VCFFileReader(outputVcfFile)){ 
+		try (VcfFileReader reader = new VcfFileReader(outputVcfFile)){ 
 			for (VcfRecord re : reader) {				
 				assertTrue(re.getSampleFormatRecord(2).getField("ACINDEL").equals("2,12,11,3[1,2],4[3],2,4,4"));
 				assertTrue(re.getSampleFormatRecord(1).getField("ACINDEL").equals("0,1,1,0[0,0],1[1],0,0,1"));
@@ -94,7 +94,7 @@ public class QFlagTest {
 		data.add("ST-E00139:2212:h_2:101\t83\tchrY\t2672728\t60\t24S8M1D119M\t=\t2672357\t-499\tTGTATTTTCTCTTTTTGGGTGTTTGTGTGTGATTTTTTTTTTTTTCCAAAAAACCAGTTCCTGAATTCATTGATTTTTTGAAGGGTTTTTTGTGTCACTGTCCCCTTCAGTTTCACTCTGAT\t*");
 		Support.createBam(data, CONTROL_BAM_NAME);
 		Support.runQ3IndelNoHom( ini.getAbsolutePath());	
-		try (VCFFileReader reader = new VCFFileReader(outputVcfFile)){ 
+		try (VcfFileReader reader = new VcfFileReader(outputVcfFile)){ 
 			for (VcfRecord re : reader) {				
 				assertTrue(re.getSampleFormatRecord(2).getField("ACINDEL").equals("2,12,11,3[1,2],4[3],2,4,4"));
 				assertTrue(re.getSampleFormatRecord(1).getField("ACINDEL").equals("0,7,7,0[0,0],1[1],6,0,4"));

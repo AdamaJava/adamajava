@@ -17,7 +17,7 @@ import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
-import org.qcmg.vcf.VCFFileReader;
+import org.qcmg.qio.vcf.VcfFileReader;
 
 import au.edu.qimr.indel.Support;
 import au.edu.qimr.indel.IniFileTest;
@@ -66,7 +66,7 @@ public class IndelPositionTest {
 		 IniFileTest.createIniFile(IndelMTTest.ini_noquery,  tumourBAM, normalBAM, inputIndel, inputIndel, null);		
 		 Support.runQ3IndelNoHom(IndelMTTest.ini_noquery);
 		 
-		 try (VCFFileReader reader = new VCFFileReader(IniFileTest.output)) {				 
+		 try (VcfFileReader reader = new VcfFileReader(IniFileTest.output)) {				 
 			 for (VcfRecord re : reader)  											
 				if(re.getChromosome().equals("chrY")){
  					assertTrue(re.getFilter().equals(IndelUtils.FILTER_HCOVN)); 
@@ -79,7 +79,7 @@ public class IndelPositionTest {
 		 IniFileTest.createIniFile(IndelMTTest.ini_noquery, normalBAM,tumourBAM, inputIndel, inputIndel, null);		
 		 Support.runQ3IndelNoHom(IndelMTTest.ini_noquery);
 		 
-		 try (VCFFileReader reader = new VCFFileReader(IniFileTest.output)) {				 
+		 try (VcfFileReader reader = new VcfFileReader(IniFileTest.output)) {				 
 			 for (VcfRecord re : reader)  											
 				if(re.getChromosome().equals("chrY")){
  					assertTrue(!re.getFilter().equals(IndelUtils.FILTER_HCOVN)); 
@@ -107,7 +107,7 @@ public class IndelPositionTest {
 
 		 //not somatic since supporting/informative=100% on control BAM 
 		 //NBIAS 100 support reads >=3 and one of strand is 0; 
-		 try (VCFFileReader reader = new VCFFileReader(IniFileTest.output)) {				 
+		 try (VcfFileReader reader = new VcfFileReader(IniFileTest.output)) {				 
 			 for (VcfRecord re : reader)  											
 				if(re.getChromosome().equals("chrY")){	
 					assertFalse(re.getInfo().contains(VcfHeaderUtils.INFO_SOMATIC));
@@ -124,7 +124,7 @@ public class IndelPositionTest {
 		 IniFileTest.createIniFile(IndelMTTest.ini_noquery,   normalBAM, tumourBAM,inputIndel, emptyVcf, null);		
 		 Support.runQ3IndelNoHom(IndelMTTest.ini_noquery);
 		//not somatic since support noverlStart==3, none of strand reads <%%
-		 try (VCFFileReader reader = new VCFFileReader(IniFileTest.output)) {				 
+		 try (VcfFileReader reader = new VcfFileReader(IniFileTest.output)) {				 
 			 for (VcfRecord re : reader)  											
 				if(re.getChromosome().equals("chrY")){
 					//System.out.println(re.toString());
@@ -149,7 +149,7 @@ public class IndelPositionTest {
 		 
 		 IniFileTest.createIniFile(IndelMTTest.ini_noquery,  tumourBAM, normalBAM, inputIndel, inputIndel, null);		
 		 Support.runQ3IndelNoHom(IndelMTTest.ini_noquery);
-		 try (VCFFileReader reader = new VCFFileReader(IniFileTest.output)) {				 
+		 try (VcfFileReader reader = new VcfFileReader(IniFileTest.output)) {				 
 			 for (VcfRecord re : reader)  											
 				if(re.getChromosome().equals("chrY")){
 					assertFalse( re.getInfo().contains(VcfHeaderUtils.INFO_SOMATIC)); 
@@ -174,7 +174,7 @@ public class IndelPositionTest {
 		 IniFileTest.createIniFile(IndelMTTest.ini_noquery,  normalBAM, normalBAM,inputIndel, inputIndel, null);		
 		 Support.runQ3IndelNoHom(IndelMTTest.ini_noquery);
 		 
-		 try (VCFFileReader reader = new VCFFileReader(IniFileTest.output)) {				 
+		 try (VcfFileReader reader = new VcfFileReader(IniFileTest.output)) {				 
 			 for (VcfRecord re : reader)  											
 				if(re.getChromosome().equals("chrY")){ 
 					assertTrue(re.getFilter().contains(VcfHeaderUtils.FILTER_COVERAGE_TUMOUR )); //germline and coverage only 3
@@ -195,7 +195,7 @@ public class IndelPositionTest {
 	
 		 //with same ini file
 		 Support.runQ3IndelNoHom(IndelMTTest.ini_noquery);
-		 try (VCFFileReader reader = new VCFFileReader(IniFileTest.output)) {				 
+		 try (VcfFileReader reader = new VcfFileReader(IniFileTest.output)) {				 
 			 for (VcfRecord re : reader)  											
 				if(re.getChromosome().equals("chrY")){ 
 					
@@ -234,7 +234,7 @@ public class IndelPositionTest {
 		 		 
 		 //not somatic since supporting/informative=100% on control BAM 
 		 //NBIAS 100 support reads >=3 and one of strand is 0; 
-		 try (VCFFileReader reader = new VCFFileReader(IniFileTest.output)) {				 
+		 try (VcfFileReader reader = new VcfFileReader(IniFileTest.output)) {				 
 			 for (VcfRecord re : reader)  											
 				if(re.getChromosome().equals("chrY")){	
 					assertTrue(re.getInfo().contains(VcfHeaderUtils.INFO_SOMATIC));
