@@ -7,7 +7,6 @@ public final class MaMapping {
     private final String chromosome;
     private final String location;
     private final int mismatchCount;
-//    private final MAMappingParameters parameters;
     private final String quality;
     
     private final int length;
@@ -17,23 +16,18 @@ public final class MaMapping {
     
 
     MaMapping(final String mappingChromosome, final String mappingLocation,
-            final int mappingMismatchCount,
-         //   final MAMappingParameters mappingParameters,
-            int mappingLength,
-            int mappingPossibleMismatches, int mappingSeedStart,
+        final int mappingMismatchCount,
+        int mappingLength,
+        int mappingPossibleMismatches, int mappingSeedStart,
             
-            
-            final String mappingQuality) {
+        final String mappingQuality) {
         chromosome = mappingChromosome;
         location = mappingLocation;
         mismatchCount = mappingMismatchCount;
- //       parameters = mappingParameters;
         
         length = mappingLength;
         possibleMismatches = mappingPossibleMismatches;
         seedStart = mappingSeedStart;
-        
-        
         quality = mappingQuality;
     }
 
@@ -49,9 +43,6 @@ public final class MaMapping {
         return mismatchCount;
     }
 
-//    public MAMappingParameters getParameters() {
-//        return parameters;
-//    }
     public int getLength() {
         return length;
     }
@@ -64,10 +55,7 @@ public final class MaMapping {
         return seedStart;
     }    
     
-    
-
     public String getQuality() {
         return quality;
     }
-
 }
