@@ -6,8 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-import junit.framework.Assert;
-
+import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.qcmg.common.model.Rule;

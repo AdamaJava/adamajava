@@ -15,7 +15,7 @@ import org.qcmg.common.model.PileupElement;
 import org.qcmg.common.model.Rule;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.qio.record.StringFileReader;
-import org.qcmg.vcf.VCFFileReader;
+import org.qcmg.qio.vcf.VcfFileReader;
 
 public class PileupPipelineTest {
  
@@ -98,7 +98,7 @@ public class PileupPipelineTest {
 	
 	private int noOfLinesInVCFOutputFile(File vcfOutput) throws Exception {
 		int noOfLines = 0;
-		try (VCFFileReader reader = new VCFFileReader(vcfOutput);) {
+		try (VcfFileReader reader = new VcfFileReader(vcfOutput);) {
 			for (VcfRecord vcf : reader) noOfLines++;
 		}
 		return noOfLines;

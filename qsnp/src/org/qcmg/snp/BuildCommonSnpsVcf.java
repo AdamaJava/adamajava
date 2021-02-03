@@ -38,7 +38,7 @@ import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.qio.record.RecordWriter;
 import org.qcmg.qio.record.StringFileReader;
-import org.qcmg.vcf.VCFFileReader;
+import org.qcmg.qio.vcf.VcfFileReader;
 
 public class BuildCommonSnpsVcf {
 	private static QLogger logger;
@@ -138,7 +138,7 @@ public class BuildCommonSnpsVcf {
 	void addDbSnpData(String fileName) throws Exception {
 		
 		int count = 0;
-		try (VCFFileReader reader = new VCFFileReader(new File(fileName));) {
+		try (VcfFileReader reader = new VcfFileReader(new File(fileName));) {
 			for (final VcfRecord dbSNPVcf : reader) {
 				if (++count % 1000000 == 0)
 					logger.info("hit " + count + " dbsnp records");
