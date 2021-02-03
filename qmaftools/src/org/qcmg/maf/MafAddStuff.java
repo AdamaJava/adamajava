@@ -228,8 +228,8 @@ public class MafAddStuff {
 					logger.warn("no reference bases for chr pos: " + cp.toString());
 				}
 				
-				String Gff3Type = chrPosGffType.get(cp);
-				if (null == Gff3Type) {
+				String gff3Type = chrPosGffType.get(cp);
+				if (null == gff3Type) {
 					logger.warn("no gff type for chr pos: " + cp.toString());
 				}
 				
@@ -241,7 +241,7 @@ public class MafAddStuff {
 				sb.append("\t");
 				sb.append(cpgBases);
 				sb.append("\t");
-				sb.append(Gff3Type);
+				sb.append(gff3Type);
 				sb.append("\n");
 				
 				writer.write(sb.toString());
