@@ -1,4 +1,4 @@
-package org.qcmg.qmule;
+package org.qcmg.qio.gff3;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -6,11 +6,8 @@ import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.qcmg.qio.gff3.Gff3Record;
-import org.qcmg.qio.gff3.Gff3RecordChromosomeAndPositionComparator;
 
-public class ChrPosComparatorTest {
-	
+public class ComparatorTest {
 	@Test
 	public void testGffComp() {
 		Gff3Record r1 = new Gff3Record();
@@ -30,5 +27,7 @@ public class ChrPosComparatorTest {
 		
 		Assert.assertEquals(r2, list.get(0));
 	}
-
+	
+	
+	
 }

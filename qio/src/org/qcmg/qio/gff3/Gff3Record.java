@@ -1,10 +1,12 @@
 /**
  * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
-package org.qcmg.gff3;
+package org.qcmg.qio.gff3;
 
+import org.qcmg.common.util.Constants;
+import org.qcmg.common.util.TabTokenizer;
 
-public class GFF3Record {
+public class Gff3Record {
 
     protected String seqId;
     protected String source;
@@ -16,6 +18,27 @@ public class GFF3Record {
     protected String phase;
     protected String attributes;
     protected String rawData;
+    
+    public Gff3Record() {}
+	public Gff3Record(final String line)  {
+		String[] params = TabTokenizer.tokenize(line);
+		if (8 > params.length) {			 
+			throw new IllegalArgumentException("Bad GFF3 format. Insufficient columns: '" + line + "'");
+		}
+		 
+		setRawData(line);
+		setSeqId(params[0]);
+		setSource(params[1]);
+		setType(params[2]);
+		setStart(Integer.parseInt(params[3]));
+		setEnd(Integer.parseInt(params[4]));
+		setScore(params[5]);
+		setStrand(params[6]);
+		setPhase(params[7]);
+		if (8 < params.length) {
+			setAttributes(params[8]);
+		}		 
+	} 
 
     /**
      * Gets the value of the seqId property.
@@ -240,5 +263,20 @@ public class GFF3Record {
     public void setRawData(String value) {
         this.rawData = value;
     }
+    
+	public String toString() {
+		StringBuilder result = new StringBuilder(getSeqId()).append(Constants.TAB);
+		result.append(getSource()).append(Constants.TAB);
+		result.append(getType()).append(Constants.TAB);
+		result.append(getStart()).append(Constants.TAB);
+		result.append(getEnd()).append(Constants.TAB);
+		result.append(getScore()).append(Constants.TAB);
+		result.append(getStrand()).append(Constants.TAB);
+		result.append(getPhase()).append(Constants.TAB);
+		if (null != getAttributes()) {
+			result.append(getAttributes());
+		}
+		return result.toString();
+	}
 
 }

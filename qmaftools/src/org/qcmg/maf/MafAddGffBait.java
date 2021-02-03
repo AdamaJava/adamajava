@@ -22,8 +22,8 @@ import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.FileUtils;
-import org.qcmg.gff3.GFF3FileReader;
-import org.qcmg.gff3.GFF3Record;
+import org.qcmg.qio.gff3.Gff3FileReader;
+import org.qcmg.qio.gff3.Gff3Record;
 import org.qcmg.tab.TabbedFileReader;
 import org.qcmg.tab.TabbedHeader;
 import org.qcmg.tab.TabbedRecord;
@@ -65,11 +65,11 @@ public class MafAddGffBait {
 		return exitStatus;
 	}
 	
-	private void populateGffTypes(String gff3File) throws Exception {
-		GFF3FileReader reader = new GFF3FileReader(new File(gff3File));
+	private void populateGffTypes(String Gff3File) throws Exception {
+		Gff3FileReader reader = new Gff3FileReader(new File(Gff3File));
 		try {
 			int  count = 0;
-			for (GFF3Record rec : reader) {
+			for (Gff3Record rec : reader) {
 				String chr = rec.getSeqId();
 				Map<ChrPosition, String> thisMap = gffTypes.get(chr);
 				if (null == thisMap) {
@@ -104,7 +104,7 @@ public class MafAddGffBait {
 							positionsOfInterestMap.put(cp, type + "," + entry.getValue());
 						}
 //						logger.info("matched!");
-						// single position - won't have multiple gff3 regions
+						// single position - won't have multiple Gff3 regions
 						if (cp.getStartPosition() == cp.getEndPosition()) break;
 					}
 				}
@@ -161,21 +161,11 @@ public class MafAddGffBait {
 				String chr = params[4];
 				int startPos = Integer.parseInt(params[5]);
 				int endPos = Integer.parseInt(params[6]);
-				
-//				String fullChr = "chr" + chr;
-//				if ("chrM".equals(fullChr)) fullChr = "chrMT";
-//				
-//				ChrPosition chrCompliantCP = new ChrPosition(fullChr, startPos, endPos);
-				
-				
+								
 				ChrPosition cp = new ChrRangePosition(chr, startPos, endPos);
-				String gff3Type = positionsOfInterestMap.get(cp);
-				if (null != gff3Type) {
-//					if ('-' != ref && ref != gff3Type.charAt(noOfBases)) {
-//						logger.warn("reference base: " + ref + " does not equal base retrieved for cpg purposes: " 
-//								+ gff3Type.charAt(noOfBases) + " at chrpos: " + cp.toString());
-//					}
-					writer.write(rec.getData() + "\t" + gff3Type + "\n");
+				String Gff3Type = positionsOfInterestMap.get(cp);
+				if (null != Gff3Type) {
+					writer.write(rec.getData() + "\t" + Gff3Type + "\n");
 				} else { 
 					logger.warn("no type for chr pos: " + cp.toString());
 				}
