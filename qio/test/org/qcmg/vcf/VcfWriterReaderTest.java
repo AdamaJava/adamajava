@@ -14,6 +14,8 @@ import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
+import org.qcmg.qio.vcf.VcfFileReader;
+import org.qcmg.qio.vcf.VCFFileWriter;
 
 public class VcfWriterReaderTest {
 	
@@ -35,8 +37,8 @@ public class VcfWriterReaderTest {
 		 * Should be able to get the header back out
 		 */
 		VcfHeader header = null;
-		try(VCFFileReader reader = VCFFileReader.createStream(file)){
-			header = reader.getHeader();
+		try(VcfFileReader reader = VcfFileReader.createStream(file)){
+			header = reader.getVcfHeader();
 		}
 		assertEquals(true, null != header);
 		assertEquals(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE, header.getChrom().toString());
@@ -59,8 +61,8 @@ public class VcfWriterReaderTest {
 		 */
 		VcfHeader header = null;
 		
-		try(VCFFileReader reader = new VCFFileReader(file) ){
-			header = reader.getHeader();
+		try(VcfFileReader reader = new VcfFileReader(file) ){
+			header = reader.getVcfHeader();
 		}
 		assertEquals(true, null != header);
 		assertEquals(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE, header.getChrom().toString());
@@ -88,11 +90,11 @@ public class VcfWriterReaderTest {
 			} catch (IOException e) { fail(); }
 			
 			//read invaid vcf
-			try(VCFFileReader reader = new VCFFileReader(file);){
+			try(VcfFileReader reader = new VcfFileReader(file);){
 				//file can be deleted here even without close but can't be closed if fail()	
 				Assert.assertTrue( file.delete());				
 				if(i == 0 ) fail();
-				Assert.assertTrue( reader.getHeader() != null);
+				Assert.assertTrue( reader.getVcfHeader() != null);
 			
 			} catch (Exception e) {				 
 				e.printStackTrace();
@@ -113,7 +115,7 @@ public class VcfWriterReaderTest {
 		} catch (Exception e) { fail(); }
 		
 		// read throw exception
-		try(VCFFileReader reader = new VCFFileReader(file);){
+		try(VcfFileReader reader = new VcfFileReader(file);){
 			fail();
 		} catch (Exception e) { }
 		
@@ -124,9 +126,9 @@ public class VcfWriterReaderTest {
 		} catch (Exception e) { fail(); }
 		
 		//now it become a valid vcf file
-		try(VCFFileReader reader = new VCFFileReader(file);){ 
+		try(VcfFileReader reader = new VcfFileReader(file);){ 
 			Assert.assertFalse( FileUtils.isInputGZip(file) );	
-			Assert.assertTrue( reader.getHeader().getAllMetaRecords().size() == 1);	
+			Assert.assertTrue( reader.getVcfHeader().getAllMetaRecords().size() == 1);	
 			Assert.assertTrue(file.delete());
 			
 		} catch (Exception e) {fail(); }		

@@ -4,7 +4,7 @@
  *
  * This code is released under the terms outlined in the included LICENSE file.
  */
-package org.qcmg.vcf;
+package org.qcmg.qio.vcf;
 
 import java.io.BufferedReader;
 import java.io.IOException;
