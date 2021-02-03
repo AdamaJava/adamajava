@@ -1,5 +1,9 @@
 package org.qcmg.qprofiler.bam;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -10,7 +14,6 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicLong;
 
-import junit.framework.Assert;
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMUtils;
@@ -37,42 +40,42 @@ public class BamSummaryReportTest {
 		int position = 999;		
 		bsr.parseRNameAndPos( rName, position,rg );
 		PositionSummary returnedSummary = bsr.getRNamePosition().get(rName);
-		Assert.assertEquals( position, returnedSummary.getMax() );
-		Assert.assertEquals( position, returnedSummary.getMin() );
-		Assert.assertEquals(1, returnedSummary.getCoverage().get(0).get() );
+		assertEquals( position, returnedSummary.getMax() );
+		assertEquals( position, returnedSummary.getMin() );
+		assertEquals(1, returnedSummary.getCoverage().get(0).get() );
 		
 		// and again - min and max should stay the same, count should increase
 		bsr.parseRNameAndPos(rName, position,rg );
 		returnedSummary = bsr.getRNamePosition().get(rName);
-		Assert.assertEquals(position, returnedSummary.getMax());
-		Assert.assertEquals(position, returnedSummary.getMin());
-		Assert.assertEquals(2, returnedSummary.getCoverage().get(0).get());
+		assertEquals(position, returnedSummary.getMax());
+		assertEquals(position, returnedSummary.getMin());
+		assertEquals(2, returnedSummary.getCoverage().get(0).get());
 		
 		// add another position to this rName
 		position = 1000000;
 		bsr.parseRNameAndPos(rName, position,rg );
 		returnedSummary = bsr.getRNamePosition().get(rName);
-		Assert.assertEquals(position, returnedSummary.getMax());
-		Assert.assertEquals(999, returnedSummary.getMin());
-		Assert.assertEquals(1, returnedSummary.getRgCoverage().get(1).get(0) );
+		assertEquals(position, returnedSummary.getMax());
+		assertEquals(999, returnedSummary.getMin());
+		assertEquals(1, returnedSummary.getRgCoverage().get(1).get(0) );
 		
 		// add another position to this rName
 		position = 0;
 		bsr.parseRNameAndPos(rName, position,rg );
 		returnedSummary = bsr.getRNamePosition().get(rName);
-		Assert.assertEquals(1000000, returnedSummary.getMax());
-		Assert.assertEquals(position, returnedSummary.getMin());
-		Assert.assertEquals(3, returnedSummary.getRgCoverage().get(0).get(0) );
-		Assert.assertEquals(1, returnedSummary.getRgCoverage().get(1).get(0) );
+		assertEquals(1000000, returnedSummary.getMax());
+		assertEquals(position, returnedSummary.getMin());
+		assertEquals(3, returnedSummary.getRgCoverage().get(0).get(0) );
+		assertEquals(1, returnedSummary.getRgCoverage().get(1).get(0) );
 		
 		// add a new rname
 		rName = "new rname";
 		bsr.parseRNameAndPos(rName, 0,rg );
 		returnedSummary = bsr.getRNamePosition().get(rName);
-		Assert.assertEquals(0, returnedSummary.getMax());
-		Assert.assertEquals(0, returnedSummary.getMin());
-		Assert.assertEquals(1, returnedSummary.getRgCoverage().get(0).get(0) );
-		Assert.assertEquals(0, returnedSummary.getRgCoverage().get(0).get(1) );
+		assertEquals(0, returnedSummary.getMax());
+		assertEquals(0, returnedSummary.getMin());
+		assertEquals(1, returnedSummary.getRgCoverage().get(0).get(0) );
+		assertEquals(0, returnedSummary.getRgCoverage().get(0).get(1) );
 	}
 	
 	@Test
@@ -86,26 +89,26 @@ public class BamSummaryReportTest {
 		SummaryReportUtils.addPositionAndLengthToMap(queue, 100, 75);
 		SummaryReportUtils.addPositionAndLengthToMap(queue, 125, 10);
 		
-		Assert.assertFalse(queue.isEmpty());
-		Assert.assertTrue(map.isEmpty());
+		assertFalse(queue.isEmpty());
+		assertTrue(map.isEmpty());
 		
 		bsr.removeCoverageFromQueueAndAddToMap(125, queue, map);
 		
 		// should now have an entry in the map
-		Assert.assertFalse(queue.isEmpty());
-		Assert.assertFalse(map.isEmpty());
-		Assert.assertEquals(1, map.size());
-		Assert.assertEquals(25, map.get(3).get());
+		assertFalse(queue.isEmpty());
+		assertFalse(map.isEmpty());
+		assertEquals(1, map.size());
+		assertEquals(25, map.get(3).get());
 		
 		bsr.cleanUp();
-		Assert.assertTrue(queue.isEmpty());
-		Assert.assertEquals(3, map.size());
+		assertTrue(queue.isEmpty());
+		assertEquals(3, map.size());
 		// 100 - 135
-		Assert.assertEquals(35, map.get(3).get());
+		assertEquals(35, map.get(3).get());
 		// 135 - 150
-		Assert.assertEquals(15, map.get(2).get());
+		assertEquals(15, map.get(2).get());
 		// 150 - 175
-		Assert.assertEquals(25, map.get(1).get());
+		assertEquals(25, map.get(1).get());
 	}
 	
 	
@@ -159,30 +162,30 @@ public class BamSummaryReportTest {
 		
 		bsr.generateMAPQSubMaps(cmMatrix, smMatrix, lengthMatrix, nhMatrix, zmMatrix);
 		
-		Assert.assertEquals(mapQCMMatrix.size(), cmMatrix.size());
-		Assert.assertEquals(mapQSMMatrix.size(), smMatrix.size());
-		Assert.assertEquals(100, lengthMatrix.size());	// for length 0 for each mapq value
-		Assert.assertEquals(mapQNHMatrix.size(), nhMatrix.size());
-		Assert.assertEquals(mapQZMMatrix.size(), zmMatrix.size());
+		assertEquals(mapQCMMatrix.size(), cmMatrix.size());
+		assertEquals(mapQSMMatrix.size(), smMatrix.size());
+		assertEquals(100, lengthMatrix.size());	// for length 0 for each mapq value
+		assertEquals(mapQNHMatrix.size(), nhMatrix.size());
+		assertEquals(mapQZMMatrix.size(), zmMatrix.size());
 		
-		Assert.assertEquals(mapQCMMatrix.size(), cmMatrix.size());
+		assertEquals(mapQCMMatrix.size(), cmMatrix.size());
 		for (Entry<MAPQMiniMatrix, AtomicLong> entry : mapQCMMatrix.entrySet()) {
-			Assert.assertEquals(entry.getValue().get(), cmMatrix.get(entry.getKey()).get());
+			assertEquals(entry.getValue().get(), cmMatrix.get(entry.getKey()).get());
 		}
 		
-		Assert.assertEquals(mapQSMMatrix.size(), smMatrix.size());
+		assertEquals(mapQSMMatrix.size(), smMatrix.size());
 		for (Entry<MAPQMiniMatrix, AtomicLong> entry : mapQSMMatrix.entrySet()) {
-			Assert.assertEquals(entry.getValue().get(), smMatrix.get(entry.getKey()).get());
+			assertEquals(entry.getValue().get(), smMatrix.get(entry.getKey()).get());
 		}
 		//nh
-		Assert.assertEquals(mapQNHMatrix.size(), nhMatrix.size());
+		assertEquals(mapQNHMatrix.size(), nhMatrix.size());
 		for (Entry<MAPQMiniMatrix, AtomicLong> entry : mapQNHMatrix.entrySet()) {
-			Assert.assertEquals(entry.getValue().get(), nhMatrix.get(entry.getKey()).get());
+			assertEquals(entry.getValue().get(), nhMatrix.get(entry.getKey()).get());
 		}
 		//zm
-		Assert.assertEquals(mapQZMMatrix.size(), zmMatrix.size());
+		assertEquals(mapQZMMatrix.size(), zmMatrix.size());
 		for (Entry<MAPQMiniMatrix, AtomicLong> entry : mapQZMMatrix.entrySet()) {
-			Assert.assertEquals(entry.getValue().get(), zmMatrix.get(entry.getKey()).get());
+			assertEquals(entry.getValue().get(), zmMatrix.get(entry.getKey()).get());
 		}
 	}
 		
@@ -197,7 +200,7 @@ public class BamSummaryReportTest {
 		start = System.currentTimeMillis();
 		for (int i = 0 ; i < counter ; i++) 
 			outputString = StringUtils.addASCIIValueToChar(inputString, 33);					
-		Assert.assertEquals(expectedOutputString, outputString);
+		assertEquals(expectedOutputString, outputString);
 				
 		byte [] bytes = inputString.getBytes();
 		start = System.currentTimeMillis();
@@ -205,15 +208,14 @@ public class BamSummaryReportTest {
 			
 			outputString = SAMUtils.phredToFastq(bytes);
 		}
-	//	System.out.println("SAMUtils.phredToFastq time: " + (System.currentTimeMillis() - start));
-		Assert.assertEquals(expectedOutputString, outputString);
+		assertEquals(expectedOutputString, outputString);
 		
 		start = System.currentTimeMillis();
 		for (int i = 0 ; i < counter ; i++) {
 			outputString = StringUtils.addASCIIValueToChar(inputString, 33);
 			
 		}
-		Assert.assertEquals(expectedOutputString, outputString);
+		assertEquals(expectedOutputString, outputString);
 	}
 	
 	@Test
@@ -229,7 +231,7 @@ public class BamSummaryReportTest {
 		for (int i = 0 ; i < counter ; i++) {
 			SummaryReportUtils.tallyQualScoresASCII(inputString, map, 0);
 		}
-		Assert.assertEquals(1, map.size());
+		assertEquals(1, map.size());
 		
 		
 		mapBytes = new ConcurrentHashMap<Integer, AtomicLong>();
@@ -238,16 +240,16 @@ public class BamSummaryReportTest {
 		for (int i = 0 ; i < counter ; i++) {
 			SummaryReportUtils.tallyQualScores(bytes, mapBytes);
 		}
-		Assert.assertEquals(1, mapBytes.size());
+		assertEquals(1, mapBytes.size());
 		
 		map = new ConcurrentHashMap<Integer, AtomicLong>();
 		start = System.currentTimeMillis();
 		for (int i = 0 ; i < counter ; i++) {
 			SummaryReportUtils.tallyQualScoresASCII(inputString, map, 0);
 		}
-		Assert.assertEquals(1, map.size());		
-		Assert.assertEquals(map.keySet(), mapBytes.keySet());
-		Assert.assertEquals(map.get(0).get(), mapBytes.get(0).get());
+		assertEquals(1, map.size());		
+		assertEquals(map.keySet(), mapBytes.keySet());
+		assertEquals(map.get(0).get(), mapBytes.get(0).get());
 	}
 	
 	@Ignore

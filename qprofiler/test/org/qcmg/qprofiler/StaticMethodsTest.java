@@ -1,15 +1,15 @@
 package org.qcmg.qprofiler;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.concurrent.atomic.AtomicLongArray;
-
-import junit.framework.Assert;
-
 import org.junit.After;
 import org.junit.Test;
-import org.qcmg.common.util.BaseUtils;
+
 
 public class StaticMethodsTest {
 	
@@ -41,26 +41,26 @@ public class StaticMethodsTest {
 		try {
 			StaticMethods.backupFileByRenaming(TEST_FILENAME);
 		} catch (IOException e) {
-			Assert.fail("Should not have thrown Exception");
+			fail("Should not have thrown Exception");
 			e.printStackTrace();
 		}
 		// current file should be create-able, but no backup should have been made
-		Assert.assertTrue(currentFile.createNewFile());
-		Assert.assertFalse(backupFile.exists());
+		assertTrue(currentFile.createNewFile());
+		assertFalse(backupFile.exists());
 		
 		// try again
 		StaticMethods.backupFileByRenaming(TEST_FILENAME);
 		// should have created a backup file by renaming the orig file
-		Assert.assertTrue(backupFile.exists());
-		Assert.assertFalse(currentFile.exists());
+		assertTrue(backupFile.exists());
+		assertFalse(currentFile.exists());
 		
 		// one last time
 		currentFile.createNewFile();
 		StaticMethods.backupFileByRenaming(TEST_FILENAME);
 		// should have created a backup file by renaming the orig file
-		Assert.assertTrue(backupFile.exists());
-		Assert.assertTrue(backupFile2.exists());
-		Assert.assertFalse(currentFile.exists());
+		assertTrue(backupFile.exists());
+		assertTrue(backupFile2.exists());
+		assertFalse(currentFile.exists());
 	}
 	
 	@Test
@@ -69,10 +69,9 @@ public class StaticMethodsTest {
 		
 		try {
 			StaticMethods.backupFileByRenaming(madeUpPath);
-			Assert.fail("Should have thrown Exception");
+			fail("Should have thrown Exception");
 		} catch (IOException e) {
-			Assert.assertEquals("No such file or directory", e.getMessage());
-//			e.printStackTrace();
+			assertEquals("No such file or directory", e.getMessage());
 		}
 	}
 	

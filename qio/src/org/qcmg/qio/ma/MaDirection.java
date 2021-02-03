@@ -1,14 +1,13 @@
 /**
  * © Copyright The University of Queensland 2010-2014.  This code is released under the terms outlined in the included LICENSE file.
  */
-package org.qcmg.ma;
+package org.qcmg.qio.ma;
 
-public enum MADirection {
+public enum MaDirection {
     F3, R3, F5,F5_BC;
 
-    public static MADirection getDirection(String directionStr)
-            throws Exception {
-        MADirection result = null;
+    public static MaDirection getDirection(String directionStr) {
+        MaDirection result = null;
 
         if (0 == directionStr.compareTo("F3")) {
             result = F3;
@@ -19,7 +18,7 @@ public enum MADirection {
         } else if (0 == directionStr.compareTo("F5-BC")) {
             result = F5_BC;
         } else {
-            throw new Exception("Unknown direction type: " + directionStr);
+        	throw new IllegalArgumentException("Unknown direction type: " + directionStr);
         }
         return result;
     }

@@ -11,63 +11,64 @@ import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import junit.framework.Assert;
-
 import org.junit.After;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import static org.junit.Assert.*;
 
 public class MaSummarizerTest {
-	private static final String MA_INPUT_FILE = "testInputFile.ma";
-	private static final String MA_DODGY_INPUT_FILE = "testInputFileDodgy.ma";
+	@ClassRule
+	public  static TemporaryFolder testFolder = new TemporaryFolder();
+
+	private static String MA_INPUT_FILE;
+	private static String MA_DODGY_INPUT_FILE; // = "testInputFileDodgy.ma";
 
 	@Before
-	public void setup() {
+	public void setup() throws IOException {
+		
+		File f = testFolder.newFile("testInputFile.ma");
+		MA_INPUT_FILE = f.getAbsolutePath();				
 		createTestMaFile(MA_INPUT_FILE, createValidMaData());
+		
+
 	}
 
 	@After
 	public void tearDown() {
 		File outputFile = new File(MA_INPUT_FILE);
-		Assert.assertTrue(outputFile.delete());
+		assertTrue(outputFile.delete());
 	}
 
 	@Test
 	public void testSummarize() throws Exception {
 		MaSummarizer ms = new MaSummarizer();
-		MaSummaryReport sr = (MaSummaryReport) ms.summarize(new File(
-				MA_INPUT_FILE));
+		MaSummaryReport sr = (MaSummaryReport) ms.summarize(new File(MA_INPUT_FILE));
 
-		Assert.assertNotNull(sr);
-		Assert.assertEquals(6, sr.getColorByCycle().count(1, '0').get());
-		Assert.assertEquals(2, sr.getColorByCycle().count(2, '2').get());
+		assertNotNull(sr);
+		assertEquals(6, sr.getColorByCycle().count(1, '0').get());
+		assertEquals(2, sr.getColorByCycle().count(2, '2').get());
 		
-		Assert.assertEquals(4, sr.getBadReadsCount().size());
+		assertEquals(4, sr.getBadReadsCount().size());
 		
 		// lets take a look at the MAMapings
-		Assert.assertEquals(24, sr.getChromosomeCount().size());
+		assertEquals(24, sr.getChromosomeCount().size());
 		int chromoCount = 0;
 		for (Entry<String, AtomicLong> mapEntry : sr.getChromosomeCount().entrySet()) {
 			chromoCount += mapEntry.getValue().get();
 		}
-		Assert.assertTrue(chromoCount == 216);
+		assertTrue(chromoCount == 216);
 		
-		Assert.assertTrue(sr.getLocationCount().isEmpty());
-		
-//		Assert.assertEquals(3, sr.getMismatchCount().size());
-//		int mismatchCount = 0;
-//		for (Entry<Integer, Integer> mapEntry : sr.getMismatchCount().entrySet()) {
-//			mismatchCount += mapEntry.getValue();
-//		}
-//		Assert.assertTrue(mismatchCount == 216);
-		
-		Assert.assertEquals(4, sr.getQualityCount().size());
+		assertTrue(sr.getLocationCount().isEmpty());
+				
+		assertEquals(4, sr.getQualityCount().size());
 		int qualityCount = 0;
 		for (Entry<String, AtomicLong> mapEntry : sr.getQualityCount().entrySet()) {
 			qualityCount += mapEntry.getValue().get();
 		}
-		Assert.assertTrue(qualityCount == 216);
+		assertTrue(qualityCount == 216);
 	}
 
 	@Test
@@ -75,10 +76,14 @@ public class MaSummarizerTest {
 		createDodgyDataFile(createMaDataMissingData());
 
 		MaSummarizer qs = new MaSummarizer();
-		MaSummaryReport sr = (MaSummaryReport) qs.summarize(new File(MA_DODGY_INPUT_FILE));
-		Assert.assertEquals(0, sr.getRecordsParsed());
+		try {
+			MaSummaryReport sr = (MaSummaryReport) qs.summarize(new File(MA_DODGY_INPUT_FILE));
+			fail("dodgy ma file should cause exception but not!");
+		}catch(IllegalArgumentException e) {
+			//exception expected
+		}
+		 
 
-		deleteDodgyDataFile();
 	}
 
 	@Test
@@ -87,9 +92,8 @@ public class MaSummarizerTest {
 
 		MaSummarizer qs = new MaSummarizer();
 		MaSummaryReport sr = (MaSummaryReport) qs.summarize(new File(MA_DODGY_INPUT_FILE));
-		Assert.assertEquals(0, sr.getRecordsParsed());
+		assertEquals(0, sr.getRecordsParsed());
 
-		deleteDodgyDataFile();
 	}
 
 	@Test
@@ -97,30 +101,30 @@ public class MaSummarizerTest {
 		createDodgyDataFile(createMaDataExtraData());
 
 		MaSummarizer qs = new MaSummarizer();
-		MaSummaryReport sr = (MaSummaryReport) qs.summarize(new File(MA_DODGY_INPUT_FILE));
-		Assert.assertEquals(0, sr.getRecordsParsed());
+		try {
+			MaSummaryReport sr = (MaSummaryReport) qs.summarize(new File(MA_DODGY_INPUT_FILE));
+			fail("dodgy ma file should cause exception but not!");
+		}catch(IllegalArgumentException e) {
+			//exception expected
+		}
 
-		deleteDodgyDataFile();
 	}
 
 	@Test
 	public void testSummarizeNoHeader() throws Exception {
+				
 		createDodgyDataFile(createMaDataBody());
 
 		MaSummarizer qs = new MaSummarizer();
-		MaSummaryReport sr = (MaSummaryReport) qs.summarize(new File(
-				MA_DODGY_INPUT_FILE));
-		Assert.assertEquals(6, sr.getRecordsParsed());
+		MaSummaryReport sr = (MaSummaryReport) qs.summarize(new File(MA_DODGY_INPUT_FILE));
+		assertEquals(6, sr.getRecordsParsed());
 
-		deleteDodgyDataFile();
 	}
 
-	private void deleteDodgyDataFile() {
-		File outputFile = new File(MA_DODGY_INPUT_FILE);
-		Assert.assertTrue(outputFile.delete());
-	}
+	private void createDodgyDataFile(List<String> dodgyData) throws IOException {
+		File f = testFolder.newFile();
+		MA_DODGY_INPUT_FILE = f.getAbsolutePath();		
 
-	private void createDodgyDataFile(List<String> dodgyData) {
 		createTestMaFile(MA_DODGY_INPUT_FILE, dodgyData);
 	}
 

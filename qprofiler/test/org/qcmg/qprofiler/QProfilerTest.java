@@ -1,26 +1,29 @@
 package org.qcmg.qprofiler;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-import junit.framework.Assert;
-
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.qcmg.gff.GFFReader;
+import org.qcmg.qio.gff.GffReader;
 
 public class QProfilerTest {
 	
-	private static final String USER_DIR = System.getProperty("user.dir");
-	private static final String FILE_SEPERATOR = System.getProperty("file.separator");
 	private static final String GFF_FILE_NAME_1 =  "solid0039_20091125_1.gff3";
 	private static final String GFF_FILE_NAME_2 =  "solid0039_20091125_2.gff";
 	private static final String DODGY_GFF_FILE_NAME =  "solid0039_20091125_DODGY.gff3";
@@ -39,6 +42,8 @@ public class QProfilerTest {
 		
 		createTestFile(DODGY_GFF_FILE_NAME_FILE, getDodgyFileContents());		
 	}
+	
+	
 
 	@Test
 	public final void executeWithValidArguments() throws Exception {
@@ -48,9 +53,9 @@ public class QProfilerTest {
 		String[] args = {"-log",  logFile.getAbsolutePath(), "-input", GFF_FILE_NAME_1_FILE.getAbsolutePath(),
 				"-input", GFF_FILE_NAME_2_FILE.getAbsolutePath(), "-o", outputFile.getAbsolutePath()};
 		int exitStatus = new QProfiler().setup(args);
-		Assert.assertEquals(0, exitStatus);
+		assertEquals(0, exitStatus);
 		
-		Assert.assertTrue(outputFile.exists());
+		assertTrue(outputFile.exists());
 	}
 	
 
@@ -59,47 +64,83 @@ public class QProfilerTest {
 		String[] args = {};
 		try {
 			int exitStatus = new QProfiler().setup(args);
-			Assert.assertEquals(1, exitStatus);
+			assertEquals(1, exitStatus);
 		} catch (Exception e) {
-			Assert.fail("no exception should have been thrown from executeWithNoArgs()");
+			fail("no exception should have been thrown from executeWithNoArgs()");
 		}
 	}
-	
+
 	@Test
 	public final void executeWithExcludeArgs() throws Exception {
 		File logFile = testFolder.newFile("executeWithExcludeArgs.log");
 		File logFile2 = testFolder.newFile("executeWithExcludeArgs2.log");
+		File output = testFolder.newFile();
 		
-		String[] args = new String[]{"-inc","html,all", "-input", GFF_FILE_NAME_1_FILE.getAbsolutePath(), "-log",logFile.getAbsolutePath()};
+		String[] args = new String[]{"-inc","html,all", "-input", GFF_FILE_NAME_1_FILE.getAbsolutePath(), "-log",logFile.getAbsolutePath(), "-o", output.getAbsolutePath()};
 		try {
 			int exitStatus = new QProfiler().setup(args);
-			Assert.assertEquals(0, exitStatus);
+			assertEquals(0, exitStatus);
 		} catch (Exception e) {
 			e.printStackTrace();
-			Assert.fail("no exception should have been thrown from executeWithExcludeArgs()");
-		}
-		
-		String[] args2 = new String[]{"-include","html,all,matricies,coverage", "-input", GFF_FILE_NAME_1_FILE.getAbsolutePath(), "-log",logFile2.getAbsolutePath()};
+			fail("no exception should have been thrown from executeWithExcludeArgs()");
+		}		
+		String[] args2 = new String[]{"-include","html,all,matricies,coverage", "-input", GFF_FILE_NAME_1_FILE.getAbsolutePath(), "-log",logFile2.getAbsolutePath(), "-o", output.getAbsolutePath()};
 		try {
 			int exitStatus =new QProfiler().setup(args2);
-			Assert.assertEquals(0, exitStatus);
+			assertEquals(0, exitStatus);
 		} catch (Exception e) {
-			Assert.fail("no exception should have been thrown from executeWithExcludeArgs()");
-		}
+			fail("no exception should have been thrown from executeWithExcludeArgs()");
+		}				
 	}
+	
+	@Test
+	public final void defaultOutputTest() throws Exception {
+		//delete any default output
+		File fdir =  new File(QProfiler.USER_DIR);
+		Arrays.asList(fdir.listFiles()).stream().filter(f-> f.getName().startsWith("qprofiler.xml")).forEach(f -> f.delete());
+		
+		String output = QProfiler.USER_DIR + QProfiler.FILE_SEPERATOR + "qprofiler.xml";
+		File logFile = testFolder.newFile();
+
+		//run twice
+		String[] args = new String[]{"-inc","html,all", "-input", GFF_FILE_NAME_1_FILE.getAbsolutePath(), "-log",logFile.getAbsolutePath()};				
+		try {
+			//all previous output cleaned
+			assertFalse(new File(output).exists());
+			
+			//create one default output
+			int exitStatus = new QProfiler().setup(args);
+			assertEquals(0, exitStatus);
+			assertTrue(new File(output).exists());
+			assertFalse(new File(output+".1").exists());
+			
+			//create second default output
+			exitStatus = new QProfiler().setup(args);
+			assertTrue(new File(output).exists());
+			assertTrue(new File(output+".1").exists());
+			assertFalse(new File(output+".2").exists());
+			
+		} catch (Exception e) {
+			fail("no exception should have been thrown from executeWithExcludeArgs()");
+		}
+		
+		//clean up
+		Arrays.asList(fdir.listFiles()).stream().filter(f-> f.getName().startsWith("qprofiler.xml")).forEach(f -> f.delete());
+		
+	}	
 	
 	@Test
 	public final void executeWithInvalidFileType() throws Exception {
 		File logFile = testFolder.newFile("executeWithInvalidFileType.log");
 		File inputFile = testFolder.newFile("executeWithInvalidFileType.test");
 		
-		String[] args = {"-input",inputFile.getAbsolutePath(), "-log", logFile.getAbsolutePath()};
+		String[] args = {"-input",inputFile.getAbsolutePath(), "-log", logFile.getAbsolutePath()};  
 		try {
 			new QProfiler().setup(args);
-			Assert.fail("Should have thrown a QProfilerException");
+			fail("Should have thrown a QProfilerException");
 		} catch (Exception qpe) {
-			Assert.assertEquals("Unsupported file type test", qpe.getMessage());
-		}
+			assertEquals("Unsupported file type test", qpe.getMessage());
+		}	
 	}
 	
 	@Ignore
@@ -109,43 +150,28 @@ public class QProfilerTest {
 		String[] args = {"-input","test123.sam", "-log", logFile.getAbsolutePath()};
 		try {
 			new QProfiler().setup(args);
-			Assert.fail("Should have thrown a QProfilerException");
+			fail("Should have thrown a QProfilerException");
 		} catch (Exception qpe) {
 			qpe.printStackTrace();
-			Assert.assertTrue(qpe.getMessage().startsWith("Cannot read supplied input file"));
+			assertTrue(qpe.getMessage().startsWith("Cannot read supplied input file"));
 		}
 	}
 	
 	@Ignore
 	public final void executeWithCorruptGffFile() throws Exception {
-		GFFReader reader = null;
+		GffReader reader = null;
 		try {
-			reader = new GFFReader(DODGY_GFF_FILE_NAME_FILE);
-			Assert.fail("Should have thrown an Exception");
+			reader = new GffReader(DODGY_GFF_FILE_NAME_FILE);
+			fail("Should have thrown an Exception");
 		} catch (Exception e) {
-			Assert.assertEquals("Not enough fields in the Record", e.getMessage());
+			assertEquals("Not enough fields in the Record", e.getMessage());
 		} finally {
 			// close the reader
 			if (null != reader)
 				reader.close();
 		}
 	}
-	
-//	private String getAbsoluteFilename(String filename) {
-//		File f = new File(filename);
-//		
-//		if (f.exists()) {
-//			return f.getAbsolutePath();
-//		} else {
-//			// try with user.dir
-//			f = new File(USER_DIR + FILE_SEPERATOR + "test" + FILE_SEPERATOR + filename);
-////			if (f.exists())
-//				return f.getAbsolutePath();
-//			
-////			f = new File(USER_DIR + FILE_SEPERATOR + "test" + FILE_SEPERATOR + filename);
-//		}
-//	}
-	
+		
 	private static void createTestFile(File file, List<String> data) {
 		PrintWriter out;
 		try {

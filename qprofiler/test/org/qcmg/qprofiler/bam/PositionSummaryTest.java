@@ -1,6 +1,7 @@
 package org.qcmg.qprofiler.bam;
 
-import junit.framework.Assert;
+
+import static org.junit.Assert.assertEquals;
 
 import java.util.Arrays;
 import java.util.List;
@@ -23,19 +24,19 @@ public class PositionSummaryTest {
 		ps.addPosition(123458, "rg1");
 		ps.addPosition(123459, "rg1");
 		
-		Assert.assertEquals(123456, ps.getMin());
-		Assert.assertEquals(123459, ps.getMax());		
-		Assert.assertEquals(5, ps.getCoverage().get(0).get());
+		assertEquals(123456, ps.getMin());
+		assertEquals(123459, ps.getMax());		
+		assertEquals(5, ps.getCoverage().get(0).get());
 		
 		// add some smaller numbers
 		ps.addPosition(123, "rg2");
 		ps.addPosition(456, "rg2");
 		
-		Assert.assertEquals(123, ps.getMin());
-		Assert.assertEquals(123459, ps.getMax());
-		Assert.assertEquals(7, ps.getCoverage().get(0).get());
-		Assert.assertEquals(2, ps.getRgCoverage().get(0).get(1));
-		Assert.assertEquals(5, ps.getRgCoverage().get(0).get(0));
+		assertEquals(123, ps.getMin());
+		assertEquals(123459, ps.getMax());
+		assertEquals(7, ps.getCoverage().get(0).get());
+		assertEquals(2, ps.getRgCoverage().get(0).get(1));
+		assertEquals(5, ps.getRgCoverage().get(0).get(0));
 	}
 	
 	@Test
@@ -50,34 +51,33 @@ public class PositionSummaryTest {
 		ps.addPosition(3000000,"rg2");
 		ps.addPosition(4000000,"rg2");
 		
-		Assert.assertEquals(1, ps.getMin());
-		Assert.assertEquals(4000000, ps.getMax());
-//		Assert.assertEquals(5, ps.getCoverage().size());
-		Assert.assertEquals(1, ps.getCoverage().get(0).get());
-		Assert.assertEquals(1, ps.getCoverage().get(1).get());
-		Assert.assertEquals(1, ps.getRgCoverage().get(2).get(1));
-		Assert.assertEquals(1, ps.getRgCoverage().get(3).get(1));
-		Assert.assertEquals(1, ps.getCoverage().get(4).get());
+		assertEquals(1, ps.getMin());
+		assertEquals(4000000, ps.getMax());
+		assertEquals(1, ps.getCoverage().get(0).get());
+		assertEquals(1, ps.getCoverage().get(1).get());
+		assertEquals(1, ps.getRgCoverage().get(2).get(1));
+		assertEquals(1, ps.getRgCoverage().get(3).get(1));
+		assertEquals(1, ps.getCoverage().get(4).get());
 		
 		// add some smaller numbers
 		ps.addPosition(0,"rg3");
 		ps.addPosition(456,"rg3");
 		
-		Assert.assertEquals(0, ps.getMin());
-		Assert.assertEquals(4000000, ps.getMax());
-		Assert.assertEquals(3, ps.getCoverage().get(0).get());
-		Assert.assertEquals(2, ps.getRgCoverage().get(0).get(2));
-		Assert.assertEquals(1, ps.getRgCoverage().get(0).get(0));
-		Assert.assertEquals(0, ps.getRgCoverage().get(0).get(1));
+		assertEquals(0, ps.getMin());
+		assertEquals(4000000, ps.getMax());
+		assertEquals(3, ps.getCoverage().get(0).get());
+		assertEquals(2, ps.getRgCoverage().get(0).get(2));
+		assertEquals(1, ps.getRgCoverage().get(0).get(0));
+		assertEquals(0, ps.getRgCoverage().get(0).get(1));
 		
 		
 		// and some larger numbers
 		ps.addPosition(2000002,"rg1");
 		ps.addPosition(5000000,"rg1");
 		
-		Assert.assertEquals(0, ps.getMin());
-		Assert.assertEquals(5000000, ps.getMax());
-		Assert.assertEquals(2, ps.getCoverage().get(2).get());
-		Assert.assertEquals(1, ps.getRgCoverage().get(2).get(1));
+		assertEquals(0, ps.getMin());
+		assertEquals(5000000, ps.getMax());
+		assertEquals(2, ps.getCoverage().get(2).get());
+		assertEquals(1, ps.getRgCoverage().get(2).get(1));
 	}
 }
