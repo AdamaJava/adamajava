@@ -24,7 +24,7 @@ import org.qcmg.common.vcf.VcfInfoFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
-import org.qcmg.vcf.VCFFileReader;
+import org.qcmg.qio.vcf.VcfFileReader;
 
 
 public class ConfidenceModeTest {
@@ -1178,7 +1178,7 @@ public class ConfidenceModeTest {
 		mode.reheader("unitTest", DbsnpModeTest.inputName);
 		mode.writeVCF(new File(DbsnpModeTest.outputName)  );
 		
-		try(VCFFileReader reader = new VCFFileReader(DbsnpModeTest.outputName)){			 
+		try(VcfFileReader reader = new VcfFileReader(DbsnpModeTest.outputName)){			 
 			for (final VcfRecord re : reader) {
 				String ff = re.getFormatFieldStrings();
 				if(re.getPosition() == 2675826) {
@@ -1215,7 +1215,7 @@ public class ConfidenceModeTest {
 		mode.reheader("unitTest", DbsnpModeTest.inputName);
 		mode.writeVCF(new File(DbsnpModeTest.outputName)  );
 		
-		try(VCFFileReader reader = new VCFFileReader(DbsnpModeTest.outputName)){
+		try(VcfFileReader reader = new VcfFileReader(DbsnpModeTest.outputName)){
 			for (final VcfRecord re : reader) {		
 				final VcfInfoFieldRecord infoRecord = new VcfInfoFieldRecord(re.getInfo()); 				
 				if(re.getPosition() == 2675826) 

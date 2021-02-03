@@ -19,8 +19,8 @@ import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
-import org.qcmg.vcf.VCFFileReader;
-import org.qcmg.vcf.VCFFileWriter;
+import org.qcmg.qio.vcf.VcfFileReader;
+import org.qcmg.qio.vcf.VCFFileWriter;
 
 import au.edu.qimr.qannotate.Options;
 import htsjdk.tribble.readers.TabixReader;
@@ -54,7 +54,7 @@ public class  CaddMode extends AbstractMode{
 		int pos = 0; 
 		int start = 1;
 		
-		try (VCFFileReader reader = new VCFFileReader(input);
+		try (VcfFileReader reader = new VcfFileReader(input);
 				VCFFileWriter writer = new VCFFileWriter( output)){
 			
 			//reheader first

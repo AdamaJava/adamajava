@@ -20,7 +20,7 @@ import org.qcmg.common.model.ProfileType;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
-import org.qcmg.vcf.VCFFileReader;
+import org.qcmg.qio.vcf.VcfFileReader;
 import org.qcmg.qprofiler.QProfilerSummary;
 import org.qcmg.qprofiler.report.SummaryReport;
 import org.qcmg.qprofiler.vcf.VcfSummaryReport;
@@ -34,7 +34,7 @@ public class VcfSummaryReportTest {
 		
 		File file = createVcfHeader( );	
 		VcfHeader header;
-		try (VCFFileReader reader = new VCFFileReader(file) ){ 	header = reader.getHeader(); }
+		try (VcfFileReader reader = new VcfFileReader(file) ){ 	header = reader.getVcfHeader(); }
 		
 		Node nreport = getXmlParentNode( file ) ;		
 		Node child = nreport.getChildNodes().item(0);
@@ -255,11 +255,11 @@ public class VcfSummaryReportTest {
 	
 	private Node getXmlParentNode( File input )   {
 				
-		try (  VCFFileReader reader = new VCFFileReader(input ) ){
+		try (  VcfFileReader reader = new VcfFileReader(input ) ){
 			
 			VcfSummaryReport vcfSummaryReport; 
 			VcfHeader header;			
-			header = reader.getHeader();
+			header = reader.getVcfHeader();
 			vcfSummaryReport = new VcfSummaryReport( header );		
 			for (final VcfRecord vcf : reader)  	
 				vcfSummaryReport.parseRecord( vcf);			

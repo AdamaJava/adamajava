@@ -89,11 +89,11 @@ import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils.VcfInfoType;
+import org.qcmg.qio.vcf.VcfFileReader;
+import org.qcmg.qio.vcf.VCFFileWriter;
 import org.qcmg.tab.TabbedFileReader;
 import org.qcmg.tab.TabbedHeader;
 import org.qcmg.tab.TabbedRecord;
-import org.qcmg.vcf.VCFFileReader;
-import org.qcmg.vcf.VCFFileWriter;
 
 public class Q3Panel {
 	
@@ -929,17 +929,17 @@ public class Q3Panel {
 		 */
 		if ( ! StringUtils.isBlank(dbSNPFile)) {
 			logger.info("Reading in dbsnp data from: " + dbSNPFile);
-			try ( VCFFileReader reader = new VCFFileReader( dbSNPFile )) {				
-				VcfHeaderRecord re = reader.getHeader().firstMatchedRecord(VcfHeaderUtils.STANDARD_DBSNP_LINE);
+			try ( VcfFileReader reader = new VcfFileReader( dbSNPFile )) {				
+				VcfHeaderRecord re = reader.getVcfHeader().firstMatchedRecord(VcfHeaderUtils.STANDARD_DBSNP_LINE);
 				if ( re != null ) {
 					dbSnpHeaderDetails.addOrReplace(String.format("##INFO=<ID=%s,Number=0,Type=%s,Description=\"%s\",Source=%s,Version=%s>",
 							VcfHeaderUtils.INFO_DB, VcfInfoType.Flag.name(),
 							VcfHeaderUtils.INFO_DB_DESC, dbSNPFile,re.getMetaValue()  ));
 				}
 				
-				re = reader.getHeader().getInfoRecord(VcfHeaderUtils.INFO_CAF);
+				re = reader.getVcfHeader().getInfoRecord(VcfHeaderUtils.INFO_CAF);
 				if ( re != null ) dbSnpHeaderDetails.addInfo(VcfHeaderUtils.INFO_VAF, ".", "String", VcfHeaderUtils.INFO_VAF_DESC);
-				re = reader.getHeader().getInfoRecord(VcfHeaderUtils.INFO_VLD);
+				re = reader.getVcfHeader().getInfoRecord(VcfHeaderUtils.INFO_VLD);
 				if (re != null) dbSnpHeaderDetails.addOrReplace(re);				
 				
 				dbSnpHeaderDetails.addInfo("DB_CDS", ".", "String", "Reference and Alt alleles as reported by dbSNP");

@@ -27,8 +27,8 @@ import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
-import org.qcmg.vcf.VCFFileReader;
-import org.qcmg.vcf.VCFFileWriter;
+import org.qcmg.qio.vcf.VcfFileReader;
+import org.qcmg.qio.vcf.VCFFileWriter;
 
 import au.edu.qimr.qannotate.Options;
 
@@ -159,11 +159,11 @@ public class IndelConfidenceMode extends AbstractMode{
 		long count = 0;
 		long repeatCount = 0; 
 		HashSet<ChrPosition> posCheck = new HashSet<ChrPosition>();	
-		try (VCFFileReader reader = new VCFFileReader(input) ;
+		try (VcfFileReader reader = new VcfFileReader(input) ;
             VCFFileWriter writer = new VCFFileWriter(new File(output ))  ) {
 			    
 			//reheader
-		    VcfHeader hd = 	reader.getHeader();
+		    VcfHeader hd = 	reader.getVcfHeader();
 		    hd.addFilter(FILTER_REPEAT, DESCRIPTION_FILTER_REPEAT );       	  
 		    hd.addInfo(VcfHeaderUtils.INFO_CONFIDENCE, "1", "String", DESCRITPION_INFO_CONFIDENCE);		    
 		    hd = reheader(hd, commandLine ,input);			    	  

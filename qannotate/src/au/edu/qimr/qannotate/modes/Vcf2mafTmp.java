@@ -40,7 +40,7 @@ import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
-import org.qcmg.vcf.VCFFileReader;
+import org.qcmg.qio.vcf.VcfFileReader;
 
 import au.edu.qimr.qannotate.Options;
 import au.edu.qimr.qannotate.utils.MafElement;
@@ -87,16 +87,16 @@ public class Vcf2mafTmp extends AbstractMode{
 		this.sequencer = option.getSequencer();		
 		
 		//make output file name		 
-		try(VCFFileReader reader = new VCFFileReader(new File( option.getInputFileName()))){
+		try(VcfFileReader reader = new VcfFileReader(new File( option.getInputFileName()))){
 			//get control and test sample column			
-			SampleColumn column = SampleColumn.getSampleColumn(option.getTestSample(), option.getControlSample() , reader.getHeader());
+			SampleColumn column = SampleColumn.getSampleColumn(option.getTestSample(), option.getControlSample() , reader.getVcfHeader());
 			this.test_column = column.getTestSampleColumn();
 			this.control_column = column.getControlSampleColumn();
 			this.testSample = column.getTestSample();
 			this.controlSample = column.getControlSample();				
 			this.testBamId = column.getTestBamId();
 			this.controlBamId = column.getControlBamId();
-			this.donorId = option.getDonorId() == null? SampleColumn.getDonorId(reader.getHeader()) : option.getDonorId();
+			this.donorId = option.getDonorId() == null? SampleColumn.getDonorId(reader.getVcfHeader()) : option.getDonorId();
 		
 			logger.info(String.format("test Sample %s is located on column %d after FORMAT", testSample, test_column));
 			logger.info(String.format("control Sample %s is located on column %d after FORMAT", controlSample, control_column));
@@ -126,7 +126,7 @@ public class Vcf2mafTmp extends AbstractMode{
 		String GHCVcf = outputname.replace(".maf", ".Germline.HighConfidence.vcf") ;
 
 		long noIn = 0, noOut = 0, no_SHCC = 0, no_SHC = 0, no_GHCC = 0, no_GHC = 0;// no_SLCC = 0, no_SLC = 0, no_GLCC = 0, no_GLC = 0; 
-		try(VCFFileReader reader = new VCFFileReader(new File( option.getInputFileName()));
+		try(VcfFileReader reader = new VcfFileReader(new File( option.getInputFileName()));
 				PrintWriter out = new PrintWriter(outputname);
 				PrintWriter out_SHCC = new PrintWriter(SHCC);
 				PrintWriter out_SHC = new PrintWriter(SHC);
@@ -139,7 +139,7 @@ public class Vcf2mafTmp extends AbstractMode{
 				){
 			
 			reheader( option.getCommandLine(), option.getInputFileName());				
-			createVcfHeaders(reader.getHeader(), outSHCCVcf, outSHCVcf, outGHCCVcf, outGHCVcf);			
+			createVcfHeaders(reader.getVcfHeader(), outSHCCVcf, outSHCVcf, outGHCCVcf, outGHCVcf);			
 			createMafHeader(out,out_SHCC,out_SHC,out_GHCC,out_GHC); //out_SLCC,out_SLC,out_GLCC,out_GLC);						
 			for (final VcfRecord vcf : reader) {
 				

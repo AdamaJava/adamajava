@@ -19,7 +19,7 @@ import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
-import org.qcmg.vcf.VCFFileReader;
+import org.qcmg.qio.vcf.VcfFileReader;
 
 public class GermlineModeTest {
 	
@@ -67,10 +67,10 @@ public class GermlineModeTest {
 		mode.reheader("testing run",   f.getAbsolutePath());
 		mode.writeVCF(out);
 		
-		try(VCFFileReader reader = new VCFFileReader(out)){
+		try(VcfFileReader reader = new VcfFileReader(out)){
 			 
 			 //check header
-			VcfHeader header = reader.getHeader();	
+			VcfHeader header = reader.getVcfHeader();	
 			assertEquals(false, header.getFilterRecord(VcfHeaderUtils.FILTER_GERMLINE) != null);
 
 			//check records
@@ -118,7 +118,7 @@ public class GermlineModeTest {
 		mode.addAnnotation(db.getAbsolutePath());
 		mode.writeVCF(out);
         
-		 try(VCFFileReader reader = new VCFFileReader(out)){ 
+		 try(VcfFileReader reader = new VcfFileReader(out)){ 
 			//check records
 			int i = 0;
 			for (final VcfRecord re : reader) {	

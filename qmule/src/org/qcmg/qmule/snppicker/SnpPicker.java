@@ -39,7 +39,7 @@ import org.qcmg.qmule.QMuleException;
 import org.qcmg.qio.illumina.IlluminaFileReader;
 import org.qcmg.qio.illumina.IlluminaRecord;
 import org.qcmg.qio.record.StringFileReader;
-import org.qcmg.vcf.VCFFileReader;
+import org.qcmg.qio.vcf.VcfFileReader;
 
 public class SnpPicker {
 	
@@ -402,9 +402,9 @@ public class SnpPicker {
 	
 	private void loadVCFData() {
 		String vcfFile = cmdLineInputFiles[2];
-		VCFFileReader reader = null;
+		VcfFileReader reader = null;
 		try {
-			reader = new VCFFileReader(new File(vcfFile));
+			reader = new VcfFileReader(new File(vcfFile));
 		} catch (Exception e) {
 			logger.error("Error caught whilst trying to instantiate VCFFileReader", e);
 			exitStatus = -1;

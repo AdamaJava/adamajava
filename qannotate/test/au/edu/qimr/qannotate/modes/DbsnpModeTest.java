@@ -18,7 +18,7 @@ import org.qcmg.common.util.Constants;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
-import org.qcmg.vcf.VCFFileReader;
+import org.qcmg.qio.vcf.VcfFileReader;
 
 public class DbsnpModeTest {
 	
@@ -99,8 +99,8 @@ public class DbsnpModeTest {
 		mode.reheader("testing run",   inputName);
 		mode.writeVCF(new File(outputName));
 
-		try (VCFFileReader reader = new VCFFileReader(outputName)) {
-			VcfHeader header = reader.getHeader();	
+		try (VcfFileReader reader = new VcfFileReader(outputName)) {
+			VcfHeader header = reader.getVcfHeader();	
 			assertEquals( header.getInfoRecord(VcfHeaderUtils.INFO_VLD)!= null, true);
 		}		 
 	}		

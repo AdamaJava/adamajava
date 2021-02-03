@@ -24,8 +24,8 @@ import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
-import org.qcmg.vcf.VCFFileReader;
-import org.qcmg.vcf.VCFFileWriter;
+import org.qcmg.qio.vcf.VcfFileReader;
+import org.qcmg.qio.vcf.VCFFileWriter;
 
 import au.edu.qimr.vcftools.util.MergeUtils;
 
@@ -73,13 +73,13 @@ public class MergeSameSamples {
 	private boolean canHeadersBeMerged() throws IOException {
 		headers = new VcfHeader[vcfFiles.length];
 		contentTypes = new ContentType[vcfFiles.length];
-		try (VCFFileReader reader = new VCFFileReader(new File(vcfFiles[0]))) {
-			headers[0] = reader.getHeader();
+		try (VcfFileReader reader = new VcfFileReader(new File(vcfFiles[0]))) {
+			headers[0] = reader.getVcfHeader();
 			VcfFileMeta meta = new VcfFileMeta(headers[0]);
 			contentTypes[0] = meta.getType();
 		}
-		try (VCFFileReader reader = new VCFFileReader(new File(vcfFiles[1]))) {
-			headers[1] = reader.getHeader();
+		try (VcfFileReader reader = new VcfFileReader(new File(vcfFiles[1]))) {
+			headers[1] = reader.getVcfHeader();
 			VcfFileMeta meta = new VcfFileMeta(headers[1]);
 			contentTypes[1] = meta.getType();
 		}
@@ -153,7 +153,7 @@ public class MergeSameSamples {
 	
 	private void loadVcfs() throws IOException {
 		int i = 0;
-		try (VCFFileReader reader = new VCFFileReader(new File(vcfFiles[0]))) {
+		try (VcfFileReader reader = new VcfFileReader(new File(vcfFiles[0]))) {
 			for (VcfRecord rec : reader) {
 				if (++ i % 1000000 == 0) {
 					
@@ -169,7 +169,7 @@ public class MergeSameSamples {
 		}
 		logger.info("input1 has " + i + " entries");
 		i = 0;
-		try (VCFFileReader reader = new VCFFileReader(new File(vcfFiles[1]))) {
+		try (VcfFileReader reader = new VcfFileReader(new File(vcfFiles[1]))) {
 			for (VcfRecord rec : reader) {
 				if (++i % 1000000 == 0) {
 					logger.info("hit " + i + " entries");

@@ -49,8 +49,8 @@ import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
-import org.qcmg.vcf.VCFFileReader;
-import org.qcmg.vcf.VCFFileWriter;
+import org.qcmg.qio.vcf.VcfFileReader;
+import org.qcmg.qio.vcf.VCFFileWriter;
 
 public class Vcf2maf extends AbstractMode {
 	
@@ -106,8 +106,8 @@ public class Vcf2maf extends AbstractMode {
 		this.sequencer = option.getSequencer();		
 		
 		//make output file name		 
-		try (VCFFileReader reader = new VCFFileReader(new File( option.getInputFileName()))) {
-			VcfHeader vh = reader.getHeader();
+		try (VcfFileReader reader = new VcfFileReader(new File( option.getInputFileName()))) {
+			VcfHeader vh = reader.getVcfHeader();
 			
 			//get control and test sample column										
 			meta = new VcfFileMeta(vh);
@@ -121,7 +121,7 @@ public class Vcf2maf extends AbstractMode {
 			meta.getFirstControlSample().ifPresent((s) -> this.controlSample = s);
 			meta.getFirstControlBamUUID().ifPresent((s) -> this.controlBamId = s);
 			meta.getFirstTestBamUUID().ifPresent((s) -> this.testBamId = s);
-			this.donorId = option.getDonorId() == null ? SampleColumn.getDonorId(reader.getHeader()) : option.getDonorId();
+			this.donorId = option.getDonorId() == null ? SampleColumn.getDonorId(reader.getVcfHeader()) : option.getDonorId();
 		
 			logger.info(String.format("Test Sample %s is located on column %d after FORMAT", testSample, testColumn));
 			if (ContentType.multipleSamples(contentType)) {
@@ -156,7 +156,7 @@ public class Vcf2maf extends AbstractMode {
 		String gPVcf = outputname.replace(".maf", ".Germline.Pass.vcf.gz") ;
 
 		long noIn = 0, noOut = 0, no_SHCC = 0, no_SHC = 0, no_GHCC = 0, no_GHC = 0;
-		try (VCFFileReader reader = new VCFFileReader(new File( option.getInputFileName()));
+		try (VcfFileReader reader = new VcfFileReader(new File( option.getInputFileName()));
 				PrintWriter out = new PrintWriter(outputname);
 				PrintWriter out_SPC = new PrintWriter(sPC);
 				PrintWriter out_SP = new PrintWriter(sP);
@@ -170,7 +170,7 @@ public class Vcf2maf extends AbstractMode {
 			
 			reheader( option.getCommandLine(), option.getInputFileName());			
 			createMafHeader(out,out_SPC,out_SP,out_GPC,out_GP);
-			createVcfHeaders(reader.getHeader(), outSPCVcf, outSPVcf, outGPCVcf, outGPVcf);
+			createVcfHeaders(reader.getVcfHeader(), outSPCVcf, outSPVcf, outGPCVcf, outGPVcf);
 			
 			for (final VcfRecord vcf : reader) {
 				

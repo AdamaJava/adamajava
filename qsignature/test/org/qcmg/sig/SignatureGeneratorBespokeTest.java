@@ -13,7 +13,7 @@ import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
-import org.qcmg.vcf.VCFFileReader;
+import org.qcmg.qio.vcf.VcfFileReader;
 
 import gnu.trove.map.TObjectIntMap;
 import htsjdk.samtools.SAMFileHeader;
@@ -201,12 +201,12 @@ public class SignatureGeneratorBespokeTest {
     	assertTrue(outputFile.exists());
    	
     	final List<VcfRecord> recs = new ArrayList<>();
-    	try (VCFFileReader reader = new VCFFileReader(outputFile);) {    			
+    	try (VcfFileReader reader = new VcfFileReader(outputFile);) {    			
 	    	for (final VcfRecord rec : reader) {
 	    		recs.add(rec);
 	    		System.out.println("rec: " + rec.toString());
 	    	}
-	    	VcfHeader header = reader.getHeader();
+	    	VcfHeader header = reader.getVcfHeader();
 //	    	header.getAllMetaRecords().stream().forEach(System.out::println);
 	    	assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg0=null")));
     	}
@@ -240,12 +240,12 @@ public class SignatureGeneratorBespokeTest {
 		assertTrue(outputFile.exists());
 		
 		final List<VcfRecord> recs = new ArrayList<>();
-		try (VCFFileReader reader = new VCFFileReader(outputFile);) {    			
+		try (VcfFileReader reader = new VcfFileReader(outputFile);) {    			
 			for (final VcfRecord rec : reader) {
 				recs.add(rec);
 				System.out.println("rec: " + rec.toString());
 			}
-			VcfHeader header = reader.getHeader();
+			VcfHeader header = reader.getVcfHeader();
 	    	header.getAllMetaRecords().stream().forEach(System.out::println);
 			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg0=null")));
 			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg1=20130325103517169")));

@@ -15,7 +15,7 @@ import org.qcmg.common.model.MafConfidence;
 import org.qcmg.common.vcf.VcfInfoFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
-import org.qcmg.vcf.VCFFileReader;
+import org.qcmg.qio.vcf.VcfFileReader;
 
 import au.edu.qimr.qannotate.utils.SampleColumn;
 
@@ -38,7 +38,7 @@ public class CustomerConfidenceModeTest {
 		mode.reheader("testing run",   DbsnpModeTest.inputName );
 		mode.writeVCF(new File(DbsnpModeTest.outputName));
 		
-		try(VCFFileReader reader = new VCFFileReader(DbsnpModeTest.outputName)){			
+		try(VcfFileReader reader = new VcfFileReader(DbsnpModeTest.outputName)){			
 			for (final VcfRecord re : reader) {		
 				final VcfInfoFieldRecord infoRecord = new VcfInfoFieldRecord(re.getInfo()); 				
 				if(re.getPosition() == 41281388) 

@@ -19,8 +19,8 @@ import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
-import org.qcmg.vcf.VCFFileReader;
-import org.qcmg.vcf.VCFFileWriter;
+import org.qcmg.qio.vcf.VcfFileReader;
+import org.qcmg.qio.vcf.VCFFileWriter;
 
 import au.edu.qimr.qannotate.Options;
 import ca.mcgill.mcb.pcingola.snpEffect.commandLine.SnpEff;
@@ -48,7 +48,7 @@ public class SnpEffMode extends AbstractMode{
 		
 		//reheader
         if (ok) { 
-	        	header = new VCFFileReader(tmpFile).getHeader();
+	        	header = new VcfFileReader(tmpFile).getVcfHeader();
 	        	reheader(options.getCommandLine(),options.getInputFileName())	;	
 	        	writeVCF(new File( options.getOutputFileName()) );
 			logger.tool("reheader snpEFF output to " +   options.getOutputFileName());
@@ -62,7 +62,7 @@ public class SnpEffMode extends AbstractMode{
 	protected void writeVCF(File outputFile )  throws IOException{
 		long counts = 0;
 		List<ChrPosition> pc = new ArrayList<>();
-		try(VCFFileReader reader = new VCFFileReader(new File( tmpFile));
+		try(VcfFileReader reader = new VcfFileReader(new File( tmpFile));
 				VCFFileWriter writer = new VCFFileWriter(outputFile )){
 								
 	        	for(final VcfHeaderRecord record: header) {

@@ -17,7 +17,7 @@ import org.qcmg.common.model.MafConfidence;
 import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
-import org.qcmg.vcf.VCFFileReader;
+import org.qcmg.qio.vcf.VcfFileReader;
 
 import au.edu.qimr.qannotate.Main;
 
@@ -112,7 +112,7 @@ public class IndelConfidenceModeTest {
 					"-d", new File(dbMask).getAbsolutePath(), "--log", new File(log).getAbsolutePath()};									
 			Main.main(args);
 						
-	        try (VCFFileReader reader = new VCFFileReader(new File(output))) {
+	        try (VcfFileReader reader = new VcfFileReader(new File(output))) {
 	        	int i = 0;
 	        	//mask 53744 53780 
 	        	for ( VcfRecord re : reader) {		

@@ -74,10 +74,10 @@ import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
+import org.qcmg.qio.vcf.VCFFileWriter;
 import org.qcmg.tab.TabbedFileReader;
 import org.qcmg.tab.TabbedHeader;
 import org.qcmg.tab.TabbedRecord;
-import org.qcmg.vcf.VCFFileWriter;
 
 public class Q3ClinVar {
 	

@@ -22,7 +22,7 @@ import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
-import org.qcmg.vcf.VCFFileReader;
+import org.qcmg.qio.vcf.VcfFileReader;
 
 import au.edu.qimr.qannotate.utils.SampleColumn;
 
@@ -78,9 +78,9 @@ public class AbstractModeTest {
 		db.writeVCF(new File(outputName));
 		
 		
-        try (VCFFileReader reader = new VCFFileReader(new File(outputName))) {
+        try (VcfFileReader reader = new VcfFileReader(new File(outputName))) {
 	        	int i = 0;
-	        	for (VcfHeaderRecord re :  reader.getHeader()) {
+	        	for (VcfHeaderRecord re :  reader.getVcfHeader()) {
 	        		if (re.toString().startsWith(VcfHeaderUtils.STANDARD_UUID_LINE)) {
 	        			// new UUID should have been inserted by now
 	        			assertEquals(false, "abcd_12345678_xzy_999666333".equals(StringUtils.getValueFromKey(re.getMetaValue(), VcfHeaderUtils.STANDARD_UUID_LINE)));
@@ -180,7 +180,7 @@ public class AbstractModeTest {
 		/*
 		 * now check the ordering
 		 */
-		try (VCFFileReader reader = new VCFFileReader(outputVcfFile)) {
+		try (VcfFileReader reader = new VcfFileReader(outputVcfFile)) {
 			int i = 0;
 			for (VcfRecord v : reader) {
 				i++;
@@ -223,7 +223,7 @@ public class AbstractModeTest {
 		/*
 		 * now check the ordering
 		 */
-		try (VCFFileReader reader = new VCFFileReader(outputVcfFile)) {
+		try (VcfFileReader reader = new VcfFileReader(outputVcfFile)) {
 			int i = 0;
 			for (VcfRecord v : reader) {
 				i++;
