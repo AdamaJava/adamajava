@@ -20,24 +20,21 @@
 package org.qcmg.qprofiler.gff;
 
 import java.io.File;
-import java.io.IOException;
-
 import org.qcmg.common.date.DateUtils;
 import org.qcmg.common.log.QLevel;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
-import org.qcmg.gff.GFFReader;
-import org.qcmg.gff.GFFRecord;
+import org.qcmg.qio.gff.GffReader;
+import org.qcmg.qio.gff.GffRecord;
 import org.qcmg.qprofiler.report.SummaryReport;
 import org.qcmg.qprofiler.summarise.Summarizer;
-import org.qcmg.record.Record;
 
 public class GffSummarizer implements Summarizer {
 	
 	private static final QLogger logger = QLoggerFactory.getLogger(GffSummarizer.class);
 	
 	@Override
-	public SummaryReport summarize(String input, String index, String[] regions) throws IOException {
+	public SummaryReport summarize(String input, String index, String[] regions){
 
 		GffSummaryReport gffSummaryReport = new GffSummaryReport();
 		gffSummaryReport.setFileName(input);
@@ -47,14 +44,16 @@ public class GffSummarizer implements Summarizer {
 		final boolean isLevelEnabled = logger.isLevelEnabled(QLevel.DEBUG);
 
 		
-		try (GFFReader reader = new GFFReader(new File(input));){
-			for (Record record : reader) {
-				gffSummaryReport.parseRecord((GFFRecord) record);
+		try (GffReader reader = new GffReader(new File(input));){
+			for (GffRecord record : reader) {
+				gffSummaryReport.parseRecord((GffRecord) record);
 				
 				if (isLevelEnabled && gffSummaryReport.getRecordsParsed() % FEEDBACK_LINES_COUNT == 0) {
 					logger.debug("Records parsed: " + gffSummaryReport.getRecordsParsed());
 				}
 			}
+		} catch (Exception e) {
+			logger.warn("error during reading gff file:"+input + "\n"+e.getMessage());
 		}
 
 		gffSummaryReport.setFinishTime(DateUtils.getCurrentDateAsString());

@@ -1,5 +1,11 @@
 package org.qcmg.qprofiler.bam;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -9,8 +15,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import junit.framework.Assert;
 
 import org.junit.After;
 import org.junit.Before;
@@ -30,7 +34,7 @@ public class BamSummarizerTest {
 	public void tearDown() {
 		File outputFile = new File(SAM_INPUT_FILE);
 		boolean deleted = outputFile.delete();
-		Assert.assertTrue(deleted);
+		assertTrue(deleted);
 	}
 
 	@Test
@@ -38,9 +42,9 @@ public class BamSummarizerTest {
 		BamSummarizer bs = new BamSummarizer();
 		BamSummaryReport sr = (BamSummaryReport) bs.summarize( SAM_INPUT_FILE, null, null);
 
-		Assert.assertNotNull(sr);
+		assertNotNull(sr);
 		
-		Assert.assertEquals(5, sr.getRecordsParsed());		// should be 5 records
+		assertEquals(5, sr.getRecordsParsed());		// should be 5 records
 		testSummaryReport(sr);
 	}
 	
@@ -50,16 +54,16 @@ public class BamSummarizerTest {
 			BamSummarizer bs = new BamSummarizer(null, i, null, null, null, null);
 			BamSummaryReport sr = (BamSummaryReport) bs.summarize(SAM_INPUT_FILE, null, null);
 
-			Assert.assertNotNull(sr);
-			Assert.assertEquals(i, sr.getRecordsParsed());
+			assertNotNull(sr);
+			assertEquals(i, sr.getRecordsParsed());
 		}
 		
 		// test with 0 value - should return everything
 		BamSummarizer bs = new BamSummarizer(null, 0, null, null, null, null);
 		BamSummaryReport sr = (BamSummaryReport) bs.summarize(SAM_INPUT_FILE, null, null);
 		
-		Assert.assertNotNull(sr);
-		Assert.assertEquals(5, sr.getRecordsParsed());
+		assertNotNull(sr);
+		assertEquals(5, sr.getRecordsParsed());
 	}
 	
 	@Test
@@ -69,8 +73,8 @@ public class BamSummarizerTest {
 		BamSummarizer bs = new BamSummarizer(args, 0, null, null, null, null);
 		BamSummaryReport sr = (BamSummaryReport) bs.summarize(SAM_INPUT_FILE, null, null);
 		
-		Assert.assertNotNull(sr);
-		Assert.assertEquals(5, sr.getRecordsParsed());
+		assertNotNull(sr);
+		assertEquals(5, sr.getRecordsParsed());
 		testSummaryReport(sr);
 		
 		//release memory so we can work for mers6
@@ -82,8 +86,8 @@ public class BamSummarizerTest {
 		bs = new BamSummarizer(args2, 0, null, null, null, null);
 		sr = (BamSummaryReport) bs.summarize(SAM_INPUT_FILE, null, null);
 		
-		Assert.assertNotNull(sr);
-		Assert.assertEquals(5, sr.getRecordsParsed());
+		assertNotNull(sr);
+		assertEquals(5, sr.getRecordsParsed());
 	}
 	
 	@Test
@@ -92,8 +96,8 @@ public class BamSummarizerTest {
 		BamSummarizer bs = new BamSummarizer();
 		BamSummaryReport sr = (BamSummaryReport) bs.summarize(SAM_INPUT_FILE, null, null);
 		
-		Assert.assertNotNull(sr);
-		Assert.assertTrue(sr.getCoverage().isEmpty());
+		assertNotNull(sr);
+		assertTrue(sr.getCoverage().isEmpty());
 		
 		//release memory so we can work for mers6
 		bs = null; sr = null; 
@@ -103,10 +107,10 @@ public class BamSummarizerTest {
 		bs = new BamSummarizer(args, 0, null, null, null, null);
 		sr = (BamSummaryReport) bs.summarize(SAM_INPUT_FILE, null, null);
 		
-		Assert.assertNotNull(sr);
-		Assert.assertFalse(sr.getCoverage().isEmpty());
+		assertNotNull(sr);
+		assertFalse(sr.getCoverage().isEmpty());
 		// check matrix info is still there
-		Assert.assertTrue(sr.getMapQMatrix().isEmpty());
+		assertTrue(sr.getMapQMatrix().isEmpty());
 	}
 	
 	@Test
@@ -115,8 +119,8 @@ public class BamSummarizerTest {
 		BamSummarizer bs = new BamSummarizer();
 		BamSummaryReport sr = (BamSummaryReport) bs.summarize(SAM_INPUT_FILE, null, null);
 		
-		Assert.assertNotNull(sr);
-		Assert.assertTrue(sr.getMapQMatrix().isEmpty());
+		assertNotNull(sr);
+		assertTrue(sr.getMapQMatrix().isEmpty());
 		
 		//release memory so we can work for mers6
 		bs = null; sr = null; 
@@ -125,46 +129,43 @@ public class BamSummarizerTest {
 		bs = new BamSummarizer(new String[] {"matrices"}, 0, null, null, null, null);
 		sr = (BamSummaryReport) bs.summarize(SAM_INPUT_FILE, null, null);
 		
-		Assert.assertNotNull(sr);
-		Assert.assertFalse(sr.getMapQMatrix().isEmpty());
+		assertNotNull(sr);
+		assertFalse(sr.getMapQMatrix().isEmpty());
 		// check coverage info is still there
-		Assert.assertTrue(sr.getCoverage().isEmpty());
+		assertTrue(sr.getCoverage().isEmpty());
 	}
 
 	private void testSummaryReport(BamSummaryReport sr) {
 		// ceegars
-		Assert.assertEquals(1, sr.getCigarValuesCount().get("13H").get());
-		Assert.assertEquals(1, sr.getCigarValuesCount().get("15H").get());
-		Assert.assertEquals(1, sr.getCigarValuesCount().get("8H").get());
-		Assert.assertEquals(1, sr.getCigarValuesCount().get("22H").get());
-		Assert.assertEquals(1, sr.getCigarValuesCount().get("10H").get());
+		assertEquals(1, sr.getCigarValuesCount().get("13H").get());
+		assertEquals(1, sr.getCigarValuesCount().get("15H").get());
+		assertEquals(1, sr.getCigarValuesCount().get("8H").get());
+		assertEquals(1, sr.getCigarValuesCount().get("22H").get());
+		assertEquals(1, sr.getCigarValuesCount().get("10H").get());
 		
 		// seq by cycle
 		// position 1
-		Assert.assertEquals(1, sr.getSeqByCycle().count(1, 'A').get());
-		Assert.assertEquals(2, sr.getSeqByCycle().count(1, 'T').get());
-		Assert.assertEquals(2, sr.getSeqByCycle().count(1, 'G').get());
-		Assert.assertEquals(0, sr.getSeqByCycle().count(1, 'C').get());
+		assertEquals(1, sr.getSeqByCycle().count(1, 'A').get());
+		assertEquals(2, sr.getSeqByCycle().count(1, 'T').get());
+		assertEquals(2, sr.getSeqByCycle().count(1, 'G').get());
+		assertEquals(0, sr.getSeqByCycle().count(1, 'C').get());
 		// position 26
-		Assert.assertEquals(3, sr.getSeqByCycle().count(26, 'T').get());
-		Assert.assertEquals(1, sr.getSeqByCycle().count(26, 'C').get());
-		Assert.assertEquals(1, sr.getSeqByCycle().count(26, 'G').get());
+		assertEquals(3, sr.getSeqByCycle().count(26, 'T').get());
+		assertEquals(1, sr.getSeqByCycle().count(26, 'C').get());
+		assertEquals(1, sr.getSeqByCycle().count(26, 'G').get());
 		
 		// tags....
 		// cs
-		Assert.assertEquals(3, sr.getTagCSByCycle().count(1, '1').get());
-		Assert.assertEquals(3, sr.getTagCSByCycle().count(2, '0').get());
+		assertEquals(3, sr.getTagCSByCycle().count(1, '1').get());
+		assertEquals(3, sr.getTagCSByCycle().count(2, '0').get());
 		//cs line lengths
-		Assert.assertEquals(5, sr.getTagCSLineLengths().get(Integer.valueOf(50)).get());
+		assertEquals(5, sr.getTagCSLineLengths().get(Integer.valueOf(50)).get());
 		
-		// cq debug
-//		Assert.assertEquals(1, sr.getTagCQByCycle().count(1, 2).get());
-//		Assert.assertEquals(1, sr.getTagCQByCycle().count(2, 32).get());
 		//cq line lengths
-		Assert.assertEquals(5, sr.getTagCQLineLengths().get(Integer.valueOf(50)).get());
+		assertEquals(5, sr.getTagCQLineLengths().get(Integer.valueOf(50)).get());
 		
 		// rg
-		Assert.assertEquals(5, sr.getTagRGLineLengths().get("1959T").get());
+		assertEquals(5, sr.getTagRGLineLengths().get("1959T").get());
 		
 		// zm - none of these in sample data as yet...
 		
@@ -172,7 +173,7 @@ public class BamSummarizerTest {
 		for (int i = 0 ; i < sr.getTagZMLineLengths().length() ; i++) {
 			if (sr.getTagZMLineLengths().get(i) > 0) noOfPositionsWithPositiveCounts++;
 		}
-		Assert.assertEquals(0, noOfPositionsWithPositiveCounts);
+		assertEquals(0, noOfPositionsWithPositiveCounts);
 		
 		// something else..
 		
@@ -185,9 +186,9 @@ public class BamSummarizerTest {
 		BamSummarizer qs = new BamSummarizer();
 		try {
 			qs.summarize(SAM_DODGY_INPUT_FILE, null, null);
-			Assert.fail("Should have thrown an exception");
+			fail("Should have thrown an exception");
 		} catch (Exception e) {
-			Assert.assertTrue(e.getMessage().startsWith("Error parsing text SAM file. Not enough fields"));
+			assertTrue(e.getMessage().startsWith("Error parsing text SAM file. Not enough fields"));
 		}
 
 		deleteDodgyDataFile();
@@ -200,10 +201,7 @@ public class BamSummarizerTest {
 		BamSummarizer qs = new BamSummarizer();
 		try {
 			qs.summarize(SAM_DODGY_INPUT_FILE, null, null);
-//			Assert.fail("Should have thrown an Exception");
-		} catch (Exception e) {
-//			Assert.assertEquals("Input files must be coordinate sorted", e.getMessage());
-		}
+		} catch (Exception e) {}
 
 		deleteDodgyDataFile();
 	}
@@ -221,9 +219,9 @@ public class BamSummarizerTest {
 		BamSummarizer qs = new BamSummarizer();
 		try {
 			qs.summarize(SAM_DODGY_INPUT_FILE, null, null);
-			Assert.fail("Should have thrown an Exception");
+			fail("Should have thrown an Exception");
 		} catch (Exception e) {
-			Assert.assertTrue(e.getMessage().startsWith("Error parsing text SAM file. Not enough fields in tag"));
+			assertTrue(e.getMessage().startsWith("Error parsing text SAM file. Not enough fields in tag"));
 		}
 
 		deleteDodgyDataFile();
@@ -241,9 +239,9 @@ public class BamSummarizerTest {
 		BamSummarizer qs = new BamSummarizer();
 		try {
 			qs.summarize(SAM_DODGY_INPUT_FILE, null, null);
-			Assert.fail("Should have thrown an Exception");
+			fail("Should have thrown an Exception");
 		} catch (Exception e) {
-			Assert.assertTrue(e.getMessage().startsWith("Error parsing text SAM file. Not enough fields"));
+			assertTrue(e.getMessage().startsWith("Error parsing text SAM file. Not enough fields"));
 		}
 		
 		deleteDodgyDataFile();
@@ -262,11 +260,8 @@ public class BamSummarizerTest {
 		BamSummarizer qs = new BamSummarizer();
 		try {
 			qs.summarize(SAM_DODGY_INPUT_FILE, null, null);
-			Assert.fail("Should have thrown an Exception");
+			fail("Should have thrown an Exception");
 		} catch (Exception e) {
-//			Assert.fail("Should NOT have thrown an Exception");
-			// if there is no header details, defaults to unsorted hence strange error message
-//			Assert.assertEquals("Input files must be coordinate sorted", e.getMessage());
 		}
 
 		deleteDodgyDataFile();
@@ -275,15 +270,13 @@ public class BamSummarizerTest {
 	private void deleteDodgyDataFile() {
 		File outputFile = new File(SAM_DODGY_INPUT_FILE);
 		boolean deleted = outputFile.delete();
-		Assert.assertTrue(deleted);
+		assertTrue(deleted);
 	}
 
 	private void createDodgyDataFile(List<String> dodgyData) {
 		createTestSamFile(SAM_DODGY_INPUT_FILE, dodgyData);
 	}
-//	private void createDodgyDataFileBWA(List<String> dodgyData) {
-//		createTestSamFile(SAM_DODGY_INPUT_FILE, dodgyData);
-//	}
+
 
 	private static List<String> createValidSamData() {
 		List<String> data = new ArrayList<String>();

@@ -1,4 +1,4 @@
-package org.qcmg.ma;
+package org.qcmg.qio.ma;
 
 import static org.junit.Assert.assertTrue;
 
@@ -7,21 +7,12 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.qcmg.qio.ma.MaDirection;
 
-public final class MADirectionTest
+public final class MaDirectionTest
 {
     @Rule
     public ExpectedException thrown = ExpectedException.none();
-
-    @Before
-    public void before()
-    {
-    }
-
-    @After
-    public void after()
-    {
-    }
 
     @Test
     public void createDirection()
@@ -29,14 +20,14 @@ public final class MADirectionTest
     {
         ExpectedException.none();
 
-        MADirection f3 = MADirection.getDirection("F3");
-        assertTrue(MADirection.F3 == f3);
+        MaDirection f3 = MaDirection.getDirection("F3");
+        assertTrue(MaDirection.F3 == f3);
 
-        MADirection r3 = MADirection.getDirection("R3");
-        assertTrue(MADirection.R3 == r3);
+        MaDirection r3 = MaDirection.getDirection("R3");
+        assertTrue(MaDirection.R3 == r3);
 
-        MADirection f5 = MADirection.getDirection("F5");
-        assertTrue(MADirection.F5 == f5);
+        MaDirection f5 = MaDirection.getDirection("F5");
+        assertTrue(MaDirection.F5 == f5);
     }
 
     @Test
@@ -47,7 +38,7 @@ public final class MADirectionTest
         thrown.expect(Exception.class);
         thrown.expectMessage("Unknown direction type: R5");
 
-        MADirection.getDirection("R5");
+        MaDirection.getDirection("R5");
     }
 
     @Test
@@ -56,6 +47,6 @@ public final class MADirectionTest
     {
         thrown.expect(Exception.class);
         thrown.expectMessage("Unknown direction type: X6");
-        MADirection.getDirection("X6");
+        MaDirection.getDirection("X6");
     }
 }
