@@ -15,6 +15,8 @@ import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.qio.record.RecordReader;
 
+
+
 /**
  * Contains an `InputStream` so remember to call close() or use in try-with-resources
  */

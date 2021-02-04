@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Assert;
+import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.SAMOrBAMWriterFactory;
@@ -20,7 +21,7 @@ import org.qcmg.picard.SAMOrBAMWriterFactory;
 import au.edu.qimr.indel.pileup.IndelMT;
 
 public class Support {
-	
+
 	public static void createBam( List<String> data1, File output) {
         List<String> data = new ArrayList<>();
         data.add("@HD	VN:1.0	SO:coordinate");
