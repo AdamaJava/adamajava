@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
@@ -28,25 +29,20 @@ import au.edu.qimr.qannotate.utils.SampleColumn;
 
 
 public class AbstractModeTest {
-	public static String outputName = "output.vcf";
-	public static String inputName = "input.vcf";
+//	public static String outputName = "output.vcf";
+//	public static String inputName = "input.vcf";
+	
+	File input;
+	File output;
 	
 	@Rule
 	public  TemporaryFolder testFolder = new TemporaryFolder();
 	
-	@BeforeClass
-	public static void createInput() throws IOException{	
-		createVcf();
+	@Before
+	public void createInput() throws IOException{	
+		input = testFolder.newFile("input.vcf");
+		output = testFolder.newFile("ioutput.vcf");
 	}
-	
-	
-	 @AfterClass
-	 public static void deleteIO(){
-
-		 new File(inputName).delete();
-		 new File(outputName).delete();
-		 
-	 }	
 	
 	//test data
 	@Test
@@ -55,16 +51,15 @@ public class AbstractModeTest {
 		final String[] params =  {"chr1","10180",".","TA","CT","."," MIN;MIUN","SOMATIC;END=10181","ACCS","TA,5,37,CA,0,2", "AA,1,1,CA,4,1,CT,3,1,TA,11,76,TT,2,2,_A,0,3,TG,0,1"};
 		final VcfRecord record = new VcfRecord(params);
 		assertEquals(10180, record.getPosition());
-		assertEquals(10181, record.getChrPosition().getEndPosition());
-		 
+		assertEquals(10181, record.getChrPosition().getEndPosition());		 
 	}
 	
 
 	
 	@Test
 	public void reHeaderTest() throws Exception{
-		
-	   try (BufferedReader br = new BufferedReader(new FileReader(inputName))){
+		createVcf(input);
+	   try (BufferedReader br = new BufferedReader(new FileReader(input))){
 	    	   int i = 0;
 	    	   while (  br.readLine() != null ) {
 	    		   i++;
@@ -73,12 +68,11 @@ public class AbstractModeTest {
 	   }
 	       
 		DbsnpMode db = new DbsnpMode();
-		db.loadVcfRecordsFromFile(new File(inputName));		
-		db.reheader("testing run",   inputName);
-		db.writeVCF(new File(outputName));
-		
-		
-        try (VcfFileReader reader = new VcfFileReader(new File(outputName))) {
+		db.loadVcfRecordsFromFile(input);		
+		db.reheader("testing run", input.getAbsolutePath());
+		db.writeVCF(output);
+				
+        try (VcfFileReader reader = new VcfFileReader(output)) {
 	        	int i = 0;
 	        	for (VcfHeaderRecord re :  reader.getVcfHeader()) {
 	        		if (re.toString().startsWith(VcfHeaderUtils.STANDARD_UUID_LINE)) {
@@ -242,12 +236,12 @@ public class AbstractModeTest {
 		}		 
 	}
 	
-	public static void createVcf() throws IOException{
+	public static void createVcf(File f) throws IOException{
         final List<String> data = new ArrayList<>();
         data.add("##fileformat=VCFv4.0");
         data.add(VcfHeaderUtils.STANDARD_UUID_LINE + "=abcd_12345678_xzy_999666333");
         data.add("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO");
-        createVcf(new File(inputName), data);
+        createVcf(f, data);
 	}
 	
 	public static void createVcf(File vcfFile, List<String> data) throws IOException {

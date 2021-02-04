@@ -31,13 +31,13 @@ public class DbsnpModeTest {
     private File output;
  	
 	@Before
-	public void createInput() throws IOException{
+	public void setup() throws IOException{
 		 
 	    input = testFolder.newFile("input.vcf");
 	    dbSNP = testFolder.newFile("dbSNP.vcf");
 	    output = testFolder.newFile("output.vcf");
 		 
-		createVcf(input);
+
  	}
 	 
 	 
@@ -94,6 +94,7 @@ public class DbsnpModeTest {
 	
 	@Test
 	public void vLDTest() throws IOException, Exception{
+		createVcf(input);
 		createDbsnpHeader(dbSNP);
 		
 		final DbsnpMode mode = new DbsnpMode();		
