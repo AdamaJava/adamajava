@@ -25,9 +25,6 @@ import au.edu.qimr.indel.Q3IndelException;
 import au.edu.qimr.indel.Support;
 
 public class ReadIndelsTest {
-//	public final static String input1 = "input1.vcf";
-//	public final static String input2 = "input2.vcf";
-//	public final static String input3 = "input3.vcf";
 	
 	File input1;
 	File input2;
@@ -44,14 +41,7 @@ public class ReadIndelsTest {
 		
 		createVcf();		
 	}
-	
-//	@After
-//	public void clearInput() {	 		
-//		new File(input1).delete();
-//		new File(input2).delete();
-//		new File(input3).delete();
-//	}
-	
+		
 	@Test
 	public void multiAltTest(){
 		
@@ -158,10 +148,8 @@ public class ReadIndelsTest {
 					code2 = indel.getIndelVcf(0).hashCode();
 				}else
 					assertFalse(true);
-				//can't run it for all environment 
-//				assertTrue(code1 == code2);			 
- 			}
-	
+				//can't run it for all environment 	 
+ 			}	
 		}catch(Exception e){
 			System.out.println(Q3IndelException.getStrackTrace(e));
 			assertFalse(true);
@@ -257,10 +245,6 @@ public class ReadIndelsTest {
 		data1.add("chrY	59033287	.	GTGTGTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT	G	724.73	PASS	.	GT:AD	1/2:14,38,25	1/1:14,38,25");
 		data1.add("chrY	59033287	.	G	GTGTGTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT	724.73	PASS	.	GT:AD	1/2:14,38,25	1/1:14,38,25");
 
-		Support.createVcf(head1, data1, input3);
-            
-	}
-	
-	
-	
+		Support.createVcf(head1, data1, input3);           
+	}	
 }
