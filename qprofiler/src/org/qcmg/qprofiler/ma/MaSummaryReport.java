@@ -16,9 +16,9 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.qcmg.common.model.ProfileType;
-import org.qcmg.ma.MADefLine;
-import org.qcmg.ma.MAMapping;
-import org.qcmg.ma.MARecord;
+import org.qcmg.qio.ma.MaDefLine;
+import org.qcmg.qio.ma.MaMapping;
+import org.qcmg.qio.ma.MaRecord;
 import org.qcmg.qprofiler.report.SummaryReport;
 import org.qcmg.qprofiler.util.SummaryReportUtils;
 import org.qcmg.qvisualise.util.SummaryByCycle;
@@ -65,7 +65,7 @@ public class MaSummaryReport extends SummaryReport {
 	 * @param record
 	 *            MARecord next row in file
 	 */
-	protected void parseRecord(MARecord record) {
+	protected void parseRecord(MaRecord record) {
 		if (null != record) {
 			updateRecordsParsed();
 			
@@ -76,12 +76,12 @@ public class MaSummaryReport extends SummaryReport {
 //			SummaryReportUtils.tallyBadReads(record.getReadSequence(), seqBadReadLineLengths);
 			
 			// tally up some other details from the MaDefine
-			MADefLine defLine = record.getDefLine();
+			MaDefLine defLine = record.getDefLine();
 			
 			SummaryByCycleUtils.incrementCount(defCountLineLengths, Integer.valueOf(defLine.getNumberMappings()));
 			
-			for (Iterator<MAMapping> i = defLine.iterator() ; i.hasNext() ; ) {
-				MAMapping map = i.next();
+			for (Iterator<MaMapping> i = defLine.iterator() ; i.hasNext() ; ) {
+				MaMapping map = i.next();
 				SummaryByCycleUtils.incrementCount(defChromosomeLineLengths, map.getChromosome());
 				SummaryByCycleUtils.incrementCount(defQualityLineLengths, map.getQuality());
 			}

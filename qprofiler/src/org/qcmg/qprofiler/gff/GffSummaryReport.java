@@ -9,7 +9,7 @@
 package org.qcmg.qprofiler.gff;
 
 import org.qcmg.common.model.ProfileType;
-import org.qcmg.gff.GFFRecord;
+import org.qcmg.qio.gff.GffRecord;
 import org.qcmg.qprofiler.report.SummaryReport;
 import org.qcmg.qvisualise.util.SummaryByCycle;
 import org.w3c.dom.Element;
@@ -34,7 +34,7 @@ public class GffSummaryReport extends SummaryReport {
 	 * 
 	 * @return next row in file
 	 */
-	public void parseRecord(GFFRecord gffRecord) {
+	public void parseRecord(GffRecord gffRecord) {
 		updateRecordsParsed();
 //		recordsParsed++;
 		

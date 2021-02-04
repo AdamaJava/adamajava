@@ -7,35 +7,27 @@ import htsjdk.samtools.SAMFileWriter;
 import htsjdk.samtools.SAMFileWriterFactory;
 import htsjdk.samtools.SAMReadGroupRecord;
 import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SAMRecordCoordinateComparator;
-import htsjdk.samtools.SAMRecordQueryNameComparator;
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.SAMSequenceRecord;
-import htsjdk.samtools.SamReader;
 import htsjdk.samtools.SAMFileHeader.SortOrder;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintStream;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.commandline.Executor;
-import org.qcmg.gff3.GFF3FileWriter;
-import org.qcmg.gff3.GFF3Record;
-import org.qcmg.picard.SAMFileReaderFactory;
+import org.qcmg.qio.gff3.Gff3Record;
+import org.qcmg.qio.record.RecordWriter;
 
 public class SequenceCoverageTest {
 	
@@ -100,7 +92,7 @@ public class SequenceCoverageTest {
 	}
 
 	private void createGFF3File(final int start, final int end, File file) throws IOException {
-		GFF3Record record = new GFF3Record();
+		Gff3Record record = new Gff3Record();
 		record.setSeqId("chr1");
 		record.setType("exon");
 		record.setStart(start);
@@ -109,7 +101,7 @@ public class SequenceCoverageTest {
 		record.setSource(".");
 		record.setStrand("+");
 
-		try (GFF3FileWriter writer = new GFF3FileWriter(file)) {
+		try (RecordWriter<Gff3Record> writer = new RecordWriter<>(file)) {
 			writer.add(record);
 		}
 	}

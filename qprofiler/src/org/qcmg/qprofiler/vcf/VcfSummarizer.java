@@ -3,14 +3,10 @@ package org.qcmg.qprofiler.vcf;
 import java.io.File;
 
 import org.qcmg.common.date.DateUtils;
-import org.qcmg.common.log.QLevel;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.vcf.VcfRecord;
-import org.qcmg.common.vcf.header.VcfHeader;
-import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.qio.vcf.VcfFileReader;
-import org.qcmg.qio.vcf.VCFFileWriter;
 import org.qcmg.qprofiler.report.SummaryReport;
 import org.qcmg.qprofiler.summarise.Summarizer;
 
@@ -21,7 +17,6 @@ public class VcfSummarizer implements Summarizer {
 	public SummaryReport summarize(String input, String index, String[] regions) throws Exception{
 		
 		// set logging level for printing of no of records parsed
-		final boolean isLevelEnabled = logger.isLevelEnabled(QLevel.DEBUG);
 		VcfSummaryReport vcfSummaryReport; 
 		
 		try (VcfFileReader reader = new VcfFileReader(new File(input))) {

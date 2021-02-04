@@ -14,15 +14,13 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.junit.After;
 import org.junit.Test;
 import org.qcmg.common.model.ProfileType;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
-import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.qio.vcf.VcfFileReader;
-import org.qcmg.qprofiler.QProfilerSummary;
-import org.qcmg.qprofiler.report.SummaryReport;
+
+ 
 import org.qcmg.qprofiler.vcf.VcfSummaryReport;
 import org.w3c.dom.*;
 

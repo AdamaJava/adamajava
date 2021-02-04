@@ -18,8 +18,7 @@ import java.util.List;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
-import junit.framework.Assert;
-
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -27,7 +26,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.commandline.Executor;
 import org.qcmg.common.util.FileUtils;
-import org.qcmg.gff3.GFF3Record;
+import org.qcmg.qio.gff3.Gff3Record;
 
 public class WiggleFromPileupTest {
 	@Rule
@@ -63,14 +62,14 @@ public class WiggleFromPileupTest {
 	
 	@Test
 	public void testIsPositionInBaitSingleGff() {
-		GFF3Record gff = new GFF3Record();
+		Gff3Record gff = new Gff3Record();
 		gff.setSeqId("chr1");
 		gff.setStart(1);
 		gff.setEnd(10);
 		
-		List<GFF3Record> gffs = new ArrayList<GFF3Record>();
+		List<Gff3Record> gffs = new ArrayList<Gff3Record>();
 		gffs.add(gff);
-		Iterator<GFF3Record> iter = gffs.iterator();
+		Iterator<Gff3Record> iter = gffs.iterator();
 //		WiggleFromPileup.setGffRecord(gff);
 		
 		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chr0", 0, iter, iter.next()));
@@ -98,24 +97,24 @@ public class WiggleFromPileupTest {
 	
 	@Test
 	public void testIsPositionInBaitMultipleGff() {
-		GFF3Record gff1 = new GFF3Record();
+		Gff3Record gff1 = new Gff3Record();
 		gff1.setSeqId("chr1");
 		gff1.setStart(1);
 		gff1.setEnd(10);
-		GFF3Record gff2 = new GFF3Record();
+		Gff3Record gff2 = new Gff3Record();
 		gff2.setSeqId("chr1");
 		gff2.setStart(11);
 		gff2.setEnd(20);
-		GFF3Record gff3 = new GFF3Record();
+		Gff3Record gff3 = new Gff3Record();
 		gff3.setSeqId("chr1");
 		gff3.setStart(31);
 		gff3.setEnd(40);
 		
-		List<GFF3Record> gffs = new ArrayList<GFF3Record>();
+		List<Gff3Record> gffs = new ArrayList<Gff3Record>();
 		gffs.add(gff1);
 		gffs.add(gff2);
 		gffs.add(gff3);
-		Iterator<GFF3Record> iter = gffs.iterator();
+		Iterator<Gff3Record> iter = gffs.iterator();
 		
 		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chr1", 0, iter, iter.next()));
 		
@@ -138,39 +137,39 @@ public class WiggleFromPileupTest {
 	
 	@Test
 	public void testIsPositionInBaitMultipleGffMultipleChromosomes() {
-		GFF3Record gff1 = new GFF3Record();
+		Gff3Record gff1 = new Gff3Record();
 		gff1.setSeqId("chr1");
 		gff1.setStart(1);
 		gff1.setEnd(10);
-		GFF3Record gff2 = new GFF3Record();
+		Gff3Record gff2 = new Gff3Record();
 		gff2.setSeqId("chr1");
 		gff2.setStart(11);
 		gff2.setEnd(20);
-		GFF3Record gff3 = new GFF3Record();
+		Gff3Record gff3 = new Gff3Record();
 		gff3.setSeqId("chr1");
 		gff3.setStart(31);
 		gff3.setEnd(40);
-		GFF3Record gff4 = new GFF3Record();
+		Gff3Record gff4 = new Gff3Record();
 		gff4.setSeqId("chr2");
 		gff4.setStart(15);
 		gff4.setEnd(25);
-		GFF3Record gff5 = new GFF3Record();
+		Gff3Record gff5 = new Gff3Record();
 		gff5.setSeqId("chr2");
 		gff5.setStart(26);
 		gff5.setEnd(40);
-		GFF3Record gff6 = new GFF3Record();
+		Gff3Record gff6 = new Gff3Record();
 		gff6.setSeqId("chrX");
 		gff6.setStart(100026);
 		gff6.setEnd(100040);
 		
-		List<GFF3Record> gffs = new ArrayList<GFF3Record>();
+		List<Gff3Record> gffs = new ArrayList<Gff3Record>();
 		gffs.add(gff1);
 		gffs.add(gff2);
 		gffs.add(gff3);
 		gffs.add(gff4);
 		gffs.add(gff5);
 		gffs.add(gff6);
-		Iterator<GFF3Record> iter = gffs.iterator();
+		Iterator<Gff3Record> iter = gffs.iterator();
 		
 		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chr0", 0, iter, iter.next()));
 		Assert.assertEquals(false, WiggleFromPileup.isPositionInBait("chr1", 0, iter, gff1));
@@ -344,7 +343,6 @@ public class WiggleFromPileupTest {
 		OutputStream os = FileUtils.isFileNameGZip(pileupFile) ? new GZIPOutputStream( new FileOutputStream(pileupFile)) 
 		: new FileOutputStream(pileupFile);
 		
-//		OutputStream os = new FileOutputStream(pileupFile);
 		PrintStream ps = new PrintStream(os);
 		
 		
@@ -386,44 +384,6 @@ public class WiggleFromPileupTest {
 		ps.println("chr1	simple_segmenter.pl[v2940]	exon_1_100	18449	18548	.	+	.	ID=gnl|exon_1_100");
 		ps.println("chr1	simple_segmenter.pl[v2940]	exon_2_100	18549	18648	.	+	.	ID=gnl|exon_2_100");
 		ps.println("chr1	simple_segmenter.pl[v2940]	exon_3_100	18649	18848	.	+	.	ID=gnl|exon_3_100");
-//		ps.println("##gff-version 3");
-//		ps.println("# Created by: simple_segmenter.pl[v2940]");
-//		ps.println("# Created on: Tue May 24 01:48:54 2011");
-//		ps.println("# Commandline: -v -g -l -i SureSelect_All_Exon_50mb_filtered_baits_1-200_20110524.gff3 -o SureSelect_All_Exon_50mb_filtered_baits_1-200_20110524_shoulders.gff3 -f bait,100,100,100 -f highbait,300 -f lowbait");
-//		ps.println("chr1	simple_segmenter.pl[v2940]	fill	1	14166	.	.	.	ID=gnl|fill");
-//		ps.println("chr1	simple_segmenter.pl[v2940]	bait_3_100	14167	14266	.	+	.	ID=gnl|bait_3_100");
-//		ps.println("chr1	simple_segmenter.pl[v2940]	bait_2_100	14267	14366	.	+	.	ID=gnl|bait_2_100");
-//		ps.println("chr1	simple_segmenter.pl[v2940]	bait_1_100	14367	14466	.	+	.	ID=gnl|bait_1_100");
-//		ps.println("chr1	SureSelect_All_Exon_50mb_with_annotation.hg19.bed	bait	14467	14587	.	+	.	ID=ens|ENST00000423562,ens|ENST00000438504,ens|ENST00000488147,ref|NR_024540,ref|WASH7P");
-//		ps.println("chr1	simple_segmenter.pl[v2940]	bait_1_100	14588	14638	.	+	.	ID=gnl|bait_1_100");
-//		ps.println("chr1	SureSelect_All_Exon_50mb_with_annotation.hg19.bed	bait	14639	14883	.	+	.	ID=ens|ENST00000423562,ens|ENST00000438504,ens|ENST00000488147,ref|NR_024540,ref|WASH7P");
-//		ps.println("chr1	simple_segmenter.pl[v2940]	bait_1_100	14884	14942	.	+	.	ID=gnl|bait_1_100");
-//		ps.println("chr1	SureSelect_All_Exon_50mb_with_annotation.hg19.bed	bait	14943	15064	.	+	.	ID=ens|ENST00000423562,ens|ENST00000438504,ens|ENST00000488147,ref|NR_024540,ref|WASH7P");
-//		ps.println("chr1	simple_segmenter.pl[v2940]	bait_1_100	15065	15164	.	+	.	ID=gnl|bait_1_100");
-//		ps.println("chr1	simple_segmenter.pl[v2940]	bait_2_100	15165	15264	.	+	.	ID=gnl|bait_2_100");
-//		ps.println("chr1	simple_segmenter.pl[v2940]	bait_3_100	15265	15364	.	+	.	ID=gnl|bait_3_100");
-//		ps.println("chr1	simple_segmenter.pl[v2940]	fill	15365	15370	.	.	.	ID=gnl|fill");
-//		ps.println("chr1	simple_segmenter.pl[v2940]	bait_3_100	15371	15470	.	+	.	ID=gnl|bait_3_100");
-//		ps.println("chr1	simple_segmenter.pl[v2940]	bait_2_100	15471	15570	.	+	.	ID=gnl|bait_2_100");
-//		ps.println("chr1	simple_segmenter.pl[v2940]	bait_1_100	15571	15670	.	+	.	ID=gnl|bait_1_100");
-//		ps.println("chr1	SureSelect_All_Exon_50mb_with_annotation.hg19.bed	bait	15671	15990	.	+	.	ID=ens|ENST00000423562,ens|ENST00000438504,ens|ENST00000488147,ref|NR_024540,ref|WASH7P");
-//		ps.println("chr1	simple_segmenter.pl[v2940]	bait_1_100	15991	16090	.	+	.	ID=gnl|bait_1_100");
-//		ps.println("chr1	simple_segmenter.pl[v2940]	bait_2_100	16091	16190	.	+	.	ID=gnl|bait_2_100");
-//		ps.println("chr1	simple_segmenter.pl[v2940]	bait_3_100	16191	16390	.	+	.	ID=gnl|bait_3_100");
-//		ps.println("chr1	simple_segmenter.pl[v2940]	bait_2_100	16391	16490	.	+	.	ID=gnl|bait_2_100");
-//		ps.println("chr1	simple_segmenter.pl[v2940]	bait_1_100	16491	16590	.	+	.	ID=gnl|bait_1_100");
-//		ps.println("chr1	SureSelect_All_Exon_50mb_with_annotation.hg19.bed	bait	16591	16719	.	+	.	ID=ens|ENST00000423562,ens|ENST00000438504,ens|ENST00000488147,ref|NR_024540,ref|WASH7P");
-//		ps.println("chr1	simple_segmenter.pl[v2940]	bait_1_100	16720	16749	.	+	.	ID=gnl|bait_1_100");
-//		ps.println("chr1	SureSelect_All_Exon_50mb_with_annotation.hg19.bed	bait	16750	17074	.	+	.	ID=ens|ENST00000423562,ens|ENST00000438504,ens|ENST00000488147,ref|NR_024540,ref|WASH7P");
-//		ps.println("chr1	simple_segmenter.pl[v2940]	bait_1_100	17075	17177	.	+	.	ID=gnl|bait_1_100");
-//		ps.println("chr1	SureSelect_All_Exon_50mb_with_annotation.hg19.bed	bait	17178	17420	.	+	.	ID=ens|ENST00000423562,ens|ENST00000438504,ens|ENST00000488147,ref|NR_024540,ref|WASH7P");
-//		ps.println("chr1	simple_segmenter.pl[v2940]	bait_1_100	17421	17442	.	+	.	ID=gnl|bait_1_100");
-//		ps.println("chr1	SureSelect_All_Exon_50mb_with_annotation.hg19.bed	bait	17443	18108	.	+	.	ID=ens|ENST00000423562,ens|ENST00000430492,ens|ENST00000438504,ens|ENST00000488147,ref|NR_024540,ref|WASH7P");
-//		ps.println("chr1	simple_segmenter.pl[v2940]	bait_1_100	18109	18202	.	+	.	ID=gnl|bait_1_100");
-//		ps.println("chr1	SureSelect_All_Exon_50mb_with_annotation.hg19.bed	bait	18203	18448	.	+	.	ID=ens|ENST00000423562,ens|ENST00000430492,ens|ENST00000438504,ens|ENST00000488147,ref|NR_024540,ref|WASH7P");
-//		ps.println("chr1	simple_segmenter.pl[v2940]	bait_1_100	18449	18548	.	+	.	ID=gnl|bait_1_100");
-//		ps.println("chr1	simple_segmenter.pl[v2940]	bait_2_100	18549	18648	.	+	.	ID=gnl|bait_2_100");
-//		ps.println("chr1	simple_segmenter.pl[v2940]	bait_3_100	18649	18848	.	+	.	ID=gnl|bait_3_100");
 		
 		ps.close();
 		os.close();

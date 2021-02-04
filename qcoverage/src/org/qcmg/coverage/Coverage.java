@@ -33,7 +33,7 @@ import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
-import org.qcmg.qio.vcf.VCFFileWriter;
+import org.qcmg.qio.record.RecordWriter;
 
 public final class Coverage {
 	private final Options options;
@@ -116,7 +116,7 @@ public final class Coverage {
 		
 		if ( ! vcfs.isEmpty()) {
 			Collections.sort(vcfs, new VcfPositionComparator());
-			try(final VCFFileWriter writer = new VCFFileWriter(file)) {
+			try(final RecordWriter<VcfRecord> writer = new RecordWriter<>(file)) {
 				final VcfHeader header = getHeaderForQCoverage(options.getBAMFileNames()[0], options.getInputGFF3FileNames()[0]);
 				for(final VcfHeaderRecord record: header) {
 					writer.addHeader(record.toString()+"\n");
