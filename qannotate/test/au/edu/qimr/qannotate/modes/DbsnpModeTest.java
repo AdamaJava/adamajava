@@ -36,11 +36,8 @@ public class DbsnpModeTest {
 	    input = testFolder.newFile("input.vcf");
 	    dbSNP = testFolder.newFile("dbSNP.vcf");
 	    output = testFolder.newFile("output.vcf");
-		 
-
  	}
-	 
-	 
+		 
 	 @Test
 	 public void indelTest(){
 		 				 

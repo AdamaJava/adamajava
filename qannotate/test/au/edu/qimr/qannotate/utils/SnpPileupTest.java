@@ -10,8 +10,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.SAMOrBAMWriterFactory;
@@ -22,26 +24,33 @@ import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SamReader;
 
 public class SnpPileupTest {
-	static final String inputBam = "input.bam"; 
+    @org.junit.Rule
+    public  TemporaryFolder testFolder = new TemporaryFolder();
+
+//	static final String inputBam = "input.bam"; 
+	File input;
  
-	@BeforeClass
-	public static void createInput() {	
-		createSam( makeReads4Pair() ); 
+	@Before 
+	public void createInput() throws IOException {	
+		input = testFolder.newFile("input.bam");
+		createSam( makeReads4Pair(), input ); 
 	}
 	
-	@AfterClass
-	public static void deleteInput() {			
-		File dir = new File(".");
-		if(!dir.isDirectory()) throw new IllegalStateException("wtf mate?");
-		for(File file : dir.listFiles()) {
-		    if(file.getName().startsWith("input."))
-		       file.delete();
-		}
-	}	
+//	@AfterClass
+//	public static void deleteInput() {			
+//		File dir = new File(".");
+//		if(!dir.isDirectory()) throw new IllegalStateException("wtf mate?");
+//		for(File file : dir.listFiles()) {
+//		    if(file.getName().startsWith("input."))
+//		       file.delete();
+//		}
+//	}
+	
+ 
 	
 	@Test 
 	public void overlappedPairTest() throws IOException{
-		List<SAMRecord> pool = createPool();
+		List<SAMRecord> pool = createPool(input);
 				
 		for(int pos : new int[]{ 282753, 282768, 282769, 282783 }){
 			ChrPointPosition chrP = new ChrPointPosition("chr11", pos);		 			
@@ -70,7 +79,7 @@ public class SnpPileupTest {
 	
 	@Test
 	public void errMDTest() throws IOException{
-		List<SAMRecord> pool = createPool();
+		List<SAMRecord> pool = createPool(input);
 		
 		for(SAMRecord re: pool )
 			re.setAttribute("MD", "");
@@ -108,7 +117,7 @@ public class SnpPileupTest {
 	 * @throws IOException
 	 */
 	public void errCigarTest() throws IOException{
-		List<SAMRecord> pool = createPool();
+		List<SAMRecord> pool = createPool(input);
 		//pool.get(0).setCigarString("30M2D13M3I3M25S");
 		//chage second read cigar to first one
 		pool.get(1).setCigar(pool.get(0).getCigar());
@@ -137,16 +146,16 @@ public class SnpPileupTest {
 		}
 	}
 	
-	private List<SAMRecord> createPool() throws IOException{			
+	private List<SAMRecord> createPool(File fbam) throws IOException{			
 		List<SAMRecord> pool = new ArrayList<SAMRecord>();				
-		try(SamReader inreader =  SAMFileReaderFactory.createSAMFileReader(new File(inputBam));){
+		try(SamReader inreader =  SAMFileReaderFactory.createSAMFileReader(fbam);){
 	        for(SAMRecord re : inreader)  pool.add(re);   	
 		}		
 		return pool; 		
 	}
 
-    public static void createSam( List<String> reads ){
-    	String ftmp = "input.sam";
+    public static void createSam( List<String> reads, File fsam ) throws IOException{
+    	//String ftmp = "input.sam";
     	
         List<String> data = new ArrayList<String> ();
         data.add("@HD	VN:1.0	SO:coordinate");
@@ -158,20 +167,16 @@ public class SnpPileupTest {
         data.addAll(reads);
                   
        
-        try( BufferedWriter out =  new BufferedWriter( new FileWriter( ftmp )) ){
-           for ( String line : data )  out.write( line + "\n" );          
-           out.close();
-        } catch (IOException e) {
-            System.err.println( "IOException caught whilst attempting to write to SAM test file: " + ftmp  + e );
-        } 
+        try( BufferedWriter out =  new BufferedWriter( new FileWriter( fsam )) ){
+           for ( String line : data )  out.write( line + "\n" );                     
+        }  
         
-		try(SamReader inreader =  SAMFileReaderFactory.createSAMFileReader(new File(ftmp));  ){
+		try(SamReader inreader =  SAMFileReaderFactory.createSAMFileReader(fsam);  ){
 			SAMFileHeader he = inreader.getFileHeader();
 			he.setSortOrder( SAMFileHeader.SortOrder.coordinate );
-			SAMFileWriter writer = new SAMOrBAMWriterFactory(he , false, new File(inputBam), true).getWriter();	        
+			SAMFileWriter writer = new SAMOrBAMWriterFactory(he , false, fsam, true).getWriter();	        
 	        for(SAMRecord re : inreader){ writer.addAlignment(re); }
-	        writer.close();
-		} catch (IOException e) { e.printStackTrace(); }		
+		}  	
      
     }
        

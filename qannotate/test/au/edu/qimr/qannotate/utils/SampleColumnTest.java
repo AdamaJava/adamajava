@@ -33,8 +33,6 @@ public class SampleColumnTest {
 			//VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE + "\tFORMAT\tqControlSample\tqTestSample"			
     };	
 	
-//	@After
-//	public void clear(){	new File(input).delete();	}
 	
 	@Test
 	public void sampleNameTest1() throws IOException {

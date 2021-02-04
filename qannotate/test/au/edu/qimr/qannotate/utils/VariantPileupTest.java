@@ -10,8 +10,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.SAMOrBAMWriterFactory;
@@ -22,31 +24,25 @@ import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SamReader;
 
 public class VariantPileupTest {
-	static final String inputBam = "tumor.bam"; 
+    @org.junit.Rule
+    public  TemporaryFolder testFolder = new TemporaryFolder();
+
+    File inputBam;
 	
-	@BeforeClass
-	public static void createInput() { 
+	@Before 
+	public void createInput() throws IOException { 
+		inputBam = testFolder.newFile("tumor.bam");
 		List<String> reads = makeReads4Indel();
 		reads.addAll(makeReads4Pair());
-		createSam(reads);		
+		createSam(reads, inputBam);		
 	}
-	
-	@AfterClass
-	public static void deleteInput() {
-		String USER_DIR = System.getProperty("user.dir");	
-		String bam = "tumor";
-		String log = ".log";
-		
-		File[] files = ( new File(USER_DIR)).listFiles( f->f.getName().contains(bam) | f.getName().contains(log) );
-		for( File f : files ) f.delete();		
-	}	
 	
 	@Test
 	public void baseQualityTest() throws Exception{
 		
 		//snp position
 		VcfRecord vcf = new VcfRecord.Builder("chr11",	282768,	"T").allele("A").build();
-		List<SAMRecord> pool = makePool(vcf);
+		List<SAMRecord> pool = makePool(vcf, inputBam);
 		reSetQuality(pool, 282768 );		
 		VariantPileup pileup = new VariantPileup(vcf, pool,0);
 		assertTrue(pileup.getAnnotation().equals("1[0,0,0,1,0]")); 		
@@ -58,7 +54,7 @@ public class VariantPileupTest {
 				
 		//insert position not affect by base quality
 		vcf = new VcfRecord.Builder( "chr1",	183014,	"G" ).allele( "GTT" ).build();
-		pool = makePool( vcf );
+		pool = makePool( vcf, inputBam );
 		reSetQuality(pool, 183014 );
 		pileup = new VariantPileup(vcf, pool,0);
 		assertTrue( pileup.getAnnotation().equals( "3[0,0,1,1,1]" ) ); 
@@ -68,7 +64,7 @@ public class VariantPileupTest {
 	@Test
 	public void mnpTest() throws Exception{
 		VcfRecord vcf = new VcfRecord.Builder("chr11",	282768,	"T").allele("A").build();
-		List<SAMRecord> pool = makePool(vcf);
+		List<SAMRecord> pool = makePool(vcf, inputBam);
 		
 		//pair exactly match snp
 		VariantPileup pileup = new VariantPileup(vcf, pool,0);
@@ -91,7 +87,7 @@ public class VariantPileupTest {
 	@Test
 	public void pairTest() throws Exception{
 		VcfRecord vcf =  new VcfRecord.Builder("chr11", 282771, "CC").allele("AA").build();
-		List<SAMRecord> pool = makePool(vcf);			 
+		List<SAMRecord> pool = makePool(vcf, inputBam);			 
 		VariantPileup pileup = new VariantPileup(vcf, pool,0);
 		assertTrue(pileup.getAnnotation().equals("2[0,1,0,0,0]")); 
 		
@@ -105,7 +101,7 @@ public class VariantPileupTest {
 	public void insertTest() throws Exception{		 
  
 		VcfRecord vcf = new VcfRecord.Builder( "chr1",	183014,	"G" ).allele( "GTT" ).build();
-		List<SAMRecord> pool = makePool( vcf );
+		List<SAMRecord> pool = makePool(vcf, inputBam);
 				
 		//no pair with same del
 		VariantPileup pileup = new VariantPileup( vcf, pool,0);
@@ -121,7 +117,7 @@ public class VariantPileupTest {
 	public void deleteTest() throws Exception{
  		//get delete indel
 		VcfRecord vs = new VcfRecord.Builder("chr1", 197, "CAG").allele("C").build();				 				
-		List<SAMRecord> pool = makePool(vs);		
+		List<SAMRecord> pool = makePool(vs, inputBam);		
 		//no pair with same del
 		VariantPileup pileup = new VariantPileup(vs, pool,0);
 		assertTrue(pileup.getAnnotation().equals("2[0,0,0,2,0]"));
@@ -169,10 +165,10 @@ public class VariantPileupTest {
 	}
 	
 	 // @return a SAMRecord pool overlap the indel position
-	private List<SAMRecord> makePool(VcfRecord vs) throws IOException{
+	private List<SAMRecord> makePool(VcfRecord vs, File inputBam) throws IOException{
 		//make pool
 		List<SAMRecord> pool = new ArrayList<SAMRecord>();				
-		try(SamReader inreader =  SAMFileReaderFactory.createSAMFileReader(new File(inputBam));){
+		try(SamReader inreader =  SAMFileReaderFactory.createSAMFileReader(inputBam);){
 	        for(SAMRecord record : inreader){
 	        	if(record.getAlignmentStart() <= vs.getPosition() && record.getAlignmentEnd() > vs.getChrPosition().getEndPosition())
 	        	pool.add(record);
@@ -238,8 +234,8 @@ public class VariantPileupTest {
        return data;    	
     }
     
-     public static void createSam( List<String> reads ){
-    	String ftmp = "input.sam";
+     public static void createSam( List<String> reads, File fsam ) throws IOException{
+    	
     	
         List<String> data = new ArrayList<String> ();
         data.add("@HD	VN:1.0	SO:coordinate");
@@ -252,45 +248,18 @@ public class VariantPileupTest {
         data.addAll(reads);
                   
        
-        try( BufferedWriter out =  new BufferedWriter( new FileWriter( ftmp )) ){
-           for ( String line : data )  out.write( line + "\n"  );          
-           out.close();
-        } catch (IOException e) {
-            System.err.println( "IOException caught whilst attempting to write to SAM test file: " + ftmp  + e );
-        } 
+        try( BufferedWriter out =  new BufferedWriter( new FileWriter( fsam )) ){
+           for ( String line : data )  out.write( line + "\n"  );                     
+        }  
         
-		try(SamReader inreader =  SAMFileReaderFactory.createSAMFileReader(new File(ftmp));  ){
+		try(SamReader inreader =  SAMFileReaderFactory.createSAMFileReader(fsam);  ){
 			SAMFileHeader he = inreader.getFileHeader();
 			he.setSortOrder( SAMFileHeader.SortOrder.coordinate );
-			SAMFileWriter writer = new SAMOrBAMWriterFactory(he , false, new File(inputBam), true).getWriter();	        
-	        for(SAMRecord re : inreader){ writer.addAlignment(re); }
-	        writer.close();
-		} catch (IOException e) { e.printStackTrace(); }		
-     
-		
-		new File(ftmp).delete();
+			SAMFileWriter writer = new SAMOrBAMWriterFactory(he , false, fsam, true).getWriter();	        
+	        for(SAMRecord re : inreader){ 
+	        	writer.addAlignment(re); 
+	        }	        
+		}  	   
     }
-     
-//     @Test
-//     public void xuTest(){
-//    	 List<String> original = new ArrayList<>();
-//    	 original.add("one");
-//    	 original.add("two");
-//    	 
-//    	 List<String> second = new ArrayList<>(original);
-//    	 second.add("three");
-//    	 System.out.println("original.size is "+ original.size());
-//    	 System.out.println("second.size is "+ second.size());
-//    	     	 
-//    	 List<String> third = ops(second);
-//       	 System.out.println("third.size is "+ third.size());
-//    	 System.out.println("second.size is "+ second.size());     	 
-//     }
-//     
-//     private  List<String> ops( List<String>  in ){
-//    	 List<String> third = in;
-//    	 third.add("four");
-//    	 return third; 
-//     }
-     
+   
 }
