@@ -90,7 +90,7 @@ import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils.VcfInfoType;
 import org.qcmg.qio.vcf.VcfFileReader;
-import org.qcmg.qio.vcf.VCFFileWriter;
+import org.qcmg.qio.record.RecordWriter;
 import org.qcmg.tab.TabbedFileReader;
 import org.qcmg.tab.TabbedHeader;
 import org.qcmg.tab.TabbedRecord;
@@ -1037,7 +1037,7 @@ public class Q3Panel {
 	}
 
 	private void writeMutationsToFile() throws IOException {
-		try (VCFFileWriter writer = new VCFFileWriter(new File(outputFileNameBase + ".vcf"))) {
+		try (RecordWriter<VcfRecord> writer = new RecordWriter<>(new File(outputFileNameBase + ".vcf"))) {
 			
 			/*
 			 * Setup the VcfHeader
@@ -1082,7 +1082,7 @@ public class Q3Panel {
 	
 	private void writeMutationsToFileNew(List<VcfRecord> vcfs) throws IOException {
 		String filename = outputFileNameBase + "_2.vcf";
-		try (VCFFileWriter writer = new VCFFileWriter(new File(filename))) {
+		try (RecordWriter<VcfRecord> writer = new RecordWriter<>(new File(filename))) {
 			
 			/*
 			 * Setup the VcfHeader

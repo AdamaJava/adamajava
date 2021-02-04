@@ -74,7 +74,7 @@ import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
-import org.qcmg.qio.vcf.VCFFileWriter;
+import org.qcmg.qio.record.RecordWriter;
 import org.qcmg.tab.TabbedFileReader;
 import org.qcmg.tab.TabbedHeader;
 import org.qcmg.tab.TabbedRecord;
@@ -1055,7 +1055,7 @@ public class Q3ClinVar {
 		
 		//make a new header		
 		String outputFileName = filter ? outputFileNameBase + "vcf" : outputFileNameBase + "diag.unfiltered.vcf";
-		try (VCFFileWriter writer = new VCFFileWriter(new File(outputFileName))) {
+		try (RecordWriter<VcfRecord> writer = new RecordWriter<>(new File(outputFileName))) {
 			
 			/*
 			 * Setup the VcfHeader
@@ -1084,7 +1084,7 @@ public class Q3ClinVar {
 		}
 
 		outputFileName = filter ?  outputFileNameBase + "diag.detailed.vcf" : outputFileNameBase + "diag.unfiltered_detailed.vcf";
-		try (VCFFileWriter writer = new VCFFileWriter(new File(outputFileName))) {
+		try (RecordWriter<VcfRecord> writer = new RecordWriter<>(new File(outputFileName))) {
 			
 			/*
 			 * Setup the VcfHeader
