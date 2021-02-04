@@ -1,4 +1,4 @@
-package org.qcmg.vcf;
+package org.qcmg.qio.vcf;
 
 import static org.junit.Assert.*;
 
