@@ -12,10 +12,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.util.FileUtils;
+import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.qio.vcf.VcfFileReader;
-import org.qcmg.qio.vcf.VCFFileWriter;
+import org.qcmg.qio.record.RecordWriter;
 
 public class VcfWriterReaderTest {
 	
@@ -28,7 +29,7 @@ public class VcfWriterReaderTest {
 	public void getHeaderFromZippedVcfFileUsingStreams() throws IOException {
 		File file =  testFolder.newFile("header.vcf.gz");
 		
-		try(VCFFileWriter writer = new VCFFileWriter(file) ){
+		try(RecordWriter<VcfRecord> writer = new RecordWriter<>(file) ){
 			 writer.addHeader(Arrays.stream(vcfStrings).collect(Collectors.joining("\n")));
 		}
 		assertEquals(true, FileUtils.isInputGZip(file) );
@@ -37,7 +38,7 @@ public class VcfWriterReaderTest {
 		 * Should be able to get the header back out
 		 */
 		VcfHeader header = null;
-		try(VcfFileReader reader = VcfFileReader.createStream(file)){
+		try(VcfFileReader reader = new VcfFileReader(file) ){
 			header = reader.getVcfHeader();
 		}
 		assertEquals(true, null != header);
@@ -50,7 +51,7 @@ public class VcfWriterReaderTest {
 	public void getHeaderFromZippedVcfFile() throws IOException {
 		File file =  testFolder.newFile("header.vcf.gz");
 		
-		try(VCFFileWriter writer = new VCFFileWriter(file) ){
+		try(RecordWriter<VcfRecord> writer = new RecordWriter<>(file) ){
 			writer.addHeader(Arrays.stream(vcfStrings).collect(Collectors.joining("\n")));
 		}
 		assertEquals(true, FileUtils.isInputGZip(file) );
@@ -77,7 +78,7 @@ public class VcfWriterReaderTest {
 		for(int i = 0; i < fnames.length; i ++){ 
 			File file = testFolder.newFile(fnames[i]);
 			//create writer
-			try(VCFFileWriter writer = new VCFFileWriter(file) ){
+			try(RecordWriter<VcfRecord> writer = new RecordWriter<>(file) ){
 				 writer.addHeader(vcfStrings[i]);				
 			} catch (Exception e) { fail(); }
 			
@@ -110,7 +111,7 @@ public class VcfWriterReaderTest {
 		File file =  testFolder.newFile("output.vcf");
 		
 		//create new file 
-		try(VCFFileWriter writer = new VCFFileWriter(file) ){
+		try(RecordWriter<VcfRecord> writer = new RecordWriter<>(file) ){
 			 writer.addHeader(vcfStrings[0]);				
 		} catch (Exception e) { fail(); }
 		
@@ -121,7 +122,7 @@ public class VcfWriterReaderTest {
 		
 		
 		//append to file
-		try(VCFFileWriter writer = VCFFileWriter.createAppendVcfWriter(file)   ){
+		try(RecordWriter<VcfRecord> writer = new RecordWriter<>(file, true)   ){
 			 writer.addHeader(vcfStrings[1]);				
 		} catch (Exception e) { fail(); }
 		
