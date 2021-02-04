@@ -58,7 +58,7 @@ public class IndelPositionTest {
 		Support.createGatkVcf(inputIndel);
 		
 		//dodgy fake reference  and index
-	 	ContigPileupTest.createSam(inputIndel + ".fai");	
+	 	ContigPileupTest.createSam(new File(inputIndel + ".fai"));	
 		 
 		List<String> data = new ArrayList<String>();
 		data.add(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE);
