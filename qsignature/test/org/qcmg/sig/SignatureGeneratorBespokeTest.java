@@ -207,7 +207,6 @@ public class SignatureGeneratorBespokeTest {
 	    		System.out.println("rec: " + rec.toString());
 	    	}
 	    	VcfHeader header = reader.getVcfHeader();
-//	    	header.getAllMetaRecords().stream().forEach(System.out::println);
 	    	assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg0=null")));
     	}
        	
@@ -229,7 +228,6 @@ public class SignatureGeneratorBespokeTest {
 		final String outputFIleName = bamFile.getAbsolutePath() + ".qsig.vcf.gz";
 		final File outputFile = new File(outputFIleName);
 		
-		//    	writeSnpChipFile(snpChipFile);
 		SignatureGeneratorTest.writeSnpPositionsFile(positionsOfInterestFile);
 		SignatureGeneratorTest.writeIlluminaArraysDesignFile(illuminaArraysDesignFile);
 		SignatureGeneratorTest.getBamFile(bamFile, true, false, true);
