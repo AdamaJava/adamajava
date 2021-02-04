@@ -12,8 +12,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
@@ -21,23 +23,23 @@ import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.qio.vcf.VcfFileReader;
 
 public class DbsnpModeTest {
+	@org.junit.Rule
+	public  TemporaryFolder testFolder = new TemporaryFolder();
 	
-    final static String inputName = "./input.vcf";
-	final static String dbSNPName = "./dbSNP.vcf";
-	final static String outputName = "./output.vcf";
-
+    private File input;
+    private File dbSNP;
+    private File output;
  	
-	 @BeforeClass
-	public static void createInput() throws IOException{
-		createVcf();
+	@Before
+	public void createInput() throws IOException{
+		 
+	    input = testFolder.newFile("input.vcf");
+	    dbSNP = testFolder.newFile("dbSNP.vcf");
+	    output = testFolder.newFile("output.vcf");
+		 
+		createVcf(input);
  	}
 	 
-	 @AfterClass
-	 public static void deleteIO(){
-		 new File(inputName).delete();
-		 new File(dbSNPName).delete();
-		 new File(outputName).delete();
-	 }
 	 
 	 @Test
 	 public void indelTest(){
@@ -59,6 +61,7 @@ public class DbsnpModeTest {
 		 DbsnpMode.annotateDBsnp(inputVcf, dbSNPVcf);
 		 assertFalse(inputVcf.getId().equals( "rs100" ));	
 	 }	 
+	 
 	 @Test
 	 public void multiAllelesTest(){
 		 				 
@@ -91,15 +94,15 @@ public class DbsnpModeTest {
 	
 	@Test
 	public void vLDTest() throws IOException, Exception{
-		createDbsnpHeader();
+		createDbsnpHeader(dbSNP);
 		
 		final DbsnpMode mode = new DbsnpMode();		
-		mode.loadVcfRecordsFromFile(new File(inputName));
-		mode.addAnnotation(dbSNPName);		
-		mode.reheader("testing run",   inputName);
-		mode.writeVCF(new File(outputName));
+		mode.loadVcfRecordsFromFile(input);
+		mode.addAnnotation(dbSNP.getAbsolutePath());		
+		mode.reheader("testing run",   input.getAbsolutePath());
+		mode.writeVCF(output);
 
-		try (VcfFileReader reader = new VcfFileReader(outputName)) {
+		try (VcfFileReader reader = new VcfFileReader(output)) {
 			VcfHeader header = reader.getVcfHeader();	
 			assertEquals( header.getInfoRecord(VcfHeaderUtils.INFO_VLD)!= null, true);
 		}		 
@@ -109,7 +112,7 @@ public class DbsnpModeTest {
 	 * create input vcf file containing 2 dbSNP SNPs and one verified SNP
 	 * @throws IOException
 	 */
-	public static void createVcf() throws IOException{
+	public static void createVcf(File f) throws IOException{
         final List<String> data = new ArrayList<>();
         data.add("##fileformat=VCFv4.0");
         data.add(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT+"s1\ts2");
@@ -121,7 +124,7 @@ public class DbsnpModeTest {
         data.add("chrY\t22012840\t.\tC\tA\t.\tMIUN\tSOMATIC\tGT:GD:AC:MR:NNS\t0/1:C/A:A0[0],15[36.2],C11[36.82],9[33]\t0/1:C/A:A0[0],33[35.73],C6[30.5],2[34]:15:13");  
         data.add("chrY\t77242678\t.\tCA\tTG\t.\tPASS\tEND=77242679\tACCS\tCA,10,14,TG,6,7\tCA,14,9,TG,23,21");
         
-        try(BufferedWriter out = new BufferedWriter(new FileWriter(inputName));) {          
+        try(BufferedWriter out = new BufferedWriter(new FileWriter(f));) {          
             for (final String line : data)   out.write(line + "\n");                  
          }  
 	}
@@ -129,7 +132,7 @@ public class DbsnpModeTest {
 	/**
 	 * a mini dbSNP vcf file 
 	 */
-	public static void createDbsnp() throws IOException{
+	public static void createDbsnp(File f) throws IOException{
         final List<String> data = new ArrayList<>();
         data.add("##fileformat=VCFv4.0");
         data.add("##dbSNP_BUILD_ID=135");  
@@ -141,12 +144,12 @@ public class DbsnpModeTest {
         data.add("Y\t2675829\trs112502114\tA\tC\t.\t.\tRSPOS=2675829;RV;dbSNPBuildID=132;SSR=0;SAO=0;VP=050100000008000100000100;WGT=0;VC=SNV;SLO;CFL;GNO");
         data.add("Y\t22012840\trs111477956\tC\tA\t.\t.\tRSPOS=22012840;RV;GMAF=0.113802559414991;dbSNPBuildID=132;SSR=0;SAO=0;VP=050100000000000100000100;WGT=0;VC=SNV;SLO;GNO;VLD");  
         data.add("Y\t77242677\trs386662672\tCCA\tCTG\t.\t.\tRS=386662672;RSPOS=77242678;dbSNPBuildID=138;SSR=0;SAO=0;VP=0x050000080005000002000800;WGT=1;VC=MNV;INT;ASP;OTHERKG");
-        try(BufferedWriter out = new BufferedWriter(new FileWriter(dbSNPName));) {          
+        try(BufferedWriter out = new BufferedWriter(new FileWriter(f));) {          
            for (final String line : data)  out.write(line + "\n");
         }  
 	}
 	
-	public static void createDbsnpHeader() throws IOException{
+	public static void createDbsnpHeader(File f) throws IOException{
         final List<String> data = new ArrayList<>();
         data.add("##fileformat=VCFv4.0");
         data.add("##dbSNP_BUILD_ID=135");  
@@ -157,7 +160,7 @@ public class DbsnpModeTest {
         data.add("##INFO=<ID=VLD,Number=0,Type=Flag,Description=\"Is Validated. This bit is set if the variant has 2+ minor allele count based on frequency or genotype data.\">");
         data.add(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE);
         
-        try(BufferedWriter out = new BufferedWriter(new FileWriter(dbSNPName));) {          
+        try(BufferedWriter out = new BufferedWriter(new FileWriter(f));) {          
            for (final String line : data)  out.write(line + "\n");
         }  
 	}	
