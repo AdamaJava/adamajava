@@ -28,7 +28,7 @@ import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.qio.vcf.VcfFileReader;
-import org.qcmg.qio.vcf.VCFFileWriter;
+import org.qcmg.qio.record.RecordWriter;
 
 import au.edu.qimr.qannotate.Options;
 
@@ -160,7 +160,7 @@ public class IndelConfidenceMode extends AbstractMode{
 		long repeatCount = 0; 
 		HashSet<ChrPosition> posCheck = new HashSet<ChrPosition>();	
 		try (VcfFileReader reader = new VcfFileReader(input) ;
-            VCFFileWriter writer = new VCFFileWriter(new File(output ))  ) {
+            RecordWriter<VcfRecord> writer = new RecordWriter<>(new File(output ))  ) {
 			    
 			//reheader
 		    VcfHeader hd = 	reader.getVcfHeader();

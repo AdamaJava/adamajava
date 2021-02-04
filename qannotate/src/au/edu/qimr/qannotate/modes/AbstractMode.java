@@ -27,7 +27,7 @@ import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.qio.vcf.VcfFileReader;
-import org.qcmg.qio.vcf.VCFFileWriter;
+import org.qcmg.qio.record.RecordWriter;
 
 import au.edu.qimr.qannotate.Main;
 
@@ -75,7 +75,7 @@ abstract class AbstractMode {
 		final List<ChrPosition> orderedList = new ArrayList<>(positionRecordMap.keySet());
 		orderedList.sort( ChrPositionComparator.getCPComparatorForGRCh37());
 		
-		try(VCFFileWriter writer = new VCFFileWriter( outputFile)) {
+		try(RecordWriter<VcfRecord> writer = new RecordWriter<>( outputFile)) {
 			for(final VcfHeaderRecord record: header)  {
 				writer.addHeader(record.toString());
 			}

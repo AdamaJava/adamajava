@@ -32,7 +32,7 @@ import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils.VcfInfoType;
 import org.qcmg.qio.vcf.VcfFileReader;
-import org.qcmg.qio.vcf.VCFFileWriter;
+import org.qcmg.qio.record.RecordWriter;
 
 import au.edu.qimr.qannotate.Main;
 import au.edu.qimr.qannotate.Options;
@@ -82,8 +82,8 @@ public class MakeValidMode extends AbstractMode {
 	private void processVcfFile(String input, String output, String cmd, String ref) throws FileNotFoundException, IOException {
 		File inputFile = new File(input);
 		
-		try (VcfFileReader reader = VcfFileReader.createStream(inputFile);
-				VCFFileWriter writer = new VCFFileWriter(new File(output));) {
+		try (VcfFileReader reader = new VcfFileReader(inputFile);
+				RecordWriter<VcfRecord> writer = new RecordWriter<>(new File(output));) {
 			
 			VcfHeader inputHeader = reader.getVcfHeader();
 			

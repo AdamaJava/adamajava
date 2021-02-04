@@ -50,7 +50,7 @@ import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.qio.vcf.VcfFileReader;
-import org.qcmg.qio.vcf.VCFFileWriter;
+import org.qcmg.qio.record.RecordWriter;
 
 public class Vcf2maf extends AbstractMode {
 	
@@ -162,10 +162,10 @@ public class Vcf2maf extends AbstractMode {
 				PrintWriter out_SP = new PrintWriter(sP);
 				PrintWriter out_GPC = new PrintWriter(gPC);
 				PrintWriter out_GP = new PrintWriter(gP);
-				VCFFileWriter outSPCVcf = new VCFFileWriter(new File(sPCVcf), true);
-				VCFFileWriter outSPVcf = new VCFFileWriter(new File(sPVcf), true);
-				VCFFileWriter outGPCVcf = new VCFFileWriter(new File(gPCVcf), true);
-				VCFFileWriter outGPVcf = new VCFFileWriter(new File(gPVcf), true);
+				RecordWriter<VcfRecord> outSPCVcf = new RecordWriter<>(new File(sPCVcf), true);
+				RecordWriter<VcfRecord> outSPVcf = new RecordWriter<>(new File(sPVcf), true);
+				RecordWriter<VcfRecord> outGPCVcf = new RecordWriter<>(new File(gPCVcf), true);
+				RecordWriter<VcfRecord> outGPVcf = new RecordWriter<>(new File(gPVcf), true);
 				) {
 			
 			reheader( option.getCommandLine(), option.getInputFileName());			
@@ -258,7 +258,7 @@ public class Vcf2maf extends AbstractMode {
 		}		
 	}
 	
-	private static void createVcfHeaders(VcfHeader header, VCFFileWriter ... writers) throws IOException {
+	private static void createVcfHeaders(VcfHeader header, RecordWriter<VcfRecord> ... writers) throws IOException {
 		StringBuilder sb = new StringBuilder();
 		for (VcfHeaderRecord rec : header) {
 			if (sb.length() > 0) {
@@ -267,7 +267,7 @@ public class Vcf2maf extends AbstractMode {
 			sb.append(rec.toString());
 		}
 		
-		for (VCFFileWriter w : writers) {
+		for (RecordWriter<VcfRecord> w : writers) {
 			w.addHeader(sb.toString());
 		}
 	}
