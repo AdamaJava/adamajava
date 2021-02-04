@@ -85,11 +85,6 @@ public class IniFileTest {
 	
 	
 	public static void createIniFile(File ini, File testbam, File controlbam, File testvcf, File controlvcf,  String query, File outputVcfFile){
-//		createIniFile( ini,  testbam, controlbam, testvcf,  controlvcf,  query, "gatk", outputVcfFile);
-//	}
-//	
-//	public static void createIniFile(File ini, File testbam, File controlbam, File testvcf, File controlvcf,  String query, String mode, File outputVcfFile){
-		
 		String mode = "gatk";
         List<String> data = new ArrayList<>();
         data.add("[IOs]");

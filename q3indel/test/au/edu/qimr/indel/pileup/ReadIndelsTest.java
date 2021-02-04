@@ -37,8 +37,7 @@ public class ReadIndelsTest {
 	public void createInput() throws IOException {	
 		input1 = testFolder.newFile("input1.vcf");
 		input2 = testFolder.newFile("input2.vcf");
-		input3 = testFolder.newFile("input3.vcf");
-		
+		input3 = testFolder.newFile("input3.vcf");		
 		createVcf();		
 	}
 		
@@ -95,8 +94,7 @@ public class ReadIndelsTest {
 					assertEquals("GT:AD:DP:GD:GQ:PL", indel.getIndelVcf(0).getFormatFields().get(0));
 					assertEquals("0/0:0:0:GT/GT:0:0,0,0", indel.getIndelVcf(0).getFormatFields().get(1));
 					assertEquals("0/1:131,31:162:GT/G:99:762,0,4864", indel.getIndelVcf(0).getFormatFields().get(2));
-					assertTrue(indel.getIndelVcf(0).getInfo().equals("SOMATIC1")); //info column from first file
-						 
+					assertTrue(indel.getIndelVcf(0).getInfo().equals("SOMATIC1")); //info column from first file						 
 				}else if(indel.getStart() == 59033423){	
 					//merge indels but split alleles
 					assertEquals("0/1:7,4:11:T/TC:99:257,0,348", indel.getIndelVcf(0).getFormatFields().get(1));
@@ -112,12 +110,10 @@ public class ReadIndelsTest {
 					assertTrue(indel.getIndelVcf(0).getInfo().equals("SOMATIC" )); //info column from second file  
 				}						 
 			}
-
 		}catch(Exception e){
 			System.err.println(Q3IndelException.getStrackTrace(e));
 			assertFalse(true);
-		}
-		
+		}		
 	}
 	
 	@Test
@@ -153,8 +149,7 @@ public class ReadIndelsTest {
 		}catch(Exception e){
 			System.out.println(Q3IndelException.getStrackTrace(e));
 			assertFalse(true);
-		}
-		
+		}		
 	}		
 			
 	@Test
