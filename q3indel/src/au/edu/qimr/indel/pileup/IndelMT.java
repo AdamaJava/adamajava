@@ -36,7 +36,7 @@ import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.util.QBamIdFactory;
 import org.qcmg.qbamfilter.query.QueryExecutor;
-import org.qcmg.qio.vcf.VCFFileWriter;
+import org.qcmg.qio.record.RecordWriter;
 
 public class IndelMT {
 	public static final int MAXRAMREADS = 1500; //maximum number of total reads in RAM
@@ -356,7 +356,7 @@ public class IndelMT {
 				
 		final AbstractQueue<IndelPosition> orderedList = getIndelList(null);
 		logger.info("reading indel position:  " + orderedList.size() );
-		try (VCFFileWriter writer = new VCFFileWriter( output)) {	
+		try (RecordWriter<VcfRecord> writer = new RecordWriter<>( output)) {	
 						
 			//reheader
 			getHeaderForIndel(header);	
