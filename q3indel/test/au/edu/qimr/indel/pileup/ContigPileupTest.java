@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.picard.SAMFileReaderFactory;
 
@@ -19,16 +20,18 @@ import au.edu.qimr.indel.Q3IndelException;
 import au.edu.qimr.indel.pileup.IndelMT.ContigPileup;
 
 public class ContigPileupTest {
-	
+	@org.junit.Rule
+	public  TemporaryFolder testFolder = new TemporaryFolder();
+
 	@Test
 	public void resetPoolTest() throws IOException{			
-		String inputBam = "input.sam";
+		File inputBam = testFolder.newFile("input.sam");
 		createSam(inputBam);
 		
 		//get pool
 		List<SAMRecord> pool = new ArrayList<SAMRecord>();
 		List<SAMRecord> nextpool = new ArrayList<SAMRecord>();
-		SamReader inreader =  SAMFileReaderFactory.createSAMFileReader( new File(inputBam));	
+		SamReader inreader =  SAMFileReaderFactory.createSAMFileReader( inputBam);	
 				
 		VcfRecord vcf = new VcfRecord(new String[] {"chr11", "500", null, "TAAAAAGGGGGTTTTTCCCCC", "T" });
 		IndelPosition topPos = new IndelPosition(vcf);
@@ -74,7 +77,7 @@ public class ContigPileupTest {
       		
 	}
 	
-	   public static void createSam(String inputBam){
+	   public static void createSam(File inputBam){
 	        List<String> data = new ArrayList<String>();
 	        data.add("@HD	VN:1.0	SO:coordinate");
 	        data.add("@RG	ID:20140717025441134	SM:eBeads_20091110_CD	DS:rl=50");

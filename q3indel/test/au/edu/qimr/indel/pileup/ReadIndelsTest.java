@@ -3,6 +3,7 @@ package au.edu.qimr.indel.pileup;
 import static org.junit.Assert.*;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -10,6 +11,7 @@ import java.util.Map;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrRangePosition;
@@ -23,21 +25,32 @@ import au.edu.qimr.indel.Q3IndelException;
 import au.edu.qimr.indel.Support;
 
 public class ReadIndelsTest {
-	public final static String input1 = "input1.vcf";
-	public final static String input2 = "input2.vcf";
-	public final static String input3 = "input3.vcf";
+//	public final static String input1 = "input1.vcf";
+//	public final static String input2 = "input2.vcf";
+//	public final static String input3 = "input3.vcf";
 	
+	File input1;
+	File input2;
+	File input3;	
+	
+	@org.junit.Rule
+	public  TemporaryFolder testFolder = new TemporaryFolder();
+
 	@Before 
-	public void createInput() {	 
+	public void createInput() throws IOException {	
+		input1 = testFolder.newFile("input1.vcf");
+		input2 = testFolder.newFile("input2.vcf");
+		input3 = testFolder.newFile("input3.vcf");
+		
 		createVcf();		
 	}
 	
-	@After
-	public void clearInput() {	 		
-		new File(input1).delete();
-		new File(input2).delete();
-		new File(input3).delete();
-	}
+//	@After
+//	public void clearInput() {	 		
+//		new File(input1).delete();
+//		new File(input2).delete();
+//		new File(input3).delete();
+//	}
 	
 	@Test
 	public void multiAltTest(){
@@ -47,7 +60,7 @@ public class ReadIndelsTest {
 		//indel size can't be exceed 200
 		try{
 			ReadIndels indelload = new ReadIndels(QLoggerFactory.getLogger(Main.class, null, null));		
-			indelload.loadIndels(new File(input3), "");				
+			indelload.loadIndels(input3, "");				
 			Map<ChrRangePosition, IndelPosition> positionRecordMap = indelload.getIndelMap();
 			assertTrue(positionRecordMap.size() == 1);
 			 
@@ -76,10 +89,10 @@ public class ReadIndelsTest {
 				 
 		try{
 			ReadIndels indelload = new ReadIndels(QLoggerFactory.getLogger(Main.class, null, null));		
-			indelload.loadIndels(new File(input1),"");	
+			indelload.loadIndels(input1,"");	
 			assertTrue(getHeaderLineCounts(indelload.getVcfHeader()) == 7);
 			//in case of GATK, take the second sample column
-			indelload.appendTestIndels(new File(input2));
+			indelload.appendTestIndels(input2);
 			assertTrue(getHeaderLineCounts(indelload.getVcfHeader()) == 8);
 			
 			Map<ChrRangePosition, IndelPosition> positionRecordMap = indelload.getIndelMap();
@@ -129,7 +142,7 @@ public class ReadIndelsTest {
 		ReadIndels indelload = new ReadIndels(QLoggerFactory.getLogger(Main.class, null, null));				
 		try{
 			//load single file
-			indelload.loadIndels(new File(input1), "");	
+			indelload.loadIndels(input1, "");	
 			Map<ChrRangePosition, IndelPosition> positionRecordMap = indelload.getIndelMap();
 			assertTrue(positionRecordMap.size() == 2);		
 			
@@ -164,11 +177,11 @@ public class ReadIndelsTest {
 		ReadIndels indelload = new ReadIndels(QLoggerFactory.getLogger(Main.class, null, null));				
 		try{
 			//load single file
-			indelload.loadIndels(new File(input1),"");	
+			indelload.loadIndels(input1,"");	
 			assertTrue(getHeaderLineCounts(indelload.getVcfHeader()) == 7);
 			
 			//load second file, in case of pindel
-			indelload.loadIndels(new File(input2),"");		
+			indelload.loadIndels(input2,"");		
 			assertTrue(getHeaderLineCounts(indelload.getVcfHeader()) == 8);
 
 			Map<ChrRangePosition, IndelPosition> positionRecordMap = indelload.getIndelMap();
@@ -191,12 +204,12 @@ public class ReadIndelsTest {
 		 		
 			//change inputs order
 			indelload = new ReadIndels(QLoggerFactory.getLogger(Main.class, null, null));	
-			indelload.loadIndels(new File(input2),"");		
+			indelload.loadIndels(input2,"");		
 			
 			assertTrue(getHeaderLineCounts(indelload.getVcfHeader()) == 7);
 			
 			//load second file, in case of pindel
-			indelload.loadIndels(new File(input1),"");
+			indelload.loadIndels(input1,"");
 			assertTrue(getHeaderLineCounts(indelload.getVcfHeader()) == 8);		
 			
 		}catch(Exception e){
@@ -207,8 +220,9 @@ public class ReadIndelsTest {
 	
 	private int getHeaderLineCounts(VcfHeader header){
 		int no = 0; 
-		for(final VcfHeaderRecord record: header )  
+		for(final VcfHeaderRecord record: header ) { 
 			no ++;		
+		}
 		return no; 		
 	}
 	
