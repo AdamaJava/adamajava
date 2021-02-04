@@ -9,9 +9,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.model.ChrPointPosition;
@@ -26,8 +24,6 @@ import htsjdk.samtools.SamReader;
 public class SnpPileupTest {
     @org.junit.Rule
     public  TemporaryFolder testFolder = new TemporaryFolder();
-
-//	static final String inputBam = "input.bam"; 
 	File input;
  
 	@Before 
@@ -35,22 +31,10 @@ public class SnpPileupTest {
 		input = testFolder.newFile("input.bam");
 		createSam( makeReads4Pair(), input ); 
 	}
-	
-//	@AfterClass
-//	public static void deleteInput() {			
-//		File dir = new File(".");
-//		if(!dir.isDirectory()) throw new IllegalStateException("wtf mate?");
-//		for(File file : dir.listFiles()) {
-//		    if(file.getName().startsWith("input."))
-//		       file.delete();
-//		}
-//	}
-	
- 
-	
+
 	@Test 
 	public void overlappedPairTest() throws IOException{
-		List<SAMRecord> pool = createPool(input);
+		List<SAMRecord> pool = createPool();
 				
 		for(int pos : new int[]{ 282753, 282768, 282769, 282783 }){
 			ChrPointPosition chrP = new ChrPointPosition("chr11", pos);		 			
@@ -79,7 +63,7 @@ public class SnpPileupTest {
 	
 	@Test
 	public void errMDTest() throws IOException{
-		List<SAMRecord> pool = createPool(input);
+		List<SAMRecord> pool = createPool();
 		
 		for(SAMRecord re: pool )
 			re.setAttribute("MD", "");
@@ -113,11 +97,10 @@ public class SnpPileupTest {
     (first of pair read base)   CTTCTTCATCCACT A TTT C AGGCAATGAC A    AA CACTGTGCCAT ATG CTG TATCTTATACACATCACCCAGCCCA
     									   282753  				282768			 282783
     (second of pair read base)  GCAGCGTCAGAGGT T TAT A AGTTACAGCT T	   CT TCATCCACTCT TTG AGG CAATGACACCCACTGTGCCATCTG
-
 	 * @throws IOException
 	 */
 	public void errCigarTest() throws IOException{
-		List<SAMRecord> pool = createPool(input);
+		List<SAMRecord> pool = createPool();
 		//pool.get(0).setCigarString("30M2D13M3I3M25S");
 		//chage second read cigar to first one
 		pool.get(1).setCigar(pool.get(0).getCigar());
@@ -146,16 +129,16 @@ public class SnpPileupTest {
 		}
 	}
 	
-	private List<SAMRecord> createPool(File fbam) throws IOException{			
+	private List<SAMRecord> createPool() throws IOException{			
 		List<SAMRecord> pool = new ArrayList<SAMRecord>();				
-		try(SamReader inreader =  SAMFileReaderFactory.createSAMFileReader(fbam);){
+		try(SamReader inreader =  SAMFileReaderFactory.createSAMFileReader(input);){
 	        for(SAMRecord re : inreader)  pool.add(re);   	
 		}		
 		return pool; 		
 	}
 
-    public static void createSam( List<String> reads, File fsam ) throws IOException{
-    	//String ftmp = "input.sam";
+    public static void createSam( List<String> reads, File input ){
+    	File ftmp = new File("input.sam");
     	
         List<String> data = new ArrayList<String> ();
         data.add("@HD	VN:1.0	SO:coordinate");
@@ -167,16 +150,22 @@ public class SnpPileupTest {
         data.addAll(reads);
                   
        
-        try( BufferedWriter out =  new BufferedWriter( new FileWriter( fsam )) ){
-           for ( String line : data )  out.write( line + "\n" );                     
-        }  
+        try( BufferedWriter out =  new BufferedWriter( new FileWriter( ftmp )) ){
+           for ( String line : data )  out.write( line + "\n" );          
+           out.close();
+        } catch (IOException e) {
+            System.err.println( "IOException caught whilst attempting to write to SAM test file: " + ftmp  + e );
+        } 
         
-		try(SamReader inreader =  SAMFileReaderFactory.createSAMFileReader(fsam);  ){
+		try(SamReader inreader =  SAMFileReaderFactory.createSAMFileReader( ftmp);  ){
 			SAMFileHeader he = inreader.getFileHeader();
 			he.setSortOrder( SAMFileHeader.SortOrder.coordinate );
-			SAMFileWriter writer = new SAMOrBAMWriterFactory(he , false, fsam, true).getWriter();	        
+			SAMFileWriter writer = new SAMOrBAMWriterFactory(he , false, input, true).getWriter();	        
 	        for(SAMRecord re : inreader){ writer.addAlignment(re); }
-		}  	
+	        writer.close();
+		} catch (IOException e) { e.printStackTrace(); }	
+		
+		ftmp.delete();
      
     }
        
@@ -186,11 +175,9 @@ public class SnpPileupTest {
     MD:Z:14C14T^GA0C0C14        |-----14-----| | |-------14-----| | del|| |--------14-------|
     30M2D13M3I3M25S             | -------------- 30M ------------ | 2D |---- 13M ---| 3I  3M  | ------- 25S --------- |
     ( first of pair read base)  CTTCTTCATCCACT A TTT C AGGCAATGAC A    AA CACTGTGCCAT ATG CTG TATCTTATACACATCACCCAGCCCA
-
     ref              ***********CTTCTTCATCCACT C TTT C AGGCAATGAC T GA CC CACTGTGCCAT     CTG ***********************
                                 |              |     |            |                 |
                                282739       282753 282757      282768              282783       
-
     GCAGCGTCAGAGGTTTATAAGTTACAG CTTCTTCATCCACT C TTT G AGGCAATGAC A    CC CACTGTGCCAT     CTG    (second pair read base)
     | ----------- 27S ------- | | ------------ 30M -------------- | 2D | ------ 16M ------- |    27S30M2D16M 
                                 |----------18------| | |----10--| |del |--------16----------|    MD:Z:18C11^GA16

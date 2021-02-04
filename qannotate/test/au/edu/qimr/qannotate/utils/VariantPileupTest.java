@@ -1,5 +1,4 @@
 package au.edu.qimr.qannotate.utils;
-
 import static org.junit.Assert.assertTrue;
 
 import java.io.BufferedWriter;
@@ -11,7 +10,6 @@ import java.util.List;
 
 import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.vcf.VcfRecord;
@@ -24,6 +22,7 @@ import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SamReader;
 
 public class VariantPileupTest {
+	
     @org.junit.Rule
     public  TemporaryFolder testFolder = new TemporaryFolder();
 
@@ -35,7 +34,7 @@ public class VariantPileupTest {
 		List<String> reads = makeReads4Indel();
 		reads.addAll(makeReads4Pair());
 		createSam(reads, inputBam);		
-	}
+	}	
 	
 	@Test
 	public void baseQualityTest() throws Exception{
@@ -54,7 +53,7 @@ public class VariantPileupTest {
 				
 		//insert position not affect by base quality
 		vcf = new VcfRecord.Builder( "chr1",	183014,	"G" ).allele( "GTT" ).build();
-		pool = makePool( vcf, inputBam );
+		pool = makePool( vcf , inputBam);
 		reSetQuality(pool, 183014 );
 		pileup = new VariantPileup(vcf, pool,0);
 		assertTrue( pileup.getAnnotation().equals( "3[0,0,1,1,1]" ) ); 
@@ -64,7 +63,7 @@ public class VariantPileupTest {
 	@Test
 	public void mnpTest() throws Exception{
 		VcfRecord vcf = new VcfRecord.Builder("chr11",	282768,	"T").allele("A").build();
-		List<SAMRecord> pool = makePool(vcf, inputBam);
+		List<SAMRecord> pool = makePool(vcf,inputBam);
 		
 		//pair exactly match snp
 		VariantPileup pileup = new VariantPileup(vcf, pool,0);
@@ -101,7 +100,7 @@ public class VariantPileupTest {
 	public void insertTest() throws Exception{		 
  
 		VcfRecord vcf = new VcfRecord.Builder( "chr1",	183014,	"G" ).allele( "GTT" ).build();
-		List<SAMRecord> pool = makePool(vcf, inputBam);
+		List<SAMRecord> pool = makePool( vcf, inputBam );
 				
 		//no pair with same del
 		VariantPileup pileup = new VariantPileup( vcf, pool,0);
@@ -165,10 +164,10 @@ public class VariantPileupTest {
 	}
 	
 	 // @return a SAMRecord pool overlap the indel position
-	private List<SAMRecord> makePool(VcfRecord vs, File inputBam) throws IOException{
+	private List<SAMRecord> makePool(VcfRecord vs, File fbam) throws IOException{
 		//make pool
 		List<SAMRecord> pool = new ArrayList<SAMRecord>();				
-		try(SamReader inreader =  SAMFileReaderFactory.createSAMFileReader(inputBam);){
+		try(SamReader inreader =  SAMFileReaderFactory.createSAMFileReader(fbam);){
 	        for(SAMRecord record : inreader){
 	        	if(record.getAlignmentStart() <= vs.getPosition() && record.getAlignmentEnd() > vs.getChrPosition().getEndPosition())
 	        	pool.add(record);
@@ -185,11 +184,9 @@ public class VariantPileupTest {
     MD:Z:14C14T^GA0C0C14        |-----14-----| | |-------14-----| | del|| |--------14-------|
     30M2D13M3I3M25S             | -------------- 30M ------------ | 2D |---- 13M ---| 3I  3M  | ------- 25S --------- |
     ( first of pair read base)  CTTCTTCATCCACT A TTT C AGGCAATGAC A    AA CACTGTGCCAT ATG CTG TATCTTATACACATCACCCAGCCCA
-
     ref              ***********CTTCTTCATCCACT C TTT C AGGCAATGAC T GA CC CACTGTGCCAT     CTG ***********************
                                 |              |     |            |                 |
                                282739       282753 282757      282768              282783       
-
     GCAGCGTCAGAGGTTTATAAGTTACAG CTTCTTCATCCACT C TTT G AGGCAATGAC A    AC CACTGTGCCAT     CTG    (second pair read base)
     | ----------- 27S ------- | | ------------ 30M -------------- | 2D | ------ 16M ------- |    27S30M2D16M 
                                 |----------18------| | |----10--| |del |--------16----------|    MD:Z:18C11^GA16
@@ -234,8 +231,8 @@ public class VariantPileupTest {
        return data;    	
     }
     
-     public static void createSam( List<String> reads, File fsam ) throws IOException{
-    	
+     public static void createSam( List<String> reads, File f ){
+    	String ftmp = "input.sam";
     	
         List<String> data = new ArrayList<String> ();
         data.add("@HD	VN:1.0	SO:coordinate");
@@ -248,18 +245,24 @@ public class VariantPileupTest {
         data.addAll(reads);
                   
        
-        try( BufferedWriter out =  new BufferedWriter( new FileWriter( fsam )) ){
-           for ( String line : data )  out.write( line + "\n"  );                     
-        }  
+        try( BufferedWriter out =  new BufferedWriter( new FileWriter( ftmp )) ){
+           for ( String line : data )  out.write( line + "\n"  );          
+           out.close();
+        } catch (IOException e) {
+            System.err.println( "IOException caught whilst attempting to write to SAM test file: " + ftmp  + e );
+        } 
         
-		try(SamReader inreader =  SAMFileReaderFactory.createSAMFileReader(fsam);  ){
+		try(SamReader inreader =  SAMFileReaderFactory.createSAMFileReader(new File(ftmp));  ){
 			SAMFileHeader he = inreader.getFileHeader();
 			he.setSortOrder( SAMFileHeader.SortOrder.coordinate );
-			SAMFileWriter writer = new SAMOrBAMWriterFactory(he , false, fsam, true).getWriter();	        
-	        for(SAMRecord re : inreader){ 
-	        	writer.addAlignment(re); 
-	        }	        
-		}  	   
+			SAMFileWriter writer = new SAMOrBAMWriterFactory(he , false, f, true).getWriter();	        
+	        for(SAMRecord re : inreader){ writer.addAlignment(re); }
+	        writer.close();
+		} catch (IOException e) { e.printStackTrace(); }		
+     
+		
+		new File(ftmp).delete();
     }
    
 }
+
