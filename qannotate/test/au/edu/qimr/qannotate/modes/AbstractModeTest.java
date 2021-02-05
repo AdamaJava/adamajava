@@ -29,8 +29,6 @@ import au.edu.qimr.qannotate.utils.SampleColumn;
 
 
 public class AbstractModeTest {
-//	public static String outputName = "output.vcf";
-//	public static String inputName = "input.vcf";
 	
 	File input;
 	File output;
@@ -44,17 +42,15 @@ public class AbstractModeTest {
 		output = testFolder.newFile("ioutput.vcf");
 	}
 	
-	//test data
+	
 	@Test
 	public void inputRecordCompoundSnp() throws Exception{
-		
+		//test data
 		final String[] params =  {"chr1","10180",".","TA","CT","."," MIN;MIUN","SOMATIC;END=10181","ACCS","TA,5,37,CA,0,2", "AA,1,1,CA,4,1,CT,3,1,TA,11,76,TT,2,2,_A,0,3,TG,0,1"};
 		final VcfRecord record = new VcfRecord(params);
 		assertEquals(10180, record.getPosition());
 		assertEquals(10181, record.getChrPosition().getEndPosition());		 
 	}
-	
-
 	
 	@Test
 	public void reHeaderTest() throws Exception{
@@ -141,9 +137,7 @@ public class AbstractModeTest {
 			/*
 			 * add in assertion that columns are the same - single sample mode...
 			 */
-//			fail( "My method didn't throw when I expected it to" );
-		}catch(Exception e){
-		}
+		}catch(Exception e) {}
 	}
 	
 	
