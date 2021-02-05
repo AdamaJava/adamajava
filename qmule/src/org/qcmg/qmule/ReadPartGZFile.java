@@ -56,7 +56,6 @@ public class ReadPartGZFile {
 	}
 	
 	static void countUniqPosition(String input_gzip_file, String indexFile) throws IOException{
-	//       TabixReader tabix = new TabixReader( input_gzip_file, indexFile);
 		TabixReader tabix = new TabixReader( input_gzip_file);
 		Set<String> chrs = tabix.getChromosomes();
 		HashSet<String> uniqPos = new HashSet<String>();
