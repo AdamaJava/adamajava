@@ -19,13 +19,9 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.vcf.VcfRecord;
-import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.vcf.VCFFileReader;
-
-import au.edu.qimr.qannotate.utils.SampleColumn;
-
 
 public class AbstractModeTest {
 	public static String outputName = "output.vcf";
@@ -89,69 +85,7 @@ public class AbstractModeTest {
 	        	}
 	        	assertEquals(7, i);	// removed blank lines
         }		
-	}
-	
-	 @Test
-	 public void sampleColumnTest()throws Exception{
-			VcfHeader header = new VcfHeader();		 
-			header.addOrReplace("##qControlSample=control");
-			header.addOrReplace("##qTestSample=test");
-			header.addOrReplace(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "qControlSample" + "\tqTestSample");
- 
-			SampleColumn column = SampleColumn.getSampleColumn(null,null, header);
-			assertTrue( column.getControlSampleColumn() == 1);
-			assertTrue( column.getTestSampleColumn() == 2);		
-			assertEquals( column.getControlSample() , "control");
-			assertEquals( column.getTestSample() , "test");	
-			
-			header.addOrReplace(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + "qControlSample" + "\ttest");
-			column = SampleColumn.getSampleColumn(null,null, header);
-			assertTrue( column.getControlSampleColumn() == 1);
-			assertTrue( column.getTestSampleColumn() == 2);		
-	 }
-	 
-	
-	@Test
-	public void  retriveSampleColumnTest(){
-		final String control = "Control";
-		final String test = "Test";
-		
-		VcfHeader header = new VcfHeader();		 
-		header.addOrReplace("##qControlSample=" + control);
-		header.addOrReplace("##qTestSample=" + test);
-		header.addOrReplace(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT + control + "\t" + "test");
-		
-		SampleColumn column = SampleColumn.getSampleColumn(null,null, header);
-		assertTrue( column.getControlSampleColumn() == 1);
-		assertTrue( column.getTestSampleColumn() == 2);		
-		assertEquals( column.getControlSample() , control);
-		assertEquals( column.getTestSample() , test);		
-		
-		//point to sample column 1: "control"	
-		column = SampleColumn.getSampleColumn(control,control, header);
-		assertTrue( column.getControlSampleColumn() == 1);
-		assertTrue( column.getTestSampleColumn() == 1);		
-		assertEquals( column.getControlSample() , control);
-		assertEquals( column.getTestSample() , control);		
-		
-		//point to sample column 1: "test"	 
-		column = SampleColumn.getSampleColumn(test,test, header);
-		assertTrue( column.getControlSampleColumn() == 2);
-		assertTrue( column.getTestSampleColumn() == 2);
-		assertEquals( column.getControlSample() , test);
-		assertEquals( column.getTestSample() , test);		
-				
-		//point to unexsit sample id 
-		try{
-			column = SampleColumn.getSampleColumn(test+control,test, header);
-			/*
-			 * add in assertion that columns are the same - single sample mode...
-			 */
-//			fail( "My method didn't throw when I expected it to" );
-		}catch(Exception e){
-		}
-	}
-	
+	}	
 	
 	@Test
 	public void ordering() throws IOException {
