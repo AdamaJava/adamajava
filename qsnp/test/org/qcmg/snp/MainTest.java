@@ -21,7 +21,6 @@ public class MainTest {
 		try {
 			// no longer throws SNPException with null args - shows usage message instead
 			new Main().setup(args);
-//			Assert.fail("Should have thrown a SnpException");
 		} catch (SnpException e) {}
 	}
 	
@@ -95,8 +94,6 @@ public class MainTest {
 			exitStatus = new Main().setup(new String[]{"-input", iniFile.getAbsolutePath(), "-log", logFile.getAbsolutePath()});
 			Assert.fail("Should have thrown an exception");
 		} catch (SnpException se) {}
-//		Assert.assertEquals(1, exitStatus);
-		
 		// ADD IN OUTPUT FILE
 		// create vcfOutputFile and add to ini
 		File vcfOutputFile = folder.newFile("test.vcf.output");
@@ -131,16 +128,7 @@ public class MainTest {
 			Assert.assertEquals(true, e.getMessage().startsWith("Missing entries in ini file"));
 			
 		}
-		
-		// ADD IN RULES
-//		addRulesToIniFile(iniFile);
-//		try {
-//			exitStatus = new Main().setup(new String[]{"-input", iniFile.getAbsolutePath(), "-log", logFile.getAbsolutePath()});
-//			Assert.fail("Should have thrown a SnpException");
-//		} catch (SnpException e) {
-//			Assert.assertEquals(true, e.getMessage().startsWith(Messages.getMessage("EMPTY_PILEUP_FILE")));
-//		}
-		
+				
 	}
 	
 	@Test
@@ -157,7 +145,6 @@ public class MainTest {
 			exitStatus = new Main().setup(new String[]{"-input", iniFile.getAbsolutePath(), "-log", logFile.getAbsolutePath()});
 			Assert.fail("Should have thrown an excpetion");
 		} catch (SnpException se) {}
-//		Assert.assertEquals(1, exitStatus);
 		
 		// add in the updateGermlineDB value
 		IniFileGenerator.addStringToIniFile(iniFile, "[parameters]\nupdateGermlineDB = true", false);	// new file
@@ -207,15 +194,5 @@ public class MainTest {
 			Assert.assertEquals(true, e.getMessage().startsWith(Messages.getMessage("MISSING_ENTRIES_IN_INI_FILE")));
 		}
 		
-	}
-	
-	private void addRulesToIniFile(File iniFile) throws IOException {
-		FileWriter writer = new FileWriter(iniFile, true);
-		try {
-			writer.write("\n[rules]\ncontrol1=0,20,3");
-			writer.write("\ntest1=0,20,3");
-		} finally {
-			writer.close();
-		}
 	}
 }

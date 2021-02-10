@@ -27,7 +27,6 @@ public final class Main {
 	
 	private static String logFile;
 	private static Ini iniFile;
-//	private static org.ini4j.Ini iniFile;
 	
 	/**
 	 * Performs a single merge based on the supplied arguments. Errors will
@@ -53,7 +52,6 @@ public final class Main {
 	int setup(String [] args) throws Exception{
 		Options options = new Options(args);
 		if (options.hasHelpOption() || null == args || args.length == 0) {
-//			System.out.println(Messages.USAGE);
 			options.displayHelp();
 		} else if (options.hasVersionOption()) {
 			System.err.println(Messages.getVersionMessage());
@@ -88,20 +86,17 @@ public final class Main {
 			
 			
 			// examine annotate mode
-			String annotateMode = IniFileUtil.getEntry(iniFile, "parameters", "annotateMode");
 			String runMode = IniFileUtil.getEntry(iniFile, "parameters", "runMode");
 			
 			// RETRIEVE INPUT & OUTPUT FILES FROM INI
 			//output
 			String vcfOutputFilename = IniFileUtil.getOutputFile(iniFile, "vcf");
 			//input
-			String pileupFilename = IniFileUtil.getInputFile(iniFile, "pileup");
 			String controlVCFFilename = IniFileUtil.getInputFile(iniFile, "controlVcf");
 			String testVCFFilename = IniFileUtil.getInputFile(iniFile, "testVcf");
 			String controlBamFilename = IniFileUtil.getInputFile(iniFile, "controlBam");
 			String testBamFilename = IniFileUtil.getInputFile(iniFile, "testBam");
 			String referenceFilename = IniFileUtil.getInputFile(iniFile, "ref");
-			String mutectFilename = IniFileUtil.getInputFile(iniFile, "mutect");
 			
 			StringBuilder errorString = new StringBuilder();
 			
@@ -111,7 +106,6 @@ public final class Main {
 			if (null == vcfOutputFilename || ! FileUtils.canFileBeWrittenTo(vcfOutputFilename)) {
 				errorString.append("No vcf output file specified in ini file");
 				logger.error("No vcf output file specified in ini file");
-//				return 1;
 			}
 			
 			if (errorString.length() > 0) {
@@ -144,24 +138,6 @@ public final class Main {
 					throw new SnpException("MISSING_ENTRIES_IN_INI_FILE");
 				}
 				
-//			} else if ("torrent".equalsIgnoreCase(runMode)) {
-//				
-//				if (FileUtils.areInputFilesValid(testBamFilename, referenceFilename)) {
-//					new TorrentPipeline(iniFile, qexec, ! FileUtils.areInputFilesValid(controlBamFilename));
-//				} else {
-//					logger.error("run mode is torrent, but no pileup file exists in inputFiles section of ini file");
-//					throw new SnpException("MISSING_ENTRIES_IN_INI_FILE");
-//				}
-//				
-//			} else if ("pileup".equalsIgnoreCase(runMode)) {
-//				
-//				if (FileUtils.areInputFilesValid(pileupFilename)) {
-//					new PileupPipeline(iniFile, qexec, false);		// not sure about single sample for pileup pipe...
-//				} else {
-//					logger.error("run mode is pileup, but no pileup file exists in inputFiles section of ini file");
-//					throw new SnpException("MISSING_ENTRIES_IN_INI_FILE");
-//				}
-//				
 			} else if ("vcf".equalsIgnoreCase(runMode)) {
 				
 				if (FileUtils.areInputFilesValid(testVCFFilename)) {
@@ -169,17 +145,7 @@ public final class Main {
 				} else {
 					 logger.error("run mode is vcf, but no control vcf or test vcf entries exists in inputFiles section of ini file");
 					 throw new SnpException("MISSING_ENTRIES_IN_INI_FILE");
-				}
-				
-//			} else if ("mutect".equalsIgnoreCase(runMode)) {
-//				
-//				if (FileUtils.areInputFilesValid(mutectFilename)) {
-//					 new MuTectPipeline(iniFile, qexec);
-//				} else {
-//					 logger.error("run mode is mutect, but no mutect entry exists in inputFiles section of ini file");
-//					 throw new SnpException("MISSING_ENTRIES_IN_INI_FILE");
-//				}
-				
+				}				
 			} else {
 				logger.error("Please specify a valid runType in the ini file : " + runMode);
 				throw new SnpException("MISSING_ENTRIES_IN_INI_FILE");

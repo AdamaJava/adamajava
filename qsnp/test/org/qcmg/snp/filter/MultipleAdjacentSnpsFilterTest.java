@@ -150,8 +150,6 @@ public class MultipleAdjacentSnpsFilterTest {
 		sam.setAlignmentStart(27101429);
 		sam.setReadString("AACTACCAGCCCACCAGCATGCAGATCACATTCCTCAGGTATCCAGCCTGCTCCCTGCCCGCACTGCACACCGCACCTCTCCTAGCAGTCTCCATTCCTGCACTCTGGATGA");
 		Assert.assertEquals(false, filter.filterOut(sam));
-		
-		
 	}
 	
 }

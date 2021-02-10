@@ -29,9 +29,7 @@ public class IniFileUtil {
 		
 		Ini.Section section = ini.get("rules");
 		if (null != section) {
-			for (Map.Entry<String,String> entry : section.entrySet()) {
-//				System.out.println("entry key: " + entry.getKey());
-				
+			for (Map.Entry<String,String> entry : section.entrySet()) {				
 				if (entry.getKey().startsWith(type)) {
 					String[] values = TabTokenizer.tokenize(entry.getValue(), ',');
 					final int min = Integer.parseInt(values[0]);

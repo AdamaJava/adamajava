@@ -12,7 +12,6 @@ import java.util.concurrent.CountDownLatch;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
-import org.qcmg.common.model.QSnpGATKRecord;
 import org.qcmg.picard.QJumper;
 
 public class QJumperWorker<T> implements Runnable {
