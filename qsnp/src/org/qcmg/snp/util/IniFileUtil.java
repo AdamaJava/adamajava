@@ -59,32 +59,16 @@ public class IniFileUtil {
 		Ini.Section section = ini.get("rules");
 		if (null != section) {
 			for (Map.Entry<String,String> entry : section.entrySet()) {
-//				System.out.println("entry key: " + entry.getKey());
-				
-	//			if (entry.getKey().startsWith(type)) {
 					String[] values = TabTokenizer.tokenize(entry.getValue(), ',');
-	//				final int min = Integer.parseInt(values[0]);
-	//				final int max = Integer.parseInt(values[1]);
 					final int value = Integer.parseInt(values[2]);
 					minValue = Math.min(minValue, value);
-	//			}
 			}
 		}
 
-//		Set<String> sectionNames = ini.keySet();
-//		for (String sectionName : sectionNames) {
-//			if (sectionName.contains("rules")) {
-//				Ini.Section rule = ini.get(sectionName);
-//				int value = Integer.parseInt(rule.get("value"));
-//				minValue = Math.min(minValue, value);
-//			}
-//		}
-
-		if (minValue == Integer.MAX_VALUE)
+		if (minValue == Integer.MAX_VALUE) {
 			throw new SnpException("NO_VALID_RULES_IN_INI");
-//		throw new SnpException(
-//		"Did not retrieve a valid value for any rule");
-
+		}
+		
 		return minValue;
 	}
 
