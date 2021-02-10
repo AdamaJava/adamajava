@@ -24,8 +24,16 @@ public class ReferenceUtil {
 		String refContig = refFile + contig;
 		byte[] ref = referenceCache.get(refContig);
 		if ( null == ref) {
-			loadIntoReferenceCache(refFile, contig);
-			ref = referenceCache.get(refContig);
+			synchronized (ReferenceUtil.class) {
+				/*
+				 * check again to see if the referenceCache does not have this data as this may have been added by a different thread
+				 */
+				ref = referenceCache.get(refContig);
+				if ( null == ref) {
+					loadIntoReferenceCache(refFile, contig);
+					ref = referenceCache.get(refContig);
+				}
+			}
 			if (null == ref) {
 				//hmmm....
 				System.err.println("Unable to load contig: " + contig + " into cache");
@@ -42,7 +50,7 @@ public class ReferenceUtil {
 		return new String(refPortion);
 	}
 	
-	public static void loadIntoReferenceCache(String refFileName, String contig) {
+	private static void loadIntoReferenceCache(String refFileName, String contig) {
 		
 		FastaSequenceIndex index = new FastaSequenceIndex(new File(refFileName + ".fai"));
 		try (IndexedFastaSequenceFile refFile = new IndexedFastaSequenceFile(new File(refFileName), index);) {
