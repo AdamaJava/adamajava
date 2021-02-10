@@ -24,6 +24,7 @@ public class VcfFileMeta {
 	private final List<String> testSamples = new ArrayList<>(3);
 	private final List<String> controlBamUUIDs = new ArrayList<>(3);
 	private final List<String> testBamUUIDs = new ArrayList<>(3);
+	private final List<String> donorIDs = new ArrayList<>(3);
 	private final Map<String, short[]> callerSamplePositions = new HashMap<>(4);
 	
 	
@@ -44,6 +45,9 @@ public class VcfFileMeta {
 			}
 			if (hr.toString().contains("qTestSample")) {
 				testSamples.add(StringUtils.getValueFromKey(hr.toString(), "qTestSample"));
+			}
+			if (hr.toString().contains("qDonorId")) {
+				donorIDs.add(StringUtils.getValueFromKey(hr.toString(), "qDonorId"));
 			}
 		}
 		
@@ -171,7 +175,9 @@ public class VcfFileMeta {
 	public Optional<String> getFirstControlBamUUID() {
 		return controlBamUUIDs.isEmpty() ? Optional.empty() : Optional.ofNullable(controlBamUUIDs.get(0));
 	}
-	
+	public Optional<String> getFirstDonorID() {
+		return donorIDs.isEmpty() ? Optional.empty() : Optional.ofNullable(donorIDs.get(0));
+	}	
 
 	public int columnCount() {
 		return controlSamplePositions.size() + testSamplePositions.size();
