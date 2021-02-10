@@ -144,24 +144,24 @@ public final class Main {
 					throw new SnpException("MISSING_ENTRIES_IN_INI_FILE");
 				}
 				
-			} else if ("torrent".equalsIgnoreCase(runMode)) {
-				
-				if (FileUtils.areInputFilesValid(testBamFilename, referenceFilename)) {
-					new TorrentPipeline(iniFile, qexec, ! FileUtils.areInputFilesValid(controlBamFilename));
-				} else {
-					logger.error("run mode is torrent, but no pileup file exists in inputFiles section of ini file");
-					throw new SnpException("MISSING_ENTRIES_IN_INI_FILE");
-				}
-				
-			} else if ("pileup".equalsIgnoreCase(runMode)) {
-				
-				if (FileUtils.areInputFilesValid(pileupFilename)) {
-					new PileupPipeline(iniFile, qexec, false);		// not sure about single sample for pileup pipe...
-				} else {
-					logger.error("run mode is pileup, but no pileup file exists in inputFiles section of ini file");
-					throw new SnpException("MISSING_ENTRIES_IN_INI_FILE");
-				}
-				
+//			} else if ("torrent".equalsIgnoreCase(runMode)) {
+//				
+//				if (FileUtils.areInputFilesValid(testBamFilename, referenceFilename)) {
+//					new TorrentPipeline(iniFile, qexec, ! FileUtils.areInputFilesValid(controlBamFilename));
+//				} else {
+//					logger.error("run mode is torrent, but no pileup file exists in inputFiles section of ini file");
+//					throw new SnpException("MISSING_ENTRIES_IN_INI_FILE");
+//				}
+//				
+//			} else if ("pileup".equalsIgnoreCase(runMode)) {
+//				
+//				if (FileUtils.areInputFilesValid(pileupFilename)) {
+//					new PileupPipeline(iniFile, qexec, false);		// not sure about single sample for pileup pipe...
+//				} else {
+//					logger.error("run mode is pileup, but no pileup file exists in inputFiles section of ini file");
+//					throw new SnpException("MISSING_ENTRIES_IN_INI_FILE");
+//				}
+//				
 			} else if ("vcf".equalsIgnoreCase(runMode)) {
 				
 				if (FileUtils.areInputFilesValid(testVCFFilename)) {
@@ -171,14 +171,14 @@ public final class Main {
 					 throw new SnpException("MISSING_ENTRIES_IN_INI_FILE");
 				}
 				
-			} else if ("mutect".equalsIgnoreCase(runMode)) {
-				
-				if (FileUtils.areInputFilesValid(mutectFilename)) {
-					 new MuTectPipeline(iniFile, qexec);
-				} else {
-					 logger.error("run mode is mutect, but no mutect entry exists in inputFiles section of ini file");
-					 throw new SnpException("MISSING_ENTRIES_IN_INI_FILE");
-				}
+//			} else if ("mutect".equalsIgnoreCase(runMode)) {
+//				
+//				if (FileUtils.areInputFilesValid(mutectFilename)) {
+//					 new MuTectPipeline(iniFile, qexec);
+//				} else {
+//					 logger.error("run mode is mutect, but no mutect entry exists in inputFiles section of ini file");
+//					 throw new SnpException("MISSING_ENTRIES_IN_INI_FILE");
+//				}
 				
 			} else {
 				logger.error("Please specify a valid runType in the ini file : " + runMode);
