@@ -4,8 +4,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import junit.framework.Assert;
-
+import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -22,7 +21,6 @@ public class MainTest {
 		try {
 			// no longer throws SNPException with null args - shows usage message instead
 			new Main().setup(args);
-//			Assert.fail("Should have thrown a SnpException");
 		} catch (SnpException e) {}
 	}
 	
@@ -96,8 +94,6 @@ public class MainTest {
 			exitStatus = new Main().setup(new String[]{"-input", iniFile.getAbsolutePath(), "-log", logFile.getAbsolutePath()});
 			Assert.fail("Should have thrown an exception");
 		} catch (SnpException se) {}
-//		Assert.assertEquals(1, exitStatus);
-		
 		// ADD IN OUTPUT FILE
 		// create vcfOutputFile and add to ini
 		File vcfOutputFile = folder.newFile("test.vcf.output");
@@ -117,24 +113,22 @@ public class MainTest {
 		}
 		
 		// add in the runType
-		IniFileGenerator.addStringToIniFile(iniFile, "[parameters]\nrunMode = pileup", true);	// append to file
+		//IniFileGenerator.addStringToIniFile(iniFile, "[parameters]\nrunMode = pileup", true);	// append to file
+		IniFileGenerator.addStringToIniFile(iniFile, "[parameters]\nrunMode = standard", true);	// append to file
+		//here test standard mode due to pileup deleted
 		// fails due to missing entries in ini file
 		try {
 			exitStatus = new Main().setup(new String[]{"-input", iniFile.getAbsolutePath(), "-log", logFile.getAbsolutePath()});
 			Assert.fail("Should have thrown a SnpException");
 		} catch (SnpException e) {
-			Assert.assertEquals(true, e.getMessage().startsWith("Ini file did not contain any valid rules"));
+			
+			// the deprecated pileup mode check the ini file first, so throw ini related error
+			//eg. Assert.assertEquals(true, e.getMessage().startsWith("Ini file did not contain any valid rules"));
+			//standard mode check bam file first, so throw  MISSING_ENTRIES_IN_INI_FILE error
+			Assert.assertEquals(true, e.getMessage().startsWith("Missing entries in ini file"));
+			
 		}
-		
-		// ADD IN RULES
-//		addRulesToIniFile(iniFile);
-//		try {
-//			exitStatus = new Main().setup(new String[]{"-input", iniFile.getAbsolutePath(), "-log", logFile.getAbsolutePath()});
-//			Assert.fail("Should have thrown a SnpException");
-//		} catch (SnpException e) {
-//			Assert.assertEquals(true, e.getMessage().startsWith(Messages.getMessage("EMPTY_PILEUP_FILE")));
-//		}
-		
+				
 	}
 	
 	@Test
@@ -151,7 +145,6 @@ public class MainTest {
 			exitStatus = new Main().setup(new String[]{"-input", iniFile.getAbsolutePath(), "-log", logFile.getAbsolutePath()});
 			Assert.fail("Should have thrown an excpetion");
 		} catch (SnpException se) {}
-//		Assert.assertEquals(1, exitStatus);
 		
 		// add in the updateGermlineDB value
 		IniFileGenerator.addStringToIniFile(iniFile, "[parameters]\nupdateGermlineDB = true", false);	// new file
@@ -175,19 +168,21 @@ public class MainTest {
 		}
 		
 		// add in the runType
-		IniFileGenerator.addStringToIniFile(iniFile, "[parameters]\nrunMode = pileup", true);	// append to file
+		IniFileGenerator.addStringToIniFile(iniFile, "[parameters]\nrunMode = standard", true);	// append to file
 		
 		// different exception
 		try {
 			exitStatus = new Main().setup(new String[]{"-input", iniFile.getAbsolutePath(), "-log", logFile.getAbsolutePath()});
 			Assert.fail("Should have thrown a SNPException");
 		} catch (SnpException e) {
-			Assert.assertEquals(true, e.getMessage().startsWith(Messages.getMessage("NO_VALID_RULES_IN_INI")));
+			//standard mode check bam file first, so throw  MISSING_ENTRIES_IN_INI_FILE error
+			// create new ini file, setting updateGermlineDB to false				
+			Assert.assertEquals(true, e.getMessage().startsWith(Messages.getMessage("MISSING_ENTRIES_IN_INI_FILE")));
 		}
 		
 		// create new ini file, setting updateGermlineDB to false
 		IniFileGenerator.addStringToIniFile(iniFile, "[parameters]\nupdateGermlineDB = false", false);	// new file
-		IniFileGenerator.addStringToIniFile(iniFile, "\nrunMode = pileup", true);	// append to file
+		IniFileGenerator.addStringToIniFile(iniFile, "\nrunMode = standard", true);	// append to file
 		IniFileGenerator.addStringToIniFile(iniFile, "[outputFiles]\nvcf = " + vcfOutputFile.getAbsolutePath(), true);	// append to file
 		IniFileGenerator.addStringToIniFile(iniFile, "[inputFiles]\npileup = " + vcfOutputFile.getAbsolutePath(), true);	// append to file
 		
@@ -196,18 +191,8 @@ public class MainTest {
 			exitStatus = new Main().setup(new String[]{"-input", iniFile.getAbsolutePath(), "-log", logFile.getAbsolutePath()});
 			Assert.fail("Should have thrown a SNPException");
 		} catch (SnpException e) {
-			Assert.assertEquals(true, e.getMessage().startsWith(Messages.getMessage("NO_VALID_RULES_IN_INI")));
+			Assert.assertEquals(true, e.getMessage().startsWith(Messages.getMessage("MISSING_ENTRIES_IN_INI_FILE")));
 		}
 		
-	}
-	
-	private void addRulesToIniFile(File iniFile) throws IOException {
-		FileWriter writer = new FileWriter(iniFile, true);
-		try {
-			writer.write("\n[rules]\ncontrol1=0,20,3");
-			writer.write("\ntest1=0,20,3");
-		} finally {
-			writer.close();
-		}
 	}
 }

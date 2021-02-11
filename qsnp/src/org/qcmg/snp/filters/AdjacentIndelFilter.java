@@ -41,17 +41,9 @@ public class AdjacentIndelFilter implements SamRecordFilter {
 					return true;
 			} else if (CigarOperator.INSERTION == ce.getOperator()) {
 				if (snpPosition == (readStart + offset) )
-//						|| snpPosition == (readStart + offset + cigarLength))
 						return true;
 			}
 			
-//			if (isCigarElementAnIndel(ce) && (snpPosition == (readStart + offset -1) 
-//					|| snpPosition == (readStart + offset + cigarLength))) {
-//				return true;
-//			} else if (snpPosition < readStart + offset) {
-//				// we are done
-//				break;
-//			}
 			if (isCigarElementAdvancable(ce))
 				offset += cigarLength;
 		}
@@ -61,8 +53,6 @@ public class AdjacentIndelFilter implements SamRecordFilter {
 	
 	private boolean isCigarElementAdvancable(CigarElement ce) {
 		return CigarOperator.M == ce.getOperator()
-//				|| CigarOperator.INSERTION == ce.getOperator()
-//				|| CigarOperator.S == ce.getOperator()
 				|| CigarOperator.D == ce.getOperator()
 				|| CigarOperator.EQ == ce.getOperator()
 				|| CigarOperator.X == ce.getOperator();

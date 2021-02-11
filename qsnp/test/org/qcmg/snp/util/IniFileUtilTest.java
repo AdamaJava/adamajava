@@ -43,22 +43,6 @@ public class IniFileUtilTest {
         	out.write("pileupOrder = NNTT\n");
         	out.close();
 	}
-//	@Before
-//	public void createIniFile() throws IOException {
-//		iniFile = folder.newFile("IniFlieUtilTest.ini");
-//		BufferedWriter out = new BufferedWriter(new FileWriter(iniFile));
-//		out.write("[normalRule1]\nmin = 0\nmax = 20\nvalue = 3\n");
-//		out.write("[normalRule2]\nmin = 21\nmax = 50\nvalue = 4\n");
-//		out.write("[normalRule3]\nmin = 51\nmax =\nvalue = 10\n");
-//		out.write("[tumourRule1]\nmin = 0\nmax = 20\nvalue = 3\n");
-//		out.write("[tumourRule2]\nmin = 21\nmax = 50\nvalue = 4\n");
-//		out.write("[tumourRule3]\nmin = 51\nmax =\nvalue = 5\n");
-//		out.write("[pileupFormat]\norder = NNTT\n");
-//		out.write("[patient]\nid = APGI_1992\n");
-//		out.write("[outputFiles]\ndccSomatic = ${patient/id}__ssm__au__01__018__p__4__20110419.txt\n");
-//		out.write("dccGermline = ${patient/id}__sgv__au__01__018__p__4__20110419.txt\n");
-//		out.close();
-//	}
 	
 	@Test
 	public void testGetInpoutFiles() throws InvalidFileFormatException, IOException {
@@ -77,8 +61,6 @@ public class IniFileUtilTest {
 		// add a rule
 		Wini ini = new Wini();
 		ini.add("rules", "normal1", "0,20,3");
-//		ini.add("normalRule1", "max", "20");
-//		ini.add("normalRule1", "value", "3");
 		List<Rule> normalRules;
 		try {
 			normalRules = IniFileUtil.getRules(ini, null);
@@ -94,13 +76,7 @@ public class IniFileUtilTest {
 		Assert.assertEquals(3, normalRules.get(0).getNoOfVariants());
 		
 		ini.add("rules", "normal2", "21,50,4");
-//		ini.add("normalRule2", "min", "21");
-//		ini.add("normalRule2", "max", "50");
-//		ini.add("normalRule2", "value", "4");
 		ini.add("rules", "tumour1", "1,150,8");
-//		ini.add("tumourRule1", "min", "1");
-//		ini.add("tumourRule1", "max", "150");
-//		ini.add("tumourRule1", "value", "8");
 		
 		normalRules = IniFileUtil.getRules(ini, "normal");
 		tumourRules = IniFileUtil.getRules(ini, "tumour");
@@ -108,9 +84,6 @@ public class IniFileUtilTest {
 		Assert.assertEquals(true, normalRules.contains(new Rule(0,20,3)));
 		Assert.assertEquals(true, normalRules.contains(new Rule(21,50,4)));
 		
-//		Assert.assertEquals(0, normalRules.get(0).getMinCoverage());
-//		Assert.assertEquals(20, normalRules.get(0).getMaxCoverage());
-//		Assert.assertEquals(3, normalRules.get(0).getNoOfVariants());
 		Assert.assertEquals(1, tumourRules.size());
 		Assert.assertEquals(1, tumourRules.get(0).getMinCoverage());
 		Assert.assertEquals(150, tumourRules.get(0).getMaxCoverage());
@@ -118,17 +91,10 @@ public class IniFileUtilTest {
 		
 		
 		ini.add("rules", "tumour2", "2,300,16");
-//		ini.add("tumourRule1", "min", "2");
-//		ini.add("tumourRule1", "max", "300");
-//		ini.add("tumourRule1", "value", "16");
 		tumourRules = IniFileUtil.getRules(ini, "tumour");
 		Assert.assertEquals(2, tumourRules.size());
 		Assert.assertEquals(true, tumourRules.contains(new Rule(1,150,8)));
-		Assert.assertEquals(true, tumourRules.contains(new Rule(2,300,16)));
-//		Assert.assertEquals(2, tumourRules.get(0).getMinCoverage());
-//		Assert.assertEquals(300, tumourRules.get(0).getMaxCoverage());
-//		Assert.assertEquals(16, tumourRules.get(0).getNoOfVariants());
-		
+		Assert.assertEquals(true, tumourRules.contains(new Rule(2,300,16)));		
 		Assert.assertEquals(0, IniFileUtil.getRules(ini, "anything").size());
 		Assert.assertEquals(0, IniFileUtil.getRules(ini, "blah").size());
 	}
@@ -148,26 +114,17 @@ public class IniFileUtilTest {
 		} catch (SnpException e) {}
 		
 		
-		ini.add("rules", "normal1", "0,20,3");
-//		ini.add("normalRule1", "min", "0");
-//		ini.add("normalRule1", "max", "20");
-//		ini.add("normalRule1", "value", "3");
+		ini.add("rules", "normal1", "0,20,3");		
 		
 		int lowestValue = IniFileUtil.getLowestRuleValue(ini);
 		Assert.assertEquals(3, lowestValue);
 		
 		ini.add("rules", "tumour1", "0,1,2");
-//		ini.add("tumourRule1", "min", "0");
-//		ini.add("tumourRule1", "max", "1");
-//		ini.add("tumourRule1", "value", "2");
 		
 		lowestValue = IniFileUtil.getLowestRuleValue(ini);
 		Assert.assertEquals(2, lowestValue);
 		
 		ini.add("rules", "normal2", "1111111110,1111111111,1");
-//		ini.add("???Rule1", "min", "1111111110");
-//		ini.add("???Rule1", "max", "1111111111");
-//		ini.add("???Rule1", "value", "1");
 		
 		lowestValue = IniFileUtil.getLowestRuleValue(ini);
 		Assert.assertEquals(1, lowestValue);
@@ -194,7 +151,6 @@ public class IniFileUtilTest {
 		Assert.assertEquals(1, numberN);
 
 		ini.add("parameters", "pileupOrder", "NNNNNNNNNN");
-//		ini.add("pileupFormat", "order", "NNNNNNNNNN");
 		number = IniFileUtil.getNumberOfFiles(ini, '\u0000');
 		numberT = IniFileUtil.getNumberOfFiles(ini, 'T');
 		numberN = IniFileUtil.getNumberOfFiles(ini, 'N');
@@ -204,7 +160,6 @@ public class IniFileUtilTest {
 		Assert.assertEquals(10, numberN);
 		
 		ini.add("parameters", "pileupOrder", "NNNNNNNNNNTTT");
-//		ini.add("pileupFormat", "order", "NNNNNNNNNNTTT");
 		number = IniFileUtil.getNumberOfFiles(ini, '\u0000');
 		numberT = IniFileUtil.getNumberOfFiles(ini, 'T');
 		numberN = IniFileUtil.getNumberOfFiles(ini, 'N');
@@ -214,7 +169,6 @@ public class IniFileUtilTest {
 		Assert.assertEquals(10, numberN);
 		
 		ini.add("parameters", "pileupOrder", "XXX");
-//		ini.add("pileupFormat", "order", "XXX");
 		number = IniFileUtil.getNumberOfFiles(ini, '\u0000');
 		numberT = IniFileUtil.getNumberOfFiles(ini, 'T');
 		numberN = IniFileUtil.getNumberOfFiles(ini, 'N');
@@ -226,7 +180,6 @@ public class IniFileUtilTest {
 		Assert.assertEquals(3, numberX);
 		
 		ini.add("parameters", "pileupOrder", "");
-//		ini.add("pileupFormat", "order", "");
 		number = IniFileUtil.getNumberOfFiles(ini, '\u0000');
 		numberT = IniFileUtil.getNumberOfFiles(ini, 'T');
 		numberN = IniFileUtil.getNumberOfFiles(ini, 'N');
