@@ -138,13 +138,6 @@ public class ProcessBamRecordTest {
 
 			if (co.consumesReferenceBases() && co.consumesReadBases()) {
 				// we have a number (length) of bases that can be advanced.
-//				if (debugOn) {
-//				}
-//				if ( 169798 == startPosition || 169809 == startPosition) {
-//					logger.info("about to call updateListWithAccums(startPosition: " + startPosition +", bases: " + bases + 
-//						", qualities: " + qualities + ", forwardStrand: " + forwardStrand + ", offset: "
-//						+ offset + ",cigar: " + cigar.toString() + ", length: " + length + ", referenceOffset: " + referenceOffset + ", isNormal: " + isNormal + ")");
-//				}
 				updateMapWithAccums(startPosition, bases,
 						qualities, forwardStrand, offset, length, referenceOffset, 
 						record.getPassesFilter(), endPosition);
@@ -165,15 +158,10 @@ public class ProcessBamRecordTest {
 			boolean forwardStrand, int offset, int length, int referenceOffset, final boolean passesFilter, int endPosition) {
 		
 		for (int i = 0 ; i < length ; i++) {
-//			for (int i = offset ; i < length + offset; i++) {
-//			if ((startPosition + i + referenceOffset) > 169874)
-//				logger.warn("gone past reference index, startPosition: " + startPosition + ", referenceOffset: " + referenceOffset + ", i: " + i);
 			Accumulator acc = map.get(startPosition + i + referenceOffset);
 			if (null == acc) {
 				acc = new Accumulator(startPosition + i + referenceOffset);
 				map.put(startPosition + i + referenceOffset, acc);
-//				Accumulator oldAcc = array.putIfAbsent(startPosition + i + referenceOffset, acc);
-//				if (null != oldAcc) acc = oldAcc;
 			}
 			if (passesFilter)
 				acc.addBase(bases[i + offset], qualities[i + offset], forwardStrand, startPosition, startPosition + i + referenceOffset, endPosition, 1);
