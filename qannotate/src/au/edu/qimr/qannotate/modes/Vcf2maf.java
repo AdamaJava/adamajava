@@ -15,7 +15,6 @@ import static org.qcmg.common.util.Constants.VCF_MERGE_DELIM;
 
 import au.edu.qimr.qannotate.Options;
 import au.edu.qimr.qannotate.utils.MafElement;
-import au.edu.qimr.qannotate.utils.SampleColumn;
 import au.edu.qimr.qannotate.utils.SnpEffConsequence;
 import au.edu.qimr.qannotate.utils.SnpEffMafRecord;
 
@@ -61,7 +60,7 @@ public class Vcf2maf extends AbstractMode {
 	protected final  Map<String,String> effRanking = new HashMap<>();	
 	private final String center;
 	private final String sequencer;
-	private final String donorId;	 
+ 
 	private final ContentType contentType;
 	//private boolean hasACLAP = false;	ignore ACLAP in vcf2maf mode
 	private final int testColumn;
@@ -70,7 +69,8 @@ public class Vcf2maf extends AbstractMode {
 	private  String controlSample;
 	private String testBamId;
 	private String controlBamId;
-	private int controlColumn;	
+	private String donorId;	
+	private int controlColumn;
 	private VcfFileMeta meta;
 	
 	//for unit test
@@ -121,7 +121,7 @@ public class Vcf2maf extends AbstractMode {
 			meta.getFirstControlSample().ifPresent((s) -> this.controlSample = s);
 			meta.getFirstControlBamUUID().ifPresent((s) -> this.controlBamId = s);
 			meta.getFirstTestBamUUID().ifPresent((s) -> this.testBamId = s);
-			this.donorId = option.getDonorId() == null ? SampleColumn.getDonorId(reader.getHeader()) : option.getDonorId();
+			meta.getFirstDonorID().ifPresent(s -> this.donorId = s);
 		
 			logger.info(String.format("Test Sample %s is located on column %d after FORMAT", testSample, testColumn));
 			if (ContentType.multipleSamples(contentType)) {

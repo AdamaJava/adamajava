@@ -20,7 +20,6 @@ import au.edu.qimr.qannotate.modes.OverlapMode;
 import au.edu.qimr.qannotate.modes.SnpEffMode;
 import au.edu.qimr.qannotate.modes.TandemRepeatMode;
 import au.edu.qimr.qannotate.modes.Vcf2maf;
-import au.edu.qimr.qannotate.modes.Vcf2mafTmp;
 
 public class Main {
 	 
@@ -57,12 +56,8 @@ public class Main {
     	   		new TandemRepeatMode( options );
             } else if (options.getMode() == Options.MODE.make_valid) {
     	   		new MakeValidMode( options );
-//           } else if (options.getMode() == Options.MODE.snppileup) {
-//   	   			new SnpPileupMode( options );
    	   	    } else if (options.getMode() == Options.MODE.overlap) {
    	   			new OverlapMode( options );
-	   	   	} else if (options.getMode() == Options.MODE.vcf2maftmp) {
-				new Vcf2mafTmp(  options );
 	   	   	} else if (options.getMode() == null) {
 	   	   		throw new IllegalArgumentException("No mode was specified on the commandline - please add the \"-mode\" option") ;
             } else {
