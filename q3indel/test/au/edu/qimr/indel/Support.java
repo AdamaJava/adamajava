@@ -12,8 +12,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import junit.framework.Assert;
-
+import org.junit.Assert;
+import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.SAMOrBAMWriterFactory;
@@ -21,23 +21,8 @@ import org.qcmg.picard.SAMOrBAMWriterFactory;
 import au.edu.qimr.indel.pileup.IndelMT;
 
 public class Support {
-	
-	 
-	public static void clear() throws IOException {
-		File dir = new java.io.File( "." ).getCanonicalFile();
-		File[] files =dir.listFiles();
-		if (null != files) {
-			for(File f : files) {
-			    if(  f.getName().endsWith(".ini")  || f.getName().endsWith(".vcf")  ||  f.getName().endsWith(".bam") ||
-			    		f.getName().endsWith(".sam") ||  f.getName().endsWith(".bai")  || f.getName().endsWith(".fai") ) {
-			        f.delete();	
-			    }
-			}
-		}
-		
-	}
-	
-	public static void createBam( List<String> data1, String output) {
+
+	public static void createBam( List<String> data1, File output) {
         List<String> data = new ArrayList<>();
         data.add("@HD	VN:1.0	SO:coordinate");
         data.add("@RG	ID:20140717025441134	SM:eBeads_20091110_CD	DS:rl=50");
@@ -46,7 +31,7 @@ public class Support {
         data.add("@SQ	SN:chr11	LN:243199373");
         data.add("@CO	create by qcmg.qbamfilter.filter::TestFile");
         data.addAll(data1);		
-        String tmp = "tmp.sam";
+        File tmp = new File("tmp.sam");
         try( BufferedWriter out = new BufferedWriter(new FileWriter(tmp))) {	           
            for (String line : data)   out.write(line + "\n");	
         }catch(IOException e){
@@ -54,8 +39,8 @@ public class Support {
         	assertTrue(false);
         }
 		 	
-		try(SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(tmp));){		
-			SAMOrBAMWriterFactory factory = new  SAMOrBAMWriterFactory(reader.getFileHeader() ,false, new File(output));
+		try(SamReader reader = SAMFileReaderFactory.createSAMFileReader(tmp);){		
+			SAMOrBAMWriterFactory factory = new  SAMOrBAMWriterFactory(reader.getFileHeader() ,false, output);
 			SAMFileWriter writer = factory.getWriter();
 			for( SAMRecord record : reader) 
 				writer.addAlignment(record);
@@ -64,14 +49,16 @@ public class Support {
 		} catch (IOException e) {
 			System.err.println(Q3IndelException.getStrackTrace(e));
 			Assert.fail("Should not threw a Exception");
-		}		
+		}
+		
+		tmp.delete();
 	}
 	
 	/**
 	 * the file only contain four deletions, three on chr11 and one on chrY
 	 * @param vcf: output vcf name
 	 */
-	public static void createGatkVcf(String vcf){	
+	public static void createGatkVcf(File vcf){	
 		
         List<String> data = new ArrayList<>(6);
         data.add(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT+"s1");
@@ -83,7 +70,7 @@ public class Support {
         createVcf(data, vcf);       
 	}
 	
-	public static void createVcf( List<String> data1, String output){	
+	public static void createVcf( List<String> data1, File output){	
         List<String> data = new ArrayList<>(3);
         data.add("##fileformat=VCFv4.1");
         data.add(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT+"S1"); 
@@ -91,7 +78,7 @@ public class Support {
         createVcf(data, data1,output);		
 	}
 	
-	public static void createVcf( List<String> header, List<String> records, String output){	
+	public static void createVcf( List<String> header, List<String> records, File output){	
         try( BufferedWriter out = new BufferedWriter(new FileWriter(output ))) {
     		for (String line : header) {
                 out.write(line + "\n");

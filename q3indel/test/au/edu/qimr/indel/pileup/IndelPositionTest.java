@@ -9,45 +9,60 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
-import org.qcmg.vcf.VCFFileReader;
+import org.qcmg.qio.vcf.VcfFileReader;
 
 import au.edu.qimr.indel.Support;
 import au.edu.qimr.indel.IniFileTest;
 
-
 public class IndelPositionTest {
-	static final String inputIndel = "indel.vcf"; 
-	static final String emptyVcf = "empty.vcf";
-	static final  String normalBAM = "ND.bam";
-	static final  String tumourBAM = "TD.bam";
-	static final String inputBam = "tumor.bam"; 
+	
+	@Rule
+	public  TemporaryFolder testFolder = new TemporaryFolder();
+	
+	File inputIndel;
+	File emptyVcf; 
+	File normalBAM;
+	File tumourBAM;
+	File inputBam;
+	
+	File ini_noquery;
+	File ini_query;
+	File output;
+	
 	QLogger logger = QLoggerFactory.getLogger(IndelPileupTest.class);
 	
-	@BeforeClass
-	public static void createInput() {	
-//		IndelPileupTest.createVcf();
+	@Before
+	public void createInput() throws IOException {	
+		inputIndel = testFolder.newFile("indel.vcf");
+		emptyVcf = testFolder.newFile("empty.vcf");
+		normalBAM = testFolder.newFile("ND.bam");
+		tumourBAM = testFolder.newFile("TD.bam");
+		inputBam = testFolder.newFile("tumor.bam");
+		
+		ini_noquery = testFolder.newFile("test1.ini");
+		ini_query =	testFolder.newFile("test2.ini");
+		
+		//option won't accept existing file, so have to delete but record File instance
+		output = testFolder.newFile("test.output.vcf");	
+		output.delete();
+				
 		Support.createGatkVcf(inputIndel);
-		File vcf = new File(inputIndel);
 		
 		//dodgy fake reference  and index
-	 	ContigPileupTest.createSam(vcf + ".fai");	
+	 	ContigPileupTest.createSam(new File(inputIndel + ".fai"));	
 		 
 		List<String> data = new ArrayList<String>();
 		data.add(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE);
 		Support.createVcf(data,data, emptyVcf); //empty vcf; 
-	}
-	
-	@AfterClass
-	public static void clear() throws IOException {
-		 Support.clear();		
 	}
 	
 	@Test
@@ -63,23 +78,23 @@ public class IndelPositionTest {
 		 data.add("ST-" + i + ":a:102\t99\tchrY\t2672601\t60\t10M2D123M2D10M8S\t=\t2673085\t631\tGTAGTTTATATTTCTGTGGGGTCAGTGGTGATATCCCTTTTATTATTTTTTATTGTGTCTTTTTGATTCTTCTCTCTTTTCTTTTTTATTAATCTACCTAGCAGTCTATCTTATTGGGTGTG\t*");
 		 Support.createBam(data, normalBAM);
 		 
-		 IniFileTest.createIniFile(IndelMTTest.ini_noquery,  tumourBAM, normalBAM, inputIndel, inputIndel, null);		
-		 Support.runQ3IndelNoHom(IndelMTTest.ini_noquery);
+		 IniFileTest.createIniFile(ini_noquery,  tumourBAM, normalBAM, inputIndel, inputIndel, null, output);		
+		 Support.runQ3IndelNoHom(ini_noquery.getAbsolutePath());
 		 
-		 try (VCFFileReader reader = new VCFFileReader(IniFileTest.output)) {				 
+		 try (VcfFileReader reader = new VcfFileReader(output)) {				 
 			 for (VcfRecord re : reader)  											
 				if(re.getChromosome().equals("chrY")){
  					assertTrue(re.getFilter().equals(IndelUtils.FILTER_HCOVN)); 
  					assertTrue(re.getSampleFormatRecord(2).getField("ACINDEL") == null );
 				}
 		}	
-		new File(IniFileTest.output).delete();
 		 
+		 output.delete(); //delete output from last run		 
 		 //swap tumour and normal bam order
-		 IniFileTest.createIniFile(IndelMTTest.ini_noquery, normalBAM,tumourBAM, inputIndel, inputIndel, null);		
-		 Support.runQ3IndelNoHom(IndelMTTest.ini_noquery);
+		 IniFileTest.createIniFile(ini_noquery, normalBAM,tumourBAM, inputIndel, inputIndel, null,output);		
+		 Support.runQ3IndelNoHom(ini_noquery.getAbsolutePath());
 		 
-		 try (VCFFileReader reader = new VCFFileReader(IniFileTest.output)) {				 
+		 try (VcfFileReader reader = new VcfFileReader(output)) {				 
 			 for (VcfRecord re : reader)  											
 				if(re.getChromosome().equals("chrY")){
  					assertTrue(!re.getFilter().equals(IndelUtils.FILTER_HCOVN)); 
@@ -87,7 +102,7 @@ public class IndelPositionTest {
 					assertTrue(re.getSampleFormatRecord(1).getField("ACINDEL") == null );
 				}
 		}		 		 
-		new File(IniFileTest.output).delete();
+		 
 	}
  
 	@Test	 
@@ -102,12 +117,12 @@ public class IndelPositionTest {
 		//tumour BAM with assertTrue(record.getSampleFormatRecord(1).getField("ACINDEL").equals("3,12,11,4[2,2],2,4,4"));
 		IndelMTTest.createDelBam(tumourBAM);
 		
-		 IniFileTest.createIniFile(IndelMTTest.ini_noquery,  tumourBAM, normalBAM,inputIndel, emptyVcf, null);		
-		 Support.runQ3IndelNoHom(IndelMTTest.ini_noquery);
+		 IniFileTest.createIniFile(ini_noquery,  tumourBAM, normalBAM,inputIndel, emptyVcf, null,output);		
+		 Support.runQ3IndelNoHom(ini_noquery.getAbsolutePath());
 
 		 //not somatic since supporting/informative=100% on control BAM 
 		 //NBIAS 100 support reads >=3 and one of strand is 0; 
-		 try (VCFFileReader reader = new VCFFileReader(IniFileTest.output)) {				 
+		 try (VcfFileReader reader = new VcfFileReader(output)) {				 
 			 for (VcfRecord re : reader)  											
 				if(re.getChromosome().equals("chrY")){	
 					assertFalse(re.getInfo().contains(VcfHeaderUtils.INFO_SOMATIC));
@@ -118,13 +133,13 @@ public class IndelPositionTest {
  					assertTrue(re.getInfoRecord().getField(IndelUtils.INFO_SSOI).equals("1.000"));  // 7/7 == 0
 				}
 		}	
-		new File(IniFileTest.output).delete();		
-				
+		 
+		output.delete();	//must delete for next run					
 		//swap normal and tumour make it to be somatic
-		 IniFileTest.createIniFile(IndelMTTest.ini_noquery,   normalBAM, tumourBAM,inputIndel, emptyVcf, null);		
-		 Support.runQ3IndelNoHom(IndelMTTest.ini_noquery);
+		 IniFileTest.createIniFile(ini_noquery,   normalBAM, tumourBAM,inputIndel, emptyVcf, null,output);		
+		 Support.runQ3IndelNoHom(ini_noquery.getAbsolutePath());
 		//not somatic since support noverlStart==3, none of strand reads <%%
-		 try (VCFFileReader reader = new VCFFileReader(IniFileTest.output)) {				 
+		 try (VcfFileReader reader = new VcfFileReader(output)) {				 
 			 for (VcfRecord re : reader)  											
 				if(re.getChromosome().equals("chrY")){
 					//System.out.println(re.toString());
@@ -134,7 +149,7 @@ public class IndelPositionTest {
  					assertTrue(re.getInfoRecord().getField(IndelUtils.INFO_SSOI).equals("0.273"));  // 3/11 == 0.273 why not 0.272
 				}
 		}	
-		new File(IniFileTest.output).delete();		
+		//don't need delete output in tmp folder
 	}
 	
 	@Test	
@@ -147,18 +162,19 @@ public class IndelPositionTest {
 		 Support.createBam(data,tumourBAM);
 		 IndelMTTest.createDelBam(normalBAM);
 		 
-		 IniFileTest.createIniFile(IndelMTTest.ini_noquery,  tumourBAM, normalBAM, inputIndel, inputIndel, null);		
-		 Support.runQ3IndelNoHom(IndelMTTest.ini_noquery);
-		 try (VCFFileReader reader = new VCFFileReader(IniFileTest.output)) {				 
-			 for (VcfRecord re : reader)  											
+		 IniFileTest.createIniFile(ini_noquery,  tumourBAM, normalBAM, inputIndel, inputIndel, null,output);		
+		 Support.runQ3IndelNoHom(ini_noquery.getAbsolutePath());
+		 try (VcfFileReader reader = new VcfFileReader(output)) {				 
+			 for (VcfRecord re : reader) {  											
 				if(re.getChromosome().equals("chrY")){
 					assertFalse( re.getInfo().contains(VcfHeaderUtils.INFO_SOMATIC)); 
 					assertTrue(re.getFilter().equals(IndelUtils.FILTER_NNS)); 
 					assertTrue(re.getSampleFormatRecord(2).getField("ACINDEL").equals("1,8,8,8[8,0],8[1],0,0,8"));
 					assertTrue(re.getSampleFormatRecord(1).getField("ACINDEL").equals("2,12,11,3[1,2],4[3],2,4,4"));
 				}
+			 }
 		}
-		new File(IniFileTest.output).delete();			 
+		 	 
 	}	
 	
 	//SOMATIC, TPART, NPART
@@ -171,10 +187,10 @@ public class IndelPositionTest {
 		 for(int i = 1; i <= 3; i ++) 
 			data.add("ST-" + i + ":c:104\t99\tchrY\t2672696\t60\t40M3D111M\t=\t2672957\t412\tATCTACCTAGCAGTCTATCTTATTGGGTGTGTGTGTGTGATTTTTTTTTTTTCCAAAAAACCAGTTCCTGAATTCATTGATTTTTTGAAGGGTTTTTTGTGTCACTGTCCCCTT\t*");
 		 Support.createBam(data,normalBAM);
-		 IniFileTest.createIniFile(IndelMTTest.ini_noquery,  normalBAM, normalBAM,inputIndel, inputIndel, null);		
-		 Support.runQ3IndelNoHom(IndelMTTest.ini_noquery);
+		 IniFileTest.createIniFile(ini_noquery,  normalBAM, normalBAM,inputIndel, inputIndel, null, output);		
+		 Support.runQ3IndelNoHom(ini_noquery.getAbsolutePath());
 		 
-		 try (VCFFileReader reader = new VCFFileReader(IniFileTest.output)) {				 
+		 try (VcfFileReader reader = new VcfFileReader(output)) {				 
 			 for (VcfRecord re : reader)  											
 				if(re.getChromosome().equals("chrY")){ 
 					assertTrue(re.getFilter().contains(VcfHeaderUtils.FILTER_COVERAGE_TUMOUR )); //germline and coverage only 3
@@ -183,7 +199,7 @@ public class IndelPositionTest {
 					assertTrue(re.getFilter().contains(IndelUtils.FILTER_TPART));//partial reads 3>= and partial/total=100% >10% on tumour						
 				}
 		}
-		 new File(IniFileTest.output).delete();
+		 output.delete(); //delete for next run
 		 
 		 
 		// somatic 4 partial 46 supporting  partial/total=8%
@@ -194,11 +210,10 @@ public class IndelPositionTest {
 		 Support.createBam(data,normalBAM);
 	
 		 //with same ini file
-		 Support.runQ3IndelNoHom(IndelMTTest.ini_noquery);
-		 try (VCFFileReader reader = new VCFFileReader(IniFileTest.output)) {				 
-			 for (VcfRecord re : reader)  											
-				if(re.getChromosome().equals("chrY")){ 
-					
+		 Support.runQ3IndelNoHom(ini_noquery.getAbsolutePath());
+		 try (VcfFileReader reader = new VcfFileReader(output)) {				 
+			 for (VcfRecord re : reader) {											
+				if(re.getChromosome().equals("chrY")){ 					
 					assertTrue(!re.getInfo().contains(VcfHeaderUtils.INFO_SOMATIC)); //NOT somatic: support 46 reads of 50 informative reads
 					assertTrue(re.getFilter().contains(VcfHeaderUtils.FILTER_NOVEL_STARTS)); //Not Somatic, so don't care nns 
 					assertTrue(!re.getFilter().contains(VcfHeaderUtils.FILTER_COVERAGE_NORMAL_12)); //total coverage 50
@@ -207,10 +222,12 @@ public class IndelPositionTest {
 					assertTrue(re.getFilter().contains(IndelUtils.FILTER_NBIAS)); //not somtic, support read 46>3 and all in one strand
 					assertTrue(re.getFilter().contains(IndelUtils.FILTER_NPART)); //partial reads 4>= and partial/total=8% >5%	on normal	
 				}
-		}
-		 new File(IniFileTest.output).delete();
+			}
+		}		 
 	}
 	 
+	
+	//debug set to Ignore
 	@Test //SOMTIC, COVN12, MIN, NNS
 	public void somaticTest() throws IOException{
 		//normal BAM with one novel start, gematic.soi = 3% < 0.05
@@ -223,18 +240,20 @@ public class IndelPositionTest {
 
 		//tumour BAM with assertTrue(record.getSampleFormatRecord(1).getField("ACINDEL").equals("3,12,11,4[2,2],2,4,4"));
 		 IndelMTTest.createDelBam(tumourBAM);
-		 
+		 		 
+		File controlVcf = testFolder.newFile("control.vcf"); 
         data.clear();;
         data.add(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT+"s1");
         data.add("chr11	2672739	.	ATT	A	123.86	.	.	GT	0/1"); 
-        Support.createVcf(data, data, "control.vcf");
+        //Support.createVcf(data, data, "control.vcf");
+        Support.createVcf(data, controlVcf);
 	
-	     IniFileTest.createIniFile(IndelMTTest.ini_noquery,tumourBAM, normalBAM, inputIndel,"control.vcf", null);		
-		 Support.runQ3IndelNoHom(IndelMTTest.ini_noquery);
+	     IniFileTest.createIniFile(ini_noquery,tumourBAM, normalBAM, inputIndel,controlVcf, null,output);		
+		 Support.runQ3IndelNoHom(ini_noquery.getAbsolutePath());
 		 		 
 		 //not somatic since supporting/informative=100% on control BAM 
 		 //NBIAS 100 support reads >=3 and one of strand is 0; 
-		 try (VCFFileReader reader = new VCFFileReader(IniFileTest.output)) {				 
+		 try (VcfFileReader reader = new VcfFileReader(output)) {				 
 			 for (VcfRecord re : reader)  											
 				if(re.getChromosome().equals("chrY")){	
 					assertTrue(re.getInfo().contains(VcfHeaderUtils.INFO_SOMATIC));
@@ -249,7 +268,7 @@ public class IndelPositionTest {
 					
 				}
 		}	
-		new File(IniFileTest.output).delete();	
+		
 	}
 
 }

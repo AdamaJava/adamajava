@@ -9,56 +9,66 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import junit.framework.Assert;
-
-import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
  
 
 public class IniFileTest {
-	public static final String ini = "test.ini";
-	public static final String output = "test.output.vcf";
-	public static final File fini = new File( ini);
 	
+	File fini;
+	File output;	
+	File blah;
 	
 	@org.junit.Rule
 	public  TemporaryFolder testFolder = new TemporaryFolder();
 	
-	@After
-	public void after() {	
-		fini.delete();
+	@Before
+	public void setup() throws IOException {
+		fini =  testFolder.newFile("test.ini");		
+		output = testFolder.newFile("test.output.vcf");
+		blah = testFolder.newFile("blah");	
+		
+		//must delete output the Option instance won't accept existing output
+		output.delete(); 
+		blah.delete();
+		
 	}
+	
 	@Test
 	public void testQuery() throws IOException, Q3IndelException {
+		
+		
 		 		
 		//ini file not exist
-		String[] args = {"-i", ini};
+		String[] args = {"-i", fini.getAbsolutePath()};
 		try {
 			new Options(args);
 			Assert.fail("Should have thrown a SnpException");
-		} catch (Exception e) {}
+		} catch (Exception e) { }
 		
 		// create ini file without query and some dodgy file
-		createIniFile(fini,fini,fini,fini,fini, null, new File("blah"));	 
+		createIniFile(fini,fini,fini,fini,fini, null,  blah);	
+				
 		Options options = new Options(args);	
 		assertTrue(options.getFilterQuery() == null);
 		
 		// create ini file with empty query 
-		createIniFile(fini,fini,fini,fini,fini, "", new File("blah"));	 
+		createIniFile(fini,fini,fini,fini,fini, "", blah);	 
 		options = new Options(args);	
 		assertTrue(options.getFilterQuery() == null);
-	}	
+	}
+	
 	@Test
 	public final void testIni() {
-		
+	
 		// create ini file with  query 
 		String str = "and (flag_ReadUnmapped != true, flag_DuplicatedRead != true)";
-	//	File f = new File( ini);
-		createIniFile(ini,ini,ini,ini,ini, str);	 
+		createIniFile(fini,fini,fini,fini,fini, str,output);	 
 		
 		try {
-			Options options = new Options(new String[]{"-i", ini});	
+			Options options = new Options(new String[]{"-i", fini.getAbsolutePath()});	
 			assertTrue(options.getFilterQuery().equalsIgnoreCase(str));
 			assertTrue(options.getControlBam().getAbsolutePath().equals(fini.getAbsolutePath() ));
 			assertTrue(options.getTestBam().getAbsolutePath().equals(fini.getAbsolutePath()));
@@ -70,22 +80,12 @@ public class IniFileTest {
 			assertTrue(options.getTestSample().equals("Primarytumour:4ca050b3-d15b-436b-b035-d6c1925b59fb"));
 		} catch (Exception e) {
 			Assert.fail("Should not threw a Exception");
-		}
-		
+		}		
 	}
 	
-	
-	public static void createIniFile(String ini, String testbam, String controlbam, String testvcf, String controlvcf,  String query){
-		createIniFile(new File( ini), new File(testbam), new File(controlbam), new File(testvcf), new File(controlvcf),   query, "gatk", new File(output));
-				
-	}
 	
 	public static void createIniFile(File ini, File testbam, File controlbam, File testvcf, File controlvcf,  String query, File outputVcfFile){
-		createIniFile( ini,  testbam, controlbam, testvcf,  controlvcf,  query, "gatk", outputVcfFile);
-	}
-	
-	public static void createIniFile(File ini, File testbam, File controlbam, File testvcf, File controlvcf,  String query, String mode, File outputVcfFile){
-		
+		String mode = "gatk";
         List<String> data = new ArrayList<>();
         data.add("[IOs]");
         data.add( "ref=");

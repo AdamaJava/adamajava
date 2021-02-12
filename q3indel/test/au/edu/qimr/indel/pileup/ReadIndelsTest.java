@@ -3,6 +3,7 @@ package au.edu.qimr.indel.pileup;
 import static org.junit.Assert.*;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -10,6 +11,7 @@ import java.util.Map;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrRangePosition;
@@ -23,22 +25,22 @@ import au.edu.qimr.indel.Q3IndelException;
 import au.edu.qimr.indel.Support;
 
 public class ReadIndelsTest {
-	public final static String input1 = "input1.vcf";
-	public final static String input2 = "input2.vcf";
-	public final static String input3 = "input3.vcf";
 	
+	File input1;
+	File input2;
+	File input3;	
+	
+	@org.junit.Rule
+	public  TemporaryFolder testFolder = new TemporaryFolder();
+
 	@Before 
-	public void createInput() {	 
+	public void createInput() throws IOException {	
+		input1 = testFolder.newFile("input1.vcf");
+		input2 = testFolder.newFile("input2.vcf");
+		input3 = testFolder.newFile("input3.vcf");		
 		createVcf();		
 	}
-	
-	@After
-	public void clearInput() {	 		
-		new File(input1).delete();
-		new File(input2).delete();
-		new File(input3).delete();
-	}
-	
+		
 	@Test
 	public void multiAltTest(){
 		
@@ -47,7 +49,7 @@ public class ReadIndelsTest {
 		//indel size can't be exceed 200
 		try{
 			ReadIndels indelload = new ReadIndels(QLoggerFactory.getLogger(Main.class, null, null));		
-			indelload.loadIndels(new File(input3), "");				
+			indelload.loadIndels(input3, "");				
 			Map<ChrRangePosition, IndelPosition> positionRecordMap = indelload.getIndelMap();
 			assertTrue(positionRecordMap.size() == 1);
 			 
@@ -76,10 +78,10 @@ public class ReadIndelsTest {
 				 
 		try{
 			ReadIndels indelload = new ReadIndels(QLoggerFactory.getLogger(Main.class, null, null));		
-			indelload.loadIndels(new File(input1),"");	
+			indelload.loadIndels(input1,"");	
 			assertTrue(getHeaderLineCounts(indelload.getVcfHeader()) == 7);
 			//in case of GATK, take the second sample column
-			indelload.appendTestIndels(new File(input2));
+			indelload.appendTestIndels(input2);
 			assertTrue(getHeaderLineCounts(indelload.getVcfHeader()) == 8);
 			
 			Map<ChrRangePosition, IndelPosition> positionRecordMap = indelload.getIndelMap();
@@ -92,8 +94,7 @@ public class ReadIndelsTest {
 					assertEquals("GT:AD:DP:GD:GQ:PL", indel.getIndelVcf(0).getFormatFields().get(0));
 					assertEquals("0/0:0:0:GT/GT:0:0,0,0", indel.getIndelVcf(0).getFormatFields().get(1));
 					assertEquals("0/1:131,31:162:GT/G:99:762,0,4864", indel.getIndelVcf(0).getFormatFields().get(2));
-					assertTrue(indel.getIndelVcf(0).getInfo().equals("SOMATIC1")); //info column from first file
-						 
+					assertTrue(indel.getIndelVcf(0).getInfo().equals("SOMATIC1")); //info column from first file						 
 				}else if(indel.getStart() == 59033423){	
 					//merge indels but split alleles
 					assertEquals("0/1:7,4:11:T/TC:99:257,0,348", indel.getIndelVcf(0).getFormatFields().get(1));
@@ -109,12 +110,10 @@ public class ReadIndelsTest {
 					assertTrue(indel.getIndelVcf(0).getInfo().equals("SOMATIC" )); //info column from second file  
 				}						 
 			}
-
 		}catch(Exception e){
 			System.err.println(Q3IndelException.getStrackTrace(e));
 			assertFalse(true);
-		}
-		
+		}		
 	}
 	
 	@Test
@@ -129,7 +128,7 @@ public class ReadIndelsTest {
 		ReadIndels indelload = new ReadIndels(QLoggerFactory.getLogger(Main.class, null, null));				
 		try{
 			//load single file
-			indelload.loadIndels(new File(input1), "");	
+			indelload.loadIndels(input1, "");	
 			Map<ChrRangePosition, IndelPosition> positionRecordMap = indelload.getIndelMap();
 			assertTrue(positionRecordMap.size() == 2);		
 			
@@ -145,15 +144,12 @@ public class ReadIndelsTest {
 					code2 = indel.getIndelVcf(0).hashCode();
 				}else
 					assertFalse(true);
-				//can't run it for all environment 
-//				assertTrue(code1 == code2);			 
- 			}
-	
+				//can't run it for all environment 	 
+ 			}	
 		}catch(Exception e){
 			System.out.println(Q3IndelException.getStrackTrace(e));
 			assertFalse(true);
-		}
-		
+		}		
 	}		
 			
 	@Test
@@ -164,11 +160,11 @@ public class ReadIndelsTest {
 		ReadIndels indelload = new ReadIndels(QLoggerFactory.getLogger(Main.class, null, null));				
 		try{
 			//load single file
-			indelload.loadIndels(new File(input1),"");	
+			indelload.loadIndels(input1,"");	
 			assertTrue(getHeaderLineCounts(indelload.getVcfHeader()) == 7);
 			
 			//load second file, in case of pindel
-			indelload.loadIndels(new File(input2),"");		
+			indelload.loadIndels(input2,"");		
 			assertTrue(getHeaderLineCounts(indelload.getVcfHeader()) == 8);
 
 			Map<ChrRangePosition, IndelPosition> positionRecordMap = indelload.getIndelMap();
@@ -191,12 +187,12 @@ public class ReadIndelsTest {
 		 		
 			//change inputs order
 			indelload = new ReadIndels(QLoggerFactory.getLogger(Main.class, null, null));	
-			indelload.loadIndels(new File(input2),"");		
+			indelload.loadIndels(input2,"");		
 			
 			assertTrue(getHeaderLineCounts(indelload.getVcfHeader()) == 7);
 			
 			//load second file, in case of pindel
-			indelload.loadIndels(new File(input1),"");
+			indelload.loadIndels(input1,"");
 			assertTrue(getHeaderLineCounts(indelload.getVcfHeader()) == 8);		
 			
 		}catch(Exception e){
@@ -207,8 +203,9 @@ public class ReadIndelsTest {
 	
 	private int getHeaderLineCounts(VcfHeader header){
 		int no = 0; 
-		for(final VcfHeaderRecord record: header )  
+		for(final VcfHeaderRecord record: header ) { 
 			no ++;		
+		}
 		return no; 		
 	}
 	
@@ -243,10 +240,6 @@ public class ReadIndelsTest {
 		data1.add("chrY	59033287	.	GTGTGTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT	G	724.73	PASS	.	GT:AD	1/2:14,38,25	1/1:14,38,25");
 		data1.add("chrY	59033287	.	G	GTGTGTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT	724.73	PASS	.	GT:AD	1/2:14,38,25	1/1:14,38,25");
 
-		Support.createVcf(head1, data1, input3);
-            
-	}
-	
-	
-	
+		Support.createVcf(head1, data1, input3);           
+	}	
 }
