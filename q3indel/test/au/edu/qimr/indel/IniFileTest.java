@@ -26,14 +26,14 @@ public class IniFileTest {
 	
 	@Before
 	public void setup() throws IOException {
-		fini =  testFolder.newFile("test.ini");		
-		output = testFolder.newFile("test.output.vcf");
-		blah = testFolder.newFile("blah");	
+		fini =  testFolder.newFile("test.ini");	
 		
-		//must delete output the Option instance won't accept existing output
-		output.delete(); 
-		blah.delete();
+		//the Option instance won't accept existing output, so can't call testFolder.newFile
+		String str = testFolder.getRoot().getAbsolutePath() + "/test.output.vcf";
+		output = new File(str);
 		
+		str = testFolder.getRoot().getAbsolutePath() + "/blah";
+		blah = new File(str);		
 	}
 	
 	@Test

@@ -40,9 +40,9 @@ public class IndelMTTest {
 		ini_noquery = testFolder.newFile("test1.ini");
 		ini_query =	testFolder.newFile("test2.ini");
 		
-		//option won't accept existing file, so have to delete but record File instance
-		output = testFolder.newFile("test.output.vcf");
-		output.delete();
+		//option won't accept existing file, so can't call testFolder.newFile
+		String str = testFolder.getRoot().getAbsolutePath() + "/test.output.vcf";
+		output = new File(str);
 				
 		createDelBam( test_bam);		
  		Support.createGatkVcf(inputVcf);
