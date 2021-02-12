@@ -20,13 +20,15 @@ import org.qcmg.qio.record.RecordWriter;
 
 public class VcfWriterReaderTest {
 	
-	public static final String[] vcfStrings = new String[] {"##test=test", VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE};
+	public static final String[] vcfStrings = new String[] {"##test=test", VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE, };
+	private final String[] parms = {"chrY","2675826",".","TG","CA"};
+
 	
 	@Rule
 	public  TemporaryFolder testFolder = new TemporaryFolder();
 	
 	@Test
-	public void getHeaderFromZippedVcfFileUsingStreams() throws IOException {
+	public void getHeaderFromZippedVcfFile() throws IOException {
 		File file =  testFolder.newFile("header.vcf.gz");
 		
 		try(RecordWriter<VcfRecord> writer = new RecordWriter<>(file) ){
@@ -38,20 +40,29 @@ public class VcfWriterReaderTest {
 		 * Should be able to get the header back out
 		 */
 		VcfHeader header = null;
+		int num = 0;
 		try(VcfFileReader reader = new VcfFileReader(file) ){
 			header = reader.getVcfHeader();
+			for(VcfRecord re: reader) {
+				num ++;
+			}
+			
 		}
 		assertEquals(true, null != header);
 		assertEquals(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE, header.getChrom().toString());
 		assertEquals(1, header.getAllMetaRecords().size());
 		assertEquals("##test=test", header.getAllMetaRecords().get(0).toString());
+		assertEquals(0, num); //no record
 	}
 	
 	@Test
-	public void getHeaderFromZippedVcfFile() throws IOException {
+	public void getHeaderFromInvalidVcfFile() throws IOException {
 		File file =  testFolder.newFile("header.vcf.gz");
 		
 		try(RecordWriter<VcfRecord> writer = new RecordWriter<>(file) ){
+			writer.addHeader(Arrays.stream(vcfStrings).collect(Collectors.joining("\n")));
+			writer.add(new VcfRecord(parms));
+			writer.add(new VcfRecord(parms));
 			writer.addHeader(Arrays.stream(vcfStrings).collect(Collectors.joining("\n")));
 		}
 		assertEquals(true, FileUtils.isInputGZip(file) );
@@ -61,14 +72,23 @@ public class VcfWriterReaderTest {
 		 * Should be able to get the header back out
 		 */
 		VcfHeader header = null;
-		
 		try(VcfFileReader reader = new VcfFileReader(file) ){
 			header = reader.getVcfHeader();
 		}
 		assertEquals(true, null != header);
-		assertEquals(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE, header.getChrom().toString());
 		assertEquals(1, header.getAllMetaRecords().size());
-		assertEquals("##test=test", header.getAllMetaRecords().get(0).toString());
+		
+		int num = 0;
+		try(VcfFileReader reader = new VcfFileReader(file) ){
+			for(VcfRecord re: reader) {
+				num ++;
+				System.out.println(re.toSimpleString());
+			}
+			fail("expected exception should throw here! ");
+		}catch(IllegalArgumentException e) {
+			//two valid record but exception happed when check next record before create second vcf record
+			assertEquals(1, num); //one valid record			
+		}
 	}
 	
 	@Test
