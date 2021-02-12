@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Assert;
-import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.SAMOrBAMWriterFactory;
@@ -22,7 +21,7 @@ import au.edu.qimr.indel.pileup.IndelMT;
 
 public class Support {
 
-	public static void createBam( List<String> data1, File output) {
+	public static void createBam( List<String> data1, File output) throws IOException {
         List<String> data = new ArrayList<>();
         data.add("@HD	VN:1.0	SO:coordinate");
         data.add("@RG	ID:20140717025441134	SM:eBeads_20091110_CD	DS:rl=50");
@@ -31,7 +30,7 @@ public class Support {
         data.add("@SQ	SN:chr11	LN:243199373");
         data.add("@CO	create by qcmg.qbamfilter.filter::TestFile");
         data.addAll(data1);		
-        File tmp = new File("tmp.sam");
+        File tmp = File.createTempFile("tmp", "sam");
         try( BufferedWriter out = new BufferedWriter(new FileWriter(tmp))) {	           
            for (String line : data)   out.write(line + "\n");	
         }catch(IOException e){
@@ -51,7 +50,6 @@ public class Support {
 			Assert.fail("Should not threw a Exception");
 		}
 		
-		tmp.delete();
 	}
 	
 	/**
