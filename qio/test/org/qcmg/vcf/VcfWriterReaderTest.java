@@ -15,6 +15,7 @@ import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 
+@Deprecated
 public class VcfWriterReaderTest {
 	
 	public static final String[] vcfStrings = new String[] {"##test=test", VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE};

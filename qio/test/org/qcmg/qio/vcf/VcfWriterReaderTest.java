@@ -61,8 +61,10 @@ public class VcfWriterReaderTest {
 		
 		try(RecordWriter<VcfRecord> writer = new RecordWriter<>(file) ){
 			writer.addHeader(Arrays.stream(vcfStrings).collect(Collectors.joining("\n")));
+			//add two valide record
 			writer.add(new VcfRecord(parms));
 			writer.add(new VcfRecord(parms));
+			
 			writer.addHeader(Arrays.stream(vcfStrings).collect(Collectors.joining("\n")));
 		}
 		assertEquals(true, FileUtils.isInputGZip(file) );

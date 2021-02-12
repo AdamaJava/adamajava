@@ -17,6 +17,7 @@ import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.vcf.VcfRecord;
 
+@Deprecated
 public final class VCFFileWriter implements Closeable {
 	private final File file;
 	private final OutputStream outputStream;
