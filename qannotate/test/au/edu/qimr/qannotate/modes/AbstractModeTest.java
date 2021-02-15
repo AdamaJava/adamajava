@@ -21,7 +21,7 @@ import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
-import org.qcmg.vcf.VCFFileReader;
+import org.qcmg.qio.vcf.VcfFileReader;
 
 public class AbstractModeTest {
 	public static String outputName = "output.vcf";
@@ -74,16 +74,16 @@ public class AbstractModeTest {
 		db.writeVCF(new File(outputName));
 		
 		
-        try (VCFFileReader reader = new VCFFileReader(new File(outputName))) {
-	        	int i = 0;
-	        	for (VcfHeaderRecord re :  reader.getHeader()) {
-	        		if (re.toString().startsWith(VcfHeaderUtils.STANDARD_UUID_LINE)) {
-	        			// new UUID should have been inserted by now
-	        			assertEquals(false, "abcd_12345678_xzy_999666333".equals(StringUtils.getValueFromKey(re.getMetaValue(), VcfHeaderUtils.STANDARD_UUID_LINE)));
-	        		}
-	        		i ++;
-	        	}
-	        	assertEquals(7, i);	// removed blank lines
+        try (VcfFileReader reader = new VcfFileReader(new File(outputName))) {
+        	int i = 0;
+        	for (VcfHeaderRecord re :  reader.getVcfHeader()) {
+        		if (re.toString().startsWith(VcfHeaderUtils.STANDARD_UUID_LINE)) {
+        			// new UUID should have been inserted by now
+        			assertEquals(false, "abcd_12345678_xzy_999666333".equals(StringUtils.getValueFromKey(re.getMetaValue(), VcfHeaderUtils.STANDARD_UUID_LINE)));
+        		}
+        		i ++;
+        	}
+        	assertEquals(7, i);	//removed blank lines
         }		
 	}	
 	
@@ -114,7 +114,7 @@ public class AbstractModeTest {
 		/*
 		 * now check the ordering
 		 */
-		try (VCFFileReader reader = new VCFFileReader(outputVcfFile)) {
+		try (VcfFileReader reader = new VcfFileReader(outputVcfFile)) {
 			int i = 0;
 			for (VcfRecord v : reader) {
 				i++;
@@ -157,7 +157,7 @@ public class AbstractModeTest {
 		/*
 		 * now check the ordering
 		 */
-		try (VCFFileReader reader = new VCFFileReader(outputVcfFile)) {
+		try (VcfFileReader reader = new VcfFileReader(outputVcfFile)) {
 			int i = 0;
 			for (VcfRecord v : reader) {
 				i++;
