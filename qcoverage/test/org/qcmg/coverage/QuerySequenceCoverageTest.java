@@ -22,8 +22,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.qcmg.common.commandline.Executor;
-import org.qcmg.gff3.GFF3FileWriter;
-import org.qcmg.gff3.GFF3Record;
+import org.qcmg.qio.gff3.Gff3Record;
+import org.qcmg.qio.record.RecordWriter;
 
 public class QuerySequenceCoverageTest {
  	
@@ -31,7 +31,7 @@ public class QuerySequenceCoverageTest {
 	static String inputBai;
 	static Path tmpDir;
 	private File fOutput;
-	static GFF3Record record;
+	static Gff3Record record;
 
 	@Rule
 	public ExpectedException thrown = ExpectedException.none();
@@ -43,7 +43,7 @@ public class QuerySequenceCoverageTest {
 		 inputBai = inputBam.replace("bam", "bai");
 		 SequenceCoverageTest.createCoverageBam(inputBam, SequenceCoverageTest.getAACSAMRecords(SortOrder.coordinate), SequenceCoverageTest.createSamHeaderObject(SortOrder.coordinate));
 		 
-		 record = new GFF3Record();
+		 record = new Gff3Record();
 		 record.setSeqId("chr1");
 		 record.setType("exon");
 		 record.setScore(".");
@@ -78,7 +78,7 @@ public class QuerySequenceCoverageTest {
 		record.setEnd(end);
 
 		File file = new File(tmpDir + "/test" + start +"-" + end + ".gff3");
-		try (GFF3FileWriter writer = new GFF3FileWriter(file)) {
+		try (RecordWriter<Gff3Record> writer = new RecordWriter<>(file)) {
 			writer.add(record);
 		}
 		return file;

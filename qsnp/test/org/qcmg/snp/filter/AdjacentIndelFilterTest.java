@@ -77,8 +77,6 @@ public class AdjacentIndelFilterTest {
 			AdjacentIndelFilter filter = new AdjacentIndelFilter(i);
 			if (i == 109 || i == 112 )
 				Assert.assertEquals(true, filter.filterOut(sam));
-//			if (i == 109 || i == 110 || i == 113 || i == 114)
-//				Assert.assertEquals(true, filter.filterOut(sam));
 			else 
 				Assert.assertEquals(false, filter.filterOut(sam));
 		}
@@ -159,40 +157,4 @@ public class AdjacentIndelFilterTest {
 		Assert.assertEquals(false, filter.filterOut(sam));
 		
 	}
-	
-//	@Test
-//	public void testFilter() {
-//		SAMRecord sam = new SAMRecord(null);
-//		// setup Filter
-//		AdjacentIndelFilter filter = new AdjacentIndelFilter(105);
-//		
-//		sam.setAlignmentStart(100);
-//		Cigar cigar = new Cigar();
-//		CigarElement ce = new CigarElement(10, CigarOperator.M);
-//		cigar.add(ce);
-//		sam.setCigar(cigar);
-//		
-//		Assert.assertEquals(false, filter.filterOut(sam));
-//		
-//		// add a cigar element
-//		CigarElement ce2 = new CigarElement(1, CigarOperator.I);
-//		cigar.add(ce2);
-//		filter = new AdjacentIndelFilter(110);
-//		Assert.assertEquals(true, filter.filterOut(sam));
-//		
-//		// add a cigar element
-//		CigarElement ce3 = new CigarElement(10, CigarOperator.M);
-//		cigar.add(ce3);
-//		filter = new AdjacentIndelFilter(120);
-//		Assert.assertEquals(false, filter.filterOut(sam));
-//		
-//		// add a cigar element
-//		CigarElement ce4 = new CigarElement(2, CigarOperator.D);
-//		cigar.add(ce4);
-//		filter = new AdjacentIndelFilter(121);
-//		Assert.assertEquals(true, filter.filterOut(sam));
-//		
-//	}
-//	
-
 }

@@ -6,8 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-import junit.framework.Assert;
-
+import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.qcmg.common.model.Rule;
@@ -170,40 +169,6 @@ public class RulesUtilTest {
 		rules.clear();
 		rules.add(new Rule(1,Integer.MAX_VALUE-1,0));
 		Assert.assertEquals("rules don't cover from 0 to 1\nrules don't cover from " + (Integer.MAX_VALUE) + " to Integer.MAX_VALUE", RulesUtil.examineRules(rules));
-		
-//		rules.add(new Rule(0,10,0));
-//		rules.add(new Rule(5,15,0));
-//		try {
-//			result = RulesUtil.examineRules(rules);
-//			Assert.fail("Should have thrown an exception");
-//		} catch (Exception e) {}
-//		
-//		// overlapping rule - should throw an exception
-//		rules.clear();
-//		rules.add(new Rule(0,10,1));
-//		rules.add(new Rule(5,7,2));
-//		try {
-//			result = RulesUtil.examineRules(rules);
-//			Assert.fail("Should have thrown an exception");
-//		} catch (Exception e) {}
-//		
-//		// overlapping rule - should throw an exception
-//		rules.clear();
-//		rules.add(new Rule(0,10,1));
-//		rules.add(new Rule(10,11,3));
-//		try {
-//			result = RulesUtil.examineRules(rules);
-//			Assert.fail("Should have thrown an exception");
-//		} catch (Exception e) {}
-//		
-//		// overlapping rule - should throw an exception
-//		rules.clear();
-//		rules.add(new Rule(0,10,1));
-//		rules.add(new Rule(0,1,1));
-//		try {
-//			result = RulesUtil.examineRules(rules);
-//			Assert.fail("Should have thrown an exception");
-//		} catch (Exception e) {}
 		
 	}
 }

@@ -11,7 +11,6 @@
  */
 package org.qcmg.qprofiler;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -53,9 +52,11 @@ public class QProfiler {
 	
 	private static QLogger logger;
 	
+	//set to package level, so unit test can access
+	final static String USER_DIR = System.getProperty("user.dir");
+	final static String FILE_SEPERATOR = System.getProperty("file.separator");
+	
 	private final static int NO_OF_PROCESORS = Runtime.getRuntime().availableProcessors();
-	private final static String USER_DIR = System.getProperty("user.dir");
-	private final static String FILE_SEPERATOR = System.getProperty("file.separator");
 	
 	private static String[] cmdLineFiles;
 	private static String[] cmdLineIndexFiles;
@@ -69,7 +70,6 @@ public class QProfiler {
 	private static ExecutorService exec;
 	private static String version;
 	
-	private String outputFile = USER_DIR + FILE_SEPERATOR + "qprofiler.xml";
 	private int exitStatus;
 	private int noOfConsumerThreads;
 	private int noOfProducerThreads;
@@ -78,8 +78,7 @@ public class QProfiler {
 	private String validation;
 	private boolean noHtml; 
 	
-//	private boolean useDisruptor;
-//	private List<Element> reportElements;
+	private String outputFile = USER_DIR + FILE_SEPERATOR + "qprofiler.xml";
 
 	/*
 	 * This is the "main" method for this class. It will be invoked by the
@@ -308,14 +307,7 @@ public class QProfiler {
 			cmdLineFiles = options.getFileNames();
 			if (cmdLineFiles.length < 1) {
 				throw new QProfilerException("INSUFFICIENT_ARGUMENTS");
-			} else {
-				// loop through supplied files - check they can be read
-//				for (int i = 0 ; i < cmdLineFiles.length ; i++ ) {
-//					if ( ! FileUtils.canFileBeRead(cmdLineFiles[i])) {
-//						throw new QProfilerException("INPUT_FILE_ERROR" , cmdLineFiles[i]);
-//					}
-//				}
-			}
+			} 
 			
 			// set outputfile - if supplied, check that it can be written to
 			if (null != options.getOutputFileName()) {

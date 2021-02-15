@@ -38,10 +38,8 @@ public class PileupRecordTest {
 		
 		File iniFile = testFolder.newFile("qsnpRules.ini");
 		IniFileGenerator.createRulesOnlyIni(iniFile);
-//		createIniFile(iniFile, generateIniFileData());
 		
 		Wini ini = new Wini(iniFile);
-//		Wini ini = new Wini(new File("../../../../defaultRules.ini"));
 		// create rules based on entries in ini file
 		normalRules = IniFileUtil.getRules(ini, "control");
 		tumourRules = IniFileUtil.getRules(ini, "test");
@@ -165,18 +163,11 @@ public class PileupRecordTest {
 				System.out.println("Failed the indel check!");
 				return false;
 			}
-//			if (normalBases.contains("+") || normalBases.contains("-")) {
-//			System.out.println("Failed the indel check!");
-//			return false;
-//			}
+
 			if (PileupUtils.doesPileupContainIndel(tumourBases)) {
 				System.out.println("Failed the indel check!");
 				return false;
 			}
-//			if (tumourBases.contains("+") || tumourBases.contains("-")) {
-//				System.out.println("Failed the indel check!");
-//				return false;
-//			}
 		}
 		
 		String normalBaseQualities = PileupUtils.getQualities(params, normalStartPositions);
@@ -227,10 +218,7 @@ public class PileupRecordTest {
 				}
 			}
 
-		// only keep record if it has enough variants
-//		if (isPileupRecordAKeeper(normalVariantCount, normalCoverage, normalRule, normalBaseCounts, minimumBaseQualityScore) 
-//				|| isPileupRecordAKeeper(tumourVariantCount, tumourCoverage, tumourRule, tumourBaseCounts, minimumBaseQualityScore)) {
-			
+		// only keep record if it has enough variants			
 			List<PileupElement> tumourBaseCountsPassRule = PileupElementUtil
 			.getPileupCountsThatPassRule(tumourBaseCounts, tumourRule, tumourSecondPass, minimumBaseQualityScore);
 			System.out.println("Tumour Genotype: " + PileupElementUtil.getGenotype(tumourBaseCountsPassRule, params[2].charAt(0)));
@@ -244,67 +232,4 @@ public class PileupRecordTest {
 			return false;
 		}
 	}
-	
-//	private static boolean isPileupRecordAKeeper(int variantCount, int coverage, Rule rule, List<PileupElement> baseCounts, double percentage) {
-//		// first check to see if it passes the rule
-//		if (PileupElementUtil.passesCountCheck(variantCount, coverage, rule) && PileupElementUtil.passesWeightedVotingCheck(baseCounts, percentage))
-//			return true;
-//		else return PileupElementUtil.passesCountCheck(variantCount, coverage, rule, true) 
-//				&& PileupElementUtil.getLargestVariant(baseCounts).isFoundOnBothStrands() 
-//				&& PileupElementUtil.passesWeightedVotingCheck(baseCounts, percentage, true);
-//	}
-
-	
-//	private List<String> generateIniFileData() {
-//		List<String> data  = new ArrayList<String>();
-//		data.add("[normalRule1]");
-//		data.add("min = 0");
-//		data.add("max = 20");
-//		data.add("value = 3");
-//		data.add("[normalRule2]");
-//		data.add("min = 21");
-//		data.add("max = 50");
-//		data.add("value = 4");
-//		data.add("[normalRule3]");
-//		data.add("min = 51");
-//		data.add("max =");
-//		data.add("value = 10");
-//		data.add("[tumourRule1]");
-//		data.add("min = 0");
-//		data.add("max = 20");
-//		data.add("value = 3");
-//		data.add("[tumourRule2]");
-//		data.add("min = 21");
-//		data.add("max = 50");
-//		data.add("value = 4");
-//		data.add("[tumourRule3]");
-//		data.add("min = 51");
-//		data.add("max=");
-//		data.add("value = 5");
-//		data.add("[minimumBaseQuality]");
-//		data.add("value = 10");
-//		data.add("[pileupFormat]");
-//		data.add("order = NT");
-//		data.add("[wiggleCoverageValue]");
-//		data.add("normal = 20");
-//		data.add("tumour = 20");
-//		return data;
-//	}
-	
-//	private static void createIniFile(File iniFile, List<String> data) {
-//		PrintWriter out = null;;
-//		try {
-//			out = new PrintWriter(new BufferedWriter(new FileWriter(iniFile)));
-//
-//			for (String line : data) {
-//				out.println(line);
-//			}
-//		} catch (IOException e) {
-//			System.err.println("IOException caught whilst writing out inin file");
-//			e.printStackTrace();
-//		} finally {
-//			if (null != out) out.close();
-//		}
-//	}
-	
 }

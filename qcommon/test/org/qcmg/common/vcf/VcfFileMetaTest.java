@@ -15,6 +15,28 @@ import org.qcmg.common.vcf.header.VcfHeader;
 public class VcfFileMetaTest {
 	
 	@Test
+	public void donorIDtest() {
+		VcfHeader header = new VcfHeader();		
+		header.addOrReplace("##1:qControlBamUUID=bfb11d61-bbf2-4d49-8be5-01f129750cb8");
+		header.addOrReplace("##1:qdonorId=low1");
+		header.addOrReplace("##2:qDonorId=upper2");
+		header.addOrReplace("##1:qDonorId=upper1");
+		header.addOrReplace("#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	bfb11d61-bbf2-4d49-8be5-01f129750cb8_1	4473aebc-7cbc-43f8-8bbc-299265214cf3_1	bfb11d61-bbf2-4d49-8be5-01f129750cb8_2	4473aebc-7cbc-43f8-8bbc-299265214cf3_2");
+
+		VcfFileMeta meta = new VcfFileMeta(header);
+		assertEquals("upper2", meta.getFirstDonorID().get());
+		
+		
+		header = new VcfHeader();	
+		header.addOrReplace("##1:qTestBamUUID=4473aebc-7cbc-43f8-8bbc-299265214cf3");		
+		header.addOrReplace("##qDonorId=donor:upper0");
+		header.addOrReplace("##1:qDonorId=upper1");
+		header.addOrReplace("#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	bfb11d61-bbf2-4d49-8be5-01f129750cb8_1	4473aebc-7cbc-43f8-8bbc-299265214cf3_1	bfb11d61-bbf2-4d49-8be5-01f129750cb8_2	4473aebc-7cbc-43f8-8bbc-299265214cf3_2");
+		meta = new VcfFileMeta(header);
+		assertEquals("donor:upper0", meta.getFirstDonorID().get());
+	}
+	
+	@Test
 	public void ctor() {
 		VcfHeader header = new VcfHeader();
 		try {
