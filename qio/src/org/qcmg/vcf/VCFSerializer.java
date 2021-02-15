@@ -15,6 +15,7 @@ import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
 
+@Deprecated
 public final class VCFSerializer {
 	private static final String DEFAULT_HEADER_PREFIX = "#";
 

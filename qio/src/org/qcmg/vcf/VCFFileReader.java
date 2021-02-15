@@ -26,6 +26,7 @@ import org.qcmg.common.vcf.header.VcfHeader;
 /**
  * Contains an `InputStream` so remember to call close() or use in try-with-resources
  */
+@Deprecated
 public final class VCFFileReader implements Closeable, Iterable<VcfRecord> {
     private final File file;
     private final InputStream inputStream;
