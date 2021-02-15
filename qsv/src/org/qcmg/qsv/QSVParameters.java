@@ -163,6 +163,12 @@ public class QSVParameters {
 							name = section.get("name");
 						}
 						final RunTypeRecord runRecord = new RunTypeRecord(section.get("rgid"), new Integer(section.get("lower")), new Integer(section.get("upper")), name);
+						/*
+						 * check to see if we have valid iSize values (ie. lower is < upper)
+						 */
+						if (runRecord.getLower() > runRecord.getUpper()) {
+							throw new QSVException("INVALID_ISIZES_ERROR", "Lower isize value (" + runRecord.getLower() + ") is greater than or equal to upper isize (" + runRecord.getUpper() + ")");
+						}
 						sequencingRuns.add(runRecord);						
 					} else {
 						throw new QSVException("MISSING_INI_OPTION", section.getName());
