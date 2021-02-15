@@ -48,8 +48,8 @@ import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
-import org.qcmg.vcf.VCFFileReader;
-import org.qcmg.vcf.VCFFileWriter;
+import org.qcmg.qio.vcf.VcfFileReader;
+import org.qcmg.qio.record.RecordWriter;
 
 public class Vcf2maf extends AbstractMode {
 	
@@ -106,8 +106,8 @@ public class Vcf2maf extends AbstractMode {
 		this.sequencer = option.getSequencer();		
 		
 		//make output file name		 
-		try (VCFFileReader reader = new VCFFileReader(new File( option.getInputFileName()))) {
-			VcfHeader vh = reader.getHeader();
+		try (VcfFileReader reader = new VcfFileReader(new File( option.getInputFileName()))) {
+			VcfHeader vh = reader.getVcfHeader();
 			
 			//get control and test sample column										
 			meta = new VcfFileMeta(vh);
@@ -156,21 +156,21 @@ public class Vcf2maf extends AbstractMode {
 		String gPVcf = outputname.replace(".maf", ".Germline.Pass.vcf.gz") ;
 
 		long noIn = 0, noOut = 0, no_SHCC = 0, no_SHC = 0, no_GHCC = 0, no_GHC = 0;
-		try (VCFFileReader reader = new VCFFileReader(new File( option.getInputFileName()));
+		try (VcfFileReader reader = new VcfFileReader(new File( option.getInputFileName()));
 				PrintWriter out = new PrintWriter(outputname);
 				PrintWriter out_SPC = new PrintWriter(sPC);
 				PrintWriter out_SP = new PrintWriter(sP);
 				PrintWriter out_GPC = new PrintWriter(gPC);
 				PrintWriter out_GP = new PrintWriter(gP);
-				VCFFileWriter outSPCVcf = new VCFFileWriter(new File(sPCVcf), true);
-				VCFFileWriter outSPVcf = new VCFFileWriter(new File(sPVcf), true);
-				VCFFileWriter outGPCVcf = new VCFFileWriter(new File(gPCVcf), true);
-				VCFFileWriter outGPVcf = new VCFFileWriter(new File(gPVcf), true);
+				RecordWriter<VcfRecord> outSPCVcf = new RecordWriter<>(new File(sPCVcf), true);
+				RecordWriter<VcfRecord> outSPVcf = new RecordWriter<>(new File(sPVcf), true);
+				RecordWriter<VcfRecord> outGPCVcf = new RecordWriter<>(new File(gPCVcf), true);
+				RecordWriter<VcfRecord> outGPVcf = new RecordWriter<>(new File(gPVcf), true);
 				) {
 			
 			reheader( option.getCommandLine(), option.getInputFileName());			
 			createMafHeader(out,out_SPC,out_SP,out_GPC,out_GP);
-			createVcfHeaders(reader.getHeader(), outSPCVcf, outSPVcf, outGPCVcf, outGPVcf);
+			createVcfHeaders(reader.getVcfHeader(), outSPCVcf, outSPVcf, outGPCVcf, outGPVcf);
 			
 			for (final VcfRecord vcf : reader) {
 				
@@ -258,7 +258,7 @@ public class Vcf2maf extends AbstractMode {
 		}		
 	}
 	
-	private static void createVcfHeaders(VcfHeader header, VCFFileWriter ... writers) throws IOException {
+	private static void createVcfHeaders(VcfHeader header, RecordWriter<VcfRecord> ... writers) throws IOException {
 		StringBuilder sb = new StringBuilder();
 		for (VcfHeaderRecord rec : header) {
 			if (sb.length() > 0) {
@@ -267,7 +267,7 @@ public class Vcf2maf extends AbstractMode {
 			sb.append(rec.toString());
 		}
 		
-		for (VCFFileWriter w : writers) {
+		for (RecordWriter<VcfRecord> w : writers) {
 			w.addHeader(sb.toString());
 		}
 	}
