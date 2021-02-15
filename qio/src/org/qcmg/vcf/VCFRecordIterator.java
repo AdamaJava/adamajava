@@ -14,6 +14,7 @@ import java.util.NoSuchElementException;
 
 import org.qcmg.common.vcf.VcfRecord;
 
+@Deprecated
 public final class VCFRecordIterator implements Iterator<VcfRecord> {
     private final BufferedReader reader;
     private VcfRecord next;
