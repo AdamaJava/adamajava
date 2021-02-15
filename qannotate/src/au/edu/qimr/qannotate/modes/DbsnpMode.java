@@ -24,7 +24,7 @@ import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils.VcfInfoType;
-import org.qcmg.vcf.VCFFileReader;
+import org.qcmg.qio.vcf.VcfFileReader;
 
 import au.edu.qimr.qannotate.Options;
 
@@ -65,20 +65,20 @@ public class DbsnpMode extends AbstractMode{
 	@Override
 	void addAnnotation(String dbSNPFile) throws IOException{
 		 				 
-		try (VCFFileReader reader= new VCFFileReader( dbSNPFile )) {
+		try (VcfFileReader reader= new VcfFileReader( dbSNPFile )) {
 			//add dbSNP version into header		
-			VcfHeaderRecord dbre = reader.getHeader().firstMatchedRecord(VcfHeaderUtils.STANDARD_DBSNP_LINE);
+			VcfHeaderRecord dbre = reader.getVcfHeader().firstMatchedRecord(VcfHeaderUtils.STANDARD_DBSNP_LINE);
 			 
 			if (dbre != null)  
 				header.addOrReplace(String.format("##INFO=<ID=%s,Number=0,Type=%s,Description=\"%s\">",
 								VcfHeaderUtils.INFO_DB, VcfInfoType.Flag.name(),
 								VcfHeaderUtils.INFO_DB_DESC )  );  		
 		 
-			if (reader.getHeader().getInfoRecord(VcfHeaderUtils.INFO_CAF) != null )	
+			if (reader.getVcfHeader().getInfoRecord(VcfHeaderUtils.INFO_CAF) != null )	
 				header.addOrReplace( String.format("##INFO=<ID=%s,Number=.,Type=String,Description=\"%s\">", VcfHeaderUtils.INFO_VAF, VcfHeaderUtils.INFO_VAF_DESC  )	);
 
-			if (reader.getHeader().getInfoRecord(VcfHeaderUtils.INFO_VLD) != null )	
-				header.addOrReplace( reader.getHeader().getInfoRecord(VcfHeaderUtils.INFO_VLD));
+			if (reader.getVcfHeader().getInfoRecord(VcfHeaderUtils.INFO_VLD) != null )	
+				header.addOrReplace( reader.getVcfHeader().getInfoRecord(VcfHeaderUtils.INFO_VLD));
 		 
 			int dbSnpNo = 0;
 			for (final VcfRecord dbSNPVcf : reader) {

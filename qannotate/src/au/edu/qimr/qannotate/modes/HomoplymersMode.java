@@ -21,8 +21,8 @@ import org.qcmg.common.util.IndelUtils.SVTYPE;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
-import org.qcmg.vcf.VCFFileReader;
-import org.qcmg.vcf.VCFFileWriter;
+import org.qcmg.qio.vcf.VcfFileReader;
+import org.qcmg.qio.record.RecordWriter;
 
 import au.edu.qimr.qannotate.Options;
 import htsjdk.samtools.SAMSequenceDictionary;
@@ -97,8 +97,8 @@ public class HomoplymersMode extends AbstractMode{
 		//load reference data
 		Map<String, byte[]> referenceBase = getReferenceBase(new File(dbfile));
 		
-		try (VCFFileReader reader = new VCFFileReader(input);
-	            VCFFileWriter writer = new VCFFileWriter(new File(output))) {
+		try (VcfFileReader reader = new VcfFileReader(input);
+	            RecordWriter<VcfRecord> writer = new RecordWriter<>(new File(output))) {
 			header.addInfo(VcfHeaderUtils.INFO_HOM,  "2", "String",VcfHeaderUtils.INFO_HOM_DESC); 			
 		    for (final VcfHeaderRecord record: header) {
 		    	writer.addHeader(record.toString());
