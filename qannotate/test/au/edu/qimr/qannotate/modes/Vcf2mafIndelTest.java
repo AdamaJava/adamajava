@@ -27,7 +27,7 @@ import org.qcmg.common.util.IndelUtils.SVTYPE;
 import org.qcmg.common.vcf.ContentType;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
-import org.qcmg.vcf.VCFFileReader;
+import org.qcmg.qio.vcf.VcfFileReader;
 
 import au.edu.qimr.qannotate.utils.MafElement;
 import au.edu.qimr.qannotate.utils.SnpEffMafRecord;
@@ -55,7 +55,7 @@ public class Vcf2mafIndelTest {
             try{
                     createVcf(input, str);                
                     final Vcf2maf v2m = new Vcf2maf(1,2, null, null, ContentType.MULTIPLE_CALLERS_MULTIPLE_SAMPLES);    
-                    try(VCFFileReader reader = new VCFFileReader(input); ){
+                    try(VcfFileReader reader = new VcfFileReader(input); ){
                      for (final VcfRecord vcf : reader){
                          SnpEffMafRecord maf  = v2m.converter(vcf);
                          //INS

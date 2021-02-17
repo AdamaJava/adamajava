@@ -26,8 +26,8 @@ import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
-import org.qcmg.vcf.VCFFileReader;
-import org.qcmg.vcf.VCFFileWriter;
+import org.qcmg.qio.vcf.VcfFileReader;
+import org.qcmg.qio.record.RecordWriter;
 
 import au.edu.qimr.qannotate.Main;
 
@@ -47,8 +47,8 @@ abstract class AbstractMode {
 	protected void loadVcfRecordsFromFile(File f) throws IOException {
 		
         //read record into RAM, meanwhile wipe off the ID field value;
-        try (VCFFileReader reader = new VCFFileReader(f)) {
-        	header = reader.getHeader();
+        try (VcfFileReader reader = new VcfFileReader(f)) {
+        	header = reader.getVcfHeader();
         	//no chr in front of position
 			for (final VcfRecord vcf : reader) {
 				String chr = IndelUtils.getFullChromosome( vcf.getChromosome() );
@@ -75,7 +75,7 @@ abstract class AbstractMode {
 		final List<ChrPosition> orderedList = new ArrayList<>(positionRecordMap.keySet());
 		orderedList.sort( ChrPositionComparator.getCPComparatorForGRCh37());
 		
-		try(VCFFileWriter writer = new VCFFileWriter( outputFile)) {
+		try(RecordWriter<VcfRecord> writer = new RecordWriter<>( outputFile)) {
 			for(final VcfHeaderRecord record: header)  {
 				writer.addHeader(record.toString());
 			}
@@ -124,8 +124,8 @@ abstract class AbstractMode {
 	void reheader(String cmd, String inputVcfName) throws IOException {	
 
 		if(header == null)
-	        try(VCFFileReader reader = new VCFFileReader(inputVcfName)) {
-	        	header = reader.getHeader();	
+	        try(VcfFileReader reader = new VcfFileReader(inputVcfName)) {
+	        	header = reader.getVcfHeader();	
 	        	if(header == null)
 	        		throw new IOException("can't receive header from vcf file, maybe wrong format: " + inputVcfName);
 	        } 	

@@ -2,6 +2,8 @@
 package au.edu.qimr.qannotate.utils;
 
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.AbstractQueue;
@@ -10,8 +12,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.Before;
 import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.vcf.VcfRecord;
@@ -25,16 +26,18 @@ import htsjdk.samtools.SamReader;
 import java.util.Arrays;
 
 public class ContigPileupTest {
-	
-	@BeforeClass
-	public static void createInput() {	
-		VariantPileupTest.createSam( makeReads4Pool() );		 
+
+    @org.junit.Rule
+    public  TemporaryFolder testFolder = new TemporaryFolder();
+    
+    File inputBam;
+
+	@Before 
+	public void createInput() throws IOException {	
+		inputBam = testFolder.newFile("tumor.bam");
+		VariantPileupTest.createSam( makeReads4Pool(), inputBam );		 
 	}
-	
-	@AfterClass
-	public static void deleteInput() {	
-		VariantPileupTest.deleteInput();
-	}		
+		
 		
 	@Test
 	public void resetPoolTest(){
@@ -72,9 +75,9 @@ public class ContigPileupTest {
 	 	
 	 	AbstractQueue<VcfRecord> qIn = new ConcurrentLinkedQueue< >( Arrays.asList( snps ) ); 
 		AbstractQueue< VariantPileup > queue = new ConcurrentLinkedQueue<>();
-		SamReader reader =  SAMFileReaderFactory.createSAMFileReader( new File( VariantPileupTest.inputBam) ) ;				 
+		SamReader reader =  SAMFileReaderFactory.createSAMFileReader(  inputBam ) ;				 
 		 SAMSequenceRecord contig = reader.getFileHeader().getSequenceDictionary().getSequence(1); 		
-		ContigPileup pile = new ContigPileup( contig, qIn, new File( VariantPileupTest.inputBam), null, queue,0, Thread.currentThread(), new CountDownLatch( 2));
+		ContigPileup pile = new ContigPileup( contig, qIn, inputBam, null, queue,0, Thread.currentThread(), new CountDownLatch( 2));
 		pile.run();		
 	}
 	
@@ -87,7 +90,7 @@ public class ContigPileupTest {
 		qIn.add( new VcfRecord.Builder( "chr11", 282758, "AG").allele("GA").build());
 		qIn.add( new VcfRecord.Builder( "chr11", 282759, "GGCAA").allele("GCAAA").build() );
 								 
-  	 	ContigPileup pileup = new ContigPileup( new SAMSequenceRecord("chr11", 10000000), qIn, new File( VariantPileupTest.inputBam ), null, qOut, 1, Thread.currentThread(), new CountDownLatch(1) );  
+  	 	ContigPileup pileup = new ContigPileup( new SAMSequenceRecord("chr11", 10000000), qIn, inputBam , null, qOut, 1, Thread.currentThread(), new CountDownLatch(1) );  
   	 	pileup.run();	  	 	
   	 	assertTrue( qOut.size() == 4 );	
   	 	
@@ -118,7 +121,7 @@ public class ContigPileupTest {
 		qIn.add( new VcfRecord.Builder( "chr11", 282759, "GGCAA").allele("G").build() );
 		
 						 
-  	 	ContigPileup pileup = new ContigPileup( new SAMSequenceRecord("chr11", 10000000), qIn, new File( VariantPileupTest.inputBam ), null, qOut, 1, Thread.currentThread(), new CountDownLatch(1) );  
+  	 	ContigPileup pileup = new ContigPileup( new SAMSequenceRecord("chr11", 10000000), qIn, inputBam, null, qOut, 1, Thread.currentThread(), new CountDownLatch(1) );  
   	 	pileup.run();	   	 	
   	 	assertTrue( qOut.size() == 4 );	
   	 	
@@ -141,7 +144,7 @@ public class ContigPileupTest {
 	
 	private void initPool( ChrPosition topPos, List<SAMRecord> current_pool, List<SAMRecord> next_pool ) {
 		
-		 try(SamReader inreader =  SAMFileReaderFactory.createSAMFileReader(new File( VariantPileupTest.inputBam ));){  					 
+		 try(SamReader inreader =  SAMFileReaderFactory.createSAMFileReader(inputBam );){  					 
 			 for(SAMRecord re : inreader){		 		
 		 		//bam file already sorted, skip non-indel region record
 		 		//query take longer time so put to last condition

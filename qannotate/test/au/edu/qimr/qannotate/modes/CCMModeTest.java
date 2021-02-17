@@ -17,9 +17,6 @@ public class CCMModeTest {
 	public static final String REF = "0/0";
 	public static final String DOT = "./.";
 	
-	
-	
-	
 	@Test
 	public void singleCallerMultiSample() {
 		 VcfRecord vcf1 = new VcfRecord(new String[]{"chr8","12306635","rs28428895","C","T",".",".","FLANK=ACACATACATA","GT:GD:AC:MR:NNS:FT","0/1:C/T:C10[39],3[30],G1[11],0[0],T7[41.29],1[42]:8:8:.","0/0:C/C:C19[36.11],20[38.45],T1[42],0[0]:1:1:."});
