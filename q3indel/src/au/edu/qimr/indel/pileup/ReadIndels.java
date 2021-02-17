@@ -16,7 +16,7 @@ import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
-import org.qcmg.vcf.VCFFileReader;
+import org.qcmg.qio.vcf.VcfFileReader;
 
 public class ReadIndels {
 	static final String FILTER_SOMATIC = "SOMATIC";
@@ -58,8 +58,8 @@ public class ReadIndels {
     	//counts for debug 
 		int[] counts = {0,0,0,0,0}; //{0th::indelNew, 1st::indelOverlap,2nd::indelMultiAlt,3rd::inLines, 4th::inMultiAlt}
     	//merge variants  
-        try (VCFFileReader reader = new VCFFileReader(f)) {
-        		header = VcfHeaderUtils.mergeHeaders(header, reader.getHeader(), false);
+        try (VcfFileReader reader = new VcfFileReader(f)) {
+        		header = VcfHeaderUtils.mergeHeaders(header, reader.getVcfHeader(), false);
 			for (final VcfRecord re : reader) {	
 				
 				counts[3] ++; //inLines ++;
@@ -160,11 +160,11 @@ public class ReadIndels {
 	    int inLines = 0;
 	    int inMultiAltNo = 0;
 		
-        try (VCFFileReader reader = new VCFFileReader(f)) {
+        try (VcfFileReader reader = new VcfFileReader(f)) {
 	        	if (header == null) { 
-	        		header = reader.getHeader();	
+	        		header = reader.getVcfHeader();	
 	        	} else { 
-	        		header = VcfHeaderUtils.mergeHeaders(header, reader.getHeader(), false);
+	        		header = VcfHeaderUtils.mergeHeaders(header, reader.getVcfHeader(), false);
 	        	} 
 	        	//no chr in front of position
 			for (final VcfRecord re : reader) { 

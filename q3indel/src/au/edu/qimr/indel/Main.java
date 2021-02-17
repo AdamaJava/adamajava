@@ -6,7 +6,6 @@ import org.qcmg.common.util.LoadReferencedClasses;
 
 public class Main {
 	
-	
 	public static void main(String[] args) throws Exception {
 		
 		if (args.length == 0) {
