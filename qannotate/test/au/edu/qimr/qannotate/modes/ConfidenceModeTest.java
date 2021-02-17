@@ -11,10 +11,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.junit.AfterClass;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.model.MafConfidence;
 import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.Constants;
@@ -24,21 +23,17 @@ import org.qcmg.common.vcf.VcfInfoFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
-import org.qcmg.vcf.VCFFileReader;
+import org.qcmg.qio.vcf.VcfFileReader;
 
 
 public class ConfidenceModeTest {
+	@org.junit.Rule
+	public  TemporaryFolder testFolder = new TemporaryFolder();
 	
-	 public static final VcfFileMeta TWO_SAMPLE_TWO_CALLER_META = new VcfFileMeta( CCMModeTest.createTwoSampleTwoCallerVcf());
-	 public static final VcfFileMeta TWO_SAMPLE_ONE_CALLER_META = new VcfFileMeta( CCMModeTest.createTwoSampleVcf());
-	 public static final VcfFileMeta SINGLE_SAMPLE_TWO_CALLER_META = new VcfFileMeta( CCMModeTest.createSingleSampleTwoCallerVcf());
-	
-	 @AfterClass
-	 public static void deleteIO(){
-		 new File(DbsnpModeTest.inputName).delete();
-		 new File(DbsnpModeTest.outputName).delete();		 
-	 }
-	 
+	public static final VcfFileMeta TWO_SAMPLE_TWO_CALLER_META = new VcfFileMeta( CCMModeTest.createTwoSampleTwoCallerVcf());
+	public static final VcfFileMeta TWO_SAMPLE_ONE_CALLER_META = new VcfFileMeta( CCMModeTest.createTwoSampleVcf());
+	public static final VcfFileMeta SINGLE_SAMPLE_TWO_CALLER_META = new VcfFileMeta( CCMModeTest.createSingleSampleTwoCallerVcf());
+	 	 
 	 @Test
 	 public void testThresholds() {
 		 assertEquals(true, ConfidenceMode.allValuesAboveThreshold(new int[]{10}, 9));
@@ -1164,9 +1159,12 @@ public class ConfidenceModeTest {
 	
 	 @Ignore
 	 public void confidenceTest() throws IOException, Exception{	
-	 	DbsnpModeTest.createVcf();
+		File output = testFolder.newFile("output.vcf");
+		File input = testFolder.newFile("input.vcf");
+		
+	 	DbsnpModeTest.createVcf(input);
 		final ConfidenceMode mode = new ConfidenceMode();		
-		mode.loadVcfRecordsFromFile(new File(DbsnpModeTest.inputName));
+		mode.loadVcfRecordsFromFile( input);
 
 		String Scontrol = "EXTERN-MELA-20140505-001";
 		String Stest = "EXTERN-MELA-20140505-002";
@@ -1175,10 +1173,10 @@ public class ConfidenceModeTest {
 		mode.header.addOrReplace("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tEXTERN-MELA-20140505-001\tEXTERN-MELA-20140505-002");			
 		
 		mode.addAnnotation();
-		mode.reheader("unitTest", DbsnpModeTest.inputName);
-		mode.writeVCF(new File(DbsnpModeTest.outputName)  );
+		mode.reheader("unitTest", input.getAbsolutePath());
+		mode.writeVCF( output );
 		
-		try(VCFFileReader reader = new VCFFileReader(DbsnpModeTest.outputName)){			 
+		try(VcfFileReader reader = new VcfFileReader(output)){			 
 			for (final VcfRecord re : reader) {
 				String ff = re.getFormatFieldStrings();
 				if(re.getPosition() == 2675826) {
@@ -1187,7 +1185,6 @@ public class ConfidenceModeTest {
 				} else if(re.getPosition() == 22012840) {
 					//isClassB
 				assertEquals(true, ff.contains(VcfHeaderUtils.INFO_CONFIDENCE + Constants.EQ + MafConfidence.LOW.name())); 
-//				else if(re.getPosition() == 14923588)
 				} else if(re.getPosition() == 14923588 || re.getPosition() == 2675825) {
 					assertEquals(true, ff.contains(VcfHeaderUtils.INFO_CONFIDENCE + Constants.EQ + MafConfidence.ZERO.name())); 
 				} else {
@@ -1201,9 +1198,12 @@ public class ConfidenceModeTest {
 	 
 	 @Ignore
 	 public void sampleColumnNoIDTest() throws IOException, Exception{	
-	 	DbsnpModeTest.createVcf();
+		File output = testFolder.newFile("output.vcf");
+		File input = testFolder.newFile("input.vcf");
+		 
+	 	DbsnpModeTest.createVcf(input);
 		final ConfidenceMode mode = new ConfidenceMode();		
-		mode.loadVcfRecordsFromFile(new File(DbsnpModeTest.inputName));
+		mode.loadVcfRecordsFromFile(input);
 
 		String Scontrol = "EXTERN-MELA-20140505-001";
 		String Stest = "EXTERN-MELA-20140505-002";
@@ -1212,10 +1212,10 @@ public class ConfidenceModeTest {
 		mode.header.addOrReplace("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tqControlSample\tqTestSample");			
 		
 		mode.addAnnotation();
-		mode.reheader("unitTest", DbsnpModeTest.inputName);
-		mode.writeVCF(new File(DbsnpModeTest.outputName)  );
+		mode.reheader("unitTest", input.getAbsolutePath());
+		mode.writeVCF(output);
 		
-		try(VCFFileReader reader = new VCFFileReader(DbsnpModeTest.outputName)){
+		try(VcfFileReader reader = new VcfFileReader(output)){
 			for (final VcfRecord re : reader) {		
 				final VcfInfoFieldRecord infoRecord = new VcfInfoFieldRecord(re.getInfo()); 				
 				if(re.getPosition() == 2675826) 

@@ -9,9 +9,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.SAMOrBAMWriterFactory;
@@ -22,23 +22,16 @@ import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SamReader;
 
 public class SnpPileupTest {
-	static final String inputBam = "input.bam"; 
+    @org.junit.Rule
+    public  TemporaryFolder testFolder = new TemporaryFolder();
+	File input;
  
-	@BeforeClass
-	public static void createInput() {	
-		createSam( makeReads4Pair() ); 
+	@Before 
+	public void createInput() throws IOException {	
+		input = testFolder.newFile("input.bam");
+		createSam( makeReads4Pair(), input ); 
 	}
-	
-	@AfterClass
-	public static void deleteInput() {			
-		File dir = new File(".");
-		if(!dir.isDirectory()) throw new IllegalStateException("wtf mate?");
-		for(File file : dir.listFiles()) {
-		    if(file.getName().startsWith("input."))
-		       file.delete();
-		}
-	}	
-	
+
 	@Test 
 	public void overlappedPairTest() throws IOException{
 		List<SAMRecord> pool = createPool();
@@ -104,7 +97,6 @@ public class SnpPileupTest {
     (first of pair read base)   CTTCTTCATCCACT A TTT C AGGCAATGAC A    AA CACTGTGCCAT ATG CTG TATCTTATACACATCACCCAGCCCA
     									   282753  				282768			 282783
     (second of pair read base)  GCAGCGTCAGAGGT T TAT A AGTTACAGCT T	   CT TCATCCACTCT TTG AGG CAATGACACCCACTGTGCCATCTG
-
 	 * @throws IOException
 	 */
 	public void errCigarTest() throws IOException{
@@ -139,14 +131,14 @@ public class SnpPileupTest {
 	
 	private List<SAMRecord> createPool() throws IOException{			
 		List<SAMRecord> pool = new ArrayList<SAMRecord>();				
-		try(SamReader inreader =  SAMFileReaderFactory.createSAMFileReader(new File(inputBam));){
+		try(SamReader inreader =  SAMFileReaderFactory.createSAMFileReader(input);){
 	        for(SAMRecord re : inreader)  pool.add(re);   	
 		}		
 		return pool; 		
 	}
 
-    public static void createSam( List<String> reads ){
-    	String ftmp = "input.sam";
+    public static void createSam( List<String> reads, File input ){
+    	File ftmp = new File("input.sam");
     	
         List<String> data = new ArrayList<String> ();
         data.add("@HD	VN:1.0	SO:coordinate");
@@ -165,13 +157,15 @@ public class SnpPileupTest {
             System.err.println( "IOException caught whilst attempting to write to SAM test file: " + ftmp  + e );
         } 
         
-		try(SamReader inreader =  SAMFileReaderFactory.createSAMFileReader(new File(ftmp));  ){
+		try(SamReader inreader =  SAMFileReaderFactory.createSAMFileReader( ftmp);  ){
 			SAMFileHeader he = inreader.getFileHeader();
 			he.setSortOrder( SAMFileHeader.SortOrder.coordinate );
-			SAMFileWriter writer = new SAMOrBAMWriterFactory(he , false, new File(inputBam), true).getWriter();	        
+			SAMFileWriter writer = new SAMOrBAMWriterFactory(he , false, input, true).getWriter();	        
 	        for(SAMRecord re : inreader){ writer.addAlignment(re); }
 	        writer.close();
-		} catch (IOException e) { e.printStackTrace(); }		
+		} catch (IOException e) { e.printStackTrace(); }	
+		
+		ftmp.delete();
      
     }
        
@@ -181,11 +175,9 @@ public class SnpPileupTest {
     MD:Z:14C14T^GA0C0C14        |-----14-----| | |-------14-----| | del|| |--------14-------|
     30M2D13M3I3M25S             | -------------- 30M ------------ | 2D |---- 13M ---| 3I  3M  | ------- 25S --------- |
     ( first of pair read base)  CTTCTTCATCCACT A TTT C AGGCAATGAC A    AA CACTGTGCCAT ATG CTG TATCTTATACACATCACCCAGCCCA
-
     ref              ***********CTTCTTCATCCACT C TTT C AGGCAATGAC T GA CC CACTGTGCCAT     CTG ***********************
                                 |              |     |            |                 |
                                282739       282753 282757      282768              282783       
-
     GCAGCGTCAGAGGTTTATAAGTTACAG CTTCTTCATCCACT C TTT G AGGCAATGAC A    CC CACTGTGCCAT     CTG    (second pair read base)
     | ----------- 27S ------- | | ------------ 30M -------------- | 2D | ------ 16M ------- |    27S30M2D16M 
                                 |----------18------| | |----10--| |del |--------16----------|    MD:Z:18C11^GA16
