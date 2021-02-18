@@ -36,9 +36,9 @@ import org.qcmg.pileup.metrics.record.SnpRecord;
 import org.qcmg.pileup.model.Chromosome;
 import org.qcmg.pileup.model.QPileupRecord;
 import org.qcmg.pileup.model.StrandEnum;
+import org.qcmg.qio.vcf.VcfFileReader;
 import org.qcmg.tab.TabbedFileReader;
 import org.qcmg.tab.TabbedRecord;
-import org.qcmg.vcf.VCFFileReader;
 
 
 public class SnpMetric extends Metric {
@@ -355,7 +355,7 @@ public class SnpMetric extends Metric {
 	}
 
 	public void processVCF(File file, String annotation) throws Exception {
-		VCFFileReader reader = new VCFFileReader(file);		
+		VcfFileReader reader = new VcfFileReader(file);		
 		Iterator<VcfRecord> iter = reader.iterator();
 		int count = 0;
 		while (iter.hasNext()) {
@@ -382,7 +382,7 @@ public class SnpMetric extends Metric {
 
 	public void processDbSnp() throws Exception {
 		
-		VCFFileReader reader = new VCFFileReader(dbSnpFile);		
+		VcfFileReader reader = new VcfFileReader(dbSnpFile);		
 		Iterator<VcfRecord> iter = reader.iterator();
 		int count = 0;
 		while (iter.hasNext()) {

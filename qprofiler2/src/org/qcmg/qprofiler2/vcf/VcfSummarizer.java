@@ -8,9 +8,9 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
+import org.qcmg.qio.vcf.VcfFileReader;
 import org.qcmg.qprofiler2.Summarizer;
 import org.qcmg.qprofiler2.SummaryReport;
-import org.qcmg.vcf.VCFFileReader;
 
 public class VcfSummarizer implements Summarizer {
 	private static final QLogger logger = QLoggerFactory.getLogger(VcfSummarizer.class);
@@ -27,8 +27,8 @@ public class VcfSummarizer implements Summarizer {
 		// set logging level for printing of no of records parsed
 		VcfSummaryReport vcfSummaryReport; 
 		
-		try (VCFFileReader reader = new VCFFileReader(new File(input))  ) {
-			VcfHeader header = reader.getHeader();
+		try (VcfFileReader reader = new VcfFileReader(new File(input))  ) {
+			VcfHeader header = reader.getVcfHeader();
 			if (header == null || header.getSampleId() == null) {
 				throw new Exception("Invalid Vcf Header: please specify Sample id after Format column on Header line!");
 			}

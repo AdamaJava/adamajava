@@ -23,7 +23,7 @@ import org.qcmg.pileup.QPileupFileReader;
 import org.qcmg.common.model.QSnpRecord;
 import org.qcmg.pileup.VerifiedSnpFileReader;
 import org.qcmg.pileup.VerifiedSnpRecord;
-import org.qcmg.vcf.VCFFileReader;
+import org.qcmg.qio.vcf.VcfFileReader;
 
 public class ExamineVerifiedSnps {
 	
@@ -212,7 +212,7 @@ public class ExamineVerifiedSnps {
 	private static void loadGATKData(String pileupFile) throws Exception {
 		if (FileUtils.canFileBeRead(pileupFile)) {
 			
-			VCFFileReader reader  = new VCFFileReader(new File(pileupFile));
+			VcfFileReader reader  = new VcfFileReader(new File(pileupFile));
 			try {
 				for (VcfRecord qpr : reader) {
 					vcfRecords.put(ChrPointPosition.valueOf(qpr.getChromosome(), qpr.getPosition()),qpr);

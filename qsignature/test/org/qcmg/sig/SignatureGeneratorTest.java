@@ -33,7 +33,7 @@ import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.picard.SAMOrBAMWriterFactory;
 import org.qcmg.picard.util.SAMUtils;
 import org.qcmg.qio.illumina.IlluminaRecord;
-import org.qcmg.vcf.VCFFileReader;
+import org.qcmg.qio.vcf.VcfFileReader;
 import org.qcmg.sig.util.SignatureUtil;
 
 public class SignatureGeneratorTest {
@@ -226,7 +226,7 @@ public class SignatureGeneratorTest {
     	assertTrue(outputFile.exists());
    	
     	final List<VcfRecord> recs = new ArrayList<>();
-    	try (VCFFileReader reader = new VCFFileReader(outputFile);) {    			
+    	try (VcfFileReader reader = new VcfFileReader(outputFile);) {    			
 	    	for (final VcfRecord rec : reader) 
 	    		recs.add(rec);
     	}
@@ -254,7 +254,7 @@ public class SignatureGeneratorTest {
 	    	assertTrue(outputFile.exists());
 	   	
 	    	final List<VcfRecord> recs = new ArrayList<>();
-	    	try (VCFFileReader reader = new VCFFileReader(outputFile);) {    			
+	    	try (VcfFileReader reader = new VcfFileReader(outputFile);) {    			
 		    	for (final VcfRecord rec : reader) {
 		    		recs.add(rec);
 		    		System.out.println("rec: " + rec.toString());
