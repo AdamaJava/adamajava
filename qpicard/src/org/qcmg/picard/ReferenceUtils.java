@@ -6,6 +6,7 @@
 package org.qcmg.picard;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -89,6 +90,26 @@ public class ReferenceUtils {
 			return f;
 		}
 		return null;
-	}	
+	}
+	
+	
+	/**
+	 * Doesn't use any of the caches - looks up the reference file every time!
+	 * @param file
+	 * @param contig
+	 * @param start
+	 * @param end
+	 * @return
+	 */
+	public static byte[] getRegionFromReferenceFile(String file, String contig, int start, int end) {
+		FastaSequenceIndex index = new FastaSequenceIndex(new File(file + ".fai"));
+		try (IndexedFastaSequenceFile refFile = new IndexedFastaSequenceFile(new File(file), index);) {
+			ReferenceSequence refSeq = refFile.getSubsequenceAt(contig, start, end);
+			return refSeq.getBases();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
 
 }

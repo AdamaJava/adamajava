@@ -19,6 +19,7 @@ import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.AbstractQueue;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -34,17 +35,20 @@ import java.util.zip.GZIPOutputStream;
 
 import javax.xml.bind.DatatypeConverter;
 
+import org.apache.commons.codec.Charsets;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.meta.QExec;
 import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrPositionComparator;
+import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
+import org.qcmg.picard.ReferenceUtils;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.util.BAMFileUtils;
 import org.qcmg.picard.util.SAMUtils;
@@ -80,6 +84,8 @@ public class SignatureGeneratorBespoke {
 	private String[] cmdLineInputFiles;
 	private String illumiaArraysDesign;
 	private String snpPositions;
+	private String genePositions;
+	private String reference;
 	private int exitStatus;
 	private QExec exec;
 	
@@ -122,9 +128,15 @@ public class SignatureGeneratorBespoke {
 		} else {
 			/*
 			 * load snp positions file, create md5sum
+			 * alternatively, load genePositions gff3 file and create md5sum
 			 */
+			if (null != snpPositions) {
+				loadRandomSnpPositions(snpPositions);
+			} else if (null != genePositions) {
+				loadRandomGenePositions(genePositions);
+			}
 			
-			loadRandomSnpPositions(snpPositions);
+			
 			
 			assert snpPositionsMD5.length > 0 : "md5sum digest array for snp positions is empty!!!";
 			assert ! snps.isEmpty() : "no snps positions loaded!!!";
@@ -158,7 +170,9 @@ public class SignatureGeneratorBespoke {
 		sb.append("##java_version=").append(exec.getJavaVersion().getValue()).append(Constants.NL);
 		sb.append("##run_by_os=").append(exec.getOsName().getValue()).append(Constants.NL);
 		sb.append("##run_by_user=").append(exec.getRunBy().getValue()).append(Constants.NL);
-		sb.append("##positions=").append(snpPositions).append(Constants.NL);
+		sb.append("##snp_positions=").append(snpPositions).append(Constants.NL);
+		sb.append("##gene_positions=").append(genePositions).append(Constants.NL);
+		sb.append("##reference=").append(reference).append(Constants.NL);
 		sb.append(SignatureUtil.MD_5_SUM).append("=").append(DatatypeConverter.printHexBinary(snpPositionsMD5).toLowerCase()).append(Constants.NL);
 		sb.append(SignatureUtil.POSITIONS_COUNT).append("=").append(snps.size()).append(Constants.NL);
 		if (bam) {
@@ -701,17 +715,62 @@ public class SignatureGeneratorBespoke {
 		
 	}
 	
+	/**
+	 * A gff3 file containing a number of genes is what is expected in the randomGeneFile
+	 * 
+	 * 
+	 * @param randomGeneFile
+	 * @throws IOException
+	 * @throws NoSuchAlgorithmException
+	 */
+	private void loadRandomGenePositions(String randomGeneFile) throws IOException, NoSuchAlgorithmException {
+		int count = 0;
+		MessageDigest md = MessageDigest.getInstance("MD5");
+		try (BufferedReader in = new BufferedReader(new FileReader(randomGeneFile));) {
+			
+			String line = null;
+			while ((line = in.readLine()) != null) {
+				++count;
+				final String[] params = TabTokenizer.tokenize(line);
+				if (params.length < 5) {
+					System.out.println("params: " + Arrays.deepToString(params) + ", line: " + line);
+				}
+				String ref = params[0];			//note that this does not have the preceeding"chr" and so will need to add
+				int start = Integer.parseInt(params[3]);
+				int end = Integer.parseInt(params[4]);
+				
+				/*
+				 * get reference bases for this gene position
+				 */
+				byte[] referenceBases = ReferenceUtils.getRegionFromReferenceFile(reference, ref, start, end);
+				/*
+				 * loop through start to end building VcfRecords (ouch) and add to list
+				 */
+				
+				for (int i = start, j = 0 ; i < end ; i++, j++) {
+					snps.add( new VcfRecord.Builder(ref, i, "" + (char)(referenceBases[j])).build());
+				}
+				
+			}
+			arraySize = snps.size();
+			logger.info("loaded " + arraySize + " positions into map (from " + count + " genes)");
+		}
+		
+		md.update(Files.readAllBytes(Paths.get(randomGeneFile)));
+		snpPositionsMD5 = md.digest();
+	}
+	
 	public static void main(String[] args) throws Exception {
 		final SignatureGeneratorBespoke sp = new SignatureGeneratorBespoke();
 		int exitStatus = 0;
 		try {
 			exitStatus = sp.setup(args);
 		} catch (final Exception e) {
-			exitStatus = 2;
+			exitStatus = 1;
 			if (null != logger) {
-				logger.error("Exception caught whilst running SignatureGenerator:", e);
+				logger.error("Exception caught whilst running SignatureGeneratorBespoke:", e);
 			} else {
-				System.err.println("Exception caught whilst running SignatureGenerator");
+				System.err.println("Exception caught whilst running SignatureGeneratorBespoke");
 			}
 			e.printStackTrace();
 		}
@@ -769,14 +828,23 @@ public class SignatureGeneratorBespoke {
 			options.getMinMappingQuality().ifPresent(i -> minMappingQuality = i.intValue());
 			options.getMinBaseQuality().ifPresent(i -> minBaseQuality = i.intValue());
 			
-			if (options.hasIlluminaArraysDesignOption()) {
-				illumiaArraysDesign = options.getIlluminaArraysDesign();
-			}
-			if (options.hasSnpPositionsOption()) {
-				snpPositions = options.getSnpPositions();
-			}
-			if (null == snpPositions || ! FileUtils.canFileBeRead(snpPositions)) {
+			options.getIlluminaArraysDesign().ifPresent(i -> illumiaArraysDesign = i);
+			options.getSnpPositions().ifPresent(s -> snpPositions = s);
+			options.getGenePositions().ifPresent(g -> genePositions = g);
+			options.getReference().ifPresent(r -> reference = r);
+			
+			/*
+			 * want either genePositions or snpPOsitions
+			 */
+			if ((null == snpPositions || ! FileUtils.canFileBeRead(snpPositions)) && (null == genePositions || ! FileUtils.canFileBeRead(genePositions))) {
 				throw new QSignatureException("INSUFFICIENT_INPUT_FILES");
+			}
+			
+			/*
+			 * if we are dealing with a genePositions file, need to make sure we also have the reference file
+			 */
+			if (null != genePositions && (null == reference || ! FileUtils.canFileBeRead(reference))) {
+				throw new QSignatureException("INCORRECT_GENE_INPUT_FILES");
 			}
 			
 			validationStringency = options.getValidation();
