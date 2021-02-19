@@ -58,7 +58,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.GZIPOutputStream;
-
 import nu.xom.Attribute;
 import nu.xom.Document;
 import nu.xom.Element;
@@ -91,9 +90,7 @@ import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils.VcfInfoType;
 import org.qcmg.qio.vcf.VcfFileReader;
 import org.qcmg.qio.record.RecordWriter;
-import org.qcmg.tab.TabbedFileReader;
-import org.qcmg.tab.TabbedHeader;
-import org.qcmg.tab.TabbedRecord;
+import org.qcmg.qio.record.StringFileReader;
 
 public class Q3Panel {
 	
@@ -390,12 +387,12 @@ public class Q3Panel {
 					
 			logger.info("Number of unique chromosomes in bed file: " + uniqueChrs.size());
 			
-			try (TabbedFileReader reader = new TabbedFileReader(new File(geneTranscriptsFile))) {
+			try (StringFileReader reader = new StringFileReader(new File(geneTranscriptsFile))) {
 				String currentTranscriptId = null;
-				for (TabbedRecord rec : reader) {
-					String contig = rec.getData().substring(0, rec.getData().indexOf(Constants.TAB));
+				for (String rec : reader) {
+					String contig = rec.substring(0, rec.indexOf(Constants.TAB));
 					if (uniqueChrs.containsKey(contig)) {
-						String [] params = TabTokenizer.tokenize(rec.getData());
+						String [] params = TabTokenizer.tokenize(rec);
 						String [] column8 = params[8].split(Constants.SEMI_COLON_STRING); 
 						Optional<String> optionalId = Arrays.stream(column8).filter(s -> s.trim().startsWith("transcript_id")).findAny();
 						Optional<String> optionalExonNumber = Arrays.stream(column8).filter(s -> s.trim().startsWith("exon_number")).findAny();
@@ -602,8 +599,7 @@ public class Q3Panel {
 				
 				Element vcf = new Element("VcfRecord");
 				vcfs.appendChild(vcf);
-				vcf.appendChild(v.toString());
-				
+				vcf.appendChild(v.toString());				
 			});
 		
 		/*
@@ -671,9 +667,9 @@ public class Q3Panel {
 		 */
 		if (bedFile != null && new File(bedFile).exists()) {
 			int bedId = 0;
-			try (TabbedFileReader reader = new TabbedFileReader(new File(bedFile));) {
-				for (TabbedRecord rec : reader) {
-					String [] params = TabTokenizer.tokenize(rec.getData());
+			try (StringFileReader reader = new StringFileReader(new File(bedFile));) {
+				for (String rec : reader) {
+					String [] params = TabTokenizer.tokenize(rec);
 					ChrPosition cp = new ChrRangePosition(params[0], Integer.parseInt(params[1]), Integer.parseInt(params[2]));
 					bedToAmpliconMap.put(new Contig(++bedId, cp), new ArrayList<Contig>(1));
 				}
@@ -700,8 +696,7 @@ public class Q3Panel {
 			/*
 			 * Assign contigs to bed poisitions
 			 */
-			contigFragmentMap.keySet().stream()
-				.forEach(a -> {
+			contigFragmentMap.keySet().stream().forEach(a -> {
 					List<Contig> beds = bedToAmpliconMap.keySet().stream()
 						.filter(bed -> ChrPositionUtils.isChrPositionContained(a.getPosition(), bed.getPosition())
 								&& a.getPosition().getStartPosition() < (bed.getPosition().getStartPosition() + 10)
@@ -713,7 +708,7 @@ public class Q3Panel {
 						logger.info("Found " + beds.size() + " bed positions that are contained by this contig " + a.getPosition().toIGVString());
 						beds.stream().forEach(b -> logger.info("bed: " + b.toString()));
 					}
-				});			
+				});		
 		}
 	}
 	
@@ -724,8 +719,7 @@ public class Q3Panel {
 		 * Get some stats on each Contig
 		 * # of fragments, and reads to start with
 		 */
-		contigFragmentMap.entrySet().stream()
-			.forEach(entry -> {
+		contigFragmentMap.entrySet().stream().forEach(entry -> {
 				int recordCount = entry.getValue().stream().mapToInt(Fragment2::getRecordCount).sum();
 				logger.info("Contig " + entry.getKey().getId() + " " + entry.getKey().getPosition().toIGVString() + " has " + entry.getValue().size() 
 						+ " fragments with a total of " + recordCount + " records (" + ((double) recordCount / fastqRecordCount) * 100 + "%)");
@@ -1393,20 +1387,22 @@ public class Q3Panel {
 		
 		logger.info("loading genome tiles alignment data");
 		
-		try (TabbedFileReader reader = new TabbedFileReader(new File(refTiledAlignmentFile))) {
+		try (StringFileReader reader = new StringFileReader(new File(refTiledAlignmentFile))) {
 			
-			TabbedHeader header = reader.getHeader();
-			List<String> headerList = new ArrayList<>();
-			for (String head : header) {
-				headerList.add(head);
-			}
+//			TabbedHeader header = reader.getHeader();
+//			List<String> headerList = new ArrayList<>();
+//			for (String head : header) {
+//				headerList.add(head);
+//			}
+			
+			List<String> headerList = reader.getHeader();
 			positionToActualLocation.loadMap(headerList);
 			int i = 0;
-			for (TabbedRecord rec : reader) {
+			for (String rec : reader) {
 				if (++i % 1000000 == 0) {
 					logger.info("hit " + (i / 1000000) + "M records");
 				}
-				queue.add(rec.getData());
+				queue.add(rec);
 			}
 			/*
 			 * kill off threads waiting on queue
