@@ -36,10 +36,8 @@ import org.qcmg.pileup.metrics.record.SnpRecord;
 import org.qcmg.pileup.model.Chromosome;
 import org.qcmg.pileup.model.QPileupRecord;
 import org.qcmg.pileup.model.StrandEnum;
+import org.qcmg.qio.record.StringFileReader;
 import org.qcmg.qio.vcf.VcfFileReader;
-import org.qcmg.tab.TabbedFileReader;
-import org.qcmg.tab.TabbedRecord;
-
 
 public class SnpMetric extends Metric {
 	
@@ -495,7 +493,7 @@ public class SnpMetric extends Metric {
 		snpMap.clear();
 		tabFileWriter = new BufferedWriter(new FileWriter(snpOutputFile, true));
 		dccFileWriter = new BufferedWriter(new FileWriter(dccOutputFile, true));
-		Map<String, TreeMap<ChrRangePosition, TabbedRecord>> mismapMap = readGFFRecords(gffName);
+		Map<String, TreeMap<ChrRangePosition, String>> mismapMap = readGFFRecords(gffName);
 		
 		for (Chromosome c : chromosomes) {
 			
@@ -527,16 +525,16 @@ public class SnpMetric extends Metric {
 		
 	}
 
-	private void processMisMapRegion(Map<String, TreeMap<ChrRangePosition, TabbedRecord>> mismapMap) throws Exception {		
+	private void processMisMapRegion(Map<String, TreeMap<ChrRangePosition, String>> mismapMap) throws Exception {		
 		
 		for (Entry<String, TreeMap<Integer, SnpRecord>> entry : snpMap.entrySet()) {
 			for (Entry<Integer, SnpRecord> currentEntry : entry.getValue().entrySet()) {
 				SnpRecord snp = currentEntry.getValue();
 				ChrRangePosition chrPos = new ChrRangePosition(snp.getChromosome(), snp.getPosition(), snp.getEndPosition());
 				if (mismapMap.containsKey(snp.getChromosome())) {
-					TreeMap<ChrRangePosition, TabbedRecord> compareMap = mismapMap.get(snp.getChromosome());					
-					Entry<ChrRangePosition, TabbedRecord> floor = compareMap.floorEntry(chrPos);
-					Entry<ChrRangePosition, TabbedRecord> ceiling = compareMap.ceilingEntry(chrPos);
+					TreeMap<ChrRangePosition, String> compareMap = mismapMap.get(snp.getChromosome());					
+					Entry<ChrRangePosition, String> floor = compareMap.floorEntry(chrPos);
+					Entry<ChrRangePosition, String> ceiling = compareMap.ceilingEntry(chrPos);
 					
 					if (tabbedRecordFallsInCompareRecord(chrPos, floor) || tabbedRecordFallsInCompareRecord(chrPos, ceiling)) {
 						snp.setInMismapRegion(true);
@@ -546,7 +544,7 @@ public class SnpMetric extends Metric {
 		}		
 	}
 	
-	public boolean tabbedRecordFallsInCompareRecord(ChrRangePosition inputChrPos, Entry<ChrRangePosition, TabbedRecord> entry) {
+	public boolean tabbedRecordFallsInCompareRecord(ChrRangePosition inputChrPos, Entry<ChrRangePosition, String> entry) {
 		if (entry != null) {
 			ChrRangePosition compareChrPos = entry.getKey();
 			if ((inputChrPos.getStartPosition() >= compareChrPos.getStartPosition() && inputChrPos.getStartPosition() <= compareChrPos.getEndPosition()) ||
@@ -558,53 +556,48 @@ public class SnpMetric extends Metric {
 		return false;
 	}
 
-	private Map<String, TreeMap<ChrRangePosition, TabbedRecord>> readGFFRecords(String gffFile) throws Exception {
-		TabbedFileReader reader = new TabbedFileReader(new File(gffFile));
+	private Map<String, TreeMap<ChrRangePosition, String>> readGFFRecords(String gffFile) throws Exception {
+		Map<String, TreeMap<ChrRangePosition, String>> map = new HashMap<String, TreeMap<ChrRangePosition, String>>();
+		
+		try (StringFileReader reader = new StringFileReader(new File(gffFile));) {
+			for (final String tab : reader) {
+				if (tab.startsWith("#") || tab.startsWith("Hugo") || tab.startsWith("analysis")) {					
+					continue;
+				}
 				
-		Map<String, TreeMap<ChrRangePosition, TabbedRecord>> map = new HashMap<String, TreeMap<ChrRangePosition, TabbedRecord>>();
+				String[] values = tab.split("\t");
+				String key = values[0];
+				ChrRangePosition chrPos = new ChrRangePosition(key, new Integer(values[3]), new Integer(values[4])); 
+				if (map.containsKey(key)) {
+					map.get(key).put(chrPos, tab);
+				} else {				
+					TreeMap<ChrRangePosition, String> tmap = new TreeMap<ChrRangePosition, String>();
+					tmap.put(chrPos, tab);
+					map.put(key, tmap);
+				}				
+			}
 		
-		Iterator<TabbedRecord> iterator = reader.getRecordIterator();
-			
-		while (iterator.hasNext()) {
-			
-			TabbedRecord tab = iterator.next();
-			
-			if (tab.getData().startsWith("#") || tab.getData().startsWith("Hugo") || tab.getData().startsWith("analysis")) {					
-				continue;
-			}
-			
-			String[] values = tab.getData().split("\t");
-			String key = values[0];
-			ChrRangePosition chrPos = new ChrRangePosition(key, new Integer(values[3]), new Integer(values[4])); 
-			if (map.containsKey(key)) {
-				map.get(key).put(chrPos, tab);
-			} else {				
-				TreeMap<ChrRangePosition, TabbedRecord> tmap = new TreeMap<ChrRangePosition, TabbedRecord>();
-				tmap.put(chrPos, tab);
-				map.put(key, tmap);
-			}
-			
 		}
-		
-		reader.close();
 		return map;
 		
 	}
 
 	private void readTmpRecords(Chromosome c) throws Exception {
 		File tmpFile = new File(snpTmpFileStem + c.getName());
-		if (tmpFile.exists()) {
-			TabbedFileReader reader = new TabbedFileReader(tmpFile);
-			BufferedWriter dccWriter = new BufferedWriter(new FileWriter(snpLowConfStem + c.getName() + ".dcc"));
-			BufferedWriter txtWriter = new BufferedWriter(new FileWriter(snpLowConfStem + c.getName() + ".snp.txt"));
+		
+		if (! tmpFile.exists()) return;
+		
+		try (StringFileReader reader = new StringFileReader(tmpFile);
+				BufferedWriter dccWriter = new BufferedWriter(new FileWriter(snpLowConfStem + c.getName() + ".dcc"));
+				BufferedWriter txtWriter = new BufferedWriter(new FileWriter(snpLowConfStem + c.getName() + ".snp.txt"));
+			) {
+			
 			dccWriter.write(getDccColumnHeaders());
 			txtWriter.write(getColumnHeaders());
-			Iterator<TabbedRecord> iterator = reader.getRecordIterator();
 			int count = 0;
-			while (iterator.hasNext()) {			
-				TabbedRecord r = iterator.next();
+			for (final String r : reader) {
 				count++;
-				String[] values = r.getData().split("\t");
+				String[] values = r.split("\t");
 				String baseString = "";
 				for (int i=6; i<=15; i++) {
 					baseString += values[i] + "\t";
@@ -632,11 +625,10 @@ public class SnpMetric extends Metric {
 				}
 				
 			}
-			dccWriter.close();
-			txtWriter.close();
-			reader.close();
-			new File(snpTmpFileStem + c.getName()).delete();
 		}
+		
+		new File(snpTmpFileStem + c.getName()).delete();
+		 
 	}
 
 	private void findNearestNeighbours() {
