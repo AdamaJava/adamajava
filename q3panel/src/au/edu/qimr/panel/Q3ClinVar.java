@@ -484,11 +484,7 @@ public class Q3ClinVar {
 		try (StringFileReader reader = new StringFileReader(new File(refTiledAlignmentFile))) {
 			
 			List<String> header = reader.getHeader();
-			List<String> headerList = new ArrayList<>();
-			for (String head : header) {
-				headerList.add(head);
-			}
-			positionToActualLocation.loadMap(headerList);
+			positionToActualLocation.loadMap(header);
 			int i = 0;
 			for (String rec : reader) {
 				if (++i % 1000000 == 0) {
