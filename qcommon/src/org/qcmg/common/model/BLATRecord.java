@@ -26,6 +26,7 @@ public class BLATRecord implements Comparable<BLATRecord> {
 	public static char MINUS = '-';
 	
 	public static class Builder {
+
 		private int match;
 		private int misMatch;
 		private int repMatch;
@@ -172,35 +173,6 @@ public class BLATRecord implements Comparable<BLATRecord> {
 		}
 	}
 
-	
-//	@Override
-//	public int hashCode() {
-//		final int prime = 31;
-//		int result = 1;
-//		result = prime * result + Arrays.hashCode(rawData);
-//		return result;
-//	}
-//
-//	@Override
-//	public boolean equals(Object obj) {
-//		if (this == obj)
-//			return true;
-//		if (obj == null)
-//			return false;
-//		if (getClass() != obj.getClass())
-//			return false;
-//		BLATRecord other = (BLATRecord) obj;
-//		if (!Arrays.equals(rawData, other.rawData))
-//			return false;
-//		return true;
-//	}
-
-//	private String[] rawData;
-//	private String name;
-//	private final String reference;
-//	private int score;
-//	private final int size;
-//	private final char strand;
 	private final boolean valid;
 @Override
 	public int hashCode() {
@@ -305,7 +277,6 @@ public class BLATRecord implements Comparable<BLATRecord> {
 		return true;
 	}
 
-	//	private final int blockCount;
 	private final int[] tStartsArray;
 	private final int[] blockSizesArray;
 	private final int[] unmodifiedStarts;
@@ -334,77 +305,8 @@ public class BLATRecord implements Comparable<BLATRecord> {
 	private int blockCount;
 	private String blockSizes;
 	private String qStarts;
-	private String tStarts;
-	
+	private String tStarts;	
 	private int nonTempBases = 0;
-	
-
-//	public BLATRecord(String[] values) {
-//		this.rawData = values;
-//		this.valid = rawData.length >= 21;
-//				
-//		this.score = Integer.parseInt(rawData[0]) - Integer.parseInt(rawData[1]) - Integer.parseInt(rawData[6]) - Integer.parseInt(rawData[4]);
-//		this.qName = rawData[9];
-//		if (null == qName) {
-//			System.out.println("null name in BLATRecord: " + Arrays.deepToString(values));
-//		}
-//		this.tName = rawData[13];
-//		this.blockCount = Integer.parseInt(rawData[17]);
-//		this.size =  Integer.parseInt(rawData[10]);
-//		this.strand =   rawData[8].charAt(0);
-//		
-//		/*
-//		 * Setup tStarts array if we have sufficient blockCountage
-//		 */
-//		if (blockCount > 1) {
-//			/*
-//			 * Setup tStarts
-//			 */
-//			String [] tStartsS = rawData[20].split(",");
-//			if (tStartsS != null) {
-//				tStartsArray = new int[tStartsS.length];
-//				for (int i = 0; i < tStartsS.length; i++) {						
-//					tStartsArray[i] = Integer.parseInt(tStartsS[i]) + 1;	
-//				}
-//			} else {
-//				tStartsArray = null;
-//			}
-//			/*
-//			 * Setup block sizes
-//			 */
-//			String [] blockSizesS = rawData[18].split(",");
-//			if (blockSizesS != null) {
-//				blockSizesArray = new int[blockSizesS.length];
-//				for (int i = 0; i < blockSizesS.length; i++) {						
-//					blockSizesArray[i] = Integer.parseInt(blockSizesS[i]);
-//				}
-//			} else {
-//				blockSizesArray = null;
-//			}
-//			
-//			/*
-//			 * setup unmodifedStarts
-//			 */
-//			String[] qStartsS = rawData[19].split(",");
-//			if (qStartsS != null) {
-//				unmodifiedStarts = new int[qStartsS.length];
-//				for (int i = 0; i < qStartsS.length; i++) {
-//					if (strand == MINUS) {
-//						unmodifiedStarts[i] = getSize() - Integer.parseInt(qStartsS[i]) - (null != blockSizesArray ? blockSizesArray[i] : 0) + 1;
-//					} else {
-//						unmodifiedStarts[i] = Integer.parseInt(qStartsS[i]) + 1;
-//					}
-//				}
-//			} else {
-//				unmodifiedStarts = null;
-//			}
-//			
-//		} else {
-//			tStartsArray = null;
-//			blockSizesArray = null;
-//			unmodifiedStarts = null;
-//		}
-//	}
 	
 	public BLATRecord(Builder builder) {
 		this.match = builder.match;
@@ -428,8 +330,6 @@ public class BLATRecord implements Comparable<BLATRecord> {
 		this.blockSizes = builder.blockSizes;
 		this.qStarts = builder.qStarts;
 		this.tStarts = builder.tStarts;
-//		this.rawData = values;
-//		this.valid = rawData.length >= 21;
 		
 		/*
 		 * not sure of a meaningful measure of validity is so will go with there being non-null entries in the q and t starts fields
@@ -493,10 +393,6 @@ public class BLATRecord implements Comparable<BLATRecord> {
 		}
 	}
 	
-//	public BLATRecord(String line) {
-//		this(TabTokenizer.tokenize(line));
-//	}
-
 	public int getSize() {
 		return size;
 	}
@@ -789,10 +685,6 @@ public class BLATRecord implements Comparable<BLATRecord> {
 	public String toString() {
 		return getScore() + Constants.TAB_STRING + Arrays.stream(getValues()).collect(Collectors.joining(Constants.TAB_STRING));
 	}
-//	@Override 
-//	public String toString() {
-//		return getScore() + Constants.TAB_STRING + Arrays.stream(rawData).collect(Collectors.joining(Constants.TAB_STRING));
-//	}
 
 	public int[] getUnmodifiedStarts() {
 		return unmodifiedStarts;

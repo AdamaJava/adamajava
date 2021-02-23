@@ -24,9 +24,9 @@ import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfRecord;
+import org.qcmg.qio.vcf.VcfFileReader;
 import org.qcmg.tab.TabbedFileReader;
 import org.qcmg.tab.TabbedRecord;
-import org.qcmg.vcf.VCFFileReader;
 
 public class ReAnnotateDccWithDbSNP {
 	
@@ -112,7 +112,7 @@ public class ReAnnotateDccWithDbSNP {
 	
 	private void updateDBSnpData() throws Exception {
 		
-		VCFFileReader reader = new VCFFileReader(new File(cmdLineInputFiles[1]));
+		VcfFileReader reader = new VcfFileReader(new File(cmdLineInputFiles[1]));
 		
 		int count = 0, multipleVersions = 0;
 		int pre30 = 0, thirty = 0, thirtyOne = 0, thirtyTwo = 0, thirtyThree = 0, thirtyFour = 0, thirtyFive = 0;

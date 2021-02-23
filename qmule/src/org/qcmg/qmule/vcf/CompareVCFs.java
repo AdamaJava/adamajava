@@ -27,10 +27,10 @@ import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.picard.QJumper;
 import org.qcmg.picard.util.SAMUtils;
+import org.qcmg.qio.vcf.VcfFileReader;
 import org.qcmg.qmule.Messages;
 import org.qcmg.qmule.Options;
 import org.qcmg.qmule.QMuleException;
-import org.qcmg.vcf.VCFFileReader;
 
 public class CompareVCFs {
 	
@@ -198,7 +198,7 @@ public class CompareVCFs {
 	private void loadVCFData(String vcfFile, Map<ChrPosition,VcfRecord> map) throws Exception {
 		if (FileUtils.canFileBeRead(vcfFile)) {
 			
-			VCFFileReader reader  = new VCFFileReader(new File(vcfFile));
+			VcfFileReader reader  = new VcfFileReader(new File(vcfFile));
 			try {
 				for (VcfRecord qpr : reader) {
 					map.put(ChrPointPosition.valueOf(qpr.getChromosome(), qpr.getPosition()),qpr);

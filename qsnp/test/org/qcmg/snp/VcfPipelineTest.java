@@ -33,7 +33,7 @@ import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.picard.SAMFileReaderFactory;
-import org.qcmg.vcf.VCFFileReader;
+import org.qcmg.qio.vcf.VcfFileReader;
 
 public class VcfPipelineTest {
 	
@@ -125,7 +125,7 @@ public class VcfPipelineTest {
 		new VcfPipeline(new Ini(iniFile), new QExec("stackOverflow2", "test", null), false);
 		// check the vcf output file
 		assertEquals(testVcfs.size() + controlVcfs.size() -2, noOfLinesInVCFOutputFile(vcfOutput));		// -2 removes the 2 header files
-		try (VCFFileReader reader = new VCFFileReader(vcfOutput);){
+		try (VcfFileReader reader = new VcfFileReader(vcfOutput);){
 			for (VcfRecord vcf : reader) {
 				
 				/*
@@ -163,7 +163,7 @@ public class VcfPipelineTest {
 		new VcfPipeline(new Ini(iniFile), new QExec("classifySingleSample", "test", null), true);
 		// check the vcf output file
 		assertEquals(testVcfs.size() - 1, noOfLinesInVCFOutputFile(vcfOutput));		// -1 removes the header file
-		try (VCFFileReader reader = new VCFFileReader(vcfOutput);){
+		try (VcfFileReader reader = new VcfFileReader(vcfOutput);){
 			for (VcfRecord vcf : reader) {
 				
 				/*
@@ -646,8 +646,8 @@ public class VcfPipelineTest {
 		  TestVcfPipeline vp = new TestVcfPipeline(true);
 		  vp.testVcfFile = vcfFile.getAbsolutePath();
 		  VcfHeader headerFromFile = null;
-		  try (VCFFileReader reader = new VCFFileReader(vcfFile);) {
-			  headerFromFile = reader.getHeader();
+		  try (VcfFileReader reader = new VcfFileReader(vcfFile);) {
+			  headerFromFile = reader.getVcfHeader();
 		  }
 		  vp.setTestVcfHeader(headerFromFile);
 		  
@@ -698,8 +698,8 @@ public class VcfPipelineTest {
 		  vp.writeVCF(qsnpVcfFile.getAbsolutePath());
 		  
 		  VcfHeader finalHeader = null;
-		  try (VCFFileReader reader2 = new VCFFileReader(qsnpVcfFile);) {
-		  		finalHeader = reader2.getHeader();
+		  try (VcfFileReader reader2 = new VcfFileReader(qsnpVcfFile);) {
+		  		finalHeader = reader2.getVcfHeader();
 		  }
 		  
 		  List<VcfHeaderRecord> finalHeaderRecords = new ArrayList<>();
@@ -768,7 +768,7 @@ public class VcfPipelineTest {
 	
 	private int noOfLinesInVCFOutputFile(File vcfOutput) throws IOException {
 		int noOfLines = 0;
-		try (VCFFileReader reader = new VCFFileReader(vcfOutput);){
+		try (VcfFileReader reader = new VcfFileReader(vcfOutput);){
 			for (VcfRecord vcf : reader) noOfLines++;
 		}
 		return noOfLines;

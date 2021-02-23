@@ -1,13 +1,8 @@
 package org.qcmg.common.vcf.header;
 
-
-
 import static org.junit.Assert.*;
-
 import java.util.Arrays;
-
 import org.junit.Test;
-
 
 public class VcfHeaderTest {
 
@@ -430,24 +425,7 @@ public class VcfHeaderTest {
 		//parser get confused by mutli double quot and common join together
 		line = "##TEST = <ID=GD, Descriptin = \" grep \" hello=1,2 \", \", =url> "; 
 		record = new VcfHeaderRecord(line);
- 		assertTrue( record.toString().equals("##TEST=<ID=GD,Descriptin=\"grep \" hello=1,2\",\",=url>")  );		
-		
-	}
-	
-	
-	@Test
-	public void xuTest(){
-		VcfHeaderRecord re = new VcfHeaderRecord("##test=< order = 100,  ID=1,description=\"not sure\">");	
-		System.out.println(re.getId() + re.toString()); 		
-		VcfHeaderRecord re1 = new VcfHeaderRecord("##test=< order = 100,  ID=1,description=\"not sure\">");		
-		System.out.println(re1.getId() + re1.toString()); 
-		
-		System.out.println( re.hashCode() + " : " + re1.hashCode() );
-		
-		System.out.println(  re1.getSubFieldValue("order") );
-		
-		assertTrue(re.equals(re1));
-		
+ 		assertTrue( record.toString().equals("##TEST=<ID=GD,Descriptin=\"grep \" hello=1,2\",\",=url>")  );				
 	}
 	
 }
