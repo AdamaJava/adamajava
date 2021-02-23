@@ -4,13 +4,10 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.junit.Assert;
 import org.junit.Test;
 
-public class VcfHeaderUtilsTest {
-	
-	 
+public class VcfHeaderUtilsTest { 
 	 
 	@Test
 	public void addSampleIdTest(){
@@ -61,18 +58,12 @@ public class VcfHeaderUtilsTest {
 		assertEquals(header, VcfHeaderUtils.mergeHeaders(header, header,false));
 		
 		
-		VcfHeader h2 = new VcfHeader();
-//		h2.addOrReplace("##hello");		
-//		VcfHeaderRecord h2HelloRec = h2.getOtherRecords().get(0);
-//		// not a filter, format, info or meta line, it won't be merged into header
-//		assertEquals(false, VcfHeaderUtils.mergeHeaders(header, h2,false).getOtherRecords().contains(h2HelloRec));
-		
+		VcfHeader h2 = new VcfHeader();		
 		h2.addFilter("mySpecialFilter", "foo > bar");		// add a filter line
 		VcfHeaderRecord h2FilterRec = h2.getFilterRecord("mySpecialFilter");
 		assertEquals(true, VcfHeaderUtils.mergeHeaders(header, h2,false).getFilterRecord(h2FilterRec.getId()) != null );
 		
 		h2.addFilter("mySpecialFilter", "foo == bar");		// add a filter line //replace previous filter
-//		VcfHeaderRecord h2FilterRec2 = h2.getFilterRecord("mySpecialFilter"); // get filter with foo == bar
 		assertEquals(true, VcfHeaderUtils.mergeHeaders(header, h2, false).getFilterRecords().contains(h2FilterRec));
 		assertEquals(false, VcfHeaderUtils.mergeHeaders(header, h2,true).getFilterRecords().contains(h2FilterRec));
 		
@@ -98,7 +89,6 @@ public class VcfHeaderUtilsTest {
 		List<String> headerLines = new ArrayList<>();
 		headerLines.add("##fileformat=VCFv4.2");
 		headerLines.add("##fileDate=20150217");
-//		headerLines.add("##"); throw exception
 		headerLines.add("##qUUID=542b1d48_a8ea_44e7_9e17_31bf8b526a6d");
 		headerLines.add("##qSource=qSNP v2.0 (521)");
 		headerLines.add("##qPG=<ID=1,Tool=qsnp,Version=2.0 (521),Date=2015-02-17 11:21:23,CL=\"qsnp -i /mnt/genomeinfo_projects/data/oesophageal/OESO_0054/variants/GATK/0a8c58d2_c97b_4f65_9fc9_5114e91fc526/OESO_0054.ini -log /mnt/genomeinfo_projects/data/oesophageal/OESO_0054/variants/GATK/0a8c58d2_c97b_4f65_9fc9_5114e91fc526/qsnp.log [runMode: vcf]\">");
@@ -125,7 +115,6 @@ public class VcfHeaderUtilsTest {
 		assertEquals(0, orig.getFormatRecords().size());
 		assertEquals(0, orig.getInfoRecords().size());
 		assertEquals(18, orig.getAllMetaRecords().size()); //excludes qPG, empty ##
-//		assertEquals(14, orig.getMetaRecords().size());
 	}
 	
 	@Test
@@ -186,35 +175,4 @@ public class VcfHeaderUtilsTest {
 		header.addOrReplace("##qUUID=8b87f064-677e-4708-8c0f-8ecea9084eb9");
 		assertEquals("8b87f064-677e-4708-8c0f-8ecea9084eb9", VcfHeaderUtils.getUUIDFromHeaderLine(header.getUUID()));
 	}
-	
-//	@Test
-//	public void splitMetaRecordNull() {
-//		try {
-//			VcfHeaderUtils.splitMetaRecord(null);
-//			Assert.fail("Should have thrown an IAE");
-//		} catch (final IllegalArgumentException iae){}
-//	}		
-//	
-//	@Test
-//	public void splitMetaRecords() {
-//		VcfHeaderRecord rec = new VcfHeaderRecord("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO");
-//		String [] results = VcfHeaderUtils.splitMetaRecord(rec);
-//		assertEquals(2, results.length);
-//		assertEquals(VcfHeader.STANDARD_FINAL_HEADER_LINE, results[0]);
-//		assertEquals(null, results[1]);
-//		
-//		rec = new VcfHeaderRecord("##hello=world");
-//		results = VcfHeaderUtils.splitMetaRecord(rec);
-//		assertEquals(2, results.length);
-//		assertEquals("##hello", results[0]);
-//		assertEquals("world", results[1]);
-//		
-//		//new vcfHeader split header on the first =
-//		rec = new VcfHeaderRecord("##hello=world=foo=bar");
-//		results = VcfHeaderUtils.splitMetaRecord(rec);
-//		assertEquals(2, results.length);
-//		assertEquals("##hello", results[0]);
-//		assertEquals("world=foo=bar", results[1]);
-//	}
-
 }

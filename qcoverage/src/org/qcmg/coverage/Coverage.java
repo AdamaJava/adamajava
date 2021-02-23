@@ -34,6 +34,7 @@ import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.qio.record.RecordWriter;
+
 public final class Coverage {
 	private final Options options;
 	private final Configuration invariants;

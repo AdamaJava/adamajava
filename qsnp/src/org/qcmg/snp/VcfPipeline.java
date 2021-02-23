@@ -36,7 +36,7 @@ import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.common.model.Classification;
 import org.qcmg.snp.util.GenotypeUtil;
 import org.qcmg.snp.util.IniFileUtil;
-import org.qcmg.vcf.VCFFileReader;
+import org.qcmg.qio.vcf.VcfFileReader;
 
 
 /**
@@ -305,11 +305,11 @@ public final class VcfPipeline extends Pipeline {
 	private static void loadVCFData(String vcfFile, Map<ChrPosition,VcfRecord> map, boolean isControl) throws Exception {
 		if (FileUtils.canFileBeRead(vcfFile)) {
 			
-			try (VCFFileReader reader  = new VCFFileReader(new File(vcfFile));) {
+			try (VcfFileReader reader  = new VcfFileReader(new File(vcfFile));) {
 				if (isControl) {
-					controlVcfHeader = reader.getHeader();
+					controlVcfHeader = reader.getVcfHeader();
 				} else {
-					testVcfHeader = reader.getHeader();
+					testVcfHeader = reader.getVcfHeader();
 				}
 				for (final VcfRecord qpr : reader) {
 					

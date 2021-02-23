@@ -34,7 +34,7 @@ import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
-import org.qcmg.vcf.VCFFileReader;
+import org.qcmg.qio.vcf.VcfFileReader;
 
 
 public class AmalgamatorGS {
@@ -227,7 +227,7 @@ public class AmalgamatorGS {
 		int somaticCount = 0;
 		for (String s : vcfFiles) {
 			
-			try (VCFFileReader reader = new VCFFileReader(new File(s))) {
+			try (VcfFileReader reader = new VcfFileReader(new File(s))) {
 				for (VcfRecord rec : reader) {
 					if (++ i % 1000000 == 0) {
 						logger.info("hit " + i + " entries");
@@ -308,7 +308,7 @@ public class AmalgamatorGS {
 			Set<ChrPosition> missingPositions = new HashSet<>(getMissingPositions(positions, 4 + index));
 			logger.info("will try and retireve " + missingPositions.size() + " missing positions from file " + s);
 			
-			try (VCFFileReader reader = new VCFFileReader(new File(s))) {
+			try (VcfFileReader reader = new VcfFileReader(new File(s))) {
 				for (VcfRecord rec : reader) {
 					if (++ i % 1000000 == 0) {
 						logger.info("hit " + i + " entries");

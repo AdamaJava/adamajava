@@ -24,7 +24,7 @@ import org.qcmg.common.util.LoadReferencedClasses;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
-import org.qcmg.vcf.VCFFileReader;
+import org.qcmg.qio.vcf.VcfFileReader;
 
 
 public class GoldStandardGenerator {
@@ -137,7 +137,7 @@ public class GoldStandardGenerator {
 		int numberOfFiles = vcfFiles.length;
 		for (String s : vcfFiles) {
 			
-			try (VCFFileReader reader = new VCFFileReader(new File(s))) {
+			try (VcfFileReader reader = new VcfFileReader(new File(s))) {
 				for (VcfRecord rec : reader) {
 					if (++ i % 1000000 == 0) {
 						logger.info("hit " + i + " entries");
