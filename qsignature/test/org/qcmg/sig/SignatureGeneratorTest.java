@@ -303,6 +303,15 @@ public class SignatureGeneratorTest {
 	    		writer.write("chr12	126890980	random_169627	G	RANDOM_POSITION\n");
 	    	}
     }
+    static void writeGenePositionsFile(File genePositions, String chr, int start, int stop) throws IOException {
+    	try (Writer writer = new FileWriter(genePositions);) {
+    		writer.write(chr + "	ensembl_havana	gene	" + start + "	" + stop + "	.	+	.	ID=gene:ENSG00000188505;Name=NCCRP1;biotype=protein_coding;description=non-specific cytotoxic cell receptor protein 1 homolog (zebrafish) [Source:HGNC Symbol%3BAcc:33739];gene_id=ENSG00000188505;logic_name=ensembl_havana_gene;version=4\n");
+//			writer.write( "chr9	ensembl_havana	gene	14734664	14910993	.	-       .       ID=gene:ENSG00000164946;Name=FREM1;biotype=protein_coding;description=FRAS1 related extracellular matrix 1 [Source:HGNC Symbol%3BAcc:23399];gene_id=ENSG00000164946;logic_name=ensembl_havana_gene;version=15\n");
+//			writer.write( "chr12	ensembl_havana	gene	25357723	25403870	.       -       .       ID=gene:ENSG00000133703;Name=KRAS;biotype=protein_coding;description=Kirsten rat sarcoma viral oncogene homolog [Source:HGNC\n");
+//			writer.write( "chr8	ensembl_havana	gene	95938200	95961639	.	-       .	ID=gene:ENSG00000164938;Name=TP53INP1;biotype=protein_coding;description=tumor protein p53 inducible nuclear protein 1 [Source:HGNC Symbol%3BAcc:18022];gene_id=ENSG00000164938;logic_name=ensembl_havana_gene;version=9\\n");
+//			writer.write( "chr10	ensembl_havana	gene	127512115	127542264	.	+	.	ID=gene:ENSG00000107949;Name=BCCIP;biotype=protein_coding;description=BRCA2 and CDKN1A interacting protein [Source:HGNC Symbol%3BAcc:978];gene_id=ENSG00000107949;logic_name=ensembl_havana_gene;version=12\n");
+    	}
+    }
 	
     static void getBamFile(File bamFile, boolean validHeader, boolean useChrs) {
     	getBamFile(bamFile,  validHeader,  useChrs, false);
@@ -364,6 +373,22 @@ public class SignatureGeneratorTest {
 		List<SAMRecord> records = new ArrayList<>();
 //		records.add("HS2000-152_756:1:1316:11602:65138	89	chr1	9993	25	100M	=	9993	0	TCTTCCGATCTCCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTA	B@??BBCCB<>BCBB?:BAA?9-A;?2;@ECA=;7BEE?=7D9@@8.C;B8=.HGDBBBCCD::*GGD:?*FDGFCA>EIHEEBEAEFDFFC=+?DD@@@	X0:i:1	X1:i:0	ZC:i:9	MD:Z:0C0T0G6A0A89	PG:Z:MarkDuplicates	RG:Z:20130325103517169	XG:i:0	AM:i:0	NM:i:5	SM:i:25	XM:i:5	XN:i:8	XO:i:0	XT:A:U");
 		SAMRecord sam = new SAMRecord(header);
+		
+		sam = new SAMRecord(header);
+		sam.setAlignmentStart(150);
+		sam.setReferenceName(useChr ? "chr1" : "1");
+		sam.setReadName("HS2000-152_756:2:2306:7001:4421");
+		sam.setReadString("TGACCCTGACCCTGACCCTGACCCTGACCCTGACCCTGACCCTGACCCTGACCCTAAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAA");
+		sam.setMappingQuality(60);
+		sam.setBaseQualityString("CCCFFFFFHHHHHIJJJJEHGIIJIHGIIJIFGIJJJGGHHIIGCDGIHI>GIIEAFGJJI@EGFDFCE@DDDE@CA=A;3;?BDB?CD@DB9ADDBA9?");
+		sam.setCigarString("2S53M1I44M");
+		if (addRG) {
+			sam.setAttribute("RG", "20130325112045146");
+		}
+		for (int i = 0 ; i < 30; i++) records.add(sam);
+		
+		
+		sam = new SAMRecord(header);
 		sam.setAlignmentStart(183635758);
 		sam.setReferenceName(useChr ? "chr3" : "3");
 		sam.setFlags(67);
@@ -449,16 +474,18 @@ public class SignatureGeneratorTest {
 		
 		if ( ! isValid) {
 			sam = new SAMRecord(header);
-			sam.setAlignmentStart(10005);
-			sam.setReferenceName(useChr ? "chr1" : "1");
+			sam.setFlags(67);
+			sam.setAlignmentStart(127890960);
+			sam.setReferenceName(useChr ? "chr12" : "12");
 			sam.setReadName("HS2000-152_756:1:1215:14830:88103");
 			sam.setReadString("CCCTACCCCTACCCCTACCCCTAAAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTTACCCTAACCCTTACCCTAACC");
 			sam.setMappingQuality(60);
 			sam.setBaseQualityString("CCCFFFFFHHHHHJJIHFHJIGIHGIIJJJJIJJIIIIJJJJJIIJJJJIJJJJJJJJHHGHHFFEFCEEDD9?BABDCDDDDDDDDDDDDCDDDDDDDB");
 			sam.setCigarString("24M4D76M");
-			sam.setReadUnmappedFlag(true);
-			sam.setMappingQuality(1);
-			for (int i = 0 ; i < 30; i++) records.add(sam);
+			if (addRG) {
+				sam.setAttribute("RG", "20130325112045146");
+			}
+		
 		}
 		
 		return records;
