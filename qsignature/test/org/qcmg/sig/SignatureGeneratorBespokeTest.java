@@ -427,6 +427,36 @@ public class SignatureGeneratorBespokeTest {
 		}
 		assertEquals(0, vcfRecordCounter);
 	}
+	@Test
+	public void runProcessWithGenePositionsOptioPartialOverlap() throws Exception {
+		final File genesOfInterestFile = testFolder.newFile("runProcessWithGenePositionsOption.genes.gff3");
+		final File bamFile = testFolder.newFile("runProcessWithGenePositionsOption.bam");
+		final File logFile = testFolder.newFile("runProcessWithGenePositionsOption.log");
+		final File refFile = testFolder.newFile("runProcessWithGenePositionsOption.fa");
+		final File refIndexFile = testFolder.newFile("runProcessWithGenePositionsOption.fa.fai");
+		
+		SignatureGeneratorTest.writeGenePositionsFile(genesOfInterestFile, "chr1", 10, 200);
+		String dir = testFolder.newFolder("output_dir").getAbsolutePath();
+		
+		setupReferenceFile(refFile, refIndexFile);
+		SignatureGeneratorTest.getBamFile(bamFile, true, true, true);
+		
+		int exitStatus = qss.setup(new String[] {"--log", logFile.getAbsolutePath(), 
+				"-genePositions", genesOfInterestFile.getAbsolutePath(), 
+				"-i", bamFile.getAbsolutePath(),  
+				"-reference", refFile.getAbsolutePath(),  
+				"-d", dir} );
+		assertEquals(0, exitStatus);
+		String name = dir + File.separator + bamFile.getName() + ".qsig.vcf.gz";
+		assertEquals(true, new File(name).exists());
+		assertTrue(new File(name).length() > 0);
+		VcfFileReader reader = new VcfFileReader(new File(name));
+		int vcfRecordCounter = 0;
+		for (VcfRecord rec : reader) {
+			vcfRecordCounter++;
+		}
+		assertEquals(50, vcfRecordCounter);		// records start at position 150, gene ends at 200
+	}
 	
 	
 	private void setupReferenceFile(File file, File indexFile) throws IOException {
