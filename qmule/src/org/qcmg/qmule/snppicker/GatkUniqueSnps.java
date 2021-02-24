@@ -35,12 +35,12 @@ import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.germlinedb.GermlineDBFileReader;
 import org.qcmg.germlinedb.GermlineDBRecord;
 import org.qcmg.picard.QJumper;
+import org.qcmg.qio.vcf.VcfFileReader;
 import org.qcmg.common.model.QSnpRecord;
 import org.qcmg.qmule.Messages;
 import org.qcmg.qmule.Options;
 import org.qcmg.qmule.Options.Ids;
 import org.qcmg.qmule.QMuleException;
-import org.qcmg.vcf.VCFFileReader;
 
 public class GatkUniqueSnps {
 	
@@ -338,7 +338,7 @@ public class GatkUniqueSnps {
 	private static void loadGATKData(String pileupFile, Map<ChrPosition,QSnpGATKRecord> map) throws Exception {
 		if (FileUtils.canFileBeRead(pileupFile)) {
 			
-			final VCFFileReader reader  = new VCFFileReader(new File(pileupFile));
+			final VcfFileReader reader  = new VcfFileReader(new File(pileupFile));
 			try {
 				for (final VcfRecord qpr : reader) {
 					map.put(ChrPointPosition.valueOf(qpr.getChromosome(), qpr.getPosition()), new QSnpGATKRecord(qpr));

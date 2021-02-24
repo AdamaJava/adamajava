@@ -18,34 +18,10 @@ import java.io.InputStreamReader;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.zip.GZIPInputStream;
-
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.util.FileUtils;
-import org.qcmg.vcf.VCFSerializer;
-
 
 public class ReadPartGZFile {
-	
-//	static InputStream getInputStream(File input_gzip_file) throws FileNotFoundException, IOException{
-//		InputStream inputStream;		
-//	      // if (FileUtils.isFileGZip(input_gzip_file)) {
-//		if (FileUtils.isInputGZip(input_gzip_file)) {
-//	        	GZIPInputStream gzis = new GZIPInputStream(new FileInputStream(input_gzip_file));
-//	        	try(InputStreamReader streamReader = new InputStreamReader(gzis)){
-//		        	 inputStream = new GZIPInputStream(new FileInputStream(input_gzip_file));
-//	        	}
-//	    	} else {
-//		        FileInputStream stream = new FileInputStream(input_gzip_file);
-//		        try(InputStreamReader streamReader = new InputStreamReader(stream)){	         
-//		        	BufferedReader in = new BufferedReader(streamReader);
-//		        	inputStream = new FileInputStream(input_gzip_file);
-//		        }
-//	    	}
-//		return inputStream;
-//	}
-	
-	
-	
 	
 	ReadPartGZFile(File input_gzip_file, int no) throws Exception{
 		         
@@ -60,16 +36,13 @@ public class ReadPartGZFile {
 				if( ++num > no) break;
 				System.out.println(line);
 			} 
-       }
-
-       
+       }       
 	}
+	
 	static void countLines(File input_gzip_file) throws FileNotFoundException, IOException, InterruptedException{
-		  HashSet<String> uniqRef = new HashSet();
+		  HashSet<String> uniqRef = new HashSet<>();
 		  
-		  long startTime = System.currentTimeMillis();
 		  long num = 0;	
-//		  InputStream inputStream = getInputStream(input_gzip_file);
 		  InputStream  inputStream = FileUtils.isInputGZip( input_gzip_file) ? 
         		new GZIPInputStream(new FileInputStream(input_gzip_file), 65536) : new FileInputStream(input_gzip_file); 		  
 		  
@@ -79,49 +52,26 @@ public class ReadPartGZFile {
 					uniqRef.add(line.split("\\t")[0]);
 					num ++;
 				}
-		  }
-		  
-		  System.out.println(String.format("Read file: %s\nLine number: %d", input_gzip_file.getAbsoluteFile(), num));	 
-		  System.out.println("Uniq reference name are " + uniqRef );
-
-	  
+		  }  
 	}
 	
 	static void countUniqPosition(String input_gzip_file, String indexFile) throws IOException{
-	//       TabixReader tabix = new TabixReader( input_gzip_file, indexFile);
 		TabixReader tabix = new TabixReader( input_gzip_file);
 		Set<String> chrs = tabix.getChromosomes();
 		HashSet<String> uniqPos = new HashSet<String>();
-		long total_uniq = 0; 
 		long num = 0;	
 		System.out.println("total reference number is " + chrs.size() + " from " + input_gzip_file);
 		for(String str : chrs){
 			
 			uniqPos.clear();
 			TabixReader.Iterator it = tabix.query(str);
-			
-			
+						
 			String line; 
 			while(( line = it.next())!= null){
-			//	String[] eles = TabTokenizer.tokenize(line, '\t');
-			//	uniqPos.add(eles[1]);
-			//	uniqPos.add(line.split("\\t")[1]);
 				num ++;
-			} 
-			
-			//debug
-			System.out.println("There are " + num+ " position recorded in reference "  + str);
-			num ++;
-			
-			
-		//	total_uniq += 	uniqPos.size();
-		//	System.out.println("There are " + uniqPos.size() + " uniq position recorded in reference " + str);
-			
-		}
-		
-//		System.out.println("Total uniq position recorded in all reference is " + total_uniq);
-//		System.out.println("Total records in whole file is " + num);
-		
+			} 			
+			num ++;						
+		}		
 	}
 
 	public static void main(String[] args) {

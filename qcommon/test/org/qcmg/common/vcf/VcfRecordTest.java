@@ -4,11 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import org.junit.Assert;
 import org.junit.Test;
-import org.qcmg.common.model.ChrPointPosition;
-import org.qcmg.common.model.ChrPosition;
-import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.TabTokenizer;
 

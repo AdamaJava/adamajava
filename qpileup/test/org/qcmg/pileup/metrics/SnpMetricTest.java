@@ -28,7 +28,6 @@ import org.qcmg.pileup.metrics.record.SnpRecord;
 import org.qcmg.pileup.model.Chromosome;
 import org.qcmg.pileup.model.QPileupRecord;
 import org.qcmg.pileup.model.StrandEnum;
-import org.qcmg.tab.TabbedRecord;
 
 public class SnpMetricTest {
 	
@@ -87,8 +86,8 @@ public class SnpMetricTest {
 
 	@Test
 	public void testTabbedRecordFallsInCompareRecord() {
-		TreeMap<ChrRangePosition, TabbedRecord> map = new TreeMap<ChrRangePosition, TabbedRecord>();
-		map.put(new ChrRangePosition(CHR1, 11, 13), new TabbedRecord());
+		TreeMap<ChrRangePosition, String> map = new TreeMap<ChrRangePosition, String>();
+		map.put(new ChrRangePosition(CHR1, 11, 13), new String());
 		assertTrue(metric.tabbedRecordFallsInCompareRecord(new ChrRangePosition(CHR1, 10, 12), map.firstEntry()));
 		assertTrue(metric.tabbedRecordFallsInCompareRecord(new ChrRangePosition(CHR1, 10, 14), map.firstEntry()));
 		assertFalse(metric.tabbedRecordFallsInCompareRecord(new ChrRangePosition(CHR1, 10, 10), map.firstEntry()));

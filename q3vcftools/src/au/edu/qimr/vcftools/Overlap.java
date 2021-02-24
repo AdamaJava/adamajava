@@ -39,7 +39,7 @@ import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
-import org.qcmg.vcf.VCFFileReader;
+import org.qcmg.qio.vcf.VcfFileReader;
 
 
 public class Overlap {
@@ -245,7 +245,7 @@ public class Overlap {
 			List<String> list = new ArrayList<>();
 			int i = 0;
 			int counter = 0;
-			try (VCFFileReader reader = new VCFFileReader(new File(allFile))) {
+			try (VcfFileReader reader = new VcfFileReader(new File(allFile))) {
 				for (VcfRecord rec : reader) {
 					if (++ i % 1000000 == 0) {
 						logger.info("hit " + i + " entries");
@@ -495,7 +495,7 @@ public class Overlap {
 		int fileCount = vcfFiles.length + (null != goldStandard ? 1 : 0);
 		for (String s : vcfFiles) {
 			
-			try (VCFFileReader reader = new VCFFileReader(new File(s))) {
+			try (VcfFileReader reader = new VcfFileReader(new File(s))) {
 				for (VcfRecord rec : reader) {
 					if (++ i % 1000000 == 0) {
 						logger.info("hit " + i + " entries");

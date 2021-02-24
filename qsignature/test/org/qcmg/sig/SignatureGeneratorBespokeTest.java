@@ -2,10 +2,6 @@ package org.qcmg.sig;
 
 import static org.junit.Assert.*;
 
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -20,18 +16,11 @@ import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderRecord;
-import org.qcmg.picard.ReferenceUtils;
-import org.qcmg.picard.SAMOrBAMWriterFactory;
 import org.qcmg.qio.vcf.VcfFileReader;
-import org.qcmg.vcf.VCFFileReader;
 
 import gnu.trove.map.TObjectIntMap;
 import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SAMFileWriter;
 import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.reference.FastaSequenceIndex;
-import htsjdk.samtools.reference.IndexedFastaSequenceFile;
-import htsjdk.samtools.reference.ReferenceSequence;
 
 public class SignatureGeneratorBespokeTest {
 	
@@ -215,13 +204,12 @@ public class SignatureGeneratorBespokeTest {
     	assertTrue(outputFile.exists());
    	
     	final List<VcfRecord> recs = new ArrayList<>();
-    	try (VCFFileReader reader = new VCFFileReader(outputFile);) {    			
+    	try (VcfFileReader reader = new VcfFileReader(outputFile);) {    			
 	    	for (final VcfRecord rec : reader) {
 	    		recs.add(rec);
 	    		System.out.println("rec: " + rec.toString());
 	    	}
-	    	VcfHeader header = reader.getHeader();
-//	    	header.getAllMetaRecords().stream().forEach(System.out::println);
+	    	VcfHeader header = reader.getVcfHeader();
 	    	assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg0=null")));
     	}
        	
@@ -243,7 +231,6 @@ public class SignatureGeneratorBespokeTest {
 		final String outputFIleName = bamFile.getAbsolutePath() + ".qsig.vcf.gz";
 		final File outputFile = new File(outputFIleName);
 		
-		//    	writeSnpChipFile(snpChipFile);
 		SignatureGeneratorTest.writeSnpPositionsFile(positionsOfInterestFile);
 		SignatureGeneratorTest.writeIlluminaArraysDesignFile(illuminaArraysDesignFile);
 		SignatureGeneratorTest.getBamFile(bamFile, true, false, true);
@@ -254,12 +241,12 @@ public class SignatureGeneratorBespokeTest {
 		assertTrue(outputFile.exists());
 		
 		final List<VcfRecord> recs = new ArrayList<>();
-		try (VCFFileReader reader = new VCFFileReader(outputFile);) {    			
+		try (VcfFileReader reader = new VcfFileReader(outputFile);) {    			
 			for (final VcfRecord rec : reader) {
 				recs.add(rec);
 				System.out.println("rec: " + rec.toString());
 			}
-			VcfHeader header = reader.getHeader();
+			VcfHeader header = reader.getVcfHeader();
 	    	header.getAllMetaRecords().stream().forEach(System.out::println);
 			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg0=null")));
 			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg1=20130325103517169")));
