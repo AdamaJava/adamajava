@@ -48,12 +48,11 @@ import org.qcmg.common.util.Pair;
 import org.qcmg.common.util.SnpUtils;
 import org.qcmg.qio.gff3.Gff3FileReader;
 import org.qcmg.qio.gff3.Gff3Record;
+import org.qcmg.qio.record.StringFileReader;
 import org.qcmg.maf.util.MafUtils;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.util.SAMUtils;
-import org.qcmg.tab.TabbedFileReader;
-import org.qcmg.tab.TabbedHeader;
-import org.qcmg.tab.TabbedRecord;
+
 
 public abstract class MafPipeline {
 	
@@ -277,69 +276,34 @@ public abstract class MafPipeline {
 	protected String[] getDccMetaData(String patient) throws IOException {
 		// get file - get dcc meta info from file, and prepend to header
 		Pair<File, File> filePair = patientsAndFiles.get(patient);
-		// try snp one first, then indel
-		TabbedHeader header = null;
+ 
 		String somGerm = "";
-		if (filePair.getLeft() != null) {
-			
-			File f = filePair.getLeft();
+		
+		// try snp one first, then indel
+		File f = null;		
+		if (filePair.getLeft() != null) {			
+			f = filePair.getLeft();
 			somGerm = f.getAbsolutePath().contains("Somatic") ? "Somatic" :  f.getAbsolutePath().contains("Germline") ? "Germline" : "";
-			TabbedFileReader reader = null;
-			try {
-				reader = new TabbedFileReader(f);
-				header = reader.getHeader();
-			} catch (Exception e) {
-				e.printStackTrace();
-			} finally {
-				reader.close();
-			}
-		} else if (filePair.getRight() != null) {
-			File f = filePair.getRight();
+ 		} else if (filePair.getRight() != null) {
+			f = filePair.getRight();
 			somGerm = f.getAbsolutePath().contains("Somatic") ? "Somatic" :  f.getAbsolutePath().contains("Germline") ? "Germline" : "";
-			TabbedFileReader reader = null;
-			try {
-				reader = new TabbedFileReader(f);
-				header = reader.getHeader();
-			} catch (Exception e) {
-				e.printStackTrace();
-			} finally {
-				reader.close();
-			}
 		}
 		
 		StringBuilder sb = new StringBuilder();
-		if (null != header) {
-			for (String s : header)  {
-				// ignore qexec
-				if ( ! s.startsWith("#Q_EXEC"))
-					sb.append(s).append("\n");
+		if(f != null) {
+			try (StringFileReader reader = new StringFileReader(f); ) {
+				for (String s: reader.getHeader()) {
+					if ( ! s.startsWith("#Q_EXEC")) sb.append(s).append("\n");
+				}
 			}
+			
 		}
+				
 		String dccMetaInfo = qExec.getExecMetaDataToString();
 		dccMetaInfo += sb.length() > 0 ?  sb.toString() : "";
 		
 		return new String[] {somGerm, dccMetaInfo};
 	}
-//	void writeFinalPREFilteredOutput() throws IOException {
-//		
-//		// get lists of high and low conf mafs
-//		List<MAFRecord> highConfMafs = new ArrayList<MAFRecord>();
-//		List<MAFRecord> lowConfMafs = new ArrayList<MAFRecord>();
-//		
-//		for (MAFRecord maf : filteredMafs) {
-//			if (maf.isHighConf()) {
-//				highConfMafs.add(maf);
-//				continue;
-//			}
-//			if (maf.isLowConf()) {
-//				lowConfMafs.add(maf);
-//				continue;
-//			}
-//		}
-//		
-//		MafUtils.writeMafOutput(outputDirectory + FS +  "highConfidencePreFilter.maf", highConfMafs, MafUtils.HEADER_WITH_CONFIDENCE_CPG, true);
-//		MafUtils.writeMafOutput(outputDirectory + FS +  "lowConfidencePreFilter.maf", lowConfMafs, MafUtils.HEADER_WITH_CONFIDENCE_CPG, true);
-//	}
 	
 	void addNovelStartsMT(String bamFilePathPart1, String bamFilePathPart2, String bamFilePattern) throws Exception {
 		logger.info("adding novel starts");
@@ -363,7 +327,6 @@ public abstract class MafPipeline {
 			}
 		}
 		
-//		CountDownLatch latch = new CountDownLatch(100);
 		int poolSize = 2;
 		ExecutorService executor = Executors.newFixedThreadPool(poolSize);
 		
@@ -431,12 +394,8 @@ public abstract class MafPipeline {
 				for (MAFRecord maf : ncMafs) {
 					noOfPositionsRetrievedForPatient++;
 					String chr = MafUtils.getFullChromosome(maf);
-//					List<SAMRecord> records = qj.getRecordsAtPosition(chr, maf.getStartPosition());
 					SAMRecordIterator records = reader.queryOverlapping(chr, maf.getStartPosition(), maf.getStartPosition());
-//					noOfRecordsRetrievedForPatient += records.size();
-//					logger.info("pos: " + maf.getChromosome() + "-" + maf.getStartPosition() + ": " + records.size());
 					
-//					char[] bases = new char[records.size()];
 					char[] novelStartBases = new char[1024];	// hmmmmm
 					Set<Integer> forwardStrand = new HashSet<Integer>();
 					Set<Integer> reverseStrand = new HashSet<Integer>();
@@ -455,7 +414,6 @@ public abstract class MafPipeline {
 							if (sam.getBaseQualities()[indexInRead] < 10) continue;
 							
 							char c = sam.getReadString().charAt(indexInRead);
-//							bases[i++] = c;
 							// novel start count
 							
 							final char var = MafUtils.getVariant(maf).charAt(0);
@@ -475,7 +433,6 @@ public abstract class MafPipeline {
 							}
 						} else {
 							positionsWithDeletions++;
-//							logger.info("help!!");
 						}
 					}
 					records.close();
@@ -502,10 +459,8 @@ public abstract class MafPipeline {
 				try {
 					reader.close();
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				} finally {
-//					latch.countDown();
 					logger.info("thread finishing, elapsedTime: " + elapsedTime);
 				}
 //			}
@@ -615,13 +570,13 @@ public abstract class MafPipeline {
 	}
 
 	void loadKRASData() throws Exception {
-		TabbedFileReader reader = new TabbedFileReader(new File(krasFile));
-		try {
+		
+		try (StringFileReader reader = new StringFileReader(new File(krasFile));) {
 			int count = 0, validCount = 0, alreadyPresent = 0, alreadyPresentSameVerification = 0;
 			
-			for (TabbedRecord rec : reader) {
+			for (String rec : reader) {
 				count++;
-				String[] params = tabbedPattern.split(rec.getData(), -1);
+				String[] params = tabbedPattern.split(rec, -1);
 				String chr = params[4];
 				String position = params[5];
 				String id = params[15];
@@ -639,7 +594,7 @@ public abstract class MafPipeline {
 						
 							if (id.contains(lowCovPatient)) {
 								lowCov = true;
-								logger.info("Skipping KRAS record: " + rec.getData() + " - belongs to low coverage patient");
+								logger.info("Skipping KRAS record: " + rec + " - belongs to low coverage patient");
 								continue;
 							}
 						}
@@ -678,9 +633,7 @@ public abstract class MafPipeline {
 				}
 			}
 			logger.info("KRAS file - count: " + count + ", validCount: " + validCount + ", alreadyPresent: " + alreadyPresent + ", alreadyPresentSameVerification: " + alreadyPresentSameVerification);
-		} finally {
-			reader.close();
-		}
+		} 
 	}
 	
 	void checkAlleleFraction() {
