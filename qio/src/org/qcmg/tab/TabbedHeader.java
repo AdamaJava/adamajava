@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+@Deprecated
 public final class TabbedHeader implements Iterable<String> {
     private final List<String> records = new ArrayList<>();
 

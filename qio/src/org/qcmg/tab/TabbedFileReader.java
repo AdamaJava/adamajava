@@ -18,7 +18,7 @@ import java.util.zip.GZIPInputStream;
 
 import org.qcmg.common.util.FileUtils;
 
-
+@Deprecated
 public final class TabbedFileReader implements Closeable, Iterable<TabbedRecord> {
     private final File file;
     private final InputStream inputStream;

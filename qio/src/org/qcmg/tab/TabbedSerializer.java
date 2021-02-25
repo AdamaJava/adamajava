@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+@Deprecated
 public final class TabbedSerializer {
 	
     public static TabbedHeader readHeader(final BufferedReader reader) throws IOException {

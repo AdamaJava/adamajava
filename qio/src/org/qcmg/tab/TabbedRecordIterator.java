@@ -9,6 +9,7 @@ import java.io.InputStreamReader;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
+@Deprecated
 public final class TabbedRecordIterator implements Iterator<TabbedRecord> {
     private final BufferedReader reader;
     private TabbedRecord next;
