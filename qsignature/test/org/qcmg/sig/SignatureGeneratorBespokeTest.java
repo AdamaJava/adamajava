@@ -399,11 +399,11 @@ public class SignatureGeneratorBespokeTest {
 	
 	@Test
 	public void runProcessWithGenePositionsOptioNoOverlap() throws Exception {
-		final File genesOfInterestFile = testFolder.newFile("runProcessWithGenePositionsOption.genes.gff3");
-		final File bamFile = testFolder.newFile("runProcessWithGenePositionsOption.bam");
-		final File logFile = testFolder.newFile("runProcessWithGenePositionsOption.log");
-		final File refFile = testFolder.newFile("runProcessWithGenePositionsOption.fa");
-		final File refIndexFile = testFolder.newFile("runProcessWithGenePositionsOption.fa.fai");
+		final File genesOfInterestFile = testFolder.newFile("runProcessWithGenePositionsOptioNoOverlap.genes.gff3");
+		final File bamFile = testFolder.newFile("runProcessWithGenePositionsOptioNoOverlap.bam");
+		final File logFile = testFolder.newFile("runProcessWithGenePositionsOptioNoOverlap.log");
+		final File refFile = testFolder.newFile("runProcessWithGenePositionsOptioNoOverlap.fa");
+		final File refIndexFile = testFolder.newFile("runProcessWithGenePositionsOptioNoOverlap.fa.fai");
 		
 		SignatureGeneratorTest.writeGenePositionsFile(genesOfInterestFile, "chr1", 10000, 12000);
 		String dir = testFolder.newFolder("output_dir").getAbsolutePath();
@@ -429,11 +429,11 @@ public class SignatureGeneratorBespokeTest {
 	}
 	@Test
 	public void runProcessWithGenePositionsOptioPartialOverlap() throws Exception {
-		final File genesOfInterestFile = testFolder.newFile("runProcessWithGenePositionsOption.genes.gff3");
-		final File bamFile = testFolder.newFile("runProcessWithGenePositionsOption.bam");
-		final File logFile = testFolder.newFile("runProcessWithGenePositionsOption.log");
-		final File refFile = testFolder.newFile("runProcessWithGenePositionsOption.fa");
-		final File refIndexFile = testFolder.newFile("runProcessWithGenePositionsOption.fa.fai");
+		final File genesOfInterestFile = testFolder.newFile("runProcessWithGenePositionsOptioPartialOverlap.genes.gff3");
+		final File bamFile = testFolder.newFile("runProcessWithGenePositionsOptioPartialOverlap.bam");
+		final File logFile = testFolder.newFile("runProcessWithGenePositionsOptioPartialOverlap.log");
+		final File refFile = testFolder.newFile("runProcessWithGenePositionsOptioPartialOverlap.fa");
+		final File refIndexFile = testFolder.newFile("runProcessWithGenePositionsOptioPartialOverlap.fa.fai");
 		
 		SignatureGeneratorTest.writeGenePositionsFile(genesOfInterestFile, "chr1", 10, 200);
 		String dir = testFolder.newFolder("output_dir").getAbsolutePath();
