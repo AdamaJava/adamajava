@@ -29,7 +29,7 @@ import org.qcmg.common.util.LoadReferencedClasses;
 import org.qcmg.tab.TabbedFileReader;
 import org.qcmg.tab.TabbedRecord;
 
-
+@Deprecated
 public class AnnotateDCCWithGFFRegions {	
 
 	private String logFile;

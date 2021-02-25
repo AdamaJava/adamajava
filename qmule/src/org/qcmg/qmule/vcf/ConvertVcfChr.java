@@ -16,6 +16,7 @@ import org.qcmg.tab.TabbedFileWriter;
 import org.qcmg.tab.TabbedHeader;
 import org.qcmg.tab.TabbedRecord;
 
+@Deprecated
 public class ConvertVcfChr {
 	
 	private static final String CHR = "chr";

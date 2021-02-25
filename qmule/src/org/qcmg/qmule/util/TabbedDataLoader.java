@@ -15,6 +15,7 @@ import org.qcmg.common.util.FileUtils;
 import org.qcmg.tab.TabbedFileReader;
 import org.qcmg.tab.TabbedRecord;
 
+@Deprecated
 public class TabbedDataLoader {
 	
 	public static final Pattern tabbedPattern = Pattern.compile("[\\t]");

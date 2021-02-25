@@ -26,7 +26,7 @@ import org.qcmg.common.util.FileUtils;
 import org.qcmg.tab.TabbedFileReader;
 import org.qcmg.tab.TabbedRecord;
 
-
+@Deprecated
 public class CompareReferenceRegions {	
 	
 	private static final String MODE_ONEWAY = "oneway";
