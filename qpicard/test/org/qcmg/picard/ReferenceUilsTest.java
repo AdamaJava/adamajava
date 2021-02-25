@@ -50,11 +50,6 @@ public class ReferenceUilsTest {
 			ReferenceUtils.getRegionFromReferenceFile(refFile.getAbsolutePath(), "1", 1, 100);
 			fail();
 		} catch (IllegalArgumentException iae) {}
-		try {
-			ReferenceUtils.getRegionFromReferenceFile(refFile.getAbsolutePath(), "chr1", 10000, 100000);
-			fail();
-		} catch (IllegalArgumentException iae) {}
-		ReferenceUtils.getRegionFromReferenceFile(refFile.getAbsolutePath(), "chr1", 10000, 100000);
 		
 	}
 	
