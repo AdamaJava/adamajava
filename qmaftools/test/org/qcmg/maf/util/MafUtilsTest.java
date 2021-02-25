@@ -1,6 +1,5 @@
 package org.qcmg.maf.util;
 
-
 import static org.junit.Assert.assertEquals;
 
 import java.io.File;
@@ -26,7 +25,6 @@ import org.qcmg.common.model.MafType;
 import org.qcmg.common.util.SnpUtils;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.maf.QMafException;
-import org.qcmg.tab.TabbedRecord;
 
 public class MafUtilsTest {
 	
@@ -427,15 +425,13 @@ public class MafUtilsTest {
 	public void testConvertDccToMafWithNS() throws QMafException {
 		List<MAFRecord> mafs = new ArrayList<MAFRecord>();
 		Map<String, Set<Integer>> ensemblToEntrez = new HashMap<String, Set<Integer>>();
-		TabbedRecord data = new TabbedRecord();
 		String s = "COLO_829_SNP_4014186	1	19	56662400	56662400	1	-888	-888	A	A/A	A/G	A>G	-999	-999	59	2	2	-888	-999	-999	A:27[28.53],28[29.94]   A:26[27.91],20[29.55],G:4[39],9[39.36]	11	INTRONIC,INTRONIC,INTRONIC,NON_SYNONYMOUS_CODING,INTRONIC	-888,-888,-888,V200A,-888	-888,-888,-888,599A>G,-888	-888,-888,-888,-888,-888	ENSG00000167685|ENSG00000204533 ENST00000337080,ENST00000412291,ENST00000391714|ENST00000376272,ENST00000376271	61	-999	ZNF444|-888	-888,-888,-888|-888,-888	-888,-888,-888|-888,-888	-888,-888,-888|-888,-888	A/G	chr19:56662400-56662400";
 		s = s.replaceAll("\\s+", "\t");
 		s+= "\tmutation also found in pileup of (unfiltered) normal";
-		data.setData(s);
-		String [] params = TabTokenizer.tokenize(data.getData());
+		String [] params = TabTokenizer.tokenize(s);
 		assertEquals("mutation also found in pileup of (unfiltered) normal", params[37]);
 		
-		MafUtils.convertDccToMaf(data, "COLO_829", "control_sample_id", "tumourSampleID", null, mafs, ensemblToEntrez, true, false);
+		MafUtils.convertDccToMaf(s, "COLO_829", "control_sample_id", "tumourSampleID", null, mafs, ensemblToEntrez, true, false);
 		assertEquals(1, mafs.size());
 		assertEquals(11, mafs.get(0).getNovelStartCount());
 	}
@@ -444,42 +440,34 @@ public class MafUtilsTest {
 	public void testConvertDccToMafWithoutNS() throws QMafException {
 		List<MAFRecord> mafs = new ArrayList<MAFRecord>();
 		Map<String, Set<Integer>> ensemblToEntrez = new HashMap<String, Set<Integer>>();
-		TabbedRecord data = new TabbedRecord();
 		String s = "APGI_2057_SNP_3302627   1       20      44115498        44115498        1       -888    -888    A       A/A     A/T     A>T     -999    -999    14      2       2       -888    -999    -999    A:10[40.8],7[40.29],T:7[40.16],3[35.22] A:5[38.21],3[30.25],T:3[40],3[40]       UPSTREAM,DOWNSTREAM     -888,-888       -888,-888       -888,-888       ENSG00000237464|ENSG00000237068 ENST00000417630|ENST00000429598 61      -999    -888|RPL5P2     -888|-888       -888|-888       -888|-888       A/T     chr20:44115498-44115498";
 		s = s.replaceAll("\\s+", "\t");
 		s+= "\tmutation also found in pileup of normal; mutation is a germline variant in another patient";
-		data.setData(s);
-		String [] params = TabTokenizer.tokenize(data.getData());
+		//data.setData(s);
+		String [] params = TabTokenizer.tokenize(s);
 		assertEquals("mutation also found in pileup of normal; mutation is a germline variant in another patient", params[36]);
 		
-		MafUtils.convertDccToMaf(data, "APGI_2057", "controlSampleID", "tumourSampleID", null, mafs, ensemblToEntrez, false, false);
+		MafUtils.convertDccToMaf(s, "APGI_2057", "controlSampleID", "tumourSampleID", null, mafs, ensemblToEntrez, false, false);
 		assertEquals(1, mafs.size());
-//		assertEquals(0, mafs.size());
 		
 		s = "APGI_2057_SNP_3260617	1	15	102211884	102211884	1	-888	-888	T	T/T	A/T	T>A	-999	-999	7	2	2	-888	-999	-999	T:8[24.83],20[39.34],A:3[21.49],0[0],G:1[16],0[0]	T:5[11.03],1[36],A:1[23],0[0]	NON_SYNONYMOUS_CODING,NON_SYNONYMOUS_CODING	Y619F,Y524F	2073T>A,1626T>A	-888,-888	ENSG00000185418	ENST00000335968,ENST00000333018	61	-999	TARSL2	TIGR00418_PS50862,PS50862_TIGR00418	tigrfam_pfscan,pfscan_tigrfam	Thr-tRNA-synth_IIa__Aminoacyl-tRNA-synth_II,Aminoacyl-tRNA-synth_II__Thr-tRNA-synth_IIa	T/A	chr15:102211884-102211884";
 		s = s.replaceAll("\\s+", "\t");
 		s+= "\tmutation also found in pileup of normal; mutation is a germline variant in another patient";
-		data.setData(s);
-		params = TabTokenizer.tokenize(data.getData());
+		params = TabTokenizer.tokenize(s);
 		assertEquals("mutation also found in pileup of normal; mutation is a germline variant in another patient", params[36]);
 		
-		MafUtils.convertDccToMaf(data, "APGI_2057", "controlSampleID", "tumourSampleID", null, mafs, ensemblToEntrez, false, false);
+		MafUtils.convertDccToMaf(s, "APGI_2057", "controlSampleID", "tumourSampleID", null, mafs, ensemblToEntrez, false, false);
 		assertEquals(2, mafs.size());
-//		assertEquals(1, mafs.size());
-//		System.out.println("mafs.get(0).getVariantClassification: " + mafs.get(0).getVariantClassification());
-//		assertEquals("", mafs.get(0).getVariantClassification());
 	}
 	
 	@Test
 	public void testRealLifeData() throws QMafException {
 		List<MAFRecord> mafs = new ArrayList<MAFRecord>();
 		Map<String, Set<Integer>> ensemblToEntrez = new HashMap<String, Set<Integer>>();
-		TabbedRecord data = new TabbedRecord();
 		String s = "AOCS_066_SNP_3124       1       1       115256530       115256530       1       G/T     -1      G       G/G     G/T     G>T     -999    -999    1.2420510993064712E-22  110     1       2       -888    rs121913254     -999    G:25[34.12],67[36.06]   G:10[33.2],31[33.35],T:16[39.62],53[38.58]      44      missense_variant,downstream_gene_variant,downstream_gene_variant,downstream_gene_variant,downstream_gene_variant,downstream_gene_variant,downstream_gene_variant,downstream_gene_variant,downstream_gene_variant        Q61K;Q61K;Q61K;Q61K;Q61K;Q61K;Q61K;Q61K;Q61K,-888,-888,-888,-888,-888,-888,-888,-888    435G>T;435G>T;435G>T;435G>T;435G>T;435G>T;435G>T;435G>T;435G>T,-888,-888,-888,-888,-888,-888,-888,-888  PF00071;PF08477;PF00025;PF00009;TIGR00231;PR00449;SM00173;SM00175;SM00174       ENSG00000213281,ENSG00000009307,ENSG00000009307,ENSG00000009307,ENSG00000009307,ENSG00000009307,ENSG00000009307,ENSG00000009307,ENSG00000009307 ENST00000369535,ENST00000339438,ENST00000438362,ENST00000358528,ENST00000261443,ENST00000530886,ENST00000369530,ENST00000483407,ENST00000534699 70      -999    NRAS,CSDE1,CSDE1,CSDE1,CSDE1,CSDE1,CSDE1,CSDE1,CSDE1    PF00071;PF08477;PF00025;PF00009;TIGR00231;PR00449;SM00173;SM00175;SM00174       pfam;pfam;pfam;pfam;tigrfam;prints;smart;smart;smart    Small_GTPase;MIRO-like;Small_GTPase_ARF/SAR;EF_GTP-bd_dom;Small_GTP-bd_dom;Small_GTPase;Small_GTPase_Ras;Small_GTPase_Rab_type;Small_GTPase_Rho chr1:115256530-115256530        PASS    TTCTTTTCCAG";
 		s = s.replaceAll("\\s+", "\t");
-		data.setData(s);
 		
-		MafUtils.convertDccToMaf(data, "AOCS_066", "controlSampleID", "tumourSampleID", null, mafs, ensemblToEntrez, true, true);
+		MafUtils.convertDccToMaf(s, "AOCS_066", "controlSampleID", "tumourSampleID", null, mafs, ensemblToEntrez, true, true);
 		
 		assertEquals(1, mafs.size());
 		MAFRecord maf = mafs.get(0);
@@ -491,7 +479,6 @@ public class MafUtilsTest {
 		assertEquals(true, DccConsequence.passesMafNameFilter(maf.getVariantClassification()));
 		
 		// high conf filter
-//		String variant = maf.getRef().equals(maf.getTumourAllele1()) ? maf.getTumourAllele2() : maf.getTumourAllele1();
 		char alt = MafUtils.getVariant(maf).charAt(0);
 		assertEquals(true, MafUtils.passesHighConfidenceFilter(maf.getFlag(), maf.getVariantType(), maf.getTd(), true , alt));
 		
@@ -503,12 +490,10 @@ public class MafUtilsTest {
 	public void testRealLifeData2() throws QMafException {
 		List<MAFRecord> mafs = new ArrayList<MAFRecord>();
 		Map<String, Set<Integer>> ensemblToEntrez = new HashMap<String, Set<Integer>>();
-		TabbedRecord data = new TabbedRecord();
 		String s = "AOCS_066_SNP_5524       1       1       196762515       196762515       1       -888    -888    A       A/A     A/C     A>C     -999    -999    1.0515508456799864E-8   99      2       2       -888    -999    -999    A:94[38.29],4[38.25]    A:71[35.69],3[40],C:24[38.54],1[37]     19      missense_variant,downstream_gene_variant,3_prime_UTR_variant,NMD_transcript_variant,missense_variant,non_coding_exon_variant,nc_transcript_variant      K289Q,-888,-888,-888,K228Q,-888,-888    957A>C,-888,1139A>C,1139A>C,753A>C,537A>C,537A>C        SSF57535,SSF57535       ENSG00000116785,ENSG00000116785,ENSG00000116785,ENSG00000116785,ENSG00000116785,ENSG00000116785,ENSG00000116785 ENST00000367425,ENST00000471440,ENST00000367427,ENST00000367427,ENST00000391985,ENST00000461558,ENST00000461558 70      -999    CFHR3,CFHR3,CFHR3,CFHR3,CFHR3,CFHR3,CFHR3       SSF57535,SSF57535       superfamily,superfamily Complement_control_module,Complement_control_module     chr1:196762515-196762515        PASS    ACAGACAATAT";
 		s = s.replaceAll("\\s+", "\t");
-		data.setData(s);
 		
-		MafUtils.convertDccToMaf(data, "AOCS_066", "controlSampleID", "tumourSampleID", null, mafs, ensemblToEntrez, true, true);
+		MafUtils.convertDccToMaf(s, "AOCS_066", "controlSampleID", "tumourSampleID", null, mafs, ensemblToEntrez, true, true);
 		
 		assertEquals(1, mafs.size());
 		MAFRecord maf = mafs.get(0);
@@ -522,7 +507,6 @@ public class MafUtilsTest {
 		maf.setMafType(MafType.SNV_SOMATIC);
 		
 		// high conf filter
-//		String variant = maf.getRef().equals(maf.getTumourAllele1()) ? maf.getTumourAllele2() : maf.getTumourAllele1();
 		char alt = MafUtils.getVariant(maf).charAt(0);
 		assertEquals(true, MafUtils.passesHighConfidenceFilter(maf.getFlag(), maf.getVariantType(), maf.getTd(), true , alt));
 		
@@ -530,42 +514,15 @@ public class MafUtilsTest {
 		assertEquals(true, MafUtils.passesLowerConfidenceFilter(maf.getFlag(), maf.getVariantType(), maf.getTd(), alt));
 	}
 	
-//	@Ignore
-//	public void testRealLifeData2() throws QMafException {
-//		List<MAFRecord> mafs = new ArrayList<MAFRecord>();
-//		Map<String, Set<Integer>> ensemblToEntrez = new HashMap<String, Set<Integer>>();
-//		TabbedRecord data = new TabbedRecord();
-//		String s = "APGI_2179_SNP_3228926	1	12	25398284	25398284	1	A/C	-1	C	C/CA/C	C>A	-999	-999	42	1	2	-888	rs121913529	-999	C:21[37.62],21[37.67]	A:14[36.57],18[34.17],C:5[36.2],5[32.2]	28	NON_SYNONYMOUS_CODING,NON_SYNONYMOUS_CODING,NON_SYNONYMOUS_CODING,NON_SYNONYMOUS_CODINGG12V;G12V;G12V;G12V;G12V;G12V;G12V;G12V,G12V;G12V;G12V,G12V;G12V;G12V;G12V;G12V;G12V;G12V;G12V;G12V,G12V;G12V	227C>A;227C>A;227C>A;227C>A;227C>A;227C>A;227C>A;227C>A,232C>A;232C>A;232C>A,99C>A;99C>A;99C>A;99C>A;99C>A;99C>A;99C>A;99C>A;99C>A,212C>A;212C>APF00071;PF08477;PF00025;TIGR00231;PR00449;SM00173;SM00175;SM00174,PF00071;PR00449;SM00173,PF00071;PF08477;PF00025;PR00449;TIGR00231;SM00173;SM00175;SM00174;SM00176,PF00071;PR00449	ENSG00000133703,ENSG00000133703,ENSG00000133703,ENSG00000133703	ENST00000311936,ENST00000557334,ENST00000256078,ENST00000556131	66	-999	KRAS,KRAS,KRAS,KRAS	PF00071;PF08477;PF00025;TIGR00231;PR00449;SM00173;SM00175;SM00174,PF00071;PR00449;SM00173,PF00071;PF08477;PF00025;PR00449;TIGR00231;SM00173;SM00175;SM00174;SM00176,PF00071;PR00449	pfam;pfam;pfam;tigrfam;prints;smart;smart;smart,pfam;prints;smart,pfam;pfam;pfam;prints;tigrfam;smart;smart;smart;smart,pfam;prints	Small_GTPase;MIRO-like;Small_GTPase_ARF/SAR;Small_GTP-bd_dom;Small_GTPase;Small_GTPase_Ras;Small_GTPase_Rab_type;Small_GTPase_Rho,Small_GTPase;Small_GTPase;Small_GTPase_Ras,Small_GTPase;MIRO-like;Small_GTPase_ARF/SAR;Small_GTPase;Small_GTP-bd_dom;Small_GTPase_Ras;Small_GTPase_Rab_type;Small_GTPase_Rho;Ran_GTPase,Small_GTPase;Small_GTPase	chr12:25398284-25398284	PASS;GERM	CGCCAACAGCT";
-////		s = s.replaceAll("\\s+", "\t");
-//		data.setData(s);
-//		
-//		MafUtils.convertDccToMaf(data, "APGI_2179", "controlSampleID", "tumourSampleID", null, mafs, ensemblToEntrez, false, false);
-//		
-//		assertEquals(1, mafs.size());
-//		MAFRecord maf = mafs.get(0);
-//		
-//		// name filter
-//		assertEquals(true, DccConsequence.passesMafNameFilter(maf.getVariantClassification()));
-//		
-//		// high conf filter
-////		String variant = maf.getRef().equals(maf.getTumourAllele1()) ? maf.getTumourAllele2() : maf.getTumourAllele1();
-//		char alt = MafUtils.getVariant(maf);
-//		assertEquals(true, MafUtils.passesHighConfidenceFilter(maf.getFlag(), maf.getVariantType(), maf.getTd(), true , alt));
-//		
-//		// low conf filter
-//		assertEquals(true, MafUtils.passesLowerConfidenceFilter(maf.getFlag(), maf.getVariantType(), maf.getTd(), alt));
-//	}
 	
 	@Test
 	public void testRealLifeData3() throws QMafException {
 		List<MAFRecord> mafs = new ArrayList<MAFRecord>();
 		Map<String, Set<Integer>> ensemblToEntrez = new HashMap<String, Set<Integer>>();
-		TabbedRecord data = new TabbedRecord();
 		String s = "AOCS_067_SNP_20521      1       5       94784186        94784186        1       -888    -888    A       A/A     A/C     A>C     -999    -999    0.12844960008474762     19      2       2       -888    -999    -999    A:1[18],11[28]  A:0[0],14[27.5],C:0[0],5[26]    4       intron_variant,intron_variant,NMD_transcript_variant,downstream_gene_variant,intron_variant,intron_variant,NMD_transcript_variant       -888,-888,-888,-888,-888,-888,-888      -888,-888,-888,-888,-888,-888,-888      -888    ENSG00000153347,ENSG00000153347,ENSG00000153347,ENSG00000153347,ENSG00000153347,ENSG00000153347,ENSG00000153347 ENST00000283357,ENST00000507832,ENST00000507832,ENST00000503361,ENST00000512365,ENST00000513110,ENST00000513110 70      -999    FAM81B,FAM81B,FAM81B,FAM81B,FAM81B,FAM81B,FAM81B        --      --      --      chr5:94784186-94784186  PASS    CTTTTCTTAAG";
 		s = s.replaceAll("\\s+", "\t");
-		data.setData(s);
 		
-		MafUtils.convertDccToMaf(data, "AOCS_067", "controlSampleID", "tumourSampleID", null, mafs, ensemblToEntrez, true, true);
+		MafUtils.convertDccToMaf(s, "AOCS_067", "controlSampleID", "tumourSampleID", null, mafs, ensemblToEntrez, true, true);
 		
 		assertEquals(1, mafs.size());
 		MAFRecord maf = mafs.get(0);
@@ -578,7 +535,6 @@ public class MafUtilsTest {
 		maf.setMafType(MafType.SNV_SOMATIC);
 		
 		// high conf filter
-//		String variant = maf.getRef().equals(maf.getTumourAllele1()) ? maf.getTumourAllele2() : maf.getTumourAllele1();
 		char alt = MafUtils.getVariant(maf).charAt(0);
 		assertEquals(true, MafUtils.passesHighConfidenceFilter(maf.getFlag(), maf.getVariantType(), maf.getTd(), true , alt));
 		
@@ -592,8 +548,7 @@ public class MafUtilsTest {
 		
 		s = "AOCS_067_SNP_38220      1       11      5373331 5373331 1       -888    -888    T       T/T     G/T     T>G     -999    -999    0.001102600781824035    32      2       2       -888    -999    -999    T:29[36.79],58[35.22]   G:0[0],5[28.6],T:8[40],19[28.95]        4       intron_variant,intron_variant,intron_variant,intron_variant,intron_variant,nc_transcript_variant,intron_variant,nc_transcript_variant,intron_variant,nc_transcript_variant,intron_variant,nc_transcript_variant,synonymous_variant,upstream_gene_variant        -888,-888,-888,-888,-888,-888,-888,-888,-888,-888,-888,-888,V198V;V198V;V198V,-888      -888,-888,-888,-888,-888,-888,-888,-888,-888,-888,-888,-888,594T>G;594T>G;594T>G,-888   PF00001;PF10320;PS50262 ENSG00000196565,ENSG00000196565,ENSG00000213931,ENSG00000213931,,,,,,,,,ENSG00000176239,        ENST00000380252,ENST00000380259,ENST00000380237,ENST00000396895,ENST00000420465,ENST00000420465,ENST00000415970,ENST00000415970,ENST00000420726,ENST00000420726,ENST00000418729,ENST00000418729,ENST00000380219,ENST00000450768 70      -999    HBG2,HBG2,HBE1,HBE1,,,,,,,,,OR51B6,     PF00001;PF10320;PS50262 pfam;pfam;pfscan        GPCR_Rhodpsn;7TM_GPCR_olfarory/Srsx;GPCR_Rhodpsn_7TM    chr11:5373331-5373331   PASS    CCAGTGGTAGT";
 		s = s.replaceAll("\\s+", "\t");
-		data.setData(s);
-		MafUtils.convertDccToMaf(data, "AOCS_067", "controlSampleID", "tumourSampleID", null, mafs, ensemblToEntrez, true, true);
+		MafUtils.convertDccToMaf(s, "AOCS_067", "controlSampleID", "tumourSampleID", null, mafs, ensemblToEntrez, true, true);
 		maf = mafs.get(0);
 		assertEquals("Silent", maf.getVariantClassification());
 		assertEquals("OR51B6", maf.getHugoSymbol());
@@ -602,7 +557,6 @@ public class MafUtilsTest {
 		
 		maf.setMafType(MafType.SNV_SOMATIC);
 		// high conf filter
-//		variant = maf.getRef().equals(maf.getTumourAllele1()) ? maf.getTumourAllele2() : maf.getTumourAllele1();
 		alt = MafUtils.getVariant(maf).charAt(0);
 		assertEquals(true, MafUtils.passesHighConfidenceFilter(maf.getFlag(), maf.getVariantType(), maf.getTd(), true , alt));
 		
@@ -616,12 +570,10 @@ public class MafUtilsTest {
 	public void testRealLifeData4() throws QMafException {
 		List<MAFRecord> mafs = new ArrayList<MAFRecord>();
 		Map<String, Set<Integer>> ensemblToEntrez = new HashMap<String, Set<Integer>>();
-		TabbedRecord data = new TabbedRecord();
 		String s = "APGI_1594_SNP_2943597	1	11	62373211	62373211	1	-888	-888	T	T/T	G/T	T>G	-999	-999	0.060573922747081455	40	2	2	-888	-999	-999	G:1[6],0[0],T:18[22.72],16[37.69]	G:5[7.6],2[21.5],T:11[21.45],22[35.55]	7	upstream_gene_variant,missense,3_prime_UTR_variant,non_coding_exon_variant,missense,non_coding_exon_variant,missense,missense,missense,non_coding_exon_variant,missense,upstream_gene_variant,upstream_gene_variant,upstream_gene_variant,downstream_gene_variant,downstream_gene_variant,upstream_gene_variant,upstream_gene_variant,upstream_gene_variant	-888,H/D,-888,-888,H/D,-888,H/D,H/D,H/D,-888,H/D,-888,-888,-888,-888,-888,-888,-888,-888	-888,Cac/Gac,-888,-888,Cac/Gac,-888,Cac/Gac,Cac/Gac,Cac/Gac,-888,Cac/Gac,-888,-888,-888,-888,-888,-888,-888,-888	-888	ENSG00000149480,ENSG00000149499,ENSG00000149499,ENSG00000149499,ENSG00000149499,ENSG00000149499,ENSG00000149499,ENSG00000149499,ENSG00000149499,ENSG00000149499,ENSG00000149499,ENSG00000149499,ENSG00000149499,ENSG00000149499,ENSG00000149499,ENSG00000149499,ENSG00000254964,ENSG00000149480,ENSG00000149480	ENST00000278823,ENST00000278845,ENST00000494448,ENST00000483199,ENST00000529309,ENST00000526116,ENST00000394776,ENST00000531557,ENST00000494176,ENST00000460939,ENST00000394773,ENST00000439994,ENST00000533165,ENST00000524518,ENST00000462626,ENST00000438258,ENST00000532626,ENST00000527204,ENST00000526844	70	-999	MTA2,EML3,EML3,EML3,EML3,EML3,EML3,EML3,EML3,EML3,EML3,EML3,EML3,EML3,EML3,EML3,RP11-831H9.3,MTA2,MTA2	--	--	--	chr11:62373211-62373211	MIN	AGGGGGGTGTG";
 		s = s.replaceAll("\\s+", "\t");
-		data.setData(s);
 		
-		MafUtils.convertDccToMaf(data, "APGI_1594", "controlSampleID", "tumourSampleID", null, mafs, ensemblToEntrez, true, true);
+		MafUtils.convertDccToMaf(s, "APGI_1594", "controlSampleID", "tumourSampleID", null, mafs, ensemblToEntrez, true, true);
 		
 		assertEquals(1, mafs.size());
 		MAFRecord maf = mafs.get(0);
@@ -633,12 +585,10 @@ public class MafUtilsTest {
 	public void testRealLifeData5() throws QMafException {
 		List<MAFRecord> mafs = new ArrayList<MAFRecord>();
 		Map<String, Set<Integer>> ensemblToEntrez = new HashMap<String, Set<Integer>>();
-		TabbedRecord data = new TabbedRecord();
 		String s = "75edf18c_801c_48ae_8acf_44c7c87de319_SNP_5212932.3134   4       1       12907507        12907508        1       /       -888    CT      CT/CT   CC/TT   CT>TC   -999    -999    -999    113     2       2       -888    -999    -999    ALL:1+12-;REF:1+12-;ALT:0+0+0-0-;       ALL:11+12-;REF:11+12-;ALT:0+0+0-0-;     27      missense_variant        E212G   861CT>TC        PIRSF037992     ENSG00000179172 ENST00000317869 70      -999    HNRNPCL1        PIRSF037992     pirsf   hnRNP_C_Raly    chr1:12907507-12907508  PASS    --";
 		s = s.replaceAll("\\s+", "\t");
-		data.setData(s);
 		
-		MafUtils.convertDccToMaf(data, "APGI_1594", "controlSampleID", "tumourSampleID", null, mafs, ensemblToEntrez, true, true);
+		MafUtils.convertDccToMaf(s, "APGI_1594", "controlSampleID", "tumourSampleID", null, mafs, ensemblToEntrez, true, true);
 		
 		assertEquals(1, mafs.size());
 		MAFRecord maf = mafs.get(0);
@@ -646,19 +596,16 @@ public class MafUtilsTest {
 		assertEquals("HNRNPCL1", maf.getHugoSymbol());
 		
 		MafFilterUtils.classifyMAFRecord(maf);
-		//assertEquals(MafConfidence.ZERO, maf.getConfidence());
 	}
 	
 	@Ignore
 	public void testRealLifeDataGermline() throws QMafException {
 		List<MAFRecord> mafs = new ArrayList<MAFRecord>();
 		Map<String, Set<Integer>> ensemblToEntrez = new HashMap<String, Set<Integer>>();
-		TabbedRecord data = new TabbedRecord();
 		String s = "OESO_1020_SNP_3 1       1       10109   10109   1       -888    -888    A       A/T     A/T     -999    -999    -999    170     2       2       -888    -999    -999    A:90[14.17],41[34.61],C:1[6],0[0],G:1[2],0[0],T:19[21.42],18[31.39]     A:72[14.14],46[32.37],C:5[2],0[0],T:11[23.09],19[28.47] 30      UPSTREAM,UPSTREAM,UPSTREAM,UPSTREAM,DOWNSTREAM,DOWNSTREAM,DOWNSTREAM,DOWNSTREAM,DOWNSTREAM      -888,-888,-888,-888,-888,-888,-888,-888,-888    -888,-888,-888,-888,-888,-888,-888,-888,-888    -888    ENSG00000223972,ENSG00000223972,ENSG00000223972,ENSG00000223972,ENSG00000227232,ENSG00000227232,ENSG00000227232,ENSG00000227232,ENSG00000227232 ENST00000456328,ENST00000515242,ENST00000518655,ENST00000450305,ENST00000438504,ENST00000541675,ENST00000423562,ENST00000488147,ENST00000538476 66      -999    DDX11L1,DDX11L1,DDX11L1,DDX11L1,WASH7P,WASH7P,WASH7P,WASH7P,WASH7P      --      --      --      chr1:10109-10109        PASS    AACCCTACCCT     A>T";
 		s = s.replaceAll("\\s+", "\t");
-		data.setData(s);
 	
-		MafUtils.convertGermlineDccToMaf(data, "OESO_1020", "controlSampleID", "tumourSampleID", null, mafs, ensemblToEntrez);
+		MafUtils.convertGermlineDccToMaf(s, "OESO_1020", "controlSampleID", "tumourSampleID", null, mafs, ensemblToEntrez);
 		
 		assertEquals(1, mafs.size());
 		MAFRecord maf = mafs.get(0);
@@ -679,7 +626,6 @@ public class MafUtilsTest {
 		assertEquals("A", maf.getRef());
 		assertEquals("ENST00000456328", maf.getCanonicalTranscriptId());
 		assertEquals("DDX11L1", maf.getHugoSymbol());
-//		assertEquals("A", maf.getEntrezGeneId());
 		
 		// name filter
 		assertEquals(false, DccConsequence.passesMafNameFilter(maf.getVariantClassification()));
@@ -689,12 +635,10 @@ public class MafUtilsTest {
 	public void testRealLifeDataGermline2() throws QMafException {
 		List<MAFRecord> mafs = new ArrayList<MAFRecord>();
 		Map<String, Set<Integer>> ensemblToEntrez = new HashMap<String, Set<Integer>>();
-		TabbedRecord data = new TabbedRecord();
 		String s = "0b09a9d1_7d96_4159_881a_a4aaf52ac3e9_SNP_2      1       1       10109   10109   1       -888    -888    A       A/T     A/T     -999    -999    -999    168     2       2       -888    -999    -999    A:88[14.47],29[36.59],C:4[4],0[0],T:16[15.62],31[32.58] A:142[13.49],52[35.42],C:1[2],0[0],T:39[23.08],43[32.47]        30      upstream_gene_variant,upstream_gene_variant,upstream_gene_variant,upstream_gene_variant,downstream_gene_variant,downstream_gene_variant,downstream_gene_variant,downstream_gene_variant,downstream_gene_variant -888    -888    -888    ENSG00000223972,ENSG00000223972,ENSG00000223972,ENSG00000223972,ENSG00000227232,ENSG00000227232,ENSG00000227232,ENSG00000227232,ENSG00000227232 ENST00000456328,ENST00000515242,ENST00000518655,ENST00000450305,ENST00000438504,ENST00000541675,ENST00000423562,ENST00000488147,ENST00000538476 70      -999    DDX11L1,DDX11L1,DDX11L1,DDX11L1,WASH7P,WASH7P,WASH7P,WASH7P,WASH7P      --      --      --      chr1:10109-10109        PASS    AACCCTACCCT     A>T";
 		s = s.replaceAll("\\s+", "\t");
-		data.setData(s);
 		
-		MafUtils.convertGermlineDccToMaf(data, "APGI_2027", "controlSampleID", "tumourSampleID", null, mafs, ensemblToEntrez);
+		MafUtils.convertGermlineDccToMaf(s, "APGI_2027", "controlSampleID", "tumourSampleID", null, mafs, ensemblToEntrez);
 		
 		assertEquals(1, mafs.size());
 		MAFRecord maf = mafs.get(0);
@@ -715,7 +659,6 @@ public class MafUtilsTest {
 		assertEquals("A", maf.getRef());
 		assertEquals("ENST00000456328", maf.getCanonicalTranscriptId());
 		assertEquals("DDX11L1", maf.getHugoSymbol());
-//		assertEquals("A", maf.getEntrezGeneId());
 		
 		// name filter
 		assertEquals(false, DccConsequence.passesMafNameFilter(maf.getVariantClassification()));

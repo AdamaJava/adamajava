@@ -21,9 +21,8 @@ import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.SnpUtils;
 import org.qcmg.maf.util.MafUtils;
 import org.qcmg.picard.util.PileupElementUtil;
-import org.qcmg.tab.TabbedFileReader;
-import org.qcmg.tab.TabbedRecord;
-
+import org.qcmg.qio.record.StringFileReader;
+ 
 public class MafFilter {
 	
 	private static final Pattern tabbedPattern = Pattern.compile("[\\t]");
@@ -45,10 +44,8 @@ public class MafFilter {
 		}
 	};
 	
-//	private boolean includePositionsThatDidNotVerify;
-	
-	List<TabbedRecord> highConfidenceMafs = new ArrayList<TabbedRecord>(); 
-	List<TabbedRecord> probableNoiseMafs = new ArrayList<TabbedRecord>(); 
+	List<String> highConfidenceMafs = new ArrayList<String>(); 
+	List<String> probableNoiseMafs = new ArrayList<String>(); 
 	
 	public int engage() throws Exception {
 		// load mapping files
@@ -73,14 +70,6 @@ public class MafFilter {
 		if (! dir.isDirectory()) throw new IllegalArgumentException("Supplied directory is not a directory: " + directory);
 		
 		File[] mafFiles = dir.listFiles(mafFilenameFilter);
-//		File[] mafFiles = dir.listFiles(new FilenameFilter(){
-//			@Override
-//			public boolean accept(File file, String name) {
-//				return name.endsWith(".maf") 
-//				&& ! cmdLineOutputFiles[0].endsWith(name) 
-//				&& ! cmdLineOutputFiles[1].endsWith(name);
-//			}
-//		});
 		
 		for (File f : mafFiles) {
 			logger.info("will operate on file: " + f.getAbsolutePath());
@@ -89,13 +78,13 @@ public class MafFilter {
 	}
 	
 	private void loadKRASFile(String krasFile) throws Exception {
-		TabbedFileReader reader = new TabbedFileReader(new File(krasFile));
+		StringFileReader reader = new StringFileReader(new File(krasFile));
 		try {
 			int high = 0, noise = 0, fail = 0, count = 0;
 			
-			for (TabbedRecord rec : reader) {
+			for (String rec : reader) {
 				count++;
-				String[] params = tabbedPattern.split(rec.getData(), -1);
+				String[] params = tabbedPattern.split(rec, -1);
 				String chr = params[4];
 				String position = params[5];
 				String id = params[15];
@@ -114,7 +103,7 @@ public class MafFilter {
 						// APGI_2270, APGI_2271, APGI_2285
 							if (id.contains(lowCovPatient)) {
 								lowCov = true;
-								logger.info("Skipping KRAS record: " + rec.getData() + " - belongs to low coverage patient");
+								logger.info("Skipping KRAS record: " + rec + " - belongs to low coverage patient");
 								break;
 							}
 						}
@@ -123,8 +112,8 @@ public class MafFilter {
 					
 					// check that we are not adding a duplicate into the highConfMaf list
 					boolean recordAlreadyInList = false;
-					for (TabbedRecord tr : highConfidenceMafs) {
-						String [] p2 = tabbedPattern.split(tr.getData(), -1);
+					for (String tr : highConfidenceMafs) {
+						String [] p2 = tabbedPattern.split(tr, -1);
 						String chr2 = p2[4];
 						String position2 = p2[5];
 						String id2 = p2[15];
@@ -138,7 +127,7 @@ public class MafFilter {
 								logger.info("verification DOES NOT match! - updating");
 								
 								// update record with "Valid" validation status
-								tr.setData(tr.getData().replaceAll("Unknown", "Valid"));
+								tr = tr.replaceAll("Unknown", "Valid");
 							}
 							break;
 						}
@@ -148,8 +137,8 @@ public class MafFilter {
 						
 						boolean recordAlreadyInLowerConfList = false;
 						// if record exists in low confidence file, remove, and put into high
-						for (TabbedRecord tr : probableNoiseMafs) {
-							String [] p2 = tabbedPattern.split(tr.getData(), -1);
+						for (String tr : probableNoiseMafs) {
+							String [] p2 = tabbedPattern.split(tr, -1);
 							String chr2 = p2[4];
 							String position2 = p2[5];
 							String id2 = p2[15];
@@ -157,11 +146,10 @@ public class MafFilter {
 							if (chr.equals(chr2) && position.equals(position2) && id.equals(id2)) {
 								// remove from list
 								recordAlreadyInLowerConfList = true;
-//								logger.info("removing record from low conf file: " + probableNoiseMafs.remove(tr));
 								logger.info("moving record from low conf to high conf, and updating verification status to Valid: " 
 										+ probableNoiseMafs.remove(tr));
 								
-								tr.setData(tr.getData().replaceAll("Unknown", "Valid"));
+								tr = tr.replaceAll("Unknown", "Valid");
 								highConfidenceMafs.add(tr);
 								
 								break;
@@ -170,7 +158,7 @@ public class MafFilter {
 						
 						if ( ! recordAlreadyInLowerConfList) {
 							// count no of fields in rec - beef up to the current number
-							int diff = MafUtils.HEADER_WITH_CONFIDENCE_COLUMN_COUNT - tabbedPattern.split(rec.getData(), -1).length;
+							int diff = MafUtils.HEADER_WITH_CONFIDENCE_COLUMN_COUNT - tabbedPattern.split(rec, -1).length;
 							
 							for (int i = 0 ; i < diff ; i++) addColumn(rec, null);
 							
@@ -190,15 +178,15 @@ public class MafFilter {
 	}
 	
 	private void loadFile(File file) throws Exception {
-		TabbedFileReader reader = new TabbedFileReader(file);
+		StringFileReader reader = new StringFileReader(file);
 		try {
 			
 			int high = 0, noise = 0, fail = 0, count = 0;
 			
-			for (TabbedRecord rec : reader) {
-				if (count++ == 0 && rec.getData().startsWith("Hugo_Symbol")) continue;
+			for (String rec : reader) {
+				if (count++ == 0 && rec.startsWith("Hugo_Symbol")) continue;
 				
-				String[] params = tabbedPattern.split(rec.getData(), -1);
+				String[] params = tabbedPattern.split(rec, -1);
 				String flag = params[32];
 				String type = params[9];		//eg. SNP, INS or DEL
 				String td = params[34];		//eg. A:5[40],3[35],T:1[25],19[35.43]
@@ -246,19 +234,18 @@ public class MafFilter {
 		}
 	}
 	
-	private TabbedRecord addColumn(TabbedRecord tabbedRec, String data) {
-		tabbedRec.setData(tabbedRec.getData() + "\t" + data);
-		return tabbedRec;
+	private String addColumn(String tabbedRec, String data) {
+		return tabbedRec + "\t" + data;
 	}
 	
-	private void writeMafOutput(String fileName, List<TabbedRecord> mafs, String header) throws IOException {
+	private void writeMafOutput(String fileName, List<String> mafs, String header) throws IOException {
 		if (mafs.isEmpty()) return;
 		
 		FileWriter writer = new FileWriter(new File(fileName), false);
 		try {
 			writer.write(header);
-			for (TabbedRecord record : mafs) {
-				writer.write(record.getData() + "\n");
+			for (String record : mafs) {
+				writer.write(record + "\n");
 			}
 		} finally {
 			writer.close();

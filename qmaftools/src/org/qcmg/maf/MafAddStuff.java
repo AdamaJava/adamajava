@@ -30,10 +30,9 @@ import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.qio.gff3.Gff3FileReader;
 import org.qcmg.qio.gff3.Gff3Record;
+import org.qcmg.qio.record.StringFileReader;
 import org.qcmg.maf.util.MafUtils;
-import org.qcmg.tab.TabbedFileReader;
-import org.qcmg.tab.TabbedHeader;
-import org.qcmg.tab.TabbedRecord;
+
 
 public class MafAddStuff {
 	
@@ -169,15 +168,11 @@ public class MafAddStuff {
 	
 	private void writeMafOutput(String inputMafFile, String outputMafFile) throws Exception {
 		if (fastaCPGDataMap.isEmpty() && chrPosGffType.isEmpty()) return;
-		
-		TabbedFileReader reader = new TabbedFileReader(new File(inputMafFile));
-		TabbedHeader header = reader.getHeader();
-		FileWriter writer = new FileWriter(new File(outputMafFile), false);
-		
+				
 		int count = 0;
-		try {
-			for (Iterator<String> iter = header.iterator() ; iter.hasNext() ;) {
-				String headerLine = iter.next();
+		try (StringFileReader reader = new StringFileReader(new File(inputMafFile));
+				FileWriter writer = new FileWriter(new File(outputMafFile), false);){
+			for ( String headerLine : reader.getHeader()) {				 
 				if (headerLine.startsWith("#version")) {
 					writer.write(headerLine + "\n");
 				} else {
@@ -185,14 +180,14 @@ public class MafAddStuff {
 				}
 			}
 			
-			for (TabbedRecord rec : reader) {
+			for (String rec : reader) {
 				// first line is part of header
-				if (count++ == 0 && (rec.getData().startsWith("Hugo_Symbol"))) {
-					writer.write(rec.getData() +  "\tCPG\tGff3_Bait\n");
+				if (count++ == 0 && (rec.startsWith("Hugo_Symbol"))) {
+					writer.write(rec +  "\tCPG\tGff3_Bait\n");
 					continue;
 				}
 				
-				String[] params = tabbedPattern.split(rec.getData(), -1);
+				String[] params = tabbedPattern.split(rec, -1);
 				String chr = params[4];
 				int startPos = Integer.parseInt(params[5]);
 				int endPos = Integer.parseInt(params[6]);
@@ -248,13 +243,7 @@ public class MafAddStuff {
 			}
 			logger.info("written " + count + " maf records to file");
 			
-		} finally {
-			try {
-				writer.close();
-			} finally {
-				reader.close();
-			}
-		}
+		} 
 	}
 	
 	public static void main(String[] args) throws Exception {
