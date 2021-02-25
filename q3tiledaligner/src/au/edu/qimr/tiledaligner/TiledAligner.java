@@ -25,7 +25,7 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.BLATRecord;
 import org.qcmg.common.util.NumberUtils;
-import org.qcmg.string.StringFileReader;
+import org.qcmg.qio.record.StringFileReader;
 
 public class TiledAligner {
 	

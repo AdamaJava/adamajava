@@ -37,9 +37,9 @@ import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.sw.SmithWatermanGotoh;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.NumberUtils;
-import org.qcmg.tab.TabbedFileReader;
-import org.qcmg.tab.TabbedHeader;
-import org.qcmg.tab.TabbedRecord;
+import org.qcmg.qio.record.StringFileReader;
+//import org.qcmg.tab.TabbedHeader;
+//import org.qcmg.tab.TabbedRecord;
 
 import gnu.trove.list.TIntList;
 import gnu.trove.list.TLongList;
@@ -530,16 +530,16 @@ public class TiledAlignerUtil {
 	 * @param tiledInput
 	 */
 	public static void getTiledDataInMap(String tiledAlignerFile,  Map<String, String> tiledInput) {
-		try (TabbedFileReader reader = new TabbedFileReader(new File(tiledAlignerFile))) {
+		try (StringFileReader reader = new StringFileReader(new File(tiledAlignerFile))) {
 			
 			int i = 0;
 			int matches = 0;
 			int mapSize = tiledInput.size();
-			for (TabbedRecord rec : reader) {
+			for (String data : reader) {
 				if (++i % 1000000 == 0) {
 					logger.info("hit " + (i / 1000000) + "M records, matches: " + matches);
 				}
-				String data = rec.getData();
+				//String data = rec;
 				int tabindex = data.indexOf(Constants.TAB);
 				if (tiledInput.containsKey(data.substring(0, tabindex))) {
 					matches++;
@@ -561,8 +561,8 @@ public class TiledAlignerUtil {
 		}
 	}
 	
-	public static TabbedHeader getTiledAlignerHeader(String file) throws IOException {
-		try (TabbedFileReader reader = new TabbedFileReader(new File(file))) {
+	public static List<String> getTiledAlignerHeader(String file) throws IOException {
+		try (StringFileReader reader = new StringFileReader(new File(file))) {
 			return reader.getHeader();
 		}
 	}
