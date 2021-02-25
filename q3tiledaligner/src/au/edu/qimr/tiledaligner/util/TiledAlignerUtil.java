@@ -38,8 +38,6 @@ import org.qcmg.common.sw.SmithWatermanGotoh;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.NumberUtils;
 import org.qcmg.qio.record.StringFileReader;
-//import org.qcmg.tab.TabbedHeader;
-//import org.qcmg.tab.TabbedRecord;
 
 import gnu.trove.list.TIntList;
 import gnu.trove.list.TLongList;
