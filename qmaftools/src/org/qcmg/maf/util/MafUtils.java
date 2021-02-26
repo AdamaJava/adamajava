@@ -428,13 +428,13 @@ public class MafUtils {
 	}
 	
 	
-	public static void convertDccToMaf(String String, String patientId, String controlSampleID, 
+	public static void convertDccToMaf(String rec, String patientId, String controlSampleID, 
 			String tumourSampleID, Map<ChrPosition, TorrentVerificationStatus> verifiedData, List<MAFRecord> mafs,
 			Map<String, Set<Integer>> ensemblToEntrez) throws QMafException {
-		convertDccToMaf(String, patientId, controlSampleID, tumourSampleID, verifiedData, mafs, ensemblToEntrez, false, false);
+		convertDccToMaf(rec, patientId, controlSampleID, tumourSampleID, verifiedData, mafs, ensemblToEntrez, false, false);
 	}
 	
-	public static void convertDccToMaf(final String String, final String patientId, final String controlSampleID, 
+	public static void convertDccToMaf(final String rec, final String patientId, final String controlSampleID, 
 			final String tumourSampleID, final Map<ChrPosition, TorrentVerificationStatus> verifiedData, final List<MAFRecord> mafs,
 			final Map<String, Set<Integer>> ensemblToEntrez, final boolean containsNS, final boolean containsEA) throws QMafException {
 		
@@ -449,7 +449,7 @@ public class MafUtils {
 		final int flagPosition = 35 + offset;
 		final int flankingSequencePosition = 36 + offset;
 		
-		String[] params = TabTokenizer.tokenize(String);
+		String[] params = TabTokenizer.tokenize(rec);
 		
 		// check if position verified
 		String chromosome = params[2];

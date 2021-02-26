@@ -137,7 +137,7 @@ public class MafFilter {
 						
 						boolean recordAlreadyInLowerConfList = false;
 						// if record exists in low confidence file, remove, and put into high
-						for (String tr : probableNoiseMafs) {
+						for (final String tr : probableNoiseMafs) {
 							String [] p2 = tabbedPattern.split(tr, -1);
 							String chr2 = p2[4];
 							String position2 = p2[5];
@@ -149,8 +149,7 @@ public class MafFilter {
 								logger.info("moving record from low conf to high conf, and updating verification status to Valid: " 
 										+ probableNoiseMafs.remove(tr));
 								
-								tr = tr.replaceAll("Unknown", "Valid");
-								highConfidenceMafs.add(tr);
+								highConfidenceMafs.add(tr.replaceAll("Unknown", "Valid"));
 								
 								break;
 							}

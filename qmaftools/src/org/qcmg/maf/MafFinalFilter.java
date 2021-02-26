@@ -48,7 +48,7 @@ public class MafFinalFilter {
 				FileWriter writer = new FileWriter(new File(outputMafFile), false);){
 			for (String re : reader.getHeader()) writer.write(re);
 			 	
-			for (String rec : reader) {
+			for (final String rec : reader) {
 				if (count++ == 0 && rec.startsWith("Hugo_Symbol")) {
 					writer.write(rec + "\n");
 					continue;
@@ -63,17 +63,18 @@ public class MafFinalFilter {
 				if (KRAS.equals(geneName) || novelStartCount >= 4) {
 					
 					String validationStatus = params[24];
+					String str = rec; 
 					if ( ! includePositionsThatDidNotVerify) {
 						// ignore 
 						if (validationStatus.startsWith("False")) continue;
 						if (validationStatus.startsWith("Unknown")) {
 							// don't want the extra info in the validation status field - just Unknown 
-							rec = rec.replace(validationStatus, "Unknown");
+							str = rec.replace(validationStatus, "Unknown");
 						}
 					}
 					
 					// add to collection
-					writer.write(rec + "\n");
+					writer.write(str + "\n");
 					passNovelCountCheck++;
 				}
 			}
