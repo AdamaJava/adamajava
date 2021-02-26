@@ -94,6 +94,10 @@ final class Options {
 			.describedAs("noOfThreads");
 		parser.accepts("snpPositions", SNP_POSITION_DESCRIPTION).withRequiredArg().ofType(String.class)
 			.describedAs("snpPositions");
+		parser.accepts("genePositions", "Gff3 file containing list of gene positions").withRequiredArg().ofType(String.class)
+			.describedAs("genePositions");
+		parser.accepts("reference", "Reference fasta file").withRequiredArg().ofType(String.class)
+			.describedAs("reference");
 		parser.accepts("sequential", SEQUENTIAL_OPTION_DESCRIPTION);
 		parser.accepts("searchSuffix", "If option is specified, files must end with the supplied suffix").withRequiredArg().ofType(String.class)
 				.describedAs("Search suffix");
@@ -162,17 +166,17 @@ final class Options {
 		return (String) options.valueOf("snpChipSearchSuffix");
 	}
 	
-	public boolean hasIlluminaArraysDesignOption() {
-		return options.has("illuminaArraysDesign");
+	public Optional<String> getIlluminaArraysDesign() {
+		return Optional.ofNullable((String) options.valueOf("illuminaArraysDesign"));
 	}
-	public String getIlluminaArraysDesign() {
-		return (String) options.valueOf("illuminaArraysDesign");
+	public Optional<String> getSnpPositions() {
+		return Optional.ofNullable((String) options.valueOf("snpPositions"));
 	}
-	public boolean hasSnpPositionsOption() {
-		return options.has("snpPositions");
+	public Optional<String> getGenePositions() {
+		return Optional.ofNullable((String) options.valueOf("genePositions"));
 	}
-	public String getSnpPositions() {
-		return (String) options.valueOf("snpPositions");
+	public Optional<String> getReference() {
+		return  Optional.ofNullable((String) options.valueOf("reference"));
 	}
 	
 	public boolean hasEmailOption() {
@@ -239,9 +243,6 @@ final class Options {
 	public Optional<Integer> getNoOfThreads() {
 		return Optional.ofNullable(noOfThreads);
 	}
-//	public int getSnpChipCoverage() {
-//		return snpChipCoverage;
-//	}
 	public float getCutoff() {
 		return null != options.valueOf("cutoff") ? (Float) options.valueOf("cutoff") : 0.0f;
 	}

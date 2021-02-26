@@ -2,7 +2,10 @@ package org.qcmg.sig;
 
 import static org.junit.Assert.*;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -352,5 +355,156 @@ public class SignatureGeneratorBespokeTest {
 		assertEquals(true, new File(dir + File.separator + bamFile.getName() + ".qsig.vcf.gz").exists());
 		assertTrue(new File(dir + File.separator + bamFile.getName() + ".qsig.vcf.gz").length() > 0);
 	}
+	
+	@Test
+	public void runProcessWithGenePositionsOption() throws Exception {
+		final File genesOfInterestFile = testFolder.newFile("runProcessWithGenePositionsOption.genes.gff3");
+		final File bamFile = testFolder.newFile("runProcessWithGenePositionsOption.bam");
+		final File logFile = testFolder.newFile("runProcessWithGenePositionsOption.log");
+		final File refFile = testFolder.newFile("runProcessWithGenePositionsOption.fa");
+		final File refIndexFile = testFolder.newFile("runProcessWithGenePositionsOption.fa.fai");
+		
+		SignatureGeneratorTest.writeGenePositionsFile(genesOfInterestFile, "chr1", 10, 1000);
+		String dir = testFolder.newFolder("output_dir").getAbsolutePath();
+		try {
+			/*
+			 * this should fail as we are not supplying the reference file
+			 */
+			qss.setup(new String[] {"--log", logFile.getAbsolutePath(), 
+					"-genePositions", genesOfInterestFile.getAbsolutePath(), 
+					"-i", bamFile.getAbsolutePath(),  
+					"-d", dir} );
+			fail("Should have thrown an IllegalArgumentException");
+		} catch (QSignatureException e) {}
+		
+		setupReferenceFile(refFile, refIndexFile);
+		SignatureGeneratorTest.getBamFile(bamFile, true, true, true);
+		
+		int exitStatus = qss.setup(new String[] {"--log", logFile.getAbsolutePath(), 
+				"-genePositions", genesOfInterestFile.getAbsolutePath(), 
+				"-i", bamFile.getAbsolutePath(),  
+				"-reference", refFile.getAbsolutePath(),  
+				"-d", dir} );
+		assertEquals(0, exitStatus);
+		String name = dir + File.separator + bamFile.getName() + ".qsig.vcf.gz";
+		assertEquals(true, new File(name).exists());
+		assertTrue(new File(name).length() > 0);
+		VcfFileReader reader = new VcfFileReader(new File(name));
+		int vcfRecordCounter = 0;
+		for (VcfRecord rec : reader) {
+			vcfRecordCounter++;
+		}
+		assertEquals(97, vcfRecordCounter);
+	}
+	
+	@Test
+	public void runProcessWithGenePositionsOptioNoOverlap() throws Exception {
+		final File genesOfInterestFile = testFolder.newFile("runProcessWithGenePositionsOptioNoOverlap.genes.gff3");
+		final File bamFile = testFolder.newFile("runProcessWithGenePositionsOptioNoOverlap.bam");
+		final File logFile = testFolder.newFile("runProcessWithGenePositionsOptioNoOverlap.log");
+		final File refFile = testFolder.newFile("runProcessWithGenePositionsOptioNoOverlap.fa");
+		final File refIndexFile = testFolder.newFile("runProcessWithGenePositionsOptioNoOverlap.fa.fai");
+		
+		SignatureGeneratorTest.writeGenePositionsFile(genesOfInterestFile, "chr1", 10000, 12000);
+		String dir = testFolder.newFolder("output_dir").getAbsolutePath();
+		
+		setupReferenceFile(refFile, refIndexFile);
+		SignatureGeneratorTest.getBamFile(bamFile, true, true, true);
+		
+		int exitStatus = qss.setup(new String[] {"--log", logFile.getAbsolutePath(), 
+				"-genePositions", genesOfInterestFile.getAbsolutePath(), 
+				"-i", bamFile.getAbsolutePath(),  
+				"-reference", refFile.getAbsolutePath(),  
+				"-d", dir} );
+		assertEquals(0, exitStatus);
+		String name = dir + File.separator + bamFile.getName() + ".qsig.vcf.gz";
+		assertEquals(true, new File(name).exists());
+		assertTrue(new File(name).length() > 0);
+		VcfFileReader reader = new VcfFileReader(new File(name));
+		int vcfRecordCounter = 0;
+		for (VcfRecord rec : reader) {
+			vcfRecordCounter++;
+		}
+		assertEquals(0, vcfRecordCounter);
+	}
+	@Test
+	public void runProcessWithGenePositionsOptioPartialOverlap() throws Exception {
+		final File genesOfInterestFile = testFolder.newFile("runProcessWithGenePositionsOptioPartialOverlap.genes.gff3");
+		final File bamFile = testFolder.newFile("runProcessWithGenePositionsOptioPartialOverlap.bam");
+		final File logFile = testFolder.newFile("runProcessWithGenePositionsOptioPartialOverlap.log");
+		final File refFile = testFolder.newFile("runProcessWithGenePositionsOptioPartialOverlap.fa");
+		final File refIndexFile = testFolder.newFile("runProcessWithGenePositionsOptioPartialOverlap.fa.fai");
+		
+		SignatureGeneratorTest.writeGenePositionsFile(genesOfInterestFile, "chr1", 10, 200);
+		String dir = testFolder.newFolder("output_dir").getAbsolutePath();
+		
+		setupReferenceFile(refFile, refIndexFile);
+		SignatureGeneratorTest.getBamFile(bamFile, true, true, true);
+		
+		int exitStatus = qss.setup(new String[] {"--log", logFile.getAbsolutePath(), 
+				"-genePositions", genesOfInterestFile.getAbsolutePath(), 
+				"-i", bamFile.getAbsolutePath(),  
+				"-reference", refFile.getAbsolutePath(),  
+				"-d", dir} );
+		assertEquals(0, exitStatus);
+		String name = dir + File.separator + bamFile.getName() + ".qsig.vcf.gz";
+		assertEquals(true, new File(name).exists());
+		assertTrue(new File(name).length() > 0);
+		VcfFileReader reader = new VcfFileReader(new File(name));
+		int vcfRecordCounter = 0;
+		for (VcfRecord rec : reader) {
+			vcfRecordCounter++;
+		}
+		assertEquals(50, vcfRecordCounter);		// records start at position 150, gene ends at 200
+	}
+	
+	
+	private void setupReferenceFile(File file, File indexFile) throws IOException {
+			
+		try (BufferedWriter writer = new BufferedWriter(new FileWriter(file));) {
+			writer.write(">chr1\n");
+			writer.write("GATCACAGGTCTATCACCCTATTAACCACTCACGGGAGCTCTCCATGCATTTGGTATTTTCGTCTGGGGG");
+			writer.write("GTATGCACGCGATAGCATTGCGAGACGCTGGAGCCGGAGCACCCTATGTCGCAGTATCTGTCTTTGATTC");
+			writer.write("CTGCCTCATCCTATTATTTATCGCACCTACGTTCAATATTACAGGCGAACATACTTACTAAAGTGTGTTA");
+			writer.write("ATTAATTAATGCTTGTAGGACATAATAATAACAATTGAATGTCTGCACAGCCACTTTCCACACAGACATC");
+			writer.write("ATAACAAAAAATTTCCACCAAACCCCCCCTCCCCCGCTTCTGGCCACAGCACTTAAACACATCTCTGCCA");
+			writer.write("AACCCCAAAAACAAAGAACCCTAACACCAGCCTAACCAGATTTCAAATTTTATCTTTTGGCGGTATGCAC");
+			writer.write("TTTTAACAGTCACCCCCCAACTAACACATTATTTTCCCCTCCCACTCCCATACTACTAATCTCATCAATA");
+			writer.write("CAACCCCCGCCCATCCTACCCAGCACACACACACCGCTGCTAACCCCATACCCCGAACCAACCAAACCCC");
+			writer.write("AAAGACACCCCCCACAGTTTATGTAGCTTACCTCCTCAAAGCAATACACTGAAAATGTTTAGACGGGCTC");
+			writer.write("ACATCACCCCATAAACAAATAGGTTTGGTCCTAGCCTTTCTATTAGCTCTTAGTAAGATTACACATGCAA");
+			writer.write("GCATCCCCGTTCCAGTGAGTTCACCCTCTAAATCACCACGATCAAAAGGAACAAGCATCAAGCACGCAGC");
+			writer.write("AATGCAGCTCAAAACGCTTAGCCTAGCCACACCCCCACGGGAAACAGCAGTGATTAACCTTTAGCAATAA");
+			writer.write("ACGAAAGTTTAACTAAGCTATACTAACCCCAGGGTTGGTCAATTTCGTGCCAGCCACCGCGGTCACACGA");
+			writer.write("TTAACCCAAGTCAATAGAAGCCGGCGTAAAGAGTGTTTTAGATCACCCCCTCCCCAATAAAGCTAAAACT");
+			writer.write("CACCTGAGTTGTAAAAAACTCCAGTTGACACAAAATAGACTACGAAAGTGGCTTTAACATATCTGAACAC");
+			writer.write("ACAATAGCTAAGACCCAAACTGGGATTAGATACCCCACTATGCTTAGCCCTAAACCTCAACAGTTAAATC");
+			writer.write("AACAAAACTGCTCGCCAGAACACTACGAGCCACAGCTTAAAACTCAAAGGACCTGGCGGTGCTTCATATC");
+			writer.write("CCTCTAGAGGAGCCTGTTCTGTAATCGATAAACCCCGATCAACCTCACCACCTCTTGCTCAGCCTATATA");
+			writer.write("CCGCCATCTTCAGCAAACCCTGATGAAGGCTACAAAGTAAGCGCAAGTACCCACGTAAAGACGTTAGGTC");
+			writer.write("AAGGTGTAGCCCATGAGGTGGCAAGAAATGGGCTACATTTTCTACCCCAGAAAACTACGATAGCCCTTAT");
+			writer.write("GAAACTTAAGGGTCGAAGGTGGATTTAGCAGTAAACTAAGAGTAGAGTGCTTAGTTGAACAGGGCCCTGA");
+			writer.write("AGCGCGTACACACCGCCCGTCACCCTCCTCAAGTATACTTCAAAGGACATTTAACTAAAACCCCTACGCA");
+			writer.write("TTTATATAGAGGAGACAAGTCGTAACATGGTAAGTGTACTGGAAAGTGCACTTGGACGAACCAGAGTGTA");
+			writer.write("GCTTAACACAAAGCACCCAACTTACACTTAGGAGATTTCAACTTAACTTGACCGCTCTGAGCTAAACCTA");
+			writer.write("GCCCCAAACCCACTCCACCTTACTACCAGACAACCTTAGCCAAACCATTTACCCAAATAAAGTATAGGCG");
+			writer.write("ATAGAAATTGAAACCTGGCGCAATAGATATAGTACCGCAAGGGAAAGATGAAAAATTATAACCAAGCATA");
+			writer.write("ATATAGCAAGGACTAACCCCTATACCTTCTGCATAATGAATTAACTAGAAATAACTTTGCAAGGAGAGCC");
+			writer.write("AAAGCTAAGACCCCCGAAACCAGACGAGCTACCTAAGAACAGCTAAAAGAGCACACCCGTCTATGTAGCA");
+			writer.write("AAATAGTGGGAAGATTTATAGGTAGAGGCGACAAACCTACCGAGCCTGGTGATAGCTGGTTGTCCAAGAT");
+			writer.write("AGAATCTTAGTTCAACTTTAAATTTGCCCACAGAACCCTCTAAATCCCCTTGTAAATTTAACTGTTAGTC");
+			writer.write("CAAAGAGGAACAGCTCTTTGGACACTAGGAAAAAACCTTGTAGAGAGAGTAAAAAATTTAACACCCATAG");
+			writer.write("TAGGCCTAAAAGCAGCCACCAATTAAGAAAGCGTTCAAGCTCAACACCCACTACCTAAAAAATCCCAAAC");
+			writer.write("ATATAACTGAACTCCTCACACCCAATTGGACCAATCTATCACCCTATAGAAGAACTAATGTTAGTATAAG");
+			writer.write("TAACATGAAAACATTCTCCTCCGCATAAGCCTGCGTCAGATTAAAACACTGAACTGACAATTAACAGCCC");
+			writer.write("AATATCTACAATCAACCAACAAGTCATTATTACCCTCACTGTCAACCCAACACAGGCATGCTCATAAGGA");
+			writer.write("AAGGTTAAAAAAAGTAAAAGGAACTCGGCAAATCTTACCCCGCCTGTTTACCAAAAACATCACCTCTAGC");
+			writer.write("ATCACCAGTATTAGAGGCACCGCCTGCCCAGTGACACATGTTTAACGGCCGCGGTACCCTAACCGTGCAA");
+		}
+		
+		try (BufferedWriter writer = new BufferedWriter(new FileWriter(indexFile));) {
+			writer.write("chr1\t16571\t7\t50\t51\n");
+		}
+    }
 
 }

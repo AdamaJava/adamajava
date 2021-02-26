@@ -6,9 +6,12 @@
 package org.qcmg.picard;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+
+import org.qcmg.common.string.StringUtils;
 
 import htsjdk.samtools.reference.FastaSequenceFile;
 import htsjdk.samtools.reference.FastaSequenceIndex;
@@ -89,6 +92,43 @@ public class ReferenceUtils {
 			return f;
 		}
 		return null;
-	}	
+	}
+	
+	
+	/**
+	 * Doesn't use any of the caches - looks up the reference file every time!
+	 * @param file
+	 * @param contig
+	 * @param start
+	 * @param end
+	 * @return
+	 */
+	public static byte[] getRegionFromReferenceFile(String file, String contig, int start, int end) {
+		
+		if (null == file || ! new File(file).exists()) {
+			throw new IllegalArgumentException("Null or invalid file supplied to ReferenceUtils.getRegionFromReferenceFile: " + file);
+		}
+		if (StringUtils.isNullOrEmpty(contig)) {
+			throw new IllegalArgumentException("Null or invalid chromosome supplied to ReferenceUtils.getRegionFromReferenceFile: " + contig);
+		}
+		if ( ! new File(file + ".fai").exists()) {
+			throw new IllegalArgumentException("No index file available: " + file + ".fai");
+		}
+		/*
+		 * setup the index, check to see if the index contains the contig
+		 */
+		FastaSequenceIndex index = new FastaSequenceIndex(new File(file + ".fai"));
+		if ( ! index.hasIndexEntry(contig)) {
+			throw new IllegalArgumentException("Chromosome " + contig + " is not present in reference file: " + file);
+		}
+		
+		try (IndexedFastaSequenceFile refFile = new IndexedFastaSequenceFile(new File(file), index);) {
+			ReferenceSequence refSeq = refFile.getSubsequenceAt(contig, start, end);
+			return refSeq.getBases();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
 
 }
