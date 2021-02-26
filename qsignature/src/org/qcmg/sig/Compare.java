@@ -290,8 +290,6 @@ public class Compare {
 	}
 	
 	public static void main(String[] args) throws Exception {
-		LoadReferencedClasses.loadClasses(Compare.class);
-		
 		Compare sp = new Compare();
 		int exitStatus = 0;
 		try {

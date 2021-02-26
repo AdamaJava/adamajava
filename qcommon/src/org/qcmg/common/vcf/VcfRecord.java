@@ -48,7 +48,6 @@ public class VcfRecord implements Comparable<VcfRecord> {
         private String alt;
         private String qualString;
         private String filter;
-//        private VcfInfoFieldRecord infoRecord;
         private final List<String> formatRecords = new ArrayList<String>(6);
        
         public Builder(ChrPosition cp, String ref, String alt){
@@ -64,10 +63,10 @@ public class VcfRecord implements Comparable<VcfRecord> {
         	this.alt = alt; 
         }
        
-        public Builder(String chromosome, int position, String ref){ this(ChrPointPosition.valueOf(chromosome, position),ref, null);   }
+        public Builder(String chromosome, int position, String ref){ this(ChrPointPosition.valueOf(chromosome, position), ref, null);   }
         public Builder(String chromosome, int position){  this( ChrPointPosition.valueOf(chromosome, position), null, null );  }
-        public Builder(ChrPosition cp, String ref){ this(cp ,ref, null);}
-        public Builder(ChrPosition cpp){ this( cpp, null,null); }  
+        public Builder(ChrPosition cp, String ref){ this(cp, ref, null);}
+        public Builder(ChrPosition cpp){ this( cpp, null, null); }  
         
 		public Builder id(String id){   this.id = id;    return this;  }
         public Builder allele(String alt){   this.alt = alt;   return this;   }
@@ -83,9 +82,7 @@ public class VcfRecord implements Comparable<VcfRecord> {
         this.alt = builder.alt;
         this.qualString = builder.qualString;
         this.filter = builder.filter;
-//        this.infoRecord = builder.infoRecord;
         this.formatRecords = builder.formatRecords;
- 
     }	
 	
 	/**
@@ -165,12 +162,12 @@ public class VcfRecord implements Comparable<VcfRecord> {
 	 */
 	public String getFilter() { 
 		
-		if(! StringUtils.isNullOrEmpty(this.filter)){
+		if (! StringUtils.isNullOrEmpty(this.filter)) {
 			if (filter.contains(Constants.MISSING_DATA_STRING + Constants.SEMI_COLON)) {
 				filter = filter.replace(Constants.MISSING_DATA_STRING + Constants.SEMI_COLON, "");
 			}
 			if (filter.contains(Constants.SEMI_COLON + Constants.MISSING_DATA_STRING)) {
-				filter = filter.replace(Constants.SEMI_COLON + Constants.MISSING_DATA_STRING,"");
+				filter = filter.replace(Constants.SEMI_COLON + Constants.MISSING_DATA_STRING, "");
 			}
 		} 		
 		
@@ -208,7 +205,7 @@ public class VcfRecord implements Comparable<VcfRecord> {
 						infoRecord.setField(s,null);
 				} else {
 					final String key = s.substring(0, s.indexOf(Constants.EQ));
-					final String data = s.substring(s.indexOf(Constants.EQ) +1 );
+					final String data = s.substring(s.indexOf(Constants.EQ) + 1);
 				    if (key.isEmpty() || data.isEmpty()) {
 				    		throw new IllegalArgumentException("Sub INFO string didn't follow format <key>=<data>:" + s);
 				    }

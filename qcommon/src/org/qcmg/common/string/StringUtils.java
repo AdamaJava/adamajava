@@ -316,6 +316,18 @@ public class StringUtils {
 		return flag;
 	}
 	
+	public static String appendToString(String prefix, String s, boolean dontAddIfAlreadyStartsWithPrefix) {
+		
+		if ( ! s.startsWith(prefix)) {
+			return prefix + s;
+		} else {
+			if ( ! dontAddIfAlreadyStartsWithPrefix) {
+				return prefix + s;
+			}
+		}
+		return s;
+	}
+	
 	/**
 	 * Returns a ChrPosition object based on a string of the following format: chr1:123456-123456
 	 * <p>
