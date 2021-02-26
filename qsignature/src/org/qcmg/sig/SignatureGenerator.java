@@ -691,10 +691,7 @@ public class SignatureGenerator {
 			
 			options.getMinMappingQuality().ifPresent(i -> minMappingQuality = i.intValue());
 			options.getMinBaseQuality().ifPresent(i -> minBaseQuality = i.intValue());
-			
-			if (options.hasIlluminaArraysDesignOption()) {
-				illumiaArraysDesign = options.getIlluminaArraysDesign();
-			}
+			options.getIlluminaArraysDesign().ifPresent(i -> illumiaArraysDesign = i);
 			
 			validationStringency = options.getValidation();
 			
