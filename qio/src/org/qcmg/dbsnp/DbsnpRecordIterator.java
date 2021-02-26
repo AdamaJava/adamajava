@@ -9,7 +9,7 @@ import java.io.InputStreamReader;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-
+@Deprecated
 public final class DbsnpRecordIterator implements Iterator<Dbsnp130Record> {
     private final BufferedReader reader;
     private Dbsnp130Record next;

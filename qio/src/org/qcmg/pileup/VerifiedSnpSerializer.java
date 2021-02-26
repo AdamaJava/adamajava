@@ -9,7 +9,7 @@ import java.util.regex.Pattern;
 
 import org.qcmg.common.model.Classification;
 
-
+@Deprecated
 public final class VerifiedSnpSerializer {
 	private static final Pattern tabbedPattern = Pattern.compile("[\\t]");
 	private static final String DEFAULT_HEADER_PREFIX = "#";

@@ -13,6 +13,7 @@ import java.nio.channels.FileLock;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 
+@Deprecated
 public final class GermlineDBFileWriter implements Closeable {
 	private final FileOutputStream outputStream;
 	private final FileChannel fileChannel;

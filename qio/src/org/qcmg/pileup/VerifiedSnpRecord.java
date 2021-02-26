@@ -6,7 +6,7 @@ package org.qcmg.pileup;
 import org.qcmg.common.model.Classification;
 
 
-
+@Deprecated
 public class VerifiedSnpRecord {
 	
 	private String id;

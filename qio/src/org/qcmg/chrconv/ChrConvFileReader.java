@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
 
+@Deprecated
 public final class ChrConvFileReader implements Closeable, Iterable<ChromosomeConversionRecord> {
     private final File file;
     private final InputStream inputStream;

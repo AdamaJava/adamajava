@@ -3,6 +3,7 @@
  */
 package org.qcmg.chrconv;
 
+@Deprecated
 public class ChromosomeConversionRecord {
 
     protected String ensembleV55;

@@ -3,7 +3,7 @@
  */
 package org.qcmg.germlinedb;
 
-
+@Deprecated
 public class GermlineDBRecord {
 	private String chromosome;
 	private int position;

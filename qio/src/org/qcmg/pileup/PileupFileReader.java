@@ -13,7 +13,7 @@ import java.util.Iterator;
 import java.util.zip.GZIPInputStream;
 import org.qcmg.common.util.FileUtils;
 
-
+@Deprecated
 public final class PileupFileReader implements Closeable, Iterable<String> {
 //	public final class PileupFileReader implements Closeable, Iterable<PileupRecord> {
     private final File file;
