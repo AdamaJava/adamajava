@@ -25,6 +25,7 @@ import org.qcmg.pileup.VerifiedSnpFileReader;
 import org.qcmg.pileup.VerifiedSnpRecord;
 import org.qcmg.qio.vcf.VcfFileReader;
 
+@Deprecated
 public class ExamineVerifiedSnps {
 	
 	private static final QLogger logger = QLoggerFactory.getLogger(ExamineVerifiedSnps.class);

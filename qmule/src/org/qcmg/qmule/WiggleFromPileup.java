@@ -26,6 +26,7 @@ import org.qcmg.qio.gff3.Gff3Record;
 import org.qcmg.qio.gff3.Gff3RecordChromosomeAndPositionComparator;
 import org.qcmg.pileup.PileupFileReader;
 
+@Deprecated
 public class WiggleFromPileup {
 	
 	private final static Pattern tabbedPattern = Pattern.compile("[\\t]");
