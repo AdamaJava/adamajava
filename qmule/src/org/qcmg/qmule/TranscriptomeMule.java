@@ -23,6 +23,7 @@ import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.picard.util.PileupElementUtil;
 import org.qcmg.pileup.PileupFileReader;
 
+@Deprecated
 public class TranscriptomeMule {
 	
 	private String logFile;

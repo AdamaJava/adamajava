@@ -15,6 +15,7 @@ import java.util.Iterator;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 
+@Deprecated
 public final class GermlineDBFileReader implements Closeable, Iterable<GermlineDBRecord> {
     private final File file;
     private final InputStream inputStream;

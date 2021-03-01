@@ -21,6 +21,7 @@ import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.pileup.PileupFileReader;
 
+@Deprecated
 public class UniqueQSnps {
 	
 	private static final QLogger logger = QLoggerFactory.getLogger(UniqueQSnps.class);

@@ -6,6 +6,7 @@ package org.qcmg.pileup;
 import java.io.BufferedReader;
 import java.io.IOException;
 
+@Deprecated
 public final class PileupSerializer {
 //	private static final Pattern tabbedPattern = Pattern.compile("[\\t]");
 	private static final String DEFAULT_HEADER_PREFIX = "#";

@@ -10,6 +10,7 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import org.qcmg.common.model.QSnpRecord;
 
+@Deprecated
 public final class QPileupRecordIterator implements Iterator<QSnpRecord> {
     private final BufferedReader reader;
     private QSnpRecord next;

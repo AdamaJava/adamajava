@@ -9,6 +9,7 @@ import java.io.InputStreamReader;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
+@Deprecated
 public final class GermlineDBRecordIterator implements Iterator<GermlineDBRecord> {
     private final BufferedReader reader;
     private GermlineDBRecord next;
