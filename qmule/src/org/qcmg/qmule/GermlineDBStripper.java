@@ -10,6 +10,7 @@ import org.qcmg.germlinedb.GermlineDBFileReader;
 import org.qcmg.germlinedb.GermlineDBFileWriter;
 import org.qcmg.germlinedb.GermlineDBRecord;
 
+@Deprecated
 public class GermlineDBStripper {
 	
 	

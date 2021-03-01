@@ -8,6 +8,7 @@ import java.io.IOException;
 
 import org.qcmg.common.util.TabTokenizer;
 
+@Deprecated
 public final class DbsnpSerializer {
 
 	public static Dbsnp130Record nextRecord(final BufferedReader reader) throws Exception, IOException {

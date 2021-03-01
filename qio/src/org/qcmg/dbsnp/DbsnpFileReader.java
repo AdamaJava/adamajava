@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
 
-
+@Deprecated
 public final class DbsnpFileReader implements Closeable, Iterable<Dbsnp130Record> {
     private final File file;
     private final InputStream inputStream;

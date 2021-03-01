@@ -42,6 +42,7 @@ import org.qcmg.qmule.Options;
 import org.qcmg.qmule.Options.Ids;
 import org.qcmg.qmule.QMuleException;
 
+@Deprecated
 public class GatkUniqueSnps {
 	
 	private static QLogger logger;

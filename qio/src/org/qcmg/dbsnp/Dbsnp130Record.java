@@ -12,7 +12,7 @@
 package org.qcmg.dbsnp;
 
 
-
+@Deprecated
 public class Dbsnp130Record {
 
     protected String refSnp;

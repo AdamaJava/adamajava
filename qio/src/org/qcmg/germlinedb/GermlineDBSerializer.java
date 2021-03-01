@@ -8,6 +8,7 @@ import java.io.IOException;
 
 import org.qcmg.common.util.TabTokenizer;
 
+@Deprecated
 public final class GermlineDBSerializer {
 	private static final String DEFAULT_HEADER_PREFIX = "analysis_id";
 
