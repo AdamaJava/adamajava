@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.util.Iterator;
 import org.qcmg.common.model.QSnpRecord;
 
+@Deprecated
 public final class QPileupFileReader implements Closeable, Iterable<QSnpRecord> {
     private final File file;
     private final InputStream inputStream;

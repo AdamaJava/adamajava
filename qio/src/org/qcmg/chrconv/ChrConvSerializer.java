@@ -8,6 +8,7 @@ import java.io.IOException;
 
 import org.qcmg.common.util.TabTokenizer;
 
+@Deprecated
 public class ChrConvSerializer {
 	private static final String DEFAULT_HEADER_PREFIX = "#";
 	private static final String N_A = "n/a";

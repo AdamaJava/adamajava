@@ -15,6 +15,7 @@ import org.qcmg.common.util.BaseUtils;
 import org.qcmg.common.model.Classification;
 import org.qcmg.common.model.QSnpRecord;
 
+@Deprecated
 public final class QPileupSerializer {
 	private static final Pattern tabbedPattern = Pattern.compile("[\\t]");
 	private static final String DEFAULT_HEADER_PREFIX = "#";

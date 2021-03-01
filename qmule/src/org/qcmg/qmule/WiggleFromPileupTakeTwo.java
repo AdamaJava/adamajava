@@ -26,6 +26,7 @@ import org.qcmg.qio.gff3.Gff3FileReader;
 import org.qcmg.qio.gff3.Gff3Record;
 import org.qcmg.pileup.PileupFileReader;
 
+@Deprecated
 public class WiggleFromPileupTakeTwo {
 	
 	private static QLogger logger;

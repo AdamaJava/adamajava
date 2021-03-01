@@ -40,6 +40,7 @@ import org.qcmg.qio.illumina.IlluminaRecord;
 import org.qcmg.qio.record.StringFileReader;
 import org.qcmg.qio.vcf.VcfFileReader;
 
+@Deprecated
 public class SnpPicker {
 	
 	private static final char DEFAULT_CHAR = '\u0000';

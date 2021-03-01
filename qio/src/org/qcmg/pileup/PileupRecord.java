@@ -3,7 +3,7 @@
  */
 package org.qcmg.pileup;
 
-
+@Deprecated
 public class PileupRecord {
 	private String pileup;
 	
