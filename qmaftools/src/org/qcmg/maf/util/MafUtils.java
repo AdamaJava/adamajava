@@ -641,16 +641,9 @@ public class MafUtils {
 		} else {
 			maf.setNormalAllele1(getAllele(true, params[9]));
 			maf.setNormalAllele2(getAllele(false, params[9]));
-//			maf.setNormalAllele1(getAllele(true, type, params[9]));
-//			maf.setNormalAllele2(getAllele(false, type, params[9]));
 		}
 		
-		
-//		if (canonicalMafMode) {
-//			canonicalTranscript(type, params, genes, geneIds, transcriptIds, maf);
-//		} else {
-//			worstCaseTranscript(type, params, genes, geneIds, transcriptIds, maf, ensemblToEntrez, offset);
-		
+			
 		worstCaseConsequence(type, params, maf, ensemblToEntrez, offset);
 		
 		
@@ -662,7 +655,6 @@ public class MafUtils {
 	}
 	
 	public static String getAllele(boolean firstAllele, String bases) throws QMafException {
-//		public static String getAllele(boolean firstAllele, MutationType type, String bases) throws QMafException {
 		int index = bases.indexOf('/');
 		if (index >= 0)
 			return firstAllele ? bases.substring(0, index) : bases.substring(index + 1);
@@ -731,24 +723,16 @@ public class MafUtils {
 		// setup collection of GenePositions
 		List<GenePositions> genePositions = getGenePositions(genes);
 		
-//		String [] allTranscripts = params[allTranscriptsPosition].split("[,|]");
 		String [] consequences = params[consequencesPosition].split(",");
-//		int i = 0;
 		for (GenePositions genePosition : genePositions) {
 			
 			List<String> geneSpecificTranscriptIds = StringUtils.getChildArrayFromParentArray(transcriptIds, genePosition.getPositions());
-//			String[] geneSpecificTranscriptIds =  transcriptIds[i].split(",");
 			String geneId = geneIds[genePosition.getPositions()[0]];
 			
-			// need start and stop positions of transcripts belonging to this gene so that the relevant consequences can be retrieved
-//			int startPosition = StringUtils.getPositionOfStringInArray(allTranscripts, geneSpecificTranscriptIds[0], true);
-//			int endPosition = StringUtils.getPositionOfStringInArray(allTranscripts, geneSpecificTranscriptIds[geneSpecificTranscriptIds.length -1], true);
-			
+			// need start and stop positions of transcripts belonging to this gene so that the relevant consequences can be retrieved			
 			
 			String [] geneConsequences = new String[genePosition.getPositions().length];
 			
-//			logger.info("consequences: " + Arrays.deepToString(consequences));
-//			logger.info("startPosition: " + startPosition + ", endPosition: " + endPosition);
 			int j = 0;
 			for (int position : genePosition.getPositions()) {
 				geneConsequences[j++] = consequences[position];
@@ -783,54 +767,11 @@ public class MafUtils {
 			maf.addHugoSymbol("Unknown".equals(genePosition.getGene()) ? MafUtils.getHugoSymbol(geneId) : genePosition.getGene());
 		}
 	}
-	
-//	static void walkThroughConsequences(DccType type, String[] params,
-//			String[] genes, String[] geneIds, String[] transcriptIds,
-//			MAFRecord maf, Map<String, Set<Integer>> ensemblToEntrez,
-//			final int allTranscriptsPosition, final int consequencesPosition,
-//			final int aaChangesPosition, final int baseChangesPosition) {
-//		
-//		String [] consequences = params[consequencesPosition].split(",");
-//		String worstCaseConsequence = DccConsequence.getWorstCaseConsequence(type, consequences);
-//		
-//		if (null == worstCaseConsequence) {
-//			logger.debug("No worst case consequence found in: " + Arrays.deepToString(consequences));
-//		} else {
-//			logger.debug("Worst case consequence found: " + worstCaseConsequence);
-//			String dccConseq = DccConsequence.getMafName(worstCaseConsequence, type, Integer.parseInt(params[1]));
-//			if (DccConsequence.passesMafNameFilter(dccConseq)) {
-//				logger.debug("dcc consequence found: " + dccConseq);
-//				// need to get corresponding gene and transcript id
-//				int arrayPosition = StringUtils.getPositionOfStringInArray(consequences, worstCaseConsequence, false);
-//				String gene = (arrayPosition > -1 && arrayPosition < genes.length) ? genes[arrayPosition] : null;
-//				String geneId = (arrayPosition > -1 && arrayPosition < geneIds.length) ? geneIds[arrayPosition] : null;
-//				String transcriptId = (arrayPosition > -1 && arrayPosition < transcriptIds.length) ? transcriptIds[arrayPosition] : null;
-//				
-//				String [] aaChanges = params[aaChangesPosition].split(",");
-//				String [] baseChanges = params[baseChangesPosition].split(",");
-//				
-//				String aaChange = (arrayPosition > -1 && arrayPosition < aaChanges.length) ? aaChanges[arrayPosition] : null;
-//				String baseChange = (arrayPosition > -1 && arrayPosition < baseChanges.length) ? baseChanges[arrayPosition] : null;
-//				
-//				
-//				maf.addVariantClassification(dccConseq);
-//				
-//				maf.addCanonicalTranscriptId(transcriptId);
-//				maf.addCanonicalAAChange(aaChange);
-//				maf.addCanonicalBaseChange(baseChange);
-//				maf.addEntrezGeneId(getEntrezId(geneId, ensemblToEntrez));
-//				maf.addHugoSymbol("Unknown".equals(gene) ? MafUtils.getHugoSymbol(geneId) : gene);
-//				
-//			} else {
-//				logger.debug("Skipping this dccConseq: " + dccConseq + ", consequences[] " + Arrays.deepToString(consequences));
-//			}
-//		}
-//	}
+
 	
 	public static void worstCaseConsequence(MutationType type, String[] params,
 			MAFRecord maf, Map<String, Set<Integer>> ensemblToEntrez, int offset) {
 		
-//		final int allTranscriptsPosition = 27 + offset;
 		final int consequencesPosition = 22 + offset;
 		final int aaChangesPosition = 23 + offset;
 		final int baseChangesPosition = 24 + offset;
@@ -888,7 +829,6 @@ public class MafUtils {
 			String[] genes, String[] geneIds, String[] transcriptIds,
 			MAFRecord maf, Map<String, String> ensemblGeneToCanonicalTranscript, Map<String, Set<Integer>> ensemblToEntrez) {
 		int i = 0, allTranscriptIdCount = 0;
-		//TODO may need to up index positions if novel starts info is contained in dcc file
 		for (String gene : genes) {
 			String[] geneSpecificTranscriptIds =  transcriptIds[i].split(",");
 			String geneId = geneIds[i++];
@@ -901,9 +841,7 @@ public class MafUtils {
 				String [] consequences = params[22].split(",");
 				String [] aaChanges = params[23].split(",");
 				String [] baseChanges = params[24].split(",");
-				
-				//TODO what to do if canonical transcript id is not found!!
-				
+								
 				if (positionInTranscripts > -1) {
 					// we have a matching canonical transcript
 					positionInTranscripts += allTranscriptIdCount;
@@ -922,7 +860,6 @@ public class MafUtils {
 						logger.info("consequences.length is <= positionInTranscripts");
 					}
 				} else {
-//					missingCanonicalTransId++;
 					logger.debug("canonical transcript id not found in transcript id array");
 					
 					// don't want to record this gene 

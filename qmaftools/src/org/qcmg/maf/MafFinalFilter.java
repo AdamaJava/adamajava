@@ -6,7 +6,6 @@ package org.qcmg.maf;
 import java.io.File;
 import java.io.FileWriter;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -29,7 +28,6 @@ public class MafFinalFilter {
 	private boolean includePositionsThatDidNotVerify;
 	
 	List<String> highConfidenceMafs = new ArrayList<String>(); 
-//	List<String> probableNoiseMafs = new ArrayList<String>(); 
 	
 	public int engage() throws Exception {
 		// load mapping files

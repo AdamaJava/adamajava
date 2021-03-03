@@ -7,7 +7,6 @@
 package org.qcmg.maf;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -31,6 +30,7 @@ import htsjdk.samtools.SamReader;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMRecordIterator;
 import htsjdk.samtools.SamReaderFactory;
+import htsjdk.samtools.SamReaderFactory.Option;
 
 import org.qcmg.common.dcc.MutationType;
 import org.qcmg.common.log.QLogger;
@@ -151,7 +151,6 @@ public abstract class MafPipelineNew {
 	
 	//COSMIC data
 	Map<ChrPosition, List<String>> cosmicData = new HashMap<ChrPosition, List<String>>();
-//	Map<ChrPositionMutation, List<String>> cosmicData = new HashMap<ChrPositionMutation, List<String>>();
 	Map<String, AtomicInteger> cosmicGenes = new HashMap<String, AtomicInteger>();
 	
 	/**
@@ -207,7 +206,6 @@ public abstract class MafPipelineNew {
 			}
 		}
 		
-//		CountDownLatch latch = new CountDownLatch(100);
 		int poolSize = 2;
 		ExecutorService executor = Executors.newFixedThreadPool(poolSize);
 		
@@ -262,27 +260,15 @@ public abstract class MafPipelineNew {
 			long start = System.nanoTime();
 			long elapsedTime = 0;
 			
-			
-			SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile);
-			if(ncMafs.size() >=10)
-				 reader =   SAMFileReaderFactory.createSAMFileReader(bamFile, SamReaderFactory.Option.CACHE_FILE_BASED_INDEXES);
-			
-			
-			// if we have a small no of positions, no need to cache
-//			reader.enableIndexCaching(ncMafs.size() < 10);
-			
+			Option[] opt = ncMafs.size() >= 10?  new Option[] {SamReaderFactory.Option.CACHE_FILE_BASED_INDEXES} : new Option[0];
+						
 			int noOfRecordsRetrievedForPatient = 0, noOfPositionsRetrievedForPatient = 0, positionsWithDeletions = 0;
 			
-			try {
+			try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile, opt);){
 				for (MAFRecord maf : ncMafs) {
 					noOfPositionsRetrievedForPatient++;
 					String chr = MafUtils.getFullChromosome(maf);
-//					List<SAMRecord> records = qj.getRecordsAtPosition(chr, maf.getStartPosition());
 					SAMRecordIterator records = reader.queryOverlapping(chr, maf.getStartPosition(), maf.getStartPosition());
-//					noOfRecordsRetrievedForPatient += records.size();
-//					logger.info("pos: " + maf.getChromosome() + "-" + maf.getStartPosition() + ": " + records.size());
-					
-//					char[] bases = new char[records.size()];
 					char[] novelStartBases = new char[1024];	// hmmmmm
 					Set<Integer> forwardStrand = new HashSet<Integer>();
 					Set<Integer> reverseStrand = new HashSet<Integer>();
@@ -302,9 +288,7 @@ public abstract class MafPipelineNew {
 							if (sam.getBaseQualities()[indexInRead] < 10) continue;
 							
 							char c = sam.getReadString().charAt(indexInRead);
-//							bases[i++] = c;
-							// novel start count
-							
+							// novel start count							
 							final char var = MafUtils.getVariant(maf).charAt(0);
 							
 							// only care about variant novel starts
@@ -322,7 +306,6 @@ public abstract class MafPipelineNew {
 							}
 						} else {
 							positionsWithDeletions++;
-//							logger.info("help!!");
 						}
 					}
 					records.close();
@@ -343,27 +326,14 @@ public abstract class MafPipelineNew {
 						+ " ("  + ((double)noOfRecordsRetrievedForPatient / elapsedTime)
 						+ " per sec), deletions (possibly): " + positionsWithDeletions);
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
-			} finally {
-				try {
-					reader.close();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} finally {
-//					latch.countDown();
-					logger.info("thread finishing, elapsedTime: " + elapsedTime);
-				}
-//			}
-			}
+			} 
 		}
 	}
 
 	void addCpgAndGff() throws Exception {
 		logger.info("adding cpg and gff");
 		
-//		Map<String, TreeMap<ChrPosition, String>> gffs = new HashMap<String, TreeMap<ChrPosition, String>>();
 		Map<ChrPosition, String> cpgs = new TreeMap<ChrPosition, String>();
 		
 		
@@ -397,8 +367,6 @@ public abstract class MafPipelineNew {
 		// if file is null, skip this stage
 		if ( ! StringUtils.isNullOrEmpty(gffFile) && ! gffs.isEmpty()) {
 			logger.info("number of records requiring gff data: " + gffs.size());
-//			Gff3FileReader reader = new Gff3FileReader(new File(gffFile));
-	//		Map<String, Map<ChrPosition, String>> gffTypes = new HashMap<String, Map<ChrPosition, String>>();
 			try (Gff3FileReader reader = new Gff3FileReader(new File(gffFile))) {
 				int  count = 0, updatedCount  = 0;
 				List<ChrPosBait> relevantList = null;
@@ -435,7 +403,6 @@ public abstract class MafPipelineNew {
 					
 					// loop through positionsOfInterestMap, and if we have an overlap, update our gff type
 					// this could take a while
-//					Map<ChrPosition, String> relevantMap = gffs.get(chr);
 					if (null != relevantList) {
 						
 						ChrPosition cp = new ChrRangePosition(chr, rec.getStart(), rec.getEnd());
@@ -470,11 +437,12 @@ public abstract class MafPipelineNew {
 		if ( ! StringUtils.isNullOrEmpty(fastaFile) && ! cpgs.isEmpty()) {
 			logger.info("number of records requiring cpg data: " + cpgs.size());
 			// query fasta file
-			IndexedFastaSequenceFile fasta = new IndexedFastaSequenceFile(new File(fastaFile));
-			for (Entry<ChrPosition, String> entry : cpgs.entrySet()) {
-				ChrPosition cp = entry.getKey();
-				ReferenceSequence seq = fasta.getSubsequenceAt(cp.getChromosome(), (cp.getStartPosition() - noOfBases), (cp.getEndPosition() +  noOfBases));
-				entry.setValue(new String(seq.getBases()));
+			try(IndexedFastaSequenceFile fasta = new IndexedFastaSequenceFile(new File(fastaFile));){
+				for (Entry<ChrPosition, String> entry : cpgs.entrySet()) {
+					ChrPosition cp = entry.getKey();
+					ReferenceSequence seq = fasta.getSubsequenceAt(cp.getChromosome(), (cp.getStartPosition() - noOfBases), (cp.getEndPosition() +  noOfBases));
+					entry.setValue(new String(seq.getBases()));
+				}
 			}
 		}
 		
@@ -530,7 +498,6 @@ public abstract class MafPipelineNew {
 							if (params[18] != null && params[18] == "-") forwardStrand = false;
 						}
 						if (StringUtils.isNullOrEmpty(chrPos)) {
-//							logger.info("skipping record due to no position info for: " + rec);
 							continue;
 						}
 						chrPosCount++;
@@ -554,7 +521,6 @@ public abstract class MafPipelineNew {
 						if ( ! forwardStrand) mutation = BaseUtils.getComplement(mutation);
 								
 						ChrPosition cpm = ChrPointPosition.valueOf(chr, Integer.parseInt(position));
-//						ChrPositionMutation cpm = new ChrPositionMutation(chr, Integer.parseInt(position), mutation.charAt(0));
 						
 						String mutationId = params[12];
 						
@@ -586,7 +552,6 @@ public abstract class MafPipelineNew {
 				String chr = maf.getChromosome();
 				if (chr.contains("chr")) chr = chr.substring(2);
 				ChrPosition cpm = ChrPointPosition.valueOf(chr, maf.getStartPosition());
-//				ChrPositionMutation cpm = new ChrPositionMutation(chr, maf.getStartPosition() , MafUtils.getVariant(maf));
 				// look up cosmic map
 				if (cosmicData.containsKey(cpm)) {
 					List<String> ids = cosmicData.get(cpm);
@@ -613,7 +578,6 @@ public abstract class MafPipelineNew {
 				// and now the gene
 				String mafGene = maf.getHugoSymbol();
 				if (cosmicGenes.containsKey(mafGene)) {
-//					logger.info("found a cosmic gene entry for cpm: " + cpm);
 					maf.setCosmicGene(cosmicGenes.get(mafGene).intValue());
 				}
 				
@@ -737,12 +701,6 @@ public abstract class MafPipelineNew {
 						maf.setConfidence(MafConfidence.LOW);
 					}
 				}
-//			} else if (maf.getConfidence().isLowConfidence()) {
-//				if (MafFilterUtils.checkIndelMotif(maf, mafType)) {
-//					// all good
-//				} else {
-//					maf.setConfidence(MafConfidence.ZERO);
-//				}
 			}
 		}
 	}
@@ -819,12 +777,9 @@ public abstract class MafPipelineNew {
 		
 		String typeAndMeta = getDccMetaData();
 		String somGerm = mafType.isSomatic() ? "Somatic" : "Germline";
-		String snvIndel = mafType.isIndel() ? "indel" : "snv";
-		
+		String snvIndel = mafType.isIndel() ? "indel" : "snv";		
 		String header = MafUtils.HEADER_WITH_CONFIDENCE_CPG_BAITS_NNS;
-//		String header = cosmicFile == null ? MafUtils.HEADER_WITH_CONFIDENCE_CPG_BAITS_NNS :
-//			MafUtils.HEADER_WITH_CONFIDENCE_CPG_BAITS_NNS_COSMIC;
-		
+
 		boolean containsNS = false;
 		for (MAFRecord maf : mafs) {
 			if ( ! containsNS && maf.getNovelStartCount() > 0) containsNS = true;
@@ -842,12 +797,10 @@ public abstract class MafPipelineNew {
 				tempMafs.add(maf);
 			}
 		}
-//		if ( ! tempMafs.isEmpty()) {
 		logger.info("attempting to write out " + tempMafs.size() + " maf records for HCC");
 		MafUtils.writeMafOutput(outputDirectory + FS + patient + "."  + somGerm + ".HighConfidenceConsequence." + snvIndel + ".maf", tempMafs, 
 				typeAndMeta + header, true);
 		tempMafs.clear();
-//		}
 		
 		// HC
 		for (MAFRecord maf : mafs) {
@@ -855,12 +808,10 @@ public abstract class MafPipelineNew {
 				tempMafs.add(maf);
 			}
 		}
-//		if ( ! tempMafs.isEmpty()) {
 		logger.info("attempting to write out " + tempMafs.size() + " maf records for HC");
 		MafUtils.writeMafOutput(outputDirectory + FS +  patient + "." + somGerm + ".HighConfidence." + snvIndel + ".maf", tempMafs, 
 				typeAndMeta + header, true);
 		tempMafs.clear();
-//		}
 		
 		// LCC
 		for (MAFRecord maf : mafs) {
@@ -868,12 +819,10 @@ public abstract class MafPipelineNew {
 				tempMafs.add(maf);
 			}
 		}
-//		if ( ! tempMafs.isEmpty()) {
 		logger.info("attempting to write out " + tempMafs.size() + " maf records for LCC");
 		MafUtils.writeMafOutput(outputDirectory + FS +  patient + "."  +  somGerm + ".LowConfidenceConsequence." + snvIndel + ".maf", tempMafs, 
 				typeAndMeta + header, true);
 		tempMafs.clear();
-//		}
 		
 		// LC 
 		for (MAFRecord maf : mafs) {
@@ -881,12 +830,10 @@ public abstract class MafPipelineNew {
 				tempMafs.add(maf);
 			}
 		}
-//		if ( ! tempMafs.isEmpty()) {
 		logger.info("attempting to write out " + tempMafs.size() + " maf records for LC");
 		MafUtils.writeMafOutput(outputDirectory + FS + patient + "."  + somGerm + ".LowConfidence." + snvIndel + ".maf", tempMafs, 
 				typeAndMeta + header, true);
 		tempMafs.clear();
-//		}
 		
 	}
 	void loadDCCFiles() throws Exception {

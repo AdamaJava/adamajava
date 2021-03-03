@@ -78,8 +78,8 @@ public class MafFilter {
 	}
 	
 	private void loadKRASFile(String krasFile) throws Exception {
-		StringFileReader reader = new StringFileReader(new File(krasFile));
-		try {
+		
+		try (StringFileReader reader = new StringFileReader(new File(krasFile));) {
 			int high = 0, noise = 0, fail = 0, count = 0;
 			
 			for (String rec : reader) {
@@ -112,7 +112,8 @@ public class MafFilter {
 					
 					// check that we are not adding a duplicate into the highConfMaf list
 					boolean recordAlreadyInList = false;
-					for (String tr : highConfidenceMafs) {
+					for(int i = 0; i < highConfidenceMafs.size(); i++) {
+						String tr = highConfidenceMafs.get(i);
 						String [] p2 = tabbedPattern.split(tr, -1);
 						String chr2 = p2[4];
 						String position2 = p2[5];
@@ -127,7 +128,7 @@ public class MafFilter {
 								logger.info("verification DOES NOT match! - updating");
 								
 								// update record with "Valid" validation status
-								tr = tr.replaceAll("Unknown", "Valid");
+								highConfidenceMafs.set(i, tr.replaceAll("Unknown", "Valid"));
 							}
 							break;
 						}
@@ -171,9 +172,7 @@ public class MafFilter {
 			}
 			logger.info("for file: " + krasFile + " stats (total, high, noise, fail): " + count + "," + high + "," + noise + "," + fail);
 			
-		} finally {
-			reader.close();
-		}
+		} 
 	}
 	
 	private void loadFile(File file) throws Exception {
@@ -196,11 +195,7 @@ public class MafFilter {
 				String variant = ref.equals(tumour1) ? tumour2 : tumour1;
 				String consequence = params[8];
 				String verification = params[24];
-				
-				
-//				if (("False".equals(verification) || "Coverage".equals(verification)) && ! includePositionsThatDidNotVerify)
-//					continue;
-				
+								
 				// if maf position verifies, put it straight away into high conf file
 				if ("Valid".equals(verification)) {
 					high++;
@@ -239,16 +234,13 @@ public class MafFilter {
 	
 	private void writeMafOutput(String fileName, List<String> mafs, String header) throws IOException {
 		if (mafs.isEmpty()) return;
-		
-		FileWriter writer = new FileWriter(new File(fileName), false);
-		try {
+				
+		try (FileWriter writer = new FileWriter(new File(fileName), false);) {
 			writer.write(header);
 			for (String record : mafs) {
 				writer.write(record + "\n");
 			}
-		} finally {
-			writer.close();
-		}
+		} 
 	}
 	
 	protected static boolean passesHighConfidenceFilter(String flag, String type, String td, String dbSNP, String variant) {
@@ -296,10 +288,6 @@ public class MafFilter {
 	
 	protected int setup(String args[]) throws Exception{
 		int returnStatus = 1;
-//		if (null == args || args.length == 0) {
-//			System.err.println(Messages.USAGE);
-//			System.exit(1);
-//		}
 		Options options = new Options(args);
 
 		if (options.hasHelpOption()) {
@@ -343,10 +331,7 @@ public class MafFilter {
 			
 			lowCoveragePatients = options.getLowCoveragePatients();
 			logger.tool("Will handle the following low coverage patients: " + Arrays.deepToString(lowCoveragePatients));
-			
-//			if (options.getIncludeInvalid())
-//				includePositionsThatDidNotVerify = true;
-			
+						
 			return engage();
 		}
 		return returnStatus;

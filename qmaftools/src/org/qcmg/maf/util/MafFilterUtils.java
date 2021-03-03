@@ -71,11 +71,9 @@ public class MafFilterUtils {
 				break;
 			case INS :	// should fall through to the DEL case here
 			case DEL :
-//				if (checkDbSnpIsNovel(maf)) {
 					if (SnpUtils.isClassAIndel(maf.getFlag(), options.getHomopolymerCutoff())) {
 						confidence = MafConfidence.HIGH;
 					} else if (SnpUtils.isClassAorBIndel(maf.getFlag()))	confidence = MafConfidence.LOW;
-//				}
 				break;
 				
 				/****** insert additional code here when required ******/

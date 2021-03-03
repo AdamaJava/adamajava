@@ -194,31 +194,6 @@ public abstract class MafPipeline {
 		}
 	}
 	
-//	double  qualityControlCheck(List<MAFRecord> mafs, boolean isHighConf) {
-//		int totalCount = mafs.size();
-//		if (totalCount > 0) {
-//			int rsIdCount = 0;
-//			
-//			for (MAFRecord maf : mafs) {
-//				if ( ! StringUtils.isNullOrEmpty(maf.getDbSnpId()) && maf.getDbSnpId().startsWith("rs")) {
-//					rsIdCount++;
-//				}
-//			}
-//			
-//			double rsIdPercentage = ((double)rsIdCount / totalCount) * 100;
-//			logger.info((isHighConf ? "High" : "Low") +" Confidence: total number: " + totalCount + ", number with rs ids: " + rsIdCount + ", (" + rsIdPercentage + "%)");
-//			
-//			if (rsIdPercentage > 10.0) {
-//				logger.warn("Percentage of mafs with rs ids exceeds 10%!");
-//				
-//				// email info team
-//				// EmailUtils.sendEmail();
-//			}
-//			return rsIdPercentage;
-//		}
-//		return 0;
-//	}
-	
 	void writeFinalFilteredOutput() throws IOException {
 		
 		// get lists of high and low conf mafs
@@ -453,7 +428,6 @@ public abstract class MafPipeline {
 						+ " ("  + ((double)noOfRecordsRetrievedForPatient / elapsedTime)
 						+ " per sec), deletions (possibly): " + positionsWithDeletions);
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} finally {
 				try {
@@ -463,7 +437,6 @@ public abstract class MafPipeline {
 				} finally {
 					logger.info("thread finishing, elapsedTime: " + elapsedTime);
 				}
-//			}
 			}
 		}
 	}
@@ -499,7 +472,6 @@ public abstract class MafPipeline {
 		if ( ! StringUtils.isNullOrEmpty(gffFile) && ! gffs.isEmpty()) {
 			logger.info("number of records requiring gff data: " + gffs.size());
 			Gff3FileReader reader = new Gff3FileReader(new File(gffFile));
-	//		Map<String, Map<ChrPosition, String>> gffTypes = new HashMap<String, Map<ChrPosition, String>>();
 			try {
 				int  count = 0, updatedCount  = 0;
 				for (Gff3Record rec : reader) {
@@ -527,7 +499,6 @@ public abstract class MafPipeline {
 							}
 						}
 					}
-	//				thisMap.put(new ChrPosition(chr, rec.getStart(), rec.getEnd()), rec.getType());
 					if (++count % 1000000 == 0) logger.info("hit " + count + " records");
 				}
 				logger.info("no of entries with coresponding gff data: " + updatedCount);
@@ -687,7 +658,6 @@ public abstract class MafPipeline {
 		for(MAFRecord maf : mafs) {
 			
 			boolean novelDbSnp = "novel".equals(maf.getDbSnpId());
-//			String variant = maf.getRef().equals(maf.getTumourAllele1()) ? maf.getTumourAllele2() : maf.getTumourAllele1();
 			char alt = MafUtils.getVariant(maf).charAt(0);
 			
 			// if maf position verifies, put it straight away into high conf file
@@ -705,8 +675,6 @@ public abstract class MafPipeline {
 				} else {
 					confidence = "other";
 				}
-//				logger.info("setting confidence to be: " + confidence);
-//				maf.setConfidence(confidence);
 				maf.setRanking("high");
 				
 			} else if (MafUtils.passesHighConfidenceFilter(maf.getFlag(), maf.getVariantType(), maf.getTd(),novelDbSnp , alt)) {
@@ -728,58 +696,6 @@ public abstract class MafPipeline {
 		mafs.clear();
 		logger.info("Filter step, high: " + high + ", low: " + lower + ", fail: " + fail);
 	}
-//	void performFilter() {
-//		logger.info("filtering");
-//		// loop through all mafs, marking the ranking field as high or low if the relevant filters are passed
-//		int high = 0, lower = 0, fail = 0;
-//		for(MAFRecord maf : mafs) {
-//			
-//			boolean novelDbSnp = "novel".equals(maf.getDbSnpId());
-//			String variant = maf.getRef().equals(maf.getTumourAllele1()) ? maf.getTumourAllele2() : maf.getTumourAllele1();
-//			
-//			// if maf position verifies, put it straight away into high conf file
-//			if ("Valid".equals(maf.getValidationStatus())) {
-//				high++;
-//				String confidence = null;
-//				if (DccConsequence.passesMafNameFilter(maf.getVariantClassification())) {
-//					if (MafUtils.passesHighConfidenceFilter(maf.getFlag(), maf.getVariantType(), maf.getTd(), novelDbSnp, variant)) {
-//						confidence = "high";
-//					} else if (MafUtils.passesLowerConfidenceFilter(maf.getFlag(), maf.getVariantType(), maf.getTd(), variant)) {
-//						confidence = "low";
-//					} else {
-//						confidence = "other";
-//					}
-//				} else {
-//					confidence = "other";
-//				}
-////				logger.info("setting confidence to be: " + confidence);
-//				maf.setConfidence(confidence);
-//				maf.setRanking("high");
-//				
-//			} else if (DccConsequence.passesMafNameFilter(maf.getVariantClassification())) {
-//				if (MafUtils.passesHighConfidenceFilter(maf.getFlag(), maf.getVariantType(), maf.getTd(),novelDbSnp , variant)) {
-//					high++;
-//					maf.setRanking("high");
-//				} else if (MafUtils.passesLowerConfidenceFilter(maf.getFlag(), maf.getVariantType(), maf.getTd(), variant)) {
-//					lower++;
-//					maf.setRanking("low");
-//				} else {
-//					logger.debug("Passed name check but failed on remaining checks. Flag: " + maf.getFlag() + ",maf.getVariantType(): " + maf.getVariantType() + ",  novelDbSnp: " + novelDbSnp + ", maf.getTd(): " + maf.getTd() + ", variant: " + variant);
-//					fail++;
-//				}
-//			} else {
-//				logger.debug("Failed name check with variant classification: " + maf.getVariantClassification());
-//				fail++;
-//			}
-//			
-//			// add to filteredMaf collection
-//			if (maf.isHighConf() || maf.isLowConf()) {
-//				filteredMafs.add(maf);
-//			}
-//		}
-//		mafs.clear();
-//		logger.info("Filter step, high: " + high + ", low: " + lower + ", fail: " + fail);
-//	}
 
 	void writeIndividualPatientMafFiles() throws IOException {
 		if (FileUtils.canFileBeWrittenTo(outputDirectory)) {
@@ -890,6 +806,4 @@ public abstract class MafPipeline {
 			patientsAndFiles.put(f.getName(), new Pair<File, File>(snpDccFile, indelDccFile));
 		}
 	}
-	
-	
 }
