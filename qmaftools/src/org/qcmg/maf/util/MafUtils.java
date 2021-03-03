@@ -78,8 +78,8 @@ public class MafUtils {
 	}
 	
 	public static void loadEntrezMapping(String fileName, Map<String, Set<Integer>> ensemblToEntrez) throws Exception {
-		StringFileReader reader = new StringFileReader(new File(fileName));
-		try {
+		
+		try (StringFileReader reader = new StringFileReader(new File(fileName));) {
 			int count = 0;
 			for (String rec : reader) {
 				
@@ -104,14 +104,11 @@ public class MafUtils {
 				existingEntrez.add(Integer.parseInt(entrez));
 			}
 			
-		} finally {
-			reader.close();
-		}
+		} 
 	}
 	
 	public static void loadCanonicalTranscriptMapping(String fileName, Map<String, String> ensemblGeneToCanonicalTranscript) throws Exception {
-		StringFileReader reader = new StringFileReader(new File(fileName));
-		try {
+		try (StringFileReader reader = new StringFileReader(new File(fileName));) {
 			int count = 0;
 			for (String rec : reader) {
 				
@@ -133,19 +130,14 @@ public class MafUtils {
 					// add new entrez id to the existing one - pipe delimited
 					ensemblGeneToCanonicalTranscript.put(geneId, existingCanonicalTransId + "|" + canonicalTranscriptId);
 				}
-			}
-			
-		} finally {
-			reader.close();
-		}
+			}			
+		} 
 	}
 	
 	public static void getVerifiedData(String fileName, String patientId, Map<String, Map<ChrPosition, TorrentVerificationStatus>> verifiedData) throws Exception {
-		StringFileReader reader = new StringFileReader(new File(fileName));
-		try {
+		try (StringFileReader reader = new StringFileReader(new File(fileName));) {
 			int verifiedYes = 0, verifiedNo = 0;
-			for (String rec : reader) {
-				
+			for (String rec : reader) {			
 				// seem to be some blank lines at the top of the verification data file
 				// also skip past header line
 				if (StringUtils.isNullOrEmpty(rec) || rec.startsWith("PatientID")) continue;
@@ -173,9 +165,7 @@ public class MafUtils {
 				patientSpecificVerifiedData.put(position, tvs);
 			}
 			logger.info("loaded verification data - verified yes: " + verifiedYes + ", verified no: " + verifiedNo);
-		} finally {
-			reader.close();
-		}
+		} 
 	}
 	
 	public static void getDbSNPValDetails(String fileName, List<MAFRecord> mafs) throws Exception {
@@ -186,9 +176,7 @@ public class MafUtils {
 				snpIdMap.put(maf.getDbSnpId(), maf);
 		}
 		
-		StringFileReader reader = new StringFileReader(new File(fileName));
-		try {
-			
+		try (StringFileReader reader = new StringFileReader(new File(fileName));) {			
 			for (String rec : reader) {
 				String[] params = TabTokenizer.tokenize(rec);
 				// dbSnp id is column 5, val details is column 12
@@ -206,8 +194,6 @@ public class MafUtils {
 					}
 				}
 			}
-		} finally {
-			reader.close();
 		}
 	}
 	
@@ -265,7 +251,6 @@ public class MafUtils {
 			
 			for (MAFRecord record : mafs) {
 				if (includeExtraFields) {
-//					writer.write(record.toFormattedStringExtraFieldsCosmic() + "\n");
 					writer.write(record.toFormattedStringExtraFields() + "\n");
 				} else { 
 					writer.write(record.toFormattedString() + "\n");
@@ -273,14 +258,13 @@ public class MafUtils {
 			}
 		}
 	}
+	
 	public static void writeMafOutput(String fileName, List<MAFRecord> mafs, String header) throws IOException {
 		writeMafOutput(fileName,mafs, header, false);
 	}
 
 
-	public static void setupStaticMafFields(MAFRecord maf,  String patientId, String controlSampleID, 
-			String tumourSampleID, boolean somatic) {
-		
+	public static void setupStaticMafFields(MAFRecord maf,  String patientId, String controlSampleID, String tumourSampleID, boolean somatic) {		
 		maf.setCenter("qcmg.uq.edu.au");
 		maf.setNcbiBuild(37);
 		maf.setMutationStatus(somatic ? "Somatic" : "Germline");
@@ -312,6 +296,7 @@ public class MafUtils {
 				}
 			}
 		}
+		
 		return resultString.length() > 0 ? resultString : "0";
 	}
 	
@@ -327,28 +312,28 @@ public class MafUtils {
 	}
 	
 	public static void loadDCCFile(File fileName, String patientId, Map<ChrPosition, TorrentVerificationStatus> verifiedData, List<MAFRecord> mafs, Map<String, Set<Integer>> ensemblToEntrez, MutationType type) throws Exception {
-		StringFileReader reader = new StringFileReader(fileName);
-		List<String> header = reader.getHeader();
-		
-		// should be able to glean some useful info from the header
-		String controlSampleID = null;
-		String tumourSampleID = null;
-		String tool = null;
-		
-		for (String headerLine : header) {
-			if (headerLine.startsWith("#ControlSampleID"))
-				controlSampleID = headerLine.substring(headerLine.indexOf(':') +2);
-			if (headerLine.startsWith("#TumourSampleID"))
-				tumourSampleID = headerLine.substring(headerLine.indexOf(':') +2);
-			if (headerLine.startsWith("#Tool")) {
-				tool = headerLine.substring(headerLine.indexOf(':') +2);
+
+		try (StringFileReader reader = new StringFileReader(fileName);){			
+			List<String> header = reader.getHeader();
+			
+			// should be able to glean some useful info from the header
+			String controlSampleID = null;
+			String tumourSampleID = null;
+			String tool = null;
+			
+			for (String headerLine : header) {
+				if (headerLine.startsWith("#ControlSampleID"))
+					controlSampleID = headerLine.substring(headerLine.indexOf(':') +2);
+				if (headerLine.startsWith("#TumourSampleID"))
+					tumourSampleID = headerLine.substring(headerLine.indexOf(':') +2);
+				if (headerLine.startsWith("#Tool")) {
+					tool = headerLine.substring(headerLine.indexOf(':') +2);
+				}
 			}
-		}
-		
-		// default to snp if not in header		
-		logger.info("patient: " + patientId + ", controlSampleID: "  + controlSampleID + ", tumourSampleID: " + tumourSampleID + ", tool: " + tool);
-		
-		try {
+			
+			// default to snp if not in header		
+			logger.info("patient: " + patientId + ", controlSampleID: "  + controlSampleID + ", tumourSampleID: " + tumourSampleID + ", tool: " + tool);
+			
 			int count = 0;
 			boolean containsNS = false;
 			boolean containsEA = false;
@@ -372,9 +357,7 @@ public class MafUtils {
 				}
 			}
 			logger.info("count " + count + " dcc records");
-		} finally {
-			reader.close();
-		}
+		} 
 	}
 	
 	public static void updateFlag(MAFRecord maf, String annotation) {
@@ -392,8 +375,7 @@ public class MafUtils {
 	}
 	
 	public static void loadDCCFile(String dccqFile, Map<ChrPosition, TorrentVerificationStatus> verifiedData,
-			List<MAFRecord> mafs, Map<String, Set<Integer>> ensemblToEntrez, MafType mafType) throws IOException, Exception {
-		
+			List<MAFRecord> mafs, Map<String, Set<Integer>> ensemblToEntrez, MafType mafType) throws IOException, Exception {		
 		
 		try (StringFileReader reader = new StringFileReader(new File(dccqFile));) {
 			List<String> header = reader.getHeader();
@@ -502,8 +484,6 @@ public class MafUtils {
 		maf.setRef(params[8]);
 		maf.setTumourAllele1(getAllele(true, params[10]));
 		maf.setTumourAllele2(getAllele(false, params[10]));
-//		maf.setTumourAllele1(getAllele(true, type, params[10]));
-//		maf.setTumourAllele2(getAllele(false, type, params[10]));
 		maf.setDbSnpId(MafUtils.getDbSnpId(params[containsEA ? 19 : 18]));
 		
 		if (null != tvs) {
@@ -525,17 +505,9 @@ public class MafUtils {
 		} else {
 			maf.setNormalAllele1(getAllele(true, params[9]));
 			maf.setNormalAllele2(getAllele(false, params[9]));
-//			maf.setNormalAllele1(getAllele(true, type, params[9]));
-//			maf.setNormalAllele2(getAllele(false, type, params[9]));
 		}
-		
-		
-//		if (canonicalMafMode) {
-//			canonicalTranscript(type, params, genes, geneIds, transcriptIds, maf);
-//		} else {
-//			worstCaseTranscript(type, params, genes, geneIds, transcriptIds, maf, ensemblToEntrez, offset);
-			
-			worstCaseConsequence(type, params, maf, ensemblToEntrez, offset);
+					
+		worstCaseConsequence(type, params, maf, ensemblToEntrez, offset);
 			
 		
 		// need to check that there is a valid gene set on the Maf object
@@ -550,13 +522,10 @@ public class MafUtils {
 			final Map<String, Set<Integer>> ensemblToEntrez) throws QMafException {
 		
 		// novel starts position in file is 23 (1-based)
-		// expressed_allele position in file is 13 (1-based)
-		
+		// expressed_allele position in file is 13 (1-based)		
 		// anything over this position needs to check containsNS variable
 		
-		int offset = 1;
-//		int offset = containsNS && containsEA ? 2 : (containsNS || containsEA ? 1 : 0);
-		
+		int offset = 1;		
 		
 		final int flagPosition = 35 + offset;
 		final int flankingSequencePosition = 36 + offset;
@@ -617,9 +586,8 @@ public class MafUtils {
 		} else {
 			maf.setTumourAllele1(getAllele(true, params[10]));
 			maf.setTumourAllele2(getAllele(false, params[10]));
-//			maf.setTumourAllele1(getAllele(true, type, params[10]));
-//			maf.setTumourAllele2(getAllele(false, type, params[10]));
 		}
+		
 		maf.setDbSnpId(MafUtils.getDbSnpId(params[18]));
 		
 		if (null != tvs) {
@@ -642,14 +610,12 @@ public class MafUtils {
 			maf.setNormalAllele1(getAllele(true, params[9]));
 			maf.setNormalAllele2(getAllele(false, params[9]));
 		}
-		
-			
+					
 		worstCaseConsequence(type, params, maf, ensemblToEntrez, offset);
 		
 		
 		// need to check that there is a valid gene set on the Maf object
-		// if not - don't add to collection
-		
+		// if not - don't add to collection		
 		if (null != maf.getHugoSymbol())
 			mafs.add(maf);
 	}
@@ -708,6 +674,7 @@ public class MafUtils {
 				}
 			}
 		}
+		
 		if (null != currentGene)
 			genePositions.add(currentGene);
 		
@@ -729,8 +696,7 @@ public class MafUtils {
 			List<String> geneSpecificTranscriptIds = StringUtils.getChildArrayFromParentArray(transcriptIds, genePosition.getPositions());
 			String geneId = geneIds[genePosition.getPositions()[0]];
 			
-			// need start and stop positions of transcripts belonging to this gene so that the relevant consequences can be retrieved			
-			
+			// need start and stop positions of transcripts belonging to this gene so that the relevant consequences can be retrieved						
 			String [] geneConsequences = new String[genePosition.getPositions().length];
 			
 			int j = 0;
@@ -767,7 +733,6 @@ public class MafUtils {
 			maf.addHugoSymbol("Unknown".equals(genePosition.getGene()) ? MafUtils.getHugoSymbol(geneId) : genePosition.getGene());
 		}
 	}
-
 	
 	public static void worstCaseConsequence(MutationType type, String[] params,
 			MAFRecord maf, Map<String, Set<Integer>> ensemblToEntrez, int offset) {
@@ -823,8 +788,7 @@ public class MafUtils {
 		String worstCaseConsequence = DccConsequence.getWorstCaseConsequence(type, consequences);
 		return worstCaseConsequence;
 	}
-	
-	
+		
 	public static void canonicalTranscript(MutationType type, String[] params,
 			String[] genes, String[] geneIds, String[] transcriptIds,
 			MAFRecord maf, Map<String, String> ensemblGeneToCanonicalTranscript, Map<String, Set<Integer>> ensemblToEntrez) {
@@ -1068,15 +1032,19 @@ public class MafUtils {
 			this.gene = gene;
 			arrayPositions.add(position);
 		}
+		
 		public String getGene() {
 			return gene;
 		}
+		
 		public void addPosition(int position) {
 			arrayPositions.add(position);
 		}
+		
 		public Integer[] getPositions() {
 			return arrayPositions.toArray(new Integer[] {});
 		}
+		
 		@Override
 		public int hashCode() {
 			final int prime = 31;
@@ -1084,6 +1052,7 @@ public class MafUtils {
 			result = prime * result + ((gene == null) ? 0 : gene.hashCode());
 			return result;
 		}
+		
 		@Override
 		public boolean equals(Object obj) {
 			if (this == obj)
@@ -1100,8 +1069,5 @@ public class MafUtils {
 				return false;
 			return true;
 		}
-	}
-
-	
-	
+	}	
 }

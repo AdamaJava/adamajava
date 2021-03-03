@@ -271,7 +271,6 @@ public abstract class MafPipeline {
 					if ( ! s.startsWith("#Q_EXEC")) sb.append(s).append("\n");
 				}
 			}
-			
 		}
 				
 		String dccMetaInfo = qExec.getExecMetaDataToString();
