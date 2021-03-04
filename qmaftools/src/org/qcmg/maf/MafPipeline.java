@@ -48,12 +48,11 @@ import org.qcmg.common.util.Pair;
 import org.qcmg.common.util.SnpUtils;
 import org.qcmg.qio.gff3.Gff3FileReader;
 import org.qcmg.qio.gff3.Gff3Record;
+import org.qcmg.qio.record.StringFileReader;
 import org.qcmg.maf.util.MafUtils;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.util.SAMUtils;
-import org.qcmg.tab.TabbedFileReader;
-import org.qcmg.tab.TabbedHeader;
-import org.qcmg.tab.TabbedRecord;
+
 
 public abstract class MafPipeline {
 	
@@ -195,31 +194,6 @@ public abstract class MafPipeline {
 		}
 	}
 	
-//	double  qualityControlCheck(List<MAFRecord> mafs, boolean isHighConf) {
-//		int totalCount = mafs.size();
-//		if (totalCount > 0) {
-//			int rsIdCount = 0;
-//			
-//			for (MAFRecord maf : mafs) {
-//				if ( ! StringUtils.isNullOrEmpty(maf.getDbSnpId()) && maf.getDbSnpId().startsWith("rs")) {
-//					rsIdCount++;
-//				}
-//			}
-//			
-//			double rsIdPercentage = ((double)rsIdCount / totalCount) * 100;
-//			logger.info((isHighConf ? "High" : "Low") +" Confidence: total number: " + totalCount + ", number with rs ids: " + rsIdCount + ", (" + rsIdPercentage + "%)");
-//			
-//			if (rsIdPercentage > 10.0) {
-//				logger.warn("Percentage of mafs with rs ids exceeds 10%!");
-//				
-//				// email info team
-//				// EmailUtils.sendEmail();
-//			}
-//			return rsIdPercentage;
-//		}
-//		return 0;
-//	}
-	
 	void writeFinalFilteredOutput() throws IOException {
 		
 		// get lists of high and low conf mafs
@@ -277,69 +251,33 @@ public abstract class MafPipeline {
 	protected String[] getDccMetaData(String patient) throws IOException {
 		// get file - get dcc meta info from file, and prepend to header
 		Pair<File, File> filePair = patientsAndFiles.get(patient);
-		// try snp one first, then indel
-		TabbedHeader header = null;
+ 
 		String somGerm = "";
-		if (filePair.getLeft() != null) {
-			
-			File f = filePair.getLeft();
+		
+		// try snp one first, then indel
+		File f = null;		
+		if (filePair.getLeft() != null) {			
+			f = filePair.getLeft();
 			somGerm = f.getAbsolutePath().contains("Somatic") ? "Somatic" :  f.getAbsolutePath().contains("Germline") ? "Germline" : "";
-			TabbedFileReader reader = null;
-			try {
-				reader = new TabbedFileReader(f);
-				header = reader.getHeader();
-			} catch (Exception e) {
-				e.printStackTrace();
-			} finally {
-				reader.close();
-			}
-		} else if (filePair.getRight() != null) {
-			File f = filePair.getRight();
+ 		} else if (filePair.getRight() != null) {
+			f = filePair.getRight();
 			somGerm = f.getAbsolutePath().contains("Somatic") ? "Somatic" :  f.getAbsolutePath().contains("Germline") ? "Germline" : "";
-			TabbedFileReader reader = null;
-			try {
-				reader = new TabbedFileReader(f);
-				header = reader.getHeader();
-			} catch (Exception e) {
-				e.printStackTrace();
-			} finally {
-				reader.close();
-			}
 		}
 		
 		StringBuilder sb = new StringBuilder();
-		if (null != header) {
-			for (String s : header)  {
-				// ignore qexec
-				if ( ! s.startsWith("#Q_EXEC"))
-					sb.append(s).append("\n");
+		if(f != null) {
+			try (StringFileReader reader = new StringFileReader(f); ) {
+				for (String s: reader.getHeader()) {
+					if ( ! s.startsWith("#Q_EXEC")) sb.append(s).append("\n");
+				}
 			}
 		}
+				
 		String dccMetaInfo = qExec.getExecMetaDataToString();
 		dccMetaInfo += sb.length() > 0 ?  sb.toString() : "";
 		
 		return new String[] {somGerm, dccMetaInfo};
 	}
-//	void writeFinalPREFilteredOutput() throws IOException {
-//		
-//		// get lists of high and low conf mafs
-//		List<MAFRecord> highConfMafs = new ArrayList<MAFRecord>();
-//		List<MAFRecord> lowConfMafs = new ArrayList<MAFRecord>();
-//		
-//		for (MAFRecord maf : filteredMafs) {
-//			if (maf.isHighConf()) {
-//				highConfMafs.add(maf);
-//				continue;
-//			}
-//			if (maf.isLowConf()) {
-//				lowConfMafs.add(maf);
-//				continue;
-//			}
-//		}
-//		
-//		MafUtils.writeMafOutput(outputDirectory + FS +  "highConfidencePreFilter.maf", highConfMafs, MafUtils.HEADER_WITH_CONFIDENCE_CPG, true);
-//		MafUtils.writeMafOutput(outputDirectory + FS +  "lowConfidencePreFilter.maf", lowConfMafs, MafUtils.HEADER_WITH_CONFIDENCE_CPG, true);
-//	}
 	
 	void addNovelStartsMT(String bamFilePathPart1, String bamFilePathPart2, String bamFilePattern) throws Exception {
 		logger.info("adding novel starts");
@@ -363,7 +301,6 @@ public abstract class MafPipeline {
 			}
 		}
 		
-//		CountDownLatch latch = new CountDownLatch(100);
 		int poolSize = 2;
 		ExecutorService executor = Executors.newFixedThreadPool(poolSize);
 		
@@ -431,12 +368,8 @@ public abstract class MafPipeline {
 				for (MAFRecord maf : ncMafs) {
 					noOfPositionsRetrievedForPatient++;
 					String chr = MafUtils.getFullChromosome(maf);
-//					List<SAMRecord> records = qj.getRecordsAtPosition(chr, maf.getStartPosition());
 					SAMRecordIterator records = reader.queryOverlapping(chr, maf.getStartPosition(), maf.getStartPosition());
-//					noOfRecordsRetrievedForPatient += records.size();
-//					logger.info("pos: " + maf.getChromosome() + "-" + maf.getStartPosition() + ": " + records.size());
 					
-//					char[] bases = new char[records.size()];
 					char[] novelStartBases = new char[1024];	// hmmmmm
 					Set<Integer> forwardStrand = new HashSet<Integer>();
 					Set<Integer> reverseStrand = new HashSet<Integer>();
@@ -455,7 +388,6 @@ public abstract class MafPipeline {
 							if (sam.getBaseQualities()[indexInRead] < 10) continue;
 							
 							char c = sam.getReadString().charAt(indexInRead);
-//							bases[i++] = c;
 							// novel start count
 							
 							final char var = MafUtils.getVariant(maf).charAt(0);
@@ -475,7 +407,6 @@ public abstract class MafPipeline {
 							}
 						} else {
 							positionsWithDeletions++;
-//							logger.info("help!!");
 						}
 					}
 					records.close();
@@ -496,19 +427,15 @@ public abstract class MafPipeline {
 						+ " ("  + ((double)noOfRecordsRetrievedForPatient / elapsedTime)
 						+ " per sec), deletions (possibly): " + positionsWithDeletions);
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} finally {
 				try {
 					reader.close();
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				} finally {
-//					latch.countDown();
 					logger.info("thread finishing, elapsedTime: " + elapsedTime);
 				}
-//			}
 			}
 		}
 	}
@@ -544,7 +471,6 @@ public abstract class MafPipeline {
 		if ( ! StringUtils.isNullOrEmpty(gffFile) && ! gffs.isEmpty()) {
 			logger.info("number of records requiring gff data: " + gffs.size());
 			Gff3FileReader reader = new Gff3FileReader(new File(gffFile));
-	//		Map<String, Map<ChrPosition, String>> gffTypes = new HashMap<String, Map<ChrPosition, String>>();
 			try {
 				int  count = 0, updatedCount  = 0;
 				for (Gff3Record rec : reader) {
@@ -572,7 +498,6 @@ public abstract class MafPipeline {
 							}
 						}
 					}
-	//				thisMap.put(new ChrPosition(chr, rec.getStart(), rec.getEnd()), rec.getType());
 					if (++count % 1000000 == 0) logger.info("hit " + count + " records");
 				}
 				logger.info("no of entries with coresponding gff data: " + updatedCount);
@@ -615,13 +540,13 @@ public abstract class MafPipeline {
 	}
 
 	void loadKRASData() throws Exception {
-		TabbedFileReader reader = new TabbedFileReader(new File(krasFile));
-		try {
+		
+		try (StringFileReader reader = new StringFileReader(new File(krasFile));) {
 			int count = 0, validCount = 0, alreadyPresent = 0, alreadyPresentSameVerification = 0;
 			
-			for (TabbedRecord rec : reader) {
+			for (String rec : reader) {
 				count++;
-				String[] params = tabbedPattern.split(rec.getData(), -1);
+				String[] params = tabbedPattern.split(rec, -1);
 				String chr = params[4];
 				String position = params[5];
 				String id = params[15];
@@ -639,7 +564,7 @@ public abstract class MafPipeline {
 						
 							if (id.contains(lowCovPatient)) {
 								lowCov = true;
-								logger.info("Skipping KRAS record: " + rec.getData() + " - belongs to low coverage patient");
+								logger.info("Skipping KRAS record: " + rec + " - belongs to low coverage patient");
 								continue;
 							}
 						}
@@ -678,9 +603,7 @@ public abstract class MafPipeline {
 				}
 			}
 			logger.info("KRAS file - count: " + count + ", validCount: " + validCount + ", alreadyPresent: " + alreadyPresent + ", alreadyPresentSameVerification: " + alreadyPresentSameVerification);
-		} finally {
-			reader.close();
-		}
+		} 
 	}
 	
 	void checkAlleleFraction() {
@@ -734,7 +657,6 @@ public abstract class MafPipeline {
 		for(MAFRecord maf : mafs) {
 			
 			boolean novelDbSnp = "novel".equals(maf.getDbSnpId());
-//			String variant = maf.getRef().equals(maf.getTumourAllele1()) ? maf.getTumourAllele2() : maf.getTumourAllele1();
 			char alt = MafUtils.getVariant(maf).charAt(0);
 			
 			// if maf position verifies, put it straight away into high conf file
@@ -752,8 +674,6 @@ public abstract class MafPipeline {
 				} else {
 					confidence = "other";
 				}
-//				logger.info("setting confidence to be: " + confidence);
-//				maf.setConfidence(confidence);
 				maf.setRanking("high");
 				
 			} else if (MafUtils.passesHighConfidenceFilter(maf.getFlag(), maf.getVariantType(), maf.getTd(),novelDbSnp , alt)) {
@@ -775,58 +695,6 @@ public abstract class MafPipeline {
 		mafs.clear();
 		logger.info("Filter step, high: " + high + ", low: " + lower + ", fail: " + fail);
 	}
-//	void performFilter() {
-//		logger.info("filtering");
-//		// loop through all mafs, marking the ranking field as high or low if the relevant filters are passed
-//		int high = 0, lower = 0, fail = 0;
-//		for(MAFRecord maf : mafs) {
-//			
-//			boolean novelDbSnp = "novel".equals(maf.getDbSnpId());
-//			String variant = maf.getRef().equals(maf.getTumourAllele1()) ? maf.getTumourAllele2() : maf.getTumourAllele1();
-//			
-//			// if maf position verifies, put it straight away into high conf file
-//			if ("Valid".equals(maf.getValidationStatus())) {
-//				high++;
-//				String confidence = null;
-//				if (DccConsequence.passesMafNameFilter(maf.getVariantClassification())) {
-//					if (MafUtils.passesHighConfidenceFilter(maf.getFlag(), maf.getVariantType(), maf.getTd(), novelDbSnp, variant)) {
-//						confidence = "high";
-//					} else if (MafUtils.passesLowerConfidenceFilter(maf.getFlag(), maf.getVariantType(), maf.getTd(), variant)) {
-//						confidence = "low";
-//					} else {
-//						confidence = "other";
-//					}
-//				} else {
-//					confidence = "other";
-//				}
-////				logger.info("setting confidence to be: " + confidence);
-//				maf.setConfidence(confidence);
-//				maf.setRanking("high");
-//				
-//			} else if (DccConsequence.passesMafNameFilter(maf.getVariantClassification())) {
-//				if (MafUtils.passesHighConfidenceFilter(maf.getFlag(), maf.getVariantType(), maf.getTd(),novelDbSnp , variant)) {
-//					high++;
-//					maf.setRanking("high");
-//				} else if (MafUtils.passesLowerConfidenceFilter(maf.getFlag(), maf.getVariantType(), maf.getTd(), variant)) {
-//					lower++;
-//					maf.setRanking("low");
-//				} else {
-//					logger.debug("Passed name check but failed on remaining checks. Flag: " + maf.getFlag() + ",maf.getVariantType(): " + maf.getVariantType() + ",  novelDbSnp: " + novelDbSnp + ", maf.getTd(): " + maf.getTd() + ", variant: " + variant);
-//					fail++;
-//				}
-//			} else {
-//				logger.debug("Failed name check with variant classification: " + maf.getVariantClassification());
-//				fail++;
-//			}
-//			
-//			// add to filteredMaf collection
-//			if (maf.isHighConf() || maf.isLowConf()) {
-//				filteredMafs.add(maf);
-//			}
-//		}
-//		mafs.clear();
-//		logger.info("Filter step, high: " + high + ", low: " + lower + ", fail: " + fail);
-//	}
 
 	void writeIndividualPatientMafFiles() throws IOException {
 		if (FileUtils.canFileBeWrittenTo(outputDirectory)) {
@@ -937,6 +805,4 @@ public abstract class MafPipeline {
 			patientsAndFiles.put(f.getName(), new Pair<File, File>(snpDccFile, indelDccFile));
 		}
 	}
-	
-	
 }

@@ -28,6 +28,7 @@ import org.qcmg.qio.vcf.VcfFileReader;
 import org.qcmg.tab.TabbedFileReader;
 import org.qcmg.tab.TabbedRecord;
 
+@Deprecated
 public class ReAnnotateDccWithDbSNP {
 	
 	private String logFile;

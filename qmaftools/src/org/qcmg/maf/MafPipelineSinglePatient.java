@@ -66,8 +66,7 @@ public class MafPipelineSinglePatient extends MafPipeline {
 			
 				// get list of patients to run from seq_analysis
 				// must start with APGI_[0-9]
-		//		patientsInSeqAnalysis = Arrays.asList(FileUtils.findDirectories(SEQ_ANALYSIS, patientDirectoryFilter));
-				patientsInSeqAnalysis = Arrays.asList(FileUtils.findFiles(SEQ_ANALYSIS, new FilenameFilter() {
+					patientsInSeqAnalysis = Arrays.asList(FileUtils.findFiles(SEQ_ANALYSIS, new FilenameFilter() {
 					@Override
 					public boolean accept(File file, String name) {
 						return StringUtils.isStringInStringArray(name, patients)

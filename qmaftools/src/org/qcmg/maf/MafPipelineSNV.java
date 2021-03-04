@@ -48,14 +48,8 @@ public class MafPipelineSNV extends MafPipelineNew {
 		if (null != krasFile)
 			loadKRASData();
 			
-			//TODO - add check to see what the maf records contain
 			// will dictate what gets done downstream, and whether we can classify maf records
 			
-//			if ( ! containsNovelStarts()) {
-//				if (null != patientBamFiles && patientBamFiles.length > 0) {
-//					addNovelStartsMT(patientBamFiles[0]);
-//				}
-//			}
 			if (mafType.isIndel()) {
 //				checkNNSIndel();
 			} else {
@@ -71,21 +65,13 @@ public class MafPipelineSNV extends MafPipelineNew {
 		logger.info("about to run initial filter - DONE");
 			
 			
-		// post initial filter
-//		logger.info("about to run end of read annotations");
-//		getEndOfReadAnnotations();
-//		logger.info("about to run end of read annotations - DONE");
-			
+		// post initial filter			
 		// for indels, move any records from H -> L where there is NNS
 		if (mafType.isIndel()) {
 			checkIndel();
 		} 
 			
-		// re-filter
-//		logger.info("about to run filter again");
-//		performInitialFilter();
-//		logger.info("about to run filter again - DONE");
-			
+		// re-filter			
 		logger.info("about to get cpg info");
 		addCpgAndGff();
 		logger.info("about to get cpg info - DONE");
@@ -127,14 +113,11 @@ public class MafPipelineSNV extends MafPipelineNew {
 			
 			boolean debugEnabled = logger.isLevelEnabled(QLevel.DEBUG);
 			
-			SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile);
-			// if we have a small no of positions, no need to cache
-//			reader.enableIndexCaching(ncMafs.size() < 10);
-			
+			// if we have a small no of positions, no need to cache			
 			int  noOfPositionsRetrievedForPatient = 0;
 			int noOf5BPAnnotationsAdded = 0;
 			
-			try {
+			try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile);){
 				for (MAFRecord maf : reMafs) {
 					
 					if ( ! maf.getConfidence().isHighConfidence()) continue;
@@ -231,18 +214,7 @@ public class MafPipelineSNV extends MafPipelineNew {
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-			} finally {
-				try {
-					reader.close();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} finally {
-//					latch.countDown();
-					logger.info("thread finishing, elapsedTime: " + elapsedTime);
-				}
-//			}
-			}
+			} 
 		}
 	}
 	

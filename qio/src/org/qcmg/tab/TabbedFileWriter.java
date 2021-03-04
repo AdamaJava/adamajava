@@ -9,6 +9,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
+@Deprecated
 public final class TabbedFileWriter implements Closeable {
 	private final File file;
 	private final OutputStream outputStream;

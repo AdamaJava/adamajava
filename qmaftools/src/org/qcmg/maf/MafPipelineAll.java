@@ -119,10 +119,6 @@ public class MafPipelineAll extends MafPipeline {
 			logger.tool("will retrieve " + noOfBases + " on either side of position of interest from fasta file");
 			logger.tool("ensemblV61: " + ensemblV61);
 			
-//			if ("worst".equalsIgnoreCase(options.getMafMode()))
-//				canonicalMafMode = false;
-//			logger.tool("Running in canonical maf mode: " + canonicalMafMode);
-			
 			return engage();
 		}
 		return returnStatus;

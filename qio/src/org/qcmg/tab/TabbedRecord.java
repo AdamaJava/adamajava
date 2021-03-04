@@ -3,7 +3,7 @@
  */
 package org.qcmg.tab;
 
-
+@Deprecated
 public class TabbedRecord {
 	private String data;
 	

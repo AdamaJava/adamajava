@@ -34,9 +34,9 @@ public class BLATTest {
 	}
 	
 	@Test(expected=QSVException.class)
-	public void testExecuteThrowsException() throws IOException, InterruptedException, QSVException {
+	public void testExecuteThrowsException() throws IOException, InterruptedException, QSVException { 
 		blat.execute(testFolder.newFile("fasta.fa").getAbsolutePath(), testFolder.newFile("output.psl").getAbsolutePath());
-	}
+	} 
 	
 	@Test
 	public void testParseResults() throws Exception {
@@ -47,11 +47,7 @@ public class BLATTest {
 		
 		BLATRecord record = results.get("chr10-89712341-true-pos");
 		assertTrue(record.isValid());
-//		assertEquals(record.getMatch(), 48);
 		assertEquals(record.getScore(), 42);
-//		assertEquals(record.getMismatch(), 1);
-//		assertEquals(record.gettGapCount(), 3);
-//		assertEquals(record.getqGapCount(), 2);
 		assertEquals(record.getQName(), "chr10-89712341-true-pos");
 		assertEquals(record.getTName(), "chr10");
 		assertEquals(record.getQueryStart(), (1));
@@ -94,7 +90,4 @@ public class BLATTest {
 		}
 		return file.getAbsolutePath();
 	}
-	
-	
-
 }

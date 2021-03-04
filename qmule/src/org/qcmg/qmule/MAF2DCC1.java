@@ -23,6 +23,7 @@ import org.qcmg.tab.TabbedFileWriter;
 import org.qcmg.tab.TabbedHeader;
 import org.qcmg.tab.TabbedRecord;
 
+@Deprecated
 public class MAF2DCC1 {
 	
 	private String logFile;	

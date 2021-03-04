@@ -23,6 +23,7 @@ import org.qcmg.common.model.ChrPositionName;
 import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.tab.TabbedRecord;
 
+@Deprecated
 public class MAF2DCC1Test {
 	
 	private File snpMafFile;

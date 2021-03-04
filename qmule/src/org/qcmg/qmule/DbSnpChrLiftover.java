@@ -13,6 +13,7 @@ import org.qcmg.tab.TabbedFileWriter;
 import org.qcmg.tab.TabbedHeader;
 import org.qcmg.tab.TabbedRecord;
 
+@Deprecated
 public class DbSnpChrLiftover {
 	
 	private static char TAB = '\t';

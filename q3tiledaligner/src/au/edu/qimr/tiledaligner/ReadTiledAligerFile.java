@@ -23,7 +23,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.NumberUtils;
-import org.qcmg.string.StringFileReader;
+import org.qcmg.qio.record.StringFileReader;
 
 public class ReadTiledAligerFile {
 	

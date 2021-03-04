@@ -7,6 +7,7 @@ import org.junit.Test;
 import org.qcmg.common.util.SnpUtils;
 import org.qcmg.tab.TabbedRecord;
 
+@Deprecated
 public class CompareSnpsTest {
 	
 	@Test

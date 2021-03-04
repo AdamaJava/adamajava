@@ -25,6 +25,7 @@ import org.qcmg.qmule.util.IGVBatchFileGenerator;
 import org.qcmg.qmule.util.TabbedDataLoader;
 import org.qcmg.tab.TabbedRecord;
 
+@Deprecated
 public class CompareSnps {
 	
 	private final ConcurrentMap<ChrPosition, TabbedRecord> firstSnpMap = new ConcurrentHashMap<ChrPosition, TabbedRecord>(30000); //not expecting more than 100000

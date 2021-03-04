@@ -24,6 +24,7 @@ import org.qcmg.qmule.QMuleException;
 import org.qcmg.tab.TabbedFileReader;
 import org.qcmg.tab.TabbedRecord;
 
+@Deprecated
 public class UniqueSnps {
 	
 	private String logFile;

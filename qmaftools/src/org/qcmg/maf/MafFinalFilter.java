@@ -6,16 +6,13 @@ package org.qcmg.maf;
 import java.io.File;
 import java.io.FileWriter;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Pattern;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.util.FileUtils;
-import org.qcmg.tab.TabbedFileReader;
-import org.qcmg.tab.TabbedHeader;
-import org.qcmg.tab.TabbedRecord;
+import org.qcmg.qio.record.StringFileReader;
 
 public class MafFinalFilter {
 	
@@ -30,8 +27,7 @@ public class MafFinalFilter {
 	
 	private boolean includePositionsThatDidNotVerify;
 	
-	List<TabbedRecord> highConfidenceMafs = new ArrayList<TabbedRecord>(); 
-//	List<TabbedRecord> probableNoiseMafs = new ArrayList<TabbedRecord>(); 
+	List<String> highConfidenceMafs = new ArrayList<String>(); 
 	
 	public int engage() throws Exception {
 		// load mapping files
@@ -43,26 +39,20 @@ public class MafFinalFilter {
 	}
 	
 	private void filterMafFile(String inputFile, String outputMafFile) throws Exception {
-		TabbedFileReader reader = new TabbedFileReader(new File(inputFile));
-		
-		TabbedHeader header = reader.getHeader();
-		FileWriter writer = new FileWriter(new File(outputMafFile), false);
-		
+				
 		int passNovelCountCheck = 0, count = 0;
 		
-		try {
-			for (Iterator<String> iter = header.iterator() ; iter.hasNext() ;) {
-				String headerLine = iter.next();
-				writer.write(headerLine + "\n");
-			}
-		
-			for (TabbedRecord rec : reader) {
-				if (count++ == 0 && rec.getData().startsWith("Hugo_Symbol")) {
-					writer.write(rec.getData() + "\n");
+		try (StringFileReader reader = new StringFileReader(new File(inputFile));
+				FileWriter writer = new FileWriter(new File(outputMafFile), false);){
+			for (String re : reader.getHeader()) writer.write(re);
+			 	
+			for (final String rec : reader) {
+				if (count++ == 0 && rec.startsWith("Hugo_Symbol")) {
+					writer.write(rec + "\n");
 					continue;
 				}
 				
-				String[] params = tabbedPattern.split(rec.getData(), -1);
+				String[] params = tabbedPattern.split(rec, -1);
 				
 				// want to include all of KRAS mafs, regardless of if they pass 4 novel start filters
 				String geneName = params[0];
@@ -71,29 +61,25 @@ public class MafFinalFilter {
 				if (KRAS.equals(geneName) || novelStartCount >= 4) {
 					
 					String validationStatus = params[24];
+					String str = rec; 
 					if ( ! includePositionsThatDidNotVerify) {
 						// ignore 
 						if (validationStatus.startsWith("False")) continue;
 						if (validationStatus.startsWith("Unknown")) {
 							// don't want the extra info in the validation status field - just Unknown 
-							rec.setData(rec.getData().replace(validationStatus, "Unknown"));
+							str = rec.replace(validationStatus, "Unknown");
 						}
 					}
 					
 					// add to collection
-					writer.write(rec.getData() + "\n");
+					writer.write(str + "\n");
 					passNovelCountCheck++;
 				}
 			}
 			logger.info("for file: " + inputFile + " stats (count, passNovelCountCheck): " + count + "," + passNovelCountCheck);
 			
-		} finally {
-			try {
-				writer.close();
-			} finally {
-				reader.close();
-			}
-		}
+		} 
+	
 	}
 	
 	
