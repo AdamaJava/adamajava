@@ -71,7 +71,6 @@ public abstract class RecordReader<T> implements Closeable, Iterable<T> {
      */
     public String readHeaderAndReturnFirstNonHeaderLine(CharSequence headerPrefix ) throws IOException {
 
-
     	String nextLine = bin.readLine();
     	
     	//keep empty header and return first nonHeaderline
