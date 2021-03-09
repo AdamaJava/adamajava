@@ -64,29 +64,6 @@ interest.
 ### Example
 
 ~~~~{.text}
-##fileformat=VCFv4.0
-##patient_id=ABCD_1234
-##library=Library_EXT20140505_C
-##bam=/bamFile.bam
-##snp_file=/qsignature_positions.txt
-##filter_q_score=10
-##filter_match_qual=10
-##FILTER=<ID=LowQual,Description="REQUIRED: QUAL < 50.0">
-##INFO=<ID=FULLCOV,Number=.,Type=String,Description="all bases at position">
-##INFO=<ID=NOVELCOV,Number=.,Type=String,Description="bases at position from reads with novel starts">
-#CHROM  POS     ID      REF     ALT     QUAL    FILTER  INFO
-chr1    89788   cnvi0159992     G               .       .       FULLCOV=A:0,C:0,G:0,T:0,N:0,TOTAL:0;NOVELCOV=A:0,C:0,G:0,T:0,N:0,TOTAL:0
-chr1    90900   cnvi0135911     G               .       .       FULLCOV=A:0,C:0,G:0,T:0,N:0,TOTAL:0;NOVELCOV=A:0,C:0,G:0,T:0,N:0,TOTAL:0
-chr1    91152   cnvi0111730     A               .       .       FULLCOV=A:0,C:0,G:0,T:0,N:0,TOTAL:0;NOVELCOV=A:0,C:0,G:0,T:0,N:0,TOTAL:0
-chr1    91467   cnvi0132916     G               .       .       FULLCOV=A:0,C:0,G:0,T:0,N:0,TOTAL:0;NOVELCOV=A:0,C:0,G:0,T:0,N:0,TOTAL:0
-chr1    91472   rs6680825       C               .       .       FULLCOV=A:0,C:0,G:0,T:0,N:0,TOTAL:0;NOVELCOV=A:0,C:0,G:0,T:0,N:0,TOTAL:0
-chr1    91538   cnvi0158801     T               .       .       FULLCOV=A:0,C:0,G:0,T:0,N:0,TOTAL:0;NOVELCOV=A:0,C:0,G:0,T:0,N:0,TOTAL:0
-chr1    91719   cnvi0131353     C               .       .       FULLCOV=A:0,C:0,G:0,T:0,N:0,TOTAL:0;NOVELCOV=A:0,C:0,G:0,T:0,N:0,TOTAL:0
-chr1    98222   cnvi0147298     C               .       .       FULLCOV=A:0,C:0,G:0,T:0,N:0,TOTAL:0;NOVELCOV=A:0,C:0,G:0,T:0,N:0,TOTAL:0
-chr1    99236   cnvi0131297     T               .       .       FULLCOV=A:0,C:0,G:0,T:2,N:0,TOTAL:2;NOVELCOV=A:0,C:0,G:0,T:2,N:0,TOTAL:2
-chr1    100622  cnvi0147523     G               .       .       FULLCOV=A:0,C:0,G:0,T:0,N:0,TOTAL:0;NOVELCOV=A:0,C:0,G:0,T:0,N:0,TOTAL:0
-chr1    101095  cnvi0133071     T               .       .       FULLCOV=A:0,C:0,G:0,T:0,N:0,TOTAL:0;NOVELCOV=A:0,C:0,G:0,T:0,N:0,TOTAL:0
-chr1    102954  cnvi0120648     T               .       .       FULLCOV=A:0,C:0,G:0,T:2,N:0,TOTAL:2;NOVELCOV=A:0,C:0,G:0,T:2,N:0,TOTAL:2
 ##fileformat=VCFv4.2
 ##datetime=2021-03-09T10:52:34.073
 ##program=SignatureGeneratorBespoke
@@ -94,7 +71,7 @@ chr1    102954  cnvi0120648     T               .       .       FULLCOV=A:0,C:0,
 ##java_version=1.8.0_152
 ##run_by_os=Linux
 ##run_by_user=cromwelltst
-##snp_positions=/working/genomeinfo/cromwell-test/cromwell-executions/somaticDnaFastqToMaf/84361977-6637-4bae-b5b7-b49f00473273/call-controlQsigGen/inputs/-1645595714/qsignature_positions.txt
+##snp_positions=qsignature_positions.txt
 ##gene_positions=null
 ##reference=null
 ##positions_md5sum=d18c99f481afbe04294d11deeb418890
@@ -102,7 +79,7 @@ chr1    102954  cnvi0120648     T               .       .       FULLCOV=A:0,C:0,
 ##filter_base_quality=10
 ##filter_mapping_quality=10
 ##illumina_array_design=null
-##cmd_line=SignatureGeneratorBespoke --snpPositions /working/genomeinfo/cromwell-test/cromwell-executions/somaticDnaFastqToMaf/84361977-6637-4bae-b5b7-b49f00473273/call-controlQsigGen/inputs/-1645595714/qsignature_positions.txt -d . -i /working/genomeinfo/cromwell-test/cromwell-executions/somaticDnaFastqToMaf/84361977-6637-4bae-b5b7-b49f00473273/call-controlQsigGen/inputs/-51614194/55c7fbcf-439d-4058-9f55-6bd2d55127f5.bam -i /working/genomeinfo/cromwell-test/cromwell-executions/somaticDnaFastqToMaf/84361977-6637-4bae-b5b7-b49f00473273/call-controlQsigGen/inputs/-1645595714/Illumina_arrays_design.txt -log 55c7fbcf-439d-4058-9f55-6bd2d55127f5.bam.qsig.vcf.log --output 55c7fbcf-439d-4058-9f55-6bd2d55127f5.bam.qsig.vcf.gz --validation SILENT
+##cmd_line=SignatureGeneratorBespoke --snpPositions qsignature_positions.txt -input 55c7fbcf-439d-4058-9f55-6bd2d55127f5.bam -log 55c7fbcf-439d-4058-9f55-6bd2d55127f5.bam.qsig.vcf.log --output 55c7fbcf-439d-4058-9f55-6bd2d55127f5.bam.qsig.vcf.gz --validation SILENT
 ##INFO=<ID=QAF,Number=.,Type=String,Description="Lists the counts of As-Cs-Gs-Ts for each read group, along with the total">
 ##input=/working/genomeinfo/cromwell-test/cromwell-executions/somaticDnaFastqToMaf/84361977-6637-4bae-b5b7-b49f00473273/call-controlQsigGen/inputs/-51614194/55c7fbcf-439d-4058-9f55-6bd2d55127f5.bam
 ##rg0=null
