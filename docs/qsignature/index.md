@@ -44,5 +44,5 @@ java -cp qsignature.jar org.qcmg.sig.SignatureGeneratorBespoke -snpPositions <fi
 
 Mode | Description
 -----| -----------
-[`SignatureGeneratorBespoke`](qsignature_signature_generator_bespoke_mode) | Generates a compressed VCF file (.qsig.vcf.gz) for a BAM or snp chip file
-[`Compare`](qsignature_compare_mode) | Compares all of the qsig.vcf.gz files in a specified folder to ascertain whether there is a potential mixup
+[`SignatureGeneratorBespoke`](qsignature_signature_generator_bespoke_mode.md) | Generates a compressed VCF file (.qsig.vcf.gz) for a BAM or snp chip file
+[`Compare`](qsignature_compare_mode.md) | Compares all of the qsig.vcf.gz files in a specified folder to ascertain whether there is a potential mixup
