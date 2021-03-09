@@ -81,7 +81,7 @@ interest.
 ##illumina_array_design=null
 ##cmd_line=SignatureGeneratorBespoke --snpPositions qsignature_positions.txt -input 55c7fbcf-439d-4058-9f55-6bd2d55127f5.bam -log 55c7fbcf-439d-4058-9f55-6bd2d55127f5.bam.qsig.vcf.log --output 55c7fbcf-439d-4058-9f55-6bd2d55127f5.bam.qsig.vcf.gz --validation SILENT
 ##INFO=<ID=QAF,Number=.,Type=String,Description="Lists the counts of As-Cs-Gs-Ts for each read group, along with the total">
-##input=/working/genomeinfo/cromwell-test/cromwell-executions/somaticDnaFastqToMaf/84361977-6637-4bae-b5b7-b49f00473273/call-controlQsigGen/inputs/-51614194/55c7fbcf-439d-4058-9f55-6bd2d55127f5.bam
+##input=55c7fbcf-439d-4058-9f55-6bd2d55127f5.bam
 ##rg0=null
 ##rg1=13fbd3ce-9667-49b4-8936-1b7a02648bf0
 ##rg2=cb006bf1-0636-4c3d-9877-6319db04fa3f
