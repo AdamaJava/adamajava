@@ -15,33 +15,38 @@ There is a separate page with a more detailed explanation of the
 
 ## Installation
 
-qbamfilter requires java 7 and (ideally) a multi-core machine, although 
+qbamfilter requires java 8 and (ideally) a multi-core machine, although 
 it operates in single-threaded mode by default.  You can tune the amount
 of memory used by qbamfilter by specifying the number of records to store 
 in memory (`--maxRecordNumber`).  You can also opt to sort the output BAM 
 and the BAM will be automatically indexed if the sort-by-coordinate option
 is specified.
 
-* Download the [qbamfilter tar file](http://sourceforge.net/projects/adamajava/files/qbamfilter.tar/download)
-* Untar the tar file into a directory of your choice
+* **To do a build of qsignature, first clone the adamajava repository using "git clone":**
+  ```
+  git clone https://github.com/AdamaJava/adamajava
+  ```
+  
+  Then move into the adamajava folder:
+  ```
+  cd adamajava
+  ```
+  Run gradle to build qsignature and its dependent jar files:
+  ```
+  ./gradlew :qbamfilter:build
+  ```
+  This creates the qbamfilter jar file along with dependent jars in the `qbamfilter/build/flat` folder
  
-You should see jar files for qbamfilter and its dependencies:
-
-~~~~{.text}
-$ tar xvf qfamfilter.tar 
-x antlr-3.2.jar
-x jopt-simple-3.2.jar
-x picard-1.110.jar
-x qcommon-0.1pre.jar
-x qpicard-0.1pre.jar
-x qbamfilter-1.1pre.jar
-x sam-1.110.jar
-~~~~
 
 ## Usage
 
 ~~~~{.text}
-java -jar qbamfilter.jar -q <query> -i <input> -o <output> --log <logfile> [options]
+java -jar qbamfilter.jar -q "<query>" -i <input> -o <output> --log <logfile> [options]
+~~~~
+
+### `example`
+~~~~{.text}
+java -jar qbamfilter.jar -q "or( MAPQ > 50, option_ZM == 1 )" -i /path/input.bam -o /path/output.bam --log /path/output.log -t 3
 ~~~~
 
 ## Options
@@ -74,7 +79,7 @@ The name of the SAM or BAM file to be filtered.
 The name of the BAM file where records that match `--query` will be
 written.
 
-### `maxRecordNumber`
+### `--maxRecordNumber`
 
 BAM record queue size during reading and writing. The unit is 1000's
 or records so `--maxRecordNumber=100` allows for a queue of 100,000 records.
@@ -126,3 +131,5 @@ read to be passed by qbamfilter and be written to the `--output` BAM file.
 
 There is a separate page with a more detailed explanation of the
 [qbamfilter query language](qbamfilter_query).
+
+
