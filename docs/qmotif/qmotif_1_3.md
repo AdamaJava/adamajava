@@ -1,7 +1,7 @@
  * [Introduction](#introduction)
  * [Requirements](#requirements)
  * [Building qmotif](#building-qmotif)
- * [Running qmotif](#running-qmotif)
+ * [Running qmotif](#usage)
  * [Options](#options)
  * [Config (ini) file](#config-ini-file)
  * [How it works](#how-it-works)
