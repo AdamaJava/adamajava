@@ -36,7 +36,35 @@
   ```
   This creates the qmotif jar file along with dependent jars in the `qmotif/build/flat` folder
 
-## Running qmotif
+## Options
+The following command line options are supported:
+* ini (required) - Configuration file in INI format. This file is designed to contain parameters that are likely to be fixed for a given type of analysis. So the general idea is that you test parameters in the INI file until you are happy and then you use that single INI file with all of the BAM files that are part of this analysis.
+* bam (required) - BAM file on which to operate.
+* bai (required) - Index file for the BAM file being processed.
+* log (required) - Log file.
+* loglevel - Level of verbosity of logging. The default level is INFO and valid values are INFO, DEBUG.
+* n - Number of threads to use when running qmotif. Defaults to 1.
+* o (required) - Output XML file containing the motifs found and the regions they were found in.
+* o (required) - Output BAM file containing the reads that matched the stage1 search regex/string
+
+~~~~{.text}
+--help, -h              Show help message.
+--version, -v           Print version.
+
+--ini          Req, Configuration file in INI format. This file is designed to contain parameters that are likely to be fixed for a given type of analysis. So the general idea is that you test parameters in the INI file until you are happy and then you use that single INI file with all of the BAM files that are part of this analysis.
+--bam             Req, BAM file on which to operate.
+--bai             Req, Index file for the BAM file being processed.
+--output, -o            Req, Output XML file containing the motifs found and the regions they were found in.
+--output, -o            Req, Output XML file containing the motifs found and the regions they were found in.
+--query, -q             Req, Query string for selecting reads for coverage.
+--log                   Req, Log file.
+--loglevel              Opt, Logging level [INFO,DEBUG], Def=INFO.
+-n      Opt,Number of threads to use when running qmotif. Defaults to 1. 
+--validation            Opt, BAM record validation stringency [STRICT,LENIENT,SILENT] Def=LENIENT.
+~~~~
+
+
+## Usage
 
 * **To run qmotif, you need to supply an ini file:**
   ```
@@ -50,19 +78,7 @@
             -o /mydata/bamFile.bam.qmotif.xml \
             -o /mydata/bamFile.telomere.bam
   ```
-  Output is written to the directory specified in the ini file.
 
-
-## Options
-The following command line options are supported:
-* ini (required) - Configuration file in INI format. This file is designed to contain parameters that are likely to be fixed for a given type of analysis. So the general idea is that you test parameters in the INI file until you are happy and then you use that single INI file with all of the BAM files that are part of this analysis.
-* bam (required) - BAM file on which to operate.
-* bai (required) - Index file for the BAM file being processed.
-* log (required) - Log file.
-* loglevel - Level of verbosity of logging. The default level is INFO and valid values are INFO, DEBUG.
-* n - Number of threads to use when running qmotif. Defaults to 1.
-* o (required) - Output XML file containing the motifs found and the regions they were found in.
-* o (required) - Output BAM file containing the reads that matched the stage1 search regex/string
 
 ## Config (ini) file
 The qmotif config file is in the standard INI-file format and has 3 sections, PARAMS, INCLUDES, and EXCLUDES. The PARAMS sections lists the search criteria along with other customisable parameters, the INCLUDES section contains a list of genomic regions that are to be targeted for analysis, and the EXCLUDES section contains a list of genomic regions that are to be excluded from analysis.
