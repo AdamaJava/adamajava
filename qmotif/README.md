@@ -25,7 +25,7 @@ Tool that runs against a BAM file searching for user-specified motifs
 
 * **To run qmotif, you need to supply an ini file:**
   ```
-  java -Xmx20g -jar qmotif-1.2.jar \
+  java -Xmx20g -jar qmotif.jar \
             -n 8 \
             --bam /mydata/bamFile.bam \
             --bai /mydata/bamFile.bam.bai \
@@ -37,4 +37,4 @@ Tool that runs against a BAM file searching for user-specified motifs
   Outputs are written to the files specified by the `output (o)` options.
 
 ## More details
-More details can be found in the [qmotif](https://github.com/AdamaJava/adamajava/wiki/qMotif)  wiki page.
+More details can be found in the [qmotif](https://github.com/AdamaJava/adamajava/blob/qmotif.doc/docs/qmotif/qmotif_1_3.md)  wiki page.
