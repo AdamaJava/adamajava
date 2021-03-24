@@ -62,7 +62,10 @@ The following command line options are supported:
 --help, -h              Show help message.
 --version, -v           Print version.
 
---ini         		Req, Configuration file in INI format. This file is designed to contain parameters that are likely to be fixed for a given type of analysis. So the general idea is that you test parameters in the INI file until you are happy and then you use that single INI file with all of the BAM files that are part of this analysis.
+--ini         		Req, Configuration file in INI format. This file is designed to contain parameters 
+			that are likely to be fixed for a given type of analysis. So the general idea is 
+			that you test parameters in the INI file until you are happy and then you use that 
+			single INI file with all of the BAM files that are part of this analysis.
 --bam             	Req, BAM file on which to operate.
 --bai             	Req, Index file for the BAM file being processed.
 --output, -o            Req, Output XML file containing the motifs found and the regions they were found in.
