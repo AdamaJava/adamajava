@@ -310,7 +310,7 @@ public class SignatureGeneratorBespokeTest {
 		try (VcfFileReader reader = new VcfFileReader(outputFile);) {    			
 			for (final VcfRecord rec : reader) {
 				recs.add(rec);
-//				System.out.println("rec: " + rec.toString());
+//				System.out.print("rec: " + rec.toString());
 			}
 			VcfHeader header = reader.getVcfHeader();
 //	    	header.getAllMetaRecords().stream().forEach(System.out::println);

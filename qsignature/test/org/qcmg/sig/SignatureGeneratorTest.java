@@ -294,12 +294,12 @@ public class SignatureGeneratorTest {
     }
     static void writeSnpPositionsFile(File snpPositions) throws IOException {
     	try (Writer writer = new FileWriter(snpPositions);) {
-    		writer.write("chr3	183635768	random_1016708	C	RANDOM_POSITION\n");
-    		writer.write("chr4	75406448	random_649440	A	RANDOM_POSITION\n");
-    		writer.write("chr4	95733906	random_1053689	G	RANDOM_POSITION\n");
-    		writer.write("chr4	108826383	random_1146989	T	RANDOM_POSITION\n");
-    		writer.write("chr4	159441457	random_1053689	G	RANDOM_POSITION\n");
-    		writer.write("chr12	126890980	random_169627	G	RANDOM_POSITION\n");
+    		writer.write("chr3	183635768	random_1016708		C		RANDOM_POSITION\n");
+    		writer.write("chr4	75406448	random_649440		A		RANDOM_POSITION\n");
+    		writer.write("chr4	95733906	random_1053689		G		RANDOM_POSITION\n");
+    		writer.write("chr4	108826383	random_1146989		T		RANDOM_POSITION\n");
+    		writer.write("chr4	159441457	random_1053689		G		RANDOM_POSITION\n");
+    		writer.write("chr12	126890980	random_169627		G		RANDOM_POSITION\n");
     	}
     }
     
