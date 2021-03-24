@@ -36,6 +36,25 @@
   ```
   This creates the qmotif jar file along with dependent jars in the `qmotif/build/flat` folder
 
+## Usage
+
+~~~~{.text}
+java -jar qmotif.jar --ini <ini_file> --bam <input_bam_file> -o <xml_file> -o <bam_file> --log <logfile> [options]
+~~~~
+
+* **To run qmotif, you need to supply an ini file:**
+  ```
+  java -jar qmotif/build/flat/qmotif.jar \
+            -n 8 \
+            --bam /mydata/bamFile.bam \
+            --bai /mydata/bamFile.bam.bai \
+            --log /mydata/bamFile.bam.qmotif.log \
+            --loglevel DEBUG \
+            -ini /mydata/qmotif.ini \
+            -o /mydata/bamFile.bam.qmotif.xml \
+            -o /mydata/bamFile.telomere.bam
+  ```
+
 ## Options
 The following command line options are supported:
 * ini (required) - Configuration file in INI format. This file is designed to contain parameters that are likely to be fixed for a given type of analysis. So the general idea is that you test parameters in the INI file until you are happy and then you use that single INI file with all of the BAM files that are part of this analysis.
@@ -62,23 +81,6 @@ The following command line options are supported:
 -n      Opt,Number of threads to use when running qmotif. Defaults to 1. 
 --validation            Opt, BAM record validation stringency [STRICT,LENIENT,SILENT] Def=LENIENT.
 ~~~~
-
-
-## Usage
-
-* **To run qmotif, you need to supply an ini file:**
-  ```
-  java -jar qmotif/build/flat/qmotif.jar \
-            -n 8 \
-            --bam /mydata/bamFile.bam \
-            --bai /mydata/bamFile.bam.bai \
-            --log /mydata/bamFile.bam.qmotif.log \
-            --loglevel DEBUG \
-            -ini /mydata/qmotif.ini \
-            -o /mydata/bamFile.bam.qmotif.xml \
-            -o /mydata/bamFile.telomere.bam
-  ```
-
 
 ## Config (ini) file
 The qmotif config file is in the standard INI-file format and has 3 sections, PARAMS, INCLUDES, and EXCLUDES. The PARAMS sections lists the search criteria along with other customisable parameters, the INCLUDES section contains a list of genomic regions that are to be targeted for analysis, and the EXCLUDES section contains a list of genomic regions that are to be excluded from analysis.
