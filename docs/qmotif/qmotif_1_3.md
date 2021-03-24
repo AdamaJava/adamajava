@@ -40,7 +40,7 @@
 
 * **To run qmotif, you need to supply an ini file:**
   ```
-  java -jar qmotif/build/flat/qmotif-1.2.jar \
+  java -jar qmotif/build/flat/qmotif.jar \
             -n 8 \
             --bam /mydata/bamFile.bam \
             --bai /mydata/bamFile.bam.bai \
