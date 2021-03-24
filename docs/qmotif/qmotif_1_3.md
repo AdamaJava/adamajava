@@ -42,7 +42,7 @@
 java -jar qmotif.jar --ini <ini_file> --bam <input_bam_file> -o <xml_file> -o <bam_file> --log <logfile> [options]
 ~~~~
 
-* **To run qmotif, you need to supply an ini file:**
+* **To run qmotif, you need to supply an ini file with two outputs:**
   ```
   java -jar qmotif/build/flat/qmotif.jar \
             -n 8 \
