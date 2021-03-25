@@ -36,4 +36,4 @@ Tool that runs against a BAM file searching for user-specified motifs
   ```
 
 ## More details
-More details can be found in the [qmotif](https://github.com/AdamaJava/adamajava/blob/qmotif.doc/docs/qmotif/qmotif_1_3.md)  wiki page.
+More details can be found in the [qmotif](https://github.com/AdamaJava/adamajava/blob/qmotif.doc/docs/qmotif/qmotif_1_3.md)  adamajava readthedocs page.
