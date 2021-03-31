@@ -44,7 +44,7 @@ java -jar qmotif.jar --ini <ini_file> --bam <input_bam_file> -o <xml_file> -o <b
 
 * **To run qmotif, you need to supply an ini file with two outputs:**
   ```
-  java -jar qmotif/build/flat/qmotif.jar \
+  java -jar qmotif.jar \
             -n 8 \
             --bam /mydata/bamFile.bam \
             --bai /mydata/bamFile.bam.bai \
@@ -60,7 +60,7 @@ The following command line options are supported:
 
 ~~~~{.text}
 --help, -h              Show help message.
---version, -v           Print version.
+--version, -v, -V           Print version.
 
 --ini         		Req, Configuration file in INI format. This file is designed to contain parameters 
 			that are likely to be fixed for a given type of analysis. So the general idea is 

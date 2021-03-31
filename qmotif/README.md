@@ -24,7 +24,7 @@ Tool that runs against a BAM file searching for user-specified motifs
 ## Running qmotif
 * **To run qmotif, you need to supply an ini file and two outputs:**
   ```
-  java -jar qmotif/build/flat/qmotif.jar \
+  java -jar flat/qmotif.jar \
             -n 8 \
             --bam /mydata/bamFile.bam \
             --bai /mydata/bamFile.bam.bai \
