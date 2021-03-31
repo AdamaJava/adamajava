@@ -4,6 +4,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Arrays;
+
 import org.junit.Test;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.TabTokenizer;
@@ -72,6 +74,12 @@ public class VcfRecordTest {
 		
 		re.setInfo("hello_info");
 		assertEquals("chr15	1234567	rs123456	A	B	this_is_my_qual_string	this_is_my_filter_string	hello_info\n", re.toString());
+		
+		re.setFormatFields(Arrays.asList("FT", "format_1"));
+		assertEquals("chr15	1234567	rs123456	A	B	this_is_my_qual_string	this_is_my_filter_string	hello_info	FT	format_1\n", re.toString());
+		
+		re.setFormatFields(Arrays.asList("FT", "format_1", "format_2"));
+		assertEquals("chr15	1234567	rs123456	A	B	this_is_my_qual_string	this_is_my_filter_string	hello_info	FT	format_1	format_2\n", re.toString());
 	}
 	
 	@Test

@@ -241,7 +241,7 @@ public class VcfRecord implements Comparable<VcfRecord> {
 			throw new IllegalArgumentException("missing sample column information");
 		 
 		for (int i = 0; i < field.size(); i ++) {
-			if(StringUtils.isNullOrEmpty(field.get(i))) {
+			if (StringUtils.isNullOrEmpty(field.get(i))) {
 				formatRecords.add( Constants.MISSING_DATA_STRING);
 			} else {
 				formatRecords.add( field.get(i));
