@@ -78,13 +78,13 @@ public class Options {
         parser.acceptsAll( asList("q", "query"), QUERY_DESCRIPTION).withRequiredArg().ofType(String.class).describedAs("\"query\"");
         parser.acceptsAll( asList("i", "input"), Messages.getMessage("INPUT_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("input");
         parser.acceptsAll( asList("o", "output"), Messages.getMessage("OUTPUT_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("output"); 
-        parser.acceptsAll( asList("f", "filterOut"), Messages.getMessage("FILTEROUT_DESCRITPION")).withRequiredArg().ofType(String.class).describedAs("filterOut");
-        parser.acceptsAll( asList("m", "maxRecordNumber"), Messages.getMessage("MAXRECORD_DESCRITPION")).withRequiredArg().ofType(String.class).describedAs("maxRecordNumber");       
-        parser.acceptsAll( asList("t", "threadNumber"), Messages.getMessage("THREADNUMBER_DESCRITPION")).withRequiredArg().ofType(String.class).describedAs("threadNumber");
+        parser.acceptsAll( asList("f", "filterOut"), Messages.getMessage("FILTEROUT_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("filterOut");
+        parser.acceptsAll( asList("m", "maxRecordNumber"), Messages.getMessage("MAXRECORD_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("maxRecordNumber");       
+        parser.acceptsAll( asList("t", "threadNumber"), Messages.getMessage("THREADNUMBER_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("threadNumber");
          
         parser.accepts("log", LOG_DESCRIPTION).withRequiredArg().ofType(String.class);
         parser.accepts("loglevel",  LOG_LEVEL_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
-        parser.accepts("sort", Messages.getMessage("SORT_DESCRITPION") ).withRequiredArg().ofType(String.class);
+        parser.accepts("sort", Messages.getMessage("SORT_DESCRIPTION") ).withRequiredArg().ofType(String.class);
         parser.accepts("tmpdir", Messages.getMessage("TMPDIR_OPTION_DESCRIPTION")).withRequiredArg().ofType(String.class); 
         parser.accepts("validation", Messages.getMessage("VALIDATION_STRINGENCY_DESCRIPTION")).withRequiredArg().ofType(String.class); 
         options = parser.parse(args);   
