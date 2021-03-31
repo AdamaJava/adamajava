@@ -47,7 +47,7 @@ public final class Options {
 	private final Integer numberThreads;
 	private final String logLevel;
 	private final String log;
-	private final String input;
+//	private final String input;
 	private final String query;
 	private final String validation;
 
@@ -84,8 +84,6 @@ public final class Options {
 
 		outputFileNames = extractStringList("o");
 		
-		input =  (String) options.valueOf("input");
-
 		numberThreads = (Integer) options.valueOf("n");
 		log = (String) options.valueOf("log");
 		logLevel = (String) options.valueOf("loglevel");
@@ -188,8 +186,9 @@ public final class Options {
 		return validation;
 	}
 	
+	@Deprecated
 	public String getInput() {
-		return input;
+		return  (String) options.valueOf("input");
 	}
 	
 	public void detectBadOptions() throws Exception {

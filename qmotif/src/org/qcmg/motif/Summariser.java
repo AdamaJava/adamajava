@@ -26,6 +26,7 @@ import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.LoadReferencedClasses;
 
+@Deprecated
 public class Summariser {
 	
 	private static QLogger logger = null;
@@ -68,6 +69,7 @@ public class Summariser {
 	}
 	
 	public static String getSummaryData(String file) {
+		
 		if ( ! StringUtils.isNullOrEmpty(file)) {
 			/*
 			 * get pertinent bits of info from qmotif xml file
