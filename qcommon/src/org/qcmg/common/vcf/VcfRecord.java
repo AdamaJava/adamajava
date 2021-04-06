@@ -241,7 +241,7 @@ public class VcfRecord implements Comparable<VcfRecord> {
 			throw new IllegalArgumentException("missing sample column information");
 		 
 		for (int i = 0; i < field.size(); i ++) {
-			if(StringUtils.isNullOrEmpty(field.get(i))) {
+			if (StringUtils.isNullOrEmpty(field.get(i))) {
 				formatRecords.add( Constants.MISSING_DATA_STRING);
 			} else {
 				formatRecords.add( field.get(i));
@@ -316,8 +316,11 @@ public class VcfRecord implements Comparable<VcfRecord> {
 		builder.append(StringUtils.isNullOrEmpty(alt) ? MISSING_DATA_STRING : alt).append(TAB);
 		builder.append(StringUtils.isNullOrEmpty(qualString) ? MISSING_DATA_STRING : qualString).append(TAB);
 		builder.append(StringUtils.isNullOrEmpty(filter) ? MISSING_DATA_STRING : filter).append(TAB);
-		builder.append( (infoRecord == null) ? MISSING_DATA_STRING : getInfo()).append(TAB);
-		builder.append( getFormatFieldStrings() );
+		builder.append( (infoRecord == null) ? MISSING_DATA_STRING : getInfo());
+		String ff = getFormatFieldStrings();
+		if ( ! StringUtils.isNullOrEmpty(ff)) {
+			builder.append(TAB).append(ff);
+		}
 		builder.append(NL);
 		return builder.toString();
 	}
