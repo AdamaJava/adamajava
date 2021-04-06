@@ -278,7 +278,7 @@ public class SignatureGeneratorBespoke {
 			}
 			
 			/*
-			 * load data from snp chip fileinto map
+			 * load data from snp chip file into map
 			 */
 			logger.info("about to load data from snp chip file " + illuminaFile);
 			loadIlluminaData(illuminaFile, iIlluminaMap);
@@ -303,11 +303,7 @@ public class SignatureGeneratorBespoke {
 	
 	private void loadIlluminaArraysDesign() throws IOException {
 
-		// set to file specified by user if applicable
-		if (cmdLineInputFiles.length == 3) {
-			illumiaArraysDesign = cmdLineInputFiles[2];
-		}
-		
+		logger.info("in loadIlluminaArraysDesign with illumiaArraysDesign: " + illumiaArraysDesign);
 		// check that we can read the file
 		if (null != illumiaArraysDesign && FileUtils.canFileBeRead(illumiaArraysDesign)) {
 			try (StringFileReader reader=  new StringFileReader(new File(illumiaArraysDesign));) {
@@ -320,6 +316,7 @@ public class SignatureGeneratorBespoke {
 		} else {
 			logger.info("could not read the illumina arrays design file: " + illumiaArraysDesign);
 		}
+		logger.info("in loadIlluminaArraysDesign - illuminaArraysDesignMap size: " + illuminaArraysDesignMap.size());
 	}
 
 	static void loadIlluminaData(File illuminaFile, Map<ChrPosition, IlluminaRecord> illuminaMap) throws IOException {
@@ -454,14 +451,15 @@ public class SignatureGeneratorBespoke {
 		
 		// update the snps list with the details from the results map
 		for (final VcfRecord snp : snps) {
-			
 			// lookup corresponding snp in illumina map
-			final IlluminaRecord illRec = iIlluminaMap.get(ChrPointPosition.valueOf(snp.getChromosome(), snp.getPosition()));
+			final IlluminaRecord illRec = iIlluminaMap.get(snp.getChrPosition());
 			if (null == illRec) {
+				logger.debug("IlluminaRecord not found in iIlluminaMap with ChrPos: "  + snp.getChrPosition());
 				continue;
 			}
 			final String [] params = illuminaArraysDesignMap.get(illRec.getSnpId());
 			if (null == params) {
+				logger.debug("didn't find entry in illuminaArraysDesignMap for snp id: " + illRec.getSnpId());
 				continue;
 			}
 			
@@ -518,17 +516,17 @@ public class SignatureGeneratorBespoke {
 			 * convert TObjectIntMap to HashMap to use streaming etc
 			 */
 			Map<String, Integer> convertedMap = new HashMap<>();
-			rgIds.forEachEntry((String k, int v) -> {
-				convertedMap.putIfAbsent(k, Integer.valueOf(v));
-				return true;
-			} );
-			
-			if (null != convertedMap) {
-				
-				convertedMap.entrySet().stream()
-					.sorted(Comparator.comparing(Entry::getValue))
-					.forEach(e -> sbRgIds.append("##rg").append(e.getValue()).append(Constants.EQ).append(e.getKey()).append(Constants.NL));
+			if (null != rgIds) {
+				rgIds.forEachEntry((String k, int v) -> {
+					convertedMap.putIfAbsent(k, Integer.valueOf(v));
+					return true;
+				} );
 			}
+			
+				
+			convertedMap.entrySet().stream()
+				.sorted(Comparator.comparing(Entry::getValue))
+				.forEach(e -> sbRgIds.append("##rg").append(e.getValue()).append(Constants.EQ).append(e.getKey()).append(Constants.NL));
 			
 			try (OutputStream os = new GZIPOutputStream(new FileOutputStream(outputVCFFile), 1024 * 1024)) {
 				/*
@@ -679,6 +677,17 @@ public class SignatureGeneratorBespoke {
 		}
 	}
 	
+	/**
+	 * Little awkward this method, the GRCh37 version of the snpPositions file is a text file that is similar in layout to a vcf.
+	 * The GRCh38 version of the snpPositions file is a vcf file.
+	 * 
+	 * This method needs to be able to handle both versions.
+	 * 
+	 * 
+	 * @param randomSnpsFile
+	 * @throws IOException
+	 * @throws NoSuchAlgorithmException
+	 */
 	private void loadRandomSnpPositions(String randomSnpsFile) throws IOException, NoSuchAlgorithmException {
 		int count = 0;
 		MessageDigest md = MessageDigest.getInstance("MD5");
@@ -686,6 +695,12 @@ public class SignatureGeneratorBespoke {
 			
 			String line = null;
 			while ((line = in.readLine()) != null) {
+				if (line.startsWith(Constants.HASH_STRING)) {
+					/*
+					 * ignore - header line
+					 */
+					continue;
+				} 
 				++count;
 				final String[] params = TabTokenizer.tokenize(line);
 				String ref = null;
@@ -705,7 +720,6 @@ public class SignatureGeneratorBespoke {
 				
 				// Lynns new files are 1-based - no need to do any processing on th position
 				snps.add( new VcfRecord.Builder(params[0], Integer.parseInt(params[1]), ref).allele(alt).id(id).build());
-				
 			}
 			arraySize = snps.size();
 			logger.info("loaded " + arraySize + " positions into map (should be equal to: " + count + ")");
