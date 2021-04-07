@@ -129,7 +129,6 @@ public class Summariser {
 	int setup(String [] args) throws Exception{
 		Options options = new Options(args);
 		if (options.hasHelpOption() || null == args || args.length == 0) {
-//			System.out.println(Messages.USAGE);
 			options.displayHelp();
 			return exitStatus;
 		} else if (options.hasVersionOption()) {
@@ -147,7 +146,7 @@ public class Summariser {
 			logger = QLoggerFactory.getLogger(Summariser.class, logFile, options.getLogLevel());
 			// get input file
 			inputFile = options.getIniFile();
-			outputFile = options.getOutputFileNames()[0];
+			outputFile = options.getOutputXmlFileName();
 		}
 		return letsGo();
 	}

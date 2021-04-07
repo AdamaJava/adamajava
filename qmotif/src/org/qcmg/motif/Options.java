@@ -40,7 +40,6 @@ public final class Options {
 	private final OptionParser parser = new OptionParser();
 	private final OptionSet options;
 	private final String[] inputBAMFileNames;
-	private final String[] outputFileNames;
 	private final String[] inputBAIFileNames;
 	private final Integer numberThreads;
 	private final String logLevel;
@@ -51,47 +50,32 @@ public final class Options {
 	@SuppressWarnings("unchecked")
 	public Options(final String[] args) throws Exception {
 		parser.acceptsAll(asList("h", "help"), HELP_DESCRIPTION);
-		parser.acceptsAll(asList("o", "output"), OUTPUT_DESCRIPTION)
-				.withRequiredArg().ofType(String.class).describedAs("outputfile");
-		parser.acceptsAll(asList("bam"), INPUT_BAM_OPTION_DESCRIPTION)
-				.withRequiredArg().ofType(String.class).describedAs("BAM file");
-		parser.acceptsAll(asList("bai"), INPUT_BAI_OPTION_DESCRIPTION)
-				.withRequiredArg().ofType(String.class).describedAs("BAI file");
-		parser.acceptsAll(asList("q", "query"), QUERY_OPTION_DESCRIPTION)
-				.withRequiredArg().ofType(String.class).describedAs("expression");
-		parser.acceptsAll(asList("n"), NUMBER_THREADS_DESCRIPTION)
-				.withRequiredArg().ofType(Integer.class).describedAs("number of worker threads");
-		parser.acceptsAll(asList("v", "V", "version"), VERSION_DESCRIPTION);
+		parser.acceptsAll(asList("output-xml"), OUTPUT_DESCRIPTION).withRequiredArg().ofType(String.class);
+		parser.acceptsAll(asList( "output-bam"), OUTPUT_DESCRIPTION).withRequiredArg().ofType(String.class);
+		parser.acceptsAll(asList("input-bam"), INPUT_BAM_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
+		parser.acceptsAll(asList("input-bai"), INPUT_BAI_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
+		parser.acceptsAll(asList("query"), QUERY_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
+		parser.acceptsAll(asList("threads"), NUMBER_THREADS_DESCRIPTION).withRequiredArg().ofType(Integer.class);
+		parser.acceptsAll(asList( "version"), VERSION_DESCRIPTION);
 		parser.accepts("log", LOG_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
-		parser.accepts("loglevel", LOG_LEVEL_OPTION_DESCRIPTION)
-				.withRequiredArg().ofType(String.class);
-		parser.accepts("validation", VALIDATION_STRINGENCY_OPTION_DESCRIPTION)
-				.withRequiredArg().ofType(String.class); 
+		parser.accepts("loglevel", LOG_LEVEL_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
+		parser.accepts("validation", VALIDATION_STRINGENCY_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class); 
 		parser.accepts("ini", INI_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
 		options = parser.parse(args);
 
-		List<String> inputBAMFileNamesList = (List<String>) options.valuesOf("bam");
+		List<String> inputBAMFileNamesList = (List<String>) options.valuesOf("input-bam");
 		inputBAMFileNames = new String[inputBAMFileNamesList.size()];
 		inputBAMFileNamesList.toArray(inputBAMFileNames);
 
-		List<String> inputBAIFileNamesList = (List<String>) options.valuesOf("bai");
+		List<String> inputBAIFileNamesList = (List<String>) options.valuesOf("output-bai");
 		inputBAIFileNames = new String[inputBAIFileNamesList.size()];
 		inputBAIFileNamesList.toArray(inputBAIFileNames);
 
-		outputFileNames = extractStringList("o");
-		
-		numberThreads = (Integer) options.valueOf("n");
+		numberThreads = (Integer) options.valueOf("threads");
 		log = (String) options.valueOf("log");
 		logLevel = (String) options.valueOf("loglevel");
 		query = (String) options.valueOf("query");
 		validation = (String) options.valueOf("validation");
-	}
-
-	private String[] extractStringList(final String id) {
-		List<?> list = options.valuesOf(id);
-		String[] result = new String[list.size()];
-		list.toArray(result);
-		return result;
 	}
 
 	public String getIniFile() {
@@ -99,7 +83,7 @@ public final class Options {
 	}
 
 	public boolean hasQueryOption() {
-		return options.has("q") || options.has("query");
+		return  options.has("query");
 	}
 
 	boolean hasLogOption() {
@@ -122,28 +106,21 @@ public final class Options {
 		return logLevel;
 	}
 
-	boolean hasJsonFlag() {
-		return options.has("json");
+	public boolean hasInputBaiOption() {
+		return options.has("input-bai");
 	}
 
-	public boolean hasInputBAIOption() {
-		return options.has("bai");
-	}
 
-//	public boolean hasInputGFF3Option() {
-//		return options.has("gff3");
-//	}
-
-	public boolean hasInputBAMOption() {
-		return options.has("bam");
+	public boolean hasInputBamOption() {
+		return options.has("input-bam");
 	}
 
 	public boolean hasOutputOption() {
-		return options.has("o") || options.has("output");
+		return  options.has("output-xml");
 	}
 
 	public boolean hasVersionOption() {
-		return options.has("v") || options.has("V") || options.has("version");
+		return  options.has("version");
 	}
 
 	public boolean hasHelpOption() {
@@ -155,15 +132,19 @@ public final class Options {
 	}
 
 	public boolean hasNumberThreadsOption() {
-		return options.has("n");
+		return options.has("threads");
 	}
 
 	public String[] getBAMFileNames() {
 		return inputBAMFileNames;
 	}
+	
+	public String getOutputBamFileName() {
+		return options.has("output-bam")? (String) options.valueOf("output-bam") : null;
+	}
 
-	public String[] getOutputFileNames() {
-		return outputFileNames;
+	public String getOutputXmlFileName() {
+		return options.has("output-xml")? (String) options.valueOf("output-xml") : null;
 	}
 
 	public void displayHelp() throws Exception {
@@ -187,7 +168,7 @@ public final class Options {
 				&& 0 < options.nonOptionArguments().size()) {
 			throw new Exception("All arguments must be specified as options.");
 		}
-		if ( ! hasInputBAMOption()) {
+		if ( ! hasInputBamOption()) {
 			throw new Exception("Missing BAM input file option");
 		}
 		if ( ! hasOutputOption()) {

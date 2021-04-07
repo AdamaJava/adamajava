@@ -63,7 +63,7 @@ public class MotifTest {
 			File sam = testFolder.newFile("sam");
 			bamFile = testFolder.newFile("bam");
 			iniFile = testFolder.newFile("ini");
-			
+						
 			createSam(sam);
 			createBam(sam, bamFile);
 			createIni(iniFile);
@@ -80,8 +80,9 @@ public class MotifTest {
 		File logFile =  testFolder.newFile("log");
 		File outputXmlFile =  testFolder.newFile("xml");
 		File outputBamFile =  testFolder.newFile("bamoutput");
+				
 		ExpectedException.none();
-		Executor exec = execute("--log " + logFile.getAbsolutePath() + " --bam " + bamFile.getAbsolutePath() + " -o " + outputXmlFile.getAbsolutePath() + " -o " + outputBamFile.getAbsolutePath() +  " -ini " + iniFile.getAbsolutePath());
+		Executor exec = execute("--log " + logFile.getAbsolutePath() + " --input-bam " + bamFile.getAbsolutePath() + " --output-xml " + outputXmlFile.getAbsolutePath() + " --output-bam " + outputBamFile.getAbsolutePath() +  " --ini " + iniFile.getAbsolutePath());
 		assertTrue(0 == exec.getErrCode());
 
 		assertTrue(outputXmlFile.exists());
@@ -151,7 +152,7 @@ public class MotifTest {
 				
 		createIncludesInlyIni(includesOnlyINi);
 		
-		Executor exec = execute("--log " + logFile.getAbsolutePath() + " --bam " + bamFile.getAbsolutePath() + " -o " + outputXmlFile.getAbsolutePath() + " -o " + outputBamFile.getAbsolutePath() +  " -ini " + includesOnlyINi.getAbsolutePath());
+		Executor exec = execute("--log " + logFile.getAbsolutePath() + " --input-bam " + bamFile.getAbsolutePath() + " --output-xml " + outputXmlFile.getAbsolutePath() + " --output-bam " + outputBamFile.getAbsolutePath() +  " --ini " + includesOnlyINi.getAbsolutePath());
 		assertTrue(0 == exec.getErrCode());
 		
 		assertTrue(outputXmlFile.exists());
