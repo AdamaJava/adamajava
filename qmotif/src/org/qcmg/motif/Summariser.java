@@ -146,7 +146,7 @@ public class Summariser {
 			}
 			logger = QLoggerFactory.getLogger(Summariser.class, logFile, options.getLogLevel());
 			// get input file
-			inputFile = options.getInput();
+			inputFile = options.getIniFile();
 			outputFile = options.getOutputFileNames()[0];
 		}
 		return letsGo();

@@ -36,8 +36,6 @@ public final class Options {
 			.getMessage("VALIDATION_STRINGENCY_DESCRIPTION");
 	private static final String INI_OPTION_DESCRIPTION = Messages
 			.getMessage("INI_OPTION_DESCRIPTION");
-	private static final String INPUT_OPTION_DESCRIPTION = Messages
-			.getMessage("INPUT_OPTION_DESCRIPTION");
 
 	private final OptionParser parser = new OptionParser();
 	private final OptionSet options;
@@ -47,7 +45,6 @@ public final class Options {
 	private final Integer numberThreads;
 	private final String logLevel;
 	private final String log;
-//	private final String input;
 	private final String query;
 	private final String validation;
 
@@ -71,14 +68,13 @@ public final class Options {
 		parser.accepts("validation", VALIDATION_STRINGENCY_OPTION_DESCRIPTION)
 				.withRequiredArg().ofType(String.class); 
 		parser.accepts("ini", INI_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
-		parser.accepts("input", INPUT_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
 		options = parser.parse(args);
 
-		List inputBAMFileNamesList = options.valuesOf("bam");
+		List<String> inputBAMFileNamesList = (List<String>) options.valuesOf("bam");
 		inputBAMFileNames = new String[inputBAMFileNamesList.size()];
 		inputBAMFileNamesList.toArray(inputBAMFileNames);
 
-		List inputBAIFileNamesList = options.valuesOf("bai");
+		List<String> inputBAIFileNamesList = (List<String>) options.valuesOf("bai");
 		inputBAIFileNames = new String[inputBAIFileNamesList.size()];
 		inputBAIFileNamesList.toArray(inputBAIFileNames);
 
@@ -134,9 +130,9 @@ public final class Options {
 		return options.has("bai");
 	}
 
-	public boolean hasInputGFF3Option() {
-		return options.has("gff3");
-	}
+//	public boolean hasInputGFF3Option() {
+//		return options.has("gff3");
+//	}
 
 	public boolean hasInputBAMOption() {
 		return options.has("bam");
@@ -185,12 +181,7 @@ public final class Options {
 	public String getValidation() {	
 		return validation;
 	}
-	
-	@Deprecated
-	public String getInput() {
-		return  (String) options.valueOf("input");
-	}
-	
+		
 	public void detectBadOptions() throws Exception {
 		if (null != options.nonOptionArguments()
 				&& 0 < options.nonOptionArguments().size()) {
