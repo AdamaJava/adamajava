@@ -14,28 +14,18 @@ import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 
 public final class Options {
-	private static final String HELP_DESCRIPTION = Messages
-			.getMessage("HELP_OPTION_DESCRIPTION");
-	private static final String VERSION_DESCRIPTION = Messages
-			.getMessage("VERSION_OPTION_DESCRIPTION");
-	private static final String INPUT_BAM_OPTION_DESCRIPTION = Messages
-			.getMessage("INPUT_BAM_OPTION_DESCRIPTION");
-	private static final String INPUT_BAI_OPTION_DESCRIPTION = Messages
-			.getMessage("INPUT_BAI_OPTION_DESCRIPTION");
-	private static final String NUMBER_THREADS_DESCRIPTION = Messages
-			.getMessage("NUMBER_THREADS_DESCRIPTION");
-	private static final String OUTPUT_DESCRIPTION = Messages
-			.getMessage("OUTPUT_OPTION_DESCRIPTION");
-	private static final String QUERY_OPTION_DESCRIPTION = Messages
-			.getMessage("QUERY_OPTION_DESCRIPTION");
-	private static final String LOG_OPTION_DESCRIPTION = Messages
-			.getMessage("LOG_OPTION_DESCRIPTION");
-	private static final String LOG_LEVEL_OPTION_DESCRIPTION = Messages
-			.getMessage("LOG_LEVEL_OPTION_DESCRIPTION");
-	private static final String VALIDATION_STRINGENCY_OPTION_DESCRIPTION = Messages
-			.getMessage("VALIDATION_STRINGENCY_DESCRIPTION");
-	private static final String INI_OPTION_DESCRIPTION = Messages
-			.getMessage("INI_OPTION_DESCRIPTION");
+	private static final String HELP_DESCRIPTION = Messages.getMessage("HELP_OPTION_DESCRIPTION");
+	private static final String VERSION_DESCRIPTION = Messages.getMessage("VERSION_OPTION_DESCRIPTION");
+	private static final String INPUT_BAM_OPTION_DESCRIPTION = Messages.getMessage("INPUT_BAM_OPTION_DESCRIPTION");
+	private static final String INPUT_BAI_OPTION_DESCRIPTION = Messages.getMessage("INPUT_BAI_OPTION_DESCRIPTION");
+	private static final String NUMBER_THREADS_DESCRIPTION = Messages.getMessage("NUMBER_THREADS_DESCRIPTION");
+	private static final String OUTPUT_XML_DESCRIPTION = Messages.getMessage("OUTPUT_XML_OPTION_DESCRIPTION");
+	private static final String OUTPUT_BAM_DESCRIPTION = Messages.getMessage("OUTPUT_BAM_OPTION_DESCRIPTION");
+	private static final String QUERY_OPTION_DESCRIPTION = Messages.getMessage("QUERY_OPTION_DESCRIPTION");
+	private static final String LOG_OPTION_DESCRIPTION = Messages.getMessage("LOG_OPTION_DESCRIPTION");
+	private static final String LOG_LEVEL_OPTION_DESCRIPTION = Messages.getMessage("LOG_LEVEL_OPTION_DESCRIPTION");
+	private static final String VALIDATION_STRINGENCY_OPTION_DESCRIPTION = Messages.getMessage("VALIDATION_STRINGENCY_DESCRIPTION");
+	private static final String INI_OPTION_DESCRIPTION = Messages.getMessage("INI_OPTION_DESCRIPTION");
 
 	private final OptionParser parser = new OptionParser();
 	private final OptionSet options;
@@ -50,8 +40,8 @@ public final class Options {
 	@SuppressWarnings("unchecked")
 	public Options(final String[] args) throws Exception {
 		parser.acceptsAll(asList("h", "help"), HELP_DESCRIPTION);
-		parser.acceptsAll(asList("output-xml"), OUTPUT_DESCRIPTION).withRequiredArg().ofType(String.class);
-		parser.acceptsAll(asList( "output-bam"), OUTPUT_DESCRIPTION).withRequiredArg().ofType(String.class);
+		parser.acceptsAll(asList("output-xml"), OUTPUT_XML_DESCRIPTION).withRequiredArg().ofType(String.class);
+		parser.acceptsAll(asList( "output-bam"), OUTPUT_BAM_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.acceptsAll(asList("input-bam"), INPUT_BAM_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.acceptsAll(asList("input-bai"), INPUT_BAI_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.acceptsAll(asList("query"), QUERY_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
