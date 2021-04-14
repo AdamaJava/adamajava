@@ -42,39 +42,53 @@
 java -jar qmotif.jar --ini <ini_file> --bam <input_bam_file> -o <xml_file> -o <bam_file> --log <logfile> [options]
 ~~~~
 
-* **To run qmotif, you need to supply an ini file with two outputs:**
+* **To run qmotif, you need to supply an ini file**
   ```
   java -jar qmotif.jar \
-            -n 8 \
-            --bam /mydata/bamFile.bam \
-            --bai /mydata/bamFile.bam.bai \
+            --threads 8 \
+            --input-bam /mydata/bamFile.bam \
+            --input-bai /mydata/bamFile.bam.bai \
             --log /mydata/bamFile.bam.qmotif.log \
             --loglevel DEBUG \
             -ini /mydata/qmotif.ini \
-            -o /mydata/bamFile.bam.qmotif.xml \
-            -o /mydata/bamFile.telomere.bam
+            -output-xml /mydata/bamFile.bam.qmotif.xml \
+            -output-bam /mydata/bamFile.telomere.bam
   ```
 
 ## Options
 The following command line options are supported:
 
 ~~~~{.text}
---help, -h              Show help message.
---version, -v, -V           Print version.
-
---ini         		Req, Configuration file in INI format. This file is designed to contain parameters 
-			that are likely to be fixed for a given type of analysis. So the general idea is 
-			that you test parameters in the INI file until you are happy and then you use that 
-			single INI file with all of the BAM files that are part of this analysis.
---bam             	Req, BAM file on which to operate.
---bai             	Req, Index file for the BAM file being processed.
---output, -o            Req, Output XML file containing the motifs found and the regions they were found in.
---output, -o            Req, Output XML file containing the motifs found and the regions they were found in.
---query, -q             Req, Query string for selecting reads for coverage.
---log                   Req, Log file.
---loglevel              Opt, Logging level [INFO,DEBUG], Def=INFO.
--n      		Opt,Number of threads to use when running qmotif. Defaults to 1. 
---validation            Opt, BAM record validation stringency [STRICT,LENIENT,SILENT] Def=LENIENT.
+Option               Description                            
+------               -----------                            
+-h, --help           Show usage and help.                   
+--ini                Req, Configuration file in INI format. 
+                       This file is designed to contain     
+                       parameters that are likely to be     
+                       fixed for a given type of analysis.  
+                       So the general idea is that you test 
+                       parameters in the INI file until you 
+                       are happy and then you use that      
+                       single INI file with all of the BAM  
+                       files that are part of this analysis.
+--input-bai          Req, Index file for the BAM file being 
+                       processed.                           
+--input-bam          Req, BAM file on which to operate.     
+--log                Req, Log file.                         
+--loglevel           Opt, Logging level [INFO,DEBUG],       
+                       Def=INFO.                            
+--output-bam         Req, Output a BAM file containing all  
+                       reads that matched the motif search. 
+--output-xml         Req, Output XML file containing the    
+                       motifs found and the regions they    
+                       were found in.                       
+--query              Req, Query string for selecting reads  
+                       for coverage.                        
+--threads <Integer>  Opt,Number of threads to use when      
+                       running qmotif. Def=1.               
+--validation         Opt, BAM record validation stringency  
+                       [STRICT,LENIENT,SILENT]. Def=LENIENT.
+--version            Show version number.                   
 ~~~~
 
 ## Config (ini) file
