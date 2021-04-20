@@ -11,6 +11,7 @@
  */
 package org.qcmg.qprofiler;
 
+import static java.util.Arrays.asList;
 import java.util.List;
 
 import joptsimple.OptionParser;
@@ -20,12 +21,14 @@ final class Options {
 
 	private static final String HELP_DESCRIPTION = Messages.getMessage("HELP_OPTION_DESCRIPTION");
 	private static final String VERSION_DESCRIPTION = Messages.getMessage("VERSION_OPTION_DESCRIPTION");
-	private static final String NO_OF_THREADS_OPTION_DESCRIPTION = Messages.getMessage("NO_OF_THREADS_OPTION_DESCRIPTION");
+	private static final String CONSUMER_THREADS_OPTION_DESCRIPTION = Messages.getMessage("CONSUMER_THREADS_OPTION_DESCRIPTION");
+	private static final String PRODUCER_THREADS_OPTION_DESCRIPTION = Messages.getMessage("PRODUCER_THREADS_OPTION_DESCRIPTION");
+
 	private static final String INCLUDE_OPTION_DESCRIPTION = Messages.getMessage("INCLUDE_OPTION_DESCRIPTION");
 	private static final String TAGS_OPTION_DESCRIPTION = Messages.getMessage("TAGS_OPTION_DESCRIPTION");
 	private static final String TAGS_INT_OPTION_DESCRIPTION = Messages.getMessage("TAGS_INT_OPTION_DESCRIPTION");
 	private static final String TAGS_CHAR_OPTION_DESCRIPTION = Messages.getMessage("TAGS_CHAR_OPTION_DESCRIPTION");
-	private static final String MAX_RECORDS_OPTION_DESCRIPTION = Messages.getMessage("MAX_RECORDS_OPTION_DESCRIPTION");
+	private static final String RECORDS_OPTION_DESCRIPTION = Messages.getMessage("RECORDS_OPTION_DESCRIPTION");
 	private static final String LOG_OPTION_DESCRIPTION = Messages.getMessage("LOG_OPTION_DESCRIPTION");
 	private static final String LOG_LEVEL_OPTION_DESCRIPTION = Messages.getMessage("LOG_LEVEL_OPTION_DESCRIPTION");
 	private static final String OUTPUT_FILE_DESCRIPTION = Messages.getMessage("OUTPUT_FILE_DESCRIPTION");
@@ -52,18 +55,17 @@ final class Options {
 
 	@SuppressWarnings("unchecked")
 	Options(final String[] args) throws QProfilerException {
-//		parser.acceptsAll(asList("h", "help"), HELP_DESCRIPTION);
-//		parser.acceptsAll(asList("v", "version"), VERSION_DESCRIPTION);
-		parser.accepts("help", HELP_DESCRIPTION);
+ 		parser.acceptsAll(asList("h", "help"), HELP_DESCRIPTION);
 		parser.accepts("version", VERSION_DESCRIPTION);
 		
 		parser.accepts("input", INPUT_FILE_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("output", OUTPUT_FILE_DESCRIPTION).withRequiredArg().ofType(String.class);
-		parser.accepts("ntProducer", NO_OF_THREADS_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
-		parser.accepts("ntConsumer", NO_OF_THREADS_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
-		parser.accepts("maxRecords", MAX_RECORDS_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
+		parser.accepts("threads-producer", PRODUCER_THREADS_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
+		parser.accepts("threads-consumer", CONSUMER_THREADS_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
+		parser.accepts("index", INDEX_FILE_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
+		parser.accepts("records", RECORDS_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
+		
 		parser.accepts("include", INCLUDE_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
-		parser.accepts("index", INPUT_FILE_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
 //		parser.accepts("exclude", EXCLUDES_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
 		parser.accepts("log", LOG_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("loglevel", LOG_LEVEL_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
@@ -77,16 +79,16 @@ final class Options {
 		options = parser.parse(args);
 		
 		// no of threads - Consumer
-		Object threadNumberConsumer = options.valueOf("ntConsumer"); 
+		Object threadNumberConsumer = options.valueOf("threads-consumer"); 
 		if (null != threadNumberConsumer)
 			noOfConsumerThreads =  (Integer) threadNumberConsumer;
 		// no of threads - Producer
-		Object threadNumberProducer = options.valueOf("ntProducer"); 
+		Object threadNumberProducer = options.valueOf("threads-producer"); 
 		if (null != threadNumberProducer)
 			noOfProducerThreads =  (Integer) threadNumberProducer;
 		
 		// maxRecords
-		Object maxRecordsObject = options.valueOf("maxRecords"); 
+		Object maxRecordsObject = options.valueOf("records-max"); 
 		if (null != maxRecordsObject)
 			maxRecords =  (Integer) maxRecordsObject;
 		
