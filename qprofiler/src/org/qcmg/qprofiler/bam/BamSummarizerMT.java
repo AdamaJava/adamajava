@@ -78,33 +78,10 @@ public class BamSummarizerMT implements Summarizer {
 	@Override
 	public SummaryReport summarize(String input, String index, String[] regions) throws Exception {
 		
-		File file = new File(input);
 		vs= null == validation ? BamSummarizer.DEFAULT_VS : ValidationStringency.valueOf(validation);
-		// check to see if index file exists - if not, run in single producer mode as will not be able to perform indexed lookups
-		SamReader reader = SAMFileReaderFactory.createSAMFileReaderAsStream(input, index, vs);
-		if ( ! reader.hasIndex() && noOfProducerThreads > 1) {
-			logger.warn("using 1 producer thread - no index found for bam file: " + input);
-			noOfProducerThreads = 1;
-		}
-		
-		ConcurrentLinkedQueue<SAMRecord>[] queues = null;
-		AbstractQueue<SAMRecord> q  = null;
-		if (noOfProducerThreads == 1) {
-			q = new ConcurrentLinkedQueue<>();
-		} else {
-			queues = new ConcurrentLinkedQueue[noOfProducerThreads];
-			for (int i = 0 ; i < noOfProducerThreads ; i++) {
-				queues[i] = new ConcurrentLinkedQueue<SAMRecord>();
-			}
-		}
-		long start = System.currentTimeMillis();
-		
-		final BamSummaryReport bamSummaryReport = new BamSummaryReport( includes, maxRecords, tags, tagsInt, tagsChar );
-		bamSummaryReport.setFileName(input);
-		bamSummaryReport.setStartTime(DateUtils.getCurrentDateAsString());
-		
+		// check to see if index file exists - if not, run in single producer mode as will not be able to perform indexed lookups		
 		final AbstractQueue<String> sequences = new ConcurrentLinkedQueue<>();
-		try {
+		try (SamReader reader = SAMFileReaderFactory.createSAMFileReaderAsStream(input, index, vs);) {
 			SAMFileHeader header = reader.getFileHeader();
 			List<SAMSequenceRecord> samSequences = header.getSequenceDictionary().getSequences();
 			List<SAMSequenceRecord> orderedSamSequences = new ArrayList<SAMSequenceRecord>();
@@ -129,9 +106,29 @@ public class BamSummarizerMT implements Summarizer {
 			for (SAMProgramRecord pgLine : pgLines) {
 				if ("tmap".equals(pgLine.getId())) torrentBam = true;
 			}
-		} finally {
-			reader.close();
+			if ( ! reader.hasIndex() && noOfProducerThreads > 1) {
+				logger.warn("using 1 producer thread - no index found for bam file: " + input);
+				noOfProducerThreads = 1;
+			}						
+		} 	
+		
+		ConcurrentLinkedQueue<SAMRecord>[] queues = null;
+		AbstractQueue<SAMRecord> q  = null;
+		if (noOfProducerThreads == 1) {
+			q = new ConcurrentLinkedQueue<>();
+		} else {
+			queues = new ConcurrentLinkedQueue[noOfProducerThreads];
+			for (int i = 0 ; i < noOfProducerThreads ; i++) {
+				queues[i] = new ConcurrentLinkedQueue<SAMRecord>();
+			}
 		}
+		long start = System.currentTimeMillis();
+		
+		final BamSummaryReport bamSummaryReport = new BamSummaryReport( includes, maxRecords, tags, tagsInt, tagsChar );
+		bamSummaryReport.setFileName(input);
+		bamSummaryReport.setStartTime(DateUtils.getCurrentDateAsString());
+		
+
 		
 		bamSummaryReport.setTorrentBam(torrentBam);
 		// set the bam header

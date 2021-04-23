@@ -60,7 +60,7 @@ final class Options {
 		parser.accepts("input", INPUT_FILE_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("output", OUTPUT_FILE_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.acceptsAll(asList("threads-producer", "tp"), PRODUCER_THREADS_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
-		parser.acceptsAll(asList("threads-consumer", "tc"), PRODUCER_THREADS_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
+		parser.acceptsAll(asList("threads-consumer", "tc"), CONSUMER_THREADS_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
 //		parser.accepts("threads-consumer", CONSUMER_THREADS_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
 		parser.accepts("index", INDEX_FILE_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
 		parser.accepts("records", RECORDS_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
