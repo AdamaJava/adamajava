@@ -39,7 +39,6 @@ final class Options {
 	
 	private final OptionParser parser = new OptionParser();
 	private final OptionSet options;
-//	private final List<String> fileNames;
 	private final String[] fileNames;
 	private final String[] indexFileNames;
 	private final String outputFileName;
@@ -60,13 +59,13 @@ final class Options {
 		
 		parser.accepts("input", INPUT_FILE_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("output", OUTPUT_FILE_DESCRIPTION).withRequiredArg().ofType(String.class);
-		parser.accepts("threads-producer", PRODUCER_THREADS_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
-		parser.accepts("threads-consumer", CONSUMER_THREADS_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
+		parser.acceptsAll(asList("threads-producer", "tp"), PRODUCER_THREADS_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
+		parser.acceptsAll(asList("threads-consumer", "tc"), PRODUCER_THREADS_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
+//		parser.accepts("threads-consumer", CONSUMER_THREADS_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
 		parser.accepts("index", INDEX_FILE_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
 		parser.accepts("records", RECORDS_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
 		
 		parser.accepts("include", INCLUDE_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
-//		parser.accepts("exclude", EXCLUDES_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
 		parser.accepts("log", LOG_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("loglevel", LOG_LEVEL_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("tags", TAGS_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
@@ -88,7 +87,7 @@ final class Options {
 			noOfProducerThreads =  (Integer) threadNumberProducer;
 		
 		// maxRecords
-		Object maxRecordsObject = options.valueOf("records-max"); 
+		Object maxRecordsObject = options.valueOf("records"); 
 		if (null != maxRecordsObject)
 			maxRecords =  (Integer) maxRecordsObject;
 		
@@ -135,9 +134,6 @@ final class Options {
 		if ( ! options.nonOptionArguments().isEmpty())
 			throw new IllegalArgumentException(Messages.getMessage("USAGE"));
 		
-//		List<String> nonoptions = options.nonOptionArguments();
-//		fileNames = new String[nonoptions.size()];
-//		nonoptions.toArray(fileNames);
 	}
 
 	boolean hasVersionOption() {
@@ -166,9 +162,6 @@ final class Options {
 	String[] getIndexFileNames() {
 		return indexFileNames;
 	}
-//	List<String> getFileNames() {
-//		return fileNames;
-//	}
 	
 	String[] getBamIncludes() {
 		return includes;
