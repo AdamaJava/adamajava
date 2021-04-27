@@ -20,6 +20,12 @@ Please describe the tests that you ran to verify your changes. Provide instructi
 - [ ] Test A
 - [ ] Test B
 
+# Are WDL Updates Required?
+
+Please detail what changes are required to any wdl files to support this change.
+For example: 
+>qmotif.wdl will need to be updated to reflect new option names
+
 # Checklist:
 
 - [ ] My code follows the style guidelines of this project
