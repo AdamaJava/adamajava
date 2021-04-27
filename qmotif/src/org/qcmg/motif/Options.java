@@ -96,14 +96,18 @@ public final class Options {
 		return logLevel;
 	}
 
-	public boolean hasInputBaiOption() {
-		return options.has("input-bai");
-	}
-
-
-	public boolean hasInputBamOption() {
-		return options.has("input-bam");
-	}
+//	public boolean hasInputBaiOption() {
+//		return options.has("input-bai");
+//	}
+//
+//
+//	public boolean hasInputBamOption() {
+//		return options.has("input-bam");
+//	}
+	
+	public boolean hasINIOption() {
+		return  options.has("ini");
+	}	
 
 	public boolean hasOutputOption() {
 		return  options.has("output-xml");
@@ -158,8 +162,10 @@ public final class Options {
 				&& 0 < options.nonOptionArguments().size()) {
 			throw new Exception("All arguments must be specified as options.");
 		}
-		if ( ! hasInputBamOption()) {
-			throw new Exception("Missing BAM input file option");
+		//Summariser class don't require BAM input 
+		//both Summariser and Motif requires ini file
+		if ( ! hasINIOption()) {
+			throw new Exception("Missing ini file option");
 		}
 		if ( ! hasOutputOption()) {
 			throw new Exception("Missing output option");
