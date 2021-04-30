@@ -22,7 +22,7 @@ in memory (`--maxRecordNumber`).  You can also opt to sort the output BAM
 and the BAM will be automatically indexed if the sort-by-coordinate option
 is specified.
 
-* **To do a build of qsignature, first clone the adamajava repository using "git clone":**
+* **To do a build of qbamfilter, first clone the adamajava repository using "git clone":**
   ```
   git clone https://github.com/AdamaJava/adamajava
   ```
@@ -31,7 +31,7 @@ is specified.
   ```
   cd adamajava
   ```
-  Run gradle to build qsignature and its dependent jar files:
+  Run gradle to build qbamfilter and its dependent jar files:
   ```
   ./gradlew :qbamfilter:build
   ```
