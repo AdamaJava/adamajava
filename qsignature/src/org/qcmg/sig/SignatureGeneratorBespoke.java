@@ -35,14 +35,12 @@ import java.util.zip.GZIPOutputStream;
 
 import javax.xml.bind.DatatypeConverter;
 
-import org.apache.commons.codec.Charsets;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.meta.QExec;
 import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrPositionComparator;
-import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.TabTokenizer;
@@ -72,7 +70,7 @@ import htsjdk.samtools.SamReader;
  * Coverage data is shown in the following format:
  * QAF=t:0-0-0-2,rg1:0-0-0-2,rg2:0-0-0-0
  * 
- * Read group coverage is displayed allowing the user to run the CompareRG class to determine if the read groups that make up the bam match each other.
+ * Read group coverage is displayed allowing the user to run the CompareRG class to determine if the read groups that make up the BAM match each other.
  * 
  * @author oliverh
  *
@@ -683,6 +681,10 @@ public class SignatureGeneratorBespoke {
 	 * 
 	 * This method needs to be able to handle both versions.
 	 * 
+	 * Importantly, the position of the ref and alt fields are different between the 2 versions.
+	 * And so an attempt to determine which type of file is being dealt with will be made.
+	 * This will be based on the file name and any header information
+	 * 
 	 * 
 	 * @param randomSnpsFile
 	 * @throws IOException
@@ -692,41 +694,51 @@ public class SignatureGeneratorBespoke {
 		int count = 0;
 		MessageDigest md = MessageDigest.getInstance("MD5");
 		try (BufferedReader in = new BufferedReader(new FileReader(randomSnpsFile));) {
-			
+			boolean isSnpPositionsAVcfFile = randomSnpsFile.contains("vcf");
 			String line = null;
 			while ((line = in.readLine()) != null) {
 				if (line.startsWith(Constants.HASH_STRING)) {
+					
+					if (line.startsWith(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE)) {
+						isSnpPositionsAVcfFile = true;
+					}
 					/*
 					 * ignore - header line
 					 */
 					continue;
+					
 				} 
 				++count;
 				final String[] params = TabTokenizer.tokenize(line);
 				String ref = null;
-				if (params.length > 4 && null != params[4]) {
-					ref = params[4];
-				} else if (params.length > 3 && null != params[3]) {
-					// mouse file has ref at position 3 (0-based)
-					ref = params[3];
+				if (isSnpPositionsAVcfFile) {
+					if (params.length > 3 && null != params[3]) {
+						ref = params[3];
+					}
+				} else {
+					if (params.length > 4 && null != params[4]) {
+						ref = params[4];
+					} else if (params.length > 3 && null != params[3]) {
+						// mouse file has ref at position 3 (0-based)
+						ref = params[3];
+					}
 				}
 				
 				if (params.length < 2) {
 					throw new IllegalArgumentException("snp file must have at least 2 tab seperated columns, chr and position");
 				}
 				
-				String id = params.length > 2 ? params[2] : null; 
-				String alt = params.length > 5 ? params[5].replaceAll("/", ",") : null;
-				
-				// Lynns new files are 1-based - no need to do any processing on th position
-				snps.add( new VcfRecord.Builder(params[0], Integer.parseInt(params[1]), ref).allele(alt).id(id).build());
+				String id = params.length > 2 ? params[2] : null;
+				String alt = isSnpPositionsAVcfFile && params.length > 4 ?  params[4].replaceAll("/", ",")
+						: ! isSnpPositionsAVcfFile && params.length > 5 ? params[5].replaceAll("/", ",") : null;
+						// Lynns new files are 1-based - no need to do any processing on th position
+						snps.add( new VcfRecord.Builder(params[0], Integer.parseInt(params[1]), ref).allele(alt).id(id).build());
 			}
 			arraySize = snps.size();
 			logger.info("loaded " + arraySize + " positions into map (should be equal to: " + count + ")");
 		}
 		md.update(Files.readAllBytes(Paths.get(randomSnpsFile)));
 		snpPositionsMD5 = md.digest();
-		
 	}
 	
 	/**
