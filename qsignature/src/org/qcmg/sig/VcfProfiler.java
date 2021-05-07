@@ -179,7 +179,7 @@ public class VcfProfiler {
 						} else {
 							if (prevPositionHom) {
 								if (contiguousHomCounter > 2) {
-									logger.info("hom run, position count: " + contiguousHomCounter + ", range: " + (lastHomPosition - firstHomPosition) + ", start position: " + rec.getChromosome() + ":" + firstHomPosition);
+//									logger.info("hom run, position count: " + contiguousHomCounter + ", range: " + (lastHomPosition - firstHomPosition) + ", start position: " + rec.getChromosome() + ":" + firstHomPosition);
 								
 									/*
 									 * add details to map
@@ -228,9 +228,10 @@ public class VcfProfiler {
 		logger.info("vcfRecordCount: " + vcfRecordCount);
 		int countAboveCutoff = 0;
 		int cutoff = 10;
+		logger.info("Coverage Distribution:");
 		for (int i = 0 ; i < coverageDistMaxValue ; i++) {
 			if (coverageDist[i] > 0) {
-				logger.info("coverageDist, coverage: " + i + ", number of Positions with this coverage: " + coverageDist[i]);
+				logger.info("coverage: " + i + ", number of positions with this coverage: " + coverageDist[i]);
 				if (i >= cutoff) {
 					countAboveCutoff += coverageDist[i];
 				}
@@ -266,7 +267,7 @@ public class VcfProfiler {
 		logger.info("positionsAltIsHet: " + positionsAltIsHet + " (" + 100 * ((double)positionsAltIsHet / vcfRecordCount) + "%)");
 		logger.info("positionsAltIsHom: " + positionsAltIsHom + " (" + 100 * ((double)positionsAltIsHom / vcfRecordCount) + "%)");
 		
-		logger.info("geneDist: [wildtype, het wildtype, het alt , hom alt, dunno]");
+		logger.info("Gene Distribution: [wildtype, het wildtype, het alt , hom alt, dunno]");
 		int [] geneDistArray = new int[100]; 
 		for (Map.Entry<String, int[]> entry : geneDist.entrySet()) {
 			logger.info(entry.getKey() + ": " + Arrays.toString(entry.getValue()));
