@@ -28,6 +28,8 @@ import org.qcmg.qio.vcf.VcfFileReader;
  * This is the file that contains the positions that are used to query BAMs and snp array files
  * 
  * This class will not be often used.
+ * There are no unit tests for this class - please don't assume that what appears in the generated log file is correct
+ * See https://github.com/AdamaJava/adamajava/pull/262#issuecomment-839417078 for further details
  * 
  * @author oliverh
  *
