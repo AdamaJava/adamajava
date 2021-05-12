@@ -14,6 +14,7 @@ package org.qcmg.qprofiler;
 import static java.util.Arrays.asList;
 import java.util.List;
 
+import joptsimple.BuiltinHelpFormatter;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 
@@ -200,6 +201,7 @@ final class Options {
 	}
 
 	void displayHelp() throws Exception {
+		parser.formatHelpWith(new BuiltinHelpFormatter(120, 2));
 		parser.printHelpOn(System.err);
 	}
 	
