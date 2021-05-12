@@ -1,26 +1,13 @@
-# qbamfilter
+### qbamfilter
 
-## Introduction
+Tool that select reads from BAM files based on a user-supplied query.
 
-`qbamfilter` select reads from BAM files based on a user-supplied query.
-qbamfilter is available as a standalone application and is incorporated 
-into the majority of AdamaJava tools as a library to provide filtering 
-of BAM records.  For the standalone application, reads that match the query 
-are written to a new BAM file and reads that do not are dropped or 
-optionally written to a different BAM file.  For the library use-case, 
-only BAM records that pass the query string are accepted for further 
-processing by the AdamaJava tool.
-There is a separate page with a more detailed explanation of the
-[qbamfilter query language](qbamfilter_query).
+## Requirements
+* Java 1.8
+* (ideally) a multi-core machine
 
-## Installation
+## Building qbamfilter
 
-qbamfilter requires java 8 and (ideally) a multi-core machine, although 
-it operates in single-threaded mode by default.  You can tune the amount
-of memory used by qbamfilter by specifying the number of records to store 
-in memory (`--maxRecordNumber`).  You can also opt to sort the output BAM 
-and the BAM will be automatically indexed if the sort-by-coordinate option
-is specified.
 
 * **To do a build of qbamfilter, first clone the adamajava repository using "git clone":**
   ```
@@ -38,7 +25,7 @@ is specified.
   This creates the qbamfilter jar file along with dependent jars in the `qbamfilter/build/flat` folder
  
 
-## Usage
+## Running qbamfilter
 
 ~~~~{.text}
 java -jar qbamfilter.jar -q "<query>" -i <input> -o <output> --log <logfile> [options]

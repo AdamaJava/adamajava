@@ -304,9 +304,9 @@ public class SignatureGeneratorTest {
     }
     
     /*
-     * looks a little like a vcf file....
+     * looks a little like a vcf file.... wait it is a vcf!
      */
-    static void writeSnpPositionsFileWithHeader(File snpPositions) throws IOException {
+    static void writeSnpPositionsVcf(File snpPositions) throws IOException {
     	try (Writer writer = new FileWriter(snpPositions);) {
     		writer.write("##fileformat=VCFv4.2\n");
     		writer.write("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n");
