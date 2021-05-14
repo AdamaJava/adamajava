@@ -5,17 +5,11 @@
 */
 package org.qcmg.motif;
 
-
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
-import java.nio.file.OpenOption;
-import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -26,6 +20,12 @@ import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.LoadReferencedClasses;
 
+/**
+ * 
+ * @author christix
+ * This class is used to Summarise the qmotif xml files. The function is different to the Motif class.
+ * usage: java -cp qmotif.jar org.qcmg.motif.Summariser --ini <a list of xmls from Motif class>  --output-xml <xml output for Summarise class> --log <log file>
+ */
 public class Summariser {
 	
 	private static QLogger logger = null;
@@ -68,6 +68,7 @@ public class Summariser {
 	}
 	
 	public static String getSummaryData(String file) {
+		
 		if ( ! StringUtils.isNullOrEmpty(file)) {
 			/*
 			 * get pertinent bits of info from qmotif xml file
@@ -127,7 +128,6 @@ public class Summariser {
 	int setup(String [] args) throws Exception{
 		Options options = new Options(args);
 		if (options.hasHelpOption() || null == args || args.length == 0) {
-//			System.out.println(Messages.USAGE);
 			options.displayHelp();
 			return exitStatus;
 		} else if (options.hasVersionOption()) {
@@ -144,8 +144,8 @@ public class Summariser {
 			}
 			logger = QLoggerFactory.getLogger(Summariser.class, logFile, options.getLogLevel());
 			// get input file
-			inputFile = options.getInput();
-			outputFile = options.getOutputFileNames()[0];
+			inputFile = options.getIniFile();
+			outputFile = options.getOutputXmlFileName();
 		}
 		return letsGo();
 	}

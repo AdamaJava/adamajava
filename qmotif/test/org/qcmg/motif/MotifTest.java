@@ -63,7 +63,7 @@ public class MotifTest {
 			File sam = testFolder.newFile("sam");
 			bamFile = testFolder.newFile("bam");
 			iniFile = testFolder.newFile("ini");
-			
+						
 			createSam(sam);
 			createBam(sam, bamFile);
 			createIni(iniFile);
@@ -80,8 +80,9 @@ public class MotifTest {
 		File logFile =  testFolder.newFile("log");
 		File outputXmlFile =  testFolder.newFile("xml");
 		File outputBamFile =  testFolder.newFile("bamoutput");
+				
 		ExpectedException.none();
-		Executor exec = execute("--log " + logFile.getAbsolutePath() + " --bam " + bamFile.getAbsolutePath() + " -o " + outputXmlFile.getAbsolutePath() + " -o " + outputBamFile.getAbsolutePath() +  " -ini " + iniFile.getAbsolutePath());
+		Executor exec = execute("--log " + logFile.getAbsolutePath() + " --input-bam " + bamFile.getAbsolutePath() + " --output-xml " + outputXmlFile.getAbsolutePath() + " --output-bam " + outputBamFile.getAbsolutePath() +  " --ini " + iniFile.getAbsolutePath());
 		assertTrue(0 == exec.getErrCode());
 
 		assertTrue(outputXmlFile.exists());
@@ -126,8 +127,7 @@ public class MotifTest {
 			NodeList children = e.getChildNodes();
 			for (int j = 0 ; j < children.getLength() ; j++) {
 				Node childNode = children.item(j);
-//				System.out.println("Node name: " + childNode.getClass());
-				if ( ! childNode.getClass().toString().equals("class com.sun.org.apache.xerces.internal.dom.DeferredTextImpl")) {
+ 				if ( ! childNode.getClass().toString().equals("class com.sun.org.apache.xerces.internal.dom.DeferredTextImpl")) {
 					Element child =  (Element)children.item(j);
 					if (child.getNodeName().startsWith("totalReadsInThisAnalysis")) {
 						assertEquals(false, child.getAttribute("count").equals("0"));
@@ -139,30 +139,6 @@ public class MotifTest {
 				}
 			}
 		}		
-		
-		
-//		NodeList nl = doc.getElementsByTagName("region");
-		
-//		int count = 0;
-		
-//		for (int i = 0 ; i < nl.getLength() ; i++) {
-//			Element e = (Element) nl.item(i);
-//			
-//			// get 
-//			NodeList children = e.getChildNodes();
-//			for (int j = 0 ; j < children.getLength() ; j++) {
-//				Node child =  children.item(j);
-//				NamedNodeMap attributes = child.getAttributes();
-//				if ( null != attributes && attributes.getLength() > 0) {
-////					System.out.print(child.getNodeName());
-//					Node n = attributes.getNamedItem("number");
-//					
-//					count += Integer.parseInt(n.getNodeValue());
-//				}
-//			}
-//		}
-//		System.out.println("no of hits: " + count);
-//		assertEquals(10, count);
 	}
 	
 	@Test
@@ -176,7 +152,7 @@ public class MotifTest {
 				
 		createIncludesInlyIni(includesOnlyINi);
 		
-		Executor exec = execute("--log " + logFile.getAbsolutePath() + " --bam " + bamFile.getAbsolutePath() + " -o " + outputXmlFile.getAbsolutePath() + " -o " + outputBamFile.getAbsolutePath() +  " -ini " + includesOnlyINi.getAbsolutePath());
+		Executor exec = execute("--log " + logFile.getAbsolutePath() + " --input-bam " + bamFile.getAbsolutePath() + " --output-xml " + outputXmlFile.getAbsolutePath() + " --output-bam " + outputBamFile.getAbsolutePath() +  " --ini " + includesOnlyINi.getAbsolutePath());
 		assertTrue(0 == exec.getErrCode());
 		
 		assertTrue(outputXmlFile.exists());
@@ -221,7 +197,6 @@ public class MotifTest {
 			NodeList children = e.getChildNodes();
 			for (int j = 0 ; j < children.getLength() ; j++) {
 				Node childNode = children.item(j);
-//				System.out.println("Node name: " + childNode.getClass());
 				if ( ! childNode.getClass().toString().equals("class com.sun.org.apache.xerces.internal.dom.DeferredTextImpl")) {
 					Element child =  (Element)children.item(j);
 					if (child.getNodeName().startsWith("scaled")) {
