@@ -287,7 +287,7 @@ public final class Motif {
 		TransformerFactory transformerFactory = TransformerFactory.newInstance();
 		Transformer transformer = transformerFactory.newTransformer();
 		DOMSource source = new DOMSource(doc);
-		StreamResult result = new StreamResult(new File(options.getOutputFileNames()[0]));
+		StreamResult result = new StreamResult(new File(options.getOutputXmlFileName()));
 		transformer.setOutputProperty(OutputKeys.INDENT, "yes");
 		transformer.transform(source, result);
 	}
@@ -304,7 +304,7 @@ public final class Motif {
 	public static void main(final String[] args) throws Exception {
 		LoadReferencedClasses.loadClasses(Motif.class);
 		try {
-			moptions = new Options(args);
+			moptions = new Options(args);			
 			if (moptions.hasHelpOption()) {
 				displayHelpMessage();
 			} else if (moptions.hasVersionOption()) {
@@ -312,10 +312,8 @@ public final class Motif {
 			} else {
 				moptions.detectBadOptions();
 				performLogging = true;
-				mlogger = QLoggerFactory.getLogger(Motif.class, moptions
-						.getLog(), moptions.getLogLevel());
-				mlogger.logInitialExecutionStats(getProgramName(),
-						getProgramVersion(), args);
+				mlogger = QLoggerFactory.getLogger(Motif.class, moptions.getLog(), moptions.getLogLevel());
+				mlogger.logInitialExecutionStats(getProgramName(), getProgramVersion(), args);
 				new Motif(moptions);
 				exitStatus = 0; // SUCCESS
 			}

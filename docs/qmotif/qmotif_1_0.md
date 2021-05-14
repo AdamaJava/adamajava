@@ -1,8 +1,5 @@
 # qmotif v1.0
 
-_This document refers to an old version of qMotif.  The current version
-is [1.2](qmotif_1_2.md)_
-
 `qmotif` runs against a BAM file searching for user specified nucleotide 
 motifs.
 qmotif was created to search for reads that contained canonical
