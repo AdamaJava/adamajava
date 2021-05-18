@@ -13,6 +13,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.xml.sax.SAXException;
 
+@Deprecated
 public class SummariserTest {
 	
 	 @org.junit.Rule
