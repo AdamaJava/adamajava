@@ -74,8 +74,7 @@ public final class JobQueue {
 	
 	private final List<ChrPosition> contigs;
 	
-	public JobQueue(final Configuration invariants)
-			throws Exception {
+	public JobQueue(final Configuration invariants) throws Exception {
 		filter = invariants.getFilter();
 		algorithm = invariants.getAlgorithm();
 		numberThreads = invariants.getNumberThreads();
@@ -90,10 +89,11 @@ public final class JobQueue {
 		includes = invariants.getIncludes();
 		excludes = invariants.getExcludes();
 		includesOnly = invariants.isIncludesOnlyMode();
-		
+				
 		// get header from bam file
 		Pair<File, File> firstPair = filePairs.iterator().next();
-		File bamFile = firstPair.getLeft();
+		File bamFile = firstPair.getLeft();		
+		
 		// set bam filename in SummaryStats
 		ss.setBamFileName(bamFile.getAbsolutePath());
 		ss.setIncludesOnly(includesOnly);
@@ -118,11 +118,7 @@ public final class JobQueue {
  					break;
  				}
 			}
-			// don't add unmapped to includes only mode for now...
-//			if (addUnmapped) {
-//				contigs.add(new ChrPosition(MotifConstants.UNMAPPED, 1, 1000 * 1000 * 128));
-//			}
-			
+			// don't add unmapped to includes only mode for now...			
 		} else {
 			
 			List<SAMSequenceRecord> bamFileContigs = header.getSequenceDictionary().getSequences();

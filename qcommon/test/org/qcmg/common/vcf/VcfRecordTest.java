@@ -4,6 +4,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Arrays;
+
 import org.junit.Test;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.TabTokenizer;
@@ -24,10 +26,8 @@ public class VcfRecordTest {
 		assertEquals(true, re.getInfo().contains("END=2675826"));
 		
 		re.setInfo("NNS=6");
-		assertTrue(re.getInfo().equals("NNS=6"));
-	
+		assertEquals("NNS=6", re.getInfo());
 	}
-	
 	
 	@Test
 	public void constructorTest(){
@@ -37,15 +37,49 @@ public class VcfRecordTest {
 		String[] parms = {"chrY","2675826",".",ref,alt,"PASS"};
 		VcfRecord re = new VcfRecord(parms);
 		VcfRecord re1 = new VcfRecord.Builder("chrY",2675826,ref).allele(alt).filter("PASS").build();		
-		assertTrue(re.equals(re1));
+		assertEquals(re1, re);
 		
 		
 		//only compare CHROM POS REF ALT
 		String[] parms1 = {"chrY","2675826",".",ref, alt,".","COVN12;MIUN","SOMATIC;NNS=4;END=2675826","ACCS","TG,5,37,CA,0,2","AA,1,1,CA,4,1,CT,3,1,TA,11,76,TG,2,2,TG,0,1"};
 		re = new VcfRecord(parms1);
 		assertTrue(re.equals(re1));
+	}
+	
+	@Test
+	public void testToString() {
+		String[] parms = {"chr15","1234567",".",".","."};
+		VcfRecord re = new VcfRecord(parms);
+		assertEquals("chr15	1234567	.	.	.	.	.	.\n", re.toString());
 		
+		parms = new String[] {"chr15","1234567","rs123456",".","."};
+		re = new VcfRecord(parms);
+		assertEquals("chr15	1234567	rs123456	.	.	.	.	.\n", re.toString());
 		
+		parms = new String[] {"chr15","1234567","rs123456","A","."};
+		re = new VcfRecord(parms);
+		assertEquals("chr15	1234567	rs123456	A	.	.	.	.\n", re.toString());
+		
+		parms = new String[] {"chr15","1234567","rs123456","A","B"};
+		re = new VcfRecord(parms);
+		assertEquals("chr15	1234567	rs123456	A	B	.	.	.\n", re.toString());
+		
+		parms = new String[] {"chr15","1234567","rs123456","A","B"};
+		re = new VcfRecord(parms);
+		re.setQualString("this_is_my_qual_string");
+		assertEquals("chr15	1234567	rs123456	A	B	this_is_my_qual_string	.	.\n", re.toString());
+		
+		re.setFilter("this_is_my_filter_string");
+		assertEquals("chr15	1234567	rs123456	A	B	this_is_my_qual_string	this_is_my_filter_string	.\n", re.toString());
+		
+		re.setInfo("hello_info");
+		assertEquals("chr15	1234567	rs123456	A	B	this_is_my_qual_string	this_is_my_filter_string	hello_info\n", re.toString());
+		
+		re.setFormatFields(Arrays.asList("FT", "format_1"));
+		assertEquals("chr15	1234567	rs123456	A	B	this_is_my_qual_string	this_is_my_filter_string	hello_info	FT	format_1\n", re.toString());
+		
+		re.setFormatFields(Arrays.asList("FT", "format_1", "format_2"));
+		assertEquals("chr15	1234567	rs123456	A	B	this_is_my_qual_string	this_is_my_filter_string	hello_info	FT	format_1	format_2\n", re.toString());
 	}
 	
 	@Test
@@ -57,16 +91,15 @@ public class VcfRecordTest {
 		String reToString = re.toString();
 		assertEquals(true, reToString.endsWith(Constants.NEW_LINE));
 		
-		String[] parm = reToString.split(Constants.TAB + "" );
-		assertTrue(parm.length == 9);	
-		assertTrue(parm[7].equals(Constants.MISSING_DATA_STRING));	
+		String[] parm = reToString.split(Constants.TAB_STRING);
+		assertEquals(8, parm.length);	
+		assertEquals(Constants.MISSING_DATA_STRING + Constants.NL, parm[7]);	
 		
 		String[] parms2 = {"chrY","2675826",".","TGAA","CATT"};
 		re = new VcfRecord(parms2);
 		
 		// expecting end to be inserted by toString, and to be equal to start + 1 (compound snp)
-		reToString = re.toString();
-		assertEquals(true, re.getChrPosition().getEndPosition() == 2675829);
+		assertEquals(2675829, re.getChrPosition().getEndPosition());
 	}
 	
 	@Test
@@ -93,38 +126,39 @@ public class VcfRecordTest {
 	
 	@Test
 	public void getSampleColumnTest(){
-/*
- * 	public VcfFormatFieldRecord getSampleFormatRecord(int index){
-		String s = (index >= formatRecords.size())? null: formatRecords.get(index);
-		return (s == null)? null : new VcfFormatFieldRecord(formatRecords.get(0), s);
-	}		
- */
 		//one sample
 		String line = "chr2\t92281414\t.\tAC\tTG\t.\tSBIAS;SAT3\tEND=92281415\tACCS\tAC,1,1,TG,0,4\tOK";
 		String[] params = TabTokenizer.tokenize(line);
 		VcfRecord re = new VcfRecord(params);
 
-		assertTrue(re.getSampleFormatRecord(1).toString().equals("ACCS\tAC,1,1,TG,0,4")); 
- 		for(int i = 0; i < 10; i ++)
- 			if(i == 1 ) assertTrue(re.getSampleFormatRecord(i).getSampleColumnString().equals("AC,1,1,TG,0,4")  ); 
- 			else if( i == 2 ) assertTrue(re.getSampleFormatRecord(i).getSampleColumnString().equals("OK")  );
- 			else assertTrue(re.getSampleFormatRecord(i) == null); 
+		assertEquals("ACCS\tAC,1,1,TG,0,4", re.getSampleFormatRecord(1).toString()); 
+ 		for (int i = 0; i < 10; i ++) {
+ 			if (i == 1 ) {
+ 				assertEquals("AC,1,1,TG,0,4", re.getSampleFormatRecord(i).getSampleColumnString()); 
+ 			} else if ( i == 2 ) {
+ 				assertEquals("OK", re.getSampleFormatRecord(i).getSampleColumnString());
+ 			} else {
+ 				assertTrue(re.getSampleFormatRecord(i) == null);
+ 			}
+ 		}
 				
 	}	
 	
 	@Test
-	public void MissingSampleColumn(){
+	public void missingSampleColumn(){
 		//one sample
 		String line = "chr2\t92281414\t.\tAC\tTG\t.\tSBIAS;SAT3\tEND=92281415\tACCS\tAC,1,1,TG,0,4";
 		String[] params = TabTokenizer.tokenize(line);
 		VcfRecord re = new VcfRecord(params);
 		assertEquals(re.getFormatFields().size(), 2);
+		assertEquals("ACCS", re.getFormatFields().get(0));
 		
 		//second sample missing
 		line = "chr2\t92281414\t.\tAC\tTG\t.\tSBIAS;SAT3\tEND=92281415\tACCS\tAC,1,1,TG,0,4\t";
 		params = TabTokenizer.tokenize(line);	
  		re = new VcfRecord(params);
 		assertEquals(re.getFormatFields().size(), 3);
+		assertEquals("ACCS", re.getFormatFields().get(0));
 		assertFalse(re.getFormatFields().get(1).equals(Constants.MISSING_DATA_STRING));
 		
 		//first sample missing
@@ -132,6 +166,7 @@ public class VcfRecordTest {
 		params = TabTokenizer.tokenize(line);	
  		re = new VcfRecord(params);
 		assertEquals(re.getFormatFields().size(), 3);
+		assertEquals("ACCS", re.getFormatFields().get(0));
 		assertTrue(re.getFormatFields().get(1).equals(Constants.MISSING_DATA_STRING));
 		
 		
@@ -140,6 +175,7 @@ public class VcfRecordTest {
 		params = TabTokenizer.tokenize(line);	
  		re = new VcfRecord(params);
 		assertEquals(re.getFormatFields().size(), 4);
+		assertEquals("ACCS", re.getFormatFields().get(0));
 		assertTrue(re.getFormatFields().get(1).equals(Constants.MISSING_DATA_STRING));
 		assertTrue(re.getFormatFields().get(2).equals(Constants.MISSING_DATA_STRING));
 		assertTrue(re.getFormatFields().get(3).equals(Constants.MISSING_DATA_STRING));
@@ -149,6 +185,7 @@ public class VcfRecordTest {
 		params = TabTokenizer.tokenize(line);	
  		re = new VcfRecord(params);
 		assertEquals(re.getFormatFields().size(), 4);
+		assertEquals("ACCS", re.getFormatFields().get(0));
 		assertTrue(re.getFormatFields().get(1).equals(Constants.MISSING_DATA_STRING));
 		assertTrue(re.getFormatFields().get(2).equals(Constants.MISSING_DATA_STRING));
 		assertTrue(re.getFormatFields().get(3).equals(Constants.MISSING_DATA_STRING));

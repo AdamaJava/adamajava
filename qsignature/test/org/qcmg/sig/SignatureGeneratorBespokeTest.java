@@ -187,18 +187,15 @@ public class SignatureGeneratorBespokeTest {
 	@Test
     public void runProcessWithHG19BamFile() throws Exception {
     	final File positionsOfInterestFile = testFolder.newFile("runProcessWithHG19BamFile.snps.txt");
-    	final File illuminaArraysDesignFile = testFolder.newFile("runProcessWithHG19BamFile.illuminaarray.txt");
     	final File bamFile = testFolder.newFile("runProcessWithHG19BamFile.bam");
     	final File logFile = testFolder.newFile("runProcessWithHG19BamFile.log");
     	final String outputFIleName = bamFile.getAbsolutePath() + ".qsig.vcf.gz";
     	final File outputFile = new File(outputFIleName);
 	    	
-	//    	writeSnpChipFile(snpChipFile);
 	    SignatureGeneratorTest.writeSnpPositionsFile(positionsOfInterestFile);
-	    SignatureGeneratorTest.writeIlluminaArraysDesignFile(illuminaArraysDesignFile);
 	    SignatureGeneratorTest.getBamFile(bamFile, true, false);
 	    	
-    	final int exitStatus = qss.setup(new String[] {"--log" , logFile.getAbsolutePath(), "-snpPositions" , positionsOfInterestFile.getAbsolutePath(), "-i" , bamFile.getAbsolutePath(),  "-illuminaArraysDesign" , illuminaArraysDesignFile.getAbsolutePath()} );
+    	final int exitStatus = qss.setup(new String[] {"--log" , logFile.getAbsolutePath(), "-snpPositions" , positionsOfInterestFile.getAbsolutePath(), "-i" , bamFile.getAbsolutePath()} );
     	assertEquals(0, exitStatus);
     	
     	assertTrue(outputFile.exists());
@@ -207,7 +204,8 @@ public class SignatureGeneratorBespokeTest {
     	try (VcfFileReader reader = new VcfFileReader(outputFile);) {    			
 	    	for (final VcfRecord rec : reader) {
 	    		recs.add(rec);
-	    		System.out.println("rec: " + rec.toString());
+	    		assertEquals(true, rec.getRef().equals("A") || rec.getRef().equals("C") ||rec.getRef().equals("G") || rec.getRef().equals("T"));
+//	    		System.out.print("rec: " + rec.toString());
 	    	}
 	    	VcfHeader header = reader.getVcfHeader();
 	    	assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg0=null")));
@@ -223,19 +221,17 @@ public class SignatureGeneratorBespokeTest {
     }
 	
 	@Test
-	public void runProcessWithReadGroupsSetInHeader() throws Exception {
-		final File positionsOfInterestFile = testFolder.newFile("runProcessWithHG19BamFile.snps.txt");
-		final File illuminaArraysDesignFile = testFolder.newFile("runProcessWithHG19BamFile.illuminaarray.txt");
-		final File bamFile = testFolder.newFile("runProcessWithHG19BamFile.bam");
-		final File logFile = testFolder.newFile("runProcessWithHG19BamFile.log");
+	public void runProcessWithHG19BamFileVcf() throws Exception {
+		final File positionsOfInterestFile = testFolder.newFile("runProcessWithHG19BamFileVcf.snps.vcf");
+		final File bamFile = testFolder.newFile("runProcessWithHG19BamFileVcf.bam");
+		final File logFile = testFolder.newFile("runProcessWithHG19BamFileVcf.log");
 		final String outputFIleName = bamFile.getAbsolutePath() + ".qsig.vcf.gz";
 		final File outputFile = new File(outputFIleName);
 		
-		SignatureGeneratorTest.writeSnpPositionsFile(positionsOfInterestFile);
-		SignatureGeneratorTest.writeIlluminaArraysDesignFile(illuminaArraysDesignFile);
-		SignatureGeneratorTest.getBamFile(bamFile, true, false, true);
+		SignatureGeneratorTest.writeSnpPositionsVcf(positionsOfInterestFile);
+		SignatureGeneratorTest.getBamFile(bamFile, true, false);
 		
-		final int exitStatus = qss.setup(new String[] {"--log" , logFile.getAbsolutePath(), "-snpPositions" , positionsOfInterestFile.getAbsolutePath(), "-i" , bamFile.getAbsolutePath(),  "-illuminaArraysDesign" , illuminaArraysDesignFile.getAbsolutePath()} );
+		final int exitStatus = qss.setup(new String[] {"--log" , logFile.getAbsolutePath(), "-snpPositions" , positionsOfInterestFile.getAbsolutePath(), "-i" , bamFile.getAbsolutePath()} );
 		assertEquals(0, exitStatus);
 		
 		assertTrue(outputFile.exists());
@@ -244,10 +240,159 @@ public class SignatureGeneratorBespokeTest {
 		try (VcfFileReader reader = new VcfFileReader(outputFile);) {    			
 			for (final VcfRecord rec : reader) {
 				recs.add(rec);
-				System.out.println("rec: " + rec.toString());
+				assertEquals(true, rec.getRef().equals("A") || rec.getRef().equals("C") ||rec.getRef().equals("G") || rec.getRef().equals("T"));
+//	    		System.out.print("rec: " + rec.toString());
 			}
 			VcfHeader header = reader.getVcfHeader();
-	    	header.getAllMetaRecords().stream().forEach(System.out::println);
+			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg0=null")));
+		}
+		
+		assertEquals(6, recs.size());
+		assertEquals("QAF=t:0-0-0-10,rg0:0-0-0-10", recs.get(0).getInfo());
+		assertEquals("QAF=t:20-0-0-0,rg0:20-0-0-0", recs.get(1).getInfo());
+		assertEquals("QAF=t:0-10-0-0,rg0:0-10-0-0", recs.get(2).getInfo());
+		assertEquals("QAF=t:0-0-0-20,rg0:0-0-0-20", recs.get(3).getInfo());
+		assertEquals("QAF=t:0-10-0-0,rg0:0-10-0-0", recs.get(4).getInfo());
+		assertEquals("QAF=t:0-20-0-0,rg0:0-20-0-0", recs.get(5).getInfo());
+	}
+	
+	@Test
+	public void runProcessWithSnpChipFile() throws Exception {
+		final File positionsOfInterestFile = testFolder.newFile("runProcessWithSnpChipFile.snps.vcf");
+		final File snpChipFile = testFolder.newFile("runProcessWithSnpChipFile.txt");
+		final File illuminaArraysDesignFile = testFolder.newFile("runProcessWithSnpChipFile.illumina.txt");
+		final File logFile = testFolder.newFile("runProcessWithSnpChipFile.log");
+		final String outputFileName = snpChipFile.getAbsolutePath() + ".qsig.vcf.gz";
+		final File outputFile = new File(outputFileName);
+		
+		SignatureGeneratorTest.writeSnpChipFile(snpChipFile);
+		SignatureGeneratorTest.writeSnpPositionsVcf(positionsOfInterestFile);
+		SignatureGeneratorTest.writeIlluminaArraysDesignFile(illuminaArraysDesignFile);
+		
+		final int exitStatus = qss.setup(new String[] {"--log" , logFile.getAbsolutePath(), "-snpPositions" , positionsOfInterestFile.getAbsolutePath(), "-i" , snpChipFile.getAbsolutePath(),"-illuminaArraysDesign", illuminaArraysDesignFile.getAbsolutePath()} );
+		assertEquals(0, exitStatus);
+		
+		assertTrue(outputFile.exists());
+		
+		final List<VcfRecord> recs = new ArrayList<>();
+		try (VcfFileReader reader = new VcfFileReader(outputFile);) {    			
+			for (final VcfRecord rec : reader) {
+				recs.add(rec);
+				assertEquals(true, rec.getRef().equals("A") || rec.getRef().equals("C") ||rec.getRef().equals("G") || rec.getRef().equals("T"));
+//	    		System.out.print("rec: " + rec.toString());
+			}
+			VcfHeader header = reader.getVcfHeader();
+			assertEquals(false, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg0=null")));	// no rgs in snp chips
+		}
+		
+		assertEquals(3, recs.size());
+		assertEquals("QAF=t:0-0-0-30", recs.get(0).getInfo());
+		assertEquals("QAF=t:0-0-24-0", recs.get(1).getInfo());
+		assertEquals("QAF=t:10-0-10-0", recs.get(2).getInfo());
+	}
+	
+	@Test
+	public void runProcessWithSnpPositionsHeader() throws Exception {
+		final File positionsOfInterestFile = testFolder.newFile("runProcessWithSnpPositionsHeader.snps.vcf");
+		final File bamFile = testFolder.newFile("runProcessWithSnpPositionsHeader.bam");
+		final File logFile = testFolder.newFile("runProcessWithSnpPositionsHeader.log");
+		final String outputFIleName = bamFile.getAbsolutePath() + ".qsig.vcf.gz";
+		final File outputFile = new File(outputFIleName);
+		
+		//    	writeSnpChipFile(snpChipFile);
+		SignatureGeneratorTest.writeSnpPositionsVcf(positionsOfInterestFile);
+		SignatureGeneratorTest.getBamFile(bamFile, true, false);
+		
+		final int exitStatus = qss.setup(new String[] {"--log" , logFile.getAbsolutePath(), "-snpPositions" , positionsOfInterestFile.getAbsolutePath(), "-i" , bamFile.getAbsolutePath()} );
+		assertEquals(0, exitStatus);
+		
+		assertTrue(outputFile.exists());
+		
+		final List<VcfRecord> recs = new ArrayList<>();
+		try (VcfFileReader reader = new VcfFileReader(outputFile);) {    			
+			for (final VcfRecord rec : reader) {
+				recs.add(rec);
+				System.out.print("rec: " + rec.toString());
+				assertEquals(true, rec.getRef().equals("A") || rec.getRef().equals("C") ||rec.getRef().equals("G") || rec.getRef().equals("T"));
+			}
+			VcfHeader header = reader.getVcfHeader();
+			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg0=null")));
+		}
+		
+		assertEquals(6, recs.size());
+		assertEquals("QAF=t:0-0-0-10,rg0:0-0-0-10", recs.get(0).getInfo());
+		assertEquals("QAF=t:20-0-0-0,rg0:20-0-0-0", recs.get(1).getInfo());
+		assertEquals("QAF=t:0-10-0-0,rg0:0-10-0-0", recs.get(2).getInfo());
+		assertEquals("QAF=t:0-0-0-20,rg0:0-0-0-20", recs.get(3).getInfo());
+		assertEquals("QAF=t:0-10-0-0,rg0:0-10-0-0", recs.get(4).getInfo());
+		assertEquals("QAF=t:0-20-0-0,rg0:0-20-0-0", recs.get(5).getInfo());
+	}
+	
+	@Test
+	public void runProcessWithReadGroupsSetInHeader() throws Exception {
+		final File positionsOfInterestFile = testFolder.newFile("runProcessWithReadGroupsSetInHeader.snps.txt");
+		final File bamFile = testFolder.newFile("runProcessWithReadGroupsSetInHeader.bam");
+		final File logFile = testFolder.newFile("runProcessWithReadGroupsSetInHeader.log");
+		final String outputFIleName = bamFile.getAbsolutePath() + ".qsig.vcf.gz";
+		final File outputFile = new File(outputFIleName);
+		
+		SignatureGeneratorTest.writeSnpPositionsFile(positionsOfInterestFile);
+		SignatureGeneratorTest.getBamFile(bamFile, true, false, true);
+		
+		final int exitStatus = qss.setup(new String[] {"--log" , logFile.getAbsolutePath(), "-snpPositions" , positionsOfInterestFile.getAbsolutePath(), "-i" , bamFile.getAbsolutePath()} );
+		assertEquals(0, exitStatus);
+		
+		assertTrue(outputFile.exists());
+		
+		final List<VcfRecord> recs = new ArrayList<>();
+		try (VcfFileReader reader = new VcfFileReader(outputFile);) {    			
+			for (final VcfRecord rec : reader) {
+				recs.add(rec);
+				assertEquals(true, rec.getRef().equals("A") || rec.getRef().equals("C") ||rec.getRef().equals("G") || rec.getRef().equals("T"));
+//				System.out.print("rec: " + rec.toString());
+			}
+			VcfHeader header = reader.getVcfHeader();
+//	    	header.getAllMetaRecords().stream().forEach(System.out::println);
+			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg0=null")));
+			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg1=20130325103517169")));
+			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg2=20130325112045146")));
+			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg3=20130325084856212")));
+		}
+		
+		assertEquals(6, recs.size());
+		assertEquals("QAF=t:0-0-0-10,rg1:0-0-0-10", recs.get(0).getInfo());
+		assertEquals("QAF=t:20-0-0-0,rg2:20-0-0-0", recs.get(1).getInfo());
+		assertEquals("QAF=t:0-10-0-0,rg3:0-10-0-0", recs.get(2).getInfo());
+		assertEquals("QAF=t:0-0-0-20,rg2:0-0-0-20", recs.get(3).getInfo());
+		assertEquals("QAF=t:0-10-0-0,rg1:0-10-0-0", recs.get(4).getInfo());
+		assertEquals("QAF=t:0-20-0-0,rg0:0-20-0-0", recs.get(5).getInfo());
+	}
+	
+	@Test
+	public void runProcessWithReadGroupsSetInHeaderVcf() throws Exception {
+		final File positionsOfInterestFile = testFolder.newFile("runProcessWithReadGroupsSetInHeaderVcf.snps.vcf");
+		final File bamFile = testFolder.newFile("runProcessWithReadGroupsSetInHeaderVcf.bam");
+		final File logFile = testFolder.newFile("runProcessWithReadGroupsSetInHeaderVcf.log");
+		final String outputFIleName = bamFile.getAbsolutePath() + ".qsig.vcf.gz";
+		final File outputFile = new File(outputFIleName);
+		
+		SignatureGeneratorTest.writeSnpPositionsVcf(positionsOfInterestFile);
+		SignatureGeneratorTest.getBamFile(bamFile, true, false, true);
+		
+		final int exitStatus = qss.setup(new String[] {"--log" , logFile.getAbsolutePath(), "-snpPositions" , positionsOfInterestFile.getAbsolutePath(), "-i" , bamFile.getAbsolutePath()} );
+		assertEquals(0, exitStatus);
+		
+		assertTrue(outputFile.exists());
+		
+		final List<VcfRecord> recs = new ArrayList<>();
+		try (VcfFileReader reader = new VcfFileReader(outputFile);) {    			
+			for (final VcfRecord rec : reader) {
+				recs.add(rec);
+				assertEquals(true, rec.getRef().equals("A") || rec.getRef().equals("C") ||rec.getRef().equals("G") || rec.getRef().equals("T"));
+//				System.out.print("rec: " + rec.toString());
+			}
+			VcfHeader header = reader.getVcfHeader();
+//	    	header.getAllMetaRecords().stream().forEach(System.out::println);
 			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg0=null")));
 			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg1=20130325103517169")));
 			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg2=20130325112045146")));
@@ -265,10 +410,10 @@ public class SignatureGeneratorBespokeTest {
 	
 	@Test
 	public void runProcessWithNoOutputOption() throws Exception {
-		final File positionsOfInterestFile = testFolder.newFile("runProcessWithHG19BamFile.snps.txt");
-		final File illuminaArraysDesignFile = testFolder.newFile("runProcessWithHG19BamFile.illuminaarray.txt");
-		final File bamFile = testFolder.newFile("runProcessWithHG19BamFile.bam");
-		final File logFile = testFolder.newFile("runProcessWithHG19BamFile.log");
+		final File positionsOfInterestFile = testFolder.newFile("runProcessWithNoOutputOption.snps.txt");
+		final File illuminaArraysDesignFile = testFolder.newFile("runProcessWithNoOutputOption.illuminaarray.txt");
+		final File bamFile = testFolder.newFile("runProcessWithNoOutputOption.bam");
+		final File logFile = testFolder.newFile("runProcessWithNoOutputOption.log");
 		
 		SignatureGeneratorTest.writeSnpPositionsFile(positionsOfInterestFile);
 		
@@ -288,10 +433,10 @@ public class SignatureGeneratorBespokeTest {
 		
 	@Test
 	public void runProcessWithOutputOptionFile() throws Exception {
-		final File positionsOfInterestFile = testFolder.newFile("runProcessWithHG19BamFile.snps.txt");
-		final File illuminaArraysDesignFile = testFolder.newFile("runProcessWithHG19BamFile.illuminaarray.txt");
-		final File bamFile = testFolder.newFile("runProcessWithHG19BamFile.bam");
-		final File logFile = testFolder.newFile("runProcessWithHG19BamFile.log");
+		final File positionsOfInterestFile = testFolder.newFile("runProcessWithOutputOptionFile.snps.txt");
+		final File illuminaArraysDesignFile = testFolder.newFile("runProcessWithOutputOptionFile.illuminaarray.txt");
+		final File bamFile = testFolder.newFile("runProcessWithOutputOptionFile.bam");
+		final File logFile = testFolder.newFile("runProcessWithOutputOptionFile.log");
 		
 		SignatureGeneratorTest.writeSnpPositionsFile(positionsOfInterestFile);
 		/*
@@ -311,10 +456,10 @@ public class SignatureGeneratorBespokeTest {
 	
 	@Test
 	public void runProcessWithOutputOptionDir() throws Exception {
-		final File positionsOfInterestFile = testFolder.newFile("runProcessWithHG19BamFile.snps.txt");
-		final File illuminaArraysDesignFile = testFolder.newFile("runProcessWithHG19BamFile.illuminaarray.txt");
-		final File bamFile = testFolder.newFile("runProcessWithHG19BamFile.bam");
-		final File logFile = testFolder.newFile("runProcessWithHG19BamFile.log");
+		final File positionsOfInterestFile = testFolder.newFile("runProcessWithOutputOptionDir.snps.txt");
+		final File illuminaArraysDesignFile = testFolder.newFile("runProcessWithOutputOptionDir.illuminaarray.txt");
+		final File bamFile = testFolder.newFile("runProcessWithOutputOptionDir.bam");
+		final File logFile = testFolder.newFile("runProcessWithOutputOptionDir.log");
 		
 		SignatureGeneratorTest.writeSnpPositionsFile(positionsOfInterestFile);
 		/*
@@ -331,14 +476,12 @@ public class SignatureGeneratorBespokeTest {
 		assertTrue(new File(outputFolder + File.separator + bamFile.getName() + ".qsig.vcf.gz").exists());
 		assertTrue(new File(outputFolder + File.separator + bamFile.getName() + ".qsig.vcf.gz").length() > 0);
 	}
-		
-		
+
 	@Test
 	public void runProcessWithDirOption() throws Exception {
-		final File positionsOfInterestFile = testFolder.newFile("runProcessWithHG19BamFile.snps.txt");
-		final File illuminaArraysDesignFile = testFolder.newFile("runProcessWithHG19BamFile.illuminaarray.txt");
-		final File bamFile = testFolder.newFile("runProcessWithHG19BamFile.bam");
-		final File logFile = testFolder.newFile("runProcessWithHG19BamFile.log");
+		final File positionsOfInterestFile = testFolder.newFile("runProcessWithDirOption.snps.txt");
+		final File bamFile = testFolder.newFile("runProcessWithDirOption.bam");
+		final File logFile = testFolder.newFile("runProcessWithDirOption.log");
 		
 		SignatureGeneratorTest.writeSnpPositionsFile(positionsOfInterestFile);
 		/*
@@ -349,8 +492,7 @@ public class SignatureGeneratorBespokeTest {
 		int exitStatus = qss.setup(new String[] {"--log", logFile.getAbsolutePath(), 
 				"-snpPositions", positionsOfInterestFile.getAbsolutePath(), 
 				"-i", bamFile.getAbsolutePath(),  
-				"-d", dir,  
-				"-illuminaArraysDesign", illuminaArraysDesignFile.getAbsolutePath()} );
+				"-d", dir});
 		assertEquals(0, exitStatus);
 		assertEquals(true, new File(dir + File.separator + bamFile.getName() + ".qsig.vcf.gz").exists());
 		assertTrue(new File(dir + File.separator + bamFile.getName() + ".qsig.vcf.gz").length() > 0);
@@ -389,16 +531,17 @@ public class SignatureGeneratorBespokeTest {
 		String name = dir + File.separator + bamFile.getName() + ".qsig.vcf.gz";
 		assertEquals(true, new File(name).exists());
 		assertTrue(new File(name).length() > 0);
-		VcfFileReader reader = new VcfFileReader(new File(name));
-		int vcfRecordCounter = 0;
-		for (VcfRecord rec : reader) {
-			vcfRecordCounter++;
+		try (VcfFileReader reader = new VcfFileReader(new File(name));) {
+			int vcfRecordCounter = 0;
+			for (VcfRecord rec : reader) {
+				vcfRecordCounter++;
+			}
+			assertEquals(97, vcfRecordCounter);
 		}
-		assertEquals(97, vcfRecordCounter);
 	}
 	
 	@Test
-	public void runProcessWithGenePositionsOptioNoOverlap() throws Exception {
+	public void runProcessWithGenePositionsOptionNoOverlap() throws Exception {
 		final File genesOfInterestFile = testFolder.newFile("runProcessWithGenePositionsOptioNoOverlap.genes.gff3");
 		final File bamFile = testFolder.newFile("runProcessWithGenePositionsOptioNoOverlap.bam");
 		final File logFile = testFolder.newFile("runProcessWithGenePositionsOptioNoOverlap.log");
@@ -420,15 +563,17 @@ public class SignatureGeneratorBespokeTest {
 		String name = dir + File.separator + bamFile.getName() + ".qsig.vcf.gz";
 		assertEquals(true, new File(name).exists());
 		assertTrue(new File(name).length() > 0);
-		VcfFileReader reader = new VcfFileReader(new File(name));
-		int vcfRecordCounter = 0;
-		for (VcfRecord rec : reader) {
-			vcfRecordCounter++;
+		try (VcfFileReader reader = new VcfFileReader(new File(name));) {
+			int vcfRecordCounter = 0;
+			for (VcfRecord rec : reader) {
+				vcfRecordCounter++;
+			}
+			assertEquals(0, vcfRecordCounter);
 		}
-		assertEquals(0, vcfRecordCounter);
 	}
+	
 	@Test
-	public void runProcessWithGenePositionsOptioPartialOverlap() throws Exception {
+	public void runProcessWithGenePositionsOptionPartialOverlap() throws Exception {
 		final File genesOfInterestFile = testFolder.newFile("runProcessWithGenePositionsOptioPartialOverlap.genes.gff3");
 		final File bamFile = testFolder.newFile("runProcessWithGenePositionsOptioPartialOverlap.bam");
 		final File logFile = testFolder.newFile("runProcessWithGenePositionsOptioPartialOverlap.log");
@@ -450,14 +595,14 @@ public class SignatureGeneratorBespokeTest {
 		String name = dir + File.separator + bamFile.getName() + ".qsig.vcf.gz";
 		assertEquals(true, new File(name).exists());
 		assertTrue(new File(name).length() > 0);
-		VcfFileReader reader = new VcfFileReader(new File(name));
-		int vcfRecordCounter = 0;
-		for (VcfRecord rec : reader) {
-			vcfRecordCounter++;
+		try (VcfFileReader reader = new VcfFileReader(new File(name));) {
+			int vcfRecordCounter = 0;
+			for (VcfRecord rec : reader) {
+				vcfRecordCounter++;
+			}
+			assertEquals(50, vcfRecordCounter);		// records start at position 150, gene ends at 200
 		}
-		assertEquals(50, vcfRecordCounter);		// records start at position 150, gene ends at 200
 	}
-	
 	
 	private void setupReferenceFile(File file, File indexFile) throws IOException {
 			

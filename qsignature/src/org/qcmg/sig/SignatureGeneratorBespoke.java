@@ -35,14 +35,12 @@ import java.util.zip.GZIPOutputStream;
 
 import javax.xml.bind.DatatypeConverter;
 
-import org.apache.commons.codec.Charsets;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.meta.QExec;
 import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrPositionComparator;
-import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.TabTokenizer;
@@ -72,7 +70,7 @@ import htsjdk.samtools.SamReader;
  * Coverage data is shown in the following format:
  * QAF=t:0-0-0-2,rg1:0-0-0-2,rg2:0-0-0-0
  * 
- * Read group coverage is displayed allowing the user to run the CompareRG class to determine if the read groups that make up the bam match each other.
+ * Read group coverage is displayed allowing the user to run the CompareRG class to determine if the read groups that make up the BAM match each other.
  * 
  * @author oliverh
  *
@@ -278,7 +276,7 @@ public class SignatureGeneratorBespoke {
 			}
 			
 			/*
-			 * load data from snp chip fileinto map
+			 * load data from snp chip file into map
 			 */
 			logger.info("about to load data from snp chip file " + illuminaFile);
 			loadIlluminaData(illuminaFile, iIlluminaMap);
@@ -303,11 +301,7 @@ public class SignatureGeneratorBespoke {
 	
 	private void loadIlluminaArraysDesign() throws IOException {
 
-		// set to file specified by user if applicable
-		if (cmdLineInputFiles.length == 3) {
-			illumiaArraysDesign = cmdLineInputFiles[2];
-		}
-		
+		logger.info("in loadIlluminaArraysDesign with illumiaArraysDesign: " + illumiaArraysDesign);
 		// check that we can read the file
 		if (null != illumiaArraysDesign && FileUtils.canFileBeRead(illumiaArraysDesign)) {
 			try (StringFileReader reader=  new StringFileReader(new File(illumiaArraysDesign));) {
@@ -320,6 +314,7 @@ public class SignatureGeneratorBespoke {
 		} else {
 			logger.info("could not read the illumina arrays design file: " + illumiaArraysDesign);
 		}
+		logger.info("in loadIlluminaArraysDesign - illuminaArraysDesignMap size: " + illuminaArraysDesignMap.size());
 	}
 
 	static void loadIlluminaData(File illuminaFile, Map<ChrPosition, IlluminaRecord> illuminaMap) throws IOException {
@@ -454,14 +449,15 @@ public class SignatureGeneratorBespoke {
 		
 		// update the snps list with the details from the results map
 		for (final VcfRecord snp : snps) {
-			
 			// lookup corresponding snp in illumina map
-			final IlluminaRecord illRec = iIlluminaMap.get(ChrPointPosition.valueOf(snp.getChromosome(), snp.getPosition()));
+			final IlluminaRecord illRec = iIlluminaMap.get(snp.getChrPosition());
 			if (null == illRec) {
+				logger.debug("IlluminaRecord not found in iIlluminaMap with ChrPos: "  + snp.getChrPosition());
 				continue;
 			}
 			final String [] params = illuminaArraysDesignMap.get(illRec.getSnpId());
 			if (null == params) {
+				logger.debug("didn't find entry in illuminaArraysDesignMap for snp id: " + illRec.getSnpId());
 				continue;
 			}
 			
@@ -518,17 +514,17 @@ public class SignatureGeneratorBespoke {
 			 * convert TObjectIntMap to HashMap to use streaming etc
 			 */
 			Map<String, Integer> convertedMap = new HashMap<>();
-			rgIds.forEachEntry((String k, int v) -> {
-				convertedMap.putIfAbsent(k, Integer.valueOf(v));
-				return true;
-			} );
-			
-			if (null != convertedMap) {
-				
-				convertedMap.entrySet().stream()
-					.sorted(Comparator.comparing(Entry::getValue))
-					.forEach(e -> sbRgIds.append("##rg").append(e.getValue()).append(Constants.EQ).append(e.getKey()).append(Constants.NL));
+			if (null != rgIds) {
+				rgIds.forEachEntry((String k, int v) -> {
+					convertedMap.putIfAbsent(k, Integer.valueOf(v));
+					return true;
+				} );
 			}
+			
+				
+			convertedMap.entrySet().stream()
+				.sorted(Comparator.comparing(Entry::getValue))
+				.forEach(e -> sbRgIds.append("##rg").append(e.getValue()).append(Constants.EQ).append(e.getKey()).append(Constants.NL));
 			
 			try (OutputStream os = new GZIPOutputStream(new FileOutputStream(outputVCFFile), 1024 * 1024)) {
 				/*
@@ -679,40 +675,70 @@ public class SignatureGeneratorBespoke {
 		}
 	}
 	
+	/**
+	 * Little awkward this method, the GRCh37 version of the snpPositions file is a text file that is similar in layout to a vcf.
+	 * The GRCh38 version of the snpPositions file is a vcf file.
+	 * 
+	 * This method needs to be able to handle both versions.
+	 * 
+	 * Importantly, the position of the ref and alt fields are different between the 2 versions.
+	 * And so an attempt to determine which type of file is being dealt with will be made.
+	 * This will be based on the file name and any header information
+	 * 
+	 * 
+	 * @param randomSnpsFile
+	 * @throws IOException
+	 * @throws NoSuchAlgorithmException
+	 */
 	private void loadRandomSnpPositions(String randomSnpsFile) throws IOException, NoSuchAlgorithmException {
 		int count = 0;
 		MessageDigest md = MessageDigest.getInstance("MD5");
 		try (BufferedReader in = new BufferedReader(new FileReader(randomSnpsFile));) {
-			
+			boolean isSnpPositionsAVcfFile = randomSnpsFile.contains("vcf");
 			String line = null;
 			while ((line = in.readLine()) != null) {
+				if (line.startsWith(Constants.HASH_STRING)) {
+					
+					if (line.startsWith(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE)) {
+						isSnpPositionsAVcfFile = true;
+					}
+					/*
+					 * ignore - header line
+					 */
+					continue;
+					
+				} 
 				++count;
 				final String[] params = TabTokenizer.tokenize(line);
 				String ref = null;
-				if (params.length > 4 && null != params[4]) {
-					ref = params[4];
-				} else if (params.length > 3 && null != params[3]) {
-					// mouse file has ref at position 3 (0-based)
-					ref = params[3];
+				if (isSnpPositionsAVcfFile) {
+					if (params.length > 3 && null != params[3]) {
+						ref = params[3];
+					}
+				} else {
+					if (params.length > 4 && null != params[4]) {
+						ref = params[4];
+					} else if (params.length > 3 && null != params[3]) {
+						// mouse file has ref at position 3 (0-based)
+						ref = params[3];
+					}
 				}
 				
 				if (params.length < 2) {
 					throw new IllegalArgumentException("snp file must have at least 2 tab seperated columns, chr and position");
 				}
 				
-				String id = params.length > 2 ? params[2] : null; 
-				String alt = params.length > 5 ? params[5].replaceAll("/", ",") : null;
-				
-				// Lynns new files are 1-based - no need to do any processing on th position
-				snps.add( new VcfRecord.Builder(params[0], Integer.parseInt(params[1]), ref).allele(alt).id(id).build());
-				
+				String id = params.length > 2 ? params[2] : null;
+				String alt = isSnpPositionsAVcfFile && params.length > 4 ?  params[4].replaceAll("/", ",")
+						: ! isSnpPositionsAVcfFile && params.length > 5 ? params[5].replaceAll("/", ",") : null;
+						// Lynns new files are 1-based - no need to do any processing on th position
+						snps.add( new VcfRecord.Builder(params[0], Integer.parseInt(params[1]), ref).allele(alt).id(id).build());
 			}
 			arraySize = snps.size();
 			logger.info("loaded " + arraySize + " positions into map (should be equal to: " + count + ")");
 		}
 		md.update(Files.readAllBytes(Paths.get(randomSnpsFile)));
 		snpPositionsMD5 = md.digest();
-		
 	}
 	
 	/**

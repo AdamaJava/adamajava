@@ -49,8 +49,6 @@ public class SignatureGeneratorTest {
 		qss.logger = QLoggerFactory.getLogger(SignatureGeneratorTest.class);
 	}
 	
-	
-	
 	@Test
 	public void testPatientRegex() {
 		Assert.assertEquals(true, "APGI_1992".matches(SignatureUtil.PATIENT_REGEX));
@@ -227,13 +225,14 @@ public class SignatureGeneratorTest {
    	
     	final List<VcfRecord> recs = new ArrayList<>();
     	try (VcfFileReader reader = new VcfFileReader(outputFile);) {    			
-	    	for (final VcfRecord rec : reader) 
+	    	for (final VcfRecord rec : reader) {
 	    		recs.add(rec);
+		    	System.out.print("rec: " + rec.toString());
+	    	}
     	}
        	
     	assertEquals(6, recs.size());
     }
-    
     
     @Test
     public void runProcessWithHG19BamFile() throws Exception {
@@ -257,7 +256,7 @@ public class SignatureGeneratorTest {
 	    	try (VcfFileReader reader = new VcfFileReader(outputFile);) {    			
 		    	for (final VcfRecord rec : reader) {
 		    		recs.add(rec);
-		    		System.out.println("rec: " + rec.toString());
+		    		System.out.print("rec: " + rec.toString());
 		    	}
 	    	}
 	       	
@@ -265,43 +264,59 @@ public class SignatureGeneratorTest {
     }
     
     static void writeSnpChipFile(File snpChipFile) throws IOException {
-	    	try (Writer writer = new FileWriter(snpChipFile);) {
-		    	writer.write("[Header]\n");
-		    	writer.write("GSGT Version    1.9.4\n");
-		    	writer.write("Processing Date 3/1/2013 9:06 PM\n");
-		    	writer.write("Content         HumanOmni2.5-8v1_A.bpm\n");
-		    	writer.write("Num SNPs        2379855\n");
-		    	writer.write("Total SNPs      2379855\n");
-		    	writer.write("Num Samples     57\n");
-		    	writer.write("Total Samples   57\n");
-		    	writer.write("File    31 of 57\n");
-		    	writer.write("[Data]\n");
-		    	writer.write("SNP Name        Sample ID       Allele1 - Top   Allele2 - Top   GC Score        Sample Name     Sample Group    Sample Index    SNP Index       SNP Aux Allele1 - Forward       Allele2 - Forward       Allele1 - Design        Allele2 - Design        Allele1 - AB    Allele2 - AB    Chr     Position        GT Score        Cluster Sep     SNP     ILMN Strand     Customer Strand Top Genomic Sequence    Theta   R       X       Y       X Raw   Y Raw   B Allele Freq   Log R Ratio\n");
-		    	writer.write("rs1000000	WG0227767_DNAG01_LP6005272_DNA_G01	A	G	0.8140	AOCS_094_5_6	G01	20	381565	0	T	C	T	C	A	B	12	126890980	0.7990	1.0000	[T/C]	BOT	BOT		0.444	2.019	1.099	0.920	13935	7437	0.5219	0.0314\n");
-		    	writer.write("rs10000023	WG0227769_DNAG01_LP6005274_DNA_G01	C	C	0.8221	AOCS_094_1_1	G01	31	691448	0	G	G	G	G	B	B	4	95733906	0.8042	1.0000	[T/G]	BOT	BOT		0.970	1.928	0.086	1.843	1593	18194	1.0000	0.1902\n");
-		    	writer.write("rs1000002	WG0227768_DNAG01_LP6005273_DNA_G01	A	A	0.8183	AOCS_094_6_7	UQueensland_Grimmond2	157	719472	0	A	A	A	A	A	A	3	183635768	0.8018	0.4106	[A/G]	TOP	TOP		0.039	0.745	0.702	0.043	5494	277	0.0000	0.4090\n");
-	    	}
+    	try (Writer writer = new FileWriter(snpChipFile);) {
+	    	writer.write("[Header]\n");
+	    	writer.write("GSGT Version    1.9.4\n");
+	    	writer.write("Processing Date 3/1/2013 9:06 PM\n");
+	    	writer.write("Content         HumanOmni2.5-8v1_A.bpm\n");
+	    	writer.write("Num SNPs        2379855\n");
+	    	writer.write("Total SNPs      2379855\n");
+	    	writer.write("Num Samples     57\n");
+	    	writer.write("Total Samples   57\n");
+	    	writer.write("File    31 of 57\n");
+	    	writer.write("[Data]\n");
+	    	writer.write("SNP Name        Sample ID       Allele1 - Top   Allele2 - Top   GC Score        Sample Name     Sample Group    Sample Index    SNP Index       SNP Aux Allele1 - Forward       Allele2 - Forward       Allele1 - Design        Allele2 - Design        Allele1 - AB    Allele2 - AB    Chr     Position        GT Score        Cluster Sep     SNP     ILMN Strand     Customer Strand Top Genomic Sequence    Theta   R       X       Y       X Raw   Y Raw   B Allele Freq   Log R Ratio\n");
+	    	writer.write("rs1000000	WG0227767_DNAG01_LP6005272_DNA_G01	A	G	0.8140	AOCS_094_5_6	G01	20	381565	0	T	C	T	C	A	B	12	126890980	0.7990	1.0000	[T/C]	BOT	BOT		0.444	2.019	1.099	0.920	13935	7437	0.5219	0.0314\n");
+	    	writer.write("rs10000023	WG0227769_DNAG01_LP6005274_DNA_G01	C	C	0.8221	AOCS_094_1_1	G01	31	691448	0	G	G	G	G	B	B	4	95733906	0.8042	1.0000	[T/G]	BOT	BOT		0.970	1.928	0.086	1.843	1593	18194	1.0000	0.1902\n");
+	    	writer.write("rs1000002	WG0227768_DNAG01_LP6005273_DNA_G01	A	A	0.8183	AOCS_094_6_7	UQueensland_Grimmond2	157	719472	0	A	A	A	A	A	A	3	183635768	0.8018	0.4106	[A/G]	TOP	TOP		0.039	0.745	0.702	0.043	5494	277	0.0000	0.4090\n");
+    	}
     }
     static void writeIlluminaArraysDesignFile(File illuminaArraysDesign) throws IOException {
-	    	try (Writer writer = new FileWriter(illuminaArraysDesign);) {
-	    		writer.write("#dbSNP Id	Reference Genome	dbSNP alleles	Chr	Position(hg19)	dbSNP Strand	IlluminaDesign	ComplementArrayCalls?\n");
+    	try (Writer writer = new FileWriter(illuminaArraysDesign);) {
+    		writer.write("#dbSNP Id	Reference Genome	dbSNP alleles	Chr	Position(hg19)	dbSNP Strand	IlluminaDesign	ComplementArrayCalls?\n");
 			writer.write("rs1000000	G	C/T	chr12	126890980	-	[T/C]	yes\n");
 			writer.write("rs10000004	A	A/G	chr4	75406448	+	[T/C]	yes\n");
 			writer.write("rs10000006	T	C/T	chr4	108826383	+	[A/G]	yes\n");
 			writer.write("rs1000002	C	A/G	chr3	183635768	-	[A/G]	yes\n");
 			writer.write("rs10000021	G	G/T	chr4	159441457	+	[A/C]	yes\n");
 			writer.write("rs10000023	G	G/T	chr4	95733906	+	[T/G]	no\n");
-	    	}
+    	}
     }
     static void writeSnpPositionsFile(File snpPositions) throws IOException {
-	    	try (Writer writer = new FileWriter(snpPositions);) {
-	    		writer.write("chr3	183635768	random_1016708	C	RANDOM_POSITION\n");
-	    		writer.write("chr4	75406448	random_649440	A	RANDOM_POSITION\n");
-	    		writer.write("chr4	95733906	random_1053689	G	RANDOM_POSITION\n");
-	    		writer.write("chr4	108826383	random_1146989	T	RANDOM_POSITION\n");
-	    		writer.write("chr4	159441457	random_1053689	G	RANDOM_POSITION\n");
-	    		writer.write("chr12	126890980	random_169627	G	RANDOM_POSITION\n");
-	    	}
+    	try (Writer writer = new FileWriter(snpPositions);) {
+    		writer.write("chr3	183635768	random_1016708		C		RANDOM_POSITION\n");
+    		writer.write("chr4	75406448	random_649440		A		RANDOM_POSITION\n");
+    		writer.write("chr4	95733906	random_1053689		G		RANDOM_POSITION\n");
+    		writer.write("chr4	108826383	random_1146989		T		RANDOM_POSITION\n");
+    		writer.write("chr4	159441457	random_1053689		G		RANDOM_POSITION\n");
+    		writer.write("chr12	126890980	random_169627		G		RANDOM_POSITION\n");
+    	}
+    }
+    
+    /*
+     * looks a little like a vcf file.... wait it is a vcf!
+     */
+    static void writeSnpPositionsVcf(File snpPositions) throws IOException {
+    	try (Writer writer = new FileWriter(snpPositions);) {
+    		writer.write("##fileformat=VCFv4.2\n");
+    		writer.write("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n");
+    		writer.write("chr3	183635768	random_1016708	C	.\t.\t.\t.\n");
+    		writer.write("chr4	75406448	random_649440	A	.\t.\t.\t.\n");
+    		writer.write("chr4	95733906	random_1053689	G	.\t.\t.\t.\n");
+    		writer.write("chr4	108826383	random_1146989	T	.\t.\t.\t.\n");
+    		writer.write("chr4	159441457	random_1053689	G	.\t.\t.\t.\n");
+    		writer.write("chr12	126890980	random_169627	G	.\t.\t.\t.\n");
+    	}
     }
     static void writeGenePositionsFile(File genePositions, String chr, int start, int stop) throws IOException {
     	try (Writer writer = new FileWriter(genePositions);) {
@@ -316,21 +331,24 @@ public class SignatureGeneratorTest {
     static void getBamFile(File bamFile, boolean validHeader, boolean useChrs) {
     	getBamFile(bamFile,  validHeader,  useChrs, false);
     }
+    
     static void getBamFile(File bamFile, boolean validHeader, boolean useChrs, boolean addReadGroupToHeaderAndRecords) {
-	    	final SAMFileHeader header = getHeader(validHeader, useChrs, addReadGroupToHeaderAndRecords);
-	    	List<SAMRecord> data = getRecords(useChrs, header, true, addReadGroupToHeaderAndRecords);
-	    	final SAMOrBAMWriterFactory factory = new SAMOrBAMWriterFactory(header, false, bamFile, false);
-	    	try {
-	    		final SAMFileWriter writer = factory.getWriter();
-	    		if (null != data)
-	    			for (final SAMRecord s : data) writer.addAlignment(s);
-	    	} finally {
-	    		factory.closeWriter();
-	    	}
+    	final SAMFileHeader header = getHeader(validHeader, useChrs, addReadGroupToHeaderAndRecords);
+    	List<SAMRecord> data = getRecords(useChrs, header, true, addReadGroupToHeaderAndRecords);
+    	final SAMOrBAMWriterFactory factory = new SAMOrBAMWriterFactory(header, false, bamFile, false);
+    	try {
+    		final SAMFileWriter writer = factory.getWriter();
+    		if (null != data)
+    			for (final SAMRecord s : data) writer.addAlignment(s);
+    	} finally {
+    		factory.closeWriter();
+    	}
     }
+    
     public static SAMFileHeader getHeader(boolean valid, boolean useChrs) {
     	return getHeader(valid, useChrs, false);
-    }    
+    }
+    
 	public static SAMFileHeader getHeader(boolean valid, boolean useChrs, boolean addReadGroups) {
 		final SAMFileHeader header = new SAMFileHeader();
 		
@@ -485,9 +503,7 @@ public class SignatureGeneratorTest {
 			if (addRG) {
 				sam.setAttribute("RG", "20130325112045146");
 			}
-		
 		}
-		
 		return records;
 	}
 	

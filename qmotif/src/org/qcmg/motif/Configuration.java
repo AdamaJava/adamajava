@@ -52,6 +52,7 @@ public final class Configuration {
 			
 		windowSize = Integer.parseInt(IniUtils.getEntry(iniFile, "PARAMS", "window_size"));
 		
+		
 		String stageOneRegex = IniUtils.getEntry(iniFile, MotifConstants.PARAMS, MotifConstants.STAGE_1_MOTIF_REGEX);
 		String stageTwoRegex = IniUtils.getEntry(iniFile, MotifConstants.PARAMS, MotifConstants.STAGE_2_MOTIF_REGEX);
 		Motifs stageOneMotifs = null;
@@ -76,10 +77,9 @@ public final class Configuration {
 		loggerInfo = new LoggerInfo(options);
 		validation = options.getValidation();
 
-		outputBamFileName = options.getOutputFileNames().length > 1 ? options.getOutputFileNames()[1] : null;
+		outputBamFileName =  options.getOutputBamFileName();
 		String [] bamFileNames = options.getBAMFileNames();
 		String [] baiFileNames = options.getBAIFileNames();
-		
 		inferFilePairings(bamFileNames, baiFileNames);
 
 		if (options.hasNumberThreadsOption()) {
@@ -94,7 +94,7 @@ public final class Configuration {
 			filter = null;
 		}
 		
-		outputFile = new File(options.getOutputFileNames()[0]);
+		outputFile = new File(options.getOutputXmlFileName());
 		checkFileExistence();
 		countReadFromInput = new AtomicLong();
 		countReadToCoverage = new AtomicLong();
