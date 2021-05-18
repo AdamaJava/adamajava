@@ -9,7 +9,7 @@ dependencies {
     configurations.compile.transitive = true
 
     api project(':qbamfilter')
-    api project(':qbamannotate')
+//    api project(':qbamannotate')
     api project(':qpicard')
     api project(':q3tiledaligner')
     api group: 'org.ini4j', name: 'ini4j', version: '0.5.2'	
