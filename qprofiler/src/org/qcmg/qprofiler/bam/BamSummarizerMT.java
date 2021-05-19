@@ -13,7 +13,6 @@ package org.qcmg.qprofiler.bam;
 
 import static java.util.stream.Collectors.toList;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.AbstractQueue;
 import java.util.ArrayList;
@@ -43,6 +42,27 @@ import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qprofiler.report.SummaryReport;
 import org.qcmg.qprofiler.summarise.Summarizer;
 
+/**
+ * This class will be called only when option "--threads-consumer" is specified and value > 0;
+ * otherwise a single thread mode will be called, which is BamSummarizer.
+ * 
+ * Here A SingleProducer will be created if without option "--threads-producer" or value <= 1; 
+ * otherwise multiply Producer will be created based on value of "--threads-producer". 
+ * 
+ * Once A SingleProducer is created, a number of SingleProducerConsumer will be created based on "--threads-consumer" value.
+ * 
+ * By summary 
+ * --------------------------------------------------------------------------------------------
+ * | threads-consumer | threads-producer  | threads name
+ * | null,0 (def = 0 )| null,0,1 (def = 1)| single thread mode 
+ * | null,0 (def = 0 )| 	> 1			  | single thread mode 
+ * |	>= 1		  | null,0,1(def = 1 )| a SingleProducer + multiply SingleProducerConsumer
+ * |	>= 1		  | 	> 1			  | multiply Producer + multiply Consumer
+ * ______________________________________________________________________________________________
+ * 
+ * @author christix
+ *
+ */
 public class BamSummarizerMT implements Summarizer {
 	
 	final static QLogger logger = QLoggerFactory.getLogger(BamSummarizerMT.class);
@@ -78,33 +98,10 @@ public class BamSummarizerMT implements Summarizer {
 	@Override
 	public SummaryReport summarize(String input, String index, String[] regions) throws Exception {
 		
-		File file = new File(input);
 		vs= null == validation ? BamSummarizer.DEFAULT_VS : ValidationStringency.valueOf(validation);
-		// check to see if index file exists - if not, run in single producer mode as will not be able to perform indexed lookups
-		SamReader reader = SAMFileReaderFactory.createSAMFileReaderAsStream(input, index, vs);
-		if ( ! reader.hasIndex() && noOfProducerThreads > 1) {
-			logger.warn("using 1 producer thread - no index found for bam file: " + input);
-			noOfProducerThreads = 1;
-		}
-		
-		ConcurrentLinkedQueue<SAMRecord>[] queues = null;
-		AbstractQueue<SAMRecord> q  = null;
-		if (noOfProducerThreads == 1) {
-			q = new ConcurrentLinkedQueue<>();
-		} else {
-			queues = new ConcurrentLinkedQueue[noOfProducerThreads];
-			for (int i = 0 ; i < noOfProducerThreads ; i++) {
-				queues[i] = new ConcurrentLinkedQueue<SAMRecord>();
-			}
-		}
-		long start = System.currentTimeMillis();
-		
-		final BamSummaryReport bamSummaryReport = new BamSummaryReport( includes, maxRecords, tags, tagsInt, tagsChar );
-		bamSummaryReport.setFileName(input);
-		bamSummaryReport.setStartTime(DateUtils.getCurrentDateAsString());
-		
+		// check to see if index file exists - if not, run in single producer mode as will not be able to perform indexed lookups		
 		final AbstractQueue<String> sequences = new ConcurrentLinkedQueue<>();
-		try {
+		try (SamReader reader = SAMFileReaderFactory.createSAMFileReaderAsStream(input, index, vs);) {
 			SAMFileHeader header = reader.getFileHeader();
 			List<SAMSequenceRecord> samSequences = header.getSequenceDictionary().getSequences();
 			List<SAMSequenceRecord> orderedSamSequences = new ArrayList<SAMSequenceRecord>();
@@ -129,9 +126,29 @@ public class BamSummarizerMT implements Summarizer {
 			for (SAMProgramRecord pgLine : pgLines) {
 				if ("tmap".equals(pgLine.getId())) torrentBam = true;
 			}
-		} finally {
-			reader.close();
+			if ( ! reader.hasIndex() && noOfProducerThreads > 1) {
+				logger.warn("using 1 producer thread - no index found for bam file: " + input);
+				noOfProducerThreads = 1;
+			}						
+		} 	
+		
+		ConcurrentLinkedQueue<SAMRecord>[] queues = null;
+		AbstractQueue<SAMRecord> q  = null;
+		if (noOfProducerThreads == 1) {
+			q = new ConcurrentLinkedQueue<>();
+		} else {
+			queues = new ConcurrentLinkedQueue[noOfProducerThreads];
+			for (int i = 0 ; i < noOfProducerThreads ; i++) {
+				queues[i] = new ConcurrentLinkedQueue<SAMRecord>();
+			}
 		}
+		long start = System.currentTimeMillis();
+		
+		final BamSummaryReport bamSummaryReport = new BamSummaryReport( includes, maxRecords, tags, tagsInt, tagsChar );
+		bamSummaryReport.setFileName(input);
+		bamSummaryReport.setStartTime(DateUtils.getCurrentDateAsString());
+		
+
 		
 		bamSummaryReport.setTorrentBam(torrentBam);
 		// set the bam header
