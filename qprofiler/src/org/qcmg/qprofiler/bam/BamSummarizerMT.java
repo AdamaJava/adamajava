@@ -13,7 +13,6 @@ package org.qcmg.qprofiler.bam;
 
 import static java.util.stream.Collectors.toList;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.AbstractQueue;
 import java.util.ArrayList;
@@ -43,6 +42,27 @@ import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qprofiler.report.SummaryReport;
 import org.qcmg.qprofiler.summarise.Summarizer;
 
+/**
+ * This class will be called only when option "--threads_consumer" is specified and value > 0;
+ * otherwise a single thread mode will be called, which is BamSummarizer.
+ * 
+ * Here A SingleProducer will be created if without option "--threads_producer" or value <= 1; 
+ * otherwise multiply Producer will be created based on value of "--threads_producer". 
+ * 
+ * Once A SingleProducer is created, a number of SingleProducerConsumer will be created based on "--threads_consumer" value.
+ * 
+ * By summary 
+ * --------------------------------------------------------------------------------------------
+ * | threads_consumer | threads_producer  | threads name
+ * | null,0 (def = 0 )| null,0,1 (def = 1)| single thread mode 
+ * | null,0 (def = 0 )| 	> 1			  | single thread mode 
+ * |	>= 1		  | null,0,1(def = 1 )| a SingleProducer + multiply SingleProducerConsumer
+ * |	>= 1		  | 	> 1			  | multiply Producer + multiply Consumer
+ * ______________________________________________________________________________________________
+ * 
+ * @author christix
+ *
+ */
 public class BamSummarizerMT implements Summarizer {
 	
 	final static QLogger logger = QLoggerFactory.getLogger(BamSummarizerMT.class);
