@@ -43,17 +43,17 @@ import org.qcmg.qprofiler.report.SummaryReport;
 import org.qcmg.qprofiler.summarise.Summarizer;
 
 /**
- * This class will be called only when option "--threads_consumer" is specified and value > 0;
+ * This class will be called only when option "--threads-consumer" is specified and value > 0;
  * otherwise a single thread mode will be called, which is BamSummarizer.
  * 
- * Here A SingleProducer will be created if without option "--threads_producer" or value <= 1; 
- * otherwise multiply Producer will be created based on value of "--threads_producer". 
+ * Here A SingleProducer will be created if without option "--threads-producer" or value <= 1; 
+ * otherwise multiply Producer will be created based on value of "--threads-producer". 
  * 
- * Once A SingleProducer is created, a number of SingleProducerConsumer will be created based on "--threads_consumer" value.
+ * Once A SingleProducer is created, a number of SingleProducerConsumer will be created based on "--threads-consumer" value.
  * 
  * By summary 
  * --------------------------------------------------------------------------------------------
- * | threads_consumer | threads_producer  | threads name
+ * | threads-consumer | threads-producer  | threads name
  * | null,0 (def = 0 )| null,0,1 (def = 1)| single thread mode 
  * | null,0 (def = 0 )| 	> 1			  | single thread mode 
  * |	>= 1		  | null,0,1(def = 1 )| a SingleProducer + multiply SingleProducerConsumer
