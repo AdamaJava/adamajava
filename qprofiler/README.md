@@ -24,8 +24,7 @@ qprofiler collects summary statistics from a number of NGS related files includi
 
 ## Running qprofiler
 
-* To run qprofiler, you need to supply an input, an output and a log file:
+* To run qprofiler, you need to supply an output, a log file and one or more inputs:
   ```
-  java -jar qprofiler/build/flat/qprofiler-1.0.jar -i <input.file> -o <output.xml> -l <logfile.log>
+  usage: java -jar qprofiler.jar --input <input file>  --output <output xml file> --log <log file> [options]
   ```
-  Output is written to the supplied `output.xml` file

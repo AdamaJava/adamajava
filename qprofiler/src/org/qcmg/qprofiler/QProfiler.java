@@ -113,11 +113,8 @@ public class QProfiler {
 		final Map<ProfileType, List<Pair<String, String>>> sortedFiles = new HashMap<>();
 		
 		for (int i = 0 ; i < cmdLineFiles.length ; i++) {
-			String f = cmdLineFiles[i];
-//			File f = new File(cmdLineFiles[i]);
-			/*
-			 * see if we have a corresponding index
-			 */
+			String f = cmdLineFiles[i];			
+			// see if we have a corresponding index			
 			String index = null;
 			if (null != cmdLineIndexFiles && cmdLineIndexFiles.length > i) {
 				index = cmdLineIndexFiles[i];
