@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import joptsimple.BuiltinHelpFormatter;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 
@@ -100,11 +101,11 @@ public class Options {
 		parser.accepts("log", LOG_OPTION).withRequiredArg().ofType(String.class);	
 		parser.accepts("loglevel", LOG_LEVEL_OPTION).withRequiredArg().ofType(String.class); 
         parser.accepts("ini", INI_OPTION).withRequiredArg().ofType(String.class).describedAs("ini");
-        parser.accepts("tmp", TEMPDIR_OPTION).withRequiredArg().ofType(String.class).describedAs("tmp");  
+        parser.acceptsAll((asList("tmp", "temporary-directory"), TEMPDIR_OPTION).withRequiredArg().ofType(String.class);  
         parser.accepts("range", RANGE_OPTION).withOptionalArg().ofType(String.class).describedAs("range");    
-        parser.accepts("overrideOutput", OUTPUT_OPTION).withOptionalArg().ofType(String.class).describedAs("overrideOutput");
+        parser.accepts("overrideOutput", OUTPUT_OPTION).withOptionalArg().ofType(String.class);
 		parser.acceptsAll(asList("h", "help"), HELP_OPTION);
-		parser.acceptsAll(asList("v", "V", "version"), VERSION_OPTION);		
+		parser.acceptsAll(asList("version"), VERSION_OPTION);		
 		options = parser.parse(args);	
 		//logging
 		
@@ -484,6 +485,7 @@ public class Options {
 	 * @throws Exception
 	 */
     public void displayHelp() throws Exception {
+    	parser.formatHelpWith(new BuiltinHelpFormatter(120, 2));
 		parser.printHelpOn(System.err);
 	}
 

@@ -3,6 +3,7 @@ package org.qcmg.qsv;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.IOException;
@@ -174,14 +175,19 @@ public class OptionsTest {
 
     @Test
     public void testVersionOption() throws QSVException, InvalidFileFormatException, IOException {
+    	//long form option
         Options options = new Options(new String[] {"--version"});
         assertTrue(options.hasVersionOption());
 
+        //short form option
         Options options2 = new Options(new String[] {"-v"});
         assertTrue(options2.hasVersionOption());
 
-        Options options3 = new Options(new String[] {"-V"});
-        assertTrue(options3.hasVersionOption());
+        try {
+        	 Options options3 = new Options(new String[] {"-V"});
+            fail("except to throw exception");
+         }  catch(Exception e) {}
+        
     }
     
     @Test(expected = QSVException.class)

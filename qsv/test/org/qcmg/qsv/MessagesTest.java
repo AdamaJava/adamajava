@@ -8,8 +8,8 @@ public class MessagesTest {
 
     @Test
     public void testGetMessageString() {
-        String message = Messages.getMessage("LOG_OPTION");
-        assertEquals("Name of log file. Will be written to the output directory.", message);
+        String message = Messages.getMessage("LOG_OPTION");    
+        assertEquals("Req, Log file.", message);
     }
 
     @Test

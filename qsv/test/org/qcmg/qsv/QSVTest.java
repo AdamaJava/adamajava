@@ -117,7 +117,7 @@ public class QSVTest {
         int exit = qsv.runQSV(new String[0]);
         assertEquals(0, exit);
         assertEquals(
-                "usage: qsv [OPTIONS] --ini [ini_file] --tmp [temporary_directory]\n",
+                "usage: java -jar qsv.jar --ini <ini_file> --tmp <temporary_directory> [OPTIONS]\n",
                 testOut.toString());
         cleanUpStreams();
     }
