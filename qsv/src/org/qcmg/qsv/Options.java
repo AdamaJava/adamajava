@@ -101,7 +101,7 @@ public class Options {
 		parser.accepts("log", LOG_OPTION).withRequiredArg().ofType(String.class);	
 		parser.accepts("loglevel", LOG_LEVEL_OPTION).withRequiredArg().ofType(String.class); 
         parser.accepts("ini", INI_OPTION).withRequiredArg().ofType(String.class).describedAs("ini");
-        parser.acceptsAll((asList("tmp", "temporary-directory"), TEMPDIR_OPTION).withRequiredArg().ofType(String.class);  
+        parser.acceptsAll(asList("tmp", "temporary-directory"), TEMPDIR_OPTION).withRequiredArg().ofType(String.class);  
         parser.accepts("range", RANGE_OPTION).withOptionalArg().ofType(String.class).describedAs("range");    
         parser.accepts("overrideOutput", OUTPUT_OPTION).withOptionalArg().ofType(String.class);
 		parser.acceptsAll(asList("h", "help"), HELP_OPTION);
