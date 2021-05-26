@@ -19,8 +19,6 @@ import org.qcmg.qsv.util.QSVUtil;
 
 public class QSVTest {
 
-//    private  File normalBam;
-//    private  File tumorBam;
     private PrintStream defaultOutstream = null;
     private PrintStream testOutPrintStream = null;
     private ByteArrayOutputStream testOut = null;
@@ -113,7 +111,7 @@ public class QSVTest {
         int exit = qsv.runQSV(new String[0]);
         assertEquals(0, exit);
         assertEquals(
-                "usage: java -jar qsv.jar --ini <ini_file> --output-temporary <temporary_directory> [OPTIONS]\n",
+                "usage: java -jar qsv.jar --ini <ini_file> --output-temporary <directory> [OPTIONS]\n",
                 testOut.toString());
         cleanUpStreams();
     }
@@ -125,7 +123,8 @@ public class QSVTest {
         QSV qsv = new QSV();
         int exit = qsv.runQSV(args);
         assertEquals(0, exit);
-        assertTrue(testOut.toString().startsWith("Option"));
+        //assertTrue(testOut.toString().startsWith("Option"));
+        assertTrue(testOut.toString().startsWith("usage:"));
         cleanUpStreams();
     }
 

@@ -485,7 +485,7 @@ public class Options {
 	 * @throws Exception
 	 */
     public void displayHelp() throws Exception {
-    	parser.formatHelpWith(new BuiltinHelpFormatter(120, 2));
+    	parser.formatHelpWith(new BuiltinHelpFormatter(150, 2));
 		parser.printHelpOn(System.err);
 	}
 

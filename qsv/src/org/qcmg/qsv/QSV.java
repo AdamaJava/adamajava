@@ -14,7 +14,6 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.meta.QExec;
 import org.qcmg.common.string.StringUtils;
-import org.qcmg.common.util.LoadReferencedClasses;
 import org.qcmg.qsv.util.QSVUtil;
 
 
@@ -56,6 +55,7 @@ public class QSV {
 			} else {
 				this.options = new Options(args);
 				if (options.hasHelpOption()) {
+					System.err.println(Messages.USAGE);
 					options.displayHelp();
 				} else if (options.hasVersionOption()) {
 					System.err.println(Messages.getVersionMessage());			

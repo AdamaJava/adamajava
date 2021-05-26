@@ -147,9 +147,6 @@ public class Annotator  {
 		if (lower != -1 || upper != -1) {
 
 			if (record.getReadPairedFlag()) {
-//				if (annotatorType.equals("lifescope")) {
-//					annotatorType = "lmp";
-//				}
 				//solid lmp
 				if (annotatorType.equals("lmp")) {
 					SOLiDLongMatePairRecord lmp = new SOLiDLongMatePairRecord(record, lower, upper);
