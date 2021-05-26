@@ -2,7 +2,6 @@ package org.qcmg.qprofiler;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
-
 import org.junit.Test;
 
 public class OptionsTest {
@@ -82,79 +81,79 @@ public class OptionsTest {
 	}
 	
 	@Test
-	public void testMaxRecordsOptions() throws QProfilerException {
-		Options options = new Options(new String[] {"--maxRecords","2"});
+	public void testMaxRecordsOptions() throws QProfilerException {		
+		Options options = new Options(new String[] {"--records","2"});
 		assertEquals(0, options.getFileNames().length);
 		assertEquals(0, options.getBamIncludes().length);
 		assertEquals(2, options.getMaxRecords());
 		assertEquals(0, options.getNoOfConsumerThreads());
 		
 		// shortcut
-		options = new Options(new String[] {"--m","10"});
+		options = new Options(new String[] {"-r","10"});
 		assertEquals(10, options.getMaxRecords());
 		
 		// invalid option (needs to be integer)
 		try {
-			new Options(new String[] {"-max","matrices"});
+			new Options(new String[] {"-records","matrices"});
 			fail("Should have thrown an exception");
 		} catch (Exception e) {}
 		
 		// more than 1 value, will throw an exception as they are considered to be nonoption arguments
 		try {
-			new Options(new String[] {"--maxRecords","2","3","4","5"});
+			new Options(new String[] {"--records","2","3","4","5"});
 			fail("Should have thrown an exception");
 		} catch (IllegalArgumentException e) {}
 		
 		// more than 1 value, will throw an exception as they are considered to be nonoption arguments
 		try {
-			new Options(new String[] {"--maxRecords","2","--maxRecords","3","--maxRecords","4","--maxRecords","5"});
+			new Options(new String[] {"--records","2","--records","3","--records","4","--records","5"});
 			fail("Should have thrown an exception");
 		} catch (Exception e) {}
 		
 		// empty options
 		try {
-			new Options(new String[] {"--maxRecords"});
+			new Options(new String[] {"--records"});
 			fail("Should have thrown an exception");
 		} catch (Exception e) {}
 	}
 	
 	@Test
 	public void testNoOfThreadsOptions() throws QProfilerException {
-		Options options = new Options(new String[] {"--ntC","2"});
+		Options options = new Options(new String[] {"--threads-consumer","2"});
 		assertEquals(0, options.getFileNames().length);
 		assertEquals(0, options.getBamIncludes().length);
 		assertEquals(0, options.getMaxRecords());
 		assertEquals(2, options.getNoOfConsumerThreads());
 		
 		// shortcut
-		options = new Options(new String[] {"--ntC","10"});
+		options = new Options(new String[] {"--tc","10"});
 		assertEquals(10, options.getNoOfConsumerThreads());
 		// shortcut again
-		options = new Options(new String[] {"-ntP","11"});
+		options = new Options(new String[] {"-tp","11"});
 		assertEquals(11, options.getNoOfProducerThreads());
 		
 		// invalid option (needs to be integer)
 		try {
-			new Options(new String[] {"-ntP","matrices"});
+			new Options(new String[] {"-tp","matrices"});
 			fail("Should have thrown an exception");
 		} catch (Exception e) {}
 		
 		// more than 1 value, will throw an exception as they are considered to be nonoption arguments
 		try {
-			new Options(new String[] {"--ntC","2","3","4","5"});
+			new Options(new String[] {"--tc","2","3","4","5"});
 			fail("Should have thrown an exception");
 		} catch (IllegalArgumentException e) {}
 		
 		// multiple values - will throw an exception
 		try {
-			new Options(new String[] {"-ntP","2","-ntC","3","-ntC","4","-ntP","5"});
+			new Options(new String[] {"-tp","2","-tcC","3","-tc","4","-tp","5"});
 			fail("Should have thrown an exception");
 		} catch (Exception e) {}
 		
 		// empty options
 		try {
-			new Options(new String[] {"--ntC"});
+			new Options(new String[] {"--tc"});
 			fail("Should have thrown an exception");
 		} catch (Exception e) {}
-	}
+	}	
 }
