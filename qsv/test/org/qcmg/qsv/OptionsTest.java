@@ -325,7 +325,7 @@ public class OptionsTest {
     	 	// add in the override option
     	 	
     	 	String [] newArgs = Arrays.copyOf(args, args.length + 2);
-    	 	newArgs[newArgs.length - 2] = "--overrideOutput";
+    	 	newArgs[newArgs.length - 2] = "--output";
     	 	newArgs[newArgs.length - 1] = testFolder.newFile().getAbsolutePath();
     	 	
     	 	options = new Options(newArgs);

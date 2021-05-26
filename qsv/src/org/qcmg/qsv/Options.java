@@ -100,23 +100,23 @@ public class Options {
 		//define the options the parse accepts		
 		parser.accepts("log", LOG_OPTION).withRequiredArg().ofType(String.class);	
 		parser.accepts("loglevel", LOG_LEVEL_OPTION).withRequiredArg().ofType(String.class); 
-        parser.accepts("ini", INI_OPTION).withRequiredArg().ofType(String.class).describedAs("ini");
-        parser.acceptsAll(asList("tmp", "temporary-directory"), TEMPDIR_OPTION).withRequiredArg().ofType(String.class);  
-        parser.accepts("range", RANGE_OPTION).withOptionalArg().ofType(String.class).describedAs("range");    
-        parser.accepts("overrideOutput", OUTPUT_OPTION).withOptionalArg().ofType(String.class);
-		parser.acceptsAll(asList("h", "help"), HELP_OPTION);
+        parser.accepts("ini", INI_OPTION).withRequiredArg().ofType(String.class);
+        parser.accepts("output-temporary", TEMPDIR_OPTION).withRequiredArg().ofType(String.class);  
+        parser.accepts("range", RANGE_OPTION).withOptionalArg().ofType(String.class);    
+        parser.accepts("output", OUTPUT_OPTION).withOptionalArg().ofType(String.class);
+		parser.accepts("help", HELP_OPTION);
 		parser.acceptsAll(asList("version"), VERSION_OPTION);		
 		options = parser.parse(args);	
 		//logging
 		
 		iniFile = (String) options.valueOf("ini");
-		tempDirName = (String) options.valueOf("tmp");
+		tempDirName = (String) options.valueOf("output-temporary");
 		
 		/*
 		 *User can overwrite the output at command line - 
 		 */
-		if (options.has("overrideOutput")) {
-			outputDirNameOverride = (String) options.valueOf("overrideOutput");
+		if (options.has("output")) {
+			outputDirNameOverride = (String) options.valueOf("output");
 		}
 		
 		if (options.has("range")) {

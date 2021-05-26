@@ -7,24 +7,20 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
 import java.util.UUID;
 
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.qsv.util.QSVUtil;
-import org.qcmg.qsv.util.TestUtil;
 
 public class QSVTest {
 
-    private  File normalBam;
-    private  File tumorBam;
+//    private  File normalBam;
+//    private  File tumorBam;
     private PrintStream defaultOutstream = null;
     private PrintStream testOutPrintStream = null;
     private ByteArrayOutputStream testOut = null;
@@ -117,7 +113,7 @@ public class QSVTest {
         int exit = qsv.runQSV(new String[0]);
         assertEquals(0, exit);
         assertEquals(
-                "usage: java -jar qsv.jar --ini <ini_file> --tmp <temporary_directory> [OPTIONS]\n",
+                "usage: java -jar qsv.jar --ini <ini_file> --output-temporary <temporary_directory> [OPTIONS]\n",
                 testOut.toString());
         cleanUpStreams();
     }

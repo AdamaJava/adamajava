@@ -9,7 +9,7 @@ public class MessagesTest {
     @Test
     public void testGetMessageString() {
         String message = Messages.getMessage("LOG_OPTION");    
-        assertEquals("Req, Log file.", message);
+        assertEquals("Opt, Log file.", message);
     }
 
     @Test

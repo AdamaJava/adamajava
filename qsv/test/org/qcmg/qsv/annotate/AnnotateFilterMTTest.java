@@ -125,7 +125,7 @@ public class AnnotateFilterMTTest {
 		CountDownLatch fLatch = null;
 		CountDownLatch wGoodLatch = null;
 		
-	    String[] args = new String[] {"--ini", iniFile.getAbsolutePath(), "--tmp",  testFolder.getRoot().toString()};
+	    String[] args = new String[] {"--ini", iniFile.getAbsolutePath(), "--output-temporary",  testFolder.getRoot().toString()};
 	    Options options = new Options(args);
 	    options.parseIniFile();
 	    String matepairsDir = null;
