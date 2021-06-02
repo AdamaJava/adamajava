@@ -157,10 +157,6 @@ public class Options {
 			log = sampleName + ".log";
 		}
 		
-		if (loglevel == null) {
-			loglevel = QSVConstants.DEFAULT_LOGLEVEL;
-		}
-		
 		outputDirName = generalSection.get("output");
 		
 		if (generalSection.get("min_insert_size") != null) {
@@ -532,10 +528,6 @@ public class Options {
 	public void setAnalysisMode(String analysisMode) {
 		this.analysisMode = analysisMode;
 	}
-
-    public String getLoglevel() {
-        return loglevel;
-    }
 
     public String getComparisonFile() {
         return comparisonFile;
