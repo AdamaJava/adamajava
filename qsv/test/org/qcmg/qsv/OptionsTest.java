@@ -354,8 +354,9 @@ public class OptionsTest {
     
     @Test(expected = QSVException.class)
     public void testBadOptionsIniFileOption() throws QSVException, InvalidFileFormatException, IOException {
-    	Options options = new Options(new String[] {"-log", "log.log", "--loglevel", "INFO"});
-
+    	//removed log option from command line, it should inside the ini
+    	//Options options = new Options(new String[] {"-log", "log.log", "--loglevel", "INFO"});
+    	Options options = new Options(new String[] {"-help"});
         assertEquals(null, options.getIniFile());
         options.detectBadOptions();
     }

@@ -98,8 +98,8 @@ public class Options {
 	public Options(final String[] args) throws QSVException, InvalidFileFormatException, IOException {
 		
 		//define the options the parse accepts		
-		parser.accepts("log", LOG_OPTION).withRequiredArg().ofType(String.class);	
-		parser.accepts("loglevel", LOG_LEVEL_OPTION).withRequiredArg().ofType(String.class); 
+//		parser.accepts("log", LOG_OPTION).withRequiredArg().ofType(String.class);	
+//		parser.accepts("loglevel", LOG_LEVEL_OPTION).withRequiredArg().ofType(String.class); 
         parser.accepts("ini", INI_OPTION).withRequiredArg().ofType(String.class);
         parser.accepts("output-temporary", TEMPDIR_OPTION).withRequiredArg().ofType(String.class);  
         parser.accepts("range", RANGE_OPTION).withOptionalArg().ofType(String.class);    
