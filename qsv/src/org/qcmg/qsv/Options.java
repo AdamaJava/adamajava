@@ -33,11 +33,11 @@ public class Options {
 	
 	private static final String HELP_OPTION = Messages.getMessage("HELP_OPTION");	
 	private static final String VERSION_OPTION = Messages.getMessage("VERSION_OPTION");
-	private static final String LOG_OPTION = Messages.getMessage("LOG_OPTION");
-	private static final String LOG_LEVEL_OPTION = Messages.getMessage("LOG_LEVEL_OPTION");
+//	private static final String LOG_OPTION = Messages.getMessage("LOG_OPTION");
+//	private static final String LOG_LEVEL_OPTION = Messages.getMessage("LOG_LEVEL_OPTION");
 	private static final String INI_OPTION = Messages.getMessage("INI_OPTION");
 	private static final String TEMPDIR_OPTION = Messages.getMessage("TEMPDIR_OPTION");
-	private final String RANGE_OPTION = Messages.getMessage("RANGE_OPTION");;
+//	private final String RANGE_OPTION = Messages.getMessage("RANGE_OPTION");;
 	private final String OUTPUT_OPTION = Messages.getMessage("OUTPUT_OPTION");;
 	
 	private final OptionParser parser = new OptionParser();
@@ -64,10 +64,10 @@ public class Options {
 	private String comparisonSampleId;
 	private List<String> ranges;
 	private String reference;
-	private String blatServer;
-	private String blatPort;
-	private String bitFile;
-	private String blatPath;
+//	private String blatServer;
+//	private String blatPort;
+//	private String bitFile;
+//	private String blatPath;
 	private String mapper;
 	private String clipQuery;
 	private String tiledAlignerFile;
@@ -98,11 +98,8 @@ public class Options {
 	public Options(final String[] args) throws QSVException, InvalidFileFormatException, IOException {
 		
 		//define the options the parse accepts		
-//		parser.accepts("log", LOG_OPTION).withRequiredArg().ofType(String.class);	
-//		parser.accepts("loglevel", LOG_LEVEL_OPTION).withRequiredArg().ofType(String.class); 
         parser.accepts("ini", INI_OPTION).withRequiredArg().ofType(String.class);
         parser.accepts("output-temporary", TEMPDIR_OPTION).withRequiredArg().ofType(String.class);  
-        parser.accepts("range", RANGE_OPTION).withOptionalArg().ofType(String.class);    
         parser.accepts("output", OUTPUT_OPTION).withOptionalArg().ofType(String.class);
 		parser.accepts("help", HELP_OPTION);
 		parser.acceptsAll(asList("version"), VERSION_OPTION);		
@@ -119,11 +116,6 @@ public class Options {
 			outputDirNameOverride = (String) options.valueOf("output");
 		}
 		
-		if (options.has("range")) {
-	    		ranges = new ArrayList<String>();
-	    		ranges.add((String) options.valueOf("range"));
-	    		processRanges();
-	    	}
 	}
 	
 	public String getOverrideOutput() {
@@ -169,10 +161,10 @@ public class Options {
 			REPEAT_COUNT_CUTOFF =  new Integer(generalSection.get("repeat_cutoff"));
 		}
 
-		if (ranges == null) {
-			ranges = generalSection.getAll("range");			
-			processRanges();			
-		}
+		//ranges can be null, means all chromosome
+		ranges = generalSection.getAll("range");			
+		processRanges();			
+	
 		
 		String splitRead = generalSection.get("split_read");
 		if (splitRead != null && splitRead.equals("false")) {
@@ -299,25 +291,9 @@ public class Options {
 					singleSided = true;
 				}
 			}	
-			
-			if (clipSection.get("blatserver") != null) {
-				blatServer = clipSection.get("blatserver");
-			}
-			if (clipSection.get("blatport") != null) {
-				blatPort = clipSection.get("blatport");
-			}
-			if (clipSection.get("blatpath") != null) {
-				blatPath = clipSection.get("blatpath");
-			}
 		}
 		if (analysisMode.equals("pair")) {
 			isSplitRead = false;
-		}
-		
-		if (analysisMode.equals("clip")) {
-			if (blatServer == null || blatPort == null || blatPath == null) {
-				throw new QSVException("NO_BLAT");
-			}
 		}
 		
 		Section tumourSection = ini.get(QSVConstants.DISEASE_SAMPLE); 		
@@ -587,22 +563,6 @@ public class Options {
 
 	public void setConsensusLength(Integer consensusLength) {
 		this.consensusLength = consensusLength;
-	}
-
-	public String getBlatServer() {
-		return blatServer;
-	}
-
-	public String getBlatPort() {
-		return blatPort;
-	}
-
-	public String getBitFile() {
-		return bitFile;
-	}
-
-	public String getBlatPath() {
-		return blatPath;
 	}	
 
 	public String getMapper() {

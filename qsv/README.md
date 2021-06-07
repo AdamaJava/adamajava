@@ -55,8 +55,6 @@ qsv requires java 8, a machine with 8 cores (hyperthreaded) and at least 40GB of
                         string. All existing output will be override.  Without this option a
                         new output folder will be created according to ini file.
   --output-temporary  Req, directory to write temporary files to.
-  --range             Opt, Specify reference sequence name to run. Otherwise qsv will run on
-                        reference listed on ini file. Def=<input_BAM_reference>
   --version           Show version number.
 ~~~~
 
@@ -81,7 +79,6 @@ output = Req, output directory. A result folder for the analysis will be automat
 reference = Req, path to fasta reference file
 platform = Req, sequence machine platform [solid, illumina,bgi].
 min_insert_size = Opt, minimum size of SV insert. Def=50.
-?isize_records=number of records per read group used to calculate isize (seem not used)
 range = Opt,specify one or more chromosomes or inter for translocations. Def=<all chromosome>
 repeat_cutoff = Opt, specified number of clipped reads to define a potential repeat region, Def=1000
 tiled_aligner = Req, Tiled aligner file with full path, created by our in-home aligner - q3tiledaligner.  
@@ -93,16 +90,12 @@ mapper = Opt,mapping tool name [bioscope, lifescope, bwa, bwa-mem, novoalign]. D
 pair_query = Opt, qbamfilter query string for discordant pair. Def="and (Cigar_M > 34, MD_mismatch < 3, option_SM > 10, flag_DuplicateRead == false)" for Paired End reads(pe).
 cluster_size = Opt, number of discordant reads required to define a cluster. Def=3.
 filter_size = Opt, number of control reads in a cluster to classify it germline. Def=1.
-?primer_size = 3 (seem not used) 
 
 [clip]
 clip_query = Opt, Filtering query for clips. Def="and (Cigar_M > 34, MD_mismatch < 3, MapQ > 0, flag_DuplicateRead == false)".
 clip_size = Opt,number of reads required to proceed with soft clip SV signature detection. Def=3.
 consensus_length = Opt, minimum length of soft clip consensus sequence. Def=20.
 single_side_clip = Opt, set to true if SV signatures with soft clip evidence at one breakpoint should be included. Def=false.
-?blatpath = path to blat executable /home/Software/BLAT (seem not used)
-?blatserver = name of blat server eg:localhost (seem not used)
-?blatport = port for blat server (seem not used)
 
 [test]
 name = Req, test sample name which may indicate sample id, name or type.  

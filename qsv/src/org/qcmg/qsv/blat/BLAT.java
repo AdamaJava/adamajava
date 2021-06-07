@@ -31,6 +31,7 @@ import org.qcmg.qsv.util.QSVUtil;
  * Class to launch BLAT
  *
  */
+@Deprecated
 public class BLAT {
 	private static final QLogger logger = QLoggerFactory.getLogger(BLAT.class);
 	
