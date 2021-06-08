@@ -33,11 +33,8 @@ public class Options {
 	
 	private static final String HELP_OPTION = Messages.getMessage("HELP_OPTION");	
 	private static final String VERSION_OPTION = Messages.getMessage("VERSION_OPTION");
-//	private static final String LOG_OPTION = Messages.getMessage("LOG_OPTION");
-//	private static final String LOG_LEVEL_OPTION = Messages.getMessage("LOG_LEVEL_OPTION");
 	private static final String INI_OPTION = Messages.getMessage("INI_OPTION");
 	private static final String TEMPDIR_OPTION = Messages.getMessage("TEMPDIR_OPTION");
-//	private final String RANGE_OPTION = Messages.getMessage("RANGE_OPTION");;
 	private final String OUTPUT_OPTION = Messages.getMessage("OUTPUT_OPTION");;
 	
 	private final OptionParser parser = new OptionParser();
@@ -64,10 +61,6 @@ public class Options {
 	private String comparisonSampleId;
 	private List<String> ranges;
 	private String reference;
-//	private String blatServer;
-//	private String blatPort;
-//	private String bitFile;
-//	private String blatPath;
 	private String mapper;
 	private String clipQuery;
 	private String tiledAlignerFile;
