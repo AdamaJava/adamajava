@@ -14,6 +14,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.messages.Messages;
@@ -77,7 +78,7 @@ public class QProfiler2Test {
 		}
 	}
 		
-	@Test
+	@Test 
 	public final void executeWithInvalidArgs() throws Exception {
 		File logFile = testFolder.newFile("executeWithInvalidArguments.log");
 				
@@ -160,7 +161,7 @@ public class QProfiler2Test {
 			// only one line for whole file
 			assertTrue( Files.lines(Paths.get(  "qprofiler.xml")).filter(s -> s.contains("<headerRecords TAG=")).count()== 1);						
 			// default mode, only HD and RG
-			args = new String[] {"-input",input, "-log", logFile.getAbsolutePath(), "--fullBamHeader"};
+			args = new String[] {"-input",input, "-log", logFile.getAbsolutePath(), "--full-bam-header"};
 			new QProfiler2().setup( args );	
 			assertTrue( Files.lines(Paths.get(  "qprofiler.xml")).filter(s -> s.contains("<headerRecords TAG=\"HD\"")).count()== 1);	
 			assertTrue( Files.lines(Paths.get(  "qprofiler.xml")).filter(s -> s.contains("<headerRecords TAG=\"SQ\"")).count()== 1);			

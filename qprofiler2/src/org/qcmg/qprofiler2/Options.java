@@ -23,15 +23,10 @@ import joptsimple.OptionSet;
 final class Options {
 	private static final String msgResource = "org.qcmg.qprofiler2.messages";
 	
-	private static final String HELP_DESCRIPTION = Messages.getMessage(msgResource,"HELP_OPTION_DESCRIPTION");
-	private static final String VERSION_DESCRIPTION = Messages.getMessage(msgResource,"VERSION_OPTION_DESCRIPTION");
+	private static final String HELP_DESCRIPTION = Messages.getMessage(msgResource, "HELP_OPTION_DESCRIPTION");	
+	private static final String VERSION_DESCRIPTION = Messages.getMessage(msgResource, "VERSION_OPTION_DESCRIPTION");
 	private static final String CONSUMER_THREADS_OPTION_DESCRIPTION = Messages.getMessage(msgResource,"CONSUMER_THREADS_OPTION_DESCRIPTION");
 	private static final String PRODUCER_THREADS_OPTION_DESCRIPTION = Messages.getMessage(msgResource,"PRODUCER_THREADS_OPTION_DESCRIPTION");
-
-	private static final String INCLUDE_OPTION_DESCRIPTION = Messages.getMessage(msgResource,"INCLUDE_OPTION_DESCRIPTION");
-	private static final String TAGS_OPTION_DESCRIPTION = Messages.getMessage(msgResource,"TAGS_OPTION_DESCRIPTION");
-	private static final String TAGS_INT_OPTION_DESCRIPTION = Messages.getMessage(msgResource,"TAGS_INT_OPTION_DESCRIPTION");
-	private static final String TAGS_CHAR_OPTION_DESCRIPTION = Messages.getMessage(msgResource,"TAGS_CHAR_OPTION_DESCRIPTION");
 	private static final String RECORDS_OPTION_DESCRIPTION = Messages.getMessage(msgResource,"RECORDS_OPTION_DESCRIPTION");
 	private static final String LOG_OPTION_DESCRIPTION = Messages.getMessage(msgResource,"LOG_OPTION_DESCRIPTION");
 	private static final String LOG_LEVEL_OPTION_DESCRIPTION = Messages.getMessage(msgResource,"LOG_LEVEL_OPTION_DESCRIPTION");
@@ -43,7 +38,8 @@ final class Options {
 	
 	// vcf mode
 	private static final String FORMAT_OPTION_DESCRIPTION = Messages.getMessage(msgResource,"FORMAT_OPTION_DESCRIPTION");
-	private final String[] formats;  // vcf mode		
+	private final String[] formats;  // vcf mode	
+	
 	
 	private final OptionParser parser = new OptionParser();
 	private final OptionSet options;
@@ -68,20 +64,11 @@ final class Options {
 		parser.accepts("output", OUTPUT_FILE_DESCRIPTION).withRequiredArg().ofType(String.class);		
 		parser.acceptsAll(asList("threads-producer", "tp"), PRODUCER_THREADS_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
 		parser.acceptsAll(asList("threads-consumer", "tc"), CONSUMER_THREADS_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
-		parser.accepts("index", INDEX_FILE_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
 		parser.accepts("records", RECORDS_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
-		
-		parser.accepts("include", INCLUDE_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
-		parser.accepts("tags", TAGS_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
-		parser.accepts("tagsInt", TAGS_INT_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
-		parser.accepts("tagsChar", TAGS_CHAR_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
 		parser.accepts("validation", VALIDATION_STRINGENCY_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
-		parser.posixlyCorrect(true);		
-		
-		parser.accepts("validation", VALIDATION_STRINGENCY_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
-		parser.accepts("fullBamHeader", FULL_BAMHEADER_OPTION_DESCRIPTION);
+		parser.accepts("full-bam-header", FULL_BAMHEADER_OPTION_DESCRIPTION);
 		parser.accepts("format", FORMAT_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
-		parser.accepts("index", INDEX_FILE_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
+		parser.accepts("index", INDEX_FILE_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');		
 		parser.posixlyCorrect(true);
 		options = parser.parse(args);
 		
@@ -130,7 +117,7 @@ final class Options {
 	}
 	
 	boolean hasFullBamHeaderOption() {
-		return options.has("fullBamHeader") ; 
+		return options.has("full-bam-header") ; 
 	}
 
 	boolean hasVersionOption() {
