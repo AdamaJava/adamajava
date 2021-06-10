@@ -13,9 +13,7 @@
 package org.qcmg.qprofiler2;
 
 import java.util.List;
-import static java.util.Arrays.asList;
 import org.qcmg.common.messages.Messages;
-
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 
@@ -62,13 +60,13 @@ final class Options {
 		parser.accepts("loglevel", LOG_LEVEL_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);		
 		parser.accepts("input", INPUT_FILE_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("output", OUTPUT_FILE_DESCRIPTION).withRequiredArg().ofType(String.class);		
-		parser.acceptsAll(asList("threads-producer", "tp"), PRODUCER_THREADS_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
-		parser.acceptsAll(asList("threads-consumer", "tc"), CONSUMER_THREADS_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
-		parser.accepts("records", RECORDS_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
-		parser.accepts("validation", VALIDATION_STRINGENCY_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
-		parser.accepts("full-bam-header", FULL_BAMHEADER_OPTION_DESCRIPTION);
-		parser.accepts("format", FORMAT_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
-		parser.accepts("index", INDEX_FILE_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');		
+		parser.accepts("bam-threads-producer" , PRODUCER_THREADS_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
+		parser.accepts("threads-consumer",  CONSUMER_THREADS_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
+		parser.accepts("bam-records", RECORDS_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
+		parser.accepts("bam-validation", VALIDATION_STRINGENCY_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
+		parser.accepts("bam-full-header", FULL_BAMHEADER_OPTION_DESCRIPTION);
+		parser.accepts("vcf-format", FORMAT_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
+		parser.accepts("bam-index", INDEX_FILE_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');		
 		parser.posixlyCorrect(true);
 		options = parser.parse(args);
 		
@@ -79,12 +77,12 @@ final class Options {
 		}
 		
 		// no of threads - Producer
-		Object threadNumberProducer = options.valueOf("threads-producer"); 
+		Object threadNumberProducer = options.valueOf("bam-threads-producer"); 
 		if (null != threadNumberProducer) {
 			noOfProducerThreads =  (Integer) threadNumberProducer;
 		}
 		// maxRecords
-		Object maxRecordsObject = options.valueOf("records"); 
+		Object maxRecordsObject = options.valueOf("bam-records"); 
 		if (null != maxRecordsObject) {
 			maxRecords =  (Integer) maxRecordsObject;	
 		}	
@@ -95,7 +93,7 @@ final class Options {
 		logLevel = (String) options.valueOf("loglevel");
 		
 		// vcf mode: format field name
-		List<String> formatArgs = (List<String>) options.valuesOf("format");
+		List<String> formatArgs = (List<String>) options.valuesOf("vcf-format");
 		formats = new String[formatArgs.size()];
 		formatArgs.toArray(formats);
 				
@@ -105,7 +103,7 @@ final class Options {
 		inputs.toArray(fileNames);
 
 		// indexes
-		List<String> indexes = (List<String>) options.valuesOf("index");
+		List<String> indexes = (List<String>) options.valuesOf("bam-index");
 		indexFileNames = new String[indexes.size()];
 		indexes.toArray(indexFileNames);
 		
@@ -117,7 +115,7 @@ final class Options {
 	}
 	
 	boolean hasFullBamHeaderOption() {
-		return options.has("full-bam-header") ; 
+		return options.has("bam-full-header") ; 
 	}
 
 	boolean hasVersionOption() {
@@ -184,8 +182,8 @@ final class Options {
 	}
 	
 	String getValidation() {
-		if (options.has("validation")) {
-			return (String) options.valueOf("validation");
+		if (options.has("bam-validation")) {
+			return (String) options.valueOf("bam-validation");
 		} 	
 		return null;
 	}
