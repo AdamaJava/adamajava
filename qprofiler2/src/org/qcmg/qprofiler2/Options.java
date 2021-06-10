@@ -65,7 +65,7 @@ final class Options {
 		parser.accepts("bam-records", RECORDS_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
 		parser.accepts("bam-validation", VALIDATION_STRINGENCY_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("bam-full-header", FULL_BAMHEADER_OPTION_DESCRIPTION);
-		parser.accepts("vcf-format", FORMAT_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
+		parser.accepts("vcf-format-field", FORMAT_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
 		parser.accepts("bam-index", INDEX_FILE_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');		
 		parser.posixlyCorrect(true);
 		options = parser.parse(args);
@@ -93,7 +93,7 @@ final class Options {
 		logLevel = (String) options.valueOf("loglevel");
 		
 		// vcf mode: format field name
-		List<String> formatArgs = (List<String>) options.valuesOf("vcf-format");
+		List<String> formatArgs = (List<String>) options.valuesOf("vcf-format-field");
 		formats = new String[formatArgs.size()];
 		formatArgs.toArray(formats);
 				
