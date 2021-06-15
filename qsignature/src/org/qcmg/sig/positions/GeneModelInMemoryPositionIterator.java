@@ -64,12 +64,6 @@ public class GeneModelInMemoryPositionIterator extends PositionIterator<ChrPosit
 	}
 
 	@Override
-	public List<String> order() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
 	public void close() throws IOException {
 	}
 	

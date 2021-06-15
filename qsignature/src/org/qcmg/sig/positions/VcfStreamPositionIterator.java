@@ -8,15 +8,11 @@ import java.util.Iterator;
 import java.util.List;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrPositionName;
-import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.qio.record.StringFileReader;
-import org.qcmg.qio.vcf.VcfFileReader;
 
 public class VcfStreamPositionIterator extends PositionIterator<ChrPosition> implements Closeable {
 	
-//	public static final int ID_POSITION = 2;
 	public static final int REF_POSITION = 3;
-//	public static final int ALT_POSITION = 4;
 	
 	
 	List<ChrPosition> list = new ArrayList<>();
@@ -24,25 +20,19 @@ public class VcfStreamPositionIterator extends PositionIterator<ChrPosition> imp
 	private StringFileReader reader;
 	private Iterator<String> iterator;
 	private final int refPosition;
-//	private int altPosition;
 	private String id;
 	private String ref;
-//	private String alt;
 	private String chr;
 	private int position;
 	
 	public VcfStreamPositionIterator(File file) throws IOException {
 		this(file, REF_POSITION);
-//		this(file, ID_POSITION, REF_POSITION, ALT_POSITION);
 	}
 	
 	public VcfStreamPositionIterator(File file, int refPosition) throws IOException {
-//		public VcfStreamPositionIterator(File file, int idPosition, int refPosition, int altPosition) throws IOException {
 		reader = new StringFileReader(file);
 		iterator = reader.iterator();
 		this.refPosition = refPosition;
-//		this.altPosition = altPosition;
-//		maxPosition = Math.max(Math.max(idPosition, refPosition), altPosition);
 	}
 
 	@Override
@@ -65,7 +55,6 @@ public class VcfStreamPositionIterator extends PositionIterator<ChrPosition> imp
 			chr = null;
 			ref = null;
 			position = -1;
-//			alt = null;
 			
 			/*
 			 * re-populate values
@@ -79,8 +68,6 @@ public class VcfStreamPositionIterator extends PositionIterator<ChrPosition> imp
 					id = vcf.substring(lastTabPosition + 1, tabPosition);
 				} else if (loops == refPosition) {
 					ref = vcf.substring(lastTabPosition + 1, tabPosition);
-//				} else if (loops == altPosition) {
-//					alt = vcf.substring(lastTabPosition + 1, tabPosition);
 				}
 				
 				if (loops >= refPosition) {
@@ -94,15 +81,8 @@ public class VcfStreamPositionIterator extends PositionIterator<ChrPosition> imp
 			
 			if (null != chr && position > -1 && null != ref) {
 				return new ChrPositionName(chr, position, position, id + "\t" + ref);
-//				return new ChrPositionName(chr, position, position, id + "\t" + ref + "\t" + alt);
 			}
 		}
-		return null;
-	}
-
-	@Override
-	public List<String> order() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 

@@ -92,12 +92,6 @@ public class VcfInMemoryPositionIterator extends PositionIterator<ChrPosition> i
 	}
 
 	@Override
-	public List<String> order() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
 	public void close() throws IOException {
 	}
 
