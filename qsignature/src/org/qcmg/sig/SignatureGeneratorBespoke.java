@@ -12,17 +12,13 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.AbstractQueue;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -43,13 +39,10 @@ import org.qcmg.common.meta.QExec;
 import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrPositionComparator;
-import org.qcmg.common.model.ChrPositionName;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.TabTokenizer;
-import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
-import org.qcmg.picard.ReferenceUtils;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.util.BAMFileUtils;
 import org.qcmg.picard.util.SAMUtils;
@@ -57,15 +50,12 @@ import org.qcmg.qio.illumina.IlluminaFileReader;
 import org.qcmg.qio.illumina.IlluminaRecord;
 import org.qcmg.qio.record.RecordReader;
 import org.qcmg.qio.record.StringFileReader;
-import org.qcmg.qio.vcf.VcfFileReader;
 import org.qcmg.sig.positions.GeneModelInMemoryPositionIterator;
 import org.qcmg.sig.positions.PositionIterator;
 import org.qcmg.sig.positions.VcfInMemoryPositionIterator;
 import org.qcmg.sig.positions.VcfStreamPositionIterator;
 import org.qcmg.sig.util.SignatureUtil;
-import com.amazonaws.services.s3.model.GetBucketVersioningConfigurationRequest;
 import gnu.trove.map.TObjectIntMap;
-import gnu.trove.map.hash.THashMap;
 import gnu.trove.map.hash.TObjectIntHashMap;
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMReadGroupRecord;
@@ -98,15 +88,11 @@ public class SignatureGeneratorBespoke {
 	private QExec exec;
 	
 	private ChrPosition cp;
-//	private ChrPosition lastCP;
 	private final AbstractQueue<ChrPosition> completedCPs = new ConcurrentLinkedQueue<>();
-//	private VcfRecord vcf;
 	
 	private  File[] bamFiles = new File[] {};
 	private  File[] illuminaFiles = new File[] {};
 	
-	private int arraySize;
-	private int arrayPosition;
 	private String outputDirectory;
 	private String outputFile;
 	private boolean stream;
@@ -118,14 +104,11 @@ public class SignatureGeneratorBespoke {
 	
 	Comparator<String> chrComparator;
 	
-//	private final List<VcfRecord> snps = new ArrayList<>();s
 	private final Map<ChrPosition, int[][]> results = new ConcurrentHashMap<>();
 	private TObjectIntMap<String> rgIds;
 	private final List<StringBuilder> resultsToWrite = new ArrayList<>();
 	private final AbstractQueue<SAMRecord> sams = new ConcurrentLinkedQueue<>();
-//	private final AbstractQueue<StringBuilder> resultsToWrite = new ConcurrentLinkedQueue<>();
 	private final Map<String, String[]> illuminaArraysDesignMap = new ConcurrentHashMap<>();
-	private List<String> sortedContigs;
 	private byte[] snpPositionsMD5;
 	
 	private PositionIterator<ChrPosition> positionsIterator;
@@ -212,9 +195,7 @@ public class SignatureGeneratorBespoke {
 		for (final File bamFile : bamFiles) {
 			logger.info("Processing data from " + bamFile.getAbsolutePath());
 			// set some bam specific values
-			arrayPosition = 0;
 			cp = null;
-//			vcf = null;
 			
 			SAMFileHeader header;
 			try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile)) {
@@ -236,7 +217,6 @@ public class SignatureGeneratorBespoke {
 			 */
 			chrComparator = ChrPositionComparator.getChrNameComparator(bamContigs);
 			positionsIterator.sort(bamContigs);
-//			snps.sort(ChrPositionComparator.getVcfRecordComparator(bamContigs));
 			
 			/*
 			 * Get readgroups from bam header and populate map with values and ids - will need to display these in header
@@ -249,15 +229,6 @@ public class SignatureGeneratorBespoke {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
-			
-//			updateResults();
-			
-			// output vcf file
-//			writeOutput(bamFile, rgIds, true);
-			
-			// clean out results, and erase info field from snps
-//			results.clear();
-//			resultsToWrite.clear();
 		}
 	}
 	
@@ -287,9 +258,7 @@ public class SignatureGeneratorBespoke {
 			final Map<ChrPosition, IlluminaRecord> iIlluminaMap = new HashMap<>(1250000);	// not expecting more than 1000000
 			
 			// set some bam specific values
-			arrayPosition = 0;
 			cp = null;
-//			vcf = null;
 			
 			final String patient = SignatureUtil.getPatientFromFile(illuminaFile);
 			final String sample = SignatureUtil.getPatternFromString(SignatureUtil.SAMPLE_REGEX, illuminaFile.getName());
@@ -353,8 +322,6 @@ public class SignatureGeneratorBespoke {
 				// skip if the B allele ratio or Log R ratios are NaN
 				// skip if non-dbSnp position
 				
-				
-				
 				if (tempRec.getGCScore() >= minGCScore 
 						&& null != tempRec.getChr()
 						&& ! "0".equals(tempRec.getChr())
@@ -380,118 +347,6 @@ public class SignatureGeneratorBespoke {
 		}
 	}
 	
-	
-//	private void updateResults(boolean finalRun) {
-//		
-//		/*
-//		 * go through results in an ordered fashion
-//		 */
-//		List<ChrPosition> keys = new ArrayList<>(results.keySet());
-//		keys.sort(ChrPositionComparator.getComparator(ChrPositionComparator.getChrNameComparator(sortedContigs)));
-//		
-//		for (ChrPosition cpFromMap : keys) {
-//			
-//			/*
-//			 * if cp is less than (geographically speaking) than the current cp, then we can process it and remove it from the map
-//			 */
-//			boolean processRecord = finalRun ? true : false;
-//			if (null == lastCP) {
-//				logger.info("lastCP is null");
-//			} else {
-//				if (cpFromMap.getChromosome().equals(lastCP.getChromosome())) {
-//					if (cpFromMap.getStartPosition() < lastCP.getStartPosition()) {
-//						processRecord = true;
-//					}
-//				} else {
-//					processRecord = true;
-//				}
-//			}
-//			if (processRecord) {
-//				final int [][] bsps = results.remove(cpFromMap);
-//				
-//				if (null != bsps && bsps.length > 0) {
-//					final StringBuilder sb = new StringBuilder(cpFromMap.getChromosome());
-//					sb.append(Constants.TAB);
-//					sb.append(cpFromMap.getStartPosition());
-//					sb.append(Constants.TAB);
-//					sb.append(Constants.MISSING_DATA).append(Constants.TAB);	// id
-//					sb.append(((ChrPositionName)cpFromMap).getName()).append(Constants.TAB);						// ref allele
-//					sb.append(Constants.MISSING_DATA).append(Constants.TAB);	// alt allele
-//					sb.append(Constants.MISSING_DATA).append(Constants.TAB);	// qual
-//					sb.append(Constants.MISSING_DATA).append(Constants.TAB);	// filter
-//					sb.append("QAF=t:");										// info
-//	 				sb.append(getTotalDist(bsps));
-//					
-//					/*
-//					 * now again for the readgroups that we have
-//					 */
-//					
-//					for (int i = 0 ; i < bsps.length ; i++) {
-//						String readGroupSpecificDist = getDist(bsps, i);
-//						if ( ! readGroupSpecificDist.isEmpty()) { 
-//							sb.append(Constants.COMMA).append("rg" + i).append(Constants.COLON).append(readGroupSpecificDist);
-//						}
-//					}
-//					resultsToWrite.add(sb);
-//				}
-//			}
-//		}
-//	}
-//	private void updateResults() {
-//		
-//		/*
-//		 * create map from snps list - need ref allele
-//		 */
-////		Map<ChrPosition, String> snpMap = new THashMap<>(snps.size() * 2);
-////		for (VcfRecord v : snps) {
-////			snpMap.put(v.getChrPosition(), v.getRef());
-////		}
-//		
-//		// update the snps list with the details from the results map
-//		
-//		/*
-//		 * go through results in an ordered fashion
-//		 */
-//		List<ChrPosition> keys = new ArrayList<>(results.keySet());
-//		keys.sort(ChrPositionComparator.getComparator(ChrPositionComparator.getChrNameComparator(sortedContigs)));
-//		
-//		for (ChrPosition cp : keys) {
-//			
-////			String ref = snpMap.get(cp);
-////			if ("-".equals(ref) || "+".equals(ref)) {
-////				ref = "n";
-////			}
-//			final int [][] bsps = results.get(cp);
-//			
-//			if (null != bsps && bsps.length > 0) {
-//				final StringBuilder sb = new StringBuilder(cp.getChromosome());
-//				sb.append(Constants.TAB);
-//				sb.append(cp.getStartPosition());
-//				sb.append(Constants.TAB);
-//				sb.append(Constants.MISSING_DATA).append(Constants.TAB);	// id
-//				sb.append(((ChrPositionName)cp).getName()).append(Constants.TAB);						// ref allele
-//				sb.append(Constants.MISSING_DATA).append(Constants.TAB);	// alt allele
-//				sb.append(Constants.MISSING_DATA).append(Constants.TAB);	// qual
-//				sb.append(Constants.MISSING_DATA).append(Constants.TAB);	// filter
-//				sb.append("QAF=t:");										// info
-//				sb.append(getTotalDist(bsps));
-//				
-//				/*
-//				 * now again for the readgroups that we have
-//				 */
-//				
-//				for (int i = 0 ; i < bsps.length ; i++) {
-//					String readGroupSpecificDist = getDist(bsps, i);
-//					if ( ! readGroupSpecificDist.isEmpty()) { 
-//						sb.append(Constants.COMMA).append("rg" + i).append(Constants.COLON).append(readGroupSpecificDist);
-//					}
-//				}
-//				
-//				resultsToWrite.add(sb);
-//			}
-//		}
-//	}
-
 	/**
 	 * rgBases is a 2D array. Top level is readgroup, and each readgroup contains a sub-array of length 4. Once for each of ACGT.
 	 * The elements in the sub-array correspond to the number of times that particular base was seen
@@ -566,49 +421,9 @@ public class SignatureGeneratorBespoke {
 				resultsToWrite.add(sb);
 			}
 			
-//			vcf.setInfo(coverageString);
 			 vcf = getNextPositionRecord("updateResultsIllumina-2");
 		}
 	}
-//	private void updateResultsIllumina(Map<ChrPosition, IlluminaRecord> iIlluminaMap) {
-//		
-//		// update the snps list with the details from the results map
-//		VcfRecord vcf = getNextPositionRecord("updateResultsIllumina");
-//		while (null != vcf) {
-//			// lookup corresponding snp in illumina map
-//			final IlluminaRecord illRec = iIlluminaMap.get(vcf.getChrPosition());
-//			if (null == illRec) {
-//				logger.debug("IlluminaRecord not found in iIlluminaMap with ChrPos: "  + vcf.getChrPosition());
-//				continue;
-//			}
-//			final String [] params = illuminaArraysDesignMap.get(illRec.getSnpId());
-//			if (null == params) {
-//				logger.debug("didn't find entry in illuminaArraysDesignMap for snp id: " + illRec.getSnpId());
-//				continue;
-//			}
-//			
-//			/*
-//			 * add to resultsToWrite
-//			 */
-//			final StringBuilder sb = new StringBuilder(vcf.getChromosome());
-//			sb.append(Constants.TAB);
-//			sb.append(vcf.getPosition());
-//			sb.append(Constants.TAB);
-//			sb.append(vcf.getId()).append(Constants.TAB);			// id
-//			sb.append(vcf.getRef()).append(Constants.TAB);			// ref allele
-//			sb.append(Constants.MISSING_DATA).append(Constants.TAB);	// alt allele
-//			sb.append(Constants.MISSING_DATA).append(Constants.TAB);	// qual
-//			sb.append(Constants.MISSING_DATA).append(Constants.TAB);	// filter
-//			sb.append("QAF=t:");										// info
-//			String coverageString = SignatureUtil.getCoverageStringForIlluminaRecord(illRec, params, 20, true);
-//			sb.append(coverageString);
-//			
-//			resultsToWrite.add(sb);
-//			
-////			vcf.setInfo(coverageString);
-//			vcf = getNextPositionRecord("updateResultsIllumina");
-//		}
-//	}
 	
 	private void writeOutput(File f, TObjectIntMap<String> rgIds, boolean bam) throws IOException {
 		/*
@@ -700,51 +515,6 @@ public class SignatureGeneratorBespoke {
 			}
 		}
 	}
-//	private void advanceVCFAndPosition(boolean nextChromosome, SAMRecord rec) {
-//		if (arrayPosition >= arraySize) {
-//			// reached the end of the line
-//			cp = null;
-////			vcf = null;
-//			return;
-//		}
-//		if (nextChromosome) {
-//			final String currentChr = cp.getChromosome();
-////			final String currentChr = vcf.getChromosome();
-//			while (arrayPosition < arraySize) {
-//				cp = getNextPositionRecord("advanceVCFAndPosition-1");
-////				vcf = getNextPositionRecord("advanceVCFAndPosition-1");
-//				if (null == cp) {
-////					if (null == vcf) {
-//					return;
-//				}
-////				vcf = snps.get(arrayPosition++);
-//				if ( ! currentChr.equals(cp.getChromosome())) {
-////					if ( ! currentChr.equals(vcf.getChromosome())) {
-//					break;
-//				}
-//			}
-//			
-//		} else {
-//			cp = getNextPositionRecord("advanceVCFAndPosition-2");
-////			vcf = getNextPositionRecord("advanceVCFAndPosition-2");
-////			vcf = snps.get(arrayPosition++);
-//			if (null != rec) {
-//				while (arrayPosition < arraySize) {
-//					if ( ! rec.getReferenceName().equals(cp.getChromosome())) {
-////						if ( ! rec.getReferenceName().equals(vcf.getChromosome())) {
-//						break;
-//					}
-//					if (rec.getAlignmentStart() <= cp.getStartPosition()) {
-////						if (rec.getAlignmentStart() <= vcf.getPosition()) {
-//						break;
-//					}
-//					cp = getNextPositionRecord("advanceVCFAndPosition-3");
-////					vcf = getNextPositionRecord("advanceVCFAndPosition-3");
-////					vcf = snps.get(arrayPosition++);
-//				}
-//			}
-//		}
-//	}
 	
 	private boolean match(SAMRecord rec, ChrPosition thisCP, boolean updatePointer) {
 		if (null == thisCP) {
@@ -765,7 +535,6 @@ public class SignatureGeneratorBespoke {
 			if (updatePointer) {
 				advanceVCFAndPosition(false, rec);
 				return match(rec, cp, true);
-//				return match(rec, vcf, true);
 			} else {
 				return false;
 			}
@@ -779,49 +548,11 @@ public class SignatureGeneratorBespoke {
 				// need to get next ChrPos
 				advanceVCFAndPosition(true, rec);
 				return match(rec, cp, true);
-//				return match(rec, vcf, true);
 			} else {
 				return false;
 			}
 		}
 	}
-//	private boolean match(SAMRecord rec, VcfRecord thisVcf, boolean updatePointer) {
-//		if (null == thisVcf) {
-//			return false;
-//		}
-//		
-//		String samChr = rec.getReferenceName().startsWith(Constants.CHR) ? rec.getReferenceName() : Constants.CHR + rec.getReferenceName();
-//		if (samChr.equals(thisVcf.getChromosome())) {
-//			
-//			if (rec.getAlignmentEnd() < thisVcf.getPosition()) {
-//				return false;
-//			}
-//			if (rec.getAlignmentStart() <= thisVcf.getPosition()) {
-//				return true;
-//			}
-//			
-//			// finished with this cp - update results and get a new cp
-//			if (updatePointer) {
-//				advanceVCFAndPosition(false, rec);
-//				return match(rec, vcf, true);
-//			} else {
-//				return false;
-//			}
-//			
-//			
-//		} else if (chrComparator.compare(samChr, thisVcf.getChromosome()) < 1){
-//			// keep iterating through bam file 
-//			return false;
-//		} else {
-//			if (updatePointer) {
-//				// need to get next ChrPos
-//				advanceVCFAndPosition(true, rec);
-//				return match(rec, vcf, true);
-//			} else {
-//				return false;
-//			}
-//		}
-//	}
 	
 	private void runSequentially(File bamFile) throws Exception {
 		
@@ -900,12 +631,10 @@ public class SignatureGeneratorBespoke {
 			final int indexInRead = SAMUtils.getIndexInReadFromPosition(sam, vcf.getStartPosition());
 			final byte[] readBases = sam.getReadBases();
 			if (indexInRead > -1 && indexInRead < readBases.length) {
-//				if (indexInRead > -1 && indexInRead < sam.getReadLength()) {
 				
 				if (sam.getBaseQualities()[indexInRead] < minBaseQuality) return;
 				
 				final char c = (char) readBases[indexInRead];
-//				final char c = sam.getReadString().charAt(indexInRead);
 				SAMReadGroupRecord srgr = sam.getReadGroup();
 				String rgId = null != srgr ? srgr.getId() : null;
 				
@@ -913,33 +642,10 @@ public class SignatureGeneratorBespoke {
 				int innerArrayPosition = c == 'A' ? 0 : (c == 'C' ? 1 : (c == 'G' ? 2 : (c == 'T' ? 3 : -1)));
 				if (innerArrayPosition > -1) {
 					results.computeIfAbsent(vcf, f -> new int[rgIds.size()][4])[rgPosition][innerArrayPosition]++;
-//					results.computeIfAbsent(new ChrPositionName(vcf.getChromosome(), vcf.getStartPosition(), vcf.getEndPosition(), vcf.getName().substring(vcf.getName().indexOf("\t") + 1)), f -> new int[rgIds.size()][4])[rgPosition][innerArrayPosition]++;
-//					results.computeIfAbsent(vcf.getChrPosition(), f -> new int[rgIds.size()][4])[rgPosition][innerArrayPosition]++;
 				}
 			}
 		}
 	}
-//	private void updateResults(VcfRecord vcf, SAMRecord sam) {
-//		if (null != sam && null != vcf) {
-//			// get read index
-//			final int indexInRead = SAMUtils.getIndexInReadFromPosition(sam, vcf.getPosition());
-//			
-//			if (indexInRead > -1 && indexInRead < sam.getReadLength()) {
-//				
-//				if (sam.getBaseQualities()[indexInRead] < minBaseQuality) return;
-//				
-//				final char c = sam.getReadString().charAt(indexInRead);
-//				String rgId = null != sam.getReadGroup() ? sam.getReadGroup().getId() : null;
-//				
-//				int rgPosition = rgIds.get(rgId);
-//				int innerArrayPosition = c == 'A' ? 0 : (c == 'C' ? 1 : (c == 'G' ? 2 : (c == 'T' ? 3 : -1)));
-//				if (innerArrayPosition > -1) {
-//					results.computeIfAbsent(new ChrPositionName(vcf.getChrPosition().getChromosome(), vcf.getChrPosition().getStartPosition(), vcf.getChrPosition().getEndPosition(), vcf.getRef()), f -> new int[rgIds.size()][4])[rgPosition][innerArrayPosition]++;
-////					results.computeIfAbsent(vcf.getChrPosition(), f -> new int[rgIds.size()][4])[rgPosition][innerArrayPosition]++;
-//				}
-//			}
-//		}
-//	}
 	
 	/**
 	 * Little awkward this method, the GRCh37 version of the snpPositions file is a text file that is similar in layout to a vcf.
@@ -982,7 +688,6 @@ public class SignatureGeneratorBespoke {
 		 * get md5sum for snp positions file
 		 */
 		snpPositionsMD5 = md.digest();
-		arraySize = snpPositionsCount;
 		
 		logger.info("snp positions count: " + snpPositionsCount);
 		
@@ -997,7 +702,6 @@ public class SignatureGeneratorBespoke {
 	}
 	private ChrPosition getNextPositionRecord(boolean populateCache, int lookForwardPosition, String from) {
 		int cacheSize = nextCPs.size();
-//		logger.info("in getNextPositionRecord(), positionsIterator.hasNext(): " + positionsIterator.hasNext() + ", from: " + from + ", populateCache: " + populateCache + ", nextCPs size: " + cacheSize + ", completedCPs size: " + completedCPs.size() + ", cp: " + (null != cp ? cp.toIGVString() : "null"));
 		ChrPosition thisCP = null;
 		if (cacheSize == 0 || lookForwardPosition >= cacheSize) {
 			/*
@@ -1008,7 +712,6 @@ public class SignatureGeneratorBespoke {
 				nextCPs.add(thisCP);
 			} else {
 				if (null != cp) {
-//					logger.info("adding to completedCPs co: " + cp.toIGVString());
 					completedCPs.add(cp);
 				}
 			}
@@ -1020,44 +723,12 @@ public class SignatureGeneratorBespoke {
 			thisCP = lookForwardPosition >= 0 ? nextCPs.get(lookForwardPosition) : nextCPs.remove(0);
 			if (lookForwardPosition == -1) {
 				if (null != cp) {
-//					logger.info("adding to completedCPs cp: " + cp.toIGVString());
 					completedCPs.add(cp);
 				}
 			}
 		}
 		return thisCP;
 	}
-//	private VcfRecord getNextPositionRecord(String from) {
-//		logger.info("in getNextPositionRecord(), positionsIterator.hasNext(): " + positionsIterator.hasNext() + ", from: " + from);
-//		ChrPosition nextRecord = positionsIterator.next();
-//		if (null != nextRecord) {
-//			
-//			if (isSnpPositionsAVcfFile) {
-//				return (VcfRecord) nextRecord;
-//			} else {
-//				final String[] params = TabTokenizer.tokenize(nextRecord.toString());
-//				String ref = null;
-//				if (params.length > 4 && null != params[4]) {
-//					ref = params[4];
-//				} else if (params.length > 3 && null != params[3]) {
-//					// mouse file has ref at position 3 (0-based)
-//					ref = params[3];
-//				}
-//				
-//				if (params.length < 2) {
-//					throw new IllegalArgumentException("snp file must have at least 2 tab seperated columns, chr and position");
-//				}
-//				
-//				String id = params.length > 2 ? params[2] : null;
-//				String alt = params.length > 5 ? params[5].replaceAll("/", ",") : null;
-//				
-//				return new VcfRecord.Builder(params[0], Integer.parseInt(params[1]), ref).allele(alt).id(id).build();
-//			}
-//		} else {
-//			return null;
-//		}
-//	}
-
 	
 	/**
 	 * A gff3 file containing a number of genes is what is expected in the randomGeneFile
@@ -1153,6 +824,10 @@ public class SignatureGeneratorBespoke {
 			options.getGenePositions().ifPresent(g -> genePositions = g);
 			options.getReference().ifPresent(r -> reference = r);
 			options.getStream().ifPresent(s -> stream = s);
+			
+			if (stream) {
+				logger.warn("Please ensure that the input file is in the same chromosome order as the positions file! IF this order is different, then any output generated will be incomplete.");
+			}
 			
 			/*
 			 * want either genePositions or snpPOsitions
@@ -1250,7 +925,6 @@ public class SignatureGeneratorBespoke {
 						return true;
 					} );
 				}
-				
 					
 				convertedMap.entrySet().stream()
 					.sorted(Comparator.comparing(Entry::getValue))
@@ -1271,8 +945,6 @@ public class SignatureGeneratorBespoke {
 				 */
 				ChrPosition cp = completedCPs.poll();
 				while (true) {
-//					logger.info("in writer - got completed cp: " + (null != cp ? cp.toIGVString() : "null"));
-//					updateResults(false);
 					if (null == cp) {
 						/*
 						 * check to see if the consumer latch is zero
@@ -1280,13 +952,11 @@ public class SignatureGeneratorBespoke {
 						 */
 						if (cLatch.getCount() == 0) {
 							if (results.size() > 0) {
-//								updateResults(true);
 								/*
 								 * add remaining cps to completedCPs queue (sort them first)
 								 */
 								completedCPs.addAll(results.keySet().stream().sorted(ChrPositionComparator.getComparator(chrComparator)).collect(Collectors.toList()));
 								logger.info("added " + results.size() + " entries to completedCPs. completedCPs size: " + completedCPs.size());
-//								results.clear();
 							} else {
 								break;
 							}
@@ -1329,8 +999,6 @@ public class SignatureGeneratorBespoke {
 						
 							sb.append(Constants.NL);
 							os.write(sb.toString().getBytes());
-						} else {
-//							logger.info("Couldn't find entry in results for cp: " + cp.toIGVString());
 						}
 					}
 					cp = completedCPs.poll();
@@ -1368,9 +1036,7 @@ public class SignatureGeneratorBespoke {
 			final int intervalSize = 1000000;
 			try {
 				// reset some key values
-				arrayPosition = 0;
 				cp = null;
-//				vcf = null;
 				// load first VCFRecord
 				advanceVCFAndPosition(false, null);
 				long recordCount = 0;
@@ -1394,41 +1060,22 @@ public class SignatureGeneratorBespoke {
 							logger.info("processed " + (recordCount / intervalSize) + "M records so far... nextCPs size: " + nextCPs.size() + ", results.size: " + results.size());
 						}
 						
-						
-//						logger.info("sam rec: " + sam.getContig() + ":" + sam.getAlignmentStart() + "-" + sam.getAlignmentEnd() + ", cp: " + (null != cp ? cp.toIGVString() : "null"));
-						
 						if (match(samFromQueue, cp, true)) {
 							updateResults(cp, samFromQueue);
-//							if (match(sam, vcf, true)) {
-//								updateResults(vcf, sam);
 							
-//							logger.info("sam rec matched !! ");
 							// get next cp and see if it matches
 							int j = 0;
-//							if (arrayPosition < arraySize) {
-							
 							/*
 							 * need to see if the next CP will also be covered by this record
 							 * The next CP will be stored in a collection for retrieval at a later time (Iterator doesn't have a peek())
 							 */
-							
-								
-								ChrPosition nextCP = getNextPositionRecord(true, j++, "Consumer-1");
-								if (null != nextCP) {
-	//								VcfRecord tmpVCF = getNextPositionRecord("Consumer-1");
-	//								VcfRecord tmpVCF = snps.get(arrayPosition + j++);
-									while (match(samFromQueue, nextCP, false)) {
-										updateResults(nextCP, samFromQueue);
-	//									updateResults(tmpVCF, sam);
-	//									if (arrayPosition + j < arraySize) {
-											nextCP = getNextPositionRecord(true, j++, "Consumer-2");
-	//										tmpVCF = snps.get(arrayPosition + j++);
-	//									} else {
-	//										tmpVCF = null;
-	//									}
-									}
+							ChrPosition nextCP = getNextPositionRecord(true, j++, "Consumer-1");
+							if (null != nextCP) {
+								while (match(samFromQueue, nextCP, false)) {
+									updateResults(nextCP, samFromQueue);
+									nextCP = getNextPositionRecord(true, j++, "Consumer-2");
 								}
-//							}
+							}
 						}
 					}
 				}
