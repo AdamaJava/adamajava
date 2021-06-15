@@ -8,7 +8,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
+import java.util.stream.Collectors;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -201,24 +201,72 @@ public class SignatureGeneratorBespokeTest {
     	assertTrue(outputFile.exists());
    	
     	final List<VcfRecord> recs = new ArrayList<>();
-    	try (VcfFileReader reader = new VcfFileReader(outputFile);) {    			
+    	try (VcfFileReader reader = new VcfFileReader(outputFile);) {
+    		/*
+			 * get md5sum
+			 */
+			assertEquals("##positions_md5sum=255739f7ac6c0f8a09316f711b361ccd", reader.getHeader().stream().filter(s -> s.startsWith("##positions_md5sum=")).collect(Collectors.joining()));
+			
 	    	for (final VcfRecord rec : reader) {
 	    		recs.add(rec);
 	    		assertEquals(true, rec.getRef().equals("A") || rec.getRef().equals("C") ||rec.getRef().equals("G") || rec.getRef().equals("T"));
-//	    		System.out.print("rec: " + rec.toString());
+	    		System.out.print("rec: " + rec.toString());
 	    	}
 	    	VcfHeader header = reader.getVcfHeader();
 	    	assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg0=null")));
     	}
        	
-    	assertEquals(6, recs.size());
+    	assertEquals(7, recs.size());
     	assertEquals("QAF=t:0-0-0-10,rg0:0-0-0-10", recs.get(0).getInfo());
-    	assertEquals("QAF=t:20-0-0-0,rg0:20-0-0-0", recs.get(1).getInfo());
-    	assertEquals("QAF=t:0-10-0-0,rg0:0-10-0-0", recs.get(2).getInfo());
-    	assertEquals("QAF=t:0-0-0-20,rg0:0-0-0-20", recs.get(3).getInfo());
-    	assertEquals("QAF=t:0-10-0-0,rg0:0-10-0-0", recs.get(4).getInfo());
-    	assertEquals("QAF=t:0-20-0-0,rg0:0-20-0-0", recs.get(5).getInfo());
+    	assertEquals("QAF=t:0-0-0-10,rg0:0-0-0-10", recs.get(1).getInfo());
+    	assertEquals("QAF=t:20-0-0-0,rg0:20-0-0-0", recs.get(2).getInfo());
+    	assertEquals("QAF=t:0-10-0-0,rg0:0-10-0-0", recs.get(3).getInfo());
+    	assertEquals("QAF=t:0-0-0-20,rg0:0-0-0-20", recs.get(4).getInfo());
+    	assertEquals("QAF=t:0-10-0-0,rg0:0-10-0-0", recs.get(5).getInfo());
+    	assertEquals("QAF=t:0-20-0-0,rg0:0-20-0-0", recs.get(6).getInfo());
     }
+	
+	@Test
+	public void runProcessWithHG19BamFileStream() throws Exception {
+		final File positionsOfInterestFile = testFolder.newFile("runProcessWithHG19BamFileStream.snps.txt");
+		final File bamFile = testFolder.newFile("runProcessWithHG19BamFileStream.bam");
+		final File logFile = testFolder.newFile("runProcessWithHG19BamFileStream.log");
+		final String outputFIleName = bamFile.getAbsolutePath() + ".qsig.vcf.gz";
+		final File outputFile = new File(outputFIleName);
+		
+		SignatureGeneratorTest.writeSnpPositionsFile(positionsOfInterestFile);
+		SignatureGeneratorTest.getBamFile(bamFile, true, false);
+		
+		final int exitStatus = qss.setup(new String[] {"--log" , logFile.getAbsolutePath(), "-snpPositions" , positionsOfInterestFile.getAbsolutePath(), "-i" , bamFile.getAbsolutePath(), "--stream"} );
+		assertEquals(0, exitStatus);
+		
+		assertTrue(outputFile.exists());
+		
+		final List<VcfRecord> recs = new ArrayList<>();
+		try (VcfFileReader reader = new VcfFileReader(outputFile);) {
+			/*
+			 * get md5sum
+			 */
+			assertEquals("##positions_md5sum=255739f7ac6c0f8a09316f711b361ccd", reader.getHeader().stream().filter(s -> s.startsWith("##positions_md5sum=")).collect(Collectors.joining()));
+			
+			for (final VcfRecord rec : reader) {
+				recs.add(rec);
+				assertEquals(true, rec.getRef().equals("A") || rec.getRef().equals("C") ||rec.getRef().equals("G") || rec.getRef().equals("T"));
+				System.out.print("rec: " + rec.toString());
+			}
+			VcfHeader header = reader.getVcfHeader();
+			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg0=null")));
+		}
+		
+		assertEquals(7, recs.size());
+		assertEquals("QAF=t:0-0-0-10,rg0:0-0-0-10", recs.get(0).getInfo());
+		assertEquals("QAF=t:0-0-0-10,rg0:0-0-0-10", recs.get(1).getInfo());
+		assertEquals("QAF=t:20-0-0-0,rg0:20-0-0-0", recs.get(2).getInfo());
+		assertEquals("QAF=t:0-10-0-0,rg0:0-10-0-0", recs.get(3).getInfo());
+		assertEquals("QAF=t:0-0-0-20,rg0:0-0-0-20", recs.get(4).getInfo());
+		assertEquals("QAF=t:0-10-0-0,rg0:0-10-0-0", recs.get(5).getInfo());
+		assertEquals("QAF=t:0-20-0-0,rg0:0-20-0-0", recs.get(6).getInfo());
+	}
 	
 	@Test
 	public void runProcessWithHG19BamFileVcf() throws Exception {
@@ -237,7 +285,12 @@ public class SignatureGeneratorBespokeTest {
 		assertTrue(outputFile.exists());
 		
 		final List<VcfRecord> recs = new ArrayList<>();
-		try (VcfFileReader reader = new VcfFileReader(outputFile);) {    			
+		try (VcfFileReader reader = new VcfFileReader(outputFile);) {
+			/*
+			 * get md5sum
+			 */
+			assertEquals("##positions_md5sum=81192359d88ce4ff3b7404f8c60b63bd", reader.getHeader().stream().filter(s -> s.startsWith("##positions_md5sum=")).collect(Collectors.joining()));
+			
 			for (final VcfRecord rec : reader) {
 				recs.add(rec);
 				assertEquals(true, rec.getRef().equals("A") || rec.getRef().equals("C") ||rec.getRef().equals("G") || rec.getRef().equals("T"));
@@ -247,13 +300,56 @@ public class SignatureGeneratorBespokeTest {
 			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg0=null")));
 		}
 		
-		assertEquals(6, recs.size());
+		assertEquals(7, recs.size());
 		assertEquals("QAF=t:0-0-0-10,rg0:0-0-0-10", recs.get(0).getInfo());
-		assertEquals("QAF=t:20-0-0-0,rg0:20-0-0-0", recs.get(1).getInfo());
-		assertEquals("QAF=t:0-10-0-0,rg0:0-10-0-0", recs.get(2).getInfo());
-		assertEquals("QAF=t:0-0-0-20,rg0:0-0-0-20", recs.get(3).getInfo());
-		assertEquals("QAF=t:0-10-0-0,rg0:0-10-0-0", recs.get(4).getInfo());
-		assertEquals("QAF=t:0-20-0-0,rg0:0-20-0-0", recs.get(5).getInfo());
+		assertEquals("QAF=t:0-0-0-10,rg0:0-0-0-10", recs.get(1).getInfo());
+		assertEquals("QAF=t:20-0-0-0,rg0:20-0-0-0", recs.get(2).getInfo());
+		assertEquals("QAF=t:0-10-0-0,rg0:0-10-0-0", recs.get(3).getInfo());
+		assertEquals("QAF=t:0-0-0-20,rg0:0-0-0-20", recs.get(4).getInfo());
+		assertEquals("QAF=t:0-10-0-0,rg0:0-10-0-0", recs.get(5).getInfo());
+		assertEquals("QAF=t:0-20-0-0,rg0:0-20-0-0", recs.get(6).getInfo());
+	}
+	
+	@Test
+	public void runProcessWithHG19BamFileVcfStream() throws Exception {
+		final File positionsOfInterestFile = testFolder.newFile("runProcessWithHG19BamFileVcfStream.snps.vcf");
+		final File bamFile = testFolder.newFile("runProcessWithHG19BamFileVcfStream.bam");
+		final File logFile = testFolder.newFile("runProcessWithHG19BamFileVcfStream.log");
+		final String outputFIleName = bamFile.getAbsolutePath() + ".qsig.vcf.gz";
+		final File outputFile = new File(outputFIleName);
+		
+		SignatureGeneratorTest.writeSnpPositionsVcf(positionsOfInterestFile);
+		SignatureGeneratorTest.getBamFile(bamFile, true, false);
+		
+		final int exitStatus = qss.setup(new String[] {"--log" , logFile.getAbsolutePath(), "-snpPositions" , positionsOfInterestFile.getAbsolutePath(), "-i" , bamFile.getAbsolutePath(), "--stream"} );
+		assertEquals(0, exitStatus);
+		
+		assertTrue(outputFile.exists());
+		
+		final List<VcfRecord> recs = new ArrayList<>();
+		try (VcfFileReader reader = new VcfFileReader(outputFile);) {
+			/*
+			 * get md5sum
+			 */
+			assertEquals("##positions_md5sum=81192359d88ce4ff3b7404f8c60b63bd", reader.getHeader().stream().filter(s -> s.startsWith("##positions_md5sum=")).collect(Collectors.joining()));
+			
+			for (final VcfRecord rec : reader) {
+				recs.add(rec);
+				assertEquals(true, rec.getRef().equals("A") || rec.getRef().equals("C") ||rec.getRef().equals("G") || rec.getRef().equals("T"));
+//	    		System.out.print("rec: " + rec.toString());
+			}
+			VcfHeader header = reader.getVcfHeader();
+			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg0=null")));
+		}
+		
+		assertEquals(7, recs.size());
+		assertEquals("QAF=t:0-0-0-10,rg0:0-0-0-10", recs.get(0).getInfo());
+		assertEquals("QAF=t:0-0-0-10,rg0:0-0-0-10", recs.get(1).getInfo());
+		assertEquals("QAF=t:20-0-0-0,rg0:20-0-0-0", recs.get(2).getInfo());
+		assertEquals("QAF=t:0-10-0-0,rg0:0-10-0-0", recs.get(3).getInfo());
+		assertEquals("QAF=t:0-0-0-20,rg0:0-0-0-20", recs.get(4).getInfo());
+		assertEquals("QAF=t:0-10-0-0,rg0:0-10-0-0", recs.get(5).getInfo());
+		assertEquals("QAF=t:0-20-0-0,rg0:0-20-0-0", recs.get(6).getInfo());
 	}
 	
 	@Test
@@ -275,7 +371,12 @@ public class SignatureGeneratorBespokeTest {
 		assertTrue(outputFile.exists());
 		
 		final List<VcfRecord> recs = new ArrayList<>();
-		try (VcfFileReader reader = new VcfFileReader(outputFile);) {    			
+		try (VcfFileReader reader = new VcfFileReader(outputFile);) {
+			/*
+			 * get md5sum
+			 */
+			assertEquals("##positions_md5sum=81192359d88ce4ff3b7404f8c60b63bd", reader.getHeader().stream().filter(s -> s.startsWith("##positions_md5sum=")).collect(Collectors.joining()));
+			
 			for (final VcfRecord rec : reader) {
 				recs.add(rec);
 				assertEquals(true, rec.getRef().equals("A") || rec.getRef().equals("C") ||rec.getRef().equals("G") || rec.getRef().equals("T"));
@@ -283,7 +384,47 @@ public class SignatureGeneratorBespokeTest {
 			}
 			VcfHeader header = reader.getVcfHeader();
 			assertEquals(false, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg0=null")));	// no rgs in snp chips
-		}
+		}	
+		
+		assertEquals(3, recs.size());
+		assertEquals("QAF=t:0-0-0-30", recs.get(0).getInfo());
+		assertEquals("QAF=t:0-0-24-0", recs.get(1).getInfo());
+		assertEquals("QAF=t:10-0-10-0", recs.get(2).getInfo());
+	}
+	
+	@Test
+	public void runProcessWithSnpChipFileStream() throws Exception {
+		final File positionsOfInterestFile = testFolder.newFile("runProcessWithSnpChipFileStream.snps.vcf");
+		final File snpChipFile = testFolder.newFile("runProcessWithSnpChipFileStream.txt");
+		final File illuminaArraysDesignFile = testFolder.newFile("runProcessWithSnpChipFileStream.illumina.txt");
+		final File logFile = testFolder.newFile("runProcessWithSnpChipFileStream.log");
+		final String outputFileName = snpChipFile.getAbsolutePath() + ".qsig.vcf.gz";
+		final File outputFile = new File(outputFileName);
+		
+		SignatureGeneratorTest.writeSnpChipFile(snpChipFile);
+		SignatureGeneratorTest.writeSnpPositionsVcf(positionsOfInterestFile);
+		SignatureGeneratorTest.writeIlluminaArraysDesignFile(illuminaArraysDesignFile);
+		
+		final int exitStatus = qss.setup(new String[] {"--log" , logFile.getAbsolutePath(), "-snpPositions" , positionsOfInterestFile.getAbsolutePath(), "-i" , snpChipFile.getAbsolutePath(),"-illuminaArraysDesign", illuminaArraysDesignFile.getAbsolutePath(), "--stream"} );
+		assertEquals(0, exitStatus);
+		
+		assertTrue(outputFile.exists());
+		
+		final List<VcfRecord> recs = new ArrayList<>();
+		try (VcfFileReader reader = new VcfFileReader(outputFile);) {
+			/*
+			 * get md5sum
+			 */
+			assertEquals("##positions_md5sum=81192359d88ce4ff3b7404f8c60b63bd", reader.getHeader().stream().filter(s -> s.startsWith("##positions_md5sum=")).collect(Collectors.joining()));
+			
+			for (final VcfRecord rec : reader) {
+				recs.add(rec);
+				assertEquals(true, rec.getRef().equals("A") || rec.getRef().equals("C") ||rec.getRef().equals("G") || rec.getRef().equals("T"));
+//	    		System.out.print("rec: " + rec.toString());
+			}
+			VcfHeader header = reader.getVcfHeader();
+			assertEquals(false, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg0=null")));	// no rgs in snp chips
+		}	
 		
 		assertEquals(3, recs.size());
 		assertEquals("QAF=t:0-0-0-30", recs.get(0).getInfo());
@@ -309,7 +450,12 @@ public class SignatureGeneratorBespokeTest {
 		assertTrue(outputFile.exists());
 		
 		final List<VcfRecord> recs = new ArrayList<>();
-		try (VcfFileReader reader = new VcfFileReader(outputFile);) {    			
+		try (VcfFileReader reader = new VcfFileReader(outputFile);) {
+			/*
+			 * get md5sum
+			 */
+			assertEquals("##positions_md5sum=81192359d88ce4ff3b7404f8c60b63bd", reader.getHeader().stream().filter(s -> s.startsWith("##positions_md5sum=")).collect(Collectors.joining()));
+			
 			for (final VcfRecord rec : reader) {
 				recs.add(rec);
 				System.out.print("rec: " + rec.toString());
@@ -319,13 +465,57 @@ public class SignatureGeneratorBespokeTest {
 			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg0=null")));
 		}
 		
-		assertEquals(6, recs.size());
+		assertEquals(7, recs.size());
 		assertEquals("QAF=t:0-0-0-10,rg0:0-0-0-10", recs.get(0).getInfo());
-		assertEquals("QAF=t:20-0-0-0,rg0:20-0-0-0", recs.get(1).getInfo());
-		assertEquals("QAF=t:0-10-0-0,rg0:0-10-0-0", recs.get(2).getInfo());
-		assertEquals("QAF=t:0-0-0-20,rg0:0-0-0-20", recs.get(3).getInfo());
-		assertEquals("QAF=t:0-10-0-0,rg0:0-10-0-0", recs.get(4).getInfo());
-		assertEquals("QAF=t:0-20-0-0,rg0:0-20-0-0", recs.get(5).getInfo());
+		assertEquals("QAF=t:0-0-0-10,rg0:0-0-0-10", recs.get(1).getInfo());
+		assertEquals("QAF=t:20-0-0-0,rg0:20-0-0-0", recs.get(2).getInfo());
+		assertEquals("QAF=t:0-10-0-0,rg0:0-10-0-0", recs.get(3).getInfo());
+		assertEquals("QAF=t:0-0-0-20,rg0:0-0-0-20", recs.get(4).getInfo());
+		assertEquals("QAF=t:0-10-0-0,rg0:0-10-0-0", recs.get(5).getInfo());
+		assertEquals("QAF=t:0-20-0-0,rg0:0-20-0-0", recs.get(6).getInfo());
+	}
+	
+	@Test
+	public void runProcessWithSnpPositionsHeaderStream() throws Exception {
+		final File positionsOfInterestFile = testFolder.newFile("runProcessWithSnpPositionsHeaderStream.snps.vcf");
+		final File bamFile = testFolder.newFile("runProcessWithSnpPositionsHeaderStream.bam");
+		final File logFile = testFolder.newFile("runProcessWithSnpPositionsHeaderStream.log");
+		final String outputFIleName = bamFile.getAbsolutePath() + ".qsig.vcf.gz";
+		final File outputFile = new File(outputFIleName);
+		
+		//    	writeSnpChipFile(snpChipFile);
+		SignatureGeneratorTest.writeSnpPositionsVcf(positionsOfInterestFile);
+		SignatureGeneratorTest.getBamFile(bamFile, true, false);
+		
+		final int exitStatus = qss.setup(new String[] {"--log" , logFile.getAbsolutePath(), "-snpPositions" , positionsOfInterestFile.getAbsolutePath(), "-i" , bamFile.getAbsolutePath(), "--stream"} );
+		assertEquals(0, exitStatus);
+		
+		assertTrue(outputFile.exists());
+		
+		final List<VcfRecord> recs = new ArrayList<>();
+		try (VcfFileReader reader = new VcfFileReader(outputFile);) {
+			/*
+			 * get md5sum
+			 */
+			assertEquals("##positions_md5sum=81192359d88ce4ff3b7404f8c60b63bd", reader.getHeader().stream().filter(s -> s.startsWith("##positions_md5sum=")).collect(Collectors.joining()));
+			
+			for (final VcfRecord rec : reader) {
+				recs.add(rec);
+				System.out.print("rec: " + rec.toString());
+				assertEquals(true, rec.getRef().equals("A") || rec.getRef().equals("C") ||rec.getRef().equals("G") || rec.getRef().equals("T"));
+			}
+			VcfHeader header = reader.getVcfHeader();
+			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg0=null")));
+		}
+		
+		assertEquals(7, recs.size());
+		assertEquals("QAF=t:0-0-0-10,rg0:0-0-0-10", recs.get(0).getInfo());
+		assertEquals("QAF=t:0-0-0-10,rg0:0-0-0-10", recs.get(1).getInfo());
+		assertEquals("QAF=t:20-0-0-0,rg0:20-0-0-0", recs.get(2).getInfo());
+		assertEquals("QAF=t:0-10-0-0,rg0:0-10-0-0", recs.get(3).getInfo());
+		assertEquals("QAF=t:0-0-0-20,rg0:0-0-0-20", recs.get(4).getInfo());
+		assertEquals("QAF=t:0-10-0-0,rg0:0-10-0-0", recs.get(5).getInfo());
+		assertEquals("QAF=t:0-20-0-0,rg0:0-20-0-0", recs.get(6).getInfo());
 	}
 	
 	@Test
@@ -345,7 +535,12 @@ public class SignatureGeneratorBespokeTest {
 		assertTrue(outputFile.exists());
 		
 		final List<VcfRecord> recs = new ArrayList<>();
-		try (VcfFileReader reader = new VcfFileReader(outputFile);) {    			
+		try (VcfFileReader reader = new VcfFileReader(outputFile);) {
+			/*
+			 * get md5sum
+			 */
+			assertEquals("##positions_md5sum=255739f7ac6c0f8a09316f711b361ccd", reader.getHeader().stream().filter(s -> s.startsWith("##positions_md5sum=")).collect(Collectors.joining()));
+			
 			for (final VcfRecord rec : reader) {
 				recs.add(rec);
 				assertEquals(true, rec.getRef().equals("A") || rec.getRef().equals("C") ||rec.getRef().equals("G") || rec.getRef().equals("T"));
@@ -359,13 +554,60 @@ public class SignatureGeneratorBespokeTest {
 			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg3=20130325084856212")));
 		}
 		
-		assertEquals(6, recs.size());
+		assertEquals(7, recs.size());
 		assertEquals("QAF=t:0-0-0-10,rg1:0-0-0-10", recs.get(0).getInfo());
-		assertEquals("QAF=t:20-0-0-0,rg2:20-0-0-0", recs.get(1).getInfo());
-		assertEquals("QAF=t:0-10-0-0,rg3:0-10-0-0", recs.get(2).getInfo());
-		assertEquals("QAF=t:0-0-0-20,rg2:0-0-0-20", recs.get(3).getInfo());
-		assertEquals("QAF=t:0-10-0-0,rg1:0-10-0-0", recs.get(4).getInfo());
-		assertEquals("QAF=t:0-20-0-0,rg0:0-20-0-0", recs.get(5).getInfo());
+		assertEquals("QAF=t:0-0-0-10,rg1:0-0-0-10", recs.get(1).getInfo());
+		assertEquals("QAF=t:20-0-0-0,rg2:20-0-0-0", recs.get(2).getInfo());
+		assertEquals("QAF=t:0-10-0-0,rg3:0-10-0-0", recs.get(3).getInfo());
+		assertEquals("QAF=t:0-0-0-20,rg2:0-0-0-20", recs.get(4).getInfo());
+		assertEquals("QAF=t:0-10-0-0,rg1:0-10-0-0", recs.get(5).getInfo());
+		assertEquals("QAF=t:0-20-0-0,rg0:0-20-0-0", recs.get(6).getInfo());
+	}
+	
+	@Test
+	public void runProcessWithReadGroupsSetInHeaderStream() throws Exception {
+		final File positionsOfInterestFile = testFolder.newFile("runProcessWithReadGroupsSetInHeaderStream.snps.txt");
+		final File bamFile = testFolder.newFile("runProcessWithReadGroupsSetInHeaderStream.bam");
+		final File logFile = testFolder.newFile("runProcessWithReadGroupsSetInHeaderStream.log");
+		final String outputFIleName = bamFile.getAbsolutePath() + ".qsig.vcf.gz";
+		final File outputFile = new File(outputFIleName);
+		
+		SignatureGeneratorTest.writeSnpPositionsFile(positionsOfInterestFile);
+		SignatureGeneratorTest.getBamFile(bamFile, true, false, true);
+		
+		final int exitStatus = qss.setup(new String[] {"--log" , logFile.getAbsolutePath(), "-snpPositions" , positionsOfInterestFile.getAbsolutePath(), "-i" , bamFile.getAbsolutePath(), "--stream"} );
+		assertEquals(0, exitStatus);
+		
+		assertTrue(outputFile.exists());
+		
+		final List<VcfRecord> recs = new ArrayList<>();
+		try (VcfFileReader reader = new VcfFileReader(outputFile);) {
+			/*
+			 * get md5sum
+			 */
+			assertEquals("##positions_md5sum=255739f7ac6c0f8a09316f711b361ccd", reader.getHeader().stream().filter(s -> s.startsWith("##positions_md5sum=")).collect(Collectors.joining()));
+			
+			for (final VcfRecord rec : reader) {
+				recs.add(rec);
+				assertEquals(true, rec.getRef().equals("A") || rec.getRef().equals("C") ||rec.getRef().equals("G") || rec.getRef().equals("T"));
+//				System.out.print("rec: " + rec.toString());
+			}
+			VcfHeader header = reader.getVcfHeader();
+//	    	header.getAllMetaRecords().stream().forEach(System.out::println);
+			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg0=null")));
+			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg1=20130325103517169")));
+			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg2=20130325112045146")));
+			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg3=20130325084856212")));
+		}
+		
+		assertEquals(7, recs.size());
+		assertEquals("QAF=t:0-0-0-10,rg1:0-0-0-10", recs.get(0).getInfo());
+		assertEquals("QAF=t:0-0-0-10,rg1:0-0-0-10", recs.get(1).getInfo());
+		assertEquals("QAF=t:20-0-0-0,rg2:20-0-0-0", recs.get(2).getInfo());
+		assertEquals("QAF=t:0-10-0-0,rg3:0-10-0-0", recs.get(3).getInfo());
+		assertEquals("QAF=t:0-0-0-20,rg2:0-0-0-20", recs.get(4).getInfo());
+		assertEquals("QAF=t:0-10-0-0,rg1:0-10-0-0", recs.get(5).getInfo());
+		assertEquals("QAF=t:0-20-0-0,rg0:0-20-0-0", recs.get(6).getInfo());
 	}
 	
 	@Test
@@ -385,7 +627,12 @@ public class SignatureGeneratorBespokeTest {
 		assertTrue(outputFile.exists());
 		
 		final List<VcfRecord> recs = new ArrayList<>();
-		try (VcfFileReader reader = new VcfFileReader(outputFile);) {    			
+		try (VcfFileReader reader = new VcfFileReader(outputFile);) {
+			/*
+			 * get md5sum
+			 */
+			assertEquals("##positions_md5sum=81192359d88ce4ff3b7404f8c60b63bd", reader.getHeader().stream().filter(s -> s.startsWith("##positions_md5sum=")).collect(Collectors.joining()));
+			
 			for (final VcfRecord rec : reader) {
 				recs.add(rec);
 				assertEquals(true, rec.getRef().equals("A") || rec.getRef().equals("C") ||rec.getRef().equals("G") || rec.getRef().equals("T"));
@@ -399,13 +646,60 @@ public class SignatureGeneratorBespokeTest {
 			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg3=20130325084856212")));
 		}
 		
-		assertEquals(6, recs.size());
+		assertEquals(7, recs.size());
 		assertEquals("QAF=t:0-0-0-10,rg1:0-0-0-10", recs.get(0).getInfo());
-		assertEquals("QAF=t:20-0-0-0,rg2:20-0-0-0", recs.get(1).getInfo());
-		assertEquals("QAF=t:0-10-0-0,rg3:0-10-0-0", recs.get(2).getInfo());
-		assertEquals("QAF=t:0-0-0-20,rg2:0-0-0-20", recs.get(3).getInfo());
-		assertEquals("QAF=t:0-10-0-0,rg1:0-10-0-0", recs.get(4).getInfo());
-		assertEquals("QAF=t:0-20-0-0,rg0:0-20-0-0", recs.get(5).getInfo());
+		assertEquals("QAF=t:0-0-0-10,rg1:0-0-0-10", recs.get(1).getInfo());
+		assertEquals("QAF=t:20-0-0-0,rg2:20-0-0-0", recs.get(2).getInfo());
+		assertEquals("QAF=t:0-10-0-0,rg3:0-10-0-0", recs.get(3).getInfo());
+		assertEquals("QAF=t:0-0-0-20,rg2:0-0-0-20", recs.get(4).getInfo());
+		assertEquals("QAF=t:0-10-0-0,rg1:0-10-0-0", recs.get(5).getInfo());
+		assertEquals("QAF=t:0-20-0-0,rg0:0-20-0-0", recs.get(6).getInfo());
+	}
+	
+	@Test
+	public void runProcessWithReadGroupsSetInHeaderVcfStream() throws Exception {
+		final File positionsOfInterestFile = testFolder.newFile("runProcessWithReadGroupsSetInHeaderVcfStream.snps.vcf");
+		final File bamFile = testFolder.newFile("runProcessWithReadGroupsSetInHeaderVcfStream.bam");
+		final File logFile = testFolder.newFile("runProcessWithReadGroupsSetInHeaderVcfStream.log");
+		final String outputFIleName = bamFile.getAbsolutePath() + ".qsig.vcf.gz";
+		final File outputFile = new File(outputFIleName);
+		
+		SignatureGeneratorTest.writeSnpPositionsVcf(positionsOfInterestFile);
+		SignatureGeneratorTest.getBamFile(bamFile, true, false, true);
+		
+		final int exitStatus = qss.setup(new String[] {"--log" , logFile.getAbsolutePath(), "-snpPositions" , positionsOfInterestFile.getAbsolutePath(), "-i" , bamFile.getAbsolutePath(), "--stream"} );
+		assertEquals(0, exitStatus);
+		
+		assertTrue(outputFile.exists());
+		
+		final List<VcfRecord> recs = new ArrayList<>();
+		try (VcfFileReader reader = new VcfFileReader(outputFile);) {
+			/*
+			 * get md5sum
+			 */
+			assertEquals("##positions_md5sum=81192359d88ce4ff3b7404f8c60b63bd", reader.getHeader().stream().filter(s -> s.startsWith("##positions_md5sum=")).collect(Collectors.joining()));
+			
+			for (final VcfRecord rec : reader) {
+				recs.add(rec);
+				assertEquals(true, rec.getRef().equals("A") || rec.getRef().equals("C") ||rec.getRef().equals("G") || rec.getRef().equals("T"));
+//				System.out.print("rec: " + rec.toString());
+			}
+			VcfHeader header = reader.getVcfHeader();
+//	    	header.getAllMetaRecords().stream().forEach(System.out::println);
+			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg0=null")));
+			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg1=20130325103517169")));
+			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg2=20130325112045146")));
+			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg3=20130325084856212")));
+		}
+		
+		assertEquals(7, recs.size());
+		assertEquals("QAF=t:0-0-0-10,rg1:0-0-0-10", recs.get(0).getInfo());
+		assertEquals("QAF=t:0-0-0-10,rg1:0-0-0-10", recs.get(1).getInfo());
+		assertEquals("QAF=t:20-0-0-0,rg2:20-0-0-0", recs.get(2).getInfo());
+		assertEquals("QAF=t:0-10-0-0,rg3:0-10-0-0", recs.get(3).getInfo());
+		assertEquals("QAF=t:0-0-0-20,rg2:0-0-0-20", recs.get(4).getInfo());
+		assertEquals("QAF=t:0-10-0-0,rg1:0-10-0-0", recs.get(5).getInfo());
+		assertEquals("QAF=t:0-20-0-0,rg0:0-20-0-0", recs.get(6).getInfo());
 	}
 	
 	@Test
@@ -506,6 +800,7 @@ public class SignatureGeneratorBespokeTest {
 		final File refFile = testFolder.newFile("runProcessWithGenePositionsOption.fa");
 		final File refIndexFile = testFolder.newFile("runProcessWithGenePositionsOption.fa.fai");
 		
+//		SignatureGeneratorTest.writeGenePositionsFile(genesOfInterestFile, "chr1", 10, 300);
 		SignatureGeneratorTest.writeGenePositionsFile(genesOfInterestFile, "chr1", 10, 1000);
 		String dir = testFolder.newFolder("output_dir").getAbsolutePath();
 		try {
@@ -532,6 +827,10 @@ public class SignatureGeneratorBespokeTest {
 		assertEquals(true, new File(name).exists());
 		assertTrue(new File(name).length() > 0);
 		try (VcfFileReader reader = new VcfFileReader(new File(name));) {
+			/*
+			 * get md5sum
+			 */
+			assertEquals("##positions_md5sum=f2ade0d566c00d1d21983c1bd5172422", reader.getHeader().stream().filter(s -> s.startsWith("##positions_md5sum=")).collect(Collectors.joining()));
 			int vcfRecordCounter = 0;
 			for (VcfRecord rec : reader) {
 				vcfRecordCounter++;
@@ -564,6 +863,10 @@ public class SignatureGeneratorBespokeTest {
 		assertEquals(true, new File(name).exists());
 		assertTrue(new File(name).length() > 0);
 		try (VcfFileReader reader = new VcfFileReader(new File(name));) {
+			/*
+			 * get md5sum
+			 */
+			assertEquals("##positions_md5sum=885c8d00f6411d3a0971d147fc9c8ebe", reader.getHeader().stream().filter(s -> s.startsWith("##positions_md5sum=")).collect(Collectors.joining()));
 			int vcfRecordCounter = 0;
 			for (VcfRecord rec : reader) {
 				vcfRecordCounter++;
@@ -596,6 +899,11 @@ public class SignatureGeneratorBespokeTest {
 		assertEquals(true, new File(name).exists());
 		assertTrue(new File(name).length() > 0);
 		try (VcfFileReader reader = new VcfFileReader(new File(name));) {
+			/*
+			 * get md5sum
+			 */
+			assertEquals("##positions_md5sum=3278114776a76206d87376bf41821fbb", reader.getHeader().stream().filter(s -> s.startsWith("##positions_md5sum=")).collect(Collectors.joining()));
+			
 			int vcfRecordCounter = 0;
 			for (VcfRecord rec : reader) {
 				vcfRecordCounter++;
