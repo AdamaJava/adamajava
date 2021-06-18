@@ -205,7 +205,7 @@ public class SignatureGeneratorBespokeTest {
     		/*
 			 * get md5sum
 			 */
-			assertEquals("##positions_md5sum=255739f7ac6c0f8a09316f711b361ccd", reader.getHeader().stream().filter(s -> s.startsWith("##positions_md5sum=")).collect(Collectors.joining()));
+			assertEquals("##positions_md5sum=44c26173967735d324a818769fcf3ae1", reader.getHeader().stream().filter(s -> s.startsWith("##positions_md5sum=")).collect(Collectors.joining()));
 			
 	    	for (final VcfRecord rec : reader) {
 	    		recs.add(rec);
@@ -247,7 +247,7 @@ public class SignatureGeneratorBespokeTest {
 			/*
 			 * get md5sum
 			 */
-			assertEquals("##positions_md5sum=255739f7ac6c0f8a09316f711b361ccd", reader.getHeader().stream().filter(s -> s.startsWith("##positions_md5sum=")).collect(Collectors.joining()));
+			assertEquals("##positions_md5sum=44c26173967735d324a818769fcf3ae1", reader.getHeader().stream().filter(s -> s.startsWith("##positions_md5sum=")).collect(Collectors.joining()));
 			
 			for (final VcfRecord rec : reader) {
 				recs.add(rec);
@@ -289,7 +289,7 @@ public class SignatureGeneratorBespokeTest {
 			/*
 			 * get md5sum
 			 */
-			assertEquals("##positions_md5sum=81192359d88ce4ff3b7404f8c60b63bd", reader.getHeader().stream().filter(s -> s.startsWith("##positions_md5sum=")).collect(Collectors.joining()));
+			assertEquals("##positions_md5sum=e8f0f76a06ba1f2763167e37c254747f", reader.getHeader().stream().filter(s -> s.startsWith("##positions_md5sum=")).collect(Collectors.joining()));
 			
 			for (final VcfRecord rec : reader) {
 				recs.add(rec);
@@ -331,7 +331,7 @@ public class SignatureGeneratorBespokeTest {
 			/*
 			 * get md5sum
 			 */
-			assertEquals("##positions_md5sum=81192359d88ce4ff3b7404f8c60b63bd", reader.getHeader().stream().filter(s -> s.startsWith("##positions_md5sum=")).collect(Collectors.joining()));
+			assertEquals("##positions_md5sum=e8f0f76a06ba1f2763167e37c254747f", reader.getHeader().stream().filter(s -> s.startsWith("##positions_md5sum=")).collect(Collectors.joining()));
 			
 			for (final VcfRecord rec : reader) {
 				recs.add(rec);
@@ -375,7 +375,7 @@ public class SignatureGeneratorBespokeTest {
 			/*
 			 * get md5sum
 			 */
-			assertEquals("##positions_md5sum=81192359d88ce4ff3b7404f8c60b63bd", reader.getHeader().stream().filter(s -> s.startsWith("##positions_md5sum=")).collect(Collectors.joining()));
+			assertEquals("##positions_md5sum=e8f0f76a06ba1f2763167e37c254747f", reader.getHeader().stream().filter(s -> s.startsWith("##positions_md5sum=")).collect(Collectors.joining()));
 			
 			for (final VcfRecord rec : reader) {
 				recs.add(rec);
@@ -415,7 +415,7 @@ public class SignatureGeneratorBespokeTest {
 			/*
 			 * get md5sum
 			 */
-			assertEquals("##positions_md5sum=81192359d88ce4ff3b7404f8c60b63bd", reader.getHeader().stream().filter(s -> s.startsWith("##positions_md5sum=")).collect(Collectors.joining()));
+			assertEquals("##positions_md5sum=e8f0f76a06ba1f2763167e37c254747f", reader.getHeader().stream().filter(s -> s.startsWith("##positions_md5sum=")).collect(Collectors.joining()));
 			
 			for (final VcfRecord rec : reader) {
 				recs.add(rec);
@@ -454,7 +454,7 @@ public class SignatureGeneratorBespokeTest {
 			/*
 			 * get md5sum
 			 */
-			assertEquals("##positions_md5sum=81192359d88ce4ff3b7404f8c60b63bd", reader.getHeader().stream().filter(s -> s.startsWith("##positions_md5sum=")).collect(Collectors.joining()));
+			assertEquals("##positions_md5sum=e8f0f76a06ba1f2763167e37c254747f", reader.getHeader().stream().filter(s -> s.startsWith("##positions_md5sum=")).collect(Collectors.joining()));
 			
 			for (final VcfRecord rec : reader) {
 				recs.add(rec);
@@ -497,7 +497,7 @@ public class SignatureGeneratorBespokeTest {
 			/*
 			 * get md5sum
 			 */
-			assertEquals("##positions_md5sum=81192359d88ce4ff3b7404f8c60b63bd", reader.getHeader().stream().filter(s -> s.startsWith("##positions_md5sum=")).collect(Collectors.joining()));
+			assertEquals("##positions_md5sum=e8f0f76a06ba1f2763167e37c254747f", reader.getHeader().stream().filter(s -> s.startsWith("##positions_md5sum=")).collect(Collectors.joining()));
 			
 			for (final VcfRecord rec : reader) {
 				recs.add(rec);
@@ -539,7 +539,7 @@ public class SignatureGeneratorBespokeTest {
 			/*
 			 * get md5sum
 			 */
-			assertEquals("##positions_md5sum=255739f7ac6c0f8a09316f711b361ccd", reader.getHeader().stream().filter(s -> s.startsWith("##positions_md5sum=")).collect(Collectors.joining()));
+			assertEquals("##positions_md5sum=44c26173967735d324a818769fcf3ae1", reader.getHeader().stream().filter(s -> s.startsWith("##positions_md5sum=")).collect(Collectors.joining()));
 			
 			for (final VcfRecord rec : reader) {
 				recs.add(rec);
@@ -585,7 +585,7 @@ public class SignatureGeneratorBespokeTest {
 			/*
 			 * get md5sum
 			 */
-			assertEquals("##positions_md5sum=255739f7ac6c0f8a09316f711b361ccd", reader.getHeader().stream().filter(s -> s.startsWith("##positions_md5sum=")).collect(Collectors.joining()));
+			assertEquals("##positions_md5sum=44c26173967735d324a818769fcf3ae1", reader.getHeader().stream().filter(s -> s.startsWith("##positions_md5sum=")).collect(Collectors.joining()));
 			
 			for (final VcfRecord rec : reader) {
 				recs.add(rec);
@@ -631,7 +631,7 @@ public class SignatureGeneratorBespokeTest {
 			/*
 			 * get md5sum
 			 */
-			assertEquals("##positions_md5sum=81192359d88ce4ff3b7404f8c60b63bd", reader.getHeader().stream().filter(s -> s.startsWith("##positions_md5sum=")).collect(Collectors.joining()));
+			assertEquals("##positions_md5sum=e8f0f76a06ba1f2763167e37c254747f", reader.getHeader().stream().filter(s -> s.startsWith("##positions_md5sum=")).collect(Collectors.joining()));
 			
 			for (final VcfRecord rec : reader) {
 				recs.add(rec);
@@ -677,7 +677,7 @@ public class SignatureGeneratorBespokeTest {
 			/*
 			 * get md5sum
 			 */
-			assertEquals("##positions_md5sum=81192359d88ce4ff3b7404f8c60b63bd", reader.getHeader().stream().filter(s -> s.startsWith("##positions_md5sum=")).collect(Collectors.joining()));
+			assertEquals("##positions_md5sum=e8f0f76a06ba1f2763167e37c254747f", reader.getHeader().stream().filter(s -> s.startsWith("##positions_md5sum=")).collect(Collectors.joining()));
 			
 			for (final VcfRecord rec : reader) {
 				recs.add(rec);
@@ -830,7 +830,7 @@ public class SignatureGeneratorBespokeTest {
 			/*
 			 * get md5sum
 			 */
-			assertEquals("##positions_md5sum=f2ade0d566c00d1d21983c1bd5172422", reader.getHeader().stream().filter(s -> s.startsWith("##positions_md5sum=")).collect(Collectors.joining()));
+			assertEquals("##positions_md5sum=3c608c8bc46b55b08b14dec84efd179e", reader.getHeader().stream().filter(s -> s.startsWith("##positions_md5sum=")).collect(Collectors.joining()));
 			int vcfRecordCounter = 0;
 			for (VcfRecord rec : reader) {
 				vcfRecordCounter++;
@@ -866,7 +866,7 @@ public class SignatureGeneratorBespokeTest {
 			/*
 			 * get md5sum
 			 */
-			assertEquals("##positions_md5sum=885c8d00f6411d3a0971d147fc9c8ebe", reader.getHeader().stream().filter(s -> s.startsWith("##positions_md5sum=")).collect(Collectors.joining()));
+			assertEquals("##positions_md5sum=7abe1a11cdda9e86b9651b2bec3ff04b", reader.getHeader().stream().filter(s -> s.startsWith("##positions_md5sum=")).collect(Collectors.joining()));
 			int vcfRecordCounter = 0;
 			for (VcfRecord rec : reader) {
 				vcfRecordCounter++;
@@ -902,7 +902,7 @@ public class SignatureGeneratorBespokeTest {
 			/*
 			 * get md5sum
 			 */
-			assertEquals("##positions_md5sum=3278114776a76206d87376bf41821fbb", reader.getHeader().stream().filter(s -> s.startsWith("##positions_md5sum=")).collect(Collectors.joining()));
+			assertEquals("##positions_md5sum=d18b180d0ef7a72df689471007a8ae99", reader.getHeader().stream().filter(s -> s.startsWith("##positions_md5sum=")).collect(Collectors.joining()));
 			
 			int vcfRecordCounter = 0;
 			for (VcfRecord rec : reader) {

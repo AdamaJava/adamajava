@@ -8,10 +8,18 @@ package org.qcmg.sig;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
@@ -55,6 +63,9 @@ import org.qcmg.sig.positions.PositionIterator;
 import org.qcmg.sig.positions.VcfInMemoryPositionIterator;
 import org.qcmg.sig.positions.VcfStreamPositionIterator;
 import org.qcmg.sig.util.SignatureUtil;
+
+import static org.qcmg.common.util.Constants.NEW_LINE;
+
 import gnu.trove.map.TObjectIntMap;
 import gnu.trove.map.hash.TObjectIntHashMap;
 import htsjdk.samtools.SAMFileHeader;
@@ -114,7 +125,7 @@ public class SignatureGeneratorBespoke {
 	private PositionIterator<ChrPosition> positionsIterator;
 	private boolean isSnpPositionsAVcfFile;
 	private MessageDigest md;
-	private int snpPositionsCount;
+//	private int snpPositionsCount;
 	private RecordReader<?> positionsReader;
 	
 	private List<ChrPosition> nextCPs = new java.util.LinkedList<>();
@@ -135,9 +146,11 @@ public class SignatureGeneratorBespoke {
 			 * alternatively, load genePositions gff3 file and create md5sum
 			 */
 			if (null != snpPositions) {
-				loadRandomSnpPositions(snpPositions);
+				setupPositionIterator(snpPositions);
+				getFileMd5Sum(snpPositions);
 			} else if (null != genePositions) {
-				loadRandomGenePositions(genePositions);
+				setGenePositionsIterator(genePositions);
+				getFileMd5Sum(genePositions);
 			}
 			
 			if (illuminaFiles.length > 0) {
@@ -178,7 +191,6 @@ public class SignatureGeneratorBespoke {
 		sb.append("##gene_positions=").append(genePositions).append(Constants.NL);
 		sb.append("##reference=").append(reference).append(Constants.NL);
 		sb.append(SignatureUtil.MD_5_SUM).append("=").append(DatatypeConverter.printHexBinary(snpPositionsMD5).toLowerCase()).append(Constants.NL);
-		sb.append(SignatureUtil.POSITIONS_COUNT).append("=").append(snpPositionsCount).append(Constants.NL);
 		if (bam) {
 			sb.append(SignatureUtil.MIN_BASE_QUAL).append("=").append(minBaseQuality).append(Constants.NL);
 			sb.append(SignatureUtil.MIN_MAPPING_QUAL).append("=").append(minMappingQuality).append(Constants.NL);
@@ -648,54 +660,53 @@ public class SignatureGeneratorBespoke {
 	}
 	
 	/**
-	 * Little awkward this method, the GRCh37 version of the snpPositions file is a text file that is similar in layout to a vcf.
-	 * The GRCh38 version of the snpPositions file is a vcf file.
+	 * Examines the positions file to see if it a vcf file.
+	 * Does this in 2 wasy - checks the name, and if it contains vcf, all good.
+	 * If not, checks the file header to see if it contains the standard vcf header.
 	 * 
-	 * This method needs to be able to handle both versions.
-	 * 
-	 * Importantly, the position of the ref and alt fields are different between the 2 versions.
-	 * And so an attempt to determine which type of file is being dealt with will be made.
-	 * This will be based on the file name and any header information
+	 * Returns a PositionInterator instance. If stream option has been set, uses that, otherwise uses an in memory version.
 	 * 
 	 * 
 	 * @param randomSnpsFile
 	 * @throws IOException
 	 * @throws NoSuchAlgorithmException
 	 */
-	private void loadRandomSnpPositions(String randomSnpsFile) throws IOException, NoSuchAlgorithmException {
-		logger.info("Getting md5sum, contig order and positions count");
-		md = MessageDigest.getInstance("MD5");
+	private void setupPositionIterator(String randomSnpsFile) throws IOException, NoSuchAlgorithmException {
+		
 		isSnpPositionsAVcfFile = randomSnpsFile.contains("vcf");
 		/*
 		 * get header from file and examine that to see if it looks like a vcf
 		 * set the positionsIterator depending on the type of file (vcf or string)
 		 */
-		try (StringFileReader reader = new StringFileReader(new File(randomSnpsFile), "#")) {
-			List<String> header = reader.getHeader();
-			for (String h : header) {
-				if (h.startsWith(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE)) {
-					isSnpPositionsAVcfFile = true;
+		if ( ! isSnpPositionsAVcfFile) {
+			try (StringFileReader reader = new StringFileReader(new File(randomSnpsFile), "#")) {
+				List<String> header = reader.getHeader();
+				for (String h : header) {
+					if (h.startsWith(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE)) {
+						isSnpPositionsAVcfFile = true;
+					}
 				}
-				md.update(h.getBytes());
-			}
-			for (String s : reader) {
-				snpPositionsCount++;
-				md.update(s.getBytes());
 			}
 		}
 		
+		positionsIterator = stream ? new VcfStreamPositionIterator(new File(randomSnpsFile), isSnpPositionsAVcfFile ? 3 : 4) : new VcfInMemoryPositionIterator(new File(randomSnpsFile), isSnpPositionsAVcfFile ? 3 : 4);
+		
+		logger.info("isSnpPositionsAVcfFile: " + isSnpPositionsAVcfFile);
+	}
+	
+	private void getFileMd5Sum(String file) throws NoSuchAlgorithmException, FileNotFoundException, IOException {
+		md = MessageDigest.getInstance("MD5");
 		/*
 		 * get md5sum for snp positions file
 		 */
+		byte [] bytes = new byte[131072];
+		try (InputStream in = new DigestInputStream(new FileInputStream(file), md)) {
+			for (int n; (n = in.read(bytes)) != -1;) { }
+		}
 		snpPositionsMD5 = md.digest();
-		
-		logger.info("snp positions count: " + snpPositionsCount);
-		
-		positionsIterator = stream ? new VcfStreamPositionIterator(new File(randomSnpsFile), isSnpPositionsAVcfFile ? 3 : 4) : new VcfInMemoryPositionIterator(new File(randomSnpsFile), isSnpPositionsAVcfFile ? 3 : 4);
-		
-		logger.info("at end of loadRandomSnpPositions, positionsIterator.hasNext(): " + positionsIterator.hasNext());
-		logger.info("Getting md5sum, contig order and positions count - DONE");
+		logger.info("md5sum: " + DatatypeConverter.printHexBinary(snpPositionsMD5).toLowerCase());
 	}
+	
 	
 	private ChrPosition getNextPositionRecord(String from) {
 		return getNextPositionRecord(false, -1, from);
@@ -738,17 +749,8 @@ public class SignatureGeneratorBespoke {
 	 * @throws IOException
 	 * @throws NoSuchAlgorithmException
 	 */
-	private void loadRandomGenePositions(String randomGeneFile) throws IOException, NoSuchAlgorithmException {
-		MessageDigest md = MessageDigest.getInstance("MD5");
-		try (BufferedReader in = new BufferedReader(new FileReader(randomGeneFile));) {
-			
-			String line = null;
-			while ((line = in.readLine()) != null) {
-				md.update(line.getBytes());
-			}
-		}
+	private void setGenePositionsIterator(String randomGeneFile) throws IOException, NoSuchAlgorithmException {
 		positionsIterator = new GeneModelInMemoryPositionIterator(new File(randomGeneFile), reference);
-		snpPositionsMD5 = md.digest();
 	}
 	
 	public static void main(String[] args) throws Exception {
