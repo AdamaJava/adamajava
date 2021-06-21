@@ -14,6 +14,8 @@ package org.qcmg.qprofiler2;
 
 import java.util.List;
 import org.qcmg.common.messages.Messages;
+
+import joptsimple.BuiltinHelpFormatter;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 
@@ -60,7 +62,7 @@ final class Options {
 		parser.accepts("loglevel", LOG_LEVEL_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);		
 		parser.accepts("input", INPUT_FILE_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("output", OUTPUT_FILE_DESCRIPTION).withRequiredArg().ofType(String.class);		
-		parser.accepts("bam-threads-producer" , PRODUCER_THREADS_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
+		parser.accepts("threads-producer" , PRODUCER_THREADS_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
 		parser.accepts("threads-consumer",  CONSUMER_THREADS_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
 		parser.accepts("bam-records", RECORDS_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
 		parser.accepts("bam-validation", VALIDATION_STRINGENCY_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
@@ -77,7 +79,7 @@ final class Options {
 		}
 		
 		// no of threads - Producer
-		Object threadNumberProducer = options.valueOf("bam-threads-producer"); 
+		Object threadNumberProducer = options.valueOf("threads-producer"); 
 		if (null != threadNumberProducer) {
 			noOfProducerThreads =  (Integer) threadNumberProducer;
 		}
@@ -178,6 +180,7 @@ final class Options {
 	}
 	
 	void displayHelp() throws Exception {	
+		parser.formatHelpWith(new BuiltinHelpFormatter(150, 2));
 		parser.printHelpOn(System.err);
 	}
 	
