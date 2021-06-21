@@ -14,6 +14,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.messages.Messages;
@@ -77,16 +78,22 @@ public class QProfiler2Test {
 		}
 	}
 		
-	@Test
+	@Test 
 	public final void executeWithInvalidArgs() throws Exception {
 		File logFile = testFolder.newFile("executeWithInvalidArguments.log");
-				
-		String[] args2 = new String[] {"-input", BAM_FILE.getAbsolutePath(), "-log",logFile.getAbsolutePath(), "-include", "html,all,matricies,coverage" };
+		
+		//"-include" will be treat as "-i"; "-i" was short option for both "input" and "index"				
+		//eg. String[] args2 = new String[] {"-input", BAM_FILE.getAbsolutePath(), "-log",logFile.getAbsolutePath(), "-include", "html,all,matricies,coverage" };
+		//get error: assertEquals("'i' is not a recognized option", e.getMessage() );
+		
 		try {
+			//"--include" is long option, it won't ambiguous with "input"
+			String[] args2 = new String[] {"-i", BAM_FILE.getAbsolutePath(), "-log",logFile.getAbsolutePath(), "--include", "html,all,matricies,coverage" };
 			new QProfiler2().setup(args2);
 			fail("no exception should have been thrown from executeWithExcludeArgs()");			 
-		} catch (Exception e) {
-			assertEquals("'i' is not a recognized option", e.getMessage() );
+		} catch (Exception e) {			
+			//here "include" is invalid, so it throw the error with long option
+			assertEquals("'include' is not a recognized option", e.getMessage() );
 		}
 	}
 	
@@ -160,7 +167,7 @@ public class QProfiler2Test {
 			// only one line for whole file
 			assertTrue( Files.lines(Paths.get(  "qprofiler.xml")).filter(s -> s.contains("<headerRecords TAG=")).count()== 1);						
 			// default mode, only HD and RG
-			args = new String[] {"-input",input, "-log", logFile.getAbsolutePath(), "--fullBamHeader"};
+			args = new String[] {"-input",input, "-log", logFile.getAbsolutePath(), "--bam-full-header"};
 			new QProfiler2().setup( args );	
 			assertTrue( Files.lines(Paths.get(  "qprofiler.xml")).filter(s -> s.contains("<headerRecords TAG=\"HD\"")).count()== 1);	
 			assertTrue( Files.lines(Paths.get(  "qprofiler.xml")).filter(s -> s.contains("<headerRecords TAG=\"SQ\"")).count()== 1);			
