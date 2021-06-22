@@ -39,7 +39,6 @@ public class TagSummaryReport {
     final QCMGAtomicLongArray[] allReadsLineLengths = new QCMGAtomicLongArray[] {new QCMGAtomicLongArray(1024), new QCMGAtomicLongArray(1024), new QCMGAtomicLongArray(1024)};
 
 	private final ConcurrentMap<String, ConcurrentSkipListMap<String, AtomicLong>> additionalTags = new ConcurrentSkipListMap<>();
-	private final ConcurrentMap<String, ConcurrentSkipListMap<Character, AtomicLong>> additionalCharacterTags = new ConcurrentSkipListMap<>();
 	protected QLogger logger = QLoggerFactory.getLogger(getClass());	
 	private long errMdReadNo = 0 ;	
 	private AtomicLong mdTagCounts = new AtomicLong();
@@ -124,12 +123,7 @@ public class TagSummaryReport {
 		// additional tags includes RG
 		for (Entry<String,  ConcurrentSkipListMap<String, AtomicLong>> entry : additionalTags.entrySet()) {			
 			outputTag(parent, entry.getKey(),  entry.getValue());
-		}	
-		
-		// additional tagsChar
-		for (Entry<String,  ConcurrentSkipListMap<Character, AtomicLong>> entry : additionalCharacterTags.entrySet()) {
-			outputTag(parent,  entry.getKey(),  entry.getValue());		
-		}
+		}			
 	}
 	
 	
