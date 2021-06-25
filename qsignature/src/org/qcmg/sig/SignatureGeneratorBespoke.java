@@ -640,20 +640,25 @@ public class SignatureGeneratorBespoke {
 	private void updateResults(ChrPosition vcf, SAMRecord sam) {
 		if (null != sam && null != vcf) {
 			// get read index
-			final int indexInRead = SAMUtils.getIndexInReadFromPosition(sam, vcf.getStartPosition());
-			final byte[] readBases = sam.getReadBases();
-			if (indexInRead > -1 && indexInRead < readBases.length) {
+			final int indexInRead = sam.getReadPositionAtReferencePosition(vcf.getStartPosition()) - 1;		// picard's method is 1-based
+//			final int indexInRead = SAMUtils.getIndexInReadFromPosition(sam, vcf.getStartPosition());
+			if (indexInRead > -1) {
+				final byte[] readBases = sam.getReadBases();
+				if (indexInRead < readBases.length) {
 				
-				if (sam.getBaseQualities()[indexInRead] < minBaseQuality) return;
-				
-				final char c = (char) readBases[indexInRead];
-				SAMReadGroupRecord srgr = sam.getReadGroup();
-				String rgId = null != srgr ? srgr.getId() : null;
-				
-				int rgPosition = rgIds.get(rgId);
-				int innerArrayPosition = c == 'A' ? 0 : (c == 'C' ? 1 : (c == 'G' ? 2 : (c == 'T' ? 3 : -1)));
-				if (innerArrayPosition > -1) {
-					results.computeIfAbsent(vcf, f -> new int[rgIds.size()][4])[rgPosition][innerArrayPosition]++;
+					if (sam.getBaseQualities()[indexInRead] < minBaseQuality) {
+						return;
+					}
+					
+					final char c = (char) readBases[indexInRead];
+					SAMReadGroupRecord srgr = sam.getReadGroup();
+					String rgId = null != srgr ? srgr.getId() : null;
+					
+					int rgPosition = rgIds.get(rgId);
+					int innerArrayPosition = c == 'A' ? 0 : (c == 'C' ? 1 : (c == 'G' ? 2 : (c == 'T' ? 3 : -1)));
+					if (innerArrayPosition > -1) {
+						results.computeIfAbsent(vcf, f -> new int[rgIds.size()][4])[rgPosition][innerArrayPosition]++;
+					}
 				}
 			}
 		}
@@ -869,13 +874,36 @@ public class SignatureGeneratorBespoke {
 		@Override
 		public void run() {
 			try {
+				int topLevelCounter = 0;
+				int bottomLevelCounter = 0;
 				for (final SAMRecord rec : reader)  {
 					// quality checks
 					if (SAMUtils.isSAMRecordValidForVariantCalling(rec) 
 							&& rec.getMappingQuality() >= minMappingQuality) {
+						
+						if (bottomLevelCounter++ > 1000000) {
+							topLevelCounter++;
+							bottomLevelCounter = 0;
+							
+							/*
+							 * check queue - if we have more than a million entries - sleep
+							 */
+							int queueSize = sams.size();
+							int loopCounter = 0;
+							while (queueSize > 1000000) {
+								if (loopCounter > 1000) {
+									logger.warn("queue size still over 1m despite multiple sleeps! loopCounter: " + loopCounter);
+								}
+								Thread.sleep(50);
+								loopCounter++;
+								queueSize = sams.size();
+							}
+						}
+						
 						sams.add(rec);
 					}
 				}
+				logger.info("Producer has processed " + ((topLevelCounter * 1000000) + topLevelCounter) + " records from input file");
 			} catch (final Exception e) {
 				logger.error("Exception caught in Producer thread - interrupting main thread", e);
 				mainThread.interrupt();
@@ -1059,7 +1087,7 @@ public class SignatureGeneratorBespoke {
 					} else {
 						
 						if (++recordCount % intervalSize == 0) {
-							logger.info("processed " + (recordCount / intervalSize) + "M records so far... nextCPs size: " + nextCPs.size() + ", results.size: " + results.size());
+							logger.info("processed " + (recordCount / intervalSize) + "M records so far... nextCPs size: " + nextCPs.size() + ", results.size: " + results.size() + ", SAM recs in queue: " + sams.size());
 						}
 						
 						if (match(samFromQueue, cp, true)) {
