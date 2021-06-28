@@ -30,34 +30,35 @@ qprofiler requires java 8, multi-core machine (ideally) and 5GB of RAM
 usage: java -jar qprofiler.jar --input <input file> --output <output xml file> --log <log file> [options]
 Option                              Description                                               
 ------                              -----------                                               
--h, --help                          Show usage and help.                                      
---include                           Opt, Include certain BAM file aggregations. Possible value
-                                      are ["matrices", "coverage","md"].                      
---index                             Opt, A bai index file. Def=null.                          
---input                             Req, Input file in FASTQ, BAM/SAM or VCF format, also     
-                                      support FA, MA, QUAL, FASTA, GFF and GFF3 format.       
---log                               Req, Log file.                                            
---loglevel                          Opt, Logging level [INFO,DEBUG], Def=INFO.                
---nohtml                            Opt, No html output will be generated if this option is   
-                                      set.                                                    
---output                            Opt, XML output which containing basic summary statistics.
-                                      Def="qprofiler.xml".                                    
---records <Integer>                 Opt, Only process the specified number of records from the
-                                      beginning of the BAM file                               
---tags                              Opt, Specify user defined tags in SAM/BAM file, which     
-                                      support printable string type, eg.["ZC", "XY"].         
---tagsChar                          Opt, Specify user defined tags in SAM/BAM file,  which    
-                                      support Printable character type, eg.["ZC", "XY"].      
---tagsInt                           Opt, Specify user defined tags in SAM/BAM file,  which    
-                                      support Signed integer type, eg.["ZC", "XY"].           
---tc, --threads-consumer <Integer>  Opt, Number of threads to process inputed BAM records.    
-                                      Def=0 (run in single thread mode).                      
---threads-producer, --tp <Integer>  Opt, Number of threads to read the indexed BAM file. This 
-                                      option will ignored without positive value of "threads- 
-                                      consumer".  Def=1.                                      
---validation                        Opt, BAM record validation stringency [STRICT,LENIENT,    
-                                      SILENT]. Def=LENIENT.                                   
---version                           Show version number.      
+Option                        Description                                               
+------                        -----------                                               
+-h, --help                    Show usage and help.                                      
+--include                     Deprecated, Visualisation for SOLiD platform.             
+--index                       Opt, A bai index file. Def=null.                          
+--input                       Req, Input file in FASTQ, BAM/SAM or VCF format, also     
+                                support FA, MA, QUAL, FASTA, GFF and GFF3 format.       
+--log                         Req, Log file.                                            
+--loglevel                    Opt, Logging level [INFO,DEBUG], Def=INFO.                
+--nohtml                      Opt, No html output will be generated if this option is   
+                                set.                                                    
+--output                      Opt, XML output which containing basic summary statistics.
+                                Def="qprofiler.xml".                                    
+--records <Integer>           Opt, Only process the specified number of records from the
+                                beginning of the BAM file                               
+--tags                        Opt, Specify user defined tags in SAM/BAM file, which     
+                                support printable string type, eg.["ZC", "XY"].         
+--tagsChar                    Opt, Specify user defined tags in SAM/BAM file,  which    
+                                support Printable character type, eg.["ZC", "XY"].      
+--tagsInt                     Opt, Specify user defined tags in SAM/BAM file,  which    
+                                support Signed integer type, eg.["ZC", "XY"].           
+--threads-consumer <Integer>  Opt, Number of threads to process inputed BAM records.    
+                                Def=0 (run in single thread mode).                      
+--threads-producer <Integer>  Opt, Number of threads to read the indexed BAM file. This 
+                                option will ignored without positive value of "threads- 
+                                consumer".  Def=1.                                      
+--validation                  Opt, BAM record validation stringency [STRICT,LENIENT,    
+                                SILENT]. Def=LENIENT.                                   
+--version                     Show version number.
 
 ~~~~
 
