@@ -533,7 +533,8 @@ public class SignatureGeneratorBespoke {
 			return false;
 		}
 		
-		String samChr = rec.getReferenceName().startsWith(Constants.CHR) ? rec.getReferenceName() : Constants.CHR + rec.getReferenceName();
+		String samChr = rec.getReferenceName();
+//		String samChr = rec.getReferenceName().startsWith(Constants.CHR) ? rec.getReferenceName() : Constants.CHR + rec.getReferenceName();
 		if (samChr.equals(thisCP.getChromosome())) {
 			
 			if (rec.getAlignmentEnd() < thisCP.getStartPosition()) {
@@ -1061,6 +1062,10 @@ public class SignatureGeneratorBespoke {
 			this.mainThread = mainThread;
 		}
 		
+		private String getSamDeets(SAMRecord rec) {
+			return rec.getReferenceName() + ":" + rec.getAlignmentStart() + "-" + rec.getAlignmentEnd();
+		}
+		
 		@Override
 		public void run() {
 			final int intervalSize = 1000000;
@@ -1087,7 +1092,7 @@ public class SignatureGeneratorBespoke {
 					} else {
 						
 						if (++recordCount % intervalSize == 0) {
-							logger.info("processed " + (recordCount / intervalSize) + "M records so far... nextCPs size: " + nextCPs.size() + ", results.size: " + results.size() + ", SAM recs in queue: " + sams.size());
+							logger.info("processed " + (recordCount / intervalSize) + "M records so far... nextCPs size: " + nextCPs.size() + ", results.size: " + results.size() + ", SAM recs in queue: " + sams.size() + ", sam: " + getSamDeets(samFromQueue) + ", cp: " + (null != cp ? cp.toIGVString() : "null"));
 						}
 						
 						if (match(samFromQueue, cp, true)) {

@@ -193,7 +193,7 @@ public class SignatureGeneratorBespokeTest {
     	final File outputFile = new File(outputFIleName);
 	    	
 	    SignatureGeneratorTest.writeSnpPositionsFile(positionsOfInterestFile);
-	    SignatureGeneratorTest.getBamFile(bamFile, true, false);
+	    SignatureGeneratorTest.getBamFile(bamFile, true, true);
 	    	
     	final int exitStatus = qss.setup(new String[] {"--log" , logFile.getAbsolutePath(), "-snpPositions" , positionsOfInterestFile.getAbsolutePath(), "-i" , bamFile.getAbsolutePath()} );
     	assertEquals(0, exitStatus);
@@ -235,7 +235,7 @@ public class SignatureGeneratorBespokeTest {
 		final File outputFile = new File(outputFIleName);
 		
 		SignatureGeneratorTest.writeSnpPositionsFile(positionsOfInterestFile);
-		SignatureGeneratorTest.getBamFile(bamFile, true, false);
+		SignatureGeneratorTest.getBamFile(bamFile, true, true);
 		
 		final int exitStatus = qss.setup(new String[] {"--log" , logFile.getAbsolutePath(), "-snpPositions" , positionsOfInterestFile.getAbsolutePath(), "-i" , bamFile.getAbsolutePath(), "--stream"} );
 		assertEquals(0, exitStatus);
@@ -277,7 +277,7 @@ public class SignatureGeneratorBespokeTest {
 		final File outputFile = new File(outputFIleName);
 		
 		SignatureGeneratorTest.writeSnpPositionsVcf(positionsOfInterestFile);
-		SignatureGeneratorTest.getBamFile(bamFile, true, false);
+		SignatureGeneratorTest.getBamFile(bamFile, true, true);
 		
 		final int exitStatus = qss.setup(new String[] {"--log" , logFile.getAbsolutePath(), "-snpPositions" , positionsOfInterestFile.getAbsolutePath(), "-i" , bamFile.getAbsolutePath()} );
 		assertEquals(0, exitStatus);
@@ -319,7 +319,7 @@ public class SignatureGeneratorBespokeTest {
 		final File outputFile = new File(outputFIleName);
 		
 		SignatureGeneratorTest.writeSnpPositionsVcf(positionsOfInterestFile);
-		SignatureGeneratorTest.getBamFile(bamFile, true, false);
+		SignatureGeneratorTest.getBamFile(bamFile, true, true);
 		
 		final int exitStatus = qss.setup(new String[] {"--log" , logFile.getAbsolutePath(), "-snpPositions" , positionsOfInterestFile.getAbsolutePath(), "-i" , bamFile.getAbsolutePath(), "--stream"} );
 		assertEquals(0, exitStatus);
@@ -442,7 +442,7 @@ public class SignatureGeneratorBespokeTest {
 		
 		//    	writeSnpChipFile(snpChipFile);
 		SignatureGeneratorTest.writeSnpPositionsVcf(positionsOfInterestFile);
-		SignatureGeneratorTest.getBamFile(bamFile, true, false);
+		SignatureGeneratorTest.getBamFile(bamFile, true, true);
 		
 		final int exitStatus = qss.setup(new String[] {"--log" , logFile.getAbsolutePath(), "-snpPositions" , positionsOfInterestFile.getAbsolutePath(), "-i" , bamFile.getAbsolutePath()} );
 		assertEquals(0, exitStatus);
@@ -485,7 +485,7 @@ public class SignatureGeneratorBespokeTest {
 		
 		//    	writeSnpChipFile(snpChipFile);
 		SignatureGeneratorTest.writeSnpPositionsVcf(positionsOfInterestFile);
-		SignatureGeneratorTest.getBamFile(bamFile, true, false);
+		SignatureGeneratorTest.getBamFile(bamFile, true, true);
 		
 		final int exitStatus = qss.setup(new String[] {"--log" , logFile.getAbsolutePath(), "-snpPositions" , positionsOfInterestFile.getAbsolutePath(), "-i" , bamFile.getAbsolutePath(), "--stream"} );
 		assertEquals(0, exitStatus);
@@ -527,7 +527,7 @@ public class SignatureGeneratorBespokeTest {
 		final File outputFile = new File(outputFIleName);
 		
 		SignatureGeneratorTest.writeSnpPositionsFile(positionsOfInterestFile);
-		SignatureGeneratorTest.getBamFile(bamFile, true, false, true);
+		SignatureGeneratorTest.getBamFile(bamFile, true, true, true);
 		
 		final int exitStatus = qss.setup(new String[] {"--log" , logFile.getAbsolutePath(), "-snpPositions" , positionsOfInterestFile.getAbsolutePath(), "-i" , bamFile.getAbsolutePath()} );
 		assertEquals(0, exitStatus);
@@ -573,7 +573,7 @@ public class SignatureGeneratorBespokeTest {
 		final File outputFile = new File(outputFIleName);
 		
 		SignatureGeneratorTest.writeSnpPositionsFile(positionsOfInterestFile);
-		SignatureGeneratorTest.getBamFile(bamFile, true, false, true);
+		SignatureGeneratorTest.getBamFile(bamFile, true, true, true);
 		
 		final int exitStatus = qss.setup(new String[] {"--log" , logFile.getAbsolutePath(), "-snpPositions" , positionsOfInterestFile.getAbsolutePath(), "-i" , bamFile.getAbsolutePath(), "--stream"} );
 		assertEquals(0, exitStatus);
@@ -619,7 +619,7 @@ public class SignatureGeneratorBespokeTest {
 		final File outputFile = new File(outputFIleName);
 		
 		SignatureGeneratorTest.writeSnpPositionsVcf(positionsOfInterestFile);
-		SignatureGeneratorTest.getBamFile(bamFile, true, false, true);
+		SignatureGeneratorTest.getBamFile(bamFile, true, true, true);
 		
 		final int exitStatus = qss.setup(new String[] {"--log" , logFile.getAbsolutePath(), "-snpPositions" , positionsOfInterestFile.getAbsolutePath(), "-i" , bamFile.getAbsolutePath()} );
 		assertEquals(0, exitStatus);
@@ -665,7 +665,7 @@ public class SignatureGeneratorBespokeTest {
 		final File outputFile = new File(outputFIleName);
 		
 		SignatureGeneratorTest.writeSnpPositionsVcf(positionsOfInterestFile);
-		SignatureGeneratorTest.getBamFile(bamFile, true, false, true);
+		SignatureGeneratorTest.getBamFile(bamFile, true, true, true);
 		
 		final int exitStatus = qss.setup(new String[] {"--log" , logFile.getAbsolutePath(), "-snpPositions" , positionsOfInterestFile.getAbsolutePath(), "-i" , bamFile.getAbsolutePath(), "--stream"} );
 		assertEquals(0, exitStatus);
