@@ -4,12 +4,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Date;
 import java.util.UUID;
-
 
 import org.junit.Assert;
 import org.junit.Ignore;
@@ -56,6 +54,8 @@ public class QSVTest {
         assertTrue(testOut.toString().contains("org.qcmg.qsv.QSVException"));
         cleanUpStreams();
     }
+    
+
     
     @Test
     public void getResultsDir() {

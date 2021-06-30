@@ -26,7 +26,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.model.BLATRecord;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qsv.Options;

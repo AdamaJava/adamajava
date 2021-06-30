@@ -20,6 +20,7 @@ import joptsimple.OptionSet;
 import org.ini4j.Ini;
 import org.ini4j.InvalidFileFormatException;
 import org.ini4j.Profile.Section;
+import org.qcmg.common.meta.QExec;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.qsv.util.QSVConstants;
 import org.qcmg.qsv.util.QSVUtil;
@@ -30,12 +31,14 @@ import org.qcmg.qsv.util.QSVUtil;
  *
  */
 public class Options {
+	public static final String FILE_SEPERATOR = System.getProperty("file.separator");
 	
 	private static final String HELP_OPTION = Messages.getMessage("HELP_OPTION");	
 	private static final String VERSION_OPTION = Messages.getMessage("VERSION_OPTION");
 	private static final String INI_OPTION = Messages.getMessage("INI_OPTION");
 	private static final String TEMPDIR_OPTION = Messages.getMessage("TEMPDIR_OPTION");
-	private final String OUTPUT_OPTION = Messages.getMessage("OUTPUT_OPTION");;
+	private static final String RUNID_OPTION = Messages.getMessage("RUNID_OPTION");;
+	
 	
 	private final OptionParser parser = new OptionParser();
 	private final OptionSet options;
@@ -45,6 +48,7 @@ public class Options {
 	private String inputFile;		
 	private String outputDirName;
 	private String outputDirNameOverride;
+	private String runId;
 	private String sampleName;
 	private Integer filterSize;
 	private Integer clusterSize;
@@ -93,7 +97,7 @@ public class Options {
 		//define the options the parse accepts		
         parser.accepts("ini", INI_OPTION).withRequiredArg().ofType(String.class);
         parser.accepts("output-temporary", TEMPDIR_OPTION).withRequiredArg().ofType(String.class);  
-        parser.accepts("output", OUTPUT_OPTION).withOptionalArg().ofType(String.class);
+        parser.accepts("run-id", RUNID_OPTION).withOptionalArg().ofType(String.class);
 		parser.accepts("help", HELP_OPTION);
 		parser.acceptsAll(asList("version"), VERSION_OPTION);		
 		options = parser.parse(args);	
@@ -105,14 +109,18 @@ public class Options {
 		/*
 		 *User can overwrite the output at command line - 
 		 */
-		if (options.has("output")) {
-			outputDirNameOverride = (String) options.valueOf("output");
-		}
+		runId = options.has("run-id") ? (String) options.valueOf("run-id") :  QExec.createUUid() ;
 		
 	}
 	
+	@Deprecated
 	public String getOverrideOutput() {
 		return outputDirNameOverride;
+	}
+	
+	//run id will be sub folder name, it will be a new uuid if null
+	public String getRunId() {
+		return runId; 
 	}
 
 	/**
@@ -142,7 +150,14 @@ public class Options {
 			log = sampleName + ".log";
 		}
 		
-		outputDirName = generalSection.get("output");
+		//create output directory, the base name should be run id		
+		String dir = generalSection.get("output");
+		if (dir != null) {
+			outputDirName = (dir.endsWith(FILE_SEPERATOR) ? dir : dir + FILE_SEPERATOR ) + runId + FILE_SEPERATOR;
+			createResultsDirectory(outputDirName);
+		}else {
+			throw new QSVException("NO_OUTPUT");
+		}	
 		
 		if (generalSection.get("min_insert_size") != null) {
 			minInsertSize =  new Integer(generalSection.get("min_insert_size"));
@@ -385,13 +400,15 @@ public class Options {
 		//check output file directory
 		}
 		
-		if (null == outputDirNameOverride) {
-			if (null ==  outputDirName) {  
-				throw new QSVException("NULL_OUTPUT_DIR");
-			} else if (!directoryExists(outputDirName)) {
-				throw new QSVException("NO_OUTPUT_DIR", outputDirName);
-			//check output file directory
-			}
+ 		//it is compulsary to specify output directory
+		if (null ==  outputDirName) {  
+			throw new QSVException("NULL_OUTPUT_DIR");
+		} else if (!directoryExists(outputDirName)) {
+			
+			//check the parent directory
+			
+			throw new QSVException("NO_OUTPUT_DIR", outputDirName);
+		//check output file directory
 		}
 		
 		if (null ==  tempDirName) {
@@ -700,5 +717,18 @@ public class Options {
 		return allChromosomes;
 	}
 
-
+	/**
+	 * Create the results directory for qsv
+	 * @throws QSVException if the directory already exists
+	 */
+	public static void createResultsDirectory(String directoryToCreate) throws QSVException {
+	    File resultsDir = new File(directoryToCreate);
+	    	/*
+	    	 * No longer check to see if directory already exists
+	    	 */
+	    resultsDir.mkdir();
+	     if ( ! resultsDir.exists()) {
+		    throw new QSVException("DIR_CREATE_ERROR", directoryToCreate);   
+	     }
+	}
 }
