@@ -126,33 +126,39 @@ public class OptionsTest {
 		assertEquals(2, options.getNoOfConsumerThreads());
 		
 		// shortcut
-		options = new Options(new String[] {"--tc","10"});
+		options = new Options(new String[] {"--threads-c","10"});
 		assertEquals(10, options.getNoOfConsumerThreads());
 		// shortcut again
-		options = new Options(new String[] {"-tp","11"});
+		options = new Options(new String[] {"--threads-p","11"});
 		assertEquals(11, options.getNoOfProducerThreads());
 		
 		// invalid option (needs to be integer)
 		try {
-			new Options(new String[] {"-tp","matrices"});
+			new Options(new String[] {"--threads-p","matrices"});
 			fail("Should have thrown an exception");
 		} catch (Exception e) {}
 		
 		// more than 1 value, will throw an exception as they are considered to be nonoption arguments
 		try {
-			new Options(new String[] {"--tc","2","3","4","5"});
+			new Options(new String[] {"-threads-c","2","3","4","5"});
 			fail("Should have thrown an exception");
 		} catch (IllegalArgumentException e) {}
 		
 		// multiple values - will throw an exception
 		try {
-			new Options(new String[] {"-tp","2","-tcC","3","-tc","4","-tp","5"});
+			new Options(new String[] {"--threads-p","2","-tcC","3","-tc","4","-tp","5"});
+			fail("Should have thrown an exception");
+		} catch (Exception e) {}
+		
+		// non exists options
+		try {
+			new Options(new String[] {"--tc 5"});
 			fail("Should have thrown an exception");
 		} catch (Exception e) {}
 		
 		// empty options
 		try {
-			new Options(new String[] {"--tc"});
+			new Options(new String[] {"--threads-c"});
 			fail("Should have thrown an exception");
 		} catch (Exception e) {}
 	}	
