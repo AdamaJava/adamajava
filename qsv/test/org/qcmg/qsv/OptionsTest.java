@@ -136,7 +136,7 @@ public class OptionsTest {
         assertEquals(options.getLog(), "test.log");
         assertEquals(options.getLogLevel(), "DEBUG");
         assertEquals(options.getSampleName(), "test");
-        assertEquals(options.getOutputDirName(), tmp.toString() + Options.FILE_SEPERATOR + options.getRunId() + Options.FILE_SEPERATOR);
+        assertEquals(options.getOutputDirName(), tmp.toString() + Options.FILE_SEPERATOR + options.getUuid() + Options.FILE_SEPERATOR);
         assertTrue(options.getReference().contains("reference_file"));
         assertEquals(options.getPreprocessMode(), "both");
         assertEquals(options.getAnalysisMode(), "both");        
@@ -321,21 +321,21 @@ public class OptionsTest {
     	//create ini file
     	String[] args = TestUtil.getValidOptions(tmp, file1, file2, "both", "both", true);
     	
-    	//without option --run-id, it will create an uuid as runid
+    	//without option --uuid, it will create an uuid as runid
 	 	Options options = new Options(args);
 	 	try {
-			UUID.fromString(options.getRunId());
+			UUID.fromString(options.getUuid());
 		} catch (IllegalArgumentException iae) {
 			Assert.fail("run id is not an uuid string!");
 		}
 	 	
-	   	// add option --run-id,	
+	   	// add option --uuid,	
 		String [] newArgs = Arrays.copyOf(args, args.length + 2);
-	 	newArgs[newArgs.length - 2] = "--run-id";
+	 	newArgs[newArgs.length - 2] = "--uuid";
 	 	newArgs[newArgs.length - 1] = "test-uuid";	 
 	 	options = new Options(newArgs);
 	 	options.parseIniFile();
-	 	Assert.assertEquals( options.getRunId(), "test-uuid" );
+	 	Assert.assertEquals( options.getUuid(), "test-uuid" );
 	 	assertTrue(options.getOutputDirName().endsWith("test-uuid"+Options.FILE_SEPERATOR));
     			
     }
@@ -385,7 +385,7 @@ public class OptionsTest {
 	 	
 	 	// add in the override option	 	
 	 	String [] newArgs = Arrays.copyOf(args, args.length + 2);
-	 	newArgs[newArgs.length - 2] = "--run-id";
+	 	newArgs[newArgs.length - 2] = "--uuid";
 	 	newArgs[newArgs.length - 1] = QExec.createUUid();
 	 	
 	 	options = new Options(newArgs);

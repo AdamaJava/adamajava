@@ -37,7 +37,7 @@ public class Options {
 	private static final String VERSION_OPTION = Messages.getMessage("VERSION_OPTION");
 	private static final String INI_OPTION = Messages.getMessage("INI_OPTION");
 	private static final String TEMPDIR_OPTION = Messages.getMessage("TEMPDIR_OPTION");
-	private static final String RUNID_OPTION = Messages.getMessage("RUNID_OPTION");;
+	private static final String UUID_OPTION = Messages.getMessage("UUID_OPTION");;
 	
 	
 	private final OptionParser parser = new OptionParser();
@@ -48,7 +48,7 @@ public class Options {
 	private String inputFile;		
 	private String outputDirName;
 	private String outputDirNameOverride;
-	private String runId;
+	private String uuid;
 	private String sampleName;
 	private Integer filterSize;
 	private Integer clusterSize;
@@ -97,7 +97,7 @@ public class Options {
 		//define the options the parse accepts		
         parser.accepts("ini", INI_OPTION).withRequiredArg().ofType(String.class);
         parser.accepts("output-temporary", TEMPDIR_OPTION).withRequiredArg().ofType(String.class);  
-        parser.accepts("run-id", RUNID_OPTION).withOptionalArg().ofType(String.class);
+        parser.accepts("uuid", UUID_OPTION).withOptionalArg().ofType(String.class);
 		parser.accepts("help", HELP_OPTION);
 		parser.acceptsAll(asList("version"), VERSION_OPTION);		
 		options = parser.parse(args);	
@@ -109,7 +109,7 @@ public class Options {
 		/*
 		 *User can overwrite the output at command line - 
 		 */
-		runId = options.has("run-id") ? (String) options.valueOf("run-id") :  QExec.createUUid() ;
+		uuid = options.has("uuid") ? (String) options.valueOf("uuid") :  QExec.createUUid() ;
 		
 	}
 	
@@ -119,8 +119,8 @@ public class Options {
 	}
 	
 	//run id will be sub folder name, it will be a new uuid if null
-	public String getRunId() {
-		return runId; 
+	public String getUuid() {
+		return uuid; 
 	}
 
 	/**
@@ -153,7 +153,7 @@ public class Options {
 		//create output directory, the base name should be run id		
 		String dir = generalSection.get("output");
 		if (dir != null) {
-			outputDirName = (dir.endsWith(FILE_SEPERATOR) ? dir : dir + FILE_SEPERATOR ) + runId + FILE_SEPERATOR;
+			outputDirName = (dir.endsWith(FILE_SEPERATOR) ? dir : dir + FILE_SEPERATOR ) + uuid + FILE_SEPERATOR;
 			createResultsDirectory(outputDirName);
 		}else {
 			throw new QSVException("NO_OUTPUT");

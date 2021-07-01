@@ -66,12 +66,12 @@ public class QSV {
 				    String logFile = options.getOutputDirName() + options.getLog();
 					String version = QSV.class.getPackage().getImplementationVersion();
 					logger = QLoggerFactory.getLogger(QSV.class, logFile, options.getLogLevel());
-					QExec exec = logger.logInitialExecutionStats("qsv", version, args, options.getRunId());
+					QExec exec = logger.logInitialExecutionStats("qsv", version, args, options.getUuid());
 					
 					logger.info("QSV files will be written to the directory: " + options.getOutputDirName());					
 					
 					//Run the QSV pipeline
-					QSVPipeline pipeline = new QSVPipeline(options, options.getOutputDirName(),new Date(), options.getRunId(), exec);
+					QSVPipeline pipeline = new QSVPipeline(options, options.getOutputDirName(),new Date(), options.getUuid(), exec);
 					pipeline.runPipeline();
 				}
 			}
