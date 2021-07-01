@@ -120,4 +120,20 @@ public class ChrPositionComparatorTest {
 		assertEquals(cp2, cps.get(2));
 		assertEquals(cp1, cps.get(3));
 	}
+	
+	@Test
+	public void qsigComparatorTesting() {
+		List<String> contigOrder = Arrays.asList("chr1", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", "chr8", "chr9", "chr10", "chr11", "chr12", "chr13", "chr14", "chr15", "chr16", "chr17", "chr18", "chrX", "chrY", "GL000199.1", "GL000216.1", "chrMT");
+		Comparator<String> cpc =  ChrPositionComparator.getChrNameComparator(contigOrder);
+		
+		assertEquals(-1, cpc.compare("chr1", "chr2"));
+		assertEquals(1, cpc.compare("chr2", "chr1"));
+		assertEquals(0, cpc.compare("chr2", "chr2"));
+		assertEquals(2, cpc.compare("chrMT", "GL000199.1"));
+		assertEquals(1, cpc.compare("chrMT", "GL000216.1"));
+		assertEquals(-1, cpc.compare("GL000216.1", "chrMT"));
+		assertEquals(1, cpc.compare("chrGL000216.1", "chrMT"));
+		assertEquals(-22, cpc.compare("chr1", "chrMT"));
+	}
+	
 }

@@ -44,6 +44,7 @@ final class Options {
 	private static final String SEQUENTIAL_OPTION_DESCRIPTION = Messages
 			.getMessage("SEQUENTIAL_OPTION_DESCRIPTION");
 	private static final String VALIDATION_STRINGENCY_OPTION_DESCRIPTION = Messages.getMessage("VALIDATION_STRINGENCY_DESCRIPTION");
+	private static final String STREAM_OPTION_DESCRIPTION = Messages.getMessage("STREAM_DESCRIPTION");
 
 	private final OptionParser parser = new OptionParser();
 	private final OptionSet options;
@@ -116,6 +117,7 @@ final class Options {
 		parser.accepts("excludeVcfsFile", "file containing a list of vcf files to ignore in the comparison").withRequiredArg().ofType(String.class)
 				.describedAs("excludeVcfsFile");
 		parser.accepts("validation", VALIDATION_STRINGENCY_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
+		parser.accepts("stream", STREAM_OPTION_DESCRIPTION);
 		parser.acceptsAll(asList("p", "position"), "File containing a list of positions that will be examined. Must be a subset of the positions in the snpPositions file").withRequiredArg().ofType(String.class).describedAs("position");
 		options = parser.parse(args);
 
@@ -314,6 +316,10 @@ final class Options {
 		String[] inputFileNames = new String[inputList.size()];
 		inputList.toArray(inputFileNames);
 		return inputFileNames;
+	}
+
+	public Optional<Boolean> getStream() {
+		return Optional.ofNullable(options.has("stream"));
 	}
 
 }
