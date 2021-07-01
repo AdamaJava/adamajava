@@ -3,14 +3,12 @@ package org.qcmg.sig.model;
 public class SigMeta {
 	
 	private final String md5sum;
-	private final int positionsCount;
 	private final int baseQ;
 	private final int mappingQ;
 	private final float gcScore;
 	
-	public SigMeta(String md, int posCount, int bq, int mq, float gc) {
+	public SigMeta(String md, int bq, int mq, float gc) {
 		this.md5sum = md;
-		this.positionsCount = posCount;
 		this.baseQ = bq;
 		this.mappingQ = mq;
 		this.gcScore = gc;
@@ -24,7 +22,6 @@ public class SigMeta {
 		result = prime * result + Float.floatToIntBits(gcScore);
 		result = prime * result + mappingQ;
 		result = prime * result + ((md5sum == null) ? 0 : md5sum.hashCode());
-		result = prime * result + positionsCount;
 		return result;
 	}
 
@@ -48,20 +45,17 @@ public class SigMeta {
 				return false;
 		} else if (!md5sum.equals(other.md5sum))
 			return false;
-		if (positionsCount != other.positionsCount)
-			return false;
 		return true;
 	}
 
 	@Override
 	public String toString() {
-		return "SigMeta [md5sum=" + md5sum + ", positionsCount="
-				+ positionsCount + ", baseQ=" + baseQ + ", mappingQ="
+		return "SigMeta [md5sum=" + md5sum + ", baseQ=" + baseQ + ", mappingQ="
 				+ mappingQ + ", gcScore=" + gcScore + "]";
 	}
 	
 	public boolean isValid() {
-		return md5sum != null && md5sum.length() > 0 && positionsCount > 0;
+		return md5sum != null && md5sum.length() > 0;
 	}
 	
 	/**
@@ -78,7 +72,6 @@ public class SigMeta {
 	public static boolean suitableForComparison(SigMeta sm1, SigMeta sm2) {
 		return sm1.isValid() && sm2.isValid()
 				&& sm1.md5sum.equals(sm2.md5sum)
-				&& sm1.positionsCount == sm2.positionsCount
 				&& (isBamVsBamComparisonValid(sm1, sm2)
 				|| isSnpChipVsSnpChipComparisonValid(sm1, sm2)
 				|| isBamVsSnpChipComparisonValid(sm1, sm2)
