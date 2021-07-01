@@ -1,107 +1,103 @@
-# qprofiler v2.0
+# qprofiler 
 
-`qprofiler` provides quality control reporting for next-generation sequencing
-(NGS).  `qprofiler` takes FASTQ, BAM or VCF files as input and outputs an XML 
-file containing summary statistics tailored to the input file type.  The VCF
-mode is new and is under active development so it should be considered 
-experimental and subject to change.
+`qprofiler` provides quality control reporting for next-generation sequencing(NGS). `qprofiler` takes FASTQ, BAM/SAM, FASTA, QUAL,GFF3, MA and VCF files as input and outputs an XML file containing summary statistics tailored to the input file type. If no output file is specified then the default output file name will be used: `qprofiler.xml`.
 
-If no output file is specified then the default output file name will be 
-used: `qprofiler.xml`.
-
-## System Requirements
-
-* Java 1.8
-* Multi-core machine (ideally) and 20GB of RAM
+While the XML file is useful for extracting values for further analysis, a visual representation of the data is more useful in most cases so another tool qvisualise was created to parse the qprofiler XML files and produce HTML output with embedded graphs via the Charts javascript library developed by Google. qvisualise exists as a standalone program but it is also integrated into qprofiler so a HTML file will always be output by qprofiler unless the --nohtml tag is used. The HTML file name is based on the XML output filename with the extension .html appended.
 
 ## Installation
+qprofiler requires java 8, a machine with multi cores and 5GB of RAM will be ideally.
 
-* Obtain a copy of the <code>qprofiler2.0.tar.bz2</code> file
-* Untar the tar file
+To do a build of qprofiler, first clone the adamajava repository and move into the adamajava folder.
+  ~~~~{.text}
+  git clone https://github.com/AdamaJava/adamajava
+  cd adamajava
+  git tag
+  ~~~~
 
-You should see something like this:
+pick up a release, eg. "internal-7.a8ab31c.12803".
+  ~~~~{.text}
+  git checkout tags/internal-7.a8ab31c.12803
+  ~~~~
 
-~~~~{.text}
-$ tar xvf qprofiler2.0.tar.bz2 
-qprofiler2.0/
-qprofiler2.0/qvisualise-2.0.jar
-qprofiler2.0/commons-lang3-3.5.jar
-qprofiler2.0/commons-math3-3.3.jar
-qprofiler2.0/qprofiler-2.0.jar
-qprofiler2.0/picard-lib.jar
-qprofiler2.0/qcommon-0.4.jar
-qprofiler2.0/qpicard-1.1.jar
-qprofiler2.0/trove-3.1a1.jar
-qprofiler2.0/qio-0.1pre.jar
-qprofiler2.0/jopt-simple-4.6.jar
-qprofiler2.0/htsjdk-1.140.jar
-~~~~
+Run gradle to build qprofiler and its dependent jar files.
+  ~~~~{.text}
+  ./gradlew :qprofiler:build
+  ~~~~
+This creates the qprofiler jar file along with dependent jars in the qprofiler/build/flat folder.
 
 ## Usage
+If the release number is before 23.8546a7b, the main jar file name is "qprofiler-1.0.jar".
+  ~~~~{.text}
+  usage: java -jar qprofiler-1.0.jar [option...] -log logfile -loglevel INFO -output outputfile -input inputfile1 -input inputfile2 ... [-ntP 4 -ntC 16] [-exclude coverage,matrices,md,html] [-maxRecords 10000] [-tags XY,XZ,YZ]
+  ~~~~
 
-The full option list is describe below but there are 3 options that you
-should probably specify every time you call qprofiler: `--input`, `--output`,
-and `--log`. If you have access to a multi-core machine (e.g. a compute node
-on a cluster) then you should also look at the thread-count parameters: 
-`ntProducer` and `--ntConsumer` if you are processing BAM files.
+Release number is 23.8546a7b or after, the main jar file name is "qprofiler.jar".
+  ~~~~{.text}
+  usage: java -jar qprofiler.jar [option...] -log logfile -loglevel INFO -output outputfile -input inputfile1 -input inputfile2 ... [-ntP 4 -ntC 16] [-exclude coverage,matrices,md,html] [-maxRecords 10000] [-tags XY,XZ,YZ]
+  ~~~~
 
-In general, we would recommend using as many consumer threads as you have
-cores available (so 16 consumers for a 16-core machine) and with approximately
-a 1:4 ratio between producer and consumer threads.  The producer threads are
-relatively lightweight and will not occupy a full core each.
+The full option list is describe below but there are 3 options that you should probably specify every time you call qprofiler: `--input`, `--output`, and `--log`. If you have access to a multi-core machine (e.g. a compute node on a cluster) then you should also look at the thread-count parameters: `--ntProducer` and `--ntConsumer` if you are processing BAM files.
+
+In general, we would recommend using as many consumer threads as you have cores available (so 16 consumers for a 16-core machine) and with approximately a 1:4 ratio between producer and consumer threads.  The producer threads are relatively lightweight and will not occupy a full core each.
 
 For example, to run on a 16 core computer, we would suggest something like:
 
 ~~~~{.text}
-java -jar qprofiler-2.0.jar \
+java -jar qprofiler-1.0.jar \
      -input ~/sample_virus.BWA-backtrack.bam \
      -log ~/sample_virus.BWA-backtrack.bam.qp.log \
      -output ~/sample_virus.BWA-backtrack.bam.qp.xml \
      -ntP 4 -ntC 16
 ~~~~
 
-The recommendations on counts of consumer and producer threads are empirical
-so if you are going to do lots of qprofiler work, you should probably do
-some testing of your own to see what thread counts and ratios work best on 
-your servers or cluster nodes. This is especially important for cluster work
-where core count is critical - if you request 8 cores, you need to make sure
-that your threading parameters are dialled to keep qprofiler inside the
-number of cores you requested. It's also worth noting that hyperthreaded
-cores can cause the counts to be off - clusters may count each hyperthreaded
-core as two cores, i.e. capable of running 2 threads, but they will not be
-as efficient as 2 separate cores so again you will need some empirical
-testing to see what thread counts and producer/consumer ratios work best
-for you.
+The recommendations on counts of consumer and producer threads are empirical so if you are going to do lots of qprofiler work, you should probably do some testing of your own to see what thread counts and ratios work best on your servers or cluster nodes. This is especially important for cluster work where core count is critical - if you request 8 cores, you need to make sure that your threading parameters are dialled to keep qprofiler inside the number of cores you requested. It's also worth noting that hyperthreaded cores can cause the counts to be off - clusters may count each hyperthreaded core as two cores, i.e. capable of running 2 threads, but they will not be as efficient as 2 separate cores so again you will need some empirical testing to see what thread counts and producer/consumer ratios work best for you.
 
-It is also worth noting that it is not unusual to find BAM files that 
-contain headers or reads considered to be invalid by the Picard library
-which will throw exceptions and cause qprofiler to exit. This is why the
-default option for `--validation` is `SILENT` but this is _not_ an ideal
-situation.  If you are primarily a consumer of BAMs then it's probably
-OK to mostly operate in `SILENT` mode but if anything odd happens with 
-your output, you should rerun with `STRICT` or `LENIENT` to see if there
-are problems with the BAM.  If, on the other hand, you are a BAM producer,
-you should probably use `STRICT` and if any of your BAMs cause exceptions
-to be thrown, you should try to fix the underlying causes.
+It is also worth noting that it is not unusual to find BAM files that contain headers or reads considered to be invalid by the Picard library which will throw exceptions and cause qprofiler to exit. This is why the default option for `--validation` is `SILENT` but this is _not_ an ideal situation.  If you are primarily a consumer of BAMs then it's probably OK to mostly operate in `SILENT` mode but if anything odd happens with your output, you should rerun with `STRICT` or `LENIENT` to see if there
+are problems with the BAM.  If, on the other hand, you are a BAM producer, you should probably use `STRICT` and if any of your BAMs cause exceptions to be thrown, you should try to fix the underlying causes.
 
 ## Options
 
 ~~~~{.text}
---help           Show this help message
---version        Show version.
+Option                  Description
+------                  -----------
+--help                  Shows this help message.
+--include               Include certain aggregations. Possible
+                          values are "matrices", "coverage"
+                          for BAM files.
+--index                 File containing data to be profiled
+                          (currently limited to BAM/SAM,
+                          FASTQ, FASTA, QUAL, GFF3, MA)
+--input                 File containing data to be profiled
+--log                   File where log output will be directed
+                          (must have write permissions)
+--loglevel              Logging level required, e.g. INFO,
+                          DEBUG. (Optional) If no parameter is
+                          specified, will default to INFO
+--maxRecords <Integer>  Only process the first {0} records in
+                          the BAM file.
+--nohtml                If this option is set, qvisualise will
+                          NOT be called after qprofiler has
+                          been run and so no html output will
+                          be generated
+--ntConsumer <Integer>  specify how many threads should be
+                          used when processing the input file
+                          (BAM files only)
+--ntProducer <Integer>  specify how many threads should be
+--output                File where the output of the qprofiler
+                          should be written to (needs to be an
+                          xml file)
+--tags                  Perform aggregations on user defined
+                          tags (Strings). Example values are
+                          "ZC", "XY", etc.
+--tagsChar              Perform aggregations on user defined
+                          tags (chars). Example values are
+--tagsInt               Perform aggregations on user defined
+                          tags (ints). Example values are
+--validation            How strict to be when reading a SAM or
+                          BAM. Possible values: {STRICT,
+                          LENIENT, SILENT}
+--version               Print version info.
 
---input          Req, Input file in FASTQ, BAM or VCF format.
---index          Opt, Index file related to --index.
-
---format         Opt, Group VCF records; VCF mode only.
---fullBAMHeader  Opt, Add full BAM header to XML report.
---output         Opt, Output XML file, Def=qprofiler.xml
---maxRecords     Opt, Process a limited number of reads
---ntProducer     Opt, Producer thread count - BAM processing only
---ntConsumer     Opt, Consumer thread count - BAM processing only
---log            Opt, Log file.
---loglevel       Opt, Logging level [INFO,DEBUG,ALL], Def=INFO.
---validation     Opt, Validation stringency [STRICT,LENIENT,SILENT], Def=SILENT.
 ~~~~
 
 ### `--include`
