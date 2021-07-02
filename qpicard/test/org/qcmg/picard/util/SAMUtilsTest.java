@@ -111,14 +111,23 @@ public class SAMUtilsTest {
 		sam.setCigarString("7M3I40M");
 		sam.setReadString("TTTGTTTTGATGAGATGGAGTTTTGCTCTTGTTGCCCAGGCTGGAGTACA");
 		assertEquals(-1, SAMUtils.getIndexInReadFromPosition(sam, 9999));
+		assertEquals(0, sam.getReadPositionAtReferencePosition(9999));	// picard is 1 based
 		assertEquals(0, SAMUtils.getIndexInReadFromPosition(sam, 10000));
+		assertEquals(1, sam.getReadPositionAtReferencePosition(10000));	// picard is 1 based
 		assertEquals(1, SAMUtils.getIndexInReadFromPosition(sam, 10001));
+		assertEquals(2, sam.getReadPositionAtReferencePosition(10001));	// picard is 1 based
 		assertEquals(6, SAMUtils.getIndexInReadFromPosition(sam, 10006));
+		assertEquals(7, sam.getReadPositionAtReferencePosition(10006));	// picard is 1 based
 		assertEquals(10, SAMUtils.getIndexInReadFromPosition(sam, 10007));
+		assertEquals(11, sam.getReadPositionAtReferencePosition(10007));	// picard is 1 based
 		assertEquals(12, SAMUtils.getIndexInReadFromPosition(sam, 10009));
+		assertEquals(13, sam.getReadPositionAtReferencePosition(10009));	// picard is 1 based
 		assertEquals(13, SAMUtils.getIndexInReadFromPosition(sam, 10010));
+		assertEquals(14, sam.getReadPositionAtReferencePosition(10010));	// picard is 1 based
 		assertEquals(49, SAMUtils.getIndexInReadFromPosition(sam, 10046));
+		assertEquals(50, sam.getReadPositionAtReferencePosition(10046));	// picard is 1 based
 		assertEquals(-1, SAMUtils.getIndexInReadFromPosition(sam, 10047));
+		assertEquals(0, sam.getReadPositionAtReferencePosition(10047));	// picard is 1 based
 		
 		assertEquals(10000, sam.getReferencePositionAtReadPosition(1));	// 1-based offset for picard
 		assertEquals(10006, sam.getReferencePositionAtReadPosition(7));	// 1-based offset for picard
@@ -133,9 +142,13 @@ public class SAMUtilsTest {
 		sam.setCigarString("35M");
 		sam.setReadString("CCTCTGAATGGAGGCCGAGGGCATTGAGGTTGCAT");
 		assertEquals(-1, SAMUtils.getIndexInReadFromPosition(sam, 9999));
+		assertEquals(0, sam.getReadPositionAtReferencePosition(9999));	// picard is 1 based
 		assertEquals(0, SAMUtils.getIndexInReadFromPosition(sam, 10000));
+		assertEquals(1, sam.getReadPositionAtReferencePosition(10000));	// picard is 1 based
 		assertEquals(34, SAMUtils.getIndexInReadFromPosition(sam, 10034));
+		assertEquals(35, sam.getReadPositionAtReferencePosition(10034));	// picard is 1 based
 		assertEquals(-1, SAMUtils.getIndexInReadFromPosition(sam, 10035));
+		assertEquals(0, sam.getReadPositionAtReferencePosition(10035));	// picard is 1 based
 		
 		assertEquals(0, sam.getReferencePositionAtReadPosition(0));	// 1-based offset for picard
 		assertEquals(10000, sam.getReferencePositionAtReadPosition(1));	// 1-based offset for picard
@@ -151,12 +164,16 @@ public class SAMUtilsTest {
 		sam.setReadString("GGTAAGAAAATGACTGTTGGAAAATTATGCTTTCACTTTTCTACCCATATTCTCAGCTATACAAAAACCATTTATTTTTGAAGATTTTTTAGACTACTTGTTTAATTTGAAATCTTGTTTACTCTTTATTGTGAATTTTGTTTTTTTTTA");
 		int index = SAMUtils.getIndexInReadFromPosition(sam, 178955001);
 		assertEquals('T', (char)sam.getReadBases()[index]);
+		 index = sam.getReadPositionAtReferencePosition(178955001) - 1;
+		assertEquals('T', (char)sam.getReadBases()[index]);
 		
 		sam = new SAMRecord(null);
 		sam.setAlignmentStart(178954867);
 		sam.setCigarString("136M26H");
 		sam.setReadString("GTAAGAAATGACTGTTGGAAAATTATGCTTTCACTTTCTACCATATTCTCAGCTATACAAAACCATTTATTTTGAAGATTTTTAGACTACTGTTAATTTGAAATCTGTTACTCTTATTGTGGAATTTGTTTTTTTA");
 		index = SAMUtils.getIndexInReadFromPosition(sam, 178955001);
+		assertEquals('T', (char)sam.getReadBases()[index]);
+		index = sam.getReadPositionAtReferencePosition( 178955001) - 1;
 		assertEquals('T', (char)sam.getReadBases()[index]);
 		
 		sam = new SAMRecord(null);
@@ -165,12 +182,16 @@ public class SAMUtilsTest {
 		sam.setReadString("ATGACTGTTGGAAAATTATGCTTTCACTTTCTACCATATTCTCAGCTATACAAAACCATTTATTTTGAAGATTTTTAGACTACTGTTAATTTGAAATCTGTTACTCTTATTGTGGAATTTGTTTTTTTTCATA");
 		index = SAMUtils.getIndexInReadFromPosition(sam, 178955001);
 		assertEquals('T', (char)sam.getReadBases()[index]);
+		index = sam.getReadPositionAtReferencePosition( 178955001) - 1;
+		assertEquals('T', (char)sam.getReadBases()[index]);
 		
 		sam = new SAMRecord(null);
 		sam.setAlignmentStart(178954882);
 		sam.setCigarString("42H37M1I6M1D63M2I13M8I14M");
 		sam.setReadString("TGGAAAATTATGCTTTCACTTTCTACCATATTCTCAGACTATACAAACCATTTATTTTGAAGATTTTTAGACTACTGTTAATTTGAAATCTGTTACTCTTATTGTGGGAATTTTGTTTTTTTTTTTAAAAAAAAAAGATGTTTT");
 		index = SAMUtils.getIndexInReadFromPosition(sam, 178955001);
+		assertEquals('T', (char)sam.getReadBases()[index]);
+		index = sam.getReadPositionAtReferencePosition( 178955001) - 1;
 		assertEquals('T', (char)sam.getReadBases()[index]);
 		
 		sam = new SAMRecord(null);
@@ -179,12 +200,16 @@ public class SAMUtilsTest {
 		sam.setReadString("TTCTACCATATCCTCAGCTATACTAAAACCATTTATTTTGAAGATTTTTTAGACTACTGTTAATTTGAAATCTGTTACTCTTATTGTGGAATTTTGTTTTTTTTTAAAAAAAGATGTTTTCTAATTGG");
 		index = SAMUtils.getIndexInReadFromPosition(sam, 178955001);
 		assertEquals('T', (char)sam.getReadBases()[index]);
+		index = sam.getReadPositionAtReferencePosition( 178955001) - 1;
+		assertEquals('T', (char)sam.getReadBases()[index]);
 		
 		sam = new SAMRecord(null);
 		sam.setAlignmentStart(178954925);
 		sam.setCigarString("42H3S11M1I38M1I17M1I11M2I10M1I12M2I20M1I9M");
 		sam.setReadString("TCAAAAACCATTTATTTTTGAAGATTTTTAGACTACTGTTAATTTGAAATCTGTTTACTCTTATTGTGGAATTTTGTTTTTTTTAAAAAAAGATGTTTTCTAATTGGATTTTTTTAAAAGAAGAATGGAATTTTGGTTGC");
 		index = SAMUtils.getIndexInReadFromPosition(sam, 178955001);
+		assertEquals('T', (char)sam.getReadBases()[index]);
+		index = sam.getReadPositionAtReferencePosition( 178955001) - 1;
 		assertEquals('T', (char)sam.getReadBases()[index]);
 		
 		sam = new SAMRecord(null);
@@ -193,12 +218,16 @@ public class SAMUtilsTest {
 		sam.setReadString("ACCTGTTTAATTTTGAAAATCTGTTTACTCTTATTTGTGGAATTTTGTTTTTTTTTTTAAAAAAAAAGATGTTTCTAAATTGGATTTTTTTAAAAAGAAAGAATGGAATTTGGTTTGCTATTTTTACAATAGAACCTAAGCTTTTTTGTA");
 		index = SAMUtils.getIndexInReadFromPosition(sam, 178955001);
 		assertEquals('T', (char)sam.getReadBases()[index]);
+		index = sam.getReadPositionAtReferencePosition(178955001) - 1;
+		assertEquals('T', (char)sam.getReadBases()[index]);
 		
 		sam = new SAMRecord(null);
 		sam.setAlignmentStart(178954984);
 		sam.setCigarString("43H18M1D98M1D10M");
 		sam.setReadString("TGTGGAATTTGTTTTTTTAAAAAGATGTTTCTAATTGGATTTTTAAAAGAAGAATGGAATTTGGTTGCTATTTTACAATAGAACCTAAGCTTTTTGTGGTTCTTAGTGTCCTATGTAAACTTAGTG");
 		index = SAMUtils.getIndexInReadFromPosition(sam, 178955001);
+		assertEquals('T', (char)sam.getReadBases()[index]);
+		index = sam.getReadPositionAtReferencePosition( 178955001) - 1;
 		assertEquals('T', (char)sam.getReadBases()[index]);
 		
 		// deletion
@@ -208,6 +237,8 @@ public class SAMUtilsTest {
 		sam.setReadString("AATTGTTTTTAAAAAGATGTTCTAATTGGATTTTAAAGAAGAATGGAATTTGGTTGCTATTTTACAATAGAACCTAAGCTTTTGTGGTTCTTAGTGTCCTATGTAAAACTTAGTGTCAA");
 		index = SAMUtils.getIndexInReadFromPosition(sam, 178955001);
 		assertEquals(-1, index);
+		index = sam.getReadPositionAtReferencePosition(178955001);
+		assertEquals(0, index);
 		
 		// and now for the reads with the mutation
 		sam = new SAMRecord(null);
@@ -216,12 +247,16 @@ public class SAMUtilsTest {
 		sam.setReadString("TTTAAAAAAAAGATGTTTCTAATTGGATTTTTTAAAAAGAAGAATGGAATTTGGTTGCTATTTTTACAATAGAACCTAAGCTTTTTTGTGGTTCTTAGTGTCCTATGTAAAAACTTGGTGTA");
 		index = SAMUtils.getIndexInReadFromPosition(sam, 178955001);
 		assertEquals('A', (char)sam.getReadBases()[index]);
+		index = sam.getReadPositionAtReferencePosition(178955001) - 1;
+		assertEquals('A', (char)sam.getReadBases()[index]);
 		
 		sam = new SAMRecord(null);
 		sam.setAlignmentStart(178954998);
 		sam.setCigarString("26M1I89M1S42H");
 		sam.setReadString("TTTAAAAAAAGATGTTTCTAATTGGATTTTTTAAAAGAAGAATGGAATTTGGTTGCTATTTTACAATAGAACCTAAGCTTTTTGTGGTTCTTAGTGTCCTATGTAAAACTTAGTGTA");
 		index = SAMUtils.getIndexInReadFromPosition(sam, 178955001);
+		assertEquals('A', (char)sam.getReadBases()[index]);
+		index = sam.getReadPositionAtReferencePosition(178955001) - 1;
 		assertEquals('A', (char)sam.getReadBases()[index]);
 		
 		sam = new SAMRecord(null);
@@ -230,12 +265,16 @@ public class SAMUtilsTest {
 		sam.setReadString("TTAAAAAAAGATGTTTCTAATTGGATTTTTAAAAGAAGAATGGAATTTGGTTGCTATTTTACAATAGAACCTAAGCTTTTTGTGGTTCTTAGTGTCCTATGTAAAACTTAGTGTA");
 		index = SAMUtils.getIndexInReadFromPosition(sam, 178955001);
 		assertEquals('A', (char)sam.getReadBases()[index]);
+		index = sam.getReadPositionAtReferencePosition(178955001) - 1;
+		assertEquals('A', (char)sam.getReadBases()[index]);
 		
 		sam = new SAMRecord(null);
 		sam.setAlignmentStart(178954989);
 		sam.setCigarString("127M27H");
 		sam.setReadString("AATTTGTTTTTTAAAAAAGAATGTTTCTAATTGGATTTTTAAAAGAAGAATGGAATTTGGTTGCTATTTTACAATAGAACCTAAGCTTTTGGTGGTTCTTAGTGTCCTATGTAAAACTTAGTGTCAA");
 		index = SAMUtils.getIndexInReadFromPosition(sam, 178955001);
+		assertEquals('A', (char)sam.getReadBases()[index]);
+		index = sam.getReadPositionAtReferencePosition(178955001) - 1;
 		assertEquals('A', (char)sam.getReadBases()[index]);
 		
 		sam = new SAMRecord(null);
@@ -244,7 +283,20 @@ public class SAMUtilsTest {
 		sam.setReadString("CCTGCGCCGTATGGGTCCTGGCGAGCACGTCTGAGGCTGGGGCCTGGGACAGGGCCTCCAGGAAGGGCAGGTGGCGTCGGAGGGCGTTGGCCAGGGCAGCA");
 		index = SAMUtils.getIndexInReadFromPosition(sam, 157985136);
 		assertEquals('A', (char)sam.getReadBases()[index]);
+		index = sam.getReadPositionAtReferencePosition(157985136) - 1;
+		assertEquals('A', (char)sam.getReadBases()[index]);
 		
+	}
+	@Test
+	public void testGetIndexInReadFromPositionRealData3() {
+		SAMRecord sam = new SAMRecord(null);
+		sam.setAlignmentStart(178954866);
+		sam.setCigarString("6M1I29M1I6M1I18M1I11M1I9M1I13M2I15M2I7M1I22M3S28H");
+		sam.setReadString("GGTAAGAAAATGACTGTTGGAAAATTATGCTTTCACTTTTCTACCCATATTCTCAGCTATACAAAAACCATTTATTTTTGAAGATTTTTTAGACTACTTGTTTAATTTGAAATCTTGTTTACTCTTTATTGTGAATTTTGTTTTTTTTTA");
+		int index = sam.getReadPositionAtReferencePosition(178955001) - 1;
+		assertEquals('T', (char)sam.getReadBases()[index]);
+//		int index = SAMUtils.getIndexInReadFromPosition(sam, 178955001);
+//		assertEquals('T', (char)sam.getReadBases()[index]);
 	}
 	
 	@Test
