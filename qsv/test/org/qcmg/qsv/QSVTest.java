@@ -4,20 +4,27 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.qsv.util.QSVUtil;
+import org.qcmg.qsv.util.TestUtil;
 
 public class QSVTest {
 
+    private  File normalBam;
+    private  File tumorBam;
     private PrintStream defaultOutstream = null;
     private PrintStream testOutPrintStream = null;
     private ByteArrayOutputStream testOut = null;
