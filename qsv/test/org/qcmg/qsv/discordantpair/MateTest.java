@@ -67,7 +67,6 @@ public class MateTest {
     @Ignore
     public void testSetReadName() {
         assertEquals("254_166_1407:20110221052813657", mate.getReadName());
-//        mate.setReadName("test");
         new Mate("test", "chr7", 140191044, 140191093, "AAC", 129, true);
         assertEquals("test", mate.getReadName());
     }
@@ -75,7 +74,6 @@ public class MateTest {
     @Ignore
     public void testSetReferenceName() {
         assertEquals("chr7", mate.getReferenceName());
-//        mate.setReferenceName("chr8");
         new Mate("254_166_1407:20110221052813657", "chr8", 140191044, 140191093, "AAC", 129, true);
         assertEquals("chr8", mate.getReferenceName());
     }
@@ -83,7 +81,6 @@ public class MateTest {
     @Ignore
     public void testSetStart() {
         assertEquals(140191044, mate.getStart());
-//        mate.setStart(1234);
         new Mate("254_166_1407:20110221052813657", "chr7", 1234, 140191093, "AAC", 129, true);
         assertEquals(1234, mate.getStart());
     }
@@ -91,7 +88,6 @@ public class MateTest {
     @Ignore
     public void testSetEnd() {
         assertEquals(140191093, mate.getEnd());
-//        mate.setEnd(1234);
         new Mate("254_166_1407:20110221052813657", "chr7", 140191044, 1234, "AAC", 129, true);
         assertEquals(1234, mate.getEnd());
     }

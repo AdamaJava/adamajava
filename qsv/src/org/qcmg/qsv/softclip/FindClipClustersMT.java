@@ -87,7 +87,6 @@ public class FindClipClustersMT  {
 	private final int CLIP_SIZE;
 
 	public FindClipClustersMT(QSVParameters tumourParameters, QSVParameters normalParameters, String softclipDir, Map<PairGroup, Map<String, List<DiscordantPairCluster>>> tumorClusterRecords, Options options, String analysisId, long clipCount, TIntObjectMap<int[]> cache) throws Exception {
-//		public FindClipClustersMT(QSVParameters tumourParameters, QSVParameters normalParameters, String softclipDir, BLAT blat2, Map<PairGroup, Map<String, List<DiscordantPairCluster>>> tumorClusterRecords, Options options, String analysisId, long clipCount) throws Exception {
 		this.noOfThreads = clipCount > 5000000 ? 1 : 3;
 		this.noOfFinalThreads = clipCount > 5000000 ? 4 : 10;
 		this.defineThreadNo = clipCount > 5000000 ? 2 : 4;
@@ -894,7 +893,6 @@ public class FindClipClustersMT  {
 						findOverlappingClusters(referenceKey, records, clusters, clips, true);
 						rescueQSVRecords(referenceKey, records);
 						qsvRecordWriter.writeTumourSVRecords(records);
-//						run = true;
 					} // end else
 				}// end while
 				logger.info("Completed clipping thread: "
@@ -971,8 +969,6 @@ public class FindClipClustersMT  {
 						if (breakpoint.defineBreakpoint(clipSize, isRescue)) {                		
 							breakpoints.add(breakpoint);
 						}
-
-//						run = true;
 					} // end else
 				}// end while
 				logger.info("Completed define breakpoint thread: "
@@ -1024,23 +1020,6 @@ public class FindClipClustersMT  {
 			this.isSplitRead = isSplitRead;
 			this.reference = reference;
 		}
-//		public RescueRecord(AbstractQueue<List<QSVCluster>> queueIn2,
-//				Thread mainThread,
-//				CountDownLatch latch, int clipSize, boolean isRescue, BLAT blat, QSVParameters tumourParameters, QSVParameters normalParameters, String softClipDir, Integer consensusLength, boolean isQCMG, Integer minInsertSize, boolean singleSided, boolean isSplitRead, String reference) {
-//			this.queueIn = queueIn2;
-//			this.mainThread = mainThread;
-//			this.latch = latch;
-//			this.blat = blat;
-//			this.tumourParameters = tumourParameters;
-//			this.normalParameters = normalParameters;
-//			this.softclipDir = softClipDir;
-//			this.consensusLength = consensusLength;
-//			this.isQCMG = isQCMG;
-//			this.minInsertSize = minInsertSize;
-//			this.singleSided = singleSided;
-//			this.isSplitRead = isSplitRead;
-//			this.reference = reference;
-//		}
 
 		@Override
 		public List<QSVCluster> call() {
@@ -1078,21 +1057,14 @@ public class FindClipClustersMT  {
 
 						String blatFile = softClipDir + QSVUtil.getFileSeparator() + UUID.randomUUID();
 						boolean log = false;
+						
 						for (QSVCluster cluster: inputClusters) {
-//							boolean log = cluster.toTabString().contains("" + positionToDebug);
 							cluster.rescueClippping(cache, tumourParameters, normalParameters, softclipDir, consensusLength, minInsertSize);
 							logger.debug("rescue clipping about to call createSplitReadContig");
 							cluster.createSplitReadContig(cache, tumourParameters, normalParameters, softclipDir, consensusLength, isQCMG, minInsertSize, singleSided, isSplitRead, reference, blatFile, log);
 							logger.debug("rescue clipping, cluster: " + cluster.toTabString());
-//							cluster.rescueClippping(blat, tumourParameters, normalParameters, softclipDir, consensusLength, minInsertSize);
-//							cluster.createSplitReadContig(blat, tumourParameters, normalParameters, softclipDir, consensusLength, isQCMG, minInsertSize, singleSided, isSplitRead, reference, blatFile);               		 
 						}
-//						if (new File(blatFile + ".tumour.fa").exists()) {
-//							blat.execute(blatFile + ".tumour.fa", blatFile + ".tumour.psl");
-//						}
-//						if (new File(blatFile + ".normal.fa").exists()) {
-//							blat.execute(blatFile + ".normal.fa", blatFile + ".normal.psl");
-//						}
+						
 						for (QSVCluster cluster: inputClusters) {
 							logger.debug("rescue clipping about to call findSplitReadContig, cluster: " + cluster.toTabString());
 							logger.debug("rescue clipping about to call findSplitReadContig, getConfidenceLevel: " + cluster.getConfidenceLevel(true));
@@ -1105,12 +1077,6 @@ public class FindClipClustersMT  {
 							logger.debug("rescue clipping called findSplitReadContig, isPotentialSplitRead: " + cluster.isPotentialSplitRead());
 							clusters.add(cluster);
 						}
-
-//						new File(blatFile + ".tumour.fa").delete();
-//						new File(blatFile + ".tumour.psl").delete();
-//						new File(blatFile + ".normal.fa").delete();
-//						new File(blatFile + ".normal.psl").delete();
-
 
 						run = true;
 					} // end else
@@ -1130,6 +1096,4 @@ public class FindClipClustersMT  {
 			return clusters;
 		}
 	}
-
-
 }

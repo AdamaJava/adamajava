@@ -10,9 +10,7 @@ import htsjdk.samtools.SAMTagUtil;
 
 public class QSVConstants {
 	
-	//General options	
-	public static final String DEFAULT_LOGLEVEL = "INFO";
-	
+	//General options		
 	public static final String DEFAULT_SV_ANALYSIS = "both";
 	
 	public static final int DEFAULT_MIN_INSERT_SIZE = 50;

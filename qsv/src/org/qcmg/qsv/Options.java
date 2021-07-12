@@ -13,12 +13,14 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import joptsimple.BuiltinHelpFormatter;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 
 import org.ini4j.Ini;
 import org.ini4j.InvalidFileFormatException;
 import org.ini4j.Profile.Section;
+import org.qcmg.common.meta.QExec;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.qsv.util.QSVConstants;
 import org.qcmg.qsv.util.QSVUtil;
@@ -29,15 +31,14 @@ import org.qcmg.qsv.util.QSVUtil;
  *
  */
 public class Options {
+	public static final String FILE_SEPERATOR = System.getProperty("file.separator");
 	
 	private static final String HELP_OPTION = Messages.getMessage("HELP_OPTION");	
 	private static final String VERSION_OPTION = Messages.getMessage("VERSION_OPTION");
-	private static final String LOG_OPTION = Messages.getMessage("LOG_OPTION");
-	private static final String LOG_LEVEL_OPTION = Messages.getMessage("LOG_LEVEL_OPTION");
 	private static final String INI_OPTION = Messages.getMessage("INI_OPTION");
 	private static final String TEMPDIR_OPTION = Messages.getMessage("TEMPDIR_OPTION");
-	private final String RANGE_OPTION = Messages.getMessage("RANGE_OPTION");;
-	private final String OUTPUT_OPTION = Messages.getMessage("OUTPUT_OPTION");;
+	private static final String UUID_OPTION = Messages.getMessage("UUID_OPTION");;
+	
 	
 	private final OptionParser parser = new OptionParser();
 	private final OptionSet options;
@@ -47,6 +48,7 @@ public class Options {
 	private String inputFile;		
 	private String outputDirName;
 	private String outputDirNameOverride;
+	private String uuid;
 	private String sampleName;
 	private Integer filterSize;
 	private Integer clusterSize;
@@ -63,10 +65,6 @@ public class Options {
 	private String comparisonSampleId;
 	private List<String> ranges;
 	private String reference;
-	private String blatServer;
-	private String blatPort;
-	private String bitFile;
-	private String blatPath;
 	private String mapper;
 	private String clipQuery;
 	private String tiledAlignerFile;
@@ -97,36 +95,32 @@ public class Options {
 	public Options(final String[] args) throws QSVException, InvalidFileFormatException, IOException {
 		
 		//define the options the parse accepts		
-		parser.accepts("log", LOG_OPTION).withRequiredArg().ofType(String.class);	
-		parser.accepts("loglevel", LOG_LEVEL_OPTION).withRequiredArg().ofType(String.class); 
-        parser.accepts("ini", INI_OPTION).withRequiredArg().ofType(String.class).describedAs("ini");
-        parser.accepts("tmp", TEMPDIR_OPTION).withRequiredArg().ofType(String.class).describedAs("tmp");  
-        parser.accepts("range", RANGE_OPTION).withOptionalArg().ofType(String.class).describedAs("range");    
-        parser.accepts("overrideOutput", OUTPUT_OPTION).withOptionalArg().ofType(String.class).describedAs("overrideOutput");
-		parser.acceptsAll(asList("h", "help"), HELP_OPTION);
-		parser.acceptsAll(asList("v", "V", "version"), VERSION_OPTION);		
+        parser.accepts("ini", INI_OPTION).withRequiredArg().ofType(String.class);
+        parser.accepts("output-temporary", TEMPDIR_OPTION).withRequiredArg().ofType(String.class);  
+        parser.accepts("uuid", UUID_OPTION).withOptionalArg().ofType(String.class);
+		parser.accepts("help", HELP_OPTION);
+		parser.acceptsAll(asList("version"), VERSION_OPTION);		
 		options = parser.parse(args);	
 		//logging
 		
 		iniFile = (String) options.valueOf("ini");
-		tempDirName = (String) options.valueOf("tmp");
+		tempDirName = (String) options.valueOf("output-temporary");
 		
 		/*
 		 *User can overwrite the output at command line - 
 		 */
-		if (options.has("overrideOutput")) {
-			outputDirNameOverride = (String) options.valueOf("overrideOutput");
-		}
+		uuid = options.has("uuid") ? (String) options.valueOf("uuid") :  QExec.createUUid() ;
 		
-		if (options.has("range")) {
-	    		ranges = new ArrayList<String>();
-	    		ranges.add((String) options.valueOf("range"));
-	    		processRanges();
-	    	}
 	}
 	
+	@Deprecated
 	public String getOverrideOutput() {
 		return outputDirNameOverride;
+	}
+	
+	//run id will be sub folder name, it will be a new uuid if null
+	public String getUuid() {
+		return uuid; 
 	}
 
 	/**
@@ -156,11 +150,14 @@ public class Options {
 			log = sampleName + ".log";
 		}
 		
-		if (loglevel == null) {
-			loglevel = QSVConstants.DEFAULT_LOGLEVEL;
-		}
-		
-		outputDirName = generalSection.get("output");
+		//create output directory, the base name should be run id		
+		String dir = generalSection.get("output");
+		if (dir != null) {
+			outputDirName = (dir.endsWith(FILE_SEPERATOR) ? dir : dir + FILE_SEPERATOR ) + uuid + FILE_SEPERATOR;
+			createResultsDirectory(outputDirName);
+		}else {
+			throw new QSVException("NO_OUTPUT");
+		}	
 		
 		if (generalSection.get("min_insert_size") != null) {
 			minInsertSize =  new Integer(generalSection.get("min_insert_size"));
@@ -172,10 +169,10 @@ public class Options {
 			REPEAT_COUNT_CUTOFF =  new Integer(generalSection.get("repeat_cutoff"));
 		}
 
-		if (ranges == null) {
-			ranges = generalSection.getAll("range");			
-			processRanges();			
-		}
+		//ranges can be null, means all chromosome
+		ranges = generalSection.getAll("range");			
+		processRanges();			
+	
 		
 		String splitRead = generalSection.get("split_read");
 		if (splitRead != null && splitRead.equals("false")) {
@@ -302,25 +299,9 @@ public class Options {
 					singleSided = true;
 				}
 			}	
-			
-			if (clipSection.get("blatserver") != null) {
-				blatServer = clipSection.get("blatserver");
-			}
-			if (clipSection.get("blatport") != null) {
-				blatPort = clipSection.get("blatport");
-			}
-			if (clipSection.get("blatpath") != null) {
-				blatPath = clipSection.get("blatpath");
-			}
 		}
 		if (analysisMode.equals("pair")) {
 			isSplitRead = false;
-		}
-		
-		if (analysisMode.equals("clip")) {
-			if (blatServer == null || blatPort == null || blatPath == null) {
-				throw new QSVException("NO_BLAT");
-			}
 		}
 		
 		Section tumourSection = ini.get(QSVConstants.DISEASE_SAMPLE); 		
@@ -419,13 +400,15 @@ public class Options {
 		//check output file directory
 		}
 		
-		if (null == outputDirNameOverride) {
-			if (null ==  outputDirName) {  
-				throw new QSVException("NULL_OUTPUT_DIR");
-			} else if (!directoryExists(outputDirName)) {
-				throw new QSVException("NO_OUTPUT_DIR", outputDirName);
-			//check output file directory
-			}
+ 		//it is compulsary to specify output directory
+		if (null ==  outputDirName) {  
+			throw new QSVException("NULL_OUTPUT_DIR");
+		} else if (!directoryExists(outputDirName)) {
+			
+			//check the parent directory
+			
+			throw new QSVException("NO_OUTPUT_DIR", outputDirName);
+		//check output file directory
 		}
 		
 		if (null ==  tempDirName) {
@@ -484,6 +467,7 @@ public class Options {
 	 * @throws Exception
 	 */
     public void displayHelp() throws Exception {
+    	parser.formatHelpWith(new BuiltinHelpFormatter(150, 2));
 		parser.printHelpOn(System.err);
 	}
 
@@ -530,10 +514,6 @@ public class Options {
 	public void setAnalysisMode(String analysisMode) {
 		this.analysisMode = analysisMode;
 	}
-
-    public String getLoglevel() {
-        return loglevel;
-    }
 
     public String getComparisonFile() {
         return comparisonFile;
@@ -593,22 +573,6 @@ public class Options {
 
 	public void setConsensusLength(Integer consensusLength) {
 		this.consensusLength = consensusLength;
-	}
-
-	public String getBlatServer() {
-		return blatServer;
-	}
-
-	public String getBlatPort() {
-		return blatPort;
-	}
-
-	public String getBitFile() {
-		return bitFile;
-	}
-
-	public String getBlatPath() {
-		return blatPath;
 	}	
 
 	public String getMapper() {
@@ -753,5 +717,18 @@ public class Options {
 		return allChromosomes;
 	}
 
-
+	/**
+	 * Create the results directory for qsv
+	 * @throws QSVException if the directory already exists
+	 */
+	public static void createResultsDirectory(String directoryToCreate) throws QSVException {
+	    File resultsDir = new File(directoryToCreate);
+	    	/*
+	    	 * No longer check to see if directory already exists
+	    	 */
+	    resultsDir.mkdir();
+	     if ( ! resultsDir.exists()) {
+		    throw new QSVException("DIR_CREATE_ERROR", directoryToCreate);   
+	     }
+	}
 }

@@ -30,7 +30,6 @@ import org.qcmg.qsv.discordantpair.MatePair;
 import org.qcmg.qsv.discordantpair.PairClassification;
 import org.qcmg.qsv.discordantpair.PairGroup;
 
-import htsjdk.samtools.SAMReadGroupRecord;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.reference.FastaSequenceFile;
 import htsjdk.samtools.reference.FastaSequenceIndex;
@@ -407,6 +406,7 @@ public class QSVUtil {
 	 * @param analysisDate the analysis date
 	 * @return the analysis id
 	 */
+	@Deprecated
 	public static String getAnalysisId(boolean qcmg, String sampleName, Date analysisDate) {
 		if (qcmg) {
 			return QExec.createUUid();       	
