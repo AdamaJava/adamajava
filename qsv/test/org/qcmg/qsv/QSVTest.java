@@ -4,14 +4,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
 import java.util.UUID;
-
 
 import org.junit.Assert;
 import org.junit.Ignore;
@@ -19,12 +15,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.qsv.util.QSVUtil;
-import org.qcmg.qsv.util.TestUtil;
 
 public class QSVTest {
 
-    private  File normalBam;
-    private  File tumorBam;
     private PrintStream defaultOutstream = null;
     private PrintStream testOutPrintStream = null;
     private ByteArrayOutputStream testOut = null;
@@ -51,7 +44,9 @@ public class QSVTest {
     @Test
     public void testQSVWithInvalidArguments() throws Exception {
         setUpStreams();
-        String[] args = {"-log", "qsv.log", "--loglevel", "DEBUG", "iniFile" };
+      //removed log option from command line, it should inside the ini
+       // String[] args = {"-log", "qsv.log", "--loglevel", "DEBUG", "iniFile" };
+        String[] args = { "iniFile" };
         QSV qsv = new QSV();
 
         int exitStatus = qsv.runQSV(args);
@@ -59,6 +54,8 @@ public class QSVTest {
         assertTrue(testOut.toString().contains("org.qcmg.qsv.QSVException"));
         cleanUpStreams();
     }
+    
+
     
     @Test
     public void getResultsDir() {
@@ -117,7 +114,7 @@ public class QSVTest {
         int exit = qsv.runQSV(new String[0]);
         assertEquals(0, exit);
         assertEquals(
-                "usage: qsv [OPTIONS] --ini [ini_file] --tmp [temporary_directory]\n",
+                "usage: java -jar qsv.jar --ini <ini_file> --output-temporary <directory> [OPTIONS]\n",
                 testOut.toString());
         cleanUpStreams();
     }
@@ -129,7 +126,8 @@ public class QSVTest {
         QSV qsv = new QSV();
         int exit = qsv.runQSV(args);
         assertEquals(0, exit);
-        assertTrue(testOut.toString().startsWith("Option"));
+        //assertTrue(testOut.toString().startsWith("Option"));
+        assertTrue(testOut.toString().startsWith("usage:"));
         cleanUpStreams();
     }
 
@@ -144,7 +142,8 @@ public class QSVTest {
         cleanUpStreams();
     }
 
-    @Test
+    @Test 
+    @Ignore
     public void testQSVNoLogging() throws Exception {
         setUpStreams();
         String[] args = {"-loglevel", "DEBUG"};

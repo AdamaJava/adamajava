@@ -14,7 +14,6 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.meta.QExec;
 import org.qcmg.common.string.StringUtils;
-import org.qcmg.common.util.LoadReferencedClasses;
 import org.qcmg.qsv.util.QSVUtil;
 
 
@@ -27,7 +26,6 @@ public class QSV {
 	private static QLogger logger;
 	
 	private Options options;
-	private String resultsDirectory;
 
 	public static void main(String[] args) throws Exception {	
 
@@ -56,36 +54,24 @@ public class QSV {
 			} else {
 				this.options = new Options(args);
 				if (options.hasHelpOption()) {
+					System.err.println(Messages.USAGE);
 					options.displayHelp();
 				} else if (options.hasVersionOption()) {
 					System.err.println(Messages.getVersionMessage());			
 				} else {
 					
 					options.parseIniFile();					
-					
-					//use analysis id to set up results folder
-					Date analysisDate = new Date();
-					
-					String analysisId = getAnalysisId(options.isQCMG(), options.getOverrideOutput(), options.getSampleName(), analysisDate);
-					
-					String uuid = analysisId;
-					if ( ! options.isQCMG()) {
-						uuid = QExec.createUUid();
-					}
-					
-					resultsDirectory = getResultsDirectory(options.getOverrideOutput(),options.getOutputDirName(), analysisId);
-					createResultsDirectory(resultsDirectory);
-					
+																				
 					// configure logging				
-				    String logFile = resultsDirectory + options.getLog();
+				    String logFile = options.getOutputDirName() + options.getLog();
 					String version = QSV.class.getPackage().getImplementationVersion();
 					logger = QLoggerFactory.getLogger(QSV.class, logFile, options.getLogLevel());
-					QExec exec = logger.logInitialExecutionStats("qsv", version, args, uuid);
+					QExec exec = logger.logInitialExecutionStats("qsv", version, args, options.getUuid());
 					
-					logger.info("QSV files will be written to the directory: " + resultsDirectory);					
+					logger.info("QSV files will be written to the directory: " + options.getOutputDirName());					
 					
 					//Run the QSV pipeline
-					QSVPipeline pipeline = new QSVPipeline(options, resultsDirectory, analysisDate, analysisId, exec);
+					QSVPipeline pipeline = new QSVPipeline(options, options.getOutputDirName(),new Date(), options.getUuid(), exec);
 					pipeline.runPipeline();
 				}
 			}
@@ -102,8 +88,8 @@ public class QSV {
 		return exitStatus;
 	}
 	
-	
-	
+	//qSV_<sampleName>_<date> is no longer used
+	@Deprecated 
 	public static String getAnalysisId(boolean isQCMG, String overrideOutput, String sample, Date analysisDate) {
 		String analysisId = null;
 		if (isQCMG && null != overrideOutput ) {
@@ -128,6 +114,7 @@ public class QSV {
 		return analysisId;
 	}
 	
+	@Deprecated
 	public static String getResultsDirectory(String overrideOutput, String outputDir, String analysisId) {
 		
 		if ( ! StringUtils.isNullOrEmpty(overrideOutput)) {
@@ -140,27 +127,13 @@ public class QSV {
 		return outputDir + FILE_SEPERATOR + analysisId + FILE_SEPERATOR;
 	}
 	
-	/**
-	 * Create the results directory for qsv
-	 * @throws QSVException if the directory already exists
-	 */
-	public static void createResultsDirectory(String directoryToCreate) throws QSVException {
-	    File resultsDir = new File(directoryToCreate);
-	    	/*
-	    	 * No longer check to see if directory already exists
-	    	 */
-	    resultsDir.mkdir();
-	     if ( ! resultsDir.exists()) {
-		    throw new QSVException("DIR_CREATE_ERROR", directoryToCreate);   
-	     }
-	}
+
 
 	/**
 	 * Get the results direct
 	 * @return the full path of the results directory
 	 */
-	public String getResultsDirectory() {
-		return resultsDirectory;
-	}
-
+//	public String getResultsDirectory() {
+//		return options.getOutputDirName();
+//	}
 }

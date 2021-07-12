@@ -6,9 +6,6 @@
  */
 package org.qcmg.qsv.splitread;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,7 +30,6 @@ import org.qcmg.qsv.QSVException;
 import org.qcmg.qsv.QSVParameters;
 import org.qcmg.qsv.assemble.ConsensusRead;
 import org.qcmg.qsv.assemble.QSVAssemble;
-import org.qcmg.qsv.blat.BLAT;
 import org.qcmg.qsv.util.QSVConstants;
 import org.qcmg.qsv.util.QSVUtil;
 
@@ -64,11 +60,10 @@ public class SplitReadContig {
 	private String consensus;
 	private Map<String, List<Chromosome>> chromosomes;
 	private boolean hasSoftClipEvidence;
-//	private final BLAT blat;
 	private final TIntObjectMap<int[]> cache;
 	private final QSVParameters parameters;
 	private String mutationType;
-	private String blatFile;
+	private String blatFile;	
 	private String clipContig;
 	private String softclipDir;
 	private String name;
@@ -315,82 +310,7 @@ public class SplitReadContig {
 		this.softclipDir = softclipDir;
 		this.blatFile = blatFile;
 		this.name = getName();
-
-		//		this.knownSV = new StructuralVariant("chr22", "chr22", 21353096, 21566646, "3");
-		//		this.consensus = "CAGATAGAAGTTTCTAGAGCAACAACAGCTGCCTTTCTTTCGGGAATAATCCGTGATAAAGAAATAAATCATCAGAGGCAGACAGGAGCATTGTAGGAACAGCACCCCGAGCCAGTGAGTAGATGAAGGAGCTGGCCTTAGCCAAAAAGGAGGGCAGAGGGACACCTGGCCCACATGGCTGGGCGCTGCAGCCTGCACTCCACTTCCAGGTGCTGACATATCCTCCCCAGCCATGGTCCTGGGCCTGCTGTGT";
-
-		//			this.consensus = "TTTTCCCCACATCCTTGCCAGTATTCATTATCGCCTGTCTATTTGAACACAAAGCCATTTTACCTGGGGTAAGATGATATTTCATTGTGATTTTGCTTTGCATTTCTTTCATGATTAGTGATGATGAACATTTTTAAATAACTGTTGCCACGAGAGTACACAGAGCAAAGGAGACAGGGTCATTTATACCCTGATGCGTCCACCCCACTGCTGTGTCCGGTTTCCATTGG";
-		//		this.knownSV = new StructuralVariant("chr10", "chr17", 
-		//				13230927, 12656100, "4");	
-
-		//		10   +   13231026	17   +   12656098		
-		//		Cat1RC
-		//		17   -   12656098	10   -   13231026		
-		//
-		//		Cat2
-		//		17   +   12656199	10   +   13230926		
-		//		Cat2RC
-		//		10   -   13230926	17   -   12656199		
-		//
-		//		Cat3
-		//		10   +   13231026	17   -   12656200		
-		//		Cat3RC
-		//		17   +   12656200	10   -   13231026		
-		//
-		//		Cat4
-		//		10   -   13230927	17   +   12656100		
-		//		Cat4RC
-		//		17   -   12656100	10   +   13230927	
-		//cat1
-		//		this.consensus= "AGCTCAGCGCAAAGCGTGCGGATCTGCAGTCCACCTTCTCTGGAGGACGAATTCCAAAGAAGTTTGCCCGCAGAGGCACCAGCCTCAAAGAACGGCTGTGTTTTAGCAGCCTGAATGGGGGCTCTGTTCCTTCTGAGCTGGATGGGCTGGACTCCGAGAAGGACAAGATGCTGGTGGAGAAGCAGAAGGTGATCAATGAACTCA";
-		//		this.consensus= "TGAGTTCATTGATCACCTTCTGCTTCTCCACCAGCATCTTGTCCTTCTCGGAGTCCAGCCCATCCAGCTCAGAAGGAACAGAGCCCCCATTCAGGCTGCTAAAACACAGCCGTTCTTTGAGGCTGGTGCCTCTGCGGGCAAACTTCTTTGGAATTCGTCCTCCAGAGAAGGTGGACTGCAGATCCGCACGCTTTGCGCTGAGCT";
-		//		//cat2
-		//		this.consensus = "AGCAGCCTGAATGGGGGCTCTGTTCCTTCTGAGCTGGATGGGCTGGACTCCGAGAAGGACAAGATGCTGGTGGAGAAGCAGAAGGTGATCAATGAACTCATTTTAGCTCAGCGCAAAGCGTGCGGATCTGCAGTCCACCTTCTCTGGAGGACGAATTCCAAAGAAGTTTGCCCGCAGAGGCACCAGCCTCAAAGAACGGCTGTG";
-		//	    this.consensus = "CACAGCCGTTCTTTGAGGCTGGTGCCTCTGCGGGCAAACTTCTTTGGAATTCGTCCTCCAGAGAAGGTGGACTGCAGATCCGCACGCTTTGCGCTGAGCTAAAATGAGTTCATTGATCACCTTCTGCTTCTCCACCAGCATCTTGTCCTTCTCGGAGTCCAGCCCATCCAGCTCAGAAGGAACAGAGCCCCCATTCAGGCTGCT";
-		//cat3
-		//	    this.consensus= "AGCTCAGCGCAAAGCGTGCGGATCTGCAGTCCACCTTCTCTGGAGGACGAATTCCAAAGAAGTTTGCCCGCAGAGGCACCAGCCTCAAAGAACGGCTGTGTTTTTGAGTTCATTGATCACCTTCTGCTTCTCCACCAGCATCTTGTCCTTCTCGGAGTCCAGCCCATCCAGCTCAGAAGGAACAGAGCCCCCATTCAGGCTGCT";
-		//		this.consensus= "AGCAGCCTGAATGGGGGCTCTGTTCCTTCTGAGCTGGATGGGCTGGACTCCGAGAAGGACAAGATGCTGGTGGAGAAGCAGAAGGTGATCAATGAACTCAAAAACACAGCCGTTCTTTGAGGCTGGTGCCTCTGCGGGCAAACTTCTTTGGAATTCGTCCTCCAGAGAAGGTGGACTGCAGATCCGCACGCTTTGCGCTGAGCT";
-		//	    //cat4
-		//		this.consensus= "CACAGCCGTTCTTTGAGGCTGGTGCCTCTGCGGGCAAACTTCTTTGGAATTCGTCCTCCAGAGAAGGTGGACTGCAGATCCGCACGCTTTGCGCTGAGCTTTTTAGCAGCCTGAATGGGGGCTCTGTTCCTTCTGAGCTGGATGGGCTGGACTCCGAGAAGGACAAGATGCTGGTGGAGAAGCAGAAGGTGATCAATGAACTCA";
-		//		this.consensus= "TGAGTTCATTGATCACCTTCTGCTTCTCCACCAGCATCTTGTCCTTCTCGGAGTCCAGCCCATCCAGCTCAGAAGGAACAGAGCCCCCATTCAGGCTGCTAAAAAGCTCAGCGCAAAGCGTGCGGATCTGCAGTCCACCTTCTCTGGAGGACGAATTCCAAAGAAGTTTGCCCGCAGAGGCACCAGCCTCAAAGAACGGCTGTG";
-
-		//		this.consensus = "CAGATAGAAGTTTCTAGAGCAACAACAGCTGCCTTTCTTTCGGGAATAATCCGTGATAAAGAAATAAATCATCAGAGGCAGACAGGAGCATTGTAGGAACAGCACCCCGAGCCAGTGAGTAGATGAAGGAGCTGGCCTTAGCCAAAAAGGAGGGCAGAGGGACACCTGGCCCACATGGCTGGGCGCTGCAGCCTGCACTCCACTTCCAGGTGCTGACATATCCTCCCCAGCCATGGTCCTGGGCCTGCTGTGT";
-		//		this.consensus = "ACTCAGCCCCAGCTGACCAGATCGCCCCTGATCAAGCCCCACAGCCCAGGTTTGCACTGACCAGACACCAAACATCTGGCAGCCAATAGGTCCCCACTCACCAAAACCCCTAAAACTTGATCCCACTAATAAGACCCTCTCTAAGCAGACCCCTGCTGACCACGATCCCACTAAATAGGCCTCACTGACCTACCACTGACCAGGCCCACAATGATCAGGCTCCTCCTAACCACACCGGAAATCCAAGCGGCAATGATATGTT";
-		//		this.consensus = "";
-		//		this.consensus = "";
-		//		this.consensus = "";
-		//		this.consensus = "";
-		//		this.consensus = "";
-
-
 	}
-
-//	public void findSplitRead() throws Exception {
-//		if (consensus != null) {
-//
-//			this.length = consensus.length();
-//			if (length > 0) {
-//				List<BLATRecord> records = blat.getBlatResults(blatFile, knownSV.getLeftReference(), knownSV.getRightReference(), name);			
-//				if (records.size() > 0) {	
-//
-//					parseConsensusAlign(records);
-//					if ( ! isPotentialSplitRead && isTumour() && clipContig.length() > 0) {
-//						consensus = clipContig;
-//						length = consensus.length();
-//						if (length > 0) {
-//							records = blat.alignConsensus(softclipDir, name + "_clip", clipContig, knownSV.getLeftReference(), knownSV.getRightReference());			
-//							if (records.size() > 0) {		
-//								parseConsensusAlign(records);
-//								if ( ! isPotentialSplitRead && isTumour()) {
-//									consensus = clipContig;	
-//								}
-//							}
-//						}
-//					}
-//				}			
-//			}		
-//		}
-//	}
 	
 	public static List<BLATRecord> getBlatResults(Map<String, List<BLATRecord>> blatRecords, String leftReference, String rightReference, String name, String sequence) {
 		return getBlatResults(blatRecords, leftReference, rightReference, name, sequence, false);
@@ -494,7 +414,7 @@ public class SplitReadContig {
 		}
 	}
 	
-public static List<BLATRecord> alignConsensus(Map<String, List<BLATRecord>> blatRecords, String name, String consensus, String leftReference, String rightReference) throws IOException, QSVException {
+	public static List<BLATRecord> alignConsensus(Map<String, List<BLATRecord>> blatRecords, String name, String consensus, String leftReference, String rightReference) throws IOException, QSVException {
 		
 		List<BLATRecord> records = new ArrayList<>();
 		if (null != blatRecords && ! blatRecords.isEmpty()) {
@@ -1009,23 +929,6 @@ public static List<BLATRecord> alignConsensus(Map<String, List<BLATRecord>> blat
 		left = pair.getLeft();
 		right = pair.getRight();
 	}
-
-//	private void setSplitReadAlignments(BLATRecord r1, BLATRecord r2) {
-//		if (r1.getBlockCount() == 1 && (r2.getBlockCount() >= 1)) {				
-//			left = new SplitReadAlignment(r1); 
-//			if (passesNewAlignmentFilters(left, confidenceLevel, knownSV.getLeftBreakpoint().intValue(), knownSV.getRightBreakpoint().intValue(), length)) {
-//				right = getPutativeOtherAlignment(left.getQueryStart(), left.getQueryEnd(), r2, getSingleSplitReadAlignment(left, right), length, confidenceLevel, knownSV.getLeftBreakpoint().intValue(), knownSV.getRightBreakpoint().intValue());
-//			}
-//		} else if (r1.getBlockCount() >1 && r2.getBlockCount() == 1) {				
-//			right = new SplitReadAlignment(r2); 
-//			if (passesNewAlignmentFilters(right, confidenceLevel, knownSV.getLeftBreakpoint().intValue(), knownSV.getRightBreakpoint().intValue(), length)) {
-//				left = getPutativeOtherAlignment(right.getQueryStart(), right.getQueryEnd(), r1, getSingleSplitReadAlignment(left, right), length, confidenceLevel, knownSV.getLeftBreakpoint().intValue(), knownSV.getRightBreakpoint().intValue());
-//			}	
-//		} else {
-//			left = getPutativeOtherAlignment(null, null, r1, getSingleSplitReadAlignment(left, right), length, confidenceLevel, knownSV.getLeftBreakpoint().intValue(), knownSV.getRightBreakpoint().intValue());
-//			right = getPutativeOtherAlignment(null, null, r2, getSingleSplitReadAlignment(left, right), length, confidenceLevel, knownSV.getLeftBreakpoint().intValue(), knownSV.getRightBreakpoint().intValue());
-//		}		
-//	}
 
 	private void getTranslocationSplitReadAlignments(SplitReadAlignment align, List<BLATRecord> leftRecords, List<BLATRecord> rightRecords) {
 		//left ref		

@@ -1,6 +1,7 @@
 package org.qcmg.qsv;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import org.junit.Test;
 
@@ -8,8 +9,11 @@ public class MessagesTest {
 
     @Test
     public void testGetMessageString() {
-        String message = Messages.getMessage("LOG_OPTION");
-        assertEquals("Name of log file. Will be written to the output directory.", message);
+    	try {
+    		Messages.getMessage("LOG_OPTION");  
+        	fail("exception is not throw, but there is no more log option");
+    	}catch(Exception e) {}
+       
     }
 
     @Test
