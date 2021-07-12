@@ -92,7 +92,6 @@ public class AnnotatorTest {
     		assertEquals(98, rec.getAttribute("XS"));
     		
     		
-//    	   	sequencingRuns = new ArrayList<RunTypeRecord>();
     		RunTypeRecord r = new RunTypeRecord("20141216163713333", 300, 2700, "seq_mapped");
     		sequencingRuns.add(r);
     		
@@ -168,8 +167,6 @@ public class AnnotatorTest {
     	assertEquals(100, rec.getAttribute("AS"));
     	assertEquals(19, rec.getAttribute("XS"));
     	
-    	
-//    	   	sequencingRuns = new ArrayList<RunTypeRecord>();
     	RunTypeRecord r = new RunTypeRecord("20141216163712514", 300, 1700, "seq_mapped");
     	sequencingRuns.add(r);
     	
@@ -202,7 +199,7 @@ public class AnnotatorTest {
   	    Annotator.setNHAttribute("novoalign", r1);
   	    assertEquals(1, r1.getAttribute(QSVConstants.NH_SHORT));
   	    
-  	  //singleton, passes vendor check
+  	   //singleton, passes vendor check
         r1 = records.get(1);
         Annotator.setNHAttribute("bwa", r1);
         assertEquals(0, r1.getAttribute(QSVConstants.NH_SHORT));

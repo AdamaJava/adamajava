@@ -26,7 +26,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.model.BLATRecord;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qsv.Options;
@@ -67,14 +66,14 @@ public class TestUtil {
 		String iniFile = setUpIniFile(testFolder, preprocessMode, analysisMode, normalBam, tumorBam, 3, 1, testFolder.getAbsolutePath(),testFolder.getAbsolutePath(), goodOutput);
 		
 		
-		return new String[] {"--ini", iniFile, "--tmp",  testFolder.getAbsolutePath()};
+		return new String[] {"--ini", iniFile, "--output-temporary",  testFolder.getAbsolutePath()};
 	}
 	public static String[] getValidOptions(final File testFolder,
 			final String normalBam, final String tumorBam, final String preprocessMode,
 			final String analysisMode, boolean goodOutput, String mapper, String platform) throws IOException {
 		String iniFile = setUpIniFile(testFolder, preprocessMode, analysisMode, normalBam, tumorBam, 3, 1, testFolder.getAbsolutePath(), testFolder.getAbsolutePath(), goodOutput, mapper, platform);
 		
-		return new String[] {"--ini", iniFile, "--tmp",  testFolder.getAbsolutePath()};
+		return new String[] {"--ini", iniFile, "--output-temporary",  testFolder.getAbsolutePath()};
 	}
 
 	public static String[] getInvalidOptions(final File testFolder,
@@ -83,7 +82,7 @@ public class TestUtil {
    
 		String iniFile = setUpIniFile(testFolder, "both", mode, normalBam, tumorBam, clusterSize, filterSize, tmpDir, outputDir);
 		
-        return new String[] {"--ini", iniFile, "--tmp",  testFolder.getAbsolutePath()};
+        return new String[] {"--ini", iniFile, "--output-temporary",  testFolder.getAbsolutePath()};
     }
 	
 	private static String setUpIniFile(final File testFolder, String preprocessMode,

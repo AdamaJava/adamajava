@@ -227,11 +227,11 @@ public class SignatureGeneratorTest {
     	try (VcfFileReader reader = new VcfFileReader(outputFile);) {    			
 	    	for (final VcfRecord rec : reader) {
 	    		recs.add(rec);
-		    	System.out.print("rec: " + rec.toString());
+//		    	System.out.print("rec: " + rec.toString());
 	    	}
     	}
        	
-    	assertEquals(6, recs.size());
+    	assertEquals(7, recs.size());
     }
     
     @Test
@@ -256,11 +256,11 @@ public class SignatureGeneratorTest {
 	    	try (VcfFileReader reader = new VcfFileReader(outputFile);) {    			
 		    	for (final VcfRecord rec : reader) {
 		    		recs.add(rec);
-		    		System.out.print("rec: " + rec.toString());
+//		    		System.out.print("rec: " + rec.toString());
 		    	}
 	    	}
 	       	
-	    	assertEquals(6, recs.size());
+	    	assertEquals(7, recs.size());
     }
     
     static void writeSnpChipFile(File snpChipFile) throws IOException {
@@ -292,9 +292,10 @@ public class SignatureGeneratorTest {
 			writer.write("rs10000023	G	G/T	chr4	95733906	+	[T/G]	no\n");
     	}
     }
-    static void writeSnpPositionsFile(File snpPositions) throws IOException {
+    public static void writeSnpPositionsFile(File snpPositions) throws IOException {
     	try (Writer writer = new FileWriter(snpPositions);) {
     		writer.write("chr3	183635768	random_1016708		C		RANDOM_POSITION\n");
+    		writer.write("chr3	183635778	random_1016709		G		RANDOM_POSITION\n");
     		writer.write("chr4	75406448	random_649440		A		RANDOM_POSITION\n");
     		writer.write("chr4	95733906	random_1053689		G		RANDOM_POSITION\n");
     		writer.write("chr4	108826383	random_1146989		T		RANDOM_POSITION\n");
@@ -306,11 +307,12 @@ public class SignatureGeneratorTest {
     /*
      * looks a little like a vcf file.... wait it is a vcf!
      */
-    static void writeSnpPositionsVcf(File snpPositions) throws IOException {
+    public static void writeSnpPositionsVcf(File snpPositions) throws IOException {
     	try (Writer writer = new FileWriter(snpPositions);) {
     		writer.write("##fileformat=VCFv4.2\n");
     		writer.write("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n");
     		writer.write("chr3	183635768	random_1016708	C	.\t.\t.\t.\n");
+    		writer.write("chr3	183635778	random_1016709	G	.\t.\t.\t.\n");
     		writer.write("chr4	75406448	random_649440	A	.\t.\t.\t.\n");
     		writer.write("chr4	95733906	random_1053689	G	.\t.\t.\t.\n");
     		writer.write("chr4	108826383	random_1146989	T	.\t.\t.\t.\n");

@@ -3,10 +3,12 @@ package org.qcmg.qsv;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.UUID;
 
 import org.ini4j.InvalidFileFormatException;
 import org.junit.After;
@@ -15,6 +17,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.qcmg.common.meta.QExec;
 import org.qcmg.qsv.util.TestUtil;
 
 public class OptionsTest {
@@ -133,7 +136,7 @@ public class OptionsTest {
         assertEquals(options.getLog(), "test.log");
         assertEquals(options.getLogLevel(), "DEBUG");
         assertEquals(options.getSampleName(), "test");
-        assertEquals(options.getOutputDirName(), tmp.toString());
+        assertEquals(options.getOutputDirName(), tmp.toString() + Options.FILE_SEPERATOR + options.getUuid() + Options.FILE_SEPERATOR);
         assertTrue(options.getReference().contains("reference_file"));
         assertEquals(options.getPreprocessMode(), "both");
         assertEquals(options.getAnalysisMode(), "both");        
@@ -149,9 +152,9 @@ public class OptionsTest {
         assertEquals(options.getClipQuery(), "and(Cigar_M > 35,option_SM > 14,MD_mismatch < 3,Flag_DuplicateRead == false)");
         assertEquals(options.getClipSize().intValue(), 3);
         assertEquals(options.getConsensusLength(), new Integer(20));
-        assertEquals(options.getBlatPath(), "/home/Software/BLAT");
-        assertEquals(options.getBlatServer(), "localhost");
-        assertEquals(options.getBlatPort(), "50000");
+//        assertEquals(options.getBlatPath(), "/home/Software/BLAT");
+//        assertEquals(options.getBlatServer(), "localhost");
+//        assertEquals(options.getBlatPort(), "50000");
         
         //tumor
         assertEquals(options.getInputFile(), file2);
@@ -174,14 +177,19 @@ public class OptionsTest {
 
     @Test
     public void testVersionOption() throws QSVException, InvalidFileFormatException, IOException {
+    	//long form option
         Options options = new Options(new String[] {"--version"});
         assertTrue(options.hasVersionOption());
 
+        //short form option
         Options options2 = new Options(new String[] {"-v"});
         assertTrue(options2.hasVersionOption());
 
-        Options options3 = new Options(new String[] {"-V"});
-        assertTrue(options3.hasVersionOption());
+        try {
+        	 Options options3 = new Options(new String[] {"-V"});
+            fail("except to throw exception");
+         }  catch(Exception e) {}
+        
     }
     
     @Test(expected = QSVException.class)
@@ -303,27 +311,95 @@ public class OptionsTest {
     		Options options = new Options(TestUtil.getInvalidOptions(tmp, file1, file2, "both", 5, 0, tmp.getAbsolutePath(), tmp.getAbsolutePath()));
     		options.parseIniFile();
         Assert.assertEquals(null, options.getFilterSize());
-//        options.detectBadOptions();
     }
+    
+    @Test
+    public void getRunIdTest() throws IOException, QSVException {
+    	//create output dir
+    	File tmp = testFolder.newFolder();
+    	
+    	//create ini file
+    	String[] args = TestUtil.getValidOptions(tmp, file1, file2, "both", "both", true);
+    	
+    	//without option --uuid, it will create an uuid as runid
+	 	Options options = new Options(args);
+	 	try {
+			UUID.fromString(options.getUuid());
+		} catch (IllegalArgumentException iae) {
+			Assert.fail("run id is not an uuid string!");
+		}
+	 	
+	   	// add option --uuid,	
+		String [] newArgs = Arrays.copyOf(args, args.length + 2);
+	 	newArgs[newArgs.length - 2] = "--uuid";
+	 	newArgs[newArgs.length - 1] = "test-uuid";	 
+	 	options = new Options(newArgs);
+	 	options.parseIniFile();
+	 	Assert.assertEquals( options.getUuid(), "test-uuid" );
+	 	assertTrue(options.getOutputDirName().endsWith("test-uuid"+Options.FILE_SEPERATOR));
+    			
+    }
+    
+    @Test
+    public void createResultsDirectoryTest() throws IOException {
+    	//create output dir
+    	File tmp = testFolder.newFolder();
+    	//sub folder name
+    	File uuid = new File(tmp.getAbsolutePath() + "/uuid"); 
+    	assertTrue(!uuid.exists());
+    	
+    	//first time create dir
+    	try {
+    		Options.createResultsDirectory(uuid.getAbsolutePath());
+    		assertTrue(uuid.exists());
+    	}catch(QSVException e) {
+    		Assert.fail("Should not thrown an QSVException");
+    	}
+    	
+        //second time create dir
+    	try {
+    	   	//create an empty file to the subfolder
+        	File iniFile = new File(uuid, "test.ini"); 
+        	iniFile.createNewFile();  
+        	assertTrue(iniFile.exists());
+        	
+        	//do nothing if the dir already exists, all files under the dir keep same
+    		Options.createResultsDirectory(uuid.getAbsolutePath());
+    		assertTrue( iniFile.exists());    		
+    	}catch(QSVException e) {
+    		Assert.fail("Should not thrown an QSVException");
+    	}
+    	
+    }    
     
     @Test
     public void outputOverride() throws IOException, QSVException {
     	File tmp = testFolder.newFolder();
-    	 	String[] args = TestUtil.getValidOptions(tmp, file1, file2, "both", "both", false);
-    	 	Options options = new Options(args);
-    	 	try {
-    	 		options.parseIniFile();
-    	 		Assert.fail("Should have thrown an Exception");
-    	 	} catch (QSVException qsve) {}
-    	 	
-    	 	// add in the override option
-    	 	
-    	 	String [] newArgs = Arrays.copyOf(args, args.length + 2);
-    	 	newArgs[newArgs.length - 2] = "--overrideOutput";
-    	 	newArgs[newArgs.length - 1] = testFolder.newFile().getAbsolutePath();
-    	 	
-    	 	options = new Options(newArgs);
-    	 	options.parseIniFile();
+    	//ini file missing output option.
+	 	String[] args = TestUtil.getValidOptions(tmp, file1, file2, "both", "both", false);
+	 	Options options = new Options(args);
+	 	try {
+	 		options.parseIniFile();
+	 		Assert.fail("Should have thrown an Exception");
+	 	} catch (QSVException qsve) {}
+	 	
+	 	// add in the override option	 	
+	 	String [] newArgs = Arrays.copyOf(args, args.length + 2);
+	 	newArgs[newArgs.length - 2] = "--uuid";
+	 	newArgs[newArgs.length - 1] = QExec.createUUid();
+	 	
+	 	options = new Options(newArgs);
+	 	try {
+	 		//it will fail because missing ini output option 
+	 		options.parseIniFile();
+	 		Assert.fail("Should have thrown an Exception");
+	 	} catch (QSVException qsve) {}
+	 	
+	 		 	
+	 	//add output option to ini file
+	 	args = TestUtil.getValidOptions(tmp, file1, file2, "both", "both", true);
+	 	options = new Options(newArgs);	 	
+	 	options.parseIniFile();
     	 	
     }
 
@@ -348,10 +424,13 @@ public class OptionsTest {
     
     @Test(expected = QSVException.class)
     public void testBadOptionsIniFileOption() throws QSVException, InvalidFileFormatException, IOException {
-    	Options options = new Options(new String[] {"-log", "log.log", "--loglevel", "INFO"});
-
+    	//removed log option from command line, it should inside the ini
+    	//Options options = new Options(new String[] {"-log", "log.log", "--loglevel", "INFO"});
+    	Options options = new Options(new String[] {"-help"});
         assertEquals(null, options.getIniFile());
         options.detectBadOptions();
     }
+    
+
 
 }
