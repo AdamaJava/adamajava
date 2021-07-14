@@ -67,7 +67,7 @@ The template and descrition of ini file follows:
 
 ~~~~{.text}
 [general]
-log = Opt, base name of log file. Def={sample>.log
+log = Opt, base name of log file. Def=<sample>.log
 loglevel = Opt, Logging level [INFO,DEBUG], Def=INFO.
 sample = Opt, donor or patient id.
 sv_analysis = (*) Opt, Type of sv analysis [pair, clip, both]. Def=both.
@@ -100,8 +100,9 @@ input_file = Req, the test/disease bam with full path. Must be co-ordinate sorte
 
 [test/size_1]
 rgid = Req, Read Group ID.
-lower = Req, lower insert size
-upper = Req, upper insert size
+lower = Req, lower insert size.
+upper = Req, upper insert size.
+name = Opt, sample name which may indicate read group id, name or type. Def=<empty string>.
 
 [control]
 name = Req, control sample name which may indicate sample id, name or type.  
@@ -112,6 +113,7 @@ input_file = Req, the control/normal bam with full path. Must be co-ordinate sor
 rgid = Req, Read Group ID.
 lower = Req, lower insert size
 upper = Req, upper insert size
+name = Opt, sample name which may indicate read group id, name or type. Def=<empty string>.
 ~~~~
 
 ### `output` option under [general] section
@@ -153,21 +155,20 @@ Discordant pair mode requires the provision of a normal range of expected insert
 1.  using Picard's [CollectInsertSizeMetrics](http://broadinstitute.github.io/picard/command-line-overview.html#CollectInsertSizeMetrics) to give you a TLEN distribution
 2.  using [qprofiler](../qprofiler/index.md)
 
-An upper and lower insert size must be provided for each readgroup in the input BAM files. 
-(?? should this [test/size] or [control/size] section be removed if we run clip mode only?)
+An upper and lower insert size must be provided for each readgroup in the input BAM files. This section is not required if sv_analysis=clip. 
 
 ## outputs
 qsv will generate a number of output files to \<output>/\<uuid>/:
- * \<uuid>.qsv.log: a log file records of activities for the qSV analysis.
- * \<uuid>.qsv.summary.txt:  a summary file summarizes parameters used in the qSV analysis.
- * \<uuid>.\<germline|normal-germline|somatic>.sv.txt: summary of structural variants identified in a tab-delimited text file for germline and somatic events.
- * \<uuid>.\<germline|normal-germline|somatic>.dcc: DCC files for QCMG center. 
- * \<uuid>_no_blat_alignment.txt: An unaligned soft clips file lists soft clipps with high evidence that did not lign to the reference genome and are potentially somatic. 
- * \<uuid>.somatic.qprimer: a file lists of regions to design primers 
- * \<uuid>.sv_counts.txt: a file lists counts of the numbers of discordant pair SVs
- * \<uuid>.somatic.softlcip.txt: contigs from soft clips 
- * \<uuid>.<test::name|control::name>.pairing_stats.xml: ???
- * \<uuid>.\<chr>.\<germlines|omatic>.records: files gives information about the discordant pair reads and/or soft clipped reads that support a particular structural variant. Each structural variant is described by:
+ * \<sample>.qsv.log: a log file records of activities for the qSV analysis.
+ * \<sample>.qsv.summary.txt:  a summary file summarizes parameters used in the qSV analysis.
+ * \<sample>.\<germline|normal-germline|somatic>.sv.txt: summary of structural variants identified in a tab-delimited text file for germline and somatic events.
+ * \<sample>.\<germline|normal-germline|somatic>.dcc: DCC files for QCMG center. 
+ * \<sample>.no_blat_alignment.txt: An unaligned soft clips file lists soft clipps with high evidence that did not lign to the reference genome and are potentially somatic. 
+ * \<sample>.somatic.qprimer: a file lists of regions to design primers 
+ * \<sample>.sv_counts.txt: a file lists counts of the numbers of discordant pair SVs
+ * \<sample>.somatic.softlcip.txt: contigs from soft clips 
+ * \<sample>.\<test::name|control::name>.pairing_stats.xml: a file lists discordant pairs stats. ???
+ * \<sample>.\<chr>.\<germlines|omatic>.records: files gives information about the discordant pair reads and/or soft clipped reads that support a particular structural variant. Each structural variant is described by:
    *  a header specifying the sv_id, and mutation type call 
    *  a list of the discordant reads (where appropriate) supporting the SV in the format: 
    *  comma separated list of mate 1 read name:read group id, mate 1 reference, mate 1 position start, mate 1 position end, mate 1 flags, mate 1 strand, mate 2 read name:read group id, mate 2 reference, mate 2 position start, mate 2 position end, mate 2 flags, mate 2 strand, pair orientation (eg. F1R2), mutation type eg DEL/ITX based on expected read strand, orientation and distance. 
