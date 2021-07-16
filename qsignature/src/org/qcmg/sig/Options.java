@@ -95,7 +95,7 @@ final class Options {
 		.describedAs("hetLowerCutoff");
 		parser.accepts("noOfThreads", NO_OF_THREADS_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class)
 			.describedAs("noOfThreads");
-		parser.accepts("maxCacheSize", MAX_CACHE_SIZE_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class)
+		parser.acceptsAll(asList("maxCacheSize", "max-cache-size"), MAX_CACHE_SIZE_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class)
 		.describedAs("maxCacheSize");
 		parser.accepts("snpPositions", SNP_POSITION_DESCRIPTION).withRequiredArg().ofType(String.class)
 			.describedAs("snpPositions");
