@@ -55,6 +55,7 @@ final class Options {
 	private final Integer minMappingQuality;
 	private final Integer minBaseQuality;
 	private final Integer noOfThreads;
+	private final Integer maxCacheSize;
 	private final Float homCutoff;
 	private final Float hetUpperCutoff;
 	private final Float hetLowerCutoff;
@@ -92,6 +93,8 @@ final class Options {
 		.describedAs("hetLowerCutoff");
 		parser.accepts("noOfThreads", NO_OF_THREADS_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class)
 			.describedAs("noOfThreads");
+		parser.accepts("maxCacheSize", NO_OF_THREADS_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class)
+		.describedAs("maxCacheSize");
 		parser.accepts("snpPositions", SNP_POSITION_DESCRIPTION).withRequiredArg().ofType(String.class)
 			.describedAs("snpPositions");
 		parser.accepts("genePositions", "Gff3 file containing list of gene positions").withRequiredArg().ofType(String.class)
@@ -139,6 +142,7 @@ final class Options {
 		minMappingQuality = ((Integer) options.valueOf("minMappingQuality"));
 		minBaseQuality = ((Integer) options.valueOf("minBaseQuality"));
 		noOfThreads = ((Integer) options.valueOf("noOfThreads"));
+		maxCacheSize = ((Integer) options.valueOf("maxCacheSize"));
 		homCutoff = ((Float) options.valueOf("homCutoff"));
 		hetUpperCutoff = ((Float) options.valueOf("hetUpperCutoff"));
 		hetLowerCutoff = ((Float) options.valueOf("hetLowerCutoff"));
@@ -314,6 +318,10 @@ final class Options {
 		String[] inputFileNames = new String[inputList.size()];
 		inputList.toArray(inputFileNames);
 		return inputFileNames;
+	}
+
+	public Optional<Integer> getMaxCacheSize() {
+		return Optional.ofNullable(maxCacheSize);
 	}
 
 }
