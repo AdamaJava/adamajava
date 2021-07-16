@@ -433,7 +433,6 @@ public class SignatureUtil {
 			}
 			
 			return Optional.of(new Pair<>(new SigMeta(md, bq, mq, gc), rgIds));
-//			return Optional.of(new Pair<>(new SigMeta(md, count, bq, mq, gc), rgIds));
 		}
 	}
 	

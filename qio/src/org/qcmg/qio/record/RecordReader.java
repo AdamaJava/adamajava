@@ -63,7 +63,7 @@ public abstract class RecordReader<T> implements Closeable, Iterable<T> {
 		
     }
     /**
-     * this method is overridable in subclass, eg illumina file have different header patten
+     * this method is overridable in subclass, eg illumina file have different header pattern
      * 
      * @param headerPrefix
      * @return the first line just after header
@@ -87,7 +87,7 @@ public abstract class RecordReader<T> implements Closeable, Iterable<T> {
     }
     
  /**
-  * This reader can maxmum take Integer.max lines of file header. Please make other header if bigger than this. 
+  * This reader can maximum take Integer.max lines of file header. Please make other header if bigger than this. 
   * @return a list of header lines
   */
     public List<String>  getHeader() { 

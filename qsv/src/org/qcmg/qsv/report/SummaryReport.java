@@ -115,9 +115,9 @@ public class SummaryReport extends QSVReport {
 			writer.write("Soft clip filtering query: " + options.getClipQuery() + NEWLINE);
 			writer.write(("Soft clip reads size: " + options.getClipSize()) + NEWLINE);        	
 			writer.write(("Soft clip consensus length: " + options.getConsensusLength()) + NEWLINE);
-			writer.write("Path to blat: " + options.getBlatPath() + NEWLINE);
-			writer.write("BLAT Server: " + options.getBlatServer() + NEWLINE);			
-			writer.write("BLAT Port: " + options.getBlatPort() + NEWLINE + NEWLINE);
+//			writer.write("Path to blat: " + options.getBlatPath() + NEWLINE);
+//			writer.write("BLAT Server: " + options.getBlatServer() + NEWLINE);			
+//			writer.write("BLAT Port: " + options.getBlatPort() + NEWLINE + NEWLINE);
 		}
 		
 	}
