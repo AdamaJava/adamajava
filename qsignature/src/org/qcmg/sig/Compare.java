@@ -7,7 +7,6 @@ package org.qcmg.sig;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.AbstractQueue;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -125,7 +124,7 @@ public class Compare {
 		
 		final int numberOfFiles = files.size();
 		final int numberOfComparisons = ((numberOfFiles * (numberOfFiles - 1)) / 2);
-		logger.info("Should have " +numberOfComparisons + " comparisons, based on " + numberOfFiles + " input files");
+		logger.info("Should have " + numberOfComparisons + " comparisons, based on " + numberOfFiles + " input files");
 		
 		files.sort(FileUtils.FILE_COMPARATOR);
 		

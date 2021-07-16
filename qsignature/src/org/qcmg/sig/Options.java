@@ -41,6 +41,8 @@ final class Options {
 			.getMessage("CUTOFF_OPTION_DESCRIPTION");
 	private static final String NO_OF_THREADS_OPTION_DESCRIPTION = Messages
 			.getMessage("NO_OF_THREADS_OPTION_DESCRIPTION");
+	private static final String MAX_CACHE_SIZE_OPTION_DESCRIPTION = Messages
+			.getMessage("MAX_CACHE_SIZE_OPTION_DESCRIPTION");
 	private static final String SEQUENTIAL_OPTION_DESCRIPTION = Messages
 			.getMessage("SEQUENTIAL_OPTION_DESCRIPTION");
 	private static final String VALIDATION_STRINGENCY_OPTION_DESCRIPTION = Messages.getMessage("VALIDATION_STRINGENCY_DESCRIPTION");
@@ -93,7 +95,7 @@ final class Options {
 		.describedAs("hetLowerCutoff");
 		parser.accepts("noOfThreads", NO_OF_THREADS_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class)
 			.describedAs("noOfThreads");
-		parser.accepts("maxCacheSize", NO_OF_THREADS_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class)
+		parser.accepts("maxCacheSize", MAX_CACHE_SIZE_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class)
 		.describedAs("maxCacheSize");
 		parser.accepts("snpPositions", SNP_POSITION_DESCRIPTION).withRequiredArg().ofType(String.class)
 			.describedAs("snpPositions");
