@@ -179,14 +179,7 @@ public class QSVParameters {
 
 		//no isizes provided
 		if (sequencingRuns.size() == 0 && options.runPairAnalysis()) {
-
 			throw new QSVException("NO_ISIZES_ERROR");
-			//			logger.info("Calculating isizes for " + inputBamFile);
-			//			SAMRecordCounterMT est = new SAMRecordCounterMT(inputBamFile);
-			//			if (est.getExitStatus() > 0) {
-			//				throw new QSVException("COUNT_READS_ERROR");
-			//			}
-			//			this.sequencingRuns = est.getRunRecords();
 		} else {
 			if (options.runClipAnalysis() && ! options.runPairAnalysis()) {
 				//still need to getread groups

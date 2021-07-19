@@ -9,11 +9,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import htsjdk.samtools.SamReader;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMFileHeader.SortOrder;
 
@@ -22,10 +19,8 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qsv.QSVParameters;
 import org.qcmg.qsv.discordantpair.FindMatePairsMT;
-import org.qcmg.qsv.discordantpair.MatePair;
 import org.qcmg.qsv.discordantpair.PairClassification;
 import org.qcmg.qsv.util.TestUtil;
 

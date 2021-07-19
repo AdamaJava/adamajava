@@ -19,7 +19,6 @@ import htsjdk.samtools.CigarElement;
 import htsjdk.samtools.CigarOperator;
 import htsjdk.samtools.SAMRecord;
 
-import org.qcmg.common.model.Accumulator;
 import org.qcmg.common.util.BaseUtils;
 
 public class SAMUtils {
@@ -39,7 +38,7 @@ public class SAMUtils {
 		final int readStart = sam.getAlignmentStart();
 		final int readEnd = sam.getAlignmentEnd();
 		
-//		// positon is before start of read, or greater than end of read -> return -1
+//		// position is before start of read, or greater than end of read -> return -1
 		if (position > readEnd || position < readStart) return -1;
 			
 		Cigar cigar = sam.getCigar();
@@ -85,7 +84,7 @@ public class SAMUtils {
 		
 		if (offset != -1) {
 			// check value of offset using getReferencePositionAtReadPosition
-			int referencePosition = sam.getReferencePositionAtReadPosition(offset+1);
+			int referencePosition = sam.getReferencePositionAtReadPosition(offset + 1);
 			
 			if (position == referencePosition) {
 				// 0-based for array positions
@@ -145,32 +144,6 @@ public class SAMUtils {
 		return count;
 	}
 	
-	
-//	public static Accumulator getAccumulatorFromReads(List<SAMRecord> sams, int position) {
-//		if (null == sams || sams.isEmpty()) throw new IllegalArgumentException("null or empty list of sam records passed to getAccumulatorFromReads");
-//		
-//		Accumulator acc = new Accumulator(position);
-//		
-//		int counter = 0;
-//		for (SAMRecord sam : sams) {
-//			counter++;
-//			int positionInReadString = getIndexInReadFromPosition(sam, position);
-//			if (positionInReadString > -1) {
-//				byte base = sam.getReadBases()[positionInReadString];
-//				byte qual = sam.getBaseQualities()[positionInReadString];
-//				
-//				// need to take strand into account when setting start position
-//				boolean forwardStrand = ! sam.getReadNegativeStrandFlag();
-//				int startPosition = sam.getAlignmentStart();
-//				int endPosition = sam.getAlignmentEnd();
-//				
-//				acc.addBase(base, qual, forwardStrand, startPosition, position, endPosition, counter, sam.getReadName());
-//			}
-//		}
-//		
-//		return acc;
-//	}
-	
 	/**
 	 * Returns the sam records in the supplied list that have the specified base at the position of interest
 	 * 
@@ -224,14 +197,13 @@ public class SAMUtils {
 		return misMatchCount;
 	}
 	
-	 public static int CountMismatch(String MD){
-	        
-	        Matcher m = pa.matcher(MD);
-	        int mis = 0;
-	        while(m.find()){mis ++;}
+	public static int countMismatch(String MD){
+        Matcher m = pa.matcher(MD);
+        int mis = 0;
+        while(m.find()){mis ++;}
 
-	        return mis;
-	    }
+        return mis;
+	 }
 	 
 	 /**
 	  * Remove the trailing newline char at the end of the supplied getSAMString
@@ -267,33 +239,31 @@ public class SAMUtils {
 				 && ! rec.isSecondaryOrSupplementary();
 	 }
 	 
-	 
-		/**
-		 * eg. cigar: 10S12M1I10M , MD:Z:10A11 (MD tag don't store insertion, it just present the reference base according to ciagar.M ciagr.D)
-		 * refer to: https://github.com/vsbuffalo/devnotes/wiki/The-MD-Tag-in-BAM-Files
-		 * @param cigar
-		 * @param i
-		 * @return the number of softclip/insertion base in front of the offset ith position of the MD tag
-		 */
-		public static int getAdjustedReadOffset(Cigar cigar, int i) {
-			int offset = 0, rollingLength = 0;
-			for (CigarElement ce : cigar.getCigarElements()) {
-				CigarOperator co = ce.getOperator();
-				
-				// Match/mismatch
-				if (co.consumesReadBases() && co.consumesReferenceBases()) {
-					rollingLength += ce.getLength();
-				} else if (co.consumesReadBases()) {
-					offset += ce.getLength();
-				} else if (co.consumesReferenceBases()) {
+	/**
+	 * eg. cigar: 10S12M1I10M , MD:Z:10A11 (MD tag don't store insertion, it just present the reference base according to ciagar.M ciagr.D)
+	 * refer to: https://github.com/vsbuffalo/devnotes/wiki/The-MD-Tag-in-BAM-Files
+	 * @param cigar
+	 * @param i
+	 * @return the number of softclip/insertion base in front of the offset ith position of the MD tag
+	 */
+	public static int getAdjustedReadOffset(Cigar cigar, int i) {
+		int offset = 0, rollingLength = 0;
+		for (CigarElement ce : cigar.getCigarElements()) {
+			CigarOperator co = ce.getOperator();
+			
+			// Match/mismatch
+			if (co.consumesReadBases() && co.consumesReferenceBases()) {
+				rollingLength += ce.getLength();
+			} else if (co.consumesReadBases()) {
+				offset += ce.getLength();
+			} else if (co.consumesReferenceBases()) {
 //					rollingLength += ce.getLength();
-				}
-				if (rollingLength >= i) {
-					break;
-				}
-				
 			}
-			return offset;
-		}	
-
+			if (rollingLength >= i) {
+				break;
+			}
+			
+		}
+		return offset;
+	}	
 }

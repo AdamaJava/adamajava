@@ -93,6 +93,7 @@ public class Compare {
 		Set<File> uniqueFiles = new THashSet<>();
 		for (String path : paths) {
 			uniqueFiles.addAll(FileUtils.findFilesEndingWithFilterNIO(path, SignatureUtil.QSIG_VCF));
+			uniqueFiles.addAll(FileUtils.findFilesEndingWithFilterNIO(path, SignatureUtil.QSIG_VCF_GZ));
 		}
 		List<File> files = new ArrayList<>(uniqueFiles);
 		
