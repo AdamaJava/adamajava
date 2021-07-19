@@ -195,9 +195,9 @@ column | Header | Description
 2 | sample_id | test or control sample id
 3 | sv_id | id of the structural variant
 4 | sv_type | DEL/ITX – deletion/other intrachromosomal
-|| CTX – interchromosomal translocation
-|| DUP/INS/ITX – duplication/insertion/other intrachromosomal
-|| INV/ITX – inversion/other intrachromosomal
+&nbsp;|| CTX – interchromosomal translocation
+&nbsp;|| DUP/INS/ITX – duplication/insertion/other intrachromosomal
+&nbsp;|| INV/ITX – inversion/other intrachromosomal
 5 | chr1 | chromosome 1 of SV
 6 | pos1 | position 1 of SV
 7 | strand1
@@ -212,12 +212,12 @@ column | Header | Description
 16 | control_clips_count_pos1 | number of high quality soft clipped reads at position1 from control bam that support the current SV
 17 | control_clips_count_pos2 | number of high quality soft clipped reads at position2 from control bam that support the current SV
 18 | Category | Evidence for the SV (1-6)
-18 | | 1. High level of evidence: eg discordant pair evidence, clipping at both SV breakpoints, local split read contig evidence observed.
-18 || 2. Medium level of evidence: eg discordant pair signature (both breakpoints) and soft clipping signature
- || 3. Lower level of evidence eg. discordant pair signature alone
-|| 4. Possible germline due to the presence of low quality control reads or evidence in the control bam from local split read alignment
-|| 5. Possible repeat region. Greater than 1000 clips identified in the region of the SV breakpoint/s.
-|| 6. Low level evidence - Soft clipping signature for one breakpoint
+&nbsp;|| 1. High level of evidence: eg discordant pair evidence, clipping at both SV breakpoints, local split read contig evidence observed.
+&nbsp;|| 2. Medium level of evidence: eg discordant pair signature (both breakpoints) and soft clipping signature
+&nbsp;|| 3. Lower level of evidence eg. discordant pair signature alone
+&nbsp;|| 4. Possible germline due to the presence of low quality control reads or evidence in the control bam from local split read alignment
+&nbsp;|| 5. Possible repeat region. Greater than 1000 clips identified in the region of the SV breakpoint/s.
+&nbsp;|| 6. Low level evidence - Soft clipping signature for one breakpoint
 19| microhomology | bases of microhomology found. If microhomology was tested, and no microhomology found, the result will be “not found”. If microhomology was not tested this column will list: “not tested”
 20| non-template | bases of non-template sequence found. If non-template was tested, and no non-template was identified, the result will be “not found”. If no non-template was not tested result will be: “not tested”
 21| test_split_read_bp |
