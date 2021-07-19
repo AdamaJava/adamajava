@@ -212,8 +212,8 @@ column | Header | Description
 16 | control_clips_count_pos1 | number of high quality soft clipped reads at position1 from control bam that support the current SV
 17 | control_clips_count_pos2 | number of high quality soft clipped reads at position2 from control bam that support the current SV
 18 | Category | Evidence for the SV (1-6)
-|| 1. High level of evidence: eg discordant pair evidence, clipping at both SV breakpoints, local split read contig evidence observed.
-|| 2. Medium level of evidence: eg discordant pair signature (both breakpoints) and soft clipping signature
+ | | 1. High level of evidence: eg discordant pair evidence, clipping at both SV breakpoints, local split read contig evidence observed.
+ || 2. Medium level of evidence: eg discordant pair signature (both breakpoints) and soft clipping signature
 || 3. Lower level of evidence eg. discordant pair signature alone
 || 4. Possible germline due to the presence of low quality control reads or evidence in the control bam from local split read alignment
 || 5. Possible repeat region. Greater than 1000 clips identified in the region of the SV breakpoint/s.
