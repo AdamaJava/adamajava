@@ -151,9 +151,12 @@ public class Options {
 		}
 		
 		//create output directory, the base name should be run id		
-		String dir = generalSection.get("output");
-		if (dir != null) {
-			outputDirName = (dir.endsWith(FILE_SEPERATOR) ? dir : dir + FILE_SEPERATOR ) + uuid + FILE_SEPERATOR;
+		outputDirName = generalSection.get("output");
+		if (outputDirName != null) {
+			if (!directoryExists(outputDirName)) {
+                throw new QSVException("NO_OUTPUT_DIR", outputDirName);
+			}
+			outputDirName = (outputDirName.endsWith(FILE_SEPERATOR) ? outputDirName : outputDirName + FILE_SEPERATOR ) + uuid + FILE_SEPERATOR;
 			createResultsDirectory(outputDirName);
 		}else {
 			throw new QSVException("NO_OUTPUT");
