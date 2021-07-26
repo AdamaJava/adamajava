@@ -41,6 +41,8 @@ final class Options {
 			.getMessage("CUTOFF_OPTION_DESCRIPTION");
 	private static final String NO_OF_THREADS_OPTION_DESCRIPTION = Messages
 			.getMessage("NO_OF_THREADS_OPTION_DESCRIPTION");
+	private static final String MAX_CACHE_SIZE_OPTION_DESCRIPTION = Messages
+			.getMessage("MAX_CACHE_SIZE_OPTION_DESCRIPTION");
 	private static final String SEQUENTIAL_OPTION_DESCRIPTION = Messages
 			.getMessage("SEQUENTIAL_OPTION_DESCRIPTION");
 	private static final String VALIDATION_STRINGENCY_OPTION_DESCRIPTION = Messages.getMessage("VALIDATION_STRINGENCY_DESCRIPTION");
@@ -56,6 +58,7 @@ final class Options {
 	private final Integer minMappingQuality;
 	private final Integer minBaseQuality;
 	private final Integer noOfThreads;
+	private final Integer maxCacheSize;
 	private final Float homCutoff;
 	private final Float hetUpperCutoff;
 	private final Float hetLowerCutoff;
@@ -93,6 +96,8 @@ final class Options {
 		.describedAs("hetLowerCutoff");
 		parser.accepts("noOfThreads", NO_OF_THREADS_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class)
 			.describedAs("noOfThreads");
+		parser.acceptsAll(asList("maxCacheSize", "max-cache-size"), MAX_CACHE_SIZE_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class)
+		.describedAs("maxCacheSize");
 		parser.accepts("snpPositions", SNP_POSITION_DESCRIPTION).withRequiredArg().ofType(String.class)
 			.describedAs("snpPositions");
 		parser.accepts("genePositions", "Gff3 file containing list of gene positions").withRequiredArg().ofType(String.class)
@@ -141,6 +146,7 @@ final class Options {
 		minMappingQuality = ((Integer) options.valueOf("minMappingQuality"));
 		minBaseQuality = ((Integer) options.valueOf("minBaseQuality"));
 		noOfThreads = ((Integer) options.valueOf("noOfThreads"));
+		maxCacheSize = ((Integer) options.valueOf("maxCacheSize"));
 		homCutoff = ((Float) options.valueOf("homCutoff"));
 		hetUpperCutoff = ((Float) options.valueOf("hetUpperCutoff"));
 		hetLowerCutoff = ((Float) options.valueOf("hetLowerCutoff"));
@@ -318,6 +324,10 @@ final class Options {
 		return inputFileNames;
 	}
 
+
+	public Optional<Integer> getMaxCacheSize() {
+		return Optional.ofNullable(maxCacheSize);
+  }
 	public Optional<Boolean> getStream() {
 		return Optional.ofNullable(options.has("stream"));
 	}

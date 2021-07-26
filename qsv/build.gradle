@@ -16,5 +16,6 @@ dependencies {
     api 'net.sf.jopt-simple:jopt-simple:4.6'	
 		
     testImplementation  'org.easymock:easymock:3.1'
+    testImplementation  group: 'commons-io', name: 'commons-io', version: '2.6'
 }
 

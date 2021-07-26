@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -28,7 +29,6 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.FileUtils;
-import org.qcmg.common.util.LoadReferencedClasses;
 import org.qcmg.sig.model.Comparison;
 import org.qcmg.sig.model.SigMeta;
 import org.qcmg.sig.util.ComparisonUtil;
@@ -72,6 +72,8 @@ public class Compare {
 	private String excludeVcfsFile;
 	private List<String> excludes;
 	private String logFile;
+	
+	private int maxCacheSize = -1;
 	
 	private final Map<String, int[]> fileIdsAndCounts = new THashMap<>();
 	private final List<Comparison> allComparisons = new CopyOnWriteArrayList<>();
@@ -123,24 +125,76 @@ public class Compare {
 		
 		final int numberOfFiles = files.size();
 		final int numberOfComparisons = ((numberOfFiles * (numberOfFiles - 1)) / 2);
-		logger.info("Should have " +numberOfComparisons + " comparisons, based on " + numberOfFiles + " input files");
+		logger.info("Should have " + numberOfComparisons + " comparisons, based on " + numberOfFiles + " input files");
 		
 		files.sort(FileUtils.FILE_COMPARATOR);
 		
 		// add files to map
 		addFilesToMap(files);
 		
-		populateCache(files);
+		if (maxCacheSize > -1 && maxCacheSize < files.size()) {
+			cacheSizeRestricted(files);
+		} else {
 		
-		logger.info("number of entries in cache: " + cache.size());
-		
-		performComparisons(files);
+			populateCache(files);
+			
+			logger.info("number of entries in cache: " + cache.size());
+			
+			performComparisons(files);
+		}
 		
 		if (outputXml != null) {
 			SignatureUtil.writeXmlOutput(fileIdsAndCounts, allComparisons, outputXml);
 		}
 		
 		return exitStatus;
+	}
+	
+	
+	private void cacheSizeRestricted(List<File> files) throws IOException {
+//		int cacheCounterUpper = maxCacheSize > 0 ? maxCacheSize : 1;
+//		int cacheCounterLower = 0;
+		int incrementor = maxCacheSize > 0 ? maxCacheSize : 1;
+		
+		
+		for (int cacheCounterUpper = incrementor, cacheCounterLower = 0 ; cacheCounterUpper < files.size() ; cacheCounterUpper += incrementor, cacheCounterLower += incrementor ) {
+			/*
+			 * populate cache
+			 */
+			List<File> subList = files.subList(cacheCounterLower, cacheCounterUpper);
+			populateCache(subList);
+			
+			/*
+			 * perform in cache comparisons
+			 */
+			performComparisons(subList);
+			
+			/*
+			 * loop through remaining files
+			 */
+			for (int i = cacheCounterUpper ; i < files.size() ; i++) {
+				Pair<SigMeta, TIntByteHashMap> sigData = getSignatureData(files.get(i));
+				fileIdsAndCounts.get(files.get(i).getAbsolutePath())[1] = sigData.getValue().size();
+				/*
+				 * compare against entries in cache
+				 */
+				for (Entry<File, Pair<SigMeta, TIntByteHashMap>> entry : cache.entrySet()) {
+					if ( ! entry.getValue().getKey().isValid() || ! sigData.getKey().isValid() || SigMeta.suitableForComparison(entry.getValue().getKey(), sigData.getKey())) {
+	//					logger.info("SigMeta matches: " + ratios1.getKey() + " and " + ratios2.getKey());
+						Comparison comp = ComparisonUtil.compareRatiosUsingSnpsFloat(entry.getValue().getValue(), sigData.getValue(), entry.getKey(), files.get(i));
+						allComparisons.add(comp);
+						logger.info("adding comparison between " + entry.getKey().getAbsolutePath() + " and " + files.get(i).getAbsolutePath());
+					} else {
+						logger.warn("Could not compare " + entry.getKey().getAbsolutePath() + " and " + files.get(i).getAbsolutePath() + " as their SigMeta information was not equal or not valid: " + entry.getValue().getKey() + " and " + sigData.getKey());
+					}
+				}
+			}
+			
+			/*
+			 * empty cache
+			 */
+			cache.clear();
+		}
 	}
 	
 	Pair<SigMeta, TIntByteHashMap> getSignatureData(File f) throws IOException {
@@ -351,9 +405,11 @@ public class Compare {
 			options.getMinCoverage().ifPresent(i -> {minimumCoverage = i.intValue();});
 			options.getNoOfThreads().ifPresent(i -> {nThreads = i.intValue();});
 			options.getMinRGCoverage().ifPresent(i -> {minimumRGCoverage = i.intValue();});
+			options.getMaxCacheSize().ifPresent(i -> {maxCacheSize = i.intValue();});
 			logger.tool("Number of threads to use: " + nThreads);
 			logger.tool("Setting minumim coverage to: " + minimumCoverage);
 			logger.tool("Setting minumim RG coverage to: " + minimumRGCoverage);
+			logger.tool("Setting max cache size to: " + maxCacheSize);
 			
 			additionalSearchStrings = options.getAdditionalSearchString();
 			logger.tool("Setting additionalSearchStrings to: " + Arrays.deepToString(additionalSearchStrings));

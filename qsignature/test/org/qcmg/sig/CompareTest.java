@@ -160,6 +160,64 @@ public class CompareTest {
 		assertEquals(true, outputData.contains("<comparison file1=\"1\" file2=\"2\" overlap=\"5\" score=\"1.0\"/>"));
 	}
 	
+	@Test
+	public void bespokeVsBespokeBAMMaxCacheSize() throws IOException, InterruptedException {
+		File logF = testFolder.newFile();
+		File bespoke1 = testFolder.newFile("bespoke1.qsig.vcf");
+		File bespoke2 = testFolder.newFile("bespoke2.qsig.vcf");
+		File o = testFolder.newFile();
+		List<String> bespoke1Data = new ArrayList<>(SignatureUtilTest.BAM_HEADER);
+		bespoke1Data.addAll(Arrays.asList("chr1\t99236\t.\tT\t.\t.\t.\tQAF=t:0-0-0-34,rg1:0-0-0-20,rg2:0-0-0-14",
+				"chr1\t101095\t.\tT\t.\t.\t.\tQAF=t:0-0-0-20,rg1:0-0-0-14,rg2:0-0-0-6",
+				"chr1\t102954\t.\tT\t.\t.\t.\tQAF=t:0-0-1-161,rg1:0-0-1-71,rg2:0-0-0-90",
+				"chr1\t104813\t.\tG\t.\t.\t.\tQAF=t:0-0-19-0,rg1:0-0-14-0,rg2:0-0-5-0",
+				"chr1\t113422\t.\tT\t.\t.\t.\tQAF=t:0-0-0-23,rg1:0-0-0-17,rg2:0-0-0-6"));
+		List<String> bespoke2Data = new ArrayList<>(SignatureUtilTest.BAM_HEADER);
+		bespoke2Data.addAll(Arrays.asList("chr1\t99236\t.\tT\t.\t.\t.\tQAF=t:0-0-0-34,rg1:0-0-0-20,rg2:0-0-0-14",
+				"chr1\t101095\t.\tT\t.\t.\t.\tQAF=t:0-0-0-20,rg1:0-0-0-14,rg2:0-0-0-6",
+				"chr1\t102954\t.\tT\t.\t.\t.\tQAF=t:0-0-1-161,rg1:0-0-1-71,rg2:0-0-0-90",
+				"chr1\t104813\t.\tG\t.\t.\t.\tQAF=t:0-0-19-0,rg1:0-0-14-0,rg2:0-0-5-0",
+				"chr1\t113422\t.\tT\t.\t.\t.\tQAF=t:0-0-0-23,rg1:0-0-0-17,rg2:0-0-0-6"));
+		
+		writeDataToFile(bespoke1Data, bespoke1);
+		writeDataToFile(bespoke2Data, bespoke2);
+		
+		Executor exec = execute("--log " + logF.getAbsolutePath() + " -d " + bespoke1.getParent() + " -o " + o.getAbsolutePath() + " --max-cache-size 0");
+		assertEquals(0, exec.getErrCode());		// all ok
+		assertEquals(true, o.exists());
+		List<String> outputData = Files.readAllLines(Paths.get(o.getAbsolutePath()));
+		assertEquals(10, outputData.size());		// 10 lines means 1 comparison
+		assertEquals(true, outputData.contains("<comparison file1=\"1\" file2=\"2\" overlap=\"5\" score=\"1.0\"/>"));
+		
+		exec = execute("--log " + logF.getAbsolutePath() + " -d " + bespoke1.getParent() + " -o " + o.getAbsolutePath() + " --max-cache-size 1");
+		assertEquals(0, exec.getErrCode());		// all ok
+		assertEquals(true, o.exists());
+		outputData = Files.readAllLines(Paths.get(o.getAbsolutePath()));
+		assertEquals(10, outputData.size());		// 10 lines means 1 comparison
+		assertEquals(true, outputData.contains("<comparison file1=\"1\" file2=\"2\" overlap=\"5\" score=\"1.0\"/>"));
+		
+		exec = execute("--log " + logF.getAbsolutePath() + " -d " + bespoke1.getParent() + " -o " + o.getAbsolutePath() + " --max-cache-size 2");
+		assertEquals(0, exec.getErrCode());		// all ok
+		assertEquals(true, o.exists());
+		outputData = Files.readAllLines(Paths.get(o.getAbsolutePath()));
+		assertEquals(10, outputData.size());		// 10 lines means 1 comparison
+		assertEquals(true, outputData.contains("<comparison file1=\"1\" file2=\"2\" overlap=\"5\" score=\"1.0\"/>"));
+		
+		exec = execute("--log " + logF.getAbsolutePath() + " -d " + bespoke1.getParent() + " -o " + o.getAbsolutePath() + " --max-cache-size 20");
+		assertEquals(0, exec.getErrCode());		// all ok
+		assertEquals(true, o.exists());
+		outputData = Files.readAllLines(Paths.get(o.getAbsolutePath()));
+		assertEquals(10, outputData.size());		// 10 lines means 1 comparison
+		assertEquals(true, outputData.contains("<comparison file1=\"1\" file2=\"2\" overlap=\"5\" score=\"1.0\"/>"));
+		
+		exec = execute("--log " + logF.getAbsolutePath() + " -d " + bespoke1.getParent() + " -o " + o.getAbsolutePath() + " --maxCacheSize 1");
+		assertEquals(0, exec.getErrCode());		// all ok
+		assertEquals(true, o.exists());
+		outputData = Files.readAllLines(Paths.get(o.getAbsolutePath()));
+		assertEquals(10, outputData.size());		// 10 lines means 1 comparison
+		assertEquals(true, outputData.contains("<comparison file1=\"1\" file2=\"2\" overlap=\"5\" score=\"1.0\"/>"));
+	}
+	
 	private void writeVcfFile(File f) throws IOException {
 		writeVcfFile(f, "##positions_md5sum=d18c99f481afbe04294d11deeb418890\n");
 	}

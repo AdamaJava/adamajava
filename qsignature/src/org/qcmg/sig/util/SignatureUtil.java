@@ -513,7 +513,7 @@ public class SignatureUtil {
 			}
 			
 			if (null != sm && sm.isValid()) {
-				getDataFromBespolkeLayout(file, minCoverage, minRGCoverage, ratios, rgRatios, rgIds, reader);
+				getDataFromBespokeLayout(file, minCoverage, minRGCoverage, ratios, rgRatios, rgIds, reader);
 			} else {
 				rgRatios.put("all", loadSignatureRatiosFloatGenotypeNew(file));
 			}
@@ -521,7 +521,7 @@ public class SignatureUtil {
 		return new Pair<>(sm, rgRatios);
 	}
 	
-	public static void getDataFromBespolkeLayout(File file, int minCoverage, int minRGCoverage, TIntByteHashMap ratios,
+	public static void getDataFromBespokeLayout(File file, int minCoverage, int minRGCoverage, TIntByteHashMap ratios,
 			TMap<String, TIntByteHashMap> rgRatios, Map<String, String> rgIds, StringFileReader reader) {
 		int noOfRGs = rgIds.size();
 		logger.debug("Number of rgs for  " + file.getAbsolutePath() + " is " + noOfRGs);
@@ -536,8 +536,9 @@ public class SignatureUtil {
 				continue;
 			}
 			
-			String[] params = TabTokenizer.tokenize(line);
-			String coverage = params[7];
+			String coverage = line.substring(line.lastIndexOf(Constants.TAB_STRING));
+			String chrPosString = line.substring(0, line.indexOf(Constants.TAB_STRING, line.indexOf(Constants.TAB_STRING) + 1));
+			
 			
 			/*
 			 * This should be in the QAF=t:5-0-0-0,rg4:2-0-0-0,rg1:1-0-0-0,rg2:2-0-0-0 format
@@ -552,7 +553,7 @@ public class SignatureUtil {
 				byte genotype1 = getCodedGenotypeAsByte(f);
 				
 				if (isCodedGenotypeValid(genotype1)) {
-					cachePosition.set(ChrPositionCache.getStringIndex(params[0] + Constants.TAB + params[1]));
+					cachePosition.set(ChrPositionCache.getStringIndex(chrPosString));
 					ratios.put(cachePosition.get(), genotype1);
 					/*
 					 * Get rg data if we have more than 1 rg
@@ -970,15 +971,21 @@ public class SignatureUtil {
 			throw new IllegalArgumentException("Invalid coverage string passed to decipherCoverageStringBespoke: " + info);
 		}
 		
-		String [] data = TabTokenizer.tokenize(info, Constants.MINUS);
-		if (data.length == 4) {
-			int[] counts = new int[4];
-			
-			for (int i = 0 ; i < 4 ; i++) {
-				counts[i] =  Integer.parseInt(data[i]);
-			}
+		int i = 0;
+		int index = info.indexOf(Constants.MINUS);
+		int oldIndex = 0;
+		int[] counts = new int[4];
+		while (index > -1 && oldIndex != index) {
+			counts[i] =  Integer.parseInt(info.substring(oldIndex, index));
+			oldIndex = index + 1;
+			index = info.indexOf(Constants.MINUS, oldIndex);
+			i++;
+		}
+		if (i == 3) {
+			counts[3] =  Integer.parseInt(info.substring(oldIndex));
 			return Optional.of(counts);
 		}
+		
 		return Optional.empty();
 	}
 	
