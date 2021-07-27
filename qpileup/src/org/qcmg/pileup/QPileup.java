@@ -48,8 +48,6 @@ public final class QPileup {
 				options.displayHelp();
 			} else if (options.hasVersionOption()) {
 				System.err.println(Messages.getVersionMessage());	
-			} else if (options.hasDeleteOption()) {
-				//exitStatus = options.deleteLocks();
 			} else if (options.hasViewOption()) {
 				options.detectBadOptions();
 				ViewMT view = new ViewMT(options);
