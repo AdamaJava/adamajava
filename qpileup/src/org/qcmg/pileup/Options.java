@@ -114,7 +114,7 @@ public final class Options {
 		parser.accepts("range", Messages.getMessage("READ_RANGE_OPTION")).withOptionalArg().ofType(String.class);
 		parser.accepts("element", Messages.getMessage("ELEMENT_OPTION")).withOptionalArg().ofType(String.class);
 		parser.accepts("group", Messages.getMessage("GROUP_OPTION")).withOptionalArg().ofType(String.class);		
-		parser.accepts("delete", Messages.getMessage("GROUP_OPTION")).withOptionalArg().ofType(String.class);
+//		parser.accepts("delete", Messages.getMessage("GROUP_OPTION")).withOptionalArg().ofType(String.class);
 		
 		options = parser.parse(args);	
 		iniFile = (String) options.valueOf("ini");
@@ -511,9 +511,9 @@ public final class Options {
 		pileupDir.mkdir();
 	}
 	
-	public boolean hasDeleteOption() {
-		return options.has("delete");
-	}
+//	public boolean hasDeleteOption() {
+//		return options.has("delete");
+//	}
 
 	public boolean hasViewOption() {
 		return options.has("view");
