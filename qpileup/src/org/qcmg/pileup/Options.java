@@ -89,7 +89,6 @@ public final class Options {
 	private File germlineDbFile;
 	private String tmpDir;
 	private String pathToBigWig;
-	private List<String> viewHDFs;
 	private String rangeFile;
 	private boolean includeGraph;
 	private List<String> graphHdfs;
@@ -107,24 +106,18 @@ public final class Options {
 		parser.acceptsAll(asList("v", "version"), VERSION_OPTION);
 		parser.accepts("view", Messages.getMessage("VIEW_OPTION"));
 		parser.accepts("H", Messages.getMessage("HEADER_OPTION"));
-		parser.accepts("G", Messages.getMessage("GRAPH_OPTION"));
 		parser.accepts("V", Messages.getMessage("VERSION_OPTION"));
 		parser.accepts("hdf", Messages.getMessage("HDF_FILE_OPTION")).withOptionalArg().ofType(String.class);
 		parser.accepts("tmp", Messages.getMessage("TMPDIR_OPTION")).withOptionalArg().ofType(String.class);
 		parser.accepts("range", Messages.getMessage("READ_RANGE_OPTION")).withOptionalArg().ofType(String.class);
 		parser.accepts("element", Messages.getMessage("ELEMENT_OPTION")).withOptionalArg().ofType(String.class);
 		parser.accepts("group", Messages.getMessage("GROUP_OPTION")).withOptionalArg().ofType(String.class);		
-//		parser.accepts("delete", Messages.getMessage("GROUP_OPTION")).withOptionalArg().ofType(String.class);
 		
 		options = parser.parse(args);	
 		iniFile = (String) options.valueOf("ini");
 		tmpDir = (String) options.valueOf("tmp");
 		hdfFile = (String)options.valueOf("hdf");
-		
-		if (hasGraphOption()) {
-			viewHDFs = (List<String>) options.valuesOf("hdf");
-		}		
-		
+				
 		if (options.has("range")) {
 			readRanges = new ArrayList<String>();
 			readRanges.add((String) options.valueOf("range"));
@@ -422,9 +415,10 @@ public final class Options {
 		this.viewGraphStranded = viewGraphStranded;
 	}
 
-	public boolean hasGraphOption() {
-		return options.has("G");
-	}
+//	@Deprecated
+//	public boolean hasGraphOption() {
+//		return options.has("G");
+//	}
 
 	public File getHtmlDir() {
 		return htmlDir;
@@ -511,9 +505,10 @@ public final class Options {
 		pileupDir.mkdir();
 	}
 	
-//	public boolean hasDeleteOption() {
-//		return options.has("delete");
-//	}
+	@Deprecated
+	public boolean hasDeleteOption() {
+		return options.has("delete");
+	}
 
 	public boolean hasViewOption() {
 		return options.has("view");
@@ -912,10 +907,6 @@ public final class Options {
 
 	public SummaryMetric getSummaryMetric() {
 		return this.summaryMetric;
-	}
-
-	public List<String> getViewHDFs() {
-		return viewHDFs;
 	}
 
 	public String getRangeFile() {
