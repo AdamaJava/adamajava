@@ -66,8 +66,6 @@ public final class Options {
 	private boolean bamOverride = false;
 	private Integer lowReadCount;
 	private Integer percentnonref;
-	private static final String VERSION_OPTION = Messages.getMessage("VERSION_OPTION");
-	private static final String HELP_OPTION = Messages.getMessage("HELP_OPTION");
 	private Integer threadNo;
 	private String metricType;
 	private String normalFile;
@@ -87,7 +85,7 @@ public final class Options {
 	private File wiggleDir;
 	private SummaryMetric summaryMetric;
 	private File germlineDbFile;
-	private String tmpDir;
+//	private String tmpDir;
 	private String pathToBigWig;
 	private String rangeFile;
 	private boolean includeGraph;
@@ -101,13 +99,16 @@ public final class Options {
 	@SuppressWarnings("unchecked")
 	public Options(final String[] args) throws Exception {
 		
+		parser.accepts("help", Messages.getMessage("HELP_OPTION"));
+		parser.accepts("version",Messages.getMessage("VERSION_OPTION"));
 		parser.accepts("ini", Messages.getMessage("INI_OPTION")).withOptionalArg().ofType(String.class);
-		parser.acceptsAll(asList("h", "help"), HELP_OPTION);
-		parser.acceptsAll(asList("v", "version"), VERSION_OPTION);
+
 		parser.accepts("view", Messages.getMessage("VIEW_OPTION"));
-		parser.accepts("H", Messages.getMessage("HEADER_OPTION"));
-		parser.accepts("V", Messages.getMessage("VERSION_OPTION"));
+		parser.accepts("header", Messages.getMessage("HEADER_OPTION"));
+		parser.accepts("hdf_version", Messages.getMessage("HDF_VERSION_OPTION"));
+		
 		parser.accepts("hdf", Messages.getMessage("HDF_FILE_OPTION")).withOptionalArg().ofType(String.class);
+		
 		parser.accepts("tmp", Messages.getMessage("TMPDIR_OPTION")).withOptionalArg().ofType(String.class);
 		parser.accepts("range", Messages.getMessage("READ_RANGE_OPTION")).withOptionalArg().ofType(String.class);
 		parser.accepts("element", Messages.getMessage("ELEMENT_OPTION")).withOptionalArg().ofType(String.class);
@@ -115,7 +116,7 @@ public final class Options {
 		
 		options = parser.parse(args);	
 		iniFile = (String) options.valueOf("ini");
-		tmpDir = (String) options.valueOf("tmp");
+//		tmpDir = (String) options.valueOf("tmp");
 		hdfFile = (String)options.valueOf("hdf");
 				
 		if (options.has("range")) {
@@ -518,8 +519,9 @@ public final class Options {
 		return options.has("H");
 	}
 	
+	
 	public boolean hasHDFVersionOption() {
-		return options.has("V");
+		return options.has("hdf_version");
 	}
 
 	public String getLog() {
@@ -531,7 +533,7 @@ public final class Options {
 	}
 
 	boolean hasVersionOption() {
-		return options.has("v") || options.has("version");
+		return options.has("version");
 	}
 
 	boolean hasLogOption() {
@@ -669,12 +671,12 @@ public final class Options {
 			}			
 				
 			if (mode.equals("metrics")) {
-				if (tmpDir == null) {
-					throw new QPileupException("NO_TMPDIR");
-				} 
-				if (!FileUtils.canFileBeRead(tmpDir)) {
-					throw new QPileupException("NO_READ_TMP", tmpDir);
-				}
+//				if (tmpDir == null) {
+//					throw new QPileupException("NO_TMPDIR");
+//				} 
+//				if (!FileUtils.canFileBeRead(tmpDir)) {
+//					throw new QPileupException("NO_READ_TMP", tmpDir);
+//				}
 				if (dbSNPFile != null) {
 					if (!dbSNPFile.exists()) {
 						throw new QPileupException("NO_DBSNP_FILE", dbSNPFile.getAbsolutePath());
@@ -694,13 +696,9 @@ public final class Options {
 		}
 	}
 
-	public String getTmpDir() {
-		return tmpDir;
-	}
-
-	public void setTmpDir(String tmpDir) {
-		this.tmpDir = tmpDir;
-	}
+//	public String getTmpDir() {
+//		return tmpDir;
+//	}
 
 	private void checkBams() throws QPileupException, IOException {
 		for (String bam : bamFiles) {
