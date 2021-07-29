@@ -1,101 +1,67 @@
 
-
-
 ## INI file
 
 The INI file is divided into sections. All modes have a `[general]`
 section plus one or more sections specific to the mode.
 
-### `[general]`
-
-This section is required for all modes.
-
-Option | Description
--------|----
-`log` | Req, Log file.
-`loglevel` | Opt, Log level [DEBUG,INFO], Def=INFO.
-`hdf` | Req, HDF5 file - must have .h5 extension.
-`mode` | Req, Mode [bootstrap,add,remove,merge,view].
-`bam_override` | Opt, If set, allows duplicate BAM files to be added, Def=FALSE
-`thread_no` | Req, Number of threads [1-12], Total threads will be number specified + 3. 
-`output_dir` | Req, Directory for output pileup files, (required for view,metrics modes).
-;e.g. `range=chrMT:1234-5678`, `range=chr12` or `range=all`. Here, "all" be used to write all positions in the HDF5 file.
-`range` | Opt, Range to view. Def=all. 
-
-
-Example:
-
 ~~~~{.text}
+
 [general]
-mode=bootstrap
-hdf=my_first_GRCh37_qpileup.h5
-log=my_first_GRCh37_qpileup.log
-loglevel=INFO
-thread_no=12
-~~~~
+log = Req, Log file.
+loglevel = Opt, Logging level [INFO,DEBUG], Def=INFO.
+hdf = Req, HDF5 file ( must have .h5 extension). ??? but not for merge mode. 
+mode = Req, Mode [bootstrap,add,remove,merge,view].
+bam_override =  Opt, If set, allows duplicate BAM files to be added, Def=FALSE
+thread_no = Opt, Number of threads [1-12]. Def=1
+output_dir = Req, Directory for output pileup files, (required for view and metrics modes).
+range = Opt, Range to view (required for view, metircs and add mode). Def=all. 
 
-### `[bootstrap]`
+;??this section is gor bootstrap mode and merge mode
+[bootstrap] 
+;?? test without low_read_count and nonref_percent
+; test on merge mode without bootstrap section. 
+reference = Req, path to reference genome fasta file.
+low_read_count = Opt, the number below which the LowReadCount element is defined. Also used to define the HighNonReference element. Def=10.
+nonref_percent = Opt, Used for HighNonreference strand summary element. Minimum percent that non-reference bases to total bases must have in order to be counts as HighNonReference. Def=20(%)
 
-This section is only used for `bootstrap` mode.
-
-Option | Description
--------|----
-`reference` | Reference genome FASTA file. Can contain one or more sequences in FASTA file.
-
-low_read_count=the number below which the LowReadCount element is defined. Also used to define the HighNonReference element. 
-              If not defined, the default is 10
-nonref_percent=Used for HighNonreference strand summary element. Minimum percent that non-reference bases 
-to total bases must have in order to be counts as HighNonReference. If not defined the default is 20(%)
-
-~~~~{.text}
-[bootstrap]
-reference=path to reference genome fasta file (required for bootstrap mode)
-low_read_count=the number below which the LowReadCount element is defined. Also used to define the HighNonReference element. 
-              If not defined, the default is 10
-nonref_percent=Used for HighNonreference strand summary element. Minimum percent that non-reference bases 
-to total bases must have in order to be counts as HighNonReference. If not defined the default is 20(%)
-~~~~
-
-### `[add]` or `[remove]`
-
-~~~~{.text}
 [add_remove]
 bam_list=path of file with list of bams OR
 name=path to bam files (Required for add, remove modes. More than one name allowed)
-~~~~
-
 
 [merge]
-input_hdf=path to the hdf file/s that will be merged (required for merge mode)
+input_hdf = Req, path to the hdf file/s that will be merged (required for merge mode)
 
 [view]
-group=Group of qpileup data elements to view. Possible groups are: forward, reverse, bases, quals, cigars, readStats. (Optional for view mode)
-element=Qpileup data element to view. See strand summary table above: eg A, Aqula,CigarI etc. (Optional for view mode)
+element = Opt, qpileup data element to view. see [strand summary table](ndex_latest.md#strand-summary).
+group = Opt, Possible groups [forward, reverse, bases, quals, cigars, readStats]. 
+graph = Opt, ???create html file. Def=false.
+stranded = Opt, it accompany with gragh option. Def=false. 
 
 [metrics]
-min_bases=minimum average coverage (base count) per reference position
-bigwig_path=directory where wigToBigWig program is located
-chrom_sizes=file listing chromosome lengths for wigToBigWig conversion
+min_bases = Req, minimum average coverage (base count) per reference position.
+temporary_dir = Req, directory that temporary files will be written to.
+bigwig_path = Opt, directory where wigToBigWig program is located. Def=null.
+chrom_sizes = Opt, file listing chromosome lengths for wigToBigWig conversion. Def=null.
 
 [metrics/clip]
-position_value=minimum value as percent of total bases per position
-window_count=minimum number of positions that pass the position_value in the window
+position_value = Req, minimum value as percent of total bases per position
+window_count = Req, minimum number of positions that pass the position_value in the window
 
 [metrics/nonreference_base]
-position_value=minimum value as percent of total bases per position
-window_count=minimum number of positions that pass the position_value in the window
+position_value = Req, minimum value as percent of total bases per position
+window_count = Req, minimum number of positions that pass the position_value in the window
 
 [metrics/indel]
-position_value=minimum value as percent of total bases per position
-window_count=minimum number of positions that pass the position_value in the window
+position_value = Req, minimum value as percent of total bases per position
+window_count = Req, minimum number of positions that pass the position_value in the window
 
 [metrics/mapping_qual]
-position_value=maximum value as percent of total bases per position
-window_count=minimum number of positions that pass the position_value in the window
+position_value = Req, minimum value as percent of total bases per position
+window_count = Req, minimum number of positions that pass the position_value in the window
 
 [metrics/high_coverage]
-position_value=minimum value as percent of total bases per position
-window_count=minimum number of positions that pass the position_value in the window
+position_value = Req, minimum value as percent of total bases per position
+window_count = Req, minimum number of positions that pass the position_value in the window
 
 [metrics/snp]
 dbSNP=path to dbSNP VCF file
@@ -111,35 +77,28 @@ min_percent_diff=minimum percent difference in % nonreference bases between stra
 min_nonreference_bases=minimum number of non-reference bases per reference position
 ~~~~
 
+## [general]
+This section is required for all modes.
 
-### `view` mode options
+## range
+e.g. `range=chrMT:1234-5678`, `range=chr12` or `range=all`. Here, "all" be used to write all positions in the HDF5 file.
 
-`qpileup` offers a limited `view` mode option from the command line. Users
-may use this option to view the HDF header/metadata or qpileup output for a
-single reference genome range (maximum size is one chromosome)
+## threads number
+tool total threads will be number specified + 3.
 
-Option | Description
-----|----
---view | Required
---H | View header only
---V | View version information
---range | The range to view. eg chr1 or chr1:1-1000
---hdf | Path to the HDF file to view. Required in view mode
---element | qpileup data element to view (see strand summary table above: eg A, Aqula,CigarI etc). Optional for view mode
---group | Group of qpileup data elements to view. Optional for view mode. 
+## element
+see [strand summary table](ndex_latest.md#strand-summary).
 
+## group
 Possible groups are:
-
 * forward: all elements forward strand reads. 
-+ reverse: all elements: reverse strand reads
+* reverse: all elements: reverse strand reads
 * bases: elements: A,C,G,T,N,ReferenceNo,NonreferenceNo,HighNonreference,LowReadCount
 * quals: AQual,CQual,GQual,NQual,MapQual
 * cigars: CigarI,CigarD,CigarD_start,CigarS,CigarS_start,CigarH,CigarH_start,CigarN,CigarN_start
 * readStats: StartAll,StartNondup,StopAll,Dup,MateUnmapped
 
-
 ## Examples
-
 ### Add mode options for ini file
 
 Bam files can be listed in 2 ways:
@@ -188,36 +147,15 @@ mode=add
 bamoverride=true
 thread_no=12
 output_dir=/qpileup/runs/test/
-range=all
+range=chr1
 
 [view]
 ; choose one of the following
-range=all        ;View whole genome
-range=chr1       ;View whole chromosome
-range=chr1:1-1000    ;View part of a chromosome
-range=chr1:1-1000 --element A    ;View part of a chromosome, A base element only
-range=chr1:1-1000 --group forward    ;View part of a chromosome, forward group elements only
+element = A 
+element = T  
+group = forward  
 ~~~~
 
-### View mode (command line)
-
-View version
-
-~~~~
-java -Xmx20g -jar qpileup-0.1pre.jar  --view -V --hdf /qpileup/runs/test/testhdf.h5
-~~~~
-
-View header
-
-~~~~
-java -Xmx20g -jar qpileup-0.1pre.jar  --view -H --hdf /qpileup/runs/test/testhdf.h5
-~~~~
-
-View pileup for region of chromosome
-
-~~~~
-java -Xmx20g -jar qpileup-0.1pre.jar  --view -H --hdf /qpileup/runs/test/testhdf.h5 --range chr1:1-1000
-~~~~
 
 ### Metrics mode
 
