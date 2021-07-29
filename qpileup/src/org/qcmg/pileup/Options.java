@@ -85,7 +85,7 @@ public final class Options {
 	private File wiggleDir;
 	private SummaryMetric summaryMetric;
 	private File germlineDbFile;
-//	private String tmpDir;
+	private String tmpDir;
 	private String pathToBigWig;
 	private String rangeFile;
 	private boolean includeGraph;
@@ -296,16 +296,17 @@ public final class Options {
 				summaryDir.mkdir();		
 				this.snpDir =  new File(outputDir + PileupConstants.FILE_SEPARATOR + pileup + PileupConstants.FILE_SEPARATOR + "snp");
 				snpDir.mkdir();
+				this.tmpDir = ini.get("metrics").get("output_temporary");
+				
 				this.summaryMetric = new SummaryMetric(hdfFileName, pileupDir.getAbsolutePath(), wiggleDir.getAbsolutePath(),distributionDir.getAbsolutePath(), summaryDir.getAbsolutePath(), tmpDir);				
 			}
 		}
 		
 		if (mode.equals("metrics")) {
 			
-			Section metrics = ini.get("metrics");
+			Section metrics = ini.get("metrics");			
 			Integer minBasesPerPatient = new Integer(metrics.get("min_bases"));
-			summaryMetric.setMinBasesPerPatient(minBasesPerPatient);
-			
+			summaryMetric.setMinBasesPerPatient(minBasesPerPatient);			
 			
 			if (metrics.containsKey("bigwig_path") && metrics.containsKey("chrom_sizes")) {
 				pathToBigWig = (String) metrics.get("bigwig_path");
@@ -671,12 +672,12 @@ public final class Options {
 			}			
 				
 			if (mode.equals("metrics")) {
-//				if (tmpDir == null) {
-//					throw new QPileupException("NO_TMPDIR");
-//				} 
-//				if (!FileUtils.canFileBeRead(tmpDir)) {
-//					throw new QPileupException("NO_READ_TMP", tmpDir);
-//				}
+				if (tmpDir == null) {
+					throw new QPileupException("NO_TMPDIR");
+				} 
+				if (!FileUtils.canFileBeRead(tmpDir)) {
+					throw new QPileupException("NO_READ_TMP", tmpDir);
+				}
 				if (dbSNPFile != null) {
 					if (!dbSNPFile.exists()) {
 						throw new QPileupException("NO_DBSNP_FILE", dbSNPFile.getAbsolutePath());
