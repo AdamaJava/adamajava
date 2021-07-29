@@ -87,7 +87,7 @@ public final class Options {
 	private File germlineDbFile;
 	private String tmpDir;
 	private String pathToBigWig;
-	private String rangeFile;
+//	private String rangeFile;
 	private boolean includeGraph;
 	private List<String> graphHdfs;
 	private Map<String, String> graphRangeInfoMap = new HashMap<String, String>();
@@ -197,7 +197,6 @@ public final class Options {
 		outputDir = generalSection.get("output_dir");		
 		
 		
-		
 		if (mode.equals("view") || mode.equals("metrics") || mode.equals("add")) {
 			readRanges = generalSection.getAll("range");			
 		}
@@ -263,11 +262,11 @@ public final class Options {
 			
 			graphHdfs = viewSection.getAll("graph_hdf");		
 			
-			if (viewSection.containsKey("range_file")) {				
-				rangeFile = viewSection.get("range_file");
-				readRanges.clear();				
-				getRangesFromRangeFile(viewSection.get("range_file"), group);			
-			}
+//			if (viewSection.containsKey("range_file")) {				
+//				rangeFile = viewSection.get("range_file");
+//				readRanges.clear();				
+//				getRangesFromRangeFile(rangeFile, group);			
+//			}
 			if (viewSection.containsKey("graph")) {
 				includeGraph = true;
 				if (viewSection.containsKey("stranded")) {
@@ -405,9 +404,9 @@ public final class Options {
 		return filter;
 	}
 
-	public void setFilter(String filter) {
-		this.filter = filter;
-	}
+//	public void setFilter(String filter) {
+//		this.filter = filter;
+//	}
 
 	public boolean isViewGraphStranded() {
 		return viewGraphStranded;
@@ -908,9 +907,9 @@ public final class Options {
 		return this.summaryMetric;
 	}
 
-	public String getRangeFile() {
-		return this.rangeFile;
-	}
+//	public String getRangeFile() {
+//		return this.rangeFile;
+//	}
 
 	public List<String> getGraphHDFs() {
 		return this.graphHdfs;
