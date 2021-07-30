@@ -109,7 +109,7 @@ public final class Options {
 		
 		parser.accepts("hdf", Messages.getMessage("HDF_FILE_OPTION")).withOptionalArg().ofType(String.class);
 		
-		parser.accepts("tmp", Messages.getMessage("TMPDIR_OPTION")).withOptionalArg().ofType(String.class);
+//		parser.accepts("tmp", Messages.getMessage("TMPDIR_OPTION")).withOptionalArg().ofType(String.class);
 		parser.accepts("range", Messages.getMessage("READ_RANGE_OPTION")).withOptionalArg().ofType(String.class);
 		parser.accepts("element", Messages.getMessage("ELEMENT_OPTION")).withOptionalArg().ofType(String.class);
 		parser.accepts("group", Messages.getMessage("GROUP_OPTION")).withOptionalArg().ofType(String.class);		

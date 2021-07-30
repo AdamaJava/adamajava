@@ -36,7 +36,7 @@ public class TestUtil {
 
 	public static String[] getViewArgs(TemporaryFolder testfolder, String hdf, String readRange, boolean getHeader) {
 		if (getHeader) {
-			String[] args = {"--view", "--hdf", hdf, "--range", readRange, "--H"};
+			String[] args = {"--view", "--hdf", hdf, "--range", readRange, "--header"};
 			return args;
 		} else {
 			String[] args = {"--view", "--hdf", hdf, "--range", readRange};
