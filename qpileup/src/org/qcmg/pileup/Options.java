@@ -521,7 +521,7 @@ public final class Options {
 	
 	
 	public boolean hasHDFVersionOption() {
-		return options.has("hdf_version");
+		return options.has("hdf-version");
 	}
 
 	public String getLog() {
