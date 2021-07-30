@@ -516,7 +516,7 @@ public final class Options {
 	}
 	
 	public boolean hasHeaderOption() {
-		return options.has("H");
+		return options.has("header");
 	}
 	
 	
