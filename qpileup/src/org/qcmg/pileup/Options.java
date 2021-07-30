@@ -6,7 +6,6 @@
  */
 package org.qcmg.pileup;
 
-import static java.util.Arrays.asList;
 import htsjdk.samtools.SamReader;
 
 import java.io.BufferedReader;
@@ -26,6 +25,7 @@ import java.util.regex.Pattern;
 
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
+import joptsimple.BuiltinHelpFormatter;
 
 import org.ini4j.Ini;
 import org.ini4j.Profile.Section;
@@ -40,7 +40,6 @@ import org.qcmg.pileup.metrics.SnpMetric;
 import org.qcmg.pileup.metrics.StrandBiasMetric;
 import org.qcmg.pileup.metrics.SummaryMetric;
 import org.qcmg.pileup.model.StrandEnum;
-import org.qcmg.qio.record.StringFileReader;
 
 public final class Options {	
 	
@@ -87,7 +86,6 @@ public final class Options {
 	private File germlineDbFile;
 	private String tmpDir;
 	private String pathToBigWig;
-//	private String rangeFile;
 	private boolean includeGraph;
 	private List<String> graphHdfs;
 	private Map<String, String> graphRangeInfoMap = new HashMap<String, String>();
@@ -104,19 +102,17 @@ public final class Options {
 		parser.accepts("ini", Messages.getMessage("INI_OPTION")).withOptionalArg().ofType(String.class);
 
 		parser.accepts("view", Messages.getMessage("VIEW_OPTION"));
-		parser.accepts("header", Messages.getMessage("HEADER_OPTION"));
+		parser.accepts("hdf-header", Messages.getMessage("HEADER_OPTION"));
 		parser.accepts("hdf-version", Messages.getMessage("HDF_VERSION_OPTION"));
 		
 		parser.accepts("hdf", Messages.getMessage("HDF_FILE_OPTION")).withOptionalArg().ofType(String.class);
 		
-//		parser.accepts("tmp", Messages.getMessage("TMPDIR_OPTION")).withOptionalArg().ofType(String.class);
 		parser.accepts("range", Messages.getMessage("READ_RANGE_OPTION")).withOptionalArg().ofType(String.class);
 		parser.accepts("element", Messages.getMessage("ELEMENT_OPTION")).withOptionalArg().ofType(String.class);
 		parser.accepts("group", Messages.getMessage("GROUP_OPTION")).withOptionalArg().ofType(String.class);		
 		
 		options = parser.parse(args);	
 		iniFile = (String) options.valueOf("ini");
-//		tmpDir = (String) options.valueOf("tmp");
 		hdfFile = (String)options.valueOf("hdf");
 				
 		if (options.has("range")) {
@@ -135,46 +131,6 @@ public final class Options {
 		}
 	}
 	
-	private void getRangesFromRangeFile(String rangeFile, String viewGroup) throws Exception {
-		
-		try (StringFileReader reader = new StringFileReader(new File(rangeFile));) {
-			positionMap = new HashMap<String, TreeMap<Integer, String>>();
-		
-			for (final String tab : reader) {			
-				if (tab.startsWith("#") || tab.startsWith("Hugo") || tab.startsWith("analysis")) {					
-					continue;
-				}
-				String[] data = tab.split("\t");
-				if (rangeFile.endsWith("gff3")) {				
-					String range = data[0] + ":" + data[3] + "-" + data[4];
-					
-					graphRangeInfoMap.put(range, data[8]);			
-					readRanges.add(range);
-				} else {
-					String range = data[0] + "\t" + data[1] + "\t" + data[1];
-					if (data[0].equals("chrXY")) {
-						range = "chrX" + ":" + data[1] + "-" + data[1];
-					}
-					int pos = new Integer(data[1]);
-					if (positionMap.containsKey(data[0])) {
-						positionMap.get(data[0]).put(pos, range);
-					} else {
-						TreeMap<Integer, String> treemap = new TreeMap<Integer, String>();
-						treemap.put(pos, range);
-						positionMap.put(data[0], treemap);
-						
-					}					
-				}
-			}
-		}
-		for (Entry<String, TreeMap<Integer, String>> e: positionMap.entrySet()) {
-			TreeMap<Integer, String> map = e.getValue();
-			readRanges.add(e.getKey() + ":" + (map.firstKey()-10) + "-" + (map.lastKey()+10));
-		}
-		
-
-	}
-
 	public Map<String, String> getGraphRangeInfoMap() {
 		return graphRangeInfoMap;
 	}
@@ -262,11 +218,6 @@ public final class Options {
 			
 			graphHdfs = viewSection.getAll("graph_hdf");		
 			
-//			if (viewSection.containsKey("range_file")) {				
-//				rangeFile = viewSection.get("range_file");
-//				readRanges.clear();				
-//				getRangesFromRangeFile(rangeFile, group);			
-//			}
 			if (viewSection.containsKey("graph")) {
 				includeGraph = true;
 				if (viewSection.containsKey("stranded")) {
@@ -404,10 +355,6 @@ public final class Options {
 		return filter;
 	}
 
-//	public void setFilter(String filter) {
-//		this.filter = filter;
-//	}
-
 	public boolean isViewGraphStranded() {
 		return viewGraphStranded;
 	}
@@ -415,11 +362,6 @@ public final class Options {
 	public void setViewGraphStranded(boolean viewGraphStranded) {
 		this.viewGraphStranded = viewGraphStranded;
 	}
-
-//	@Deprecated
-//	public boolean hasGraphOption() {
-//		return options.has("G");
-//	}
 
 	public File getHtmlDir() {
 		return htmlDir;
@@ -516,9 +458,8 @@ public final class Options {
 	}
 	
 	public boolean hasHeaderOption() {
-		return options.has("header");
+		return options.has("hdf-header");
 	}
-	
 	
 	public boolean hasHDFVersionOption() {
 		return options.has("hdf-version");
@@ -545,11 +486,12 @@ public final class Options {
 	}
 
 	void displayHelp() throws Exception {
+    	parser.formatHelpWith(new BuiltinHelpFormatter(150, 2));
 		parser.printHelpOn(System.err);
 	}
 	
 	boolean hasHelpOption() {
-		return options.has("h") || options.has("help");
+		return  options.has("help");
 	}
 	
 	public boolean hasNonOptions() {
@@ -695,10 +637,6 @@ public final class Options {
 			
 		}
 	}
-
-//	public String getTmpDir() {
-//		return tmpDir;
-//	}
 
 	private void checkBams() throws QPileupException, IOException {
 		for (String bam : bamFiles) {
@@ -906,10 +844,6 @@ public final class Options {
 	public SummaryMetric getSummaryMetric() {
 		return this.summaryMetric;
 	}
-
-//	public String getRangeFile() {
-//		return this.rangeFile;
-//	}
 
 	public List<String> getGraphHDFs() {
 		return this.graphHdfs;

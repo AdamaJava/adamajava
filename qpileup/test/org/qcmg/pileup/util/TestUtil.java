@@ -22,7 +22,6 @@ public class TestUtil {
 
 	public static Options getValidOptions(TemporaryFolder testFolder, String mode, String reference, String hdf, String bam, String outputDir, String readRange, String mergeHdf) throws Exception {
 		String iniFile =  setUpIniFile(testFolder, mode, reference, hdf, bam, outputDir, readRange, mergeHdf);
-//		String[] args = {"--ini", iniFile, "--tmp" , testFolder.getRoot().toString()};
 		String[] args = {"--ini", iniFile}; //tmp moved from CMD to ini [metrics]
 		Options options = new Options(args);
 		return options;
@@ -36,7 +35,7 @@ public class TestUtil {
 
 	public static String[] getViewArgs(TemporaryFolder testfolder, String hdf, String readRange, boolean getHeader) {
 		if (getHeader) {
-			String[] args = {"--view", "--hdf", hdf, "--range", readRange, "--header"};
+			String[] args = {"--view", "--hdf", hdf, "--range", readRange, "--hdf-header"};
 			return args;
 		} else {
 			String[] args = {"--view", "--hdf", hdf, "--range", readRange};
