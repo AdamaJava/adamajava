@@ -105,7 +105,7 @@ public final class Options {
 
 		parser.accepts("view", Messages.getMessage("VIEW_OPTION"));
 		parser.accepts("header", Messages.getMessage("HEADER_OPTION"));
-		parser.accepts("hdf_version", Messages.getMessage("HDF_VERSION_OPTION"));
+		parser.accepts("hdf-version", Messages.getMessage("HDF_VERSION_OPTION"));
 		
 		parser.accepts("hdf", Messages.getMessage("HDF_FILE_OPTION")).withOptionalArg().ofType(String.class);
 		
@@ -295,7 +295,7 @@ public final class Options {
 				summaryDir.mkdir();		
 				this.snpDir =  new File(outputDir + PileupConstants.FILE_SEPARATOR + pileup + PileupConstants.FILE_SEPARATOR + "snp");
 				snpDir.mkdir();
-				this.tmpDir = ini.get("metrics").get("output_temporary");
+				this.tmpDir = ini.get("metrics").get("temporary_dir");
 				
 				this.summaryMetric = new SummaryMetric(hdfFileName, pileupDir.getAbsolutePath(), wiggleDir.getAbsolutePath(),distributionDir.getAbsolutePath(), summaryDir.getAbsolutePath(), tmpDir);				
 			}

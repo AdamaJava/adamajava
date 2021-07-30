@@ -107,6 +107,13 @@ public class OptionsTest {
 		
 		//we don't know the sub folder name of temporaryFolder, have to work around
 		String tmpDir = new File( options.getIniFile()).getParent();
+		
+		//debug
+		System.out.println( options.getHdfFile()+ " (options.getHdfFile()) ");
+		System.out.println( options.getIniFile() + " (options.getIniFile()) ");
+		System.out.println( options.getLog() + " (options.getLog()) ");
+		System.out.println(tmpDir + " (new File( options.getIniFile()).getParent())");
+		
 		assertEquals(tmpDir + PileupConstants.FILE_SEPARATOR + "log", options.getLog());
 	}
 	

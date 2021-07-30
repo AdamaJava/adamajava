@@ -22,7 +22,8 @@ public class TestUtil {
 
 	public static Options getValidOptions(TemporaryFolder testFolder, String mode, String reference, String hdf, String bam, String outputDir, String readRange, String mergeHdf) throws Exception {
 		String iniFile =  setUpIniFile(testFolder, mode, reference, hdf, bam, outputDir, readRange, mergeHdf);
-		String[] args = {"--ini", iniFile, "--tmp" , testFolder.getRoot().toString()};
+//		String[] args = {"--ini", iniFile, "--tmp" , testFolder.getRoot().toString()};
+		String[] args = {"--ini", iniFile}; //tmp moved from CMD to ini [metrics]
 		Options options = new Options(args);
 		return options;
 	}
@@ -58,7 +59,7 @@ public class TestUtil {
 		
 		BufferedWriter out = new BufferedWriter(new FileWriter(iniFile));
 		out.write("[general]\n");
-		out.write("log="+ new File(testFolder, "log").getAbsolutePath()+"\n");
+		out.write("log="+ new File(testFolder, "log").getCanonicalPath()+"\n");
 		out.write("loglevel=INFO\n");
 		out.write("hdf="+hdf+"\n");
 		out.write("mode="+mode+"\n");
@@ -71,14 +72,15 @@ public class TestUtil {
 		out.write("[merge]\n");		
 		out.write("input_hdf="+mergeHdf+"\n");
 		out.write("input_hdf="+mergeHdf+"\n");
-    	out.write("[view]\n");   			
-    	out.write("[bootstrap]\n");    	
+    	out.write("[view]\n"); 			
+    	out.write("[bootstrap]\n");
     	out.write("reference="+reference+"\n");
     	out.write("low_read_count="+20+"\n");
     	out.write("nonref_percent="+30+"\n");
     	if (mode.equals("metrics")) {
     		out.write("[metrics]\n");
 			out.write("min_bases=3\n");
+			out.write("temporary_dir=" + testFolder.getCanonicalPath() + "\n");
 			out.write("bigwig_path=wiggle\n");
 			out.write("chrom_sizes=grc37.chromosomes.txt\n");
     		out.write("[metrics/clip]\n");
@@ -108,7 +110,8 @@ public class TestUtil {
     		out.write("min_nonreference_bases=1\n");
     	}
     	out.close();
-		return iniFile.getAbsolutePath();
+//		return iniFile.getAbsolutePath();
+    	return iniFile.getCanonicalPath();
 	}
 
 	public static void createBam(String fileName){
