@@ -7,9 +7,14 @@ import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.UUID;
 
+import org.apache.commons.io.FileUtils;
 import org.ini4j.InvalidFileFormatException;
 import org.junit.After;
 import org.junit.Assert;
@@ -152,9 +157,6 @@ public class OptionsTest {
         assertEquals(options.getClipQuery(), "and(Cigar_M > 35,option_SM > 14,MD_mismatch < 3,Flag_DuplicateRead == false)");
         assertEquals(options.getClipSize().intValue(), 3);
         assertEquals(options.getConsensusLength(), new Integer(20));
-//        assertEquals(options.getBlatPath(), "/home/Software/BLAT");
-//        assertEquals(options.getBlatServer(), "localhost");
-//        assertEquals(options.getBlatPort(), "50000");
         
         //tumor
         assertEquals(options.getInputFile(), file2);
@@ -369,7 +371,6 @@ public class OptionsTest {
     	}catch(QSVException e) {
     		Assert.fail("Should not thrown an QSVException");
     	}
-    	
     }    
     
     @Test
@@ -393,7 +394,11 @@ public class OptionsTest {
 	 		//it will fail because missing ini output option 
 	 		options.parseIniFile();
 	 		Assert.fail("Should have thrown an Exception");
-	 	} catch (QSVException qsve) {}
+	 	} catch (QSVException qsve) {
+	 		String exp = new QSVException("NO_OUTPUT").getMessage();
+	 		assertEquals(qsve.getMessage(), exp);
+	 		
+	 	}
 	 	
 	 		 	
 	 	//add output option to ini file
@@ -401,6 +406,37 @@ public class OptionsTest {
 	 	options = new Options(newArgs);	 	
 	 	options.parseIniFile();
     	 	
+    }
+    
+    @Test
+    public void outputDirTest() throws InvalidFileFormatException, QSVException, IOException {
+    	 
+	 	//output dir not exsits without uuid option
+    	File tmp1 = testFolder.newFolder();   	
+    	String[] args = TestUtil.getValidOptions(tmp1, file1, file2, "both", "both", true);
+    	Options options = new Options(args);
+    	//suceed when output direcotry exists. 
+    	options.parseIniFile();
+    	    	
+    	//delete output directory, mv ini to a different direcotry. 
+    	File tmp2 = testFolder.newFolder();    
+    	Path source = Paths.get(args[1]);
+    	Path target = new File(tmp2, "test.new.ini").toPath();    	
+    	Files.move(source, target, StandardCopyOption.REPLACE_EXISTING);   	
+    	FileUtils.deleteDirectory(tmp1);
+    	assertTrue(!tmp1.exists());
+    	
+    	args[1] = target.getParent() + "/" + target.getFileName();
+ 		options = new Options(args);     	 
+	 	try {
+	 		//it will fail because the ini point to a non-exists directory
+	 		options.parseIniFile();
+	 		Assert.fail("Should have thrown an Exception");
+	 	} catch (QSVException qsve) {
+	 		String exp = new QSVException("NO_OUTPUT_DIR", tmp1.getAbsolutePath()).getMessage();
+	 		assertEquals(qsve.getMessage(), exp);
+	 	}
+    	
     }
 
     @Test
@@ -430,6 +466,8 @@ public class OptionsTest {
         assertEquals(null, options.getIniFile());
         options.detectBadOptions();
     }
+    
+  
     
 
 
