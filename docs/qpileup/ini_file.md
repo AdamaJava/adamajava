@@ -9,33 +9,38 @@ section plus one or more sections specific to the mode.
 [general]
 log = Req, Log file.
 loglevel = Opt, Logging level [INFO,DEBUG], Def=INFO.
-hdf = Req, HDF5 file ( must have .h5 extension). ??? but not for merge mode. 
+hdf = Req, HDF5 file ( must have .h5 extension). 
 mode = Req, Mode [bootstrap,add,remove,merge,view].
 bam_override =  Opt, If set, allows duplicate BAM files to be added, Def=FALSE
 thread_no = Opt, Number of threads [1-12]. Def=1
 output_dir = Req, Directory for output pileup files, (required for view and metrics modes).
+;multi-value is allowed, each range in seperate line. 
 range = Opt, Range to view (required for view, metircs and add mode). Def=all. 
 
-;??this section is gor bootstrap mode and merge mode
 [bootstrap] 
-;?? test without low_read_count and nonref_percent
-; test on merge mode without bootstrap section. 
+;the merge mode will call bootstrap, so this section is for both bootstrap and merge mode
+; low_read_count and nonref_percent  never reach default value but throw exception. 
 reference = Req, path to reference genome fasta file.
 low_read_count = Opt, the number below which the LowReadCount element is defined. Also used to define the HighNonReference element. Def=10.
 nonref_percent = Opt, Used for HighNonreference strand summary element. Minimum percent that non-reference bases to total bases must have in order to be counts as HighNonReference. Def=20(%)
 
 [add_remove]
-bam_list=path of file with list of bams OR
-name=path to bam files (Required for add, remove modes. More than one name allowed)
+; this section for both add and remove mode.
+bam_list = Req, path of file with list of bams. Or
+name = Req, path to bam files (Required for add, remove modes). More than one name allowed.
+filter = Opt, a qbamfilter query to filter out BAM records. Def=null.
 
 [merge]
-input_hdf = Req, path to the hdf file/s that will be merged (required for merge mode)
+;multi-value is allowed, each hdf file in seperate line. 
+input_hdf = Req, path to the hdf file/s that will be merged.
 
 [view]
+;multi-value for element and group are allowed
 element = Opt, qpileup data element to view. see [strand summary table](ndex_latest.md#strand-summary).
 group = Opt, Possible groups [forward, reverse, bases, quals, cigars, readStats]. 
 graph = Opt, ???create html file. Def=false.
 stranded = Opt, it accompany with gragh option. Def=false. 
+graph_hdf = Opt, hdf to view. Def = null. 
 
 [metrics]
 min_bases = Req, minimum average coverage (base count) per reference position.
