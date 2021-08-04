@@ -179,17 +179,22 @@ public final class Options {
 			this.inputHDFs = merged.getAll("input_hdf");			 
 		}
 		
+		//because merge mode also calls bootstrap at first
 		if (mode.equals("bootstrap") || mode.equals("merge")) {		
 			Section bootstrap = ini.get("bootstrap");		
 			referenceFile = bootstrap.get("reference");
-			lowReadCount = new Integer(bootstrap.get("low_read_count"));
-			percentnonref = new Integer(bootstrap.get("nonref_percent"));
 			
-			if (lowReadCount == null) {
+			//???need unit test
+			if(bootstrap.get("low_read_count") == null) {
 				lowReadCount = 10;
-			}
-			if (percentnonref == null) {
+			} else {
+				lowReadCount = new Integer(bootstrap.get("low_read_count"));
+			}			
+			
+			if (bootstrap.get("nonref_percent") == null) {
 				percentnonref = 20;
+			} else {
+				percentnonref = new Integer(bootstrap.get("nonref_percent"));
 			}
 		}		
 		
