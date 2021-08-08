@@ -357,41 +357,31 @@ min_nonreference_bases=100
 `qpileup` offers a limited `view` mode option from the command line. Users may use this option to view the HDF header/metadata or qpileup output for a single reference genome range (maximum size is one chromosome)
 
 View version
-
 ~~~~
-java -Xmx20g -jar qpileup-0.1pre.jar  --view -V --hdf /qpileup/runs/test/testhdf.h5
+java -Xmx20g -jar qpileup-0.1pre.jar  --view --hdf-vesion --hdf /qpileup/runs/test/testhdf.h5
 ~~~~
 
 View header
-
 ~~~~
-java -Xmx20g -jar qpileup-0.1pre.jar  --view -H --hdf /qpileup/runs/test/testhdf.h5
+java -Xmx20g -jar qpileup-0.1pre.jar  --view -hdf-header --hdf /qpileup/runs/test/testhdf.h5
 ~~~~
 
 View pileup on region of chromosome
-
 ~~~~
-java -Xmx20g -jar qpileup-0.1pre.jar  --view -H --hdf /qpileup/runs/test/testhdf.h5 --range chr1:1-1000
+java -Xmx20g -jar qpileup-0.1pre.jar  --view --hdf /qpileup/runs/test/testhdf.h5 --range chr1:1-1000
 ~~~~
 
 View pileup on region of chromosome by group
 ~~~~
-java -Xmx20g -jar qpileup-0.1pre.jar  --view -H --hdf /qpileup/runs/test/testhdf.h5 --range chr1:1-1000 --group reverse
+java -Xmx20g -jar qpileup-0.1pre.jar  --view --hdf /qpileup/runs/test/testhdf.h5 --range chr1:1-1000 --group reverse
 ~~~~
-
-Here possible groups are:
-+ reverse: all elements: reverse strand reads
-* bases: elements: A,C,G,T,N,ReferenceNo,NonreferenceNo,HighNonreference,LowReadCount
-* quals: AQual,CQual,GQual,NQual,MapQual
-* cigars: CigarI,CigarD,CigarD_start,CigarS,CigarS_start,CigarH,CigarH_start,CigarN,CigarN_start
-* readStats: StartAll,StartNondup,StopAll,Dup,MateUnmapped
 
 View pileup on region of chromosome by element 
 ~~~~
-java -Xmx20g -jar qpileup-0.1pre.jar  --view -H --hdf /qpileup/runs/test/testhdf.h5 --range chr1:1-1000 --element CigarI
+java -Xmx20g -jar qpileup-0.1pre.jar  --view --hdf /qpileup/runs/test/testhdf.h5 --range chr1:1-1000 --element CigarI
 ~~~~
 
 View pileup on region of chromosome by element and group
 ~~~~
-java -Xmx20g -jar qpileup-0.1pre.jar  --view -H --hdf /qpileup/runs/test/testhdf.h5 --range chr1:1-1000 --element CigarI --group bases
+java -Xmx20g -jar qpileup-0.1pre.jar  --view --hdf /qpileup/runs/test/testhdf.h5 --range chr1:1-1000 --element CigarI --group bases
 ~~~~
