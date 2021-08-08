@@ -1,8 +1,7 @@
 
 ## INI file
 
-The INI file is divided into sections. All modes have a `[general]`
-section plus one or more sections specific to the mode.
+The INI file is divided into sections. All modes have a `[general]` section plus one or more sections specific to the mode.
 
 ~~~~{.text}
 
@@ -82,33 +81,69 @@ min_percent_diff=minimum percent difference in % nonreference bases between stra
 min_nonreference_bases=minimum number of non-reference bases per reference position
 ~~~~
 
-## [general]
+
+### Modes
+
+#### `bootstrap`
+
+`bootstrap` mode creates a qpileup HDF5 file for a reference genome, storing position and reference base information for the genome. The output from
+this mode is a complete HDF5 qpileup file but with no values in any of the summary metrics. For a given reference genome, a user would typically run
+bootstrap mode once to create a "clean" initialised qpileup HSF5 and then use that bootstrap file as the basis for numerous qpileup BAM collections. 
+Using 12 threads on a cluster node with 2 x 6-core CPUs, bootstrapping the GRCh37 human genome takes approximately 12 minutes. For more details on `bootstrap` mode, see this [page](qpileup_bootstrap_mode.md).
+
+#### `add`
+
+`add` mode takes one or more BAM files as input and performs a pileup for the reads, adding the new data to an existing qpileup file. It is expected
+that `add` and `view` will be the most often used qpileup modes as this mode allows for addition of new BAMs to existing qpileup files and "view" allows
+for querying of locations in the qpileup file.
+
+#### `remove`
+
+`remove` mode is the opposite of `add` more. It takes one or more BAM files that are part of an existing qpileup HDF5 file and it removes the BAMs
+from the collection by performing pileups and decrementing the values of all of the qpileup metrics so it was as though the BAM file(s) had not
+been added to the HDF5. This should rarely be necessary but is invaluable in cases such as sample or tumour/normal swaps, or incorrect labelling of
+BAM files.
+Without this mode, any case where a BAM was incorrcetly added to an HDF5 file would require the HDF5 file to be regenerated from scratch.
+
+#### `view`
+
+`view` mode reads metrics from a qpileup HDF5 file and writes to a CSV file. `view` can be used for a whole genome (but don't do that unless 
+you have a lot of disk - it's a really big file) or for specific regions. `view` takes a list of ranges and will output a separate CSV for each chromosome/contig that is part of the list of ranges queried. Each file will contain metadata at the top including the HDF5 file the summary was extracted from and the regions extacted.
+
+Unlike all of the other modes, there is a limited ability to use view mode via commandline options to qpileup. This mode can be to view metadata for the HDF file and the qpileup metrics for a small (up to one chromosome) region of the reference genome. For more details on `view` mode, see this [page](qpileup_view_mode.md).
+
+#### `merge`
+
+`merge` mode will merge 2 or more HDF5 files together. The files must use the same reference genome, and the same values for `lowreadcount` and `percentnonref`.
+
+
+### [general]
 This section is required for all modes.
 
-## range
+* range
 e.g. `range=chrMT:1234-5678`, `range=chr12` or `range=all`. Here, "all" be used to write all positions in the HDF5 file.
 
-## threads number
+* threads number
 tool total threads will be number specified + 3.
 
-## element
+* element
 see [strand summary table](ndex_latest.md#strand-summary).
 
-## group
+* group
 Possible groups are:
-* forward: all elements forward strand reads. 
-* reverse: all elements: reverse strand reads
-* bases: elements: A,C,G,T,N,ReferenceNo,NonreferenceNo,HighNonreference,LowReadCount
-* quals: AQual,CQual,GQual,NQual,MapQual
-* cigars: CigarI,CigarD,CigarD_start,CigarS,CigarS_start,CigarH,CigarH_start,CigarN,CigarN_start
-* readStats: StartAll,StartNondup,StopAll,Dup,MateUnmapped
+** forward: all elements forward strand reads. 
+** reverse: all elements: reverse strand reads
+** bases: elements: A,C,G,T,N,ReferenceNo,NonreferenceNo,HighNonreference,LowReadCount
+** quals: AQual,CQual,GQual,NQual,MapQual
+** cigars: CigarI,CigarD,CigarD_start,CigarS,CigarS_start,CigarH,CigarH_start,CigarN,CigarN_start
+** readStats: StartAll,StartNondup,StopAll,Dup,MateUnmapped
 
-## Examples
-### Add mode options for ini file
+### Examples
+#### Add mode
 
 Bam files can be listed in 2 ways:
-within the ini file using name=path to bam file
-provide a file with bam files listed using bamlist=path to bam list file
+*within the ini file using name=path to bam file
+*provide a file with bam files listed using bamlist=path to bam list file
 
 ~~~~
 [general]
@@ -125,7 +160,7 @@ name=/ABCD_1234/T02_20120318_153_FragBC.nopd.IonXpress_001.sorted.bam
 name=/ABCD_1234/T02_20120318_153_FragBC.nopd.IonXpress_003.sorted.bam
 ~~~~
 
-### Merge mode options for ini file
+#### Merge mode
 
 ~~~~
 [general]
@@ -141,7 +176,7 @@ input_hdf==/qpileup/runs/test/testA.h5
 input_hdf==/qpileup/runs/test/testB.h5
 ~~~~
 
-### View mode options for ini file
+#### View mode options for ini file
 
 ~~~~
 [general]
@@ -162,7 +197,7 @@ group = forward
 ~~~~
 
 
-### Metrics mode
+#### Metrics mode
 
 ~~~~
 [metrics]
