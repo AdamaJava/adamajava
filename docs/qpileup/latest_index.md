@@ -60,8 +60,8 @@ The INI file is divided into sections. All modes have a `[general]` section plus
 [general]
 log = Req, Log file.
 loglevel = Opt, Logging level [INFO,DEBUG], Def=INFO.
-hdf = Req, HDF5 file ( must have .h5 extension). it is the output of bootstrap and merge mode, but input of view and metrics mode. ??not sure for add/remove
-mode = Req, Mode [bootstrap,add,remove,merge,view].
+hdf = Req, HDF5 file ( must have .h5 extension). it is the output of bootstrap and merge mode, but input of view and metrics mode, and modified by add and remove mode. 
+mode = Req, Mode [bootstrap, add, remove, merge, view, metrics].
 thread_no = Opt, Number of threads [1-12]. Def=1
 bam_override =  Opt (add and remove mode), If set, allows duplicate BAM files to be added, Def=FALSE
 output_dir = Req (view and metrics mode), Directory for output pileup files.
@@ -358,12 +358,12 @@ min_nonreference_bases=100
 
 View version
 ~~~~
-java -Xmx20g -jar qpileup-0.1pre.jar  --view --hdf-vesion --hdf /qpileup/runs/test/testhdf.h5
+java -jar qpileup-0.1pre.jar  --view --hdf-vesion --hdf /qpileup/runs/test/testhdf.h5
 ~~~~
 
 View header
 ~~~~
-java -Xmx20g -jar qpileup-0.1pre.jar  --view -hdf-header --hdf /qpileup/runs/test/testhdf.h5
+java  -jar qpileup-0.1pre.jar  --view -hdf-header --hdf /qpileup/runs/test/testhdf.h5
 ~~~~
 
 View pileup on region of chromosome
