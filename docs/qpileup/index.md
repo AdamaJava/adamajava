@@ -49,9 +49,7 @@ Option         Description
 --view         Req (view mode), Use this option to invoke view mode.    
 ~~~~
 
-There are two type options to run qpileup. One is to specify all relevant qpileup options in a INI file, as show on `usage`, another is use `--view` command line option, as shown on `usage2`.  
-
-### INI file
+### usage1: `ini` file option
 
 The INI file is divided into sections. All modes have a `[general]` section plus one or more sections specific to the mode.
 
@@ -133,21 +131,27 @@ min_percent_diff = Req, minimum percent difference in % nonreference bases betwe
 min_nonreference_bases = Req, minimum number of non-reference bases per reference position
 ~~~~
 
-#### Modes
+#### [HDF5 file](hdf.md)
+HDF5 is a binary file format that allows for high-speed random access to very large datasets. The data stored in the qpileup HDF5 file conceptually fits into 3 categories:
+* [position](hdf.md) - which relates to the reference genome,
+* [strand summary](hdf.md) - which holds the per-base metrics derived from the reads in the the BAMs added to the HDF5 file,
+* [metadata](hdf.md) - which is a log of the bootstrap/add/remove operations that have been applied to the HDF5.
+
+#### [Modes](ini.md)
 Mode | Description
 -----| -----------
-[`bootstrap`](ini.md#bootstrap) | mode creates a qpileup HDF5 file for a reference genome.
+[`bootstrap`](ini.md##bootstrap) | mode creates a qpileup HDF5 file for a reference genome.
 [`add`](ini.md#add) | add BAM files pileup counts to existing HDF5 file. 
 [`remove`](ini.md#remove) | remove BAM files pileup counts to existing HDF5 file. 
 [`view`](ini.md#view) | metrics from a qpileup HDF5 file and writes to a CSV file
 [`merge`](ini.md#merge) | merge 2 or more HDF5 files together.
 [`metrics`](ini.md#metrics) | ???
 
-### `view` mode options (command line)
+### Usage2: `view` mode options 
 `qpileup` offers a limited `view` mode option from the command line. Users may use this option to view the HDF header/metadata or qpileup output for a single reference genome range (maximum size is one chromosome)
 
 ~~~~
-#View version
+#view version
 java -jar qpileup-0.1pre.jar  --view --hdf-vesion --hdf /path/testhdf.h5
 
 #View header
