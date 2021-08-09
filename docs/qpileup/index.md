@@ -58,12 +58,12 @@ The INI file is divided into sections. All modes have a `[general]` section plus
 [general]
 log = Req, Log file.
 loglevel = Opt, Logging level [INFO,DEBUG], Def=INFO.
-hdf = Req, HDF5 file ( must have .h5 extension). it is the output of bootstrap and merge mode, but input of view and metrics mode, and modified by add and remove mode. 
+hdf = Req, path to HDF5 file. it is the output from bootstrap and merge mode, but input for view and metrics mode, and modified by add and remove mode. 
 mode = Req, Mode [bootstrap, add, remove, merge, view, metrics].
 thread_no = Opt, Number of threads [1-12]. Def=1
 bam_override =  Opt (add and remove mode), If set, allows duplicate BAM files to be added, Def=FALSE
 output_dir = Req (view and metrics mode), Directory for output pileup files.
-range = Opt (view, metrics, add), Range to view. Def=all. 
+range = Opt (add, view and metrics mode), Range to view. Def=all. 
 
 [bootstrap] 
 ;the merge mode will call bootstrap, so this section is for both bootstrap and merge mode
@@ -132,10 +132,8 @@ min_nonreference_bases = Req, minimum number of non-reference bases per referenc
 ~~~~
 
 #### [HDF5 file](hdf.md)
-HDF5 is a binary file format that allows for high-speed random access to very large datasets. The data stored in the qpileup HDF5 file conceptually fits into 3 categories:
-* [position](hdf.md) - which relates to the reference genome,
-* [strand summary](hdf.md) - which holds the per-base metrics derived from the reads in the the BAMs added to the HDF5 file,
-* [metadata](hdf.md) - which is a log of the bootstrap/add/remove operations that have been applied to the HDF5.
+HDF5 is a binary file format that allows for high-speed random access to very large datasets. The data stored in the qpileup HDF5 file conceptually 
+fits into 3 categories: [position](hdf.md), [strand summary](hdf.md) and [metadata](hdf.md). Here HDF5 file must have .h5 extension.
 
 #### [Modes](ini.md)
 Mode | Description
