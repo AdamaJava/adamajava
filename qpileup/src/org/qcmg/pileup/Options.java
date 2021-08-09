@@ -6,7 +6,6 @@
  */
 package org.qcmg.pileup;
 
-import static java.util.Arrays.asList;
 import htsjdk.samtools.SamReader;
 
 import java.io.BufferedReader;
@@ -66,8 +65,6 @@ public final class Options {
 	private boolean bamOverride = false;
 	private Integer lowReadCount;
 	private Integer percentnonref;
-	private static final String VERSION_OPTION = Messages.getMessage("VERSION_OPTION");
-	private static final String HELP_OPTION = Messages.getMessage("HELP_OPTION");
 	private Integer threadNo;
 	private String metricType;
 	private String normalFile;
@@ -82,48 +79,44 @@ public final class Options {
 	private String uuid;
 	private File dbSNPFile;
 	private String comparisonSnpFileAnnotation;
-	private File htmlDir;
 	private File distributionDir;
 	private File wiggleDir;
 	private SummaryMetric summaryMetric;
 	private File germlineDbFile;
 	private String tmpDir;
 	private String pathToBigWig;
-	private List<String> viewHDFs;
-	private String rangeFile;
-	private boolean includeGraph;
-	private List<String> graphHdfs;
-	private Map<String, String> graphRangeInfoMap = new HashMap<String, String>();
+	private String filter;
 	private File snpDir;
 	private Map<String, TreeMap<Integer, String>> positionMap;
-	private boolean viewGraphStranded;
-	private String filter;
 
+	
+	@Deprecated private List<String> viewHDFs;
+	@Deprecated private Map<String, String> graphRangeInfoMap = new HashMap<String, String>();	
+	@Deprecated private boolean viewGraphStranded;	
+	@Deprecated private File htmlDir;	
+	@Deprecated private boolean includeGraph;
+	@Deprecated private List<String> graphHdfs;
+	@Deprecated private String rangeFile;
+	
+	
 	@SuppressWarnings("unchecked")
 	public Options(final String[] args) throws Exception {
 		
+		parser.accepts("help", Messages.getMessage("HELP_OPTION"));
+		parser.accepts("version",Messages.getMessage("VERSION_OPTION"));
 		parser.accepts("ini", Messages.getMessage("INI_OPTION")).withOptionalArg().ofType(String.class);
-		parser.acceptsAll(asList("h", "help"), HELP_OPTION);
-		parser.acceptsAll(asList("v", "version"), VERSION_OPTION);
+
 		parser.accepts("view", Messages.getMessage("VIEW_OPTION"));
-		parser.accepts("H", Messages.getMessage("HEADER_OPTION"));
-		parser.accepts("G", Messages.getMessage("GRAPH_OPTION"));
-		parser.accepts("V", Messages.getMessage("VERSION_OPTION"));
-		parser.accepts("hdf", Messages.getMessage("HDF_FILE_OPTION")).withOptionalArg().ofType(String.class);
-		parser.accepts("tmp", Messages.getMessage("TMPDIR_OPTION")).withOptionalArg().ofType(String.class);
-		parser.accepts("range", Messages.getMessage("READ_RANGE_OPTION")).withOptionalArg().ofType(String.class);
+ 		parser.accepts("hdf", Messages.getMessage("HDF_FILE_OPTION")).withOptionalArg().ofType(String.class);
+		parser.accepts("hdf-header", Messages.getMessage("HEADER_OPTION"));
+		parser.accepts("hdf-version", Messages.getMessage("HDF_VERSION_OPTION"));		
+ 		parser.accepts("range", Messages.getMessage("READ_RANGE_OPTION")).withOptionalArg().ofType(String.class);
 		parser.accepts("element", Messages.getMessage("ELEMENT_OPTION")).withOptionalArg().ofType(String.class);
 		parser.accepts("group", Messages.getMessage("GROUP_OPTION")).withOptionalArg().ofType(String.class);		
-		parser.accepts("delete", Messages.getMessage("GROUP_OPTION")).withOptionalArg().ofType(String.class);
 		
 		options = parser.parse(args);	
 		iniFile = (String) options.valueOf("ini");
-		tmpDir = (String) options.valueOf("tmp");
 		hdfFile = (String)options.valueOf("hdf");
-		
-		if (hasGraphOption()) {
-			viewHDFs = (List<String>) options.valuesOf("hdf");
-		}		
 		
 		if (options.has("range")) {
 			readRanges = new ArrayList<String>();
@@ -141,6 +134,8 @@ public final class Options {
 		}
 	}
 	
+
+	@Deprecated
 	private void getRangesFromRangeFile(String rangeFile, String viewGroup) throws Exception {
 		
 		try (StringFileReader reader = new StringFileReader(new File(rangeFile));) {
@@ -177,17 +172,8 @@ public final class Options {
 			TreeMap<Integer, String> map = e.getValue();
 			readRanges.add(e.getKey() + ":" + (map.firstKey()-10) + "-" + (map.lastKey()+10));
 		}
-		
-
 	}
 
-	public Map<String, String> getGraphRangeInfoMap() {
-		return graphRangeInfoMap;
-	}
-
-	public void setGraphRangeInfoMap(Map<String, String> graphRangeInfoMap) {
-		this.graphRangeInfoMap = graphRangeInfoMap;
-	}
 
 	public void parseIniFile() throws Exception {
 
@@ -267,13 +253,16 @@ public final class Options {
 			List<String> elements = viewSection.getAll("element");			
 			parseViewElements(elements);
 			
-			graphHdfs = viewSection.getAll("graph_hdf");		
 			
+		/////below code only used by deprecated ViewMT2
+			graphHdfs = viewSection.getAll("graph_hdf");		
+		
 			if (viewSection.containsKey("range_file")) {				
 				rangeFile = viewSection.get("range_file");
 				readRanges.clear();				
 				getRangesFromRangeFile(viewSection.get("range_file"), group);			
 			}
+			
 			if (viewSection.containsKey("graph")) {
 				includeGraph = true;
 				if (viewSection.containsKey("stranded")) {
@@ -282,17 +271,23 @@ public final class Options {
 						viewGraphStranded = true;
 					}
 				}
-			}			
+			}
+		/////above code only used by deprecated ViewMT2
+			
 		}
 		
 		if (mode.equals("view") || mode.equals("metrics")) {
 			String pileup = "qpileup_" + PileupUtil.getCurrentDateTime();
 			this.pileupDir = new File(outputDir + PileupConstants.FILE_SEPARATOR + pileup);
 			pileupDir.mkdir();
+			
+			
 			if (includeGraph) {
 				this.htmlDir = new File(outputDir + PileupConstants.FILE_SEPARATOR + pileup + PileupConstants.FILE_SEPARATOR + "html");
 				htmlDir.mkdir();
 			}
+			
+			
 			if (mode.equals("metrics")) {				
 				this.distributionDir = new File(outputDir + PileupConstants.FILE_SEPARATOR + pileup + PileupConstants.FILE_SEPARATOR + "distribution");
 				distributionDir.mkdir();
@@ -414,26 +409,6 @@ public final class Options {
 		this.filter = filter;
 	}
 
-	public boolean isViewGraphStranded() {
-		return viewGraphStranded;
-	}
-
-	public void setViewGraphStranded(boolean viewGraphStranded) {
-		this.viewGraphStranded = viewGraphStranded;
-	}
-
-	public boolean hasGraphOption() {
-		return options.has("G");
-	}
-
-	public File getHtmlDir() {
-		return htmlDir;
-	}
-
-	public void setHtmlDir(File htmlDir) {
-		this.htmlDir = htmlDir;
-	}
-
 	public File getDbSNPFile() {
 		return dbSNPFile;
 	}
@@ -511,6 +486,7 @@ public final class Options {
 		pileupDir.mkdir();
 	}
 	
+	@Deprecated
 	public boolean hasDeleteOption() {
 		return options.has("delete");
 	}
@@ -913,27 +889,63 @@ public final class Options {
 	public SummaryMetric getSummaryMetric() {
 		return this.summaryMetric;
 	}
-
+	
+	@Deprecated //not used anywhere
 	public List<String> getViewHDFs() {
 		return viewHDFs;
 	}
-
+	
+	@Deprecated //not used anywhere
 	public String getRangeFile() {
 		return this.rangeFile;
 	}
 
+	@Deprecated //used by viewMT2
 	public List<String> getGraphHDFs() {
 		return this.graphHdfs;
 	}
 	
+	@Deprecated //used by viewMT2
 	public boolean includeViewGraph() {
 		return this.includeGraph;
 	}
+	
+	@Deprecated //used by viewMT2
+	public boolean isViewGraphStranded() {
+		return viewGraphStranded;
+	}
+	@Deprecated //used by viewMT2
+	public void setViewGraphStranded(boolean viewGraphStranded) {
+		this.viewGraphStranded = viewGraphStranded;
+	}
+
+	@Deprecated //not used anywhere
+	public boolean hasGraphOption() {
+		return options.has("G");
+	}
+	@Deprecated //used by viewMT2
+	public File getHtmlDir() {
+		return htmlDir;
+	}
+	@Deprecated //used by viewMT2
+	public void setHtmlDir(File htmlDir) {
+		this.htmlDir = htmlDir;
+	}
+	
+	@Deprecated //used by viewMT2
+	public Map<String, String> getGraphRangeInfoMap() {
+		return graphRangeInfoMap;
+	}
+
+	@Deprecated //used by viewMT2
+	public void setGraphRangeInfoMap(Map<String, String> graphRangeInfoMap) {
+		this.graphRangeInfoMap = graphRangeInfoMap;
+	}
+
 
 	public Map<String, TreeMap<Integer, String>> getPositionMap() {
 		return positionMap;
 	}
-
 
 	//do not use it, testing only
 	 String getIniFile() {
