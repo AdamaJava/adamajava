@@ -283,6 +283,7 @@ public final class Options {
 							Section section = parentSection.getChild(child);							
 							String element = section.getSimpleName();
 							
+							// parse [metrics/snp]
 							if (element.equals(PileupConstants.METRIC_SNP)) {
 								if (section.containsKey("nonref_percent")) {
 									snpPercentNonRef = new Integer(section.get("nonref_percent"));
@@ -320,11 +321,10 @@ public final class Options {
 								Metric metric = new SnpMetric(hdfFileName, hdfFile, pileupDir.getAbsolutePath(), snpDir.getAbsolutePath(), snpPercentNonRef, snpNonRefCount, snpHighNonRefCount, dbSNPFile, germlineDbFile,
 										comparisonSnpFile, comparisonSnpFileFormat, comparisonSnpFileAnnotation, winCount, tmpDir);
 								
-								summaryMetric.addMetric(PileupConstants.METRIC_SNP, metric);
-								
+								summaryMetric.addMetric(PileupConstants.METRIC_SNP, metric);								
 								
 							} else if (element.equals(PileupConstants.METRIC_STRAND_BIAS)) {	
-								
+							//parse [metrics/strand_bias]	
 								Integer minPercentDiff = new Integer(section.get("min_percent_diff"));								
 								Integer minNonReferenceBases = new Integer(section.get("min_nonreference_bases"));
 								Metric metric = new StrandBiasMetric(hdfFileName, hdfFile, pileupDir.getAbsolutePath(), minPercentDiff, minBasesPerPatient, minNonReferenceBases);
@@ -376,13 +376,13 @@ public final class Options {
 		this.htmlDir = htmlDir;
 	}
 
-	public File getDbSNPFile() {
-		return dbSNPFile;
-	}
-
-	public void setDbSNPFile(File dbSNPFile) {
-		this.dbSNPFile = dbSNPFile;
-	}
+//	public File getDbSNPFile() {
+//		return dbSNPFile;
+//	}
+//
+//	public void setDbSNPFile(File dbSNPFile) {
+//		this.dbSNPFile = dbSNPFile;
+//	}
 
 	private List<String> readBamFileList(String bamlist) throws IOException {
 		List<String> files = new ArrayList<String>();
@@ -491,7 +491,7 @@ public final class Options {
 	}
 
 	void displayHelp() throws Exception {
-    	parser.formatHelpWith(new BuiltinHelpFormatter(150, 2));
+    	parser.formatHelpWith(new BuiltinHelpFormatter(160, 2));
 		parser.printHelpOn(System.err);
 	}
 	
@@ -528,6 +528,8 @@ public final class Options {
 	}
 
 	public void detectBadOptions() throws Exception {
+		
+		//--view in commandline
 		if (hasViewOption()) {
 			if (hdfFile != null) {
 				if (!new File(hdfFile).exists()) {
@@ -545,102 +547,111 @@ public final class Options {
 			} else {
 				throw new QPileupException("NO_HDF", hdfFile);	
 			}
-		} else  {
-			
-			if (log == null) {		
-				throw new QPileupException("NO_OPTION", "log");
-			} else if (logLevel == null) {
-				logLevel = "INFO";			
-			} else if (threadNo == null) {
+			return;
+		} 
 				
-			} else if (threadNo > 12) {
-				throw new QPileupException("BAD_THREADS");
-			}
-			
-			if (!mode.equals("add") && !mode.equals("bootstrap") && !mode.equals("view") && !mode.equals("remove") && !mode.equals("merge") && !mode.equals("metrics")) {		
-				throw new QPileupException("NO_MODE", mode);
-			} else if (mode.equals("merge")) {
-				if (new File(hdfFile).exists()) {
-					//new File(hdfFile).delete();
-					throw new QPileupException("EXISTING_HDF", hdfFile);
-				}
-				if (inputHDFs != null) {
-					if (inputHDFs.size() < 1) {
-						throw new QPileupException("TOOFEW_HDF", "" + inputHDFs.size());
-					} else {
-						for (String f : inputHDFs) {							
-							if (!new File(f).exists()) {
-								throw new QPileupException("NO_HDF", f);
-							}
-						}
-					}					
-				} else {
-					throw new QPileupException("TOOFEW_HDF", "" + 0);
-				}
-			} else {	
-				if (!mode.equals("bootstrap")) {
-					if (!new File(hdfFile).exists()) {
-						throw new QPileupException("NO_HDF", hdfFile);
-					}
-				} else {
-					if (new File(hdfFile).exists()) {
-						
-						throw new QPileupException("EXISTING_HDF", hdfFile);
-					}
-					if (!new File(referenceFile).exists()) {
-						throw new QPileupException("REFERENCE_FILE_ERROR", referenceFile);
-					} else {
-						if (!new File(referenceFile + ".fai").exists()) {
-							throw new QPileupException("FASTA_INDEX_ERROR", referenceFile);
-						}
-					}
-				}
-			} 
-			
-			if (mode.equals("add") || mode.equals("remove")) {
-				if (bamFiles == null) {
-					throw new QPileupException("NO_OPTION", "bam");
-				} else {
-					checkBams();					
-				}
-				
-				checkReadRanges();
-			} 
-
-			if (mode.equals("view") || mode.equals("metrics")) {
-				if (outputDir == null) {
-					throw new QPileupException("NO_OPTION", "output");
-				} else if (!new File(outputDir).exists()) {
-					throw new QPileupException("NO_FILE", outputDir);
-				} else {
-					checkReadRanges();	
-				}
-			}			
-				
-			if (mode.equals("metrics")) {
-				if (tmpDir == null) {
-					throw new QPileupException("NO_TMPDIR");
-				} 
-				if (!FileUtils.canFileBeRead(tmpDir)) {
-					throw new QPileupException("NO_READ_TMP", tmpDir);
-				}
-				if (dbSNPFile != null) {
-					if (!dbSNPFile.exists()) {
-						throw new QPileupException("NO_DBSNP_FILE", dbSNPFile.getAbsolutePath());
-					}
-					if (!dbSNPFile.getName().endsWith(".vcf")) {
-						throw new QPileupException("NO_DBSNP_VCF", dbSNPFile.getAbsolutePath());
-					}
-				}
-				if (comparisonSnpFile != null) {
-					if (!comparisonSnpFile.exists()) {
-						throw new QPileupException("NO_SNP_FILE", comparisonSnpFile.getAbsolutePath());
-					}
-				}
-			}
-
-			
+		//--ini in commandline
+		if (log == null) {		
+			throw new QPileupException("NO_OPTION", "log");
 		}
+		 
+			
+		if (logLevel == null) {
+			logLevel = "INFO";			
+		} 
+			  
+		 if (threadNo != null && threadNo > 12) {
+			throw new QPileupException("BAD_THREADS");
+		}
+			
+		if (!mode.equals("add") && !mode.equals("bootstrap") && !mode.equals("view") && !mode.equals("remove") && !mode.equals("merge") && !mode.equals("metrics")) {		
+			throw new QPileupException("NO_MODE", mode);
+		} 
+			
+		//check general::hdf 
+		if (mode.equals("merge") || mode.equals("bootstrap")) {
+			if (new File(hdfFile).exists()) {
+				//new File(hdfFile).delete();
+				throw new QPileupException("EXISTING_HDF", hdfFile);
+			}
+		} else {
+			if (!new File(hdfFile).exists()) {
+				throw new QPileupException("NO_HDF", hdfFile);
+			}			
+		}
+		
+		//check merge::input_hdf
+		 if (mode.equals("merge")) {
+			 if (inputHDFs == null) {
+				 throw new QPileupException("TOOFEW_HDF", "" + 0);
+			 }
+			 			 
+			if (inputHDFs.size() < 1) {
+				throw new QPileupException("TOOFEW_HDF", "" + inputHDFs.size());
+			}
+								 
+			for (String f : inputHDFs) {							
+				if (!new File(f).exists()) {
+					throw new QPileupException("NO_HDF", f);
+				}
+			}	
+		} 
+			 
+		//check bootstrap::reference			 
+		if (mode.equals("bootstrap")) {
+			if (!new File(referenceFile).exists()) {
+				throw new QPileupException("REFERENCE_FILE_ERROR", referenceFile);
+			}  
+			if (!new File(referenceFile + ".fai").exists()) {
+				throw new QPileupException("FASTA_INDEX_ERROR", referenceFile);
+			}
+		}
+			 
+		//check add_remove::name or bam_list
+		if (mode.equals("add") || mode.equals("remove")) {
+			if (bamFiles == null) {
+				throw new QPileupException("NO_OPTION", "bam");
+			} 			
+			checkBams();		 
+		} 
+		
+		//check general::output_dir
+		if (mode.equals("view") || mode.equals("metrics")) {
+			if (outputDir == null) {
+				throw new QPileupException("NO_OPTION", "output");
+			} 
+			if (!new File(outputDir).exists()) {
+				throw new QPileupException("NO_FILE", outputDir);
+			}  			
+		}
+		
+		//check general::range
+		if (mode.equals("view") || mode.equals("metrics") || mode.equals("add") || mode.equals("remove")) {
+			checkReadRanges();	
+		}
+		
+		//check metrics::temporary_dir 	, metrics/snp::dbSNP
+		if (mode.equals("metrics")) {
+			if (tmpDir == null) {
+				throw new QPileupException("NO_TMPDIR");
+			} 
+			if (!FileUtils.canFileBeRead(tmpDir)) {
+				throw new QPileupException("NO_READ_TMP", tmpDir);
+			}
+			if (dbSNPFile != null) {
+				if (!dbSNPFile.exists()) {
+					throw new QPileupException("NO_DBSNP_FILE", dbSNPFile.getAbsolutePath());
+				}
+				if (!dbSNPFile.getName().endsWith(".vcf")) {
+					throw new QPileupException("NO_DBSNP_VCF", dbSNPFile.getAbsolutePath());
+				}
+			}
+			if (comparisonSnpFile != null) {
+				if (!comparisonSnpFile.exists()) {
+					throw new QPileupException("NO_SNP_FILE", comparisonSnpFile.getAbsolutePath());
+				}
+			}
+		}	 
 	}
 
 	private void checkBams() throws QPileupException, IOException {
@@ -681,12 +692,10 @@ public final class Options {
 							reader.close();
 							throw new QPileupException("INDEX_LOCK", bam);
 						}
-						
-						
+												
 						reader.close();
 						
-						//the file is free to use, so create a lock file for it. 
-						
+						//the file is free to use, so create a lock file for it. 						
 					}				
 					
 				} catch (Exception e) {
@@ -783,23 +792,6 @@ public final class Options {
 	public int getThreadNo() {
 		return this.threadNo;
 	}
-	
-	public File getComparisonSnpFile() {
-		return comparisonSnpFile;
-	}
-
-	public void setComparisonSnpFile(File comparisonSnpFile) {
-		this.comparisonSnpFile = comparisonSnpFile;
-	}
-
-	public String getComparisonSnpFileFormat() {
-		return comparisonSnpFileFormat;
-	}
-
-	public void setComparisonSnpFileFormat(String comparisonSnpFileFormat) {
-		this.comparisonSnpFileFormat = comparisonSnpFileFormat;
-	}
-	
 
 	public String getMetricType() {
 		return this.metricType;
@@ -838,13 +830,6 @@ public final class Options {
 		this.uuid = uuid;
 	}	
 
-	public String getComparisonSnpFileAnnotation() {
-		return comparisonSnpFileAnnotation;
-	}
-
-	public void setComparisonSnpFileAnnotation(String comparisonSnpFileAnnotation) {
-		this.comparisonSnpFileAnnotation = comparisonSnpFileAnnotation;
-	}
 
 	public SummaryMetric getSummaryMetric() {
 		return this.summaryMetric;
