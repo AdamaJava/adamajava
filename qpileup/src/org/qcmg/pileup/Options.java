@@ -42,6 +42,7 @@ import org.qcmg.pileup.model.StrandEnum;
 import org.qcmg.qio.record.StringFileReader;
 
 public final class Options {	
+	private final static int DEFAULT_THREAD = 1;
 	
 	private final OptionParser parser = new OptionParser();
 	private final OptionSet options;
@@ -56,8 +57,7 @@ public final class Options {
 	private List<StrandEnum> viewElements = new ArrayList<StrandEnum>();
 	private ArrayList<StrandEnum> groupElements = new ArrayList<StrandEnum>();
 	private String sampleType;
-	private String bamType;
-	private String techType;
+	private String bamType;	
 	private String iniFile;
 	private List<String> inputHDFs;
 	private boolean getForwardElements = true;
@@ -67,8 +67,7 @@ public final class Options {
 	private Integer percentnonref;
 	private Integer threadNo;
 	private String metricType;
-	private String normalFile;
-	private String tumourFile;
+
 	private int snpPercentNonRef;
 	private File comparisonSnpFile;
 	private String comparisonSnpFileFormat;
@@ -88,8 +87,10 @@ public final class Options {
 	private String filter;
 	private File snpDir;
 	private Map<String, TreeMap<Integer, String>> positionMap;
-
 	
+	@Deprecated private String techType;
+	@Deprecated private String tumourFile;
+	@Deprecated private String normalFile;	
 	@Deprecated private List<String> viewHDFs;
 	@Deprecated private Map<String, String> graphRangeInfoMap = new HashMap<String, String>();	
 	@Deprecated private boolean viewGraphStranded;	
@@ -179,38 +180,38 @@ public final class Options {
 
 		Ini ini = new Ini(new File(iniFile));
 		
-		Section generalSection = ini.get("general");
+		//[general] common ini options
+		Section generalSection = ini.get("general");		
+		this.log = generalSection.get("log");
+		this.logLevel = generalSection.get("loglevel");
+		this.hdfFile = generalSection.get("hdf");
+		this.mode = generalSection.get("mode");
+		this.threadNo = generalSection.containsKey("thread_no")? 
+				new Integer(generalSection.get("thread_no")) : DEFAULT_THREAD; 
 		
-		log = generalSection.get("log");
-		logLevel = generalSection.get("loglevel");
-		hdfFile = generalSection.get("hdf");
-		String hdfFileName = new File(hdfFile).getName();
-		mode = generalSection.get("mode");
-		outputDir = generalSection.get("output_dir");		
-		
-		
-		
-		if (mode.equals("view") || mode.equals("metrics") || mode.equals("add")) {
-			readRanges = generalSection.getAll("range");			
+		//[general] "bam_override" for add & remove mode
+		if ((mode.equals("remove") || mode.equals("add") || mode.equals("merge")) && 
+				generalSection.containsKey("bam_override") && generalSection.get("bam_override").equals("true")) {
+			this.bamOverride = true;
 		}
+	 
 		
-		if (readRanges == null || (readRanges != null && readRanges.size() == 0)) {
-			readRanges = new ArrayList<String>();
-			readRanges.add("all");
-		}
-		
-		if (generalSection.containsKey("thread_no")) {
-			threadNo = new Integer(generalSection.get("thread_no"));
-		} else {
-			threadNo = new Integer(1);
-		}
-		
-		String override =  generalSection.get("bam_override");
-		
-		if (override != null && override.equals("true")) {
+		//bam_override is for add/remove and merge, but default is false
+		if(generalSection.containsKey("bam_override") && generalSection.get("bam_override").equals("true")) {
 			bamOverride = true;
 		}
 		
+		readRanges = null; //init in case "--range" used in command line
+		if (mode.equals("view") || mode.equals("metrics") || mode.equals("add") || mode.equals("remove")) {
+			if(generalSection.containsKey("range")) {
+				readRanges = generalSection.getAll("range");
+			} else {
+				readRanges = Arrays.asList(new String[] {"all"});
+			}
+			//range will be check in detectBadOptions
+		} 
+				
+
 		if (mode.equals("merge")) {
 			Section merged = ini.get("merge");		
 			this.inputHDFs = merged.getAll("input_hdf");			 
@@ -218,17 +219,11 @@ public final class Options {
 		
 		if (mode.equals("bootstrap") || mode.equals("merge")) {		
 			Section bootstrap = ini.get("bootstrap");		
-			referenceFile = bootstrap.get("reference");
-			lowReadCount = new Integer(bootstrap.get("low_read_count"));
-			percentnonref = new Integer(bootstrap.get("nonref_percent"));
-			
-			if (lowReadCount == null) {
-				lowReadCount = 10;
-			}
-			if (percentnonref == null) {
-				percentnonref = 20;
-			}
-		}		
+			referenceFile = bootstrap.get("reference");			
+			lowReadCount = bootstrap.containsKey("low_read_count")? new Integer(bootstrap.get("low_read_count")) : 10;					
+			percentnonref =	bootstrap.containsKey("nonref_percent")? new Integer(bootstrap.get("nonref_percent")) : 10;							
+		}	
+		
 		
 		if (mode.equals("add") || mode.equals("remove")) {
 			Section bamSection = ini.get("add_remove");			
@@ -276,17 +271,19 @@ public final class Options {
 			
 		}
 		
+		//[general] output_dir
 		if (mode.equals("view") || mode.equals("metrics")) {
+			//compulsary for view and metrics, will be checked on detectBadOptions
+			outputDir = generalSection.get("output_dir");	
+			
 			String pileup = "qpileup_" + PileupUtil.getCurrentDateTime();
 			this.pileupDir = new File(outputDir + PileupConstants.FILE_SEPARATOR + pileup);
-			pileupDir.mkdir();
-			
+			pileupDir.mkdir();			
 			
 			if (includeGraph) {
 				this.htmlDir = new File(outputDir + PileupConstants.FILE_SEPARATOR + pileup + PileupConstants.FILE_SEPARATOR + "html");
 				htmlDir.mkdir();
-			}
-			
+			}			
 			
 			if (mode.equals("metrics")) {				
 				this.distributionDir = new File(outputDir + PileupConstants.FILE_SEPARATOR + pileup + PileupConstants.FILE_SEPARATOR + "distribution");
@@ -297,7 +294,7 @@ public final class Options {
 				summaryDir.mkdir();		
 				this.snpDir =  new File(outputDir + PileupConstants.FILE_SEPARATOR + pileup + PileupConstants.FILE_SEPARATOR + "snp");
 				snpDir.mkdir();
-				this.summaryMetric = new SummaryMetric(hdfFileName, pileupDir.getAbsolutePath(), wiggleDir.getAbsolutePath(),distributionDir.getAbsolutePath(), summaryDir.getAbsolutePath(), tmpDir);				
+				this.summaryMetric = new SummaryMetric(new File(hdfFile).getName(), pileupDir.getAbsolutePath(), wiggleDir.getAbsolutePath(),distributionDir.getAbsolutePath(), summaryDir.getAbsolutePath(), tmpDir);				
 			}
 		}
 		
@@ -305,9 +302,9 @@ public final class Options {
 			
 			Section metrics = ini.get("metrics");
 			Integer minBasesPerPatient = new Integer(metrics.get("min_bases"));
+			this.tmpDir = metrics.get("temporary_dir");
 			summaryMetric.setMinBasesPerPatient(minBasesPerPatient);
-			
-			
+						
 			if (metrics.containsKey("bigwig_path") && metrics.containsKey("chrom_sizes")) {
 				pathToBigWig = (String) metrics.get("bigwig_path");
 				String chromSizes = (String) metrics.get("chrom_sizes");
@@ -328,7 +325,8 @@ public final class Options {
 							Section section = parentSection.getChild(child);							
 							String element = section.getSimpleName();
 							
-							if (element.equals(PileupConstants.METRIC_SNP)) {
+							
+							if (element.equals(PileupConstants.METRIC_SNP)) { //parse [metrics/snp]	
 								if (section.containsKey("nonref_percent")) {
 									snpPercentNonRef = new Integer(section.get("nonref_percent"));
 								} else {
@@ -362,18 +360,18 @@ public final class Options {
 								}
 
 								Integer winCount = new Integer(section.get("window_count"));
-								Metric metric = new SnpMetric(hdfFileName, hdfFile, pileupDir.getAbsolutePath(), snpDir.getAbsolutePath(), snpPercentNonRef, snpNonRefCount, snpHighNonRefCount, dbSNPFile, germlineDbFile,
+								Metric metric = new SnpMetric(new File(hdfFile).getName(), hdfFile, pileupDir.getAbsolutePath(), snpDir.getAbsolutePath(), snpPercentNonRef, snpNonRefCount, snpHighNonRefCount, dbSNPFile, germlineDbFile,
 										comparisonSnpFile, comparisonSnpFileFormat, comparisonSnpFileAnnotation, winCount, tmpDir);
 								
 								summaryMetric.addMetric(PileupConstants.METRIC_SNP, metric);
 								
-								
-							} else if (element.equals(PileupConstants.METRIC_STRAND_BIAS)) {	
+							} else if (element.equals(PileupConstants.METRIC_STRAND_BIAS)) { //parse [metrics/strand_bias]	
 								
 								Integer minPercentDiff = new Integer(section.get("min_percent_diff"));								
 								Integer minNonReferenceBases = new Integer(section.get("min_nonreference_bases"));
-								Metric metric = new StrandBiasMetric(hdfFileName, hdfFile, pileupDir.getAbsolutePath(), minPercentDiff, minBasesPerPatient, minNonReferenceBases);
+								Metric metric = new StrandBiasMetric(new File(hdfFile).getName(), hdfFile, pileupDir.getAbsolutePath(), minPercentDiff, minBasesPerPatient, minNonReferenceBases);
 								summaryMetric.addMetric(PileupConstants.METRIC_STRAND_BIAS, metric);
+								
 							} else {								
 									Double posvalue = new Double(section.get("position_value"));	
 									Integer winCount = new Integer(section.get("window_count"));
@@ -409,13 +407,6 @@ public final class Options {
 		this.filter = filter;
 	}
 
-	public File getDbSNPFile() {
-		return dbSNPFile;
-	}
-
-	public void setDbSNPFile(File dbSNPFile) {
-		this.dbSNPFile = dbSNPFile;
-	}
 
 	private List<String> readBamFileList(String bamlist) throws IOException {
 		List<String> files = new ArrayList<String>();
@@ -639,14 +630,15 @@ public final class Options {
 				checkReadRanges();
 			} 
 
-			if (mode.equals("view") || mode.equals("metrics")) {
+			if (mode.equals("view") || mode.equals("metrics")) {	
 				if (outputDir == null) {
 					throw new QPileupException("NO_OPTION", "output");
-				} else if (!new File(outputDir).exists()) {
+				} 
+				if (!new File(outputDir).exists()) {
 					throw new QPileupException("NO_FILE", outputDir);
-				} else {
-					checkReadRanges();	
-				}
+				} 
+
+				checkReadRanges();					 
 			}			
 				
 			if (mode.equals("metrics")) {
@@ -689,51 +681,43 @@ public final class Options {
 			File bamFile = new File(bam);
 			if (!bamFile.exists()) {
 				throw new QPileupException("NO_FILE", bam);
-			//} else if ((System.currentTimeMillis() - bamFile.lastModified()) < 86400000) {
-				//file is less than 24 hours since last mod - may be scheduled for post mapping 
-				//throw new QPileupException("BAM_NEW", bam);
-			} else {
-				try {
-					String bamCanPath = bamFile.getCanonicalPath();
-					File bamLock = new File(bamCanPath + ".lck");
-					File bamIndex = new File(bamCanPath + ".bai");					
+			}  
+			try {
+				String bamCanPath = bamFile.getCanonicalPath();
+				File bamLock = new File(bamCanPath + ".lck");
+				File bamIndex = new File(bamCanPath + ".bai");					
+				
+				if (bamLock.exists() && !bamLock.getAbsolutePath().contains("resources/test.bam")) {
+					//bam is locked						
+					throw new QPileupException("BAM_LOCK", bam);
+				}  
 					
-					if (bamLock.exists() && !bamLock.getAbsolutePath().contains("resources/test.bam")) {
-						//bam is locked						
-						throw new QPileupException("BAM_LOCK", bam);
-					} else {
-						
-						SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile, "silent");			
-						File indexLock = new File(bam + ".bai.lck");
-						//does bam have index
-						if (!reader.hasIndex()) {
-							reader.close();
-							throw new QPileupException("NO_INDEX", bam);
-						} 
-						
-						if (bamIndex.lastModified() < bamFile.lastModified()) {
-							reader.close();
-							throw new QPileupException("INDEX_OLD", bam);
-						}
-						
-						//is index locked						
-						if (indexLock.exists() && !indexLock.getAbsolutePath().contains("resources/test.bam.bai")) {
-							reader.close();
-							throw new QPileupException("INDEX_LOCK", bam);
-						}
-						
-						
-						reader.close();
-						
-						//the file is free to use, so create a lock file for it. 
-						
-					}				
-					
-				} catch (Exception e) {
-					throw new QPileupException("BAM_OPTIONS_READ_ERROR", bam, PileupUtil.getStrackTrace(e));
+				SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile, "silent");			
+				File indexLock = new File(bam + ".bai.lck");
+				//does bam have index
+				if (!reader.hasIndex()) {
+					reader.close();
+					throw new QPileupException("NO_INDEX", bam);
+				} 
+				
+				if (bamIndex.lastModified() < bamFile.lastModified()) {
+					reader.close();
+					throw new QPileupException("INDEX_OLD", bam);
 				}
-
-			}
+				
+				//is index locked						
+				if (indexLock.exists() && !indexLock.getAbsolutePath().contains("resources/test.bam.bai")) {
+					reader.close();
+					throw new QPileupException("INDEX_LOCK", bam);
+				}
+							
+				reader.close();
+				
+				//the file is free to use, so create a lock file for it. 								
+				
+			} catch (Exception e) {
+				throw new QPileupException("BAM_OPTIONS_READ_ERROR", bam, PileupUtil.getStrackTrace(e));
+			}			
 		}
 		
 	}
@@ -839,18 +823,9 @@ public final class Options {
 	public void setComparisonSnpFileFormat(String comparisonSnpFileFormat) {
 		this.comparisonSnpFileFormat = comparisonSnpFileFormat;
 	}
-	
 
 	public String getMetricType() {
 		return this.metricType;
-	}
-
-	public String getTumourFile() {
-		return this.tumourFile;
-	}
-	
-	public String getNormalFile() {
-		return this.normalFile;
 	}
 
 	public void setQExec(QExec exec) {
@@ -866,28 +841,51 @@ public final class Options {
 		return qexec;
 	}
 
-	public void setQexec(QExec qexec) {
-		this.qexec = qexec;
-	}
-
 	public String getUuid() {
 		return uuid;
 	}
 
-	public void setUuid(String uuid) {
-		this.uuid = uuid;
-	}	
-
+	public SummaryMetric getSummaryMetric() {
+		return this.summaryMetric;
+	}
+	
+	@Deprecated //not used anywhere
+	public String getTumourFile() {
+		return this.tumourFile;
+	}
+	
+	@Deprecated //not used anywhere	
+	public String getNormalFile() {
+		return this.normalFile;
+	}
+	
+	@Deprecated //not used anywhere
+	public void setQexec(QExec qexec) {
+		this.qexec = qexec;
+	}
+	@Deprecated //not used anywhere
 	public String getComparisonSnpFileAnnotation() {
 		return comparisonSnpFileAnnotation;
 	}
-
+	
+	@Deprecated //not used anywhere
+	public void setUuid(String uuid) {
+		this.uuid = uuid;
+	}
+	
+	@Deprecated //not used anywhere
 	public void setComparisonSnpFileAnnotation(String comparisonSnpFileAnnotation) {
 		this.comparisonSnpFileAnnotation = comparisonSnpFileAnnotation;
 	}
 
-	public SummaryMetric getSummaryMetric() {
-		return this.summaryMetric;
+	@Deprecated //not used anywhere
+	public File getDbSNPFile() {
+		return dbSNPFile;
+	}
+	
+	@Deprecated //not used anywhere
+	public void setDbSNPFile(File dbSNPFile) {
+		this.dbSNPFile = dbSNPFile;
 	}
 	
 	@Deprecated //not used anywhere
@@ -941,8 +939,8 @@ public final class Options {
 	public void setGraphRangeInfoMap(Map<String, String> graphRangeInfoMap) {
 		this.graphRangeInfoMap = graphRangeInfoMap;
 	}
-
-
+	
+	@Deprecated //used by viewMT2
 	public Map<String, TreeMap<Integer, String>> getPositionMap() {
 		return positionMap;
 	}
