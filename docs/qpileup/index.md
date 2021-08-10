@@ -85,9 +85,9 @@ input_hdf = Req, path to the hdf file/s that will be merged.
 ;multi-value for element and group are allowed
 element = Opt, qpileup data element to view. see [strand summary table](ndex_latest.md#strand-summary).
 group = Opt, Possible groups [forward, reverse, bases, quals, cigars, readStats]. 
-graph = Opt, ???create html file. Def=false.
-stranded = Opt, it accompany with gragh option. Def=false. 
-graph_hdf = Opt, hdf to view. Def = null. 
+graph = (Deprecated) Opt, set to true if a html should be created . Def=false.
+stranded = (Deprecated) Opt, it accompany with gragh option. Def=false. 
+graph_hdf = (Deprecated) Opt, hdf to view. Def = null. 
 
 [metrics]
 min_bases = Req, minimum average coverage (base count) per reference position.
