@@ -23,6 +23,7 @@ import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import joptsimple.BuiltinHelpFormatter;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 
@@ -88,18 +89,6 @@ public final class Options {
 	private File snpDir;
 	private Map<String, TreeMap<Integer, String>> positionMap;
 	
-	@Deprecated private String techType;
-	@Deprecated private String tumourFile;
-	@Deprecated private String normalFile;	
-	@Deprecated private List<String> viewHDFs;
-	@Deprecated private Map<String, String> graphRangeInfoMap = new HashMap<String, String>();	
-	@Deprecated private boolean viewGraphStranded;	
-	@Deprecated private File htmlDir;	
-	@Deprecated private boolean includeGraph;
-	@Deprecated private List<String> graphHdfs;
-	@Deprecated private String rangeFile;
-	
-	
 	@SuppressWarnings("unchecked")
 	public Options(final String[] args) throws Exception {
 		
@@ -136,45 +125,6 @@ public final class Options {
 	}
 	
 
-	@Deprecated
-	private void getRangesFromRangeFile(String rangeFile, String viewGroup) throws Exception {
-		
-		try (StringFileReader reader = new StringFileReader(new File(rangeFile));) {
-			positionMap = new HashMap<String, TreeMap<Integer, String>>();
-		
-			for (final String tab : reader) {			
-				if (tab.startsWith("#") || tab.startsWith("Hugo") || tab.startsWith("analysis")) {					
-					continue;
-				}
-				String[] data = tab.split("\t");
-				if (rangeFile.endsWith("gff3")) {				
-					String range = data[0] + ":" + data[3] + "-" + data[4];
-					
-					graphRangeInfoMap.put(range, data[8]);			
-					readRanges.add(range);
-				} else {
-					String range = data[0] + "\t" + data[1] + "\t" + data[1];
-					if (data[0].equals("chrXY")) {
-						range = "chrX" + ":" + data[1] + "-" + data[1];
-					}
-					int pos = new Integer(data[1]);
-					if (positionMap.containsKey(data[0])) {
-						positionMap.get(data[0]).put(pos, range);
-					} else {
-						TreeMap<Integer, String> treemap = new TreeMap<Integer, String>();
-						treemap.put(pos, range);
-						positionMap.put(data[0], treemap);
-						
-					}					
-				}
-			}
-		}
-		for (Entry<String, TreeMap<Integer, String>> e: positionMap.entrySet()) {
-			TreeMap<Integer, String> map = e.getValue();
-			readRanges.add(e.getKey() + ":" + (map.firstKey()-10) + "-" + (map.lastKey()+10));
-		}
-	}
-
 
 	public void parseIniFile() throws Exception {
 
@@ -183,7 +133,8 @@ public final class Options {
 		//[general] common ini options
 		Section generalSection = ini.get("general");		
 		this.log = generalSection.get("log");
-		this.logLevel = generalSection.get("loglevel");
+		this.logLevel = generalSection.containsKey("loglevel")?  generalSection.get("loglevel") : "INFO";
+		
 		this.hdfFile = generalSection.get("hdf");
 		this.mode = generalSection.get("mode");
 		this.threadNo = generalSection.containsKey("thread_no")? 
@@ -221,7 +172,7 @@ public final class Options {
 			Section bootstrap = ini.get("bootstrap");		
 			referenceFile = bootstrap.get("reference");			
 			lowReadCount = bootstrap.containsKey("low_read_count")? new Integer(bootstrap.get("low_read_count")) : 10;					
-			percentnonref =	bootstrap.containsKey("nonref_percent")? new Integer(bootstrap.get("nonref_percent")) : 10;							
+			percentnonref =	bootstrap.containsKey("nonref_percent")? new Integer(bootstrap.get("nonref_percent")) : 20;							
 		}	
 		
 		
@@ -463,8 +414,7 @@ public final class Options {
 			} else {
 				throw new QPileupException("GROUP_ERROR", group);
 			}				
-		}
-		
+		}		
 	}
 	
 	
@@ -515,7 +465,8 @@ public final class Options {
 	}
 
 	void displayHelp() throws Exception {
-		parser.printHelpOn(System.err);
+		parser.formatHelpWith(new BuiltinHelpFormatter(160, 2));
+        parser.printHelpOn(System.err);
 	}
 	
 	boolean hasHelpOption() {
@@ -551,96 +502,89 @@ public final class Options {
 	}
 
 	public void detectBadOptions() throws Exception {
+		
+		//usage2: qpileup --view 
 		if (hasViewOption()) {
-			if (hdfFile != null) {
-				if (!new File(hdfFile).exists()) {
-					throw new QPileupException("NO_HDF", hdfFile);	
-				}								 
-				if (readRanges != null && readRanges.size() != 0) {
-					if ((readRanges.size() > 1)) {
-						throw new QPileupException("MT_READ_EXCEPTION");
-					}	
-					if (readRanges.get(0).equals("all")) {
-						throw new QPileupException("MT_READ_EXCEPTION");
-					}
-				}
-				
-			} else {
+			if (hdfFile == null) throw new QPileupException("NO_HDF", hdfFile);	
+					 
+			if (!new File(hdfFile).exists()) {
 				throw new QPileupException("NO_HDF", hdfFile);	
+			}								 
+			if (readRanges != null && readRanges.size() != 0) {
+				if ((readRanges.size() > 1)) {
+					throw new QPileupException("MT_READ_EXCEPTION");
+				}	
+				if (readRanges.get(0).equals("all")) {
+					throw new QPileupException("MT_READ_EXCEPTION");
+				}
 			}
-		} else  {
-			
-			if (log == null) {		
-				throw new QPileupException("NO_OPTION", "log");
-			} else if (logLevel == null) {
-				logLevel = "INFO";			
-			} else if (threadNo == null) {
+							
+			return;
+		}
+		
+		//usage1: qpileup --ini		
+		if (log == null) {		
+			throw new QPileupException("NO_OPTION", "log");
+		} 
 				
-			} else if (threadNo > 12) {
-				throw new QPileupException("BAD_THREADS");
+		if (threadNo > 12) {
+			throw new QPileupException("BAD_THREADS");
+		}
+			
+		//check mode				
+		if (!mode.equals("add") && !mode.equals("bootstrap") && !mode.equals("view") && !mode.equals("remove") && !mode.equals("merge") && !mode.equals("metrics")) {		
+			throw new QPileupException("NO_MODE", mode);
+		} 
+		
+		//check hdf
+		if (mode.equals("merge") || mode.equals("bootstrap")) {
+			//hdf is the output, can't be pre-exsiting
+			 if (new File(hdfFile).exists()) throw new QPileupException("EXISTING_HDF", hdfFile) ;			 			
+		} else {
+			//hdf is the input must pre-exsiting
+			if (!new File(hdfFile).exists()) throw new QPileupException("NO_HDF", hdfFile);			 
+		}	
+		
+		//check input_hdf for [merge]
+		if (mode.equals("merge")) {		
+			if (inputHDFs == null) throw new QPileupException("TOOFEW_HDF", "" + 0);	
+			if (inputHDFs.size() < 1) throw new QPileupException("TOOFEW_HDF", "" + inputHDFs.size());
+			  						 
+			for (String f : inputHDFs) {							
+				if (!new File(f).exists()) throw new QPileupException("NO_HDF", f);				
 			}
-			
-			if (!mode.equals("add") && !mode.equals("bootstrap") && !mode.equals("view") && !mode.equals("remove") && !mode.equals("merge") && !mode.equals("metrics")) {		
-				throw new QPileupException("NO_MODE", mode);
-			} else if (mode.equals("merge")) {
-				if (new File(hdfFile).exists()) {
-					//new File(hdfFile).delete();
-					throw new QPileupException("EXISTING_HDF", hdfFile);
-				}
-				if (inputHDFs != null) {
-					if (inputHDFs.size() < 1) {
-						throw new QPileupException("TOOFEW_HDF", "" + inputHDFs.size());
-					} else {
-						for (String f : inputHDFs) {							
-							if (!new File(f).exists()) {
-								throw new QPileupException("NO_HDF", f);
-							}
-						}
-					}					
-				} else {
-					throw new QPileupException("TOOFEW_HDF", "" + 0);
-				}
-			} else {	
-				if (!mode.equals("bootstrap")) {
-					if (!new File(hdfFile).exists()) {
-						throw new QPileupException("NO_HDF", hdfFile);
-					}
-				} else {
-					if (new File(hdfFile).exists()) {
-						
-						throw new QPileupException("EXISTING_HDF", hdfFile);
-					}
-					if (!new File(referenceFile).exists()) {
-						throw new QPileupException("REFERENCE_FILE_ERROR", referenceFile);
-					} else {
-						if (!new File(referenceFile + ".fai").exists()) {
-							throw new QPileupException("FASTA_INDEX_ERROR", referenceFile);
-						}
-					}
-				}
+		} 	
+		
+		//check reference for [bootstrap]		 
+		if ( mode.equals("bootstrap")) {						
+			if (!new File(referenceFile).exists()) {
+				throw new QPileupException("REFERENCE_FILE_ERROR", referenceFile);
 			} 
-			
-			if (mode.equals("add") || mode.equals("remove")) {
-				if (bamFiles == null) {
-					throw new QPileupException("NO_OPTION", "bam");
-				} else {
-					checkBams();					
-				}
-				
-				checkReadRanges();
-			} 
+			 
+			if (!new File(referenceFile + ".fai").exists()) {
+				throw new QPileupException("FASTA_INDEX_ERROR", referenceFile);
+			}				 
+		} 
+		
+		//check name or bamlist for [add_remove]
+		if (mode.equals("add") || mode.equals("remove")) {
+			if (bamFiles == null)  throw new QPileupException("NO_OPTION", "bam");
+			checkBams();			 
+		} 
 
-			if (mode.equals("view") || mode.equals("metrics")) {	
-				if (outputDir == null) {
-					throw new QPileupException("NO_OPTION", "output");
-				} 
-				if (!new File(outputDir).exists()) {
-					throw new QPileupException("NO_FILE", outputDir);
-				} 
-
-				checkReadRanges();					 
-			}			
-				
+		//check output_dir under [general] for view and metrics
+		if (mode.equals("view") || mode.equals("metrics")) {	
+			if (outputDir == null) throw new QPileupException("NO_OPTION", "output");
+			  
+			if (!new File(outputDir).exists()) throw new QPileupException("NO_FILE", outputDir);						 
+		}	
+		
+		//check range under [general] for add, remove, view and metrics
+		if (mode.equals("view") || mode.equals("metrics") || mode.equals("add") || mode.equals("remove")) {
+			checkReadRanges();		
+		}
+		
+		//check 
 			if (mode.equals("metrics")) {
 				if (tmpDir == null) {
 					throw new QPileupException("NO_TMPDIR");
@@ -664,7 +608,7 @@ public final class Options {
 			}
 
 			
-		}
+		 
 	}
 
 	public String getTmpDir() {
@@ -848,6 +792,19 @@ public final class Options {
 	public SummaryMetric getSummaryMetric() {
 		return this.summaryMetric;
 	}
+
+	
+	@Deprecated private String techType;
+	@Deprecated private String tumourFile;
+	@Deprecated private String normalFile;	
+	@Deprecated private List<String> viewHDFs;
+	@Deprecated private Map<String, String> graphRangeInfoMap = new HashMap<String, String>();	
+	@Deprecated private boolean viewGraphStranded;	
+	@Deprecated private File htmlDir;	
+	@Deprecated private boolean includeGraph;
+	@Deprecated private List<String> graphHdfs;
+	@Deprecated private String rangeFile;
+	
 	
 	@Deprecated //not used anywhere
 	public String getTumourFile() {
@@ -944,6 +901,46 @@ public final class Options {
 	public Map<String, TreeMap<Integer, String>> getPositionMap() {
 		return positionMap;
 	}
+	
+	@Deprecated
+	private void getRangesFromRangeFile(String rangeFile, String viewGroup) throws Exception {
+		
+		try (StringFileReader reader = new StringFileReader(new File(rangeFile));) {
+			positionMap = new HashMap<String, TreeMap<Integer, String>>();
+		
+			for (final String tab : reader) {			
+				if (tab.startsWith("#") || tab.startsWith("Hugo") || tab.startsWith("analysis")) {					
+					continue;
+				}
+				String[] data = tab.split("\t");
+				if (rangeFile.endsWith("gff3")) {				
+					String range = data[0] + ":" + data[3] + "-" + data[4];
+					
+					graphRangeInfoMap.put(range, data[8]);			
+					readRanges.add(range);
+				} else {
+					String range = data[0] + "\t" + data[1] + "\t" + data[1];
+					if (data[0].equals("chrXY")) {
+						range = "chrX" + ":" + data[1] + "-" + data[1];
+					}
+					int pos = new Integer(data[1]);
+					if (positionMap.containsKey(data[0])) {
+						positionMap.get(data[0]).put(pos, range);
+					} else {
+						TreeMap<Integer, String> treemap = new TreeMap<Integer, String>();
+						treemap.put(pos, range);
+						positionMap.put(data[0], treemap);
+						
+					}					
+				}
+			}
+		}
+		for (Entry<String, TreeMap<Integer, String>> e: positionMap.entrySet()) {
+			TreeMap<Integer, String> map = e.getValue();
+			readRanges.add(e.getKey() + ":" + (map.firstKey()-10) + "-" + (map.lastKey()+10));
+		}
+	}	
+	
 
 	//do not use it, testing only
 	 String getIniFile() {

@@ -33,32 +33,46 @@ public class OptionsIniTest {
 	*/
 	//test ini file by using default low_read_count and nonref_percent value
 	@Test
-	public void generalDefaultValueTest() throws Exception {
+	public void bootstrapTest() throws Exception {
+		
 		//without setting low_read_count and nonref_percent
-		String generalSec = createGeneralSection( null, hdf, "bootstrap", null, null, null, null);
+		String generalSec = createGeneralSection( null, "bootstrap.h5", "bootstrap", null, null, null, null);
 		String bootstrapSec = createBootstrap(reference, null, null);
 		
 		Options options = getIniOptions(generalSec, bootstrapSec, null, null);
 		options.parseIniFile();
 		
-		assertEquals("bootstrap", options.getMode());
-		
-		assertEquals("test.h5", options.getHdfFile());
+		assertEquals("bootstrap", options.getMode());		
+		assertEquals("bootstrap.h5", options.getHdfFile());
 		assertEquals(reference, options.getReferenceFile());
 		
 		//default value
 		assertEquals("INFO", options.getLogLevel());
 		assertEquals(new Integer(10), options.getLowReadCount());
-		 
+		assertEquals(new Integer(20), options.getPercentNonRef());
+		assertEquals(1, options.getThreadNo());
+		assertEquals(false, options.isBamOverride());
+		assertEquals(null, options.getOutputDir());
+		assertEquals(null, options.getReadRanges());
 		
-		//we don't know the sub folder name of temporaryFolder, have to work around
-		String tmpDir = new File( options.getIniFile()).getParent();
-
 		
-	}
+		//with value setting
+		generalSec = createGeneralSection( "level", "bootstrap.h5", "bootstrap", 10, true, "/current", "all");
+		bootstrapSec = createBootstrap(reference, 1, 100);
+		options = getIniOptions(generalSec, bootstrapSec, null, null);
+		options.parseIniFile();
+		
+		//default value
+		assertEquals("level", options.getLogLevel());
+		assertEquals(new Integer(1), options.getLowReadCount());
+		assertEquals(new Integer(100), options.getPercentNonRef());
+		assertEquals(10, options.getThreadNo());
+		assertEquals(true, options.isBamOverride());
+		assertEquals(null, options.getOutputDir());
+		assertEquals(null, options.getReadRanges());		
+	}	
 	
 	public Options getIniOptions(String general, String bootstrap, String view, String merge) throws Exception {
-		//String iniFile =  setUpIniFile(testFolder, mode, reference.getAbsolutePath(), hdf.getAbsolutePath(), bam.getAbsolutePath(), outputDir, readRange, mergeHdf);
 		
 		File iniFolder = testFolder.newFolder();		
 		File iniFile = new File(iniFolder, "test.ini");
@@ -67,10 +81,8 @@ public class OptionsIniTest {
 		out.write(general);
 		if(bootstrap != null ) out.write(bootstrap);
 		if(view != null ) out.write(view);
-		if(merge != null ) out.write(merge);
-		
-		out.close();
-		
+		if(merge != null ) out.write(merge);		
+		out.close();		
 		
 		String[] args = {"--ini", iniFile.getAbsolutePath()};
 		Options options = new Options(args);
@@ -87,7 +99,7 @@ public class OptionsIniTest {
 		str += "hdf="+hdf+"\n";
 		str += "mode="+mode+"\n";
 		str += (thread == null)? "" : "thread_no="+thread +"\n";
-		str += (override = null)? "" : "bam_override="+override+"\n";
+		str += (override == null)? "" : "bam_override="+override+"\n";
 		str += (outDir == null)? "" :"output_dir="+outDir+"\n";
 		str += (range == null)? "" :"range="+range+"\n";		
 		
@@ -100,17 +112,9 @@ public class OptionsIniTest {
 		String str = "[bootstrap]\n";
 		str += "reference = "+ ref +"\n";		 
  		str += (low == null)? "" : "low_read_count = " + low +"\n";
-		str += (nonref == null)? "" : "nonref_percent = ="+ nonref + "\n";
+		str += (nonref == null)? "" : "nonref_percent =" + nonref + "\n";
 		
 		return str;		
-	}
-	
-	private String createIni(File iniFile) throws IOException {
-		
-
-    	
-		return iniFile.getAbsolutePath();
-		
 	}
 
 }
