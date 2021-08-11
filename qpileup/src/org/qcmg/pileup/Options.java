@@ -152,7 +152,7 @@ public final class Options {
 			bamOverride = true;
 		}
 		
-		readRanges = null; //init in case "--range" used in command line
+		//?? init in case "--range" used in command line
 		if (mode.equals("view") || mode.equals("metrics") || mode.equals("add") || mode.equals("remove")) {
 			if(generalSection.containsKey("range")) {
 				readRanges = generalSection.getAll("range");
