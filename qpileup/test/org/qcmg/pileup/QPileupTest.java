@@ -63,9 +63,8 @@ public class QPileupTest {
         QPileup pileup = new QPileup();
         int exit = pileup.runPileup(new String[0], System.currentTimeMillis());
         assertEquals(0, exit);
-        String usage = "usage: qpileup [-options] --ini [inifile_options.ini]\n";
-        assertEquals(usage, testOut.toString());
-        cleanUpStreams();
+        assertTrue(testOut.toString().startsWith("usage1"));
+       cleanUpStreams();
     }
 	
 	@Test
@@ -82,9 +81,6 @@ public class QPileupTest {
         System.setOut(defaultOutstream);
         
         String[] linesOfOutput = output.split(System.getProperty("line.separator"));
-//        for (String s: linesOfOutput) {
-//        	System.out.println(s);
-//        }
         assertEquals(12, linesOfOutput.length);
         assertTrue(linesOfOutput[0].startsWith("## DATE"));
     }

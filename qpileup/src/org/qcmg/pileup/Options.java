@@ -54,7 +54,7 @@ public final class Options {
 	private String outputDir;
 	private List<String> bamFiles;
 	private String mode;
-	private List<String> readRanges = new ArrayList<String>();
+	private List<String> readRanges;// = new ArrayList<String>();
 	private List<StrandEnum> viewElements = new ArrayList<StrandEnum>();
 	private ArrayList<StrandEnum> groupElements = new ArrayList<StrandEnum>();
 	private String sampleType;
@@ -152,7 +152,7 @@ public final class Options {
 			bamOverride = true;
 		}
 		
-		//?? init in case "--range" used in command line
+		readRanges = new ArrayList<String>(); //incase parseIniFile() execute multi time
 		if (mode.equals("view") || mode.equals("metrics") || mode.equals("add") || mode.equals("remove")) {
 			if(generalSection.containsKey("range")) {
 				readRanges = generalSection.getAll("range");
@@ -427,10 +427,7 @@ public final class Options {
 		pileupDir.mkdir();
 	}
 	
-	@Deprecated
-	public boolean hasDeleteOption() {
-		return options.has("delete");
-	}
+
 
 	public boolean hasViewOption() {
 		return options.has("view");
@@ -505,6 +502,8 @@ public final class Options {
 		
 		//usage2: qpileup --view 
 		if (hasViewOption()) {
+			if (iniFile != null) throw new QPileupException("INI_VIEW_OPTIONE_ERROR", "view");
+				
 			if (hdfFile == null) throw new QPileupException("NO_HDF", hdfFile);	
 					 
 			if (!new File(hdfFile).exists()) {
@@ -521,8 +520,16 @@ public final class Options {
 							
 			return;
 		}
+				
+		//usage1: qpileup --ini	
 		
-		//usage1: qpileup --ini		
+		//not allow other options with --ini together
+		for (String opt : new String[] {"hdf", "range", "group", "element"}) {
+			if (options.has("range")) {
+				throw new QPileupException("INI_VIEW_OPTIONE_ERROR", opt);
+			}
+		}
+		
 		if (log == null) {		
 			throw new QPileupException("NO_OPTION", "log");
 		} 
@@ -606,17 +613,6 @@ public final class Options {
 					}
 				}
 			}
-
-			
-		 
-	}
-
-	public String getTmpDir() {
-		return tmpDir;
-	}
-
-	public void setTmpDir(String tmpDir) {
-		this.tmpDir = tmpDir;
 	}
 
 	private void checkBams() throws QPileupException, IOException {
@@ -678,6 +674,14 @@ public final class Options {
 				}
 			}
 		}		
+	}
+	
+	public String getTmpDir() {
+		return tmpDir;
+	}
+
+	public void setTmpDir(String tmpDir) {
+		this.tmpDir = tmpDir;
 	}
 
 	public String getHdfFile() {
@@ -900,6 +904,11 @@ public final class Options {
 	@Deprecated //used by viewMT2
 	public Map<String, TreeMap<Integer, String>> getPositionMap() {
 		return positionMap;
+	}
+	
+	@Deprecated
+	public boolean hasDeleteOption() {
+		return options.has("delete");
 	}
 	
 	@Deprecated

@@ -53,9 +53,8 @@ public class OptionsIniTest {
 		assertEquals(1, options.getThreadNo());
 		assertEquals(false, options.isBamOverride());
 		assertEquals(null, options.getOutputDir());
-		assertEquals(null, options.getReadRanges());
-		
-		
+		assertEquals(0, options.getReadRanges().size());
+				
 		//with value setting
 		generalSec = createGeneralSection( "level", "bootstrap.h5", "bootstrap", 10, true, "/current", "all");
 		bootstrapSec = createBootstrap(reference, 1, 100);
@@ -69,7 +68,7 @@ public class OptionsIniTest {
 		assertEquals(10, options.getThreadNo());
 		assertEquals(true, options.isBamOverride());
 		assertEquals(null, options.getOutputDir());
-		assertEquals(null, options.getReadRanges());		
+		assertEquals(0, options.getReadRanges().size());
 	}	
 	
 	public Options getIniOptions(String general, String bootstrap, String view, String merge) throws Exception {
@@ -86,10 +85,9 @@ public class OptionsIniTest {
 		
 		String[] args = {"--ini", iniFile.getAbsolutePath()};
 		Options options = new Options(args);
+		
 		return options;
-	}
-	
-	
+	}	
 	
 	private String createGeneralSection( String level, String hdf, String mode, Integer thread, Boolean override, String outDir, String range) {
 		
