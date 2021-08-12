@@ -6,7 +6,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
-
+import java.util.Arrays;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -92,14 +92,14 @@ public class QPileupTest {
         System.setOut(new PrintStream(baos));
         QPileup pileup = new QPileup();
         String[] args = TestUtil.getViewArgs(testFolder, hdf, "chr1:12000-12300", false);
-		int exit = pileup.runPileup(args, 1234);
+ 		int exit = pileup.runPileup(args, 1234);
         baos.flush();
         assertEquals(0, exit);
         String output = baos.toString();
         System.setOut(defaultOutstream);
-        String[] linesOfOutput = output.split(System.getProperty("line.separator")); 
-        assertEquals(315, linesOfOutput.length);
+        String[] linesOfOutput = output.split(System.getProperty("line.separator"));        
         assertTrue(linesOfOutput[0].startsWith("## DATE"));
+        assertEquals(315, linesOfOutput.length);
     }
 
 	@Test
@@ -109,7 +109,7 @@ public class QPileupTest {
         QPileup pileup = new QPileup();
         int exit = pileup.runPileup(args, System.currentTimeMillis());
         assertEquals(0, exit);
-        assertTrue(testOut.toString().startsWith("Option"));
+        assertTrue(testOut.toString().startsWith("usage"));
         cleanUpStreams();
     }
 
