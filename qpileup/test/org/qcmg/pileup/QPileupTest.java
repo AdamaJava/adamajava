@@ -139,7 +139,7 @@ public class QPileupTest {
     
 	@Test
     public void testQPileupWithViewOptionVersion() throws Exception {
-		String[] args = new String[] {"--view","--vcf-version", "--hdf", hdf};
+		String[] args = new String[] {"--view","--hdf-version", "--hdf", hdf};
 		String output = runPileup(args);
 		String[] linesOfOutput = output.split(System.getProperty("line.separator"));
         assertEquals(2, linesOfOutput.length);
