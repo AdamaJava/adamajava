@@ -434,11 +434,11 @@ public final class Options {
 	}
 	
 	public boolean hasHeaderOption() {
-		return options.has("H");
+		return options.has("vcf-header");
 	}
 	
 	public boolean hasHDFVersionOption() {
-		return options.has("V");
+		return options.has("vcf-version");
 	}
 
 	public String getLog() {
@@ -450,7 +450,7 @@ public final class Options {
 	}
 
 	boolean hasVersionOption() {
-		return options.has("v") || options.has("version");
+		return options.has("version");
 	}
 
 	boolean hasLogOption() {
@@ -467,7 +467,7 @@ public final class Options {
 	}
 	
 	boolean hasHelpOption() {
-		return options.has("h") || options.has("help");
+		return  options.has("help");
 	}
 	
 	public boolean hasNonOptions() {
