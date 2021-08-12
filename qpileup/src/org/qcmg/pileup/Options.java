@@ -434,11 +434,11 @@ public final class Options {
 	}
 	
 	public boolean hasHeaderOption() {
-		return options.has("vcf-header");
+		return options.has("hdf-header");
 	}
 	
 	public boolean hasHDFVersionOption() {
-		return options.has("vcf-version");
+		return options.has("hdf-version");
 	}
 
 	public String getLog() {
