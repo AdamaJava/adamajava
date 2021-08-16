@@ -4,7 +4,7 @@
 
 ## Installation
 
-qpileup requires java 8 and (ideally) a multi-core machine (5 threads are run concurrently) with at least 20GB of RAM.  
+qpileup requires java 8 and (ideally) a multi-core machine. eg. 5 threads with at least 20GB of RAM; 12 threads with at least 35GB and 25 threads with 60GB etc.
 
 * To do a build of qpileup, first clone the adamajava repository.
   ~~~~{.text}
@@ -61,9 +61,9 @@ loglevel = Opt, Logging level [INFO,DEBUG], Def=INFO.
 hdf = Req, path to HDF5 file. it is the output from bootstrap and merge mode, but input for view and metrics mode, and modified by add and remove mode. 
 mode = Req, Mode [bootstrap, add, remove, merge, view, metrics].
 thread_no = Opt, Number of threads [1-12]. Def=1
-bam_override =  Opt (add and remove mode), If set, allows duplicate BAM files to be added, Def=FALSE
+bam_override =  Opt (add,remove and merge mode), If set, allows duplicate BAM files to be added, Def=FALSE
 output_dir = Req (view and metrics mode), Directory for output pileup files.
-range = Opt (add, view and metrics mode), Range to view. Def=all. 
+range = Opt (add, remove, view and metrics mode), Range to view. Def=all. 
 
 [bootstrap] 
 ;the merge mode will call bootstrap, so this section is for both bootstrap and merge mode
@@ -141,29 +141,29 @@ Mode | Description
 [`bootstrap`](ini.md##bootstrap) | mode creates a qpileup HDF5 file for a reference genome.
 [`add`](ini.md#add) | add BAM files pileup counts to existing HDF5 file. 
 [`remove`](ini.md#remove) | remove BAM files pileup counts to existing HDF5 file. 
-[`view`](ini.md#view) | metrics from a qpileup HDF5 file and writes to a CSV file
+[`view`](ini.md#view) | metrics from a qpileup HDF5 file and writes to a CSV file.
 [`merge`](ini.md#merge) | merge 2 or more HDF5 files together.
-[`metrics`](ini.md#metrics) | ???
+[`metrics`](ini.md#metrics) | create metrics file from a qpileup HDF5 file, similar to `view`.
 
 ### Usage2: `view` mode options 
-`qpileup` offers a limited `view` mode option from the command line. Users may use this option to view the HDF header/metadata or qpileup output for a single reference genome range (maximum size is one chromosome)
+`qpileup` offers a limited `view` mode option from the command line. Users may use this option to view the HDF header/metadata or qpileup output for a single reference genome range (maximum size is one chromosome). Some example usage are 
 
 ~~~~
 #view version
-java -jar qpileup-0.1pre.jar  --view --hdf-vesion --hdf /path/testhdf.h5
+java -jar qpileup.jar  --view --hdf-vesion --hdf /path/testhdf.h5
 
 #View header
-java  -jar qpileup-0.1pre.jar  --view -hdf-header --hdf /path/testhdf.h5
+java  -jar qpileup.jar  --view -hdf-header --hdf /path/testhdf.h5
 
 #View pileup on region of chromosome
-java -Xmx20g -jar qpileup-0.1pre.jar  --view --hdf /path/testhdf.h5 --range chr1:1-1000
+java -Xmx20g -jar qpileup.jar  --view --hdf /path/testhdf.h5 --range chr1:1-1000
 
 #View pileup on region of chromosome by group
-java -Xmx20g -jar qpileup-0.1pre.jar  --view --hdf /path/testhdf.h5 --range chr1:1-1000 --group reverse
+java -Xmx20g -jar qpileup.jar  --view --hdf /path/testhdf.h5 --range chr1:1-1000 --group reverse
 
 #View pileup on a chromosome by element 
-java -Xmx20g -jar qpileup-0.1pre.jar  --view --hdf /path/testhdf.h5 --range chrX --element CigarI
+java -Xmx20g -jar qpileup.jar  --view --hdf /path/testhdf.h5 --range chrX --element CigarI
 
 #View pileup on a chromosome by element and group
-java -Xmx20g -jar qpileup-0.1pre.jar  --view --hdf /path/testhdf.h5 --range chrMT --element CigarI --group bases
+java -Xmx20g -jar qpileup.jar  --view --hdf /path/testhdf.h5 --range chrMT --element CigarI --group bases
 ~~~~
