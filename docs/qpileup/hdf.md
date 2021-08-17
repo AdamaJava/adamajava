@@ -35,7 +35,7 @@ Reference | Char | Reference base at this position
 
 Each of the following data elements is compiled independently for each
 strand so these elements will exist in the HDF5 file in `_for` (forward)
-and `_rev` (reverse) versions, for example: `AQual_for` and `AQual_rev`.
+and `_rev` (reverse) versions, for example: `Aqual_for` and `Aqual_rev`.
 
 Strand Data Elements are created individually as 1D Scalar Datasets. This
 structure is used due to speed considerations - use of compound datasets
@@ -51,11 +51,11 @@ C | Integer | Count of all the C bases observed
 G | Integer | Count of all the G bases observed
 T | Integer | Count of all the T bases observed
 N | Integer | Count of all the N bases observed
-AQual | Long | Sum of the qualities of all the A bases at this position
-CQual | Long | Sum of the qualities of all the C bases at this position
-GQual | Long | Sum of the qualities of all the G bases at this position
-TQual | Long | Sum of the qualities of all the T bases at this position
-NQual | Long | Sum of the qualities of all the N bases at this position
+Aqual | Long | Sum of the qualities of all the A bases at this position
+Cqual | Long | Sum of the qualities of all the C bases at this position
+Gqual | Long | Sum of the qualities of all the G bases at this position
+Tqual | Long | Sum of the qualities of all the T bases at this position
+Nqual | Long | Sum of the qualities of all the N bases at this position
 MapQual | Long | Sum of the mapping qualities of all reads that provide bases at this position
 StartAll | Integer | Count of all reads where alignment starts at this base (obeys clipping)
 StartNondup | Integer | As for StartAll except that we only count non-duplicate reads (obeys clipping)
