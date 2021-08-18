@@ -6,7 +6,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.Arrays;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -68,22 +67,7 @@ public class QPileupTest {
     }
 	
 	@Test
-    public void testQPileupWithViewOptionHeader() throws Exception {
-//		PrintStream defaultOutstream = System.out;
-//		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-//        System.setOut(new PrintStream(baos));
-//        QPileup pileup = new QPileup();
-//        String[] args = TestUtil.getViewArgs(testFolder, hdf, "chr1:12000-12300", true);
-//		int exit = pileup.runPileup(args, 1234);
-//        baos.flush();
-//        assertEquals(0, exit);
-//        String output = baos.toString();
-//        System.setOut(defaultOutstream);
-//        
-//        String[] linesOfOutput = output.split(System.getProperty("line.separator"));
-//        assertEquals(12, linesOfOutput.length);
-//        assertTrue(linesOfOutput[0].startsWith("## DATE"));
-        
+    public void testQPileupWithViewOptionHeader() throws Exception {        
 		String[] args = TestUtil.getViewArgs(testFolder, hdf, "chr1:12000-12300", true);
 		String output = runPileup(args);
 		String[] linesOfOutput = output.split(System.getProperty("line.separator"));
@@ -99,20 +83,6 @@ public class QPileupTest {
 		String[] linesOfOutput = output.split(System.getProperty("line.separator"));
         assertTrue(linesOfOutput[0].startsWith("## DATE"));
         assertEquals(315, linesOfOutput.length);
-		
-		
-//		PrintStream defaultOutstream = System.out;
-//		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-//        System.setOut(new PrintStream(baos));
-//        QPileup pileup = new QPileup();
-// 		int exit = pileup.runPileup(args, 1234);
-//        baos.flush();
-//        assertEquals(0, exit);
-//        String output = baos.toString();
-//        System.setOut(defaultOutstream);
-//        String[] linesOfOutput = output.split(System.getProperty("line.separator"));        
-//        assertTrue(linesOfOutput[0].startsWith("## DATE"));
-//        assertEquals(315, linesOfOutput.length);
     }
 
 	@Test

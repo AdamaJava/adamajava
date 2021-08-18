@@ -123,8 +123,6 @@ public final class Options {
 			parseViewElements(elements);
 		}
 	}
-	
-
 
 	public void parseIniFile() throws Exception {
 
@@ -144,8 +142,7 @@ public final class Options {
 		if ((mode.equals("remove") || mode.equals("add") || mode.equals("merge")) && 
 				generalSection.containsKey("bam_override") && generalSection.get("bam_override").equals("true")) {
 			this.bamOverride = true;
-		}
-	 
+		} 
 		
 		//bam_override is for add/remove and merge, but default is false
 		if(generalSection.containsKey("bam_override") && generalSection.get("bam_override").equals("true")) {
@@ -174,8 +171,7 @@ public final class Options {
 			lowReadCount = bootstrap.containsKey("low_read_count")? new Integer(bootstrap.get("low_read_count")) : 10;					
 			percentnonref =	bootstrap.containsKey("nonref_percent")? new Integer(bootstrap.get("nonref_percent")) : 20;							
 		}	
-		
-		
+			
 		if (mode.equals("add") || mode.equals("remove")) {
 			Section bamSection = ini.get("add_remove");			
 			filter = bamSection.get("filter");
@@ -194,12 +190,11 @@ public final class Options {
 		if (mode.equals("view")) {
 			Section viewSection = ini.get("view");
 			String group = viewSection.get("group");			
-			parseGroupElements(group);
+			parseGroupElements(group); //only allow one group
 			
 			List<String> elements = viewSection.getAll("element");			
-			parseViewElements(elements);
-			
-			
+			parseViewElements(elements); //allow multi element
+					
 		/////below code only used by deprecated ViewMT2
 			graphHdfs = viewSection.getAll("graph_hdf");		
 		
@@ -377,7 +372,7 @@ public final class Options {
 		
 		
 		if (elements != null) {				
-			for (String element : elements) {					
+			for (String element : elements) {	
 				StrandEnum currentEnum = null;
 				for (StrandEnum e : enums) {						
 					if (e.getStrandEnum().equals(element)) {
@@ -394,27 +389,28 @@ public final class Options {
 	}
 
 	private void parseGroupElements(String group) throws QPileupException {
-		if (group != null) {				
-			if (group.equals("forward")) {
-				getReverseElements = false;
-				groupElements.addAll(Arrays.asList(StrandEnum.values()));
-			} else if (group.equals("reverse")) {
-				getForwardElements = false;
-				groupElements.addAll(Arrays.asList(StrandEnum.values()));
-			} else if (group.equals("bases")) {
-				groupElements.addAll(StrandEnum.getBases());
-			} else if (group.equals("quals")) {
-				groupElements.addAll(StrandEnum.getQuals());
-			} else if (group.equals("cigars")) {
-				groupElements.addAll(StrandEnum.getCigars());
-			} else if (group.equals("readStats")) {
-				groupElements.addAll(StrandEnum.getReadStats());
-			} else if (group.equals("metrics")) {
-				groupElements.addAll(StrandEnum.getMetrics());
-			} else {
-				throw new QPileupException("GROUP_ERROR", group);
-			}				
-		}		
+		if (group == null) return;
+				 			
+		if (group.equals("forward")) {
+			getReverseElements = false;
+			groupElements.addAll(Arrays.asList(StrandEnum.values()));
+		} else if (group.equals("reverse")) {
+			getForwardElements = false;
+			groupElements.addAll(Arrays.asList(StrandEnum.values()));
+		} else if (group.equals("bases")) {
+			groupElements.addAll(StrandEnum.getBases());
+		} else if (group.equals("quals")) {
+			groupElements.addAll(StrandEnum.getQuals());
+		} else if (group.equals("cigars")) {
+			groupElements.addAll(StrandEnum.getCigars());
+		} else if (group.equals("readStats")) {
+			groupElements.addAll(StrandEnum.getReadStats());
+		} else if (group.equals("metrics")) {
+			groupElements.addAll(StrandEnum.getMetrics());
+		} else {
+			throw new QPileupException("GROUP_ERROR", group);
+		}				
+		 		
 	}
 	
 	
@@ -581,7 +577,7 @@ public final class Options {
 
 		//check output_dir under [general] for view and metrics
 		if (mode.equals("view") || mode.equals("metrics")) {	
-			if (outputDir == null) throw new QPileupException("NO_OPTION", "output");
+			if (outputDir == null) throw new QPileupException("NO_OPTION", "output_dir");
 			  
 			if (!new File(outputDir).exists()) throw new QPileupException("NO_FILE", outputDir);						 
 		}	
