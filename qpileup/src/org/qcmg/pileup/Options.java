@@ -87,7 +87,6 @@ public final class Options {
 	private String pathToBigWig;
 	private String filter;
 	private File snpDir;
-	private Map<String, TreeMap<Integer, String>> positionMap;
 	
 	@SuppressWarnings("unchecked")
 	public Options(final String[] args) throws Exception {
@@ -149,7 +148,7 @@ public final class Options {
 			bamOverride = true;
 		}
 		
-		readRanges = new ArrayList<String>(); //incase parseIniFile() execute multi time
+		readRanges = new ArrayList<String>(); //in case parseIniFile() execute multi time
 		if (mode.equals("view") || mode.equals("metrics") || mode.equals("add") || mode.equals("remove")) {
 			if(generalSection.containsKey("range")) {
 				readRanges = generalSection.getAll("range");
@@ -195,25 +194,25 @@ public final class Options {
 			List<String> elements = viewSection.getAll("element");			
 			parseViewElements(elements); //allow multi element
 					
-		/////below code only used by deprecated ViewMT2
-			graphHdfs = viewSection.getAll("graph_hdf");		
-		
-			if (viewSection.containsKey("range_file")) {				
-				rangeFile = viewSection.get("range_file");
-				readRanges.clear();				
-				getRangesFromRangeFile(viewSection.get("range_file"), group);			
-			}
-			
-			if (viewSection.containsKey("graph")) {
-				includeGraph = true;
-				if (viewSection.containsKey("stranded")) {
-					String type = (String) viewSection.get("stranded");
-					if (type.equals("true")) {
-						viewGraphStranded = true;
-					}
-				}
-			}
-		/////above code only used by deprecated ViewMT2
+//		/////below code only used by deprecated ViewMT2
+//			graphHdfs = viewSection.getAll("graph_hdf");		
+//		
+//			if (viewSection.containsKey("range_file")) {				
+//				rangeFile = viewSection.get("range_file");
+//				readRanges.clear();				
+//				getRangesFromRangeFile(viewSection.get("range_file"), group);			
+//			}
+//			
+//			if (viewSection.containsKey("graph")) {
+//				includeGraph = true;
+//				if (viewSection.containsKey("stranded")) {
+//					String type = (String) viewSection.get("stranded");
+//					if (type.equals("true")) {
+//						viewGraphStranded = true;
+//					}
+//				}
+//			}
+//		/////above code only used by deprecated ViewMT2
 			
 		}
 		
@@ -409,8 +408,7 @@ public final class Options {
 			groupElements.addAll(StrandEnum.getMetrics());
 		} else {
 			throw new QPileupException("GROUP_ERROR", group);
-		}				
-		 		
+		}	
 	}
 	
 	
@@ -804,6 +802,8 @@ public final class Options {
 	@Deprecated private boolean includeGraph;
 	@Deprecated private List<String> graphHdfs;
 	@Deprecated private String rangeFile;
+	@Deprecated private Map<String, TreeMap<Integer, String>> positionMap;
+
 	
 	
 	@Deprecated //not used anywhere
@@ -895,6 +895,11 @@ public final class Options {
 	@Deprecated //used by viewMT2
 	public void setGraphRangeInfoMap(Map<String, String> graphRangeInfoMap) {
 		this.graphRangeInfoMap = graphRangeInfoMap;
+	}	
+
+	@Deprecated
+	public boolean hasDeleteOption() {
+		return options.has("delete");
 	}
 	
 	@Deprecated //used by viewMT2
@@ -902,12 +907,8 @@ public final class Options {
 		return positionMap;
 	}
 	
-	@Deprecated
-	public boolean hasDeleteOption() {
-		return options.has("delete");
-	}
 	
-	@Deprecated
+	@Deprecated //work for positionMap which used by viewMT2
 	private void getRangesFromRangeFile(String rangeFile, String viewGroup) throws Exception {
 		
 		try (StringFileReader reader = new StringFileReader(new File(rangeFile));) {

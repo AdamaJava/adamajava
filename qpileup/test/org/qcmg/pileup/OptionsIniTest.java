@@ -21,7 +21,7 @@ public class OptionsIniTest {
 	private String hdf = getClass().getResource("/resources/test.h5").getFile();
 	
 	
-	/*plans:
+	/*
 	
 	1. test add/remove twice in different range
 	2. try merge twice in different rang h5s
@@ -125,6 +125,18 @@ public class OptionsIniTest {
 				
 	}	
 	
+	@Test
+	public void mergeTest() throws Exception {
+		String generalSec = createGeneralSection( null, hdf, "merge", 3, null, null, new String[] {"chr1", "chr1:1-100"});
+		String viewSec = createView(new String[] {"Gqual" ,"Tqual"},new String[] {"quals", "bases"}) ; 
+		String mergeSec = createMerge(new String[] {hdf ,hdf}) ; 
+		Options options = getIniOptions(generalSec, null, viewSec,  mergeSec);
+		
+		checkException(options, "missing bootstrap"); //missing bootstrap
+
+	}
+	
+	
 	public Options getIniOptions(String general, String bootstrap, String view, String merge) throws Exception {
 		
 		File iniFolder = testFolder.newFolder();		
@@ -175,4 +187,26 @@ public class OptionsIniTest {
 		
 		return str;
 	}
+
+	private String createMerge(String[] hdfs) {
+		String str = "[merge]\n";
+		for(String h : hdfs) { str += "input_hdf = " + h + "\n"; }
+		 		
+		return str;
+	}
+	
+	private void checkException(Options options, String errMsg) {
+		
+		
+		try {
+			options.parseIniFile();
+			fail("should not reach here!");
+		}catch (Exception ex) {
+			assertEquals(ex.getMessage(),  errMsg);
+		}
+
+		
+		
+	}
+	
 }
