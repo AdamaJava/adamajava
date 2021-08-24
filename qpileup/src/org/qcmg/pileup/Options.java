@@ -520,7 +520,7 @@ public final class Options {
 		
 		//not allow other options with --ini together
 		for (String opt : new String[] {"hdf", "range", "group", "element"}) {
-			if (options.has("range")) {
+			if (options.has(opt)) {
 				throw new QPileupException("INI_VIEW_OPTIONE_ERROR", opt);
 			}
 		}

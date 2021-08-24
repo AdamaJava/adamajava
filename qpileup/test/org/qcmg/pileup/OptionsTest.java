@@ -174,11 +174,13 @@ public class OptionsTest {
 	
 	@Test//(expected=QPileupException.class)
 	public void testBothViewINIOption() throws Exception {
-		String[] args = {"--view", "--ini", "ini"};
-		try {
-			assertQPileupViewException(args);
-		} catch (QPileupException exp) {
-			assertEquals(exp.getMessage(), new QPileupException("INI_VIEW_OPTIONE_ERROR", "view").getMessage() );
+		for (String opt : new String[] {"view",  "hdf", "range", "group", "element"}) {
+			String[] args = {"--" + opt, "--ini", "ini"};
+			try {
+				assertQPileupViewException(args);
+			} catch (QPileupException exp) {
+				assertEquals(exp.getMessage(), new QPileupException("INI_VIEW_OPTIONE_ERROR", opt).getMessage() );
+			}
 		}
 	}	
 	
