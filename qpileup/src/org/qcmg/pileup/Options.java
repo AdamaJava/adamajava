@@ -165,7 +165,8 @@ public final class Options {
 		}
 		
 		if (mode.equals("bootstrap") || mode.equals("merge")) {		
-			Section bootstrap = ini.get("bootstrap");		
+			Section bootstrap = ini.get("bootstrap");	
+			if(bootstrap == null) throw new QPileupException("NO_MODE", "bootstrap");
 			referenceFile = bootstrap.get("reference");			
 			lowReadCount = bootstrap.containsKey("low_read_count")? new Integer(bootstrap.get("low_read_count")) : 10;					
 			percentnonref =	bootstrap.containsKey("nonref_percent")? new Integer(bootstrap.get("nonref_percent")) : 20;							
@@ -534,7 +535,7 @@ public final class Options {
 			
 		//check mode				
 		if (!mode.equals("add") && !mode.equals("bootstrap") && !mode.equals("view") && !mode.equals("remove") && !mode.equals("merge") && !mode.equals("metrics")) {		
-			throw new QPileupException("NO_MODE", mode);
+			throw new QPileupException("UNKNOWN_MODE", mode);
 		} 
 		
 		//check hdf

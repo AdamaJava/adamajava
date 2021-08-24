@@ -132,7 +132,7 @@ public class OptionsIniTest {
 		String mergeSec = createMerge(new String[] {hdf ,hdf}) ; 
 		Options options = getIniOptions(generalSec, null, viewSec,  mergeSec);
 		
-		checkException(options, "missing bootstrap"); //missing bootstrap
+		checkException(options, "INI file bootstrap mode section is missing."); //missing bootstrap
 
 	}
 	
