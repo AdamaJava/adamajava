@@ -529,9 +529,9 @@ public final class Options {
 			throw new QPileupException("NO_OPTION", "log");
 		} 
 				
-		if (threadNo > 12) {
-			throw new QPileupException("BAD_THREADS");
-		}
+//		if (threadNo > 12) {
+//			throw new QPileupException("BAD_THREADS");
+//		}
 			
 		//check mode				
 		if (!mode.equals("add") && !mode.equals("bootstrap") && !mode.equals("view") && !mode.equals("remove") && !mode.equals("merge") && !mode.equals("metrics")) {		
