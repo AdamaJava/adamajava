@@ -37,7 +37,7 @@ usage1: java -jar qpileup.jar --ini <ini_file>
 usage2: java -jar qpileup.jar --view --hdf <hdf_file> [options]
 Option         Description                                                                
 ------         -----------                                                                
---element      Opt (view mode), Select the elements date to view. e.g. A, AQual,etc.      
+--element      Opt (view mode), Select the elements date to view. e.g. A, Aqual,etc.      
 --group        Opt (view mode), Select the group data to view. e.g. forward, reverse, etc.
 --hdf          Req (view mode), HDF File that will be written to or viewed.               
 --hdf-header   Opt (view mode), View the header of the HDF file.                          
@@ -61,7 +61,7 @@ loglevel = Opt, Logging level [INFO,DEBUG], Def=INFO.
 hdf = Req, path to HDF5 file. it is the output from bootstrap and merge mode, but input for view and metrics mode, and modified by add and remove mode. 
 mode = Req, Mode [bootstrap, add, remove, merge, view, metrics].
 thread_no = Opt, Number of threads [1-12]. Def=1
-bam_override =  Opt (add,remove and merge mode), If set, allows duplicate BAM files to be added, Def=FALSE
+bam_override =  Opt (add,remove and merge mode), If set, allows duplicate BAM files to be added, Def=false
 output_dir = Req (view and metrics mode), Directory for output pileup files.
 range = Opt (add, remove, view and metrics mode), Range to view. Def=all. 
 
@@ -82,7 +82,7 @@ filter = Opt, a qbamfilter query to filter out BAM records. Def=null.
 input_hdf = Req, path to the hdf file/s that will be merged.
 
 [view]
-;multi-value for element and group are allowed
+;multi element is allowed, but only one group will be taken.
 element = Opt, qpileup data element to view. see [strand summary table](ndex_latest.md#strand-summary).
 group = Opt, Possible groups [forward, reverse, bases, quals, cigars, readStats]. 
 graph = (Deprecated) Opt, set to true if a html should be created . Def=false.
