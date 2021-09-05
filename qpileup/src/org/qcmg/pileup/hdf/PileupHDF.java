@@ -55,7 +55,8 @@ public class PileupHDF {
 			 FileFormat fileFormat = FileFormat.getFileFormat(FileFormat.FILE_TYPE_HDF5);
 	
 		     if (fileFormat == null) {
-		         throw new QPileupException("Cannot find HDF5 FileFormat.");
+		        // throw new QPileupException("Cannot find HDF5 FileFormat.");
+		         throw new QPileupException("NO_HDF_FORMAT");
 		     }
 	
 		     hdfFile = (H5File)fileFormat.createFile(hdfFileName, FileFormat.FILE_CREATE_OPEN);
@@ -281,7 +282,7 @@ public class PileupHDF {
 				.getFileFormat(FileFormat.FILE_TYPE_HDF5);
 
 		if (fileFormat == null) {
-			throw new QPileupException("Cannot find HDF5 FileFormat.");
+			throw new QPileupException("NO_HDF_FORMAT");
 		}
 
 		hdfFile = (H5File) fileFormat.createFile(hdfFileName,
@@ -289,7 +290,8 @@ public class PileupHDF {
 
 		// Check for error condition and report.
 		if (hdfFile == null) {
-			throw new QPileupException("Failed to create file: " + hdfFileName);
+			//throw new QPileupException("Failed to create file: " + hdfFileName);
+			throw new QPileupException("CREATE_ERROR", "HDF file", hdfFileName);
 		}
 
 		int fileId = hdfFile.open();
@@ -383,8 +385,9 @@ public class PileupHDF {
                 data);           //the actual data
 
 		if (compoundDS == null) {
-			   logger.error("The compound dataset : " + datasetName + " was not created.");
-			   throw new QPileupException("The compound dataset : " + datasetName + " was not created.");
+			   logger.error("The compound dataset : " + datasetName + " was not created.");			   
+			   //throw new QPileupException("The compound dataset : " + datasetName + " was not created.");
+			   throw new QPileupException("CREATE_ERROR", "compound dataset", datasetName);
 		   }			
 		
 		return compoundDS;
