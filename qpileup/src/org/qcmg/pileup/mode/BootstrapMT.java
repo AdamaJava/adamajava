@@ -37,8 +37,16 @@ import org.qcmg.pileup.hdf.StrandDS;
 
 public class BootstrapMT {
 	
-	private File referenceFile;
-	private PileupHDF hdf;	
+
+	//bootstrap mode support multi thread, however ocassuationally the output h5 will slightly different to single thread output.
+	//not very sure whether the output trunk order are different or compressed differently.
+	//it cause downstream piple line (add mode) throw ncsa.hdf.hdf5lib.exceptions.HDF5LibraryException
+	//bootstarp mode is fast, the run speed is similar between single thread and multi thread
+	//so here we force to run bootstrap in single thread. 
+	private final int noOfThreads = 1;
+	
+	private final File referenceFile;
+	private final PileupHDF hdf;	
 	private QLogger logger = QLoggerFactory.getLogger(getClass());	
 	private final int sleepUnit = 10;
 	private long startTime;
@@ -46,20 +54,21 @@ public class BootstrapMT {
 	private MetadataReferenceDS referenceDS;
 	private boolean mergeMode = false;
 	private AtomicInteger exitStatus = new AtomicInteger();
-	private int chunk = 10000;
-	private int noOfThreads = 2;
+	private final int chunk = 10000;
 	private List<String> referenceList = new ArrayList<String>();
 	
+	//call by pileupPipeline when boostrap mode
 	public BootstrapMT(Options options, long startTime) throws Exception {
 		this.referenceFile = new File(options.getReferenceFile());
 		if (!this.referenceFile.exists()) {
 			throw new QPileupException("REFERENCE_FILE_ERROR");
-		}	
+		}
+		
 		this.startTime = startTime;		
 		this.hdf = new PileupHDF(options.getHdfFile(), true, false);
 		
 		this.metaDS = new MetadataRecordDS(hdf, options.getLowReadCount(), options.getPercentNonRef(), new Integer(0));
-		this.referenceDS = new MetadataReferenceDS(hdf, options.getReferenceFile());		
+		this.referenceDS = new MetadataReferenceDS(hdf, options.getReferenceFile());	
 		
 		logger.info("Reference file: "  + options.getReferenceFile());
 		logger.info("Low read count option: "  + options.getLowReadCount());
@@ -68,20 +77,23 @@ public class BootstrapMT {
 		
 	}
 	
+	//call by mergeMt when merge mode
 	public BootstrapMT(PileupHDF hdf, Options options, long startTime) throws Exception {
 		this.referenceFile = new File(options.getReferenceFile());
 
 		if (!this.referenceFile.exists()) {
 			throw new QPileupException("REFERENCE_FILE_ERROR");
 		}	
+		
 		this.startTime = startTime;	
 		
-		if (options.getMode().equals("merge")) {
-			mergeMode  = true;
-			this.hdf = new PileupHDF(options.getHdfFile(), false, false);
-		} else {			
+		if( !options.getMode().equals("merge")) {
 			throw new Exception("unrecognized mode");
 		}
+				 
+		mergeMode  = true;
+		this.hdf = new PileupHDF(options.getHdfFile(), false, false);
+		 
 		this.metaDS = new MetadataRecordDS(hdf, options.getLowReadCount(), options.getPercentNonRef(), new Integer(0));
 		this.referenceDS = new MetadataReferenceDS(hdf, options.getReferenceFile());
 		logger.info("Chunk size is " + chunk + " No of threads: " + noOfThreads + " Mode: " + options.getMode());
