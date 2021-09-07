@@ -38,7 +38,7 @@ import org.qcmg.pileup.hdf.StrandDS;
 public class BootstrapMT {
 	
 
-	//bootstrap mode support multi thread, however ocassuationally the output h5 will slightly different to single thread output.
+	//bootstrap mode support multi thread, however occasionally the output h5 will slightly different to single thread output.
 	//not very sure whether the output trunk order are different or compressed differently.
 	//it cause downstream piple line (add mode) throw ncsa.hdf.hdf5lib.exceptions.HDF5LibraryException
 	//bootstarp mode is fast, the run speed is similar between single thread and multi thread
