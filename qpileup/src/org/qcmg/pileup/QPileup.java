@@ -45,6 +45,7 @@ public final class QPileup {
 			if (args.length == 0) {
 				System.err.println(Messages.USAGE);
 			} else if (options.hasHelpOption()) {
+				System.err.println(Messages.USAGE);
 				options.displayHelp();
 			} else if (options.hasVersionOption()) {
 				System.err.println(Messages.getVersionMessage());	
