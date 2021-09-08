@@ -4,7 +4,7 @@
 
 ## Installation
 
-qpileup requires java 8 and (ideally) a multi-core machine. eg. 5 threads with at least 20GB of RAM; 12 threads with at least 35GB and 25 threads with 60GB etc.
+qpileup requires java 8 and (ideally) a multi-core machine. eg. 5 threads with at least 20GB of RAM; 12 threads with at least 30GB and 25 threads with 40GB etc.
 
 * To do a build of qpileup, first clone the adamajava repository.
   ~~~~{.text}
@@ -60,10 +60,10 @@ log = Req, Log file.
 loglevel = Opt, Logging level [INFO,DEBUG], Def=INFO.
 hdf = Req, path to HDF5 file. it is the output from bootstrap and merge mode, but input for view and metrics mode, and modified by add and remove mode. 
 mode = Req, Mode [bootstrap, add, remove, merge, view, metrics].
-thread_no = Opt, Number of threads [1-12]. Def=1
-bam_override =  Opt (add,remove and merge mode), If set, allows duplicate BAM files to be added, Def=false
-output_dir = Req (view and metrics mode), Directory for output pileup files.
-range = Opt (add, remove, view and metrics mode), Range to view. Def=all. 
+thread_no = Opt (add,remove, view, metrics), Number of threads. Def=1
+bam_override =  Opt (add,remove,merge ), If set, allows duplicate BAM files to be added, Def=false
+output_dir = Req (view, metrics), Directory for output pileup files.
+range = Opt (add, remove, view, metrics), Range to view. Def=all. 
 
 [bootstrap] 
 ;the merge mode will call bootstrap, so this section is for both bootstrap and merge mode

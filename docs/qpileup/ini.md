@@ -6,7 +6,7 @@
 `bootstrap` mode creates a qpileup HDF5 file for a reference genome, storing position and reference base information for the genome. The output from
 this mode is a complete HDF5 qpileup file but with no values in any of the summary metrics. For a given reference genome, a user would typically run
 bootstrap mode once to create a "clean" initialised qpileup HSF5 and then use that bootstrap file as the basis for numerous qpileup BAM collections. 
-Using 12 threads on a cluster node with 2 x 6-core CPUs, bootstrapping the GRCh37 human genome takes approximately 12 minutes.
+Bootstrap only use one thread, it took about 5 minutes with 8G RAM. 
 
 An example of INI to run bootstrap is given, here
 * the default log level is used.
@@ -21,7 +21,6 @@ An example of INI to run bootstrap is given, here
 [general]
 hdf=/path/to/output/GRCh37_ICGC_standard_v2.bootstrap.h5
 log=/path/to/output/GRCh37_ICGC_standard_v2.bootstrap.h5.log
-threadNo=12
 mode=bootstrap
 
 [bootstrap]
@@ -41,10 +40,10 @@ INI file example:
   * `output_dir` is ignored in add mode.
   * this example default `range=all` is used. 
   * this example default `bam_override=false` is used. 
-  * this `hdf` must already exists. It is often directory copied from boostrap output.
+  * this `hdf` must already exists. It is often directory copied from boostrap output, and renamed.
   * The resource requirement in below INI example, it takes:
 	 * 15(=12+3) threads with 35G memory, 
- 	 * qpileup takes around 8 hour to pileup 3 BAMs (each BAM size is around 90G with ??? reads);
+ 	 * qpileup takes around 8 hour to pileup 3 BAMs (each BAM size is around 90G with 900M reads);
  	 * or 13 hours to pileup 5 BAMs with simiar size.  
 
 ~~~~
@@ -145,13 +144,9 @@ the [boostrap] section is required, the merge will call boostrap mode to create 
 ~~~~
 [general]
 ;bam_override, output_dir and range are ignored in merge mode. 
-
-log=/path/test.log
-
 ;this hdf file must not exists
 hdf=/path/target_109.qpileup.h5
-
-threadNo=12
+log=/path/test.log
 mode=merge
 
 [bootstrap]
@@ -169,14 +164,11 @@ input_hdf==/path/testB.h5
 
 ~~~~
 [general]
-
 ;hdf is the input for metrics mode, must exists. 
 hdf=/path/target_109.qpileup.h5
-
 ;output_dir, range is required in metric mode
 output_dir=/path/
 range=chr1
-
 thread_no=12
 log=/path/test.log
 mode=add
