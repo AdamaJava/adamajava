@@ -135,7 +135,7 @@ hdf=/path/target_109.qpileup.h5
 log=/path/test.log
 output_dir=/path/
 thread_no=12
-mode=add
+mode=view
 
 [view]
 element = A 
