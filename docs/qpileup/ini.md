@@ -9,13 +9,13 @@ bootstrap mode once to create a "clean" initialised qpileup HSF5 and then use th
 Bootstrap only use one thread, it took about 5 minutes with 8G RAM. 
 
 An example of INI to run bootstrap is given, here
-* the default log level is used.
-* `bam_override`, `output_dir` and `range` are ignored in bootstrap mode.
-* the `hdf` file must not pre-exists, it is the output of qpileup bootstrap mode.
-* tool total threads will be 15 which is the sum of pileup threads based on chromosome (threadNo) and other threads(3).
-* index of reference file (.fai) must exists
-* `low_read_count=10` means that the number of BAMs that have less then 10 reads covering this position will be recorded on HDF5 Data Element LowReadCount. 
-* `nonref_percent=30` means the number of BAMs that had more than 30% non-ref bases on this position will be counted into HDF5 Data Element HighNonreference. 
+  * the `hdf` file must not pre-exists, it is the output of qpileup bootstrap mode.
+  * the `thread_no` is not used in bootstrap mode, only single thread is taken for bootstrap, plus other threads(2) for reading etc. 
+  * the `bam_override`, `output_dir` and `range` are not used in bootstrap and merge mode.
+  * In this example default `loglevel = INFO` is used.
+  * A reference file (.fa) accompany with index file (.fai) must exists
+  * `low_read_count=10` means that the number of BAMs that have less then 10 reads covering this position will be recorded on HDF5 Data Element LowReadCount. 
+  * `nonref_percent=30` means the number of BAMs that had more than 30% non-ref bases on this position will be counted into HDF5 Data Element HighNonreference. 
 
 ~~~~{.text}
 [general]
@@ -35,16 +35,24 @@ nonref_percent=30
 that `add` and `view` will be the most often used qpileup modes as this mode allows for addition of new BAMs to existing qpileup files and "view" allows
 for querying of locations in the qpileup file. 
 
-INI file example:
-  * there are two ways to add BAM file, here providing a file with bam files listed using bamlist=path to bam list file.
-  * `output_dir` is ignored in add mode.
-  * this example default `range=all` is used. 
-  * this example default `bam_override=false` is used. 
-  * this `hdf` must already exists. It is often directory copied from boostrap output, and renamed.
-  * The resource requirement in below INI example, it takes:
-	 * 15(=12+3) threads with 35G memory, 
- 	 * qpileup takes around 8 hour to pileup 3 BAMs (each BAM size is around 90G with 900M reads);
- 	 * or 13 hours to pileup 5 BAMs with simiar size.  
+  * there are two ways to add BAM file, here providing a file with bam files listed using `bamlist=<path to a file listing all BAMs>`.
+  * the `hdf` must pre-exist. It is often directory copied from boostrap output.
+  * the `output_dir` is not used in add mode.
+  * In this example default `range=all` is used. 
+  * In this example default `bam_override=false` is used. 
+  * add mode allows multi theads, below table lists resource usage with different theads number on same dataset. 
+  	* the more threads required, more mem usage taken, because each thead read certain amount genome range into RAM.
+	* the more input bam records, more cpu time taken, because qpileup counts the read number mapped on each reference base. 
+	* below table based on 9 small exon BAMs, total about 27G. 
+
+ | resource/threads | 5 | 7 | 12 | 17 |
+ | --- | --- | --- | --- |--- |
+| resources_used.cpupercent | 494 | 656 | 1104 | 1495 |
+| resources_used.mem | 16G | 22G | 31G | 31G |
+| resources_used.cput | 12:46:55 | 09:20:24 | 11:18:00 | 11:34:48 |
+| resources_used.walltime | 02:55:04 | 01:39:42 | 01:23:37 | 01:13:24 |
+| exec_host | hpcnode040 | hpcnode065 | hpcnode040 | hpcnode040 |
+
 
 ~~~~
 [general]
@@ -58,7 +66,7 @@ bam_list=/qpileup/bam_list_20130202.txt
 ~~~~
 
 Another INI file example:
-  * there are two ways to add BAM file, here using `name=path` to bam file.
+  * there are two ways to add BAM file, here using `name=<path to BAM file>` to bam file.
   * `bam_override=true` means that same BAM (same name and path) allows to add multi times if list multi times. 
   * `Caution: adding BAMs to h5 with different range`. Below example add another BAMs within different range to the hdf from above run. Hence the output will be chaotic, this should rarely be necessary. Copy an output hdf file from bootstrap mode here, will be much relaible. 
 
@@ -77,7 +85,6 @@ name=/ABCD_1234/T02_20120318_153_FragBC.nopd.IonXpress_003.sorted.bam
 name=/ABCD_1234/T02_20120318_153_FragBC.nopd.IonXpress_003.sorted.bam
 ~~~~
 
-
 ## `remove`
 
 `remove` mode is the opposite of `add` more. It takes one or more BAM files that are part of an existing qpileup HDF5 file and it removes the BAMs
@@ -85,12 +92,14 @@ from the collection by performing pileups and decrementing the values of all of 
 been added to the HDF5. This should rarely be necessary but is invaluable in cases such as sample or tumour/normal swaps, or incorrect labelling of
 BAM files.
 Without this mode, any case where a BAM was incorrcetly added to an HDF5 file would require the HDF5 file to be regenerated from scratch.
+  
+  * the `range` and `output_dir` are not used in remove mode.
+  * the hdf must pre-exists and will modified by qpileup.
+  * In this example default `bam_override=false` is used. 
+  * In this example default `loglevel = INFO` is used. 
 
 ~~~
 [general]
-;range and output_dir are ignored in remove mode
-;default value used for bam_override and loglevel  
-
 hdf=/path/target_109.qpileup.h5
 log=/path/test.log
 thread_no=12
@@ -106,19 +115,27 @@ name=/ABCD_1234/T02_20120318_153_FragBC.nopd.IonXpress_001.sorted.bam
 `view` mode reads metrics from a qpileup HDF5 file and writes to a CSV file. `view` can be used for a whole genome (but don't do that unless 
 you have a lot of disk - it's a really big file) or for specific regions. `view` takes a list of ranges and will output a separate CSV for each chromosome/contig that is part of the list of ranges queried. Each file will contain metadata at the top including the HDF5 file the summary was extracted from and the regions extacted.
 
-Unlike all of the other modes, there is a limited ability to use view mode via commandline options to qpileup. For more details on [page](index.md#usage2-view-mode-options).
+  * Unlike all of the other modes, there is a limited ability to use view mode via commandline options to qpileup. For more details on [page](index.md#usage2-view-mode-options).
+  * the `output_dir` is requied in view and metrics mode.
+  * the hdf must pre-exists and will be read by qpileup.
+  * In this example default `loglevel = INFO` is used.
+  * In this example default `range = all` is used. Hence the output will be large, not recommand, unless necessary.
+  * multi `element` is allowed in view mode. The element is also called stand data element, details on [HDF5 file::strand summary table](hdf.md#strand-summary).
+  * only single group is allowed in view mode. group is related to element, the possible groups are:
+  	* forward: output all elements with forward strand.
+  	* reverse: ouptut all elements with reverse strand.
+  	* bases: output all base elements: A, C, G, T, N, ReferenceNo, NonreferenceNo, HighNonreference, LowReadCount.
+  	* quals: output all qual elements: Aqual, Cqual, Gqual, Tqual, Nqual, Mapqual.
+  	* cigars: output all cigar elements: CigarI, CigarD, CigarD_start, CigarS, CigarS_start, CigarH, CigarH_start, CigarN, CigarN_start.
+  	* readStats: output all read start related elements: StartAll, StartNondup,StopAllGqual, MateUnmapped.
 
 ~~~~
 [general]
-;default range=all, the output will be large, not recommand, unless necessary. 
-
-log=/path/test.log
 hdf=/path/target_109.qpileup.h5
-mode=add
-thread_no=12
-
-;output_dir is required
+log=/path/test.log
 output_dir=/path/
+thread_no=12
+mode=add
 
 [view]
 element = A 
@@ -126,25 +143,20 @@ element = T
 group = forward  
 ~~~~
 
-* element is also called stand data element, details on [HDF5 file::strand summary table](hdf.md#strand-summary).
-
-* group is related to element, the possible groups are: 
-  * forward: output all elements with forward strand. 
-  * reverse: ouptut all elements with reverse strand.
-  * bases: output all base elements: A, C, G, T, N, ReferenceNo, NonreferenceNo, HighNonreference, LowReadCount.
-  * quals: output all qual elements: Aqual, Cqual, Gqual, Tqual, Nqual, Mapqual.
-  * cigars: output all cigar elements: CigarI, CigarD, CigarD_start, CigarS, CigarS_start, CigarH, CigarH_start, CigarN, CigarN_start.
-  * readStats: output all read start related elements: StartAll, StartNondup,StopAllGqual, MateUnmapped.
-
 ## `merge`
 
 `merge` mode will merge 2 or more HDF5 files together. The files must use the same reference genome, and the same values for `lowreadcount` and `percentnonref`.
-the [boostrap] section is required, the merge will call boostrap mode to create a new hdf file. 
+the [boostrap] section is required, the merge will call boostrap mode to create a new hdf file. Merge use single thread, it took about 3 hours with 9G RAM for 3 H5 inputs, each about 20G. 
+
+An example of INI to run merge mode is given, here
+  * the `hdf` file must not pre-exists, it is the output of qpileup merge mode.
+  * The [bootstrap] section should be same to the bootstrap mode, due to merge mode check and call bootstrap mode. 
+  * the `thread_no` is not used in bootstrap and merge mode, only single thread is taken for merge, plus other threads(2) for reading etc. 
+  * the `bam_override`, `output_dir` and `range` are not used in bootstrap and merge mode.
+  * In this example default `loglevel = INFO` is used.
 
 ~~~~
 [general]
-;bam_override, output_dir and range are ignored in merge mode. 
-;this hdf file must not exists
 hdf=/path/target_109.qpileup.h5
 log=/path/test.log
 mode=merge
