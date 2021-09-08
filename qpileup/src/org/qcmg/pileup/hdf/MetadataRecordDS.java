@@ -194,7 +194,7 @@ public class MetadataRecordDS extends MetadataDS {
 			
 		for (String newRecord : newRecords) {
 			//check add 
-			if (newRecord.contains("add")) {
+			if (newRecord.contains("MODE:add")) {
 				String file = newRecord.split(",")[4];
 				if (recordsContains(file)) {
 					displayWarning(isBamOverride, file, "add");
@@ -204,7 +204,7 @@ public class MetadataRecordDS extends MetadataDS {
 				}
 			}
 			//check reference
-			if (newRecord.contains("bootstrap")) {
+			else if (newRecord.contains("MODE:bootstrap")) {
 				finalRecords.add(newRecord);
 				String line = newRecord.split(",")[4];
 				String ref = line.substring(10, line.length());	
