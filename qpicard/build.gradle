@@ -10,7 +10,7 @@ dependencies {
             
     //picard 1.130 confilicts with htsjdk:2.14.1, because it calls older htsjdk and throw exception
     //picard:2.1.0 released on Feb, 2016 also conflicts with htsjdk:2.14.1 
- 	//picard:2.10.0 released on Jul, 2017, it works with htsjdk:2.14.1 
+    //picard:2.10.0 released on Jul, 2017, it works with htsjdk:2.14.1 
     api 'com.github.broadinstitute:picard:2.10.0'
  
 }
