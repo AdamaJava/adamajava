@@ -11,7 +11,14 @@ dependencies {
     api project(':qio')
     api project(':qpicard')
     api 'com.google.code.findbugs:findbugs:1.3.9'	
-    api 'com.github.samtools:htsjdk:2.14.1'
+ 	//api 'com.github.samtools:htsjdk:2.14.1'
     api 'net.sf.jopt-simple:jopt-simple:4.6'
+    
+    //we used picard 1.130, it calls older htsjdk and throw exception
+    //picard:2.17.8 Update htsjdk version to 2.14.2; 
+    //picard:2.17.7 use htsjdk 2.14.0 listed in build file, which is most close to our 2.14.1
+    api 'com.github.broadinstitute:picard:2.17.7'
+        
+    //picard:2.17.7 requires barclay:2.0.0 listed in build file
+    api 'org.broadinstitute:barclay:2.0.0'   
 }
-
