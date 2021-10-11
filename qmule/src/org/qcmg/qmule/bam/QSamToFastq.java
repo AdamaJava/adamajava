@@ -72,11 +72,13 @@ public class QSamToFastq extends CommandLineProgram {
 
     @Argument(shortName="NON_PF", doc="Include non-PF reads from the SAM file into the output FASTQ files.")
     public boolean INCLUDE_NON_PF_READS = false;
+    
 
     @Argument(shortName="CLIP_ATTR", doc="The attribute that stores the position at which " +
             "the SAM record should be clipped", optional=true)
     public String CLIPPING_ATTRIBUTE;
 
+ 
     @Argument(shortName="CLIP_ACT", doc="The action that should be taken with clipped reads: " +
             "'X' means the reads and qualities should be trimmed at the clipped position; " +
             "'N' means the bases should be changed to Ns in the clipped region; and any " +
@@ -92,16 +94,17 @@ public class QSamToFastq extends CommandLineProgram {
             "value is null then all bases left after trimming will be written.", optional=true)
     public Integer READ1_MAX_BASES_TO_WRITE;
 
+     
     @Argument(shortName="R2_TRIM", doc="The number of bases to trim from the beginning of read 2.")
     public int READ2_TRIM = 0;
 
     @Argument(shortName="R2_MAX_BASES", doc="The maximum number of bases to write from read 2 after trimming. " +
-            "If there are fewer than this many bases left after trimming, all will be written.  If this " +
+             "If there are fewer than this many bases left after trimming, all will be written.  If this " +
             "value is null then all bases left after trimming will be written.", optional=true)
     public Integer READ2_MAX_BASES_TO_WRITE;
 
     @Argument(doc="If true, include non-primary alignments in the output.  Support of non-primary alignments in SamToFastq " +
-    "is not comprehensive, so there may be exceptions if this is set to true and there are paired reads with non-primary alignments.")
+     "is not comprehensive, so there may be exceptions if this is set to true and there are paired reads with non-primary alignments.")
     public boolean INCLUDE_NON_PRIMARY_ALIGNMENTS=false;
 
     private final Log log = Log.getInstance(QSamToFastq.class);
@@ -118,7 +121,7 @@ public class QSamToFastq extends CommandLineProgram {
         final Map<SAMReadGroupRecord, List<FastqWriter>> writers = getWriters(reader.getFileHeader().getReadGroups());
 
         for (final SAMRecord currentRecord : reader) {
-            if (currentRecord.getNotPrimaryAlignmentFlag() && !INCLUDE_NON_PRIMARY_ALIGNMENTS)
+            if (currentRecord.isSecondaryAlignment() && !INCLUDE_NON_PRIMARY_ALIGNMENTS)
                 continue;
 
             // Skip non-PF reads as necessary
@@ -131,32 +134,34 @@ public class QSamToFastq extends CommandLineProgram {
                 final String currentReadName = currentRecord.getReadName();
                 final SAMRecord firstRecord = firstSeenMates.remove(currentReadName);
                 if (firstRecord == null) {
+                	//add current read to map and continue to next read
                     firstSeenMates.put(currentReadName, currentRecord);
-                } else {
-                    assertPairedMates(firstRecord, currentRecord);
+                    continue;
+                }  
+                
+                //process paired reads
+                assertPairedMates(firstRecord, currentRecord);
 
-                    if (fq.size() == 1) {
-                        if (OUTPUT_PER_RG) {
-                            try {
-								fq.add(new QFastqWriter(makeReadGroupFile(currentRecord.getReadGroup(), "_2")));
-							} catch (IOException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							}
-//                            fq.add(factory.newWriter(makeReadGroupFile(currentRecord.getReadGroup(), "_2")));
-                        } else {
-                            throw new PicardException("Input contains paired reads but no SECOND_END_FASTQ specified.");
-                        }
+                if (fq.size() == 1) {
+                    if (OUTPUT_PER_RG) {
+                        try {
+							fq.add(new QFastqWriter(makeReadGroupFile(currentRecord.getReadGroup(), "_2")));
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+                    } else {
+                        throw new PicardException("Input contains paired reads but no SECOND_END_FASTQ specified.");
                     }
-
-                    final SAMRecord read1 =
-                        currentRecord.getFirstOfPairFlag() ? currentRecord : firstRecord;
-                    final SAMRecord read2 =
-                        currentRecord.getFirstOfPairFlag() ? firstRecord : currentRecord;
-                    writeRecord(read1, 1, fq.get(0), READ1_TRIM, READ1_MAX_BASES_TO_WRITE);
-                    writeRecord(read2, 2, fq.get(1), READ2_TRIM, READ2_MAX_BASES_TO_WRITE);
- 
                 }
+
+                final SAMRecord read1 =
+                    currentRecord.getFirstOfPairFlag() ? currentRecord : firstRecord;
+                final SAMRecord read2 =
+                    currentRecord.getFirstOfPairFlag() ? firstRecord : currentRecord;
+                writeRecord(read1, 1, fq.get(0), READ1_TRIM, READ1_MAX_BASES_TO_WRITE);
+                writeRecord(read2, 2, fq.get(1), READ2_TRIM, READ2_MAX_BASES_TO_WRITE);
+ 
+                 
             } else {
                 writeRecord(currentRecord, null, fq.get(0), READ1_TRIM, READ1_MAX_BASES_TO_WRITE);
             }
@@ -205,10 +210,8 @@ public class QSamToFastq extends CommandLineProgram {
         final SAMRecord read2 = read.getFirstOfPairFlag() ? emptyRead : read;
         
         writeRecord(read1, 1, fq.get(0), READ1_TRIM, READ1_MAX_BASES_TO_WRITE);
-        writeRecord(read2, 2, fq.get(1), READ2_TRIM, READ2_MAX_BASES_TO_WRITE);   	
+        writeRecord(read2, 2, fq.get(1), READ2_TRIM, READ2_MAX_BASES_TO_WRITE);
     }
-    
-    
 
     /**
      * Gets the pair of writers for a given read group or, if we are not sorting by read group,
