@@ -13,11 +13,11 @@ import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.broadinstitute.barclay.argparser.Argument;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
-import org.qcmg.common.util.BaseUtils;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.fastq.QFastqWriter;
 import org.qcmg.qmule.GetBamRecords;
@@ -29,7 +29,6 @@ import htsjdk.samtools.util.IOUtil;
 
 import htsjdk.samtools.fastq.FastqRecord;
 import htsjdk.samtools.fastq.FastqWriter;
-import htsjdk.samtools.util.Log;
 import htsjdk.samtools.SamReader;
 import htsjdk.samtools.SAMFileHeader.SortOrder;
 import htsjdk.samtools.SAMReadGroupRecord;
@@ -51,7 +50,6 @@ import htsjdk.samtools.util.StringUtil;
  */
 public class QSamToFastq extends CommandLineProgram {
 	
- //   @Usage
     public String USAGE = "Extracts read sequences and qualities from the input SAM/BAM file and writes them into "+
         "the output file in Sanger fastq format. In the RC mode (default is True), if the read is aligned and the alignment is to the reverse strand on the genome, "+
         "the read's sequence from input SAM file will be reverse-complemented prior to writing it to fastq in order restore correctly "+
@@ -110,24 +108,37 @@ public class QSamToFastq extends CommandLineProgram {
 
     @Argument(doc="If true, include non-primary alignments in the output.  Support of non-primary alignments in SamToFastq " +
      "is not comprehensive, so there may be exceptions if this is set to true and there are paired reads with non-primary alignments.")
-    public boolean INCLUDE_NON_PRIMARY_ALIGNMENTS=false;
+    public boolean INCLUDE_NON_PRIMARY_ALIGNMENTS = false;
+    
+    @Argument(doc="If true, include supplementary alignments in the output.  Support of supplementary alignments in SamToFastq " +
+    	     "is not comprehensive, so there may be exceptions if this is set to true and there are paired reads with non-primary alignments.")    
+    public boolean INCLUDE_SUPPLEMENTARY_READS = false;
     
     //new argument 
     @Argument(doc="If true, read id will be appended /1 for first of pair and /2 for second of pair. If false, read id will be keep same with BAM record id.")
     public boolean MARK_MATE = false;
-    
-    @Argument(doc="If true, all non ATGC base will change to N,set 33 (!) to base quality. If false, read base will be same with BAM record base.")
+
+    @Argument(doc="If true, set 'N' to fastq record base if SAM record missing base sequence; and then set '!' to base quality. If false, read base will be same with BAM record base.")
     public boolean NON_ATGC_2N = true;
     
     @Argument(shortName="log", doc="output a log file.")
     public String LOG_FILE = "qsamtofastq.log"; 
-
-   
-
-//    private final Log log = Log.getInstance(QSamToFastq.class);
     
     private static QLogger logger;
     private static String[] args; //for log init only
+    
+    //count reads missing pair
+    private AtomicLong fakeMateCount = new AtomicLong();
+    private List<String> readName_mCount = new ArrayList<>(); 
+    
+    //count reads with missing base sequence
+    private AtomicLong baseNCount = new AtomicLong();
+    private List<String> readName_nCount = new ArrayList<>();
+    private final int MAX_RECORD_COUNT = 10;
+    
+    //count reads with missing base sequence
+    private AtomicLong nonPFCount = new AtomicLong();
+   
     
     public static void main(final String[] argv) {
     	
@@ -138,12 +149,7 @@ public class QSamToFastq extends CommandLineProgram {
     @Override
 	protected int doWork() {
       	//make log file
-    	
-    	String str = INPUT.getAbsolutePath();
-    	int pos = str.lastIndexOf('.');
-    	String log = LOG_FILE == null ? FASTQ.getAbsolutePath() + ".qsamtofastq.log" : LOG_FILE ; 
-   	
-    	logger = QLoggerFactory.getLogger(GetBamRecords.class,  log, QLoggerFactory.DEFAULT_LEVEL.getName());    	
+       	logger = QLoggerFactory.getLogger(GetBamRecords.class,  LOG_FILE, QLoggerFactory.DEFAULT_LEVEL.getName());    	
 		logger.logInitialExecutionStats("CheckBam", CheckBam.class.getPackage().getImplementationVersion(), args);
 
     	
@@ -155,31 +161,38 @@ public class QSamToFastq extends CommandLineProgram {
         	throw new PicardException("input file is not sorted by " + SortOrder.queryname.name());
         }
         
-        final Map<String,SAMRecord> firstSeenMates = new HashMap<String,SAMRecord>();
+        //final Map<String,SAMRecord> firstSeenMates = new HashMap<String,SAMRecord>();
+        SAMRecord  firstRecord = null;
         final Map<SAMReadGroupRecord, List<FastqWriter>> writers = getWriters(reader.getFileHeader().getReadGroups());
 
         for (final SAMRecord currentRecord : reader) {
-            if (currentRecord.isSecondaryAlignment() && !INCLUDE_NON_PRIMARY_ALIGNMENTS)
+        	//debug 
+        	System.out.println("debug: " + currentRecord.getReadName());
+        	// Skip non-PF, secondary, supplementary reads as necessary
+            if ((currentRecord.isSecondaryAlignment() && !INCLUDE_NON_PRIMARY_ALIGNMENTS) ||            		
+            		(currentRecord.getReadFailsVendorQualityCheckFlag() && !INCLUDE_NON_PF_READS) ||
+            		(currentRecord.getSupplementaryAlignmentFlag() && !INCLUDE_SUPPLEMENTARY_READS) ) {
+            	nonPFCount.incrementAndGet();
                 continue;
-
-            // Skip non-PF reads as necessary
-            if (currentRecord.getReadFailsVendorQualityCheckFlag() && !INCLUDE_NON_PF_READS)
-                continue;
+            }
 
             final List<FastqWriter> fq = writers.get(currentRecord.getReadGroup());
 
-            if (currentRecord.getReadPairedFlag()) {
-                final String currentReadName = currentRecord.getReadName();
-                final SAMRecord firstRecord = firstSeenMates.remove(currentReadName);
-                if (firstRecord == null) {
-                	//add current read to map and continue to next read
-                    firstSeenMates.put(currentReadName, currentRecord);
-                    continue;
-                }  
-                
-                //process paired reads
-                assertPairedMates(firstRecord, currentRecord);
-
+            if (currentRecord.getReadPairedFlag()) {            	
+            	//record current read and continue to next read
+            	if( firstRecord == null ) {
+            		firstRecord = currentRecord;
+            		continue;
+            	}
+           	            	
+                //output pair after creating fake pair if first record missing pair
+            	if( !assertPairedMates(firstRecord, currentRecord)) {
+                	rescueLonelyRecord(  firstRecord,  writers); 
+                	firstRecord = currentRecord;
+                	continue;
+            	}
+                	
+                //process paired reads	 
                 if (fq.size() == 1) {
                     if (OUTPUT_PER_RG) {
                         try {
@@ -192,10 +205,8 @@ public class QSamToFastq extends CommandLineProgram {
                     }
                 }
 
-                final SAMRecord read1 =
-                    currentRecord.getFirstOfPairFlag() ? currentRecord : firstRecord;
-                final SAMRecord read2 =
-                    currentRecord.getFirstOfPairFlag() ? firstRecord : currentRecord;
+                final SAMRecord read1 = currentRecord.getFirstOfPairFlag() ? currentRecord : firstRecord;
+                final SAMRecord read2 = currentRecord.getFirstOfPairFlag() ? firstRecord : currentRecord;
                 
                 if(MARK_MATE) {
 	                writeRecord(read1, 1, fq.get(0), READ1_TRIM, READ1_MAX_BASES_TO_WRITE);
@@ -204,18 +215,14 @@ public class QSamToFastq extends CommandLineProgram {
 	                writeRecord(read1, null, fq.get(0), READ1_TRIM, READ1_MAX_BASES_TO_WRITE);
 	                writeRecord(read2, null, fq.get(1), READ2_TRIM, READ2_MAX_BASES_TO_WRITE);            	               	
                 }
-                 
+                
+                //empty records, ready for next pair.
+                firstRecord = null;
             } else {
                 writeRecord(currentRecord, null, fq.get(0), READ1_TRIM, READ1_MAX_BASES_TO_WRITE);
             }
 
-        }
-        
-      //XU: add rescue code to create empty sequence for missing mate reads
-        for(String readName :  firstSeenMates.keySet())     
-        	rescueLonelyRecord(  firstSeenMates.get(readName),  writers);
-        firstSeenMates.clear(); 
-        
+        }        
         // Close all the fastq writers being careful to close each one only once!
         final IdentityHashMap<FastqWriter,FastqWriter> seen = new IdentityHashMap<FastqWriter, FastqWriter>();
         for (final List<FastqWriter> listOfWriters : writers.values()) {
@@ -226,10 +233,21 @@ public class QSamToFastq extends CommandLineProgram {
                 }
             }
         }
-
-        if (firstSeenMates.size() > 0) {
-            throw new PicardException("Found " + firstSeenMates.size() + " unpaired mates");
-        }
+    
+        if (fakeMateCount.get() > 0) {
+        	String str = fakeMateCount.get() + " fake mate read created. eg. " + readName_mCount.get(0) + "";
+	        for( int i = 1; i < readName_mCount.size(); i ++ )  str += ", " + readName_mCount.get(i) ;
+	        logger.info(str + ".");		        
+	    }
+        
+        
+        if (baseNCount.get() > 0) {
+        	String str = baseNCount.get() + " reads missing base sequence, now N is added to fastq sequence with lowest base qulity value '!' . eg " + readName_nCount.get(0) + "";
+	        for( int i = 1; i < readName_nCount.size(); i ++ )  str += ", " + readName_nCount.get(i) ;
+	        logger.info(str + ".");		        
+	    }     
+        
+        if (nonPFCount.get() > 0) logger.info(nonPFCount.get() + " reads are discarded due to marked as non-primary, secondary or supplementary.");
         
         logger.logFinalExecutionStats(0);
 
@@ -263,7 +281,11 @@ public class QSamToFastq extends CommandLineProgram {
 	        writeRecord(read2, null, fq.get(1), READ2_TRIM, READ2_MAX_BASES_TO_WRITE);             	
         }
         
-        logger.info("create fake mate for  " + read.getReadName());
+         //count reads missing pair
+        fakeMateCount.incrementAndGet();
+        if( readName_mCount.size() < MAX_RECORD_COUNT) {
+        	readName_mCount.add(read.getReadName());
+        }      
     }
 
     /**
@@ -325,9 +347,7 @@ public class QSamToFastq extends CommandLineProgram {
         if(preExtSuffix != null) fileName += preExtSuffix;
         fileName += ".fastq";
 
-        final File result = (OUTPUT_DIR != null)
-                          ? new File(OUTPUT_DIR, fileName)
-                          : new File(fileName);
+        final File result = (OUTPUT_DIR != null)  ? new File(OUTPUT_DIR, fileName) : new File(fileName);
         IOUtil.assertFileIsWritable(result);
         return result;
     }
@@ -337,28 +357,19 @@ public class QSamToFastq extends CommandLineProgram {
         final String seqHeader = mateNumber==null ? read.getReadName() : read.getReadName() + "/"+ mateNumber;
               
         //convert base * to N and set lowest base quality score
-      String readString = read.getReadString();
-      String baseQualities = read.getBaseQualityString();
+        String readString = read.getReadString();
+        String baseQualities = read.getBaseQualityString();
 
         if(readString.equals(SAMRecord.NULL_SEQUENCE_STRING) ) {
         	readString = "N";
         	baseQualities = "!";
+        	
+            //count reads missing pair
+        	baseNCount.incrementAndGet();
+            if( readName_nCount.size() < MAX_RECORD_COUNT) {
+            	readName_nCount.add(read.getReadName());
+            }        	
         }
-        
-//        byte[] seqBase = read.getReadBases();
-//        byte[] qulBase = read.getBaseQualities();      
-//        if(NON_ATGC_2N)      {  
-//	        for(int i = 0; i < seqBase.length; i ++) {
-//	        	char b = Character.toUpperCase((char) seqBase[i]);       	
-//	        	if( ! BaseUtils.isACGTN( b)) {
-//	        		//convert non ATGC base to N and set lowest base quality
-//	        		seqBase[i] = (byte) 'N'; 
-//	        		//Q0 = -10log10(1), means 100% error rate or 0% call accuracy. The Ascii code is 33, symbol is '!';
-//	        		//qulBase[i] = (byte) '!';        		
-//	        	}
-//	        }
-//        }           
-//        
 
         // If we're clipping, do the right thing to the bases or qualities
         if (CLIPPING_ATTRIBUTE != null) {
@@ -425,13 +436,25 @@ public class QSamToFastq extends CommandLineProgram {
         return result;
     }
 
-    protected void assertPairedMates(final SAMRecord record1, final SAMRecord record2) {
-        if (! (record1.getFirstOfPairFlag() && record2.getSecondOfPairFlag() ||
-               record2.getFirstOfPairFlag() && record1.getSecondOfPairFlag() ) ) {
-            throw new PicardException("Illegal mate state: " + record1.getReadName());
-        }
-    }
+//    protected void assertPairedMates(final SAMRecord record1, final SAMRecord record2) {
+//        if (! (record1.getFirstOfPairFlag() && record2.getSecondOfPairFlag() ||
+//               record2.getFirstOfPairFlag() && record1.getSecondOfPairFlag() ) ) {
+//            throw new PicardException("Illegal mate state: " + record1.getReadName());
+//        }
+//    }
 
+    
+	  protected boolean assertPairedMates(final SAMRecord record1, final SAMRecord record2) {
+		  if (! (record1.getFirstOfPairFlag() && record2.getSecondOfPairFlag() ||
+		         record2.getFirstOfPairFlag() && record1.getSecondOfPairFlag() ) ||
+				 ! record1.getReadName().equals(record2.getReadName())  ) {
+		      return false; 
+		  }
+		  
+		  return true; 
+	  }
+    
+    
 
     /**
     * Put any custom command-line validation in an override of this method.
