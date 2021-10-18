@@ -121,14 +121,34 @@ public class QSamToFastqTest {
 	}
 	
 	@Test 
-	public void emptyReadTest() throws IOException {
+	public void baseN_mateFlag_Test() throws IOException {
 		
 		//		//first in pair missing sequence 
 		//data.add("ST-E00119:628:HFMTKALXX:7:1212:8572:14019	77	*	0	0	*	*	0	0	*	*	ZC:i:3	PG:Z:MarkDuplicates	RG:Z:dc8f5b43-b193-408d-946e-b2315ea1485a");		
 
+		try {
+		 
+			//set N to base if *
+			String[] args = getArgs( "queryname" , true, false, false, false, true, true, false) ;			
+			new QSamToFastq().instanceMain(args);			
+			FastqRecord re = getFastqByOrder(args[1].substring(6), 2);
+			assertEquals( re.getReadString(), "N");
+			assertEquals( re.getBaseQualityString(), "!");
+			assertEquals( re.getReadName(), "ST-E00119:628:HFMTKALXX:7:1212:8572:14019/1");
+			
+			//keep same if *
+			args = getArgs( "queryname" , false, false, false, false, false, false, false);			
+			new QSamToFastq().instanceMain(args);
 		
-		
-		
+			re = getFastqByOrder(args[1].substring(6), 2);			
+			
+			assertEquals( re.getReadString(), "*");
+			assertEquals( re.getBaseQualityString(), "*");
+			assertEquals( re.getReadName(), "ST-E00119:628:HFMTKALXX:7:1212:8572:14019");
+			 
+		} catch (Exception e) {
+			fail("no exception should have been thrown from executeWithExcludeArgs()");
+		}							
 	}
 	
 	@Test

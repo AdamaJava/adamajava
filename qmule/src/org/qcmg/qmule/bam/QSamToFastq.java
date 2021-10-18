@@ -185,10 +185,7 @@ public class QSamToFastq extends CommandLineProgram {
             final List<FastqWriter> fq = writers.get(currentRecord.getReadGroup());
 
             if (currentRecord.getReadPairedFlag()) {     
-            	
-             	//debug
-            	System.out.println("paired reads: " + currentRecord.getReadName());
-               	
+            	              	
             	//record current read and continue to next read
             	if( firstRecord == null ) {
             		firstRecord = currentRecord;
@@ -387,7 +384,7 @@ public class QSamToFastq extends CommandLineProgram {
         String readString = read.getReadString();
         String baseQualities = read.getBaseQualityString();
 
-        if(readString.equals(SAMRecord.NULL_SEQUENCE_STRING) ) {
+        if(readString.equals(SAMRecord.NULL_SEQUENCE_STRING) && MISS_BASE_2N) {
         	readString = "N";
         	baseQualities = "!";
         	
