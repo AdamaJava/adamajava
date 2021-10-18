@@ -207,7 +207,7 @@ public class QSamToFastqTest {
 		String snon_primary =  non_primary? "INCLUDE_NON_PF_READS=true" : "INCLUDE_NON_PF_READS=false";							
 		String  ssupply = supply? "INCLUDE_SUPPLEMENTARY_READS=true" : "INCLUDE_SUPPLEMENTARY_READS=false";											
 		String   smate = mate? "MARK_MATE=true" : "MARK_MATE=false";								
-		String  sbase2n = base2n? "MISS_BASE_2N=true" : "MISS_BASE_2N=false";
+		String  sbase2n = base2n? "BASE_NULL_TO_N=true" : "BASE_NULL_TO_N=false";
 		String  srescue = rescue? "MISS_MATE_RESCUE=true" : "MISS_MATE_RESCUE=false" ;
 		/*
 		[I=/var/folders/df/jjbl15r1537868_k4cvl3wxjnt65fc/T/junit7340874920304215746/junit5471405651991744034.tmp,

@@ -20,7 +20,7 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.fastq.QFastqWriter;
-import org.qcmg.qmule.GetBamRecords;
+//import org.qcmg.qmule.GetBamRecords;
 
 import picard.PicardException;
 import picard.cmdline.CommandLineProgram;
@@ -120,7 +120,7 @@ public class QSamToFastq extends CommandLineProgram {
     public boolean MARK_MATE = false;
 
     @Argument(doc="If true, set 'N' to fastq record base if SAM record missing base sequence; and then set '!' to base quality. If false, read base will be same with BAM record base.")
-    public boolean MISS_BASE_2N = true;
+    public boolean BASE_NULL_TO_N = true;
     
     @Argument(doc="If true, create a new fastq record which base sequence is 'N' if SAM record missing mate; and then set '!' to the mate record base quality. If false, output the fastq record without mate record.")
     public boolean MISS_MATE_RESCUE = true;
@@ -154,8 +154,8 @@ public class QSamToFastq extends CommandLineProgram {
     @Override
 	protected int doWork() {
       	//make log file
-       	logger = QLoggerFactory.getLogger(GetBamRecords.class,  LOG_FILE, QLoggerFactory.DEFAULT_LEVEL.getName());    	
-		logger.logInitialExecutionStats("CheckBam", CheckBam.class.getPackage().getImplementationVersion(), args);
+       	logger = QLoggerFactory.getLogger(QSamToFastq.class,  LOG_FILE, QLoggerFactory.DEFAULT_LEVEL.getName());    	
+		logger.logInitialExecutionStats("QSamToFastq", QSamToFastq.class.getPackage().getImplementationVersion(), args);
 
     	
         IOUtil.assertFileIsReadable(INPUT);
@@ -384,7 +384,7 @@ public class QSamToFastq extends CommandLineProgram {
         String readString = read.getReadString();
         String baseQualities = read.getBaseQualityString();
 
-        if(readString.equals(SAMRecord.NULL_SEQUENCE_STRING) && MISS_BASE_2N) {
+        if(readString.equals(SAMRecord.NULL_SEQUENCE_STRING) && BASE_NULL_TO_N) {
         	readString = "N";
         	baseQualities = "!";
         	
