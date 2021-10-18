@@ -459,27 +459,17 @@ public class QSamToFastq extends CommandLineProgram {
         }
         return result;
     }
-
-//    protected void assertPairedMates(final SAMRecord record1, final SAMRecord record2) {
-//        if (! (record1.getFirstOfPairFlag() && record2.getSecondOfPairFlag() ||
-//               record2.getFirstOfPairFlag() && record1.getSecondOfPairFlag() ) ) {
-//            throw new PicardException("Illegal mate state: " + record1.getReadName());
-//        }
-//    }
-
     
 	  protected boolean assertPairedMates(final SAMRecord record1, final SAMRecord record2) {
 		  if (! (record1.getFirstOfPairFlag() && record2.getSecondOfPairFlag() ||
 		         record2.getFirstOfPairFlag() && record1.getSecondOfPairFlag() ) ||
 				 ! record1.getReadName().equals(record2.getReadName())  ) {
 		      return false; 
-		  }
-		  
+		  }		  
 		  return true; 
 	  }
     
     
-
     /**
     * Put any custom command-line validation in an override of this method.
     * clp is initialized at this point and can be used to print usage and access argv.
@@ -512,7 +502,6 @@ public class QSamToFastq extends CommandLineProgram {
                     "If OUTPUT_PER_RG is true, then OUTPUT_DIR should be set. " +
                     "If " };
         }
-
 
         return null;
     }
