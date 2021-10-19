@@ -107,7 +107,6 @@ public class QSamToFastq extends CommandLineProgram {
              "If there are fewer than this many bases left after trimming, all will be written.  If this " +
             "value is null then all bases left after trimming will be written.", optional=true)
     public Integer READ2_MAX_BASES_TO_WRITE;
-
     
     //new argument 
     @Argument(doc="If true, read id will be appended with /1 for first of pair and /2 for second of pair. If false, read id will be as same as BAM record id.")
