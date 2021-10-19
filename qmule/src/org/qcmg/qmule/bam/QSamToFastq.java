@@ -72,13 +72,13 @@ public class QSamToFastq extends CommandLineProgram {
     @Argument(shortName="RC", doc="Re-reverse bases and qualities of reads with negative strand flag set before writing them to fastq", optional=true)
     public boolean RE_REVERSE = true;
 
-    @Argument(shortName="NON_PF", doc="If true, include non-PF reads that don't pass quality controls in the output. otherwise this read will be discard.")
+    @Argument(shortName="NON_PF", doc="If true, include non-PF reads that don't pass quality controls in the output. otherwise this read will be discarded.")
     public boolean INCLUDE_NON_PF_READS = false;
     
-    @Argument(doc="If true, include non-primary alignments in the output. otherwise this read will be discard.")
+    @Argument(doc="If true, include non-primary alignments in the output. otherwise this read will be discarded.")
     public boolean INCLUDE_NON_PRIMARY_ALIGNMENTS = false;
     	    
-    @Argument(doc="If true, include supplementary alignments in the output.  otherwise this read will be discard.")   
+    @Argument(doc="If true, include supplementary alignments in the output.  otherwise this read will be discarded.")   
     public boolean INCLUDE_SUPPLEMENTARY_READS = false;
 
     @Argument(shortName="CLIP_ATTR", doc="The attribute that stores the position at which " +
@@ -110,13 +110,13 @@ public class QSamToFastq extends CommandLineProgram {
 
     
     //new argument 
-    @Argument(doc="If true, read id will be appended /1 for first of pair and /2 for second of pair. If false, read id will be as same as BAM record id.")
+    @Argument(doc="If true, read id will be appended with /1 for first of pair and /2 for second of pair. If false, read id will be as same as BAM record id.")
     public boolean MARK_MATE = false;
 
     @Argument(doc="If true, set 'N' to fastq record base if SAM record missing base sequence; and then set '!' to base quality. If false, read base will be same as BAM record base, often is '*'.")
     public boolean BASE_NULL_TO_N = true;
     
-    @Argument(doc="If true, output a pair of fastq record, set base sequence 'N' and base quality '!' to the missing mate record . If false, output one fastq record only if the input SAM record missing mate.")
+    @Argument(doc="If true, output a pair of fastq records, set base sequence 'N' and base quality '!' to the missing mate record . If false, output one fastq record (only if the input SAM record missing mate).")
     public boolean MISS_MATE_RESCUE = true;
     
     
