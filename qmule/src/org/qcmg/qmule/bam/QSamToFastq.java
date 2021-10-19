@@ -72,13 +72,13 @@ public class QSamToFastq extends CommandLineProgram {
     @Argument(shortName="RC", doc="Re-reverse bases and qualities of reads with negative strand flag set before writing them to fastq", optional=true)
     public boolean RE_REVERSE = true;
 
-    @Argument(shortName="NON_PF", doc="If true, include non-PF reads that don't pass quality controls in the output. otherwise this read will be discarded.")
+    @Argument(shortName="NON_PF", doc="If true, include non-PF reads that don't pass quality controls in the output, otherwise this read will be discarded.")
     public boolean INCLUDE_NON_PF_READS = false;
     
-    @Argument(doc="If true, include non-primary alignments in the output. otherwise this read will be discarded.")
+    @Argument(doc="If true, include non-primary alignments in the output, otherwise this read will be discarded.")
     public boolean INCLUDE_NON_PRIMARY_ALIGNMENTS = false;
     	    
-    @Argument(doc="If true, include supplementary alignments in the output.  otherwise this read will be discarded.")   
+    @Argument(doc="If true, include supplementary alignments in the output, otherwise this read will be discarded.")   
     public boolean INCLUDE_SUPPLEMENTARY_READS = false;
 
     @Argument(shortName="CLIP_ATTR", doc="The attribute that stores the position at which " +
