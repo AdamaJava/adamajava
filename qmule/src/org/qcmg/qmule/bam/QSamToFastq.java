@@ -20,7 +20,6 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.fastq.QFastqWriter;
-//import org.qcmg.qmule.GetBamRecords;
 
 import picard.PicardException;
 import picard.cmdline.CommandLineProgram;
@@ -73,22 +72,18 @@ public class QSamToFastq extends CommandLineProgram {
     @Argument(shortName="RC", doc="Re-reverse bases and qualities of reads with negative strand flag set before writing them to fastq", optional=true)
     public boolean RE_REVERSE = true;
 
-    @Argument(shortName="NON_PF", doc="Include non-PF (not pass quality controls) reads from the SAM file into the output FASTQ files.")
+    @Argument(shortName="NON_PF", doc="If true, include non-PF reads that don't pass quality controls in the output. otherwise this read will be discard.")
     public boolean INCLUDE_NON_PF_READS = false;
-    @Argument(doc="If true, include non-primary alignments in the output.  Support of non-primary alignments in SamToFastq " +
-    	     "is not comprehensive, so there may be exceptions if this is set to true and there are paired reads with non-primary alignments.")
+    
+    @Argument(doc="If true, include non-primary alignments in the output. otherwise this read will be discard.")
     public boolean INCLUDE_NON_PRIMARY_ALIGNMENTS = false;
     	    
-    @Argument(doc="If true, include supplementary alignments in the output.  Support of supplementary alignments in SamToFastq " +
-    	     "is not comprehensive, so there may be exceptions if this is set to true and there are paired reads with non-primary alignments.")    
+    @Argument(doc="If true, include supplementary alignments in the output.  otherwise this read will be discard.")   
     public boolean INCLUDE_SUPPLEMENTARY_READS = false;
-
-    
 
     @Argument(shortName="CLIP_ATTR", doc="The attribute that stores the position at which " +
             "the SAM record should be clipped", optional=true)
     public String CLIPPING_ATTRIBUTE;
-
  
     @Argument(shortName="CLIP_ACT", doc="The action that should be taken with clipped reads: " +
             "'X' means the reads and qualities should be trimmed at the clipped position; " +
@@ -105,7 +100,6 @@ public class QSamToFastq extends CommandLineProgram {
             "value is null then all bases left after trimming will be written.", optional=true)
     public Integer READ1_MAX_BASES_TO_WRITE;
 
-     
     @Argument(shortName="R2_TRIM", doc="The number of bases to trim from the beginning of read 2.")
     public int READ2_TRIM = 0;
 
@@ -116,13 +110,13 @@ public class QSamToFastq extends CommandLineProgram {
 
     
     //new argument 
-    @Argument(doc="If true, read id will be appended /1 for first of pair and /2 for second of pair. If false, read id will be keep same with BAM record id.")
+    @Argument(doc="If true, read id will be appended /1 for first of pair and /2 for second of pair. If false, read id will be as same as BAM record id.")
     public boolean MARK_MATE = false;
 
-    @Argument(doc="If true, set 'N' to fastq record base if SAM record missing base sequence; and then set '!' to base quality. If false, read base will be same with BAM record base.")
+    @Argument(doc="If true, set 'N' to fastq record base if SAM record missing base sequence; and then set '!' to base quality. If false, read base will be same as BAM record base, often is '*'.")
     public boolean BASE_NULL_TO_N = true;
     
-    @Argument(doc="If true, create a new fastq record which base sequence is 'N' if SAM record missing mate; and then set '!' to the mate record base quality. If false, output the fastq record without mate record.")
+    @Argument(doc="If true, output a pair of fastq record, set base sequence 'N' and base quality '!' to the missing mate record . If false, output one fastq record only if the input SAM record missing mate.")
     public boolean MISS_MATE_RESCUE = true;
     
     
@@ -276,7 +270,7 @@ public class QSamToFastq extends CommandLineProgram {
    * @param writers: a hash map of all writers
    */
     
-    protected void rescueLonelyRecord(final SAMRecord read, Map<SAMReadGroupRecord, List<FastqWriter>> writers) {
+    protected void rescueLonelyRecord( final SAMRecord read, Map<SAMReadGroupRecord, List<FastqWriter>> writers ) {
     	
     	SAMRecord emptyRead = null; 
     	
