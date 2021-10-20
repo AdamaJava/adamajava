@@ -12,45 +12,46 @@ from the table below.
 
 ## Installation
 
-qmule requires java 7 and has different compute and memory requirements deepening on the mode.
+qmule requires java 8 and has different compute and memory requirements deepening on the mode.
 
-To install qmule:
+* To do a build of qmule, first clone the adamajava repository.
+  ~~~~{.text}
+  git clone https://github.com/AdamaJava/adamajava
+  ~~~~
 
-* Download the [qmule tar file](http://sourceforge.net/projects/adamajava/files/qmule.tar.bz2/download)
-* Untar the tar file into a directory of your choice
+*  Then move into the adamajava folder:
+  ~~~~{.text}
+  cd adamajava
+  ~~~~
 
-You should see jar files for qmule and its dependencies:
-
-~~~~{.text}
-$ tar xjvf qmule.tar.bz2
-jopt-simple-3.2.jar
-picard-1.110.jar
-qcommon-0.1pre.jar
-qio-0.1pre.jar
-qmule-0.1pre.jar
-qpicard-0.1pre.jar
-sam-1.110.jar
-~~~~
-
+*  Run gradle to build qsv and its dependent jar files:
+  ~~~~{.text}
+  ./gradlew :qmule:build
+  ~~~~
+  This creates the qpileup jar file along with dependent jars in the `qmule/build/flat` folder
 
 ## Usage
 
 ~~~~{.text}
-qmule class [options]
+java -cp qmule.jar <mode class> [options]
 ~~~~
 
 `qmule` modes are invoked by directly naming the class that is to be
 executed as can be seen in the example below:
 
 ~~~~{.text}
-qmule org.qcmg.qmule.AlignerCompare -i file1.bam -i file2.bam -o output.txt
+java -cp qmule.jar org.qcmg.qmule.AlignerCompare -i file1.bam -i file2.bam -o output.txt
 ~~~~
 
 ## Modes
 
 Mode             | Description
 ---------------- | ---------------------------
-[AlignerCompare](qmule_aligner_compare_mode) | Compare 2 BAMs aligned from the same FASTQ and separate out reads that are different between the BAMs
-[BamMismatchCounts](qmule_bam_mismatch_counts_mode) | For reads that mapped full-length, provide a tally of how many mismatches were in each read
-[SubSample](qmule_subsample_mode) | Create a new BAM file with a subsample of reads from an existing BAM file 
-[MafFilter](qmule_maf_filter_mode) | Search for QCMG-annotated MAF files within a specified directory and apply QCMG-specific filters to produce 2 MAF files - high and low confidence
+[AlignerCompare](qmule_aligner_compare_mode.md) | Compare 2 BAMs aligned from the same FASTQ and separate out reads that are different between the BAMs
+[BamMismatchCounts](qmule_bam_mismatch_counts_mode.md) | For reads that mapped full-length, provide a tally of how many mismatches were in each read
+[SubSample](qmule_subsample_mode.md) | Create a new BAM file with a subsample of reads from an existing BAM file 
+[MafFilter](qmule_maf_filter_mode.md) | Search for QCMG-annotated MAF files within a specified directory and apply QCMG-specific filters to produce 2 MAF files - high and low confidence
+[QSamToFASTQ](qmule_sam2fastq_mode.md) | Convert BAM/SAM file to FASTQ file
+
+
+
