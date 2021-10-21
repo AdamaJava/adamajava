@@ -28,7 +28,7 @@ qmule requires java 8 and has different compute and memory requirements deepenin
   ~~~~{.text}
   ./gradlew :qmule:build
   ~~~~
-  This creates the qpileup jar file along with dependent jars in the `qmule/build/flat` folder
+  This creates the qmule jar file along with dependent jars in the `qmule/build/flat` folder
 
 ## Usage
 

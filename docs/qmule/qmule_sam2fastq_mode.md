@@ -3,7 +3,7 @@
 ## Usage
 
 ~~~~{.text}
-java -cp $qmule org.qcmg.qmule.bam.QSamToFastq I=<input.bam> FASTQ=<r1.fastq> SECOND_END_FASTQ=<r2.fastq> [options]
+java -cp qmule.jar org.qcmg.qmule.bam.QSamToFastq I=<input.bam> FASTQ=<r1.fastq> SECOND_END_FASTQ=<r2.fastq> [options]
 ~~~~
 
 ## Options
