@@ -11,7 +11,8 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
-
+import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -25,6 +26,21 @@ public class QSamToFastqTest {
 	
 	@ClassRule
 	public static TemporaryFolder testFolder = new TemporaryFolder();
+	
+	@AfterClass
+	public static final void after() {
+		
+		String log = new QSamToFastq().LOG_FILE;
+		 
+		
+		File folder = new File(".");
+		for (File file : folder.listFiles()) {
+		   if (file.getName().startsWith(log)) {
+			   file.delete();
+		   }
+		  }
+		
+	}
 	
 	
 	@Test
