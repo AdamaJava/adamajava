@@ -29,16 +29,14 @@ public class QSamToFastqTest {
 	
 	@AfterClass
 	public static final void after() {
-		
-		String log = new QSamToFastq().LOG_FILE;
-		 
-		
+		//delete default log file
+		String log = new QSamToFastq().LOG_FILE;		
 		File folder = new File(".");
 		for (File file : folder.listFiles()) {
 		   if (file.getName().startsWith(log)) {
 			   file.delete();
 		   }
-		  }
+		}
 		
 	}
 	
