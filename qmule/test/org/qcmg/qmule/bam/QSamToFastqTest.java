@@ -11,12 +11,12 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
-
+import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import htsjdk.samtools.SAMFileHeader.SortOrder;
 import htsjdk.samtools.fastq.FastqReader;
 import htsjdk.samtools.fastq.FastqRecord;
 import htsjdk.samtools.util.SequenceUtil;
@@ -27,6 +27,19 @@ public class QSamToFastqTest {
 	@ClassRule
 	public static TemporaryFolder testFolder = new TemporaryFolder();
 	
+	@AfterClass
+	public static final void after() {
+		//delete default log file
+		String log = new QSamToFastq().LOG_FILE;		
+		File folder = new File(".");
+		for (File file : folder.listFiles()) {
+		   if (file.getName().startsWith(log)) {
+			   file.delete();
+		   }
+		}
+		
+	}
+	
 	
 	@Test
 	public void testDefault() throws Exception {
@@ -36,18 +49,12 @@ public class QSamToFastqTest {
 		createTestSamFile(fsam, "queryname");
 		
 		String[] args = new String[]{ "I="+fsam.getAbsolutePath(), "FASTQ="+fr1.getAbsolutePath(), "SECOND_END_FASTQ="+fr2.getAbsolutePath(), "RC=true" };
-		try {
-			int exitStatus = new QSamToFastq().instanceMain(args);
-			
-			assertEquals(0, exitStatus);
-			//check output
-			assertEquals( countFastq(fr1.getAbsolutePath()), 3 ) ;
-			assertEquals( countFastq(fr2.getAbsolutePath()), 3 ) ;
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			fail("no exception should have been thrown from executeWithExcludeArgs()");
-		}		
+		int exitStatus = new QSamToFastq().instanceMain(args);
+		
+		assertEquals(0, exitStatus);
+		//check output
+		assertEquals( countFastq(fr1.getAbsolutePath()), 3 ) ;
+		assertEquals( countFastq(fr2.getAbsolutePath()), 3 ) ;	
 
 	}
 	
@@ -59,12 +66,8 @@ public class QSamToFastqTest {
 		createTestSamFile(fsam, "coordinate");
 		
 		String[] args = new String[]{ "I="+fsam.getAbsolutePath(), "FASTQ="+fr1.getAbsolutePath(), "SECOND_END_FASTQ="+fr2.getAbsolutePath(), "RC=true" };
-		try {
-			new QSamToFastq().instanceMain(args);
-			fail("no exception should reach here!");
-		} catch (Exception e) {
-			assertEquals(e.getMessage(), "input file is not sorted by " + SortOrder.queryname.name());			
-		}		
+		int exitStatus = new QSamToFastq().instanceMain(args);
+		assertEquals(1, exitStatus);
 	}
 	
 	@Test
@@ -75,16 +78,12 @@ public class QSamToFastqTest {
 		String fr1 = args[1].substring(6);
 		String fr2 = args[2].substring(17);
 		
-		try {
-			//System.out.println(Arrays.toString(args));
-			new QSamToFastq().instanceMain(args);	
-						
-			//check output
-			assertEquals( countFastq(fr1), 2 ) ;
-			assertEquals( countFastq(fr2), 2 ) ;				
-		} catch (Exception e) {
-			fail("no exception should have been thrown from executeWithExcludeArgs()");
-		}	
+		new QSamToFastq().instanceMain(args);	
+					
+		//check output
+		assertEquals( countFastq(fr1), 2 ) ;
+		assertEquals( countFastq(fr2), 2 ) ;				
+
 	}
 	
 	@Test
@@ -94,25 +93,20 @@ public class QSamToFastqTest {
 		String bases = "TCTATCAAAAGAAAGTTTCAAGTCTGTGAGTTGAATTGCACACATC";
 		String qualities = "JJ<JFJ<JJJJJJJJFJ-7<FJFJJFJJJJFJJAAJJJJJJJJJJJ";		
 	
-		try {
-			//reverse negative reads, discard bad reads, rescue reads missing mate
-			String[] args = getArgs( "queryname" , true, false, false, false, true, true, false) ;			
-			new QSamToFastq().instanceMain(args);			
-			FastqRecord re = getFastqByOrder(args[2].substring(17), 2);
-			assertEquals( re.getReadString(), SequenceUtil.reverseComplement(bases));
-			assertEquals( re.getBaseQualityString(), StringUtil.reverseString(qualities));
-			
-			//not  reverse negative reads,  but discard bad reads, rescue reads missing mate
-			args = getArgs( "queryname" , false, false, false, false, true, true, false);			
-			new QSamToFastq().instanceMain(args);
+		//reverse negative reads, discard bad reads, rescue reads missing mate
+		String[] args = getArgs( "queryname" , true, false, false, false, true, true, false) ;			
+		new QSamToFastq().instanceMain(args);			
+		FastqRecord re = getFastqByOrder(args[2].substring(17), 2);
+		assertEquals( re.getReadString(), SequenceUtil.reverseComplement(bases));
+		assertEquals( re.getBaseQualityString(), StringUtil.reverseString(qualities));
 		
-			re = getFastqByOrder(args[2].substring(17), 2);
-			assertEquals( re.getReadString(), bases);
-			assertEquals( re.getBaseQualityString(), qualities);	
-			 
-		} catch (Exception e) {
-			fail("no exception should have been thrown from executeWithExcludeArgs()");
-		}			
+		//not  reverse negative reads,  but discard bad reads, rescue reads missing mate
+		args = getArgs( "queryname" , false, false, false, false, true, true, false);			
+		new QSamToFastq().instanceMain(args);
+	
+		re = getFastqByOrder(args[2].substring(17), 2);
+		assertEquals( re.getReadString(), bases);
+		assertEquals( re.getBaseQualityString(), qualities);				
 	}
 	
 	@Test 
@@ -120,45 +114,35 @@ public class QSamToFastqTest {
 		
 		//data.add("ST-E00119:628:HFMTKALXX:7:1212:8572:14019	77	*	0	0	*	*	0	0	*	*	ZC:i:3	PG:Z:MarkDuplicates	RG:Z:dc8f5b43-b193-408d-946e-b2315ea1485a");		
 
-		try {
-		 
-			//set N to base if *
-			String[] args = getArgs( "queryname" , true, false, false, false, true, true, false) ;			
-			new QSamToFastq().instanceMain(args);			
-			FastqRecord re = getFastqByOrder(args[1].substring(6), 2);
-			assertEquals( re.getReadString(), "N");
-			assertEquals( re.getBaseQualityString(), "!");
-			assertEquals( re.getReadName(), "ST-E00119:628:HFMTKALXX:7:1212:8572:14019/1");
-			
-			//keep same if *
-			args = getArgs( "queryname" , false, false, false, false, false, false, false);			
-			new QSamToFastq().instanceMain(args);
+		//set N to base if *
+		String[] args = getArgs( "queryname" , true, false, false, false, true, true, false) ;			
+		new QSamToFastq().instanceMain(args);			
+		FastqRecord re = getFastqByOrder(args[1].substring(6), 2);
+		assertEquals( re.getReadString(), "N");
+		assertEquals( re.getBaseQualityString(), "!");
+		assertEquals( re.getReadName(), "ST-E00119:628:HFMTKALXX:7:1212:8572:14019/1");
 		
-			re = getFastqByOrder(args[1].substring(6), 2);			
+		//keep same if *
+		args = getArgs( "queryname" , false, false, false, false, false, false, false);			
+		new QSamToFastq().instanceMain(args);
+	
+		re = getFastqByOrder(args[1].substring(6), 2);			
+		
+		assertEquals( re.getReadString(), "*");
+		assertEquals( re.getBaseQualityString(), "*");
+		assertEquals( re.getReadName(), "ST-E00119:628:HFMTKALXX:7:1212:8572:14019");
 			
-			assertEquals( re.getReadString(), "*");
-			assertEquals( re.getBaseQualityString(), "*");
-			assertEquals( re.getReadName(), "ST-E00119:628:HFMTKALXX:7:1212:8572:14019");
-			 
-		} catch (Exception e) {
-			fail("no exception should have been thrown from executeWithExcludeArgs()");
-		}							
 	}
 	
 	@Test
 	public void badReadTest() throws IOException {
 		String[] args = getArgs( "queryname" , true, true,true,true, true, true, true) ;
 		 		
-		try {
-			new QSamToFastq().instanceMain(args);	
-					
-			//check output
-			assertEquals( countFastq(args[1].substring(6)), 5 ) ;
-			assertEquals( countFastq(args[2].substring(17)), 5 ) ;			
-		} catch (Exception e) {
-			e.printStackTrace();
-			fail("no exception should have been thrown from executeWithExcludeArgs()");
-		}	
+		new QSamToFastq().instanceMain(args);	
+				
+		//check output
+		assertEquals( countFastq(args[1].substring(6)), 5 ) ;
+		assertEquals( countFastq(args[2].substring(17)), 5 ) ;
 
 	}
 		
