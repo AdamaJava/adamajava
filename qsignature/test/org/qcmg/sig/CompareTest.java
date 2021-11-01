@@ -49,6 +49,27 @@ public class CompareTest {
 	}
 	
 	@Test
+	public void nonEmptyAndEmptyInputFiles() throws Exception {
+		File logF = testFolder.newFile();
+		File f1 = testFolder.newFile("blah.qsig.vcf");
+		File f2 = testFolder.newFile("blah2.qsig.vcf");
+		File f3 = testFolder.newFile("blah3.qsig.vcf");
+		File o = testFolder.newFile();
+		
+		writeVcfFile(f1);
+		writeVcfFileHeader(f2);
+		writeVcfFile(f3);
+		
+		Executor exec = execute("--log " + logF.getAbsolutePath() + " -d " + f1.getParent() + " -o " + o.getAbsolutePath());
+		assertEquals(0, exec.getErrCode());		// all ok
+		assertEquals(true, o.exists());
+		List<String> allLines = Files.readAllLines(Paths.get(o.getAbsolutePath()));
+		assertEquals(13, allLines.size());		// 13 lines means 3 comparison
+		assertEquals(true, allLines.contains("<comparison file1=\"1\" file2=\"2\" overlap=\"0\" score=\"NaN\"/>"));		// file 2 is empty
+		assertEquals(true, allLines.contains("<comparison file1=\"2\" file2=\"3\" overlap=\"0\" score=\"NaN\"/>"));		// file 2 is empty
+	}
+	
+	@Test
 	public void diffMd5InputFiles() throws Exception {
 		File logF = testFolder.newFile();
 		File f1 = testFolder.newFile("blah.qsig.vcf");
@@ -216,6 +237,34 @@ public class CompareTest {
 		outputData = Files.readAllLines(Paths.get(o.getAbsolutePath()));
 		assertEquals(10, outputData.size());		// 10 lines means 1 comparison
 		assertEquals(true, outputData.contains("<comparison file1=\"1\" file2=\"2\" overlap=\"5\" score=\"1.0\"/>"));
+	}
+	
+	private void writeVcfFileHeader(File f) throws IOException {
+		writeVcfFileHeader(f, "##positions_md5sum=d18c99f481afbe04294d11deeb418890\n");
+	}
+	private void writeVcfFileHeader(File f, String md5) throws IOException {
+		try (FileWriter w = new FileWriter(f);){
+			w.write("##fileformat=VCFv4.2\n");
+			w.write("##datetime=2016-08-17T14:44:30.088\n");
+			w.write("##program=SignatureGeneratorBespoke\n");
+			w.write("##version=1.0 (1230)\n");
+			w.write("##java_version=1.8.0_71\n");
+			w.write("##run_by_os=Linux\n");
+			w.write("##run_by_user=oliverH\n");
+			w.write("##positions=/software/genomeinfo/configs/qsignature/qsignature_positions.txt\n");
+			w.write(md5);
+			w.write("##positions_count=1456203\n");
+			w.write("##filter_base_quality=10\n");
+			w.write("##filter_mapping_quality=10\n");
+			w.write("##illumina_array_design=/software/genomeinfo/configs/qsignature/Illumina_arrays_design.txt\n");
+			w.write("##cmd_line=SignatureGeneratorBespoke -i /software/genomeinfo/configs/qsignature/qsignature_positions.txt -illumina /software/genomeinfo/configs/qsignature/Illumina_arrays_design.txt -i /mnt/lustre/working/genomeinfo/share/mapping/aws/argsBams/dd625894-d1e3-4938-8d92-3a9f57c23e08.bam -d /mnt/lustre/home/oliverH/qsignature/bespoke/ -log /mnt/lustre/home/oliverH/qsignature/bespoke/siggen.log\n");
+			w.write("##INFO=<ID=QAF,Number=.,Type=String,Description=\"Lists the counts of As-Cs-Gs-Ts for each read group, along with the total\">\n");
+			w.write("##input=/mnt/lustre/working/genomeinfo/share/mapping/aws/argsBams/dd625894-d1e3-4938-8d92-3a9f57c23e08.bam\n");
+			w.write("##id:readgroup\n");
+			w.write("##rg1:143b8c38-62cb-414a-aac3-ea3a940cc6bb\n");
+			w.write("##rg2:65a79904-ee91-4f53-9a94-c02e23e071ef\n");
+			w.write("#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO\n");
+		}
 	}
 	
 	private void writeVcfFile(File f) throws IOException {
