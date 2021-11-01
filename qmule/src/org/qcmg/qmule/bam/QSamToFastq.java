@@ -131,12 +131,14 @@ public class QSamToFastq extends CommandLineProgram {
     //count reads with missing base sequence
     private AtomicLong baseNCount = new AtomicLong();
     private List<String> readName_nCount = new ArrayList<>();
-    private final int MAX_RECORD_COUNT = 10;
+    private final int MAX_RECORD_COUNT = 5;
     
     //count reads with missing base sequence
     private AtomicLong nonPFCount = new AtomicLong();
    
-    
+    private AtomicLong inputSamCount = new AtomicLong();
+    private AtomicLong outputFastqCount= new AtomicLong();
+   
     public static void main(final String[] argv) {
     	
      	args = argv;	//pass to log file
@@ -167,6 +169,7 @@ public class QSamToFastq extends CommandLineProgram {
         final Map<SAMReadGroupRecord, List<FastqWriter>> writers = getWriters(reader.getFileHeader().getReadGroups());
 
         for (final SAMRecord currentRecord : reader) {
+        	inputSamCount.incrementAndGet();
          	// Skip non-PF, secondary, supplementary reads as necessary
             if ((currentRecord.isSecondaryAlignment() && !INCLUDE_NON_PRIMARY_ALIGNMENTS) ||            		
             		(currentRecord.getReadFailsVendorQualityCheckFlag() && !INCLUDE_NON_PF_READS) ||
@@ -241,23 +244,29 @@ public class QSamToFastq extends CommandLineProgram {
                 }
             }
         }
-    
-        if (fakeMateCount.get() > 0) {
-        	String str = fakeMateCount.get() + " fake mate read created. eg. " + readName_mCount.get(0) + "";
+              
+        //output count
+        logger.info(inputSamCount.get() + " SAM records are processed!");
+        logger.info(outputFastqCount.get() + " fastq records are outputted!");
+        
+        logger.info("found " + fakeMateCount.get() + " paired reads missing mate!");       
+        if  (MISS_MATE_RESCUE ) {
+        	String str = "outputted " + fakeMateCount.get() + " paired reads missing mate, set base sequence 'N' and base quality '!' to the missing mate record. "        		 
+        			+ "eg. " + readName_mCount.get(0) + "";
 	        for( int i = 1; i < readName_mCount.size(); i ++ )  str += ", " + readName_mCount.get(i) ;
 	        logger.info(str + ".");		        
 	    }
         
-        
+        logger.info("found " + baseNCount.get() + " reads missing base sequence" );
         if (baseNCount.get() > 0) {
-        	String str = baseNCount.get() + " reads missing base sequence, now N is added to fastq sequence with lowest base qulity value '!' . eg " + readName_nCount.get(0) + "";
-	        for( int i = 1; i < readName_nCount.size(); i ++ )  str += ", " + readName_nCount.get(i) ;
+        	String str = "rescued " + baseNCount.get() + " reads missing base sequence, set base sequence 'N' and base quality '!' to the read. " 
+        			+ "eg. " + readName_nCount.get(0) + "";       	
+ 	        for( int i = 1; i < readName_nCount.size(); i ++ )  str += ", " + readName_nCount.get(i) ;
 	        logger.info(str + ".");		        
 	    }     
         
-        if (nonPFCount.get() > 0) logger.info(nonPFCount.get() + " reads are discarded due to marked as non-primary, secondary or supplementary.");
-        
-       
+        logger.info("discarded " + nonPFCount.get() + " reads marked as non-primary, secondary or supplementary.");
+             
 
         return 0;
     }
@@ -421,6 +430,7 @@ public class QSamToFastq extends CommandLineProgram {
         }       
 
         writer.write(new FastqRecord(seqHeader, readString, "", baseQualities));
+        outputFastqCount.incrementAndGet();
     }
 
     /**
