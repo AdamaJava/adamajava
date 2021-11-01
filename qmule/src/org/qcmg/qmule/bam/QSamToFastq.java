@@ -136,8 +136,8 @@ public class QSamToFastq extends CommandLineProgram {
     //count reads with missing base sequence
     private AtomicLong nonPFCount = new AtomicLong();
    
-    private AtomicLong input_samCount = new AtomicLong();
-    private AtomicLong output_fastqCount = new AtomicLong();
+    private AtomicLong inputSamCount = new AtomicLong();
+    private AtomicLong outputFastqCount= new AtomicLong();
    
     public static void main(final String[] argv) {
     	
@@ -169,7 +169,7 @@ public class QSamToFastq extends CommandLineProgram {
         final Map<SAMReadGroupRecord, List<FastqWriter>> writers = getWriters(reader.getFileHeader().getReadGroups());
 
         for (final SAMRecord currentRecord : reader) {
-        	input_samCount.incrementAndGet();
+        	inputSamCount.incrementAndGet();
          	// Skip non-PF, secondary, supplementary reads as necessary
             if ((currentRecord.isSecondaryAlignment() && !INCLUDE_NON_PRIMARY_ALIGNMENTS) ||            		
             		(currentRecord.getReadFailsVendorQualityCheckFlag() && !INCLUDE_NON_PF_READS) ||
@@ -246,8 +246,8 @@ public class QSamToFastq extends CommandLineProgram {
         }
               
         //output count
-        logger.info(input_samCount.get() + " SAM record are processed!");
-        logger.info(output_fastqCount.get() + " fastq record are outputted!");
+        logger.info(inputSamCount.get() + " SAM records are processed!");
+        logger.info(outputFastqCount.get() + " fastq records are outputted!");
         
         logger.info("found " + fakeMateCount.get() + " paired reads missing mate!");       
         if  (MISS_MATE_RESCUE ) {
@@ -259,7 +259,7 @@ public class QSamToFastq extends CommandLineProgram {
         
         logger.info("found " + baseNCount.get() + " reads missing base sequence" );
         if (baseNCount.get() > 0) {
-        	String str = "rescured " + baseNCount.get() + " reads missing base sequence, set base sequence 'N' and base quality '!' to the read. " 
+        	String str = "rescued " + baseNCount.get() + " reads missing base sequence, set base sequence 'N' and base quality '!' to the read. " 
         			+ "eg. " + readName_nCount.get(0) + "";       	
  	        for( int i = 1; i < readName_nCount.size(); i ++ )  str += ", " + readName_nCount.get(i) ;
 	        logger.info(str + ".");		        
@@ -430,7 +430,7 @@ public class QSamToFastq extends CommandLineProgram {
         }       
 
         writer.write(new FastqRecord(seqHeader, readString, "", baseQualities));
-        output_fastqCount.incrementAndGet();
+        outputFastqCount.incrementAndGet();
     }
 
     /**
