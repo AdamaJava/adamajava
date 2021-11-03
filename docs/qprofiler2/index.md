@@ -171,7 +171,31 @@ The <bamSummary> section contains three top level information: read group summar
     <variableGroup name=hardClippedBases>...</variableGroup>
     <variableGroup name=overlappedBases>...</variableGroup>
    </sequenceMetrics>
-   <sequenceMetrics name=reads readCount=3158317>...</sequenceMetrics>
+   <sequenceMetrics name=reads readCount=3158317>
+   <sequenceMetrics name="reads" readCount="3158317">
+    <variableGroup name="discardedReads">
+     <value name="supplementaryAlignmentCount">62243</value>
+     <value name="secondaryAlignmentCount">0</value>
+     <value name="failedVendorQualityCount">0</value>
+    </variableGroup>
+     <variableGroup name="readLength">
+     <value name="readCount">3096074</value>
+     <value name="max">151</value>
+     ...
+    </variableGroup>
+    <variableGroup name="tLen">
+     <value name="pairCount">1255372</value>
+     <value name="max">860</value>
+     ...
+    </variableGroup>
+    <variableGroup name="countedReads">
+     <value name="unpairedReads">0</value>
+     <value name="readCount">3096074</value>
+     <value name="basesCount">467507174</value>
+     <value name="basesLostCount">97189941</value>
+     <value name="basesLostPercent">20.79</value>
+    </variableGroup>
+   </sequenceMetrics>
    <sequenceMetrics name=properPairs pairCount=1255372>...</sequenceMetrics>
    <sequenceMetrics name=notProperPairs pairCount=68377>
     <variableGroup name=F3F5>...</variableGroup>
@@ -214,3 +238,118 @@ The <bamSummary> section contains three top level information: read group summar
  </sequenceMetrics>
 </bamSummary>
 ~~~~
+
+#### OverallBasesLost 
+~~~~{.text}
+<sequenceMetrics name="OverallBasesLost" readCount="...">
+~~~~
+In above bam summary output example, the sequenceMetrics named OverallBasesLost lists the summed counts from all read groups. The attribute "readCount" in the top element stores the count of total inputted reads including discarded reads. It has 10 10 children elements, the description as below:
+
+  children element | Description 
+---------------- | ---------------------------
+ \<value name="readCount">  | total reads but excludeing discarded reads  
+ \<value name="basesCount"> |the sum of baseCount from all read group 
+ \<value name="basesLostCount_basesLostPercent"> | (the sum of basesLostCount from all read group)/ this.basesCount 
+ \<value name="duplicateReads_basesLostPercent"> | (the sum of duplicateReads.basesLostCount from all read group)/ this.basesCount 
+ \<value name="unmappedReads_basesLostPercent"> | (the sum of unmappedReads.basesLostCount from all read group)/ this.basesCount 
+ \<value name="notProperPairs_basesLostPercent"> | (the sum of notProperPairs.basesLostCount from all read group)/ this.basesCount 
+ \<value name="trimmedBases_basesLostPercent"> | (the sum of trimmedBases.basesLostCount from all read group)/ this.basesCount 
+ \<value name="softClippedBases_basesLostPercent" > | (the sum of softClippedBases.basesLostCount from all read group)/ this.basesCount 
+ \<value name="hardClippedBases_basesLostPercent" > | (the sum of hardClippedBases.basesLostCount from all read group)/ this.basesCount 
+ \<value name"=""overlappedBases_basesLostPercent"> | (the sum of overlappedBases.basesLostCount from all read group)/ this.basesCount 
+
+#### basesLost
+~~~~{.text}
+  <readGroup name="...">
+   <sequenceMetrics name=basesLost>
+~~~~
+qProfiler2 walk through whole BAM file, summarize all losted base in this section. Due to sample, sequence or mapping tool limits, there are alway some base information is not usable, we call them baseLost. In above bam summary output example, these counts are listed inside `sequenceMetrics` named basesLost under each readGroup.  It has 7 children elements, the description as below. Here maxReadLength is 
+
+ variableGroup element   | value element | Description 
+---------------- | ---------------------- | ----------------
+name="duplicateReads" | \<value name="readCount"> |  reads marked as duplicated but excluds discarded reads (failed, secondary and supplementary). 
+  | \<value name="basesLostCount"> |     readCount *  maxReadLength
+name="unmappedReads"  | \<value name="readCount"> |  reads marked as unmapped but excluds duplicate and  discarded reads  
+  | \<value name="basesLostCount"> |     readCount * maxReadLength
+name="notProperPairs" | \<value name="readCount"> |  reads marked as notProperPair but excluds unmapped, duplicate and  discarded reads. see further detils on [[qprofiler2/bamSummary#notPorperPair | notProperPaimaxReadLength] 
+   |       \<value name="basesLostCount"> |     readCount *  maxReadLength
+name="trimmedBases"   | \<value name="readCount"> |  reads with short base length, that is readlenght + hardclip  \< max read length; but excludes notProperPair, unmapped, duplicated and discarded reads 
+   | \<value name="basesLostCount"> |     Cumulative count of the total differences between Max Read Length and individual read lengths (calculated as per column Average Read Length). This should capture any read trimming that happened before the FASTQ file was passed through an aligner 
+name="softClippedBases"       | \<value name="readCount"> |  reads contains soft clipped base but excluds notProperPair, unmapped, duplicated and discarded reads 
+  | \<value name="basesLostCount"> |     sum of soft clipped base of each read 
+name="hardClippedBases"       | \<value name="readCount"> |  reads contains hard clipped base but excluds notProperPair, unmapped, duplicated and discarded reads 
+  | \<value name="basesLostCount"> |     Bases that are hard clipped based on analysis of the CIGAR string. 
+name="overlappedBases"        | \<value name="readCount"> |  overlapped reads with positive tLen or firstOfpair with zero tLen; but excluds notProperPair, unmapped, duplicated and discarded reads 
+  | \<value name="basesLostCount"> |     Excludes all bases covered by hard and soft clips and only counts overlapped bases on one strand. So if a 2 x 100bp read pair overlapped by 50 bases, the assumption is that the sequenced fragment was 150 bases so 50 of the 200 sequenced bases were wasted because they were sequenced on both reads. 
+  all above elements    | \<value name="basesLostPercent"> |     this. basesLostCount / OverallBasesLost.basesCount
+
+
+Here the value of `maxReadLength` used on above tabel is the value of attribute `max` from `sequenceMetrics` named `reads`.
+~~~~{.text}
+   <sequenceMetrics name="reads" readCount="...">
+   ...
+     <variableGroup name="readLength">
+     <value name="readCount">...</value>
+     <value name="max">151</value>
+~~~~
+
+
+
+
+properPairs and notProperPairs
+This section lists statistic data of pairs count for each readGroup. Here, the The attribute "pairCount" is the sum of all reads marked as "firstOfpair" and "notProperPair"/"properPairs" but excludes unmapped, duplicate and discarded reads.
+
+<sequenceMetrics name="properPairs" pairCount="...">
+and
+<sequenceMetrics name="notProperPairs" pairCount="...">
+elements and key attributes
+below is the key children elements
+
+variableGroup
+
+value element
+
+Description
+
+name="F3F5"
+name="F5F3"
+name="Inward"
+name="Outward"
+name="Others"
+
+<value name="firstOfPairs">
+
+all reads marked as first of pair and belong variableGroup and sequenceMetrics specified category
+
+<value name="secondOfPairs">
+
+all reads marked as second of pair and belong variableGroup and sequenceMetrics specified category
+
+<value name="mateUnmappedPair">
+
+read is mapped, but mate belongs to unmappedReads
+
+<value name="mateDifferentReferencePair">
+
+read and mate mapped to different reference, here we only count the firstOfPair
+
+<value name="overlappedPairs">
+
+overlapped reads with tLen >= 0, excludes reads with zero tLen value but not firstOf Pair
+
+<value name="tlenUnder1500Pairs">
+
+reads with tLen < 1500 and tLen > 0; exclues overlapped reads
+
+<value name="tlenOver10000Pairs">
+
+read with tLen > 10000
+
+<value name="tlenBetween1500And10000Pairs">
+
+read with tLen > 1500 and tLen < 10000
+
+<value name="pairCountUnderTlen5000">
+
+reads with positive tLen and tLen < 5000; or firsrOfPair with zero tLen:wq
+
