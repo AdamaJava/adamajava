@@ -115,7 +115,6 @@ it output three main section information: read name analysis, sequence analysis 
 
 ~~~~
 
-
 ### BAM Mode output
 BAM record contains both fastq record information and algnment information. qProfiler2 outputs based on BAM record element order, but also output BAM header and summary information. An example as below:
 
@@ -151,15 +150,10 @@ BAM record contains both fastq record information and algnment information. qPro
 </qProfiler>
 ~~~~
 
-### BAM summary 
-The <bamSummary> section contains three top level information: read group summary; overall summary and base lost summary. nd four <sequenceMetircs> under each <readGroup>, named as "basesLost", "reads", "properPairs" and "notProperPairs".
+### BAM summary output
+The <bamSummary> section contains three top level information: read group summary, overall summary and base lost summary. It provide the read counts for bases, reads, pairs, trims, clips, overlaps etc. A example of screen shot for the <bamSummary> is below.
 
 ~~~~{.text}
-
-
-
-
-
 <bamSummary>
  <readGroups>
   <readGroup name=69f81d0d-c430-4a6f-9ccd-05ea88b22c1d>...</readGroup>
@@ -195,18 +189,7 @@ The <bamSummary> section contains three top level information: read group summar
      <value name=overlappedPairs>0</value>
      <value name=pairCountUnderTlen5000>2101</value>
     </variableGroup>
-    <variableGroup name=Others>
-     <value name=firstOfPairs>51780</value>
-     <value name=secondOfPairs>49487</value>
-     <value name=mateUnmappedPair>2629</value>
-     <value name=mateDifferentReferencePair>49319</value>
-     <value name=tlenZeroPairs>0</value>
-     <value name=tlenUnder1500Pairs>0</value>
-     <value name=tlenOver10000Pairs>0</value>
-     <value name=tlenBetween1500And10000Pairs>0</value>
-     <value name=overlappedPairs>0</value>
-     <value name=pairCountUnderTlen5000>0</value>
-    </variableGroup>
+    <variableGroup name=Others>...</variableGroup>
    </sequenceMetrics>
   </readGroup>
  </readGroups>
