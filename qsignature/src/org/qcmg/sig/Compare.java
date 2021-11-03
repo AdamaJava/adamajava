@@ -204,6 +204,15 @@ public class Compare {
 		if (result == null) {
 			Pair<SigMeta, TMap<String, TIntByteHashMap>> rgResults = SignatureUtil.loadSignatureGenotype(f, minimumCoverage, minimumRGCoverage);
 			
+			
+			/*
+			 * deal with empty file scenario first
+			 * In this instance, the second entry in the pair should be a map with size zero
+			 */
+			if (rgResults.getSecond().isEmpty()) {
+				logger.warn("zero coverage for file " + f.getAbsolutePath());
+				return  new Pair<>(rgResults.getKey(), new TIntByteHashMap());
+			}
 			/*
 			 * if we have multiple rgs (more than 2 entries in map) - perform comparison on them before adding overall ratios to cache
 			 * 
