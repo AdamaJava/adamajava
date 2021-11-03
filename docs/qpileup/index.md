@@ -25,7 +25,7 @@ qpileup requires java 8 and (ideally) a multi-core machine. eg. 5 threads with a
 
 ## Usage
 
-Before run qpileup, the hdf-java has to be installed and exported, eg.
+Before you run qpileup, the hdf-java library has to be installed and exported, eg.
 ~~~~
 export LD_LIBRARY_PATH=/software/hdf-java/hdf-java-2.8.0/lib/linux:${LD_LIBRARY_PATH};
 java -Xmx20g -jar qpileup.jar --ini /path/to/ini/file/demo.ini
