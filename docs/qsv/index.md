@@ -8,7 +8,7 @@ and discordant mapped pair analyses and increases detection accuracy of
 breakpoint, microhomology and non-template sequence by the incorporation
 of a localized de novo assembly of abnormal reads and split contig alignment.
 
-## Key feature
+## Key features
 
 * joint-caller that considers tumour and normal BAMs together
 * fast - typically runs in 6 hours on an 8-core machine for a WGS tumour/normal BAM pair (60x/30x).
@@ -68,33 +68,33 @@ qsv requires java 8, a machine with 8 cores (hyperthreaded) and at least 40GB of
 
 ## Ini file
 
-The template and descrition of ini file follows:
+The template and description of the ini file is shown below:
 
 ~~~~{.text}
 [general]
 log = Opt, base name of log file. Def=<sample>.log
-loglevel = Opt, Logging level [INFO,DEBUG], Def=INFO.
+loglevel = Opt, logging level [INFO,DEBUG], Def=INFO.
 sample = Opt, donor or patient id.
-sv_analysis = (*) Opt, Type of sv analysis [pair, clip, both]. Def=both.
+sv_analysis = (*) Opt, type of sv analysis [pair, clip, both]. Def=both.
 output = (*) Req, output directory. A result sub folder for the analysis will be automatically created in uuid format.
 reference = Req, path to fasta reference file
 platform = Req, sequence machine platform [solid, illumina,bgi].
 min_insert_size = Opt, minimum size of SV insert. Def=50.
-range = Opt,specify one or more chromosomes or inter for translocations. Def={all chromosome>
+range = Opt, specify one or more chromosomes or inter for translocations. Def={all chromosome>
 repeat_cutoff = Opt, specified number of clipped reads to define a potential repeat region, Def=1000
-tiled_aligner = (*) Req, Tiled aligner file with full path, created by our in-home aligner - q3tiledaligner.  
+tiled_aligner = (*) Req, tiled aligner file with full path, created by our in-home aligner - q3tiledaligner.  
 qcmg = Opt, set to true if plan to create more output for the user named qcmg. Def=false. 
 
 [pair]
 pairing_type = (*) Opt, type of reads [pe,lmp,imp]. Def=pe.
-mapper = Opt,mapping tool name [bioscope, lifescope, bwa, bwa-mem, novoalign]. Def=bws
+mapper = Opt, mapping tool name [bioscope, lifescope, bwa, bwa-mem, novoalign]. Def=bws
 pair_query = (*) Opt, qbamfilter query string for discordant pair. Def="and (Cigar_M > 34, MD_mismatch < 3, option_SM > 10, flag_DuplicateRead == false)" for Paired End reads(pe).
 cluster_size = Opt, number of discordant reads required to define a cluster. Def=3.
 filter_size = Opt, number of control reads in a cluster to classify it germline. Def=1.
 
 [clip]
-clip_query = (*) Opt, Filtering query for clips. Def="and (Cigar_M > 34, MD_mismatch < 3, MapQ > 0, flag_DuplicateRead == false)".
-clip_size = Opt,number of reads required to proceed with soft clip SV signature detection. Def=3.
+clip_query = (*) Opt, filtering query for clips. Def="and (Cigar_M > 34, MD_mismatch < 3, MapQ > 0, flag_DuplicateRead == false)".
+clip_size = Opt, number of reads required to proceed with soft clip SV signature detection. Def=3.
 consensus_length = Opt, minimum length of soft clip consensus sequence. Def=20.
 single_side_clip = Opt, set to true if SV signatures with soft clip evidence at one breakpoint should be included. Def=false.
 
@@ -104,7 +104,7 @@ sample_id = Opt, test sample id. Def=<test::name>
 input_file = (*) Req, the test/disease bam with full path. Must be co-ordinate sorted.
 
 [test/size_1]
-rgid = Req, Read Group ID.
+rgid = Req, read Group ID.
 lower = (*) Req, lower insert size.
 upper = (*) Req, upper insert size.
 name = Opt, sample name which may indicate read group id, name or type. Def=<empty string>.
@@ -115,28 +115,28 @@ sample_id = Opt, control sample id. Def=<control::name>.
 input_file = (*) Req, the control/normal bam with full path. Must be co-ordinate sorted.
 
 [control/size_1]
-rgid = Req, Read Group ID.
+rgid = Req, read Group ID.
 lower = (*) Req, lower insert size.
 upper = (*) Req, upper insert size.
 name = Opt, sample name which may indicate read group id, name or type. Def=<empty string>.
 ~~~~
 
 ### `output` option under [general] section
-Each qsv run will create an new folder named in a random uuid string, hence all qsv results will be output to that folder (\<output>/\<random uuid>/). the output under [general] should be full path otherwise it will create under execution directory.
- * eg. "output=qsv" will result to: "./qsv/\<random uuid>/"; <br />
- * eg. "output=." will result to: "./\<random uuid>/"; <br />
- * eg. "output=/user/home/qsv" will result to "/user/home/qsv/\<random uuid>". <br />
+Each time the qsv is run, a new folder under the output directory will be created, containing all the outputs. This new folder is named as a random uuid: \<output>/\<random uuid>/. The output directory has to be specified,  with the full path to the `output` option under [general] section, otherwise it will output to the execution directory.
+ * eg. if "output=qsv", then "./qsv/\<random uuid>/" will be created; <br />
+ * eg. if "output=.", then "./\<random uuid>/" will be created; <br />
+ * eg. if "output=/user/home/qsv", then "/user/home/qsv/\<random uuid>" will be created. <br />
 
-Unless command line option "--uuid" is used, then an user specified UUID string will be specified. In above example, a sub folder named as user specified UUID 
- * eg. "output=qsv" will result to: "./qsv/\<user specified uuid>/"; <br />
- * eg. "output=/user/home/qsv" will result to "/user/home/qsv/\<user specified uuid>/". <br />
+Unless command line option "--uuid" is used, then the new output folder will be named as user specified UUID. In above example, a sub folder named as user specified UUID 
+ * eg. if "output=qsv", then "./qsv/\<user specified uuid>/" will be created; <br />
+ * eg. if "output=/user/home/qsv", then "/user/home/qsv/\<user specified uuid>/" will be created. <br />
 
 ### `tiled_aligner` option under [general] section
 a file containing 13-mer motifs, and their locations in a genome, generated by our in house tool, q3TiledAligner.
 
 ### `sv_analysis` option under [general] section 
 
-qsv has two analysis modes: pair (Discordant pair)  and clip (Soft clipping). They can run separately or together. it has been tested with:
+The qsv has two analysis modes: pair (Discordant pair)  and clip (Soft clipping). They can run separately or together. It has been tested with:
  * SOLiD long-mate paired and paired-end sequencing data mapped using bioscope or lifescope (discordant pair mode only).
  * Illumina paired-end sequencing data mapped using BWA (discordant pair and soft clipping modes).
  * Illumina long mate paired sequencing data mapped using BWA (discordant pair and soft clipping modes).
@@ -177,8 +177,8 @@ qsv will generate a number of output files to \<output>/\<uuid>/:
  * \<sample>.\<germline|normal-germline|somatic>.sv.txt: summary of structural variants identified in a tab-delimited text file for germline and somatic events.
  * \<sample>.\<germline|normal-germline|somatic>.dcc: DCC files for QCMG center. 
  * \<sample>.no_blat_alignment.txt: An unaligned soft clips file lists soft clips with high evidence that did not align to the reference genome and are potentially somatic. 
- * \<sample>.somatic.qprimer: a file lists of regions to design primers.
- * \<sample>.sv_counts.txt: a file lists counts of the numbers of discordant pair SVs.
+ * \<sample>.somatic.qprimer: a file that lists of regions to design primers.
+ * \<sample>.sv_counts.txt: a file that lists counts of the numbers of discordant pair SVs.
  * \<sample>.somatic.softlcip.txt: contigs from soft clips.
  * \<sample>.\<test::name|control::name>.pairing_stats.xml: a file listing discordant pair stats (counts of each type of discordant pair category).
  * \<sample>.\<chr>.\<germlines|omatic>.records: files gives information about the discordant pair reads and/or soft clipped reads that support a particular structural variant. Each structural variant is described by:
