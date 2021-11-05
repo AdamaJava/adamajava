@@ -37,6 +37,7 @@ import org.qcmg.pileup.model.Chromosome;
 import org.qcmg.pileup.model.QPileupRecord;
 import org.qcmg.pileup.model.StrandEnum;
 
+@Deprecated
 public class ViewMT2 {
 	
 	private PileupHDF hdf;	

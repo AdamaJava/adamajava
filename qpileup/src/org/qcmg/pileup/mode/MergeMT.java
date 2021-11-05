@@ -28,12 +28,19 @@ import org.qcmg.pileup.hdf.StrandDS;
 import org.qcmg.pileup.model.Chromosome;
 
 public class MergeMT {
+	
+	//merge mode support multi thread, however occasionally it throw exception during multi-thread
+	//it is same with bootstrap mode which is no longer support multi thread. 
+	//the exception may be caused when merge mode calls bootstrap. 
+	//also multi threads peformance worse than single thread (CPU, RAM and Time)
+	//here we force it to be single thread. 
+	private final int noOfThreads = 1;
 
 	private PileupHDF hdf;
 	private QLogger logger = QLoggerFactory.getLogger(getClass());
 	private int blockSize;
 	private final int sleepUnit = 10;
-	private int noOfThreads;
+
 	private List<PileupHDF> inputHDFs;
 	private AtomicInteger exitStatus = new AtomicInteger(0);
 	private MetadataRecordDS mergedMetaDS;
@@ -57,7 +64,6 @@ public class MergeMT {
 		
 		this.startTime = startTime;
 		this.mode = mode;
-		this.noOfThreads = options.getThreadNo();
 		this.blockSize = PileupUtil.getBlockSize(mode, noOfThreads);
 		this.isBamOverride = options.isBamOverride();
 		this.mergedMetaDS = new MetadataRecordDS(hdf);

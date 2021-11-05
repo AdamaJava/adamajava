@@ -75,8 +75,9 @@ public class MetadataRecordTest {
 	@Test(expected=QPileupException.class)
 	public void testCheckHDFMetadataWithOutBamOverride() throws QPileupException {
 		String[] records = {"## METADATA=MODE:merge,DATE:20120202,RUNTIME:12:00:00,HDF:" + hdf + ",REFERENCE:/reference.fa\n"};
+		//also test if add mode HDF file path contains "bootstrap" string
 		String[] recordsToAdd = {"MODE:bootstrap,DATE:20120522,RUNTIME:00:28:03,HDF:/target.qpileup.h5,REFERENCE:/reference.fa",
-			"## METADATA=MODE:add,DATE:20120522,RUNTIME:01:24:21,HDF:/target.qpileup.h5,FILE:testbam.bam,RECORDS:468329"		
+			"## METADATA=MODE:add,DATE:20120522,RUNTIME:01:24:21,HDF:/bootstrap_default/target.qpileup.h5,FILE:testbam.bam,RECORDS:468329"		
 		};
 		metaDS.setRecords(records);
 		assertEquals(null, metaDS.getLowReadCount());
@@ -90,4 +91,6 @@ public class MetadataRecordTest {
 		metaDS.checkHDFMetadata(recordsToAdd, false, 10, 20, 0);	
 		assertEquals(5, metaDS.getRecords().length);
 	}
+	
+	
 }

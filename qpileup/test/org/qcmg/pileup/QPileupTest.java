@@ -7,7 +7,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 
-
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -63,47 +62,27 @@ public class QPileupTest {
         QPileup pileup = new QPileup();
         int exit = pileup.runPileup(new String[0], System.currentTimeMillis());
         assertEquals(0, exit);
-        String usage = "usage: qpileup [-options] --ini [inifile_options.ini]\n";
-        assertEquals(usage, testOut.toString());
-        cleanUpStreams();
+        assertTrue(testOut.toString().startsWith("usage1"));
+       cleanUpStreams();
     }
 	
 	@Test
-    public void testQPileupWithViewOptionHeader() throws Exception {
-		PrintStream defaultOutstream = System.out;
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        System.setOut(new PrintStream(baos));
-        QPileup pileup = new QPileup();
-        String[] args = TestUtil.getViewArgs(testFolder, hdf, "chr1:12000-12300", true);
-		int exit = pileup.runPileup(args, 1234);
-        baos.flush();
-        assertEquals(0, exit);
-        String output = baos.toString();
-        System.setOut(defaultOutstream);
-        
-        String[] linesOfOutput = output.split(System.getProperty("line.separator"));
-//        for (String s: linesOfOutput) {
-//        	System.out.println(s);
-//        }
-        assertEquals(12, linesOfOutput.length);
-        assertTrue(linesOfOutput[0].startsWith("## DATE"));
+    public void testQPileupWithViewOptionHeader() throws Exception {        
+		String[] args = TestUtil.getViewArgs(testFolder, hdf, "chr1:12000-12300", true);
+		String output = runPileup(args);
+		String[] linesOfOutput = output.split(System.getProperty("line.separator"));
+		assertEquals(12, linesOfOutput.length);
+		assertTrue(linesOfOutput[0].startsWith("## DATE"));		
     }
 	
 	@Test
     public void testQPileupWithViewOption() throws Exception {
-		PrintStream defaultOutstream = System.out;
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        System.setOut(new PrintStream(baos));
-        QPileup pileup = new QPileup();
+		
         String[] args = TestUtil.getViewArgs(testFolder, hdf, "chr1:12000-12300", false);
-		int exit = pileup.runPileup(args, 1234);
-        baos.flush();
-        assertEquals(0, exit);
-        String output = baos.toString();
-        System.setOut(defaultOutstream);
-        String[] linesOfOutput = output.split(System.getProperty("line.separator")); 
-        assertEquals(315, linesOfOutput.length);
+		String output = runPileup(args);
+		String[] linesOfOutput = output.split(System.getProperty("line.separator"));
         assertTrue(linesOfOutput[0].startsWith("## DATE"));
+        assertEquals(315, linesOfOutput.length);
     }
 
 	@Test
@@ -113,20 +92,42 @@ public class QPileupTest {
         QPileup pileup = new QPileup();
         int exit = pileup.runPileup(args, System.currentTimeMillis());
         assertEquals(0, exit);
-        assertTrue(testOut.toString().startsWith("Option"));
+        assertTrue(testOut.toString().startsWith("usage"));
         cleanUpStreams();
     }
 
     @Test
     public void testQPileupWithVersionMessage() throws Exception {
-        setUpStreams();
-        String[] args = {"--version" };
+    	String[] args = {"--version" };   	 
+        setUpStreams();        
         QPileup pileup = new QPileup();
         int exit = pileup.runPileup(args, System.currentTimeMillis());
         assertEquals(0, exit);
         assertTrue(testOut.toString().contains("version"));
         cleanUpStreams();
     }
+    
+	@Test
+    public void testQPileupWithViewOptionVersion() throws Exception {
+		String[] args = new String[] {"--view","--hdf-version", "--hdf", hdf};
+		String output = runPileup(args);
+		String[] linesOfOutput = output.split(System.getProperty("line.separator"));
+        assertEquals(2, linesOfOutput.length);
+        assertTrue(linesOfOutput[0].startsWith("## VERSION_BOOTSTRAP"));
+    }  
+	
+	private String runPileup(String[] args) throws IOException {
+		PrintStream defaultOutstream = System.out;
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(baos));
+        QPileup pileup = new QPileup();
+        int exit = pileup.runPileup(args, System.currentTimeMillis());
+        baos.flush();
+        assertEquals(0, exit);
+        String output = baos.toString();
+        System.setOut(defaultOutstream);
+        return output;        
+	}
 	
 
 }
