@@ -45,7 +45,9 @@ public class CompareTest {
 		Executor exec = execute("--log " + logF.getAbsolutePath() + " -d " + f1.getParent() + " -o " + o.getAbsolutePath());
 		assertEquals(0, exec.getErrCode());		// all ok
 		assertEquals(true, o.exists());
+		List<String> allLines = Files.readAllLines(Paths.get(o.getAbsolutePath()));
 		assertEquals(10, Files.readAllLines(Paths.get(o.getAbsolutePath())).size());		// 10 lines means 1 comparison
+		assertEquals(true, allLines.contains("<comparison file1=\"1\" file2=\"2\" overlap=\"11\" score=\"1.0\"/>"));
 	}
 	
 	@Test
@@ -70,14 +72,89 @@ public class CompareTest {
 	}
 	
 	@Test
+	public void allFilteredFiles() throws Exception {
+		File logF = testFolder.newFile();
+		File f1 = testFolder.newFile("blah.qsig.vcf");
+		File f2 = testFolder.newFile("blah2.qsig.vcf");
+		File o = testFolder.newFile();
+		
+		writeVcfFile(f1, "md5sunm");
+		writeVcfFile(f2, "md5sunm", new String[]{"aCN"});
+		
+		Executor exec = execute("--log " + logF.getAbsolutePath() + " -d " + f1.getParent() + " -o " + o.getAbsolutePath());
+		assertEquals(0, exec.getErrCode());		// all ok
+		assertEquals(true, o.exists());
+		List<String> allLines = Files.readAllLines(Paths.get(o.getAbsolutePath()));
+		assertEquals(10, allLines.size());		// 13 lines means 3 comparison
+		assertEquals(true, allLines.contains("<comparison file1=\"1\" file2=\"2\" overlap=\"0\" score=\"NaN\"/>"));		// file 2 is effectively empty as it has been filtered
+	}
+	
+	@Test
+	public void someFilteredFiles() throws Exception {
+		File logF = testFolder.newFile();
+		File f1 = testFolder.newFile("blah.qsig.vcf");
+		File f2 = testFolder.newFile("blah2.qsig.vcf");
+		File o = testFolder.newFile();
+		
+		writeVcfFile(f1, "md5sunm");
+		writeVcfFile(f2, "md5sunm", new String[]{"aCN", "."});
+		
+		Executor exec = execute("--log " + logF.getAbsolutePath() + " -d " + f1.getParent() + " -o " + o.getAbsolutePath());
+		assertEquals(0, exec.getErrCode());		// all ok
+		assertEquals(true, o.exists());
+		List<String> allLines = Files.readAllLines(Paths.get(o.getAbsolutePath()));
+		assertEquals(10, allLines.size());		
+		assertEquals(true, allLines.contains("<comparison file1=\"1\" file2=\"2\" overlap=\"6\" score=\"1.0\"/>"));		// file 2 is effectively empty as it has been filtered
+		
+	}
+	@Test
+	public void someFilteredFiles2() throws Exception {
+		File logF = testFolder.newFile();
+		File f1 = testFolder.newFile("blah.qsig.vcf");
+		File f2 = testFolder.newFile("blah2.qsig.vcf");
+		File o = testFolder.newFile();
+		
+		writeVcfFile(f1, "md5sunm");
+		writeVcfFile(f2, "md5sunm", new String[]{"aCN", ".", "."});
+		
+		Executor exec = execute("--log " + logF.getAbsolutePath() + " -d " + f1.getParent() + " -o " + o.getAbsolutePath());
+		assertEquals(0, exec.getErrCode());		// all ok
+		assertEquals(true, o.exists());
+		List<String> allLines = Files.readAllLines(Paths.get(o.getAbsolutePath()));
+		assertEquals(10, allLines.size());		
+		assertEquals(true, allLines.contains("<comparison file1=\"1\" file2=\"2\" overlap=\"8\" score=\"1.0\"/>"));		
+		
+		writeVcfFile(f1, "md5sunm");
+		writeVcfFile(f2, "md5sunm", new String[]{"aCN", ".", "aCN"});
+		
+		exec = execute("--log " + logF.getAbsolutePath() + " -d " + f1.getParent() + " -o " + o.getAbsolutePath());
+		assertEquals(0, exec.getErrCode());		// all ok
+		assertEquals(true, o.exists());
+		allLines = Files.readAllLines(Paths.get(o.getAbsolutePath()));
+		assertEquals(10, allLines.size());		
+		assertEquals(true, allLines.contains("<comparison file1=\"1\" file2=\"2\" overlap=\"4\" score=\"1.0\"/>"));		
+		
+		writeVcfFile(f1, "md5sunm");
+		writeVcfFile(f2, "md5sunm", new String[]{"aCBN", ".", "abCN"});
+		
+		exec = execute("--log " + logF.getAbsolutePath() + " -d " + f1.getParent() + " -o " + o.getAbsolutePath());
+		assertEquals(0, exec.getErrCode());		// all ok
+		assertEquals(true, o.exists());
+		allLines = Files.readAllLines(Paths.get(o.getAbsolutePath()));
+		assertEquals(10, allLines.size());		
+		assertEquals(true, allLines.contains("<comparison file1=\"1\" file2=\"2\" overlap=\"11\" score=\"1.0\"/>"));		// only records with aCN in the filter field are discarded
+		
+	}
+	
+	@Test
 	public void diffMd5InputFiles() throws Exception {
 		File logF = testFolder.newFile();
 		File f1 = testFolder.newFile("blah.qsig.vcf");
 		File f2 = testFolder.newFile("blah2.qsig.vcf");
 		File o = testFolder.newFile();
 		
-		writeVcfFile(f1, "##positions_md5sum=d18c99f481afbe04294d11deeb418890\n");
-		writeVcfFile(f2, "##positions_md5sum=d18c99f481afbe04294d11deeb418890XXX\n");
+		writeVcfFile(f1, "d18c99f481afbe04294d11deeb418890");
+		writeVcfFile(f2, "d18c99f481afbe04294d11deeb418890XXX");
 		
 		Executor exec = execute("--log " + logF.getAbsolutePath() + " -d " + f1.getParent() + " -o " + o.getAbsolutePath());
 		assertEquals(0, exec.getErrCode());		// all ok
@@ -240,7 +317,7 @@ public class CompareTest {
 	}
 	
 	private void writeVcfFileHeader(File f) throws IOException {
-		writeVcfFileHeader(f, "##positions_md5sum=d18c99f481afbe04294d11deeb418890\n");
+		writeVcfFileHeader(f, "d18c99f481afbe04294d11deeb418890");
 	}
 	private void writeVcfFileHeader(File f, String md5) throws IOException {
 		try (FileWriter w = new FileWriter(f);){
@@ -252,7 +329,7 @@ public class CompareTest {
 			w.write("##run_by_os=Linux\n");
 			w.write("##run_by_user=oliverH\n");
 			w.write("##positions=/software/genomeinfo/configs/qsignature/qsignature_positions.txt\n");
-			w.write(md5);
+			w.write("##positions_md5sum=" + md5 + "\n");
 			w.write("##positions_count=1456203\n");
 			w.write("##filter_base_quality=10\n");
 			w.write("##filter_mapping_quality=10\n");
@@ -268,10 +345,16 @@ public class CompareTest {
 	}
 	
 	private void writeVcfFile(File f) throws IOException {
-		writeVcfFile(f, "##positions_md5sum=d18c99f481afbe04294d11deeb418890\n");
+		writeVcfFile(f, "d18c99f481afbe04294d11deeb418890");
+	}
+	private void writeVcfFile(File f, String md5) throws IOException {
+		writeVcfFile(f, md5, new String[]{"."});
 	}
 	
-	private void writeVcfFile(File f, String md5) throws IOException {
+	private void writeVcfFile(File f, String md5, String [] filter) throws IOException {
+		
+		int arrayLength = filter.length;
+		int i = 0;
 		try (FileWriter w = new FileWriter(f);){
 			w.write("##fileformat=VCFv4.2\n");
 			w.write("##datetime=2016-08-17T14:44:30.088\n");
@@ -281,7 +364,7 @@ public class CompareTest {
 			w.write("##run_by_os=Linux\n");
 			w.write("##run_by_user=oliverH\n");
 			w.write("##positions=/software/genomeinfo/configs/qsignature/qsignature_positions.txt\n");
-			w.write(md5);
+			w.write("##positions_md5sum=" + md5 + "\n");
 			w.write("##positions_count=1456203\n");
 			w.write("##filter_base_quality=10\n");
 			w.write("##filter_mapping_quality=10\n");
@@ -293,17 +376,17 @@ public class CompareTest {
 			w.write("##rg1:143b8c38-62cb-414a-aac3-ea3a940cc6bb\n");
 			w.write("##rg2:65a79904-ee91-4f53-9a94-c02e23e071ef\n");
 			w.write("#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO\n");
-			w.write("chr1	47851\t.\tC\t.\t.\t.\tQAF=t:0-120-0-0,rg1:0-90-0-0,rg2:0-30-0-0\n");
-			w.write("chr1	50251\t.\tT\t.\t.\t.\tQAF=t:0-0-0-110,rg1:0-0-0-90,rg2:0-0-0-20\n");
-			w.write("chr1\t51938	.\tT\t.\t.\t.\tQAF=t:0-0-0-90,rg1:0-0-0-50,rg2:0-0-0-40\n");
-			w.write("chr1\t52651	.\tT\t.\t.\t.\tQAF=t:0-0-0-30,rg1:0-0-0-10,rg2:0-0-0-20\n");
-			w.write("chr1\t64251	.\tA\t.\t.\t.\tQAF=t:90-0-0-0,rg1:50-0-0-0,rg2:40-0-0-0\n");
-			w.write("chr1\t98222	.\tC\t.\t.\t.\tQAF=t:0-120-0-0,rg1:0-50-0-0,rg2:0-70-0-0\n");
-			w.write("chr1\t99236	.\tT\t.\t.\t.\tQAF=t:0-0-0-220,rg1:0-0-0-120,rg2:0-0-0-100\n");
-			w.write("chr1\t101095	.\tT\t.\t.\t.\tQAF=t:0-0-0-100,rg1:0-0-0-50,rg2:0-0-0-50\n");
-			w.write("chr1\t102954	.\tT\t.\t.\t.\tQAF=t:0-0-10-640,rg1:0-0-0-360,rg2:0-0-10-280\n");
-			w.write("chr1\t104813	.\tG\t.\t.\t.\tQAF=t:0-10-170-0,rg1:0-10-100-0,rg2:0-0-70-0\n");
-			w.write("chr1\t106222	.\tT\t.\t.\t.\tQAF=t:0-0-0-40,rg1:0-0-0-10,rg2:0-0-0-30\n");
+			w.write("chr1	47851\t.\tC\t.\t.\t" + filter[i = (i == arrayLength - 1 ? 0 : i + 1)] + "\tQAF=t:0-120-0-0,rg1:0-90-0-0,rg2:0-30-0-0\n");
+			w.write("chr1	50251\t.\tT\t.\t.\t" + filter[i = (i == arrayLength - 1 ? 0 : i + 1)] + "\tQAF=t:0-0-0-110,rg1:0-0-0-90,rg2:0-0-0-20\n");
+			w.write("chr1\t51938	.\tT\t.\t.\t" + filter[i = (i == arrayLength - 1 ? 0 : i + 1)] + "\tQAF=t:0-0-0-90,rg1:0-0-0-50,rg2:0-0-0-40\n");
+			w.write("chr1\t52651	.\tT\t.\t.\t" + filter[i = (i == arrayLength - 1 ? 0 : i + 1)] + "\tQAF=t:0-0-0-30,rg1:0-0-0-10,rg2:0-0-0-20\n");
+			w.write("chr1\t64251	.\tA\t.\t.\t" + filter[i = (i == arrayLength - 1 ? 0 : i + 1)] + "\tQAF=t:90-0-0-0,rg1:50-0-0-0,rg2:40-0-0-0\n");
+			w.write("chr1\t98222	.\tC\t.\t.\t" + filter[i = (i == arrayLength - 1 ? 0 : i + 1)] + "\tQAF=t:0-120-0-0,rg1:0-50-0-0,rg2:0-70-0-0\n");
+			w.write("chr1\t99236	.\tT\t.\t.\t" + filter[i = (i == arrayLength - 1 ? 0 : i + 1)] + "\tQAF=t:0-0-0-220,rg1:0-0-0-120,rg2:0-0-0-100\n");
+			w.write("chr1\t101095	.\tT\t.\t.\t" + filter[i = (i == arrayLength - 1 ? 0 : i + 1)] + "\tQAF=t:0-0-0-100,rg1:0-0-0-50,rg2:0-0-0-50\n");
+			w.write("chr1\t102954	.\tT\t.\t.\t" + filter[i = (i == arrayLength - 1 ? 0 : i + 1)] + "\tQAF=t:0-0-10-640,rg1:0-0-0-360,rg2:0-0-10-280\n");
+			w.write("chr1\t104813	.\tG\t.\t.\t" + filter[i = (i == arrayLength - 1 ? 0 : i + 1)] + "\tQAF=t:0-10-170-0,rg1:0-10-100-0,rg2:0-0-70-0\n");
+			w.write("chr1\t106222	.\tT\t.\t.\t" + filter[i = (i == arrayLength - 1 ? 0 : i + 1)] + "\tQAF=t:0-0-0-40,rg1:0-0-0-10,rg2:0-0-0-30\n");
 		}
 	}
 	

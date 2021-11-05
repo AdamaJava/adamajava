@@ -87,6 +87,8 @@ public class SignatureUtil {
 	public static final String SNP_ARRAY = "SNP_array";
 	public static final String UNKNOWN = "UNKNOWN";
 	
+	public static final String ASCAT_COPY_NUMBER_FILTER = "aCN";
+	
 	public static final int MINIMUM_COVERAGE = 10;
 	public static final int MINIMUM_RG_COVERAGE = 10;
 	
@@ -351,15 +353,20 @@ public class SignatureUtil {
 		if (null == file) {
 			throw new IllegalArgumentException("Null file object passed to loadSignatureRatios");
 		}
-		
+		int filteredOutRecordCount = 0;
 		try (StringFileReader reader = new StringFileReader(file)) {
-			String line;
 			
-			for (String vcfRecord : reader) {
-				line = vcfRecord;
+			for (String line : reader) {
 				if (line.startsWith(Constants.HASH_STRING)) {
 					continue;
 				}
+				
+				if ( ! includeRecordInComparison(line, ASCAT_COPY_NUMBER_FILTER)) {
+					filteredOutRecordCount++;
+					continue;
+				}
+				
+				
 				//do a brute force search for the empty coverage string before passing to tokenizer
 				// only populate ratios with non-zero values
 				// attempt to keep memory usage down...
@@ -377,6 +384,9 @@ public class SignatureUtil {
 				 */
 				
 				int lastIndex = line.lastIndexOf(Constants.TAB_STRING);
+				if (lastIndex == -1) {
+					logger.warn("line: " + line);
+				}
 				String coverage = line.substring(lastIndex);
 				/*
 				 * sometimes we have trailing tabs...
@@ -399,7 +409,19 @@ public class SignatureUtil {
 				}
 			}
 		}
+		logger.info("Number of records filtered out due to entry in filter field: " + filteredOutRecordCount);
 		return ratios;
+	}
+	
+	public static boolean includeRecordInComparison(String record, String ... filters) {
+		boolean include = true;
+		for (String f : filters) {
+			if (record.contains(f)) {
+				include = false;
+				break;
+			}
+		}
+		return include;
 	}
 	
 	public static  Optional<Pair<SigMeta, Map<String, String>>> getSigMetaAndRGsFromHeader(List<String> h) {
@@ -529,10 +551,18 @@ public class SignatureUtil {
 		String line;
 		
 		AtomicInteger cachePosition = new AtomicInteger();
-		
+		int filteredOutRecordCount = 0;
 		for (String vcfRecord : reader) {
 			line = vcfRecord;
 			if (line.startsWith(Constants.HASH_STRING)) {
+				continue;
+			}
+			
+			/*
+			 * ignore records that have a value on the filter field of "aCN"
+			 */
+			if ( ! includeRecordInComparison(line, ASCAT_COPY_NUMBER_FILTER)) {
+				filteredOutRecordCount++;
 				continue;
 			}
 			
@@ -590,6 +620,7 @@ public class SignatureUtil {
 			
 			rgRatios.put("all", ratios);
 		}
+		logger.info("Number of records filtered out due to entry in filter field: " + filteredOutRecordCount);
 	}
 	
 	/**
