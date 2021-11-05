@@ -152,127 +152,86 @@ BAM record contains both fastq record information and algnment information. qPro
 
 ### BAM summary output
 The <bamSummary> section contains three top level information: read group summary, overall summary and base lost summary. It provide the read counts for bases, reads, pairs, trims, clips, overlaps etc. A example of screen shot for the <bamSummary> is below.
-
 ~~~~{.text}
 <bamSummary>
  <readGroups>
-  <readGroup name=69f81d0d-c430-4a6f-9ccd-05ea88b22c1d>...</readGroup>
-  <readGroup name=cd90dd75-8a1f-4fd0-a352-0364d8dd5300>
-   <sequenceMetrics name=basesLost>
-    <variableGroup name=duplicateReads>...</variableGroup>
-    <variableGroup name=unmappedReads>...</variableGroup>
-    <variableGroup name=notProperPairs>
-     <value name=readCount>134461</value>
-     <value name=basesLostCount>20303611</value>
-     <value name=basesLostPercent>4.34</value>
-    </variableGroup>
-    <variableGroup name=trimmedBases>...</variableGroup>
-    <variableGroup name=softClippedBases>...</variableGroup>
-    <variableGroup name=hardClippedBases>...</variableGroup>
-    <variableGroup name=overlappedBases>...</variableGroup>
-   </sequenceMetrics>
-   <sequenceMetrics name=reads readCount=3158317>
+  <readGroup name="69f81d0d-c430-4a6f-9ccd-05ea88b22c1d">...</readGroup>
+  <readGroup name="cd90dd75-8a1f-4fd0-a352-0364d8dd5300">
+   <sequenceMetrics name="basesLost">...</sequenceMetrics>
    <sequenceMetrics name="reads" readCount="3158317">
     <variableGroup name="discardedReads">
      <value name="supplementaryAlignmentCount">62243</value>
      <value name="secondaryAlignmentCount">0</value>
      <value name="failedVendorQualityCount">0</value>
     </variableGroup>
-     <variableGroup name="readLength">
+    <variableGroup name="readLength">
      <value name="readCount">3096074</value>
      <value name="max">151</value>
-     ...
+     <value name="mean">150</value>
+     <value name="mode">151</value>
+     <value name="median">151</value>
     </variableGroup>
-    <variableGroup name="tLen">
-     <value name="pairCount">1255372</value>
-     <value name="max">860</value>
-     ...
-    </variableGroup>
-    <variableGroup name="countedReads">
-     <value name="unpairedReads">0</value>
-     <value name="readCount">3096074</value>
-     <value name="basesCount">467507174</value>
-     <value name="basesLostCount">97189941</value>
-     <value name="basesLostPercent">20.79</value>
-    </variableGroup>
+    <variableGroup name="tLen">...</variableGroup>
+    <variableGroup name="countedReads">...</variableGroup>
    </sequenceMetrics>
-   <sequenceMetrics name=properPairs pairCount=1255372>...</sequenceMetrics>
-   <sequenceMetrics name=notProperPairs pairCount=68377>
-    <variableGroup name=F3F5>...</variableGroup>
-    <variableGroup name=F5F3>...</variableGroup>
-    <variableGroup name=Inward>...</variableGroup>
-    <variableGroup name=Outward>
-     <value name=firstOfPairs>6230</value>
-     <value name=secondOfPairs>6230</value>
-     <value name=mateUnmappedPair>0</value>
-     <value name=mateDifferentReferencePair>0</value>
-     <value name=tlenZeroPairs>1</value>
-     <value name=tlenUnder1500Pairs>1058</value>
-     <value name=tlenOver10000Pairs>3313</value>
-     <value name=tlenBetween1500And10000Pairs>1858</value>
-     <value name=overlappedPairs>0</value>
-     <value name=pairCountUnderTlen5000>2101</value>
-    </variableGroup>
-    <variableGroup name=Others>...</variableGroup>
-   </sequenceMetrics>
+   <sequenceMetrics name="properPairs" pairCount="1255372">...</sequenceMetrics>
+   <sequenceMetrics name="notProperPairs" pairCount="68377">...</sequenceMetrics>
   </readGroup>
  </readGroups>
- <sequenceMetrics name=Overall>
-     <value name=Number of cycles with greater than 1% mismatches>103</value>
-     <value name=Average length of first-of-pair reads>150</value>
-     <value name=Average length of second-of-pair reads>150</value>
-     <value name=Discarded reads (FailedVendorQuality, secondary, supplementary)>807377</value>
-     <value name=Total reads including discarded reads>39966613</value>
+ <sequenceMetrics name="Overall">
+    <value name="Number of cycles with greater than 1% mismatches">103</value>
+    <value name="Average length of first-of-pair reads">150</value>
+    <value name="Average length of second-of-pair reads">150</value>
+    <value name="Discarded reads (FailedVendorQuality, secondary, supplementary)">807377</value>
+    <value name="Total reads including discarded reads">39966613</value>
  </sequenceMetrics>
- <sequenceMetrics name=OverallBasesLost>
-     <value name=readCount>39159236</value>
-     <value name=basesCount>5913044636</value>
-     <value name=basesLostCount_basesLostPercent>20.00</value>
-     <value name=duplicateReads_basesLostPercent>13.23</value>
-     <value name=unmappedReads_basesLostPercent>0.19</value>
-     <value name=notProperPairs_basesLostPercent>4.45</value>
-     <value name=trimmedBases_basesLostPercent>0.13</value>
-     <value name=softClippedBases_basesLostPercent>1.11</value>
-     <value name=hardClippedBases_basesLostPercent>0.00</value>
-     <value name=overlappedBases_basesLostPercent>0.89</value>
+ <sequenceMetrics name="OverallBasesLost">
+    <value name="readCount">39159236</value>
+    <value name="basesCount">5913044636</value>
+    <value name="basesLostCount_basesLostPercent">20.00</value>
+    <value name="duplicateReads_basesLostPercent">13.23</value>
+    <value name="unmappedReads_basesLostPercent">0.19</value>
+    <value name="notProperPairs_basesLostPercent">4.45</value>
+    <value name="trimmedBases_basesLostPercent">0.13</value>
+    <value name="softClippedBases_basesLostPercent">1.11</value>
+    <value name="hardClippedBases_basesLostPercent">0.00</value>
+    <value name="overlappedBases_basesLostPercent">0.89</value>
  </sequenceMetrics>
 </bamSummary>
 ~~~~
 
-#### OverallBasesLost 
-~~~~{.text}
-<sequenceMetrics name="OverallBasesLost" readCount="...">
-~~~~
-In above bam summary output example, the sequenceMetrics named OverallBasesLost lists the summed counts from all read groups. The attribute "readCount" in the top element stores the count of total inputted reads including discarded reads. It has 10 10 children elements, the description as below:
-
-  children element | Description 
----------------- | ---------------------------
- \<value name="readCount">  | total reads but excludeing discarded reads  
- \<value name="basesCount"> |the sum of baseCount from all read group 
- \<value name="basesLostCount_basesLostPercent"> | (the sum of basesLostCount from all read group)/ this.basesCount 
- \<value name="duplicateReads_basesLostPercent"> | (the sum of duplicateReads.basesLostCount from all read group)/ this.basesCount 
- \<value name="unmappedReads_basesLostPercent"> | (the sum of unmappedReads.basesLostCount from all read group)/ this.basesCount 
- \<value name="notProperPairs_basesLostPercent"> | (the sum of notProperPairs.basesLostCount from all read group)/ this.basesCount 
- \<value name="trimmedBases_basesLostPercent"> | (the sum of trimmedBases.basesLostCount from all read group)/ this.basesCount 
- \<value name="softClippedBases_basesLostPercent" > | (the sum of softClippedBases.basesLostCount from all read group)/ this.basesCount 
- \<value name="hardClippedBases_basesLostPercent" > | (the sum of hardClippedBases.basesLostCount from all read group)/ this.basesCount 
- \<value name"=""overlappedBases_basesLostPercent"> | (the sum of overlappedBases.basesLostCount from all read group)/ this.basesCount 
-
 #### basesLost
+There are four "sequenceMetrics" under each "readGroup", one of them named "basesLost". qProfiler2 walk through whole BAM file, summarize all losted base in this section. Due to sample, sequence or mapping tool limits, there are alway some base information is not usable, we call them base lost.
+
 ~~~~{.text}
-  <readGroup name="...">
-   <sequenceMetrics name=basesLost>
+<readGroup name="cd90dd75-8a1f-4fd0-a352-0364d8dd5300">
+ <sequenceMetrics name="basesLost">
+  <variableGroup name="duplicateReads">
+    <value name="readCount">445721</value>
+    <value name="basesLostCount">67303871</value>
+    <value name="basesLostPercent">14.40</value>
+  </variableGroup>
+  <variableGroup name="unmappedReads">...</variableGroup>
+  <variableGroup name="notProperPairs">...</variableGroup>
+  <variableGroup name="trimmedBases">...</variableGroup>
+  <variableGroup name="softClippedBases">...</variableGroup>
+  <variableGroup name="hardClippedBases">...</variableGroup>   
+  <variableGroup name="overlappedBases">...</variableGroup>
+ </sequenceMetrics>
+ ...
+</readGroup>
 ~~~~
-qProfiler2 walk through whole BAM file, summarize all losted base in this section. Due to sample, sequence or mapping tool limits, there are alway some base information is not usable, we call them baseLost. In above bam summary output example, these counts are listed inside `sequenceMetrics` named basesLost under each readGroup.  It has 7 children elements, the description as below. Here maxReadLength is 
+
+It has 7 children elements, the description as below. 
 
  variableGroup element   | value element | Description 
 ---------------- | ---------------------- | ----------------
 name="duplicateReads" | \<value name="readCount"> |  reads marked as duplicated but excluds discarded reads (failed, secondary and supplementary). 
-  | \<value name="basesLostCount"> |     readCount *  maxReadLength
+  |\<value name="basesLostCount"> |     readCount *  readLength.max
 name="unmappedReads"  | \<value name="readCount"> |  reads marked as unmapped but excluds duplicate and  discarded reads  
-  | \<value name="basesLostCount"> |     readCount * maxReadLength
-name="notProperPairs" | \<value name="readCount"> |  reads marked as notProperPair but excluds unmapped, duplicate and  discarded reads. see further detils on [[qprofiler2/bamSummary#notPorperPair | notProperPaimaxReadLength] 
-   |       \<value name="basesLostCount"> |     readCount *  maxReadLength
+  | \<value name="basesLostCount"> |     readCount * readLength.max
+name="notProperPairs" | \<value name="readCount"> |  reads marked as notProperPair but excluds unmapped, duplicate and  discarded reads. see further detils on [[qprofiler2/bamSummary#notPorperPair | notProperPaireadLength.max] 
+   |       \<value name="basesLostCount"> |     readCount *  readLength.max
 name="trimmedBases"   | \<value name="readCount"> |  reads with short base length, that is readlenght + hardclip  \< max read length; but excludes notProperPair, unmapped, duplicated and discarded reads 
    | \<value name="basesLostCount"> |     Cumulative count of the total differences between Max Read Length and individual read lengths (calculated as per column Average Read Length). This should capture any read trimming that happened before the FASTQ file was passed through an aligner 
 name="softClippedBases"       | \<value name="readCount"> |  reads contains soft clipped base but excluds notProperPair, unmapped, duplicated and discarded reads 
@@ -284,72 +243,89 @@ name="overlappedBases"        | \<value name="readCount"> |  overlapped reads wi
   all above elements    | \<value name="basesLostPercent"> |     this. basesLostCount / OverallBasesLost.basesCount
 
 
-Here the value of `maxReadLength` used on above tabel is the value of attribute `max` from `sequenceMetrics` named `reads`.
+Here the value of "readLength.max" used on above tabel, is the value of attribute "max" from "sequenceMetrics" named "reads". In this example, the value is 151. 
 ~~~~{.text}
-   <sequenceMetrics name="reads" readCount="...">
-   ...
-     <variableGroup name="readLength">
-     <value name="readCount">...</value>
+ <sequenceMetrics name="reads" readCount="3158317">
+    <variableGroup name="readLength">
      <value name="max">151</value>
 ~~~~
 
+#### properPairs and notProperPairs
+The sequence metircs named "properPairs" or "notProperPairssection" lists statistic data of pairs count for each readGroup. Here, the The attribute "pairCount" is the sum of all reads marked as "firstOfpair" and "notProperPair"/"properPairs" but excludes unmapped, duplicate and discarded reads. Both metrics lists possible pair type: "F3F5", "F5F3", "Inward", "Outward" and "Others". 
 
-
-
-properPairs and notProperPairs
-This section lists statistic data of pairs count for each readGroup. Here, the The attribute "pairCount" is the sum of all reads marked as "firstOfpair" and "notProperPair"/"properPairs" but excludes unmapped, duplicate and discarded reads.
-
-<sequenceMetrics name="properPairs" pairCount="...">
-and
+~~~~{.text}
+<sequenceMetrics name="properPairs" pairCount="...">...</sequenceMetrics>
 <sequenceMetrics name="notProperPairs" pairCount="...">
-elements and key attributes
-below is the key children elements
+ <variableGroup name="F3F5">
+  <value name="firstOfPairs">...</value>
+  <value name="secondOfPairs">...</value>
+  <value name="mateUnmappedPair">...</value>
+  <value name="mateDifferentReferencePair">...</value>
+  <value name="tlenZeroPairs">...</value>
+  <value name="tlenUnder1500Pairs">...</value>
+  <value name="tlenOver10000Pairs">...</value>
+  <value name="tlenBetween1500And10000Pairs">...</value>
+  <value name="overlappedPairs">...</value>
+  <value name="pairCountUnderTlen5000">...</value>
+ </variableGroup>
+ <variableGroup name="F5F3">...</variableGroup>
+ <variableGroup name="Inward">...</variableGroup>
+ <variableGroup name="Outward">...</variableGroup>
+ <variableGroup name="Others">...</variableGroup>
+</sequenceMetrics>
+~~~~
 
-variableGroup
+Each pair type contains below 9 children elements.
 
-value element
+  value element | Description
+---------------------- | ----------------
+\<value name="firstOfPairs"> | all reads marked as first of pair and belong variableGroup and sequenceMetrics specified category
+\<value name="secondOfPairs"> | all reads marked as second of pair and belong variableGroup and sequenceMetrics specified category
+\<value name="mateUnmappedPair"> | read is mapped, but mate belongs to unmappedReads
+\<value name="mateDifferentReferencePair"> | read and mate mapped to different reference, here we only count the firstOfPair
+\<value name="overlappedPairs"> | overlapped reads with tLen >= 0, excludes reads with zero tLen value but not firstOf Pair
+\<value name="tlenUnder1500Pairs"> | reads with tLen < 1500 and tLen > 0; exclues overlapped reads
+\<value name="tlenOver10000Pairs"> | read with tLen > 10000
+\<value name="tlenBetween1500And10000Pairs"> | read with tLen > 1500 and tLen < 10000
+\<value name="pairCountUnderTlen5000"> | reads with positive tLen and tLen < 5000; or firsrOfPair with zero tLen:wq
 
-Description
+#### OverallBasesLost 
+~~~~{.text}
+<sequenceMetrics name="OverallBasesLost" readCount="...">
+~~~~
+In above bam summary output example, the sequenceMetrics named OverallBasesLost lists the summed counts from all read groups. The attribute "readCount" in the top element stores the count of total inputted reads including discarded reads. It has 10 children elements, the description as below:
 
-name="F3F5"
-name="F5F3"
-name="Inward"
-name="Outward"
-name="Others"
+  children element | Description 
+------------------------ | ---------------------------
+\<value name="readCount">  | total reads but excludeing discarded reads  
+\<value name="basesCount"> |the sum of baseCount from all read group 
+\<value name="basesLostCount_basesLostPercent"> | (the sum of basesLostCount from all read group)/ this.basesCount 
+\<value name="basesLostCount_basesLost"> | (the sum of basesLostCount from all read group)/ this.basesCount 
+\<value name="duplicateReads_basesLostPercent"> | (the sum of duplicateReads.basesLostCount from all read group)/ this.basesCount 
+\<value name="unmappedReads_basesLostPercent"> | (the sum of unmappedReads.basesLostCount from all read group)/ this.basesCount 
+\<value name="notProperPairs_basesLostPercent"> | (the sum of notProperPairs.basesLostCount from all read group)/ this.basesCount 
+\<value name="trimmedBases_basesLostPercent"> | (the sum of trimmedBases.basesLostCount from all read group)/ this.basesCount 
+\<value name="softClippedBases_basesLostPercent" > | (the sum of softClippedBases.basesLostCount from all read group)/ this.basesCount 
+\<value name="hardClippedBases_basesLostPercent" > | (the sum of hardClippedBases.basesLostCount from all read group)/ this.basesCount 
+\<value name"=""overlappedBases_basesLostPercent"> | (the sum of overlappedBases.basesLostCount from all read group)/ this.basesCount 
 
-<value name="firstOfPairs">
 
-all reads marked as first of pair and belong variableGroup and sequenceMetrics specified category
+### BAM metrics output
+The summary of BAM record fileds are output to "bamMetrics" section. There are too much information, here we only lists "readCount" description under each "sequneceMetrics" node.
 
-<value name="secondOfPairs">
-
-all reads marked as second of pair and belong variableGroup and sequenceMetrics specified category
-
-<value name="mateUnmappedPair">
-
-read is mapped, but mate belongs to unmappedReads
-
-<value name="mateDifferentReferencePair">
-
-read and mate mapped to different reference, here we only count the firstOfPair
-
-<value name="overlappedPairs">
-
-overlapped reads with tLen >= 0, excludes reads with zero tLen value but not firstOf Pair
-
-<value name="tlenUnder1500Pairs">
-
-reads with tLen < 1500 and tLen > 0; exclues overlapped reads
-
-<value name="tlenOver10000Pairs">
-
-read with tLen > 10000
-
-<value name="tlenBetween1500And10000Pairs">
-
-read with tLen > 1500 and tLen < 10000
-
-<value name="pairCountUnderTlen5000">
-
-reads with positive tLen and tLen < 5000; or firsrOfPair with zero tLen:wq
+ parent node | sequenceMetrics node  | include discarded reads | include notPorpperPair | include unmapped | include duplicated | <div style="width:290px"> readCount descritpion </div> 
+ ---------- | ---------- | ----------- | ----------- | ------------ | ----------- | ----------------
+\<QNAME>\<readGroups> | <div style="width:300px"> \<sequenceMetrics name="qnameInfo" readCount="653091922"> </div> |  no |  no |  no |  no | total reads but excludes notProperpair, unmapped, duplicate and  discarded reads
+\<FLAG> |  \<sequenceMetrics readCount="822289947"> | yes | yes | yes | yes | Total reads including discarded reads
+\<RNAME> |  \<sequenceMetrics readCount="653091922"> |  no |  no |  no |  no | total reads but  excludes notProperpair, unmapped, duplicate and  discarded reads
+\<POS>\<readGroups> |  \<sequenceMetrics readCount="653091922"> |  no |  no |  no |  no | total reads but  excludes notProperpair, unmapped, duplicate and  discarded reads
+\<MAPQ> |  \<sequenceMetrics readCount="822289947"> | yes | yes | yes | yes | Total reads including discarded reads
+\<CIGAR>\<readGroups> |  \<sequenceMetrics readCount="814173022"> |  no | yes | yes | yes | reads including duplicateReads, nonCanonicalPairs and unmappedReads but excluding discardedReads (failed, secondary and supplementary).
+\<TLEN>\<readGroups> |  <div style="width:300px">\<sequenceMetrics name="tLenInNotProperPair" pairCount="564214"> </div> |   no | yes |  no |  no | not properPaired reads which 0 \< tLen \< 5000 or firstOfPair with tLen == 0,    excludes discarded, duplicate, unmapped and ProperPaired reads
+\<TLEN>\<readGroups> |  <div style="width:300px">\<sequenceMetrics name="overlapBaseInNotProperPair" pairCount="22428"> |</div>   no |  yes  |  no |  no | not properPaired, overlapped reads which 0 \< tLen \< 5000 or firstOfPair with tLen == 0,    excludes discarded, duplicate, unmapped and ProperPaired reads
+\<TLEN>\<readGroups> | <div style="width:300px"> \<sequenceMetrics name="tLenInProperPair" pairCount="326545961"> |</div>   no |  no |  no |  no | properPaired reads which 0 \< tLen \< 5000 or firstOfPair with tLen == 0,    excludes discarded, duplicate, unmapped and notProperPaired reads
+\<TLEN>\<readGroups> | <div style="width:300px"> \<sequenceMetrics name="overlapBaseInProperPair" pairCount="293773743"> </div> |  no |  no |  no |  no | properPaired, overlapped reads which 0 \< tLen \< 5000 or firstOfPair with tLen == 0,    excludes discarded, duplicate, unmapped and notProperPaired reads
+\<SEQ> |  \<sequenceMetrics name="seqBase" readCount="653091922"> \<sequenceMetrics name="seqLength" readCount="653091922"> \<sequenceMetrics name="badBase" readCount="653091922"> \<sequenceMetrics name="2mers" readCount="653091922"> \<sequenceMetrics name="3mers" readCount="653091922"> \<sequenceMetrics name="6mers" readCount="653091922"> | no |  no |  no |  no | total reads but  excludes notProperpair, unmapped, duplicate and  discarded reads
+\<QUAL> |  \<sequenceMetrics name="qualBase" readCount="653091922"> \<sequenceMetrics name="qualLength" readCount="653091922"> \<sequenceMetrics name="badBase" readCount="653091922"> |  no |  no |  no |  no | total reads but  excludes notProperpair, unmapped, duplicate and  discarded reads
+\<TAG> |  \<sequenceMetrics name="tags:MD:Z" readCount="797657701"> \<sequenceMetrics name="tags:PG:Z" readCount="822289947"> \<sequenceMetrics name="tags:NM:i" readCount="797657701"> \<sequenceMetrics name="tags:RG:Z" readCount="822289947"> ... |  no | yes | yes | yes | Total reads contains specified tag excludes discarded reads
 
