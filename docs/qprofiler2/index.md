@@ -78,7 +78,7 @@ java -jar xsd11-validator.jar -sf ~/PATH/qprofier2.xsd  -if qprofiler2.xml
 ~~~~
 
 ### FASTQ Mode output
-it output three main section information: read name analysis, sequence analysis and base quality analysis. An example as below:
+FASTQ mode outputs three sections information: read name analysis, sequence analysis and base quality analysis. An example as below:
 
 ~~~~{.text}
 <qProfiler finish_time=2021-09-10 16:59:32 run_by_os=Linux run_by_user=christiX start_time=2021-09-10 16:51:25 version=78-43982c9>
@@ -200,8 +200,8 @@ The <bamSummary> section contains three top level information: read group summar
 </bamSummary>
 ~~~~
 
-#### basesLost
-There are four "sequenceMetrics" under each "readGroup", one of them named "basesLost". qProfiler2 walk through whole BAM file, summarize all losted base in this section. Due to sample, sequence or mapping tool limits, there are alway some base information is not usable, we call them base lost.
+#### \<sequenceMetrics name="basesLost">
+There are four <sequenceMetrics> under each <bamSummary>/<readGroups>/<readGroup>, one of them named "basesLost". Due to sample, sequence or mapping tool limits, there are alway some base information is not usable, we call them base lost. The qprofiler2 walk through whole BAM file, summarize all losted base in this section. 
 
 ~~~~{.text}
 <readGroup name="cd90dd75-8a1f-4fd0-a352-0364d8dd5300">
@@ -250,7 +250,7 @@ Here the value of "readLength.max" used on above tabel, is the value of attribut
      <value name="max">151</value>
 ~~~~
 
-#### properPairs and notProperPairs
+#### \<sequenceMetrics name="properPairs/notProperPairs" pairCount="...">
 The sequence metircs named "properPairs" or "notProperPairssection" lists statistic data of pairs count for each readGroup. Here, the The attribute "pairCount" is the sum of all reads marked as "firstOfpair" and "notProperPair"/"properPairs" but excludes unmapped, duplicate and discarded reads. Both metrics lists possible pair type: "F3F5", "F5F3", "Inward", "Outward" and "Others". 
 
 ~~~~{.text}
@@ -289,11 +289,8 @@ Each pair type contains below 9 children elements.
 \<value name="tlenBetween1500And10000Pairs"> | read with tLen > 1500 and tLen < 10000
 \<value name="pairCountUnderTlen5000"> | reads with positive tLen and tLen < 5000; or firsrOfPair with zero tLen:wq
 
-#### OverallBasesLost 
-~~~~{.text}
-<sequenceMetrics name="OverallBasesLost" readCount="...">
-~~~~
-In above bam summary output example, the sequenceMetrics named OverallBasesLost lists the summed counts from all read groups. The attribute "readCount" in the top element stores the count of total inputted reads including discarded reads. It has 10 children elements, the description as below:
+#### \<sequenceMetrics name="OverallBasesLost" readCount="...">
+In above bam summary output example, this metrics lists the summed counts from all read groups. The attribute "readCount" in the top element stores the count of total inputted reads including discarded reads. It has 10 children elements, the description as below:
 
   children element | Description 
 ------------------------ | ---------------------------
@@ -311,20 +308,20 @@ In above bam summary output example, the sequenceMetrics named OverallBasesLost 
 
 
 ### BAM metrics output
-The summary of BAM record fileds are output to "bamMetrics" section. There are too much information, here we only lists "readCount" description under each "sequneceMetrics" node.
+The summary of BAM record fileds is outputed to "bamMetrics" section. There are too much information, here we only lists "readCount" description under each "sequneceMetrics" node.
 
  parent node | sequenceMetrics node  | include discarded reads | include notPorpperPair | include unmapped | include duplicated | <div style="width:290px"> readCount descritpion </div> 
  ---------- | ---------- | ----------- | ----------- | ------------ | ----------- | ----------------
-\<QNAME>\<readGroups> | <div style="width:300px"> \<sequenceMetrics name="qnameInfo" readCount="653091922"> </div> |  no |  no |  no |  no | total reads but excludes notProperpair, unmapped, duplicate and  discarded reads
+\<QNAME>\<readGroups> |  \<sequenceMetrics name="qnameInfo" <br> readCount="653091922">  |  no |  no |  no |  no | total reads but excludes notProperpair, unmapped, duplicate and  discarded reads
 \<FLAG> |  \<sequenceMetrics readCount="822289947"> | yes | yes | yes | yes | Total reads including discarded reads
 \<RNAME> |  \<sequenceMetrics readCount="653091922"> |  no |  no |  no |  no | total reads but  excludes notProperpair, unmapped, duplicate and  discarded reads
 \<POS>\<readGroups> |  \<sequenceMetrics readCount="653091922"> |  no |  no |  no |  no | total reads but  excludes notProperpair, unmapped, duplicate and  discarded reads
 \<MAPQ> |  \<sequenceMetrics readCount="822289947"> | yes | yes | yes | yes | Total reads including discarded reads
 \<CIGAR>\<readGroups> |  \<sequenceMetrics readCount="814173022"> |  no | yes | yes | yes | reads including duplicateReads, nonCanonicalPairs and unmappedReads but excluding discardedReads (failed, secondary and supplementary).
-\<TLEN>\<readGroups> |  <div style="width:300px">\<sequenceMetrics name="tLenInNotProperPair" pairCount="564214"> </div> |   no | yes |  no |  no | not properPaired reads which 0 \< tLen \< 5000 or firstOfPair with tLen == 0,    excludes discarded, duplicate, unmapped and ProperPaired reads
-\<TLEN>\<readGroups> |  <div style="width:300px">\<sequenceMetrics name="overlapBaseInNotProperPair" pairCount="22428"> |</div>   no |  yes  |  no |  no | not properPaired, overlapped reads which 0 \< tLen \< 5000 or firstOfPair with tLen == 0,    excludes discarded, duplicate, unmapped and ProperPaired reads
-\<TLEN>\<readGroups> | <div style="width:300px"> \<sequenceMetrics name="tLenInProperPair" pairCount="326545961"> |</div>   no |  no |  no |  no | properPaired reads which 0 \< tLen \< 5000 or firstOfPair with tLen == 0,    excludes discarded, duplicate, unmapped and notProperPaired reads
-\<TLEN>\<readGroups> | <div style="width:300px"> \<sequenceMetrics name="overlapBaseInProperPair" pairCount="293773743"> </div> |  no |  no |  no |  no | properPaired, overlapped reads which 0 \< tLen \< 5000 or firstOfPair with tLen == 0,    excludes discarded, duplicate, unmapped and notProperPaired reads
+\<TLEN>\<readGroups> |  \<sequenceMetrics name="tLenInNotProperPair" <br>pairCount="564214">  |   no | yes |  no |  no | not properPaired reads which 0 \< tLen \< 5000 or firstOfPair with tLen == 0,    excludes discarded, duplicate, unmapped and ProperPaired reads
+\<TLEN>\<readGroups> |  \<sequenceMetrics name="overlapBaseInNotProperPair" <br>pairCount="22428"> |   no |  yes  |  no |  no | not properPaired, overlapped reads which 0 \< tLen \< 5000 or firstOfPair with tLen == 0,    excludes discarded, duplicate, unmapped and ProperPaired reads
+\<TLEN>\<readGroups> |  \<sequenceMetrics name="tLenInProperPair" <br>pairCount="326545961"> |   no |  no |  no |  no | properPaired reads which 0 \< tLen \< 5000 or firstOfPair with tLen == 0,    excludes discarded, duplicate, unmapped and notProperPaired reads
+\<TLEN>\<readGroups> |  \<sequenceMetrics name="overlapBaseInProperPair" <br>pairCount="293773743">  |  no |  no |  no |  no | properPaired, overlapped reads which 0 \< tLen \< 5000 or firstOfPair with tLen == 0,    excludes discarded, duplicate, unmapped and notProperPaired reads
 \<SEQ> |  \<sequenceMetrics name="seqBase" readCount="653091922"> \<sequenceMetrics name="seqLength" readCount="653091922"> \<sequenceMetrics name="badBase" readCount="653091922"> \<sequenceMetrics name="2mers" readCount="653091922"> \<sequenceMetrics name="3mers" readCount="653091922"> \<sequenceMetrics name="6mers" readCount="653091922"> | no |  no |  no |  no | total reads but  excludes notProperpair, unmapped, duplicate and  discarded reads
 \<QUAL> |  \<sequenceMetrics name="qualBase" readCount="653091922"> \<sequenceMetrics name="qualLength" readCount="653091922"> \<sequenceMetrics name="badBase" readCount="653091922"> |  no |  no |  no |  no | total reads but  excludes notProperpair, unmapped, duplicate and  discarded reads
 \<TAG> |  \<sequenceMetrics name="tags:MD:Z" readCount="797657701"> \<sequenceMetrics name="tags:PG:Z" readCount="822289947"> \<sequenceMetrics name="tags:NM:i" readCount="797657701"> \<sequenceMetrics name="tags:RG:Z" readCount="822289947"> ... |  no | yes | yes | yes | Total reads contains specified tag excludes discarded reads
