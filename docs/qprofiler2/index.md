@@ -17,7 +17,7 @@ qprofiler2 requires java 8 and Multi-core machine (ideally) and 5G of RAM
   cd adamajava
   ~~~~
 
-*  Run gradle to build qsv and its dependent jar files:
+*  Run gradle to build qprofiler2 and its dependent jar files:
   ~~~~{.text}
   ./gradlew :qprofiler2:build
   ~~~~
@@ -42,8 +42,8 @@ Option                        Description
 --help                        Show usage and help.                                                      
 --input                       Req, input file in FASTQ, BAM/SAM or VCF format, also support FA, MA,     
                                 QUAL, FASTA, GFF and GFF3 format.                                       
---log                         Req, Log file.                                                            
---loglevel                    Opt, Logging level [INFO,DEBUG], Def=INFO.                                
+--log                         Req, log file.                                                            
+--loglevel                    Opt, logging level [INFO,DEBUG], Def=INFO.                                
 --output                      Opt, XML output which containing basic summary statistics. Def="qprofiler.
                                 xml".                                                                   
 --threads-consumer <Integer>  Opt, number of threads to process inputed records, BAM and FASTQ mode     
@@ -57,9 +57,7 @@ Option                        Description
 
 
 ### multi thread
-When running multi-threaded, we suggest more consumer than producer threads with a recommended ratio of 6:1. However, it is up to your machine system. for example, only one thread to read the input file but 12 threads are specified to process reads.
-
-Please specify the BAM index file if multiple producer threads are going to be used, eg. 
+When running multi-threaded, we suggest more consumer than producer threads with a recommended ratio of 6:1. For example, only two threads to read (producer) the input file but 12 threads are specified to process reads (consumer). The BAM index file should also be specified in multi-producer mode. eg. 
 
 ~~~~{.text}
 java -jar qprofiler2.jar --threads-consumer 12 -threads-producer 2 --bam-index  $somedir/${bam}.bai --input  $somedir/$bam --output $somedir/${bam}.qp2.xml --log $somedir/${bam}.qp2.log
@@ -69,7 +67,7 @@ java -jar qprofiler2.jar --threads-consumer 12 -threads-producer 2 --bam-index  
 
 ### Xml Validation
 
-qprofiler2 provide a schema file which help you to validate the xml output. This xsd file can download from https://purl.org/adamajava/xsd/qprofiler2/v2/qprofiler2.xsd
+qprofiler2 provides a schema file which help you to validate the xml output. This xsd file can download from https://purl.org/adamajava/xsd/qprofiler2/v2/qprofiler2.xsd
 
 ~~~~{.text}
 xmllint --noout --schema ~/PATH/qprofier2.xsd qprofiler2.xml
@@ -78,7 +76,7 @@ java -jar xsd11-validator.jar -sf ~/PATH/qprofier2.xsd  -if qprofiler2.xml
 ~~~~
 
 ### FASTQ Mode output
-FASTQ mode outputs three sections information: read name analysis, sequence analysis and base quality analysis. An example as below:
+FASTQ mode outputs read name summary to <ReadNameAnalysis> element, sequence summary to <SEQ> element, and base quality summary to <QUAL> element. An example as below:
 
 ~~~~{.text}
 <qProfiler finish_time=2021-09-10 16:59:32 run_by_os=Linux run_by_user=christiX start_time=2021-09-10 16:51:25 version=78-43982c9>
@@ -116,7 +114,7 @@ FASTQ mode outputs three sections information: read name analysis, sequence anal
 ~~~~
 
 ### BAM Mode output
-BAM record contains both fastq record information and algnment information. qProfiler2 outputs based on BAM record element order, but also output BAM header and summary information. An example as below:
+BAM mode outputs a <bamMetrics> element which lists summary counts based on BAM record element order; it also outputs a <bamHeader> element and <bamSummary> element. An example as below:
 
 ~~~~{.text}
 <qProfiler finishTime="2019-05-22 16:31:47" operatingSystem="Linux" startTime="2019-05-22 12:16:12" user="me" validationSchema="qprofiler_2_0.xsd" version="2.0 (b3a23f83)">
@@ -151,7 +149,7 @@ BAM record contains both fastq record information and algnment information. qPro
 ~~~~
 
 ### BAM summary output
-The <bamSummary> section contains three top level information: read group summary, overall summary and base lost summary. It provide the read counts for bases, reads, pairs, trims, clips, overlaps etc. A example of screen shot for the <bamSummary> is below.
+The <bamSummary> has three main elements: <readGroups>,  <sequenceMetrics name="Overall"> and <sequenceMetrics name="OverallBasesLost">. It lists the counts for bases, reads, pairs, trims, clips, overlaps etc. A example of screen shot for <bamSummary> is below.
 ~~~~{.text}
 <bamSummary>
  <readGroups>
@@ -201,7 +199,7 @@ The <bamSummary> section contains three top level information: read group summar
 ~~~~
 
 #### \<sequenceMetrics name="basesLost">
-There are four <sequenceMetrics> under each <bamSummary>/<readGroups>/<readGroup>, one of them named "basesLost". Due to sample, sequence or mapping tool limits, there are alway some base information is not usable, we call them base lost. The qprofiler2 walk through whole BAM file, summarize all losted base in this section. 
+There are four <sequenceMetrics> under each <bamSummary>/<readGroups>/<readGroup>, one of them named "basesLost". It lists the summary data of unusable bases/reads. eg.
 
 ~~~~{.text}
 <readGroup name="cd90dd75-8a1f-4fd0-a352-0364d8dd5300">
@@ -243,7 +241,7 @@ name="overlappedBases"        | \<value name="readCount"> |  overlapped reads wi
   all above elements    | \<value name="basesLostPercent"> |     this. basesLostCount / OverallBasesLost.basesCount
 
 
-Here the value of "readLength.max" used on above tabel, is the value of attribute "max" from "sequenceMetrics" named "reads". In this example, the value is 151. 
+Here the "readLength.max" on above table, is from the attribute "max" shown as below example. In this example, the value is 151. 
 ~~~~{.text}
  <sequenceMetrics name="reads" readCount="3158317">
     <variableGroup name="readLength">
@@ -308,7 +306,7 @@ In above bam summary output example, this metrics lists the summed counts from a
 
 
 ### BAM metrics output
-The summary of BAM record fileds is outputed to "bamMetrics" section. There are too much information, here we only lists "readCount" description under each "sequneceMetrics" node.
+This <bamMetrics> element lists static data based on BAM record fields order, including all mandatory fields and some optional fields in the SAM format. In each BAM record field, qprofiler2 takes different read counts. eg. it only counts mapped records to summary the POS field, but counts all records to summary the FLAG field. The details lists below:
 
  parent node | sequenceMetrics node  | include discarded reads | include notPorpperPair | include unmapped | include duplicated | <div style="width:290px"> readCount descritpion </div> 
  ---------- | ---------- | ----------- | ----------- | ------------ | ----------- | ----------------
