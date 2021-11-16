@@ -67,7 +67,7 @@ java -jar qprofiler2.jar --threads-consumer 12 -threads-producer 2 --bam-index  
 
 ### Xml Validation
 
-qprofiler2 provides a schema file which help you to validate the xml output. This xsd file can download from https://purl.org/adamajava/xsd/qprofiler2/v2/qprofiler2.xsd
+qprofiler2 provides a schema file which helps you to validate the xml output. This xsd file can be downloaded from https://purl.org/adamajava/xsd/qprofiler2/v2/qprofiler2.xsd.
 
 ~~~~{.text}
 xmllint --noout --schema ~/PATH/qprofier2.xsd qprofiler2.xml
@@ -306,7 +306,7 @@ In above bam summary output example, this metrics lists the summed counts from a
 
 
 ### BAM metrics output
-This <bamMetrics> element lists static data based on BAM record fields order, including all mandatory fields and some optional fields in the SAM format. In each BAM record field, qprofiler2 takes different read counts. eg. it only counts mapped records to summary the POS field, but counts all records to summary the FLAG field. The details lists below:
+The static data whithin the element <bamMetrics> is based on BAM record fields order, including all mandatory fields and some optional fields in the SAM format. The qprofiler2 takes different read count in each BAM record field. For example, only the mapped records are counted towards the POS field, whereas the FLAG field counts all records. The details lists below:
 
  parent node | sequenceMetrics node  | include discarded reads | include notPorpperPair | include unmapped | include duplicated | <div style="width:290px"> readCount descritpion </div> 
  ---------- | ---------- | ----------- | ----------- | ------------ | ----------- | ----------------
