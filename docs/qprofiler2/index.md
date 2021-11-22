@@ -306,7 +306,8 @@ In above bam summary output example, this metrics lists the summed counts from a
 
 
 ### BAM metrics output
-The static data whithin the element <bamMetrics> is based on BAM record fields order, including all mandatory fields and some optional fields in the SAM format. The qprofiler2 takes different read count in each BAM record field. For example, only the mapped records are counted towards the POS field, whereas the FLAG field counts all records. The details lists below:
+The static data whithin the "bamMetrics" element is based on BAM record fields order, and includes all mandatory fields and some optional fields. qprofiler2 outputs different fields depending on the BAM record. For example, only the mapped records count towards the POS field tally, whereas all records will be counted in the FLAG field. Details are listed below:
+in each BAM record field tally. 
 
  parent node | sequenceMetrics node  | include discarded reads | include notPorpperPair | include unmapped | include duplicated | <div style="width:290px"> readCount descritpion </div> 
  ---------- | ---------- | ----------- | ----------- | ------------ | ----------- | ----------------
