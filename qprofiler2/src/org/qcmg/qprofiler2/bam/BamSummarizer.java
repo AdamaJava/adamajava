@@ -14,7 +14,6 @@ package org.qcmg.qprofiler2.bam;
 
 import static java.util.stream.Collectors.toList;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Comparator;
 import java.util.List;
@@ -48,12 +47,9 @@ public class BamSummarizer implements Summarizer {
 		this.isFullBamHeader = isFullBamHeader;
 	}	
 	
-	public static BamSummaryReport createReport(File file, int maxRecords, boolean isFullBamHeader) throws IOException {
+	public static BamSummaryReport createReport(SAMFileHeader header, String file, int maxRecords, boolean isFullBamHeader) throws IOException {
 		
 		// create the SummaryReport
-		SamReader reader = SAMFileReaderFactory.createSAMFileReader(file);
-		SAMFileHeader header = reader.getFileHeader();
-		reader.close();
 		
 		SAMSequenceDictionary samSeqDict  = header.getSequenceDictionary();
 		List<String> readGroupIds = header.getReadGroups().stream().map( it -> it.getId()  ).collect(toList()); 		
@@ -63,7 +59,7 @@ public class BamSummarizer implements Summarizer {
 		bamSummaryReport.setBamHeader(header, isFullBamHeader);		
 		bamSummaryReport.setSamSequenceDictionary(samSeqDict);
 		bamSummaryReport.setReadGroups(readGroupIds);		
-		bamSummaryReport.setFileName(file.getAbsolutePath());
+		bamSummaryReport.setFileName(file);
 		bamSummaryReport.setStartTime(DateUtils.getCurrentDateAsString());
 				
 		return bamSummaryReport;			
@@ -71,12 +67,12 @@ public class BamSummarizer implements Summarizer {
 	
 
 	@Override
-	public SummaryReport summarize(String input, String index) throws Exception {
+	public SummaryReport summarize(String input, String index) throws IOException {
 		ValidationStringency vs = null != validation ? ValidationStringency.valueOf(validation) : DEFAULT_VS;
 		SamReader reader = SAMFileReaderFactory.createSAMFileReaderAsStream(input, index, vs);
 		
 		// create the SummaryReport		
-        BamSummaryReport bamSummaryReport = createReport(new File(input),  maxRecords, isFullBamHeader);
+        BamSummaryReport bamSummaryReport = createReport(reader.getFileHeader(), input,  maxRecords, isFullBamHeader);
       		
 		boolean logLevelEnabled = logger.isLevelEnabled(QLevel.DEBUG);		
 		long currentRecordCount = 0;
