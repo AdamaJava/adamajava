@@ -249,7 +249,7 @@ Here the "readLength.max" on above table, is from the attribute "max" shown as b
 ~~~~
 
 #### \<sequenceMetrics name="properPairs/notProperPairs" pairCount="...">
-The sequence metircs named "properPairs" or "notProperPairssection" lists statistic data of pairs count for each readGroup. Here, the The attribute "pairCount" is the sum of all reads marked as "firstOfpair" and "notProperPair"/"properPairs" but excludes unmapped, duplicate and discarded reads. Both metrics lists possible pair type: "F3F5", "F5F3", "Inward", "Outward" and "Others". 
+The sequence metrics named "properPairs" or "notProperPairs" section lists statistic data of pairs count for each readGroup. Here, the The attribute "pairCount" is the sum of all reads marked as "firstOfpair" and "notProperPair"/"properPairs" but excludes unmapped, duplicate and discarded reads. Both metrics lists possible pair type: "F3F5", "F5F3", "Inward", "Outward" and "Others". 
 
 ~~~~{.text}
 <sequenceMetrics name="properPairs" pairCount="...">...</sequenceMetrics>
@@ -288,7 +288,7 @@ Each pair type contains below 9 children elements.
 \<value name="pairCountUnderTlen5000"> | reads with positive tLen and tLen < 5000; or firsrOfPair with zero tLen:wq
 
 #### \<sequenceMetrics name="OverallBasesLost" readCount="...">
-In above bam summary output example, this metrics lists the summed counts from all read groups. The attribute "readCount" in the top element stores the count of total inputted reads including discarded reads. It has 10 children elements, the description as below:
+In above bam summary output example, this metric lists the summed counts from all read groups. The attribute "readCount" in the top element stores the count of total inputted reads including discarded reads. It has 10 children elements, the description as below:
 
   children element | Description 
 ------------------------ | ---------------------------
@@ -306,7 +306,7 @@ In above bam summary output example, this metrics lists the summed counts from a
 
 
 ### BAM metrics output
-The static data whithin the "bamMetrics" element is based on BAM record fields order, and includes all mandatory fields and some optional fields. qprofiler2 outputs different fields depending on the BAM record. For example, only the mapped records count towards the POS field tally, whereas all records will be counted in the FLAG field. Details are listed below:
+The statistic data whithin the "bamMetrics" element is based on BAM record fields order, and includes all mandatory fields and some optional fields. qprofiler2 take different read counts for each BAM record fields. For example, only the mapped records count towards the POS field tally, whereas all records will be counted in the FLAG field. Details are listed below:
 in each BAM record field tally. 
 
  parent node | sequenceMetrics node  | include discarded reads | include notPorpperPair | include unmapped | include duplicated | <div style="width:290px"> readCount descritpion </div> 
