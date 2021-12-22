@@ -249,7 +249,7 @@ Here the "readLength.max" on above table, is from the attribute "max" shown as b
 ~~~~
 
 #### \<sequenceMetrics name="properPairs/notProperPairs" pairCount="...">
-The sequence metrics named "properPairs" or "notProperPairs" section lists statistic data of pairs count for each readGroup. Here, the The attribute "pairCount" is the sum of all reads marked as "firstOfpair" and "notProperPair"/"properPairs" but excludes unmapped, duplicate and discarded reads. Both metrics lists possible pair type: "F3F5", "F5F3", "Inward", "Outward" and "Others". 
+The sequence metrics named "properPairs" and "notProperPairs" lists statistic data of pairs count for each readGroup. Here, the The attribute "pairCount" is the sum of all reads marked as "firstOfpair" and "notProperPair"/"properPairs" but excludes unmapped, duplicate and discarded reads. Both metrics lists possible pair type: "F3F5", "F5F3", "Inward", "Outward" and "Others". 
 
 ~~~~{.text}
 <sequenceMetrics name="properPairs" pairCount="...">...</sequenceMetrics>
@@ -300,16 +300,15 @@ In above bam summary output example, this metric lists the summed counts from al
 \<value name="unmappedReads_basesLostPercent"> | (the sum of unmappedReads.basesLostCount from all read group)/ this.basesCount 
 \<value name="notProperPairs_basesLostPercent"> | (the sum of notProperPairs.basesLostCount from all read group)/ this.basesCount 
 \<value name="trimmedBases_basesLostPercent"> | (the sum of trimmedBases.basesLostCount from all read group)/ this.basesCount 
-\<value name="softClippedBases_basesLostPercent" > | (the sum of softClippedBases.basesLostCount from all read group)/ this.basesCount 
-\<value name="hardClippedBases_basesLostPercent" > | (the sum of hardClippedBases.basesLostCount from all read group)/ this.basesCount 
-\<value name"=""overlappedBases_basesLostPercent"> | (the sum of overlappedBases.basesLostCount from all read group)/ this.basesCount 
+\<value name="softClippedBases_basesLostPercent"> | (the sum of softClippedBases.basesLostCount from all read group)/ this.basesCount 
+\<value name="hardClippedBases_basesLostPercent"> | (the sum of hardClippedBases.basesLostCount from all read group)/ this.basesCount 
+\<value name="overlappedBases_basesLostPercent"> | (the sum of overlappedBases.basesLostCount from all read group)/ this.basesCount 
 
 
 ### BAM metrics output
-The statistic data whithin the "bamMetrics" element is based on BAM record fields order, and includes all mandatory fields and some optional fields. qprofiler2 take different read counts for each BAM record fields. For example, only the mapped records count towards the POS field tally, whereas all records will be counted in the FLAG field. Details are listed below:
-in each BAM record field tally. 
+The data within the "bamMetrics" element lists summary counts based on BAM record element order, and includes all mandatory fields and some optional fields. qprofiler2 will tally these fields differently depending on the BAM record. For example, only the mapped records count towards the POS field tally, whereas all records will be counted in the FLAG field. Details are listed below:
 
- parent node | sequenceMetrics node  | include discarded reads | include notPorpperPair | include unmapped | include duplicated | <div style="width:290px"> readCount descritpion </div> 
+ parent node | sequenceMetrics node  | include discarded reads | include notProperPair | include unmapped | include duplicated | <div style="width:290px"> readCount description </div> 
  ---------- | ---------- | ----------- | ----------- | ------------ | ----------- | ----------------
 \<QNAME>\<readGroups> |  \<sequenceMetrics name="qnameInfo" <br> readCount="653091922">  |  no |  no |  no |  no | total reads but excludes notProperpair, unmapped, duplicate and  discarded reads
 \<FLAG> |  \<sequenceMetrics readCount="822289947"> | yes | yes | yes | yes | Total reads including discarded reads
