@@ -69,6 +69,10 @@ public class Compare {
 	private String [] paths;
 	private String [] additionalSearchStrings;
 	
+	private float homCutoff = SignatureUtil.HOM_CUTOFF;
+	private float upperHetCutoff = SignatureUtil.HET_UPPER_CUTOFF;
+	private float lowerHetCutoff = SignatureUtil.HET_LOWER_CUTOFF;
+	
 	private String excludeVcfsFile;
 	private List<String> excludes;
 	private String logFile;
@@ -144,7 +148,7 @@ public class Compare {
 		}
 		
 		if (outputXml != null) {
-			SignatureUtil.writeXmlOutput(fileIdsAndCounts, allComparisons, outputXml);
+			SignatureUtil.writeXmlOutput(fileIdsAndCounts, allComparisons, outputXml, homCutoff, upperHetCutoff, lowerHetCutoff);
 		}
 		
 		return exitStatus;
@@ -152,8 +156,6 @@ public class Compare {
 	
 	
 	private void cacheSizeRestricted(List<File> files) throws IOException {
-//		int cacheCounterUpper = maxCacheSize > 0 ? maxCacheSize : 1;
-//		int cacheCounterLower = 0;
 		int incrementor = maxCacheSize > 0 ? maxCacheSize : 1;
 		
 		
@@ -202,7 +204,7 @@ public class Compare {
 		// if not - load
 		Pair<SigMeta, TIntByteHashMap> result = cache.get(f);
 		if (result == null) {
-			Pair<SigMeta, TMap<String, TIntByteHashMap>> rgResults = SignatureUtil.loadSignatureGenotype(f, minimumCoverage, minimumRGCoverage);
+			Pair<SigMeta, TMap<String, TIntByteHashMap>> rgResults = SignatureUtil.loadSignatureGenotype(f, minimumCoverage, minimumRGCoverage, homCutoff, upperHetCutoff, lowerHetCutoff);
 			
 			
 			/*
@@ -415,10 +417,16 @@ public class Compare {
 			options.getNoOfThreads().ifPresent(i -> {nThreads = i.intValue();});
 			options.getMinRGCoverage().ifPresent(i -> {minimumRGCoverage = i.intValue();});
 			options.getMaxCacheSize().ifPresent(i -> {maxCacheSize = i.intValue();});
+			options.getHomCutoff().ifPresent(s -> {homCutoff = s;});
+			options.getHetUpperCutoff().ifPresent(s -> {upperHetCutoff = s;});
+			options.getHetLowerCutoff().ifPresent(s -> {lowerHetCutoff = s;});
 			logger.tool("Number of threads to use: " + nThreads);
 			logger.tool("Setting minumim coverage to: " + minimumCoverage);
 			logger.tool("Setting minumim RG coverage to: " + minimumRGCoverage);
 			logger.tool("Setting max cache size to: " + maxCacheSize);
+			logger.tool("Setting homCutoff to: " + homCutoff);
+			logger.tool("Setting upperHetCutoff to: " + upperHetCutoff);
+			logger.tool("Setting lowerHetCutoff to: " + lowerHetCutoff);
 			
 			additionalSearchStrings = options.getAdditionalSearchString();
 			logger.tool("Setting additionalSearchStrings to: " + Arrays.deepToString(additionalSearchStrings));

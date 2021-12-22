@@ -40,7 +40,7 @@ public class CompareGenotypeBespokeTest {
 		Executor exec = execute("--log " + logF.getAbsolutePath() + " -d " + f1.getParent() + " -o " + o.getAbsolutePath());
 		assertTrue(0 == exec.getErrCode());		// all ok
 		assertEquals(true, o.exists());
-		assertEquals(10, Files.readAllLines(Paths.get(o.getAbsolutePath())).size());		// 10 lines means 1 comparison
+		assertEquals(11, Files.readAllLines(Paths.get(o.getAbsolutePath())).size());		// 11 lines means 1 comparison
 	}
 	
 	@Test
@@ -56,7 +56,7 @@ public class CompareGenotypeBespokeTest {
 		Executor exec = execute("--log " + logF.getAbsolutePath() + " -d " + f1.getParent() + " -o " + o.getAbsolutePath());
 		assertTrue(0 == exec.getErrCode());		// all ok
 		assertEquals(true, o.exists());
-		assertEquals(8, Files.readAllLines(Paths.get(o.getAbsolutePath())).size());		// 8 lines means 0 comparison
+		assertEquals(9, Files.readAllLines(Paths.get(o.getAbsolutePath())).size());		// 9 lines means 0 comparison
 		
 	}
 	

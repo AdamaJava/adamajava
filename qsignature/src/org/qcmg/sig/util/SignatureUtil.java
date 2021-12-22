@@ -491,8 +491,11 @@ public class SignatureUtil {
 	public static Pair<SigMeta, TMap<String, TIntByteHashMap>> loadSignatureGenotype(File file) throws IOException {
 		return loadSignatureGenotype(file, MINIMUM_COVERAGE, MINIMUM_RG_COVERAGE);
 	}
-	
 	public static Pair<SigMeta, TMap<String, TIntByteHashMap>> loadSignatureGenotype(File file, int minCoverage, int minRGCoverage) throws IOException {
+		return loadSignatureGenotype(file, minCoverage, minRGCoverage, HOM_CUTOFF, HET_UPPER_CUTOFF, HET_LOWER_CUTOFF);
+	}
+	
+	public static Pair<SigMeta, TMap<String, TIntByteHashMap>> loadSignatureGenotype(File file, int minCoverage, int minRGCoverage, float homCutoff, float upperHetCutoff, float lowerHetCutoff) throws IOException {
 		if (null == file) {
 			throw new IllegalArgumentException("Null file object passed to loadSignatureGenotype");
 		}
@@ -513,9 +516,9 @@ public class SignatureUtil {
 			}
 			
 			if (null != sm && sm.isValid()) {
-				getDataFromBespokeLayout(file, minCoverage, minRGCoverage, ratios, rgRatios, rgIds, reader);
+				getDataFromBespokeLayout(file, minCoverage, minRGCoverage, ratios, rgRatios, rgIds, reader, homCutoff, upperHetCutoff, lowerHetCutoff);
 			} else {
-				rgRatios.put("all", loadSignatureRatiosFloatGenotypeNew(file));
+				rgRatios.put("all", loadSignatureRatiosFloatGenotypeNew(file, MINIMUM_COVERAGE, homCutoff, upperHetCutoff, lowerHetCutoff));
 			}
 		}
 		return new Pair<>(sm, rgRatios);
@@ -523,6 +526,10 @@ public class SignatureUtil {
 	
 	public static void getDataFromBespokeLayout(File file, int minCoverage, int minRGCoverage, TIntByteHashMap ratios,
 			TMap<String, TIntByteHashMap> rgRatios, Map<String, String> rgIds, StringFileReader reader) {
+		getDataFromBespokeLayout( file,  minCoverage,  minRGCoverage,  ratios, rgRatios, rgIds,  reader, HOM_CUTOFF, HET_UPPER_CUTOFF, HET_LOWER_CUTOFF);
+	}
+	public static void getDataFromBespokeLayout(File file, int minCoverage, int minRGCoverage, TIntByteHashMap ratios,
+				TMap<String, TIntByteHashMap> rgRatios, Map<String, String> rgIds, StringFileReader reader, float homCutoff, float upperHetCutoff, float lowerHetCutoff) {
 		int noOfRGs = rgIds.size();
 		logger.debug("Number of rgs for  " + file.getAbsolutePath() + " is " + noOfRGs);
 		
@@ -550,10 +557,11 @@ public class SignatureUtil {
 			Optional<float[]> array = getValuesFromCoverageStringBespoke(totalCov, minCoverage);
 			array.ifPresent(f -> {
 				
-				byte genotype1 = getCodedGenotypeAsByte(f);
+				byte genotype1 = getCodedGenotypeAsByte(f, homCutoff, upperHetCutoff, lowerHetCutoff);
 				
 				if (isCodedGenotypeValid(genotype1)) {
 					cachePosition.set(ChrPositionCache.getStringIndex(chrPosString));
+					
 					ratios.put(cachePosition.get(), genotype1);
 					/*
 					 * Get rg data if we have more than 1 rg
@@ -571,7 +579,7 @@ public class SignatureUtil {
 							Optional<float[]> arr = getValuesFromCoverageStringBespoke(cov, minRGCoverage);
 							arr.ifPresent(f2-> {
 								
-								byte genotype2 = getCodedGenotypeAsByte(f2);
+								byte genotype2 = getCodedGenotypeAsByte(f2, homCutoff, upperHetCutoff, lowerHetCutoff);
 								
 								if (isCodedGenotypeValid(genotype2)) {
 									String rg = s.substring(0, index);
@@ -1053,6 +1061,9 @@ public class SignatureUtil {
 	}
 	
 	public static void writeXmlOutput( Map<String, int[]> fileIdsAndCounts, List<Comparison> allComparisons, String outputXml) throws ParserConfigurationException, TransformerException {
+		writeXmlOutput( fileIdsAndCounts, allComparisons,  outputXml, HOM_CUTOFF, HET_UPPER_CUTOFF, HET_LOWER_CUTOFF);
+	}
+	public static void writeXmlOutput( Map<String, int[]> fileIdsAndCounts, List<Comparison> allComparisons, String outputXml, float homCutoff, float upperHetCutoff, float lowerHetCutoff) throws ParserConfigurationException, TransformerException {
 		DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
 		DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
 		
@@ -1060,6 +1071,13 @@ public class SignatureUtil {
 		Document doc = docBuilder.newDocument();
 		Element rootElement = doc.createElement("qsignature");
 		doc.appendChild(rootElement);
+		
+		// list cutoffs
+		Element cutoffsE = doc.createElement("cutoffs");
+		cutoffsE.setAttribute("hom", homCutoff + "");
+		cutoffsE.setAttribute("upper_het", upperHetCutoff + "");
+		cutoffsE.setAttribute("lower_het", lowerHetCutoff + "");
+		rootElement.appendChild(cutoffsE);
 		
 		// list files
 		Element filesE = doc.createElement("files");
