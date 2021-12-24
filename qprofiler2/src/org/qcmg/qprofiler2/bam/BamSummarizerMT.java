@@ -72,8 +72,9 @@ public class BamSummarizerMT implements Summarizer {
 		
 		// get sorted sequence for threads
 		final AbstractQueue<String> sequences = new ConcurrentLinkedQueue<>();
+		SAMFileHeader header = null;
 		try {
-			SAMFileHeader header = reader.getFileHeader();
+			header = reader.getFileHeader();
 			List<SAMSequenceRecord> samSequences = header.getSequenceDictionary().getSequences();
 			List<SAMSequenceRecord> orderedSamSequences = new ArrayList<SAMSequenceRecord>();
 			orderedSamSequences.addAll(samSequences);
@@ -102,7 +103,7 @@ public class BamSummarizerMT implements Summarizer {
 		
 		final long start = System.currentTimeMillis();		
 		final File file = new File(input);
-		final BamSummaryReport bamSummaryReport =  BamSummarizer.createReport(file,  maxRecords, isFullBamHeader );				 		
+		final BamSummaryReport bamSummaryReport =  BamSummarizer.createReport(header, input,  maxRecords, isFullBamHeader );				 		
 		logger.info("will create " + noOfConsumerThreads + " consumer threads");
 
 		final CountDownLatch pLatch = new CountDownLatch(noOfProducerThreads);
@@ -117,10 +118,10 @@ public class BamSummarizerMT implements Summarizer {
 		// setpup and kick-off single Producer thread
 		ExecutorService producerThreads = Executors.newFixedThreadPool(noOfProducerThreads);
 		if (noOfProducerThreads == 1) {
-			producerThreads.execute(new SingleProducer(queues[0], file, Thread.currentThread(), pLatch, cLatch));
+			producerThreads.execute(new SingleProducer(queues[0], input, index, vs, Thread.currentThread(), pLatch, cLatch));
 		} else {
 			for (int i = 0 ; i < noOfProducerThreads ; i++) {
-				producerThreads.execute(new Producer(queues[i], file, Thread.currentThread(), pLatch, cLatch, sequences, bamSummaryReport));
+				producerThreads.execute(new Producer(queues[i], input, index, vs, Thread.currentThread(), pLatch, cLatch, sequences, bamSummaryReport));
 			}
 		}
 
@@ -329,7 +330,8 @@ public class BamSummarizerMT implements Summarizer {
 	}
 
 	class Producer implements Runnable {
-		private final File file;
+		private final String input;
+		private final String index;
 		private final AbstractQueue<SAMRecord> queue;
 		private final Thread mainThread;
 		private final CountDownLatch prLatch;
@@ -337,9 +339,10 @@ public class BamSummarizerMT implements Summarizer {
 		private final AbstractQueue<String> sequences;
 		private final QLogger log = QLoggerFactory.getLogger(Producer.class);
 		
-		Producer(AbstractQueue<SAMRecord> q, File f, Thread mainThread, CountDownLatch prLatch, CountDownLatch coLatch, AbstractQueue<String> sequences, BamSummaryReport report) {
+		Producer(AbstractQueue<SAMRecord> q, String input, String index, ValidationStringency vs, Thread mainThread, CountDownLatch prLatch, CountDownLatch coLatch, AbstractQueue<String> sequences, BamSummaryReport report) {
 			queue = q;
-			file = f;
+			this.input = input;
+			this.index = index;
 			this.mainThread = mainThread;
 			this.prLatch = prLatch;
 			this.coLatch = coLatch;
@@ -352,7 +355,7 @@ public class BamSummarizerMT implements Summarizer {
 			log.debug("start producer ");
 														
 			long count = 0;
-			try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(file, validation);) {
+			try (SamReader reader = SAMFileReaderFactory.createSAMFileReaderAsStream(input, index, vs);) {
 				while (true) {
 					String sequence = sequences.poll();
 					if (null == sequence) {
@@ -404,15 +407,17 @@ public class BamSummarizerMT implements Summarizer {
 	}
 	
 	class SingleProducer implements Runnable {
-		private final File file;
+		private final String input;
+		private final String index;
 		private final AbstractQueue<SAMRecord> queue;
 		private final Thread mainThread;
 		private final CountDownLatch prLatch;
 		private final CountDownLatch coLatch;
 		
-		SingleProducer(AbstractQueue<SAMRecord> q, File f, Thread mainThread, CountDownLatch prLatch, CountDownLatch coLatch) {
+		SingleProducer(AbstractQueue<SAMRecord> q, String input, String index, ValidationStringency vs, Thread mainThread, CountDownLatch prLatch, CountDownLatch coLatch) {
 			queue = q;
-			file = f;
+			this.input = input;
+			this.index = index;
 			this.mainThread = mainThread;
 			this.prLatch = prLatch;
 			this.coLatch = coLatch;
@@ -421,7 +426,13 @@ public class BamSummarizerMT implements Summarizer {
 		@Override
 		public void run() {
 			logger.debug("start producer");
-			SamReader reader = SAMFileReaderFactory.createSAMFileReader(file, validation);
+			SamReader reader = null;
+			try {
+				reader = SAMFileReaderFactory.createSAMFileReaderAsStream(input, index, vs);
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
 
 			
 			long count = 0;

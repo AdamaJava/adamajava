@@ -268,13 +268,6 @@ public class QProfiler2 {
 			cmdLineFiles = options.getFileNames();
 			if (cmdLineFiles.length < 1) {
 				throw new Exception( Messages.getMessage(msgResource, "INSUFFICIENT_ARGUMENTS"));
-			} else {
-				// loop through supplied files - check they can be read
-				for (int i = 0 ; i < cmdLineFiles.length ; i ++ ) {
-					if ( ! FileUtils.canFileBeRead(cmdLineFiles[i])) {
-						throw new Exception( Messages.getMessage(msgResource, "INPUT_FILE_ERROR" , cmdLineFiles[i]));
-					}
-				}
 			}
 			
 			// set outputfile - if supplied, check that it can be written to

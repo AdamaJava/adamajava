@@ -113,10 +113,10 @@ public class QProfiler2Test {
 			} catch (Exception qpe) {
 				assertTrue(qpe.getMessage().contains( "Unsupported file type" ));
 			}
-		}	
+		}
 	}
 	
-	@Test
+	@Ignore
 	public final void executeWithNonexistantInputFile() throws Exception {
 		File logFile = testFolder.newFile("executeWithNonexistantInputFile.log");
 		
