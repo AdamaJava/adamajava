@@ -373,8 +373,6 @@ public class BuildCommonSnpsVcf {
 	 */
 	public static void main(final String[] args) throws Exception {
 		
-		LoadReferencedClasses.loadClasses(BuildCommonSnpsVcf.class);
-		
 		final BuildCommonSnpsVcf main = new BuildCommonSnpsVcf();
 		final int exitStatus = main.setup( args );
 		if (null != logger)

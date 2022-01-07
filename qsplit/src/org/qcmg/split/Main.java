@@ -16,7 +16,6 @@ public final class Main {
 	private static QLogger logger;
 
 	public static void main(final String[] args) throws URISyntaxException, IOException, ClassNotFoundException {
-		LoadReferencedClasses.loadClasses(Main.class);
 		try {
 			Options options = new Options(args);
 			if (options.hasHelpOption()) {

@@ -210,8 +210,6 @@ public class MergeSameSamples {
 
 
 	public static void main(String[] args) throws Exception {
-		//loads all classes in referenced jars into memory to avoid nightly build sheninegans
-		LoadReferencedClasses.loadClasses(MergeSameSamples.class);
 		
 		MergeSameSamples qp = new MergeSameSamples();
 		int exitStatus = qp.setup(args);

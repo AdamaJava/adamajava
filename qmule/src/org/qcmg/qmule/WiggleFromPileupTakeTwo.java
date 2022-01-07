@@ -226,7 +226,6 @@ public class WiggleFromPileupTakeTwo {
 	}
 	
 	public static void main(String[] args) throws Exception {
-		LoadReferencedClasses.loadClasses(WiggleFromPileupTakeTwo.class);
 		WiggleFromPileupTakeTwo sp = new WiggleFromPileupTakeTwo();
 		int exitStatus = sp.setup(args);
 		if (null != logger)

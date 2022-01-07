@@ -19,6 +19,21 @@ import java.util.jar.JarFile;
 public class LoadReferencedClasses {
 	
 	
+	/**
+	 * The need for the methods in this class came about when we would execute long-running processes against jars that were overwritten nightly.
+	 * The effect of re-writing the jar files as a process was running would invariably kill the process.
+	 * The solution was to pre-load all the classes in the package and in the dependent jar files up front rather than when required.
+	 * This allows the process to continue despite the jar files being re-written.
+	 * 
+	 * I am happy to say that this method of running against an often updating jar is no longer common place and this method should not be used as a matter of course.
+	 * It remains in place (and un-deprecated) as there may arise instances where its utility may be useful.
+	 * 
+	 * @param <T>
+	 * @param clazz
+	 * @throws URISyntaxException
+	 * @throws IOException
+	 * @throws ClassNotFoundException
+	 */
 	public static final <T> void loadClasses(final Class<T> clazz) throws URISyntaxException, IOException, ClassNotFoundException {
 		
 		final File thisJarFile = new File(clazz.getProtectionDomain().getCodeSource().getLocation().toURI());
