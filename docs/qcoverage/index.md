@@ -44,7 +44,9 @@ there is always one thread in addition to the number specified with
 
 ## Installation
 
-qcoverage requires java 7 and (ideally) a multi-core machine with at least 20GB of RAM.
+qcoverage requires java 8 and (ideally) a multi-core machine with at least 20GB of RAM.
+
+
 
 Download the [qcoverage tar file](http://sourceforge.net/projects/adamajava/files/qcoverage.tar.bz2/download)
 Untar the tar file into a directory of your choice
