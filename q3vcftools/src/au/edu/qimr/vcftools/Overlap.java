@@ -832,8 +832,6 @@ public class Overlap {
 //	}
 	
 	public static void main(String[] args) throws Exception {
-		//loads all classes in referenced jars into memory to avoid nightly build sheninegans
-		LoadReferencedClasses.loadClasses(Overlap.class);
 		
 		Overlap qp = new Overlap();
 		int exitStatus = qp.setup(args);

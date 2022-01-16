@@ -22,7 +22,6 @@ public class Main {
 			System.exit( 0 );
 		} 
 
-		LoadReferencedClasses.loadClasses(Main.class);
 		QLogger logger = options.getLogger();
 		int exitStatus = 0;
 		try {

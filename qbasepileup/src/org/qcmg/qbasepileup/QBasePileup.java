@@ -31,7 +31,6 @@ public class QBasePileup {
 	
 	public static void main(String[] args) throws Exception {
 		QBasePileup pileup = new QBasePileup();
-		LoadReferencedClasses.loadClasses(QBasePileup.class);
 		
 		int exitStatus = pileup.runBasePileup(args);
 

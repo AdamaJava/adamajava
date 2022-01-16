@@ -383,7 +383,6 @@ public class IndelDCCHeader {
 
 	public static void main(String[] args) throws Exception {
 		IndelDCCHeader sp = new IndelDCCHeader();
-		LoadReferencedClasses.loadClasses(IndelDCCHeader.class);
 		sp.setup(args);
 		int exitStatus = sp.annotate();
 		if (null != logger)

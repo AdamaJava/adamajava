@@ -92,7 +92,6 @@ public class QVisualise {
 	 * @throws Exception 
 	 */
 	public static void main(String[] args) throws Exception {
-		LoadReferencedClasses.loadClasses(QVisualise.class);
 		QVisualise qp = new QVisualise();
 		int exitStatus = qp.setup(args);
 		System.exit(exitStatus);

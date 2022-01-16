@@ -210,7 +210,6 @@ public final class Coverage {
 	private static QLogger mlogger = null;
 
 	public static void main(final String[] args) throws Exception {
-		LoadReferencedClasses.loadClasses(Coverage.class);
 		try {
 			moptions = new Options(args);
 			if (moptions.hasHelpOption()) {

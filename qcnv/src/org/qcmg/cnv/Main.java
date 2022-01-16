@@ -14,7 +14,6 @@ import org.qcmg.common.util.LoadReferencedClasses;
 public class Main {
 	
 	 public static void main(final String[] args) throws Exception {
-        LoadReferencedClasses.loadClasses(Main.class);
         Options option = new Options(args);
         if(option.hasHelp() || option.hasVersion())
         	 System.exit(0); 

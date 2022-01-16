@@ -518,8 +518,6 @@ public class AmalgamatorGS {
 	}
 	
 	public static void main(String[] args) throws Exception {
-		//loads all classes in referenced jars into memory to avoid nightly build shenanegans
-		LoadReferencedClasses.loadClasses(AmalgamatorGS.class);
 		
 		AmalgamatorGS qp = new AmalgamatorGS();
 		int exitStatus = qp.setup(args);
