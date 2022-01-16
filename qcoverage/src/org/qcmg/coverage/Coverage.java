@@ -12,6 +12,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.math.BigInteger;
+import java.nio.file.Files;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -133,7 +134,7 @@ public final class Coverage {
 	private  VcfHeader getHeaderForQCoverage(final String bamFileName, final String gffFile) throws Exception {
 		final VcfHeader header = new VcfHeader();
 		final DateFormat df = new SimpleDateFormat("yyyyMMdd");
-		final String version = Main.class.getPackage().getImplementationVersion();
+		final String version = Coverage.class.getPackage().getImplementationVersion();
 		final String pg = Messages.getProgramName();
 		final String fileDate = df.format(Calendar.getInstance().getTime());
 		final String uuid = QExec.createUUid();
@@ -208,9 +209,28 @@ public final class Coverage {
 	private static int exitStatus = 1; // Defaults to FAILURE
 	private static boolean performLogging = false; // Defaults to false
 	private static QLogger mlogger = null;
+	
+	
+	
+	private static String getCmd(int start, int stop) {
+		String tmpDir = "xu";
+		 String inputBam ="one.bam" ;
+		 String inputBai = "one.bai";
+		 String  inputBam2 = "two.bam";
+		 String inputBai2 = "two.bai";
+		 String fOutput = "output";
+
+		return "--log " + tmpDir + "/logfile --type  phys --input-gff3 " + tmpDir + "/test" + start + "-" + stop + ".gff3 --input-bam " + inputBam + " --bam-index " + inputBai + " --input-bam " + inputBam2 + " --bam-index " + inputBai2 + " --output " +fOutput;
+	}
+
 
 	public static void main(final String[] args) throws Exception {
-		LoadReferencedClasses.loadClasses(Coverage.class);
+		
+		
+    	String str = getCmd(54030, 54070);
+    	
+    	System.out.println("xu test getCmd: " + str);
+		
 		try {
 			moptions = new Options(args);
 			if (moptions.hasHelpOption()) {
@@ -270,11 +290,11 @@ public final class Coverage {
 	}
 
 	static String getProgramName() {
-		return Main.class.getPackage().getImplementationTitle();
+		return Coverage.class.getPackage().getImplementationTitle();
 	}
 
 	static String getProgramVersion() {
-		return Main.class.getPackage().getImplementationVersion();
+		return Coverage.class.getPackage().getImplementationVersion();
 	}
 
 	static String getVersionMessage() throws Exception {

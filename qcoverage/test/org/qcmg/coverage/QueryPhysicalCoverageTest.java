@@ -65,10 +65,10 @@ public class QueryPhysicalCoverageTest {
 	}
 	
 	private String getCmd(int start, int stop) {
-		return "--log " + tmpDir + "/logfile -t phys --query ISIZE<50 --gff3 " + tmpDir + "/test" + start + "-" + stop + ".gff3 --bam " + inputBam + " --bai " + inputBai + " -o " +fOutput.getAbsolutePath();
+		return "--log " + tmpDir + "/logfile --type phys --query ISIZE<50 --input-gff3 " + tmpDir + "/test" + start + "-" + stop + ".gff3 --input-bam " + inputBam + " --input-bai  " + inputBai + " --output " +fOutput.getAbsolutePath();
 	}
 	private String getExCmd(int start, int stop) {
-		return "--log " + tmpDir + "/logfile -t phys --query ISIZE>50 --gff3 " + tmpDir + "/test" + start + "-" + stop + ".gff3 --bam " + inputBam + " --bai " + inputBai + " -o " +fOutput.getAbsolutePath();
+		return "--log " + tmpDir + "/logfile --type phys --query ISIZE>50 --input-gff3 " + tmpDir + "/test" + start + "-" + stop + ".gff3 --input-bam " + inputBam + " --input-bai  " + inputBai + " --output " +fOutput.getAbsolutePath();
 	}
 
 	private File createGFF3File(final int start, final int end) throws IOException {
@@ -83,7 +83,9 @@ public class QueryPhysicalCoverageTest {
 	}
 
 	private Executor execute(final String command) throws IOException, InterruptedException {
-		return new Executor(command, "org.qcmg.coverage.Main");
+		//return new Executor(command, "org.qcmg.coverage.Main");
+		return new Executor(command, "org.qcmg.coverage.Coverage");
+
 	}
 	
     @Test

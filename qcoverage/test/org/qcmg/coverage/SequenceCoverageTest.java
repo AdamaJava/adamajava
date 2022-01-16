@@ -45,7 +45,7 @@ public class SequenceCoverageTest {
 	final String inputIndex1 = "coverage.bai";
  	final String output = "output";
 	final String gff3 = "test.gff3";
-//	final String cmd =  String.format("--log ./logfile --per-feature -t phys --gff3 %s --bam %s --bai %s -o %s",
+//	final String cmd =  String.format("--log ./logfile --per-feature -t phys --gff3 %s --input-bam%s --input-bai %s -o %s",
 //			gff3, inputBam1, inputIndex1,output);
 
 	 @Rule
@@ -107,14 +107,16 @@ public class SequenceCoverageTest {
 	}
 
 	private Executor execute(final String command) throws Exception {
-		return new Executor(command, "org.qcmg.coverage.Main");
+		//return new Executor(command, "org.qcmg.coverage.Main");
+		return new Executor(command, "org.qcmg.coverage.Coverage");
+
 	}
 	
 	@Test
 	public void beforeReadsStart() throws Exception {
 		File fOutput = new File(testFolder.getRoot().getAbsolutePath()+"/output");
 		ExpectedException.none();
-		Executor exec = execute("--log ./logfile -t seq --gff3 " + gff54000To54025 + " --bam " + bam + " --bai " + bai + " -o " +fOutput.getAbsolutePath());
+		Executor exec = execute("--log ./logfile --type seq --input-gff3 " + gff54000To54025 + " --input-bam " + bam + " --input-bai " + bai + " --output " +fOutput.getAbsolutePath());
 		
 		assertTrue(0 == exec.getErrCode());
 		assertTrue(fOutput.exists());
@@ -134,7 +136,7 @@ public class SequenceCoverageTest {
 	public void overlapReadsStart() throws Exception {
 		File fOutput = new File(testFolder.getRoot().getAbsolutePath()+"/output");
 		ExpectedException.none();
-		Executor exec = execute("--log ./logfile -t seq --gff3 " + gff54030To54070 + " --bam " + bam + " --bai " + bai + " -o " +fOutput.getAbsolutePath());
+		Executor exec = execute("--log ./logfile --type seq --input-gff3 " + gff54030To54070 + " --input-bam " + bam + " --input-bai " + bai + " --output " +fOutput.getAbsolutePath());
 		
 		assertTrue(0 == exec.getErrCode());
 		assertTrue(fOutput.exists());
@@ -156,7 +158,7 @@ public class SequenceCoverageTest {
     		File fOutput = new File(testFolder.getRoot().getAbsolutePath()+"/output");
 
 		ExpectedException.none();
-		Executor exec = execute("--log ./logfile -t seq --gff3 " + gff54077To54120 + " --bam " + bam + " --bai " + bai + " -o " + fOutput.getAbsolutePath());
+		Executor exec = execute("--log ./logfile --type seq --input-gff3 " + gff54077To54120 + " --input-bam " + bam + " --input-bai " + bai + " --output " + fOutput.getAbsolutePath());
 		assertTrue(0 == exec.getErrCode());
 
 		assertTrue(fOutput.exists());
@@ -177,7 +179,7 @@ public class SequenceCoverageTest {
     		File fOutput = new File(testFolder.getRoot().getAbsolutePath()+"/output");
 
 		ExpectedException.none();
-		Executor exec = execute("--log ./logfile -t seq --gff3 " + gff54000To54026 + " --bam " + bam + " --bai " + bai + " -o " + fOutput.getAbsolutePath());
+		Executor exec = execute("--log ./logfile --type seq --input-gff3 " + gff54000To54026 + " --input-bam " + bam + " --input-bai " + bai + " --output " + fOutput.getAbsolutePath());
 		assertTrue(0 == exec.getErrCode());
 
 		assertTrue(fOutput.exists());
@@ -197,7 +199,7 @@ public class SequenceCoverageTest {
 	public final void rightOnEndRead() throws Exception {
     		File fOutput = new File(testFolder.getRoot().getAbsolutePath()+"/output");
 		ExpectedException.none();
-		Executor exec = execute("--log ./logfile -t seq --gff3 " + gff54076To54120 + " --bam " + bam + " --bai " + bai +   " -o " + fOutput.getAbsolutePath());
+		Executor exec = execute("--log ./logfile --type seq --input-gff3 " + gff54076To54120 + " --input-bam " + bam + " --input-bai " + bai +   " --output " + fOutput.getAbsolutePath());
 		
 		assertTrue(0 == exec.getErrCode());
 		assertTrue(fOutput.exists());
@@ -217,7 +219,7 @@ public class SequenceCoverageTest {
 	public final void leftOverlapRead() throws Exception {
     		File fOutput = new File(testFolder.getRoot().getAbsolutePath()+"/output");
 		ExpectedException.none();
-		Executor exec = execute("--log ./logfile -t seq --gff3 " + gff54000To54036 + " --bam " + bam + " --bai " + bai +  " -o " + fOutput.getAbsolutePath());
+		Executor exec = execute("--log ./logfile --type seq --input-gff3 " + gff54000To54036 + " --input-bam " + bam + " --input-bai " + bai +  " --output " + fOutput.getAbsolutePath());
 		
 		assertTrue(0 == exec.getErrCode());
 		assertTrue(fOutput.exists());
@@ -238,7 +240,7 @@ public class SequenceCoverageTest {
 	public final void rightOverlapRead() throws Exception {
     		File fOutput = new File(testFolder.getRoot().getAbsolutePath()+"/output");
 		ExpectedException.none();
-		Executor exec = execute("--log ./logfile -t seq --gff3 " + gff54050To54120 + " --bam " + bam + " --bai " + bai +  " -o " + fOutput.getAbsolutePath());
+		Executor exec = execute(" --log ./logfile --type seq --input-gff3 " + gff54050To54120 + " --input-bam " + bam + " --input-bai " + bai +  " --output " + fOutput.getAbsolutePath());
 		
 		assertTrue(0 == exec.getErrCode());
 		assertTrue(fOutput.exists());
@@ -259,7 +261,7 @@ public class SequenceCoverageTest {
 	public final void subsetRead() throws Exception {
     		File fOutput = new File(testFolder.getRoot().getAbsolutePath()+"/output");
 		ExpectedException.none();
-		Executor exec = execute("--log ./logfile -t seq --gff3 " + gff54030To54070 + " --bam " + bam + " --bai " + bai +" -o " + fOutput.getAbsolutePath());
+		Executor exec = execute("--log ./logfile --type seq --input-gff3 " + gff54030To54070 + " --input-bam " + bam + " --input-bai " + bai +" --output " + fOutput.getAbsolutePath());
 		
 		assertTrue(0 == exec.getErrCode());
 		assertTrue(fOutput.exists());

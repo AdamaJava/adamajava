@@ -22,79 +22,73 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.qcmg.common.commandline.Executor;
-import org.qcmg.qio.record.RecordWriter;
 import org.qcmg.qio.gff3.Gff3Record;
+import org.qcmg.qio.record.RecordWriter;
 
-public class MultiBamPhysicalCoverageTest {
-	
+public class PhysicalCoverageTest {
 	static String inputBam;
 	static String inputBai;
-	static String inputBam2;
-	static String inputBai2;
 	static Path tmpDir;
 	private File fOutput;
-	static Gff3Record record;
 	
 	@Rule
 	public ExpectedException thrown = ExpectedException.none();
 	
-	@BeforeClass
-	 public static void setup() throws IOException {
+	 @BeforeClass
+	 public static void setup() throws Exception {
 		 tmpDir = Files.createTempDirectory(null);
 		 inputBam = Files.createTempFile(tmpDir, null, ".bam").toString();
 		 inputBai = inputBam.replace("bam", "bai");
-		 inputBam2 = Files.createTempFile(tmpDir, null, "2.bam").toString();
-		 inputBai2 = inputBam.replace("bam", "bai");
 		 SequenceCoverageTest.createCoverageBam(inputBam, SequenceCoverageTest.getAACSAMRecords(SortOrder.coordinate), SequenceCoverageTest.createSamHeaderObject(SortOrder.coordinate));
-		 SequenceCoverageTest.createCoverageBam(inputBam2, SequenceCoverageTest.getAACSAMRecords(SortOrder.coordinate), SequenceCoverageTest.createSamHeaderObject(SortOrder.coordinate));
-		 
-		record = new Gff3Record();
-		record.setSeqId("chr1");
-		record.setType("exon");
-		record.setScore(".");
-		record.setSource(".");
-		record.setStrand("+");
 	 }
 	 
 	 @AfterClass
 	 public static void tearDown() {
 		tmpDir.toFile().delete();
 	 }
-	 
-	 @Before
-		public final void before() {
-			fOutput = new File(tmpDir.toString() + "/output");
-		}
 
-		@After
-		public final void after() {
-			fOutput.delete();
+	@Before
+	public final void before() {
+		fOutput = new File(tmpDir.toString() + "/output");
+	}
+
+	@After
+	public final void after() {
+		fOutput.delete();
+	}
+	
+	private String getCmd(int start, int stop) {
+		return "--log " + tmpDir + "/logfile --type phys --input-gff3 " + tmpDir + "/test" + start + "-" + stop + ".gff3 --input-bam " + inputBam + " --bam-index " + inputBai + " --output" +fOutput.getAbsolutePath();
+	}
+
+	private File createGFF3File(final int start, final int end) throws IOException {
+		Gff3Record record = new Gff3Record();
+		record.setSeqId("chr1");
+		record.setType("exon");
+		record.setStart(start);
+		record.setEnd(end);
+		record.setScore(".");
+		record.setSource(".");
+		record.setStrand("+");
+
+		File file = new File(tmpDir + "/test" + start +"-" + end + ".gff3");
+		try (RecordWriter<Gff3Record> writer = new RecordWriter<>(file)) {
+			writer.add(record);
 		}
 		
-		private String getCmd(int start, int stop) {
-			return "--log " + tmpDir + "/logfile --type  phys --input-gff3 " + tmpDir + "/test" + start + "-" + stop + ".gff3 --input-bam " + inputBam + " --input-bai " + inputBai + " --input-bam " + inputBam2 + " --input-bai " + inputBai2 + " --output " +fOutput.getAbsolutePath();
-		}
-
-		private File createGFF3File(final int start, final int end) throws IOException {
-			record.setStart(start);
-			record.setEnd(end);
-
-			File file = new File(tmpDir + "/test" + start +"-" + end + ".gff3");
-			try (RecordWriter<Gff3Record> writer = new RecordWriter<>(file)) {
-				writer.add(record);
-			}
-			return file;
-		}
+		return file;
+	}
 
 	private Executor execute(final String command) throws IOException, InterruptedException {
 		//return new Executor(command, "org.qcmg.coverage.Main");
 		return new Executor(command, "org.qcmg.coverage.Coverage");
+
 	}
 	
     @Test
-	public final void leftDisjointRead() throws IOException, InterruptedException {
+	public  void leftDisjointRead() throws IOException, InterruptedException {
 		createGFF3File(54000, 54025);
-		
+
 		ExpectedException.none();
 		Executor exec = execute(getCmd(54000, 54025));
 		
@@ -111,12 +105,12 @@ public class MultiBamPhysicalCoverageTest {
 	}
 
     @Test
-	public final void rightDisjointRead() throws IOException, InterruptedException {
+	public  void rightDisjointRead() throws IOException, InterruptedException {
 		createGFF3File(54077, 54120);
 
 		ExpectedException.none();
 		Executor exec = execute(getCmd(54077, 54120));
- 
+		
 		assertTrue(0 == exec.getErrCode());
 		assertTrue(fOutput.exists());
 		
@@ -129,48 +123,50 @@ public class MultiBamPhysicalCoverageTest {
 		assertEquals("physical	exon	44	0x", fileContents.get(1));
 	}
 
+   
     @Test
-	public final void leftOnEndRead() throws IOException, InterruptedException {
+	public  void leftOnEndRead() throws IOException, InterruptedException {
 		createGFF3File(54000, 54026);
 
 		ExpectedException.none();
 		Executor exec = execute(getCmd(54000, 54026));
-
+		
 		assertTrue(0 == exec.getErrCode());
 		assertTrue(fOutput.exists());
 		
-	 	List<String> fileContents;
-	    	try (BufferedReader r= new BufferedReader( new FileReader(fOutput))) {
-	    		fileContents = r.lines().collect(Collectors.toList());
-	    	}
-	    	
-	    	assertEquals(3, fileContents.size());
-	    	assertEquals("physical	exon	26	0x", fileContents.get(1));
-	    	assertEquals("physical	exon	1	2x", fileContents.get(2));
+		List<String> fileContents;
+		try (BufferedReader r= new BufferedReader( new FileReader(fOutput))) {
+			fileContents = r.lines().collect(Collectors.toList());
+		}
+		
+		assertEquals(3, fileContents.size());
+		assertEquals("physical	exon	26	0x", fileContents.get(1));
+		assertEquals("physical	exon	1	1x", fileContents.get(2));
+
 	}
-    
-    @Test
-  	public final void rightOnEndRead() throws Exception {
-      	createGFF3File(54076, 54120);
-
-  		ExpectedException.none();
-  		Executor exec = execute(getCmd(54076, 54120));
-  		
-  		assertTrue(0 == exec.getErrCode());
-  		assertTrue(fOutput.exists());
-  		
-  		List<String> fileContents;
-  		try (BufferedReader r= new BufferedReader( new FileReader(fOutput))) {
-  			fileContents = r.lines().collect(Collectors.toList());
-  		}
-  		
-  		assertEquals(2, fileContents.size());
-  		assertEquals("physical	exon	45	0x", fileContents.get(1));
-  	}
 
     @Test
-	public final void leftOverlapRead() throws IOException, InterruptedException {
-    	createGFF3File(54000, 54036);
+	public  void rightOnEndRead() throws IOException, InterruptedException {
+		createGFF3File(54076, 54120);
+
+		ExpectedException.none();
+		Executor exec = execute(getCmd(54076, 54120));
+		
+		assertTrue(0 == exec.getErrCode());
+		assertTrue(fOutput.exists());
+		
+		List<String> fileContents;
+		try (BufferedReader r= new BufferedReader( new FileReader(fOutput))) {
+			fileContents = r.lines().collect(Collectors.toList());
+		}
+		
+		assertEquals(2, fileContents.size());
+		assertEquals("physical	exon	45	0x", fileContents.get(1));
+	}
+
+    @Test
+	public  void leftOverlapRead() throws IOException, InterruptedException {
+		createGFF3File(54000, 54036);
 
 		ExpectedException.none();
 		Executor exec = execute(getCmd(54000, 54036));
@@ -185,12 +181,13 @@ public class MultiBamPhysicalCoverageTest {
 		
 		assertEquals(3, fileContents.size());
 		assertEquals("physical	exon	26	0x", fileContents.get(1));
-		assertEquals("physical	exon	11	2x", fileContents.get(2));
+		assertEquals("physical	exon	11	1x", fileContents.get(2));
+
 	}
 
     @Test
-	public final void rightOverlapRead() throws IOException, InterruptedException {
-    		createGFF3File(54050, 54120);
+	public  void rightOverlapRead() throws IOException, InterruptedException {
+		createGFF3File(54050, 54120);
 
 		ExpectedException.none();
 		Executor exec = execute(getCmd(54050, 54120));
@@ -205,13 +202,12 @@ public class MultiBamPhysicalCoverageTest {
 		
 		assertEquals(3, fileContents.size());
 		assertEquals("physical	exon	50	0x", fileContents.get(1));
-		assertEquals("physical	exon	21	2x", fileContents.get(2));
-
+		assertEquals("physical	exon	21	1x", fileContents.get(2));
 	}
-    
+
     @Test
-	public final void subsetRead() throws IOException, InterruptedException {
-    	createGFF3File(54030, 54070);
+	public  void subsetRead() throws IOException, InterruptedException {
+		createGFF3File(54030, 54070);
 
 		ExpectedException.none();
 		Executor exec = execute(getCmd(54030, 54070));
@@ -225,14 +221,7 @@ public class MultiBamPhysicalCoverageTest {
 		}
 		
 		assertEquals(2, fileContents.size());
-		assertEquals("physical	exon	41	2x", fileContents.get(1));
+		assertEquals("physical	exon	41	1x", fileContents.get(1));
 	}
-    
-    @Test
-	public final void xu() throws IOException, InterruptedException {
-    	
-    	String str = getCmd(54030, 54070);
-    	
-    	System.out.println("xu test getCmd: " + str);
-    }
+
 }

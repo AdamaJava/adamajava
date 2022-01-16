@@ -2,6 +2,7 @@ package org.qcmg.coverage;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import htsjdk.samtools.SAMFileHeader.SortOrder;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -11,8 +12,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import htsjdk.samtools.SAMFileHeader.SortOrder;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -25,8 +24,7 @@ import org.qcmg.common.commandline.Executor;
 import org.qcmg.qio.gff3.Gff3Record;
 import org.qcmg.qio.record.RecordWriter;
 
-public class QuerySequenceCoverageTest {
- 	
+public class QueryPhysicalCoverageTest {
 	static String inputBam;
 	static String inputBai;
 	static Path tmpDir;
@@ -67,10 +65,10 @@ public class QuerySequenceCoverageTest {
 	}
 	
 	private String getCmd(int start, int stop) {
-		return "--log " + tmpDir + "/logfile --type seq --query Cigar_M>35 --input-gff3 " + tmpDir + "/test" + start + "-" + stop + ".gff3 --input-bam " + inputBam + " --input-bai  " + inputBai + " --output " +fOutput.getAbsolutePath();
+		return "--log " + tmpDir + "/logfile --type phys --query ISIZE<50 --input-gff3 " + tmpDir + "/test" + start + "-" + stop + ".gff3 --input-bam " + inputBam + " --bam-index " + inputBai + " --output" +fOutput.getAbsolutePath();
 	}
 	private String getExCmd(int start, int stop) {
-		return "--log " + tmpDir + "/logfile --type seq --query Cigar_M>45 --input-gff3 " + tmpDir + "/test" + start + "-" + stop + ".gff3 --input-bam " + inputBam + " --input-bai  " + inputBai + " --output " +fOutput.getAbsolutePath();
+		return "--log " + tmpDir + "/logfile --type phys --query ISIZE>50 --input-gff3 " + tmpDir + "/test" + start + "-" + stop + ".gff3 --input-bam " + inputBam + " --bam-index " + inputBai + " --output" +fOutput.getAbsolutePath();
 	}
 
 	private File createGFF3File(final int start, final int end) throws IOException {
@@ -90,9 +88,9 @@ public class QuerySequenceCoverageTest {
 
 	}
 	
-	@Test
-	public final void leftDisjointReadSeqCov() throws Exception {
-		createGFF3File(54000, 54025);
+    @Test
+    public final void leftDisjointRead() throws IOException, InterruptedException {
+    		createGFF3File(54000, 54025);
 
 		ExpectedException.none();
 		Executor exec = execute(getCmd(54000, 54025));
@@ -106,29 +104,29 @@ public class QuerySequenceCoverageTest {
 		}
 		
 		assertEquals(2, fileContents.size());
-		assertEquals("sequence	exon	26	0x", fileContents.get(1));
+		assertEquals("physical	exon	26	0x", fileContents.get(1));
 	}
-	
-	@Test
-	public final void leftDisjointReadSeqCovEx() throws IOException, InterruptedException {
-		createGFF3File(54000, 54025);
-		
-		ExpectedException.none();
-		Executor exec = execute(getExCmd(54000, 54025));
-		
-		assertTrue(0 == exec.getErrCode());
-		assertTrue(fOutput.exists());
-		
-		List<String> fileContents;
-		try (BufferedReader r= new BufferedReader( new FileReader(fOutput))) {
-			fileContents = r.lines().collect(Collectors.toList());
-		}
-		
-		assertEquals(2, fileContents.size());
-		assertEquals("sequence	exon	26	0x", fileContents.get(1));
-	}
+    @Test
+    public final void leftDisjointReadEx() throws IOException, InterruptedException {
+	    	createGFF3File(54000, 54025);
+	    	
+	    	ExpectedException.none();
+	    	Executor exec = execute(getExCmd(54000, 54025));
+	    	
+	    	assertTrue(0 == exec.getErrCode());
+	    	assertTrue(fOutput.exists());
+	    	
+	    	List<String> fileContents;
+	    	try (BufferedReader r= new BufferedReader( new FileReader(fOutput))) {
+	    		fileContents = r.lines().collect(Collectors.toList());
+	    	}
+	    	
+	    	assertEquals(2, fileContents.size());
+	    	assertEquals("physical	exon	26	0x", fileContents.get(1));
+    	
+    }
 
-	@Test
+    @Test
 	public final void rightDisjointRead() throws IOException, InterruptedException {
     		createGFF3File(54077, 54120);
 
@@ -144,7 +142,7 @@ public class QuerySequenceCoverageTest {
 		}
 		
 		assertEquals(2, fileContents.size());
-		assertEquals("sequence	exon	44	0x", fileContents.get(1));
+		assertEquals("physical	exon	44	0x", fileContents.get(1));
 		
 	}
     
@@ -164,7 +162,7 @@ public class QuerySequenceCoverageTest {
 	    	}
 	    	
 	    	assertEquals(2, fileContents.size());
-	    	assertEquals("sequence	exon	44	0x", fileContents.get(1));
+	    	assertEquals("physical	exon	44	0x", fileContents.get(1));
     }
    
     @Test
@@ -183,8 +181,8 @@ public class QuerySequenceCoverageTest {
 		}
 		
 		assertEquals(3, fileContents.size());
-		assertEquals("sequence	exon	26	0x", fileContents.get(1));
-		assertEquals("sequence	exon	1	1x", fileContents.get(2));
+		assertEquals("physical	exon	26	0x", fileContents.get(1));
+		assertEquals("physical	exon	1	1x", fileContents.get(2));
 	}
     
     @Test
@@ -203,7 +201,7 @@ public class QuerySequenceCoverageTest {
 	    	}
 	    	
 	    	assertEquals(2, fileContents.size());
-	    	assertEquals("sequence	exon	27	0x", fileContents.get(1));
+	    	assertEquals("physical	exon	27	0x", fileContents.get(1));
     }
 
     @Test
@@ -222,7 +220,7 @@ public class QuerySequenceCoverageTest {
 		}
 		
 		assertEquals(2, fileContents.size());
-		assertEquals("sequence	exon	45	0x", fileContents.get(1));
+		assertEquals("physical	exon	45	0x", fileContents.get(1));
 	}
     
     @Test
@@ -241,7 +239,7 @@ public class QuerySequenceCoverageTest {
 	    	}
 	    	
 	    	assertEquals(2, fileContents.size());
-	    	assertEquals("sequence	exon	45	0x", fileContents.get(1));
+	    	assertEquals("physical	exon	45	0x", fileContents.get(1));
     }
 
     @Test
@@ -260,8 +258,8 @@ public class QuerySequenceCoverageTest {
 		}
 		
 		assertEquals(3, fileContents.size());
-		assertEquals("sequence	exon	26	0x", fileContents.get(1));
-		assertEquals("sequence	exon	11	1x", fileContents.get(2));
+		assertEquals("physical	exon	26	0x", fileContents.get(1));
+		assertEquals("physical	exon	11	1x", fileContents.get(2));
 	}
     
     @Test
@@ -280,7 +278,7 @@ public class QuerySequenceCoverageTest {
 	    	}
 	    	
 	    	assertEquals(2, fileContents.size());
-	    	assertEquals("sequence	exon	37	0x", fileContents.get(1));
+	    	assertEquals("physical	exon	37	0x", fileContents.get(1));
     }
 
     @Test
@@ -299,8 +297,8 @@ public class QuerySequenceCoverageTest {
 		}
 		
 		assertEquals(3, fileContents.size());
-		assertEquals("sequence	exon	50	0x", fileContents.get(1));
-		assertEquals("sequence	exon	21	1x", fileContents.get(2));
+		assertEquals("physical	exon	50	0x", fileContents.get(1));
+		assertEquals("physical	exon	21	1x", fileContents.get(2));
 	}
     
     @Test
@@ -319,7 +317,7 @@ public class QuerySequenceCoverageTest {
 	    	}
 	    	
 	    	assertEquals(2, fileContents.size());
-	    	assertEquals("sequence	exon	71	0x", fileContents.get(1));
+	    	assertEquals("physical	exon	71	0x", fileContents.get(1));
     }
 
     @Test
@@ -338,7 +336,7 @@ public class QuerySequenceCoverageTest {
 		}
 		
 		assertEquals(2, fileContents.size());
-		assertEquals("sequence	exon	41	1x", fileContents.get(1));
+		assertEquals("physical	exon	41	1x", fileContents.get(1));
 	}
     
     @Test
@@ -357,7 +355,7 @@ public class QuerySequenceCoverageTest {
 	    	}
 	    	
 	    	assertEquals(2, fileContents.size());
-	    	assertEquals("sequence	exon	41	0x", fileContents.get(1));
-    }	
+	    	assertEquals("physical	exon	41	0x", fileContents.get(1));
+    }
 
 }
