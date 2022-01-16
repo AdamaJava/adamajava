@@ -260,8 +260,6 @@ public class SignatureCompareRelatedSimpleGenotypeMT {
 
 	
 	public static void main(String[] args) throws Exception {
-		LoadReferencedClasses.loadClasses(SignatureCompareRelatedSimpleGenotypeMT.class);
-		
 		SignatureCompareRelatedSimpleGenotypeMT sp = new SignatureCompareRelatedSimpleGenotypeMT();
 		int exitStatus = 0;
 		try {
