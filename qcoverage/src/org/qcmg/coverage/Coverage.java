@@ -211,26 +211,8 @@ public final class Coverage {
 	private static QLogger mlogger = null;
 	
 	
-	
-	private static String getCmd(int start, int stop) {
-		String tmpDir = "xu";
-		 String inputBam ="one.bam" ;
-		 String inputBai = "one.bai";
-		 String  inputBam2 = "two.bam";
-		 String inputBai2 = "two.bai";
-		 String fOutput = "output";
-
-		return "--log " + tmpDir + "/logfile --type  phys --input-gff3 " + tmpDir + "/test" + start + "-" + stop + ".gff3 --input-bam " + inputBam + " --bam-index " + inputBai + " --input-bam " + inputBam2 + " --bam-index " + inputBai2 + " --output " +fOutput;
-	}
-
-
 	public static void main(final String[] args) throws Exception {
-		
-		
-    	String str = getCmd(54030, 54070);
-    	
-    	System.out.println("xu test getCmd: " + str);
-		
+				
 		try {
 			moptions = new Options(args);
 			if (moptions.hasHelpOption()) {
