@@ -1549,8 +1549,6 @@ public class Q3ClinVar {
 	
 	
 	public static void main(String[] args) throws Exception {
-		// loads all classes in referenced jars into memory to avoid nightly build sheninegans
-		LoadReferencedClasses.loadClasses(Q3ClinVar.class);
 		
 		Q3ClinVar qp = new Q3ClinVar();
 		int exitStatus = qp.setup(args);

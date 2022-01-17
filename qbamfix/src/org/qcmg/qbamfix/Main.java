@@ -19,7 +19,6 @@ import org.qcmg.picard.SAMFileReaderFactory;
 public class Main {	
 	private static QLogger logger;
 	public static void main(final String[] args) throws Exception {
-		LoadReferencedClasses.loadClasses(Main.class);
 		
 		NewOptions options = new NewOptions(args);			
 		if( options.hasHelp() || options.hasVersion() )

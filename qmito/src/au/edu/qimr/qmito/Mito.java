@@ -14,7 +14,6 @@ public class Mito {
 	
 		
 	public static void main(String[] args) throws Exception {		
-		LoadReferencedClasses.loadClasses(Mito.class);    
        try {
             Options options = new Options(args); 
             if(options.hasHelpOption()) return;

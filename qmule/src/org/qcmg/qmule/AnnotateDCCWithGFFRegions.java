@@ -637,7 +637,6 @@ public class AnnotateDCCWithGFFRegions {
 
 	public static void main(String[] args) throws Exception {
 		AnnotateDCCWithGFFRegions sp = new AnnotateDCCWithGFFRegions();
-		LoadReferencedClasses.loadClasses(AnnotateDCCWithGFFRegions.class);
 		sp.setup(args);
 		int exitStatus = sp.engage();
 		if (null != logger)
