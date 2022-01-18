@@ -6,19 +6,13 @@
  */
 package org.qcmg.sig;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -64,8 +58,6 @@ import org.qcmg.sig.positions.VcfInMemoryPositionIterator;
 import org.qcmg.sig.positions.VcfStreamPositionIterator;
 import org.qcmg.sig.util.SignatureUtil;
 
-import static org.qcmg.common.util.Constants.NEW_LINE;
-
 import gnu.trove.map.TObjectIntMap;
 import gnu.trove.map.hash.TObjectIntHashMap;
 import htsjdk.samtools.SAMFileHeader;
@@ -75,7 +67,7 @@ import htsjdk.samtools.SamReader;
 
 /**
  * 
- * This class creates the newer "besoke" qsig vcf output file which is more parsimonious with its outputting, and will only output a position if there is coverage.
+ * This class creates the newer "bespoke" qsig vcf output file which is more parsimonious with its outputting, and will only output a position if there is coverage.
  *  
  * Coverage data is shown in the following format:
  * QAF=t:0-0-0-2,rg1:0-0-0-2,rg2:0-0-0-0
@@ -86,7 +78,7 @@ import htsjdk.samtools.SamReader;
  * @param <T>
  *
  */
-public class SignatureGeneratorBespoke {
+public class Generate {
 	
 	static QLogger logger;
 	private String logFile;
@@ -125,7 +117,6 @@ public class SignatureGeneratorBespoke {
 	private PositionIterator<ChrPosition> positionsIterator;
 	private boolean isSnpPositionsAVcfFile;
 	private MessageDigest md;
-//	private int snpPositionsCount;
 	private RecordReader<?> positionsReader;
 	
 	private List<ChrPosition> nextCPs = new java.util.LinkedList<>();
@@ -406,7 +397,6 @@ public class SignatureGeneratorBespoke {
 			// lookup corresponding snp in illumina map
 			final IlluminaRecord illRec = iIlluminaMap.get(cpForMap);
 			if (null != illRec) {
-//				logger.info("IlluminaRecord not found in iIlluminaMap with ChrPos: " + cpForMap);
 				final String [] params = illuminaArraysDesignMap.get(illRec.getSnpId());
 				if (null == params) {
 					logger.debug("didn't find entry in illuminaArraysDesignMap for snp id: " + illRec.getSnpId());
@@ -534,7 +524,6 @@ public class SignatureGeneratorBespoke {
 		}
 		
 		String samChr = rec.getReferenceName();
-//		String samChr = rec.getReferenceName().startsWith(Constants.CHR) ? rec.getReferenceName() : Constants.CHR + rec.getReferenceName();
 		if (samChr.equals(thisCP.getChromosome())) {
 			
 			if (rec.getAlignmentEnd() < thisCP.getStartPosition()) {
@@ -642,7 +631,6 @@ public class SignatureGeneratorBespoke {
 		if (null != sam && null != vcf) {
 			// get read index
 			final int indexInRead = sam.getReadPositionAtReferencePosition(vcf.getStartPosition()) - 1;		// picard's method is 1-based
-//			final int indexInRead = SAMUtils.getIndexInReadFromPosition(sam, vcf.getStartPosition());
 			if (indexInRead > -1) {
 				final byte[] readBases = sam.getReadBases();
 				if (indexInRead < readBases.length) {
@@ -667,7 +655,7 @@ public class SignatureGeneratorBespoke {
 	
 	/**
 	 * Examines the positions file to see if it a vcf file.
-	 * Does this in 2 wasy - checks the name, and if it contains vcf, all good.
+	 * Does this in 2 ways - checks the name, and if it contains vcf, all good.
 	 * If not, checks the file header to see if it contains the standard vcf header.
 	 * 
 	 * Returns a PositionInterator instance. If stream option has been set, uses that, otherwise uses an in memory version.
@@ -760,16 +748,16 @@ public class SignatureGeneratorBespoke {
 	}
 	
 	public static void main(String[] args) throws Exception {
-		final SignatureGeneratorBespoke sp = new SignatureGeneratorBespoke();
+		final Generate sp = new Generate();
 		int exitStatus = 0;
 		try {
 			exitStatus = sp.setup(args);
 		} catch (final Exception e) {
 			exitStatus = 1;
 			if (null != logger) {
-				logger.error("Exception caught whilst running SignatureGeneratorBespoke:", e);
+				logger.error("Exception caught whilst running Generate:", e);
 			} else {
-				System.err.println("Exception caught whilst running SignatureGeneratorBespoke");
+				System.err.println("Exception caught whilst running Generate");
 			}
 			e.printStackTrace();
 		}
@@ -802,8 +790,8 @@ public class SignatureGeneratorBespoke {
 		} else {
 			// configure logging
 			logFile = options.getLog();
-			logger = QLoggerFactory.getLogger(SignatureGeneratorBespoke.class, logFile, options.getLogLevel());
-			exec = logger.logInitialExecutionStats("SignatureGeneratorBespoke", SignatureGeneratorBespoke.class.getPackage().getImplementationVersion(), args);
+			logger = QLoggerFactory.getLogger(Generate.class, logFile, options.getLogLevel());
+			exec = logger.logInitialExecutionStats("Generate", Generate.class.getPackage().getImplementationVersion(), args);
 			
 			// get list of file names
 			cmdLineInputFiles = options.getInputFileNames();
