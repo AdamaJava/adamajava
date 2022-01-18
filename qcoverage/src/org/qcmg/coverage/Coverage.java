@@ -12,14 +12,12 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.math.BigInteger;
-import java.nio.file.Files;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
-
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
 
@@ -27,7 +25,6 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.meta.QExec;
 import org.qcmg.common.string.StringUtils;
-import org.qcmg.common.util.LoadReferencedClasses;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfPositionComparator;
 import org.qcmg.common.vcf.VcfRecord;
@@ -50,7 +47,7 @@ public final class Coverage {
 	}
 
 	private void writePerFeatureTabDelimitedCoverageReport( final QCoverageStats stats) throws IOException {
-		final File file = new File(options.getOutputFileNames()[0]);
+		final File file = new File(options.getOutputFileNames()[0]+ ".txt");
 		try (final BufferedWriter out = new BufferedWriter(new FileWriter(file));) {
 			out.write("#coveragetype\tnumberofbases\tcoverage\n");
 			final CoverageComparator comparator = new CoverageComparator();
@@ -71,7 +68,7 @@ public final class Coverage {
 	}
 
 	private void writePerTypeTabDelimitedCoverageReport(final QCoverageStats stats) throws IOException {
-		final File file = new File(options.getOutputFileNames()[0]);
+		final File file = new File(options.getOutputFileNames()[0]+ ".txt");
 		try (final BufferedWriter out = new BufferedWriter(new FileWriter(file));) {
 			out.write("#coveragetype\tfeaturetype\tnumberofbases\tcoverage\n");
 			final CoverageComparator comparator = new CoverageComparator();
@@ -98,7 +95,7 @@ public final class Coverage {
 		m.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
 		m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
 		m.marshal(report, sw);
-		final File file = new File(options.getOutputFileNames()[0]);
+		final File file = new File(options.getOutputFileNames()[0]+ ".xml");
 		try (final FileWriter fileWriter = new FileWriter(file);) {
 			fileWriter.write(sw.toString());
 		}
@@ -191,18 +188,24 @@ public final class Coverage {
 		for (final CoverageReport report : jobQueue.getCoverageReport()) {
 			stats.getCoverageReport().add(report);
 		}
+		
 		if (options.hasVcfFlag() && options.hasPerFeatureOption()) {
 			writeVCFReport(stats);
 		}
+		
 		if (options.hasXmlFlag()) {
 			writeXMLCoverageReport(stats);
-//			if (options.hasPerFeatureOption())
-//				writeVCFReport(stats);
-		} else if (options.hasPerFeatureOption()) {
-			writePerFeatureTabDelimitedCoverageReport(stats);
-		} else {
-			writePerTypeTabDelimitedCoverageReport(stats);
 		}
+		
+		if (options.hasTxtFlag() && options.hasPerFeatureOption()) {			 
+			writePerFeatureTabDelimitedCoverageReport(stats);
+		} 
+				
+		if (options.hasTxtFlag() && ! options.hasPerFeatureOption()) {	
+			writePerTypeTabDelimitedCoverageReport(stats);
+		}			
+		
+		
 	}
 
 	private static Options moptions = null;

@@ -6,6 +6,7 @@ package org.qcmg.coverage;
 import static java.util.Arrays.asList;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.List;
 
 import joptsimple.OptionParser;
@@ -19,16 +20,17 @@ public final class Options {
 	private static final String INPUT_BAI_OPTION_DESCRIPTION = Messages.getMessage("INPUT_BAI_OPTION_DESCRIPTION");
 	private static final String NUMBER_THREADS_DESCRIPTION = Messages.getMessage("NUMBER_THREADS_DESCRIPTION");
 	private static final String TYPE_OPTION_DESCRIPTION = Messages.getMessage("TYPE_OPTION_DESCRIPTION");
-	private static final String XML_OPTION_DESCRIPTION = Messages.getMessage("XML_OPTION_DESCRIPTION");
-	private static final String VCF_OPTION_DESCRIPTION = Messages.getMessage("VCF_OPTION_DESCRIPTION");
+	private static final String OUTPUT_FORMAT_DESCRIPTION = Messages.getMessage("OUTPUT_FORMAT_DESCRIPTION");
+	
+//	private static final String XML_OPTION_DESCRIPTION = Messages.getMessage("XML_OPTION_DESCRIPTION");
+//	private static final String VCF_OPTION_DESCRIPTION = Messages.getMessage("VCF_OPTION_DESCRIPTION");
 	private static final String PER_FEATURE_OPTION_DESCRIPTION = Messages.getMessage("PER_FEATURE_OPTION_DESCRIPTION");
 	private static final String OUTPUT_DESCRIPTION = Messages.getMessage("OUTPUT_OPTION_DESCRIPTION");
 	private static final String QUERY_OPTION_DESCRIPTION = Messages.getMessage("QUERY_OPTION_DESCRIPTION");
 	private static final String LOG_OPTION_DESCRIPTION = Messages.getMessage("LOG_OPTION_DESCRIPTION");
 	private static final String LOG_LEVEL_OPTION_DESCRIPTION = Messages.getMessage("LOG_LEVEL_OPTION_DESCRIPTION");
 	private static final String VALIDATION_STRINGENCY_OPTION_DESCRIPTION = Messages.getMessage("VALIDATION_STRINGENCY_DESCRIPTION");
-	private static final String SEGMENTER_OPTION_DESCRIPTION = Messages.getMessage("SEGMENTER_OPTION_DESCRIPTION");
-	private static final String INPUT_DESCRIPTION = Messages.getMessage("INPUT_DESCRIPTION");
+
 
 	private final OptionParser parser = new OptionParser();
 	private final OptionSet options;
@@ -37,6 +39,7 @@ public final class Options {
 	private String[] outputFileNames;
 	private String[] inputBAIFileNames;
 	private String[] types;
+	private String[] outputFormat;
 	private Integer[] numberThreads;
 	private final String logLevel;
 	private final String log;
@@ -61,9 +64,12 @@ public final class Options {
 		parser.accepts("log", LOG_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("loglevel", LOG_LEVEL_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
 		
-		parser.accepts("output", OUTPUT_DESCRIPTION).withRequiredArg().ofType(String.class);			
-		parser.accepts("output-xml", XML_OPTION_DESCRIPTION);		
-		parser.accepts("output-vcf", VCF_OPTION_DESCRIPTION);
+		parser.accepts("output", OUTPUT_DESCRIPTION).withRequiredArg().ofType(String.class);	
+		parser.accepts("output-format", OUTPUT_FORMAT_DESCRIPTION).withRequiredArg().ofType(String.class);
+		
+//		//below two has to be remove soon
+//		parser.accepts("output-xml", XML_OPTION_DESCRIPTION);		
+//		parser.accepts("output-vcf", VCF_OPTION_DESCRIPTION);
 				 
 		
 		//??.describedAs("BAM file");
@@ -76,16 +82,16 @@ public final class Options {
 		parser.accepts("per-feature", PER_FEATURE_OPTION_DESCRIPTION);						
 		parser.accepts("validation", VALIDATION_STRINGENCY_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class); 
 		
-		
-		//segmenter options
-		parser.accepts("segmenter", SEGMENTER_OPTION_DESCRIPTION);
-		parser.accepts("infile", INPUT_DESCRIPTION).withRequiredArg().ofType(String.class);
-		parser.accepts("outfile", Messages.getMessage("OUTFILE_DESCRIPTION")).withRequiredArg().ofType(String.class);
-		parser.accepts("feature", Messages.getMessage("FEATURE_DESCRIPTION")).withRequiredArg().ofType(String.class);
-		parser.accepts("merge", Messages.getMessage("MERGE_OPTION_DESCRIPTION"));
-		parser.accepts("fill", Messages.getMessage("FILL_OPTION_DESCRIPTION"));
-		parser.accepts("bounds", Messages.getMessage("BOUNDS_OPTION_DESCRIPTION")).withRequiredArg().ofType(String.class);
-		parser.accepts("reference", Messages.getMessage("REFERENCE_OPTION_DESCRIPTION")).withRequiredArg().ofType(String.class);
+
+//		//segmenter options
+//		parser.accepts("segmenter", Messages.getMessage("SEGMENTER_OPTION_DESCRIPTION"));
+//		parser.accepts("infile",  Messages.getMessage("INPUT_DESCRIPTION")).withRequiredArg().ofType(String.class);
+//		parser.accepts("outfile", Messages.getMessage("OUTFILE_DESCRIPTION")).withRequiredArg().ofType(String.class);
+//		parser.accepts("feature", Messages.getMessage("FEATURE_DESCRIPTION")).withRequiredArg().ofType(String.class);
+//		parser.accepts("merge", Messages.getMessage("MERGE_OPTION_DESCRIPTION"));
+//		parser.accepts("fill", Messages.getMessage("FILL_OPTION_DESCRIPTION"));
+//		parser.accepts("bounds", Messages.getMessage("BOUNDS_OPTION_DESCRIPTION")).withRequiredArg().ofType(String.class);
+//		parser.accepts("reference", Messages.getMessage("REFERENCE_OPTION_DESCRIPTION")).withRequiredArg().ofType(String.class);
 		
 		options = parser.parse(args);
 
@@ -109,9 +115,10 @@ public final class Options {
 			inputBAIFileNamesList.toArray(inputBAIFileNames);
 
 			inputGFF3FileNames = extractStringList("input-gff3");
-			outputFileNames = extractStringList("output");
+			outputFileNames = extractStringList("output");						
+			outputFormat = extractStringList("output-format");
+						
 			types = extractStringList("type");
-
 			numberThreads = extractIntegerList("thread");
 			
 			query = (String) options.valueOf("query");
@@ -156,13 +163,25 @@ public final class Options {
 	boolean hasLogLevelOption() {
 		return options.has("loglevel");
 	}
-
+	
+	//???
+	boolean hasTxtFlag() {
+		 
+		//default (empty) is TXT, or specify TXT
+		return outputFormat.length == 0 || 
+				! Arrays.stream(outputFormat).allMatch( f -> {  return ! f.toUpperCase().equals("TXT"); });
+	}
+	//???
 	boolean hasXmlFlag() {
-		return options.has("output-xml");
+		// if non match XML return ture and then !true
+		return ! Arrays.stream(outputFormat).allMatch( f -> {  return ! f.toUpperCase().equals("XML"); });
 	}
 	
+	//???	
 	boolean hasVcfFlag() {
-		return options.has("output-vcf");
+		// if non match vcf return ture and then !true
+		return ! Arrays.stream(outputFormat).allMatch( f -> {  return ! f.toUpperCase().equals("VCF"); });
+		 
 	}
 
 	String getLog() {
@@ -176,10 +195,6 @@ public final class Options {
 	String getLogLevel() {
 		return logLevel;
 	}
-
-//	boolean hasJsonFlag() {
-//		return options.has("json");
-//	}
 
 	public boolean hasInputBAIOption() {
 		return options.has("input-bai");
@@ -331,6 +346,7 @@ public final class Options {
 	public boolean hasMergeOption() {
 		return options.has("merge");		
 	}
+	
 	@Deprecated
 	public boolean hasFillOption() {
 		return options.has("fill");		
