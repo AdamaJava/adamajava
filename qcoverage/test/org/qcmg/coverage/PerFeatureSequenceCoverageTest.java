@@ -30,6 +30,7 @@ public class PerFeatureSequenceCoverageTest {
 	static String inputBai;
 	static Path tmpDir;
 	private File fOutput;
+	private String fname;
 	
 	@Rule
 	public ExpectedException thrown = ExpectedException.none();
@@ -49,7 +50,10 @@ public class PerFeatureSequenceCoverageTest {
 
 	@Before
 	public final void before() {
-		fOutput = new File(tmpDir.toString() + "/output");
+		
+	 	fname = tmpDir.toString() + "/output";
+		fOutput = new File(fname + ".txt");
+
 	}
 
 	@After
@@ -58,7 +62,7 @@ public class PerFeatureSequenceCoverageTest {
 	}
 	
 	private String getCmd(int start, int stop) {
-		return "--log " + tmpDir + "/logfile --type seq --per-feature --input-gff3 " + tmpDir + "/test" + start + "-" + stop + ".gff3 --input-bam " + inputBam + " --input-bai  " + inputBai + " --output " +fOutput.getAbsolutePath();
+		return "--log " + tmpDir + "/logfile --type seq --per-feature --input-gff3 " + tmpDir + "/test" + start + "-" + stop + ".gff3 --input-bam " + inputBam + " --input-bai  " + inputBai + " --output " +fname;
 	}
 
 	private File createGFF3File(final int start, final int end) throws IOException {
@@ -108,7 +112,7 @@ public class PerFeatureSequenceCoverageTest {
 
     @Test
 	public final void rightDisjointRead() throws Exception {
-    		createGFF3File(54077, 54120);
+    	createGFF3File(54077, 54120);
 
 		ExpectedException.none();
 		Executor exec = execute(getCmd(54077, 54120));

@@ -29,6 +29,7 @@ public class QueryPhysicalCoverageTest {
 	static String inputBai;
 	static Path tmpDir;
 	private File fOutput;
+	private String fname;
 	static Gff3Record record;
 
 	@Rule
@@ -56,7 +57,9 @@ public class QueryPhysicalCoverageTest {
 
 	@Before
 	public final void before() {
-		fOutput = new File(tmpDir.toString() + "/output");
+	 	fname = tmpDir.toString() + "/output";
+		fOutput = new File(fname + ".txt");
+
 	}
 
 	@After
@@ -65,10 +68,10 @@ public class QueryPhysicalCoverageTest {
 	}
 	
 	private String getCmd(int start, int stop) {
-		return "--log " + tmpDir + "/logfile --type phys --query ISIZE<50 --input-gff3 " + tmpDir + "/test" + start + "-" + stop + ".gff3 --input-bam " + inputBam + " --input-bai  " + inputBai + " --output " +fOutput.getAbsolutePath();
+		return "--log " + tmpDir + "/logfile --type phys --query ISIZE<50 --input-gff3 " + tmpDir + "/test" + start + "-" + stop + ".gff3 --input-bam " + inputBam + " --input-bai  " + inputBai + " --output " +fname;
 	}
 	private String getExCmd(int start, int stop) {
-		return "--log " + tmpDir + "/logfile --type phys --query ISIZE>50 --input-gff3 " + tmpDir + "/test" + start + "-" + stop + ".gff3 --input-bam " + inputBam + " --input-bai  " + inputBai + " --output " +fOutput.getAbsolutePath();
+		return "--log " + tmpDir + "/logfile --type phys --query ISIZE>50 --input-gff3 " + tmpDir + "/test" + start + "-" + stop + ".gff3 --input-bam " + inputBam + " --input-bai  " + inputBai + " --output " +fname;
 	}
 
 	private File createGFF3File(final int start, final int end) throws IOException {

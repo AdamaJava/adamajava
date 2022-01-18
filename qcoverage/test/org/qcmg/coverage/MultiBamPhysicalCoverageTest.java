@@ -33,6 +33,7 @@ public class MultiBamPhysicalCoverageTest {
 	static String inputBai2;
 	static Path tmpDir;
 	private File fOutput;
+	private String fname;
 	static Gff3Record record;
 	
 	@Rule
@@ -63,7 +64,8 @@ public class MultiBamPhysicalCoverageTest {
 	 
 	 @Before
 		public final void before() {
-			fOutput = new File(tmpDir.toString() + "/output");
+		 	fname = tmpDir.toString() + "/output";
+			fOutput = new File(fname + ".txt");
 		}
 
 		@After
@@ -72,7 +74,7 @@ public class MultiBamPhysicalCoverageTest {
 		}
 		
 		private String getCmd(int start, int stop) {
-			return "--log " + tmpDir + "/logfile --type  phys --input-gff3 " + tmpDir + "/test" + start + "-" + stop + ".gff3 --input-bam " + inputBam + " --input-bai " + inputBai + " --input-bam " + inputBam2 + " --input-bai " + inputBai2 + " --output " +fOutput.getAbsolutePath();
+			return "--log " + tmpDir + "/logfile --type  phys --input-gff3 " + tmpDir + "/test" + start + "-" + stop + ".gff3 --input-bam " + inputBam + " --input-bai " + inputBai + " --input-bam " + inputBam2 + " --input-bai " + inputBai2 + " --output " +fname;
 		}
 
 		private File createGFF3File(final int start, final int end) throws IOException {
