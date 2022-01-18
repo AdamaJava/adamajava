@@ -227,8 +227,6 @@ public class QProfiler2 {
 	}
 
 	public static void main(String args[]) throws Exception {
-		// loads all classes in referenced jars into memory to avoid nightly build sheninegans
-		LoadReferencedClasses.loadClasses(QProfiler2.class);
 		
 		QProfiler2 qp = new QProfiler2();
 		int exitStatus = qp.setup(args);

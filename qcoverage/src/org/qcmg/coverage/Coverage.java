@@ -215,7 +215,6 @@ public final class Coverage {
 	
 	
 	public static void main(final String[] args) throws Exception {
-				
 		try {
 			moptions = new Options(args);
 			if (moptions.hasHelpOption()) {

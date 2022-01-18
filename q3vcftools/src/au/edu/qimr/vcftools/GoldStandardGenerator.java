@@ -234,8 +234,6 @@ public class GoldStandardGenerator {
 	}
 	
 	public static void main(String[] args) throws Exception {
-		//loads all classes in referenced jars into memory to avoid nightly build sheninegans
-		LoadReferencedClasses.loadClasses(GoldStandardGenerator.class);
 		
 		GoldStandardGenerator qp = new GoldStandardGenerator();
 		int exitStatus = qp.setup(args);

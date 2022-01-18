@@ -334,8 +334,6 @@ public class Classify {
 	}
 	
 	public static void main(String[] args) throws Exception {
-		//loads all classes in referenced jars into memory to avoid nightly build sheninegans
-		LoadReferencedClasses.loadClasses(Classify.class);
 		
 		Classify qp = new Classify();
 		int exitStatus = qp.setup(args);

@@ -177,8 +177,6 @@ public class VariantAlleleFreqDist {
 	}
 	
 	public static void main(String[] args) throws Exception {
-		LoadReferencedClasses.loadClasses(VariantAlleleFreqDist.class);
-		
 		VariantAlleleFreqDist sp = new VariantAlleleFreqDist();
 		int exitStatus = 0;
 		try {

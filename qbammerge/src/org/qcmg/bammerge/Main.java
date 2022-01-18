@@ -20,8 +20,6 @@ public final class Main {
 
 	public static void main(final String[] args) {
 		try {
-			LoadReferencedClasses.loadClasses(Main.class);
-			
 			
 			Options options = new Options(args);
 			if (options.hasHelpOption()) {

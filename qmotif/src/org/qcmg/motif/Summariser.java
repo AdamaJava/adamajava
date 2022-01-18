@@ -114,7 +114,6 @@ public class Summariser {
 	
 	
 	public static void main(final String[] args) throws Exception {
-		LoadReferencedClasses.loadClasses(Motif.class);
 		Summariser operation = new Summariser();
 		int exitStatus = operation.setup( args );
 		if (null != logger)

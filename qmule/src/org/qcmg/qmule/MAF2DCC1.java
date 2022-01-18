@@ -406,7 +406,6 @@ public class MAF2DCC1 {
 
 	public static void main(String[] args) throws Exception {
 		MAF2DCC1 sp = new MAF2DCC1();
-		LoadReferencedClasses.loadClasses(MAF2DCC1.class);
 		sp.setup(args);
 		
 		int exitStatus = sp.annotate();

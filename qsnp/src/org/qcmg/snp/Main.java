@@ -38,8 +38,6 @@ public final class Main {
 	 */
 	public static void main(final String[] args) throws Exception {
 		
-		LoadReferencedClasses.loadClasses(Main.class);
-		
 		Main main = new Main();
 		int exitStatus = main.setup( args );
 		if (null != logger)

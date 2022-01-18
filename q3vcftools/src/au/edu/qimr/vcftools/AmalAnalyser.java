@@ -444,8 +444,6 @@ public class AmalAnalyser {
 	}
 	
 	public static void main(String[] args) throws Exception {
-		//loads all classes in referenced jars into memory to avoid nightly build shenanegans
-		LoadReferencedClasses.loadClasses(AmalAnalyser.class);
 		
 		AmalAnalyser qp = new AmalAnalyser();
 		int exitStatus = qp.setup(args);

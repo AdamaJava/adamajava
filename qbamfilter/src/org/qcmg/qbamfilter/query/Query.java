@@ -53,7 +53,6 @@ public class Query {
 	}
 	
 	public static void main(final String[] args) throws Exception {
-		LoadReferencedClasses.loadClasses(Query.class);
 		new Query(args);
 	}
 	

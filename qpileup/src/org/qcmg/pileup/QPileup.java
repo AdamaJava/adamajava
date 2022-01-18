@@ -56,7 +56,6 @@ public final class QPileup {
 				ViewMT view = new ViewMT(options);
 				view.execute();
 			} else {
-				LoadReferencedClasses.loadClasses(QPileup.class);
 				//check to make sure there are no bad options
 				options.parseIniFile();
 				

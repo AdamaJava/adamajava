@@ -235,8 +235,6 @@ public class CompareGenotypeBespoke {
 
 	
 	public static void main(String[] args) throws Exception {
-		LoadReferencedClasses.loadClasses(CompareGenotypeBespoke.class);
-		
 		CompareGenotypeBespoke sp = new CompareGenotypeBespoke();
 		int exitStatus = 0;
 		try {

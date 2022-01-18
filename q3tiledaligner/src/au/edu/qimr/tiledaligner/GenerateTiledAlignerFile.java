@@ -205,8 +205,6 @@ public class GenerateTiledAlignerFile {
 	}
 	
 	public static void main(String[] args) throws Exception {
-		// loads all classes in referenced jars into memory to avoid nightly build sheninegans
-		LoadReferencedClasses.loadClasses(GenerateTiledAlignerFile.class);
 		
 		GenerateTiledAlignerFile qp = new GenerateTiledAlignerFile();
 		int exitStatus = qp.setup(args);
