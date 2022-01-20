@@ -3,12 +3,11 @@
  */
 package org.qcmg.coverage;
 
-import static java.util.Arrays.asList;
-
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
+import joptsimple.BuiltinHelpFormatter;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 
@@ -22,8 +21,6 @@ public final class Options {
 	private static final String TYPE_OPTION_DESCRIPTION = Messages.getMessage("TYPE_OPTION_DESCRIPTION");
 	private static final String OUTPUT_FORMAT_DESCRIPTION = Messages.getMessage("OUTPUT_FORMAT_DESCRIPTION");
 	
-//	private static final String XML_OPTION_DESCRIPTION = Messages.getMessage("XML_OPTION_DESCRIPTION");
-//	private static final String VCF_OPTION_DESCRIPTION = Messages.getMessage("VCF_OPTION_DESCRIPTION");
 	private static final String PER_FEATURE_OPTION_DESCRIPTION = Messages.getMessage("PER_FEATURE_OPTION_DESCRIPTION");
 	private static final String OUTPUT_DESCRIPTION = Messages.getMessage("OUTPUT_OPTION_DESCRIPTION");
 	private static final String QUERY_OPTION_DESCRIPTION = Messages.getMessage("QUERY_OPTION_DESCRIPTION");
@@ -66,13 +63,7 @@ public final class Options {
 		
 		parser.accepts("output", OUTPUT_DESCRIPTION).withRequiredArg().ofType(String.class);	
 		parser.accepts("output-format", OUTPUT_FORMAT_DESCRIPTION).withRequiredArg().ofType(String.class);
-		
-//		//below two has to be remove soon
-//		parser.accepts("output-xml", XML_OPTION_DESCRIPTION);		
-//		parser.accepts("output-vcf", VCF_OPTION_DESCRIPTION);
-				 
-		
-		//??.describedAs("BAM file");
+				
 		parser.accepts("input-bam", INPUT_BAM_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);				
 		parser.accepts("input-bai", INPUT_BAI_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);		
 		parser.accepts("input-gff3", INPUT_GFF3_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);				 
@@ -241,7 +232,8 @@ public final class Options {
 	}
 
 	public void displayHelp() throws Exception {
-		parser.printHelpOn(System.out);
+		parser.formatHelpWith(new BuiltinHelpFormatter(135, 2));
+		parser.printHelpOn(System.err);
 	}
 
 	public Integer[] getNumberThreads() {
