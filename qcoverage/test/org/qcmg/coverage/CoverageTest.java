@@ -73,10 +73,7 @@ public class CoverageTest {
 		Executor exec = execute(cmd);		
 		assertTrue(0 == exec.getErrCode());
 				
-		File fOutput = new File(fname + ".txt");
-		//debug
-		System.out.println("output: " + fOutput.getAbsolutePath());
-		
+		File fOutput = new File(fname + ".txt");		
 		assertTrue(fOutput.exists());
 	}
 	
@@ -90,31 +87,84 @@ public class CoverageTest {
 		assertTrue(0 == exec.getErrCode());
 		
 		File fOutput = new File(fname + ".txt");
-		//debug
-		System.out.println("output: " + fOutput.getAbsolutePath());
-
 		assertFalse(fOutput.exists());		
 		fOutput = new File(fname + ".xml");
-		//debug
-		System.out.println("output: " + fOutput.getAbsolutePath());
-
 		assertTrue(fOutput.exists());
+	}
+	
+	@Test
+	public final void VcfTest() throws Exception {
+		String cmd = "--log " + log + " --type phys  --input-gff3 " + inputGff3 + " --input-bam " + inputBam + 
+				" --input-bai " + inputBai +  " --output " +fname  + " --output-format vcf";
+
+		//no output only
+		Executor exec = execute(cmd);		
+		assertTrue(0 == exec.getErrCode());
+		
+		File fOutput = new File(fname + ".txt");
+		assertFalse(fOutput.exists());	
+		fOutput = new File(fname + ".xml");
+		assertFalse(fOutput.exists());			
+		fOutput = new File(fname + ".vcf");
+		assertFalse(fOutput.exists());
 	}	
 	
-
- 
+	@Test
+	public final void VcfFeatureTest() throws Exception {
+		String cmd = "--log " + log + " --type phys  --input-gff3 " + inputGff3 + " --input-bam " + inputBam + 
+				" --input-bai " + inputBai +  " --output " +fname  + " --per-feature --output-format vcf";
 	
-	private String getCmd( String format ) {
-		//debug
-		System.out.println("getCmd fname: " + fname);
+		//vcf output only
+		Executor exec = execute(cmd);		
+		assertTrue(0 == exec.getErrCode());
 		
-		return "--log " + log + " --type phys  --input-gff3 " + inputGff3 + " --input-bam " + inputBam +  " --output " +fname + format;
-	}
+		File fOutput = new File(fname + ".txt");
+		assertFalse(fOutput.exists());	
+		fOutput = new File(fname + ".xml");
+		assertFalse(fOutput.exists());	
+		
+		fOutput = new File(fname + ".vcf");
+		assertTrue(fOutput.exists());
+	}		
+	
+	@Test
+	public final void AllTest() throws Exception {
+		String cmd = "--log " + log + " --type phys  --input-gff3 " + inputGff3 + " --input-bam " + inputBam + 
+				" --input-bai " + inputBai +  " --output " +fname  + 
+				" --output-format vcf  --output-format xml  --output-format txt";
+
+		//two types output
+		Executor exec = execute(cmd);		
+		assertTrue(0 == exec.getErrCode());
+		
+		File fOutput = new File(fname + ".txt");
+		assertTrue(fOutput.exists());	
+		fOutput = new File(fname + ".xml");
+		assertTrue(fOutput.exists());			
+		fOutput = new File(fname + ".vcf");
+		assertFalse(fOutput.exists());
+	}	
+
+	
+	@Test
+	public final void AllFeatureTest() throws Exception {
+		String cmd = "--log " + log + " --type phys  --input-gff3 " + inputGff3 + " --input-bam " + inputBam + 
+				" --input-bai " + inputBai +  " --output " +fname  + 
+				" --per-feature --output-format vcf  --output-format xml  --output-format txt";
+
+		//three types output
+		Executor exec = execute(cmd);		
+		assertTrue(0 == exec.getErrCode());
+		
+		File fOutput = new File(fname + ".txt");
+		assertTrue(fOutput.exists());	
+		fOutput = new File(fname + ".xml");
+		assertTrue(fOutput.exists());			
+		fOutput = new File(fname + ".vcf");
+		assertTrue(fOutput.exists());
+	}	
 
 	private Executor execute(final String command) throws Exception {
-		//debug
-		System.out.println("execute command: " + command);
-
 		return new Executor(command, "org.qcmg.coverage.Coverage");
 
 	}
