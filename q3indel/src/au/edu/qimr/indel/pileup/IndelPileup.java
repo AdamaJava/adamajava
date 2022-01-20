@@ -1,16 +1,18 @@
 package au.edu.qimr.indel.pileup;
 
-import htsjdk.samtools.Cigar;
-import htsjdk.samtools.CigarElement;
-import htsjdk.samtools.CigarOperator;
-import htsjdk.samtools.SAMRecord;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
 import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.util.IndelUtils.SVTYPE;
 import org.qcmg.picard.util.SAMUtils;
+
+import htsjdk.samtools.Cigar;
+import htsjdk.samtools.CigarElement;
+import htsjdk.samtools.CigarOperator;
+import htsjdk.samtools.SAMRecord;
 
 public class IndelPileup { 
 	private final int indelStart;
@@ -27,14 +29,14 @@ public class IndelPileup {
 	private  int nearbyIndel ;  //must be informative	
 	private final int maxEvent; //max variant event allowed in a strong supporting read
 	
-	List<Integer> support = new ArrayList<>();
-	List<Integer> strongSupport = new ArrayList<>();
-	List<Integer> forwardstrong = new ArrayList<>();
-	List<Integer> backwardstrong = new ArrayList<>();
+	final List<Integer> support = new ArrayList<>();
+	final List<Integer> strongSupport = new ArrayList<>();
+	final List<Integer> forwardstrong = new ArrayList<>();
+	final List<Integer> backwardstrong = new ArrayList<>();
 	
-	List<Integer> partial = new ArrayList<>();  
-	List<Integer> novelStart4strong = new ArrayList<>(); 
-	List<Integer> novelStart4support = new ArrayList<>(); 
+	final List<Integer> partial = new ArrayList<>();  
+	final List<Integer> novelStart4strong = new ArrayList<>(); 
+	final List<Integer> novelStart4support = new ArrayList<>(); 
 	
 	public IndelPileup( IndelPosition pos, int nearbySoftClipWindow, int nearyIndelWindow, int maxEvent) { 	
 		this.position = pos.getChrRangePosition();
@@ -46,13 +48,13 @@ public class IndelPileup {
 		this.maxEvent = maxEvent;
 		this.motifs = pos.getMotifs();		
 		for (int i = 0; i < motifs.size(); i ++) { 
-			support.add(i,0); 
-			strongSupport.add(i,0);
-			forwardstrong.add(i,0); 
-			backwardstrong.add(i,0); 
-			partial.add(i,0);
+			support.add(i, 0); 
+			strongSupport.add(i, 0);
+			forwardstrong.add(i, 0); 
+			backwardstrong.add(i, 0); 
+			partial.add(i, 0);
 			novelStart4strong.add(i, 0);		
-			novelStart4support.add(i,0);
+			novelStart4support.add(i, 0);
 		}
 	}
 		

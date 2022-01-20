@@ -4,15 +4,17 @@
 
 package au.edu.qimr.indel.pileup;
 
-import au.edu.qimr.indel.Q3IndelException;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.util.IndelUtils.SVTYPE;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
+
+import au.edu.qimr.indel.Q3IndelException;
 
 public class IndelPosition {
 	
@@ -25,33 +27,31 @@ public class IndelPosition {
 	private IndelPileup normalPileup;
 	
 	/**
-	 * retrive information from a vcf record
+	 * retrieve information from a vcf record
 	 * 
 	 * @param re a vcf record
 	 * @param type of SNP MNP etc
 	 */
 	public IndelPosition(VcfRecord re, SVTYPE type) { 
-		vcfs = new ArrayList<VcfRecord>(); 
-		
-		VcfRecord vcf = re; 				
+		vcfs = new ArrayList<>(); 
 		vcfs.add(re);		
 		
 		this.mutationType = type;
-		String fullChromosome = IndelUtils.getFullChromosome(vcf.getChromosome());	 	
+		String fullChromosome = IndelUtils.getFullChromosome(re.getChromosome());	 	
 		
 		if (isInsertion()) { 
-			this.indelStart = vcf.getPosition();
-			this.indelEnd = vcf.getPosition() + 1;
+			this.indelStart = re.getPosition();
+			this.indelEnd = re.getPosition() + 1;
 		} else if (isDeletion()) { 
-			this.indelStart = vcf.getPosition() + 1; 
-			this.indelEnd = vcf.getPosition() + vcf.getRef().length() - 1; 
+			this.indelStart = re.getPosition() + 1; 
+			this.indelEnd = re.getPosition() + re.getRef().length() - 1; 
 		} else { 
 			this.indelStart = -1; 
 			this.indelEnd = -1; 
 		}
 		
-		int start = vcf.getPosition();
-		int end = vcf.getChrPosition().getEndPosition();
+		int start = re.getPosition();
+		int end = re.getChrPosition().getEndPosition();
 		position = new ChrRangePosition(fullChromosome, start, end);		
 	}
 
@@ -65,10 +65,6 @@ public class IndelPosition {
 	
 	public IndelPosition(VcfRecord re) { 
 		this( re, IndelUtils.getVariantType(re.getRef(), re.getAlt()) );		
-	}
-	
-	public IndelPosition(List<VcfRecord> res ) { 
-		this(res, IndelUtils.getVariantType( res.get(0).getRef(), res.get(0).getAlt()) );
 	}
 	
 	public VcfRecord getIndelVcf(int index) { 	
@@ -303,8 +299,8 @@ public class IndelPosition {
 		
 		float nn = (pileup == null || pileup.getTotalCount() == 0) ? 0 : (float) pileup.getNearbyIndelCount() / pileup.getTotalCount();
 		float ss = (pileup == null || pileup.getInformativeCount() == 0) ? 0 : (float) pileup.getStrongSupportReadCount(index) / pileup.getInformativeCount();
-		re.appendInfo( String.format( IndelUtils.INFO_NIOC + "=" + ((nn == 0 ) ? "0" : String.format("%.3f", nn))) );		
-		re.appendInfo( String.format( IndelUtils.INFO_SSOI + "=" + ((ss == 0 ) ? "0" : String.format("%.3f", ss))) );	
+		re.appendInfo(IndelUtils.INFO_NIOC + "=" + ((nn == 0 ) ? "0" : String.format("%.3f", nn)));		
+		re.appendInfo(IndelUtils.INFO_SSOI + "=" + ((ss == 0 ) ? "0" : String.format("%.3f", ss)));	
 				
 		re.appendInfo("SVTYPE=" + this.mutationType.name());
 		re.appendInfo("END=" + indelEnd);
