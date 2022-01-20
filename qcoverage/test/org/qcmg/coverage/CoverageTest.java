@@ -5,17 +5,10 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Random;
 
-import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.commandline.Executor;
 import org.qcmg.qio.gff3.Gff3Record;
@@ -58,9 +51,7 @@ public class CoverageTest {
 		inputGff3 = file.getAbsolutePath();
 		log = inputBam.replace("bam", "log");
 		fname = testFolder.getRoot().getAbsolutePath()+"/output";
-	 }
-
- 
+	 } 
 	
 	@Test
 	public final void DefaultTest() throws Exception {
@@ -166,8 +157,5 @@ public class CoverageTest {
 
 	private Executor execute(final String command) throws Exception {
 		return new Executor(command, "org.qcmg.coverage.Coverage");
-
 	}
-
-
 }
