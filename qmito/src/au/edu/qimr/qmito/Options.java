@@ -17,8 +17,7 @@ public class Options {
    public static final String StatMode = "stat";
 	
    private static final String VERSION_DESCRIPTION = Messages.getMessage("VERSION_OPTION_DESCRIPTION");
-   private static final String HELP_DESCRIPTION = Messages.getMessage("HELP_OPTION_DESCRIPTION");  
-   
+    
 	private String mode = null;
 	private MetricOptions  metricOpt = null; 
 	private StatOptions statOpt = null;
@@ -32,18 +31,11 @@ public class Options {
     public Options(final String[] args) throws Exception{ 
 
     	parser.allowsUnrecognizedOptions(); 
-        parser.accepts(  "help", HELP_DESCRIPTION);
         parser.accepts(  "version", VERSION_DESCRIPTION);
         parser.accepts("mode", Messages.getMessage("OPTION_MODE")).withRequiredArg().ofType(String.class);	
         options = parser.parse(args);   
-             
-//        if( !options.has("v") && !options.has("version") && !options.has("m") && !options.has("v") & !options.has("version")){
-//	        System.out.println(Messages.getMessage("WRONG_OPTIONS",QLogger.reconstructCommandLine(Messages.getProgramName(), args))); 
-//	        parser.printHelpOn(System.err);
-//	        System.out.println(Messages.USAGE);   	
-//        }
-        
-        if(options.has("v") || options.has("version")){ 
+                     
+        if( options.has("version")){ 
         	System.out.println( "Current version is " + getVersion());
         	return;
         }
@@ -60,18 +52,7 @@ public class Options {
         	System.out.println( "Missing mode option!");
         	System.out.println(Messages.USAGE); 
         	
-        }
-        
-        
-        
-        
-//        if( (options.has("h") || options.has("help") ) && mode == null){
-//	        System.out.println(Messages.getMessage("HELP_OPTION_DESCRIPTION"));	   
-//	        parser.printHelpOn(System.err);
-//	        System.out.println(Messages.USAGE);   	
-//        }
-        	
-     
+        }     
     } 
     
     public boolean hasHelpOption(){
@@ -93,7 +74,6 @@ public class Options {
   
     public String getVersion(){
     	return Options.class.getPackage().getImplementationVersion();
-      //  return Messages.getMessage("VERSION_MESSAGE");
     }
     public String getPGName(){
         //return Messages.getMessage("PROGRAM_NAME");
