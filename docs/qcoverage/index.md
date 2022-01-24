@@ -96,7 +96,7 @@ Option              Description
 The default output is tab delimited text format, with or without option "--output-format TXT". Here file extension ".txt" is automatically append to putput file. 
 
 ~~~~
-]$java -jar qcoverage.java --type phys --output /path/report \
+]$java -jar qcoverage.java --type physical --output /path/report \
 --input-gff3 /path/GRCh37_ICGC_standard_v2.gff3 --input-bam /path/input.bam --log /path/output.log 
 
 ]$less /path/report.txt
@@ -111,7 +111,7 @@ physical        chrom   6       1540x
 
 You can also specify the output to be XML format. Here file extension ".xml" is automatically append to putput file. 
 ~~~~
-]$java -jar qcoverage.java --type phys \
+]$java -jar qcoverage.java --type physical \
 --output-format XML --output /path/report \
 --input-gff3 /path/GRCh37_ICGC_standard_v2.gff3 --input-bam /path/input.bam --log /path/report.log 
 
@@ -182,7 +182,7 @@ which we interpret as:
 ### multi formate output
 The multi formate output is allowed but not recomended. Here the VCF format only work with per-feature mode. For example
 ~~~~{.text}
-]$java -jar qcoverage.java --type phys --per-feature \
+]$java -jar qcoverage.java --type physical --per-feature \
 --output-format TXT --output-format VCF  --output-format XML \
 --output /path/report  --input-gff3 /path/GRCh37_ICGC_standard_v2.gff3 --input-bam /path/input.bam --log /path/report.log
 
@@ -201,7 +201,7 @@ of worker threads.  For example, applying --thread 15 to yield 15 worker threads
 1 supervising thread:
 
 ~~~~{.text}
-java -Xmx20G -jar qcoverage.jar --thread 15 --type seq \
+java -Xmx20G -jar qcoverage.jar --thread 15 --type sequence\
     --input-bam test1.bam --input-gff3 GRCh37_primary_chr13.gff3 --output report --log logfile
 ~~~~
 
@@ -223,7 +223,7 @@ The default filter that is used by QCMG when running qcoverage is as follows:
 ###  sequence coverage
 
 ~~~~{.text}
-java -jar qcoverage.jar --type seq \
+java -jar qcoverage.jar --type sequence\
     --input-bam test1.bam --input-gff3 some.gff3 --output report --log logfile \
     --query "and( flag_ReadFailsVendorQuality==false, flag_DuplicateRead==false, flag_ReadUnmapped==false, flag_NotprimaryAlignment==false)"
 ~~~~
@@ -231,7 +231,7 @@ java -jar qcoverage.jar --type seq \
 ### physical coverage
 
 ~~~~{.text}
-java -jar qcoverage.jar --type seq \
+java -jar qcoverage.jar --type sequence\
     --input-bam test1.bam --input-gff3 some.gff3 --output report --log logfile
     --query "and( flag_ReadFailsVendorQuality==false, flag_DuplicateRead==false, flag_ReadUnmapped==false, flag_NotprimaryAlignment==false)"
 ~~~~
@@ -246,20 +246,20 @@ Some other examples are:
 Excluding reads above a defined ISIZE cutoff during physical coverage:
 
 ~~~~{.text}
-java -jar qcoverage.jar --query "ISIZE < 200" --type phys \
+java -jar qcoverage.jar --query "ISIZE < 200" --type physical \
     --input-bam test1.bam --input-gff3 some.gff3 --output report --log logfile
 ~~~~
 
 Including only reads satisfying a ZP-quality of "AAA":
 
 ~~~~{.text}
-java -jar qcoverage.jar --query "ZP==AAA" --type seq \
+java -jar qcoverage.jar --query "ZP==AAA" --type sequence\
     --input-bam test1.bam --input-gff3 some.gff3 --output report --log logfile
 ~~~~
 
 Excluding unpaired reads from physical coverage:
 
 ~~~~{.text}
-java -jar qcoverage.jar --query "flag_ReadPaired==true" --type phys \
+java -jar qcoverage.jar --query "flag_ReadPaired==true" --type physical \
     --input-bam test1.bam --input-gff3 some.gff3 --output report --log logfile
 ~~~~
