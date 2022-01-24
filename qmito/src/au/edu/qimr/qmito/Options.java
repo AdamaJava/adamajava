@@ -8,21 +8,11 @@ package au.edu.qimr.qmito;
 
 import static java.util.Arrays.asList;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
 
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
-import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMSequenceRecord;
-
 import org.qcmg.common.log.QLogger;
-import org.qcmg.common.meta.QExec;
-import org.qcmg.picard.SAMFileReaderFactory;
-import org.qcmg.qbamfilter.query.QueryExecutor;
+
 
 
 
@@ -49,38 +39,38 @@ public class Options {
     public Options(final String[] args) throws Exception{ 
 
     	parser.allowsUnrecognizedOptions(); 
-        parser.acceptsAll( asList("h", "help"), HELP_DESCRIPTION);
-        parser.acceptsAll( asList("v", "version"), VERSION_DESCRIPTION);
-        parser.accepts("m", Messages.getMessage("OPTION_MODE")).withRequiredArg().ofType(String.class).describedAs("mode");	
+        parser.accepts(  "help", HELP_DESCRIPTION);
+        parser.accepts(  "version", VERSION_DESCRIPTION);
+        parser.accepts("mode", Messages.getMessage("OPTION_MODE")).withRequiredArg().ofType(String.class);	
         options = parser.parse(args);   
              
-        if( !options.has("v") && !options.has("version") && !options.has("m") && !options.has("v") & !options.has("version")){
-	        System.out.println(Messages.getMessage("WRONG_OPTIONS",QLogger.reconstructCommandLine(Messages.getProgramName(), args))); 
-	        parser.printHelpOn(System.err);
-	        System.out.println(Messages.USAGE);   	
-        }
-        
-        if(options.has("m")){
-			mode = ((String) options.valueOf("m")).toLowerCase();
-			if(mode.equals(MetricMode)) 			 
-				metricOpt = new MetricOptions( args);			
-			else if ( mode.equals( StatMode))
-				statOpt =new StatOptions(args);
-			else
-				throw new Exception("invalide mode: "+(String) options.valueOf("m"));  
-		
-        }
+//        if( !options.has("v") && !options.has("version") && !options.has("m") && !options.has("v") & !options.has("version")){
+//	        System.out.println(Messages.getMessage("WRONG_OPTIONS",QLogger.reconstructCommandLine(Messages.getProgramName(), args))); 
+//	        parser.printHelpOn(System.err);
+//	        System.out.println(Messages.USAGE);   	
+//        }
         
         if(options.has("v") || options.has("version")){ 
         	System.out.println( "Current version is " + getVersion());
         	return;
         }
         
-        if( (options.has("h") || options.has("help") ) && mode == null){
-	        System.out.println(Messages.getMessage("HELP_OPTION_DESCRIPTION"));	   
-	        parser.printHelpOn(System.err);
-	        System.out.println(Messages.USAGE);   	
+        if(options.has("mode")) {
+			mode = ((String) options.valueOf("mode")).toLowerCase();
+			if(mode.equals(MetricMode)) 			 
+				metricOpt = new MetricOptions( args);			
+			else if ( mode.equals( StatMode))
+				statOpt =new StatOptions(args);
+			else
+				throw new Exception("invalide mode: "+(String) options.valueOf("mode"));  		
         }
+        
+        
+//        if( (options.has("h") || options.has("help") ) && mode == null){
+//	        System.out.println(Messages.getMessage("HELP_OPTION_DESCRIPTION"));	   
+//	        parser.printHelpOn(System.err);
+//	        System.out.println(Messages.USAGE);   	
+//        }
         	
      
     } 
