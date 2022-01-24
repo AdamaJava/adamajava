@@ -6,15 +6,8 @@
  */
 package au.edu.qimr.qmito;
 
-import static java.util.Arrays.asList;
-
-
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
-import org.qcmg.common.log.QLogger;
-
-
-
 
 /*
  * parse command line to options. 
@@ -63,7 +56,13 @@ public class Options {
 				statOpt =new StatOptions(args);
 			else
 				throw new Exception("invalide mode: "+(String) options.valueOf("mode"));  		
+        } else {
+        	System.out.println( "Missing mode option!");
+        	System.out.println(Messages.USAGE); 
+        	
         }
+        
+        
         
         
 //        if( (options.has("h") || options.has("help") ) && mode == null){
