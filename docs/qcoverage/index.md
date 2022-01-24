@@ -82,8 +82,8 @@ Option              Description
                       standard coverage mode without this option.
 --query             Opt, the query string for selecting reads for coverage.
 --thread <Integer>  Opt, number of worker threads (yields n+1 total threads).
---type              Req, the type of coverage to perform. Possible Values: [seq,
-                      sequence, phys, physical].
+--type              Req, the type of coverage to perform. Possible Values: [sequence,
+                      physical]. 
 --validation        Opt, how strict to be when reading a SAM or BAM. Possible values:
                       [STRICT, LENIENT, SILENT].
 --version           Show version number.
