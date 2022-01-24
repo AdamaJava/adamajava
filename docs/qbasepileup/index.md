@@ -10,27 +10,28 @@ metrics on the reads at the positions of interest.
 
 qbasepileup requires java 7 and (ideally) a multi-core machine (5 threads 
 are run concurrently) with at least 20GB of RAM.
-Download the qbasepileup tar file
-Untar the tar file into a directory of your choice
-You should see jar files for qbasepileup and its dependencies:
 
-~~~~{.text}
-$ tar xjvf qbasepileup.tar.bz2
-x antlr-3.2.jar
-x ini4j-0.5.2-SNAPSHOT.jar
-x jopt-simple-3.2.jar
-x picard-1.110.jar
-x qbamfilter-1.0pre.jar
-x qcommon-0.1pre.jar
-x qio-0.1pre.jar
-x qpicard-0.1pre.jar
-x qpileup-0.1pre.jar
-x sam-1.110.jar
-x jhdfobj.jar
-x jhdf5obj.jar
-x jhdf5.jar
-x jhdf.jar
-~~~~
+## Installation
+
+qbasepileup requires java 8 and Multi-core machine (ideally) and 5G of RAM
+
+* To do a build of qbasepileup, first clone the adamajava repository.
+  ~~~~{.text}
+  git clone https://github.com/AdamaJava/adamajava
+  ~~~~
+
+*  Then move into the adamajava folder:
+  ~~~~{.text}
+  cd adamajava
+  ~~~~
+
+*  Run gradle to build qbasepileup and its dependent jar files:
+  ~~~~{.text}
+  ./gradlew :qbasepileup:build
+  ~~~~
+  This creates the qbasepileup jar file along with dependent jars in the `qbasepileup/build/flat` folder
+
+
 
 ## Usage
 
