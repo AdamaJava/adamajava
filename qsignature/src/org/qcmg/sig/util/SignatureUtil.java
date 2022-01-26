@@ -18,11 +18,9 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -41,18 +39,13 @@ import javax.xml.transform.stream.StreamResult;
 import org.apache.commons.math3.util.Pair;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
-import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.BaseUtils;
 import org.qcmg.common.util.ChrPositionCache;
-import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.DonorUtils;
-import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.NumberUtils;
-import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfRecord;
-import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.qio.illumina.IlluminaRecord;
 import org.qcmg.qio.record.StringFileReader;
 import org.qcmg.qio.vcf.VcfFileReader;
@@ -196,18 +189,6 @@ public class SignatureUtil {
 	}
 	
 	/**
-	 * Get the unique contig names from the list of vcfs
-	 * @param vcfs
-	 * @return
-	 */
-	public static List<String> getUniqueContigsFromListOfVcfRecords(List<VcfRecord> vcfs) {
-		return vcfs.stream()
-				.map(v -> v.getChrPosition().getChromosome())
-				.distinct()
-				.collect(Collectors.toList());
-	}
-	
-	/**
 	 * returns true if ant of the supplied contigs start with a digit
 	 * eg. 
 	 * @param contigs
@@ -215,131 +196,6 @@ public class SignatureUtil {
 	 */
 	public static boolean doContigsStartWithDigit(List<String> contigs) {
 		return contigs.stream().anyMatch(p -> Character.isDigit(p.charAt(0)));
-	}
-	
-	
-	public static List<VcfRecord> addChrToVcfRecords(List<VcfRecord> vcfs) {
-		
-		List<VcfRecord> updatedVcfs = new ArrayList<>();
-		for (VcfRecord v : vcfs) {
-			if (Character.isDigit(v.getChrPosition().getChromosome().charAt(0))) {
-				ChrPosition oldCP = v.getChrPosition();
-				v = VcfUtils.cloneWithNewChrPos(v, ChrPositionUtils.cloneWithNewChromosomeName(oldCP, "chr" + oldCP.getChromosome()));
-			}
-			updatedVcfs.add(v);
-		}
-		return updatedVcfs;
-		
-	}
-
-	public static Map<File, Map<ChrPosition, double[]>> getDonorSnpChipData(String donor, List<File> files) throws IOException {
-		
-		Map<File, Map<ChrPosition, double[]>> map = new HashMap<>();
-		
-		for (File snpFile : files) {
-			if (null != snpFile 
-					&& snpFile.exists() 
-					&& null != snpFile.getAbsolutePath() 
-					&& snpFile.getAbsolutePath().contains(donor)) {
-				
-				Map<ChrPosition, double[]> snpChipRatios = loadSignatureRatios(snpFile);
-				map.put(snpFile, snpChipRatios);
-			}
-		}
-		return map;
-	}
-	
-	/**
-	 * Loads a qsignature vcf file and returns a map containing positions where there is coverage.
-	 * Returns null if the supplied file is null, or can't be read
-	 *  
-	 * @param file qsignature vcf file to read
-	 * @return Map of ChrPositions and double[] that contains all the non-empty positions in the supplied qsignature vcf file
-	 * 
-	 * @throws Exception
-	 */
-	public static Map<ChrPosition, double[]> loadSignatureRatios(File file) throws IOException {
-		return loadSignatureRatios(file, 10);
-	}
-	
-	public static Map<ChrPosition, double[]> loadSignatureRatios(File file, int minCoverage) throws IOException {
-		Map<ChrPosition, double[]> ratios = new HashMap<>();
-		
-		if (null == file) {
-			throw new IllegalArgumentException("Null file object passed to loadSignatureRatios");
-		}
-		
-		try (StringFileReader reader = new StringFileReader(file)) {
-			String line;
-			
-			for (String vcfRecord : reader) {
-				line = vcfRecord;
-				
-				if (line.startsWith(Constants.HASH_STRING)) {
-					continue;
-				}
-				//do a brute force search for the empty coverage string before passing to tokenizer
-				// only populate ratios with non-zero values
-				// attempt to keep memory usage down...
-				if (line.indexOf(SHORT_CUT_EMPTY_COVERAGE) > -1) {
-					continue;
-				}
-				// ignore entries that have nan in there
-				if (line.indexOf(NAN) > -1) {
-					continue;
-				}
-				
-				String[] params = TabTokenizer.tokenize(line);
-				String coverage = params[7];
-				double[] array = getValuesFromCoverageString(coverage, minCoverage);
-				if (null != array) {
-					ChrPosition chrPos = ChrPositionCache.getChrPosition(params[0], Integer.parseInt(params[1]));
-					ratios.put(chrPos, array);
-				}
-			}
-		}
-		return ratios;
-	}
-	
-	public static Map<ChrPosition, float[]> loadSignatureRatiosFloat(File file, int minCoverage) throws IOException {
-		Map<ChrPosition, float[]> ratios = new HashMap<>();
-		
-		if (null == file) {
-			throw new IllegalArgumentException("Null file object passed to loadSignatureRatios");
-		}
-		
-		try (StringFileReader reader = new StringFileReader(file)) {
-			String line;
-			
-			for (String vcfRecord : reader) {
-				line = vcfRecord;
-				if (line.startsWith(Constants.HASH_STRING)) {
-					continue;
-				}
-				//do a brute force search for the empty coverage string before passing to tokenizer
-				// only populate ratios with non-zero values
-				// attempt to keep memory usage down...
-				if (line.indexOf(SHORT_CUT_EMPTY_COVERAGE) > -1) {
-					continue;
-				}
-				// ignore entries that have nan in there
-				if (line.indexOf(NAN) > -1) {
-					continue;
-				}
-				
-				String[] params = TabTokenizer.tokenize(line);
-				String coverage = params[7];
-				Optional<float[]> array = getValuesFromCoverageStringFloat(coverage, minCoverage);
-				array.ifPresent(f -> {
-					ChrPosition chrPos = ChrPositionCache.getChrPosition(params[0], Integer.parseInt(params[1]));
-					ratios.put(chrPos, f);
-				});
-			}
-		}
-		return ratios;
-	}
-	public static Map<ChrPosition, float[]> loadSignatureRatiosFloat(File file) throws IOException {
-		return loadSignatureRatiosFloat(file, 10);
 	}
 	
 	public static TIntByteHashMap loadSignatureRatiosFloatGenotypeNew(File file) throws IOException {
@@ -524,10 +380,6 @@ public class SignatureUtil {
 		return new Pair<>(sm, rgRatios);
 	}
 	
-	public static void getDataFromBespokeLayout(File file, int minCoverage, int minRGCoverage, TIntByteHashMap ratios,
-			TMap<String, TIntByteHashMap> rgRatios, Map<String, String> rgIds, StringFileReader reader) {
-		getDataFromBespokeLayout( file,  minCoverage,  minRGCoverage,  ratios, rgRatios, rgIds,  reader, HOM_CUTOFF, HET_UPPER_CUTOFF, HET_LOWER_CUTOFF);
-	}
 	public static void getDataFromBespokeLayout(File file, int minCoverage, int minRGCoverage, TIntByteHashMap ratios,
 				TMap<String, TIntByteHashMap> rgRatios, Map<String, String> rgIds, StringFileReader reader, float homCutoff, float upperHetCutoff, float lowerHetCutoff) {
 		int noOfRGs = rgIds.size();
@@ -721,98 +573,6 @@ public class SignatureUtil {
 		return keepers;
 	}
 	
-	public static List<File> removeClosedProjectFilesFromList(List<File> originalList, List<String> closedProjects) {
-		
-		if (null == closedProjects || closedProjects.isEmpty()) {
-			return originalList;
-		}
-		
-		List<File> keepers = new ArrayList<>();
-		for (File f : originalList) {
-			String donor = getPatientFromFile(f);
-			if (closedProjects.contains(donor)) {
-				logger.info("ignoring " + f.getName() + " as it belongs to a closed project");
-			} else {
-				keepers.add(f);
-			}
-		}
-		return keepers;
-	}
-	
-	
-	/**
-	 * Attempts to find some files in the supplied path that match the snpChipSearchSuffix 
-	 * and that aren't in the excludes and failedQC collections, 
-	 * and that satisfy the additionalSearchStrings criteria...
-	 * 
-	 * @param path String
-	 * @param snpChipSearchSuffix String
-	 * @param excludes List<String>
-	 * @param failedQC List<String>
-	 * @param additionalSearchStrings String[]
-	 * @return List<File>
-	 * @throws Exception
-	 */
-	public static List<File> populateSnpChipFilesList(String path, String snpChipSearchSuffix, 
-			List<String> excludes, String ... additionalSearchStrings) throws Exception {
-		
-		final Set<File> uniqueFiles = new HashSet<File>(FileUtils.findFilesEndingWithFilterNIO(path, snpChipSearchSuffix));
-		logger.info("No of unique snp chip files: " + uniqueFiles.size());
-		
-		List<File> orderedSnpChipFiles = new ArrayList<File>();
-		for (File f : uniqueFiles) {
-			if (f.exists()) {
-				if (null != additionalSearchStrings && additionalSearchStrings.length > 0) {
-					boolean passesAllAdditionalSearchCriteria = true;
-					for (String s : additionalSearchStrings) {
-						if ( ! f.getAbsolutePath().contains(s)) passesAllAdditionalSearchCriteria = false;
-					}
-					if (passesAllAdditionalSearchCriteria) {
-						addFileToCollection(orderedSnpChipFiles, excludes, f);
-					}
-				} else {
-					addFileToCollection(orderedSnpChipFiles, excludes, f);
-				}
-			}
-		}
-		
-		orderedSnpChipFiles.sort(FileUtils.FILE_COMPARATOR);
-		logger.info("No of unique and filtered snp chip files: " + orderedSnpChipFiles.size());
-		return orderedSnpChipFiles;
-	}
-	
-	/**
-	 * Adds the supplied file to the supplied collection of files assuming that it does not appear in the excludes list or the failedQC list.
-	 * 
-	 * No checking is in place to see if the file to be added is already in the collection
-	 * 
-	 * @param collection
-	 * @param excludes
-	 * @param failedQC
-	 * @param f
-	 */
-	public static void addFileToCollection(List<File> collection, List<String> excludes, File f) {
-		if (null == collection || null == f) {
-			return;		// don't proceed if collection or file is null
-		}
-		
-		boolean inExcludes = false;
-		if (null != excludes) {
-			// failedQC collection doesn't include full names, so need to do a partial search
-			for (String exclude : excludes) {
-				if (f.getName().startsWith(exclude)) {
-					inExcludes = true;
-					logger.info("ignoring " + f.getName() + " as it is in the excludes file");
-					break;
-				}
-			}
-		}
-		if ( ! inExcludes) {
-			collection.add(f);
-		}
-	}
-	
-	
 	public static String getCoverageStringForIlluminaRecord(IlluminaRecord illRec, String [] params, int arbitraryCoverage) {
 		return getCoverageStringForIlluminaRecord(illRec, params, arbitraryCoverage, false);
 	}
@@ -997,31 +757,6 @@ public class SignatureUtil {
 		return Optional.empty();
 	}
 	
-	public static double[] getValuesFromCoverageString(final String coverage) {
-		return getValuesFromCoverageString(coverage, 10);
-	}
-	
-	public static double[] getValuesFromCoverageString(final String coverage, int minimumCoverage) {
-		
-		int[] baseCoverages = decipherCoverageString(coverage);
-		int total = baseCoverages[4];
-		if (total < minimumCoverage) {
-			return null;
-		}
-		
-		double aFrac = (double) baseCoverages[0] / total;
-		double cFrac = (double) baseCoverages[1] / total;
-		double gFrac = (double) baseCoverages[2] / total;
-		double tFrac = (double) baseCoverages[3] / total;
-		
-		final double[] array = new double[] {aFrac, 
-				cFrac,
-				gFrac, 
-				tFrac,
-				total};
-		
-		return array;
-	}
 	public static Optional<float[]> getValuesFromCoverageStringFloat(final String coverage) {
 		return getValuesFromCoverageStringFloat(coverage, 10);
 	}
