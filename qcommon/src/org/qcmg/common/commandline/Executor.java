@@ -31,7 +31,7 @@ public class Executor {
  		Process process = Runtime.getRuntime().exec(execCommand);
 		outputStreamConsumer = new StreamConsumer(process.getInputStream());
 		errorStreamConsumer = new StreamConsumer(process.getErrorStream());
-		//has to call run() rather than start() inside the construtor
+		//has to call run() rather than start() inside the constructor
 		outputStreamConsumer.run();
 		errorStreamConsumer.run();
 		errCode = process.waitFor();

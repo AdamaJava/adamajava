@@ -1,4 +1,4 @@
-# qsignature SignatureGeneratorBespoke mode
+# qsignature Generate mode
 
 In order to define a set of SNVs that would be common across all major
 sequencing and aray platform, we selected all single-base dbSNP-derived
@@ -39,7 +39,7 @@ a genotype array. This step needs to be performed only once per file.
 ## Usage
 
 ~~~~{.text}
-java -cp qsignature.jar org.qcmg.sig.SignatureGeneratorBespoke \ 
+java -cp qsignature.jar org.qcmg.sig.Generate \ 
                         -log $BAM.qsig.log \
                         -snpPositions qsignature_positions.txt \
                         -input $BAM \
