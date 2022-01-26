@@ -11,7 +11,7 @@ import java.util.List;
 import htsjdk.samtools.SAMRecord;
 
 import org.qcmg.common.model.ChrPosition;
-
+@Deprecated
 public class RecordsAtPosition {
 	
 	private final ChrPosition cp;
