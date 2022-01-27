@@ -423,7 +423,7 @@ public class MergeUtils {
 			 */
 			
 			Optional<String> combinedAlts = getCombinedAlt(caller1, caller2);
-			mr = getBaseVcfRecordDetails(caller1, combinedAlts.get());
+			mr = getBaseVcfRecordDetails(caller1, combinedAlts.isPresent() ? combinedAlts.get() : null);
 			
 			Map<String, String> caller1Rules = null != rules ? rules.get(0) : null;
 			if (null != caller1Rules && ! caller1Rules.isEmpty()) {
@@ -530,14 +530,14 @@ public class MergeUtils {
 		 * build up alt string
 		 */
 		
-		Optional<String> combinedAlt = getCombinedAlt(records);
-//		assert combinedAlt.isPresent() : "Null returned from getCombinedAlt";
+		Optional<String> combinedAltO = getCombinedAlt(records);
+		String combinedAlt = combinedAltO.isPresent() ? combinedAltO.get() : null;
 		
 		/*
 		 * Get common values from 1st record
 		 */ 
 		VcfRecord mergedRecord =  new VcfRecord.Builder(records[0].getChrPosition(), records[0].getRef())
-									.id(records[0].getId()).allele(combinedAlt.get()).build();
+									.id(records[0].getId()).allele(combinedAlt).build();
 				
 		
 		/*
@@ -556,7 +556,7 @@ public class MergeUtils {
 			 * if the combinedAlts is different from the alt for this record, we may need to update the GT field
 			 */
 			String aa = r.getAlt();
-			if ( ! aa.equals(combinedAlt.get())) {
+			if ( ! aa.equals(combinedAlt)) {
 				
 				Map<String, String[]> ffMap = VcfUtils.getFormatFieldsAsMap(rFF);
 				String[] existingGTs = ffMap.get(VcfHeaderUtils.FORMAT_GENOTYPE);
@@ -567,7 +567,7 @@ public class MergeUtils {
 				for (int z = 0 ; z < existingGTs.length ; z++) {
 					String gt = existingGTs[z];
 					if ( ! gt.equals(Constants.MISSING_DATA_STRING)) {
-						String newGT = getGT(combinedAlt.get(), aa, gt);
+						String newGT = getGT(combinedAlt, aa, gt);
 						if ( ! newGT.equals(gt)) {
 							existingGTs[z] = newGT;
 							needToUpdate = true;
