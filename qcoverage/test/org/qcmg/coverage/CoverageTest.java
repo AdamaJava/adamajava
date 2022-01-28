@@ -54,7 +54,7 @@ public class CoverageTest {
 	 } 
 	
 	@Test
-	public final void DefaultTest() throws Exception {
+	public final void defaultTest() throws Exception {
 		
  	 	
 		String cmd = "--log " + log + " --type phys  --input-gff3 " + inputGff3 + " --input-bam " + inputBam + 
@@ -69,7 +69,7 @@ public class CoverageTest {
 	}
 	
 	@Test
-	public final void XmlTest() throws Exception {
+	public final void xmlTest() throws Exception {
 		String cmd = "--log " + log + " --type phys  --input-gff3 " + inputGff3 + " --input-bam " + inputBam + 
 				" --input-bai " + inputBai +  " --output " +fname  + " --output-format xml";
 
@@ -84,7 +84,7 @@ public class CoverageTest {
 	}
 	
 	@Test
-	public final void VcfTest() throws Exception {
+	public final void vcfTest() throws Exception {
 		String cmd = "--log " + log + " --type phys  --input-gff3 " + inputGff3 + " --input-bam " + inputBam + 
 				" --input-bai " + inputBai +  " --output " +fname  + " --output-format vcf";
 
@@ -101,7 +101,7 @@ public class CoverageTest {
 	}	
 	
 	@Test
-	public final void VcfFeatureTest() throws Exception {
+	public final void vcfFeatureTest() throws Exception {
 		String cmd = "--log " + log + " --type phys  --input-gff3 " + inputGff3 + " --input-bam " + inputBam + 
 				" --input-bai " + inputBai +  " --output " +fname  + " --per-feature --output-format vcf";
 	
@@ -119,7 +119,7 @@ public class CoverageTest {
 	}		
 	
 	@Test
-	public final void AllTest() throws Exception {
+	public final void allTest() throws Exception {
 		String cmd = "--log " + log + " --type phys  --input-gff3 " + inputGff3 + " --input-bam " + inputBam + 
 				" --input-bai " + inputBai +  " --output " +fname  + 
 				" --output-format vcf  --output-format xml  --output-format txt";
@@ -138,7 +138,7 @@ public class CoverageTest {
 
 	
 	@Test
-	public final void AllFeatureTest() throws Exception {
+	public final void allFeatureTest() throws Exception {
 		String cmd = "--log " + log + " --type phys  --input-gff3 " + inputGff3 + " --input-bam " + inputBam + 
 				" --input-bai " + inputBai +  " --output " +fname  + 
 				" --per-feature --output-format vcf  --output-format xml  --output-format txt";
