@@ -93,13 +93,13 @@ Option              Description
 
 ### standard mode output
 
-The default output is tab delimited text format, with or without option "--output-format TXT". Here file extension ".txt" is automatically append to putput file. 
+The default output is in tab delimited text format, which can be explicitly requested with the "--output-format TXT" option. Here file extension ".txt" is automatically appended to the output file. 
 
 ~~~~
-]$java -jar qcoverage.java --type physical --output /path/report \
+java -jar qcoverage.java --type physical --output /path/report \
 --input-gff3 /path/GRCh37_ICGC_standard_v2.gff3 --input-bam /path/input.bam --log /path/output.log 
 
-]$less /path/report.txt
+less /path/report.txt
 
 #coveragetype   featuretype     numberofbases   coverage
 physical        chrom   2518007876      0x
@@ -111,11 +111,11 @@ physical        chrom   6       1540x
 
 You can also specify the output to be XML format. Here file extension ".xml" is automatically append to putput file. 
 ~~~~
-]$java -jar qcoverage.java --type physical \
+java -jar qcoverage.java --type physical \
 --output-format XML --output /path/report \
 --input-gff3 /path/GRCh37_ICGC_standard_v2.gff3 --input-bam /path/input.bam --log /path/report.log 
 
-]$less /path/report.xml
+less /path/report.xml
 
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <QCoverageStats>
@@ -182,11 +182,11 @@ which we interpret as:
 ### multi formate output
 The multi formate output is allowed but not recomended. Here the VCF format only work with per-feature mode. For example
 ~~~~{.text}
-]$java -jar qcoverage.java --type physical --per-feature \
+java -jar qcoverage.java --type physical --per-feature \
 --output-format TXT --output-format VCF  --output-format XML \
 --output /path/report  --input-gff3 /path/GRCh37_ICGC_standard_v2.gff3 --input-bam /path/input.bam --log /path/report.log
 
-]$ls /path/report.*
+ls /path/report.*
 
 /path/report.log  /path/report.txt /path/report.vcf /path/report.xml
 
