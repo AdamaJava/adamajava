@@ -6,12 +6,6 @@
 
 package au.edu.qimr.tiledaligner;
 
-import au.edu.qimr.tiledaligner.util.TiledAlignerUtil;
-
-import gnu.trove.TCollections;
-import gnu.trove.map.TIntObjectMap;
-import gnu.trove.map.hash.TIntObjectHashMap;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.AbstractQueue;
@@ -25,8 +19,12 @@ import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.NumberUtils;
 import org.qcmg.qio.record.StringFileReader;
 
+import au.edu.qimr.tiledaligner.util.TiledAlignerUtil;
+import gnu.trove.TCollections;
+import gnu.trove.map.TIntObjectMap;
+import gnu.trove.map.hash.TIntObjectHashMap;
+
 public class ReadTiledAligerFile {
-	
 	
 	private static TIntObjectMap<int[]> map = TCollections.synchronizedMap(new TIntObjectHashMap<>(1024 * 8));
 	
@@ -110,6 +108,7 @@ public class ReadTiledAligerFile {
 	public static TIntObjectMap<int[]> getCache(String tiledAlignerFile, int bufferSize) throws IOException {
 		return getCache(tiledAlignerFile, bufferSize, 1);
 	}
+	
 	public static TIntObjectMap<int[]> getCache(String tiledAlignerFile, int bufferSize, int threadCount) throws IOException {
 		if (map.isEmpty()) {
 			getTiledDataInMap(tiledAlignerFile, bufferSize, threadCount);

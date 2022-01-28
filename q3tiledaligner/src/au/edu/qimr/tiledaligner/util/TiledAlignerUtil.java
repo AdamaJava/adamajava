@@ -6,17 +6,11 @@
 
 package au.edu.qimr.tiledaligner.util;
 
-import au.edu.qimr.tiledaligner.PositionChrPositionMap;
-import au.edu.qimr.tiledaligner.model.IntLongPairs;
-import au.edu.qimr.tiledaligner.model.TARecord;
-
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.IntSummaryStatistics;
 import java.util.List;
 import java.util.Map;
@@ -37,8 +31,10 @@ import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.sw.SmithWatermanGotoh;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.NumberUtils;
-import org.qcmg.qio.record.StringFileReader;
 
+import au.edu.qimr.tiledaligner.PositionChrPositionMap;
+import au.edu.qimr.tiledaligner.model.IntLongPairs;
+import au.edu.qimr.tiledaligner.model.TARecord;
 import gnu.trove.list.TIntList;
 import gnu.trove.list.TLongList;
 import gnu.trove.list.array.TIntArrayList;
@@ -46,9 +42,7 @@ import gnu.trove.list.array.TLongArrayList;
 import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.TLongIntMap;
 import gnu.trove.map.hash.THashMap;
-import gnu.trove.map.hash.TIntObjectHashMap;
 import gnu.trove.map.hash.TLongIntHashMap;
-import gnu.trove.procedure.TLongIntProcedure;
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.util.SequenceUtil;
 
@@ -64,12 +58,11 @@ public class TiledAlignerUtil {
 	public static final String REPEAT_C = "CCCCCCCCCCCCCCCCCCCCCCC";
 	public static final String REPEAT_G = "GGGGGGGGGGGGGGGGGGGGGGG";
 	public static final String REPEAT_T = "TTTTTTTTTTTTTTTTTTTTTTT";
-	public static final String[] REPEATS = new String[]{REPEAT_A, REPEAT_C, REPEAT_G, REPEAT_T};
+	static final String[] REPEATS = new String[]{REPEAT_A, REPEAT_C, REPEAT_G, REPEAT_T};
 	
 	public static final int MINIMUM_BLAT_RECORD_SCORE = 20;
 	
-	public static AtomicInteger swCounter = new AtomicInteger();
-	public static AtomicInteger splitconCounter = new AtomicInteger();
+	public static final AtomicInteger swCounter = new AtomicInteger();
 	
 	public static Map<String, byte[]> referenceCache = new THashMap<>();
 	public static SAMSequenceDictionary dictionary = null;
@@ -77,46 +70,6 @@ public class TiledAlignerUtil {
 	public static final IntSummaryStatistics iss = new IntSummaryStatistics();
 	
 	private static final QLogger logger = QLoggerFactory.getLogger(TiledAlignerUtil.class);
-	
-	
-	/**
-	 * This method take an input string and splits it up into tiles of length tilsSize
-	 * Each of these tiles is put into a map, with an empty string as the value.
-	 * This map is returned.
-	 * 
-	 * @param input
-	 * @param tileSize
-	 * @return
-	 */
-	public static void tileInput(String input, int tileSize, Map<String, String> map) {
-		if ( ! StringUtils.isNullOrEmpty(input)) {
-			
-			/*
-			 * split the input into tiles of length tileSize
-			 * insert into map with empty string as value
-			 */
-			
-			int length = input.length();
-			for (int i = 0 ; i <= length - tileSize ; i++) {
-				String s = input.substring(i, i + tileSize);
-				if (s.indexOf('N') > -1) {
-					List<String> list = getAlternativeSequences(s);
-					map.putAll(list.stream().collect(Collectors.toMap(k -> k, v -> "")));
-				}
-				map.put(s, "");
-			}
-			String rc = SequenceUtil.reverseComplement(input);
-			for (int i = 0 ; i <= length - tileSize ; i++) {
-				String s = rc.substring(i, i + tileSize);
-				if (s.indexOf('N') > -1) {
-					List<String> list = getAlternativeSequences(s);
-					map.putAll(list.stream().collect(Collectors.toMap(k -> k, v -> "")));
-				}
-				map.put(s, "");
-			}
-			logger.info("created map with " + map.size() + " entries from input string: " + input + ", and its reverse complement!");
-		}
-	}
 	
 	public static List<String> getAlternativeSequences(String seq) {
 		List<String> list = new ArrayList<>();
@@ -135,31 +88,6 @@ public class TiledAlignerUtil {
 			list.add(beforeString + 'T' + afterString);
 		}
 		return list;
-	}
-	
-	public static void getTiledDataInMap(String tiledAlignerFile, int tileSize, String query) {
-		Map<String, String> tileInput = new HashMap<>();
-		tileInput(query, tileSize, tileInput);
-		getTiledDataInMap(tiledAlignerFile, tileInput);
-	}
-	
-	public static Map<Integer, TLongList> map(Map<String, TLongList> map, String contig, int tileSize) {
-		
-		if ( ! StringUtils.isNullOrEmpty(contig)) {
-			
-			/*
-			 * get forward strand results in map1, reverse strand results in map2
-			 * perform the updating of the longs in map2, and add to map1
-			 */
-			Map<Integer, TLongList> map1 = getTiles(map, contig, tileSize, false);
-			logger.info("And now for the reverse complement: " + SequenceUtil.reverseComplement(contig));
-			Map<Integer, TLongList> map2 = getTiles(map, SequenceUtil.reverseComplement(contig), tileSize, true);
-			for (Entry<Integer, TLongList> entry : map2.entrySet()) {
-				map1.computeIfAbsent(entry.getKey(), f -> new TLongArrayList()).addAll(entry.getValue());
-			}
-			return map1;
-		}
-		return Collections.emptyMap();
 	}
 	
 	public static Map<Integer, TLongList> getTiles(Map<String, TLongList> map, String contig, int tileSize, boolean rc) {
@@ -202,14 +130,6 @@ public class TiledAlignerUtil {
 				array[i] = null;
 			}
 		}
-		return convertLongDoubleArrayToMap(array, rc);
-	}
-	
-	public static Map<Integer, TLongList> getCountStartPositionsMapUsingCache(TIntObjectMap<int[]> cache, String contig, int tileSize, boolean rc) {
-		return getCountStartPositionsMapUsingCache(cache, contig, tileSize, rc, false);
-	}
-	public static Map<Integer, TLongList> getCountStartPositionsMapUsingCache(TIntObjectMap<int[]> cache, String contig, int tileSize, boolean rc, boolean debug) {
-		long [][] array = getStartPositionsArray( cache,  contig,  tileSize,  rc,  debug);
 		return convertLongDoubleArrayToMap(array, rc);
 	}
 	
@@ -263,22 +183,6 @@ public class TiledAlignerUtil {
 			}
 		}
 		return array;
-	}
-	
-	
-	/**
-	 * unsets the REVERSE_COMPLEMENT_BIT bit in the longs in the array
-	 * If the bit has been set - unset it. If it is not set, just return the original value
-	 * A new long array is created and returned for this.
-	 * @param array
-	 * @return
-	 */
-	public static long[] removeReverseComplementFromArray(long [] array) {
-		long [] newArray = new long[array.length];
-		for (int i = 0, len = array.length ; i < len ; i++) {
-			newArray[i] = NumberUtils.isBitSet(array[i], REVERSE_COMPLEMENT_BIT) ? NumberUtils.stripBitFromLong(array[i], REVERSE_COMPLEMENT_BIT) : array[i];
-		}
-		return newArray;
 	}
 	
 	/**
@@ -519,185 +423,6 @@ public class TiledAlignerUtil {
 	}
 	
 	/**
-	 * This method will run through the supplied tiled aligner file.
-	 * If there are any tiles in the file that match the keys in the supplied map, 
-	 * the values in the supplied map will be updated with the contents of the tiled aligner file for that particular tile
-	 * And so the supplied map is modified by this method, and so it is NOT referentially transparent
-	 * 
-	 * @param tiledAlignerFile
-	 * @param tiledInput
-	 */
-	public static void getTiledDataInMap(String tiledAlignerFile,  Map<String, String> tiledInput) {
-		try (StringFileReader reader = new StringFileReader(new File(tiledAlignerFile))) {
-			
-			int i = 0;
-			int matches = 0;
-			int mapSize = tiledInput.size();
-			for (String data : reader) {
-				if (++i % 1000000 == 0) {
-					logger.info("hit " + (i / 1000000) + "M records, matches: " + matches);
-				}
-				//String data = rec;
-				int tabindex = data.indexOf(Constants.TAB);
-				if (tiledInput.containsKey(data.substring(0, tabindex))) {
-					matches++;
-					tiledInput.put(data.substring(0, tabindex), data.substring(tabindex + 1));
-					
-					/*
-					 * If we have found all elements in the map - might as well stop looking
-					 */
-					if (matches == mapSize) {
-						break;
-					}
-				}
-			}
-			
-			logger.info("number of matches: " + matches);
-				
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-	
-	public static List<String> getTiledAlignerHeader(String file) throws IOException {
-		try (StringFileReader reader = new StringFileReader(new File(file))) {
-			return reader.getHeader();
-		}
-	}
-	
-	public static String getLongListAsString(TLongList list) {
-		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < list.size() ; i++) {
-			StringUtils.updateStringBuilder(sb, list.get(i) + "", Constants.COMMA);
-		}
-		return sb.toString();
-	}
-	
-	public static String[] rescueSWData(String[] diffs, String ref, String binSeq) {
-		if (null == diffs) {
-			throw new IllegalArgumentException("Null String []  passed to CLinVarUtil.rescueSWData");
-		}
-		if (org.qcmg.common.string.StringUtils.isNullOrEmpty(ref)) {
-			throw new IllegalArgumentException("Null or empty ref passed to CLinVarUtil.rescueSWData: " + ref);
-		}
-		if (org.qcmg.common.string.StringUtils.isNullOrEmpty(binSeq)) {
-			throw new IllegalArgumentException("Null or empty binSeq passed to CLinVarUtil.rescueSWData: " + binSeq);
-		}
-		
-		/*
-		 * Check length of binSequence returned from SW calc, as leading/trailing mutations will have been dropped
-		 */
-		String swBinSeq = org.apache.commons.lang3.StringUtils.remove(diffs[2], Constants.MINUS);
-		int lengthDiff = binSeq.length() - swBinSeq.length();
-		if (lengthDiff > 0) {
-			
-			String swRef = org.apache.commons.lang3.StringUtils.remove(diffs[0], Constants.MINUS);
-			
-			if (binSeq.startsWith(swBinSeq)) {
-				
-				// need to get the last few bases
-				String missingBinSeqBases = binSeq.substring(binSeq.length()  - lengthDiff);
-				
-				int refIndex = ref.indexOf(swRef); 
-				if (refIndex > -1) {
-					int positionInRef = refIndex + swRef.length();
-					if (ref.length() < positionInRef + lengthDiff) {
-						logger.info("WARNING: ref.length() < positionInRef + lengthDiff, ref.length(): " + ref.length() + ", positionInRef: " + positionInRef + ", lengthDiff: " + lengthDiff + ", ref: " + ref + ", binSeq: " + binSeq);
-					} else {
-						
-						String missingRefBases = ref.substring(positionInRef, positionInRef + lengthDiff);
-						
-						
-						if (missingBinSeqBases.equals(missingRefBases) || missingBinSeqBases.length() != missingRefBases.length()) {
-							// oh dear
-						} else {
-							diffs[0] += missingRefBases;
-							StringBuilder sb = new StringBuilder(lengthDiff);
-							for (int i = 0 ; i < lengthDiff ; i++) {
-								sb.append((missingRefBases.charAt(i) == missingBinSeqBases.charAt(i)) ? '|' : Constants.MISSING_DATA);
-							}
-							diffs[1] += sb.toString();
-							diffs[2] += missingBinSeqBases;
-						}
-						
-					}
-				} else {
-					logger.warn("WARNING: refIndex = ref.indexOf(swRef) == -1!!!");
-				}
-				
-				
-			} else if (binSeq.endsWith(swBinSeq)) {
-				// need to get the first few bases
-				String missingBinSeqBases = binSeq.substring(0, lengthDiff);
-				
-				int refIndex = ref.indexOf(swRef); 
-				if (refIndex > -1) {
-					String missingRefBases = ref.substring(Math.max(0, refIndex - lengthDiff), refIndex);
-					
-					if (missingBinSeqBases.equals(missingRefBases) || missingBinSeqBases.length() != missingRefBases.length()) {
-						// oh dear
-					} else {
-						diffs[0] = missingRefBases + diffs[0];
-						StringBuilder sb = new StringBuilder(lengthDiff);
-						for (int i = 0 ; i < lengthDiff; i++) {
-							sb.append((missingRefBases.charAt(i) == missingBinSeqBases.charAt(i)) ? '|' : Constants.MISSING_DATA);
-						}
-						diffs[1] = sb.toString() + diffs[1];
-						diffs[2] = missingBinSeqBases + diffs[2];
-					}
-						
-				} else {
-					logger.warn("WARNING: refIndex = ref.indexOf(swRef) == -1!!!");
-				}
-			}
-		}
-		return diffs;
-	}
-	
-	public static String[] getSwDiffs(String ref, String sequence, boolean rescueSequence, boolean optimiseForGaps) {
-		if (org.qcmg.common.string.StringUtils.isNullOrEmpty(ref)
-				|| org.qcmg.common.string.StringUtils.isNullOrEmpty(sequence)) {
-			throw new IllegalArgumentException("ref or sequence (or both) supplied to ClinVarUtil.getSwDiffs were null. ref: " + ref + ", sequence: " + sequence);
-		}
-		
-		
-		/*
-		 * If sequence has more than a couple of N's, use the original SW values
-		 * which are: 5, -4, 16, 4
-		 * 
-		 */
-		int nCount = getInsertionCount(sequence, 'N');
-		boolean useOriginalValues = nCount > 2;
-		
-		SmithWatermanGotoh nm = null;
-		
-		swCounter.incrementAndGet();
-		if (useOriginalValues) {
-			nm = new SmithWatermanGotoh(ref, sequence, 5, -4, 16, 4);
-		} else {
-			nm = new SmithWatermanGotoh(ref, sequence, 4, -4, 4, 1);
-		}
-		String [] diffs = nm.traceback();
-		
-		/*
-		 * get number of insertions - if more than 5, go for traditional sw
-		 *
-		 */
-		
-		int insertionCount = getInsertionCount(diffs[1], ' ');
-		if (insertionCount >= 4 &&  ! useOriginalValues) {
-			swCounter.incrementAndGet();
-			nm = new SmithWatermanGotoh(ref, sequence, 5, -4, 16, 4);	// original
-			String [] newDiffs = nm.traceback();
-			int insertionCountForNewDiffs = getInsertionCount(newDiffs[1], ' ');
-			if (insertionCountForNewDiffs < insertionCount) {
-				diffs = newDiffs;
-			}
-		}
-		return diffs;
-	}
-	
-	/**
 	 * returns an int array containing the Smith Waterman scores
 	 * score[0] = match count
 	 * score[1] = mismatch count
@@ -851,157 +576,6 @@ public class TiledAlignerUtil {
 		return new String[]{};
 	}
 
-	/**
-	 * try to mirror this on the BLATRecord score which is matches - mismatches - number of insertions in ref - number of insertions in query
-	 * @param diffs
-	 * @return
-	 */
-	public static int getSWScore(String diffs) {
-		int matchCount = 0, mismatchCount = 0, gapCount = 0;
-		for (char c : diffs.toCharArray()) {
-			if ('|' == c) {
-				matchCount++;
-			} else if ('.' == c) {
-				mismatchCount++;
-			} else if (' ' == c) {
-//				gapCount++;
-			} else {
-				logger.warn("found [" + c + "] in sw diffs string!!!");
-			}
-		}
-		return matchCount - mismatchCount - (1 * getInsertionCount(diffs, ' '));
-	}
-	
-	
-	public static List<BLATRecord> getSmithWaterman(String refFile, TLongIntMap tiledAlignerPositions, String sequence, String name, PositionChrPositionMap pcpm, boolean debug, int misMatchCutoffPercentage, int blockCountCutoff) {
-		List<BLATRecord> swResults = new ArrayList<>();
-		int maxScore = sequence.length();
-		int passingPercentScore = (int) (maxScore * 0.99);
-		float misMatchCutoff = (((float)misMatchCutoffPercentage) / 100) * maxScore;
-		
-		boolean preferStrictSW = name != null && name.startsWith("splitcon");
-		
-		/*
-		 * sort positions by tile count so that we have highest matches first
-		 */
-		TIntObjectMap<TLongList> tiledAlignerPositionsMap = new TIntObjectHashMap<>();
-		tiledAlignerPositions.forEachEntry(new TLongIntProcedure() {
-			@Override
-			public boolean execute(long l, int i) {
-				TLongList longList = tiledAlignerPositionsMap.get(i);
-				if (null == longList) {
-					longList = new TLongArrayList();
-					tiledAlignerPositionsMap.put(i,  longList);
-				}
-				longList.add(l);
-				return true;
-			}
-		});
-		int [] sortedKeys = TARecordUtil.sortTileCount(tiledAlignerPositionsMap.keys());
-		
-		String sequenceRC = SequenceUtil.reverseComplement(sequence);
-		Set<ChrPosition> swsAlreadyPerformed = new HashSet<>(sortedKeys.length * 2);
-		
-		for (int key : sortedKeys) {
-			int matchLength = NumberUtils.getPartOfPackedInt(key, true) + TILE_LENGTH_MINUS_ONE;
-			for (long l : tiledAlignerPositionsMap.get(key).toArray()) {
-				
-				boolean reverseComplement = NumberUtils.isBitSet(l, REVERSE_COMPLEMENT_BIT);
-				
-				ChrPosition bufferedCP = getBufferedChrPosition(l, sequence.length(), matchLength, pcpm, 60);
-				
-				if ( ! swsAlreadyPerformed.contains(bufferedCP)) {
-					swsAlreadyPerformed.add(bufferedCP);
-					String bufferedReference = getRefFromChrPos(bufferedCP, refFile);
-					String fragString = reverseComplement ? sequenceRC : sequence;
-					
-					/*
-					 * perform and indexOf to see if we have an exact match!
-					 */
-					int index = bufferedReference.indexOf(fragString);
-					
-					if (index > -1) {
-						if (debug) {
-							logger.info("Got a perfect match using indexOf!!! " + bufferedCP.getChromosome() + ":" + (bufferedCP.getStartPosition()));
-						}
-						/*
-						 * create matching swdiffs array
-						 */
-						String[] swMatches = new String[3];
-						swMatches[0] = fragString;
-						swMatches[1] = org.apache.commons.lang3.StringUtils.repeat('|', fragString.length());
-						swMatches[2] = fragString;
-						BLATRecord br = BLATRecordUtil.getBLATRecord(bufferedCP, swMatches, name, sequence, ! reverseComplement, bufferedReference);
-						swResults.add(br);
-					} else {
-						
-						if (debug) {
-							logger.info("about to sw ref: " + bufferedReference + ", fragString: " + fragString + " for cp: " + bufferedCP.getChromosome() + ":" +  (bufferedCP.getStartPosition()));
-						}
-						
-						/*
-						 * this method will only return a populated string array if valid results have been found (ie. passed the filters)
-						 * and so can add directly to collection
-						 */
-						String [] swDiffs = getIntelligentSwDiffs(bufferedReference, fragString, misMatchCutoff, blockCountCutoff, preferStrictSW);
-						if (swDiffs.length > 0) {
-							int score = getSWScore(swDiffs[1]);
-							if (debug) {
-								if (score > 30) {
-									for (String s : swDiffs) {
-										logger.info("swDiffs: " + s);
-									}
-									logger.info("sw score: " + score + ", fragString length: " + fragString.length());
-								}
-							}
-							
-							BLATRecord br = BLATRecordUtil.getBLATRecord(bufferedCP, swDiffs, name, sequence, ! reverseComplement, bufferedReference);
-							swResults.add(br);
-							if (score == maxScore) {
-								logger.info("max score [" + maxScore + "] (seq length: " + sequence.length() + "), has been reached - exiting sw! " + br.toString());
-								break;
-							} else if (score > passingPercentScore) {
-								logger.info("passing percentage score [" + passingPercentScore + "] (seq length: " + sequence.length() + "), has been reached - exiting sw! " + br.toString());
-								break;
-							}
-						} else {
-							/*
-							 * SW wasn't able to return records within the filtering criteria
-							 * Lets see if we can manually create one based on the tile count
-							 */
-							int misMatchCount = NumberUtils.getPartOfPackedInt(key, false);
-							if ((matchLength - misMatchCount) > MINIMUM_BLAT_RECORD_SCORE) {
-								
-								logger.info("SW couldn't put this down whilst passing the filters - will attempt to create based on tile counts alone. l: " + l + ", matchLength: " + matchLength + ", misMatchCount: " + misMatchCount);
-								
-								ChrPosition cp = pcpm.getChrPositionFromLongPosition(l);
-								boolean forwardStrand = "F".equals(((ChrPositionName)cp).getName());
-								/*
-								 * need to check that reference for this position matches the sequence we have
-								 * This is because we may have some errors due to our commonly occurring tiles.....
-								 */
-								int startPositionsInSequence = NumberUtils.getShortFromLong(l, POSITION_OF_TILE_IN_SEQUENCE_OFFSET);
-								int stopPositionInSequence = startPositionsInSequence + matchLength;
-								String subSequence = sequence.substring(startPositionsInSequence, stopPositionInSequence);
-								String subSequenceRC = sequenceRC.substring(sequenceRC.length() - stopPositionInSequence, (sequenceRC.length() - stopPositionInSequence) + matchLength);
-								
-								ChrPosition cp2 = new ChrPositionName(cp.getChromosome(), cp.getStartPosition(), cp.getStartPosition() + matchLength, forwardStrand ? subSequence : subSequenceRC);
-								
-								logger.info("cp2: " + cp2.toIGVString());
-							
-								BLATRecord br = BLATRecordUtil.getDetailsForBLATRecord(cp2, misMatchCount, NumberUtils.getShortFromLong(l, POSITION_OF_TILE_IN_SEQUENCE_OFFSET), name, sequence, forwardStrand);
-								logger.info("adding to swResutls: " + br.toString());
-								swResults.add(br);
-							}
-						}
-					}
-				}
-			}
-		}
-		return swResults;
-	}
-	
-	
 	public static ChrPosition getBufferedChrPosition(long packedLong, int sequenceLength, int matchLength, PositionChrPositionMap pcpm) {
 		return getBufferedChrPosition(packedLong, sequenceLength, matchLength, pcpm, 20);
 	}
@@ -1172,6 +746,7 @@ public class TiledAlignerUtil {
 	public static Map<String, List<BLATRecord>> runTiledAlignerCache(String refFile, TIntObjectMap<int[]> cache, Map<String, String> sequencesNameMap, int tileLength, String originatingMethod, boolean log) throws IOException {
 		return runTiledAlignerCache(refFile, cache,  sequencesNameMap, tileLength, originatingMethod,  log, false);
 	}
+	
 	public static Map<String, List<BLATRecord>> runTiledAlignerCache(String refFile, TIntObjectMap<int[]> cache, Map<String, String> sequencesNameMap, int tileLength, String originatingMethod, boolean log, boolean recordsMustComeFromChrInName) throws IOException {
 		Map<String, List<BLATRecord>> results = new HashMap<>();
 		
@@ -1201,6 +776,7 @@ public class TiledAlignerUtil {
 		}
 		return results;
 	}
+	
 	public static Map<String, List<BLATRecord>> runTiledAlignerCacheSWAll(String refFile, TIntObjectMap<int[]> cache, Map<String, String> sequencesNameMap, int tileLength, String originatingMethod, boolean log, boolean recordsMustComeFromChrInName) throws IOException {
 		Map<String, List<BLATRecord>> results = new HashMap<>();
 		
@@ -1230,41 +806,6 @@ public class TiledAlignerUtil {
 		return results;
 	}
 	
-	/**
-	 * 
-	 * Returns the number (if any) of commonly occurring tiles at the start of the sequence
-	 * This will help to determine if a potential perfect match is present
-	 * 
-	 * @param startPositions
-	 * @return
-	 */
-	public static int[] getCommonTileCountsAtStart(long [][] startPositions) {
-		int [] tally = new int[2];
-		if (null != startPositions) {
-			for (long[] sp : startPositions) {
-				/*
-				 * commonly occurring tiles have a single entry, that is -1
-				 */
-				if (null != sp) {
-					if (sp.length == 1 && sp[0] == -1) {
-						tally [0] ++;
-					} else {
-						/*
-						 * as soon as we don't have a commonly occurring tile, break out of the loop
-						 */
-						break;
-					}
-				}
-			}
-			
-			/*
-			 * get total count of common tiles
-			 */
-			tally [1] = (int)Arrays.stream(startPositions).filter(la -> null != la && la.length == 1 && la[0] == -1).count();
-		}
-		return tally;
-	}
-	
 	public static int[] getCommonTilePositions(long [][] startPositions) {
 		TIntList is = new TIntArrayList();
 		if (null != startPositions) {
@@ -1281,366 +822,6 @@ public class TiledAlignerUtil {
 		return is.toArray();
 	}
 	
-	
-	
-	public static List<BLATRecord> getBlatRecords(String refFile, TIntObjectMap<int[]> cache, String sequence, final String name, int tileLength, String originatingMethod, boolean log, boolean recordsMustComeFromChrInName) {
-		if (null == cache || cache.isEmpty()) {
-			throw new IllegalArgumentException("Null or empty cache passed to getBlatRecords");
-		}
-		if (null == sequence || sequence.isEmpty()) {
-			throw new IllegalArgumentException("Null or empty sequence passed to getBlatRecords");
-		}
-		if (sequence.length() <= tileLength) {
-			throw new IllegalArgumentException("sequence length is less than or equals to the tile length! sequence: " + sequence + ", tile length: " + tileLength);
-		}
-		
-		if ( ! doesSequenceHaveMostlySingleBaseRepeats(sequence)) {
-			logger.warn("too much repetition in sequence to proceed: " + sequence);
-			return Collections.emptyList();
-		}
-		
-		List<BLATRecord> results = new ArrayList<>();
-		String revCompSequence = SequenceUtil.reverseComplement(sequence);
-		
-		long [][] startPositions = getStartPositionsArray(cache, sequence, tileLength, false, log);
-		long [][] startPositionsRC = getStartPositionsArray(cache, revCompSequence, tileLength, true, log);
-		
-		int [] commonTilesCount = getCommonTileCountsAtStart(startPositions);
-		int [] commonTilesCountRC = getCommonTileCountsAtStart(startPositionsRC);
-		int commonTileCountAtStart = commonTilesCount[0];
-		int commonTileCountAtStartRC = commonTilesCountRC[0];
-		
-		int [] allCommonTiles = getCommonTilePositions(startPositions);
-		int [] allCommonTilesRC = getCommonTilePositions(startPositionsRC);
-		
-		if (null != allCommonTiles && allCommonTiles.length > 0) {
-			logger.debug("common tile positions: " + Arrays.stream(allCommonTiles).mapToObj(i -> "" + i).collect(Collectors.joining(",")));
-		}
-		if (null != allCommonTilesRC && allCommonTilesRC.length > 0) {
-			logger.debug("RS common tile positions: " + Arrays.stream(allCommonTilesRC).mapToObj(i -> "" + i).collect(Collectors.joining(",")));
-		}
-		
-		TLongIntMap potentialMatches = getShortCutPositionsForSmithwaterman(startPositions);
-		TLongIntMap potentialMatchesRC = getShortCutPositionsForSmithwaterman(startPositionsRC);
-		
-		
-		Map<Integer, TLongList> map1 = convertLongDoubleArrayToMap(startPositions, false);
-		Map<Integer, TLongList> map2 = convertLongDoubleArrayToMap(startPositionsRC, true);
-		for (Entry<Integer, TLongList> entry : map2.entrySet()) {
-			map1.computeIfAbsent(entry.getKey(), f -> new TLongArrayList()).addAll(entry.getValue());
-		}
-		
-		
-		PositionChrPositionMap headerMap = new PositionChrPositionMap();
-		headerMap.loadMap(PositionChrPositionMap.grch37Positions);
-		
-		
-		/*
-		 * if we have recordsMustComeFromChrInName then we must get the chromosomes from the name, and then get the start and stop positions for those contigs
-		 * we will then go through the map and remove entries that are not within these ranges
-		 * as this should reduce the number of positions that are sent to the TARecord
-		 */
-		if (recordsMustComeFromChrInName) {
-			/*
-			 * get chromosome names from name
-			 */
-			String [] nameArray = name.split("_");
-			List<long[]> ranges = new ArrayList<>();
-			for (String s : nameArray) {
-				if (s.startsWith("chr") || s.startsWith("GL")) {
-					ranges.add(headerMap.getLongStartAndStopPositionFromChrPosition(new ChrPointPosition(s, 1)));
-				}
-			}
-			Map<Integer, TLongList> updatedMap =  NumberUtils.getUpdatedMapWithLongsFallingInRanges(map1, ranges, REVERSE_COMPLEMENT_BIT);
-			
-			if ( ! updatedMap.isEmpty()) {
-				map1 = updatedMap;
-			}
-			
-			logger.info("we have " + ranges.size() + " ranges for this name: " + name + ", updated map size: " + updatedMap.size() + ", going with map of size: " + map1.size());
-		}
-		
-		if (log) {
-			List<Integer> keys = new ArrayList<>(map1.keySet());
-			keys.sort(null);
-			for (int i = keys.size() - 1 ; i >= 0 ; i--) {
-				TLongList value = map1.get(keys.get(i));
-				logger.info("match count: "  + Arrays.toString(NumberUtils.splitIntInto2(keys.get(i))) + ", number of starts: " + value.size());
-				if (value.size() < 10) {
-					value.forEach((p) -> {logger.info("p: " + p); return true;});
-				}
-			}
-		}
-		
-		TARecord taRec = new TARecord(sequence, map1);
-		boolean needToRunSW = true;
-		
-		TLongList perfectMatches = new TLongArrayList();
-		/*
-		 * Check to see if we have any potential perfect matches taking into account the common tile count
-		 */
-		int maxTileCount = sequence.length() - (TILE_LENGTH_MINUS_ONE);
-		int halfMaxTileCount = maxTileCount / 2;
-		
-		/*
-		 * if the common tile count is >= half of the max tile count, don't add to perfect match
-		 */
-		addEntriesToListIfExistInMap(commonTileCountAtStart, map1, perfectMatches, maxTileCount, halfMaxTileCount, false);
-		addEntriesToListIfExistInMap(commonTileCountAtStartRC, map1, perfectMatches, maxTileCount, halfMaxTileCount, true);
-		
-		
-		/*
-		 * If we have a perfect match here, don't bother doing any SW
-		 */
-		if (log) {
-			logger.info("Perfect match? " + (null != perfectMatches && ! perfectMatches.isEmpty()));
-		}
-		if (null != perfectMatches && ! perfectMatches.isEmpty()) {
-			int maxNumberOfPerfectMatches = 5;
-			if (sequence.indexOf('N') > -1) {
-				if (log) {
-					logger.info("Can't find perfect match - sequence has an N! seq: " + sequence);
-				}
-			} else {
-				/*
-				 * only proceed if all bases are represented in this string
-				 */
-				int seqComplexity = StringUtils.determineSequenceComplexity(sequence).cardinality();
-				if (seqComplexity == 4 || (seqComplexity >= 2 && sequence.length() >= 50)) {
-					int buffer = 10;
-					/*
-					 * only want to return BLATRecords that have a score of greater than MINIMUM_BLAT_RECORD_SCORE (20), and in the case of the perfect match, than means sequence length needs to be more than 20
-					 */
-					if (sequence.length() > MINIMUM_BLAT_RECORD_SCORE) {
-						for (int i = 0 ; i < perfectMatches.size() ; i++) {
-							long l = perfectMatches.get(i);
-							
-							ChrPosition cp = headerMap.getChrPositionFromLongPosition(l);
-							boolean forwardStrand = "F".equals(((ChrPositionName)cp).getName());
-							
-							/*
-							 * need to check that reference for this position matches the sequence we have
-							 * This is because we may have some errors due to our commonly occurring tiles.....
-							 */
-							String ref =  ReferenceUtil.getRefFromChrStartStop(refFile, cp.getChromosome(), cp.getStartPosition() - buffer, cp.getStartPosition() + sequence.length() + buffer);
-							Optional<ChrPosition> optionalCP = getChrPositionWithReference(cp.getChromosome(), cp.getStartPosition(), forwardStrand ? sequence : revCompSequence, ref);
-							if (optionalCP.isPresent()) {
-								logger.debug("got a perfect match!  cp: " + cp.toIGVString() + ", ref: " + ref + ", sequence: " + sequence);
-								needToRunSW = false;
-								Optional<BLATRecord> oBR = BLATRecordUtil.getDetailsForBLATRecord(Arrays.asList(optionalCP.get()), name, forwardStrand ? sequence : revCompSequence, forwardStrand);
-								oBR.ifPresent(br -> results.add(br));
-								/*
-								 * If we have reached the max number of perfect matches, bail
-								 */
-								if (results.size() == maxNumberOfPerfectMatches) {
-									break;
-								}
-							} else {
-								logger.debug("got perfect match on tiles, but not on sequence! cp: " + cp.toIGVString() + ", ref: " + ref + ", sequence: " + sequence);
-							}
-						}
-					}
-				}
-			}
-		}
-		if (needToRunSW) {
-			
-			/*
-			 * OK, no perfect match, so here is the plan
-			 * 
-			 * If our top match is less than 70% but more than 50%, we will look for splits
-			 * If possible, will create a single BLATRec from the splits, but must be on same chromosome, same strand, and not too far away (around 10000 bases)
-			 * If not possible, then will create multiple BLATRecords.
-			 * If we don't get any splits, fall through to smith-waterman
-			 * 
-			 */
-			
-			boolean gotSplits = false;
-			boolean runSplits = null != name && name.startsWith("splitcon");
-			
-			/*
-			 * If the max tile count is low, try running the split to see if its made up of multiple entries.
-			 * If it is, and its not a split, may need to combine into a single BLATRecord
-			 */
-			int highestTileCount = taRec.getHightestTileCount();
-			if (highestTileCount <= 0) {
-				/*
-				 * we're done
-				 */
-				logger.info("Found no tile matches for sequence: " + sequence);
-				return Collections.emptyList();
-			}
-			int currentMaxLength = TARecordUtil.getExactMatchOnlyLengthFromPackedInt(taRec.getHightestTileCount());
-			int commonTileCount = NumberUtils.getPartOfPackedInt(taRec.getHightestTileCount(), false);
-			int nCount = org.apache.commons.lang3.StringUtils.countMatches(sequence, 'N');
-			
-			
-			if (currentMaxLength < (0.7 * sequence.length()) && (currentMaxLength) >= (0.5 * sequence.length())) {
-				logger.info("name: " + name + ", currentMaxLength: " + currentMaxLength + ", sequence.length(): " + sequence.length() + ", less then 70% of bases covered ( && >= 50%) - will look for splits!");
-				runSplits = true;
-			} else {
-				if ( ! runSplits) {
-					logger.info("name: " + name + ", currentMaxLength: " + currentMaxLength + ", sequence.length(): " + sequence.length() + ", will not run splits");
-				}
-			}
-			
-			if (commonTileCount > (0.1 * sequence.length())) {
-				if (runSplits) {
-					logger.info("Too many commonly occurring tiles to be able to run splts, commonTileCount: " + commonTileCount + ", sequence.length(): " + sequence.length() + ", maxTileMatch: " + currentMaxLength);
-				}
-				runSplits = false;
-			}
-			
-			/*
-			 * randomly chosen value for nCount cutoff
-			 */
-			if (nCount > 5) {
-				if (runSplits) {
-					logger.info("Too many N's in sequence - won't run splits! nCount: " + nCount);
-				}
-				runSplits = false;
-			}
-			
-			if (runSplits) {
-				
-				
-				/*
-				 * 2 things we are looking for here:
-				 * 
-				 * 1. a single BLAT record that encompasses multiple (2 or more) ILPs. These need to be on the same chromosome, strand and within 500000 bases of each other
-				 * 2. multiple BLAT records that encompass the sequence. These BLAT records could be on different chromosomes and be far apart, and be on different strands. They can also be composed of more than 1 ILP. eg. 2 BLAT records, 1 is composed by a single ILP on chr1, + strand. THe other BLAT record
-				 * is composed from 2 ILPs that are on chr2, within 500000 bases of each other and on the same strand
-				 * 
-				 */
-				
-				logger.info("about to run some splits, no of positions in TARecord:  name: " + name + ", " + taRec.getCountDist() + "");
-				TIntObjectMap<Set<IntLongPairs>> splits = TARecordUtil.getSplitStartPositions(taRec);
-				List<IntLongPairs> potentialSplits = new ArrayList<>();
-				splits.forEachValue(s -> potentialSplits.addAll(s.stream().collect(Collectors.toList())));
-				/*
-				 * loop through them all, if valid single record splits, create BLAT recs, otherwise fall through to SW
-				 */
-				int passingScore = (int)(0.9 * sequence.length());
-				results.addAll(potentialSplits.stream()
-						.filter(ilp -> IntLongPairsUtil.isIntLongPairsAValidSingleRecord(ilp))
-						.map(ilp ->  BLATRecordUtil.blatRecordFromSplits(ilp, name, sequence.length(), headerMap, TILE_LENGTH))
-						.filter(obr -> obr.isPresent())
-						.map(obr -> obr.get())
-//						.filter(br -> br.getScore() > passingScore)
-						.collect(Collectors.toList()));
-				
-				logger.info("Number of IntLongPairs in potentialSplits list: " + potentialSplits.size() + ", # of records in results after examining potentialSplits: " + results.size());
-				
-				/*
-				 * check to see if we have a record that meets the passing score
-				 * if so, set getSplits to true, which means no need to smith waterman
-				 */
-				
-				gotSplits = results.stream().anyMatch(br -> br.getScore() > passingScore);
-				
-				/*
-				 * If we have our split from the areSplitsCloseEnoughToBeSingleRecord method, no need to go looking for more
-				 */
-				if ( ! gotSplits) {
-					
-					List<BLATRecord[]> blatRecs = TARecordUtil.blatRecordsFromSplitsNew(splits, name, taRec.getSequence().length(), headerMap);
-					logger.info("splits blat record count: " + blatRecs.size() + " for " + name);
-					if ( ! blatRecs.isEmpty()) {
-						
-						for (BLATRecord[] recs : blatRecs) {
-							if (null != recs) {
-								int combinedScore = 0;
-								for (BLATRecord bt : recs) {
-									logger.info("BLAT rec from splits: " + bt.toString());
-									combinedScore += bt.getScore();
-								}
-								/*
-								 * if we have more then 80% of bases covered, we cool, otherwise SW
-								 */
-								if (((double)combinedScore / taRec.getSequence().length()) >= 0.9) {
-									logger.info("No need to smith waterman - have some records, combined score: " + combinedScore + ", seqLength: " + taRec.getSequence().length()  + " for " + name);
-									for (BLATRecord bt : recs) {
-										results.add(bt);
-									}
-									gotSplits = true;
-								}
-							}
-						}
-					} else {
-						logger.info("No split record found for name: " + name + ", gotSplits: " + gotSplits);
-					}
-				}
-			}
-			
-			if ( ! gotSplits) {
-				
-				/*
-				 * get best start positions
-				 */
-				TLongIntMap bestStartPositionsMap = taRec.getStartPositions();
-				
-				
-				/*
-				 * smith waterman
-				 */
-				List<ChrPosition> tiledAlignerCPs = Arrays.stream(bestStartPositionsMap.keys()).mapToObj(l -> headerMap.getChrPositionFromLongPosition(l)).filter(cp -> null != cp).collect(Collectors.toList());
-				if (log) {
-					for (ChrPosition cp : tiledAlignerCPs) {
-						logger.info("will look at " + cp.toIGVString() + ", strand: " + ((ChrPositionName)cp).getName());
-					}
-					logger.info("Number of entries in bestStartPositionsMap: " + bestStartPositionsMap.size());
-				}
-				
-				int misMatchCutoff = (int) (0.1 * sequence.length());
-				
-				List<BLATRecord> swResults = getSmithWaterman(refFile, bestStartPositionsMap, sequence, name != null ? name : "name", headerMap, log, 10, 6);
-				for (BLATRecord swBR : swResults) {
-					if (swBR.getScore() > MINIMUM_BLAT_RECORD_SCORE && swBR.getMisMatches() <= misMatchCutoff && swBR.getBlockCount() <= 6) {
-						results.add(swBR);
-					} else if (log) {
-						logger.debug("BLAT record score is below the cutoff of " + MINIMUM_BLAT_RECORD_SCORE + " or has too many mismatches, or too many (>6) blocks " + swBR);
-					}
-				}
-			}
-		}
-		
-		/*
-		 * only want unique results
-		 */
-		List<BLATRecord> uniqueResults = results.stream().distinct().collect(Collectors.toList());
-		uniqueResults.sort(null);
-		
-		if (log) {
-			logger.debug("number of blat records for seq: " + sequence +", " + uniqueResults.size() +", winner: " + (uniqueResults.size() > 0 ? uniqueResults.get(uniqueResults.size() - 1).toString() : "-"));
-		}
-		if (potentialMatches.size() > 0 || potentialMatchesRC.size() > 0) {
-			logger.info("shortcut!!! potentialMatches.size: " + potentialMatches.size() + ", potentialMatchesRC.size(): " + potentialMatchesRC.size() + ", uniqueResults.size(): " + uniqueResults.size() + ", name: " + name + ", seq length: " + sequence.length() + ", seq: " + sequence);
-		}
-		
-		if (null != name && name.contains("splitcon")) {
-			/*
-			 * really only care if we have different chromosomes
-			 */
-			String[] nameArray = name.split("_");
-			if (nameArray.length > 4 &&  ! nameArray[1].equals(nameArray[3])) {
-				logger.info("got a splitcon: " + name + " with no of recs: " + uniqueResults.size() + ", taRec: " + (null != taRec ? taRec.toString() : "null"));
-				for (BLATRecord br : uniqueResults) {
-					logger.info("splitcon rec: " + br);
-				}
-			}
-		}
-		/*
-		 * remove BLATRecords that are overlapping
-		 * Don't want to do this for splicon records, as overlapping records is a feature...
-		 */
-		List<BLATRecord> nonOverlappingRecs = BLATRecordUtil.removeOverlappingRecords(uniqueResults);
-		nonOverlappingRecs.sort(null);
-		logger.info("Removed overlapping records. Previous count: " + uniqueResults.size() + ", new count (nonOverlappingRecs size): " + nonOverlappingRecs.size());
-		return nonOverlappingRecs;
-		
-		
-//		return uniqueResults;
-	}
 	public static List<BLATRecord> getBlatRecordsSWAll(String refFile, TIntObjectMap<int[]> cache, String sequence, final String name, int tileLength, String originatingMethod, boolean log, boolean recordsMustComeFromChrInName) {
 		if (null == cache || cache.isEmpty()) {
 			throw new IllegalArgumentException("Null or empty cache passed to getBlatRecords");
@@ -1801,8 +982,6 @@ public class TiledAlignerUtil {
 			 */
 			List<Integer> sortedKeys = new ArrayList<>(map1.keySet());
 			sortedKeys.sort((i1, i2) -> Integer.compare(NumberUtils.minusPackedInt(i2), NumberUtils.minusPackedInt(i1)));
-			int swTally = 0;
-			int indexTally = 0;
 			int totalNumberOfTiledPositions = map1.values().stream().mapToInt(l -> l.size()).sum();
 			boolean splits = null != name && name.startsWith("splitcon");
 			
@@ -1820,7 +999,6 @@ public class TiledAlignerUtil {
 			 */
 			if (potentialMatches.size() > 0) {
 				for (long l : potentialMatches.keys()) {
-//					for (long l : potentialMatches.toArray()) {
 					BLATRecord br = smithWaterman(l, seqLength, seqLength, name, sequence, revCompSequence,  refFile, allCommonTiles, headerMap, false);
 					if (null != br) {
 						logger.debug("found record from shortcut: " + br.toString());
@@ -1859,7 +1037,6 @@ public class TiledAlignerUtil {
 			}
 			if (potentialMatchesRC.size() > 0) {
 				for (long l : potentialMatchesRC.keys()) {
-//					for (long l : potentialMatchesRC.toArray()) {
 					BLATRecord br = smithWaterman(l, seqLength, seqLength, name, sequence, revCompSequence, refFile, allCommonTilesRC, headerMap, true);
 					if (null != br) {
 						logger.debug("found record from shortcutRC: " + br.toString());
@@ -2039,7 +1216,6 @@ public class TiledAlignerUtil {
 				/*
 				 * if we have splits, see if we can weed out results that would make a good splt
 				 */
-	//			if ( ! splits && currentMaxScore < passingScore) {
 				if (splits || currentMaxScore < passingScore) {
 					/*
 					 * get largest
@@ -2076,7 +1252,6 @@ public class TiledAlignerUtil {
 						if ( ! splitsResults.isEmpty()) {
 							splitsResults.sort(null);
 							boolean returnSplits = true;
-//							if ( ! splits) {
 							logger.debug("will look for a possible merged rec with splitResults: " + splitsResults.stream().map(BLATRecord::toString).collect(Collectors.joining(",")));
 								Optional<BLATRecord> mergedRec = BLATRecordUtil.mergeBLATRecs(splitsResults, org.apache.commons.lang3.StringUtils.countMatches(sequence, 'N'));
 								if (mergedRec.isPresent()) {
@@ -2084,7 +1259,6 @@ public class TiledAlignerUtil {
 									results.add(mergedRec.get());
 									returnSplits = false;
 								}
-//							} 
 							if (returnSplits) {
 								Optional<int []> coverageAndOverlapO = BLATRecordUtil.getCombinedNonOverlappingScore(splitsResults);
 								if (coverageAndOverlapO.isPresent()) {
@@ -2128,7 +1302,7 @@ public class TiledAlignerUtil {
 			 */
 			String[] nameArray = name.split("_");
 			if (nameArray.length > 4 &&  ! nameArray[1].equals(nameArray[3])) {
-				logger.debug("got a splitcon: " + name + " with no of recs: " + uniqueResults.size() + ", taRec: " + (null != taRec ? taRec.toString() : "null"));
+				logger.debug("got a splitcon: " + name + " with no of recs: " + uniqueResults.size() + ", taRec: " + taRec.toString());
 				for (BLATRecord br : uniqueResults) {
 					logger.debug("splitcon rec: " + br);
 				}
@@ -2143,9 +1317,6 @@ public class TiledAlignerUtil {
 		logger.info("Removed overlapping records. Previous count: " + uniqueResults.size() + ", new count (nonOverlappingRecs size): " + nonOverlappingRecs.size() + " top record: " + (nonOverlappingRecs.size() > 0 ? nonOverlappingRecs.get(nonOverlappingRecs.size() - 1).toString() : null));
 		
 		return nonOverlappingRecs;
-		
-		
-//		return uniqueResults;
 	}
 	
 	public static BLATRecord smithWaterman(long l, int length, int seqLength, String name, String sequence, String revCompSequence, String refFile, int[] allCommonTiles, PositionChrPositionMap headerMap, boolean reverseComplement) {
@@ -2236,7 +1407,6 @@ public class TiledAlignerUtil {
 			
 			ChrPosition cp = headerMap.getChrPositionFromLongPosition(l);
 			boolean forwardStrand = "F".equals(((ChrPositionName)cp).getName());
-//			int buffer = 10;
 			/*
 			 * need to check that reference for this position matches the sequence we have
 			 * This is because we may have some errors due to our commonly occurring tiles.....
@@ -2271,43 +1441,6 @@ public class TiledAlignerUtil {
 				logger.debug("added " + tally + " positions to perfect matches list, rc: " + rc);
 			}
 		}
-	}
-	
-	public static short[] getBaseDistribution(String sequence) {
-		short[] baseDist = new short[5];
-		if ( ! StringUtils.isNullOrEmpty(sequence)) {
-			for (byte b : sequence.getBytes()) {
-				if (b == 'A') {
-					baseDist[0]++;
-				} else if (b == 'C') {
-					baseDist[1]++;
-				} else if (b == 'G') {
-					baseDist[2]++;
-				} else if (b == 'T') {
-					baseDist[3]++;
-				} else if (b == 'N') {
-					baseDist[4]++;
-				}
-			}
-		}
-		return baseDist;
-	}
-	
-	/**
-	 * This method will examine the first 4 elements in the short array to ensure that they are equal to or higher than the percentage value that is calculated based on the sequence length and percentage
-	 * @param dist
-	 * @param seqLength
-	 * @param percentage
-	 * @return
-	 */
-	public static boolean isDistEvenlySpread(short[] dist, int seqLength, double percentage) {
-		double percentageValue = seqLength * (percentage / 100);
-		for (int i = 0 ; i < 4 ; i++) {
-			if (dist[i] < percentageValue) {
-				return false;
-			}
-		}
-		return true;
 	}
 	
 	/**

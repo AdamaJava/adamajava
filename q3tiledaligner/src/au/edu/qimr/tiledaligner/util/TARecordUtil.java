@@ -6,11 +6,6 @@
 
 package au.edu.qimr.tiledaligner.util;
 
-import au.edu.qimr.tiledaligner.PositionChrPositionMap;
-import au.edu.qimr.tiledaligner.model.IntLongPair;
-import au.edu.qimr.tiledaligner.model.IntLongPairs;
-import au.edu.qimr.tiledaligner.model.TARecord;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -27,6 +22,10 @@ import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrPositionName;
 import org.qcmg.common.util.NumberUtils;
 
+import au.edu.qimr.tiledaligner.PositionChrPositionMap;
+import au.edu.qimr.tiledaligner.model.IntLongPair;
+import au.edu.qimr.tiledaligner.model.IntLongPairs;
+import au.edu.qimr.tiledaligner.model.TARecord;
 import gnu.trove.list.TLongList;
 import gnu.trove.list.array.TLongArrayList;
 import gnu.trove.map.TIntObjectMap;
@@ -110,7 +109,6 @@ public class TARecordUtil {
 			 * get the highest scoring list of splits
 			 */
 			int [] keys = splits.keys();
-//			keys = sortTileCount(keys);
 			Arrays.sort(keys);
 			int maxKey = keys[keys.length - 1];
 			Set<IntLongPairs> maxSplits = splits.get(maxKey);
@@ -147,7 +145,6 @@ public class TARecordUtil {
 			 * get the highest scoring list of splits
 			 */
 			int [] keys = splits.keys();
-//			keys = sortTileCount(keys);
 			Arrays.sort(keys);
 			int maxKey = keys[keys.length - 1];
 			
@@ -176,9 +173,6 @@ public class TARecordUtil {
 						blatties = new BLATRecord[pairs.length];
 						for (int i = 0 ; i < pairs.length ; i++) {
 							blatties[i] = BLATRecordUtil.blatRecordFromSplit(pairs[i], name, seqLength, headerMap);
-//							if (null != blatARray && blatARray.length > 0) {
-//								blatties[i] = new BLATRecord.Builder(blatARray).build();
-//							}
 						}
 						Arrays.sort(blatties);
 					} else {
@@ -197,20 +191,13 @@ public class TARecordUtil {
 							blatties = new BLATRecord[rejectedILPs.size() + 1];
 							for (int i = 0 ; i < rejectedILPs.size() ; i++) {
 								blatties[i] = BLATRecordUtil.blatRecordFromSplit(rejectedILPs.get(i), name, seqLength, headerMap);
-//								if (null != blatArray && blatArray.length > 0) {
-//									blatties[i] = new BLATRecord.Builder(blatArray).build();
-//								}
 							}
 							Optional<BLATRecord> oBR = BLATRecordUtil.blatRecordFromSplits(oSingleBLATRec.get(), name, seqLength, headerMap, TILE_LENGTH);	
-//							String [] blatArray = BLATRecordUtil.blatRecordFromSplits(oSingleBLATRec.get(), name, seqLength, headerMap, TILE_LENGTH);
 							if (oBR.isPresent()) {
 								blatties[blatties.length - 1] = oBR.get();
 							}
-//							if (null != blatArray && blatArray.length > 0) {
-//								blatties[blatties.length - 1] = new BLATRecord.Builder(blatArray).build();
-//							}
 							
-							if (null != blatties && blatties.length > 1) {
+							if (blatties.length > 1) {
 								Arrays.sort(blatties);
 							}
 						}
@@ -380,63 +367,6 @@ public class TARecordUtil {
 				}
 			}			
 		}
-	}
-	
-	/**
-	 * This method will examine the IntLongPair records within the supplied IntLongPairs object.
-	 * 
-	 * If they are within 10kb of each other, and on the same strand, we can potentially combine them into a single BLATRecord.
-	 * If the criteria is not met, an empty Optional is retured instead.
-	 * 
-	 * @param splits
-	 * @return
-	 */
-	public static Optional<BLATRecord> areSplitsCloseEnoughToBeSingleRecord(IntLongPairs splits, String name,  int seqLength, PositionChrPositionMap headerMap, int tileLength) {
-		/*
-		 * check strand first
-		 */
-		
-		IntLongPair[] pairs = splits.getPairs();
-		boolean firstPositionIsRevComp = NumberUtils.isBitSet(pairs[0].getLong(), REVERSE_COMPLEMENT_BIT);
-		long firstPosition = NumberUtils.getLongPositionValueFromPackedLong(pairs[0].getLong());
-		boolean allGood = true;
-		for (int i = 1 ; i < pairs.length ; i++) {
-			if (NumberUtils.isBitSet(pairs[i].getLong(), REVERSE_COMPLEMENT_BIT) != firstPositionIsRevComp) {
-				allGood = false;
-				break;
-			}
-			long thisPosition = NumberUtils.getLongPositionValueFromPackedLong(pairs[i].getLong());
-			if (Math.abs(thisPosition - firstPosition) > MAX_GAP_FOR_SINGLE_RECORD) {
-				allGood = false;
-				break;
-			}
-		}
-		if (allGood) {
-			
-			/*
-			 * final check here is to sort the positions genomically, and then make sure that each 
-			 */
-			Arrays.sort(pairs, (pair1, pair2) -> Long.compare(NumberUtils.getLongPositionValueFromPackedLong(pair1.getLong()), NumberUtils.getLongPositionValueFromPackedLong(pair2.getLong())));
-			boolean orderCorrect = true;
-			int lastSeqPosition = -1;
-			for (IntLongPair pair : pairs) {
-				int thisSeqPosition = NumberUtils.getShortFromLong(pair.getLong(), TILE_OFFSET);
-				if (lastSeqPosition > -1) {
-					if (thisSeqPosition < lastSeqPosition) {
-						orderCorrect = false;
-						break;
-					}
-				}
-				lastSeqPosition = thisSeqPosition;
-			}
-			
-			if (orderCorrect) {
-				Optional<BLATRecord> oBR = BLATRecordUtil.blatRecordFromSplits(splits,  name, seqLength, headerMap, tileLength);
-				return oBR;
-			}
-		}
-		
-		return Optional.empty();
 	}
 	
 	/**
