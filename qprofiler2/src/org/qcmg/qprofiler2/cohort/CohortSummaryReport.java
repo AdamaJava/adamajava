@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 
@@ -68,10 +69,10 @@ public class CohortSummaryReport extends SummaryReport {
 	
 	static class Category {
 		final String category;  // eg. FORMAT:FT=PASS;FORMAT:INF=.
-		HashMap<String, Integer> variantsCounts = new HashMap<>();
-		HashMap<String, Integer> dbSnpCounts = new HashMap<>();
+		Map<String, Integer> variantsCounts = new HashMap<>();
+		Map<String, Integer> dbSnpCounts = new HashMap<>();
 		
-		// for snv only, there is only one svn for each report unde same category
+		// for snv only, there is only one svn for each report under same category
 		final String titvRate; 
 		int ti = 0;
 		int tv = 0;
@@ -81,32 +82,35 @@ public class CohortSummaryReport extends SummaryReport {
 			this.category = (name == null || name.isEmpty()) ? "-" : name; 
 			String titv = "-" ;
 			 
-			// for (Element ele :QprofilerXmlUtils.getOffspringElementByTagName(report, SampleSummary.variantType)) {
-			for (Element ele :XmlElementUtils.getOffspringElementByTagName(report, XmlUtils.SEQUENCE_METRICS)) {
+			for (Element ele : XmlElementUtils.getOffspringElementByTagName(report, XmlUtils.SEQUENCE_METRICS)) {
 				// record counts and dbsnp for all type variants
 				String type = ele.getAttribute(XmlUtils.NAME);	
 				int count = Integer.parseInt(ele.getAttribute("count"));
 				variantsCounts.put(type, count);
 				
-				Element e1 = XmlElementUtils.getChildElementByTagName(ele, XmlUtils.VALUE).stream().filter(e -> e.getAttribute(XmlUtils.NAME).equals(SampleSummary.dbSNP)).findFirst().get();				
-				int db = Integer.parseInt(e1.getTextContent());
-				dbSnpCounts.put(type, db);
-				
+				Optional<Element> e1O = XmlElementUtils.getChildElementByTagName(ele, XmlUtils.VALUE).stream().filter(e -> e.getAttribute(XmlUtils.NAME).equals(SampleSummary.dbSNP)).findFirst();
+				if (e1O.isPresent()) {
+					Element e1 = e1O.get();
+					int db = Integer.parseInt(e1.getTextContent());
+					dbSnpCounts.put(type, db);
+				}
 				if (type.equals(SVTYPE.SNP.toVariantType())) {
-					e1 = XmlElementUtils.getChildElementByTagName(ele, XmlUtils.VALUE).stream().filter(e -> e.getAttribute(XmlUtils.NAME).equals(SampleSummary.tiTvRatio)).findFirst().get();				
-					titv = e1.getTextContent();	
-					
+					e1O = XmlElementUtils.getChildElementByTagName(ele, XmlUtils.VALUE).stream().filter(e -> e.getAttribute(XmlUtils.NAME).equals(SampleSummary.tiTvRatio)).findFirst();
+					if (e1O.isPresent()) {
+						Element e1 = e1O.get();
+						titv = e1.getTextContent();	
+					}
 					// ti
 					Optional<Element> streams = XmlElementUtils.getChildElementByTagName(ele, XmlUtils.VARIABLE_GROUP).stream().filter(e -> e.getAttribute(XmlUtils.NAME).equals(SampleSummary.transitions)).findFirst();				
 					if (streams.isPresent()) {
-						List<Integer> sums = new ArrayList<>();						
+						List<Integer> sums = new ArrayList<>();
 						XmlElementUtils.getChildElementByTagName(streams.get(), XmlUtils.TALLY).stream()
 							.forEach(e ->   sums.add(Integer.parseInt(e.getAttribute(XmlUtils.COUNT))));
 						ti = sums.stream().mapToInt(i -> i.intValue()).sum();
-					} 
+					}
 					
 					// tv
-					streams = XmlElementUtils.getChildElementByTagName(ele, XmlUtils.VARIABLE_GROUP).stream().filter(e -> e.getAttribute(XmlUtils.NAME).equals(SampleSummary.transversions)).findFirst() ;				
+					streams = XmlElementUtils.getChildElementByTagName(ele, XmlUtils.VARIABLE_GROUP).stream().filter(e -> e.getAttribute(XmlUtils.NAME).equals(SampleSummary.transversions)).findFirst();				
 					if (streams.isPresent()) {
 						List<Integer> sums = new ArrayList<>();
 						XmlElementUtils.getChildElementByTagName(streams.get(), XmlUtils.TALLY).stream()
