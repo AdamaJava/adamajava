@@ -6,12 +6,6 @@
 
 package au.edu.qimr.tiledaligner;
 
-import au.edu.qimr.tiledaligner.util.TiledAlignerUtil;
-
-import gnu.trove.map.TIntObjectMap;
-import gnu.trove.map.hash.TIntObjectHashMap;
-import htsjdk.samtools.util.SequenceUtil;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
@@ -26,6 +20,11 @@ import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.BLATRecord;
 import org.qcmg.common.util.NumberUtils;
 import org.qcmg.qio.record.StringFileReader;
+
+import au.edu.qimr.tiledaligner.util.TiledAlignerUtil;
+import gnu.trove.map.TIntObjectMap;
+import gnu.trove.map.hash.TIntObjectHashMap;
+import htsjdk.samtools.util.SequenceUtil;
 
 public class TiledAligner {
 	
@@ -116,6 +115,7 @@ public class TiledAligner {
 	public static Set<String> tileSequence(String sequence) {
 		return tileSequence(sequence, TILE_LENGTH);
 	}
+	
 	public static Set<String> tileSequence(String sequence, int tileLength) {
 		Set<String> results = new HashSet<>();
 		int length = sequence.length();

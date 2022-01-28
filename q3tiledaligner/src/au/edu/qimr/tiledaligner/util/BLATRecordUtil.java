@@ -6,10 +6,6 @@
 
 package au.edu.qimr.tiledaligner.util;
 
-import au.edu.qimr.tiledaligner.PositionChrPositionMap;
-import au.edu.qimr.tiledaligner.model.IntLongPair;
-import au.edu.qimr.tiledaligner.model.IntLongPairs;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -25,6 +21,9 @@ import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.NumberUtils;
 
+import au.edu.qimr.tiledaligner.PositionChrPositionMap;
+import au.edu.qimr.tiledaligner.model.IntLongPair;
+import au.edu.qimr.tiledaligner.model.IntLongPairs;
 import htsjdk.samtools.util.SequenceUtil;
 
 public class BLATRecordUtil {
