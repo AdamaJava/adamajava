@@ -109,7 +109,7 @@ physical        chrom   2       1539x
 physical        chrom   6       1540x
 ~~~~
 
-You can also specify the output to be XML format. Here file extension ".xml" is automatically append to putput file. 
+You can also specify the output to be XML format. Here file extension ".xml" is automatically append to the output file. 
 ~~~~
 java -jar qcoverage.java --type physical \
 --output-format XML --output /path/report \
