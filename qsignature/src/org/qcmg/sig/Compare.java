@@ -182,7 +182,6 @@ public class Compare {
 				 */
 				for (Entry<File, Pair<SigMeta, TIntByteHashMap>> entry : cache.entrySet()) {
 					if ( ! entry.getValue().getKey().isValid() || ! sigData.getKey().isValid() || SigMeta.suitableForComparison(entry.getValue().getKey(), sigData.getKey())) {
-	//					logger.info("SigMeta matches: " + ratios1.getKey() + " and " + ratios2.getKey());
 						Comparison comp = ComparisonUtil.compareRatiosUsingSnpsFloat(entry.getValue().getValue(), sigData.getValue(), entry.getKey(), files.get(i));
 						allComparisons.add(comp);
 						logger.info("adding comparison between " + entry.getKey().getAbsolutePath() + " and " + files.get(i).getAbsolutePath());

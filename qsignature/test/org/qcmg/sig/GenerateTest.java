@@ -22,16 +22,16 @@ import gnu.trove.map.TObjectIntMap;
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMRecord;
 
-public class SignatureGeneratorBespokeTest {
+public class GenerateTest {
 	
 	@Rule
 	public  TemporaryFolder testFolder = new TemporaryFolder();
 	
-	public SignatureGeneratorBespoke qss;
+	public Generate qss;
 	
 	@Before
 	public void setup() {
-		qss = new SignatureGeneratorBespoke();
+		qss = new Generate();
 	}
 	
 	@Test
@@ -42,16 +42,16 @@ public class SignatureGeneratorBespokeTest {
 		readGroupBasesArray[0] = rg1Bases;
 		readGroupBasesArray[1] = rg2Bases;
 		
-		assertEquals("", SignatureGeneratorBespoke.getDist(readGroupBasesArray, 0));
-		assertEquals("10-9-8-7", SignatureGeneratorBespoke.getDist(readGroupBasesArray, 1));
-		assertEquals("", SignatureGeneratorBespoke.getDist(readGroupBasesArray, 2));
-		assertEquals("", SignatureGeneratorBespoke.getDist(readGroupBasesArray, 3));
+		assertEquals("", Generate.getDist(readGroupBasesArray, 0));
+		assertEquals("10-9-8-7", Generate.getDist(readGroupBasesArray, 1));
+		assertEquals("", Generate.getDist(readGroupBasesArray, 2));
+		assertEquals("", Generate.getDist(readGroupBasesArray, 3));
 		
 		readGroupBasesArray[2] = new int[]{100,90,80,70};
-		assertEquals("", SignatureGeneratorBespoke.getDist(readGroupBasesArray, 0));
-		assertEquals("10-9-8-7", SignatureGeneratorBespoke.getDist(readGroupBasesArray, 1));
-		assertEquals("100-90-80-70", SignatureGeneratorBespoke.getDist(readGroupBasesArray, 2));
-		assertEquals("", SignatureGeneratorBespoke.getDist(readGroupBasesArray, 3));
+		assertEquals("", Generate.getDist(readGroupBasesArray, 0));
+		assertEquals("10-9-8-7", Generate.getDist(readGroupBasesArray, 1));
+		assertEquals("100-90-80-70", Generate.getDist(readGroupBasesArray, 2));
+		assertEquals("", Generate.getDist(readGroupBasesArray, 3));
 	}
 	
 	@Test
@@ -62,16 +62,16 @@ public class SignatureGeneratorBespokeTest {
 		readGroupBasesArray[0] = rg1Bases;
 		readGroupBasesArray[1] = rg2Bases;
 		
-		assertEquals("10-9-8-7", SignatureGeneratorBespoke.getTotalDist(readGroupBasesArray));
+		assertEquals("10-9-8-7", Generate.getTotalDist(readGroupBasesArray));
 		
 		readGroupBasesArray[0] = new int[]{1,1,1,1};
-		assertEquals("11-10-9-8", SignatureGeneratorBespoke.getTotalDist(readGroupBasesArray));
+		assertEquals("11-10-9-8", Generate.getTotalDist(readGroupBasesArray));
 		
 		readGroupBasesArray[3] = new int[]{1,2,3,4};
-		assertEquals("12-12-12-12", SignatureGeneratorBespoke.getTotalDist(readGroupBasesArray));
+		assertEquals("12-12-12-12", Generate.getTotalDist(readGroupBasesArray));
 		
 		readGroupBasesArray[2] = new int[]{10,20,30,40};
-		assertEquals("22-32-42-52", SignatureGeneratorBespoke.getTotalDist(readGroupBasesArray));
+		assertEquals("22-32-42-52", Generate.getTotalDist(readGroupBasesArray));
 	}
 	
 	@Test
@@ -80,7 +80,7 @@ public class SignatureGeneratorBespokeTest {
 		/*
 		 * setup map of rgids
 		 */
-		TObjectIntMap<String> rgIds = SignatureGeneratorBespoke.getReadGroupsAsMap(header);
+		TObjectIntMap<String> rgIds = Generate.getReadGroupsAsMap(header);
 		
 		/*
 		 * setup SAMRecord
@@ -105,7 +105,7 @@ public class SignatureGeneratorBespokeTest {
 		/*
 		 * setup map of rgids
 		 */
-		TObjectIntMap<String> rgIds = SignatureGeneratorBespoke.getReadGroupsAsMap(header);
+		TObjectIntMap<String> rgIds = Generate.getReadGroupsAsMap(header);
 		
 		/*
 		 * setup SAMRecord
@@ -131,7 +131,7 @@ public class SignatureGeneratorBespokeTest {
 		/*
 		 * setup map of rgids
 		 */
-		TObjectIntMap<String> rgIds = SignatureGeneratorBespoke.getReadGroupsAsMap(header);
+		TObjectIntMap<String> rgIds = Generate.getReadGroupsAsMap(header);
 		
 		/*
 		 * setup SAMRecord
@@ -160,7 +160,7 @@ public class SignatureGeneratorBespokeTest {
 		/*
 		 * setup map of rgids
 		 */
-		TObjectIntMap<String> rgIds = SignatureGeneratorBespoke.getReadGroupsAsMap(header);
+		TObjectIntMap<String> rgIds = Generate.getReadGroupsAsMap(header);
 		
 		assertEquals(4, rgIds.size());
 		assertEquals(0, rgIds.get(null));
@@ -174,7 +174,7 @@ public class SignatureGeneratorBespokeTest {
 		/*
 		 * setup map of rgids
 		 */
-		TObjectIntMap<String> rgIds = SignatureGeneratorBespoke.getReadGroupsAsMap(header);
+		TObjectIntMap<String> rgIds = Generate.getReadGroupsAsMap(header);
 		
 		assertEquals(1, rgIds.size());
 		assertEquals(0, rgIds.get(null));
@@ -294,7 +294,6 @@ public class SignatureGeneratorBespokeTest {
 			for (final VcfRecord rec : reader) {
 				recs.add(rec);
 				assertEquals(true, rec.getRef().equals("A") || rec.getRef().equals("C") ||rec.getRef().equals("G") || rec.getRef().equals("T"));
-//	    		System.out.print("rec: " + rec.toString());
 			}
 			VcfHeader header = reader.getVcfHeader();
 			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg0=null")));
@@ -336,7 +335,6 @@ public class SignatureGeneratorBespokeTest {
 			for (final VcfRecord rec : reader) {
 				recs.add(rec);
 				assertEquals(true, rec.getRef().equals("A") || rec.getRef().equals("C") ||rec.getRef().equals("G") || rec.getRef().equals("T"));
-//	    		System.out.print("rec: " + rec.toString());
 			}
 			VcfHeader header = reader.getVcfHeader();
 			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg0=null")));
@@ -380,7 +378,6 @@ public class SignatureGeneratorBespokeTest {
 			for (final VcfRecord rec : reader) {
 				recs.add(rec);
 				assertEquals(true, rec.getRef().equals("A") || rec.getRef().equals("C") ||rec.getRef().equals("G") || rec.getRef().equals("T"));
-//	    		System.out.print("rec: " + rec.toString());
 			}
 			VcfHeader header = reader.getVcfHeader();
 			assertEquals(false, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg0=null")));	// no rgs in snp chips
@@ -420,7 +417,6 @@ public class SignatureGeneratorBespokeTest {
 			for (final VcfRecord rec : reader) {
 				recs.add(rec);
 				assertEquals(true, rec.getRef().equals("A") || rec.getRef().equals("C") ||rec.getRef().equals("G") || rec.getRef().equals("T"));
-//	    		System.out.print("rec: " + rec.toString());
 			}
 			VcfHeader header = reader.getVcfHeader();
 			assertEquals(false, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg0=null")));	// no rgs in snp chips
@@ -544,10 +540,8 @@ public class SignatureGeneratorBespokeTest {
 			for (final VcfRecord rec : reader) {
 				recs.add(rec);
 				assertEquals(true, rec.getRef().equals("A") || rec.getRef().equals("C") ||rec.getRef().equals("G") || rec.getRef().equals("T"));
-//				System.out.print("rec: " + rec.toString());
 			}
 			VcfHeader header = reader.getVcfHeader();
-//	    	header.getAllMetaRecords().stream().forEach(System.out::println);
 			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg0=null")));
 			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg1=20130325103517169")));
 			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg2=20130325112045146")));
@@ -590,10 +584,8 @@ public class SignatureGeneratorBespokeTest {
 			for (final VcfRecord rec : reader) {
 				recs.add(rec);
 				assertEquals(true, rec.getRef().equals("A") || rec.getRef().equals("C") ||rec.getRef().equals("G") || rec.getRef().equals("T"));
-//				System.out.print("rec: " + rec.toString());
 			}
 			VcfHeader header = reader.getVcfHeader();
-//	    	header.getAllMetaRecords().stream().forEach(System.out::println);
 			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg0=null")));
 			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg1=20130325103517169")));
 			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg2=20130325112045146")));
@@ -636,10 +628,8 @@ public class SignatureGeneratorBespokeTest {
 			for (final VcfRecord rec : reader) {
 				recs.add(rec);
 				assertEquals(true, rec.getRef().equals("A") || rec.getRef().equals("C") ||rec.getRef().equals("G") || rec.getRef().equals("T"));
-//				System.out.print("rec: " + rec.toString());
 			}
 			VcfHeader header = reader.getVcfHeader();
-//	    	header.getAllMetaRecords().stream().forEach(System.out::println);
 			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg0=null")));
 			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg1=20130325103517169")));
 			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg2=20130325112045146")));
@@ -682,10 +672,8 @@ public class SignatureGeneratorBespokeTest {
 			for (final VcfRecord rec : reader) {
 				recs.add(rec);
 				assertEquals(true, rec.getRef().equals("A") || rec.getRef().equals("C") ||rec.getRef().equals("G") || rec.getRef().equals("T"));
-//				System.out.print("rec: " + rec.toString());
 			}
 			VcfHeader header = reader.getVcfHeader();
-//	    	header.getAllMetaRecords().stream().forEach(System.out::println);
 			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg0=null")));
 			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg1=20130325103517169")));
 			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg2=20130325112045146")));
@@ -800,7 +788,6 @@ public class SignatureGeneratorBespokeTest {
 		final File refFile = testFolder.newFile("runProcessWithGenePositionsOption.fa");
 		final File refIndexFile = testFolder.newFile("runProcessWithGenePositionsOption.fa.fai");
 		
-//		SignatureGeneratorTest.writeGenePositionsFile(genesOfInterestFile, "chr1", 10, 300);
 		SignatureGeneratorTest.writeGenePositionsFile(genesOfInterestFile, "chr1", 10, 1000);
 		String dir = testFolder.newFolder("output_dir").getAbsolutePath();
 		try {

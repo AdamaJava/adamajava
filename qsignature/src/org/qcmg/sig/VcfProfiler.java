@@ -18,6 +18,7 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicIntegerArray;
+
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
@@ -179,7 +180,6 @@ public class VcfProfiler {
 						} else {
 							if (prevPositionHom) {
 								if (contiguousHomCounter > 2) {
-//									logger.info("hom run, position count: " + contiguousHomCounter + ", range: " + (lastHomPosition - firstHomPosition) + ", start position: " + rec.getChromosome() + ":" + firstHomPosition);
 								
 									/*
 									 * add details to map
@@ -381,7 +381,6 @@ public class VcfProfiler {
 					int geneIdIndex = info.indexOf("gene_name=");
 					if (geneIdIndex > -1) {
 						int colonIndex = info.indexOf(";", geneIdIndex + 10);
-//						logger.info("colonIndex: " + colonIndex + ", info: " + info + ", geneIdIndex + 10: " + (geneIdIndex + 10) + ", gene: " + info.substring(geneIdIndex, colonIndex));
 						String geneName = colonIndex > -1 ? info.substring(geneIdIndex + 10, colonIndex) :  info.substring(geneIdIndex + 10);
 						map.put(vcf.getChrPosition(), geneName);
 					}

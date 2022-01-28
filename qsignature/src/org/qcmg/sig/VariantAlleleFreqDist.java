@@ -28,7 +28,6 @@ import javax.xml.transform.stream.StreamResult;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.util.FileUtils;
-import org.qcmg.common.util.LoadReferencedClasses;
 import org.qcmg.sig.util.SignatureUtil;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;

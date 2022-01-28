@@ -1,7 +1,6 @@
 package org.qcmg.sig;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -9,6 +8,18 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.junit.Assert;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.qcmg.common.util.BaseUtils;
+import org.qcmg.common.util.IlluminaUtils;
+import org.qcmg.common.util.TabTokenizer;
+import org.qcmg.picard.SAMOrBAMWriterFactory;
+import org.qcmg.picard.util.SAMUtils;
+import org.qcmg.qio.illumina.IlluminaRecord;
+import org.qcmg.sig.util.SignatureUtil;
 
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMFileWriter;
@@ -18,36 +29,12 @@ import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.SAMSequenceRecord;
 
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.rules.TemporaryFolder;
-import org.qcmg.common.commandline.Executor;
-import org.qcmg.common.log.QLoggerFactory;
-import org.qcmg.common.util.BaseUtils;
-import org.qcmg.common.util.IlluminaUtils;
-import org.qcmg.common.util.TabTokenizer;
-import org.qcmg.common.vcf.VcfRecord;
-import org.qcmg.picard.SAMOrBAMWriterFactory;
-import org.qcmg.picard.util.SAMUtils;
-import org.qcmg.qio.illumina.IlluminaRecord;
-import org.qcmg.qio.vcf.VcfFileReader;
-import org.qcmg.sig.util.SignatureUtil;
-
 public class SignatureGeneratorTest {
 	
 	@Rule
 	public  TemporaryFolder testFolder = new TemporaryFolder();
 	
-	public SignatureGenerator qss;
 	
-	@Before
-	public void setup() {
-		qss = new SignatureGenerator();
-		qss.logger = QLoggerFactory.getLogger(SignatureGeneratorTest.class);
-	}
 	
 	@Test
 	public void testPatientRegex() {
@@ -186,82 +173,6 @@ public class SignatureGeneratorTest {
 		
 		return alleleAB;
 	}
-	
-	private Executor execute(final String command) throws Exception {
-		return new Executor(command, "org.qcmg.sig.SignatureGenerator");
-	}
-
-    @Test
-	public void runProcessWithEmptySnpChipFile() throws Exception {
-    	final File positionsOfInterestFile = testFolder.newFile("runProcessWithEmptySnpChipFile.txt");
-    	final File snpChipFile = testFolder.newFile("runProcessWithEmptySnpChipFile_snpChip.txt");
-    	final File illuminaArraysDesignFile = testFolder.newFile("runProcessWithEmptySnpChipFile_snpChipIAD.txt");
-    	final File logFile = testFolder.newFile("runProcessWithEmptySnpChipFile.log");
-    	final File outputFile = testFolder.newFile("runProcessWithEmptySnpChipFile.qsig.vcf");
-    	
-		ExpectedException.none();
-		final Executor exec = execute("--log " + logFile.getAbsolutePath() + " -i " + positionsOfInterestFile.getAbsolutePath() + " -i " + snpChipFile.getAbsolutePath()+ " -i " + illuminaArraysDesignFile.getAbsolutePath());
-		assertTrue(0 == exec.getErrCode());
-		assertTrue(outputFile.exists());
-	}
-    
-    @Test
-    public void runProcessWithSnpChipFile() throws Exception {
-    	final File positionsOfInterestFile = testFolder.newFile("runProcessWithSnpChipFile.txt");
-    	final File illuminaArraysDesignFile = testFolder.newFile("runProcessWithSnpChipFileIAD.txt");
-    	final File snpChipFile = testFolder.newFile("runProcessWithSnpChipFile_snpChip.txt");
-    	final File logFile = testFolder.newFile("runProcessWithSnpChipFile.log");
-    	final String outputFIleName = snpChipFile.getAbsolutePath() + ".qsig.vcf.gz";
-    	final File outputFile = new File(outputFIleName);
-    	
-    	writeSnpChipFile(snpChipFile);
-    	writeSnpPositionsFile(positionsOfInterestFile);
-    	writeIlluminaArraysDesignFile(illuminaArraysDesignFile);
-    	
-    	final int exitStatus = qss.setup(new String[] {"--log" , logFile.getAbsolutePath(), "-i" , positionsOfInterestFile.getAbsolutePath(), "-i" , snpChipFile.getAbsolutePath(),  "-i" , illuminaArraysDesignFile.getAbsolutePath()} );
-    	assertEquals(0, exitStatus);
-    	
-    	assertTrue(outputFile.exists());
-   	
-    	final List<VcfRecord> recs = new ArrayList<>();
-    	try (VcfFileReader reader = new VcfFileReader(outputFile);) {    			
-	    	for (final VcfRecord rec : reader) {
-	    		recs.add(rec);
-//		    	System.out.print("rec: " + rec.toString());
-	    	}
-    	}
-       	
-    	assertEquals(7, recs.size());
-    }
-    
-    @Test
-    public void runProcessWithHG19BamFile() throws Exception {
-	    	final File positionsOfInterestFile = testFolder.newFile("runProcessWithHG19BamFile.snps.txt");
-	    	final File illuminaArraysDesignFile = testFolder.newFile("runProcessWithHG19BamFile.illuminaarray.txt");
-	    	final File bamFile = testFolder.newFile("runProcessWithHG19BamFile.bam");
-	    	final File logFile = testFolder.newFile("runProcessWithHG19BamFile.log");
-	    	final String outputFIleName = bamFile.getAbsolutePath() + ".qsig.vcf.gz";
-	    	final File outputFile = new File(outputFIleName);
-	    	
-	    	writeSnpPositionsFile(positionsOfInterestFile);
-	    	writeIlluminaArraysDesignFile(illuminaArraysDesignFile);
-	    	getBamFile(bamFile, true, false);
-	    	
-	    	final int exitStatus = qss.setup(new String[] {"--log" , logFile.getAbsolutePath(), "-i" , positionsOfInterestFile.getAbsolutePath(), "-i" , bamFile.getAbsolutePath(),  "-i" , illuminaArraysDesignFile.getAbsolutePath()} );
-	    	assertEquals(0, exitStatus);
-	    	
-	    	assertTrue(outputFile.exists());
-	   	
-	    	final List<VcfRecord> recs = new ArrayList<>();
-	    	try (VcfFileReader reader = new VcfFileReader(outputFile);) {    			
-		    	for (final VcfRecord rec : reader) {
-		    		recs.add(rec);
-//		    		System.out.print("rec: " + rec.toString());
-		    	}
-	    	}
-	       	
-	    	assertEquals(7, recs.size());
-    }
     
     static void writeSnpChipFile(File snpChipFile) throws IOException {
     	try (Writer writer = new FileWriter(snpChipFile);) {

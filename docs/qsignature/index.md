@@ -36,7 +36,7 @@ qsignature requires java 8.
 qsignature modes are invoked by directly naming the class that is to be executed as can be seen in the example below:
 
 ~~~~{.text}
-java -cp qsignature.jar org.qcmg.sig.SignatureGeneratorBespoke -snpPositions <file containing positions of interest> -input <input BAM file> -output <output directory where qsig.vcf files will be generated> -log <log file>
+java -cp qsignature.jar org.qcmg.sig.Generate -snpPositions <file containing positions of interest> -input <input BAM file> -output <output directory where qsig.vcf files will be generated> -log <log file>
 
 ~~~~
 
@@ -44,5 +44,5 @@ java -cp qsignature.jar org.qcmg.sig.SignatureGeneratorBespoke -snpPositions <fi
 
 Mode | Description
 -----| -----------
-[`SignatureGeneratorBespoke`](qsignature_signature_generator_bespoke_mode.md) | Generates a compressed VCF file (.qsig.vcf.gz) for a BAM or snp chip file
+[`Generate`](qsignature_signature_generator_bespoke_mode.md) | Generates a compressed VCF file (.qsig.vcf.gz) for a BAM or snp chip file
 [`Compare`](qsignature_compare_mode.md) | Compares all of the qsig.vcf.gz files in a specified folder to ascertain whether there is a potential mixup
