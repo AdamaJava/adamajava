@@ -6,9 +6,8 @@
 
 package au.edu.qimr.tiledaligner;
 
-import au.edu.qimr.tiledaligner.util.TiledAlignerUtil;
-
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,12 +22,14 @@ import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.NumberUtils;
 
+import au.edu.qimr.tiledaligner.util.TiledAlignerUtil;
+
 public class PositionChrPositionMap {
 	
 	private static final QLogger logger = QLoggerFactory.getLogger(PositionChrPositionMap.class);
 	private final Map<ChrPosition, LongRange> chrPosToPositionRange = new HashMap<>();
 	
-	public static List<String> grch37Positions = Arrays.asList("##chr1:249250621:1","##chr2:243199373:249250622","##chr3:198022430:492449995","##chr4:191154276:690472425","##chr5:180915260:881626701","##chr6:171115067:1062541961","##chr7:159138663:1233657028",
+	public static final List<String> grch37Positions = Collections.unmodifiableList(Arrays.asList("##chr1:249250621:1","##chr2:243199373:249250622","##chr3:198022430:492449995","##chr4:191154276:690472425","##chr5:180915260:881626701","##chr6:171115067:1062541961","##chr7:159138663:1233657028",
 	"##chr8:146364022:1392795691","##chr9:141213431:1539159713","##chr10:135534747:1680373144","##chr11:135006516:1815907891","##chr12:133851895:1950914407","##chr13:115169878:2084766302","##chr14:107349540:2199936180","##chr15:102531392:2307285720",
 	"##chr16:90354753:2409817112","##chr17:81195210:2500171865","##chr18:78077248:2581367075","##chr19:59128983:2659444323","##chr20:63025520:2718573306","##chr21:48129895:2781598826","##chr22:51304566:2829728721","##chrX:155270560:2881033287",
 	"##chrY:59373566:3036303847",
@@ -40,7 +41,7 @@ public class PositionChrPositionMap {
 	"##GL000227.1:128374:3100716132","##GL000228.1:129120:3100844506","##GL000229.1:19913:3100973626","##GL000230.1:43691:3100993539","##GL000231.1:27386:3101037230","##GL000232.1:40652:3101064616","##GL000233.1:45941:3101105268",
 	"##GL000234.1:40531:3101151209","##GL000235.1:34474:3101191740","##GL000236.1:41934:3101226214","##GL000237.1:45867:3101268148","##GL000238.1:39939:3101314015","##GL000239.1:33824:3101353954","##GL000240.1:41933:3101387778","##GL000241.1:42152:3101429711",
 	"##GL000242.1:43523:3101471863","##GL000243.1:43341:3101515386","##GL000244.1:39929:3101558727","##GL000245.1:36651:3101598656","##GL000246.1:38154:3101635307","##GL000247.1:36422:3101673461","##GL000248.1:39786:3101709883","##GL000249.1:38502:3101749669",
-	"##chrMT:16569:3101788171");
+	"##chrMT:16569:3101788171"));
 	
 	public PositionChrPositionMap() {}
 	
@@ -51,7 +52,7 @@ public class PositionChrPositionMap {
 				int chrLength = Integer.parseInt(params[1]);
 				long startOffset = Long.parseLong(params[2]);
 				ChrPosition cp = new ChrRangePosition(params[0], 1, chrLength);
-				LongRange range = new LongRange(startOffset, startOffset + chrLength -1);
+				LongRange range = new LongRange(startOffset, startOffset + chrLength - 1);
 				chrPosToPositionRange.put(cp,  range);
 			}
 		}
@@ -75,6 +76,7 @@ public class PositionChrPositionMap {
 		}
 		return startPosition;
 	}
+	
 	public long[] getLongStartAndStopPositionFromChrPosition(ChrPosition cp) {
 		/*
 		 * loop through the keys in the map
@@ -93,6 +95,7 @@ public class PositionChrPositionMap {
 	public ChrPosition getChrPositionFromLongPosition(long position) {
 		return getChrPositionFromLongPosition(position, 0);
 	}
+	
 	public ChrPosition getChrPositionFromLongPosition(long position, int length) {
 		/*
 		 * Need to loop through our map values, and check each one to see if the position falls within the range.
@@ -144,7 +147,8 @@ public class PositionChrPositionMap {
 				int startPosition = (int) positionWithinContig - lhsBuffer;
 				int endPosition = (int) positionWithinContig + length + rhsBuffer;
 				if (endPosition <= startPosition) {
-					logger.error("end position is before (or equal to) start position! startPos: " + startPosition  + ", end position: " + endPosition + ", long position: " + position + ", length: " + length + ", lhsBuffer: " + lhsBuffer + ", rhsBuffer: " + rhsBuffer); 
+					logger.error("end position is before (or equal to) start position! startPos: " + startPosition  + ", end position: " + endPosition 
+							+ ", long position: " + position + ", length: " + length + ", lhsBuffer: " + lhsBuffer + ", rhsBuffer: " + rhsBuffer); 
 				}
 				return new ChrPositionName(entry.getKey().getChromosome(), Math.max(1, startPosition), endPosition, (reverseStrand ? "R" : "F"));
 			}
@@ -161,9 +165,11 @@ public class PositionChrPositionMap {
 			this.from = from;
 			this.to = to;
 		}
+		
 		public boolean isPositionWithinRange(long position) {
 			return from <= position && position <= to;
 		}
+		
 		public long getFrom() {
 			return from;
 		}

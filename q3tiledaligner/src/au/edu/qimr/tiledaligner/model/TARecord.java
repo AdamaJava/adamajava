@@ -6,9 +6,6 @@
 
 package au.edu.qimr.tiledaligner.model;
 
-import au.edu.qimr.tiledaligner.util.TARecordUtil;
-import au.edu.qimr.tiledaligner.util.TiledAlignerUtil;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -19,6 +16,8 @@ import java.util.Map.Entry;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.NumberUtils;
 
+import au.edu.qimr.tiledaligner.util.TARecordUtil;
+import au.edu.qimr.tiledaligner.util.TiledAlignerUtil;
 import gnu.trove.list.TIntList;
 import gnu.trove.list.TLongList;
 import gnu.trove.list.array.TIntArrayList;
@@ -74,7 +73,6 @@ public class TARecord {
 	public String getSequence() {
 		return sequence;
 	}
-	
 	
 	public int [] getTopNCounts(int number, int minValue) {
 		int totalLength = countAndStartPositionsMap.size();
@@ -250,7 +248,7 @@ public class TARecord {
 			}
 		}
 		
-		System.out.println("size of getBestCompoundStartPositions map: " + (null != bestMap ? bestMap.size() : 0));
+		System.out.println("size of getBestCompoundStartPositions map: " + bestMap.size());
 		return bestMap;
 	}
 	
@@ -297,7 +295,6 @@ public class TARecord {
 		}
 		return -1;
 	}
-	
 	
 	public TLongList getStartPositions(int matchingTileMinimumCount, boolean bothStrandsMustBePresent, int maxNumberOfStartPositions) {
 		int maxCutoff = 50;
@@ -379,6 +376,7 @@ public class TARecord {
 	public TLongList getStartPositionsForCount(int count) {
 		return countAndStartPositionsMap.get(count);
 	}
+	
 	public TLongList getStartPositionsForCount(int [] counts) {
 		TLongList list = new TLongArrayList();
 		
@@ -403,7 +401,7 @@ public class TARecord {
 		int [] sortedKeys = map.keys();
 		Arrays.sort(sortedKeys);
 		
-		for (int i = sortedKeys.length -1 ; i > 0 ; i--) {
+		for (int i = sortedKeys.length - 1 ; i > 0 ; i--) {
 			TLongList startPositions = map.get(sortedKeys[i]);
 			TLongList results = getStartPositionsByStrand(startPositions, fs);
 			if ( ! results.isEmpty()) {
@@ -436,10 +434,12 @@ public class TARecord {
 			return bs; 
 		}
 		list.sort();
-		if (list.get(0) < CUTOFF)
+		if (list.get(0) < CUTOFF) {
 			bs.set(0);
-		if (list.get(list.size() - 1) > CUTOFF)
+		}
+		if (list.get(list.size() - 1) > CUTOFF) {
 			bs.set(1);
+		}
 		return bs;
 	}
 	
@@ -462,7 +462,6 @@ public class TARecord {
 		}
 		return sb.toString();
 	}
-	
 	
 	@Override
 	public String toString() {

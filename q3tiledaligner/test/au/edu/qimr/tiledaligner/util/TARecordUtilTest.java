@@ -9,11 +9,6 @@ package au.edu.qimr.tiledaligner.util;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
-import au.edu.qimr.tiledaligner.PositionChrPositionMap;
-import au.edu.qimr.tiledaligner.model.IntLongPair;
-import au.edu.qimr.tiledaligner.model.IntLongPairs;
-import au.edu.qimr.tiledaligner.model.TARecord;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -31,6 +26,10 @@ import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrPositionName;
 import org.qcmg.common.util.NumberUtils;
 
+import au.edu.qimr.tiledaligner.PositionChrPositionMap;
+import au.edu.qimr.tiledaligner.model.IntLongPair;
+import au.edu.qimr.tiledaligner.model.IntLongPairs;
+import au.edu.qimr.tiledaligner.model.TARecord;
 import gnu.trove.list.TLongList;
 import gnu.trove.list.array.TLongArrayList;
 import gnu.trove.map.TIntObjectMap;
@@ -492,8 +491,6 @@ public class TARecordUtilTest {
 		Set<IntLongPairs> setOfPairs = splits.get(splits.keys()[0]);
 		assertEquals(1, setOfPairs.size());
 		IntLongPairs pairs = setOfPairs.iterator().next();
-		Optional<BLATRecord> oBR = TARecordUtil.areSplitsCloseEnoughToBeSingleRecord(pairs, "splitcon_chr10_127633807_chr15_34031839", r.getSequence().length(), pcpm, 13);
-		assertEquals(false, oBR.isPresent());
 		
 		List<BLATRecord[]> blatRecs = TARecordUtil.blatRecordsFromSplits(splits, "splitcon_chr10_127633807_chr15_34031839", r.getSequence().length(), pcpm);
 		assertEquals(1, blatRecs.size());
@@ -609,18 +606,6 @@ public class TARecordUtilTest {
 		Set<IntLongPairs> setOfPairs = splits.get(splits.keys()[0]);
 		assertEquals(1, setOfPairs.size());
 		IntLongPairs pairs = setOfPairs.iterator().next();
-		/*
-		 * ascertain whether a single record may be derived from the splits
-		 */
-		Optional<BLATRecord> oBR = TARecordUtil.areSplitsCloseEnoughToBeSingleRecord(pairs, "splitcon_chr8_125551528_chr8_125555328__true_1589928259240_726892", r.getSequence().length(), pcpm, 13);
-		assertEquals(true, oBR.isPresent());
-		BLATRecord singleBR = oBR.get();
-		System.out.println("singleBR record: " + singleBR.toString());
-		/*
-		 * 290	292	0	0	0	0	0	2	6422	+	splitcon_chr8_125551528_chr8_125555328__true_1589928259240_726892	292	0	291	chr22	12345	41654090	41660804	3	21,136,135	0,21,157	41654090,41657450,41660669
-		 */
-		assertEquals(true, singleBR.getScore() <= seq.length());
-		assertEquals("290	292	0	0	0	0	0	2	6422	+	splitcon_chr8_125551528_chr8_125555328__true_1589928259240_726892	292	0	291	chr22	51304566	41654090	41660804	3	21,136,135	0,21,157	41654090,41657450,41660669", singleBR.toString());
 		
 		List<BLATRecord[]> blatRecs = TARecordUtil.blatRecordsFromSplits(splits, "splitcon_chr22_41657586_chr22_41660668_1_true_1590714106685_44497", r.getSequence().length(), pcpm);
 		assertEquals(1, blatRecs.size());
@@ -2373,11 +2358,6 @@ public class TARecordUtilTest {
 		TIntObjectMap<Set<IntLongPairs>> splits = TARecordUtil.getSplitStartPositions(r);
 		assertEquals(1, splits.size());
 		
-		Optional<BLATRecord> oBR = TARecordUtil.areSplitsCloseEnoughToBeSingleRecord(splits.get(splits.keys()[0]).iterator().next(), "chr2_219093458_true_+", r.getSequence().length(), pcpm, 13);
-		assertEquals(true, oBR.isPresent());
-		System.out.println("singleBLATRec blat record: " + oBR.get().toString());
-		System.out.println("blat rec from blat: 83      0       0       0       0       0       1       8375    +       chr2_219093458  83      0       83      chr2    243199373       219082216       219090674       2       51,32,  0,51,   219082216,219090642,");
-		
 		
 		List<BLATRecord[]> blatRecs = TARecordUtil.blatRecordsFromSplits(splits, "chr2_219093458_true_+", r.getSequence().length(), pcpm);
 		assertEquals(1, blatRecs.size());
@@ -2437,12 +2417,6 @@ public class TARecordUtilTest {
 		
 		System.out.println("Number of records in results after looking in potentialSplits list: " + results.size());
 		
-		for (Set<IntLongPairs> setsOfPairs: splits.valueCollection()) {
-			for (IntLongPairs pairs : setsOfPairs) {
-				Optional<BLATRecord> oBR = TARecordUtil.areSplitsCloseEnoughToBeSingleRecord(pairs, name, r.getSequence().length(), pcpm, 13);
-				assertEquals(false, oBR.isPresent());
-			}
-		}
 		
 		List<BLATRecord[]> blatRecs = TARecordUtil.blatRecordsFromSplits(splits, name, r.getSequence().length(), pcpm);
 		assertEquals(1, blatRecs.size());
@@ -2467,14 +2441,6 @@ public class TARecordUtilTest {
 		TARecord r =  new TARecord(seq, countPosition);
 		TIntObjectMap<Set<IntLongPairs>> splits = TARecordUtil.getSplitStartPositions(r);
 		assertEquals(1, splits.size());
-		
-		Optional<BLATRecord> oBR = TARecordUtil.areSplitsCloseEnoughToBeSingleRecord(splits.get(splits.keys()[0]).iterator().next(), "chr2_219093573", r.getSequence().length(), pcpm, 13);
-		assertEquals(true, oBR.isPresent());
-//		BLATRecord singleBLATRec = new BLATRecord(singleBLATRecArray);
-		System.out.println("singleBLATRec blat record: " + oBR.get().toString());
-		System.out.println("blat rec from blat: 88      0       0       0       0       0       1       4266    +       chr2_219093573_false_   88      0       88      chr2    243199373       219099074       219103428       2       46,42,  0,46,   219099074,219103386,");
-		assertEquals("87	88	0	0	0	0	0	1	4266	+	chr2_219093573	88	0	87	chr2	243199373	219099074	219103428	2	43,45	0,43	219099074,219103383", oBR.get().toString());
-		
 	}
 	
 	@Test
@@ -2554,64 +2520,6 @@ public class TARecordUtilTest {
 		assertEquals(2, map.size());
 		assertArrayEquals(new int[]{0, 24}, map.get(new ChrPositionName("chr4", 65841100, 65841124, "R")));
 		assertArrayEquals(new int[]{24, 28}, map.get(new ChrPositionName("chr4", 65841112, 65841140, "R")));
-		
-//		for(Entry<ChrPosition, int[]> entry : map.entrySet()) {
-//			System.out.println("cp: " + entry.getKey() + ", int array: " + Arrays.toString(entry.getValue()));
-//		}
-	}
-	
-	@Test
-	public void splitsClose() {
-		/*
-		 * IntLongPair [i=8323072, l=32985657853490], IntLongPair [i=1179648, l=309020251], name: splitcon_chr2_59769659_chr2_59769589_2_true_1590115888837_35597_clip, seqLength: 169
-		 * TODO this needs to be investigated
-		 */
-		IntLongPair pair1 = new IntLongPair(8323072, 32985657853490l);
-		IntLongPair pair2 = new IntLongPair(1179648, 309020251);
-		
-		IntLongPairs pairs = new IntLongPairs(pair1, pair2);
-		Optional<BLATRecord> oBR = TARecordUtil.areSplitsCloseEnoughToBeSingleRecord(pairs, "splitcon_chr2_59769659_chr2_59769589_2_true_1590115888837_35597_clip", 169, pcpm, 13);
-		assertEquals(false, oBR.isPresent());
-	}
-	
-	@Test
-	public void splitsClose2() {
-		/*
-		 * CGTGTGCCAGGCACACCCAGCCACCTGCCCAGAGCCTCAGTCCCTCAAGGGGAGCCCCAGGCTGCTCCTCCTTCCTGTGGGGGATGGTGCCGTCTGCAAACAGACTTAGTCTACCTGCCGACTAAGATGGGGCAATCCTGAAAAGGTGAGGAGGGCAGGGCTGGAGGACATGGCCGGAAGTGGGGCCTGTCCCCTGCATATGCTGAGCATGGAGCTTCCCCATTGAGCTCAGATGCAGGCTCAAGAGTCATTCCCAGCACAGCTCTGCAGCCAGCCACAATCAATCAGTCAGCCCGTAGGGCCAATCC
-		 */
-		IntLongPair p1 = new IntLongPair(589824, 315561373177018l);
-		IntLongPair p2 = new IntLongPair(17956864, 1536005032);
-		IntLongPairs pairs = new IntLongPairs(new IntLongPair[]{p1, p2});
-		Optional<BLATRecord> oBR = TARecordUtil.areSplitsCloseEnoughToBeSingleRecord(pairs, "splitcon_chr8_143209050_GL000220.1_128906__true_1592201891996_211329", 308, pcpm, 13);
-		assertEquals(true, oBR.isPresent());
-		System.out.println("singleBLATRec blat record: " + oBR.get().toString());
-		assertEquals("293	295	0	0	0	1	13	1	0	+	splitcon_chr8_143209050_GL000220.1_128906__true_1592201891996_211329	308	0	307	chr8	146364022	143209341	143209636	2	274,21	0,287	143209341,143209615", oBR.get().toString());
-		/*
-		 * from blat:
-		 * 295     0       0       0       1       13      0       0       +       splitcon_chr8_143209050_GL000220.1_128906__true_1592201891996_211329    308     0       308     chr8    146364022       143209341       143209636       2       154,141,
-        0,167,  143209341,143209495,
-		 */
-	}
-	
-	@Test
-	public void splitsClose3() {
-		/*
-		 * String seq = "CCTCCCTCGGCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCNCCCCCCCCCCCCCCCCCNCCGCNCGACCCCCTGCCCCCCCGCCCGTGCGCAGCCGG";
-		 *  [pairs=[IntLongPair [i=2949120, l=4611723402105124227], IntLongPair [i=720896, l=4611699212824942509]]
-		 */
-		String seq = "CCTCCCTCGGCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCNCCCCCCCCCCCCCCCCCNCCGCNCGACCCCCTGCCCCCCCGCCCGTGCGCAGCCGG";
-		IntLongPair p1 = new IntLongPair(2949120, 4611723402105124227l);
-		IntLongPair p2 = new IntLongPair(720896, 4611699212824942509l);
-		IntLongPairs pairs = new IntLongPairs(new IntLongPair[]{p1, p2});
-		Optional<BLATRecord> oBR = TARecordUtil.areSplitsCloseEnoughToBeSingleRecord(pairs, "splitcon_chr8_143209050_GL000220.1_128906__true_1592201891996_211329", seq.length(), pcpm, 13);
-		assertEquals(false, oBR.isPresent());
-//		System.out.println("singleBLATRec blat record: " + br.toString());
-//		assertEquals("305	307	0	0	0	1	1	1	-12	+	splitcon_chr8_143209050_GL000220.1_128906__true_1592201891996_211329	308	0	307	chr8	12345	143209341	143209636	2	286,21	0,287	143209341,143209615", br.toString());
-		/*
-		 * from blat:
-		 * 295     0       0       0       1       13      0       0       +       splitcon_chr8_143209050_GL000220.1_128906__true_1592201891996_211329    308     0       308     chr8    146364022       143209341       143209636       2       154,141,
-        0,167,  143209341,143209495,
-		 */
 	}
 	
 	@Test
