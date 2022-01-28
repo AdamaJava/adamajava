@@ -423,7 +423,7 @@ public class MergeUtils {
 			 */
 			
 			Optional<String> combinedAlts = getCombinedAlt(caller1, caller2);
-			mr = getBaseVcfRecordDetails(caller1, combinedAlts.isPresent() ? combinedAlts.get() : null);
+			mr = getBaseVcfRecordDetails(caller1, combinedAlts.orElse(null));
 			
 			Map<String, String> caller1Rules = null != rules ? rules.get(0) : null;
 			if (null != caller1Rules && ! caller1Rules.isEmpty()) {
@@ -531,7 +531,7 @@ public class MergeUtils {
 		 */
 		
 		Optional<String> combinedAltO = getCombinedAlt(records);
-		String combinedAlt = combinedAltO.isPresent() ? combinedAltO.get() : null;
+		String combinedAlt = combinedAltO.orElse(null);
 		
 		/*
 		 * Get common values from 1st record
