@@ -155,22 +155,19 @@ public final class Options {
 		return options.has("loglevel");
 	}
 	
-	//???
-	boolean hasTxtFlag() {
-		 
+	boolean hasTxtFlag() {		 
 		//default (empty) is TXT, or specify TXT
 		return outputFormat.length == 0 || 
 				! Arrays.stream(outputFormat).allMatch( f -> {  return ! f.toUpperCase().equals("TXT"); });
 	}
-	//???
+
 	boolean hasXmlFlag() {
-		// if non match XML return ture and then !true
+		// at least one of the element match xml
 		return ! Arrays.stream(outputFormat).allMatch( f -> {  return ! f.toUpperCase().equals("XML"); });
 	}
 	
-	//???	
 	boolean hasVcfFlag() {
-		// if non match vcf return ture and then !true
+		// at least one of the element match vcf
 		return ! Arrays.stream(outputFormat).allMatch( f -> {  return ! f.toUpperCase().equals("VCF"); });
 		 
 	}
