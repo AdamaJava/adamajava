@@ -20,7 +20,7 @@ import org.qcmg.common.meta.QExec;
 import org.apache.commons.math3.stat.inference.*;
 
 
-public class StatPileline {
+public class Stat {
 	
 	private static QLogger logger;
 
@@ -33,7 +33,7 @@ public class StatPileline {
 	private final List<BaseStatRecord> test;	  
 
 	private final StatOptions options;
-	public StatPileline(StatOptions options) throws Exception {
+	public Stat(StatOptions options) throws Exception {
 		inputTest = options.getTestMetricFileName();
 		inputControl = options.getControlMetricFileName();				 
 		outputFile = options.getOutputFileName();
@@ -54,13 +54,13 @@ public class StatPileline {
       	 
         if(opt.hasHelpOption() || opt.hasVersionOption()) return;
 
-    	logger = QLoggerFactory.getLogger(StatPileline.class, opt.getLogFileName(), opt.getLogLevel());
+    	logger = QLoggerFactory.getLogger(Stat.class, opt.getLogFileName(), opt.getLogLevel());
     	logger.logInitialExecutionStats(Messages.getProgramName(), Messages.getProgramVersion(), args);
 		 logger.tool("output: " +opt.getOutputFileName());
 		 logger.tool("input of control metric: " + opt.getControlMetricFileName());	
 		 logger.tool("input of test metric: " + opt.getTestMetricFileName());
 		 logger.info("logger level " + opt.getLogLevel());	
-		 new StatPileline(opt).report();	                             
+		 new Stat(opt).report();	                             
 	}
 	
 

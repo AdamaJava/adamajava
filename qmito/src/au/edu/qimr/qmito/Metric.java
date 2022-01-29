@@ -34,7 +34,7 @@ import au.edu.qimr.qmito.lib.*;
 //import au.edu.qimr.qlib.qpileup.*;
 //import au.edu.qimr.qlib.util.*;
 
-public class MetricPileline {
+public class Metric {
 	
 	private static QLogger logger;
 	
@@ -59,7 +59,7 @@ public class MetricPileline {
     private long Ftotal = 0;
     private long Rtotal = 0;
     
-	public MetricPileline(MetricOptions options) throws Exception {
+	public Metric(MetricOptions options) throws Exception {
 		 
 		this.bamFiles = options.getInputFileNames();
 		this.query = options.getQuery();
@@ -91,7 +91,7 @@ public class MetricPileline {
         if(opt.hasHelpOption() || opt.hasVersionOption()) return;
 
     	
-    	logger = QLoggerFactory.getLogger(MetricPileline.class, opt.getLogFileName(), opt.getLogLevel());
+    	logger = QLoggerFactory.getLogger(Metric.class, opt.getLogFileName(), opt.getLogLevel());
         logger.logInitialExecutionStats(opt.getQExec());
     	    for (String bamFile: opt.getInputFileNames()) 
    			logger.info("input Bam: "  + bamFile);
@@ -104,7 +104,7 @@ public class MetricPileline {
         logger.tool("NonReference Threshold: " + opt.getNonRefThreshold());
         logger.info("logger level " + opt.getLogLevel());	
         
-        new MetricPileline(opt).report();	                
+        new Metric(opt).report();	                
 	}
 	
 	private void createHeader(BufferedWriter writer) throws Exception{
