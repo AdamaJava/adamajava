@@ -48,7 +48,7 @@ public class MetricOptions  extends Options {
         parser1.accepts(  "input", Messages.getMessage("INPUT_DESCRIPTION")).withRequiredArg().ofType(String.class);
         parser1.accepts("output", Messages.getMessage("OUTPUT_DESCRIPTION")).withRequiredArg().ofType(String.class); 
         parser1.accepts("reference", Messages.getMessage("REFERENCE_DESCRIPTION")).withRequiredArg().ofType(String.class);
-        parser1.accepts("low-read-count",Messages.getMessage("LOW_READ_COUNT_DESCRIPTION")).withRequiredArg().ofType(Integer.class);
+        parser1.accepts("lowread-count",Messages.getMessage("LOW_READ_COUNT_DESCRIPTION")).withRequiredArg().ofType(Integer.class);
         parser1.accepts("nonref-threshold",Messages.getMessage("NONREFERENCE_THRESHOLD_DESCRIPTION")).withRequiredArg().ofType(Integer.class);
         
         //help can only display after all options are parsed

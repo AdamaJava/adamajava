@@ -31,9 +31,6 @@ import org.qcmg.qbamfilter.query.QueryExecutor;
 
 import au.edu.qimr.qmito.lib.*;
 
-//import au.edu.qimr.qlib.qpileup.*;
-//import au.edu.qimr.qlib.util.*;
-
 public class Metric {
 	
 	private static QLogger logger;

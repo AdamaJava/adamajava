@@ -36,9 +36,9 @@ public class StatOptions extends Options {
  		
         //stop here if ask help or version
  		if(  hasVersionOption())  return;       
-        parser1.accepts("input-test", Messages.getMessage("TEST_METRIC_INPUT_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("input");
-        parser1.accepts( "input-control", Messages.getMessage("CONTROL_METRIC_INPUT_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("input");
-        parser1.accepts("output", Messages.getMessage("OUTPUT_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("output"); 
+        parser1.accepts("input-test", Messages.getMessage("TEST_METRIC_INPUT_DESCRIPTION")).withRequiredArg().ofType(String.class);
+        parser1.accepts( "input-control", Messages.getMessage("CONTROL_METRIC_INPUT_DESCRIPTION")).withRequiredArg().ofType(String.class);
+        parser1.accepts("output", Messages.getMessage("OUTPUT_DESCRIPTION")).withRequiredArg().ofType(String.class); 
         OptionSet options1 = parser1.parse(args);  
         
         //help can only display after all options are parsed
