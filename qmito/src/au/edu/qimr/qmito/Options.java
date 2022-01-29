@@ -6,101 +6,77 @@
  */
 package au.edu.qimr.qmito;
 
+import org.qcmg.common.meta.QExec;
+
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 
 /*
  * parse command line to options. 
  */
-public class Options {
-   public static final String MetricMode = "metric";
-   public static final String StatMode = "stat";
+abstract class Options {
 	
-   private static final String VERSION_DESCRIPTION = Messages.getMessage("VERSION_OPTION_DESCRIPTION");
+	private static final String VERSION_DESCRIPTION = Messages.getMessage("VERSION_OPTION_DESCRIPTION");
+	private static final String HELP_DESCRIPTION = Messages.getMessage("HELP_OPTION_DESCRIPTION");  
+	private static final String LOG_DESCRIPTION = Messages.getMessage("LOG_OPTION_DESCRIPTION");
+	private static final String LOG_LEVEL_OPTION_DESCRIPTION = Messages.getMessage("LOG_LEVEL_OPTION_DESCRIPTION");
+	    
+	private final OptionParser parser = new OptionParser();
+	private  final OptionSet options;
+
+    private String logFileName = null;
+    private String logLevel; 
+    private QExec qexec;    
     
-	private String mode = null;
-	private MetricOptions  metricOpt = null; 
-	private StatOptions statOpt = null;
-    
-    private final OptionParser parser = new OptionParser();
-    private  OptionSet options;
- 
     /**
      * check command line and store arguments and option information
      */
     public Options(final String[] args) throws Exception{ 
 
-    	parser.allowsUnrecognizedOptions(); 
-        parser.accepts(  "version", VERSION_DESCRIPTION);
-        parser.accepts("mode", Messages.getMessage("OPTION_MODE")).withRequiredArg().ofType(String.class);	
-        options = parser.parse(args);   
-                     
-        if( options.has("version")){ 
-        	System.out.println( "Current version is " + getVersion());
-        	return;
-        }
-        
-        if(options.has("mode")) {
-			mode = ((String) options.valueOf("mode")).toLowerCase();
-			if(mode.equals(MetricMode)) 			 
-				metricOpt = new MetricOptions( args);			
-			else if ( mode.equals( StatMode))
-				statOpt =new StatOptions(args);
-			else
-				throw new Exception("invalide mode: "+(String) options.valueOf("mode"));  		
-        } else {
-        	System.out.println( "Missing mode option!");
-        	System.out.println(Messages.USAGE); 
-        	
-        }     
+		parser.allowsUnrecognizedOptions(); 
+		parser.accepts(  "version", VERSION_DESCRIPTION);
+		parser.accepts(  "help" , HELP_DESCRIPTION);
+		parser.accepts("log",  LOG_DESCRIPTION).withRequiredArg().ofType(String.class);
+		parser.accepts("loglevel",  LOG_LEVEL_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
+		           
+		options = parser.parse(args);  
+		
+        //stop here if ask help or version
+		if(  hasVersionOption()) {
+			System.err.println( getVersion());  			
+			return;
+		}		
+		
+		logFileName = (String) options.valueOf("log");
+		logLevel = (String) options.valueOf("loglevel");
+		qexec = new QExec( Messages.getProgramName(), Messages.getProgramVersion(), args );
+		
     } 
-    
+   
+    abstract void displayHelp() throws Exception;
+		 	
+	OptionParser getParser() { return parser; }
+		   	   
     public boolean hasHelpOption(){
-    	if(options.has("h") || options.has("help"))
-    		return true;
-    	
-    	return false;
+    	return  options.has("help");
     }
-  
-    public MetricOptions getMetricOption(){ return metricOpt;}
-    
-    public StatOptions getStatOption(){ return statOpt;}
-    
+     
     public boolean hasVersionOption(){    	
-    	if(options.has("v") || options.has("version")) 
-    		return true;    	
-    	return false;
+    	return  options.has("version");
     }
   
-    public String getVersion(){
-    	return Options.class.getPackage().getImplementationVersion();
+    public String getVersion() { 
+    	return this.getClass().getPackage().getImplementationTitle()
+				+ ", version " + this.getClass().getPackage().getImplementationVersion();	   	 
     }
-    public String getPGName(){
-        //return Messages.getMessage("PROGRAM_NAME");
-        return Messages.getProgramName();
-    }
-    
-	public String getMode() {
-		return mode;
-	}
-    
-    public String getLogFileName() {
-	    if(mode.equals(MetricMode)) 			 
-			return metricOpt.getLogFileName();	
-		else if ( mode.equals( StatMode))
-			return statOpt.getLogFileName();
-		else
-			return null;
-    
-    }
-    
-    public String getLogLevel() {
-	    if(mode.equals(MetricMode)) 			 
-			return metricOpt.getLogLevel();	
-		else if ( mode.equals( StatMode))
-			return statOpt.getLogLevel();
-		else
-			return null;   
-    }
+       
+    public String getPGName() {  return Messages.getProgramName(); }
+        
+	public String getLogFileName() { return logFileName; }
+
+	public String getLogLevel() { return logLevel; }
+	
+    public QExec getQExec() { return qexec; }
+
  
 }

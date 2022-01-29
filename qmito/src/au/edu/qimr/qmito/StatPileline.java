@@ -22,7 +22,8 @@ import org.apache.commons.math3.stat.inference.*;
 
 public class StatPileline {
 	
-	private final QLogger logger = QLoggerFactory.getLogger(getClass());
+	private static QLogger logger;
+
 
 	private final String outputFile;
 	private final String inputControl;
@@ -47,7 +48,22 @@ public class StatPileline {
  			 throw new Exception("Two input metric files contains differnt line number ( position number)");
 		 
 	}
- 
+	public static void main(String[] args) throws Exception {		
+		 	
+    	StatOptions opt = new StatOptions(args);
+      	 
+        if(opt.hasHelpOption() || opt.hasVersionOption()) return;
+
+    	logger = QLoggerFactory.getLogger(StatPileline.class, opt.getLogFileName(), opt.getLogLevel());
+    	logger.logInitialExecutionStats(Messages.getProgramName(), Messages.getProgramVersion(), args);
+		 logger.tool("output: " +opt.getOutputFileName());
+		 logger.tool("input of control metric: " + opt.getControlMetricFileName());	
+		 logger.tool("input of test metric: " + opt.getTestMetricFileName());
+		 logger.info("logger level " + opt.getLogLevel());	
+		 new StatPileline(opt).report();	                             
+	}
+	
+
 	
 	public List<BaseStatRecord> readIn(String fileName) throws IOException{
 		

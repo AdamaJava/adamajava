@@ -36,7 +36,8 @@ import au.edu.qimr.qmito.lib.*;
 
 public class MetricPileline {
 	
-	private final QLogger logger = QLoggerFactory.getLogger(getClass());
+	private static QLogger logger;
+	
 	private final String[] bamFiles;	
 	private final String outputFile;
 	private final String referenceFile;
@@ -82,6 +83,28 @@ public class MetricPileline {
     	forward.finalizeMetrics(referenceRecord.getSequenceLength(), false, forwardNonRef);
     	reverse.finalizeMetrics(referenceRecord.getSequenceLength(), false, reverseNonRef); 
     	
+	}
+	
+	public static void main(String[] args) throws Exception {		
+		
+    	MetricOptions opt = new MetricOptions( args);
+        if(opt.hasHelpOption() || opt.hasVersionOption()) return;
+
+    	
+    	logger = QLoggerFactory.getLogger(MetricPileline.class, opt.getLogFileName(), opt.getLogLevel());
+        logger.logInitialExecutionStats(opt.getQExec());
+    	    for (String bamFile: opt.getInputFileNames()) 
+   			logger.info("input Bam: "  + bamFile);
+       
+        logger.tool("output: " +opt.getOutputFileName());
+        logger.tool("query: " + opt.getQuery());	
+        logger.tool("reference File: " + opt.getReferenceFile());
+        logger.tool("reference record name: " + opt.getReferenceRecord().getSequenceName());
+        logger.tool("Low Read Count: " + opt.getLowReadCount());
+        logger.tool("NonReference Threshold: " + opt.getNonRefThreshold());
+        logger.info("logger level " + opt.getLogLevel());	
+        
+        new MetricPileline(opt).report();	                
 	}
 	
 	private void createHeader(BufferedWriter writer) throws Exception{
@@ -196,24 +219,24 @@ public class MetricPileline {
 	private void add2Stat(SAMRecord record){
 		String attribute = (String)record.getAttribute("MD");	
 	 
-			int count = 0;
-			for (int i = 0, size = attribute.length() ; i < size ; ) {
-				char c = attribute.charAt(i);
-				if (c == 'A' || c == 'C' || c == 'G' || c == 'T' || c == 'N') {
-					count++;
-					i++;
-				} else if ( c == '^') {
-					//skip the insertion base
-					while (++i < size && Character.isLetter(attribute.charAt(i))) {}
-				} else i++;	// need to increment this or could end up with infinite loop...
-			}
-			if(record.getReadNegativeStrandFlag()){	
-				Rmismatch[count] ++;
-				Rtotal ++;
-			}else{
-				Fmismatch[count]++;
-				Ftotal ++;
-			}
+		int count = 0;
+		for (int i = 0, size = attribute.length() ; i < size ; ) {
+			char c = attribute.charAt(i);
+			if (c == 'A' || c == 'C' || c == 'G' || c == 'T' || c == 'N') {
+				count++;
+				i++;
+			} else if ( c == '^') {
+				//skip the insertion base
+				while (++i < size && Character.isLetter(attribute.charAt(i))) {}
+			} else i++;	// need to increment this or could end up with infinite loop...
+		}
+		if (record.getReadNegativeStrandFlag()){	
+			Rmismatch[count] ++;
+			Rtotal ++;
+		} else{
+			Fmismatch[count]++;
+			Ftotal ++;
+		}
 	}
 
 	/**
@@ -222,24 +245,24 @@ public class MetricPileline {
 	 * @throws Exception
 	 */
 	private void addToStrandDS(PileupSAMRecord p) throws Exception {		
-	    	List<PileupDataRecord> records = p.getPileupDataRecords();			
-			for (PileupDataRecord dataRecord : records) {
-				//pileup will add extra pileupDataRecord for clips, it may byond reference edge
-				if (dataRecord.getPosition() < 1 ||   dataRecord.getPosition() > referenceRecord.getSequenceLength()) 
-					continue;
-				
-				int index = dataRecord.getPosition() - 1;  //?array start with 0, but reference start with 1
-				if (dataRecord.isReverse()) {				
- 					reverse.modifyStrandDS(dataRecord, index, false);
- 					reverseNonRef.addNonReferenceMetrics(dataRecord, index);
-				} else {
-					forward.modifyStrandDS(dataRecord, index, false);
-					forwardNonRef.addNonReferenceMetrics(dataRecord, index);
-				}			 
- 			}				
-		}			
+    	List<PileupDataRecord> records = p.getPileupDataRecords();			
+		for (PileupDataRecord dataRecord : records) {
+			//pileup will add extra pileupDataRecord for clips, it may byond reference edge
+			if (dataRecord.getPosition() < 1 ||   dataRecord.getPosition() > referenceRecord.getSequenceLength()) 
+				continue;
+			
+			int index = dataRecord.getPosition() - 1;  //?array start with 0, but reference start with 1
+			if (dataRecord.isReverse()) {				
+				reverse.modifyStrandDS(dataRecord, index, false);
+				reverseNonRef.addNonReferenceMetrics(dataRecord, index);
+			} else {
+				forward.modifyStrandDS(dataRecord, index, false);
+				forwardNonRef.addNonReferenceMetrics(dataRecord, index);
+			}			 
+		}				
+	}			
 
-	public StrandDS GetForwardStrandDS(){	return forward; }
+	public StrandDS GetForwardStrandDS() { return forward; }
 	
-	public StrandDS GetReverseStrandDS(){	return reverse; }
+	public StrandDS GetReverseStrandDS() { return reverse; }
 }
