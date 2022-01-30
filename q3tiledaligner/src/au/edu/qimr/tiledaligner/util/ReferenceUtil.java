@@ -6,19 +6,19 @@
 
 package au.edu.qimr.tiledaligner.util;
 
-import gnu.trove.map.hash.THashMap;
-import htsjdk.samtools.reference.FastaSequenceIndex;
-import htsjdk.samtools.reference.IndexedFastaSequenceFile;
-import htsjdk.samtools.reference.ReferenceSequence;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Map;
 
+import gnu.trove.map.hash.THashMap;
+import htsjdk.samtools.reference.FastaSequenceIndex;
+import htsjdk.samtools.reference.IndexedFastaSequenceFile;
+import htsjdk.samtools.reference.ReferenceSequence;
+
 public class ReferenceUtil {
 	
-	public static Map<String, byte[]> referenceCache = new THashMap<>();
+	public static final Map<String, byte[]> referenceCache = new THashMap<>();
 	
 	public static String getRefFromChrStartStop(String refFile, String contig, int start, int stop) {
 		String refContig = refFile + contig;
