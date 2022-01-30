@@ -27,8 +27,10 @@ import org.qcmg.qbamfilter.query.QueryExecutor;
 public class MetricOptions  extends Options {
    
     private String query = "and (flag_NotprimaryAlignment == false, flag_ReadUnmapped == false)";
-    private String referenceFile;
+    private String defaultRefName = "chrMT";
     private SAMSequenceRecord referenceRecord;
+    private String referenceFile;
+//    private SAMSequenceRecord referenceRecord;
     private int lowreadcount = 10;
     private int nonrefthreshold = 20;
 
@@ -48,6 +50,7 @@ public class MetricOptions  extends Options {
         parser1.accepts(  "input", Messages.getMessage("INPUT_DESCRIPTION")).withRequiredArg().ofType(String.class);
         parser1.accepts("output", Messages.getMessage("OUTPUT_DESCRIPTION")).withRequiredArg().ofType(String.class); 
         parser1.accepts("reference", Messages.getMessage("REFERENCE_DESCRIPTION")).withRequiredArg().ofType(String.class);
+        parser1.accepts("mito-name", Messages.getMessage("MITO_SEQUENCE_DESCRIPTION")).withRequiredArg().ofType(String.class);
         parser1.accepts("lowread-count",Messages.getMessage("LOW_READ_COUNT_DESCRIPTION")).withRequiredArg().ofType(Integer.class);
         parser1.accepts("nonref-threshold",Messages.getMessage("NONREFERENCE_THRESHOLD_DESCRIPTION")).withRequiredArg().ofType(Integer.class);
         
@@ -82,6 +85,8 @@ public class MetricOptions  extends Options {
 	        query = options1.valueOf("q").toString();                  
 	        checkQuery(query);       	 
         }
+        
+        
        	    
         checkCommand( options1 ); 		
 	}
@@ -102,12 +107,16 @@ public class MetricOptions  extends Options {
         //check Reference
         referenceFile = (String) options.valueOf("reference");
         if( ! (new File(referenceFile).exists()))
-        	throw new Exception("reference is not exist: " + referenceFile);      
+        	throw new Exception("reference is not exist: " + referenceFile);  
         
-		SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(inputBamNames[0]));  
-		SAMFileHeader header = reader.getFileHeader().clone();
-		reader.close();
-		
+        String ref = options.has("mito-name")? (String) options.valueOf("refname") : defaultRefName;
+        try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(inputBamNames[0])); ) {
+        	SAMFileHeader header = reader.getFileHeader().clone();          
+            referenceRecord = header.getSequence(header.getSequenceIndex(ref));
+    		if(referenceRecord == null)
+    			throw new Exception("invalide reference sequence name: " + ref);
+        }
+        		
          //check outputs
         outputFileName =  (String) options.valueOf("output");
         File output = new File(outputFileName);

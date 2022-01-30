@@ -43,7 +43,7 @@ abstract class Options {
 		
         //stop here if ask help or version
 		if(  hasVersionOption()) {
-			System.err.println( getVersion());  			
+			System.err.println( getVersion());
 			return;
 		}		
 		

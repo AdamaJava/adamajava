@@ -68,7 +68,6 @@ public class Metric {
 		referenceFile = options.getReferenceFile();
 		outputFile = options.getOutputFileName();
 		
-	//	this.options = options;		
       	forward = new StrandDS( referenceRecord, false );
     	reverse = new StrandDS(referenceRecord, true );
        			
@@ -101,7 +100,9 @@ public class Metric {
         logger.tool("NonReference Threshold: " + opt.getNonRefThreshold());
         logger.info("logger level " + opt.getLogLevel());	
         
-        new Metric(opt).report();	                
+        new Metric(opt).report();	
+        
+        logger.logFinalExecutionStats(0);
 	}
 	
 	private void createHeader(BufferedWriter writer) throws Exception{

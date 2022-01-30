@@ -60,7 +60,9 @@ public class Stat {
 		 logger.tool("input of control metric: " + opt.getControlMetricFileName());	
 		 logger.tool("input of test metric: " + opt.getTestMetricFileName());
 		 logger.info("logger level " + opt.getLogLevel());	
-		 new Stat(opt).report();	                             
+		 new Stat(opt).report();	
+		 
+		 logger.logFinalExecutionStats(0);
 	}
 	
 
