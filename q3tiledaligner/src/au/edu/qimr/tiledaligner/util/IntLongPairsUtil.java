@@ -6,9 +6,6 @@
 
 package au.edu.qimr.tiledaligner.util;
 
-import au.edu.qimr.tiledaligner.model.IntLongPair;
-import au.edu.qimr.tiledaligner.model.IntLongPairs;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -16,6 +13,9 @@ import java.util.List;
 import java.util.Optional;
 
 import org.qcmg.common.util.NumberUtils;
+
+import au.edu.qimr.tiledaligner.model.IntLongPair;
+import au.edu.qimr.tiledaligner.model.IntLongPairs;
 
 public class IntLongPairsUtil {
 	
