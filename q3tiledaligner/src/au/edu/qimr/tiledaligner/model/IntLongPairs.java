@@ -10,15 +10,16 @@ import java.util.Arrays;
 import java.util.stream.Collectors;
 
 public class IntLongPairs {
-	
 
 	@Override
 	public String toString() {
 		return "IntLongPairs [pairs=" + Arrays.toString(pairs) + "]";
 	}
+	
 	public String toDetailedString() {
 		return "ILPs [pairs=" + Arrays.stream(pairs).map(IntLongPair::toDetailedString).collect(Collectors.joining(",")) + "]";
 	}
+	
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -26,6 +27,7 @@ public class IntLongPairs {
 		result = prime * result + Arrays.hashCode(pairs);
 		return result;
 	}
+	
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
@@ -47,11 +49,12 @@ public class IntLongPairs {
 		pairs[0] = pair1;
 		pairs[1] = pair2;
 	}
+	
 	public IntLongPairs(IntLongPair[] pairs) {
 		if (pairs.length < 2) {
 			throw new IllegalArgumentException("attempt to instantiate IntLongPairs with array of invalid length! " + Arrays.deepToString(pairs));
 		}
-		this.pairs = pairs;
+		this.pairs = Arrays.copyOf(pairs, pairs.length);
 	}
 	
 	/**
@@ -69,4 +72,3 @@ public class IntLongPairs {
 		return pairs;
 	}
 }
-

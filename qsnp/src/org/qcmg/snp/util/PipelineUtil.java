@@ -1,18 +1,5 @@
 package org.qcmg.snp.util;
 
-import gnu.trove.list.TIntList;
-import gnu.trove.list.TLongList;
-import gnu.trove.list.array.TLongArrayList;
-import gnu.trove.map.TIntIntMap;
-import gnu.trove.map.TLongCharMap;
-import gnu.trove.map.TLongIntMap;
-import gnu.trove.map.TLongObjectMap;
-import gnu.trove.map.TMap;
-import gnu.trove.map.hash.THashMap;
-import gnu.trove.map.hash.TLongObjectHashMap;
-import gnu.trove.set.TIntSet;
-import gnu.trove.set.hash.TIntHashSet;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -32,11 +19,24 @@ import org.qcmg.common.model.Rule;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.AccumulatorUtils;
 import org.qcmg.common.util.ChrPositionUtils;
-import org.qcmg.common.util.Pair;
 import org.qcmg.common.util.Constants;
+import org.qcmg.common.util.Pair;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
+
+import gnu.trove.list.TIntList;
+import gnu.trove.list.TLongList;
+import gnu.trove.list.array.TLongArrayList;
+import gnu.trove.map.TIntIntMap;
+import gnu.trove.map.TLongCharMap;
+import gnu.trove.map.TLongIntMap;
+import gnu.trove.map.TLongObjectMap;
+import gnu.trove.map.TMap;
+import gnu.trove.map.hash.THashMap;
+import gnu.trove.map.hash.TLongObjectHashMap;
+import gnu.trove.set.TIntSet;
+import gnu.trove.set.hash.TIntHashSet;
 
 public class PipelineUtil {
 	
@@ -129,9 +129,9 @@ public class PipelineUtil {
 		 */
 		Arrays.sort(controlGT);
 		Arrays.sort(testGT);
-		String cgt = Arrays.binarySearch(controlGT, (short)-1) > -1 ? Constants.MISSING_GT : controlGT[0] + Constants.SLASH_STRING + controlGT[1];
-		String tgt =  Arrays.binarySearch(testGT, (short)-1) > -1 ? Constants.MISSING_GT : testGT[0] + Constants.SLASH_STRING + testGT[1];
-		return Arrays.asList(allels.isEmpty() ? Constants.MISSING_DATA_STRING : allels.stream().collect(Collectors.joining(Constants.COMMA_STRING)), cgt,tgt);
+		String cgt = Arrays.binarySearch(controlGT, (short) -1) > -1 ? Constants.MISSING_GT : controlGT[0] + Constants.SLASH_STRING + controlGT[1];
+		String tgt =  Arrays.binarySearch(testGT, (short) -1) > -1 ? Constants.MISSING_GT : testGT[0] + Constants.SLASH_STRING + testGT[1];
+		return Arrays.asList(allels.isEmpty() ? Constants.MISSING_DATA_STRING : allels.stream().collect(Collectors.joining(Constants.COMMA_STRING)), cgt, tgt);
 	}
 	
 	/**
@@ -743,7 +743,8 @@ public class PipelineUtil {
 	public static Optional<VcfRecord> createCompoundSnp(Map<VcfRecord, Pair<Accumulator, Accumulator>> vcfs, List<Rule> controlRules, List<Rule> testRules, boolean runSBias, int sBiasCov, int sBiasAlt) {
 		
 		Pair<List<Accumulator>, List<Accumulator>> p = getAccs(vcfs);
-		Optional<String> ref = getReference(vcfs.keySet());
+		Optional<String> refO = getReference(vcfs.keySet());
+		String ref = refO.isPresent() ? refO.get() : null;
 		
 		Map<String, short[]> cBasesCountsNNS =  getBasesFromAccumulators(p.getLeft());
 		Map<String, short[]> tBasesCountsNNS =  getBasesFromAccumulators(p.getRight());
@@ -759,16 +760,16 @@ public class PipelineUtil {
 		int cMinCov = null != cr ? cr.getMaxCoverage() == Integer.MAX_VALUE ? (cr.getNoOfVariants() * controlCov) / 100 : cr.getNoOfVariants() : 2;
 		int tMinCov = null != tr ? tr.getMaxCoverage() == Integer.MAX_VALUE ? (tr.getNoOfVariants() * testCov) / 100 : tr.getNoOfVariants() : 2;
 		
-		List<String> cGT = getBasesForGenotype (cBasesCountsNNS, cMinCov, ref.get());
-		List<String> tGT = getBasesForGenotype (tBasesCountsNNS, tMinCov, ref.get());
+		List<String> cGT = getBasesForGenotype (cBasesCountsNNS, cMinCov, ref);
+		List<String> tGT = getBasesForGenotype (tBasesCountsNNS, tMinCov, ref);
 		
 		
 		/*
 		 * check to see if we have a mutation
 		 * if getBasesForGenotype only returns an empty list OR a list just containing the reference for BOTH control, and test, then we don't have a mutation
 		 */
-		if ((cGT.isEmpty() || (cGT.size() == 1 && cGT.get(0).equals(ref.get()))) 
-				&& (tGT.isEmpty() || (tGT.size() == 1 && tGT.get(0).equals(ref.get())))) {
+		if ((cGT.isEmpty() || (cGT.size() == 1 && cGT.get(0).equals(ref))) 
+				&& (tGT.isEmpty() || (tGT.size() == 1 && tGT.get(0).equals(ref)))) {
 			return Optional.empty();
 		}
 		
@@ -776,7 +777,7 @@ public class PipelineUtil {
 		 * this list should contain 3 elements, the first is a comma seperated list of alt alleles.
 		 * The second and third elements are the control and test GT fields
 		 */
-		List<String> altsAndGTs = getAltStringAndGenotypes(cGT, tGT, ref.get());
+		List<String> altsAndGTs = getAltStringAndGenotypes(cGT, tGT, ref);
 		/*
 		 * If alt string is '.' - no dice
 		 */
@@ -786,7 +787,7 @@ public class PipelineUtil {
 		
 		VcfRecord firstRec = vcfs.keySet().stream().sorted().findFirst().get();
 		
-		VcfRecord v = VcfUtils.createVcfRecord(firstRec.getChrPosition(), null, ref.get(), altsAndGTs.get(0));
+		VcfRecord v = VcfUtils.createVcfRecord(firstRec.getChrPosition(), null, ref, altsAndGTs.get(0));
 		
 		/*
 		 * get some data that will be used frequently in the filter finding
@@ -815,7 +816,7 @@ public class PipelineUtil {
 		String oabs = oOabs.isPresent() ? oOabs.get() : Constants.MISSING_DATA_STRING;
 		
 		StringBuilder cSB = new StringBuilder(altsAndGTs.get(1));
-		StringUtils.updateStringBuilder(cSB, VcfUtils.getAD(ref.get(), altsAndGTs.get(0), oabs), Constants.COLON);
+		StringUtils.updateStringBuilder(cSB, VcfUtils.getAD(ref, altsAndGTs.get(0), oabs), Constants.COLON);
 		StringUtils.updateStringBuilder(cSB, controlCov > 0 ? controlCov+"" : "0", Constants.COLON);
 		/*
 		 * filters are applied in qannotate now
@@ -830,7 +831,7 @@ public class PipelineUtil {
 		oabs = oOabs.isPresent() ? oOabs.get() : Constants.MISSING_DATA_STRING;
 		
 		StringBuilder tSB = new StringBuilder(altsAndGTs.get(2));
-		StringUtils.updateStringBuilder(tSB, VcfUtils.getAD(ref.get(), altsAndGTs.get(0), oabs), Constants.COLON);
+		StringUtils.updateStringBuilder(tSB, VcfUtils.getAD(ref, altsAndGTs.get(0), oabs), Constants.COLON);
 		StringUtils.updateStringBuilder(tSB, testCov > 0 ? testCov +"" :  "0", Constants.COLON);
 		/*
 		 * filters are applied in qannotate now

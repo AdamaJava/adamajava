@@ -1,17 +1,7 @@
 package org.qcmg.snp.util;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertArrayEquals;
-import gnu.trove.list.TIntList;
-import gnu.trove.list.TLongList;
-import gnu.trove.list.array.TIntArrayList;
-import gnu.trove.list.array.TLongArrayList;
-import gnu.trove.map.TIntIntMap;
-import gnu.trove.map.TLongIntMap;
-import gnu.trove.map.TMap;
-import gnu.trove.map.hash.THashMap;
-import gnu.trove.map.hash.TIntIntHashMap;
-import gnu.trove.map.hash.TLongIntHashMap;
+import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -31,6 +21,17 @@ import org.qcmg.common.util.Pair;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
+
+import gnu.trove.list.TIntList;
+import gnu.trove.list.TLongList;
+import gnu.trove.list.array.TIntArrayList;
+import gnu.trove.list.array.TLongArrayList;
+import gnu.trove.map.TIntIntMap;
+import gnu.trove.map.TLongIntMap;
+import gnu.trove.map.TMap;
+import gnu.trove.map.hash.THashMap;
+import gnu.trove.map.hash.TIntIntHashMap;
+import gnu.trove.map.hash.TLongIntHashMap;
 
 public class PipelineUtilTest {
 	
@@ -305,7 +306,7 @@ Exception in thread "main" java.lang.IllegalArgumentException: List of Accumulat
 		snps.add(VcfUtils.createVcfRecord(new ChrPointPosition("1", 101), null, "B", null));
 		snps.add(VcfUtils.createVcfRecord(new ChrPointPosition("1", 102), null, "C", null));
 		
-		assertEquals("ABC", PipelineUtil.getReference(snps).get());
+		assertEquals("ABC", PipelineUtil.getReference(snps).orElse(null));
 	}
 	
 	@Test
@@ -528,9 +529,9 @@ Exception in thread "main" java.lang.IllegalArgumentException: List of Accumulat
 		Map<String, short[]> basesAndCounts = new HashMap<>();
 		
 		basesAndCounts.put("XYZ", new short[]{10,5,15,6});
-		assertEquals("XYZ10[]15[]", PipelineUtil.getOABS(basesAndCounts).get());
+		assertEquals("XYZ10[]15[]", PipelineUtil.getOABS(basesAndCounts).orElse(null));
 		basesAndCounts.put("ABC", new short[]{21,2,14,1});
-		assertEquals("ABC21[]14[];XYZ10[]15[]", PipelineUtil.getOABS(basesAndCounts).get());
+		assertEquals("ABC21[]14[];XYZ10[]15[]", PipelineUtil.getOABS(basesAndCounts).orElse(null));
 	}
 	
 	@Test
@@ -616,7 +617,7 @@ Exception in thread "main" java.lang.IllegalArgumentException: List of Accumulat
 		Map<VcfRecord, Pair<Accumulator, Accumulator>> map = new HashMap<>();
 		map.put(origV, new Pair<>(controlAcc100, testAcc100));
 		
-		VcfRecord v = PipelineUtil.createCompoundSnp(map, cRules,tRules, true, 3, 3).get();
+		VcfRecord v = PipelineUtil.createCompoundSnp(map, cRules,tRules, true, 3, 3).orElse(null);
 		assertEquals(origV.getChrPosition(), v.getChrPosition());
 		assertEquals("C", v.getAlt());
 		assertEquals("A", v.getRef());
@@ -654,7 +655,7 @@ Exception in thread "main" java.lang.IllegalArgumentException: List of Accumulat
 		map.put(origV, new Pair<>(controlAcc100, testAcc100));
 		map.put(origV2, new Pair<>(controlAcc101, testAcc101));
 		
-		VcfRecord v = PipelineUtil.createCompoundSnp(map, cRules,tRules, true, 3, 3).get();
+		VcfRecord v = PipelineUtil.createCompoundSnp(map, cRules,tRules, true, 3, 3).orElse(null);
 		assertEquals(2, v.getChrPosition().getLength());
 		assertEquals("GT", v.getAlt());
 		assertEquals("AC", v.getRef());
@@ -669,7 +670,7 @@ Exception in thread "main" java.lang.IllegalArgumentException: List of Accumulat
 		controlAcc100.addBase((byte)'T', (byte) 1, false, 100, 100, 200, 5);
 		controlAcc100.addBase((byte)'T', (byte) 1, false, 100, 100, 200, 6);
 		
-		 v = PipelineUtil.createCompoundSnp(map, cRules,tRules, true, 3, 3).get();
+		 v = PipelineUtil.createCompoundSnp(map, cRules,tRules, true, 3, 3).orElse(null);
 		assertEquals(2, v.getChrPosition().getLength());
 		assertEquals("GT", v.getAlt());
 //		assertEquals("T_,GT", v.getAlt());
@@ -1057,9 +1058,9 @@ chr4    8046421 .       A       T       .       .       BaseQRankSum=0.727;Clipp
 		 * 
 		 * This should not be 1/2 in the test - only 1 read supporting the second alt
 		 */
-		VcfRecord v1 = VcfUtils.createVcfRecord(new ChrPointPosition("1", 154701381),null,"G","A");
+		VcfRecord v1 = VcfUtils.createVcfRecord(new ChrPointPosition("1", 154701381), null, "G", "A");
 		v1.setInfo(VcfHeaderUtils.INFO_SOMATIC);
-		VcfRecord v2 = VcfUtils.createVcfRecord(new ChrPointPosition("1", 154701382),null,"G","A");
+		VcfRecord v2 = VcfUtils.createVcfRecord(new ChrPointPosition("1", 154701382), null, "G", "A");
 		v2.setInfo(VcfHeaderUtils.INFO_SOMATIC);
 		final Accumulator tumour100 = new Accumulator(154701381);
 		final Accumulator tumour101 = new Accumulator(154701382);

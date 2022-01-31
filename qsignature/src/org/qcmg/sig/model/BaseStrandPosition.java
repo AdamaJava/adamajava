@@ -3,6 +3,7 @@
  */
 package org.qcmg.sig.model;
 
+@Deprecated
 public class BaseStrandPosition {
 	
 	private final char base;
