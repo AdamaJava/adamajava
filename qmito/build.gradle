@@ -1,13 +1,12 @@
 apply plugin: 'application'
 
-mainClassName = 'au.edu.qimr.qmito.Mito'
 def scriptname = 'qmito'
 def isExecutable = true
 
 dependencies {
     configurations.compile.transitive = true
 	
-	api 'org.apache.commons:commons-math3:3.3'
+    api 'org.apache.commons:commons-math3:3.3'
 	
     api project(':qcommon')
     api project(':qbamfilter')

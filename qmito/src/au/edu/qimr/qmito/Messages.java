@@ -14,13 +14,9 @@ import java.util.ResourceBundle;
  * a collection of methods which return formated message string
  */
 public class Messages {
-    static final ResourceBundle messages =
-        ResourceBundle.getBundle("au.edu.qimr.qmito.messages");
+    static final ResourceBundle messages = ResourceBundle.getBundle("au.edu.qimr.qmito.messages");
 
-    public static String USAGE = getMessage("USAGE");
-
-    public static String getMessage(final String identifier)
-    {
+    public static String getMessage(final String identifier){
         return messages.getString(identifier);
     }
 
@@ -30,21 +26,19 @@ public class Messages {
         return MessageFormat.format(message, arguments);
     }
 
-    public static String getMessage(final String identifier,  final String arg1,  final String arg2)
-    {
+    public static String getMessage(final String identifier,  final String arg1,  final String arg2){
         final String message = Messages.getMessage(identifier);
         Object[] arguments = {arg1, arg2};
         return MessageFormat.format(message, arguments);
     }
-    static String getMessage(final String identifier, final String arg1,   final String arg2,  final String arg3)
-    {
+    
+    static String getMessage(final String identifier, final String arg1,   final String arg2,  final String arg3) {
         final String message = Messages.getMessage(identifier);
         Object[] arguments = {arg1, arg2, arg3};
         return MessageFormat.format(message, arguments);
     }
 
-    static String getMessage(final String identifier,  final Object[] arguments)
-    {
+    static String getMessage(final String identifier,  final Object[] arguments) {
         final String message = Messages.getMessage(identifier);
         return MessageFormat.format(message, arguments);
     }
@@ -61,7 +55,4 @@ public class Messages {
 	static String getProgramVersion() {
 		return Messages.class.getPackage().getImplementationVersion();
 	}
-
-
-
 }
