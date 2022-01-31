@@ -34,6 +34,10 @@ public class Stat {
 
 	private final StatOptions options;
 	public Stat(StatOptions options) throws Exception {
+		
+		//init logger in constructor, methods require it
+    	logger = QLoggerFactory.getLogger(Stat.class, options.getLogFileName(), options.getLogLevel());
+    	
 		inputTest = options.getTestMetricFileName();
 		inputControl = options.getControlMetricFileName();				 
 		outputFile = options.getOutputFileName();
@@ -44,8 +48,9 @@ public class Stat {
  		 control = readIn(inputControl);
  		 test = readIn(inputTest);
 		
- 		 if(control.size() != test.size())
+ 		 if(control.size() != test.size()) {
  			 throw new Exception("Two input metric files contains differnt line number ( position number)");
+ 		}
 		 
 	}
 	public static void main(String[] args) throws Exception {		
@@ -54,19 +59,16 @@ public class Stat {
       	 
         if(opt.hasHelpOption() || opt.hasVersionOption()) return;
 
-    	logger = QLoggerFactory.getLogger(Stat.class, opt.getLogFileName(), opt.getLogLevel());
     	logger.logInitialExecutionStats(Messages.getProgramName(), Messages.getProgramVersion(), args);
-		 logger.tool("output: " +opt.getOutputFileName());
-		 logger.tool("input of control metric: " + opt.getControlMetricFileName());	
-		 logger.tool("input of test metric: " + opt.getTestMetricFileName());
-		 logger.info("logger level " + opt.getLogLevel());	
-		 new Stat(opt).report();	
+		logger.tool("output: " +opt.getOutputFileName());
+		logger.tool("input of control metric: " + opt.getControlMetricFileName());	
+		logger.tool("input of test metric: " + opt.getTestMetricFileName());
+		logger.info("logger level " + opt.getLogLevel());	
+		new Stat(opt).report();	
 		 
-		 logger.logFinalExecutionStats(0);
+		logger.logFinalExecutionStats(0);
 	}
-	
-
-	
+		
 	public List<BaseStatRecord> readIn(String fileName) throws IOException{
 		
 		List<BaseStatRecord> counts = new ArrayList<>();
@@ -127,7 +129,7 @@ public class Stat {
  				line += String.format("%s\t%d\t%s\n", control.get(i).ref, control.get(i).position, control.get(i).ref_base);
  				line += String.format("%s\t%d\t%s\n", test.get(i).ref, test.get(i).position, test.get(i).ref_base);				
  				throw new IllegalArgumentException(line);
- 				}
+ 			}
   			
  			conFor = control.get(i).getForwardArray();
  			conRsv = control.get(i).getReverseArray();

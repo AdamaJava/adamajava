@@ -57,6 +57,10 @@ public class Metric {
     private long Rtotal = 0;
     
 	public Metric(MetricOptions options) throws Exception {
+    	
+		//init logger in constructor, methods require it
+    	logger = QLoggerFactory.getLogger(Metric.class, options.getLogFileName(), options.getLogLevel());
+
 		 
 		this.bamFiles = options.getInputFileNames();
 		this.query = options.getQuery();
@@ -73,7 +77,8 @@ public class Metric {
        			
 		//alalysis reads
     	QueryExecutor exec = new QueryExecutor(options.getQuery());	
-		for (String bam : bamFiles)  readSAMRecords(bam,exec) ;	
+		for (String bam : bamFiles)  
+			readSAMRecords(bam,exec) ;	
 		
     	//add the stats that need to be done at the end to the datasets				
     	forward.finalizeMetrics(referenceRecord.getSequenceLength(), false, forwardNonRef);
@@ -86,11 +91,8 @@ public class Metric {
     	MetricOptions opt = new MetricOptions( args);
         if(opt.hasHelpOption() || opt.hasVersionOption()) return;
 
-    	
-    	logger = QLoggerFactory.getLogger(Metric.class, opt.getLogFileName(), opt.getLogLevel());
         logger.logInitialExecutionStats(opt.getQExec());
-    	    for (String bamFile: opt.getInputFileNames()) 
-   			logger.info("input Bam: "  + bamFile);
+    	for (String bamFile: opt.getInputFileNames()) logger.info("input Bam: "  + bamFile);
        
         logger.tool("output: " +opt.getOutputFileName());
         logger.tool("query: " + opt.getQuery());	
@@ -140,26 +142,26 @@ public class Metric {
 	 */
  	public void report() throws Exception{
  		
-		BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile, false));
+		try(BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile, false));) {
 		
-		//create header lines
-		createHeader(writer);
-		
-		//all pileup dataset
-    	IndexedFastaSequenceFile indexedFastaFile = Reference.getIndexedFastaFile( new File(referenceFile) );
-       	referenceBases = indexedFastaFile.getSubsequenceAt(referenceRecord.getSequenceName(), 1,referenceRecord.getSequenceLength()).getBases();
-
-       	PositionElement pos;
-		for(int i = 0; i < referenceRecord.getSequenceLength(); i++){
-			//Samtools report 1 on mapping position if mapped at start of reference. but java array start at 0
- 			pos = new PositionElement(  referenceRecord.getSequenceName(), i+1, (char) referenceBases[i] );
- 			
-			QPileupRecord qRecord = new QPileupRecord(pos, 
-					forward.getStrandElementMap(i), reverse.getStrandElementMap(i));			
-			String sb = qRecord.getPositionString() + qRecord.getStrandRecordString() + "\n" ;		
-			writer.write(sb);		 		
- 		}			
-		writer.close();	
+			//create header lines
+			createHeader(writer);
+			
+			//all pileup dataset
+	    	IndexedFastaSequenceFile indexedFastaFile = Reference.getIndexedFastaFile( new File(referenceFile) );
+	       	referenceBases = indexedFastaFile.getSubsequenceAt(referenceRecord.getSequenceName(), 1,referenceRecord.getSequenceLength()).getBases();
+	
+	       	PositionElement pos;
+			for(int i = 0; i < referenceRecord.getSequenceLength(); i++){
+				//Samtools report 1 on mapping position if mapped at start of reference. but java array start at 0
+	 			pos = new PositionElement(  referenceRecord.getSequenceName(), i+1, (char) referenceBases[i] );
+	 			
+				QPileupRecord qRecord = new QPileupRecord(pos, 
+						forward.getStrandElementMap(i), reverse.getStrandElementMap(i));			
+				String sb = qRecord.getPositionString() + qRecord.getStrandRecordString() + "\n" ;		
+				writer.write(sb);		 		
+	 		}			
+		}
 		
   	   	logger.info("outputed strand dataset of " + referenceRecord.getSequenceName() + ", pileup position " + referenceRecord.getSequenceLength());    	 			
     	//report mismatch stats
@@ -177,16 +179,16 @@ public class Metric {
 	 * @param exec: qbamfilter query executor
 	 * @throws Exception
 	 */
-	void readSAMRecords(String bamFile, QueryExecutor exec) throws Exception{							
+	void readSAMRecords(String bamFile, QueryExecutor exec) throws Exception{	
+		
 
-    	try {            		
+    	try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(bamFile),ValidationStringency.SILENT);) {            		
     		//set up overall stats for the bam 
         	forwardNonRef = new NonReferenceRecord(referenceRecord.getSequenceName(), referenceRecord.getSequenceLength(), false, lowReadCount, nonrefThreshold);
         	reverseNonRef = new NonReferenceRecord(referenceRecord.getSequenceName(), referenceRecord.getSequenceLength(), true, lowReadCount, nonrefThreshold);
 			
         	int numReads = 0, total = 0;
-			SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(bamFile),ValidationStringency.SILENT);
-			
+						
 			SAMRecordIterator ite = reader.query(referenceRecord.getSequenceName(),0, referenceRecord.getSequenceLength(), false);
 			while(ite.hasNext()){
 				total ++;
@@ -203,15 +205,18 @@ public class Metric {
              	addToStrandDS(p);
             	p = null;		
             	numReads ++;
-  			}  
+            	
+   			}  
 			ite.close();
-			reader.close();
+			
  			logger.info("Total read " + total + " reads from input: " + bamFile);					 			 
  			logger.info("Added " + numReads + " reads mapped on "+ referenceRecord.getSequenceName()+" and met query from BAM: " + bamFile);					 			 
-	    	} catch (Exception e) {
-	    		logger.error("Exception happened during reading: " + bamFile, e);
-	    		throw e;
-	    	} 	
+    	} catch (Exception e) {
+    		e.printStackTrace();
+    		logger.error("Exception happened during reading: " + bamFile, e);
+    		
+    		throw e;
+    	} 	
 	}
 	
 	private void add2Stat(SAMRecord record){
