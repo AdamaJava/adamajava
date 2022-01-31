@@ -19,7 +19,7 @@ import au.edu.qimr.qmito.lib.*;
 //import au.edu.qimr.qlib.util.Reference;
 
 
-public class MetricPilelineTest {
+public class MetricTest {
 	private String input = "./input.bam";
 	private String log = "./output.log";
 	private String output = "./output.tsv";
@@ -41,9 +41,9 @@ public class MetricPilelineTest {
 		//here we use fake reference file, since it won't be used only passing to option 
 		String[] args = {"-m", "metric", "-r", input,"-i", input, "-o", output, "--log",log, "--lowreadcount","2", "--nonrefthreshold" , "50" };
 		try {
-			MetricOptions options = new Options(args).getMetricOption();
+			MetricOptions options = new   MetricOptions(args);
 			//here we can't call mito.report since we testing data don't provide reference index file		
-			MetricPileline mito = new MetricPileline(options);
+			Metric mito = new Metric(options);
 		    
 			//Here we only test last three base of chrMT
 			int posStart = 16567;			
