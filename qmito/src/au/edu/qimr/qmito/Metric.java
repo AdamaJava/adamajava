@@ -56,30 +56,30 @@ public class Metric {
     private long Ftotal = 0;
     private long Rtotal = 0;
     
-	public Metric(MetricOptions options) throws Exception {
+    public Metric(MetricOptions options) throws Exception {
     	
-		//init logger in constructor, methods require it
+	//init logger in constructor, methods require it
     	logger = QLoggerFactory.getLogger(Metric.class, options.getLogFileName(), options.getLogLevel());
 
 		 
-		this.bamFiles = options.getInputFileNames();
-		this.query = options.getQuery();
-		this.qexec = options.getQExec();
-		
-		lowReadCount = options.getLowReadCount();
-		nonrefThreshold = options.getNonRefThreshold();
-		referenceRecord = options.getReferenceRecord();
-		referenceFile = options.getReferenceFile();
-		outputFile = options.getOutputFileName();
+        this.bamFiles = options.getInputFileNames();
+        this.query = options.getQuery();
+        this.qexec = options.getQExec();
+
+        lowReadCount = options.getLowReadCount();
+        nonrefThreshold = options.getNonRefThreshold();
+        referenceRecord = options.getReferenceRecord();
+        referenceFile = options.getReferenceFile();
+        outputFile = options.getOutputFileName();
 		
       	forward = new StrandDS( referenceRecord, false );
     	reverse = new StrandDS(referenceRecord, true );
        			
 		//alalysis reads
     	QueryExecutor exec = new QueryExecutor(options.getQuery());	
-		for (String bam : bamFiles)  
-			readSAMRecords(bam,exec) ;	
-		
+        for (String bam : bamFiles) {
+            readSAMRecords(bam,exec) ;	
+        }
     	//add the stats that need to be done at the end to the datasets				
     	forward.finalizeMetrics(referenceRecord.getSequenceLength(), false, forwardNonRef);
     	reverse.finalizeMetrics(referenceRecord.getSequenceLength(), false, reverseNonRef); 
@@ -92,9 +92,11 @@ public class Metric {
         if(opt.hasHelpOption() || opt.hasVersionOption()) return;
 
         logger.logInitialExecutionStats(opt.getQExec());
-    	for (String bamFile: opt.getInputFileNames()) logger.info("input Bam: "  + bamFile);
-       
-        logger.tool("output: " +opt.getOutputFileName());
+    	for (String bamFile: opt.getInputFileNames()) {
+            logger.info("input Bam: "  + bamFile);
+        }
+        
+        logger.tool("output: " + opt.getOutputFileName());
         logger.tool("query: " + opt.getQuery());	
         logger.tool("reference File: " + opt.getReferenceFile());
         logger.tool("reference record name: " + opt.getReferenceRecord().getSequenceName());
@@ -131,8 +133,6 @@ public class Metric {
 		
 		//output column names
 		writer.write("Reference\tPosition\tRef_base\t" + StrandEnum.getHeader() + "\n");
-		
-		
 	}
 
 	/**
@@ -140,7 +140,7 @@ public class Metric {
 	 * @param output: output file name with full path
 	 * @throws Exception 
 	 */
- 	public void report() throws Exception{
+ 	public void report() throws Exception {
  		
 		try(BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile, false));) {
 		
@@ -152,7 +152,7 @@ public class Metric {
 	       	referenceBases = indexedFastaFile.getSubsequenceAt(referenceRecord.getSequenceName(), 1,referenceRecord.getSequenceLength()).getBases();
 	
 	       	PositionElement pos;
-			for(int i = 0; i < referenceRecord.getSequenceLength(); i++){
+			for(int i = 0; i < referenceRecord.getSequenceLength(); i++) {
 				//Samtools report 1 on mapping position if mapped at start of reference. but java array start at 0
 	 			pos = new PositionElement(  referenceRecord.getSequenceName(), i+1, (char) referenceBases[i] );
 	 			
@@ -160,17 +160,17 @@ public class Metric {
 						forward.getStrandElementMap(i), reverse.getStrandElementMap(i));			
 				String sb = qRecord.getPositionString() + qRecord.getStrandRecordString() + "\n" ;		
 				writer.write(sb);		 		
-	 		}			
+	 		}
 		}
-		
   	   	logger.info("outputed strand dataset of " + referenceRecord.getSequenceName() + ", pileup position " + referenceRecord.getSequenceLength());    	 			
     	//report mismatch stats
   	   	long total = Ftotal + Rtotal;
-    	for(int i = 0; i < 100; i ++) 
-    		if(Fmismatch[i] > 0 || Rmismatch[i] > 0) 
+    	for (int i = 0; i < 100; i ++) {
+    		if(Fmismatch[i] > 0 || Rmismatch[i] > 0) {
     			logger.info(String.format("There %d (%.2f) forward records  and %d (%.2f) reverse reacords contains %d base mismatch", Fmismatch[i], (double) Fmismatch[i] / total ,Rmismatch[i], (double) Rmismatch[i] / total, i));
+            }
+        }
 		logger.info(String.format("There are total %d (%.2f) forward records and %d (%.2f) reverse records pileup", Ftotal,(double) Ftotal / total , Rtotal, (double) Rtotal / total));
-
 	}
 	/**
 	 * main pileline to run pileup on a single BAM
@@ -189,28 +189,32 @@ public class Metric {
 			
         	int numReads = 0, total = 0;
 						
-			SAMRecordIterator ite = reader.query(referenceRecord.getSequenceName(),0, referenceRecord.getSequenceLength(), false);
-			while(ite.hasNext()){
-				total ++;
-				SAMRecord record = ite.next();	 
-            	if(! exec.Execute(record)) continue;	
-            	if(record.getAttribute("MD") == null) continue;
-            	
-				//add little stats here
-				add2Stat(record);            	
-				PileupSAMRecord p = new PileupSAMRecord(record);   
-				//pileup single read
-            	p.pileup();    
-            	//accumulate  base information into related reference base 
-             	addToStrandDS(p);
-            	p = null;		
-            	numReads ++;
-            	
-   			}  
-			ite.close();
+            SAMRecordIterator ite = reader.query(referenceRecord.getSequenceName(),0, referenceRecord.getSequenceLength(), false);
+            while(ite.hasNext()) {
+                total ++;
+                SAMRecord record = ite.next();	 
+                if (! exec.Execute(record)) {
+                    continue;	
+                }
+                if (record.getAttribute("MD") == null) {
+                    continue;
+                }
+
+                //add little stats here
+                add2Stat(record);            	
+                PileupSAMRecord p = new PileupSAMRecord(record);   
+                //pileup single read
+                p.pileup();    
+                //accumulate  base information into related reference base 
+                addToStrandDS(p);
+                p = null;		
+                numReads ++;
+
+            }  
+		    ite.close();
 			
- 			logger.info("Total read " + total + " reads from input: " + bamFile);					 			 
- 			logger.info("Added " + numReads + " reads mapped on "+ referenceRecord.getSequenceName()+" and met query from BAM: " + bamFile);					 			 
+            logger.info("Total read " + total + " reads from input: " + bamFile);					 			 
+            logger.info("Added " + numReads + " reads mapped on "+ referenceRecord.getSequenceName()+" and met query from BAM: " + bamFile);					 			 
     	} catch (Exception e) {
     		e.printStackTrace();
     		logger.error("Exception happened during reading: " + bamFile, e);
@@ -233,10 +237,10 @@ public class Metric {
 				while (++i < size && Character.isLetter(attribute.charAt(i))) {}
 			} else i++;	// need to increment this or could end up with infinite loop...
 		}
-		if (record.getReadNegativeStrandFlag()){	
+		if (record.getReadNegativeStrandFlag()) {	
 			Rmismatch[count] ++;
 			Rtotal ++;
-		} else{
+		} else {
 			Fmismatch[count]++;
 			Ftotal ++;
 		}
