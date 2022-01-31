@@ -123,7 +123,7 @@ public class IndelMTTest {
 		assertTrue( header.firstMatchedRecord(VcfHeaderUtils.STANDARD_TEST_SAMPLE).getMetaValue().equals(options.getTestSample()) ); 			
 		assertTrue( header.firstMatchedRecord(VcfHeaderUtils.STANDARD_INPUT_LINE + "_GATK_TEST").getMetaValue().equals(options.getTestInputVcf().getAbsolutePath()) );
 		assertTrue( header.firstMatchedRecord(VcfHeaderUtils.STANDARD_INPUT_LINE + "_GATK_CONTROL").getMetaValue().equals(options.getControlInputVcf().getAbsolutePath()) ); 			
-		assertTrue( header.firstMatchedRecord( VcfHeaderUtils.STANDARD_CONTROL_BAM ).getMetaValue().equals(options.getControlBam().getAbsolutePath()) );
+		assertTrue( header.firstMatchedRecord(VcfHeaderUtils.STANDARD_CONTROL_BAM ).getMetaValue().equals(options.getControlBam().getAbsolutePath()) );
 		assertTrue( header.firstMatchedRecord(VcfHeaderUtils.STANDARD_TEST_BAM ).getMetaValue().equals(options.getTestBam().getAbsolutePath()) );
 		assertTrue( header.firstMatchedRecord(VcfHeaderUtils.STANDARD_ANALYSIS_ID).getMetaValue().equals(options.getAnalysisId()) );
 	}
