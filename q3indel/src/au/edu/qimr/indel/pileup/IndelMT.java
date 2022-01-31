@@ -1,14 +1,5 @@
 package au.edu.qimr.indel.pileup;
 
-import au.edu.qimr.indel.Options;
-import au.edu.qimr.indel.pileup.IndelPileup;
-import au.edu.qimr.indel.pileup.IndelPosition;
-import au.edu.qimr.indel.pileup.ReadIndels;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SAMRecordIterator;
-import htsjdk.samtools.SAMSequenceRecord;
-import htsjdk.samtools.SamFiles;
-import htsjdk.samtools.SamReader;
 import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
@@ -24,6 +15,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.meta.QExec;
 import org.qcmg.common.model.ChrRangePosition;
@@ -37,6 +29,13 @@ import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.util.QBamIdFactory;
 import org.qcmg.qbamfilter.query.QueryExecutor;
 import org.qcmg.qio.record.RecordWriter;
+
+import au.edu.qimr.indel.Options;
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SAMRecordIterator;
+import htsjdk.samtools.SAMSequenceRecord;
+import htsjdk.samtools.SamFiles;
+import htsjdk.samtools.SamReader;
 
 public class IndelMT {
 	public static final int MAXRAMREADS = 1500; //maximum number of total reads in RAM
@@ -87,7 +86,7 @@ public class IndelMT {
 		public void run() {
 		 	List<SAMRecord> currentPool = new ArrayList<>();
 		 	List<SAMRecord> nextPool = new ArrayList<>(); 
-		 	int size = qIn.size();	
+		 	int size = qIn != null ? qIn.size() : -1;	
 			if (size <= 0) {
 		 		logger.debug("There is no indel in contig: " + contig.getSequenceName() );		 		
 		 		return;
@@ -118,7 +117,9 @@ public class IndelMT {
 			 			//pileup
 			 			IndelPileup pileup = new IndelPileup(topPos, options.getSoftClipWindow(), options.getNearbyIndelWindow(), options.getMaxEventofStrongSupport());
 			 			pileup.pileup(currentPool);
-			 			qOut.add(pileup);
+			 			if (null != qOut) {
+			 				qOut.add(pileup);
+			 			}
 			 			
 			 			//prepare for next indel position
 			 			if ( (topPos = qIn.poll()) == null) {
@@ -138,7 +139,9 @@ public class IndelMT {
 			 		
 		 			IndelPileup pileup = new IndelPileup(topPos, options.getSoftClipWindow(), options.getNearbyIndelWindow(),options.getMaxEventofStrongSupport());
 		 			pileup.pileup(currentPool);
-		 			qOut.add(pileup);					
+		 			if (null != qOut) {
+		 				qOut.add(pileup);
+		 			}
 					if ((topPos = qIn.poll()) == null) {
 						break; 
 					}
@@ -181,7 +184,7 @@ public class IndelMT {
 			tmpPool.clear();
 			tmpPool.addAll(currentPool);
 			//check already read record  for previous pileup
-			for ( SAMRecord  re1 : tmpPool ) { 
+			for ( SAMRecord  re1 : tmpPool ) {
 				//aligned position before indel
 				if (re1.getAlignmentEnd() < topPos.getStart()) { 
 					currentPool.remove(re1);
@@ -201,7 +204,7 @@ public class IndelMT {
 	QLogger logger; 
 	ReadIndels indelload;
 		
-	private final List<SAMSequenceRecord> sortedContigs = new ArrayList<SAMSequenceRecord>();
+	private final List<SAMSequenceRecord> sortedContigs = new ArrayList<>();
 	private Map<ChrRangePosition, IndelPosition> positionRecordMap ;
 	
 	//unit test purpose
@@ -214,10 +217,11 @@ public class IndelMT {
 		
 		//get sequence from bam header
 		File bam = (options.getTestBam() != null) ? options.getTestBam() : options.getControlBam();
-		try (SamReader reader =  SAMFileReaderFactory.createSAMFileReader(bam)) {				 
-			for (final SAMSequenceRecord contig : reader.getFileHeader().getSequenceDictionary().getSequences()) {
-				sortedContigs.add(contig);
-			}
+		try (SamReader reader =  SAMFileReaderFactory.createSAMFileReader(bam)) {
+			sortedContigs.addAll(reader.getFileHeader().getSequenceDictionary().getSequences());
+//			for (final SAMSequenceRecord contig : reader.getFileHeader().getSequenceDictionary().getSequences()) {
+//				sortedContigs.add(contig);
+//			}
 		}
 		
 		//loading indels 
@@ -225,7 +229,7 @@ public class IndelMT {
 		if (options.getRunMode().equalsIgnoreCase(Options.RUNMODE_GATK)) {
 			//first load control
 			if (options.getControlInputVcf() != null) {
-				indelload.loadIndels(options.getControlInputVcf(),options.getRunMode());	
+				indelload.loadIndels(options.getControlInputVcf());	
 				if (indelload.getCountsNewIndel() != indelload.getCountsTotalIndel()) {
 					logger.warn("ERROR: Found " + indelload.getCountsNewIndel() 
 					+ " indels from control input, but it is not the same as the number of indel inside MAP, which is " + indelload.getCountsTotalIndel());
@@ -249,7 +253,7 @@ public class IndelMT {
 			}				
 		} else if (options.getRunMode().equalsIgnoreCase("pindel")) { 	
 			for (int i = 0; i < options.getInputVcfs().size(); i ++) {
-				indelload.loadIndels(options.getInputVcfs().get(i), options.getRunMode());	
+				indelload.loadIndels(options.getInputVcfs().get(i));	
 			}
 		}		
 	}
@@ -296,7 +300,7 @@ public class IndelMT {
     				return 1;
     			}
     			 pileupThreads.execute(new ContigPileup(contig, getIndelList(contig), options.getControlBam(), index, query,
-    				normalQueue, Thread.currentThread(),pileupLatch ));
+    				normalQueue, Thread.currentThread(), pileupLatch));
     		}
     		
     		//getIndelList must be called repeatedly, since it will be empty after pileup
@@ -436,7 +440,7 @@ public class IndelMT {
 			}
 			
 			header.addOrReplace( VcfHeaderUtils.STANDARD_TEST_BAM  + "=" + tumourBamName);
-			header.addOrReplace( VcfHeaderUtils.STANDARD_TEST_BAMID  + "=" + ( testBamID  == null ? new File(tumourBamName).getName() : testBamID ));
+			header.addOrReplace( VcfHeaderUtils.STANDARD_TEST_BAMID  + "=" + testBamID);
 		}
 		
 		header.addOrReplace( VcfHeaderUtils.STANDARD_ANALYSIS_ID + "=" + options.getAnalysisId() );

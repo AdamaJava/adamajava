@@ -1,11 +1,11 @@
 package au.edu.qimr.indel.pileup;
 
-import au.edu.qimr.indel.Q3IndelException;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.util.Constants;
@@ -18,18 +18,20 @@ import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.qio.vcf.VcfFileReader;
 
+import au.edu.qimr.indel.Q3IndelException;
+
 public class ReadIndels {
 	static final String FILTER_SOMATIC = "SOMATIC";
 	
-	QLogger logger; 
+	final QLogger logger; 
 	private VcfHeader header; 
 	
 	private static final int errRecordLimit = 100;
 	//counts from each input, {No of new indel, No of overlap indel, No of indels with mult Allel, No of inputs variants, No of input variants with multi Allel}
-	private final int[] counts = {0,0, 0,0,0}; 
+	private final int[] counts = {0, 0, 0, 0, 0}; 
  
 	//here key will be uniq for indel: chr, start, end, allel 
-	private final  Map<VcfRecord, VcfRecord> positionRecordMap = new  ConcurrentHashMap<VcfRecord, VcfRecord>();	
+	private final  Map<VcfRecord, VcfRecord> positionRecordMap = new  ConcurrentHashMap<>();	
 	
 	public ReadIndels( QLogger logger) { 
 		this.logger = logger; 
@@ -55,34 +57,23 @@ public class ReadIndels {
 		}	
 		logger.info("only keep first sample column of tumour input vcf." );
 		
-    	//counts for debug 
-		int[] counts = {0,0,0,0,0}; //{0th::indelNew, 1st::indelOverlap,2nd::indelMultiAlt,3rd::inLines, 4th::inMultiAlt}
     	//merge variants  
         try (VcfFileReader reader = new VcfFileReader(f)) {
         		header = VcfHeaderUtils.mergeHeaders(header, reader.getVcfHeader(), false);
-			for (final VcfRecord re : reader) {	
+			for (final VcfRecord re : reader) {
 				
-				counts[3] ++; //inLines ++;
 				resetGenotype(re);
-	    			String[] alleles = re.getAlt().split(",");    
-	    			if (alleles.length > 1) {
-	    				counts[4] ++; //inMultiAltNo ++;
-	    			}
-    				for (String alt :alleles) {
+    			String[] alleles = re.getAlt().split(",");
+				for (String alt :alleles) {
 					 
 					SVTYPE type = IndelUtils.getVariantType(re.getRef(), alt);
-					if (type.equals(SVTYPE.DEL) || type.equals(SVTYPE.INS) ) {	 
-	 	        			VcfRecord vcf1 = re; 
-		 	        		//reset allele column
-		 	        		if (alleles.length > 1) { 
-		 	        			vcf1 = VcfUtils.resetAllel(re, alt);
-		 	        			 counts[2] ++ ; //indelMultiAltNo ++;mutli allele indel
-		 	        		}
-     					if ( ! mergeTestIndel(vcf1)) {  					 
-     						counts[0]++; //indelNew ++;
-     					} else { 
-     						counts[1]++; //indelOverlap ++;   
-     					}     					
+					if (type.equals(SVTYPE.DEL) || type.equals(SVTYPE.INS) ) {
+ 	        			VcfRecord vcf1 = re; 
+	 	        		//reset allele column
+	 	        		if (alleles.length > 1) { 
+	 	        			vcf1 = VcfUtils.resetAllel(re, alt);
+	 	        		}
+	 	        		mergeTestIndel(vcf1);
 					}
 				}  	    			
 			}
@@ -150,10 +141,9 @@ public class ReadIndels {
 	/**
 	 * 
 	 * @param f is vcf input file
-	 * @param runMode could be 
 	 * @throws IOException
 	 */
-	public void loadIndels(File f, String runMode) throws IOException { 
+	public void loadIndels(File f) throws IOException { 
 		int indelNew = 0;
 		int indelOverlap = 0;
 		int indelMultiAltNo = 0;
@@ -161,49 +151,49 @@ public class ReadIndels {
 	    int inMultiAltNo = 0;
 		
         try (VcfFileReader reader = new VcfFileReader(f)) {
-	        	if (header == null) { 
-	        		header = reader.getVcfHeader();	
-	        	} else { 
-	        		header = VcfHeaderUtils.mergeHeaders(header, reader.getVcfHeader(), false);
-	        	} 
+        	if (header == null) {
+        		header = reader.getVcfHeader();	
+        	} else { 
+        		header = VcfHeaderUtils.mergeHeaders(header, reader.getVcfHeader(), false);
+        	}
 	        	//no chr in front of position
-			for (final VcfRecord re : reader) { 
+			for (final VcfRecord re : reader) {
 				inLines ++;
 				resetGenotype(re);
-	    			String[] alleles = re.getAlt().split(",");
-	    			if (alleles.length > 1) { 
-	    				inMultiAltNo ++; //multi allele input variants
-	    			}
+    			String[] alleles = re.getAlt().split(",");
+    			if (alleles.length > 1) { 
+    				inMultiAltNo ++; //multi allele input variants
+    			}
 	    			
-				for (String alt : alleles) { 
+				for (String alt : alleles) {
 					SVTYPE type = IndelUtils.getVariantType(re.getRef(), alt);
-		 	        	if (type.equals(SVTYPE.DEL) || type.equals(SVTYPE.INS) ) {	        		
-		 	        		VcfRecord vcf1 = re; 	 	        	
-		 	        		if (alleles.length > 1) { 
-		 	        			vcf1 = VcfUtils.resetAllel(re, alt); //reset allele column
-		 	        			indelMultiAltNo ++; //mutli allele indel
-		 	        		}
-		 	        		
-		 	        		//format data from control, set default as germline
-		 	        		vcf1.setFilter(Constants.MISSING_DATA_STRING);
-		 	        		
-     					if (positionRecordMap.containsKey(vcf1) && (indelOverlap ++) < errRecordLimit) {						
-     						logger.warn("same variants already exsits, this one will be discard:\n" + positionRecordMap.get(vcf1).toString() );
-     						continue; //no overwrite but just warning
-     					}
-     					positionRecordMap.put(vcf1, vcf1);  
-     					indelNew ++;
+	 	        	if (type.equals(SVTYPE.DEL) || type.equals(SVTYPE.INS) ) {	        		
+	 	        		VcfRecord vcf1 = re; 	 	        	
+	 	        		if (alleles.length > 1) { 
+	 	        			vcf1 = VcfUtils.resetAllel(re, alt); //reset allele column
+	 	        			indelMultiAltNo ++; //mutli allele indel
+	 	        		}
+	 	        		
+	 	        		//format data from control, set default as germline
+	 	        		vcf1.setFilter(Constants.MISSING_DATA_STRING);
+	 	        		
+ 					if (positionRecordMap.containsKey(vcf1) && (indelOverlap ++) < errRecordLimit) {						
+ 						logger.warn("same variants already exsits, this one will be discard:\n" + positionRecordMap.get(vcf1).toString() );
+ 						continue; //no overwrite but just warning
+ 					}
+ 					positionRecordMap.put(vcf1, vcf1);  
+ 					indelNew ++;
 	   	 	        	} //done for current indel allele
-				}  		 
-	    		}
+				}
+	    	}
         }
 	               
-	    	//counts from each input
-	    	counts[0] = indelNew;
-	    	counts[1] = indelOverlap;
-	    	counts[2] = indelMultiAltNo;
-	    	counts[3] = inLines;
-	    	counts[4] = inMultiAltNo;
+    	//counts from each input
+    	counts[0] = indelNew;
+    	counts[1] = indelOverlap;
+    	counts[2] = indelMultiAltNo;
+    	counts[3] = inLines;
+    	counts[4] = inMultiAltNo;
 	}
 	
 	/**
@@ -280,6 +270,7 @@ public class ReadIndels {
 	int getCountsOverlapIndel() { 
 		return counts[1];
 	}
+	
 	int getCountsMultiIndel() {
 		return counts[2];
 	}

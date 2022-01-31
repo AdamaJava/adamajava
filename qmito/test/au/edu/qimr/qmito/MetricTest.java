@@ -1,52 +1,56 @@
 package au.edu.qimr.qmito;
 
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Map;
-import junit.framework.Assert;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
 import au.edu.qimr.qmito.lib.*;
 
 
-//import au.edu.qimr.qlib.qpileup.PositionElement;
-//import au.edu.qimr.qlib.qpileup.QPileupRecord;
-//import au.edu.qimr.qlib.qpileup.StrandDS;
-//import au.edu.qimr.qlib.qpileup.StrandElement;
-//import au.edu.qimr.qlib.qpileup.StrandEnum;
-//import au.edu.qimr.qlib.util.Reference;
-
-
 public class MetricTest {
-	private String input = "./input.bam";
-	private String log = "./output.log";
-	private String output = "./output.tsv";
+	private String input;
+	private String ref;
+	private String log;
+	private String output;
  
+	 @Rule
+	 public TemporaryFolder testFolder = new TemporaryFolder();
+
 	
 	@Before
 	public void createInput() throws IOException{	
+		input = testFolder.newFile("input.bam").getAbsolutePath();
 		TestFile.createBam(input);
-	}
-	@After
-	public void deleteInput(){	
-		new File(input + ".bai").delete();
-		new File(input).delete();
-		new File(output).delete();
+		
+		ref = testFolder.newFile("input.fa").getAbsolutePath();	
+		TestFile.createRef(ref);
+		
+		log = testFolder.newFile("output.log").getAbsolutePath();
+		output = testFolder.newFile("output.tsv").getAbsolutePath();
+		
 	}
 	
 	@Test
 	public void pilelineTest(){
 		//here we use fake reference file, since it won't be used only passing to option 
-		String[] args = {"-m", "metric", "-r", input,"-i", input, "-o", output, "--log",log, "--lowreadcount","2", "--nonrefthreshold" , "50" };
+		String[] args = {  "--reference", ref, "--input", input, "--output", output, "--log",log, "--lowread-count","2", "--nonref-threshold" , "50" };
 		try {
 			MetricOptions options = new   MetricOptions(args);
 			//here we can't call mito.report since we testing data don't provide reference index file		
 			Metric mito = new Metric(options);
 		    
 			//Here we only test last three base of chrMT
-			int posStart = 16567;			
+			//int posStart = 16567;	
+			int posStart = 567;		
 			int[][] positionCounts = new int[][]{
 					//position 16567: 1 read mapped with referece base 'A' ; total 1 reads < 2 lowreadcount is ture; nonreference Reads is 0 < 50%; so highNonreference is false
 					{1,0,0,0,0,1,0},  
@@ -70,30 +74,16 @@ public class MetricTest {
 				 counts[4] = (int) map.get(StrandEnum.highNonreference.toString()).getStrandElementMember(0);
 				 counts[5] = (int) map.get(StrandEnum.lowRead.toString()).getStrandElementMember(0);
 				 counts[6] = (int) map.get(StrandEnum.nonreferenceNo.toString()).getStrandElementMember(0);
- 				 Assert.assertTrue(Arrays.equals(positionCounts[i], counts));				 	 
+				 assertTrue(Arrays.equals(positionCounts[i], counts));				 	 
 			}
 				 
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
+			fail("testing failed");
 		}
 	}
-/*	
- 	private void readReads(Options options ){
-		SAMSequenceRecord ref =  options.getReferenceRecord();
-	 
-		SamReader reader = SAMFileReaderFactory.createSAMFileReader(input,ValidationStringency.SILENT);
-		SAMRecordIterator ite = reader.query(ref.getSequenceName(),0, ref.getSequenceLength(), false);
-		while(ite.hasNext()){
-			SAMRecord record = ite.next();	
-			String Sbase = new String(record.getReadBases());
-			 
-			System.out.println(String.format("(%d~%d:) %s",  record.getAlignmentStart() , record.getAlignmentEnd(), Sbase));
-			int start = record.getAlignmentEnd() - 3;
-			int end = record.getAlignmentEnd(); 
-		//	System.out.println(String.format("base (%d:) %s", start ,  new String(record.getReadBases()).substring(Sbase.length()-4)));
-		}
-		reader.close();
-	}
-*/
+	
+	
+	
+ 
 }
