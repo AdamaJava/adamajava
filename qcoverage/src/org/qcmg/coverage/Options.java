@@ -270,31 +270,37 @@ public final class Options {
 							
 			checkFile("Bounds", bounds);				
  			
-			
-		} else {			
-			if (!hasTypeOption()) {
-				throw new Exception("Missing type option");
-			}
-			if (1 != getTypes().length) {
-				throw new Exception("Only one type option can be provided");
-			}
-			if (!hasInputBAMOption()) {
-				throw new Exception("Missing BAM input file option");
-			}
-			if (!hasInputGFF3Option()) {
-				throw new Exception("Missing GFF3 input file option");
-			}
-			if (!hasOutputOption()) {
-				throw new Exception("Missing output option");
-			}
-			if (1 != getInputGFF3FileNames().length) {
-				throw new Exception("Only one input GFF3 file should be provided");
-			}
-			if (hasNumberThreadsOption() && 1 < getNumberThreads().length) {
-				throw new Exception("Thread count can be specified once");
-			}
-			
+			return; 
+		} 
+		
+		
+		 		
+		if (!hasTypeOption()) {
+			throw new Exception("Missing type option");
 		}
+		if (1 != getTypes().length) {
+			throw new Exception("Only one type option can be provided");
+		}
+		if (!hasInputBAMOption()) {
+			throw new Exception("Missing BAM input file option");
+		}
+		if (!hasInputGFF3Option()) {
+			throw new Exception("Missing GFF3 input file option");
+		}
+		if (!hasOutputOption()) {
+			throw new Exception("Missing output option");
+		}
+		if (1 != getInputGFF3FileNames().length) {
+			throw new Exception("Only one input GFF3 file should be provided");
+		}
+		if (hasNumberThreadsOption() && 1 < getNumberThreads().length) {
+			throw new Exception("Thread count can be specified once");
+		}
+		//
+		if( hasVcfFlag() && ! hasPerFeatureOption())  {
+			throw new Exception("Only per-feature mode can produce VCF format output");
+		}
+		 
 		
 	}
 

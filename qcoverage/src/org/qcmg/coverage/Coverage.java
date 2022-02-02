@@ -197,9 +197,10 @@ public final class Coverage {
 			writeXMLCoverageReport(stats);
 		}
 		
-		if (options.hasTxtFlag() ) {			 
-			writePerFeatureTabDelimitedCoverageReport(stats);
-		} 
+		if (options.hasTxtFlag()) {			
+			if( options.hasPerFeatureOption()) writePerFeatureTabDelimitedCoverageReport(stats);
+			else writePerTypeTabDelimitedCoverageReport(stats);
+		}
 		
 	}
 

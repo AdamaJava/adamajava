@@ -88,9 +88,9 @@ public class CoverageTest {
 		String cmd = "--log " + log + " --type phys  --input-gff3 " + inputGff3 + " --input-bam " + inputBam + 
 				" --input-bai " + inputBai +  " --output " +fname  + " --output-format vcf";
 
-		//no output only
-		Executor exec = execute(cmd);		
-		assertTrue(0 == exec.getErrCode());
+		//run fail for vcf without per-feature
+		Executor exec = execute(cmd);			
+		assertTrue(1 == exec.getErrCode());
 		
 		File fOutput = new File(fname + ".txt");
 		assertFalse(fOutput.exists());	
@@ -106,7 +106,7 @@ public class CoverageTest {
 				" --input-bai " + inputBai +  " --output " +fname  + " --per-feature --output-format vcf";
 	
 		//vcf output only
-		Executor exec = execute(cmd);		
+		Executor exec = execute(cmd);	
 		assertTrue(0 == exec.getErrCode());
 		
 		File fOutput = new File(fname + ".txt");
@@ -122,7 +122,7 @@ public class CoverageTest {
 	public final void allTest() throws Exception {
 		String cmd = "--log " + log + " --type phys  --input-gff3 " + inputGff3 + " --input-bam " + inputBam + 
 				" --input-bai " + inputBai +  " --output " +fname  + 
-				" --output-format vcf  --output-format xml  --output-format txt";
+				" --output-format xml  --output-format txt";
 
 		//two types output
 		Executor exec = execute(cmd);		
@@ -134,6 +134,14 @@ public class CoverageTest {
 		assertTrue(fOutput.exists());			
 		fOutput = new File(fname + ".vcf");
 		assertFalse(fOutput.exists());
+		
+		//run fail for vcf without per-feature
+		cmd = "--log " + log + " --type phys  --input-gff3 " + inputGff3 + " --input-bam " + inputBam + 
+				" --input-bai " + inputBai +  " --output " +fname  + 
+				" --output-format vcf  --output-format xml  --output-format txt";
+		exec = execute(cmd);		
+		assertTrue(1 == exec.getErrCode());
+		
 	}	
 
 	
