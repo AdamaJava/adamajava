@@ -296,7 +296,7 @@ public final class Options {
 		if (hasNumberThreadsOption() && 1 < getNumberThreads().length) {
 			throw new Exception("Thread count can be specified once");
 		}
-		//
+		//vcf output is only allowed under per-feature mode
 		if( hasVcfFlag() && ! hasPerFeatureOption())  {
 			throw new Exception("Only per-feature mode can produce VCF format output");
 		}
