@@ -127,14 +127,7 @@ less /path/report.xml
 
 
 ### per-feature mode output
-It is possible to have output from the --per-feature mode in either TXT, XML or
-VCF format. The TXT and XML format are very extensive with an XML table for each
-feature showing a full breakdown of how many bases of the feature were 
-covered at what levels. For long regions with variable coverage, this table
-can run to hundreds of lines so an XML-format output file containing 
-hundreds of thousands of features can run to tens of millions of lines - it
-can be as big as the BAM itself. In most cases, the level of detail provided
-by the XML output is overkill and the VCF format is sufficient.
+It is possible to have output from the --per-feature mode in either TXT, XML or VCF format. The TXT and XML format are very extensive for each feature showing how many bases of the feature were covered at what levels. For long regions with variable coverage, this can run to hundreds of lines so an TXT or XML format output file containing hundreds of thousands of features can run to tens of millions of lines - it can be as big as the BAM itself. In most cases, the level of detail provided by the TXT or XML output is overkill and the VCF format is sufficient.
 
 The VCF file contains a single line for each feature so it is almost
 identical in length to the GFF3 file that defines the features. Each line 
