@@ -50,7 +50,7 @@ public class CoverageTest {
 		}
 		inputGff3 = file.getAbsolutePath();
 		log = inputBam.replace("bam", "log");
-		fname = testFolder.getRoot().getAbsolutePath()+"/output";
+		fname = testFolder.getRoot().getAbsolutePath()+"/output.txt";
 	 } 
 	
 	@Test
@@ -58,13 +58,13 @@ public class CoverageTest {
 		
  	 	
 		String cmd = "--log " + log + " --type phys  --input-gff3 " + inputGff3 + " --input-bam " + inputBam + 
-				" --input-bai " + inputBai +  " --output " +fname ;
+				" --input-bai " + inputBai +  " --output " + fname ;
 
 		//default value txt output only
 		Executor exec = execute(cmd);		
 		assertTrue(0 == exec.getErrCode());
 				
-		File fOutput = new File(fname + ".txt");		
+		File fOutput = new File(fname);		
 		assertTrue(fOutput.exists());
 	}
 	
@@ -77,8 +77,12 @@ public class CoverageTest {
 		Executor exec = execute(cmd);		
 		assertTrue(0 == exec.getErrCode());
 		
-		File fOutput = new File(fname + ".txt");
-		assertFalse(fOutput.exists());		
+		File fOutput = new File(fname);
+		assertFalse(fOutput.exists());
+		fOutput = new File(fname + ".txt");
+		assertFalse(fOutput.exists());
+		
+		
 		fOutput = new File(fname + ".xml");
 		assertTrue(fOutput.exists());
 	}
@@ -92,7 +96,7 @@ public class CoverageTest {
 		Executor exec = execute(cmd);			
 		assertTrue(1 == exec.getErrCode());
 		
-		File fOutput = new File(fname + ".txt");
+		File fOutput = new File(fname );
 		assertFalse(fOutput.exists());	
 		fOutput = new File(fname + ".xml");
 		assertFalse(fOutput.exists());			
@@ -109,7 +113,7 @@ public class CoverageTest {
 		Executor exec = execute(cmd);	
 		assertTrue(0 == exec.getErrCode());
 		
-		File fOutput = new File(fname + ".txt");
+		File fOutput = new File(fname );
 		assertFalse(fOutput.exists());	
 		fOutput = new File(fname + ".xml");
 		assertFalse(fOutput.exists());	
@@ -128,7 +132,7 @@ public class CoverageTest {
 		Executor exec = execute(cmd);		
 		assertTrue(0 == exec.getErrCode());
 		
-		File fOutput = new File(fname + ".txt");
+		File fOutput = new File(fname );
 		assertTrue(fOutput.exists());	
 		fOutput = new File(fname + ".xml");
 		assertTrue(fOutput.exists());			
@@ -147,19 +151,25 @@ public class CoverageTest {
 	
 	@Test
 	public final void allFeatureTest() throws Exception {
+		String foutput = fname + ".xml";
 		String cmd = "--log " + log + " --type phys  --input-gff3 " + inputGff3 + " --input-bam " + inputBam + 
-				" --input-bai " + inputBai +  " --output " +fname  + 
+				" --input-bai " + inputBai +  " --output " + foutput + 
 				" --per-feature --output-format vcf  --output-format xml  --output-format txt";
 
 		//three types output
 		Executor exec = execute(cmd);		
 		assertTrue(0 == exec.getErrCode());
 		
-		File fOutput = new File(fname + ".txt");
+		//append txt to output.txt.xml  
+		File fOutput = new File(foutput + ".txt");
 		assertTrue(fOutput.exists());	
-		fOutput = new File(fname + ".xml");
-		assertTrue(fOutput.exists());			
-		fOutput = new File(fname + ".vcf");
+		
+		//keep output.txt.xml 
+		fOutput = new File(foutput );
+		assertTrue(fOutput.exists());
+		
+		//append vcf to output.txt.xml  
+		fOutput = new File(foutput + ".vcf");
 		assertTrue(fOutput.exists());
 	}	
 

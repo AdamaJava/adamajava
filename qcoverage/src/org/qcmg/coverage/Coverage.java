@@ -45,9 +45,24 @@ public final class Coverage {
 		jobQueue = new JobQueue(invariants);
 		saveCoverageReport();
 	}
+	
+	/**
+	 * check output file extension whether match format
+	 * @param fname is the input file name
+	 * @param format is the input file requied format, eg. txt, xml and vcf
+	 * @return return corrected output file name which extension match the formate
+	 */
+	private String fileNameCorrection(String fname, String format) {
+		String extension = format.startsWith(".")? 
+				format.toLowerCase() : "." + format.toLowerCase();
+				
+		return fname.toLowerCase().endsWith(extension) ? 
+				fname : fname + extension;
+	}
 
 	private void writePerFeatureTabDelimitedCoverageReport( final QCoverageStats stats) throws IOException {
-		final File file = new File(options.getOutputFileNames()[0]+ ".txt");
+		String foutput = fileNameCorrection(options.getOutputFileNames()[0], "txt");
+		final File file = new File(foutput);
 		try (final BufferedWriter out = new BufferedWriter(new FileWriter(file));) {
 			out.write("#coveragetype\tnumberofbases\tcoverage\n");
 			final CoverageComparator comparator = new CoverageComparator();
@@ -68,7 +83,8 @@ public final class Coverage {
 	}
 
 	private void writePerTypeTabDelimitedCoverageReport(final QCoverageStats stats) throws IOException {
-		final File file = new File(options.getOutputFileNames()[0]+ ".txt");
+		String foutput = fileNameCorrection(options.getOutputFileNames()[0], "txt");
+		final File file = new File(foutput);
 		try (final BufferedWriter out = new BufferedWriter(new FileWriter(file));) {
 			out.write("#coveragetype\tfeaturetype\tnumberofbases\tcoverage\n");
 			final CoverageComparator comparator = new CoverageComparator();
@@ -95,14 +111,17 @@ public final class Coverage {
 		m.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
 		m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
 		m.marshal(report, sw);
-		final File file = new File(options.getOutputFileNames()[0]+ ".xml");
+		String foutput = fileNameCorrection(options.getOutputFileNames()[0], "xml");
+		final File file = new File(foutput);
 		try (final FileWriter fileWriter = new FileWriter(file);) {
 			fileWriter.write(sw.toString());
 		}
 	}
 	
 	private void writeVCFReport(final QCoverageStats report) throws Exception {
-		final File file = new File(options.getOutputFileNames()[0] + ".vcf");
+		String foutput = fileNameCorrection(options.getOutputFileNames()[0], "vcf");
+		final File file = new File(foutput);
+
 		final List<VcfRecord> vcfs = new ArrayList<VcfRecord>();
 		
 		for (final CoverageReport cr : report.getCoverageReport()) {
