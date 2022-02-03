@@ -24,6 +24,7 @@ import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.util.Constants;
 
+@Deprecated
 public class Segmenter {	
 
 	private final File inputFile;

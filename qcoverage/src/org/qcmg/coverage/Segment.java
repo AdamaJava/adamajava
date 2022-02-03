@@ -9,6 +9,7 @@ package org.qcmg.coverage;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrRangePosition;
 
+@Deprecated
 public class Segment implements Comparable<Segment>{
 	
 	private final ChrPosition position;

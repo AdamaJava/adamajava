@@ -6,6 +6,8 @@ package org.qcmg.coverage;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 
+
+@Deprecated
 public final class Main {
 	private static Options options = null;
 	private static int exitStatus = 1; // Defaults to FAILURE
