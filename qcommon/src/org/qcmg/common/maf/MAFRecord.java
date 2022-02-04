@@ -25,7 +25,6 @@ public class MAFRecord {
 	protected char strand;
 	protected String variantClassification;
 	protected MutationType variantType;
-//	protected String variantType;
 	protected String ref;
 	protected String tumourAllele1;
 	protected String tumourAllele2;
@@ -63,7 +62,6 @@ public class MAFRecord {
 	
 	protected String cpg;  //eg. FS=AGAGAGTAATT
 	protected String gffBait;
-//	protected String confidence;
 	protected String ranking;
 	protected int novelStartCount;
 	protected String novelStartBases;
@@ -83,229 +81,304 @@ public class MAFRecord {
 	public String getHugoSymbol() {
 		return hugoSymbol;
 	}
+	
 	public void setHugoSymbol(String hugoSymbol) {
 		this.hugoSymbol = hugoSymbol;
 	}
+	
 	public void addHugoSymbol(String hugoSymbol) {
 		this.hugoSymbol = StringUtils.isNullOrEmpty(this.hugoSymbol) ? hugoSymbol : this.hugoSymbol + ";" + hugoSymbol;
 	}
+	
 	public String getEntrezGeneId() {
 		return entrezGeneId;
 	}
+	
 	public void setEntrezGeneId(String entrezGeneId) {
 		this.entrezGeneId = entrezGeneId;
 	}
+	
 	public void addEntrezGeneId(String entrezGeneId) {
 		this.entrezGeneId = StringUtils.isNullOrEmpty(this.entrezGeneId) ? entrezGeneId : this.entrezGeneId + ";" + entrezGeneId;
 	}
+	
 	public String getCenter() {
 		return center;
 	}
+	
 	public void setCenter(String center) {
 		this.center = center;
 	}
+	
 	public Number getNcbiBuild() {
 		return ncbiBuild;
 	}
+	
 	public void setNcbiBuild(Number ncbiBuild) {
 		this.ncbiBuild = ncbiBuild;
 	}
+	
 	public String getChromosome() {
 		return chromosome;
 	}
+	
 	public void setChromosome(String chromosome) {
 		this.chromosome = chromosome;
 	}
+	
 	public int getStartPosition() {
 		return startPosition;
 	}
+	
 	public void setStartPosition(int startPosition) {
 		this.startPosition = startPosition;
 	}
+	
 	public int getEndPosition() {
 		return endPosition;
 	}
+	
 	public void setEndPosition(int endPosition) {
 		this.endPosition = endPosition;
 	}
+	
 	public char getStrand() {
 		return strand;
 	}
+	
 	public void setStrand(char strand) {
 		this.strand = strand;
 	}
+	
 	public String getVariantClassification() {
 		return variantClassification;
 	}
+	
 	public void setVariantClassification(String variantClassification) {
 		this.variantClassification = variantClassification;
 	}
+	
 	public void addVariantClassification(String variantClassification) {
 		this.variantClassification = StringUtils.isNullOrEmpty(this.variantClassification) 
 		? variantClassification : this.variantClassification + ";" + variantClassification;
 	}
+	
 	public MutationType getVariantType() {
 		return variantType;
 	}
+	
 	public void setVariantType(MutationType variantType) {
 		this.variantType = variantType;
 	}
+	
 	public String getRef() {
 		return ref;
 	}
+	
 	public void setRef(String ref) {
 		this.ref = ref;
 	}
+	
 	public String getTumourAllele1() {
 		return tumourAllele1;
 	}
+	
 	public void setTumourAllele1(String tumourAllele1) {
 		this.tumourAllele1 = tumourAllele1;
 	}
+	
 	public String getTumourAllele2() {
 		return tumourAllele2;
 	}
+	
 	public void setTumourAllele2(String tumourAllele2) {
 		this.tumourAllele2 = tumourAllele2;
 	}
+	
 	public String getDbSnpId() {
 		return dbSnpId;
 	}
+	
 	public void setDbSnpId(String dbSnpId) {
 		this.dbSnpId = dbSnpId;
 	}
+	
 	public String getDbSnpValStatus() {
 		return dbSnpValStatus;
 	}
+	
 	public void setDbSnpValStatus(String dbSnpValStatus) {
 		this.dbSnpValStatus = dbSnpValStatus;
 	}
+	
 	public String getTumourSampleBarcode() {
 		return tumourSampleBarcode;
 	}
+	
 	public void setTumourSampleBarcode(String tumourSampleBarcode) {
 		this.tumourSampleBarcode = tumourSampleBarcode;
 	}
+	
 	public String getNormalSampleBarcode() {
 		return normalSampleBarcode;
 	}
+	
 	public void setNormalSampleBarcode(String normalSampleBarcode) {
 		this.normalSampleBarcode = normalSampleBarcode;
 	}
+	
 	public String getNormalAllele1() {
 		return normalAllele1;
 	}
+	
 	public void setNormalAllele1(String normalAllele1) {
 		this.normalAllele1 = normalAllele1;
 	}
+	
 	public String getNormalAllele2() {
 		return normalAllele2;
 	}
+	
 	public void setNormalAllele2(String normalAllele2) {
 		this.normalAllele2 = normalAllele2;
 	}
+	
 	public String getTumourValidationAllele1() {
 		return tumourValidationAllele1;
 	}
+	
 	public void setTumourValidationAllele1(String tumourValidationAllele1) {
 		this.tumourValidationAllele1 = tumourValidationAllele1;
 	}
+	
 	public String getTumourValidationAllele2() {
 		return tumourValidationAllele2;
 	}
+	
 	public void setTumourValidationAllele2(String tumourValidationAllele2) {
 		this.tumourValidationAllele2 = tumourValidationAllele2;
 	}
+	
 	public String getNormalValidationAllele1() {
 		return normalValidationAllele1;
 	}
+	
 	public void setNormalValidationAllele1(String normalValidationAllele1) {
 		this.normalValidationAllele1 = normalValidationAllele1;
 	}
+	
 	public String getNormalValidationAllele2() {
 		return normalValidationAllele2;
 	}
+	
 	public void setNormalValidationAllele2(String normalValidationAllele2) {
 		this.normalValidationAllele2 = normalValidationAllele2;
 	}
+	
 	public String getVerificationStatus() {
 		return verificationStatus;
 	}
+	
 	public void setVerificationStatus(String verificationStatus) {
 		this.verificationStatus = verificationStatus;
 	}
+	
 	public String getValidationStatus() {
 		return validationStatus;
 	}
+	
 	public void setValidationStatus(String validationStatus) {
 		this.validationStatus = validationStatus;
 	}
+	
 	public String getMutationStatus() {
 		return mutationStatus;
 	}
+	
 	public void setMutationStatus(String mutationStatus) {
 		this.mutationStatus = mutationStatus;
 	}
+	
 	public String getSequencingPhase() {
 		return sequencingPhase;
 	}
+	
 	public void setSequencingPhase(String sequencingPhase) {
 		this.sequencingPhase = sequencingPhase;
 	}
+	
 	public String getSequencingSource() {
 		return sequencingSource;
 	}
+	
 	public void setSequencingSource(String sequencingSource) {
 		this.sequencingSource = sequencingSource;
 	}
+	
 	public String getValidationMethod() {
 		return validationMethod;
 	}
+	
 	public void setValidationMethod(String validationMethod) {
 		this.validationMethod = validationMethod;
 	}
+	
 	public String getScore() {
 		return score;
 	}
+	
 	public void setScore(String score) {
 		this.score = score;
 	}
+	
 	public String getBamFile() {
 		return bamFile;
 	}
+	
 	public void setBamFile(String bamFile) {
 		this.bamFile = bamFile;
 	}
+	
 	public String getSequencer() {
 		return sequencer;
 	}
+	
 	public void setSequencer(String sequencer) {
 		this.sequencer = sequencer;
 	}
+	
 	public String getCosmicId() {
 		return cosmicId;
 	}
+	
 	public int getCosmicIdFreq() {
 		return cosmicIdFreq;
 	}
+	
 	public int getCosmicFreq() {
 		return cosmicFreq;
 	}
+	
 	public int getCosmicGene() {
 		return cosmicGene;
 	}
+	
 	public void setCosmicId(String cosmicId) {
 		this.cosmicId = cosmicId;
 	}
+	
 	public void setCosmicIdFreq(int cosmicIdFreq) {
 		this.cosmicIdFreq = cosmicIdFreq;
 	}
+	
 	public void setCosmicFreq(int cosmicFreq) {
 		this.cosmicFreq = cosmicFreq;
 	}
+	
 	public void setCosmicGene(int noOfGeneHits) {
 		this.cosmicGene = noOfGeneHits;
 	}
+	
 	@Override
 	public String toString() {
 		return "MAFRecord [bamFile=" + bamFile + ", center=" + center
@@ -377,12 +450,6 @@ public class MAFRecord {
 		sb.append(alternateAAChange).append(T);
 		sb.append(alternateBaseChange);
 		return sb.toString();
-		
-		
-		
-		
-
- 
 	}
 	
 	public String toFormattedString() {
@@ -481,16 +548,20 @@ public class MAFRecord {
 	public String getAlternateBaseChange() {
 		return alternateBaseChange;
 	}
+	
 	public void setAlternateBaseChange(String alternateBaseChange) {
 		this.alternateBaseChange = alternateBaseChange;
 	}
+	
 	public void addAlternateBaseChange(String alternateBaseChange) {
 		this.alternateBaseChange = StringUtils.isNullOrEmpty(this.alternateBaseChange) 
 		? alternateBaseChange : this.alternateBaseChange + ";" + alternateBaseChange;
 	}
+	
 	public void setCpg(String cpg) {
 		this.cpg = cpg;
 	}
+	
 	public String getCpg() {
 		return cpg;
 	}
@@ -499,45 +570,59 @@ public class MAFRecord {
 	public void setRanking(String ranking) {
 		this.ranking = ranking;
 	}
+	
 	public boolean isHighConf() {
 		return "high".equals(ranking);
 	}
+	
 	public boolean isLowConf() {
 		return "low".equals(ranking);
 	}
+	
 	public void setNovelStartCount(int novelStartCount) {
 		this.novelStartCount = novelStartCount;
 	}
+	
 	public int getNovelStartCount() {
 		return novelStartCount;
 	}
+	
 	public void setConfidence(MafConfidence string) {
 		this.confidence = string;
 	}
+	
 	public MafConfidence getConfidence() {
 		return confidence;
 	}
+	
 	public void setGffBait(String gffBait) {
 		this.gffBait = gffBait;
 	}
+	
 	public String getGffBait() {
 		return gffBait;
 	}
+	
 	public void setNovelStartBases(String novelStartBases) {
 		this.novelStartBases = novelStartBases;
 	}
+	
 	public String getNovelStartBases() {
 		return novelStartBases;
 	}
+	
 	public void setPatient(String patient) {
 		this.patient = patient;
 	}
+	
 	public String getPatient() {
 		return patient;
 	}
+	
 	public void setMafType(MafType mafType) {
 		this.mafType = mafType;
 	}
+	
 	public MafType getMafType() {
 		return mafType;
 	}
