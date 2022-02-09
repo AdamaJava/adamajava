@@ -30,6 +30,7 @@ public class PhysicalCoverageTest {
 	static String inputBai;
 	static Path tmpDir;
 	private File fOutput;
+	private String fname;
 	
 	@Rule
 	public ExpectedException thrown = ExpectedException.none();
@@ -49,7 +50,9 @@ public class PhysicalCoverageTest {
 
 	@Before
 	public final void before() {
-		fOutput = new File(tmpDir.toString() + "/output");
+	 	fname = tmpDir.toString() + "/output";
+		fOutput = new File(fname + ".txt");
+
 	}
 
 	@After
@@ -58,7 +61,7 @@ public class PhysicalCoverageTest {
 	}
 	
 	private String getCmd(int start, int stop) {
-		return "--log " + tmpDir + "/logfile -t phys --gff3 " + tmpDir + "/test" + start + "-" + stop + ".gff3 --bam " + inputBam + " --bai " + inputBai + " -o " +fOutput.getAbsolutePath();
+		return "--log " + tmpDir + "/logfile --type phys --input-gff3 " + tmpDir + "/test" + start + "-" + stop + ".gff3 --input-bam " + inputBam + " --input-bai  " + inputBai + " --output " +fname;
 	}
 
 	private File createGFF3File(final int start, final int end) throws IOException {
@@ -80,7 +83,9 @@ public class PhysicalCoverageTest {
 	}
 
 	private Executor execute(final String command) throws IOException, InterruptedException {
-		return new Executor(command, "org.qcmg.coverage.Main");
+		//return new Executor(command, "org.qcmg.coverage.Main");
+		return new Executor(command, "org.qcmg.coverage.Coverage");
+
 	}
 	
     @Test

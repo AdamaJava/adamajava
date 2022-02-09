@@ -44,74 +44,90 @@ there is always one thread in addition to the number specified with
 
 ## Installation
 
-qcoverage requires java 7 and (ideally) a multi-core machine with at least 20GB of RAM.
+qcoverage requires java 8 and (ideally) a multi-core machine with at least 20GB of RAM.
+* To do a build of qcoverage, first clone the adamajava repository.
+  ~~~~{.text}
+  git clone https://github.com/AdamaJava/adamajava
+  ~~~~
 
-Download the [qcoverage tar file](http://sourceforge.net/projects/adamajava/files/qcoverage.tar.bz2/download)
-Untar the tar file into a directory of your choice
+*  Then move into the adamajava folder:
+  ~~~~{.text}
+  cd adamajava
+  ~~~~
 
-You should see jar files for qcoverage and its dependencies:
+*  Run gradle to build qcoverage and its dependent jar files:
+  ~~~~{.text}
+  ./gradlew :qcoverage:build
+  ~~~~
+  This creates the qcoverage jar file along with dependent jars in the `qcoverage/build/flat` folder
 
-~~~~{.text}
-[oholmes@minion0 qcoverage]$ tar xjvf qcoverage.tar.bz2
-x antlr-3.2.jar
-x jopt-simple-3.2.jar
-x picard-1.110.jar
-x qbamfilter-1.0pre.jar
-x qcommon-0.1pre.jar
-x qpicard-0.1pre.jar
-X qio-0.1pre.jar
-x qcoverage-0.7pre.jar
-x sam-1.110.jar
-[oholmes@minion0 qcoverage]$
-~~~~
 
 ## Usage
 
-For sequence read depth:
-
-~~~~{.text}
-java -jar qcoverage.jar -t seq \
-    --bam test1.bam --gff3 GRCh37.gff3 -o report.vcf --log logfile
+~~~~
+usage: java -jar qcoverage.jar --type <type of coverage>  --input-bam <bam file> --input-gff3 <gff3 file> --output <output prefix> --log <log file> [options]
+Option              Description
+------              -----------
+--help              Show usage and help.
+--input-bai         Opt, a BAI index file for the BAM file. Def=<input-bam>.bai.
+--input-bam         Req, a BAM input file containing the reads.
+--input-gff3        Req, a GFF3 input file defining the features.
+--log               Req, log file.
+--loglevel          Opt, logging level [INFO,DEBUG], Def=INFO.
+--output            Req, the output file path. Here, filename extension will
+                      automatically added.
+--output-format     Opt, specify output file format, multi values are allowed.
+                      Possible values: [VCF, TXT, XML]. Def=TXT.
+--per-feature       Opt, to run the per-feature coverage mode. Default is to run
+                      standard coverage mode without this option.
+--query             Opt, the query string for selecting reads for coverage.
+--thread <Integer>  Opt, number of worker threads (yields n+1 total threads).
+--type              Req, the type of coverage to perform. Possible Values: [sequence,
+                      physical]. 
+--validation        Opt, how strict to be when reading a SAM or BAM. Possible values:
+                      [STRICT, LENIENT, SILENT].
+--version           Show version number.
 ~~~~
 
-For physical read depth:
+## Output
 
-~~~~{.text}
-java -jar qcoverage.jar -t phys \
-    --bam test1.bam --gff3 GRCh37.gff3 -o report.vcf --log logfile
+### standard mode output
+
+The default output is in tab delimited text format, which can be explicitly requested with the "--output-format TXT" option. Here file extension ".txt" is automatically appended to the output file. 
+
+~~~~
+java -jar qcoverage.java --type physical --output /path/report \
+--input-gff3 /path/GRCh37_ICGC_standard_v2.gff3 --input-bam /path/input.bam --log /path/output.log 
+
+less /path/report.txt
+
+#coveragetype   featuretype     numberofbases   coverage
+physical        chrom   2518007876      0x
+physical        chrom   385426364       1x
+...
+physical        chrom   2       1539x
+physical        chrom   6       1540x
+~~~~
+
+You can also specify the output to be XML format. Here file extension ".xml" is automatically append to the output file. 
+~~~~
+java -jar qcoverage.java --type physical \
+--output-format XML --output /path/report \
+--input-gff3 /path/GRCh37_ICGC_standard_v2.gff3 --input-bam /path/input.bam --log /path/report.log 
+
+less /path/report.xml
+
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<QCoverageStats>
+    <coverageReport feature="chrom" type="PHYSICAL">
+        <coverage bases="2518007876" at="0"/>
+        <coverage bases="385426364" at="1"/>
+...
 ~~~~
 
 
-
-## Options
-
-~~~~{.text}
---help, -h      Shows this help message.               
---version, -v   Print version.                    
---bam           Input BAM file.
---bai           Index file for --bam.
---gff3          The GFF3 file defining the features.   
---log           File where log output will be directed (must have write permissions).       
---loglevel      Logging level [INFO, DEBUG], Def=INFO. 
--n              Opt, Number of worker threads (yields n+1 total threads), Def=1.
---output, -o    Req, Output file.
---per-feature   Opt, Perform per-feature coverage.
---query, -q     Opt, The query string for selecting reads for coverage.
---type, -t      The type of coverage to perform [seq, sequence, phys, physical].
---xml           Opt, Output report in XML format.
---vcf           Opt, Output report in VCF format. Needs the per-feature flag to also be set.
-~~~~
-
-## VCF output
-
-It is possible to have output from the --per-feature mode in either XML or
-VCF format. The XML format is very extensive with an XML table for each
-feature showing a full breakdown of how many bases of the feature were 
-covered at what levels. For long regions with variable coverage, this table
-can run to hundreds of lines so an XML-format output file containing 
-hundreds of thousands of features can run to tens of millions of lines - it
-can be as big as the BAM itself. In most cases, the level of detail provided
-by the XML output is overkill and the VCF format is sufficient.
+### per-feature mode output
+It is possible to have output from the --per-feature mode in either TXT, XML or VCF format. The TXT and XML format are very extensive for each feature showing how many bases of the feature were covered at what levels. For long regions with variable coverage, this can run to hundreds of lines so an TXT or XML format output file containing hundreds of thousands of features can run to tens of millions of lines - it can be as big as the BAM itself. In most cases, the level of detail provided by the TXT or XML output is overkill and the VCF format is sufficient.
 
 The VCF file contains a single line for each feature so it is almost
 identical in length to the GFF3 file that defines the features. Each line 
@@ -156,16 +172,30 @@ which we interpret as:
 * there were 64 bases with zero coverage (ZC=64) and 57 with non-zero coverage (NZC=57)
 * the total number of sequenced bases in the region is 445 (TOT=445)
 
+### multi formate output
+The multi formate output is allowed but not recomended. Here the VCF format only work with per-feature mode. For example
+~~~~{.text}
+java -jar qcoverage.java --type physical --per-feature \
+--output-format TXT --output-format VCF  --output-format XML \
+--output /path/report  --input-gff3 /path/GRCh37_ICGC_standard_v2.gff3 --input-bam /path/input.bam --log /path/report.log
+
+ls /path/report.*
+
+/path/report.log  /path/report.txt /path/report.vcf /path/report.xml
+
+~~~~
+
+
 ## Multithreading
 
 To accelerate performance where hardware permits (e.g: multicore processors;
-multi-processor machines), pass the -n option to specify an appropriate number
-of worker threads.  For example, applying -n 15 to yield 15 worker threads plus 
+multi-processor machines), pass the --thread option to specify an appropriate number
+of worker threads.  For example, applying --thread 15 to yield 15 worker threads plus 
 1 supervising thread:
 
 ~~~~{.text}
-java -Xmx20G -jar qcoverage.jar -n 15 -t seq \
-    --bam test1.bam --gff3 GRCh37_primary_chr13.gff3 -o report.txt --log logfile
+java -Xmx20G -jar qcoverage.jar --thread 15 --type sequence\
+    --input-bam test1.bam --input-gff3 GRCh37_primary_chr13.gff3 --output report --log logfile
 ~~~~
 
 Adequate node resources must be allocated to ensure speedup when using this
@@ -186,17 +216,17 @@ The default filter that is used by QCMG when running qcoverage is as follows:
 ###  sequence coverage
 
 ~~~~{.text}
-java -jar qcoverage.jar -t seq \
-    -bam test1.bam --gff3 some.gff3 -o report.txt --log logfile \
-    -q "and( flag_ReadFailsVendorQuality==false, flag_DuplicateRead==false, flag_ReadUnmapped==false, flag_NotprimaryAlignment==false)"
+java -jar qcoverage.jar --type sequence\
+    --input-bam test1.bam --input-gff3 some.gff3 --output report --log logfile \
+    --query "and( flag_ReadFailsVendorQuality==false, flag_DuplicateRead==false, flag_ReadUnmapped==false, flag_NotprimaryAlignment==false)"
 ~~~~
 
 ### physical coverage
 
 ~~~~{.text}
-java -jar qcoverage.jar -t seq \
-    -bam test1.bam --gff3 some.gff3 -o report.txt --log logfile
-    -q "and( flag_ReadFailsVendorQuality==false, flag_DuplicateRead==false, flag_ReadUnmapped==false, flag_NotprimaryAlignment==false)"
+java -jar qcoverage.jar --type sequence\
+    --input-bam test1.bam --input-gff3 some.gff3 --output report --log logfile
+    --query "and( flag_ReadFailsVendorQuality==false, flag_DuplicateRead==false, flag_ReadUnmapped==false, flag_NotprimaryAlignment==false)"
 ~~~~
 
 The `-q` string specifies that only quality-passed, non-duplicate, mapped,
@@ -209,20 +239,20 @@ Some other examples are:
 Excluding reads above a defined ISIZE cutoff during physical coverage:
 
 ~~~~{.text}
-java -jar qcoverage.jar -q "ISIZE < 200" -t phys \
-    --bam test1.bam --gff3 some.gff3 -o report.txt --log logfile
+java -jar qcoverage.jar --query "ISIZE < 200" --type physical \
+    --input-bam test1.bam --input-gff3 some.gff3 --output report --log logfile
 ~~~~
 
 Including only reads satisfying a ZP-quality of "AAA":
 
 ~~~~{.text}
-java -jar qcoverage.jar --query "ZP==AAA" -t seq \
-    --bam test1.bam --gff3 some.gff3 -o report.txt --log logfile
+java -jar qcoverage.jar --query "ZP==AAA" --type sequence\
+    --input-bam test1.bam --input-gff3 some.gff3 --output report --log logfile
 ~~~~
 
 Excluding unpaired reads from physical coverage:
 
 ~~~~{.text}
-java -jar qcoverage.jar --query "flag_ReadPaired==true" -t phys \
-    --bam test1.bam --gff3 some.gff3 -o report.txt --log logfile
+java -jar qcoverage.jar --query "flag_ReadPaired==true" --type physical \
+    --input-bam test1.bam --input-gff3 some.gff3 --output report --log logfile
 ~~~~

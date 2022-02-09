@@ -31,6 +31,7 @@ public class PerFeaturePhysicalCoverageTest {
 	static String inputBai;
 	static Path tmpDir;
 	private File fOutput;
+	private String fname;
 	static Gff3Record record;
 
 	
@@ -60,7 +61,9 @@ public class PerFeaturePhysicalCoverageTest {
 
 	@Before
 	public final void before() {
-		fOutput = new File(tmpDir.toString() + "/output");
+	 	fname = tmpDir.toString() + "/output";
+		fOutput = new File(fname + ".txt");
+
 	}
 
 	@After
@@ -69,7 +72,7 @@ public class PerFeaturePhysicalCoverageTest {
 	}
 	
 	private String getCmd(int start, int stop) {
-		return "--log " + tmpDir + "/logfile -t phys --per-feature --gff3 " + tmpDir + "/test" + start + "-" + stop + ".gff3 --bam " + inputBam + " --bai " + inputBai + " -o " +fOutput.getAbsolutePath();
+		return "--log " + tmpDir + "/logfile --type phys --per-feature --input-gff3 " + tmpDir + "/test" + start + "-" + stop + ".gff3 --input-bam " + inputBam + " --input-bai  " + inputBai + " --output " +fname;
 	}
 
 	private File createGFF3File(final int start, final int end) throws IOException {
@@ -84,7 +87,9 @@ public class PerFeaturePhysicalCoverageTest {
 	}
 
 	private Executor execute(final String command) throws Exception {
-		return new Executor(command, "org.qcmg.coverage.Main");
+		//return new Executor(command, "org.qcmg.coverage.Main");
+		return new Executor(command, "org.qcmg.coverage.Coverage");
+
 	}
 	
     @Test
