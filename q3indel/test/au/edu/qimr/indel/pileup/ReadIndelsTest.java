@@ -49,7 +49,7 @@ public class ReadIndelsTest {
 		//indel size can't be exceed 200
 		try{
 			ReadIndels indelload = new ReadIndels(QLoggerFactory.getLogger(Main.class, null, null));		
-			indelload.loadIndels(input3, "");				
+			indelload.loadIndels(input3);				
 			Map<ChrRangePosition, IndelPosition> positionRecordMap = indelload.getIndelMap();
 			assertTrue(positionRecordMap.size() == 1);
 			 
@@ -78,7 +78,7 @@ public class ReadIndelsTest {
 				 
 		try{
 			ReadIndels indelload = new ReadIndels(QLoggerFactory.getLogger(Main.class, null, null));		
-			indelload.loadIndels(input1,"");	
+			indelload.loadIndels(input1);	
 			assertTrue(getHeaderLineCounts(indelload.getVcfHeader()) == 7);
 			//in case of GATK, take the second sample column
 			indelload.appendTestIndels(input2);
@@ -128,7 +128,7 @@ public class ReadIndelsTest {
 		ReadIndels indelload = new ReadIndels(QLoggerFactory.getLogger(Main.class, null, null));				
 		try{
 			//load single file
-			indelload.loadIndels(input1, "");	
+			indelload.loadIndels(input1);	
 			Map<ChrRangePosition, IndelPosition> positionRecordMap = indelload.getIndelMap();
 			assertTrue(positionRecordMap.size() == 2);		
 			
@@ -160,11 +160,11 @@ public class ReadIndelsTest {
 		ReadIndels indelload = new ReadIndels(QLoggerFactory.getLogger(Main.class, null, null));				
 		try{
 			//load single file
-			indelload.loadIndels(input1,"");	
+			indelload.loadIndels(input1);	
 			assertTrue(getHeaderLineCounts(indelload.getVcfHeader()) == 7);
 			
 			//load second file, in case of pindel
-			indelload.loadIndels(input2,"");		
+			indelload.loadIndels(input2);		
 			assertTrue(getHeaderLineCounts(indelload.getVcfHeader()) == 8);
 
 			Map<ChrRangePosition, IndelPosition> positionRecordMap = indelload.getIndelMap();
@@ -187,12 +187,12 @@ public class ReadIndelsTest {
 		 		
 			//change inputs order
 			indelload = new ReadIndels(QLoggerFactory.getLogger(Main.class, null, null));	
-			indelload.loadIndels(input2,"");		
+			indelload.loadIndels(input2);		
 			
 			assertTrue(getHeaderLineCounts(indelload.getVcfHeader()) == 7);
 			
 			//load second file, in case of pindel
-			indelload.loadIndels(input1,"");
+			indelload.loadIndels(input1);
 			assertTrue(getHeaderLineCounts(indelload.getVcfHeader()) == 8);		
 			
 		}catch(Exception e){

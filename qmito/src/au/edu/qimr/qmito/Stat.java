@@ -34,6 +34,10 @@ public class Stat {
 
 	private final StatOptions options;
 	public Stat(StatOptions options) throws Exception {
+		
+		//init logger in constructor, methods require it
+    	logger = QLoggerFactory.getLogger(Stat.class, options.getLogFileName(), options.getLogLevel());
+    	
 		inputTest = options.getTestMetricFileName();
 		inputControl = options.getControlMetricFileName();				 
 		outputFile = options.getOutputFileName();
@@ -44,8 +48,9 @@ public class Stat {
  		 control = readIn(inputControl);
  		 test = readIn(inputTest);
 		
- 		 if(control.size() != test.size())
+ 		 if(control.size() != test.size()) {
  			 throw new Exception("Two input metric files contains differnt line number ( position number)");
+ 		}
 		 
 	}
 	public static void main(String[] args) throws Exception {		
@@ -54,26 +59,23 @@ public class Stat {
       	 
         if(opt.hasHelpOption() || opt.hasVersionOption()) return;
 
-    	logger = QLoggerFactory.getLogger(Stat.class, opt.getLogFileName(), opt.getLogLevel());
     	logger.logInitialExecutionStats(Messages.getProgramName(), Messages.getProgramVersion(), args);
-		 logger.tool("output: " +opt.getOutputFileName());
-		 logger.tool("input of control metric: " + opt.getControlMetricFileName());	
-		 logger.tool("input of test metric: " + opt.getTestMetricFileName());
-		 logger.info("logger level " + opt.getLogLevel());	
-		 new Stat(opt).report();	
+		logger.tool("output: " + opt.getOutputFileName());
+		logger.tool("input of control metric: " + opt.getControlMetricFileName());	
+		logger.tool("input of test metric: " + opt.getTestMetricFileName());
+		logger.info("logger level " + opt.getLogLevel());	
+		new Stat(opt).report();	
 		 
-		 logger.logFinalExecutionStats(0);
+		logger.logFinalExecutionStats(0);
 	}
-	
-
-	
-	public List<BaseStatRecord> readIn(String fileName) throws IOException{
+		
+	public List<BaseStatRecord> readIn(String fileName) throws IOException {
 		
 		List<BaseStatRecord> counts = new ArrayList<>();
 		//skip all comment
 		try (BufferedReader reader = new  BufferedReader(new FileReader(fileName));) {
 			String line, column[];
-			while( (line = reader.readLine()) != null ){
+			while( (line = reader.readLine()) != null ) {
 				if(line.startsWith("#")) continue;
 				if(line.startsWith("Reference")) continue;
 				if(line.length() < 10) continue;			
@@ -82,8 +84,8 @@ public class Stat {
 				record.ref = column[0];
 				record.position = Integer.parseInt( column[1]);
 				record.ref_base =  column[2].charAt(0);
-				record.setForward(BaseStatRecord.Base.BaseA, Integer.parseInt( column[3]));			
-				record.setForward(BaseStatRecord.Base.BaseC,  Integer.parseInt(column[4]));
+				record.setForward(BaseStatRecord.Base.BaseA, Integer.parseInt(column[3]));			
+				record.setForward(BaseStatRecord.Base.BaseC, Integer.parseInt(column[4]));
 				record.setForward(BaseStatRecord.Base.BaseG, Integer.parseInt(column[5]));
 				record.setForward(BaseStatRecord.Base.BaseT, Integer.parseInt(column[6]));
 				
@@ -105,7 +107,7 @@ public class Stat {
 	 * @param output: output file name with full path
 	 * @throws Exception 
 	 */
- 	public void report() throws IOException{
+ 	public void report() throws IOException {
  		try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile, false));) {
 		
 		//headlines
@@ -115,35 +117,36 @@ public class Stat {
  		double controlChi, testChi, pairChi;
  		ChiSquareTest chiTest = new ChiSquareTest();
  		long[] conFor, conRsv,testFor,testRsv;
-		 long[] total_control = new long[4];
-		 long[] total_test = new long[4]; 		
- 		int i,j;
- 		for( i = 0; i < control.size(); i ++){
+		long[] total_control = new long[4];
+		long[] total_test = new long[4]; 		
+ 		int i;
+        int j;
+ 		for ( i = 0; i < control.size(); i ++) {
  			//suspending if two inputs are not in same order
- 			if(! control.get(i).ref.equalsIgnoreCase(test.get(i).ref) ||
+ 			if (! control.get(i).ref.equalsIgnoreCase(test.get(i).ref) ||
  				 control.get(i).position != test.get(i).position ||
- 				 control.get(i).ref_base != test.get(i).ref_base){
+ 				 control.get(i).ref_base != test.get(i).ref_base) {
  				line = "Two inputs are not in same order on lines:\n";
  				line += String.format("%s\t%d\t%s\n", control.get(i).ref, control.get(i).position, control.get(i).ref_base);
  				line += String.format("%s\t%d\t%s\n", test.get(i).ref, test.get(i).position, test.get(i).ref_base);				
  				throw new IllegalArgumentException(line);
- 				}
+ 			}
   			
  			conFor = control.get(i).getForwardArray();
  			conRsv = control.get(i).getReverseArray();
  			testFor = test.get(i).getForwardArray();
  			testRsv =test.get(i).getReverseArray();
  			
-  			 controlChi = chiTest.chiSquareTestDataSetsComparison (conFor, conRsv);
- 			 testChi = chiTest.chiSquareTestDataSetsComparison (testFor, testRsv);
+  			controlChi = chiTest.chiSquareTestDataSetsComparison (conFor, conRsv);
+ 			testChi = chiTest.chiSquareTestDataSetsComparison (testFor, testRsv);
 			 
  			 //compare bases from both strand
- 			 for(j = 0; j < 4; j++){
- 				 total_control[j] = conFor[j] + conRsv[j];
- 			 	 total_test[j] = testFor[j] + testRsv[j];
- 			 }
+ 			for (j = 0; j < 4; j++) {
+ 			    total_control[j] = conFor[j] + conRsv[j];
+ 			    total_test[j] = testFor[j] + testRsv[j];
+ 			}
  
- 			 pairChi = chiTest.chiSquareTestDataSetsComparison (total_control, total_test);
+ 			pairChi = chiTest.chiSquareTestDataSetsComparison (total_control, total_test);
  			 
  			 //output
  			line = String.format("%s\t%d\t%s\t", control.get(i).ref, control.get(i).position, control.get(i).ref_base);			
@@ -161,7 +164,7 @@ public class Stat {
 	}
  
  	//create header lines
- 	private void createHeader(BufferedWriter writer) throws IOException{
+ 	private void createHeader(BufferedWriter writer) throws IOException {
 		QExec qexec = options.getQExec();
 		writer.write(qexec.getExecMetaDataToString());
 		
@@ -169,22 +172,24 @@ public class Stat {
 		String line = "Reference\tPosition\tRef_base\t";
 		
 		//control data
-		for (int i = 0; i < 4; i++)
+		for (int i = 0; i < 4; i++) {
 			line += "con_" + baseName[i] + "_for\t";
-		for (int i = 0; i < 4; i++)
+        }
+		for (int i = 0; i < 4; i++) {
 			line += "con_" + baseName[i] + "_rev\t";
+        }
 		line += "con_chi_forVSrev\t";
 		
 		//test data
-		for (int i = 0; i < 4; i++)
+		for (int i = 0; i < 4; i++) {
 			line += "test_" + baseName[i] + "_for\t";
-		for (int i = 0; i < 4; i++)
+        }
+		for (int i = 0; i < 4; i++) {
 			line += "test_" + baseName[i] + "_rev\t";
+        }
 		line += "test_chi_forVSrev\t";
 		line += "total_chi_conVStest\n";
 		
 		writer.write(line);
- 		
  	}
- 	
  }
