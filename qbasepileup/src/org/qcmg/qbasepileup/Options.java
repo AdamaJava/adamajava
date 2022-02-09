@@ -65,47 +65,100 @@ public class Options {
 
 	public Options(final String[] args) throws Exception {
 
+		//common options for all mode
 		parser.accepts("log", Messages.getMessage("OPTION_LOG")).withRequiredArg().ofType(String.class);	
 		parser.accepts("loglevel", Messages.getMessage("OPTION_LOGLEVEL")).withRequiredArg().ofType(String.class);
+		//Opt default mode= QBasePileupConstants.SNP_MODE;
+		parser.accepts("mode", Messages.getMessage("OPTION_MODE")).withRequiredArg().ofType(String.class).describedAs("snp_or_indel");	
+		//Opt default threadNo = 1;
+		parser.accepts("t", Messages.getMessage("OPTION_THREADS")).withOptionalArg().ofType(Integer.class).describedAs("threadNo");		
+		//default is null
+		parser.accepts("filter", Messages.getMessage("OPTION_FILTER")).withRequiredArg().ofType(String.class).describedAs("qbamfilter");
+		//Req
+		parser.accepts("o", Messages.getMessage("OPTION_OUTPUT")).withRequiredArg().ofType(String.class).describedAs("output");	
+		
+
+		
+		//-f and -s work together for input snp position file (all snp mode and coverge mode)
 		parser.accepts("f", Messages.getMessage("OPTION_FORMAT")).withOptionalArg().ofType(String.class).describedAs("format_of_snp_file");
 		parser.accepts("s", Messages.getMessage("OPTION_SNP")).withRequiredArg().ofType(String.class).describedAs("snps_file");
-		parser.accepts("m", Messages.getMessage("OPTION_MODE")).withRequiredArg().ofType(String.class).describedAs("snp_or_indel");	
-		parser.accepts("r", Messages.getMessage("OPTION_REFERENCE")).withRequiredArg().ofType(String.class).describedAs("reference.fa");
-		parser.accepts("filter", Messages.getMessage("OPTION_FILTER")).withRequiredArg().ofType(String.class).describedAs("qbamfilter");
-		parser.accepts("dup", Messages.getMessage("OPTION_DUPS"));
-		//snp mode options
+		//getInputBAMs() { return inputBAMs; } (all snp and coverge mode)
 		parser.accepts("i", Messages.getMessage("OPTION_INPUT")).withRequiredArg().ofType(String.class).describedAs("input_bam");		
 		parser.accepts("b", Messages.getMessage("OPTION_BAMLIST")).withRequiredArg().ofType(String.class).describedAs("bam_list_file");		
-		parser.accepts("o", Messages.getMessage("OPTION_OUTPUT")).withRequiredArg().ofType(String.class).describedAs("output");	
-		parser.accepts("of", Messages.getMessage("OPTION_OUTPUT_FORMAT")).withRequiredArg().ofType(String.class).describedAs("output_format");	
-		parser.accepts("p", Messages.getMessage("OPTION_PROFILE")).withOptionalArg().ofType(String.class).describedAs("pileup_profile");		
-		parser.accepts("t", Messages.getMessage("OPTION_THREADS")).withOptionalArg().ofType(Integer.class).describedAs("threadNo");
-		parser.accepts("bq", Messages.getMessage("OPTION_QUALITY")).withRequiredArg().ofType(Integer.class).describedAs("base_qual");		
-		parser.accepts("mq", Messages.getMessage("OPTION_MAPPING_QUALITY")).withRequiredArg().ofType(Integer.class).describedAs("mapping_qual");		
-		parser.accepts("intron", Messages.getMessage("OPTION_INTRON")).withRequiredArg().ofType(String.class).describedAs("include_introns");
-		parser.accepts("ind", Messages.getMessage("OPTION_INDEL")).withRequiredArg().ofType(String.class).describedAs("include_indels");
-		parser.accepts("strand", Messages.getMessage("OPTION_STRAND")).withRequiredArg().ofType(String.class).describedAs("strand");
-		parser.accepts("novelstarts", Messages.getMessage("OPTION_NOVELSTARTS")).withRequiredArg().ofType(String.class).describedAs("novelstarts");
 		parser.accepts("hdf", Messages.getMessage("OPTION_HDF")).withRequiredArg().ofType(String.class).describedAs("hdf");
+		
 
-		//indel
+		//getReference() (indle and snp mode) not coverage???
+		parser.accepts("r", Messages.getMessage("OPTION_REFERENCE")).withRequiredArg().ofType(String.class).describedAs("reference.fa");		
+		// public boolean includeDuplicates() { return options.has("dup"); } (indle and snp mode) not coverage???
+		parser.accepts("dup", Messages.getMessage("OPTION_DUPS"));
+		
+		//snp mode option		
+		parser.accepts("of", Messages.getMessage("OPTION_OUTPUT_FORMAT")).withRequiredArg().ofType(String.class).describedAs("output_format");	
+
+		/**
+		 * 			if (profile.equals("torrent")) {
+						baseQuality = 0;
+						mappingQuality = 1;
+						indel = true;
+						intron = true;
+						novelstarts = false;
+						strand=false;
+					} else if (profile.equals("RNA")) { ...
+		 */
+		//default profile = "standard"; [torrent, RNA , DNA ]
+		parser.accepts("p", Messages.getMessage("OPTION_PROFILE")).withOptionalArg().ofType(String.class).describedAs("pileup_profile");	
+		//baseQuality =  (Integer) options.valueOf("bq"); default Base Quality filtering: null
+		parser.accepts("bq", Messages.getMessage("OPTION_QUALITY")).withRequiredArg().ofType(Integer.class).describedAs("base_qual");		
+		//mappingQuality =  (Integer) options.valueOf("mq");default Mapping Quality filtering: null
+		parser.accepts("mq", Messages.getMessage("OPTION_MAPPING_QUALITY")).withRequiredArg().ofType(Integer.class).describedAs("mapping_qual");	
+		//should be flag default novelstarts = false
+		parser.accepts("novelstarts", Messages.getMessage("OPTION_NOVELSTARTS")).withRequiredArg().ofType(String.class).describedAs("novelstarts");		
+		//should be flag default true    isStrandSpecific()  
+		parser.accepts("strand", Messages.getMessage("OPTION_STRAND")).withRequiredArg().ofType(String.class).describedAs("strand");
+		//should be flag default intron = true;
+		parser.accepts("intron", Messages.getMessage("OPTION_INTRON")).withRequiredArg().ofType(String.class).describedAs("include_introns");
+		//should be flag default indel = true; eg. --exclude-indel  no value,  means not include indel reads because default indel=true;
+		parser.accepts("ind", Messages.getMessage("OPTION_INDEL")).withRequiredArg().ofType(String.class).describedAs("include_indels");		
+		
+		
+		//indel	
+		//logger.info("Homopolymer window: " + options.getNearbyHomopolymerWindow()); opt
+		parser.accepts("hp", Messages.getMessage("OPTION_WINDOW")).withRequiredArg().ofType(Integer.class).describedAs("homopolymer_window");
+		//logger.info("Nearby indel window: " + options.getNearbyIndelWindow()); opt
+		parser.accepts("n", Messages.getMessage("OPTION_NEAR_INDELS")).withRequiredArg().ofType(Integer.class).describedAs("nearby_indel_bases");
+		//logger.info("Soft clip window: " + options.getSoftClipWindow());   opt
+		parser.accepts("sc", Messages.getMessage("OPTION_SOFTCLIP")).withRequiredArg().ofType(Integer.class).describedAs("soft_clip_window");	
+		//Opt pindel deletion file
+		parser.accepts("pd", Messages.getMessage("OPTION_INPUT_NORMAL")).withRequiredArg().ofType(String.class).describedAs("pindel_deletions");
+
+		
+		//opt, default not run somatic or germline pipeline
 		parser.accepts("is", Messages.getMessage("OPTION_SOMATIC_INPUT")).withRequiredArg().ofType(String.class).describedAs("somatic_indel_file");
 		parser.accepts("ig", Messages.getMessage("OPTION_GERMLINE_INPUT")).withRequiredArg().ofType(String.class).describedAs("germline_file");
-		parser.accepts("o", Messages.getMessage("OPTION_OUTPUT")).withRequiredArg().ofType(String.class).describedAs("pileup_output");
+		//redundant
+		//parser.accepts("o", Messages.getMessage("OPTION_OUTPUT")).withRequiredArg().ofType(String.class).describedAs("pileup_output");
+		
+		
+		//req if --is --ig exsits 
 		parser.accepts("os", Messages.getMessage("OPTION_OUTPUT_SOMATIC")).withRequiredArg().ofType(String.class).describedAs("somatic_output");
 		parser.accepts("og", Messages.getMessage("OPTION_OUTPUT_GERMLINE")).withRequiredArg().ofType(String.class).describedAs("germline_output");
-		parser.accepts("sc", Messages.getMessage("OPTION_SOFTCLIP")).withRequiredArg().ofType(Integer.class).describedAs("soft_clip_window");
-		parser.accepts("hp", Messages.getMessage("OPTION_WINDOW")).withRequiredArg().ofType(Integer.class).describedAs("homopolymer_window");
-		parser.accepts("n", Messages.getMessage("OPTION_NEAR_INDELS")).withRequiredArg().ofType(Integer.class).describedAs("nearby_indel_bases");
+		parser.accepts("it", Messages.getMessage("OPTION_INPUT_TUMOUR")).withRequiredArg().ofType(String.class).describedAs("input_tumour_bam");
+		parser.accepts("in", Messages.getMessage("OPTION_INPUT_NORMAL")).withRequiredArg().ofType(String.class).describedAs("input_normal_bam");
+	
+		
+		//below three merge into one 
 		parser.accepts("pindel", Messages.getMessage("OPTION_PINDEL"));
 		parser.accepts("strelka", Messages.getMessage("OPTION_STRELKA"));
 		parser.accepts("gatk", Messages.getMessage("OPTION_GATK"));
-		parser.accepts("it", Messages.getMessage("OPTION_INPUT_TUMOUR")).withRequiredArg().ofType(String.class).describedAs("input_tumour_bam");
-		parser.accepts("in", Messages.getMessage("OPTION_INPUT_NORMAL")).withRequiredArg().ofType(String.class).describedAs("input_normal_bam");
-		parser.accepts("pd", Messages.getMessage("OPTION_INPUT_NORMAL")).withRequiredArg().ofType(String.class).describedAs("pindel_deletions");
+		
+		
+		
 
-		//coverage
+		//coverage "mincov" not used
 		parser.accepts("mincov", Messages.getMessage("OPTION_MIN_COV")).withRequiredArg().ofType(Integer.class).describedAs("min_coverage");
+		
+		//coverage  Opt, default null
 		parser.accepts("maxcov", Messages.getMessage("OPTION_MIN_COV")).withRequiredArg().ofType(Integer.class).describedAs("max_coverage");
 
 		parser.acceptsAll(asList("h", "help"), HELP_OPTION);
@@ -122,8 +175,8 @@ public class Options {
 			reference = new File((String) options.valueOf("r"));
 		}
 
-		if (options.has("m")) {
-			mode =  (String) options.valueOf("m");
+		if (options.has("mode")) {
+			mode =  (String) options.valueOf("mode");
 		}
 
 		if ( ! mode.equals(QBasePileupConstants.SNP_MODE) && ! mode.equals(QBasePileupConstants.SNP_CHECK_MODE) && ! mode.equals(QBasePileupConstants.INDEL_MODE) && ! mode.equals(QBasePileupConstants.COVERAGE_MODE) && ! mode.equals(QBasePileupConstants.COMPOUND_SNP_MODE)) {
@@ -330,6 +383,7 @@ public class Options {
 			tumourBam = new InputBAM(null, null, new File((String) options.valueOf("it")), inputType);
 			normalBam = new InputBAM(null, null, new File((String) options.valueOf("in")), inputType);			
 
+			//??? never have --pi option
 			if (options.has("pd") || options.has("pi")) {
 				this.pindelMutations = getPindelMutations(options);
 			}		
@@ -390,6 +444,8 @@ public class Options {
 			File file = new File((String)options.valueOf("pd"));			
 			readPindelMutationFile(pindelMutations, file, "DEL");
 		}
+		
+		//??? never have --pi option
 		if (options.has("pi")) {
 			File file = new File((String)options.valueOf("pi"));
 			readPindelMutationFile(pindelMutations, file, "INS");
