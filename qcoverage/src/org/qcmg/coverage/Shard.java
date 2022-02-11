@@ -3,6 +3,7 @@
  */
 package org.qcmg.coverage;
 
+@Deprecated
 public class Shard {
 
 }

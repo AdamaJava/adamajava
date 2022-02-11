@@ -33,6 +33,7 @@ public class MultiBamPhysicalCoverageTest {
 	static String inputBai2;
 	static Path tmpDir;
 	private File fOutput;
+	private String fname;
 	static Gff3Record record;
 	
 	@Rule
@@ -63,7 +64,8 @@ public class MultiBamPhysicalCoverageTest {
 	 
 	 @Before
 		public final void before() {
-			fOutput = new File(tmpDir.toString() + "/output");
+		 	fname = tmpDir.toString() + "/output";
+			fOutput = new File(fname + ".txt");
 		}
 
 		@After
@@ -72,7 +74,7 @@ public class MultiBamPhysicalCoverageTest {
 		}
 		
 		private String getCmd(int start, int stop) {
-			return "--log " + tmpDir + "/logfile -t phys --gff3 " + tmpDir + "/test" + start + "-" + stop + ".gff3 --bam " + inputBam + " --bai " + inputBai + " --bam " + inputBam2 + " --bai " + inputBai2 + " -o " +fOutput.getAbsolutePath();
+			return "--log " + tmpDir + "/logfile --type  phys --input-gff3 " + tmpDir + "/test" + start + "-" + stop + ".gff3 --input-bam " + inputBam + " --input-bai " + inputBai + " --input-bam " + inputBam2 + " --input-bai " + inputBai2 + " --output " +fname;
 		}
 
 		private File createGFF3File(final int start, final int end) throws IOException {
@@ -87,7 +89,8 @@ public class MultiBamPhysicalCoverageTest {
 		}
 
 	private Executor execute(final String command) throws IOException, InterruptedException {
-		return new Executor(command, "org.qcmg.coverage.Main");
+		//return new Executor(command, "org.qcmg.coverage.Main");
+		return new Executor(command, "org.qcmg.coverage.Coverage");
 	}
 	
     @Test
@@ -226,5 +229,12 @@ public class MultiBamPhysicalCoverageTest {
 		assertEquals(2, fileContents.size());
 		assertEquals("physical	exon	41	2x", fileContents.get(1));
 	}
-
+    
+    @Test
+	public final void xu() throws IOException, InterruptedException {
+    	
+    	String str = getCmd(54030, 54070);
+    	
+    	System.out.println("xu test getCmd: " + str);
+    }
 }
