@@ -217,8 +217,8 @@ public class SnpBasePileupMT {
 
 						positions.add(p);
 						queue.add(p);
-					}        			
-
+						
+					} 
 				}
 
 				logger.info("Completed reading thread, read " + count

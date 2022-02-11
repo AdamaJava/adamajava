@@ -108,7 +108,7 @@ public class QBasePileup {
 		
 		
 		logger.info("***FILTERING***");
-		logger.info("Pileup profile: " + options.getProfile());
+//		logger.info("Pileup profile: " + options.getProfile());
 		logger.info("Base Quality filtering: " + options.getBaseQuality());
 		logger.info("Mapping Quality filtering: " + options.getMappingQuality());
 		logger.info("Novel starts: " + options.isNovelstarts());
