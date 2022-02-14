@@ -174,7 +174,7 @@ public class SnpBasePileupByFileMT {
 	
 					p = new SnpPosition(columns[0],columns[1], Integer.valueOf(columns[2]), Integer.valueOf(columns[3]), line);
 	
-					if (options.getOutputFormat() == 2) {
+					if (options.getOutputFormat().equals(Options.COLUMN) ){
 						p.setAltBases(values[5].getBytes());
 					} else if (options.getMode().equals(QBasePileupConstants.COMPOUND_SNP_MODE)) {
 						p.setAltBases(QBasePileupUtil.getCompoundAltBases(values, mutationColumn));
@@ -345,7 +345,7 @@ public class SnpBasePileupByFileMT {
 						} 
 					}        
 					if (options.getMode().equals("snp")) {
-						if (options.getOutputFormat() == 2) {                				
+						if (options.getOutputFormat().equals(Options.COLUMN) ) {                				
 							queueOut.add(pileup.toColumnString());
 						} else {
 							queueOut.add(pileup.toString() + "\n");
@@ -437,7 +437,7 @@ public class SnpBasePileupByFileMT {
 						}
 
 					} else {
-						if (options.getOutputFormat() == 2) {
+						if (options.getOutputFormat().equals(Options.COLUMN)) {
 							String[] vals = record.split("\t");
 							String position = "";
 							String bam = "";
@@ -475,7 +475,7 @@ public class SnpBasePileupByFileMT {
 					}
 				}
 
-				if (options.getOutputFormat() == 2) {
+				if (options.getOutputFormat().equals(Options.COLUMN)) {
 
 					BufferedReader reader = new BufferedReader(new FileReader(options.getPositionsFile()));
 					String line; 
@@ -529,12 +529,11 @@ public class SnpBasePileupByFileMT {
 			//column headers				
 			if (options.getMode().equals("snp")) {
 				sb.append("##qbasepileup version 1.0\n");
-				if (options.getOutputFormat() == 1) {
-					sb.append(QBasePileupUtil.getStandardSnpHeader());	
-				}
-				if (options.getOutputFormat() == 2) {
+				if (options.getOutputFormat().equals(Options.COLUMN)) {
 					sb.append(QBasePileupUtil.getColumnsSnpHeader(options.getInputBAMs()));	
-				}									
+				} else {
+					sb.append(QBasePileupUtil.getStandardSnpHeader());
+				}								
 			}
 
 			if (options.getMode().equals(QBasePileupConstants.SNP_CHECK_MODE)) {

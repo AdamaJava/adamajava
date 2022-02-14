@@ -90,9 +90,11 @@ public class QBasePileup {
 
 	private int runSnpMode() throws Exception {
 		logger.info("***INPUT FILES***");
-		if (options.getHdf() != null) {
-			logger.info("HDF file " + options.getHdf());
-		}
+		
+		//??? why show HDF but not list file
+//		if (options.getHdf() != null) {
+//			logger.info("HDF file " + options.getHdf());
+//		}
 		for (InputBAM i : options.getInputBAMs()) {
 			logger.info("BAM file/s: " + i.getBamFile());
 		}
@@ -102,9 +104,9 @@ public class QBasePileup {
 		logger.info("***OUTPUT FILES***");
 		logger.info("Log file " + options.getLog());
 		logger.info("Pileup file " + options.getOutput());
-		if (options.getOutputFormat() == 2) {
-			logger.info("Output file format: columns");
-		}
+//		if (options.getOutputFormat() == 2) {
+//			logger.info("Output file format: columns");
+//		}
 		
 		
 		logger.info("***FILTERING***");
@@ -136,15 +138,15 @@ public class QBasePileup {
 		logger.info("Normal bam: " + options.getNormalBam());
 		logger.info("Somatic indel file: " + options.getSomaticIndelFile());
 		logger.info("Germline indel file " + options.getGermlineIndelFile());	
-		if (options.hasPindelOption()) {
-			logger.info("File type: pindel");	
-		}
-		if (options.hasStrelkaOption()) {
-			logger.info("File type: strelka");	
-		}
-		if (options.hasGATKOption()) {
-			logger.info("File type: gatk");	
-		}
+//		if (options.hasPindelOption()) {
+//			logger.info("File type: pindel");	
+//		}
+//		if (options.hasStrelkaOption()) {
+//			logger.info("File type: strelka");	
+//		}
+//		if (options.hasGATKOption()) {
+//			logger.info("File type: gatk");	
+//		}
 		logger.info("***OUTPUT FILES***");
 		logger.info("Log file " + options.getLog());
 		logger.info("Somatic pileup file " + options.getSomaticOutputFile());
@@ -163,7 +165,7 @@ public class QBasePileup {
 		
 		if (options.getSomaticIndelFile() != null) {
 			logger.info("Piling up somatic indels");
-			IndelBasePileupMT mtSom = new IndelBasePileupMT(options.getSomaticIndelFile(), options.getSomaticOutputFile(), options.getOutput(), false, options);
+			IndelBasePileupMT mtSom = new IndelBasePileupMT( options.getSomaticIndelFile(), options.getSomaticOutputFile(), options.getOutput(), false, options);
 			if (mtSom.getExitStatus() > 0) {
 				return 1;
 			}

@@ -378,16 +378,16 @@ public class IndelBasePileupByChrMT {
 				 String fullChr = QBasePileupUtil.getFullChromosome(chromosome);
 				 try (BufferedReader reader = new BufferedReader(new FileReader(positionsFile))) {        		
 	        		
-		        		String indelFileType = null;
-		        		if (options.hasPindelOption()) {
-		        			indelFileType = "pindel";
-		        		}
-		        		if (options.hasStrelkaOption()) {
-		        			indelFileType = "strelka";
-		        		}
-		        		if (options.hasGATKOption()) {
-		        			indelFileType = "gatk";
-		        		}
+		        		String indelFileType = options.getindelFileType();
+//		        		if (options.hasPindelOption()) {
+//		        			indelFileType = "pindel";
+//		        		}
+//		        		if (options.hasStrelkaOption()) {
+//		        			indelFileType = "strelka";
+//		        		}
+//		        		if (options.hasGATKOption()) {
+//		        			indelFileType = "gatk";
+//		        		}
 		        		
 		        		String line;
 		        		while ((line=reader.readLine()) != null) {

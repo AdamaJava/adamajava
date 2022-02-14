@@ -177,7 +177,7 @@ public class SnpBasePileupMT {
 			logger.info("Starting to read positions file: " + positionsFile.getAbsolutePath());
 			int countSleep = 0;
 			long count = 0;
-			boolean outputFormat2 = options.getOutputFormat() == 2;
+			boolean outputFormat2 = options.getOutputFormat().equals(Options.COLUMN);
 
 			try (BufferedReader reader = new BufferedReader(new FileReader(positionsFile));) {
 
@@ -328,7 +328,7 @@ public class SnpBasePileupMT {
 							totalReadsBadBaseQual.addAndGet(pileup.getBasesNotPassBaseQual());
 							totalReadsBaseMapQual.addAndGet(pileup.getReadsNotPassMapQual());
 							if (options.getMode().equals("snp")) {
-								if (options.getOutputFormat() == 2) {
+								if (options.getOutputFormat().equals(Options.COLUMN)) {
 									queueOut.add(pileup.toColumnString());
 								} else {
 									queueOut.add(pileup.toString() + "\n");
@@ -441,7 +441,7 @@ public class SnpBasePileupMT {
 							}
 
 						} else {
-							if (options.getOutputFormat() == 2) {
+							if (options.getOutputFormat().equals(Options.COLUMN)) {
 								String[] vals = record.split("\t");
 								String position = Arrays.stream(vals, 0, 6).collect(Collectors.joining(Constants.TAB_STRING));
 								String info = Arrays.stream(vals, 7, vals.length).collect(Collectors.joining(Constants.TAB_STRING));
@@ -455,7 +455,7 @@ public class SnpBasePileupMT {
 						}
 					}
 
-					if (options.getOutputFormat() == 2) {
+					if (options.getOutputFormat().equals(Options.COLUMN)) {
 
 						// load entries from positions file into a collection
 						// then check that all entries in collection have a corresponding entry in the inputMap
@@ -534,11 +534,10 @@ public class SnpBasePileupMT {
 			//column headers				
 			if (options.getMode().equals("snp")) {
 				sb.append("##qbasepileup version 1.0\n");
-				if (options.getOutputFormat() == 1) {
-					sb.append(QBasePileupUtil.getStandardSnpHeader());	
-				}
-				if (options.getOutputFormat() == 2) {
+				if (options.getOutputFormat().equals(Options.COLUMN)) {
 					sb.append(QBasePileupUtil.getColumnsSnpHeader(options.getInputBAMs()));	
+				} else {
+					sb.append(QBasePileupUtil.getStandardSnpHeader());	
 				}									
 			}
 
