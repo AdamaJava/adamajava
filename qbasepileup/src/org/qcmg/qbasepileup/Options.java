@@ -32,7 +32,7 @@ public class Options {
 			
 	private final OptionParser parser = new OptionParser();
 	private final OptionSet options;
-	private final String log;
+	private String log;
 	private int threadNo = 1;
 	private String filterQuery;
 	private  List<InputBAM> inputBAMs;
@@ -67,76 +67,75 @@ public class Options {
 
 	
 	public Options(final String[] args) throws Exception {
-			
-			parser.accepts("help", Messages.getMessage("HELP_OPTION"));
-			parser.accepts("version",Messages.getMessage("VERSION_OPTION"));
-			parser.accepts("ini", Messages.getMessage("INI_OPTION")).withOptionalArg().ofType(String.class);
-			parser.accepts("log", Messages.getMessage("OPTION_LOG")).withRequiredArg().ofType(String.class);	
-			parser.accepts("loglevel", Messages.getMessage("OPTION_LOGLEVEL")).withRequiredArg().ofType(String.class);
+		
+		parser.accepts("help", Messages.getMessage("HELP_OPTION"));
+		parser.accepts("version",Messages.getMessage("VERSION_OPTION"));
+		parser.accepts("ini", Messages.getMessage("INI_OPTION")).withRequiredArg().ofType(String.class);
+
+		options = parser.parse(args);
+		
+		if( !options.has("ini")) return;
+		
+		//read ini        
+        String iniFile = (String) options.valueOf("ini");
+        Ini ini = new Ini(new File(iniFile));
+        
+		//[general] common ini options default mode = snp
+        Section section = ini.get("general");
+		this.mode = section.containsKey("mode")? section.get("mode") : QBasePileupConstants.SNP_MODE;
+		this.log = section.get("log");
+		
+		//default threadNo = 1
+		if(section.containsKey("thread_no")) {
+			this.threadNo = new Integer(section.get("thread_no")); 
+		}
+		
+		//filter = Opt, a qbamfilter query to filter out BAM records. Def=null.
+		if(section.containsKey("filter")) {
+			this.filterQuery =  section.get("filter"); 
+		} else if(mode.equals(QBasePileupConstants.COMPOUND_SNP_MODE)) {
+			this.filterQuery = "and(Flag_DuplicateRead==false , CIGAR_M>34 , MD_mismatch <= 3 , option_SM > 10)";
+		}
 
 		
-			options = parser.parse(args);					
-			log = (String) options.valueOf("log");
-//            logLevel = options.has("loglevel")? (String) options.valueOf("loglevel"): "INFO";
-            
-            if(options.has("ini")) {
-	            String iniFile = (String) options.valueOf("ini");
-	            Ini ini = new Ini(new File(iniFile));
-	            
-	    		//[general] common ini options default mode = snp
-	            Section section = ini.get("general");
-	    		this.mode = section.containsKey("mode")? section.get("mode") : QBasePileupConstants.SNP_MODE;
-	    		
-	    		//default threadNo = 1
-	    		if(section.containsKey("thread_no")) {
-	    			this.threadNo = new Integer(section.get("thread_no")); 
-	    		}
-	    		
-	    		//filter = Opt, a qbamfilter query to filter out BAM records. Def=null.
-	    		if(section.containsKey("filter")) {
-	    			this.filterQuery =  section.get("filter"); 
-	    		} else if(mode.equals(QBasePileupConstants.COMPOUND_SNP_MODE)) {
-	    			this.filterQuery = "and(Flag_DuplicateRead==false , CIGAR_M>34 , MD_mismatch <= 3 , option_SM > 10)";
-	    		}
-
-	    		
-	    		//mode from general section	    						
-	    		if (QBasePileupConstants.SNP_MODE.equals(mode) || mode.equals(QBasePileupConstants.COMPOUND_SNP_MODE) || mode.equals(QBasePileupConstants.SNP_CHECK_MODE)) {	    			
-	    			parseIniSNP( ini.get("snps"));
-	    		} else if (QBasePileupConstants.INDEL_MODE.equals(mode)) {
-	    			parseIniIndel( ini.get("indel"));
-	    		} else if (QBasePileupConstants.COVERAGE_MODE.equals(mode)) {
-	    			parseIniCoverage(ini.get("coverage"));
-	    		} else {
-	    			throw new QBasePileupException("MODE_ERROR", mode);
-	    		}
-            }
+		//mode from general section	    						
+		if (QBasePileupConstants.SNP_MODE.equals(mode) || mode.equals(QBasePileupConstants.COMPOUND_SNP_MODE) || mode.equals(QBasePileupConstants.SNP_CHECK_MODE)) {	    			
+			parseIniSNP( ini.get("snps"));
+		} else if (QBasePileupConstants.INDEL_MODE.equals(mode)) {
+			parseIniIndel( ini.get("indel"));
+		} else if (QBasePileupConstants.COVERAGE_MODE.equals(mode)) {
+			parseIniCoverage(ini.get("coverage"));
+		} else {
+			throw new QBasePileupException("MODE_ERROR", mode);
+		}
+       
+		
 	}
+
 	
 	public void parseIniCoverage(Section section ) throws Exception {		
 		
 		//required option
 		this.output = new File( section.get("output")); 		
-		this.positionsFile = new File(section.get("input-snp"));
-		this.format = section.containsKey("input-snp-format")? section.get("input-snp-foramt") : "dcc1";
+		this.positionsFile = new File(section.get("input_snp"));
+		this.format = section.containsKey("input_snp_format")? section.get("input_snp_format") : "dcc1";
 	
 		
  		//get input BAMs
 		inputBAMs = new ArrayList<InputBAM>();
-		if(section.containsKey("input-bam")) {
-			String input = section.get("input-bam");    		 
+		if(section.containsKey("input_bam")) {
+			String input = section.get("input_bam");    		 
 			InputBAM i = new InputBAM(null, null, new File(input), INPUT_BAM);
 			inputBAMs.add(i);
 		}
 		
-		if(section.containsKey("input-bam-list")) {
-			getBamList( section.get("input-bam-list"));
+		if(section.containsKey("input_bam_list")) {
+			getBamList( section.get("input_bam_list"));
 		}
  
 		if (options.has("maxcov")) {				
 			this.maxCoverage = section.containsKey("max_coverage")? Integer.parseInt( section.get("max_coverage")) : null;		
-		}
-		
+		}	
 		
 	}
 	
@@ -146,22 +145,22 @@ public class Options {
 		checkReference();
 		
 		//default is null
-		this.somaticIndelFile =  section.containsKey("input-somatic")? new File( section.get("input-somatic")) : null;
+		this.somaticIndelFile =  section.containsKey("input_somatic")? new File( section.get("input_somatic")) : null;
 		this.germlineIndelFile = section.containsKey("section")? new File( section.get("section")) : null;
 		
 		//it is required option
-		this.tumourBam = new InputBAM(null, null, new File((String) options.valueOf("input-tumour-bam")), INPUT_BAM);
-		this.normalBam = new InputBAM(null, null, new File(section.get("input-normal-bam")), INPUT_BAM);	
+		this.tumourBam = new InputBAM(null, null, new File((String) options.valueOf("input_tumour_bam")), INPUT_BAM);
+		this.normalBam = new InputBAM(null, null, new File(section.get("input_normal_bam")), INPUT_BAM);	
 				
 		//default null 
-		this.somaticOutputFile = section.containsKey("output-somatic")? new File( section.get("output-somatic")) : null;
-		this.germlineOutputFile = section.containsKey("output-germline")? new File( section.get("output-germline")) : null;
+		this.somaticOutputFile = section.containsKey("output_somatic")? new File( section.get("output_somatic")) : null;
+		this.germlineOutputFile = section.containsKey("output_germline")? new File( section.get("output_germline")) : null;
 				 
 		//default value based on old qbasepileup indel mode
 		this.softClipWindow = section.containsKey("soft_clip_window")? Integer.parseInt( section.get("soft_clip_window")) : 13;		
 		this.nearbyHomopolymer = section.containsKey("homoplymer_window")? Integer.parseInt( section.get("homoplymer_window")) : 10;		
 		this.nearbyIndelWindow = section.containsKey("indel_window")? Integer.parseInt( section.get("indel_window")) : 3;		
-		this.dup = (section.containsKey("include-duplicate") && section.get("include-duplicate").equalsIgnoreCase("true") )? true : false;
+		this.dup = (section.containsKey("include_duplicate") && section.get("include_duplicate").equalsIgnoreCase("true") )? true : false;
 
 		//indel options			
 		if (section.containsKey("input_pindel_deletion") || section.containsKey("input_pindel_insertion")) {			
@@ -187,12 +186,12 @@ public class Options {
 		
 		//required option
 		this.output = new File( section.get("output"));		
-		this.positionsFile = new File(section.get("input-snp"));
+		this.positionsFile = new File(section.get("input_snp"));
 		this.reference = new File(section.get("reference"));
 		checkReference();
 
 		//default is dcc1
-		this.format = section.containsKey("input-snp-format")? section.get("input-snp-foramt") : "dcc1";
+		this.format = section.containsKey("input_snp_format")? section.get("input_snp_foramt") : "dcc1";
 		if (!format.equals("dcc1") && !format.equals("maf") && !format.equals("tab") &&
 				!format.equals("dccq") && !format.equals("vcf") && !format.equals("hdf") && !format.equals("txt")
 				&& !format.equals("columns")) {
@@ -204,7 +203,7 @@ public class Options {
 		//so it means input snp file must be columns then output columns as well	
 		//need further test
 		//this.outputFormat = format.equals("columns")?   2 : 1;		 
-		this.outputFormat = section.containsKey("output-format")? section.get("output-foramt") : ROW;
+		this.outputFormat = section.containsKey("output_format")? section.get("output_foramt") : ROW;
 		this.outputFormat = outputFormat.equalsIgnoreCase(COLUMN) ? COLUMN : ROW; 		
 		if(outputFormat.equals(COLUMN) && ! format.equals(COLUMN)) {
 			throw new QBasePileupException( COLUMN + " output format can only work with column format input, but current input format is " + format );
@@ -212,12 +211,12 @@ public class Options {
 		
 				 
 		
-		this.baseQuality = section.containsKey("base-qualtiy")? Integer.parseInt( section.get("base-qulity")) : null;
-		this.mappingQuality = section.containsKey("mapping-qualtiy")? Integer.parseInt( section.get("mapping-qulity")) : null;
-		this.novelstarts =  (section.containsKey("report-novel-start") && section.get("report-novel-start").equalsIgnoreCase("true") ) ? true : false;
-		this.strand =  (section.containsKey("seperate-strand") && section.get("seperate-strand").equalsIgnoreCase("false") ) ? false : true;
-		this.intron =  (section.containsKey("include-intron") && section.get("include-intron").equalsIgnoreCase("false") ) ? false : true;
-		this.indel =  (section.containsKey("include-indel") && section.get("include-indel").equalsIgnoreCase("false") ) ? false : true;
+		this.baseQuality = section.containsKey("base_qualtiy")? Integer.parseInt( section.get("base_qulity")) : null;
+		this.mappingQuality = section.containsKey("mapping_qualtiy")? Integer.parseInt( section.get("mapping_qulity")) : null;
+		this.novelstarts =  (section.containsKey("report_novel_start") && section.get("report_novel_start").equalsIgnoreCase("true") ) ? true : false;
+		this.strand =  (section.containsKey("seperate_strand") && section.get("seperate_strand").equalsIgnoreCase("false") ) ? false : true;
+		this.intron =  (section.containsKey("include_intron") && section.get("include_intron").equalsIgnoreCase("false") ) ? false : true;
+		this.indel =  (section.containsKey("include_indel") && section.get("include_indel").equalsIgnoreCase("false") ) ? false : true;
 		
 		
 		
@@ -236,18 +235,18 @@ public class Options {
 		
  		//get input BAMs
 		inputBAMs = new ArrayList<InputBAM>();
-		if(section.containsKey("input-bam")) {
-			String input = section.get("input-bam");    		 
+		if(section.containsKey("input_bam")) {
+			String input = section.get("input_bam");    		 
 			InputBAM i = new InputBAM(null, null, new File(input), "bam");
 			inputBAMs.add(i);
 		}
 		
-		if(section.containsKey("input-bam-list")) {
-			getBamList( section.get("input-bam-list"));
+		if(section.containsKey("input_bam_list")) {
+			getBamList( section.get("input_bam_list"));
 		}
  
-		if(section.containsKey("input-hdf")) {
-			getHDFBamList( section.get("input-hdf"));			 
+		if(section.containsKey("input_hdf")) {
+			getHDFBamList( section.get("input_hdf"));			 
 		}
 
 		
