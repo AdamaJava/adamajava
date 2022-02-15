@@ -14,15 +14,17 @@ configurations { junit }
 dependencies {
     configurations.compile.transitive = true
     ant { untar(src: "../lib/hdf-java-2.8-bin.tar", dest: "build/deps") }
-    implementation name: 'jhdf'
-    implementation name: 'jhdf5'
-    implementation name: 'jhdfobj'
-    implementation name: 'jhdf5obj'
+//    implementation name: 'jhdf'
+//    implementation name: 'jhdf5'
+//    implementation name: 'jhdfobj'
+//    implementation name: 'jhdf5obj'
+//    implementation project(':qpileup')
+
     implementation project(':qcommon')
-    implementation project(':qpileup')
     implementation project(':qbamfilter')
     implementation 'com.github.samtools:htsjdk:2.14.1'
     implementation 'net.sf.jopt-simple:jopt-simple:4.6'
+    api group: 'org.ini4j', name: 'ini4j', version: '0.5.2'
     testImplementation  'org.easymock:easymock:3.1'
 }
 
