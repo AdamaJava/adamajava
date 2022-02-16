@@ -11,9 +11,7 @@ import java.util.Map;
 
 import org.ini4j.Ini;
 import org.ini4j.Profile.Section;
-import org.qcmg.pileup.Messages;
-import org.qcmg.pileup.hdf.PileupHDF;
-import org.qcmg.pileup.model.StrandEnum;
+
 
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
@@ -25,8 +23,7 @@ public class Options {
 	public final static String INPUT_LIST = "list";
 	public final static String PINDEL = "pindel";
 	public final static String STRELKA = "strelka";
-	public final static String GATK = "gatk";
-	
+	public final static String GATK = "gatk";	
 	public final static String COLUMN = "column";
 	public final static String ROW = "row";
 			
@@ -43,12 +40,23 @@ public class Options {
 	private File reference;
 	private String format;
 
+//	private Integer baseQuality;
+//	private Integer mappingQuality;
+//	private boolean strand;
+//	private boolean novelstarts;
+//	private boolean intron;
+//	private boolean indel;
+	
 	private Integer baseQuality;
 	private Integer mappingQuality;
-	private boolean strand;
-	private boolean novelstarts;
-	private boolean intron;
-	private boolean indel;
+	private boolean strand = true;
+	private boolean novelstarts = false;
+	private boolean intron = true;
+	private boolean indel = true;
+	
+	
+	
+	
 	private File somaticIndelFile;
 	private File germlineIndelFile;
 
@@ -64,9 +72,9 @@ public class Options {
 	private boolean dup;
 	private String indelType;
 	private String outputFormat;
-
+	private String profile;
 	
-	public Options(final String[] args) throws Exception {
+	public Options(final String[] args) throws IOException, QBasePileupException {
 		
 		parser.accepts("help", Messages.getMessage("HELP_OPTION"));
 		parser.accepts("version",Messages.getMessage("VERSION_OPTION"));
@@ -96,7 +104,6 @@ public class Options {
 		} else if(mode.equals(QBasePileupConstants.COMPOUND_SNP_MODE)) {
 			this.filterQuery = "and(Flag_DuplicateRead==false , CIGAR_M>34 , MD_mismatch <= 3 , option_SM > 10)";
 		}
-
 		
 		//mode from general section	    						
 		if (QBasePileupConstants.SNP_MODE.equals(mode) || mode.equals(QBasePileupConstants.COMPOUND_SNP_MODE) || mode.equals(QBasePileupConstants.SNP_CHECK_MODE)) {	    			
@@ -108,12 +115,9 @@ public class Options {
 		} else {
 			throw new QBasePileupException("MODE_ERROR", mode);
 		}
-       
-		
 	}
 
-	
-	public void parseIniCoverage(Section section ) throws Exception {		
+	public void parseIniCoverage(Section section ) throws IOException, QBasePileupException {		
 		
 		//required option
 		this.output = new File( section.get("output")); 		
@@ -138,15 +142,14 @@ public class Options {
 		}	
 		
 	}
-	
-	
-	public void parseIniIndel(Section section ) throws Exception {
+		
+	public void parseIniIndel(Section section ) throws QBasePileupException, IOException  {
 		this.reference = new File( section.get("reference"));
 		checkReference();
 		
 		//default is null
 		this.somaticIndelFile =  section.containsKey("input_somatic")? new File( section.get("input_somatic")) : null;
-		this.germlineIndelFile = section.containsKey("section")? new File( section.get("section")) : null;
+		this.germlineIndelFile = section.containsKey("input_germline")? new File( section.get("input_germline")) : null;
 		
 		//it is required option
 		this.tumourBam = new InputBAM(null, null, new File((String) options.valueOf("input_tumour_bam")), INPUT_BAM);
@@ -172,32 +175,39 @@ public class Options {
 				readPindelMutationFile(pindelMutations, new File(section.get("input_pindel_insertion")), "INS");
 			}
 		}	
-		
-		
+				
 		this.indelType = section.containsKey("indel_type") ? section.get("indel_type") : null; 
 		
 		if ( !indelType.equals(GATK)   && ! indelType.equals(STRELKA)&& ! indelType.equals(PINDEL)) {
 			throw new QBasePileupException("INDEL_FILETYPE_ERROR");
-		}
-		
+		}		
 	}
 	
-	public void parseIniSNP(Section section ) throws Exception {
+	public void parseIniSNP(Section section ) throws QBasePileupException, IOException {
 		
 		//required option
 		this.output = new File( section.get("output"));		
+		if (output.exists()) { 
+			throw new QBasePileupException("OUTPUT_EXISTS", output.getAbsolutePath());
+		}
+		
 		this.positionsFile = new File(section.get("input_snp"));
-		this.reference = new File(section.get("reference"));
-		checkReference();
-
+		if (!positionsFile.exists()) {
+			throw new QBasePileupException("NO_POS_FILE", positionsFile.getAbsolutePath());
+		}
+		
+		if (mode.equals(QBasePileupConstants.SNP_MODE) || mode.equals(QBasePileupConstants.COMPOUND_SNP_MODE)) {
+			this.reference = new File(section.get("reference"));
+			checkReference();
+		}
+		
 		//default is dcc1
-		this.format = section.containsKey("input_snp_format")? section.get("input_snp_foramt") : "dcc1";
+		this.format = section.containsKey("input_snp_format")? section.get("input_snp_format") : "dcc1";
 		if (!format.equals("dcc1") && !format.equals("maf") && !format.equals("tab") &&
 				!format.equals("dccq") && !format.equals("vcf") && !format.equals("hdf") && !format.equals("txt")
 				&& !format.equals("columns")) {
 			throw new QBasePileupException("UNKNOWN_FILE_FORMAT", format);
 		}
-		
 		
 		//??? old code was if (outputFormat == 2) { format = "columns"; }
 		//so it means input snp file must be columns then output columns as well	
@@ -209,17 +219,43 @@ public class Options {
 			throw new QBasePileupException( COLUMN + " output format can only work with column format input, but current input format is " + format );
 		}
 		
-				 
-		
-		this.baseQuality = section.containsKey("base_qualtiy")? Integer.parseInt( section.get("base_qulity")) : null;
-		this.mappingQuality = section.containsKey("mapping_qualtiy")? Integer.parseInt( section.get("mapping_qulity")) : null;
-		this.novelstarts =  (section.containsKey("report_novel_start") && section.get("report_novel_start").equalsIgnoreCase("true") ) ? true : false;
-		this.strand =  (section.containsKey("seperate_strand") && section.get("seperate_strand").equalsIgnoreCase("false") ) ? false : true;
-		this.intron =  (section.containsKey("include_intron") && section.get("include_intron").equalsIgnoreCase("false") ) ? false : true;
-		this.indel =  (section.containsKey("include_indel") && section.get("include_indel").equalsIgnoreCase("false") ) ? false : true;
-		
-		
-		
+		this.profile = 	section.containsKey("profile")? section.get("profile") : "standard";
+		if ( ! profile.equals("standard") && ! profile.equals("torrent") && ! profile.equals("RNA") && ! profile.equals("DNA")) {
+			throw new QBasePileupException("UNKNOWN_PROFILE", profile);
+		}
+				
+		//set filtering options			
+		if (profile.equals("torrent")) {
+			this.baseQuality = 0;
+			this.mappingQuality = 1;
+			this.indel = true;
+			this.intron = true;
+			this.novelstarts = false;
+			this.strand=false;
+		} else if (profile.equals("RNA")) {
+			this.baseQuality = 7;
+			this.mappingQuality = 10;
+			this.indel = true;
+			this.intron = true;
+			this.novelstarts = true;
+			this.strand=false;
+		} else if (profile.equals("DNA")) {
+			this.baseQuality = 10;
+			this.mappingQuality = 10;
+			this.indel = true;
+			this.intron = false;
+			this.novelstarts = false;
+			this.strand=false;
+		} 
+
+		//override above setting
+		if(section.containsKey("base_quality")) this.baseQuality =  Integer.parseInt( section.get("base_quality"));
+		if(section.containsKey("mapping_quality")) this.mappingQuality =  Integer.parseInt( section.get("mapping_quality"));
+		if(section.containsKey("report_novel_start")) this.novelstarts  = section.get("report_novel_start").equalsIgnoreCase("true");
+		if(section.containsKey("strand_specific")) this.strand  = section.get("strand_specific").equalsIgnoreCase("true");
+		if(section.containsKey("include_intron")) this.intron  = section.get("include_intron").equalsIgnoreCase("true");
+		if(section.containsKey("include_indel")) this.indel  = section.get("include_indel").equalsIgnoreCase("true");
+				
 		if (mode.equals(QBasePileupConstants.COMPOUND_SNP_MODE) && ! format.equals("dcc1")) {
 			throw new QBasePileupException("COMP_FILE_FORMAT_ERROR");
 		}
@@ -244,11 +280,15 @@ public class Options {
 		if(section.containsKey("input_bam_list")) {
 			getBamList( section.get("input_bam_list"));
 		}
- 
-		if(section.containsKey("input_hdf")) {
-			getHDFBamList( section.get("input_hdf"));			 
+		
+		if (inputBAMs.size() == 0 ) {
+			throw new QBasePileupException("NO_FILE");
+		} 
+		
+		for (InputBAM i: inputBAMs) {
+			if (!i.exists()) throw new QBasePileupException("FILE_EXISTS_ERROR", i.getBamFile().getAbsolutePath());			 
 		}
-
+		
 		
 	}
 	
@@ -306,8 +346,6 @@ public class Options {
 			}
 		}
 	}
-	
-	 
 			
 	private void getBamList(String list) throws IOException, QBasePileupException {
 		
@@ -339,28 +377,6 @@ public class Options {
 				}
 			}
 		}
-	}
-			
-	 
-	
-	private void getHDFBamList(String fhdf) throws Exception {
-		String inputType = "hdf";
-		File hdf = new File(fhdf);
-
-		if (!hdf.exists()) {
-			throw new QBasePileupException("NO_HDF", hdf.getAbsolutePath());
-		}
-		
-		PileupHDF pileupHDF = new PileupHDF(hdf.getAbsolutePath(), false, false);
-		pileupHDF.open();
-		List<String> bamFiles = pileupHDF.getBamFilesInHeader();
-		int count = 1;
-		for (String bam: bamFiles) {
-			InputBAM i = new InputBAM(count, "", new File(bam), inputType );
-			inputBAMs.add(i);
-			count++;
-		}
-		pileupHDF.close();
 	}
 	
 	public OptionSet getOptions() {
@@ -502,6 +518,9 @@ public class Options {
 	public String getOutputFormat() {
 		return outputFormat;
 	}
-
+	
+//	public String getProfile() {
+//		return profile;
+//	}
 	
 }
