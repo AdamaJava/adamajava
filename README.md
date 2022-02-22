@@ -2,7 +2,7 @@ The AdamaJava project holds code for variant callers and pipeline tools related 
 The code was created by members of the Queensland Centre for Medical
 Genomics at The University of Queensland as part of their participation in the International Cancer Genome Consortium ([ICGC](http://www.icgc.org)).
 
-The code is now being developed and maintained by the [Genome Informatics Group](https://www.qimrberghofer.edu.au/our-research/cancer/genome-informatics/) at the [QIMR Berghofer Medical Research Institute](https://www.qimrberghofer.edu.au).
+The code is now being developed and maintained by the [Genome Informatics](https://www.qimrberghofer.edu.au/our-research/cancer/genome-informatics/) and [Medical Genomics](https://www.qimrberghofer.edu.au/our-research/cancer/medical-genomics/) groups at the [QIMR Berghofer Medical Research Institute](https://www.qimrberghofer.edu.au).
 Documentation for the project is maintained in Markdown format and committed in the docs directory. To view the documentation, see the [AdamaJava project](https://adamajava.readthedocs.io/en/latest) at [Read the Docs](https://readthedocs.org/).
 
 While the repository contains code for dozens of utilities, the list below shows tools that are considered robust enough to be released for general use.
