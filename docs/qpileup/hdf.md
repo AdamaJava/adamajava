@@ -60,7 +60,7 @@ MapQual | Long | Sum of the mapping qualities of all reads that provide bases at
 StartAll | Integer | Count of all reads where alignment starts at this base (obeys clipping)
 StartNondup | Integer | As for StartAll except that we only count non-duplicate reads (obeys clipping)
 StopAll | Integer | Count of all reads where alignment stops at this base (obeys clipping)
-Dup | Integer | Count of reads that were flagged as duplicate and have a base at this position
+DupCount | Integer | Count of reads that were flagged as duplicate and have a base at this position
 MateUnmapped | Integer | Count of reads at this position that have an unmapped mate
 CigarI | Integer | Count of reads that have an "I" in the CIGAR string at this position. Only is counted at the first position at which the insertion occurs. Defined as where there is an insertion between this reference position and the next reference position.
 CigarD | Integer | Count of reads that have an "D" in the CIGAR string at this position
@@ -70,6 +70,7 @@ CigarN | Integer | Count of reads that have an "N" in the CIGAR string at this p
 CigarD_start | Integer | Count of reads that have an "D" in the CIGAR string that starts at this position
 CigarS_start | Integer | Count of reads that have an "S" in the CIGAR string that starts at this position
 CigarH_start | Integer | Count of reads that have an "H" in the CIGAR string that starts at this position
+CigarN_start | Integer | Count of reads that have an "N" in the CIGAR string that starts at this position
 LowReadCount | Integer | Count of the number of BAMs that have a low number of reads covering this position. By default LowReadCOunt is set to 10 but the `lowreadcount` option in thr INI file can be used to set this in `bootstrap` mode. If a BAM has a lowreadcount at a position, it is not used when calculating HighNonreference base count.
 ReferenceNo | Integer | Count of the number of bases at this position which are the same as the reference base
 NonreferenceNo | Integer | Count of the number of bases at this position which are not the same as the reference base
