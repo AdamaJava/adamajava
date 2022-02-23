@@ -176,7 +176,7 @@ public class QPileupRecord {
 			sb.append(getReverseElementString(null));
 		} else {
 			if (viewElements.size() > 0) {
-				//delimiter was missing, it cause mergig last forward and first reverse element.
+				//delimiter was missing, it causes the merging of last forward and first reverse element.
 				//eg. "037" is error, here fixed to "0\t37"
 				sb.append(getForwardElementString(viewElements)).append(DELIMITER);
 				sb.append(getReverseElementString(viewElements));
