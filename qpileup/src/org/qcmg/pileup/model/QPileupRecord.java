@@ -176,7 +176,9 @@ public class QPileupRecord {
 			sb.append(getReverseElementString(null));
 		} else {
 			if (viewElements.size() > 0) {
-				sb.append(getForwardElementString(viewElements));
+				//delimiter was missing, it cause mergig last forward and first reverse element.
+				//eg. "037" is error, here fixed to "0\t37"
+				sb.append(getForwardElementString(viewElements)).append(DELIMITER);
 				sb.append(getReverseElementString(viewElements));
 			} else {
 				if (groupElements.size() > 0) {
