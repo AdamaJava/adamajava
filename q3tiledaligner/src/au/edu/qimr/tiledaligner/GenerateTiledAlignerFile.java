@@ -24,7 +24,6 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.FileUtils;
-import org.qcmg.common.util.LoadReferencedClasses;
 
 import gnu.trove.list.array.TLongArrayList;
 import gnu.trove.procedure.TLongProcedure;
@@ -45,7 +44,6 @@ public class GenerateTiledAlignerFile {
 	private byte[] referenceBases;
 	private int referenceBasesLength;
 	private String currentChr;
-	private byte currentChrIndex;
 	
 	private final int tileSize = 13;
 	private int positionsCutoff = 5000;
@@ -195,7 +193,6 @@ public class GenerateTiledAlignerFile {
 			currentChr = refSeq.getName();
 			referenceBases = refSeq.getBases();
 			referenceBasesLength = refSeq.length();
-			currentChrIndex = (byte) refSeq.getContigIndex();
 			logger.info("Will process records from: " + currentChr + ", length: " + referenceBasesLength + ", current map size: " + tilesAndPositions.size() + ", counts map size: " + tilesAndCounts.size());
 		}
 	}
@@ -221,11 +218,11 @@ public class GenerateTiledAlignerFile {
 		int returnStatus = 1;
 		Options options = new Options(args);
 		if (null == args || args.length == 0) {
-			System.err.println(Messages.USAGE);
+			System.err.println(Messages.GENERATE_TILED_ALIGNER_FILE_USAGE);
 			options.displayHelp();
 			returnStatus = 0;
 		} else if (options.hasHelpOption()) {
-			System.err.println(Messages.USAGE);
+			System.err.println(Messages.GENERATE_TILED_ALIGNER_FILE_USAGE);
 			options.displayHelp();
 			returnStatus = 0;
 		} else if (options.hasVersionOption()) {
@@ -242,12 +239,12 @@ public class GenerateTiledAlignerFile {
 			options.getReference().ifPresent(r -> inputFile = r);
 			if (null == inputFile) {
 				System.err.println("No reference file supplied!!!");
-				System.err.println(Messages.USAGE);
+				System.err.println(Messages.GENERATE_TILED_ALIGNER_FILE_USAGE);
 				options.displayHelp();
 				return 1;
 			}
 			
-			// set outputfile - if supplied, check that it can be written to
+			// set output file - if supplied, check that it can be written to
 			if (null != options.getOutputFileName()) {
 				String optionsOutputFile = options.getOutputFileName();
 				if (FileUtils.canFileBeWrittenTo(optionsOutputFile)) {
@@ -257,7 +254,7 @@ public class GenerateTiledAlignerFile {
 				}
 			} else {
 				System.err.println("No output file supplied!!!");
-				System.err.println(Messages.USAGE);
+				System.err.println(Messages.GENERATE_TILED_ALIGNER_FILE_USAGE);
 				options.displayHelp();
 				return 1;
 			}
