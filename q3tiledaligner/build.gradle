@@ -1,6 +1,6 @@
 apply plugin: 'application'
 
-mainClassName = 'au.edu.qimr.tiledaligner.TiledAligner'
+mainClassName = 'au.edu.qimr.tiledaligner.Main'
 def scriptname = 'q3tiledaligner'
 def isExecutable = true
 
