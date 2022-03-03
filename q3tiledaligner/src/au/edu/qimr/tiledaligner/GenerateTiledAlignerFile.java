@@ -219,11 +219,9 @@ public class GenerateTiledAlignerFile {
 		Options options = new Options(args);
 		if (null == args || args.length == 0) {
 			System.err.println(Messages.GENERATE_TILED_ALIGNER_FILE_USAGE);
-			options.displayHelp();
 			returnStatus = 0;
 		} else if (options.hasHelpOption()) {
 			System.err.println(Messages.GENERATE_TILED_ALIGNER_FILE_USAGE);
-			options.displayHelp();
 			returnStatus = 0;
 		} else if (options.hasVersionOption()) {
 			System.err.println(Messages.getVersionMessage());
@@ -239,8 +237,6 @@ public class GenerateTiledAlignerFile {
 			options.getReference().ifPresent(r -> inputFile = r);
 			if (null == inputFile) {
 				System.err.println("No reference file supplied!!!");
-				System.err.println(Messages.GENERATE_TILED_ALIGNER_FILE_USAGE);
-				options.displayHelp();
 				return 1;
 			}
 			
@@ -255,7 +251,6 @@ public class GenerateTiledAlignerFile {
 			} else {
 				System.err.println("No output file supplied!!!");
 				System.err.println(Messages.GENERATE_TILED_ALIGNER_FILE_USAGE);
-				options.displayHelp();
 				return 1;
 			}
 			/*

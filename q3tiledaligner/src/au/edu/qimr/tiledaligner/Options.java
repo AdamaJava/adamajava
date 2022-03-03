@@ -127,10 +127,6 @@ final class Options {
 		return outputFileName;
 	}
 
-	void displayHelp() throws Exception {
-		parser.printHelpOn(System.err);
-	}
-	
 	String getValidation() {
 		return options.has("validation") ? (String) options.valueOf("validation") : null;
 	}
