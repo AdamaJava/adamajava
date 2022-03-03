@@ -216,12 +216,14 @@ public class GenerateTiledAlignerFile {
 	
 	protected int setup(String args[]) throws Exception {
 		int returnStatus = 1;
-		Options options = new Options(args);
+		GenerateTiledAlignerFileOptions options = new GenerateTiledAlignerFileOptions(args);
 		if (null == args || args.length == 0) {
 			System.err.println(Messages.GENERATE_TILED_ALIGNER_FILE_USAGE);
+			options.displayHelp();
 			returnStatus = 0;
 		} else if (options.hasHelpOption()) {
 			System.err.println(Messages.GENERATE_TILED_ALIGNER_FILE_USAGE);
+			options.displayHelp();
 			returnStatus = 0;
 		} else if (options.hasVersionOption()) {
 			System.err.println(Messages.getVersionMessage());

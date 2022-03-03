@@ -146,12 +146,14 @@ public class TiledAligner {
 	
 	protected int setup(String args[]) throws Exception {
 		int returnStatus = 1;
-		Options options = new Options(args);
+		TiledAlignerOptions options = new TiledAlignerOptions(args);
 		if (null == args || args.length == 0) {
 			System.err.println(Messages.TILED_ALIGNER_USAGE);
+			options.displayHelp();
 			returnStatus = 0;
 		} else if (options.hasHelpOption()) {
 			System.err.println(Messages.TILED_ALIGNER_USAGE);
+			options.displayHelp();
 			returnStatus = 0;
 		} else if (options.hasVersionOption()) {
 			System.err.println(Messages.getVersionMessage());

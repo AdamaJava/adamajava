@@ -21,12 +21,12 @@ public final class Main {
 	 * @throws ClassNotFoundException 
 	 */
 	public static void main(final String[] args) throws ClassNotFoundException {
-		Options options = null;
-		try {
-			options = new Options(args);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+//		Options options = null;
+//		try {
+//			options = new Options(args);
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
 		System.out.println(Messages.USAGE);
 //		try {
 //			options.displayHelp();
