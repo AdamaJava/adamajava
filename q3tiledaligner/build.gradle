@@ -15,4 +15,3 @@ dependencies {
     api 'org.apache.commons:commons-lang3:3.4'
     api 'net.sf.jopt-simple:jopt-simple:4.6'
 }
-
