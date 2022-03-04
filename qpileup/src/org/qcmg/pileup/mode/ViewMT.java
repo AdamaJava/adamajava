@@ -53,6 +53,7 @@ public class ViewMT {
 	private boolean isViewOption = false;
 	private boolean isViewHeaderOption = false;
 	private String viewHeader;
+	private String csvHeader;
 	private boolean getForwardElements = true;
 	private boolean getReverseElements = true;
 	private boolean isHDFVersionOption = false;
@@ -102,6 +103,7 @@ public class ViewMT {
 				if (isViewHeaderOption) {				
 					System.out.println(viewHeader);				
 				} else {
+					this.csvHeader = hdf.getCSVHeader();
 					executeMT();
 				}
 			}
@@ -402,6 +404,7 @@ public class ViewMT {
             	} else {
             		String pileupFile = pileupDirName + PileupConstants.FILE_SEPARATOR + c.getName() + "_" + c.getStartPos() + "_" + c.getEndPos() + ".qpileup.csv";
             		this.writer = new BufferedWriter(new FileWriter(pileupFile, true));
+            		writer.write(csvHeader);
             		writer.write(fileHeader);
             		return pileupFile;
             	}
