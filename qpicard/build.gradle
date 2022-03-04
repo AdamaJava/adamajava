@@ -6,5 +6,5 @@ dependencies {
     api project(':qio')
 	  
     //released on Nov, 2015
-    api 'com.github.samtools:htsjdk:2.14.1'
+    api 'com.github.samtools:htsjdk:2.24.1'
 }

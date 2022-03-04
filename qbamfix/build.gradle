@@ -9,7 +9,7 @@ dependencies {
 
     api project(':qcommon')
     api project(':qpicard')
-    api 'com.github.samtools:htsjdk:2.14.1'
+    api 'com.github.samtools:htsjdk:2.24.1'
     api 'commons-cli:commons-cli:1.2'
 }
 

@@ -273,13 +273,14 @@ public class TestUtil {
         
 		SAMFileWriterFactory factory = new SAMFileWriterFactory();
 		factory.setCreateIndex(true);
-		SAMFileWriter writer = factory.makeBAMWriter(header, false, new File(inputFileName));
+		try (SAMFileWriter writer = factory.makeBAMWriter(header, false, new File(inputFileName));) {
 		
 		for (SAMRecord r: reader) {
 			writer.addAlignment(r);
 		}
+		}
 		reader.close();
-		writer.close();
+//		writer.close();
         
 		return new File(inputFileName);
 	}

@@ -11,7 +11,7 @@ dependencies {
     implementation project(':qcommon')
     implementation project(':qpicard')    
     implementation 'net.sf.jopt-simple:jopt-simple:4.6'
-    implementation 'com.github.samtools:htsjdk:2.14.1'
+    implementation 'com.github.samtools:htsjdk:2.24.1'
 	
     testImplementation project(':qtesting')
     testImplementation project(':qsplit')

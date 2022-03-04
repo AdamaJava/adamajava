@@ -31,7 +31,7 @@ dependencies {
     api project(':qio')
     api project(':qbamfilter')
 
-    api 'com.github.samtools:htsjdk:2.14.1'
+    api 'com.github.samtools:htsjdk:2.24.1'
     api 'net.sf.jopt-simple:jopt-simple:4.6'
     api name: 'snpEff', version: '4.0e'	
 }
