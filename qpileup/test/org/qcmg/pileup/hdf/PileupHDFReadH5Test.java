@@ -43,6 +43,7 @@ public class PileupHDFReadH5Test {
 		String header = hdf.getCSVHeader();
 		
 		List<String> records = Arrays.asList(header.split("/n"));
+		records.forEach(r -> System.out.println("debug getCSVHeaderTest(): " + r));
 		
 		assertTrue(records.contains("# REFERENCE=/tmp/reference-long.fa"));
 		assertTrue(records.contains("# BAMS_ADDED=1"));
