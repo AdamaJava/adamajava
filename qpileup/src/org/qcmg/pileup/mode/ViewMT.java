@@ -449,9 +449,10 @@ public class ViewMT {
 	        		forward.readDatasetBlock(startIndex, totalToRead);
 	        		reverse.readDatasetBlock(startIndex, totalToRead);
 	        		
-	        		if (!isViewOption) {
-	        			writer.write("#" + hdf.getFile().getName() + "\n");
-	        		}
+	        		//it keeps getting written to the view file every 1 million rows, so broke the csv file. 
+//	        		if (!isViewOption) {
+//	        			writer.write("#" + hdf.getFile().getName() + "\n");
+//	        		}
 	        		
 	        		//write      		
 	        		for (int i=0; i<position.getDatasetLength(); i++) {

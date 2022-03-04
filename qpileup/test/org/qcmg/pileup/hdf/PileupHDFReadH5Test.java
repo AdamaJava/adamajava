@@ -3,6 +3,7 @@ package org.qcmg.pileup.hdf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.After;
@@ -35,6 +36,27 @@ public class PileupHDFReadH5Test {
 		assertTrue(hdf.getFileId() == -1);	
 		hdf = null;
 	}
+	
+	@Test
+	public void getCSVHeaderTest() throws Exception {
+
+		String header = hdf.getCSVHeader();
+		
+		List<String> records = Arrays.asList(header.split("/n"));
+		
+		assertTrue(records.contains("# REFERENCE=/tmp/reference-long.fa"));
+		assertTrue(records.contains("# BAMS_ADDED=1"));
+		assertTrue(records.contains("# LOW_READ_COUNT=10"));
+		assertTrue(records.contains("# MIN_NONREF_PERCENT=20"));
+		
+		//test: HDF=/<path>/resources/test.h5
+		assertTrue(records.contains("# H5="));
+		assertTrue(records.contains("/resources/test.h5"));
+				
+		assertEquals(5, records.size());
+	}
+	
+	
 
 	@Test
 	public void testGetChromosomeLengths() throws Exception {
