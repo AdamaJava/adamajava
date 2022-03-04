@@ -43,21 +43,17 @@ public class PileupHDFReadH5Test {
 		String header = hdf.getCSVHeader();
 		
 		List<String> records = Arrays.asList(header.split("\n"));
-		records.forEach(r -> System.out.println("debug getCSVHeaderTest(): " + r));
-		
+		assertEquals(5, records.size());		
+				
 		assertTrue(records.contains("# REFERENCE=/tmp/reference-long.fa"));
 		assertTrue(records.contains("# BAMS_ADDED=1"));
 		assertTrue(records.contains("# LOW_READ_COUNT=10"));
 		assertTrue(records.contains("# MIN_NONREF_PERCENT=20"));
 		
 		//test: HDF=/<path>/resources/test.h5
-		assertTrue(records.contains("# H5="));
-		assertTrue(records.contains("/resources/test.h5"));
-				
-		assertEquals(5, records.size());
-	}
-	
-	
+		String hasH5 = records.stream().filter(r ->  r.startsWith("# H5=") && r.endsWith("/resources/test.h5") ).findFirst() .orElse(null);
+		assertTrue(hasH5 != null);		 						
+	}	
 
 	@Test
 	public void testGetChromosomeLengths() throws Exception {
