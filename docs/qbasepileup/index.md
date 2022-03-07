@@ -43,23 +43,23 @@ java -jar qbasepileup.jar -m mode \
 Option                   Description                                                                             
 ------                   -----------                                                                             
 -V, -v, --version        Print version info.                                                                     
--b <bam_list_file>       Opt (coverage and snp mode),  path to tab delimited file with list of bams.             
+-b <txt file>            Opt (coverage and snp mode),  path to tab delimited file with list of bams.             
 --bq <Integer>           Opt (snp related mode), minimum base quality score for accepting a read. Def = null.    
 --dup                    Opt (indel and snp mode), a flag to include duplicates reads.                           
--f [snp_file_format]     Opt(snp mode) snp file format: [dcc1, dccq, vcf, tab, maf].Def=dcc1. or                 
+-f [format]              Opt(snp mode) snp file format: [dcc1, dccq, vcf, tab, maf].Def=dcc1. or                 
                          Opt(coverage mode), snp file format: [dcc1, dccq, vcf, tab, maf, gff3, gtf]. Def=dcc1.  
 --filter <query>         Opt, a qbamfilter query to filter out BAM records. Def=null.                            
 --gatk                   Opt (indel mode), a flag to conform gatk format, but do nothing.                        
 -h, --help               Shows this help message.                                                                
---hdf <hdf>              Opt (snp mode), path to hdf file which header contains a list of bams.                  
+--hdf <hdf file>         Opt (snp mode), path to hdf file which header contains a list of bams.                  
 --hp <Integer>           Opt (indel mode), base around indel to check for homopolymers. Def=10.                  
--i <input_bam>           Opt (coverage and snp mode), specify a single SAM/BAM file here.                        
---ig <dcc1>              Opt (indel mode), path to germline indel file in dcc1 format, Def=null.                 
---in <input_normal_bam>  Req (indel mode), path to normal bam file                                               
+-i <bam file>            Opt (coverage and snp mode), specify a single SAM/BAM file here.                        
+--ig <dcc1>              Req (indel mode), path to germline indel file in dcc1 format.                           
+--in <bam file>          Req (indel mode), path to normal bam file                                               
 --ind <y|n>              Opt (snp related mode), include reads with indels [y,n]. Def=y.                         
 --intron <y|n>           Opt (snp related mode), include reads mapping across introns [y,n]. Def=y.              
---is <dcc1>              Opt (indel mode), path to somatic indel file in dcc1 format, Def=null.                  
---it <input_tumour_bam>  Req (indel mode), path to tumour bam file                                               
+--is <dcc1>              Req (indel mode), path to somatic indel file in dcc1 format.                            
+--it <bam file>          Req (indel mode), path to tumour bam file                                               
 --log                    Req, log file.                                                                          
 --loglevel               Opt, logging level required, e.g. INFO, DEBUG. Default INFO.                            
 -m <mode>                Opt, Mode [snp, compoundsnp, snpcheck, indel, coverage]. Def=snp.                       
@@ -67,20 +67,20 @@ Option                   Description
 --mq <Integer>           Opt (snp related mode), minimum mapping quality score for accepting a read. Def = null. 
 -n <Integer>             Opt (indel mode), bases around indel to check for other indels. Def=3.                  
 --novelstarts <y|n>      Opt (snp related mode), report novelstarts rather than read count [Y,N], Def=y.         
--o <pileup_output>       Req (coverage and snp related mode), the output file path.                              
---of <output_format>     Opt (snp mode only), output file format [columns]. this option only works with input snp
+-o <txt file>            Req (coverage and snp related mode), the output file path.                              
+--of <format>            Opt (snp mode only), output file format [columns]. this option only works with input snp
                            file format is tab, otherwise it will ignored.                                        
---og <germline_output>   Opt (indel mode), output file for germline indels. Def=null.                            
---os <somatic_output>    Opt (indel mode), output file for somatic indels. Def=null.                             
--p [pileup_profile]      Opt (snp mode), pileup profile type [torrent,RNA,DNA, standard]. Def="standard".        
+--og <dcc1>              Req (indel mode), output file for germline indels.                                      
+--os <dcc1>              Req (indel mode), output file for somatic indels.                                       
+-p [profile]             Opt (snp mode), pileup profile type [torrent,RNA,DNA, standard]. Def="standard".        
 --pd <pindel_deletions>  Req (indel mode), path to normal bam file                                               
 --pindel                 Opt (indel mode), a flag to conform pindel format, but do nothing.                      
--r <reference.fa>        Req (indel and snp mode), path to reference genome fasta file.                          
--s <snp_file>            Req (coverage and snp mode), path to tab delimited file containing snps.                
+-r <fasta file>          Req (indel and snp mode), path to reference genome fasta file.                          
+-s <txt file>            Req (coverage and snp mode), path to tab delimited file containing snps.                
 --sc <Integer>           Opt (indel mode), bases around indel to check for softclip. Def=13.                     
 --strand <y|n>           Opt (snp related mode), separate coverage by strand [y,n]. Def=y.                       
 --strelka                Opt (indel mode), a flag to conform strelka format, but do nothing.                     
--t [Integer]             Opt, number of worker threads (yields n+2 total threads). Def=1.   
+-t [Integer]             Opt, number of worker threads (yields n+2 total threads). Def=1.         
 ~~~~
 
 ## Modes
