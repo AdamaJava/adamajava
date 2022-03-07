@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import joptsimple.BuiltinHelpFormatter;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 
@@ -79,24 +80,29 @@ public class Options {
 		parser.accepts("o", Messages.getMessage("OPTION_OUTPUT")).withRequiredArg().ofType(String.class).describedAs("output");	
 		parser.accepts("of", Messages.getMessage("OPTION_OUTPUT_FORMAT")).withRequiredArg().ofType(String.class).describedAs("output_format");	
 		parser.accepts("p", Messages.getMessage("OPTION_PROFILE")).withOptionalArg().ofType(String.class).describedAs("pileup_profile");		
-		parser.accepts("t", Messages.getMessage("OPTION_THREADS")).withOptionalArg().ofType(Integer.class).describedAs("threadNo");
-		parser.accepts("bq", Messages.getMessage("OPTION_QUALITY")).withRequiredArg().ofType(Integer.class).describedAs("base_qual");		
-		parser.accepts("mq", Messages.getMessage("OPTION_MAPPING_QUALITY")).withRequiredArg().ofType(Integer.class).describedAs("mapping_qual");		
-		parser.accepts("intron", Messages.getMessage("OPTION_INTRON")).withRequiredArg().ofType(String.class).describedAs("include_introns");
-		parser.accepts("ind", Messages.getMessage("OPTION_INDEL")).withRequiredArg().ofType(String.class).describedAs("include_indels");
-		parser.accepts("strand", Messages.getMessage("OPTION_STRAND")).withRequiredArg().ofType(String.class).describedAs("strand");
-		parser.accepts("novelstarts", Messages.getMessage("OPTION_NOVELSTARTS")).withRequiredArg().ofType(String.class).describedAs("novelstarts");
+		parser.accepts("t", Messages.getMessage("OPTION_THREADS")).withOptionalArg().ofType(Integer.class);
+		parser.accepts("bq", Messages.getMessage("OPTION_QUALITY")).withRequiredArg().ofType(Integer.class);		
+		parser.accepts("mq", Messages.getMessage("OPTION_MAPPING_QUALITY")).withRequiredArg().ofType(Integer.class);		
+		parser.accepts("intron", Messages.getMessage("OPTION_INTRON")).withRequiredArg().ofType(String.class).describedAs("y|n");		
+		parser.accepts("ind", Messages.getMessage("OPTION_INDEL")).withRequiredArg().ofType(String.class).describedAs("y|n");		
+		parser.accepts("strand", Messages.getMessage("OPTION_STRAND")).withRequiredArg().ofType(String.class).describedAs("y|n");
+		parser.accepts("novelstarts", Messages.getMessage("OPTION_NOVELSTARTS")).withRequiredArg().ofType(String.class).describedAs("y|n");		
 		parser.accepts("hdf", Messages.getMessage("OPTION_HDF")).withRequiredArg().ofType(String.class).describedAs("hdf");
 
 		//indel
-		parser.accepts("is", Messages.getMessage("OPTION_SOMATIC_INPUT")).withRequiredArg().ofType(String.class).describedAs("somatic_indel_file");
-		parser.accepts("ig", Messages.getMessage("OPTION_GERMLINE_INPUT")).withRequiredArg().ofType(String.class).describedAs("germline_file");
+		parser.accepts("is", Messages.getMessage("OPTION_SOMATIC_INPUT")).withRequiredArg().ofType(String.class).describedAs("dcc1");		
+		parser.accepts("ig", Messages.getMessage("OPTION_GERMLINE_INPUT")).withRequiredArg().ofType(String.class).describedAs("dcc1");
+		
+		
 		parser.accepts("o", Messages.getMessage("OPTION_OUTPUT")).withRequiredArg().ofType(String.class).describedAs("pileup_output");
 		parser.accepts("os", Messages.getMessage("OPTION_OUTPUT_SOMATIC")).withRequiredArg().ofType(String.class).describedAs("somatic_output");
 		parser.accepts("og", Messages.getMessage("OPTION_OUTPUT_GERMLINE")).withRequiredArg().ofType(String.class).describedAs("germline_output");
-		parser.accepts("sc", Messages.getMessage("OPTION_SOFTCLIP")).withRequiredArg().ofType(Integer.class).describedAs("soft_clip_window");
-		parser.accepts("hp", Messages.getMessage("OPTION_WINDOW")).withRequiredArg().ofType(Integer.class).describedAs("homopolymer_window");
-		parser.accepts("n", Messages.getMessage("OPTION_NEAR_INDELS")).withRequiredArg().ofType(Integer.class).describedAs("nearby_indel_bases");
+		
+		
+		parser.accepts("sc", Messages.getMessage("OPTION_SOFTCLIP")).withRequiredArg().ofType(Integer.class);
+		parser.accepts("hp", Messages.getMessage("OPTION_WINDOW")).withRequiredArg().ofType(Integer.class);
+		parser.accepts("n", Messages.getMessage("OPTION_NEAR_INDELS")).withRequiredArg().ofType(Integer.class);
+		
 		parser.accepts("pindel", Messages.getMessage("OPTION_PINDEL"));
 		parser.accepts("strelka", Messages.getMessage("OPTION_STRELKA"));
 		parser.accepts("gatk", Messages.getMessage("OPTION_GATK"));
@@ -105,7 +111,7 @@ public class Options {
 		parser.accepts("pd", Messages.getMessage("OPTION_INPUT_NORMAL")).withRequiredArg().ofType(String.class).describedAs("pindel_deletions");
 
 		//coverage
-		parser.accepts("mincov", Messages.getMessage("OPTION_MIN_COV")).withRequiredArg().ofType(Integer.class).describedAs("min_coverage");
+		parser.accepts("mincov", Messages.getMessage("OPTION_MIN_COV")).withRequiredArg().ofType(Integer.class);
 		//unused
 //		parser.accepts("maxcov", Messages.getMessage("OPTION_MIN_COV")).withRequiredArg().ofType(Integer.class).describedAs("max_coverage");
 
@@ -581,6 +587,8 @@ public class Options {
 	}
 
 	void displayHelp() throws Exception {
+		parser.formatHelpWith(new BuiltinHelpFormatter(180, 2));
+
 		parser.printHelpOn(System.err);
 	}
 
