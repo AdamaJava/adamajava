@@ -1,5 +1,8 @@
 # qbasepileup
-`This tool may deprecate soon, due to some input format is no longer supported!`
+```diff
+-This tool is dated due to some input file format (dccq, dcc1) is no longer available!
+```
+
 
 ## Introduction
 
@@ -100,8 +103,10 @@ region. Coverage per nucleotide is reported and the total coverage at that
 position is reported. By default, duplicates and unmapped reads are excluded.
 
 ### [compoundsnp](qbasepileup_compound_snp_mode)
+```diff
+-This mode is deprecated due to the input snp position file format (dcc1) is no longer available!
+```
 
-```This mode is deprecated due to the input snp position file format (dcc1) is no longer available!```
 
 In this mode, qbasepileup reads one or more BAM files, a reference genome, and a file containing positions of compound SNPs (SNPs that sit next to each other). It finds the reference genome base at the compound SNP positions as well as the bases found at that position in all reads aligned to that region. Coverage per nucleotide is reported and the total coverage at that position is reported. By default, the filter is:
 
@@ -120,7 +125,9 @@ This mode is for compound SNPs, is very similar to [snp mode](qbasepileup_snp_mo
 
 
 ### [indel](qbasepileup_indel_mode)
-`This mode is deprecated due to the indle file format (dcc1) is no longer available!`
+```diff
+-This mode is deprecated due to the indle file format (dcc1) is no longer available!
+```
 
 Reads tumour and normal BAM files, a reference genome, and somatic and/or 
 germline files containing positions of indels and pileups the reads around 
