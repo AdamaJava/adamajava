@@ -15,7 +15,8 @@
 
 ##snp mode
 -o              Output file.
--o <output> 	Req (coverage and snp related mode), the output file path.
+-o <file> 	Req (coverage and snp related mode), the output file path.
+--of <row|columns>    Output file format [rows,columns].
 
 -b              Path to tab delimited file with list of bams.
 -b <bam list>   Opt (coverage and snp related mode),  path to tab delimited file with list of bams.
@@ -31,9 +32,11 @@
 -f <format>	Opt(snp related mode) snp file format: [dcc1, dccq, vcf, tab, maf].Def=dcc1. or
 		Opt(coverage mode), snp file format: [dcc1, dccq, vcf, tab, maf, gff3, gtf]. Def=dcc1. 
 
+--maxcov <Integer>       Opt (unused), report reads that are less than the mininmum coverage option. 
+--mincov <Integer>       Opt, report reads that are less than the mininmum coverage option. 
 
 
--p <???>             Pileup profile type [ddc1,maf,db,dccq,vcf,torrent,RNA,DNA] Def=dcc1.
+-p <String>     Opt, Pileup profile type [torrent,RNA,DNA, standard]. Def="standard".
 --bq            Minimum base quality score for accepting a read.
 --bq <basequality>	Opt (snp related mode), Minimum base quality score for accepting a read. Def = null.
 --mq            Minimum mapping quality score for accepting a read.
@@ -47,25 +50,34 @@
 --novelstarts   Report novelstarts rather than read count [Y,N], Def=y.
 --novelstarts <y|n> Opt (snp related mode),, Report novelstarts rather than read count [Y,N], Def=y.
 --dup           Include duplicates
---dup           (indel and snp related mode), a flag of including duplicates reads. 
-
-
-
+--dup           Opt (indel and snp related mode), a flag of including duplicates reads. 
 
 --ig            Path to somatic indel file
---ig <dcc1>           Path to somatic indel file
+--ig <dcc1>     Opt, path to germline indel file, Def=null
+--is            Path to somatic indel file
+--is <dcc1>     Opt, Path to somatic indel file, Def=null
+
+--it            Path to tumour bam file
+--it <bam>      Req,Path to tumour bam file
 --in            Path to normal bam file
+--in <bam>      Req,Path to normal bam file
+
+--pd            <pindel_deletions> Path to normal bam file
+--pd <file>     Opt (deprecated), Path to pindel deletion file
+
+
+--og <file>     Opt, Output file for germline indels. Def=null.
+--os <file>     Opt, Output file for somatic indels. Def=null.
+
 --gatk          Adjust insertion position to conform to GATK format
 --strelka       adjust insertion position to conform to strelka format (same as pindel)
 --pindel        adjust insertion position to conform to pindel format
+
 --hp            window around indel to check for homopolymers  [default:10]
---is            Path to somatic indel file
---it            Path to tumour bam file
---maxcov        Report reads that are less than the mininmum coverage option. Integer
---mincov        Report reads that are less than the
+--hp <Integer>    Opt, base around indel to check for homopolymers. Def=10.
 -n              Bases around indel to check for other indels., Def=3.
---of            Output file format [rows,columns].
---og            Output file for germline indels.
---os            Output file for somatic indels.
---pd            <pindel_deletions> Path to normal bam file
+-n <Integer>      Opt, Bases around indel to check for other indels. Def=3.
 --sc            <soft_clip_window> number of bases around indel to check for softclipped bases [default:13]
+--sc <Integer>    Opt, bases around indel to check for softclip. Def=13.
+
+

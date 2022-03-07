@@ -67,11 +67,11 @@ public class Options {
 
 		parser.accepts("log", Messages.getMessage("OPTION_LOG")).withRequiredArg().ofType(String.class);	
 		parser.accepts("loglevel", Messages.getMessage("OPTION_LOGLEVEL")).withRequiredArg().ofType(String.class);
-		parser.accepts("f", Messages.getMessage("OPTION_FORMAT")).withOptionalArg().ofType(String.class).describedAs("format_of_snp_file");
-		parser.accepts("s", Messages.getMessage("OPTION_SNP")).withRequiredArg().ofType(String.class).describedAs("snps_file");
-		parser.accepts("m", Messages.getMessage("OPTION_MODE")).withRequiredArg().ofType(String.class).describedAs("snp_or_indel");	
+		parser.accepts("f", Messages.getMessage("OPTION_FORMAT")).withOptionalArg().ofType(String.class).describedAs("snp_file_format");
+		parser.accepts("s", Messages.getMessage("OPTION_SNP")).withRequiredArg().ofType(String.class).describedAs("snp_file");
+		parser.accepts("m", Messages.getMessage("OPTION_MODE")).withRequiredArg().ofType(String.class).describedAs("mode");	
 		parser.accepts("r", Messages.getMessage("OPTION_REFERENCE")).withRequiredArg().ofType(String.class).describedAs("reference.fa");
-		parser.accepts("filter", Messages.getMessage("OPTION_FILTER")).withRequiredArg().ofType(String.class).describedAs("qbamfilter");
+		parser.accepts("filter", Messages.getMessage("OPTION_FILTER")).withRequiredArg().ofType(String.class).describedAs("query");
 		parser.accepts("dup", Messages.getMessage("OPTION_DUPS"));
 		//snp mode options
 		parser.accepts("i", Messages.getMessage("OPTION_INPUT")).withRequiredArg().ofType(String.class).describedAs("input_bam");		
@@ -106,7 +106,8 @@ public class Options {
 
 		//coverage
 		parser.accepts("mincov", Messages.getMessage("OPTION_MIN_COV")).withRequiredArg().ofType(Integer.class).describedAs("min_coverage");
-		parser.accepts("maxcov", Messages.getMessage("OPTION_MIN_COV")).withRequiredArg().ofType(Integer.class).describedAs("max_coverage");
+		//unused
+//		parser.accepts("maxcov", Messages.getMessage("OPTION_MIN_COV")).withRequiredArg().ofType(Integer.class).describedAs("max_coverage");
 
 		parser.acceptsAll(asList("h", "help"), HELP_OPTION);
 		parser.acceptsAll(asList("v", "V", "version"), VERSION_OPTION);	
