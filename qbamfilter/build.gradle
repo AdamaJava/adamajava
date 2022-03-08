@@ -12,6 +12,5 @@ dependencies {
 
     api 'net.sf.jopt-simple:jopt-simple:4.6'
     api 'org.antlr:antlr:3.2'
-    api 'com.github.samtools:htsjdk:2.14.1'
 }
 
