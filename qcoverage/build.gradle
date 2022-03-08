@@ -12,6 +12,5 @@ dependencies {
     implementation project(':qbamfilter')
     implementation project(':qpicard')
     implementation 'net.sf.jopt-simple:jopt-simple:4.6'
-    implementation 'com.github.samtools:htsjdk:2.24.1'
 }
 

@@ -22,7 +22,6 @@ dependencies {
     api project(':qbamfilter')
 	
     ant {  untar(src: "../lib/hdf-java-2.8-bin.tar", dest: "build/deps") }
-    api 'com.github.samtools:htsjdk:2.24.1'
     api 'net.sf.jopt-simple:jopt-simple:4.6'
     api group: 'org.ini4j', name: 'ini4j', version: '0.5.2'
     api name: 'jhdf'

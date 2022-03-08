@@ -10,7 +10,6 @@ dependencies {
     api project(':qpicard')
     api project(':qio')
 
-    api 'com.github.samtools:htsjdk:2.24.1'
     api 'net.sf.jopt-simple:jopt-simple:4.6'
 }
 

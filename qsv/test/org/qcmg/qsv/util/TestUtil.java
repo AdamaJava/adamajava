@@ -268,19 +268,29 @@ public class TestUtil {
     		createSamFile(samFile, sort, true);
     	}
     	
-        SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(samFile));
-        SAMFileHeader header = reader.getFileHeader();
-        
-		SAMFileWriterFactory factory = new SAMFileWriterFactory();
-		factory.setCreateIndex(true);
-		try (SAMFileWriter writer = factory.makeBAMWriter(header, false, new File(inputFileName));) {
-		
-		for (SAMRecord r: reader) {
-			writer.addAlignment(r);
+    	/*
+    	 * load entries from SAM file into memory - this is to overcome an intermittent exception that is thrown
+    	 */
+    	List<SAMRecord> samRecords = new ArrayList<>();
+    	SAMFileHeader header = null;
+    	
+    	try ( SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(samFile)); ) {
+    		header = reader.getFileHeader();
+    		 for (SAMRecord r : reader) {
+    			 samRecords.add(r);
+ 		    }
+    	}
+    	/*
+    	 * now setup factory and writer
+    	 */
+    	SAMFileWriterFactory factory = new SAMFileWriterFactory();
+    	factory.setCreateIndex(true);
+    	
+        try (SAMFileWriter writer = factory.makeBAMWriter(header, false, new File(inputFileName));) {
+		    for (SAMRecord r : samRecords) {
+			    writer.addAlignment(r);
+		    }
 		}
-		}
-		reader.close();
-//		writer.close();
         
 		return new File(inputFileName);
 	}
