@@ -156,23 +156,19 @@ public class QPileupRecordTest {
 		//full length
 		String str = record.getRecordString(viewElements, groupElements, false, false);
 		assertTrue(str.split(QPileupRecord.DELIMITER).length == 61);
-		System.out.println(str.split(QPileupRecord.DELIMITER).length + " : " + str);
 		
 		//with group element
 		groupElements.addAll(StrandEnum.getQuals());
 		str = record.getRecordString(viewElements, groupElements, false, false);
-		System.out.println(str.split(QPileupRecord.DELIMITER).length + " : " + str);
 		assertTrue(str.split(QPileupRecord.DELIMITER).length == 15);
 		
 		
 		//with group forward
 		str = record.getRecordString(viewElements, groupElements, true, false);
-		System.out.println(str.split(QPileupRecord.DELIMITER).length + " : " + str);
 		assertTrue(str.split(QPileupRecord.DELIMITER).length == 9);
 
 		//with group reverse
 		str = record.getRecordString(viewElements, groupElements, false, true);
-		System.out.println(str.split(QPileupRecord.DELIMITER).length + " : " + str);
 		assertTrue(str.split(QPileupRecord.DELIMITER).length == 9);	
 		
 		
@@ -180,7 +176,6 @@ public class QPileupRecordTest {
 		viewElements.add(StrandEnum.referenceNo);
 		viewElements.add(StrandEnum.cigarI);
 		str = record.getRecordString(viewElements, groupElements, false, false);
-		System.out.println(str.split(QPileupRecord.DELIMITER).length + " : " +  str);
 		assertTrue(str.split(QPileupRecord.DELIMITER).length == 7);		
 		
 	}
