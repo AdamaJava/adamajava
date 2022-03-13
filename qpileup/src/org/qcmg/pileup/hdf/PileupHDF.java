@@ -164,6 +164,35 @@ public class PileupHDF {
 	    	
 		return sb.toString();
 	}
+	
+	//output some header info to csv file as JP suggested
+	public synchronized String getCSVHeader() throws Exception{
+		    	
+    	//get reference file to header
+    	String ref=null; 
+    	MetadataReferenceDS referenceDS = new MetadataReferenceDS(this, "");
+    	if (referenceDS != null) {
+			String[] lines = referenceDS.getMetadata().split("\n");
+	    	for (String line: lines) {
+				if (line.startsWith("## REFERENCE=FILE:")) {
+					String[] values = line.split(":");
+					ref = values[1];
+					break; //skip from for loop
+				}
+	    	}   	
+    	}
+    	
+    	StringBuilder sb = new StringBuilder();
+    	sb.append("# H5=").append(getFile().getAbsolutePath()).append("\n"); 	   	
+    	sb.append("# REFERENCE=").append(ref).append("\n");    
+    	
+    	MetadataRecordDS metaDS = new MetadataRecordDS(this);
+    	sb.append("# BAMS_ADDED=").append(metaDS.getAttribute("bams_added")).append("\n"); 
+    	sb.append("# LOW_READ_COUNT=").append(metaDS.getAttribute("low_read_count")).append("\n"); 
+    	sb.append("# MIN_NONREF_PERCENT=").append(metaDS.getAttribute("non_reference_threshold")).append("\n"); 
+    		    	
+		return sb.toString();
+	}	
 
 	
 	//===============================Access methods==================================//
