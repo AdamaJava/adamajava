@@ -1336,7 +1336,7 @@ public class TiledAlignerUtil {
 		return nonOverlappingRecs;
 	}
 
-	private static Map<ChrPosition, LongRange> loadReferenceIndexMap(String refFile, String refIndexFile) {
+	public static Map<ChrPosition, LongRange> loadReferenceIndexMap(String refFile, String refIndexFile) {
 		Map<ChrPosition, LongRange> headerMap = null;
 		if (null == refIndexFile) {
 			/*
@@ -1346,7 +1346,7 @@ public class TiledAlignerUtil {
 			Path indexPath = ReferenceSequenceFileFactory.getFastaIndexFileName(Paths.get(refFile));
 			if (Files.isReadable(indexPath)) {
 				logger.info("loading reference index file from " + indexPath);
-				headerMap = PositionChrPositionMap.loadMap(refIndexFile);
+				headerMap = PositionChrPositionMap.loadMap(indexPath.toString());
 			} else {
 				logger.warn("Could not find reference index file from " + refFile + ", will default to GRCh37!");
 				headerMap = PositionChrPositionMap.loadGRCh37Map();

@@ -3,6 +3,8 @@ package au.edu.qimr.tiledaligner.util;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -13,7 +15,9 @@ import java.util.Optional;
 
 import org.apache.commons.lang3.Range;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrPositionName;
 import org.qcmg.common.string.StringUtils;
@@ -32,6 +36,9 @@ public class TiledAlignerUtilTest {
 	
 	public static Map<ChrPosition, LongRange> pcpm;
 	
+	@Rule
+	public TemporaryFolder testFolder = new TemporaryFolder();
+	
 	@BeforeClass
 	public static void setup() {
 		/*
@@ -40,6 +47,29 @@ public class TiledAlignerUtilTest {
 		pcpm = PositionChrPositionMap.loadGRCh37Map();
 	}
 	
+	@Test
+	public void useIndexFileIfPresent() throws IOException {
+		File fa = testFolder.newFile("test.fa");
+		/*
+		 * no index so should load default positions - no exception
+		 */
+		Map<ChrPosition, LongRange> map = TiledAlignerUtil.loadReferenceIndexMap(fa.getAbsolutePath(), null);
+		assertEquals(false, map.isEmpty());
+		
+		/*
+		 * add an index file - should use this rather than default
+		 */
+		File index = testFolder.newFile("test.fa.fai");
+		map = TiledAlignerUtil.loadReferenceIndexMap(fa.getAbsolutePath(), null);
+		assertEquals(true, map.isEmpty());
+		
+		/*
+		 * and finally with the explicit call to the index
+		 */
+		map = TiledAlignerUtil.loadReferenceIndexMap(fa.getAbsolutePath(), index.getAbsolutePath());
+		assertEquals(true, map.isEmpty());
+		
+	}
 	
 	@Test
 	public void getAlternatives() {
