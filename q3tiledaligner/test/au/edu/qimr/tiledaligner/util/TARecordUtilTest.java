@@ -783,15 +783,6 @@ public class TARecordUtilTest {
 		System.out.println("Number of records in results after looking in potentialSplits list: " + results.size());
 		assertEquals("123	128	3	0	0	1	3	1	1	-	splitcon_chr11_68535215_chr11_68688420__true_1594705425399_247953	280	204	200	chr11	135006516	70301891	70302020	2	76,52	0,79	70301891,70301968", results.get(0).toString());
 		
-//		List<BLATRecord[]> blatRecs = TARecordUtil.blatRecordsFromSplits(splits, name, r.getSequence().length(), pcpm);
-//		assertEquals(1, blatRecs.size());
-//		blatRecs.sort(null);
-//		for (BLATRecord br : blatRecs.get(0)) {
-//			System.out.println("blat record: " + br.toString());
-//		}
-//		assertEquals(2, blatRecs.get(0).length);
-//		assertEquals("137	137	0	0	0	0	0	0	0	+	splitcon_chr11_68535215_chr11_68688420__true_1594705425399_247953	280	143	280	chr11	135006516	68535214	68535351	1	137	143	68535214", blatRecs.get(0)[0].toString());
-//		assertEquals("145	145	0	0	0	0	0	0	0	+	splitcon_chr11_68535215_chr11_68688420__true_1594705425399_247953	280	3	148	chr11	135006516	68688278	68688423	1	145	3	68688278", blatRecs.get(0)[1].toString());
 	}
 	
 	@Test
