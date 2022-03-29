@@ -22,7 +22,7 @@ import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.NumberUtils;
 
 import au.edu.qimr.tiledaligner.PositionChrPositionMap;
-import au.edu.qimr.tiledaligner.model.IntLongPair;
+import au.edu.qimr.tiledaligner.PositionChrPositionMap.LongRange;
 import au.edu.qimr.tiledaligner.model.IntLongPairs;
 import htsjdk.samtools.util.SequenceUtil;
 
@@ -606,47 +606,6 @@ public class BLATRecordUtil {
 		return false;
 	}
 
-	public static BLATRecord blatRecordFromSplit(IntLongPair split, String name, int seqLength, PositionChrPositionMap headerMap, int tileLength) {
-		ChrPosition cp = headerMap.getChrPositionFromLongPosition(split.getLong());
-		boolean reverseStrand = NumberUtils.isBitSet(split.getLong(), TARecordUtil.REVERSE_COMPLEMENT_BIT);
-		int length = NumberUtils.getPartOfPackedInt(split.getInt(), true) + tileLength - 1;
-		int mismatch = NumberUtils.getPartOfPackedInt(split.getInt(), false);
-		int positionInSequence = NumberUtils.getShortFromLong(split.getLong(), TARecordUtil.TILE_OFFSET);
-		int qStart = reverseStrand ? (seqLength - positionInSequence - length) :  positionInSequence;
-		int qEnd = reverseStrand ?  (seqLength - positionInSequence) : positionInSequence + length;
-		Integer contigLength =  getChromosomeSize(cp.getChromosome());
-		int tStart = cp.getStartPosition();
-		
-		BLATRecord br = new BLATRecord.Builder()
-				.withMatch(length)
-				.withMisMatch(mismatch)
-				.withRepMatch(0)
-				.withNCount(0)
-				.withQNumInsert(0)
-				.withQBaseInsert(0)
-				.withTNumInsert(0)
-				.withTBaseInsert(0)
-				.withStrand(reverseStrand ? '-' : '+')
-				.withQName(name)
-				.withSize(seqLength)
-				.withQStart(qStart)
-				.withQEnd(qEnd)
-				.withTName(cp.getChromosome())
-				.withTSize(contigLength == null ? 1000000000 : contigLength)
-				.withTStart( tStart)
-				.withTEnd(tStart + length)
-				.withBlockCount(1)
-				.withBlockSizes("" + length)
-				.withQStarts("" + positionInSequence)
-				.withTStarts("" + tStart)
-				.build();
-		return br;
-	}
-
-	public static BLATRecord blatRecordFromSplit(IntLongPair split, String name, int seqLength, PositionChrPositionMap headerMap) {
-		return blatRecordFromSplit(split, name, seqLength, headerMap, TARecordUtil.TILE_LENGTH);
-	}
-
 	/**
 	 * 
 	 * @param splits
@@ -656,9 +615,8 @@ public class BLATRecordUtil {
 	 * @param tileLength
 	 * @return
 	 */
-	public static Optional<BLATRecord> blatRecordFromSplits(IntLongPairs splits, String name, int seqLength, PositionChrPositionMap headerMap, int tileLength) {
-		
-		Map<ChrPosition, int[]> chrPosBlocks = TARecordUtil.getChrPositionAndBlocksFromSplits(splits, seqLength, headerMap);
+	public static Optional<BLATRecord> blatRecordFromSplits(IntLongPairs splits, String name, int seqLength, Map<ChrPosition, LongRange> refIndexMap, int tileLength) {
+		Map<ChrPosition, int[]> chrPosBlocks = TARecordUtil.getChrPositionAndBlocksFromSplits(splits, seqLength, refIndexMap);
 		/*
 		 * order the keys
 		 */

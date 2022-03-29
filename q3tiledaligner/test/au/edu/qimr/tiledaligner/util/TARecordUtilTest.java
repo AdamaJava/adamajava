@@ -27,6 +27,7 @@ import org.qcmg.common.model.ChrPositionName;
 import org.qcmg.common.util.NumberUtils;
 
 import au.edu.qimr.tiledaligner.PositionChrPositionMap;
+import au.edu.qimr.tiledaligner.PositionChrPositionMap.LongRange;
 import au.edu.qimr.tiledaligner.model.IntLongPair;
 import au.edu.qimr.tiledaligner.model.IntLongPairs;
 import au.edu.qimr.tiledaligner.model.TARecord;
@@ -36,15 +37,14 @@ import gnu.trove.map.TIntObjectMap;
 
 public class TARecordUtilTest {
 	
-	public static PositionChrPositionMap pcpm;
+	public static Map<ChrPosition, LongRange> pcpm;
 	
 	@BeforeClass
 	public static void setup() {
 		/*
 		 * setup cache
 		 */
-		pcpm = new PositionChrPositionMap();
-		pcpm.loadMap(PositionChrPositionMap.grch37Positions);
+		pcpm = PositionChrPositionMap.loadGRCh37Map();
 	}
 	
 	@Test
@@ -151,17 +151,6 @@ public class TARecordUtilTest {
 		assertEquals(1, results.size());
 		System.out.println(results.get(0).toString());
 		assertEquals("393	396	0	0	0	0	0	3	209	+	splitcon_chr7_100867120_chr7_100867215	398	1	396	chr7	159138663	100866756	100867361	4	51,31,167,147	1,52,83,250	100866756,100866806,100866953,100867214", results.get(0).toString());
-		
-		List<BLATRecord[]> blatRecs = TARecordUtil.blatRecordsFromSplits(splits, "splitcon_chr7_100867120_chr7_100867215", r.getSequence().length(), pcpm);
-		assertEquals(1, blatRecs.size());
-//		for (BLATRecord br : blatRecs) {
-//			System.out.println("blat record: " + br.toString());
-//		}
-		assertEquals(4, blatRecs.get(0).length);
-		assertEquals("31	31	0	0	0	0	0	0	0	+	splitcon_chr7_100867120_chr7_100867215	398	52	83	chr7	159138663	100866806	100866837	1	31	52	100866806", blatRecs.get(0)[0].toString());
-		assertEquals("56	56	0	0	0	0	0	0	0	+	splitcon_chr7_100867120_chr7_100867215	398	1	57	chr7	159138663	100866756	100866812	1	56	1	100866756", blatRecs.get(0)[1].toString());
-		assertEquals("147	147	0	0	0	0	0	0	0	+	splitcon_chr7_100867120_chr7_100867215	398	250	397	chr7	159138663	100867214	100867361	1	147	250	100867214", blatRecs.get(0)[2].toString());
-		assertEquals("177	177	0	0	0	0	0	0	0	+	splitcon_chr7_100867120_chr7_100867215	398	79	256	chr7	159138663	100866949	100867126	1	177	79	100866949", blatRecs.get(0)[3].toString());
 	}
 	
 	@Test
@@ -491,12 +480,7 @@ public class TARecordUtilTest {
 		Set<IntLongPairs> setOfPairs = splits.get(splits.keys()[0]);
 		assertEquals(1, setOfPairs.size());
 		IntLongPairs pairs = setOfPairs.iterator().next();
-		
-		List<BLATRecord[]> blatRecs = TARecordUtil.blatRecordsFromSplits(splits, "splitcon_chr10_127633807_chr15_34031839", r.getSequence().length(), pcpm);
-		assertEquals(1, blatRecs.size());
-		assertEquals(2, blatRecs.get(0).length);
-		assertEquals("60	60	0	0	0	0	0	0	0	-	splitcon_chr10_127633807_chr15_34031839	188	9	69	chr10	135534747	127633806	127633866	1	60	119	127633806", blatRecs.get(0)[0].toString());
-		assertEquals("119	119	0	0	0	0	0	0	0	+	splitcon_chr10_127633807_chr15_34031839	188	69	188	chr15	102531392	34031838	34031957	1	119	69	34031838", blatRecs.get(0)[1].toString());
+		assertEquals(false, IntLongPairsUtil.isIntLongPairsAValidSingleRecord(pairs));
 	}
 	
 	@Test
@@ -569,18 +553,6 @@ public class TARecordUtilTest {
 		assertEquals(1, results.size());
 		assertEquals(1, results.stream().filter(br -> br.getScore() >= passingScore).count());
 		assertEquals("316	319	0	0	0	0	0	3	2977	+	splitcon_chr6_114262928_chr6_114264515__true_1591925368416_401364	319	0	318	chr6	171115067	114262214	114265510	4	39,59,154,67	0,39,98,252	114262214,114262872,114264516,114265443", results.get(0).toString());
-		
-		List<BLATRecord[]> blatRecs = TARecordUtil.blatRecordsFromSplits(splits, "splitcon_chr6_114262928_chr6_114264515__true_1591925368416_401364", r.getSequence().length(), pcpm);
-		assertEquals(1, blatRecs.size());
-//		for (BLATRecord br : blatRecs.get(0)) {
-//			System.out.println("blat record: " + br.toString());
-//		}
-		
-		assertEquals(4, blatRecs.get(0).length);
-		assertEquals("39	39	0	0	0	0	0	0	0	+	splitcon_chr6_114262928_chr6_114264515__true_1591925368416_401364	319	0	39	chr6	171115067	114262214	114262253	1	39	0	114262214", blatRecs.get(0)[0].toString());
-		assertEquals("60	60	0	0	0	0	0	0	0	+	splitcon_chr6_114262928_chr6_114264515__true_1591925368416_401364	319	38	98	chr6	171115067	114262871	114262931	1	60	38	114262871", blatRecs.get(0)[1].toString());
-		assertEquals("67	67	0	0	0	0	0	0	0	+	splitcon_chr6_114262928_chr6_114264515__true_1591925368416_401364	319	252	319	chr6	171115067	114265443	114265510	1	67	252	114265443", blatRecs.get(0)[2].toString());
-		assertEquals("156	156	0	0	0	0	0	0	0	+	splitcon_chr6_114262928_chr6_114264515__true_1591925368416_401364	319	96	252	chr6	171115067	114264514	114264670	1	156	96	114264514", blatRecs.get(0)[3].toString());
 	}
 	
 	@Test
@@ -606,16 +578,7 @@ public class TARecordUtilTest {
 		Set<IntLongPairs> setOfPairs = splits.get(splits.keys()[0]);
 		assertEquals(1, setOfPairs.size());
 		IntLongPairs pairs = setOfPairs.iterator().next();
-		
-		List<BLATRecord[]> blatRecs = TARecordUtil.blatRecordsFromSplits(splits, "splitcon_chr22_41657586_chr22_41660668_1_true_1590714106685_44497", r.getSequence().length(), pcpm);
-		assertEquals(1, blatRecs.size());
-		for (BLATRecord br : blatRecs.get(0)) {
-			System.out.println("blat record: " + br.toString());
-		}
-		assertEquals(3, blatRecs.get(0).length);
-		assertEquals("21	21	0	0	0	0	0	0	0	+	splitcon_chr22_41657586_chr22_41660668_1_true_1590714106685_44497	292	0	21	chr22	51304566	41654090	41654111	1	21	0	41654090", blatRecs.get(0)[0].toString());
-		assertEquals("137	137	0	0	0	0	0	0	0	+	splitcon_chr22_41657586_chr22_41660668_1_true_1590714106685_44497	292	155	292	chr22	51304566	41660667	41660804	1	137	155	41660667", blatRecs.get(0)[1].toString());
-		assertEquals("139	139	0	0	0	0	0	0	0	+	splitcon_chr22_41657586_chr22_41660668_1_true_1590714106685_44497	292	18	157	chr22	51304566	41657447	41657586	1	139	18	41657447", blatRecs.get(0)[2].toString());
+		assertEquals(true, IntLongPairsUtil.isIntLongPairsAValidSingleRecord(pairs));
 	}
 	
 	@Test
@@ -712,16 +675,6 @@ public class TARecordUtilTest {
 		System.out.println("Number of records in results after looking in potentialSplits list: " + results.size());
 		assertEquals(1, results.stream().filter(br -> br.getScore() >= passingScore).count());
 		assertEquals("169	170	0	0	0	0	0	1	69	+	splitcon_chr5_96617965_chr5_96618035__true_1592967296845_370082_clip	171	1	170	chr5	180915260	96617933	96618172	2	94,76	1,95	96617933,96618096", results.get(0).toString());
-		
-		List<BLATRecord[]> blatRecs = TARecordUtil.blatRecordsFromSplits(splits, name, r.getSequence().length(), pcpm);
-		assertEquals(1, blatRecs.size());
-		blatRecs.sort(null);
-//		for (BLATRecord br : blatRecs.get(0)) {
-//			System.out.println("blat record: " + br.toString());
-//		}
-		assertEquals(2, blatRecs.get(0).length);
-		assertEquals("94	94	0	0	0	0	0	0	0	+	splitcon_chr5_96617965_chr5_96618035__true_1592967296845_370082_clip	171	1	95	chr5	180915260	96617933	96618027	1	94	1	96617933", blatRecs.get(0)[0].toString());
-		assertEquals("138	138	0	0	0	0	0	0	0	+	splitcon_chr5_96617965_chr5_96618035__true_1592967296845_370082_clip	171	33	171	chr5	180915260	96618034	96618172	1	138	33	96618034", blatRecs.get(0)[1].toString());
 	}
 	
 	@Test
@@ -778,18 +731,6 @@ public class TARecordUtilTest {
 		
 		System.out.println("results BR: " + results.get(0).toString());
 		assertEquals("264	271	3	0	0	1	24	3	492325	+	splitcon_chr4_5182939_chr4_5675244__true_1594701165894_840304	295	0	294	chr4	191154276	5182793	5675389	4	79,46,51,95	0,94,146,200	5182793,5182887,5675243,5675294", results.get(0).toString());
-		
-		List<BLATRecord[]> blatRecs = TARecordUtil.blatRecordsFromSplits(splits, name, r.getSequence().length(), pcpm);
-		assertEquals(1, blatRecs.size());
-		blatRecs.sort(null);
-		for (BLATRecord br : blatRecs.get(0)) {
-			System.out.println("blat record: " + br.toString());
-		}
-		assertEquals(4, blatRecs.get(0).length);
-		assertEquals("45	46	1	0	0	0	0	0	0	+	splitcon_chr4_5182939_chr4_5675244__true_1594701165894_840304	295	94	140	chr4	191154276	5182887	5182933	1	46	94	5182887", blatRecs.get(0)[0].toString());
-		assertEquals("50	51	1	0	0	0	0	0	0	+	splitcon_chr4_5182939_chr4_5675244__true_1594701165894_840304	295	146	197	chr4	191154276	5675243	5675294	1	51	146	5675243", blatRecs.get(0)[1].toString());
-		assertEquals("79	79	0	0	0	0	0	0	0	+	splitcon_chr4_5182939_chr4_5675244__true_1594701165894_840304	295	0	79	chr4	191154276	5182793	5182872	1	79	0	5182793", blatRecs.get(0)[2].toString());
-		assertEquals("96	97	1	0	0	0	0	0	0	+	splitcon_chr4_5182939_chr4_5675244__true_1594701165894_840304	295	198	295	chr4	191154276	5675292	5675389	1	97	198	5675292", blatRecs.get(0)[3].toString());
 	}
 	
 	@Test
@@ -842,15 +783,6 @@ public class TARecordUtilTest {
 		System.out.println("Number of records in results after looking in potentialSplits list: " + results.size());
 		assertEquals("123	128	3	0	0	1	3	1	1	-	splitcon_chr11_68535215_chr11_68688420__true_1594705425399_247953	280	204	200	chr11	135006516	70301891	70302020	2	76,52	0,79	70301891,70301968", results.get(0).toString());
 		
-		List<BLATRecord[]> blatRecs = TARecordUtil.blatRecordsFromSplits(splits, name, r.getSequence().length(), pcpm);
-		assertEquals(1, blatRecs.size());
-		blatRecs.sort(null);
-		for (BLATRecord br : blatRecs.get(0)) {
-			System.out.println("blat record: " + br.toString());
-		}
-		assertEquals(2, blatRecs.get(0).length);
-		assertEquals("137	137	0	0	0	0	0	0	0	+	splitcon_chr11_68535215_chr11_68688420__true_1594705425399_247953	280	143	280	chr11	135006516	68535214	68535351	1	137	143	68535214", blatRecs.get(0)[0].toString());
-		assertEquals("145	145	0	0	0	0	0	0	0	+	splitcon_chr11_68535215_chr11_68688420__true_1594705425399_247953	280	3	148	chr11	135006516	68688278	68688423	1	145	3	68688278", blatRecs.get(0)[1].toString());
 	}
 	
 	@Test
@@ -933,7 +865,6 @@ public class TARecordUtilTest {
 		/*
 		 * loop through them all, if valid single record splits, create BLAT recs, otherwise fall through to SW
 		 */
-		int passingScore = (int)(0.9 * seq.length());
 		List<BLATRecord> results = new ArrayList<>();
 		results.addAll(potentialSplits.stream()
 				.filter(ilp -> IntLongPairsUtil.isIntLongPairsAValidSingleRecord(ilp))
@@ -1212,7 +1143,6 @@ public class TARecordUtilTest {
 		/*
 		 * loop through them all, if valid single record splits, create BLAT recs, otherwise fall through to SW
 		 */
-		int passingScore = (int)(0.9 * seq.length());
 		List<BLATRecord> results = new ArrayList<>();
 		results.addAll(potentialSplits.stream()
 				.filter(ilp -> IntLongPairsUtil.isIntLongPairsAValidSingleRecord(ilp))
@@ -1222,19 +1152,6 @@ public class TARecordUtilTest {
 		
 		System.out.println("Number of records in results after looking in potentialSplits list: " + results.size());
 		assertEquals(0, results.size());
-		
-		/*
-		 * get individual blat recs
-		 */
-		List<BLATRecord[]> blatRecs = TARecordUtil.blatRecordsFromSplits(splits, name, r.getSequence().length(), pcpm);
-		assertEquals(1, blatRecs.size());
-		blatRecs.sort(null);
-		for (BLATRecord br : blatRecs.get(0)) {
-			System.out.println("blat record: " + br.toString());
-		}
-		assertEquals(2, blatRecs.get(0).length);
-		assertEquals("52	52	0	0	0	0	0	0	0	-	splitcon_chrMT_16130_chrMT_16213__true_1596188549171_252324_clip	189	12	64	chrMT	16569	16126	16178	1	52	125	16126", blatRecs.get(0)[0].toString());
-		assertEquals("109	109	0	0	0	0	0	0	0	+	splitcon_chrMT_16130_chrMT_16213__true_1596188549171_252324_clip	189	73	182	chrMT	16569	16222	16331	1	109	73	16222", blatRecs.get(0)[1].toString());
 	}
 	
 	@Test
@@ -1355,7 +1272,7 @@ public class TARecordUtilTest {
 		System.out.println("seq length: " + seq.length());
 		for (Entry<Integer, TLongList> entry : countPosition.entrySet()) {
 			for (long l : entry.getValue().toArray()) {
-				System.out.println("tile count: " + Arrays.toString(NumberUtils.splitIntInto2(entry.getKey())) + ", long position: " + (NumberUtils.isBitSet(l, 62) ? "- " : "+ ") + pcpm.getChrPositionFromLongPosition(NumberUtils.getLongPositionValueFromPackedLong(l)).toIGVString() + ", start position in sequence: " + IntLongPairsUtil.getStartPositionInSequence( new IntLongPair(entry.getKey(), l), seq.length()));
+				System.out.println("tile count: " + Arrays.toString(NumberUtils.splitIntInto2(entry.getKey())) + ", long position: " + (NumberUtils.isBitSet(l, 62) ? "- " : "+ ") + PositionChrPositionMap.getChrPositionFromLongPosition(NumberUtils.getLongPositionValueFromPackedLong(l), pcpm).toIGVString() + ", start position in sequence: " + IntLongPairsUtil.getStartPositionInSequence( new IntLongPair(entry.getKey(), l), seq.length()));
 			}
 		}
 		
@@ -1443,7 +1360,6 @@ public class TARecordUtilTest {
 		/*
 		 * loop through them all, if valid single record splits, create BLAT recs, otherwise fall through to SW
 		 */
-		int passingScore = (int)(0.9 * seq.length());
 		List<BLATRecord> results = new ArrayList<>();
 		results.addAll(potentialSplits.stream()
 				.filter(ilp -> IntLongPairsUtil.isIntLongPairsAValidSingleRecord(ilp))
@@ -1453,17 +1369,6 @@ public class TARecordUtilTest {
 		
 		System.out.println("Number of records in results after looking in potentialSplits list: " + results.size());
 		assertEquals(0, results.size());
-		
-		List<BLATRecord[]> blatRecs = TARecordUtil.blatRecordsFromSplits(splits, name, seq.length(), pcpm);
-		assertEquals(1, blatRecs.size());
-		
-//		for (BLATRecord[] brs : blatRecs) {
-//			for (BLATRecord br: brs) {
-//				System.out.println("br from brs: " + br.toString());
-//			}
-//		}
-		assertEquals("60	60	0	0	0	0	0	0	0	-	splitcon_chr10_127633807_chr15_34031839__true_1597229449894_602255	188	9	69	chr10	135534747	127633806	127633866	1	60	119	127633806", blatRecs.get(0)[0].toString());
-		assertEquals("119	119	0	0	0	0	0	0	0	+	splitcon_chr10_127633807_chr15_34031839__true_1597229449894_602255	188	69	188	chr15	102531392	34031838	34031957	1	119	69	34031838", blatRecs.get(0)[1].toString());
 	}
 	
 	@Test
@@ -1551,7 +1456,6 @@ public class TARecordUtilTest {
 		/*
 		 * loop through them all, if valid single record splits, create BLAT recs, otherwise fall through to SW
 		 */
-		int passingScore = (int)(0.9 * seq.length());
 		List<BLATRecord> results = new ArrayList<>();
 		results.addAll(potentialSplits.stream()
 				.filter(ilp -> IntLongPairsUtil.isIntLongPairsAValidSingleRecord(ilp))
@@ -1561,14 +1465,6 @@ public class TARecordUtilTest {
 		
 		System.out.println("Number of records in results after looking in potentialSplits list: " + results.size());
 		assertEquals(0, results.size());
-		List<BLATRecord[]> blatRecs = TARecordUtil.blatRecordsFromSplits(splits, name, seq.length(), pcpm);
-		assertEquals(1, blatRecs.size());
-		
-//		for (BLATRecord[] brs : blatRecs) {
-//			for (BLATRecord br: brs) {
-//				System.out.println("br from brs: " + br.toString());
-//			}
-//		}
 	}
 	
 	@Test
@@ -1614,14 +1510,6 @@ public class TARecordUtilTest {
 		
 		System.out.println("Number of records in results after looking in potentialSplits list: " + results.size());
 		assertEquals("196	198	0	0	0	1	71	1	0	+	splitcon_chr2_59769597_chr2_59769659__true_1599457097433_514634	269	0	268	chr2	243199373	59769536	59769734	2	123,75	0,194	59769536,59769659", results.get(0).toString());
-		List<BLATRecord[]> blatRecs = TARecordUtil.blatRecordsFromSplits(splits, name, seq.length(), pcpm);
-		assertEquals(1, blatRecs.size());
-		
-//		for (BLATRecord[] brs : blatRecs) {
-//			for (BLATRecord br: brs) {
-//				System.out.println("br from brs: " + br.toString());
-//			}
-//		}
 		assertEquals(1, results.size());
 		System.out.println(results.get(0).toString());
 		assertEquals(0, results.stream().filter(br -> br.getScore() >= passingScore).count());
@@ -1674,15 +1562,8 @@ public class TARecordUtilTest {
 		assertEquals(0, results.stream().filter(br -> br.getScore() >= passingScore).count());
 		assertEquals("66	68	0	0	0	1	4	1	32	+	splitcon_chr8_39360286_chr8_39360413__true_1603194926354_561727	403	328	399	chr8	146364022	39360216	39360316	2	34,34	328,366	39360216,39360282", results.get(0).toString());
 		assertEquals("330	336	2	0	0	1	14	3	26	+	splitcon_chr8_39360286_chr8_39360413__true_1603194926354_561727	403	50	399	chr8	146364022	39359916	39360278	4	204,70,28,34	50,254,328,366	39359916,39360142,39360216,39360244", results.get(1).toString());
-		List<BLATRecord[]> blatRecs = TARecordUtil.blatRecordsFromSplits(splits, name, seq.length(), pcpm);
-		assertEquals(1, blatRecs.size());
-		
-//		for (BLATRecord[] brs : blatRecs) {
-//			for (BLATRecord br: brs) {
-//				System.out.println("br from brs: " + br.toString());
-//			}
-//		}
 	}
+	
 	@Test
 	public void realLifeSplits29() {
 		/*
@@ -1699,7 +1580,7 @@ public class TARecordUtilTest {
 		System.out.println("seq length: " + seq.length());
 		for (Entry<Integer, TLongList> entry : countPosition.entrySet()) {
 			for (long l : entry.getValue().toArray()) {
-				System.out.println("tile count: " + Arrays.toString(NumberUtils.splitIntInto2(entry.getKey())) + ", long position: " + (NumberUtils.isBitSet(l, 62) ? "- " : "+ ") + pcpm.getChrPositionFromLongPosition(NumberUtils.getLongPositionValueFromPackedLong(l)).toIGVString() + " (" + NumberUtils.getLongPositionValueFromPackedLong(l) + "), start position in sequence: " + IntLongPairsUtil.getStartPositionInSequence( new IntLongPair(entry.getKey(), l), seq.length()));
+				System.out.println("tile count: " + Arrays.toString(NumberUtils.splitIntInto2(entry.getKey())) + ", long position: " + (NumberUtils.isBitSet(l, 62) ? "- " : "+ ") + PositionChrPositionMap.getChrPositionFromLongPosition(NumberUtils.getLongPositionValueFromPackedLong(l), pcpm).toIGVString() + " (" + NumberUtils.getLongPositionValueFromPackedLong(l) + "), start position in sequence: " + IntLongPairsUtil.getStartPositionInSequence( new IntLongPair(entry.getKey(), l), seq.length()));
 			}
 		}
 		
@@ -1729,15 +1610,8 @@ public class TARecordUtilTest {
 		assertEquals(1, results.size());
 		assertEquals(1, results.stream().filter(br -> br.getScore() >= passingScore).count());
 		assertEquals("181	182	0	0	0	0	0	1	308	+	splitcon_chr5_178939187_chr5_178939496__true_1603195044083_189550_clip	195	13	194	chr5	180915260	178939063	178939553	2	110,72	13,123	178939063,178939481", results.get(0).toString());
-		List<BLATRecord[]> blatRecs = TARecordUtil.blatRecordsFromSplits(splits, name, seq.length(), pcpm);
-		assertEquals(1, blatRecs.size());
-		
-//		for (BLATRecord[] brs : blatRecs) {
-//			for (BLATRecord br: brs) {
-//				System.out.println("br from brs: " + br.toString());
-//			}
-//		}
 	}
+	
 	@Test
 	public void realLifeSplits30() {
 		/*
@@ -1755,7 +1629,7 @@ public class TARecordUtilTest {
 		System.out.println("seq length: " + seq.length());
 		for (Entry<Integer, TLongList> entry : countPosition.entrySet()) {
 			for (long l : entry.getValue().toArray()) {
-				System.out.println("tile count: " + Arrays.toString(NumberUtils.splitIntInto2(entry.getKey())) + ", long position: " + (NumberUtils.isBitSet(l, 62) ? "- " : "+ ") + pcpm.getChrPositionFromLongPosition(NumberUtils.getLongPositionValueFromPackedLong(l)).toIGVString() + " (" + NumberUtils.getLongPositionValueFromPackedLong(l) + "), start position in sequence: " + IntLongPairsUtil.getStartPositionInSequence( new IntLongPair(entry.getKey(), l), seq.length()));
+				System.out.println("tile count: " + Arrays.toString(NumberUtils.splitIntInto2(entry.getKey())) + ", long position: " + (NumberUtils.isBitSet(l, 62) ? "- " : "+ ") + PositionChrPositionMap.getChrPositionFromLongPosition(NumberUtils.getLongPositionValueFromPackedLong(l), pcpm).toIGVString() + " (" + NumberUtils.getLongPositionValueFromPackedLong(l) + "), start position in sequence: " + IntLongPairsUtil.getStartPositionInSequence( new IntLongPair(entry.getKey(), l), seq.length()));
 			}
 		}
 		
@@ -1785,14 +1659,6 @@ public class TARecordUtilTest {
 		assertEquals(1, results.size());
 		assertEquals(1, results.stream().filter(br -> br.getScore() >= passingScore).count());
 		assertEquals("168	169	0	0	0	0	0	1	301	+	splitcon_chr14_64866810_chr14_64867112__true_1603769470012_401600_clip	169	0	168	chr14	107349540	64866772	64867242	2	105,64	0,105	64866772,64867178", results.get(0).toString());
-		List<BLATRecord[]> blatRecs = TARecordUtil.blatRecordsFromSplits(splits, name, seq.length(), pcpm);
-		assertEquals(1, blatRecs.size());
-		
-//		for (BLATRecord[] brs : blatRecs) {
-//			for (BLATRecord br: brs) {
-//				System.out.println("br from brs: " + br.toString());
-//			}
-//		}
 	}
 	
 	@Test
@@ -1813,7 +1679,7 @@ public class TARecordUtilTest {
 		System.out.println("seq length: " + seq.length());
 		for (Entry<Integer, TLongList> entry : countPosition.entrySet()) {
 			for (long l : entry.getValue().toArray()) {
-				System.out.println("tile count: " + Arrays.toString(NumberUtils.splitIntInto2(entry.getKey())) + ", long position: " + (NumberUtils.isBitSet(l, 62) ? "- " : "+ ") + pcpm.getChrPositionFromLongPosition(NumberUtils.getLongPositionValueFromPackedLong(l)).toIGVString() + " (" + NumberUtils.getLongPositionValueFromPackedLong(l) + "), start position in sequence: " + IntLongPairsUtil.getStartPositionInSequence( new IntLongPair(entry.getKey(), l), seq.length()));
+				System.out.println("tile count: " + Arrays.toString(NumberUtils.splitIntInto2(entry.getKey())) + ", long position: " + (NumberUtils.isBitSet(l, 62) ? "- " : "+ ") + PositionChrPositionMap.getChrPositionFromLongPosition(NumberUtils.getLongPositionValueFromPackedLong(l), pcpm).toIGVString() + " (" + NumberUtils.getLongPositionValueFromPackedLong(l) + "), start position in sequence: " + IntLongPairsUtil.getStartPositionInSequence( new IntLongPair(entry.getKey(), l), seq.length()));
 			}
 		}
 		
@@ -1842,18 +1708,6 @@ public class TARecordUtilTest {
 		
 		assertEquals(0, results.size());
 		assertEquals(0, results.stream().filter(br -> br.getScore() >= passingScore).count());
-//		assertEquals("168	169	0	0	0	0	0	1	301	+	splitcon_chr14_64866810_chr14_64867112__true_1603769470012_401600_clip	169	0	168	chr14	12345	64866772	64867242	2	105,64	0,105	64866772,64867178", results.get(0).toString());
-		List<BLATRecord[]> blatRecs = TARecordUtil.blatRecordsFromSplitsNew(splits, name, seq.length(), pcpm);
-		assertEquals(1, blatRecs.size());
-		assertEquals(2, blatRecs.get(0).length);
-		assertEquals("21	21	0	0	0	0	0	0	0	+	splitcon_chr17_80666697_chr17_80666858__true_1603769669765_514144	312	3	24	chr17	81195210	36324761	36324782	1	21	3	36324761", blatRecs.get(0)[0].toString());
-		assertEquals("258	261	2	0	0	0	0	1	160	+	splitcon_chr17_80666697_chr17_80666858__true_1603769669765_514144	312	45	305	chr17	81195210	80666575	80666996	2	132,129	45,177	80666575,80666867", blatRecs.get(0)[1].toString());
-		
-//		for (BLATRecord[] brs : blatRecs) {
-//			for (BLATRecord br: brs) {
-//				System.out.println("br from brs: " + br.toString());
-//			}
-//		}
 	}
 	
 	@Test
@@ -1874,7 +1728,7 @@ public class TARecordUtilTest {
 		System.out.println("seq length: " + seq.length());
 		for (Entry<Integer, TLongList> entry : countPosition.entrySet()) {
 			for (long l : entry.getValue().toArray()) {
-				System.out.println("tile count: " + Arrays.toString(NumberUtils.splitIntInto2(entry.getKey())) + ", long position: " + (NumberUtils.isBitSet(l, 62) ? "- " : "+ ") + pcpm.getChrPositionFromLongPosition(NumberUtils.getLongPositionValueFromPackedLong(l)).toIGVString() + " (" + NumberUtils.getLongPositionValueFromPackedLong(l) + "), start position in sequence: " + IntLongPairsUtil.getStartPositionInSequence( new IntLongPair(entry.getKey(), l), seq.length()));
+				System.out.println("tile count: " + Arrays.toString(NumberUtils.splitIntInto2(entry.getKey())) + ", long position: " + (NumberUtils.isBitSet(l, 62) ? "- " : "+ ") + PositionChrPositionMap.getChrPositionFromLongPosition(NumberUtils.getLongPositionValueFromPackedLong(l), pcpm).toIGVString() + " (" + NumberUtils.getLongPositionValueFromPackedLong(l) + "), start position in sequence: " + IntLongPairsUtil.getStartPositionInSequence( new IntLongPair(entry.getKey(), l), seq.length()));
 			}
 		}
 		
@@ -1890,7 +1744,6 @@ public class TARecordUtilTest {
 		/*
 		 * loop through them all, if valid single record splits, create BLAT recs, otherwise fall through to SW
 		 */
-		int passingScore = (int)(0.9 * seq.length());
 		List<BLATRecord> results = new ArrayList<>();
 		results.addAll(potentialSplits.stream()
 				.filter(ilp -> IntLongPairsUtil.isIntLongPairsAValidSingleRecord(ilp))
@@ -1902,9 +1755,8 @@ public class TARecordUtilTest {
 		System.out.println("Number of records in results after looking in potentialSplits list: " + results.size());
 		
 		assertEquals(0, results.size());
-		List<BLATRecord[]> blatRecs = TARecordUtil.blatRecordsFromSplitsNew(splits, name, seq.length(), pcpm);
-		assertEquals(0, blatRecs.size());
 	}
+	
 	@Test
 	public void realLifeSplits33() {
 		/*
@@ -1924,7 +1776,7 @@ public class TARecordUtilTest {
 		System.out.println("seq length: " + seq.length());
 		for (Entry<Integer, TLongList> entry : countPosition.entrySet()) {
 			for (long l : entry.getValue().toArray()) {
-				System.out.println("tile count: " + Arrays.toString(NumberUtils.splitIntInto2(entry.getKey())) + ", long position: " + (NumberUtils.isBitSet(l, 62) ? "- " : "+ ") + pcpm.getChrPositionFromLongPosition(NumberUtils.getLongPositionValueFromPackedLong(l)).toIGVString() + " (" + NumberUtils.getLongPositionValueFromPackedLong(l) + "), start position in sequence: " + IntLongPairsUtil.getStartPositionInSequence( new IntLongPair(entry.getKey(), l), seq.length()));
+				System.out.println("tile count: " + Arrays.toString(NumberUtils.splitIntInto2(entry.getKey())) + ", long position: " + (NumberUtils.isBitSet(l, 62) ? "- " : "+ ") + PositionChrPositionMap.getChrPositionFromLongPosition(NumberUtils.getLongPositionValueFromPackedLong(l), pcpm).toIGVString() + " (" + NumberUtils.getLongPositionValueFromPackedLong(l) + "), start position in sequence: " + IntLongPairsUtil.getStartPositionInSequence( new IntLongPair(entry.getKey(), l), seq.length()));
 			}
 		}
 		
@@ -1953,18 +1805,6 @@ public class TARecordUtilTest {
 		
 		assertEquals(1, results.size());
 		assertEquals(0, results.stream().filter(br -> br.getScore() >= passingScore).count());
-//		assertEquals("168	169	0	0	0	0	0	1	301	+	splitcon_chr14_64866810_chr14_64867112__true_1603769470012_401600_clip	169	0	168	chr14	12345	64866772	64867242	2	105,64	0,105	64866772,64867178", results.get(0).toString());
-		List<BLATRecord[]> blatRecs = TARecordUtil.blatRecordsFromSplitsNew(splits, name, seq.length(), pcpm);
-		assertEquals(1, blatRecs.size());
-		assertEquals(2, blatRecs.get(0).length);
-		assertEquals("25	25	0	0	0	0	0	0	0	+	splitcon_chr7_25345087_chr7_25345211__false_1604284945574_644092	371	33	58	chr7	159138663	148563703	148563728	1	25	33	148563703", blatRecs.get(0)[0].toString());
-		assertEquals("242	245	0	0	0	1	2	2	123	+	splitcon_chr7_25345087_chr7_25345211__false_1604284945574_644092	371	124	370	chr7	159138663	25344983	25345351	3	104,46,95	124,228,276	25344983,25345210,25345256", blatRecs.get(0)[1].toString());
-		
-//		for (BLATRecord[] brs : blatRecs) {
-//			for (BLATRecord br: brs) {
-//				System.out.println("br from brs: " + br.toString());
-//			}
-//		}
 	}
 	
 	@Test
@@ -1984,7 +1824,7 @@ public class TARecordUtilTest {
 		System.out.println("seq length: " + seq.length());
 		for (Entry<Integer, TLongList> entry : countPosition.entrySet()) {
 			for (long l : entry.getValue().toArray()) {
-				System.out.println("tile count: " + Arrays.toString(NumberUtils.splitIntInto2(entry.getKey())) + ", long position: " + (NumberUtils.isBitSet(l, 62) ? "- " : "+ ") + pcpm.getChrPositionFromLongPosition(NumberUtils.getLongPositionValueFromPackedLong(l)).toIGVString() + " (" + NumberUtils.getLongPositionValueFromPackedLong(l) + "), start position in sequence: " + IntLongPairsUtil.getStartPositionInSequence( new IntLongPair(entry.getKey(), l), seq.length()));
+				System.out.println("tile count: " + Arrays.toString(NumberUtils.splitIntInto2(entry.getKey())) + ", long position: " + (NumberUtils.isBitSet(l, 62) ? "- " : "+ ") + PositionChrPositionMap.getChrPositionFromLongPosition(NumberUtils.getLongPositionValueFromPackedLong(l), pcpm).toIGVString() + " (" + NumberUtils.getLongPositionValueFromPackedLong(l) + "), start position in sequence: " + IntLongPairsUtil.getStartPositionInSequence( new IntLongPair(entry.getKey(), l), seq.length()));
 			}
 		}
 		
@@ -2014,17 +1854,8 @@ public class TARecordUtilTest {
 		assertEquals(1, results.size());
 		assertEquals(1, results.stream().filter(br -> br.getScore() >= passingScore).count());
 		assertEquals("252	255	2	0	0	0	0	1	159	+	splitcon_chr6_153932501_chr6_153932720_1_true_1606270441498_475180	261	6	260	chr6	171115067	153932406	153932820	2	144,111	6,150	153932406,153932709", results.get(0).toString());
-		List<BLATRecord[]> blatRecs = TARecordUtil.blatRecordsFromSplitsNew(splits, name, seq.length(), pcpm);
-		assertEquals(1, blatRecs.size());
-		assertEquals(1, blatRecs.get(0).length);
-		assertEquals("252	255	2	0	0	0	0	1	159	+	splitcon_chr6_153932501_chr6_153932720_1_true_1606270441498_475180	261	6	260	chr6	171115067	153932406	153932820	2	144,111	6,150	153932406,153932709", blatRecs.get(0)[0].toString());
-		
-//		for (BLATRecord[] brs : blatRecs) {
-//			for (BLATRecord br: brs) {
-//				System.out.println("br from brs: " + br.toString());
-//			}
-//		}
 	}
+	
 	@Test
 	public void realLifeSplits35() {
 		/*
@@ -2037,12 +1868,11 @@ public class TARecordUtilTest {
 		countPosition.put(NumberUtils.getTileCount(76, 0), TARecordUtil.getLongList(73667887999280l));
 		countPosition.put(NumberUtils.getTileCount(58, 2), TARecordUtil.getLongList(608938145));
 		countPosition.put(NumberUtils.getTileCount(49, 0), TARecordUtil.getLongList(157230771710330l));
-//		countPosition.put(NumberUtils.getTileCount(10, 0), TARecordUtil.getLongList(4611875135647880198l));
 		
 		System.out.println("seq length: " + seq.length());
 		for (Entry<Integer, TLongList> entry : countPosition.entrySet()) {
 			for (long l : entry.getValue().toArray()) {
-				System.out.println("tile count: " + Arrays.toString(NumberUtils.splitIntInto2(entry.getKey())) + ", long position: " + (NumberUtils.isBitSet(l, 62) ? "- " : "+ ") + pcpm.getChrPositionFromLongPosition(NumberUtils.getLongPositionValueFromPackedLong(l)).toIGVString() + " (" + NumberUtils.getLongPositionValueFromPackedLong(l) + "), start position in sequence: " + IntLongPairsUtil.getStartPositionInSequence( new IntLongPair(entry.getKey(), l), seq.length()));
+				System.out.println("tile count: " + Arrays.toString(NumberUtils.splitIntInto2(entry.getKey())) + ", long position: " + (NumberUtils.isBitSet(l, 62) ? "- " : "+ ") + PositionChrPositionMap.getChrPositionFromLongPosition(NumberUtils.getLongPositionValueFromPackedLong(l), pcpm).toIGVString() + " (" + NumberUtils.getLongPositionValueFromPackedLong(l) + "), start position in sequence: " + IntLongPairsUtil.getStartPositionInSequence( new IntLongPair(entry.getKey(), l), seq.length()));
 			}
 		}
 		
@@ -2072,134 +1902,8 @@ public class TARecordUtilTest {
 		assertEquals(1, results.size());
 		assertEquals(1, results.stream().filter(br -> br.getScore() >= passingScore).count());
 		assertEquals("200	204	2	0	0	0	0	2	74	+	splitcon_chr6_153932501_chr6_153932720_1_true_1606270441498_475180	204	0	203	chr3	198022430	116488150	116488428	3	70,73,61	0,70,143	116488150,116488296,116488367", results.get(0).toString());
-		List<BLATRecord[]> blatRecs = TARecordUtil.blatRecordsFromSplitsNew(splits, name, seq.length(), pcpm);
-		assertEquals(1, blatRecs.size());
-		assertEquals(1, blatRecs.get(0).length);
-		assertEquals("200	204	2	0	0	0	0	2	74	+	splitcon_chr6_153932501_chr6_153932720_1_true_1606270441498_475180	204	0	203	chr3	198022430	116488150	116488428	3	70,73,61	0,70,143	116488150,116488296,116488367", blatRecs.get(0)[0].toString());
-		
-//		for (BLATRecord[] brs : blatRecs) {
-//			for (BLATRecord br: brs) {
-//				System.out.println("br from brs: " + br.toString());
-//			}
-//		}
 	}
-//	@Test
-//	public void realLifeSplits36() {
-//		/*
-//		 *  splitcon_chr7_124989445_chr7_124989504__true_1607391016216_844626,
-//		 */
-//		String seq = "TTATGCTGGAAATACGGAAAGAAAGTTTTTACAGGACTCTATTGATCGTACATTGATTCATTGAATTCTTTACAAGCAGACTATTTATAATTCGTACTTGTTCATAAATTTTTTTGAAGTAATTTATTGAGTGTCACATATATATATGTGTATATATATATATGTGTATATATATGTGTGTATATATATATGTATTTGGAGATACATATATCTAAATAAAAATATATACCAGGTGCCATGGGGAAATGACCAGAGACACACTAATTGAAGTGAGCACTTTG";
-//		Map<Integer, TLongList> countPosition = new HashMap<>();
-//		String name = "splitcon_chr7_124989445_chr7_124989504__true_1607391016216_844626";
-//		
-//		countPosition.put(NumberUtils.getTileCount(131, 0), TARecordUtil.getLongList(2200381901890l));
-//		countPosition.put(NumberUtils.getTileCount(90, 0), TARecordUtil.getLongList(196813940018477l));
-//		countPosition.put(NumberUtils.getTileCount(18, 0), TARecordUtil.getLongList(181420727737187l, 181420752010439l, 181420760465759l));
-//		
-//		System.out.println("seq length: " + seq.length());
-//		for (Entry<Integer, TLongList> entry : countPosition.entrySet()) {
-//			for (long l : entry.getValue().toArray()) {
-//				System.out.println("tile count: " + Arrays.toString(NumberUtils.splitIntInto2(entry.getKey())) + ", long position: " + (NumberUtils.isBitSet(l, 62) ? "- " : "+ ") + pcpm.getChrPositionFromLongPosition(NumberUtils.getLongPositionValueFromPackedLong(l)).toIGVString() + " (" + NumberUtils.getLongPositionValueFromPackedLong(l) + "), start position in sequence: " + IntLongPairsUtil.getStartPositionInSequence( new IntLongPair(entry.getKey(), l), seq.length()));
-//			}
-//		}
-//		
-//		TARecord r =  new TARecord(seq, countPosition);
-//		TIntObjectMap<Set<IntLongPairs>> splits = TARecordUtil.getSplitStartPositions(r);
-//		
-//		List<IntLongPairs> potentialSplits = new ArrayList<>();
-//		splits.forEachValue(s -> potentialSplits.addAll(s.stream().collect(Collectors.toList())));
-//		System.out.println("Number of IntLongPairs in potentialSplits list: " + potentialSplits.size());
-//		for (IntLongPairs ilps : potentialSplits) {
-//			System.out.println("ilps: " + ilps.toDetailedString());
-//		}
-//		/*
-//		 * loop through them all, if valid single record splits, create BLAT recs, otherwise fall through to SW
-//		 */
-//		int passingScore = (int)(0.9 * seq.length());
-//		List<BLATRecord> results = new ArrayList<>();
-//		results.addAll(potentialSplits.stream()
-//				.filter(ilp -> IntLongPairsUtil.isIntLongPairsAValidSingleRecord(ilp))
-//				.map(ilp ->  TARecordUtil.blatRecordFromSplits(ilp, name, seq.length(), pcpm, 13))
-//				.filter(sa -> sa.length > 0)
-//				.map(s -> new BLATRecord(s))
-//				.collect(Collectors.toList()));
-//		
-//		System.out.println("Number of records in results after looking in potentialSplits list: " + results.size());
-//		
-//		assertEquals(1, results.size());
-//		assertEquals(1, results.stream().filter(br -> br.getScore() >= passingScore).count());
-//		assertEquals("200	204	2	0	0	0	0	2	74	+	splitcon_chr6_153932501_chr6_153932720_1_true_1606270441498_475180	204	0	203	chr3	12345	116488150	116488428	3	70,73,61	0,70,143	116488150,116488296,116488367", results.get(0).toString());
-//		List<BLATRecord[]> blatRecs = TARecordUtil.blatRecordsFromSplitsNew(splits, name, seq.length(), pcpm);
-//		assertEquals(1, blatRecs.size());
-//		assertEquals(1, blatRecs.get(0).length);
-//		assertEquals("200	204	2	0	0	0	0	2	74	+	splitcon_chr6_153932501_chr6_153932720_1_true_1606270441498_475180	204	0	203	chr3	12345	116488150	116488428	3	70,73,61	0,70,143	116488150,116488296,116488367", blatRecs.get(0)[0].toString());
-//		
-////		for (BLATRecord[] brs : blatRecs) {
-////			for (BLATRecord br: brs) {
-////				System.out.println("br from brs: " + br.toString());
-////			}
-////		}
-//	}
 	
-//	@Test
-//	public void realLifeSplits28() {
-//		/*
-//		 *  GGNNCACNNAATAGATGTGTTTTCAAATGAAAATACAAGCTGGGTGCGGTGGCTCATGCCTGTAATCCCAGCACTTTGGGAGGCCAAGGTGGACAGATCACGAGGTCAGGAGTTCAAGACCAGTCTAGGCAATATGGTGAAACCCCATCTCTACTAAAAATACAAAAATT, splitcon_chr7_6685037_chr7_6685350__true_1600141584323_305840_clip
-//		 */
-//		String seq = "GGNNCACNNAATAGATGTGTTTTCAAATGAAAATACAAGCTGGGTGCGGTGGCTCATGCCTGTAATCCCAGCACTTTGGGAGGCCAAGGTGGACAGATCACGAGGTCAGGAGTTCAAGACCAGTCTAGGCAATATGGTGAAACCCCATCTCTACTAAAAATACAAAAATT";
-//		Map<Integer, TLongList> countPosition = new HashMap<>();
-//		String name = "splitcon_chr7_6685037_chr7_6685350__true_1600141584323_305840_clip";
-//		
-//		countPosition.put(NumberUtils.getTileCount(31, 0), TARecordUtil.getLongList(87962170564495l));
-//		countPosition.put(NumberUtils.getTileCount(28, 0), TARecordUtil.getLongList(10996356619793l));
-//		countPosition.put(NumberUtils.getTileCount(18, 0), TARecordUtil.getLongList(122047031025582l));
-//		countPosition.put(NumberUtils.getTileCount(13, 0), TARecordUtil.getLongList(4611757488035486928l));
-//		countPosition.put(NumberUtils.getTileCount(12, 0), TARecordUtil.getLongList(122047094920675l));
-//		countPosition.put(NumberUtils.getTileCount(11, 0), TARecordUtil.getLongList(90161284695075l));
-//		
-//		System.out.println("seq length: " + seq.length());
-//		for (Entry<Integer, TLongList> entry : countPosition.entrySet()) {
-//			for (long l : entry.getValue().toArray()) {
-//				System.out.println("tile count: " + Arrays.toString(NumberUtils.splitIntInto2(entry.getKey())) + ", long position: " + (NumberUtils.isBitSet(l, 62) ? "- " : "+ ") + NumberUtils.getLongPositionValueFromPackedLong(l) + ", start position in sequence: " + IntLongPairsUtil.getStartPositionInSequence( new IntLongPair(entry.getKey(), l), seq.length()));
-//			}
-//		}
-//		
-//		TARecord r =  new TARecord(seq, countPosition);
-//		TIntObjectMap<Set<IntLongPairs>> splits = TARecordUtil.getSplitStartPositions(r);
-//		
-//		List<IntLongPairs> potentialSplits = new ArrayList<>();
-//		splits.forEachValue(s -> potentialSplits.addAll(s.stream().collect(Collectors.toList())));
-//		System.out.println("Number of IntLongPairs in potentialSplits list: " + potentialSplits.size());
-//		for (IntLongPairs ilps : potentialSplits) {
-//			System.out.println("ilps: " + ilps.toString());
-//		}
-//		/*
-//		 * loop through them all, if valid single record splits, create BLAT recs, otherwise fall through to SW
-//		 */
-//		int passingScore = (int)(0.9 * seq.length());
-//		List<BLATRecord> results = new ArrayList<>();
-//		results.addAll(potentialSplits.stream()
-//				.filter(ilp -> IntLongPairsUtil.isIntLongPairsAValidSingleRecord(ilp))
-//				.map(ilp ->  TARecordUtil.blatRecordFromSplits(ilp, name, seq.length(), pcpm, 13))
-//				.map(s -> new BLATRecord(s))
-//				.collect(Collectors.toList()));
-//		
-//		System.out.println("Number of records in results after looking in potentialSplits list: " + results.size());
-//		
-//		assertEquals(3, results.size());
-//		assertEquals(0, results.stream().filter(br -> br.getScore() >= passingScore).count());
-//		assertEquals("261	268	3	0	0	1	20	3	25	-	splitcon_chr19_21832833_chr19_21916389_4_true_1599654284052_407169	358	234	55	chr19	12345	21832520	21832813	4	66,117,41,44	58,134,256,302	21832520,21832599,21832723,21832769", results.get(0).toString());
-//		assertEquals("281	286	2	0	0	1	10	2	13	+	splitcon_chr19_21832833_chr19_21916389_4_true_1599654284052_407169	358	12	307	chr19	12345	21916349	21916648	3	32,178,76	12,46,232	21916349,21916383,21916572", results.get(1).toString());
-//		assertEquals("227	233	2	0	0	1	55	3	60	-	splitcon_chr19_21832833_chr19_21916389_4_true_1599654284052_407169	358	234	55	chr19	12345	21832520	21832813	4	66,82,41,44	58,170,256,302	21832520,21832635,21832723,21832769", results.get(2).toString());
-//		List<BLATRecord[]> blatRecs = TARecordUtil.blatRecordsFromSplits(splits, name, seq.length(), pcpm);
-//		assertEquals(1, blatRecs.size());
-//		
-////		for (BLATRecord[] brs : blatRecs) {
-////			for (BLATRecord br: brs) {
-////				System.out.println("br from brs: " + br.toString());
-////			}
-////		}
-//	}
 	
 	@Test
 	public void realLifeNotASplit1() {
@@ -2245,13 +1949,8 @@ public class TARecordUtilTest {
 		 * from BLAT
 		 * 88      0       0       0       0       0       1       4266    +       chr2_219093573_false_   88      0       88      chr2    243199373       219099074       219103428       2       46,42,  0,46,   219099074,219103386,
 		 */
-		
-		List<BLATRecord[]> blatRecs = TARecordUtil.blatRecordsFromSplits(splits, name, r.getSequence().length(), pcpm);
-		assertEquals(1, blatRecs.size());
-		assertEquals(2, blatRecs.get(0).length);
-		assertEquals("45	45	0	0	0	0	0	0	0	+	chr2_219093573_false_+	88	43	88	chr2	243199373	219103383	219103428	1	45	43	219103383", blatRecs.get(0)[0].toString());
-		assertEquals("47	47	0	0	0	0	0	0	0	+	chr2_219093573_false_+	88	0	47	chr2	243199373	219099074	219099121	1	47	0	219099074", blatRecs.get(0)[1].toString());
 	}
+	
 	@Test
 	public void realLifeNotASplit7() {
 		/*
@@ -2269,7 +1968,7 @@ public class TARecordUtilTest {
 		System.out.println("seq length: " + seq.length());
 		for (Entry<Integer, TLongList> entry : countPosition.entrySet()) {
 			for (long l : entry.getValue().toArray()) {
-				System.out.println("tile count: " + Arrays.toString(NumberUtils.splitIntInto2(entry.getKey())) + ", long position: " + (NumberUtils.isBitSet(l, 62) ? "- " : "+ ") + pcpm.getChrPositionFromLongPosition(NumberUtils.getLongPositionValueFromPackedLong(l)).toIGVString() + " (" + NumberUtils.getLongPositionValueFromPackedLong(l) + "), start position in sequence: " + IntLongPairsUtil.getStartPositionInSequence( new IntLongPair(entry.getKey(), l), seq.length()));
+				System.out.println("tile count: " + Arrays.toString(NumberUtils.splitIntInto2(entry.getKey())) + ", long position: " + (NumberUtils.isBitSet(l, 62) ? "- " : "+ ") + PositionChrPositionMap.getChrPositionFromLongPosition(NumberUtils.getLongPositionValueFromPackedLong(l), pcpm).toIGVString() + " (" + NumberUtils.getLongPositionValueFromPackedLong(l) + "), start position in sequence: " + IntLongPairsUtil.getStartPositionInSequence( new IntLongPair(entry.getKey(), l), seq.length()));
 			}
 		}
 		TARecord r =  new TARecord(seq, countPosition);
@@ -2307,16 +2006,6 @@ public class TARecordUtilTest {
 		 * from BLAT
 		 * 88      0       0       0       0       0       1       4266    +       chr2_219093573_false_   88      0       88      chr2    243199373       219099074       219103428       2       46,42,  0,46,   219099074,219103386,
 		 */
-		
-		List<BLATRecord[]> blatRecs = TARecordUtil.blatRecordsFromSplitsNew(splits, name, r.getSequence().length(), pcpm);
-		assertEquals(1, blatRecs.size());
-		for (BLATRecord br : blatRecs.get(0)) {
-			System.out.println("blat record: " + br.toString());
-		}
-		assertEquals(1, blatRecs.get(0).length);
-		assertEquals("44	46	0	0	0	1	1	1	1	-	chr4_65841131_false_-	57	25	23	chr4	191154276	65841077	65841124	2	22,24	10,33	65841077,65841100", blatRecs.get(0)[0].toString());
-//		assertEquals("24	24	0	0	0	0	0	0	0	-	chr4_65841131_false_-	57	0	24	chr4	12345	65841100	65841124	1	24	33	65841100", blatRecs.get(0)[0].toString());
-//		assertEquals("36	36	0	0	0	0	0	0	0	-	chr4_65841131_false_-	57	16	52	chr4	12345	65841104	65841140	1	36	5	65841104", blatRecs.get(0)[1].toString());
 	}
 	
 	@Test
@@ -2357,16 +2046,6 @@ public class TARecordUtilTest {
 		TARecord r =  new TARecord(seq, countPosition);
 		TIntObjectMap<Set<IntLongPairs>> splits = TARecordUtil.getSplitStartPositions(r);
 		assertEquals(1, splits.size());
-		
-		
-		List<BLATRecord[]> blatRecs = TARecordUtil.blatRecordsFromSplits(splits, "chr2_219093458_true_+", r.getSequence().length(), pcpm);
-		assertEquals(1, blatRecs.size());
-//		for (BLATRecord br : blatRecs) {
-//			System.out.println("blat record: " + br.toString());
-//		}
-		assertEquals(2, blatRecs.get(0).length);
-		assertEquals("33	33	0	0	0	0	0	0	0	+	chr2_219093458_true_+	83	50	83	chr2	243199373	219090641	219090674	1	33	50	219090641", blatRecs.get(0)[0].toString());
-		assertEquals("51	51	0	0	0	0	0	0	0	+	chr2_219093458_true_+	83	0	51	chr2	243199373	219082216	219082267	1	51	0	219082216", blatRecs.get(0)[1].toString());
 	}
 	
 	@Test
@@ -2406,7 +2085,6 @@ public class TARecordUtilTest {
 		/*
 		 * loop through them all, if valid single record splits, create BLAT recs, otherwise fall through to SW
 		 */
-		int passingScore = (int)(0.9 * seq.length());
 		List<BLATRecord> results = new ArrayList<>();
 		results.addAll(potentialSplits.stream()
 				.filter(ilp -> IntLongPairsUtil.isIntLongPairsAValidSingleRecord(ilp))
@@ -2416,17 +2094,9 @@ public class TARecordUtilTest {
 				.collect(Collectors.toList()));
 		
 		System.out.println("Number of records in results after looking in potentialSplits list: " + results.size());
-		
-		
-		List<BLATRecord[]> blatRecs = TARecordUtil.blatRecordsFromSplits(splits, name, r.getSequence().length(), pcpm);
-		assertEquals(1, blatRecs.size());
-//		for (BLATRecord br : blatRecs) {
-//			System.out.println("blat record: " + br.toString());
-//		}
-		assertEquals(2, blatRecs.get(0).length);
-		assertEquals("23	23	0	0	0	0	0	0	0	-	chr8_6780650_false_+	101	66	89	chr2	243199373	8770671	8770694	1	23	12	8770671", blatRecs.get(0)[0].toString());
-		assertEquals("57	57	0	0	0	0	0	0	0	-	chr8_6780650_false_+	101	10	67	chr2	243199373	33141317	33141374	1	57	34	33141317", blatRecs.get(0)[1].toString());
+		assertEquals(0, results.size());
 	}
+	
 	@Test
 	public void realLifeNotASplit5() {
 		/*
@@ -2469,17 +2139,12 @@ public class TARecordUtilTest {
 		IntLongPair pair1 = new IntLongPair(8323072, 32985657853490l);
 		IntLongPair pair2 = new IntLongPair(1179648, 309020251);
 		IntLongPairs pairs = new IntLongPairs(pair1, pair2);
-		PositionChrPositionMap pcpm = new PositionChrPositionMap();
-		pcpm.loadMap(PositionChrPositionMap.grch37Positions);
 		Map<ChrPosition, int[]> map = TARecordUtil.getChrPositionAndBlocksFromSplits(pairs, 169, pcpm);
-		
 		assertEquals(2, map.size());
-//		assertArrayEquals(new int[] {1,30}, map.get(new ChrRangePosition("chr2", 12345, 123456)));
 	}
 	
 	@Test
 	public void getRangesAndChrPositions2() {
-//		 IntLongPairs [pairs=[IntLongPair [i=524288, l=4611732199562315553], IntLongPair [i=1900544, l=4611686020073948919]]]
 		IntLongPair p1 = new IntLongPair(524288, 4611732199562315553l);
 		IntLongPair p2 = new IntLongPair(1900544, 4611686020073948919l);
 		IntLongPairs pairs = new IntLongPairs(p1, p2);
@@ -2489,21 +2154,15 @@ public class TARecordUtilTest {
 		System.out.println("p1: tile count: " + NumberUtils.getPartOfPackedInt(p1.getInt(), true) + ", long position: " + long1 + ", start position in sequence(RS): " + NumberUtils.getShortFromLong(p1.getLong(), 40));
 		System.out.println("p2: tile count: " + NumberUtils.getPartOfPackedInt(p2.getInt(), true) + ", long position: " + long2 + ", start position in sequence(RS): " + NumberUtils.getShortFromLong(p2.getLong(), 40));
 		
-		PositionChrPositionMap pcpm = new PositionChrPositionMap();
-		pcpm.loadMap(PositionChrPositionMap.grch37Positions);
 		Map<ChrPosition, int[]> map = TARecordUtil.getChrPositionAndBlocksFromSplits(pairs, 62, pcpm);
 		
 		assertEquals(2, map.size());
 		assertArrayEquals(new int[]{0, 20}, map.get(new ChrPositionName("chr9", 107401344, 107401364, "R")));
 		assertArrayEquals(new int[]{21, 41}, map.get(new ChrPositionName("chr9", 107401302, 107401343, "R")));
-//		for(Entry<ChrPosition, int[]> entry : map.entrySet()) {
-//			System.out.println("cp: " + entry.getKey() + ", int array: " + Arrays.toString(entry.getValue()));
-//		}
 	}
 	
 	@Test
 	public void getRangesAndChrPositions3() {
-//		 IntLongPairs [pairs=[IntLongPair [i=786432, l=4611722303067418037], IntLongPair [i=1572864, l=4611691516741840313]]]
 		IntLongPair p1 = new IntLongPair(786432, 4611722303067418037l);
 		IntLongPair p2 = new IntLongPair(1572864, 4611691516741840313l);
 		IntLongPairs pairs = new IntLongPairs(p1, p2);
@@ -2513,8 +2172,6 @@ public class TARecordUtilTest {
 		System.out.println("p1: tile count: " + NumberUtils.getPartOfPackedInt(p1.getInt(), true) + ", long position: " + long1 + ", start position in sequence: " + NumberUtils.getShortFromLong(p1.getLong(), 40) + ", IntLongPairsUtil.getStartPositionInSequence: " + IntLongPairsUtil.getStartPositionInSequence(p1, 57));
 		System.out.println("p2: tile count: " + NumberUtils.getPartOfPackedInt(p2.getInt(), true) + ", long position: " + long2 + ", start position in sequence: " + NumberUtils.getShortFromLong(p2.getLong(), 40) + ", IntLongPairsUtil.getStartPositionInSequence: " + IntLongPairsUtil.getStartPositionInSequence(p2, 57));
 		
-		PositionChrPositionMap pcpm = new PositionChrPositionMap();
-		pcpm.loadMap(PositionChrPositionMap.grch37Positions);
 		Map<ChrPosition, int[]> map = TARecordUtil.getChrPositionAndBlocksFromSplits(pairs, 57, pcpm);
 		
 		assertEquals(2, map.size());

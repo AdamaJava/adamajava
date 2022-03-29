@@ -7,6 +7,9 @@
 package au.edu.qimr.tiledaligner.util;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -33,6 +36,7 @@ import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.NumberUtils;
 
 import au.edu.qimr.tiledaligner.PositionChrPositionMap;
+import au.edu.qimr.tiledaligner.PositionChrPositionMap.LongRange;
 import au.edu.qimr.tiledaligner.model.IntLongPairs;
 import au.edu.qimr.tiledaligner.model.TARecord;
 import gnu.trove.list.TIntList;
@@ -44,6 +48,7 @@ import gnu.trove.map.TLongIntMap;
 import gnu.trove.map.hash.THashMap;
 import gnu.trove.map.hash.TLongIntHashMap;
 import htsjdk.samtools.SAMSequenceDictionary;
+import htsjdk.samtools.reference.ReferenceSequenceFileFactory;
 import htsjdk.samtools.util.SequenceUtil;
 
 public class TiledAlignerUtil {
@@ -576,9 +581,9 @@ public class TiledAlignerUtil {
 		return new String[]{};
 	}
 
-	public static ChrPosition getBufferedChrPosition(long packedLong, int sequenceLength, int matchLength, PositionChrPositionMap pcpm) {
-		return getBufferedChrPosition(packedLong, sequenceLength, matchLength, pcpm, 20);
-	}
+//	public static ChrPosition getBufferedChrPosition(long packedLong, int sequenceLength, int matchLength, PositionChrPositionMap pcpm) {
+//		return getBufferedChrPosition(packedLong, sequenceLength, matchLength, pcpm, 20);
+//	}
 	/**
 	 * 
 	 * @param packedLong
@@ -588,25 +593,25 @@ public class TiledAlignerUtil {
 	 * @param buffer
 	 * @return
 	 */
-	public static ChrPosition getBufferedChrPosition(long packedLong, int sequenceLength, int matchLength, PositionChrPositionMap pcpm, int buffer) {
-		return getBufferedChrPosition(packedLong, sequenceLength, matchLength, pcpm,  buffer, false);
+	public static ChrPosition getBufferedChrPosition(long packedLong, int sequenceLength, int matchLength, Map<ChrPosition, LongRange> refIndexMap, int buffer) {
+		return getBufferedChrPosition(packedLong, sequenceLength, matchLength, refIndexMap,  buffer, false);
 	}
-	public static ChrPosition getBufferedChrPosition(long packedLong, int sequenceLength, int matchLength, PositionChrPositionMap pcpm, int buffer, boolean splits) {
+	public static ChrPosition getBufferedChrPosition(long packedLong, int sequenceLength, int matchLength, Map<ChrPosition, LongRange> refIndexMap, int buffer, boolean splits) {
 		
 		int bufferToUse = splits ? buffer / 2 : buffer;
 		short sequenceOffset = NumberUtils.getShortFromLong(packedLong, POSITION_OF_TILE_IN_SEQUENCE_OFFSET);
 		int lhsBuffer = sequenceOffset == 0 ? 0 : sequenceOffset + bufferToUse;
 		int rhsBuffer = sequenceOffset + matchLength == sequenceLength ? 0 : bufferToUse;
 		
-		ChrPosition bufferedCP = pcpm.getBufferedChrPositionFromLongPosition(packedLong, sequenceLength - sequenceOffset, lhsBuffer, rhsBuffer);
+		ChrPosition bufferedCP = PositionChrPositionMap.getBufferedChrPositionFromLongPosition(packedLong, sequenceLength - sequenceOffset, lhsBuffer, rhsBuffer, refIndexMap);
 		return bufferedCP;
 	}
-	public static ChrPosition getBufferedChrPosition(long packedLong, int matchLength, PositionChrPositionMap pcpm, int [] buffers) {
+	public static ChrPosition getBufferedChrPosition(long packedLong, int matchLength,  Map<ChrPosition, LongRange> refIndexMap, int [] buffers) {
 		
 		int lhsBuffer = buffers[0];
 		int rhsBuffer = buffers[1];
 		
-		ChrPosition bufferedCP = pcpm.getBufferedChrPositionFromLongPosition(packedLong, matchLength, lhsBuffer, rhsBuffer);
+		ChrPosition bufferedCP = PositionChrPositionMap.getBufferedChrPositionFromLongPosition(packedLong, matchLength, lhsBuffer, rhsBuffer, refIndexMap);
 		return bufferedCP;
 	}
 	
@@ -743,11 +748,18 @@ public class TiledAlignerUtil {
 		});
 	}
 	
+	public static Map<String, List<BLATRecord>> runTiledAlignerCache(String refFile, String refIndexFile, TIntObjectMap<int[]> cache, Map<String, String> sequencesNameMap, int tileLength, String originatingMethod, boolean log) throws IOException {
+		return runTiledAlignerCache(refFile, refIndexFile, cache,  sequencesNameMap, tileLength, originatingMethod,  log, false);
+	}
 	public static Map<String, List<BLATRecord>> runTiledAlignerCache(String refFile, TIntObjectMap<int[]> cache, Map<String, String> sequencesNameMap, int tileLength, String originatingMethod, boolean log) throws IOException {
-		return runTiledAlignerCache(refFile, cache,  sequencesNameMap, tileLength, originatingMethod,  log, false);
+		return runTiledAlignerCache(refFile, null, cache,  sequencesNameMap, tileLength, originatingMethod,  log, false);
 	}
 	
 	public static Map<String, List<BLATRecord>> runTiledAlignerCache(String refFile, TIntObjectMap<int[]> cache, Map<String, String> sequencesNameMap, int tileLength, String originatingMethod, boolean log, boolean recordsMustComeFromChrInName) throws IOException {
+		return  runTiledAlignerCache( refFile,  null, cache,  sequencesNameMap,  tileLength,  originatingMethod,  log,  recordsMustComeFromChrInName);
+
+	}
+	public static Map<String, List<BLATRecord>> runTiledAlignerCache(String refFile, String refIndexFile, TIntObjectMap<int[]> cache, Map<String, String> sequencesNameMap, int tileLength, String originatingMethod, boolean log, boolean recordsMustComeFromChrInName) throws IOException {
 		Map<String, List<BLATRecord>> results = new HashMap<>();
 		
 		for (Entry<String, String> entry : sequencesNameMap.entrySet()) {
@@ -762,7 +774,7 @@ public class TiledAlignerUtil {
 			}
 			logger.info("in runTiledAlignerCache, name: " + name + ", seq: " + entry.getKey());
 			
-			List<BLATRecord> blatties = getBlatRecordsSWAll(refFile, cache, entry.getKey(), entry.getValue(), tileLength, originatingMethod, log, recordsMustComeFromChrInName);
+			List<BLATRecord> blatties = getBlatRecordsSWAll(refFile, refIndexFile, cache, entry.getKey(), entry.getValue(), tileLength, originatingMethod, log, recordsMustComeFromChrInName);
 			blatties.sort(null);
 			/*
 			 * populate the name field on the BLATRecord with the value, if present - otherwise just leave as the default
@@ -778,6 +790,9 @@ public class TiledAlignerUtil {
 	}
 	
 	public static Map<String, List<BLATRecord>> runTiledAlignerCacheSWAll(String refFile, TIntObjectMap<int[]> cache, Map<String, String> sequencesNameMap, int tileLength, String originatingMethod, boolean log, boolean recordsMustComeFromChrInName) throws IOException {
+		return runTiledAlignerCacheSWAll( refFile,  null, cache,  sequencesNameMap,  tileLength,  originatingMethod,  log,  recordsMustComeFromChrInName); 
+	}
+	public static Map<String, List<BLATRecord>> runTiledAlignerCacheSWAll(String refFile, String refIndexFile, TIntObjectMap<int[]> cache, Map<String, String> sequencesNameMap, int tileLength, String originatingMethod, boolean log, boolean recordsMustComeFromChrInName) throws IOException {
 		Map<String, List<BLATRecord>> results = new HashMap<>();
 		
 		for (Entry<String, String> entry : sequencesNameMap.entrySet()) {
@@ -792,7 +807,7 @@ public class TiledAlignerUtil {
 			}
 			logger.info("in runTiledAlignerCache, name: " + name + ", seq: " + entry.getKey());
 			
-			List<BLATRecord> blatties = getBlatRecordsSWAll(refFile, cache, entry.getKey(), entry.getValue(), tileLength, originatingMethod, log, recordsMustComeFromChrInName);
+			List<BLATRecord> blatties = getBlatRecordsSWAll(refFile, refIndexFile, cache, entry.getKey(), entry.getValue(), tileLength, originatingMethod, log, recordsMustComeFromChrInName);
 			/*
 			 * populate the name field on the BLATRecord with the value, if present - otherwise just leave as the default
 			 */
@@ -822,7 +837,7 @@ public class TiledAlignerUtil {
 		return is.toArray();
 	}
 	
-	public static List<BLATRecord> getBlatRecordsSWAll(String refFile, TIntObjectMap<int[]> cache, String sequence, final String name, int tileLength, String originatingMethod, boolean log, boolean recordsMustComeFromChrInName) {
+	public static List<BLATRecord> getBlatRecordsSWAll(String refFile, String refIndexFile, TIntObjectMap<int[]> cache, String sequence, final String name, int tileLength, String originatingMethod, boolean log, boolean recordsMustComeFromChrInName) {
 		if (null == cache || cache.isEmpty()) {
 			throw new IllegalArgumentException("Null or empty cache passed to getBlatRecords");
 		}
@@ -870,9 +885,11 @@ public class TiledAlignerUtil {
 			map1.computeIfAbsent(entry.getKey(), f -> new TLongArrayList()).addAll(entry.getValue());
 		}
 		
+		/*
+		 * try and get reference index file from reference file
+		 */
+		Map<ChrPosition, LongRange> refIndexMap = loadReferenceIndexMap(refFile, refIndexFile);
 		
-		PositionChrPositionMap headerMap = new PositionChrPositionMap();
-		headerMap.loadMap(PositionChrPositionMap.grch37Positions);
 		
 		
 		/*
@@ -888,7 +905,7 @@ public class TiledAlignerUtil {
 			String [] nameArray = name.split("_");
 			for (String s : nameArray) {
 				if (s.startsWith("chr") || s.startsWith("GL")) {
-					acceptableRanges.add(headerMap.getLongStartAndStopPositionFromChrPosition(new ChrPointPosition(s, 1)));
+					acceptableRanges.add(PositionChrPositionMap.getLongStartAndStopPositionFromChrPosition(new ChrPointPosition(s, 1), refIndexMap));
 				}
 			}
 			Map<Integer, TLongList> updatedMap =  NumberUtils.getUpdatedMapWithLongsFallingInRanges(map1, acceptableRanges, REVERSE_COMPLEMENT_BIT);
@@ -953,7 +970,7 @@ public class TiledAlignerUtil {
 						for (int i = 0 ; i < perfectMatches.size() ; i++) {
 							long l = perfectMatches.get(i);
 							
-							ChrPosition cp = headerMap.getChrPositionFromLongPosition(l);
+							ChrPosition cp = PositionChrPositionMap.getChrPositionFromLongPosition(l, refIndexMap);
 							boolean forwardStrand = "F".equals(((ChrPositionName)cp).getName());
 							
 							/*
@@ -999,7 +1016,7 @@ public class TiledAlignerUtil {
 			 */
 			if (potentialMatches.size() > 0) {
 				for (long l : potentialMatches.keys()) {
-					BLATRecord br = smithWaterman(l, seqLength, seqLength, name, sequence, revCompSequence,  refFile, allCommonTiles, headerMap, false);
+					BLATRecord br = smithWaterman(l, seqLength, seqLength, name, sequence, revCompSequence,  refFile, allCommonTiles, refIndexMap, false);
 					if (null != br) {
 						logger.debug("found record from shortcut: " + br.toString());
 						results.add(br);
@@ -1027,7 +1044,7 @@ public class TiledAlignerUtil {
 					}
 					if (goodToGo) {
 						
-						BLATRecord br =  investigateSplitShortCut(l, splitReadShortCuts.get(l), name, sequence, revCompSequence, refFile, allCommonTiles, headerMap, false);
+						BLATRecord br =  investigateSplitShortCut(l, splitReadShortCuts.get(l), name, sequence, revCompSequence, refFile, allCommonTiles, refIndexMap, false);
 						if (null != br) {
 							logger.debug("found record from split read shortcut: " + br.toString());
 							results.add(br);
@@ -1037,7 +1054,7 @@ public class TiledAlignerUtil {
 			}
 			if (potentialMatchesRC.size() > 0) {
 				for (long l : potentialMatchesRC.keys()) {
-					BLATRecord br = smithWaterman(l, seqLength, seqLength, name, sequence, revCompSequence, refFile, allCommonTilesRC, headerMap, true);
+					BLATRecord br = smithWaterman(l, seqLength, seqLength, name, sequence, revCompSequence, refFile, allCommonTilesRC, refIndexMap, true);
 					if (null != br) {
 						logger.debug("found record from shortcutRC: " + br.toString());
 						results.add(br);
@@ -1065,7 +1082,7 @@ public class TiledAlignerUtil {
 						}
 					}
 					if (goodToGo) {
-						BLATRecord br =  investigateSplitShortCut(l, splitReadShortCuts.get(l), name, sequence, revCompSequence, refFile, allCommonTilesRC, headerMap, true);
+						BLATRecord br =  investigateSplitShortCut(l, splitReadShortCuts.get(l), name, sequence, revCompSequence, refFile, allCommonTilesRC, refIndexMap, true);
 						if (null != br) {
 							logger.debug("found record from split read shortcutRC: " + br.toString());
 							results.add(br);
@@ -1093,7 +1110,7 @@ public class TiledAlignerUtil {
 				 */
 				splitsList.addAll(potentialSplits.stream()
 						.filter(ilp -> IntLongPairsUtil.isIntLongPairsAValidSingleRecord(ilp))
-						.map(ilp ->  BLATRecordUtil.blatRecordFromSplits(ilp, name, sequence.length(), headerMap, TILE_LENGTH))
+						.map(ilp ->  BLATRecordUtil.blatRecordFromSplits(ilp, name, sequence.length(), refIndexMap, TILE_LENGTH))
 						.filter(obr -> obr.isPresent())
 						.map(obr -> obr.get())
 						//				.filter(br -> br.getScore() > passingScore)
@@ -1157,12 +1174,12 @@ public class TiledAlignerUtil {
 						int length = NumberUtils.getPartOfPackedInt(i, true) + TILE_LENGTH_MINUS_ONE;
 						int mismatchCount = NumberUtils.getPartOfPackedInt(i, false);
 						boolean reverseComplement = NumberUtils.isBitSet(l, REVERSE_COMPLEMENT_BIT);
-						BLATRecord br = smithWaterman(l, length, seqLength, name, sequence, revCompSequence, refFile, (reverseComplement ? allCommonTilesRC : allCommonTiles), headerMap, reverseComplement);
+						BLATRecord br = smithWaterman(l, length, seqLength, name, sequence, revCompSequence, refFile, (reverseComplement ? allCommonTilesRC : allCommonTiles), refIndexMap, reverseComplement);
 						if (null == br) {
 							/*
 							 * try creating a record just using the tile data
 							 */
-							br = getRecordFromTileCountAndMismatches(l, length, mismatchCount, seqLength, name, sequence, revCompSequence, headerMap);
+							br = getRecordFromTileCountAndMismatches(l, length, mismatchCount, seqLength, name, sequence, revCompSequence, refIndexMap);
 						}
 						if (null != br) {
 							logger.debug("created br: " + br.toString());
@@ -1318,8 +1335,31 @@ public class TiledAlignerUtil {
 		
 		return nonOverlappingRecs;
 	}
+
+	private static Map<ChrPosition, LongRange> loadReferenceIndexMap(String refFile, String refIndexFile) {
+		Map<ChrPosition, LongRange> headerMap = null;
+		if (null == refIndexFile) {
+			/*
+			 * need to try and locate index file from reference file
+			 * If that doesn't work - default to GRCh37 data
+			 */
+			Path indexPath = ReferenceSequenceFileFactory.getFastaIndexFileName(Paths.get(refFile));
+			if (Files.isReadable(indexPath)) {
+				logger.info("loading reference index file from " + indexPath);
+				headerMap = PositionChrPositionMap.loadMap(refIndexFile);
+			} else {
+				logger.warn("Could not find reference index file from " + refFile + ", will default to GRCh37!");
+				headerMap = PositionChrPositionMap.loadGRCh37Map();
+			}
+			
+		} else {
+			logger.info("loading reference index file from " + refIndexFile);
+			headerMap = PositionChrPositionMap.loadMap(refIndexFile);
+		}
+		return headerMap;
+	}
 	
-	public static BLATRecord smithWaterman(long l, int length, int seqLength, String name, String sequence, String revCompSequence, String refFile, int[] allCommonTiles, PositionChrPositionMap headerMap, boolean reverseComplement) {
+	public static BLATRecord smithWaterman(long l, int length, int seqLength, String name, String sequence, String revCompSequence, String refFile, int[] allCommonTiles, Map<ChrPosition, LongRange> refIndexMap, boolean reverseComplement) {
 		short startPositionInSequence = NumberUtils.getShortFromLong(l, POSITION_OF_TILE_IN_SEQUENCE_OFFSET);
 		/*
 		 * look to see if we have commonly occurring tiles at beginning or end
@@ -1334,7 +1374,7 @@ public class TiledAlignerUtil {
 		int[] buffersToUse = BLATRecordUtil.getBuffers(seqLength, startPositionInSequence, startPositionInSequence + length, preferStrictSW, allCommonTiles, 60, 5);
 		
 		
-		ChrPosition bufferedCP = getBufferedChrPosition(l, length, headerMap,buffersToUse);
+		ChrPosition bufferedCP = getBufferedChrPosition(l, length, refIndexMap, buffersToUse);
 		String bufferedReference = getRefFromChrPos(bufferedCP, refFile);
 		String fragString = reverseComplement ? revCompSequence : sequence;
 			
@@ -1372,11 +1412,11 @@ public class TiledAlignerUtil {
 		return br;
 	}
 	
-	public static BLATRecord investigateSplitShortCut(long l, int length, String name, String sequence, String revCompSequence, String refFile, int[] allCommonTiles, PositionChrPositionMap headerMap, boolean reverseComplement) {
+	public static BLATRecord investigateSplitShortCut(long l, int length, String name, String sequence, String revCompSequence, String refFile, int[] allCommonTiles, Map<ChrPosition, LongRange> refIndexMap, boolean reverseComplement) {
 		/*
 		 * get ChrPos with no bufferring at start and end
 		 */
-		ChrPosition bufferedCP =  headerMap.getBufferedChrPositionFromLongPosition(l, length + TILE_LENGTH, 0, 0);
+		ChrPosition bufferedCP =  PositionChrPositionMap.getBufferedChrPositionFromLongPosition(l, length + TILE_LENGTH, 0, 0, refIndexMap);
 		
 		String bufferedReference = getRefFromChrPos(bufferedCP, refFile);
 		String fragString = reverseComplement ? revCompSequence : sequence;
@@ -1396,7 +1436,7 @@ public class TiledAlignerUtil {
 		return br;
 	}
 	
-	public static BLATRecord getRecordFromTileCountAndMismatches(long l, int length, int mismatchCount, int seqLength, String name, String sequence, String revCompSequence, PositionChrPositionMap headerMap) {
+	public static BLATRecord getRecordFromTileCountAndMismatches(long l, int length, int mismatchCount, int seqLength, String name, String sequence, String revCompSequence, Map<ChrPosition, LongRange> refIndexMap) {
 		/*
 		 * SW wasn't able to return records within the filtering criteria
 		 * Lets see if we can manually create one based on the tile count
@@ -1405,7 +1445,7 @@ public class TiledAlignerUtil {
 			
 			logger.debug("SW couldn't put this down whilst passing the filters - will attempt to create based on tile counts alone. l: " + l + ", length: " + length + ", mismatchCount: " + mismatchCount);
 			
-			ChrPosition cp = headerMap.getChrPositionFromLongPosition(l);
+			ChrPosition cp = PositionChrPositionMap.getChrPositionFromLongPosition(l, refIndexMap);
 			boolean forwardStrand = "F".equals(((ChrPositionName)cp).getName());
 			/*
 			 * need to check that reference for this position matches the sequence we have
