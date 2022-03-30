@@ -1336,7 +1336,7 @@ public class TiledAlignerUtil {
 		return nonOverlappingRecs;
 	}
 
-	public static Map<ChrPosition, LongRange> loadReferenceIndexMap(String refFile, String refIndexFile) {
+	static Map<ChrPosition, LongRange> loadReferenceIndexMap(String refFile, String refIndexFile) {
 		Map<ChrPosition, LongRange> headerMap = null;
 		if (null == refIndexFile) {
 			/*
