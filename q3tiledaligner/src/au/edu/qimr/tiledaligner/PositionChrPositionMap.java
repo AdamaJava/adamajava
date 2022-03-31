@@ -16,6 +16,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -109,12 +111,13 @@ public class PositionChrPositionMap {
 		
 		FastaSequenceIndex index = new FastaSequenceIndex(referenceIndexPath);
 		Map<ChrPosition, LongRange> map = new HashMap<>();
+		AtomicLong startPosition = new AtomicLong(1);
 		
 		index.forEach(i -> {
 			long chrLength = i.getSize();
-			long startOffset = i.getLocation();
 			ChrPosition cp = new ChrRangePosition(i.getContig(), 1, (int) chrLength);
-			LongRange range = new LongRange(startOffset, startOffset + chrLength - 1);
+			LongRange range = new LongRange(startPosition.longValue(), startPosition.longValue() + chrLength - 1);
+			startPosition.addAndGet(chrLength);
 			map.put(cp,  range);
 		});
 		
@@ -256,6 +259,23 @@ public class PositionChrPositionMap {
 	}
 	
 	public static class LongRange {
+		@Override
+		public int hashCode() {
+			return Objects.hash(from, to);
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			LongRange other = (LongRange) obj;
+			return from == other.from && to == other.to;
+		}
+
 		private final long from;
 		private final long to;
 		

@@ -1,6 +1,7 @@
 package au.edu.qimr.tiledaligner;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -9,6 +10,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -246,6 +248,47 @@ public class PositionChrPositionMapTest {
 		cp = new ChrPointPosition("chr12", 2627611);
 		pos = PositionChrPositionMap.getLongStartPositionFromChrPosition(cp, map);
 		assertEquals(1953542018l, pos);
+	}
+	
+	@Test
+	public void testNPE() throws IOException {
+		Map<ChrPosition, LongRange> map = PositionChrPositionMap.loadGRCh37Map();
+		assertEquals(84, map.size());
+		assertEquals(false, PositionChrPositionMap.doesMapContainOverlaps(map));
+		ChrPosition cp = PositionChrPositionMap.getChrPositionFromLongPosition(2921554763l, map);
+		assertNotNull(cp);
+		assertEquals("chrX", cp.getChromosome());
+		assertEquals(40521476, cp.getStartPosition());
+		assertEquals(40521476, cp.getEndPosition());
+		
+		File f = testFolder.newFile("index.file");
+		getFastaIndexDataAsFile(f, getFastaIndexData37Data());
+		map = PositionChrPositionMap.loadMap(f.getAbsolutePath());
+		assertEquals(84, map.size());
+		assertEquals(false, PositionChrPositionMap.doesMapContainOverlaps(map));
+		cp = PositionChrPositionMap.getChrPositionFromLongPosition(2921554763l, map);
+		assertNotNull(cp);
+		assertEquals("chrX", cp.getChromosome());
+		assertEquals(40521476, cp.getStartPosition());
+		assertEquals(40521476, cp.getEndPosition());
+	}
+	
+	@Test
+	public void checkMaps() throws IOException {
+		Map<ChrPosition, LongRange> staticMmap = PositionChrPositionMap.loadGRCh37Map();
+		assertEquals(84, staticMmap.size());
+		assertEquals(false, PositionChrPositionMap.doesMapContainOverlaps(staticMmap));
+		
+		File f = testFolder.newFile("index.file");
+		getFastaIndexDataAsFile(f, getFastaIndexData37Data());
+		Map<ChrPosition, LongRange> indexMap = PositionChrPositionMap.loadMap(f.getAbsolutePath());
+		assertEquals(84, indexMap.size());
+		
+		for (Entry<ChrPosition, LongRange> entry : staticMmap.entrySet()) {
+			LongRange indexLR = indexMap.get(entry.getKey());
+			assertNotNull(indexLR);
+			assertEquals(entry.getValue(), indexLR);
+		}
 	}
 	
 	
