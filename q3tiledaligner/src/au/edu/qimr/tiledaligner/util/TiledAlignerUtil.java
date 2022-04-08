@@ -748,18 +748,49 @@ public class TiledAlignerUtil {
 		});
 	}
 	
-	public static Map<String, List<BLATRecord>> runTiledAlignerCache(String refFile, String refIndexFile, TIntObjectMap<int[]> cache, Map<String, String> sequencesNameMap, int tileLength, String originatingMethod, boolean log) throws IOException {
-		return runTiledAlignerCache(refFile, refIndexFile, cache,  sequencesNameMap, tileLength, originatingMethod,  log, false);
-	}
 	public static Map<String, List<BLATRecord>> runTiledAlignerCache(String refFile, TIntObjectMap<int[]> cache, Map<String, String> sequencesNameMap, int tileLength, String originatingMethod, boolean log) throws IOException {
-		return runTiledAlignerCache(refFile, null, cache,  sequencesNameMap, tileLength, originatingMethod,  log, false);
+		/*
+		 * check refFile
+		 */
+		if (StringUtils.isNullOrEmpty(refFile)) {
+			throw new IllegalArgumentException("Null or empty refFile passed to getBlatRecordsSWAll");
+		} else if ( ! Files.isReadable(Paths.get(refFile))) {
+			throw new IllegalArgumentException("refFile passed to getBlatRecordsSWAll doesn't exist or can't be read");
+		}
+		
+		/*
+		 * create refIndexMap
+		 */
+		Map<ChrPosition, LongRange> refIndexMap = loadReferenceIndexMap(refFile, null);
+		return runTiledAlignerCache(refFile, refIndexMap, cache,  sequencesNameMap, tileLength, originatingMethod,  log, false);
 	}
 	
 	public static Map<String, List<BLATRecord>> runTiledAlignerCache(String refFile, TIntObjectMap<int[]> cache, Map<String, String> sequencesNameMap, int tileLength, String originatingMethod, boolean log, boolean recordsMustComeFromChrInName) throws IOException {
-		return  runTiledAlignerCache( refFile,  null, cache,  sequencesNameMap,  tileLength,  originatingMethod,  log,  recordsMustComeFromChrInName);
-
+		/*
+		 * check refFile
+		 */
+		if (StringUtils.isNullOrEmpty(refFile)) {
+			throw new IllegalArgumentException("Null or empty refFile passed to getBlatRecordsSWAll");
+		} else if ( ! Files.isReadable(Paths.get(refFile))) {
+			throw new IllegalArgumentException("refFile passed to getBlatRecordsSWAll doesn't exist or can't be read");
+		}
+		
+		/*
+		 * create refIndexMap
+		 */
+		Map<ChrPosition, LongRange> refIndexMap = loadReferenceIndexMap(refFile, null);
+		return  runTiledAlignerCache( refFile,  refIndexMap, cache,  sequencesNameMap,  tileLength,  originatingMethod,  log,  recordsMustComeFromChrInName);
 	}
-	public static Map<String, List<BLATRecord>> runTiledAlignerCache(String refFile, String refIndexFile, TIntObjectMap<int[]> cache, Map<String, String> sequencesNameMap, int tileLength, String originatingMethod, boolean log, boolean recordsMustComeFromChrInName) throws IOException {
+	
+	public static Map<String, List<BLATRecord>> runTiledAlignerCache(String refFile, Map<ChrPosition, LongRange> refIndexMap, TIntObjectMap<int[]> cache, Map<String, String> sequencesNameMap, int tileLength, String originatingMethod, boolean log, boolean recordsMustComeFromChrInName) throws IOException {
+		
+		/*
+		 * check sequenceNameMap
+		 */
+		if (null == sequencesNameMap) {
+			throw new IllegalArgumentException("null sequencesNameMap passed to TiledAlignerUtil.runTiledAlignerCache");
+		}
+		
 		Map<String, List<BLATRecord>> results = new HashMap<>();
 		
 		for (Entry<String, String> entry : sequencesNameMap.entrySet()) {
@@ -774,7 +805,7 @@ public class TiledAlignerUtil {
 			}
 			logger.info("in runTiledAlignerCache, name: " + name + ", seq: " + entry.getKey());
 			
-			List<BLATRecord> blatties = getBlatRecordsSWAll(refFile, refIndexFile, cache, entry.getKey(), entry.getValue(), tileLength, originatingMethod, log, recordsMustComeFromChrInName);
+			List<BLATRecord> blatties = getBlatRecordsSWAll(refFile, refIndexMap, cache, entry.getKey(), entry.getValue(), tileLength, originatingMethod, log, recordsMustComeFromChrInName);
 			blatties.sort(null);
 			/*
 			 * populate the name field on the BLATRecord with the value, if present - otherwise just leave as the default
@@ -790,9 +821,30 @@ public class TiledAlignerUtil {
 	}
 	
 	public static Map<String, List<BLATRecord>> runTiledAlignerCacheSWAll(String refFile, TIntObjectMap<int[]> cache, Map<String, String> sequencesNameMap, int tileLength, String originatingMethod, boolean log, boolean recordsMustComeFromChrInName) throws IOException {
-		return runTiledAlignerCacheSWAll( refFile,  null, cache,  sequencesNameMap,  tileLength,  originatingMethod,  log,  recordsMustComeFromChrInName); 
+		/*
+		 * check refFile
+		 */
+		if (StringUtils.isNullOrEmpty(refFile)) {
+			throw new IllegalArgumentException("Null or empty refFile passed to getBlatRecordsSWAll");
+		} else if ( ! Files.isReadable(Paths.get(refFile))) {
+			throw new IllegalArgumentException("refFile passed to getBlatRecordsSWAll doesn't exist or can't be read");
+		}
+		
+		/*
+		 * create refIndexMap
+		 */
+		Map<ChrPosition, LongRange> refIndexMap = loadReferenceIndexMap(refFile, null);
+		return runTiledAlignerCacheSWAll( refFile,  refIndexMap, cache,  sequencesNameMap,  tileLength,  originatingMethod,  log,  recordsMustComeFromChrInName); 
 	}
-	public static Map<String, List<BLATRecord>> runTiledAlignerCacheSWAll(String refFile, String refIndexFile, TIntObjectMap<int[]> cache, Map<String, String> sequencesNameMap, int tileLength, String originatingMethod, boolean log, boolean recordsMustComeFromChrInName) throws IOException {
+	
+	public static Map<String, List<BLATRecord>> runTiledAlignerCacheSWAll(String refFile, Map<ChrPosition, LongRange> refIndexMap, TIntObjectMap<int[]> cache, Map<String, String> sequencesNameMap, int tileLength, String originatingMethod, boolean log, boolean recordsMustComeFromChrInName) throws IOException {
+		/*
+		 * check sequenceNameMap
+		 */
+		if (null == sequencesNameMap) {
+			throw new IllegalArgumentException("null sequencesNameMap passed to TiledAlignerUtil.runTiledAlignerCache");
+		}
+		
 		Map<String, List<BLATRecord>> results = new HashMap<>();
 		
 		for (Entry<String, String> entry : sequencesNameMap.entrySet()) {
@@ -807,7 +859,7 @@ public class TiledAlignerUtil {
 			}
 			logger.info("in runTiledAlignerCache, name: " + name + ", seq: " + entry.getKey());
 			
-			List<BLATRecord> blatties = getBlatRecordsSWAll(refFile, refIndexFile, cache, entry.getKey(), entry.getValue(), tileLength, originatingMethod, log, recordsMustComeFromChrInName);
+			List<BLATRecord> blatties = getBlatRecordsSWAll(refFile, refIndexMap, cache, entry.getKey(), entry.getValue(), tileLength, originatingMethod, log, recordsMustComeFromChrInName);
 			/*
 			 * populate the name field on the BLATRecord with the value, if present - otherwise just leave as the default
 			 */
@@ -837,12 +889,12 @@ public class TiledAlignerUtil {
 		return is.toArray();
 	}
 	
-	public static List<BLATRecord> getBlatRecordsSWAll(String refFile, String refIndexFile, TIntObjectMap<int[]> cache, String sequence, final String name, int tileLength, String originatingMethod, boolean log, boolean recordsMustComeFromChrInName) {
+	public static List<BLATRecord> getBlatRecordsSWAll(String refFile, Map<ChrPosition, LongRange> refIndexMap, TIntObjectMap<int[]> cache, String sequence, final String name, int tileLength, String originatingMethod, boolean log, boolean recordsMustComeFromChrInName) {
 		if (null == cache || cache.isEmpty()) {
-			throw new IllegalArgumentException("Null or empty cache passed to getBlatRecords");
+			throw new IllegalArgumentException("Null or empty cache passed to getBlatRecordsSWAll");
 		}
 		if (null == sequence || sequence.isEmpty()) {
-			throw new IllegalArgumentException("Null or empty sequence passed to getBlatRecords");
+			throw new IllegalArgumentException("Null or empty sequence passed to getBlatRecordsSWAll");
 		}
 		if (sequence.length() <= tileLength) {
 			throw new IllegalArgumentException("sequence length is less than or equals to the tile length! sequence: " + sequence + ", tile length: " + tileLength);
@@ -884,12 +936,6 @@ public class TiledAlignerUtil {
 		for (Entry<Integer, TLongList> entry : map2.entrySet()) {
 			map1.computeIfAbsent(entry.getKey(), f -> new TLongArrayList()).addAll(entry.getValue());
 		}
-		
-		/*
-		 * try and get reference index file from reference file
-		 */
-		Map<ChrPosition, LongRange> refIndexMap = loadReferenceIndexMap(refFile, refIndexFile);
-		
 		
 		
 		/*
