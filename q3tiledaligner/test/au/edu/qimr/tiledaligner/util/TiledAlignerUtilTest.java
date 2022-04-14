@@ -2,6 +2,8 @@ package au.edu.qimr.tiledaligner.util;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,6 +20,7 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.qcmg.common.model.BLATRecord;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrPositionName;
 import org.qcmg.common.string.StringUtils;
@@ -29,7 +32,9 @@ import au.edu.qimr.tiledaligner.PositionChrPositionMap.LongRange;
 import au.edu.qimr.tiledaligner.model.TARecord;
 import gnu.trove.list.TLongList;
 import gnu.trove.list.array.TLongArrayList;
+import gnu.trove.map.TIntObjectMap;
 import gnu.trove.map.TLongIntMap;
+import gnu.trove.map.hash.TIntObjectHashMap;
 import htsjdk.samtools.util.SequenceUtil;
 
 public class TiledAlignerUtilTest {
@@ -45,6 +50,50 @@ public class TiledAlignerUtilTest {
 		 * setup cache
 		 */
 		pcpm = PositionChrPositionMap.loadGRCh37Map();
+	}
+	
+	@Test
+	public void runTiledAlignerCache() throws IOException {
+		try {
+			TiledAlignerUtil.runTiledAlignerCache(null, null, null, 0, null, false);
+			fail("Should have thrown an IllegalArgumentException");
+		} catch (IllegalArgumentException iae) {}
+		
+		/*
+		 * create a reference file
+		 */
+		File ref = testFolder.newFile("ref.fa");
+		try {
+			TiledAlignerUtil.runTiledAlignerCache(ref.getAbsolutePath(), null, null, 0, null, false);
+			fail("Should have thrown an IllegalArgumentException");
+		} catch (IllegalArgumentException iae) {}
+		
+		/*
+		 * create sequencesNameMap
+		 */
+		Map<String, String> sequencesNameMap = new HashMap<>();
+		Map<String, List<BLATRecord>> map = TiledAlignerUtil.runTiledAlignerCache(ref.getAbsolutePath(), null, sequencesNameMap, 0, null, false);
+		assertTrue(map.isEmpty());
+		
+		/*
+		 * populate sequencesNameMap
+		 */
+		sequencesNameMap.put("ABCDABCDABCDABCD", "my_fav_Sequence");
+		try {
+			map = TiledAlignerUtil.runTiledAlignerCache(ref.getAbsolutePath(), null, sequencesNameMap, 0, null, false);
+			fail("Should have thrown an IllegalArgumentException");
+		} catch (IllegalArgumentException iae) {}
+		
+		/*
+		 * create cache - populate
+		 */
+		TIntObjectMap<int[]> cache = new TIntObjectHashMap<int[]>();
+		int [] array = new int[10];
+		Arrays.fill(array, 10);
+		cache.put(1, array);
+		map = TiledAlignerUtil.runTiledAlignerCache(ref.getAbsolutePath(), cache, sequencesNameMap, 13, null, false);
+		assertEquals(1, map.size());
+		assertEquals(0, map.values().iterator().next().size());
 	}
 	
 	@Test
@@ -1449,5 +1498,5 @@ ATTACAGGCGGGAGCCACTACTCCTGGCCACAAGTCATACTTTAAATCACATATGATATTACTTTTAATTACTTTTTTTT
 		l = NumberUtils.stripBitFromLong(l, TiledAlignerUtil.REVERSE_COMPLEMENT_BIT);
 		assertEquals(false, NumberUtils.isBitSet(l, TiledAlignerUtil.REVERSE_COMPLEMENT_BIT));
 	}
-
+	
 }
