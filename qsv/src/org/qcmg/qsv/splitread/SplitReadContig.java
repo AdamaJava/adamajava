@@ -367,7 +367,7 @@ public class SplitReadContig {
 				}
 				Map<String, String> sequenceNameMap = new HashMap<>(2);
 				sequenceNameMap.put(consensus, name);
-				List<BLATRecord> records = getBlatResults(TiledAlignerUtil.runTiledAlignerCache(parameters.getReference(), cache, sequenceNameMap, TiledAlignerUtil.TILE_LENGTH, "SplitReadContig.findSplitRead", log, true),  knownSV.getLeftReference(), knownSV.getRightReference(), name, consensus, log);
+				List<BLATRecord> records = getBlatResults(TiledAlignerUtil.runTiledAlignerCache(parameters.getReference(), parameters.getRefIndexPositionMap(), cache, sequenceNameMap, TiledAlignerUtil.TILE_LENGTH, "SplitReadContig.findSplitRead", log, true),  knownSV.getLeftReference(), knownSV.getRightReference(), name, consensus, log);
 				
 				if (log) {
 					logger.info("findSplitRead, getBlatResults size: " + records.size() + ", blat rec scores: " + records.stream().map(br -> br.getScore() + "").collect(Collectors.joining(",")));
@@ -390,7 +390,7 @@ public class SplitReadContig {
 							/*
 							 * why is this run twice?
 							 */
-							records = alignConsensus(TiledAlignerUtil.runTiledAlignerCache(parameters.getReference(), cache, sequenceNameMap, TiledAlignerUtil.TILE_LENGTH, "SplitReadContig.findSplitRead", log, true), name + "_clip", clipContig, knownSV.getLeftReference(), knownSV.getRightReference());			
+							records = alignConsensus(TiledAlignerUtil.runTiledAlignerCache(parameters.getReference(), parameters.getRefIndexPositionMap(), cache, sequenceNameMap, TiledAlignerUtil.TILE_LENGTH, "SplitReadContig.findSplitRead", log, true), name + "_clip", clipContig, knownSV.getLeftReference(), knownSV.getRightReference());			
 							if (records.size() > 0) {
 								if (log) {
 									logger.info("findSplitRead, about to call parseConsensusAlign again, records.size: " + records.size() + ", top rec: " + records.get(records.size() - 1).toString());

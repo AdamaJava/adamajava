@@ -748,40 +748,6 @@ public class TiledAlignerUtil {
 		});
 	}
 	
-	public static Map<String, List<BLATRecord>> runTiledAlignerCache(String refFile, TIntObjectMap<int[]> cache, Map<String, String> sequencesNameMap, int tileLength, String originatingMethod, boolean log) throws IOException {
-		/*
-		 * check refFile
-		 */
-		if (StringUtils.isNullOrEmpty(refFile)) {
-			throw new IllegalArgumentException("Null or empty refFile passed to getBlatRecordsSWAll");
-		} else if ( ! Files.isReadable(Paths.get(refFile))) {
-			throw new IllegalArgumentException("refFile passed to getBlatRecordsSWAll doesn't exist or can't be read");
-		}
-		
-		/*
-		 * create refIndexMap
-		 */
-		Map<ChrPosition, LongRange> refIndexMap = loadReferenceIndexMap(refFile, null);
-		return runTiledAlignerCache(refFile, refIndexMap, cache,  sequencesNameMap, tileLength, originatingMethod,  log, false);
-	}
-	
-	public static Map<String, List<BLATRecord>> runTiledAlignerCache(String refFile, TIntObjectMap<int[]> cache, Map<String, String> sequencesNameMap, int tileLength, String originatingMethod, boolean log, boolean recordsMustComeFromChrInName) throws IOException {
-		/*
-		 * check refFile
-		 */
-		if (StringUtils.isNullOrEmpty(refFile)) {
-			throw new IllegalArgumentException("Null or empty refFile passed to getBlatRecordsSWAll");
-		} else if ( ! Files.isReadable(Paths.get(refFile))) {
-			throw new IllegalArgumentException("refFile passed to getBlatRecordsSWAll doesn't exist or can't be read");
-		}
-		
-		/*
-		 * create refIndexMap
-		 */
-		Map<ChrPosition, LongRange> refIndexMap = loadReferenceIndexMap(refFile, null);
-		return  runTiledAlignerCache( refFile,  refIndexMap, cache,  sequencesNameMap,  tileLength,  originatingMethod,  log,  recordsMustComeFromChrInName);
-	}
-	
 	public static Map<String, List<BLATRecord>> runTiledAlignerCache(String refFile, Map<ChrPosition, LongRange> refIndexMap, TIntObjectMap<int[]> cache, Map<String, String> sequencesNameMap, int tileLength, String originatingMethod, boolean log, boolean recordsMustComeFromChrInName) throws IOException {
 		
 		/*
@@ -1382,7 +1348,7 @@ public class TiledAlignerUtil {
 		return nonOverlappingRecs;
 	}
 
-	static Map<ChrPosition, LongRange> loadReferenceIndexMap(String refFile, String refIndexFile) {
+	public static Map<ChrPosition, LongRange> loadReferenceIndexMap(String refFile, String refIndexFile) {
 		Map<ChrPosition, LongRange> headerMap = null;
 		if (null == refIndexFile) {
 			/*

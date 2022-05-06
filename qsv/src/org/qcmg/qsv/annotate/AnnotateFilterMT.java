@@ -238,9 +238,9 @@ public class AnnotateFilterMT implements Runnable {
 			if (runPair && ! StringUtils.isNullOrEmpty(query)) {
 				pairQueryEx = new QueryExecutor(query);
 			}
-			 if (runClip && ! StringUtils.isNullOrEmpty(clipQuery)) {
-				 clipQueryEx = new QueryExecutor(clipQuery);
-			 }
+			if (runClip && ! StringUtils.isNullOrEmpty(clipQuery)) {
+			    clipQueryEx = new QueryExecutor(clipQuery);
+			}
 			if (parameters.getPairingType().equals("lmp") && parameters.getMapper().equals("bioscope")) {
 				lifescopeQueryEx = new QueryExecutor("and(Cigar_M > 35, MD_mismatch < 3, MAPQ > 0, flag_DuplicateRead == false)");
 			}

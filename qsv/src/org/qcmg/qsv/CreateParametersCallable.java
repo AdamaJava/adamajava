@@ -4,12 +4,16 @@
 package org.qcmg.qsv;
 
 import java.util.Date;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.model.ChrPosition;
 import org.qcmg.qsv.util.QSVUtil;
+
+import au.edu.qimr.tiledaligner.PositionChrPositionMap.LongRange;
 
 public class CreateParametersCallable implements Callable<QSVParameters> {
 	
@@ -22,11 +26,11 @@ public class CreateParametersCallable implements Callable<QSVParameters> {
 	private Date analysisDate;
 	private int exitStatus;
 	private CountDownLatch latch;
-
+	private Map<ChrPosition, LongRange> refIndexPositionMap;
 
 	public CreateParametersCallable(CountDownLatch latch,Options options, boolean b, String resultsDir,
 			String matePairDir, Date analysisDate,
-			String sampleName) {
+			String sampleName, Map<ChrPosition, LongRange> refIndexPositionMap) {
 		this.options = options;
 		this.isTumor = b;
 		this.resultsDir = resultsDir;
@@ -34,13 +38,14 @@ public class CreateParametersCallable implements Callable<QSVParameters> {
 		this.sampleName = sampleName;
 		this.analysisDate = analysisDate;
 		this.latch = latch;
+		this.refIndexPositionMap = refIndexPositionMap;
 	}
 
 	@Override
 	public QSVParameters call() {
 		QSVParameters p = null;
 		try {
-			p = new QSVParameters(options, isTumor, resultsDir, matePairDir, analysisDate, sampleName);
+			p = new QSVParameters(options, isTumor, resultsDir, matePairDir, analysisDate, sampleName, refIndexPositionMap);
 		} catch (Exception e) {
 			this.exitStatus = 1;
 			logger.info(QSVUtil.getStrackTrace(e));
