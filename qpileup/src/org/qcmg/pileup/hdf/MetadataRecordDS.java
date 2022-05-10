@@ -13,6 +13,7 @@ import ncsa.hdf.hdf5lib.exceptions.HDF5Exception;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.pileup.PileupConstants;
+import org.qcmg.pileup.PileupUtil;
 import org.qcmg.pileup.QPileupException;
 
 public class MetadataRecordDS extends MetadataDS {
@@ -95,17 +96,34 @@ public class MetadataRecordDS extends MetadataDS {
 	public void writeMember(String date, String currentTime, String mode, String bam, String recordCount, String runTime, String reference) throws Exception {
 					
 		String[] oldRecords = (String[]) hdf.readDatasetBlock(fullName, 0, -1);
+		
+		//metaDS.writeMember(PileupUtil.getCurrentDate(), PileupUtil.getCurrentTime(":"), mode, bamFile, filteredCount, time, "");		
+		//find record:  "## METADATA=MODE:add,DATE:..,RUNTIME:..,HDF:<h5>,FILE: <bam>,RECORDS:..." 	
+		int removeOrder = -1;
+		if ( mode.equals("remove") ) {			
+			for (int i = 0; i < oldRecords.length; i++) {
+				if (oldRecords[i].contains("MODE:add") && oldRecords[i].contains(bam)) {
+					removeOrder = i; 
+				}
+			}
+		}			
 
-		int newLength = oldRecords.length + 1;
+			
+		//delete one "MODE:add" if remove mode
+		int newLength = removeOrder == -1 ? oldRecords.length + 1 : oldRecords.length;
 		records = new String[newLength];
 		hdf.extendStringDatasetBlock(fullName, 0, newLength);
-		for (int i=0; i<records.length; i++) {
-			if (i == records.length -1) {
-				addDatasetMember(i, getMemberString(date, mode, bam, recordCount, runTime, reference));
-			} else {
-				records[i] = oldRecords[i];
-			}
-		}		
+		//skip "MODE:add" && bam matched remove
+		for (int i = 0, j = 0; i < oldRecords.length; i++) {
+			if (removeOrder != i ) {
+				records[j] = oldRecords[i];
+				j ++;
+			}			
+		}
+		
+		//add current bam to last header line
+		addDatasetMember(newLength - 1, getMemberString(date, mode, bam, recordCount, runTime, reference));
+		
 		hdf.writeDatasetBlock(fullName, 0, records.length, records);
 	}
 	
