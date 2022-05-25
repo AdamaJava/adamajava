@@ -115,5 +115,5 @@ input_hdf=$path/pileup.B.h5
 EOF
 #run and check h5 header
 java -jar $pileup --ini $ini
-java  -jar $pileup  --view --hdf-header --hdf $hdf > ${hdf}.remove.header;
+java  -jar $pileup  --view --hdf-header --hdf $hdf > ${hdf}.header;
 
