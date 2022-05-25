@@ -5,13 +5,16 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 
 import org.apache.commons.io.FileUtils;
@@ -411,14 +414,14 @@ public class OptionsTest {
     @Test
     public void outputDirTest() throws InvalidFileFormatException, QSVException, IOException {
     	 
-	 	//output dir not exsits without uuid option
+	 	//output dir not exists without uuid option
     	File tmp1 = testFolder.newFolder();   	
     	String[] args = TestUtil.getValidOptions(tmp1, file1, file2, "both", "both", true);
     	Options options = new Options(args);
-    	//suceed when output direcotry exists. 
+    	//Succeed when output directory exists. 
     	options.parseIniFile();
     	    	
-    	//delete output directory, mv ini to a different direcotry. 
+    	//delete output directory, mv ini to a different directory. 
     	File tmp2 = testFolder.newFolder();    
     	Path source = Paths.get(args[1]);
     	Path target = new File(tmp2, "test.new.ini").toPath();    	
@@ -467,8 +470,79 @@ public class OptionsTest {
         options.detectBadOptions();
     }
     
-  
+    @Test
+    public void testBadOptionsReference() throws QSVException, InvalidFileFormatException, IOException {
+    	File tmp = testFolder.newFolder();
+    	File iniFile = testFolder.newFile("file.ini");
+    	File genericInputFile = testFolder.newFile();
+    	File refFile = testFolder.newFile("reference.fasta");
+    	
+    	List<String> data = Arrays.asList("[general]", 
+    			"qcmg=true", 
+    			"sample=sample", 
+    			"output=" + tmp.getAbsolutePath(), 
+    			"tiled_aligner=" + genericInputFile.getAbsolutePath(), 
+    			"reference=" + refFile.getAbsolutePath(), 
+    			"[test]", 
+    			"name=test",
+    			"input_file=" + genericInputFile.getAbsolutePath());
+    	
+    	writeIni(iniFile, data);
+    	
+        String[] args = new String[] {"--output-temporary", tmp.getAbsolutePath(), "--ini", iniFile.getAbsolutePath()};
+        Options options = new Options(args);
+        /*
+         * no reference index file specified
+         */
+        try {
+        	options.parseIniFile();
+        	Assert.fail("Should have thrown an exception");
+        } catch (QSVException qsve) {}
+        
+        /*
+         * create ref index file but not with expected suffix - should still throw an exception
+         */
+        try {
+        	testFolder.newFile("reference.fasta.fia");
+        	options.parseIniFile();
+        	Assert.fail("Should have thrown an exception");
+        } catch (QSVException qsve) {}
+        
+        /*
+         * create reference index file next to reference file with correct suffix
+         */
+        File refIndexFile = testFolder.newFile("reference.fasta.fai");
+        options.parseIniFile();
+        assertEquals(refIndexFile.getAbsolutePath(), options.getReferenceIndex());
+        
+        
+        iniFile.delete();
+        /*
+         * and finally by explicitly setting the reference index
+         */
+        data = Arrays.asList("[general]", 
+    			"qcmg=true", 
+    			"sample=sample", 
+    			"output=" + tmp.getAbsolutePath(), 
+    			"tiled_aligner=" + genericInputFile.getAbsolutePath(), 
+    			"reference=" + refFile.getAbsolutePath(), 
+    			"reference_index=" + refIndexFile.getAbsolutePath(), 
+    			"[test]", 
+    			"name=test", 
+    			"input_file=" + genericInputFile.getAbsolutePath());
+    	
+    	writeIni(iniFile, data);
+    	options.parseIniFile();
+    	assertEquals(refIndexFile.getAbsolutePath(), options.getReferenceIndex());
+        
+    }
     
-
+    private void writeIni(File iniFile, List<String> contents) throws IOException {
+    	try (BufferedWriter out = new BufferedWriter(new FileWriter(iniFile))) {
+    		for (String s : contents) {
+    			out.write(s + "\n");
+    		}
+    	}
+    }
 
 }

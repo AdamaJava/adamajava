@@ -7,10 +7,6 @@
 
 package org.qcmg.qsv.softclip;
 
-import au.edu.qimr.tiledaligner.util.TiledAlignerUtil;
-
-import gnu.trove.map.TIntObjectMap;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -55,6 +51,9 @@ import org.qcmg.qsv.discordantpair.PairGroup;
 import org.qcmg.qsv.splitread.UnmappedRead;
 import org.qcmg.qsv.util.CustomThreadPoolExecutor;
 import org.qcmg.qsv.util.QSVUtil;
+
+import au.edu.qimr.tiledaligner.util.TiledAlignerUtil;
+import gnu.trove.map.TIntObjectMap;
 
 public class FindClipClustersMT  {
 
@@ -623,7 +622,7 @@ public class FindClipClustersMT  {
 				/*
 				 * This gives me possibly many BLATRecords per sequence. Here, we only want the "best" record (the one with the highest score)
 				 */
-				Map<String, List<BLATRecord>> allBlatRecords = TiledAlignerUtil.runTiledAlignerCache(tumourParameters.getReference(), cache, sequenceNameMapToSendToTiledAligner, 13, "FindClipClustersMT.blatBreakpoints", false);
+				Map<String, List<BLATRecord>> allBlatRecords = TiledAlignerUtil.runTiledAlignerCache(tumourParameters.getReference(), tumourParameters.getRefIndexPositionMap(), cache, sequenceNameMapToSendToTiledAligner, 13, "FindClipClustersMT.blatBreakpoints", false, false);
 				logger.debug("in blatBreakpoints all, allBlatRecords size: " + allBlatRecords.size());
 				for (Entry<String, List<BLATRecord>> entry : allBlatRecords.entrySet()) {
 					logger.debug("in blatBreakpoints all: key: " + entry.getKey() + ", blat recs: " + entry.getValue().stream().map(BLATRecord::toString).collect(Collectors.joining(",")));
