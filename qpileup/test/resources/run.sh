@@ -1,7 +1,8 @@
 
-#run qpileup
-pileup=/adamajava/qpileup/build/flat/qpileup.jar;
-path=/adamajava/qpileup/test/resources
+
+#run qpileup, take input as qpileup project root, eg $(pwd)/adamajava
+pileup=$1/qpileup/build/flat/qpileup.jar;
+path=$1/qpileup/test/resources
 
 ############################
 #run bootstrap first
@@ -100,7 +101,7 @@ cat <<- EOF > $ini
 [general]
 hdf=$hdf
 log=$hdf.log
-mode=
+mode=merge
 thread_no=1
 
 [bootstrap]
