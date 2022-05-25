@@ -3,7 +3,6 @@
  */
 package org.qcmg.pileup.hdf;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -13,7 +12,6 @@ import ncsa.hdf.hdf5lib.exceptions.HDF5Exception;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.pileup.PileupConstants;
-import org.qcmg.pileup.PileupUtil;
 import org.qcmg.pileup.QPileupException;
 
 public class MetadataRecordDS extends MetadataDS {
