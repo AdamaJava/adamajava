@@ -1,17 +1,5 @@
 package org.qcmg.qsv.util;
 
-import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SAMFileHeader.SortOrder;
-import htsjdk.samtools.SAMFileWriter;
-import htsjdk.samtools.SAMFileWriterFactory;
-import htsjdk.samtools.SAMReadGroupRecord;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SAMRecordCoordinateComparator;
-import htsjdk.samtools.SAMRecordQueryNameComparator;
-import htsjdk.samtools.SAMSequenceDictionary;
-import htsjdk.samtools.SAMSequenceRecord;
-import htsjdk.samtools.SamReader;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -40,6 +28,18 @@ import org.qcmg.qsv.softclip.Breakpoint;
 import org.qcmg.qsv.softclip.Clip;
 import org.qcmg.qsv.softclip.SoftClipCluster;
 
+import htsjdk.samtools.SAMFileHeader;
+import htsjdk.samtools.SAMFileHeader.SortOrder;
+import htsjdk.samtools.SAMFileWriter;
+import htsjdk.samtools.SAMFileWriterFactory;
+import htsjdk.samtools.SAMReadGroupRecord;
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SAMRecordCoordinateComparator;
+import htsjdk.samtools.SAMRecordQueryNameComparator;
+import htsjdk.samtools.SAMSequenceDictionary;
+import htsjdk.samtools.SAMSequenceRecord;
+import htsjdk.samtools.SamReader;
+
 public class TestUtil {
 	
 	private static final String FILE_SEPERATOR = System.getProperty("file.separator");
@@ -57,7 +57,7 @@ public class TestUtil {
         final String normalBam, final String tumorBam, final String preprocessMode,
         final String analysisMode) throws IOException {
 		
-		return getValidOptions(testFolder,normalBam,tumorBam, preprocessMode,analysisMode, true);
+		return getValidOptions(testFolder, normalBam, tumorBam, preprocessMode, analysisMode, true);
     }
 
 	public static String[] getValidOptions(final File testFolder,
@@ -98,12 +98,11 @@ public class TestUtil {
 	private static String setUpIniFile(final File testFolder, String preprocessMode,
 			final String analysisMode, String normalBam, String tumorBam, int clusterSize, int filterSize, String tmpDir, String outputDir, boolean goodOutput, String mapper, String sequencingPlatform) throws IOException {
 		
-//		File iniFile = testFolder.newFile("test.ini");
-//		File reference = testFolder.newFile("reference_file");
-		
 		File iniFile = new File(testFolder, "test.ini");
-		File reference = new File(testFolder,"reference_file");
+		File reference = new File(testFolder, "reference_file");
 		reference.createNewFile();
+		File referenceIndex = new File(testFolder, "reference_file.fai");
+		referenceIndex.createNewFile();
 				
 		
 		try (BufferedWriter out = new BufferedWriter(new FileWriter(iniFile))) {
@@ -112,11 +111,12 @@ public class TestUtil {
 			out.write("loglevel=DEBUG" + NEWLINE);
 			out.write("sample=test" + NEWLINE);
 			out.write("platform=" + sequencingPlatform + NEWLINE);		
-			out.write("sv_analysis="+analysisMode + NEWLINE);
+			out.write("sv_analysis=" + analysisMode + NEWLINE);
 			if (goodOutput) {
-				out.write("output="+outputDir + NEWLINE);
+				out.write("output=" + outputDir + NEWLINE);
 			}
 			out.write("reference=" + reference.getAbsolutePath() + NEWLINE);
+//			out.write("reference_index=" + referenceIndex.getAbsolutePath() + NEWLINE);
 			out.write("tiled_aligner=" + reference.getAbsolutePath() + NEWLINE);
 			out.write("isize_records=all" + NEWLINE);
 			out.write("qcmg=true" + NEWLINE);
@@ -124,8 +124,8 @@ public class TestUtil {
 			out.write("[pair]" + NEWLINE);
 			out.write("pair_query=and(Cigar_M > 35,option_SM > 14,MD_mismatch < 3,Flag_DuplicateRead == false)" + NEWLINE);
 			out.write("pairing_type=lmp" + NEWLINE);
-			out.write("cluster_size="+clusterSize + NEWLINE);
-			out.write("filter_size="+filterSize + NEWLINE);
+			out.write("cluster_size=" + clusterSize + NEWLINE);
+			out.write("filter_size=" + filterSize + NEWLINE);
 			out.write("primer_size=3" + NEWLINE);
 			out.write("mapper=" + mapper + NEWLINE);
 			out.write("[clip]" + NEWLINE);
@@ -136,36 +136,36 @@ public class TestUtil {
 			out.write("blatserver=localhost" + NEWLINE);
 			out.write("blatport=50000" + NEWLINE);
 			
-			out.write("["+ QSVConstants.DISEASE_SAMPLE +"]" + NEWLINE);
+			out.write("[" + QSVConstants.DISEASE_SAMPLE + "]" + NEWLINE);
 			out.write("name=TD" + NEWLINE);
 			out.write("sample_id=ICGC-DBLG-20110506-01-TD" + NEWLINE);
-			out.write("input_file="+tumorBam + NEWLINE);
+			out.write("input_file=" + tumorBam + NEWLINE);
 			if (preprocessMode.equals("none")) {
-				out.write("discordantpair_file="+tumorBam + NEWLINE);
+				out.write("discordantpair_file=" + tumorBam + NEWLINE);
 			}
-			out.write("["+ QSVConstants.DISEASE_SAMPLE +"/size_1]" + NEWLINE);
+			out.write("[" + QSVConstants.DISEASE_SAMPLE + "/size_1]" + NEWLINE);
 			out.write("rgid=20110221052813657" + NEWLINE);
 			out.write("lower=640" + NEWLINE);
 			out.write("upper=2360" + NEWLINE + NEWLINE);
 			out.write("name=seq_mapped_1" + NEWLINE);
-			out.write("["+ QSVConstants.DISEASE_SAMPLE +"/size_2]" + NEWLINE);
+			out.write("[" + QSVConstants.DISEASE_SAMPLE + "/size_2]" + NEWLINE);
 			out.write("rgid=20110221052813667" + NEWLINE);
 			out.write("lower=640" + NEWLINE);
 			out.write("upper=2360" + NEWLINE + NEWLINE);
 			out.write("name=seq_mapped_1" + NEWLINE);
-			out.write("["+ QSVConstants.CONTROL_SAMPLE +"]" + NEWLINE);
+			out.write("[" + QSVConstants.CONTROL_SAMPLE + "]" + NEWLINE);
 			out.write("name=ND" + NEWLINE);
 			out.write("sample_id=ICGC-DBLG-20110506-01-ND" + NEWLINE);
-			out.write("input_file="+normalBam + NEWLINE);
+			out.write("input_file=" + normalBam + NEWLINE);
 			if (preprocessMode.equals("none")) {
-				out.write("discordantpair_file="+normalBam + NEWLINE);
+				out.write("discordantpair_file=" + normalBam + NEWLINE);
 			}
-			out.write("["+ QSVConstants.CONTROL_SAMPLE +"/size_1]" + NEWLINE);
+			out.write("[" + QSVConstants.CONTROL_SAMPLE + "/size_1]" + NEWLINE);
 			out.write("rgid=20110221052813657" + NEWLINE);
 			out.write("lower=640" + NEWLINE);
 			out.write("upper=2360" + NEWLINE + NEWLINE);
 			out.write("name=seq_mapped_1" + NEWLINE);
-			out.write("["+ QSVConstants.CONTROL_SAMPLE +"/size_2]" + NEWLINE);
+			out.write("[" + QSVConstants.CONTROL_SAMPLE + "/size_2]" + NEWLINE);
 			out.write("type=ND" + NEWLINE);
 			out.write("rgid=20110221052813667" + NEWLINE);
 			out.write("lower=640" + NEWLINE);
@@ -231,13 +231,13 @@ public class TestUtil {
             mateDir.mkdir();
         }
         
-        QSVParameters p = new QSVParameters(options, isTumor, testFolder.getAbsolutePath() + FILE_SEPERATOR, matepairsDir, new Date(), "test");
+        QSVParameters p = new QSVParameters(options, isTumor, testFolder.getAbsolutePath() + FILE_SEPERATOR, matepairsDir, new Date(), "test", null);
         return p;
     }
 
 	public static QSVParameters getQSVParameters(final File testFolder, final String normalBam, final String tumorBam,
             final boolean isTumor, final String preprocessMode, String analysisMode) throws Exception {
-        Options options = new Options(getValidOptions(testFolder, normalBam, tumorBam,preprocessMode, analysisMode));
+        Options options = new Options(getValidOptions(testFolder, normalBam, tumorBam, preprocessMode, analysisMode));
         options.parseIniFile();
 
         String matepairsDir = new File(testFolder, "matepair").getAbsolutePath() + FILE_SEPERATOR;
@@ -248,7 +248,7 @@ public class TestUtil {
         }
         
        // QSVParameters p = new QSVParameters(options, isTumor, testFolder.getRoot().toString() + FILE_SEPERATOR, matepairsDir, new Date(), "test");
-        QSVParameters p = new QSVParameters(options, isTumor, testFolder.getAbsolutePath() + FILE_SEPERATOR, matepairsDir, new Date(), "test");
+        QSVParameters p = new QSVParameters(options, isTumor, testFolder.getAbsolutePath() + FILE_SEPERATOR, matepairsDir, new Date(), "test", null);
         return p;
     }
     

@@ -55,7 +55,7 @@ public class TiledAlignerUtilTest {
 	@Test
 	public void runTiledAlignerCache() throws IOException {
 		try {
-			TiledAlignerUtil.runTiledAlignerCache(null, null, null, 0, null, false);
+			TiledAlignerUtil.runTiledAlignerCache(null, null, null, null, 0, null, false, false);
 			fail("Should have thrown an IllegalArgumentException");
 		} catch (IllegalArgumentException iae) {}
 		
@@ -64,7 +64,7 @@ public class TiledAlignerUtilTest {
 		 */
 		File ref = testFolder.newFile("ref.fa");
 		try {
-			TiledAlignerUtil.runTiledAlignerCache(ref.getAbsolutePath(), null, null, 0, null, false);
+			TiledAlignerUtil.runTiledAlignerCache(ref.getAbsolutePath(), null, null, null, 0, null, false, false);
 			fail("Should have thrown an IllegalArgumentException");
 		} catch (IllegalArgumentException iae) {}
 		
@@ -72,7 +72,7 @@ public class TiledAlignerUtilTest {
 		 * create sequencesNameMap
 		 */
 		Map<String, String> sequencesNameMap = new HashMap<>();
-		Map<String, List<BLATRecord>> map = TiledAlignerUtil.runTiledAlignerCache(ref.getAbsolutePath(), null, sequencesNameMap, 0, null, false);
+		Map<String, List<BLATRecord>> map = TiledAlignerUtil.runTiledAlignerCache(ref.getAbsolutePath(), null, null, sequencesNameMap, 0, null, false, false);
 		assertTrue(map.isEmpty());
 		
 		/*
@@ -80,7 +80,7 @@ public class TiledAlignerUtilTest {
 		 */
 		sequencesNameMap.put("ABCDABCDABCDABCD", "my_fav_Sequence");
 		try {
-			map = TiledAlignerUtil.runTiledAlignerCache(ref.getAbsolutePath(), null, sequencesNameMap, 0, null, false);
+			map = TiledAlignerUtil.runTiledAlignerCache(ref.getAbsolutePath(), null, null, sequencesNameMap, 0, null, false, false);
 			fail("Should have thrown an IllegalArgumentException");
 		} catch (IllegalArgumentException iae) {}
 		
@@ -91,7 +91,7 @@ public class TiledAlignerUtilTest {
 		int [] array = new int[10];
 		Arrays.fill(array, 10);
 		cache.put(1, array);
-		map = TiledAlignerUtil.runTiledAlignerCache(ref.getAbsolutePath(), cache, sequencesNameMap, 13, null, false);
+		map = TiledAlignerUtil.runTiledAlignerCache(ref.getAbsolutePath(), null, cache, sequencesNameMap, 13, null, false, false);
 		assertEquals(1, map.size());
 		assertEquals(0, map.values().iterator().next().size());
 	}
