@@ -77,8 +77,8 @@ loglevel = Opt, logging level [INFO,DEBUG], Def=INFO.
 sample = Opt, donor or patient id.
 sv_analysis = (*) Opt, type of sv analysis [pair, clip, both]. Def=both.
 output = (*) Req, output directory. A result sub folder for the analysis will be automatically created in uuid format.
-reference = Req, path to fasta reference file
-reference_index = Req, path to fasta reference index file
+reference = Req, path to fasta reference file.
+reference_index = Req, path to fasta reference index file.
 platform = Req, sequence machine platform [solid, illumina,bgi].
 min_insert_size = Opt, minimum size of SV insert. Def=50.
 range = Opt, specify one or more chromosomes or inter for translocations. Def={all chromosome>
