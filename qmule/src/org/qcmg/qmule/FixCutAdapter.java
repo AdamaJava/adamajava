@@ -20,12 +20,11 @@ import java.io.InputStreamReader;
 import java.util.Date;
 
 public class FixCutAdapter extends CommandLineProgram {
-    static final String USAGE = "A Fastq file may contains empty seqence after cutAdapter,  Here A base N is set to empty sequence with 0 base quality value";
-    
-    @Argument(shortName = StandardOptionDefinitions.INPUT_SHORT_NAME, doc = "Input Fastq file to be fixed. Default is STDIN",optional=true)
+    static final String USAGE = "When cutadapt finds adapter sequence at the start of a read the option --trim-n results in empty sequence in the output. This tool replaces any empty sequence with a single base N with 0 base quality value.";    
+    @Argument(shortName = StandardOptionDefinitions.INPUT_SHORT_NAME, doc = "Input FASTQ file to be fixed. Default is STDIN.", optional=true)
     public File INPUT = null;
 
-    @Argument(shortName = StandardOptionDefinitions.OUTPUT_SHORT_NAME, doc = "Where to write fixed fastq file.Default is STDOUT", optional=true)
+    @Argument(shortName = StandardOptionDefinitions.OUTPUT_SHORT_NAME, doc = "Where to write fixed fastq file. Default is STDOUT.", optional=true)
     public File OUTPUT = null;
        
     
