@@ -44,11 +44,8 @@ public class FixCutAdapter extends CommandLineProgram {
 	protected int doWork() {
 		 			        
         try( BufferedReader reader = INPUT == null ? 
-				new BufferedReader(new InputStreamReader(System.in)) : IOUtil.openFileForBufferedReading(INPUT);     
-        		
-        		FastqWriter writer = OUTPUT == null ? new BasicFastqWriter(System.out) : (new FastqWriterFactory()).newWriter(OUTPUT);
-        //		BufferedWriter writer = OUTPUT == null ? new BufferedWriter(new OutputStreamWriter(System.out)) : IOUtil.openFileForBufferedWriting(OUTPUT)
-        ) {       	
+				new BufferedReader(new InputStreamReader(System.in)) : IOUtil.openFileForBufferedReading(INPUT);             		
+        		FastqWriter writer = OUTPUT == null ? new BasicFastqWriter(System.out) : (new FastqWriterFactory()).newWriter(OUTPUT); ) {       	
         	do {        		
         		
             	final String seqHeader = reader.readLine(); // read header             
@@ -74,8 +71,6 @@ public class FixCutAdapter extends CommandLineProgram {
                 //output updated fastq record
                 final FastqRecord frec = new FastqRecord(seqHeader.substring(1, seqHeader.length()), seqLine,
                         qualHeader.substring(1, qualHeader.length()), qualLine);
-                
-                //writer.write(frec.toFastQString());
                 writer.write(frec);          
         		
                 line += 4 ;
