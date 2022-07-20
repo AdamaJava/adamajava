@@ -14,9 +14,14 @@ import htsjdk.samtools.fastq.FastqWriter;
 import htsjdk.samtools.fastq.FastqWriterFactory;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.io.Writer;
 import java.util.Date;
 
 public class FixCutAdapter extends CommandLineProgram {
@@ -42,11 +47,11 @@ public class FixCutAdapter extends CommandLineProgram {
 	protected int doWork() {
 		 			        
         try( BufferedReader reader = INPUT == null ? 
-				new BufferedReader(new InputStreamReader(System.in)) : IOUtil.openFileForBufferedReading(INPUT);
-        	FastqWriter writer =  OUTPUT == null ?
-				null : (new FastqWriterFactory()).newWriter(OUTPUT);) {
-        	
+				new BufferedReader(new InputStreamReader(System.in)) : IOUtil.openFileForBufferedReading(INPUT);        		
+        		BufferedWriter writer = OUTPUT == null ? 
+        				new BufferedWriter(new OutputStreamWriter(System.out)) : IOUtil.openFileForBufferedWriting(OUTPUT)) {       	
         	do {        		
+        		
             	final String seqHeader = reader.readLine(); // read header             
                 String seqLine = reader.readLine(); // Read sequence line                          
                 final String qualHeader = reader.readLine(); // Read quality header                
@@ -70,10 +75,9 @@ public class FixCutAdapter extends CommandLineProgram {
                 //output updated fastq record
                 final FastqRecord frec = new FastqRecord(seqHeader.substring(1, seqHeader.length()), seqLine,
                         qualHeader.substring(1, qualHeader.length()), qualLine);
-
-                if(writer == null ) System.out.println(frec.toFastQString());               	
-                else writer.write(frec); 
                 
+                writer.write(frec.toFastQString());
+                writer.newLine();                
         		
                 line += 4 ;
         	} while( true );
