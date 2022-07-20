@@ -7,8 +7,11 @@ import picard.cmdline.StandardOptionDefinitions;
 import htsjdk.samtools.util.IOUtil;
 import htsjdk.samtools.util.StringUtil;
 import htsjdk.samtools.SAMException;
+import htsjdk.samtools.fastq.BasicFastqWriter;
 import htsjdk.samtools.fastq.FastqConstants;
 import htsjdk.samtools.fastq.FastqRecord;
+import htsjdk.samtools.fastq.FastqWriter;
+import htsjdk.samtools.fastq.FastqWriterFactory;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -41,9 +44,11 @@ public class FixCutAdapter extends CommandLineProgram {
 	protected int doWork() {
 		 			        
         try( BufferedReader reader = INPUT == null ? 
-				new BufferedReader(new InputStreamReader(System.in)) : IOUtil.openFileForBufferedReading(INPUT);        		
-        		BufferedWriter writer = OUTPUT == null ? 
-        				new BufferedWriter(new OutputStreamWriter(System.out)) : IOUtil.openFileForBufferedWriting(OUTPUT)) {       	
+				new BufferedReader(new InputStreamReader(System.in)) : IOUtil.openFileForBufferedReading(INPUT);     
+        		
+        		FastqWriter writer = OUTPUT == null ? new BasicFastqWriter(System.out) : (new FastqWriterFactory()).newWriter(OUTPUT);
+        //		BufferedWriter writer = OUTPUT == null ? new BufferedWriter(new OutputStreamWriter(System.out)) : IOUtil.openFileForBufferedWriting(OUTPUT)
+        ) {       	
         	do {        		
         		
             	final String seqHeader = reader.readLine(); // read header             
@@ -70,8 +75,8 @@ public class FixCutAdapter extends CommandLineProgram {
                 final FastqRecord frec = new FastqRecord(seqHeader.substring(1, seqHeader.length()), seqLine,
                         qualHeader.substring(1, qualHeader.length()), qualLine);
                 
-                writer.write(frec.toFastQString());
-                writer.newLine();                
+                //writer.write(frec.toFastQString());
+                writer.write(frec);          
         		
                 line += 4 ;
         	} while( true );
