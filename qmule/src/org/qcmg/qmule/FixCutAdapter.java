@@ -47,9 +47,16 @@ public class FixCutAdapter extends CommandLineProgram {
 	protected int doWork() {
 		 			        
         try( BufferedReader reader = INPUT == null ? 
+<<<<<<< HEAD
 				new BufferedReader(new InputStreamReader(System.in)) : IOUtil.openFileForBufferedReading(INPUT);        		
         		BufferedWriter writer = OUTPUT == null ? 
         				new BufferedWriter(new OutputStreamWriter(System.out)) : IOUtil.openFileForBufferedWriting(OUTPUT)) {       	
+=======
+				new BufferedReader(new InputStreamReader(System.in)) : IOUtil.openFileForBufferedReading(INPUT);
+        	FastqWriter writer =  OUTPUT == null ?
+				null : (new FastqWriterFactory()).newWriter(OUTPUT);) {
+        	
+>>>>>>> 64d8da3e6993d1ba20f14fbf41f7dbf0107229a3
         	do {        		
         		
             	final String seqHeader = reader.readLine(); // read header             
