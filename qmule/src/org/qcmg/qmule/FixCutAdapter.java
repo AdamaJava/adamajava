@@ -44,6 +44,7 @@ public class FixCutAdapter extends CommandLineProgram {
 	protected int doWork() {
 		 			        
         try( BufferedReader reader = INPUT == null ? 
+        		//the input fastq may contains broken record, eg missing sequence, so FastqReader can't be used here
 				new BufferedReader(new InputStreamReader(System.in)) : IOUtil.openFileForBufferedReading(INPUT);             		
         		FastqWriter writer = OUTPUT == null ? new BasicFastqWriter(System.out) : (new FastqWriterFactory()).newWriter(OUTPUT); ) {       	
         	do {        		
