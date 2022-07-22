@@ -35,7 +35,6 @@ public class FixCutAdapterTest {
 	@BeforeClass
 	public static void setup() throws IOException {
 		INPUT = testFolder.newFile("input.fastq");	
-		INPUT = new File("input.fastq");
 		OUTPUT = testFolder.newFile("output.fastq");
 		
 		ArrayList<FastqRecord> data = new ArrayList<>(Arrays.asList( r1,r2,r3 ) );	
@@ -50,10 +49,8 @@ public class FixCutAdapterTest {
 	}
 	
 	@Test
-	public void stdTest() throws Exception{
-		
-		String command = " -I " + INPUT.getAbsolutePath();
-		
+	public void stdTest() throws Exception{		
+		String command = " -I " + INPUT.getAbsolutePath();		
 		assertEquals(0 ,(new Executor(command, "org.qcmg.qmule.FixCutAdapter")).getErrCode());
 	}
 		

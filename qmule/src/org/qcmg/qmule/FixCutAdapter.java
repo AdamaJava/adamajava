@@ -7,16 +7,18 @@ import picard.cmdline.StandardOptionDefinitions;
 import htsjdk.samtools.util.IOUtil;
 import htsjdk.samtools.util.StringUtil;
 import htsjdk.samtools.SAMException;
+import htsjdk.samtools.fastq.BasicFastqWriter;
 import htsjdk.samtools.fastq.FastqConstants;
-
 import htsjdk.samtools.fastq.FastqRecord;
 import htsjdk.samtools.fastq.FastqWriter;
 import htsjdk.samtools.fastq.FastqWriterFactory;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.util.Date;
 
 public class FixCutAdapter extends CommandLineProgram {
@@ -40,17 +42,13 @@ public class FixCutAdapter extends CommandLineProgram {
     }
 	@Override
 	protected int doWork() {
-		@SuppressWarnings("resource")
-		BufferedReader reader = INPUT == null ? 
-				new BufferedReader(new InputStreamReader(System.in)) : IOUtil.openFileForBufferedReading(INPUT);
-				
-		@SuppressWarnings("resource")
-		FastqWriter writer =  OUTPUT == null ?
-				null : (new FastqWriterFactory()).newWriter(OUTPUT);
 		 			        
-        try{
-        	
+        try( BufferedReader reader = INPUT == null ? 
+        		//the input fastq may contains broken record, eg missing sequence, so FastqReader can't be used here
+				new BufferedReader(new InputStreamReader(System.in)) : IOUtil.openFileForBufferedReading(INPUT);             		
+        		FastqWriter writer = OUTPUT == null ? new BasicFastqWriter(System.out) : (new FastqWriterFactory()).newWriter(OUTPUT); ) {       	
         	do {        		
+        		
             	final String seqHeader = reader.readLine(); // read header             
                 String seqLine = reader.readLine(); // Read sequence line                          
                 final String qualHeader = reader.readLine(); // Read quality header                
@@ -74,10 +72,7 @@ public class FixCutAdapter extends CommandLineProgram {
                 //output updated fastq record
                 final FastqRecord frec = new FastqRecord(seqHeader.substring(1, seqHeader.length()), seqLine,
                         qualHeader.substring(1, qualHeader.length()), qualLine);
-
-                if(writer == null ) System.out.println(frec.toFastQString());               	
-                else writer.write(frec); 
-                
+                writer.write(frec);          
         		
                 line += 4 ;
         	} while( true );
