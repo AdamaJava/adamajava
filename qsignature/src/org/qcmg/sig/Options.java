@@ -102,6 +102,8 @@ final class Options {
 			.describedAs("snpPositions");
 		parser.accepts("genePositions", "Gff3 file containing list of gene positions").withRequiredArg().ofType(String.class)
 			.describedAs("genePositions");
+		parser.accepts("geneModel", "GTF file containing gene model information").withRequiredArg().ofType(String.class)
+			.describedAs("geneModel");
 		parser.accepts("reference", "Reference fasta file").withRequiredArg().ofType(String.class)
 			.describedAs("reference");
 		parser.accepts("sequential", SEQUENTIAL_OPTION_DESCRIPTION);
@@ -308,6 +310,9 @@ final class Options {
 
 	public String getExcludeVcfsFile() {
 		return (String) options.valueOf("excludeVcfsFile");
+	}
+	public Optional<String> getGeneModelFile() {
+		return Optional.ofNullable((String) options.valueOf("geneModel"));
 	}
 	
 	public String getValidation() {
