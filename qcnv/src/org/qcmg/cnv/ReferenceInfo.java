@@ -55,7 +55,7 @@ public class ReferenceInfo {
 			qbamFilter = new QueryExecutor(query);
 		
 		//check each reads start point and counts it into belonging window
-		try (SamReader rbam =   SAMFileReaderFactory.createSAMFileReader(new File(bam), ValidationStringency.SILENT);) {  
+		try (SamReader rbam =   SAMFileReaderFactory.createSAMFileReader(new File(bam),null,  ValidationStringency.SILENT);) {  
 			SAMRecordIterator ite =	rbam.query(ref.getSequenceName(), 0, ref.getSequenceLength(),true);
 			while(ite.hasNext()){
 				SAMRecord record = ite.next();
@@ -74,8 +74,7 @@ public class ReferenceInfo {
 				throw new RuntimeException("Algorithm error, same reference but different window number");
 		}
 	   
-		counts.put(id, chrArray);
-		
+		counts.put(id, chrArray);		
 	}   
 
 	public int[] getCount(String id){return counts.get(id);}

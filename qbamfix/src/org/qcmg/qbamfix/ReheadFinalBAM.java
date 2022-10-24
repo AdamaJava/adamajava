@@ -7,27 +7,25 @@
 package org.qcmg.qbamfix;
 
 import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.SAMOrBAMWriterFactory;
-import org.qcmg.picard.HeaderUtils;
 
-import htsjdk.samtools.BAMIndex;
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SamReader;
 import htsjdk.samtools.SAMFileWriter;
-import htsjdk.samtools.SAMFileWriterFactory;
 import htsjdk.samtools.SAMReadGroupRecord;
 import htsjdk.samtools.SAMRecord;
 
+@Deprecated
+/** 
+ * this class is hardly used anywhere. 
+ * @author christix
+ *
+ */
 public class ReheadFinalBAM {
 	
 	SAMFileHeader newHeader = null;
@@ -42,7 +40,7 @@ public class ReheadFinalBAM {
 		String SMvalue = matchDonor(donor, header.getReadGroups());
 		//created new header if SM value in RG line isn't match the donor
 	    if( SMvalue.length() > 0 ){
-	    	SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(options.getInputFileName()),options.getValidation() );  	    	
+	    	SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(options.getInputFileName()), null, options.getValidation() );  	    	
 	    	logger.info("According qlimsmeta line SM tag value " + SMvalue + " are replaced to " + donor);
 	    	refinalBAM(reader, donor, new File( options.getOutputFileName()) );
 		    reader.close();					    	

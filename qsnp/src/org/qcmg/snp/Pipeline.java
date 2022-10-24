@@ -27,6 +27,7 @@ import net.jpountz.xxhash.XXHash64;
 import net.jpountz.xxhash.XXHashFactory;
 
 import java.io.File;
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -433,7 +434,7 @@ public abstract class Pipeline {
 		return  header;
 	}
 	
-	List<SAMFileHeader> getBamFileHeaders(String ... bams) {
+	List<SAMFileHeader> getBamFileHeaders(String ... bams) throws IOException {
 		final List<SAMFileHeader> headers = new ArrayList<>(bams.length +1);
 		for (final String bam : bams) {
 			final SAMFileHeader header = SAMFileReaderFactory.createSAMFileReader(new File(bam)).getFileHeader();
@@ -532,8 +533,9 @@ public abstract class Pipeline {
 	 * And finally, some checking against the supplied reference file is performed
 	 * 
 	 * @throws SnpException 
+	 * @throws IOException 
 	 */
-	void checkBamHeaders() throws SnpException {
+	void checkBamHeaders() throws SnpException, IOException {
 		logger.info("Checking bam file headers for reference file compatibility");
 		
 		List<SAMFileHeader> normalHeaders = null;

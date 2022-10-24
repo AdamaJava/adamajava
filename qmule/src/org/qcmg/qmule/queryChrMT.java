@@ -39,7 +39,7 @@ public class queryChrMT {
     		String outputName = inBAM.getName().replace(".bam", ".chrMT.primary.bam");
     		File output = new File(args[1], outputName);
     		
-	 		SamReader reader = SAMFileReaderFactory.createSAMFileReader(inBAM,ValidationStringency.SILENT);
+	 		SamReader reader = SAMFileReaderFactory.createSAMFileReader(inBAM, null, ValidationStringency.SILENT);
 	 		SAMFileHeader he = reader.getFileHeader().clone();
 			SAMOrBAMWriterFactory writeFactory = new SAMOrBAMWriterFactory(he , true, output);
 			SAMRecordIterator ite = reader.query("chrMT",0,  16569, false);

@@ -236,33 +236,28 @@ public class QueryMT {
 			logger.info("start read input: " + input.getAbsolutePath());
 			int countSleep = 0;
 			long count = 0;
-			try {
-				SamReader reader = SAMFileReaderFactory.createSAMFileReader(input,validation);
-				try {
-					for (SAMRecord record : reader) {
-	
-						SAMRecordFilterWrapper wrapper = new SAMRecordFilterWrapper(record, ++count);
-						queue.add(wrapper);
-	
-						if (fLatch.getCount() == 0)
-							throw new Exception(
-									"No filtering threads left, but reading from input is not yet completed");
-	
-						if (count % checkPoint == 0) { // checkPoint defaults to 100000
-							while (queue.size() >= maxRecords) {								
-								try {
-									Thread.sleep(100);
-									countSleep++;
-								} catch (Exception e) {
-									logger.info(Thread.currentThread().getName() + " " + e.getMessage());
-								}
+			try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(input, null, validation);){
+				for (SAMRecord record : reader) {
+					SAMRecordFilterWrapper wrapper = new SAMRecordFilterWrapper(record, ++count);
+					queue.add(wrapper);
+
+					if (fLatch.getCount() == 0)
+						throw new Exception(
+								"No filtering threads left, but reading from input is not yet completed");
+
+					if (count % checkPoint == 0) { // checkPoint defaults to 100000
+						while (queue.size() >= maxRecords) {								
+							try {
+								Thread.sleep(100);
+								countSleep++;
+							} catch (Exception e) {
+								logger.info(Thread.currentThread().getName() + " " + e.getMessage());
 							}
 						}
-	
-					}// end for loop
-				} finally {
-					reader.close();
-				}
+					}
+
+				}// end for loop
+				 
 				logger.info("completed reading thread, read " + count
 						+ " records from input: " + input.getAbsolutePath());
 			} catch (Exception e) {

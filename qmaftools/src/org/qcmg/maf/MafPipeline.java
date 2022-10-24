@@ -354,17 +354,11 @@ public abstract class MafPipeline {
 			logger.info("thread starting");
 			long start = System.nanoTime();
 			long elapsedTime = 0;
-			
-			
-			SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile);
-			// if we have a small no of positions, no need to cache
-			//reader.enableIndexCaching(ncMafs.size() < 10);
-			if(ncMafs.size() >= 10 )
-				reader = SAMFileReaderFactory.createSAMFileReader(bamFile, SamReaderFactory.Option.CACHE_FILE_BASED_INDEXES);
-			
-			int noOfRecordsRetrievedForPatient = 0, noOfPositionsRetrievedForPatient = 0, positionsWithDeletions = 0;
-			
-			try {
+						
+			try( SamReader reader = ncMafs.size() < 10? SAMFileReaderFactory.createSAMFileReader(bamFile) :
+					SAMFileReaderFactory.createSAMFileReader(bamFile, SamReaderFactory.Option.CACHE_FILE_BASED_INDEXES);){
+				
+				int noOfRecordsRetrievedForPatient = 0, noOfPositionsRetrievedForPatient = 0, positionsWithDeletions = 0;			 
 				for (MAFRecord maf : ncMafs) {
 					noOfPositionsRetrievedForPatient++;
 					String chr = MafUtils.getFullChromosome(maf);
@@ -426,16 +420,13 @@ public abstract class MafPipeline {
 						+ " per sec), records at positions: " + noOfRecordsRetrievedForPatient 
 						+ " ("  + ((double)noOfRecordsRetrievedForPatient / elapsedTime)
 						+ " per sec), deletions (possibly): " + positionsWithDeletions);
+				
+	 
 			} catch (Exception e) {
 				e.printStackTrace();
 			} finally {
-				try {
-					reader.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				} finally {
+				 
 					logger.info("thread finishing, elapsedTime: " + elapsedTime);
-				}
 			}
 		}
 	}

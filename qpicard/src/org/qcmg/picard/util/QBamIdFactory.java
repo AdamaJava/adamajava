@@ -7,6 +7,7 @@
 package org.qcmg.picard.util;
 
 import java.io.File;
+import java.io.IOException;
 
 import htsjdk.samtools.SAMFileHeader;
 
@@ -29,7 +30,7 @@ public class QBamIdFactory {
 	}
 	
 	//@CO	q3BamUUID:299225f0-59fc-4cbd-89a1-e7c2ea23e220
-	public static QBamId getQ3BamId(String bamFIleName) {
+	public static QBamId getQ3BamId(String bamFIleName) throws IOException {
 		SAMFileHeader header = SAMFileReaderFactory.createSAMFileReader(new File(bamFIleName)).getFileHeader();			
 		String commentLine = null;
 		for (String s : header.getComments()) 

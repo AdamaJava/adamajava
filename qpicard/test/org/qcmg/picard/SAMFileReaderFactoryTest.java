@@ -195,7 +195,7 @@ public class SAMFileReaderFactoryTest {
 		assertEquals(true, bamFileIndex.exists());
 		
 		int recordCount = 0;
-		SamReader reader = SAMFileReaderFactory.createSAMFileReaderAsStream(bamFile,bamFileIndex);
+		SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile,bamFileIndex);
 		assertEquals(Type.BAM_TYPE, reader.type());
 		assertEquals(true, reader.hasIndex());
 		
@@ -220,7 +220,7 @@ public class SAMFileReaderFactoryTest {
 		assertEquals(true, bamFileIndex.exists());
 		
 		int recordCount = 0;
-		SamReader reader = SAMFileReaderFactory.createSAMFileReaderAsStream(bamFile.getAbsolutePath(), null);
+		SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile);
 		assertEquals(Type.BAM_TYPE, reader.type());
 		assertEquals(true, reader.hasIndex());
 		
@@ -241,7 +241,7 @@ public class SAMFileReaderFactoryTest {
 		assertEquals(false, BamFileIoUtils.isBamFile(samFile));
 		
 		int recordCount = 0;
-		SamReader reader = SAMFileReaderFactory.createSAMFileReaderAsStream(samFile);
+		SamReader reader = SAMFileReaderFactory.createSAMFileReader(samFile);
 		assertEquals(Type.SAM_TYPE, reader.type());
 		assertEquals(false, reader.hasIndex());
 		
@@ -262,7 +262,7 @@ public class SAMFileReaderFactoryTest {
 		assertEquals(false, BamFileIoUtils.isBamFile(samFile));
 		
 		int recordCount = 0;
-		SamReader reader = SAMFileReaderFactory.createSAMFileReaderAsStream(samFile.getAbsolutePath(),null);
+		SamReader reader = SAMFileReaderFactory.createSAMFileReader(samFile);
 		assertEquals(Type.SAM_TYPE, reader.type());
 		assertEquals(false, reader.hasIndex());
 		
@@ -287,7 +287,7 @@ public class SAMFileReaderFactoryTest {
 		assertEquals(null,  bamFileIndex);
 		
 		int recordCount = 0;
-		SamReader reader = SAMFileReaderFactory.createSAMFileReaderAsStream(bamFile);
+		SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile);
 		assertEquals(Type.BAM_TYPE, reader.type());
 		assertEquals(false, reader.hasIndex());
 		

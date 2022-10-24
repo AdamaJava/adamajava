@@ -45,14 +45,14 @@ public class FixBAM {
 	ValidationStringency validation;
 	
 	//constructor for unit test only
-	FixBAM(File input, File output,File tmpDir, QLogger logFile,  int length){
+	FixBAM(File input, File output,File tmpDir, QLogger logFile,  int length) throws IOException{
 		this.output = output;
 		this.input = input;
 		this.tmpDir = tmpDir;
 		this.log = logFile;
 		this.seqLength = length;
 		this.validation = ValidationStringency.SILENT;
-		SamReader reader = SAMFileReaderFactory.createSAMFileReader(input, ValidationStringency.SILENT);  
+		SamReader reader = SAMFileReaderFactory.createSAMFileReader(input, null, ValidationStringency.SILENT);  
 		this.header = reader.getFileHeader().clone();
 		
 	}
@@ -161,7 +161,7 @@ public class FixBAM {
 	HashMap<String, Integer> checkMate(List<SAMRecord> reads, File inBAM)throws IOException{
 		
 		HashMap<String, Integer> badMateID = new HashMap<String, Integer>();
-		SamReader tmpreader = SAMFileReaderFactory.createSAMFileReader(inBAM,  validation);  	
+		SamReader tmpreader = SAMFileReaderFactory.createSAMFileReader(inBAM,  null, validation);  	
 		if( ! header.getSortOrder().equals(SAMFileHeader.SortOrder.coordinate)){
 			tmpreader.close();
 			throw new IllegalArgumentException("currently we can only work for output BAM with sorted by coordinate ");
@@ -187,7 +187,7 @@ public class FixBAM {
 	 */
 	List<SAMRecord> firstFilterRun(File output) throws IOException{
 		
-		SamReader reader = SAMFileReaderFactory.createSAMFileReader(input,  validation);  
+		SamReader reader = SAMFileReaderFactory.createSAMFileReader(input, null,  validation);  
 
 		SAMOrBAMWriterFactory factory;		
 		if(reader.getFileHeader().getSortOrder().equals(header.getSortOrder())) {
@@ -243,7 +243,7 @@ public class FixBAM {
 	 * @throws IOException
 	 */
 	void secondFilterRun(HashMap<String, Integer>  badIDs, File inBAM)throws IOException{
-		SamReader reader = SAMFileReaderFactory.createSAMFileReader(inBAM, validation);
+		SamReader reader = SAMFileReaderFactory.createSAMFileReader(inBAM, null, validation);
 		//set presort as true since the tmpBAM already sorted. otherwise throw exception
 		SAMOrBAMWriterFactory factory = new SAMOrBAMWriterFactory(header, true, output, tmpDir, 2000000, true ); 
 		SAMFileWriter writer = factory.getWriter();

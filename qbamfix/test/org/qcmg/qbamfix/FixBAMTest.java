@@ -11,9 +11,10 @@ import java.util.HashMap;
 import htsjdk.samtools.SamReader;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.ValidationStringency;
-import junit.framework.Assert;
+
 
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.qcmg.common.log.QLogger;
@@ -64,6 +65,7 @@ public class FixBAMTest {
 		
 		List<SAMRecord> badReads = myfix.firstFilterRun( TMP_FILE );
 		Assert.assertTrue(badReads.size() == 3);
+		 
 		
 		HashMap<String, Integer> badMates = myfix.checkMate(badReads,  TMP_FILE ); 
 		Assert.assertTrue(badMates.size() == 1); //one mate of bad reads contains in  
@@ -80,14 +82,10 @@ public class FixBAMTest {
 	}
 	
 	private int countOutputRecord(File output) throws IOException{
-		SamReader reader = SAMFileReaderFactory.createSAMFileReader(output, ValidationStringency.SILENT);
-		
-		int num = 0;
-		for( SAMRecord record : reader){
-			num++;
+		int num = 0;		
+		try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(output, null, ValidationStringency.SILENT);) {		
+			for( SAMRecord record : reader) num++;			 	
 		}
-		
-		reader.close();
 		return num;
 	}
 	
@@ -115,13 +113,12 @@ public class FixBAMTest {
 		data.add("HWI-ST1243:96:C0VM0ACXX:7:1108:8918:3226	1107	chr1	12950	0	101M	=	12798	-253	CATGGGTCATCCCCTTCACTCCCAGCTCAGAGCCCAGGCCAGGGGCCCCCAAGAAAGGCTCTGGTGGAGAACCTGTGCATGAAGGCTGTCAACCAGTCCAT	CCBADDDB>BDDDDECA8DDDDDDCCDDDDCDDDDEEEFFFFHHJJJIIJJJJJIJJJJJJJJJJJJJIIGJJJIIJJJJJJJJIIJJHHHHHFFFFFCCC	X0:i:5	X1:i:1	MD:Z:101	RG:Z:20120806104508577	XG:i:0	AM:i:0	NM:i:0	SM:i:0	XM:i:0	XO:i:0	XT:A:R");
 		data.add("HWI-ST1243:96:C0VM0ACXX:6:1310:3269:47175	163	chr1	125562393	60	74M	=	125562470	151	GAGCCCTTCAGGTTCCAGGCGAATAACCAGCCTGCCATGGAGGCTGCCAATGAGTCTTCAGAGGGAATCTCATT	@CCFFFFFGGGHHJFJJHHIIJIJJJJFGHJJJJJJJJJJJJJJJIJIJJJJJJIGIGJJJJJGFHFFDCDDDD	X0:i:1	X1:i:0	ZC:i:0	MD:Z:0C4T0G0C2T1G0A0G0G0C0T2C3G1G0T0C0T0T1A1A0G0G0G0A0A0T0C0T1A0T0T1G0T1T0T0A1T0G0G0G1C0T1A0C2C0A0A0G0T0C0C0	RG:Z:20120806104508577	XG:i:0	AM:i:37	NM:i:51	SM:i:37	XM:i:0	XO:i:0	XT:A:U");
  						
-		BufferedWriter out;
-		try {
-		out = new BufferedWriter(new FileWriter(INPUT_FILE_NAME));
-		for (String line : data) {
-				out.write(line + "\n");
-		}
-		out.close();
+		try 
+		(BufferedWriter out= new BufferedWriter(new FileWriter(INPUT_FILE_NAME));) {		 
+			for (String line : data) {
+					out.write(line + "\n");
+			}
+		 
 		} catch (IOException e) {
 			System.err.println("IOException caught whilst attempting to write to SAM test file: "
 											+ INPUT_FILE_NAME + e);

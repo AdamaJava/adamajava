@@ -66,7 +66,7 @@ public class MtCounts {
 	 */
     void callCounts() throws Exception {
     		List<SAMSequenceRecord> genome;
-    		try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(inputs[0]),ValidationStringency.SILENT )) {			
+    		try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(inputs[0]), null, ValidationStringency.SILENT )) {			
 			genome = reader.getFileHeader().getSequenceDictionary().getSequences();
     		}
 		

@@ -854,7 +854,7 @@ public class Generate {
 		private final CountDownLatch pLatch;
 		private final Thread mainThread;
 		
-		public Producer(File bamFile, CountDownLatch pLatch, Thread mainThread) {
+		public Producer(File bamFile, CountDownLatch pLatch, Thread mainThread) throws IOException {
 			reader = SAMFileReaderFactory.createSAMFileReader(bamFile, validationStringency);
 			this.pLatch = pLatch;
 			this.mainThread = mainThread;
