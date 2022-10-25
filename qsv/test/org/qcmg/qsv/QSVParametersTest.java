@@ -24,11 +24,19 @@ public class QSVParametersTest {
     
     @Before
     public void setUp() throws IOException {
+    	//debug
+//    	if (null == normalBam) {
+//    		normalBam = TestUtil.createSamFile(testFolder.newFile("normalBam.bam").getAbsolutePath(), SortOrder.coordinate, false);
+//    	}
+//    	if (null == tumorBam) {
+//    		tumorBam = TestUtil.createSamFile(testFolder.newFile("tumorBam.bam").getAbsolutePath(), SortOrder.coordinate, false);
+//    	}  
+    	
     	if (null == normalBam) {
-    		normalBam = TestUtil.createSamFile(testFolder.newFile("normalBam.bam").getAbsolutePath(), SortOrder.coordinate, false);
+    		normalBam = TestUtil.createSamFile(testFolder.newFile("normalBam.sam").getAbsolutePath(), SortOrder.coordinate, false);
     	}
     	if (null == tumorBam) {
-    		tumorBam = TestUtil.createSamFile(testFolder.newFile("tumorBam.bam").getAbsolutePath(), SortOrder.coordinate, false);
+    		tumorBam = TestUtil.createSamFile(testFolder.newFile("tumorBam.sam").getAbsolutePath(), SortOrder.coordinate, false);
     	}
     }
     
@@ -38,8 +46,7 @@ public class QSVParametersTest {
         QSVParameters p =  TestUtil.getQSVParameters(testFolder.getRoot(), normalBam.getAbsolutePath(),
         		tumorBam.getAbsolutePath(), false, "both", "both");       
         assertEquals(normalBam, p.getInputBamFile());
-        assertEquals("normalBam.discordantpair.filtered.bam",
-                TestUtil.getFilename(p.getFilteredBamFile()));    
+        assertEquals("normalBam.discordantpair.filtered.sam", TestUtil.getFilename(p.getFilteredBamFile()));    
         assertEquals("ND", p.getFindType());
         assertEquals(3, p.getClusterSize().intValue());
         assertEquals(640, p.getLowerInsertSize().intValue());
@@ -55,7 +62,7 @@ public class QSVParametersTest {
                 tumorBam.getAbsolutePath(), true, "both", "both");
         
         assertEquals(tumorBam, p.getInputBamFile());
-        assertEquals("tumorBam.discordantpair.filtered.bam",
+        assertEquals("tumorBam.discordantpair.filtered.sam",
                 TestUtil.getFilename(p.getFilteredBamFile()));
         assertEquals("TD", p.getFindType());
         assertEquals(3, p.getClusterSize().intValue());
