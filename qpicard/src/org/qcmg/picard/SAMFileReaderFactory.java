@@ -125,6 +125,27 @@ public class SAMFileReaderFactory {
 
 	public static SamReader createSAMFileReader(final File bamFile, final SamReaderFactory.Option... options) throws IOException {
 		return createSAMFileReaderAsStream(bamFile, null, null, null,  options);
+	}
+	
+	
+	//debug for qsignature only
+	public static SamReader createSAMFileReaderSig(File bamFile) {
+		return createSAMFileReaderSig(bamFile, null); 
+	}
+
+	public static SamReader createSAMFileReaderSig(File bamFile, String validationStringency) {
+		
+		ValidationStringency stringency = DefaultStringency;
+		if ("lenient".equalsIgnoreCase(validationStringency)) {
+			stringency = ValidationStringency.LENIENT;
+		} else if ("strict".equalsIgnoreCase(validationStringency)) {
+			stringency = ValidationStringency.STRICT;
+		} 	
+
+		SamReaderFactory samReaderFactory = SamReaderFactory.makeDefault();		
+		samReaderFactory.validationStringency(stringency);
+		SamInputResource resource = SamInputResource.of(bamFile);			
+		return samReaderFactory.open(resource);
 	}	
 	
 }
