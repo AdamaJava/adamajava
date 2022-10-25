@@ -294,7 +294,7 @@ public class VcfPipelineTest {
 		List<String> sortedContigs = new ArrayList<String>();
 		final File testInputBam = testFolder.newFile("test.bam");
 		createFile(testInputBam, getBamFile());
-		try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(testInputBam);) {
+		try (SamReader reader = SAMFileReaderFactory.createSAMFileReaderSig(testInputBam);) {
 			final SAMFileHeader header = reader.getFileHeader();
 			
 			for (final SAMSequenceRecord contig : header.getSequenceDictionary().getSequences()) {
@@ -330,7 +330,7 @@ public class VcfPipelineTest {
 		
 		final File testInputBam = testFolder.newFile("test.bam");
 		createFile(testInputBam, getBamFile());
-		try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(testInputBam);) {
+		try (SamReader reader = SAMFileReaderFactory.createSAMFileReaderSig(testInputBam);) {
 			final SAMFileHeader header = reader.getFileHeader();
 			
 			final List<String> sortedContigs = new ArrayList<String>();

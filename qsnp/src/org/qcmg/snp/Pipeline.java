@@ -437,7 +437,7 @@ public abstract class Pipeline {
 	List<SAMFileHeader> getBamFileHeaders(String ... bams) throws IOException {
 		final List<SAMFileHeader> headers = new ArrayList<>(bams.length +1);
 		for (final String bam : bams) {
-			final SAMFileHeader header = SAMFileReaderFactory.createSAMFileReader(new File(bam)).getFileHeader();
+			final SAMFileHeader header = SAMFileReaderFactory.createSAMFileReaderSig(new File(bam)).getFileHeader();
 			headers.add(header);
 		}
 		return headers;
