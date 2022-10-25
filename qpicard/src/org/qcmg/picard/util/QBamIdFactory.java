@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.IOException;
 
 import htsjdk.samtools.SAMFileHeader;
+import htsjdk.samtools.SamReader;
 
 import org.qcmg.common.meta.QBamId;
 import org.qcmg.common.string.StringUtils;
@@ -31,12 +32,13 @@ public class QBamIdFactory {
 	
 	//@CO	q3BamUUID:299225f0-59fc-4cbd-89a1-e7c2ea23e220
 	public static QBamId getQ3BamId(String bamFIleName) throws IOException {
-		//debug it used by org.qcmg.snp.VcfPipelineTest qsnp
-		SAMFileHeader header = SAMFileReaderFactory.createSAMFileReaderSig(new File(bamFIleName)).getFileHeader();			
 		String commentLine = null;
-		for (String s : header.getComments()) 
-			if (s.contains(Q3BamId+":"))  commentLine = s;
-	
+		try(SamReader reader =  SAMFileReaderFactory.createSAMFileReader(new File(bamFIleName))){			
+			SAMFileHeader header = reader.getFileHeader();
+			for (String s : header.getComments()) 
+				if (s.contains(Q3BamId+":"))  commentLine = s;
+		}
+						
 		String uuid =  StringUtils.getValueFromKey(commentLine, Q3BamId, ':');				
 		return new QBamId(bamFIleName, null, uuid);
 	}

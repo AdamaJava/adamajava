@@ -38,9 +38,6 @@ public class FindMatePairsMTTest {
 
     @Before
     public void setUp() throws Exception {
-    	//debug change .bam to .sam
-//    	File tumorBam = TestUtil.createSamFile(testFolder.newFile("tumor.bam").getAbsolutePath(), SortOrder.queryname, false);
-//        File normalBam = TestUtil.createSamFile(testFolder.newFile("normal.bam").getAbsolutePath(), SortOrder.queryname, false);
     	File tumorBam = TestUtil.createSamFile(testFolder.newFile("tumor.sam").getAbsolutePath(), SortOrder.queryname, false);
         File normalBam = TestUtil.createSamFile(testFolder.newFile("normal.sam").getAbsolutePath(), SortOrder.queryname, false);
 

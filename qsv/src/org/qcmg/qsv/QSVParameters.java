@@ -115,7 +115,7 @@ public class QSVParameters {
 		//set filtered bam file name
 		if (options.runPairPreprocess()) {	       
 			final String baseName = inputBamFile.getName();
-			//debug			 
+			//clarify sam and bam; because seekablestream can't open sam file even the file extension name is .bam;			 
 			final String fileName = (baseName.endsWith(".sam"))? 
 					baseName.replace(".sam", ".discordantpair.filtered.sam"): baseName.replace(".bam", ".discordantpair.filtered.bam");
 			this.filteredBamFile = new File(options.getTempDirName() + FILE_SEPERATOR + fileName);
@@ -123,7 +123,7 @@ public class QSVParameters {
 
 		if (options.runClipPreprocess() || options.isSplitRead()) {        	
 			final String baseName = this.inputBamFile.getName();  
-			//debug			 
+			//clarify sam and bam; because seekablestream can't open sam file even the file extension name is .bam;			 
 			final String fileName = (baseName.endsWith(".sam"))? 
 					baseName.replace(".sam",  ".softclip.filtered.sam") : baseName.replace(".bam",  ".softclip.filtered.bam");			
 			this.clippedBamFile= new File(options.getTempDirName() + FILE_SEPERATOR  + fileName);

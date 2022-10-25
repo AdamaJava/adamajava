@@ -24,14 +24,6 @@ public class QSVParametersTest {
     
     @Before
     public void setUp() throws IOException {
-    	//debug
-//    	if (null == normalBam) {
-//    		normalBam = TestUtil.createSamFile(testFolder.newFile("normalBam.bam").getAbsolutePath(), SortOrder.coordinate, false);
-//    	}
-//    	if (null == tumorBam) {
-//    		tumorBam = TestUtil.createSamFile(testFolder.newFile("tumorBam.bam").getAbsolutePath(), SortOrder.coordinate, false);
-//    	}  
-    	
     	if (null == normalBam) {
     		normalBam = TestUtil.createSamFile(testFolder.newFile("normalBam.sam").getAbsolutePath(), SortOrder.coordinate, false);
     	}

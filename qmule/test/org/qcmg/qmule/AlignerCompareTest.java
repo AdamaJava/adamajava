@@ -107,8 +107,6 @@ public class AlignerCompareTest {
 			
 			writer1.close();
 			writer2.close();
-//debug
-//			System.out.println(new File(INPUT_SAM).getAbsolutePath() );
  			
 		} catch (IOException e) {
 			System.err.println(e.toString() + "\n\t can't write to : " + INPUT_SAM1 + " or " + INPUT_SAM2   );

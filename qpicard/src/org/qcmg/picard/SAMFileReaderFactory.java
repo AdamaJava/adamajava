@@ -12,7 +12,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.nio.file.Path;
 
 import htsjdk.samtools.BamFileIoUtils;
 import htsjdk.samtools.SamFiles;
@@ -26,7 +25,6 @@ import htsjdk.samtools.ValidationStringency;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
-import org.qcmg.common.string.StringUtils;
 import org.qcmg.protocol.s3.S3AwareURLStreamHandlerFactory;
 
 public class SAMFileReaderFactory {
