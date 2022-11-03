@@ -641,7 +641,7 @@ public class BLATRecord implements Comparable<BLATRecord> {
 	
 	@Override
 	public int compareTo(BLATRecord o) {
-		int diff = this.qName.compareTo(o.getQName());
+		int diff = (null != this.qName && null != o.getQName()) ? this.qName.compareTo(o.getQName()) : null != this.qName ? -1 : null != o.getQName() ? 1 : 0;
 		if (diff != 0) {
 			return diff;
 		} else {
