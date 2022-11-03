@@ -10,10 +10,11 @@ package org.qcmg.common.model;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
+import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.TabTokenizer;
 
-import com.amazonaws.util.StringUtils;
+//import com.amazonaws.util.StringUtils;
 
 /**
  * Class representing a result returned from BLAT psl file
