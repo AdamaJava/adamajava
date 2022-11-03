@@ -52,7 +52,7 @@ public class TARecordUtil {
 	 * What is being examined here is if parts of the sequence are mapping relatively close by (say within 10kb of each section of sequence
 	 * that would mean that smithwaterman wouldn't work if the highest start position count was used (as is currently the case).
 	 * 
-	 *  A great example is here:
+	 *  <p>A great example is here:
 	 *  00000003 agaatgtaattatatctagtgctgcagaaagg 00000034
 		>>>>>>>> |||||||||||||||||||||||||||||||| >>>>>>>>
 		92655209 agaatgtaattatatctagtgctgcagaaagg 92655240
@@ -87,8 +87,6 @@ public class TARecordUtil {
 	 * @param record
 	 * @return
 	 */
-	
-	
 	public static boolean inRange(long position, long startOne, long stopOne, long startTwo, long stopTwo) {
 		return (position >= startOne && position <= stopOne) || (position >= startTwo && position <= stopTwo);
 	}
@@ -105,11 +103,10 @@ public class TARecordUtil {
 	
 	/**
 	 * This method takes a IntLongPairs object and returns a ChrPosition to int[] map, which is how the IntLongPairs is represented in a BLATRecord
-	 * The keys in the map can be sorted to get the ChrPositions in order.
 	 * 
-	 * This method also trims any overlaps that can commonly occur due to the nature of the tiled aligner approach
+	 * <p>The keys in the map can be sorted to get the ChrPositions in order.
 	 * 
-	 * 
+	 * <p>This method also trims any overlaps that can commonly occur due to the nature of the tiled aligner approach
 	 * @param splits
 	 * @param seqLength
 	 * @param headerMap
@@ -143,13 +140,13 @@ public class TARecordUtil {
 
 	/**
 	 * NOT SIDE EFFECT FREE
-	 * <br>
-	 * This method will update the values in the passed in  2D int array if there are overlapping values
+	 * 
+	 * <br>This method will update the values in the passed in  2D int array if there are overlapping values
 	 * It will attempt to remove any overlap from the larger of the 2 ranges should an overlap exist
 	 * 
-	 * It requires that the ranges array be sorted by position in query string
+	 * <p>It requires that the ranges array be sorted by position in query string
 	 * 
-	 * Also need to check to see if the genomic ranges overlap, and trim accordingly if they do
+	 * <p>Also need to check to see if the genomic ranges overlap, and trim accordingly if they do
 	 * 
 	 * @param ranges
 	 */
@@ -264,10 +261,10 @@ public class TARecordUtil {
 	 * tile counts hold a combination of tile matches and mismatch count.
 	 * Need to take the mismatch count away from the tile count.
 	 * 
-	 * Favour tile counts that have zero mismatches over those that have mismatches
-	 * eg.
-	 * tile count of 40 is better than tile count of 41 with a mismatch count of 1.
+	 * <p>Favour tile counts that have zero mismatches over those that have mismatches
 	 * 
+	 * <p>eg.
+	 * tile count of 40 is better than tile count of 41 with a mismatch count of 1.
 	 * @param tileCounts
 	 * @return
 	 */
@@ -491,53 +488,8 @@ public class TARecordUtil {
 				/*
 				 * sort by tile count, strand, and location
 				 */
-				boolean p1OnForwardStrand = NumberUtils.isBitSet(p1.getLong(), REVERSE_COMPLEMENT_BIT);
-				long p1Position = NumberUtils.getLongPositionValueFromPackedLong(p1.getLong());
 				list.sort((IntLongPair ilp1, IntLongPair  ilp2) -> {
-					/*
-					 * valid for single record first
-					 */
-					boolean ilp1Valid = IntLongPairsUtil.isIntLongPairsAValidSingleRecord(p1, ilp1);
-					boolean ilp2Valid = IntLongPairsUtil.isIntLongPairsAValidSingleRecord(p1, ilp2);
-					if (ilp1Valid && ! ilp2Valid) {
-						return -1;
-					} else 	if ( ! ilp1Valid && ilp2Valid) {
-						return 1;
-					}
-					
-					/*
-					 * tile count
-					 */
-					int [] ilp1Array = NumberUtils.splitIntInto2(ilp1.getInt());
-					int [] ilp2Array = NumberUtils.splitIntInto2(ilp2.getInt());
-					int diff = 	Integer.compare(ilp2Array[0] - ilp2Array[1], ilp1Array[0] - ilp1Array[1]);
-					if (diff == 0) {
-						diff = ilp1Array[1] - ilp2Array[1];
-					}
-					if (diff != 0) {
-						return diff;
-					}
-					
-					/*
-					 * strand
-					 */
-					if ( NumberUtils.isBitSet(ilp1.getLong(), REVERSE_COMPLEMENT_BIT) == p1OnForwardStrand
-							&& NumberUtils.isBitSet(ilp2.getLong(), REVERSE_COMPLEMENT_BIT) != p1OnForwardStrand) {
-						diff = -1;
-					} else if ( NumberUtils.isBitSet(ilp2.getLong(), REVERSE_COMPLEMENT_BIT) == p1OnForwardStrand
-							&& NumberUtils.isBitSet(ilp1.getLong(), REVERSE_COMPLEMENT_BIT) != p1OnForwardStrand) {
-						diff = 1;
-					}
-					if (diff != 0) {
-						return diff;
-					}
-					/*
-					 * proximity to original ILP
-					 */
-					long ilp1Diff = Math.abs( NumberUtils.getLongPositionValueFromPackedLong(ilp1.getLong()) - p1Position);
-					long ilp2Diff = Math.abs( NumberUtils.getLongPositionValueFromPackedLong(ilp2.getLong()) - p1Position);
-					return (ilp1Diff < ilp2Diff) ? -1 : 1;
-				
+					return compareILPs( ilp1,  ilp2, p1);
 				});
 			}
 			
@@ -553,6 +505,61 @@ public class TARecordUtil {
 	}
 	
 	/**
+	 * sort method for IntLongPair objects where we want them ordered by tile count, strand and location
+	 * @param ilp1
+	 * @param ilp2
+	 * @param originalILP
+	 * @return
+	 */
+	public static int compareILPs(IntLongPair ilp1, IntLongPair ilp2, IntLongPair originalILP) {
+		/*
+		 * valid for single record first
+		 */
+		boolean ilp1Valid = IntLongPairsUtil.isIntLongPairsAValidSingleRecord(originalILP, ilp1);
+		boolean ilp2Valid = IntLongPairsUtil.isIntLongPairsAValidSingleRecord(originalILP, ilp2);
+		if (ilp1Valid && ! ilp2Valid) {
+			return -1;
+		} else 	if ( ! ilp1Valid && ilp2Valid) {
+			return 1;
+		}
+		
+		/*
+		 * tile count
+		 */
+		int [] ilp1Array = NumberUtils.splitIntInto2(ilp1.getInt());
+		int [] ilp2Array = NumberUtils.splitIntInto2(ilp2.getInt());
+		int diff = 	Integer.compare(ilp2Array[0] - ilp2Array[1], ilp1Array[0] - ilp1Array[1]);
+		if (diff == 0) {
+			diff = ilp1Array[1] - ilp2Array[1];
+		}
+		if (diff != 0) {
+			return diff;
+		}
+		
+		/*
+		 * strand
+		 */
+		boolean p1OnForwardStrand = NumberUtils.isBitSet(originalILP.getLong(), REVERSE_COMPLEMENT_BIT);
+		if ( NumberUtils.isBitSet(ilp1.getLong(), REVERSE_COMPLEMENT_BIT) == p1OnForwardStrand
+				&& NumberUtils.isBitSet(ilp2.getLong(), REVERSE_COMPLEMENT_BIT) != p1OnForwardStrand) {
+			diff = -1;
+		} else if ( NumberUtils.isBitSet(ilp2.getLong(), REVERSE_COMPLEMENT_BIT) == p1OnForwardStrand
+				&& NumberUtils.isBitSet(ilp1.getLong(), REVERSE_COMPLEMENT_BIT) != p1OnForwardStrand) {
+			diff = 1;
+		}
+		if (diff != 0) {
+			return diff;
+		}
+		/*
+		 * proximity to original ILP
+		 */
+		long p1Position = NumberUtils.getLongPositionValueFromPackedLong(originalILP.getLong());
+		long ilp1Diff = Math.abs( NumberUtils.getLongPositionValueFromPackedLong(ilp1.getLong()) - p1Position);
+		long ilp2Diff = Math.abs( NumberUtils.getLongPositionValueFromPackedLong(ilp2.getLong()) - p1Position);
+		return Long.compare(ilp1Diff, ilp2Diff);
+	}
+	
+	/**
 	 * 
 	 * @param ilp
 	 * @param seqLength
@@ -561,6 +568,7 @@ public class TARecordUtil {
 	public static int[][] getRemainingRangeFromIntLongPairs(IntLongPairs ilp, int seqLength) {
 		return getRemainingRangeFromIntLongPairs(ilp, seqLength, TILE_LENGTH);
 	}
+	
 	public static int[][] getRemainingRangeFromIntLongPairs(IntLongPairs ilp, int seqLength, int tileLength) {
 		
 		int tileLengthMinusOne = tileLength - 1;
@@ -610,27 +618,26 @@ public class TARecordUtil {
 	 * Given a length, a tile start position, the tile length, the tile count and the minimum acceptable size of a chunk, 
 	 * this method will return a list of ranges that correspond to the parts of the length that are not covered by this match
 	 * 
-	 * For example, if the length of the sequence is 100, the match that we are dealing with is 50 in length, starting at position 0
+	 * <p>For example, if the length of the sequence is 100, the match that we are dealing with is 50 in length, starting at position 0
 	 * then there will be one range returned and it will start at 50 + tile length (63 typically) and end ot the length - 1.
 	 * 
-	 * If any unrepresented regions are smaller than the minLength value, then they will not be returned as a range.
+	 * <p>If any unrepresented regions are smaller than the minLength value, then they will not be returned as a range.
 	 * It is possible that an empty lit is returned and this would tell that user that there was not space for another match at either the start or end of the sequence.
 	 * 
-	 * The ranges will be made up of an int array with 2 elements.
+	 * <p>The ranges will be made up of an int array with 2 elements.
 	 * The first element is the start position of any potential matching region
 	 * The second element is the end position of any potential matching region
 	 * 
-	 * eg. consider the following:
+	 * <p>eg. consider the following:
 	 * length = 100
 	 * startTilePosition = 30
 	 * tileLength = 13
 	 * tileCount = 20
 	 * minLength = 20
 	 * 
-	 * In this instance, we should have 2 ranges returned.
+	 * <p>In this instance, we should have 2 ranges returned.
 	 * The first would correspond to the gap at the beginning of the sequence (int[]{0,29})
 	 * and the second would correspond to the gap at the end of the sequence (int[]{30 + 13 + 20 ,99})
-	 * 
 	 * @param totalLength
 	 * @param startTilePosition
 	 * @param tileLength
@@ -641,6 +648,7 @@ public class TARecordUtil {
 	public static List<int[]> getPossibleTileRanges(int totalLength, int startTilePosition, int tileLength, int tileCount, int minLength) {
 		return getPossibleTileRanges(totalLength, startTilePosition, tileLength, tileCount, minLength, false);
 	}
+	
 	public static List<int[]> getPossibleTileRanges(int totalLength, int startTilePosition, int tileLength, int tileCount, int minLength, boolean reverseStrand) {
 		
 		return getPossibleTileRanges(totalLength, startTilePosition, tileLength + tileCount, minLength, reverseStrand);
@@ -770,6 +778,7 @@ public class TARecordUtil {
 	public static int[] getForwardStrandStartAndStop(int tileStartPositionRS, int tileCount, int tileLength, int seqLength) {
 		return getForwardStrandStartAndStop(tileStartPositionRS, tileCount, tileLength, seqLength, false);
 	}
+	
 	public static int[] getForwardStrandStartAndStop(int tileStartPositionRS, int tileCount, int tileLength, int seqLength, boolean forwardStrand) {
 		if (forwardStrand) {
 			return new int[] {tileStartPositionRS, tileStartPositionRS + (tileCount + tileLength - 1)};
@@ -786,6 +795,7 @@ public class TARecordUtil {
 	public static int getLengthFromPackedInt(int packedInt) {
 		return getLengthFromPackedInt(packedInt, TILE_LENGTH);
 	}
+	
 	public static int getLengthFromPackedInt(int packedInt, int tileLength) {
 		int tileCounts = NumberUtils.minusPackedInt(packedInt);
 		return tileCounts + tileLength - 1;
@@ -799,6 +809,7 @@ public class TARecordUtil {
 	public static int getExactMatchOnlyLengthFromPackedInt(int packedInt) {
 		return getExactMatchOnlyLengthFromPackedInt(packedInt, TILE_LENGTH);
 	}
+	
 	public static int getExactMatchOnlyLengthFromPackedInt(int packedInt, int tileLength) {
 		int tileCounts = NumberUtils.getPartOfPackedInt(packedInt, true);
 		return tileCounts + tileLength - 1;
