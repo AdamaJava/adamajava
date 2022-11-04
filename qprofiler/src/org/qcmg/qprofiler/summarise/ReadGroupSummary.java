@@ -308,8 +308,6 @@ public class ReadGroupSummary {
 			throw new IllegalArgumentException("Illegal attempt to pass null value to Once setter (this.maxBases).");
 		
 		this.maxBases = bases;
-		
-//		System.out.println("debug, maxBase: " + maxBases);
 	}	
 	
 	public long getMaxBases(){

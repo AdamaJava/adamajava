@@ -38,10 +38,6 @@ public class VcfSummaryReport  extends SummaryReport {
 	public VcfSummaryReport(VcfHeader header){
 	     
 		this.vcfHeader = header;
-		
-		//debug
-		System.out.println( header.getChrom().toString()  );
-
 		//sample id
 		this.sampleIds = header.getSampleId(); 	
 		somaticSummaries = new SampleSummary[sampleIds.length];

@@ -23,7 +23,6 @@ public class FixHeader {
 		try(SamReader reader = SAMFileReaderFactory.createSAMFileReader(
 				new File(options.getInputFileName()), null, options.getValidation() ); ) { 
 			header = reader.getFileHeader().clone();
-			reader.close();
 		}
 		
 		String OldTxtRG = getTxtRG( header );				 

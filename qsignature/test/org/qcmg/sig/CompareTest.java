@@ -114,10 +114,7 @@ public class CompareTest {
 		assertEquals(0, exec.getErrCode());		// all ok
 		assertEquals(true, o.exists());
 		List<String> outputData = Files.readAllLines(Paths.get(o.getAbsolutePath()));
-		assertEquals(11, outputData.size());		// 10 lines means 1 comparison
-		
-		//debug
-		System.out.println("outputData.get(2):" + outputData.get(2));
+		assertEquals(11, outputData.size());		// 10 lines means 1 comparison		
 		assertEquals("<cutoffs hom=\"0.9\" lower_het=\"0.3\" upper_het=\"0.7\"/>", outputData.get(2));
 		assertEquals("<comparison file1=\"1\" file2=\"2\" overlap=\"4\" score=\"1.0\"/>", outputData.get(8));
 	}
