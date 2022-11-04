@@ -10,10 +10,11 @@ package org.qcmg.common.model;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
+import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.TabTokenizer;
 
-import com.amazonaws.util.StringUtils;
+//import com.amazonaws.util.StringUtils;
 
 /**
  * Class representing a result returned from BLAT psl file
@@ -640,7 +641,7 @@ public class BLATRecord implements Comparable<BLATRecord> {
 	
 	@Override
 	public int compareTo(BLATRecord o) {
-		int diff = this.qName.compareTo(o.getQName());
+		int diff = (null != this.qName && null != o.getQName()) ? this.qName.compareTo(o.getQName()) : null != this.qName ? -1 : null != o.getQName() ? 1 : 0;
 		if (diff != 0) {
 			return diff;
 		} else {
