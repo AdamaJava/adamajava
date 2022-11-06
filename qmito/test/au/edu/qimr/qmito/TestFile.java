@@ -56,7 +56,7 @@ public class TestFile {
 		public static void createBam(String output) throws IOException{
 			String sam = output+ ".sam";
 			createFile(TestFile.createSam(), sam);
-			SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(sam),  ValidationStringency.SILENT);  
+			SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(sam), null,  ValidationStringency.SILENT);  
 			SAMOrBAMWriterFactory factory = new SAMOrBAMWriterFactory(reader.getFileHeader(), true, new File(output),true );									 
 			SAMFileWriter writer = factory.getWriter();
 	       

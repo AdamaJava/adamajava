@@ -518,7 +518,7 @@ public class DiscordantPairCluster {
 	 private void readAndAnnotateRecords(QSVParameters findParameters, QSVParameters compareParameters, Map<String, SAMRecord[]> map, String ref, int start,
 			 int end, Annotator annotator, File bamFile) throws Exception {
 		 
-		 SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile, ValidationStringency.SILENT);
+		 SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile, null, ValidationStringency.SILENT);
 		 SAMRecordIterator iter = reader.queryOverlapping(ref, start-200, end+200);
 
 		 String zp1 = null;

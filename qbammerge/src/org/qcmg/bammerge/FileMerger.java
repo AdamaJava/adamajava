@@ -20,13 +20,13 @@ import java.util.Vector;
 import java.util.regex.Pattern;
 
 import htsjdk.samtools.BamFileIoUtils;
-import htsjdk.samtools.SAMTagUtil;
 import htsjdk.samtools.SamFileHeaderMerger;
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SamReader;
 import htsjdk.samtools.SAMProgramRecord;
 import htsjdk.samtools.SAMReadGroupRecord;
 import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SAMTagUtil;
 import htsjdk.samtools.ValidationStringency;
 
 import org.qcmg.common.log.QLogger;
@@ -487,7 +487,7 @@ public final class FileMerger {
 	
 	private void reheadSingleBamFile() throws IOException {
 		File in = new File(allInputFileNames[0]);
-		final SamReader reader = SAMFileReaderFactory.createSAMFileReader(in, validation);
+		final SamReader reader = SAMFileReaderFactory.createSAMFileReader(in, null, validation);
 		final SAMFileHeader header = reader.getFileHeader();
 		replaceUUIDInHeader(header, uuid);
 		BamFileIoUtils.reheaderBamFile(header, in, outputFile, false, createIndex);

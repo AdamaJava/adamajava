@@ -1,7 +1,6 @@
 package org.qcmg.qbamfix;
 
 
-import static org.junit.Assert.*;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -11,15 +10,15 @@ import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SamReader;
 
 
-import junit.framework.Assert;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import org.qcmg.picard.SAMFileReaderFactory;
 
 public class ReheadFinalBAMTest {
-	public static final String Test_FILE_NAME = "test.bam";
+	public static final String Test_FILE_NAME = "test.sam";
 	
     @Before
     public void before() throws Exception{ createBAM(); }
@@ -38,15 +37,17 @@ public class ReheadFinalBAMTest {
 		str = "ok,";
 		str = str.substring(0, str.length()-1);
 		System.out.println(str +" length is " + str.length());
-		
-
 	}
 	
 	@Test
 	public void mainTest() throws Exception{
 		ReheadFinalBAM rehead = new ReheadFinalBAM();
 		
-		SAMFileHeader header = SAMFileReaderFactory.createSAMFileReader(new File(Test_FILE_NAME)).getFileHeader().clone();
+		SAMFileHeader header = null;
+		
+		try( SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(Test_FILE_NAME)); ){
+			header = reader.getFileHeader().clone();
+		}
 		
 		//get info from header
 		Assert.assertEquals("SSSS_001",  rehead.getDonor(header.getComments()));
@@ -54,10 +55,8 @@ public class ReheadFinalBAMTest {
 		 
 		//correct the header to a new BAM
 		String Corrected_BAM = "./Test.tmp.bam";
-	    SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(Test_FILE_NAME));  	    	
-	    rehead.refinalBAM(reader, "SSSS_001", new File(Corrected_BAM));
-		reader.close();	
-		
+		rehead.refinalBAM(Test_FILE_NAME, null, "SSSS_001", new File(Corrected_BAM));
+				
 		//test on the corrected BAM
 		header = SAMFileReaderFactory.createSAMFileReader(new File( Corrected_BAM)).getFileHeader().clone();
 		Assert.assertEquals("SSSS_001",  rehead.getDonor(header.getComments()));
@@ -68,7 +67,7 @@ public class ReheadFinalBAMTest {
 	    
 	}
 	
-	private void createBAM() throws Exception{
+	private void createBAM() throws Exception {
 
 		String str = "@HD	VN:1.0	GO:none	SO:coordinate\n" +
 						"@SQ	SN:chr1	LN:249250621\n" +
@@ -85,8 +84,8 @@ public class ReheadFinalBAMTest {
 						"HS2000-1248_149:2:1105:6448:82712	117	chr1	9992	0	*	=	9992	0	TCTTCCGATCTGGGTTAGGGTTAGGGTTAGGGTTAGGGTTAGGGTTAGGGTTAGGGTTAGGGTTAGGGTTAGGGTTAGGGTTAGGGTTAGGGTTAGGGTT	?58038CCA?BA<<959A@B<==BA;=3A?;?7)D?=(=;@AD@;>@=8>FCFB9D?>FDFB@D:??)?C?EDGIGGIIGHFIHBHDF>HHHDFFFFCC@	ZC:i:6RG:Z:20130228061435683\n"+
 						"HS2000-1248_149:2:1105:6448:82712	153	chr1	9992	23	3M1D5M2I90M	=	9992	0	TCTTTCGATCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCC	######A>CA<2(255(,(5???=;BDB?666)?B6.EEEC=;HGC=8@8BB89FHFDDD?DF?8FFGFD?11B>GGA23D@FF?GFDFFFHFDDBD@@@	X0:i:1	X1:i:1	XA:Z:chr12,+95643,91M2I7M,5;	ZC:i:6MD:Z:3^G1C93	RG:Z:20130228061435683	XG:i:1	AM:i:0	NM:i:4SM:i:23	XM:i:4	XN:i:9	XO:i:1	XT:A:U\n";
 		
-		BufferedWriter out = new BufferedWriter(new FileWriter(Test_FILE_NAME));
-		out.write(str );				
-		out.close();				
+		try(BufferedWriter out = new BufferedWriter(new FileWriter(Test_FILE_NAME));){
+			out.write(str );				
+		}				
 	}
 }

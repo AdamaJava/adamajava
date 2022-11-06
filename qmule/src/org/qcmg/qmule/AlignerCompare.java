@@ -49,8 +49,8 @@ public class AlignerCompare {
 
 		AlignerCompare(File firBam, File secBam, String prefix, boolean flag) throws Exception{
 			//check inputs: sort by query name
-			firReader = SAMFileReaderFactory.createSAMFileReader(firBam, ValidationStringency.SILENT);
-			secReader = SAMFileReaderFactory.createSAMFileReader(secBam, ValidationStringency.SILENT);
+			firReader = SAMFileReaderFactory.createSAMFileReader(firBam, null, ValidationStringency.SILENT);
+			secReader = SAMFileReaderFactory.createSAMFileReader(secBam, null, ValidationStringency.SILENT);
 			discardNonPrimary = flag;
 			
 			if(! firReader.getFileHeader().getSortOrder().equals(SortOrder.queryname))

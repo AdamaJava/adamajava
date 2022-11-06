@@ -57,9 +57,7 @@ public class SAMFileReaderFactoryTest {
 		
 		try(SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile, "strict");) {			
 			Assert.fail("Should have thrown an exception");
-		} catch (Exception e) {
-			
-		}
+		} catch (Exception e) { }
 		
 		
 		// this time set the validation stringency to silent - should work
@@ -91,49 +89,32 @@ public class SAMFileReaderFactoryTest {
 		getBamFile(bamFile, true, false);
 		// no validation set - should pick up bwa in header and set validation to silent
 		int recordCount = 0;
-		SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile);
-		try {
-			for (SAMRecord s : reader) {
-				recordCount++;
-			}
+		
+		try(SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile);) {
+			for (SAMRecord s : reader) recordCount++;
 			assertEquals(inValidBamRecordCount, recordCount);
-		} finally {
-			reader.close();
-		}
+		} 
 		
 		// this time set the validation stringency to strict - should fail
 		recordCount = 0;
-		try {
-			reader = SAMFileReaderFactory.createSAMFileReader(bamFile, "strict");
-			for (SAMRecord s : reader) {
-				// do something
-			}
+		try(SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile, "strict");) {
+			for (SAMRecord s : reader) ;
 			Assert.fail("Should have thrown an exception");
-		} catch (Exception e) {
-		} finally {
-			reader.close();
-		}
+		} catch (Exception e) { }  
 		
 		// this time set the validation stringency to silent - should work
 		recordCount = 0;
-		try {
-			reader = SAMFileReaderFactory.createSAMFileReader(bamFile, "silent");
+		try(SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile, "silent");) {
 			for (SAMRecord s : reader) recordCount++;
-		} finally {
-			reader.close();
-		}
+		}  
 		assertEquals(inValidBamRecordCount, recordCount);
 		
 		// this time set the validation stringency to lenient - should work
 		recordCount = 0;
-		try {
-			reader = SAMFileReaderFactory.createSAMFileReader(bamFile, "lenient");
+		try(SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile, "lenient");) {
 			for (SAMRecord s : reader) recordCount++;
-		} finally {
-			reader.close();
-		}
-		assertEquals(inValidBamRecordCount, recordCount);
-		
+		} 
+		assertEquals(inValidBamRecordCount, recordCount);		
 	}
 	
 	@Test
@@ -142,46 +123,33 @@ public class SAMFileReaderFactoryTest {
 		getBamFile(bamFile, false, false);
 		// no validation set - should pick up bwa in header and set validation to silent
 		int recordCount = 0;
-		SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile);
-		try {
+		
+		try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile);) {
 			for (SAMRecord s : reader) recordCount++;
 			assertEquals(inValidBamRecordCount, recordCount);
-		} finally {
-			reader.close();
-		}
+		} 
 		
 		// this time set the validation stringency to strict - should fail
 		recordCount = 0;
-		try {
-			reader = SAMFileReaderFactory.createSAMFileReader(bamFile, "strict");
+		try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile, "strict");) {
 			Assert.fail("Should have thrown an exception");
-		} catch (Exception e) {
-		} finally {
-			reader.close();
-		}
+		} catch (Exception e) { } 
 		
 		// this time set the validation stringency to silent - should work
 		recordCount = 0;
-		try {
-			reader = SAMFileReaderFactory.createSAMFileReader(bamFile, "silent");
+		try(SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile, "silent");) {
 			for (SAMRecord s : reader) recordCount++;
-		} finally {
-			reader.close();
-		}
+		} 
 		assertEquals(inValidBamRecordCount, recordCount);
 		
 		// this time set the validation stringency to lenient - should work
 		recordCount = 0;
-		try {
-			reader = SAMFileReaderFactory.createSAMFileReader(bamFile, "lenient");
+		try(SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile, "lenient");) {
 			for (SAMRecord s : reader) {
 				recordCount++;
 			}
-		} finally {
-			reader.close();
-		}
-		assertEquals(inValidBamRecordCount, recordCount);
-		
+		} 
+		assertEquals(inValidBamRecordCount, recordCount);		
 	}
 	
 	@Test
@@ -190,23 +158,16 @@ public class SAMFileReaderFactoryTest {
 		getBamFile(bamFile, true, true, true);
 		
 		assertEquals(true, BamFileIoUtils.isBamFile(bamFile));
-		
 		File bamFileIndex = SamFiles.findIndex(bamFile);
 		assertEquals(true, bamFileIndex.exists());
 		
 		int recordCount = 0;
-		SamReader reader = SAMFileReaderFactory.createSAMFileReaderAsStream(bamFile,bamFileIndex);
-		assertEquals(Type.BAM_TYPE, reader.type());
-		assertEquals(true, reader.hasIndex());
-		
-		try {
-			for (SAMRecord s : reader) {
-				recordCount++;
-			}
+		try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile,bamFileIndex);) {
+			assertEquals(Type.BAM_TYPE, reader.type());
+			assertEquals(true, reader.hasIndex());			
+			for (SAMRecord s : reader) recordCount++;
 			assertEquals(validBamRecordCount, recordCount);
-		} finally {
-			reader.close();
-		}
+		} 
 	}
 	
 	@Test
@@ -214,66 +175,48 @@ public class SAMFileReaderFactoryTest {
 		File bamFile = testFolder.newFile("testValidHeaderValidBody.bam");
 		getBamFile(bamFile, true, true, true);
 		
-		assertEquals(true, BamFileIoUtils.isBamFile(bamFile));
-		
+		assertEquals(true, BamFileIoUtils.isBamFile(bamFile));		
 		File bamFileIndex = SamFiles.findIndex(bamFile);
 		assertEquals(true, bamFileIndex.exists());
 		
 		int recordCount = 0;
-		SamReader reader = SAMFileReaderFactory.createSAMFileReaderAsStream(bamFile.getAbsolutePath(), null);
-		assertEquals(Type.BAM_TYPE, reader.type());
-		assertEquals(true, reader.hasIndex());
-		
-		try {
+		try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile); ) {
+			assertEquals(Type.BAM_TYPE, reader.type());
+			assertEquals(true, reader.hasIndex());
+
 			for (SAMRecord s : reader) {
 				recordCount++;
 			}
 			assertEquals(validBamRecordCount, recordCount);
-		} finally {
-			reader.close();
-		}
+		} 
 	}
 	@Test
 	public void validEverythingAndStreamsAndSam() throws IOException {
 		File samFile = testFolder.newFile("validEverythingAndStreamsAndSam.sam");
-		getBamFile(samFile, true, true, true);
-		
+		getBamFile(samFile, true, true, true);		
 		assertEquals(false, BamFileIoUtils.isBamFile(samFile));
 		
-		int recordCount = 0;
-		SamReader reader = SAMFileReaderFactory.createSAMFileReaderAsStream(samFile);
-		assertEquals(Type.SAM_TYPE, reader.type());
-		assertEquals(false, reader.hasIndex());
-		
-		try {
-			for (SAMRecord s : reader) {
-				recordCount++;
-			}
+		int recordCount = 0;		
+		try(SamReader reader = SAMFileReaderFactory.createSAMFileReader(samFile);) {
+			assertEquals(Type.SAM_TYPE, reader.type());
+			assertEquals(false, reader.hasIndex());			
+			for (SAMRecord s : reader) recordCount++;		
 			assertEquals(validBamRecordCount, recordCount);
-		} finally {
-			reader.close();
-		}
+		} 
 	}
 	@Test
 	public void validEverythingAndStreamsAndSamAsString() throws IOException {
 		File samFile = testFolder.newFile("validEverythingAndStreamsAndSam.sam");
-		getBamFile(samFile, true, true, true);
-		
+		getBamFile(samFile, true, true, true);		
 		assertEquals(false, BamFileIoUtils.isBamFile(samFile));
 		
-		int recordCount = 0;
-		SamReader reader = SAMFileReaderFactory.createSAMFileReaderAsStream(samFile.getAbsolutePath(),null);
-		assertEquals(Type.SAM_TYPE, reader.type());
-		assertEquals(false, reader.hasIndex());
-		
-		try {
-			for (SAMRecord s : reader) {
-				recordCount++;
-			}
+		int recordCount = 0;		
+		try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(samFile);) {
+			assertEquals(Type.SAM_TYPE, reader.type());
+			assertEquals(false, reader.hasIndex());
+			for (SAMRecord s : reader) recordCount++;			
 			assertEquals(validBamRecordCount, recordCount);
-		} finally {
-			reader.close();
-		}
+		} 
 	}
 	
 	@Test
@@ -281,24 +224,17 @@ public class SAMFileReaderFactoryTest {
 		File bamFile = testFolder.newFile("testValidHeaderValidBody.bam");
 		getBamFile(bamFile, true, true);
 		
-		assertEquals(true, BamFileIoUtils.isBamFile(bamFile));
-		
+		assertEquals(true, BamFileIoUtils.isBamFile(bamFile));		
 		File bamFileIndex = SamFiles.findIndex(bamFile);
 		assertEquals(null,  bamFileIndex);
 		
-		int recordCount = 0;
-		SamReader reader = SAMFileReaderFactory.createSAMFileReaderAsStream(bamFile);
-		assertEquals(Type.BAM_TYPE, reader.type());
-		assertEquals(false, reader.hasIndex());
-		
-		try {
-			for (SAMRecord s : reader) {
-				recordCount++;
-			}
+		int recordCount = 0;		
+		try ( SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile); ) {
+			assertEquals(Type.BAM_TYPE, reader.type());
+			assertEquals(false, reader.hasIndex());
+			for (SAMRecord s : reader) recordCount++;			 
 			assertEquals(validBamRecordCount, recordCount);
-		} finally {
-			reader.close();
-		}
+		} 
 	}
 	
 	@Test
@@ -307,50 +243,31 @@ public class SAMFileReaderFactoryTest {
 		getBamFile(bamFile, true, true);
 		// no validation set - should pick up bwa in header and set validation to silent
 		int recordCount = 0;
-		SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile);
-		try {
-			for (SAMRecord s : reader) {
-				recordCount++;
-			}
+		
+		try(SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile);) {
+			for (SAMRecord s : reader) recordCount++;			 
 			assertEquals(validBamRecordCount, recordCount);
-		} finally {
-			reader.close();
-		}
+		} 
 		
 		// this time set the validation stringency to strict - should pass
 		recordCount = 0;
-		try {
-			reader = SAMFileReaderFactory.createSAMFileReader(bamFile, "strict");
-			for (SAMRecord s : reader) {
-				recordCount++;
-			}
-		} finally {
-			reader.close();
-		}
+		try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile, "strict");) {			
+			for (SAMRecord s : reader)  recordCount++;			 
+		} 
 		assertEquals(validBamRecordCount, recordCount);
 		
 		// this time set the validation stringency to silent - should work
 		recordCount = 0;
-		try {
-			reader = SAMFileReaderFactory.createSAMFileReader(bamFile, "silent");
-			for (SAMRecord s : reader) {
-				recordCount++;
-			}
-		} finally {
-			reader.close();
+		try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile,  "silent");) {			
+			for (SAMRecord s : reader) recordCount++;
 		}
 		assertEquals(validBamRecordCount, recordCount);
 		
 		// this time set the validation stringency to lenient - should work
 		recordCount = 0;
-		try {
-			reader = SAMFileReaderFactory.createSAMFileReader(bamFile, "lenient");
-			for (SAMRecord s : reader) {
-				recordCount++;
-			}
-		} finally {
-			reader.close();
-		}
+		try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile, "lenient");) {			
+			for (SAMRecord s : reader) recordCount++;
+		} 
 		assertEquals(validBamRecordCount, recordCount);
 	}
 	

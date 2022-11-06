@@ -38,7 +38,7 @@ public class SubSample {
 		if(!input.canRead()) 
 			throw new Exception("unreadable input: " + input.getAbsolutePath());	 			
 		
-		reader = SAMFileReaderFactory.createSAMFileReader(input,ValidationStringency.LENIENT);			
+		reader = SAMFileReaderFactory.createSAMFileReader(input, null, ValidationStringency.LENIENT); 		
 		SAMFileHeader header = reader.getFileHeader();
 		if(header.getSortOrder() != SAMFileHeader.SortOrder.queryname){
 			throw new Exception("the input BAM is not sorted by queryname");
@@ -47,7 +47,7 @@ public class SubSample {
         HeaderUtils.addProgramRecord(header,  op.getCommandLine(), null );
          
         writer = writeFactory.makeSAMOrBAMWriter(header, false, output );
-        
+		
 
 	}
 

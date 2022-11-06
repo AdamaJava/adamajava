@@ -6,20 +6,13 @@
  */
 package org.qcmg.qbamfix;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 
 import org.qcmg.common.log.QLogger;
-
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SamReader;
 import htsjdk.samtools.SAMReadGroupRecord;
-import htsjdk.samtools.ValidationStringency;
-import htsjdk.samtools.fastq.*;
 import org.qcmg.picard.SAMFileReaderFactory;
 
 public class FixHeader {
@@ -27,9 +20,10 @@ public class FixHeader {
 	
 	public FixHeader(NewOptions options, QLogger logger ) throws Exception{
 		
-		SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(options.getInputFileName()),options.getValidation() );  
-		header = reader.getFileHeader().clone();
-		reader.close();
+		try(SamReader reader = SAMFileReaderFactory.createSAMFileReader(
+				new File(options.getInputFileName()), null, options.getValidation() ); ) { 
+			header = reader.getFileHeader().clone();
+		}
 		
 		String OldTxtRG = getTxtRG( header );				 
 		header.setSortOrder(SAMFileHeader.SortOrder.coordinate);

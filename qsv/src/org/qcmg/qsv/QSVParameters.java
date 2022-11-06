@@ -115,13 +115,18 @@ public class QSVParameters {
 		//set filtered bam file name
 		if (options.runPairPreprocess()) {	       
 			final String baseName = inputBamFile.getName();
-			final String fileName = baseName.replace(".bam", ".discordantpair.filtered.bam");
+			//clarify sam and bam; because seekablestream can't open sam file even the file extension name is .bam;			 
+			final String fileName = (baseName.endsWith(".sam"))? 
+					baseName.replace(".sam", ".discordantpair.filtered.sam"): baseName.replace(".bam", ".discordantpair.filtered.bam");
 			this.filteredBamFile = new File(options.getTempDirName() + FILE_SEPERATOR + fileName);
 		}
 
 		if (options.runClipPreprocess() || options.isSplitRead()) {        	
-			final String baseName = this.inputBamFile.getName();         	
-			this.clippedBamFile= new File(options.getTempDirName() + FILE_SEPERATOR  +  baseName.replace(".bam", ".softclip.filtered.bam"));
+			final String baseName = this.inputBamFile.getName();  
+			//clarify sam and bam; because seekablestream can't open sam file even the file extension name is .bam;			 
+			final String fileName = (baseName.endsWith(".sam"))? 
+					baseName.replace(".sam",  ".softclip.filtered.sam") : baseName.replace(".bam",  ".softclip.filtered.bam");			
+			this.clippedBamFile= new File(options.getTempDirName() + FILE_SEPERATOR  + fileName);
 		}
 
 		//get the names of the chromosomes that will be analysed

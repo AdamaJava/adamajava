@@ -32,7 +32,7 @@ public class PileupDataRecordTest {
 	
 	@Before
 	public void setUp() throws IOException {
-		testFile = testFolder.newFile("test.bam");
+		testFile = testFolder.newFile("test.sam");
 		TestUtil.createBam(testFile.getAbsolutePath());
 		
 		samRecords = new ArrayList<SAMRecord>();

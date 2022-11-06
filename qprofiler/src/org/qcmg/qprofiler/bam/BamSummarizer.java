@@ -61,22 +61,21 @@ public class BamSummarizer implements Summarizer {
 	
 	@Override
 	public SummaryReport summarize(String input, String index, String[] regions) throws Exception {
-//		SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(input), validation);
 		ValidationStringency vs = null != validation ? ValidationStringency.valueOf(validation) : DEFAULT_VS;
-		SamReader reader = SAMFileReaderFactory.createSAMFileReaderAsStream(input, index, vs);
-		
 		// create the SummaryReport
 		BamSummaryReport bamSummaryReport = new BamSummaryReport(includes, maxRecords, tags, tagsInt, tagsChar);
 		bamSummaryReport.setFileName(input);
 		bamSummaryReport.setStartTime(DateUtils.getCurrentDateAsString());
-		readGroupIds = reader.getFileHeader().getReadGroups().stream().map( it -> it.getId()  ).collect(toList()); 
-		bamSummaryReport.setReadGroups(readGroupIds);
 		
-		boolean logLevelEnabled = logger.isLevelEnabled(QLevel.DEBUG);
+		try(SamReader reader = SAMFileReaderFactory.createSAMFileReaderAsStream(input, index, vs);) {
+			readGroupIds = reader.getFileHeader().getReadGroups().stream().map( it -> it.getId()  ).collect(toList()); 
+			bamSummaryReport.setReadGroups(readGroupIds);
+			
+			boolean logLevelEnabled = logger.isLevelEnabled(QLevel.DEBUG);
+			
+			// iterate over the SAMRecord objects returned, passing them to the summariser
+			long currentRecordCount = 0;
 		
-		// iterate over the SAMRecord objects returned, passing them to the summariser
-		long currentRecordCount = 0;
-		try {
 			for (SAMRecord samRecord : reader) {
 				try {
 					bamSummaryReport.parseRecord(samRecord);
@@ -108,13 +107,8 @@ public class BamSummarizer implements Summarizer {
 			}
 			bamSummaryReport.setTorrentBam(torrentBam);
 			bamSummaryReport.setBamHeader(bamHeader);
-			bamSummaryReport.setSamSequenceDictionary(samSeqDict);
-			
-			
-			
-		} finally {
-			reader.close();
-		}
+			bamSummaryReport.setSamSequenceDictionary(samSeqDict);			
+		}  
 		
 		bamSummaryReport.cleanUp();
 		logger.info("records parsed: "+ bamSummaryReport.getRecordsParsed());

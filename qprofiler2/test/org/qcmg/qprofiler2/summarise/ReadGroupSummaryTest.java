@@ -193,16 +193,16 @@ public class ReadGroupSummaryTest {
 	private ReadGroupSummary createRGElement(String rgid) throws IOException, ParserConfigurationException {
 		
 		ReadGroupSummary rgSumm = new ReadGroupSummary(rgid);		
-		SamReader reader = SAMFileReaderFactory.createSAMFileReaderAsStream(input, null, null);
-		for (SAMRecord record : reader) {	
-			if (rgid == null)
-				rgSumm.parseRecord(record);
-			else if (rgid.equals(XmlUtils.UNKNOWN_READGROUP) && record.getReadGroup() == null)
-				rgSumm.parseRecord(record);	
-			else if (record.getReadGroup() != null && record.getReadGroup().getId().equals(rgid))
-				rgSumm.parseRecord(record);						 	 
-		}						
-		reader.close();
+		try( SamReader reader = SAMFileReaderFactory.createSAMFileReader(input);){
+			for (SAMRecord record : reader) {	
+				if (rgid == null)
+					rgSumm.parseRecord(record);
+				else if (rgid.equals(XmlUtils.UNKNOWN_READGROUP) && record.getReadGroup() == null)
+					rgSumm.parseRecord(record);	
+				else if (record.getReadGroup() != null && record.getReadGroup().getId().equals(rgid))
+					rgSumm.parseRecord(record);						 	 
+			}						
+		}
 		
 		return rgSumm;
 	}

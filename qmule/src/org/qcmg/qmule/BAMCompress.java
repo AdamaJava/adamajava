@@ -41,7 +41,7 @@ public class BAMCompress {
 
 		public void replaceSeq() throws Exception{					
 			
-			SamReader reader = SAMFileReaderFactory.createSAMFileReader( input, ValidationStringency.SILENT);					
+			SamReader reader = SAMFileReaderFactory.createSAMFileReader( input, null, ValidationStringency.SILENT);					
 			SAMFileWriter writer =   new SAMFileWriterFactory() .makeBAMWriter(reader.getFileHeader(), false, output, level);  
 				
 			for( SAMRecord record : reader){

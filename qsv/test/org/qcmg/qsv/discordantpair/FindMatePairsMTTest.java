@@ -38,8 +38,9 @@ public class FindMatePairsMTTest {
 
     @Before
     public void setUp() throws Exception {
-    		File tumorBam = TestUtil.createSamFile(testFolder.newFile("tumor.bam").getAbsolutePath(), SortOrder.queryname, false);
-        File normalBam = TestUtil.createSamFile(testFolder.newFile("normal.bam").getAbsolutePath(), SortOrder.queryname, false);
+    	File tumorBam = TestUtil.createSamFile(testFolder.newFile("tumor.sam").getAbsolutePath(), SortOrder.queryname, false);
+        File normalBam = TestUtil.createSamFile(testFolder.newFile("normal.sam").getAbsolutePath(), SortOrder.queryname, false);
+
         QSVParameters p = TestUtil.getQSVParameters(testFolder.getRoot(), normalBam.getAbsolutePath(), tumorBam.getAbsolutePath(), true, "none", "pair");
         matePairDir = testFolder.getRoot().getAbsolutePath() + FILE_SEPERATOR + "matepair" + FILE_SEPERATOR;        
         

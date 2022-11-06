@@ -113,7 +113,7 @@ public class TestUtil {
     	return iniFile.getCanonicalPath();
 	}
 
-	public static void createBam(String fileName){
+	public static void createBam(String fileName) {
 		
         List<String> data = new ArrayList<String>();
         data.addAll(createSamHeader());
