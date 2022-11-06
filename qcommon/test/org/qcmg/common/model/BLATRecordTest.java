@@ -41,6 +41,37 @@ public class BLATRecordTest {
 		assertEquals(true, br.isValid());
 		assertEquals(49, br.getScore());
 	}
+	
+	@Test
+	public void compare() {
+		String b = "57	7	0	0	1	1	0	0	+	name	66	-1	64	GL000219.1	12345	165413	165478	2	43,19	1,46	165414,165459";
+		BLATRecord br1 = new BLATRecord.Builder(b).build();
+		BLATRecord br2 = new BLATRecord.Builder(b).build();
+		
+		assertEquals(0, br1.compareTo(br2));
+		assertEquals(0, br2.compareTo(br1));
+		
+		br2.setQName(null);
+		assertEquals(-1, br1.compareTo(br2));
+		assertEquals(1, br2.compareTo(br1));
+		br1.setQName(null);
+		assertEquals(0, br1.compareTo(br2));
+		assertEquals(0, br2.compareTo(br1));
+		
+		b = "57	7	0	0	1	1	0	0	+	name	66	-1	64	GL000219.1	12345	165413	165478	2	43,19	1,46	165414,165459";
+		String c = "58	7	0	0	1	1	0	0	+	name	66	-1	64	GL000219.1	12345	165413	165478	2	43,19	1,46	165414,165459";
+		br1 = new BLATRecord.Builder(b).build();
+		br2 = new BLATRecord.Builder(c).build();
+		assertEquals(-1, br1.compareTo(br2));
+		assertEquals(1, br2.compareTo(br1));
+		br1.setQName(null);
+		assertEquals(1, br1.compareTo(br2));
+		assertEquals(-1, br2.compareTo(br1));
+		br1.setQName("name");
+		br2.setQName(null);
+		assertEquals(-1, br1.compareTo(br2));
+		assertEquals(1, br2.compareTo(br1));
+	}
 
 	@Test
 	public void getScore() {
@@ -71,6 +102,44 @@ public class BLATRecordTest {
 		recordsList = Arrays.asList(br, br2);
 		recordsList.sort(null);
 		assertEquals(br2, recordsList.get(0));
+	}
+	
+	@Test
+	public void sortingName() {
+		BLATRecord br1 = new BLATRecord.Builder("85	12	0	0	0	0	0	0	+	null	238	94	191	chr2	243199373	33141559	33141656	1	97	94	33141559").build();
+		BLATRecord br2 = new BLATRecord.Builder("77	0	0	3	0	0	5	15	-	null	238	2	94	chr2	243199373	33141310	33141387	6	9,6,4,21,25,12	144,158,167,175,198,224	33141310,33141319,33141325,33141329,33141350,33141375").build();
+		BLATRecord br3 = new BLATRecord.Builder("77	0	0	0	2	4	1	5	-	null	238	156	238	chr16	90354753	56226225	56226306	4	61,3,5,8	0,66,69,74	56226225,56226286,56226291,56226298").build();
+		List<BLATRecord> list = Arrays.asList(br1, br2, br3);
+		list.sort(null);
+		assertEquals(br2, list.get(0));
+		assertEquals(br1, list.get(1));
+		
+		/*
+		 * set names to null and sort - should be same order
+		 */
+		br1.setQName(null);
+		br2.setQName(null);
+		br3.setQName(null);
+		list.sort(null);
+		assertEquals(br2, list.get(0));
+		assertEquals(br1, list.get(1));
+		
+		/*
+		 * if just 1 name is set, that will top the list
+		 */
+		br1.setQName("name");
+		list.sort(null);
+		assertEquals(br1, list.get(0));
+		assertEquals(br2, list.get(1));
+		
+		/*
+		 * another name - this should appear before the other name
+		 */
+		br3.setQName("AAname");
+		list.sort(null);
+		assertEquals(br3, list.get(0));
+		assertEquals(br1, list.get(1));
+		
 	}
 	
 	@Test
