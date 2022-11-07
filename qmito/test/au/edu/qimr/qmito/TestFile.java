@@ -56,15 +56,13 @@ public class TestFile {
 		public static void createBam(String output) throws IOException{
 			String sam = output+ ".sam";
 			createFile(TestFile.createSam(), sam);
-			SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(sam), null,  ValidationStringency.SILENT);  
-			SAMOrBAMWriterFactory factory = new SAMOrBAMWriterFactory(reader.getFileHeader(), true, new File(output),true );									 
-			SAMFileWriter writer = factory.getWriter();
-	       
-	    	for( SAMRecord record : reader)
-	    			writer.addAlignment(record);	
-	    
-	    	factory.closeWriter();
-	    	reader.close();
+			
+			try(SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(sam), null,  ValidationStringency.SILENT); ) { 
+				SAMOrBAMWriterFactory factory = new SAMOrBAMWriterFactory(reader.getFileHeader(), true, new File(output),true );
+				SAMFileWriter writer = factory.getWriter();					
+		    	for( SAMRecord record : reader) writer.addAlignment(record);				
+				factory.renameBamIndex();
+			} 			
 	    	new File(sam).delete();
 			
 		}

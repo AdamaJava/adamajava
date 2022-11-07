@@ -51,7 +51,7 @@ public class queryChrMT {
 					writeFactory.getWriter().addAlignment(record );	 
 				
 			}
-    		writeFactory.closeWriter();
+    		writeFactory.renameBamIndex();
     		reader.close();
     		 
     		System.exit(0);

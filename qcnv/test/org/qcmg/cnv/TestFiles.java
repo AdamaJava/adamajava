@@ -78,11 +78,10 @@ public class TestFiles {
 		header.setSortOrder(SAMFileHeader.SortOrder.coordinate);
 		
 		SAMOrBAMWriterFactory factory = new SAMOrBAMWriterFactory(header, false, BAM, true);
-		SAMFileWriter writer = factory.getWriter();
+		try(SAMFileWriter writer = factory.getWriter();){
 		for( SAMRecord record : reader)
-			writer.addAlignment(record);	
-			
-		reader.close();
-		factory.closeWriter();		
+			writer.addAlignment(record);			
+		} 
+		factory.renameBamIndex();		
 	}
 }

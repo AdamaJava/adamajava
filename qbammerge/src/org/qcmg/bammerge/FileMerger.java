@@ -40,6 +40,7 @@ import org.qcmg.picard.MultiSAMFileReader;
 import org.qcmg.picard.RenameFile;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.SAMOrBAMWriterFactory;
+import org.qcmg.picard.util.BAMFileUtils;
 import org.qcmg.picard.util.SAMReadGroupRecordUtils;
 
 /**
@@ -492,7 +493,7 @@ public final class FileMerger {
 		replaceUUIDInHeader(header, uuid);
 		BamFileIoUtils.reheaderBamFile(header, in, outputFile, false, createIndex);
 		if (createIndex) {
-			RenameFile.renameIndex(outputFile);
+			BAMFileUtils.renameIndex(outputFile);
 		}
 	}
 
@@ -960,7 +961,7 @@ public final class FileMerger {
 	private void close() throws BamMergeException {
 		//close output write and rename index if needed 
 		if (null != outputWriterfactory) {
-			outputWriterfactory.closeWriter();
+			outputWriterfactory.renameBamIndex();
 			String logMessage = outputWriterfactory.getLogMessage();
 			if ( ! StringUtils.isNullOrEmpty(logMessage)) {
 				logger.info(logMessage);
@@ -993,30 +994,4 @@ public final class FileMerger {
 		Object[] objectArray = list.toArray();
 		return Arrays.copyOf(objectArray, objectArray.length, String[].class);
 	}
-	
-//	public class Writer implements Runnable {
-//
-//		@Override
-//		public void run() {
-//			try {
-//				while (true) {
-//					SAMRecord rec = queue.poll();
-//					if (null != rec) {
-//						outputWriter.addAlignment(rec);
-//					} else {
-//						if (readingLatch.getCount() == 0) {
-//							break;
-//						}
-//						try {
-//							Thread.sleep(10);
-//						} catch (InterruptedException e) {
-//							e.printStackTrace();
-//						}
-//					}
-//				}
-//			} finally {
-//				writingLatch.countDown();
-//			}
-//		}
-//	}
 }

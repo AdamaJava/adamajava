@@ -40,11 +40,13 @@ public class Support {
 		 	
 		try(SamReader reader = SAMFileReaderFactory.createSAMFileReader(tmp);){		
 			SAMOrBAMWriterFactory factory = new  SAMOrBAMWriterFactory(reader.getFileHeader() ,false, output);
-			SAMFileWriter writer = factory.getWriter();
-			for( SAMRecord record : reader) 
-				writer.addAlignment(record);
+			
+			try(SAMFileWriter writer = factory.getWriter();) {
+				for( SAMRecord record : reader) writer.addAlignment(record);
+				factory.renameBamIndex();
+			}
+			
 			 
-			factory.closeWriter();
 		} catch (IOException e) {
 			System.err.println(Q3IndelException.getStrackTrace(e));
 			Assert.fail("Should not threw a Exception");

@@ -4,11 +4,15 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 
+import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.qcmg.picard.RenameFile;
 import org.qcmg.picard.SAMOrBAMWriterFactory;
 
 import htsjdk.samtools.SAMFileHeader;
@@ -26,6 +30,8 @@ public class BAMFileUtilsTest {
 	@Test
 	public void getContigNamesFromHeader() throws IOException {
 		File bam = testFolder.newFile("getContigNamesFromHeader.bam");
+		//debug
+		bam = new File("getContigNamesFromHeader.bam");
 		BAMFileUtilsTest.getBamFile(bam, null, true);
 		List<String> contigs = BAMFileUtils.getContigsFromBamFile(bam);
 		assertEquals(5, contigs.size());
@@ -43,16 +49,52 @@ public class BAMFileUtilsTest {
 		assertEquals("5", contigs.get(4));
 	}
 	
-	 private static void getBamFile(File bamFile, List<SAMRecord> data, boolean useChrs) {
+	 @Test(expected = IOException.class)
+	public void renameAlreadyCanonicalIndex() throws IOException {
+		Path dir = Files.createTempDirectory("java-test");
+		File bam = new File(dir.resolve("test.bam").toString());
+		File bai = new File(dir.resolve("test.bam.bai").toString());
+		// create the bam and an already-canonically named index
+		bam.createNewFile();
+		bai.createNewFile();
+		// expect IOException
+		BAMFileUtils.renameIndex(bam);
+	}
+
+	@Test
+	public void renameIndex() throws IOException {
+		Path dir = Files.createTempDirectory("java-test");
+		File bam = new File(dir.resolve("test.bam").toString());
+		File bai = new File(dir.resolve("test.bai").toString());
+		// create the bam and a picard-style ${stem/bam/bai} index 
+		bam.createNewFile();
+		bai.createNewFile();
+		File baiRenamed = new File(dir.resolve("test.bam.bai").toString());
+	
+		Assert.assertTrue(bai.exists());
+		Assert.assertFalse(baiRenamed.exists());
+		BAMFileUtils.renameIndex(bam);
+		Assert.assertTrue(baiRenamed.exists());
+		Assert.assertFalse(bai.exists());
+	}
+
+	@Test(expected = IOException.class)
+	public void renameNonExistentIndex() throws IOException {
+		Path dir = Files.createTempDirectory("java-test");
+		File bam = new File(dir.resolve("test.bam").toString());
+		// create the bam but no index
+		bam.createNewFile();
+		// expect IOException
+		BAMFileUtils.renameIndex(bam);
+	}
+
+	private static void getBamFile(File bamFile, List<SAMRecord> data, boolean useChrs) {
     	final SAMFileHeader header = getHeader(useChrs);
     	final SAMOrBAMWriterFactory factory = new SAMOrBAMWriterFactory(header, false, bamFile, false);
-    	try {
-    		final SAMFileWriter writer = factory.getWriter();
-    		if (null != data)
+    	try(SAMFileWriter writer = factory.getWriter();) {
+     		if (null != data)
     			for (final SAMRecord s : data) writer.addAlignment(s);
-    	} finally {
-    		factory.closeWriter();
-    	}
+    	} 
     }
 	    
 	private static SAMFileHeader getHeader(boolean useChrs) {

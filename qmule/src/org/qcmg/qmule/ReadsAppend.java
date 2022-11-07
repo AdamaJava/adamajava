@@ -55,7 +55,7 @@ public class ReadsAppend {
 	        	reader.close();
         }
     	
-    	factory.closeWriter();		
+    	factory.renameBamIndex();		
 		System.out.println("end time : " + getTime());
 		System.exit(0);
 	}

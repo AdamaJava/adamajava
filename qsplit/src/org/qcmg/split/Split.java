@@ -26,6 +26,7 @@ import htsjdk.samtools.SAMTagUtil;
 
 import org.qcmg.picard.RenameFile;
 import org.qcmg.picard.SAMFileReaderFactory;
+import org.qcmg.picard.util.BAMFileUtils;
 
 public class Split {
 	static final Pattern colonDelimitedPattern = Pattern.compile("[:]+");
@@ -300,7 +301,7 @@ public class Split {
 		if(createIndex){
 			for(File out: outputNames){
 				try{
-					RenameFile.renameIndex(out);
+					BAMFileUtils.renameIndex(out);
 				}catch(Exception e){
 					 System.out.println(e.toString());
 				}

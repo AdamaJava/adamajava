@@ -15,10 +15,19 @@ import java.nio.file.StandardCopyOption;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
-import htsjdk.samtools.BAMIndex;
+import org.qcmg.picard.util.BAMFileUtils;
+
+import htsjdk.samtools.Defaults;
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMFileWriter;
 import htsjdk.samtools.SAMFileWriterFactory;
+import htsjdk.samtools.util.FileExtensions;
+import htsjdk.samtools.util.IOUtil;
+
+import static htsjdk.samtools.SamReader.Type.BAM_TYPE;
+import static htsjdk.samtools.SamReader.Type.SAM_TYPE;
+import static htsjdk.samtools.SamReader.Type.CRAM_TYPE;
+
 
 public class SAMOrBAMWriterFactory {
 	
@@ -55,11 +64,20 @@ public class SAMOrBAMWriterFactory {
 	public SAMOrBAMWriterFactory(SAMFileHeader header,  boolean preSort, File output,File tmpDir, int ramReads, boolean createIndex){
 		this(header, preSort, output,tmpDir, ramReads, createIndex, false);
 	}
-	public SAMOrBAMWriterFactory(SAMFileHeader header,  boolean preSort, File output,File tmpDir, int ramReads, boolean createIndex, boolean useAsyncIO){
-		this(header, preSort, output,tmpDir, ramReads, createIndex, useAsyncIO, -1);
+	public SAMOrBAMWriterFactory(SAMFileHeader header,  boolean preSort, File output,File tmpDir, int ramReads, 
+			boolean createIndex, boolean useAsyncIO){
+		this(header, preSort, output,tmpDir, ramReads, createIndex, useAsyncIO, -1, null);
 	}
 	
-	public SAMOrBAMWriterFactory(SAMFileHeader header,  boolean preSort, File output,File tmpDir, int ramReads, boolean createIndex, boolean useAsyncIO, int asyncOutputBufferSize){
+	public SAMOrBAMWriterFactory(SAMFileHeader header,  boolean preSort, File output, File tmpDir, int ramReads, 
+			boolean createIndex, boolean useAsyncIO, int asyncOutputBufferSize ){
+		
+		this(header, preSort, output, tmpDir, ramReads, createIndex, useAsyncIO, asyncOutputBufferSize, null);
+	}
+
+	
+	public SAMOrBAMWriterFactory(SAMFileHeader header,  boolean preSort, File output,File tmpDir, int ramReads, 
+			boolean createIndex, boolean useAsyncIO, int asyncOutputBufferSize, File reference ){
 		SAMFileWriterFactory factory = new SAMFileWriterFactory();   
 		if (ramReads > 0) {
 			htsjdk.samtools.SAMFileWriterImpl.setDefaultMaxRecordsInRam( ramReads );
@@ -83,23 +101,38 @@ public class SAMOrBAMWriterFactory {
 		
 		this.output = output;		
 		
-		writer = factory.makeSAMOrBAMWriter(header, preSort, output);  
+        final String filename = output.getName();
+        
+        if (BAM_TYPE.hasValidFileExtension(filename)) {
+                 writer = factory.makeBAMWriter(header, preSort, output);                       
+        } else if(CRAM_TYPE.hasValidFileExtension(filename)) {   
+				File ref = (reference == null)? Defaults.REFERENCE_FASTA: reference;            
+                writer = factory.makeCRAMWriter(header, preSort, output, ref);
+        } else {
+            if (!SAM_TYPE.hasValidFileExtension(filename)) {
+                logger.error("Unknown file extension, assuming SAM format when writing file: " + filename);               
+            }
+            writer = factory.makeSAMWriter(header, preSort, output);
+        }
 	}
 	
-	public SAMFileWriter getWriter(){
-		
+	public SAMFileWriter getWriter(){		
 		return writer;
 	}
-	public void closeWriter(){
+	
+	public void renameBamIndex(){
+		//writer allows to multi time close. 
 		writer.close();
-		if (index) {
-			try {
-				RenameFile.renameIndex(output);
-			} catch(IOException e) {
-				logMessage = "IOEXception caught whilst trying to move file";
-				logger.error(logMessage, e);
-			}
+		if (!index) return;
+		
+		try {				
+			//rename files
+			BAMFileUtils.renameIndex(output);
+		} catch(IOException e) {
+			logMessage = "IOEXception caught whilst trying to move file";
+			logger.error(logMessage, e);
 		}
+		 		
 	}
 	
 	public String getLogMessage(){

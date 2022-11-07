@@ -278,15 +278,11 @@ public class SAMFileReaderFactoryTest {
 	private static void getBamFile(File bamFile, boolean validHeader, boolean validRecords, boolean createIndex) {
 		SAMFileHeader header = getHeader(validHeader);
 		SAMOrBAMWriterFactory factory = new SAMOrBAMWriterFactory(header, false, bamFile, createIndex);
-		try {
-			SAMFileWriter writer = factory.getWriter();
+		try (SAMFileWriter writer = factory.getWriter();) {			
 			for (SAMRecord s : getRecords(validRecords,header)) {
-				writer.addAlignment(s);
+				writer.addAlignment(s);				
 			}
-			writer.close();
-		} finally {
-			factory.closeWriter();
-		}
+		}  
 	}
 	
 	private static List<SAMRecord> getRecords(boolean valid, SAMFileHeader header) {

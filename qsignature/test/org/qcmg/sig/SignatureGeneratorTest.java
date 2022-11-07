@@ -249,13 +249,10 @@ public class SignatureGeneratorTest {
     	final SAMFileHeader header = getHeader(validHeader, useChrs, addReadGroupToHeaderAndRecords);
     	List<SAMRecord> data = getRecords(useChrs, header, true, addReadGroupToHeaderAndRecords);
     	final SAMOrBAMWriterFactory factory = new SAMOrBAMWriterFactory(header, false, bamFile, false);
-    	try {
-    		final SAMFileWriter writer = factory.getWriter();
+    	try (SAMFileWriter writer = factory.getWriter();) {    		 
     		if (null != data)
     			for (final SAMRecord s : data) writer.addAlignment(s);
-    	} finally {
-    		factory.closeWriter();
-    	}
+    	}  
     }
     
     public static SAMFileHeader getHeader(boolean valid, boolean useChrs) {

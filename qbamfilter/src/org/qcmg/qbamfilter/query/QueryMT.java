@@ -81,7 +81,7 @@ public class QueryMT {
 						}
 					}
 				} finally {
-					writeFactory.closeWriter();
+					writeFactory.renameBamIndex();
 					logger.info(writeFactory.getLogMessage());
 					logger.info("completed writing threads, added " + unmatchedCount
 									+ " records to the output: " + unmatchedFile.getAbsolutePath());
@@ -466,7 +466,7 @@ public class QueryMT {
 						}
 					}
 				} finally {
-					writeFactory.closeWriter();
+					writeFactory.renameBamIndex();
 					logger.info(writeFactory.getLogMessage());
 				}
 
