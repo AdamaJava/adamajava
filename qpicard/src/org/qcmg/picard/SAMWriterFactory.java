@@ -8,10 +8,6 @@ package org.qcmg.picard;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -21,17 +17,14 @@ import htsjdk.samtools.Defaults;
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMFileWriter;
 import htsjdk.samtools.SAMFileWriterFactory;
-import htsjdk.samtools.util.FileExtensions;
-import htsjdk.samtools.util.IOUtil;
-
 import static htsjdk.samtools.SamReader.Type.BAM_TYPE;
 import static htsjdk.samtools.SamReader.Type.SAM_TYPE;
 import static htsjdk.samtools.SamReader.Type.CRAM_TYPE;
 
 
-public class SAMOrBAMWriterFactory {
+public class SAMWriterFactory {
 	
-	private static final QLogger logger = QLoggerFactory.getLogger(SAMOrBAMWriterFactory.class);
+	private static final QLogger logger = QLoggerFactory.getLogger(SAMWriterFactory.class);
 	
 	private final File output;
 	private final SAMFileWriter writer;
@@ -40,43 +33,43 @@ public class SAMOrBAMWriterFactory {
 
 	 
 	
-	public SAMOrBAMWriterFactory(SAMFileHeader header, boolean preSort, File output) {
+	public SAMWriterFactory(SAMFileHeader header, boolean preSort, File output) {
 		this(header,preSort, output, null, 0,  true);
 	}
 	
-	public SAMOrBAMWriterFactory(SAMFileHeader header, boolean preSort, File output, boolean createindex) {
+	public SAMWriterFactory(SAMFileHeader header, boolean preSort, File output, boolean createindex) {
 		this(header,preSort, output, null, 0,  createindex);
 	}
 	
-	public SAMOrBAMWriterFactory(SAMFileHeader header, boolean preSort, File output, int RamReads) {
+	public SAMWriterFactory(SAMFileHeader header, boolean preSort, File output, int RamReads) {
 		this(header,preSort, output, null, RamReads,  true);
 	}
-	public SAMOrBAMWriterFactory(SAMFileHeader header, boolean preSort, File output, File tmpDir ){
+	public SAMWriterFactory(SAMFileHeader header, boolean preSort, File output, File tmpDir ){
 		this(header, preSort, output,tmpDir, 0, true);
 	}
-	public SAMOrBAMWriterFactory(SAMFileHeader header,  boolean preSort, File output,File tmpDir, boolean createindex){
+	public SAMWriterFactory(SAMFileHeader header,  boolean preSort, File output,File tmpDir, boolean createindex){
 		this(header, preSort, output,tmpDir, 0, createindex);
 	}
 	
-	public SAMOrBAMWriterFactory(SAMFileHeader header,  boolean preSort, File output,File tmpDir, int ramReads){
+	public SAMWriterFactory(SAMFileHeader header,  boolean preSort, File output,File tmpDir, int ramReads){
 		this(header, preSort, output,tmpDir, ramReads, true);
 	}
-	public SAMOrBAMWriterFactory(SAMFileHeader header,  boolean preSort, File output,File tmpDir, int ramReads, boolean createIndex){
+	public SAMWriterFactory(SAMFileHeader header,  boolean preSort, File output,File tmpDir, int ramReads, boolean createIndex){
 		this(header, preSort, output,tmpDir, ramReads, createIndex, false);
 	}
-	public SAMOrBAMWriterFactory(SAMFileHeader header,  boolean preSort, File output,File tmpDir, int ramReads, 
+	public SAMWriterFactory(SAMFileHeader header,  boolean preSort, File output,File tmpDir, int ramReads, 
 			boolean createIndex, boolean useAsyncIO){
 		this(header, preSort, output,tmpDir, ramReads, createIndex, useAsyncIO, -1, null);
 	}
 	
-	public SAMOrBAMWriterFactory(SAMFileHeader header,  boolean preSort, File output, File tmpDir, int ramReads, 
+	public SAMWriterFactory(SAMFileHeader header,  boolean preSort, File output, File tmpDir, int ramReads, 
 			boolean createIndex, boolean useAsyncIO, int asyncOutputBufferSize ){
 		
 		this(header, preSort, output, tmpDir, ramReads, createIndex, useAsyncIO, asyncOutputBufferSize, null);
 	}
 
 	
-	public SAMOrBAMWriterFactory(SAMFileHeader header,  boolean preSort, File output,File tmpDir, int ramReads, 
+	public SAMWriterFactory(SAMFileHeader header,  boolean preSort, File output,File tmpDir, int ramReads, 
 			boolean createIndex, boolean useAsyncIO, int asyncOutputBufferSize, File reference ){
 		SAMFileWriterFactory factory = new SAMFileWriterFactory();   
 		if (ramReads > 0) {

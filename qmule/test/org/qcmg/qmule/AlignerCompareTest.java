@@ -21,7 +21,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.qcmg.picard.SAMFileReaderFactory;
-import org.qcmg.picard.SAMOrBAMWriterFactory;
+import org.qcmg.picard.SAMWriterFactory;
 
 
 public class AlignerCompareTest {

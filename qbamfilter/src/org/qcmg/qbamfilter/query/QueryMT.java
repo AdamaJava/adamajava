@@ -26,7 +26,7 @@ import htsjdk.samtools.ValidationStringency;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.util.Constants;
 import org.qcmg.picard.SAMFileReaderFactory;
-import org.qcmg.picard.SAMOrBAMWriterFactory;
+import org.qcmg.picard.SAMWriterFactory;
 import org.qcmg.picard.SAMRecordFilterWrapper;
 
 public class QueryMT {
@@ -58,7 +58,7 @@ public class QueryMT {
 				SAMFileHeader he = header.clone();
 				he.setSortOrder(sort);
 				 
-				SAMOrBAMWriterFactory writeFactory = new SAMOrBAMWriterFactory(he, presorted, unmatchedFile,tmpdir, index);
+				SAMWriterFactory writeFactory = new SAMWriterFactory(he, presorted, unmatchedFile,tmpdir, index);
 				
 				logger.info("input bam are presorted: " + presorted);
 				logger.info("set sort to unmatched reads output:" + sort);
@@ -415,7 +415,7 @@ public class QueryMT {
 				//make sure don't change the input header since the writer of unmatched reads  should use it. 
 				SAMFileHeader he = header.clone();
 				he.setSortOrder(sort);
-				SAMOrBAMWriterFactory writeFactory = new SAMOrBAMWriterFactory(he , presorted, file,tmpdir, index);
+				SAMWriterFactory writeFactory = new SAMWriterFactory(he , presorted, file,tmpdir, index);
 				
 				logger.info("input bam are presorted: " + presorted);
 				logger.info("set sort to " + sort);

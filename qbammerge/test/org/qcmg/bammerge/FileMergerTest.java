@@ -25,7 +25,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.picard.SAMFileReaderFactory;
-import org.qcmg.picard.SAMOrBAMWriterFactory;
+import org.qcmg.picard.SAMWriterFactory;
 import org.qcmg.split.SamSplitType;
 import org.qcmg.split.Split;
 import org.qcmg.testing.SamTestData;
@@ -121,7 +121,7 @@ public class FileMergerTest {
 		 * make bam from sam
 		 */
 		SamReader reader = SAMFileReaderFactory.createSAMFileReader(f1);
-		SAMOrBAMWriterFactory factory = new SAMOrBAMWriterFactory(reader.getFileHeader(), true, f1Bam);
+		SAMWriterFactory factory = new SAMWriterFactory(reader.getFileHeader(), true, f1Bam);
 		SAMFileWriter writer = factory.getWriter();
 		for (SAMRecord r : reader) {
 			writer.addAlignment(r);

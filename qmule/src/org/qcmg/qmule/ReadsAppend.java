@@ -17,7 +17,7 @@ import java.util.Calendar;
 import java.util.List;
 
 import org.qcmg.picard.SAMFileReaderFactory;
-import org.qcmg.picard.SAMOrBAMWriterFactory;
+import org.qcmg.picard.SAMWriterFactory;
 
 
 public class ReadsAppend {
@@ -45,7 +45,7 @@ public class ReadsAppend {
 		
 		SAMFileHeader header = readers.get(0).getFileHeader().clone();	
 		
-		SAMOrBAMWriterFactory factory = new SAMOrBAMWriterFactory(header, true, output,2000000 );
+		SAMWriterFactory factory = new SAMWriterFactory(header, true, output,2000000 );
         SAMFileWriter writer = factory.getWriter();
         
         for( SamReader reader : readers){

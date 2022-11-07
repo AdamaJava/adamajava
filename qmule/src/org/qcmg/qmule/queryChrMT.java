@@ -26,7 +26,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.qcmg.picard.SAMFileReaderFactory;
-import org.qcmg.picard.SAMOrBAMWriterFactory;
+import org.qcmg.picard.SAMWriterFactory;
 
 
 public class queryChrMT {
@@ -41,7 +41,7 @@ public class queryChrMT {
     		
 	 		SamReader reader = SAMFileReaderFactory.createSAMFileReader(inBAM, null, ValidationStringency.SILENT);
 	 		SAMFileHeader he = reader.getFileHeader().clone();
-			SAMOrBAMWriterFactory writeFactory = new SAMOrBAMWriterFactory(he , true, output);
+			SAMWriterFactory writeFactory = new SAMWriterFactory(he , true, output);
 			SAMRecordIterator ite = reader.query("chrMT",0,  16569, false);
 			
 			SAMRecord record;

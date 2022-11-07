@@ -13,7 +13,7 @@ import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.ValidationStringency;
 
 import org.qcmg.picard.SAMFileReaderFactory;
-import org.qcmg.picard.SAMOrBAMWriterFactory;
+import org.qcmg.picard.SAMWriterFactory;
 
 public class TestFile {
 	
@@ -58,7 +58,7 @@ public class TestFile {
 			createFile(TestFile.createSam(), sam);
 			
 			try(SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(sam), null,  ValidationStringency.SILENT); ) { 
-				SAMOrBAMWriterFactory factory = new SAMOrBAMWriterFactory(reader.getFileHeader(), true, new File(output),true );
+				SAMWriterFactory factory = new SAMWriterFactory(reader.getFileHeader(), true, new File(output),true );
 				SAMFileWriter writer = factory.getWriter();					
 		    	for( SAMRecord record : reader) writer.addAlignment(record);				
 				factory.renameBamIndex();

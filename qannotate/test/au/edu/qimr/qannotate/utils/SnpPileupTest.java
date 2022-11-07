@@ -14,7 +14,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.picard.SAMFileReaderFactory;
-import org.qcmg.picard.SAMOrBAMWriterFactory;
+import org.qcmg.picard.SAMWriterFactory;
 
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMFileWriter;
@@ -160,7 +160,7 @@ public class SnpPileupTest {
 		try(SamReader inreader =  SAMFileReaderFactory.createSAMFileReader( ftmp);  ){
 			SAMFileHeader he = inreader.getFileHeader();
 			he.setSortOrder( SAMFileHeader.SortOrder.coordinate );
-			SAMFileWriter writer = new SAMOrBAMWriterFactory(he , false, input, true).getWriter();	        
+			SAMFileWriter writer = new SAMWriterFactory(he , false, input, true).getWriter();	        
 	        for(SAMRecord re : inreader){ writer.addAlignment(re); }
 	        writer.close();
 		} catch (IOException e) { e.printStackTrace(); }	

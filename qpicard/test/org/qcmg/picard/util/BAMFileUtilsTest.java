@@ -13,7 +13,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.picard.RenameFile;
-import org.qcmg.picard.SAMOrBAMWriterFactory;
+import org.qcmg.picard.SAMWriterFactory;
 
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMFileWriter;
@@ -90,7 +90,7 @@ public class BAMFileUtilsTest {
 
 	private static void getBamFile(File bamFile, List<SAMRecord> data, boolean useChrs) {
     	final SAMFileHeader header = getHeader(useChrs);
-    	final SAMOrBAMWriterFactory factory = new SAMOrBAMWriterFactory(header, false, bamFile, false);
+    	final SAMWriterFactory factory = new SAMWriterFactory(header, false, bamFile, false);
     	try(SAMFileWriter writer = factory.getWriter();) {
      		if (null != data)
     			for (final SAMRecord s : data) writer.addAlignment(s);

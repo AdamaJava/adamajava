@@ -19,7 +19,7 @@ import java.util.List;
 import org.qcmg.common.log.QLogger;
 
 import org.qcmg.picard.SAMFileReaderFactory;
-import org.qcmg.picard.SAMOrBAMWriterFactory;
+import org.qcmg.picard.SAMWriterFactory;
 
 
 import htsjdk.samtools.SAMFileHeader;
@@ -189,11 +189,11 @@ public class FixBAM {
 		
 		SamReader reader = SAMFileReaderFactory.createSAMFileReader(input, null,  validation);  
 
-		SAMOrBAMWriterFactory factory;		
+		SAMWriterFactory factory;		
 		if(reader.getFileHeader().getSortOrder().equals(header.getSortOrder())) {
-			factory = new SAMOrBAMWriterFactory(header, true, output, tmpDir, 2000000, true );
+			factory = new SAMWriterFactory(header, true, output, tmpDir, 2000000, true );
 		} else {
-        		factory = new SAMOrBAMWriterFactory(header, false, output, tmpDir, 2000000, true);
+        		factory = new SAMWriterFactory(header, false, output, tmpDir, 2000000, true);
 		}
 						 
 		SAMFileWriter writer = factory.getWriter();
@@ -245,7 +245,7 @@ public class FixBAM {
 	void secondFilterRun(HashMap<String, Integer>  badIDs, File inBAM)throws IOException{
 		SamReader reader = SAMFileReaderFactory.createSAMFileReader(inBAM, null, validation);
 		//set presort as true since the tmpBAM already sorted. otherwise throw exception
-		SAMOrBAMWriterFactory factory = new SAMOrBAMWriterFactory(header, true, output, tmpDir, 2000000, true ); 
+		SAMWriterFactory factory = new SAMWriterFactory(header, true, output, tmpDir, 2000000, true ); 
 		SAMFileWriter writer = factory.getWriter();
 		
         long NumofOutput = 0;

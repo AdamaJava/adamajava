@@ -13,7 +13,7 @@ import java.util.List;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.picard.SAMFileReaderFactory;
-import org.qcmg.picard.SAMOrBAMWriterFactory;
+import org.qcmg.picard.SAMWriterFactory;
 
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SamReader;
@@ -66,7 +66,7 @@ public class ReheadFinalBAM {
 			header.setReadGroups(rglist);
 			
 			//append reads to output 
-			SAMOrBAMWriterFactory factory = new SAMOrBAMWriterFactory(header, true, output,2000000 );
+			SAMWriterFactory factory = new SAMWriterFactory(header, true, output,2000000 );
 	        SAMFileWriter writer = factory.getWriter();
 	    	for( SAMRecord record : reader)
 	    		 writer.addAlignment(record);

@@ -12,7 +12,7 @@ import htsjdk.samtools.SAMFileWriter;
 import htsjdk.samtools.SAMRecord;
 
 import org.qcmg.picard.SAMFileReaderFactory;
-import org.qcmg.picard.SAMOrBAMWriterFactory;
+import org.qcmg.picard.SAMWriterFactory;
 
 
 public class TestFiles {
@@ -77,7 +77,7 @@ public class TestFiles {
 		SAMFileHeader header = reader.getFileHeader().clone();
 		header.setSortOrder(SAMFileHeader.SortOrder.coordinate);
 		
-		SAMOrBAMWriterFactory factory = new SAMOrBAMWriterFactory(header, false, BAM, true);
+		SAMWriterFactory factory = new SAMWriterFactory(header, false, BAM, true);
 		try(SAMFileWriter writer = factory.getWriter();){
 		for( SAMRecord record : reader)
 			writer.addAlignment(record);			

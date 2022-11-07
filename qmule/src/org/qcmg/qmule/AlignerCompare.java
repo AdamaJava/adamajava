@@ -19,7 +19,7 @@ import htsjdk.samtools.ValidationStringency;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.picard.SAMFileReaderFactory;
-import org.qcmg.picard.SAMOrBAMWriterFactory;
+import org.qcmg.picard.SAMWriterFactory;
 
 public class AlignerCompare {
 		static QLogger logger = QLoggerFactory.getLogger(AlignerCompare.class);
@@ -27,12 +27,12 @@ public class AlignerCompare {
 		SamReader firReader;
 		SamReader secReader;
 		
-		SAMOrBAMWriterFactory sameWriter;
-		SAMOrBAMWriterFactory diffWriter_first;
-		SAMOrBAMWriterFactory diffWriter_second;
+		SAMWriterFactory sameWriter;
+		SAMWriterFactory diffWriter_first;
+		SAMWriterFactory diffWriter_second;
 		
-		SAMOrBAMWriterFactory unsureWriter_first;
-		SAMOrBAMWriterFactory unsureWriter_second;
+		SAMWriterFactory unsureWriter_first;
+		SAMWriterFactory unsureWriter_second;
 		
 		
 		long total_bam1 = 0;
@@ -74,9 +74,9 @@ public class AlignerCompare {
 				outdiff_second = new File( prefix + ".different." + secBam.getName() );
  			}
 			
- 			sameWriter = new SAMOrBAMWriterFactory(firReader.getFileHeader(), true, outsame);
-			diffWriter_first = new SAMOrBAMWriterFactory(firReader.getFileHeader(), true, outdiff_first );
-			diffWriter_second = new SAMOrBAMWriterFactory(secReader.getFileHeader(), true, outdiff_second );
+ 			sameWriter = new SAMWriterFactory(firReader.getFileHeader(), true, outsame);
+			diffWriter_first = new SAMWriterFactory(firReader.getFileHeader(), true, outdiff_first );
+			diffWriter_second = new SAMWriterFactory(secReader.getFileHeader(), true, outdiff_second );
  
 			logger.info("output of identical alignments: " + outsame.getAbsolutePath());
 	 		logger.info("output of different alignments from BAM1: " + outdiff_first.getAbsolutePath());
@@ -159,7 +159,7 @@ public class AlignerCompare {
 		 * @param from: an input alignments with same read id
 		 * @return ArrayList<SAMRecord> : cleaned alignments excluding secondary and supplementary alignments
 		 */
-		ArrayList<SAMRecord> AlignerFilter(ArrayList<SAMRecord> from, SAMOrBAMWriterFactory factory) throws Exception{
+		ArrayList<SAMRecord> AlignerFilter(ArrayList<SAMRecord> from, SAMWriterFactory factory) throws Exception{
 			ArrayList<SAMRecord> cleaned = new ArrayList<SAMRecord>();
 			
 			for(SAMRecord record : from)

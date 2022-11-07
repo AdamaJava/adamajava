@@ -21,7 +21,7 @@ import htsjdk.samtools.ValidationStringency;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.picard.SAMFileReaderFactory;
-import org.qcmg.picard.SAMOrBAMWriterFactory;
+import org.qcmg.picard.SAMWriterFactory;
 
 public class BAMCompress {
 		static QLogger logger = QLoggerFactory.getLogger(BAMCompress.class);

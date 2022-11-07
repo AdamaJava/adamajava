@@ -14,7 +14,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.picard.SAMFileReaderFactory;
-import org.qcmg.picard.SAMOrBAMWriterFactory;
+import org.qcmg.picard.SAMWriterFactory;
 
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMFileWriter;
@@ -255,7 +255,7 @@ public class VariantPileupTest {
 		try(SamReader inreader =  SAMFileReaderFactory.createSAMFileReader(new File(ftmp));  ){
 			SAMFileHeader he = inreader.getFileHeader();
 			he.setSortOrder( SAMFileHeader.SortOrder.coordinate );
-			SAMFileWriter writer = new SAMOrBAMWriterFactory(he , false, f, true).getWriter();	        
+			SAMFileWriter writer = new SAMWriterFactory(he , false, f, true).getWriter();	        
 	        for(SAMRecord re : inreader){ writer.addAlignment(re); }
 	        writer.close();
 		} catch (IOException e) { e.printStackTrace(); }		

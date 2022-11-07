@@ -39,7 +39,7 @@ import org.qcmg.picard.MultiSAMFileIterator;
 import org.qcmg.picard.MultiSAMFileReader;
 import org.qcmg.picard.RenameFile;
 import org.qcmg.picard.SAMFileReaderFactory;
-import org.qcmg.picard.SAMOrBAMWriterFactory;
+import org.qcmg.picard.SAMWriterFactory;
 import org.qcmg.picard.util.BAMFileUtils;
 import org.qcmg.picard.util.SAMReadGroupRecordUtils;
 
@@ -129,7 +129,7 @@ public final class FileMerger {
 	/** Writer for outputting merged records into the output SAM/BAM. */
 	//private SAMFileWriter outputWriter;
 
-	private  SAMOrBAMWriterFactory outputWriterfactory;
+	private  SAMWriterFactory outputWriterfactory;
 	/**The merged header obtained from combining the input SAM/BAM file headers.*/
 	private SAMFileHeader mergedHeader;
 	
@@ -947,7 +947,7 @@ public final class FileMerger {
 	 * Opens the SAM/BAM file writer for the output file.
 	 */
 	private void openWriter() {
-		outputWriterfactory = new SAMOrBAMWriterFactory(mergedHeader,  true, outputFile,tmpdir, 0, createIndex, true, 500000);
+		outputWriterfactory = new SAMWriterFactory(mergedHeader,  true, outputFile,tmpdir, 0, createIndex, true, 500000);
 //		outputWriterfactory = new SAMOrBAMWriterFactory(mergedHeader, true, outputFile, tmpdir, createIndex);
 	}
 

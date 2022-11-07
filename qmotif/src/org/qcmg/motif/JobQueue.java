@@ -37,7 +37,7 @@ import org.qcmg.motif.util.MotifsAndRegexes;
 import org.qcmg.motif.util.RegionCounter;
 import org.qcmg.motif.util.SummaryStats;
 import org.qcmg.picard.SAMFileReaderFactory;
-import org.qcmg.picard.SAMOrBAMWriterFactory;
+import org.qcmg.picard.SAMWriterFactory;
 import org.qcmg.qbamfilter.query.QueryExecutor;
 
 import htsjdk.samtools.SAMFileHeader;
@@ -67,7 +67,7 @@ public final class JobQueue {
 	private final List<ChrPosition> excludes;
 	private final Integer windowSize;
 	private final AbstractQueue<SAMRecord> outputQueue = new ConcurrentLinkedQueue<>();
-	private final SAMOrBAMWriterFactory bamWriterFactory;
+	private final SAMWriterFactory bamWriterFactory;
 	private final MotifsAndRegexes motifsAndRegexes;
 	private final SummaryStats ss = new SummaryStats();
 	private final boolean includesOnly;
@@ -103,7 +103,7 @@ public final class JobQueue {
 		
 		// set sort order to coordinate
 		header.setSortOrder(SortOrder.coordinate);
-		bamWriterFactory = new SAMOrBAMWriterFactory(header, false, new File(invariants.getOutputBam()));
+		bamWriterFactory = new SAMWriterFactory(header, false, new File(invariants.getOutputBam()));
 		
 		contigs = new ArrayList<>();
 		
