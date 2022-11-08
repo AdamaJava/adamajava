@@ -15,7 +15,7 @@ import java.util.List;
 import org.junit.Assert;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.picard.SAMFileReaderFactory;
-import org.qcmg.picard.SAMOrBAMWriterFactory;
+import org.qcmg.picard.SAMWriterFactory;
 
 import au.edu.qimr.indel.pileup.IndelMT;
 
@@ -39,7 +39,7 @@ public class Support {
         }
 		 	
 		try(SamReader reader = SAMFileReaderFactory.createSAMFileReader(tmp);){		
-			SAMOrBAMWriterFactory factory = new  SAMOrBAMWriterFactory(reader.getFileHeader() ,false, output);
+			SAMWriterFactory factory = new  SAMWriterFactory(reader.getFileHeader() ,false, output);
 			
 			try(SAMFileWriter writer = factory.getWriter();) {
 				for( SAMRecord record : reader) writer.addAlignment(record);
