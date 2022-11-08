@@ -26,7 +26,7 @@ import htsjdk.samtools.SamReader;
 import htsjdk.samtools.SAMProgramRecord;
 import htsjdk.samtools.SAMReadGroupRecord;
 import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SAMTagUtil;
+import htsjdk.samtools.SAMTag;
 import htsjdk.samtools.ValidationStringency;
 
 import org.qcmg.common.log.QLogger;
@@ -37,7 +37,6 @@ import org.qcmg.common.util.FileUtils;
 import org.qcmg.picard.HeaderUtils;
 import org.qcmg.picard.MultiSAMFileIterator;
 import org.qcmg.picard.MultiSAMFileReader;
-import org.qcmg.picard.RenameFile;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.SAMWriterFactory;
 import org.qcmg.picard.util.BAMFileUtils;
@@ -87,9 +86,9 @@ public final class FileMerger {
 	 */
 	public static final String ZC = "ZC";
 	public static final String RG = "RG";
-	public static final short ZC_TAG = SAMTagUtil.getSingleton().makeBinaryTag(ZC);
-	public static final short RG_TAG = SAMTagUtil.getSingleton().RG;
-
+	public static final short ZC_TAG = SAMTag.makeBinaryTag(ZC);
+	public static final short RG_TAG = SAMTag.RG.getBinaryTag();
+	
 	/** The naming prefix for temporary files during merging. */
 	private static final String TEMP_FILE_PREFIX = "tmp";
 
@@ -579,11 +578,6 @@ public final class FileMerger {
 	private void detectFileUsedAsInputAndOutput() throws BamMergeException {
 		for (final File basisFile : inputFiles) {
 			checkSameness(basisFile, outputFile);
-//			for (final File file : inputFiles) {
-//				if (outputFile.equals(file)) {
-//					throw new BamMergeException("FILE_USED_BOTH_AS_INPUT_AND_OUTPUT", outputFile.getName());
-//				}
-//			}
 		}
 	}
 
