@@ -12,7 +12,6 @@ import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.qcmg.picard.RenameFile;
 import org.qcmg.picard.SAMWriterFactory;
 
 import htsjdk.samtools.SAMFileHeader;
