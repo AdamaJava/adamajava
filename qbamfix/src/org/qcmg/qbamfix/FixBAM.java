@@ -223,7 +223,7 @@ public class FixBAM {
 	    		NumofInput ++;	
 		}
 	    	//writer.close();
-	    	factory.renameBamIndex();
+	    	factory.renameIndex();
 	    	reader.close();
     	
 		log.info("crteated a temp BAM: " + output.getPath());
@@ -259,7 +259,7 @@ public class FixBAM {
 	    		}
 	    			
 		}
-	    	factory.renameBamIndex();
+	    	factory.renameIndex();
 	    	reader.close();
 
        	log.info("created final output " + output.getPath());

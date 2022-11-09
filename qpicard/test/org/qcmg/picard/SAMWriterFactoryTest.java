@@ -79,7 +79,7 @@ public class SAMWriterFactoryTest {
 				writer.addAlignment(s);						
 			}
 		} 
-		factory.renameBamIndex();
+		factory.renameIndex();
 	}
 	
 	static List<SAMRecord> getRecords(SAMFileHeader header) {

@@ -89,9 +89,9 @@ public class AlignerCompare {
 			//close IOs
 			firReader.close();
 			secReader.close();			
-			sameWriter.renameBamIndex();
-			diffWriter_first.renameBamIndex();
-			diffWriter_second.renameBamIndex();
+			sameWriter.renameIndex();
+			diffWriter_first.renameIndex();
+			diffWriter_second.renameIndex();
  				
 		}
 

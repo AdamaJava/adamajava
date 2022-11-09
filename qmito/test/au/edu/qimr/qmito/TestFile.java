@@ -61,7 +61,7 @@ public class TestFile {
 				SAMWriterFactory factory = new SAMWriterFactory(reader.getFileHeader(), true, new File(output),true );
 				SAMFileWriter writer = factory.getWriter();					
 		    	for( SAMRecord record : reader) writer.addAlignment(record);				
-				factory.renameBamIndex();
+				factory.renameIndex();
 			} 			
 	    	new File(sam).delete();
 			

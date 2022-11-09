@@ -82,6 +82,6 @@ public class TestFiles {
 		for( SAMRecord record : reader)
 			writer.addAlignment(record);			
 		} 
-		factory.renameBamIndex();		
+		factory.renameIndex();		
 	}
 }

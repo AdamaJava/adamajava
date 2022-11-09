@@ -955,7 +955,7 @@ public final class FileMerger {
 	private void close() throws BamMergeException {
 		//close output write and rename index if needed 
 		if (null != outputWriterfactory) {
-			outputWriterfactory.renameBamIndex();
+			outputWriterfactory.renameIndex();
 			String logMessage = outputWriterfactory.getLogMessage();
 			if ( ! StringUtils.isNullOrEmpty(logMessage)) {
 				logger.info(logMessage);
