@@ -30,8 +30,6 @@ public class SAMWriterFactory {
 	private final SAMFileWriter writer;
 	private final boolean index;
 	private String logMessage = null;
-
-	 
 	
 	public SAMWriterFactory(SAMFileHeader header, boolean preSort, File output) {
 		this(header,preSort, output, null, 0,  true);
@@ -70,7 +68,7 @@ public class SAMWriterFactory {
 
 	
 	public SAMWriterFactory(SAMFileHeader header,  boolean preSort, File output,File tmpDir, int ramReads, 
-			boolean createIndex, boolean useAsyncIO, int asyncOutputBufferSize, File reference ){
+			boolean createIndex, boolean useAsyncIO, int asyncOutputBufferSize, File reference ) {
 		SAMFileWriterFactory factory = new SAMFileWriterFactory();   
 		if (ramReads > 0) {
 			htsjdk.samtools.SAMFileWriterImpl.setDefaultMaxRecordsInRam( ramReads );

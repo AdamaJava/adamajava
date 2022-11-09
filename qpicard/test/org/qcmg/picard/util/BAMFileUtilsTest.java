@@ -29,9 +29,7 @@ public class BAMFileUtilsTest {
 	@Test
 	public void getContigNamesFromHeader() throws IOException {
 		File bam = testFolder.newFile("getContigNamesFromHeader.bam");
-		//debug
-		bam = new File("getContigNamesFromHeader.bam");
-		BAMFileUtilsTest.getBamFile(bam, null, true);
+		getBamFile(bam, null, true);
 		List<String> contigs = BAMFileUtils.getContigsFromBamFile(bam);
 		assertEquals(5, contigs.size());
 		assertEquals("chr1", contigs.get(0));
@@ -41,7 +39,7 @@ public class BAMFileUtilsTest {
 	@Test
 	public void getContigNamesFromHeaderNoChr() throws IOException {
 		File bam = testFolder.newFile("getContigNamesFromHeaderNoChr.bam");
-		BAMFileUtilsTest.getBamFile(bam, null, false);
+		getBamFile(bam, null, false);
 		List<String> contigs = BAMFileUtils.getContigsFromBamFile(bam);
 		assertEquals(5, contigs.size());
 		assertEquals("1", contigs.get(0));
