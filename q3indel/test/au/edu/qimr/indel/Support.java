@@ -43,7 +43,7 @@ public class Support {
 			
 			try(SAMFileWriter writer = factory.getWriter();) {
 				for( SAMRecord record : reader) writer.addAlignment(record);
-				factory.renameBamIndex();
+				factory.renameIndex();
 			}
 			
 			 
