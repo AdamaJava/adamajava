@@ -1,6 +1,8 @@
 package org.qcmg.picard;
 
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.File;
@@ -21,6 +23,7 @@ import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.SAMSequenceRecord;
 import htsjdk.samtools.reference.FastaSequenceIndexCreator;
+import htsjdk.samtools.util.FileExtensions;
 import htsjdk.samtools.SAMFileHeader.SortOrder;
 
 public class SAMWriterFactoryTest {
@@ -30,7 +33,7 @@ public class SAMWriterFactoryTest {
 			
 	@Test
 	public void cramFileTest() throws IOException {
-		File bamFile = testFolder.newFile("testValidHeaderValidBody.cram");	
+		File bamFile = testFolder.newFile("test.cram");	
 		
 		//exception since missing reference file
 		try {
@@ -45,13 +48,28 @@ public class SAMWriterFactoryTest {
 		} catch(IllegalArgumentException e) {}
 			
 		File ref = testFolder.newFile("testcram.fa");	
-		ref = new File("testcram.fa");
 		createReference(ref);
 		//exception since missing reference file
-		//debug
-		bamFile = new File("testValidHeaderValidBody.cram");
 		makeCramFile(bamFile, ref);		
 	}
+	
+	@Test
+	public void indexFileTest() throws IOException {
+		
+		File bamFile = testFolder.newFile("testIndex.bam");
+		File index = new File(bamFile.getAbsolutePath() + FileExtensions.BAI_INDEX);		
+		assertFalse( index.exists() ); //not yet created before bam file created
+		makeCramFile(bamFile, null);
+		assertTrue( index.exists() ); //created with the BAM file
+		
+		File ref = testFolder.newFile("testcram.fa");	
+		createReference(ref);
+		bamFile = testFolder.newFile("testIndex.cram");
+		index = new File(bamFile.getAbsolutePath() + FileExtensions.CRAM_INDEX);		
+		assertFalse( index.exists() ); //not yet created before bam file created
+		makeCramFile(bamFile, ref);	
+		assertTrue( index.exists() ); //created with the BAM file
+	}	
 	
 	static void makeCramFile(File bamFile, File ref) {
 		SAMFileHeader header = createHeader();
@@ -61,6 +79,7 @@ public class SAMWriterFactoryTest {
 				writer.addAlignment(s);						
 			}
 		} 
+		factory.renameBamIndex();
 	}
 	
 	static List<SAMRecord> getRecords(SAMFileHeader header) {
@@ -72,7 +91,7 @@ public class SAMWriterFactoryTest {
 		sam.setReferenceName("chrA");
 		sam.setReadName("HS2000-152_756:1:1316:11602:65130");
 		sam.setReadString("AATAAAAATAAAAAAATACAGACAAGGCGGAAGAAATGAA");
-		sam.setBaseQualityString("B@??BBCCB<>BCBB?:BAA?9-A;?2;@ECA=;7BEE?");
+		sam.setBaseQualityString("B@??BBCCB<>BCBB?:BAA?9-A;?2;@ECA=;7BEE??");
 		sam.setCigarString("40M");
 		records.add(sam);
 		
@@ -82,7 +101,7 @@ public class SAMWriterFactoryTest {
 		sam.setReferenceName("chrA");
 		sam.setReadName("HS2000-152_756:1:1316:11602:65138");
 		sam.setReadString("TAAAAATAAAAAAATACAGACAAGGCGGAAGAAATGAA");
-		sam.setBaseQualityString("??BBCCB<>BCBB?:BAA?9-A;?2;@ECA=;7BEE?");
+		sam.setBaseQualityString("??BBCCB<>BCBB?:BAA?9-A;?2;@ECA=;7BEE??");
 		sam.setCigarString("38M");
 		records.add(sam);		
 		return records;

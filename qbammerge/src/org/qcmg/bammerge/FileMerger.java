@@ -492,7 +492,7 @@ public final class FileMerger {
 		replaceUUIDInHeader(header, uuid);
 		BamFileIoUtils.reheaderBamFile(header, in, outputFile, false, createIndex);
 		if (createIndex) {
-			BAMFileUtils.renameIndex(outputFile);
+			BAMFileUtils.renameBamIndex(outputFile);
 		}
 	}
 

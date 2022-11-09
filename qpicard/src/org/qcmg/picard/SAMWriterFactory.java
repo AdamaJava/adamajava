@@ -117,10 +117,12 @@ public class SAMWriterFactory {
 		if (!index) return;
 		
 		try {				
-			//rename files
-			BAMFileUtils.renameIndex(output);
+			//rename index in case of bam
+			BAMFileUtils.renameBamIndex(output);
+			//rename index in case of cram
+			BAMFileUtils.renameCramIndex(output);
 		} catch(IOException e) {
-			logMessage = "IOEXception caught whilst trying to move file";
+			logMessage = "IOEXception caught whilst trying to move index file";
 			logger.error(logMessage, e);
 		}
 		 		

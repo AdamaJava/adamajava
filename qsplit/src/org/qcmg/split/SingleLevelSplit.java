@@ -120,7 +120,7 @@ public class SingleLevelSplit extends Split {
 		if(createIndex){
 			for(File out: outputNames){
 				try{
-					BAMFileUtils.renameIndex(out);
+					BAMFileUtils.renameBamIndex(out);
 					logger.info("rename index to " + out.getPath() + ".bai");
 				}catch(Exception e){
 					logger.error(e.toString());

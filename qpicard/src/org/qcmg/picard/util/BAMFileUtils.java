@@ -57,14 +57,14 @@ public class BAMFileUtils {
 	 * @param bamFile
 	 * @throws Exception 
 	 */	
-	public static void renameIndex(File output) throws IOException{
+	public static void renameBamIndex(File output) throws IOException{
 		String path = output.getPath();
-	
-		final String indexFileBase = path.endsWith(FileExtensions.BAM)? path.substring(0, path.lastIndexOf('.')) : path;	
 		
-		//do nothing if both File are instance of same real file
-		if(indexFileBase.equals(path)) return;
+		//do nothing if not BAM file
+		if( !path.endsWith(FileExtensions.BAM)) return;
 	
+		final String indexFileBase = path.substring(0, path.lastIndexOf('.'));	
+			
 		//rename
 	    final Path indexpicard = IOUtil.addExtension(Paths.get(indexFileBase), FileExtensions.BAI_INDEX);
 	    final Path indexqcmg =  IOUtil.addExtension(Paths.get(path), FileExtensions.BAI_INDEX);
@@ -72,6 +72,25 @@ public class BAMFileUtils {
 		//rename files
 		Files.move(indexpicard, indexqcmg, StandardCopyOption.REPLACE_EXISTING);				
 	}
+	/**
+	 * picard index name created by adding .bai to .cram. But we want to have index name end with .cram.crai
+	 * @param cramFile
+	 * @throws Exception 
+	 */	
+	
+	public static void renameCramIndex(File output) throws IOException{
+		String path = output.getPath();
+		//do nothing if not cram file
+		if( !path.endsWith(FileExtensions.CRAM)) return;
+		
+		//rename
+	    final Path indexpicard = IOUtil.addExtension(Paths.get(path), FileExtensions.BAI_INDEX);
+	    final Path indexqcmg =  IOUtil.addExtension(Paths.get(path), FileExtensions.CRAM_INDEX);
+		 			
+		//rename files
+		Files.move(indexpicard, indexqcmg, StandardCopyOption.REPLACE_EXISTING);				
+	}
+	
 	
 	
 	
