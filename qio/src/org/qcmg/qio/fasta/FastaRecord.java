@@ -48,4 +48,8 @@ public class FastaRecord {
 	public String getData() {
 		return data;
 	}
+	
+	public String toString() {
+		return id + "\n" + data;
+	}
 }
