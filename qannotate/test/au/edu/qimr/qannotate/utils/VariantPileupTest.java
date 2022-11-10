@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -232,7 +231,8 @@ public class VariantPileupTest {
     }
     
      public static void createSam( List<String> reads, File f ){
-    	String ftmp = "input.sam";
+    	//create a tmp file at input direcotry. 
+    	String ftmp = f.getAbsolutePath()+ ".tmp.sam";
     	
         List<String> data = new ArrayList<String> ();
         data.add("@HD	VN:1.0	SO:coordinate");
@@ -247,7 +247,6 @@ public class VariantPileupTest {
        
         try( BufferedWriter out =  new BufferedWriter( new FileWriter( ftmp )) ){
            for ( String line : data )  out.write( line + "\n"  );          
-           out.close();
         } catch (IOException e) {
             System.err.println( "IOException caught whilst attempting to write to SAM test file: " + ftmp  + e );
         } 
@@ -255,12 +254,12 @@ public class VariantPileupTest {
 		try(SamReader inreader =  SAMFileReaderFactory.createSAMFileReader(new File(ftmp));  ){
 			SAMFileHeader he = inreader.getFileHeader();
 			he.setSortOrder( SAMFileHeader.SortOrder.coordinate );
-			SAMFileWriter writer = new SAMWriterFactory(he , false, f, true).getWriter();	        
-	        for(SAMRecord re : inreader){ writer.addAlignment(re); }
-	        writer.close();
+			try(SAMFileWriter writer = new SAMWriterFactory(he , false, f, true).getWriter();) {	        
+				for(SAMRecord re : inreader){ writer.addAlignment(re); }
+			}
 		} catch (IOException e) { e.printStackTrace(); }		
-     
-		
+     		
+		//delete the tmp file in case the input file is not located in TemporaryFolder
 		new File(ftmp).delete();
     }
    

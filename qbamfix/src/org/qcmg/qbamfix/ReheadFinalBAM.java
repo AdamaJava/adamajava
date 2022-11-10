@@ -42,11 +42,6 @@ public class ReheadFinalBAM {
 		//created new header if SM value in RG line isn't match the donor
 	    if( SMvalue.length() > 0 ){
 	    	refinalBAM(options.getInputFileName(), options.getValidation(), donor, new File( options.getOutputFileName()) );	    	 
-	    	
-//	    	SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(options.getInputFileName()),null, options.getValidation() );  	    	
-//	    	logger.info("According qlimsmeta line SM tag value " + SMvalue + " are replaced to " + donor);
-//	    	refinalBAM(reader, donor, new File( options.getOutputFileName()) );
-//		    reader.close();					    	
 	    }
 	}
 
@@ -67,12 +62,11 @@ public class ReheadFinalBAM {
 			
 			//append reads to output 
 			SAMWriterFactory factory = new SAMWriterFactory(header, true, output,2000000 );
-	        SAMFileWriter writer = factory.getWriter();
-	    	for( SAMRecord record : reader)
-	    		 writer.addAlignment(record);
+	        try(SAMFileWriter writer = factory.getWriter();) {
+	        	for( SAMRecord record : reader) writer.addAlignment(record);
+	        }	    	
 	    	factory.renameIndex();
-		 }
- 
+		 } 
 	}
 	
 	 String matchDonor(String donor, List<SAMReadGroupRecord> readGroups){

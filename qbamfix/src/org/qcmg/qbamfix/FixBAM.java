@@ -187,48 +187,39 @@ public class FixBAM {
 	 */
 	List<SAMRecord> firstFilterRun(File output) throws IOException{
 		
-		SamReader reader = SAMFileReaderFactory.createSAMFileReader(input, null,  validation);  
-
-		SAMWriterFactory factory;		
-		if(reader.getFileHeader().getSortOrder().equals(header.getSortOrder())) {
-			factory = new SAMWriterFactory(header, true, output, tmpDir, 2000000, true );
-		} else {
-        		factory = new SAMWriterFactory(header, false, output, tmpDir, 2000000, true);
-		}
-						 
-		SAMFileWriter writer = factory.getWriter();
-		
-        List<SAMRecord> badReads = new ArrayList<>();
-        
+        List<SAMRecord> badReads = new ArrayList<>();       
         String id = header.getReadGroups().get(0).getId();  
         long NumofInput = 0;
         long NumofOutput = 0;
-        boolean ok2add;
-	    	for( SAMRecord record : reader){
-	    		record.setAttribute("RG", id );
-  
-	    		if(seqLength > 0)
-	    			ok2add = (record.getReadLength() == seqLength); 
-	    		else if(seqLength == 0)
-	    			ok2add = (record.getReadLength() == record.getBaseQualityString().length());
-	    		else
-	    			ok2add = true;
-	    		
-	    		if (ok2add){
-	    			writer.addAlignment(record);	
-	    			NumofOutput ++;
-	    		} else {
-	    			badReads.add(record);
-	    		}
-	    		NumofInput ++;	
+        boolean ok2add;		
+		
+		try(SamReader reader = SAMFileReaderFactory.createSAMFileReader(input, null,  validation);) {
+			SAMWriterFactory factory = 	reader.getFileHeader().getSortOrder().equals(header.getSortOrder())?			
+				new SAMWriterFactory(header, true, output, tmpDir, 2000000, true ) 
+				: new SAMWriterFactory(header, false, output, tmpDir, 2000000, true);
+			try(SAMFileWriter writer = factory.getWriter();) {
+		    	for( SAMRecord record : reader){
+		    		record.setAttribute("RG", id );	  
+		    		if(seqLength > 0)
+		    			ok2add = (record.getReadLength() == seqLength); 
+		    		else if(seqLength == 0)
+		    			ok2add = (record.getReadLength() == record.getBaseQualityString().length());
+		    		else
+		    			ok2add = true;
+		    		
+		    		if (ok2add){
+		    			writer.addAlignment(record);	
+		    			NumofOutput ++;
+		    		} else {
+		    			badReads.add(record);
+		    		}
+		    		NumofInput ++;	
+		    	}
+			}	
+			factory.renameIndex();
+			log.info("crteated a temp BAM: " + output.getPath());
+			if(factory.getLogMessage() != null) log.info(factory.getLogMessage());
 		}
-	    	//writer.close();
-	    	factory.renameIndex();
-	    	reader.close();
-    	
-		log.info("crteated a temp BAM: " + output.getPath());
-		if(factory.getLogMessage() != null)
-			log.info(factory.getLogMessage());
        	log.info("number of reads from input at first time is " + NumofInput);
         log.info("number of good reads outputed at first time is " + NumofOutput);
         log.info("number of bad reads detected at first time is " + badReads.size());

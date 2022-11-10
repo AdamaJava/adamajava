@@ -942,7 +942,6 @@ public final class FileMerger {
 	 */
 	private void openWriter() {
 		outputWriterfactory = new SAMWriterFactory(mergedHeader,  true, outputFile,tmpdir, 0, createIndex, true, 500000);
-//		outputWriterfactory = new SAMOrBAMWriterFactory(mergedHeader, true, outputFile, tmpdir, createIndex);
 	}
 
 	/**
