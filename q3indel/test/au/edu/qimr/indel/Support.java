@@ -39,19 +39,15 @@ public class Support {
         }
 		 	
 		try(SamReader reader = SAMFileReaderFactory.createSAMFileReader(tmp);){		
-			SAMWriterFactory factory = new  SAMWriterFactory(reader.getFileHeader() ,false, output);
-			
+			SAMWriterFactory factory = new  SAMWriterFactory(reader.getFileHeader() ,false, output);			
 			try(SAMFileWriter writer = factory.getWriter();) {
-				for( SAMRecord record : reader) writer.addAlignment(record);
-				factory.renameIndex();
+				for( SAMRecord record : reader) writer.addAlignment(record);				
 			}
-			
-			 
+			factory.renameIndex();			 
 		} catch (IOException e) {
 			System.err.println(Q3IndelException.getStrackTrace(e));
 			Assert.fail("Should not threw a Exception");
-		}
-		
+		}		
 	}
 	
 	/**
