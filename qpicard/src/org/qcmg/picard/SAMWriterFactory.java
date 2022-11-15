@@ -110,13 +110,16 @@ public class SAMWriterFactory {
 	public SAMFileWriter getWriter(){		
 		return writer;
 	}
+	
 	/**
 	 * picard creates index aln.bai for aln.bam; and aln.cram.bai for aln.cram.
 	 * Here we rename aln.bai to aln.bam.bai; and lan.cram.bai to aln.cram.crai.
 	 */
 	public void renameIndex(){
-		//writer allows to multi time close. 
-		writer.close();
+		
+		//writer of BAM/CRAM has to be closed first 
+		//the try statement will close writer, so we won't worry about it again
+		 
 		if (!index) return;
 		
 		try {				

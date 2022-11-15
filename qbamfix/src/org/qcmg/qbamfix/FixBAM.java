@@ -216,7 +216,7 @@ public class FixBAM {
 		    		NumofInput ++;	
 		    	}
 			}	
-			factory.renameIndex();
+			factory.renameIndex(); //try already closed writer
 			log.info("crteated a temp BAM: " + output.getPath());
 			if(factory.getLogMessage() != null) log.info(factory.getLogMessage());
 		}
@@ -234,39 +234,36 @@ public class FixBAM {
 	 * @throws IOException
 	 */
 	void secondFilterRun(HashMap<String, Integer>  badIDs, File inBAM)throws IOException{
-		SamReader reader = SAMFileReaderFactory.createSAMFileReader(inBAM, null, validation);
-		//set presort as true since the tmpBAM already sorted. otherwise throw exception
-		SAMWriterFactory factory = new SAMWriterFactory(header, true, output, tmpDir, 2000000, true ); 
-		SAMFileWriter writer = factory.getWriter();
 		
-        long NumofOutput = 0;
-        long NumofBad = 0;
-	    	for( SAMRecord record : reader){	
-	    		if(badIDs.containsKey(record.getReadName()))
-	    			NumofBad ++;
-	    		else{
-	    			writer.addAlignment(record);	
-	    			NumofOutput ++;
-	    		}
-	    			
-		}
-	    	factory.renameIndex();
-	    	reader.close();
-
-       	log.info("created final output " + output.getPath());
-       	if(factory.getLogMessage() != null)
-       		log.info(factory.getLogMessage());
-        log.info( "number of good reads outputed at second time is "+  NumofOutput);
-        log.info("number of discarded bad mate reads at second time is " + NumofBad); 
-        
-         
+		
+		
+		try(SamReader reader = SAMFileReaderFactory.createSAMFileReader(inBAM, null, validation);) {
+			//set presort as true since the tmpBAM already sorted. otherwise throw exception
+			SAMWriterFactory factory = new SAMWriterFactory(header, true, output, tmpDir, 2000000, true ); 
+			try( SAMFileWriter writer = factory.getWriter(); ){
+		        long NumofOutput = 0;
+		        long NumofBad = 0;
+		    	for( SAMRecord record : reader){	
+		    		if(badIDs.containsKey(record.getReadName())) NumofBad ++;
+		    		else{
+		    			writer.addAlignment(record);	
+		    			NumofOutput ++;
+		    		}		    			
+		    	}
+		      	log.info("created final output " + output.getPath());
+		        log.info( "number of good reads outputed at second time is "+  NumofOutput);
+		        log.info("number of discarded bad mate reads at second time is " + NumofBad); 		    			    	
+			}
+	    	factory.renameIndex(); //try already closed writer 
+	    	if(factory.getLogMessage() != null) log.info(factory.getLogMessage());
+		}         
     	//delete tmp files  
         inBAM.delete();
-	    	log.info("deleted tmporary output BAM file: " + inBAM.getPath());
-	        
-	    	File inBai = new File(inBAM.getPath() + ".bai");
-	    	inBai.delete();    	
-	    	log.info("deleted tmporary output index file: " + inBai.getPath());
+    	log.info("deleted tmporary output BAM file: " + inBAM.getPath());
+        
+    	File inBai = new File(inBAM.getPath() + ".bai");
+    	inBai.delete();    	
+    	log.info("deleted tmporary output index file: " + inBai.getPath());
 
 	} 
 }

@@ -65,7 +65,7 @@ public class ReheadFinalBAM {
 	        try(SAMFileWriter writer = factory.getWriter();) {
 	        	for( SAMRecord record : reader) writer.addAlignment(record);
 	        }	    	
-	    	factory.renameIndex();
+	    	factory.renameIndex(); //writer already closed by try
 		 } 
 	}
 	

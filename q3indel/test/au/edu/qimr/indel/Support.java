@@ -43,7 +43,7 @@ public class Support {
 			try(SAMFileWriter writer = factory.getWriter();) {
 				for( SAMRecord record : reader) writer.addAlignment(record);				
 			}
-			factory.renameIndex();			 
+			factory.renameIndex();	 //try already closed writer	 
 		} catch (IOException e) {
 			System.err.println(Q3IndelException.getStrackTrace(e));
 			Assert.fail("Should not threw a Exception");

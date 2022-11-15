@@ -59,7 +59,7 @@ public class BAMFileUtilsTest {
 	}
 
 	@Test
-	public void renameIndex() throws IOException {
+	public void renameIndexTest() throws IOException {
 		Path dir = Files.createTempDirectory("java-test");
 		File bam = new File(dir.resolve("test.bam").toString());
 		File bai = new File(dir.resolve("test.bai").toString());

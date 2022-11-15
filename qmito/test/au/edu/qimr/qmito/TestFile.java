@@ -59,9 +59,10 @@ public class TestFile {
 			
 			try(SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(sam), null,  ValidationStringency.SILENT); ) { 
 				SAMWriterFactory factory = new SAMWriterFactory(reader.getFileHeader(), true, new File(output),true );
-				SAMFileWriter writer = factory.getWriter();					
-		    	for( SAMRecord record : reader) writer.addAlignment(record);				
-				factory.renameIndex();
+				try( SAMFileWriter writer = factory.getWriter(); ){				
+					for( SAMRecord record : reader) writer.addAlignment(record);				
+				}
+				factory.renameIndex(); //try already closed writer
 			} 			
 	    	new File(sam).delete();
 			

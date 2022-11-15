@@ -88,10 +88,13 @@ public class AlignerCompare {
 
 			//close IOs
 			firReader.close();
-			secReader.close();			
-			sameWriter.renameIndex();
-			diffWriter_first.renameIndex();
-			diffWriter_second.renameIndex();
+			secReader.close();	
+			sameWriter.getWriter().close();
+			diffWriter_first.getWriter().close();
+			diffWriter_second.getWriter().close();
+			sameWriter.renameIndex();  //manullly closed writer
+			diffWriter_first.renameIndex(); //manullly closed writer
+			diffWriter_second.renameIndex(); //manullly closed writer
  				
 		}
 
@@ -173,15 +176,6 @@ public class AlignerCompare {
 				}else
 					cleaned.add(record);
 			
-/*			//record these multi alignments for further investigation
-			if(cleaned.size() != 2){
-				for(SAMRecord record : cleaned){
-					factory.getWriter().addAlignment(record);	
-					nounsureAlignment ++;
-					
-				}
-			}
-*/			
 			return cleaned;
 		}
 		

@@ -79,9 +79,8 @@ public class TestFiles {
 		
 		SAMWriterFactory factory = new SAMWriterFactory(header, false, BAM, true);
 		try(SAMFileWriter writer = factory.getWriter();){
-		for( SAMRecord record : reader)
-			writer.addAlignment(record);			
+			for( SAMRecord record : reader) writer.addAlignment(record);			
 		} 
-		factory.renameIndex();		
+		factory.renameIndex();	//try already closed writer	 
 	}
 }

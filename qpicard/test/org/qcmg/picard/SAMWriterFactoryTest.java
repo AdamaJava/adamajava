@@ -79,7 +79,7 @@ public class SAMWriterFactoryTest {
 				writer.addAlignment(s);						
 			}
 		} 
-		factory.renameIndex();
+		factory.renameIndex(); //try already closed writer
 	}
 	
 	static List<SAMRecord> getRecords(SAMFileHeader header) {

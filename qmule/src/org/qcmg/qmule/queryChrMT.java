@@ -32,29 +32,25 @@ import org.qcmg.picard.SAMWriterFactory;
 public class queryChrMT {
 		 
 	public static void main(final String[] args) throws IOException, InterruptedException {
-  
-    	try{
+     		
+		File inBAM = new File(args[0]);
+		String outputName = inBAM.getName().replace(".bam", ".chrMT.primary.bam");
+		File output = new File(args[1], outputName);
     		
-    		File inBAM = new File(args[0]);
-    		String outputName = inBAM.getName().replace(".bam", ".chrMT.primary.bam");
-    		File output = new File(args[1], outputName);
-    		
-	 		SamReader reader = SAMFileReaderFactory.createSAMFileReader(inBAM, null, ValidationStringency.SILENT);
+ 		try( SamReader reader = SAMFileReaderFactory.createSAMFileReader(inBAM, null, ValidationStringency.SILENT);) {
 	 		SAMFileHeader he = reader.getFileHeader().clone();
 			SAMWriterFactory writeFactory = new SAMWriterFactory(he , true, output);
-			SAMRecordIterator ite = reader.query("chrMT",0,  16569, false);
-			
-			SAMRecord record;
-			while(ite.hasNext()){
-				record = ite.next();
-				if(!record.getNotPrimaryAlignmentFlag())
-					writeFactory.getWriter().addAlignment(record );	 
-				
+			try( SAMRecordIterator ite = reader.query("chrMT",0,  16569, false); 
+					SAMFileWriter writer = writeFactory.getWriter();) {
+					SAMRecord record;
+					while(ite.hasNext()){
+						record = ite.next();
+						if(!record.getNotPrimaryAlignmentFlag())
+							writer.addAlignment(record );	 					
+					}					
 			}
-    		writeFactory.renameIndex();
-    		reader.close();
-    		 
-    		System.exit(0);
+    		writeFactory.renameIndex(); //try already closed writer
+      		System.exit(0);		      		 
     	}catch(Exception e){
     		System.err.println(e.toString());
     		Thread.sleep(1);

@@ -43,19 +43,18 @@ public class ReadsAppend {
 			readers.add( SAMFileReaderFactory.createSAMFileReader(f));
 		}
 		
-		SAMFileHeader header = readers.get(0).getFileHeader().clone();	
-		
+		SAMFileHeader header = readers.get(0).getFileHeader().clone();			
 		SAMWriterFactory factory = new SAMWriterFactory(header, true, output,2000000 );
-        SAMFileWriter writer = factory.getWriter();
-        
-        for( SamReader reader : readers){
+        try( SAMFileWriter writer = factory.getWriter();) {
+    	   for( SamReader reader : readers){
 	        	for( SAMRecord record : reader) {
 	        		writer.addAlignment(record);
 	        	}
 	        	reader.close();
+    	   }
+        	
         }
-    	
-    	factory.renameIndex();		
+    	factory.renameIndex();	//try already closed writer	
 		System.out.println("end time : " + getTime());
 		System.exit(0);
 	}
