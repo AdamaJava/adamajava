@@ -73,14 +73,15 @@ public class TestFiles {
 	
 		
 	private static void Txt2BAM(File SAM, File BAM) throws IOException{
-		SamReader reader = SAMFileReaderFactory.createSAMFileReader(SAM) ;
-		SAMFileHeader header = reader.getFileHeader().clone();
-		header.setSortOrder(SAMFileHeader.SortOrder.coordinate);
-		
-		SAMWriterFactory factory = new SAMWriterFactory(header, false, BAM, true);
-		try(SAMFileWriter writer = factory.getWriter();){
-			for( SAMRecord record : reader) writer.addAlignment(record);			
-		} 
-		factory.renameIndex();	//try already closed writer	 
+		try( SamReader reader = SAMFileReaderFactory.createSAMFileReader(SAM); ) {
+			SAMFileHeader header = reader.getFileHeader().clone();
+			header.setSortOrder(SAMFileHeader.SortOrder.coordinate);
+			
+			SAMWriterFactory factory = new SAMWriterFactory(header, false, BAM, true);
+			try(SAMFileWriter writer = factory.getWriter();){
+				for( SAMRecord record : reader) writer.addAlignment(record);			
+			} 
+			factory.renameIndex();	//try already closed writer	 
+		}
 	}
 }

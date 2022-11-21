@@ -194,9 +194,9 @@ public class FixBAM {
         boolean ok2add;		
 		
 		try(SamReader reader = SAMFileReaderFactory.createSAMFileReader(input, null,  validation);) {
-			SAMWriterFactory factory = 	reader.getFileHeader().getSortOrder().equals(header.getSortOrder())?			
-				new SAMWriterFactory(header, true, output, tmpDir, 2000000, true ) 
-				: new SAMWriterFactory(header, false, output, tmpDir, 2000000, true);
+			boolean preSort = reader.getFileHeader().getSortOrder().equals(header.getSortOrder());			
+			SAMWriterFactory factory = new SAMWriterFactory(header, preSort, output, tmpDir, 2000000, true);
+			
 			try(SAMFileWriter writer = factory.getWriter();) {
 		    	for( SAMRecord record : reader){
 		    		record.setAttribute("RG", id );	  

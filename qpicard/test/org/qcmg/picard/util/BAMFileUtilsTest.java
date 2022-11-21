@@ -73,16 +73,25 @@ public class BAMFileUtilsTest {
 		BAMFileUtils.renameBamIndex(bam);
 		Assert.assertTrue(baiRenamed.exists());
 		Assert.assertFalse(bai.exists());
+		
 	}
 
 	@Test(expected = IOException.class)
-	public void renameNonExistentIndex() throws IOException {
+	public void renameNonExistentIndex() throws IOException {		
 		Path dir = Files.createTempDirectory("java-test");
 		File bam = new File(dir.resolve("test.bam").toString());
 		// create the bam but no index
 		bam.createNewFile();
 		// expect IOException
 		BAMFileUtils.renameBamIndex(bam);
+		
+	}
+	
+	@Test(expected = IOException.class)
+	public void renameNullIndex() throws IOException {		
+		Path dir = Files.createTempDirectory("java-test");
+ 		BAMFileUtils.renameBamIndex(null);
+		
 	}
 
 	private static void getBamFile(File bamFile, List<SAMRecord> data, boolean useChrs) {

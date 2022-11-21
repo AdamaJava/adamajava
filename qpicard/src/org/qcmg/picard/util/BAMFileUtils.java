@@ -57,8 +57,11 @@ public class BAMFileUtils {
 	 * @param bamFile
 	 * @throws Exception 
 	 */	
-	public static void renameBamIndex(File output) throws IOException{
-		String path = output.getPath();
+	public static void renameBamIndex(File input) throws IOException{
+		
+		if( input == null ) throw new IOException("we can't rename a NULL file!");
+		
+		String path = input.getPath();
 		
 		//do nothing if not BAM file
 		if( !path.endsWith(FileExtensions.BAM)) return;
@@ -70,7 +73,8 @@ public class BAMFileUtils {
 	    final Path indexqcmg =  IOUtil.addExtension(Paths.get(path), FileExtensions.BAI_INDEX);
 		 			
 		//rename files
-		Files.move(indexpicard, indexqcmg, StandardCopyOption.REPLACE_EXISTING);				
+		Files.move(indexpicard, indexqcmg, StandardCopyOption.REPLACE_EXISTING);
+		
 	}
 	/**
 	 * picard index name created by adding .bai to .cram. But we want to have index name end with .cram.crai
@@ -78,8 +82,11 @@ public class BAMFileUtils {
 	 * @throws Exception 
 	 */	
 	
-	public static void renameCramIndex(File output) throws IOException{
-		String path = output.getPath();
+	public static void renameCramIndex(File input) throws IOException{
+		
+		if( input == null ) throw new IOException("we can't rename a NULL file!");
+		
+		String path = input.getPath();
 		//do nothing if not cram file
 		if( !path.endsWith(FileExtensions.CRAM)) return;
 		
