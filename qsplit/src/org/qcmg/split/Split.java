@@ -299,7 +299,7 @@ public class Split {
 		if(createIndex){
 			for(File out: outputNames){
 				try{
-					BAMFileUtils.renameBamIndex(out);
+					BAMFileUtils.renameIndex(out);
 				}catch(Exception e){
 					 System.out.println(e.toString());
 				}

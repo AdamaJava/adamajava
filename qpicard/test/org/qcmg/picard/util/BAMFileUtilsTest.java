@@ -55,11 +55,11 @@ public class BAMFileUtilsTest {
 		bam.createNewFile();
 		bai.createNewFile();
 		// expect IOException
-		BAMFileUtils.renameBamIndex(bam);
+		BAMFileUtils.renameIndex(bam);
 	}
 
 	@Test
-	public void renameIndexTest() throws IOException {
+	public void renameBamIndexTest() throws IOException {
 		Path dir = Files.createTempDirectory("java-test");
 		File bam = new File(dir.resolve("test.bam").toString());
 		File bai = new File(dir.resolve("test.bai").toString());
@@ -70,10 +70,26 @@ public class BAMFileUtilsTest {
 	
 		Assert.assertTrue(bai.exists());
 		Assert.assertFalse(baiRenamed.exists());
-		BAMFileUtils.renameBamIndex(bam);
+		BAMFileUtils.renameIndex(bam);
 		Assert.assertTrue(baiRenamed.exists());
-		Assert.assertFalse(bai.exists());
-		
+		Assert.assertFalse(bai.exists());		
+	}
+	
+	@Test
+	public void renameCramIndexTest() throws IOException {
+		Path dir = Files.createTempDirectory("java-test");
+		File bam = new File(dir.resolve("test.cram").toString());
+		File bai = new File(dir.resolve("test.cram.bai").toString());
+		// create the bam and a picard-style ${stem/bam/bai} index 
+		bam.createNewFile();
+		bai.createNewFile();
+		File baiRenamed = new File(dir.resolve("test.cram.crai").toString());
+	
+		Assert.assertTrue(bai.exists());
+		Assert.assertFalse(baiRenamed.exists());
+		BAMFileUtils.renameIndex(bam);
+		Assert.assertTrue(baiRenamed.exists());
+		Assert.assertFalse(bai.exists());		
 	}
 
 	@Test(expected = IOException.class)
@@ -83,15 +99,13 @@ public class BAMFileUtilsTest {
 		// create the bam but no index
 		bam.createNewFile();
 		// expect IOException
-		BAMFileUtils.renameBamIndex(bam);
+		BAMFileUtils.renameIndex(bam);
 		
 	}
 	
-	@Test(expected = IOException.class)
+	@Test(expected = IllegalArgumentException.class)
 	public void renameNullIndex() throws IOException {		
-		Path dir = Files.createTempDirectory("java-test");
- 		BAMFileUtils.renameBamIndex(null);
-		
+ 		BAMFileUtils.renameIndex(null);		
 	}
 
 	private static void getBamFile(File bamFile, List<SAMRecord> data, boolean useChrs) {

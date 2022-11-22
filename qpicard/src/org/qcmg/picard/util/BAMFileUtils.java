@@ -51,52 +51,82 @@ public class BAMFileUtils {
 				.map(SAMSequenceRecord::getSequenceName)
 				.collect(Collectors.toList());
 	}
-
+	
 	/**
-	 * picard index name created by replacing .bam to .bai. But we want to have index name end with .bam.bai
-	 * @param bamFile
-	 * @throws Exception 
-	 */	
-	public static void renameBamIndex(File input) throws IOException{
-		
-		if( input == null ) throw new IOException("we can't rename a NULL file!");
+	 * picard BAM index name created by replacing .bam to .bai. But we want to have index name end with .bam.bai;
+	 * picard CRAM index name created by adding .bai to .cram. But we want to have index name end with .cram.crai
+	 * @param input is a BAM or CRAM file
+	 * @throws IOException
+	 */
+	public static void renameIndex(File input) throws IOException {
+		if( input == null ) throw new IllegalArgumentException("we can't rename a NULL file!");
 		
 		String path = input.getPath();
+		final String indexFileBase = path.substring(0, path.lastIndexOf('.'));			
+		Path indexpicard = null;
+		Path indexqcmg = null;
 		
 		//do nothing if not BAM file
-		if( !path.endsWith(FileExtensions.BAM)) return;
-	
-		final String indexFileBase = path.substring(0, path.lastIndexOf('.'));	
-			
-		//rename
-	    final Path indexpicard = IOUtil.addExtension(Paths.get(indexFileBase), FileExtensions.BAI_INDEX);
-	    final Path indexqcmg =  IOUtil.addExtension(Paths.get(path), FileExtensions.BAI_INDEX);
+		if( path.endsWith(FileExtensions.BAM)) {
+			//rename
+		    indexpicard = IOUtil.addExtension(Paths.get(indexFileBase), FileExtensions.BAI_INDEX);
+		    indexqcmg =  IOUtil.addExtension(Paths.get(path), FileExtensions.BAI_INDEX);			
+		} else if( path.endsWith(FileExtensions.CRAM)) {
+		    indexpicard = IOUtil.addExtension(Paths.get(path), FileExtensions.BAI_INDEX);
+		    indexqcmg =  IOUtil.addExtension(Paths.get(path), FileExtensions.CRAM_INDEX);						
+		}  			
 		 			
 		//rename files
-		Files.move(indexpicard, indexqcmg, StandardCopyOption.REPLACE_EXISTING);
-		
+		if(indexpicard != null && indexqcmg != null) {
+			Files.move(indexpicard, indexqcmg, StandardCopyOption.REPLACE_EXISTING);
+		}		
 	}
-	/**
-	 * picard index name created by adding .bai to .cram. But we want to have index name end with .cram.crai
-	 * @param cramFile
-	 * @throws Exception 
-	 */	
 	
-	public static void renameCramIndex(File input) throws IOException{
-		
-		if( input == null ) throw new IOException("we can't rename a NULL file!");
-		
-		String path = input.getPath();
-		//do nothing if not cram file
-		if( !path.endsWith(FileExtensions.CRAM)) return;
-		
-		//rename
-	    final Path indexpicard = IOUtil.addExtension(Paths.get(path), FileExtensions.BAI_INDEX);
-	    final Path indexqcmg =  IOUtil.addExtension(Paths.get(path), FileExtensions.CRAM_INDEX);
-		 			
-		//rename files
-		Files.move(indexpicard, indexqcmg, StandardCopyOption.REPLACE_EXISTING);				
-	}
+	
+//	/**
+//	 * picard index name created by replacing .bam to .bai. But we want to have index name end with .bam.bai
+//	 * @param bamFile
+//	 * @throws Exception 
+//	 */	
+//
+//	public static void renameBamIndex(File input) throws IOException{
+//		
+//		if( input == null ) throw new IOException("we can't rename a NULL file!");
+//		
+//		String path = input.getPath();
+//		
+//		//do nothing if not BAM file
+//		if( !path.endsWith(FileExtensions.BAM)) return;
+//	
+//		final String indexFileBase = path.substring(0, path.lastIndexOf('.'));	
+//			
+//		//rename
+//	    final Path indexpicard = IOUtil.addExtension(Paths.get(indexFileBase), FileExtensions.BAI_INDEX);
+//	    final Path indexqcmg =  IOUtil.addExtension(Paths.get(path), FileExtensions.BAI_INDEX);
+//		 			
+//		//rename files
+//		Files.move(indexpicard, indexqcmg, StandardCopyOption.REPLACE_EXISTING);
+//		
+//	}
+//	/**
+//	 * picard index name created by adding .bai to .cram. But we want to have index name end with .cram.crai
+//	 * @param cramFile
+//	 * @throws Exception 
+//	 */	
+//	
+//	public static void renameCramIndex(File input) throws IOException{
+//		
+//		if( input == null ) throw new IOException("we can't rename a NULL file!");
+//		
+//		String path = input.getPath();
+//		//do nothing if not cram file
+//		if( !path.endsWith(FileExtensions.CRAM)) return;
+//		
+//		//rename
+//		 			
+//		//rename files
+//		Files.move(indexpicard, indexqcmg, StandardCopyOption.REPLACE_EXISTING);				
+//	}
 	
 	
 	
