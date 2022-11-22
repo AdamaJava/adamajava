@@ -12,7 +12,7 @@ import htsjdk.samtools.SAMFileWriter;
 import htsjdk.samtools.SAMRecord;
 
 import org.qcmg.picard.SAMFileReaderFactory;
-import org.qcmg.picard.SAMOrBAMWriterFactory;
+import org.qcmg.picard.SAMWriterFactory;
 
 
 public class TestFiles {
@@ -73,16 +73,15 @@ public class TestFiles {
 	
 		
 	private static void Txt2BAM(File SAM, File BAM) throws IOException{
-		SamReader reader = SAMFileReaderFactory.createSAMFileReader(SAM) ;
-		SAMFileHeader header = reader.getFileHeader().clone();
-		header.setSortOrder(SAMFileHeader.SortOrder.coordinate);
-		
-		SAMOrBAMWriterFactory factory = new SAMOrBAMWriterFactory(header, false, BAM, true);
-		SAMFileWriter writer = factory.getWriter();
-		for( SAMRecord record : reader)
-			writer.addAlignment(record);	
+		try( SamReader reader = SAMFileReaderFactory.createSAMFileReader(SAM); ) {
+			SAMFileHeader header = reader.getFileHeader().clone();
+			header.setSortOrder(SAMFileHeader.SortOrder.coordinate);
 			
-		reader.close();
-		factory.closeWriter();		
+			SAMWriterFactory factory = new SAMWriterFactory(header, false, BAM, true);
+			try(SAMFileWriter writer = factory.getWriter();){
+				for( SAMRecord record : reader) writer.addAlignment(record);			
+			} 
+			factory.renameIndex();	//try already closed writer	 
+		}
 	}
 }

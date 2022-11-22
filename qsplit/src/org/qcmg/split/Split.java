@@ -22,10 +22,10 @@ import htsjdk.samtools.SAMFileWriterFactory;
 import htsjdk.samtools.SAMProgramRecord;
 import htsjdk.samtools.SAMReadGroupRecord;
 import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SAMTagUtil;
+import htsjdk.samtools.SAMTag;
 
-import org.qcmg.picard.RenameFile;
 import org.qcmg.picard.SAMFileReaderFactory;
+import org.qcmg.picard.util.BAMFileUtils;
 
 public class Split {
 	static final Pattern colonDelimitedPattern = Pattern.compile("[:]+");
@@ -43,8 +43,7 @@ public class Split {
 	String inputFileName;
 	String validation;
 	
-	private final static SAMTagUtil samTagUtil = SAMTagUtil.getSingleton();
-	final static short ZC = samTagUtil.makeBinaryTag("ZC");
+	final static short ZC = SAMTag.makeBinaryTag("ZC");   
 	
 	// default constructor
 	public Split() {}
@@ -300,7 +299,7 @@ public class Split {
 		if(createIndex){
 			for(File out: outputNames){
 				try{
-					RenameFile.renameIndex(out);
+					BAMFileUtils.renameIndex(out);
 				}catch(Exception e){
 					 System.out.println(e.toString());
 				}

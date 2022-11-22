@@ -16,7 +16,7 @@ import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.util.BaseUtils;
 import org.qcmg.common.util.IlluminaUtils;
 import org.qcmg.common.util.TabTokenizer;
-import org.qcmg.picard.SAMOrBAMWriterFactory;
+import org.qcmg.picard.SAMWriterFactory;
 import org.qcmg.picard.util.SAMUtils;
 import org.qcmg.qio.illumina.IlluminaRecord;
 import org.qcmg.sig.util.SignatureUtil;
@@ -248,14 +248,11 @@ public class SignatureGeneratorTest {
     static void getBamFile(File bamFile, boolean validHeader, boolean useChrs, boolean addReadGroupToHeaderAndRecords) {
     	final SAMFileHeader header = getHeader(validHeader, useChrs, addReadGroupToHeaderAndRecords);
     	List<SAMRecord> data = getRecords(useChrs, header, true, addReadGroupToHeaderAndRecords);
-    	final SAMOrBAMWriterFactory factory = new SAMOrBAMWriterFactory(header, false, bamFile, false);
-    	try {
-    		final SAMFileWriter writer = factory.getWriter();
+    	final SAMWriterFactory factory = new SAMWriterFactory(header, false, bamFile, false);
+    	try (SAMFileWriter writer = factory.getWriter();) {    		 
     		if (null != data)
     			for (final SAMRecord s : data) writer.addAlignment(s);
-    	} finally {
-    		factory.closeWriter();
-    	}
+    	}  
     }
     
     public static SAMFileHeader getHeader(boolean valid, boolean useChrs) {

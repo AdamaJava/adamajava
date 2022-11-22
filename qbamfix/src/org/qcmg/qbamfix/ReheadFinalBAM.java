@@ -13,7 +13,7 @@ import java.util.List;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.picard.SAMFileReaderFactory;
-import org.qcmg.picard.SAMOrBAMWriterFactory;
+import org.qcmg.picard.SAMWriterFactory;
 
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SamReader;
@@ -42,11 +42,6 @@ public class ReheadFinalBAM {
 		//created new header if SM value in RG line isn't match the donor
 	    if( SMvalue.length() > 0 ){
 	    	refinalBAM(options.getInputFileName(), options.getValidation(), donor, new File( options.getOutputFileName()) );	    	 
-	    	
-//	    	SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(options.getInputFileName()),null, options.getValidation() );  	    	
-//	    	logger.info("According qlimsmeta line SM tag value " + SMvalue + " are replaced to " + donor);
-//	    	refinalBAM(reader, donor, new File( options.getOutputFileName()) );
-//		    reader.close();					    	
 	    }
 	}
 
@@ -66,13 +61,12 @@ public class ReheadFinalBAM {
 			header.setReadGroups(rglist);
 			
 			//append reads to output 
-			SAMOrBAMWriterFactory factory = new SAMOrBAMWriterFactory(header, true, output,2000000 );
-	        SAMFileWriter writer = factory.getWriter();
-	    	for( SAMRecord record : reader)
-	    		 writer.addAlignment(record);
-	    	factory.closeWriter();
-		 }
- 
+			SAMWriterFactory factory = new SAMWriterFactory(header, true, output,2000000 );
+	        try(SAMFileWriter writer = factory.getWriter();) {
+	        	for( SAMRecord record : reader) writer.addAlignment(record);
+	        }	    	
+	    	factory.renameIndex(); //writer already closed by try
+		 } 
 	}
 	
 	 String matchDonor(String donor, List<SAMReadGroupRecord> readGroups){

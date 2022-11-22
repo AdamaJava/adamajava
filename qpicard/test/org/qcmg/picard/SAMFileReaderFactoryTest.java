@@ -271,25 +271,23 @@ public class SAMFileReaderFactoryTest {
 		assertEquals(validBamRecordCount, recordCount);
 	}
 	
-	private static void getBamFile(File bamFile, boolean validHeader, boolean validRecords) {
+	static void getBamFile(File bamFile, boolean validHeader, boolean validRecords) {
 		getBamFile(bamFile, validHeader,  validRecords, false);
 	}
 	
-	private static void getBamFile(File bamFile, boolean validHeader, boolean validRecords, boolean createIndex) {
+	static void getBamFile(File bamFile, boolean validHeader, boolean validRecords, boolean createIndex) {
 		SAMFileHeader header = getHeader(validHeader);
-		SAMOrBAMWriterFactory factory = new SAMOrBAMWriterFactory(header, false, bamFile, createIndex);
-		try {
-			SAMFileWriter writer = factory.getWriter();
+		SAMWriterFactory factory = new SAMWriterFactory(header, false, bamFile, createIndex);
+		try (SAMFileWriter writer = factory.getWriter();) {			
 			for (SAMRecord s : getRecords(validRecords,header)) {
-				writer.addAlignment(s);
+				writer.addAlignment(s);				
 			}
-			writer.close();
-		} finally {
-			factory.closeWriter();
-		}
+		}  
 	}
 	
-	private static List<SAMRecord> getRecords(boolean valid, SAMFileHeader header) {
+	
+	
+	static List<SAMRecord> getRecords(boolean valid, SAMFileHeader header) {
 		List<SAMRecord> records = new ArrayList<SAMRecord>();
 //		records.add("HS2000-152_756:1:1316:11602:65138	89	chr1	9993	25	100M	=	9993	0	TCTTCCGATCTCCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTA	B@??BBCCB<>BCBB?:BAA?9-A;?2;@ECA=;7BEE?=7D9@@8.C;B8=.HGDBBBCCD::*GGD:?*FDGFCA>EIHEEBEAEFDFFC=+?DD@@@	X0:i:1	X1:i:0	ZC:i:9	MD:Z:0C0T0G6A0A89	PG:Z:MarkDuplicates	RG:Z:20130325103517169	XG:i:0	AM:i:0	NM:i:5	SM:i:25	XM:i:5	XN:i:8	XO:i:0	XT:A:U");
 		SAMRecord sam = new SAMRecord(header);
@@ -357,7 +355,7 @@ public class SAMFileReaderFactoryTest {
 		return records;
 	}
 	
-	private static SAMFileHeader getHeader(boolean valid) {
+	static SAMFileHeader getHeader(boolean valid) {
 		SAMFileHeader header = new SAMFileHeader();
 		header.setTextHeader(VALID_HEADER);
 		header.setSortOrder(SortOrder.coordinate);

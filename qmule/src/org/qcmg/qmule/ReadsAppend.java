@@ -17,7 +17,7 @@ import java.util.Calendar;
 import java.util.List;
 
 import org.qcmg.picard.SAMFileReaderFactory;
-import org.qcmg.picard.SAMOrBAMWriterFactory;
+import org.qcmg.picard.SAMWriterFactory;
 
 
 public class ReadsAppend {
@@ -43,19 +43,18 @@ public class ReadsAppend {
 			readers.add( SAMFileReaderFactory.createSAMFileReader(f));
 		}
 		
-		SAMFileHeader header = readers.get(0).getFileHeader().clone();	
-		
-		SAMOrBAMWriterFactory factory = new SAMOrBAMWriterFactory(header, true, output,2000000 );
-        SAMFileWriter writer = factory.getWriter();
-        
-        for( SamReader reader : readers){
+		SAMFileHeader header = readers.get(0).getFileHeader().clone();			
+		SAMWriterFactory factory = new SAMWriterFactory(header, true, output,2000000 );
+        try( SAMFileWriter writer = factory.getWriter();) {
+    	   for( SamReader reader : readers){
 	        	for( SAMRecord record : reader) {
 	        		writer.addAlignment(record);
 	        	}
 	        	reader.close();
+    	   }
+        	
         }
-    	
-    	factory.closeWriter();		
+    	factory.renameIndex();	//try already closed writer	
 		System.out.println("end time : " + getTime());
 		System.exit(0);
 	}

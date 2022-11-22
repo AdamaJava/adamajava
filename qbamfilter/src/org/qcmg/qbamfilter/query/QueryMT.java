@@ -26,7 +26,7 @@ import htsjdk.samtools.ValidationStringency;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.util.Constants;
 import org.qcmg.picard.SAMFileReaderFactory;
-import org.qcmg.picard.SAMOrBAMWriterFactory;
+import org.qcmg.picard.SAMWriterFactory;
 import org.qcmg.picard.SAMRecordFilterWrapper;
 
 public class QueryMT {
@@ -58,13 +58,13 @@ public class QueryMT {
 				SAMFileHeader he = header.clone();
 				he.setSortOrder(sort);
 				 
-				SAMOrBAMWriterFactory writeFactory = new SAMOrBAMWriterFactory(he, presorted, unmatchedFile,tmpdir, index);
 				
 				logger.info("input bam are presorted: " + presorted);
 				logger.info("set sort to unmatched reads output:" + sort);
 				logger.info("create index file for unmatched reads output " + index);				
 				int unmatchedCount = 0;
-				try {
+				SAMWriterFactory writeFactory = new SAMWriterFactory(he, presorted, unmatchedFile,tmpdir, index);
+				try ( SAMFileWriter writer = writeFactory.getWriter(); ) {
 					SAMRecord record;					
 					while (true) {
 						if (  (record = outBadQueue.poll()) == null ){
@@ -76,12 +76,12 @@ public class QueryMT {
 								e.printStackTrace();
 							}
 						} else {
-							writeFactory.getWriter().addAlignment(record);
+							writer.addAlignment(record);
 							unmatchedCount ++ ;						
 						}
 					}
 				} finally {
-					writeFactory.closeWriter();
+					writeFactory.renameIndex(); //try already closed writer
 					logger.info(writeFactory.getLogMessage());
 					logger.info("completed writing threads, added " + unmatchedCount
 									+ " records to the output: " + unmatchedFile.getAbsolutePath());
@@ -409,13 +409,13 @@ public class QueryMT {
 			int countSleep = 0;
 			boolean run = true;
 			
-			try {
+			
 				boolean presorted = header.getSortOrder().equals(sort);
 				boolean index =  sort.equals(SAMFileHeader.SortOrder.coordinate);
 				//make sure don't change the input header since the writer of unmatched reads  should use it. 
 				SAMFileHeader he = header.clone();
 				he.setSortOrder(sort);
-				SAMOrBAMWriterFactory writeFactory = new SAMOrBAMWriterFactory(he , presorted, file,tmpdir, index);
+				SAMWriterFactory writeFactory = new SAMWriterFactory(he , presorted, file,tmpdir, index);
 				
 				logger.info("input bam are presorted: " + presorted);
 				logger.info("set sort to " + sort);
@@ -464,11 +464,8 @@ public class QueryMT {
 								logger.error("count: " + count + " is higher that recently processed record: " + record.getPosition());
 							}
 						}
-					}
-				} finally {
-					writeFactory.closeWriter();
-					logger.info(writeFactory.getLogMessage());
-				}
+					}				  
+				logger.info(writeFactory.getLogMessage());
 
 				if (!mainThread.isAlive())
 					throw new Exception("Writing threads failed since parent thread died.");

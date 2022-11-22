@@ -19,7 +19,7 @@ import java.util.List;
 import org.qcmg.common.log.QLogger;
 
 import org.qcmg.picard.SAMFileReaderFactory;
-import org.qcmg.picard.SAMOrBAMWriterFactory;
+import org.qcmg.picard.SAMWriterFactory;
 
 
 import htsjdk.samtools.SAMFileHeader;
@@ -187,48 +187,39 @@ public class FixBAM {
 	 */
 	List<SAMRecord> firstFilterRun(File output) throws IOException{
 		
-		SamReader reader = SAMFileReaderFactory.createSAMFileReader(input, null,  validation);  
-
-		SAMOrBAMWriterFactory factory;		
-		if(reader.getFileHeader().getSortOrder().equals(header.getSortOrder())) {
-			factory = new SAMOrBAMWriterFactory(header, true, output, tmpDir, 2000000, true );
-		} else {
-        		factory = new SAMOrBAMWriterFactory(header, false, output, tmpDir, 2000000, true);
-		}
-						 
-		SAMFileWriter writer = factory.getWriter();
-		
-        List<SAMRecord> badReads = new ArrayList<>();
-        
+        List<SAMRecord> badReads = new ArrayList<>();       
         String id = header.getReadGroups().get(0).getId();  
         long NumofInput = 0;
         long NumofOutput = 0;
-        boolean ok2add;
-	    	for( SAMRecord record : reader){
-	    		record.setAttribute("RG", id );
-  
-	    		if(seqLength > 0)
-	    			ok2add = (record.getReadLength() == seqLength); 
-	    		else if(seqLength == 0)
-	    			ok2add = (record.getReadLength() == record.getBaseQualityString().length());
-	    		else
-	    			ok2add = true;
-	    		
-	    		if (ok2add){
-	    			writer.addAlignment(record);	
-	    			NumofOutput ++;
-	    		} else {
-	    			badReads.add(record);
-	    		}
-	    		NumofInput ++;	
+        boolean ok2add;		
+		
+		try(SamReader reader = SAMFileReaderFactory.createSAMFileReader(input, null,  validation);) {
+			boolean preSort = reader.getFileHeader().getSortOrder().equals(header.getSortOrder());			
+			SAMWriterFactory factory = new SAMWriterFactory(header, preSort, output, tmpDir, 2000000, true);
+			
+			try(SAMFileWriter writer = factory.getWriter();) {
+		    	for( SAMRecord record : reader){
+		    		record.setAttribute("RG", id );	  
+		    		if(seqLength > 0)
+		    			ok2add = (record.getReadLength() == seqLength); 
+		    		else if(seqLength == 0)
+		    			ok2add = (record.getReadLength() == record.getBaseQualityString().length());
+		    		else
+		    			ok2add = true;
+		    		
+		    		if (ok2add){
+		    			writer.addAlignment(record);	
+		    			NumofOutput ++;
+		    		} else {
+		    			badReads.add(record);
+		    		}
+		    		NumofInput ++;	
+		    	}
+			}	
+			factory.renameIndex(); //try already closed writer
+			log.info("crteated a temp BAM: " + output.getPath());
+			if(factory.getLogMessage() != null) log.info(factory.getLogMessage());
 		}
-	    	//writer.close();
-	    	factory.closeWriter();
-	    	reader.close();
-    	
-		log.info("crteated a temp BAM: " + output.getPath());
-		if(factory.getLogMessage() != null)
-			log.info(factory.getLogMessage());
        	log.info("number of reads from input at first time is " + NumofInput);
         log.info("number of good reads outputed at first time is " + NumofOutput);
         log.info("number of bad reads detected at first time is " + badReads.size());
@@ -243,39 +234,36 @@ public class FixBAM {
 	 * @throws IOException
 	 */
 	void secondFilterRun(HashMap<String, Integer>  badIDs, File inBAM)throws IOException{
-		SamReader reader = SAMFileReaderFactory.createSAMFileReader(inBAM, null, validation);
-		//set presort as true since the tmpBAM already sorted. otherwise throw exception
-		SAMOrBAMWriterFactory factory = new SAMOrBAMWriterFactory(header, true, output, tmpDir, 2000000, true ); 
-		SAMFileWriter writer = factory.getWriter();
 		
-        long NumofOutput = 0;
-        long NumofBad = 0;
-	    	for( SAMRecord record : reader){	
-	    		if(badIDs.containsKey(record.getReadName()))
-	    			NumofBad ++;
-	    		else{
-	    			writer.addAlignment(record);	
-	    			NumofOutput ++;
-	    		}
-	    			
-		}
-	    	factory.closeWriter();
-	    	reader.close();
-
-       	log.info("created final output " + output.getPath());
-       	if(factory.getLogMessage() != null)
-       		log.info(factory.getLogMessage());
-        log.info( "number of good reads outputed at second time is "+  NumofOutput);
-        log.info("number of discarded bad mate reads at second time is " + NumofBad); 
-        
-         
+		
+		
+		try(SamReader reader = SAMFileReaderFactory.createSAMFileReader(inBAM, null, validation);) {
+			//set presort as true since the tmpBAM already sorted. otherwise throw exception
+			SAMWriterFactory factory = new SAMWriterFactory(header, true, output, tmpDir, 2000000, true ); 
+			try( SAMFileWriter writer = factory.getWriter(); ){
+		        long NumofOutput = 0;
+		        long NumofBad = 0;
+		    	for( SAMRecord record : reader){	
+		    		if(badIDs.containsKey(record.getReadName())) NumofBad ++;
+		    		else{
+		    			writer.addAlignment(record);	
+		    			NumofOutput ++;
+		    		}		    			
+		    	}
+		      	log.info("created final output " + output.getPath());
+		        log.info( "number of good reads outputed at second time is "+  NumofOutput);
+		        log.info("number of discarded bad mate reads at second time is " + NumofBad); 		    			    	
+			}
+	    	factory.renameIndex(); //try already closed writer 
+	    	if(factory.getLogMessage() != null) log.info(factory.getLogMessage());
+		}         
     	//delete tmp files  
         inBAM.delete();
-	    	log.info("deleted tmporary output BAM file: " + inBAM.getPath());
-	        
-	    	File inBai = new File(inBAM.getPath() + ".bai");
-	    	inBai.delete();    	
-	    	log.info("deleted tmporary output index file: " + inBai.getPath());
+    	log.info("deleted tmporary output BAM file: " + inBAM.getPath());
+        
+    	File inBai = new File(inBAM.getPath() + ".bai");
+    	inBai.delete();    	
+    	log.info("deleted tmporary output index file: " + inBai.getPath());
 
 	} 
 }
