@@ -12,8 +12,8 @@ import org.junit.Test;
 
 public class ListUtilsTest {
 	
-	public static List<String> ABCDEF = new ArrayList<String>();
-	public static List<String> IJK = new ArrayList<String>();
+	public static List<String> ABCDEF = new ArrayList<>(6);
+	public static List<String> IJK = new ArrayList<>(4);
 	static {
 		ABCDEF.add("A");
 		ABCDEF.add("B");
@@ -40,7 +40,7 @@ public class ListUtilsTest {
 		Comparator<String> abcde = ListUtils.createComparatorFromList(ABCDEF);
 		Comparator<String> ijk = ListUtils.createComparatorFromList(IJK);
 		
-		List<String> unsortedList = new ArrayList<String>();
+		List<String> unsortedList = new ArrayList<>();
 		unsortedList.add("E");
 		unsortedList.add("D");
 		unsortedList.add("C");
@@ -75,7 +75,7 @@ public class ListUtilsTest {
 	
 	@Test
 	public void testListComparatorDuplicateListEntries() {
-		List<String> sortedList = new ArrayList<String>();
+		List<String> sortedList = new ArrayList<>();
 		sortedList.add("A");
 		sortedList.add("B");
 		sortedList.add("C");
@@ -85,7 +85,7 @@ public class ListUtilsTest {
 		
 		Comparator<String> c = ListUtils.createComparatorFromList(sortedList);
 		
-		List<String> unsortedList = new ArrayList<String>();
+		List<String> unsortedList = new ArrayList<>();
 		unsortedList.add("E");
 		unsortedList.add("D");
 		unsortedList.add("C");
@@ -103,10 +103,10 @@ public class ListUtilsTest {
 	
 	@Test
 	public void testListComparatorEmptyList() {
-		List<String> sortedList = new ArrayList<String>();
+		List<String> sortedList = new ArrayList<>();
 		Comparator<String> c = ListUtils.createComparatorFromList(sortedList);
 		
-		List<String> unsortedList = new ArrayList<String>();
+		List<String> unsortedList = new ArrayList<>();
 		unsortedList.add("E");
 		unsortedList.add("D");
 		unsortedList.add("C");

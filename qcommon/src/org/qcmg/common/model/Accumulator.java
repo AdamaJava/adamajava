@@ -74,6 +74,7 @@ public class Accumulator {
 		break;
 		case T_BYTE: failedFilterTCount++;
 		break;
+		default: /* do nothing */ break;
 		}
 	}
 	
@@ -82,6 +83,7 @@ public class Accumulator {
 				? readNameHashStrandBasePositionQualitys 
 						: new TLongArrayList(0);
 	}
+	
 	public void setData(TLongList list) {
 		readNameHashStrandBasePositionQualitys = list;
 	}

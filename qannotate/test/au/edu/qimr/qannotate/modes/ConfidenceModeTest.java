@@ -2,28 +2,19 @@ package au.edu.qimr.qannotate.modes;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.qcmg.common.util.Constants.VCF_MERGE_DELIM;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.junit.Ignore;
+
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.qcmg.common.model.MafConfidence;
 import org.qcmg.common.util.ChrPositionUtils;
-import org.qcmg.common.util.Constants;
 import org.qcmg.common.vcf.VcfFileMeta;
-import org.qcmg.common.vcf.VcfFormatFieldRecord;
-import org.qcmg.common.vcf.VcfInfoFieldRecord;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
-import org.qcmg.qio.vcf.VcfFileReader;
 
 
 public class ConfidenceModeTest {
@@ -816,11 +807,6 @@ public class ConfidenceModeTest {
 	 }
 	 
 	 @Test
-	 public void willMultipleACValuesWork() {
-		 VcfFormatFieldRecord format = new VcfFormatFieldRecord("GT:GD:AC:MR:NNS:AD:DP:GQ:PL", "0/1:A/C:A8[33.75],11[38.82],C3[42],5[40]"+VCF_MERGE_DELIM+"A9[33.56],11[38.82],C3[42],5[40],G0[0],1[22],T1[11],0[0]:8:8:18"+VCF_MERGE_DELIM+"8:26:99:274,0,686");
-		 assertEquals(19, VcfUtils.getAltFrequency(format, "A"));
-	 }
-	 @Test
 	 public void confidenceRealLifeSingle() {
 		 //chr8	12306635	rs28428895	C	T	.	PASS	FLANK=ACACATACATA;DB;CONF=HIGH;EFF=intron_variant(MODIFIER|||n.304-488G>A||ENPP7P6|unprocessed_pseudogene|NON_CODING|ENST00000529817|2|1)	GT:GD:AC:MR:NNS	0/1:C/T:C10[39],3[30],G1[11],0[0],T7[41.29],1[42]:8:8	0/0:C/C:C19[36.11],20[38.45],T1[42],0[0]:1:1
 		 VcfRecord vcf1 = new VcfRecord(new String[]{"chr8","12306635","rs28428895","C","T",".",".","FLANK=ACACATACATA;DB;EFF=intron_variant(MODIFIER|||n.304-488G>A||ENPP7P6|unprocessed_pseudogene|NON_CODING|ENST00000529817|2|1)","GT:AC:AD:DP:NNS:FT","0/1:C10[39],3[30],G1[11],0[0],T7[41.29],1[42]:13,8:22:8:.","0/0:C19[36.11],20[38.45],T1[42],0[0]:39,1:40:1:."});
@@ -1130,107 +1116,5 @@ public class ConfidenceModeTest {
 		 assertEquals(2, ConfidenceMode.getCoverageFromFailedFilterString("AA1;B1"));
 		 assertEquals(107, ConfidenceMode.getCoverageFromFailedFilterString("AA1;B1;CAB105"));
 		 assertEquals(127, ConfidenceMode.getCoverageFromFailedFilterString("AA1;B1;CAB105;H20"));
-	 }
-	 
-	 @Test
-	 public void altFrequence() {
-		 /*
-		  * Compound snps first
-		  */
-		 VcfFormatFieldRecord format = new VcfFormatFieldRecord("ACCS","GA,1,2,GT,1,0,TG,43,51,GG,0,1,TA,0,2");
-		 assertEquals(101, VcfUtils.getAltFrequency(format, null));
-		 assertEquals(3, VcfUtils.getAltFrequency(format, "GA"));
-		 assertEquals(1, VcfUtils.getAltFrequency(format, "GT"));
-		 assertEquals(94, VcfUtils.getAltFrequency(format, "TG"));
-		 assertEquals(1, VcfUtils.getAltFrequency(format, "GG"));
-		 assertEquals(2, VcfUtils.getAltFrequency(format, "TA"));
-		 assertEquals(0, VcfUtils.getAltFrequency(format, "AB"));
-		 /*
-		  * regular snps
-		  */
-		 format = new VcfFormatFieldRecord("AC","C1[35],2[39],T2[40],1[7]");
-		 assertEquals(6, VcfUtils.getAltFrequency(format, null));
-		 assertEquals(3, VcfUtils.getAltFrequency(format, "C"));
-		 assertEquals(3, VcfUtils.getAltFrequency(format, "T"));
-		 assertEquals(0, VcfUtils.getAltFrequency(format, "A"));
-		 assertEquals(0, VcfUtils.getAltFrequency(format, ""));
-		 assertEquals(0, VcfUtils.getAltFrequency(format, "XYZ"));
-	 }
-	
-	 @Ignore
-	 public void confidenceTest() throws IOException, Exception{	
-		File output = testFolder.newFile("output.vcf");
-		File input = testFolder.newFile("input.vcf");
-		
-	 	DbsnpModeTest.createVcf(input);
-		final ConfidenceMode mode = new ConfidenceMode();		
-		mode.loadVcfRecordsFromFile( input);
-
-		String Scontrol = "EXTERN-MELA-20140505-001";
-		String Stest = "EXTERN-MELA-20140505-002";
-		mode.header.addOrReplace("##qControlSample=" + Scontrol);
-		mode.header.addOrReplace("##qTestSample="+ Stest);	
-		mode.header.addOrReplace("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tEXTERN-MELA-20140505-001\tEXTERN-MELA-20140505-002");			
-		
-		mode.addAnnotation();
-		mode.reheader("unitTest", input.getAbsolutePath());
-		mode.writeVCF( output );
-		
-		try(VcfFileReader reader = new VcfFileReader(output)){			 
-			for (final VcfRecord re : reader) {
-				String ff = re.getFormatFieldStrings();
-				if(re.getPosition() == 2675826) {
-					//compound SNPs
-					assertEquals(true, ff.contains(VcfHeaderUtils.INFO_CONFIDENCE + Constants.EQ + MafConfidence.LOW.name())); 
-				} else if(re.getPosition() == 22012840) {
-					//isClassB
-				assertEquals(true, ff.contains(VcfHeaderUtils.INFO_CONFIDENCE + Constants.EQ + MafConfidence.LOW.name())); 
-				} else if(re.getPosition() == 14923588 || re.getPosition() == 2675825) {
-					assertEquals(true, ff.contains(VcfHeaderUtils.INFO_CONFIDENCE + Constants.EQ + MafConfidence.ZERO.name())); 
-				} else {
-					//"chrY\t77242678\t.\tCA\tTG\t.\tPASS\tEND=77242679\tACCS\tCA,10,14,TG,6,7\tCA,14,9,TG,23,21"
-					//TG alleles is 13 > 5 filter is PASS
-					assertEquals(true, ff.contains(VcfHeaderUtils.INFO_CONFIDENCE + Constants.EQ + MafConfidence.HIGH.name()));
-				}
-			}
-		 }		 	 	 
-	 }
-	 
-	 @Ignore
-	 public void sampleColumnNoIDTest() throws IOException, Exception{	
-		File output = testFolder.newFile("output.vcf");
-		File input = testFolder.newFile("input.vcf");
-		 
-	 	DbsnpModeTest.createVcf(input);
-		final ConfidenceMode mode = new ConfidenceMode();		
-		mode.loadVcfRecordsFromFile(input);
-
-		String Scontrol = "EXTERN-MELA-20140505-001";
-		String Stest = "EXTERN-MELA-20140505-002";
-		mode.header.addOrReplace("##qControlSample=" + Scontrol);
-		mode.header.addOrReplace("##qTestSample="+ Stest);	
-		mode.header.addOrReplace("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tqControlSample\tqTestSample");			
-		
-		mode.addAnnotation();
-		mode.reheader("unitTest", input.getAbsolutePath());
-		mode.writeVCF(output);
-		
-		try(VcfFileReader reader = new VcfFileReader(output)){
-			for (final VcfRecord re : reader) {		
-				final VcfInfoFieldRecord infoRecord = new VcfInfoFieldRecord(re.getInfo()); 				
-				if(re.getPosition() == 2675826) 
-					//compound SNPs
-					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENCE).equals(MafConfidence.LOW.name())); 
-				else if(re.getPosition() == 22012840)
-					//isClassB
-					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENCE).equals(MafConfidence.LOW.name())); 
-				else if(re.getPosition() == 14923588 || re.getPosition() == 2675825)
-					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENCE).equals(MafConfidence.ZERO.name())); 
-				else
-					//"chrY\t77242678\t.\tCA\tTG\t.\tPASS\tEND=77242679\tACCS\tCA,10,14,TG,6,7\tCA,14,9,TG,23,21"
-					//TG alleles is 13 > 5 filter is PASS
-					assertTrue(infoRecord.getField(VcfHeaderUtils.INFO_CONFIDENCE).equals(MafConfidence.HIGH.name())); 
-			}
-		 }		 	 	 
 	 }
 }

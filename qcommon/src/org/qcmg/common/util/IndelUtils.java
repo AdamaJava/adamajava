@@ -3,6 +3,7 @@
  *
  * This code is released under the terms outlined in the included LICENSE file.
 */
+
 package org.qcmg.common.util;
 
 import java.util.Arrays;
@@ -15,7 +16,7 @@ import org.qcmg.common.vcf.header.VcfHeaderUtils;
 public class IndelUtils {
 	public enum SVTYPE {
 		
-		SNP(1, true),DNP(2, true),TNP(3, true), ONP(4, true),INS(5, false),DEL(6, false),CTX(7, false),UNKNOWN(0, false);
+		SNP(1, true), DNP(2, true), TNP(3, true), ONP(4, true), INS(5, false), DEL(6, false), CTX(7, false), UNKNOWN(0, false);
 		
 		public final int order;
 		public final boolean isSnpOrCS;
@@ -33,7 +34,7 @@ public class IndelUtils {
 			return CTX.order + 1;
 		}
 		
-		public String toVariantType(){
+		public String toVariantType() {
 			switch (order){
 				case 1: return "SNV";
 				case 2: return "DNV";
@@ -108,7 +109,7 @@ public class IndelUtils {
 	 * @param alt: single alleles base from vcf record 5th column
 	 * @return variant type, whether it is SNP, MNP, INSERTION, DELETION or TRANSLOCATION
 	 */
-	public static SVTYPE getVariantType(String ref, String alts){
+	public static SVTYPE getVariantType(String ref, String alts) {
 		if (StringUtils.isNullOrEmpty(alts) || StringUtils.isNullOrEmpty(ref)) {
 			throw new IllegalArgumentException("Null or empty alt and/or ref passed to getVariantType. alt: " + alts + ", ref: " + ref);
 		}
@@ -130,16 +131,19 @@ public class IndelUtils {
 			 }
 			 
 			 // insertions  
-			 if ( altLen <  MAX_INDEL_LENGTH &&  altLen > refLen && refLen == 1)  
-				 return  SVTYPE.INS;	
+			 if (altLen <  MAX_INDEL_LENGTH &&  altLen > refLen && refLen == 1) {
+				 return  SVTYPE.INS;
+			 }
 			 
 			 // deletions
-			 if (refLen <  MAX_INDEL_LENGTH && altLen < refLen && altLen == 1)  
+			 if (refLen <  MAX_INDEL_LENGTH && altLen < refLen && altLen == 1) {
 				 return  SVTYPE.DEL;
+			 }
 			  			 
 			 //complicated variants
-			 if(altLen <  MAX_INDEL_LENGTH && refLen <  MAX_INDEL_LENGTH && refLen != 1 && altLen != 1)
+			 if (altLen <  MAX_INDEL_LENGTH && refLen <  MAX_INDEL_LENGTH && refLen != 1 && altLen != 1) {
 				 return SVTYPE.CTX; 
+			 }
 		 }
 		return SVTYPE.UNKNOWN;	
 	}
@@ -265,19 +269,20 @@ public class IndelUtils {
 		return gd;
 	}
 
-//	public static String getMotif(String ref, String alt ){
-//		return getMotif(ref, alt, getVariantType(ref, alt));
-//	}
 	public static String getMotif(String ref, String alt , SVTYPE type){
-		if(type.equals(SVTYPE.INS))
-			return alt.substring(1);			 
-		if(type.equals(SVTYPE.DEL))
+		if (type.equals(SVTYPE.INS)) {
+			return alt.substring(1);
+		}
+		
+		if (type.equals(SVTYPE.DEL)) {
 			return ref.substring(1);
-		if(type.equals(SVTYPE.UNKNOWN))
+		}
+		
+		if (type.equals(SVTYPE.UNKNOWN)) {
 			return null; 
+		}
 		
 		return ref;  //return ref for snp, mnp 		THIS IS THE OLD (CURRENT PRODUCTION) WAY OF DOING IT
-//		return alt;  //return alt for snp, mnp 		THIS IS THE NEW (ASPIRATIONAL) WAY OF DOING IT
 	}
 	
 	/**
@@ -288,11 +293,11 @@ public class IndelUtils {
 	 * @return
 	 */
 	public static String getRefForIndels(String ref, final SVTYPE type){
-		if(type.equals(SVTYPE.DEL) ) {
+		if (type.equals(SVTYPE.DEL) ) {
 			if ( ! StringUtils.isNullOrEmpty(ref)) {
 				return  ref.substring(1); //remove heading base
 			}
-		} else if(type.equals(SVTYPE.INS)) {
+		} else if (type.equals(SVTYPE.INS)) {
 			return "-"; //replace heading base with "-"
 		}
 		return ref;

@@ -4,7 +4,15 @@
  *
  * This code is released under the terms outlined in the included LICENSE file.
  */
+
 package org.qcmg.common.util;
+
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+
+import org.qcmg.common.model.Accumulator;
+import org.qcmg.common.model.PileupElementLite;
+import org.qcmg.common.model.Rule;
 
 import gnu.trove.list.TIntList;
 import gnu.trove.list.TLongList;
@@ -16,13 +24,6 @@ import gnu.trove.map.hash.TIntIntHashMap;
 import gnu.trove.map.hash.TLongIntHashMap;
 import gnu.trove.set.TIntSet;
 import gnu.trove.set.hash.TIntHashSet;
-
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
-
-import org.qcmg.common.model.Accumulator;
-import org.qcmg.common.model.PileupElementLite;
-import org.qcmg.common.model.Rule;
 
 public class PileupElementLiteUtil {
 	
@@ -97,6 +98,7 @@ public class PileupElementLiteUtil {
 		}
 		return 0;
 	}
+	
 	public static int[] getTotalQualityByStrand(PileupElementLite pel) {
 		if (null != pel) {
 			TLongList list = pel.getData();
@@ -204,6 +206,7 @@ public class PileupElementLiteUtil {
 		}
 		return l;
 	}
+	
 	public static TIntList getDetailsFromCombinedList(TIntList combinedList, int divider, int remainder, boolean forwardStrand) {
 		if (null == combinedList || combinedList.isEmpty()) {
 			return new TIntArrayList(0);
@@ -337,6 +340,7 @@ public class PileupElementLiteUtil {
 			final int variantQualityScore,  double percentage) {
 		return passesWeightedVotingCheck(totalQualityScore, variantQualityScore, percentage, false);
 	}
+	
 	public static boolean passesWeightedVotingCheck(final int totalQualityScore, 
 			final int variantQualityScore,  double percentage, boolean secondPass) {
 		return (100 * (double)variantQualityScore / totalQualityScore) >= (secondPass ? percentage / 2 : percentage);

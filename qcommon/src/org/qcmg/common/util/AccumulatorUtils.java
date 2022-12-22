@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -209,6 +210,7 @@ public class AccumulatorUtils {
 		case Accumulator.C_CHAR : array[forwardStrand ? C_FS_POSITION : C_RS_POSITION] --; break;
 		case Accumulator.G_CHAR : array[forwardStrand ? G_FS_POSITION : G_RS_POSITION] --; break;
 		case Accumulator.T_CHAR : array[forwardStrand ? T_FS_POSITION : T_RS_POSITION] --; break;
+		default: /* do nothing */ break;
 		}
 	}
 
@@ -224,6 +226,7 @@ public class AccumulatorUtils {
 		case Accumulator.C_CHAR : return new int[]{array[C_FS_POSITION], array[C_RS_POSITION]};
 		case Accumulator.G_CHAR : return new int[]{array[G_FS_POSITION], array[G_RS_POSITION]};
 		case Accumulator.T_CHAR : return new int[]{array[T_FS_POSITION], array[T_RS_POSITION]};
+		default: /* do nothing */ break;
 		}
 		return new int[2];
 	}
@@ -445,15 +448,18 @@ public class AccumulatorUtils {
 		private final int count;
 		private final int quality;
 		private final boolean isRef;
+		
 		public BaseDetails(char base, int count, int quality, boolean isRef) {
 			this.base = base;
 			this.count = count;
 			this.quality = quality;
 			this.isRef = isRef;
 		}
+		
 		public char getBase() {
 			return base;
 		}
+		
 		@Override
 		public int compareTo(BaseDetails o) {
 			int diff = o.count - count;
@@ -463,6 +469,23 @@ public class AccumulatorUtils {
 			else if (isRef) 
 				return -1;
 			return o.quality - quality;
+		}
+		
+		@Override
+		public int hashCode() {
+			return Objects.hash(base, count, isRef, quality);
+		}
+		
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			BaseDetails other = (BaseDetails) obj;
+			return base == other.base && count == other.count && isRef == other.isRef && quality == other.quality;
 		}
 	}
 	
@@ -718,7 +741,6 @@ public class AccumulatorUtils {
 		return new int[] {0,0,0,0};
 	}
 	
-	
 	public static int[] getBaseCountByStrand(Accumulator acc) {
 		if (null != acc) {
 			TLongList list = acc.getData();
@@ -732,6 +754,7 @@ public class AccumulatorUtils {
 					case 'C': baseCountByStrand[fs ? C_FS_POSITION : C_RS_POSITION]++; break;
 					case 'G': baseCountByStrand[fs ? G_FS_POSITION : G_RS_POSITION]++; break;
 					case 'T': baseCountByStrand[fs ? T_FS_POSITION : T_RS_POSITION]++; break;
+					default: /* do nothing */ break;
 					}
 				}
 				return baseCountByStrand;
@@ -744,6 +767,7 @@ public class AccumulatorUtils {
 		 TCharObjectMap<int[]> map = getAccumulatorDataByBase(acc);
 		 return getOABS(map); 
 	}
+	
 	public static String getOABS(TCharObjectMap<int[]> map) {
 		if (null != map && ! map.isEmpty()) {
 			
@@ -977,19 +1001,6 @@ public class AccumulatorUtils {
 	}
 	
 	/**
-	 * Here we are returning true if there is coverage on both strands, 
-	 * AND that the number of reads on the least well represented strand 
-	 * accounts for more than the supplied percentage of the total number of reads
-	 * 
-	 * @param acc
-	 * @param percentage
-	 */
-//	public static boolean bothStrandsByPercentage(Accumulator acc, int percentage) {
-//		int [] data = getCountAndEndOfReadByStrand(acc);
-//		return areBothStrandsRepresented(data[0], data[1], percentage);
-//	}
-	
-	/**
 	 * Sums the zero-th and 2nd entries in the values of the supplied map, and if the 
 	 * percentage is higher than the supplied percentage, return true. False otherwise
 	 * 
@@ -1079,7 +1090,6 @@ public class AccumulatorUtils {
 		return null;
 	}
 	
-	
 	/**
 	 * Returns a {@link TLongIntMap} containing the read name hash as key, and start position as value for the list of accumulators provided
 	 * This is used by compound snp logic in {@link org.qcmg.snp.utilPipelineUtil.getBasesFromAccumulators}
@@ -1097,8 +1107,6 @@ public class AccumulatorUtils {
 		}
 		return null;
 	}
-	
-	
 	
 	/**
 	 * Attempts to create an Accumulator object in all its glory from a mere Observed Allele By Strand string (no doubt from the format field of a vcf record)

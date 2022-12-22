@@ -1213,11 +1213,6 @@ ATTACAGGCGGGAGCCACTACTCCTGGCCACAAGTCATACTTTAAATCACATATGATATTACTTTTAATTACTTTTTTTT
 		assertEquals(true, bestStartPositions.contains(269911080));
 		assertEquals(true, bestStartPositions.contains(379579117));
 		assertEquals(true, bestStartPositions.contains(163961462));
-		
-		TLongList bestStartPositionsUpdated = ListUtils.removeAdjacentPositionsInList(bestStartPositions);
-		assertEquals(true, bestStartPositionsUpdated.contains(269911080));
-		assertEquals(true, bestStartPositionsUpdated.contains(379579117));
-		assertEquals(true, bestStartPositionsUpdated.contains(163961462));
 	}
 	
 	@Test
