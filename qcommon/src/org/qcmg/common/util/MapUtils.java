@@ -4,6 +4,7 @@
  *
  * This code is released under the terms outlined in the included LICENSE file.
  */
+
 package org.qcmg.common.util;
 
 import java.util.ArrayList;
@@ -21,7 +22,7 @@ public class MapUtils {
 		
 		int mapSize = map.size();
 		int subMapSize = mapSize / noOfSubmaps;
-		List<Map<K, V>> subMaps = new ArrayList<Map<K, V>>();
+		List<Map<K, V>> subMaps = new ArrayList<>();
 		for (int i = 0 ; i < noOfSubmaps ; i++) {
 			subMaps.add(new HashMap<K, V>());
 		}
@@ -30,13 +31,14 @@ public class MapUtils {
 		
 		for (Entry<K, V> entry : map.entrySet()) {
 			if (i++ < (subMapSize * j)) {
-				Map<K, V> subMap = subMaps.get(j-1);
+				Map<K, V> subMap = subMaps.get(j - 1);
 				subMap.put(entry.getKey(), entry.getValue());
 			} else {
 				// time for a new submap
 				j++;
-				if (j >= subMaps.size())
+				if (j >= subMaps.size()) {
 					j = subMaps.size();
+				}
 				Map<K, V> subMap = subMaps.get(j - 1);
 				subMap.put(entry.getKey(), entry.getValue());
 			}

@@ -14,8 +14,6 @@ import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.TabTokenizer;
 
-//import com.amazonaws.util.StringUtils;
-
 /**
  * Class representing a result returned from BLAT psl file
  * @author felicity
@@ -23,8 +21,8 @@ import org.qcmg.common.util.TabTokenizer;
  */
 public class BLATRecord implements Comparable<BLATRecord> {
 	
-	public static char PLUS = '+';
-	public static char MINUS = '-';
+	public static final char PLUS = '+';
+	public static final char MINUS = '-';
 	
 	public static class Builder {
 
@@ -60,6 +58,7 @@ public class BLATRecord implements Comparable<BLATRecord> {
 		public Builder(String rawDataLine) {
 			this(TabTokenizer.tokenize(rawDataLine));
 		}
+		
 		public Builder(String [] rawData) {
 			withMatch(Integer.parseInt(rawData[0]))
 			.withMisMatch(Integer.parseInt(rawData[1]))
@@ -88,82 +87,102 @@ public class BLATRecord implements Comparable<BLATRecord> {
 			this.match = match;
 			return this;
 		}
+		
 		public Builder withMisMatch(int misMatch) {
 			this.misMatch = misMatch;
 			return this;
 		}
+		
 		public Builder withRepMatch(int repMatch) {
 			this.repMatch = repMatch;
 			return this;
 		}
+		
 		public Builder withNCount(int nCount) {
 			this.nCount = nCount;
 			return this;
 		}
+		
 		public Builder withQNumInsert(int qNumInsert) {
 			this.qNumInsert = qNumInsert;
 			return this;
 		}
+		
 		public Builder withQBaseInsert(int qBaseInsert) {
 			this.qBaseInsert = qBaseInsert;
 			return this;
 		}
+		
 		public Builder withTNumInsert(int tNumInsert) {
 			this.tNumInsert = tNumInsert;
 			return this;
 		}
+		
 		public Builder withTBaseInsert(int tBaseInsert) {
 			this.tBaseInsert = tBaseInsert;
 			return this;
 		}
+		
 		public Builder withStrand(char strand) {
 			this.strand = strand;
 			return this;
 		}
+		
 		public Builder withQName(String qName) {
 			this.qName = qName;
 			return this;
 		}
+		
 		public Builder withSize(int size) {
 			this.size = size;
 			return this;
 		}
+		
 		public Builder withQStart(int qStart) {
 			this.qStart = qStart;
 			return this;
 		}
+		
 		public Builder withQEnd(int qEnd) {
 			this.qEnd = qEnd;
 			return this;
 		}
+		
 		public Builder withTName(String tName) {
 			this.tName = tName;
 			return this;
 		}
+		
 		public Builder withTSize(int tSize) {
 			this.tSize = tSize;
 			return this;
 		}
+		
 		public Builder withTStart(int tStart) {
 			this.tStart = tStart;
 			return this;
 		}
+		
 		public Builder withTEnd(int tEnd) {
 			this.tEnd = tEnd;
 			return this;
 		}
+		
 		public Builder withBlockCount(int blockCount) {
 			this.blockCount = blockCount;
 			return this;
 		}
+		
 		public Builder withBlockSizes(String blockSizes) {
 			this.blockSizes = blockSizes;
 			return this;
 		}
+		
 		public Builder withQStarts(String qStarts) {
 			this.qStarts = qStarts;
 			return this;
 		}
+		
 		public Builder withTStarts(String tStarts) {
 			this.tStarts = tStarts;
 			return this;
@@ -175,7 +194,8 @@ public class BLATRecord implements Comparable<BLATRecord> {
 	}
 
 	private final boolean valid;
-@Override
+	
+	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
@@ -349,42 +369,30 @@ public class BLATRecord implements Comparable<BLATRecord> {
 			 * Setup tStarts
 			 */
 			String [] tStartsS = tStarts.split(",");
-			if (tStartsS != null) {
-				tStartsArray = new int[tStartsS.length];
-				for (int i = 0; i < tStartsS.length; i++) {						
-					tStartsArray[i] = Integer.parseInt(tStartsS[i]) + 1;	
-				}
-			} else {
-				tStartsArray = null;
+			tStartsArray = new int[tStartsS.length];
+			for (int i = 0; i < tStartsS.length; i++) {						
+				tStartsArray[i] = Integer.parseInt(tStartsS[i]) + 1;	
 			}
 			/*
 			 * Setup block sizes
 			 */
 			String [] blockSizesS = blockSizes.split(",");
-			if (blockSizesS != null) {
-				blockSizesArray = new int[blockSizesS.length];
-				for (int i = 0; i < blockSizesS.length; i++) {						
-					blockSizesArray[i] = Integer.parseInt(blockSizesS[i]);
-				}
-			} else {
-				blockSizesArray = null;
+			blockSizesArray = new int[blockSizesS.length];
+			for (int i = 0; i < blockSizesS.length; i++) {						
+				blockSizesArray[i] = Integer.parseInt(blockSizesS[i]);
 			}
 			
 			/*
 			 * setup unmodifedStarts
 			 */
 			String[] qStartsS = qStarts.split(",");
-			if (qStarts != null) {
-				unmodifiedStarts = new int[qStartsS.length];
-				for (int i = 0; i < qStartsS.length; i++) {
-					if (strand == MINUS) {
-						unmodifiedStarts[i] = getSize() - Integer.parseInt(qStartsS[i]) - blockSizesArray[i] + 1;
-					} else {
-						unmodifiedStarts[i] = Integer.parseInt(qStartsS[i]) + 1;
-					}
+			unmodifiedStarts = new int[qStartsS.length];
+			for (int i = 0; i < qStartsS.length; i++) {
+				if (strand == MINUS) {
+					unmodifiedStarts[i] = getSize() - Integer.parseInt(qStartsS[i]) - blockSizesArray[i] + 1;
+				} else {
+					unmodifiedStarts[i] = Integer.parseInt(qStartsS[i]) + 1;
 				}
-			} else {
-				unmodifiedStarts = null;
 			}
 			
 		} else {
@@ -413,6 +421,7 @@ public class BLATRecord implements Comparable<BLATRecord> {
 	public String getQName() {
 		return qName;
 	}
+	
 	public void setQName(String qName) {
 		if (null == qName) {
 			System.out.println("setName null");
@@ -512,9 +521,11 @@ public class BLATRecord implements Comparable<BLATRecord> {
 	public String getqStarts() {
 		return qStarts;
 	}
+	
 	public String getBlockSizesString() {
 		return blockSizes;
 	}
+	
 	public String gettStarts() {
 		return tStarts;
 	}
@@ -688,14 +699,15 @@ public class BLATRecord implements Comparable<BLATRecord> {
 	}
 
 	public int[] getUnmodifiedStarts() {
-		return unmodifiedStarts;
+		return null != unmodifiedStarts ? Arrays.copyOf(unmodifiedStarts, unmodifiedStarts.length) : null;
 	}
 
 	public int[] getBlockSizes() {
-		return blockSizesArray;
+		return null != blockSizesArray ? Arrays.copyOf(blockSizesArray, blockSizesArray.length) : null;
 	}
+	
 	public int[] getTStarts() {
-		return tStartsArray;
+		return null != tStartsArray ? Arrays.copyOf(tStartsArray, tStartsArray.length) : null;
 	}
 
 	public int getNonTempBases() {
