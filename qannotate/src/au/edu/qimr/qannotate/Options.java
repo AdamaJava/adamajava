@@ -3,6 +3,7 @@
  *
  * This code is released under the terms outlined in the included LICENSE file.
 */
+
 package au.edu.qimr.qannotate;
 
 import static java.util.Arrays.asList;
@@ -13,8 +14,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import org.qcmg.common.log.QLogger;
-
 import au.edu.qimr.qannotate.modes.HomoplymersMode;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
@@ -22,9 +21,8 @@ import joptsimple.OptionSet;
  * parse command line to options. 
  */
 public class Options {
-	public enum MODE { dbsnp, germline, snpeff,confidence, vcf2maf, cadd,indelconfidence,trf, hom, ccm,make_valid, overlap,vcf2maftmp }
+	public enum MODE { dbsnp, germline, snpeff, confidence, vcf2maf, cadd, indelconfidence, trf, hom, ccm, make_valid, overlap, vcf2maftmp }
 
-	
     protected static final String VERSION_DESCRIPTION = Messages.getMessage("VERSION_OPTION_DESCRIPTION");	 
     protected static final String HELP_DESCRIPTION = Messages.getMessage("HELP_OPTION_DESCRIPTION");      
     protected static final String LOG_DESCRIPTION = Messages.getMessage("LOG_OPTION_DESCRIPTION");
@@ -36,8 +34,6 @@ public class Options {
     
     private final Options.MODE mode;  
     private final  OptionParser parser;
-    private final QLogger logger = null;
-	 	
     private final String outputFileName ;
     private final String inputFileName ;
     private final String[] databaseFiles;
@@ -80,7 +76,7 @@ public class Options {
     /**
      * check command line and store arguments and option information
      */   
-    public Options(final String[] args) throws IOException{      	
+    public Options(final String[] args) throws IOException {      	
     	parser = new OptionParser();    	       
     	OptionSet options =  parseArgs(args);
     	
@@ -192,47 +188,53 @@ public class Options {
         }  
         
         Options.MODE mm = null;   	
-        if (options.has("mode")){
+        if (options.has("mode")) {
         	final String m = ((String) options.valueOf("mode")).toLowerCase();
-        	try{
+        	try {
         		mm = MODE.valueOf(m);
-        	}catch(IllegalArgumentException | NullPointerException e){
+        	} catch(IllegalArgumentException | NullPointerException e){
         		System.err.println("invalid mode specified: " + m);
         		System.exit(1);
         	}
         }
         
-        if (mm == null) return options;
-        
-        if (  mm.equals(MODE.confidence) || mm.equals(MODE.vcf2maf) ){
-	        parser.accepts(test,  Messages.getMessage("TUMOUR_SAMPLEID_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("testSample");
-	        parser.accepts(control, Messages.getMessage("NORMAL_SAMPLEID_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("controlSample");	                	
+        if (mm == null) {
+        	/*
+        	 * used by nanno.Annotate
+        	 */
+        	parser.accepts("config", Messages.getMessage("CONF_FILE_ERR_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("config file");
         } else {
-            parser.acceptsAll( asList("d", "database"), Messages.getMessage("DATABASE_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("database file"); 
-        }
         
-        if(mm.equals(MODE.snpeff)){
-	        parser.accepts("config", Messages.getMessage("CONF_FILE_ERR_DESCRIPTION") ).withRequiredArg().ofType(String.class).describedAs("config file");
-	        parser.accepts("summaryFile", Messages.getMessage("SUMMARY_FILE_DESCRIPTION")  ).withRequiredArg().ofType(String.class).describedAs("stat output");
+	        if ( mm.equals(MODE.confidence) || mm.equals(MODE.vcf2maf) ) {
+		        parser.accepts(test,  Messages.getMessage("TUMOUR_SAMPLEID_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("testSample");
+		        parser.accepts(control, Messages.getMessage("NORMAL_SAMPLEID_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("controlSample");	                	
+	        } else {
+	            parser.acceptsAll( asList("d", "database"), Messages.getMessage("DATABASE_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("database file"); 
+	        }
+	        
+	        if(mm.equals(MODE.snpeff)){
+		        parser.accepts("config", Messages.getMessage("CONF_FILE_ERR_DESCRIPTION") ).withRequiredArg().ofType(String.class).describedAs("config file");
+		        parser.accepts("summaryFile", Messages.getMessage("SUMMARY_FILE_DESCRIPTION")  ).withRequiredArg().ofType(String.class).describedAs("stat output");
+	        }
+	                 		
+	        if(mm.equals(MODE.trf))
+	            parser.accepts("buffer", "check TRF region on both side of indel within this nominated size" ).withRequiredArg().ofType(Integer.class);//.describedAs("integer");
+	 
+	         if(mm.equals(MODE.cadd))
+	             parser.accepts("gap", "adjacant variants size").withRequiredArg().ofType(String.class).describedAs("gap size");
+	
+	         if(mm.equals(MODE.hom)){
+	 	        parser.accepts("window", "check homoplymers inside window size on both side of variants. Default value is " + HomoplymersMode.defaultWindow).withRequiredArg().ofType(String.class).describedAs("window size");
+	 	        parser.accepts("report", "report specified number of homoplymers base fallen in the swindow. Default value is " + HomoplymersMode.defaultreport  ).withRequiredArg().ofType(String.class).describedAs("report base number");
+	         }
+	        
+	         if( mm.equals(MODE.vcf2maf) ){
+	 	        parser.accepts("outdir", Messages.getMessage("MAF_OUTPUT_DIRECTORY_OPTION_DESCRIPTION") ).withRequiredArg().ofType(String.class).describedAs("output file location");
+	 	        parser.accepts("donor",  Messages.getMessage("DONOR_ID_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("donor id");	        
+	 	        parser.accepts("center", "Genome sequencing center").withRequiredArg().ofType(String.class).describedAs("center");
+	 	        parser.accepts("sequencer", Messages.getMessage("SEQUENCER_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("Sequencer");	 
+	         }
         }
-                 		
-        if(mm.equals(MODE.trf))
-            parser.accepts("buffer", "check TRF region on both side of indel within this nominated size" ).withRequiredArg().ofType(Integer.class);//.describedAs("integer");
- 
-         if(mm.equals(MODE.cadd))
-             parser.accepts("gap", "adjacant variants size").withRequiredArg().ofType(String.class).describedAs("gap size");
-
-         if(mm.equals(MODE.hom)){
- 	        parser.accepts("window", "check homoplymers inside window size on both side of variants. Default value is " + HomoplymersMode.defaultWindow).withRequiredArg().ofType(String.class).describedAs("window size");
- 	        parser.accepts("report", "report specified number of homoplymers base fallen in the swindow. Default value is " + HomoplymersMode.defaultreport  ).withRequiredArg().ofType(String.class).describedAs("report base number");
-         }
-        
-         if( mm.equals(MODE.vcf2maf) ){
- 	        parser.accepts("outdir", Messages.getMessage("MAF_OUTPUT_DIRECTORY_OPTION_DESCRIPTION") ).withRequiredArg().ofType(String.class).describedAs("output file location");
- 	        parser.accepts("donor",  Messages.getMessage("DONOR_ID_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("donor id");	        
- 	        parser.accepts("center", "Genome sequencing center").withRequiredArg().ofType(String.class).describedAs("center");
- 	        parser.accepts("sequencer", Messages.getMessage("SEQUENCER_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("Sequencer");	 
-         }
          
          return parser.parse(args);
 	} 
@@ -305,33 +307,40 @@ public class Options {
 
 	public String getLogFileName() { 
 		return logFileName;
-	}	
+	}
+	
 	public String getLogLevel(){ 
 		return logLevel; 
-	}	 
+	}
+	
 	public String getCommandLine() {	
 		return commandLine; 
-	}	
+	}
+	
 	public String getInputFileName(){
 		return inputFileName;
 	}
+	
 	public String getOutputFileName(){
 		return outputFileName;
 	}
+	
 	public String getDatabaseFileName(){
 		return null != databaseFiles && databaseFiles.length > 0 ? databaseFiles[0] : null;
-	}	
+	}
+	
 	public String[] getDatabaseFiles(){ 
 		return (mode.equals(MODE.cadd) || mode.equals(MODE.overlap)) ? databaseFiles : null;
 	}
+	
     public MODE getMode(){	
     	return  mode; 
     }
    
     private void displayHelp(MODE mode) throws IOException {   
         String mess = Messages.getMessage("USAGE");  
-        if(mode != null){
-        	switch (mode){        		
+        if (mode != null) {
+        	switch (mode) {        		
             case dbsnp: mess = Messages.getMessage("DBSNP_USAGE"); break;
             case germline: mess = Messages.getMessage("GERMLINE_USAGE"); break;
             case trf: mess = Messages.getMessage("TRF_USAGE"); break;
@@ -346,7 +355,9 @@ public class Options {
 			default:
 				break;
             } 
-        }   
+        } else {
+        	mess = Messages.getMessage("NANNO_USAGE");
+        }
         
         System.out.println(mess);          
         parser.printHelpOn(System.err);    
@@ -356,6 +367,7 @@ public class Options {
 	public String getTestSample(){  
 		return testSample; 
 	}
+	
 	public String getControlSample(){  
 		return controlSample; 
 	}
@@ -364,12 +376,15 @@ public class Options {
 	public String getCenter(){  
 		return ( mode == (MODE.vcf2maf))? center: null; 
 	}
+	
 	public String getSequencer(){  
 		return ( mode == (MODE.vcf2maf))? sequencer: null; 
 	}
+	
 	public String getOutputDir(){
 		return ( mode == (MODE.vcf2maf))? outputDir:null;
 	}
+	
 	public String getDonorId(){
 		return ( mode == (MODE.vcf2maf))? donorId :null; 
 	}
@@ -377,17 +392,20 @@ public class Options {
 	 //snpEff
 	public String getSummaryFileName(){ 
 		return  (mode == MODE.snpeff)? summaryFileName : null; 
-	}		
+	}
+	
 	public String getGenesFileName(){ 
 		return  (mode == MODE.snpeff)? outputFileName + ".snpEff_genes.txt" : null; 	
-	}		
+	}
+	
 	public String getConfigFileName() { 
-		return (MODE.snpeff == mode)? configFileName : null;
+		return (MODE.snpeff == mode || null == mode) ? configFileName : null;
 	}
 	
 	public int getBufferSize(){ 
 		return (mode == MODE.trf)? bufferSize : -1; 
 	} //trf
+	
 	public int getGapSize(){ 
 		return (mode == MODE.trf)? gap : -1; 
 	} //cadd
@@ -396,6 +414,7 @@ public class Options {
 	public int getHomoplymersWindow(){
 		return (mode == MODE.hom) ? homWindow : -1;
 	} //trf
+	
 	public int getHomoplymersReportSize() { 
 		return (mode == MODE.hom) ? homReportSize : -1; 
 	} //cadd
@@ -403,9 +422,11 @@ public class Options {
 	public Optional<Integer> getNNSCount() {
 		return Optional.ofNullable(nnsCount);
 	}
+	
 	public Optional<Float> getMRPercentage() {
 		return Optional.ofNullable(mrPercentage);
 	}
+	
 	public Optional<Integer> getMRCount() {
 		return Optional.ofNullable(mrCount);
 	}
@@ -417,18 +438,23 @@ public class Options {
 	public Optional<Integer> getControlCutoff() {
 		return Optional.ofNullable(controlCoverageCutoff);
 	}
+	
 	public Optional<Integer> getControlCutoffForSomatic() {
 		return Optional.ofNullable(controlCoverageCutoffForSomatic);
 	}
+	
 	public Optional<Integer> getTestCutoff() {
 		return Optional.ofNullable(testCoverageCutoff);
 	}
+	
 	public Optional<Integer> getMIUNCutoff() {
 		return Optional.ofNullable(miunCutoff);
 	}
+	
 	public Optional<Integer> getMINCutoff() {
 		return Optional.ofNullable(minCutoff);
 	}
+	
 	public Optional<Float> getMINPercentage() {
 		return Optional.ofNullable(minPercentage);
 	}
