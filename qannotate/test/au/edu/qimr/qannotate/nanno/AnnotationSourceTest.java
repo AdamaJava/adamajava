@@ -52,6 +52,12 @@ public class AnnotationSourceTest {
 		
 		cp1 = ChrPositionUtils.getChrPosition("chr1", 3, 3);
 		assertEquals(1, AnnotationSource.areCPsEqual(cp1, cp2));
+		
+		cp2 = ChrPositionUtils.getChrPosition("chr1", 3, 3);
+		assertEquals(0, AnnotationSource.areCPsEqual(cp1, cp2));
+		
+		cp2 = ChrPositionUtils.getChrPosition("chr3", 3, 3);
+		assertEquals(-2, AnnotationSource.areCPsEqual(cp1, cp2));
 	}
 	
 	@Test

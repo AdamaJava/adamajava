@@ -36,13 +36,23 @@ public class AnnotationSourceTSV extends AnnotationSource {
 		if (headerLines.isEmpty()) {
 			throw new IllegalArgumentException("No headers for AnnotationSourceTSV!");
 		}
-		headerNameAndPosition = getHeaderNameAndPositions(fieldNames, headerLines);
+		
+		String headerLine = getLastHeaderLine(headerLines);
+		if (StringUtils.isNullOrEmpty(headerLine)) {
+			throw new IllegalArgumentException("No headers for AnnotationSourceTSV!");
+		}
+		
+		headerNameAndPosition = getHeaderNameAndPositions(fieldNames, headerLine);
+		if (headerNameAndPosition.isEmpty()) {
+			throw new IllegalArgumentException("Could not find requested fields (" + fieldNames + ") in header: " + headerLine);
+		}
 	}
 	
-	public static Map<String, Integer> getHeaderNameAndPositions(String fieldNames, List<String> headerLines) {
-		/*
-		 * have already checked fieldNAmes and headerLines - they are neither null nor empty
-		 */
+	/*
+	 * At present, return the last line in the list
+	 * May need to make this more sophisticated in future...
+	 */
+	public static String getLastHeaderLine(List<String> headerLines) {
 		String header = "";
 		if (headerLines.size() == 1) {
 			/*
@@ -55,17 +65,23 @@ public class AnnotationSourceTSV extends AnnotationSource {
 			 */
 			header = headerLines.get(headerLines.size() - 1);
 		}
-		
-		return getHeaderNameAndPositions(fieldNames, header);
+		return header;
 	}
 	
+	/*
+	 * return an empty map if any of the fields are not in the header
+	 */
 	public static Map<String, Integer> getHeaderNameAndPositions(String fieldNames, String header) {
 		Map<String, Integer> namePositions = new HashMap<>();
 		
 		System.out.println("header: " + header);
 		
 		for (String s : fieldNames.split(",")) {
-			namePositions.put(s, StringUtils.getCount(header.substring(0, header.indexOf(s)), '\t'));
+			int indexOf = header.indexOf(s);
+			if ( -1 == indexOf) {
+				return Collections.emptyMap();
+			}
+			namePositions.put(s, StringUtils.getCount(header.substring(0, indexOf), '\t'));
 		}
 		
 		return namePositions;
@@ -83,16 +99,18 @@ public class AnnotationSourceTSV extends AnnotationSource {
 		return extractFieldsFromRecord(record, headerNameAndPosition);
 	}
 	
-	public static int[] getFieldPositionsFromString(String sFieldPositions) {
-		return Arrays.stream(sFieldPositions.split(",")).mapToInt(Integer::parseInt).map(i -> i - 1).sorted().toArray();
-	}
-	
-	
 	public static String extractFieldsFromRecord(String record, Map<String, Integer> fields) {
 		String dataToReturn = "";
-		String [] recordArray = TabTokenizer.tokenize(record);
-		for (Entry<String, Integer> entry : fields.entrySet()) {
-			dataToReturn += (dataToReturn.length() > 0 ? FIELD_DELIMITER_TAB : "") + entry.getKey() + "=" + recordArray[entry.getValue()];
+		if ( ! StringUtils.isNullOrEmpty(record) && null != fields) {
+			String [] recordArray = TabTokenizer.tokenize(record);
+			for (Entry<String, Integer> entry : fields.entrySet()) {
+				/*
+				 * make sure that array length is not shorter than entry value
+				 */
+				if (recordArray.length > entry.getValue().intValue()) {
+					dataToReturn += (dataToReturn.length() > 0 ? FIELD_DELIMITER_TAB : "") + entry.getKey() + "=" + recordArray[entry.getValue().intValue()];
+				}
+			}
 		}
 		return dataToReturn;
 	}

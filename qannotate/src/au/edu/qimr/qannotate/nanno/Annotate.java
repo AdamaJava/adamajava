@@ -2,24 +2,22 @@ package au.edu.qimr.qannotate.nanno;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 import org.qcmg.common.log.QLogger;
@@ -28,19 +26,13 @@ import org.qcmg.common.meta.QExec;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrPositionRefAlt;
 import org.qcmg.common.string.StringUtils;
-import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.qio.record.RecordWriter;
-import org.qcmg.qio.record.StringFileReader;
 import org.qcmg.qio.vcf.VcfFileReader;
-
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import au.edu.qimr.qannotate.Messages;
 import au.edu.qimr.qannotate.Options;
-import au.edu.qimr.qannotate.nanno.AnnotationInputs.AnnotationInput;
 
 public class Annotate {
 	
@@ -63,23 +55,27 @@ public class Annotate {
 		/*
 		 * parse the json file into an AnnotationINputs object
 		 */
-		AnnotationInputs ais = getInputs(jsonInputs);
-		
+		AnnotationInputs ais = AnnotateUtils.getInputs(jsonInputs);
+		logger.info("Number of annotation source threads to use: " + ais.getAnnotationSourceThreadCount());
 		/*
 		 * create a comparator that will be used to sort the annotation fields for output
 		 */
-		CUSTOM_COMPARATOR = createComparatorFromList(Arrays.stream(ais.getOutputFieldOrder().split(",")).collect(Collectors.toList()));
-		
+		CUSTOM_COMPARATOR = AnnotateUtils.createComparatorFromList(Arrays.stream(ais.getOutputFieldOrder().split(",")).collect(Collectors.toList()));
+		logger.info("Custom comparator created");
 		/*
 		 * check headers that have been supplied in the json inputs file
 		 */
-		int headersOK = checkHeaders(ais);
+		int headersOK = AnnotateUtils.checkHeaders(ais);
 		if (headersOK == 1) {
+			logger.error("Headers have been checked - not OK!!!");
 			System.exit(headersOK);
 		}
+		logger.info("Headers have been checked - OK");
 		
 		List<AnnotationSource> annotationSources = new ArrayList<>();
-		populateAnnotationSources(ais, annotationSources);
+		AnnotateUtils.populateAnnotationSources(ais, annotationSources);
+		logger.info("annotationSources have been loaded (aize: " + annotationSources.size() + ")");
+		annotationSources.stream().forEach(as -> logger.info(as.toString()));
 		
 		String emptyHeaders = ais.getAdditionalEmptyFields();
 		String [] emptyHeadersArray =  StringUtils.isNullOrEmpty(emptyHeaders) ? new String[]{} : emptyHeaders.split(",");
@@ -92,22 +88,26 @@ public class Annotate {
 		boolean includeSearchTerm = ais.isIncludeSearchTerm();
 		header += (includeSearchTerm ? "\tsearchTerm" : "");
 		
-		String emptyHeaderValues =  getEmptyHeaderValues(emptyHeadersArray.length);
+		String emptyHeaderValues =  AnnotateUtils.getEmptyHeaderValues(emptyHeadersArray.length);
 		
 		CountDownLatch consumerLatch = new CountDownLatch(1);
 		Queue<ChrPositionAnnotations> queue = new ConcurrentLinkedQueue<>();
 		
-		ExecutorService executor = Executors.newFixedThreadPool(3);
+		
+		ExecutorService executor = Executors.newFixedThreadPool(ais.getAnnotationSourceThreadCount() + 1);	// need an extra thread for the consumer
 		executor.execute(new Consumer(queue, outputFile, consumerLatch, header, includeSearchTerm, emptyHeaderValues));
+		logger.info("ExecutorService has been setup");
 		
 		
 		try (
 			VcfFileReader reader = new VcfFileReader(inputFile);) {
+			logger.info("VcfFileReader has been setup");
 			int vcfCount = 0;
 			for (VcfRecord vcf : reader) {
 				vcfCount++;
 				
 				ChrPosition thisVcfsCP = vcf.getChrPositionRefAlt();
+				logger.info("thisVcfsCP: " + thisVcfsCP.toIGVString());
 				
 				String alt = ((ChrPositionRefAlt) thisVcfsCP).getAlt();
 				String gatkAD = VcfUtils.getFormatField(vcf.getFormatFields(), "AD", 0);
@@ -118,7 +118,7 @@ public class Annotate {
 					 * split record, create new ChrPositions for each
 					 */
 					String [] altArray = alt.split(",");
-					Map<String, String> altToADMap = getADForSplitVCfRecords(altArray, gatkAD);
+					Map<String, String> altToADMap = AnnotateUtils.getADForSplitVcfRecords(altArray, gatkAD);
 					List<VcfRecord> splitVcfs = new ArrayList<>();
 					for (String thisAlt : altArray) {
 						if (thisAlt.equals("*")) {
@@ -139,12 +139,13 @@ public class Annotate {
 					for (VcfRecord splitVcf : splitVcfs) {
 						List<String> annotations = new ArrayList<>(getAnnotationsForPosition(splitVcf.getChrPositionRefAlt(), annotationSources, executor));
 						queue.add(new ChrPositionAnnotations(splitVcf.getChrPositionRefAlt(), annotations, altToADMap.get(splitVcf.getAlt())));
-						
 					}
 					
 				} else {
 					
-					List<String> annotations = new ArrayList<>(getAnnotationsForPosition(thisVcfsCP, annotationSources, executor));
+					logger.debug("about to get annotations for: " + thisVcfsCP.toIGVString());
+					List<String> annotations = getAnnotationsForPosition(thisVcfsCP, annotationSources, executor);
+					logger.debug("got annotations for: " + thisVcfsCP.toIGVString() + " - adding to queue");
 					queue.add(new ChrPositionAnnotations(thisVcfsCP, annotations, gatkAD));
 					
 				}
@@ -153,146 +154,54 @@ public class Annotate {
 			logger.info("# of vcf records: " + vcfCount);
 		}
 		
+		executor.shutdown();
+		logger.info("ExecutorService has been shutdown");
 		return exitStatus;
 	}
 	
-	public static AnnotationInputs getInputs(String file) throws IOException {
-		//read json file data to String
-		byte[] jsonData = Files.readAllBytes(Paths.get(file));
-		//create ObjectMapper instance
-		ObjectMapper objectMapper = new ObjectMapper();
-		objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-		//convert json string to object
-		AnnotationInputs ai = objectMapper.readValue(jsonData, AnnotationInputs.class);
+	private static List<String> getAnnotationsForPosition(ChrPosition cp, List<AnnotationSource> annotationSources, Executor executor) throws InterruptedException, ExecutionException, TimeoutException {
 		
-		return ai;
-	}
-	
-	private static List<String> getAnnotationsForPosition(ChrPosition cp, List<AnnotationSource> annotationSources, Executor executor) {
 		return annotationSources.stream()
-			.map(source -> CompletableFuture.supplyAsync(() -> 
+				.map(source -> CompletableFuture.supplyAsync(() -> 
 				source.getAnnotation(cp), executor))
-			.map(CompletableFuture::join).collect(Collectors.toList());
+				.map(CompletableFuture::join).collect(Collectors.toList());
 		
-	}
-	
-	public static Comparator<String[]> createComparatorFromList(final List<String> sortedList) {
-		Comparator<String[]> c = new Comparator<String[]>() {
-			@Override
-			public int compare(String[] o1, String[] o2) {
-				final int index1 = sortedList.indexOf(o1[0]);
-				if (index1 == -1) return 1;
-				final int index2 = sortedList.indexOf(o2[0]);
-				if (index2 == -1) return -1;
-				return index1 - index2;
-			}
-		};
-		return c;
-	}
-	
-	/**
-	 * 
-	 * @param altArray
-	 * @param gatkAD
-	 * @return
-	 */
-	public static Map<String, String> getADForSplitVCfRecords(String [] altArray, String gatkAD) {
 		
-		Map<String, String> altToADMap = new HashMap<>(4);
-		String [] gatkADArray = gatkAD.split(",");
-		/*
-		 * should have 1 more in the gatkADArray than the altArray
-		 */
-		if (altArray.length == gatkADArray.length - 1) {
-			for (int i = 0 ; i < altArray.length ; i++) {
-				altToADMap.put(altArray[i], gatkADArray[0] + "," + gatkADArray[i + 1]);
-			}
-		}
 		
-		return altToADMap;
-	}
-	
-	public static String getEmptyHeaderValues(int count) {
-		if (count <= 0) {
-			return "";
-		}
-		return org.apache.commons.lang3.StringUtils.repeat("\t", count);
-	}
-	
-	/**
-	 * @param ais
-	 * @param annotationSources
-	 * @throws IOException
-	 */
-	public static void populateAnnotationSources(AnnotationInputs ais, List<AnnotationSource> annotationSources) throws IOException {
-		for (AnnotationInput ai : ais.getInputs()) {
-			String fileName = ai.getFile();
-			String fieldNames = ai.getFields();
-			
-			logger.info("fileName: " + fileName + ", positions: " + ai.getChrIndex() + ", " + ai.getPositionIndex() + ", " + ai.getRefIndex() + ", " + ai.getAltIndex() + ", fieldNames: " + fieldNames);
-			
-			if (ai.isSnpEffVcf()) {
-				annotationSources.add(new AnnotationSourceSnpEffVCF(new StringFileReader(new File(fileName), 1024 * 1024), ai.getChrIndex(), ai.getPositionIndex(), ai.getRefIndex(), ai.getAltIndex(), fieldNames));
-			} else if (fileName.contains("vcf")) {
-				annotationSources.add(new AnnotationSourceVCF(new StringFileReader(new File(fileName), 1024 * 1024), ai.getChrIndex(), ai.getPositionIndex(), ai.getRefIndex(), ai.getAltIndex(), fieldNames));
-			} else {
-				annotationSources.add(new AnnotationSourceTSV(new StringFileReader(new File(fileName), 1024 * 1024), ai.getChrIndex(), ai.getPositionIndex(), ai.getRefIndex(), ai.getAltIndex(), fieldNames));
-			}
-		}
-	}
-	
-	public static int checkHeaders(AnnotationInputs ais) {
-		List<String> annotationFields = ais.getInputs().stream().map(ai -> ai.getFields()).collect(Collectors.toList());
-		boolean headersValid = isOrderedHeaderListValid(ais.getOutputFieldOrder(), annotationFields.toArray(new String[]{}));
 		
-		if ( ! headersValid) {
-			System.err.println("headers are not valid! OrderedHeader: " + ais.getOutputFieldOrder() + "\nAnnotation fields: " + (ais.getInputs().stream().map(ai -> ai.getFields())).collect(Collectors.joining(",")));
-			return 1;
-		}
-		return 0;
+		
+		
+		
+//		logger.info("in getAnnotationsForPosition: " + cp.toIGVString() + ", annotationSources: " + annotationSources.size() + ", executor: " + executor.toString());
+//		
+//		List<CompletableFuture<String>> cfs = new ArrayList<>();
+//		List<String> annos = new ArrayList<>();
+//		for (AnnotationSource as : annotationSources) {
+//			CompletableFuture<String> cf = CompletableFuture.supplyAsync(() -> as.getAnnotation(cp), executor);
+//			cfs.add(cf);
+//		}
+//		logger.info("CompletableFutures have been setup");
+//		for (CompletableFuture<String> cf : cfs) {
+//			logger.info("about to call join");
+//			logger.info("cf.isDone(): " + cf.isDone());
+//			logger.info("cf.isCancelled(): " + cf.isCancelled());
+//			logger.info("cf.isCompletedExceptionally(): " + cf.isCompletedExceptionally());
+//			logger.info("cf.getNumberOfDependents(): " + cf.getNumberOfDependents());
+//			String s = cf.get(10, TimeUnit.SECONDS);
+//			annos.add(s);
+//			logger.info("about to call join - DONE");
+//		}
+//		
+//		
+//		logger.info("CompletableFutures have finished!");
+//		
+//		
+//		logger.info("in getAnnotationsForPosition: " + cp.toIGVString() + ", annotationSources: " + annotationSources.size() + ", executor: " + executor.toString());
+//		
+//		
+//		return annos;
+//		
 	}
-	
-	/**
-	 * checks to see if the sortedHEader contains all the fields from the various annotation sources
-	 * Not sure what to do if we have 2 fields with the same name (presumably from different sources)
-	 * 
-	 * 
-	 * @param ai
-	 * @return
-	 */
-	public static boolean isOrderedHeaderListValid(String sortedHeader, String ... fieldsFromAnnotationSources) {
-		if (StringUtils.isNullOrEmpty(sortedHeader)) {
-			/*
-			 * empty or null sorted header - not valid
-			 */
-			logger.error("sortedHeader is null or empty");
-			return false;
-		}
-		if (null == fieldsFromAnnotationSources || fieldsFromAnnotationSources.length == 0) {
-			/*
-			 * empty or null annotation fields - not valid
-			 */
-			logger.error("fieldsFromAnnotationSources is null or length is 0");
-			return false;
-		}
-		
-		Set<String> sortedHeaderSet = Arrays.stream(sortedHeader.split(",")).collect(Collectors.toSet());
-		Set<String> fieldsFromAnnotationSourcesSet = Arrays.stream(Arrays.stream(fieldsFromAnnotationSources).collect(Collectors.joining(",")).split(",")).collect(Collectors.toSet());
-		
-		for (String s : sortedHeaderSet) {
-			if ( ! fieldsFromAnnotationSourcesSet.contains(s)) {
-				logger.error(s +  " in header but not found in any data source!");
-			}
-		}
-		for (String s : fieldsFromAnnotationSourcesSet) {
-			if ( ! sortedHeaderSet.contains(s)) {
-				logger.error(s +  " in data source but not found in header!");
-			}
-		}
-		
-		return sortedHeaderSet.containsAll(fieldsFromAnnotationSourcesSet) && fieldsFromAnnotationSourcesSet.containsAll(sortedHeaderSet);
-	}
-	
 	
 	public static class ChrPositionAnnotations {
 		
@@ -399,7 +308,7 @@ public class Annotate {
 			/*
 			 * collect entries in annotations lists into map
 			 */
-			List<String> singleAnnotations = convertAnnotations(annotations);
+			List<String> singleAnnotations = AnnotateUtils.convertAnnotations(annotations);
 			if (debug) {
 				System.out.println("singleAnnotations.size(): " + singleAnnotations.size());
 				singleAnnotations.stream().forEach(System.out::println);
@@ -407,9 +316,9 @@ public class Annotate {
 			
 			String searchTerm = "";
 			if (includeSearchTerm) {
-				Optional<String> hgvsC = getAnnotationFromList(singleAnnotations, "hgvs.c");
-				Optional<String> hgvsP = getAnnotationFromList(singleAnnotations, "hgvs.p");
-				searchTerm = getSearchTerm(hgvsC, hgvsP);
+				Optional<String> hgvsC = AnnotateUtils.getAnnotationFromList(singleAnnotations, "hgvs.c");
+				Optional<String> hgvsP = AnnotateUtils.getAnnotationFromList(singleAnnotations, "hgvs.p");
+				searchTerm = AnnotateUtils.getSearchTerm(hgvsC, hgvsP);
 			}
 			/*
 			 * sort and write out to file
@@ -423,88 +332,6 @@ public class Annotate {
 			writer.add(((ChrPositionRefAlt)cp).toTabSeperatedString() + "\t" + recAndAnnotations.getGatkAD() + "\t" + annotationString + additionalEmptyHeaders + (includeSearchTerm ? "\t" + searchTerm : ""));
 		}
 	}
-	
-	/**
-	 * Create a PubMed search term using the hgvsC and hgvsP values
-	 * @param hgvsC
-	 * @param hgvsP
-	 * @return
-	 */
-	public static String getSearchTerm(Optional<String> hgvsC, Optional<String> hgvsP) {
-		String st = "";
-		
-		/*
-		 * check the optionals - if they are both not present, no need to proceed
-		 */
-		if (( ! hgvsC.isPresent() && ! hgvsP.isPresent())) {
-			return st;
-		}
-		
-		if ( hgvsC.isPresent() && hgvsC.get().length() > 0) {
-			
-			/*
-			 * need to check that the string contains the dot ('.') and the gt sign ('>')
-			 */
-			int dotIndex = hgvsC.get().indexOf('.');
-			int gtIndex = hgvsC.get().indexOf('>');
-			if (dotIndex > -1 && gtIndex > -1) {
-			
-				/*
-				 * split value into required parts
-				 */
-				String firstPart = hgvsC.get().substring(dotIndex + 1, gtIndex);
-				String secondPart = hgvsC.get().substring(gtIndex + 1);
-				
-				st += SEARCH_TERM_VARIETIES.stream().map(s -> "\"" + firstPart + s + secondPart + "\"").collect(Collectors.joining("|"));
-			}
-		}
-		
-		if ( hgvsP.isPresent() && hgvsP.get().length() > 0) {
-			if (st.length() > 0) {
-				/*
-				 * we must have hgvs.c data - so add bar
-				 */
-				st += "|";
-			}
-			st += "\"" + hgvsP.get().substring(hgvsP.get().indexOf('.') + 1) + "\"";
-		}
-		
-		if (st.length() > 0) {
-			return "\"GENE\"+(" + st + ")";
-		}
-		return st;
-	}
-	
-	/**
-	 * get the requiredAnnotation value from the list of annotations
-	 * return null if not present
-	 * 
-	 * @param listOfAnnotations
-	 * @param requiredAnnotation
-	 * @return
-	 */
-	public static Optional<String> getAnnotationFromList(List<String> listOfAnnotations, String requiredAnnotation) {
-		
-		if (null != listOfAnnotations && ! StringUtils.isNullOrEmpty(requiredAnnotation)) {
-			for (String anno : listOfAnnotations) {
-				if (anno.startsWith(requiredAnnotation)) {
-					return Optional.of(anno.substring(requiredAnnotation.length() + 1));		// don't forget the equals sign
-				}
-			}
-		}
-		return Optional.empty();
-	}
-	
-	/**
-	 * Splits the strings in the supplied list by tab, and flattens them to a single list
-	 */
-	public static List<String> convertAnnotations(List<String> manyAnnotations) {
-		if (null != manyAnnotations) {
-			return manyAnnotations.stream().flatMap(s -> java.util.Arrays.stream(TabTokenizer.tokenize(s))).collect(Collectors.toList());
-		}
-		return Collections.emptyList();
-	}
-	
 	
 	public static void main(String[] args) throws Exception {
 		final Annotate sp = new Annotate();

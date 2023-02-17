@@ -7,6 +7,7 @@ public class AnnotationInputs {
 	private String outputFieldOrder;
 	private String additionalEmptyFields;
 	private boolean includeSearchTerm;
+	private int annotationSourceThreadCount;
 	private List<AnnotationInput> inputs;
 	
 	public List<AnnotationInput> getInputs() {
@@ -25,10 +26,13 @@ public class AnnotationInputs {
 		return includeSearchTerm;
 	}
 	
+	public int getAnnotationSourceThreadCount() {
+		return annotationSourceThreadCount;
+	}
+
 
 	public static class AnnotationInput {
 		private String file;
-//		private String positions;
 		private int chrIndex;
 		private int positionIndex;
 		private int refIndex;
@@ -39,9 +43,7 @@ public class AnnotationInputs {
 		public String getFile() {
 			return file;
 		}
-//		public String getPositions() {
-//			return positions;
-//		}
+		
 		public int getChrIndex() {
 			return chrIndex;
 		}

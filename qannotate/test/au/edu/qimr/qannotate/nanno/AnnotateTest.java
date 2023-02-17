@@ -2,6 +2,7 @@ package au.edu.qimr.qannotate.nanno;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -10,12 +11,17 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.qcmg.common.commandline.Executor;
+import org.qcmg.common.model.ChrPositionRefAlt;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
@@ -190,6 +196,142 @@ public class AnnotateTest {
 //			assertEquals("genename\tEnsembl_geneid\tOR4F5\tENSG00000186092", results);
 //		}
 //	}
+	
+	@Test
+	public void jsonInputs() throws IOException {
+		File inputJson = testFolder.newFile("inputs.json");
+		File annotationSource = testFolder.newFile("annotation.vcf");
+		createJsonInputs(inputJson, annotationSource, "blah");
+		
+		AnnotationInputs ais = AnnotateUtils.getInputs(inputJson.getAbsolutePath());
+		assertEquals(true, ais != null);
+		assertEquals(1, ais.getInputs().size());
+		
+		List<AnnotationSource> sources = new ArrayList<>();
+		AnnotateUtils.populateAnnotationSources(ais, sources);
+		assertEquals(1, sources.size());
+		
+		String annotation = sources.get(0).getAnnotation(new ChrPositionRefAlt("chr1", 95813205, 95813205, "C", "T"));
+		assertEquals("blah=", annotation);
+		
+	}
+	
+	@Test
+	public void endToEnd() throws IOException {
+		File inputVcf = testFolder.newFile("input.vcf");
+		File annotationSource = testFolder.newFile("annotation.vcf");
+		File inputJson = testFolder.newFile("inputs.json");
+		File outputFile = testFolder.newFile("output.tsv");
+		
+		/*
+		 * input file first
+		 */
+		createVcf(inputVcf);
+		/*
+		 * annotation file next
+		 */
+		createAnnotationFile(annotationSource);
+		/*
+		 * json inputs - need annotationSource deets
+		 */
+		createJsonInputs(inputJson, annotationSource, "blah");
+		
+		int exitValue = executeTest(inputVcf, inputJson, outputFile);
+		assertEquals(0, exitValue);
+		
+	}
+	
+	private int executeTest(File inputVcf, File inputJson, File outputFile) {
+	      
+	    //run vcf2maf
+		try {
+		      File log = testFolder.newFile();
+		      final String command = " au.edu.qimr.qannotate.nanno.Annotate --input " +  inputVcf.getAbsolutePath() + " --loglevel DEBUG  --log " + log.getAbsolutePath() + " -config " + inputJson.getAbsolutePath() 
+		      	+ " --output " + outputFile.getAbsolutePath();
+		      Executor exec = new Executor(command, "au.edu.qimr.qannotate.nanno.Annotate");
+		      return exec.getErrCode() ;
+		} catch (Exception e) {
+			e.printStackTrace();
+			fail("failed during run vcf2maf mode!");
+		}  
+	      
+	    return -1;	 
+	}
+	
+	public static void createJsonInputs(File jsonFile, File annotationFile, String annotationFields) throws IOException {
+		List<String> data = Arrays.asList(
+				"{",
+  "\"outputFieldOrder\": \"" + annotationFields + "\",",
+  "\"additionalEmptyFields\": \"test1,test2,test3\",",
+  "\"includeSearchTerm\": true,",
+  "\"annotationSourceThreadCount\": 1,",
+  "\"inputs\": [{",
+    "\"file\": \"" + annotationFile.getAbsolutePath() + "\",",
+    "\"chrIndex\": 1,",
+    "\"positionIndex\": 2,",
+    "\"refIndex\": 3,",
+    "\"altIndex\": 4,",
+    "\"fields\": \"" + annotationFields + "\"",
+  "}]",
+"}"
+				);
+		
+		try (BufferedWriter out = new BufferedWriter(new FileWriter(jsonFile));) {
+			for (String line : data) {
+				out.write(line + "\n");
+			}
+		}
+	}
+	
+	@Test
+	public void loadJSONInputs() throws IOException {
+		File inputJson = testFolder.newFile("inputs.json");
+		List<String> data = Arrays.asList(
+				"{",
+  "\"outputFieldOrder\": \"field_1,field_2,field_3\",",
+  "\"additionalEmptyFields\": \"test1,test2,test3\",",
+  "\"includeSearchTerm\": true,",
+  "\"annotationSourceThreadCount\": 3,",
+  "\"inputs\": [{",
+    "\"file\": \"/file_1.tsv\",",
+    "\"chrIndex\": 1,",
+    "\"positionIndex\": 2,",
+    "\"refIndex\": 3,",
+    "\"altIndex\": 4,",
+    "\"fields\": \"field_1\"",
+  "},",
+  "{",
+	  "\"file\": \"file_2.eff.vcf\",",
+	  "\"chrIndex\": 1,",
+	  "\"positionIndex\": 2,",
+	  "\"refIndex\": 4,",
+	  "\"altIndex\": 5,",
+	  "\"snpEffVcf\": true,",
+    "\"fields\": \"field_2\"",
+  "},",
+  "{",
+	  "\"file\": \"/file_3.vcf.gz\",",
+	  "\"chrIndex\": 1,",
+	  "\"positionIndex\": 2,",
+	  "\"refIndex\": 4,",
+	  "\"altIndex\": 5,",
+	  "\"fields\": \"field_3\"",
+  "}]",
+"}"
+				);
+		
+		try (BufferedWriter out = new BufferedWriter(new FileWriter(inputJson));) {
+			for (String line : data) {
+				out.write(line + "\n");
+			}
+		}
+		AnnotationInputs ais = AnnotateUtils.getInputs(inputJson.getAbsolutePath());
+		assertEquals(true, ais.isIncludeSearchTerm());
+		assertEquals("test1,test2,test3", ais.getAdditionalEmptyFields());
+		assertEquals(3, ais.getAnnotationSourceThreadCount());
+		assertEquals("field_1,field_2,field_3", ais.getOutputFieldOrder());
+		assertEquals(3, ais.getInputs().size());
+	}
 	 
 	
 	/**
@@ -280,77 +422,10 @@ public class AnnotateTest {
 		}
 	}
 	
-//	@Test
-//	public void compareNameAndPositions() {
-//		assertEquals(0, Anno.compareChromosomeNameAndStartPositions("chr1", 1, "chr1", 1));
-//		assertEquals(0, Anno.compareChromosomeNameAndStartPositions("chr1", 1, "1", 1));
-//		assertEquals(0, Anno.compareChromosomeNameAndStartPositions("1", 1, "chr1", 1));
-//		assertEquals(0, Anno.compareChromosomeNameAndStartPositions("1", 1, "1", 1));
-//		assertEquals(-1, Integer.compare(1, 2));
-//		assertEquals(-1, Anno.compareChromosomeNameAndStartPositions("1", 1, "1", 2));
-//		assertEquals(-1, Anno.compareChromosomeNameAndStartPositions("1", 1, "2", 2));
-//		assertEquals(0, Anno.compareChromosomeNameAndStartPositions("2", 2, "2", 2));
-//		assertEquals(1, Anno.compareChromosomeNameAndStartPositions("2", 3, "2", 2));
-//		assertEquals(1, Anno.compareChromosomeNameAndStartPositions("3", 32, "2", 2));
-//	}
 	
-	@Test
-	public void getItemFromList() {
-		assertEquals(Optional.empty(), Annotate.getAnnotationFromList(null, null));
-		assertEquals(Optional.empty(), Annotate.getAnnotationFromList(new ArrayList<>(), null));
-		assertEquals(Optional.empty(), Annotate.getAnnotationFromList(new ArrayList<>(), ""));
-		assertEquals(Optional.empty(), Annotate.getAnnotationFromList(Arrays.asList("ANNO_1=1"), ""));
-		assertEquals(Optional.empty(), Annotate.getAnnotationFromList(Arrays.asList("ANNO_1=1"), "ANNO_2"));
-		assertEquals(Optional.of("1"), Annotate.getAnnotationFromList(Arrays.asList("ANNO_1=1"), "ANNO_1"));
-		assertEquals(Optional.of("2"), Annotate.getAnnotationFromList(Arrays.asList("ANNO_1=1","ANNO_2=2"), "ANNO_2"));
-		assertEquals(Optional.of("1"), Annotate.getAnnotationFromList(Arrays.asList("ANNO_1=1","ANNO_2=2"), "ANNO_1"));
-	}
 	
-	@Test
-	public void convertAnnotationsToSingleList() {
-		List<String> annos = new ArrayList<>();
-		annos.add("FIELD1=1\tFIELD2=2");
-		annos.add("FIELD3=3\tFIELD4=4");
-		annos.add("FIELD5=5\tFIELD6=6");
-		
-		List<String> singleAnnoList = Annotate.convertAnnotations(annos);
-		assertEquals(6, singleAnnoList.size());
-		assertEquals(true, singleAnnoList.contains("FIELD1=1"));
-		
-		annos.add("FIELD7=7\tFIELD8=8\tFIELD9=9\tFIELD10=10");
-		singleAnnoList = Annotate.convertAnnotations(annos);
-		assertEquals(10, singleAnnoList.size());
-		assertEquals(true, singleAnnoList.contains("FIELD10=10"));
-		
-		/*
-		 * look at empty and null lists
-		 */
-		annos = new ArrayList<>();
-		singleAnnoList = Annotate.convertAnnotations(annos);
-		assertEquals(0, singleAnnoList.size());
-		singleAnnoList = Annotate.convertAnnotations(null);
-		assertEquals(0, singleAnnoList.size());
-		
-	}
 	
-	@Test
-	public void getEmptyFieldValues() {
-		assertEquals("", Annotate.getEmptyHeaderValues(0));
-		assertEquals("\t", Annotate.getEmptyHeaderValues(1));
-		assertEquals("\t\t", Annotate.getEmptyHeaderValues(2));
-		assertEquals("\t\t\t\t\t\t\t\t\t\t\t\t", Annotate.getEmptyHeaderValues(12));
-	}
 	
-	@Test
-	public void getSearchTerm() {
-		assertEquals("\"GENE\"+(\"277C>T\"|\"277C->T\"|\"277C-->T\"|\"277C/T\"|\"Arg93Trp\")", Annotate.getSearchTerm(Optional.of("c.277C>T"), Optional.of("p.Arg93Trp")));
-		assertEquals("\"GENE\"+(\"277T>C\"|\"277T->C\"|\"277T-->C\"|\"277T/C\"|\"Arg93Trp\")", Annotate.getSearchTerm(Optional.of("c.277T>C"), Optional.of("p.Arg93Trp")));
-		assertEquals("", Annotate.getSearchTerm(Optional.empty(), Optional.empty()));
-		assertEquals("\"GENE\"+(\"Arg93Trp\")", Annotate.getSearchTerm(Optional.of("c277TC"), Optional.of("p.Arg93Trp")));
-		assertEquals("\"GENE\"+(\"Arg93Trp\")", Annotate.getSearchTerm(Optional.of(""), Optional.of("p.Arg93Trp")));
-		assertEquals("\"GENE\"+(\"Arg93Trp\")", Annotate.getSearchTerm(Optional.empty(), Optional.of("p.Arg93Trp")));
-		assertEquals("", Annotate.getSearchTerm(Optional.of("c277TC"), Optional.empty()));
-		assertEquals("", Annotate.getSearchTerm(Optional.of(""), Optional.of("")));
-	}
+	
 	
 }

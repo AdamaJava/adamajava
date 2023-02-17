@@ -59,7 +59,7 @@ public abstract class AnnotationSource implements Closeable {
 	
 	public String getAnnotation(ChrPosition requestedCp) {
 		
-    	logger.debug(reader.getFile().getName() + ":  requestedCp is " + (null != requestedCp ? requestedCp.toIGVString() : null) + ", currentCP: " + (null != currentCP ? currentCP.toIGVString() : null) + ", nextCP: " + (null != nextCP ? nextCP.toIGVString() : null));
+    	logger.info(reader.getFile().getName() + ":  requestedCp is " + (null != requestedCp ? requestedCp.toIGVString() : null) + ", currentCP: " + (null != currentCP ? currentCP.toIGVString() : null) + ", nextCP: " + (null != nextCP ? nextCP.toIGVString() : null));
 		
 		
 		/*
