@@ -33,18 +33,19 @@ public class QExec {
 	public QExec(String programName, String programVersion,  String[] cmd_args, String cmd, String uuid) {
 		this.uuid = new KeyValue("Uuid", null != uuid ? uuid : createUUid());
 		this.startTime = new KeyValue("StartTime", DateUtils.getCurrentDateAsString());
-		this.osName = new KeyValue("OsName",System.getProperty("os.name"));
-		this.osArch = new KeyValue("OsArch",System.getProperty("os.arch"));
-		this.osVersion = new KeyValue("OsVersion",System.getProperty("os.version"));
-		this.runBy = new KeyValue("RunBy",System.getProperty("user.name"));
-		this.toolName = new KeyValue("ToolName",programName);
-		this.toolVersion = new KeyValue("ToolVersion",programVersion);
+		this.osName = new KeyValue("OsName", System.getProperty("os.name"));
+		this.osArch = new KeyValue("OsArch", System.getProperty("os.arch"));
+		this.osVersion = new KeyValue("OsVersion", System.getProperty("os.version"));
+		this.runBy = new KeyValue("RunBy", System.getProperty("user.name"));
+		this.toolName = new KeyValue("ToolName", programName);
+		this.toolVersion = new KeyValue("ToolVersion", programVersion);
 		
 		String cmdLine= "";
-		if (null != cmd_args)  
+		if (null != cmd_args) {  
 			cmdLine = QLogger.reconstructCommandLine(programName, cmd_args);			
-		 else if(null != cmd)
-			cmdLine = cmd; 		
+		} else if (null != cmd) {
+			cmdLine = cmd;
+		}
 		this.commandLine = new KeyValue("CommandLine", cmdLine);
 		
 		this.javaHome = new KeyValue("JavaHome",System.getProperty("java.home"));
@@ -67,7 +68,7 @@ public class QExec {
 	
   	
 	public QExec(String programName, String programVersion, String[] args, String uuid) {
-		this(programName, programVersion, args,null, uuid);		
+		this(programName, programVersion, args, null, uuid);		
 	}
  
 	

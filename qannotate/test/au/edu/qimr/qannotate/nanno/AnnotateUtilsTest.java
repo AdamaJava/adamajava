@@ -15,6 +15,8 @@ import java.util.Optional;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.meta.QExec;
 
 public class AnnotateUtilsTest {
 	
@@ -145,6 +147,60 @@ public class AnnotateUtilsTest {
 		assertEquals(3, ais.getAnnotationSourceThreadCount());
 		assertEquals("field_1,field_2,field_3", ais.getOutputFieldOrder());
 		assertEquals(3, ais.getInputs().size());
+	}
+	
+	@Test
+	public void generateHeaders() throws IOException {
+		assertEquals(0, AnnotateUtils.generateHeaders(null, null).size());
+		assertEquals(0, AnnotateUtils.generateHeaders(new AnnotationInputs(), null).size());
+		
+		File inputJson = testFolder.newFile("inputs.json");
+		List<String> data = Arrays.asList(
+				"{",
+  "\"outputFieldOrder\": \"field_1,field_2,field_3\",",
+  "\"additionalEmptyFields\": \"test1,test2,test3\",",
+  "\"includeSearchTerm\": true,",
+  "\"annotationSourceThreadCount\": 3,",
+  "\"inputs\": [{",
+    "\"file\": \"/file_1.tsv\",",
+    "\"chrIndex\": 1,",
+    "\"positionIndex\": 2,",
+    "\"refIndex\": 3,",
+    "\"altIndex\": 4,",
+    "\"fields\": \"field_1\"",
+  "},",
+  "{",
+	  "\"file\": \"file_2.eff.vcf\",",
+	  "\"chrIndex\": 1,",
+	  "\"positionIndex\": 2,",
+	  "\"refIndex\": 4,",
+	  "\"altIndex\": 5,",
+	  "\"snpEffVcf\": true,",
+    "\"fields\": \"field_2\"",
+  "},",
+  "{",
+	  "\"file\": \"/file_3.vcf.gz\",",
+	  "\"chrIndex\": 1,",
+	  "\"positionIndex\": 2,",
+	  "\"refIndex\": 4,",
+	  "\"altIndex\": 5,",
+	  "\"fields\": \"field_3\"",
+  "}]",
+"}"
+				);
+		
+		try (BufferedWriter out = new BufferedWriter(new FileWriter(inputJson));) {
+			for (String line : data) {
+				out.write(line + "\n");
+			}
+		}
+		AnnotationInputs ais = AnnotateUtils.getInputs(inputJson.getAbsolutePath());
+		List<String> headers =  AnnotateUtils.generateHeaders(ais, null);
+		assertEquals(4, headers.size());	// 3 inputs plus header line
+		assertEquals(true, headers.contains("##file:fields\t/file_1.tsv:field_1"));
+		assertEquals(true, headers.contains("##file:fields\tfile_2.eff.vcf:field_2"));
+		assertEquals(true, headers.contains("##file:fields\t/file_3.vcf.gz:field_3"));
+		assertEquals("#chr\tposition\tref\talt\tGATK_AD\tfield_1\tfield_2\tfield_3\ttest1\ttest2\ttest3\tsearchTerm", headers.get(headers.size() - 1));
 	}
 	
 	@Test

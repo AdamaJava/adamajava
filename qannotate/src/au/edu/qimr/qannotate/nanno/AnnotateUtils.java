@@ -258,7 +258,7 @@ public class AnnotateUtils {
 			headers.add("##" + exec.getToolVersion().toLogString());
 			headers.add("##" + exec.getCommandLine().toLogString());
 		}
-		if (null != ais) {
+		if (null != ais && null != ais.getInputs()) {
 			
 			for (AnnotationInput ai : ais.getInputs()) {
 				headers.add("##file:fields\t" + ai.getFile() + ":" + ai.getFields());
@@ -266,7 +266,10 @@ public class AnnotateUtils {
 		
 			String emptyHeaders = ais.getAdditionalEmptyFields();
 			String [] emptyHeadersArray =  StringUtils.isNullOrEmpty(emptyHeaders) ? new String[]{} : emptyHeaders.split(",");
-			String header = "#chr\tposition\tref\talt\tGATK_AD\t" + Arrays.stream(ais.getOutputFieldOrder().split(",")).collect(Collectors.joining("\t"));
+			String fieldOrder = ais.getOutputFieldOrder();
+			String [] fieldOrderArray = StringUtils.isNullOrEmpty(fieldOrder) ? new String[]{} : fieldOrder.split(",");
+
+			String header = "#chr\tposition\tref\talt\tGATK_AD\t" + Arrays.stream(fieldOrderArray).collect(Collectors.joining("\t"));
 			if (emptyHeadersArray.length > 0) {
 				header += "\t" +  Arrays.stream(emptyHeadersArray).collect(Collectors.joining("\t"));
 			}
