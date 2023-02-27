@@ -12,12 +12,10 @@ import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 import org.qcmg.common.log.QLogger;
@@ -25,7 +23,6 @@ import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.meta.QExec;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrPositionRefAlt;
-import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.qio.record.RecordWriter;
@@ -74,31 +71,32 @@ public class Annotate {
 		
 		List<AnnotationSource> annotationSources = new ArrayList<>();
 		AnnotateUtils.populateAnnotationSources(ais, annotationSources);
-		logger.info("annotationSources have been loaded (aize: " + annotationSources.size() + ")");
+		logger.info("annotationSources have been loaded (size: " + annotationSources.size() + ")");
 		annotationSources.stream().forEach(as -> logger.info(as.toString()));
 		
-		String emptyHeaders = ais.getAdditionalEmptyFields();
-		String [] emptyHeadersArray =  StringUtils.isNullOrEmpty(emptyHeaders) ? new String[]{} : emptyHeaders.split(",");
-		
-		String header = "chr\tposition\tref\talt\tGATK_AD\t" + Arrays.stream(ais.getOutputFieldOrder().split(",")).collect(Collectors.joining("\t"));
-		if (emptyHeadersArray.length > 0) {
-			header += "\t" +  Arrays.stream(emptyHeadersArray).collect(Collectors.joining("\t"));
-		}
-		
-		boolean includeSearchTerm = ais.isIncludeSearchTerm();
-		header += (includeSearchTerm ? "\tsearchTerm" : "");
-		
-		String emptyHeaderValues =  AnnotateUtils.getEmptyHeaderValues(emptyHeadersArray.length);
+//		String emptyHeaders = ais.getAdditionalEmptyFields();
+//		String [] emptyHeadersArray =  StringUtils.isNullOrEmpty(emptyHeaders) ? new String[]{} : emptyHeaders.split(",");
+//		
+//		String header = "chr\tposition\tref\talt\tGATK_AD\t" + Arrays.stream(ais.getOutputFieldOrder().split(",")).collect(Collectors.joining("\t"));
+//		if (emptyHeadersArray.length > 0) {
+//			header += "\t" +  Arrays.stream(emptyHeadersArray).collect(Collectors.joining("\t"));
+//		}
+//		
+//		boolean includeSearchTerm = ais.isIncludeSearchTerm();
+//		header += (includeSearchTerm ? "\tsearchTerm" : "");
+//		
+//		String emptyHeaderValues =  AnnotateUtils.getEmptyHeaderValues(emptyHeadersArray.length);
 		
 		CountDownLatch consumerLatch = new CountDownLatch(1);
 		Queue<ChrPositionAnnotations> queue = new ConcurrentLinkedQueue<>();
 		
 		
-		ExecutorService executor = Executors.newFixedThreadPool(ais.getAnnotationSourceThreadCount() + 1);	// need an extra thread for the consumer
-		executor.execute(new Consumer(queue, outputFile, consumerLatch, header, includeSearchTerm, emptyHeaderValues));
+		ExecutorService executor = Executors.newFixedThreadPool(Math.max(ais.getAnnotationSourceThreadCount(), 1) + 1);	// need an extra thread for the consumer, and at least 1 other thread
+		executor.execute(new Consumer(queue, outputFile, consumerLatch, ais, exec));
+//		executor.execute(new Consumer(queue, outputFile, consumerLatch, header, includeSearchTerm, emptyHeaderValues));
 		logger.info("ExecutorService has been setup");
 		
-		
+		ChrPosition lastCP = null;
 		try (
 			VcfFileReader reader = new VcfFileReader(inputFile);) {
 			logger.info("VcfFileReader has been setup");
@@ -107,7 +105,17 @@ public class Annotate {
 				vcfCount++;
 				
 				ChrPosition thisVcfsCP = vcf.getChrPositionRefAlt();
-				logger.info("thisVcfsCP: " + thisVcfsCP.toIGVString());
+				logger.debug("thisVcfsCP: " + thisVcfsCP.toIGVString());
+				
+				
+				/*
+				 * check that this CP is "after" the last CP
+				 */
+				int compare = null != lastCP ?  ((ChrPositionRefAlt)thisVcfsCP).compareTo((ChrPositionRefAlt) lastCP) : 0;
+				if (compare < 0) {
+					throw new IllegalArgumentException("Incorrect order of vcf records in input vcf file! this vcf: " + thisVcfsCP.toIGVString() + ", last vcf: " + lastCP.toIGVString());
+				}
+				
 				
 				String alt = ((ChrPositionRefAlt) thisVcfsCP).getAlt();
 				String gatkAD = VcfUtils.getFormatField(vcf.getFormatFields(), "AD", 0);
@@ -149,58 +157,30 @@ public class Annotate {
 					queue.add(new ChrPositionAnnotations(thisVcfsCP, annotations, gatkAD));
 					
 				}
+				
+				lastCP = thisVcfsCP;
 			}
 			
 			logger.info("# of vcf records: " + vcfCount);
+		} finally {
+			/*
+			 * count down the count down latch
+			 */
+			consumerLatch.countDown();
 		}
-		
 		executor.shutdown();
+		executor.awaitTermination(60, TimeUnit.MINUTES);
 		logger.info("ExecutorService has been shutdown");
 		return exitStatus;
 	}
 	
-	private static List<String> getAnnotationsForPosition(ChrPosition cp, List<AnnotationSource> annotationSources, Executor executor) throws InterruptedException, ExecutionException, TimeoutException {
+	
+	private static List<String> getAnnotationsForPosition(ChrPosition cp, List<AnnotationSource> annotationSources, Executor executor) {
 		
 		return annotationSources.stream()
 				.map(source -> CompletableFuture.supplyAsync(() -> 
 				source.getAnnotation(cp), executor))
 				.map(CompletableFuture::join).collect(Collectors.toList());
-		
-		
-		
-		
-		
-		
-		
-//		logger.info("in getAnnotationsForPosition: " + cp.toIGVString() + ", annotationSources: " + annotationSources.size() + ", executor: " + executor.toString());
-//		
-//		List<CompletableFuture<String>> cfs = new ArrayList<>();
-//		List<String> annos = new ArrayList<>();
-//		for (AnnotationSource as : annotationSources) {
-//			CompletableFuture<String> cf = CompletableFuture.supplyAsync(() -> as.getAnnotation(cp), executor);
-//			cfs.add(cf);
-//		}
-//		logger.info("CompletableFutures have been setup");
-//		for (CompletableFuture<String> cf : cfs) {
-//			logger.info("about to call join");
-//			logger.info("cf.isDone(): " + cf.isDone());
-//			logger.info("cf.isCancelled(): " + cf.isCancelled());
-//			logger.info("cf.isCompletedExceptionally(): " + cf.isCompletedExceptionally());
-//			logger.info("cf.getNumberOfDependents(): " + cf.getNumberOfDependents());
-//			String s = cf.get(10, TimeUnit.SECONDS);
-//			annos.add(s);
-//			logger.info("about to call join - DONE");
-//		}
-//		
-//		
-//		logger.info("CompletableFutures have finished!");
-//		
-//		
-//		logger.info("in getAnnotationsForPosition: " + cp.toIGVString() + ", annotationSources: " + annotationSources.size() + ", executor: " + executor.toString());
-//		
-//		
-//		return annos;
-//		
 	}
 	
 	public static class ChrPositionAnnotations {
@@ -236,23 +216,29 @@ public class Annotate {
 		private final boolean includeSearchTerm;
 		private final CountDownLatch latch;
 		private final RecordWriter<String> writer;
-		private final String additionalEmptyHeaders;
+		private final String additionalEmptyValues;
+		private final AnnotationInputs ais;
 
-		public Consumer(Queue<ChrPositionAnnotations> queue, String outputFile, CountDownLatch latch, String header, boolean includeSearchTerm, String additionalEmptyHeaders) throws IOException {	
+		public Consumer(Queue<ChrPositionAnnotations> queue, String outputFile, CountDownLatch latch, AnnotationInputs ais, QExec exec) throws IOException {
+//			public Consumer(Queue<ChrPositionAnnotations> queue, String outputFile, CountDownLatch latch, List<String> headers, boolean includeSearchTerm, String additionalEmptyHeaders) throws IOException {
 			this.queue = queue;
 			this.outputFile = outputFile;
 			this.latch = latch;
-			this.includeSearchTerm = includeSearchTerm;
-			this.additionalEmptyHeaders = additionalEmptyHeaders;
+			this.ais = ais;
+			includeSearchTerm = ais.isIncludeSearchTerm();
+			additionalEmptyValues = AnnotateUtils.generateAdditionalEmptyValues(ais);
+			List<String> headers = AnnotateUtils.generateHeaders(ais, exec);
+			
 			writer = new RecordWriter<String>(new File(outputFile));
-			writer.addHeader(header);
+			for (String h : headers) {
+				writer.addHeader(h);
+			}
 		}
 		
 		@Override
 		public void run() {
-			System.out.println("Consumer thread is a go!");
+			logger.info("Consumer thread is a go!");
 			try {
-				int count = 0;
 				
 				while (true) {
 					
@@ -267,10 +253,11 @@ public class Annotate {
 						}
 						// sleep and try again
 						try {
-							Thread.sleep(50);
+							Thread.sleep(20);
 						} catch (final InterruptedException e) {
 							logger.error("InterruptedException caught in Consumer sleep: " +  e.getLocalizedMessage());
 							throw e;
+						} finally {
 						}
 					}
 				}
@@ -293,26 +280,18 @@ public class Annotate {
 		
 		public void processRecord(final ChrPositionAnnotations recAndAnnotations) throws IOException {
 			ChrPosition cp = recAndAnnotations.getCp();
-			boolean debug = false;
-			if (cp.getStartPosition() == 953279) {
-				debug = true;
-			}
 			
 			
 			List<String> annotations = recAndAnnotations.getAnnotations();
-			if (debug) {
-				System.out.println("annotations.size(): " + annotations.size());
-				annotations.stream().forEach(System.out::println);
-			}
+			logger.debug("annotations.size(): " + annotations.size());
+//				annotations.stream().forEach(System.out::println);
 			
 			/*
 			 * collect entries in annotations lists into map
 			 */
 			List<String> singleAnnotations = AnnotateUtils.convertAnnotations(annotations);
-			if (debug) {
-				System.out.println("singleAnnotations.size(): " + singleAnnotations.size());
-				singleAnnotations.stream().forEach(System.out::println);
-			}
+			logger.debug("singleAnnotations.size(): " + singleAnnotations.size());
+//				singleAnnotations.stream().forEach(System.out::println);
 			
 			String searchTerm = "";
 			if (includeSearchTerm) {
@@ -325,11 +304,9 @@ public class Annotate {
 			 */
 			String annotationString = singleAnnotations.stream().map(s -> s.split("=", 2)).sorted(CUSTOM_COMPARATOR).map(a -> a[1]).collect(Collectors.joining("\t"));
 			
-			if (debug) {
-				System.out.println("annotationString: " + annotationString);
-			}
+			logger.debug("annotationString: " + annotationString);
 			
-			writer.add(((ChrPositionRefAlt)cp).toTabSeperatedString() + "\t" + recAndAnnotations.getGatkAD() + "\t" + annotationString + additionalEmptyHeaders + (includeSearchTerm ? "\t" + searchTerm : ""));
+			writer.add(((ChrPositionRefAlt)cp).toTabSeperatedString() + "\t" + recAndAnnotations.getGatkAD() + "\t" + annotationString + additionalEmptyValues + (includeSearchTerm ? "\t" + searchTerm : ""));
 		}
 	}
 	
