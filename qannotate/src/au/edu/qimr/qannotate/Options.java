@@ -179,7 +179,6 @@ public class Options {
 		.describedAs("testCoverageCutoff");
 		parser.accepts("mrPercentage", "Number of mutant reads (MR) required to be High Confidence as a percentage").withRequiredArg().ofType(Float.class)
 		.describedAs("numberOfMutantReadsPercentage");
-		parser.accepts("filtersToIgnore", LOG_DESCRIPTION).withRequiredArg().ofType(String.class);
 
         OptionSet options  = parser.parse(args);  
         if (options.has("v") || options.has("version")){
@@ -202,7 +201,7 @@ public class Options {
         	/*
         	 * used by nanno.Annotate
         	 */
-        	parser.accepts("config", Messages.getMessage("CONF_FILE_ERR_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("config file");
+        	parser.accepts("config", Messages.getMessage("NANNO_CONF_FILE_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("config file");
         } else {
         
 	        if ( mm.equals(MODE.confidence) || mm.equals(MODE.vcf2maf) ) {
@@ -213,12 +212,12 @@ public class Options {
 	        }
 	        
 	        if(mm.equals(MODE.snpeff)){
-		        parser.accepts("config", Messages.getMessage("CONF_FILE_ERR_DESCRIPTION") ).withRequiredArg().ofType(String.class).describedAs("config file");
+		        parser.accepts("config", Messages.getMessage("CONF_FILE_DESCRIPTION") ).withRequiredArg().ofType(String.class).describedAs("config file");
 		        parser.accepts("summaryFile", Messages.getMessage("SUMMARY_FILE_DESCRIPTION")  ).withRequiredArg().ofType(String.class).describedAs("stat output");
 	        }
 	                 		
 	        if(mm.equals(MODE.trf))
-	            parser.accepts("buffer", "check TRF region on both side of indel within this nominated size" ).withRequiredArg().ofType(Integer.class);//.describedAs("integer");
+	            parser.accepts("buffer", "check TRF region on both sides of indel within this nominated size" ).withRequiredArg().ofType(Integer.class);//.describedAs("integer");
 	 
 	         if(mm.equals(MODE.cadd))
 	             parser.accepts("gap", "adjacant variants size").withRequiredArg().ofType(String.class).describedAs("gap size");
@@ -356,7 +355,12 @@ public class Options {
 				break;
             } 
         } else {
-        	mess = Messages.getMessage("NANNO_USAGE");
+        	/*
+        	 * mode is null, so could be missing, or could be nanno mode
+        	 */
+        	mess = Messages.getMessage("USAGE");
+        	mess += "\nOR\n";
+        	mess += Messages.getMessage("NANNO_USAGE");
         }
         
         System.out.println(mess);          
