@@ -25,22 +25,22 @@ The modes available to qannotate are:
 
 ## Installation
 
-qannotate requires java 8 and (ideally) a multi-core machine with at least 20GB of RAM.
-* To build qannotate, first clone the adamajava repository.
+`qannotate` requires java 8 and (ideally) a multi-core machine with at least 20GB of RAM.
+* To build `qannotate`, first clone the `adamajava` repository.
   ~~~~{.text}
   git clone https://github.com/AdamaJava/adamajava
   ~~~~
 
-*  Then move into the adamajava folder:
+*  Then move into the `adamajava` folder:
   ~~~~{.text}
   cd adamajava
   ~~~~
 
-*  Run gradle to build qannotate and its dependent jar files:
+*  Run gradle to build `qannotate` and its dependent jar files:
   ~~~~{.text}
   ./gradlew :qannotate:build
   ~~~~
-  This creates the qannotate jar file along with dependent jars in the `qannotate/build/flat` folder
+  This creates the `qannotate` jar file along with dependent jars in the `qannotate/build/flat` folder
 
 
 ## Usage 
@@ -90,7 +90,7 @@ chr position  ref alt GATK_AD
 
 ## Configuration
 
-This section will describe the JSON configuration file that is used when creating a TSV file from a VCF file (ie. not when qannotate is run using one of the `modes`)
+This section will describe the JSON configuration file that is used when creating a TSV file from a VCF file (ie. not when `qannotate` is run using one of the `modes`)
   
 ### Example JSON configuration file
 
