@@ -7,6 +7,7 @@
 package org.qcmg.qmule;
 
 import java.io.File;
+import java.io.IOException;
 
 import htsjdk.samtools.SamReader;
 import htsjdk.samtools.SAMRecord;
@@ -19,22 +20,23 @@ public class BamRecordCounter {
 	
 	private static final QLogger logger = QLoggerFactory.getLogger(BamRecordCounter.class);
 
-	public static void main(String args[]) {
+	public static void main(String args[]) throws IOException {
 		
 		if (null != args && args.length > 0) {
 			for (String filename : args) {
-				SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(filename));
-				long count = 0;
-				long duplicates = 0;
-				long startTime = System.currentTimeMillis();
-				for (SAMRecord r : reader) {
-					count++;
-					if (r.getDuplicateReadFlag())
-						duplicates++;
+				try(SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(filename));) {
+					long count = 0;
+					long duplicates = 0;
+					long startTime = System.currentTimeMillis();
+					for (SAMRecord r : reader) {
+						count++;
+						if (r.getDuplicateReadFlag())
+							duplicates++;
+					}
+					logger.info("no of records in file [" + filename + "] is: " + count);
+					logger.info("no of duplicate records: " + duplicates);
+					logger.info("It took " + (System.currentTimeMillis() - startTime) + "ms to perform the count.");
 				}
-				logger.info("no of records in file [" + filename + "] is: " + count);
-				logger.info("no of duplicate records: " + duplicates);
-				logger.info("It took " + (System.currentTimeMillis() - startTime) + "ms to perform the count.");
 			}
 		} else {
 			logger.info("USAGE: qmule " + BamRecordCounter.class.getName() + " <bam/sam filename>");

@@ -121,11 +121,9 @@ public class MtCNVSeq {
 		}
 	 
 		public void run() {
-			try {				 
-				FileWriter writer = new FileWriter(Output);
-				SamReader rTest = SAMFileReaderFactory.createSAMFileReader(Test,ValidationStringency.SILENT);						   
-				SamReader rRef = SAMFileReaderFactory.createSAMFileReader(Ref,ValidationStringency.SILENT); 
-								
+			try (FileWriter writer = new FileWriter(Output);
+				SamReader rTest = SAMFileReaderFactory.createSAMFileReader(Test,null, ValidationStringency.SILENT);						   
+				SamReader rRef = SAMFileReaderFactory.createSAMFileReader(Ref,null, ValidationStringency.SILENT); ) {				
 				int win_num = chrSize / winSize + 1;
  
 				for (int i = 0; i < win_num; i++){			
@@ -135,10 +133,6 @@ public class MtCNVSeq {
 		    		  	int num_ref =  cnvseq.exeQuery(rRef, chrName, start, end);		  	    		   
 		    		  	writer.write(String.format("%s\t%d\t%d\t%d\t%d\n", chrName, start, end, num_test, num_ref ));	  		  
 		    	  } 	
-				
-				rRef.close();
-				writer.close();
-				rTest.close();
 			 
 			} catch (Exception e) {
 				System.out.println(Thread.currentThread().getName() + " "

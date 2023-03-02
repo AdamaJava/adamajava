@@ -12,7 +12,6 @@ import java.util.List;
 import htsjdk.samtools.SAMFileWriter;
 import htsjdk.samtools.CigarElement;
 import htsjdk.samtools.CigarOperator;
-import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMFileWriterFactory;
 import htsjdk.samtools.SamReader;
 import htsjdk.samtools.SAMRecord;
@@ -21,7 +20,6 @@ import htsjdk.samtools.ValidationStringency;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.picard.SAMFileReaderFactory;
-import org.qcmg.picard.SAMOrBAMWriterFactory;
 
 public class BAMCompress {
 		static QLogger logger = QLoggerFactory.getLogger(BAMCompress.class);
@@ -41,7 +39,7 @@ public class BAMCompress {
 
 		public void replaceSeq() throws Exception{					
 			
-			SamReader reader = SAMFileReaderFactory.createSAMFileReader( input, ValidationStringency.SILENT);					
+			SamReader reader = SAMFileReaderFactory.createSAMFileReader( input, null, ValidationStringency.SILENT);					
 			SAMFileWriter writer =   new SAMFileWriterFactory() .makeBAMWriter(reader.getFileHeader(), false, output, level);  
 				
 			for( SAMRecord record : reader){

@@ -28,7 +28,7 @@ public class SAMRecordCounterMTTest {
 	
 	@Test
 	public void testCountReaderWorker() throws QSVException, IOException {
-		File file = testFolder.newFile("test.bam");
+		File file = testFolder.newFile("test.sam");
 		createBamFile(file);
 		SAMRecordCounterMT worker = new SAMRecordCounterMT(file);
 		List<RunTypeRecord> records = new ArrayList<>(worker.getRunRecords());

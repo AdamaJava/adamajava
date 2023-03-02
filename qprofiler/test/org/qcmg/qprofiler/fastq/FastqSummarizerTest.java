@@ -178,10 +178,7 @@ BCCFDFFFHHHHHJJJJIJJJJJIJIJJJJJJJGHJJJJJJJJJJIJFHIJJJHHHFFDDDDDCDCDDDDDDDDDDDDDD
 		try {
 			qs.summarize(f);
 			Assert.fail("Should have thrown an Exception");
-		} catch (Exception e) {
-			//debug
-			System.out.println("error message: " + e.getMessage());
-			
+		} catch (Exception e) {			
 			Assert.assertTrue(e.getMessage().length() > 0);
 		}
 	}

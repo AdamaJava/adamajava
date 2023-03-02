@@ -154,9 +154,9 @@ public class QSamToFastq extends CommandLineProgram {
        	logger = QLoggerFactory.getLogger(QSamToFastq.class,  LOG_FILE, QLoggerFactory.DEFAULT_LEVEL.getName());    	
 		logger.logInitialExecutionStats("QSamToFastq", QSamToFastq.class.getPackage().getImplementationVersion(), args);
 
-    	
+		 SAMRecord  firstRecord = null;
         IOUtil.assertFileIsReadable(INPUT);
-        final SamReader reader =  SAMFileReaderFactory.createSAMFileReader( INPUT);
+       try( final SamReader reader =  SAMFileReaderFactory.createSAMFileReader( INPUT);) {
         
         //bamfile must be sorted by qurey name
         if( ! reader.getFileHeader().getSortOrder().equals(SortOrder.queryname)) {           	
@@ -165,7 +165,7 @@ public class QSamToFastq extends CommandLineProgram {
         }
         
         //final Map<String,SAMRecord> firstSeenMates = new HashMap<String,SAMRecord>();
-        SAMRecord  firstRecord = null;
+       
         final Map<SAMReadGroupRecord, List<FastqWriter>> writers = getWriters(reader.getFileHeader().getReadGroups());
 
         for (final SAMRecord currentRecord : reader) {
@@ -225,13 +225,13 @@ public class QSamToFastq extends CommandLineProgram {
             } else {
                 writeRecord(currentRecord, null, fq.get(0), READ1_TRIM, READ1_MAX_BASES_TO_WRITE);
             }
-        }   
+        } 
+	        //check last record it must missing pair
+	        if(firstRecord != null) {
+	        	rescueLonelyRecord(  firstRecord,  writers);        	
+	        }
         
         
-        //check last record it must missing pair
-        if(firstRecord != null) {
-        	rescueLonelyRecord(  firstRecord,  writers);        	
-        }
         
         
         // Close all the fastq writers being careful to close each one only once!
@@ -244,7 +244,11 @@ public class QSamToFastq extends CommandLineProgram {
                 }
             }
         }
-              
+       } catch (IOException e1) {
+		
+		e1.printStackTrace();
+	}
+             
         //output count
         logger.info(inputSamCount.get() + " SAM records are processed!");
         logger.info(outputFastqCount.get() + " fastq records are outputted!");

@@ -48,4 +48,9 @@ public class FastaRecord {
 	public String getData() {
 		return data;
 	}
+	
+	@Override
+	public String toString() {
+		return id + "\n" + data;
+	}
 }

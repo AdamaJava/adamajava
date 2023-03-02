@@ -2659,6 +2659,21 @@ public class TARecordUtilTest {
 		assertEquals(false, TARecordUtil.doGenomicPositionsOverlap(1994, 2121, 2011, 2129, 149));
 	}
 	
+	@Test
+	public void compareILPs() {
+		IntLongPair constant = new IntLongPair(2293761, 122046073075177l);
+		IntLongPair ilp1 = new IntLongPair(1507329, 4611878433244640844l);
+		IntLongPair ilp2 = new IntLongPair(1507329, 4611878433244640646l);
+		assertEquals(0, TARecordUtil.compareILPs(ilp1, ilp2, constant));
+		assertEquals(0, TARecordUtil.compareILPs(ilp2, ilp1, constant));
+		
+		IntLongPair ilp3 = new IntLongPair(1507329, 4611878433244640946l);
+		assertEquals(-1, TARecordUtil.compareILPs(ilp1, ilp3, constant));
+		assertEquals(1, TARecordUtil.compareILPs(ilp3, ilp1, constant));
+		assertEquals(-1, TARecordUtil.compareILPs(ilp2, ilp3, constant));
+		assertEquals(1, TARecordUtil.compareILPs(ilp3, ilp2, constant));
+	}
+	
 	private static long getLong(long position, short sequenceTilePosition, boolean forwardStrand) {
 		long l = NumberUtils.addShortToLong(position, sequenceTilePosition, TARecordUtil.TILE_OFFSET);
 		if ( ! forwardStrand) {

@@ -4,6 +4,7 @@
  *
  * This code is released under the terms outlined in the included LICENSE file.
  */
+
 package org.qcmg.common.util;
 
 import java.util.Collections;
@@ -44,8 +45,8 @@ public class SnpUtils {
 	public static final String END_OF_READ = "5BP";	// number of reads carrying the mutation that are within 5 base pairs of the end of the read
 	
 	// a couple of extra class B's
-	public static final String LESS_THAN_12_READS_NORMAL_AND_UNFILTERED= LESS_THAN_12_READS_NORMAL + "; " + MUTATION_IN_UNFILTERED_NORMAL;
-	public static final String LESS_THAN_3_READS_NORMAL_AND_UNFILTERED= LESS_THAN_3_READS_NORMAL + "; " + MUTATION_IN_UNFILTERED_NORMAL;
+	public static final String LESS_THAN_12_READS_NORMAL_AND_UNFILTERED = LESS_THAN_12_READS_NORMAL + "; " + MUTATION_IN_UNFILTERED_NORMAL;
+	public static final String LESS_THAN_3_READS_NORMAL_AND_UNFILTERED = LESS_THAN_3_READS_NORMAL + "; " + MUTATION_IN_UNFILTERED_NORMAL;
 	
 	//EXTRAs
 	public static final String NOVEL_STARTS = "NNS";
@@ -288,11 +289,6 @@ public class SnpUtils {
 		return Collections.emptyMap();
 	}
 	
-	public static Map<String, Integer> getCompoundSnpDistribution(String dist) {
-		return getCompoundSnpDistribution(dist, 0);
-	}
-	
-	
 /**
  * this method is removed but qannotate use it, so pull it back. require further confirmation
  * @param bases
@@ -398,7 +394,6 @@ public class SnpUtils {
 		
 		if (StringUtils.isNullOrEmpty(bases)) return false;
 		
-//		logger.info("in doesNucleotideStringContainReadsOnBothStrands with : " + bases);
 		
 		String [] basesArray = TabTokenizer.tokenize(bases, Constants.COMMA);
 		// should always have an even number of bases (1 for each strand)
@@ -430,7 +425,6 @@ public class SnpUtils {
 				}
 			}
 		}
-//		logger.info("zeroOnFS : " + zeroOnFS + ", zeroOnRS: " + zeroOnRS + ", basesArray.length / 2: " + (basesArray.length / 2));
 		
 		return (zeroOnFS != (basesArray.length / 2)) &&  (zeroOnRS != (basesArray.length / 2));
 	}
@@ -439,7 +433,6 @@ public class SnpUtils {
 		
 		if (StringUtils.isNullOrEmpty(bases)) return false;
 		
-//		logger.info("in doesNucleotideStringContainReadsOnBothStrands with : " + bases);
 		
 //		A0[0],848[37.74],C0[0],3[23],G0[0],393[38.01],T0[0],4[21.5]
 		
@@ -474,7 +467,6 @@ public class SnpUtils {
 				rsCount += Integer.parseInt(arrayValue.substring(startPos, endPos));
 			}
 		}
-//		logger.info("fsCount : " + fsCount + ", rsCount: " + rsCount + ", basesArray.length / 2: " + (basesArray.length / 2));
 		
 		int total = fsCount + rsCount;
 		int min = Math.min(rsCount, fsCount);

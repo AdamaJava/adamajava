@@ -28,7 +28,7 @@ public class MateTest {
 
     @Before
     public void before() throws IOException {
-        fileName = testFolder.newFile("test.bam").getCanonicalPath();
+        fileName = testFolder.newFile("test.sam").getCanonicalPath();
         TestUtil.createSamFile(fileName, SortOrder.coordinate, false);
         mate = new Mate("254_166_1407:20110221052813657", "chr7", 140191044, 140191093, "AAC", 129, true);
     }

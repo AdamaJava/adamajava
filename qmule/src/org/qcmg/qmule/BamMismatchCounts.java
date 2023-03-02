@@ -121,18 +121,16 @@ public class BamMismatchCounts {
 
   	    String output = op.getOutputFileNames()[0];
 	    String input =  op.getInputFileNames()[0];	    
-	    SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(input),
-					ValidationStringency.SILENT);	    
-		  			
-		for(int i = 0; i < 100; i++) mismatch[i] = 0;	 	
-		for (SAMRecord r : reader){ 	
-			total ++;
-			if(seekFullMapped( r)){
-				fullMapped ++;  
-				countMismatch(r);
-			}
-		}			
-		reader.close();
+	    try( SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(input), null, ValidationStringency.SILENT);){	    		  			
+			for(int i = 0; i < 100; i++) mismatch[i] = 0;	 	
+			for (SAMRecord r : reader){ 	
+				total ++;
+				if(seekFullMapped( r)){
+					fullMapped ++;  
+					countMismatch(r);
+				}
+			}			
+	    }
 
 		//report mismatch
 		String S_mismatch = "mismatch matrix for fully mapped reads is below:\nmismatch\treads_number\tratio_to_(fullmapped,total)\n";

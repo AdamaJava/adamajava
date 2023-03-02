@@ -183,10 +183,7 @@ public class VcfHeaderTest {
 		header.addInfo(VcfHeaderUtils.INFO_DB, "2", "String", "anything will do");
 		assertEquals(1, header.getInfoRecords().size());
 		VcfHeaderRecord infoRec2 = header.getInfoRecord(VcfHeaderUtils.INFO_DB);
-		
-		//debug
-		System.out.println("hasCode: " + infoRec1.hashCode() + " : " + infoRec2.hashCode());
-		
+				
 		// these should not be equal - different numbers
 		assertEquals(false, infoRec1.equals(infoRec2));
 		

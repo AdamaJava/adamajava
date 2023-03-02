@@ -25,7 +25,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.picard.SAMFileReaderFactory;
-import org.qcmg.picard.SAMOrBAMWriterFactory;
+import org.qcmg.picard.SAMWriterFactory;
 import org.qcmg.split.SamSplitType;
 import org.qcmg.split.Split;
 import org.qcmg.testing.SamTestData;
@@ -120,43 +120,41 @@ public class FileMergerTest {
 		/*
 		 * make bam from sam
 		 */
-		SamReader reader = SAMFileReaderFactory.createSAMFileReader(f1);
-		SAMOrBAMWriterFactory factory = new SAMOrBAMWriterFactory(reader.getFileHeader(), true, f1Bam);
-		SAMFileWriter writer = factory.getWriter();
-		for (SAMRecord r : reader) {
-			writer.addAlignment(r);
-			countA++;
+		try(SamReader reader = SAMFileReaderFactory.createSAMFileReader(f1);){
+			SAMWriterFactory factory = new SAMWriterFactory(reader.getFileHeader(), true, f1Bam);
+			try( SAMFileWriter writer = factory.getWriter();) {
+				for (SAMRecord r : reader) {
+					writer.addAlignment(r);
+					countA++;
+				}
+			}
 		}
-		writer.close();
-		
 		String[] args = { f1Bam.getAbsolutePath() };
 		new FileMerger(fOut.getAbsolutePath(), args, null,"commandLine",-1, false,false, true, null,null, null, ",my_uuid");
 		
-		reader = SAMFileReaderFactory.createSAMFileReader(fOut);
-		SAMFileHeader header = reader.getFileHeader();
-		int countB = 0;
-		for (SAMRecord record : reader) {
-			countB++;
+		try(SamReader reader = SAMFileReaderFactory.createSAMFileReader(fOut);){
+			SAMFileHeader header = reader.getFileHeader();
+			int countB = 0;
+			for (SAMRecord record : reader) countB++;
+			assertEquals(1, header.getComments().size());
+			assertEquals(true, header.getComments().get(0).contains("my_uuid"));
+			assertEquals(countB, countA);
 		}
-		assertEquals(1, header.getComments().size());
-		assertEquals(true, header.getComments().get(0).contains("my_uuid"));
-		assertEquals(countB, countA);
 		
 		/*
 		 * update uuid
 		 */
 		File fOut2 = new File(f.getAbsolutePath() + "output2.bam");
 		new FileMerger(fOut2.getAbsolutePath(), new String[]{fOut.getAbsolutePath()}, null,"commandLine",-1, false,false, true, null,null, null, ",my_uuid_take_II");
-		reader = SAMFileReaderFactory.createSAMFileReader(fOut2);
-		header = reader.getFileHeader();
-		int countC = 0;
-		for (SAMRecord record : reader) {
-			countC++;
+		try(SamReader reader = SAMFileReaderFactory.createSAMFileReader(fOut2);){
+			SAMFileHeader header = reader.getFileHeader();
+			int countC = 0;
+			for (SAMRecord record : reader) countC++;
+			assertEquals(1, header.getComments().size());
+			assertEquals(true, header.getComments().get(0).contains("my_uuid_take_II"));
+			assertEquals(countC, countA);
 		}
-		assertEquals(1, header.getComments().size());
-		assertEquals(true, header.getComments().get(0).contains("my_uuid_take_II"));
-		assertEquals(countC, countA);
-		
+
 	}
 
 	@Test

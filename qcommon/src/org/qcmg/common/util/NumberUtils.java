@@ -1,3 +1,10 @@
+/**
+ * © Copyright QIMR Berghofer Medical Research Institute 2014-2016.
+ *
+ * This code is released under the terms outlined in the included LICENSE file.
+*/
+
+
 package org.qcmg.common.util;
 
 import java.util.ArrayList;
@@ -52,6 +59,7 @@ public class NumberUtils {
 	public static int sumPackedInt(int toSum) {
 		return sumPackedInt(toSum, SHORT_DIVIDER);
 	}
+	
 	public static int sumPackedInt(int toSum, int divider) {
 		return (toSum >> divider) + (short) toSum;
 	}
@@ -59,6 +67,7 @@ public class NumberUtils {
 	public static int getPartOfPackedInt(int packedInt, boolean firstPart) {
 		return getPartOfPackedInt(packedInt, firstPart, SHORT_DIVIDER);
 	}
+	
 	public static int getPartOfPackedInt(int packedInt, boolean firstPart, int divider) {
 		if (firstPart) {
 			return packedInt >> divider;
@@ -68,33 +77,37 @@ public class NumberUtils {
 	}
 	
 	public static long setBit(long value, int numberOfBits) {
-		return (1l << numberOfBits) + value;
+		return (1L << numberOfBits) + value;
 	}
 
 	public static long stripBitFromLong(long value, int bit) {
-			return value - (1l << bit);
-		}
+		return value - (1L << bit);
+	}
 
 	public static boolean isBitSet(long value, int bit) {
-		return (value & 1l << bit) != 0;
+		return (value & 1L << bit) != 0;
 	}
 	
 	public static byte setBit(byte value, int numberOfBits) {
 		return (byte) ((1 << numberOfBits) + value);
 	}
+	
 	public static boolean isBitSetOnByte(byte value, int bit) {
-		return (value & 1l << bit) != 0;
+		return (value & 1L << bit) != 0;
 	}
 	
 	public static short getShortFromLong(long l, int offset) {
 		return (short) (l >> offset);
 	}
+	
 	public static long addShortToLong(long l, short s, int offset) {
 		return l + ((long)s << offset);
 	}
+	
 	public static long removeShortFromLong(long l) {
 		return removeShortFromLong(l, OFFSET);
 	}
+	
 	public static long removeShortFromLong(long l, int offset) {
 		/*
 		 * first of all, get the short, then subtract from the long
@@ -106,6 +119,7 @@ public class NumberUtils {
 	public static long getLongPositionValueFromPackedLong(long l){
 		return getLongPositionValueFromPackedLong(l, OFFSET, REV_COMP_BIT);
 	}
+	
 	public static long getLongPositionValueFromPackedLong(long l, int offset, int reverseCompBit){
 		/*
 		 * Need to loop through our map values, and check each one to see if the position falls within the range.
@@ -207,7 +221,7 @@ public class NumberUtils {
 				return new int[]{blockCount, charCount};
 			}
 		}
-		return new int[]{0,0};
+		return new int[] {0, 0};
 	}
 	
 
@@ -366,6 +380,7 @@ public class NumberUtils {
 	public static int minusPackedInt(int toSum) {
 		return minusPackedInt(toSum, SHORT_DIVIDER);
 	}
+	
 	public static int minusPackedInt(int toSum, int divider) {
 		return (toSum >> divider) - (short) toSum;
 	}

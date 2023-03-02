@@ -104,19 +104,17 @@ public class SnpUtilsTest {
 			SnpUtils.getCountFromNucleotideString(bases, ".", false);
 			fail("Should have thrown an exception");
 		} catch (Exception e) {}
-		
-		
 	}
 	
 	@Test
 	public void getCSDist() {
-		assertEquals(true, SnpUtils.getCompoundSnpDistribution(null).isEmpty());
-		assertEquals(true, SnpUtils.getCompoundSnpDistribution("").isEmpty());
-		assertEquals(true, SnpUtils.getCompoundSnpDistribution("asdfsgahjsfkahs").isEmpty());
-		assertEquals(true, SnpUtils.getCompoundSnpDistribution("asdfsgahjsfkahs1232345").isEmpty());
-		
+		assertEquals(true, SnpUtils.getCompoundSnpDistribution(null, 0).isEmpty());
+		assertEquals(true, SnpUtils.getCompoundSnpDistribution("", 0).isEmpty());
+		assertEquals(true, SnpUtils.getCompoundSnpDistribution("asdfsgahjsfkahs", 0).isEmpty());
+		assertEquals(true, SnpUtils.getCompoundSnpDistribution("asdfsgahjsfkahs1232345", 0).isEmpty());
+
 		String bases = "CA,17,17,C_,2,0,GG,10,8";
-		Map<String,Integer> map = SnpUtils.getCompoundSnpDistribution(bases);
+		Map<String,Integer> map = SnpUtils.getCompoundSnpDistribution(bases, 0);
 		assertEquals(3, map.size());
 		assertEquals(true, map.values().contains(34));
 		assertEquals(true, map.values().contains(18));

@@ -32,7 +32,7 @@ public class ZPAnnotatorTest {
     @Before
     public void setUp() throws IOException {
 		if (records.isEmpty()) {
-    		File file = TestUtil.createSamFile(testFolder.newFile("test.bam").getAbsolutePath(), SortOrder.unsorted, true);
+    		File file = TestUtil.createSamFile(testFolder.newFile("test.sam").getAbsolutePath(), SortOrder.unsorted, true);
 	        try (final SamReader sam = SAMFileReaderFactory.createSAMFileReader(file)){//new SAMFileReader(file);) {
 		        for (final SAMRecord samRecord : sam) {
 		        		records.add(samRecord);

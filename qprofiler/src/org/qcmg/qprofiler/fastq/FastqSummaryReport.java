@@ -123,7 +123,7 @@ public class FastqSummaryReport extends SummaryReport {
 			SummaryReportUtils.lengthMapToXmlTallyItem(seqElement, "LengthTally", seqLineLengths);
 			SummaryReportUtils.lengthMapToXml(seqElement, "BadBasesInReads", seqBadReadLineLengths);
 			
-			kmersSummary.toXml(seqElement,kmersSummary.MAX_KMERS); //debug
+			kmersSummary.toXml(seqElement,kmersSummary.MAX_KMERS);
 			kmersSummary.toXml(seqElement,1); //add 1-mers
 			kmersSummary.toXml(seqElement,2); //add 2-mers
 			kmersSummary.toXml(seqElement,3); //add 3-mers

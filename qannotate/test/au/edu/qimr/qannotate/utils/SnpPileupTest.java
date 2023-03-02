@@ -14,7 +14,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.picard.SAMFileReaderFactory;
-import org.qcmg.picard.SAMOrBAMWriterFactory;
+import org.qcmg.picard.SAMWriterFactory;
 
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMFileWriter;
@@ -137,9 +137,8 @@ public class SnpPileupTest {
 		return pool; 		
 	}
 
-    public static void createSam( List<String> reads, File input ){
-    	File ftmp = new File("input.sam");
-    	
+    public void createSam( List<String> reads, File input ) throws IOException{
+    	File ftmp = testFolder.newFile("input.sam");   	
         List<String> data = new ArrayList<String> ();
         data.add("@HD	VN:1.0	SO:coordinate");
         data.add("@RG	ID:20140717025441134	SM:eBeads_20091110_CD	DS:rl=50");
@@ -148,8 +147,7 @@ public class SnpPileupTest {
         data.add("@SQ	SN:chr11	LN:243199373");
         data.add("@CO	create by qcmg.qbamfilter.filter::TestFile"); 
         data.addAll(reads);
-                  
-       
+                         
         try( BufferedWriter out =  new BufferedWriter( new FileWriter( ftmp )) ){
            for ( String line : data )  out.write( line + "\n" );          
            out.close();
@@ -160,13 +158,10 @@ public class SnpPileupTest {
 		try(SamReader inreader =  SAMFileReaderFactory.createSAMFileReader( ftmp);  ){
 			SAMFileHeader he = inreader.getFileHeader();
 			he.setSortOrder( SAMFileHeader.SortOrder.coordinate );
-			SAMFileWriter writer = new SAMOrBAMWriterFactory(he , false, input, true).getWriter();	        
-	        for(SAMRecord re : inreader){ writer.addAlignment(re); }
-	        writer.close();
-		} catch (IOException e) { e.printStackTrace(); }	
-		
-		ftmp.delete();
-     
+			try(SAMFileWriter writer = new SAMWriterFactory(he , false, input, true).getWriter();) {	        
+				for(SAMRecord re : inreader){ writer.addAlignment(re); }
+			}
+		} catch (IOException e) { e.printStackTrace(); }			   
     }
        
 	/**  

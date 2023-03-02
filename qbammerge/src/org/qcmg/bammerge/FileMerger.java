@@ -20,13 +20,13 @@ import java.util.Vector;
 import java.util.regex.Pattern;
 
 import htsjdk.samtools.BamFileIoUtils;
-import htsjdk.samtools.SAMTagUtil;
 import htsjdk.samtools.SamFileHeaderMerger;
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SamReader;
 import htsjdk.samtools.SAMProgramRecord;
 import htsjdk.samtools.SAMReadGroupRecord;
 import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SAMTag;
 import htsjdk.samtools.ValidationStringency;
 
 import org.qcmg.common.log.QLogger;
@@ -37,9 +37,9 @@ import org.qcmg.common.util.FileUtils;
 import org.qcmg.picard.HeaderUtils;
 import org.qcmg.picard.MultiSAMFileIterator;
 import org.qcmg.picard.MultiSAMFileReader;
-import org.qcmg.picard.RenameFile;
 import org.qcmg.picard.SAMFileReaderFactory;
-import org.qcmg.picard.SAMOrBAMWriterFactory;
+import org.qcmg.picard.SAMWriterFactory;
+import org.qcmg.picard.util.BAMFileUtils;
 import org.qcmg.picard.util.SAMReadGroupRecordUtils;
 
 /**
@@ -86,9 +86,9 @@ public final class FileMerger {
 	 */
 	public static final String ZC = "ZC";
 	public static final String RG = "RG";
-	public static final short ZC_TAG = SAMTagUtil.getSingleton().makeBinaryTag(ZC);
-	public static final short RG_TAG = SAMTagUtil.getSingleton().RG;
-
+	public static final short ZC_TAG = SAMTag.makeBinaryTag(ZC);
+	public static final short RG_TAG = SAMTag.RG.getBinaryTag();
+	
 	/** The naming prefix for temporary files during merging. */
 	private static final String TEMP_FILE_PREFIX = "tmp";
 
@@ -128,7 +128,7 @@ public final class FileMerger {
 	/** Writer for outputting merged records into the output SAM/BAM. */
 	//private SAMFileWriter outputWriter;
 
-	private  SAMOrBAMWriterFactory outputWriterfactory;
+	private  SAMWriterFactory outputWriterfactory;
 	/**The merged header obtained from combining the input SAM/BAM file headers.*/
 	private SAMFileHeader mergedHeader;
 	
@@ -487,12 +487,12 @@ public final class FileMerger {
 	
 	private void reheadSingleBamFile() throws IOException {
 		File in = new File(allInputFileNames[0]);
-		final SamReader reader = SAMFileReaderFactory.createSAMFileReader(in, validation);
+		final SamReader reader = SAMFileReaderFactory.createSAMFileReader(in, null, validation);
 		final SAMFileHeader header = reader.getFileHeader();
 		replaceUUIDInHeader(header, uuid);
 		BamFileIoUtils.reheaderBamFile(header, in, outputFile, false, createIndex);
 		if (createIndex) {
-			RenameFile.renameIndex(outputFile);
+			BAMFileUtils.renameIndex(outputFile);
 		}
 	}
 
@@ -578,11 +578,6 @@ public final class FileMerger {
 	private void detectFileUsedAsInputAndOutput() throws BamMergeException {
 		for (final File basisFile : inputFiles) {
 			checkSameness(basisFile, outputFile);
-//			for (final File file : inputFiles) {
-//				if (outputFile.equals(file)) {
-//					throw new BamMergeException("FILE_USED_BOTH_AS_INPUT_AND_OUTPUT", outputFile.getName());
-//				}
-//			}
 		}
 	}
 
@@ -946,8 +941,7 @@ public final class FileMerger {
 	 * Opens the SAM/BAM file writer for the output file.
 	 */
 	private void openWriter() {
-		outputWriterfactory = new SAMOrBAMWriterFactory(mergedHeader,  true, outputFile,tmpdir, 0, createIndex, true, 500000);
-//		outputWriterfactory = new SAMOrBAMWriterFactory(mergedHeader, true, outputFile, tmpdir, createIndex);
+		outputWriterfactory = new SAMWriterFactory(mergedHeader,  true, outputFile,tmpdir, 0, createIndex, true, 500000);
 	}
 
 	/**
@@ -960,7 +954,8 @@ public final class FileMerger {
 	private void close() throws BamMergeException {
 		//close output write and rename index if needed 
 		if (null != outputWriterfactory) {
-			outputWriterfactory.closeWriter();
+			outputWriterfactory.getWriter().close();
+			outputWriterfactory.renameIndex(); //manullly closed writer
 			String logMessage = outputWriterfactory.getLogMessage();
 			if ( ! StringUtils.isNullOrEmpty(logMessage)) {
 				logger.info(logMessage);
@@ -993,30 +988,4 @@ public final class FileMerger {
 		Object[] objectArray = list.toArray();
 		return Arrays.copyOf(objectArray, objectArray.length, String[].class);
 	}
-	
-//	public class Writer implements Runnable {
-//
-//		@Override
-//		public void run() {
-//			try {
-//				while (true) {
-//					SAMRecord rec = queue.poll();
-//					if (null != rec) {
-//						outputWriter.addAlignment(rec);
-//					} else {
-//						if (readingLatch.getCount() == 0) {
-//							break;
-//						}
-//						try {
-//							Thread.sleep(10);
-//						} catch (InterruptedException e) {
-//							e.printStackTrace();
-//						}
-//					}
-//				}
-//			} finally {
-//				writingLatch.countDown();
-//			}
-//		}
-//	}
 }

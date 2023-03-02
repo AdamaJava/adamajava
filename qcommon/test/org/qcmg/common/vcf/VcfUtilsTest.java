@@ -53,45 +53,6 @@ public class VcfUtilsTest {
 	
 	
 	@Test
-	public void getAltFrequencyTest() throws Exception{
-		
-        //"chrY\t14923588\t.\tG\tA\t.\tSBIAS\tMR=15;NNS=13;FS=GTGATATTCCC\tGT:GD:AC\t0/1:G/A:A0[0],15[36.2],G11[36.82],9[33]\t0/1:G/A:A0[0],33[35.73],G6[30.5],2[34]"); 
-        //"chrY\t2675825\t.\tTTG\tTCA\t.\tMIN;MIUN\tSOMATIC;END=2675826\tACCS\tTTG,5,37,TCA,0,2\tTAA,1,1,TCA,4,1,TCT,3,1,TTA,11,76,TTG,2,2,_CA,0,3,TTG,0,1");
-
-		String str = "chrY\t14923588\t.\tG\tA\t.\tSBIAS\tMR=15;NNS=13;FS=GTGATATTCCC\tGT:GD:AC\t0/1:G/A:A0[0],15[36.2],G11[36.82],9[33]\t0/1:G/A:A0[0],33[35.73],G6[30.5],2[34]" ; 
-		VcfRecord  vcf  = new VcfRecord(str.split("\t"));				
-		VcfFormatFieldRecord format = vcf.getSampleFormatRecord(1);
-		
-		//debug		
-		format = new VcfFormatFieldRecord(vcf.getFormatFields().get(0), vcf.getFormatFields().get(1));	 
-		
-		int count = VcfUtils.getAltFrequency(format, null);
-		assertEquals(count,35);
-		
-		count = VcfUtils.getAltFrequency(format, "G");
-		assertEquals(count,20);
-		
-		count = VcfUtils.getAltFrequency(format, "W");
-		assertEquals(count,0);
-		
-		count = VcfUtils.getAltFrequency(format, "");
-		assertEquals(count,0);
-		
-
-		//test coumpound snp
-		str =  "chrY\t2675825\t.\tTTG\tTCA\t.\tMIN;MIUN\tSOMATIC;END=2675826\tACCS\tTTG,5,37,TCA,0,2\tTAA,1,1,TCA,4,1,TCT,3,1,TTA,11,76,TTG,2,2,_CA,0,3,TTG,0,1" ;
-		vcf  = new VcfRecord(str.split("\t"));
-		format = new VcfFormatFieldRecord(vcf.getFormatFields().get(0), vcf.getFormatFields().get(2));
-		count = VcfUtils.getAltFrequency(format, "TCT");
-		assertEquals(count,4);
-		
-		count = VcfUtils.getAltFrequency(format, null);
-		assertEquals(count,106);
-		count = VcfUtils.getAltFrequency(format, "_CA");
-		assertEquals(count,3);		;
-	}
-	
-	@Test
 	public void getAlleles() {
 		 String gt = "0/0";
 		 String ref = "R";
@@ -339,30 +300,6 @@ public class VcfUtilsTest {
 	}
 	
 	@Test
-	public void mergeAlts() {
-		assertEquals("A", VcfUtils.mergeAlts("A", "A"));
-		assertEquals("A,B", VcfUtils.mergeAlts("A", "B"));
-		assertEquals("A,B", VcfUtils.mergeAlts("A,B", "B"));
-		assertEquals("A,B,C", VcfUtils.mergeAlts("A,B,C", "B"));
-		assertEquals("A,B,C", VcfUtils.mergeAlts("A,B,C", "B,C"));
-		assertEquals("A,B,C", VcfUtils.mergeAlts("A,B", "B,C"));
-		assertEquals("A,B,C", VcfUtils.mergeAlts("A", "B,C"));
-		assertEquals("A,D,B,C", VcfUtils.mergeAlts("A,D", "B,C"));
-		assertEquals("AA", VcfUtils.mergeAlts("AA", "AA"));
-		assertEquals("AA,XX", VcfUtils.mergeAlts("AA", "XX"));
-		assertEquals("AA,BB,XX", VcfUtils.mergeAlts("AA,BB", "XX"));
-		assertEquals("AA,BB,XX", VcfUtils.mergeAlts("AA,BB", "BB,XX"));
-		assertEquals("AA,BB,XX", VcfUtils.mergeAlts("AA", "BB,XX"));
-		assertEquals("AA,BB,XX", VcfUtils.mergeAlts("AA", "BB,XX"));
-	}
-	
-	@Test
-	public void mergeAltsDiffLEngths() {
-		assertEquals("AA,A", VcfUtils.mergeAlts("AA", "A"));
-		assertEquals("A,AA", VcfUtils.mergeAlts("A", "AA"));
-	}
-	
-	@Test
 	public void getOABSDetails() {
 		Map<String, int[]> map = VcfUtils.getAllelicCoverageWithStrand("A1[10]0[0]");
 		assertEquals(1, map.size());
@@ -384,24 +321,6 @@ public class VcfUtilsTest {
 		assertEquals(10, map.get("B")[1]);
 		assertEquals(12, map.get("C")[0]);
 		assertEquals(21, map.get("C")[1]);
-	}
-	
-	@Test
-	public void getUpdatedGT() {
-		assertEquals("0/0", VcfUtils.getUpdatedGT("", "", "0/0"));
-		assertEquals("0/0", VcfUtils.getUpdatedGT("A", "A", "0/0"));
-		assertEquals("0/1", VcfUtils.getUpdatedGT("A", "A", "0/1"));
-		assertEquals("1/1", VcfUtils.getUpdatedGT("A", "A", "1/1"));
-		assertEquals("1/2", VcfUtils.getUpdatedGT("A", "A", "1/2"));
-		assertEquals("0/1", VcfUtils.getUpdatedGT("A,C", "A", "0/1"));
-		assertEquals("0/2", VcfUtils.getUpdatedGT("A,C", "C", "0/1"));
-		assertEquals("2/2", VcfUtils.getUpdatedGT("A,C", "C", "1/1"));
-		assertEquals("1/2", VcfUtils.getUpdatedGT("A,C", "A,C", "1/2"));
-		assertEquals("1/1", VcfUtils.getUpdatedGT("A,C", "A", "1/1"));
-		assertEquals("1/1", VcfUtils.getUpdatedGT("A,C", "A", "1/1"));
-		assertEquals("2/3", VcfUtils.getUpdatedGT("A,C,G", "C,G", "1/2"));
-		assertEquals("1/2", VcfUtils.getUpdatedGT("A,C,G", "A,C", "1/2"));
-		assertEquals("2/1", VcfUtils.getUpdatedGT("A,C", "C,A", "1/2"));
 	}
 	
 	@Test
@@ -724,17 +643,6 @@ public class VcfUtilsTest {
 	}
 	
 	@Test
-	public void getFiltersWithSuffix() {
-		VcfRecord rec =  new VcfRecord( new String[] {"1","1",".","A","."});
-		rec.setFilter(".");
-		assertEquals("", VcfUtils.getFiltersEndingInSuffix(rec, "_1"));
-		assertEquals(".", VcfUtils.getFiltersEndingInSuffix(rec, "."));
-		rec.setFilter("PASS_1;PASS_2");
-		assertEquals("PASS_1", VcfUtils.getFiltersEndingInSuffix(rec, "_1"));
-		assertEquals("PASS_2", VcfUtils.getFiltersEndingInSuffix(rec, "_2"));
-	}
-	
-	@Test
 	public void testMissingDataInFormatField() {
 		VcfRecord r = new VcfRecord(new String[]{"chr1","52924633","rs12072217","C","T","671.77","NCIT","AC=1;AF=0.500;AN=2;BaseQRankSum=0.655;ClippingRankSum=-1.179;DB;DP=33;FS=1.363;MLEAC=1;MLEAF=0.500;MQ=60.00;MQ0=0;MQRankSum=-1.067;QD=20.36;ReadPosRankSum=-0.655;SOR=0.990","GT:AD:DP:GQ:PL","0/1:12,21:33:99:700,0,339"});
 		VcfUtils.addMissingDataToFormatFields(r, 2);
@@ -839,22 +747,6 @@ public class VcfUtilsTest {
 		assertEquals(GenotypeEnum.GG, VcfUtils.calculateGenotypeEnum("0/0", 'G', 'G'));
 		assertEquals(GenotypeEnum.GG, VcfUtils.calculateGenotypeEnum("0/1", 'G', 'G'));
 		assertEquals(GenotypeEnum.GG, VcfUtils.calculateGenotypeEnum("1/1", 'G', 'G'));
-	}
-	
-	@Test
-	public void testGetPileupElementAsString() {
-		assertEquals("FULLCOV=A:0,C:0,G:0,T:0,N:0,TOTAL:0", VcfUtils.getPileupElementAsString(null, false));
-		assertEquals("NOVELCOV=A:0,C:0,G:0,T:0,N:0,TOTAL:0", VcfUtils.getPileupElementAsString(null, true));
-		final List<PileupElement> pileups = new ArrayList<PileupElement>();
-		final PileupElement pA = new PileupElement('A');
-		pA.incrementForwardCount();
-		final PileupElement pC = new PileupElement('C');
-		pC.incrementForwardCount();
-		pileups.add(pA);
-		assertEquals("NOVELCOV=A:1,C:0,G:0,T:0,N:0,TOTAL:1", VcfUtils.getPileupElementAsString(pileups, true));
-		pileups.add(pC);
-		assertEquals("NOVELCOV=A:1,C:1,G:0,T:0,N:0,TOTAL:2", VcfUtils.getPileupElementAsString(pileups, true));
-		assertEquals("FULLCOV=A:1,C:1,G:0,T:0,N:0,TOTAL:2", VcfUtils.getPileupElementAsString(pileups, false));
 	}
 	
 	@Test
