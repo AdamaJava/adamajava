@@ -1,7 +1,6 @@
 package au.edu.qimr.qannotate.nanno;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.BufferedWriter;
@@ -13,25 +12,14 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.commandline.Executor;
 import org.qcmg.common.model.ChrPositionRefAlt;
-import org.qcmg.common.util.Constants;
-import org.qcmg.common.vcf.VcfRecord;
-import org.qcmg.common.vcf.VcfUtils;
-import org.qcmg.common.vcf.header.VcfHeader;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
-import org.qcmg.qio.record.RecordReader;
-import org.qcmg.qio.record.StringFileReader;
-import org.qcmg.qio.vcf.VcfFileReader;
 
 
 public class AnnotateTest {
@@ -39,166 +27,6 @@ public class AnnotateTest {
 	@Rule
 	public final TemporaryFolder testFolder = new TemporaryFolder();
   	
-	 
-	 
-//	 @Test
-//	 public void annotate() {
-//		 
-//		VcfRecord r = new VcfRecord(new String[]{"chr1","16534","rs201459529","C","T",".",".","IN=2;DB","GT:AD:DP:GQ:PL:FT:MR:NNS:OABS:INF",".:.:.:.:.:.:.:.:.:.","1/1:0,2:2:6:69,6,0:SBIASCOV;SAT3:2:2:T0[0]2[34.5]:SOMATIC"});
-//		assertEquals(true, GermlineMode.annotateGermlineSnp(r, "C", "T", new String[]{"1","1","1","1"}));
-//		assertEquals(true, r.getInfo().contains("GERM=T:1:1:1:1"));
-//		assertEquals(false, GermlineMode.annotateGermlineSnp(r, "C", "A", new String[]{"1","1","1","1"}));
-//		assertEquals(false, r.getInfo().contains("GERM=A:1:1:1:1"));
-//		
-//		r = new VcfRecord(new String[]{"chr1","16534","rs201459529","C","T,A",".",".","IN=2;DB","GT:AD:DP:GQ:PL:FT:MR:NNS:OABS:INF",".:.:.:.:.:.:.:.:.:.","1/1:0,2:2:6:69,6,0:SBIASCOV;SAT3:2:2:T0[0]2[34.5]:SOMATIC"});
-//		assertEquals(true, GermlineMode.annotateGermlineSnp(r, "C", "T", new String[]{"1","1","1","1"}));
-//		assertEquals(true, r.getInfo().contains("GERM=T:1:1:1:1"));
-//		assertEquals(true, GermlineMode.annotateGermlineSnp(r, "C", "A", new String[]{"1","1","1","1"}));
-//		assertEquals(true, r.getInfo().contains("GERM=T:1:1:1:1,A:1:1:1:1"));
-//	 }
-	 
-//	@Test
-//	public void annotateRecords() throws IOException {
-//		File annotationFile = testFolder.newFile();
-//		createAnnotationFile(annotationFile);
-//		
-//		try (RecordReader<String> reader = new StringFileReader(annotationFile);
-//				Anno anno = new Anno(reader, 1, 2, 3, 4, null)) {
-//			Assert.fail("SHould have thrown an IAE!");
-//		} catch (IllegalArgumentException iae) {}
-//		
-//		try (RecordReader<String> reader = new StringFileReader(annotationFile);
-//				Anno anno = new Anno(reader, 1, 2, 3, 4, "13"))  {
-//			VcfRecord r = new VcfRecord(new String[]{"chr1","655650","rs201459529","A","C",".",".","IN=2;DB","GT:AD:DP:GQ:PL:FT:MR:NNS:OABS:INF",".:.:.:.:.:.:.:.:.:.","1/1:0,2:2:6:69,6,0:SBIASCOV;SAT3:2:2:T0[0]2[34.5]:SOMATIC"});
-//			String results = anno.getAnnotation(r.getChrPositionRefAlt() );
-//			assertEquals("13\tOR4F5", results);
-//		}
-//		try (RecordReader<String> reader = new StringFileReader(annotationFile);
-//				Anno anno = new Anno(reader, 1, 2, 3, 4, "14"))  {
-//			VcfRecord r = new VcfRecord(new String[]{"1","655650","rs201459529","A","C",".",".","IN=2;DB","GT:AD:DP:GQ:PL:FT:MR:NNS:OABS:INF",".:.:.:.:.:.:.:.:.:.","1/1:0,2:2:6:69,6,0:SBIASCOV;SAT3:2:2:T0[0]2[34.5]:SOMATIC"});
-//			String results = anno.getAnnotation(r.getChrPositionRefAlt() );
-//			assertEquals("14\tENSG00000186092", results);
-//		}
-//		try (RecordReader<String> reader = new StringFileReader(annotationFile);
-//				Anno anno = new Anno(reader, 1, 2, 3, 4, "1"))  {
-//			VcfRecord r = new VcfRecord(new String[]{"chr1","655650","rs201459529","A","T",".",".","IN=2;DB","GT:AD:DP:GQ:PL:FT:MR:NNS:OABS:INF",".:.:.:.:.:.:.:.:.:.","1/1:0,2:2:6:69,6,0:SBIASCOV;SAT3:2:2:T0[0]2[34.5]:SOMATIC"});
-//			String results = anno.getAnnotation(r.getChrPositionRefAlt());
-//			assertEquals("1\t", results);
-//		}
-//		try (RecordReader<String> reader = new StringFileReader(annotationFile);
-//				Anno anno = new Anno(reader, 1, 2, 3, 4, "1"))  {
-//			VcfRecord r = new VcfRecord(new String[]{"1","655650","rs201459529","A","T",".",".","IN=2;DB","GT:AD:DP:GQ:PL:FT:MR:NNS:OABS:INF",".:.:.:.:.:.:.:.:.:.","1/1:0,2:2:6:69,6,0:SBIASCOV;SAT3:2:2:T0[0]2[34.5]:SOMATIC"});
-//			String results = anno.getAnnotation(r.getChrPositionRefAlt());
-//			assertEquals("1\t", results);
-//		}
-//		
-//		/*
-//		 * go beyond end of annotation file
-//		 */
-//		try (RecordReader<String> reader = new StringFileReader(annotationFile);
-//				Anno anno = new Anno(reader, 1, 2, 3, 4, "15")) {
-//			VcfRecord r = new VcfRecord(new String[]{"chr1","65565000","rs201459529","A","C",".",".","IN=2;DB","GT:AD:DP:GQ:PL:FT:MR:NNS:OABS:INF",".:.:.:.:.:.:.:.:.:.","1/1:0,2:2:6:69,6,0:SBIASCOV;SAT3:2:2:T0[0]2[34.5]:SOMATIC"});
-//			String results = anno.getAnnotation(r.getChrPositionRefAlt());
-//			assertEquals("15\t", results);
-//		}
-//		try (RecordReader<String> reader = new StringFileReader(annotationFile);
-//				Anno anno = new Anno(reader, 1, 2, 3, 4, "2")) {
-//			VcfRecord r = new VcfRecord(new String[]{"chr2","655650","rs201459529","A","C",".",".","IN=2;DB","GT:AD:DP:GQ:PL:FT:MR:NNS:OABS:INF",".:.:.:.:.:.:.:.:.:.","1/1:0,2:2:6:69,6,0:SBIASCOV;SAT3:2:2:T0[0]2[34.5]:SOMATIC"});
-//			String results = anno.getAnnotation(r.getChrPositionRefAlt());
-//			assertEquals("2\t", results);
-//		}
-//		
-//		/*
-//		 * multiple annotation entries
-//		 */
-//		try (RecordReader<String> reader = new StringFileReader(annotationFile);
-//				Anno anno = new Anno(reader, 1, 2, 3, 4, "13")) {
-//			VcfRecord r = new VcfRecord(new String[]{"chr1","655651","rs201459529","A","C",".",".","IN=2;DB","GT:AD:DP:GQ:PL:FT:MR:NNS:OABS:INF",".:.:.:.:.:.:.:.:.:.","1/1:0,2:2:6:69,6,0:SBIASCOV;SAT3:2:2:T0[0]2[34.5]:SOMATIC"});
-//			String results = anno.getAnnotation(r.getChrPositionRefAlt());
-//			assertEquals("13\tOR4F51", results);
-//		}
-//		try (RecordReader<String> reader = new StringFileReader(annotationFile);
-//				Anno anno = new Anno(reader, 1, 2, 3, 4, "13")) {
-//			VcfRecord r = new VcfRecord(new String[]{"chr1","655651","rs201459529","A","G",".",".","IN=2;DB","GT:AD:DP:GQ:PL:FT:MR:NNS:OABS:INF",".:.:.:.:.:.:.:.:.:.","1/1:0,2:2:6:69,6,0:SBIASCOV;SAT3:2:2:T0[0]2[34.5]:SOMATIC"});
-//			String results = anno.getAnnotation(r.getChrPositionRefAlt());
-//			assertEquals("13\tOR4F52", results);
-//		}
-//		try (RecordReader<String> reader = new StringFileReader(annotationFile);
-//				Anno anno = new Anno(reader, 1, 2, 3, 4, "13")) {
-//			VcfRecord r = new VcfRecord(new String[]{"chr1","655651","rs201459529","A","T",".",".","IN=2;DB","GT:AD:DP:GQ:PL:FT:MR:NNS:OABS:INF",".:.:.:.:.:.:.:.:.:.","1/1:0,2:2:6:69,6,0:SBIASCOV;SAT3:2:2:T0[0]2[34.5]:SOMATIC"});
-//			String results = anno.getAnnotation(r.getChrPositionRefAlt());
-//			assertEquals("13\tOR4F53", results);
-//		}
-//		/*
-//		 * incorrect ref
-//		 */
-//		try (RecordReader<String> reader = new StringFileReader(annotationFile);
-//				Anno anno = new Anno(reader, 1, 2, 3, 4, "13")) {
-//			VcfRecord r = new VcfRecord(new String[]{"chr1","655651","rs201459529","C","T",".",".","IN=2;DB","GT:AD:DP:GQ:PL:FT:MR:NNS:OABS:INF",".:.:.:.:.:.:.:.:.:.","1/1:0,2:2:6:69,6,0:SBIASCOV;SAT3:2:2:T0[0]2[34.5]:SOMATIC"});
-//			String results = anno.getAnnotation(r.getChrPositionRefAlt());
-//			assertEquals("13\t", results);
-//		}
-//	}
-	
-//	@Test
-//	public void annotateRecordsWrongOrder() throws IOException {
-//		File annotationFile = testFolder.newFile();
-//		createAnnotationFileIncorrectOrder(annotationFile);
-//		
-//		try (RecordReader<String> reader = new StringFileReader(annotationFile);
-//				Anno anno = new Anno(reader, 1, 2, 3, 4, "13,14")) {
-//			/*
-//			 * get chr 1 rec - should work fine
-//			 */
-//			VcfRecord r = new VcfRecord(new String[]{"chr1","655652","rs201459529","A","G",".",".","IN=2;DB","GT:AD:DP:GQ:PL:FT:MR:NNS:OABS:INF",".:.:.:.:.:.:.:.:.:.","1/1:0,2:2:6:69,6,0:SBIASCOV;SAT3:2:2:T0[0]2[34.5]:SOMATIC"});
-//			String results = anno.getAnnotation(r.getChrPositionRefAlt());
-//			assertEquals("genename\tEnsembl_geneid\tOR4F5\tENSG00000186092", results);
-//			/*
-//			 * get chr2 rec - nothing returned as iterator is in chr10
-//			 */
-//			r = new VcfRecord(new String[]{"chr2","655652","rs201459529","A","G",".",".","IN=2;DB","GT:AD:DP:GQ:PL:FT:MR:NNS:OABS:INF",".:.:.:.:.:.:.:.:.:.","1/1:0,2:2:6:69,6,0:SBIASCOV;SAT3:2:2:T0[0]2[34.5]:SOMATIC"});
-//			results = anno.getAnnotation(r.getChrPositionRefAlt());
-//			assertEquals("genename\tEnsembl_geneid\t\t", results);
-//			/*
-//			 * get chr3 rec - nothing returned as iterator is in chr10
-//			 */
-//			r = new VcfRecord(new String[]{"chr3","655652","rs201459529","A","G",".",".","IN=2;DB","GT:AD:DP:GQ:PL:FT:MR:NNS:OABS:INF",".:.:.:.:.:.:.:.:.:.","1/1:0,2:2:6:69,6,0:SBIASCOV;SAT3:2:2:T0[0]2[34.5]:SOMATIC"});
-//			results = anno.getAnnotation(r.getChrPositionRefAlt());
-//			assertEquals("genename\tEnsembl_geneid\t\t", results);
-//			/*
-//			 * get chr4 rec - nothing returned as iterator is in chr10
-//			 */
-//			r = new VcfRecord(new String[]{"chr4","655652","rs201459529","A","G",".",".","IN=2;DB","GT:AD:DP:GQ:PL:FT:MR:NNS:OABS:INF",".:.:.:.:.:.:.:.:.:.","1/1:0,2:2:6:69,6,0:SBIASCOV;SAT3:2:2:T0[0]2[34.5]:SOMATIC"});
-//			results = anno.getAnnotation(r.getChrPositionRefAlt());
-//			assertEquals("genename\tEnsembl_geneid\t\t", results);
-//			/*
-//			 * get chr5 rec - nothing returned as iterator is in chr10
-//			 */
-//			r = new VcfRecord(new String[]{"chr5","655652","rs201459529","A","G",".",".","IN=2;DB","GT:AD:DP:GQ:PL:FT:MR:NNS:OABS:INF",".:.:.:.:.:.:.:.:.:.","1/1:0,2:2:6:69,6,0:SBIASCOV;SAT3:2:2:T0[0]2[34.5]:SOMATIC"});
-//			results = anno.getAnnotation(r.getChrPositionRefAlt());
-//			assertEquals("genename\tEnsembl_geneid\t\t", results);
-//			/*
-//			 * get chr6 rec - nothing returned as iterator is in chr10
-//			 */
-//			r = new VcfRecord(new String[]{"chr6","655652","rs201459529","A","G",".",".","IN=2;DB","GT:AD:DP:GQ:PL:FT:MR:NNS:OABS:INF",".:.:.:.:.:.:.:.:.:.","1/1:0,2:2:6:69,6,0:SBIASCOV;SAT3:2:2:T0[0]2[34.5]:SOMATIC"});
-//			results = anno.getAnnotation(r.getChrPositionRefAlt());
-//			assertEquals("genename\tEnsembl_geneid\t\t", results);
-//			/*
-//			 * get chr7 rec - nothing in annotation file - trick test!
-//			 */
-//			r = new VcfRecord(new String[]{"chr7","655652","rs201459529","A","G",".",".","IN=2;DB","GT:AD:DP:GQ:PL:FT:MR:NNS:OABS:INF",".:.:.:.:.:.:.:.:.:.","1/1:0,2:2:6:69,6,0:SBIASCOV;SAT3:2:2:T0[0]2[34.5]:SOMATIC"});
-//			results = anno.getAnnotation(r.getChrPositionRefAlt());
-//			assertEquals("genename\tEnsembl_geneid\t\t", results);
-//			
-//			/*
-//			 * now try and get the chr10 record - should return record
-//			 */
-//			r = new VcfRecord(new String[]{"chr10","655652","rs201459529","A","G",".",".","IN=2;DB","GT:AD:DP:GQ:PL:FT:MR:NNS:OABS:INF",".:.:.:.:.:.:.:.:.:.","1/1:0,2:2:6:69,6,0:SBIASCOV;SAT3:2:2:T0[0]2[34.5]:SOMATIC"});
-//			results = anno.getAnnotation(r.getChrPositionRefAlt());
-//			assertEquals("genename\tEnsembl_geneid\tOR4F5\tENSG00000186092", results);
-//		}
-//	}
-	
 	@Test
 	public void jsonInputs() throws IOException {
 		File inputJson = testFolder.newFile("inputs.json");
@@ -508,11 +336,5 @@ public class AnnotateTest {
 			}
 		}
 	}
-	
-	
-	
-	
-	
-	
 	
 }
