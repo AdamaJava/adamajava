@@ -74,26 +74,12 @@ public class Annotate {
 		logger.info("annotationSources have been loaded (size: " + annotationSources.size() + ")");
 		annotationSources.stream().forEach(as -> logger.info(as.toString()));
 		
-//		String emptyHeaders = ais.getAdditionalEmptyFields();
-//		String [] emptyHeadersArray =  StringUtils.isNullOrEmpty(emptyHeaders) ? new String[]{} : emptyHeaders.split(",");
-//		
-//		String header = "chr\tposition\tref\talt\tGATK_AD\t" + Arrays.stream(ais.getOutputFieldOrder().split(",")).collect(Collectors.joining("\t"));
-//		if (emptyHeadersArray.length > 0) {
-//			header += "\t" +  Arrays.stream(emptyHeadersArray).collect(Collectors.joining("\t"));
-//		}
-//		
-//		boolean includeSearchTerm = ais.isIncludeSearchTerm();
-//		header += (includeSearchTerm ? "\tsearchTerm" : "");
-//		
-//		String emptyHeaderValues =  AnnotateUtils.getEmptyHeaderValues(emptyHeadersArray.length);
-		
 		CountDownLatch consumerLatch = new CountDownLatch(1);
 		Queue<ChrPositionAnnotations> queue = new ConcurrentLinkedQueue<>();
 		
 		
 		ExecutorService executor = Executors.newFixedThreadPool(Math.max(ais.getAnnotationSourceThreadCount(), 1) + 1);	// need an extra thread for the consumer, and at least 1 other thread
 		executor.execute(new Consumer(queue, outputFile, consumerLatch, ais, exec));
-//		executor.execute(new Consumer(queue, outputFile, consumerLatch, header, includeSearchTerm, emptyHeaderValues));
 		logger.info("ExecutorService has been setup");
 		
 		ChrPosition lastCP = null;
@@ -220,7 +206,6 @@ public class Annotate {
 		private final AnnotationInputs ais;
 
 		public Consumer(Queue<ChrPositionAnnotations> queue, String outputFile, CountDownLatch latch, AnnotationInputs ais, QExec exec) throws IOException {
-//			public Consumer(Queue<ChrPositionAnnotations> queue, String outputFile, CountDownLatch latch, List<String> headers, boolean includeSearchTerm, String additionalEmptyHeaders) throws IOException {
 			this.queue = queue;
 			this.outputFile = outputFile;
 			this.latch = latch;
@@ -284,14 +269,13 @@ public class Annotate {
 			
 			List<String> annotations = recAndAnnotations.getAnnotations();
 			logger.debug("annotations.size(): " + annotations.size());
-//				annotations.stream().forEach(System.out::println);
 			
 			/*
 			 * collect entries in annotations lists into map
 			 */
 			List<String> singleAnnotations = AnnotateUtils.convertAnnotations(annotations);
 			logger.debug("singleAnnotations.size(): " + singleAnnotations.size());
-//				singleAnnotations.stream().forEach(System.out::println);
+
 			
 			String searchTerm = "";
 			if (includeSearchTerm) {
