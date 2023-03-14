@@ -161,26 +161,5 @@ public class ChrPositionComparator implements Comparator<ChrPosition>, Serializa
 	public static Comparator<String> getStringComparatorForHG38() {
 		return getChrNameComparator(HG38_CONTIGS);
 	}
-	
-//	public static Comparator<String> getChrNameComparatorForSingleString(String favouriteContig) {
-//		
-//		return	(StringUtils.isNullOrEmpty(favouriteContig)) ? COMPARATOR : 
-//			new Comparator<String>() {
-//			@Override
-//			public int compare(String o1, String o2) {
-//				if (o1.equalsIgnoreCase(favouriteContig)) {
-//					if (o2.equalsIgnoreCase(favouriteContig)) {
-//						return 0;
-//					} else {
-//						return -1;
-//					}
-//				} else if (o2.equalsIgnoreCase(favouriteContig)) {
-//					return 1;
-//				}
-//				return COMPARATOR.compare(o1, o2);
-//			}
-//		};
-//	}
-	
 
 }
