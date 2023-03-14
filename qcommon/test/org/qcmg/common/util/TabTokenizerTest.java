@@ -1,5 +1,7 @@
 package org.qcmg.common.util;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.regex.Pattern;
 
 import org.junit.Assert;
@@ -74,6 +76,17 @@ public class TabTokenizerTest {
 			counter += params.length;
 		}
 		System.out.println("tt: " + (System.currentTimeMillis() - start) + ", counter: " + counter);
+	}
+	
+	@Test
+	public void partialTokenize() {
+		String data = "1\t65565\tA\tC\tM\tL\t.\t1\t65565\t1\t55428\t1\tOR4F5\tENSG00000186092\tENST00000641515\tENSP00000493376\tA0A2U3U0J3\tA0A2U3U0J3_HUMAN\t.\t.\t.";
+		assertEquals(1, TabTokenizer.partialTokenize(data, '\t', 1).length);
+		assertEquals(2, TabTokenizer.partialTokenize(data, '\t', 2).length);
+		assertEquals("1", TabTokenizer.partialTokenize(data, '\t', 3)[0]);
+		assertEquals("65565", TabTokenizer.partialTokenize(data, '\t', 3)[1]);
+		assertEquals("A", TabTokenizer.partialTokenize(data, '\t', 3)[2]);
+		
 	}
 	
 	@Ignore

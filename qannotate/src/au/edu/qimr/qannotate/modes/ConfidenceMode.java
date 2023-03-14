@@ -80,8 +80,6 @@ public class ConfidenceMode extends AbstractMode{
 	private int testCovCutoff = TEST_COVERAGE_MIN_VALUE;
 	
 	private int minCov = 0;
-	
-	private List<String> filtersToIgnore = new ArrayList<>();
 	private double mrPercentage = 0.0f;
 	
 	private int minCutoff = MUTATION_IN_NORMAL_MIN_COVERAGE;
@@ -113,7 +111,6 @@ public class ConfidenceMode extends AbstractMode{
 		options.getMRPercentage().ifPresent(i -> mrPercentage = i.floatValue());
 		options.getMINCutoff().ifPresent(i -> minCutoff = i.intValue());
 		options.getMINPercentage().ifPresent(i -> minPercentage = i.floatValue());
-		filtersToIgnore = options.getFiltersToIgnore();
 		logger.tool("Number of Novel Starts filter value: " + nnsCount);
 		logger.tool("Number of Mutant Reads filter value: " + mrCount);
 		logger.tool("Percentage of Mutant Reads filter value: " + mrPercentage);
@@ -122,7 +119,6 @@ public class ConfidenceMode extends AbstractMode{
 		logger.tool("Test coverage minimum value: " + testCovCutoff);
 		logger.tool("Mutation In Unfiltered Normal (MIUN) will be applied if the Failed Filter (FF) format field contains more than max(" + minCutoff + ", " + minPercentage + "%) occurrences of the alt in the normal (control)");
 		logger.tool("Mutation In Normal (MIN) will be applied if number of alt reads in the normnal (control) are greater than or equal to " + minCutoff + " OR greather than or equal to " + minPercentage +"% of total reads");
-		logger.tool("Filters to ignore: " + filtersToIgnore.stream().collect(Collectors.joining(", ")));
 		
 		minCov = Math.min(controlCovCutoff, testCovCutoff);
 
@@ -149,16 +145,6 @@ public class ConfidenceMode extends AbstractMode{
 		header.addFilter(VcfHeaderUtils.FILTER_STRAND_BIAS_ALT,"Alternate allele on only one strand (or percentage alternate allele on other strand is less than " + sBiasAltPercentage + "%)"); 
 		header.addFilter(VcfHeaderUtils.FILTER_STRAND_BIAS_COV,"Sequence coverage on only one strand (or percentage coverage on other strand is less than " + sBiasCovPercentage + "%)");
 		header.addFilter(VcfHeaderUtils.FILTER_END_OF_READ, VcfHeaderUtils.FILTER_END_OF_READ_DESC);
-	}
-
-	public void setMRPercentage(double perc) {
-		mrPercentage = perc;
-	}
-	public void setNNSCount(int i) {
-		nnsCount = i;
-	}
-	public void setFiltersToIgnore(List<String> l) {
-		filtersToIgnore = l;
 	}
 
 	void addAnnotation() {

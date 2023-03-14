@@ -23,6 +23,7 @@ import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrPositionComparator;
+import org.qcmg.common.model.ChrPositionRefAlt;
 import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
@@ -122,6 +123,15 @@ public class VcfRecord implements Comparable<VcfRecord> {
 		} else {
 			return new ChrRangePosition(cpp, cpp.getStartPosition() + ref.length() - 1);
 		}
+	}
+	
+	/**
+	 * Create a new ChrPositionRefAlt object based on the existing ChrPosition along with ref and alt strings
+	 * @return
+	 */
+	public ChrPosition getChrPositionRefAlt() {
+		ChrPosition cp = getChrPosition();
+		return new ChrPositionRefAlt(cp.getChromosome(), cp.getStartPosition(), cp.getEndPosition(), getRef(), getAlt());
 	}
 	
 
@@ -390,8 +400,53 @@ public class VcfRecord implements Comparable<VcfRecord> {
 		}
 		
 		int l1 = (ref != null) ? ref.length() : 0;
-		int l2 = (arg0.ref != null) ? arg0.ref.length() : 0;		
-		return l1 - l2;
+		int l2 = (arg0.ref != null) ? arg0.ref.length() : 0;
+		if (l1 != l2) {
+			return l1 - l2;
+		}
+		/*
+		 * compare ref (not just length of ref)
+		 */
+		if (null != ref && null != arg0.ref) {
+			diff = ref.compareTo(arg0.ref);
+			
+		} else if (null != ref && null == arg0.ref) {
+			diff = -1;
+		} else if (null == ref && null != arg0.ref) {
+			diff = 1;
+		} else {
+			/*
+			 * both null
+			 */
+			diff = 0;
+		}
+		
+		if (diff != 0) {
+			return diff;
+		}
+		
+		/*
+		 * refs are the same - alt is next
+		 */
+		if (null != alt && null != arg0.alt) {
+			diff = alt.compareTo(arg0.alt);
+		} else if (null != alt && null == arg0.alt) {
+			diff = -1;
+		} else if (null == alt && null != arg0.alt) {
+			diff = 1;
+		} else {
+			/*
+			 * both null
+			 */
+			diff = 0;
+		}
+		if (diff != 0) {
+			return diff;
+		}
+		/*
+		 * all equal, just compare the string representation of the vcf records
+		 */
+		return this.toString().compareTo(arg0.toString());
 	}
 	
 }

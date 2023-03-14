@@ -31,6 +31,9 @@ public class ChrPositionComparator implements Comparator<ChrPosition>, Serializa
 			"GL000236.1","GL000237.1","GL000238.1","GL000239.1","GL000240.1","GL000241.1","GL000242.1","GL000243.1","GL000244.1",
 			"GL000245.1","GL000246.1","GL000247.1","GL000248.1","GL000249.1","chrMT"));	
 	
+	public static final List<String> HG38_CONTIGS = Collections.unmodifiableList(Arrays.asList("1","2", "3","4","5","6","7","8","9",
+			"10","11","12","13","14","15","16","17","18","19","20","21","22","X","Y","M"));	
+	
 	@Override
 	public int compare(ChrPosition o1, ChrPosition o2) {
 		int chromosomeDiff = COMPARATOR.compare(o1.getChromosome(), o2.getChromosome());
@@ -150,26 +153,13 @@ public class ChrPositionComparator implements Comparator<ChrPosition>, Serializa
 	public static Comparator<ChrPosition> getCPComparatorForGRCh37() {
 		return getComparator(getChrNameComparator(contigs));
 	}
-	
-	public static Comparator<String> getChrNameComparatorForSingleString(String favouriteContig) {
-		
-		return	(StringUtils.isNullOrEmpty(favouriteContig)) ? COMPARATOR : 
-			new Comparator<String>() {
-			@Override
-			public int compare(String o1, String o2) {
-				if (o1.equalsIgnoreCase(favouriteContig)) {
-					if (o2.equalsIgnoreCase(favouriteContig)) {
-						return 0;
-					} else {
-						return -1;
-					}
-				} else if (o2.equalsIgnoreCase(favouriteContig)) {
-					return 1;
-				}
-				return COMPARATOR.compare(o1, o2);
-			}
-		};
+	/**
+	 * Convenience method to return a ChrPosition comparator based on the GRCh37_ICGC_standard_v2.fa reference file used at QIMRB
+	 * 
+	 * @return
+	 */
+	public static Comparator<String> getStringComparatorForHG38() {
+		return getChrNameComparator(HG38_CONTIGS);
 	}
-	
 
 }

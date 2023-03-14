@@ -33,7 +33,8 @@ dependencies {
 
     api 'com.github.samtools:htsjdk:2.24.1'
     api 'net.sf.jopt-simple:jopt-simple:4.6'
-    api name: 'snpEff', version: '4.0e'	
+    api name: 'snpEff', version: '4.0e'
+    api 'com.fasterxml.jackson.core:jackson-databind:2.6.7'
 }
 //have to specify test classpath for both snpEff and qannotate 
 sourceSets.test.runtimeClasspath = configurations.junit + sourceSets.test.runtimeClasspath

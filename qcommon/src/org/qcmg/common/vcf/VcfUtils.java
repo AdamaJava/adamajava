@@ -503,6 +503,38 @@ public class VcfUtils {
 	}
 	
 	/**
+	 * Returns a new VcfREcord based on the passed in VcfRecord but with the passed in ChrPosition obj
+	 * @param re
+	 * @param cp
+	 * @return
+	 */
+	public static VcfRecord cloneWithNewChrPos(VcfRecord re, ChrPosition cp){
+		VcfRecord re1  =  new VcfRecord.Builder(cp, re.getRef(), re.getAlt())
+				.id(re.getId()).qualString(re.getQualString()).filter(re.getFilter()).build();
+		
+		re1.setInfo(re.getInfo());
+		re1.setFormatFields(re.getFormatFields());
+		
+		return re1; 
+	}
+	
+	/**
+	 * Returns a new VcfREcord based on the passed in VcfRecord but with the passed in ChrPosition obj
+	 * @param re
+	 * @param cp
+	 * @return
+	 */
+	public static VcfRecord cloneWithNewAlt(VcfRecord re, String alt){
+		VcfRecord re1  =  new VcfRecord.Builder(re.getChrPosition(), re.getRef(), alt)
+				.id(re.getId()).qualString(re.getQualString()).filter(re.getFilter()).build();
+		
+		re1.setInfo(re.getInfo());
+		re1.setFormatFields(re.getFormatFields());
+		
+		return re1; 
+	}
+	
+	/**
 	 * A vcf record is considered to be a snp if the length of the ref and alt fields are the same (and not null/0), the fields don't contain commas, and are not equal 
 	 * This caters for standard snps and compound snps (where the polymorphism covers more than 1 base)
 	 * 

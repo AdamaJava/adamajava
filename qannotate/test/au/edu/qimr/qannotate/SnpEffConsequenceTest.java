@@ -31,7 +31,6 @@ public class SnpEffConsequenceTest {
 		String eff = "splice_region_variant(LOW|||c.282G>A|200|LCN2|protein_coding|CODING|ENST00000373013|3|1),splice_region_variant(LOW|||n.406G>A||LCN2|processed_transcript|CODING|ENST00000470902|2|1),sequence_feature[beta_strand](LOW|||c.276G>A|198|LCN2|protein_coding|CODING|ENST00000277480|3|1),sequence_feature[beta_strand](LOW|||c.276G>A|198|LCN2|protein_coding|CODING|ENST00000277480|2|1),sequence_feature[beta_strand](LOW|||c.276G>A|198|LCN2|protein_coding|CODING|ENST00000540948|3|1),sequence_feature[beta_strand](LOW|||c.276G>A|198|LCN2|protein_coding|CODING|ENST00000540948|2|1),upstream_gene_variant(MODIFIER||938|||LCN2|retained_intron|CODING|ENST00000488391||1),upstream_gene_variant(MODIFIER||1107|||LCN2|processed_transcript|CODING|ENST00000494317||1),intron_variant(MODIFIER|||c.275+188G>A|200|LCN2|protein_coding|CODING|ENST00000372998|2|1),intron_variant(MODIFIER|||c.275+188G>A|198|LCN2|protein_coding|CODING|ENST00000277480|2|1),intron_variant(MODIFIER|||c.275+188G>A|198|LCN2|protein_coding|CODING|ENST00000373017|3|1),intron_variant(MODIFIER|||c.275+188G>A|198|LCN2|protein_coding|CODING|ENST00000540948|2|1),intron_variant(MODIFIER|||c.281+6G>A|200|LCN2|protein_coding|CODING|ENST00000373013|3|1),intron_variant(MODIFIER|||n.405+6G>A||LCN2|processed_transcript|CODING|ENST00000470902|2|1),non_coding_exon_variant(MODIFIER|||n.380G>A||LCN2|retained_intron|CODING|ENST00000487719|2|1)";
 		String [] array = eff.split(",");
 		assertEquals("splice_region_variant(LOW|||c.282G>A|200|LCN2|protein_coding|CODING|ENST00000373013|3|1)", SnpEffConsequence.getWorstCaseConsequence(array));
-		
 	}
 	
 	@Test
@@ -39,7 +38,5 @@ public class SnpEffConsequenceTest {
 		String eff = "splice_region_variant(LOW|||n.406G>A||LCN2|processed_transcript|CODING|ENST00000470902|2|1),upstream_gene_variant(MODIFIER||938|||LCN2|retained_intron|CODING|ENST00000488391||1),upstream_gene_variant(MODIFIER||1107|||LCN2|processed_transcript|CODING|ENST00000494317||1),intron_variant(MODIFIER|||c.275+188G>A|200|LCN2|protein_coding|CODING|ENST00000372998|2|1),intron_variant(MODIFIER|||c.275+188G>A|198|LCN2|protein_coding|CODING|ENST00000277480|2|1),intron_variant(MODIFIER|||c.275+188G>A|198|LCN2|protein_coding|CODING|ENST00000373017|3|1),intron_variant(MODIFIER|||n.405+6G>A||LCN2|processed_transcript|CODING|ENST00000470902|2|1),non_coding_exon_variant(MODIFIER|||n.380G>A||LCN2|retained_intron|CODING|ENST00000487719|2|1)";
 		String [] array = eff.split(",");
 		assertEquals("splice_region_variant(LOW|||n.406G>A||LCN2|processed_transcript|CODING|ENST00000470902|2|1)", SnpEffConsequence.getWorstCaseConsequence(array));
-		
 	}
-	
 }

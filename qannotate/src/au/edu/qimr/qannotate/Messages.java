@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 /*
  * a collection of methods which return formated message string
  */
-class Messages {
+public final class Messages {
     private static final ResourceBundle messages = ResourceBundle.getBundle("au.edu.qimr.qannotate.messages");
  
     public static String getMessage(final String identifier) {
@@ -67,12 +67,5 @@ class Messages {
 	 */
 	public static String reconstructCommandLine(final String[] args) {
 		return getProgramName() + " " + Arrays.stream(args).collect(Collectors.joining(" "));
-//		String result = getProgramName() + " ";
-//		for (final String arg : args) {
-//			result += arg + " ";
-//		}
-//		return result;
 	}
-
-
 }
