@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import htsjdk.samtools.SAMFileHeader;
+import htsjdk.samtools.SAMReadGroupRecord;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.util.SequenceUtil;
@@ -340,11 +341,9 @@ public class BamSummaryReport extends SummaryReport {
 	public void parseRecord(final SAMRecord record) {
  		updateRecordsInputed();
  				
-		String readGroup = XmlUtils.UNKNOWN_READGROUP;
-		if (record.getReadGroup() != null && record.getReadGroup().getId() != null) {
-			readGroup = record.getReadGroup().getReadGroupId();								
-		}
-		
+		SAMReadGroupRecord srgr = record.getReadGroup();
+		String readGroup = srgr == null ? XmlUtils.UNKNOWN_READGROUP : srgr.getReadGroupId();
+
 		final int order = (!record.getReadPairedFlag()) ? 0 : 
 			(record.getFirstOfPairFlag()) ? 1 : 2;	
 		
