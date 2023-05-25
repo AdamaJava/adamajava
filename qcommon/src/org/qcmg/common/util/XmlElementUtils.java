@@ -1,5 +1,8 @@
 package org.qcmg.common.util;
 
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
@@ -14,10 +17,8 @@ import org.w3c.dom.bootstrap.DOMImplementationRegistry;
 import org.w3c.dom.ls.DOMImplementationLS;
 import org.w3c.dom.ls.LSOutput;
 import org.w3c.dom.ls.LSSerializer;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.nio.charset.Charset;
 
 
 public class XmlElementUtils{ 	
@@ -30,7 +31,7 @@ public class XmlElementUtils{
 	 * @return a list of Element of first generation child Elements with a given tag name and order
 	 */
 	public static List<Element> getChildElementByTagName(Element parent, String tagName){
-		List<Element> elements = new ArrayList<Element>(); 
+		List<Element> elements = new ArrayList<>();
 		if(parent == null ) return elements;
 		
 		NodeList children = parent.getChildNodes();
@@ -91,7 +92,7 @@ public class XmlElementUtils{
 			DOMImplementationLS	impl = (DOMImplementationLS) DOMImplementationRegistry.newInstance().getDOMImplementation("XML 3.0 LS 3.0");	
 	        LSSerializer serializer = impl.createLSSerializer();
 	        LSOutput output = impl.createLSOutput();
-	        output.setCharacterStream(new OutputStreamWriter(new FileOutputStream(filename), Charset.forName("UTF-8")));
+	        output.setCharacterStream(new OutputStreamWriter(Files.newOutputStream(Paths.get(filename)), StandardCharsets.UTF_8));
 	        serializer.write(parent.getOwnerDocument(), output);
 		}catch( ClassNotFoundException | InstantiationException | IllegalAccessException | ClassCastException | IOException ex){
 			ex.printStackTrace();
@@ -101,23 +102,35 @@ public class XmlElementUtils{
 	
 
 	/**
-	 * create an top level element without appending to any URI, and it's child element if specified
+	 * create a top level element without appending to any URI, and it's child element if specified
 	 * @param parentName: name for top level element 
 	 * @param childName: The child name of the top element to be created or null.
 	 * @return the top level element
 	 * @throws ParserConfigurationException
 	 */
-	public static Element createRootElement(String parentName, String childName) throws ParserConfigurationException{
+	public static Element createRootElement(String parentName, String childName) throws ParserConfigurationException {
+		return createRootElement(parentName, childName, null);
+	}
+
+	/**
+	 * create a top level element without appending to any URI, and it's child element if specified
+	 * @param parentName: name for top level element
+	 * @param childName: The child name of the top element to be created or null.
+	 * @param namespaceURI: The namespaceURI to be used for the top element.
+	 * @return the top level element
+	 * @throws ParserConfigurationException
+	 */
+	public static Element createRootElement(String parentName, String childName, String namespaceURI) throws ParserConfigurationException{
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 		DocumentBuilder builder = factory.newDocumentBuilder();
-		DOMImplementation domImpl = builder.getDOMImplementation();		
-		Document doc = domImpl.createDocument(null, parentName, null);
+		DOMImplementation domImpl = builder.getDOMImplementation();
+		Document doc = domImpl.createDocument(namespaceURI, parentName, null);
 		Element root = doc.getDocumentElement();
-		
+
 		if(childName == null) return root;
-		
-		return XmlElementUtils.createSubElement(root, childName);	 
-	}	
+
+		return XmlElementUtils.createSubElement(root, childName);
+	}
 
 	public static Element createSubElement(Element parent, String name) {
 		Element element = parent.getOwnerDocument().createElement(name);
