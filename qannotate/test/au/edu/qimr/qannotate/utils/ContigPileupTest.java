@@ -67,7 +67,7 @@ public class ContigPileupTest {
 	}
 	
 	@Test				
-	public void runTest(){
+	public void runTest() throws IOException {
 	 	ChrPosition[] poss = new ChrPosition[]{ new ChrPointPosition( "chr11", 282753), new ChrPointPosition( "chr11", 282757) , new ChrPointPosition( "chr11", 282768) , new ChrPointPosition( "chr11", 282783 ) };
 	 	VcfRecord[] snps = new VcfRecord[4];
 	 	for(int i = 0; i < 4; i++ )
@@ -75,10 +75,11 @@ public class ContigPileupTest {
 	 	
 	 	AbstractQueue<VcfRecord> qIn = new ConcurrentLinkedQueue< >( Arrays.asList( snps ) ); 
 		AbstractQueue< VariantPileup > queue = new ConcurrentLinkedQueue<>();
-		SamReader reader =  SAMFileReaderFactory.createSAMFileReader(  inputBam ) ;				 
-		 SAMSequenceRecord contig = reader.getFileHeader().getSequenceDictionary().getSequence(1); 		
-		ContigPileup pile = new ContigPileup( contig, qIn, inputBam, null, queue,0, Thread.currentThread(), new CountDownLatch( 2));
-		pile.run();		
+		try(SamReader reader =  SAMFileReaderFactory.createSAMFileReader(  inputBam );) {				 
+			 SAMSequenceRecord contig = reader.getFileHeader().getSequenceDictionary().getSequence(1); 		
+			ContigPileup pile = new ContigPileup( contig, qIn, inputBam, null, queue,0, Thread.currentThread(), new CountDownLatch( 2));
+			pile.run();		
+		}
 	}
 	
 	@Test

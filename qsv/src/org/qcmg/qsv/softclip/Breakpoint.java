@@ -8,11 +8,7 @@ package org.qcmg.qsv.softclip;
 
 import static org.qcmg.common.util.Constants.TAB;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -571,7 +567,7 @@ public class Breakpoint implements Comparable<Breakpoint>{
 			System.out.println("looking for " + mateConsensus);
 			Map<String, String> seqNameMap = new HashMap<>(2);
 			seqNameMap.put(mateConsensus, getName());
-			Map<String, List<BLATRecord>> blatMap = TiledAlignerUtil.runTiledAlignerCache(p.getReference(), cache, seqNameMap, 13, "Breakpoint.findRescuedMateBreakpoint", false);
+			Map<String, List<BLATRecord>> blatMap = TiledAlignerUtil.runTiledAlignerCache(p.getReference(), p.getRefIndexPositionMap(), cache, seqNameMap, 13, "Breakpoint.findRescuedMateBreakpoint", false, false);
 			if (null != blatMap && ! blatMap.isEmpty()) {
 				List<BLATRecord> recs = blatMap.get(mateConsensus);
 				if (null != recs && ! recs.isEmpty()) {

@@ -15,6 +15,7 @@ final class Messages {
 	static final String GENERATOR_USAGE = getMessage("GENERATOR_USAGE");
 	static final String POSITIONS_PROFILER_USAGE = getMessage("POSITIONS_PROFILER_USAGE");
 	static final String VCF_PROFILER_USAGE = getMessage("VCF_PROFILER_USAGE");
+	static final String GENE_MODEL_USAGE = getMessage("GENE_MODEL_USAGE");
 
 	static String getMessage(final String identifier) {
 		return messages.getString(identifier);

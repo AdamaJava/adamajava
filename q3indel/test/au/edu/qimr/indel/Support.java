@@ -15,7 +15,7 @@ import java.util.List;
 import org.junit.Assert;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.picard.SAMFileReaderFactory;
-import org.qcmg.picard.SAMOrBAMWriterFactory;
+import org.qcmg.picard.SAMWriterFactory;
 
 import au.edu.qimr.indel.pileup.IndelMT;
 
@@ -39,17 +39,15 @@ public class Support {
         }
 		 	
 		try(SamReader reader = SAMFileReaderFactory.createSAMFileReader(tmp);){		
-			SAMOrBAMWriterFactory factory = new  SAMOrBAMWriterFactory(reader.getFileHeader() ,false, output);
-			SAMFileWriter writer = factory.getWriter();
-			for( SAMRecord record : reader) 
-				writer.addAlignment(record);
-			 
-			factory.closeWriter();
+			SAMWriterFactory factory = new  SAMWriterFactory(reader.getFileHeader() ,false, output);			
+			try(SAMFileWriter writer = factory.getWriter();) {
+				for( SAMRecord record : reader) writer.addAlignment(record);				
+			}
+			factory.renameIndex();	 //try already closed writer	 
 		} catch (IOException e) {
 			System.err.println(Q3IndelException.getStrackTrace(e));
 			Assert.fail("Should not threw a Exception");
-		}
-		
+		}		
 	}
 	
 	/**

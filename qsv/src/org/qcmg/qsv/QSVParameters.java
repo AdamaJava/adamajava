@@ -19,20 +19,22 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMReadGroupRecord;
-import htsjdk.samtools.SAMSequenceDictionary;
-import htsjdk.samtools.SAMSequenceRecord;
-
 import org.ini4j.Ini;
 import org.ini4j.Profile.Section;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.model.ChrPosition;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qsv.annotate.Annotator;
 import org.qcmg.qsv.annotate.RunTypeRecord;
 import org.qcmg.qsv.util.QSVConstants;
+
+import au.edu.qimr.tiledaligner.PositionChrPositionMap.LongRange;
+import htsjdk.samtools.SAMFileHeader;
+import htsjdk.samtools.SAMReadGroupRecord;
+import htsjdk.samtools.SAMSequenceDictionary;
+import htsjdk.samtools.SAMSequenceRecord;
+import htsjdk.samtools.SamReader;
 
 
 /**
@@ -68,6 +70,8 @@ public class QSVParameters {
 	private Map<String, List<Chromosome>> chromosomes;
 	private String reference;
 	private File clippedBamFile;
+	
+	private Map<ChrPosition, LongRange> refIndexPositionMap;
 
 
 	/**
@@ -82,7 +86,7 @@ public class QSVParameters {
 	 * @throws Exception the exception
 	 */
 	public QSVParameters(Options options, boolean isTumor, String masterDirPath, String matePairFileDir,
-			Date analysisDate, String donorName) throws Exception {
+			Date analysisDate, String donorName, Map<ChrPosition, LongRange> refIndexPositionMap) throws Exception {
 		this.sampleId = null;
 		this.isTumor = isTumor;
 		this.clusterSize = options.getClusterSize();
@@ -94,7 +98,9 @@ public class QSVParameters {
 		this.qPrimerThreshold = options.getQPrimerThreshold();
 		this.mapper = options.getMapper();
 		this.reference = options.getReference();
-		this.runSoftClipAnalysis = options.runClipAnalysis(); 
+		this.runSoftClipAnalysis = options.runClipAnalysis();
+		
+		this.refIndexPositionMap = refIndexPositionMap;
 
 		if (isTumor) {
 			this.inputBamFile = new File(options.getInputFile());            
@@ -109,13 +115,18 @@ public class QSVParameters {
 		//set filtered bam file name
 		if (options.runPairPreprocess()) {	       
 			final String baseName = inputBamFile.getName();
-			final String fileName = baseName.replace(".bam", ".discordantpair.filtered.bam");
+			//clarify sam and bam; because seekablestream can't open sam file even the file extension name is .bam;			 
+			final String fileName = (baseName.endsWith(".sam"))? 
+					baseName.replace(".sam", ".discordantpair.filtered.sam"): baseName.replace(".bam", ".discordantpair.filtered.bam");
 			this.filteredBamFile = new File(options.getTempDirName() + FILE_SEPERATOR + fileName);
 		}
 
 		if (options.runClipPreprocess() || options.isSplitRead()) {        	
-			final String baseName = this.inputBamFile.getName();         	
-			this.clippedBamFile= new File(options.getTempDirName() + FILE_SEPERATOR  +  baseName.replace(".bam", ".softclip.filtered.bam"));
+			final String baseName = this.inputBamFile.getName();  
+			//clarify sam and bam; because seekablestream can't open sam file even the file extension name is .bam;			 
+			final String fileName = (baseName.endsWith(".sam"))? 
+					baseName.replace(".sam",  ".softclip.filtered.sam") : baseName.replace(".bam",  ".softclip.filtered.bam");			
+			this.clippedBamFile= new File(options.getTempDirName() + FILE_SEPERATOR  + fileName);
 		}
 
 		//get the names of the chromosomes that will be analysed
@@ -124,7 +135,7 @@ public class QSVParameters {
 		//get isizes
 		getISizesFromIniFile(options);
 
-		this.repeatCountCutoff = options.getREPEAT_COUNT_CUTOFF();
+		this.repeatCountCutoff = options.getRepeatCountCutoff();
 		logger.info("Max repeat count number: " + repeatCountCutoff);
 		this.annotator = new Annotator(lowerInsertSize, upperInsertSize, new File(resultsDir + "." + findType + ".pairing_stats.xml"), pairingType, sequencingRuns, pairingType, mapper);	
 	}
@@ -492,6 +503,10 @@ public class QSVParameters {
 	 */
 	public String getReference() {
 		return reference;
+	}
+	
+	public Map<ChrPosition, LongRange> getRefIndexPositionMap() {
+		return refIndexPositionMap;
 	}
 
 	/**

@@ -9,10 +9,10 @@ package org.qcmg.qsv;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +32,7 @@ import javax.xml.bind.Marshaller;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.meta.QExec;
+import org.qcmg.common.model.ChrPosition;
 import org.qcmg.qsv.annotate.AnnotateFilterMT;
 import org.qcmg.qsv.annotate.PairingStats;
 import org.qcmg.qsv.discordantpair.DiscordantPairCluster;
@@ -48,7 +49,9 @@ import org.qcmg.qsv.util.CustomThreadPoolExecutor;
 import org.qcmg.qsv.util.QSVConstants;
 import org.qcmg.qsv.util.QSVUtil;
 
+import au.edu.qimr.tiledaligner.PositionChrPositionMap.LongRange;
 import au.edu.qimr.tiledaligner.ReadTiledAligerFile;
+import au.edu.qimr.tiledaligner.util.TiledAlignerUtil;
 import gnu.trove.map.TIntObjectMap;
 
 /**
@@ -73,6 +76,9 @@ public class QSVPipeline {
 	private final SummaryReport summaryReport;
 	private final Map<PairGroup, Map<String, List<DiscordantPairCluster>>> tumorRecords;
 	private final Map<PairGroup, Map<String, List<DiscordantPairCluster>>> normalRecords;
+	
+	private Map<ChrPosition, LongRange> unmodifyableMap;
+	
 	private int somaticCounts = 0;
 	private int  germlineCounts = 0;
 	private int normalGermlineCounts = 0;
@@ -101,9 +107,9 @@ public class QSVPipeline {
 			return ReadTiledAligerFile.getCache(tiledAlignerFile, 64, 2);
 		};
 		future = executor.submit(callable);
+		
 		//copy ini file to output directory
-
-		Path path = Files.copy(Paths.get(options.getIniFile()), Paths.get(resultsDir + FILE_SEPERATOR + new File(options.getIniFile()).getName()), StandardCopyOption.REPLACE_EXISTING);
+		Files.copy(Paths.get(options.getIniFile()), Paths.get(resultsDir + FILE_SEPERATOR + new File(options.getIniFile()).getName()), StandardCopyOption.REPLACE_EXISTING);
 
 
 		// dir to write the mate pairs to
@@ -120,6 +126,11 @@ public class QSVPipeline {
 		createOutputDirectory(softclipDir);
 
 		this.summaryReport = new SummaryReport(new File(resultsDir + FILE_SEPERATOR + options.getSampleName() + ".qsv.summary.txt"), analysisDate, analysisId, options.isQCMG());
+		
+		/*
+		 * setup reference index map
+		 */
+		unmodifyableMap = Collections.unmodifiableMap(TiledAlignerUtil.loadReferenceIndexMap(options.getReference(), options.getReferenceIndex()));
 
 		if (options.isTwoFileMode()) {
 			setQSVParameters(resultsDir); 
@@ -153,8 +164,8 @@ public class QSVPipeline {
 	 * Set qsv parameters with 2 input files - carry out in two separate threads in case isize needs to be calculated
 	 */
 	private void setQSVParameters(String resultsDir) throws Exception {
-		tumor = new QSVParameters(options, true, resultsDir, matePairDir, analysisDate, options.getSampleName());
-		normal = new QSVParameters(options, false, resultsDir, matePairDir, analysisDate, options.getSampleName());
+		tumor = new QSVParameters(options, true, resultsDir, matePairDir, analysisDate, options.getSampleName(), unmodifyableMap);
+		normal = new QSVParameters(options, false, resultsDir, matePairDir, analysisDate, options.getSampleName(), unmodifyableMap);
 	}
 
 	/*
@@ -164,7 +175,7 @@ public class QSVPipeline {
 		ExecutorService executorService = Executors.newFixedThreadPool(1);
 		CountDownLatch countDownLatch = new CountDownLatch(1);
 
-		Callable<QSVParameters> tumourWorker = new CreateParametersCallable(countDownLatch,options, true, resultsDir, matePairDir, analysisDate, options.getSampleName());
+		Callable<QSVParameters> tumourWorker = new CreateParametersCallable(countDownLatch, options, true, resultsDir, matePairDir, analysisDate, options.getSampleName(), unmodifyableMap);
 		Future<QSVParameters> tumourFuture = executorService
 				.submit(tumourWorker);
 

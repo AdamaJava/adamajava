@@ -82,7 +82,7 @@ public class IndelPileup {
 	public void pileupReads(QueryExecutor exec, IndexedFastaSequenceFile indexedFasta) throws Exception {
 				
 	//	setDefaultValidationStringency();
-		try (SamReader reader =   SAMFileReaderFactory.createSAMFileReader(inputBam.getBamFile(),  ValidationStringency.SILENT);) {   //new SAMFileReader(inputBam.getBamFile());			
+		try (SamReader reader =   SAMFileReaderFactory.createSAMFileReader(inputBam.getBamFile(), null, ValidationStringency.SILENT);) {   //new SAMFileReader(inputBam.getBamFile());			
 			SAMRecordIterator iter = reader.queryOverlapping(position.getFullChromosome(), position.getStart(), position.getEnd());		
 			boolean passFilter;
 			while (iter.hasNext()) {

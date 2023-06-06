@@ -29,7 +29,6 @@ import org.qcmg.common.messages.Messages;
 import org.qcmg.common.model.ProfileType;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.FileUtils;
-import org.qcmg.common.util.LoadReferencedClasses;
 import org.qcmg.common.util.XmlElementUtils;
 import org.qcmg.qprofiler2.bam.BamSummarizer;
 import org.qcmg.qprofiler2.bam.BamSummarizerMT;
@@ -42,9 +41,9 @@ import org.w3c.dom.Element;
 public class QProfiler2 {
 		
 	private static final String msgResource = "org.qcmg.qprofiler2.messages";	
-	private static final int NO_OF_PROCESORS = Runtime.getRuntime().availableProcessors();
+	private static final int NO_OF_PROCESSORS = Runtime.getRuntime().availableProcessors();
 	private static final String USER_DIR = System.getProperty("user.dir");
-	private static final String FILE_SEPERATOR = System.getProperty("file.separator");	
+	private static final String FILE_SEPARATOR = System.getProperty("file.separator");
 	
 	private QLogger logger;	
 	private String[] cmdLineFiles;
@@ -53,7 +52,7 @@ public class QProfiler2 {
 	private ExecutorService exec;
 	private String version;
 	
-	private String outputFile = USER_DIR + FILE_SEPERATOR + "qprofiler.xml";
+	private String outputFile = USER_DIR + FILE_SEPARATOR + "qprofiler.xml";
 	private int exitStatus;
 	private int noOfConsumerThreads;
 	private int noOfProducerThreads;
@@ -72,7 +71,7 @@ public class QProfiler2 {
 	 * and ready for us to use.
 	 */
 	protected int engage() throws Exception {
-		Element root = XmlElementUtils.createRootElement( "qProfiler", null);
+		Element root = XmlElementUtils.createRootElement( "qProfiler", null, Messages.getMessage(msgResource, "XSD_NAMESPACE"));
 		
 		// Create new Summary object ready to hold our processing
 		QProfilerSummary sol = new QProfilerSummary();
@@ -133,7 +132,7 @@ public class QProfiler2 {
 		root.setAttribute( "version", version );
 		
 		//declare the default namespace  
-		root.setAttribute( "xmlns", Messages.getMessage(msgResource, "XSD_NAMESPACE"));
+//		root.setAttribute( "xmlns", Messages.getMessage(msgResource, "XSD_NAMESPACE"));
 		
 		//set schema location
 		root.setAttribute( "xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");		
@@ -286,7 +285,7 @@ public class QProfiler2 {
 			noOfConsumerThreads = options.getNoOfConsumerThreads();
 			noOfProducerThreads = Math.max(1, options.getNoOfProducerThreads());
 			if (noOfConsumerThreads > 0) {
-				logger.tool("Running in multi-threaded mode (BAM files only). No of available processors: " + NO_OF_PROCESORS 
+				logger.tool("Running in multi-threaded mode (BAM files only). No of available processors: " + NO_OF_PROCESSORS
 						+ ", no of requested consumer threads: " + noOfConsumerThreads + ", producer threads: " + noOfProducerThreads 
 						+ ", no of md5 checksum thread: 1");
 			} else {
@@ -303,10 +302,10 @@ public class QProfiler2 {
 			
 			// setup the ExecutorService thread pool
 			// the size of the pool is the smaller of the no of files, and the NO_OF_PROCESSORS variable
-			if (Math.min(cmdLineFiles.length, NO_OF_PROCESORS) < 1) {
+			if (Math.min(cmdLineFiles.length, NO_OF_PROCESSORS) < 1) {
 				throw new Exception("Not enough available processors to perform this task");	
 			} else {
-				exec = Executors.newFixedThreadPool(Math.min(cmdLineFiles.length, NO_OF_PROCESORS));
+				exec = Executors.newFixedThreadPool(Math.min(cmdLineFiles.length, NO_OF_PROCESSORS));
 				return engage();
 			}
 		}

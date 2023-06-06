@@ -33,7 +33,7 @@ public class Main {
             logger.info("log file: " + options.getLogFileName());
             
             if(options.isFinalBAM()){ 
-	            	SAMFileHeader header = SAMFileReaderFactory.createSAMFileReader(new File(options.getInputFileName()),
+	            	SAMFileHeader header = SAMFileReaderFactory.createSAMFileReader(new File(options.getInputFileName()), null,
 	            			options.getValidation() ).getFileHeader().clone(); 
 	            	HeaderUtils.addProgramRecord(header, options.getPGName(), options.getVersion(), Messages.reconstructCommandLine(args));
 	

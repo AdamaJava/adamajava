@@ -4,6 +4,7 @@
  *
  * This code is released under the terms outlined in the included LICENSE file.
  */
+
 package org.qcmg.common.vcf.header;
 
 import java.text.DateFormat;
@@ -19,7 +20,6 @@ import org.qcmg.common.meta.QExec;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.SnpUtils;
-import org.qcmg.common.vcf.header.VcfHeaderRecord;
  
 public class VcfHeaderUtils {
 	
@@ -193,22 +193,7 @@ public class VcfHeaderUtils {
 
 
 	public enum VcfInfoType {
-
 		UNKNOWN, String, Integer, Float, Flag, Character;
-
-		public static VcfInfoType parse(String str) {
-			if(StringUtils.isNullOrEmpty(str))
-				return null;
-			
-			str = str.toUpperCase();
-			if (str.equals("STRING")) return VcfInfoType.String;
-			if (str.equals("INTEGER")) return VcfInfoType.Integer;
-			if (str.equals("FLOAT")) return VcfInfoType.Float;
-			if (str.equals("FLAG")) return VcfInfoType.Flag;
-			if (str.equals("CHARACTER")) return VcfInfoType.Character;
-			if (str.equals("UNKNOWN")) return VcfInfoType.UNKNOWN;
-			throw new IllegalArgumentException("Unknown VcfInfoType '" + str + "'");
-		}
 	} 	
 
 	/**
@@ -217,7 +202,7 @@ public class VcfHeaderUtils {
 	 * @param id: sample id
 	 * @param noColumn: add the sample id to specified sample column. First sample column is "1"
 	 */
-	public static void addSampleId(VcfHeader header, String id, int noColumn){
+	public static void addSampleId(VcfHeader header, String id, int noColumn) {
 		if ( null == header ) {
 			throw new IllegalArgumentException("null vcf header object passed to VcfHeaderUtils.addQPGLineToHeader");
 		}
@@ -314,23 +299,30 @@ public class VcfHeaderUtils {
 	 * @return original header merged from additional 
 	 */
 	public static VcfHeader mergeHeaders(VcfHeader original, VcfHeader additional, boolean overwrite) {
-		if (null == original && null == additional) 
+		if (null == original && null == additional) {
 			throw new IllegalArgumentException("Null headers passed to VcfHeaderUtils.mergeHeaders");
-		 else if (null == original)  return additional;
-		 else if (null == additional)  return original;
+		} else if (null == original) {
+			return additional;
+		} else if (null == additional) {
+			return original;
+		}
 		 		
 		// only merging format, filter, info and meta		
-		for (VcfHeaderRecord rec : additional.getInfoRecords())  
+		for (VcfHeaderRecord rec : additional.getInfoRecords()) {
 			original.addOrReplace(rec.toString(), overwrite);
+		}
 		 
-		for (VcfHeaderRecord rec : additional.getFormatRecords())  
+		for (VcfHeaderRecord rec : additional.getFormatRecords()) {  
 			original.addOrReplace(rec.toString(), overwrite);
+		}
 		 
-		for (VcfHeaderRecord rec : additional.getFilterRecords())  
+		for (VcfHeaderRecord rec : additional.getFilterRecords()) {  
 			original.addOrReplace(rec.toString(), overwrite);
+		}
 		 
-		for (VcfHeaderRecord rec : additional.getAllMetaRecords())  
+		for (VcfHeaderRecord rec : additional.getAllMetaRecords()) {  
 			original.addOrReplace(rec.toString(), overwrite);
+		}
 		 
 		return original;
 	}
@@ -366,7 +358,7 @@ public class VcfHeaderUtils {
 	public static void addQPGLine(VcfHeader header, int order, QExec exec) { 
 		String line = VcfHeaderUtils.HEADER_LINE_QPG + "=<ID=" + order + Constants.COMMA + TOOL + Constants.EQ + exec.getToolName().getValue() +				
 		Constants.COMMA + VERSION + Constants.EQ + exec.getToolVersion().getValue() + Constants.COMMA + DATE + Constants.EQ + exec.getStartTime().getValue() +
-		Constants.COMMA + COMMAND_LINE + Constants.EQ + VcfHeaderRecord.parseDescription(exec.getCommandLine().getValue() )+ ">"  ;
+		Constants.COMMA + COMMAND_LINE + Constants.EQ + VcfHeaderRecord.parseDescription(exec.getCommandLine().getValue()) + ">"  ;
 		header.addOrReplace(line);	
 	} 	
 	
@@ -374,23 +366,27 @@ public class VcfHeaderUtils {
 		return header.getRecords(VcfHeaderUtils.HEADER_LINE_QPG).stream().map(x -> x).collect(Collectors.toList());		
 	}
 	
-	public static VcfHeaderRecord getqPGRecord(VcfHeader header, String id){ 	
+	public static VcfHeaderRecord getqPGRecord(VcfHeader header, String id) { 	
 		return header.getIDRecord(VcfHeaderUtils.HEADER_LINE_QPG, id); 
-	}	
-	public static int getQPGOrder( VcfHeaderRecord  qpg){ 
+	}
+	
+	public static int getQPGOrder( VcfHeaderRecord qpg) { 
 		return Integer.parseInt(qpg.getId()); 
 	}
-	public static String getQPGTool(VcfHeaderRecord  qpg){ 
+	
+	public static String getQPGTool(VcfHeaderRecord qpg) { 
 		return  qpg.getSubFieldValue(TOOL);
 	}
-	public static String getQPGDate(VcfHeaderRecord  qpg){ 
+	
+	public static String getQPGDate(VcfHeaderRecord qpg) { 
 		return  qpg.getSubFieldValue(DATE);
 	}
-	public static String getQPGVersion(VcfHeaderRecord  qpg){ 
+	
+	public static String getQPGVersion(VcfHeaderRecord qpg) { 
 		return  qpg.getSubFieldValue(VERSION);
 	}
-	public static String getQPGCommandLine(VcfHeaderRecord  qpg){ 
+	
+	public static String getQPGCommandLine(VcfHeaderRecord qpg) { 
 		return  qpg.getSubFieldValue(COMMAND_LINE);
 	}
-		
 }

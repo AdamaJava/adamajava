@@ -182,7 +182,7 @@ public class Metric {
 	void readSAMRecords(String bamFile, QueryExecutor exec) throws Exception{	
 		
 
-    	try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(bamFile),ValidationStringency.SILENT);) {            		
+    	try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(bamFile),null, ValidationStringency.SILENT);) {            		
     		//set up overall stats for the bam 
         	forwardNonRef = new NonReferenceRecord(referenceRecord.getSequenceName(), referenceRecord.getSequenceLength(), false, lowReadCount, nonrefThreshold);
         	reverseNonRef = new NonReferenceRecord(referenceRecord.getSequenceName(), referenceRecord.getSequenceLength(), true, lowReadCount, nonrefThreshold);

@@ -4,9 +4,7 @@
  *
  * This code is released under the terms outlined in the included LICENSE file.
  */
-/**
- * 
- */
+
 package org.qcmg.common.commandline;
 
 import java.io.BufferedReader;
@@ -17,7 +15,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class StreamConsumer extends Thread {
+public class StreamConsumer {
 	final InputStream is;
 	String[] lines;
 
@@ -25,11 +23,10 @@ public class StreamConsumer extends Thread {
 		this.is = is;
 	}
 
-	@Override
 	public void run() {
 		List<String> results = new ArrayList<>();
 		//specify a charset to avoid the application behaviour to vary between platforms
-		try (InputStreamReader isr = new InputStreamReader(is,"UTF8");
+		try (InputStreamReader isr = new InputStreamReader(is, "UTF8");
 			BufferedReader br = new BufferedReader(isr);) {
 			String line = null;
 			while ((line = br.readLine()) != null) {
@@ -44,9 +41,7 @@ public class StreamConsumer extends Thread {
 	}
 
 	public String[] getLines() {
-		
 		//return a copy of the object rather than a reference of mutable array
-		//return lines;
 		return Arrays.copyOf( lines, lines.length );
 	}
 }

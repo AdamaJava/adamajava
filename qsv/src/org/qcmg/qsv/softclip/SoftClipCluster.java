@@ -512,7 +512,7 @@ public class SoftClipCluster implements Comparable<SoftClipCluster> {
 		int referenceEnd = bpEnd + 120;
 		int count = 0;
 		
-		try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(file,ValidationStringency.SILENT)) {
+		try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(file, null, ValidationStringency.SILENT)) {
         
     		SAMRecordIterator iter = reader.queryOverlapping(reference, referenceStart, referenceEnd);
     

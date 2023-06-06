@@ -53,6 +53,7 @@ public class ViewMT {
 	private boolean isViewOption = false;
 	private boolean isViewHeaderOption = false;
 	private String viewHeader;
+	private String csvHeader;
 	private boolean getForwardElements = true;
 	private boolean getReverseElements = true;
 	private boolean isHDFVersionOption = false;
@@ -102,6 +103,7 @@ public class ViewMT {
 				if (isViewHeaderOption) {				
 					System.out.println(viewHeader);				
 				} else {
+					this.csvHeader = hdf.getCSVHeader();
 					executeMT();
 				}
 			}
@@ -402,6 +404,7 @@ public class ViewMT {
             	} else {
             		String pileupFile = pileupDirName + PileupConstants.FILE_SEPARATOR + c.getName() + "_" + c.getStartPos() + "_" + c.getEndPos() + ".qpileup.csv";
             		this.writer = new BufferedWriter(new FileWriter(pileupFile, true));
+            		writer.write(csvHeader);
             		writer.write(fileHeader);
             		return pileupFile;
             	}
@@ -449,9 +452,10 @@ public class ViewMT {
 	        		forward.readDatasetBlock(startIndex, totalToRead);
 	        		reverse.readDatasetBlock(startIndex, totalToRead);
 	        		
-	        		if (!isViewOption) {
-	        			writer.write("#" + hdf.getFile().getName() + "\n");
-	        		}
+	        		//it keeps getting written to the view file every 1 million rows, so broke the csv file. 
+//	        		if (!isViewOption) {
+//	        			writer.write("#" + hdf.getFile().getName() + "\n");
+//	        		}
 	        		
 	        		//write      		
 	        		for (int i=0; i<position.getDatasetLength(); i++) {

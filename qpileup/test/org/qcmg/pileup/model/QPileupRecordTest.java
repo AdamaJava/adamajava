@@ -147,5 +147,38 @@ public class QPileupRecordTest {
 		assertNotNull(record.getStrandBiasRecord(20));
 		assertNull(record.getStrandBiasRecord(60));
 	}
+	
+	@Test
+	public void getRecordStringTest() {
+		List<StrandEnum> groupElements = new ArrayList<>();
+		List<StrandEnum> viewElements = new ArrayList<>();
+		
+		//full length
+		String str = record.getRecordString(viewElements, groupElements, false, false);
+		assertTrue(str.split(QPileupRecord.DELIMITER).length == 61);
+		
+		//with group element
+		groupElements.addAll(StrandEnum.getQuals());
+		str = record.getRecordString(viewElements, groupElements, false, false);
+		assertTrue(str.split(QPileupRecord.DELIMITER).length == 15);
+		
+		
+		//with group forward
+		str = record.getRecordString(viewElements, groupElements, true, false);
+		assertTrue(str.split(QPileupRecord.DELIMITER).length == 9);
+
+		//with group reverse
+		str = record.getRecordString(viewElements, groupElements, false, true);
+		assertTrue(str.split(QPileupRecord.DELIMITER).length == 9);	
+		
+		
+		//with view element, here group will be ignored
+		viewElements.add(StrandEnum.referenceNo);
+		viewElements.add(StrandEnum.cigarI);
+		str = record.getRecordString(viewElements, groupElements, false, false);
+		assertTrue(str.split(QPileupRecord.DELIMITER).length == 7);		
+		
+	}
+
 
 }

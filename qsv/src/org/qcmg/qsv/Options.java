@@ -10,6 +10,9 @@ import static java.util.Arrays.asList;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,6 +27,8 @@ import org.qcmg.common.meta.QExec;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.qsv.util.QSVConstants;
 import org.qcmg.qsv.util.QSVUtil;
+
+import htsjdk.samtools.reference.ReferenceSequenceFileFactory;
 
 
 /**
@@ -65,6 +70,7 @@ public class Options {
 	private String comparisonSampleId;
 	private List<String> ranges;
 	private String reference;
+	private String referenceIndex;
 	private String mapper;
 	private String clipQuery;
 	private String tiledAlignerFile;
@@ -79,10 +85,10 @@ public class Options {
 	private Integer clipSize;
 	private String platform;
 	private String sequencingPlatform;
-	private List<String> gffFiles = new ArrayList<String>();
+	private List<String> gffFiles = new ArrayList<>();
 	private boolean includeTranslocations;
 	private boolean allChromosomes = true;
-	private int REPEAT_COUNT_CUTOFF = 1000;
+	private int repeatCountCutoff = 1000;
 
 
 	/**
@@ -153,12 +159,12 @@ public class Options {
 		//create output directory, the base name should be run id		
 		outputDirName = generalSection.get("output");
 		if (outputDirName != null) {
-			if (!directoryExists(outputDirName)) {
+			if ( ! directoryExists(outputDirName)) {
                 throw new QSVException("NO_OUTPUT_DIR", outputDirName);
 			}
 			outputDirName = (outputDirName.endsWith(FILE_SEPERATOR) ? outputDirName : outputDirName + FILE_SEPERATOR ) + uuid + FILE_SEPERATOR;
 			createResultsDirectory(outputDirName);
-		}else {
+		} else {
 			throw new QSVException("NO_OUTPUT");
 		}	
 		
@@ -169,7 +175,7 @@ public class Options {
 		}
 		
 		if (generalSection.get("repeat_cutoff") != null) {
-			REPEAT_COUNT_CUTOFF =  new Integer(generalSection.get("repeat_cutoff"));
+			repeatCountCutoff =  new Integer(generalSection.get("repeat_cutoff"));
 		}
 
 		//ranges can be null, means all chromosome
@@ -183,6 +189,16 @@ public class Options {
 		}
 		
 		reference = generalSection.get("reference");
+		referenceIndex = generalSection.get("reference_index");
+		/*
+		 * if the reference index has not been supplied see if it sits next to the reference file
+		 */
+		if (null == referenceIndex && null != reference) {
+			Path indexPath = ReferenceSequenceFileFactory.getFastaIndexFileName(Paths.get(reference));
+			if (Files.isReadable(indexPath)) {
+				referenceIndex = indexPath.toString();
+			}
+		}
 		
 		if (generalSection.get("sv_analysis") != null) {
 			this.preprocessMode = generalSection.get("sv_analysis");
@@ -219,9 +235,6 @@ public class Options {
 		
 		maxISizeCount = "all";
 		
-		if (options.has("qcmg")) {
-			isQCMG = true;
-		}
 		
 		if (generalSection.get("qcmg") != null) {
 			if (generalSection.get("qcmg").equals("true")) {
@@ -232,7 +245,7 @@ public class Options {
 		this.gffFiles = generalSection.getAll("gff");
 		
 		if (gffFiles == null) {
-			gffFiles = new ArrayList<String>();
+			gffFiles = new ArrayList<>();
 		}				
 
 		//Pairing params
@@ -333,13 +346,13 @@ public class Options {
 		detectBadOptions();
 	}
 
-	public int getREPEAT_COUNT_CUTOFF() {
-		return REPEAT_COUNT_CUTOFF;
+	public int getRepeatCountCutoff() {
+		return repeatCountCutoff;
 	}
 
-	public void setREPEAT_COUNT_CUTOFF(int rEPEAT_COUNT_CUTOFF) {
-		REPEAT_COUNT_CUTOFF = rEPEAT_COUNT_CUTOFF;
-	}
+//	public void setREPEAT_COUNT_CUTOFF(int rEPEAT_COUNT_CUTOFF) {
+//		REPEAT_COUNT_CUTOFF = rEPEAT_COUNT_CUTOFF;
+//	}
 
 	private void processRanges() throws QSVException {
 		includeTranslocations = false;
@@ -383,12 +396,21 @@ public class Options {
 			}
 		} 
 		if (reference != null) {
-			if (!new File(reference).exists()) {
+			if ( ! new File(reference).exists()) {
 				throw new QSVException("NO_REFERENCE_FILE", reference);	
 			}
 		} else {
 			if (reference == null && isQCMG) {
 				throw new QSVException("NULL_REFERENCE_FILE");
+			}
+		}
+		if (referenceIndex != null) {
+			if ( ! new File(referenceIndex).exists()) {
+				throw new QSVException("NO_REFERENCE_INDEX_FILE", referenceIndex);	
+			}
+		} else {
+			if (referenceIndex == null && isQCMG) {
+				throw new QSVException("NULL_REFERENCE_INDEX_FILE");
 			}
 		}
 		
@@ -400,28 +422,21 @@ public class Options {
 			throw new QSVException("NULL_INPUT_FILE");				
 		} else if ( ! new File(inputFile).exists()) {
 			throw new QSVException("NO_INPUT_FILE", inputFile);					
-		//check output file directory
 		}
 		
- 		//it is compulsary to specify output directory
+ 		//it is compulsory to specify output directory
 		if (null ==  outputDirName) {  
 			throw new QSVException("NULL_OUTPUT_DIR");
-		} else if (!directoryExists(outputDirName)) {
-			
-			//check the parent directory
-			
+		} else if ( ! directoryExists(outputDirName)) {
 			throw new QSVException("NO_OUTPUT_DIR", outputDirName);
-		//check output file directory
 		}
 		
 		if (null ==  tempDirName) {
 			throw new QSVException("NULL_TEMP_DIR");
-		} else if (!directoryExists(tempDirName)) {
+		} else if ( ! directoryExists(tempDirName)) {
 			throw new QSVException("NO_TEMP_DIR");		
-		//check for name of output files
 		} else if (StringUtils.isNullOrEmpty(sampleName)) {
 			throw new QSVException("NO_DONOR");
-		//check cluster size
 		} else if (null == filterSize || filterSize.equals(0)) {
 			throw new QSVException("NO_CLUSTER_NORMAL");
 		} else if (null == clusterSize || clusterSize.equals(0)) {
@@ -556,6 +571,10 @@ public class Options {
 
 	public String getReference() {
 		return reference;
+	}
+	
+	public String getReferenceIndex() {
+		return referenceIndex;
 	}
 	
 	public String getLog() {

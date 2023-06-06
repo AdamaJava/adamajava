@@ -58,11 +58,11 @@ public class QJumper {
 		return getOverlappingRecordsAtPosition(contig, position, position);
 	}
 	
-	public void setupReader(String fileName, String indexFileName) {
+	public void setupReader(String fileName, String indexFileName) throws IOException {
 		readers.add(SAMFileReaderFactory.createSAMFileReader(new File(fileName), new File(indexFileName)));
 	}
 	
-	public void setupReader(String ...fileNames) {
+	public void setupReader(String ...fileNames) throws IOException {
 		if (null != fileNames) {
 			File [] files = new File[fileNames.length];
 			int i = 0;
@@ -72,14 +72,8 @@ public class QJumper {
 			setupReader(files);
 		}
 	}
-//	public void setupReader(File file) {
-//		if (FileUtils.canFileBeRead(file)) {
-//			reader = SAMFileReaderFactory.createSAMFileReader(file);
-//			reader.enableIndexCaching(true);
-////			reader.enableIndexMemoryMapping(false);
-//		} else throw new IllegalArgumentException("File can not be read: " + file.getAbsolutePath());	
-//	}
-	public void setupReader(File ... files) {
+
+	public void setupReader(File ... files) throws IOException {
 		if (null != files) {
 			for (File f : files) {
 				if (FileUtils.canFileBeRead(f)) {

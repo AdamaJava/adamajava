@@ -42,7 +42,10 @@ public class QSVClusterWriterTest {
 
     @Before
     public void setUp() throws IOException, Exception {
-		File tumorBam = TestUtil.createSamFile(testFolder.newFile("tumor.bam").getAbsolutePath(), PairGroup.AAC, SortOrder.queryname, true);
+       	//debug change .bam to .sam
+		//File tumorBam = TestUtil.createSamFile(testFolder.newFile("tumor.bam").getAbsolutePath(), PairGroup.AAC, SortOrder.queryname, true);
+   	
+		File tumorBam = TestUtil.createSamFile(testFolder.newFile("tumor.sam").getAbsolutePath(), PairGroup.AAC, SortOrder.queryname, true);
         tumor = TestUtil.getQSVParameters(testFolder.getRoot(), tumorBam.getAbsolutePath(), tumorBam.getAbsolutePath(), true, "both");
         normal = TestUtil.getQSVParameters(testFolder.getRoot(), tumorBam.getAbsolutePath(), tumorBam.getAbsolutePath(), false, "both");         
         tumor.setReference("file");

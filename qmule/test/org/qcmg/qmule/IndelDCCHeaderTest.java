@@ -35,8 +35,8 @@ public class IndelDCCHeaderTest {
 	
 	@Before
 	public void setUp() throws IOException {
-		tumourBam = createBamFile(testFolder.getRoot().getAbsolutePath() + FILE_SEPARATOR + "tumor.bam", "tumourId");
-		normalBam = createBamFile(testFolder.getRoot().getAbsolutePath() + FILE_SEPARATOR + "normal.bam", "normalId");
+		tumourBam = createBamFile(testFolder.getRoot().getAbsolutePath() + FILE_SEPARATOR + "tumor.sam", "tumourId");
+		normalBam = createBamFile(testFolder.getRoot().getAbsolutePath() + FILE_SEPARATOR + "normal.sam", "normalId");
 		somaticFile = createDCCFile(testFolder.getRoot().getAbsolutePath() + FILE_SEPARATOR + "input.dcc1", 13, "3d9d495c-94f7-46a4-9301-7dcbad7285d1");
 		somaticOutputFile = new File(testFolder.getRoot().getAbsolutePath() + FILE_SEPARATOR + "output.dcc1");
 		germlineFile = createDCCFile(testFolder.getRoot().getAbsolutePath() + FILE_SEPARATOR + "germ.input.dcc1", 13, "2d9d495c-94f7-46a4-9301-7dcbad7285d1");

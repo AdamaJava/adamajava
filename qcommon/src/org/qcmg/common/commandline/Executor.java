@@ -4,6 +4,7 @@
  *
  * This code is released under the terms outlined in the included LICENSE file.
  */
+
 package org.qcmg.common.commandline;
 
 import java.io.IOException;
@@ -28,10 +29,9 @@ public class Executor {
 	}
 
 	public Executor(String execCommand) throws IOException, InterruptedException {
- 		Process process = Runtime.getRuntime().exec(execCommand);
+		Process process = Runtime.getRuntime().exec(execCommand);
 		outputStreamConsumer = new StreamConsumer(process.getInputStream());
 		errorStreamConsumer = new StreamConsumer(process.getErrorStream());
-		//has to call run() rather than start() inside the constructor
 		outputStreamConsumer.run();
 		errorStreamConsumer.run();
 		errCode = process.waitFor();

@@ -1,3 +1,9 @@
+/**
+ * © Copyright QIMR Berghofer Medical Research Institute 2014-2022.
+ *
+ * This code is released under the terms outlined in the included LICENSE file.
+ */
+
 package org.qcmg.common.vcf.header;
 
 import java.util.ArrayList;
@@ -29,10 +35,10 @@ public class VcfHeaderRecord implements Comparable<VcfHeaderRecord> {
 	 * @param line: vcf header line follow ##key=value pattern 
 	 */
 	public VcfHeaderRecord(String line) {
-		if (StringUtils.isNullOrEmpty(line) || ! (line = line.trim()).startsWith("#") ) 
+		if (StringUtils.isNullOrEmpty(line) || ! (line = line.trim()).startsWith("#") )
 			throw new IllegalArgumentException("input String is null, empty or missing leading \"#\":\n" + line);
 
-		if(line.startsWith(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE) ){			
+		if (line.startsWith(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE)) {			
 			this.key = line.trim();
 			this.value = null; 	
 			this.id = null;
@@ -53,13 +59,13 @@ public class VcfHeaderRecord implements Comparable<VcfHeaderRecord> {
 		this.pairs = getPairs(vstr);
 		
 		Pair<String, String> pid = null; 
-		if(pairs != null ){
+		if (pairs != null ) {
 			vstr = "<";
-			for(Pair<String, String> p : pairs){ 
+			for(Pair<String, String> p : pairs) { 
 				vstr += p.getLeft() +  ((p.getRight() == null) ? "": "=" + p.getRight() ) + ",";
 			}
 			
-			vstr = vstr.substring(0, vstr.length()-1) + ">";
+			vstr = vstr.substring(0, vstr.length() - 1) + ">";
 			for (Pair<String, String> p : pairs) {
 				if(p.getKey().equals(ID)){ 
 					pid = p; break; 
@@ -130,7 +136,7 @@ public class VcfHeaderRecord implements Comparable<VcfHeaderRecord> {
 		int diff = getMetaKey().compareTo(o.getMetaKey());			
 		if(diff != 0) return diff;
 		
-		if(id != null){
+		if(id != null) {
 			boolean isNumeric = getId().chars().allMatch( Character::isDigit ) && o.getId().chars().allMatch( Character::isDigit );
 			if(isNumeric)					 
 				return Integer.compare( Integer.parseInt(o.getId()) ,Integer.parseInt(getId()));
@@ -145,20 +151,26 @@ public class VcfHeaderRecord implements Comparable<VcfHeaderRecord> {
 	 * 
 	 * @return the key string which is the string before "=" mark of ##key=value; 
 	 */
-	public String getMetaKey(){ return key; }
+	public String getMetaKey() { 
+		return key;
+	}
 	
 	/**
 	 * 
 	 * @return the meta value string  which is the string after "=" mark of ##key=value; 
 	 */
-	public String getMetaValue(){ return value; }	
+	public String getMetaValue() { 
+		return value;
+	}	
 	
 	/**
 	 * 
 	 * @return the ID of the structured meta-information header line, eg. ##Key=<ID=id, ...>
 	 * return null, if ID is not exists.
 	 */
-	public String getId(){ return id;} 	
+	public String getId() { 
+		return id;
+	} 	
 	
 	/**
 	 * 
@@ -166,68 +178,77 @@ public class VcfHeaderRecord implements Comparable<VcfHeaderRecord> {
 	 * @return the related pair value of specified pair key, eg.  ##Key=<ID=id,pairkey1=pairValue1, pairkey2=pairValue2, ...>
 	 * return null if the specified pairKey or pairValue is not exists.
 	 */
-	public String getSubFieldValue(String pairKey){ 
+	public String getSubFieldValue(String pairKey) { 
 		if(pairs != null) {
 			for(Pair<String, String> pair : pairs) {
-				if(pair.getLeft().equalsIgnoreCase(pairKey)  ) {				 
+				if(pair.getLeft().equalsIgnoreCase(pairKey)) {				 
 					return pair.getRight(); 
 				}
 			}
 		}
 		return null; 
 	}
-	public List<Pair<String,String>> getSubFields(){ return pairs; }	
+	
+	public List<Pair<String,String>> getSubFields() { 
+		return pairs; 
+	}	
 	
 	/**
 	 * format input string to a proper description string
 	 * @param str: an input string
 	 * @return a trimmed string enclosed by double quotation. 
 	 */
-	static String parseDescription(String str){
+	static String parseDescription(String str) {
 		String str1 = str.trim();
-		String str2 = (str1.startsWith("\""))? str1 : "\"" + str1;
-		str2 += (str1.endsWith("\""))? "" : "\"";
+		String str2 = (str1.startsWith("\"")) ? str1 : "\"" + str1;
+		str2 += (str1.endsWith("\"")) ? "" : "\"";
 		return str2;
 	}
 
-	static private List<Pair<String,String>> getPairs(String sValue){
+	static private List<Pair<String,String>> getPairs(String sValue) {
 		
 		if( ! sValue.startsWith("<")  || ! sValue.endsWith(">")) 
 			return null; 
 			
 		List<Pair<String,String>> values =  new ArrayList<>();
 		//remove space around = 			
-		String subLine = sValue.substring( 1, sValue.length()-1).trim()+Constants.COMMA;
+		String subLine = sValue.substring( 1, sValue.length() - 1).trim() + Constants.COMMA;
 				 
 		List<String> quotStr = new ArrayList<>();
 		Matcher matcher = PATTERN.matcher(subLine);
- 		while(matcher.find()){
+ 		while(matcher.find()) {
  			String mstr = matcher.group();
- 			mstr = mstr.substring(mstr.indexOf("\"")+1, mstr.lastIndexOf("\""));
- 			quotStr.add(  mstr.trim()  );
+ 			mstr = mstr.substring(mstr.indexOf("\"") + 1, mstr.lastIndexOf("\""));
+ 			quotStr.add(mstr.trim());
  		} 
  			 		
  		String[] quotKeys = PATTERN.split(subLine);	
- 		for(int i = 0; i < quotKeys.length; i++){  
+ 		for (int i = 0; i < quotKeys.length; i++) {
  			//get sub field key value pair
  			String[] subs = quotKeys[i].split(",");   		
- 			for(int j = 0; j < subs.length; j++){
+ 			for (int j = 0; j < subs.length; j++) {
  				subs[j] = subs[j].trim();	 	 				
  				String key = null, value = null;
- 				if (quotStr.size() > i &&   j == subs.length-1 ) {//the key bf quot string
+ 				if (quotStr.size() > i &&   j == subs.length - 1) {//the key bf quot string
  					key = subs[j].replace("=", "").trim();
  					value = "\"" + quotStr.get(i) + "\"";
  				} else {  //non quot string sub field
 	 				int index = subs[j].indexOf(Constants.EQ);
-	 				if(index > 0){ key = subs[j].substring(0,index).trim(); value = subs[j].substring(index+1).trim();}
-	 				else key = subs[j];	 					
- 				}	
- 				if( key.equals("") &&  value.equals("")) continue;				
+	 				if (index > 0){ 
+	 					key = subs[j].substring(0, index).trim();
+	 					value = subs[j].substring(index + 1).trim();
+	 				} else {
+	 					key = subs[j];
+	 				}
+ 				}
+ 				if (key.equals("") && value.equals("")) continue;
  				values.add(Pair.of( key, value));
  			}			 
  		}	
  		
- 		if(values.size() == 0) return null; 
+ 		if (values.size() == 0) {
+ 			return null; 
+ 		}
 					 
 		Pair<String, String> pid = null; 
 		for (Pair<String, String> p : values) {
@@ -236,12 +257,10 @@ public class VcfHeaderRecord implements Comparable<VcfHeaderRecord> {
 			}
 		}
 		
-		if(!values.get(0).equals( pid )){
+		if ( ! values.get(0).equals( pid )) {
 			values.remove( pid );
 			values.add(0, pid );
-		} 
-				
+		}
 		return values; 
 	}
-
 }

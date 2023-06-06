@@ -87,8 +87,7 @@ public class SmithWatermanGotoh {
 
 	private void align() {		
 		fillMatrix();
-		traceback();
-//		System.out.println(getDiffs());
+//		traceback();
 	}
 	
 	private void fillMatrix() {
@@ -247,7 +246,8 @@ public class SmithWatermanGotoh {
 					
 				case STOP:
 					run = false;
-					break;		
+					break;
+				default: /* do nothing */ break;
 			}
 		}
 		return new String[] {alignmentA.reverse().toString(), gapString.reverse().toString(), alignmentB.reverse().toString()};  

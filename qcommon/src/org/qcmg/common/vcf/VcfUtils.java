@@ -19,7 +19,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.Set;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -28,10 +27,8 @@ import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.GenotypeEnum;
-import org.qcmg.common.model.PileupElement;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
-import org.qcmg.common.util.ListUtils;
 import org.qcmg.common.util.SnpUtils;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
@@ -118,54 +115,10 @@ public class VcfUtils {
 		return mergeRecord;
 	}
 	
- /**
-  * 
-  * 
-  * 
-  * @param re: String record from sample format column. eg. 0/1:A/C:A2[17.5],34[25.79],C2[28.5],3[27.67]
-  * @param base: allel base, eg. [A,T,G,C] for SNP; [AAT, GC...] for compound SNP; null for all base
-  * @return the counts for specified base or return total allels counts if base is null;
-  */
-	public static int getAltFrequency( VcfFormatFieldRecord re, String base){
-		int count = 0;
- 		 
-		final Matcher m;
-		String countString = null;
-		if( (countString = re.getField(VcfHeaderUtils.FORMAT_ALLELE_COUNT) )  != null ){
-			// eg. 0/1:A/C:A2[17.5],34[25.79],C2[28.5],3[27.67]
-			m = pattern_AC.matcher(countString);			
-			while (m.find()) {
-				final String pileup = m.group();
-				if(base == null){
-					count += Integer.parseInt(pileup.substring(1, pileup.indexOf('['))) +
-								Integer.parseInt(pileup.substring(pileup.indexOf(',')+1, pileup.indexOf('[', pileup.indexOf(','))));
-				}else if(base.equalsIgnoreCase(pileup.substring(0,1))){
-					count = Integer.parseInt(pileup.substring(1, pileup.indexOf('['))) +
-							Integer.parseInt(pileup.substring(pileup.indexOf(',')+1, pileup.indexOf('[', pileup.indexOf(','))));
-					break;
-				}	 
-			}					
-		}else if((countString = re.getField(VcfHeaderUtils.FORMAT_ALLELE_COUNT_COMPOUND_SNP)) != null){
-			// eg. AA,1,1,CA,4,1,CT,3,1,TA,11,76,TT,2,2,_A,0,3,TG,0,1
-			m = pattern_ACCS.matcher(countString);
-			while (m.find()) {
-				final String[] pileup = m.group().split(Constants.COMMA_STRING);
-				if(base == null){
-					count += Integer.parseInt(pileup[1]) + Integer.parseInt(pileup[2]);
-					
-				}else if(base.equalsIgnoreCase(pileup[0])){	 
-					count = Integer.parseInt(pileup[1]) + Integer.parseInt(pileup[2]);
-					break;
-				}
-			}	
-		} 
-		 
-		 return count;
-	 }
-	
 	public static List<String> convertFFMapToList(Map<String, String[]> ffm) {
 		return convertFFMapToList(ffm, null);
 	}
+	
 	public static List<String> convertFFMapToList(Map<String, String[]> ffm, String [] orderedHeaders) {
 		/*
 		 * needs to be  a list of string, ordered correctly
@@ -305,46 +258,6 @@ public class VcfUtils {
 		}
 		
 		return Collections.emptyMap();
-	}
-	
-	/**
-	 * Gets just the filters that end in the suppled suffix
-	 * USed for merged vcf records where the input file position is appended to each filter value
-	 * eg. PASS_1 indicates that input file 1 deemed this position a PASS
-	 * 
-	 * @param rec
-	 * @param suffix
-	 * @return
-	 */
-	public static String getFiltersEndingInSuffix(VcfRecord rec, String suffix) {
-		if (rec == null || suffix == null) {
-			throw new IllegalArgumentException("Null VcfRecord or suffix passed to getFiltersEndingInSuffix");
-		}
-		String filter = rec.getFilter();
-		if (null == filter) {
-			throw new IllegalArgumentException("Null VcfRecord or suffix passed to getFiltersEndingInSuffix");
-		}
-		String [] params = filter.split(Constants.SEMI_COLON_STRING);
-		return Arrays.stream(params).filter(s -> s.endsWith(suffix)).collect(Collectors.joining(Constants.SEMI_COLON_STRING));
-	}
-	
-	
-	public static String getPileupElementAsString(List<PileupElement> pileups, boolean novelStart) {
-		
-		int a = 0, c = 0, g = 0, t = 0, n = 0;
-		if (null != pileups) {
-			for (final PileupElement pe : pileups) {
-				switch (pe.getBase()) {
-					case 'A': a = pe.getTotalCount(); break;
-					case 'C': c = pe.getTotalCount(); break;
-					case 'G': g = pe.getTotalCount(); break;
-					case 'T': t = pe.getTotalCount(); break;
-					case 'N': n = pe.getTotalCount(); break;
-					//default do nothing
-				}
-			}
-		}
-		return (novelStart ? "NOVELCOV" : "FULLCOV") + "=A:" + a + ",C:" + c + ",G:" + g + ",T:" + t + ",N:" + n + ",TOTAL:" + (a+c+g+t+n);
 	}
 	
 	/**
@@ -501,6 +414,10 @@ public class VcfUtils {
 		return Collections.emptyMap();
 	}
 	
+	public static Map<String, String[]> getFormatFieldsAsMap(String ff) {
+		return getFormatFieldsAsMap(Arrays.asList(ff.split(Constants.TAB_STRING)));
+	}
+	
 	/**
 	 * generic method to retrieve a field from the format fields.
 	 * User needs to specify which field to retrieve, and from which sample (position)
@@ -559,7 +476,7 @@ public class VcfUtils {
 	 */
 	public static VcfRecord createVcfRecord(ChrPosition cp, String id, String ref, String alt) {
  			
-		if(ref != null   && (cp.getEndPosition() - cp.getStartPosition() + 1 )!= ref.length()) {
+		if (ref != null   && (cp.getEndPosition() - cp.getStartPosition() + 1 ) != ref.length()) {
 			return(new VcfRecord.Builder(cp.getChromosome(),cp.getStartPosition(), ref)).id(id).allele(alt).build();
 		}
 		if (cp instanceof ChrPointPosition) {
@@ -569,13 +486,13 @@ public class VcfUtils {
 			return new VcfRecord.Builder(cp.getChromosome(),cp.getStartPosition(), ref).id(id).allele(alt).build();
 			
 		}
-		 
 	}
+	
 	public static VcfRecord createVcfRecord(String chr, int position) {
 		return new VcfRecord.Builder(chr, position).build();
 	}
 	
-	public static VcfRecord resetAllel(VcfRecord re, String alt){
+	public static VcfRecord resetAllel(VcfRecord re, String alt) {
 		VcfRecord re1  =  new VcfRecord.Builder(re.getChrPosition(), re.getRef(), alt)
 				.id(re.getId()).qualString(re.getQualString()).filter(re.getFilter()).build();
 		
@@ -593,6 +510,22 @@ public class VcfUtils {
 	 */
 	public static VcfRecord cloneWithNewChrPos(VcfRecord re, ChrPosition cp){
 		VcfRecord re1  =  new VcfRecord.Builder(cp, re.getRef(), re.getAlt())
+				.id(re.getId()).qualString(re.getQualString()).filter(re.getFilter()).build();
+		
+		re1.setInfo(re.getInfo());
+		re1.setFormatFields(re.getFormatFields());
+		
+		return re1; 
+	}
+	
+	/**
+	 * Returns a new VcfREcord based on the passed in VcfRecord but with the passed in ChrPosition obj
+	 * @param re
+	 * @param cp
+	 * @return
+	 */
+	public static VcfRecord cloneWithNewAlt(VcfRecord re, String alt){
+		VcfRecord re1  =  new VcfRecord.Builder(re.getChrPosition(), re.getRef(), alt)
 				.id(re.getId()).qualString(re.getQualString()).filter(re.getFilter()).build();
 		
 		re1.setInfo(re.getInfo());
@@ -700,7 +633,7 @@ public class VcfUtils {
 					 */
 					int fsCount = Integer.parseInt(pileup.substring(startOfNumberIndex, openBracketIndex));
 					int rsCount = Integer.parseInt(pileup.substring(pileup.indexOf(Constants.CLOSE_SQUARE_BRACKET) + 1, pileup.indexOf(Constants.OPEN_SQUARE_BRACKET, openBracketIndex + 1)));
-					m.put(pileup.substring(0, startOfNumberIndex),  new int[] {fsCount,rsCount});
+					m.put(pileup.substring(0, startOfNumberIndex), new int[] {fsCount,rsCount});
 				}
 			}
 			return m;
@@ -723,6 +656,7 @@ public class VcfUtils {
 	public static void addMissingDataToFormatFields(VcfRecord vcf, int position) {
 		addMissingDataToFormatFields(vcf, position, 1);
 	}
+	
 	public static void addMissingDataToFormatFields(VcfRecord vcf, int position, int count) {
 		if (null == vcf) {
 			throw new IllegalArgumentException("null vcf parameter passed to addMissingDataToFormatFields");
@@ -829,9 +763,9 @@ public class VcfUtils {
 			 */
 			List<String> updatedFFs = convertFFMapToList(ffMap);
 			vcf.setFormatFields(updatedFFs);
-			
 		}
 	}
+	
 	public static void addFormatFieldsToVcf(VcfRecord vcf, List<String> additionalFormatFields) {
 		 addFormatFieldsToVcf(vcf,  additionalFormatFields, false, '\u0000');
 	}
@@ -1136,10 +1070,6 @@ public class VcfUtils {
 		}
 	}
 	
-	public static Map<String, String[]> getFormatFieldsAsMap(String ff) {
-		return getFormatFieldsAsMap(Arrays.asList(ff.split(Constants.TAB_STRING)));
-	}
-	
 	/**
 	 * For SOMATIC records, if all format columns have a PASS in them, then we are a PASS.
 	 * For Germline, only care about the control column(s) being a PASS
@@ -1180,56 +1110,17 @@ public class VcfUtils {
 	}
 	
 	/**
-	 * Return true if there is a PASS in the fields that are specified in the int array.
-	 * False otherwise
+	 * Returns true if the VcfRecord is deemed to have passed any applied filters, and false otherwise
 	 * 
-	 * @param ffMap
-	 * @param columnsThatMustHavePass
+	 * @param v
+	 * @param meta
 	 * @return
 	 */
-	public static boolean isRecordAPass(Map<String, String[]> ffMap, int[] columnsThatMustHavePass) {
-		String [] filterArr = ffMap.get(VcfHeaderUtils.FORMAT_FILTER);
-		int filterArrayLength = filterArr.length;
-		for (int i : columnsThatMustHavePass) {
-			if (i >= filterArrayLength || ! filterArr[i].equals(VcfHeaderUtils.FILTER_PASS)) {
-				return false;
-			}
-		}
-		return true;
-	}
-	
 	public static boolean isRecordAPass(VcfRecord v, VcfFileMeta meta) {
 		if (null == meta) {
 			return isRecordAPass(v);
 		}
 		return isRecordAPass(v.getFormatFieldsAsMap(), meta, v.getInfo(), isCompoundSnp(v));
-	}
-	
-	/**
-	 * If the filter fields String array contains "PASS" at the positions (1-based) in the positions short array, return true.
-	 * False otherwise
-	 * 
-	 * @param filterFields
-	 * @param positions
-	 * @return
-	 */
-	public static boolean areTheseFilterFieldsAPass(String [] filterFields, short[] positions) {
-		if (null != filterFields && filterFields.length > 0 
-				&& null != positions && positions.length > 0) {
-			
-			boolean allGood = true;
-			for (int i : positions) {
-				if (i > 0 && i <= filterFields.length) {
-					if ( ! VcfHeaderUtils.FILTER_PASS.equals(filterFields[i - 1])) {
-						allGood =  false;
-					}
-				} else {
-					allGood = false;
-				}
-			}
-			return allGood;
-		}
-		return false;
 	}
 	
 	public static boolean isRecordAPass(Map<String, String[]> ffMap, VcfFileMeta meta, String infoField, boolean compoundSnp) {
@@ -1275,6 +1166,33 @@ public class VcfUtils {
 			}
 		}
 		
+		return false;
+	}
+	
+	/**
+	 * If the filter fields String array contains "PASS" at the positions (1-based) in the positions short array, return true.
+	 * False otherwise
+	 * 
+	 * @param filterFields
+	 * @param positions
+	 * @return
+	 */
+	public static boolean areTheseFilterFieldsAPass(String [] filterFields, short[] positions) {
+		if (null != filterFields && filterFields.length > 0 
+				&& null != positions && positions.length > 0) {
+			
+			boolean allGood = true;
+			for (int i : positions) {
+				if (i > 0 && i <= filterFields.length) {
+					if ( ! VcfHeaderUtils.FILTER_PASS.equals(filterFields[i - 1])) {
+						allGood =  false;
+					}
+				} else {
+					allGood = false;
+				}
+			}
+			return allGood;
+		}
 		return false;
 	}
 	
@@ -1448,83 +1366,6 @@ public class VcfUtils {
 	}
 	
 	/**
-	 * merges the 2 supplied alt strings.
-	 * Returns a comma separated merged string containing the contents of the supplied alts
-	 * This will merge alts of different lengths, so if this is not desired, please
-	 * 
-	 * 
-	 * @param existingAlt
-	 * @param newAlt
-	 * @return
-	 */
-	public static String mergeAlts(String existingAlt, String newAlt) {
-		
-		if (existingAlt.equals(newAlt)) {
-			return existingAlt;
-		} else {
-			/*
-			 * possible scenarios:
-			 * - both existing and new alts contain a single alt, and are different (most likely)
-			 * -  existing contains multiple alts, one of which is the new alt
-			 * -  existing contains single alt, new alt contains multiple one of which is the existing
-			 * -  existing contains multiple alt, new alt contains multiple and they are all different
-			 */
-			int existingIndex = existingAlt.indexOf(Constants.COMMA_STRING);
-			int newIndex = newAlt.indexOf(Constants.COMMA_STRING);
-			
-			if (existingIndex == newIndex && existingIndex == -1) {
-				/*
-				 * append and return 
-				 */
-				return existingAlt + Constants.COMMA + newAlt;
-			} else {
-				String [] existingAltsArray = existingAlt.split(Constants.COMMA_STRING);
-				String [] newAltsArray = newAlt.split(Constants.COMMA_STRING);
-				
-				for (String ns : newAltsArray) {
-					/*
-					 * does this appear in the existing array?
-					 */
-					boolean match = false;
-					for (String es : existingAltsArray) {
-						if (ns.equals(es)) {
-							match = true;
-							break;
-						}
-					}
-					if ( ! match) {
-						//the loop normally only repeat once or twice, so "+" andStringBuffer is similar
-						existingAlt += Constants.COMMA_STRING + ns;
-					}
-				}
-				return existingAlt;
-			}
-		}
-	}
-	
-	public static String getUpdatedGT(String alts, String oldAlt, String oldGT) {
-		
-		if (alts.equals(oldAlt) || alts.startsWith(oldAlt + Constants.COMMA) || "0/0".equals(oldGT)) {
-			/*
-			 * no change
-			 */
-			return oldGT;
-		}
-		
-		int index = oldGT.indexOf("/");
-		int first = Integer.parseInt(oldGT.substring(0, index));
-		int second = Integer.parseInt(oldGT.substring(index + 1));
-		String [] oldAltArray = oldAlt.split(Constants.COMMA_STRING);
-		String [] altsArray = alts.split(Constants.COMMA_STRING);
-		
-		int newFirst = first > 0 ?  ListUtils.positionOfStringInArray(altsArray, oldAltArray[first - 1]) + 1 : first;
-		int newSecond = second > 0 ?  ListUtils.positionOfStringInArray(altsArray, oldAltArray[second - 1]) + 1: second;
-		
-		return newFirst + "/" + newSecond;
-	}
-	
-	
-	/**
 	 * Returns the confidence of a VcfRecord, which is found in the info field.
 	 * Returns null should the record be null, or the CONF value not be set in the info field.
 	 * 
@@ -1569,6 +1410,7 @@ public class VcfUtils {
 		 */
 		return altCount >= Math.max(minValue, ((float) totalReadCount / 100) * percentage);
 	}
+	
 	public static boolean mutationInNormal(int altCount, int totalReadCount, int percentage, int maxCoverage) {
 		return mutationInNormal(altCount, totalReadCount, (float) percentage, maxCoverage);
 	}

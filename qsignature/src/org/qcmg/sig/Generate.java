@@ -201,7 +201,7 @@ public class Generate {
 			cp = null;
 			
 			SAMFileHeader header;
-			try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile)) {
+			try (SamReader reader = SAMFileReaderFactory.createSAMFileReaderSig(bamFile)) {
 				header = reader.getFileHeader();
 			}
 			
@@ -855,7 +855,7 @@ public class Generate {
 		private final Thread mainThread;
 		
 		public Producer(File bamFile, CountDownLatch pLatch, Thread mainThread) {
-			reader = SAMFileReaderFactory.createSAMFileReader(bamFile, validationStringency);
+			reader = SAMFileReaderFactory.createSAMFileReaderSig(bamFile, validationStringency);
 			this.pLatch = pLatch;
 			this.mainThread = mainThread;
 		}

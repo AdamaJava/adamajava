@@ -13,7 +13,6 @@ dependencies {
     api project(':qio')
     
     api 'org.apache.commons:commons-math3:3.3'
-    api 'com.github.samtools:htsjdk:2.14.1'
     api 'net.sf.jopt-simple:jopt-simple:4.6'
     api 'com.fasterxml.jackson.core:jackson-databind:2.6.7.1'
 	

@@ -25,7 +25,12 @@ public class TabTokenizer {
 	
 	public static String[] tokenize(final String data, final char delim) {
 		int nextIndex = data.indexOf(delim);
-		if (nextIndex < 0) return new String[]{data};//throw new IllegalArgumentException("no delimiters '" + delim + "' found in string: " + data);
+		if (nextIndex < 0) {
+			/*
+			 * rather than throw an IllegalArgumentExcpetion, return an array with the data as the only element
+			 */
+			return new String[]{data};
+		}
 		
 		int currentIndex = 0;
 		final List<String> resultList = new ArrayList<>();
@@ -48,10 +53,15 @@ public class TabTokenizer {
 	public static String[] tokenize(final String data, final char delim, final int requiredEntries) {
 		int noOfEntries = 0;
 		int nextIndex = data.indexOf(delim);
-		if (nextIndex < 0) throw new IllegalArgumentException("no delimiters '" + delim + "' found in string: " + data);
+		if (nextIndex < 0) {
+			/*
+			 * rather than throw an IllegalArgumentExcpetion, return an array with the data as the only element
+			 */
+			return new String[]{data};
+		}
 		
 		int currentIndex = 0;
-		final List<String> resultList = new ArrayList<String>();
+		final List<String> resultList = new ArrayList<>();
 		
 		resultList.add(data.substring(currentIndex, nextIndex));
 		noOfEntries++;
@@ -66,6 +76,34 @@ public class TabTokenizer {
 		}
 		// get last string
 		resultList.add(data.substring(currentIndex));
+		
+		return resultList.toArray(stringArrayType);
+	}
+	
+	public static String[] partialTokenize(final String data, final char delim, final int requiredEntries) {
+		int noOfEntries = 0;
+		int nextIndex = data.indexOf(delim);
+		if (nextIndex < 0) {
+			/*
+			 * rather than throw an IllegalArgumentExcpetion, return an array with the data as the only element
+			 */
+			return new String[]{data};
+		}
+		
+		int currentIndex = 0;
+		final List<String> resultList = new ArrayList<>(requiredEntries + 1);
+		
+		resultList.add(data.substring(currentIndex, nextIndex));
+		noOfEntries++;
+		currentIndex = nextIndex + 1;
+		
+		nextIndex = data.indexOf(delim, currentIndex);
+		while ((noOfEntries < requiredEntries) && nextIndex != -1) {
+			resultList.add(data.substring(currentIndex, nextIndex));
+			noOfEntries++;
+			currentIndex = nextIndex + 1;
+			nextIndex = data.indexOf(delim, currentIndex);
+		}
 		
 		return resultList.toArray(stringArrayType);
 	}

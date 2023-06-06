@@ -15,10 +15,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import htsjdk.samtools.SAMFileHeader.SortOrder;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMRecord;
-
 import org.ini4j.InvalidFileFormatException;
 import org.junit.After;
 import org.junit.Before;
@@ -37,6 +33,10 @@ import org.qcmg.qsv.discordantpair.PairGroup;
 import org.qcmg.qsv.util.QSVConstants;
 import org.qcmg.qsv.util.TestUtil;
 
+import htsjdk.samtools.SAMFileHeader.SortOrder;
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SamReader;
+
 
 public class AnnotateFilterMTTest {
     
@@ -54,9 +54,9 @@ public class AnnotateFilterMTTest {
 
     @Before
     public void setUp() throws IOException {        
-      	normalBam = testFolder.newFile("normal.bam"); 
-      	iniFile = testFolder.newFile("test.ini");
-      	 setUpIniFile();
+        normalBam = testFolder.newFile("normal.bam"); 
+        iniFile = testFolder.newFile("test.ini");
+        setUpIniFile();
     }
     
     @After
@@ -116,7 +116,10 @@ public class AnnotateFilterMTTest {
 		 
 	}
     
-    @Test
+    /*
+     * doesn't test anything as far as I can tell
+     */
+    @Ignore
     public void setupQueryExecutor() throws Exception {
     	AbstractQueue<List<Chromosome>> readQueue = null;
 		AbstractQueue<SAMRecord> writeQueue = null;
@@ -129,7 +132,7 @@ public class AnnotateFilterMTTest {
 	    Options options = new Options(args);
 	    options.parseIniFile();
 	    String matepairsDir = null;
-		QSVParameters p = new QSVParameters(options, true, testFolder.getRoot().toString() , matepairsDir , new Date(), "test");
+		QSVParameters p = new QSVParameters(options, true, testFolder.getRoot().toString() , matepairsDir , new Date(), "test", null);
 		AnnotateFilterMT afmt = new AnnotateFilterMT(Thread.currentThread(), wGoodLatch, p, null, null, options);
 		afmt.new AnnotationFiltering(readQueue, writeQueue, writeClipQueue, mainThread, fLatch, wGoodLatch);
     	
@@ -140,7 +143,7 @@ public class AnnotateFilterMTTest {
     	}
     }
 
-    @Ignore
+    @Test
     public void testRunPairFilter() throws Exception { 
     	
         AtomicInteger exit = runFilterTest("both", true);        
@@ -151,7 +154,7 @@ public class AnnotateFilterMTTest {
         assertRecordsFound(17, parameters.getFilteredBamFile()); 
     }
     
-    @Ignore
+    @Test
     public void testRunClipFilter() throws Exception {        
         AtomicInteger exit = runFilterTest("clip", true);
         
@@ -161,17 +164,17 @@ public class AnnotateFilterMTTest {
         File [] files =  f.listFiles();
         assertEquals(false, null == files);
         for (File file: files) {
-	        	if (file.getName().endsWith(".clip")) {
-	        		count++;
-	        	}
+        	if (file.getName().endsWith(".clip")) {
+        		count++;
+        	}
         }
         assertEquals(10, count); 
     }
     
     @Ignore
     public void testRunBothFilter() throws Exception {        
-	    	AtomicInteger exit = runFilterTest("both", true);
-	    	assertEquals(0, exit.intValue()); assertEquals(0, exit.intValue());
+    	AtomicInteger exit = runFilterTest("both", true);
+    	assertEquals(0, exit.intValue()); assertEquals(0, exit.intValue());
         assertTrue(parameters.getFilteredBamFile().exists());
         assertTrue(parameters.getFilteredBamFile().toString().contains("discordantpair"));
         assertTrue(parameters.getFilteredBamFile().length() > 100);
@@ -182,9 +185,9 @@ public class AnnotateFilterMTTest {
         File [] files =  f.listFiles();
         assertEquals(false, null == files);
         for (File file: files) {
-	        	if (file.getName().endsWith(".clip")) {        		
-	        		count++;
-	        	}
+        	if (file.getName().endsWith(".clip")) {        		
+        		count++;
+        	}
         }
         assertEquals(10, count); 
     }
@@ -217,7 +220,7 @@ public class AnnotateFilterMTTest {
 		int count = 0;
 		try (SamReader reader =  SAMFileReaderFactory.createSAMFileReader(bam)) {
 	        for (SAMRecord r: reader) {
-	        		count++;
+        		count++;
 	        }
 		}
         assertEquals(total, count);

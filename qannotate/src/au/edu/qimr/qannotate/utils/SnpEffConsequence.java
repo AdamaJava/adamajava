@@ -220,26 +220,37 @@ public enum SnpEffConsequence {
 	}
 	
 	
-	 public static String getUndefinedConsequence( String ...strings ) {
-		 final String[] annotations = new String[4];
+	/**
+	 * Returns the consequence with the highest impact.
+	 * If there is more than 1 consequence with the same impact, then the consequence that appears last is returned.
+	 * 
+	 * NOTE that this is at odds with the way that snpEff orders consequences, but as I am retro-fitting this javadoc onto this method, I can only presume that this is the intended behaviour.
+	 * @param strings
+	 * @return
+	 */
+	public static String getUndefinedConsequence( String ...strings ) {
+		final String[] annotations = new String[4];
 		for (final String consequence : strings) {
 			final String impact = consequence.substring(consequence.indexOf("(") + 1,consequence.indexOf("|" )).trim();
-			if(impact.equalsIgnoreCase(SnpEffConsequence.HIGH_IMPACT))  
+			if (impact.equalsIgnoreCase(SnpEffConsequence.HIGH_IMPACT)) {  
 				annotations[0] = consequence;
-			else if(impact.equalsIgnoreCase(SnpEffConsequence.MODERATE_IMPACT))  
+			} else if (impact.equalsIgnoreCase(SnpEffConsequence.MODERATE_IMPACT)) {  
 				annotations[1] = consequence;
-			else if(impact.equalsIgnoreCase(SnpEffConsequence.LOW_IMPACT))  
+			} else if (impact.equalsIgnoreCase(SnpEffConsequence.LOW_IMPACT)) {
 				annotations[2] = consequence;
-			else
+			} else {
 				annotations[3] = consequence;
+			}
 		}
 		 
-		for(int i = 0; i < 4; i++)
-			if(! StringUtils.isNullOrEmpty( annotations[i]  ))
+		for (int i = 0; i < 4; i++) {
+			if ( ! StringUtils.isNullOrEmpty( annotations[i])) {
 				return annotations[i];
+			}
+		}
 		 
-		  return null;
-	 }
+		return null;
+	}
 
 }
 

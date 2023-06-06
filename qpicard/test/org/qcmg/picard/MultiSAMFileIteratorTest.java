@@ -155,23 +155,13 @@ public class MultiSAMFileIteratorTest {
 		files.add(file2);
 		files.add(file3);
 
-		MultiSAMFileReader reader = new MultiSAMFileReader(files);
-
-		int count = 0;
-		for (@SuppressWarnings("unused")
-		SAMRecord record : reader) {
-			count++;
-			//for debuging
-			if(count % 6 == 0)
-				System.out.println(record.getIntegerAttribute("zc"));
+		try(MultiSAMFileReader reader = new MultiSAMFileReader(files);){
+			int count = 0;
+			for (@SuppressWarnings("unused") SAMRecord record : reader) count++;					
+			assertTrue(30 == count);			
 		}
-		
-		System.out.println("counts: " + count);
-		
-		assertTrue(30 == count);
 	}
 	
-//	@Ignore
 	@Test
 	public void testListInsteadOfSet() throws IOException {
 		int number = 1000000;
@@ -192,9 +182,6 @@ public class MultiSAMFileIteratorTest {
 		
 		List<SAMRecordWrapper> list = new ArrayList<SAMRecordWrapper>();
 		start = System.currentTimeMillis();
-//		SAMRecord rec = new SAMRecord(null);
-//		SamReader reader = new SAMFileReader(testInputFile);
-//		Iterator<SAMRecord> iterator = reader.iterator();
 		for (int i = 0 ; i < number ; i++) {
 			SAMRecordWrapper temp = new SAMRecordWrapper(rec, iterator, reader);
 			list.add(temp);

@@ -52,7 +52,7 @@ public class VcfPipelineTest {
 	public void readsEndAfter1Snp() throws SnpException, Exception {
 		final File iniFile = testFolder.newFile("qsnp_vcf.ini");	
 		final File testInputVcf = testFolder.newFile("test.vcf");
-		final File testInputBam = testFolder.newFile("test.bam");
+		final File testInputBam = testFolder.newFile("test.sam");
 		final File vcfOutput = testFolder.newFile("output.vcf");
 		
 		List<String> vcfs = Arrays.asList(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT+"s1",
@@ -100,10 +100,10 @@ public class VcfPipelineTest {
 	public void classify() throws SnpException, Exception {
 		final File iniFile = testFolder.newFile("qsnp_vcf.ini");	
 		final File testInputVcf = testFolder.newFile("test.vcf");
-		final File testInputBam = testFolder.newFile("test.bam");
+		final File testInputBam = testFolder.newFile("test.sam");
 		final File vcfOutput = testFolder.newFile("output.vcf");
 		final File controlInputVcf = testFolder.newFile("control.vcf");
-		final File controlInputBam = testFolder.newFile("control.bam");
+		final File controlInputBam = testFolder.newFile("control.sam");
 		
 		List<String> testVcfs = Arrays.asList(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT,"chrX	2710840	rs311168	C	T	.	.	AC=2;AF=1.00;AN=2;DP=31;FS=0.000;MLEAC=2;MLEAF=1.00;MQ=60.00;MQ0=0;QD=33.08;SOR=1.688;IN=1,2;DB;VLD;VAF=0.6125	GT:GD	1/1:T/T",
 				"chrX	2710895	rs311169	C	G	.	. 	AC=2;AF=1.00;AN=2;DP=22;FS=0.000;MLEAC=2;MLEAF=1.00;MQ=60.00;MQ0=0;QD=37.63;SOR=1.828;IN=1,2;DB;VAF=0.6161	GT:GD	1/1:G/G");
@@ -185,10 +185,10 @@ public class VcfPipelineTest {
 	public void readsEndAfter2Snps() throws SnpException, Exception {
 		final File iniFile = testFolder.newFile("qsnp_vcf.ini");	
 		final File testInputVcf = testFolder.newFile("test.vcf");
-		final File testInputBam = testFolder.newFile("test.bam");
+		final File testInputBam = testFolder.newFile("test.sam");
 		final File vcfOutput = testFolder.newFile("output.vcf");
 		final File controlInputVcf = testFolder.newFile("control.vcf");
-		final File controlInputBam = testFolder.newFile("control.bam");
+		final File controlInputBam = testFolder.newFile("control.sam");
 		
 		List<String> vcfs = Arrays.asList(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT+"s1",
 				"chrX	2710840	rs311168	C	T	.	.	AC=2;AF=1.00;AN=2;DP=31;FS=0.000;MLEAC=2;MLEAF=1.00;MQ=60.00;MQ0=0;QD=33.08;SOR=1.688;IN=1,2;DB;VLD;VAF=0.6125	GT:GD	1/1:T/T",
@@ -213,7 +213,7 @@ public class VcfPipelineTest {
 	public void readsEndBefore3Snps() throws SnpException, Exception {
 		final File iniFile = testFolder.newFile("qsnp_vcf.ini");	
 		final File testInputVcf = testFolder.newFile("test.vcf");
-		final File testInputBam = testFolder.newFile("test.bam");
+		final File testInputBam = testFolder.newFile("test.sam");
 		final File vcfOutput = testFolder.newFile("output.vcf");
 		
 		List<String> vcfs = Arrays.asList(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT+"s1",
@@ -239,7 +239,7 @@ public class VcfPipelineTest {
 	public void readsEndBefore4Snps() throws SnpException, Exception {
 		final File iniFile = testFolder.newFile("qsnp_vcf.ini");	
 		final File testInputVcf = testFolder.newFile("test.vcf");
-		final File testInputBam = testFolder.newFile("test.bam");
+		final File testInputBam = testFolder.newFile("test.sam");
 		final File vcfOutput = testFolder.newFile("output.vcf");
 		
 		List<String> vcfs = Arrays.asList(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT+"s1",
@@ -266,7 +266,7 @@ public class VcfPipelineTest {
 	public void compoundSnps() throws SnpException, Exception {
 		final File iniFile = testFolder.newFile("qsnp_vcf.ini");	
 		final File testInputVcf = testFolder.newFile("test.vcf");
-		final File testInputBam = testFolder.newFile("test.bam");
+		final File testInputBam = testFolder.newFile("test.sam");
 		final File vcfOutput = testFolder.newFile("output.vcf");
 		
 		List<String> vcfs = Arrays.asList(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE_INCLUDING_FORMAT+"s1",
@@ -292,7 +292,7 @@ public class VcfPipelineTest {
 		
 		Comparator<String> comp = null;
 		List<String> sortedContigs = new ArrayList<String>();
-		final File testInputBam = testFolder.newFile("test.bam");
+		final File testInputBam = testFolder.newFile("test.sam");
 		createFile(testInputBam, getBamFile());
 		try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(testInputBam);) {
 			final SAMFileHeader header = reader.getFileHeader();
@@ -328,7 +328,7 @@ public class VcfPipelineTest {
 		assertEquals(true, comp.compare("chr1", "chr2") < 0);
 		assertEquals(true, comp.compare("chr2", "chr1") > 0);
 		
-		final File testInputBam = testFolder.newFile("test.bam");
+		final File testInputBam = testFolder.newFile("test.sam");
 		createFile(testInputBam, getBamFile());
 		try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(testInputBam);) {
 			final SAMFileHeader header = reader.getFileHeader();
@@ -373,7 +373,7 @@ public class VcfPipelineTest {
 		 */
 		final File iniFile = testFolder.newFile("qsnp_vcf.ini");	
 		final File testInputVcf = testFolder.newFile("test.vcf");
-		final File testInputBam = testFolder.newFile("test.bam");
+		final File testInputBam = testFolder.newFile("test.sam");
 		final File vcfOutput = testFolder.newFile("output.vcf");
 	
 		List<String> vcfs = new ArrayList<>();

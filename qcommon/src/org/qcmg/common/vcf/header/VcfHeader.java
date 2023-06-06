@@ -3,6 +3,7 @@
  *
  * This code is released under the terms outlined in the included LICENSE file.
 */
+
 package org.qcmg.common.vcf.header;
 
 import java.util.ArrayList;
@@ -14,7 +15,6 @@ import java.util.stream.Collectors;
 
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.Constants;
-import org.qcmg.common.vcf.header.VcfHeaderUtils;
 
 /**
  * Represents the header of a vcf file.
@@ -42,22 +42,26 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 		
 	//add input record if  no exists record with same key and if; 
 	//otherwise replace the existing one for true isReplace else discard input record
-	private <T extends VcfHeaderRecord>  void replaceRecord(List<T> stack,  T record,  boolean isReplace){		
+	private <T extends VcfHeaderRecord>  void replaceRecord(List<T> stack,  T record,  boolean isReplace) {		
 		boolean isExist = false;
 
 		Iterator<T> ite = stack.iterator();
-		while(ite.hasNext()){
+		while (ite.hasNext()) {
 			T re = ite.next();
 			boolean isSameId = (record.getId() == null && re.getId() == null) || ((re.getId() == null)? false: re.getId().equals(record.getId()));
 			 
-			if( isSameId && re.getMetaKey().equals(record.getMetaKey())){ 				
+			if (isSameId && re.getMetaKey().equals(record.getMetaKey())) { 				
 				isExist = true;
-				if(isReplace) ite.remove(); 
+				if (isReplace) {
+					ite.remove(); 
+				}
 			}			
 		}	
 		
 		//add record if not exist; replace record if exist and isReplace == true; 
-		if( ! isExist || isReplace ) stack.add( record );			 
+		if( ! isExist || isReplace ) {
+			stack.add( record );			 
+		}
 	}
 		
 	/**
@@ -67,8 +71,8 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 	 * @param type: Possible Types are: Integer, Float, Flag, Character, and String.
 	 * @param description: a description string
 	 */
-	public void addInfo(String id, String number, String type, String description)  { 
-		replaceRecord( idRecords,  new VcfHeaderRecord( VcfHeaderUtils.HEADER_LINE_INFO, id,number,type,description), true);
+	public void addInfo(String id, String number, String type, String description) { 
+		replaceRecord( idRecords,  new VcfHeaderRecord( VcfHeaderUtils.HEADER_LINE_INFO, id, number, type, description), true);
 	}
 	
 
@@ -80,7 +84,7 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 	 * @param description: a description string
 	 */
 	public void addFormat(String id, String number, String type, String description) { 
-		replaceRecord( idRecords, new VcfHeaderRecord( VcfHeaderUtils.HEADER_LINE_FORMAT, id,number,type,description),true );
+		replaceRecord( idRecords, new VcfHeaderRecord( VcfHeaderUtils.HEADER_LINE_FORMAT, id, number, type, description), true);
 	}
 	
 
@@ -90,7 +94,7 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 	 * @param description: a description string 
 	 */
 	public void addFilter(String id, String description) { 
-		replaceRecord( idRecords,  new VcfHeaderRecord( VcfHeaderUtils.HEADER_LINE_FILTER, id, null, null,description), true );			
+		replaceRecord( idRecords, new VcfHeaderRecord( VcfHeaderUtils.HEADER_LINE_FILTER, id, null, null, description), true);			
 	}
  
 	/**
@@ -99,7 +103,7 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 	 * @param rec: a vcf header record
 	 */
 	public void  addOrReplace(VcfHeaderRecord rec){ 
-		addOrReplace( rec ,true);
+		addOrReplace( rec, true);
 	}
 	
 	/**
@@ -109,10 +113,10 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 	 * @param isReplace: the existing record will be replace if set to true; Otherwise if set to false, id of record must be unique, 
 	 * so the existing one will be kept and input one will be discard; line without id is allowed for multi entry, so both existing one and input line will be kept.
 	 */
-	public void  addOrReplace(VcfHeaderRecord rec, boolean isReplace){  
+	public void  addOrReplace(VcfHeaderRecord rec, boolean isReplace) {  
 		
-		if (rec.getMetaKey().startsWith(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE) && rec.getId() == null){
-			chromLine = (isReplace || chromLine == null)? rec : chromLine;
+		if (rec.getMetaKey().startsWith(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE) && rec.getId() == null) {
+			chromLine = (isReplace || chromLine == null) ? rec : chromLine;
 		} else if (rec.getId() != null) {
 			replaceRecord( idRecords, rec, isReplace);
 		} else if(isReplace) {
@@ -145,9 +149,9 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 			return; 
 		
 		VcfHeaderRecord re = new VcfHeaderRecord(line.trim().replaceAll("\n", ""));		
-		 addOrReplace(re,   isReplace);
-				
+		addOrReplace(re, isReplace);
 	}
+	
 	/**
 	 * create an new empty vcf Header during vcf header merge, unit test etc
 	 */
@@ -165,7 +169,7 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 			throw new IllegalArgumentException("Vcf Header can't null or empty");
 		}
 		
-		headerRecords.forEach( r -> { 	addOrReplace(r, false); });
+		headerRecords.forEach( r -> { addOrReplace(r, false); });
 		
 		if (chromLine == null) {
 			throw new IllegalArgumentException("Missing or error on #CHROM line on vcf header");
@@ -177,26 +181,26 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 	 * @return sample column string after Format column on vcf final header line "#CHROM ... "
 	 */
 	public String[] getSampleId() {
-		if(chromLine == null || ! chromLine.getMetaKey().contains(VcfHeaderRecord.FORMAT)) {
+		if (chromLine == null || ! chromLine.getMetaKey().contains(VcfHeaderRecord.FORMAT)) {
 			return null;
 		}
 		
 		String[] column = chromLine.getMetaKey().split(Constants.TAB_STRING);
-		if(column.length <= 9) {
+		if (column.length <= 9) {
 			return null;
 		}
 		return Arrays.copyOfRange(column, 9, column.length);
 	}
 	
 	// return matched record or null if no matched one exists. 
-	private  <T extends VcfHeaderRecord>  T getRecord(List<T> stack, String key, String id){	
+	private  <T extends VcfHeaderRecord>  T getRecord(List<T> stack, String key, String id) {	
 		if(id == null ) 
 			return stack.stream().filter(r -> r.getMetaKey().equals(key)  && r.getId() == null).findFirst().orElse(null);
 		return stack.stream().filter(r -> r.getMetaKey().equals(key)  && r.getId().equals(id)).findFirst().orElse(null);
 	}
 	
 	//return empty list if not exists
-	private  <T extends VcfHeaderRecord>  List<T> getRecords(List<T> stack, String key ){
+	private  <T extends VcfHeaderRecord>  List<T> getRecords(List<T> stack, String key) {
 		List<T> list = stack.stream().filter(r -> r.getMetaKey().equals(key)).sorted().collect(Collectors.toList()); 
 		return list;   
 	}
@@ -214,7 +218,7 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 	 * @param id: specify an id string here
 	 * @return a vcf header Record which contains the specified id value: ##FORMAT=<ID=id,...>
 	 */
-	public VcfHeaderRecord getFormatRecord(String id){ 	
+	public VcfHeaderRecord getFormatRecord(String id) { 	
 		return getRecord(idRecords, VcfHeaderUtils.HEADER_LINE_FORMAT, id); 
 	}
 	
@@ -230,7 +234,9 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 	 * 
 	 * @return a list of vcf header record follow pattern ##FILTER=<ID=id,...>
 	 */
-	public List<VcfHeaderRecord> getContigRecords() { return getRecords(idRecords, VcfHeaderUtils.HEADER_LINE_CONTIG); }
+	public List<VcfHeaderRecord> getContigRecords() { 
+		return getRecords(idRecords, VcfHeaderUtils.HEADER_LINE_CONTIG); 
+	}
 	
 	/**
 	 * 
@@ -299,7 +305,7 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 	 * @param key: a string match the meta info line ##<key>=<value>
 	 * @return the first matched VcfHeaderRecord.
 	 */
-	public VcfHeaderRecord firstMatchedRecord(String key){
+	public VcfHeaderRecord firstMatchedRecord(String key) {
 		List<VcfHeaderRecord> list = getRecords(key);
 		return (list.isEmpty() )? null : list.get(0);
 	}
@@ -328,16 +334,14 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 		return getRecord( metaRecords, VcfHeaderUtils.STANDARD_SOURCE_LINE , null ); 
 	}
 	
-	
 	/**
 	 * 
 	 * @return the vcf header record with file format: ##fileFormat=value
 	 */
 	public VcfHeaderRecord getFileFormat() {  
-		VcfHeaderRecord fv = getRecord( metaRecords, VcfHeaderUtils.STANDARD_FILE_FORMAT , null ); 
-		return (fv == null)? new VcfHeaderRecord(VcfHeaderUtils.CURRENT_FILE_FORMAT) :fv ; 		
+		VcfHeaderRecord fv = getRecord( metaRecords, VcfHeaderUtils.STANDARD_FILE_FORMAT , null); 
+		return (fv == null) ? new VcfHeaderRecord(VcfHeaderUtils.CURRENT_FILE_FORMAT) : fv; 		
 	}
-	
 	
 	/**
 	 * 
@@ -356,10 +360,12 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 		records.add(getFileFormat());  	 //vcf header must start with file version	
 		
 		VcfHeaderRecord re =  getFileDate();
-		if ( re != null) {  records.add(re); } //second line	 
+		if ( re != null) {  
+			records.add(re); 
+		} //second line	 
 		
 		//add line with "<key>=<value>"
-		metaRecords.stream().filter(r -> !r.getMetaKey().equals(VcfHeaderUtils.STANDARD_FILE_FORMAT) && !r.getMetaKey().equals(VcfHeaderUtils.STANDARD_FILE_DATE) 
+		metaRecords.stream().filter(r -> ! r.getMetaKey().equals(VcfHeaderUtils.STANDARD_FILE_FORMAT) && ! r.getMetaKey().equals(VcfHeaderUtils.STANDARD_FILE_DATE) 
 				).forEach(r -> records.add(r));
 		
 		//add Filter, Info and Format records
@@ -368,13 +374,11 @@ public class VcfHeader implements Iterable<VcfHeaderRecord> {
 		getFormatRecords().stream().sorted().forEach(r -> records.add(r));
 		
 		//add remaining structured header line: ##Key=<ID=, ... >
-		idRecords.stream().filter(r -> !r.getMetaKey().equals(VcfHeaderUtils.HEADER_LINE_FILTER) &&
-				!r.getMetaKey().equals(VcfHeaderUtils.HEADER_LINE_FORMAT) && 
-				!r.getMetaKey().equals(VcfHeaderUtils.HEADER_LINE_INFO) ).sorted().forEach(r -> records.add(r));		
+		idRecords.stream().filter(r -> ! r.getMetaKey().equals(VcfHeaderUtils.HEADER_LINE_FILTER) &&
+				! r.getMetaKey().equals(VcfHeaderUtils.HEADER_LINE_FORMAT) && 
+				! r.getMetaKey().equals(VcfHeaderUtils.HEADER_LINE_INFO)).sorted().forEach(r -> records.add(r));		
 		
 		records.add(getChrom()); 		
 		return records.iterator();
 	}
-
-		
 }
