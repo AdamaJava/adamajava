@@ -3,7 +3,7 @@ package au.edu.qimr.qannotate.utils;
 public enum CCM {
 	
 	ONE(1, ".","."),
-	TWO(3, ".","."),
+	TWO(2, ".","."),
 	THREE(3, ".","."),
 	FOUR(4, ".","."),
 	FIVE(5, ".","."),
