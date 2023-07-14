@@ -36,14 +36,12 @@ public class FastqSummaryReport extends SummaryReport {
 	private static final Integer i = Integer.MAX_VALUE;
 	
 	//SEQ
-	private final SummaryByCycleNew2<Character> seqByCycle = new SummaryByCycleNew2<Character>(c, 512);
-	private Map<Integer, AtomicLong> seqLineLengths = null;
+	private final SummaryByCycleNew2<Character> seqByCycle = new SummaryByCycleNew2<>(c, 512);
 	private final QCMGAtomicLongArray seqBadReadLineLengths = new QCMGAtomicLongArray(128);
 	private final KmersSummary kmersSummary = new KmersSummary( KmersSummary.MAX_KMERS ); //default use biggest mers length
 	
 	//QUAL
-	private final SummaryByCycleNew2<Integer> qualByCycleInteger = new SummaryByCycleNew2<Integer>(i, 512);
-	private Map<Integer, AtomicLong> qualLineLengths = null;
+	private final SummaryByCycleNew2<Integer> qualByCycleInteger = new SummaryByCycleNew2<>(i, 512);
 	private final QCMGAtomicLongArray qualBadReadLineLengths = new QCMGAtomicLongArray(128);
 	
 	// Header info
@@ -114,8 +112,8 @@ public class FastqSummaryReport extends SummaryReport {
 			SummaryReportUtils.lengthMapToXml(readNameElement, "QUAL_HEADERS", qualHeaders);
 						
 			// create the length maps here from the cycles objects
-			seqLineLengths = SummaryByCycleUtils.getLengthsFromSummaryByCycle(seqByCycle, getRecordsParsed());
-			qualLineLengths = SummaryByCycleUtils.getLengthsFromSummaryByCycle(qualByCycleInteger, getRecordsParsed());
+			Map<Integer, AtomicLong> seqLineLengths = SummaryByCycleUtils.getLengthsFromSummaryByCycle(seqByCycle, getRecordsParsed());
+			Map<Integer, AtomicLong> qualLineLengths = SummaryByCycleUtils.getLengthsFromSummaryByCycle(qualByCycleInteger, getRecordsParsed());
 			
 			// SEQ
 			Element seqElement = createSubElement(element, "SEQ");
@@ -123,7 +121,7 @@ public class FastqSummaryReport extends SummaryReport {
 			SummaryReportUtils.lengthMapToXmlTallyItem(seqElement, "LengthTally", seqLineLengths);
 			SummaryReportUtils.lengthMapToXml(seqElement, "BadBasesInReads", seqBadReadLineLengths);
 			
-			kmersSummary.toXml(seqElement,kmersSummary.MAX_KMERS);
+			kmersSummary.toXml(seqElement, KmersSummary.MAX_KMERS);
 			kmersSummary.toXml(seqElement,1); //add 1-mers
 			kmersSummary.toXml(seqElement,2); //add 2-mers
 			kmersSummary.toXml(seqElement,3); //add 3-mers
@@ -137,11 +135,6 @@ public class FastqSummaryReport extends SummaryReport {
  		}
 	}
 	
-	/**
-	 * Reads a row from the text file and returns it as a string
-	 * 
-	 * @return next row in file
-	 */
 	public void parseRecord(FastqRecord record) {
 		if (null != record) {
 			
@@ -158,12 +151,19 @@ public class FastqSummaryReport extends SummaryReport {
 				byte[] readBases = record.getReadString().getBytes();
 				SummaryByCycleUtils.parseCharacterSummary(seqByCycle, readBases, reverseStrand);
 				SummaryReportUtils.tallyBadReadsAsString(readBases, seqBadReadLineLengths);
-				kmersSummary.parseKmers( readBases, false ); //fastq base are all orignal forward
+				kmersSummary.parseKmers( readBases, false ); //fastq base are all original forward
 				
 				// header stuff
-				if (record.getReadName().contains(":")) {
-					String [] headerDetails = TabTokenizer.tokenize(record.getReadName(), ':');
-					if (null != headerDetails && headerDetails.length > 0) {
+
+				String headerToUse = record.getReadName();
+				int spaceCount = StringUtils.getCount(headerToUse, ' ');
+				if (spaceCount == 2) {
+					headerToUse = TabTokenizer.tokenize(headerToUse, ' ')[1];
+				}
+
+				if (headerToUse.contains(":")) {
+					String [] headerDetails = TabTokenizer.tokenize(headerToUse, ':');
+					if (headerDetails.length > 0) {
 						
 						//if length is equal to 10, we have the classic Casava 1.8 format
 						
@@ -180,7 +180,7 @@ public class FastqSummaryReport extends SummaryReport {
 						// 13051 - x
 						// 2071 - y
 						// 2 - 2nd in pair
-						if (record.getReadName().contains(" ")) {
+						if (headerToUse.contains(" ")) {
 							parseFiveElementHeaderWithSpaces(headerDetails);
 						} else {
 							parseFiveElementHeaderNoSpaces(headerDetails);
@@ -231,13 +231,13 @@ public class FastqSummaryReport extends SummaryReport {
 														filteredN.incrementAndGet();
 													}
 													
-													// skip control bit for now
+													// skip the control bit for now
 													
 													// indexes
 													if (headerLength > 9) {
 														key = headerDetails[9];
 														updateMap(indexes, key);
-													}	// thats it!!
+													}	// that's it!!
 												}
 											}
 										}
@@ -292,18 +292,18 @@ public class FastqSummaryReport extends SummaryReport {
 		// split by space
 		String [] firstElementParams = params[0].split(" ");
 		if (firstElementParams.length != 2) {
-			throw new UnsupportedOperationException("Incorrect header format encountered in parseFiveElementHeader. Expected '@ERR091788.3104 HSQ955_155:2:1101:13051:2071/2' but recieved: " + Arrays.deepToString(params));
+			throw new UnsupportedOperationException("Incorrect header format encountered in parseFiveElementHeader. Expected '@ERR091788.3104 HSQ955_155:2:1101:13051:2071/2' but received: " + Arrays.deepToString(params));
 		}
 		String [] machineAndReadPosition = firstElementParams[0].split("\\.");
 		if (machineAndReadPosition.length != 2) {
-			throw new UnsupportedOperationException("Incorrect header format encountered in parseFiveElementHeader. Expected '@ERR091788.3104 HSQ955_155:2:1101:13051:2071/2' but recieved: " + Arrays.deepToString(params));
+			throw new UnsupportedOperationException("Incorrect header format encountered in parseFiveElementHeader. Expected '@ERR091788.3104 HSQ955_155:2:1101:13051:2071/2' but received: " + Arrays.deepToString(params));
 		}
 		
 		updateMap(instruments, machineAndReadPosition[0]);
 		
 		String [] flowCellAndRunId = firstElementParams[1].split("_");
 		if (flowCellAndRunId.length != 2) {
-			throw new UnsupportedOperationException("Incorrect header format encountered in parseFiveElementHeader. Expected '@ERR091788.3104 HSQ955_155:2:1101:13051:2071/2' but recieved: " + Arrays.deepToString(params));
+			throw new UnsupportedOperationException("Incorrect header format encountered in parseFiveElementHeader. Expected '@ERR091788.3104 HSQ955_155:2:1101:13051:2071/2' but received: " + Arrays.deepToString(params));
 		}
 		
 		updateMap(flowCellIds, flowCellAndRunId[0]);

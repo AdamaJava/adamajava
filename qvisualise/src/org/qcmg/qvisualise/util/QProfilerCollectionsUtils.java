@@ -18,13 +18,17 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicLongArray;
 
+import org.qcmg.common.log.QLogger;
+import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.MAPQMiniMatrix;
 import org.qcmg.common.util.Constants;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 public class QProfilerCollectionsUtils {
-	
+
+	public static QLogger log = QLoggerFactory.getLogger(QProfilerCollectionsUtils.class);
+
 	/**
 	 * Splits the flags collection
 	 * @param <T>
@@ -36,62 +40,62 @@ public class QProfilerCollectionsUtils {
 	@SuppressWarnings("unchecked")
 	public static <T> Map<T, AtomicLong> splitFlagTallyByDistinguisher(Map<T, AtomicLong> flags, Map<String, T> distinguisherMap, T nonDistDesc) {
 		Map<T, AtomicLong> splitFlags = new LinkedHashMap<>();
-		
-		// loop through flags, if <T> contains the specified value, add to value 
+
+		// loop through flags, if <T> contains the specified value, add to value
 		for (Entry<T, AtomicLong> entry : flags.entrySet()) {
 			final String[] flagSplit = ((String)entry.getKey()).split(", ");
-			
+
 			String flagSummaryString = "";
 			if (flagSplit.length == 2) {
 				flagSummaryString = flagSplit[1];
 			}
-			
-			
+
+
 			T value = null;
 			for (Entry<String, T> distMapEntry : distinguisherMap.entrySet()) {
 				if (flagSummaryString.contains(distMapEntry.getKey())) {
 					value = distMapEntry.getValue();
 				}
 			}
-			
+
 			if (null == value)
 				value =  null != nonDistDesc ? nonDistDesc : (T) "Other";
-			
+
 			final AtomicLong currentCount = splitFlags.get(value);
-			
+
 			if (null == currentCount) {
 				splitFlags.put(value, new AtomicLong(entry.getValue().get()));
 			} else {
 				currentCount.addAndGet(entry.getValue().get());
 			}
-				
+
 		}
-		
+
 		return splitFlags;
 	}
-	
+
 	public static <T> SummaryByCycle<T> generateSummaryByCycleFromElement(Element element, String name) {
 
 		ConcurrentMap<Integer, ConcurrentMap<T, AtomicLong>> tally = new ConcurrentHashMap<>();
 		final NodeList nl = element.getElementsByTagName(name);
 		final Element nameElement = (Element) nl.item(0);
 
-		
+
 		if (null != nameElement) {
-			// now get the cycletally underneath..
+			// now get the cycle tally underneath..
 			if (nameElement.hasChildNodes()) {
 				Element cycleTallyElement = (Element) nameElement.getElementsByTagName("CycleTally").item(0);
-	
+
 				// get the cycles
 				final NodeList cycles = cycleTallyElement.getElementsByTagName("Cycle");
 				for (int i = 0, size = cycles.getLength() ; i < size ; i++) {
 					if (cycles.item(i) instanceof Element) {
 						final Element cycleElement = (Element) cycles.item(i);
-						
-						// get tallyitems
-						ConcurrentMap<T, AtomicLong> cycleCount = new ConcurrentHashMap<T, AtomicLong>();
+
+						// get tally items
+						ConcurrentMap<T, AtomicLong> cycleCount = new ConcurrentHashMap<>();
 						populateTallyItemMap(cycleElement, cycleCount, false);
-						
+
 						tally.put(Integer.parseInt(cycleElement.getAttribute("value")),
 								cycleCount);
 					}
@@ -99,32 +103,32 @@ public class QProfilerCollectionsUtils {
 			}
 		}
 
-		return new SummaryByCycle<T>(tally);
+		return new SummaryByCycle<>(tally);
 	}
-	
+
 	public static Map<Integer, String> generatePercentagesMapFromElement(Element element,
-			String name) {
-		
-		ConcurrentMap<Integer, String> tally = new ConcurrentHashMap<Integer, String>();
+																		 String name) {
+
+		ConcurrentMap<Integer, String> tally = new ConcurrentHashMap<>();
 		final NodeList nl = element.getElementsByTagName(name);
 		final Element nameElement = (Element) nl.item(0);
-		
-		
+
+
 		if (null != nameElement) {
-			// now get the cycletally underneath..
+			// now get the cycle tally underneath..
 			if (nameElement.hasChildNodes()) {
 				Element cycleTallyElement = (Element) nameElement.getElementsByTagName("CycleTally").item(0);
-				
+
 				// get the cycles
 				final NodeList cycles = cycleTallyElement.getElementsByTagName("Cycle");
 				for (int i = 0, size = cycles.getLength() ; i < size ; i++) {
 					if (cycles.item(i) instanceof Element) {
 						final Element cycleElement = (Element) cycles.item(i);
-						
-						// get tallyitems
+
+						// get tally items
 						final NodeList tallyItemsNL = cycleElement.getElementsByTagName("TallyItem");
-						
-						if (null != tallyItemsNL && tallyItemsNL.item(0) instanceof Element) {
+
+						if (tallyItemsNL.item(0) instanceof Element) {
 							Element tallyItemElement = (Element) tallyItemsNL.item(0);
 							if (tallyItemElement.getAttribute("percent").length() > 0) {
 								String percent = tallyItemElement.getAttribute("percent");
@@ -138,41 +142,45 @@ public class QProfilerCollectionsUtils {
 		}
 		return tally;
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	public static <T> void populateTallyItemMap(Element cycleElement,
-			Map<T, AtomicLong> map, boolean isInteger) {
+												Map<T, AtomicLong> map, boolean isInteger) {
 		if (null != cycleElement) {
-			
+
 			final NodeList tallyItemsNL = cycleElement.getElementsByTagName("TallyItem");
-			
-			for (int j = 0, size = tallyItemsNL.getLength() ; j < size ; j++) {
-				if (tallyItemsNL.item(j) instanceof Element) {
-					Element tallyItemElement = (Element) tallyItemsNL.item(j);
-					if (tallyItemElement
-							.getAttribute("count").length() > 0) {
-						
-						final long count = Long.parseLong(tallyItemElement
-								.getAttribute("count"));
-						
-						map.put(isInteger ? (T) Integer.valueOf(tallyItemElement.getAttribute("value")) 
-								: (T) tallyItemElement.getAttribute("value") , new AtomicLong(count));
-												
+			if (tallyItemsNL.getLength() < 100000) {
+				for (int j = 0, size = tallyItemsNL.getLength(); j < size; j++) {
+					if (tallyItemsNL.item(j) instanceof Element) {
+						Element tallyItemElement = (Element) tallyItemsNL.item(j);
+						if (tallyItemElement
+								.getAttribute("count").length() > 0) {
+
+							final long count = Long.parseLong(tallyItemElement
+									.getAttribute("count"));
+
+							map.put(isInteger ? (T) Integer.valueOf(tallyItemElement.getAttribute("value"))
+									: (T) tallyItemElement.getAttribute("value"), new AtomicLong(count));
+
+						}
 					}
 				}
+			} else {
+				log.warn(cycleElement.getTagName() + " has too many elements: " + tallyItemsNL.getLength() + " - will leave out of report");
+
 			}
 		}
 	}
-	
+
 	public static void populateMatrixMap(Element cycleElement,
-			Map<MAPQMiniMatrix, AtomicLong> map) {
+										 Map<MAPQMiniMatrix, AtomicLong> map) {
 		if (null != cycleElement) {
-			NodeList tallyItemsNL = cycleElement.getElementsByTagName("TallyItem"); 
+			NodeList tallyItemsNL = cycleElement.getElementsByTagName("TallyItem");
 			for (int j = 0, size = tallyItemsNL.getLength() ; j < size ; j++) {
 				Element tallyItemElement = (Element) tallyItemsNL.item(j);
 				long count = Long.parseLong(tallyItemElement
 						.getAttribute("count"));
-				
+
 				//TODO must be a better way of extracting the matrix details from the string
 				String matrix = tallyItemElement.getAttribute("value");
 				if (matrix.startsWith("MAPQMiniMatrix")) {
@@ -181,14 +189,14 @@ public class QProfilerCollectionsUtils {
 					int mapQ = Integer.parseInt(m[0].substring(m[0].indexOf("=")+1));
 					int value = Integer.parseInt(m[1].substring(m[1].indexOf("=")+1));
 					MAPQMiniMatrix mmm = new MAPQMiniMatrix(mapQ, value);
-					
+
 					map.put(mmm, new AtomicLong(count));
 				}
-				
+
 			}
 		}
 	}
-	
+
 	public static AtomicLong tallyArrayValues(AtomicLongArray array) {
 		long l = 0;
 		for (int i = 0 , len = array.length() ; i < len ; i++) {
@@ -198,17 +206,17 @@ public class QProfilerCollectionsUtils {
 	}
 
 	/**
-	 * Converts a map containing values and their corresponding counts into a Map that bins the values 
-	 * into ranges determined by the supplied noOfBins value and the max value in the original map, 
+	 * Converts a map containing values and their corresponding counts into a Map that bins the values
+	 * into ranges determined by the supplied noOfBins value and the max value in the original map,
 	 * and the values are the summed values of all entries in the original map that fall within the range
 	 * <br>
 	 * Note that the supplied Map needs to be of type TreeMap as the method relies on the map being ordered.
 	 * <br>
-	 * The returned Map contains a string as its key which corresponds to the range (eg. 0-100)
+	 * The returned Map contains a string as its key which corresponds to the range (e.g. 0-100)
 	 * <br>
 	 * <b>Note it is assumed that the lowest key value is 0</b><br>
 	 *  ie. this will <b>not</b> work when there are negative values in the original map
-	 * 
+	 *
 	 * @param map TreeMap map containing Integer keys and values, whose values are to be binned
 	 * @param binSize int corresponding to the number of bins that are required. The range each bin will have is dependent on the max number
 	 * @return Map of String, Integer pairs relating to the range, and number within that range
@@ -220,21 +228,21 @@ public class QProfilerCollectionsUtils {
 			// also avoids an ArithmeticException
 			if (binSize < 1)
 				binSize = 1;
-			
-			binnedMap = new LinkedHashMap<String, AtomicLong>(map.size() / binSize);
-		
+
+			binnedMap = new LinkedHashMap<>(map.size() / binSize);
+
 			// get max number from map - map contains absolute values so getting the last key should be safe
 			int maxValue = ((SortedMap<Integer, AtomicLong>) map).lastKey();
 			int minValue = ((SortedMap<Integer, AtomicLong>) map).firstKey();
-			
+
 			long count = 0;
 			int fromPosition = startFromZero ? 0 : minValue;
 			for (int i = fromPosition ; i <= maxValue ; i++) {
-				
+
 				AtomicLong mi = map.get(i);
 				if (null != mi)
 					count += mi.get();
-				
+
 				if ((i+1) % binSize == 0 || i == maxValue) {
 					// add count to binnedMap
 					binnedMap.put(fromPosition + " - " + i, new AtomicLong(count));
@@ -246,24 +254,24 @@ public class QProfilerCollectionsUtils {
 		}
 		return binnedMap;
 	}
-	
-	
+
+
 	public static Map<String, List<String>> convertHeaderTextToMap(String headerText) {
 		if (null == headerText) return Collections.emptyMap();
-		
+
 		String [] params = headerText.split("\n");
-		 
+
 		Map<String, List<String>> results = new LinkedHashMap<>(8,0.9f);
-		
+
 		//init the map for order
 		String[] heads = {"Header","Sequence","Read Group","Program","Comments","Other"};
 		for(String key : heads) {
 			results.put(key, null);
 		}
-		
+
 		if (params.length > 1) {
 			for (String param : params) {
-				
+
 				String key;
 				if (param.startsWith(Constants.HEADER_PREFIX)) {
 					key = "Header";
@@ -307,17 +315,17 @@ public class QProfilerCollectionsUtils {
 				}
 			}
 		}
-				
+
 		//remove entries in map that came from the heads array and that have null values
- 		for (String key : heads) {
- 			if (results.get(key) == null) {
- 				results.remove(key);
- 			}
- 		}
- 					
+		for (String key : heads) {
+			if (results.get(key) == null) {
+				results.remove(key);
+			}
+		}
+
 		return results;
 	}
-	
+
 	private static void addDataToList(Map<String, List<String>> map, String key, String data) {
 		map.computeIfAbsent(key, v -> new ArrayList<>()).add(data);
 	}
