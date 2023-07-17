@@ -45,8 +45,13 @@ public class QVisualise {
 		logger.info("supplied Xmx memory: " + xmxSize);
 		double ratio = (double)xmxSize / fileSize;
 		logger.info("memory / file size ratio: " + ratio);
+		/*
+		Warn the user when the xml file size to Xmx setting ratio is below  a certain point
+		(8 in testing performed using java 8 oracle JVM)
+		as this could result in OOM exceptions
+		 */
 		if (ratio < 8) {
-			logger.warn("There may not be enough memory to load the xml input file. Please consider loading a smaller xml file or increasing the Xmx value.");
+			logger.warn("There may not be enough memory to load the xml input file. Please consider visualising a smaller xml file or increasing the Xmx value.");
 		}
 	}
 

@@ -27,6 +27,7 @@ import org.w3c.dom.NodeList;
 
 public class QProfilerCollectionsUtils {
 
+	public static final int MAX_TALLY_ITEMS_LENGTH = 100000;
 	public static QLogger log = QLoggerFactory.getLogger(QProfilerCollectionsUtils.class);
 
 	/**
@@ -149,7 +150,7 @@ public class QProfilerCollectionsUtils {
 		if (null != cycleElement) {
 
 			final NodeList tallyItemsNL = cycleElement.getElementsByTagName("TallyItem");
-			if (tallyItemsNL.getLength() < 100000) {
+			if (tallyItemsNL.getLength() < MAX_TALLY_ITEMS_LENGTH) {
 				for (int j = 0, size = tallyItemsNL.getLength(); j < size; j++) {
 					if (tallyItemsNL.item(j) instanceof Element) {
 						Element tallyItemElement = (Element) tallyItemsNL.item(j);
@@ -166,7 +167,7 @@ public class QProfilerCollectionsUtils {
 					}
 				}
 			} else {
-				log.warn(cycleElement.getTagName() + " has too many elements: " + tallyItemsNL.getLength() + " - will leave out of report");
+				log.warn(cycleElement.getTagName() + " has too many elements: " + tallyItemsNL.getLength() + " - will leave out of report (maximum number of elements set to: " + MAX_TALLY_ITEMS_LENGTH + ")");
 
 			}
 		}

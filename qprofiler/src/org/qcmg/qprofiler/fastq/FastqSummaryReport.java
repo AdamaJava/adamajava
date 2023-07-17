@@ -292,18 +292,18 @@ public class FastqSummaryReport extends SummaryReport {
 		// split by space
 		String [] firstElementParams = params[0].split(" ");
 		if (firstElementParams.length != 2) {
-			throw new UnsupportedOperationException("Incorrect header format encountered in parseFiveElementHeader. Expected '@ERR091788.3104 HSQ955_155:2:1101:13051:2071/2' but received: " + Arrays.deepToString(params));
+			throw new IllegalArgumentException("Incorrect header format encountered in parseFiveElementHeaderWithSpaces. Expected a space (e.g. @ERR091788.3104 HSQ955_155) in the first element in the array, but received: " + Arrays.deepToString(params));
 		}
 		String [] machineAndReadPosition = firstElementParams[0].split("\\.");
 		if (machineAndReadPosition.length != 2) {
-			throw new UnsupportedOperationException("Incorrect header format encountered in parseFiveElementHeader. Expected '@ERR091788.3104 HSQ955_155:2:1101:13051:2071/2' but received: " + Arrays.deepToString(params));
+			throw new IllegalArgumentException("Incorrect header format encountered in parseFiveElementHeaderWithSpaces. Expected a single dot (e.g. @ERR091788.3104 HSQ955_155) in the first part of the first element in the array, but received: " + Arrays.deepToString(params));
 		}
 		
 		updateMap(instruments, machineAndReadPosition[0]);
 		
 		String [] flowCellAndRunId = firstElementParams[1].split("_");
 		if (flowCellAndRunId.length != 2) {
-			throw new UnsupportedOperationException("Incorrect header format encountered in parseFiveElementHeader. Expected '@ERR091788.3104 HSQ955_155:2:1101:13051:2071/2' but received: " + Arrays.deepToString(params));
+			throw new IllegalArgumentException("Incorrect header format encountered in parseFiveElementHeaderWithSpaces. Expected a single underscore (e.g. @ERR091788.3104 HSQ955_155) in the second part of the first element in the array but received: " + Arrays.deepToString(params));
 		}
 		
 		updateMap(flowCellIds, flowCellAndRunId[0]);
