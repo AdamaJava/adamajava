@@ -197,9 +197,6 @@ public class FastqToSamWithHeaders extends CommandLineProgram {
     @Argument(doc="Allow (and ignore) empty lines")
     public Boolean ALLOW_AND_IGNORE_EMPTY_LINES = false;
 
-    @Argument(doc="Allow empty input fastq")
-    public Boolean ALLOW_EMPTY_FASTQ = false;
-
     public static final String ZT_ATTRIBUTE = "ZT";
     public static final String ZH_ATTRIBUTE = "ZH";
 
