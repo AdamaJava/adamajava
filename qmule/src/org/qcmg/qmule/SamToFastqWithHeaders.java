@@ -402,6 +402,8 @@ public class SamToFastqWithHeaders extends CommandLineProgram {
         String trimmedAdapterSequenceAndQual = (String)read.getAttribute(ZT_ATTRIBUTE);
         if (null != additionalHeader && additionalHeader.length() > 0) {
             seqHeader += additionalHeader;
+        } else if (null != mateNumber){
+            seqHeader += "/" + mateNumber;
         }
 
         String readString = read.getReadString();
