@@ -5,11 +5,13 @@ package org.qcmg.coverage;
 
 import java.util.ArrayList;
 import java.util.List;
+import jakarta.xml.bind.annotation.XmlAttribute;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+//import javax.xml.bind.annotation.XmlAttribute;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 
 @XmlAccessorType(XmlAccessType.FIELD)
@@ -19,11 +21,11 @@ import javax.xml.bind.annotation.XmlType;
 public class CoverageReport {
 
 	@XmlElement(required = true)
-    protected List<CoverageModel> coverage;
+    private List<CoverageModel> coverage;
     @XmlAttribute(name = "feature", required = true)
-    protected String feature;
+private String feature;
     @XmlAttribute(name = "type", required = true)
-    protected CoverageType type;
+private CoverageType type;
 
     /**
      * Gets the value of the coverage property.

@@ -1,11 +1,10 @@
 package org.qcmg.coverage;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
-import java.io.File;
-import java.io.IOException;
-
+import htsjdk.samtools.SAMFileHeader.SortOrder;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
+import org.eclipse.persistence.jaxb.JAXBContextFactory;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -14,7 +13,15 @@ import org.qcmg.common.commandline.Executor;
 import org.qcmg.qio.gff3.Gff3Record;
 import org.qcmg.qio.record.RecordWriter;
 
-import htsjdk.samtools.SAMFileHeader.SortOrder;
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.File;
+import java.io.IOException;
+import java.io.StringWriter;
+import java.math.BigInteger;
+import java.nio.file.Files;
+import java.util.List;
+
+import static org.junit.Assert.*;
 
 public class CoverageTest {
 	private String inputBam;
@@ -61,8 +68,8 @@ public class CoverageTest {
 				" --input-bai " + inputBai +  " --output " + fname ;
 
 		//default value txt output only
-		Executor exec = execute(cmd);		
-		assertTrue(0 == exec.getErrCode());
+		Executor exec = execute(cmd);
+		assertEquals(0, exec.getErrCode());
 				
 		File fOutput = new File(fname);		
 		assertTrue(fOutput.exists());
@@ -74,8 +81,8 @@ public class CoverageTest {
 				" --input-bai " + inputBai +  " --output " +fname  + " --output-format xml";
 
 		//xml output only
-		Executor exec = execute(cmd);		
-		assertTrue(0 == exec.getErrCode());
+		Executor exec = execute(cmd);
+		assertEquals(0, exec.getErrCode());
 		
 		File fOutput = new File(fname);
 		assertFalse(fOutput.exists());
@@ -86,6 +93,53 @@ public class CoverageTest {
 		fOutput = new File(fname + ".xml");
 		assertTrue(fOutput.exists());
 	}
+
+	@Test
+	public void coverageStatsXml() throws JAXBException {
+		jakarta.xml.bind.JAXBContext context = JAXBContextFactory
+				.createContext(new Class[] {CoverageReport.class, CoverageModel.class, QCoverageStats.class}, null);
+		final Marshaller m = context.createMarshaller();
+		m.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
+		m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+
+		CoverageModel cm = new CoverageModel();
+		cm.setAt(String.valueOf(1));
+
+		cm.setBases(BigInteger.valueOf(1));
+		CoverageReport cr = new CoverageReport();
+		cr.getCoverage().add(cm);
+		cr.setFeature("feature_1");
+		cr.setType(CoverageType.PHYSICAL);
+
+		QCoverageStats qcs = new QCoverageStats();
+		qcs.getCoverageReport().add(cr);
+		StringWriter sw = new StringWriter();
+
+		m.marshal(qcs, sw);
+		StringBuffer sb = sw.getBuffer();
+		assertEquals(0, sb.indexOf("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"));
+		assertTrue(sb.indexOf("<coverageReport feature=\"feature_1\" type=\"PHYSICAL\">") > -1);
+		assertTrue(sb.indexOf("<coverage bases=\"1\" at=\"1\"/>") > -1);
+		assertTrue(sb.indexOf("</coverageReport>") > -1);
+		assertTrue(sb.indexOf("</QCoverageStats>") > -1);
+	}
+
+	@Test
+	public void writeXmlOutput() throws IOException, ParserConfigurationException, jakarta.xml.bind.JAXBException {
+		QCoverageStats qcs = new QCoverageStats();
+		CoverageReport cr = new CoverageReport();
+		for (int i = 0 ; i < 10 ; i++) {
+			CoverageModel cm = new CoverageModel();
+			cm.setAt(String.valueOf(i));
+			cm.setBases(BigInteger.valueOf(i));
+			cr.getCoverage().add(cm);
+		}
+		qcs.getCoverageReport().add(cr);
+		File file = testFolder.newFile("writeXmlOutput.xml");
+		Coverage.writeXMLCoverageReport(qcs, file.getAbsolutePath());
+		List<String> fileOutput = Files.readAllLines(file.toPath());
+		assertEquals(15, fileOutput.size());
+	}
 	
 	@Test
 	public final void vcfTest() throws Exception {
@@ -93,8 +147,8 @@ public class CoverageTest {
 				" --input-bai " + inputBai +  " --output " +fname  + " --output-format vcf";
 
 		//run fail for vcf without per-feature
-		Executor exec = execute(cmd);			
-		assertTrue(1 == exec.getErrCode());
+		Executor exec = execute(cmd);
+		assertEquals(1, exec.getErrCode());
 		
 		File fOutput = new File(fname );
 		assertFalse(fOutput.exists());	
@@ -110,8 +164,8 @@ public class CoverageTest {
 				" --input-bai " + inputBai +  " --output " +fname  + " --per-feature --output-format vcf";
 	
 		//vcf output only
-		Executor exec = execute(cmd);	
-		assertTrue(0 == exec.getErrCode());
+		Executor exec = execute(cmd);
+		assertEquals(0, exec.getErrCode());
 		
 		File fOutput = new File(fname );
 		assertFalse(fOutput.exists());	
@@ -129,8 +183,8 @@ public class CoverageTest {
 				" --output-format xml  --output-format txt";
 
 		//two types output
-		Executor exec = execute(cmd);		
-		assertTrue(0 == exec.getErrCode());
+		Executor exec = execute(cmd);
+		assertEquals(0, exec.getErrCode());
 		
 		File fOutput = new File(fname );
 		assertTrue(fOutput.exists());	
@@ -143,8 +197,8 @@ public class CoverageTest {
 		cmd = "--log " + log + " --type phys  --input-gff3 " + inputGff3 + " --input-bam " + inputBam + 
 				" --input-bai " + inputBai +  " --output " +fname  + 
 				" --output-format vcf  --output-format xml  --output-format txt";
-		exec = execute(cmd);		
-		assertTrue(1 == exec.getErrCode());
+		exec = execute(cmd);
+		assertEquals(1, exec.getErrCode());
 		
 	}	
 
@@ -157,8 +211,8 @@ public class CoverageTest {
 				" --per-feature --output-format vcf  --output-format xml  --output-format txt";
 
 		//three types output
-		Executor exec = execute(cmd);		
-		assertTrue(0 == exec.getErrCode());
+		Executor exec = execute(cmd);
+		assertEquals(0, exec.getErrCode());
 		
 		//append txt to output.txt.xml  
 		File fOutput = new File(foutput + ".txt");

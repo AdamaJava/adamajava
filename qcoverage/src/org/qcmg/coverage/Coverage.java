@@ -6,21 +6,9 @@
  */
 package org.qcmg.coverage;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.StringWriter;
-import java.math.BigInteger;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.List;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.Marshaller;
-
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
+import org.eclipse.persistence.jaxb.JAXBContextFactory;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.meta.QExec;
@@ -33,15 +21,22 @@ import org.qcmg.common.vcf.header.VcfHeaderRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.qio.record.RecordWriter;
 
+import java.io.*;
+import java.math.BigInteger;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
+
 public final class Coverage {
 	private final Options options;
-	private final Configuration invariants;
 	private final JobQueue jobQueue;
 
 	public Coverage(final Options options) throws Exception {
 		options.detectBadOptions();
 		this.options = options;
-		invariants = new Configuration(options);
+		Configuration invariants = new Configuration(options);
 		jobQueue = new JobQueue(invariants);
 		saveCoverageReport();
 	}
@@ -49,8 +44,8 @@ public final class Coverage {
 	/**
 	 * check output file extension whether match format
 	 * @param fname is the input file name
-	 * @param format is the input file requied format, eg. txt, xml and vcf
-	 * @return return corrected output file name which extension match the formate
+	 * @param format is the input file required format, e.g. txt, xml and vcf
+	 * @return return corrected output file name which extension match the format
 	 */
 	private String fileNameCorrection(String fname, String format) {
 		String extension = format.startsWith(".")? 
@@ -63,7 +58,7 @@ public final class Coverage {
 	private void writePerFeatureTabDelimitedCoverageReport( final QCoverageStats stats) throws IOException {
 		String foutput = fileNameCorrection(options.getOutputFileNames()[0], "txt");
 		final File file = new File(foutput);
-		try (final BufferedWriter out = new BufferedWriter(new FileWriter(file));) {
+		try (final BufferedWriter out = new BufferedWriter(new FileWriter(file))) {
 			out.write("#coveragetype\tnumberofbases\tcoverage\n");
 			final CoverageComparator comparator = new CoverageComparator();
 			for (final CoverageReport report : stats.getCoverageReport()) {
@@ -71,7 +66,7 @@ public final class Coverage {
 				final String feature = report.getFeature();
 				out.write("#" + feature + StringUtils.RETURN);
 				final List<CoverageModel> coverages = report.getCoverage();
-				Collections.sort(coverages, comparator);
+				coverages.sort(comparator);
 				for (final CoverageModel coverage : coverages) {
 					final BigInteger bases = coverage.getBases();
 					final String atCoverage = coverage.getAt() + "x";
@@ -85,14 +80,14 @@ public final class Coverage {
 	private void writePerTypeTabDelimitedCoverageReport(final QCoverageStats stats) throws IOException {
 		String foutput = fileNameCorrection(options.getOutputFileNames()[0], "txt");
 		final File file = new File(foutput);
-		try (final BufferedWriter out = new BufferedWriter(new FileWriter(file));) {
+		try (final BufferedWriter out = new BufferedWriter(new FileWriter(file))) {
 			out.write("#coveragetype\tfeaturetype\tnumberofbases\tcoverage\n");
 			final CoverageComparator comparator = new CoverageComparator();
 			for (final CoverageReport report : stats.getCoverageReport()) {
 				final String type = report.getType().toString().toLowerCase();
 				final String feature = report.getFeature();
 				final List<CoverageModel> coverages = report.getCoverage();
-				Collections.sort(coverages, comparator);
+				coverages.sort(comparator);
 				for (final CoverageModel coverage : coverages) {
 					final BigInteger bases = coverage.getBases();
 					final String atCoverage = coverage.getAt() + "x";
@@ -104,25 +99,29 @@ public final class Coverage {
 		}
 	}
 
-	private void writeXMLCoverageReport(final QCoverageStats report) throws Exception {
-		final JAXBContext context = JAXBContext.newInstance(QCoverageStats.class);
+	private void writeXMLCoverageReport(final QCoverageStats report) throws JAXBException, IOException {
+		writeXMLCoverageReport(report, fileNameCorrection(options.getOutputFileNames()[0], "xml"));
+	}
+
+	public static void writeXMLCoverageReport(final QCoverageStats report, String outputFile) throws IOException, jakarta.xml.bind.JAXBException {
+		jakarta.xml.bind.JAXBContext context = JAXBContextFactory
+				.createContext(new Class[] {CoverageReport.class, CoverageModel.class, QCoverageStats.class}, null);
 		final Marshaller m = context.createMarshaller();
 		final StringWriter sw = new StringWriter();
 		m.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
 		m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
 		m.marshal(report, sw);
-		String foutput = fileNameCorrection(options.getOutputFileNames()[0], "xml");
-		final File file = new File(foutput);
-		try (final FileWriter fileWriter = new FileWriter(file);) {
+		final File file = new File(outputFile);
+		try (final FileWriter fileWriter = new FileWriter(file)) {
 			fileWriter.write(sw.toString());
 		}
 	}
-	
+
 	private void writeVCFReport(final QCoverageStats report) throws Exception {
 		String foutput = fileNameCorrection(options.getOutputFileNames()[0], "vcf");
 		final File file = new File(foutput);
 
-		final List<VcfRecord> vcfs = new ArrayList<VcfRecord>();
+		final List<VcfRecord> vcfs = new ArrayList<>();
 		
 		for (final CoverageReport cr : report.getCoverageReport()) {
 			if (cr.getFeature().contains("\t")) {
@@ -132,11 +131,11 @@ public final class Coverage {
 		}
 		
 		if ( ! vcfs.isEmpty()) {
-			Collections.sort(vcfs, new VcfPositionComparator());
+			vcfs.sort(new VcfPositionComparator());
 			try(final RecordWriter<VcfRecord> writer = new RecordWriter<>(file)) {
 				final VcfHeader header = getHeaderForQCoverage(options.getBAMFileNames()[0], options.getInputGFF3FileNames()[0]);
 				for(final VcfHeaderRecord record: header) {
-					writer.addHeader(record.toString()+"\n");
+					writer.addHeader(record.toString() + "\n");
 				}
 				for (final VcfRecord vcf : vcfs) {
 					writer.add(vcf);				
@@ -147,7 +146,7 @@ public final class Coverage {
 	}
 	
 	//create vcf output header
-	private  VcfHeader getHeaderForQCoverage(final String bamFileName, final String gffFile) throws Exception {
+	private  VcfHeader getHeaderForQCoverage(final String bamFileName, final String gffFile) {
 		final VcfHeader header = new VcfHeader();
 		final DateFormat df = new SimpleDateFormat("yyyyMMdd");
 		final String version = Coverage.class.getPackage().getImplementationVersion();
@@ -174,7 +173,7 @@ public final class Coverage {
 	}
 	
 	
-	private static VcfRecord convertCoverageToVCFRecord(org.qcmg.coverage.CoverageReport covReport) throws Exception {
+	private static VcfRecord convertCoverageToVCFRecord(org.qcmg.coverage.CoverageReport covReport) {
 		
 		// tab delimited string containing loads of useful stuff 
 		final String feature = covReport.getFeature();
@@ -182,8 +181,7 @@ public final class Coverage {
 		final String[] params = TabTokenizer.tokenize(feature);
 		
 		final VcfRecord vcf = new VcfRecord.Builder(params[0], Integer.parseInt(params[3])).build();
-				//VcfUtils.createVcfRecord(params[0], Integer.parseInt(params[3]), null);
-		
+
 		// info field will contain coverage details
 		int zeroCov = 0, nonZeroCov = 0, totalCov = 0;
 		for (final CoverageModel c : covReport.getCoverage()) {
@@ -257,13 +255,7 @@ public final class Coverage {
 	}
 
 	private static String chooseErrorMessage(Throwable e) {
-		String message = null;
-		if (null == e.getMessage()) {
-			message = "Unknown error";
-		} else {
-			message = e.getMessage();
-		}
-		return message;
+		return null == e.getMessage() ? "Unknown error" : e.getMessage();
 	}
 
 	private static void logErrorMessage(final String errorMessage,
@@ -296,7 +288,4 @@ public final class Coverage {
 		return Coverage.class.getPackage().getImplementationVersion();
 	}
 
-	static String getVersionMessage() throws Exception {
-		return getProgramName() + ", version " + getProgramVersion();
-	}
 }

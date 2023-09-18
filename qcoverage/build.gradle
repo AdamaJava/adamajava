@@ -12,5 +12,10 @@ dependencies {
     implementation project(':qbamfilter')
     implementation project(':qpicard')
     implementation 'net.sf.jopt-simple:jopt-simple:4.6'
+    // https://mvnrepository.com/artifact/jakarta.xml.bind/jakarta.xml.bind-api
+    implementation 'jakarta.xml.bind:jakarta.xml.bind-api:3.0.1'
+    // https://mvnrepository.com/artifact/org.eclipse.persistence/org.eclipse.persistence.moxy
+    implementation 'org.eclipse.persistence:org.eclipse.persistence.moxy:3.0.3'
+
 }
 
