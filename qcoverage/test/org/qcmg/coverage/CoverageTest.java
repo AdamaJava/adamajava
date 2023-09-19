@@ -100,7 +100,6 @@ public class CoverageTest {
 				.createContext(new Class[] {CoverageReport.class, CoverageModel.class, QCoverageStats.class}, null);
 		final Marshaller m = context.createMarshaller();
 		m.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
-		m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
 
 		CoverageModel cm = new CoverageModel();
 		cm.setAt(String.valueOf(1));
@@ -117,11 +116,8 @@ public class CoverageTest {
 
 		m.marshal(qcs, sw);
 		StringBuffer sb = sw.getBuffer();
-		assertEquals(0, sb.indexOf("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"));
-		assertTrue(sb.indexOf("<coverageReport feature=\"feature_1\" type=\"PHYSICAL\">") > -1);
-		assertTrue(sb.indexOf("<coverage bases=\"1\" at=\"1\"/>") > -1);
-		assertTrue(sb.indexOf("</coverageReport>") > -1);
-		assertTrue(sb.indexOf("</QCoverageStats>") > -1);
+		assertEquals(0, sb.indexOf("<?xml version=\"1.0\" encoding=\"UTF-8\"?><QCoverageStats><coverageReport feature=\"feature_1\" " +
+				"type=\"PHYSICAL\"><coverage bases=\"1\" at=\"1\"/></coverageReport></QCoverageStats>"));
 	}
 
 	@Test
