@@ -21,22 +21,23 @@ public class Executor {
 	}
 	
 	public Executor(String [] arguments, String qualifiedMainClassName) throws IOException, InterruptedException {				
-		this("java -classpath " + System.getProperty("java.class.path") + " " + qualifiedMainClassName + " " + Arrays.toString(arguments) );		
+		this("java -classpath " + System.getProperty("java.class.path") + " " + qualifiedMainClassName + " " + Arrays.toString(arguments) );
 	}
 
 	public Executor(String jvmArgs, String arguments, String qualifiedMainClassName) throws IOException, InterruptedException {
-		this("java -classpath " + System.getProperty("java.class.path") + " " + jvmArgs + " " + qualifiedMainClassName + " " + arguments);				
+		this("java -classpath " + System.getProperty("java.class.path") + " " + jvmArgs + " " + qualifiedMainClassName + " " + arguments);
 	}
 
 	public Executor(String execCommand) throws IOException, InterruptedException {
-		Process process = Runtime.getRuntime().exec(new String[]{execCommand});
+//		Process process = new ProcessBuilder(execCommand).start();
+		Process process = Runtime.getRuntime().exec(execCommand);
 		outputStreamConsumer = new StreamConsumer(process.getInputStream());
 		errorStreamConsumer = new StreamConsumer(process.getErrorStream());
 		outputStreamConsumer.run();
 		errorStreamConsumer.run();
 		errCode = process.waitFor();
 	}
-	
+
 
 	public StreamConsumer getOutputStreamConsumer() {		
 		return outputStreamConsumer;

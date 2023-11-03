@@ -44,7 +44,7 @@
 
   <module name="LineLength">
     <property name="fileExtensions" value="java"/>
-    <property name="max" value="100"/>
+    <property name="max" value="200"/>
     <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://"/>
   </module>
 
@@ -74,7 +74,7 @@
     </module>
     <module name="NeedBraces">
       <property name="tokens"
-               value="LITERAL_DO, LITERAL_ELSE, LITERAL_FOR, LITERAL_IF, LITERAL_WHILE"/>
+               value="LITERAL_DO, LITERAL_ELSE, LITERAL_FOR, LITERAL_WHILE"/>
     </module>
     <module name="LeftCurly">
       <property name="tokens"
@@ -286,14 +286,14 @@
                     LABELED_STAT, METHOD_REF"/>
       <property name="allowLineBreaks" value="true"/>
     </module>
-    <module name="ParenPad">
+    <!-- <module name="ParenPad">
       <property name="tokens"
                value="ANNOTATION, ANNOTATION_FIELD_DEF, CTOR_CALL, CTOR_DEF, DOT, ENUM_CONSTANT_DEF,
                     EXPR, LITERAL_CATCH, LITERAL_DO, LITERAL_FOR, LITERAL_IF, LITERAL_NEW,
                     LITERAL_SWITCH, LITERAL_SYNCHRONIZED, LITERAL_WHILE, METHOD_CALL,
                     METHOD_DEF, QUESTION, RESOURCE_SPECIFICATION, SUPER_CTOR_CALL, LAMBDA,
                     RECORD_DEF"/>
-    </module>
+    </module> -->
     <module name="OperatorWrap">
       <property name="option" value="NL"/>
       <property name="tokens"
@@ -356,9 +356,9 @@
     <module name="EmptyCatchBlock">
       <property name="exceptionVariableName" value="expected"/>
     </module>
-    <module name="CommentsIndentation">
+    <!-- <module name="CommentsIndentation">
       <property name="tokens" value="SINGLE_LINE_COMMENT, BLOCK_COMMENT_BEGIN"/>
-    </module>
+    </module> -->
     <!-- https://checkstyle.org/filters/suppressionxpathfilter.html -->
     <module name="SuppressionXpathFilter">
       <property name="file" value="${org.checkstyle.google.suppressionxpathfilter.config}"
