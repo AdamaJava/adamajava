@@ -1,33 +1,9 @@
-plugins {
-  id 'org.hidetake.ssh' version '2.9.0'
-}
 
 apply plugin: 'application'
 mainClassName = 'org.qcmg.qprofiler2.QProfiler2'
 def scriptname = 'qprofiler2'
 def isExecutable = true
 
-remotes {
-  avalon {
-    host = 'hpcpbs01.adqimr.ad.lan'
-    user = 'oliverH'
-    identity = file('../../../../../../.ssh/id_rsa')
-  }
-}
-
-task deploy {
-  doLast {
-    ssh.run {
-      session(remotes.avalon) {
-        put from: '/Users/oliverh/devel/github/adamajava/java21/adamajava/qprofiler2/build/lib/qprofiler2.jar', into: '/mnt/backedup/home/oliverH/qp2/bin'
-      }
-    }
-  }
-}
-
-configurations {
-  sshAntTask
-}
 
 dependencies {
 		
