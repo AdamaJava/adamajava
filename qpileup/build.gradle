@@ -5,7 +5,8 @@ def scriptname = 'qpileup'
 def isExecutable = true
 
 repositories {
-    flatDir(dirs:"$buildDir/deps/hdf-java/lib")
+    flatDir(dirs:"$buildDir/deps/hdf-java/lib/linux")
+    //flatDir(dirs:"$buildDir/deps/hdf-java/lib")
 }
 
 test { 
