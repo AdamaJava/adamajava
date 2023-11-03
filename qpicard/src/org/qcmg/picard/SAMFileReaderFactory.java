@@ -72,7 +72,7 @@ public class SAMFileReaderFactory {
 				SeekableStream indexStream = SeekableStreamFactory.getInstance().getStreamFor(index.getAbsolutePath());
 				resources = resources.index(indexStream);
 				logger.info("setup index: " + index.getAbsolutePath());
-			}			
+			}
 			//set reference file for cram. default reference set by java option "-Dsamjdk.REFERENCE_FASTA" 
 			if(reference != null && reference.exists()) {
 				factory.referenceSequence(reference); 
@@ -82,9 +82,8 @@ public class SAMFileReaderFactory {
 			InputStream is = new FileInputStream(bamFile);
 			resources = SamInputResource.of(is);
 		}
-		
-		SamReader reader =  factory.open(resources);
-		return reader;
+
+		return factory.open(resources);
 	}	
 	
 	/**
@@ -94,15 +93,15 @@ public class SAMFileReaderFactory {
 	 * @throws IOException
 	 */
 	public static SamReader createSAMFileReader(final File bamFile) throws IOException {
-		return createSAMFileReaderAsStream(bamFile, null, null, null, new Option[0]) ;
+		return createSAMFileReaderAsStream(bamFile, null, null, null) ;
 	}
 	
 	public static SamReader createSAMFileReader(final File bamFile, final File index) throws IOException {
-		return createSAMFileReaderAsStream(bamFile, index, null, null, new Option[0]) ;
+		return createSAMFileReaderAsStream(bamFile, index, null, null) ;
 	}
 
 	public static SamReader createSAMFileReader(File bamFile, final File index, ValidationStringency validation) throws IOException {
-		return createSAMFileReaderAsStream(bamFile, index, null, validation, new Option[0]) ;
+		return createSAMFileReaderAsStream(bamFile, index, null, validation) ;
 	}
 
 	public static SamReader createSAMFileReader(File bamFile,  String validation) throws IOException {
@@ -113,7 +112,7 @@ public class SAMFileReaderFactory {
 			stringency = ValidationStringency.STRICT;
 		} 	
 		
-		return createSAMFileReaderAsStream(bamFile, null, null, stringency, new Option[0]);
+		return createSAMFileReaderAsStream(bamFile, null, null, stringency);
 	}
 
 	public static SamReader createSAMFileReaderAsStream(String input, String index, ValidationStringency vs) throws IOException {

@@ -5,7 +5,6 @@ def scriptname = 'qmaftools'
 def isExecutable = true
 
 dependencies {
-    configurations.compile.transitive = true
 
     api project(':qcommon')
     api project(':qio')

@@ -25,7 +25,6 @@ sourceSets {
 }
 
 dependencies {
-    configurations.compile.transitive = true
 
     api project(':qcommon')
     api project(':qio')
@@ -37,6 +36,6 @@ dependencies {
     api 'org.apache.commons:commons-lang3:3.4'
     api 'net.sf.jopt-simple:jopt-simple:4.6'
     api 'org.lz4:lz4-java:1.5.0'
-    api 'org.scala-lang:scala-library:2.12.3'
+    api 'org.scala-lang:scala-library:2.12.18'
 }
 

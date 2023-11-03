@@ -6,7 +6,6 @@ def scriptname = 'qsv'
 def isExecutable = true
 
 dependencies {
-    configurations.compile.transitive = true
 
     api project(':qbamfilter')
     api project(':qpicard')
@@ -15,7 +14,7 @@ dependencies {
     //api 'com.github.samtools:htsjdk:2.14.1'	
     api 'net.sf.jopt-simple:jopt-simple:4.6'	
 		
-    testImplementation  'org.easymock:easymock:3.1'
+    testImplementation  'org.easymock:easymock:5.2.0'
     testImplementation  group: 'commons-io', name: 'commons-io', version: '2.6'
 }
 

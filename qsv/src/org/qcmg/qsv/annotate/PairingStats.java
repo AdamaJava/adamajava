@@ -14,13 +14,13 @@ package org.qcmg.qsv.annotate;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlSchemaType;
-import javax.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlAttribute;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlSchemaType;
+import jakarta.xml.bind.annotation.XmlType;
 
 
 /**
@@ -130,29 +130,25 @@ public class PairingStats {
      */
     public List<PairingStats.UniquePairing> getUniquePairing() {
         if (uniquePairing == null) {
-            uniquePairing = new ArrayList<PairingStats.UniquePairing>();
+            uniquePairing = new ArrayList<>();
         }
         return this.uniquePairing;
     }
     
     public List<PairingStats.ReadCount> getReadCount() {
         if (readCount == null) {
-            readCount = new ArrayList<PairingStats.ReadCount>();
+            readCount = new ArrayList<>();
         }
         return this.readCount;
     }
     
     public List<PairingStats.Coverage> getCoverage() {
         if (coverage == null) {
-            coverage = new ArrayList<PairingStats.Coverage>();
+            coverage = new ArrayList<>();
         }
         return this.coverage;
     }
     
-    
-
-
-
     /**
      * <p>Java class for anonymous complex type.
      * 
@@ -187,11 +183,11 @@ public class PairingStats {
 
         /**
          * Gets the value of the lowerLimit property.
-         * 
+         *
          * @return
          *     possible object is
          *     {@link BigInteger }
-         *     
+         *
          */
         public BigInteger getLowerLimit() {
             return lowerLimit;
@@ -211,11 +207,11 @@ public class PairingStats {
 
         /**
          * Gets the value of the upperLimit property.
-         * 
+         *
          * @return
          *     possible object is
          *     {@link BigInteger }
-         *     
+         *
          */
         public BigInteger getUpperLimit() {
             return upperLimit;
@@ -232,8 +228,8 @@ public class PairingStats {
         public void setUpperLimit(BigInteger value) {
             this.upperLimit = value;
         }
-        
-        
+
+
         public BigInteger getAverage() {
             return average;
         }

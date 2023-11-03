@@ -5,7 +5,6 @@ def scriptname = 'qcoverage'
 def isExecutable = true
 
 dependencies {
-    configurations.compile.transitive = true
 
     implementation project(':qcommon')
     implementation project(':qio')

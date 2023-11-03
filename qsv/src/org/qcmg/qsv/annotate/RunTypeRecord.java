@@ -42,11 +42,11 @@ public class RunTypeRecord {
     }
 
     public int getLower() {
-        return lower.intValue();
+        return lower;
     }
 
     public int getUpper() {
-        return upper.intValue();
+        return upper;
     }
     
 	public ConcurrentHashMap<Integer, AtomicInteger> getIsizeMap() {
@@ -77,14 +77,12 @@ public class RunTypeRecord {
 		
 		int absISize = Math.abs(iSize);		
 		
-		int bucket = 0;
+		int bucket;
 		if (absISize < MAX_I_SIZE) {
 			bucket = (absISize / INITIAL_I_SIZE_BUCKET_SIZE)
 					* INITIAL_I_SIZE_BUCKET_SIZE;
 		} else {
-			bucket = absISize >= FINAL_I_SIZE_BUCKET_SIZE 
-					? (absISize / FINAL_I_SIZE_BUCKET_SIZE) * FINAL_I_SIZE_BUCKET_SIZE 
-							: MAX_I_SIZE;
+			bucket = absISize / FINAL_I_SIZE_BUCKET_SIZE * FINAL_I_SIZE_BUCKET_SIZE;
 		}
 		
 		if (bucket < MAX_CURVE_ISIZE) {

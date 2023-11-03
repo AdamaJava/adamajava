@@ -3,16 +3,10 @@
  */
 package org.qcmg.coverage;
 
+import jakarta.xml.bind.annotation.*;
+
 import java.util.ArrayList;
 import java.util.List;
-import jakarta.xml.bind.annotation.XmlAttribute;
-import jakarta.xml.bind.annotation.XmlAccessType;
-import jakarta.xml.bind.annotation.XmlAccessorType;
-//import javax.xml.bind.annotation.XmlAttribute;
-import jakarta.xml.bind.annotation.XmlElement;
-import jakarta.xml.bind.annotation.XmlRootElement;
-
-import javax.xml.bind.annotation.XmlType;
 
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "CoverageReport", propOrder = {
@@ -23,9 +17,9 @@ public class CoverageReport {
 	@XmlElement(required = true)
     private List<CoverageModel> coverage;
     @XmlAttribute(name = "feature", required = true)
-private String feature;
+    private String feature;
     @XmlAttribute(name = "type", required = true)
-private CoverageType type;
+    private CoverageType type;
 
     /**
      * Gets the value of the coverage property.
@@ -51,7 +45,7 @@ private CoverageType type;
      */
     public List<CoverageModel> getCoverage() {
         if (coverage == null) {
-            coverage = new ArrayList<CoverageModel>();
+            coverage = new ArrayList<>();
         }
         return this.coverage;
     }

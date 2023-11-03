@@ -6,26 +6,17 @@
  */
 package org.qcmg.qbamannotate;
 
+import htsjdk.samtools.SAMRecord;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.Marshaller;
+import org.eclipse.persistence.jaxb.JAXBContextFactory;
+import org.qcmg.qio.ma.MaDirection;
+import org.qcmg.qio.ma.MaRecord;
+
 import java.io.StringWriter;
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
-
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.Marshaller;
-
-import javax.xml.transform.Source;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.stream.StreamSource;
-
-import org.qcmg.qio.ma.MaDirection;
-import org.qcmg.qio.ma.MaRecord;
-
-import javax.xml.transform.stream.StreamResult;
-import java.io.*;
-
-import htsjdk.samtools.SAMRecord;
 
 public class LongMatePair extends AnnotatorType {
 	final int isizeLowerLimit;
@@ -87,7 +78,8 @@ public class LongMatePair extends AnnotatorType {
 			report.getUniquePairing().add(pairing);
 		}
 		StringWriter writer = new StringWriter();
-		JAXBContext context = JAXBContext.newInstance(LongMatePairReport.class);
+		JAXBContext context = JAXBContextFactory.createContext(new Class[] {LongMatePairReport.class}, null);
+//		JAXBContext context = JAXBContext.newInstance(LongMatePairReport.class);
 		Marshaller m = context.createMarshaller();
 	    m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true); //pretty print XML
 		m.marshal(report, writer);

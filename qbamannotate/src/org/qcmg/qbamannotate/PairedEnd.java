@@ -11,8 +11,8 @@ import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.Marshaller;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.Marshaller;
 
 import org.qcmg.qio.ma.MaDirection;
 import org.qcmg.qio.ma.MaRecord;
@@ -25,9 +25,7 @@ public class PairedEnd extends AnnotatorType {
 	private String zpAnnotation;
 	private SAMRecord record;
 	private MaRecord maRecord;
-	private int annotatedCount = 0;
-	private final Map<String, Integer> zpToCount = new HashMap<String, Integer>();
-	private String xmlReport;
+	private final Map<String, Integer> zpToCount = new HashMap<>();
 
 	public PairedEnd(int isizeLowerLimit, int isizeUpperLimit) throws Exception {
 		if (isizeLowerLimit >= isizeUpperLimit) {
@@ -40,25 +38,22 @@ public class PairedEnd extends AnnotatorType {
 
 	public void resetCount() {
 		zpToCount.clear();
-		annotatedCount = 0;
 	}
 
 	@Override
-	public boolean annotate(final SAMRecord record) throws Exception {
+	public boolean annotate(final SAMRecord record) {
 		this.record = record;
 		boolean result = false;
 		if (record.getReadPairedFlag()) {
 			result = createZPAnnotation();
 		} else {
 			record.setAttribute("ZP", "Z**");
-			annotatedCount++;
 		}
 		return result;
 	}
 
 	@Override
-	public boolean annotate(SAMRecord record, MaRecord maRecord)
-			throws Exception {
+	public boolean annotate(SAMRecord record, MaRecord maRecord) {
 		this.record = record;
 		this.maRecord = maRecord;
 		performZMAnnotation();
@@ -84,8 +79,7 @@ public class PairedEnd extends AnnotatorType {
 		m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true); // pretty print
 																// XML
 		m.marshal(report, writer);
-		xmlReport = writer.toString();
-		return xmlReport;
+		return writer.toString();
 	}
 
 	private void performZMAnnotation() {
@@ -229,7 +223,6 @@ public class PairedEnd extends AnnotatorType {
 				record.setAttribute("ZP", zpAnnotation);
 				countZp();
 				result = true;
-				annotatedCount++;
 			} else if (null != nh
 					&& 1 == nh
 					&& !record.getReferenceName().equals(
@@ -241,7 +234,6 @@ public class PairedEnd extends AnnotatorType {
 					countZp();
 					result = true;
 				}
-				annotatedCount++;
 			} else if (null != nh && 1 == nh
 					&& record.getReadFailsVendorQualityCheckFlag()) {
 				zpAnnotation = "E**";
@@ -250,7 +242,6 @@ public class PairedEnd extends AnnotatorType {
 					countZp();
 					result = true;
 				}
-				annotatedCount++;
 			} else if (null != nh && 1 == nh && isDifferentStrand()) {
 				zpAnnotation = "A";
 				handleOrientation();
@@ -260,7 +251,6 @@ public class PairedEnd extends AnnotatorType {
 					countZp();
 					result = true;
 				}
-				annotatedCount++;
 			} else if (null != nh && 1 != nh && isDifferentStrand()) {
 				zpAnnotation = "A";
 				handleOrientation();
@@ -274,7 +264,6 @@ public class PairedEnd extends AnnotatorType {
 				} else {
 					record.setAttribute("ZP", "Z**");
 				}
-				annotatedCount++;
 			} else if (null == nh && isDifferentStrand()) {
 				zpAnnotation = "A";
 				handleOrientation();
@@ -288,7 +277,6 @@ public class PairedEnd extends AnnotatorType {
 				} else {
 					record.setAttribute("ZP", "Z**");
 				}
-				annotatedCount++;
 			} else if (null != nh && 1 == nh && isSameStrand()) {
 				zpAnnotation = "B";
 				handleOrientation();
@@ -298,14 +286,11 @@ public class PairedEnd extends AnnotatorType {
 					countZp();
 					result = true;
 				}
-				annotatedCount++;
 			} else {
 				record.setAttribute("ZP", "Z**");
-				annotatedCount++;
 			}
 		} else {
 			record.setAttribute("ZP", "Z**");
-			annotatedCount++;
 		}
 		return result;
 	}

@@ -1,29 +1,25 @@
 package org.qcmg.pileup;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import java.io.File;
-import java.util.TreeMap;
-
-
-
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.qcmg.pileup.Options;
-import org.qcmg.pileup.PileupConstants;
-import org.qcmg.pileup.QPileupException;
 import org.qcmg.pileup.metrics.Metric;
 import org.qcmg.pileup.util.TestUtil;
+
+import java.io.File;
+import java.util.Objects;
+import java.util.TreeMap;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class OptionsTest {
 	
 	@Rule
     public TemporaryFolder testFolder = new TemporaryFolder();
-	private String reference = getClass().getResource("/resources/test-reference.fa").getFile();
-	private String bam = getClass().getResource("/resources/test.bam").getFile();
-	private String hdf = getClass().getResource("/resources/test.h5").getFile();
+	private final String reference = Objects.requireNonNull(getClass().getResource("/resources/test-reference.fa")).getFile();
+	private final String bam = Objects.requireNonNull(getClass().getResource("/resources/test.bam")).getFile();
+	private final String hdf = Objects.requireNonNull(getClass().getResource("/resources/test.h5")).getFile();
 	
 	@Test
 	public void testValidBootstrapOptions() throws Exception {		

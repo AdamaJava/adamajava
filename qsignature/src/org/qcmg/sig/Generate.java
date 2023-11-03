@@ -6,35 +6,13 @@
  */
 package org.qcmg.sig;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.security.DigestInputStream;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.time.LocalDateTime;
-import java.util.AbstractQueue;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-import java.util.zip.GZIPOutputStream;
-
-import javax.xml.bind.DatatypeConverter;
-
+import gnu.trove.map.TObjectIntMap;
+import gnu.trove.map.hash.TObjectIntHashMap;
+import htsjdk.samtools.SAMFileHeader;
+import htsjdk.samtools.SAMReadGroupRecord;
+import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.SamReader;
+import jakarta.xml.bind.DatatypeConverter;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.meta.QExec;
@@ -58,12 +36,16 @@ import org.qcmg.sig.positions.VcfInMemoryPositionIterator;
 import org.qcmg.sig.positions.VcfStreamPositionIterator;
 import org.qcmg.sig.util.SignatureUtil;
 
-import gnu.trove.map.TObjectIntMap;
-import gnu.trove.map.hash.TObjectIntHashMap;
-import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SAMReadGroupRecord;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SamReader;
+import java.io.*;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.concurrent.*;
+import java.util.stream.Collectors;
+import java.util.zip.GZIPOutputStream;
 
 /**
  * 
@@ -75,7 +57,7 @@ import htsjdk.samtools.SamReader;
  * Read group coverage is displayed allowing the user to run the CompareRG class to determine if the read groups that make up the BAM match each other.
  * 
  * @author oliverh
- * @param <T>
+ * @param
  *
  */
 public class Generate {
@@ -604,7 +586,7 @@ public class Generate {
 		
 		// wait till the producer count down latch has hit zero
 		try {
-			pLatch.await(Constants.EXECUTOR_SERVICE_AWAIT_TERMINATION, TimeUnit.HOURS);
+			pLatch.await(Constants.EXECUTOR_SERVICE_AWAIT_TERMINATION, java.util.concurrent.TimeUnit.HOURS);
 		} catch (final InterruptedException e) {
 			e.printStackTrace();
 			throw new Exception("Exception caught in Producer thread");
@@ -612,7 +594,7 @@ public class Generate {
 		
 		// and now the consumer latch
 		try {
-			cLatch.await(Constants.EXECUTOR_SERVICE_AWAIT_TERMINATION, TimeUnit.HOURS);
+			cLatch.await(Constants.EXECUTOR_SERVICE_AWAIT_TERMINATION, java.util.concurrent.TimeUnit.HOURS);
 		} catch (final InterruptedException e) {
 			e.printStackTrace();
 			throw new Exception("Exception caught in Consumer thread");
@@ -620,7 +602,7 @@ public class Generate {
 		
 		// and finally the writer latch
 		try {
-			wLatch.await(Constants.EXECUTOR_SERVICE_AWAIT_TERMINATION, TimeUnit.HOURS);
+			wLatch.await(Constants.EXECUTOR_SERVICE_AWAIT_TERMINATION, java.util.concurrent.TimeUnit.HOURS);
 		} catch (final InterruptedException e) {
 			e.printStackTrace();
 			throw new Exception("Exception caught in Consumer thread");
