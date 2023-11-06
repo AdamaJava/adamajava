@@ -7,7 +7,6 @@ import org.qcmg.pileup.util.TestUtil;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.IOException;
 import java.io.PrintStream;
 import java.util.List;
 import java.util.Objects;
@@ -17,10 +16,6 @@ import static org.junit.Assert.assertTrue;
 
 public class PileupPipelineTest {
 
-	static {
-		System.load("/Users/oliverh/devel/github/adamajava/java21/adamajava/lib/hdf-java/lib/linux");
-	}
-	
 	private final String reference = Objects.requireNonNull(getClass().getResource("/resources/test-reference.fa")).getFile();
 	private final String bam = Objects.requireNonNull(getClass().getResource("/resources/test.bam")).getFile();
 	private final String existingHDF = Objects.requireNonNull(getClass().getResource("/resources/test.h5")).getFile();
@@ -103,7 +98,8 @@ public class PileupPipelineTest {
 		runPipeline("view");		
 		File[] listFiles = new File(testFolder.getRoot().getAbsolutePath()).listFiles();
 		String s = "";
-		
+
+		assert listFiles != null;
 		for (File f: listFiles) {
 			if (f.getAbsolutePath().contains("qpileup")) {
 				s = f.getAbsolutePath();
@@ -126,7 +122,7 @@ public class PileupPipelineTest {
 		pileupHDF.close();		
 	}
 	
-	private void runPipeline(String mode) throws IOException, Exception {
+	private void runPipeline(String mode) throws Exception {
 		Options options = TestUtil.getValidOptions(testFolder, mode, reference, hdf, bam, testFolder.getRoot().toString(), "all", "");
 		options.parseIniFile();
 		PileupPipeline pipeline = new PileupPipeline(options, 1234);
