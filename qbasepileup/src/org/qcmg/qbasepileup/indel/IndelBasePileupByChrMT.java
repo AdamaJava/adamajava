@@ -26,7 +26,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
 
 import htsjdk.samtools.reference.IndexedFastaSequenceFile;
 import htsjdk.samtools.SamReader;
@@ -51,7 +50,6 @@ public class IndelBasePileupByChrMT {
 	private final Options options;
 	AtomicInteger totalExamined = new AtomicInteger();
 	AtomicInteger positionCount = new AtomicInteger();
-	AtomicInteger uniquePositionCount = new AtomicInteger();
 	int threadNo = 0;
 	AtomicInteger exitStatus = new AtomicInteger();
 	final int sleepUnit = 10;
@@ -60,16 +58,14 @@ public class IndelBasePileupByChrMT {
 	private final File inputFile;
 	private final File outputFile;
 	private final boolean isGermline;
-	private final File pileupFile;
 	private final AtomicLong totalTumourReads = new AtomicLong();
 	private final AtomicLong totalNormalReads = new AtomicLong();
 	private int[] dccColumns = new int[3];
 	
-	public IndelBasePileupByChrMT(File inputFile, File outputFile, File pileupFile, boolean isGermline, Options options) throws Exception {		
+	public IndelBasePileupByChrMT(File inputFile, File outputFile, boolean isGermline, Options options) throws Exception {
 		this.options = options;	
 		this.inputFile = inputFile;
 		this.outputFile = outputFile;
-		this.pileupFile = pileupFile;
 		this.isGermline = isGermline;
 		threadNo = options.getThreadNo();
 		execute();
@@ -115,7 +111,7 @@ public class IndelBasePileupByChrMT {
         	pileupThreads.shutdown();
 
             // kick-off single writing thread to output the satisfied Records
-            writeThread.execute(new Writing(writeQueue, outputFile, pileupFile, Thread.currentThread(), pileupLatch, writeLatch, headers));
+            writeThread.execute(new Writing(writeQueue, outputFile, Thread.currentThread(), pileupLatch, writeLatch, headers));
             writeThread.shutdown();
 
             logger.info("waiting for  threads to finish (max wait will be 100 hours)");
@@ -132,7 +128,7 @@ public class IndelBasePileupByChrMT {
             logger.info("All threads finished");
     
         } catch (Exception e) {
-            logger.info(QBasePileupUtil.getStrackTrace(e));
+            logger.info(QBasePileupUtil.getStackTrace(e));
             exitStatus.incrementAndGet();
         } finally {
             // kill off any remaining threads
@@ -141,21 +137,6 @@ public class IndelBasePileupByChrMT {
             pileupThreads.shutdownNow();
         }
     } 
-
-//	private List<String> getHeader() throws IOException {
-//		List<String> header = new ArrayList<>();
-//		try (BufferedReader reader = new BufferedReader(new FileReader(inputFile))) {
-//			String line = null;
-//			while ((line=reader.readLine()) != null) {
-//				if (line.startsWith("#") || line.startsWith("analysis_id") || line.startsWith("Hugo") ||  line.startsWith("mutation")) {
-//					header.add(line);
-//				} else {
-//					break;
-//				}
-//			}
-//		}
-//		return header;
-//	}
 
 	private class Reading implements Runnable {
 
@@ -173,7 +154,7 @@ public class IndelBasePileupByChrMT {
             this.readLatch = readLatch;
             this.pileupLatch = filterLatch;
             this.inputFile = inputFile;
-            this.chromosomes = new ArrayList<String>();
+            this.chromosomes = new ArrayList<>();
         }
 
         @Override
@@ -181,7 +162,7 @@ public class IndelBasePileupByChrMT {
             logger.info("Starting to read file: " + inputFile.getAbsolutePath());
             int countSleep = 0;
             long count = 0;
-            try (BufferedReader reader = new BufferedReader(new FileReader(inputFile));) {  	
+            try (BufferedReader reader = new BufferedReader(new FileReader(inputFile))) {
         		        		
         		
         		String line;
@@ -214,7 +195,7 @@ public class IndelBasePileupByChrMT {
                                 countSleep++;
                             } catch (Exception e) {
                                 logger.info(Thread.currentThread().getName()
-                                        + " " + QBasePileupUtil.getStrackTrace(e));
+                                        + " " + QBasePileupUtil.getStackTrace(e));
                             }
                         }
                     }
@@ -223,7 +204,7 @@ public class IndelBasePileupByChrMT {
                 logger.info("Completed reading thread, read " + count
                         + " records from input: " + inputFile.getAbsolutePath());
             } catch (Exception e) {
-            	logger.error("Setting exit status in execute thread to 1 as exception caught in reading method: " + QBasePileupUtil.getStrackTrace(e));
+            	logger.error("Setting exit status in execute thread to 1 as exception caught in reading method: " + QBasePileupUtil.getStackTrace(e));
     	        if (exitStatus.intValue() == 0) {
     	        	exitStatus.incrementAndGet();
     	        }
@@ -232,7 +213,7 @@ public class IndelBasePileupByChrMT {
                 readLatch.countDown();
                 logger.debug(String
                         .format("Exit Reading thread, total slept %d times * %d milli-seconds, "
-                                + "since input queue are full.fLatch  is %d; queus size is %d ",
+                                + "since input queue are full.fLatch  is %d; queues size is %d ",
                                 countSleep, sleepUnit, pileupLatch.getCount(),
                                 queue.size()));
             }
@@ -248,8 +229,7 @@ public class IndelBasePileupByChrMT {
 	        private final CountDownLatch readLatch;
 	        private final CountDownLatch pileupLatch;
 	        private final CountDownLatch writeLatch;
-	        private int countOutputSleep;
-			private final InputBAM tumourBam;
+	   private final InputBAM tumourBam;
 			private final InputBAM normalBam;
 			private int maxLength = 110;
 			private final File positionsFile;
@@ -258,7 +238,7 @@ public class IndelBasePileupByChrMT {
 	        public Pileup(AbstractQueue<String> readQueue,
 	                AbstractQueue<String[]> writeQueue, Thread mainThread,
 	                CountDownLatch readLatch, CountDownLatch pileupLatch,
-	                CountDownLatch wGoodLatch, String positionsFile) throws Exception {
+	                CountDownLatch wGoodLatch, String positionsFile) {
 	            this.queueIn = readQueue;
 	            this.queueOut = writeQueue;
 	            this.mainThread = mainThread;
@@ -275,7 +255,7 @@ public class IndelBasePileupByChrMT {
 
 	            int sleepcount = 0;
 	            int count = 0;
-	            countOutputSleep = 0;
+				int countOutputSleep = 0;
 	            boolean run = true;
 	            IndexedFastaSequenceFile indexedFasta = QBasePileupUtil.getIndexedFastaFile(options.getReference());
 	            try {
@@ -296,8 +276,7 @@ public class IndelBasePileupByChrMT {
 	                            Thread.sleep(sleepUnit);
 	                            sleepcount++;
 	                        } catch (InterruptedException e) {
-	                            logger.info(Thread.currentThread().getName() + " "
-	                                    + e.toString());
+	                            logger.info(Thread.currentThread().getName() + " " + e);
 	                        }
 
 	                    } else {	                        
@@ -339,7 +318,7 @@ public class IndelBasePileupByChrMT {
 			                                    countOutputSleep++;
 			                                } catch (InterruptedException e) {
 			                                    logger.debug(Thread.currentThread().getName() + " "
-			                                            + QBasePileupUtil.getStrackTrace(e) + " (queue size full) ");
+			                                            + QBasePileupUtil.getStackTrace(e) + " (queue size full) ");
 			                                }
 			                                if (writeLatch.getCount() == 0) {
 			                                    logger.error("output queue is not empty but writing thread is complete");
@@ -350,14 +329,13 @@ public class IndelBasePileupByChrMT {
 			                        queueOut.add(outArray);	                        
 		                        }
 	                        }
-	                        positionMap = null;
-                        }                       
+						}
 	                }
 	                indexedFasta.close();
 	                logger.info("Completed pileup thread: "
 	                        + Thread.currentThread().getName());
 	            } catch (Exception e) {
-	            	logger.error("Setting exit status in pileup thread to 1 as exception caught file: " + options.getReference() + " " + QBasePileupUtil.getStrackTrace(e));
+	            	logger.error("Setting exit status in pileup thread to 1 as exception caught file: " + options.getReference() + " " + QBasePileupUtil.getStackTrace(e));
 	    	        if (exitStatus.intValue() == 0) {
 	    	        	exitStatus.incrementAndGet();
 	    	        }
@@ -395,14 +373,14 @@ public class IndelBasePileupByChrMT {
 		        				positionCount.incrementAndGet();
 		        				
 		        				IndelPosition p = null;	        				
-		        				p = new IndelPosition(line, isGermline, indelFileType, dccColumns);
+		        				p = new IndelPosition(line, isGermline, dccColumns);
 		        				if (p.getLength() > maxLength) {
 		        					maxLength = p.getLength();
 		        				}
 		        				IndelPositionPileup pileup = new IndelPositionPileup(tumourBam, normalBam, p, options, indexedFasta);	                        
 			                       
 		        				if (p.getFullChromosome().equals(fullChr)) {
-		        					positionMap.computeIfAbsent(Integer.valueOf(p.getStart()), v -> new ArrayList<>()).add(pileup);
+		        					positionMap.computeIfAbsent(p.getStart(), v -> new ArrayList<>()).add(pileup);
 		        				}
 		        			}
 		        		}
@@ -412,7 +390,7 @@ public class IndelBasePileupByChrMT {
 
 			private void pileupReads(InputBAM bam, String chromosome, TreeMap<Integer, List<IndelPositionPileup>> positionMap, boolean isTumour) throws Exception {
 				 
-				try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(bam.getBamFile(), "silent");) {
+				try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(bam.getBamFile(), "silent")) {
          		
 	         		//get chromosome length
 	         		String fullChromosome = QBasePileupUtil.getFullChromosome(chromosome);
@@ -448,7 +426,7 @@ public class IndelBasePileupByChrMT {
 	         				
 	     				SortedMap<Integer, List<IndelPositionPileup>> subMap = positionMap.subMap(start, end);
 	         				
-	     				if (subMap != null && subMap.size() > 0) {
+	     				if (subMap.size() > 0) {
 	     					
 	     					for (Entry<Integer, List<IndelPositionPileup>> entry: subMap.entrySet()) {
 	     						for (IndelPositionPileup p : entry.getValue()) {
@@ -470,8 +448,8 @@ public class IndelBasePileupByChrMT {
 	        private final CountDownLatch writeLatch;
 			private final List<String> headers;
 
-	        public Writing(AbstractQueue<String[]> q, File f, File pileupFile, Thread mainThread,
-	                CountDownLatch fLatch, CountDownLatch wLatch, List<String> headers) {
+	        public Writing(AbstractQueue<String[]> q, File f, Thread mainThread,
+						   CountDownLatch fLatch, CountDownLatch wLatch, List<String> headers) {
 	            queue = q;
 	            resultsFile = f;
 	            //this.pileupFile = pileupFile;
@@ -490,7 +468,7 @@ public class IndelBasePileupByChrMT {
 	            try {
 	                String[] record;
 	                int count = 0;
-	                try (BufferedWriter writer = new BufferedWriter(new FileWriter(resultsFile));) {
+	                try (BufferedWriter writer = new BufferedWriter(new FileWriter(resultsFile))) {
 	                               
 		                while (run) {
 		                    
@@ -504,7 +482,7 @@ public class IndelBasePileupByChrMT {
 			                        		exitStatus.incrementAndGet();
 			        	    	        		}
 			                            logger.info(Thread.currentThread().getName() + " "
-			                                    + QBasePileupUtil.getStrackTrace(e));
+			                                    + QBasePileupUtil.getStackTrace(e));
 		                        }
 		                        if (filterLatch.getCount() == 0 && queue.size() == 0) {
 			                        run = false;
@@ -523,7 +501,7 @@ public class IndelBasePileupByChrMT {
 	                }
 	                
 	                //rewrite in order
-	                reorderFile(resultsFile, headers.stream().collect(Collectors.joining("\n")));
+	                reorderFile(resultsFile, String.join("\n", headers));
                
 	                
 	                if (!mainThread.isAlive()) {
@@ -537,7 +515,7 @@ public class IndelBasePileupByChrMT {
 	                            + resultsFile.getAbsolutePath());
 	                }
 	            } catch (Exception e) {
-		            	logger.error("Setting exit status to 1 as exception caught in writing thread: " + QBasePileupUtil.getStrackTrace(e));
+		            	logger.error("Setting exit status to 1 as exception caught in writing thread: " + QBasePileupUtil.getStackTrace(e));
 		    	        if (exitStatus.intValue() == 0) {
 		    	        		exitStatus.incrementAndGet();
 		    	        }
@@ -552,12 +530,12 @@ public class IndelBasePileupByChrMT {
 			private void reorderFile(File file, String header) throws IOException {
 				Map<ChrRangePosition, String> map = new TreeMap<>();
 				
-				try (BufferedReader reader = new BufferedReader(new FileReader(file));) {
+				try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
 					
 					String line = reader.readLine();
 					while(line != null) {
 						String[] values = line.split("\t");
-						map.put(new ChrRangePosition(values[4], Integer.valueOf(values[5]), Integer.valueOf(values[6])), line);
+						map.put(new ChrRangePosition(values[4], Integer.parseInt(values[5]), Integer.parseInt(values[6])), line);
 						line = reader.readLine();
 					}
 				}
@@ -565,7 +543,7 @@ public class IndelBasePileupByChrMT {
 			}
 			
 			private void printMap(Map<ChrRangePosition, String> map, File file, String header) throws IOException {
-				try (BufferedWriter writer = new BufferedWriter(new FileWriter(file));) {
+				try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
 					writer.write(header);
 					writer.newLine();
 					for (Entry<ChrRangePosition, String> entry: map.entrySet()) {

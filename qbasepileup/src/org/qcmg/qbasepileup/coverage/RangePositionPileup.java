@@ -53,7 +53,7 @@ class RangePositionPileup {
 	}
 
 	public void pileup() throws Exception {
-		try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(inputBam.getBamFile(), "silent");) {
+		try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(inputBam.getBamFile(), "silent")) {
 		
 			SAMRecordIterator iterator = reader.queryOverlapping(position.getChromosome(), position.getStartPosition(), position.getEndPosition());
 		
@@ -93,12 +93,8 @@ class RangePositionPileup {
 		if (maxCoverage == null) {
 			return true;
 		} else {
-			if (coverageCount >= maxCoverage.intValue()) {
-				return true;
-			}
+			return coverageCount >= maxCoverage;
 		}
-		
-		return false;
 	}
 	
 	@Override

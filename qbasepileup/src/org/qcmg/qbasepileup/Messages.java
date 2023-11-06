@@ -11,7 +11,6 @@ import java.util.ResourceBundle;
 
 public final class Messages {
 	static final ResourceBundle messages = ResourceBundle.getBundle("org.qcmg.qbasepileup.messages");
-	static final String ERROR_PREFIX = getProgramName() + ": ";
 	static final String USAGE = getMessage("USAGE");
 
 	public static String getMessage(final String identifier) {
@@ -38,7 +37,7 @@ public final class Messages {
 		return Messages.class.getPackage().getImplementationVersion();
 	}
 
-	public static String getVersionMessage() throws Exception {
+	public static String getVersionMessage() {
 		return getProgramName() + ", version " + getProgramVersion();
 	}
 }

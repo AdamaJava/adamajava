@@ -6,43 +6,19 @@
  */
 package org.qcmg.qbasepileup.snp;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.AbstractQueue;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
-
 import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMRecordIterator;
-
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ReferenceNameComparator;
 import org.qcmg.common.util.Constants;
 import org.qcmg.qbamfilter.query.QueryExecutor;
-import org.qcmg.qbasepileup.InputBAM;
-import org.qcmg.qbasepileup.Options;
-import org.qcmg.qbasepileup.QBasePileupConstants;
-import org.qcmg.qbasepileup.QBasePileupException;
-import org.qcmg.qbasepileup.QBasePileupUtil;
+import org.qcmg.qbasepileup.*;
+
+import java.io.*;
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 public class SnpBasePileupMT {
 	
@@ -106,13 +82,10 @@ public class SnpBasePileupMT {
 			
 			final ReferenceNameComparator refNameComp = new ReferenceNameComparator();
 			
-			final Set<SnpPosition> uniqueSnpPositions = new TreeSet<>(new Comparator<SnpPosition>() {
-				@Override
-				public int compare(SnpPosition o1, SnpPosition o2) {
-					int chrDiff = refNameComp.compare(o1.getFullChromosome(), o2.getFullChromosome());
-					if (chrDiff != 0) return chrDiff;
-					return o1.getStart() - o2.getStart();
-				}
+			final Set<SnpPosition> uniqueSnpPositions = new TreeSet<>((o1, o2) -> {
+				int chrDiff = refNameComp.compare(o1.getFullChromosome(), o2.getFullChromosome());
+				if (chrDiff != 0) return chrDiff;
+				return o1.getStart() - o2.getStart();
 			});
 			uniqueSnpPositions.addAll(positions);
 			
@@ -121,7 +94,7 @@ public class SnpBasePileupMT {
 			for (int i = 0; i < threadNo; i++) {
 				pileupThreads.execute(new Pileup(readQueue,
 						writeQueue, Thread.currentThread(), 
-						pileupLatch, writeLatch, options.getInputBAMs(), uniqueSnpPositions));
+						pileupLatch, writeLatch, options.getInputBAMs()));
 			}
 
 			pileupThreads.shutdown();
@@ -131,13 +104,13 @@ public class SnpBasePileupMT {
 			writeThread.shutdown();
 
 			logger.info("waiting for  threads to finish (max wait will be 100 hours)");
-			pileupThreads.awaitTermination(Constants.EXECUTOR_SERVICE_AWAIT_TERMINATION, TimeUnit.HOURS);
-			writeThread.awaitTermination(Constants.EXECUTOR_SERVICE_AWAIT_TERMINATION, TimeUnit.HOURS);
+			pileupThreads.awaitTermination(Constants.EXECUTOR_SERVICE_AWAIT_TERMINATION, java.util.concurrent.TimeUnit.HOURS);
+			writeThread.awaitTermination(Constants.EXECUTOR_SERVICE_AWAIT_TERMINATION, java.util.concurrent.TimeUnit.HOURS);
 
 			logger.info("All threads finished");
 
 		} catch (Exception e) {
-			logger.info(QBasePileupUtil.getStrackTrace(e));
+			logger.info(QBasePileupUtil.getStackTrace(e));
 			exitStatus.incrementAndGet();
 		} finally {
 			// kill off any remaining threads
@@ -147,7 +120,7 @@ public class SnpBasePileupMT {
 
 		logger.debug("TOTAL POSITIONS: \t\t\t" + positionCount);
 		logger.debug("UNIQUE POSITIONS: \t\t\t" + new HashSet<>(positions).size());
-		logger.debug("TOTAL READS EXAMINED:\t\t"+totalExamined+"");
+		logger.debug("TOTAL READS EXAMINED:\t\t"+totalExamined);
 		logger.debug("---------------------------------------------");
 		logger.debug("TOTAL READS KEPT:\t\t"+totalPassedFilters);
 		logger.debug("TOTAL READS NOT ON SNP:\t\t"+totalReadsNotMapped);
@@ -175,11 +148,10 @@ public class SnpBasePileupMT {
 		@Override
 		public void run() {
 			logger.info("Starting to read positions file: " + positionsFile.getAbsolutePath());
-			int countSleep = 0;
 			long count = 0;
 			boolean outputFormat2 = options.getOutputFormat() == 2;
 
-			try (BufferedReader reader = new BufferedReader(new FileReader(positionsFile));) {
+			try (BufferedReader reader = new BufferedReader(new FileReader(positionsFile))) {
 
 				String line;
 				int mutationColumn = -1;
@@ -224,7 +196,7 @@ public class SnpBasePileupMT {
 				logger.info("Completed reading thread, read " + count
 						+ " records from input: " + positionsFile.getAbsolutePath());
 			} catch (Exception e) {
-				logger.error("Setting exit status in execute thread to 1 as exception caught in reading method: " + QBasePileupUtil.getStrackTrace(e));
+				logger.error("Setting exit status in execute thread to 1 as exception caught in reading method: " + QBasePileupUtil.getStackTrace(e));
 				if (exitStatus.intValue() == 0) {
 					exitStatus.incrementAndGet();
 				}
@@ -242,26 +214,21 @@ public class SnpBasePileupMT {
 		private final Thread mainThread;
 		private final CountDownLatch pileupLatch;
 		private final CountDownLatch writeLatch;
-		private int countOutputSleep;
 		private final List<InputBAM> currentInputs;
-		private final Set<SnpPosition> snpPositions;
 		private final String file = null;
 		private QueryExecutor exec = null;
 
 		public Pileup(AbstractQueue<SnpPosition> queueIn,
 				AbstractQueue<String> queueOut, Thread mainThread,
 				CountDownLatch pileupLatch,
-				CountDownLatch wGoodLatch, List<InputBAM> inputs, Set<SnpPosition> uniqueSnps) {
+				CountDownLatch wGoodLatch, List<InputBAM> inputs) {
 			this.queueIn = queueIn;
 			this.queueOut = queueOut;
 			this.mainThread = mainThread;
 			this.pileupLatch = pileupLatch;
 			this.writeLatch = wGoodLatch;
 			this.currentInputs = new ArrayList<>();
-			for (InputBAM i : inputs) {
-				currentInputs.add(i);
-			}
-			this.snpPositions = uniqueSnps;
+			currentInputs.addAll(inputs);
 		}
 
 		@Override
@@ -269,7 +236,7 @@ public class SnpBasePileupMT {
 
 			int sleepcount = 0;
 			int count = 0;
-			countOutputSleep = 0;
+			int countOutputSleep = 0;
 			boolean run = true;
 			
 			if (options.getFilterQuery() != null) {
@@ -280,10 +247,7 @@ public class SnpBasePileupMT {
 					e.printStackTrace();
 				}
 			}
-			
-			SAMRecordIterator iter = null;
-			SamReader reader = null;
-			
+
 			try {
 
 				SnpPosition position;
@@ -299,7 +263,7 @@ public class SnpBasePileupMT {
 							sleepcount++;
 						} catch (InterruptedException e) {
 							logger.info(Thread.currentThread().getName() + " "
-									+ e.toString());
+									+ e);
 						}
 
 						// must check whether reading thread finished first.
@@ -331,11 +295,11 @@ public class SnpBasePileupMT {
 								if (options.getOutputFormat() == 2) {
 									queueOut.add(pileup.toColumnString());
 								} else {
-									queueOut.add(pileup.toString() + "\n");
+									queueOut.add(pileup + "\n");
 								}                 			
 							}
 							if (options.getMode().equals(QBasePileupConstants.COMPOUND_SNP_MODE)) {
-								sb.append(pileup.toCompoundString() + "\n");
+								sb.append(pileup.toCompoundString()).append("\n");
 							}
 							if (options.getMode().equals(QBasePileupConstants.SNP_CHECK_MODE)) {
 								queueOut.add(pileup.toMafString() + "\n");
@@ -359,7 +323,7 @@ public class SnpBasePileupMT {
 									countOutputSleep++;
 								} catch (InterruptedException e) {
 									logger.debug(Thread.currentThread().getName() + " "
-											+ QBasePileupUtil.getStrackTrace(e) + " (queue size full) ");
+											+ QBasePileupUtil.getStackTrace(e) + " (queue size full) ");
 								}
 								if (writeLatch.getCount() == 0) {
 									logger.error("output queue is not empty but writing thread is complete");
@@ -374,7 +338,7 @@ public class SnpBasePileupMT {
 				logger.info("Completed pileup thread: "
 						+ Thread.currentThread().getName());
 			} catch (Exception e) {
-				logger.error("Setting exit status in pileup thread to 1 as exception caught file: " + file + " " + QBasePileupUtil.getStrackTrace(e));
+				logger.error("Setting exit status in pileup thread to 1 as exception caught file: " + file + " " + QBasePileupUtil.getStackTrace(e));
 				if (exitStatus.intValue() == 0) {
 					exitStatus.incrementAndGet();
 				}
@@ -413,7 +377,7 @@ public class SnpBasePileupMT {
 			try {
 				String record;
 				int count = 0;
-				try (BufferedWriter writer = new BufferedWriter(new FileWriter(resultsFile));) {
+				try (BufferedWriter writer = new BufferedWriter(new FileWriter(resultsFile))) {
 					Map<String, Map<String, String>> inputMap = new HashMap<>();
 					
 					writer.write(getHeader());
@@ -429,7 +393,7 @@ public class SnpBasePileupMT {
 									exitStatus.incrementAndGet();
 								}
 								logger.info(Thread.currentThread().getName() + " "
-										+ QBasePileupUtil.getStrackTrace(e));
+										+ QBasePileupUtil.getStackTrace(e));
 							}
 							if (filterLatch.getCount() == 0 && queue.size() == 0) {
 								run = false;
@@ -447,7 +411,7 @@ public class SnpBasePileupMT {
 								String info = Arrays.stream(vals, 7, vals.length).collect(Collectors.joining(Constants.TAB_STRING));
 								String bam = vals[6];
 								
-								inputMap.computeIfAbsent(position, f ->  new HashMap<String, String>()).put(bam,  info);
+								inputMap.computeIfAbsent(position, f ->  new HashMap<>()).put(bam,  info);
 							} else {
 								writer.write(record);
 							}
@@ -495,10 +459,10 @@ public class SnpBasePileupMT {
 										sb.append(TAB);
 									}
 								}
-								writer.write(sb.toString() + "\n");
+								writer.write(sb + "\n");
 							}
 						} else {
-							logger.warn("The following entries in the positions file did not have any results - incorrect reference bases?\n" + positionsMissingInMap.toString());
+							logger.warn("The following entries in the positions file did not have any results - incorrect reference bases?\n" + positionsMissingInMap);
 							throw new QBasePileupException("POSITION_FILE_ERROR");
 						}
 					}
@@ -515,7 +479,7 @@ public class SnpBasePileupMT {
 							+ resultsFile.getAbsolutePath());
 				}
 			} catch (Exception e) {
-				logger.error("Setting exit status to 1 as exception caught in writing thread: " + QBasePileupUtil.getStrackTrace(e));
+				logger.error("Setting exit status to 1 as exception caught in writing thread: " + QBasePileupUtil.getStackTrace(e));
 				if (exitStatus.intValue() == 0) {
 					exitStatus.incrementAndGet();
 				}

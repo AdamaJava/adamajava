@@ -49,9 +49,8 @@ public class IndelPileup {
 	private static final String SCOLON = ";";
 	private Homopolymer homopolymer;
 	private boolean highCoverage;
-	private Map<String, SAMRecord> records = new HashMap<String, SAMRecord>();
+	private Map<String, SAMRecord> records = new HashMap<>();
 	private final Options options;
-	private final File referenceFile;
 
 	public IndelPileup(Options options,InputBAM inputBam, IndelPosition position, File reference, int softClipWindow, int homopolymerWindow, int nearbyIndelWindow, boolean isTumour) throws QBasePileupException {
 		this.inputBam = inputBam;
@@ -60,7 +59,6 @@ public class IndelPileup {
 		this.homopolymerWindow = homopolymerWindow;
 		this.nearbyIndelWindow = nearbyIndelWindow;
 		this.isTumour = isTumour;
-		this.referenceFile = reference;		
 		this.options = options;
 	}
 	
@@ -82,7 +80,7 @@ public class IndelPileup {
 	public void pileupReads(QueryExecutor exec, IndexedFastaSequenceFile indexedFasta) throws Exception {
 				
 	//	setDefaultValidationStringency();
-		try (SamReader reader =   SAMFileReaderFactory.createSAMFileReader(inputBam.getBamFile(), null, ValidationStringency.SILENT);) {   //new SAMFileReader(inputBam.getBamFile());			
+		try (SamReader reader =   SAMFileReaderFactory.createSAMFileReader(inputBam.getBamFile(), null, ValidationStringency.SILENT)) {   //new SAMFileReader(inputBam.getBamFile());
 			SAMRecordIterator iter = reader.queryOverlapping(position.getFullChromosome(), position.getStart(), position.getEnd());		
 			boolean passFilter;
 			while (iter.hasNext()) {
@@ -146,12 +144,12 @@ public class IndelPileup {
 			} else if (position.isInsertion()){
 				parseInsertionIndel(record, maskedReadBases);
 			} else {
-				parseComplexIndel(record, maskedReadBases);
+				parseComplexIndel(record);
 			}
 		}
 	}	
 
-	public void parseComplexIndel(SAMRecord record, byte[] maskedReadBases) {
+	public void parseComplexIndel(SAMRecord record) {
 		informativeReads++;	
 		
 		boolean indelPresent = false;
@@ -199,9 +197,7 @@ public class IndelPileup {
 		if (record.getAlignmentEnd() != record.getUnclippedEnd()) {
 			int clipEndPosition = record.getAlignmentEnd()+1;			
 			//clip start position is in the window to the left of the indel			
-			if (clipEndPosition >= windowStart && clipEndPosition <= windowEnd) {				
-				return true;
-			}
+			return clipEndPosition >= windowStart && clipEndPosition <= windowEnd;
 		}
 		return false;
 	}
@@ -289,14 +285,13 @@ public class IndelPileup {
 			indelStart = position.getStart()-1;
 			indelEnd = position.getEnd()+1;
 			windowStart = Math.max(record.getAlignmentStart(), indelStart-nearbyIndelWindow+1);
-			windowEnd = Math.min(record.getAlignmentEnd(), indelEnd+ nearbyIndelWindow-1);
 		} else {
 			indelStart = position.getStart();
 			indelEnd = position.getEnd();
 			windowStart = Math.max(record.getAlignmentStart(), indelStart-nearbyIndelWindow);
-			windowEnd = Math.min(record.getAlignmentEnd(), indelEnd+ nearbyIndelWindow-1);
 		}
-		
+		windowEnd = Math.min(record.getAlignmentEnd(), indelEnd+ nearbyIndelWindow-1);
+
 		int refPos = record.getAlignmentStart();	
 		for (CigarElement ce : cigar.getCigarElements()) {
 			int cigarLength = ce.getLength();			
@@ -449,7 +444,7 @@ public class IndelPileup {
 				break;
 			}
 			if (operator == ce.getOperator()) {				
-				if (readIndexToFind >= readIndex && readIndexToFind < (readIndex+cigarLength)) {
+				if (readIndexToFind < readIndex+cigarLength) {
 					return true;
 				}
 			}
@@ -516,10 +511,6 @@ public class IndelPileup {
 
 	public void setInformativeReads(int informativeReads) {
 		this.informativeReads = informativeReads;
-	}
-
-	public int getNearbySoftClipCount() {
-		return nearbySoftClipCount;
 	}
 
 	public void setNearbySoftClipCount(int nearbySoftClipCount) {
@@ -606,21 +597,13 @@ public class IndelPileup {
 //						+ SCOLON  + reverseSupportingReads; 
 				
 		if (isTumour && homopolymer != null) {
-			s += SCOLON + homopolymer.toString(); 
+			s += SCOLON + homopolymer;
 		}
 		return s;
 	}
 
-	public int getForwardSupportingReads() {
-		return forwardSupportingReads;
-	}
-
 	public void setForwardSupportingReads(int forwardSupportingReads) {
 		this.forwardSupportingReads = forwardSupportingReads;
-	}
-
-	public int getReverseSupportingReads() {
-		return reverseSupportingReads;
 	}
 
 	public void setReverseSupportingReads(int reverseSupportingReads) {
@@ -649,10 +632,8 @@ public class IndelPileup {
 			}
 			double forwardPercent = getPercentForwardSupportingReads();
 			double reversePercent = getPercentReverseSupportingReads();
-			if (forwardPercent < minPercent || forwardPercent > maxPercent 
-					|| reversePercent < minPercent || reversePercent > maxPercent) {
-				return true;
-			}					
+			return forwardPercent < minPercent || forwardPercent > maxPercent
+					|| reversePercent < minPercent || reversePercent > maxPercent;
 		}
 
 		return false;

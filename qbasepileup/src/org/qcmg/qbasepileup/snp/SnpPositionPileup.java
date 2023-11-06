@@ -436,8 +436,8 @@ public class SnpPositionPileup {
 
 	public boolean basesAreMapped() {
 		if (readBases != null) {
-			for (int i=0; i<readBases.length; i++) {
-				if (readBases[i] == '\u0000') {
+			for (char readBase : readBases) {
+				if (readBase == '\u0000') {
 					doesntMapCount++;
 					return false;
 				}
@@ -475,7 +475,7 @@ public class SnpPositionPileup {
 				} else if (operator == CigarOperator.I) {					
 				} else {
 					String error = "ReferencePos: " + referencePos + " ReadStart: " + readStart + " ReadEnd: " + readEnd + " CigarOperator: " + operator.name();				
-					throw new QBasePileupException("BASE_RANGE_ERROR", ""  + error, r.getSAMString());
+					throw new QBasePileupException("BASE_RANGE_ERROR", error, r.getSAMString());
 				}
 			} else {
 				//should be in the read
@@ -507,7 +507,7 @@ public class SnpPositionPileup {
 					}						
 				} else {
 					String error = "ReferencePos: " + referencePos + " ReadStart" + readStart + " ReadEnd: " + readEnd + " CigarOperator: " + operator.name();
-					throw new QBasePileupException("BASE_RANGE_ERROR", ""  + error, r.getSAMString());
+					throw new QBasePileupException("BASE_RANGE_ERROR", error, r.getSAMString());
 				}
 			}			
  		}
@@ -572,7 +572,7 @@ public class SnpPositionPileup {
 			b.append(getNovelCounts("T",forNovelStartMap, revNovelStartMap)).append(TAB);
 			b.append(getNovelCounts("N",forNovelStartMap, revNovelStartMap)).append(TAB);
 		} else {
-			Set<String> keys = new TreeSet<String>(forNovelStartMap.keySet());
+			Set<String> keys = new TreeSet<>(forNovelStartMap.keySet());
 			keys.addAll(revNovelStartMap.keySet());
 
 			for (String key: keys) {
@@ -619,10 +619,8 @@ public class SnpPositionPileup {
 	}
 	
 	public String toColumnString() {
-		StringBuilder b = new StringBuilder(position.toOutputColumnsString());
-		b.append(TAB);
-		b.append(input.getAbbreviatedBamFileName()).append(TAB).append(getAllBaseCounts(forCoverageMap, revCoverageMap));
-		return b.toString();
+		return position.toOutputColumnsString() + TAB +
+				input.getAbbreviatedBamFileName() + TAB + getAllBaseCounts(forCoverageMap, revCoverageMap);
 	}	
 	
 	private String getAllBaseCounts(Map<String, AtomicInteger> forCoverageMap, Map<String, AtomicInteger> revCoverageMap) {

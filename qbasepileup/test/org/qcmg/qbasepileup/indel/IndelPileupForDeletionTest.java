@@ -41,7 +41,7 @@ public class IndelPileupForDeletionTest {
 		Options options = createMock(Options.class);
 		expect(options.includeDuplicates()).andReturn(false);
 		replay(options);
-		position = new IndelPosition(line, false, "pindel", cols);
+		position = new IndelPosition(line, false, cols);
 		pileup = new IndelPileup(options, new InputBAM(testFolder.newFile("tumour.bam")), position, testFolder.newFile("reference.fa"), 5, 10, 3, true);
 		record = new SAMRecord(null);
 		record.setAlignmentStart(1000);
@@ -157,7 +157,7 @@ public class IndelPileupForDeletionTest {
 		Options options = createMock(Options.class);
 		expect(options.includeDuplicates()).andReturn(false);
 		replay(options);
-		position = new IndelPosition(line, false, "pindel", cols);
+		position = new IndelPosition(line, false, cols);
 		pileup = new IndelPileup(options, new InputBAM(testFolder.newFile("tumour1.bam")), position, testFolder.newFile("reference1.fa"), 5, 10, 3, true);
 		
 		record.setCigarString("8M1D92M");
@@ -186,7 +186,7 @@ public class IndelPileupForDeletionTest {
 		Options options = createMock(Options.class);
 		expect(options.includeDuplicates()).andReturn(false);
 		replay(options);
-		position = new IndelPosition(line, false, "pindel", cols);
+		position = new IndelPosition(line, false, cols);
 		pileup = new IndelPileup(options, new InputBAM(testFolder.newFile("tumour1.bam")), position, testFolder.newFile("reference1.fa"), 5, 10, 3, true);
 		
 		

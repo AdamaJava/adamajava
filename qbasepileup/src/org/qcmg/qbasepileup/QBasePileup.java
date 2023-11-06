@@ -6,21 +6,16 @@
  */
 package org.qcmg.qbasepileup;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.meta.QExec;
-import org.qcmg.common.util.LoadReferencedClasses;
 import org.qcmg.qbasepileup.coverage.CoveragePileupMT;
 import org.qcmg.qbasepileup.indel.IndelBasePileupByChrMT;
 import org.qcmg.qbasepileup.indel.IndelBasePileupMT;
 import org.qcmg.qbasepileup.snp.SnpBasePileupByFileMT;
 import org.qcmg.qbasepileup.snp.SnpBasePileupMT;
+
+import java.io.*;
 
 
 public class QBasePileup {
@@ -175,7 +170,7 @@ public class QBasePileup {
 			int lineNumber = countLines(options.getGermlineIndelFile());
 			logger.info("Number of lines in file: " + lineNumber);
 			if (lineNumber > 50000) {
-				IndelBasePileupByChrMT mtGerm = new IndelBasePileupByChrMT(options.getGermlineIndelFile(), options.getGermlineOutputFile(), options.getOutput(), true, options);
+				IndelBasePileupByChrMT mtGerm = new IndelBasePileupByChrMT(options.getGermlineIndelFile(), options.getGermlineOutputFile(), true, options);
 				if (mtGerm.getExitStatus() > 0) {
 					return 1;
 				}

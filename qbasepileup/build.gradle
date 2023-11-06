@@ -4,22 +4,19 @@ mainClassName = 'org.qcmg.qbasepileup.QBasePileup'
 def scriptname = 'qbasepileup'
 def isExecutable = true
 
-repositories {
-    flatDir(dirs:"$buildDir/deps/hdf-java/lib")
-}
-
 //control the ordering of jars, make sure junit before <tool>.jar
 configurations { junit }
+repositories {
+    flatDir(dirs:["$buildDir/deps/hdf-java/lib", "/opt/local/genomeinfo/hdf-java/hdf-java-2.8/lib"])
+}
 
 dependencies {
-    ant { untar(src: "../lib/hdf-java-2.8-bin.tar", dest: "build/deps") }
-    implementation name: 'jhdf'
-    implementation name: 'jhdf5'
-    implementation name: 'jhdfobj'
-    implementation name: 'jhdf5obj'
+
+    ant {  untar(src: "../lib/hdf-java-2.8-bin.tar", dest: "build/deps") }
+
     implementation project(':qcommon')
-    implementation project(':qpileup')
     implementation project(':qbamfilter')
+    implementation project(':qpileup')
     implementation 'com.github.samtools:htsjdk:2.24.1'
     implementation 'net.sf.jopt-simple:jopt-simple:4.6'
     testImplementation  'org.easymock:easymock:5.2.0'

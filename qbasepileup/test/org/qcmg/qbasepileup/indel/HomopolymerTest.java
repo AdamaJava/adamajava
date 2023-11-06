@@ -232,7 +232,7 @@ public class HomopolymerTest {
 	}
 
 	private Homopolymer getHomopolymerObject(String chr, Integer start, Integer end, String mutationType, String indelBases) {
-		IndelPosition p = new IndelPosition("1", chr, start, end, mutationType, "pindel", "", false, indelBases);
+		IndelPosition p = new IndelPosition(chr, start, end, mutationType, "pindel", "", false);
 		Homopolymer hp = new Homopolymer(p, indexedFastaFile, hompolymerWindow);
 		p.setMotif(indelBases);
 		

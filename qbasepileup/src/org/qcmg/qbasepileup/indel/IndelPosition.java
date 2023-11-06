@@ -18,9 +18,7 @@ public class IndelPosition {
 	Integer start;
 	Integer end;
 	int length;
-	private String name;
 	private final String fullChromosome;
-	private final String indelFileType;
 	public static final String DEL = "DEL";
 	public static final String INS = "INS";
 	public static final String CTX = "CTX";
@@ -33,17 +31,15 @@ public class IndelPosition {
 	private String motif;
 	QLogger logger = QLoggerFactory.getLogger(IndelPosition.class);
 	
-	public IndelPosition(String line, boolean isGermline, String indelFileType, int[] dccColumns) {
-		String[] values = line.split("\t");	
-		   
-		String mut = values[3];
-		if (mut.equals("2")) {
-			mut = INS;
-		} else if (mut.equals("3")) {
-			mut = DEL;
-		} else if (mut.equals("4")) {
-			mut = CTX;
-		}
+	public IndelPosition(String line, boolean isGermline, int[] dccColumns) {
+		String[] values = line.split("\t");
+
+		String mut = switch (values[3]) {
+			case "2" -> INS;
+			case "3" -> DEL;
+			case "4" -> CTX;
+			default -> values[3];
+		};
 		this.qcmgFlagColumn = dccColumns[0];
 		this.ndColumn = dccColumns[1];
 		this.tdColumn = dccColumns[2];
@@ -51,10 +47,9 @@ public class IndelPosition {
 		this.fullChromosome = QBasePileupUtil.getFullChromosome(chromosome);
 		this.mutationType = mut;
 		this.isGermline = isGermline;
-		this.start = new Integer(values[5]);
+		this.start = Integer.valueOf(values[5]);
 		
-		this.end = new Integer(values[6]);
-		this.indelFileType = indelFileType;
+		this.end = Integer.valueOf(values[6]);
 		this.inputString = line;
 		this.motif = getMotif(values[dccColumns[3]], values[dccColumns[4]]);
 		this.length = motif.length();		
@@ -72,14 +67,13 @@ public class IndelPosition {
 		}
 	}
 
-	public IndelPosition(String name, String chromosome, Integer start, Integer end, String mutationType, String indelFileType, String line, boolean isGermline, String motif) {
+	public IndelPosition(String chromosome, Integer start, Integer end, String mutationType, String indelFileType, String line, boolean isGermline) {
 		super();
 		this.chromosome = chromosome;
 		this.fullChromosome = QBasePileupUtil.getFullChromosome(chromosome);
 		this.mutationType = mutationType;
 		this.isGermline = isGermline;
-//		setMotif(motif);
-		
+
 		if (indelFileType.equals("pindel") || indelFileType.equals("strelka")) {
 			
 			if (mutationType.equals(INS) || mutationType.equals(CTX)) {
@@ -93,11 +87,9 @@ public class IndelPosition {
 				this.end = end - 1;
 				this.length = end -start + 1;
 			}			
-		}		
-		
-		this.name = name;
-		this.indelFileType = indelFileType;
-		this.inputString = line;		
+		}
+
+		this.inputString = line;
 	}	
 	
 	public String getMutationType() {
@@ -117,13 +109,13 @@ public class IndelPosition {
 		return chromosome;
 	}
 	public int getStart() {
-		return start.intValue();
+		return start;
 	}
 	public Integer getStartObject() {
 		return start;
 	}
 	public int getEnd() {
-		return end.intValue();
+		return end;
 	}
 	public int getLength() {
 		return length;
@@ -136,11 +128,9 @@ public class IndelPosition {
 	@Override
     public boolean equals(final Object o) {
 	       
-        if (!(o instanceof IndelPosition)) return false;
-        
-        final IndelPosition other = (IndelPosition) o;
-        
-        if (chromosome.equals(other.getChromosome())) {        	
+        if (!(o instanceof IndelPosition other)) return false;
+
+		if (chromosome.equals(other.getChromosome())) {
         	if (start.equals(other.getStartObject())) {
         		return end.equals(other.getEnd());
         	} else {

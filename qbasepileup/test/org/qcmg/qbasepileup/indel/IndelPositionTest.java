@@ -21,7 +21,7 @@ public class IndelPositionTest {
 	@Test
 	public void testInsertion() {
 		String line = "date\ttumour\tind6\t2\tchr1\t3237948\t3237949\t1\t-999\t-999\t-\t-999\tTC\t-/TC\t\t-999\t-999\t-999\t-999\t-999\t-999\t-999\t-999\tPASS\t--\t--\t--\t--";
-		position = new IndelPosition(line, false, "pindel", cols);
+		position = new IndelPosition(line, false, cols);
 		assertEquals("chr1", position.getChromosome());
 		assertEquals(3237948, position.getStart());
 		assertEquals(3237949, position.getEnd());
@@ -35,7 +35,7 @@ public class IndelPositionTest {
 	@Test
 	public void testDeletion() {
 		String line = "date\ttumour\tind6\t3\tchr1\t3217897\t3217899\t1\t-999\t-999\tAAA\t-999\t---\tAAA/---\t\t-999\t-999\t-999\t-999\t-999\t-999\t-999\t-999\tPASS\t--\t--\t--\t--";
-		position = new IndelPosition(line, false, "pindel", cols);
+		position = new IndelPosition(line, false, cols);
 		assertEquals("chr1", position.getChromosome());
 		assertEquals(3217897, position.getStart());
 		assertEquals(3217899, position.getEnd());
@@ -50,7 +50,7 @@ public class IndelPositionTest {
 	@Test
 	public void testComplex() {
 		String line = "date\ttumour\tind6\t4\tchr1\t3522121\t3522133\t1\t-999\t-999\tCTCATACACTCA\t-999\tCACGCT\tCTCATACACTCA>CACGCT\t\t-999\t-999\t-999	-999\t-999\t-999\t-999\t-999\tPASS\t--\t--\t--\t--";
-		position = new IndelPosition(line, false, "pindel", cols);
+		position = new IndelPosition(line, false, cols);
 		assertEquals("chr1", position.getChromosome());
 		assertEquals(3522121, position.getStart());
 		assertEquals(3522133, position.getEnd());

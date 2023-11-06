@@ -63,11 +63,11 @@ public class CoveragePileupMT {
 		return 0;
 	}
 	
-	private void execute() throws Exception {		
+	private void execute() {
 		
 		final AbstractQueue<ChrRangePosition> readQueue = new ConcurrentLinkedQueue<>();    
             
-        final AbstractQueue<String> writeQueue = new ConcurrentLinkedQueue<String>();
+        final AbstractQueue<String> writeQueue = new ConcurrentLinkedQueue<>();
     
         final CountDownLatch readLatch = new CountDownLatch(1); // reading
                                                                     // thread
@@ -114,7 +114,7 @@ public class CoveragePileupMT {
             logger.info("All threads finished");
     
         } catch (Exception e) {
-            logger.info(QBasePileupUtil.getStrackTrace(e));
+            logger.info(QBasePileupUtil.getStackTrace(e));
             exitStatus.incrementAndGet();
         } finally {
             // kill off any remaining threads
@@ -123,14 +123,14 @@ public class CoveragePileupMT {
             pileupThreads.shutdownNow();
         }
         
-	    	logger.debug("TOTAL POSITIONS: \t\t\t" + positionCount);
-	    	logger.debug("UNIQUE POSITIONS: \t\t\t" + uniquePositionCount);
-		logger.debug("TOTAL READS EXAMINED:\t\t"+totalExamined+"");
+		logger.debug("TOTAL POSITIONS: \t\t\t" + positionCount);
+		logger.debug("UNIQUE POSITIONS: \t\t\t" + uniquePositionCount);
+		logger.debug("TOTAL READS EXAMINED:\t\t" + totalExamined);
 		logger.debug("---------------------------------------------");
-		logger.debug("TOTAL READS KEPT:\t\t"+totalPassedFilters);
-		logger.debug("TOTAL READS NOT ON SNP:\t\t"+totalReadsNotMapped);
-		logger.debug("READS WITH BAD BASE QUALITY:\t"+totalReadsBadBaseQual);
-		logger.debug("READS WITH BAD MAPPING QUALITY:\t"+totalReadsBaseMapQual);
+		logger.debug("TOTAL READS KEPT:\t\t" + totalPassedFilters);
+		logger.debug("TOTAL READS NOT ON SNP:\t\t" + totalReadsNotMapped);
+		logger.debug("READS WITH BAD BASE QUALITY:\t" + totalReadsBadBaseQual);
+		logger.debug("READS WITH BAD MAPPING QUALITY:\t" + totalReadsBaseMapQual);
     } 
 
 	private class Reading implements Runnable {
@@ -151,7 +151,7 @@ public class CoveragePileupMT {
             this.pileupLatch = filterLatch;
             this.positionsFile = positionsFile;
             this.format = format;
-            this.positions = new ArrayList<ChrRangePosition>();
+            this.positions = new ArrayList<>();
         }
 
         @Override
@@ -167,21 +167,20 @@ public class CoveragePileupMT {
         				count++;
         				positionCount.incrementAndGet();
         				ChrRangePosition p = null;
-        				String[] values = line.split("\t");			     				
-        				
-        				if (format.equals("dcc1")) {
-        					p = new ChrRangePosition(values[4], Integer.parseInt(values[5]),Integer.parseInt(values[6]));
-	        		    	} else if (format.equals("dccq")) {
-	        		    		p = new ChrRangePosition(values[2],Integer.parseInt(values[3]),Integer.parseInt(values[4]));
-	        		    	} else if (format.equals("vcf")) {
-	        		    		p = new ChrRangePosition(values[0],Integer.parseInt(values[1]),Integer.parseInt(values[1]));
-	        		    	} else if (format.equals("maf")){
-	        		    		p = new ChrRangePosition(values[4],Integer.parseInt(values[5]),Integer.parseInt(values[6]));
-	        		    	} else if (format.equals("tab")) {
-	        		    		p = new ChrRangePosition(values[1],Integer.parseInt(values[2]),Integer.parseInt(values[3]));
-	        		    	} else if (format.equals("gff3") || format.equals("gtf")) {
-	        		    		p = new ChrRangePosition(values[0],Integer.parseInt(values[3]),Integer.parseInt(values[4]));
-	        		    	}         				      				
+        				String[] values = line.split("\t");
+
+						switch (format) {
+							case "dcc1", "maf" ->
+									p = new ChrRangePosition(values[4], Integer.parseInt(values[5]), Integer.parseInt(values[6]));
+							case "dccq" ->
+									p = new ChrRangePosition(values[2], Integer.parseInt(values[3]), Integer.parseInt(values[4]));
+							case "vcf" ->
+									p = new ChrRangePosition(values[0], Integer.parseInt(values[1]), Integer.parseInt(values[1]));
+							case "tab" ->
+									p = new ChrRangePosition(values[1], Integer.parseInt(values[2]), Integer.parseInt(values[3]));
+							case "gff3", "gtf" ->
+									p = new ChrRangePosition(values[0], Integer.parseInt(values[3]), Integer.parseInt(values[4]));
+						}
         				
         				if (!positions.contains(p)) {
         					uniquePositionCount.incrementAndGet();        					
@@ -204,7 +203,7 @@ public class CoveragePileupMT {
                                 countSleep++;
                             } catch (Exception e) {
                                 logger.info(Thread.currentThread().getName()
-                                        + " " + QBasePileupUtil.getStrackTrace(e));
+                                        + " " + QBasePileupUtil.getStackTrace(e));
                             }
                         }
                     }
@@ -214,7 +213,7 @@ public class CoveragePileupMT {
                 logger.info("Completed reading thread, read " + count
                         + " records from input: " + positionsFile.getAbsolutePath());
             } catch (Exception e) {
-            	logger.error("Setting exit status in execute thread to 1 as exception caught in reading method: " + QBasePileupUtil.getStrackTrace(e));
+            	logger.error("Setting exit status in execute thread to 1 as exception caught in reading method: " + QBasePileupUtil.getStackTrace(e));
     	        if (exitStatus.intValue() == 0) {
     	        	exitStatus.incrementAndGet();
     	        }
@@ -223,7 +222,7 @@ public class CoveragePileupMT {
                 readLatch.countDown();
                 logger.debug(String
                         .format("Exit Reading thread, total slept %d times * %d milli-seconds, "
-                                + "since input queue are full.fLatch  is %d; queus size is %d ",
+                                + "since input queue are full.fLatch  is %d; queues size is %d ",
                                 countSleep, sleepUnit, pileupLatch.getCount(),
                                 queue.size()));
             }
@@ -239,15 +238,14 @@ public class CoveragePileupMT {
 	        private final CountDownLatch readLatch;
 	        private final CountDownLatch pileupLatch;
 	        private final CountDownLatch writeLatch;
-	        private int countOutputSleep;
-			private final List<InputBAM> currentInputs;
+	   private final List<InputBAM> currentInputs;
 			private String file = null;
 			private QueryExecutor exec = null;
 
 	        public Pileup(AbstractQueue<ChrRangePosition> queueIn,
 	                AbstractQueue<String> queueOut, Thread mainThread,
 	                CountDownLatch readLatch, CountDownLatch pileupLatch,
-	                CountDownLatch wGoodLatch, List<InputBAM> inputs) throws Exception {
+	                CountDownLatch wGoodLatch, List<InputBAM> inputs) {
 	            this.queueIn = queueIn;
 	            this.queueOut = queueOut;
 	            this.mainThread = mainThread;
@@ -255,9 +253,7 @@ public class CoveragePileupMT {
 	            this.pileupLatch = pileupLatch;
 	            this.writeLatch = wGoodLatch;
 	            this.currentInputs = new ArrayList<>();
-	            for (InputBAM i : inputs) {
-	            		currentInputs.add(i);
-	            }
+				currentInputs.addAll(inputs);
 	        }
 
 	        @Override
@@ -265,7 +261,7 @@ public class CoveragePileupMT {
 
 	            int sleepcount = 0;
 	            int count = 0;
-	            countOutputSleep = 0;
+				int countOutputSleep = 0;
 	            boolean run = true;
 
 	            try {
@@ -286,8 +282,7 @@ public class CoveragePileupMT {
 	                            Thread.sleep(sleepUnit);
 	                            sleepcount++;
 	                        } catch (InterruptedException e) {
-	                            logger.info(Thread.currentThread().getName() + " "
-	                                    + e.toString());
+	                            logger.info(Thread.currentThread().getName() + " " + e);
 	                        }
 
 	                    } else {	                        
@@ -303,7 +298,7 @@ public class CoveragePileupMT {
                         		RangePositionPileup pileup = new RangePositionPileup(i, position, options, exec);
 	                        	pileup.pileup();
 	                        	
-		            			sb.append(pileup.toString());
+		            			sb.append(pileup);
 	                        }      	            			
 	                        
 	                        if (count % checkPoint == 0) {
@@ -319,7 +314,7 @@ public class CoveragePileupMT {
 	                                    countOutputSleep++;
 	                                } catch (InterruptedException e) {
 	                                    logger.debug(Thread.currentThread().getName() + " "
-	                                            + QBasePileupUtil.getStrackTrace(e) + " (queue size full) ");
+	                                            + QBasePileupUtil.getStackTrace(e) + " (queue size full) ");
 	                                }
 	                                if (writeLatch.getCount() == 0) {
 	                                    logger.error("output queue is not empty but writing thread is complete");
@@ -335,7 +330,7 @@ public class CoveragePileupMT {
 	                logger.info("Completed pileup thread: "
 	                        + Thread.currentThread().getName());
 	            } catch (Exception e) {
-		            	logger.error("Setting exit status in pileup thread to 1 as exception caught file: " + file + " " + QBasePileupUtil.getStrackTrace(e));
+		            	logger.error("Setting exit status in pileup thread to 1 as exception caught file: " + file + " " + QBasePileupUtil.getStackTrace(e));
 		    	        if (exitStatus.intValue() == 0) {
 		    	        		exitStatus.incrementAndGet();
 		    	        }
@@ -388,7 +383,7 @@ public class CoveragePileupMT {
 			        	    	        		exitStatus.incrementAndGet();
 			        	    	        }
 	                            logger.info(Thread.currentThread().getName() + " "
-	                                    + QBasePileupUtil.getStrackTrace(e));
+	                                    + QBasePileupUtil.getStackTrace(e));
 	                        }
 
 	                        if ((count % checkPoint == 0) && (!mainThread.isAlive())) {
@@ -412,7 +407,7 @@ public class CoveragePileupMT {
 	                            + resultsFile.getAbsolutePath());
 	                }
 	            } catch (Exception e) {
-		            	logger.error("Setting exit status to 1 as exception caught in writing thread: " + QBasePileupUtil.getStrackTrace(e));
+		            	logger.error("Setting exit status to 1 as exception caught in writing thread: " + QBasePileupUtil.getStackTrace(e));
 		    	        if (exitStatus.intValue() == 0) {
 		    	        	exitStatus.incrementAndGet();
 		    	        }

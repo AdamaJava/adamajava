@@ -6,14 +6,12 @@
  */
 package org.qcmg.qbasepileup.snp;
 
-import java.io.File;
-import java.io.IOException;
-
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.picard.ReferenceUtils;
-import org.qcmg.qbasepileup.QBasePileupException;
 import org.qcmg.qbasepileup.QBasePileupUtil;
+
+import java.io.File;
 
 public class SnpPosition {
 	
@@ -97,11 +95,8 @@ public class SnpPosition {
 		} else if (!chrPos.equals(other.chrPos))
 			return false;
 		if (name == null) {
-			if (other.name != null)
-				return false;
-		} else if (!name.equals(other.name))
-			return false;
-		return true;
+			return other.name == null;
+		} else return name.equals(other.name);
 	}
 
 	public String toTabString() {
@@ -117,7 +112,7 @@ public class SnpPosition {
 		return getChromosome() + ":" + getStart() + "-" + getEnd();
 	}
 
-	public void retrieveReferenceBases(File refFile) throws QBasePileupException, IOException {
+	public void retrieveReferenceBases(File refFile) {
 		referenceBases = ReferenceUtils.getReferenceBases(refFile, fullChromosome,  getStart(), getEnd());	
 	}
 

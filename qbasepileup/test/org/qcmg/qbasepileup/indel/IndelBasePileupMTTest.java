@@ -144,7 +144,7 @@ public class IndelBasePileupMTTest {
         String[] args = {"--log", log, "-it", bamFile, "-in", bamFile, "-r", reference, "-os", output, "-is", snps, "-m", "indel", "--pindel"};
         Options options = new Options(args);
         
-        new IndelBasePileupByChrMT(options.getSomaticIndelFile(), options.getSomaticOutputFile(), null, false, options);
+        new IndelBasePileupByChrMT(options.getSomaticIndelFile(), options.getSomaticOutputFile(), false, options);
         assertTrue(new File(output).exists());
        
         try (BufferedReader reader = new BufferedReader(new FileReader(new File(output)));) {
@@ -181,7 +181,7 @@ public class IndelBasePileupMTTest {
         String[] args = {"--log", log, "-it", bamFile, "-in", bamFile, "-r", reference, "-os", output, "-is", snps, "-m", "indel", "--pindel", "--filter", "option_SM > 30"};
         Options options = new Options(args);
         assertEquals("option_SM > 30", options.getFilterQuery());
-        new IndelBasePileupByChrMT(options.getSomaticIndelFile(), options.getSomaticOutputFile(), null, false, options);
+        new IndelBasePileupByChrMT(options.getSomaticIndelFile(), options.getSomaticOutputFile(), false, options);
         assertTrue(new File(output).exists());
        
         try (BufferedReader reader = new BufferedReader(new FileReader(new File(output)));) {
