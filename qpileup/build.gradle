@@ -6,7 +6,7 @@ def isExecutable = true
 
 repositories {
     //flatDir(dirs:"$buildDir/deps/hdf-java/lib/linux")
-    flatDir(dirs:"$buildDir/deps/hdf-java/lib")
+    flatDir(dirs:["$buildDir/deps/hdf-java/lib", "/opt/local/genomeinfo/hdf-java/hdf-java-2.8/lib"])
 }
 
 test { 
