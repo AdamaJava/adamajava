@@ -14,13 +14,13 @@ package org.qcmg.qbamannotate;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlSchemaType;
-import javax.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlAttribute;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlSchemaType;
+import jakarta.xml.bind.annotation.XmlType;
 
 
 /**
@@ -77,18 +77,6 @@ public class PairedEndReport {
     protected List<PairedEndReport.UniquePairing> uniquePairing;
 
     /**
-     * Gets the value of the insertRange property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link PairedEndReport.InsertRange }
-     *     
-     */
-    public PairedEndReport.InsertRange getInsertRange() {
-        return insertRange;
-    }
-
-    /**
      * Sets the value of the insertRange property.
      * 
      * @param value
@@ -105,7 +93,7 @@ public class PairedEndReport {
      * 
      * <p>
      * This accessor method returns a reference to the live list,
-     * not a snapshot. Therefore any modification you make to the
+     * not a snapshot. Therefore, any modification you make to the
      * returned list will be present inside the JAXB object.
      * This is why there is not a <CODE>set</CODE> method for the uniquePairing property.
      * 
@@ -124,7 +112,7 @@ public class PairedEndReport {
      */
     public List<PairedEndReport.UniquePairing> getUniquePairing() {
         if (uniquePairing == null) {
-            uniquePairing = new ArrayList<PairedEndReport.UniquePairing>();
+            uniquePairing = new ArrayList<>();
         }
         return this.uniquePairing;
     }
@@ -160,18 +148,6 @@ public class PairedEndReport {
         protected BigInteger upperLimit;
 
         /**
-         * Gets the value of the lowerLimit property.
-         * 
-         * @return
-         *     possible object is
-         *     {@link BigInteger }
-         *     
-         */
-        public BigInteger getLowerLimit() {
-            return lowerLimit;
-        }
-
-        /**
          * Sets the value of the lowerLimit property.
          * 
          * @param value
@@ -181,18 +157,6 @@ public class PairedEndReport {
          */
         public void setLowerLimit(BigInteger value) {
             this.lowerLimit = value;
-        }
-
-        /**
-         * Gets the value of the upperLimit property.
-         * 
-         * @return
-         *     possible object is
-         *     {@link BigInteger }
-         *     
-         */
-        public BigInteger getUpperLimit() {
-            return upperLimit;
         }
 
         /**

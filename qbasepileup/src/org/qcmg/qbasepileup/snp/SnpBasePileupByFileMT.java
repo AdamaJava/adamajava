@@ -29,8 +29,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import htsjdk.samtools.reference.FastaSequenceIndex;
-import htsjdk.samtools.reference.IndexedFastaSequenceFile;
 import htsjdk.samtools.SamReader;
 import htsjdk.samtools.SAMRecord;
 
@@ -130,7 +128,7 @@ public class SnpBasePileupByFileMT {
 			logger.info("All threads finished");
 
 		} catch (Exception e) {
-			logger.info(QBasePileupUtil.getStrackTrace(e));
+			logger.info(QBasePileupUtil.getStackTrace(e));
 			exitStatus.incrementAndGet();
 		} finally {
 			// kill off any remaining threads
@@ -305,7 +303,7 @@ public class SnpBasePileupByFileMT {
 				logger.info("Completed pileup thread: "
 						+ Thread.currentThread().getName());
 			} catch (Exception e) {
-				logger.error("Setting exit status in pileup thread to 1 as exception caught file: " + file + " " + QBasePileupUtil.getStrackTrace(e));
+				logger.error("Setting exit status in pileup thread to 1 as exception caught file: " + file + " " + QBasePileupUtil.getStackTrace(e));
 				if (exitStatus.intValue() == 0) {
 					exitStatus.incrementAndGet();
 				}
@@ -336,7 +334,7 @@ public class SnpBasePileupByFileMT {
 								countOutputSleep++;
 							} catch (InterruptedException e) {
 								logger.debug(Thread.currentThread().getName() + " "
-										+ QBasePileupUtil.getStrackTrace(e) + " (queue size full) ");
+										+ QBasePileupUtil.getStackTrace(e) + " (queue size full) ");
 							}
 							if (writeLatch.getCount() == 0) {
 								logger.error("output queue is not empty but writing thread is complete");
@@ -425,7 +423,7 @@ public class SnpBasePileupByFileMT {
 								exitStatus.incrementAndGet();
 							}
 							logger.info(Thread.currentThread().getName() + " "
-									+ QBasePileupUtil.getStrackTrace(e));
+									+ QBasePileupUtil.getStackTrace(e));
 						}
 						if (filterLatch.getCount() == 0 && queue.size() == 0) {
 							run = false;
@@ -510,7 +508,7 @@ public class SnpBasePileupByFileMT {
 							+ resultsFile.getAbsolutePath());
 				}
 			} catch (Exception e) {
-				logger.error("Setting exit status to 1 as exception caught in writing thread: " + QBasePileupUtil.getStrackTrace(e));
+				logger.error("Setting exit status to 1 as exception caught in writing thread: " + QBasePileupUtil.getStackTrace(e));
 				if (exitStatus.intValue() == 0) {
 					exitStatus.incrementAndGet();
 				}

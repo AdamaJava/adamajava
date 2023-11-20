@@ -6,9 +6,6 @@ def scriptname = 'q3indel'
 def isExecutable = true
 
 //control the ordering of jars, make sure junit before <tool>.jar
-configurations {
-    junit
-  }
 
 // q3indel has some scala classes that require the following task (along with the scalal plugin and api dependency)
 sourceSets {
@@ -16,14 +13,13 @@ sourceSets {
         test { java.srcDirs=['test']; test.resources.srcDirs=['test'];scala.srcDirs=['scala/test'] }
     }
 dependencies {
-    configurations.compile.transitive = true
 
     api project(':qcommon')
     api project(':qio')
     api project(':qbamfilter')
     api project(':qpicard')
 
-    api 'org.scala-lang:scala-library:2.12.3'
+    api 'org.scala-lang:scala-library:2.12.18'
     api 'net.sf.jopt-simple:jopt-simple:4.6'
     api group: 'org.ini4j', name: 'ini4j', version: '0.5.2'
 }

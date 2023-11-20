@@ -1,10 +1,11 @@
+
 apply plugin: 'application'
 mainClassName = 'org.qcmg.qprofiler2.QProfiler2'
 def scriptname = 'qprofiler2'
 def isExecutable = true
 
+
 dependencies {
-    configurations.compile.transitive = true
 		
     api project(':qcommon')
     api project(':qpicard')

@@ -43,8 +43,8 @@ public class IndelPositionPileupTest {
 		File fref = testFolder.newFile("reference.fa");
 		
 		String line = "date\ttumour\tind6\t2\tchr1\t3237948\t3237949\t1\t-999\t-999\tG\t-999\tGTC\tG/GTC\t\t-999\t-999\t-999\t-999\t-999\t-999\t-999\t-999\tPASS;\t--\t--\t--\t--";
-		IndelPosition positionSomatic  = new IndelPosition(line, false, "pindel", cols);
-		IndelPosition positionGermline = new IndelPosition(line, true, "pindel", cols);
+		IndelPosition positionSomatic  = new IndelPosition(line, false, cols);
+		IndelPosition positionGermline = new IndelPosition(line, true, cols);
 		Options optionS = createMockOptions(fref);
 		Options optionG = createMockOptions(fref);
 		IndexedFastaSequenceFile indexedFasta = createMockIndexedFasta();

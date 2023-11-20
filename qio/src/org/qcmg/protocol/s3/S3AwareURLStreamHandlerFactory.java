@@ -24,17 +24,8 @@ public class S3AwareURLStreamHandlerFactory implements URLStreamHandlerFactory {
 
         if (protocol.equalsIgnoreCase("s3")) {
             return new S3URLStreamHandler();
-        } else if (protocol.equalsIgnoreCase("jar")) {
-            return new sun.net.www.protocol.jar.Handler();
-        } else if (protocol.equalsIgnoreCase("file")) {
-            return new sun.net.www.protocol.file.Handler();
-        } else if (protocol.equalsIgnoreCase("http")) {
-            return new sun.net.www.protocol.http.Handler();
-        } else if (protocol.equalsIgnoreCase("https")) {
-            return new sun.net.www.protocol.https.Handler();
-        } else if (protocol.equalsIgnoreCase("ftp")) {
-            return new sun.net.www.protocol.ftp.Handler();
         } else {
+            // see https://stackoverflow.com/questions/8938260/url-seturlstreamhandlerfactory#9253634
             return null;
         }
     }

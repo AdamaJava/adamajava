@@ -45,7 +45,7 @@ public class Options {
 	private boolean intron = true;
 	private boolean indel = true;
 	private int threadNo = 1;
-	private final List<InputBAM> inputBAMs = new ArrayList<InputBAM>();
+	private final List<InputBAM> inputBAMs = new ArrayList<>();
 	private File hdf;
 	private String inputType;
 	private int nearbyIndelWindow = 3;
@@ -61,7 +61,6 @@ public class Options {
 	private String filterQuery;
 	//private Integer minCoverage;
 	private Integer maxCoverage;
-	private Map<String, String[]> pindelMutations;
 	private Integer outputFormat = 1;
 
 	public Options(final String[] args) throws Exception {
@@ -119,10 +118,6 @@ public class Options {
 		options = parser.parse(args);	
 		log = (String) options.valueOf("log");
 		String loglevel = (String) options.valueOf("loglevel");
-
-		if (loglevel == null) {
-			loglevel = "INFO";
-		}		
 
 		if (options.has("r")) {
 			reference = new File((String) options.valueOf("r"));
@@ -225,30 +220,35 @@ public class Options {
 
 
 			//set filtering options			
-			if (profile.equals("torrent")) {
-				baseQuality = 0;
-				mappingQuality = 1;
-				indel = true;
-				intron = true;
-				novelstarts = false;
-				strand=false;
-			} else if (profile.equals("RNA")) {
-				baseQuality = 7;
-				mappingQuality = 10;
-				indel = true;
-				intron = true;
-				novelstarts = true;
-				strand=false;
-			} else if (profile.equals("DNA")) {
-				baseQuality = 10;
-				mappingQuality = 10;
-				indel = true;
-				intron = false;
-				novelstarts = false;
-				strand=false;
-			} else if (profile.equals("indel")) {
+			switch (profile) {
+				case "torrent":
+					baseQuality = 0;
+					mappingQuality = 1;
+					indel = true;
+					intron = true;
+					novelstarts = false;
+					strand = false;
+					break;
+				case "RNA":
+					baseQuality = 7;
+					mappingQuality = 10;
+					indel = true;
+					intron = true;
+					novelstarts = true;
+					strand = false;
+					break;
+				case "DNA":
+					baseQuality = 10;
+					mappingQuality = 10;
+					indel = true;
+					intron = false;
+					novelstarts = false;
+					strand = false;
+					break;
+				case "indel":
 
-			}		    
+					break;
+			}
 
 			if (options.has("bq")) {
 				baseQuality =  (Integer) options.valueOf("bq");
@@ -337,7 +337,7 @@ public class Options {
 			normalBam = new InputBAM(null, null, new File((String) options.valueOf("in")), inputType);			
 
 			if (options.has("pd") || options.has("pi")) {
-				this.pindelMutations = getPindelMutations(options);
+				Map<String, String[]> pindelMutations = getPindelMutations(options);
 			}		
 
 		}	
@@ -385,12 +385,8 @@ public class Options {
 		return outputFormat;
 	}
 
-	public Map<String, String[]> getPindelMutations() {
-		return pindelMutations;
-	}
-
 	private Map<String, String[]> getPindelMutations(OptionSet options) throws IOException {
-		Map<String, String[]> pindelMutations = new HashMap<String, String[]>();
+		Map<String, String[]> pindelMutations = new HashMap<>();
 
 		if (options.has("pd")) {
 			File file = new File((String)options.valueOf("pd"));			
@@ -405,7 +401,7 @@ public class Options {
 
 	private void readPindelMutationFile(Map<String, String[]> pindelMutations,
 			File file, String type) throws IOException {
-		try (BufferedReader reader = new BufferedReader(new FileReader(file));) {
+		try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
 			String line;
 			List<String> lines = new ArrayList<>();
 			while ((line = reader.readLine()) != null) {
@@ -413,30 +409,30 @@ public class Options {
 					if (lines.size() > 0) {
 						String[] infos = lines.get(0).split("\t");
 						String chr = infos[3].replace("ChrID ", "");
-						Integer start = new Integer(infos[4].replace("BP ", ""));
-						Integer end = new Integer(infos[5].replace("BP ", ""));
+						int start = Integer.parseInt(infos[4].replace("BP ", ""));
+						int end = Integer.parseInt(infos[5].replace("BP ", ""));
 						if ("DEL".equals(type)) {
 							start++;
 							end--;
 						}
 						String key = chr + ":" + start + ":" + end + ":" + type;
-						String normal = "";
-						String tumour = "";
+						StringBuilder normal = new StringBuilder();
+						StringBuilder tumour = new StringBuilder();
 						int normalCount = 0;
 						int tumourCount = 0;
 						for (int i=2; i<lines.size(); i++) {
 							String[] subLines = lines.get(i).split("\t");
-							String bam = subLines[subLines.length-2];
-							String name = subLines[subLines.length-1].replace("@", "");
+							String bam = subLines[subLines.length - 2];
+							String name = subLines[subLines.length - 1].replace("@", "");
 							if (bam.contains("Normal")) {
-								normal += name + ";";
+								normal.append(name).append(";");
 								normalCount++;
 							} else {
-								tumour += name + ";";
+								tumour.append(name).append(";");
 								tumourCount++;
 							}
 						}
-						String[] out = {tumourCount + ";" + normalCount, tumour, normal};
+						String[] out = {tumourCount + ";" + normalCount, tumour.toString(), normal.toString()};
 						pindelMutations.put(key, out);
 					}
 					lines.clear();
@@ -479,10 +475,6 @@ public class Options {
 		return options.has("strelka");
 	}
 
-	public String getInputType() {
-		return inputType;
-	}
-
 	private void getHDFBamList() throws Exception {
 		PileupHDF pileupHDF = new PileupHDF(hdf.getAbsolutePath(), false, false);
 		pileupHDF.open();
@@ -497,7 +489,7 @@ public class Options {
 	}
 
 	private void getBamList(File bamList) throws IOException, QBasePileupException {
-		try (BufferedReader reader = new BufferedReader(new FileReader(bamList));) {
+		try (BufferedReader reader = new BufferedReader(new FileReader(bamList))) {
 			String line;
 			int count = 0;
 			while((line = reader.readLine()) != null) {
@@ -573,10 +565,6 @@ public class Options {
 		return hdf;
 	}
 
-	public OptionParser getParser() {
-		return parser;
-	}
-
 	public OptionSet getOptions() {
 		return options;
 	}
@@ -593,14 +581,6 @@ public class Options {
 
 	boolean hasVersionOption() {
 		return options.has("v") || options.has("V") || options.has("version");
-	}
-
-	boolean hasLogOption() {		
-		return options.has("log");
-	}
-
-	boolean hasLogLevelOption() {
-		return options.has("loglevel");
 	}
 
 	public void detectBadOptions() throws QBasePileupException {

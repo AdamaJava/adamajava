@@ -1,6 +1,7 @@
 package org.qcmg.sig;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -62,12 +63,15 @@ public class CompareTest {
 		
 		Executor exec = execute("--log " + logF.getAbsolutePath() + " -d " + f1.getParent() + " -o " + o.getAbsolutePath());
 		assertEquals(0, exec.getErrCode());		// all ok
-		assertEquals(true, o.exists());
-		List<String> allLines = Files.readAllLines(Paths.get(o.getAbsolutePath()));
-		assertEquals(14, allLines.size());		// 13 lines means 3 comparison
-		assertEquals("<cutoffs hom=\"0.9\" lower_het=\"0.3\" upper_het=\"0.7\"/>", allLines.get(2));
-		assertEquals(true, allLines.contains("<comparison file1=\"1\" file2=\"2\" overlap=\"0\" score=\"NaN\"/>"));		// file 2 is empty
-		assertEquals(true, allLines.contains("<comparison file1=\"2\" file2=\"3\" overlap=\"0\" score=\"NaN\"/>"));		// file 2 is empty
+		assertTrue(o.exists());
+		List<String> outputData = Files.readAllLines(Paths.get(o.getAbsolutePath()));
+		assertEquals(14, outputData.size());		// 13 lines means 3 comparison
+		for (int i = 0 ; i < 14 ; i++) {
+			System.out.println(outputData.get(i));
+		}
+		assertEquals("<cutoffs hom=\"0.9\" lower_het=\"0.3\" upper_het=\"0.7\"/>", outputData.get(2).trim());
+		assertEquals("<comparison file1=\"1\" file2=\"2\" overlap=\"0\" score=\"NaN\"/>", outputData.get(9).trim());		// file 2 is empty
+		assertEquals("<comparison file1=\"2\" file2=\"3\" overlap=\"0\" score=\"NaN\"/>", outputData.get(11).trim());		// file 2 is empty
 	}
 	
 	@Test
@@ -82,7 +86,7 @@ public class CompareTest {
 		
 		Executor exec = execute("--log " + logF.getAbsolutePath() + " -d " + f1.getParent() + " -o " + o.getAbsolutePath());
 		assertEquals(0, exec.getErrCode());		// all ok
-		assertEquals(true, o.exists());
+		assertTrue(o.exists());
 		assertEquals(9, Files.readAllLines(Paths.get(o.getAbsolutePath())).size());		// 9 lines means 0 comparison
 	}
 	
@@ -112,11 +116,11 @@ public class CompareTest {
 		
 		Executor exec = execute("--log " + logF.getAbsolutePath() + " -d " + bespoke.getParent() + " -o " + o.getAbsolutePath());
 		assertEquals(0, exec.getErrCode());		// all ok
-		assertEquals(true, o.exists());
+		assertTrue(o.exists());
 		List<String> outputData = Files.readAllLines(Paths.get(o.getAbsolutePath()));
 		assertEquals(11, outputData.size());		// 10 lines means 1 comparison		
-		assertEquals("<cutoffs hom=\"0.9\" lower_het=\"0.3\" upper_het=\"0.7\"/>", outputData.get(2));
-		assertEquals("<comparison file1=\"1\" file2=\"2\" overlap=\"4\" score=\"1.0\"/>", outputData.get(8));
+		assertEquals("<cutoffs hom=\"0.9\" lower_het=\"0.3\" upper_het=\"0.7\"/>", outputData.get(2).trim());
+		assertEquals("<comparison file1=\"1\" file2=\"2\" overlap=\"4\" score=\"1.0\"/>", outputData.get(8).trim());
 	}
 	
 	@Test
@@ -150,8 +154,8 @@ public class CompareTest {
 		assertEquals(true, o.exists());
 		List<String> outputData = Files.readAllLines(Paths.get(o.getAbsolutePath()));
 		assertEquals(11, outputData.size());		// 10 lines means 1 comparison
-		assertEquals("<cutoffs hom=\"0.9\" lower_het=\"0.3\" upper_het=\"0.7\"/>", outputData.get(2));
-		assertEquals(true, outputData.contains("<comparison file1=\"1\" file2=\"2\" overlap=\"7\" score=\"1.0\"/>"));
+		assertEquals("<cutoffs hom=\"0.9\" lower_het=\"0.3\" upper_het=\"0.7\"/>", outputData.get(2).trim());
+		assertEquals("<comparison file1=\"1\" file2=\"2\" overlap=\"7\" score=\"1.0\"/>", outputData.get(8).trim());
 	}
 	
 	@Test
@@ -178,11 +182,11 @@ public class CompareTest {
 		
 		Executor exec = execute("--log " + logF.getAbsolutePath() + " -d " + bespoke1.getParent() + " -o " + o.getAbsolutePath());
 		assertEquals(0, exec.getErrCode());		// all ok
-		assertEquals(true, o.exists());
+		assertTrue(o.exists());
 		List<String> outputData = Files.readAllLines(Paths.get(o.getAbsolutePath()));
 		assertEquals(11, outputData.size());		// 10 lines means 1 comparison
-		assertEquals("<cutoffs hom=\"0.9\" lower_het=\"0.3\" upper_het=\"0.7\"/>", outputData.get(2));
-		assertEquals(true, outputData.contains("<comparison file1=\"1\" file2=\"2\" overlap=\"5\" score=\"1.0\"/>"));
+		assertEquals("<cutoffs hom=\"0.9\" lower_het=\"0.3\" upper_het=\"0.7\"/>", outputData.get(2).trim());
+		assertEquals("<comparison file1=\"1\" file2=\"2\" overlap=\"5\" score=\"1.0\"/>", outputData.get(8).trim());
 	}
 	
 	@Test
@@ -212,48 +216,48 @@ public class CompareTest {
 		assertEquals(true, o.exists());
 		List<String> outputData = Files.readAllLines(Paths.get(o.getAbsolutePath()));
 		assertEquals(11, outputData.size());		// 10 lines means 1 comparison
-		assertEquals("<cutoffs hom=\"0.9\" lower_het=\"0.3\" upper_het=\"0.7\"/>", outputData.get(2));
-		assertEquals("<comparison file1=\"1\" file2=\"2\" overlap=\"4\" score=\"0.75\"/>", outputData.get(8));
+		assertEquals("<cutoffs hom=\"0.9\" lower_het=\"0.3\" upper_het=\"0.7\"/>", outputData.get(2).trim());
+		assertEquals("<comparison file1=\"1\" file2=\"2\" overlap=\"4\" score=\"0.75\"/>", outputData.get(8).trim());
 		
 		exec = execute("--log " + logF.getAbsolutePath() + " -d " + cutoff1.getParent() + " -o " + o.getAbsolutePath() + " --max-cache-size 0 --homCutoff 0.99 --hetLowerCutoff 0.49 --hetUpperCutoff 0.51");
 		assertEquals(0, exec.getErrCode());		// all ok
 		assertEquals(true, o.exists());
 		outputData = Files.readAllLines(Paths.get(o.getAbsolutePath()));
 		assertEquals(11, outputData.size());		// 10 lines means 1 comparison
-		assertEquals("<cutoffs hom=\"0.99\" lower_het=\"0.49\" upper_het=\"0.51\"/>", outputData.get(2));
-		assertEquals("<comparison file1=\"1\" file2=\"2\" overlap=\"3\" score=\"1.0\"/>", outputData.get(8));
+		assertEquals("<cutoffs hom=\"0.99\" lower_het=\"0.49\" upper_het=\"0.51\"/>", outputData.get(2).trim());
+		assertEquals("<comparison file1=\"1\" file2=\"2\" overlap=\"3\" score=\"1.0\"/>", outputData.get(8).trim());
 		
 		exec = execute("--log " + logF.getAbsolutePath() + " -d " + cutoff1.getParent() + " -o " + o.getAbsolutePath() + " --max-cache-size 0 --homCutoff 0.85");
 		assertEquals(0, exec.getErrCode());		// all ok
 		assertEquals(true, o.exists());
 		outputData = Files.readAllLines(Paths.get(o.getAbsolutePath()));
 		assertEquals(11, outputData.size());		// 10 lines means 1 comparison
-		assertEquals("<cutoffs hom=\"0.85\" lower_het=\"0.3\" upper_het=\"0.7\"/>", outputData.get(2));
-		assertEquals("<comparison file1=\"1\" file2=\"2\" overlap=\"5\" score=\"0.8\"/>", outputData.get(8));
+		assertEquals("<cutoffs hom=\"0.85\" lower_het=\"0.3\" upper_het=\"0.7\"/>", outputData.get(2).trim());
+		assertEquals("<comparison file1=\"1\" file2=\"2\" overlap=\"5\" score=\"0.8\"/>", outputData.get(8).trim());
 		
 		exec = execute("--log " + logF.getAbsolutePath() + " -d " + cutoff1.getParent() + " -o " + o.getAbsolutePath() + " --max-cache-size 0 --hetLowerCutoff 0.49");
 		assertEquals(0, exec.getErrCode());		// all ok
 		assertEquals(true, o.exists());
 		outputData = Files.readAllLines(Paths.get(o.getAbsolutePath()));
 		assertEquals(11, outputData.size());		// 10 lines means 1 comparison
-		assertEquals("<cutoffs hom=\"0.9\" lower_het=\"0.49\" upper_het=\"0.7\"/>", outputData.get(2));
-		assertEquals("<comparison file1=\"1\" file2=\"2\" overlap=\"3\" score=\"1.0\"/>", outputData.get(8));
+		assertEquals("<cutoffs hom=\"0.9\" lower_het=\"0.49\" upper_het=\"0.7\"/>", outputData.get(2).trim());
+		assertEquals("<comparison file1=\"1\" file2=\"2\" overlap=\"3\" score=\"1.0\"/>", outputData.get(8).trim());
 		
 		exec = execute("--log " + logF.getAbsolutePath() + " -d " + cutoff1.getParent() + " -o " + o.getAbsolutePath() + " --max-cache-size 0 --hetUpperCutoff 0.50");
 		assertEquals(0, exec.getErrCode());		// all ok
 		assertEquals(true, o.exists());
 		outputData = Files.readAllLines(Paths.get(o.getAbsolutePath()));
 		assertEquals(11, outputData.size());		// 10 lines means 1 comparison
-		assertEquals("<cutoffs hom=\"0.9\" lower_het=\"0.3\" upper_het=\"0.5\"/>", outputData.get(2));
-		assertEquals("<comparison file1=\"1\" file2=\"2\" overlap=\"3\" score=\"1.0\"/>", outputData.get(8));
+		assertEquals("<cutoffs hom=\"0.9\" lower_het=\"0.3\" upper_het=\"0.5\"/>", outputData.get(2).trim());
+		assertEquals("<comparison file1=\"1\" file2=\"2\" overlap=\"3\" score=\"1.0\"/>", outputData.get(8).trim());
 		
 		exec = execute("--log " + logF.getAbsolutePath() + " -d " + cutoff1.getParent() + " -o " + o.getAbsolutePath() + " --max-cache-size 0 --hetUpperCutoff 0.7");
 		assertEquals(0, exec.getErrCode());		// all ok
 		assertEquals(true, o.exists());
 		outputData = Files.readAllLines(Paths.get(o.getAbsolutePath()));
 		assertEquals(11, outputData.size());		// 10 lines means 1 comparison
-		assertEquals("<cutoffs hom=\"0.9\" lower_het=\"0.3\" upper_het=\"0.7\"/>", outputData.get(2));
-		assertEquals("<comparison file1=\"1\" file2=\"2\" overlap=\"4\" score=\"0.75\"/>", outputData.get(8));
+		assertEquals("<cutoffs hom=\"0.9\" lower_het=\"0.3\" upper_het=\"0.7\"/>", outputData.get(2).trim());
+		assertEquals("<comparison file1=\"1\" file2=\"2\" overlap=\"4\" score=\"0.75\"/>", outputData.get(8).trim());
 }
 	
 	@Test
@@ -283,40 +287,40 @@ public class CompareTest {
 		assertEquals(true, o.exists());
 		List<String> outputData = Files.readAllLines(Paths.get(o.getAbsolutePath()));
 		assertEquals(11, outputData.size());		// 11 lines means 1 comparison
-		assertEquals("<cutoffs hom=\"0.9\" lower_het=\"0.3\" upper_het=\"0.7\"/>", outputData.get(2));
-		assertEquals(true, outputData.contains("<comparison file1=\"1\" file2=\"2\" overlap=\"5\" score=\"1.0\"/>"));
+		assertEquals("<cutoffs hom=\"0.9\" lower_het=\"0.3\" upper_het=\"0.7\"/>", outputData.get(2).trim());
+		assertEquals("<comparison file1=\"1\" file2=\"2\" overlap=\"5\" score=\"1.0\"/>", outputData.get(8).trim());
 		
 		exec = execute("--log " + logF.getAbsolutePath() + " -d " + bespoke1.getParent() + " -o " + o.getAbsolutePath() + " --max-cache-size 1");
 		assertEquals(0, exec.getErrCode());		// all ok
 		assertEquals(true, o.exists());
 		outputData = Files.readAllLines(Paths.get(o.getAbsolutePath()));
 		assertEquals(11, outputData.size());		// 10 lines means 1 comparison
-		assertEquals("<cutoffs hom=\"0.9\" lower_het=\"0.3\" upper_het=\"0.7\"/>", outputData.get(2));
-		assertEquals(true, outputData.contains("<comparison file1=\"1\" file2=\"2\" overlap=\"5\" score=\"1.0\"/>"));
+		assertEquals("<cutoffs hom=\"0.9\" lower_het=\"0.3\" upper_het=\"0.7\"/>", outputData.get(2).trim());
+		assertEquals("<comparison file1=\"1\" file2=\"2\" overlap=\"5\" score=\"1.0\"/>", outputData.get(8).trim());
 		
 		exec = execute("--log " + logF.getAbsolutePath() + " -d " + bespoke1.getParent() + " -o " + o.getAbsolutePath() + " --max-cache-size 2");
 		assertEquals(0, exec.getErrCode());		// all ok
 		assertEquals(true, o.exists());
 		outputData = Files.readAllLines(Paths.get(o.getAbsolutePath()));
 		assertEquals(11, outputData.size());		// 10 lines means 1 comparison
-		assertEquals("<cutoffs hom=\"0.9\" lower_het=\"0.3\" upper_het=\"0.7\"/>", outputData.get(2));
-		assertEquals(true, outputData.contains("<comparison file1=\"1\" file2=\"2\" overlap=\"5\" score=\"1.0\"/>"));
+		assertEquals("<cutoffs hom=\"0.9\" lower_het=\"0.3\" upper_het=\"0.7\"/>", outputData.get(2).trim());
+		assertEquals("<comparison file1=\"1\" file2=\"2\" overlap=\"5\" score=\"1.0\"/>", outputData.get(8).trim());
 		
 		exec = execute("--log " + logF.getAbsolutePath() + " -d " + bespoke1.getParent() + " -o " + o.getAbsolutePath() + " --max-cache-size 20");
 		assertEquals(0, exec.getErrCode());		// all ok
 		assertEquals(true, o.exists());
 		outputData = Files.readAllLines(Paths.get(o.getAbsolutePath()));
 		assertEquals(11, outputData.size());		// 10 lines means 1 comparison
-		assertEquals("<cutoffs hom=\"0.9\" lower_het=\"0.3\" upper_het=\"0.7\"/>", outputData.get(2));
-		assertEquals(true, outputData.contains("<comparison file1=\"1\" file2=\"2\" overlap=\"5\" score=\"1.0\"/>"));
+		assertEquals("<cutoffs hom=\"0.9\" lower_het=\"0.3\" upper_het=\"0.7\"/>", outputData.get(2).trim());
+		assertEquals("<comparison file1=\"1\" file2=\"2\" overlap=\"5\" score=\"1.0\"/>", outputData.get(8).trim());
 		
 		exec = execute("--log " + logF.getAbsolutePath() + " -d " + bespoke1.getParent() + " -o " + o.getAbsolutePath() + " --maxCacheSize 1");
 		assertEquals(0, exec.getErrCode());		// all ok
 		assertEquals(true, o.exists());
 		outputData = Files.readAllLines(Paths.get(o.getAbsolutePath()));
 		assertEquals(11, outputData.size());		// 10 lines means 1 comparison
-		assertEquals("<cutoffs hom=\"0.9\" lower_het=\"0.3\" upper_het=\"0.7\"/>", outputData.get(2));
-		assertEquals(true, outputData.contains("<comparison file1=\"1\" file2=\"2\" overlap=\"5\" score=\"1.0\"/>"));
+		assertEquals("<cutoffs hom=\"0.9\" lower_het=\"0.3\" upper_het=\"0.7\"/>", outputData.get(2).trim());
+		assertEquals("<comparison file1=\"1\" file2=\"2\" overlap=\"5\" score=\"1.0\"/>", outputData.get(8).trim());
 	}
 	
 	private void writeVcfFileHeader(File f) throws IOException {

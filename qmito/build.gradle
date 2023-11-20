@@ -4,7 +4,6 @@ def scriptname = 'qmito'
 def isExecutable = true
 
 dependencies {
-    configurations.compile.transitive = true
 	
     api 'org.apache.commons:commons-math3:3.3'
 	

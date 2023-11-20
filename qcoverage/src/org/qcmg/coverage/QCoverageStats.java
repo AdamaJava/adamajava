@@ -3,15 +3,13 @@
  */
 package org.qcmg.coverage;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.XmlType;
 import org.eclipse.persistence.oxm.annotations.XmlNameTransformer;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @XmlType(name = "QCoverageStats", propOrder = {
     "coverageReport"
@@ -28,7 +26,7 @@ public class QCoverageStats {
      * 
      * <p>
      * This accessor method returns a reference to the live list,
-     * not a snapshot. Therefore any modification you make to the
+     * not a snapshot. Therefore, any modification you make to the
      * returned list will be present inside the JAXB object.
      * This is why there is not a <CODE>set</CODE> method for the coverageReport property.
      * 
@@ -47,7 +45,7 @@ public class QCoverageStats {
      */
     public List<CoverageReport> getCoverageReport() {
         if (coverageReport == null) {
-            coverageReport = new ArrayList<CoverageReport>();
+            coverageReport = new ArrayList<>();
         }
         return this.coverageReport;
     }

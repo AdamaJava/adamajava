@@ -41,7 +41,7 @@ public class IndelPileupTest {
 		Options options = createMock(Options.class);
 		expect(options.includeDuplicates()).andReturn(false);
 		replay(options);
-		position = new IndelPosition(line, false, "pindel", cols);
+		position = new IndelPosition(line, false, cols);
 		pileup = new IndelPileup(options, new InputBAM(testFolder.newFile("tumour.bam")), position, testFolder.newFile("reference.fa"), 13, 10, 3, true);
 		record = new SAMRecord(null);
 		record.setAlignmentStart(1000);
@@ -216,18 +216,18 @@ public class IndelPileupTest {
 	public void testParseComplexIndel() {
 		String line = "date\ttumour\tind6\t4\tchr1\t1007\t1012\t1\t-999\t-999\tG\t-999\tGTC\tG>GTC\t\t-999\t-999\t-999\t-999\t-999\t-999\t-999\t-999\tPASS\t--\t--\t--\t--";
 		
-		position = new IndelPosition(line, false, "pindel", cols);
+		position = new IndelPosition(line, false, cols);
 		assertTrue(position.isComplex());
 		pileup.setIndelPosition(position);
 		assertEquals(0, pileup.getInformativeReads());
 		assertEquals(0, pileup.getPartialIndelCount());
 		assertEquals(0, pileup.getNearbyIndelCount());
-		pileup.parseComplexIndel(record, expectedMaskedBases);
+		pileup.parseComplexIndel(record);
 		assertEquals(1, pileup.getInformativeReads());
 		assertEquals(1, pileup.getPartialIndelCount());
 		assertEquals(0, pileup.getNearbyIndelCount());
 		record.setCigarString("3M2D4M1I91M");
-		pileup.parseComplexIndel(record, expectedMaskedBases);
+		pileup.parseComplexIndel(record);
 		assertEquals(2, pileup.getInformativeReads());
 		assertEquals(2, pileup.getPartialIndelCount());
 		assertEquals(0, pileup.getNearbyIndelCount());

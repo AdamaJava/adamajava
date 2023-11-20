@@ -19,15 +19,13 @@ import org.qcmg.qbasepileup.QBasePileupException;
 public class IndelPositionPileup {	
 	
 	private IndelPosition position;	
-	private IndelPileup tumourPileup;
-	private IndelPileup normalPileup;
+	private final IndelPileup tumourPileup;
+	private final IndelPileup normalPileup;
 	private String pileupFlags = "";
-	private final Options options;
 	private final IndexedFastaSequenceFile indexedFasta;
 	
 	public IndelPositionPileup(InputBAM tumourBam, InputBAM normalBam, org.qcmg.qbasepileup.indel.IndelPosition position, Options options, IndexedFastaSequenceFile indexedFastaFile) throws QBasePileupException {
 		this.position = position;
-		this.options = options;
 		this.indexedFasta = indexedFastaFile;
 		tumourPileup = new IndelPileup(options, tumourBam, position, options.getReference(), options.getSoftClipWindow(), options.getNearbyHomopolymerWindow(), options.getNearbyIndelWindow(), true);
         normalPileup = new IndelPileup(options, normalBam,  position, options.getReference(), options.getSoftClipWindow(), options.getNearbyHomopolymerWindow(), options.getNearbyIndelWindow(), false);      
@@ -45,16 +43,8 @@ public class IndelPositionPileup {
 		return tumourPileup;
 	}
 
-	public void setTumourPileup(IndelPileup tumourPileup) {
-		this.tumourPileup = tumourPileup;
-	}
-
 	public IndelPileup getNormalPileup() {
 		return normalPileup;
-	}
-
-	public void setNormalPileup(IndelPileup normalPileup) {
-		this.normalPileup = normalPileup;
 	}
 
 	//pileup reads by query bam across indel positions
@@ -124,13 +114,11 @@ public class IndelPositionPileup {
 		if (hp != null && !hp.getHomopolymerCount().equals("ne")) {
 			String type = hp.getType();
 			String count = hp.getHomopolymerCount();
-			if (type.equals(Homopolymer.DISCONTIGUOUS)) {
-				flags.append("HOMADJ_" + count);
-			} else if (type.equals(Homopolymer.CONTIGUOUS)) {
-				flags.append("HOMCON_" + count);
-			} else if (type.equals(Homopolymer.EMBEDDED)) {
-				flags.append("HOMEMB_" + count);
-			}			
+			switch (type) {
+				case Homopolymer.DISCONTIGUOUS -> flags.append("HOMADJ_").append(count);
+				case Homopolymer.CONTIGUOUS -> flags.append("HOMCON_").append(count);
+				case Homopolymer.EMBEDDED -> flags.append("HOMEMB_").append(count);
+			}
 		}		
 		
 		String flagStr = flags.toString();
@@ -181,10 +169,6 @@ public class IndelPositionPileup {
 		tumourPileup.finish(indexedFasta);
 		normalPileup.finish(indexedFasta);
 		this.pileupFlags = calculatePileupFlags();	
-	}
-	
-	public String getPileupFlags() {
-		return pileupFlags;
 	}
 
 	public void setPileupFlags(String pileupFlags) {

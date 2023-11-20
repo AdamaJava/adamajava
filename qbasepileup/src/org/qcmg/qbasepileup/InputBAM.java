@@ -35,34 +35,25 @@ public class InputBAM {
 	public Integer getId() {
 		return id;
 	}
-	public String getDonor() {
-		return donor;
-	}
+
 	public File getBamFile() {
 		return bamFile;
 	}
 	public boolean exists() {
 		return this.bamFile.exists();
 	}
-	public String getInputType() {
-		return inputType;
-	}
-	
+
 	public SamReader getSAMFileReader() throws IOException {
 		return SAMFileReaderFactory.createSAMFileReader(bamFile, null, ValidationStringency.SILENT);
 	}
 	
 	@Override
 	public String toString() {
-		if (inputType.equals(Options.INPUT_BAM)) {
-			return "\t\t" + this.bamFile.getAbsolutePath();
-		} else if (inputType.equals(Options.INPUT_LIST)){
-			return this.id + "\t" + this.donor + "\t" + this.bamFile.getAbsolutePath();
-		} else if (inputType.equals(Options.INPUT_HDF)){
-			return "\t\t" + this.bamFile.getAbsolutePath();
-		} else {
-			return new String();
-		}		
+		return switch (inputType) {
+			case Options.INPUT_BAM, Options.INPUT_HDF -> "\t\t" + this.bamFile.getAbsolutePath();
+			case Options.INPUT_LIST -> this.id + "\t" + this.donor + "\t" + this.bamFile.getAbsolutePath();
+			default -> "";
+		};
 	}
 	
 	

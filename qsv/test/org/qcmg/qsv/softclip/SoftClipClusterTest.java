@@ -24,12 +24,12 @@ public class SoftClipClusterTest {
 	@Test
 	public void testStartAndEndWith2Breakpoints() throws Exception {
 		clip = TestUtil.setUpClipRecord("chr10", "chr10", false, false);
-		assertEquals(new Integer(89700299), clip.getLeftBreakpointObject()
+		assertEquals(Integer.valueOf(89700299), clip.getLeftBreakpointObject()
 				.getBreakpoint());
-		assertEquals(new Integer(89712341), clip.getRightBreakpointObject()
+		assertEquals(Integer.valueOf(89712341), clip.getRightBreakpointObject()
 				.getBreakpoint());
-		assertEquals(new Integer(89700299), clip.getLeftBreakpoint());
-		assertEquals(new Integer(89712341), clip.getRightBreakpoint());
+		assertEquals(Integer.valueOf(89700299), clip.getLeftBreakpoint());
+		assertEquals(Integer.valueOf(89712341), clip.getRightBreakpoint());
 		assertEquals("chr10", clip.getLeftReference());
 		assertEquals("chr10", clip.getRightReference());
 	}
@@ -42,11 +42,11 @@ public class SoftClipClusterTest {
 		b.setMateStrand(QSVUtil.MINUS);
 		clip = new SoftClipCluster(b);
 
-		assertEquals(new Integer(89712341), clip.getRightBreakpointObject()
+		assertEquals(Integer.valueOf(89712341), clip.getRightBreakpointObject()
 				.getBreakpoint());
 		assertNull(clip.getLeftBreakpointObject());
-		assertEquals(new Integer(89700299), clip.getLeftBreakpoint());
-		assertEquals(new Integer(89712341), clip.getRightBreakpoint());
+		assertEquals(Integer.valueOf(89700299), clip.getLeftBreakpoint());
+		assertEquals(Integer.valueOf(89712341), clip.getRightBreakpoint());
 		assertEquals("chr10", clip.getLeftReference());
 		assertEquals("chr10", clip.getRightReference());
 	}
@@ -59,11 +59,11 @@ public class SoftClipClusterTest {
 		b.setMateStrand(QSVUtil.MINUS);
 		clip = new SoftClipCluster(b);
 
-		assertEquals(new Integer(89700299), clip.getLeftBreakpointObject()
+		assertEquals(Integer.valueOf(89700299), clip.getLeftBreakpointObject()
 				.getBreakpoint());
 		assertNull(clip.getRightBreakpointObject());
-		assertEquals(new Integer(89700299), clip.getLeftBreakpoint());
-		assertEquals(new Integer(89712341), clip.getRightBreakpoint());
+		assertEquals(Integer.valueOf(89700299), clip.getLeftBreakpoint());
+		assertEquals(Integer.valueOf(89712341), clip.getRightBreakpoint());
 		assertEquals("chr10", clip.getLeftReference());
 		assertEquals("chr10", clip.getRightReference());
 	}
@@ -236,7 +236,7 @@ public class SoftClipClusterTest {
 			int mateBreakpoint, boolean isLeft, char strand, char mateStrand)
 			throws Exception {
 		Breakpoint b = new Breakpoint(breakpoint, chr, isLeft, 20, 50);
-		HashSet<Clip> clips = new HashSet<Clip>();
+		HashSet<Clip> clips = new HashSet<>();
 		clips.add(new Clip(
 				"HWI-ST1240:47:D12NAACXX:1:2307:8115:32717:20120608115535190,chr10,89700299,-,right,GCAAAGATCAACCTGTCCTAAGTCATATAATCTCTTTGTGTAAGAGATTATACTTTGTGTAAGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAG,GAGATTATACTTTGTGTAAGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAG,GCAAAGATCAACCTGTCCTAAGTCATATAATCTCTTTGTGTAA"));
 		for (Clip c : clips) {
@@ -252,7 +252,7 @@ public class SoftClipClusterTest {
 	public Breakpoint getBreakpoint(String chr, int breakpoint, boolean isLeft,
 			char strand, char mateStrand) throws Exception {
 		Breakpoint b = new Breakpoint(breakpoint, chr, isLeft, 20, 50);
-		HashSet<Clip> clips = new HashSet<Clip>();
+		HashSet<Clip> clips = new HashSet<>();
 		clips.add(new Clip(
 				"HWI-ST1240:47:D12NAACXX:1:2307:8115:32717:20120608115535190,chr10,89700299,-,right,GCAAAGATCAACCTGTCCTAAGTCATATAATCTCTTTGTGTAAGAGATTATACTTTGTGTAAGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAG,GAGATTATACTTTGTGTAAGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAG,GCAAAGATCAACCTGTCCTAAGTCATATAATCTCTTTGTGTAA"));
 		for (Clip c : clips) {

@@ -8,13 +8,9 @@ import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-import javax.xml.bind.DatatypeConverter;
+import jakarta.xml.bind.DatatypeConverter;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -96,16 +92,15 @@ public class AWSSigner {
      * @param userHeaders
      *            user-supplied headers (can be null or empty Map)
      * @return updated set of headers including required AWS signature headers.
-     * @return
      */
     public static Map<String, String> addSignature(AWSService service, Region region, URI target, String method,
             String contentSha256, Map<String, String> userHeaders) {
-        Map<String, List<String>> mvh = new HashMap<String, List<String>>();
+        Map<String, List<String>> mvh = new HashMap<>();
         for (Map.Entry<String, String> h : userHeaders.entrySet()) {
-            mvh.put(h.getKey(), Arrays.asList(h.getValue()));
+            mvh.put(h.getKey(), Collections.singletonList(h.getValue()));
         }
         Map<String, List<String>> signedMVH = addSignatureMVH(service, region, target, method, contentSha256, mvh);
-        Map<String, String> signedSimpleHeaders = new HashMap<String, String>();
+        Map<String, String> signedSimpleHeaders = new HashMap<>();
         for (Map.Entry<String, List<String>> h : signedMVH.entrySet()) {
             signedSimpleHeaders.put(h.getKey(), h.getValue().get(0));
         }
@@ -148,13 +143,13 @@ public class AWSSigner {
         // The order we add headers for the signing process doesn't matter and
         // doesn't even have to match the order they're added in the request —
         // the canonicalization step in signing process takes care of that.
-        Map<String, List<String>> headers = new HashMap<String, List<String>>();
-        headers.put("Host", new ArrayList<String>(Arrays.asList(target.getHost())));
-        headers.put("x-amz-date", new ArrayList<String>(Arrays.asList(now)));
-        headers.put("x-amz-content-sha256", new ArrayList<String>(Arrays.asList(contentSha256)));
+        Map<String, List<String>> headers = new HashMap<>();
+        headers.put("Host", new ArrayList<>(Collections.singletonList(target.getHost())));
+        headers.put("x-amz-date", new ArrayList<>(List.of(now)));
+        headers.put("x-amz-content-sha256", new ArrayList<>(Collections.singletonList(contentSha256)));
         if (credentials instanceof AWSSessionCredentials) {
             headers.put("x-amz-security-token",
-                    new ArrayList<String>(Arrays.asList(((AWSSessionCredentials) credentials).getSessionToken())));
+                    new ArrayList<>(Collections.singletonList(((AWSSessionCredentials) credentials).getSessionToken())));
         }
         if (userHeaders != null) {
             userHeaders.forEach(headers::putIfAbsent);
@@ -168,7 +163,7 @@ public class AWSSigner {
         }
         HttpRequest request = new HttpRequest(method, target);
         String signature = builder.build(request, service.toString(), contentSha256).getSignature();
-        headers.put("Authorization", new ArrayList<String>(Arrays.asList(signature)));
+        headers.put("Authorization", new ArrayList<>(Collections.singletonList(signature)));
 
         return headers;
     }
@@ -186,7 +181,7 @@ public class AWSSigner {
      * @return the SHA-256 string.
      */
     public static String sha256Hex(byte[] input) {
-        MessageDigest md = null;
+        MessageDigest md;
         try {
             md = MessageDigest.getInstance("SHA-256");
             byte[] digestBytes = md.digest(input);

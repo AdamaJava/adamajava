@@ -8,7 +8,6 @@ def isExecutable = true
 repositories { mavenCentral() }
 
 dependencies {
-    configurations.compile.transitive = true
     api project(':qcommon')
     api project(':qio')
     api project(':qbamfilter')

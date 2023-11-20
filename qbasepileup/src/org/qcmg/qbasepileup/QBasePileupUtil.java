@@ -27,7 +27,7 @@ public class QBasePileupUtil {
 	
 	public static final char TAB = '\t';
 	
-	public static String getStrackTrace(Exception e) {
+	public static String getStackTrace(Exception e) {
 		StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
         e.printStackTrace(pw);
@@ -68,10 +68,8 @@ public class QBasePileupUtil {
 		}
 		
 		Matcher matcher = DOUBLE_DIGIT_PATTERN.matcher(ref);
-		if (matcher.matches()) {		    	
-			if (Integer.parseInt(ref) < 23) {
-				return true;
-			}
+		if (matcher.matches()) {
+			return Integer.parseInt(ref) < 23;
 		}
 		return false;
 	}
@@ -82,10 +80,9 @@ public class QBasePileupUtil {
 	}
 	
 	public static IndexedFastaSequenceFile getIndexedFastaFile(File reference) {
-		FastaSequenceIndex index = getFastaIndex(reference);		
-		IndexedFastaSequenceFile indexedFasta = new IndexedFastaSequenceFile(reference, index);
-		
-		return indexedFasta;
+		FastaSequenceIndex index = getFastaIndex(reference);
+
+		return new IndexedFastaSequenceFile(reference, index);
 	}
 	
 	public static String printStackTrace(Exception e) {
@@ -106,16 +103,16 @@ public class QBasePileupUtil {
 					if (values[i].toLowerCase().contains("qcmgflag")) {
 						cols[0] = i;
 					}
-					if (values[i].toLowerCase().equals("nd")) {
+					if (values[i].equalsIgnoreCase("nd")) {
 						cols[1] = i;
 					}
-					if (values[i].toLowerCase().equals("td")) {
+					if (values[i].equalsIgnoreCase("td")) {
 						cols[2] = i;
 					}
-					if (values[i].toLowerCase().equals("reference_genome_allele")) {
+					if (values[i].equalsIgnoreCase("reference_genome_allele")) {
 						cols[3] = i;
 					}
-					if (values[i].toLowerCase().equals("tumour_genotype")) {
+					if (values[i].equalsIgnoreCase("tumour_genotype")) {
 						cols[4] = i;
 					}
 				}
@@ -160,33 +157,22 @@ public class QBasePileupUtil {
 	 * @return
 	 */
 	public static String[] getSNPPositionColumns(String format, String[] values, long count) {
-		
-		if (format.equals("dcc1") || format.equals("maf")) {
-			String[] columns = {values[2], values[4], values[5], values[6]};
-			return columns;			
-    	} else if (format.equals("dccq")) {
-    		String[] columns = {values[0], values[2], values[3], values[4]};
-			return columns;	    		
-    	} else if (format.equals("vcf")) {
-    		String[] columns = {values[2], values[0], values[1], values[1]};
-			return columns;	  
-    	}  else if (format.equals("tab") || format.equals("columns")) {  
-    		String[] columns = {values[0], values[1], values[2], values[3]};
-			return columns;
-    	} else if (format.equals("hdf")) {
-    		String[] columns = {Long.toString(count), values[0], values[1], values[2]};
-			return columns;
-    	}  	
-		
-		
-		
-		return null;
+
+		return switch (format) {
+			case "dcc1", "maf" -> new String[]{values[2], values[4], values[5], values[6]};
+			case "dccq" -> new String[]{values[0], values[2], values[3], values[4]};
+			case "vcf" -> new String[]{values[2], values[0], values[1], values[1]};
+			case "tab", "columns" -> new String[]{values[0], values[1], values[2], values[3]};
+			case "hdf" -> new String[]{Long.toString(count), values[0], values[1], values[2]};
+			default -> null;
+		};
+
+
 	}
 
 	public static byte[] getCompoundAltBases(String[] values, int index) throws QBasePileupException {
 		try {
-			byte[] bases = values[index].split(">")[1].getBytes();
-			return bases;
+			return values[index].split(">")[1].getBytes();
 		} catch (Exception e) {
 			throw new QBasePileupException("NO_MUTATION");
 		}
@@ -246,7 +232,7 @@ public class QBasePileupUtil {
 	
 	public static List<String> getHeaderLines(File file, boolean includeMutation) throws IOException {
 		List<String> headers = new ArrayList<>();
-		try (BufferedReader reader = new BufferedReader(new FileReader(file));) {
+		try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
 			String line;
 			while ((line=reader.readLine()) != null) {
 				if (line.startsWith("Hugo") || line.startsWith("#") || line.startsWith("analysis_id") || (includeMutation && line.startsWith("mutation"))) {
@@ -264,13 +250,11 @@ public class QBasePileupUtil {
 		sb.append(TAAAAAB);
 		sb.append(TAB);
 		for (InputBAM input : inputBAMs) {
-			sb.append(input.getAbbreviatedBamFileName() + TAAAAAB);
+			sb.append(input.getAbbreviatedBamFileName()).append(TAAAAAB);
 		}
 		sb.append("\n");
 		sb.append("#gene\tchromosome\tstart\tend\tref\talt\t");
-		for (int i=0; i<inputBAMs.size(); i++) {
-			sb.append("A\tC\tG\tT\tN\t");
-		}
+		sb.append("A\tC\tG\tT\tN\t".repeat(inputBAMs.size()));
 		sb.append("\n");
 		return sb.toString();
 	}

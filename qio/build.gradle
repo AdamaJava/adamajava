@@ -1,6 +1,5 @@
 def isExecutable = true
 
 dependencies {
-    configurations.compile.transitive = true
     api project(':qcommon')
  } 

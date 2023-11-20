@@ -26,8 +26,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.Marshaller;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.Marshaller;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -64,7 +64,7 @@ public class QSVPipeline {
 	public static TIntObjectMap<int[]> TILED_ALIGNER_CACHE;
 
 	private final QLogger logger = QLoggerFactory.getLogger(QSVPipeline.class);
-	private static final String FILE_SEPERATOR = System.getProperty("file.separator");
+	private static final String FILE_SEPARATOR = System.getProperty("file.separator");
 	private QSVParameters normal;
 	private QSVParameters tumor;
 	private final Options options;
@@ -109,23 +109,23 @@ public class QSVPipeline {
 		future = executor.submit(callable);
 		
 		//copy ini file to output directory
-		Files.copy(Paths.get(options.getIniFile()), Paths.get(resultsDir + FILE_SEPERATOR + new File(options.getIniFile()).getName()), StandardCopyOption.REPLACE_EXISTING);
+		Files.copy(Paths.get(options.getIniFile()), Paths.get(resultsDir + FILE_SEPARATOR + new File(options.getIniFile()).getName()), StandardCopyOption.REPLACE_EXISTING);
 
 
 		// dir to write the mate pairs to
-		matePairDir = options.getTempDirName() + FILE_SEPERATOR +  "matepair" + FILE_SEPERATOR;
+		matePairDir = options.getTempDirName() + FILE_SEPARATOR +  "matepair" + FILE_SEPARATOR;
 		createOutputDirectory(matePairDir);
 
 		//matepairs directories
 		for (PairClassification zp : PairClassification.values()) {
-			createOutputDirectory(matePairDir + zp.getPairingClassification() + FILE_SEPERATOR);
+			createOutputDirectory(matePairDir + zp.getPairingClassification() + FILE_SEPARATOR);
 		}
 
 		//soft clips directory
-		this.softclipDir = options.getTempDirName() + FILE_SEPERATOR +  "softclip";
+		this.softclipDir = options.getTempDirName() + FILE_SEPARATOR +  "softclip";
 		createOutputDirectory(softclipDir);
 
-		this.summaryReport = new SummaryReport(new File(resultsDir + FILE_SEPERATOR + options.getSampleName() + ".qsv.summary.txt"), analysisDate, analysisId, options.isQCMG());
+		this.summaryReport = new SummaryReport(new File(resultsDir + FILE_SEPARATOR + options.getSampleName() + ".qsv.summary.txt"), analysisDate, analysisId, options.isQCMG());
 		
 		/*
 		 * setup reference index map
@@ -142,7 +142,7 @@ public class QSVPipeline {
 			writeDCCHeader(options, analysisDate, analysisId, exec);
 		}
 
-		File countFile = new File(resultsDir + FILE_SEPERATOR + options.getSampleName()+ "_sv_counts.txt");
+		File countFile = new File(resultsDir + FILE_SEPARATOR + options.getSampleName()+ "_sv_counts.txt");
 		this.clusterCounts = new SVCountReport(countFile, options.getSampleName());
 		if (options.getRanges() != null) {
 			for (String s: options.getRanges()) {
@@ -153,10 +153,10 @@ public class QSVPipeline {
 	}
 
 	private void writeDCCHeader(Options options, Date analysisDate, String analysisId, QExec exec) throws IOException {
-		new DCCReport(new File(resultsDir + FILE_SEPERATOR + options.getSampleName() + ".somatic.dcc"), analysisDate, analysisId, tumor, normal, options, exec);
+		new DCCReport(new File(resultsDir + FILE_SEPARATOR + options.getSampleName() + ".somatic.dcc"), analysisDate, analysisId, tumor, normal, options, exec);
 		if (options.isTwoFileMode()) {
-			new DCCReport(new File(resultsDir + FILE_SEPERATOR + options.getSampleName() + ".germline.dcc"), analysisDate, analysisId, tumor, normal, options, exec);	
-			new DCCReport(new File(resultsDir + FILE_SEPERATOR + options.getSampleName() + ".normal-germline.dcc"), analysisDate, analysisId, tumor, normal, options, exec);
+			new DCCReport(new File(resultsDir + FILE_SEPARATOR + options.getSampleName() + ".germline.dcc"), analysisDate, analysisId, tumor, normal, options, exec);
+			new DCCReport(new File(resultsDir + FILE_SEPARATOR + options.getSampleName() + ".normal-germline.dcc"), analysisDate, analysisId, tumor, normal, options, exec);
 		}	
 	}
 

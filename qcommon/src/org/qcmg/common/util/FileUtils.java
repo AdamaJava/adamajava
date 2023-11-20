@@ -6,37 +6,20 @@
  */
 package org.qcmg.common.util;
 
-import java.io.File;
-import java.io.FileFilter;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.Buffer;
+import jakarta.xml.bind.DatatypeConverter;
+import org.qcmg.common.string.StringUtils;
+
+import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.file.FileVisitOption;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.SimpleFileVisitor;
+import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.EnumSet;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
-import javax.xml.bind.DatatypeConverter;
-import org.qcmg.common.string.StringUtils;
 
 
 public class FileUtils {
@@ -45,12 +28,7 @@ public class FileUtils {
 	
 	public static final String FILE_SEPARATOR = System.getProperty("file.separator");
 	
-	public static final Comparator<File> FILE_COMPARATOR = new Comparator<File>() {
-		@Override
-		public int compare(File o1, File o2) {
-			return o1.getAbsolutePath().compareTo(o2.getAbsolutePath());
-		}
-	};
+	public static final Comparator<File> FILE_COMPARATOR = Comparator.comparing(File::getAbsolutePath);
 	
 	public static String getFileCheckSum( final String file ) {
 		if( file == null ) return null;
@@ -58,7 +36,7 @@ public class FileUtils {
 		File input = new File(file);
 		if( !input.exists() || !input.canRead() ) return null; 
 		
-	    try(FileInputStream inputStream = new FileInputStream(file);  ) {
+	    try(FileInputStream inputStream = new FileInputStream(file)) {
 	        MessageDigest md = MessageDigest.getInstance("MD5");
 	        FileChannel channel = inputStream.getChannel();
 	        ByteBuffer buff = ByteBuffer.allocate(2048);
@@ -106,8 +84,8 @@ public class FileUtils {
 		if (null == matchExtension)
 			throw new IllegalArgumentException("Invalid Extension!");
 		
-	        String ext = null;
-	        String s = f.getName();
+		String ext = null;
+		String s = f.getName();
 	    int i = s.lastIndexOf('.');
 	    
 	    if ( ! f.isDirectory() && i > 0 &&  i < s.length() - 1)
@@ -138,7 +116,7 @@ public class FileUtils {
 			File parentDir = file.getParentFile();		
 			
 			if (null == parentDir) parentDir = new File(System.getProperty("user.dir") );		
-			return null != parentDir && parentDir.canWrite();
+			return parentDir.canWrite();
 		}
 	}
 	public static boolean canFileBeWrittenTo(final String file) {
@@ -150,29 +128,29 @@ public class FileUtils {
 		return isFileEmpty(new File(file));
 	}
 	public static boolean isFileEmpty(final File file) {
-		return file.length() == 0l;
+		return file.length() == 0L;
 	}
 	
 	/**
 	 * Returns the index File corresponding to the supplied bam file name (if it exists)
 	 * <p>
 	 * Specifically, return the file with the same name as the supplied bam file name and 
-	 * the additional ".bai" extention, or if the ".bam" extention has been replaced with ".bai"
+	 * the additional ".bai" extension, or if the ".bam" extension has been replaced with ".bai"
 	 * If no such file exists, return <code>null</code>
 	 * 
 	 * @param bamFile String bam file for which the corresponding index file is being sought
-	 * @return File relating to the index file, <code>null</code> if not found (or doens't exist)
+	 * @return File relating to the index file, <code>null</code> if not found (or doesn't exist)
 	 */
 	public static File getBamIndexFile(final String bamFile) {
 		if (null == bamFile) return null;
 		
 		File index = new File( bamFile.replace("bam", "bai"));
 		
-		if (null != index && index.exists()) {
+		if (index.exists()) {
 			return index;
 		} else {
 			index = new File( bamFile + ".bai");
-			return null != index && index.exists() ? index : null;
+			return index.exists() ? index : null;
 		}
 	}
 	/**
@@ -184,7 +162,7 @@ public class FileUtils {
 	public static boolean isInputGZip(final File file) throws IOException {
 		//final PushbackInputStream pb = new PushbackInputStream(input, 2);
 		
-		try(final InputStream input = new FileInputStream(file);){			
+		try(final InputStream input = new FileInputStream(file)){
 			int header = input.read(); //read ID1
 	        if(header == -1)   return false;	        
 	
@@ -228,13 +206,10 @@ public class FileUtils {
 		// if directoryOrFile is not a directory - throw exception
 		if (! dir.isDirectory()) throw new IllegalArgumentException("Supplied name is not a directory or a file: " + directoryOrFile);
 		
-		List<File> files = new ArrayList<File>();
-		File[] mafFiles = dir.listFiles(new FilenameFilter(){
-			@Override
-			public boolean accept(File file, String name) {
-				File tmpFile = new File(file + FILE_SEPARATOR + name);
-				return (tmpFile.isFile() && name.endsWith(filter)) ;
-			}
+		List<File> files = new ArrayList<>();
+		File[] mafFiles = dir.listFiles((file, name) -> {
+			File tmpFile = new File(file + FILE_SEPARATOR + name);
+			return (tmpFile.isFile() && name.endsWith(filter)) ;
 		});
 		
 		if (null != mafFiles)
@@ -242,12 +217,7 @@ public class FileUtils {
 		
 		if (recurse) {
 			
-			File[] potentialMafDirectories = dir.listFiles(new FileFilter() {
-				@Override
-				public boolean accept(File file) {
-					return file.isDirectory();
-				}
-			});
+			File[] potentialMafDirectories = dir.listFiles(File::isDirectory);
 			
 			if (null != potentialMafDirectories) {
 				for (File f : potentialMafDirectories) {
@@ -277,14 +247,10 @@ public class FileUtils {
 		// if directoryOrFile is not a directory - throw exception
 		if (! dir.isDirectory()) throw new IllegalArgumentException("Supplied name is not a directory or a file: " + directoryOrFile);
 		
-		List<File> files = new ArrayList<File>();
-		File[] mafFiles = dir.listFiles(new FilenameFilter(){
-			@Override
-			public boolean accept(File file, String name) {
-//				System.out.println("file: " + file.getAbsolutePath() + ", name: " + name);
-				File tmpFile = new File(file + FILE_SEPARATOR + name);
-				return (tmpFile.isDirectory() && name.equals(filter)) ;
-			}
+		List<File> files = new ArrayList<>();
+		File[] mafFiles = dir.listFiles((file, name) -> {
+			File tmpFile = new File(file + FILE_SEPARATOR + name);
+			return (tmpFile.isDirectory() && name.equals(filter)) ;
 		});
 		
 		if (null != mafFiles) {
@@ -293,12 +259,7 @@ public class FileUtils {
 		
 		if (recurse) {
 			
-			File[] potentialMafDirectories = dir.listFiles(new FileFilter() {
-				@Override
-				public boolean accept(File file) {
-					return file.isDirectory();
-				}
-			});
+			File[] potentialMafDirectories = dir.listFiles(File::isDirectory);
 			
 			if (null != potentialMafDirectories) {
 				for (File f : potentialMafDirectories) {
@@ -314,10 +275,10 @@ public class FileUtils {
 		if (StringUtils.isNullOrEmpty(path)) throw new IllegalArgumentException("Path argument to findFilesEndingWithFilterNIO is null or empty");
 		if (StringUtils.isNullOrEmpty(filter)) throw new IllegalArgumentException("Filter argument to findFilesEndingWithFilterNIO is null or empty");
 		
-		final List<File> foundFiles = new ArrayList<File>();
+		final List<File> foundFiles = new ArrayList<>();
 		
 		Path startingDir = Paths.get(path);
-		Files.walkFileTree(startingDir, EnumSet.of(FileVisitOption.FOLLOW_LINKS),Integer.MAX_VALUE, new SimpleFileVisitor<Path>() {
+		Files.walkFileTree(startingDir, EnumSet.of(FileVisitOption.FOLLOW_LINKS),Integer.MAX_VALUE, new SimpleFileVisitor<>() {
 			
 			@Override
 			public FileVisitResult visitFileFailed(Path file, IOException ioe) {
@@ -397,20 +358,14 @@ public class FileUtils {
 	 *             if either of the files cannot be found in the filesystem.
 	 */
 	public static void copyFile(final File fromFile, final File toFile) throws IOException, FileNotFoundException {
-		
-		
 		try(InputStream instream = new FileInputStream(fromFile);
-				OutputStream outstream = new FileOutputStream(toFile);){
+				OutputStream outstream = new FileOutputStream(toFile)){
 			byte[] buf = new byte[1024];
 			int len;
 			while ((len = instream.read(buf)) > 0) {
 				outstream.write(buf, 0, len);
 			}
 		}
-		
-		
-//		instream.close();
-//		outstream.close();
 	}
 
 	/**
@@ -435,9 +390,7 @@ public class FileUtils {
 		String ext = null;
 		String s = f.getName();
 		int i = s.lastIndexOf('.');
-		if (f.isDirectory())
-			ext = null;
-		else if (i > 0 && i < s.length() - 1) {
+		if ( ! f.isDirectory() && i > 0 && i < s.length() - 1) {
 			ext = s.substring(i + 1).toLowerCase();
 		}
 		return ext;
@@ -460,7 +413,7 @@ public class FileUtils {
 		File origFile = new File(filename);
 		
 		// check that directory exists and is writable
-		// this will throw an IOExcpetion if the file path is incorrect
+		// this will throw an IOException if the file path is incorrect
 		// if it returns true, do nowt, otherwise - rename existing file		
 		if (origFile.createNewFile()) {			
 			// delete the file straight away - don't want empty files lying around
@@ -477,7 +430,7 @@ public class FileUtils {
 
 		// Determine the name we will use to rename the current file
 		String fileStem = null;
-		Integer fileVersion = 0;
+		int fileVersion = 0;
 		if (!matchFound) {
 			// Original filename has no version so create new filename by
 			// appending ".1"

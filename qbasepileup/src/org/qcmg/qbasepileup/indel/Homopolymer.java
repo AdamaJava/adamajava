@@ -61,26 +61,25 @@ public class Homopolymer {
 		}	
 	}
 
-	private String getSequence() {
+	private void getSequence() {
 		StringBuilder sb = new StringBuilder();
-		
-		for (int i=0; i<upstreamReference.length; i++) {
-			sb.append((char) upstreamReference[i]);
+
+		for (byte b : upstreamReference) {
+			sb.append((char) b);
 		}
-		for (int i=0; i<indelReferenceBases.length; i++) {
+		for (byte indelReferenceBase : indelReferenceBases) {
 			if (position.isDeletion()) {
 				sb.append("_");
-			} else {				
-				sb.append(Character.toLowerCase((char)indelReferenceBases[i]));
+			} else {
+				sb.append(Character.toLowerCase((char) indelReferenceBase));
 			}
-			
+
 		}
-		for (int i=0; i<downstreamReference.length; i++) {
-			sb.append((char) downstreamReference[i]);
+		for (byte b : downstreamReference) {
+			sb.append((char) b);
 		}
 		
-		this.sequence = sb.toString();	
-		return this.sequence;
+		this.sequence = sb.toString();
 	}
 
 	private void countContiguousBases() {
@@ -165,9 +164,10 @@ public class Homopolymer {
 			//embedded
 			char base = (char) upstreamReference[finalUpIndex];
 			boolean match = true;
-			for (int i=0; i< indelReferenceBases.length; i++) {
-				if ((char) indelReferenceBases[i] != base) {
+			for (byte indelReferenceBase : indelReferenceBases) {
+				if ((char) indelReferenceBase != base) {
 					match = false;
+					break;
 				}
 			}
 			if (match) {
@@ -247,7 +247,7 @@ public class Homopolymer {
 		} catch (Exception e) {
 			
 	        logger.info("Error retrieving reference bases for: " + position.toString());
-	        logger.info("Error: " + QBasePileupUtil.getStrackTrace(e));
+	        logger.info("Error: " + QBasePileupUtil.getStackTrace(e));
 		    return false;
 		}
 		return true;		
