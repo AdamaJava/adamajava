@@ -19,11 +19,11 @@ public final class TagValueFilter implements SamRecordFilter{
 
 
     /**
-     * initilise optional field name, comparator and field value
+     * initialise optional field name, comparator and field value
      * @param tag : the optional field name,it will be convert to upper case automatically.
      * @param comp: see details of valid comparator on org.qcmg.qbamfilter.filter.Comparator.
      * @param value:  a string value.
-     * See usage on method filterout.
+     * See usage on method filterOut.
      */
     public TagValueFilter(String tag, Comparator comp, String value ){
         tagShort = stu.makeBinaryTag(tag);
@@ -44,12 +44,10 @@ public final class TagValueFilter implements SamRecordFilter{
         //if that tag fileld is not exists, it return null
         Object ob = record.getAttribute(tagShort);
 
-        if(ob != null){
+        if (ob != null) {
             return op.eval(ob.toString(),value );
         }
-
         return false;
-
     }
 
     /**

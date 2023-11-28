@@ -10,30 +10,26 @@ import htsjdk.samtools.filter.SamRecordFilter;
 import htsjdk.samtools.SAMRecord;
 
 public class QualFilter implements SamRecordFilter {
-	private boolean averageFilter = false;
     private final int value;
     private final Comparator op;
     
     /**
-     * An constructor of QualFilter. Below example shows it check the read with average PHRED quality score greater than 20 
+     * A constructor of QualFilter. Below example shows it check the read with average PHRED quality score greater than 20
      * @param operatorName eg. "average"
      * @param comp	       eg. ">"
      * @param value        eg. "20" 
      * @throws Exception
      */
     public QualFilter(String operatorName, Comparator comp, String value) throws Exception{
-        try{
-            this.value = Integer.valueOf(value);
-        }catch(Exception e){
-            throw new Exception("non integer value used in QUAL field filter: QUAL_" +operatorName + comp.GetString() + value);
+        try {
+            this.value = Integer.parseInt(value);
+        } catch(Exception e) {
+            throw new Exception("non integer value used in QUAL field filter: QUAL_" +operatorName + comp.getString() + value);
         }
         op = comp;
-        if(operatorName.equalsIgnoreCase("average")){
-            averageFilter = true;            
+        if ( ! "average".equalsIgnoreCase(operatorName)) {
+            throw new Exception("invalid QUAL String operator: " + operatorName  + "in query condition QUAL_" + operatorName );
         }
-        else{
-            throw new Exception("invaid QUAL String operator: " + operatorName  + "in query condition QUAL_" + operatorName );
-        }             
     }
     
     /**
@@ -49,7 +45,9 @@ public class QualFilter implements SamRecordFilter {
     	byte[] qualities = record.getBaseQualities();
     	
     	int total = 0;
-    	for (byte q : qualities) total += q;
+    	for (byte q : qualities) {
+            total += q;
+        }
     	int ave = total / qualities.length;
     
     	return op.eval(ave, value );

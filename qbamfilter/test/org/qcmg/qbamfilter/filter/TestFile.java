@@ -24,11 +24,11 @@ public class TestFile {
      * 1040 -> 100,0001,0000
      * 177  -> 1011,0001
      */
-    public static void CreateBAM(String fileName){
+    public static void createBAM(String fileName){
 
-          List<String> data = new ArrayList<String>();
-          data.addAll(CreateSamHeader());
-          data.addAll(CreateSamBody());
+          List<String> data = new ArrayList<>();
+          data.addAll(createSamHeader());
+          data.addAll(createSamBody());
 
          BufferedWriter out;
          try {
@@ -43,8 +43,8 @@ public class TestFile {
          }
    }
 
-    private static List<String> CreateSamHeader(){
-        List<String> data = new ArrayList<String>();
+    private static List<String> createSamHeader(){
+        List<String> data = new ArrayList<>();
         data.add("@HD	VN:1.0	SO:coordinate");
         data.add("@RG	ID:1959T	SM:eBeads_20091110_CD	DS:rl=50");
         data.add("@PG	ID:qbamfilter::Test	VN:0.2pre");
@@ -54,8 +54,8 @@ public class TestFile {
         return data;
     }
 
-    private static List<String> CreateSamBody(){
-        List<String> data = new ArrayList<String>();
+    private static List<String> createSamBody(){
+        List<String> data = new ArrayList<>();
         data.add("243_146_202	115	chr1	10075	6	13H37M	chr1	10167	142	" +
                         "ACCCTAACCCTAACCCTAACCNTAACCCTAACCCAAC	+3?GH##;9@D7HI5,:IIB\"!\"II##>II$$BIIC3	" +
                         "RG:Z:1959T	CS:Z:T11010020320310312010320010320013320012232201032202	CQ:Z:**:921$795*#5:;##):<5&'/=,,9(2*#453-'%(.2$6&39$+4'	ZM:i:1");
@@ -77,8 +77,8 @@ public class TestFile {
     
     
     static void CreateBAM_MD(String fileName){
-              List<String> data = new ArrayList<String>();
-          data.addAll(CreateSamHeader());
+          List<String> data = new ArrayList<>();
+          data.addAll(createSamHeader());
           data.addAll(CreateSamBody_MD());
 
          BufferedWriter out;
@@ -94,7 +94,7 @@ public class TestFile {
          }
     }
     private static List<String> CreateSamBody_MD(){
-        List<String> data = new ArrayList<String>();
+        List<String> data = new ArrayList<>();
         data.add("2257_1059_987	131	chr1	10392	0	48M2H	=	11897	1555	CCTAACCCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAA	IIIIIIIIIIIIIIIHI$$IIFI;EII@F))I>9G9?I?AI))IE78G	NH:i:2	RG:Z:1959T	CS:Z:G30230100023010023000023010023000023010023000023003	CQ:Z:7=<?<287476;878274$5;073)=<107)<:%53'95+78):51'26/	SM:i:1	CM:i:3	NM:i:0	MD:Z:48");
         data.add("620_1272_1494	81	chr1	11549	2	1H49M	chr1	51432809	0	AATATGTTTAATTTGTGAACTGATTACCATCAGAATTGTACTGTTCTGT	@8>ICAHII:6IBAC<EII@EIID-2EFIIIIII?-FIIIIIIIIEIII	NH:i:2	RG:Z:1959T	CS:Z:T31122011213110302212310100321210211100303001133303	CQ:Z::>87/;=A=/A>=*$<9>19?9.82-839-4:51,8*91&5563/58'2/	SM:i:3	CM:i:1	NM:i:0");
         data.add("1191_1384_1167	131	chr1	10394	0	50M	=	11493	1149	TAACCCTTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCC	HIIIFGIIIIIIIIH>HIAEIACIIII))IB7E,,I&&A;@I<4F//I>,	NH:i:2	RG:Z:1959T	CS:Z:G13010020301002301002301002300002300000301002300000	CQ:Z:36<;5269><:=9:63,=9)=:(<>;<6);7,,:,>;&,6&;4),;/<3,	SM:i:0	CM:i:6	NM:i:1	MD:Z:6C43");

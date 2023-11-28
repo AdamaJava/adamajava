@@ -34,7 +34,6 @@ public class QueryMT {
 	public class WritingUnmatched implements Runnable {
 		private final File unmatchedFile;
 		private final AbstractQueue<SAMRecord> outBadQueue;
-		private final Thread currentThread;
 		private final CountDownLatch fLatch;
 		private final CountDownLatch wBadLatch;
 		private final CountDownLatch wGoodLatch;
@@ -44,7 +43,6 @@ public class QueryMT {
 				CountDownLatch fLatch, CountDownLatch wGoodLatch, CountDownLatch wBadLatch) {
 			this.unmatchedFile = funmatch;
 			this.outBadQueue = outBadQueue;
-			this.currentThread = currentThread;
 			this.fLatch = fLatch;
 			this.wBadLatch = wBadLatch;
 			this.wGoodLatch = wGoodLatch;
@@ -132,10 +130,10 @@ public class QueryMT {
 
 	public void executor() throws Exception {
 		// create queue to store the records from input
-		final AbstractQueue<SAMRecordFilterWrapper> readQueue = new ConcurrentLinkedQueue<SAMRecordFilterWrapper>();
-		final AbstractQueue<SAMRecordFilterWrapper> postfilteringQueue = new ConcurrentLinkedQueue<SAMRecordFilterWrapper>();
+		final AbstractQueue<SAMRecordFilterWrapper> readQueue = new ConcurrentLinkedQueue<>();
+		final AbstractQueue<SAMRecordFilterWrapper> postfilteringQueue = new ConcurrentLinkedQueue<>();
 		final AbstractQueue<SAMRecord> outBadQueue = filterOut == null ? null
-				: new ConcurrentLinkedQueue<SAMRecord>();
+				: new ConcurrentLinkedQueue<>();
 
 		final CountDownLatch rLatch = new CountDownLatch(1); // reading thread
 		final CountDownLatch fLatch = new CountDownLatch(noOfThreads); // filtering
@@ -177,8 +175,7 @@ public class QueryMT {
 		}
 		filterThreads.shutdown();
 
-		// setpup and kick-off single reading thread
-		// Reading Thread
+		// setup and kick-off single reading thread
 		ExecutorService readThreads = Executors.newSingleThreadExecutor();
 		readThreads.execute(new Reading(readQueue, Thread.currentThread(),
 				rLatch, fLatch));
@@ -236,7 +233,7 @@ public class QueryMT {
 			logger.info("start read input: " + input.getAbsolutePath());
 			int countSleep = 0;
 			long count = 0;
-			try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(input, null, validation);){
+			try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(input, null, validation)){
 				for (SAMRecord record : reader) {
 					SAMRecordFilterWrapper wrapper = new SAMRecordFilterWrapper(record, ++count);
 					queue.add(wrapper);
@@ -266,7 +263,7 @@ public class QueryMT {
 			} finally {
 				rLatch.countDown();
 				logger.debug(String.format("Exit Reading thread, total slept %d times * %d milli-seconds, "
-					+ "since input queue are full.fLatch  is %d; queus size is %d ",
+					+ "since input queue are full.fLatch  is %d; queues size is %d ",
 					countSleep, sleepUnit, fLatch.getCount(), queue.size()));
 			}
 
@@ -300,8 +297,7 @@ public class QueryMT {
 		Filtering(AbstractQueue<SAMRecordFilterWrapper> qIn,
 				AbstractQueue<SAMRecordFilterWrapper> qOut, Thread mainThread,
 				CountDownLatch rLatch, CountDownLatch fLatch,
-				CountDownLatch wGoodLatch, CountDownLatch wBadLatch)
-				throws Exception {
+				CountDownLatch wGoodLatch, CountDownLatch wBadLatch) {
 			this.qIn = qIn;
 			this.qOut = qOut;
 			this.mainThread = mainThread;
@@ -340,7 +336,7 @@ public class QueryMT {
 							sleepcount++;
 						} catch (InterruptedException e) {
 							logger.info(Thread.currentThread().getName() + " "
-									+ e.toString());
+									+ e);
 						}
 
 					} else {
@@ -422,7 +418,7 @@ public class QueryMT {
 				logger.info("create index file " + index);
 				
 				try {
-					List<SAMRecordFilterWrapper> unorderedRecords = new ArrayList<SAMRecordFilterWrapper>();
+					List<SAMRecordFilterWrapper> unorderedRecords = new ArrayList<>();
 					SAMRecordFilterWrapper record;
 					while (run) {
 						// when queue is empty,maybe filtering is done

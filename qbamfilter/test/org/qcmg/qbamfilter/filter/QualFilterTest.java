@@ -1,9 +1,5 @@
 package org.qcmg.qbamfilter.filter;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
 import java.io.File;
 
 import htsjdk.samtools.filter.SamRecordFilter;
@@ -15,13 +11,15 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.qcmg.picard.SAMFileReaderFactory;
 
+import static org.junit.Assert.*;
+
 
 public class QualFilterTest {
 	
  @BeforeClass
     public static void before(){
         //create testing data regardless whether it exists or not, Since old testing data maybe damaged.
-        TestFile.CreateBAM(TestFile.INPUT_FILE_NAME);
+        TestFile.createBAM(TestFile.INPUT_FILE_NAME);
     }
 
     @AfterClass
@@ -43,8 +41,8 @@ public class QualFilterTest {
         	byte[] sQuals = new byte[quals.length];
         	for (int i = 0; i < quals.length; i ++)
         		sQuals[i] = (byte) quals[i];
-        	 
-        	assertTrue( getAverage(sQuals) - 33 == getAverage(bQuals) );
+
+            assertEquals(getAverage(sQuals) - 33, getAverage(bQuals));
         	if(getAverage(sQuals)  >= 53)
         		assertTrue(filter.filterOut(re));	 
         }
@@ -63,15 +61,15 @@ public class QualFilterTest {
     public void setTest() throws Exception{
     	
     	//only read the first read
-        SamReader Inreader = SAMFileReaderFactory.createSAMFileReader(new File(TestFile.INPUT_FILE_NAME));
+        SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(TestFile.INPUT_FILE_NAME));
         SAMRecord record = null ;
-        for( SAMRecord re : Inreader){
-	        	 record = re;
-	        	 break;
+        for( SAMRecord re : reader){
+             record = re;
+             break;
         }
-        Inreader.close();
-        
-        assertEquals(false, record == null);
+        reader.close();
+
+        assertNotNull(record);
         //create a base quality array
         byte[] qualities = new byte[record.getReadLength()];
         for(int i = 0; i < record.getReadLength(); i ++)
@@ -93,25 +91,16 @@ public class QualFilterTest {
         assertTrue(filter.filterOut(record));
         filter = new QualFilter("average", Comparator.Equal, "20");
         assertFalse(filter.filterOut(record));	
- /*       	
-        String qs = "1=14AD==C2+AFHICGGII<IDFHGIG@BH<AFA<CCEEFFGG9G>B@D@;B<GE<G>DDF2CD@>FGC###############################";
-        record.setBaseQualityString(qs);
-        qualities = record.getBaseQualities();
-        for(int i = 0 ; i < qs.length(); i ++)
-          System.out.print(qualities[i] + " ");
-          
-         System.out.println("\n average of new string setting qual is " + getAverage(qualities));
-      */  
     }
     
     @Test
     public void testFilterLowQual() throws Exception {
     	SAMRecord rec = new SAMRecord(null);
     	rec.setBaseQualityString("###");		// # has an ascii score of 35, phred score of 2
-    	
-    	assertEquals(true, new QualFilter("average", Comparator.Small, "20").filterOut(rec));
-    	assertEquals(true, new QualFilter("average", Comparator.SmallEqual, "2").filterOut(rec));
-    	assertEquals(false, new QualFilter("average", Comparator.Great, "20").filterOut(rec));
+
+        assertTrue(new QualFilter("average", Comparator.Small, "20").filterOut(rec));
+        assertTrue(new QualFilter("average", Comparator.SmallEqual, "2").filterOut(rec));
+        assertFalse(new QualFilter("average", Comparator.Great, "20").filterOut(rec));
     }
     
     @Test
@@ -119,14 +108,14 @@ public class QualFilterTest {
     	SAMRecord rec = new SAMRecord(null);
     	String quality = "BBBFFFFFFFFFFIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIFFFFIIIIIIIIFFFFFFFFFFFBBBBBB<BBBBBBBBBBB7BBB<'0BBBBB";
     	rec.setBaseQualityString(quality);			// average is 69 ascii -> 36 fasta
-    	
-    	assertEquals(true, new QualFilter("average", Comparator.Great, "30").filterOut(rec));
-    	assertEquals(true, new QualFilter("average", Comparator.Great, "35").filterOut(rec));
-    	assertEquals(true, new QualFilter("average", Comparator.GreatEqual, "36").filterOut(rec));
-    	assertEquals(false, new QualFilter("average", Comparator.GreatEqual, "37").filterOut(rec));
-    	assertEquals(true, new QualFilter("average", Comparator.Small, "100").filterOut(rec));
-    	assertEquals(true, new QualFilter("average", Comparator.Small, "37").filterOut(rec));
-    	assertEquals(false, new QualFilter("average", Comparator.Small, "36").filterOut(rec));
-    	assertEquals(false, new QualFilter("average", Comparator.Small, "0").filterOut(rec));
+
+        assertTrue(new QualFilter("average", Comparator.Great, "30").filterOut(rec));
+        assertTrue(new QualFilter("average", Comparator.Great, "35").filterOut(rec));
+        assertTrue(new QualFilter("average", Comparator.GreatEqual, "36").filterOut(rec));
+        assertFalse(new QualFilter("average", Comparator.GreatEqual, "37").filterOut(rec));
+        assertTrue(new QualFilter("average", Comparator.Small, "100").filterOut(rec));
+        assertTrue(new QualFilter("average", Comparator.Small, "37").filterOut(rec));
+        assertFalse(new QualFilter("average", Comparator.Small, "36").filterOut(rec));
+        assertFalse(new QualFilter("average", Comparator.Small, "0").filterOut(rec));
     }
 }

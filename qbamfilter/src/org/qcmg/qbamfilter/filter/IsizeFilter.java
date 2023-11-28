@@ -14,12 +14,12 @@ public class IsizeFilter implements SamRecordFilter{
     private final Comparator op;
 
      /**
-     * initilize Mapping quality  comparator and operator value
+     * initialize Mapping quality  comparator and operator value
      * @param comp: see details of valid comparator on org.qcmg.qbamfilter.filter.Comparator.
      * @param value:  a integer string.
      */
     public IsizeFilter(Comparator comp, String value ) {
-        this.value = Integer.valueOf(value);
+        this.value = Integer.parseInt(value);
         op = comp;
     }
 
@@ -33,13 +33,7 @@ public class IsizeFilter implements SamRecordFilter{
      */
     @Override 
     public boolean filterOut(final SAMRecord record){
-    	Integer ob = record.getInferredInsertSize();
-
-        if(ob != null){
-              return op.eval(ob, value );
-        }
-
-        return false;
+        return op.eval(record.getInferredInsertSize(), value);
     }
 
     

@@ -51,8 +51,8 @@ public class Condition {
 
 		this.comp = comp;
 		 
-		if(Comparator.GetWildCaseComparator(comp, value) != null)
-			this.value = Comparator.GetWildCaseValue(value);
+		if(Comparator.getWildCaseComparator(comp, value) != null)
+			this.value = Comparator.getWildCaseValue(value);
 		else
 			this.value = value;
 		

@@ -12,7 +12,7 @@ import htsjdk.samtools.SAMRecord;
 public class FlagFilter  implements SamRecordFilter{
     
     private final SAMFlag flag;
-    private final boolean FlagValue;
+    private final boolean flagValue;
     private final Comparator op;
 
     public enum SAMFlag{
@@ -34,28 +34,27 @@ public class FlagFilter  implements SamRecordFilter{
       * we check whether this read is paired or not. If not paired, it return false. So that 
       * you must check whether this SAMRead is valid or not.
       * eg. flag = 0x0000;
-      * query: Flag_ProperPaire == true; // it return false even it isn't a Paired read, rather exception
-      * query: Flag_ProperPaire != true; // it return true even it isn't a Paired read, rather exception
+      * query: Flag_ProperPair == true; // it return false even it isn't a Paired read, rather exception
+      * query: Flag_ProperPair != true; // it return true even it isn't a Paired read, rather exception
       * eg. flag = 0x0002;
-      * query: Flag_properPaire == true; // it return false even it is an invalid flag
+      * query: Flag_properPair == true; // it return false even it is an invalid flag
      */
         public boolean checkFlag(final SAMRecord record){
             boolean readPairedFlag = record.getReadPairedFlag();
-            switch(this){
-                case ReadPaired: return readPairedFlag;
-                case ProperPair: return readPairedFlag && record.getProperPairFlag();
-                case ReadUnmapped: return readPairedFlag && record.getReadUnmappedFlag();
-                case Mateunmapped: return readPairedFlag && record.getMateUnmappedFlag();
-                case ReadNegativeStrand: return record.getReadNegativeStrandFlag();
-                case MateNegativeStrand: return readPairedFlag && record.getMateNegativeStrandFlag();
-                case FirstOfpair: return readPairedFlag && record.getFirstOfPairFlag();
-                case SecondOfpair: return readPairedFlag && record.getSecondOfPairFlag();
-                case NotprimaryAlignment: return record.getNotPrimaryAlignmentFlag();
-                case ReadFailsVendorQuality: return record.getReadFailsVendorQualityCheckFlag();
-                case DuplicateRead: return record.getDuplicateReadFlag();
-                case SupplementaryRead: return record.getSupplementaryAlignmentFlag();
-            }
-            throw new AssertionError("Unknow flag:" + this);
+            return switch (this) {
+                case ReadPaired -> readPairedFlag;
+                case ProperPair -> readPairedFlag && record.getProperPairFlag();
+                case ReadUnmapped -> readPairedFlag && record.getReadUnmappedFlag();
+                case Mateunmapped -> readPairedFlag && record.getMateUnmappedFlag();
+                case ReadNegativeStrand -> record.getReadNegativeStrandFlag();
+                case MateNegativeStrand -> readPairedFlag && record.getMateNegativeStrandFlag();
+                case FirstOfpair -> readPairedFlag && record.getFirstOfPairFlag();
+                case SecondOfpair -> readPairedFlag && record.getSecondOfPairFlag();
+                case NotprimaryAlignment -> record.isSecondaryAlignment();
+                case ReadFailsVendorQuality -> record.getReadFailsVendorQualityCheckFlag();
+                case DuplicateRead -> record.getDuplicateReadFlag();
+                case SupplementaryRead -> record.getSupplementaryAlignmentFlag();
+            };
         }
 
         /**
@@ -63,10 +62,10 @@ public class FlagFilter  implements SamRecordFilter{
          * [ "ReadPaired", "ProperPair","ReadUnmaped","Mateunmapped", "ReadNegativeStrand",
          * "MateNegativeStrand","FirstOfpair","SecondOfpair", "NotprimaryAlignment",
          * "ReadFailsVendorQuality","DuplicateRead"];
-         * @return related SAMFlag based on paramter flagName String;
-         * @throws Exception if paramter flagName is invalid
+         * @return related SAMFlag based on parameter flagName String;
+         * @throws Exception if parameter flagName is invalid
          */
-        final static SAMFlag getFlag(String flagName) throws Exception{
+        static SAMFlag getFlag(String flagName) throws Exception{
             if(flagName.equalsIgnoreCase("ReadPaired")){
                 return  ReadPaired;
             }
@@ -105,63 +104,56 @@ public class FlagFilter  implements SamRecordFilter{
             }
            
             else{
-                throw new Exception("invaid flag name: " + flagName  +
+                throw new Exception("invalid flag name: " + flagName  +
                         "in query condition Flag_" + flagName );
             }
         }
     }
     
     /**
-     * initilize flag name, comparator and flag value
-     * @parm flagName : At moment the valid name are [ReadPaired,ProperPair,ReadUnmapped, 
+     * initialize flag name, comparator and flag value
+     * @param flagName : At moment the valid name are [ReadPaired,ProperPair,ReadUnmapped,
      * Mateunmapped,ReadNegativeStrand,MateNegativeStrand,FirstOfpair,
         SecondOfpair,NotprimaryAlignment,ReadFailsVendorQuality,DuplicateRead,SupplementaryRead].
      * @param comp: only valid on Comparator.Equal and Comparator.NotEqual.
      * See details on org.qcmg.qbamfilter.filter::Comparator.
      * @param value:  only valid at ["true","false", "1", "0" ]
      * @throws Exception if the invalid parameter are exists;
-     * See usage on method filterout.
+     * See usage on method filterOut.
      */
-    public FlagFilter( String flagName,  Comparator comp,  String value )throws Exception{
-        //only boolean type value are varable
+    public FlagFilter( String flagName,  Comparator comp,  String value ) throws Exception {
+        //only boolean type value are variable
         if(value.equalsIgnoreCase("true") || value.equals("1")){
-            FlagValue = true;
-        }
-        else if(value.equalsIgnoreCase("false") || value.equals("0")){
-            FlagValue = false;
-        }
-        else{
+            flagValue = true;
+        } else if(value.equalsIgnoreCase("false") || value.equals("0")){
+            flagValue = false;
+        } else{
             throw new Exception("can't accept non-boolean key value for query key name: "
                     + flagName + ". please try 'true', 'false', '1' or '0'");
         }
         
         //get comparator type
-        if((comp == Comparator.Equal) || (comp == Comparator.NotEqual)){
+        if((comp == Comparator.Equal) || (comp == Comparator.NotEqual)) {
             op = comp;
-        }
-        else{
+        } else {
             throw new Exception("invalid flag comparator: " + flagName +
                     ". Please try '==' or '!='");
         }
 
-        try{
-            flag = SAMFlag.getFlag(flagName);
-        }catch(Exception e){throw e;}
+        flag = SAMFlag.getFlag(flagName);
     }
 
     /**
      * check the record Flag value. 
      * @param record: a SAMRecord
-     * @return true if the Flag is satified by the condition
+     * @return true if the Flag is satisfied by the condition
      * Usage example: if you want filter out all reads with matched base greater equal than 35mers. 
-     * SAMRecordFilter myfilter = new FlagFilter("PorperPair", Comparator.Equal, "true" );
-     * if(myfilter.filterout(record)){ System.out.println(record.toString);}
+     * SAMRecordFilter myfilter = new FlagFilter("ProperPair", Comparator.Equal, "true" );
+     * if(myfilter.filterOut(record)){ System.out.println(record.toString);}
      */
     @Override
 	public boolean filterOut(final SAMRecord record){
-        boolean result = flag.checkFlag(record);
-
-        return op.eval(FlagValue, result);
+        return op.eval(flagValue, flag.checkFlag(record));
     }
     
     /**

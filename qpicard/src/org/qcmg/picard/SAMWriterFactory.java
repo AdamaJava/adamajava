@@ -45,17 +45,17 @@ public class SAMWriterFactory {
 	public SAMWriterFactory(SAMFileHeader header, boolean preSort, File output, File tmpDir ){
 		this(header, preSort, output,tmpDir, 0, true);
 	}
-	public SAMWriterFactory(SAMFileHeader header,  boolean preSort, File output,File tmpDir, boolean createindex){
+	public SAMWriterFactory(SAMFileHeader header,  boolean preSort, File output, File tmpDir, boolean createindex){
 		this(header, preSort, output,tmpDir, 0, createindex);
 	}
 	
-	public SAMWriterFactory(SAMFileHeader header,  boolean preSort, File output,File tmpDir, int ramReads){
+	public SAMWriterFactory(SAMFileHeader header,  boolean preSort, File output, File tmpDir, int ramReads){
 		this(header, preSort, output,tmpDir, ramReads, true);
 	}
-	public SAMWriterFactory(SAMFileHeader header,  boolean preSort, File output,File tmpDir, int ramReads, boolean createIndex){
+	public SAMWriterFactory(SAMFileHeader header,  boolean preSort, File output, File tmpDir, int ramReads, boolean createIndex){
 		this(header, preSort, output,tmpDir, ramReads, createIndex, false);
 	}
-	public SAMWriterFactory(SAMFileHeader header,  boolean preSort, File output,File tmpDir, int ramReads, 
+	public SAMWriterFactory(SAMFileHeader header,  boolean preSort, File output, File tmpDir, int ramReads,
 			boolean createIndex, boolean useAsyncIO){
 		this(header, preSort, output,tmpDir, ramReads, createIndex, useAsyncIO, -1, null);
 	}
@@ -67,7 +67,7 @@ public class SAMWriterFactory {
 	}
 
 	
-	public SAMWriterFactory(SAMFileHeader header,  boolean preSort, File output,File tmpDir, int ramReads, 
+	public SAMWriterFactory(SAMFileHeader header,  boolean preSort, File output, File tmpDir, int ramReads,
 			boolean createIndex, boolean useAsyncIO, int asyncOutputBufferSize, File reference ) {
 		SAMFileWriterFactory factory = new SAMFileWriterFactory();   
 		if (ramReads > 0) {
@@ -95,12 +95,12 @@ public class SAMWriterFactory {
         final String filename = output.getName();
         
         if (BAM_TYPE.hasValidFileExtension(filename)) {
-                 writer = factory.makeBAMWriter(header, preSort, output);                       
-        } else if(CRAM_TYPE.hasValidFileExtension(filename)) {   
-				File ref = (reference == null)? Defaults.REFERENCE_FASTA: reference;            
-                writer = factory.makeCRAMWriter(header, preSort, output, ref);
+			 writer = factory.makeBAMWriter(header, preSort, output);
+        } else if (CRAM_TYPE.hasValidFileExtension(filename)) {
+			File ref = (reference == null)? Defaults.REFERENCE_FASTA: reference;
+			writer = factory.makeCRAMWriter(header, preSort, output, ref);
         } else {
-            if (!SAM_TYPE.hasValidFileExtension(filename)) {
+            if ( ! SAM_TYPE.hasValidFileExtension(filename)) {
                 logger.error("Unknown file extension, assuming SAM format when writing file: " + filename);               
             }
             writer = factory.makeSAMWriter(header, preSort, output);
@@ -125,8 +125,8 @@ public class SAMWriterFactory {
 		try {				
 			//rename index in case of bam/cram
 			BAMFileUtils.renameIndex(output);
-		} catch(IOException e) {
-			logMessage = "IOEXception caught whilst trying to move index file";
+		} catch (IOException e) {
+			logMessage = "IOException caught whilst trying to move index file";
 			logger.error(logMessage, e);
 		}
 		 		

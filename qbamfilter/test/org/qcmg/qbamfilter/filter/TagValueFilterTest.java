@@ -24,7 +24,7 @@ public class TagValueFilterTest {
 
     @Before
     public void before(){
-        TestFile.CreateBAM(TestFile.INPUT_FILE_NAME);
+        TestFile.createBAM(TestFile.INPUT_FILE_NAME);
     }
 
     /**
@@ -37,20 +37,20 @@ public class TagValueFilterTest {
 
         Comparator op = Comparator.Equal;
         TagValueFilter filter = new TagValueFilter(tag, op, value);
-        SamReader Inreader = SAMFileReaderFactory.createSAMFileReader(new File(TestFile.INPUT_FILE_NAME));
+        SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(TestFile.INPUT_FILE_NAME));
         int NunRealRecord = 1;
         int i = 0;
-        for(SAMRecord re : Inreader){
+        for(SAMRecord re : reader){
            if(filter.filterOut(re)){
-               //the filter out record must contain this tag value paire
-               assertTrue(re.getAttribute(tag).toString().equals(value));
+               //the filter out record must contain this tag value pair
+               assertEquals(re.getAttribute(tag).toString(), value);
                 i ++;
            }
         }
 
         //check there is only one record will be filter
-        assertTrue(i == NunRealRecord);
-        Inreader.close();
+        assertEquals(i, NunRealRecord);
+        reader.close();
     }
     
     @Test

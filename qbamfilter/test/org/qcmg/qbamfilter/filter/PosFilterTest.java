@@ -16,7 +16,7 @@ public class PosFilterTest {
 
     @BeforeClass
     public static void before(){
-        TestFile.CreateBAM(TestFile.INPUT_FILE_NAME);
+        TestFile.createBAM(TestFile.INPUT_FILE_NAME);
     }
 
     @AfterClass
@@ -25,7 +25,7 @@ public class PosFilterTest {
     }
    
     /**
-     * In this testing case, we check total number of reads with allignment start
+     * In this testing case, we check total number of reads with alignment start
      * position in [10167, 10176];
      */ 
     @Test
@@ -39,8 +39,8 @@ public class PosFilterTest {
         int NumRealRecord = 0;
         SamRecordFilter filter1 = new PosFilter(op1, value1);
         SamRecordFilter filter2 = new PosFilter(op2, value2);   
-        SamReader Inreader = SAMFileReaderFactory.createSAMFileReader(new File(TestFile.INPUT_FILE_NAME));    //new SAMFileReader(new File(TestFile.INPUT_FILE_NAME));
-        for(SAMRecord re : Inreader){
+        SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(TestFile.INPUT_FILE_NAME));    //new SAMFileReader(new File(TestFile.INPUT_FILE_NAME));
+        for(SAMRecord re : reader){
             int start = re.getAlignmentStart();
            if((start >= start1) && (start <= start2) ){
                NumRealRecord ++;
@@ -50,48 +50,48 @@ public class PosFilterTest {
                 NumCheck ++;
            }
         }
-        Inreader.close();
+        reader.close();
         
         //check there is only one record will be filter
-        assertTrue(NumCheck == NumRealRecord);
+        assertEquals(NumCheck, NumRealRecord);
     }
     
     /**
      * In this testing case, we set an invalid read:
-     * reference * and start postion 100; query: pos == 100
+     * reference * and start position 100; query: pos == 100
      * but our filter still return true;
      * so before run this filter, we must check whether this read isValid or not.
      * see htsjdk.samtools.SAMRecord::isValid()
      */
     @Test
     public void testInvalidMapQ1() throws Exception{
-        SamReader Inreader = SAMFileReaderFactory.createSAMFileReader(new File(TestFile.INPUT_FILE_NAME));    //new SAMFileReader(new File(TestFile.INPUT_FILE_NAME));
-        SamRecordFilter filter = new PosFilter(Comparator.Equal, "100");
-        for(SAMRecord re : Inreader){
-            re.setReferenceName("*");
-            re.setAlignmentStart(100);
-            assertFalse(re.isValid() == null);
-            assertTrue(filter.filterOut(re));
-       }
-
+        try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(TestFile.INPUT_FILE_NAME))) {
+            SamRecordFilter filter = new PosFilter(Comparator.Equal, "100");
+            for (SAMRecord re : reader) {
+                re.setReferenceName("*");
+                re.setAlignmentStart(100);
+                assertNotNull(re.isValid());
+                assertTrue(filter.filterOut(re));
+            }
+        }
     }
         
     /**
      * In this testing case, we set an invalid read:
-     * reference chr1 and start postion 0; query: pos == 0
+     * reference chr1 and start position 0; query: pos == 0
      * but our filter still return true;
      * so before run this filter, we must check whether this read isValid or not.
      * see htsjdk.samtools.SAMRecord::isValid()
      */
     @Test
     public void testInvalidMapQ2() throws Exception{
-        SamReader Inreader = SAMFileReaderFactory.createSAMFileReader(new File(TestFile.INPUT_FILE_NAME));    //new SAMFileReader(new File(TestFile.INPUT_FILE_NAME));
-        SamRecordFilter filter = new PosFilter(Comparator.Equal, "0");
-        for(SAMRecord re : Inreader){
-            re.setAlignmentStart(0);
-            assertFalse(re.isValid() == null);
-            assertTrue(filter.filterOut(re));
-       }
-
+        try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(TestFile.INPUT_FILE_NAME))) {
+            SamRecordFilter filter = new PosFilter(Comparator.Equal, "0");
+            for (SAMRecord re : reader) {
+                re.setAlignmentStart(0);
+                assertNotNull(re.isValid());
+                assertTrue(filter.filterOut(re));
+            }
+        }
     }
 }

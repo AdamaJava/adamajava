@@ -13,7 +13,7 @@ import java.io.File;
 public class MRNMFilterTest {
     @BeforeClass
     public static void before(){
-        TestFile.CreateBAM(TestFile.INPUT_FILE_NAME);
+        TestFile.createBAM(TestFile.INPUT_FILE_NAME);
     }
 
     @AfterClass
@@ -23,32 +23,32 @@ public class MRNMFilterTest {
 
     @Test
     public void testRNMAE() throws Exception{
-            int EqualNum = 0;
-            int UnequalNum = 0;
-            SamRecordFilter filter1 = new MRNMFilter(Comparator.Equal, "rname");
-            SamRecordFilter filter2 = new MRNMFilter(Comparator.NotEqual, "RNAME");
+        int EqualNum = 0;
+        int UnequalNum = 0;
+        SamRecordFilter filter1 = new MRNMFilter(Comparator.Equal, "rname");
+        SamRecordFilter filter2 = new MRNMFilter(Comparator.NotEqual, "RNAME");
 
-            SamReader Inreader = SAMFileReaderFactory.createSAMFileReader(new File(TestFile.INPUT_FILE_NAME));    //new SAMFileReader(new File(TestFile.INPUT_FILE_NAME));
-            for(SAMRecord re : Inreader){
-                String ref = re.getReferenceName();
-                //picard will convert "=" to string from reference name
-                String mref = re.getMateReferenceName();
-                if( ref.equals(mref) ){
-                    assertTrue(filter1.filterOut(re));
-                    assertFalse(filter2.filterOut(re));
-                    EqualNum ++;
-                }
-                else{
-                    System.out.println(ref + " compare with " + mref);
-                    assertTrue(filter2.filterOut(re));
-                    assertFalse(filter1.filterOut(re));
-                    UnequalNum ++;
-                }
+        SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(TestFile.INPUT_FILE_NAME));    //new SAMFileReader(new File(TestFile.INPUT_FILE_NAME));
+        for(SAMRecord re : reader){
+            String ref = re.getReferenceName();
+            //picard will convert "=" to string from reference name
+            String mref = re.getMateReferenceName();
+            if( ref.equals(mref) ){
+                assertTrue(filter1.filterOut(re));
+                assertFalse(filter2.filterOut(re));
+                EqualNum ++;
             }
-            Inreader.close();
-            assertTrue(EqualNum == 3);
-            assertTrue(UnequalNum == 2);
-
+            else{
+                System.out.println(ref + " compare with " + mref);
+                assertTrue(filter2.filterOut(re));
+                assertFalse(filter1.filterOut(re));
+                UnequalNum ++;
+            }
         }
+        reader.close();
+        assertEquals(3, EqualNum);
+        assertEquals(2, UnequalNum);
+
+    }
 
 }

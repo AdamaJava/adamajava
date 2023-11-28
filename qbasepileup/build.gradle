@@ -17,7 +17,7 @@ dependencies {
     implementation project(':qcommon')
     implementation project(':qbamfilter')
     implementation project(':qpileup')
-    implementation 'com.github.samtools:htsjdk:2.24.1'
+    implementation 'com.github.samtools:htsjdk:4.0.2'
     implementation 'net.sf.jopt-simple:jopt-simple:4.6'
     testImplementation  'org.easymock:easymock:5.2.0'
 }
