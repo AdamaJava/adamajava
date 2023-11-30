@@ -17,7 +17,7 @@ public class SamTestData {
 	
 	public static int large_value = 10 * 1000;
 
-	public static final void createAllTestFiles() throws FileNotFoundException, IOException  {
+	public static void createAllTestFiles() throws FileNotFoundException, IOException  {
 		createFirstSam(new File(FILE_NAME_A), false);
 		createSecondSam(new File(FILE_NAME_B), false);
 		createThirdSam(new File(FILE_NAME_C), false);
