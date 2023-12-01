@@ -10,6 +10,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.qcmg.picard.SAMFileReaderFactory;
@@ -103,7 +104,7 @@ public class BAMFileUtils {
 			if (null != toReplace) {
 				final int index = originalIndexName.lastIndexOf('.');
 				String originalIndexNameMinusSuffix = (index > 0 && index > originalIndexName.lastIndexOf(File.separator)) ? originalIndexName.substring(0, index) : originalIndexName;
-			/*
+            /*
 			check to see if we end with either .cram or .bam - if so, change "toReplace" to just include the index part
 			 */
 				if (originalIndexNameMinusSuffix.endsWith(FileExtensions.CRAM)) {
@@ -111,7 +112,8 @@ public class BAMFileUtils {
 				} else if (originalIndexNameMinusSuffix.endsWith(FileExtensions.BAM)) {
 					toReplace = FileExtensions.BAI_INDEX;
 				}
-				Path updatedIndex = IOUtil.addExtension(Paths.get(originalIndex.getParentFile().getPath(), originalIndexNameMinusSuffix), toReplace);
+				String parentFile = Objects.requireNonNullElse(originalIndex.getParent(),  "");
+				Path updatedIndex = IOUtil.addExtension(Paths.get(parentFile, originalIndexNameMinusSuffix), toReplace);
 
 				Files.move(originalIndex.toPath(), updatedIndex, StandardCopyOption.REPLACE_EXISTING);
 			}

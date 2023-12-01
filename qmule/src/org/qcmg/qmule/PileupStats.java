@@ -28,8 +28,7 @@ import org.qcmg.common.util.FileUtils;
 import org.qcmg.picard.SAMFileReaderFactory;
 
 public class PileupStats {
-	
-	private String logFile;
+
 	private File inputFile;
 	private File outputFile;
 	private File bamFile;
@@ -46,7 +45,7 @@ public class PileupStats {
 		while ((line = reader.readLine()) != null) {
 			String[] values = line.split("\t");			
 			
-			String result = pileup(values[0], new Integer(values[1]), new Integer(values[2]));
+			String result = pileup(values[0], Integer.parseInt(values[1]), Integer.parseInt(values[2]));
 			
 			writer.write(line + "\t" + result + "\n");
 			//System.out.println(line + "\t " + result);
@@ -81,8 +80,8 @@ public class PileupStats {
 		int totalSoftClips = 0;
 		int totalHardClips = 0;
 		int totalIndels = 0;
-		TreeMap<Integer, Integer> spliceMap = new TreeMap<Integer, Integer>();
-		TreeMap<Integer, Integer> mismatchMap = new TreeMap<Integer, Integer>();
+		TreeMap<Integer, Integer> spliceMap = new TreeMap<>();
+		TreeMap<Integer, Integer> mismatchMap = new TreeMap<>();
 		
 		while (iterator.hasNext()) {
 			SAMRecord record = iterator.next();
@@ -114,7 +113,7 @@ public class PileupStats {
 						}
 						if (ce.getOperator().equals(CigarOperator.N)) {
 							totalSpliced++;
-							Integer length = new Integer(ce.getLength());
+							int length = ce.getLength();
 							int count = 1;							
 							if (spliceMap.containsKey(length)) {
 								count += spliceMap.get(length);								
@@ -144,19 +143,18 @@ public class PileupStats {
 		reader.close();
 		
 		String spliceCounts = getMapString(spliceMap);	
-		String mismatchCounts = getMapString(mismatchMap);		
-		
-		String result = totalReads + "\t" + totalUnmapped + "\t" + totalMatesUnmapped + "\t" + totalIndels + "\t"
-		+ totalMismatches + "\t" + totalSoftClips + "\t" + totalHardClips + "\t" + totalSpliced + "\t" + totalDuplicates 
-		 + "\t" + mismatchCounts + "\t" + spliceCounts; 
-		return result;
+		String mismatchCounts = getMapString(mismatchMap);
+
+		return totalReads + "\t" + totalUnmapped + "\t" + totalMatesUnmapped + "\t" + totalIndels + "\t"
+		+ totalMismatches + "\t" + totalSoftClips + "\t" + totalHardClips + "\t" + totalSpliced + "\t" + totalDuplicates
+		 + "\t" + mismatchCounts + "\t" + spliceCounts;
 	}
 	
     private String getMapString(TreeMap<Integer, Integer> map) {
     	StringBuilder sb = new StringBuilder();
     	
     	for (Entry<Integer, Integer> entry: map.entrySet()) {
-    		sb.append(entry.getKey() + ":" + entry.getValue() + ";");
+    		sb.append(entry.getKey()).append(":").append(entry.getValue()).append(";");
     	}
     	
     	return sb.toString();
@@ -182,7 +180,7 @@ public class PileupStats {
 		return c == 'A' || c == 'C' || c == 'G' || c == 'T' || c == 'N';
 	}
 
-	protected int setup(String args[]) throws Exception{
+	protected int setup(String [] args) throws Exception {
 		int returnStatus = 1;
 		if (null == args || args.length == 0) {
 			System.err.println(Messages.USAGE);
@@ -203,7 +201,7 @@ public class PileupStats {
 			System.err.println(Messages.USAGE);
 		} else {
 			// configure logging
-			logFile = options.getLogFile();
+			String logFile = options.getLogFile();
 			logger = QLoggerFactory.getLogger(PileupStats.class, logFile, options.getLogLevel());
 			logger.logInitialExecutionStats("PileupStats", PileupStats.class.getPackage().getImplementationVersion(), args);
 			
@@ -213,9 +211,9 @@ public class PileupStats {
 				throw new QMuleException("INSUFFICIENT_ARGUMENTS");
 			} else {
 				// loop through supplied files - check they can be read
-				for (int i = 0 ; i < cmdLineInputFiles.length ; i++ ) {
-					if ( ! FileUtils.canFileBeRead(cmdLineInputFiles[i])) {
-						throw new QMuleException("INPUT_FILE_READ_ERROR" , cmdLineInputFiles[i]);
+				for (String cmdLineInputFile : cmdLineInputFiles) {
+					if (!FileUtils.canFileBeRead(cmdLineInputFile)) {
+						throw new QMuleException("INPUT_FILE_READ_ERROR", cmdLineInputFile);
 					}
 				}
 			}		

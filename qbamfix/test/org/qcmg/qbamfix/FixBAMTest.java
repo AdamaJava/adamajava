@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.HashMap;
+import java.util.Map;
 
 import htsjdk.samtools.SamReader;
 import htsjdk.samtools.SAMRecord;
@@ -39,15 +40,15 @@ public class FixBAMTest {
 		
 		FixBAM myfix = new FixBAM( new File(INPUT_FILE_NAME), new File(OUTPUT_FILE_NAME) ,TMP_FILE, log, 101);
 		List<SAMRecord> badReads = myfix.firstFilterRun( TMP_FILE );
-		Assert.assertTrue(badReads.size() == 4);
+		Assert.assertEquals(4, badReads.size());
 		Assert.assertTrue(TMP_FILE.exists());
 		Assert.assertTrue( new File("tmp.bam.bai").exists() );
 		Assert.assertEquals(countOutputRecord(TMP_FILE), 4);
 		
-		HashMap<String, Integer> badMates = myfix.checkMate(badReads, TMP_FILE); 		
-		Assert.assertTrue(badMates.size() == 0);
+		Map<String, Integer> badMates = myfix.checkMate(badReads, TMP_FILE);
+		Assert.assertEquals(0, badMates.size());
 		
-		//rename tmp to output, then there should no tmp files and ouptut contains 4 records
+		//rename tmp to output, then there should no tmp files and output contains 4 records
 		myfix.tmp2outputBAM(TMP_FILE);
 		Assert.assertFalse(TMP_FILE.exists());
 		Assert.assertFalse( new File("tmp.bam.bai").exists() );		
@@ -56,7 +57,7 @@ public class FixBAMTest {
 	}
 	
 	@Test
-	public void withBadMateTest() throws Exception{
+	public void withBadMateTest() throws Exception {
 		//add a mate record with different length with pair
 		//createInput();
 		appendInput("HWI-ST1243:96:C0VM0ACXX:6:1310:3269:47175	83	chr1	125562470	0	101M	=	125562393	-151	CATGGGTCATCCCCTTCACTCCCAGCTCAGAGCCCAGGCCAGGGGCCCCCAAGAAAGGCTCTGGTGGAGAACCTGTGCATGAAGGCTGTCAACCAGTCCAT	CCBADDDB>BDDDDECA8DDDDDDCCDDDDCDDDDEEEFFFFHHJJJIIJJJJJIJJJJJJJJJJJJJIIGJJJIIJJJJJJJJIIJJHHHHHFFFFFCCC	X0:i:5	X1:i:1	MD:Z:101	RG:Z:20120806104508577	XG:i:0	AM:i:0	NM:i:0	SM:i:0	XM:i:0	XO:i:0	XT:A:R");
@@ -64,11 +65,11 @@ public class FixBAMTest {
 		FixBAM myfix = new FixBAM(new File(INPUT_FILE_NAME), new File(OUTPUT_FILE_NAME) ,TMP_FILE, log,101);
 		
 		List<SAMRecord> badReads = myfix.firstFilterRun( TMP_FILE );
-		Assert.assertTrue(badReads.size() == 3);
+		Assert.assertEquals(3, badReads.size());
 		 
 		
-		HashMap<String, Integer> badMates = myfix.checkMate(badReads,  TMP_FILE ); 
-		Assert.assertTrue(badMates.size() == 1); //one mate of bad reads contains in  
+		Map<String, Integer> badMates = myfix.checkMate(badReads,  TMP_FILE);
+		Assert.assertEquals(1, badMates.size()); //one mate of bad reads contains in
 		
 		Assert.assertTrue(TMP_FILE.exists());
 		Assert.assertTrue( new File("tmp.bam.bai").exists() );
@@ -83,8 +84,8 @@ public class FixBAMTest {
 	
 	private int countOutputRecord(File output) throws IOException{
 		int num = 0;		
-		try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(output, null, ValidationStringency.SILENT);) {		
-			for( SAMRecord record : reader) num++;			 	
+		try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(output, null, ValidationStringency.SILENT)) {
+			for( SAMRecord ignored : reader) num++;
 		}
 		return num;
 	}
@@ -99,7 +100,7 @@ public class FixBAMTest {
 	}
 	@Before
 	public void createInput(){
-		List<String> data = new ArrayList<String>();
+		List<String> data = new ArrayList<>();
 		data.add("@HD	VN:1.0	SO:coordinate");	
 		data.add("@SQ	SN:chr1	LN:249250621");
 		data.add("@SQ	SN:chr11	LN:243199373");
@@ -114,7 +115,7 @@ public class FixBAMTest {
 		data.add("HWI-ST1243:96:C0VM0ACXX:6:1310:3269:47175	163	chr1	125562393	60	74M	=	125562470	151	GAGCCCTTCAGGTTCCAGGCGAATAACCAGCCTGCCATGGAGGCTGCCAATGAGTCTTCAGAGGGAATCTCATT	@CCFFFFFGGGHHJFJJHHIIJIJJJJFGHJJJJJJJJJJJJJJJIJIJJJJJJIGIGJJJJJGFHFFDCDDDD	X0:i:1	X1:i:0	ZC:i:0	MD:Z:0C4T0G0C2T1G0A0G0G0C0T2C3G1G0T0C0T0T1A1A0G0G0G0A0A0T0C0T1A0T0T1G0T1T0T0A1T0G0G0G1C0T1A0C2C0A0A0G0T0C0C0	RG:Z:20120806104508577	XG:i:0	AM:i:37	NM:i:51	SM:i:37	XM:i:0	XO:i:0	XT:A:U");
  						
 		try 
-		(BufferedWriter out= new BufferedWriter(new FileWriter(INPUT_FILE_NAME));) {		 
+		(BufferedWriter out= new BufferedWriter(new FileWriter(INPUT_FILE_NAME))) {
 			for (String line : data) {
 					out.write(line + "\n");
 			}

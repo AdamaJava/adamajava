@@ -32,12 +32,13 @@ public class TestSort {
 		maxRecordsInRam = Integer.parseInt(args[2]);		 
 		 
     	String sortOrder = args[3];
-    	if(sortOrder.equalsIgnoreCase("coordinate"))
-    		sort = SAMFileHeader.SortOrder.coordinate;
-    	else if(sortOrder.equalsIgnoreCase("queryname"))
-    		sort = SAMFileHeader.SortOrder.queryname;
-    	else if(! sortOrder.equalsIgnoreCase("unsorted"))
-    		throw new Exception( sortOrder +  " isn't valid SAMFileHeader sort order!");    	
+    	if (sortOrder.equalsIgnoreCase("coordinate")) {
+			sort = SAMFileHeader.SortOrder.coordinate;
+		} else if (sortOrder.equalsIgnoreCase("queryname")) {
+			sort = SAMFileHeader.SortOrder.queryname;
+		} else if (! sortOrder.equalsIgnoreCase("unsorted")) {
+			throw new Exception(sortOrder + " isn't valid SAMFileHeader sort order!");
+		}
     	
     	System.out.println(getTime() + " host: " + InetAddress.getLocalHost().getHostName());
     	System.out.println(getTime() + " input: " + input.getAbsolutePath());
@@ -53,27 +54,28 @@ public class TestSort {
 		SAMFileWriterFactory writeFactory = new SAMFileWriterFactory();                         
 	    htsjdk.samtools.SAMFileWriterImpl.setDefaultMaxRecordsInRam(maxRecordsInRam );  	
 	    header.setSortOrder(sort);
-	    if(sort.equals(SAMFileHeader.SortOrder.coordinate))
-	    	 writeFactory.setCreateIndex(true);                                
+	    if (sort.equals(SAMFileHeader.SortOrder.coordinate)) {
+			writeFactory.setCreateIndex(true);
+		}
 	    final SAMFileWriter writer = writeFactory.makeSAMOrBAMWriter(header, false, output);
 		
 	    int num = 0;
 		for (SAMRecord record : reader) {
-			if(num % maxRecordsInRam == 0)
+			if (num % maxRecordsInRam == 0) {
 				printRunInfo(num);
+			}
 			
 			writer.addAlignment(record);	
 			num ++;
 		}
 		
-//		System.out.println(getTime() + " Merging tmp into output BAM, tmp location are " +  htsjdk.samtools.util.IOUtil.getDefaultTmpDir());
 		reader.close();
 		writer.close();
 		
 		System.out.println(getTime() + " created output: " + output.getAbsolutePath());		
 	}
 	
-	private void printRunInfo(int number) throws IOException{
+	private void printRunInfo(int number) {
 		Runtime runtime = Runtime.getRuntime();
 		int mb = 1024 * 1024;
 		long totalRAM = runtime.totalMemory() / mb;
@@ -81,7 +83,7 @@ public class TestSort {
  
 		String dateNow = getTime();
 		
-		String info = String.format("%s read %d record. Total memeory: %dM, used memory: %dM",
+		String info = String.format("%s read %d record. Total memory: %dM, used memory: %dM",
 				dateNow, number, totalRAM, usedRAM);
 		
 		System.out.println(info);
@@ -94,16 +96,14 @@ public class TestSort {
 	}
 	
 	public static void main(final String[] args) {
-		try{
+		try {
 			TestSort mysort = new TestSort(args); 
 			mysort.Sorting();
 			System.exit(0);
-		}catch(Exception e){	
+		} catch (Exception e) {
 			System.err.println("usage:qmule.TestSort <input> <output> <maxRecordInRAM> [queryname/coordinate/unsorted]");
 			System.err.println(e.toString());
 			System.exit(1);			
 		}
-		
-		
 	}
 }
