@@ -13,7 +13,7 @@ import java.io.File;
 public class RNameFilterTest {
     @BeforeClass
     public static void before(){
-        TestFile.CreateBAM(TestFile.INPUT_FILE_NAME);
+        TestFile.createBAM(TestFile.INPUT_FILE_NAME);
     }
 
     @AfterClass
@@ -31,8 +31,8 @@ public class RNameFilterTest {
         int NumRealRecord = 0;
         SamRecordFilter filter1 = new RNameFilter(Comparator.Equal, "chr1");
         SamRecordFilter filter2 = new RNameFilter(Comparator.NotEqual, "chr1");
-        SamReader Inreader = SAMFileReaderFactory.createSAMFileReader(new File(TestFile.INPUT_FILE_NAME));
-        for(SAMRecord re : Inreader){
+        SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(TestFile.INPUT_FILE_NAME));
+        for(SAMRecord re : reader){
             String chr = re.getReferenceName();
            if(chr.equalsIgnoreCase("chr1") ){
                NumRealRecord ++;
@@ -49,10 +49,10 @@ public class RNameFilterTest {
            assertTrue(filter2.filterOut(re));
            assertFalse(filter1.filterOut(re));
         }
-        Inreader.close();
+        reader.close();
 
         //check there is only one record will be filter
-        assertTrue(NumCheck == NumRealRecord);
+        assertEquals(NumCheck, NumRealRecord);
     }
     @Test
     public void testMRNMOut() throws Exception{
@@ -61,8 +61,8 @@ public class RNameFilterTest {
         SamRecordFilter filter1 = new RNameFilter(Comparator.Equal, "mrnm");
         SamRecordFilter filter2 = new RNameFilter(Comparator.NotEqual, "MRNM");
 
-        SamReader Inreader = SAMFileReaderFactory.createSAMFileReader(new File(TestFile.INPUT_FILE_NAME));
-        for(SAMRecord re : Inreader){
+        SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(TestFile.INPUT_FILE_NAME));
+        for(SAMRecord re : reader){
             String ref = re.getReferenceName();
             //picard will convert "=" to string from reference name
             String mref = re.getMateReferenceName();
@@ -78,9 +78,9 @@ public class RNameFilterTest {
                 UnequalNum ++;
             }
         }
-        Inreader.close();
-        assertTrue(EqualNum == 3);
-        assertTrue(UnequalNum == 2);
+        reader.close();
+        assertEquals(3, EqualNum);
+        assertEquals(2, UnequalNum);
 
     }
     /**

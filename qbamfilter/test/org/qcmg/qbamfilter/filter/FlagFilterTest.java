@@ -5,7 +5,6 @@
 
 package org.qcmg.qbamfilter.filter;
 
-
 import org.junit.*;
 import org.qcmg.picard.SAMFileReaderFactory;
 
@@ -20,7 +19,7 @@ public class FlagFilterTest {
     @BeforeClass
     public static void before(){
         //create testing data regardless whether it exists or not, Since old testing data maybe damaged.
-        TestFile.CreateBAM(TestFile.INPUT_FILE_NAME);
+        TestFile.createBAM(TestFile.INPUT_FILE_NAME);
     }
 
     @AfterClass
@@ -34,7 +33,7 @@ public class FlagFilterTest {
      * eg. Flag_ProperPaire != true; // it return false if it isn't a Paired read rather exception
      */
     @Test
-    public void ValidTest(){
+    public void validTest(){
         String[] FlagName = {
             "ReadPaired", "ProperPair","ReadUnmapped", "Mateunmapped",
             "ReadNegativeStrand",  "MateNegativeStrand",  "FirstOfpair", "SecondOfpair",
@@ -52,17 +51,17 @@ public class FlagFilterTest {
 
         for(int i = 0; i < 11; i++){
            try{
-               int Fnum = CountFilterReads(FlagName[i], comps[i], values[i]);
-               int Vnum = CountValidReads( i, comps[i], values[i]);
-               assertTrue( Fnum == Vnum);
+               int Fnum = countFilterReads(FlagName[i], comps[i], values[i]);
+               int Vnum = countValidReads( i, comps[i], values[i]);
+               assertEquals(Fnum, Vnum);
            }catch(Exception e){
                 System.out.println(e.getMessage());
-                assertTrue(false);
+               fail();
             }
         }
 
     }
-    private int CountValidReads(int FlagPos, Comparator comp, String value) throws Exception{
+    private int countValidReads(int FlagPos, Comparator comp, String value) throws Exception{
         String FlagValue;
         if(value.equalsIgnoreCase("true") || value.equals("1")){
             FlagValue = "1";
@@ -95,7 +94,7 @@ public class FlagFilterTest {
 
         return num;
     }
-    private int CountFilterReads(String FlagName, Comparator comp, String value) throws Exception{
+    private int countFilterReads(String FlagName, Comparator comp, String value) throws Exception{
 
         SamRecordFilter filter = new FlagFilter(FlagName, comp, value);
         SamReader Inreader = SAMFileReaderFactory.createSAMFileReader(new File(TestFile.INPUT_FILE_NAME));    //new SAMFileReader(new File(TestFile.INPUT_FILE_NAME));
@@ -118,7 +117,7 @@ public class FlagFilterTest {
      * test invalid flag value: "ok"
      */
     @Test(expected = Exception.class)
-    public void InvalidValueTest()throws Exception{
+    public void invalidValueTest()throws Exception{
        new FlagFilter("ReadPaired", Comparator.Equal, "ok");
     }
 
@@ -126,7 +125,7 @@ public class FlagFilterTest {
      * test on invalid comparator: Great
      */
     @Test(expected = Exception.class)
-    public void InvalidCompTest() throws Exception{
+    public void invalidCompTest() throws Exception{
        new FlagFilter("ReadPaired", Comparator.Great, "1");
     }
     
@@ -134,7 +133,7 @@ public class FlagFilterTest {
      * test invalid flag name: ReadNotPair
      */
     @Test(expected = Exception.class)
-    public void InvalidFlagTest() throws Exception{
+    public void invalidFlagTest() throws Exception{
        new FlagFilter("ReadNotPair", Comparator.NotEqual, "1");
     }
 }

@@ -23,27 +23,21 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrPositionName;
-import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.util.FileUtils;
-import org.qcmg.common.util.LoadReferencedClasses;
 import org.qcmg.tab.TabbedFileReader;
 import org.qcmg.tab.TabbedRecord;
 
 @Deprecated
-public class AnnotateDCCWithGFFRegions {	
+public class AnnotateDCCWithGFFRegions {
 
-	private String logFile;
 	private String[] cmdLineInputFiles;
 	private String[] cmdLineOutputFiles;
-	private List<String> chromosomes = new ArrayList<String>();
-	private final int exitStatus = 0;
-	private Map<String, TreeMap<ChrPosition, TabbedRecord>> inputRecords = new HashMap<String, TreeMap<ChrPosition, TabbedRecord>>();
-	private final Map<String, TreeMap<ChrPosition, TabbedRecord>> compareRecords = new HashMap<String, TreeMap<ChrPosition, TabbedRecord>>();
+	private final List<String> chromosomes = new ArrayList<>();
+	private final Map<String, TreeMap<ChrPosition, TabbedRecord>> inputRecords = new HashMap<>();
+	private final Map<String, TreeMap<ChrPosition, TabbedRecord>> compareRecords = new HashMap<>();
 	private int overlapCount = 0;
 	private int notOverlappingCount = 0;
-	private int recordCount;
-	private Vector<String> inputFileHeader = new Vector<String>();
-	private String inputFileType;
+	private final Vector<String> inputFileHeader = new Vector<>();
 	private String compareFileType;
 	private static QLogger logger;
 	private static final String MAF = "maf";
@@ -78,22 +72,22 @@ public class AnnotateDCCWithGFFRegions {
 		outputFile = new File(cmdLineOutputFiles[0]);		
 		
 		outputFileWriter = new BufferedWriter(new FileWriter(outputFile));
-		
-		inputFileType = null;	
-		inputFileType = getFileType(cmdLineInputFiles[0]);		
-		recordCount = loadDCCFile(cmdLineInputFiles[0], inputFileHeader, inputFileType);	
+
+		String inputFileType = null;
+		inputFileType = getFileType(cmdLineInputFiles[0]);
+		int recordCount = loadDCCFile(cmdLineInputFiles[0], inputFileHeader, inputFileType);
 		logger.info("Finished processing DCC records.");	
 		outputFileWriter.close();
 		logger.info("SUMMARY");
 		logger.info("Total DCC Records: " + recordCount);
 		logger.info("Total Records in supplied reference regions: " + overlapCount);
 		logger.info("Total Records not in supplied reference regions: " + notOverlappingCount);
-		return exitStatus;
+		return 0;
 	}	
 
 	private String getFileType(String fileName) throws QMuleException {
 		int index = fileName.lastIndexOf(".") + 1;
-		String name = fileName.substring(index, fileName.length());
+		String name = fileName.substring(index);
 
 		if (name.equals("dcc")) {
 			return "dcc1";
@@ -106,7 +100,7 @@ public class AnnotateDCCWithGFFRegions {
 		return name;
 	}
 	
-	private int loadGFFFile(String file, Map<String, TreeMap<ChrPosition, TabbedRecord>> records) throws Exception {
+	private void loadGFFFile(String file, Map<String, TreeMap<ChrPosition, TabbedRecord>> records) throws Exception {
 		TabbedFileReader reader = new TabbedFileReader(new File(file));
 		int recordCount = 0;
 		try {		
@@ -126,7 +120,7 @@ public class AnnotateDCCWithGFFRegions {
 				if (records.containsKey(key)) {
 					records.get(key).put(chrPos, tab);
 				} else {
-					TreeMap<ChrPosition, TabbedRecord> map = new TreeMap<ChrPosition, TabbedRecord>();
+					TreeMap<ChrPosition, TabbedRecord> map = new TreeMap<>();
 					map.put(chrPos, tab);
 					records.put(key,map);
 				}
@@ -139,7 +133,6 @@ public class AnnotateDCCWithGFFRegions {
 		}		
 				
 		logger.info("loaded gff file, total records: " + recordCount);
-		return recordCount;
 	}
 	
 	private int loadDCCFile(String file, Vector<String> header, String fileType) throws Exception {
@@ -151,9 +144,8 @@ public class AnnotateDCCWithGFFRegions {
 			Iterator<TabbedRecord> iterator = reader.getRecordIterator();
 			
 			if (reader.getHeader() != null) {
-				Iterator<String> iter = reader.getHeader().iterator();
-				while (iter.hasNext()) {					
-					header.add(iter.next());
+				for (String s : reader.getHeader()) {
+					header.add(s);
 				}
 			}
 			while (iterator.hasNext()) {
@@ -168,7 +160,7 @@ public class AnnotateDCCWithGFFRegions {
 				if (header.size() > 0) {
 					parseDCCHeader(header, fileType);
 					logger.info("Column of DCC file to annotate: " + QCMGFLAG_COLUMN_INDEX);
-					writeHeader(fileType, header);
+					writeHeader(header);
 					header.clear();
 				}
 				
@@ -182,7 +174,6 @@ public class AnnotateDCCWithGFFRegions {
 					for (Entry<ChrPosition, TabbedRecord> compareEntry : compareMap.entrySet()) {
 						ChrPosition comparePos = compareEntry.getKey();
 						if (comparePos.getEndPosition() < chrPos.getStartPosition()) {
-							continue;
 						} else if (comparePos.getStartPosition() > chrPos.getEndPosition()) {
 							break;
 						} else {
@@ -241,11 +232,11 @@ public class AnnotateDCCWithGFFRegions {
 	private TabbedRecord buildOutputString(TabbedRecord inputRecord, String[] vals,
 			String oldInfo) {
 		vals[QCMGFLAG_COLUMN_INDEX] = oldInfo;
-		String data= "";
+		StringBuilder data= new StringBuilder();
 		for (String s: vals) {
-			data += s + "\t";
+			data.append(s).append("\t");
 		}
-		inputRecord.setData(data);
+		inputRecord.setData(data.toString());
 		return inputRecord;
 	}
 
@@ -258,20 +249,7 @@ public class AnnotateDCCWithGFFRegions {
 			throw new QMuleException("NULL_GFF_MOTIF", position);
 		}
 		String dccMotif = getDCCMotif(inputValues);
-		if ((dccMotif == null || gffMotif.equals(dccMotif))) {			
-			return true;
-		}			
-		
-		return false;
-	}
-	
-	private int getPatientCount(String[] attribs) {
-		for (String s: attribs) {
-			if (s.startsWith("PatientCount")) {
-				return new Integer(s.split("=")[1]);
-			}			
-		}
-		return 0;
+		return dccMotif == null || gffMotif.equals(dccMotif);
 	}
 
 	private String getGFF3Motif(String[] attribs) {
@@ -286,12 +264,19 @@ public class AnnotateDCCWithGFFRegions {
 				tumourAllele = s.split("=")[1];
 			}
 		}
-		
-		if (referenceAllele.contains("-") && !tumourAllele.contains("-")) {
-			return tumourAllele;
+
+		assert referenceAllele != null;
+		if (referenceAllele.contains("-")) {
+			assert tumourAllele != null;
+			if (!tumourAllele.contains("-")) {
+				return tumourAllele;
+			}
 		}
-		if (!referenceAllele.contains("-") && tumourAllele.contains("-")) {
-			return referenceAllele;
+		if (!referenceAllele.contains("-")) {
+			assert tumourAllele != null;
+			if (tumourAllele.contains("-")) {
+				return referenceAllele;
+			}
 		}
 		return null;
 	}
@@ -323,10 +308,10 @@ public class AnnotateDCCWithGFFRegions {
 					if (values[i].toLowerCase().contains("qcmgflag")) {
 						QCMGFLAG_COLUMN_INDEX = i;
 					}
-					if (values[i].toLowerCase().equals("reference_genome_allele")) {
+					if (values[i].equalsIgnoreCase("reference_genome_allele")) {
 						REFERENCE_ALLELE_INDEX = i;
 					}
-					if (values[i].toLowerCase().equals("tumour_genotype")) {
+					if (values[i].equalsIgnoreCase("tumour_genotype")) {
 						TUMOUR_ALLELE_INDEX = i;
 					}
 					if (values[i].toLowerCase().contains("chromosome_strand")) {						
@@ -362,63 +347,50 @@ public class AnnotateDCCWithGFFRegions {
 		return QCMGFLAG_COLUMN_INDEX;
 	}
 
-	public void setQCMGFLAG_COLUMN_INDEX(int qCMGFLAG_COLUMN_INDEX) {
-		QCMGFLAG_COLUMN_INDEX = qCMGFLAG_COLUMN_INDEX;
-	}
-
 	public String getFeatures(TabbedRecord record) {
 		StringBuilder sb = new StringBuilder();	
 		String[] vals = record.getDataArray();
 		if (features == null && annotation == null) {			
-			sb.append(vals[getFeatureIndex("feature")] + ";");
+			sb.append(vals[getFeatureIndex("feature")]).append(";");
 		} else if (features != null){
 			for (String s: features) {
 				if (s.equals("attribs")) {
 					String[] attribs = vals[getFeatureIndex(s)].split(";");
-					String attrs = new String();
+					StringBuilder attrs = new StringBuilder();
 					for (int i=0; i<attribs.length; i++) {						
-						attrs += attribs[i];
+						attrs.append(attribs[i]);
 						if (i != attribs.length -1) {
-							attrs += "::";
+							attrs.append("::");
 						}
 					}
-					sb.append(attrs + ";");
+					sb.append(attrs).append(";");
 				} else {
-					sb.append(vals[getFeatureIndex(s)] + ";");
+					sb.append(vals[getFeatureIndex(s)]).append(";");
 				}
 			}
 		}
 		String outString = sb.toString();
 		
 		if (outString.endsWith(";")) {
-			String result = outString.substring(0, outString.length() - 1);
-			return result;
+			return outString.substring(0, outString.length() - 1);
 		} else {
 			return outString;
 		}		
 	}
 	
 	private int getFeatureIndex(String feature) {
-		if (feature.equals("seqname") || feature.equals("seqid")) {
-			return 0;
-		} else if (feature.equals("source")) {
-			return 1;
-		} else if (feature.equals("feature")) {
-			return 2;
-		} else if (feature.equals("start")) {
-			return 3;
-		} else if (feature.equals("end")) {
-			return 4;
-		} else if (feature.equals("score")) {
-			return 5;
-		} else if (feature.equals("strand")) {
-			return 6;
-		} else if (feature.equals("frame") || feature.equals("phase")) {
-			return 7;
-		} else if (feature.equals("attribs") || feature.equals("attributes")) {
-			return 8;
-		} 
-		return -1;
+		return switch (feature) {
+			case "seqname", "seqid" -> 0;
+			case "source" -> 1;
+			case "feature" -> 2;
+			case "start" -> 3;
+			case "end" -> 4;
+			case "score" -> 5;
+			case "strand" -> 6;
+			case "frame", "phase" -> 7;
+			case "attribs", "attributes" -> 8;
+			default -> -1;
+		};
 	}
 
 	private void writeRecord(TabbedRecord record) throws IOException {
@@ -431,25 +403,27 @@ public class AnnotateDCCWithGFFRegions {
 	private ChrPosition getChrPosition(String inputFileType, TabbedRecord tab, String name) throws Exception {
 		
 		String[] values = tab.getData().split("\t");
-		ChrPosition chr = null;
+		ChrPosition chr;
 		int chrIndex = 0;
-		int startIndex = 0;
-		int endIndex = 0;
-		
-		if (inputFileType.equals(DCC1)) {
-			chrIndex = 4;
-			startIndex = 5;
-			endIndex = 6;
-		} else if (inputFileType.equals(DCCQ)) {
-			chrIndex = 2;
-			startIndex = 3;
-			endIndex = 4;
-		} else if (inputFileType.equals(GFF3)) {
-			chrIndex = 0;
-			startIndex = 3;
-			endIndex = 4;		
-		} else {
-			throw new Exception("Input file type is not recognized");
+		int startIndex;
+		int endIndex;
+
+		switch (inputFileType) {
+			case DCC1 -> {
+				chrIndex = 4;
+				startIndex = 5;
+				endIndex = 6;
+			}
+			case DCCQ -> {
+				chrIndex = 2;
+				startIndex = 3;
+				endIndex = 4;
+			}
+			case GFF3 -> {
+				startIndex = 3;
+				endIndex = 4;
+			}
+			default -> throw new Exception("Input file type is not recognized");
 		}
 		
 		String chromosome = values[chrIndex];
@@ -459,12 +433,8 @@ public class AnnotateDCCWithGFFRegions {
 		if (chromosome.equals("chrM")) {
 			chromosome = "chrMT";
 		}
-		if (inputFileType.equals(MAF)) {
-			chr = new ChrPositionName(chromosome, new Integer(values[startIndex]), new Integer(values[endIndex]), name != null ? name : values[0]);	
-		} else {
-			chr = new ChrPositionName(chromosome, new Integer(values[startIndex]), new Integer(values[endIndex]), name);
-		}
-		
+		chr = new ChrPositionName(chromosome, Integer.parseInt(values[startIndex]), Integer.parseInt(values[endIndex]), name);
+
 		return chr;
 	}	
 	
@@ -479,9 +449,7 @@ public class AnnotateDCCWithGFFRegions {
 				if (stranded) {
 					String inputStrand = inputRecord.getDataArray()[DCC_STRAND_INDEX];
 					String compareStrand = compareEntry.getValue().getDataArray()[GFF_STRAND_INDEX];
-					if (inputStrand.equals(compareStrand)) {
-						return true;
-					}
+					return inputStrand.equals(compareStrand);
 				} else {				
 					return true;
 				}
@@ -500,9 +468,7 @@ public class AnnotateDCCWithGFFRegions {
 				if (stranded) {
 					String inputStrand = inputRecord.getDataArray()[DCC_STRAND_INDEX];
 					String compareStrand = entry.getValue().getDataArray()[GFF_STRAND_INDEX];
-					if (inputStrand.equals(compareStrand)) {
-						return true;
-					}
+					return inputStrand.equals(compareStrand);
 				} else {				
 					return true;
 				}
@@ -520,19 +486,11 @@ public class AnnotateDCCWithGFFRegions {
 	}
 
 
-	private void writeHeader(String file, Vector<String> header) throws IOException {		
+	private void writeHeader(Vector<String> header) throws IOException {
 		
 		for (String h: header) {			
 			outputFileWriter.write(h + "\n");
 		}
-	}
-	
-	public List<String> getChromosomes() {
-		return chromosomes;
-	}
-
-	public void setChromosomes(List<String> chromosomes) {
-		this.chromosomes = chromosomes;
 	}
 
 
@@ -540,27 +498,11 @@ public class AnnotateDCCWithGFFRegions {
 		return overlapCount;
 	}
 
-	public void setOverlapCount(int overlapCount) {
-		this.overlapCount = overlapCount;
-	}
-
 	public int getNotOverlappingCount() {
 		return notOverlappingCount;
 	}
 
-	public void setNotOverlappingCount(int notOverlappingCount) {
-		this.notOverlappingCount = notOverlappingCount;
-	}
-
-	public int getMafCount() {
-		return recordCount;
-	}
-
-	public void setMafCount(int mafCount) {
-		this.recordCount = mafCount;
-	}
-
-	protected int setup(String args[]) throws Exception{
+	protected int setup(String [] args) throws Exception{
 		int returnStatus = 1;
 		if (null == args || args.length == 0) {
 			System.err.println(Messages.USAGE);
@@ -581,7 +523,7 @@ public class AnnotateDCCWithGFFRegions {
 			System.err.println(Messages.USAGE);
 		} else {
 			// configure logging
-			logFile = options.getLogFile();
+			String logFile = options.getLogFile();
 			logger = QLoggerFactory.getLogger(AnnotateDCCWithGFFRegions.class, logFile, options.getLogLevel());
 			logger.logInitialExecutionStats("AnnotateDCCWithGFFRegions", AnnotateDCCWithGFFRegions.class.getPackage().getImplementationVersion(), args);
 			
@@ -591,9 +533,9 @@ public class AnnotateDCCWithGFFRegions {
 				throw new QMuleException("INSUFFICIENT_ARGUMENTS");
 			} else {
 				// loop through supplied files - check they can be read
-				for (int i = 0 ; i < cmdLineInputFiles.length ; i++ ) {
-					if ( ! FileUtils.canFileBeRead(cmdLineInputFiles[i])) {
-						throw new QMuleException("INPUT_FILE_READ_ERROR" , cmdLineInputFiles[i]);
+				for (String cmdLineInputFile : cmdLineInputFiles) {
+					if (!FileUtils.canFileBeRead(cmdLineInputFile)) {
+						throw new QMuleException("INPUT_FILE_READ_ERROR", cmdLineInputFile);
 					}
 				}
 			}		
@@ -612,24 +554,21 @@ public class AnnotateDCCWithGFFRegions {
 			if (features == null && annotation == null) {
 				logger.info("Features to annotate: " + "feature");
 			} else if (features != null){
-				String featureString = new String();
+				StringBuilder featureString = new StringBuilder();
 				for (String f : features) {
-					featureString += f;
+					featureString.append(f);
 				}
 				logger.info("Features to annotate: " + featureString);
 			}
 			logger.info("Annotation is : " + annotation);
 			stranded = options.hasStrandedOption();			
 			if (options.getColumn() != null) {
-				this.QCMGFLAG_COLUMN_INDEX = new Integer(options.getColumn()) - 1;
+				this.QCMGFLAG_COLUMN_INDEX = Integer.parseInt(options.getColumn()) - 1;
 			}
-			
-							
-			
+
 			logger.info("Require matching strand: " + stranded);
 			logger.info("DCC file: " + cmdLineInputFiles[0]);
 			logger.info("GFF file: " + cmdLineInputFiles[1]);
-			
 		}
 
 		return returnStatus;
@@ -657,19 +596,6 @@ public class AnnotateDCCWithGFFRegions {
 		return inputRecords;
 	}
 
-	public void setInputRecords(
-			Map<String, TreeMap<ChrPosition, TabbedRecord>> inputRecords) {
-		this.inputRecords = inputRecords;
-	}
-
-	public Vector<String> getInputFileHeader() {
-		return inputFileHeader;
-	}
-
-	public void setInputFileHeader(Vector<String> inputFileHeader) {
-		this.inputFileHeader = inputFileHeader;
-	}
-
 	public File getOutputFile() {
 		return outputFile;
 	}
@@ -678,24 +604,12 @@ public class AnnotateDCCWithGFFRegions {
 		return REFERENCE_ALLELE_INDEX;
 	}
 
-	public void setREFERENCE_ALLELE_INDEX(int rEFERENCE_ALLELE_INDEX) {
-		REFERENCE_ALLELE_INDEX = rEFERENCE_ALLELE_INDEX;
-	}
-
 	public int getTUMOUR_ALLELE_INDEX() {
 		return TUMOUR_ALLELE_INDEX;
 	}
 
-	public void setTUMOUR_ALLELE_INDEX(int tUMOUR_ALLELE_INDEX) {
-		TUMOUR_ALLELE_INDEX = tUMOUR_ALLELE_INDEX;
-	}
-
 	public int getMUTATION_TYPE_INDEX() {
 		return MUTATION_TYPE_INDEX;
-	}
-
-	public void setMUTATION_TYPE_INDEX(int mUTATION_TYPE_INDEX) {
-		MUTATION_TYPE_INDEX = mUTATION_TYPE_INDEX;
 	}
 
 	public void setOutputFile(File outputFile) {

@@ -1,5 +1,6 @@
 package org.qcmg.bammerge;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
@@ -46,7 +47,7 @@ public class MainTest {
 		ExpectedException.none();
 		String command = "--log ./logfile -f -o output.sam -i first.sam -i second.sam";
 		Executor exec = new Executor(command, "org.qcmg.bammerge.Main");
-		assertTrue(0 == exec.getErrCode());
+		assertEquals(0, exec.getErrCode());
 		
 //	   Main.main(command.split(" "));	
 		
@@ -59,7 +60,7 @@ public class MainTest {
 		ExpectedException.none();
 		String command = "-f -o output.sam -i first.sam -i second.sam";
 		Executor exec = new Executor(command, "org.qcmg.bammerge.Main");
-		assertTrue(1 == exec.getErrCode());
+		assertEquals(1, exec.getErrCode());
 	}
 
 	@Test
@@ -67,7 +68,7 @@ public class MainTest {
 		ExpectedException.none();
 		String command = "";
 		Executor exec = new Executor(command, "org.qcmg.bammerge.Main");
-		assertTrue(1 == exec.getErrCode());
+		assertEquals(1, exec.getErrCode());
 		assertTrue(0 < exec.getErrorStreamConsumer().getLines().length);
 	}
 
@@ -76,7 +77,7 @@ public class MainTest {
 		ExpectedException.none();
 		String command = "-i second.sam";		
 		Executor exec = new Executor(command, "org.qcmg.bammerge.Main");
-		assertTrue(1 == exec.getErrCode());
+		assertEquals(1, exec.getErrCode());
 		assertTrue(0 < exec.getErrorStreamConsumer().getLines().length);
 	}
 
@@ -85,7 +86,7 @@ public class MainTest {
 		ExpectedException.none();
 		String command = "-i first.sam -i second.sam";
 		Executor exec = new Executor(command, "org.qcmg.bammerge.Main");
-		assertTrue(1 == exec.getErrCode());
+		assertEquals(1, exec.getErrCode());
 		assertTrue(0 < exec.getErrorStreamConsumer().getLines().length);
 	}
 
@@ -95,7 +96,7 @@ public class MainTest {
 		ExpectedException.none();
 		String command = "-i first.sam -i first.sam";
 		Executor exec = new Executor(command, "org.qcmg.bammerge.Main");
-		assertTrue(1 == exec.getErrCode());
+		assertEquals(1, exec.getErrCode());
 		assertTrue(0 < exec.getErrorStreamConsumer().getLines().length);
 	}
 
@@ -104,7 +105,7 @@ public class MainTest {
 		ExpectedException.none();
 		String command = "-f -m first.sam -i second.sam";
 		Executor exec = new Executor(command, "org.qcmg.bammerge.Main");
-		assertTrue(1 == exec.getErrCode());
+		assertEquals(1, exec.getErrCode());
 	}
 
 	@Test
@@ -112,7 +113,7 @@ public class MainTest {
 		ExpectedException.none();
 		String command = "--log ./logfile -f -m first.sam -i second.sam";
 		Executor exec = new Executor(command, "org.qcmg.bammerge.Main");
-		assertTrue(0 == exec.getErrCode());
+		assertEquals(0, exec.getErrCode());
 	}
 
 	@Test
@@ -120,7 +121,7 @@ public class MainTest {
 		ExpectedException.none();
 		String command = "-o output.sam -i first.sam -i second.sam";
 		Executor exec = new Executor(command, "org.qcmg.bammerge.Main");
-		assertTrue(1 == exec.getErrCode());
+		assertEquals(1, exec.getErrCode());
 		assertTrue(0 < exec.getErrorStreamConsumer().getLines().length);
 	}
 
@@ -129,7 +130,7 @@ public class MainTest {
 		ExpectedException.none();
 		String command = "-v";
 		Executor exec = new Executor(command, "org.qcmg.bammerge.Main");
-		assertTrue(0 == exec.getErrCode());
+		assertEquals(0, exec.getErrCode());
 		assertTrue(0 < exec.getErrorStreamConsumer().getLines().length);
 	}
 
@@ -138,8 +139,8 @@ public class MainTest {
 		ExpectedException.none();
 		String command = "-h";
 		Executor exec = new Executor(command, "org.qcmg.bammerge.Main");
-		assertTrue(0 == exec.getErrCode());
-		assertTrue(0 == exec.getErrorStreamConsumer().getLines().length);
+		assertEquals(0, exec.getErrCode());
+		assertEquals(0, exec.getErrorStreamConsumer().getLines().length);
 	}
 
 	@Test
@@ -147,7 +148,7 @@ public class MainTest {
 		ExpectedException.none();
 		String command = "-o output.sam -m first.sam -i second.sam";
 		Executor exec = new Executor(command, "org.qcmg.bammerge.Main");
-		assertTrue(1 == exec.getErrCode());
+		assertEquals(1, exec.getErrCode());
 		assertTrue(0 < exec.getErrorStreamConsumer().getLines().length);
 	}
 
@@ -156,7 +157,7 @@ public class MainTest {
 		ExpectedException.none();
 		String command = "-o output.sam first.sam second.sam";
 		Executor exec = new Executor(command, "org.qcmg.bammerge.Main");
-		assertTrue(1 == exec.getErrCode());
+		assertEquals(1, exec.getErrCode());
 		assertTrue(0 < exec.getErrorStreamConsumer().getLines().length);
 	}
 
@@ -165,7 +166,7 @@ public class MainTest {
 		ExpectedException.none();
 		String command = "-o output.sam -o output2.sam -i first.sam -i second.sam";
 		Executor exec = new Executor(command, "org.qcmg.bammerge.Main");
-		assertTrue(1 == exec.getErrCode());//		assertTrue(0 == exec.getOutputStreamConsumer().getLines().length);
+		assertEquals(1, exec.getErrCode());//		assertTrue(0 == exec.getOutputStreamConsumer().getLines().length);
 		assertTrue(0 < exec.getErrorStreamConsumer().getLines().length);
 	}
 
@@ -174,7 +175,7 @@ public class MainTest {
 		ExpectedException.none();
 		String command = "-m first.sam -m second.sam";
 		Executor exec = new Executor(command, "org.qcmg.bammerge.Main");
-		assertTrue(1 == exec.getErrCode());
+		assertEquals(1, exec.getErrCode());
 		assertTrue(0 < exec.getErrorStreamConsumer().getLines().length);
 	}
 
@@ -183,7 +184,7 @@ public class MainTest {
 		ExpectedException.none();
 		String command = "-o output.sam";
 		Executor exec = new Executor(command, "org.qcmg.bammerge.Main");
-		assertTrue(1 == exec.getErrCode());
+		assertEquals(1, exec.getErrCode());
 	}
 	
 	@Test
@@ -191,6 +192,6 @@ public class MainTest {
 		ExpectedException.none();
 		String command = "--log ./logfile -f -o output.sam -i first.sam -i second.sam -bai";
 		Executor exec = new Executor(command, "org.qcmg.bammerge.Main");
-		assertTrue(0 == exec.getErrCode());
+		assertEquals(0, exec.getErrCode());
 	}
 }

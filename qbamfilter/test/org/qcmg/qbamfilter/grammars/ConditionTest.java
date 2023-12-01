@@ -23,7 +23,7 @@ public class ConditionTest {
 	@BeforeClass
     public static void before(){
         //create testing data regardless whether it exists or not, Since old testing data maybe damaged.
-        TestFile.CreateBAM(TestFile.INPUT_FILE_NAME);
+        TestFile.createBAM(TestFile.INPUT_FILE_NAME);
     }
 	
 	@AfterClass

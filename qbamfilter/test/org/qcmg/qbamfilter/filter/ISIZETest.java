@@ -1,6 +1,7 @@
 package org.qcmg.qbamfilter.filter;
 
  
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
@@ -17,7 +18,7 @@ import org.qcmg.picard.SAMFileReaderFactory;
 public class ISIZETest {
     @BeforeClass
     public static void before(){
-        TestFile.CreateBAM(TestFile.INPUT_FILE_NAME);
+        TestFile.createBAM(TestFile.INPUT_FILE_NAME);
     }
 
     @AfterClass
@@ -35,11 +36,11 @@ public class ISIZETest {
         String value = "20";
 
         SamRecordFilter filter = new IsizeFilter(op, value);
-        SamReader Inreader = SAMFileReaderFactory.createSAMFileReader(new File(TestFile.INPUT_FILE_NAME));    //new SAMFileReader(new File(TestFile.INPUT_FILE_NAME));
+        SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(TestFile.INPUT_FILE_NAME));    //new SAMFileReader(new File(TestFile.INPUT_FILE_NAME));
         int i = 0;
         int NumRealRecord = 0;
 
-        for(SAMRecord re : Inreader){
+        for(SAMRecord re : reader){
            if(re.getInferredInsertSize() >= 20){ 
                NumRealRecord ++;
            }
@@ -50,8 +51,8 @@ public class ISIZETest {
         }
 
         //check there is only one record will be filter
-        assertTrue(i == NumRealRecord);
-        Inreader.close();
+        assertEquals(i, NumRealRecord);
+        reader.close();
     }
 
     /**
@@ -61,10 +62,10 @@ public class ISIZETest {
      */
     @Test
     public void testNegativeValue() throws Exception{
-        try (SamReader Inreader = SAMFileReaderFactory.createSAMFileReader(new File(TestFile.INPUT_FILE_NAME));){    //new SAMFileReader(new File(TestFile.INPUT_FILE_NAME));) {
+        try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(TestFile.INPUT_FILE_NAME))){    //new SAMFileReader(new File(TestFile.INPUT_FILE_NAME));) {
 	        SamRecordFilter filter = new IsizeFilter(Comparator.Great, "-101");
-	        for(SAMRecord re : Inreader){
-	        		re.setInferredInsertSize(-100);
+	        for(SAMRecord re : reader){
+                re.setInferredInsertSize(-100);
 	            assertTrue(filter.filterOut(re));
 	       }
         }

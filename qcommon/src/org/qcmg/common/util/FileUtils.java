@@ -342,7 +342,8 @@ public class FileUtils {
 	 */
 	public static File getCanonicalFile(final String fileName) throws IOException {
 		final File file = new File(fileName);
-		return file.getCanonicalFile();
+		File f = file.getCanonicalFile();
+		return f;
 	}
 
 	/**

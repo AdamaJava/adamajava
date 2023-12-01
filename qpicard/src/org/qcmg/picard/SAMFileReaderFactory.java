@@ -67,7 +67,7 @@ public class SAMFileReaderFactory {
 			SeekableStream is = SeekableStreamFactory.getInstance().getStreamFor(bamFile.getAbsolutePath());	  
 			resources = SamInputResource.of(is);
 			
-			File index = null == indexFile? SamFiles.findIndex(bamFile) : indexFile; 
+			File index = null == indexFile? SamFiles.findIndex(bamFile) : indexFile;
 			if (null != index) {
 				SeekableStream indexStream = SeekableStreamFactory.getInstance().getStreamFor(index.getAbsolutePath());
 				resources = resources.index(indexStream);

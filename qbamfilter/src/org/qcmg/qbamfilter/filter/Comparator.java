@@ -26,11 +26,11 @@ public enum Comparator {
         /**
          * @param v1
          * @param v2
-         * it convert string v1 and v2 into integer when Comparator is GreatEqual, SamallEqual,Great and Small
+         * it converts string v1 and v2 into integer when Comparator is GreatEqual, SmallEqual,Great and Small
          * then do integer comparison for v1 and v2. Otherwise it straightly does String comparison ignoring Case
          * for Comparator Equal and NotEqual
          * @return true if v1 is GreatEqual than v2 for Comparator GreatEqual;
-         * @return true if v1 is Great than v2 for Comparator Great;
+         * @return true if v1 is Greater than v2 for Comparator Great;
          * @return true if v1 is SmallEqual than v2 for Comparator SmallEqual;
          * @return true if v1 is Small than v2 for Comparator Small;
          * @return true if v1 and v2 are same string for Comparator Equal
@@ -44,21 +44,21 @@ public enum Comparator {
          */
         public boolean eval(String v1, String v2) {
             switch(this){
-                case GreatEqual: return Integer.valueOf(v1) >= Integer.valueOf(v2);
-                case SmallEqual: return Integer.valueOf(v1) <= Integer.valueOf(v2);
-                case Great: return Integer.valueOf(v1) > Integer.valueOf(v2);
-                case Small: return Integer.valueOf(v1) < Integer.valueOf(v2);
+                case GreatEqual: return Integer.parseInt(v1) >= Integer.parseInt(v2);
+                case SmallEqual: return Integer.parseInt(v1) <= Integer.parseInt(v2);
+                case Great: return Integer.parseInt(v1) > Integer.parseInt(v2);
+                case Small: return Integer.parseInt(v1) < Integer.parseInt(v2);
                 case Equal: return v1.equalsIgnoreCase(v2);
-                case NotEqual: return !(v1.equalsIgnoreCase(v2));
+                case NotEqual: return ! v1.equalsIgnoreCase(v2);
                 case StartWith: return v1.toLowerCase().startsWith(v2.toLowerCase());
-                case NotStartWith: return !v1.toLowerCase().startsWith(v2.toLowerCase());
+                case NotStartWith: return ! v1.toLowerCase().startsWith(v2.toLowerCase());
                 case EndWith: return v1.toLowerCase().endsWith(v2.toLowerCase());
                 case NotEndWith: return ! v1.toLowerCase().endsWith(v2.toLowerCase());
                 case Contain: return  v1.toLowerCase().contains(v2.toLowerCase());
-                case NotContain: return  !v1.toLowerCase().contains(v2.toLowerCase());
+                case NotContain: return  ! v1.toLowerCase().contains(v2.toLowerCase());
             }
 
-            throw new AssertionError("Unknow comparator mark:" + this);
+            throw new AssertionError("Unknown comparator mark:" + this);
         }
 
  
@@ -74,15 +74,27 @@ public enum Comparator {
          * @return true if v1 is not equal to v2 for Comparator NotEqual;
          */
         public boolean eval(int v1, int v2){
-            switch(this){
-                case GreatEqual: return  (v1 >= v2);
-                case SmallEqual: return (v1 <= v2 );
-                case Great: return (v1 > v2);
-                case Small: return (v1 < v2);
-                case Equal: return (v1 == v2);
-                case NotEqual: return (v1 != v2);
+            switch (this) {
+                case GreatEqual -> {
+                    return (v1 >= v2);
+                }
+                case SmallEqual -> {
+                    return (v1 <= v2);
+                }
+                case Great -> {
+                    return (v1 > v2);
+                }
+                case Small -> {
+                    return (v1 < v2);
+                }
+                case Equal -> {
+                    return (v1 == v2);
+                }
+                case NotEqual -> {
+                    return (v1 != v2);
+                }
             }
-            throw new AssertionError("Unknow comparator mark:" + this);
+            throw new AssertionError("Unknown comparator mark:" + this);
         }
 
         /**
@@ -92,15 +104,27 @@ public enum Comparator {
          * see detail return value on documents of eval(int v1, int v2);
          */
         public boolean eval(float v1, float v2){
-            switch(this){
-                case GreatEqual: return  (v1 >= v2);
-                case SmallEqual: return (v1 <= v2 );
-                case Great: return (v1 > v2);
-                case Small: return (v1 < v2);
-                case Equal: return (v1 == v2);
-                case NotEqual: return (v1 != v2);
+            switch (this) {
+                case GreatEqual -> {
+                    return (v1 >= v2);
+                }
+                case SmallEqual -> {
+                    return (v1 <= v2);
+                }
+                case Great -> {
+                    return (v1 > v2);
+                }
+                case Small -> {
+                    return (v1 < v2);
+                }
+                case Equal -> {
+                    return (v1 == v2);
+                }
+                case NotEqual -> {
+                    return (v1 != v2);
+                }
             }
-            throw new AssertionError("Unknow comparator mark:" + this);
+            throw new AssertionError("Unknown comparator mark:" + this);
         }
 
         /**
@@ -111,30 +135,34 @@ public enum Comparator {
          * Throw Exception for another type of Comparator;
          */
         public boolean eval(boolean v1, boolean v2){
-            switch(this){
-                case Equal: return (v1 == v2);
-                case NotEqual: return (v1 != v2 );
+            switch (this) {
+                case Equal -> {
+                    return (v1 == v2);
+                }
+                case NotEqual -> {
+                    return (v1 != v2);
+                }
             }
-            throw new AssertionError("Unknow op:" + this);
+            throw new AssertionError("Unknown op:" + this);
         }
         
         /**
          * 
          * @param comp: valid string parameter must belong to [">=", ">", "<=", "<", "==", "!="]
-         * @return one of the six Comparators based onthe parameter string comp
-         * @throws Exception if the parameter comp is not valid.
+         * @return one of the six Comparators based on the parameter string comp
          */
-        public static final Comparator GetComparator(String comp, String value) {
-	
-           if(comp.equals(">=")){ return GreatEqual;}
-           else if( comp.equals("<=")){return SmallEqual; }
-           else if( comp.equals(">")){return Great; }
-           else if( comp.equals("<")){return Small; }
-           else if( comp.equals("==")){return Equal;  }
-           else if( comp.equals("!=")){return NotEqual;}
-           else if( comp.equals("=~") || comp.equals("!~")){
-         	   return GetWildCaseComparator(comp, value);}
-           else return null;
+        public static Comparator GetComparator(String comp, String value) {
+
+            return switch (comp) {
+                case ">=" -> GreatEqual;
+                case "<=" -> SmallEqual;
+                case ">" -> Great;
+                case "<" -> Small;
+                case "==" -> Equal;
+                case "!=" -> NotEqual;
+                case "=~", "!~" -> getWildCaseComparator(comp, value);
+                default -> null;
+            };
             
         }
         
@@ -143,25 +171,24 @@ public enum Comparator {
          * @param comp must be '=~' or '!~'
          * @param value: String contain single or non '*' 
          * @return
-         * @throws Exception unless the single '*' appear at the begin or end of value string 
          */
-        public static Comparator GetWildCaseComparator(String comp, String value) {
-        	String subStr = GetWildCaseValue(value);
+        public static Comparator getWildCaseComparator(String comp, String value) {
+        	String subStr = getWildCaseValue(value);
         	
-        	if( !comp.equals("=~") && !comp.equals("!~")  )
-        		return null;
+        	if ( ! comp.equals("=~") && ! comp.equals("!~")) {
+                return null;
+            }
         	
-//        	System.out.println( String.format("GetWildCaseComparator( String %s, String %s  )", comp, value)  );
+        	//only allow single or none '*'
+        	if ( value.contains("*") && subStr.length() != (value.length() - 1)) {
+                return null;
+            }
 
-        	//only allow single or none '*' 
-        	if( value.contains("*")  &&  subStr.length() != (value.length() - 1)  )
-        		return null;
-
-        	if(value.startsWith("*"))	
-        		return comp.equals("=~")? EndWith: NotEndWith;
-        	else if(value.endsWith("*")){
+        	if (value.startsWith("*")) {
+                return comp.equals("=~") ? EndWith : NotEndWith;
+            } else if (value.endsWith("*")) {
         		return comp.equals("=~")? StartWith: NotStartWith; 
-        	}else if( ! value.contains("*")){
+        	} else if ( ! value.contains("*")) {
         		return comp.equals("=~")? Contain: NotContain; 
         	} 
         	
@@ -169,27 +196,37 @@ public enum Comparator {
         }        
      
         
-        public static String GetWildCaseValue(String value) {
+        public static String getWildCaseValue(String value) {
         	//remove all '*'
         	return value.replace("*", ""); 
-        	
-    
-        }       
+        }
         
         /**
          * @return comparator string. eg.
          * return ">=" for Comparator.GreatEqual.GetString().
          * return "==" for Comparator.Equal.GetString().
          */
-        public String GetString(){
-            switch(this){
-                case GreatEqual: return ">=";
-                case SmallEqual: return "<=";
-                case Great: return ">";
-                case Small: return "<";
-                case Equal: return "==";
-                case NotEqual: return "!=";
+        public String getString() {
+            switch (this) {
+                case GreatEqual -> {
+                    return ">=";
+                }
+                case SmallEqual -> {
+                    return "<=";
+                }
+                case Great -> {
+                    return ">";
+                }
+                case Small -> {
+                    return "<";
+                }
+                case Equal -> {
+                    return "==";
+                }
+                case NotEqual -> {
+                    return "!=";
+                }
             }
-            throw new AssertionError("Unknow comparator mark:" + this);
+            throw new AssertionError("Unknown comparator mark:" + this);
         }
 }

@@ -21,30 +21,26 @@ public class PosFilter implements SamRecordFilter{
     private final Comparator op;
 
         /**
-     * initilize allignment start position and query comparator
+     * initialize alignment start position and query comparator
      * @param comp: see details of valid comparator on org.qcmg.qbamfilter.filter.Comparator.
      * @param value:  a integer string.
      */
     public PosFilter(Comparator comp, String value ) {
-        this.value = Integer.valueOf(value);
+        this.value = Integer.parseInt(value);
         op = comp;
     }
 
    /**
-     * check the allignment start position.
+     * check the alignment start position.
      * @param record: a SAMRecord
-     * @return true if the value is satified by the condition
+     * @return true if the value is satisfied by the condition
      * Usage example: if you want filter out all reads with mapping quality higher than 16.
      * SAMRecordFilter myfilter = new PosFilter(Comparator.Great, "16" );
-     * if(myfilter.filterout(record)){ System.out.println(record.toString);}
+     * if(myfilter.filterOut(record)){ System.out.println(record.toString);}
      */
     @Override
     public boolean filterOut(final SAMRecord record){
-        Integer ob = record.getAlignmentStart();
-
-        return op.eval(ob, value );
-       
-
+        return op.eval(record.getAlignmentStart(), value );
     }
 
     /**

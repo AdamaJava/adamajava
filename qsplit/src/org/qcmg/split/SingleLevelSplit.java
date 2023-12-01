@@ -19,12 +19,7 @@ import java.util.Set;
 import java.util.Vector;
 import java.util.Map.Entry;
 
-import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SAMFileWriter;
-import htsjdk.samtools.SAMFileWriterFactory;
-import htsjdk.samtools.SAMProgramRecord;
-import htsjdk.samtools.SAMReadGroupRecord;
-import htsjdk.samtools.SAMRecord;
+import htsjdk.samtools.*;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -35,15 +30,15 @@ import org.qcmg.picard.util.BAMFileUtils;
 
 public class SingleLevelSplit extends Split {
 	private static final String QBM = "qbammerge";
-	
+
 	Map<Integer, String> singleSplitMap = new HashMap<>();
-	private String commandLine;
-	
+	private final String commandLine;
+
 	private final QLogger logger;
-	
+
 	/**
 	 * Called by Main
-	 * 
+	 *
 	 * @param options
 	 * @throws Exception
 	 */
@@ -60,7 +55,7 @@ public class SingleLevelSplit extends Split {
 		try {
 			header = reader.getFileHeader();
 			extractHeaderReadGroupDetails();
-			
+
 			// single level stuff
 			if (null != options.getSplit1String()) {
 				setupSingleSplitFromOptions(options);
@@ -68,7 +63,7 @@ public class SingleLevelSplit extends Split {
 				setupSingleSplit();
 			}
 			prepareOutputHeaders();
-			
+
 			openWriters();
 			performSplit();
 			closeWriters();
@@ -77,37 +72,6 @@ public class SingleLevelSplit extends Split {
 		}
 	}
 
-	/**
-	 * Used by the test classes
-	 * 
-	 * @param inputFileName
-	 * @param outputDirName
-	 * @param useFileNames
-	 * @param type
-	 * @throws Exception
-	 */
-	public SingleLevelSplit(final String inputFileName, final String outputDirName,
-			final boolean useFileNames, final SplitType type) throws Exception {
-		this.inputFileName = inputFileName;
-		this.type = type;
-		this.outputDirName = outputDirName;
-		this.useFileNames = useFileNames;
-		this.createIndex = false;
-		reader = SAMFileReaderFactory.createSAMFileReader(new File(inputFileName));
-		logger = QLoggerFactory.getLogger(SingleLevelSplit.class);
-		try {
-			header = reader.getFileHeader();
-			extractHeaderReadGroupDetails();
-			prepareOutputHeaders();
-			
-			// single level stuff
-			setupSingleSplit();
-			
-		} finally {
-			reader.close();
-		}
-	}
-	
 	@Override
 	void closeWriters() {
 		Set<SAMFileWriter> writers = new HashSet<>(zcToWriterMap.values());
@@ -115,55 +79,56 @@ public class SingleLevelSplit extends Split {
 		for (SAMFileWriter writer : writers) {
 			writer.close();
 		}
-		
+
 		//rename the index file; we don't want to exception happen if rename failed
-		if(createIndex){
-			for(File out: outputNames){
-				try{
-					BAMFileUtils.renameIndex(out);
+		if (createIndex) {
+			for (File out: outputNames) {
+				try {
+					BAMFileUtils.renameIndex(out, SamFiles.findIndex(out));
 					logger.info("rename index to " + out.getPath() + ".bai");
-				}catch(Exception e){
+				} catch (Exception e) {
 					logger.error(e.toString());
 				}
 			}
 		}
 	}
-	
-	private void setupSingleSplitFromOptions(Options options) throws SplitException, IOException {
-		
+
+	private void setupSingleSplitFromOptions(Options options) throws SplitException {
+
 		for (Integer i : options.getSplit1ZCs()) {
 			singleSplitMap.put(i, options.getSplit1String());
 		}
 		for (Integer i : options.getSplit2ZCs()) {
 			singleSplitMap.put(i, options.getSplit2String());
 		}
-		
+
 		checkSingleSplitMap();
-		
+
 	}
+
 	private void setupSingleSplit() throws SplitException, IOException {
-		
+
 		List<SAMProgramRecord> pgs = header.getProgramRecords();
 		SAMProgramRecord latestMerge = getLatestMerge(pgs);
-		
+
 		logger.info("latestMerge: " + latestMerge.getCommandLine());
 		logger.info("group id: " + latestMerge.getProgramGroupId());
 		logger.info("zc: " + latestMerge.getAttribute("zc"));
-		
+
 		List<String> inputs = getProgramRecordInputs(latestMerge);
 		determineSingleSplitOutputs(inputs, singleSplitMap, pgs, null);
-		
+
 		checkSingleSplitMap(inputs);
-		
+
 	}
-	
+
 	private void checkSingleSplitMap() throws SplitException {
 		// sanity check to ensure that all zc's have been accounted for
 		StringBuilder sb = new StringBuilder();
 		for (Integer zc : zcToFileNameMap.keySet()) {
 			if ( ! singleSplitMap.containsKey(zc)) {
 				if (sb.length() > 0) sb.append('\n');
-				sb.append("no entry in singleSplitMap for zc: " + zc);
+				sb.append("no entry in singleSplitMap for zc: ").append(zc);
 			}
 		}
 		if (sb.length() != 0) {
@@ -171,14 +136,14 @@ public class SingleLevelSplit extends Split {
 			throw new SplitException(sb.toString());
 		}
 	}
-	
+
 	private void checkSingleSplitMap(List<String> inputs) throws SplitException {
 		for (String input : inputs) {
 			StringBuilder sb = new StringBuilder();
 			for (Entry<Integer, String> entry : singleSplitMap.entrySet()) {
 				if (entry.getValue().equals(input)) {
 					if (sb.length() > 0) sb.append('\n');
-					
+
 					sb.append(zcToFileNameMap.get(entry.getKey()));
 				}
 			}
@@ -187,7 +152,7 @@ public class SingleLevelSplit extends Split {
 				throw new SplitException("Could not find zc's for input: " + input);
 			} else {
 				logger.info("");
-				logger.info("output file: " + input + " will contain data from the following bams: \n" + sb.toString());
+				logger.info("output file: " + input + " will contain data from the following bams: \n" + sb);
 			}
 		}
 	}
@@ -195,7 +160,7 @@ public class SingleLevelSplit extends Split {
 	private void determineSingleSplitOutputs(List<String> inputs, Map<Integer, String> singleSplitMap, List<SAMProgramRecord> pgs, String parentInput) throws IOException {
 		for (String s : inputs) {
 			boolean matchFound = false;
-			
+
 			// if the input is in the zcToFileMap, we are done - add to singleSplitMap and move on
 			//here fileNameToZcMap store bams lists on RG
 			for (Entry<String,Integer> entry : fileNameToZcMap.entrySet()) {
@@ -212,14 +177,14 @@ public class SingleLevelSplit extends Split {
 					break;
 				}
 			}
-			 
+
 			if (matchFound) continue;
-			
+
 			// need to find program record for input
-			
+
 			SAMProgramRecord linkedMerge = getPGforInput(s, pgs);
 			if (null != linkedMerge) {
-				logger.info("linkedMerge: " + ((null != linkedMerge) ? linkedMerge.getCommandLine() : "null"));
+				logger.info("linkedMerge: " + linkedMerge.getCommandLine());
 				determineSingleSplitOutputs(getProgramRecordInputs(linkedMerge), singleSplitMap, pgs, null != parentInput ? parentInput : s);
 			} else {
 				logger.info("no PG line found for input: " + s);
@@ -230,49 +195,49 @@ public class SingleLevelSplit extends Split {
 	static String getLinkedFilename(String filename) throws IOException {
 		filename = filename.replace("/panfs/seq_results", "/mnt/seq_results");
 		Path path = Paths.get(filename, "");
-		
+
 		// if the file exists, return its full (real) path, otherwise, just return the filename
 		if (path.toFile().exists())
 			return path.toRealPath().toString();
 		else
 			return filename;
 	}
-	
+
 	static SAMProgramRecord getPGforInput(String input, List<SAMProgramRecord> pgs) {
 		File inputFile = new File(input);
 		input = inputFile.getName();
 		System.out.println("input: " + input);
-		
+
 		//do perfect output name match first
-		for (SAMProgramRecord pg : pgs) 
+		for (SAMProgramRecord pg : pgs)
 			if (QBM.equals(pg.getProgramName())) {
 				String output = getProgramRecordOutputs(pg);
-				
+
 				// need to use the filenames as the paths are non-conformant
 				File outputFile = new File(output);
 				output = outputFile.getName();
-				
-				if (output.equals(input)) 
+
+				if (output.equals(input))
 					return pg;
-				
-		}
-		
-		//if no perfect output match then seek ambiguous match		
+
+			}
+
+		//if no perfect output match then seek ambiguous match
 		for (SAMProgramRecord pg : pgs) {
 			if (QBM.equals(pg.getProgramName())) {
 				String output = getProgramRecordOutputs(pg);
-				
+
 				// need to use the filenames as the paths are non-conformant
 				File outputFile = new File(output);
 				output = outputFile.getName();
 				if(input.contains("19x.dedup") &&
-					(output.length() - 3) >= input.substring(0, input.indexOf("19x.dedup")).length() ){
+						(output.length() - 3) >= input.substring(0, input.indexOf("19x.dedup")).length() ){
 					// need to handle the 90ND_10CD.19x.dedup cases as these names have changed
 					// since the file was merged
 					return pg;
 				} else if( input.contains(".dedup.bam") ){
-					if(output.substring(0, output.indexOf(".bam")).equalsIgnoreCase(input.substring(0, input.indexOf(".dedup.bam"))))  
-						return pg;			
+					if(output.substring(0, output.indexOf(".bam")).equalsIgnoreCase(input.substring(0, input.indexOf(".dedup.bam"))))
+						return pg;
 				} else if (input.contains("100ND_0CD") && output.endsWith(".ND.bam")) {
 					return pg;
 				} else if (output.contains(input.substring(0, input.indexOf(".bam")))) {
@@ -302,13 +267,13 @@ public class SingleLevelSplit extends Split {
 		}
 		return null;
 	}
-	
+
 	static List<String> getProgramRecordInputs(SAMProgramRecord pg) throws IOException {
 		List<String> inputs = new ArrayList<>();
-		
+
 		String cl = pg.getCommandLine();
 		String [] params = TabTokenizer.tokenize(cl, ' ');
-		
+
 		// loop through array - when we get a "-i", the next param is an input
 		boolean get = false;
 		for (String p : params) {
@@ -318,12 +283,12 @@ public class SingleLevelSplit extends Split {
 		}
 		return inputs;
 	}
-	
+
 	static String getProgramRecordOutputs(SAMProgramRecord pg) {
 		String output = null;
 		String cl = pg.getCommandLine();
 		String [] params = TabTokenizer.tokenize(cl, ' ');
-		
+
 		// loop through array - when we get a "-i", the next param is an input
 		boolean get = false;
 		for (String p : params) {
@@ -332,12 +297,12 @@ public class SingleLevelSplit extends Split {
 		}
 		return output;
 	}
-	
-	
+
+
 	static SAMProgramRecord getLatestMerge(List<SAMProgramRecord> pgs) {
 		// we are looking for the qbammerge program record that has the highest zc attribute
 		SAMProgramRecord latestMerge = null;
-		
+
 		for (SAMProgramRecord pg : pgs) {
 			if (QBM.equals(pg.getProgramName())) {
 				if (null == latestMerge) {
@@ -349,17 +314,7 @@ public class SingleLevelSplit extends Split {
 		}
 		return latestMerge;
 	}
-	
-	
-	static boolean doMultipleMergesExist(List<SAMProgramRecord> pgs) {
-		int counter = 0;
-		
-		for (SAMProgramRecord pg : pgs)
-			if (QBM.equalsIgnoreCase(pg.getProgramName()))
-				counter++;
-		
-		return counter > 1;
-	}
+
 
 	/**
 	 * Overridden method as GATK inserts RG records without the qcmg specific zc tag
@@ -371,10 +326,10 @@ public class SingleLevelSplit extends Split {
 			String zc = getAttributeZc(record);
 			if (null == zc) {
 //						"Input file header has RG fields lacking zx attributes");
-				// skip this RG line as we only care about qbammerge RGs here 
+				// skip this RG line as we only care about qbammerge RGs here
 				continue;
 			}
-		
+
 			String[] params = colonDelimitedPattern.split(zc);
 			Integer zcInt = Integer.parseInt(params[0]);
 			String fileName = params[1];
@@ -391,9 +346,9 @@ public class SingleLevelSplit extends Split {
 			}
 		}
 	}
-	
+
 	/**
-	 *Overridden method that doesn not remove all entries in the header that have
+	 *Overridden method that does not remove all entries in the header that have
 	 *a zc tag (qcmg specific) in them.
 	 *Also, add PG to header line with split command line
 	 */
@@ -409,7 +364,7 @@ public class SingleLevelSplit extends Split {
 			zcToOutputHeaderMap.put(zcInt, outputHeader);
 		}
 	}
-	
+
 	/**
 	 * Overridden method that keeps RG lines for this zc value, and others contributing to the output file
 	 */
@@ -419,7 +374,7 @@ public class SingleLevelSplit extends Split {
 		List<Integer> linkedZCs = retrieveOtherZCKeepers(zcInt, singleSplitMap);
 		for (final SAMReadGroupRecord readGroupRecord : outputHeader.getReadGroups()) {
 			String zc =  getAttributeZc( readGroupRecord );
-			 
+
 			String[] params = colonDelimitedPattern.split(zc);
 			Integer otherZcInt = Integer.parseInt(params[0]);
 			if (linkedZCs.contains(otherZcInt)) {
@@ -428,7 +383,7 @@ public class SingleLevelSplit extends Split {
 		}
 		outputHeader.setReadGroups(keepers);
 	}
-	
+
 	private List<Integer> retrieveOtherZCKeepers(int zc, Map<Integer, String> map) {
 		String value = map.get(zc);
 		List<Integer> linkedZCs = new ArrayList<>();
@@ -450,34 +405,34 @@ public class SingleLevelSplit extends Split {
 	void openWriters() throws Exception {
 		SAMFileWriterFactory factory = new SAMFileWriterFactory();
 		factory.setCreateIndex(createIndex);
-		
+
 		// create map of file to writer objects
 		Map<String, SAMFileWriter> splitWriters = new HashMap<>();
-		
+
 		for (Entry<Integer, String> entry : singleSplitMap.entrySet()) {
 			Integer zc = entry.getKey();
 			String fileName = new File(entry.getValue()).getName();
-			
+
 			SAMFileWriter outputWriter = splitWriters.get(fileName);
 			if (null == outputWriter) {
 				File outputFile = new File(outputDirName, fileName);
-				
+
 				if (!outputFile.exists()) {
-					
+
 					SAMFileHeader outputHeader = zcToOutputHeaderMap.get(zc);
 					outputWriter = factory.makeSAMOrBAMWriter(outputHeader, true, outputFile);
 					splitWriters.put(fileName, outputWriter);
-					
+
 				} else {
 					closeWriters();
 					throw new Exception(
 							"Output file in the specified output directory alread exists: "
-							+ fileName);
+									+ fileName);
 				}
 				outputNames.add(outputFile);
-			} 
+			}
 			zcToWriterMap.put(zc, outputWriter);
-			
+
 		}
 	}
 
@@ -493,7 +448,7 @@ public class SingleLevelSplit extends Split {
 				closeWriters();
 				throw new Exception("Input file contains records lacking ZC integer attribute");
 			}
-			
+
 			SAMFileWriter writer = zcToWriterMap.get(zc);
 
 			if (null == writer) {
@@ -505,7 +460,7 @@ public class SingleLevelSplit extends Split {
 				System.err.println("record: " + record.getSAMString());
 				throw new Exception("Input file contains records lacking ZC integer attribute");
 			}
-			
+
 			// may need to do a further split, so keep hold of the ZC record attribute
 			writer.addAlignment(record);
 		}

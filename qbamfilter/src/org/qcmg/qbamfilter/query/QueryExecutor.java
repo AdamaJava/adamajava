@@ -24,7 +24,7 @@ import org.qcmg.qbamfilter.grammars.queryTree;
 
 public class QueryExecutor {
     
-    private SamRecordFilter queryExecutor;
+    private final SamRecordFilter queryExecutor;
 
     
     private final QLogger logger = QLoggerFactory.getLogger(QueryExecutor.class);
@@ -71,31 +71,14 @@ public class QueryExecutor {
      * then check whether it satisfied with query.
      */
     public boolean Execute(SAMRecord record) throws Exception{         
-                   
-        try{
+        try {
         	return queryExecutor.filterOut(record);
-
-       // }catch(RecognitionException e ){ 
-        //    throw new Exception(Thread.currentThread().getName() + " " + e.toString() + " in QyertExecutor");
-        }catch (Exception e) {	
-        	 if( record == null)
-        		 throw new Exception(Thread.currentThread().getName() + "inside QueryExecutor (record is null)" );   
-        	 else
-			     throw new Exception(Thread.currentThread().getName() + " "+ e.toString() );
- 
+        } catch (Exception e) {
+        	 if (record == null) {
+                 throw new Exception(Thread.currentThread().getName() + "inside QueryExecutor (record is null)");
+             } else {
+                 throw new Exception(Thread.currentThread().getName() + " " + e);
+             }
 		}  
     }
-    
-//    private boolean checkValid(SAMRecord record){
-//    	List<SAMValidationError> Errs = record.isValid();
-//        if( Errs != null){
-//            System.err.println("invalid read: " + record);
-//            for(SAMValidationError err: Errs){
-//                System.err.println(err.getMessage());
-//            }
-//            return false;
-//        }   
-//    	return true;
-//    }
-
 }

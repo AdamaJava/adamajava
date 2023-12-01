@@ -28,7 +28,7 @@ public class CigarFilter  implements SamRecordFilter{
      * 
      */
     public CigarFilter(String operatorName, Comparator comp, String value )throws Exception{
-        this.value = Integer.valueOf(value);
+        this.value = Integer.parseInt(value);
         op = comp;
         if(operatorName.equalsIgnoreCase("M")){operator = CigarOperator.M;}
         else if(operatorName.equalsIgnoreCase("I")){operator = CigarOperator.I;}

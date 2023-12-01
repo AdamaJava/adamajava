@@ -6,6 +6,9 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.FileAttribute;
 import java.util.Iterator;
 import java.util.Vector;
 
@@ -62,7 +65,7 @@ public class FileMergerTest {
 					+ e.getMessage());
 		}
 	}
-	
+
 	@Test
 	public void largeData() throws Exception {
 		File f1 = testFolder.newFile();
@@ -70,12 +73,12 @@ public class FileMergerTest {
 		File f3 = testFolder.newFile();
 		File f = testFolder.newFolder();
 		File fOut = new File(f.getAbsolutePath() + "output.sam");
-		
+
 		SamTestData.createFirstSam(f1, true);
 		SamTestData.createSecondSam(f2, true);
 		SamTestData.createThirdSam(f3, true);
-		
-		
+
+
 		String[] args = { f1.getAbsolutePath(), f2.getAbsolutePath(), f3.getAbsolutePath() };
 		long now = System.currentTimeMillis();
 		new FileMerger(fOut.getAbsolutePath(), args, "commandLine", true);
@@ -105,9 +108,9 @@ public class FileMergerTest {
 			assert (null != zc);
 		}
 
-		assertTrue(countD == countA + countB + countC);
+		assertEquals(countD, countA + countB + countC);
 	}
-	
+
 	@Test
 	public void singleInput() throws Exception {
 		File f1 = testFolder.newFile();
@@ -115,14 +118,14 @@ public class FileMergerTest {
 		SamTestData.createFirstSam(f1, false);
 		File f = testFolder.newFolder();
 		File fOut = new File(f.getAbsolutePath() + "output.bam");
-		
+
 		int countA = 0;
 		/*
 		 * make bam from sam
 		 */
-		try(SamReader reader = SAMFileReaderFactory.createSAMFileReader(f1);){
+		try(SamReader reader = SAMFileReaderFactory.createSAMFileReader(f1)){
 			SAMWriterFactory factory = new SAMWriterFactory(reader.getFileHeader(), true, f1Bam);
-			try( SAMFileWriter writer = factory.getWriter();) {
+			try( SAMFileWriter writer = factory.getWriter()) {
 				for (SAMRecord r : reader) {
 					writer.addAlignment(r);
 					countA++;
@@ -131,27 +134,29 @@ public class FileMergerTest {
 		}
 		String[] args = { f1Bam.getAbsolutePath() };
 		new FileMerger(fOut.getAbsolutePath(), args, null,"commandLine",-1, false,false, true, null,null, null, ",my_uuid");
-		
-		try(SamReader reader = SAMFileReaderFactory.createSAMFileReader(fOut);){
+
+		try(SamReader reader = SAMFileReaderFactory.createSAMFileReader(fOut)){
 			SAMFileHeader header = reader.getFileHeader();
 			int countB = 0;
-			for (SAMRecord record : reader) countB++;
+			for (SAMRecord record : reader) {
+				countB++;
+			}
 			assertEquals(1, header.getComments().size());
-			assertEquals(true, header.getComments().get(0).contains("my_uuid"));
+			assertTrue(header.getComments().get(0).contains("my_uuid"));
 			assertEquals(countB, countA);
 		}
-		
+
 		/*
 		 * update uuid
 		 */
 		File fOut2 = new File(f.getAbsolutePath() + "output2.bam");
 		new FileMerger(fOut2.getAbsolutePath(), new String[]{fOut.getAbsolutePath()}, null,"commandLine",-1, false,false, true, null,null, null, ",my_uuid_take_II");
-		try(SamReader reader = SAMFileReaderFactory.createSAMFileReader(fOut2);){
+		try(SamReader reader = SAMFileReaderFactory.createSAMFileReader(fOut2)){
 			SAMFileHeader header = reader.getFileHeader();
 			int countC = 0;
 			for (SAMRecord record : reader) countC++;
 			assertEquals(1, header.getComments().size());
-			assertEquals(true, header.getComments().get(0).contains("my_uuid_take_II"));
+			assertTrue(header.getComments().get(0).contains("my_uuid_take_II"));
 			assertEquals(countC, countA);
 		}
 
@@ -215,7 +220,7 @@ public class FileMergerTest {
 			assert (null != zc);
 		}
 
-		assertTrue(countC == countA + countB);
+		assertEquals(countC, countA + countB);
 	}
 
 	@Test
@@ -292,7 +297,7 @@ public class FileMergerTest {
 		ExpectedException.none();
 
 		String[] replacements = { FILE_NAME_B + ":ES:XXX" };
-		
+
 		File output = new File("recursiveMergeWithValidArguments.sam");
 		if (output.exists()) {
 			output.delete();
@@ -338,7 +343,7 @@ public class FileMergerTest {
 			assert (null != zc);
 		}
 
-		assertTrue(outputCount == countA + 2 * countB);
+		assertEquals(outputCount, countA + 2 * countB);
 
 		output.delete();
 	}
@@ -347,9 +352,9 @@ public class FileMergerTest {
 	public final void recursiveMergeWithValidArgumentsThenSplit()
 			throws Exception {
 		ExpectedException.none();
-		
+
 		String[] replacements = { FILE_NAME_B + ":ES:XXX" };
-		
+
 		File output = new File("recursiveMergeWithValidArgumentsThenSplit.sam");
 		if (output.exists()) {
 			output.delete();
@@ -393,7 +398,7 @@ public class FileMergerTest {
 			assert (null != zc);
 		}
 
-		assertTrue(outputCount == countA + countB + countC);
+		assertEquals(outputCount, countA + countB + countC);
 
 		output.delete();
 
@@ -580,7 +585,7 @@ public class FileMergerTest {
 			}
 
 			assertTrue(0 != nextRecords.size());
-			assertTrue(0 == nextRecords.size() % 2);
+			assertEquals(0, nextRecords.size() % 2);
 
 			for (SAMRecord record : nextRecords) {
 				String readGroup = record.getAttribute("RG").toString();
@@ -594,7 +599,7 @@ public class FileMergerTest {
 				}
 			}
 
-			assertTrue(esCount == esxCount);
+			assertEquals(esCount, esxCount);
 		}
 	}
 
@@ -604,7 +609,7 @@ public class FileMergerTest {
 	}
 
 	public final void copyFile(final String fromFileName,
-			final String toFileName) throws IOException {
+							   final String toFileName) throws IOException {
 		File file = new File(fromFileName);
 		File copiedFile = new File(toFileName);
 		FileReader in = new FileReader(file);

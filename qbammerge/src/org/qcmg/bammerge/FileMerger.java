@@ -9,25 +9,10 @@ package org.qcmg.bammerge;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.Vector;
+import java.util.*;
 import java.util.regex.Pattern;
 
-import htsjdk.samtools.BamFileIoUtils;
-import htsjdk.samtools.SamFileHeaderMerger;
-import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMProgramRecord;
-import htsjdk.samtools.SAMReadGroupRecord;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SAMTag;
-import htsjdk.samtools.ValidationStringency;
+import htsjdk.samtools.*;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -80,15 +65,14 @@ import org.qcmg.picard.util.SAMReadGroupRecordUtils;
  * caching of records during this operation.
  */
 public final class FileMerger {
-	
+
 	/*
-	 * Set up some short tags used by SAMREcord to retrive attributes
+	 * Set up some short tags used by SAMRecord to retrieve attributes
 	 */
 	public static final String ZC = "ZC";
 	public static final String RG = "RG";
-	public static final short ZC_TAG = SAMTag.makeBinaryTag(ZC);
 	public static final short RG_TAG = SAMTag.RG.getBinaryTag();
-	
+
 	/** The naming prefix for temporary files during merging. */
 	private static final String TEMP_FILE_PREFIX = "tmp";
 
@@ -102,14 +86,14 @@ public final class FileMerger {
 	private GroupReplacements groupReplacements;
 
 	/** The set of input files to be merged. */
-	private final Set<File> inputFiles = new HashSet<File>(8);
+	private final Set<File> inputFiles = new HashSet<>(8);
 
 	/** Flag to indicate that the output file will be included in the merge. */
 	private final boolean includeOutputFile;
 
 	/** Flag to indicate that read group clashes are to be ignored. */
 	private final boolean ignoreReadGroupClashes;
-	
+
 	/** Flag to indicate that an index file should also be created. */
 	private final boolean createIndex;
 
@@ -131,30 +115,30 @@ public final class FileMerger {
 	private  SAMWriterFactory outputWriterfactory;
 	/**The merged header obtained from combining the input SAM/BAM file headers.*/
 	private SAMFileHeader mergedHeader;
-	
+
 	private final String uuid;
-	
+
 	/**
 	 * Used for the reverse lookup of group replacements based on the input file
 	 * instance and old group value.
 	 */
-	private final Map<File, Map<String, GroupReplacement>> replacementMap = new HashMap<File, Map<String, GroupReplacement>>(8);
+	private final Map<File, Map<String, GroupReplacement>> replacementMap = new HashMap<>(8);
 
 	/** The combined set of file names to be used in the merging process. */
 	private String[] allInputFileNames;
-	
+
 	private final ValidationStringency validation ;
-	
+
 	private final String[] comments;
-	
+
 	private final File tmpdir;
-	
+
 	private final QLogger logger = QLoggerFactory.getLogger(FileMerger.class);
-	
+
 
 	/**
 	 * Constructor that performs the merge.
-	 * 
+	 *
 	 * @param outputFileName
 	 *            the filename for the output SAM/BAM. Must have a .bam or .sam
 	 *            extension.
@@ -182,12 +166,11 @@ public final class FileMerger {
 	 * @throws Exception
 	 *             if general exceptions are encountered during the merge.
 	 */
-	
-	
-	
+
+
 	/**
-	 * 
-	 * @param uuid 
+	 *
+	 * @param uuid
 	 * @param outputFileName: the filename for the output SAM/BAM. Must have a .bam or .sam extension.
 	 * @param inputFileNames: the list of SAM/BAM filenames intended for merging. File names must end in .sam or .bam file extensions.
 	 * @param groupReplacements: the list of read group replacements.
@@ -197,26 +180,26 @@ public final class FileMerger {
 	 * @param ignoreReadGroupClashes: if true, read group clashes are ignored.
 	 * @param createIndex: if true, an index file will be created in case of sort by coordinate
 	 * @param tmpdir: the directory in which all temporary files will be stored during processing.
-	 * @param validation: How strict to read a SAM or BAM. Possible values: {STRICT, LENIENT, SILENT}. 
-	 * @param comments: the String will be added into output header CO lines. 
+	 * @param validation: How strict to read a SAM or BAM. Possible values: {STRICT, LENIENT, SILENT}.
+	 * @param comments: the String will be added into output header CO lines.
 	 * @throws BamMergeException
 	 * @throws IOException
 	 * @throws Exception
 	 */
 	public FileMerger(final String outputFileName, final String[] inputFileNames, final String[] groupReplacements,
-			final String commandLine, final int numberRecords, final boolean includeOutputFile,
-			final boolean ignoreReadGroupClashes, final boolean createIndex, final String tmpdir,
-			final ValidationStringency validation, final String[] comments, String uuid) throws BamMergeException, IOException, Exception {
+					  final String commandLine, final int numberRecords, final boolean includeOutputFile,
+					  final boolean ignoreReadGroupClashes, final boolean createIndex, final String tmpdir,
+					  final ValidationStringency validation, final String[] comments, String uuid) throws BamMergeException, IOException, Exception {
 		this.includeOutputFile = includeOutputFile;
 		this.ignoreReadGroupClashes = ignoreReadGroupClashes;
 		this.createIndex = createIndex;
 		this.numberRecords = numberRecords;
 		this.commandLine = commandLine;
-		this.mergeCount = 0;		
-	    this.validation = validation;
-	    this.comments = comments;
-	    	this.tmpdir = tmpdir != null ? new File(tmpdir) : null;
-	    	this.uuid = uuid;
+		this.mergeCount = 0;
+		this.validation = validation;
+		this.comments = comments;
+		this.tmpdir = tmpdir != null ? new File(tmpdir) : null;
+		this.uuid = uuid;
 		resolveFiles(outputFileName, inputFileNames, includeOutputFile);
 		resolveReplacements(groupReplacements);
 		performMerge();
@@ -226,7 +209,7 @@ public final class FileMerger {
 
 	/**
 	 * Constructor that performs the merge.
-	 * 
+	 *
 	 * @param outputFileName
 	 *            the filename for the output SAM/BAM. Must have a .bam or .sam
 	 *            extension.
@@ -238,10 +221,6 @@ public final class FileMerger {
 	 * @param commandLine
 	 *            the string inserted into the PG:CL annotation of the output
 	 *            header's @PG line.
-	 * @param numberRecords
-	 *            the total number of records to merge (from start of file).
-	 *            Specifying a -1 value indicates no limit, merging all the
-	 *            records available in the source SAM/BAM files.
 	 * @param includeOutputFile
 	 *            if true, include the specified output file in the merge (if
 	 *            the output file does not exist, an exception will be thrown).
@@ -255,17 +234,17 @@ public final class FileMerger {
 	 *             if general exceptions are encountered during the merge.
 	 */
 	public FileMerger(final String outputFileName, final String[] inputFileNames, final String commandLine,
-			final int numberRecords, final boolean includeOutputFile, final boolean ignoreReadGroupClashes)
+					  final boolean includeOutputFile, final boolean ignoreReadGroupClashes)
 			throws BamMergeException, IOException, Exception {
-		
-		this(outputFileName, inputFileNames, null, commandLine, -1, false, ignoreReadGroupClashes, false,null,null,null, null);		
+
+		this(outputFileName, inputFileNames, null, commandLine, -1, false, ignoreReadGroupClashes, false,null,null,null, null);
 	}
 
 	/**
 	 * Constructor that performs the merge without having to specify the number
 	 * of records to merge nor the flag to indicate inclusion of the output file
 	 * in the merge.
-	 * 
+	 *
 	 * @param outputFileName
 	 *            the filename for the output SAM/BAM. Must have a .bam or .sam
 	 *            extension.
@@ -285,85 +264,16 @@ public final class FileMerger {
 	 *             if general exceptions are encountered during the merge.
 	 */
 	public FileMerger(final String outputFileName, final String[] inputFileNames, final String[] replacements,
-			final String commandLine, final boolean ignoreReadGroupClashes) throws IOException, Exception {
+					  final String commandLine, final boolean ignoreReadGroupClashes) throws IOException, Exception {
 		this(outputFileName, inputFileNames, replacements, commandLine, -1, false, ignoreReadGroupClashes, false,null,null,null, null);
- 
-	}
 
-	/**Library_20120510_D.o174055
-	 * Constructor that performs the merge without having to specify the number
-	 * of records to merge nor the flag to indicate inclusion of the output file
-	 * in the merge.
-	 * 
-	 * @param outputFileName
-	 *            the filename for the output SAM/BAM. Must have a .bam or .sam
-	 *            extension.
-	 * @param inputFileNames
-	 *            the list of SAM/BAM filenames intended for merging. File names
-	 *            must end in .sam or .bam file extensions.
-	 * @param groupReplacements
-	 *            the list of read group replacements.
-	 * @param commandLine
-	 *            the string inserted into the PG:CL annotation of the output
-	 *            header's @PG line.
-	 * @throws IOException
-	 *             if I/O exceptions are encountered during the merge.
-	 * @throws Exception
-	 *             if general exceptions are encountered during the merge.
-	 */
-	public FileMerger(final String outputFileName, final String[] inputFileNames, final String[] groupReplacements,
-			final String commandLine) throws IOException, Exception {
-		this(outputFileName, inputFileNames, groupReplacements, commandLine, -1, false, false, false,null,null,null, null);
 	}
 
 	/**
 	 * Constructor that performs the merge without having to specify the number
 	 * of records to merge nor the flag to indicate inclusion of the output file
 	 * in the merge.
-	 * 
-	 * @param outputFileName
-	 *            the filename for the output SAM/BAM. Must have a .bam or .sam
-	 *            extension.
-	 * @param inputFileNames
-	 *            the list of SAM/BAM filenames intended for merging. File names
-	 *            must end in .sam or .bam file extensions.
-	 * @param groupReplacements
-	 *            the list of read group replacements.
-	 * @throws IOException
-	 *             if I/O exceptions are encountered during the merge.
-	 * @throws Exception
-	 *             if general exceptions are encountered during the merge.
-	 */
-	public FileMerger(final String outputFileName, final String[] inputFileNames, final String[] groupReplacements)
-			throws IOException, Exception {
-		this(outputFileName, inputFileNames, groupReplacements, "", -1, false, false, false,null,null,null, null);
-	}
-
-	/**
-	 * Constructor that performs the merge without having to specify the number
-	 * of records to merge nor the flag to indicate inclusion of the output file
-	 * in the merge.
-	 * 
-	 * @param outputFileName
-	 *            the filename for the output SAM/BAM. Must have a .bam or .sam
-	 *            extension.
-	 * @param inputFileNames
-	 *            the list of SAM/BAM filenames intended for merging. File names
-	 *            must end in .sam or .bam file extensions.
-	 * @throws IOException
-	 *             if I/O exceptions are encountered during the merge.
-	 * @throws Exception
-	 *             if general exceptions are encountered during the merge.
-	 */
-	public FileMerger(final String outputFileName, final String[] inputFileNames) throws IOException, Exception {
-		this(outputFileName, inputFileNames, "", -1, false, false);
-	}
-
-	/**
-	 * Constructor that performs the merge without having to specify the number
-	 * of records to merge nor the flag to indicate inclusion of the output file
-	 * in the merge.
-	 * 
+	 *
 	 * @param outputFileName
 	 *            the filename for the output SAM/BAM. Must have a .bam or .sam
 	 *            extension.
@@ -383,15 +293,15 @@ public final class FileMerger {
 	 *             if general exceptions are encountered during the merge.
 	 */
 	public FileMerger(final String outputFileName, final String[] inputFileNames, final String commandLine,
-			final boolean ignoreReadGroupClashes) throws IOException, Exception {
-		this(outputFileName, inputFileNames, commandLine, -1, false, ignoreReadGroupClashes);
+					  final boolean ignoreReadGroupClashes) throws IOException, Exception {
+		this(outputFileName, inputFileNames, commandLine, false, ignoreReadGroupClashes);
 	}
- 
+
 
 	/**
 	 * Assembles the true set of filenames to be used in the merging process,
 	 * and creates the File instance to which the merging process will write.
-	 * 
+	 *
 	 * @param outputFileName
 	 * @param inputFileNames
 	 * @param includeOutputFile
@@ -399,7 +309,7 @@ public final class FileMerger {
 	 * @throws IOException
 	 */
 	private void resolveFiles(final String outputFileName, final String[] inputFileNames,
-			final boolean includeOutputFile) throws BamMergeException, IOException {
+							  final boolean includeOutputFile) throws BamMergeException, IOException {
 		if (includeOutputFile) {
 			allInputFileNames = append(inputFileNames, outputFileName);
 			outputFile = createTemporaryFile(outputFileName);
@@ -415,23 +325,20 @@ public final class FileMerger {
 	/**
 	 * Assembles the set of group replacements and detects bad replacements in
 	 * the process.
-	 * 
+	 *
 	 * @param replacements
 	 *            the list of intended group replacements.
 	 * @throws BamMergeException
 	 *             if the list of replacements is malformed.
 	 */
 	private void resolveReplacements(final String[] replacements) throws BamMergeException {
-		if(replacements != null)
-			groupReplacements = new GroupReplacements(replacements, allInputFileNames);
-		else
-			groupReplacements = new GroupReplacements(new String[0], allInputFileNames);
+		groupReplacements = new GroupReplacements(Objects.requireNonNullElseGet(replacements, () -> new String[0]), allInputFileNames);
 	}
 
 	/**
 	 * Creates the temporary File instance for use during merging for when the
 	 * output file is to be included in the merge.
-	 * 
+	 *
 	 * @param fileName
 	 *            the name of the output file.
 	 * @return the File object for the temporary file.
@@ -447,7 +354,7 @@ public final class FileMerger {
 			outDir = new File(outputDirectory);
 		else
 			outDir = tmpdir;
-		
+
 		File file = new File(fileName);
 		String ext = FileUtils.getExtension(file);
 		if (null == ext) {
@@ -460,7 +367,7 @@ public final class FileMerger {
 
 	/**
 	 * Coordinates the overall merging process.
-	 * 
+	 *
 	 * @throws BamMergeException
 	 * @throws IOException
 	 * @throws Exception
@@ -472,33 +379,36 @@ public final class FileMerger {
 		if (allInputFileNames.length == 1 && ! StringUtils.isNullOrEmpty(uuid)) {
 			reheadSingleBamFile();
 		} else {
-			
+
 			try {
 				openReader();
 				mergeHeaders();
-				openWriter();			
+				openWriter();
 				mergeAlignments();
-	
+
 			} finally {
 				close();
 			}
 		}
 	}
-	
+
 	private void reheadSingleBamFile() throws IOException {
 		File in = new File(allInputFileNames[0]);
-		final SamReader reader = SAMFileReaderFactory.createSAMFileReader(in, null, validation);
-		final SAMFileHeader header = reader.getFileHeader();
+		final SAMFileHeader header;
+		try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(in, null, validation)) {
+			header = reader.getFileHeader();
+		}
 		replaceUUIDInHeader(header, uuid);
 		BamFileIoUtils.reheaderBamFile(header, in, outputFile, false, createIndex);
+
 		if (createIndex) {
-			BAMFileUtils.renameIndex(outputFile);
+			BAMFileUtils.renameIndex(outputFile, SamFiles.findIndex(outputFile));
 		}
 	}
 
 	/**
 	 * Deletes temporary files (if any) created during the merging process.
-	 * 
+	 *
 	 * @param mergeFileName
 	 * @throws IOException
 	 * @throws FileNotFoundException
@@ -518,7 +428,7 @@ public final class FileMerger {
 	/**
 	 * Returns the new read group for replacing the specified old read group in
 	 * the specified input SAM/BAM File.
-	 * 
+	 *
 	 * @param file
 	 *            the source SAM/BAM File instance containing the old group.
 	 * @param oldGroup
@@ -542,18 +452,17 @@ public final class FileMerger {
 	 * scenarios such as duplicate input files, output file being used as an
 	 * input file (does not apply to merging with the output), and read group
 	 * clashes where applicable.
-	 * 
+	 *
 	 * @throws IOException
 	 * @throws BamMergeException
 	 * @throws Exception
 	 */
 	private void openReader() throws IOException, BamMergeException, Exception {
-		for (int i = 0; i < allInputFileNames.length; i++) {
-			String fileName = allInputFileNames[i];
+		for (String fileName : allInputFileNames) {
 			File inputFile = FileUtils.getCanonicalFile(fileName);
 			detectBadFile(fileName, inputFile);
 			Map<String, GroupReplacement> groupMappings = groupReplacements.getGroupMappings(fileName);
-			if ( null != groupMappings && ! groupMappings.isEmpty()) {
+			if (null != groupMappings && !groupMappings.isEmpty()) {
 				replacementMap.put(inputFile, groupMappings);
 			}
 		}
@@ -571,8 +480,8 @@ public final class FileMerger {
 	/**
 	 * Throws an exception if the output File instance has been used as an input
 	 * file. The check is performed using canonical file instances, so that
-	 * alternative pathings to the same file are detected.
-	 * 
+	 * alternative pathways to the same file are detected.
+	 *
 	 * @throws BamMergeException
 	 */
 	private void detectFileUsedAsInputAndOutput() throws BamMergeException {
@@ -584,8 +493,8 @@ public final class FileMerger {
 	/**
 	 * Throws an exception if an input file is supplied more than once in the
 	 * input file list. The check is performed using canonical file instances,
-	 * so that alternative pathings to the same file are detected.
-	 * 
+	 * so that alternative pathways to the same file are detected.
+	 *
 	 * @throws BamMergeException
 	 */
 	private void detectSameInputFiles() throws BamMergeException {
@@ -601,8 +510,8 @@ public final class FileMerger {
 	/**
 	 * Throws an exception if two File instances refer to the same file. The
 	 * check is performed using canonical file instances, so that alternative
-	 * pathings to the same file are detected.
-	 * 
+	 * pathways to the same file are detected.
+	 *
 	 * @param fileA
 	 * @param fileB
 	 * @throws BamMergeException
@@ -616,48 +525,44 @@ public final class FileMerger {
 
 	/**
 	 * Updates the RG and PG header lines for the merge.
-	 * 
+	 *
 	 * @throws Exception
 	 */
 	private void updateHeaderAttributes() throws Exception {
-		
+
 		//set lenient to Control validation of SAMRecords as they are read from file.
 		if(validation != null)
 			inputReader = new MultiSAMFileReader(inputFiles, validation);
-		else 
+		else
 			inputReader = new MultiSAMFileReader(inputFiles);
-		
+
 		for (SamReader reader : inputReader.getSAMFileReaders()) {
-			
+
 			SAMFileHeader header = reader.getFileHeader();
 			for (SAMReadGroupRecord record : header.getReadGroups()) {
-				String attribute = inputReader.getAttributeZc(record) ;					
+				String attribute = inputReader.getAttributeZc(record) ;
 				if (null == attribute) {
 					File file = inputReader.getFile(reader);
 					String name = file.getCanonicalPath();
 					Integer zc = inputReader.getDefaultZc(reader);
 					assert null != zc;
-					if (null == zc) {
-						throw new IllegalStateException(
-								"Null zc default value not permitted. Report this bug to development.");
-					}
-					attribute = zc.toString() + ":" + name;
-					 
+					attribute = zc + ":" + name;
+
 				} else {
-					 
-						String[] params = colonDelimitedPattern.split(attribute);
-						String zc = params[0];
-						String fileName = params[1];
-						Map<Integer, Integer> replacementZcs = inputReader.getReplacementZcs(reader);
-						if (null != replacementZcs) {
-							Integer replacement = replacementZcs.get(Integer.parseInt(zc));
-							if (null != replacement) {
-								zc = replacement.toString();
-							}
+
+					String[] params = colonDelimitedPattern.split(attribute);
+					String zc = params[0];
+					String fileName = params[1];
+					Map<Integer, Integer> replacementZcs = inputReader.getReplacementZcs(reader);
+					if (null != replacementZcs) {
+						Integer replacement = replacementZcs.get(Integer.parseInt(zc));
+						if (null != replacement) {
+							zc = replacement.toString();
 						}
-						attribute = zc + ":" + fileName;
-						//delete old ZC tag
-			            record.setAttribute("ZC", null);							
+					}
+					attribute = zc + ":" + fileName;
+					//delete old ZC tag
+					record.setAttribute("ZC", null);
 				}
 				record.setAttribute("zc", attribute);
 			}
@@ -670,11 +575,11 @@ public final class FileMerger {
 								"Null ZC default value not permitted. Report this bug to development.");
 					}
 				} else {
-						Map<Integer, Integer> replacementZcs = inputReader.getReplacementZcs(reader);
-						if (null != replacementZcs) 
-							zc = replacementZcs.get(zc);
-						//delete old ZC tag
-			            record.setAttribute("ZC", null);							 
+					Map<Integer, Integer> replacementZcs = inputReader.getReplacementZcs(reader);
+					if (null != replacementZcs)
+						zc = replacementZcs.get(zc);
+					//delete old ZC tag
+					record.setAttribute("ZC", null);
 				}
 				record.setAttribute("zc", zc.toString());
 			}
@@ -714,7 +619,7 @@ public final class FileMerger {
 	/**
 	 * Throws an exception if any read group clashes arise in the input files,
 	 * taking into account the specified read group replacements.
-	 * 
+	 *
 	 * @throws BamMergeException
 	 *             if any read group clashes arise in the input files, taking
 	 *             into account the specified read group replacements.
@@ -734,7 +639,7 @@ public final class FileMerger {
 	 * Throws an exception if any read group clashes are detected in the Files
 	 * being read by two SAMFileReaders, taking into account the specified read
 	 * group replacements.
-	 * 
+	 *
 	 * @param readerA
 	 *            the reader for the second SAM/BAM file to be checked.
 	 * @param readerB
@@ -761,7 +666,7 @@ public final class FileMerger {
 
 	/**
 	 * Throws an exception if the specified old and new read group IDs clash.
-	 * 
+	 *
 	 * @param idA
 	 *            the old read group ID for the first input file.
 	 * @param idB
@@ -774,8 +679,8 @@ public final class FileMerger {
 	 *             if read group clashes are detected for the specified old and
 	 *             new read group IDs.
 	 */
-	private void detectReadGroupOverlap(String idA, String idB, String newIdA, String newIdB, 
-			SAMReadGroupRecord groupA, SAMReadGroupRecord groupB) throws BamMergeException {
+	private void detectReadGroupOverlap(String idA, String idB, String newIdA, String newIdB,
+										SAMReadGroupRecord groupA, SAMReadGroupRecord groupB) throws BamMergeException {
 		if (null != newIdA && null != newIdB) {
 			if (newIdA.equals(newIdB)) {
 				throw new BamMergeException("READ_GROUP_OVERLAP", "RG lines: " + SAMReadGroupRecordUtils.getRGString(groupA) , SAMReadGroupRecordUtils.getRGString(groupB));
@@ -784,7 +689,7 @@ public final class FileMerger {
 			if (idA.equals(newIdB)) {
 				throw new BamMergeException("READ_GROUP_OVERLAP", "RG lines: " + SAMReadGroupRecordUtils.getRGString(groupA) , SAMReadGroupRecordUtils.getRGString(groupB));
 			}
-		} else if (null != newIdA && null == newIdB) {
+		} else if (null != newIdA) {
 			if (newIdA.equals(idB)) {
 				throw new BamMergeException("READ_GROUP_OVERLAP", "RG lines: " + SAMReadGroupRecordUtils.getRGString(groupA) , SAMReadGroupRecordUtils.getRGString(groupB));
 			}
@@ -804,9 +709,7 @@ public final class FileMerger {
 			List<SAMReadGroupRecord> oldGroups = reader.getFileHeader().getReadGroups();
 			Map<String, GroupReplacement> mappings = replacementMap.get(file);
 			if (null == mappings) {
-				for (SAMReadGroupRecord oldGroup : oldGroups) {
-					newGroups.add(oldGroup);
-				}
+				newGroups.addAll(oldGroups);
 			} else {
 				for (SAMReadGroupRecord oldGroup : oldGroups) {
 					GroupReplacement replacement = mappings.get(oldGroup.getId());
@@ -820,7 +723,7 @@ public final class FileMerger {
 				}
 			}
 		}
-		SamFileHeaderMerger merger = new SamFileHeaderMerger( SAMFileHeader.SortOrder.coordinate, inputReader.getSAMFileHeaders(), true);		
+		SamFileHeaderMerger merger = new SamFileHeaderMerger( SAMFileHeader.SortOrder.coordinate, inputReader.getSAMFileHeaders(), true);
 		mergedHeader = merger.getMergedHeader();
 		mergedHeader.setReadGroups(newGroups);
 		addHeaderProgramGroup();
@@ -836,7 +739,7 @@ public final class FileMerger {
 					commentsToKeep.add(s);
 				}
 			}
-			
+
 			// add in the new uuid
 			commentsToKeep.add(Constants.COMMENT_Q3BAM_UUID_PREFIX + ":" + uuid);
 			header.setComments(commentsToKeep);
@@ -853,20 +756,20 @@ public final class FileMerger {
 		Integer zc = inputReader.getNextAvailableZc();
 		record.setAttribute("zc", zc.toString());
 	}
-	
+
 	private void addHeaderComments() {
 		if(comments == null)
 			return;
-		for(String co: comments){		
+		for(String co: comments){
 			mergedHeader.addComment(co);
 		}
-		
+
 	}
 
 	/**
 	 * Merges the alignments of the source SAM/BAM files, performing the
 	 * necessary group replacements and zc annotations in the process.
-	 * 
+	 *
 	 * @throws BamMergeException
 	 *             if any of the input records have zc annotation values that
 	 *             are not part of the RG:zc annotations in the related input
@@ -874,17 +777,17 @@ public final class FileMerger {
 	 */
 	private void mergeAlignments() throws BamMergeException {
 		MultiSAMFileIterator iter = inputReader.getMultiSAMFileIterator();
-		
+
 		while (iter.hasNext() && !hasReachedNumberRecords()) {
 			SAMRecord record = iter.next();
-			
+
 			if (null == record.getReadGroup()) {
 				logger.warn(record.getSAMString());
-				logger.warn(""+record.getAttribute(RG_TAG));
-				logger.warn(""+record.getHeader());
+				logger.warn(record.getAttribute(RG_TAG).toString());
+				logger.warn(record.getHeader().toString());
 				throw new BamMergeException("BAD_RECORD_RG");
 			}
-			
+
 			SamReader fileReader = iter.getCurrentSAMFileReader();
 			if ( ! replacementMap.isEmpty()) {
 				String oldGroup = record.getReadGroup().getReadGroupId();
@@ -912,22 +815,9 @@ public final class FileMerger {
 					}
 				}
 			}
-//			queue.add(record);
 			outputWriterfactory.getWriter().addAlignment(record);
 			mergeCount++;
-//			if (mergeCount % 1000000 == 0) {
-//				int queueSize = queue.size();
-//				while (queueSize > 200000) {
-//					try {
-//						Thread.sleep(100);
-//					} catch (InterruptedException e) {
-//						e.printStackTrace();
-//					}
-//					queueSize = queue.size();
-//				}
-//			}
 		}
-//		readingLatch.countDown();
 	}
 
 	/**
@@ -946,22 +836,22 @@ public final class FileMerger {
 
 	/**
 	 * Closes all readers and writers used in the merging process.
-	 * 
+	 *
 	 * @throws BamMergeException
 	 *             if problems are encountered in closing the readers and
 	 *             writers.
 	 */
 	private void close() throws BamMergeException {
-		//close output write and rename index if needed 
+		//close output write and rename index if needed
 		if (null != outputWriterfactory) {
 			outputWriterfactory.getWriter().close();
-			outputWriterfactory.renameIndex(); //manullly closed writer
+			outputWriterfactory.renameIndex(); //manually closed writer
 			String logMessage = outputWriterfactory.getLogMessage();
 			if ( ! StringUtils.isNullOrEmpty(logMessage)) {
 				logger.info(logMessage);
 			}
 		}
-	 
+
 		try {
 			if (null != inputReader)
 				inputReader.close();
@@ -969,13 +859,13 @@ public final class FileMerger {
 			logger.error("Exception caught whilst closing input file", e);
 			throw new BamMergeException("CANNOT_CLOSE_FILES");
 		}
-	 
+
 	}
 
 	/**
 	 * Returns concatenated String array consisting of the original input String
 	 * array and the specified input String value.
-	 * 
+	 *
 	 * @param array
 	 *            the original array of Strings.
 	 * @param value
@@ -983,7 +873,7 @@ public final class FileMerger {
 	 * @return the full array of String values.
 	 */
 	private static String[] append(final String[] array, final String value) {
-		List<String> list = new ArrayList<String>(Arrays.asList(array));
+		List<String> list = new ArrayList<>(Arrays.asList(array));
 		list.add(value);
 		Object[] objectArray = list.toArray();
 		return Arrays.copyOf(objectArray, objectArray.length, String[].class);

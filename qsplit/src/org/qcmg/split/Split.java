@@ -15,14 +15,7 @@ import java.util.Set;
 import java.util.Vector;
 import java.util.regex.Pattern;
 
-import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMFileWriter;
-import htsjdk.samtools.SAMFileWriterFactory;
-import htsjdk.samtools.SAMProgramRecord;
-import htsjdk.samtools.SAMReadGroupRecord;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SAMTag;
+import htsjdk.samtools.*;
 
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.util.BAMFileUtils;
@@ -42,15 +35,15 @@ public class Split {
 	SamReader reader;
 	String inputFileName;
 	String validation;
-	
-	final static short ZC = SAMTag.makeBinaryTag("ZC");   
-	
+
+	final static short ZC = SAMTag.makeBinaryTag("ZC");
+
 	// default constructor
 	public Split() {}
 
 	/**
 	 * Called by Main
-	 * 
+	 *
 	 * @param options
 	 * @throws Exception
 	 */
@@ -77,7 +70,7 @@ public class Split {
 
 	/**
 	 * Used by the test classes
-	 * 
+	 *
 	 * @param inputFileName
 	 * @param outputDirName
 	 * @param useFileNames
@@ -85,14 +78,14 @@ public class Split {
 	 * @throws Exception
 	 */
 	public Split(final String inputFileName, final String outputDirName,
-			final boolean useFileNames, final SplitType type) throws Exception {
+				 final boolean useFileNames, final SplitType type) throws Exception {
 		this.inputFileName = inputFileName;
 		this.type = type;
 		this.outputDirName = outputDirName;
 		this.useFileNames = useFileNames;
 		this.createIndex = false;
 		reader = SAMFileReaderFactory.createSAMFileReader(new File(inputFileName));
-	
+
 		try {
 			header = reader.getFileHeader();
 			extractHeaderReadGroupDetails();
@@ -113,10 +106,6 @@ public class Split {
 		return zcToFileNameMap.values();
 	}
 
-	public String getOriginalFileName(Integer zc) {
-		return zcToFileNameMap.get(zc);
-	}
-
 	public Integer getZcFromOriginalFileName(String originalFileName) {
 		return fileNameToZcMap.get(originalFileName);
 	}
@@ -128,7 +117,7 @@ public class Split {
 				throw new Exception(
 						"Input file header has RG fields lacking zx attributes");
 			}
-		
+
 			String[] params = colonDelimitedPattern.split(zc);
 			Integer zcInt = Integer.parseInt(params[0]);
 			String fileName = params[1];
@@ -145,49 +134,48 @@ public class Split {
 			}
 		}
 	}
+
 	static String getAttributeZc(SAMReadGroupRecord  record) throws Exception {
 		String lowZc = record.getAttribute("zc");
 		String upZc = record.getAttribute("ZC");
-		
+
 		//Both "zc" and "ZC" tag can't exist at same  RG line
-		if(lowZc != null && upZc != null)
-			throw new Exception("Bad RG line: contains both upcase and lowcase tag (zc,ZC)");
-		//convert old ZC:Z:<int>:<file> ==> zc:<i>:<file>
-		else if( lowZc == null && upZc != null ){
+		if (lowZc != null && upZc != null) {
+			throw new Exception("Bad RG line: contains both uppercase and lowercase tag (zc,ZC)");
+			//convert old ZC:Z:<int>:<file> ==> zc:<i>:<file>
+		} else if( lowZc == null && upZc != null) {
 			String[] params = colonDelimitedPattern.split(upZc);
 			if (3 != params.length) {
 				throw new Exception("Bad RG:ZC format: " + upZc);
-			}			
+			}
 			return String.format("%s:%s", params[1],params[2]);
+		} else {
+			return lowZc;
 		}
-		else if(lowZc != null && upZc == null )
-			return lowZc;		
-		
-		return null;
 	}
-	
+
 	static Integer getAttributeZc(SAMProgramRecord record) throws Exception {
 		String lowZc = record.getAttribute("zc");
 		String upZc = record.getAttribute("ZC");
-		
+
 		Integer value = null;
-		
+
 		try{
-			if(lowZc != null && upZc != null)		 
-				throw new Exception("Bad PG line: contains both upcase and lowcase tag (zc,ZC)");
-			else if(lowZc != null && upZc == null )
-				value = Integer.parseInt(lowZc);			
-			else if( lowZc == null && upZc != null ){
+			if(lowZc != null && upZc != null) {
+				throw new Exception("Bad PG line: contains both uppercase and lowercase tag (zc,ZC)");
+			} else if(lowZc != null) {
+				value = Integer.parseInt(lowZc);
+			} else if(upZc != null) {
 				String[] params = colonDelimitedPattern.split(upZc);
 				value = Integer.parseInt(params[1]);
 			}
-		}catch(NumberFormatException e ){
+		} catch (NumberFormatException e) {
 			throw new Exception("non integer value assigned on tag PG:zc");
 		}
 
 		return value;
 	}
-	
+
 	void prepareOutputHeaders() throws Exception {
 		for (final SAMReadGroupRecord record : header.getReadGroups()) {
 			String zc = getAttributeZc(record);
@@ -229,7 +217,7 @@ public class Split {
 		for (final SAMReadGroupRecord readGroupRecord : outputHeader
 				.getReadGroups()) {
 			String zc =  getAttributeZc( readGroupRecord );
-			 
+
 			String[] params = colonDelimitedPattern.split(zc);
 			Integer otherZcInt = Integer.parseInt(params[0]);
 			if (otherZcInt.equals(zcInt)) {
@@ -249,11 +237,10 @@ public class Split {
 				String absoluteFileName = zcToFileNameMap.get(zc);
 				File file = new File(absoluteFileName);
 				fileName = file.getName();
-				outputFile = new File(outputDirName, fileName);
 			} else {
 				fileName = zc.toString() + type.getFileExtension();
-				outputFile = new File(outputDirName, fileName);
 			}
+			outputFile = new File(outputDirName, fileName);
 			if (!outputFile.exists()) {
 				SAMFileHeader outputHeader = zcToOutputHeaderMap.get(zc);
 				SAMFileWriter outputWriter = factory.makeSAMOrBAMWriter(
@@ -263,7 +250,7 @@ public class Split {
 			} else {
 				closeWriters();
 				throw new Exception(
-						"Output file in the specified output directory alread exists: "
+						"Output file in the specified output directory already exists: "
 								+ fileName);
 			}
 		}
@@ -277,14 +264,14 @@ public class Split {
 				closeWriters();
 				throw new Exception("Input file contains records lacking ZC integer attribute");
 			}
-			
+
 			SAMFileWriter writer = zcToWriterMap.get(zc);
-			
+
 			if (null == writer) {
 				closeWriters();
 				throw new Exception("Input file contains records lacking ZC integer attribute");
 			}
-			
+
 			record.setAttribute("ZC", null);
 			writer.addAlignment(record);
 		}
@@ -292,23 +279,24 @@ public class Split {
 
 	void closeWriters() {
 		for (SAMFileWriter writer : zcToWriterMap.values()) {
-			writer.close();			
+			writer.close();
 		}
-		
+
 		//rename the index file; we don't want to exception happen if rename failed
-		if(createIndex){
-			for(File out: outputNames){
-				try{
-					BAMFileUtils.renameIndex(out);
-				}catch(Exception e){
-					 System.out.println(e.toString());
+		if (createIndex) {
+			for (File out: outputNames) {
+				try {
+					BAMFileUtils.renameIndex(out, SamFiles.findIndex(out));
+				} catch (Exception e) {
+					System.out.println(e.getMessage());
+					e.printStackTrace();
 				}
 			}
 		}
 	}
 
-	SplitType getType(Options options) throws Exception {
-		SplitType result = null;
+	SplitType getType(Options options) {
+		SplitType result;
 		if (options.hasBamOption()) {
 			result = new BamSplitType();
 		} else if (options.hasSamOption()) {

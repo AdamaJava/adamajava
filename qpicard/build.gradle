@@ -4,5 +4,5 @@ dependencies {
     api project(':qcommon')
     api project(':qio')
 	  
-    api 'com.github.samtools:htsjdk:2.24.1'
+    api 'com.github.samtools:htsjdk:4.0.2'
 }

@@ -24,9 +24,9 @@ public class  SeqFilter implements SamRecordFilter {
      */    
     public SeqFilter(String operatorName, Comparator comp, String value) throws Exception{
         try{
-            this.value = Integer.valueOf(value);
+            this.value = Integer.parseInt(value);
         }catch(Exception e){
-            throw new Exception("non integer value used in QUAL field filter: QUAL_" +operatorName + comp.GetString() + value);
+            throw new Exception("non integer value used in QUAL field filter: QUAL_" +operatorName + comp.getString() + value);
         }
         op = comp;
         if( ! operatorName.equalsIgnoreCase("numberN")){

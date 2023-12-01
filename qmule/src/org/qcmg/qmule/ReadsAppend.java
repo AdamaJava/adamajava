@@ -32,10 +32,10 @@ public class ReadsAppend {
 	}
 	
 	/**
-	 * retrive the CS and CQ value from BAM record to output csfasta or qual file
+	 * retrieve the CS and CQ value from BAM record to output csfasta or qual file
 	 * @throws Exception 
 	 */
-	void merging() throws Exception{	
+	void merging() throws Exception {
 		System.out.println("start time : " + getTime()); 
 		
 		List<SamReader> readers = new ArrayList<>();	
@@ -45,9 +45,9 @@ public class ReadsAppend {
 		
 		SAMFileHeader header = readers.get(0).getFileHeader().clone();			
 		SAMWriterFactory factory = new SAMWriterFactory(header, true, output,2000000 );
-        try( SAMFileWriter writer = factory.getWriter();) {
-    	   for( SamReader reader : readers){
-	        	for( SAMRecord record : reader) {
+        try (SAMFileWriter writer = factory.getWriter()) {
+    	   for (SamReader reader : readers) {
+	        	for (SAMRecord record : reader) {
 	        		writer.addAlignment(record);
 	        	}
 	        	reader.close();
@@ -68,23 +68,20 @@ public class ReadsAppend {
 	public static void main(final String[] args) throws IOException, InterruptedException {
   
     	try{
-    		if(args.length < 2)
+    		if (args.length < 2)
     			throw new Exception("missing inputs or outputs name");
     		
     		File output = new File(args[0]);
-    		File[] inputs = new File[args.length-1];
+    		File[] inputs = new File[args.length - 1];
     		for (int i = 1; i < args.length; i++) {
-    			inputs[i-1] = new File(args[i])   ;
-    			
+    			inputs[i - 1] = new File(args[i]);
     			System.out.println(inputs[i-1].toString());
     		}
-
-    		
     		new ReadsAppend(output,  inputs );
-
     		System.exit(0);
-    	}catch(Exception e){
-    		System.err.println(e.toString());
+    	} catch (Exception e) {
+    		System.err.println(e.getMessage());
+			e.printStackTrace();
     		Thread.sleep(1);
     		System.out.println("usage: qmule org.qcmg.qmule.ReadsAppend <output SAM/BAM> <input SAMs/BAMs>");
     		System.exit(1);

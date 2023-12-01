@@ -26,7 +26,7 @@ public class MRNMFilter implements SamRecordFilter{
         
         if( comp == Comparator.Great  || comp == Comparator.Small 
         		|| comp ==Comparator.SmallEqual || comp == Comparator.GreatEqual )
-        	throw new Exception("invalid comparator symbols used for RNAME filter: " + comp.GetString());
+        	throw new Exception("invalid comparator symbols used for RNAME filter: " + comp.getString());
         
         this.op = comp;
         

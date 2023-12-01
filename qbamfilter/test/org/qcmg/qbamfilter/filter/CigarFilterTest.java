@@ -14,7 +14,7 @@ public class CigarFilterTest {
     @BeforeClass
     public static void before(){
         //create testing data regardless whether it exists or not, Since old testing data maybe damaged.
-        TestFile.CreateBAM(TestFile.INPUT_FILE_NAME);
+        TestFile.createBAM(TestFile.INPUT_FILE_NAME);
     }
 
     @AfterClass
@@ -23,7 +23,7 @@ public class CigarFilterTest {
     }
 
     @Test
-    public void ValidTest(){
+    public void validTest(){
         String[] CigarOPs = {"M","I", "D", "N", "S","H","P"};
         
         Comparator[] comps = {Comparator.Great, Comparator.SmallEqual, Comparator.GreatEqual,
@@ -43,11 +43,11 @@ public class CigarFilterTest {
                        num ++;
                    }
                 }
-                assertTrue(num == vs[i]);
+               assertEquals(num, vs[i]);
                 Inreader.close();           
            }catch(Exception e){
                 System.out.println(e.getMessage());
-                assertTrue(false);
+               fail();
             }
         }
     }
@@ -56,7 +56,7 @@ public class CigarFilterTest {
     *Test the exception case for invalid cigar operator "o"
     */
     @Test(expected=Exception.class)
-    public void InvalidTest() throws Exception{
+    public void invalidTest() throws Exception {
         new CigarFilter("o", Comparator.Equal, "0");
      }
      

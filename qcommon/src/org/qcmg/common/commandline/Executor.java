@@ -17,7 +17,7 @@ public class Executor {
 	private final int errCode;	
 	
 	public Executor(String arguments, String qualifiedMainClassName) throws IOException, InterruptedException {			
-		this("java -classpath " + System.getProperty("java.class.path") + " " + qualifiedMainClassName + " " + arguments);
+		this("java -classpath \"" + System.getProperty("java.class.path") + "\" " + qualifiedMainClassName + " " + arguments);
 	}
 	
 	public Executor(String [] arguments, String qualifiedMainClassName) throws IOException, InterruptedException {				

@@ -8,6 +8,7 @@ package org.qcmg.qmule;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -29,26 +30,26 @@ public class SubSample {
 		
 		String[] inputs =op.getInputFileNames();
 		String[] outputs =op.getOutputFileNames();
-		if(inputs.length == 0 || outputs.length == 0) 
+		if (inputs.length == 0 || outputs.length == 0) {
 			throw new Exception("please specify input/output");
+		}
 		 	
 		//get initialized logger		
 		File input = new File(inputs[0]);
 		File output = new File(outputs[0]);	
-		if(!input.canRead()) 
-			throw new Exception("unreadable input: " + input.getAbsolutePath());	 			
+		if ( ! input.canRead()) {
+			throw new Exception("unreadable input: " + input.getAbsolutePath());
+		}
 		
 		reader = SAMFileReaderFactory.createSAMFileReader(input, null, ValidationStringency.LENIENT); 		
 		SAMFileHeader header = reader.getFileHeader();
-		if(header.getSortOrder() != SAMFileHeader.SortOrder.queryname){
+		if (header.getSortOrder() != SAMFileHeader.SortOrder.queryname) {
 			throw new Exception("the input BAM is not sorted by queryname");
 		}
         SAMFileWriterFactory writeFactory = new SAMFileWriterFactory();   
         HeaderUtils.addProgramRecord(header,  op.getCommandLine(), null );
          
         writer = writeFactory.makeSAMOrBAMWriter(header, false, output );
-		
-
 	}
 
 	void run() throws Exception{
@@ -56,35 +57,35 @@ public class SubSample {
 		int numSingle = 0;
 		int numtotal = 0;
 		 SAMRecordIterator ie = reader.iterator();
-		 ArrayList<SAMRecord> adjacents = new ArrayList<SAMRecord>();
-		 adjacents.add(ie.next());	
+		 List<SAMRecord> adjacent = new ArrayList<>();
+		 adjacent.add(ie.next());
 		 
-		 while(ie.hasNext()){	
+		 while (ie.hasNext()) {
 			 numtotal ++;
 			 SAMRecord  record = ie.next();		
 				
 			//select reads
-			if(! record.getReadName().equals(adjacents.get(0).getReadName())){	
+			if (! record.getReadName().equals(adjacent.get(0).getReadName())) {
 				//select pairs
-				if(adjacents.size() > 1)
-					numPair += selectPair( adjacents);
-				//select single
-				else if(Math.random() < proportion  ){
-					writer.addAlignment(adjacents.get(0));
+				if (adjacent.size() > 1) {
+					numPair += selectPair(adjacent);
+					//select single
+				} else if (Math.random() < proportion  ) {
+					writer.addAlignment(adjacent.get(0));
 					numSingle ++;
 				}				
 				//after reporting clear the arraylist
-				adjacents.clear();
+				adjacent.clear();
 			} 
-			adjacents.add(record);
-
+			adjacent.add(record);
 	 	}
 		 
 		 //select last records
-		 if(adjacents.size() > 1)
-				selectPair( adjacents);
-		 else if(Math.random() < proportion  )
-			writer.addAlignment(adjacents.get(0));
+		 if (adjacent.size() > 1) {
+			 selectPair(adjacent);
+		 } else if (Math.random() < proportion) {
+			 writer.addAlignment(adjacent.get(0));
+		 }
  
 		reader.close();
 		writer.close();
@@ -92,30 +93,30 @@ public class SubSample {
 		logger.info("total reads in input is " + numtotal);
 		logger.info("select paired reads is " + numPair);
 		logger.info("select single reads is " + numSingle);
-		logger.info("the rate of selected reads is "+ ((double)(numPair + numSingle)) / numtotal);
+		logger.info("the rate of selected reads is " + ((double)(numPair + numSingle)) / numtotal);
  
 	}
 
-	private int selectPair(ArrayList<SAMRecord> pairs) {
+	private int selectPair(List<SAMRecord> pairs) {
  
-		if(pairs.size() == 0 ){
+		if (pairs.size() == 0) {
 			logger.error("Program Error: select reads from empty arraylist! ");
 			return 0;
 		}		 
-		if(pairs.size() == 1 ){
+		if (pairs.size() == 1) {
 			logger.error("program Error: single read in paired arraylist -- " + pairs.get(0).getReadName());
 			return 0; 
 		}
 		
 		int num = 0;		
-		while(pairs.size() >= 2){		
+		while (pairs.size() >= 2) {
 			//seek pair one by one
 			SAMRecord first  = pairs.get(0);
 			SAMRecord mate = null;
 			pairs.remove(first);
 			
-			for(int i = 0; i < pairs.size(); i ++){				
-				if(first.getReadGroup().getId().equals(pairs.get(i).getReadGroup().getId())){					
+			for (int i = 0; i < pairs.size(); i ++) {
+				if (first.getReadGroup().getId().equals(pairs.get(i).getReadGroup().getId())) {
 					mate = pairs.get(i);
 					pairs.remove(mate);					
 					break;
@@ -123,13 +124,13 @@ public class SubSample {
 			}
 
 					
-			if(Math.random() <  proportion ){			
+			if (Math.random() <  proportion) {
 				num ++; //number of selected paired reads
 				writer.addAlignment(first);
-				if(mate != null){
+				if (mate != null) {
 					num ++;
 					writer.addAlignment(mate);
-				}else{
+				} else {
 					logger.error("paired reads missing mate -- " + pairs.get(0).getReadName());
 				}	
 			}
@@ -148,18 +149,17 @@ public class SubSample {
     
 		String version = org.qcmg.qmule.Main.class.getPackage().getImplementationVersion();	
 	    QLogger logger = QLoggerFactory.getLogger(SubSample.class, op.getLogFile(), op.getLogLevel());	
-	    try{
+	    try {
 			logger.logInitialExecutionStats(SubSample.class.toString(), version, args);	
-			logger.exec("Porportion " + op.getPROPORTION());
+			logger.exec("Proportion " + op.getPROPORTION());
 			SubSample mySample = new SubSample(op, logger);	
 			mySample.run();
 			logger.logFinalExecutionStats(0);
 			System.exit(0);		
-		}catch(Exception e){
-			System.err.println( e.getMessage() + e.toString());
+		} catch (Exception e) {
+			System.err.println( e.getMessage() + e);
 			logger.logFinalExecutionStats(-1);
 			System.exit(1);
 		}
 	}
-
 }

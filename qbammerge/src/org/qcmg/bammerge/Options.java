@@ -119,27 +119,11 @@ public final class Options {
 		coList.toArray(comments);
 	}
 
-	/**
-	 * Checks for input option.
-	 * 
-	 * @return true, if successful
-	 */
-	public boolean hasCommentOption(){
-		return options.has("co");
-	}
 	public boolean hasUUIDOption(){
 		return options.has("uuid");
 	}
 	public boolean hasInputOption() {
 		return options.has("i") || options.has("input");
-	}
-
-	public boolean hasRunTypeOption() {
-		return options.has("t") || options.has("type");
-	}
-
-	public String[] getRiuTypes() {
-		return types;
 	}
 
 	/**
@@ -254,15 +238,6 @@ public final class Options {
 	}
 
 	/**
-	 * Gets the group replacements.
-	 * 
-	 * @return the group replacements
-	 */
-	public List<GroupReplacement> getGroupReplacements() {
-		return groupReplacements;
-	}
-
-	/**
 	 * Gets the group replacement strings.
 	 * 
 	 * @return the group replacements
@@ -318,9 +293,6 @@ public final class Options {
 		return options.has("log");
 	}
 
-	public boolean hasLogLevelOption() {
-		return options.has("loglevel");
-	}
 	public boolean hasCreateIndexOption() {
 		return options.has("bai");
 	}
