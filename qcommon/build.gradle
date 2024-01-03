@@ -1,4 +1,5 @@
 def isExecutable = true
+apply plugin: 'java-library'
 
 dependencies {
 		
@@ -13,7 +14,7 @@ dependencies {
     
     //jaxb is removed from JDK9+
     //we need below jar in case to run on JDK9 and above
-    //api 'javax.xml.bind:jaxb-api:2.2.12' 
+    //implementation 'javax.xml.bind:jaxb-api:2.2.12' 
     api 'jakarta.xml.bind:jakarta.xml.bind-api:3.0.1'
 }
 

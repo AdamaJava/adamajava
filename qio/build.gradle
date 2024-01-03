@@ -1,5 +1,5 @@
 def isExecutable = true
 
 dependencies {
-    api project(':qcommon')
+    implementation project(':qcommon')
  } 

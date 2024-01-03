@@ -8,7 +8,7 @@ import java.net.URISyntaxException;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
-import org.qcmg.common.util.LoadReferencedClasses;
+
 
 public final class Main {
 	private static int exitStatus = 1; // Default to FAILURE

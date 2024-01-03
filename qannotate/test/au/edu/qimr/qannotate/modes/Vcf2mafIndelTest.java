@@ -31,7 +31,7 @@ import org.qcmg.qio.vcf.VcfFileReader;
 
 import au.edu.qimr.qannotate.utils.MafElement;
 import au.edu.qimr.qannotate.utils.SnpEffMafRecord;
-import junit.framework.Assert;
+import org.junit.Assert;
 
 
 public class Vcf2mafIndelTest {

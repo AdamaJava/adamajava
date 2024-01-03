@@ -21,7 +21,7 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.FileUtils;
-import org.qcmg.common.util.LoadReferencedClasses;
+
 import org.qcmg.sig.model.Comparison;
 import org.qcmg.sig.model.SigMeta;
 import org.qcmg.sig.util.ComparisonUtil;

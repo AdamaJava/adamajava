@@ -65,7 +65,7 @@ import org.qcmg.common.model.ChrPositionComparator;
 import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.FileUtils;
-import org.qcmg.common.util.LoadReferencedClasses;
+
 import org.qcmg.common.util.Pair;
 import org.qcmg.common.util.TabTokenizer;
 

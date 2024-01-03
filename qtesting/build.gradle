@@ -1,7 +1,7 @@
 def isExecutable = false
 
 dependencies {
-    api project(':qio')
-    api project(':qcommon')	
+    implementation project(':qio')
+    implementation project(':qcommon')	
 }
 

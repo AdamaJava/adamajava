@@ -21,7 +21,7 @@ import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.meta.QDccMeta;
 import org.qcmg.common.meta.QLimsMeta;
 import org.qcmg.common.util.FileUtils;
-import org.qcmg.common.util.LoadReferencedClasses;
+
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.picard.util.QDccMetaFactory;
 import org.qcmg.picard.util.QLimsMetaFactory;

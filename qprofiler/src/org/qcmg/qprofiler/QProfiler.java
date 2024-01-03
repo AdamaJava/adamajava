@@ -29,7 +29,7 @@ import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ProfileType;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.FileUtils;
-import org.qcmg.common.util.LoadReferencedClasses;
+
 import org.qcmg.qprofiler.bam.BamSummarizer;
 import org.qcmg.qprofiler.bam.BamSummarizerMT;
 import org.qcmg.qprofiler.fa.FaSummarizerMT;

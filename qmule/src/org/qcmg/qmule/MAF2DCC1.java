@@ -17,7 +17,7 @@ import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.util.FileUtils;
-import org.qcmg.common.util.LoadReferencedClasses;
+
 import org.qcmg.tab.TabbedFileReader;
 import org.qcmg.tab.TabbedFileWriter;
 import org.qcmg.tab.TabbedHeader;

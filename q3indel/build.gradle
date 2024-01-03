@@ -1,5 +1,11 @@
+// plugins {
+//   id("com.github.spotbugs") version "6.0.4"
+// }
+
 apply plugin: 'application'
 apply plugin: 'scala'
+// apply plugin: 'spotbugs'
+
 
 mainClassName = 'au.edu.qimr.indel.Main'
 def scriptname = 'q3indel'
@@ -7,21 +13,21 @@ def isExecutable = true
 
 //control the ordering of jars, make sure junit before <tool>.jar
 
-// q3indel has some scala classes that require the following task (along with the scalal plugin and api dependency)
+// q3indel has some scala classes that require the following task (along with the scalal plugin and implementation dependency)
 sourceSets {
         main { java.srcDirs=['src']; resources.srcDirs=['src']; scala.srcDirs=['scala/src'] }
         test { java.srcDirs=['test']; test.resources.srcDirs=['test'];scala.srcDirs=['scala/test'] }
     }
 dependencies {
 
-    api project(':qcommon')
-    api project(':qio')
-    api project(':qbamfilter')
-    api project(':qpicard')
+    implementation project(':qcommon')
+    implementation project(':qio')
+    implementation project(':qbamfilter')
+    implementation project(':qpicard')
 
-    api 'org.scala-lang:scala-library:2.12.18'
-    api 'net.sf.jopt-simple:jopt-simple:4.6'
-    api group: 'org.ini4j', name: 'ini4j', version: '0.5.2'
+    implementation 'org.scala-lang:scala-library:2.12.18'
+    implementation 'net.sf.jopt-simple:jopt-simple:4.6'
+    implementation group: 'org.ini4j', name: 'ini4j', version: '0.5.2'
 }
 
 

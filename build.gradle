@@ -1,8 +1,14 @@
-plugins {
-  id("com.github.spotbugs") version "5.2.1"
+buildscript {
+  repositories {
+    maven {
+      url = uri("https://plugins.gradle.org/m2/")
+    }
+  }
+  dependencies {
+    classpath("com.github.spotbugs.snom:spotbugs-gradle-plugin:6.0.4")
+  }
 }
-
-defaultTasks "build"
+apply plugin: 'base'
 
 ext {
     revision = "git rev-parse --short HEAD".execute().text.trim()
@@ -13,27 +19,18 @@ ext {
     // its better groovy/gradle too
     file('version.txt').withReader { verionId = it.readLine() + "-" + revision }
 }
-allprojects {
-    apply plugin: 'java-library'
-    apply plugin: 'eclipse'
-    apply plugin: 'checkstyle'
-    apply plugin: 'com.github.spotbugs'
-    sourceCompatibility = 21
-
-    //default value is libs according to java plugin
-    libsDirName = "lib" 
-}
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
-    }
-}
 
 subprojects {
-    //config spotbugs
+    apply plugin: 'java'
+    apply plugin: 'checkstyle'
+    apply plugin: 'eclipse'
+    apply plugin: "com.github.spotbugs"
+
+    sourceCompatibility = 21
+
     spotbugs {
-	ignoreFailures = true
-	spotbugsTest.enabled = false
+        ignoreFailures = true
+        spotbugsTest.enabled = false
     }
     //output to html, the default is xml
     spotbugsMain {
@@ -46,45 +43,25 @@ subprojects {
         }
     }
 
-    //config checkstyle
+    repositories {
+        mavenCentral()
+        flatDir(dirs:"$projectDir/../lib")
+    }
+
     checkstyle {
-	configFile = file('../config/google_check.xml')
-	toolVersion = '10.12.4'
-	checkstyleTest.enabled=false
+        configFile = file('../config/google_check.xml')
+        toolVersion = '10.12.4'
+        checkstyleTest.enabled=false
     }
     checkstyleMain.onlyIf {project.hasProperty('checkstyle')}
 
-    repositories { 
-	flatDir(dirs:"$projectDir/../lib")
-	mavenCentral()
-    }
-    dependencies {
-	testImplementation 'junit:junit:4.12' 
+     dependencies {
+        testImplementation 'junit:junit:4.13.2'
     }
 
     sourceSets {
-	main { java.srcDirs=['src']; resources.srcDirs=['src'] }
-	test { java.srcDirs=['test']; test.resources.srcDirs=['test'] }
-    }
-
-    jar.doFirst {
-	manifest { 
-	    if(project.hasProperty('mainClassName') && project.getProperty('mainClassName') != null ) {
-		attributes 'Main-Class' : project.mainClassName 
-	    }
-	    attributes  'Implementation-Title': project.name,
-		'Implementation-Version': verionId,
-		'SVN-Version': revision,
-		'Built-By': System.properties['user.name'],
-		'Date': new java.util.Date().toString(),
-		'Class-Path' : project.configurations.runtimeClasspath.collect { it.name }.join(' ')
-	}
-    }
-
-    build.doLast {
-	println "${project}: copy ${configurations.runtimeClasspath.collect { File file -> file.name }} to ${adamalib} and build/flat"
-	copy { from configurations.runtimeClasspath,libsDirectory; into file('build/flat') }
-	copy { from configurations.runtimeClasspath,libsDirectory; into adamalib }
+        main { java.srcDirs=['src']; resources.srcDirs=['src'] }
+        test { java.srcDirs=['test']; test.resources.srcDirs=['test'] }
     }
 }
 

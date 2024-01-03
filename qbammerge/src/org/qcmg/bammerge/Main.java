@@ -8,7 +8,7 @@ package org.qcmg.bammerge;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
-import org.qcmg.common.util.LoadReferencedClasses;
+
 
 /**
  * The entry point for the command-line SAM/BAM merging tool.

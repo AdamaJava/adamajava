@@ -6,8 +6,8 @@ def isExecutable = true
 
 dependencies {
 
-    api project(':qcommon')
-    api project(':qpicard')
-    api 'commons-cli:commons-cli:1.2'
+    implementation project(':qcommon')
+    implementation project(':qpicard')
+    implementation 'commons-cli:commons-cli:1.2'
 }
 

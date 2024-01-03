@@ -30,7 +30,7 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrPositionComparator;
-import org.qcmg.common.util.LoadReferencedClasses;
+
 import org.qcmg.motif.util.MotifConstants;
 import org.qcmg.motif.util.MotifMode;
 import org.qcmg.motif.util.MotifsAndRegexes;
