@@ -1,11 +1,5 @@
-// plugins {
-//   id("com.github.spotbugs") version "6.0.4"
-// }
-
 apply plugin: 'application'
 apply plugin: 'scala'
-// apply plugin: 'spotbugs'
-
 
 mainClassName = 'au.edu.qimr.indel.Main'
 def scriptname = 'q3indel'
