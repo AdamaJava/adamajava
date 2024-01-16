@@ -6,11 +6,11 @@ def isExecutable = true
 
 dependencies {
 
-    api project(':qcommon')
-    api project(':qio')
-    api project(':qpicard')
-    api project(':qbamfilter')
+    implementation project(':qcommon')
+    implementation project(':qio')
+    implementation project(':qpicard')
+    implementation project(':qbamfilter')
 	
-    api 'net.sf.jopt-simple:jopt-simple:4.6'	
+    implementation 'net.sf.jopt-simple:jopt-simple:4.6'	
 }
 

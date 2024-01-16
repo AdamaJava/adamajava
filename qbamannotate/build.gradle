@@ -17,6 +17,9 @@ dependencies {
     // https://mvnrepository.com/artifact/org.eclipse.persistence/org.eclipse.persistence.moxy
     implementation 'org.eclipse.persistence:org.eclipse.persistence.moxy:3.0.3'
 
+
+    testImplementation project(':qpicard')
     testImplementation  project(':qtesting')
+    // testImplementation 'junit:junit:4.13.2'
 }
 

@@ -19,7 +19,7 @@ import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.PositionRange;
 import org.qcmg.common.util.FileUtils;
-import org.qcmg.common.util.LoadReferencedClasses;
+
 import org.qcmg.common.util.PileupUtils;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.qio.gff3.Gff3FileReader;

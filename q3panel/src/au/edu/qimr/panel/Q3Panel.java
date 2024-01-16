@@ -78,7 +78,7 @@ import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.common.util.IndelUtils;
-import org.qcmg.common.util.LoadReferencedClasses;
+
 import org.qcmg.common.util.Pair;
 import org.qcmg.common.util.SnpUtils;
 import org.qcmg.common.util.TabTokenizer;

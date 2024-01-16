@@ -12,7 +12,7 @@ import htsjdk.samtools.SAMFileHeader;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
-import org.qcmg.common.util.LoadReferencedClasses;
+
 import org.qcmg.picard.HeaderUtils;
 import org.qcmg.picard.SAMFileReaderFactory;
  

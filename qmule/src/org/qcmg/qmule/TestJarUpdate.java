@@ -19,7 +19,7 @@ import htsjdk.samtools.SAMFileWriter;
 import htsjdk.samtools.SAMFileWriterFactory;
 import htsjdk.samtools.SAMRecord;
 
-import org.qcmg.common.util.LoadReferencedClasses;
+
 import org.qcmg.picard.SAMFileReaderFactory;
 
 public class TestJarUpdate {
@@ -27,94 +27,48 @@ public class TestJarUpdate {
 	private SAMFileWriter writer;
 	private SamReader reader;
 	
-	private void doWork() throws Exception{
+	private void doWork() throws Exception {
 		try {
 			
-			LoadReferencedClasses.loadClasses(getClass());
 			
-//			URL className = getClass().getResource(TestJarUpdate.class.getName());
-//			if (null != className) 
-//				System.out.println("url: " + className.getFile());
-//			else 
-//				System.out.println("url: " + null);
-//			
-//			File jarFile = new File(TestJarUpdate.class.getProtectionDomain().getCodeSource().getLocation().toURI());
-//			if (null != jarFile) 
-//				System.out.println("jarFile: " + jarFile.getName());
-//			else 
-//				System.out.println("jarFile: " + null);
-//			
-//			System.out.println("is file type valid jar: " + FileUtils.isFileTypeValid(jarFile, "jar"));
-//			
-//			System.out.println("BEFORE: no of loaded packages: " + Package.getPackages().length);
-//			
-//			if (FileUtils.isFileTypeValid(jarFile, "jar")) {
-//			
-//				// got jar file - load and 
-//				JarFile jf = new JarFile(jarFile);
-//				Attributes att = jf.getManifest().getMainAttributes();
-//				System.out.println("att.size" + att.size());
-//				String classpath = att.getValue("Class-Path");
-//				System.out.println("classpath: " + classpath);
-//				
-//				String [] jars = classpath.split(" ");
-//				for (String jar : jars) {
-//					JarFile internalJarFile = new JarFile(jar);
-//					Enumeration<JarEntry> enums = internalJarFile.entries();
-//					while (enums.hasMoreElements()) {
-//						JarEntry je = enums.nextElement();
-//						if (FileUtils.isFileTypeValid(je.getName(), "class")) {
-//							String blah = je.getName().replace(".class", "");
-//							blah = blah.replaceAll(System.getProperty("file.separator"), ".");
-//							System.out.println("about to load class: " + blah);
-//							this.getClass().getClassLoader().loadClass(blah);
-//						}
-//					}
-//				}
-//				
-//			}
-//			
-//			System.out.println("AFTER: no of loaded packages: " + Package.getPackages().length);
+			// write to bam file
+			// sleep for a few mins to allow the sam jar file to be removed/replaced
+			// close bam file
+			// tinker with class loader
+			File inputFile = File.createTempFile("testJarUpdateInput", ".sam");
+			inputFile.deleteOnExit();
+			File outputFile = File.createTempFile("testJarUpdateOutput", ".bam");
+			
+			createCoverageSam(inputFile);
 			
 			
-		// write to bam file
-		// sleep for a few mins to allow the sam jar file to be removed/replaced
-		// close bam file
-		// tinker with class loader
-		File inputFile = File.createTempFile("testJarUpdateInput", ".sam");
-		inputFile.deleteOnExit();
-		File outputFile = File.createTempFile("testJarUpdateOutput", ".bam");
-//		outputFile.deleteOnExit();
-		
-		createCoverageSam(inputFile);
-		
-		reader = SAMFileReaderFactory.createSAMFileReader(inputFile);
-		
-		SAMFileHeader header = reader.getFileHeader();
-		List<SAMRecord> recs = new ArrayList<SAMRecord>();
-		
-		for( SAMRecord rec : reader) {
-			recs.add(rec);
-		}
-		
-		
-		SAMFileWriterFactory factory = new SAMFileWriterFactory();
-		
-		writer = factory.makeSAMOrBAMWriter(header, true, outputFile);
-		
-//		for (int i = 0 ; i < 100 ; i++)
-			for( SAMRecord rec : recs) {
-				for (int i = 0 ; i < 100 ; i++)
-					writer.addAlignment(rec);
+			reader = SAMFileReaderFactory.createSAMFileReader(inputFile);
+			
+			SAMFileHeader header = reader.getFileHeader();
+			List<SAMRecord> recs = new ArrayList<>();
+			
+			for (SAMRecord rec : reader) {
+				recs.add(rec);
 			}
-		
-		System.out.println("About to sleep!");
-		System.gc();
-		Thread.sleep(60000);
-		System.out.println("Am awake now");
-		
-		close();
-		System.out.println("DONE!!!");
+			
+			
+			SAMFileWriterFactory factory = new SAMFileWriterFactory();
+			
+			writer = factory.makeSAMOrBAMWriter(header, true, outputFile);
+			
+			for (SAMRecord rec : recs) {
+				for (int i = 0 ; i < 100 ; i++) {
+					writer.addAlignment(rec);
+				}
+			}
+			
+			System.out.println("About to sleep!");
+			System.gc();
+			Thread.sleep(60000);
+			System.out.println("Am awake now");
+			
+			close();
+			System.out.println("DONE!!!");
 		} finally {
 			System.out.println("about to run close quietly");
 			closeQuietly();
@@ -135,7 +89,6 @@ public class TestJarUpdate {
 			reader.close();
 		} catch (Exception e) {
 			System.out.println("Exception caught in close(): ");
-//			e.printStackTrace();
 			throw new Exception("CANNOT_CLOSE_FILES");
 		}
 	}
@@ -144,7 +97,6 @@ public class TestJarUpdate {
 		try {
 			close();
 		} catch (Exception e) {
-//			e.printStackTrace();
 		}
 	}
 	

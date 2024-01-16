@@ -13,7 +13,7 @@ import java.util.HashMap;
 
 import htsjdk.samtools.SAMReadGroupRecord;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;

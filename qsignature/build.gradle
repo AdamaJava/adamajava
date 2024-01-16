@@ -7,12 +7,12 @@ def isExecutable = true
 
 dependencies {
 
-    api project(':qcommon')
-    api project(':qpicard')
-    api project(':qio')
+    implementation project(':qcommon')
+    implementation project(':qpicard')
+    implementation project(':qio')
     
-    api 'org.apache.commons:commons-math3:3.3'
-    api 'net.sf.jopt-simple:jopt-simple:4.6'
-    api 'com.fasterxml.jackson.core:jackson-databind:2.6.7.1'
+    implementation 'org.apache.commons:commons-math3:3.3'
+    implementation 'net.sf.jopt-simple:jopt-simple:4.6'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.6.7.1'
 	
 }

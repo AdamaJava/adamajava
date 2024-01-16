@@ -1,8 +1,9 @@
 def isExecutable = false
+apply plugin: 'java-library'
 
 dependencies {
-    api project(':qcommon')
-    api project(':qio')
+    implementation project(':qcommon')
+    implementation project(':qio')
 	  
     api 'com.github.samtools:htsjdk:4.0.2'
 }

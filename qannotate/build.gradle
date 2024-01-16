@@ -3,8 +3,6 @@ mainClassName = 'au.edu.qimr.qannotate.Main'
 def scriptname = 'qannotate'
 def isExecutable = true
 
-configurations { junit }
-
 /*
 * qannotate requires snpEff and the version currently used is 4.0e
 * This version of the snpEff jar file embedds a version of junit that is old,
@@ -25,14 +23,14 @@ dependencies {
     //this junit is required by snpEff-4.0
     junit ('junit:junit:4.10')
 
-    api project(':qcommon')
-    api project(':qio')
-    api project(':qbamfilter')
+    implementation project(':qcommon')
+    implementation project(':qio')
+    implementation project(':qbamfilter')
+    implementation project(':qpicard')
 
-    api 'com.github.samtools:htsjdk:4.0.2'
-    api 'net.sf.jopt-simple:jopt-simple:4.6'
-    api name: 'snpEff', version: '4.0e'
-    api 'com.fasterxml.jackson.core:jackson-databind:2.6.7'
+    implementation 'net.sf.jopt-simple:jopt-simple:4.6'
+    implementation name: 'snpEff', version: '4.0e'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.6.7'
 }
 //have to specify test classpath for both snpEff and qannotate 
 sourceSets.test.runtimeClasspath = configurations.junit + sourceSets.test.runtimeClasspath
