@@ -63,6 +63,24 @@ subprojects {
         main { java.srcDirs=['src']; resources.srcDirs=['src'] }
         test { java.srcDirs=['test']; test.resources.srcDirs=['test'] }
     }
+    build.doLast {
+	println "${project}: copy ${configurations.runtimeClasspath.collect { File file -> file.name }} to ${adamalib} and build/flat"
+	copy { from configurations.runtimeClasspath,libsDirectory; into file('build/flat') }
+	copy { from configurations.runtimeClasspath,libsDirectory; into adamalib }
+    }
+    jar.doFirst {
+	manifest { 
+	    if(project.hasProperty('mainClassName') && project.getProperty('mainClassName') != null ) {
+		attributes 'Main-Class' : project.mainClassName 
+	    }
+	    attributes  'Implementation-Title': project.name,
+		'Implementation-Version': verionId,
+		'SVN-Version': revision,
+		'Built-By': System.properties['user.name'],
+		'Date': new java.util.Date().toString(),
+		'Class-Path' : project.configurations.runtimeClasspath.collect { it.name }.join(' ')
+	}
+    }
 }
 
 //create adama/build/lib under root before subprojects build

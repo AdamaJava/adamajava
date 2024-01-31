@@ -1,7 +1,5 @@
 package au.edu.qimr.qannotate.nanno;
 
-import static org.junit.Assert.assertEquals;
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -18,6 +16,8 @@ import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.meta.QExec;
 
+import static org.junit.Assert.*;
+
 public class AnnotateUtilsTest {
 	
 	@Rule
@@ -32,12 +32,12 @@ public class AnnotateUtilsTest {
 		
 		List<String> singleAnnoList = AnnotateUtils.convertAnnotations(annos);
 		assertEquals(6, singleAnnoList.size());
-		assertEquals(true, singleAnnoList.contains("FIELD1=1"));
+        assertTrue(singleAnnoList.contains("FIELD1=1"));
 		
 		annos.add("FIELD7=7\tFIELD8=8\tFIELD9=9\tFIELD10=10");
 		singleAnnoList = AnnotateUtils.convertAnnotations(annos);
 		assertEquals(10, singleAnnoList.size());
-		assertEquals(true, singleAnnoList.contains("FIELD10=10"));
+        assertTrue(singleAnnoList.contains("FIELD10=10"));
 		
 		/*
 		 * look at empty and null lists
@@ -60,14 +60,14 @@ public class AnnotateUtilsTest {
 	
 	@Test
 	public void getSearchTerm() {
-		assertEquals("\"GENE\"+(\"277C>T\"|\"277C->T\"|\"277C-->T\"|\"277C/T\"|\"Arg93Trp\")", AnnotateUtils.getSearchTerm(Optional.of("c.277C>T"), Optional.of("p.Arg93Trp")));
-		assertEquals("\"GENE\"+(\"277T>C\"|\"277T->C\"|\"277T-->C\"|\"277T/C\"|\"Arg93Trp\")", AnnotateUtils.getSearchTerm(Optional.of("c.277T>C"), Optional.of("p.Arg93Trp")));
-		assertEquals("", AnnotateUtils.getSearchTerm(Optional.empty(), Optional.empty()));
-		assertEquals("\"GENE\"+(\"Arg93Trp\")", AnnotateUtils.getSearchTerm(Optional.of("c277TC"), Optional.of("p.Arg93Trp")));
-		assertEquals("\"GENE\"+(\"Arg93Trp\")", AnnotateUtils.getSearchTerm(Optional.of(""), Optional.of("p.Arg93Trp")));
-		assertEquals("\"GENE\"+(\"Arg93Trp\")", AnnotateUtils.getSearchTerm(Optional.empty(), Optional.of("p.Arg93Trp")));
-		assertEquals("", AnnotateUtils.getSearchTerm(Optional.of("c277TC"), Optional.empty()));
-		assertEquals("", AnnotateUtils.getSearchTerm(Optional.of(""), Optional.of("")));
+		assertEquals("\"GENE\"+(\"277C>T\"|\"277C->T\"|\"277C-->T\"|\"277C/T\"|\"Arg93Trp\")", AnnotateUtils.getSearchTerm("c.277C>T", "p.Arg93Trp"));
+		assertEquals("\"GENE\"+(\"277T>C\"|\"277T->C\"|\"277T-->C\"|\"277T/C\"|\"Arg93Trp\")", AnnotateUtils.getSearchTerm("c.277T>C", "p.Arg93Trp"));
+		assertEquals("", AnnotateUtils.getSearchTerm(null, null));
+		assertEquals("\"GENE\"+(\"Arg93Trp\")", AnnotateUtils.getSearchTerm("c277TC", "p.Arg93Trp"));
+		assertEquals("\"GENE\"+(\"Arg93Trp\")", AnnotateUtils.getSearchTerm("", "p.Arg93Trp"));
+		assertEquals("\"GENE\"+(\"Arg93Trp\")", AnnotateUtils.getSearchTerm(null, "p.Arg93Trp"));
+		assertEquals("", AnnotateUtils.getSearchTerm("c277TC", null));
+		assertEquals("", AnnotateUtils.getSearchTerm("", ""));
 	}
 	
 	@Test
@@ -136,13 +136,13 @@ public class AnnotateUtilsTest {
 "}"
 				);
 		
-		try (BufferedWriter out = new BufferedWriter(new FileWriter(inputJson));) {
+		try (BufferedWriter out = new BufferedWriter(new FileWriter(inputJson))) {
 			for (String line : data) {
 				out.write(line + "\n");
 			}
 		}
 		AnnotationInputs ais = AnnotateUtils.getInputs(inputJson.getAbsolutePath());
-		assertEquals(true, ais.isIncludeSearchTerm());
+        assertTrue(ais.isIncludeSearchTerm());
 		assertEquals("test1,test2,test3", ais.getAdditionalEmptyFields());
 		assertEquals(3, ais.getAnnotationSourceThreadCount());
 		assertEquals("field_1,field_2,field_3", ais.getOutputFieldOrder());
@@ -189,7 +189,7 @@ public class AnnotateUtilsTest {
 "}"
 				);
 		
-		try (BufferedWriter out = new BufferedWriter(new FileWriter(inputJson));) {
+		try (BufferedWriter out = new BufferedWriter(new FileWriter(inputJson))) {
 			for (String line : data) {
 				out.write(line + "\n");
 			}
@@ -197,22 +197,22 @@ public class AnnotateUtilsTest {
 		AnnotationInputs ais = AnnotateUtils.getInputs(inputJson.getAbsolutePath());
 		List<String> headers =  AnnotateUtils.generateHeaders(ais, null);
 		assertEquals(4, headers.size());	// 3 inputs plus header line
-		assertEquals(true, headers.contains("##file:fields\t/file_1.tsv:field_1"));
-		assertEquals(true, headers.contains("##file:fields\tfile_2.eff.vcf:field_2"));
-		assertEquals(true, headers.contains("##file:fields\t/file_3.vcf.gz:field_3"));
-		assertEquals("#chr\tposition\tref\talt\tGATK_AD\tfield_1\tfield_2\tfield_3\ttest1\ttest2\ttest3\tsearchTerm", headers.get(headers.size() - 1));
+        assertTrue(headers.contains("##file:fields\t/file_1.tsv:field_1"));
+        assertTrue(headers.contains("##file:fields\tfile_2.eff.vcf:field_2"));
+        assertTrue(headers.contains("##file:fields\t/file_3.vcf.gz:field_3"));
+		assertEquals("#chr\tposition\tref\talt\toriginal_alt\tGATK_GT\tGATK_AD\tfield_1\tfield_2\tfield_3\ttest1\ttest2\ttest3\tsearchTerm", headers.get(headers.size() - 1));
 	}
 	
 	@Test
 	public void isOrderedHeaderListValid() {
-		assertEquals(true, AnnotateUtils.isOrderedHeaderListValid("h1,h2,h3", "h1", "h2", "h3"));
-		assertEquals(false, AnnotateUtils.isOrderedHeaderListValid("h1,h2,h3", "h1", "h2"));
-		assertEquals(false, AnnotateUtils.isOrderedHeaderListValid("h1,h2,h3", "h3", "h2"));
-		assertEquals(false, AnnotateUtils.isOrderedHeaderListValid("h1,h2,h3", "h3", "h1"));
-		assertEquals(false, AnnotateUtils.isOrderedHeaderListValid("h1,h2,h3", "h3", "h1", "h4"));
-		assertEquals(false, AnnotateUtils.isOrderedHeaderListValid("h1,h2,h3", "h2", "h1", "h4"));
-		assertEquals(true, AnnotateUtils.isOrderedHeaderListValid("h1,h2,h3", "h2", "h3", "h1", "h1"));
-		assertEquals(true, AnnotateUtils.isOrderedHeaderListValid("h1,h1,h2,h3", "h2", "h3", "h1", "h1"));
+        assertTrue(AnnotateUtils.isOrderedHeaderListValid("h1,h2,h3", "h1", "h2", "h3"));
+        assertFalse(AnnotateUtils.isOrderedHeaderListValid("h1,h2,h3", "h1", "h2"));
+        assertFalse(AnnotateUtils.isOrderedHeaderListValid("h1,h2,h3", "h3", "h2"));
+        assertFalse(AnnotateUtils.isOrderedHeaderListValid("h1,h2,h3", "h3", "h1"));
+        assertFalse(AnnotateUtils.isOrderedHeaderListValid("h1,h2,h3", "h3", "h1", "h4"));
+        assertFalse(AnnotateUtils.isOrderedHeaderListValid("h1,h2,h3", "h2", "h1", "h4"));
+        assertTrue(AnnotateUtils.isOrderedHeaderListValid("h1,h2,h3", "h2", "h3", "h1", "h1"));
+        assertTrue(AnnotateUtils.isOrderedHeaderListValid("h1,h1,h2,h3", "h2", "h3", "h1", "h1"));
 	}
 	
 	@Test
@@ -220,9 +220,9 @@ public class AnnotateUtilsTest {
 		assertEquals(Optional.empty(), AnnotateUtils.getAnnotationFromList(null, null));
 		assertEquals(Optional.empty(), AnnotateUtils.getAnnotationFromList(new ArrayList<>(), null));
 		assertEquals(Optional.empty(), AnnotateUtils.getAnnotationFromList(new ArrayList<>(), ""));
-		assertEquals(Optional.empty(), AnnotateUtils.getAnnotationFromList(Arrays.asList("ANNO_1=1"), ""));
-		assertEquals(Optional.empty(), AnnotateUtils.getAnnotationFromList(Arrays.asList("ANNO_1=1"), "ANNO_2"));
-		assertEquals(Optional.of("1"), AnnotateUtils.getAnnotationFromList(Arrays.asList("ANNO_1=1"), "ANNO_1"));
+		assertEquals(Optional.empty(), AnnotateUtils.getAnnotationFromList(List.of("ANNO_1=1"), ""));
+		assertEquals(Optional.empty(), AnnotateUtils.getAnnotationFromList(List.of("ANNO_1=1"), "ANNO_2"));
+		assertEquals(Optional.of("1"), AnnotateUtils.getAnnotationFromList(List.of("ANNO_1=1"), "ANNO_1"));
 		assertEquals(Optional.of("2"), AnnotateUtils.getAnnotationFromList(Arrays.asList("ANNO_1=1","ANNO_2=2"), "ANNO_2"));
 		assertEquals(Optional.of("1"), AnnotateUtils.getAnnotationFromList(Arrays.asList("ANNO_1=1","ANNO_2=2"), "ANNO_1"));
 	}

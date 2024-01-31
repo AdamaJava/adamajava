@@ -105,6 +105,7 @@ public class Annotate {
 				
 				String alt = ((ChrPositionRefAlt) thisVcfsCP).getAlt();
 				String gatkAD = VcfUtils.getFormatField(vcf.getFormatFields(), "AD", 0);
+				String gatkGT = VcfUtils.getFormatField(vcf.getFormatFields(), "GT", 0);
 				
 				if (alt.contains(",")) {
 					logger.info("alt has comma: " + thisVcfsCP.toString());
@@ -132,7 +133,7 @@ public class Annotate {
 					}
 					for (VcfRecord splitVcf : splitVcfs) {
 						List<String> annotations = new ArrayList<>(getAnnotationsForPosition(splitVcf.getChrPositionRefAlt(), annotationSources, executor));
-						queue.add(new ChrPositionAnnotations(splitVcf.getChrPositionRefAlt(), annotations, altToADMap.get(splitVcf.getAlt())));
+						queue.add(new ChrPositionAnnotations(splitVcf.getChrPositionRefAlt(), annotations, gatkAD, gatkGT, alt));
 					}
 					
 				} else {
@@ -140,7 +141,7 @@ public class Annotate {
 					logger.debug("about to get annotations for: " + thisVcfsCP.toIGVString());
 					List<String> annotations = getAnnotationsForPosition(thisVcfsCP, annotationSources, executor);
 					logger.debug("got annotations for: " + thisVcfsCP.toIGVString() + " - adding to queue");
-					queue.add(new ChrPositionAnnotations(thisVcfsCP, annotations, gatkAD));
+					queue.add(new ChrPositionAnnotations(thisVcfsCP, annotations, gatkAD, gatkGT, alt));
 					
 				}
 				
@@ -182,17 +183,34 @@ public class Annotate {
 		public List<String> getAnnotations() {
 			return annotations;
 		}
-		
+
+		public String getGatkGT() {
+			return gatkGT;
+		}
+
+		public String getOriginalAlt() {
+			return originalAlt;
+		}
+
 		ChrPosition cp;
 		List<String> annotations;
 		String gatkAD;
+		String gatkGT;
+		String originalAlt;
 		
-		public ChrPositionAnnotations(ChrPosition cp, List<String> annotations, String gatkAD) {
+		public ChrPositionAnnotations(ChrPosition cp, List<String> annotations, String gatkAD, String gatkGT, String originalAlt) {
 			super();
 			this.cp = cp;
 			this.annotations = annotations;
 			this.gatkAD = gatkAD;
+			this.gatkGT = gatkGT;
+			this.originalAlt = originalAlt;
 		}
+
+		public String toStringMinusAnnotations() {
+			return ((ChrPositionRefAlt)cp).toTabSeperatedString() + "\t" + originalAlt + "\t" + gatkGT + "\t" + gatkAD;
+		}
+
 	}
 	
 	public static class Consumer implements Runnable {
@@ -279,8 +297,8 @@ public class Annotate {
 			
 			String searchTerm = "";
 			if (includeSearchTerm) {
-				Optional<String> hgvsC = AnnotateUtils.getAnnotationFromList(singleAnnotations, "hgvs.c");
-				Optional<String> hgvsP = AnnotateUtils.getAnnotationFromList(singleAnnotations, "hgvs.p");
+				String hgvsC = AnnotateUtils.getAnnotationFromList(singleAnnotations, "hgvs.c").orElse(null);
+				String hgvsP = AnnotateUtils.getAnnotationFromList(singleAnnotations, "hgvs.p").orElse(null);
 				searchTerm = AnnotateUtils.getSearchTerm(hgvsC, hgvsP);
 			}
 			/*
@@ -290,7 +308,7 @@ public class Annotate {
 			
 			logger.debug("annotationString: " + annotationString);
 			
-			writer.add(((ChrPositionRefAlt)cp).toTabSeperatedString() + "\t" + recAndAnnotations.getGatkAD() + "\t" + annotationString + additionalEmptyValues + (includeSearchTerm ? "\t" + searchTerm : ""));
+			writer.add(recAndAnnotations.toStringMinusAnnotations() + "\t" + annotationString + additionalEmptyValues + (includeSearchTerm ? "\t" + searchTerm : ""));
 		}
 	}
 	

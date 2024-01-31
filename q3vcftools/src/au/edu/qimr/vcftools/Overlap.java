@@ -23,8 +23,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import org.qcmg.common.model.ChrPointPosition;
-import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.model.ChrPositionComparator;
 import org.qcmg.common.model.ChrPositionRefAlt;
 import org.qcmg.common.string.StringUtils;
@@ -482,7 +480,7 @@ public class Overlap {
 			ps.println(header);
 			for (ChrPositionRefAlt cp : recs) {
 //				logger.info("writing out: " + cp.getName());
-				ps.println(cp.getChromosome() + Constants.TAB + cp.getStartPosition() + "\t.\t" + cp.getName() + Constants.TAB + cp.getAlt() + "\t.\t.\t.");
+				ps.println(cp.getChromosome() + Constants.TAB + cp.getStartPosition() + "\t.\t" + cp.getRef() + Constants.TAB + cp.getAlt() + "\t.\t.\t.");
 			}
 		}
 		

@@ -76,7 +76,7 @@ public abstract class AnnotationSource implements Closeable {
 				String recRef = recArray[refPositionInFile];
 				String recAlt = recArray[altPositionInFile];
 				
-				if (((ChrPositionRefAlt)requestedCp).getName().equals(recRef) && ((ChrPositionRefAlt)requestedCp).getAlt().equals(recAlt)) {
+				if (((ChrPositionRefAlt)requestedCp).getRef().equals(recRef) && ((ChrPositionRefAlt)requestedCp).getAlt().equals(recAlt)) {
 					return annotationToReturn(rec);
 				}
 			}
@@ -99,7 +99,7 @@ public abstract class AnnotationSource implements Closeable {
 					String recRef = recArray[refPositionInFile];
 					String recAlt = recArray[altPositionInFile];
 					
-					if (((ChrPositionRefAlt)requestedCp).getName().equals(recRef) && ((ChrPositionRefAlt)requestedCp).getAlt().equals(recAlt)) {
+					if (((ChrPositionRefAlt)requestedCp).getRef().equals(recRef) && ((ChrPositionRefAlt)requestedCp).getAlt().equals(recAlt)) {
 						return annotationToReturn(rec);
 					}
 				}
@@ -112,7 +112,7 @@ public abstract class AnnotationSource implements Closeable {
 		return annotationToReturn(null);
 	}
 	
-	private void getNextRecord(ChrPosition requestedCp) {
+	void getNextRecord(ChrPosition requestedCp) {
 		currentRecords = new ArrayList<>();
 		
 		/*
@@ -153,12 +153,10 @@ public abstract class AnnotationSource implements Closeable {
 				nextRecords.add(nextRecord);
 				break;
 		    } else {
-				
 				/*
-				 * keep going
+				 * no match yet - keep going
 				 */
 			}
-			
 		}
 	}
 	
@@ -237,9 +235,9 @@ public abstract class AnnotationSource implements Closeable {
 			return -1;
 		}
 		
-		int nameAndStartPosisionMatch = compareChromosomeNameAndStartPositions(cp1.getChromosome(), cp1.getStartPosition(), cp2.getChromosome(), cp2.getStartPosition());
-		if (nameAndStartPosisionMatch != 0) {
-			return nameAndStartPosisionMatch;
+		int nameAndStartPositionMatch = compareChromosomeNameAndStartPositions(cp1.getChromosome(), cp1.getStartPosition(), cp2.getChromosome(), cp2.getStartPosition());
+		if (nameAndStartPositionMatch != 0) {
+			return nameAndStartPositionMatch;
 		}
 		
 		return Integer.compare(cp1.getEndPosition(), cp2.getEndPosition());

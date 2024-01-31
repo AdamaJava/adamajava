@@ -8,7 +8,7 @@ import java.util.Map;
 
 import org.junit.Test;
 
-import scala.actors.threadpool.Arrays;
+import java.util.Arrays;
 
 public class AnnotationSourceTSVTest {
 	

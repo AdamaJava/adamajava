@@ -162,7 +162,7 @@ public class Classify {
 			ps.println(header);
 			for (ChrPositionRefAlt cp : recs) {
 //				logger.info("writing out: " + cp.getName());
-				ps.println(cp.getChromosome() + Constants.TAB + cp.getStartPosition() + "\t.\t" + cp.getName() + Constants.TAB + cp.getAlt() + "\t.\t.\t.");
+				ps.println(cp.getChromosome() + Constants.TAB + cp.getStartPosition() + "\t.\t" + cp.getRef() + Constants.TAB + cp.getAlt() + "\t.\t.\t.");
 			}
 		}
 		

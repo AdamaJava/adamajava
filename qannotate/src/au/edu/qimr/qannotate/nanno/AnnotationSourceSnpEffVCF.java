@@ -2,13 +2,14 @@ package au.edu.qimr.qannotate.nanno;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.AbstractMap.SimpleEntry;
 
+import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrPositionRefAlt;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.qio.record.RecordReader;
@@ -60,6 +61,79 @@ public class AnnotationSourceSnpEffVCF extends AnnotationSource {
 	}
 
 	@Override
+	public String getAnnotation(ChrPosition requestedCp) {
+
+		logger.debug(reader.getFile().getName() + ":  requestedCp is " + (null != requestedCp ? requestedCp.toIGVString() : null) + ", currentCP: " + (null != currentCP ? currentCP.toIGVString() : null) + ", nextCP: " + (null != nextCP ? nextCP.toIGVString() : null));
+
+		/*
+		 * check to see if the records we currently have stored are a match
+		 */
+		if ( areCPsEqual(requestedCp, currentCP) == 0) {
+
+			/*
+			 * we match on position
+			 * lets see if there are any records that match on ref and alt
+			 */
+			for (String rec : currentRecords) {
+				String [] recArray = TabTokenizer.tokenize(rec, DEFAULT_DELIMITER);
+				String recRef = recArray[refPositionInFile];
+				String recAlt = recArray[altPositionInFile];
+
+				if (recAlt.contains(",")) {
+					String [] recAltArray = recAlt.split(",");
+					for (String recAltValue : recAltArray) {
+						if (((ChrPositionRefAlt)requestedCp).getRef().equals(recRef) && ((ChrPositionRefAlt)requestedCp).getAlt().equals(recAltValue)) {
+							return annotationToReturnWithAlt(rec, recAltValue);
+						}
+					}
+				} else {
+					if (((ChrPositionRefAlt)requestedCp).getRef().equals(recRef) && ((ChrPositionRefAlt)requestedCp).getAlt().equals(recAlt)) {
+						return annotationToReturnWithAlt(rec, recAlt);
+					}
+				}
+			}
+
+		} else if (null != nextCP && areCPsEqual(requestedCp, nextCP) < 0) {
+			/*
+			 * requestedCp is "less than" next CP
+			 * return empty list here
+			 */
+		} else {
+			logger.debug(reader.getFile().getName() + ": getting next record. requestedCp: " + (null != requestedCp ? requestedCp.toIGVString() : null) + ", currentCP: " + (null != currentCP ? currentCP.toIGVString() : null));
+			getNextRecord(requestedCp);
+			if ( areCPsEqual(requestedCp, currentCP) == 0) {
+				/*
+				 * we match on position
+				 * lets see if there are any records that match on ref and alt
+				 */
+				for (String rec : currentRecords) {
+					String [] recArray = TabTokenizer.tokenize(rec, DEFAULT_DELIMITER);
+					String recRef = recArray[refPositionInFile];
+					String recAlt = recArray[altPositionInFile];
+
+					if (recAlt.contains(",")) {
+						String [] recAltArray = recAlt.split(",");
+						for (String recAltValue : recAltArray) {
+							if (((ChrPositionRefAlt)requestedCp).getRef().equals(recRef) && ((ChrPositionRefAlt)requestedCp).getAlt().equals(recAltValue)) {
+								return annotationToReturnWithAlt(rec, recAltValue);
+							}
+						}
+					} else {
+						if (((ChrPositionRefAlt)requestedCp).getRef().equals(recRef) && ((ChrPositionRefAlt)requestedCp).getAlt().equals(recAlt)) {
+							return annotationToReturnWithAlt(rec, recAlt);
+						}
+					}
+				}
+			} else {
+				/*
+				 * requestedCP and currentCP are not equal
+				 */
+			}
+		}
+		return annotationToReturn(null);
+	}
+
+	@Override
 	public String annotationToReturn(String record) {
 		if (null == record) {
 			return emptyRecordResult;
@@ -75,6 +149,24 @@ public class AnnotationSourceSnpEffVCF extends AnnotationSource {
 		/*
 		 * entries in the INFO field are delimited by ';'
 		 */
+		logger.debug("looking for annotations in info field: " + info + ", with alt: " + alt);
+		return extractFieldsFromInfoField(info, annotationFields, emptyRecordResult, alt);
+	}
+	public String annotationToReturnWithAlt(String record, String alt) {
+		if (null == record) {
+			return emptyRecordResult;
+		}
+		/*
+		 * dealing with a vcf file and assuming that the required annotation fields are in the INFO field
+		 * so get that and go from there.
+		 */
+		String [] recordArray = record.split("\t");
+		String info = recordArray[7];
+
+		/*
+		 * entries in the INFO field are delimited by ';'
+		 */
+		logger.debug("looking for annotations in info field: " + info + ", with alt: " + alt);
 		return extractFieldsFromInfoField(info, annotationFields, emptyRecordResult, alt);
 	}
 	
@@ -99,24 +191,21 @@ public class AnnotationSourceSnpEffVCF extends AnnotationSource {
 		 * split by pipe and then get our fields
 		 */
 		String [] consequenceArray = TabTokenizer.tokenize(worstConsequence, '|');
-//		String [] consequenceArray = worstConsequence.split("\\|");
-		
+
 		for (String af : fields) {
 			if ( ! StringUtils.isNullOrEmpty(af)) {
 				
 				/*
 				 * get position from map
 				 */
-//				System.out.println("af: " + af + ", SNP_EFF_ANNOTATION_FIELDS_AND_POSITIONS: " + (null == SNP_EFF_ANNOTATION_FIELDS_AND_POSITIONS ? "null" : SNP_EFF_ANNOTATION_FIELDS_AND_POSITIONS.keySet().stream().collect(Collectors.joining(","))));
 				String aflc = af.toLowerCase();
 				Integer arrayPosition = SNP_EFF_ANNOTATION_FIELDS_AND_POSITIONS.get(aflc);
-				if (null != arrayPosition && arrayPosition.intValue() >= 0 && arrayPosition.intValue() < consequenceArray.length) {
-//				if (arrayPosition >= 0 && arrayPosition <= consequenceArray.length) {
+				if (null != arrayPosition && arrayPosition >= 0 && arrayPosition < consequenceArray.length) {
 					/*
 					 * good
 					 */
-					String annotation = consequenceArray[arrayPosition.intValue()];
-					dataToReturn += dataToReturn.length() > 0 ? FIELD_DELIMITER_TAB + af + "=" + annotation : af + "=" + annotation;
+					String annotation = consequenceArray[arrayPosition];
+					dataToReturn += ! dataToReturn.isEmpty() ? FIELD_DELIMITER_TAB + af + "=" + annotation : af + "=" + annotation;
 				} else {
 //					System.out.println("Could not find field [" + af + "] in SNP_EFF_ANNOTATION_FIELDS_AND_POSITIONS map!");
 //					System.out.println("arrayPosition.intValue(): " + arrayPosition.intValue() + ", consequenceArray.length: " + consequenceArray.length);
@@ -124,7 +213,7 @@ public class AnnotationSourceSnpEffVCF extends AnnotationSource {
 				
 			}
 		}
-		return dataToReturn.length() == 0 ? emptyInfoFieldResult : dataToReturn;
+		return dataToReturn.isEmpty() ? emptyInfoFieldResult : dataToReturn;
 	}
 
 	/**

@@ -169,7 +169,7 @@ public class AmalgamatorGS {
 				}
 				String scoreS = score + "/" + (4 + vcfFiles.length);
 				scoreDist.computeIfAbsent(scoreS, v -> new AtomicInteger()).incrementAndGet();
-				ps.println(cp.getChromosome() + Constants.TAB + cp.getStartPosition() + Constants.TAB +cp.getName() + Constants.TAB 
+				ps.println(cp.getChromosome() + Constants.TAB + cp.getStartPosition() + Constants.TAB +cp.getRef() + Constants.TAB
 						+ cp.getAlt() + Constants.TAB + Arrays.stream(p.getLeft()).map(s -> null == s ? "./." : s).collect(Collectors.joining(Constants.TAB_STRING))
 						+ Constants.TAB +  Arrays.stream(p.getRight()).map(s -> null == s ? "." : s).collect(Collectors.joining(Constants.TAB_STRING))
 						+ Constants.TAB +  Arrays.stream(missingACs).map(s -> null == s ? "." : s).collect(Collectors.joining(Constants.TAB_STRING))
