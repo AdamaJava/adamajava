@@ -9,7 +9,7 @@ dependencies {
 
     implementation project(':qcommon')
     implementation project(':qpicard')    
-    implementation 'net.sf.jopt-simple:jopt-simple:4.6'
+    implementation 'net.sf.jopt-simple:jopt-simple:5.0.4'
 	
     testImplementation project(':qtesting')
     testImplementation project(':qsplit')

@@ -12,7 +12,7 @@ dependencies {
 
     implementation 'org.apache.commons:commons-lang3:3.4'
     implementation 'net.sf.trove4j:core:3.1.0'
-    implementation 'net.sf.jopt-simple:jopt-simple:4.6'
+    implementation 'net.sf.jopt-simple:jopt-simple:5.0.4'
     implementation 'com.github.samtools:htsjdk:4.0.2'
 
     implementation group: 'com.io7m.xom',name: 'xom', version: '1.2.10'

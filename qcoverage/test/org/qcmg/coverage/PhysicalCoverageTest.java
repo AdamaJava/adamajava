@@ -1,7 +1,10 @@
 package org.qcmg.coverage;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import htsjdk.samtools.SAMFileHeader.SortOrder;
+import org.junit.*;
+import org.qcmg.common.commandline.Executor;
+import org.qcmg.qio.gff3.Gff3Record;
+import org.qcmg.qio.record.RecordWriter;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -10,20 +13,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.stream.Collectors;
 
-import htsjdk.samtools.SAMFileHeader.SortOrder;
-
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.qcmg.common.commandline.Executor;
-import org.qcmg.qio.gff3.Gff3Record;
-import org.qcmg.qio.record.RecordWriter;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class PhysicalCoverageTest {
 	static String inputBam;
@@ -31,9 +23,6 @@ public class PhysicalCoverageTest {
 	static Path tmpDir;
 	private File fOutput;
 	private String fname;
-	
-	@Rule
-	public ExpectedException thrown = ExpectedException.none();
 	
 	 @BeforeClass
 	 public static void setup() throws Exception {
@@ -61,10 +50,10 @@ public class PhysicalCoverageTest {
 	}
 	
 	private String getCmd(int start, int stop) {
-		return "--log " + tmpDir + "/logfile --type phys --input-gff3 " + tmpDir + "/test" + start + "-" + stop + ".gff3 --input-bam " + inputBam + " --input-bai  " + inputBai + " --output " +fname;
+		return "--log " + tmpDir + "/logfile --type phys --input-gff3 " + tmpDir + "/test" + start + "-" + stop + ".gff3 --input-bam " + inputBam + " --input-bai " + inputBai + " --output " +fname;
 	}
 
-	private File createGFF3File(final int start, final int end) throws IOException {
+	private void createGFF3File(final int start, final int end) throws IOException {
 		Gff3Record record = new Gff3Record();
 		record.setSeqId("chr1");
 		record.setType("exon");
@@ -78,8 +67,7 @@ public class PhysicalCoverageTest {
 		try (RecordWriter<Gff3Record> writer = new RecordWriter<>(file)) {
 			writer.add(record);
 		}
-		
-		return file;
+
 	}
 
 	private Executor execute(final String command) throws IOException, InterruptedException {
@@ -92,15 +80,14 @@ public class PhysicalCoverageTest {
 	public  void leftDisjointRead() throws IOException, InterruptedException {
 		createGFF3File(54000, 54025);
 
-		ExpectedException.none();
 		Executor exec = execute(getCmd(54000, 54025));
-		
-		assertTrue(0 == exec.getErrCode());
+
+        assertEquals(0, exec.getErrCode());
 		assertTrue(fOutput.exists());
 		
 		List<String> fileContents;
 		try (BufferedReader r= new BufferedReader( new FileReader(fOutput))) {
-			fileContents = r.lines().collect(Collectors.toList());
+			fileContents = r.lines().toList();
 		}
 		
 		assertEquals(2, fileContents.size());
@@ -111,15 +98,14 @@ public class PhysicalCoverageTest {
 	public  void rightDisjointRead() throws IOException, InterruptedException {
 		createGFF3File(54077, 54120);
 
-		ExpectedException.none();
 		Executor exec = execute(getCmd(54077, 54120));
-		
-		assertTrue(0 == exec.getErrCode());
+
+        assertEquals(0, exec.getErrCode());
 		assertTrue(fOutput.exists());
 		
 		List<String> fileContents;
 		try (BufferedReader r= new BufferedReader( new FileReader(fOutput))) {
-			fileContents = r.lines().collect(Collectors.toList());
+			fileContents = r.lines().toList();
 		}
 		
 		assertEquals(2, fileContents.size());
@@ -131,15 +117,14 @@ public class PhysicalCoverageTest {
 	public  void leftOnEndRead() throws IOException, InterruptedException {
 		createGFF3File(54000, 54026);
 
-		ExpectedException.none();
 		Executor exec = execute(getCmd(54000, 54026));
-		
-		assertTrue(0 == exec.getErrCode());
+
+        assertEquals(0, exec.getErrCode());
 		assertTrue(fOutput.exists());
 		
 		List<String> fileContents;
 		try (BufferedReader r= new BufferedReader( new FileReader(fOutput))) {
-			fileContents = r.lines().collect(Collectors.toList());
+			fileContents = r.lines().toList();
 		}
 		
 		assertEquals(3, fileContents.size());
@@ -152,15 +137,14 @@ public class PhysicalCoverageTest {
 	public  void rightOnEndRead() throws IOException, InterruptedException {
 		createGFF3File(54076, 54120);
 
-		ExpectedException.none();
 		Executor exec = execute(getCmd(54076, 54120));
-		
-		assertTrue(0 == exec.getErrCode());
+
+        assertEquals(0, exec.getErrCode());
 		assertTrue(fOutput.exists());
 		
 		List<String> fileContents;
 		try (BufferedReader r= new BufferedReader( new FileReader(fOutput))) {
-			fileContents = r.lines().collect(Collectors.toList());
+			fileContents = r.lines().toList();
 		}
 		
 		assertEquals(2, fileContents.size());
@@ -171,15 +155,14 @@ public class PhysicalCoverageTest {
 	public  void leftOverlapRead() throws IOException, InterruptedException {
 		createGFF3File(54000, 54036);
 
-		ExpectedException.none();
 		Executor exec = execute(getCmd(54000, 54036));
-		
-		assertTrue(0 == exec.getErrCode());
+
+        assertEquals(0, exec.getErrCode());
 		assertTrue(fOutput.exists());
 		
 		List<String> fileContents;
 		try (BufferedReader r= new BufferedReader( new FileReader(fOutput))) {
-			fileContents = r.lines().collect(Collectors.toList());
+			fileContents = r.lines().toList();
 		}
 		
 		assertEquals(3, fileContents.size());
@@ -192,15 +175,14 @@ public class PhysicalCoverageTest {
 	public  void rightOverlapRead() throws IOException, InterruptedException {
 		createGFF3File(54050, 54120);
 
-		ExpectedException.none();
 		Executor exec = execute(getCmd(54050, 54120));
-		
-		assertTrue(0 == exec.getErrCode());
+
+        assertEquals(0, exec.getErrCode());
 		assertTrue(fOutput.exists());
 		
 		List<String> fileContents;
 		try (BufferedReader r= new BufferedReader( new FileReader(fOutput))) {
-			fileContents = r.lines().collect(Collectors.toList());
+			fileContents = r.lines().toList();
 		}
 		
 		assertEquals(3, fileContents.size());
@@ -212,15 +194,14 @@ public class PhysicalCoverageTest {
 	public  void subsetRead() throws IOException, InterruptedException {
 		createGFF3File(54030, 54070);
 
-		ExpectedException.none();
 		Executor exec = execute(getCmd(54030, 54070));
-		
-		assertTrue(0 == exec.getErrCode());
+
+        assertEquals(0, exec.getErrCode());
 		assertTrue(fOutput.exists());
 		
 		List<String> fileContents;
 		try (BufferedReader r= new BufferedReader( new FileReader(fOutput))) {
-			fileContents = r.lines().collect(Collectors.toList());
+			fileContents = r.lines().toList();
 		}
 		
 		assertEquals(2, fileContents.size());

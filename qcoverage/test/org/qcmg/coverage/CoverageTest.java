@@ -1,7 +1,6 @@
 package org.qcmg.coverage;
 
 import htsjdk.samtools.SAMFileHeader.SortOrder;
-import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Marshaller;
 import org.eclipse.persistence.jaxb.JAXBContextFactory;
@@ -13,7 +12,6 @@ import org.qcmg.common.commandline.Executor;
 import org.qcmg.qio.gff3.Gff3Record;
 import org.qcmg.qio.record.RecordWriter;
 
-import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
@@ -64,7 +62,7 @@ public class CoverageTest {
 	public final void defaultTest() throws Exception {
 		
  	 	
-		String cmd = "--log " + log + " --type phys  --input-gff3 " + inputGff3 + " --input-bam " + inputBam + 
+		String cmd = "--log " + log + " --type phys --input-gff3 " + inputGff3 + " --input-bam " + inputBam +
 				" --input-bai " + inputBai +  " --output " + fname ;
 
 		//default value txt output only
@@ -77,7 +75,7 @@ public class CoverageTest {
 	
 	@Test
 	public final void xmlTest() throws Exception {
-		String cmd = "--log " + log + " --type phys  --input-gff3 " + inputGff3 + " --input-bam " + inputBam + 
+		String cmd = "--log " + log + " --type phys --input-gff3 " + inputGff3 + " --input-bam " + inputBam +
 				" --input-bai " + inputBai +  " --output " +fname  + " --output-format xml";
 
 		//xml output only
@@ -121,7 +119,7 @@ public class CoverageTest {
 	}
 
 	@Test
-	public void writeXmlOutput() throws IOException, ParserConfigurationException, jakarta.xml.bind.JAXBException {
+	public void writeXmlOutput() throws IOException, jakarta.xml.bind.JAXBException {
 		QCoverageStats qcs = new QCoverageStats();
 		CoverageReport cr = new CoverageReport();
 		for (int i = 0 ; i < 10 ; i++) {
@@ -139,7 +137,7 @@ public class CoverageTest {
 	
 	@Test
 	public final void vcfTest() throws Exception {
-		String cmd = "--log " + log + " --type phys  --input-gff3 " + inputGff3 + " --input-bam " + inputBam + 
+		String cmd = "--log " + log + " --type phys --input-gff3 " + inputGff3 + " --input-bam " + inputBam +
 				" --input-bai " + inputBai +  " --output " +fname  + " --output-format vcf";
 
 		//run fail for vcf without per-feature
@@ -156,7 +154,7 @@ public class CoverageTest {
 	
 	@Test
 	public final void vcfFeatureTest() throws Exception {
-		String cmd = "--log " + log + " --type phys  --input-gff3 " + inputGff3 + " --input-bam " + inputBam + 
+		String cmd = "--log " + log + " --type phys --input-gff3 " + inputGff3 + " --input-bam " + inputBam +
 				" --input-bai " + inputBai +  " --output " +fname  + " --per-feature --output-format vcf";
 	
 		//vcf output only
@@ -174,9 +172,9 @@ public class CoverageTest {
 	
 	@Test
 	public final void allTest() throws Exception {
-		String cmd = "--log " + log + " --type phys  --input-gff3 " + inputGff3 + " --input-bam " + inputBam + 
+		String cmd = "--log " + log + " --type phys --input-gff3 " + inputGff3 + " --input-bam " + inputBam +
 				" --input-bai " + inputBai +  " --output " +fname  + 
-				" --output-format xml  --output-format txt";
+				" --output-format xml --output-format txt";
 
 		//two types output
 		Executor exec = execute(cmd);
@@ -190,9 +188,9 @@ public class CoverageTest {
 		assertFalse(fOutput.exists());
 		
 		//run fail for vcf without per-feature
-		cmd = "--log " + log + " --type phys  --input-gff3 " + inputGff3 + " --input-bam " + inputBam + 
+		cmd = "--log " + log + " --type phys --input-gff3 " + inputGff3 + " --input-bam " + inputBam +
 				" --input-bai " + inputBai +  " --output " +fname  + 
-				" --output-format vcf  --output-format xml  --output-format txt";
+				" --output-format vcf --output-format xml --output-format txt";
 		exec = execute(cmd);
 		assertEquals(1, exec.getErrCode());
 		
@@ -202,9 +200,9 @@ public class CoverageTest {
 	@Test
 	public final void allFeatureTest() throws Exception {
 		String foutput = fname + ".xml";
-		String cmd = "--log " + log + " --type phys  --input-gff3 " + inputGff3 + " --input-bam " + inputBam + 
+		String cmd = "--log " + log + " --type phys --input-gff3 " + inputGff3 + " --input-bam " + inputBam +
 				" --input-bai " + inputBai +  " --output " + foutput + 
-				" --per-feature --output-format vcf  --output-format xml  --output-format txt";
+				" --per-feature --output-format vcf --output-format xml --output-format txt";
 
 		//three types output
 		Executor exec = execute(cmd);

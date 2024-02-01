@@ -34,8 +34,9 @@ public class Executor {
 	// constructor for running a command line
 	public Executor(String cmd1, String cmd2, String cmd3, String cmd4, String cmd5WithSpaces) throws IOException, InterruptedException {
 		List<String> commands = new ArrayList<>(Arrays.asList(cmd1, cmd2, cmd3, cmd4));
-		Collections.addAll(commands, cmd5WithSpaces.split(" "));
-
+		if (null != cmd5WithSpaces) {
+			Collections.addAll(commands, cmd5WithSpaces.split(" "));
+		}
 		ProcessBuilder processBuilder = new ProcessBuilder(commands);
 		Process process = processBuilder.start();
 		outputStreamConsumer = new StreamConsumer(process.getInputStream());

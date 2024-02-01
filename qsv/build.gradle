@@ -12,7 +12,7 @@ dependencies {
     implementation project(':qcommon')
     implementation project(':qio')
     implementation group: 'org.ini4j', name: 'ini4j', version: '0.5.2'	
-    implementation 'net.sf.jopt-simple:jopt-simple:4.6'	
+    implementation 'net.sf.jopt-simple:jopt-simple:5.0.4'	
 		
     testImplementation  'org.easymock:easymock:5.2.0'
     testImplementation  group: 'commons-io', name: 'commons-io', version: '2.6'

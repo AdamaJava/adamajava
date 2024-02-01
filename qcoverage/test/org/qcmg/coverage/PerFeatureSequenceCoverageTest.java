@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import htsjdk.samtools.SAMFileHeader.SortOrder;
 
@@ -18,9 +17,7 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.qcmg.common.commandline.Executor;
 import org.qcmg.qio.gff3.Gff3Record;
 import org.qcmg.qio.record.RecordWriter;
@@ -31,9 +28,6 @@ public class PerFeatureSequenceCoverageTest {
 	static Path tmpDir;
 	private File fOutput;
 	private String fname;
-	
-	@Rule
-	public ExpectedException thrown = ExpectedException.none();
 	
 	@BeforeClass
 	 public static void setup() throws IOException {
@@ -62,10 +56,10 @@ public class PerFeatureSequenceCoverageTest {
 	}
 	
 	private String getCmd(int start, int stop) {
-		return "--log " + tmpDir + "/logfile --type seq --per-feature --input-gff3 " + tmpDir + "/test" + start + "-" + stop + ".gff3 --input-bam " + inputBam + " --input-bai  " + inputBai + " --output " +fname;
+		return "--log " + tmpDir + "/logfile --type seq --per-feature --input-gff3 " + tmpDir + "/test" + start + "-" + stop + ".gff3 --input-bam " + inputBam + " --input-bai " + inputBai + " --output " +fname;
 	}
 
-	private File createGFF3File(final int start, final int end) throws IOException {
+	private void createGFF3File(final int start, final int end) throws IOException {
 		Gff3Record record = new Gff3Record();
 		record.setSeqId("chr1");
 		record.setType("exon");
@@ -79,29 +73,24 @@ public class PerFeatureSequenceCoverageTest {
 		try (RecordWriter<Gff3Record> writer = new RecordWriter<>(file)) {
 			writer.add(record);
 		}
-		
-		return file;
 	}
 
 	private Executor execute(final String command) throws Exception {
-		//return new Executor(command, "org.qcmg.coverage.Main");
 		return new Executor(command, "org.qcmg.coverage.Coverage");
-
 	}
 	
 	@Test
 	public final void leftDisjointReadSeqCov() throws Exception {
 		createGFF3File(54000, 54025);
 
-		ExpectedException.none();
 		Executor exec = execute(getCmd(54000, 54025));
-		
-		assertTrue(0 == exec.getErrCode());
+
+        assertEquals(0, exec.getErrCode());
 		assertTrue(fOutput.exists());
 		
 		List<String> fileContents;
 		try (BufferedReader r= new BufferedReader( new FileReader(fOutput))) {
-			fileContents = r.lines().collect(Collectors.toList());
+			fileContents = r.lines().toList();
 		}
 		
 		assertEquals(3, fileContents.size());
@@ -114,15 +103,14 @@ public class PerFeatureSequenceCoverageTest {
 	public final void rightDisjointRead() throws Exception {
     	createGFF3File(54077, 54120);
 
-		ExpectedException.none();
 		Executor exec = execute(getCmd(54077, 54120));
-		
-		assertTrue(0 == exec.getErrCode());
+
+        assertEquals(0, exec.getErrCode());
 		assertTrue(fOutput.exists());
 		
 		List<String> fileContents;
 		try (BufferedReader r= new BufferedReader( new FileReader(fOutput))) {
-			fileContents = r.lines().collect(Collectors.toList());
+			fileContents = r.lines().toList();
 		}
 		
 		assertEquals(3, fileContents.size());
@@ -132,17 +120,16 @@ public class PerFeatureSequenceCoverageTest {
 
     @Test
 	public final void rightOnEndRead() throws Exception {
-    		createGFF3File(54076, 54120);
+		createGFF3File(54076, 54120);
 
-		ExpectedException.none();
 		Executor exec = execute(getCmd(54076, 54120));
-		
-		assertTrue(0 == exec.getErrCode());
+
+        assertEquals(0, exec.getErrCode());
 		assertTrue(fOutput.exists());
 		
 		List<String> fileContents;
 		try (BufferedReader r= new BufferedReader( new FileReader(fOutput))) {
-			fileContents = r.lines().collect(Collectors.toList());
+			fileContents = r.lines().toList();
 		}
 		
 		assertEquals(3, fileContents.size());
@@ -154,15 +141,14 @@ public class PerFeatureSequenceCoverageTest {
 	public final void leftOverlapRead() throws Exception {
     	createGFF3File(54000, 54036);
 
-		ExpectedException.none();
 		Executor exec = execute(getCmd(54000, 54036));
-		
-		assertTrue(0 == exec.getErrCode());
+
+        assertEquals(0, exec.getErrCode());
 		assertTrue(fOutput.exists());
 		
 		List<String> fileContents;
 		try (BufferedReader r= new BufferedReader( new FileReader(fOutput))) {
-			fileContents = r.lines().collect(Collectors.toList());
+			fileContents = r.lines().toList();
 		}
 		
 		assertEquals(4, fileContents.size());
@@ -175,15 +161,14 @@ public class PerFeatureSequenceCoverageTest {
 	public final void rightOverlapRead() throws Exception {
     	createGFF3File(54050, 54120);
 
-		ExpectedException.none();
 		Executor exec = execute(getCmd(54050, 54120));
-		
-		assertTrue(0 == exec.getErrCode());
+
+        assertEquals(0, exec.getErrCode());
 		assertTrue(fOutput.exists());
 		
 		List<String> fileContents;
 		try (BufferedReader r= new BufferedReader( new FileReader(fOutput))) {
-			fileContents = r.lines().collect(Collectors.toList());
+			fileContents = r.lines().toList();
 		}
 		
 		assertEquals(4, fileContents.size());
@@ -197,15 +182,14 @@ public class PerFeatureSequenceCoverageTest {
 	public final void subsetRead() throws Exception {
     	createGFF3File(54030, 54070);
 
-		ExpectedException.none();
 		Executor exec = execute(getCmd(54030, 54070));
-		
-		assertTrue(0 == exec.getErrCode());
+
+        assertEquals(0, exec.getErrCode());
 		assertTrue(fOutput.exists());
 		
 		List<String> fileContents;
 		try (BufferedReader r= new BufferedReader( new FileReader(fOutput))) {
-			fileContents = r.lines().collect(Collectors.toList());
+			fileContents = r.lines().toList();
 		}
 		
 		assertEquals(3, fileContents.size());
