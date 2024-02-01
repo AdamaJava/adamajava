@@ -1,6 +1,7 @@
 package org.qcmg.common.util;
 
 import static org.junit.Assert.assertEquals;
+import static org.qcmg.common.util.Constants.MISSING_DATA_STRING;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,6 +10,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.qcmg.common.model.ChrPointPosition;
 import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrPositionRefAlt;
 import org.qcmg.common.model.ChrRangePosition;
 
 public class ChrPositionUtilsTest {
@@ -33,6 +35,24 @@ public class ChrPositionUtilsTest {
 		cp2 = new ChrRangePosition("1", 98, 202);
 		assertEquals(true, ChrPositionUtils.arePositionsWithinDelta(cp1, cp2, 4));
 	}
+
+	@Test
+	public void toVcfStringShouldReturnCorrectFormat() {
+		ChrPosition cp = new ChrRangePosition("chr1", 1000, 2000);
+		String id = "id";
+		String ref = "A";
+		String alt = "T";
+		String qual = "30";
+		String filter = "PASS";
+		String info = "DP=100";
+
+		String expected = "chr1\t1000\tid\tA\tT\t30\tPASS\tDP=100";
+		String actual = ChrPositionUtils.toVcfString(cp, id, ref, alt, qual, filter, info);
+		assertEquals(expected, actual);
+
+		ChrPosition cp1 = new ChrPositionRefAlt("chr1", 1000, 1001, "C", "G");
+		assertEquals("chr1\t1000\t.\tC\tG\t.\t.\t.", ChrPositionUtils.toVcfString(cp1, MISSING_DATA_STRING, null, null, MISSING_DATA_STRING, MISSING_DATA_STRING, MISSING_DATA_STRING));
+	}
 	
 	@Test
 	public void cloneWithNewName() {
@@ -41,7 +61,6 @@ public class ChrPositionUtilsTest {
 		assertEquals("chrXY", ChrPositionUtils.cloneWithNewChromosomeName(cp, "chrXY").getChromosome());
 		assertEquals("myCP", ChrPositionUtils.cloneWithNewChromosomeName(cp, "myCP").getChromosome());
 		assertEquals("1", ChrPositionUtils.cloneWithNewChromosomeName(cp, "1").getChromosome());
-		
 	}
 	
 	@Test

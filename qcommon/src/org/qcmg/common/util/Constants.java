@@ -5,14 +5,16 @@
 */
 package org.qcmg.common.util;
 
+import java.nio.file.FileSystems;
+
 public class Constants {
 	public  static final char TAB = '\t';
 	public  static final String TAB_STRING = "\t";
 	public static final char SC = ';';
 	public static final char BAR = '|';
 	public static final char SLASH = '/';
-	public static final String NEW_LINE = System.getProperty("line.separator");
-	public static final String FILE_SEPARATOR = System.getProperty("file.separator");
+	public static final String NEW_LINE = System.lineSeparator();
+	public static final String FILE_SEPARATOR = FileSystems.getDefault().getSeparator();
 	
 	public static final char NL = '\n';
 	public static final char MISSING_DATA = '.';

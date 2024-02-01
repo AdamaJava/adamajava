@@ -7,15 +7,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -36,6 +28,8 @@ import org.qcmg.common.vcf.VcfUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.qio.vcf.VcfFileReader;
 
+import static org.qcmg.common.util.Constants.*;
+
 
 public class AmalgamatorGS {
 	
@@ -44,25 +38,15 @@ public class AmalgamatorGS {
 	private String[] vcfFiles;
 	private String[] allFiles;
 	private String outputFileName;
-	private String version;
-	private String logFile;
-	private String goldStandard;
+    private String goldStandard;
 	private int exitStatus;
 	private boolean somatic;
 	private boolean germline;
 	
 	private final Map<ChrPositionRefAlt, Pair<String[], String[]>> positions = new HashMap<>(1024 * 64);
 	private final Map<ChrPositionRefAlt, Pair<String[], String[]>> missingPositionsFromAll = new HashMap<>(1024 * 64);
-	
-	
-	public static String getStringFromArray(String [] arr, String missingData) {
-		StringBuilder sb = new StringBuilder();
-		for (String s : arr) {
-			StringUtils.updateStringBuilder(sb, (null == s ? missingData : s), Constants.TAB);
-		}
-		return sb.toString();
-	}
-	
+
+
 	protected int engage() throws IOException {
 			
 		logger.info("about to load vcf files");
@@ -82,7 +66,7 @@ public class AmalgamatorGS {
 			int vcfFileCount = vcfFiles.length; 
 			
 			 Files.lines(p).filter(s -> ! s.startsWith("#"))
-				.map(s -> TabTokenizer.tokenize(s))
+				.map(TabTokenizer::tokenize)
 				.forEach(arr -> {
 					/*
 					 * only deal with snps
@@ -115,7 +99,7 @@ public class AmalgamatorGS {
 		
 		int gsOnlyCount = 0;
 		int gsAndAllOnlyCount = 0;
-		try (PrintStream ps = new PrintStream(new FileOutputStream(new File(outputFileName)))) {
+		try (PrintStream ps = new PrintStream(new FileOutputStream(outputFileName))) {
 			/*
 			 * put input files along with their positions into the file header
 			 */
@@ -128,35 +112,37 @@ public class AmalgamatorGS {
 			}
 			
 			
-			String header = "#chr\tposition\tref\talt";
+			StringBuilder header = new StringBuilder("#chr\tposition\tref\talt");
 			for (int i = 1 ; i <= 4 + vcfFiles.length ; i++) {
-				header += "\tGT:" + i;
+				header.append("\tGT:").append(i);
 			}
 			for (int i = 1 ; i <= 4 + vcfFiles.length ; i++) {
-				header += "\tAC:" + i;
+				header.append("\tAC:").append(i);
 			}
 			if (null != allFiles) {
 				for (int i = 1 ; i <= allFiles.length ; i++) {
-					header += "\tALL-AC:" + i;
+					header.append("\tALL-AC:").append(i);
 				}
 				for (int i = 1 ; i <= allFiles.length ; i++) {
-					header += "\tALL-FT:" + i;
+					header.append("\tALL-FT:").append(i);
 				}
 			}
-			header += "\tScore";
+			header.append("\tScore");
 			
 			ps.println(header);
 			for (ChrPositionRefAlt cp : recs) {
 				Pair<String[], String[]> p = positions.get(cp);
 				Pair<String[], String[]> allP = missingPositionsFromAll.get(cp);
 				String[] missingACs = null != allP ? allP.getRight() : null;
-				if (null != allFiles && null == missingACs || missingACs.length == 0) {
-					missingACs = new String[allFiles.length];
+				if (null != allFiles && null == missingACs || Objects.requireNonNull(missingACs).length == 0) {
+                    assert allFiles != null;
+                    missingACs = new String[allFiles.length];
 					Arrays.fill(missingACs, ".");
 				}
 				String[] missingFTs = null != allP ? allP.getLeft() : null;
-				if (null != allFiles && null == missingFTs || missingFTs.length == 0) {
-					missingFTs = new String[allFiles.length];
+				if (null != allFiles && null == missingFTs || Objects.requireNonNull(missingFTs).length == 0) {
+                    assert allFiles != null;
+                    missingFTs = new String[allFiles.length];
 					Arrays.fill(missingFTs, ".");
 				}
 				int score = getScore(p.getLeft());
@@ -169,17 +155,17 @@ public class AmalgamatorGS {
 				}
 				String scoreS = score + "/" + (4 + vcfFiles.length);
 				scoreDist.computeIfAbsent(scoreS, v -> new AtomicInteger()).incrementAndGet();
-				ps.println(cp.getChromosome() + Constants.TAB + cp.getStartPosition() + Constants.TAB +cp.getRef() + Constants.TAB
-						+ cp.getAlt() + Constants.TAB + Arrays.stream(p.getLeft()).map(s -> null == s ? "./." : s).collect(Collectors.joining(Constants.TAB_STRING))
-						+ Constants.TAB +  Arrays.stream(p.getRight()).map(s -> null == s ? "." : s).collect(Collectors.joining(Constants.TAB_STRING))
-						+ Constants.TAB +  Arrays.stream(missingACs).map(s -> null == s ? "." : s).collect(Collectors.joining(Constants.TAB_STRING))
-						+ Constants.TAB +  Arrays.stream(missingFTs).map(s -> null == s ? "." : s).collect(Collectors.joining(Constants.TAB_STRING))
-						+ Constants.TAB + scoreS);
+				ps.println(cp.getChromosome() + TAB + cp.getStartPosition() + TAB +cp.getRef() + TAB
+						+ cp.getAlt() + TAB + Arrays.stream(p.getLeft()).map(s -> null == s ? "./." : s).collect(Collectors.joining(TAB_STRING))
+						+ TAB +  Arrays.stream(p.getRight()).map(s -> null == s ? MISSING_DATA_STRING : s).collect(Collectors.joining(TAB_STRING))
+						+ TAB +  Arrays.stream(missingACs).map(s -> null == s ? MISSING_DATA_STRING : s).collect(Collectors.joining(TAB_STRING))
+						+ TAB +  Arrays.stream(missingFTs).map(s -> null == s ? MISSING_DATA_STRING : s).collect(Collectors.joining(TAB_STRING))
+						+ TAB + scoreS);
 			}
 		}
 		logger.info("writing output- DONE");
 		
-		scoreDist.entrySet().stream().sorted((e1,e2) -> Integer.compare(e1.getValue().get() , e2.getValue().get()))
+		scoreDist.entrySet().stream().sorted(Comparator.comparingInt(e -> e.getValue().get()))
 		.forEach(e -> logger.info("score: " + e.getKey() + ", count: " + e.getValue().get()));
 		logger.info("Number of records that are in the Gold Standard only: " + gsOnlyCount + ", of which " + gsAndAllOnlyCount + " were in the all files");
 	}
@@ -187,8 +173,8 @@ public class AmalgamatorGS {
 	static int getScore(String [] gts) {
 		if (null != gts && gts.length > 0) {
 			Map<String, List<String>> map = Arrays.stream(gts).filter(s ->  ! StringUtils.isNullOrEmptyOrMissingData(s) && ! "./.".equals(s)).collect(Collectors.groupingBy(s -> s));
-			if (null != map && ! map.isEmpty()) {
-				Optional<Map.Entry<String, List<String>>> maxValue = map.entrySet().stream().max((e1, e2) -> Integer.compare(e1.getValue().size() , e2.getValue().size()));
+			if ( ! map.isEmpty()) {
+				Optional<Map.Entry<String, List<String>>> maxValue = map.entrySet().stream().max(Comparator.comparingInt(e -> e.getValue().size()));
 				
 				AtomicInteger max = new AtomicInteger();
 				maxValue.ifPresent(c -> max.set(c.getValue().size()));
@@ -208,11 +194,11 @@ public class AmalgamatorGS {
 			String s = gts[i];
 			if (i < numberOfGSEntries) {
 				// non-empty
-				if (StringUtils.isNullOrEmptyOrMissingData(s) || "./.".equals(s)) {
+				if (StringUtils.isNullOrEmptyOrMissingData(s) || MISSING_GT.equals(s)) {
 					gsOnly = false;
 				}
 			} else {
-				if ( ! StringUtils.isNullOrEmptyOrMissingData(s) && ! "./.".equals(s)) {
+				if ( ! StringUtils.isNullOrEmptyOrMissingData(s) && ! MISSING_GT.equals(s)) {
 					gsOnly = false;
 				}
 			}
@@ -224,8 +210,7 @@ public class AmalgamatorGS {
 		int i = 0;
 		int fileCount = vcfFiles.length;
 		int index = 0;
-		int somaticCount = 0;
-		for (String s : vcfFiles) {
+        for (String s : vcfFiles) {
 			
 			try (VcfFileReader reader = new VcfFileReader(new File(s))) {
 				for (VcfRecord rec : reader) {
@@ -256,9 +241,8 @@ public class AmalgamatorGS {
 									 * split cs into constituent snps
 									 */
 									for (int z = 0 ; z < ref.length() ; z++) {
-										
-										final int position = z;
-										ChrPositionRefAlt cpn  = new ChrPositionRefAlt(rec.getChrPosition().getChromosome(), rec.getChrPosition().getStartPosition() + z, rec.getChrPosition().getStartPosition() + z, ref.charAt(position)+"", alt.charAt(position) + "");
+
+                                        ChrPositionRefAlt cpn  = new ChrPositionRefAlt(rec.getChrPosition().getChromosome(), rec.getChrPosition().getStartPosition() + z, rec.getChrPosition().getStartPosition() + z, ref.charAt(z) + "", alt.charAt(z) + "");
 										Pair<String[], String[]> pair = positions.computeIfAbsent(cpn, v -> Pair.of(new String[4 + fileCount], new String[4 + fileCount]));
 										
 										/*
@@ -277,7 +261,7 @@ public class AmalgamatorGS {
 					}
 				}
 			}
-			logger.info("input: " + (index+1) + " has " + i + " entries");
+			logger.info("input: " + (index + 1) + " has " + i + " entries");
 			logger.info("positions size: " + positions.size());
 			i = 0;
 			index++;
@@ -286,27 +270,21 @@ public class AmalgamatorGS {
 	}
 	
 	static List<ChrPosition> getMissingPositions(Map<ChrPositionRefAlt, Pair<String[],String[]>> positions, int fileIndex) {
-//		List<ChrPosition> missingPositions = new ArrayList<>();
-		List<ChrPosition> missingPositions = positions.entrySet().stream()
+		return positions.entrySet().stream()
 				.filter(e -> StringUtils.isNullOrEmptyOrMissingData(e.getValue().getLeft()[fileIndex]) || "./.".equals(e.getValue().getLeft()[fileIndex]))
 				.map(e -> new ChrPointPosition(e.getKey().getChromosome(), e.getKey().getStartPosition())).collect(Collectors.toList());
-		
-		if (null != missingPositions) {
-			return missingPositions;
-		}
-		return Collections.emptyList();
-	}
+
+    }
 	
 	private void loadAlls() throws IOException {
 		int i = 0;
 		int fileCount = allFiles.length;
 		int index = 0;
-		int somaticCount = 0;
-		int foundPosition = 0;
+        int foundPosition = 0;
 		for (String s : allFiles) {
 			
 			Set<ChrPosition> missingPositions = new HashSet<>(getMissingPositions(positions, 4 + index));
-			logger.info("will try and retireve " + missingPositions.size() + " missing positions from file " + s);
+			logger.info("will try and retrieve " + missingPositions.size() + " missing positions from file " + s);
 			
 			try (VcfFileReader reader = new VcfFileReader(new File(s))) {
 				for (VcfRecord rec : reader) {
@@ -327,9 +305,8 @@ public class AmalgamatorGS {
 								 * split cs into constituent snps
 								 */
 								for (int z = 0 ; z < ref.length() ; z++) {
-									
-									final int position = z;
-									ChrPositionRefAlt cpn  = new ChrPositionRefAlt(rec.getChrPosition().getChromosome(), rec.getChrPosition().getStartPosition() + z, rec.getChrPosition().getStartPosition() + z, ref.charAt(position)+"", alt.charAt(position) + "");
+
+                                    ChrPositionRefAlt cpn  = new ChrPositionRefAlt(rec.getChrPosition().getChromosome(), rec.getChrPosition().getStartPosition() + z, rec.getChrPosition().getStartPosition() + z, ref.charAt(z) + "", alt.charAt(z) + "");
 									Pair<String[], String[]> pair = missingPositionsFromAll.computeIfAbsent(cpn, v -> Pair.of(new String[fileCount], new String[fileCount]));
 									
 									/*
@@ -348,7 +325,7 @@ public class AmalgamatorGS {
 					
 				}
 			}
-			logger.info("input: " + (index+1) + " has " + i + " entries");
+			logger.info("input: " + (index + 1) + " has " + i + " entries");
 			logger.info("Found " + foundPosition + " positions out of " + missingPositions.size() + " missing positions");
 			i = 0;
 			foundPosition = 0;
@@ -361,9 +338,8 @@ public class AmalgamatorGS {
 		/*
 		 * get position of FT from first entry, and then get second (germline and qsnp)
 		 */
-		String [] formatHeaders = TabTokenizer.tokenize(ffList.get(0), Constants.COLON);
-		int ftPosition = getPositionFromHeader(formatHeaders, VcfHeaderUtils.FORMAT_FILTER);
-		int adPosition = getPositionFromHeader(formatHeaders, VcfHeaderUtils.FORMAT_ALLELIC_DEPTHS);
+		String [] formatHeaders = TabTokenizer.tokenize(ffList.getFirst(), Constants.COLON);
+        int adPosition = getPositionFromHeader(formatHeaders, VcfHeaderUtils.FORMAT_ALLELIC_DEPTHS);
 		int oabsPosition = getPositionFromHeader(formatHeaders, VcfHeaderUtils.FORMAT_ALLELE_COUNT);
 		int adAllPosition = -1;
 		if (oabsPosition == -1) {
@@ -380,7 +356,7 @@ public class AmalgamatorGS {
 		String somGerPrefix = recordSomatic ? "S" : "G";
 		
 		if (adPosition > -1) {
-			pair.getRight()[index] = (showPrefix ? somGerPrefix : "") +  getStringFromArray(params, adPosition);
+			pair.getRight()[index] = (showPrefix ? somGerPrefix : "") + getStringFromArray(params, adPosition);
 		} else {
 		
 			/*
@@ -389,7 +365,7 @@ public class AmalgamatorGS {
 			if (oabsPosition > -1) {
 				String oabs = getStringFromArray(params, oabsPosition);
 				Map<String, Integer> alleleDist = VcfUtils.getAllelicCoverageFromAC(oabs);
-				pair.getRight()[index] = (showPrefix ? somGerPrefix : "") +  getAllelicDistFromMap(alleleDist, ref, alt);
+				pair.getRight()[index] = (showPrefix ? somGerPrefix : "") + getAllelicDistFromMap(alleleDist, ref, alt);
 			} else if (adAllPosition > -1) {
 				pair.getRight()[index] = "ADALL:" + getStringFromArray(params, adAllPosition);
 			}
@@ -401,8 +377,7 @@ public class AmalgamatorGS {
 		Map<String, String[]> ffMap = VcfUtils.getFormatFieldsAsMap(v.getFormatFields());
 		String [] filterArr = ffMap.get(VcfHeaderUtils.FORMAT_FILTER);
 		
-		String ft =  null == filterArr ? Constants.MISSING_DATA_STRING : Arrays.asList(filterArr).stream().distinct().collect(Collectors.joining(Constants.SEMI_COLON_STRING));
-//		String ft =  null == filterArr ? Constants.MISSING_DATA_STRING : Arrays.asList(filterArr).stream().distinct().filter(f -> ! f.contains(VcfHeaderUtils.FILTER_PASS)).collect(Collectors.joining(Constants.SEMI_COLON_STRING));
+		String ft =  null == filterArr ? MISSING_DATA_STRING : Arrays.stream(filterArr).distinct().collect(Collectors.joining(Constants.SEMI_COLON_STRING));
 		if (ft.contains(Constants.SEMI_COLON_STRING)) {
 			ft = Arrays.stream(TabTokenizer.tokenize(ft,Constants.SEMI_COLON)).distinct().filter(f -> ! f.contains(VcfHeaderUtils.FILTER_PASS)).collect(Collectors.joining(Constants.SEMI_COLON_STRING));
 		}
@@ -419,7 +394,7 @@ public class AmalgamatorGS {
 		/*
 		 * get position of GT from first entry, and then get second (germline and qsnp)
 		 */
-		String [] formatHeaders = TabTokenizer.tokenize(ffList.get(0), Constants.COLON);
+		String [] formatHeaders = TabTokenizer.tokenize(ffList.getFirst(), Constants.COLON);
 		int gtPosition = getPositionFromHeader(formatHeaders, VcfHeaderUtils.FORMAT_GENOTYPE);
 		int adPosition = getPositionFromHeader(formatHeaders, VcfHeaderUtils.FORMAT_ALLELIC_DEPTHS);
 		int oabsPosition = getPositionFromHeader(formatHeaders, VcfHeaderUtils.FORMAT_ALLELE_COUNT);
@@ -459,9 +434,9 @@ public class AmalgamatorGS {
 			throw new IllegalArgumentException("Array is null, or position is beyond end of array");
 		}
 		String gts = array[position];
-		int ampesandIndex = gts.indexOf(Constants.VCF_MERGE_DELIM);
-		if (ampesandIndex > -1) {
-			gts = gts.substring(0, ampesandIndex);
+		int ampersandIndex = gts.indexOf(Constants.VCF_MERGE_DELIM);
+		if (ampersandIndex > -1) {
+			gts = gts.substring(0, ampersandIndex);
 		}
 		return gts;
 	}
@@ -481,14 +456,14 @@ public class AmalgamatorGS {
 	 * Returns a string representing the coverage counts of ref, alt and rest based on entries in the supplied map
 	 */
 	static String getAllelicDistFromMap(Map<String, Integer> map, String ref, String alt) {
-		int refCount = map.computeIfAbsent(ref, v -> Integer.valueOf(0)).intValue();
-		int altCount = map.computeIfAbsent(alt, v -> Integer.valueOf(0)).intValue();
-		int restCount = map.entrySet().stream().filter(kv -> ! kv.getKey().equals(ref) && ! kv.getKey().equals(alt)).mapToInt(kv -> kv.getValue().intValue()).sum();
+		int refCount = map.computeIfAbsent(ref, v -> 0);
+		int altCount = map.computeIfAbsent(alt, v -> 0);
+		int restCount = map.entrySet().stream().filter(kv -> ! kv.getKey().equals(ref) && ! kv.getKey().equals(alt)).mapToInt(Map.Entry::getValue).sum();
 		
 		return refCount + Constants.COMMA_STRING + altCount + Constants.COMMA_STRING + restCount; 
 	}
 	
-	public static final boolean isRecordHighConfOrPass(VcfRecord r) {
+	public static boolean isRecordHighConfOrPass(VcfRecord r) {
 		if (r.getInfo().contains("CONF=HIGH_1,HIGH_2")) {
 			return true;
 		}
@@ -504,7 +479,7 @@ public class AmalgamatorGS {
 		return numberOfPasses == l.size() - 1;
 	}
 	
-	public static final boolean isRecordSomatic(VcfRecord r) {
+	public static boolean isRecordSomatic(VcfRecord r) {
 		if (VcfUtils.isRecordSomatic(r)) {
 			return true;
 		}
@@ -544,8 +519,8 @@ public class AmalgamatorGS {
 			System.err.println(Messages.AMALGAMATOR_USAGE);
 		} else {
 			// configure logging
-			logFile = options.getLog();
-			version = AmalgamatorGS.class.getPackage().getImplementationVersion();
+            String logFile = options.getLog();
+            String version = AmalgamatorGS.class.getPackage().getImplementationVersion();
 			if (null == version) {	version = "local"; }
 			logger = QLoggerFactory.getLogger(AmalgamatorGS.class, logFile, options.getLogLevel());
 			exec = logger.logInitialExecutionStats("q3vcftools Amalgamator", version, args);
@@ -556,15 +531,15 @@ public class AmalgamatorGS {
 				throw new Exception("INSUFFICIENT_ARGUMENTS");
 			} else {
 				// loop through supplied files - check they can be read
-				for (int i = 0 ; i < vcfFiles.length ; i++ ) {
-					if ( ! FileUtils.canFileBeRead(vcfFiles[i])) {
-						throw new Exception("INPUT_FILE_ERROR: "  +  vcfFiles[i]);
-					}
-				}
+                for (String vcfFile : vcfFiles) {
+                    if ( ! FileUtils.canFileBeRead(vcfFile)) {
+                        throw new Exception("INPUT_FILE_ERROR: " + vcfFile);
+                    }
+                }
 			}
 			allFiles = options.getAlls();
 			
-			// set outputfile - if supplied, check that it can be written to
+			// set output file - if supplied, check that it can be written to
 			if (null != options.getOutputFileName()) {
 				String optionsOutputFile = options.getOutputFileName();
 				if (FileUtils.canFileBeWrittenTo(optionsOutputFile)) {
