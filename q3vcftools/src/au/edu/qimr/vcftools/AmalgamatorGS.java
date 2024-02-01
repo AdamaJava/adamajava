@@ -153,10 +153,10 @@ public class AmalgamatorGS {
 						gsAndAllOnlyCount++;
 					}
 				}
-				String scoreS = score + "/" + (4 + vcfFiles.length);
+				String scoreS = score + SLASH_STRING + (4 + vcfFiles.length);
 				scoreDist.computeIfAbsent(scoreS, v -> new AtomicInteger()).incrementAndGet();
 				ps.println(cp.getChromosome() + TAB + cp.getStartPosition() + TAB +cp.getRef() + TAB
-						+ cp.getAlt() + TAB + Arrays.stream(p.getLeft()).map(s -> null == s ? "./." : s).collect(Collectors.joining(TAB_STRING))
+						+ cp.getAlt() + TAB + Arrays.stream(p.getLeft()).map(s -> null == s ? MISSING_GT : s).collect(Collectors.joining(TAB_STRING))
 						+ TAB +  Arrays.stream(p.getRight()).map(s -> null == s ? MISSING_DATA_STRING : s).collect(Collectors.joining(TAB_STRING))
 						+ TAB +  Arrays.stream(missingACs).map(s -> null == s ? MISSING_DATA_STRING : s).collect(Collectors.joining(TAB_STRING))
 						+ TAB +  Arrays.stream(missingFTs).map(s -> null == s ? MISSING_DATA_STRING : s).collect(Collectors.joining(TAB_STRING))
