@@ -69,7 +69,7 @@ public class Vcf2mafRunTest {
     }
     
     @Test
-    public void fileNameWithNoSampleidTest() throws IOException{
+    public void fileNameWithNoSampleIdTest() throws IOException{
         String[] str = {"##fileformat=VCFv4.0",            
                 VcfHeaderUtils.STANDARD_DONOR_ID +"=MELA_0264",
                 VcfHeaderUtils.STANDARD_TEST_BAMID +"=TEST_uuid",                
@@ -239,9 +239,9 @@ public class Vcf2mafRunTest {
 	
 	/**
 	 * only used by filenameTest() and bamIdTest()
-	 * @param isDir set output a direcotry or file
+	 * @param isDir set output a directory or file
 	 * @param str is vcf txt 
-	 * @return output file or direcotory from main
+	 * @return output file or directory from main
 	 */
 	private File runMainTest(boolean isDir, String[] str) {
 		

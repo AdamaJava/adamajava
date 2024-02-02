@@ -18,7 +18,7 @@ dependencies {
     implementation project(':qbamfilter')
     implementation project(':qpileup')
     implementation project(':qpicard')
-    implementation 'net.sf.jopt-simple:jopt-simple:4.6'
+    implementation 'net.sf.jopt-simple:jopt-simple:5.0.4'
     testImplementation  'org.easymock:easymock:5.2.0'
 }
 

@@ -47,10 +47,12 @@ public class SnpEffMode extends AbstractMode{
 	    	logger.tool("exit snpEFF: " + ok);
 		
 		//reheader
-        if (ok) { 
-	        	header = new VcfFileReader(tmpFile).getVcfHeader();
-	        	reheader(options.getCommandLine(),options.getInputFileName())	;	
-	        	writeVCF(new File( options.getOutputFileName()) );
+        if (ok) {
+			try (VcfFileReader reader = new VcfFileReader(tmpFile) ){
+				header = reader.getVcfHeader();
+			}
+			reheader(options.getCommandLine(),options.getInputFileName())	;
+			writeVCF(new File( options.getOutputFileName()) );
 			logger.tool("reheader snpEFF output to " +   options.getOutputFileName());
 		} else {
 			logger.info("run SnpEff failed!");

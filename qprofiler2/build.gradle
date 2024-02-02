@@ -11,6 +11,6 @@ dependencies {
     implementation project(':qpicard')
     implementation project(':qio')
 
-    implementation 'net.sf.jopt-simple:jopt-simple:4.6'
+    implementation 'net.sf.jopt-simple:jopt-simple:5.0.4'
 }
 

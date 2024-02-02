@@ -86,7 +86,7 @@ public class GoldStandardGenerator {
 		 */
 		Map<String, AtomicInteger> mutationCounts = new HashMap<>();
 		recs.forEach(cpra -> {
-			String mutation = cpra.getName() + "->" + cpra.getAlt();
+			String mutation = cpra.getRef() + "->" + cpra.getAlt();
 			mutationCounts.computeIfAbsent(mutation, f -> new AtomicInteger()).incrementAndGet();
 		});
 		mutationCounts.entrySet().stream().sorted(Comparator.comparingInt(e -> e.getValue().get())).forEach(e -> logger.info("mutation: " + e.getKey() + ", counts: " + e.getValue().get()));
@@ -118,7 +118,7 @@ public class GoldStandardGenerator {
 					int tabIndex = cp.getAlt().indexOf(Constants.TAB);
 					String alt = cp.getAlt().substring(0, tabIndex);
 //					String gt = cp.getAlt().substring(tabIndex + 1);
-					ps.println(cp.getChromosome() + Constants.TAB + cp.getStartPosition() + "\t.\t" + cp.getName() + Constants.TAB + alt + "\t.\t.\t.");
+					ps.println(cp.getChromosome() + Constants.TAB + cp.getStartPosition() + "\t.\t" + cp.getRef() + Constants.TAB + alt + "\t.\t.\t.");
 				} else {
 					ps.println(cp.toTabSeperatedString());
 				}

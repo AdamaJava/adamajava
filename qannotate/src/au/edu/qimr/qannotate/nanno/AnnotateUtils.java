@@ -116,7 +116,7 @@ public class AnnotateUtils {
 		}
 		
 		Set<String> sortedHeaderSet = Arrays.stream(sortedHeader.split(",")).collect(Collectors.toSet());
-		Set<String> fieldsFromAnnotationSourcesSet = Arrays.stream(Arrays.stream(fieldsFromAnnotationSources).collect(Collectors.joining(",")).split(",")).collect(Collectors.toSet());
+		Set<String> fieldsFromAnnotationSourcesSet = Arrays.stream(String.join(",", fieldsFromAnnotationSources).split(",")).collect(Collectors.toSet());
 		
 		for (String s : sortedHeaderSet) {
 			if ( ! fieldsFromAnnotationSourcesSet.contains(s)) {
@@ -149,46 +149,46 @@ public class AnnotateUtils {
 	 * @param hgvsP
 	 * @return
 	 */
-	public static String getSearchTerm(Optional<String> hgvsC, Optional<String> hgvsP) {
+	public static String getSearchTerm(String hgvsC, String hgvsP) {
 		String st = "";
 		
 		/*
 		 * check the optionals - if they are both not present, no need to proceed
 		 */
-		if (( ! hgvsC.isPresent() && ! hgvsP.isPresent())) {
+		if (( hgvsC == null && hgvsP == null)) {
 			return st;
 		}
 		
-		if ( hgvsC.isPresent() && hgvsC.get().length() > 0) {
+		if ( hgvsC != null && ! hgvsC.isEmpty()) {
 			
 			/*
 			 * need to check that the string contains the dot ('.') and the gt sign ('>')
 			 */
-			int dotIndex = hgvsC.get().indexOf('.');
-			int gtIndex = hgvsC.get().indexOf('>');
+			int dotIndex = hgvsC.indexOf('.');
+			int gtIndex = hgvsC.indexOf('>');
 			if (dotIndex > -1 && gtIndex > -1) {
 			
 				/*
 				 * split value into required parts
 				 */
-				String firstPart = hgvsC.get().substring(dotIndex + 1, gtIndex);
-				String secondPart = hgvsC.get().substring(gtIndex + 1);
+				String firstPart = hgvsC.substring(dotIndex + 1, gtIndex);
+				String secondPart = hgvsC.substring(gtIndex + 1);
 				
 				st += Annotate.SEARCH_TERM_VARIETIES.stream().map(s -> "\"" + firstPart + s + secondPart + "\"").collect(Collectors.joining("|"));
 			}
 		}
 		
-		if ( hgvsP.isPresent() && hgvsP.get().length() > 0) {
-			if (st.length() > 0) {
+		if ( hgvsP != null && ! hgvsP.isEmpty()) {
+			if ( ! st.isEmpty()) {
 				/*
 				 * we must have hgvs.c data - so add bar
 				 */
 				st += "|";
 			}
-			st += "\"" + hgvsP.get().substring(hgvsP.get().indexOf('.') + 1) + "\"";
+			st += "\"" + hgvsP.substring(hgvsP.indexOf('.') + 1) + "\"";
 		}
 		
-		if (st.length() > 0) {
+		if ( ! st.isEmpty()) {
 			return "\"GENE\"+(" + st + ")";
 		}
 		return st;
@@ -269,7 +269,7 @@ public class AnnotateUtils {
 			String fieldOrder = ais.getOutputFieldOrder();
 			String [] fieldOrderArray = StringUtils.isNullOrEmpty(fieldOrder) ? new String[]{} : fieldOrder.split(",");
 
-			String header = "#chr\tposition\tref\talt\tGATK_AD\t" + Arrays.stream(fieldOrderArray).collect(Collectors.joining("\t"));
+			String header = "#chr\tposition\tref\talt\toriginal_alt\tGATK_GT\tGATK_AD\t" + Arrays.stream(fieldOrderArray).collect(Collectors.joining("\t"));
 			if (emptyHeadersArray.length > 0) {
 				header += "\t" +  Arrays.stream(emptyHeadersArray).collect(Collectors.joining("\t"));
 			}

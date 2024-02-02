@@ -21,7 +21,7 @@ dependencies {
     implementation project(':qio')
     implementation project(':qbamfilter')
 	
-    implementation 'net.sf.jopt-simple:jopt-simple:4.6'
+    implementation 'net.sf.jopt-simple:jopt-simple:5.0.4'
     implementation group: 'org.ini4j', name: 'ini4j', version: '0.5.2'
     implementation name: 'jhdf'
     implementation name: 'jhdf5'
