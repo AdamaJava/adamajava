@@ -102,7 +102,7 @@ public class AWSSigner {
         Map<String, List<String>> signedMVH = addSignatureMVH(service, region, target, method, contentSha256, mvh);
         Map<String, String> signedSimpleHeaders = new HashMap<>();
         for (Map.Entry<String, List<String>> h : signedMVH.entrySet()) {
-            signedSimpleHeaders.put(h.getKey(), h.getValue().get(0));
+            signedSimpleHeaders.put(h.getKey(), h.getValue().getFirst());
         }
         return signedSimpleHeaders;
     }

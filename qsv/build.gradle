@@ -15,6 +15,7 @@ dependencies {
     implementation 'net.sf.jopt-simple:jopt-simple:5.0.4'	
 		
     testImplementation  'org.easymock:easymock:5.2.0'
-    testImplementation  group: 'commons-io', name: 'commons-io', version: '2.6'
+    // https://mvnrepository.com/artifact/commons-io/commons-io
+    implementation 'commons-io:commons-io:2.15.1'
 }
 

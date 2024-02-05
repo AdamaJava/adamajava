@@ -56,7 +56,7 @@ dependencies {
 
     implementation 'net.sf.jopt-simple:jopt-simple:5.0.4'
     implementation name: 'snpEff', version: '4.0e'
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.6.7'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.16.1'
 }
 //have to specify test classpath for both snpEff and qannotate 
 sourceSets.test.runtimeClasspath = configurations.junit + sourceSets.test.runtimeClasspath

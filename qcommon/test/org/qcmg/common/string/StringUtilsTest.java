@@ -9,7 +9,7 @@ import org.qcmg.common.model.ChrRangePosition;
 
 
 public class StringUtilsTest {
-	
+
 	@Test
 	public void testIsNumeric() {
 		assertEquals(false, StringUtils.isNumeric(null));
@@ -456,7 +456,7 @@ public class StringUtilsTest {
 "@SQ     SN:chrMT        LN:16569"; 
 		
 		
-		assertEquals(true, StringUtils.passesOccurenceCountCheck(dodgyBamHeader, "@SQ", 100000));
+		assertEquals(true, StringUtils.passesOccurrenceCountCheck(dodgyBamHeader, "@SQ", 100000));
 	}
 	
 }
