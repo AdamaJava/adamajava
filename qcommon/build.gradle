@@ -3,18 +3,16 @@ apply plugin: 'java-library'
 
 dependencies {
 		
-    api 'org.apache.commons:commons-lang3:3.4'  
-    api 'net.sf.trove4j:trove4j:3.0.3'
+    api 'org.apache.commons:commons-lang3:3.14.0'
+    api 'net.sf.trove4j:core:3.1.0'
 		
     api 'com.amazonaws:aws-java-sdk-s3:1.11.241'
     api 'uk.co.lucasweb:aws-v4-signer-java:1.3'	
-    api 'org.slf4j:slf4j-api:1.7.25'
-    api 'org.slf4j:slf4j-simple:1.7.25'
-    api 'com.typesafe:config:1.3.1'
+    api 'org.slf4j:slf4j-api:2.0.11'
+    api 'org.slf4j:slf4j-simple:2.0.11'
+    api 'com.typesafe:config:1.4.3'
     
-    //jaxb is removed from JDK9+
-    //we need below jar in case to run on JDK9 and above
-    //implementation 'javax.xml.bind:jaxb-api:2.2.12' 
     api 'jakarta.xml.bind:jakarta.xml.bind-api:3.0.1'
+    api 'org.eclipse.persistence:org.eclipse.persistence.moxy:3.0.3'
 }
 

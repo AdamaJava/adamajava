@@ -8,6 +8,7 @@ dependencies {
 
     implementation project(':qcommon')
     implementation project(':qpicard')
-    implementation 'commons-cli:commons-cli:1.2'
+    // https://mvnrepository.com/artifact/commons-cli/commons-cli
+    implementation 'commons-cli:commons-cli:1.6.0'
 }
 

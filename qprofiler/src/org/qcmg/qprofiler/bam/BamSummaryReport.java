@@ -270,7 +270,7 @@ public class BamSummaryReport extends SummaryReport {
 		// xml transformer can't handle large entries in the CDATA section so leave out bam header if its large (I'm looking at you here Platypus)
 		if ( ! StringUtils.isNullOrEmpty(bamHeader)) {
 			int cutoff = 100000;
-			if (StringUtils.passesOccurenceCountCheck(bamHeader, "@SQ", cutoff)) {
+			if (StringUtils.passesOccurrenceCountCheck(bamHeader, "@SQ", cutoff)) {
 				Element headerElement = createSubElement(bamReportElement, "HEADER");
 				SummaryReportUtils.bamHeaderToXml(headerElement, bamHeader);
 			} else {

@@ -9,6 +9,17 @@ import org.qcmg.common.model.ChrRangePosition;
 
 
 public class StringUtilsTest {
+
+	@Test
+	public void printHexBinary() {
+		byte[] bytes = new byte[] {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
+		String hex = StringUtils.printHexBinary(bytes);
+		assertEquals("000102030405060708090A0B0C0D0E0F".toLowerCase(), hex);
+
+		bytes = new byte[] {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
+		hex = StringUtils.printHexBinary(bytes);
+		assertEquals("000102030405060708090A0B0C0D0E0F10".toLowerCase(), hex);
+	}
 	
 	@Test
 	public void testIsNumeric() {
@@ -456,7 +467,7 @@ public class StringUtilsTest {
 "@SQ     SN:chrMT        LN:16569"; 
 		
 		
-		assertEquals(true, StringUtils.passesOccurenceCountCheck(dodgyBamHeader, "@SQ", 100000));
+		assertEquals(true, StringUtils.passesOccurrenceCountCheck(dodgyBamHeader, "@SQ", 100000));
 	}
 	
 }

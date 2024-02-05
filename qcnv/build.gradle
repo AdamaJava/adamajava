@@ -10,7 +10,8 @@ dependencies {
     implementation project(':qpicard')
     implementation project(':qbamfilter')
 
-    implementation 'commons-cli:commons-cli:1.2'
+    // https://mvnrepository.com/artifact/commons-cli/commons-cli
+    implementation 'commons-cli:commons-cli:1.6.0'
     implementation 'net.sf.jopt-simple:jopt-simple:5.0.4'
 }
 

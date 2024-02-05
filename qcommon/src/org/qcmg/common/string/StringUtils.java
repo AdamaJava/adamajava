@@ -6,11 +6,8 @@
  */
 package org.qcmg.common.string;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.BitSet;
-import java.util.List;
-import java.util.Set;
+import java.math.BigInteger;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.qcmg.common.model.ChrRangePosition;
@@ -35,10 +32,10 @@ public class StringUtils {
 		}
 		return String.valueOf(charArray);
 	}
-	
+
 	public static void updateStringBuilder(StringBuilder sb, CharSequence toAdd, char delim) {
 		if (null != sb) {
-			if (sb.length() > 0) {
+			if (!sb.isEmpty()) {
 				sb.append(delim);
 			}
 			sb.append(toAdd);
@@ -47,7 +44,7 @@ public class StringUtils {
 	
 	public static String parseArray2String(Object[] values){
 		if (null != values) {
-			return Arrays.stream(values).map(s -> s.toString()).collect(Collectors.joining(Constants.COMMA_STRING));
+			return Arrays.stream(values).map(Object::toString).collect(Collectors.joining(Constants.COMMA_STRING));
 		} else {
 			return null;
 		}
@@ -56,15 +53,15 @@ public class StringUtils {
 	
 	public static int[][] getStartPositionsAndLengthOfSubStrings(String reference, String sequence) {
 		List<int[]> results = new ArrayList<>();
-		int previousRefStartPosision = 0;
+		int previousRefStartPosition = 0;
 		for (int i = 0, maxLength = sequence.length() - 13; i < maxLength ; i++) {
 			String nextSeqTile = sequence.substring(i, i + 13);
-			int refNextStartPosition = reference.indexOf(nextSeqTile, previousRefStartPosision);
+			int refNextStartPosition = reference.indexOf(nextSeqTile, previousRefStartPosition);
 			if (refNextStartPosition > -1) {
 				int nextBlockLength = getLengthOfSubStringMatch(reference.substring(refNextStartPosition), sequence.substring(i), true);
 				results.add(new int[] {refNextStartPosition, i, nextBlockLength});
 				i += (nextBlockLength - 1);
-				previousRefStartPosision = refNextStartPosition + nextBlockLength;
+				previousRefStartPosition = refNextStartPosition + nextBlockLength;
 			}
 		}
 		
@@ -187,20 +184,7 @@ public class StringUtils {
 	public static boolean doesStringContainSubString(String outerString, String subString) {
 		return doesStringContainSubString(outerString, subString, true);
 	}
-	
-	public static String getStringFromArray(String [] array, String string) {
-		for (String arr : array) {
-			if (arr.startsWith(string)) return arr;
-		}
-		return null;
-	}
-	public static String getStringFromArray(String [] array, String string, boolean ignoreCase) {
-		for (String arr : array) {
-			if (arr.startsWith(string)) return arr;
-		}
-		return null;
-	}
-	
+
 	/**
 	 * The purpose of this method is to provide a fairly naive measure of sequence complexity
 	 * 
@@ -257,12 +241,12 @@ public class StringUtils {
 	 * @param subString String inner string containing the search text
 	 * @param failIfNull boolean indicating if an IllegalArgumentException should be thrown if either of the supplied strings are null
 	 * @return true if subString is contained within outerString, false otherwise
-	 * @throws IllegalArgumentException if either of the supplied strings are null, and if fialIfNull is set to true
+	 * @throws IllegalArgumentException if either of the supplied strings are null, and if failIfNull is set to true
 	 */
 	public static int indexOfSubStringInString(String outerString, String subString, boolean failIfNull) {
 		if (isNullOrEmpty(outerString) || isNullOrEmpty(subString)) {
 			if (failIfNull) {
-				throw new IllegalArgumentException("Null or empty arguments suppleid to doesStringContainSubString");
+				throw new IllegalArgumentException("Null or empty arguments supplied to doesStringContainSubString");
 			} else {
 				return -1;
 			}
@@ -315,19 +299,7 @@ public class StringUtils {
 		 		
 		return flag;
 	}
-	
-	public static String appendToString(String prefix, String s, boolean dontAddIfAlreadyStartsWithPrefix) {
-		
-		if ( ! s.startsWith(prefix)) {
-			return prefix + s;
-		} else {
-			if ( ! dontAddIfAlreadyStartsWithPrefix) {
-				return prefix + s;
-			}
-		}
-		return s;
-	}
-	
+
 	/**
 	 * Returns a ChrPosition object based on a string of the following format: chr1:123456-123456
 	 * <p>
@@ -354,7 +326,7 @@ public class StringUtils {
 		int firstPosition =  Integer.parseInt(chrPosString.substring(colonIndex + 1, minusIndex));
 		int secondPosition =  Integer.parseInt(chrPosString.substring(minusIndex+1));
 		
-		// if either postion is -ve, throw exception 
+		// if either position is -ve, throw exception
 		if (firstPosition < 0 || secondPosition < 0)
 			throw new IllegalArgumentException("malformed string passed to getChrPositionFromString - negative positions: " + chrPosString);
 		
@@ -393,36 +365,17 @@ public class StringUtils {
 	 */
 	public static String getJoinedString(String a, String b, String glue) {
 		if (null == a) {
-			if (null == b) return null;
-			return b;
+            return b;
 		}
 		if (null == b) {
 			return a;
 		}
-		if (a.length() == 0) return b;
-		if (b.length() == 0) return a;
+		if (a.isEmpty()) return b;
+		if (b.isEmpty()) return a;
 		
 		return a + glue + b;
 	}
-		
-	public static String toTitleCase (String input) {
-		StringBuilder titleCase = new StringBuilder();
-	    boolean nextTitleCase = true;
 
-	    for (char c : input.toCharArray()) {
-	        if (Character.isSpaceChar(c)) {
-	            nextTitleCase = true;
-	        } else if (nextTitleCase) {
-	            c = Character.toTitleCase(c);
-	            nextTitleCase = false;
-	        }
-
-	        titleCase.append(c);
-	    }
-
-	    return titleCase.toString();
-	}
-	
 	/**
 	 * Utility method that returns a boolean indicating if the supplied mainString contains the supplied searchString 
 	 * more than a certain number of times, which is dictated by the supplied cutoff parameter.
@@ -436,7 +389,7 @@ public class StringUtils {
 	 * @param cutoff
 	 * @return
 	 */
-	public static boolean passesOccurenceCountCheck(String mainString, String searchString, int cutoff) {
+	public static boolean passesOccurrenceCountCheck(String mainString, String searchString, int cutoff) {
 		if (isNullOrEmpty(mainString)) return false;
 		if (isNullOrEmpty(searchString)) return false;
 		
@@ -481,38 +434,12 @@ public class StringUtils {
 		if (StringUtils.isNullOrEmpty(existing)) {
 			return addition;
 		} else if ( ! existing.contains(addition)) {
-			return existing += delim + addition;
-		} else {
-			return existing;
-		}
-	}
-	
-	public static String removeFromString(String existing, String addition, char delim) {
-		if (null != existing && null != addition && existing.contains(addition)) {
-			if (existing.equals(addition)) {
-				return null;
-			} else if (existing.startsWith(addition)) {	// need to remove semi-colon along with annotation
-				return  existing.replace(addition + delim, "");
-			} else {
-				return  existing.replace(delim + addition, "");
-			}
+			return existing + (delim + addition);
 		} else {
 			return existing;
 		}
 	}
 
-	/**
-	 * Examines the string and returns true if the character is in it!
-	 * 
-	 * @param string String that we are examining
-	 * @param c upper case char value
-	 * @return boolean if the supplied character exists in the supplied string, in either upper case, or lower case
-	 */
-	public static boolean isCharPresentInString(String string, char c) {
-		return null != string && (string.contains("" + c) 
-				|| string.contains("" + Character.toLowerCase(c))); 
-	}
-	
 	/**
 	 * convert string to number
 	 * @param info: a string of number
@@ -536,14 +463,6 @@ public class StringUtils {
 		return  rate;
 	}
 
-	public static String getStringFromCharSet(Set<Character> set) {
-		final StringBuilder sb = new StringBuilder();
-		if (null != set) {
-			for (final Character c : set) sb.append(c);
-		}
-		return sb.toString();
-	}
-	
 	public static int getCount(String s, char c) {
 		int matchCount = 0;
 		for (char c1 : s.toCharArray()) {
