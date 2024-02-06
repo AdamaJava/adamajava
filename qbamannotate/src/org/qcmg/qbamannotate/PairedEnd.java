@@ -14,6 +14,7 @@ import java.util.Map;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.Marshaller;
 
+import org.eclipse.persistence.jaxb.JAXBContextFactory;
 import org.qcmg.qio.ma.MaDirection;
 import org.qcmg.qio.ma.MaRecord;
 
@@ -74,7 +75,7 @@ public class PairedEnd extends AnnotatorType {
 			report.getUniquePairing().add(pairing);
 		}
 		StringWriter writer = new StringWriter();
-		JAXBContext context = JAXBContext.newInstance(PairedEndReport.class);
+		JAXBContext context = JAXBContextFactory.createContext(new Class[] {PairedEndReport.class}, null);
 		Marshaller m = context.createMarshaller();
 		m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true); // pretty print
 																// XML

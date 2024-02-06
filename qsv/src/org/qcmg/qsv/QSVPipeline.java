@@ -8,6 +8,7 @@ package org.qcmg.qsv;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
@@ -28,6 +29,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.Marshaller;
+import org.eclipse.persistence.jaxb.JAXBContextFactory;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -64,7 +66,7 @@ public class QSVPipeline {
 	public static TIntObjectMap<int[]> TILED_ALIGNER_CACHE;
 
 	private final QLogger logger = QLoggerFactory.getLogger(QSVPipeline.class);
-	private static final String FILE_SEPARATOR = System.getProperty("file.separator");
+	private static final String FILE_SEPARATOR = FileSystems.getDefault().getSeparator();
 	private QSVParameters normal;
 	private QSVParameters tumor;
 	private final Options options;
@@ -77,7 +79,7 @@ public class QSVPipeline {
 	private final Map<PairGroup, Map<String, List<DiscordantPairCluster>>> tumorRecords;
 	private final Map<PairGroup, Map<String, List<DiscordantPairCluster>>> normalRecords;
 	
-	private Map<ChrPosition, LongRange> unmodifyableMap;
+	private final Map<ChrPosition, LongRange> unmodifyableMap;
 	
 	private int somaticCounts = 0;
 	private int  germlineCounts = 0;
@@ -85,7 +87,7 @@ public class QSVPipeline {
 	private final String analysisId;
 	private final String resultsDir;
 	private long clipCount = 0;
-	private Future<TIntObjectMap<int[]>> future;
+	private final Future<TIntObjectMap<int[]>> future;
 
 	public QSVPipeline(Options options, String resultsDir, Date analysisDate, String analysisId, QExec exec) throws Exception {
 
@@ -103,9 +105,7 @@ public class QSVPipeline {
 		String tiledAlignerFile = options.getTiledAligner() == null ? "/reference/genomeinfo/q3clinvar/q3tiledaligner_5k.txt.gz" : options.getTiledAligner();
 		logger.info("loading tiled aligner cache: " + tiledAlignerFile);
 		
-		Callable<TIntObjectMap<int[]>> callable = () -> {
-			return ReadTiledAligerFile.getCache(tiledAlignerFile, 64, 2);
-		};
+		Callable<TIntObjectMap<int[]>> callable = () -> ReadTiledAligerFile.getCache(tiledAlignerFile, 64, 2);
 		future = executor.submit(callable);
 		
 		//copy ini file to output directory
@@ -184,17 +184,13 @@ public class QSVPipeline {
 		try {
 			countDownLatch.await();
 			tumor = tumourFuture.get();
-		} catch (InterruptedException e) {
-			logger.debug("Thread interrupted while running qbamfilter");
-			exitStatus.set(1);
-			Thread.currentThread().interrupt();
-		} catch (ExecutionException e) {
+		} catch (InterruptedException | ExecutionException e) {
 			logger.debug("Thread interrupted while running qbamfilter");
 			exitStatus.set(1);
 			Thread.currentThread().interrupt();
 		}
 
-		if (exitStatus.intValue() == 1 || ((CreateParametersCallable) tumourWorker).getExitStatus() == 1) {
+        if (exitStatus.intValue() == 1 || ((CreateParametersCallable) tumourWorker).getExitStatus() == 1) {
 			throw new QSVException ("QSV_PARAMETER_EXCEPTION");
 		}		
 	}
@@ -324,8 +320,8 @@ public class QSVPipeline {
 	/*
 	 * Write relevant qsv parameters to log file 
 	 */
-	private void logQSVParameters() throws IOException {
-		List<String> params = new ArrayList<String>(); 
+	private void logQSVParameters() {
+		List<String> params = new ArrayList<>();
 		params.add("SV analysis type: " + options.getAnalysisMode());
 		params.add("Test sample BAM file: " + tumor.getInputBamFile());        
 		params.add("Test sample name: " + tumor.getFindType());
@@ -423,7 +419,7 @@ public class QSVPipeline {
 	 * Write annotation report - counts of each type of discordant pair
 	 */
 	private void writeAnnotationReport() throws Exception {
-		JAXBContext context = JAXBContext.newInstance(PairingStats.class);
+		JAXBContext context = JAXBContextFactory.createContext(new Class[] {PairingStats.class}, null);
 		Marshaller m = context.createMarshaller();
 		m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true); //pretty print XML
 		if (normal != null) {
