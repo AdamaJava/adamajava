@@ -24,11 +24,9 @@ public class LongMatePair extends AnnotatorType {
 	private String zpAnnotation;
 	private SAMRecord record;
 	private MaRecord maRecord;
-	private int annotatedCount = 0;
-	private final Map<String, Integer> zpToCount = new HashMap<String, Integer>();
-	private String xmlReport;
+    private final Map<String, Integer> zpToCount = new HashMap<>();
 
-	public LongMatePair(int isizeLowerLimit, int isizeUpperLimit)
+    public LongMatePair(int isizeLowerLimit, int isizeUpperLimit)
 			throws Exception {
 		if (isizeLowerLimit >= isizeUpperLimit) {
 			throw new Exception(
@@ -40,24 +38,22 @@ public class LongMatePair extends AnnotatorType {
 
 	public void resetCount() {
 		zpToCount.clear();
-		annotatedCount = 0;
-	}
+    }
 
 	@Override
-	public boolean annotate(final SAMRecord record) throws Exception {
+	public boolean annotate(final SAMRecord record) {
 		this.record = record;
 		boolean result = false;
 		if (record.getReadPairedFlag()) {
 			result = createZPAnnotation();
 		} else {
 			record.setAttribute("ZP", "Z**");
-			annotatedCount++;
-		}
+        }
 		return result;
 	}
 
 	@Override
-	public boolean annotate(SAMRecord record, MaRecord maRecord) throws Exception {
+	public boolean annotate(SAMRecord record, MaRecord maRecord) {
 		this.record = record;
 		this.maRecord = maRecord;
 		performZMAnnotation();
@@ -79,12 +75,10 @@ public class LongMatePair extends AnnotatorType {
 		}
 		StringWriter writer = new StringWriter();
 		JAXBContext context = JAXBContextFactory.createContext(new Class[] {LongMatePairReport.class}, null);
-//		JAXBContext context = JAXBContext.newInstance(LongMatePairReport.class);
 		Marshaller m = context.createMarshaller();
 	    m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true); //pretty print XML
 		m.marshal(report, writer);
-		xmlReport = writer.toString();
-		return xmlReport;
+        return writer.toString();
 	}
 
 	private void performZMAnnotation() {
@@ -228,8 +222,7 @@ public class LongMatePair extends AnnotatorType {
 				record.setAttribute("ZP", zpAnnotation);
 				countZp();
 				result = true;
-				annotatedCount++;
-			} else if (null != nh
+            } else if (null != nh
 					&& 1 == nh
 					&& !record.getReferenceName().equals(
 							record.getMateReferenceName())
@@ -240,8 +233,7 @@ public class LongMatePair extends AnnotatorType {
 					countZp();
 					result = true;
 				}
-				annotatedCount++;
-			} else if (null != nh && 1 == nh
+            } else if (null != nh && 1 == nh
 					&& record.getReadFailsVendorQualityCheckFlag()) {
 				zpAnnotation = "E**";
 				record.setAttribute("ZP", zpAnnotation);
@@ -249,8 +241,7 @@ public class LongMatePair extends AnnotatorType {
 					countZp();
 					result = true;
 				}
-				annotatedCount++;
-			} else if (null != nh && 1 == nh && isSameStrand()) {
+            } else if (null != nh && 1 == nh && isSameStrand()) {
 				zpAnnotation = "A";
 				handleOrientation();
 				handleIntervalSize();
@@ -259,8 +250,7 @@ public class LongMatePair extends AnnotatorType {
 					countZp();
 					result = true;
 				}
-				annotatedCount++;
-			} else if (null != nh && 1 != nh && isSameStrand()) {
+            } else if (null != nh && 1 != nh && isSameStrand()) {
 				zpAnnotation = "A";
 				handleOrientation();
 				handleIntervalSize();
@@ -273,8 +263,7 @@ public class LongMatePair extends AnnotatorType {
 				} else {
 					record.setAttribute("ZP", "Z**");
 				}
-				annotatedCount++;
-			} else if (null == nh && isSameStrand()) {
+            } else if (null == nh && isSameStrand()) {
 				zpAnnotation = "A";
 				handleOrientation();
 				handleIntervalSize();
@@ -287,8 +276,7 @@ public class LongMatePair extends AnnotatorType {
 				} else {
 					record.setAttribute("ZP", "Z**");
 				}
-				annotatedCount++;
-			} else if (null != nh && 1 == nh && isDifferentStrand()) {
+            } else if (null != nh && 1 == nh && isDifferentStrand()) {
 				zpAnnotation = "B";
 				handleOrientation();
 				handleIntervalSize();
@@ -297,15 +285,12 @@ public class LongMatePair extends AnnotatorType {
 					countZp();
 					result = true;
 				}
-				annotatedCount++;
-			} else {
+            } else {
 				record.setAttribute("ZP", "Z**");
-				annotatedCount++;
-			}
+            }
 		} else {
 			record.setAttribute("ZP", "Z**");
-			annotatedCount++;
-		}
+        }
 		return result;
 	}
 
