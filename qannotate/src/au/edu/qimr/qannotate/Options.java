@@ -70,8 +70,8 @@ public class Options {
 	private  final String summaryFileName ;
 	
 	//hom 
-	private final int homWindow  ;
-	private final int homReportSize;
+	private final int homopolymerWindow;
+	private final int homopolymerCutoff;
 	
     /**
      * check command line and store arguments and option information
@@ -146,8 +146,8 @@ public class Options {
         	( mode == MODE.snpeff ?  outputFileName +  ".snpEff_summary.html" : null);
         	
         //homoplymers
-        homWindow  = (options.has("window"))? (int) options.valueOf("window") : HomoplymersMode.defaultWindow;  //default is 100
-        homReportSize = (options.has("report"))? (int) options.valueOf("report") : HomoplymersMode.defaultreport; //default is 10
+        homopolymerWindow = (options.has("homWindow"))? (int) options.valueOf("homWindow") : HomoplymersMode.DEFAULT_WINDOW;  //default is 100
+        homopolymerCutoff = (options.has("homCutoff"))? (int) options.valueOf("homCutoff") : HomoplymersMode.HOMOPOLYMER_CUTOFF; //default is 10
         		
         checkIO();    //not yet complete         	
     }
@@ -220,11 +220,11 @@ public class Options {
 	            parser.accepts("buffer", "check TRF region on both sides of indel within this nominated size" ).withRequiredArg().ofType(Integer.class);//.describedAs("integer");
 	 
 	         if(mm.equals(MODE.cadd))
-	             parser.accepts("gap", "adjacant variants size").withRequiredArg().ofType(String.class).describedAs("gap size");
+	             parser.accepts("gap", "adjacent variants size").withRequiredArg().ofType(String.class).describedAs("gap size");
 	
-	         if(mm.equals(MODE.hom)){
-	 	        parser.accepts("window", "check homoplymers inside window size on both side of variants. Default value is " + HomoplymersMode.defaultWindow).withRequiredArg().ofType(String.class).describedAs("window size");
-	 	        parser.accepts("report", "report specified number of homoplymers base fallen in the swindow. Default value is " + HomoplymersMode.defaultreport  ).withRequiredArg().ofType(String.class).describedAs("report base number");
+	         if(mm.equals(MODE.confidence) || mm.equals(MODE.hom)){
+	 	        parser.accepts("homWindow", "check for homoplymers inside window size on both sides of variants. Default value is " + HomoplymersMode.DEFAULT_WINDOW).withRequiredArg().ofType(Integer.class).describedAs("window size");
+	 	        parser.accepts("homCutoff", "Cutoff value for number of homoplymer bases within the window. Default value is " + HomoplymersMode.HOMOPOLYMER_CUTOFF).withRequiredArg().ofType(Integer.class).describedAs("report base number");
 	         }
 	        
 	         if( mm.equals(MODE.vcf2maf) ){
@@ -416,12 +416,12 @@ public class Options {
 	
 	//hom
 	public int getHomoplymersWindow(){
-		return (mode == MODE.hom) ? homWindow : -1;
-	} //trf
+		return homopolymerWindow;
+	}
 	
 	public int getHomoplymersReportSize() { 
-		return (mode == MODE.hom) ? homReportSize : -1; 
-	} //cadd
+		return homopolymerCutoff;
+	}
 	
 	public Optional<Integer> getNNSCount() {
 		return Optional.ofNullable(nnsCount);

@@ -1,32 +1,7 @@
-plugins {
-  id 'org.hidetake.ssh' version '2.9.0'
-}
-
 apply plugin: 'application'
 mainClassName = 'au.edu.qimr.qannotate.Main'
 def scriptname = 'qannotate'
 def isExecutable = true
-
-remotes {
-  avalon {
-    host = 'hpcpbs01.adqimr.ad.lan'
-    user = 'oliverH'
-    identity = file('../../../../../../.ssh/id_rsa')
-  }
-}
-
-task deploy {
-  doLast {
-    ssh.run {
-      session(remotes.avalon) {
-        put from: "${project.projectDir}/build/flat/qannotate.jar", into: '/mnt/backedup/home/oliverH/qannotate/bin'
-        put from: "${project.projectDir}/build/flat/qcommon.jar", into: '/mnt/backedup/home/oliverH/qannotate/bin'
-        put from: "${project.projectDir}/build/flat/qio.jar", into: '/mnt/backedup/home/oliverH/qannotate/bin'
-        put from: "${project.projectDir}/build/flat/snpEff-5.2a.jar", into: '/mnt/backedup/home/oliverH/qannotate/bin'
-      }
-    }
-  }
-}
 
 /*
 * qannotate requires snpEff and the version currently used is 4.0e
@@ -43,7 +18,6 @@ task deploy {
 */
 
 configurations {  junit }
-configurations {  sshAntTask }
 
 dependencies {
     //this junit is required by snpEff-4.0
