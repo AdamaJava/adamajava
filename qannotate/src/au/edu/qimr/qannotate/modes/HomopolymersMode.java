@@ -32,8 +32,8 @@ import htsjdk.samtools.reference.IndexedFastaSequenceFile;
 import htsjdk.samtools.reference.ReferenceSequenceFileFactory;
 import htsjdk.samtools.util.IOUtil;
 
-public class HomoplymersMode extends AbstractMode {
-    private final static QLogger logger = QLoggerFactory.getLogger(HomoplymersMode.class);
+public class HomopolymersMode extends AbstractMode {
+    private final static QLogger logger = QLoggerFactory.getLogger(HomopolymersMode.class);
     private final String input;
     private final String output;
     private final int homopolymerWindow;
@@ -44,7 +44,7 @@ public class HomoplymersMode extends AbstractMode {
 
     @Deprecated
         //for unit test
-    HomoplymersMode(int homoWindow, int reportWindow) {
+    HomopolymersMode(int homoWindow, int reportWindow) {
         this.input = null;
         this.output = null;
         this.dbfile = null;
@@ -52,7 +52,7 @@ public class HomoplymersMode extends AbstractMode {
         this.reportWindow = reportWindow;
     }
 
-    public HomoplymersMode(Options options) throws IOException {
+    public HomopolymersMode(Options options) throws IOException {
         input = options.getInputFileName();
         output = options.getOutputFileName();
         dbfile = options.getDatabaseFileName();
@@ -119,17 +119,19 @@ public class HomoplymersMode extends AbstractMode {
         String motif = IndelUtils.getMotif(re.getRef(), re.getAlt(), variantType);
         byte[][] sideBases = getReferenceBase(base, pos, variantType, homopolymerWindow);
 
+        assert motif != null;
         String str = getHomopolymerData(motif, sideBases, variantType, reportWindow);
         re.appendInfo(VcfHeaderUtils.INFO_HOM + Constants.EQ + str);
         return re;
     }
 
     /**
-     * use default of
-     * @param motif
-     * @param sideBases
-     * @param variantType
-     * @return
+     * Computes and returns the homopolymer data for a given motif, side bases, and variant type.
+     *
+     * @param motif         the motif to search for in the side bases
+     * @param sideBases     the array of side bases
+     * @param variantType   the variant type
+     * @return the homopolymer data in the format "{homNo},{homTxt}"
      */
     public static String getHomopolymerData(String motif, byte[][] sideBases, SVTYPE variantType) {
         return getHomopolymerData(motif, sideBases, variantType, HOMOPOLYMER_CUTOFF);
@@ -139,7 +141,7 @@ public class HomoplymersMode extends AbstractMode {
         /*
          * need to deal with multiple alts - find the one that gives the greatest HOM count and use that
          */
-        int homNo = 0;
+        int homNo;
         if (motif.contains(Constants.COMMA_STRING)) {
             String[] altAlleles = motif.split(Constants.COMMA_STRING);
             int maxHomValue = 0;
@@ -282,6 +284,7 @@ public class HomoplymersMode extends AbstractMode {
                     (downBaseCount + upBaseCount - mByte.length) : Math.max(downBaseCount, upBaseCount);
         } else {
             //INS don't have reference base
+            assert updownReference[1] != null;
             max = (updownReference[0][finalUpIndex] == updownReference[1][0]) ?
                     (downBaseCount + upBaseCount) : Math.max(downBaseCount, upBaseCount);
         }
@@ -298,18 +301,18 @@ public class HomoplymersMode extends AbstractMode {
         if (null == dictPath) {
             throw new IllegalArgumentException("No dict file found for reference file: " + reference);
         }
-        logger.tool("reference dictionary file: " + dictPath.toString());
+        logger.tool("reference dictionary file: " + dictPath);
         Path indexPath = ReferenceSequenceFileFactory.getFastaIndexFileName(reference.toPath());
         if (null == indexPath || !indexPath.toFile().exists()) {
             throw new IllegalArgumentException("No index file found for reference file: " + reference);
         }
-        logger.tool("reference index file: " + indexPath.toString());
+        logger.tool("reference index file: " + indexPath);
 
         Map<String, byte[]> referenceBase = new HashMap<>();
 
         FastaSequenceIndex index = new FastaSequenceIndex(indexPath);
 
-        try (IndexedFastaSequenceFile indexedFasta = new IndexedFastaSequenceFile(reference, index);) {
+        try (IndexedFastaSequenceFile indexedFasta = new IndexedFastaSequenceFile(reference, index)) {
             SAMSequenceDictionary dict = indexedFasta.getSequenceDictionary();
             for (SAMSequenceRecord re : dict.getSequences()) {
                 String contig = IndelUtils.getFullChromosome(re.getSequenceName());

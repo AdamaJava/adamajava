@@ -13,7 +13,7 @@ import au.edu.qimr.qannotate.modes.CaddMode;
 import au.edu.qimr.qannotate.modes.ConfidenceMode;
 import au.edu.qimr.qannotate.modes.DbsnpMode;
 import au.edu.qimr.qannotate.modes.GermlineMode;
-import au.edu.qimr.qannotate.modes.HomoplymersMode;
+import au.edu.qimr.qannotate.modes.HomopolymersMode;
 import au.edu.qimr.qannotate.modes.IndelConfidenceMode;
 import au.edu.qimr.qannotate.modes.MakeValidMode;
 import au.edu.qimr.qannotate.modes.OverlapMode;
@@ -51,7 +51,7 @@ public class Main {
             } else if (options.getMode() == Options.MODE.indelconfidence) {
                 new IndelConfidenceMode(options);
             } else if (options.getMode() == Options.MODE.hom) {
-                new HomoplymersMode(options);
+                new HomopolymersMode(options);
             } else if (options.getMode() == Options.MODE.trf) {
                 new TandemRepeatMode(options);
             } else if (options.getMode() == Options.MODE.make_valid) {

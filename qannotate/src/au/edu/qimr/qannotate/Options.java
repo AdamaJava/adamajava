@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import au.edu.qimr.qannotate.modes.HomoplymersMode;
+import au.edu.qimr.qannotate.modes.HomopolymersMode;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 /*
@@ -146,8 +146,8 @@ public class Options {
         	( mode == MODE.snpeff ?  outputFileName +  ".snpEff_summary.html" : null);
         	
         //homoplymers
-        homopolymerWindow = (options.has("homWindow"))? (int) options.valueOf("homWindow") : HomoplymersMode.DEFAULT_WINDOW;  //default is 100
-        homopolymerCutoff = (options.has("homCutoff"))? (int) options.valueOf("homCutoff") : HomoplymersMode.HOMOPOLYMER_CUTOFF; //default is 10
+        homopolymerWindow = (options.has("homWindow"))? (int) options.valueOf("homWindow") : HomopolymersMode.DEFAULT_WINDOW;  //default is 100
+        homopolymerCutoff = (options.has("homCutoff"))? (int) options.valueOf("homCutoff") : HomopolymersMode.HOMOPOLYMER_CUTOFF; //default is 10
         		
         checkIO();    //not yet complete         	
     }
@@ -223,8 +223,8 @@ public class Options {
 	             parser.accepts("gap", "adjacent variants size").withRequiredArg().ofType(String.class).describedAs("gap size");
 	
 	         if(mm.equals(MODE.confidence) || mm.equals(MODE.hom)){
-	 	        parser.accepts("homWindow", "check for homoplymers inside window size on both sides of variants. Default value is " + HomoplymersMode.DEFAULT_WINDOW).withRequiredArg().ofType(Integer.class).describedAs("window size");
-	 	        parser.accepts("homCutoff", "Cutoff value for number of homoplymer bases within the window. Default value is " + HomoplymersMode.HOMOPOLYMER_CUTOFF).withRequiredArg().ofType(Integer.class).describedAs("report base number");
+	 	        parser.accepts("homWindow", "check for homoplymers inside window size on both sides of variants. Default value is " + HomopolymersMode.DEFAULT_WINDOW).withRequiredArg().ofType(Integer.class).describedAs("window size");
+	 	        parser.accepts("homCutoff", "Cutoff value for number of homoplymer bases within the window. Default value is " + HomopolymersMode.HOMOPOLYMER_CUTOFF).withRequiredArg().ofType(Integer.class).describedAs("report base number");
 	         }
 	        
 	         if( mm.equals(MODE.vcf2maf) ){
