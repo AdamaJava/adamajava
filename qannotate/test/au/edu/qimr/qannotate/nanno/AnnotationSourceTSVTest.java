@@ -15,26 +15,26 @@ public class AnnotationSourceTSVTest {
 	@Test
 	public void extractFieldsFromRecord() {
 		assertEquals("", AnnotationSourceTSV.extractFieldsFromRecord(null, null));
-		assertEquals("", AnnotationSourceTSV.extractFieldsFromRecord("", null));
-		assertEquals("", AnnotationSourceTSV.extractFieldsFromRecord("blah", null));
+		assertEquals("", AnnotationSourceTSV.extractFieldsFromRecord(new String[]{}, null));
+		assertEquals("", AnnotationSourceTSV.extractFieldsFromRecord(new String[]{"blah"}, null));
 		assertEquals("", AnnotationSourceTSV.extractFieldsFromRecord(null, new HashMap<>()));
-		assertEquals("", AnnotationSourceTSV.extractFieldsFromRecord("", new HashMap<>()));
+		assertEquals("", AnnotationSourceTSV.extractFieldsFromRecord(new String[]{}, new HashMap<>()));
 		Map<String, Integer> fields = new HashMap<>();
-		fields.put("foo", Integer.valueOf(0));
-		assertEquals("foo=short_record", AnnotationSourceTSV.extractFieldsFromRecord("short_record", fields));
-		assertEquals("foo=slightly_longer", AnnotationSourceTSV.extractFieldsFromRecord("slightly_longer\trecord", fields));
-		fields.put("foo", Integer.valueOf(10));
-		assertEquals("", AnnotationSourceTSV.extractFieldsFromRecord("slightly_longer\trecord", fields));
-		assertEquals("foo=", AnnotationSourceTSV.extractFieldsFromRecord("slightly_longer\trecord\t\t\t\t\t\t\t\t\t", fields));
-		assertEquals("foo=bar", AnnotationSourceTSV.extractFieldsFromRecord("slightly_longer\trecord\t\t\t\t\t\t\t\t\tbar", fields));
-		fields.put("foo2", Integer.valueOf(2));
-		assertEquals("foo=bar\tfoo2=", AnnotationSourceTSV.extractFieldsFromRecord("slightly_longer\trecord\t\t\t\t\t\t\t\t\tbar", fields));
-		fields.put("foo2", Integer.valueOf(1));
-		assertEquals("foo=bar\tfoo2=record", AnnotationSourceTSV.extractFieldsFromRecord("slightly_longer\trecord\t\t\t\t\t\t\t\t\tbar", fields));
-		fields.put("foo2", Integer.valueOf(11));
-		assertEquals("foo=bar", AnnotationSourceTSV.extractFieldsFromRecord("slightly_longer\trecord\t\t\t\t\t\t\t\t\tbar", fields));
-		fields.put("foo", Integer.valueOf(100));
-		assertEquals("", AnnotationSourceTSV.extractFieldsFromRecord("slightly_longer\trecord\t\t\t\t\t\t\t\t\tbar", fields));
+		fields.put("foo", 0);
+		assertEquals("foo=short_record", AnnotationSourceTSV.extractFieldsFromRecord(new String[]{"short_record"}, fields));
+		assertEquals("foo=slightly_longer", AnnotationSourceTSV.extractFieldsFromRecord(new String[]{"slightly_longer","record"}, fields));
+		fields.put("foo", 10);
+		assertEquals("", AnnotationSourceTSV.extractFieldsFromRecord(new String[]{"slightly_longer","record"}, fields));
+		assertEquals("foo=", AnnotationSourceTSV.extractFieldsFromRecord(new String[]{"slightly_longer", "record", "", "", "", "", "", "", "", "", ""}, fields));
+		assertEquals("foo=bar", AnnotationSourceTSV.extractFieldsFromRecord(new String[]{"slightly_longer", "record", "", "", "", "", "", "", "", "", "bar"}, fields));
+		fields.put("foo2", 2);
+		assertEquals("foo=bar\tfoo2=", AnnotationSourceTSV.extractFieldsFromRecord(new String[]{"slightly_longer", "record", "", "", "", "", "", "", "", "", "bar"}, fields));
+		fields.put("foo2", 1);
+		assertEquals("foo=bar\tfoo2=record", AnnotationSourceTSV.extractFieldsFromRecord(new String[]{"slightly_longer", "record", "", "", "", "", "", "", "", "", "bar"}, fields));
+		fields.put("foo2", 11);
+		assertEquals("foo=bar", AnnotationSourceTSV.extractFieldsFromRecord(new String[]{"slightly_longer", "record", "", "", "", "", "", "", "", "", "bar"}, fields));
+		fields.put("foo", 100);
+		assertEquals("", AnnotationSourceTSV.extractFieldsFromRecord(new String[]{"slightly_longer","record","","","","","","","","","bar"}, fields));
 		
 	}
 	

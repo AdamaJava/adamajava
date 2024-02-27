@@ -1,8 +1,5 @@
 package au.edu.qimr.qannotate.nanno;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -19,7 +16,10 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.commandline.Executor;
 import org.qcmg.common.model.ChrPositionRefAlt;
+import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
+
+import static org.junit.Assert.*;
 
 
 public class AnnotateTest {
@@ -31,17 +31,18 @@ public class AnnotateTest {
 	public void jsonInputs() throws IOException {
 		File inputJson = testFolder.newFile("inputs.json");
 		File annotationSource = testFolder.newFile("annotation.vcf");
-		createJsonInputs(inputJson, annotationSource, "blah", false, 3, 4);
+		createJsonInputs(inputJson, annotationSource, "blah", false, 3, 4, true);
 		
 		AnnotationInputs ais = AnnotateUtils.getInputs(inputJson.getAbsolutePath());
-		assertEquals(true, ais != null);
-		assertEquals(1, ais.getInputs().size());
+        assertTrue(ais != null);
+        assert ais != null;
+        assertEquals(1, ais.getInputs().size());
 		
 		List<AnnotationSource> sources = new ArrayList<>();
 		AnnotateUtils.populateAnnotationSources(ais, sources);
 		assertEquals(1, sources.size());
 		
-		String annotation = sources.get(0).getAnnotation(new ChrPositionRefAlt("chr1", 95813205, 95813205, "C", "T"));
+		String annotation = sources.getFirst().getAnnotation(ChrPositionUtils.convertContigAndPositionToLong("1", 95813205), new ChrPositionRefAlt("chr1", 95813205, 95813205, "C", "T"));
 		assertEquals("blah=", annotation);
 	}
 	
@@ -49,7 +50,7 @@ public class AnnotateTest {
 	public void jsonInputsTSVMissingHeader() throws IOException {
 		File inputJson = testFolder.newFile("inputs.json");
 		File annotationSource = testFolder.newFile("annotation.tsv");
-		createJsonInputs(inputJson, annotationSource, "blah", false, 3, 4);
+		createJsonInputs(inputJson, annotationSource, "blah", false, 3, 4, true);
 		
 		AnnotationInputs ais = AnnotateUtils.getInputs(inputJson.getAbsolutePath());
 		try {
@@ -87,7 +88,7 @@ public class AnnotateTest {
 		// Given valid inputs, the method should process them without throwing exceptions
 		File validInputJson = testFolder.newFile("valid_inputs.json");
 		File validAnnotationSource = testFolder.newFile("valid_annotation.vcf");
-		createJsonInputs(validInputJson, validAnnotationSource, "valid", false, 3, 4);
+		createJsonInputs(validInputJson, validAnnotationSource, "valid", false, 3, 4, true);
 
 		// When
 		AnnotationInputs ais = AnnotateUtils.getInputs(validInputJson.getAbsolutePath());
@@ -98,9 +99,9 @@ public class AnnotateTest {
 
 		List<AnnotationSource> sources = new ArrayList<>();
 		AnnotateUtils.populateAnnotationSources(ais, sources);
-		Assert.assertEquals(1, sources.size());
+		assertEquals(1, sources.size());
 
-		String annotation = sources.get(0).getAnnotation(new ChrPositionRefAlt("chr1", 95813205, 95813205, "C", "T"));
+		String annotation = sources.getFirst().getAnnotation(ChrPositionUtils.convertContigAndPositionToLong("1", 95813205), new ChrPositionRefAlt("chr1", 95813205, 95813205, "C", "T"));
 		Assert.assertEquals("valid=", annotation);
 	}
 
@@ -108,13 +109,13 @@ public class AnnotateTest {
 	public void jsonInputsTSV() throws IOException {
 		File inputJson = testFolder.newFile("inputs.json");
 		File annotationSource = testFolder.newFile("annotation.tsv");
-		createJsonInputs(inputJson, annotationSource, "aaref,HGVSc_VEP,HGVSp_VEP", false, 3, 4);
+		createJsonInputs(inputJson, annotationSource, "aaref,HGVSc_VEP,HGVSp_VEP", false, 3, 4, false);
 		createAnnotationFile(annotationSource, true);
 		List<AnnotationSource> sources = new ArrayList<>(2);
 		AnnotationInputs ais = AnnotateUtils.getInputs(inputJson.getAbsolutePath());
 		AnnotateUtils.populateAnnotationSources(ais, sources);
 		assertEquals(1, sources.size());
-		String annotation = sources.get(0).getAnnotation(new ChrPositionRefAlt("chr1", 655652, 655652, "A", "T"));
+		String annotation = sources.getFirst().getAnnotation(ChrPositionUtils.convertContigAndPositionToLong("1", 655652), new ChrPositionRefAlt("chr1", 655652, 655652, "A", "T"));
 		assertEquals("HGVSc_VEP=c.1A>C\tHGVSp_VEP=p.Met1?\taaref=M", annotation);
 	}
 	
@@ -139,7 +140,7 @@ public class AnnotateTest {
 		/*
 		 * json inputs - need annotationSource deets
 		 */
-		createJsonInputs(inputJson, annotationSource, "aaref", false, 3, 4);
+		createJsonInputs(inputJson, annotationSource, "aaref", false, 3, 4, false);
 		
 		int exitValue = executeTest(inputVcf, inputJson, outputFile, logFile);
 		assertEquals(1, exitValue);
@@ -194,7 +195,7 @@ public class AnnotateTest {
 		/*
 		 * json inputs - need annotationSource deets
 		 */
-		createJsonInputs(inputJson, snpEffAnnotationSource, "gene_name,feature_id,feature_type,effect,cdna_position,cds_position,protein_position,putative_impact,hgvs.c,hgvs.p", true, 4, 5);
+		createJsonInputs(inputJson, snpEffAnnotationSource, "gene_name,feature_id,feature_type,effect,cdna_position,cds_position,protein_position,putative_impact,hgvs.c,hgvs.p", true, 4, 5, true);
 
 		int exitValue = executeTest(inputVcf, inputJson, outputFile, logFile);
 		assertEquals(0, exitValue);
@@ -232,7 +233,7 @@ public class AnnotateTest {
 	    return 1;
 	}
 	
-	public static void createJsonInputs(File jsonFile, File annotationFile, String annotationFields, boolean snpEffAnnotationFile, int refPos, int altPos) throws IOException {
+	public static void createJsonInputs(File jsonFile, File annotationFile, String annotationFields, boolean snpEffAnnotationFile, int refPos, int altPos, boolean chrStartsWithChr) throws IOException {
 		List<String> data = Arrays.asList(
 				"{",
   "\"outputFieldOrder\": \"" + annotationFields + "\",",
@@ -242,6 +243,7 @@ public class AnnotateTest {
   "\"inputs\": [{",
     "\"file\": \"" + annotationFile.getAbsolutePath() + "\",",
 	"\"snpEffVcf\": " + snpEffAnnotationFile + ",",
+	"\"chrStartsWithChr\": " + chrStartsWithChr + ",",
     "\"chrIndex\": 1,",
     "\"positionIndex\": 2,",
     "\"refIndex\": " + refPos + ",",

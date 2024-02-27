@@ -2,9 +2,7 @@ package org.qcmg.common.model;
 
 import static org.junit.Assert.*;
 
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 import org.junit.Test;
 import org.qcmg.common.vcf.VcfRecord;
@@ -38,7 +36,7 @@ public class ChrPositionComparatorTest {
 	@Test
 	public void vcfComp2() {
 		
-		List<String> contigs = Arrays.asList("chr1");
+		List<String> contigs = List.of("chr1");
 		Comparator<VcfRecord> c = ChrPositionComparator.getVcfRecordComparator(contigs);
 		
 		VcfRecord v1 = VcfUtils.createVcfRecord("chr1", 100);
@@ -124,7 +122,11 @@ public class ChrPositionComparatorTest {
 	@Test
 	public void qsigComparatorTesting() {
 		List<String> contigOrder = Arrays.asList("chr1", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", "chr8", "chr9", "chr10", "chr11", "chr12", "chr13", "chr14", "chr15", "chr16", "chr17", "chr18", "chrX", "chrY", "GL000199.1", "GL000216.1", "chrMT");
-		Comparator<String> cpc =  ChrPositionComparator.getChrNameComparator(contigOrder);
+		Map<String, Integer> contigOrderMap = new HashMap<>();
+		for (int i = 0; i < contigOrder.size(); i++) {
+			contigOrderMap.put(contigOrder.get(i), i);
+		}
+		Comparator<String> cpc =  ChrPositionComparator.getChrNameComparator(contigOrderMap);
 		
 		assertEquals(-1, cpc.compare("chr1", "chr2"));
 		assertEquals(1, cpc.compare("chr2", "chr1"));
@@ -134,6 +136,20 @@ public class ChrPositionComparatorTest {
 		assertEquals(-1, cpc.compare("GL000216.1", "chrMT"));
 		assertEquals(1, cpc.compare("chrGL000216.1", "chrMT"));
 		assertEquals(-22, cpc.compare("chr1", "chrMT"));
+	}
+
+	@Test
+	public void testShortcutComparator() {
+		Comparator<String> cpc =  ChrPositionComparator.getChrNameComparatorNoChrsOneToM();
+
+		assertEquals(-1, cpc.compare("1", "2"));
+		assertEquals(1, cpc.compare("2", "1"));
+		assertEquals(0, cpc.compare("2", "2"));
+		assertEquals(-1, cpc.compare("M", "GL000199.1"));
+		assertEquals(1, cpc.compare("GL000216.1", "M"));
+		assertEquals(-24, cpc.compare("1", "M"));
+		assertEquals(24, cpc.compare("M", "1"));
+		assertEquals(0, cpc.compare("M", "M"));
 	}
 	
 }

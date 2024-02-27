@@ -200,7 +200,11 @@ public class Generate {
 			 * Set chrComparator and
 			 * order snps based on bam contig order
 			 */
-			chrComparator = ChrPositionComparator.getChrNameComparator(bamContigs);
+			Map<String, Integer> contigOrderMap = new LinkedHashMap<>();
+			for (int i = 0; i < bamContigs.size(); i++) {
+				contigOrderMap.put(bamContigs.get(i), i);
+			}
+			chrComparator = ChrPositionComparator.getChrNameComparator(contigOrderMap);
 			positionsIterator.sort(bamContigs);
 			
 			/*
@@ -251,10 +255,6 @@ public class Generate {
 			logger.info("got following details from illumina file:" + illuminaFile.getName());
 			logger.info("patient: " + patient + ", sample: " + sample + ", inputType: " + inputType);
 					
-			if (null != inputType && inputType.length() == 4) {
-				inputType = inputType.substring(1, 3);
-			}
-			
 			/*
 			 * load data from snp chip file into map
 			 */

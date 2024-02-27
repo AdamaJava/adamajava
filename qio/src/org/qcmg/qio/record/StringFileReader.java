@@ -29,10 +29,7 @@ public class StringFileReader  extends RecordReader<String> {
 	
 
 	@Override
-	/**
-	 * return input self even it is null
-	 */
-	public String getRecord(String line) {
+    public String getRecord(String line) {
 		return line;
 	}	
 }
