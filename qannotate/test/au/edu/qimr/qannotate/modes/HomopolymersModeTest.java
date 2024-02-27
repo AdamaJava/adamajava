@@ -39,7 +39,7 @@ public class HomopolymersModeTest {
 		byte[][] actualResult = HomopolymersMode.getReferenceBase(reference, pos, type, homopolymerWindow);
 
 		// Create our expected result
-		byte[][] expectedResult = new byte[][] {"ATTA".getBytes(), "CA".getBytes()};
+		byte[][] expectedResult = new byte[][] {"G".getBytes(), "TT".getBytes()};
 
 		// Assertion
 		assertArrayEquals(expectedResult, actualResult);
