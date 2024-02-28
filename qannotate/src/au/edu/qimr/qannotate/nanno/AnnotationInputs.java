@@ -31,6 +31,8 @@ public class AnnotationInputs {
 	}
 
 
+//	public record AnnotationInput(String file, int chrIndex, int positionIndex, int refIndex,
+//								  int altIndex, boolean snpEffVcf, String fields, boolean chrStartsWithChr) {}
 	public static class AnnotationInput {
 		private String file;
 		private int chrIndex;
@@ -39,34 +41,40 @@ public class AnnotationInputs {
 		private int altIndex;
 		private boolean snpEffVcf;
 		private String fields;
-		
+		private boolean chrStartsWithChr;
+
+		public AnnotationInput() {}
+
 		public String getFile() {
 			return file;
 		}
-		
+
 		public int getChrIndex() {
 			return chrIndex;
 		}
-		
+
 		public String getFields() {
 			return fields;
 		}
-		
+
 		public int getPositionIndex() {
 			return positionIndex;
 		}
-		
+
 		public int getRefIndex() {
 			return refIndex;
 		}
-		
+
 		public int getAltIndex() {
 			return altIndex;
 		}
-		
+
 		public boolean isSnpEffVcf() {
 			return snpEffVcf;
 		}
-		
-	}
+
+		public boolean isChrStartsWithChr() {
+			return chrStartsWithChr;
+		}
+}
 }

@@ -18,8 +18,8 @@ public class AnnotationSourceVCF extends AnnotationSource {
 	String emptyRecordResult;
 
 	public AnnotationSourceVCF(RecordReader<String> reader, int chrPositionInRecord, int positionPositionInRecord,
-			int refPositionInFile, int altPositionInFile, String fieldNames) {
-		super(reader, chrPositionInRecord, positionPositionInRecord, refPositionInFile, altPositionInFile);
+			int refPositionInFile, int altPositionInFile, String fieldNames, boolean chrStartsWithChr) {
+		super(reader, chrPositionInRecord, positionPositionInRecord, refPositionInFile, altPositionInFile, chrStartsWithChr);
 		// TODO Auto-generated constructor stub
 		
 		if (StringUtils.isNullOrEmpty(fieldNames)) {
@@ -34,19 +34,15 @@ public class AnnotationSourceVCF extends AnnotationSource {
 	}
 
 	@Override
-	public String annotationToReturn(String record) {
-		if (null == record) {
+	public String annotationToReturn(String [] record) {
+		if (null == record || record.length == 0) {
 			return emptyRecordResult;
 		}
 		/*
 		 * dealing with a vcf file and assuming that the required annotation fields are in the INFO field
 		 * so get that and go from there.
 		 */
-		String [] recordArray = record.split("\t");
-//		if (recordArray.length <= 8) {
-//			System.out.println("vcf length <= 8: " + record);
-//		}
-		String info = recordArray[7];
+		String info = record[7];
 		
 		/*
 		 * entries in the INFO field are delimited by ';'
@@ -59,23 +55,23 @@ public class AnnotationSourceVCF extends AnnotationSource {
 		if (StringUtils.isNullOrEmptyOrMissingData(info)) {
 			return emptyInfoFieldResult;
 		}
-		String dataToReturn = "";
+		StringBuilder dataToReturn = new StringBuilder();
 		for (String af : fields) {
 			if ( ! StringUtils.isNullOrEmpty(af)) {
 				int start = info.indexOf(af + "=");
 				if (start > -1) {
 					int end = info.indexOf(FIELD_DELIMITER_SEMI_COLON, start);
 					if (end == -1) {
-						dataToReturn += dataToReturn.length() > 0 ? FIELD_DELIMITER_TAB + info.substring(start) : info.substring(start);
+						dataToReturn.append((!dataToReturn.isEmpty()) ? FIELD_DELIMITER_TAB + info.substring(start) : info.substring(start));
 					} else {
-						dataToReturn += dataToReturn.length() > 0 ? FIELD_DELIMITER_TAB + info.substring(start, end) : info.substring(start, end);
+						dataToReturn.append((!dataToReturn.isEmpty()) ? FIELD_DELIMITER_TAB + info.substring(start, end) : info.substring(start, end));
 					}
 				} else {
-					dataToReturn +=  dataToReturn.length() > 0 ? FIELD_DELIMITER_TAB + af + "=" : af + "=";
+					dataToReturn.append((!dataToReturn.isEmpty()) ? FIELD_DELIMITER_TAB + af + "=" : af + "=");
 				}
 			}
 		}
-		return dataToReturn.length() == 0 ? emptyInfoFieldResult : dataToReturn;
+		return (dataToReturn.isEmpty()) ? emptyInfoFieldResult : dataToReturn.toString();
 	}
 	
 	@Override

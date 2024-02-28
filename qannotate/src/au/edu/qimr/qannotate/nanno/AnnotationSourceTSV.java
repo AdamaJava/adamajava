@@ -20,8 +20,8 @@ public class AnnotationSourceTSV extends AnnotationSource {
 	Map<String, Integer> headerNameAndPosition;
 
 	public AnnotationSourceTSV(RecordReader<String> reader, int chrPositionInRecord, int positionPositionInRecord,
-			int refPositionInFile, int altPositionInFile, String fieldNames) {
-		super(reader, chrPositionInRecord, positionPositionInRecord, refPositionInFile, altPositionInFile);
+			int refPositionInFile, int altPositionInFile, String fieldNames, boolean chrStartsWithChr) {
+		super(reader, chrPositionInRecord, positionPositionInRecord, refPositionInFile, altPositionInFile, chrStartsWithChr);
 		// TODO Auto-generated constructor stub
 		
 		if (StringUtils.isNullOrEmpty(fieldNames)) {
@@ -58,12 +58,12 @@ public class AnnotationSourceTSV extends AnnotationSource {
 			/*
 			 * easy
 			 */
-			header = headerLines.get(0);
+			header = headerLines.getFirst();
 		} else if (headerLines.size() > 1) {
 			/*
 			 * going to assume that the last line contains the header line
 			 */
-			header = headerLines.get(headerLines.size() - 1);
+			header = headerLines.getLast();
 		}
 		return header;
 	}
@@ -88,8 +88,8 @@ public class AnnotationSourceTSV extends AnnotationSource {
 	}
 
 	@Override
-	public String annotationToReturn(String record) {
-		if (null == record) {
+	public String annotationToReturn(String[] record) {
+		if (null == record || record.length == 0) {
 			return emptyRecordResult;
 		}
 		
@@ -99,20 +99,21 @@ public class AnnotationSourceTSV extends AnnotationSource {
 		return extractFieldsFromRecord(record, headerNameAndPosition);
 	}
 	
-	public static String extractFieldsFromRecord(String record, Map<String, Integer> fields) {
-		String dataToReturn = "";
-		if ( ! StringUtils.isNullOrEmpty(record) && null != fields) {
-			String [] recordArray = TabTokenizer.tokenize(record);
+	public static String extractFieldsFromRecord(String[] record, Map<String, Integer> fields) {
+		StringBuilder dataToReturn = new StringBuilder();
+		int recordLength = null != record ? record.length : 0;
+		if ( recordLength > 0 && null != fields) {
+//			String [] recordArray = TabTokenizer.tokenize(record);
 			for (Entry<String, Integer> entry : fields.entrySet()) {
 				/*
 				 * make sure that array length is not shorter than entry value
 				 */
-				if (recordArray.length > entry.getValue().intValue()) {
-					dataToReturn += (dataToReturn.length() > 0 ? FIELD_DELIMITER_TAB : "") + entry.getKey() + "=" + recordArray[entry.getValue().intValue()];
+				if (recordLength > entry.getValue()) {
+					dataToReturn.append(( ! dataToReturn.isEmpty()) ? FIELD_DELIMITER_TAB : "").append(entry.getKey()).append("=").append(record[entry.getValue()]);
 				}
 			}
 		}
-		return dataToReturn;
+		return dataToReturn.toString();
 	}
 	
 	@Override

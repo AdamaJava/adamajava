@@ -54,6 +54,10 @@ subprojects {
         checkstyleTest.enabled=false
     }
     checkstyleMain.onlyIf {project.hasProperty('checkstyle')}
+    checkstyleMain {
+        mustRunAfter test
+        mustRunAfter compileJava
+    }
 
      dependencies {
         testImplementation 'junit:junit:4.13.2'

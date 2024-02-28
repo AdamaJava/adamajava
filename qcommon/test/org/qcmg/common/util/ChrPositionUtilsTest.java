@@ -37,6 +37,17 @@ public class ChrPositionUtilsTest {
 	}
 
 	@Test
+	public void testConvertChrPositionToLong() {
+		long expected = ((long) 4 << 32) + 9;
+		long actual = ChrPositionUtils.convertContigAndPositionToLong("4", 9);
+		assertEquals(expected, actual);
+
+		ChrPosition cp = ChrPositionUtils.convertLongToChrPosition(actual);
+		assertEquals("4", cp.getChromosome());
+		assertEquals(9, cp.getStartPosition());
+
+	}
+	@Test
 	public void toVcfStringShouldReturnCorrectFormat() {
 		ChrPosition cp = new ChrRangePosition("chr1", 1000, 2000);
 		String id = "id";

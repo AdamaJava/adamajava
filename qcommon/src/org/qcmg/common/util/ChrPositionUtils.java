@@ -31,6 +31,60 @@ public class ChrPositionUtils {
     }
 
     /**
+     * convert ChrPosition to a long. Will only examine the contig and start position
+     *
+     */
+    public static long convertContigAndPositionToLong(String contig, int position) {
+        long l = (long) convertContigNameToInt(contig) << 32;
+        return l + position;
+    }
+
+    public static ChrPosition convertLongToChrPosition(long l) {
+        int contig = (int) (l >> 32);
+        int position = (int) l;
+
+        if (contig == 23) {
+            return ChrPointPosition.valueOf("X", position);
+        } else if (contig == 24) {
+            return ChrPointPosition.valueOf("Y", position);
+        } else if (contig == 25) {
+            return ChrPointPosition.valueOf("M", position);
+        } else if (contig > 25) {
+            return ChrPointPosition.valueOf("-1", position);
+        }
+        return ChrPointPosition.valueOf(Integer.toString(contig), position);
+    }
+
+    /**
+     * Converts a contig name to an integer representing the contig.
+     * Assumes that the contig name is either a number or a string that does not start with "chr".
+     *
+     * @param contigName the name of the contig
+     * @return an integer representation of the contig
+     */
+    public static int convertContigNameToInt(String contigName) {
+        if (null == contigName || contigName.isEmpty()) {
+            throw new IllegalArgumentException("null or empty contig name supplied to convertContigNameToInt");
+        }
+        int i = Character.isDigit(contigName.charAt(0)) ? Integer.parseInt(contigName) : -1;
+        if (i > -1) {
+            return i;
+        }
+
+        if (contigName.length() > 3 && contigName.startsWith("chr")) {
+            return convertContigNameToInt(contigName.substring(3));
+        }
+
+        return switch (contigName) {
+            case "X" -> 23;
+            case "Y" -> 24;
+            case "M" -> 25;
+            case "MT" -> 25;
+            default -> contigName.hashCode();
+        };
+    }
+
+    /**
      * Checks if two ChrPosition objects overlap with a buffer.
      *
      * @param a the first ChrPosition
@@ -103,8 +157,8 @@ public class ChrPositionUtils {
         } else {
             int colonIndex = cosmicCoords.indexOf(':');
             int minusIndex = cosmicCoords.indexOf('-');
-            int start = Integer.parseInt(cosmicCoords.substring(colonIndex + 1, minusIndex));
-            int end = Integer.parseInt(cosmicCoords.substring(minusIndex + 1));
+            int start = Integer.parseInt(cosmicCoords, colonIndex + 1, minusIndex, 10);
+            int end = Integer.parseInt(cosmicCoords, minusIndex + 1, cosmicCoords.length(), 10);
             return getChrPosition("chr" + cosmicCoords.substring(0, colonIndex), start, end);
         }
     }
@@ -167,7 +221,6 @@ public class ChrPositionUtils {
 
     /**
      * Converts a string in the format "chr1:12345-12345" to a ChrRangePosition object.
-     * The string must represent a range on the chromosome (start position does not equal end position).
      *
      * @param position the string to convert
      * @return the corresponding ChrRangePosition object
@@ -185,8 +238,8 @@ public class ChrPositionUtils {
         }
 
         String chr = position.substring(0, colonPos);
-        int start = Integer.parseInt(position.substring(colonPos + 1, minusPos));
-        int end = Integer.parseInt(position.substring(minusPos + 1));
+        int start = Integer.parseInt(position, colonPos + 1, minusPos, 10);
+        int end = Integer.parseInt(position, minusPos + 1, position.length(), 10);
 
         return new ChrRangePosition(chr, start, end);
     }
@@ -212,39 +265,10 @@ public class ChrPositionUtils {
         }
 
         String chr = position.substring(0, colonPos);
-        int start = Integer.parseInt(position.substring(colonPos + 1, minusPos));
-        int end = Integer.parseInt(position.substring(minusPos + 1));
+        int start = Integer.parseInt(position, colonPos + 1, minusPos, 10);
+        int end = Integer.parseInt(position, minusPos + 1, position.length(), 10);
 
         return new ChrPositionName(chr, start, end, name);
-    }
-
-    /**
-     * Converts a string in the format "chr1:12345-12345" to a ChrPointPosition object.
-     * The string must represent a single point on the chromosome (start position equals end position).
-     *
-     * @param position the string to convert
-     * @return the corresponding ChrPointPosition object
-     * @throws IllegalArgumentException if the string is null, empty, not in the correct format, or represents a range rather than a single point
-     */
-    public static ChrPointPosition getChrPointPositionFromString(String position) {
-        if (StringUtils.isNullOrEmpty(position))
-            throw new IllegalArgumentException("Null or empty string passed to getChrPositionFromString()");
-
-        int colonPos = position.indexOf(':');
-        int minusPos = position.indexOf('-');
-
-        if (colonPos == -1 || minusPos == -1) {
-            throw new IllegalArgumentException("invalid string passed to getChrPositionFromString() - must be in chr1:12345-23456 format: " + position);
-        }
-
-        String chr = position.substring(0, colonPos);
-        int start = Integer.parseInt(position.substring(colonPos + 1, minusPos));
-        int end = Integer.parseInt(position.substring(minusPos + 1));
-        if (start != end) {
-            throw new IllegalArgumentException("Start and end position in getChrPointPositionFromString are not the same. Start: " + start + ", end: " + end + ", from string: " + position);
-        }
-
-        return ChrPointPosition.valueOf(chr, start);
     }
 
     /**
@@ -256,25 +280,6 @@ public class ChrPositionUtils {
      */
     public static ChrPosition getPrecedingChrPosition(ChrPosition cp) {
         return new ChrRangePosition(cp.getChromosome(), cp.getStartPosition() - 1, cp.getEndPosition() - 1);
-    }
-
-    /**
-     * Returns a map of ChrPointPosition objects based on the contents of the supplied String array
-     *
-     * @param positions
-     * @return
-     */
-    public static Map<ChrPosition, ChrPosition> getChrPointPositionsFromStrings(String[] positions) {
-
-        if (null == positions || positions.length == 0)
-            throw new IllegalArgumentException("null or empty string array passed to getChrPositionsFromStrings");
-
-        Map<ChrPosition, ChrPosition> chrPositions = new HashMap<>();
-        for (String s : positions) {
-            ChrPosition cpp = getChrPointPositionFromString(s);
-            chrPositions.put(cpp, cpp);
-        }
-        return chrPositions;
     }
 
     /**

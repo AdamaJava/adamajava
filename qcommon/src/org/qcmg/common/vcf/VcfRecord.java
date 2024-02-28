@@ -31,7 +31,7 @@ import org.qcmg.common.util.Constants;
 public class VcfRecord implements Comparable<VcfRecord> {
 	
 	static final QLogger logger = QLoggerFactory.getLogger(VcfRecord.class);
-	static final Comparator<ChrPosition> CHR_POS_COMPARATOR = ChrPositionComparator.getComparator(ChrPositionComparator.getChrNameComparator(null));
+	static final Comparator<ChrPosition> CHR_POS_COMPARATOR = ChrPositionComparator.getComparator(ChrPositionComparator.getChrNameComparator((List<String>)null));
 	
 	private final ChrPosition cpp;
 	private final String ref;
@@ -266,7 +266,7 @@ public class VcfRecord implements Comparable<VcfRecord> {
 	 */
 	public VcfFormatFieldRecord getSampleFormatRecord(int index){
 		String s = (index >= formatRecords.size() || index == 0)? null: formatRecords.get(index);
-		return (s == null)? null : new VcfFormatFieldRecord(formatRecords.get(0), s);
+		return (s == null)? null : new VcfFormatFieldRecord(formatRecords.getFirst(), s);
 	}
 	
 	/**
@@ -276,7 +276,7 @@ public class VcfRecord implements Comparable<VcfRecord> {
 	 */
 	public List<String> getFormatFields() {
 		// return a copy of this
-		if( formatRecords.size() == 0 ) return Collections.emptyList();		
+		if(formatRecords.isEmpty()) return Collections.emptyList();
 		return new ArrayList<>(formatRecords);
 		
 	}
@@ -410,16 +410,15 @@ public class VcfRecord implements Comparable<VcfRecord> {
 		if (null != ref && null != arg0.ref) {
 			diff = ref.compareTo(arg0.ref);
 			
-		} else if (null != ref && null == arg0.ref) {
+		} else if (null != ref) {
 			diff = -1;
-		} else if (null == ref && null != arg0.ref) {
+		} else if (null != arg0.ref) {
 			diff = 1;
 		} else {
 			/*
 			 * both null
 			 */
-			diff = 0;
-		}
+        }
 		
 		if (diff != 0) {
 			return diff;
@@ -430,16 +429,15 @@ public class VcfRecord implements Comparable<VcfRecord> {
 		 */
 		if (null != alt && null != arg0.alt) {
 			diff = alt.compareTo(arg0.alt);
-		} else if (null != alt && null == arg0.alt) {
+		} else if (null != alt) {
 			diff = -1;
-		} else if (null == alt && null != arg0.alt) {
+		} else if (null != arg0.alt) {
 			diff = 1;
 		} else {
 			/*
 			 * both null
 			 */
-			diff = 0;
-		}
+        }
 		if (diff != 0) {
 			return diff;
 		}
