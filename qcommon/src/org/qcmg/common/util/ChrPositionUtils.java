@@ -79,6 +79,7 @@ public class ChrPositionUtils {
             case "X" -> 23;
             case "Y" -> 24;
             case "M" -> 25;
+            case "MT" -> 25;
             default -> contigName.hashCode();
         };
     }
