@@ -45,7 +45,7 @@ public class IndelConfidenceMode extends AbstractMode{
 	private final String commandLine;
 	private static final float DEFAULT_NIOC = 0.1f;
 	private static final float DEFAULT_SSOI = 0.2f;
-	static final int DEFAULT_HOMN = 6;
+	public static final int DEFAULT_HOMN = 6;
 	private final Map<String,BitSet> mask = new HashMap<>();
 		
  	//filters 

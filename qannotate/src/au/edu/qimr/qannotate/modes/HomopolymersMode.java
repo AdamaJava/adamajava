@@ -56,8 +56,8 @@ public class HomopolymersMode extends AbstractMode {
         input = options.getInputFileName();
         output = options.getOutputFileName();
         dbfile = options.getDatabaseFileName();
-        homopolymerWindow = options.getHomoplymersWindow();
-        reportWindow = options.getHomoplymersReportSize();
+        homopolymerWindow = options.getHomoplymersWindow().orElse(DEFAULT_WINDOW);
+        reportWindow = options.getHomoplymersReportWindow().orElse(HOMOPOLYMER_CUTOFF);
         logger.tool("input: " + options.getInputFileName());
         logger.tool("reference file: " + dbfile);
         logger.tool("output for annotated vcf records: " + options.getOutputFileName());
@@ -133,10 +133,6 @@ public class HomopolymersMode extends AbstractMode {
      * @param variantType   the variant type
      * @return the homopolymer data in the format "{homNo},{homTxt}"
      */
-    public static String getHomopolymerData(String motif, byte[][] sideBases, SVTYPE variantType) {
-        return getHomopolymerData(motif, sideBases, variantType, HOMOPOLYMER_CUTOFF);
-    }
-
     public static String getHomopolymerData(String motif, byte[][] sideBases, SVTYPE variantType, int reportWindow) {
         /*
          * need to deal with multiple alts - find the one that gives the greatest HOM count and use that

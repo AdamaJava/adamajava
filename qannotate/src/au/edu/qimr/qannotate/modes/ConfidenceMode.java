@@ -101,9 +101,7 @@ public class ConfidenceMode extends AbstractMode {
 
         options.getNNSCount().ifPresent(i -> nnsCount = i);
         options.getMRCount().ifPresent(i -> mrCount = i);
-        if (options.getHomoplymersReportSize() > -1) {
-            homopolymerCutoff = options.getHomoplymersReportSize();
-        }
+        options.getHomoplymersCutoff().ifPresent(i -> homopolymerCutoff = i);
         options.getControlCutoff().ifPresent(i -> controlCovCutoff = i);
         options.getControlCutoffForSomatic().ifPresent(i -> controlCovCutoffForSomaticCalls = i);
         options.getTestCutoff().ifPresent(i -> testCovCutoff = i);
