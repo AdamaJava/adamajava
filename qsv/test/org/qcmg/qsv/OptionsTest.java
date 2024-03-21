@@ -1,10 +1,5 @@
 package org.qcmg.qsv;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -27,6 +22,8 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.meta.QExec;
 import org.qcmg.qsv.util.TestUtil;
+
+import static org.junit.Assert.*;
 
 public class OptionsTest {
 
@@ -144,12 +141,12 @@ public class OptionsTest {
         assertEquals(options.getLog(), "test.log");
         assertEquals(options.getLogLevel(), "DEBUG");
         assertEquals(options.getSampleName(), "test");
-        assertEquals(options.getOutputDirName(), tmp.toString() + Options.FILE_SEPERATOR + options.getUuid() + Options.FILE_SEPERATOR);
+        assertEquals(options.getOutputDirName(), tmp + Options.FILE_SEPARATOR + options.getUuid() + Options.FILE_SEPARATOR);
         assertTrue(options.getReference().contains("reference_file"));
         assertEquals(options.getPreprocessMode(), "both");
         assertEquals(options.getAnalysisMode(), "both");        
         assertEquals(options.getMaxISizeCount(), "all");
-        assertEquals(options.getMinInsertSize(), new Integer(50));
+        assertEquals(options.getMinInsertSize(), Integer.valueOf(50));
         assertTrue(options.isQCMG());
         assertEquals(options.getPairingType(), "lmp");
         assertEquals(options.getPairQuery(), "and(Cigar_M > 35,option_SM > 14,MD_mismatch < 3,Flag_DuplicateRead == false)");
@@ -159,7 +156,7 @@ public class OptionsTest {
         assertEquals(options.getMapper(), "bioscope");
         assertEquals(options.getClipQuery(), "and(Cigar_M > 35,option_SM > 14,MD_mismatch < 3,Flag_DuplicateRead == false)");
         assertEquals(options.getClipSize().intValue(), 3);
-        assertEquals(options.getConsensusLength(), new Integer(20));
+        assertEquals(options.getConsensusLength(), Integer.valueOf(20));
         
         //tumor
         assertEquals(options.getInputFile(), file2);
@@ -181,7 +178,7 @@ public class OptionsTest {
     }
 
     @Test
-    public void testVersionOption() throws QSVException, InvalidFileFormatException, IOException {
+    public void testVersionOption() throws QSVException, IOException {
     	//long form option
         Options options = new Options(new String[] {"--version"});
         assertTrue(options.hasVersionOption());
@@ -198,13 +195,13 @@ public class OptionsTest {
     }
     
     @Test(expected = QSVException.class)
-    public void testBadOptionsNoLogFile() throws QSVException, InvalidFileFormatException, IOException {
+    public void testBadOptionsNoLogFile() throws QSVException, IOException {
         Options options = new Options(new String[] {"--version"});
         options.detectBadOptions();
     }
     
     @Test(expected = QSVException.class)
-    public void testBadOptionsBadModes() throws QSVException, InvalidFileFormatException, IOException {
+    public void testBadOptionsBadModes() throws QSVException, IOException {
         Options options = new Options(new String[] {"--version"});
         options.setLogFile("log");
         options.setPreprocessMode("pair");
@@ -213,7 +210,7 @@ public class OptionsTest {
     }
     
     @Test(expected = QSVException.class)
-    public void testBadOptionsBadModes2() throws QSVException, InvalidFileFormatException, IOException {
+    public void testBadOptionsBadModes2() throws QSVException, IOException {
         Options options = new Options(new String[] {"--version"});
         options.setLogFile("log");
         options.setPreprocessMode("clip");
@@ -222,7 +219,7 @@ public class OptionsTest {
     }
     
     @Test(expected = QSVException.class)
-    public void testBadOptionsNoPairType() throws QSVException, InvalidFileFormatException, IOException {
+    public void testBadOptionsNoPairType() throws QSVException, IOException {
     	File tmp = testFolder.newFolder();
     	String[] args = TestUtil.getValidOptions(tmp, file1, file2, "pair", "pair");
     	Options options = new Options(args);
@@ -232,7 +229,7 @@ public class OptionsTest {
     }
     
     @Test(expected = QSVException.class)
-    public void testBadOptionsNoMapper() throws QSVException, InvalidFileFormatException, IOException {
+    public void testBadOptionsNoMapper() throws QSVException, IOException {
     	File tmp = testFolder.newFolder();
     	String[] args = TestUtil.getValidOptions(tmp, file1, file2, "pair", "pair");
     	Options options = new Options(args);
@@ -243,7 +240,7 @@ public class OptionsTest {
     }
     
     @Test(expected = QSVException.class)
-    public void testBadOptionsNoTmpDir() throws QSVException, InvalidFileFormatException, IOException {
+    public void testBadOptionsNoTmpDir() throws QSVException, IOException {
     	File tmp = testFolder.newFolder();
     	String[] args = TestUtil.getValidOptions(tmp, file1, file2, "both", "both");
     	Options options = new Options(args);
@@ -254,7 +251,7 @@ public class OptionsTest {
     
    
     @Test(expected = QSVException.class)
-    public void testBadOptionsBadAnalysisMode() throws QSVException, InvalidFileFormatException, IOException {
+    public void testBadOptionsBadAnalysisMode() throws QSVException, IOException {
         Options options = new Options(new String[] {"--version"});
         options.setLogFile("log");
         options.setPreprocessMode("none");
@@ -341,7 +338,7 @@ public class OptionsTest {
 	 	options = new Options(newArgs);
 	 	options.parseIniFile();
 	 	Assert.assertEquals( options.getUuid(), "test-uuid" );
-	 	assertTrue(options.getOutputDirName().endsWith("test-uuid"+Options.FILE_SEPERATOR));
+	 	assertTrue(options.getOutputDirName().endsWith("test-uuid"+Options.FILE_SEPARATOR));
     			
     }
     
@@ -412,7 +409,7 @@ public class OptionsTest {
     }
     
     @Test
-    public void outputDirTest() throws InvalidFileFormatException, QSVException, IOException {
+    public void outputDirTest() throws QSVException, IOException {
     	 
 	 	//output dir not exists without uuid option
     	File tmp1 = testFolder.newFolder();   	
@@ -427,7 +424,7 @@ public class OptionsTest {
     	Path target = new File(tmp2, "test.new.ini").toPath();    	
     	Files.move(source, target, StandardCopyOption.REPLACE_EXISTING);   	
     	FileUtils.deleteDirectory(tmp1);
-    	assertTrue(!tmp1.exists());
+        assertFalse(tmp1.exists());
     	
     	args[1] = target.getParent() + "/" + target.getFileName();
  		options = new Options(args);     	 
@@ -462,16 +459,16 @@ public class OptionsTest {
     }
     
     @Test(expected = QSVException.class)
-    public void testBadOptionsIniFileOption() throws QSVException, InvalidFileFormatException, IOException {
+    public void testBadOptionsIniFileOption() throws QSVException, IOException {
     	//removed log option from command line, it should inside the ini
     	//Options options = new Options(new String[] {"-log", "log.log", "--loglevel", "INFO"});
     	Options options = new Options(new String[] {"-help"});
-        assertEquals(null, options.getIniFile());
+        assertNull(options.getIniFile());
         options.detectBadOptions();
     }
     
     @Test
-    public void testBadOptionsReference() throws QSVException, InvalidFileFormatException, IOException {
+    public void testBadOptionsReference() throws QSVException, IOException {
     	File tmp = testFolder.newFolder();
     	File iniFile = testFolder.newFile("file.ini");
     	File genericInputFile = testFolder.newFile();
@@ -497,7 +494,7 @@ public class OptionsTest {
         try {
         	options.parseIniFile();
         	Assert.fail("Should have thrown an exception");
-        } catch (QSVException qsve) {}
+        } catch (QSVException ignored) {}
         
         /*
          * create ref index file but not with expected suffix - should still throw an exception
@@ -506,7 +503,7 @@ public class OptionsTest {
         	testFolder.newFile("reference.fasta.fia");
         	options.parseIniFile();
         	Assert.fail("Should have thrown an exception");
-        } catch (QSVException qsve) {}
+        } catch (QSVException ignored) {}
         
         /*
          * create reference index file next to reference file with correct suffix

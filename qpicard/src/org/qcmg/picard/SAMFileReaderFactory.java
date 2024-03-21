@@ -74,7 +74,7 @@ public class SAMFileReaderFactory {
 				logger.info("setup index: " + index.getAbsolutePath());
 			}
 			//set reference file for cram. default reference set by java option "-Dsamjdk.REFERENCE_FASTA" 
-			if(reference != null && reference.exists()) {
+			if (reference != null && reference.exists()) {
 				factory.referenceSequence(reference); 
 				logger.info("setup reference: " + reference.getAbsolutePath());
 			}			

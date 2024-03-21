@@ -20,15 +20,14 @@ public class CalculateISize {
 	private final TreeMap<Integer, Double> leftMap = new TreeMap<>();
 	private final TreeMap<Integer, Double> rightMap = new TreeMap<>();
 	private final TreeMap<Integer, Integer> totalMap = new TreeMap<>();
-	private double[] leftDyDx;
-	private double[] rightDyDx;
+    private double[] rightDyDx;
 	private int isizeMin;
 	private int isizeMax;
 	
 	public CalculateISize(ConcurrentMap<Integer, AtomicInteger> isizeMap) {
 		
 		for (Entry<Integer, AtomicInteger> entry: isizeMap.entrySet()) {
-			totalMap.put(new Integer(entry.getKey().intValue()), new Integer(entry.getValue().intValue()));
+			totalMap.put(entry.getKey(), entry.getValue().intValue());
 		}		
 	}
 	
@@ -55,7 +54,7 @@ public class CalculateISize {
 		getLogMaps();
 		
 		//find derivatives		
-		leftDyDx = findFirstDerivative(leftMap);		
+        double[] leftDyDx = findFirstDerivative(leftMap);
 		rightDyDx = findFirstDerivative(rightMap);
 		
 		//left side of curve
@@ -109,7 +108,7 @@ public class CalculateISize {
 		//convert the map to arrays for x/y values
 		for (Entry<Integer, Double> entry: map.entrySet()) {
 			if (count == newRightMinIndex) {
-				isizeMax = entry.getKey().intValue() + 5;
+				isizeMax = entry.getKey() + 5;
 				break;
 			}
 			count++;				
@@ -148,7 +147,7 @@ public class CalculateISize {
 		int index = 0;
 		for (Entry<Integer, Double> entry: xyMap.entrySet()) {
 			x[index] = entry.getKey().doubleValue();
-			y[index] = entry.getValue().doubleValue();
+			y[index] = entry.getValue();
 			index++;
 		}
 		
@@ -177,7 +176,7 @@ public class CalculateISize {
 				maxCount = entry.getValue();
 				maxKey = entry.getValue();
 			}
-			if (entry.getValue().intValue() > maxCount) {
+			if (entry.getValue() > maxCount) {
 				maxCount = entry.getValue();
 				maxKey = entry.getKey();
 			}
@@ -188,12 +187,12 @@ public class CalculateISize {
 		
 		//get log of counts for left side
 		for (Entry<Integer, Integer> entry: left.entrySet()) {
-			leftMap.put(entry.getKey(), new Double(Math.log10(entry.getValue().doubleValue())));			
+			leftMap.put(entry.getKey(), Math.log10(entry.getValue().doubleValue()));
 		}
 		
 		//get log of counts for right side
 		for (Entry<Integer, Integer> entry: right.entrySet()) {
-			rightMap.put(entry.getKey(), new Double(Math.log10(entry.getValue().doubleValue())));
+			rightMap.put(entry.getKey(), Math.log10(entry.getValue().doubleValue()));
 		}		
 		
 	}

@@ -41,7 +41,7 @@ public class BLAT {
 
 	public BLAT(String server, String port, String path) {
 		this.commands = new ArrayList<>(6);
-		commands.add(path + QSVParameters.FILE_SEPERATOR +  "gfClient");
+		commands.add(path + QSVParameters.FILE_SEPARATOR +  "gfClient");
 	    commands.add(server);
 	    commands.add(port);
 	    commands.add("/");

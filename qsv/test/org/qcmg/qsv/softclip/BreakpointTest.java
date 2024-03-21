@@ -1,33 +1,18 @@
 package org.qcmg.qsv.softclip;
 
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.OptionalInt;
-import java.util.Set;
-
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.model.BLATRecord;
 import org.qcmg.qsv.QSVException;
-import org.qcmg.qsv.QSVParameters;
 import org.qcmg.qsv.assemble.ConsensusRead;
 import org.qcmg.qsv.splitread.UnmappedRead;
 import org.qcmg.qsv.util.QSVUtil;
 import org.qcmg.qsv.util.TestUtil;
+
+import java.util.*;
+
+import static org.junit.Assert.*;
 
 public class BreakpointTest {
 	
@@ -73,15 +58,15 @@ public class BreakpointTest {
 		try {
 			Breakpoint.parseMatchingSplitReads(header, null);
 			fail("Should have thrown an IAE");
-		} catch (IllegalArgumentException iae) {}
+		} catch (IllegalArgumentException ignored) {}
 		try {
 			Breakpoint.parseMatchingSplitReads(null, splitReadsList);
 			fail("Should have thrown an IAE");
-		} catch (IllegalArgumentException iae) {}
+		} catch (IllegalArgumentException ignored) {}
 		try {
 			Breakpoint.parseMatchingSplitReads(null, null);
 			fail("Should have thrown an IAE");
-		} catch (IllegalArgumentException iae) {}
+		} catch (IllegalArgumentException ignored) {}
 		
 		header += "what a great header";
 		splitReadsList.add(new UnmappedRead("column1,what a really great header,column2,3,column4", true));
@@ -202,7 +187,7 @@ READ:GTTCTGGAATCCTGTGTGAGGGACAAACATTCAGACCACTGCAGGATTGTTCAGGAATCCTATCTGAGGGACAAA
 		BLATRecord r = new BLATRecord.Builder("52	4	0	0	0	0	1	1	+	GL000219.1_165002_true_+	66	9	65	GL000219.1	179198	165421	165478	2	36,20,	9,45,	165421,165458,").build();
 		
 		assertEquals(0, b.getMateBreakpoint());
-		assertEquals(true, b.findMateBreakpoint(r));
+        assertTrue(b.findMateBreakpoint(r));
 		assertEquals(165478, b.getMateBreakpoint());
 		assertEquals("GL000219.1", b.getMateReference());
 		
@@ -210,7 +195,7 @@ READ:GTTCTGGAATCCTGTGTGAGGGACAAACATTCAGACCACTGCAGGATTGTTCAGGAATCCTATCTGAGGGACAAA
 		 * try and match to another blat record - aligned by the tiled aligner of course...
 		 */
 		BLATRecord r2 = new BLATRecord.Builder("57	7	0	0	1	1	0	0	+	name	66	-1	64	GL000219.1	12345	165414	165479	2	43,19	1,46	165415,165460").build();
-		assertEquals(true, b.findMateBreakpoint(r2));
+        assertTrue(b.findMateBreakpoint(r2));
 		assertEquals(165479, b.getMateBreakpoint());			// out by 1
 		assertEquals("GL000219.1", b.getMateReference());
 		assertEquals("GL000219.1_165002_true_+", b.getName());
@@ -250,7 +235,7 @@ READ:AGCCACCCTTTCACCCAGGTGCTCTGTCACAGGGAGATGAGAGTTTTATCTATAAGCCTCTGACTGGGGCTGCTG
 		 * try and match to another blat record - aligned by the tiled aligner of course...
 		 */
 		BLATRecord r2 = new BLATRecord.Builder("25	0	0	0	0	0	0	0	+	name	25	0	25	chr11	12345	18918919	18918944	1	24	1	18918920").build();
-		assertEquals(true, b.findMateBreakpoint(r2));
+        assertTrue(b.findMateBreakpoint(r2));
 		assertEquals(18918920, b.getMateBreakpoint());			// out by 1
 		assertEquals("chr11", b.getMateReference());
 		assertEquals("chr9_25061047_false_+", b.getName());
@@ -263,8 +248,8 @@ READ:AGCCACCCTTTCACCCAGGTGCTCTGTCACAGGGAGATGAGAGTTTTATCTATAAGCCTCTGACTGGGGCTGCTG
 		String value = "42	1	0	0	0	0	0	0	+	name	59	0	43	chr10	135534747	89700259	89700301	1	42	1	89700259";
 		String[] values =value.split("\t");
 		BLATRecord tiledAlignerBlatRecord = new BLATRecord.Builder(values).build();
-		
-		assertEquals(true, breakpoint.findMateBreakpoint(tiledAlignerBlatRecord));
+
+        assertTrue(breakpoint.findMateBreakpoint(tiledAlignerBlatRecord));
 		assertEquals(QSVUtil.PLUS, breakpoint.getMateStrand());
 		assertEquals("chr10", breakpoint.getMateReference());
 		assertEquals(89700301, breakpoint.getMateBreakpoint());
@@ -331,7 +316,7 @@ READ:AGCCACCCTTTCACCCAGGTGCTCTGTCACAGGGAGATGAGAGTTTTATCTATAAGCCTCTGACTGGGGCTGCTG
 		BLATRecord record = new BLATRecord.Builder(values).build();
 		
 		breakpoint = TestUtil.getBreakpointNoChr(true, false, 20);
-		assertEquals(true, breakpoint.findMateBreakpoint(record));
+        assertTrue(breakpoint.findMateBreakpoint(record));
 		
 		assertEquals(QSVUtil.PLUS, breakpoint.getMateStrand());
 		assertEquals("chr10", breakpoint.getMateReference());
@@ -395,9 +380,9 @@ READ:AGCCACCCTTTCACCCAGGTGCTCTGTCACAGGGAGATGAGAGTTTTATCTATAAGCCTCTGACTGGGGCTGCTG
 				}
 			}
 		}
-//		//char strand, int clipSize, int length, int readLength,
 		ConsensusRead cr = Breakpoint.calculate(breakpoint.getStrand(), breakpoint.getClipsSize(), posLength, posReadLength, breakpoint.getTumourClips(), breakpoint.getNormalClips(), breakpoint.isGermline(), breakpoint.isLeft(), 20);
-		assertEquals("AAAGATCAACCTGTCCTAAGTCATATAATCTCTTTGTGTAAGAGATTATACTTTGTGTAAGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAGGGCAGGGATCAATTCCTTAATATCTTAGGAAGACTAGGTATTGACAGTAAT",cr.getSequence());
+        assert cr != null;
+        assertEquals("AAAGATCAACCTGTCCTAAGTCATATAATCTCTTTGTGTAAGAGATTATACTTTGTGTAAGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAGGGCAGGGATCAATTCCTTAATATCTTAGGAAGACTAGGTATTGACAGTAAT", cr.getSequence());
 	}
 	
 	@Test
@@ -419,7 +404,8 @@ FULL:AAAGATCAACCTGTCCTAAGTCATATAATCTCTTTGTGTAAGAGATTATACTTTGTGTAAGAGGTCCACCAGAGG
 CLIPS:AAAGATCAACCTGTCCTAAGTCATATAATCTCTTTGTGTAAGAGATTATACTTTGTGTA
 READ:AGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAGGGCAGGGATCAATTCCTTAATATCTTAGGAAGACTAGGTATTGACAGTAAT
 		 */
-		assertEquals("AAAGATCAACCTGTCCTAAGTCATATAATCTCTTTGTGTAAGAGATTATACTTTGTGTA", cr.getClipMateSequence());
+        assert cr != null;
+        assertEquals("AAAGATCAACCTGTCCTAAGTCATATAATCTCTTTGTGTAAGAGATTATACTTTGTGTA", cr.getClipMateSequence());
 		assertEquals("AGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAGGGCAGGGATCAATTCCTTAATATCTTAGGAAGACTAGGTATTGACAGTAAT", cr.getReferenceSequence());
 		assertEquals("AAAGATCAACCTGTCCTAAGTCATATAATCTCTTTGTGTAAGAGATTATACTTTGTGTAAGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAGGGCAGGGATCAATTCCTTAATATCTTAGGAAGACTAGGTATTGACAGTAAT", cr.getSequence());
 	}
@@ -450,7 +436,7 @@ READ:AGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAGGGCAGGGATCAATTCCTTAATATCTTAGGAAGACT
 		breakpoint.setMateReference("chr1");
 		assertNull(breakpoint.compare("chr2", 12345));
 		assertNull(breakpoint.compare("chr1", 12356));
-		assertEquals(new Integer(12350), breakpoint.compare("chr1", 12350));
+		assertEquals(Integer.valueOf(12350), breakpoint.compare("chr1", 12350));
 	}
 	
 	@Test
@@ -471,7 +457,7 @@ READ:AGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAGGGCAGGGATCAATTCCTTAATATCTTAGGAAGACT
 	private void assertStrand(char strand1, char strand2, boolean isGermline,
 			int posStrandCount, int negStrandCount) throws QSVException {
 		breakpoint = new Breakpoint(1, "reference", true, 1, 1);	
-		HashSet<Clip> set = new HashSet<Clip>();
+		HashSet<Clip> set = new HashSet<>();
 		set.add(new Clip("test,chr10,89712341,"+strand1+",left,ACTTTGAAAAAACAGTAATTAA,ACTTTGAAAAAACAGTAATT,AA"));		
 		set.add(new Clip("test2,chr10,89712341,"+strand2+",left,ACTTTGAAAAAACAGTAATTAA,ACTTTGAAAAAACAGTAATT,AA"));
 		for (Clip c : set) {
@@ -510,21 +496,21 @@ READ:AGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAGGGCAGGGATCAATTCCTTAATATCTTAGGAAGACT
 	@Test
 	public void belowMinInsertSizeSameBP() {
 		// same bp and mate bp
-		assertEquals(true, Breakpoint.belowMinInsertSize(0, 0, 0));
-		assertEquals(true, Breakpoint.belowMinInsertSize(1, 1, 0));
-		assertEquals(true, Breakpoint.belowMinInsertSize(12345, 12345, 0));
-		assertEquals(true, Breakpoint.belowMinInsertSize(-12345, -12345, 0));
+        assertTrue(Breakpoint.belowMinInsertSize(0, 0, 0));
+        assertTrue(Breakpoint.belowMinInsertSize(1, 1, 0));
+        assertTrue(Breakpoint.belowMinInsertSize(12345, 12345, 0));
+        assertTrue(Breakpoint.belowMinInsertSize(-12345, -12345, 0));
 	}
 	@Test
 	public void belowMinInsertSizeDiffBP() {
 		// same bp and mate bp
-		assertEquals(false, Breakpoint.belowMinInsertSize(0, 1, 0));
-		assertEquals(true, Breakpoint.belowMinInsertSize(0, 1, 1));
-		assertEquals(true, Breakpoint.belowMinInsertSize(1, 0, 1));
-		assertEquals(false, Breakpoint.belowMinInsertSize(2, 0, 1));
-		assertEquals(false, Breakpoint.belowMinInsertSize(0, 2, 1));
-		assertEquals(true, Breakpoint.belowMinInsertSize(0, 2, 2));
-		assertEquals(true, Breakpoint.belowMinInsertSize(2, 1, 2));
+        assertFalse(Breakpoint.belowMinInsertSize(0, 1, 0));
+        assertTrue(Breakpoint.belowMinInsertSize(0, 1, 1));
+        assertTrue(Breakpoint.belowMinInsertSize(1, 0, 1));
+        assertFalse(Breakpoint.belowMinInsertSize(2, 0, 1));
+        assertFalse(Breakpoint.belowMinInsertSize(0, 2, 1));
+        assertTrue(Breakpoint.belowMinInsertSize(0, 2, 2));
+        assertTrue(Breakpoint.belowMinInsertSize(2, 1, 2));
 	}
 	
 	private int[][] setUpBases(int a, int b, int c, int d, int e) {

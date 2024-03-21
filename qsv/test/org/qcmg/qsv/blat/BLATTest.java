@@ -30,7 +30,7 @@ public class BLATTest {
 	public void setUp() throws Exception {
 		blat = new BLAT("localhost", "8000", "/test");
 		assertEquals(blat.getCommands().size(), 5);
-		assertEquals(blat.getCommands().get(0), "/test" + QSVParameters.FILE_SEPERATOR + "gfClient");
+		assertEquals(blat.getCommands().get(0), "/test" + QSVParameters.FILE_SEPARATOR + "gfClient");
 	}
 	
 	@Test(expected=QSVException.class)
