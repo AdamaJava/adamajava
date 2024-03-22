@@ -274,7 +274,7 @@ public class QSVPipeline {
 			 */
 			logger.info("waiting for tiled aligner");
 			TILED_ALIGNER_CACHE = future.get();
-			logger.info("waiting for tiled aligner - DONE");
+			logger.info("waiting for tiled aligner - DONE, size: " + TILED_ALIGNER_CACHE.size());
 			
 			findSoftClips(); 
 			logger.info(QSVUtil.writeTime("Soft clip clustering time: ", pairsDate, new Date()));

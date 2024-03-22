@@ -26,13 +26,13 @@ import gnu.trove.map.hash.TIntObjectHashMap;
 
 public class ReadTiledAligerFile {
 	
-	private static TIntObjectMap<int[]> map = TCollections.synchronizedMap(new TIntObjectHashMap<>(1024 * 8));
+	private static final TIntObjectMap<int[]> map = TCollections.synchronizedMap(new TIntObjectHashMap<>(1024 * 8));
 	
 	public static void getTiledDataInMap(String tiledAlignerFile, int bufferSize) throws IOException {
 		getTiledDataInMap(tiledAlignerFile, bufferSize, 1);
 	}
 	
-	public static void getTiledDataInMap(String tiledAlignerFile, int bufferSize, int threadPoolSize) throws IOException {
+	public static void getTiledDataInMap(String tiledAlignerFile, int bufferSize, int threadPoolSize) {
 		
 		AbstractQueue<String> queue = new LinkedBlockingQueue<>();
 		AtomicBoolean hasReaderFinished = new AtomicBoolean(false);
@@ -68,7 +68,7 @@ public class ReadTiledAligerFile {
 	}
 	
 	static class Worker implements Runnable {
-		private AbstractQueue<String> queue;
+		private final AbstractQueue<String> queue;
 		AtomicBoolean hasReaderFinished;
 		public Worker(AbstractQueue<String> queue, AtomicBoolean hasReaderFinished) {
 			this.queue = queue;
@@ -83,7 +83,7 @@ public class ReadTiledAligerFile {
 				e.printStackTrace();
 			}
 			System.out.println("Worker started...");
-			String s = null;
+			String s;
 			int invalidCount = 0;
 			while ( ! ((s = queue.poll()) == null && hasReaderFinished.get())) {
 				if (null != s) {
@@ -104,11 +104,7 @@ public class ReadTiledAligerFile {
 			System.out.println("Worker has finished! invalidCount: " + invalidCount + ", map size: " + map.size());
 		}
 	}
-	
-	public static TIntObjectMap<int[]> getCache(String tiledAlignerFile, int bufferSize) throws IOException {
-		return getCache(tiledAlignerFile, bufferSize, 1);
-	}
-	
+
 	public static TIntObjectMap<int[]> getCache(String tiledAlignerFile, int bufferSize, int threadCount) throws IOException {
 		if (map.isEmpty()) {
 			getTiledDataInMap(tiledAlignerFile, bufferSize, threadCount);

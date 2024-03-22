@@ -65,7 +65,7 @@ public class FindClipClustersMT  {
 	private final QSVParameters normalParameters;
 	private final AtomicInteger exitStatus = new AtomicInteger();
 	private final String softClipDir;
-	private final ConcurrentHashMap<String, List<SoftClipCluster>> clipRecordsMap = new ConcurrentHashMap<String, List<SoftClipCluster>>();
+	private final ConcurrentHashMap<String, List<SoftClipCluster>> clipRecordsMap = new ConcurrentHashMap<>();
 	private final ConcurrentHashMap<PairGroup, Map<String, List<DiscordantPairCluster>>> tumorClusterRecords;
 	private final TIntObjectMap<int[]> cache;
 	private final boolean singleSided;
@@ -73,8 +73,7 @@ public class FindClipClustersMT  {
 	private final int CONSENSUS_LENGTH;
 	private final int MIN_INSERT_SIZE;
 	private final String reference;
-	private final String platform;
-	private final boolean translocationOnly;
+    private final boolean translocationOnly;
 	private final boolean allChromosomes;
 	private final int defineThreadNo;
 	private final int noOfThreads;
@@ -97,15 +96,15 @@ public class FindClipClustersMT  {
 		this.tumourParameters = tumourParameters; 
 		this.normalParameters = normalParameters;
 		this.cache = cache;
-		this.tumorClusterRecords = new ConcurrentHashMap<PairGroup, Map<String, List<DiscordantPairCluster>>>(tumorClusterRecords);        
+		this.tumorClusterRecords = new ConcurrentHashMap<>(tumorClusterRecords);
 		this.isQCMG = options.isQCMG();
 		this.singleSided = options.singleSided();
-		this.CONSENSUS_LENGTH = options.getConsensusLength().intValue();
-		this.CLIP_SIZE = options.getClipSize().intValue() -1;
-		this.MIN_INSERT_SIZE =  options.getMinInsertSize().intValue();
+		this.CONSENSUS_LENGTH = options.getConsensusLength();
+		this.CLIP_SIZE = options.getClipSize() - 1;
+		this.MIN_INSERT_SIZE = options.getMinInsertSize();
 		this.reference = options.getReference();
 		this.runClip = ! options.getAnalysisMode().equals("pair");
-		this.platform = options.getPlatform();
+        String platform = options.getPlatform();
 		this.translocationOnly = options.getIncludeTranslocations();
 		this.allChromosomes = options.allChromosomes();
 		this.lowConfidenceFile = tumourParameters.getResultsDir() + "_no_blat_alignment.txt";
@@ -128,8 +127,8 @@ public class FindClipClustersMT  {
 
 	private synchronized void writeToLowConfidenceFile(List<Breakpoint> breakpoints) throws IOException {
 
-		try (FileWriter fw = new FileWriter(new File(lowConfidenceFile), true);
-				BufferedWriter writer = new BufferedWriter(fw);) {
+		try (FileWriter fw = new FileWriter(lowConfidenceFile, true);
+             BufferedWriter writer = new BufferedWriter(fw)) {
 
 			for (Breakpoint b : breakpoints) {
 				if ( ! b.isGermline()) {
@@ -143,10 +142,10 @@ public class FindClipClustersMT  {
 		return this.qsvRecordWriter;		
 	}
 
-	public void execute() throws Exception {		
+	public void execute() {
 
 		// create queue to store the records from input
-		final AbstractQueue<List<Chromosome>> readQueue = new ConcurrentLinkedQueue<List<Chromosome>>();    
+		final AbstractQueue<List<Chromosome>> readQueue = new ConcurrentLinkedQueue<>();
 		final CountDownLatch filterLatch = new CountDownLatch(noOfThreads); // cluster thread
 
 		ExecutorService filterThreads = new CustomThreadPoolExecutor(noOfThreads, exitStatus, logger);
@@ -166,7 +165,7 @@ public class FindClipClustersMT  {
 			logger.info("waiting for  threads to finish (max wait will be 100 hours)");
 			filterThreads.awaitTermination(Constants.EXECUTOR_SERVICE_AWAIT_TERMINATION, TimeUnit.HOURS);
 
-			if (readQueue.size() != 0) {
+			if ( ! readQueue.isEmpty()) {
 				throw new Exception(
 						" threads have completed but queue isn't empty  (readQueue):  "
 								+ readQueue.size());
@@ -195,20 +194,18 @@ public class FindClipClustersMT  {
 		return this.exitStatus;
 	}		
 
-	private void findLastOverlappingClusters() throws Exception {
+	private void findLastOverlappingClusters() {
 
 		logger.info("Finding clipping translocations");
 
-		final AbstractQueue<String> finalQueue = new ConcurrentLinkedQueue<String>();
+		final AbstractQueue<String> finalQueue = new ConcurrentLinkedQueue<>();
 		ExecutorService overlapThreads =  new CustomThreadPoolExecutor(
 				noOfFinalThreads, exitStatus, logger);
 
 		try {
 			Set<String> referenceKeys = getReferenceKeys();
 
-			for (String referenceKey : referenceKeys) {
-				finalQueue.add(referenceKey);
-			}
+            finalQueue.addAll(referenceKeys);
 
 			final CountDownLatch overlapLatch = new CountDownLatch(noOfFinalThreads);	
 			for (int i = 0; i < noOfFinalThreads; i++) {
@@ -230,7 +227,7 @@ public class FindClipClustersMT  {
 	}
 
 	private Set<String> getReferenceKeys() {
-		Set<String> referenceKeys = new HashSet<String>(clipRecordsMap.keySet());
+		Set<String> referenceKeys = new HashSet<>(clipRecordsMap.keySet());
 
 		for (Entry<PairGroup, Map<String, List<DiscordantPairCluster>>> record : tumorClusterRecords.entrySet()) {
 			Set<String> keys = record.getValue().keySet();
@@ -239,7 +236,7 @@ public class FindClipClustersMT  {
 		return referenceKeys;
 	}
 
-	private void findOverlappingClusters(String referenceKey, List<QSVCluster> records, List<DiscordantPairCluster> clusters, List<SoftClipCluster> clips, boolean translocation) throws Exception {
+	private void findOverlappingClusters(String referenceKey, List<QSVCluster> records, List<DiscordantPairCluster> clusters, List<SoftClipCluster> clips, boolean translocation) {
 
 		if (clusters != null && clips != null) {
 			logger.info(referenceKey + "- number of clusters: "  + clusters.size() + ", number of clips " + clips.size());
@@ -305,7 +302,7 @@ public class FindClipClustersMT  {
 		return new ArrayList<>(clipRecords.keySet());
 	}
 
-	private void findOverlaps(String key, List<QSVCluster> records, List<DiscordantPairCluster> clusters, List<SoftClipCluster> clips) throws Exception {
+	private void findOverlaps(String key, List<QSVCluster> records, List<DiscordantPairCluster> clusters, List<SoftClipCluster> clips) {
 		Iterator<DiscordantPairCluster> iter = clusters.iterator();
 
 		// look for matches
@@ -367,7 +364,7 @@ public class FindClipClustersMT  {
 	}
 
 	private List<DiscordantPairCluster> getTumourClustersByReferenceKey(String key) {
-		List<DiscordantPairCluster> list = new ArrayList<DiscordantPairCluster>();
+		List<DiscordantPairCluster> list = new ArrayList<>();
 
 		for (Map.Entry<PairGroup, Map<String, List<DiscordantPairCluster>>> entry : tumorClusterRecords.entrySet()) {
 			Map<String, List<DiscordantPairCluster>> currentMap = entry.getValue();
@@ -384,15 +381,14 @@ public class FindClipClustersMT  {
 
 		private final AbstractQueue<List<Chromosome>> queueIn;  
 		private final Thread mainThread;
-		private final CountDownLatch latch;      
-		private int countOutputSleep;
-		private String currentReferenceKey;
+		private final CountDownLatch latch;
+        private String currentReferenceKey;
 		private Chromosome chromosome;
 		private List<QSVCluster> currentQsvRecords;
 
 		public Clustering(AbstractQueue<List<Chromosome>> readQueue,
 				Thread mainThread,
-				CountDownLatch latch) throws Exception {
+				CountDownLatch latch) {
 			this.queueIn = readQueue;
 			this.mainThread = mainThread;
 			this.latch = latch;
@@ -402,7 +398,7 @@ public class FindClipClustersMT  {
 		public void run() {
 
 			int sleepcount = 0;
-			countOutputSleep = 0;
+            int countOutputSleep = 0;
 			boolean run = true;
 
 			try {
@@ -429,10 +425,9 @@ public class FindClipClustersMT  {
 						}
 
 					} else {
-						//check to make sure exceptions haven't occured
+						//check to make sure exceptions haven't occurred
 						if (exitStatus.intValue() != 0) {
-							run = false;
-							logger.error("Terminating clustering thread due to exeption in another thread: ");
+                            logger.error("Terminating clustering thread due to exception in another thread: ");
 						}
 
 
@@ -448,14 +443,12 @@ public class FindClipClustersMT  {
 							List<DiscordantPairCluster> clusterList = getTumourClustersByReferenceKey(currentReferenceKey);
 							findOverlappingClusters(currentReferenceKey, currentQsvRecords, clusterList,
 									clipRecordsMap.get(currentReferenceKey), false);
-							clusterList = null;
-							clipRecordsMap.remove(currentReferenceKey);
+                            clipRecordsMap.remove(currentReferenceKey);
 							rescueCurrentQSVRecords(currentReferenceKey, currentQsvRecords);						
 
 							currentReferenceKey = null;
 						}
-						run = true;
-					} // end else
+                    } // end else
 				}// end while
 
 				logger.info("Completed clipping thread: "
@@ -479,9 +472,9 @@ public class FindClipClustersMT  {
 
 		private void clusterSoftClips(Chromosome chromosome) throws Exception {
 
-			TreeMap<Integer, Breakpoint> leftPositions = new TreeMap<Integer, Breakpoint>();
-			TreeMap<Integer, Breakpoint> rightPositions = new TreeMap<Integer, Breakpoint>();
-			TreeMap<Integer, List<UnmappedRead>> splitReads = new TreeMap<Integer, List<UnmappedRead>>();
+			TreeMap<Integer, Breakpoint> leftPositions = new TreeMap<>();
+			TreeMap<Integer, Breakpoint> rightPositions = new TreeMap<>();
+			TreeMap<Integer, List<UnmappedRead>> splitReads = new TreeMap<>();
 
 			getClipPositions(true, leftPositions, rightPositions, splitReads, tumourParameters.getFindType());
 
@@ -492,40 +485,36 @@ public class FindClipClustersMT  {
 			}
 			logger.info("Split reads: " + noOfUnmapped + " for " + chromosome.getName());
 
-			if (leftPositions.size() > 0 || rightPositions.size() > 0) {
+			if ( ! leftPositions.isEmpty() || ! rightPositions.isEmpty()) {
 				if (normalParameters != null) {
 					getClipPositions(false, leftPositions, rightPositions, splitReads, normalParameters.getFindType());
 				}
 			}
 			this.currentReferenceKey = chromosome.getName() + ":" + chromosome.getName();
 
-			if (leftPositions.size() > 0 || rightPositions.size() > 0) {
+			if ( ! leftPositions.isEmpty() || ! rightPositions.isEmpty()) {
 				Map<String, List<Breakpoint>> breakpointMap = defineClipPositions(leftPositions, rightPositions, splitReads);
-				leftPositions = null;
-				rightPositions = null;
-				splitReads = null;
-				findMatchingClipBreakpoint(breakpointMap);
+                findMatchingClipBreakpoint(breakpointMap);
 			}			
 		}
 
 		private Map<String, List<Breakpoint>> defineClipPositions(TreeMap<Integer, Breakpoint> leftClipPositions, TreeMap<Integer, Breakpoint> rightClipPositions,TreeMap<Integer, List<UnmappedRead>> splitReads) throws Exception {
-			int buffer = tumourParameters.getUpperInsertSize().intValue() + 100;
-			AbstractQueue<Breakpoint> queueIn = new ConcurrentLinkedQueue<Breakpoint>(); 			
+			int buffer = tumourParameters.getUpperInsertSize() + 100;
+			AbstractQueue<Breakpoint> queueIn = new ConcurrentLinkedQueue<>();
 			logger.info("Before " +  chromosome.getName() + " left: " + leftClipPositions.size() + " right:" + rightClipPositions.size()) ;
 			for (Entry<Integer, Breakpoint> entry : leftClipPositions.entrySet()) {
 				Integer key = entry.getKey();
 				Breakpoint leftBP = entry.getValue();
 
 				Breakpoint rightBP = rightClipPositions.remove(key);
-				int leftBreakpoint = leftBP.getBreakpoint().intValue();
-				Integer start = Integer.valueOf(leftBreakpoint - buffer);
-				Integer end  = Integer.valueOf(leftBreakpoint + buffer);
+				int leftBreakpoint = leftBP.getBreakpoint();
+				Integer start = leftBreakpoint - buffer;
+				Integer end  = leftBreakpoint + buffer;
 				NavigableMap<Integer, List<UnmappedRead>> splitReadsMap = splitReads.subMap(start, true, end, true);
 				if (splitReadsMap.size() > 10000) {
 					logger.warn("Large number (" + splitReadsMap.size() + ") of unmapped reads for breakpoint: " + leftBP.getName());
 				}
-				//				count++;
-				leftBP.addSplitReadsMap(splitReadsMap);				
+				leftBP.addSplitReadsMap(splitReadsMap);
 				queueIn.add(leftBP);
 				if (rightBP != null) {
 					rightBP.addSplitReadsMap(splitReadsMap);					
@@ -535,9 +524,9 @@ public class FindClipClustersMT  {
 
 			for (Entry<Integer, Breakpoint> entry : rightClipPositions.entrySet()) {
 				Breakpoint rightBP = entry.getValue();		
-				int rightBreakpoint = rightBP.getBreakpoint().intValue();
-				Integer start = Integer.valueOf(rightBreakpoint - buffer);
-				Integer end  = Integer.valueOf(rightBreakpoint + buffer);
+				int rightBreakpoint = rightBP.getBreakpoint();
+				Integer start = rightBreakpoint - buffer;
+				Integer end  = rightBreakpoint + buffer;
 				NavigableMap<Integer, List<UnmappedRead>> splitReadsMap = splitReads.subMap(start, true, end, true);
 				if (splitReadsMap.size() > 10000) {
 					logger.warn("Large number (" + splitReadsMap.size() + ") of unmapped reads for breakpoint: " + rightBP.getName());
@@ -548,7 +537,7 @@ public class FindClipClustersMT  {
 
 			ExecutorService executorService = new CustomThreadPoolExecutor(defineThreadNo, exitStatus, logger);
 			CountDownLatch countDownLatch = new CountDownLatch(defineThreadNo);
-			Set<Future<List<Breakpoint>>> set = new HashSet<Future<List<Breakpoint>>>();
+			Set<Future<List<Breakpoint>>> set = new HashSet<>();
 
 			for (int i=0; i<defineThreadNo; i++) {
 				Callable<List<Breakpoint>> callable = new DefineBreakpoint(queueIn, mainThread, countDownLatch, CLIP_SIZE, false);
@@ -571,7 +560,7 @@ public class FindClipClustersMT  {
 				throw e;
 			}
 			executorService.shutdownNow();
-			List<Breakpoint> breakpoints = new ArrayList<Breakpoint>();
+			List<Breakpoint> breakpoints = new ArrayList<>();
 			for (Future<List<Breakpoint>> f : set) {
 				breakpoints.addAll(f.get());
 			}		         
@@ -579,9 +568,9 @@ public class FindClipClustersMT  {
 			// blat for the matching breakpoint
 			int size = breakpoints.size();
 			breakpoints.sort(null);
-			logger.info("Running BLAT to find matching positions for " + size + " breakpoints on " + chromosome.getName());
-			Map<String, List<Breakpoint>> breakpointMap = blatBreakpoints(breakpoints, false);	
-			logger.info("Finished running BLAT to find matching positions for " + size + " breakpoints on " + chromosome.getName());
+			logger.info("Examining tiledAligner to find matching positions for " + size + " breakpoints on " + chromosome.getName());
+			Map<String, List<Breakpoint>> breakpointMap = blatBreakpoints(breakpoints);
+			logger.info("Finished examining tiledAligner to find matching positions for " + size + " breakpoints on " + chromosome.getName());
 			return breakpointMap;
 		}
 
@@ -613,11 +602,11 @@ public class FindClipClustersMT  {
 			}
 		}
 
-		private Map<String, List<Breakpoint>> blatBreakpoints(List<Breakpoint> breakpoints, boolean log) throws Exception {
+		private Map<String, List<Breakpoint>> blatBreakpoints(List<Breakpoint> breakpoints) throws Exception {
 			
 			if ( ! breakpoints.isEmpty()) {
 				
-				Map<String, String> sequenceNameMapToSendToTiledAligner = breakpoints.stream().filter(b -> b.getMateConsensus() != null).collect(Collectors.toMap(b -> b.getMateConsensus(), b -> b.getName(), (s, a) -> s + ", " + a));
+				Map<String, String> sequenceNameMapToSendToTiledAligner = breakpoints.stream().filter(b -> b.getMateConsensus() != null).collect(Collectors.toMap(Breakpoint::getMateConsensus, Breakpoint::getName, (s, a) -> s + ", " + a));
 	
 				/*
 				 * This gives me possibly many BLATRecords per sequence. Here, we only want the "best" record (the one with the highest score)
@@ -635,7 +624,7 @@ public class FindClipClustersMT  {
 				Map<String, BLATRecord> bestBlatRecords = new HashMap<>();
 				
 				for (Entry <String, List<BLATRecord>> entry : allBlatRecords.entrySet()) {
-					bestBlatRecords.put(sequenceNameMapToSendToTiledAligner.get(entry.getKey()), null == entry.getValue() || entry.getValue().isEmpty() ? null : entry.getValue().get(entry.getValue().size() - 1));
+					bestBlatRecords.put(sequenceNameMapToSendToTiledAligner.get(entry.getKey()), null == entry.getValue() || entry.getValue().isEmpty() ? null : entry.getValue().getLast());
 				}
 				logger.debug("in blatBreakpoints best, bestBlatRecords size: " + bestBlatRecords.size());
 				for (Entry<String, BLATRecord> entry : bestBlatRecords.entrySet()) {
@@ -654,7 +643,7 @@ public class FindClipClustersMT  {
 		}
 
 		private Map<String, List<Breakpoint>> matchBlatBreakpoints(List<Breakpoint> breakpoints, Map<String,BLATRecord> blatRecords) throws IOException {
-			Map<String, List<Breakpoint>> breakpointMap = new TreeMap<String, List<Breakpoint>>();
+			Map<String, List<Breakpoint>> breakpointMap = new TreeMap<>();
 			//determine the breakpoint 		
 			int count = 0;
 			List<Breakpoint> nonBlatAligned = new ArrayList<>();
@@ -664,7 +653,7 @@ public class FindClipClustersMT  {
 				BLATRecord blatR = blatRecords.get(r.getName());
 				if (null != blatR) {
 					
-					logger.debug("breakpoint: " + r.toLowConfidenceString() + ", blat: " + blatR.toString());
+					logger.debug("breakpoint: " + r.toLowConfidenceString() + ", blat: " + blatR);
 
 					boolean matchingBreakpoint = r.findMateBreakpoint(blatR);
 
@@ -713,7 +702,7 @@ public class FindClipClustersMT  {
 			logger.info("Getting  " + type + " clips for " + chromosome.getName());
 
 			if (file.exists()) {
-				try (BufferedReader reader = new BufferedReader(new FileReader(file));) {
+				try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
 
 					String line = reader.readLine();
 
@@ -721,21 +710,16 @@ public class FindClipClustersMT  {
 						if (line.startsWith("unmapped")) {
 							if (isSplitRead) {
 								UnmappedRead r = new UnmappedRead(line, isTumour);
-								List<UnmappedRead> reads = splitReads.get(r.getBpPos());
-								if (null == reads) {
-									reads = new ArrayList<>();
-									splitReads.put(r.getBpPos(), reads);
-								}
-								reads.add(r);
+                                List<UnmappedRead> reads = splitReads.computeIfAbsent(r.getBpPos(), k -> new ArrayList<>());
+                                reads.add(r);
 							}
 						} else {
 							Clip record = new Clip(line);
 
-							//if (record.getLength() >= CONSENSUS_LENGTH) {
 							if (record.getBpPos() >= chromosome.getStartPosition()
 									&& record.getBpPos() <= chromosome.getEndPosition()) {
 								
-								Integer key = Integer.valueOf(record.getBpPos());
+								Integer key = record.getBpPos();
 								if (record.isLeft()) {
 
 									Breakpoint b = leftPositions.get(key);
@@ -779,9 +763,9 @@ public class FindClipClustersMT  {
 		}
 		private void rescueCurrentQSVRecords(String key, List<QSVCluster> records) throws Exception {
 
-			if (records.size() > 0) {
+			if (!records.isEmpty()) {
 				logger.info("Finding split read alignments in " + records.size() + " records for " + key);
-				AbstractQueue<List<QSVCluster>> queueIn = new ConcurrentLinkedQueue<List<QSVCluster>>();
+				AbstractQueue<List<QSVCluster>> queueIn = new ConcurrentLinkedQueue<>();
 
 				int listSize = 50;
 				for (int i = 0; i < records.size(); i += listSize) {
@@ -796,10 +780,10 @@ public class FindClipClustersMT  {
 				currentQsvRecords = null;
 				ExecutorService executorService = new CustomThreadPoolExecutor(defineThreadNo, exitStatus, logger);
 				CountDownLatch countDownLatch = new CountDownLatch(defineThreadNo);
-				Set<Future<List<QSVCluster>>> set = new HashSet<Future<List<QSVCluster>>>();
+				Set<Future<List<QSVCluster>>> set = new HashSet<>();
 
 				for (int i = 0; i < defineThreadNo; i++) {
-					Callable<List<QSVCluster>> callable = new RescueRecord(queueIn, mainThread, countDownLatch, CLIP_SIZE, false, cache, tumourParameters, normalParameters, softClipDir, CONSENSUS_LENGTH, isQCMG, MIN_INSERT_SIZE, singleSided, isSplitRead, reference);
+					Callable<List<QSVCluster>> callable = new RescueRecord(queueIn, mainThread, countDownLatch, cache, tumourParameters, normalParameters, softClipDir, CONSENSUS_LENGTH, isQCMG, MIN_INSERT_SIZE, singleSided, isSplitRead, reference);
 					Future<List<QSVCluster>> future = executorService.submit(callable);
 					set.add(future);
 				}
@@ -819,7 +803,7 @@ public class FindClipClustersMT  {
 					throw e;
 				}
 				executorService.shutdownNow();
-				List<QSVCluster> rescuedClusters = new ArrayList<QSVCluster>();
+				List<QSVCluster> rescuedClusters = new ArrayList<>();
 				for (Future<List<QSVCluster>> f : set) {
 					rescuedClusters.addAll(f.get());
 				}
@@ -835,12 +819,11 @@ public class FindClipClustersMT  {
 
 		private final AbstractQueue<String> queueIn;  
 		private final Thread mainThread;
-		private final CountDownLatch latch;      
-		private int countOutputSleep;
+		private final CountDownLatch latch;
 
-		public FinalOverlap(AbstractQueue<String> readQueue,
+        public FinalOverlap(AbstractQueue<String> readQueue,
 				Thread mainThread,
-				CountDownLatch latch) throws Exception {
+				CountDownLatch latch) {
 			this.queueIn = readQueue;
 			this.mainThread = mainThread;
 			this.latch = latch;
@@ -850,7 +833,7 @@ public class FindClipClustersMT  {
 		public void run() {
 
 			int sleepcount = 0;
-			countOutputSleep = 0;
+            int countOutputSleep = 0;
 			boolean run = true;
 
 			try {
@@ -880,7 +863,7 @@ public class FindClipClustersMT  {
 
 						logger.info("Finalising overlapping clusters for: " + referenceKey);
 						List<SoftClipCluster> clips = clipRecordsMap.get(referenceKey);
-						List<DiscordantPairCluster> clusters = new ArrayList<DiscordantPairCluster>();
+						List<DiscordantPairCluster> clusters = new ArrayList<>();
 
 						for (Entry<PairGroup, Map<String, List<DiscordantPairCluster>>> record : tumorClusterRecords.entrySet()) {
 							List<DiscordantPairCluster> value = record.getValue().get(referenceKey);
@@ -888,7 +871,7 @@ public class FindClipClustersMT  {
 								clusters.addAll(value);
 							}
 						}	 
-						List<QSVCluster> records = new ArrayList<QSVCluster>();               		 
+						List<QSVCluster> records = new ArrayList<>();
 						findOverlappingClusters(referenceKey, records, clusters, clips, true);
 						rescueQSVRecords(referenceKey, records);
 						qsvRecordWriter.writeTumourSVRecords(records);
@@ -959,7 +942,7 @@ public class FindClipClustersMT  {
 							throw e;
 						}
 
-						if (queueIn.size() == 0) {
+						if (queueIn.isEmpty()) {
 							run = false;
 						}
 
@@ -1003,8 +986,9 @@ public class FindClipClustersMT  {
 		private final QSVParameters tumourParameters;
 		private final TIntObjectMap<int[]> cache;
 
-		public RescueRecord(AbstractQueue<List<QSVCluster>> queueIn2, Thread mainThread, CountDownLatch latch, int clipSize, boolean isRescue, TIntObjectMap<int[]> cache, 
-				QSVParameters tumourParameters, QSVParameters normalParameters, String softClipDir, Integer consensusLength, boolean isQCMG, Integer minInsertSize, boolean singleSided, boolean isSplitRead, String reference) {
+		public RescueRecord(AbstractQueue<List<QSVCluster>> queueIn2, Thread mainThread, CountDownLatch latch, TIntObjectMap<int[]> cache,
+							QSVParameters tumourParameters, QSVParameters normalParameters, String softClipDir, Integer consensusLength,
+							boolean isQCMG, Integer minInsertSize, boolean singleSided, boolean isSplitRead, String reference) {
 			this.queueIn = queueIn2;
 			this.mainThread = mainThread;
 			this.latch = latch;
@@ -1047,7 +1031,7 @@ public class FindClipClustersMT  {
 							throw e;
 						}
 
-						if (queueIn.size() == 0) {
+						if (queueIn.isEmpty()) {
 							run = false;
 						}
 
@@ -1077,8 +1061,7 @@ public class FindClipClustersMT  {
 							clusters.add(cluster);
 						}
 
-						run = true;
-					} // end else
+                    } // end else
 				}// end while
 				logger.info("Completed rescue thread: "
 						+ Thread.currentThread().getName());

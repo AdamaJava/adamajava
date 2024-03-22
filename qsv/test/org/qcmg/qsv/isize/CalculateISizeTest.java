@@ -18,86 +18,29 @@ public class CalculateISizeTest {
 	CalculateISize isize;
 	ConcurrentHashMap<Integer, AtomicInteger>  map;
 
-	@Before
-	public void setUp() throws QSVException {
-		map = new ConcurrentHashMap<Integer,AtomicInteger>();
-		
-		map.put(new Integer(0), new AtomicInteger(22956));
-		map.put(new Integer(40), new AtomicInteger(2));
-		map.put(new Integer(80), new AtomicInteger(2));
-		map.put(new Integer(90), new AtomicInteger(376));
-		map.put(new Integer(100), new AtomicInteger(2820));
-		map.put(new Integer(110), new AtomicInteger(5772));
-		map.put(new Integer(120), new AtomicInteger(8896));
-		map.put(new Integer(130), new AtomicInteger(11358));
-		map.put(new Integer(140), new AtomicInteger(12626));
-		map.put(new Integer(150), new AtomicInteger(13437));
-		map.put(new Integer(160), new AtomicInteger(14032));
-		map.put(new Integer(170), new AtomicInteger(14451));
-		map.put(new Integer(180), new AtomicInteger(14537));
-		map.put(new Integer(190), new AtomicInteger(14615));
-		map.put(new Integer(200), new AtomicInteger(15806));
-		map.put(new Integer(210), new AtomicInteger(16309));
-		map.put(new Integer(220), new AtomicInteger(17540));
-		map.put(new Integer(230), new AtomicInteger(20509));
-		map.put(new Integer(240), new AtomicInteger(24656));
-		map.put(new Integer(250), new AtomicInteger(28513));
-		map.put(new Integer(260), new AtomicInteger(34720));
-		map.put(new Integer(270), new AtomicInteger(40961));
-		map.put(new Integer(280), new AtomicInteger(49129));
-		map.put(new Integer(290), new AtomicInteger(58384));
-		map.put(new Integer(300), new AtomicInteger(71585));
-		map.put(new Integer(310), new AtomicInteger(73491));
-		map.put(new Integer(320), new AtomicInteger(67551));
-		map.put(new Integer(330), new AtomicInteger(57469));
-		map.put(new Integer(340), new AtomicInteger(46505));
-		map.put(new Integer(350), new AtomicInteger(35617));
-		map.put(new Integer(360), new AtomicInteger(26385));
-		map.put(new Integer(370), new AtomicInteger(17762));
-		map.put(new Integer(380), new AtomicInteger(10119));
-		map.put(new Integer(390), new AtomicInteger(4459));
-		map.put(new Integer(400), new AtomicInteger(1704));
-		map.put(new Integer(410), new AtomicInteger(782));
-		map.put(new Integer(420), new AtomicInteger(536));
-		map.put(new Integer(430), new AtomicInteger(372));
-		map.put(new Integer(440), new AtomicInteger(268));
-		map.put(new Integer(450), new AtomicInteger(266));
-		map.put(new Integer(460), new AtomicInteger(234));
-		map.put(new Integer(470), new AtomicInteger(230));
-		map.put(new Integer(480), new AtomicInteger(254));
-		map.put(new Integer(490), new AtomicInteger(214));
-		map.put(new Integer(500), new AtomicInteger(180));
-		map.put(new Integer(510), new AtomicInteger(148));
-		map.put(new Integer(520), new AtomicInteger(178));
-		map.put(new Integer(530), new AtomicInteger(64));
-		map.put(new Integer(540), new AtomicInteger(44));
-		map.put(new Integer(550), new AtomicInteger(30));
-		map.put(new Integer(560), new AtomicInteger(44));
-		map.put(new Integer(570), new AtomicInteger(20));
-		map.put(new Integer(580), new AtomicInteger(30));
-		map.put(new Integer(590), new AtomicInteger(22));
-		map.put(new Integer(600), new AtomicInteger(32));
-		map.put(new Integer(610), new AtomicInteger(28));
-		map.put(new Integer(620), new AtomicInteger(42));
-		map.put(new Integer(630), new AtomicInteger(22));
-		map.put(new Integer(640), new AtomicInteger(18));
-		map.put(new Integer(650), new AtomicInteger(10));
-		map.put(new Integer(660), new AtomicInteger(2));
-		map.put(new Integer(670), new AtomicInteger(10));
-		map.put(new Integer(680), new AtomicInteger(4));
-		map.put(new Integer(690), new AtomicInteger(8));
-		map.put(new Integer(700), new AtomicInteger(32));
-		map.put(new Integer(710), new AtomicInteger(22));
-		map.put(new Integer(720), new AtomicInteger(18));
-		map.put(new Integer(730), new AtomicInteger(8));
-		map.put(new Integer(780), new AtomicInteger(4));
-		map.put(new Integer(790), new AtomicInteger(2));
-		map.put(new Integer(800), new AtomicInteger(8));
-		map.put(new Integer(810), new AtomicInteger(2));
-		map.put(new Integer(820), new AtomicInteger(4));
-		map.put(new Integer(860), new AtomicInteger(2));
+    @Before
+    public void setUp() throws QSVException {
+        map = new ConcurrentHashMap<>();
 
-	}
+        int[] keys = new int[]{0, 40, 80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200, 210, 220,
+                230, 240, 250, 260, 270, 280, 290, 300, 310, 320, 330, 340, 350, 360, 370, 380, 390,
+                400, 410, 420, 430, 440, 450, 460, 470, 480, 490, 500, 510, 520, 530, 540, 550, 560,
+                570, 580, 590, 600, 610, 620, 630, 640, 650, 660, 670, 680, 690, 700, 710, 720, 730,
+                780, 790, 800, 810, 820, 860};
+        int[] values = new int[]{22956, 2, 2, 376, 2820, 5772, 8896, 11358, 12626, 13437, 14032, 14451, 14537, 14615,
+                15806, 16309, 17540, 20509, 24656, 28513, 34720, 40961, 49129, 58384, 71585, 73491,
+                67551, 57469, 46505, 35617, 26385, 17762, 10119, 4459, 1704, 782, 536, 372, 268, 266,
+                234, 230, 254, 214, 180, 148, 178, 64, 44, 30, 44, 20, 30, 22, 32, 28, 42, 22, 18, 10,
+                2, 10, 4, 8, 32, 22, 18, 8, 4, 2, 8, 2, 4, 2};
+
+        for (int i = 0; i < keys.length; i++) {
+            putValueInMap(keys[i], values[i]);
+        }
+    }
+
+    private void putValueInMap(int key, int value) {
+        map.put(key, new AtomicInteger(value));
+    }
 	
 	@After
 	public void tearDown() {
@@ -106,7 +49,7 @@ public class CalculateISizeTest {
 	}	
 	
 	@Test
-	public void testFindMaxIndex() throws QSVException {
+	public void testFindMaxIndex() {
 		double[] array = new double[4];
 		array[0] = 1.34;
 		array[1] = 2.34;
@@ -120,7 +63,7 @@ public class CalculateISizeTest {
 	@Test(expected=QSVException.class)
 	public void  testCalculateThrowsException() throws QSVException {
 		map.clear();
-		map.put(new Integer(10), new AtomicInteger(6844));
+		map.put(10, new AtomicInteger(6844));
 		
 		
 		assertTrue(map.size() < 10);
@@ -138,7 +81,7 @@ public class CalculateISizeTest {
 	
 	@Test
 	public void testGetLogMaps() {
-		map.remove(new Integer(0));
+		map.remove(0);
 		isize = new CalculateISize(map);
 		isize.getLogMaps();
 		assertEquals(73, map.size());
@@ -148,13 +91,13 @@ public class CalculateISizeTest {
 	
 	@Test
 	public void findFirstDerivative() {
-		map.remove(new Integer(0));
+		map.remove(0);
 		isize = new CalculateISize(map);
-		Map<Integer, Double> xyMap = new TreeMap<Integer, Double>();
+		Map<Integer, Double> xyMap = new TreeMap<>();
 		
-		xyMap.put(new Integer(80), new Double(0.301029995663981));
-		xyMap.put(new Integer(90), new Double(2.57518784492766));
-		xyMap.put(new Integer(100), new Double(3.45024910831936));		
+		xyMap.put( 80, 0.301029995663981);
+		xyMap.put( 90, 2.57518784492766);
+		xyMap.put( 100, 3.45024910831936);
 		
 		double[] dydx = isize.findFirstDerivative(xyMap);
 		

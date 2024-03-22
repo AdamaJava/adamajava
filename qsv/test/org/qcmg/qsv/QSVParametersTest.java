@@ -64,4 +64,26 @@ public class QSVParametersTest {
         assertEquals("ICGC-DBLG-20110506-01-TD", p.getSampleId());
         assertTrue(p.isTumor());
     }
+
+    @Test
+    public void testGetUpdatedFileName() {
+        // Given
+        String fileName1 = "file.sam";
+        String fileName2 = "file.bam";
+        String fileName3 = "file.cram";
+        String fileName4 = "file.file";
+        String extension = ".new";
+
+        // When
+        String updatedName1 = QSVParameters.getUpdatedFileName(fileName1, extension);
+        String updatedName2 = QSVParameters.getUpdatedFileName(fileName2, extension);
+        String updatedName3 = QSVParameters.getUpdatedFileName(fileName3, extension);
+        String updatedName4 = QSVParameters.getUpdatedFileName(fileName4, extension);
+
+        // Then
+        assertEquals("file" + extension + ".sam", updatedName1);
+        assertEquals("file" + extension + ".bam", updatedName2);
+        assertEquals("file" + extension + ".cram", updatedName3);
+        assertEquals("file.file" + extension, updatedName4);
+    }
 }

@@ -113,7 +113,7 @@ public class SoftClipStaticMethods {
 	}
 
 	public static String getSoftClipFile(String chromosome, String type, String softclipDir) {
-		return softclipDir + QSVParameters.FILE_SEPERATOR + type  + "."+ chromosome + ".clip";
+		return softclipDir + QSVParameters.FILE_SEPARATOR + type  + "."+ chromosome + ".clip";
 	}
 
 }

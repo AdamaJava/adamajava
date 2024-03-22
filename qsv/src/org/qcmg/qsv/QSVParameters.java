@@ -6,19 +6,8 @@
  */
 package org.qcmg.qsv;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
+import au.edu.qimr.tiledaligner.PositionChrPositionMap.LongRange;
+import htsjdk.samtools.*;
 import org.ini4j.Ini;
 import org.ini4j.Profile.Section;
 import org.qcmg.common.log.QLogger;
@@ -29,12 +18,11 @@ import org.qcmg.qsv.annotate.Annotator;
 import org.qcmg.qsv.annotate.RunTypeRecord;
 import org.qcmg.qsv.util.QSVConstants;
 
-import au.edu.qimr.tiledaligner.PositionChrPositionMap.LongRange;
-import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SAMReadGroupRecord;
-import htsjdk.samtools.SAMSequenceDictionary;
-import htsjdk.samtools.SAMSequenceRecord;
-import htsjdk.samtools.SamReader;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.util.*;
+import java.util.Map.Entry;
 
 
 /**
@@ -42,24 +30,22 @@ import htsjdk.samtools.SamReader;
  */
 public class QSVParameters {
 
-	private static QLogger logger = QLoggerFactory.getLogger(QSVParameters.class);
-	public static final String FILE_SEPERATOR = System.getProperty("file.separator");
+	private static final QLogger logger = QLoggerFactory.getLogger(QSVParameters.class);
+	public static final String FILE_SEPARATOR = FileSystems.getDefault().getSeparator();
 
 	private final boolean isTumor;    
 	private final Integer clusterSize;
 	private final Integer compareClusterSize;
 	private final Annotator annotator;
 	private final String resultsDir;
-	private final Date analysisDate;    
-	private final String pairingType;
-	private final Integer qPrimerThreshold;
-	private final String mapper;
+    private final String pairingType;
+    private final String mapper;
 	private final boolean runSoftClipAnalysis;
 	private Collection<String> readGroupIds;
 	private final int repeatCountCutoff;
 
-	private File inputBamFile;   
-	private String findType;
+	private final File inputBamFile;
+	private final String findType;
 	private String sampleId;
 	private File filteredBamFile;
 	private SAMFileHeader header;
@@ -71,7 +57,7 @@ public class QSVParameters {
 	private String reference;
 	private File clippedBamFile;
 	
-	private Map<ChrPosition, LongRange> refIndexPositionMap;
+	private final Map<ChrPosition, LongRange> refIndexPositionMap;
 
 
 	/**
@@ -92,10 +78,9 @@ public class QSVParameters {
 		this.clusterSize = options.getClusterSize();
 		this.compareClusterSize = options.getFilterSize();
 		this.resultsDir = masterDirPath + donorName;
-		this.analysisDate = analysisDate;
-		this.pairingType = options.getPairingType();
+        this.pairingType = options.getPairingType();
 
-		this.qPrimerThreshold = options.getQPrimerThreshold();
+        Integer qPrimerThreshold = options.getQPrimerThreshold();
 		this.mapper = options.getMapper();
 		this.reference = options.getReference();
 		this.runSoftClipAnalysis = options.runClipAnalysis();
@@ -116,17 +101,13 @@ public class QSVParameters {
 		if (options.runPairPreprocess()) {	       
 			final String baseName = inputBamFile.getName();
 			//clarify sam and bam; because seekablestream can't open sam file even the file extension name is .bam;			 
-			final String fileName = (baseName.endsWith(".sam"))? 
-					baseName.replace(".sam", ".discordantpair.filtered.sam"): baseName.replace(".bam", ".discordantpair.filtered.bam");
-			this.filteredBamFile = new File(options.getTempDirName() + FILE_SEPERATOR + fileName);
+			this.filteredBamFile = new File(options.getTempDirName() + FILE_SEPARATOR + getUpdatedFileName(baseName, ".discordantpair.filtered"));
 		}
 
 		if (options.runClipPreprocess() || options.isSplitRead()) {        	
 			final String baseName = this.inputBamFile.getName();  
 			//clarify sam and bam; because seekablestream can't open sam file even the file extension name is .bam;			 
-			final String fileName = (baseName.endsWith(".sam"))? 
-					baseName.replace(".sam",  ".softclip.filtered.sam") : baseName.replace(".bam",  ".softclip.filtered.bam");			
-			this.clippedBamFile= new File(options.getTempDirName() + FILE_SEPERATOR  + fileName);
+			this.clippedBamFile= new File(options.getTempDirName() + FILE_SEPARATOR + getUpdatedFileName(baseName, ".softclip.filtered"));
 		}
 
 		//get the names of the chromosomes that will be analysed
@@ -140,12 +121,20 @@ public class QSVParameters {
 		this.annotator = new Annotator(lowerInsertSize, upperInsertSize, new File(resultsDir + "." + findType + ".pairing_stats.xml"), pairingType, sequencingRuns, pairingType, mapper);	
 	}
 
-	public File getClippedBamFile() {
-		return clippedBamFile;
+	public static String getUpdatedFileName(String fileName, String extension) {
+		if (fileName.endsWith(".sam")) {
+			return fileName.replace(".sam", extension + ".sam");
+		} else if (fileName.endsWith(".bam")) {
+			return fileName.replace(".bam", extension + ".bam");
+		} else if (fileName.endsWith(".cram")) {
+			return fileName.replace(".cram", extension + ".cram");
+		} else {
+			return fileName + extension;
+		}
 	}
 
-	public void setClippedBamFile(File clippedBamFile) {
-		this.clippedBamFile = clippedBamFile;
+	public File getClippedBamFile() {
+		return clippedBamFile;
 	}
 
 	private void getISizesFromIniFile(Options options) throws Exception {
@@ -160,7 +149,7 @@ public class QSVParameters {
 		final Set<Entry<String, Section>> sectionList = iniFile.entrySet();
 
 		//check to see if isizes have been provided
-		this.sequencingRuns = new ArrayList<RunTypeRecord>();
+		this.sequencingRuns = new ArrayList<>();
 		//		int count = 0;
 		for (final Entry<String, Section> s : sectionList) {
 			final Section section = s.getValue();
@@ -173,7 +162,7 @@ public class QSVParameters {
 						if (section.get("name") != null) {
 							name = section.get("name");
 						}
-						final RunTypeRecord runRecord = new RunTypeRecord(section.get("rgid"), new Integer(section.get("lower")), new Integer(section.get("upper")), name);
+						final RunTypeRecord runRecord = new RunTypeRecord(section.get("rgid"), Integer.parseInt(section.get("lower")), Integer.parseInt(section.get("upper")), name);
 						/*
 						 * check to see if we have valid iSize values (ie. lower is < upper)
 						 */
@@ -189,15 +178,15 @@ public class QSVParameters {
 		}
 
 		//no isizes provided
-		if (sequencingRuns.size() == 0 && options.runPairAnalysis()) {
+		if (sequencingRuns.isEmpty() && options.runPairAnalysis()) {
 			throw new QSVException("NO_ISIZES_ERROR");
 		} else {
 			if (options.runClipAnalysis() && ! options.runPairAnalysis()) {
-				//still need to getread groups
-				try (final SamReader reader = SAMFileReaderFactory.createSAMFileReader(inputBamFile, "silent");) {
+				//still need to get read groups
+				try (final SamReader reader = SAMFileReaderFactory.createSAMFileReader(inputBamFile, "silent")) {
 					
 					int rgCount = reader.getFileHeader().getReadGroups().size();
-					readGroupIds = rgCount == 1 ? new ArrayList<String>(2) : new HashSet<String>(rgCount);
+					readGroupIds = rgCount == 1 ? new ArrayList<>(2) : new HashSet<>(rgCount);
 					lowerInsertSize = 0;
 					upperInsertSize = 1000;
 					
@@ -208,10 +197,10 @@ public class QSVParameters {
 
 			} else {
 				int rgCount = sequencingRuns.size();
-				readGroupIds = rgCount == 1 ? new ArrayList<String>(2) : new HashSet<String>(rgCount);
+				readGroupIds = rgCount == 1 ? new ArrayList<>(2) : new HashSet<>(rgCount);
 				for (final RunTypeRecord r: sequencingRuns) {
 					readGroupIds.add(r.getRgId());
-					logger.info("Insert size for sample " + findType + ": " + r.toString());					
+					logger.info("Insert size for sample " + findType + ": " + r);
 				}
 
 				//work out the upper and lower insert sizes for clustering
@@ -233,7 +222,7 @@ public class QSVParameters {
 	/*
 	 * Determine which chromosomes will be analysed in this run
 	 */
-	private void getChromosomesToAnalyse(Options options) throws QSVException, IOException {
+	private void getChromosomesToAnalyse(Options options) throws IOException {
 
 		try ( SamReader inputSam = SAMFileReaderFactory.createSAMFileReader(inputBamFile, "silent")) { 
 			this.header = inputSam.getFileHeader();        
@@ -248,7 +237,7 @@ public class QSVParameters {
 				for (final SAMSequenceRecord seq : sequenceRecords) {
 					final String key = seq.getSequenceName();				
 					final Chromosome c = new Chromosome(key, seq.getSequenceLength());
-					chromosomes.put(key, Arrays.asList(c));
+					chromosomes.put(key, List.of(c));
 				}        	        
 			} else {
 				//get those ranges provided
@@ -259,8 +248,8 @@ public class QSVParameters {
 						final String chrName = rParams[0];
 						final String pos = rParams[1];
 						String [] posParams = pos.split("-");
-						final Integer start = Integer.valueOf(posParams[0]);
-						final Integer end = Integer.valueOf(posParams[1]);
+						final int start = Integer.parseInt(posParams[0]);
+						final int end = Integer.parseInt(posParams[1]);
 						for (final SAMSequenceRecord seq : sequenceRecords) {
 							if (seq.getSequenceName().equals(chrName)) {
 								final Chromosome c = new Chromosome(chrName, seq.getSequenceLength(), start, end);
@@ -269,11 +258,10 @@ public class QSVParameters {
 						}									      					
 					} else {
 						//entire chromosome
-						final String chrName = r;
-						for (final SAMSequenceRecord seq : sequenceRecords) {
-							if (seq.getSequenceName().equals(chrName)) {
-								final Chromosome c= new Chromosome(chrName, seq.getSequenceLength());
-								chromosomes.computeIfAbsent(chrName, v -> new ArrayList<>()).add(c);
+                        for (final SAMSequenceRecord seq : sequenceRecords) {
+							if (seq.getSequenceName().equals(r)) {
+								final Chromosome c= new Chromosome(r, seq.getSequenceLength());
+								chromosomes.computeIfAbsent(r, v -> new ArrayList<>()).add(c);
 							}
 						}					
 					}
@@ -443,15 +431,6 @@ public class QSVParameters {
 	}
 
 	/**
-	 * Gets the analysis date.
-	 *
-	 * @return the analysis date
-	 */
-	public Date getAnalysisDate() {
-		return analysisDate;
-	}
-
-	/**
 	 * Gets the pairing type.
 	 *
 	 * @return the pairing type
@@ -467,15 +446,6 @@ public class QSVParameters {
 	 */
 	public List<RunTypeRecord> getSequencingRuns() {
 		return sequencingRuns;
-	}
-
-	/**
-	 * Gets the q primer threshold.
-	 *
-	 * @return the q primer threshold
-	 */
-	public Integer getqPrimerThreshold() {
-		return qPrimerThreshold;
 	}
 
 	/**
@@ -537,7 +507,7 @@ public class QSVParameters {
 	}
 	
 	public Set<String> getReadGroupIdsAsSet() {
-		return new HashSet<String>(readGroupIds);
+		return new HashSet<>(readGroupIds);
 	}
 
 	public int getRepeatCountCutoff() {

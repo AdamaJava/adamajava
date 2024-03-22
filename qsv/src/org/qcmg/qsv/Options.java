@@ -6,10 +6,9 @@
  */
 package org.qcmg.qsv;
 
-import static java.util.Arrays.asList;
-
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -36,12 +35,12 @@ import htsjdk.samtools.reference.ReferenceSequenceFileFactory;
  *
  */
 public class Options {
-	public static final String FILE_SEPERATOR = System.getProperty("file.separator");
+	public static final String FILE_SEPARATOR = FileSystems.getDefault().getSeparator();
 	
 	private static final String HELP_OPTION = Messages.getMessage("HELP_OPTION");	
 	private static final String VERSION_OPTION = Messages.getMessage("VERSION_OPTION");
 	private static final String INI_OPTION = Messages.getMessage("INI_OPTION");
-	private static final String TEMPDIR_OPTION = Messages.getMessage("TEMPDIR_OPTION");
+	private static final String TEMP_DIR_OPTION = Messages.getMessage("TEMPDIR_OPTION");
 	private static final String UUID_OPTION = Messages.getMessage("UUID_OPTION");;
 	
 	
@@ -53,7 +52,7 @@ public class Options {
 	private String inputFile;		
 	private String outputDirName;
 	private String outputDirNameOverride;
-	private String uuid;
+	private final String uuid;
 	private String sampleName;
 	private Integer filterSize;
 	private Integer clusterSize;
@@ -93,19 +92,15 @@ public class Options {
 
 	/**
 	 * Takes arguments from the command line and sets up the options for qsv 
-	 * @param args
-	 * @throws QSVException
-	 * @throws IOException 
-	 * @throws InvalidFileFormatException 
 	 */
-	public Options(final String[] args) throws QSVException, InvalidFileFormatException, IOException {
+	public Options(final String[] args) throws QSVException, IOException {
 		
 		//define the options the parse accepts		
         parser.accepts("ini", INI_OPTION).withRequiredArg().ofType(String.class);
-        parser.accepts("output-temporary", TEMPDIR_OPTION).withRequiredArg().ofType(String.class);  
+        parser.accepts("output-temporary", TEMP_DIR_OPTION).withRequiredArg().ofType(String.class);
         parser.accepts("uuid", UUID_OPTION).withOptionalArg().ofType(String.class);
 		parser.accepts("help", HELP_OPTION);
-		parser.acceptsAll(asList("version"), VERSION_OPTION);		
+		parser.acceptsAll(List.of("version"), VERSION_OPTION);
 		options = parser.parse(args);	
 		//logging
 		
@@ -162,20 +157,20 @@ public class Options {
 			if ( ! directoryExists(outputDirName)) {
                 throw new QSVException("NO_OUTPUT_DIR", outputDirName);
 			}
-			outputDirName = (outputDirName.endsWith(FILE_SEPERATOR) ? outputDirName : outputDirName + FILE_SEPERATOR ) + uuid + FILE_SEPERATOR;
+			outputDirName = (outputDirName.endsWith(FILE_SEPARATOR) ? outputDirName : outputDirName + FILE_SEPARATOR) + uuid + FILE_SEPARATOR;
 			createResultsDirectory(outputDirName);
 		} else {
 			throw new QSVException("NO_OUTPUT");
 		}	
 		
 		if (generalSection.get("min_insert_size") != null) {
-			minInsertSize =  new Integer(generalSection.get("min_insert_size"));
+			minInsertSize = Integer.valueOf(generalSection.get("min_insert_size"));
 		} else {
 			minInsertSize = QSVConstants.DEFAULT_MIN_INSERT_SIZE;
 		}
 		
 		if (generalSection.get("repeat_cutoff") != null) {
-			repeatCountCutoff =  new Integer(generalSection.get("repeat_cutoff"));
+			repeatCountCutoff = Integer.parseInt(generalSection.get("repeat_cutoff"));
 		}
 
 		//ranges can be null, means all chromosome
@@ -256,10 +251,10 @@ public class Options {
 			mapper = pairSection.get("mapper");
 			query = pairSection.get("pair_query");
 			if (pairSection.get("cluster_size") != null) {
-				clusterSize = new Integer(pairSection.get("cluster_size"));					
+				clusterSize = Integer.valueOf(pairSection.get("cluster_size"));
 			}
 			if (pairSection.get("filter_size") != null) {
-				filterSize = new Integer(pairSection.get("filter_size"));
+				filterSize = Integer.valueOf(pairSection.get("filter_size"));
 			} 
 		}
 		
@@ -290,7 +285,7 @@ public class Options {
 		qPrimerThreshold = 3;
 		
 		
-		//Clippping params
+		//Clipping params
 		Section clipSection = ini.get("clip");
 		if (clipSection != null) {
 			clipQuery = clipSection.get("clip_query");
@@ -350,19 +345,16 @@ public class Options {
 		return repeatCountCutoff;
 	}
 
-//	public void setREPEAT_COUNT_CUTOFF(int rEPEAT_COUNT_CUTOFF) {
-//		REPEAT_COUNT_CUTOFF = rEPEAT_COUNT_CUTOFF;
-//	}
-
 	private void processRanges() throws QSVException {
 		includeTranslocations = false;
 		allChromosomes = true;
-		if (ranges != null && ranges.size() > 0) {
+		if (ranges != null && ! ranges.isEmpty()) {
 			allChromosomes = false;
 			for (String s: ranges) {
-				if (s.equals("inter")) {
-					includeTranslocations = true;
-				}
+                if (s.equals("inter")) {
+                    includeTranslocations = true;
+                    break;
+                }
 			}			
 			if (ranges.size() > 1 && includeTranslocations) {
 				throw new QSVException("RANGE_ERROR");
@@ -372,8 +364,7 @@ public class Options {
 
 	/**
 	 * Detects any problems with the supplied options
-	 * @throws QSVException
-	 */
+     */
 	public void detectBadOptions() throws QSVException {
 		if (log == null) {
 			throw new QSVException("MISSING_LOG_FILE");
@@ -400,7 +391,7 @@ public class Options {
 				throw new QSVException("NO_REFERENCE_FILE", reference);	
 			}
 		} else {
-			if (reference == null && isQCMG) {
+			if (isQCMG) {
 				throw new QSVException("NULL_REFERENCE_FILE");
 			}
 		}
@@ -409,7 +400,7 @@ public class Options {
 				throw new QSVException("NO_REFERENCE_INDEX_FILE", referenceIndex);	
 			}
 		} else {
-			if (referenceIndex == null && isQCMG) {
+			if (isQCMG) {
 				throw new QSVException("NULL_REFERENCE_INDEX_FILE");
 			}
 		}
@@ -482,39 +473,22 @@ public class Options {
 	
 	/**
 	 * Display help information
-	 * @throws Exception
 	 */
     public void displayHelp() throws Exception {
     	parser.formatHelpWith(new BuiltinHelpFormatter(150, 2));
 		parser.printHelpOn(System.err);
 	}
 
-	public void setRanges(List<String> ranges) {
-		this.ranges = ranges;
-	}
-
 	public List<String> getGffFiles() {
 		return gffFiles;
-	}
-
-	public void setGffFiles(List<String> gffFiles) {
-		this.gffFiles = gffFiles;
 	}
 
 	public Integer getMinInsertSize() {
 		return minInsertSize;
 	}
 
-	public void setMinInsertSize(Integer minInsertSize) {
-		this.minInsertSize = minInsertSize;
-	}
-
 	public boolean isSplitRead() {
 		return isSplitRead;
-	}
-
-	public void setSplitRead(boolean isSplitRead) {
-		this.isSplitRead = isSplitRead;
 	}
 
 	public String getPreprocessMode() {
@@ -585,17 +559,9 @@ public class Options {
 		return clipSize;
 	}
 
-	public void setClipSize(Integer clipSize) {
-		this.clipSize = clipSize;
-	}
-
 	public Integer getConsensusLength() {
 		return consensusLength;
 	}
-
-	public void setConsensusLength(Integer consensusLength) {
-		this.consensusLength = consensusLength;
-	}	
 
 	public String getMapper() {
 		return mapper;
@@ -611,10 +577,6 @@ public class Options {
 	
     public String getPlatform() {
 		return platform;
-	}
-
-	public void setPlatform(String platform) {
-		this.platform = platform;
 	}
 
 	public boolean directoryExists(String directoryName) {
@@ -681,17 +643,9 @@ public class Options {
 	public boolean isSingleFileMode() {
 		return singleFileMode;
 	}
-	
-	public void setSingleFileMode(boolean singleFileMode) {
-		this.singleFileMode = singleFileMode;
-	}
 
 	public boolean isTwoFileMode() {
 		return twoFileMode;
-	}
-
-	public void setTwoFileMode(boolean twoFileMode) {
-		this.twoFileMode = twoFileMode;
 	}
 
 	public boolean runClipAnalysis() {
@@ -715,10 +669,6 @@ public class Options {
 	}
 	public String getTiledAligner() {
 		return tiledAlignerFile;
-	}
-
-	public void setSequencingPlatform(String sequencingPlatform) {
-		this.sequencingPlatform = sequencingPlatform;
 	}
 
 	public String translateReference() {

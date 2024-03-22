@@ -23,7 +23,7 @@ public class UnmappedRead {
 	}
 	
 	public UnmappedRead(String line, boolean isTumour) {
-		String values[] = line.split(",");
+		String [] values = line.split(",");
 		this.readName = values[1];
 		this.reference = values[2];
 		this.bpPos = Integer.parseInt(values[3]);
@@ -54,10 +54,6 @@ public class UnmappedRead {
 	public String getSequence() {
 		return sequence;
 	}
-
-	public String toTmpString() {
-		return "unmapped" + "," + readName + "," + reference + "," + bpPos + "," + sequence +  QSVUtil.getNewLine();		
- 	}
 
 	@Override
 	public String toString() {
