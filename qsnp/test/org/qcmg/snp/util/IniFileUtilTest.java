@@ -71,9 +71,9 @@ public class IniFileUtilTest {
 		List<Rule> tumourRules = IniFileUtil.getRules(ini, "tumour");
 		Assert.assertEquals(1, normalRules.size());
 		Assert.assertEquals(0, tumourRules.size());
-		Assert.assertEquals(0, normalRules.get(0).getMinCoverage());
-		Assert.assertEquals(20, normalRules.get(0).getMaxCoverage());
-		Assert.assertEquals(3, normalRules.get(0).getNoOfVariants());
+		Assert.assertEquals(0, normalRules.get(0).minCoverage());
+		Assert.assertEquals(20, normalRules.get(0).maxCoverage());
+		Assert.assertEquals(3, normalRules.get(0).noOfVariants());
 		
 		ini.add("rules", "normal2", "21,50,4");
 		ini.add("rules", "tumour1", "1,150,8");
@@ -85,9 +85,9 @@ public class IniFileUtilTest {
 		Assert.assertEquals(true, normalRules.contains(new Rule(21,50,4)));
 		
 		Assert.assertEquals(1, tumourRules.size());
-		Assert.assertEquals(1, tumourRules.get(0).getMinCoverage());
-		Assert.assertEquals(150, tumourRules.get(0).getMaxCoverage());
-		Assert.assertEquals(8, tumourRules.get(0).getNoOfVariants());
+		Assert.assertEquals(1, tumourRules.get(0).minCoverage());
+		Assert.assertEquals(150, tumourRules.get(0).maxCoverage());
+		Assert.assertEquals(8, tumourRules.get(0).noOfVariants());
 		
 		
 		ini.add("rules", "tumour2", "2,300,16");

@@ -6,6 +6,7 @@
  */
 package org.qcmg.common.log;
 
+import java.io.Serial;
 import java.util.logging.Level;
 
 /**
@@ -22,6 +23,7 @@ public class QLevel extends Level {
 	/**
 	 * default generated serialVersionUID
 	 */
+	@Serial
 	private static final long serialVersionUID = 1594415737845021597L;
 	
 	 /**

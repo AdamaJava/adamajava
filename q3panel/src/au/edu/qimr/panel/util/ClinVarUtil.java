@@ -998,7 +998,7 @@ public class ClinVarUtil {
 			List<Pair<Probe, Bin>> probeBinList = entry.getValue();
 			int tally = 0;
 			for (Pair<Probe, Bin> pair : probeBinList) {
-				tally += pair.getRight().getRecordCount();
+				tally += pair.right().getRecordCount();
 			}
 			
 			StringBuilder s = new StringBuilder(bases);
@@ -1007,16 +1007,16 @@ public class ClinVarUtil {
 			if (diagnosticMode) {
 				for (Pair<Probe, Bin> pair : probeBinList) {
 					s.append(Constants.COMMA);
-					s.append(pair.getLeft().getId()).append("/");
-					s.append(pair.getRight().getId()).append("(").append(pair.getRight().getRecordCount()).append(")");
+					s.append(pair.left().getId()).append("/");
+					s.append(pair.right().getId()).append("(").append(pair.right().getRecordCount()).append(")");
 				}
 			} else {
 				TIntSet probeSet = new TIntHashSet();
 				TIntSet binSet = new TIntHashSet();
 				
 				for (Pair<Probe, Bin> pair : probeBinList) {
-					probeSet.add(pair.getLeft().getId());
-					binSet.add(pair.getRight().getId());
+					probeSet.add(pair.left().getId());
+					binSet.add(pair.right().getId());
 				}
 				s.append(Constants.COMMA);
 				s.append(probeSet.size()).append("/").append(binSet.size());
@@ -1324,11 +1324,11 @@ public class ClinVarUtil {
 				/*
 				 * only care about indels
 				 */
-				String mutationString = mutation.getRight();
+				String mutationString = mutation.right();
 				String [] mutArray = mutationString.split("/");
 				
 				if (mutArray[0].length() != mutArray[1].length()) {
-					int indelPosition = mutation.getLeft().intValue() + 1 + offset;
+					int indelPosition = mutation.left().intValue() + 1 + offset;
 					
 					if (mutArray[0].length() == 1) {
 						// insertion
@@ -1387,10 +1387,10 @@ public class ClinVarUtil {
 			/*
 			 * only care about indels
 			 */
-			String [] mutArray = mutation.getRight().split("/");
+			String [] mutArray = mutation.right().split("/");
 			
 			if (mutArray[0].length() != mutArray[1].length()) {
-				int indelPosition = mutation.getLeft().intValue() + 1 + offset;
+				int indelPosition = mutation.left().intValue() + 1 + offset;
 				
 				if (mutArray[0].length() == 1) {
 					// insertion
@@ -1509,8 +1509,8 @@ public class ClinVarUtil {
 						Optional<String> bases = FragmentUtil.getBasesAtPosition(cp, f, length);		
 						bases.ifPresent(s -> { 
 							Pair<AtomicInteger, AtomicInteger> p = baseDist.computeIfAbsent(s, k -> new Pair<>(new AtomicInteger(), new AtomicInteger()));
-							p.getLeft().addAndGet(f.isForwardStrand() ? f.getRecordCount() : 0);
-							p.getRight().addAndGet( ! f.isForwardStrand() ? f.getRecordCount() : 0);							
+							p.left().addAndGet(f.isForwardStrand() ? f.getRecordCount() : 0);
+							p.right().addAndGet( ! f.isForwardStrand() ? f.getRecordCount() : 0);
 							fragmentCount.incrementAndGet();
 							readCount.addAndGet(f.getRecordCount());
 						});
@@ -1522,8 +1522,8 @@ public class ClinVarUtil {
 		Pair<AtomicInteger, AtomicInteger> p = baseDist.get(vcf.getAlt());
 		int mrCount = 0;
 		if (null != p) {
-			mrCount += p.getLeft().get();
-			mrCount += p.getRight().get();
+			mrCount += p.left().get();
+			mrCount += p.right().get();
 		}
 		/*
 		 * update vcf record in place

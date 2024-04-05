@@ -20,8 +20,6 @@ import java.util.stream.Stream;
 
 import htsjdk.samtools.SAMUtils;
 
-import org.qcmg.common.log.QLogger;
-import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.GenotypeEnum;
 import org.qcmg.common.model.PileupElement;
 import org.qcmg.common.model.PileupElementComparator;
@@ -206,10 +204,10 @@ public class PileupElementUtil {
 		if (null == rule)
 			throw new IllegalArgumentException("null Rule passed to method");
 		
-		boolean usePercentage = rule.getMaxCoverage() == Integer.MAX_VALUE;
+		boolean usePercentage = rule.maxCoverage() == Integer.MAX_VALUE;
 		
 		if (usePercentage) {
-			double noOfVariants = rule.getNoOfVariants();
+			double noOfVariants = rule.noOfVariants();
 			
 			if (secondPass) {
 				return ((double)count / coverage * 100) >= (noOfVariants / 2);
@@ -217,7 +215,7 @@ public class PileupElementUtil {
 				return ((double)count / coverage * 100) >= noOfVariants;
 			}
 		} else {
-			return count >= rule.getNoOfVariants();
+			return count >= rule.noOfVariants();
 		}
 	}
 	

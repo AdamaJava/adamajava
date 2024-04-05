@@ -13,7 +13,7 @@ public class PileupElementComparatorTest {
 	@Test
 	public void testCompare() {
 		// sorts on size, ref, qual score
-		List<PileupElement> pileups = new ArrayList<PileupElement>();
+		List<PileupElement> pileups = new ArrayList<>();
 		PileupElement pe1 = new PileupElement('A');
 		pe1.incrementForwardCount();
 		PileupElement pe2 = new PileupElement('B');
@@ -24,7 +24,7 @@ public class PileupElementComparatorTest {
 		pileups.add(pe2);
 		pileups.add(pe3);
 		
-		Collections.sort(pileups, new PileupElementComparator());
+		pileups.sort(new PileupElementComparator());
 		
 		Assert.assertEquals(pe3, pileups.get(0));
 		Assert.assertEquals(pe2, pileups.get(1));
@@ -36,7 +36,7 @@ public class PileupElementComparatorTest {
 		pe4.incrementReverseCount();
 		pileups.add(pe4);
 		
-		Collections.sort(pileups, new PileupElementComparator());
+		pileups.sort(new PileupElementComparator());
 		
 		Assert.assertEquals(pe3, pileups.get(0));
 		Assert.assertEquals(pe4, pileups.get(1));
@@ -47,7 +47,7 @@ public class PileupElementComparatorTest {
 	@Test
 	public void testCompareQuals() {
 		// sorts on size, ref, qual score
-		List<PileupElement> pileups = new ArrayList<PileupElement>();
+		List<PileupElement> pileups = new ArrayList<>();
 		PileupElement pe1 = new PileupElement('A');
 		pe1.incrementForwardCount((byte) 10);
 		PileupElement pe2 = new PileupElement('B');
@@ -58,7 +58,7 @@ public class PileupElementComparatorTest {
 		pileups.add(pe2);
 		pileups.add(pe3);
 		
-		Collections.sort(pileups, new PileupElementComparator());
+		pileups.sort(new PileupElementComparator());
 		
 		Assert.assertEquals(pe2, pileups.get(0));
 		Assert.assertEquals(pe1, pileups.get(1));

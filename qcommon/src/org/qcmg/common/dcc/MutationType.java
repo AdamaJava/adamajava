@@ -22,23 +22,19 @@ public enum MutationType {
 	public static boolean isSubstitution(MutationType type) {
 		return type == SNP || type == DNP || type == TNP || type == ONP;
 	}
-	
-	public static boolean isMultiBaseSubstitution(MutationType type) {
-		return type == DNP || type == TNP || type == ONP;
-	}
-	
+
 	public static MutationType getMutationType(String type) {
 		if (null == type) throw new IllegalArgumentException("null type passed to getMutationType");
-		
-		switch (type.toUpperCase()) {
-		case "SNP": return SNP;
-		case "DNP": return DNP;
-		case "TNP": return TNP;
-		case "ONP": return ONP;
-		case "INS": return INS;
-		case "DEL": return DEL;
-		}
-		throw new IllegalArgumentException("invalid type passed to getMutationType: " + type);
-	}
+
+        return switch (type.toUpperCase()) {
+            case "SNP" -> SNP;
+            case "DNP" -> DNP;
+            case "TNP" -> TNP;
+            case "ONP" -> ONP;
+            case "INS" -> INS;
+            case "DEL" -> DEL;
+            default -> throw new IllegalArgumentException("invalid type passed to getMutationType: " + type);
+        };
+    }
 }
 

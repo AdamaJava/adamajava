@@ -12,7 +12,7 @@ import java.util.logging.LogRecord;
 import org.qcmg.common.date.DateUtils;
 
 public class QLogFormatter extends Formatter{
-	private static final String LINE_SEP = System.getProperty("line.separator");
+	private static final String LINE_SEP = System.lineSeparator();
 
 	@Override
 	public String format(LogRecord record) {
@@ -31,11 +31,10 @@ public class QLogFormatter extends Formatter{
 		Throwable t = record.getThrown();
 		if (null != t) {
 			sb.append(LINE_SEP);
-//			sb.append(" - ");
-			sb.append(t.toString());
+			sb.append(t);
 			for (StackTraceElement ste : t.getStackTrace()) {
 				sb.append(LINE_SEP);
-				sb.append("\t" + ste.toString());
+				sb.append("\t").append(ste.toString());
 			}
 		}
 		

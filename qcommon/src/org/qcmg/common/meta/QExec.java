@@ -129,21 +129,19 @@ public class QExec {
 	}
 
 	public String getExecMetaDataToString() {
-		StringBuilder sb = new StringBuilder();
-		sb.append(uuid.toExecString());
-		sb.append(startTime.toExecString());
-		sb.append(osName.toExecString());
-		sb.append(osArch.toExecString());
-		sb.append(osVersion.toExecString());
-		sb.append(runBy.toExecString());
-		sb.append(toolName.toExecString());
-		sb.append(toolVersion.toExecString());
-		sb.append(commandLine.toExecString());
-		sb.append(javaHome.toExecString());
-		sb.append(javaVendor.toExecString());
-		sb.append(javaVersion.toExecString());
-		sb.append(host.toExecString());
-		return sb.toString();
+        return uuid.toExecString() +
+                startTime.toExecString() +
+                osName.toExecString() +
+                osArch.toExecString() +
+                osVersion.toExecString() +
+                runBy.toExecString() +
+                toolName.toExecString() +
+                toolVersion.toExecString() +
+                commandLine.toExecString() +
+                javaHome.toExecString() +
+                javaVendor.toExecString() +
+                javaVersion.toExecString() +
+                host.toExecString();
 	}
 	
 }

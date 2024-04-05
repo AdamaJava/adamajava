@@ -64,10 +64,6 @@ public class QDccMeta {
 		return matchedSampleId;
 	}
 
-	public KeyValue getAssemblyVersion() {
-		return assemblyVersion;
-	}
-
 	public KeyValue getPlatform() {
 		return platform;
 	}
@@ -76,16 +72,8 @@ public class QDccMeta {
 		return experimentalProtocol;
 	}
 
-	public KeyValue getBaseCallingAlgorithm() {
-		return baseCallingAlgorithm;
-	}
-
 	public KeyValue getAlignmentAlgorithm() {
 		return alignmentAlgorithm;
-	}
-
-	public KeyValue getVariationCallingAlgorithm() {
-		return variationCallingAlgorithm;
 	}
 
 	public KeyValue getDonorId() {
@@ -93,17 +81,15 @@ public class QDccMeta {
 	}
 	
 	public String getDCCMetaDataToString() {
-		StringBuilder sb = new StringBuilder();
-		sb.append(analysisId.toDCCMetaString());
-		sb.append(analyzedSampleId.toDCCMetaString());
-		sb.append(matchedSampleId.toDCCMetaString());
-		sb.append(assemblyVersion.toDCCMetaString());
-		sb.append(platform.toDCCMetaString());
-		sb.append(experimentalProtocol.toDCCMetaString());
-		sb.append(baseCallingAlgorithm.toDCCMetaString());
-		sb.append(alignmentAlgorithm.toDCCMetaString());
-		sb.append(variationCallingAlgorithm.toDCCMetaString());
-		sb.append(donorId.toDCCMetaString());
-		return sb.toString();
+        return analysisId.toDCCMetaString() +
+                analyzedSampleId.toDCCMetaString() +
+                matchedSampleId.toDCCMetaString() +
+                assemblyVersion.toDCCMetaString() +
+                platform.toDCCMetaString() +
+                experimentalProtocol.toDCCMetaString() +
+                baseCallingAlgorithm.toDCCMetaString() +
+                alignmentAlgorithm.toDCCMetaString() +
+                variationCallingAlgorithm.toDCCMetaString() +
+                donorId.toDCCMetaString();
 	}
 }

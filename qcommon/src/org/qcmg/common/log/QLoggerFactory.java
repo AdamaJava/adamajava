@@ -72,7 +72,7 @@ public class QLoggerFactory {
 	private static void setupParentLogger(String logFile, String logLevel) {
 		if (FileUtils.canFileBeWrittenTo(logFile)) {
 		
-			FileHandler fh = null;
+			FileHandler fh;
 			try {
 				fh = new FileHandler(logFile);
 			} catch (SecurityException e) {
@@ -101,8 +101,9 @@ public class QLoggerFactory {
 		if (ROOT_LOGGER.getHandlers().length > 1) {
 			int i = 0;
 			for (java.util.logging.Handler h : ROOT_LOGGER.getHandlers()) {
-				if (i++ > 0)
+				if (i++ > 0) {
 					ROOT_LOGGER.removeHandler(h);
+				}
 			}
 		}
 	}

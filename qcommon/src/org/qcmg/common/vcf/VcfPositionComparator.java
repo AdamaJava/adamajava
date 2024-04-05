@@ -18,7 +18,6 @@ public class VcfPositionComparator implements Comparator<VcfRecord> {
 	public int compare(VcfRecord vcf1, VcfRecord vcf2) {
 		// currently just care about chr and position
 		int diff = CHR_COMP.compare(vcf1.getChromosome(), vcf2.getChromosome());
-//		int diff = vcf1.getChromosome().compareTo(vcf2.getChromosome());
 		if (diff != 0) return diff;
 		
 		return vcf1.getPosition() - vcf2.getPosition();

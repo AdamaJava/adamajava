@@ -14,10 +14,10 @@ public enum MafType {
 	INDEL_GERMLINE (false, false);
 
 	
-	private boolean isSnv;
-	private boolean isSomatic;
+	private final boolean isSnv;
+	private final boolean isSomatic;
 	
-	private MafType(boolean isSnv, boolean isSomatic) {
+	MafType(boolean isSnv, boolean isSomatic) {
 		this.isSnv = isSnv;
 		this.isSomatic = isSomatic;
 	}

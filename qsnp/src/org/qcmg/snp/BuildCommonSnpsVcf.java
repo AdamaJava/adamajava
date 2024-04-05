@@ -243,7 +243,7 @@ public class BuildCommonSnpsVcf {
 						
 						// check to see if existing alt is set to "." - if so replace (assuming its not being replaced by a dot).
 						if (".".equals(vcfRec.getAlt())) {
-							vcfRec = VcfUtils.resetAllel(vcfRec, "");
+							vcfRec = VcfUtils.resetAllele(vcfRec, "");
 							//vcfRec.setAlt("");	// delete
 						}
 						
@@ -256,7 +256,7 @@ public class BuildCommonSnpsVcf {
 								sb.append(c);
 							}
 						}
-						vcfRec =  VcfUtils.resetAllel(vcfRec, sb.toString());
+						vcfRec =  VcfUtils.resetAllele(vcfRec, sb.toString());
 					}
 					
 	//				if ( ! existingDonors.contains(donor)) {
@@ -318,7 +318,7 @@ public class BuildCommonSnpsVcf {
 							// add whatever is missing
 							if (alt.length()  == 1) {
 //								vcfRec.setAlt(existingAlt.length() > 0 ? existingAlt + "," + alt : alt);
-								vcfRec = VcfUtils.resetAllel(vcfRec, existingAlt.length() > 0 ? existingAlt + "," + alt : alt);
+								vcfRec = VcfUtils.resetAllele(vcfRec, existingAlt.length() > 0 ? existingAlt + "," + alt : alt);
 							}
 						}
 					}

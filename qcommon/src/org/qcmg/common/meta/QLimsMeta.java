@@ -74,27 +74,7 @@ public class QLimsMeta {
 		this.platform = new KeyValue(PLATFORM, StringUtils.getValueFromKey(commentHeaderString, PLATFORM));
 		this.speciesRefGenome = new KeyValue(SPECIES_REF_GENOME, StringUtils.getValueFromKey(commentHeaderString, SPECIES_REF_GENOME));
 	}
-	
-	public QLimsMeta(String type, String bamFile, String aligner, String captureKit, String donor, String failedQC, 
-			String libraryProtocol, String material, String project, String referenceFile, 
-			String sample,  String sampleCode ,String platform, String speciesRefGenome) {
-		
-		this.type = type;
-		this.bamFile = new KeyValue(BAM_FILE, bamFile);
-		this.aligner = new KeyValue(ALIGNMENT_ALGORITHM, aligner);
-		this.captureKit = new KeyValue(CAPTURE_KIT, captureKit);
-		this.donor = new KeyValue(DONOR, donor);
-		this.failedQC = new KeyValue(FAILED_QC, failedQC);
-		this.libraryProtocol = new KeyValue(LIBRARY_PROTOCOL, libraryProtocol);
-		this.material = new KeyValue(MATERIAL, material);
-		this.project = new KeyValue(PROJECT, project);
-		this.referenceFile = new KeyValue(REFERENCE_FILE, referenceFile);
-		this.sample = new KeyValue(SAMPLE, sample);
-		this.sampleCode = new KeyValue(SAMPLE_CODE, sampleCode);
-		this.platform = new KeyValue(PLATFORM, platform);
-		this.speciesRefGenome = new KeyValue(SPECIES_REF_GENOME, speciesRefGenome);
-	}
-	
+
 	public String getDonor() {
 		return donor.getValue();
 	}
@@ -104,34 +84,27 @@ public class QLimsMeta {
 	public String getSample() {
 		return sample.getValue();
 	}
-	public String getSampleCode() {
-		return sampleCode.getValue();
-	}
+
 	public String getPlatform() {
 		return platform.getValue();
 	}
-	public String getAligner() {;
+	public String getAligner() {
 		return aligner.getValue();
 	}
-	public String getCaptureKit() {;
-	return captureKit.getValue();
-	}
-	
+
 	public String getLimsMetaDataToString() {
-		StringBuilder sb = new StringBuilder();
-		sb.append(bamFile.toLimsMetaString(type));
-		sb.append(aligner.toLimsMetaString(type));
-		sb.append(captureKit.toLimsMetaString(type));
-		sb.append(donor.toLimsMetaString(type));
-		sb.append(failedQC.toLimsMetaString(type));
-		sb.append(libraryProtocol.toLimsMetaString(type));
-		sb.append(material.toLimsMetaString(type));
-		sb.append(project.toLimsMetaString(type));
-		sb.append(referenceFile.toLimsMetaString(type));
-		sb.append(sample.toLimsMetaString(type));
-		sb.append(sampleCode.toLimsMetaString(type));
-		sb.append(platform.toLimsMetaString(type));
-		sb.append(speciesRefGenome.toLimsMetaString(type));
-		return sb.toString();
+        return bamFile.toLimsMetaString(type) +
+                aligner.toLimsMetaString(type) +
+                captureKit.toLimsMetaString(type) +
+                donor.toLimsMetaString(type) +
+                failedQC.toLimsMetaString(type) +
+                libraryProtocol.toLimsMetaString(type) +
+                material.toLimsMetaString(type) +
+                project.toLimsMetaString(type) +
+                referenceFile.toLimsMetaString(type) +
+                sample.toLimsMetaString(type) +
+                sampleCode.toLimsMetaString(type) +
+                platform.toLimsMetaString(type) +
+                speciesRefGenome.toLimsMetaString(type);
 	}
 }

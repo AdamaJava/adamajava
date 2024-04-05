@@ -30,17 +30,19 @@ public class PileupUtils {
 	 * @return int array corresponding to positions within the pileup file that are of interest
 	 */
 	public static int[] getStartPositions(int noOfNormalFiles, int noOfTumourFiles, boolean forNormal) {
-		int[] returnArray = null;
+		int[] returnArray;
 		
 		if (forNormal) {
 			returnArray = new int[noOfNormalFiles];
-			for (int i = PILEUP_OFFSET, j = 0; j < noOfNormalFiles; i += NO_OF_PILEUP_COLUMNS_PER_SAMPLE, j++)
+			for (int i = PILEUP_OFFSET, j = 0; j < noOfNormalFiles; i += NO_OF_PILEUP_COLUMNS_PER_SAMPLE, j++) {
 				returnArray[j] = i;
+			}
 		} else {
 			returnArray = new int[noOfTumourFiles];
 			for (int i = PILEUP_OFFSET + (noOfNormalFiles * NO_OF_PILEUP_COLUMNS_PER_SAMPLE), j = 0 ; 
-					j < noOfTumourFiles ; i += NO_OF_PILEUP_COLUMNS_PER_SAMPLE, j++)
+					j < noOfTumourFiles ; i += NO_OF_PILEUP_COLUMNS_PER_SAMPLE, j++) {
 				returnArray[j] = i;
+			}
 		}
 		return returnArray;
 	}
@@ -57,8 +59,9 @@ public class PileupUtils {
 		if (null == startPositions) throw new IllegalArgumentException("null int array passed to getCoverageCount");
 		
 		int coverage = 0;
-		for (int i : startPositions)
+		for (int i : startPositions) {
 			coverage += Integer.parseInt(params[i]);
+		}
 		return coverage;
 	}
 	
@@ -114,7 +117,9 @@ public class PileupUtils {
 		int count = 0;
 		if (null != pileupFormat) {
 			for (int i  = 0, len = pileupFormat.length() ; i < len ; i++) {
-				if (type == pileupFormat.charAt(i)) count++;
+				if (type == pileupFormat.charAt(i)) {
+					count++;
+				}
 			}
 		}
 		return count;

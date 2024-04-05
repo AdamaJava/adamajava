@@ -9,7 +9,7 @@ package org.qcmg.common.meta;
 public class KeyValue {
 	
 	public static final char TAB = '\t';
-	private static final String LS = System.getProperty("line.separator");
+	private static final String LS = System.lineSeparator();
 	
 	public static final String Q_DCC_META = "#Q_DCCMETA";
 	public static final String Q_EXEC = "#Q_EXEC";

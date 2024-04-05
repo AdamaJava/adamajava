@@ -9,7 +9,6 @@ package org.qcmg.common.util;
 import org.qcmg.common.model.*;
 import org.qcmg.common.string.StringUtils;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -32,7 +31,6 @@ public class ChrPositionUtils {
 
     /**
      * convert ChrPosition to a long. Will only examine the contig and start position
-     *
      */
     public static long convertContigAndPositionToLong(String contig, int position) {
         long l = (long) convertContigNameToInt(contig) << 32;
@@ -78,8 +76,7 @@ public class ChrPositionUtils {
         return switch (contigName) {
             case "X" -> 23;
             case "Y" -> 24;
-            case "M" -> 25;
-            case "MT" -> 25;
+            case "M", "MT" -> 25;
             default -> contigName.hashCode();
         };
     }
@@ -87,8 +84,8 @@ public class ChrPositionUtils {
     /**
      * Checks if two ChrPosition objects overlap with a buffer.
      *
-     * @param a the first ChrPosition
-     * @param b the second ChrPosition
+     * @param a      the first ChrPosition
+     * @param b      the second ChrPosition
      * @param buffer the buffer to consider for overlap
      * @return true if the ChrPositions overlap considering the buffer, false otherwise
      */
@@ -169,8 +166,8 @@ public class ChrPositionUtils {
      * Then, it calculates the absolute difference between the start positions and the end positions of the two ChrPosition objects.
      * If the total difference is less than or equal to the specified delta, the method returns true.
      *
-     * @param a the first ChrPosition
-     * @param b the second ChrPosition
+     * @param a     the first ChrPosition
+     * @param b     the second ChrPosition
      * @param delta the maximum allowed difference between the start and end positions of the two ChrPosition objects
      * @return true if the start and end positions of the two ChrPosition objects are within the specified delta, false otherwise
      */
@@ -205,7 +202,7 @@ public class ChrPositionUtils {
     /**
      * Returns a new ChrPosition object with a new chromosome name.
      *
-     * @param cp the ChrPosition to clone
+     * @param cp     the ChrPosition to clone
      * @param newChr the new chromosome name
      * @return a new ChrPosition object with the new chromosome name
      */
@@ -249,7 +246,7 @@ public class ChrPositionUtils {
      * The string must represent a single point on the chromosome (start position equals end position).
      *
      * @param position the string to convert
-     * @param name the name to assign to the ChrPositionName object
+     * @param name     the name to assign to the ChrPositionName object
      * @return the corresponding ChrPositionName object
      * @throws IllegalArgumentException if the string is null, empty, not in the correct format, or represents a range rather than a single point
      */
@@ -285,13 +282,13 @@ public class ChrPositionUtils {
     /**
      * Converts a ChrPosition and additional data to a VCF string.
      *
-     * @param cp the ChrPosition
-     * @param id the ID
-     * @param ref the reference
-     * @param alt the alternative
-     * @param qual the quality
+     * @param cp     the ChrPosition
+     * @param id     the ID
+     * @param ref    the reference
+     * @param alt    the alternative
+     * @param qual   the quality
      * @param filter the filter
-     * @param info the info
+     * @param info   the info
      * @return the VCF string
      */
     public static String toVcfString(ChrPosition cp, String id, String ref, String alt, String qual, String filter, String info) {
@@ -308,7 +305,7 @@ public class ChrPositionUtils {
     /**
      * Returns true if the two supplied ChrPosition objects are on the same chromosome and are adjacent
      * that is, the end position of 1 is next to the start position of the other
-     *
+     * <p>
      * if they overlap, return false
      *
      * @param cp1 the first ChrPosition

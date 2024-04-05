@@ -1,17 +1,16 @@
 package org.qcmg.common.util;
 
-import static org.junit.Assert.assertEquals;
-import static org.qcmg.common.util.Constants.MISSING_DATA_STRING;
+import org.junit.Assert;
+import org.junit.Test;
+import org.qcmg.common.model.ChrPosition;
+import org.qcmg.common.model.ChrPositionRefAlt;
+import org.qcmg.common.model.ChrRangePosition;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.Assert;
-import org.junit.Test;
-import org.qcmg.common.model.ChrPointPosition;
-import org.qcmg.common.model.ChrPosition;
-import org.qcmg.common.model.ChrPositionRefAlt;
-import org.qcmg.common.model.ChrRangePosition;
+import static org.junit.Assert.*;
+import static org.qcmg.common.util.Constants.MISSING_DATA_STRING;
 
 public class ChrPositionUtilsTest {
 	
@@ -20,20 +19,20 @@ public class ChrPositionUtilsTest {
 	public void testDelta() {
 		ChrRangePosition cp1 = new ChrRangePosition("1", 100, 200);
 		ChrRangePosition cp2 = new ChrRangePosition("1", 100, 200);
-		assertEquals(true, ChrPositionUtils.arePositionsWithinDelta(cp1, cp2, 4));
+        assertTrue(ChrPositionUtils.arePositionsWithinDelta(cp1, cp2, 4));
 		
 		cp2 = new ChrRangePosition("1", 110, 200);
-		assertEquals(false, ChrPositionUtils.arePositionsWithinDelta(cp1, cp2, 4));
+        assertFalse(ChrPositionUtils.arePositionsWithinDelta(cp1, cp2, 4));
 		cp2 = new ChrRangePosition("1", 100, 205);
-		assertEquals(false, ChrPositionUtils.arePositionsWithinDelta(cp1, cp2, 4));
+        assertFalse(ChrPositionUtils.arePositionsWithinDelta(cp1, cp2, 4));
 		cp2 = new ChrRangePosition("1", 102, 203);
-		assertEquals(false, ChrPositionUtils.arePositionsWithinDelta(cp1, cp2, 4));
+        assertFalse(ChrPositionUtils.arePositionsWithinDelta(cp1, cp2, 4));
 		cp2 = new ChrRangePosition("1", 103, 202);
-		assertEquals(false, ChrPositionUtils.arePositionsWithinDelta(cp1, cp2, 4));
+        assertFalse(ChrPositionUtils.arePositionsWithinDelta(cp1, cp2, 4));
 		cp2 = new ChrRangePosition("1", 98, 203);
-		assertEquals(false, ChrPositionUtils.arePositionsWithinDelta(cp1, cp2, 4));
+        assertFalse(ChrPositionUtils.arePositionsWithinDelta(cp1, cp2, 4));
 		cp2 = new ChrRangePosition("1", 98, 202);
-		assertEquals(true, ChrPositionUtils.arePositionsWithinDelta(cp1, cp2, 4));
+        assertTrue(ChrPositionUtils.arePositionsWithinDelta(cp1, cp2, 4));
 	}
 
 	@Test
@@ -95,11 +94,11 @@ public class ChrPositionUtilsTest {
 		ChrRangePosition cp1 = new ChrRangePosition("1", 100, 200);
 		
 		// true
-		assertEquals(true, ChrPositionUtils.doChrPositionsOverlap(cp1, new ChrRangePosition("1", 300, 400), 100));
-		assertEquals(true, ChrPositionUtils.doChrPositionsOverlap(new ChrRangePosition("1", 300, 400), cp1,100));
-		
-		assertEquals(false, ChrPositionUtils.doChrPositionsOverlap(cp1, new ChrRangePosition("1", 300, 400), 99));
-		assertEquals(false, ChrPositionUtils.doChrPositionsOverlap(new ChrRangePosition("1", 300, 400), cp1,99));
+        assertTrue(ChrPositionUtils.doChrPositionsOverlap(cp1, new ChrRangePosition("1", 300, 400), 100));
+        assertTrue(ChrPositionUtils.doChrPositionsOverlap(new ChrRangePosition("1", 300, 400), cp1, 100));
+
+        assertFalse(ChrPositionUtils.doChrPositionsOverlap(cp1, new ChrRangePosition("1", 300, 400), 99));
+        assertFalse(ChrPositionUtils.doChrPositionsOverlap(new ChrRangePosition("1", 300, 400), cp1, 99));
 		
 	}
 	
@@ -172,12 +171,12 @@ public class ChrPositionUtilsTest {
 		ChrRangePosition cp2 = new ChrRangePosition("chr1", 1999, 2001);
 		ChrRangePosition cp3 = new ChrRangePosition("chr1", 1999, 2000);
 		ChrRangePosition cp4 = new ChrRangePosition("chr1", 2000, 2001);
-		assertEquals(false, ChrPositionUtils.isChrPositionContained(cp1, cp2));
-		assertEquals(true, ChrPositionUtils.isChrPositionContained(cp1, cp3));
-		assertEquals(true, ChrPositionUtils.isChrPositionContained(cp2, cp3));
-		assertEquals(false, ChrPositionUtils.isChrPositionContained(cp1, cp4));
-		assertEquals(true, ChrPositionUtils.isChrPositionContained(cp2, cp4));
-		assertEquals(false, ChrPositionUtils.isChrPositionContained(cp4, cp2));
+        assertFalse(ChrPositionUtils.isChrPositionContained(cp1, cp2));
+        assertTrue(ChrPositionUtils.isChrPositionContained(cp1, cp3));
+        assertTrue(ChrPositionUtils.isChrPositionContained(cp2, cp3));
+        assertFalse(ChrPositionUtils.isChrPositionContained(cp1, cp4));
+        assertTrue(ChrPositionUtils.isChrPositionContained(cp2, cp4));
+        assertFalse(ChrPositionUtils.isChrPositionContained(cp4, cp2));
 	}
 	
 	@Test
@@ -186,46 +185,46 @@ public class ChrPositionUtilsTest {
 		ChrRangePosition cp2 = new ChrRangePosition("chr2", 1999, 2001);
 		ChrRangePosition cp3 = new ChrRangePosition("chr3", 1999, 2000);
 		ChrRangePosition cp4 = new ChrRangePosition("chr4", 2000, 2001);
-		assertEquals(false, ChrPositionUtils.isChrPositionContained(cp1, cp2));
-		assertEquals(false, ChrPositionUtils.isChrPositionContained(cp1, cp3));
-		assertEquals(false, ChrPositionUtils.isChrPositionContained(cp2, cp3));
-		assertEquals(false, ChrPositionUtils.isChrPositionContained(cp1, cp4));
-		assertEquals(false, ChrPositionUtils.isChrPositionContained(cp2, cp4));
-		assertEquals(false, ChrPositionUtils.isChrPositionContained(cp4, cp2));
+        assertFalse(ChrPositionUtils.isChrPositionContained(cp1, cp2));
+        assertFalse(ChrPositionUtils.isChrPositionContained(cp1, cp3));
+        assertFalse(ChrPositionUtils.isChrPositionContained(cp2, cp3));
+        assertFalse(ChrPositionUtils.isChrPositionContained(cp1, cp4));
+        assertFalse(ChrPositionUtils.isChrPositionContained(cp2, cp4));
+        assertFalse(ChrPositionUtils.isChrPositionContained(cp4, cp2));
 	}
 	
 	
 	@Test
 	public void arePositionsAdjacent() {
-		assertEquals(false, ChrPositionUtils.areAdjacent(new ChrRangePosition("1", 1, 10), new ChrRangePosition("2", 11, 20)));
-		assertEquals(false, ChrPositionUtils.areAdjacent(new ChrRangePosition("1", 1, 10), new ChrRangePosition("1", 12, 20)));
-		assertEquals(false, ChrPositionUtils.areAdjacent(new ChrRangePosition("1", 1, 10), new ChrRangePosition("1", 10, 20)));
-		assertEquals(false, ChrPositionUtils.areAdjacent(new ChrRangePosition("1", 10, 20), new ChrRangePosition("1", 1, 10)));
-		assertEquals(false, ChrPositionUtils.areAdjacent(new ChrRangePosition("1", 123456, 123456), new ChrRangePosition("1", 123456, 123456)));
-		assertEquals(false, ChrPositionUtils.areAdjacent(new ChrRangePosition("2", 123456, 123456), new ChrRangePosition("1", 123456, 123456)));
-		assertEquals(false, ChrPositionUtils.areAdjacent(new ChrRangePosition("2", 123456, 123456), new ChrRangePosition("1", 123457, 123457)));
-		
-		assertEquals(true, ChrPositionUtils.areAdjacent(new ChrRangePosition("1", 1, 10), new ChrRangePosition("1", 11, 20)));
-		assertEquals(true, ChrPositionUtils.areAdjacent(new ChrRangePosition("2", 1, 10), new ChrRangePosition("2", 11, 20)));
-		assertEquals(true, ChrPositionUtils.areAdjacent(new ChrRangePosition("1", 11, 20), new ChrRangePosition("1", 1, 10)));
-		assertEquals(true, ChrPositionUtils.areAdjacent(new ChrRangePosition("2", 11, 20), new ChrRangePosition("2", 1, 10)));
-		
-		assertEquals(true, ChrPositionUtils.areAdjacent(new ChrRangePosition("1", 123456, 123456), new ChrRangePosition("1", 123457, 123457)));
-		assertEquals(true, ChrPositionUtils.areAdjacent(new ChrRangePosition("1", 123457, 123457), new ChrRangePosition("1", 123456, 123456)));
+        assertFalse(ChrPositionUtils.areAdjacent(new ChrRangePosition("1", 1, 10), new ChrRangePosition("2", 11, 20)));
+        assertFalse(ChrPositionUtils.areAdjacent(new ChrRangePosition("1", 1, 10), new ChrRangePosition("1", 12, 20)));
+        assertFalse(ChrPositionUtils.areAdjacent(new ChrRangePosition("1", 1, 10), new ChrRangePosition("1", 10, 20)));
+        assertFalse(ChrPositionUtils.areAdjacent(new ChrRangePosition("1", 10, 20), new ChrRangePosition("1", 1, 10)));
+        assertFalse(ChrPositionUtils.areAdjacent(new ChrRangePosition("1", 123456, 123456), new ChrRangePosition("1", 123456, 123456)));
+        assertFalse(ChrPositionUtils.areAdjacent(new ChrRangePosition("2", 123456, 123456), new ChrRangePosition("1", 123456, 123456)));
+        assertFalse(ChrPositionUtils.areAdjacent(new ChrRangePosition("2", 123456, 123456), new ChrRangePosition("1", 123457, 123457)));
+
+        assertTrue(ChrPositionUtils.areAdjacent(new ChrRangePosition("1", 1, 10), new ChrRangePosition("1", 11, 20)));
+        assertTrue(ChrPositionUtils.areAdjacent(new ChrRangePosition("2", 1, 10), new ChrRangePosition("2", 11, 20)));
+        assertTrue(ChrPositionUtils.areAdjacent(new ChrRangePosition("1", 11, 20), new ChrRangePosition("1", 1, 10)));
+        assertTrue(ChrPositionUtils.areAdjacent(new ChrRangePosition("2", 11, 20), new ChrRangePosition("2", 1, 10)));
+
+        assertTrue(ChrPositionUtils.areAdjacent(new ChrRangePosition("1", 123456, 123456), new ChrRangePosition("1", 123457, 123457)));
+        assertTrue(ChrPositionUtils.areAdjacent(new ChrRangePosition("1", 123457, 123457), new ChrRangePosition("1", 123456, 123456)));
 		
 	}
 	
 	@Test
 	public void positionOnlyOverlap() {
-		assertEquals(false, ChrPositionUtils.doChrPositionsOverlapPositionOnly(new ChrRangePosition("1", 1, 10), new ChrRangePosition("1", 11, 20)));
-		assertEquals(false, ChrPositionUtils.doChrPositionsOverlapPositionOnly(new ChrRangePosition("1", 11, 20), new ChrRangePosition("1", 1, 10)));
-		
-		assertEquals(true, ChrPositionUtils.doChrPositionsOverlapPositionOnly(new ChrRangePosition("1", 1, 10), new ChrRangePosition("1", 10, 20)));
-		assertEquals(true, ChrPositionUtils.doChrPositionsOverlapPositionOnly(new ChrRangePosition("1", 10, 20), new ChrRangePosition("1", 1, 10)));
-		
-		assertEquals(true, ChrPositionUtils.doChrPositionsOverlapPositionOnly(new ChrRangePosition("1", 1, 100), new ChrRangePosition("1", 10, 20)));
-		assertEquals(true, ChrPositionUtils.doChrPositionsOverlapPositionOnly(new ChrRangePosition("1", 10, 20), new ChrRangePosition("1", 1, 100)));
-		assertEquals(true, ChrPositionUtils.doChrPositionsOverlapPositionOnly(new ChrRangePosition("1", 123456, 123456), new ChrRangePosition("1", 123456, 123456)));
+        assertFalse(ChrPositionUtils.doChrPositionsOverlapPositionOnly(new ChrRangePosition("1", 1, 10), new ChrRangePosition("1", 11, 20)));
+        assertFalse(ChrPositionUtils.doChrPositionsOverlapPositionOnly(new ChrRangePosition("1", 11, 20), new ChrRangePosition("1", 1, 10)));
+
+        assertTrue(ChrPositionUtils.doChrPositionsOverlapPositionOnly(new ChrRangePosition("1", 1, 10), new ChrRangePosition("1", 10, 20)));
+        assertTrue(ChrPositionUtils.doChrPositionsOverlapPositionOnly(new ChrRangePosition("1", 10, 20), new ChrRangePosition("1", 1, 10)));
+
+        assertTrue(ChrPositionUtils.doChrPositionsOverlapPositionOnly(new ChrRangePosition("1", 1, 100), new ChrRangePosition("1", 10, 20)));
+        assertTrue(ChrPositionUtils.doChrPositionsOverlapPositionOnly(new ChrRangePosition("1", 10, 20), new ChrRangePosition("1", 1, 100)));
+        assertTrue(ChrPositionUtils.doChrPositionsOverlapPositionOnly(new ChrRangePosition("1", 123456, 123456), new ChrRangePosition("1", 123456, 123456)));
 	}
 	
 	@Test
@@ -233,10 +232,10 @@ public class ChrPositionUtilsTest {
 		ChrRangePosition cp = new ChrRangePosition("1", 10, 10);
 		ChrPosition preceedingCP = ChrPositionUtils.getPrecedingChrPosition(cp);
 		ChrPosition preceedingCP2 = ChrPositionUtils.getPrecedingChrPosition(preceedingCP);
-		assertEquals(true, ChrPositionUtils.areAdjacent(cp, preceedingCP));
-		assertEquals(true, ChrPositionUtils.areAdjacent(preceedingCP2, preceedingCP));
-		assertEquals(false, ChrPositionUtils.areAdjacent(preceedingCP2, cp));
-		assertEquals(false, ChrPositionUtils.areAdjacent(cp, preceedingCP2));
+        assertTrue(ChrPositionUtils.areAdjacent(cp, preceedingCP));
+        assertTrue(ChrPositionUtils.areAdjacent(preceedingCP2, preceedingCP));
+        assertFalse(ChrPositionUtils.areAdjacent(preceedingCP2, cp));
+        assertFalse(ChrPositionUtils.areAdjacent(cp, preceedingCP2));
 	}
 	
 }

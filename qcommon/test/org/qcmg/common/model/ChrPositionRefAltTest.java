@@ -1,32 +1,30 @@
 package org.qcmg.common.model;
 
-import static org.junit.Assert.assertEquals;
+import org.junit.Assert;
+import org.junit.Test;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
-import org.junit.Assert;
-import org.junit.Ignore;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 
 public class ChrPositionRefAltTest {
 	
 	@Test
 	public void testConstructor() {
 		try {
-			new ChrPositionRefAlt((String)null,-1,-1, "","");
+			new ChrPositionRefAlt(null,-1,-1, "","");
 			Assert.fail("Should have thrown an IllegalArgumentException");
-		} catch (IllegalArgumentException e) {}
+		} catch (IllegalArgumentException ignored) {}
 		try {
 			new ChrPositionRefAlt("",-1,-1, "","");
 			Assert.fail("Should have thrown an IllegalArgumentException");
-		} catch (IllegalArgumentException e) {}
+		} catch (IllegalArgumentException ignored) {}
 		try {
 			new ChrPositionRefAlt("testing",1,0, "","");
 			Assert.fail("Should have thrown an IllegalArgumentException");
-		} catch (IllegalArgumentException e) {}
+		} catch (IllegalArgumentException ignored) {}
 		
 		ChrPositionRefAlt cp1 = new ChrPositionRefAlt("123", -1,-1, "","");
 		ChrPositionRefAlt cp2 = new ChrPositionRefAlt("123", -1,-1, "","");
@@ -123,31 +121,14 @@ public class ChrPositionRefAltTest {
 	@Test
 	public void doesEqualsWork() {
 		ChrPositionRefAlt cp1 = new ChrPositionRefAlt("chr22", 1,1,"","");
-		assertEquals(true, cp1.equals(cp1));
 		ChrPositionRefAlt cp2 = new ChrPositionRefAlt("chr22", 1,1,"","");
-		assertEquals(true, cp2.equals(cp2));
-		assertEquals(true, cp1.equals(cp2));
+        assertEquals(cp1, cp2);
 		ChrPositionRefAlt cp3 = new ChrPositionRefAlt("chr22", 1,1,"Hello","World");
-		assertEquals(true, cp3.equals(cp3));
 		ChrPositionRefAlt cp4 = new ChrPositionRefAlt("chr22", 1,1,"Hello","There");
-		assertEquals(true, cp4.equals(cp4));
-		assertEquals(false, cp3.equals(cp4));
+        assertNotEquals(cp3, cp4);
 		ChrPositionRefAlt cp5 = new ChrPositionRefAlt("chr22", 1,1,"Hello","There");
-		assertEquals(true, cp5.equals(cp5));
 		ChrPositionRefAlt cp6 = new ChrPositionRefAlt("chr22", 1,1,"Why Hello","There");
-		assertEquals(false, cp5.equals(cp6));
-	}
-	
-	@Ignore
-	public void testHashCode() {
-		Set<Integer> distinctHashCodes = new HashSet<Integer>();
-		int counter = 0;
-		for (int cycle = 90000000 ;  cycle < 100000000 ; cycle++) {
-			int chrValue = (counter % 20) + 1;
-			ChrPositionRefAlt cp = new ChrPositionRefAlt("chr" + chrValue, cycle, cycle, "","");
-			distinctHashCodes.add(cp.hashCode());
-			counter++;
-		}
+        assertNotEquals(cp5, cp6);
 	}
 
 }

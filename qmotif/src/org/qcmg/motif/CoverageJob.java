@@ -68,7 +68,7 @@ class CoverageJob implements Job {
 		}
 		this.outputQueue = outputQueue;
 		for (final Pair<File, File> pair : filePairs) {
-			File bamFile = pair.getLeft();
+			File bamFile = pair.left();
 			SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile, validation);
 			fileReaders.add(reader);
 		}

@@ -11,9 +11,7 @@ import java.util.Comparator;
 import java.util.List;
 
 public class ListUtils {
-	
-	public static final int ADJACENT_POSITION_BUFFER = 2;
-	
+
 	/**
 	 * Returns a comparator based on the sequence order of the elements in the list
 	 * <p>
@@ -26,7 +24,7 @@ public class ListUtils {
 	 * @return Comparator<T> with its sort order based on the sequence of elements in the supplied list
 	 */
 	public static <T> Comparator<T> createComparatorFromList(final List<T> sortedList) {
-		Comparator<T> c = new Comparator<T>() {
+        return new Comparator<T>() {
 			@Override
 			public int compare(T o1, T o2) {
 				final int index1 = sortedList.indexOf(o1);
@@ -36,15 +34,11 @@ public class ListUtils {
 				return index1 - index2;
 			}
 		};
-		return c;
 	}
 	
 	/**
 	 * returns the first occurrence of the supplied string in the supplied array, or -1 if not present
 	 * 
-	 * @param array
-	 * @param s
-	 * @return
 	 */
 	public static int positionOfStringInArray(String [] array, String s) {
 		int i = 0;

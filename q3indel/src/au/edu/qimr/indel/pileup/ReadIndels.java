@@ -71,7 +71,7 @@ public class ReadIndels {
  	        			VcfRecord vcf1 = re; 
 	 	        		//reset allele column
 	 	        		if (alleles.length > 1) { 
-	 	        			vcf1 = VcfUtils.resetAllel(re, alt);
+	 	        			vcf1 = VcfUtils.resetAllele(re, alt);
 	 	        		}
 	 	        		mergeTestIndel(vcf1);
 					}
@@ -170,7 +170,7 @@ public class ReadIndels {
 	 	        	if (type.equals(SVTYPE.DEL) || type.equals(SVTYPE.INS) ) {	        		
 	 	        		VcfRecord vcf1 = re; 	 	        	
 	 	        		if (alleles.length > 1) { 
-	 	        			vcf1 = VcfUtils.resetAllel(re, alt); //reset allele column
+	 	        			vcf1 = VcfUtils.resetAllele(re, alt); //reset allele column
 	 	        			indelMultiAltNo ++; //mutli allele indel
 	 	        		}
 	 	        		

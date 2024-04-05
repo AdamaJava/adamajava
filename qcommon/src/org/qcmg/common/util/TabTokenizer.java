@@ -133,7 +133,6 @@ public class TabTokenizer {
     static class Iter implements Iterable<String>, Iterator<String> {
         private final String data;
         private final char delim;
-        private int nextIndex;
         private int currentIndex = 0;
         private String next;
         private boolean lastRecord = false;
@@ -168,7 +167,7 @@ public class TabTokenizer {
                 next = null;
                 return;
             }
-            nextIndex = data.indexOf(delim, currentIndex);
+            int nextIndex = data.indexOf(delim, currentIndex);
             if (nextIndex < 0) {
                 lastRecord = true;
                 next = data.substring(currentIndex);

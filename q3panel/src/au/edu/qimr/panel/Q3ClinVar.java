@@ -952,15 +952,15 @@ public class Q3ClinVar {
 				}
 				
 				for (Pair<Probe,Bin> pair : list) {
-					Map<Bin, List<VcfRecord>> binVcfs = mutationsByBin.get(pair.getLeft());
+					Map<Bin, List<VcfRecord>> binVcfs = mutationsByBin.get(pair.left());
 					if (null == binVcfs) {
 						binVcfs = new HashMap<>();
-						mutationsByBin.put(pair.getLeft(), binVcfs);
+						mutationsByBin.put(pair.left(), binVcfs);
 					}
-					List<VcfRecord> vcfs = binVcfs.get(pair.getRight());
+					List<VcfRecord> vcfs = binVcfs.get(pair.right());
 					if (null == vcfs) {
 						vcfs = new ArrayList<>();
-						binVcfs.put(pair.getRight(), vcfs);
+						binVcfs.put(pair.right(), vcfs);
 					}
 					vcfs.add(entry.getKey());
 				}
@@ -1175,8 +1175,8 @@ public class Q3ClinVar {
 			}
 			
 			for (Pair<Integer, String> mutation : mutations) {
-				int position = mutation.getLeft().intValue();
-				String mutString = mutation.getRight();
+				int position = mutation.left().intValue();
+				String mutString = mutation.right();
 				int slashIndex = mutString.indexOf('/');
 				String ref = mutString.substring(0, slashIndex);
 				String alt = mutString.substring(slashIndex + 1);

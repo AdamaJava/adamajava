@@ -150,14 +150,14 @@ public final class Configuration {
 		// loop through filePairs
 		
 		for (Pair<File, File> entry : filePairs) {
-			if (null != entry.getLeft()) {
-				if ( ! entry.getLeft().exists()) {
-					throw new Exception("Input BAM file '" + entry.getLeft().getAbsolutePath() + "' does not exist");
+			if (null != entry.left()) {
+				if ( ! entry.left().exists()) {
+					throw new Exception("Input BAM file '" + entry.left().getAbsolutePath() + "' does not exist");
 				}
 			}
-			if (null != entry.getRight()) {
-				if ( ! entry.getRight().exists()) {
-					throw new Exception("Input BAI file '" + entry.getRight().getAbsolutePath() + "' does not exist");
+			if (null != entry.right()) {
+				if ( ! entry.right().exists()) {
+					throw new Exception("Input BAI file '" + entry.right().getAbsolutePath() + "' does not exist");
 				}
 			}
 		}

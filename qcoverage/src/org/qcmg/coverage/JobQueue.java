@@ -239,8 +239,8 @@ public final class JobQueue {
 	private Set<String> identifyBamRefNames() throws IOException {
 		Set<String> bamRefNames = new HashSet<>();
 		for (final Pair<File, File> pair : filePairs) {
-			File bamFile = pair.getLeft();
-			File baiFile = pair.getRight();
+			File bamFile = pair.left();
+			File baiFile = pair.right();
 			try (SamReader samReader = SAMFileReaderFactory.createSAMFileReader(bamFile, baiFile);) {
 				SAMFileHeader header = samReader.getFileHeader();
 				for (SAMSequenceRecord seqRecord : header.getSequenceDictionary()

@@ -26,7 +26,7 @@ public class FileUtils {
 	
 	private static final File[] EMPTY_FILE_ARRAY = new File[] {};
 	
-	public static final String FILE_SEPARATOR = System.getProperty("file.separator");
+	public static final String FILE_SEPARATOR = FileSystems.getDefault().getSeparator();
 	
 	public static final Comparator<File> FILE_COMPARATOR = Comparator.comparing(File::getAbsolutePath);
 	
@@ -157,7 +157,6 @@ public class FileUtils {
 	 * 
 	 * @param file: an input file
 	 * @return true if input file is Gzip by check the first two byte of input file 
-	 * @throws IOException
 	 */
 	public static boolean isInputGZip(final File file) throws IOException {
 		//final PushbackInputStream pb = new PushbackInputStream(input, 2);
@@ -300,10 +299,12 @@ public class FileUtils {
 	}
 	
 	/**
-	 * 
-	 * @param directory
-	 * @param filter
-	 * @return
+	 * Returns an array of File instances that match the given directory and filename filter.
+	 *
+	 * @param directory The directory path to search for files in.
+	 * @param filter The FilenameFilter to apply to the search.
+	 * @return An array of File instances that match the directory and filter.
+	 * @throws IllegalArgumentException If the directory parameter is empty or null, or if the filter parameter is null.
 	 */
 	public static File [] findFiles(final String directory, FilenameFilter filter) {
 		if (StringUtils.isNullOrEmpty(directory))
@@ -322,6 +323,12 @@ public class FileUtils {
 		return dir.listFiles(filter);
 	}
 
+	/**
+	 * Checks if the input files are valid.
+	 *
+	 * @param inputs The input files to be checked.
+	 * @return {@code true} if all the input files are valid, {@code false} otherwise.
+	 */
 	public static boolean areInputFilesValid(String ... inputs) {
 		if (null == inputs || inputs.length == 0) return false;
 		
@@ -342,8 +349,7 @@ public class FileUtils {
 	 */
 	public static File getCanonicalFile(final String fileName) throws IOException {
 		final File file = new File(fileName);
-		File f = file.getCanonicalFile();
-		return f;
+        return file.getCanonicalFile();
 	}
 
 	/**
@@ -372,9 +378,6 @@ public class FileUtils {
 	/**
 	 * Returns the parent directory for the specified file name.
 	 * 
-	 * @param fileName
-	 * @return
-	 * @throws IOException
 	 */
 	public static String getParentDirectory(final String fileName) throws IOException {
 		File file = getCanonicalFile(fileName);
@@ -384,8 +387,6 @@ public class FileUtils {
 	/**
 	 * Extracts the file extension for the specified File instance.
 	 * 
-	 * @param f
-	 * @return
 	 */
 	public static String getExtension(File f) {
 		String ext = null;

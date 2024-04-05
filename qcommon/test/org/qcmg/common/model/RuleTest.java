@@ -3,7 +3,6 @@ package org.qcmg.common.model;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.qcmg.common.model.Rule;
 
 public class RuleTest {
 
@@ -12,28 +11,28 @@ public class RuleTest {
 		// dodgy ones first
 		try {
 			new Rule(1,0,0);
-			Assert.fail("Should have thrown an IllegalArgumentExcpetion");
-		} catch (IllegalArgumentException e) {}
+			Assert.fail("Should have thrown an IllegalArgumentException");
+		} catch (IllegalArgumentException ignored) {}
 		
 		try {
 			new Rule(1,1,2);
-			Assert.fail("Should have thrown an IllegalArgumentExcpetion");
-		} catch (IllegalArgumentException e) {}
+			Assert.fail("Should have thrown an IllegalArgumentException");
+		} catch (IllegalArgumentException ignored) {}
 		
 		try {
 			new Rule(0,10,11);
-			Assert.fail("Should have thrown an IllegalArgumentExcpetion");
-		} catch (IllegalArgumentException e) {}
+			Assert.fail("Should have thrown an IllegalArgumentException");
+		} catch (IllegalArgumentException ignored) {}
 		
 		try {
 			new Rule(-1,10,1);
-			Assert.fail("Should have thrown an IllegalArgumentExcpetion");
-		} catch (IllegalArgumentException e) {}
-		
+			Assert.fail("Should have thrown an IllegalArgumentException");
+		} catch (IllegalArgumentException ignored) {}
+
 		try {
 			new Rule(Integer.MIN_VALUE,Integer.MAX_VALUE,0);
-			Assert.fail("Should have thrown an IllegalArgumentExcpetion");
-		} catch (IllegalArgumentException e) {}
+			Assert.fail("Should have thrown an IllegalArgumentException");
+		} catch (IllegalArgumentException ignored) {}
 	}
 	
 	@Test

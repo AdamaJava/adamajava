@@ -155,7 +155,7 @@ public class SampleSummary {
 				
 				long sumTi = 0, sumTv = 0;
 				for (SubsitutionEnum tran: SubsitutionEnum.values()) {
-					if (tran.isTranstion() && summary.get(type.name() + tran.name()) != null) {
+					if (tran.isTransition() && summary.get(type.name() + tran.name()) != null) {
 						tiFreq.put(tran.toString(), summary.get(type.name() + tran.name()));
 						sumTi += summary.get(type.name() + tran.name()).get();
 					} else if (tran.isTransversion() && summary.get(type.name() + tran.name()) != null) {				 

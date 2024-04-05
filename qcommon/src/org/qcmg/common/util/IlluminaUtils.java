@@ -28,25 +28,19 @@ public class IlluminaUtils {
 		boolean complement = ref != illGenChar1 && ref != illGenChar2;
 		
 //		System.out.println("illGenChar1: " + illGenChar1 + ", illGenChar2: " + illGenChar2 + ", complement: " + complement);
-		
-		if ("AA".equals(illuminaCall)) {
-			return complement ? 
-					BaseUtils.getComplement(illGenChar1) + "/" + BaseUtils.getComplement(illGenChar1)
-					: illGenChar1 + "/" + illGenChar1; 
-					
-		} else if ("AB".equals(illuminaCall)) {
-			return complement ? 
-					BaseUtils.getComplement(illGenChar1) + "/" + BaseUtils.getComplement(illGenChar2)
-					: illGenChar1 + "/" + illGenChar2; 
-			
-		}else if ("BB".equals(illuminaCall)) {
-			return complement ? 
-					BaseUtils.getComplement(illGenChar2) + "/" + BaseUtils.getComplement(illGenChar2)
-					: illGenChar2 + "/" + illGenChar2; 
-			
-		} else {
-			throw new IllegalArgumentException("Illumina call was not in correct format: " + illuminaCall);
-		}
+
+        return switch (illuminaCall) {
+            case "AA" -> complement ?
+                    BaseUtils.getComplement(illGenChar1) + "/" + BaseUtils.getComplement(illGenChar1)
+                    : illGenChar1 + "/" + illGenChar1;
+            case "AB" -> complement ?
+                    BaseUtils.getComplement(illGenChar1) + "/" + BaseUtils.getComplement(illGenChar2)
+                    : illGenChar1 + "/" + illGenChar2;
+            case "BB" -> complement ?
+                    BaseUtils.getComplement(illGenChar2) + "/" + BaseUtils.getComplement(illGenChar2)
+                    : illGenChar2 + "/" + illGenChar2;
+            default -> throw new IllegalArgumentException("Illumina call was not in correct format: " + illuminaCall);
+        };
 		
 	}
 	
@@ -54,9 +48,10 @@ public class IlluminaUtils {
 		double totalCoverage = Math.pow(2 , logRRatio) * totalCount;
 		int bAlleleCount =  (int) (totalCoverage * bAlleleFrequency);
 		int aAlleleCount = (int) (totalCoverage - bAlleleCount);
-		if (bAlleleCount < 0 || aAlleleCount < 0)
-			System.out.println("got a negative allele count from following values: logRRatio: " 
+		if (bAlleleCount < 0 || aAlleleCount < 0) {
+			System.out.println("got a negative allele count from following values: logRRatio: "
 					+ logRRatio + ", bAlleleFrequency: " + bAlleleFrequency);
+		}
 		return new int[] {aAlleleCount, bAlleleCount};
 	}
 	
@@ -65,9 +60,10 @@ public class IlluminaUtils {
 		int totalIntensity = rawXIntensity + rawYIntensity;
 		int bAlleleCount =  (int) (totalCoverage * ((double)rawYIntensity / totalIntensity));
 		int aAlleleCount = (int) (totalCoverage - bAlleleCount);
-		if (bAlleleCount < 0 || aAlleleCount < 0)
-			System.out.println("got a negative allele count from following values: logRRatio: " 
+		if (bAlleleCount < 0 || aAlleleCount < 0) {
+			System.out.println("got a negative allele count from following values: logRRatio: "
 					+ logRRatio + ", rawXIntensity: " + rawXIntensity + ", rawYIntensity: " + rawYIntensity);
+		}
 		return new int[] {aAlleleCount, bAlleleCount};
 	}
 	

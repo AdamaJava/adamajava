@@ -28,8 +28,11 @@ public class DonorUtils {
 		if (StringUtils.isNullOrEmpty(stringToSearch)) return false;
 			
 		Matcher m = DONOR_PATTERN.matcher(stringToSearch);
-		if (m.find()) return true;
-		else m = PPPP_DONOR_PATTERN.matcher(stringToSearch);
+		if (m.find()) {
+			return true;
+		} else {
+			m = PPPP_DONOR_PATTERN.matcher(stringToSearch);
+		}
 				
 		return m.find();
 	}
@@ -38,8 +41,11 @@ public class DonorUtils {
 		if (StringUtils.isNullOrEmpty(stringToSearch)) return null;
 		
 		Matcher m = DONOR_PATTERN.matcher(stringToSearch);
-		if (m.find()) return m.group();
-		else m = PPPP_DONOR_PATTERN.matcher(stringToSearch);
+		if (m.find()) {
+			return m.group();
+		} else {
+			m = PPPP_DONOR_PATTERN.matcher(stringToSearch);
+		}
 		
 		return m.find() ? m.group() : null;
 	}

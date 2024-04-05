@@ -291,15 +291,15 @@ public class PileupElementLiteUtil {
 			throw new IllegalArgumentException("coverage cannot be less then zero");
 		if (count > coverage)
 			throw new IllegalArgumentException("count cannot be greater than the coverage");
-		if (coverage > rule.getMaxCoverage())
+		if (coverage > rule.maxCoverage())
 			throw new IllegalArgumentException("coverage cannot be more than max coverage in rule");
-		if (coverage < rule.getMinCoverage())
+		if (coverage < rule.minCoverage())
 			throw new IllegalArgumentException("coverage cannot be less then min coverage in rule");
 		
-		boolean usePercentage = rule.getMaxCoverage() == Integer.MAX_VALUE;
+		boolean usePercentage = rule.maxCoverage() == Integer.MAX_VALUE;
 		
 		if (usePercentage) {
-			double noOfVariants = rule.getNoOfVariants();
+			double noOfVariants = rule.noOfVariants();
 			
 			if (secondPass) {
 				return ((double)count / coverage * 100) >= (noOfVariants / 2);
@@ -307,7 +307,7 @@ public class PileupElementLiteUtil {
 				return ((double)count / coverage * 100) >= noOfVariants;
 			}
 		} else {
-			return count >= rule.getNoOfVariants();
+			return count >= rule.noOfVariants();
 		}
 	}
 	

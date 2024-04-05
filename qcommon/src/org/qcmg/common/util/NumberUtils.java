@@ -91,11 +91,7 @@ public class NumberUtils {
 	public static byte setBit(byte value, int numberOfBits) {
 		return (byte) ((1 << numberOfBits) + value);
 	}
-	
-	public static boolean isBitSetOnByte(byte value, int bit) {
-		return (value & 1L << bit) != 0;
-	}
-	
+
 	public static short getShortFromLong(long l, int offset) {
 		return (short) (l >> offset);
 	}
@@ -103,11 +99,7 @@ public class NumberUtils {
 	public static long addShortToLong(long l, short s, int offset) {
 		return l + ((long)s << offset);
 	}
-	
-	public static long removeShortFromLong(long l) {
-		return removeShortFromLong(l, OFFSET);
-	}
-	
+
 	public static long removeShortFromLong(long l, int offset) {
 		/*
 		 * first of all, get the short, then subtract from the long
@@ -151,20 +143,16 @@ public class NumberUtils {
 	}
 	
 	public static int convertCharToInt(char c, boolean allowNs) {
-		switch (c) {
-		case 'A': return 0;
-		case 'C': return 1;
-		case 'G': return 2;
-		case 'T': return 3;
-		case 'N': return allowNs ? 4 : -1;
-		default: return -1;
-		}
+        return switch (c) {
+            case 'A' -> 0;
+            case 'C' -> 1;
+            case 'G' -> 2;
+            case 'T' -> 3;
+            case 'N' -> allowNs ? 4 : -1;
+            default -> -1;
+        };
 	}
 
-	public static int convertCharToInt(char c) {
-		return convertCharToInt(c, true);
-	}
-	
 	/**
 	 * Returns the position of the value in the long array.
 	 * If it is not present, returns a negative value that corresponds to where in the array it would sit should it exist
@@ -180,7 +168,7 @@ public class NumberUtils {
 	 */
 	public static int getPositionOfLongInArray(long [] array, long value) {
 		int length = array.length;
-		if (length <= 0) {
+		if (length == 0) {
 			return -1;
 		}
 		if (array[0] == value) {
@@ -332,12 +320,9 @@ public class NumberUtils {
 	}
 	
 	/**
-	 * Looks for value in the suplied array.
+	 * Looks for value in the supplied array.
 	 * If it is present, then walk from that point in the array onwards and check for an incremental (+1) value. Tally the number of consecutive incremental values and return the tally.
 	 * If the supplied value is not present in the supplied array, return 0;
-	 * @param value
-	 * @param array
-	 * @return
 	 */
 	public static int getContinuousCountFromValue(int value, int [] array) {
 		return getContinuousCountFromValue(value, array, true);

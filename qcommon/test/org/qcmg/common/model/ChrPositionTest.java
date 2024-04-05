@@ -1,50 +1,39 @@
 package org.qcmg.common.model;
 
-import static org.junit.Assert.assertEquals;
+import org.junit.Assert;
+import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
-import org.junit.Assert;
-import org.junit.Ignore;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
 public class ChrPositionTest {
 	
 	@Test
 	public void testConstructor() {
 		try {
-			new ChrRangePosition((String)null,-1,-1);
+			new ChrRangePosition(null,-1,-1);
 			Assert.fail("Should have thrown an IllegalArgumentException");
-		} catch (IllegalArgumentException e) {}
+		} catch (IllegalArgumentException ignored) {}
 		try {
 			new ChrRangePosition("",-1,-1);
 			Assert.fail("Should have thrown an IllegalArgumentException");
-		} catch (IllegalArgumentException e) {}
+		} catch (IllegalArgumentException ignored) {}
 		try {
 			new ChrRangePosition("testing",1,0);
 			Assert.fail("Should have thrown an IllegalArgumentException");
-		} catch (IllegalArgumentException e) {}
+		} catch (IllegalArgumentException ignored) {}
 		
 		ChrRangePosition cp1 = new ChrRangePosition("123", -1,-1);
 		ChrRangePosition cp2 = new ChrRangePosition("123", -1,-1);
 		assertEquals(cp1, cp2);
-		
-//		cp1 = new ChrRangePosition("chr1", 12345, 12345);
-//		cp2 = new ChrRangePosition("chr1", 12345, 12345);
-//		assertEquals(cp1, cp2);
-//		
-//		cp1 = new ChrRangePosition("hello", 99999, 99999);
-//		cp2 = new ChrRangePosition("hello", 99999, 99999);
-//		assertEquals(cp1, cp2);
 	}
 	
 	@Test
 	public void testComparator() {
-		List<ChrRangePosition> positions = new ArrayList<ChrRangePosition>();
+		List<ChrRangePosition> positions = new ArrayList<>();
 		ChrRangePosition cp1 = new ChrRangePosition("chr22", 1,1);
 		ChrRangePosition cp2 = new ChrRangePosition("chr22", 2,2);
 		positions.add(cp1);
@@ -89,18 +78,6 @@ public class ChrPositionTest {
 		assertEquals(1, cp1.getLength());
 		assertEquals(2, cp2.getLength());
 		assertEquals(3, cp3.getLength());
-	}
-	
-	@Ignore
-	public void testHashCode() {
-		Set<Integer> distinctHashCodes = new HashSet<Integer>();
-		int counter = 0;
-		for (int cycle = 90000000 ;  cycle < 100000000 ; cycle++) {
-			int chrValue = (counter % 20) + 1;
-			ChrRangePosition cp = new ChrRangePosition("chr" + chrValue, cycle, cycle);
-			distinctHashCodes.add(cp.hashCode());
-			counter++;
-		}
 	}
 
 }

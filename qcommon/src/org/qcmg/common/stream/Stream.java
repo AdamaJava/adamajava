@@ -35,7 +35,7 @@ public class Stream<DataType> extends Thread {
 				if (endOfStreamInstance == data) {
 					return; // ends the thread
 				}
-				boolean drop = false;
+				boolean drop;
 				for (final Operation<DataType> operation : operationSequence) {
 					drop = operation.applyTo(data);
 					if (drop) {
