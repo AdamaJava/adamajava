@@ -1424,7 +1424,7 @@ public abstract class Pipeline {
 			TMap<VcfRecord, Pair<Accumulator, Accumulator>> map = new THashMap<>(loSnps.size() * 2);
 			for (VcfRecord vcf : loSnps) {
 				Pair<Accumulator, Accumulator> p = adjacentAccumulators.remove(vcf);
-				if (null == p || null == p.getLeft() || p.getRight() == null) {
+				if (null == p || null == p.left() || p.right() == null) {
 					/*
 					 * We don't want to try and create a compound snp when we don't have coverage at one of the positions....
 					 */

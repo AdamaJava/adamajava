@@ -256,11 +256,11 @@ public abstract class MafPipeline {
 		
 		// try snp one first, then indel
 		File f = null;		
-		if (filePair.getLeft() != null) {			
-			f = filePair.getLeft();
+		if (filePair.left() != null) {
+			f = filePair.left();
 			somGerm = f.getAbsolutePath().contains("Somatic") ? "Somatic" :  f.getAbsolutePath().contains("Germline") ? "Germline" : "";
- 		} else if (filePair.getRight() != null) {
-			f = filePair.getRight();
+ 		} else if (filePair.right() != null) {
+			f = filePair.right();
 			somGerm = f.getAbsolutePath().contains("Somatic") ? "Somatic" :  f.getAbsolutePath().contains("Germline") ? "Germline" : "";
 		}
 		
@@ -717,15 +717,15 @@ public abstract class MafPipeline {
 		for (Entry<String, Pair<File,File>> entry : patientsAndFiles.entrySet()) {
 			String patient = entry.getKey();
 			// SNP
-			if (null != entry.getValue().getLeft()) {
-				MafUtils.loadDCCFile(entry.getValue().getLeft(), patient, verifiedData.get(patient), mafs, ensemblToEntrez, MutationType.SNP);
+			if (null != entry.getValue().left()) {
+				MafUtils.loadDCCFile(entry.getValue().left(), patient, verifiedData.get(patient), mafs, ensemblToEntrez, MutationType.SNP);
 			} else {
 				logger.warn("no snp dcc file for patient: " + patient);
 			}
 			
 			// INDEL
-			if (null != entry.getValue().getRight()) {
-				MafUtils.loadDCCFile(entry.getValue().getRight(), patient, verifiedData.get(patient), mafs, ensemblToEntrez, MutationType.INS);
+			if (null != entry.getValue().right()) {
+				MafUtils.loadDCCFile(entry.getValue().right(), patient, verifiedData.get(patient), mafs, ensemblToEntrez, MutationType.INS);
 			} else {
 				logger.warn("no indel dcc file for patient: " + patient);
 			}

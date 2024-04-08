@@ -53,20 +53,7 @@ public class Genotype {
 		this(c1, c2,c3);
 		this.fourthAllele = c4;
 	}
-	
-	public char getFirstAllele() {
-		return firstAllele;
-	}
-	public char getSecondAllele() {
-		return secondAllele;
-	}
-	public char getThirdAllele() {
-		return thirdAllele;
-	}
-	public char getFourthAllele() {
-		return fourthAllele;
-	}
-	
+
 	/**
 	 * Returns true if the first allele is not equal to the second allele
 	 * <p>

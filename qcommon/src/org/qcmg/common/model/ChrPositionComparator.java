@@ -5,12 +5,11 @@
  */
 package org.qcmg.common.model;
 
+import org.qcmg.common.vcf.VcfRecord;
+
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.*;
-
-import org.qcmg.common.string.StringUtils;
-import org.qcmg.common.vcf.VcfRecord;
 
 public class ChrPositionComparator implements Comparator<ChrPosition>, Serializable {
 

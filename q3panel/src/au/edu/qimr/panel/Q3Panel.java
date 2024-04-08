@@ -1252,8 +1252,8 @@ public class Q3Panel {
 						List<Pair<Integer, String>> mutations = ClinVarUtil.getPositionRefAndAltFromSW(smithWatermanDiffs);
 						if ( ! mutations.isEmpty()) {
 							for (Pair<Integer, String> mutation : mutations) {
-								int position = mutation.getLeft().intValue();
-								String mutString = mutation.getRight();
+								int position = mutation.left().intValue();
+								String mutString = mutation.right();
 								int slashIndex = mutString.indexOf('/');
 								String ref = mutString.substring(0, slashIndex);
 								String alt = mutString.substring(slashIndex + 1);

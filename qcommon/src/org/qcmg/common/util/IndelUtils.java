@@ -6,9 +6,6 @@
 
 package org.qcmg.common.util;
 
-import java.util.Arrays;
-import java.util.stream.Collectors;
-
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.vcf.VcfFormatFieldRecord;
 import org.qcmg.common.vcf.header.VcfHeaderUtils;
@@ -35,14 +32,14 @@ public class IndelUtils {
 		}
 		
 		public String toVariantType() {
-			switch (order){
-				case 1: return "SNV";
-				case 2: return "DNV";
-				case 3: return "TNV";
-				case 4: return "ONV";
-			}
-			return this.name(); 
-		}
+            return switch (order) {
+                case 1 -> "SNV";
+                case 2 -> "DNV";
+                case 3 -> "TNV";
+                case 4 -> "ONV";
+                default -> this.name();
+            };
+        }
 	}		
 	
 	//qbasepileup indel vcf header info column ID
@@ -53,9 +50,7 @@ public class IndelUtils {
 	public static final String DESCRIPTION_INFO_SVTYPE = "Type of structural variant";
 
 	public static final String INFO_SOMATIC = "SOMATIC";
-	public static final String DESCRIPTION_INFO_SOMATIC = "Set to somatic unless there are more than three novel starts on normal BAM;"
-			+ " or more than 10% imformative reads are supporting reads; or homopolymeric sequence exists on either side with nearby indels.";
-		
+
 	public static final String FILTER_COVN12 ="COVN12";
 	public static final String DESCRIPTION_FILTER_COVN12 = "For somatic calls: less than 12 reads coverage in normal BAM";
 	
@@ -106,7 +101,7 @@ public class IndelUtils {
 	/**
 	 * 
 	 * @param ref: reference base from vcf record 4th column;
-	 * @param alt: single alleles base from vcf record 5th column
+	 * @param alts: single alleles base from vcf record 5th column
 	 * @return variant type, whether it is SNP, MNP, INSERTION, DELETION or TRANSLOCATION
 	 */
 	public static SVTYPE getVariantType(String ref, String alts) {
@@ -122,12 +117,12 @@ public class IndelUtils {
 			int altLen = alt.length();
 			 // snp
 			 if ( refLen == altLen ) {
-				 switch (refLen) {
-					 case 1: return SVTYPE.SNP;	
-					 case 2: return SVTYPE.DNP;
-					 case 3: return SVTYPE.TNP;
-					 default: return SVTYPE.ONP;
-				 }
+                 return switch (refLen) {
+                     case 1 -> SVTYPE.SNP;
+                     case 2 -> SVTYPE.DNP;
+                     case 3 -> SVTYPE.TNP;
+                     default -> SVTYPE.ONP;
+                 };
 			 }
 			 
 			 // insertions  
@@ -202,8 +197,6 @@ public class IndelUtils {
 	 *  
 	 *  With the adoption of GRCh38, which uses "chrM", this feature was removed
 	 * 
-	 * @param ref
-	 * @return
 	 */
 	public static String getFullChromosome(String ref) {
 		if (ref == null ) return null; //stop exception
@@ -237,7 +230,6 @@ public class IndelUtils {
 	 * 
 	 * @param re: VcfFormatFieldRecord
 	 * @param ref: reference base from vcf record column 5
-	 * @param alt
 	 * @return genotype string. eg. A/T; return null if GT field is not exist or empty
 	 */
 	public static String getGenotypeDetails(VcfFormatFieldRecord re, String ref, String alt){
@@ -264,7 +256,7 @@ public class IndelUtils {
 					default:
 						sgd[j] = Constants.MISSING_DATA_STRING; 
 				}				
-			gd = Arrays.stream(sgd).collect(Collectors.joining(isbar ?  "|" : Constants.SLASH_STRING));
+			gd = String.join(isbar ? "|" : Constants.SLASH_STRING, sgd);
 		}		
 		return gd;
 	}
@@ -288,9 +280,6 @@ public class IndelUtils {
 	/**
 	 * If INSERTION, return -, if DELETION return ref minus first char else return ref
 	 * 
-	 * @param ref
-	 * @param type
-	 * @return
 	 */
 	public static String getRefForIndels(String ref, final SVTYPE type){
 		if (type.equals(SVTYPE.DEL) ) {

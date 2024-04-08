@@ -167,7 +167,7 @@ public class XmlUtils {
     	Element ele = XmlElementUtils.createSubElement( parent,  XmlUtils.SEQUENCE_METRICS);
     						
 		if ( totalCounts != null) {
-			ele.setAttribute((String)totalCounts.getLeft(), String.valueOf( totalCounts.getRight()));		 
+			ele.setAttribute((String)totalCounts.left(), String.valueOf( totalCounts.right()));
 		}
 		if (name != null) {
 			ele.setAttribute( NAME, name);

@@ -15,7 +15,6 @@ import htsjdk.samtools.util.SequenceUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -819,8 +818,8 @@ ACATTTCTATGGC	88793688,230131955,278981127,289687136,330071289,335353241,3486861
 		List<Pair<Integer, String>> mutations = ClinVarUtil.getPositionRefAndAltFromSW(swData);
 		assertEquals(1, mutations.size());
 		Pair<Integer, String> p = mutations.get(0);
-		assertEquals(Integer.valueOf(1), p.getLeft());
-		assertEquals("C/T", p.getRight());
+		assertEquals(Integer.valueOf(1), p.left());
+		assertEquals("C/T", p.right());
 		
 		swData[0] = "ACGT";
 		swData[1] = ".|||";
@@ -829,8 +828,8 @@ ACATTTCTATGGC	88793688,230131955,278981127,289687136,330071289,335353241,3486861
 		mutations = ClinVarUtil.getPositionRefAndAltFromSW(swData);
 		assertEquals(1, mutations.size());
 		p = mutations.get(0);
-		assertEquals(Integer.valueOf(0), p.getLeft());
-		assertEquals("A/T", p.getRight());
+		assertEquals(Integer.valueOf(0), p.left());
+		assertEquals("A/T", p.right());
 		
 		swData[0] = "ACGT";
 		swData[1] = "||.|";
@@ -839,8 +838,8 @@ ACATTTCTATGGC	88793688,230131955,278981127,289687136,330071289,335353241,3486861
 		mutations = ClinVarUtil.getPositionRefAndAltFromSW(swData);
 		assertEquals(1, mutations.size());
 		p = mutations.get(0);
-		assertEquals(Integer.valueOf(2), p.getLeft());
-		assertEquals("G/A", p.getRight());
+		assertEquals(Integer.valueOf(2), p.left());
+		assertEquals("G/A", p.right());
 		
 		swData[0] = "ACGT";
 		swData[1] = "|||.";
@@ -849,8 +848,8 @@ ACATTTCTATGGC	88793688,230131955,278981127,289687136,330071289,335353241,3486861
 		mutations = ClinVarUtil.getPositionRefAndAltFromSW(swData);
 		assertEquals(1, mutations.size());
 		p = mutations.get(0);
-		assertEquals(Integer.valueOf(3), p.getLeft());
-		assertEquals("T/C", p.getRight());
+		assertEquals(Integer.valueOf(3), p.left());
+		assertEquals("T/C", p.right());
 	}
 	
 	@Test
@@ -863,20 +862,20 @@ ACATTTCTATGGC	88793688,230131955,278981127,289687136,330071289,335353241,3486861
 		List<Pair<Integer, String>> mutations = ClinVarUtil.getPositionRefAndAltFromSW(swData);
 		assertEquals(4, mutations.size());
 		Pair<Integer, String> p = mutations.get(0);
-		assertEquals(Integer.valueOf(1), p.getLeft());
-		assertEquals("C/T", p.getRight());
+		assertEquals(Integer.valueOf(1), p.left());
+		assertEquals("C/T", p.right());
 		
 		p = mutations.get(1);
-		assertEquals(Integer.valueOf(2), p.getLeft());
-		assertEquals("G/T", p.getRight());
+		assertEquals(Integer.valueOf(2), p.left());
+		assertEquals("G/T", p.right());
 		
 		p = mutations.get(2);
-		assertEquals(Integer.valueOf(5), p.getLeft());
-		assertEquals("C/G", p.getRight());
+		assertEquals(Integer.valueOf(5), p.left());
+		assertEquals("C/G", p.right());
 		
 		p = mutations.get(3);
-		assertEquals(Integer.valueOf(6), p.getLeft());
-		assertEquals("G/T", p.getRight());
+		assertEquals(Integer.valueOf(6), p.left());
+		assertEquals("G/T", p.right());
 	}
 	
 	@Test
@@ -915,8 +914,8 @@ ACATTTCTATGGC	88793688,230131955,278981127,289687136,330071289,335353241,3486861
 		List<Pair<Integer, String>> mutations = ClinVarUtil.getPositionRefAndAltFromSW(swData);
 		assertEquals(1, mutations.size());
 		Pair<Integer, String> p = mutations.get(0);
-		assertEquals(Integer.valueOf(0), p.getLeft());
-		assertEquals("AA/A", p.getRight());
+		assertEquals(Integer.valueOf(0), p.left());
+		assertEquals("AA/A", p.right());
 		
 		swData[0] = "ACGT";
 		swData[1] = "| ||";
@@ -925,8 +924,8 @@ ACATTTCTATGGC	88793688,230131955,278981127,289687136,330071289,335353241,3486861
 		mutations = ClinVarUtil.getPositionRefAndAltFromSW(swData);
 		assertEquals(1, mutations.size());
 		p = mutations.get(0);
-		assertEquals(Integer.valueOf(0), p.getLeft());
-		assertEquals("AC/A", p.getRight());
+		assertEquals(Integer.valueOf(0), p.left());
+		assertEquals("AC/A", p.right());
 		
 		swData[0] = "ACGT";
 		swData[1] = "|| |";
@@ -935,8 +934,8 @@ ACATTTCTATGGC	88793688,230131955,278981127,289687136,330071289,335353241,3486861
 		mutations = ClinVarUtil.getPositionRefAndAltFromSW(swData);
 		assertEquals(1, mutations.size());
 		p = mutations.get(0);
-		assertEquals(Integer.valueOf(1), p.getLeft());
-		assertEquals("CG/C", p.getRight());
+		assertEquals(Integer.valueOf(1), p.left());
+		assertEquals("CG/C", p.right());
 		
 		swData[0] = "ACGT";
 		swData[1] = "||| ";
@@ -945,8 +944,8 @@ ACATTTCTATGGC	88793688,230131955,278981127,289687136,330071289,335353241,3486861
 		mutations = ClinVarUtil.getPositionRefAndAltFromSW(swData);
 		assertEquals(1, mutations.size());
 		p = mutations.get(0);
-		assertEquals(Integer.valueOf(2), p.getLeft());
-		assertEquals("GT/G", p.getRight());
+		assertEquals(Integer.valueOf(2), p.left());
+		assertEquals("GT/G", p.right());
 	}
 	
 	@Test
@@ -959,8 +958,8 @@ ACATTTCTATGGC	88793688,230131955,278981127,289687136,330071289,335353241,3486861
 		List<Pair<Integer, String>> mutations = ClinVarUtil.getPositionRefAndAltFromSW(swData);
 		assertEquals(1, mutations.size());
 		Pair<Integer, String> p = mutations.get(0);
-		assertEquals(Integer.valueOf(-1), p.getLeft());
-		assertEquals("AC/", p.getRight());
+		assertEquals(Integer.valueOf(-1), p.left());
+		assertEquals("AC/", p.right());
 		
 		swData[0] = "ACGT";
 		swData[1] = "|  |";
@@ -969,8 +968,8 @@ ACATTTCTATGGC	88793688,230131955,278981127,289687136,330071289,335353241,3486861
 		mutations = ClinVarUtil.getPositionRefAndAltFromSW(swData);
 		assertEquals(1, mutations.size());
 		p = mutations.get(0);
-		assertEquals(Integer.valueOf(0), p.getLeft());
-		assertEquals("ACG/A", p.getRight());
+		assertEquals(Integer.valueOf(0), p.left());
+		assertEquals("ACG/A", p.right());
 		
 		swData[0] = "ACGT";
 		swData[1] = "||  ";
@@ -979,8 +978,8 @@ ACATTTCTATGGC	88793688,230131955,278981127,289687136,330071289,335353241,3486861
 		mutations = ClinVarUtil.getPositionRefAndAltFromSW(swData);
 		assertEquals(1, mutations.size());
 		p = mutations.get(0);
-		assertEquals(Integer.valueOf(1), p.getLeft());
-		assertEquals("CGT/C", p.getRight());
+		assertEquals(Integer.valueOf(1), p.left());
+		assertEquals("CGT/C", p.right());
 	}
 	
 	@Test
@@ -993,8 +992,8 @@ ACATTTCTATGGC	88793688,230131955,278981127,289687136,330071289,335353241,3486861
 		List<Pair<Integer, String>> mutations = ClinVarUtil.getPositionRefAndAltFromSW(swData);
 		assertEquals(1, mutations.size());
 		Pair<Integer, String> p = mutations.get(0);
-		assertEquals(Integer.valueOf(0), p.getLeft());
-		assertEquals("A/AAC", p.getRight());
+		assertEquals(Integer.valueOf(0), p.left());
+		assertEquals("A/AAC", p.right());
 		
 		swData[0] = "A--TAC--A";
 		swData[1] = "|  |||  |";
@@ -1003,11 +1002,11 @@ ACATTTCTATGGC	88793688,230131955,278981127,289687136,330071289,335353241,3486861
 		mutations = ClinVarUtil.getPositionRefAndAltFromSW(swData);
 		assertEquals(2, mutations.size());
 		p = mutations.get(0);
-		assertEquals(Integer.valueOf(0), p.getLeft());
-		assertEquals("A/ACG", p.getRight());
+		assertEquals(Integer.valueOf(0), p.left());
+		assertEquals("A/ACG", p.right());
 		p = mutations.get(1);
-		assertEquals(Integer.valueOf(3), p.getLeft());
-		assertEquals("C/CGT", p.getRight());
+		assertEquals(Integer.valueOf(3), p.left());
+		assertEquals("C/CGT", p.right());
 		
 		swData[0] = "AC--";
 		swData[1] = "||  ";
@@ -1016,8 +1015,8 @@ ACATTTCTATGGC	88793688,230131955,278981127,289687136,330071289,335353241,3486861
 		mutations = ClinVarUtil.getPositionRefAndAltFromSW(swData);
 		assertEquals(1, mutations.size());
 		p = mutations.get(0);
-		assertEquals(Integer.valueOf(1), p.getLeft());
-		assertEquals("C/CGT", p.getRight());
+		assertEquals(Integer.valueOf(1), p.left());
+		assertEquals("C/CGT", p.right());
 	}
 	
 	@Test
@@ -1030,12 +1029,12 @@ ACATTTCTATGGC	88793688,230131955,278981127,289687136,330071289,335353241,3486861
 		List<Pair<Integer, String>> mutations = ClinVarUtil.getPositionRefAndAltFromSW(swData);
 		assertEquals(2, mutations.size());
 		Pair<Integer, String> p = mutations.get(0);
-		assertEquals(Integer.valueOf(0), p.getLeft());
-		assertEquals("A/AAC", p.getRight());
+		assertEquals(Integer.valueOf(0), p.left());
+		assertEquals("A/AAC", p.right());
 		
 		p = mutations.get(1);
-		assertEquals(Integer.valueOf(2), p.getLeft());
-		assertEquals("TAC/T", p.getRight());
+		assertEquals(Integer.valueOf(2), p.left());
+		assertEquals("TAC/T", p.right());
 	}
 	
 	@Test
@@ -1048,12 +1047,12 @@ ACATTTCTATGGC	88793688,230131955,278981127,289687136,330071289,335353241,3486861
 		List<Pair<Integer, String>> mutations = ClinVarUtil.getPositionRefAndAltFromSW(swData);
 		assertEquals(2, mutations.size());
 		Pair<Integer, String> p = mutations.get(0);
-		assertEquals(Integer.valueOf(0), p.getLeft());
-		assertEquals("A/AAC", p.getRight());
+		assertEquals(Integer.valueOf(0), p.left());
+		assertEquals("A/AAC", p.right());
 		
 		p = mutations.get(1);
-		assertEquals(Integer.valueOf(5), p.getLeft());
-		assertEquals("G/A", p.getRight());
+		assertEquals(Integer.valueOf(5), p.left());
+		assertEquals("G/A", p.right());
 		
 		swData[0] = "ACGTACGT";
 		swData[1] = "||.| |||";
@@ -1062,12 +1061,12 @@ ACATTTCTATGGC	88793688,230131955,278981127,289687136,330071289,335353241,3486861
 		mutations = ClinVarUtil.getPositionRefAndAltFromSW(swData);
 		assertEquals(2, mutations.size());
 		p = mutations.get(0);
-		assertEquals(Integer.valueOf(2), p.getLeft());
-		assertEquals("G/T", p.getRight());
+		assertEquals(Integer.valueOf(2), p.left());
+		assertEquals("G/T", p.right());
 		
 		p = mutations.get(1);
-		assertEquals(Integer.valueOf(3), p.getLeft());
-		assertEquals("TA/T", p.getRight());
+		assertEquals(Integer.valueOf(3), p.left());
+		assertEquals("TA/T", p.right());
 		
 		swData[0] = "AC-TACGT";
 		swData[1] = "|| |.|||";
@@ -1076,12 +1075,12 @@ ACATTTCTATGGC	88793688,230131955,278981127,289687136,330071289,335353241,3486861
 		mutations = ClinVarUtil.getPositionRefAndAltFromSW(swData);
 		assertEquals(2, mutations.size());
 		p = mutations.get(0);
-		assertEquals(Integer.valueOf(1), p.getLeft());
-		assertEquals("C/CG", p.getRight());
+		assertEquals(Integer.valueOf(1), p.left());
+		assertEquals("C/CG", p.right());
 		
 		p = mutations.get(1);
-		assertEquals(Integer.valueOf(3), p.getLeft());
-		assertEquals("A/T", p.getRight());
+		assertEquals(Integer.valueOf(3), p.left());
+		assertEquals("A/T", p.right());
 		
 		swData[0] = "ACGTACGT";
 		swData[1] = "||||.|||";
@@ -1090,8 +1089,8 @@ ACATTTCTATGGC	88793688,230131955,278981127,289687136,330071289,335353241,3486861
 		mutations = ClinVarUtil.getPositionRefAndAltFromSW(swData);
 		assertEquals(1, mutations.size());
 		p = mutations.get(0);
-		assertEquals(Integer.valueOf(4), p.getLeft());
-		assertEquals("A/T", p.getRight());
+		assertEquals(Integer.valueOf(4), p.left());
+		assertEquals("A/T", p.right());
 	}
 	
 	@Test
@@ -1104,8 +1103,8 @@ ACATTTCTATGGC	88793688,230131955,278981127,289687136,330071289,335353241,3486861
 		List<Pair<Integer, String>> mutations = ClinVarUtil.getPositionRefAndAltFromSW(swData);
 		assertEquals(1, mutations.size());
 		Pair<Integer, String> p = mutations.get(0);
-		assertEquals(Integer.valueOf(-1), p.getLeft());
-		assertEquals("/A", p.getRight());
+		assertEquals(Integer.valueOf(-1), p.left());
+		assertEquals("/A", p.right());
 		
 		swData[0] = "A-GT";
 		swData[1] = "| ||";
@@ -1114,8 +1113,8 @@ ACATTTCTATGGC	88793688,230131955,278981127,289687136,330071289,335353241,3486861
 		mutations = ClinVarUtil.getPositionRefAndAltFromSW(swData);
 		assertEquals(1, mutations.size());
 		p = mutations.get(0);
-		assertEquals(Integer.valueOf(0), p.getLeft());
-		assertEquals("A/AC", p.getRight());
+		assertEquals(Integer.valueOf(0), p.left());
+		assertEquals("A/AC", p.right());
 		
 		swData[0] = "AC-T";
 		swData[1] = "|| |";
@@ -1124,8 +1123,8 @@ ACATTTCTATGGC	88793688,230131955,278981127,289687136,330071289,335353241,3486861
 		mutations = ClinVarUtil.getPositionRefAndAltFromSW(swData);
 		assertEquals(1, mutations.size());
 		p = mutations.get(0);
-		assertEquals(Integer.valueOf(1), p.getLeft());
-		assertEquals("C/CG", p.getRight());
+		assertEquals(Integer.valueOf(1), p.left());
+		assertEquals("C/CG", p.right());
 		
 		swData[0] = "ACG-";
 		swData[1] = "||| ";
@@ -1134,8 +1133,8 @@ ACATTTCTATGGC	88793688,230131955,278981127,289687136,330071289,335353241,3486861
 		mutations = ClinVarUtil.getPositionRefAndAltFromSW(swData);
 		assertEquals(1, mutations.size());
 		p = mutations.get(0);
-		assertEquals(Integer.valueOf(2), p.getLeft());
-		assertEquals("G/GT", p.getRight());
+		assertEquals(Integer.valueOf(2), p.left());
+		assertEquals("G/GT", p.right());
 	}
 	
 	@Test
@@ -1155,8 +1154,8 @@ TAACCCTGGCTATCATTCTGCTTTTCTTGGCTGTCTTTCAGATTTGACTTTATTTCTAAAAATATTTCAATGGGTCATAT
 		List<Pair<Integer, String>> mutations = ClinVarUtil.getPositionRefAndAltFromSW(swData);
 		assertEquals(1, mutations.size());
 		Pair<Integer, String> p = mutations.get(0);
-		assertEquals(Integer.valueOf(88), p.getLeft());
-		assertEquals("CT/C", p.getRight());
+		assertEquals(Integer.valueOf(88), p.left());
+		assertEquals("CT/C", p.right());
 	}
 	
 	@Test
@@ -1169,8 +1168,8 @@ TAACCCTGGCTATCATTCTGCTTTTCTTGGCTGTCTTTCAGATTTGACTTTATTTCTAAAAATATTTCAATGGGTCATAT
 		List<Pair<Integer, String>> mutations = ClinVarUtil.getPositionRefAndAltFromSW(swData);
 		assertEquals(1, mutations.size());
 		Pair<Integer, String> p = mutations.get(0);
-		assertEquals(Integer.valueOf(134), p.getLeft());
-		assertEquals("C/CA", p.getRight());
+		assertEquals(Integer.valueOf(134), p.left());
+		assertEquals("C/CA", p.right());
 	}
 	@Test
 	public void getMutationFromSWDataSingleSmallDeletion() {
@@ -1188,8 +1187,8 @@ TAACCCTGGCTATCATTCTGCTTTTCTTGGCTGTCTTTCAGATTTGACTTTATTTCTAAAAATATTTCAATGGGTCATAT
 		List<Pair<Integer, String>> mutations = ClinVarUtil.getPositionRefAndAltFromSW(swData);
 		assertEquals(1, mutations.size());
 		Pair<Integer, String> p = mutations.get(0);
-		assertEquals(Integer.valueOf(92), p.getLeft());
-		assertEquals("AT/A", p.getRight());
+		assertEquals(Integer.valueOf(92), p.left());
+		assertEquals("AT/A", p.right());
 	}
 	
 	@Test
@@ -1207,11 +1206,11 @@ TAACCCTGGCTATCATTCTGCTTTTCTTGGCTGTCTTTCAGATTTGACTTTATTTCTAAAAATATTTCAATGGGTCATAT
 		List<Pair<Integer, String>> mutations = ClinVarUtil.getPositionRefAndAltFromSW(swData);
 		assertEquals(2, mutations.size());
 		Pair<Integer, String> p = mutations.get(0);
-		assertEquals(Integer.valueOf(33), p.getLeft());
-		assertEquals("G/A", p.getRight());
+		assertEquals(Integer.valueOf(33), p.left());
+		assertEquals("G/A", p.right());
 		p = mutations.get(1);
-		assertEquals(Integer.valueOf(138), p.getLeft());
-		assertEquals("TCAACAA/T", p.getRight());
+		assertEquals(Integer.valueOf(138), p.left());
+		assertEquals("TCAACAA/T", p.right());
 	}
 	
 	@Test
@@ -1230,23 +1229,23 @@ TAACCCTGGCTATCATTCTGCTTTTCTTGGCTGTCTTTCAGATTTGACTTTATTTCTAAAAATATTTCAATGGGTCATAT
 		List<Pair<Integer, String>> mutations = ClinVarUtil.getPositionRefAndAltFromSW(swData);
 		assertEquals(6, mutations.size());
 		Pair<Integer, String> p = mutations.get(0);
-		assertEquals(Integer.valueOf(43), p.getLeft());
-		assertEquals("T/C", p.getRight());
+		assertEquals(Integer.valueOf(43), p.left());
+		assertEquals("T/C", p.right());
 		p = mutations.get(1);
-		assertEquals(Integer.valueOf(84), p.getLeft());
-		assertEquals("C/T", p.getRight());
+		assertEquals(Integer.valueOf(84), p.left());
+		assertEquals("C/T", p.right());
 		p = mutations.get(2);
-		assertEquals(Integer.valueOf(145), p.getLeft());
-		assertEquals("A/G", p.getRight());
+		assertEquals(Integer.valueOf(145), p.left());
+		assertEquals("A/G", p.right());
 		p = mutations.get(3);
-		assertEquals(Integer.valueOf(183), p.getLeft());
-		assertEquals("AT/A", p.getRight());
+		assertEquals(Integer.valueOf(183), p.left());
+		assertEquals("AT/A", p.right());
 		p = mutations.get(4);
-		assertEquals(Integer.valueOf(190), p.getLeft());
-		assertEquals("T/A", p.getRight());
+		assertEquals(Integer.valueOf(190), p.left());
+		assertEquals("T/A", p.right());
 		p = mutations.get(5);
-		assertEquals(Integer.valueOf(191), p.getLeft());
-		assertEquals("T/A", p.getRight());
+		assertEquals(Integer.valueOf(191), p.left());
+		assertEquals("T/A", p.right());
 	}
 	@Test
 	public void getMutationFromSWDataMultipleDeletionsAndSnp() {
@@ -1270,8 +1269,8 @@ TAACCCTGGCTATCATTCTGCTTTTCTTGGCTGTCTTTCAGATTTGACTTTATTTCTAAAAATATTTCAATGGGTCATAT
 //		assertEquals(Integer.valueOf(84), p.getLeft());
 //		assertEquals("C/T", p.getRight());
 		p = mutations.get(2);
-		assertEquals(Integer.valueOf(154), p.getLeft());
-		assertEquals("G/A", p.getRight());
+		assertEquals(Integer.valueOf(154), p.left());
+		assertEquals("G/A", p.right());
 //		p = mutations.get(3);
 //		assertEquals(Integer.valueOf(145), p.getLeft());
 //		assertEquals("A/G", p.getRight());
@@ -1298,24 +1297,24 @@ n] INFO au.edu.qimr.clinvar.Q3ClinVar - TACAAATAAGGTTCAAGCACTGTATTTAAATATTTAAAAG
 		List<Pair<Integer, String>> mutations = ClinVarUtil.getPositionRefAndAltFromSW(swData);
 		assertEquals(8, mutations.size());
 		Pair<Integer, String> p = mutations.get(0);
-		assertEquals(Integer.valueOf(5), p.getLeft());
-		assertEquals("G/T", p.getRight());
+		assertEquals(Integer.valueOf(5), p.left());
+		assertEquals("G/T", p.right());
 		
 		p = mutations.get(1);
-		assertEquals(Integer.valueOf(6), p.getLeft());
-		assertEquals("G/T", p.getRight());
+		assertEquals(Integer.valueOf(6), p.left());
+		assertEquals("G/T", p.right());
 		
 		p = mutations.get(2);
-		assertEquals(Integer.valueOf(19), p.getLeft());
-		assertEquals("A/G", p.getRight());
+		assertEquals(Integer.valueOf(19), p.left());
+		assertEquals("A/G", p.right());
 		
 		p = mutations.get(3);
-		assertEquals(Integer.valueOf(20), p.getLeft());
-		assertEquals("C/T", p.getRight());
+		assertEquals(Integer.valueOf(20), p.left());
+		assertEquals("C/T", p.right());
 		
 		p = mutations.get(4);
-		assertEquals(Integer.valueOf(21), p.getLeft());
-		assertEquals("T/C", p.getRight());
+		assertEquals(Integer.valueOf(21), p.left());
+		assertEquals("T/C", p.right());
 	}
 	
 	@Test
@@ -1335,24 +1334,24 @@ n] INFO au.edu.qimr.clinvar.Q3ClinVar - TACAAATAAGGTTCAAGCACTGTATTTAAATATTTAAAAG
 		List<Pair<Integer, String>> mutations = ClinVarUtil.getPositionRefAndAltFromSW(swData);
 		assertEquals(8, mutations.size());
 		Pair<Integer, String> p = mutations.get(0);
-		assertEquals(Integer.valueOf(4), p.getLeft());
-		assertEquals("G/T", p.getRight());
+		assertEquals(Integer.valueOf(4), p.left());
+		assertEquals("G/T", p.right());
 		
 		p = mutations.get(1);
-		assertEquals(Integer.valueOf(5), p.getLeft());
-		assertEquals("G/T", p.getRight());
+		assertEquals(Integer.valueOf(5), p.left());
+		assertEquals("G/T", p.right());
 		
 		p = mutations.get(2);
-		assertEquals(Integer.valueOf(18), p.getLeft());
-		assertEquals("A/G", p.getRight());
+		assertEquals(Integer.valueOf(18), p.left());
+		assertEquals("A/G", p.right());
 		
 		p = mutations.get(3);
-		assertEquals(Integer.valueOf(19), p.getLeft());
-		assertEquals("C/T", p.getRight());
+		assertEquals(Integer.valueOf(19), p.left());
+		assertEquals("C/T", p.right());
 		
 		p = mutations.get(4);
-		assertEquals(Integer.valueOf(20), p.getLeft());
-		assertEquals("T/C", p.getRight());
+		assertEquals(Integer.valueOf(20), p.left());
+		assertEquals("T/C", p.right());
 	}
 	
 	
@@ -1386,15 +1385,15 @@ ATCCTTATTTGATGAAATATCTGCAGTAGACACCTATAAAAAGCAAAATACACAAAATACGAAGTTATATTTTTCACTTG
 		List<Pair<Integer, String>> mutations2 = ClinVarUtil.getPositionRefAndAltFromSW(xxData);
 		assertEquals(6, mutations2.size());
 		Pair<Integer, String> p = mutations.get(0);
-		assertEquals(Integer.valueOf(36), p.getLeft());
-		assertEquals("T/TA", p.getRight());
+		assertEquals(Integer.valueOf(36), p.left());
+		assertEquals("T/TA", p.right());
 		
 		p = mutations.get(1);
-		assertEquals(Integer.valueOf(54), p.getLeft());
-		assertEquals("G/A", p.getRight());
+		assertEquals(Integer.valueOf(54), p.left());
+		assertEquals("G/A", p.right());
 		Pair<Integer, String> p2 = mutations2.get(0);
-		assertEquals(Integer.valueOf(54), p2.getLeft());
-		assertEquals("G/A", p2.getRight());
+		assertEquals(Integer.valueOf(54), p2.left());
+		assertEquals("G/A", p2.right());
 //		
 //		p = mutations.get(2);
 //		assertEquals(Integer.valueOf(18), p.getLeft());

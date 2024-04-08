@@ -45,10 +45,11 @@ public class QLogger {
 	 * @see Logger
 	 */
 	public QLogger(Logger logger) {
-		if (null != logger)
+		if (null != logger) {
 			this.logger = logger;
-		else
+		} else {
 			throw new IllegalArgumentException("Null logger passed to QLogger");
+		}
 	}
 	
 	/**
@@ -262,8 +263,7 @@ public class QLogger {
         String secondsStr = (seconds < 10 ? "0" : "") + seconds;
         String minutesStr = (minutes < 10 ? "0" : "") + minutes;
         String hoursStr = (hours < 10 ? "0" : "") + hours;
-        String time =  hoursStr + ":" + minutesStr + ":" + secondsStr;
-        return time;
+        return hoursStr + ":" + minutesStr + ":" + secondsStr;
 	}
 	
 	public void logFinalExecutionStats(final int exitStatus, long startTime) {

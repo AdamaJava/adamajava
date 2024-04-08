@@ -65,7 +65,7 @@ public class RulesUtilTest {
 		for (int i = 0 ; i < noOfLoops ; i++) {
 			int coverage = random.nextInt(100);
 			Rule r = RulesUtil.getRule(rules, coverage);
-			counter += r.getNoOfVariants();
+			counter += r.noOfVariants();
 		}
 		System.out.println("getRule: " + (System.currentTimeMillis() - start) + ", counter: " + counter);
 		
@@ -78,7 +78,7 @@ public class RulesUtilTest {
 				r = RulesUtil.getRule(rules, coverage);
 				cache.put(coverage, r); 
 			}
-			counter += r.getNoOfVariants();
+			counter += r.noOfVariants();
 		}
 		System.out.println("cache: " + (System.currentTimeMillis() - start) + ", counter: " + counter);
 	}

@@ -6,11 +6,13 @@
  */
 package org.qcmg.common.model;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Comparator;
 
 public class ReferenceNameComparator implements Comparator<String> , Serializable {
 
+	@Serial
 	private static final long serialVersionUID = 3528840046906334666L;
 	
 	private static final char CHR = 'c';

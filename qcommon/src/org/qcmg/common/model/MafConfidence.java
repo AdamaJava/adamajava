@@ -14,10 +14,10 @@ public enum MafConfidence {
 	LOW_CONSEQUENCE(false, true),
 	ZERO(false, false);
 	
-	private boolean isHighConf;
-	private boolean isLowConf;
+	private final boolean isHighConf;
+	private final boolean isLowConf;
 	
-	private MafConfidence(boolean isHighConfidence, boolean isLowConfidence) {
+	MafConfidence(boolean isHighConfidence, boolean isLowConfidence) {
 		this.isHighConf = isHighConfidence;
 		this.isLowConf = isLowConfidence;
 	}

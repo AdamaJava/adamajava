@@ -16,7 +16,7 @@ public final class Messages
     private final ResourceBundle messages;
 
     private static final Map<String, Messages> resourcesMap =
-        new HashMap<String, Messages>();
+            new HashMap<>();
 
     private static Messages getMessages(final String msgResourceLocation)
     {

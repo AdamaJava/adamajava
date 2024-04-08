@@ -6,8 +6,6 @@
  */
 package org.qcmg.common.meta;
 
-import org.qcmg.common.string.StringUtils;
-
 public class QBamId {
 	
 	/*
@@ -24,13 +22,7 @@ public class QBamId {
 	private final KeyValue bamName;
 	private final KeyValue epoch;
 	private final KeyValue uuid;
-	
-	public QBamId(String bamFile, String commentHeaderString) {
-		this.bamName = new KeyValue(BAM_NAME, bamFile);
-		this.epoch = new KeyValue(EPOCH, StringUtils.getValueFromKey(commentHeaderString, EPOCH));
-		this.uuid = new KeyValue(UUID, StringUtils.getValueFromKey(commentHeaderString, UUID));
-	}
-	
+
 	public QBamId(String bamFile, String epoch, String uuid) {
 		this.bamName = new KeyValue(BAM_NAME, bamFile);
 		this.epoch = new KeyValue(EPOCH, epoch);
@@ -40,18 +32,9 @@ public class QBamId {
 	public String getBamName() {
 		return bamName.getValue();
 	}
-	public String getEpoch() {;
-		return epoch.getValue();
-	}
-	public String getUUID() {;
+
+	public String getUUID() {
 	return uuid.getValue();
 	}
-	
-	public String getBamIdDataToString() {
-		StringBuilder sb = new StringBuilder();
-		sb.append(bamName.toBamIdString());
-//		sb.append(epoch.toBamIdString());
-		sb.append(uuid.toBamIdString());
-		return sb.toString();
-	}
+
 }

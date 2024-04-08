@@ -25,7 +25,7 @@ public class RulesUtil {
 	 */
 	public static Rule getRule(List<Rule> rules, int coverage) {
 		for (Rule r : rules) {
-			if (r.getMaxCoverage() >= coverage && r.getMinCoverage() <= coverage) {
+			if (r.maxCoverage() >= coverage && r.minCoverage() <= coverage) {
 				return r;
 			}
 		}
@@ -40,7 +40,7 @@ public class RulesUtil {
 		Collections.sort(rules, new Comparator<Rule>() {
 			@Override
 			public int compare(Rule o1, Rule o2) {
-				return o1.getMinCoverage() - o2.getMinCoverage();
+				return o1.minCoverage() - o2.minCoverage();
 			}
 		});
 		
@@ -48,20 +48,20 @@ public class RulesUtil {
 		
 		int previousMaxValue = -1;
 		for (Rule r : rules) {
-			if (r.getMinCoverage() <= previousMaxValue) {
+			if (r.minCoverage() <= previousMaxValue) {
 				throw new SnpException("RULES_OVERLAP");
-			} else if (r.getMinCoverage() > previousMaxValue + 1) {
-				sb.append("rules don't cover from " + (previousMaxValue + 1) + " to " + r.getMinCoverage() + "\n");
+			} else if (r.minCoverage() > previousMaxValue + 1) {
+				sb.append("rules don't cover from " + (previousMaxValue + 1) + " to " + r.minCoverage() + "\n");
 			}
 //			previousMinValue = r.getMinCoverage();
-			previousMaxValue = r.getMaxCoverage();
+			previousMaxValue = r.maxCoverage();
 		}
 		
 		// check boundaries
-		if (rules.get(0).getMinCoverage() > 0) {
-			String errorMessage = "rules don't cover from 0 to " + rules.get(0).getMinCoverage();
+		if (rules.get(0).minCoverage() > 0) {
+			String errorMessage = "rules don't cover from 0 to " + rules.get(0).minCoverage();
 			if ( ! sb.toString().contains(errorMessage)) {
-				sb.append("rules don't cover from 0 to " + rules.get(0).getMinCoverage() + "\n");
+				sb.append("rules don't cover from 0 to " + rules.get(0).minCoverage() + "\n");
 			}
 		}
 		if (previousMaxValue < Integer.MAX_VALUE) {

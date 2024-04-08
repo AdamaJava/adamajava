@@ -92,7 +92,7 @@ public final class JobQueue {
 				
 		// get header from bam file
 		Pair<File, File> firstPair = filePairs.iterator().next();
-		File bamFile = firstPair.getLeft();		
+		File bamFile = firstPair.left();
 		
 		// set bam filename in SummaryStats
 		ss.setBamFileName(bamFile.getAbsolutePath());

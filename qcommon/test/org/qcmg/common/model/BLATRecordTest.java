@@ -1,12 +1,11 @@
 package org.qcmg.common.model;
 
-import static org.junit.Assert.*;
+import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.List;
 
-import org.junit.Test;
-import org.qcmg.common.model.BLATRecord;
+import static org.junit.Assert.*;
 
 
 public class BLATRecordTest {
@@ -38,7 +37,7 @@ public class BLATRecordTest {
 	public void getScore2() {
 		String b = "57	7	0	0	1	1	0	0	+	name	66	-1	64	GL000219.1	12345	165413	165478	2	43,19	1,46	165414,165459";
 		BLATRecord br = new BLATRecord.Builder(b).build();
-		assertEquals(true, br.isValid());
+        assertTrue(br.isValid());
 		assertEquals(49, br.getScore());
 	}
 	
@@ -77,31 +76,31 @@ public class BLATRecordTest {
 	public void getScore() {
 		String b = "51	1	0	0	2	23	2	167	+	GL000219.1_179198_false_+	75	0	75	chr9	141213431	68513272	68513491	3	17,17,18,	0,35,57,	68513272,68513355,68513473,";
 		BLATRecord br = new BLATRecord.Builder(b).build();
-		assertEquals(true, br.isValid());
+        assertTrue(br.isValid());
 		assertEquals(46, br.getScore());
 		assertEquals("GL000219.1_179198_false_+", br.getQName());
 		b = "67	8	0	0	0	0	3	8104	+	GL000219.1_179198_false_+	75	0	75	chrUn_gl000219	179198	169035	177214	4	24,5,5,41,	0,24,29,34,	169035,169081,177165,177173,";
 		BLATRecord br2 = new BLATRecord.Builder(b).build();
-		assertEquals(true, br2.isValid());
+        assertTrue(br2.isValid());
 		assertEquals(56, br2.getScore());
 		assertEquals("GL000219.1_179198_false_+", br2.getQName());
 		
 		List<BLATRecord> recordsList = Arrays.asList(br, br2);
 		recordsList.sort(null);
-		assertEquals(br, recordsList.get(0));
+		assertEquals(br, recordsList.getFirst());
 		
 		/*
 		 * create br2 again, this time with a lower score
 		 */
 		b = "47	8	0	0	0	0	3	8104	+	GL000219.1_179198_false_+	75	0	75	chrUn_gl000219	179198	169035	177214	4	24,5,5,41,	0,24,29,34,	169035,169081,177165,177173,";
 		br2 = new BLATRecord.Builder(b).build();
-		assertEquals(true, br2.isValid());
+        assertTrue(br2.isValid());
 		assertEquals(36, br2.getScore());
 		assertEquals("GL000219.1_179198_false_+", br2.getQName());
 		
 		recordsList = Arrays.asList(br, br2);
 		recordsList.sort(null);
-		assertEquals(br2, recordsList.get(0));
+		assertEquals(br2, recordsList.getFirst());
 	}
 	
 	@Test
@@ -227,7 +226,7 @@ public class BLATRecordTest {
 		,new BLATRecord.Builder("60	2	0	0	0	0	0	0	+	chr15_34031839_true_-	64	2	64	chr3	198022430	4004760	4004822	1	62,	2,	4004760,").build());
 		
 		list.sort(null);
-		BLATRecord br = list.get(list.size() - 1);
+		BLATRecord br = list.getLast();
 		assertEquals(62, br.getScore());
 		assertEquals("chr10", br.getTName());
 		assertEquals('+', br.getStrand());
@@ -277,7 +276,7 @@ public class BLATRecordTest {
 	public void ctor() {
 		String ctor = "41\t1\t0\t0\t1\t4\t1\t5\t-\t12345_123455_12345\t70\t14\t60\tchr9\t141213431\t81359142\t81359189\t2\t17,25,\t10,31,\t81359142,81359164,";
 		BLATRecord br = new BLATRecord.Builder(ctor).build();
-		assertEquals(true, br.isValid());
+        assertTrue(br.isValid());
 		assertEquals(41 - 1 - 1 - 1, br.getScore());
 		assertEquals("12345_123455_12345", br.getQName());
 		assertEquals("chr9", br.getTName());
@@ -296,7 +295,7 @@ public class BLATRecordTest {
 	public void unmodifiedStarts() {
 		String ctor = "41\t1\t0\t0\t1\t4\t1\t5\t-\t12345_123455_12345\t70\t14\t60\tchr9\t141213431\t81359142\t81359189\t2\t17,25,\t10,31,\t81359142,81359164,";
 		BLATRecord br = new BLATRecord.Builder(ctor).build();
-		assertEquals(true, br.isValid());
+        assertTrue(br.isValid());
 		int i = 70 - 17 - 10 + 1;
 		int j = 70 - 25 - 31 + 1;
 		assertArrayEquals(new int[] {i ,j }, br.getUnmodifiedStarts());
@@ -306,7 +305,7 @@ public class BLATRecordTest {
 		 */
 		ctor = "41\t1\t0\t0\t1\t4\t1\t5\t+\t12345_123455_12345\t70\t14\t60\tchr9\t141213431\t81359142\t81359189\t2\t17,25,\t10,31,\t81359142,81359164,";
 		br = new BLATRecord.Builder(ctor).build();
-		assertEquals(true, br.isValid());
+        assertTrue(br.isValid());
 		i = 10 + 1;
 		j = 31 + 1;
 		assertArrayEquals(new int[] {i ,j}, br.getUnmodifiedStarts());

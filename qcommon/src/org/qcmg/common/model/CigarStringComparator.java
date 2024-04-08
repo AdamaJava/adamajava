@@ -6,6 +6,7 @@
  */
 package org.qcmg.common.model;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Comparator;
 
@@ -20,6 +21,7 @@ import java.util.Comparator;
  */
 public class CigarStringComparator implements Comparator<String> , Serializable{
 
+	@Serial
 	private static final long serialVersionUID = -3624872066493448808L;
 	
 	@Override
@@ -30,16 +32,18 @@ public class CigarStringComparator implements Comparator<String> , Serializable{
 		
 		if (cigar1Length > 1 && cigar2Length > 1) {
 		
-			final char c1 = cigar1.charAt(cigar1Length-1);
-			final char c2 = cigar2.charAt(cigar2Length-1);
+			final char c1 = cigar1.charAt(cigar1Length - 1);
+			final char c2 = cigar2.charAt(cigar2Length - 1);
 			
-			if (c1 != c2)
-				return c1<c2 ? -1 :  1;
+			if (c1 != c2) {
+				return c1 < c2 ? -1 : 1;
+			}
 			
 			// String are the same - compare the number
-			return (Integer.valueOf(cigar1.substring(0, cigar1Length-1))
-					.compareTo(Integer.valueOf(cigar2.substring(0, cigar2Length-1))));
-		} else
+			return (Integer.compare(Integer.parseInt(cigar1, 0, cigar1Length - 1, 10),
+					Integer.parseInt(cigar2, 0, cigar2Length - 1, 10)));
+		} else {
 			throw new ClassCastException("Invalid CIGAR string lengths in CigarStringComparator");
+		}
 	}
 }

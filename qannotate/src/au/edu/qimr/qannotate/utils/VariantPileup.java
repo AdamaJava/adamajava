@@ -62,7 +62,7 @@ public class VariantPileup {
 		for(Pair<SAMRecord,SAMRecord> pair: pairPool.values()) {
 			if(checkPair(pair)){
 				pairSame.incrementAndGet();
-				singlePool.put(pair.getLeft().getReadName(), pair.getLeft());
+				singlePool.put(pair.left().getReadName(), pair.left());
 			} else {
 				pairDiff.incrementAndGet();
 			}
@@ -210,20 +210,20 @@ public class VariantPileup {
 	 */
 	boolean checkPair( Pair<SAMRecord,SAMRecord> pair ){
 		
-		if (pair.getLeft() == null || pair.getRight() == null){ 
+		if (pair.left() == null || pair.right() == null){
 			System.err.println("dealing with pair of null"); return false;  
 		}
 		
 		//check start base
-		int start1 = pair.getLeft().getReadPositionAtReferencePosition(vcf.getPosition(), true );
-		int start2 = pair.getRight().getReadPositionAtReferencePosition(vcf.getPosition(), true );
+		int start1 = pair.left().getReadPositionAtReferencePosition(vcf.getPosition(), true );
+		int start2 = pair.right().getReadPositionAtReferencePosition(vcf.getPosition(), true );
 		//it shift to one base before mutation if read contains deletion. so we have to check both read ref positon again
-		if( pair.getLeft().getReferencePositionAtReadPosition(start1) != pair.getRight().getReferencePositionAtReadPosition(start2) )
+		if( pair.left().getReferencePositionAtReadPosition(start1) != pair.right().getReferencePositionAtReadPosition(start2) )
 			return false;
 		
 		//check last base
-		int end1 = pair.getLeft().getReadPositionAtReferencePosition(vcf.getChrPosition().getEndPosition() + 1 );
-		int end2 = pair.getRight().getReadPositionAtReferencePosition(vcf.getChrPosition().getEndPosition() + 1 );
+		int end1 = pair.left().getReadPositionAtReferencePosition(vcf.getChrPosition().getEndPosition() + 1 );
+		int end2 = pair.right().getReadPositionAtReferencePosition(vcf.getChrPosition().getEndPosition() + 1 );
 		// in case of deletion
 		if(end1 == 0) {
 			end1 = start1 + 1;
@@ -231,19 +231,19 @@ public class VariantPileup {
 		if(end2 == 0) {
 			end2 = start2 + 1;
 		}
-		if( pair.getLeft().getReferencePositionAtReadPosition(end1) != pair.getRight().getReferencePositionAtReadPosition(end2) )
+		if( pair.left().getReferencePositionAtReadPosition(end1) != pair.right().getReferencePositionAtReadPosition(end2) )
 			return false;
  		
 		 //check pair base
 		try{
-			byte[] bases1 = Arrays.copyOfRange(pair.getLeft().getReadBases(),  start1 - 1, end1 ); 
-			byte[] bases2 = Arrays.copyOfRange(pair.getRight().getReadBases(),  start2 - 1, end2 );			
+			byte[] bases1 = Arrays.copyOfRange(pair.left().getReadBases(),  start1 - 1, end1 );
+			byte[] bases2 = Arrays.copyOfRange(pair.right().getReadBases(),  start2 - 1, end2 );
 			//compare array not reference
 			return  Arrays.equals(bases1, bases2);  			 
 		}catch( ArrayIndexOutOfBoundsException e){
-			System.err.println(vcf.toSimpleString() + " (pileup on): " + pair.getLeft().getReadName());
-			System.out.println(Arrays.toString(pair.getLeft().getReadBases()) + " : substring of "+ (start1 - 1) + " ~ " + end1 );
-			System.out.println(Arrays.toString(pair.getRight().getReadBases()) + " : substring of "+ (start2 - 1) + " ~ " + end2 );
+			System.err.println(vcf.toSimpleString() + " (pileup on): " + pair.left().getReadName());
+			System.out.println(Arrays.toString(pair.left().getReadBases()) + " : substring of "+ (start1 - 1) + " ~ " + end1 );
+			System.out.println(Arrays.toString(pair.right().getReadBases()) + " : substring of "+ (start2 - 1) + " ~ " + end2 );
 		}
 		
 		return false; 

@@ -158,9 +158,9 @@ public class ReadIDSummaryTest {
 		Element ele = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.VARIABLE_GROUP).stream().filter( k -> k.getAttribute(XmlUtils.NAME).equals(name)).findFirst().get();
 		int total = 0;
 		for (Pair p : valuePair) {
-			Element e = XmlElementUtils.getChildElementByTagName( ele, XmlUtils.TALLY ).stream().filter(  k -> k.getAttribute(XmlUtils.VALUE ).equals(p.getLeft())).findFirst().get();
-			assertEquals( e.getAttribute(XmlUtils.COUNT), p.getRight() + "");
-			total += (Integer)p.getRight();
+			Element e = XmlElementUtils.getChildElementByTagName( ele, XmlUtils.TALLY ).stream().filter(  k -> k.getAttribute(XmlUtils.VALUE ).equals(p.left())).findFirst().get();
+			assertEquals( e.getAttribute(XmlUtils.COUNT), p.right() + "");
+			total += (Integer)p.right();
 		}
 				
 		assertEquals(ele.getAttribute(XmlUtils.COUNT),  total+"");		

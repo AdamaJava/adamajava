@@ -24,7 +24,7 @@ public class MapUtils {
 		int subMapSize = mapSize / noOfSubmaps;
 		List<Map<K, V>> subMaps = new ArrayList<>();
 		for (int i = 0 ; i < noOfSubmaps ; i++) {
-			subMaps.add(new HashMap<K, V>());
+			subMaps.add(new HashMap<>());
 		}
 		
 		int i = 0, j = 1;

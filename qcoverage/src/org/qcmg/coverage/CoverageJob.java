@@ -59,7 +59,7 @@ class CoverageJob implements Job {
 		features = refToFeaturesMap.get(refName);
 		assert (null != features);
 		for (final Pair<File, File> pair : filePairs) {
-			File bamFile = pair.getLeft();
+			File bamFile = pair.left();
 			SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile, validation);
 			fileReaders.add(reader);
 		}

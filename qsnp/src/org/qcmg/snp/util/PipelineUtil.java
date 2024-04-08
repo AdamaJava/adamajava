@@ -340,21 +340,21 @@ public class PipelineUtil {
 			/*
 			 * first column in sa is fs count
 			 */
-			sa[0] = (short) v.getLeft().size();
+			sa[0] = (short) v.left().size();
 			/*
 			 * second column is fs nns count
 			 * Need to get set of start positions from combinedReadIdsStarPos for our readIds 
 			 */
-			sa[1] = (short)getUniqueCount(combinedReadIdsStarPos, v.getLeft(), true);
+			sa[1] = (short)getUniqueCount(combinedReadIdsStarPos, v.left(), true);
 			/*
 			 * third column in sa is rs count
 			 */
-			sa[2] = (short) v.getRight().size();
+			sa[2] = (short) v.right().size();
 			/*
 			 * fourth column is rs nns count
 			 * Need to get set of start positions from combinedReadIdsStarPos for our readIds 
 			 */
-			sa[3] = (short)getUniqueCount(combinedReadIdsStarPos, v.getRight(), false);
+			sa[3] = (short)getUniqueCount(combinedReadIdsStarPos, v.right(), false);
 			return true;
 			});
 		
@@ -384,9 +384,9 @@ public class PipelineUtil {
 				basesAndReadIds.put(bases, readIds);
 			}
 			if (reverseStrand) {
-				readIds.getRight().add(i);
+				readIds.right().add(i);
 			} else {
-				readIds.getLeft().add( i);
+				readIds.left().add( i);
 			}
 			return true;
 		});
@@ -483,11 +483,11 @@ public class PipelineUtil {
 		
 		for (VcfRecord v : l) {
 			Pair<Accumulator, Accumulator> p = vcfs.get(v);
-			if (null != p.getLeft()) {
-				cAccs.add(p.getLeft());
+			if (null != p.left()) {
+				cAccs.add(p.left());
 			}
-			if (null != p.getRight()) {
-				tAccs.add(p.getRight());
+			if (null != p.right()) {
+				tAccs.add(p.right());
 			}
 		}
 		
@@ -746,8 +746,8 @@ public class PipelineUtil {
 		Optional<String> refO = getReference(vcfs.keySet());
 		String ref = refO.isPresent() ? refO.get() : null;
 		
-		Map<String, short[]> cBasesCountsNNS =  getBasesFromAccumulators(p.getLeft());
-		Map<String, short[]> tBasesCountsNNS =  getBasesFromAccumulators(p.getRight());
+		Map<String, short[]> cBasesCountsNNS =  getBasesFromAccumulators(p.left());
+		Map<String, short[]> tBasesCountsNNS =  getBasesFromAccumulators(p.right());
 		
 		int controlCov = getCoverage(cBasesCountsNNS);
 		int testCov = getCoverage(tBasesCountsNNS);
@@ -757,8 +757,8 @@ public class PipelineUtil {
 		/*
 		 * check to see if we need to use a percentage, if so, calculate the minCov based on totalCov
 		 */
-		int cMinCov = null != cr ? cr.getMaxCoverage() == Integer.MAX_VALUE ? (cr.getNoOfVariants() * controlCov) / 100 : cr.getNoOfVariants() : 2;
-		int tMinCov = null != tr ? tr.getMaxCoverage() == Integer.MAX_VALUE ? (tr.getNoOfVariants() * testCov) / 100 : tr.getNoOfVariants() : 2;
+		int cMinCov = null != cr ? cr.maxCoverage() == Integer.MAX_VALUE ? (cr.noOfVariants() * controlCov) / 100 : cr.noOfVariants() : 2;
+		int tMinCov = null != tr ? tr.maxCoverage() == Integer.MAX_VALUE ? (tr.noOfVariants() * testCov) / 100 : tr.noOfVariants() : 2;
 		
 		List<String> cGT = getBasesForGenotype (cBasesCountsNNS, cMinCov, ref);
 		List<String> tGT = getBasesForGenotype (tBasesCountsNNS, tMinCov, ref);

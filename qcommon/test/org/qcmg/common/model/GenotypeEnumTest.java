@@ -1,9 +1,9 @@
 package org.qcmg.common.model;
 
-import static org.junit.Assert.assertEquals;
-
 import org.junit.Assert;
 import org.junit.Test;
+
+import static org.junit.Assert.*;
 
 public class GenotypeEnumTest {
 
@@ -41,10 +41,10 @@ public class GenotypeEnumTest {
 	
 	@Test
 	public void getQualifyingAltAlleles() {
-		assertEquals(null, GenotypeEnum.AA.getQualifyingAltAlleles('A'));
-		assertEquals(null, GenotypeEnum.CC.getQualifyingAltAlleles('C'));
-		assertEquals(null, GenotypeEnum.GG.getQualifyingAltAlleles('G'));
-		assertEquals(null, GenotypeEnum.TT.getQualifyingAltAlleles('T'));
+        assertNull(GenotypeEnum.AA.getQualifyingAltAlleles('A'));
+        assertNull(GenotypeEnum.CC.getQualifyingAltAlleles('C'));
+        assertNull(GenotypeEnum.GG.getQualifyingAltAlleles('G'));
+        assertNull(GenotypeEnum.TT.getQualifyingAltAlleles('T'));
 		
 		assertEquals("A", GenotypeEnum.AA.getQualifyingAltAlleles('C'));
 		assertEquals("C", GenotypeEnum.CC.getQualifyingAltAlleles('A'));
@@ -73,12 +73,14 @@ public class GenotypeEnumTest {
 	public void testIsHomozygous() {
 		GenotypeEnum ge = GenotypeEnum.getGenotypeEnum('A', 'A');
 		assertEquals(GenotypeEnum.AA, ge);
-		Assert.assertTrue(ge.isHomozygous());
+        assert ge != null;
+        Assert.assertTrue(ge.isHomozygous());
 		Assert.assertFalse(ge.isHeterozygous());
 		
 		ge = GenotypeEnum.getGenotypeEnum('A', 'G');
 		assertEquals(GenotypeEnum.AG, ge);
-		Assert.assertFalse(ge.isHomozygous());
+        assert ge != null;
+        Assert.assertFalse(ge.isHomozygous());
 		Assert.assertTrue(ge.isHeterozygous());
 	}
 	
@@ -86,7 +88,8 @@ public class GenotypeEnumTest {
 	public void testGetDisplayString() {
 		GenotypeEnum ge = GenotypeEnum.getGenotypeEnum('G', 'C');
 		assertEquals(GenotypeEnum.CG, ge);
-		Assert.assertFalse(ge.isHomozygous());
+        assert ge != null;
+        Assert.assertFalse(ge.isHomozygous());
 		Assert.assertTrue(ge.isHeterozygous());
 		assertEquals("C/G", ge.getDisplayString());
 	}
@@ -107,12 +110,12 @@ public class GenotypeEnumTest {
 	
 	@Test
 	public void testContainsAllele() {
-		assertEquals(true, GenotypeEnum.AA.containsAllele('A'));
-		assertEquals(false, GenotypeEnum.AA.containsAllele('B'));
-		assertEquals(true, GenotypeEnum.AC.containsAllele('C'));
-		assertEquals(false, GenotypeEnum.AC.containsAllele('a'));
-		assertEquals(false, GenotypeEnum.AC.containsAllele('c'));
-		assertEquals(false, GenotypeEnum.AC.containsAllele('G'));
+        assertTrue(GenotypeEnum.AA.containsAllele('A'));
+        assertFalse(GenotypeEnum.AA.containsAllele('B'));
+        assertTrue(GenotypeEnum.AC.containsAllele('C'));
+        assertFalse(GenotypeEnum.AC.containsAllele('a'));
+        assertFalse(GenotypeEnum.AC.containsAllele('c'));
+        assertFalse(GenotypeEnum.AC.containsAllele('G'));
 	}
 	
 	@Test
