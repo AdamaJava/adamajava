@@ -6,25 +6,24 @@
  */
 package org.qcmg.qprofiler.util;
 
-import java.util.Collections;
+import org.qcmg.qvisualise.util.SummaryByCycleUtils;
+
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.qcmg.qvisualise.util.SummaryByCycleUtils;
-
 public class MAPQMatrix {
 	
 	public enum MatrixType{
-		SM,CM,LENGTH,NH,ZM;
+		SM,CM,LENGTH,NH,ZM
 	}
 	
-	private final ConcurrentMap<Integer, AtomicLong> smValues = new ConcurrentSkipListMap<Integer, AtomicLong>();
-	private final ConcurrentMap<Integer, AtomicLong> cmValues = new ConcurrentSkipListMap<Integer, AtomicLong>();
-	private final ConcurrentMap<Integer, AtomicLong> lengthValues = new ConcurrentSkipListMap<Integer, AtomicLong>();
-	private final ConcurrentMap<Integer, AtomicLong> nhValues = new ConcurrentSkipListMap<Integer, AtomicLong>();
-	private final ConcurrentMap<Integer, AtomicLong> zmValues = new ConcurrentSkipListMap<Integer, AtomicLong>();
+	private final ConcurrentMap<Integer, AtomicLong> smValues = new ConcurrentSkipListMap<>();
+	private final ConcurrentMap<Integer, AtomicLong> cmValues = new ConcurrentSkipListMap<>();
+	private final ConcurrentMap<Integer, AtomicLong> lengthValues = new ConcurrentSkipListMap<>();
+	private final ConcurrentMap<Integer, AtomicLong> nhValues = new ConcurrentSkipListMap<>();
+	private final ConcurrentMap<Integer, AtomicLong> zmValues = new ConcurrentSkipListMap<>();
 
 	public void addToMatrix(Integer value, MatrixType type) {
 		switch (type) {
@@ -47,20 +46,14 @@ public class MAPQMatrix {
 	}
 	
 	public Map<Integer, AtomicLong> getMatrixByType(MatrixType type) {
-		switch (type) {
-		case SM:
-			return smValues;
-		case CM:
-			return cmValues;
-		case LENGTH:
-			return lengthValues;
-		case NH:
-			return nhValues;
-		case ZM:
-			return zmValues;
-		}
-		return Collections.emptyMap();
-	}
+        return switch (type) {
+            case SM -> smValues;
+            case CM -> cmValues;
+            case LENGTH -> lengthValues;
+            case NH -> nhValues;
+            case ZM -> zmValues;
+        };
+    }
 
 	
 	///////////////////////////////////////////////////////////////////////////
@@ -71,15 +64,15 @@ public class MAPQMatrix {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result
-		+ ((cmValues == null) ? 0 : cmValues.hashCode());
+		+ cmValues.hashCode();
 		result = prime * result
-		+ ((lengthValues == null) ? 0 : lengthValues.hashCode());
+		+ lengthValues.hashCode();
 		result = prime * result
-		+ ((smValues == null) ? 0 : smValues.hashCode());
+		+ smValues.hashCode();
 		result = prime * result
-		+ ((nhValues == null) ? 0 : nhValues.hashCode());
+		+ nhValues.hashCode();
 		result = prime * result
-		+ ((zmValues == null) ? 0 : zmValues.hashCode());
+		+ zmValues.hashCode();
 		return result;
 	}
 	
@@ -93,33 +86,16 @@ public class MAPQMatrix {
 		if (getClass() != obj.getClass())
 			return false;
 		MAPQMatrix other = (MAPQMatrix) obj;
-		if (cmValues == null) {
-			if (other.cmValues != null)
-				return false;
-		} else if (!cmValues.equals(other.cmValues))
-			return false;
-		if (lengthValues == null) {
-			if (other.lengthValues != null)
-				return false;
-		} else if (!lengthValues.equals(other.lengthValues))
-			return false;
-		if (smValues == null) {
-			if (other.smValues != null)
-				return false;
-		} else if (!smValues.equals(other.smValues))
-			return false;
-		if (nhValues == null) {
-			if (other.nhValues != null)
-				return false;
-		} else if (!nhValues.equals(other.nhValues))
-			return false;
-		if (zmValues == null) {
-			if (other.zmValues != null)
-				return false;
-		} else if (!zmValues.equals(other.zmValues))
-			return false;
-		return true;
-	}
+        if (!cmValues.equals(other.cmValues))
+            return false;
+        if (!lengthValues.equals(other.lengthValues))
+            return false;
+        if (!smValues.equals(other.smValues))
+            return false;
+        if (!nhValues.equals(other.nhValues))
+            return false;
+        return zmValues.equals(other.zmValues);
+    }
 
 	@Override
 	public String toString() {
