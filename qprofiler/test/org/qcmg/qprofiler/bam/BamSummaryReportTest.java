@@ -192,15 +192,15 @@ public class BamSummaryReportTest {
     public void parseIntegerAttribute() {
         QCMGAtomicLongArray array = new QCMGAtomicLongArray(100);
         MAPQMatrix matrix = new MAPQMatrix();
-        BamSummaryReport.parseIntegerAttribute(null, array, true, matrix, MAPQMatrix.MatrixType.ZM);
+        BamSummaryReport.aggregateIntegerAttribute(null, array, true, matrix, MAPQMatrix.MatrixType.ZM);
         assertTrue(array.isEmpty());
         assertEquals(0, matrix.getMatrixByType(MAPQMatrix.MatrixType.ZM).size());
-        BamSummaryReport.parseIntegerAttribute("hello", array, true, matrix, MAPQMatrix.MatrixType.ZM);
+        BamSummaryReport.aggregateIntegerAttribute("hello", array, true, matrix, MAPQMatrix.MatrixType.ZM);
         assertTrue(array.isEmpty());
         assertEquals(0, matrix.getMatrixByType(MAPQMatrix.MatrixType.ZM).size());
-        BamSummaryReport.parseIntegerAttribute(1, array, true, matrix, MAPQMatrix.MatrixType.ZM);
+        BamSummaryReport.aggregateIntegerAttribute(1, array, true, matrix, MAPQMatrix.MatrixType.ZM);
         assertEquals(1, array.get(1));
-        BamSummaryReport.parseIntegerAttribute(10, array, true, matrix, MAPQMatrix.MatrixType.ZM);
+        BamSummaryReport.aggregateIntegerAttribute(10, array, true, matrix, MAPQMatrix.MatrixType.ZM);
         assertEquals(1, array.get(1));
         assertEquals(1, array.get(10));
         assertEquals(2, matrix.getMatrixByType(MAPQMatrix.MatrixType.ZM).size());
@@ -212,24 +212,24 @@ public class BamSummaryReportTest {
         ConcurrentMap<String, AtomicLong> map = new ConcurrentHashMap<>();
 
         // Scenario 1: null attribute, null map
-        BamSummaryReport.parseStringAttribute(null, null);
+        BamSummaryReport.aggregateStringAttribute(null, null);
         assertTrue(map.isEmpty());
         // Scenario 2: null attribute, null map
-        BamSummaryReport.parseStringAttribute(null, map);
+        BamSummaryReport.aggregateStringAttribute(null, map);
         assertTrue(map.isEmpty());
 
         // Scenario 3: Non-String attribute
-        BamSummaryReport.parseStringAttribute(123, map);
+        BamSummaryReport.aggregateStringAttribute(123, map);
         // Since the input parameter was not a string, no modification should have been made to the map
         assertEquals(map.size(), 0);
 
         // Scenario 4: String attribute, null map
-        BamSummaryReport.parseStringAttribute("testAttribute", null);
+        BamSummaryReport.aggregateStringAttribute("testAttribute", null);
         // Now, the map should contain an entry with key 'testAttribute' with a count of 1
         assertEquals(map.size(), 0);
 
         // Scenario 5: String attribute, null map
-        BamSummaryReport.parseStringAttribute("testAttribute", map);
+        BamSummaryReport.aggregateStringAttribute("testAttribute", map);
         assertEquals(map.size(), 1);
     }
 

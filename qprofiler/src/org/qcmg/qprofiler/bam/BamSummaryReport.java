@@ -576,16 +576,16 @@ public class BamSummaryReport extends SummaryReport {
             }
         }
 
-        parseStringAttribute(record.getAttribute("RG"), tagRGLineLengths);
+        aggregateStringAttribute(record.getAttribute("RG"), tagRGLineLengths);
         if (!torrentBam) {
-            parseIntegerAttribute(record.getAttribute("ZM"), tagZMLineLengths, includeMatrices, matrix, MatrixType.ZM);
-            parseIntegerAttribute(record.getAttribute("ZF"), tagZFLineLengths, false, null, null);
-            parseStringAttribute(record.getAttribute("ZP"), tagZPLineLengths);
+            aggregateIntegerAttribute(record.getAttribute("ZM"), tagZMLineLengths, includeMatrices, matrix, MatrixType.ZM);
+            aggregateIntegerAttribute(record.getAttribute("ZF"), tagZFLineLengths, false, null, null);
+            aggregateStringAttribute(record.getAttribute("ZP"), tagZPLineLengths);
         }
-        parseIntegerAttribute(record.getAttribute("CM"), tagCMLineLengths, includeMatrices, matrix, MatrixType.CM);
-        parseIntegerAttribute(record.getAttribute("SM"), tagSMLineLengths, includeMatrices, matrix, MatrixType.SM);
-        parseIntegerAttribute(record.getAttribute("IH"), tagIHLineLengths, false, null, null);
-        parseIntegerAttribute(record.getAttribute("NH"), tagNHLineLengths, includeMatrices, matrix, MatrixType.NH);
+        aggregateIntegerAttribute(record.getAttribute("CM"), tagCMLineLengths, includeMatrices, matrix, MatrixType.CM);
+        aggregateIntegerAttribute(record.getAttribute("SM"), tagSMLineLengths, includeMatrices, matrix, MatrixType.SM);
+        aggregateIntegerAttribute(record.getAttribute("IH"), tagIHLineLengths, false, null, null);
+        aggregateIntegerAttribute(record.getAttribute("NH"), tagNHLineLengths, includeMatrices, matrix, MatrixType.NH);
         //MD
         if (!includeMDTag) {
             value = (String) record.getAttribute(SAMTag.MD);
@@ -626,8 +626,8 @@ public class BamSummaryReport extends SummaryReport {
         }
     }
 
-    public static void parseIntegerAttribute(Object attribute,
-                                             final QCMGAtomicLongArray array, boolean includeMatrices, final MAPQMatrix matrix, MatrixType matrixType) {
+    public static void aggregateIntegerAttribute(Object attribute,
+                                                 final QCMGAtomicLongArray array, boolean includeMatrices, final MAPQMatrix matrix, MatrixType matrixType) {
         if (attribute instanceof Integer) {
             if (null != array) {
                 array.increment((Integer) attribute);
@@ -638,7 +638,7 @@ public class BamSummaryReport extends SummaryReport {
         }
     }
 
-    public static void parseStringAttribute(Object attribute, final ConcurrentMap<String, AtomicLong> map) {
+    public static void aggregateStringAttribute(Object attribute, final ConcurrentMap<String, AtomicLong> map) {
         if (attribute instanceof String && null != map) {
             SummaryByCycleUtils.incrementCount(map, (String) attribute);
         }
