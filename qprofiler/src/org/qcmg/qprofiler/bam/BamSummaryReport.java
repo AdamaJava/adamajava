@@ -521,38 +521,37 @@ public class BamSummaryReport extends SummaryReport {
                 } else if (record.getSecondOfPairFlag()) {
                     p2Lengths.increment(record.getReadBases().length);
                 }
-
-                // coverage
-                if (includeCoverage) {
-                    parseCoverage(record);
-                }
             }
-
-            // MAPQ (Mapping Quality)
-            final int mapQ = record.getMappingQuality();
-            mapQualityLengths.increment(mapQ);
-
-            if (includeMatrices) {
-                matrix = mapQMatrix.get(mapQ);
-                if (null == matrix) {
-                    MAPQMatrix newMatrix = new MAPQMatrix();
-                    matrix = mapQMatrix.putIfAbsent(mapQ, newMatrix);
-                    if (null == matrix)
-                        matrix = newMatrix;
-                }
-                matrix.addToMatrix(record.getReadLength(), MatrixType.LENGTH);
+            // coverage
+            if (includeCoverage) {
+                parseCoverage(record);
             }
-
-            // only TAGS, FLAGS, and CIGARS are always summarised
-            // TAGS
-            parseTAGs(record, matrix, record.getReadBases(), record.getReadNegativeStrandFlag());
-
-            // CIGAR
-            parseCigar(record.getCigar());
-
-            // Flags
-            flagIntegerCount.increment(record.getFlags());
         }
+
+        // MAPQ (Mapping Quality)
+        final int mapQ = record.getMappingQuality();
+        mapQualityLengths.increment(mapQ);
+
+        if (includeMatrices) {
+            matrix = mapQMatrix.get(mapQ);
+            if (null == matrix) {
+                MAPQMatrix newMatrix = new MAPQMatrix();
+                matrix = mapQMatrix.putIfAbsent(mapQ, newMatrix);
+                if (null == matrix)
+                    matrix = newMatrix;
+            }
+            matrix.addToMatrix(record.getReadLength(), MatrixType.LENGTH);
+        }
+
+        // only TAGS, FLAGS, and CIGARS are always summarised
+        // TAGS
+        parseTAGs(record, matrix, record.getReadBases(), record.getReadNegativeStrandFlag());
+
+        // CIGAR
+        parseCigar(record.getCigar());
+
+        // Flags
+        flagIntegerCount.increment(record.getFlags());
     }
 
     private void parseTAGs(final SAMRecord record, final MAPQMatrix matrix, final byte[] readBases,
