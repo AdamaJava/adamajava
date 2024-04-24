@@ -780,8 +780,9 @@ public final class FileMerger {
 
 		while (iter.hasNext() && !hasReachedNumberRecords()) {
 			SAMRecord record = iter.next();
+			SAMReadGroupRecord srgr = record.getReadGroup();
 
-			if (null == record.getReadGroup()) {
+			if (null == srgr) {
 				logger.warn(record.getSAMString());
 				logger.warn(record.getAttribute(RG_TAG).toString());
 				logger.warn(record.getHeader().toString());
@@ -790,7 +791,7 @@ public final class FileMerger {
 
 			SamReader fileReader = iter.getCurrentSAMFileReader();
 			if ( ! replacementMap.isEmpty()) {
-				String oldGroup = record.getReadGroup().getReadGroupId();
+				String oldGroup = srgr.getReadGroupId();
 				File file = inputReader.getFile(fileReader);
 				String newGroup = getReplacementGroup(file, oldGroup);
 				if (null != newGroup) {
@@ -800,7 +801,6 @@ public final class FileMerger {
 			Integer oldZc = record.getIntegerAttribute(ZC);
 			if (null == oldZc) {
 				Integer zc = inputReader.getDefaultZc(fileReader);
-//				assert null != zc;
 				record.setAttribute(ZC, zc);
 			} else {
 				Set<Integer> permissibleZcs = inputReader.getOldZcs(fileReader);

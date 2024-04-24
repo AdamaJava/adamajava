@@ -25,14 +25,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import htsjdk.samtools.SAMFileHeader;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.ValidationStringency;
-import htsjdk.samtools.SAMProgramRecord;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SAMRecordIterator;
-import htsjdk.samtools.SAMSequenceDictionary;
-import htsjdk.samtools.SAMSequenceRecord;
+import htsjdk.samtools.*;
 
 import org.qcmg.common.date.DateUtils;
 import org.qcmg.common.log.QLogger;
@@ -120,7 +113,7 @@ public class BamSummarizerMT implements Summarizer {
 			
 			samSeqDict = reader.getFileHeader().getSequenceDictionary();
 			bamHeader = HeaderUtils.getHeaderStringFromHeader(header);
-			readGroupIds = header.getReadGroups().stream().map( it -> it.getId()  ).collect(toList()); 
+			readGroupIds = header.getReadGroups().stream().map(SAMReadGroupRecord::getId).collect(toList());
 
 			List<SAMProgramRecord> pgLines = header.getProgramRecords();
 			for (SAMProgramRecord pgLine : pgLines) {

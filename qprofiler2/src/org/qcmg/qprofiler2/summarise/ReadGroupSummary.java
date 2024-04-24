@@ -18,9 +18,6 @@ import org.w3c.dom.Element;
 
 public class ReadGroupSummary {
 
-	public static final int ERR_READ_LIMIT  = 10;	
-	// xml node name 	
-	public static final String NODE_READGROUP = "readGroup";		
 	public static final String NODE_SOFTCLIP = "softClippedBases";
 	public static final String NODE_TRIM = "trimmedBases";	
 	public static final String NODE_HARDCLIP = "hardClippedBases";
@@ -28,12 +25,9 @@ public class ReadGroupSummary {
 	public static final String NODE_PAIR_TLEN = "tLen" ; 	
 	public static final String NODE_OVERLAP = "overlappedBases";	
 	public static final String NODE_DUPLICATE = "duplicateReads";
-	public static final String NODE_SECONDARY = "secondary";
-	public static final String NODE_SUPPLEMENTARY = "supplementary"; 	
 	public static final String NODE_UNMAPPED = "unmappedReads";
 	public static final String NODE_NOT_PROPER_PAIR = "notProperPairs";
-	public static final String NODE_FAILED_VENDOR_QUALITY = "failedVendorQuality";
-		
+
 	public static final String MIN = "min";	
 	public static final String MAX = "max";
 	public static final String MEAN = "mean"; 
@@ -54,11 +48,11 @@ public class ReadGroupSummary {
 	// record read length excluding the discard reads but includes duplicate,unmapped and nonCanonicalReads	
 	QCMGAtomicLongArray readLength = new QCMGAtomicLongArray(128);	
 	QCMGAtomicLongArray forTrimLength = new QCMGAtomicLongArray(128);	
-	private final ConcurrentMap<String, AtomicLong> cigarValuesCount = new ConcurrentHashMap<String, AtomicLong>();
+	private final ConcurrentMap<String, AtomicLong> cigarValuesCount = new ConcurrentHashMap<>();
 	// must be concurrent set for multi threads
 	private final ConcurrentMap<Integer, PairSummary> pairCategory = new ConcurrentHashMap<>();
 
-	// bad reads inforamtion
+	// bad reads information
 	AtomicLong duplicate = new AtomicLong();
 	AtomicLong secondary  = new AtomicLong();
 	AtomicLong supplementary  = new AtomicLong();
@@ -122,7 +116,7 @@ public class ReadGroupSummary {
 		return this.unmapped.get() * getMaxReadLength(); 
 	}	
 	
-	public long getnotPoperPairedBase() {
+	public long getNotProperPairedBase() {
 		return notProperPairedReads.get() * getMaxReadLength(); 
 	}
 		
@@ -149,7 +143,7 @@ public class ReadGroupSummary {
 			return false;
 		} 		
 		
-		// parseing cigar
+		// parsing cigar
 		// cigar string from reads including duplicateReads, nonCanonicalPairs and unmappedReads but excluding discardedReads (failed, secondary and supplementary).
 		int lHard = 0;
 		int lSoft = 0;
@@ -181,7 +175,7 @@ public class ReadGroupSummary {
 			return false;
 		} 
 		
-		// check pair orientaiton, tLen, mate
+		// check pair orientation, tLen, mate
 		if (record.getReadPairedFlag()) {
 			BwaPair.Pair pairType = BwaPair.getPairType(record);
 			boolean isProper = record.getProperPairFlag();
@@ -204,7 +198,7 @@ public class ReadGroupSummary {
 			softClip.increment(lSoft);
 		}
 		// record read length excluding the discard reads duplicate.get() + unmapped.get() + getnonCanonicalReadsCount();	
-		// due to it for trimmed base caculation as well
+		// due to it for trimmed base calculation as well
 		forTrimLength.increment(record.getReadLength() + lHard);	
 			 				
 		return true;  
@@ -221,8 +215,8 @@ public class ReadGroupSummary {
 		
 
 	/**
-	 * check all globle value and assign the sumamry value
-	 * eg. private long trimedBase = 0; 	
+	 * check all global value and assign the summary value
+	 * eg. private long trimmedBase = 0;
 	 */
 	public void preSummary() {				
 		// check overlap and tLen from pairSummary 
@@ -247,19 +241,18 @@ public class ReadGroupSummary {
 		this.hardclipStats = new SummaryReportUtils.TallyStats( hardClip);
 		this.readlengthStats = new SummaryReportUtils.TallyStats( readLength );	
 		
-		int maxLenght = (int)readlengthStats.getMax();
-		QCMGAtomicLongArray trimedBase = new QCMGAtomicLongArray(maxLenght + 1);	
+		int maxLength = (int)readlengthStats.getMax();
+		QCMGAtomicLongArray trimmedBase = new QCMGAtomicLongArray(maxLength + 1);
 		for (int i = 0 ; i < forTrimLength.length() ; i ++)	 {			
-			if (forTrimLength.get(i) == 0 || maxLenght == i ) {
+			if (forTrimLength.get(i) == 0 || maxLength == i ) {
 				continue;
 			}
-			trimedBase.increment( maxLenght - i, forTrimLength.get(i));
+			trimmedBase.increment( maxLength - i, forTrimLength.get(i));
 		}
-		this.trimBaseStats = new SummaryReportUtils.TallyStats( trimedBase );			
+		this.trimBaseStats = new SummaryReportUtils.TallyStats( trimmedBase );
 	}
 	
-	@SuppressWarnings("unchecked")
-	public void readSummary2Xml(Element parent ) throws Exception {	
+	public void readSummary2Xml(Element parent ) {
 		
 		preSummary();
 	 		 
@@ -275,7 +268,7 @@ public class ReadGroupSummary {
 		lostBaseStats( rgElement, NODE_OVERLAP, overlapStats );
 				
 		// create node for overall	
-		rgElement = XmlUtils.createMetricsNode(parent,"reads", new Pair<String, Number>(READ_COUNT, inputReadCounts.get()));		
+		rgElement = XmlUtils.createMetricsNode(parent,"reads", new Pair<>(READ_COUNT, inputReadCounts.get()));
 		Element ele = XmlUtils.createGroupNode(rgElement, XmlUtils.DISCARD_READS );
 		XmlUtils.outputValueNode(ele, "supplementaryAlignmentCount", supplementary.get());
 		XmlUtils.outputValueNode(ele, "secondaryAlignmentCount", secondary.get());
@@ -326,7 +319,7 @@ public class ReadGroupSummary {
 					sum += p.getFirstOfPairCounts();
 				}			
 			}
-			// can't really count he pair number due to RAM limits, just pickup number of firstOfPair
+			// can't really count the pair number due to RAM limits, just pickup number of firstOfPair
 			ele.setAttribute( PAIR_COUNT, sum + "");  			
 		}
 	}

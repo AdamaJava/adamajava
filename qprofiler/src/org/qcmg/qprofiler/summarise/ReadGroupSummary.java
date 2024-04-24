@@ -46,11 +46,10 @@ public class ReadGroupSummary {
 	QCMGAtomicLongArray readLength = new QCMGAtomicLongArray(128);
 	QCMGAtomicLongArray overlapBase = new QCMGAtomicLongArray(128);	
 		 
-	//QCMGAtomicLongArray.get(arrayTlenLimit) for tlen=[bigTlenValue, ~)
-	QCMGAtomicLongArray isize = new QCMGAtomicLongArray(bigTlenValue + 1);		
+	QCMGAtomicLongArray isize = new QCMGAtomicLongArray(bigTlenValue + 1);
 	AtomicInteger maxIsize = new AtomicInteger(); 
 	
-	//bad reads inforamtion
+	//bad reads information
 	AtomicLong duplicate = new AtomicLong();
 	AtomicLong secondary  = new AtomicLong();
 	AtomicLong supplementary  = new AtomicLong();
@@ -77,9 +76,8 @@ public class ReadGroupSummary {
 	
 	private final String readGroupId; 		
 	public ReadGroupSummary(String rgId){	this.readGroupId = rgId; }
-	public String getReadGroupId(){return readGroupId; }
-		
- 	private class Pair {
+
+	private class Pair {
  		private final String name;		
  		Pair(String name){this.name = name;}
  		

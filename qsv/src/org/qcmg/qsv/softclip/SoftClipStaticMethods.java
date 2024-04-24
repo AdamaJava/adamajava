@@ -20,11 +20,7 @@ import htsjdk.samtools.SAMReadGroupRecord;
 import htsjdk.samtools.SAMRecord;
 
 public class SoftClipStaticMethods {
-	
-	public static void writeSoftClipRecord(BufferedWriter writer, SAMRecord record, int start, int end, String chromosome) throws IOException {
-		SAMReadGroupRecord rg = record.getReadGroup();
-		writeSoftClipRecord( writer, record, (null != rg ? rg.getId() : Constants.EMPTY_STRING), start, end, chromosome);
-	}
+
 	public static void writeSoftClipRecord(BufferedWriter writer, SAMRecord record, String rgId, int start, int end, String chromosome) throws IOException {
 
 		String clipRecordString = createSoftClipRecordString(record, rgId, start, end, chromosome);
