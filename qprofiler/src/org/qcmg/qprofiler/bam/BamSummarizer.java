@@ -16,11 +16,7 @@ import static java.util.stream.Collectors.toList;
 import java.io.File;
 import java.util.List;
 
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.ValidationStringency;
-import htsjdk.samtools.SAMProgramRecord;
-import htsjdk.samtools.SAMRecord;
-import htsjdk.samtools.SAMSequenceDictionary;
+import htsjdk.samtools.*;
 
 import org.qcmg.common.date.DateUtils;
 import org.qcmg.common.log.QLevel;
@@ -68,7 +64,7 @@ public class BamSummarizer implements Summarizer {
 		bamSummaryReport.setStartTime(DateUtils.getCurrentDateAsString());
 		
 		try(SamReader reader = SAMFileReaderFactory.createSAMFileReaderAsStream(input, index, vs);) {
-			readGroupIds = reader.getFileHeader().getReadGroups().stream().map( it -> it.getId()  ).collect(toList()); 
+			readGroupIds = reader.getFileHeader().getReadGroups().stream().map(SAMReadGroupRecord::getId).collect(toList());
 			bamSummaryReport.setReadGroups(readGroupIds);
 			
 			boolean logLevelEnabled = logger.isLevelEnabled(QLevel.DEBUG);

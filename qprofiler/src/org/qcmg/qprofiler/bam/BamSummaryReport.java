@@ -484,9 +484,8 @@ public class BamSummaryReport extends SummaryReport {
         updateRecordsParsed();
         MAPQMatrix matrix = null;
 
-        String readGroup = SummaryReportUtils.UNKNOWN_READGROUP;
-        if (record.getReadGroup() != null && record.getReadGroup().getId() != null)
-            readGroup = record.getReadGroup().getReadGroupId();
+        SAMReadGroupRecord srgr = record.getReadGroup();
+        String readGroup = srgr == null ? SummaryReportUtils.UNKNOWN_READGROUP : srgr.getReadGroupId();
 
         // Xu code: check if record has its fail or duplicate flag set. if so, miss out some of the summaries
         //anyway, add to summary and then add to it's readgroup

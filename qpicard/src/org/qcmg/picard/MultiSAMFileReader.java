@@ -48,7 +48,7 @@ public final class MultiSAMFileReader implements Closeable, Iterable<SAMRecord> 
 			if (SAMFileHeader.SortOrder.coordinate != header.getSortOrder()) {
 				throw new Exception("Input files must be coordinate sorted");
 			}
-			final Set<Integer> zcs = new HashSet<Integer>(8);
+			final Set<Integer> zcs = new HashSet<>(8);
 			for (SAMReadGroupRecord record : header.getReadGroups()) {
 				final String attribute  = getAttributeZc( record);
 				if (null != attribute ) {				 

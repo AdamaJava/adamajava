@@ -363,7 +363,7 @@ public class BamSummaryReport extends SummaryReport {
 		} 
 						
 		// check if record has its fail or duplicate flag set. if so, miss out some of the summaries
-		ReadGroupSummary rgSumm = rgSummaries.computeIfAbsent(readGroup, k -> new ReadGroupSummary(k));	
+		ReadGroupSummary rgSumm = rgSummaries.computeIfAbsent(readGroup, ReadGroupSummary::new);
 		if (rgSumm.parseRecord(record)) {
 						
 			// SEQ 
@@ -419,12 +419,12 @@ public class BamSummaryReport extends SummaryReport {
 				summary.readSummary2Xml(rgEle);
 				summary.pairSummary2Xml(rgEle); 
 				// presummary
-				lostBase += summary.getDuplicateBase() + summary.getUnmappedBase() + summary.getnotPoperPairedBase()
+				lostBase += summary.getDuplicateBase() + summary.getUnmappedBase() + summary.getNotProperPairedBase()
 					+ summary.getTrimmedBase() + summary.getOverlappedBase() + summary.getSoftClippedBase() + summary.getHardClippedBase();
 				maxBases += summary.getReadCount() * summary.getMaxReadLength();						
 				duplicateBase += summary.getDuplicateBase();
 				unmappedBase += summary.getUnmappedBase();
-				noncanonicalBase += summary.getnotPoperPairedBase();
+				noncanonicalBase += summary.getNotProperPairedBase();
 				trimBases += summary.getTrimmedBase();
 				overlappedBase += summary.getOverlappedBase();
 				softClippedBase += summary.getSoftClippedBase();
