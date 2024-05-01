@@ -127,11 +127,11 @@ public class SingleLevelSplit extends Split {
 		StringBuilder sb = new StringBuilder();
 		for (Integer zc : zcToFileNameMap.keySet()) {
 			if ( ! singleSplitMap.containsKey(zc)) {
-				if (sb.length() > 0) sb.append('\n');
+				if (!sb.isEmpty()) sb.append('\n');
 				sb.append("no entry in singleSplitMap for zc: ").append(zc);
 			}
 		}
-		if (sb.length() != 0) {
+		if (!sb.isEmpty()) {
 			logger.error(sb.toString());
 			throw new SplitException(sb.toString());
 		}
@@ -142,12 +142,12 @@ public class SingleLevelSplit extends Split {
 			StringBuilder sb = new StringBuilder();
 			for (Entry<Integer, String> entry : singleSplitMap.entrySet()) {
 				if (entry.getValue().equals(input)) {
-					if (sb.length() > 0) sb.append('\n');
+					if (!sb.isEmpty()) sb.append('\n');
 
 					sb.append(zcToFileNameMap.get(entry.getKey()));
 				}
 			}
-			if (sb.length() == 0) {
+			if (sb.isEmpty()) {
 				logger.error("Could not find zc's for input: " + input);
 				throw new SplitException("Could not find zc's for input: " + input);
 			} else {
