@@ -15,7 +15,7 @@ public final class Main {
 	private static boolean performLogging = true; // Default to true
 	private static QLogger logger;
 
-	public static void main(final String[] args) throws URISyntaxException, IOException, ClassNotFoundException {
+	public static void main(final String[] args) {
 		try {
 			Options options = new Options(args);
 			if (options.hasHelpOption()) {
