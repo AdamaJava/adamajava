@@ -114,7 +114,7 @@ public class DCCReport extends QSVReport {
 		try ( BufferedWriter writer = new BufferedWriter(new FileWriter(file, true))) {
 		    for (QSVCluster r: qsvRecords) {
 			    if (r.printRecord(isSingleSided)) {
-				    String str = r.getDataString("dcc", tumourFindType, normalFindType, true, getValidationPlatform(platform)); 				 
+				    String str = r.getDataString("dcc", tumourFindType, normalFindType, true);
 				    writer.write(str +  QSVUtil.getNewLine());
 			    }
 		    }

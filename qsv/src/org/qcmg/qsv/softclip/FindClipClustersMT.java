@@ -351,7 +351,7 @@ public class FindClipClustersMT  {
 		String blatFile = softClipDir + QSVUtil.getFileSeparator() + UUID.randomUUID();
 		for (QSVCluster cluster: inputClusters) {
 			cluster.rescueClippping(cache, tumourParameters, normalParameters, softClipDir, CONSENSUS_LENGTH, MIN_INSERT_SIZE);
-			cluster.createSplitReadContig(cache, tumourParameters, normalParameters, softClipDir, CONSENSUS_LENGTH, isQCMG, MIN_INSERT_SIZE, singleSided, isSplitRead, reference, blatFile);               		 
+			cluster.createSplitReadContig(cache, tumourParameters, normalParameters, softClipDir, isSplitRead, reference, blatFile);
 		}
 
 		for (QSVCluster r: inputClusters) {
@@ -1044,7 +1044,7 @@ public class FindClipClustersMT  {
 						for (QSVCluster cluster: inputClusters) {
 							cluster.rescueClippping(cache, tumourParameters, normalParameters, softclipDir, consensusLength, minInsertSize);
 							logger.debug("rescue clipping about to call createSplitReadContig");
-							cluster.createSplitReadContig(cache, tumourParameters, normalParameters, softclipDir, consensusLength, isQCMG, minInsertSize, singleSided, isSplitRead, reference, blatFile, log);
+							cluster.createSplitReadContig(cache, tumourParameters, normalParameters, softclipDir, isSplitRead, reference, blatFile, log);
 							logger.debug("rescue clipping, cluster: " + cluster.toTabString());
 						}
 						
