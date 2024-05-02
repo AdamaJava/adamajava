@@ -83,7 +83,7 @@ public class QSVClusterReport extends QSVReport {
     			for (QSVCluster r: qsvRecords) {   
     				if (r.printRecord(isSingleSided)) {
 	    			 
-    					String str = r.getDataString(fileType, tumourFindType, normalFindType, isQCMG, "");
+    					String str = r.getDataString(fileType, tumourFindType, normalFindType, isQCMG);
     					if (fileType.equals("softclip")) {   
     						if (!str.equals("") && r.hasSoftClipEvidence()) {
     							writer.write(str + QSVUtil.getNewLine());

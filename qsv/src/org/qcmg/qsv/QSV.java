@@ -7,6 +7,7 @@
 package org.qcmg.qsv;
 
 import java.io.File;
+import java.nio.file.FileSystems;
 import java.util.Date;
 import java.util.UUID;
 
@@ -22,12 +23,10 @@ import org.qcmg.qsv.util.QSVUtil;
  */
 public class QSV {
 	
-	private static final String FILE_SEPERATOR = System.getProperty("file.separator");
+	private static final String FILE_SEPARATOR = FileSystems.getDefault().getSeparator();
 	private static QLogger logger;
-	
-	private Options options;
 
-	public static void main(String[] args) throws Exception {	
+    public static void main(String[] args) {
 
 		QSV qsv = new QSV();
 		
@@ -52,7 +51,7 @@ public class QSV {
 			if (args.length == 0) {
 				System.err.println(Messages.USAGE);
 			} else {
-				this.options = new Options(args);
+                Options options = new Options(args);
 				if (options.hasHelpOption()) {
 					System.err.println(Messages.USAGE);
 					options.displayHelp();
@@ -71,13 +70,13 @@ public class QSV {
 					logger.info("QSV files will be written to the directory: " + options.getOutputDirName());					
 					
 					//Run the QSV pipeline
-					QSVPipeline pipeline = new QSVPipeline(options, options.getOutputDirName(),new Date(), options.getUuid(), exec);
+					QSVPipeline pipeline = new QSVPipeline(options, options.getOutputDirName(), new Date(), options.getUuid(), exec);
 					pipeline.runPipeline();
 				}
 			}
 		} catch (Exception e) {	
 		    System.err.println(Messages.USAGE);
-			e.printStackTrace();
+
 			exitStatus = 1;
 			if (null != logger) {				
 				logger.error(QSVUtil.getStrackTrace(e));
@@ -91,7 +90,7 @@ public class QSV {
 	//qSV_<sampleName>_<date> is no longer used
 	@Deprecated 
 	public static String getAnalysisId(boolean isQCMG, String overrideOutput, String sample, Date analysisDate) {
-		String analysisId = null;
+		String analysisId;
 		if (isQCMG && null != overrideOutput ) {
 			/*
 			 * Assume that the overrideOutput directory is an analysis folder containing the uuid we want to use
@@ -118,22 +117,13 @@ public class QSV {
 	public static String getResultsDirectory(String overrideOutput, String outputDir, String analysisId) {
 		
 		if ( ! StringUtils.isNullOrEmpty(overrideOutput)) {
-			return overrideOutput.endsWith(FILE_SEPERATOR) ? overrideOutput : overrideOutput + FILE_SEPERATOR;
+			return overrideOutput.endsWith(FILE_SEPARATOR) ? overrideOutput : overrideOutput + FILE_SEPARATOR;
 		}
 		
 		if (null == outputDir || null == analysisId) {
 			throw new IllegalArgumentException("QSV.getResultsDirectory passed null values for some arguments!!!");
 		}
-		return outputDir + FILE_SEPERATOR + analysisId + FILE_SEPERATOR;
+		return outputDir + FILE_SEPARATOR + analysisId + FILE_SEPARATOR;
 	}
-	
 
-
-	/**
-	 * Get the results direct
-	 * @return the full path of the results directory
-	 */
-//	public String getResultsDirectory() {
-//		return options.getOutputDirName();
-//	}
 }

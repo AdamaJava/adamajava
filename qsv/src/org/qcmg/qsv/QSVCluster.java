@@ -958,9 +958,9 @@ public class QSVCluster {
 	 * get string summary of the SV cluster. File types that have a string associtated 
 	 * with them are: dcc, tab delimited, verbose, qprimer, softclip
 	 */
-	public String getDataString(String fileType, String tumourFindType, String normalFindType, boolean isQCMG, String validationPlatform) {
+	public String getDataString(String fileType, String tumourFindType, String normalFindType, boolean isQCMG) {
         return switch (fileType) {
-            case "dcc" -> toDCCString(validationPlatform);
+            case "dcc" -> toDCCString();
             case "tab" -> toTabString();
             case "verbose" -> toVerboseString(tumourFindType, normalFindType, isQCMG);
             case "qprimer" -> getQPrimerString();
@@ -1159,17 +1159,17 @@ public class QSVCluster {
 	 * Attempts to create a split read contig for the SV using clips, unmapped reads and discordant pairs
 	 */
 	public void createSplitReadContig(TIntObjectMap<int[]> cache,
-			QSVParameters tumourParameters, QSVParameters normalParameters,
-			String softClipDir, Integer consensusLength, boolean isQCMG,
-			Integer minInsertSize, boolean singleSided, boolean isSplitRead,
-			String reference, String blatFile) throws Exception {
-		createSplitReadContig(cache, tumourParameters,  normalParameters, softClipDir,  consensusLength,  isQCMG, minInsertSize,  singleSided,  isSplitRead, reference,  blatFile, false);
+									  QSVParameters tumourParameters, QSVParameters normalParameters,
+									  String softClipDir,
+									  boolean isSplitRead,
+									  String reference, String blatFile) throws Exception {
+		createSplitReadContig(cache, tumourParameters,  normalParameters, softClipDir, isSplitRead, reference,  blatFile, false);
 	}
 		public void createSplitReadContig(TIntObjectMap<int[]> cache,
-				QSVParameters tumourParameters, QSVParameters normalParameters,
-				String softClipDir, Integer consensusLength, boolean isQCMG,
-				Integer minInsertSize, boolean singleSided, boolean isSplitRead,
-				String reference, String blatFile, boolean log) throws Exception {
+										  QSVParameters tumourParameters, QSVParameters normalParameters,
+										  String softClipDir,
+										  boolean isSplitRead,
+										  String reference, String blatFile, boolean log) throws Exception {
 		
 		if (!isGermline && !rescued) {
 			
@@ -1196,7 +1196,7 @@ public class QSVCluster {
 	 * to be written in the dcc1 results file
 	 * @return dcc string
 	 */
-	private String toDCCString(String validationPlatform) {
+	private String toDCCString() {
 		StringBuilder sb = new StringBuilder();
 		
 		String category = getOrientationCategory();	
@@ -1206,10 +1206,8 @@ public class QSVCluster {
 		    	String tmp = chrFrom;
 		    	chrFrom = chrTo;
 		    	chrTo = tmp;
-	    }	    
-	    
-	    String confidence = getConfidenceLevel();
-	    
+	    }
+
         sb.append(analysisId).append(TAB); // analysis_id
         sb.append(sampleId).append(TAB); // tumour_sample_id
         sb.append(svId).append(TAB); // sv_id
