@@ -164,8 +164,8 @@ public class QSVPipeline {
 	 * Set qsv parameters with 2 input files - carry out in two separate threads in case isize needs to be calculated
 	 */
 	private void setQSVParameters(String resultsDir) throws Exception {
-		tumor = new QSVParameters(options, true, resultsDir, matePairDir, analysisDate, options.getSampleName(), unmodifyableMap);
-		normal = new QSVParameters(options, false, resultsDir, matePairDir, analysisDate, options.getSampleName(), unmodifyableMap);
+		tumor = new QSVParameters(options, true, resultsDir, options.getSampleName(), unmodifyableMap);
+		normal = new QSVParameters(options, false, resultsDir, options.getSampleName(), unmodifyableMap);
 	}
 
 	/*
@@ -175,7 +175,7 @@ public class QSVPipeline {
 		ExecutorService executorService = Executors.newFixedThreadPool(1);
 		CountDownLatch countDownLatch = new CountDownLatch(1);
 
-		Callable<QSVParameters> tumourWorker = new CreateParametersCallable(countDownLatch, options, true, resultsDir, matePairDir, analysisDate, options.getSampleName(), unmodifyableMap);
+		CreateParametersCallable tumourWorker = new CreateParametersCallable(countDownLatch, options, true, resultsDir, matePairDir, options.getSampleName(), unmodifyableMap);
 		Future<QSVParameters> tumourFuture = executorService
 				.submit(tumourWorker);
 
@@ -190,7 +190,7 @@ public class QSVPipeline {
 			Thread.currentThread().interrupt();
 		}
 
-        if (exitStatus.intValue() == 1 || ((CreateParametersCallable) tumourWorker).getExitStatus() == 1) {
+        if (exitStatus.intValue() == 1 || tumourWorker.getExitStatus() == 1) {
 			throw new QSVException ("QSV_PARAMETER_EXCEPTION");
 		}		
 	}
@@ -213,7 +213,7 @@ public class QSVPipeline {
 	/**
 	 * Runs the pipeline to identify structural variations. Pipeline begins by annotating
 	 * and filtering the bams. If discordant pair mode is chosen discordant pairs are clustered. 
-	 * If clip mode is chose, soft clip clusters are found. 
+	 * If clip mode is chosen, soft clip clusters are found.
 	 * @throws Exception if problems occurs when running the pipeline
 	 */
 	public void runPipeline() throws Exception  {
@@ -547,7 +547,8 @@ public class QSVPipeline {
 
 			//add clusters   
 			if (options.isTwoFileMode()) {
-				Map<String,List<DiscordantPairCluster>> nClusters = normalFuture.get();
+                assert normalFuture != null;
+                Map<String,List<DiscordantPairCluster>> nClusters = normalFuture.get();
 				normalRecords.put(zp, nClusters);
 			}
 

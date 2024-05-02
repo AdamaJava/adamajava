@@ -12,12 +12,12 @@ import org.qcmg.common.log.QLogger;
 
 
 public class CustomThreadPoolExecutor extends ThreadPoolExecutor {
-	private AtomicInteger exitStatus;
-	private QLogger logger;
+	private final AtomicInteger exitStatus;
+	private final QLogger logger;
 
 	public CustomThreadPoolExecutor(int threadNo, AtomicInteger exitStatus,
 			QLogger logger) {
-		super(threadNo, threadNo, threadNo, TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(threadNo));
+		super(threadNo, threadNo, threadNo, TimeUnit.SECONDS, new ArrayBlockingQueue<>(threadNo));
 		this.logger = logger;
 		this.exitStatus = exitStatus;
 	}

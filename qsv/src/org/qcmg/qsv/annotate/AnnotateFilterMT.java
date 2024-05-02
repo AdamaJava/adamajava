@@ -385,7 +385,7 @@ public class AnnotateFilterMT implements Runnable {
         private boolean pileupSoftClips(BufferedWriter writer, SAMRecord record, String rgId, int start, int end, Chromosome chromosome, int count) throws Exception {
             if (record.getReadUnmappedFlag()) {
                 unmappedCount.incrementAndGet();
-                QSVUtil.writeUnmappedRecord(writer, record, rgId, start, end, parameters.isTumor());
+                QSVUtil.writeUnmappedRecord(writer, record, rgId, start, end);
                 return add2queue(record, queueOutClip, count);
             }
 
