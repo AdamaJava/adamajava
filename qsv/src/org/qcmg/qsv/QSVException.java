@@ -3,7 +3,10 @@
  */
 package org.qcmg.qsv;
 
+import java.io.Serial;
+
 public class QSVException extends Exception {
+    @Serial
     private static final long serialVersionUID = -7765139841201954800L;
 
     public QSVException(final String identifier) {

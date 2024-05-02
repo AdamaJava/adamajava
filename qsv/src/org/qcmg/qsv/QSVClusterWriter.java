@@ -61,7 +61,7 @@ public class QSVClusterWriter {
 		Map<String, List<Gff3Record>> gffMap = new HashMap<>();
 		for (String file: gffFiles) {
 
-			try (Gff3FileReader reader = new Gff3FileReader(new File(file));) {
+			try (Gff3FileReader reader = new Gff3FileReader(new File(file))) {
 
 				for(Gff3Record g3 : reader) { 
 					if (gffMap.containsKey(g3.getSeqId())) {
@@ -120,7 +120,7 @@ public class QSVClusterWriter {
 		List<QSVCluster> germlineRecords = new ArrayList<>();
 		
 		for (QSVCluster record: svRecords) {
-			String id = "";
+			String id;
 
 			if (record.printRecord(isSingleSided)) {
 
@@ -163,8 +163,8 @@ public class QSVClusterWriter {
 			}
 		}
 
-		writeReports(base, "somatic", somaticRecords, sampleId);
-		writeReports(base, "germline", germlineRecords, sampleId);
+		writeReports(base, "somatic", somaticRecords);
+		writeReports(base, "germline", germlineRecords);
 	}	
 
 	/**
@@ -189,7 +189,7 @@ public class QSVClusterWriter {
 				}
 			}
 
-			writeReports(base, type, svRecords, sampleId);				
+			writeReports(base, type, svRecords);
 		}
 	}	
 
@@ -198,11 +198,9 @@ public class QSVClusterWriter {
 	 * @param base
 	 * @param type
 	 * @param records
-	 * @param analysisDate
-	 * @param sampleId
 	 * @throws IOException
 	 */
-	public synchronized void writeReports(String base, String type, List<QSVCluster> records, String sampleId) throws IOException {		
+	public synchronized void writeReports(String base, String type, List<QSVCluster> records) throws IOException {
 		String outType = type + ".";
 		if (!twoFileMode) {
 			outType = "";

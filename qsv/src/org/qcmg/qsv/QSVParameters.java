@@ -66,13 +66,11 @@ public class QSVParameters {
 	 * @param options the options
 	 * @param isTumor the is tumor
 	 * @param masterDirPath the master dir path
-	 * @param matePairFileDir the mate pair file dir
-	 * @param analysisDate the analysis date
 	 * @param donorName the donor name
 	 * @throws Exception the exception
 	 */
-	public QSVParameters(Options options, boolean isTumor, String masterDirPath, String matePairFileDir,
-			Date analysisDate, String donorName, Map<ChrPosition, LongRange> refIndexPositionMap) throws Exception {
+	public QSVParameters(Options options, boolean isTumor, String masterDirPath,
+						 String donorName, Map<ChrPosition, LongRange> refIndexPositionMap) throws Exception {
 		this.sampleId = null;
 		this.isTumor = isTumor;
 		this.clusterSize = options.getClusterSize();
@@ -80,8 +78,7 @@ public class QSVParameters {
 		this.resultsDir = masterDirPath + donorName;
         this.pairingType = options.getPairingType();
 
-        Integer qPrimerThreshold = options.getQPrimerThreshold();
-		this.mapper = options.getMapper();
+        this.mapper = options.getMapper();
 		this.reference = options.getReference();
 		this.runSoftClipAnalysis = options.runClipAnalysis();
 		

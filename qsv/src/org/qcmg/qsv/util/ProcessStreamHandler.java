@@ -37,16 +37,15 @@ public class ProcessStreamHandler extends Thread {
 				}
 			}
 			if (type.equals("ERROR")) {
-				if (output.toString().length() > 0) {
-					logger.info("Error running BLAT: " + output.toString());		
+				if (!output.toString().isEmpty()) {
+					logger.info("Error running BLAT: " + output);
 				}
 			}
 			
 			br.close();			
 			isr.close();
 			is.close();
-			output = null;
-		} catch (IOException ioe) {
+        } catch (IOException ioe) {
 			ioe.printStackTrace();	
 			logger.info("Error running BLAT: " + QSVUtil.getStrackTrace(ioe));	
 		}

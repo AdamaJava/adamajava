@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.nio.file.FileSystems;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -43,7 +44,7 @@ import htsjdk.samtools.reference.ReferenceSequenceFile;
  */
 public class QSVUtil {
 	
-	public static final String NEW_LINE = System.getProperty("line.separator");
+	public static final String NEW_LINE = System.lineSeparator();
 	public static final char PLUS = '+';
 	public static final char MINUS = '-';
 	public static final char COLON = ':';
@@ -75,8 +76,7 @@ public class QSVUtil {
 	 */
 	public static String writeTime(String timeType, Date dateStart, Date dateEnd) throws IOException {
 		long time = dateEnd.getTime() - dateStart.getTime();
-		String write = timeType + secondsToString(time / 1000);
-		return write;
+        return timeType + secondsToString(time / 1000);
 	}
 
 	/**
@@ -112,19 +112,19 @@ public class QSVUtil {
 
 		String[] list = directory.list();
 		if (null != list) {
-			for (int i = 0; i < list.length; i++) {
-				File entry = new File(directory, list[i]);
-	
-				if (entry.isDirectory()) {
-					if (!removeDirectory(entry)) {
-						return false;
-					}
-				} else {
-					if (!entry.delete()) {
-						return false;
-					}
-				}
-			}
+            for (String s : list) {
+                File entry = new File(directory, s);
+
+                if (entry.isDirectory()) {
+                    if (!removeDirectory(entry)) {
+                        return false;
+                    }
+                } else {
+                    if (!entry.delete()) {
+                        return false;
+                    }
+                }
+            }
 		}
 		return directory.delete();
 	}
@@ -172,23 +172,23 @@ public class QSVUtil {
 	 * @return the reverse complement
 	 */
 	public static String reverseComplement(String consensus) {
-		String reverse = "";
+		StringBuilder reverse = new StringBuilder();
 
 		for (int i = consensus.length() - 1; i >= 0; i--) {
 			char pos = consensus.charAt(i);
 			if (pos == 'A') {
-				reverse += 'T';
+				reverse.append('T');
 			} else if (pos == 'T') {
-				reverse += 'A';
+				reverse.append('A');
 			} else if (pos == 'C') {
-				reverse += 'G';
+				reverse.append('G');
 			} else if (pos == 'G') {
-				reverse += 'C';
+				reverse.append('C');
 			} else {
-				reverse += 'N';
+				reverse.append('N');
 			}
 		}
-		return reverse;		
+		return reverse.toString();
 	}
 
 	/**
@@ -199,15 +199,12 @@ public class QSVUtil {
 	 */
 	public static PairGroup getPairGroupByZP(PairClassification zpType) {
 		String zp = zpType.toString();
-		if (zp.equals(BAA) || zp.equals(BBA)) {
-			return PairGroup.valueOf("BAA_BBA");
-		} else if (zp.equals(BAB) || zp.equals(BBB)) {
-			return PairGroup.valueOf("BAB_BBB");
-		} else if (zp.equals(BAC) || zp.equals(BBC)) {
-			return  PairGroup.valueOf("BAC_BBC");
-		} else {
-			return PairGroup.valueOf(zp);
-		}    	
+        return switch (zp) {
+            case BAA, BBA -> PairGroup.valueOf("BAA_BBA");
+            case BAB, BBB -> PairGroup.valueOf("BAB_BBB");
+            case BAC, BBC -> PairGroup.valueOf("BAC_BBC");
+            default -> PairGroup.valueOf(zp);
+        };
 	}
 
 	/**
@@ -217,17 +214,13 @@ public class QSVUtil {
 	 * @return the mutation by pair group
 	 */
 	public static String getMutationByPairGroup(String pg) {
-		if (pg.equals("Cxx")) {
-			return CTX;
-		} else if (pg.equals(AAC)) {
-			return "DEL/ITX";
-		} else if (pg.equals("BAC_BBC") || pg.equals("BAA_BBA") || pg.equals("BAB_BBB")) {
-			return "INV/ITX";
-		} else if (pg.equals(ABC) || pg.equals(ABA) || pg.equals(AAB) || pg.equals(ABB)) {
-			return "DUP/INS/ITX";
-		} else {
-			return pg;
-		}     	
+        return switch (pg) {
+            case "Cxx" -> CTX;
+            case AAC -> "DEL/ITX";
+            case "BAC_BBC", "BAA_BBA", "BAB_BBB" -> "INV/ITX";
+            case ABC, ABA, AAB, ABB -> "DUP/INS/ITX";
+            default -> pg;
+        };
 	}
 
 	/**
@@ -238,17 +231,13 @@ public class QSVUtil {
 	 */
 	public static String getMutationByPairClassification(PairClassification pClass) {
 		String zp = pClass.toString();
-		if (zp.equals("Cxx")) {
-			return CTX;
-		} else if (zp.equals(AAC)) {
-			return "DEL/ITX";
-		} else if (zp.equals(BAC) || zp.equals(BBC) ||zp.equals(BAA) || zp.equals(BBA) || zp.equals(BAB) || zp.equals(BBB) ) {
-			return "INV/ITX";
-		} else if (zp.equals(ABC) || zp.equals(ABA) || zp.equals(ABB) || zp.equals(AAB)) {
-			return "DUP/INS/ITX";
-		} else {
-			return zp;
-		}    	
+        return switch (zp) {
+            case "Cxx" -> CTX;
+            case AAC -> "DEL/ITX";
+            case BAC, BBC, BAA, BBA, BAB, BBB -> "INV/ITX";
+            case ABC, ABA, ABB, AAB -> "DUP/INS/ITX";
+            default -> zp;
+        };
 	}
 
 	/**
@@ -257,7 +246,7 @@ public class QSVUtil {
 	 * @return the file separator
 	 */
 	public static String getFileSeparator() {
-		return System.getProperty("file.separator");
+		return FileSystems.getDefault().getSeparator();
 	}
 
 	/**
@@ -284,39 +273,12 @@ public class QSVUtil {
 	}
 
 	/**
-	 * Gets a sepatator for a new line.
+	 * Gets a separator for a new line.
 	 *
 	 * @return the new line
 	 */
 	public static String getNewLine() {
 		return NEW_LINE;
-	}
-
-	/**
-	 * Gets the category by zp.
-	 *
-	 * @param zpPairClass the zp pair class
-	 * @return the category by zp
-	 */
-	public static List<String> getCategoryByZP(PairClassification zpPairClass) {
-		String zp = zpPairClass.toString();
-		List<String> list = new ArrayList<>();
-		if (zp.equals(AAC)) {
-			list.add(QSVConstants.ORIENTATION_1);			
-		} else if (zp.equals("Cxx")) {
-			list.add(QSVConstants.ORIENTATION_1);
-			list.add(QSVConstants.ORIENTATION_2);
-			list.add(QSVConstants.ORIENTATION_3);
-			list.add(QSVConstants.ORIENTATION_4);
-		} else if (zp.equals(AAB) || zp.equals(ABB) || zp.equals(ABA) || zp.equals(ABC)) {
-			list.add(QSVConstants.ORIENTATION_2);
-		} else if (zp.equals(BBA) || zp.equals(BAA) || zp.equals(BAB) || zp.equals(BBB) 
-				|| zp.equals(BAC) || zp.equals(BBC)) {
-			list.add(QSVConstants.ORIENTATION_3);
-			list.add(QSVConstants.ORIENTATION_4);
-		}
-
-		return list;
 	}
 
 	/**
@@ -328,19 +290,20 @@ public class QSVUtil {
 	public static List<String> getCategoryByPairGroup(PairGroup zpGroup) {
 		String zp = zpGroup.toString();
 		List<String> list = new ArrayList<>();
-		if (zp.equals(AAC)) {
-			list.add(QSVConstants.ORIENTATION_1);			
-		} else if (zp.equals("Cxx")) {
-			list.add(QSVConstants.ORIENTATION_1);
-			list.add(QSVConstants.ORIENTATION_2);
-			list.add(QSVConstants.ORIENTATION_3);
-			list.add(QSVConstants.ORIENTATION_4);
-		} else if (zp.equals(AAB) || zp.equals(ABC) || zp.equals(ABA) || zp.equals(ABB)) {
-			list.add(QSVConstants.ORIENTATION_2);
-		} else if (zp.equals("BAA_BBA") || zp.equals("BAB_BBB") || zp.equals("BAC_BBC")) {
-			list.add(QSVConstants.ORIENTATION_3);
-			list.add(QSVConstants.ORIENTATION_4);
-		}
+        switch (zp) {
+            case AAC -> list.add(QSVConstants.ORIENTATION_1);
+            case "Cxx" -> {
+                list.add(QSVConstants.ORIENTATION_1);
+                list.add(QSVConstants.ORIENTATION_2);
+                list.add(QSVConstants.ORIENTATION_3);
+                list.add(QSVConstants.ORIENTATION_4);
+            }
+            case AAB, ABC, ABA, ABB -> list.add(QSVConstants.ORIENTATION_2);
+            case "BAA_BBA", "BAB_BBB", "BAC_BBC" -> {
+                list.add(QSVConstants.ORIENTATION_3);
+                list.add(QSVConstants.ORIENTATION_4);
+            }
+        }
 
 		return list;
 	}		
@@ -379,21 +342,23 @@ public class QSVUtil {
 	 */
 	public static Set<String> getPairGroupsByOrientationCategory(String oc) {
 		Set<String> list = new HashSet<>();
-		if (oc.equals("1")) {
-			list.add(AAC);			
-		} else if (oc.equals("2")) {
-			list.add(ABA);
-			list.add(ABB);
-			list.add(AAB);
-			list.add(ABC);
-		} else if (oc.equals("3") || oc.equals("4")) {
-			list.add(BAA);
-			list.add(BBA);
-			list.add(BAB);
-			list.add(BBB);
-			list.add(BAC);
-			list.add(BBC);
-		} 
+        switch (oc) {
+            case "1" -> list.add(AAC);
+            case "2" -> {
+                list.add(ABA);
+                list.add(ABB);
+                list.add(AAB);
+                list.add(ABC);
+            }
+            case "3", "4" -> {
+                list.add(BAA);
+                list.add(BBA);
+                list.add(BAB);
+                list.add(BBB);
+                list.add(BAC);
+                list.add(BBC);
+            }
+        }
 
 		return list;
 	}
@@ -421,7 +386,7 @@ public class QSVUtil {
 		return REFERENCE;
 	}
 	
-	public static synchronized void setupReferenceMap(File referenceFile) throws QSVException {
+	public static synchronized void setupReferenceMap(File referenceFile) {
 		if (null == REFERENCE) {
 			REFERENCE = new ConcurrentHashMap<>();
 			ReferenceSequenceFile f = getReferenceFile(referenceFile);
@@ -444,9 +409,8 @@ public class QSVUtil {
 	 *
 	 * @param referenceFile the reference file
 	 * @return the reference file
-	 * @throws QSVException the qSV exception
-	 */
-	private static IndexedFastaSequenceFile getReferenceFile(File referenceFile) throws QSVException {
+     */
+	private static IndexedFastaSequenceFile getReferenceFile(File referenceFile) {
 
 		if (referenceFile.exists()) {
 			File indexFile = new File(referenceFile.getPath() + ".fai");		
@@ -456,8 +420,7 @@ public class QSVUtil {
 			}
 
 			FastaSequenceIndex index = new FastaSequenceIndex(indexFile);
-			IndexedFastaSequenceFile f = new IndexedFastaSequenceFile(referenceFile, index);
-			return f;
+            return new IndexedFastaSequenceFile(referenceFile, index);
 		}
 		return null;
 	}	
@@ -469,14 +432,10 @@ public class QSVUtil {
 	 * @param record the record
 	 * @param start the start
 	 * @param end the end
-	 * @param name the name
-	 * @param chr the chr
-	 * @param softClipDir the soft clip dir
-	 * @param isTumour the is tumour
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 * @throws QSVException 
 	 */
-	public static void writeUnmappedRecord(BufferedWriter writer, SAMRecord record, String rgId, int start, int end, boolean isTumour) throws IOException, QSVException {
+	public static void writeUnmappedRecord(BufferedWriter writer, SAMRecord record, String rgId, int start, int end) throws IOException, QSVException {
 
 		int recordStart = record.getMateAlignmentStart();
 
@@ -484,13 +443,12 @@ public class QSVUtil {
 			String readString = record.getReadString();
 
 			if (! QSVUtil.highNCount(readString, 0.2)) {
-				StringBuilder sb = new StringBuilder("unmapped,");
-				sb.append(record.getReadName()).append(COLON ).append(rgId).append(Constants.COMMA);
-				sb.append(record.getReferenceName()).append(Constants.COMMA);
-				sb.append(recordStart).append(Constants.COMMA);
-				sb.append(readString).append(NEW_LINE);
+                String sb = "unmapped," + record.getReadName() + COLON + rgId + Constants.COMMA +
+                        record.getReferenceName() + Constants.COMMA +
+                        recordStart + Constants.COMMA +
+                        readString + NEW_LINE;
 
-				writer.write(sb.toString());
+				writer.write(sb);
 			}
 		}
 	}
@@ -531,11 +489,8 @@ public class QSVUtil {
 			int rightMateEnd = m.getRightMate().getEnd();
 
 			//check the right start or end is within the left range
-			if ((rightMateStart >= rightStart && rightMateStart <= rightEnd)
-					|| (rightMateEnd >= rightStart && rightMateEnd <= rightEnd)) {
-
-				return true;
-			}
+            return (rightMateStart >= rightStart && rightMateStart <= rightEnd)
+                    || (rightMateEnd >= rightStart && rightMateEnd <= rightEnd);
 		}	
 		return false;
 	}

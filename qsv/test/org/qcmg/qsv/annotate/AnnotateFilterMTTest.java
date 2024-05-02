@@ -8,7 +8,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.AbstractQueue;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -132,7 +131,7 @@ public class AnnotateFilterMTTest {
 	    Options options = new Options(args);
 	    options.parseIniFile();
 	    String matepairsDir = null;
-		QSVParameters p = new QSVParameters(options, true, testFolder.getRoot().toString() , matepairsDir , new Date(), "test", null);
+		QSVParameters p = new QSVParameters(options, true, testFolder.getRoot().toString() , "test", null);
 		AnnotateFilterMT afmt = new AnnotateFilterMT(Thread.currentThread(), wGoodLatch, p, null, null, options);
 		afmt.new AnnotationFiltering(readQueue, writeQueue, writeClipQueue, mainThread, fLatch, wGoodLatch);
     	

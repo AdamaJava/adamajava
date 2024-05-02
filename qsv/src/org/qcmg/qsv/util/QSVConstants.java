@@ -21,11 +21,7 @@ public class QSVConstants {
 	public static final String DEFAULT_PAIRING_TYPE = "pe";
 	
 	public static final String DEFAULT_MAPPER = "bwa";
-	
-	public static final String DEFAULT_LMP_QUERY = "";
-	
-	public static final String DEFAULT_PE_QUERY = "";
-	
+
 	public static final int DEFAULT_CLUSTER_SIZE = 3;
 	
 	public static final int DEFAULT_FILTER_SIZE = 1;
@@ -53,8 +49,6 @@ public class QSVConstants {
 	public static final String DISEASE_SAMPLE = "test";
 	
 	public static final String CONTROL_SAMPLE = "control";
-
-	public static final String SPLIT_READ = "*";
 
 	public static final int PAIR_CHR_RANGE = 100;
 	

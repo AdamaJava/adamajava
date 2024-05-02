@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -231,7 +230,7 @@ public class TestUtil {
             mateDir.mkdir();
         }
         
-        QSVParameters p = new QSVParameters(options, isTumor, testFolder.getAbsolutePath() + FILE_SEPERATOR, matepairsDir, new Date(), "test", null);
+        QSVParameters p = new QSVParameters(options, isTumor, testFolder.getAbsolutePath() + FILE_SEPERATOR, "test", null);
         return p;
     }
 
@@ -248,7 +247,7 @@ public class TestUtil {
         }
         
        // QSVParameters p = new QSVParameters(options, isTumor, testFolder.getRoot().toString() + FILE_SEPERATOR, matepairsDir, new Date(), "test");
-        QSVParameters p = new QSVParameters(options, isTumor, testFolder.getAbsolutePath() + FILE_SEPERATOR, matepairsDir, new Date(), "test", null);
+        QSVParameters p = new QSVParameters(options, isTumor, testFolder.getAbsolutePath() + FILE_SEPERATOR, "test", null);
         return p;
     }
     
