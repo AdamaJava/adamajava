@@ -8,7 +8,6 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Date;
 import java.util.List;
 
 import org.qcmg.common.meta.KeyValue;
@@ -34,7 +33,7 @@ public class DCCReport extends QSVReport {
 	private String platform;
 	private QExec exec;
 	
-	public DCCReport(File file, Date runDate, String analysisId, QSVParameters tumor, QSVParameters normal, Options options, QExec exec) throws IOException {
+	public DCCReport(File file, String analysisId, QSVParameters tumor, QSVParameters normal, Options options, QExec exec) throws IOException {
 		super(file);
 		this.analysisId = analysisId;
 		this.options = options;
@@ -57,7 +56,7 @@ public class DCCReport extends QSVReport {
 	@Override
 	public void writeHeader() throws IOException {
 		
-		try (BufferedWriter writer = new BufferedWriter(new FileWriter(file));) {	
+		try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
 			writeExec(writer);
 			writeDCCMeta(writer);
 			writeLIMSMeta(writer);
@@ -122,15 +121,12 @@ public class DCCReport extends QSVReport {
 	}
 
 	public static String getValidationPlatform(String platform) {
-		if ("solid".equals(platform)) {
-			return "4";
-		} else if ("illumina".equals(platform)) {
-			return"60";
-		} else if ("bgi".equals(platform)) {
-			return"81";
-		} else {
-			return "-999";
-		}
+        return switch (platform) {
+            case "solid" -> "4";
+            case "illumina" -> "60";
+            case "bgi" -> "81";
+            case null, default -> "-999";
+        };
 	}
 
 	@Override

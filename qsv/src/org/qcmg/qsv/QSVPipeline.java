@@ -139,7 +139,7 @@ public class QSVPipeline {
 		}        
 
 		if (options.isQCMG()) {
-			writeDCCHeader(options, analysisDate, analysisId, exec);
+			writeDCCHeader(options, analysisId, exec);
 		}
 
 		File countFile = new File(resultsDir + FILE_SEPARATOR + options.getSampleName()+ "_sv_counts.txt");
@@ -152,11 +152,11 @@ public class QSVPipeline {
 
 	}
 
-	private void writeDCCHeader(Options options, Date analysisDate, String analysisId, QExec exec) throws IOException {
-		new DCCReport(new File(resultsDir + FILE_SEPARATOR + options.getSampleName() + ".somatic.dcc"), analysisDate, analysisId, tumor, normal, options, exec);
+	private void writeDCCHeader(Options options, String analysisId, QExec exec) throws IOException {
+		new DCCReport(new File(resultsDir + FILE_SEPARATOR + options.getSampleName() + ".somatic.dcc"), analysisId, tumor, normal, options, exec);
 		if (options.isTwoFileMode()) {
-			new DCCReport(new File(resultsDir + FILE_SEPARATOR + options.getSampleName() + ".germline.dcc"), analysisDate, analysisId, tumor, normal, options, exec);
-			new DCCReport(new File(resultsDir + FILE_SEPARATOR + options.getSampleName() + ".normal-germline.dcc"), analysisDate, analysisId, tumor, normal, options, exec);
+			new DCCReport(new File(resultsDir + FILE_SEPARATOR + options.getSampleName() + ".germline.dcc"), analysisId, tumor, normal, options, exec);
+			new DCCReport(new File(resultsDir + FILE_SEPARATOR + options.getSampleName() + ".normal-germline.dcc"), analysisId, tumor, normal, options, exec);
 		}	
 	}
 

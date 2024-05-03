@@ -46,11 +46,7 @@ public class SVCountReport extends QSVReport {
 		return normalGermline;
 	}
 
-	public String getSampleName() {
-		return sampleName;
-	}
 
-    
     @Override
     public String getHeader() {
         StringBuilder headings = new StringBuilder();
@@ -72,11 +68,9 @@ public class SVCountReport extends QSVReport {
     }  
 
     private String generateReport() {
-    		StringBuilder sb = new StringBuilder();
-        sb.append(getCountString("somatic", somatic));
-        sb.append(getCountString("germline", germline));
-        sb.append(getCountString("normal-germline", normalGermline));
-        return sb.toString();
+        return getCountString("somatic", somatic) +
+                getCountString("germline", germline) +
+                getCountString("normal-germline", normalGermline);
     }
 
     public String getCountString(String type, ConcurrentMap<String, AtomicInteger> mapOfCounts) {
@@ -119,7 +113,7 @@ public class SVCountReport extends QSVReport {
 	}
 	
 	private int getCounts(ConcurrentMap<String, AtomicInteger> map) {
-		return map.values().stream().mapToInt(ai -> ai.get()).sum();
+		return map.values().stream().mapToInt(AtomicInteger::get).sum();
 	}
 
 	public int getSomaticCounts() {

@@ -26,7 +26,7 @@ public class SummaryReport extends QSVReport {
 	private int germlineCount;
 	private int normalGermlineCount;
 	private final String analysisId;
-	private static String NEWLINE = System.getProperty("line.separator");
+	private static final String NEWLINE = System.lineSeparator();
 
 	public SummaryReport(File file, Date runDate, String analysisId, boolean isQCMG) {
 		super(file);
@@ -42,7 +42,7 @@ public class SummaryReport extends QSVReport {
 
 	@Override
 	public void writeReport() throws Exception {
-		try (BufferedWriter writer = new BufferedWriter(new FileWriter(file));) {
+		try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
 		
 			if (options.isQCMG()) {
 				writeQCMGReport(writer);
