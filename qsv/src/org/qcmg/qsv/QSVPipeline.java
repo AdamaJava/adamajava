@@ -383,11 +383,11 @@ public class QSVPipeline {
 		CountDownLatch countDownLatch = new CountDownLatch(getThreadNo());
 
 		if (options.isTwoFileMode()) {        
-			AnnotateFilterMT normalWorker = new AnnotateFilterMT(Thread.currentThread(), countDownLatch, normal, exitStatus, softclipDir, options);        
+			AnnotateFilterMT normalWorker = new AnnotateFilterMT(countDownLatch, normal, exitStatus, softclipDir, options);
 			executorService.execute(normalWorker);
 		}
 
-		AnnotateFilterMT tumorWorker = new AnnotateFilterMT(Thread.currentThread(), countDownLatch, tumor, exitStatus, softclipDir, options);         
+		AnnotateFilterMT tumorWorker = new AnnotateFilterMT(countDownLatch, tumor, exitStatus, softclipDir, options);
 		executorService.execute(tumorWorker);
 
 		executorService.shutdown();

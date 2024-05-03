@@ -77,7 +77,7 @@ public class Read {
 	 * Only creates it when needed for space and time reasons
 	 */
 	public void createHashtable() {
-		seeds = new TObjectIntHashMap<String>((sequenceLength - QSVAssemble.SEED_LENGTH) * 2);	// set initial size to avoid resizing
+		seeds = new TObjectIntHashMap<>((sequenceLength - QSVAssemble.SEED_LENGTH) * 2);	// set initial size to avoid resizing
 		for (int i = 0; i <= sequenceLength - QSVAssemble.SEED_LENGTH; i++) {
 			seeds.put(String.copyValueOf(sequence, i, QSVAssemble.SEED_LENGTH), i);
 		}
@@ -108,10 +108,7 @@ public class Read {
 	public boolean positionWithin(int basePos, int readPos) {
 		return readPos <= basePos && basePos < (sequenceLength + readPos);
 	}
-	public boolean positionWithin(int basePos) {
-		return basePos >= 0 && basePos < sequenceLength;
-	}
-	
+
 	/*
 	 * Returns the base at a given postion when adjusted for the reads position.
 	 */
@@ -133,26 +130,7 @@ public class Read {
 	public void setHeader(String newHeader) {
 		header = newHeader;
 	}
-		
-	public void reverse () {
-		for (int i = 0; i < sequence.length; i++) {
-			switch (sequence[i]) {
-				case 'A': 
-					sequence[i] = 'T';
-					break;
-				case 'T': 
-					sequence[i] = 'A';
-					break;
-				case 'C': 
-					sequence[i] = 'G';
-					break;
-				case 'G': 
-					sequence[i] = 'C';
-					break;
-			}
-		}
-	}
-	
+
 	/*
 	 * Used eclipse to generate this. It is much better than mine was :)
 	 * @see java.lang.Object#hashCode()
@@ -180,9 +158,7 @@ public class Read {
 				return false;
 		} else if (!header.equals(other.header))
 			return false;
-		if (!Arrays.equals(sequence, other.sequence))
-			return false;
-		return true;
-	}
+        return Arrays.equals(sequence, other.sequence);
+    }
 	
 }

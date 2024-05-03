@@ -89,7 +89,7 @@ public class BLAT {
 		Map<String, BLATRecord> records = new HashMap<>();
 		File blatOutput = new File(blatOutputFile);
 		
-		try (StringFileReader reader = new StringFileReader(blatOutput);) {
+		try (StringFileReader reader = new StringFileReader(blatOutput)) {
 			for (String tab: reader) {
 				BLATRecord record = new BLATRecord.Builder(TabTokenizer.tokenize(tab)).build(); 
 				if (record.isValid()) {
@@ -121,18 +121,18 @@ public class BLAT {
 			
 			if (blex.isFailure()) {
 				
-				logger.error("Error calling BLAT with command: " + sb.toString());
+				logger.error("Error calling BLAT with command: " + sb);
 				logger.error("Contents of " + fastaFile + ": ");
 				Files.lines(Paths.get(fastaFile))
 					.forEach(line -> logger.error(line));
 				
-				String message = "Failed blat execution: "
-						+ blex.getErrorStreamConsumer().toString();
+				StringBuilder message = new StringBuilder("Failed blat execution: "
+                        + blex.getErrorStreamConsumer().toString());
 				
 				for (String line : blex.getErrorStreamConsumer().getLines()) {
-					message += line;
+					message.append(line);
 				}
-				throw new QSVException("BLAT_ERROR", message);
+				throw new QSVException("BLAT_ERROR", message.toString());
 			}
 		} catch (InterruptedException e) {
 			 throw new QSVException("BLAT_ERROR", QSVUtil.getStrackTrace(e));
@@ -160,7 +160,7 @@ public class BLAT {
 		File faFile = new File(base + ".fa");
 		
 		try (FileWriter fw = new FileWriter(faFile);
-				BufferedWriter writer = new BufferedWriter(fw);) {
+				BufferedWriter writer = new BufferedWriter(fw)) {
 			
 			writer.write(">" +name + QSVUtil.getNewLine());
 			writer.write(consensus + QSVUtil.getNewLine());		
@@ -176,7 +176,7 @@ public class BLAT {
 		List<BLATRecord> records = new ArrayList<>();
 		
 		File out = new File(outFile);
-		try (StringFileReader reader = new StringFileReader(out);) {
+		try (StringFileReader reader = new StringFileReader(out)) {
 
 			for (String tab: reader) {
 				BLATRecord record = new BLATRecord.Builder(TabTokenizer.tokenize(tab)).build();
@@ -207,7 +207,7 @@ public class BLAT {
 		
 		List<BLATRecord> records = new ArrayList<>();
 		
-		try (StringFileReader reader = new StringFileReader(outFile);) {
+		try (StringFileReader reader = new StringFileReader(outFile)) {
 
 			for (String tab: reader) {
 				BLATRecord record = new BLATRecord.Builder(TabTokenizer.tokenize(tab)).build();

@@ -78,7 +78,7 @@ public class AnnotateFilterMT implements Runnable {
     private final boolean translocationsOnly;
 
 
-    public AnnotateFilterMT(Thread mainThread, CountDownLatch countDownLatch, QSVParameters parameters, AtomicInteger exitStatus, String softclipDir, Options options) {
+    public AnnotateFilterMT(CountDownLatch countDownLatch, QSVParameters parameters, AtomicInteger exitStatus, String softclipDir, Options options) {
         this.softClipDir = softclipDir;
         this.query = options.getPairQuery();
         this.clipQuery = options.getClipQuery();
@@ -168,8 +168,17 @@ public class AnnotateFilterMT implements Runnable {
             writeThreads.shutdown();
 
             logger.info("waiting for  threads to finish (max wait will be 100 hours)");
-            filterThreads.awaitTermination(Constants.EXECUTOR_SERVICE_AWAIT_TERMINATION, TimeUnit.HOURS);
-            writeThreads.awaitTermination(Constants.EXECUTOR_SERVICE_AWAIT_TERMINATION, TimeUnit.HOURS);
+
+            try {
+                if (!filterThreads.awaitTermination(Constants.EXECUTOR_SERVICE_AWAIT_TERMINATION, TimeUnit.HOURS)) {
+                    logger.error("Filtering threads did not finish within the time limit");
+                }
+                if (!writeThreads.awaitTermination(Constants.EXECUTOR_SERVICE_AWAIT_TERMINATION, TimeUnit.HOURS)) {
+                    logger.error("Writing threads did not finish within the time limit");
+                }
+            } catch (final InterruptedException e) {
+                logger.error("Thread was interrupted while waiting for executor service to terminate: " + QSVUtil.getStrackTrace(e));
+            }
 
             if (!readQueue.isEmpty() || !writeQueue.isEmpty() || !writeClipQueue.isEmpty()) {
                 throw new Exception(

@@ -21,7 +21,6 @@ public class IlluminaLongMatePairRecord {
     private String zpAnnotation;
     private final int isizeUpperLimit;
     private final int isizeLowerLimit;
-    private final int nullNHZ = 0;
     private int endZ = 0;
     private int sameStrandZ = 0;
 	private int diffStrandNullZ = 0;
@@ -122,11 +121,7 @@ public class IlluminaLongMatePairRecord {
 		return abbConverted;
 	}
 
-	public void setAbbConverted(boolean abbConverted) {
-		this.abbConverted = abbConverted;
-	}
-
-	/**
+    /**
 	 * Determine orientation of the record
 	 * @return current zp annotation
 	 */
@@ -318,29 +313,5 @@ public class IlluminaLongMatePairRecord {
     	   this.zpAnnotation = zp;     
         
     }
-    
-    public int getNullNHZ() {
-		return nullNHZ;
-	}
-
-	public int getEndZ() {
-		return endZ;
-	}
-
-	public int getSameStrandZ() {
-		return sameStrandZ;
-	}
-
-	public int getDiffStrandNullZ() {
-		return diffStrandNullZ;
-	}
-
-	public int getDiffStrandZ() {
-		return diffStrandZ;
-	}
-
-    public int getSameStrandNullZ() {
-		return sameStrandNullZ;
-	}
 
 }

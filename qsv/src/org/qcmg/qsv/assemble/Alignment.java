@@ -17,16 +17,11 @@ public class Alignment {
 	
 	private int start;
 	private int length;
-	
-	public Alignment(Read seed) {
-		this.seed = seed;
-		matchedReads = new ArrayList<ReadMatch>();
-	}
-	
+
 	public Alignment(ConcurrentHashMap<Integer, ReadMatch> reads, Read seed)
 	{
 		this.seed = seed;
-		matchedReads = new ArrayList<ReadMatch>(reads.values());
+		matchedReads = new ArrayList<>(reads.values());
 	}
 	
 	/*
@@ -77,22 +72,22 @@ public class Alignment {
 		int t = 0;
 		int c = 0;
 		int g = 0;
-		for (int i = 0 , len = bases.length ; i < len ; i++) {
-			switch (bases[i]) {
-			case 'A': 
-				a++;
-				break;
-			case 'T':
-				t++;
-				break;
-			case 'C':
-				c++;
-				break;
-			case 'G':
-				g++;
-				break;
-			}
-		}
+        for (char basis : bases) {
+            switch (basis) {
+                case 'A':
+                    a++;
+                    break;
+                case 'T':
+                    t++;
+                    break;
+                case 'C':
+                    c++;
+                    break;
+                case 'G':
+                    g++;
+                    break;
+            }
+        }
 		
 		if(a > t && a > c && a > g && a >= QSVAssemble.MINIMUM_READ_EXTEND) { //Is A the most common?
 			return 'A';
