@@ -22,32 +22,32 @@ public class ZPAnnotator {
 	 * Returns a string that corresponds to the ZP annotation for the record 
 	 * (ZP=discordant pair classification)
 	 * 
-	 * NOTE that in the interests of referential transparency, this method does not set the ZP attribute in the passed in SAMREcord
+	 * NOTE that in the interests of referential transparency, this method does not set the ZP attribute in the passed in SAMRecord
 	 *  
 	 */
 	public static String createZPAnnotation(SAMRecord record, int isizeLowerLimit, int isizeUpperLimit) {
-		String zpAnnotation = "";
+		String zpAnnotation;
 		if ( ! record.getDuplicateReadFlag()) {
 			
 			Integer nh = record.getIntegerAttribute(QSVConstants.NH);
 			
-			if (null != nh && 1 == nh.intValue() && record.getMateUnmappedFlag()) {
+			if (null != nh && 1 == nh && record.getMateUnmappedFlag()) {
 				zpAnnotation = QSVConstants.D_STAR_STAR;
 			} else if (null != nh
-					&& 1 == nh.intValue()
+					&& 1 == nh
 					&& !record.getReferenceName().equals(
 							record.getMateReferenceName())
 					&& !record.getMateReferenceName().equals(Constants.EQ_STRING)) {
 				zpAnnotation = QSVConstants.C_STAR_STAR;
 				
-			} else if (null != nh && 1 == nh.intValue()
+			} else if (null != nh && 1 == nh
 					&& record.getReadFailsVendorQualityCheckFlag()) {
 				zpAnnotation = QSVConstants.E_STAR_STAR;
 				
-			} else if (null != nh && 1 == nh.intValue() && isDifferentStrand(record)) {
+			} else if (null != nh && 1 == nh && isDifferentStrand(record)) {
 				zpAnnotation = handleOrientation(record, "A");
 				zpAnnotation += handleIntervalSize(record, isizeLowerLimit, isizeUpperLimit);
-			} else if (null != nh && 1 != nh.intValue() && isDifferentStrand(record)) {
+			} else if (null != nh && 1 != nh && isDifferentStrand(record)) {
 				zpAnnotation = handleOrientation(record, "A");
 				zpAnnotation += handleIntervalSize(record, isizeLowerLimit, isizeUpperLimit);
 				if ( ! zpAnnotation.equals(QSVConstants.AAA)) {

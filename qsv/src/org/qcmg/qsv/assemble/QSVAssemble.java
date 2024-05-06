@@ -92,7 +92,7 @@ public class QSVAssemble {
 			} else {					
 				int index = fullContigSequence.indexOf(fullClipSequence); 
 				if (index != -1) {
-					finalClipString = fullContigSequence.substring(index, fullContigSequence.length()); 
+					finalClipString = fullContigSequence.substring(index, fullContigSequence.length());
 					finalReferenceString = fullContigSequence.substring(0, index);
 				} else {						
 					return null;
@@ -113,9 +113,8 @@ public class QSVAssemble {
 			splitReads.add(new Read(r.getReadName(), r.getSequence()));
 		}
 		
-		Read contig = getSplitReadsContigs(splitReads, clipContig, splitReads.size());
-		inputSplitReads = null;
-		if (contig != null) {
+		Read contig = getSplitReadsContigs(splitReads, splitReads.size());
+        if (contig != null) {
 			ConsensusRead r = new ConsensusRead(contig.getHeader(), contig.getSequence(), contig.getSequence(), contig.getSequence());
 			if (!QSVUtil.highNCount(r.getSequence(), 0.1)) {
 				return r;
@@ -127,20 +126,20 @@ public class QSVAssemble {
 	public String assemble() throws Exception {		
 		outputRead = clipContig;
 		
-		if (splitReads.size() > 0 && clipContig != null) {			
+		if (!splitReads.isEmpty() && clipContig != null) {
 			
 			clipContig.setHeader("clipContigFor");
-			splitReads.add(0, clipContig);
-			Read forSplitContig = getSplitReadsContigs(splitReads, clipContig, 1);		
+			splitReads.addFirst(clipContig);
+			Read forSplitContig = getSplitReadsContigs(splitReads, 1);
 			removeRead(splitReads, clipContig);
-			
+
 			if (forSplitContig != null) {
 				this.reverseClipContig = new Read("clipContigRev," + forSplitContig.getHeader(), QSVUtil.reverseComplement(forSplitContig.getSequence()));
 			} else {
 				this.reverseClipContig = new Read("clipContigRev" + clipContig.getHeader(), QSVUtil.reverseComplement(clipContig.getSequence()));
 			}	
-			splitReads.add(0, reverseClipContig);
-			Read revSplitContig = getSplitReadsContigs(splitReads, reverseClipContig, 1);
+			splitReads.addFirst(reverseClipContig);
+			Read revSplitContig = getSplitReadsContigs(splitReads, 1);
 			
 			if (revSplitContig != null) {
 				outputRead = new Read(revSplitContig.getHeader(), QSVUtil.reverseComplement(revSplitContig.getSequence()));	
@@ -164,25 +163,25 @@ public class QSVAssemble {
 			return outputRead.getSequence();
 		} else {
 			if (clipReads.size() == 1) {
-				return clipReads.get(0).getSequence();
+				return clipReads.getFirst().getSequence();
 			} else {
 				return null;
 			}
 		}
 	}
 	
-	private Read getSplitReadsContigs(List<Read> splitReads, Read seedContig, int size) throws Exception {
+	private Read getSplitReadsContigs(List<Read> splitReads, int size) throws Exception {
 		this.currentContig = null;
 		
 		for (int i=0; i<size; i++) {
 			if (i<splitReads.size()) {
-				createSeed(i, splitReads.get(i), splitReads, false);				
+				createSeed(i, splitReads.get(i), splitReads);
 			}
 		}
 		return currentContig;
 	}
 
-	private void createSeed(int currentIndex, Read seed, List<Read> reads, boolean isClips) throws Exception {
+	private void createSeed(int currentIndex, Read seed, List<Read> reads) throws Exception {
 		seed.createHashtable();
 
 		ConcurrentHashMap<Integer, ReadMatch> matches = new ConcurrentHashMap<>();
@@ -217,11 +216,8 @@ public class QSVAssemble {
 	private boolean alignmentSizeGreater(int alignmentLength) {
 		if (currentContig == null) {
 			return true;
-		} else if (alignmentLength > currentContig.length()) {
-			return true;
-		}
-		return false;
-	}
+		} else return alignmentLength > currentContig.length();
+    }
 
 	private void removeRead(List<Read> reads, Read read) {
 		int index = getIndex(reads, read);	
@@ -272,7 +268,7 @@ public class QSVAssemble {
 	}
 
 	public String getFinalClipContig(String leftConsensus, String rightConsensus) throws Exception {
-		this.clipReads = new ArrayList<Read>();
+		this.clipReads = new ArrayList<>();
 		
 		if (leftConsensus.contains(rightConsensus)) {
 			return leftConsensus;
@@ -296,7 +292,7 @@ public class QSVAssemble {
 	}
 	
 	private String assembleFinalContig() throws Exception {
-		createSeed(0, clipReads.get(0), clipReads, true);
+		createSeed(0, clipReads.getFirst(), clipReads);
 		
 		if (currentContig != null) {
 			if (currentContig.getHeader().split(",").length == 2 && !QSVUtil.highNCount(currentContig.getSequence(), 0.1)) {

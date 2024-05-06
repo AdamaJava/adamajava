@@ -59,7 +59,7 @@ public class SAMRecordCounterMT {
 		//getReadGroups first
 		getReadGroups();
 		
-		final AbstractQueue<SAMRecord> readQueue = new ConcurrentLinkedQueue<SAMRecord>();	    
+		final AbstractQueue<SAMRecord> readQueue = new ConcurrentLinkedQueue<>();
         
         final CountDownLatch readLatch = new CountDownLatch(1); // reading
                                                                 // thread
@@ -85,7 +85,7 @@ public class SAMRecordCounterMT {
             processThreads.awaitTermination(Constants.EXECUTOR_SERVICE_AWAIT_TERMINATION, TimeUnit.HOURS);
 
 
-            if (readQueue.size() != 0) {
+            if (!readQueue.isEmpty()) {
                 throw new Exception(
                         " threads have completed but queue isn't empty  (readQueue):  "
                                 + readQueue.size());
@@ -262,7 +262,7 @@ public class SAMRecordCounterMT {
 	                            sleepcount++;
 	                        } catch (InterruptedException e) {
 	                            logger.info(Thread.currentThread().getName() + " "
-	                                    + e.toString());
+	                                    + e);
 	                        }
 
 	                    } else {

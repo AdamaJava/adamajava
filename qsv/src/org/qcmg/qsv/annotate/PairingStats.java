@@ -25,13 +25,13 @@ import jakarta.xml.bind.annotation.XmlType;
 
 /**
  * <p>Java class for anonymous complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType>
  *   &lt;complexContent>
- *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
+ *     &lt;restriction base="{<a href="http://www.w3.org/2001/XMLSchema">...</a>}anyType">
  *       &lt;sequence>
  *         &lt;element name="InsertRange">
  *           &lt;complexType>
@@ -60,8 +60,8 @@ import jakarta.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- * 
- * 
+ *
+ *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "", propOrder = {
@@ -79,7 +79,7 @@ public class PairingStats {
     protected List<PairingStats.UniquePairing> uniquePairing;
     @XmlElement(name = "ReadCount", required = true)
     protected List<PairingStats.ReadCount> readCount;
-    @XmlElement(name = "Coverage", required = false)
+    @XmlElement(name = "Coverage")
     protected List<PairingStats.Coverage> coverage;
     
     /**
@@ -151,21 +151,21 @@ public class PairingStats {
     
     /**
      * <p>Java class for anonymous complex type.
-     * 
+     *
      * <p>The following schema fragment specifies the expected content contained within this class.
-     * 
+     *
      * <pre>
      * &lt;complexType>
      *   &lt;complexContent>
-     *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
+     *     &lt;restriction base="{<a href="http://www.w3.org/2001/XMLSchema">...</a>}anyType">
      *       &lt;attribute name="LowerLimit" use="required" type="{http://www.w3.org/2001/XMLSchema}positiveInteger" />
      *       &lt;attribute name="UpperLimit" use="required" type="{http://www.w3.org/2001/XMLSchema}positiveInteger" />
      *     &lt;/restriction>
      *   &lt;/complexContent>
      * &lt;/complexType>
      * </pre>
-     * 
-     * 
+     *
+     *
      */
     @XmlAccessorType(XmlAccessType.FIELD)
     @XmlType(name = "")
@@ -243,13 +243,13 @@ public class PairingStats {
 
     /**
      * <p>Java class for anonymous complex type.
-     * 
+     *
      * <p>The following schema fragment specifies the expected content contained within this class.
-     * 
+     *
      * <pre>
      * &lt;complexType>
      *   &lt;complexContent>
-     *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
+     *     &lt;restriction base="{<a href="http://www.w3.org/2001/XMLSchema">...</a>}anyType">
      *       &lt;sequence>
      *         &lt;element name="type" type="{http://www.w3.org/2001/XMLSchema}string"/>
      *         &lt;element name="count" type="{http://www.w3.org/2001/XMLSchema}positiveInteger"/>
@@ -258,8 +258,8 @@ public class PairingStats {
      *   &lt;/complexContent>
      * &lt;/complexType>
      * </pre>
-     * 
-     * 
+     *
+     *
      */
     @XmlAccessorType(XmlAccessType.FIELD)
     @XmlType(name = "", propOrder = {

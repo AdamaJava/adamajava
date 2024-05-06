@@ -132,7 +132,7 @@ public class AnnotateFilterMTTest {
 	    options.parseIniFile();
 	    String matepairsDir = null;
 		QSVParameters p = new QSVParameters(options, true, testFolder.getRoot().toString() , "test", null);
-		AnnotateFilterMT afmt = new AnnotateFilterMT(Thread.currentThread(), wGoodLatch, p, null, null, options);
+		AnnotateFilterMT afmt = new AnnotateFilterMT(wGoodLatch, p, null, null, options);
 		afmt.new AnnotationFiltering(readQueue, writeQueue, writeClipQueue, mainThread, fLatch, wGoodLatch);
     	
     	try {
@@ -207,7 +207,7 @@ public class AnnotateFilterMTTest {
         String[] args = TestUtil.getValidOptions(testFolder.getRoot(), normalBam.getAbsolutePath(), tumorBam.getAbsolutePath(), mode, "both");
         Options options = new Options(args);
         options.parseIniFile();
-        AnnotateFilterMT w = new AnnotateFilterMT(Thread.currentThread(), countDownLatch, parameters, new AtomicInteger(), testFolder.getRoot().toString(), options);
+        AnnotateFilterMT w = new AnnotateFilterMT(countDownLatch, parameters, new AtomicInteger(), testFolder.getRoot().toString(), options);
         ExecutorService executorService = Executors.newFixedThreadPool(1);
         executorService.execute(w);
         executorService.shutdown();
