@@ -33,7 +33,7 @@ import org.qcmg.qsv.util.QSVUtil;
 
 public class FindDiscordantPairClustersMT implements Callable <Map<String, List<DiscordantPairCluster>>>  {
 
-	private static QLogger logger = QLoggerFactory.getLogger(FindDiscordantPairClustersMT.class);
+	private static final QLogger logger = QLoggerFactory.getLogger(FindDiscordantPairClustersMT.class);
 
 	private final CountDownLatch countDownLatch;
 	private final MatePairsReader findReader;
@@ -151,8 +151,7 @@ public class FindDiscordantPairClustersMT implements Callable <Map<String, List<
 				}
 
 				classifyClusters(tempClusters, compareMatePairsList);
-				compareMatePairsList = null;
-			}
+            }
 		}              
 
 	}
@@ -225,10 +224,10 @@ public class FindDiscordantPairClustersMT implements Callable <Map<String, List<
 					if (null != currentCluster && currentCluster.getClusterMatePairs().size() >= clusterSize) {
 
 						//find the best cluster
-						int nextIndex = currentCluster.findBestCluster(i, j, clusterSize);
+						int nextIndex = currentCluster.findBestCluster(clusterSize);
 
-						if (currentCluster.getClusterMatePairs().size() != 0) {                                
-							startPos = currentCluster.getClusterMatePairs().get(0).getLeftMate().getStart();
+						if (!currentCluster.getClusterMatePairs().isEmpty()) {
+							startPos = currentCluster.getClusterMatePairs().getFirst().getLeftMate().getStart();
 							range = startPos + windowSize;
 
 							if (currentCluster.getClusterMatePairs().size() >= findParameters.getClusterSize()) {
@@ -264,10 +263,8 @@ public class FindDiscordantPairClustersMT implements Callable <Map<String, List<
 	 * Filter clusters by the parameters for comparison to determine the mutation type (somatic, germline).
 	 * 
 	 * @param tempClusters the unfiltered list of clusters
-	 * @param compareMatePairsList 
-	 * @param compareMatePairs map of read pairs to compare with
-	 * @return
-	 */    
+	 * @param compareMatePairsList
+     */
 	void classifyClusters(List<DiscordantPairCluster> tempClusters, final List<MatePair> compareMatePairsList)  {
 		Queue<DiscordantPairCluster> queue = new ConcurrentLinkedQueue<>(tempClusters);
 		
@@ -282,7 +279,9 @@ public class FindDiscordantPairClustersMT implements Callable <Map<String, List<
 		service.shutdown();
 		
 		try {
-			service.awaitTermination(Constants.EXECUTOR_SERVICE_AWAIT_TERMINATION, TimeUnit.HOURS);
+			if (!service.awaitTermination(Constants.EXECUTOR_SERVICE_AWAIT_TERMINATION, TimeUnit.HOURS)) {
+				logger.error("Threads did not finish within the time limit");
+			}
 		} catch (InterruptedException e) {
 			logger.warn("Thread interrupted while running ClusterClassifier");
 			Thread.currentThread().interrupt();
@@ -323,7 +322,7 @@ public class FindDiscordantPairClustersMT implements Callable <Map<String, List<
 						if (cluster.getMatchedReadPairs().size() >= findParameters.getCompareClusterSize()) {
 							germlineCount.incrementAndGet(); 
 							try {
-								cluster.finalize(findParameters, compareParameters, "germline", germlineCount.intValue(), query, findParameters.getPairingType(), isQCMG);
+								cluster.finalize(findParameters, compareParameters, "germline", germlineCount.intValue(), findParameters.getPairingType(), isQCMG);
 							} catch (Exception e) {
 								e.printStackTrace();
 								callingThread.interrupt();
@@ -333,7 +332,7 @@ public class FindDiscordantPairClustersMT implements Callable <Map<String, List<
 						} else {
 							somaticCount.incrementAndGet();
 							try {
-								cluster.finalize(findParameters, compareParameters, "somatic", somaticCount.intValue(), query, findParameters.getPairingType(), isQCMG);
+								cluster.finalize(findParameters, compareParameters, "somatic", somaticCount.intValue(), findParameters.getPairingType(), isQCMG);
 							} catch (Exception e) {
 								e.printStackTrace();
 								callingThread.interrupt();
@@ -342,7 +341,7 @@ public class FindDiscordantPairClustersMT implements Callable <Map<String, List<
 					} else {         
 						normalgermlineCount.incrementAndGet();
 						try {
-							cluster.finalize(findParameters, compareParameters, "normal-germline", normalgermlineCount.intValue(), query, findParameters.getPairingType(), isQCMG);
+							cluster.finalize(findParameters, compareParameters, "normal-germline", normalgermlineCount.intValue(), findParameters.getPairingType(), isQCMG);
 						} catch (Exception e) {
 							e.printStackTrace();
 							callingThread.interrupt();
@@ -358,7 +357,7 @@ public class FindDiscordantPairClustersMT implements Callable <Map<String, List<
 		}
 	}
 
-	private DiscordantPairCluster filterCluster(List<MatePair> compareReadPairs, DiscordantPairCluster cluster) {  
+	private void filterCluster(List<MatePair> compareReadPairs, DiscordantPairCluster cluster) {
 		//set normal window range
 
 		cluster.setNormalRange(compareParameters.getUpperInsertSize());
@@ -395,9 +394,8 @@ public class FindDiscordantPairClustersMT implements Callable <Map<String, List<
 					}
 				}      			                    
 			}
-		}	
+		}
 
-		return cluster;
 	}
 
 	private  void addToClustersMap(DiscordantPairCluster cluster) {
@@ -405,7 +403,7 @@ public class FindDiscordantPairClustersMT implements Callable <Map<String, List<
 		
 		List<DiscordantPairCluster> list = clusters.get(key);
 		if (null == list) {
-			list = Collections.synchronizedList(new ArrayList<DiscordantPairCluster>());
+			list = Collections.synchronizedList(new ArrayList<>());
 			list.add(cluster);
 			List<DiscordantPairCluster> existingList = clusters.putIfAbsent(key, list);
 			if (null != existingList) {

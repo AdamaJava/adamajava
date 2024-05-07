@@ -8,6 +8,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
@@ -16,17 +17,17 @@ import org.qcmg.qsv.QSVException;
 
 public class MatePairsWriter {
 
-    private static final String FILE_SEPERATOR = System.getProperty("file.separator");
+    private static final String FILE_SEPARATOR = FileSystems.getDefault().getSeparator();
     private final PairClassification zp;
-    private Map<String, Map<String, MatePair>> matePairs; // Key: Chromosome, Value: Map Key: MatePair read name(qname+RG-Id) Map Value: MatePair (with both mates)
-    private String dirToWrite;
-    private String fileName;
-	private String pairType;
+    private final Map<String, Map<String, MatePair>> matePairs; // Key: Chromosome, Value: Map Key: MatePair read name(qname+RG-Id) Map Value: MatePair (with both mates)
+    private final String dirToWrite;
+    private final String fileName;
+	private final String pairType;
 
-    public MatePairsWriter(PairClassification zp, String matePairFilePath, String outName, String type, String pairType) throws IOException, QSVException {
+    public MatePairsWriter(PairClassification zp, String matePairFilePath, String type, String pairType) throws IOException, QSVException {
         this.zp = zp;
         this.matePairs = new TreeMap<String, Map<String, MatePair>>();
-        this.dirToWrite = matePairFilePath + zp.getPairingClassification() + FILE_SEPERATOR;
+        this.dirToWrite = matePairFilePath + zp.getPairingClassification() + FILE_SEPARATOR;
         this.fileName = "_" + type + "_" + zp.getPairingClassification();  
         this.pairType = pairType;
     }
@@ -44,15 +45,13 @@ public class MatePairsWriter {
         if (zp.getPairingClassification().equals("Cxx")) {
             refName += "-" + matePair.getRightMate().getReferenceName();
         }
-        String cat = null;
-        if (pairType.equals("lmp")) {
-				cat = matePair.getSVCategoryForLMP();
-		} else if (pairType.equals("pe")){
-			 cat = matePair.getSVCategoryForPE();		
-		}  else if (pairType.equals("imp")){
-			 cat = matePair.getSVCategoryForIMP();		
-		} 
-        
+        String cat = switch (pairType) {
+            case "lmp" -> matePair.getSVCategoryForLMP();
+            case "pe" -> matePair.getSVCategoryForPE();
+            case "imp" -> matePair.getSVCategoryForIMP();
+            default -> null;
+        };
+
         if (cat != null) {
         	String key = refName += "-" + cat;
 	        if (matePairs.containsKey(refName)) {
@@ -66,7 +65,7 @@ public class MatePairsWriter {
     }
     
     private Map<String, File> createFilesToWrite() {
-        Map<String, File> filesToWrite = new HashMap<String, File>();
+        Map<String, File> filesToWrite = new HashMap<>();
 
         for (Map.Entry<String, Map<String, MatePair>> entry : matePairs.entrySet()) {
             File file = new File(dirToWrite + entry.getKey() + fileName);

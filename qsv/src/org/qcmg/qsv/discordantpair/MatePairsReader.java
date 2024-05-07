@@ -10,8 +10,8 @@ package org.qcmg.qsv.discordantpair;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.nio.file.FileSystems;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,7 +20,7 @@ import org.qcmg.qsv.util.QSVUtil;
 
 public class MatePairsReader {
 
-	private static final String FILE_SEPERATOR = System.getProperty("file.separator");
+	private static final String FILE_SEPARATOR = FileSystems.getDefault().getSeparator();
 
 	private final PairGroup zp;
 	private final String[] dirToRead;
@@ -38,12 +38,12 @@ public class MatePairsReader {
 			dirToRead = new String[groups.length];
 
 			for (int i = 0; i < groups.length; i++) {
-				dirToRead[i] = matepairFilePath +  groups[i] + FILE_SEPERATOR;
+				dirToRead[i] = matepairFilePath +  groups[i] + FILE_SEPARATOR;
 			}
 
 		} else {
 			this.dirToRead = new String[1];
-			dirToRead[0] = matepairFilePath + zp.getPairGroup() + FILE_SEPERATOR;
+			dirToRead[0] = matepairFilePath + zp.getPairGroup() + FILE_SEPARATOR;
 		}  
 
 		this.mateCount = 0;
@@ -71,7 +71,7 @@ public class MatePairsReader {
 	}
 
 	private void setUpFilesToRead() {
-		filesToRead = new HashMap<String, List<File>>();
+		filesToRead = new HashMap<>();
 
 		for (String dirString : dirToRead) {
 
@@ -102,17 +102,13 @@ public class MatePairsReader {
 		}       
 	}
 
-	public List<String> getSVCategories() {
-		return this.categories;
-	}
-
 	public List<MatePair> getMatePairsListByFiles(List<File> files, boolean isFindMethod) throws Exception {
 
 		List<MatePair> readPairs = new ArrayList<>();
 
 		for (File file : files) {
 			try (FileReader fileReader = new FileReader(file);
-					BufferedReader reader = new BufferedReader(fileReader);) {
+					BufferedReader reader = new BufferedReader(fileReader)) {
 				String line = reader.readLine();
 				while (line != null) {
 					if (isFindMethod) {
@@ -125,7 +121,7 @@ public class MatePairsReader {
 			}
 		}
 
-		Collections.sort(readPairs, new MatePair.ReadMateLeftStartComparator());
+		readPairs.sort(new MatePair.ReadMateLeftStartComparator());
 		return readPairs;
 	}
 }

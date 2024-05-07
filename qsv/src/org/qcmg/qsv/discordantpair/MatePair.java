@@ -10,6 +10,7 @@ package org.qcmg.qsv.discordantpair;
 import static org.qcmg.common.util.Constants.COMMA;
 import static org.qcmg.common.util.Constants.TAB;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Comparator;
 
@@ -59,12 +60,12 @@ public class MatePair implements Comparable<MatePair> {
 				Integer.parseInt(readPairArray[2]),
 				Integer.parseInt(readPairArray[3]), zpString,
 				Integer.parseInt(readPairArray[5]),
-				Boolean.valueOf(readPairArray[6]));
+				Boolean.parseBoolean(readPairArray[6]));
 		this.rightMate = new Mate(readName, readPairArray[8],
 				Integer.parseInt(readPairArray[9]),
 				Integer.parseInt(readPairArray[10]), readPairArray[11],
 				Integer.parseInt(readPairArray[12]), 
-				Boolean.valueOf(readPairArray[13]));
+				Boolean.parseBoolean(readPairArray[13]));
 
 		if (zpString.equals(QSVConstants.C_STAR_STAR)) {
 			zpString = "Cxx";
@@ -134,25 +135,23 @@ public class MatePair implements Comparable<MatePair> {
 
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		sb.append(leftMate.getReadName()).append(COMMA);
-		sb.append(leftMate.getReferenceName()).append(COMMA);
-		sb.append(leftMate.getStart()).append(COMMA);
-		sb.append(leftMate.getEnd()).append(COMMA);
-		sb.append(leftMate.getZp()).append(COMMA);
-		sb.append(leftMate.getFlags()).append(COMMA);
-		sb.append(leftMate.getNegOrientation()).append(COMMA);
-		sb.append(rightMate.getReadName()).append(COMMA);
-		sb.append(rightMate.getReferenceName()).append(COMMA);
-		sb.append(rightMate.getStart()).append(COMMA);
-		sb.append(rightMate.getEnd()).append(COMMA);
-		sb.append(rightMate.getZp()).append(COMMA);
-		sb.append(rightMate.getFlags()).append(COMMA);
-		sb.append(rightMate.getNegOrientation()).append(COMMA);
-		sb.append(pairOrder);
-		sb.append(QSVUtil.getNewLine());
 
-		return sb.toString();
+        return leftMate.getReadName() + COMMA +
+                leftMate.getReferenceName() + COMMA +
+                leftMate.getStart() + COMMA +
+                leftMate.getEnd() + COMMA +
+                leftMate.getZp() + COMMA +
+                leftMate.getFlags() + COMMA +
+                leftMate.getNegOrientation() + COMMA +
+                rightMate.getReadName() + COMMA +
+                rightMate.getReferenceName() + COMMA +
+                rightMate.getStart() + COMMA +
+                rightMate.getEnd() + COMMA +
+                rightMate.getZp() + COMMA +
+                rightMate.getFlags() + COMMA +
+                rightMate.getNegOrientation() + COMMA +
+                pairOrder +
+                QSVUtil.getNewLine();
 	}
 
 	public String toVerboseString(boolean isQCMG) {
@@ -172,7 +171,7 @@ public class MatePair implements Comparable<MatePair> {
 		sb.append(pairOrder).append(COMMA);
 		sb.append(QSVUtil.getMutationByPairClassification(zp));
 		if (isQCMG) {
-			sb.append("" + COMMA + zp);
+			sb.append("" + COMMA).append(zp);
 		}
 		sb.append(QSVUtil.getNewLine());
 
@@ -180,22 +179,20 @@ public class MatePair implements Comparable<MatePair> {
 	}
 
 	public String toClusterString() {
-		StringBuilder sb = new StringBuilder();
-		sb.append(leftMate.getReadName()).append(TAB);
-		sb.append(leftMate.getReferenceName()).append(TAB);
-		sb.append(leftMate.getStart()).append(TAB);
-		sb.append(leftMate.getEnd()).append(TAB);
-		sb.append(leftMate.getZp()).append(TAB);
-		sb.append(leftMate.getFlags()).append(TAB);
-		sb.append(rightMate.getReadName()).append(TAB);
-		sb.append(rightMate.getReferenceName()).append(TAB);
-		sb.append(rightMate.getStart()).append(TAB);
-		sb.append(rightMate.getEnd()).append(TAB);
-		sb.append(rightMate.getZp()).append(TAB);
-		sb.append(rightMate.getFlags()).append(TAB);
-		sb.append(pairOrder);
-		sb.append(QSVUtil.getNewLine());
-		return sb.toString();
+        return leftMate.getReadName() + TAB +
+                leftMate.getReferenceName() + TAB +
+                leftMate.getStart() + TAB +
+                leftMate.getEnd() + TAB +
+                leftMate.getZp() + TAB +
+                leftMate.getFlags() + TAB +
+                rightMate.getReadName() + TAB +
+                rightMate.getReferenceName() + TAB +
+                rightMate.getStart() + TAB +
+                rightMate.getEnd() + TAB +
+                rightMate.getZp() + TAB +
+                rightMate.getFlags() + TAB +
+                pairOrder +
+                QSVUtil.getNewLine();
 	}
 
 	private String setPairOrder(SAMRecord record) {
@@ -215,11 +212,9 @@ public class MatePair implements Comparable<MatePair> {
 	@Override
 	public boolean equals(final Object o) {
 
-		if (!(o instanceof MatePair)) return false;
+		if (!(o instanceof MatePair matePair)) return false;
 
-		final MatePair matePair = (MatePair) o;
-
-		return matePair.getReadName().equals(readName);
+        return matePair.getReadName().equals(readName);
 	}
 
 	@Override
@@ -240,15 +235,14 @@ public class MatePair implements Comparable<MatePair> {
 
 	public boolean hasPairOverlap() {
 		if ( ! zp.getPairingClassification().equals("Cxx")) {
-			if (this.getLeftMate().getEnd() > this.getRightMate().getStart()) {
-				return true;
-			}
+            return this.getLeftMate().getEnd() > this.getRightMate().getStart();
 		}        
 		return false;
 	}
 
 	public static class ReadMateLeftStartComparator implements Serializable, Comparator<MatePair> {
 
+		@Serial
 		private static final long serialVersionUID = 1379396837814177902L;
 
 		@Override
@@ -259,6 +253,7 @@ public class MatePair implements Comparable<MatePair> {
 
 	public static class ReadMateLeftEndComparator implements Serializable, Comparator<MatePair> {
 
+		@Serial
 		private static final long serialVersionUID = -6403294253402885410L;
 
 		@Override
@@ -269,6 +264,7 @@ public class MatePair implements Comparable<MatePair> {
 
 	public static class ReadMateRightStartComparator implements Serializable, Comparator<MatePair> {
 
+		@Serial
 		private static final long serialVersionUID = 1903207693120505632L;
 
 		@Override
@@ -279,7 +275,8 @@ public class MatePair implements Comparable<MatePair> {
 
 	public static class ReadMateRightEndComparator implements Serializable, Comparator<MatePair> {
 
-		static final long serialVersionUID = -5699305034250941079L;
+		@Serial
+		private static final long serialVersionUID = -5699305034250941079L;
 
 		@Override
 		public int compare(MatePair pair1, MatePair pair2) {

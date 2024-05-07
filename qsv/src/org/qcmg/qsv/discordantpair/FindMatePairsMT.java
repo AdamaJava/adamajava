@@ -210,7 +210,7 @@ public class FindMatePairsMT implements Runnable {
 			mutType = QSVConstants.DISEASE_SAMPLE;
 		}
 		for (PairClassification zp : PairClassification.values()) {
-			MatePairsWriter type = new MatePairsWriter(zp, matePairDir, outName, mutType, qsvParameters.getPairingType());          
+			MatePairsWriter type = new MatePairsWriter(zp, matePairDir, mutType, qsvParameters.getPairingType());
 			matePairWritersMap.put(zp, type);
 		}
 	}
