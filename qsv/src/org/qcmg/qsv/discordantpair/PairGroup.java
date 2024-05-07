@@ -15,9 +15,9 @@ public enum PairGroup {
     BAC_BBC("BAC_BBC"),  
     Cxx("Cxx");
     
-    private String zpType;
+    private final String zpType;
 
-    private PairGroup(final String zpType) {
+    PairGroup(final String zpType) {
         this.zpType = zpType;
     }
 

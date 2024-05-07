@@ -7,9 +7,9 @@ public enum PairClassification {
     AAB("AAB"), AAC("AAC"), ABA("ABA"), ABB("ABB"), ABC("ABC"), BAA("BAA"), BAB(
             "BAB"), BAC("BAC"), BBA("BBA"), BBB("BBB"), BBC("BBC"), Cxx("Cxx");
 
-    private String zpType;
+    private final String zpType;
 
-    private PairClassification(final String zpType) {
+    PairClassification(final String zpType) {
         this.zpType = zpType;
     }
 

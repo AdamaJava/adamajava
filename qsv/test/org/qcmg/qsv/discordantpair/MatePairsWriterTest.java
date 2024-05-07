@@ -12,10 +12,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.qcmg.qsv.discordantpair.MatePair;
-import org.qcmg.qsv.discordantpair.MatePairsWriter;
-import org.qcmg.qsv.discordantpair.PairClassification;
-import org.qcmg.qsv.discordantpair.PairGroup;
 import org.qcmg.qsv.util.TestUtil;
 
 public class MatePairsWriterTest {
@@ -32,7 +28,7 @@ public class MatePairsWriterTest {
     public void setUp() throws Exception {
         mateDir = testFolder.newFolder(PairClassification.AAC + "" );  
         
-        writer = new MatePairsWriter(PairClassification.AAC, testFolder.getRoot().toString()+FILE_SEPERATOR, "test", "TD", "lmp");
+        writer = new MatePairsWriter(PairClassification.AAC, testFolder.getRoot().toString()+FILE_SEPERATOR, "TD", "lmp");
         matePairs = TestUtil.setupMatePairs( PairGroup.AAC);
     }
 

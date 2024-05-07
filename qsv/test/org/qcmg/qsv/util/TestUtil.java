@@ -201,7 +201,7 @@ public class TestUtil {
 	      
 	      cluster.setClusterEnds();
 	      cluster.setNormalRange(3000);
-	      cluster.finalize(tumor, normal, clusterType, 1, query, "lmp", true);
+	      cluster.finalize(tumor, normal, clusterType, 1, "lmp", true);
 	      return cluster;
 	}
 
@@ -876,7 +876,7 @@ public class TestUtil {
 	      
 	      cluster.setClusterEnds();
 	      cluster.setNormalRange(3000);
-	      cluster.finalize(tumor, normal, clusterType, 1, query, "pe", true);
+	      cluster.finalize(tumor, normal, clusterType, 1, "pe", true);
 	      cluster.getqPrimerCateory().setPrimaryCategoryNo(qPrimerCategory);
 	      return cluster;
 	}

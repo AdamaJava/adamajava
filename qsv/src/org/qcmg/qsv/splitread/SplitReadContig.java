@@ -7,16 +7,8 @@
 package org.qcmg.qsv.splitread;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Random;
-import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 
@@ -43,7 +35,7 @@ public class SplitReadContig {
 
 	private static final QLogger logger = QLoggerFactory.getLogger(SplitReadContig.class);
 
-	private StructuralVariant knownSV;
+	private final StructuralVariant knownSV;
 	private StructuralVariant splitreadSV = new StructuralVariant();
 	private String splitReadBreakpointString = "";
 	private String nonTemplateSequence;
@@ -63,7 +55,7 @@ public class SplitReadContig {
 	private final TIntObjectMap<int[]> cache;
 	private final QSVParameters parameters;
 	private String mutationType;
-	private String blatFile;	
+	private String blatFile;
 	private String clipContig;
 	private String softclipDir;
 	private String name;
@@ -82,25 +74,12 @@ public class SplitReadContig {
 		this.parameters = p;
 	}
 
-	public SplitReadContig(TIntObjectMap<int[]> cache, QSVParameters p, 
+	public SplitReadContig(TIntObjectMap<int[]> cache, QSVParameters p,
 			String softclipDir, String leftReference, String rightReference, int leftRecordBreakpoint, int rightRecordBreakpoint, 
 			Set<String> expectedPairClassifications, String clipContig, String confidence, 
-			String orienationCategory, String referenceFile, Map<String, List<Chromosome>> chromosomes, boolean hasSoftClipEvidence, String blatFile) throws Exception {
-
-		this(cache, p, leftReference, rightReference, leftRecordBreakpoint, rightRecordBreakpoint, orienationCategory);
-
-		this.hasSoftClipEvidence = hasSoftClipEvidence;
-		this.confidenceLevel = confidence;
-		this.chromosomes = chromosomes;
-		getSplitReadConsensus(softclipDir, expectedPairClassifications, clipContig, blatFile);
-	}
-	
-	public SplitReadContig(TIntObjectMap<int[]> cache, QSVParameters p, 
-			String softclipDir, String leftReference, String rightReference, int leftRecordBreakpoint, int rightRecordBreakpoint, 
-			Set<String> expectedPairClassifications, String clipContig, String confidence, 
-			String orienationCategory, String referenceFile, Map<String, List<Chromosome>> chromosomes, boolean hasSoftClipEvidence, String blatFile, boolean log) throws Exception {
+			String orientationCategory, String referenceFile, Map<String, List<Chromosome>> chromosomes, boolean hasSoftClipEvidence, String blatFile, boolean log) throws Exception {
 		
-		this(cache, p, leftReference, rightReference, leftRecordBreakpoint, rightRecordBreakpoint, orienationCategory);
+		this(cache, p, leftReference, rightReference, leftRecordBreakpoint, rightRecordBreakpoint, orientationCategory);
 		
 		this.hasSoftClipEvidence = hasSoftClipEvidence;
 		this.confidenceLevel = confidence;
@@ -248,10 +227,7 @@ public class SplitReadContig {
 		return null;
 	}
 
-	private void getSplitReadConsensus(String softclipDir, Set<String> expectedPairClassifications, String clipContig, String blatFile) throws Exception {
-		getSplitReadConsensus(softclipDir, expectedPairClassifications, clipContig, blatFile, false);
-	}
-	private void getSplitReadConsensus(String softclipDir, Set<String> expectedPairClassifications, String clipContig, String blatFile, boolean log) throws Exception {		
+	private void getSplitReadConsensus(String softclipDir, Set<String> expectedPairClassifications, String clipContig, String blatFile, boolean log) throws Exception {
 		Map<String, UnmappedRead[]> map = new HashMap<>();
 		List<UnmappedRead> splitReads = new ArrayList<>();		
 
@@ -259,7 +235,7 @@ public class SplitReadContig {
 		this.nonTemplateSequence = QSVConstants.UNTESTED;
 
 		// setup the SamReader just once
-		try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(parameters.getInputBamFile(), "silent");) {
+		try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(parameters.getInputBamFile(), "silent")) {
 
 			//left reads		
 			readSplitReads(reader, map, splitReads, knownSV.getLeftReference(), knownSV.getLeftBreakpoint(), expectedPairClassifications);
@@ -290,7 +266,7 @@ public class SplitReadContig {
 		ConsensusRead fullContig =  qAssemble.getFinalContig(splitReads);
 		
 		if ("chr9_131403219_chr9_131418820_1".equals(knownSV.toString())) {
-			logger.info("SplitReadContig in assemble, knownSV: " + knownSV.toString() + ", clipContig: " + clipContig + ", fullContig: " + fullContig.getSequence());
+			logger.info("SplitReadContig in assemble, knownSV: " + knownSV + ", clipContig: " + clipContig + ", fullContig: " + fullContig.getSequence());
 		}
 
 		if (parameters.isTumor()) {
@@ -311,15 +287,12 @@ public class SplitReadContig {
 		this.blatFile = blatFile;
 		this.name = getName();
 	}
-	
-	public static List<BLATRecord> getBlatResults(Map<String, List<BLATRecord>> blatRecords, String leftReference, String rightReference, String name, String sequence) {
-		return getBlatResults(blatRecords, leftReference, rightReference, name, sequence, false);
-	}
+
 	public static List<BLATRecord> getBlatResults(Map<String, List<BLATRecord>> blatRecords, String leftReference, String rightReference, String name, String sequence, boolean debug) {
 		List<BLATRecord> records = new ArrayList<>();
 		
 		if (debug) {
-			logger.info("SplitReadContig in getBlatResults, name: " + name + ", sequence: " + sequence + ", leftReference: " + leftReference + ", rightReference: " + rightReference + ", number of blat records: " + blatRecords.values().stream().flatMap(l -> l.stream()).count());
+			logger.info("SplitReadContig in getBlatResults, name: " + name + ", sequence: " + sequence + ", leftReference: " + leftReference + ", rightReference: " + rightReference + ", number of blat records: " + blatRecords.values().stream().mapToLong(Collection::size).sum());
 			for (Entry<String, List<BLATRecord>> entry : blatRecords.entrySet()) {
 				logger.info("SplitReadContig in getBlatResults, key: " + entry.getKey() + ", no of blat recs: " + entry.getValue().size());
 			}
@@ -331,7 +304,7 @@ public class SplitReadContig {
 				for (BLATRecord record : recs) {
 					if (record.isValid() && record.getQName().equals(name)) {
 						if (debug) {
-							logger.info("SplitReadContig BLAT rec (valid): " + record.toString());
+							logger.info("SplitReadContig BLAT rec (valid): " + record);
 						}
 						if (leftReference != null && rightReference != null) {
 							if (record.getTName().equals(leftReference) || record.getTName().equals(rightReference)) {
@@ -344,7 +317,7 @@ public class SplitReadContig {
 						}
 					} else {
 						if (debug) {
-							logger.info("SplitReadContig BLAT rec (INVALID): " + record.toString());
+							logger.info("SplitReadContig BLAT rec (INVALID): " + record);
 						}
 					}
 				}
@@ -368,32 +341,32 @@ public class SplitReadContig {
 				Map<String, String> sequenceNameMap = new HashMap<>(2);
 				sequenceNameMap.put(consensus, name);
 				List<BLATRecord> records = getBlatResults(TiledAlignerUtil.runTiledAlignerCache(parameters.getReference(), parameters.getRefIndexPositionMap(), cache, sequenceNameMap, TiledAlignerUtil.TILE_LENGTH, "SplitReadContig.findSplitRead", log, true),  knownSV.getLeftReference(), knownSV.getRightReference(), name, consensus, log);
-				
+
 				if (log) {
 					logger.info("findSplitRead, getBlatResults size: " + records.size() + ", blat rec scores: " + records.stream().map(br -> br.getScore() + "").collect(Collectors.joining(",")));
 				}
-				
-				if (records.size() > 0) {
+
+				if (!records.isEmpty()) {
 
 					parseConsensusAlign(records);
-					if ( ! isPotentialSplitRead && isTumour() && clipContig.length() > 0) {
+					if ( ! isPotentialSplitRead && isTumour() && !clipContig.isEmpty()) {
 						consensus = clipContig;
 						if (log) {
 							logger.info("findSplitRead, setting consensus: " + consensus);
 						}
 						length = consensus.length();
 						if (length > 0) {
-							
+
 							sequenceNameMap.clear();
 							sequenceNameMap.put(clipContig, name + "_clip");
-							
+
 							/*
 							 * why is this run twice?
 							 */
-							records = alignConsensus(TiledAlignerUtil.runTiledAlignerCache(parameters.getReference(), parameters.getRefIndexPositionMap(), cache, sequenceNameMap, TiledAlignerUtil.TILE_LENGTH, "SplitReadContig.findSplitRead", log, true), name + "_clip", clipContig, knownSV.getLeftReference(), knownSV.getRightReference());			
-							if (records.size() > 0) {
+							records = alignConsensus(TiledAlignerUtil.runTiledAlignerCache(parameters.getReference(), parameters.getRefIndexPositionMap(), cache, sequenceNameMap, TiledAlignerUtil.TILE_LENGTH, "SplitReadContig.findSplitRead", log, true), clipContig, knownSV.getLeftReference(), knownSV.getRightReference());
+							if (!records.isEmpty()) {
 								if (log) {
-									logger.info("findSplitRead, about to call parseConsensusAlign again, records.size: " + records.size() + ", top rec: " + records.get(records.size() - 1).toString());
+									logger.info("findSplitRead, about to call parseConsensusAlign again, records.size: " + records.size() + ", top rec: " + records.getLast().toString());
 								}
 								parseConsensusAlign(records);
 								if ( ! isPotentialSplitRead && isTumour()) {
@@ -405,8 +378,8 @@ public class SplitReadContig {
 							}
 						}
 					}
-				}			
-			}		
+				}
+			}
 		} else {
 			if (log) {
 				logger.info("findSplitRead, consensus: " + (consensus == null ? "null" : consensus) + ", consensus length: " + (consensus == null ? 0 : consensus.length()));
@@ -414,7 +387,7 @@ public class SplitReadContig {
 		}
 	}
 	
-	public static List<BLATRecord> alignConsensus(Map<String, List<BLATRecord>> blatRecords, String name, String consensus, String leftReference, String rightReference) throws IOException, QSVException {
+	public static List<BLATRecord> alignConsensus(Map<String, List<BLATRecord>> blatRecords, String consensus, String leftReference, String rightReference) throws IOException, QSVException {
 		
 		List<BLATRecord> records = new ArrayList<>();
 		if (null != blatRecords && ! blatRecords.isEmpty()) {
@@ -443,7 +416,7 @@ public class SplitReadContig {
 
 	private void readSplitReads(SamReader reader, Map<String, UnmappedRead[]> map, List<UnmappedRead> splitReads, 
 			String reference, int intBreakpoint, Set<String> expectedPairClassifications) throws QSVException {
-		int buffer = parameters.getUpperInsertSize().intValue() + 200;
+		int buffer = parameters.getUpperInsertSize() + 200;
 		int count = 0;
 		
 		SAMRecordIterator iter = reader.queryOverlapping(reference, intBreakpoint-buffer, intBreakpoint+buffer);
@@ -494,7 +467,7 @@ public class SplitReadContig {
 								if (r.getReadLength() >= QSVAssemble.SEED_LENGTH) {
 									String key = r.getReadName() + ":" + readGroupId;
 									UnmappedRead[] arr = map.get(key);
-									
+
 									if (null == arr) {
 										arr = new UnmappedRead[]{new UnmappedRead(r, readGroupId, true), null};
 										map.put(key, arr);
@@ -506,7 +479,7 @@ public class SplitReadContig {
 									}
 								}
 							}
-						}        		
+						}
 					}
 				}
 			}
@@ -548,7 +521,7 @@ public class SplitReadContig {
 
 			if (left.getStrand() == right.getStrand()) {
 				//cat 1 or 2			
-				if ((leftLower(left.getQueryStart().intValue(), right.getQueryStart().intValue()) && left.strandNegative() || ! leftLower(left.getQueryStart().intValue(), right.getQueryStart().intValue()) && left.strandPositive())) {
+				if ((leftLower(left.getQueryStart(), right.getQueryStart()) && left.strandNegative() || ! leftLower(left.getQueryStart(), right.getQueryStart()) && left.strandPositive())) {
 					splitreadSV.setBreakpointsByCategory(QSVConstants.ORIENTATION_2, left.getStartPos(), right.getEndPos());					
 				} else {
 					splitreadSV.setBreakpointsByCategory(QSVConstants.ORIENTATION_1,left.getEndPos(), right.getStartPos());
@@ -556,7 +529,7 @@ public class SplitReadContig {
 
 			} else {
 				//cat 3 or 4
-				if (( ! leftLower(left.getQueryStart().intValue(), right.getQueryStart().intValue()) && left.strandNegative()) || leftLower(left.getQueryStart().intValue(), right.getQueryStart().intValue()) && left.strandPositive()) {
+				if (( ! leftLower(left.getQueryStart(), right.getQueryStart()) && left.strandNegative()) || leftLower(left.getQueryStart(), right.getQueryStart()) && left.strandPositive()) {
 					splitreadSV.setBreakpointsByCategory(QSVConstants.ORIENTATION_3, left.getEndPos(), right.getEndPos());
 				} else {
 					splitreadSV.setBreakpointsByCategory(QSVConstants.ORIENTATION_4, left.getStartPos(), right.getStartPos());
@@ -616,7 +589,7 @@ public class SplitReadContig {
 					nonTemplateSequence = QSVUtil.reverseComplement(nonTemplateSequence);
 				}
 
-				if (nonTemplateSequence.equals("")) {
+				if (nonTemplateSequence.isEmpty()) {
 					nonTemplateSequence = QSVConstants.NOT_FOUND;
 				}
 
@@ -645,10 +618,10 @@ public class SplitReadContig {
 				(leftStrand == QSVUtil.PLUS && orientationCategory.equals(QSVConstants.ORIENTATION_4))) ;
 	}
 
-	void calculateMicrohomology() throws QSVException, IOException {
+	void calculateMicrohomology() {
 		if (nonTemplateSequence == null) {
 			this.microhomology = QSVConstants.UNTESTED;
-		} else if (nonTemplateSequence.length() > 0 && !nonTemplateSequence.equals(QSVConstants.NOT_FOUND)) {
+		} else if (!nonTemplateSequence.isEmpty() && !nonTemplateSequence.equals(QSVConstants.NOT_FOUND)) {
 			this.microhomology = QSVConstants.NOT_FOUND;
 		} else {
 			String tempMh = "";
@@ -662,7 +635,7 @@ public class SplitReadContig {
 							}
 						}			
 					}
-					if (tempMh.length() > 0) {
+					if (!tempMh.isEmpty()) {
 						this.microhomology = tempMh;
 					} else {
 						this.microhomology = QSVConstants.NOT_FOUND;
@@ -678,7 +651,7 @@ public class SplitReadContig {
 		}
 	}
 
-	void recheckMicrohomologyForSingleAlignment() throws QSVException, IOException {
+	void recheckMicrohomologyForSingleAlignment() {
 		
 		String leftRef = getReferenceSequence(splitreadSV.getLeftReference(), splitreadSV.getLeftBreakpoint() + 1, 0, 50, chromosomes);
 		String rightRef = getReferenceSequence(splitreadSV.getRightReference(), splitreadSV.getRightBreakpoint() - 1, 50, 0, chromosomes);	
@@ -704,7 +677,7 @@ public class SplitReadContig {
 		splitreadSV.setLeftBreakpoint(splitreadSV.getLeftBreakpoint() + rightMh.length());
 		splitreadSV.setRightBreakpoint(splitreadSV.getRightBreakpoint() - leftMh.length());
 		this.microhomology = leftMh + rightMh;
-		if (microhomology.equals("")) {
+		if (microhomology.isEmpty()) {
 			microhomology = QSVConstants.NOT_FOUND;
 		}		
 	}
@@ -713,7 +686,7 @@ public class SplitReadContig {
 		List<Chromosome> list = map.get(reference);
 
 		if (list != null) {
-			Chromosome c = list.get(0);			
+			Chromosome c = list.getFirst();
 			int start = breakpoint - leftBuffer;
 			if (start < 0) {
 				start = 1;
@@ -750,13 +723,17 @@ public class SplitReadContig {
 		} else {
 			String orientationCat = splitreadSV.getOrientationCategory();
 			if (null != orientationCat) {
-				if (orientationCat.equals(QSVConstants.ORIENTATION_1)) {
-					return QSVConstants.DEL;
-				} else if (orientationCat.equals(QSVConstants.ORIENTATION_2)) {
-					return QSVConstants.DUP;
-				} else if (orientationCat.equals(QSVConstants.ORIENTATION_3) || orientationCat.equals(QSVConstants.ORIENTATION_4)) {
-					return QSVConstants.INV;
-				}
+                switch (orientationCat) {
+                    case QSVConstants.ORIENTATION_1 -> {
+                        return QSVConstants.DEL;
+                    }
+                    case QSVConstants.ORIENTATION_2 -> {
+                        return QSVConstants.DUP;
+                    }
+                    case QSVConstants.ORIENTATION_3, QSVConstants.ORIENTATION_4 -> {
+                        return QSVConstants.INV;
+                    }
+                }
 			}
 		}
 		return "";
@@ -765,11 +742,11 @@ public class SplitReadContig {
 	public void setCat1and2NonTemplate() {		
 		nonTemplateSequence = "";
 		if (left.getStrand() == QSVUtil.MINUS) {			
-			if ((left.getQueryStart().intValue() - right.getQueryEnd().intValue()) > 1) {
+			if ((left.getQueryStart() - right.getQueryEnd()) > 1) {
 				nonTemplateSequence = consensus.substring(right.getQueryEnd(), left.getQueryStart() - 1);
 			} 
 		} else {
-			if ((right.getQueryStart().intValue() - left.getQueryEnd().intValue()) > 1) {
+			if ((right.getQueryStart() - left.getQueryEnd()) > 1) {
 				nonTemplateSequence = consensus.substring(left.getQueryEnd(), right.getQueryStart() - 1);							
 			} 
 		}		
@@ -780,14 +757,14 @@ public class SplitReadContig {
 		String orientationCategory = splitreadSV.getOrientationCategory();
 		if (left.getStrand() == QSVUtil.MINUS && orientationCategory.equals(QSVConstants.ORIENTATION_4)
 				|| left.getStrand() == QSVUtil.PLUS && orientationCategory.equals(QSVConstants.ORIENTATION_3)) {
-			if ((right.getQueryStart().intValue() - left.getQueryEnd().intValue()) > 1) {
+			if ((right.getQueryStart() - left.getQueryEnd()) > 1) {
 				nonTemplateSequence = consensus.substring(left.getQueryEnd(), right.getQueryStart() - 1);							
 			}			
 		}
 
 		if (left.getStrand() == QSVUtil.MINUS && orientationCategory.equals(QSVConstants.ORIENTATION_3)
 				|| left.getStrand() == QSVUtil.PLUS && orientationCategory.equals(QSVConstants.ORIENTATION_4)) {
-			if ((left.getQueryStart().intValue() - right.getQueryEnd().intValue()) > 1) {
+			if ((left.getQueryStart() - right.getQueryEnd()) > 1) {
 				nonTemplateSequence = consensus.substring(right.getQueryEnd(), left.getQueryStart() - 1);
 			} 			
 		}		
@@ -795,8 +772,8 @@ public class SplitReadContig {
 
 	public void reorder() {
 		boolean rearrange;
-		if (left.getReference().equals(right.getReference()) && 
-				left.getStartPos().intValue() > right.getStartPos().intValue()) {
+		if (left.getReference().equals(right.getReference()) &&
+                left.getStartPos() > right.getStartPos()) {
 			rearrange = true;        
 		} else {
 			rearrange = QSVUtil.reorderByChromosomes(left.getReference(), right.getReference());            
@@ -813,7 +790,7 @@ public class SplitReadContig {
 		left = align;
 		int index1 = -1;
 		int index2 = -1;
-		BLATRecord record = records.get(records.size() - 1);		
+		BLATRecord record = records.getLast();
 		if (record.getBlockCount() > 1 && checkBlockSize(record)) {
 			getBestBlocksFromBLAT(record);
 			index1 = records.size() - 1;					
@@ -823,10 +800,10 @@ public class SplitReadContig {
 			index1 = records.size() - 1;
 			BLATRecord r2 = records.get(index2);	
 			setSplitReadAlignments(record, r2);			
-		} else if (records.size() >= 1 && align != null) {
+		} else if (!records.isEmpty() && align != null) {
 			index1 = setSecondAlignment(records);						
 		}		
-		if (!checkAlignments() && (index1 != -1 || index2 != -1)) {
+		if (!checkAlignments() && index1 != -1) {
 			rerunSplitReadAlignments(index1, index2, records);				
 		}		
 	}
@@ -839,7 +816,7 @@ public class SplitReadContig {
 		if (index2 != -1) {
 			records.remove(index2);
 		}
-		if (records.size() > 0) {
+		if (!records.isEmpty()) {
 			SplitReadAlignment a = getSingleSplitReadAlignment(left, right);
 			getSplitReadAlignments(a, records);
 		}		
@@ -860,11 +837,11 @@ public class SplitReadContig {
 				int start = starts[i];
 				int end = start + blocks[i] - 1;
 				SplitReadAlignment newAlign = new SplitReadAlignment(record.getTName(), record.getStrand(), startPos, endPos, start, end);
-				if (passesNewAlignmentFilters(newAlign, confidenceLevel, knownSV.getLeftBreakpoint().intValue(), knownSV.getRightBreakpoint().intValue(), length)) {
+				if (passesNewAlignmentFilters(newAlign, confidenceLevel, knownSV.getLeftBreakpoint(), knownSV.getRightBreakpoint(), length)) {
 					if (left == null && right == null) {
 						left = newAlign;
 					} else if (left != null && right == null) {
-						right = getPutativeOtherAlignment(left.getQueryStart(), left.getQueryEnd(), record, left, length, confidenceLevel, knownSV.getLeftBreakpoint().intValue(), knownSV.getRightBreakpoint().intValue());
+						right = getPutativeOtherAlignment(left.getQueryStart(), left.getQueryEnd(), record, left, length, confidenceLevel, knownSV.getLeftBreakpoint(), knownSV.getRightBreakpoint());
 						break;
 					}
 				}
@@ -889,11 +866,11 @@ public class SplitReadContig {
 				int start = starts[i];
 				int end = start + blocks[i] - 1;
 				SplitReadAlignment newAlign = new SplitReadAlignment(record.getTName(), record.getStrand(), startPos, endPos, start, end);
-				if (passesNewAlignmentFilters(newAlign, confidenceLevel, knownSV.getLeftBreakpoint().intValue(), knownSV.getRightBreakpoint().intValue(), length)) {
+				if (passesNewAlignmentFilters(newAlign, confidenceLevel, knownSV.getLeftBreakpoint(), knownSV.getRightBreakpoint(), length)) {
 					if (left == null && right == null) {
 						left = newAlign;
 					} else if (left != null && right == null) {
-						right = getPutativeOtherAlignment(left.getQueryStart(), left.getQueryEnd(), record, getSingleSplitReadAlignment(left, right), length, confidenceLevel, knownSV.getLeftBreakpoint().intValue(), knownSV.getRightBreakpoint().intValue());
+						right = getPutativeOtherAlignment(left.getQueryStart(), left.getQueryEnd(), record, getSingleSplitReadAlignment(left, right), length, confidenceLevel, knownSV.getLeftBreakpoint(), knownSV.getRightBreakpoint());
 						break;
 					} 					
 				}			
@@ -925,7 +902,7 @@ public class SplitReadContig {
 		/*
 		 * call the static method
 		 */
-		Pair<SplitReadAlignment, SplitReadAlignment> pair = setSplitReadAlignments(r1, r2, knownSV.getLeftBreakpoint().intValue(), knownSV.getRightBreakpoint().intValue(), confidenceLevel, length);
+		Pair<SplitReadAlignment, SplitReadAlignment> pair = setSplitReadAlignments(r1, r2, knownSV.getLeftBreakpoint(), knownSV.getRightBreakpoint(), confidenceLevel, length);
 		left = pair.getLeft();
 		right = pair.getRight();
 	}
@@ -938,17 +915,17 @@ public class SplitReadContig {
 		findMH = true;
 		Collections.sort(leftRecords);
 		Collections.sort(rightRecords);
-		if (leftRecords.size() > 0 && rightRecords.size() > 0 && align == null) {		
-			BLATRecord r1 = leftRecords.get(leftRecords.size() - 1);
-			BLATRecord r2 = rightRecords.get(rightRecords.size() - 1);
+		if (!leftRecords.isEmpty() && !rightRecords.isEmpty() && align == null) {
+			BLATRecord r1 = leftRecords.getLast();
+			BLATRecord r2 = rightRecords.getLast();
 			index1 = leftRecords.size() - 1;
 			index2 = rightRecords.size() - 1;
 			setSplitReadAlignments(r1, r2);	
 		} else if (left != null) {
-			if (left.getReference().equals(knownSV.getLeftReference()) && leftRecords.size() > 0) {				
+			if (left.getReference().equals(knownSV.getLeftReference()) && !leftRecords.isEmpty()) {
 				index1 = setSecondAlignment(leftRecords);
 			}
-			if (left.getReference().equals(knownSV.getRightReference()) && rightRecords.size() > 0) {				
+			if (left.getReference().equals(knownSV.getRightReference()) && !rightRecords.isEmpty()) {
 				index2 = setSecondAlignment(rightRecords);
 			}
 		}	
@@ -967,12 +944,12 @@ public class SplitReadContig {
 
 	private int setSecondAlignment(List<BLATRecord> records) {
 		findMH = true;
-		BLATRecord r1 = records.get(records.size() - 1);
+		BLATRecord r1 = records.getLast();
 		int index1 = records.size() - 1;
 		if (left == null) {
-			left = getPutativeOtherAlignment(right.getQueryStart(), right.getQueryEnd(), r1, getSingleSplitReadAlignment(left, right), length, confidenceLevel, knownSV.getLeftBreakpoint().intValue(), knownSV.getRightBreakpoint().intValue());
+			left = getPutativeOtherAlignment(right.getQueryStart(), right.getQueryEnd(), r1, getSingleSplitReadAlignment(left, right), length, confidenceLevel, knownSV.getLeftBreakpoint(), knownSV.getRightBreakpoint());
 		} else {
-			right = getPutativeOtherAlignment(left.getQueryStart(), left.getQueryEnd(), r1, getSingleSplitReadAlignment(left, right), length, confidenceLevel, knownSV.getLeftBreakpoint().intValue(), knownSV.getRightBreakpoint().intValue());
+			right = getPutativeOtherAlignment(left.getQueryStart(), left.getQueryEnd(), r1, getSingleSplitReadAlignment(left, right), length, confidenceLevel, knownSV.getLeftBreakpoint(), knownSV.getRightBreakpoint());
 		}
 
 		return index1;
@@ -983,8 +960,7 @@ public class SplitReadContig {
 		int[] blocks = r.getBlockSizes();
 		int[] startPoses = r.getTStarts();
 		SplitReadAlignment align = null;
-		int difference = length;
-		if (r.getBlockCount() > 1) {
+        if (r.getBlockCount() > 1) {
 			for (int i = 0; i < starts.length; i++) {
 				int start = starts[i];
 				int end = start + blocks[i] - 1;
@@ -992,7 +968,7 @@ public class SplitReadContig {
 				int endPos = startPos + blocks[i] - 1;				
 				align = new SplitReadAlignment(r.getTName(), r.getStrand(), startPos, endPos, start, end);
 				if ( ! align.equals(singleSplitReadAlignment) && passesNewAlignmentFilters(align, confidenceLevel, svLhsBp, svRhsBp, length)) {
-					return getAlignmentDifference(queryStart, queryEnd, difference, align, confidenceLevel, svLhsBp, svRhsBp, length);
+					return getAlignmentDifference(queryStart, queryEnd, length, align, confidenceLevel, svLhsBp, svRhsBp, length);
 				} else {
 					align = null;
 				}
@@ -1000,7 +976,7 @@ public class SplitReadContig {
 		} else {
 			align = new SplitReadAlignment(r);
 			if ( ! align.equals(singleSplitReadAlignment) && passesNewAlignmentFilters(align, confidenceLevel, svLhsBp, svRhsBp, length)) {
-				return getAlignmentDifference(queryStart, queryEnd, difference, align, confidenceLevel, svLhsBp, svRhsBp, length);
+				return getAlignmentDifference(queryStart, queryEnd, length, align, confidenceLevel, svLhsBp, svRhsBp, length);
 			} else {
 				align = null;
 			}
@@ -1010,7 +986,7 @@ public class SplitReadContig {
 
 	public static SplitReadAlignment getAlignmentDifference(Integer queryStart, Integer queryEnd, int difference, SplitReadAlignment align, String confidenceLevel, int svLhsBp, int svRhsBp, int length) {
 		if (passesBreakpointFilter(align, confidenceLevel, svLhsBp, svRhsBp)) {
-			if ((queryStart == null || queryEnd == null) 
+			if ((queryStart == null || queryEnd == null)
 					|| (queryStart != null && queryEnd != null && matchingQueryString(difference, queryStart, queryEnd, align, length))) {
 				return align;
 			}
@@ -1022,7 +998,7 @@ public class SplitReadContig {
 		if (left == null || right == null) {	
 			return false;
 		}
-		if ( ! passesBreakpointFilter(left, right, confidenceLevel, knownSV.getLeftBreakpoint().intValue() ,knownSV.getRightBreakpoint().intValue()) 
+		if ( ! passesBreakpointFilter(left, right, confidenceLevel, knownSV.getLeftBreakpoint(), knownSV.getRightBreakpoint())
 				|| ! passesQueryPositionFilter(left,right, length) 
 				|| ! queryLengthFilter(left, right, length)) {
 			if (left.getInsertSize() < right.getInsertSize()) {
@@ -1038,19 +1014,14 @@ public class SplitReadContig {
 	public static boolean passesBreakpointFilter(SplitReadAlignment a,	SplitReadAlignment b, String confidenceLevel, int svLhsBp, int svRhsBp) {
 		if (QSVConstants.LEVEL_SINGLE_CLIP.equals(confidenceLevel)) {
 			return true;
-		} else {			
-			if ((getMatch(a.getStartPos(), svLhsBp) || getMatch(a.getEndPos(), svLhsBp) &&
-					getMatch(b.getStartPos(),  svRhsBp) || getMatch(b.getEndPos(),  svRhsBp))
-					||
-					(getMatch(a.getStartPos(), svRhsBp) || getMatch(a.getEndPos(), svRhsBp) &&
-							getMatch(b.getStartPos(), svLhsBp) || getMatch(b.getEndPos(), svLhsBp))	
-					) {
-
-				return true;		
-			}
+		} else {
+            return (getMatch(a.getStartPos(), svLhsBp) || getMatch(a.getEndPos(), svLhsBp) &&
+                    getMatch(b.getStartPos(), svRhsBp) || getMatch(b.getEndPos(), svRhsBp))
+                    ||
+                    (getMatch(a.getStartPos(), svRhsBp) || getMatch(a.getEndPos(), svRhsBp) &&
+                            getMatch(b.getStartPos(), svLhsBp) || getMatch(b.getEndPos(), svLhsBp));
 		}
-		return false;
-	}
+    }
 
 	public static boolean passesQueryPositionFilter(SplitReadAlignment left, SplitReadAlignment right, int length) {
 		return matchingQueryString(length, left.getQueryStart(), left.getQueryEnd(), right, length)
@@ -1067,13 +1038,9 @@ public class SplitReadContig {
 				left.getQueryEnd() >= right.getQueryStart() && left.getQueryEnd() <= right.getQueryEnd()) {
 			return false;
 		}
-		if (right.getQueryStart() >= left.getQueryStart() && right.getQueryStart() <= left.getQueryEnd() &&
-				right.getQueryEnd() >= left.getQueryStart() && right.getQueryEnd() <= left.getQueryEnd()	
-				) {
-			return false;
-		}		
-		return true;
-	}
+        return right.getQueryStart() < left.getQueryStart() || right.getQueryStart() > left.getQueryEnd() ||
+                right.getQueryEnd() < left.getQueryStart() || right.getQueryEnd() > left.getQueryEnd();
+    }
 
 	public static boolean passesSizeFilter(SplitReadAlignment a, int length) {
 		int iSize = a.getInsertSize();
@@ -1088,14 +1055,12 @@ public class SplitReadContig {
 		if (r.getBlockCount() > 1) {
 			int[] blocks = r.getBlockSizes();
 			int passCount = 0;
-			for (int i = 0; i < blocks.length; i++) {
-				if (blocks[i] > 20) {
-					passCount++;
-				}
-			}
-			if (passCount >= 2) {
-				return true;
-			}
+            for (int block : blocks) {
+                if (block > 20) {
+                    passCount++;
+                }
+            }
+            return passCount >= 2;
 		}		
 		return false;
 	}
@@ -1104,17 +1069,10 @@ public class SplitReadContig {
 		if (QSVConstants.LEVEL_SINGLE_CLIP.equals(confidenceLevel)) {
 			return true;
 		} else {
-			if (getMatch(a.getStartPos().intValue(), svLhsBp) || getMatch(a.getEndPos().intValue(), svLhsBp) ||
-					getMatch(a.getStartPos().intValue(), svRhsBp) || getMatch(a.getEndPos().intValue(), svRhsBp)) {
-					return true;
-			}
+            return getMatch(a.getStartPos(), svLhsBp) || getMatch(a.getEndPos(), svLhsBp) ||
+                    getMatch(a.getStartPos(), svRhsBp) || getMatch(a.getEndPos(), svRhsBp);
 		}
-		return false;
-	}
-	
-	public static boolean passesBreakpointFilter(SplitReadAlignment a, String confidenceLevel, StructuralVariant sv) {
-		return passesBreakpointFilter(a, confidenceLevel, sv.getLeftBreakpoint().intValue(), sv.getRightBreakpoint().intValue());
-	}
+    }
 
 	public static boolean getMatch(int pos, int compareBp) {
 		return (pos >= compareBp - 50 && pos <= compareBp + 50) ;
@@ -1135,9 +1093,7 @@ public class SplitReadContig {
 			}			
 		}
 		if (queryStart < end && (start >= queryEnd - buffer && start <= queryEnd + buffer)) {
-			if ((difference == length) || Math.abs(start - queryEnd) < difference) {
-				return true;
-			}
+            return (difference == length) || Math.abs(start - queryEnd) < difference;
 		}
 		return false;
 	}

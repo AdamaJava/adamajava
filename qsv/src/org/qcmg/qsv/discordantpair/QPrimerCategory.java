@@ -102,7 +102,7 @@ public class QPrimerCategory {
 		//find the categories of each read pair		
 		countCategories(clusterMatePairs);
 		
-		if (map.size() == 0) {
+		if (map.isEmpty()) {
 			primaryCategoryNo = "unknown";
 		} else {
 			findCategoryNo();
@@ -112,19 +112,23 @@ public class QPrimerCategory {
 
 	void countCategories(List<MatePair> clusterMatePairs) {
 		String cat = null;
-		if (pairType.equals("lmp")) {
-			for (MatePair p: clusterMatePairs) {	
-				cat = p.getSVCategoryForLMP();				
-			}
-		} else if (pairType.equals("pe")) {
-			for (MatePair p: clusterMatePairs) {
-				cat = p.getSVCategoryForPE();	
-			}
-		} else if (pairType.equals("imp")){
-			for (MatePair p: clusterMatePairs) {
-				cat = p.getSVCategoryForIMP();	
-			}
-		}
+        switch (pairType) {
+            case "lmp" -> {
+                for (MatePair p : clusterMatePairs) {
+                    cat = p.getSVCategoryForLMP();
+                }
+            }
+            case "pe" -> {
+                for (MatePair p : clusterMatePairs) {
+                    cat = p.getSVCategoryForPE();
+                }
+            }
+            case "imp" -> {
+                for (MatePair p : clusterMatePairs) {
+                    cat = p.getSVCategoryForIMP();
+                }
+            }
+        }
 		
 		if (cat != null) {
 			addToCategoryMap(cat);
@@ -133,45 +137,50 @@ public class QPrimerCategory {
 	
 
 	public void findQPrimerSites(int clusterLeftStart, int clusterLeftEnd, int clusterRightStart, int clusterRightEnd) {
-		if (primaryCategoryNo.equals(QSVConstants.ORIENTATION_1) || primaryCategoryNo.equals(QSVConstants.ORIENTATION_3)) {
-			
-			if (pairType.equals("lmp")) {
-				setStandardEnds(clusterLeftStart, clusterLeftEnd, clusterRightStart, clusterRightEnd);		
-			} else {
-				if (primaryCategoryNo.equals(QSVConstants.ORIENTATION_1)) {
-					setCat1PEEnds(clusterLeftStart, clusterLeftEnd, clusterRightStart, clusterRightEnd);
-				} else {
-					setCat3PEEnds(clusterLeftStart, clusterLeftEnd, clusterRightStart, clusterRightEnd);
-				}
-			}
-			
-			if (primaryCategoryNo.equals(QSVConstants.ORIENTATION_3)) {
-				reverseFlag = "true";
-			} else if (primaryCategoryNo.equals(QSVConstants.ORIENTATION_4)) {
-				
-			} else {
-				reverseFlag = "false";
-			}
-		} else if (primaryCategoryNo.equals(QSVConstants.ORIENTATION_2)) {
-			if (pairType.equals("lmp")) {
-				setSwappedEnds(clusterLeftStart, clusterLeftEnd, clusterRightStart, clusterRightEnd);		
-			} else {
-				setCat2SwappedEnds(clusterLeftStart, clusterLeftEnd, clusterRightStart, clusterRightEnd);	
-			}
-				
-			reverseFlag = "false";
-		} else if (primaryCategoryNo.equals(QSVConstants.ORIENTATION_4)) {
-			if (pairType.equals("lmp")) {
-				setCat4Ends(clusterLeftStart, clusterLeftEnd, clusterRightStart, clusterRightEnd);	
-			} else {
-				setCat4PEEnds(clusterLeftStart, clusterLeftEnd, clusterRightStart, clusterRightEnd);	
-			}
-			
-			reverseFlag = "lefttrue";
-		} else if (primaryCategoryNo.equals(QSVConstants.ORIENTATION_5)) {
-			setCat5SwappedEnds(clusterLeftStart, clusterLeftEnd, clusterRightStart, clusterRightEnd);	
-			reverseFlag = "false";
-		}
+        switch (primaryCategoryNo) {
+            case QSVConstants.ORIENTATION_1, QSVConstants.ORIENTATION_3 -> {
+
+                if (pairType.equals("lmp")) {
+                    setStandardEnds(clusterLeftStart, clusterLeftEnd, clusterRightStart, clusterRightEnd);
+                } else {
+                    if (primaryCategoryNo.equals(QSVConstants.ORIENTATION_1)) {
+                        setCat1PEEnds(clusterLeftStart, clusterLeftEnd, clusterRightStart, clusterRightEnd);
+                    } else {
+                        setCat3PEEnds(clusterLeftStart, clusterLeftEnd, clusterRightStart, clusterRightEnd);
+                    }
+                }
+
+                if (primaryCategoryNo.equals(QSVConstants.ORIENTATION_3)) {
+                    reverseFlag = "true";
+                } else if (primaryCategoryNo.equals(QSVConstants.ORIENTATION_4)) {
+
+                } else {
+                    reverseFlag = "false";
+                }
+            }
+            case QSVConstants.ORIENTATION_2 -> {
+                if (pairType.equals("lmp")) {
+                    setSwappedEnds(clusterLeftStart, clusterLeftEnd, clusterRightStart, clusterRightEnd);
+                } else {
+                    setCat2SwappedEnds(clusterLeftStart, clusterLeftEnd, clusterRightStart, clusterRightEnd);
+                }
+
+                reverseFlag = "false";
+            }
+            case QSVConstants.ORIENTATION_4 -> {
+                if (pairType.equals("lmp")) {
+                    setCat4Ends(clusterLeftStart, clusterLeftEnd, clusterRightStart, clusterRightEnd);
+                } else {
+                    setCat4PEEnds(clusterLeftStart, clusterLeftEnd, clusterRightStart, clusterRightEnd);
+                }
+
+                reverseFlag = "lefttrue";
+            }
+            case QSVConstants.ORIENTATION_5 -> {
+                setCat5SwappedEnds(clusterLeftStart, clusterLeftEnd, clusterRightStart, clusterRightEnd);
+                reverseFlag = "false";
+            }
+        }
 	}
 
 	private void setCat1PEEnds(int clusterLeftStart, int clusterLeftEnd, int clusterRightStart, int clusterRightEnd) {
@@ -287,7 +296,7 @@ public class QPrimerCategory {
 	
 	public void findCategoryNo() throws Exception {
 		this.primaryCategoryNo = "";
-			if (map.size() == 0) {
+			if (map.isEmpty()) {
 				throw new Exception ("Pairs could not be assigned to qPrimer category");
 			} else {
 				if (map.size() == 1) {
@@ -317,27 +326,24 @@ public class QPrimerCategory {
 							categoryNos.add(entry.getKey());
 						}
 					}			
-					primaryCategoryNo = categoryNos.get(0);
+					primaryCategoryNo = categoryNos.getFirst();
 				}
 		}
 	}
 	
 	public String toString(String svId) {
-		StringBuilder sb = new StringBuilder(svId);
-		sb.append(Constants.TAB);
-		//left
-		sb.append(leftChr).append(Constants.COLON);
-		sb.append(startLeft).append('-');
-		sb.append(endLeft).append(Constants.TAB);
-		//right
-		sb.append(rightChr).append(Constants.COLON);
-		sb.append(startRight).append('-');
-		sb.append(endRight).append(Constants.TAB);
-		
-		sb.append(reverseFlag).append(Constants.TAB);
-		sb.append(primaryCategoryNo).append(Constants.TAB);
-		sb.append(mixedCategories);
-		
-		return sb.toString();
+
+        return svId + Constants.TAB +
+                //left
+                leftChr + Constants.COLON +
+                startLeft + '-' +
+                endLeft + Constants.TAB +
+                //right
+                rightChr + Constants.COLON +
+                startRight + '-' +
+                endRight + Constants.TAB +
+                reverseFlag + Constants.TAB +
+                primaryCategoryNo + Constants.TAB +
+                mixedCategories;
 	}
 }
