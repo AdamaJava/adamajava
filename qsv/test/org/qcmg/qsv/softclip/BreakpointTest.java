@@ -380,7 +380,7 @@ READ:AGCCACCCTTTCACCCAGGTGCTCTGTCACAGGGAGATGAGAGTTTTATCTATAAGCCTCTGACTGGGGCTGCTG
 				}
 			}
 		}
-		ConsensusRead cr = Breakpoint.calculate(breakpoint.getStrand(), breakpoint.getClipsSize(), posLength, posReadLength, breakpoint.getTumourClips(), breakpoint.getNormalClips(), breakpoint.isGermline(), breakpoint.isLeft(), 20);
+		ConsensusRead cr = Breakpoint.calculate(breakpoint.getStrand(), posLength, posReadLength, breakpoint.getTumourClips(), breakpoint.getNormalClips(), breakpoint.isGermline(), breakpoint.isLeft(), 20);
         assert cr != null;
         assertEquals("AAAGATCAACCTGTCCTAAGTCATATAATCTCTTTGTGTAAGAGATTATACTTTGTGTAAGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAGGGCAGGGATCAATTCCTTAATATCTTAGGAAGACTAGGTATTGACAGTAAT", cr.getSequence());
 	}

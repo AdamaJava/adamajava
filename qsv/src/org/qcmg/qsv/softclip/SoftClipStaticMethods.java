@@ -16,26 +16,25 @@ import org.qcmg.qsv.util.QSVUtil;
 
 import htsjdk.samtools.CigarElement;
 import htsjdk.samtools.CigarOperator;
-import htsjdk.samtools.SAMReadGroupRecord;
 import htsjdk.samtools.SAMRecord;
 
 public class SoftClipStaticMethods {
 
-	public static void writeSoftClipRecord(BufferedWriter writer, SAMRecord record, String rgId, int start, int end, String chromosome) throws IOException {
+	public static void writeSoftClipRecord(BufferedWriter writer, SAMRecord record, String rgId, int start, int end) throws IOException {
 
-		String clipRecordString = createSoftClipRecordString(record, rgId, start, end, chromosome);
+		String clipRecordString = createSoftClipRecordString(record, rgId, start, end);
 		
 		if (clipRecordString != null) {			
 			writer.write(clipRecordString);
 		}
 	}
 	
-	public static Clip createSoftClipRecord(SAMRecord record, String rgId, int start, int end, String chromosome) {
+	public static Clip createSoftClipRecord(SAMRecord record, String rgId, int start, int end) {
 		if ( ! record.getReadUnmappedFlag()) {
 			List<CigarElement> elements = record.getCigar().getCigarElements();
 			
-			CigarElement first = elements.get(0);
-			CigarElement last = elements.get(elements.size()-1);
+			CigarElement first = elements.getFirst();
+			CigarElement last = elements.getLast();
 			
 			if (first.getOperator().equals(CigarOperator.S) && last.getOperator().equals(CigarOperator.S)) {
 				return null;
@@ -63,12 +62,12 @@ public class SoftClipStaticMethods {
 		}		
 		return null;
 	}
-	public static String createSoftClipRecordString(SAMRecord record, String rgId, Integer start, Integer end, String chromosome) {
+	public static String createSoftClipRecordString(SAMRecord record, String rgId, Integer start, Integer end) {
 		if ( ! record.getReadUnmappedFlag()) {
 			List<CigarElement> elements = record.getCigar().getCigarElements();
 			
-			CigarElement first = elements.get(0);
-			CigarElement last = elements.get(elements.size()-1);
+			CigarElement first = elements.getFirst();
+			CigarElement last = elements.getLast();
 			
 			if (first.getOperator().equals(CigarOperator.S) && last.getOperator().equals(CigarOperator.S)) {
 				return null;

@@ -402,7 +402,7 @@ public class AnnotateFilterMT implements Runnable {
             //see if clips pass the filter
             if (clipQueryEx.Execute(record)) {
                 goodClipCount.incrementAndGet();
-                SoftClipStaticMethods.writeSoftClipRecord(writer, record, rgId, start, end, chromosome.getName());
+                SoftClipStaticMethods.writeSoftClipRecord(writer, record, rgId, start, end);
                 return add2queue(record, queueOutClip, count);
             } else {
                 return true;

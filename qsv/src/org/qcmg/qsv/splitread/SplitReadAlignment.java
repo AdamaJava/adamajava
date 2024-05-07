@@ -87,17 +87,13 @@ public class SplitReadAlignment {
     		return false;
     	}
        
-        if (!(o instanceof SplitReadAlignment)) return false;
-        
-        final SplitReadAlignment align = (SplitReadAlignment) o;
-        
+        if (!(o instanceof SplitReadAlignment align)) return false;
+
         if (reference.equals(align.getReference())) {
         	if (startPos == align.getStartPos()) {
         		if(endPos == align.getEndPos()) {
         			if (queryStart == align.getQueryStart()) {
-        				if (queryEnd == align.getQueryEnd()) {
-        					return true;
-        				}
+                        return queryEnd == align.getQueryEnd();
         			}
         		}
         	}

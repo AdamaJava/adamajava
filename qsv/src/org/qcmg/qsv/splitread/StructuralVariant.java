@@ -107,9 +107,7 @@ public class StructuralVariant {
 			if (knownSV.getOrientationCategory().equals(orientationCategory) || QSVConstants.LEVEL_SINGLE_CLIP.equals(confidenceLevel)) {
 				if (knownSV.getLeftReference().equals(leftReference) && (knownSV.getRightReference().equals(rightReference))) {
 					if (leftBreakpoint >= knownSV.getLeftBreakpoint() - buffer && leftBreakpoint <= knownSV.getLeftBreakpoint()  + buffer) {
-						if (rightBreakpoint >= knownSV.getRightBreakpoint() - buffer && rightBreakpoint <= knownSV.getRightBreakpoint() + buffer) {
-							return true;
-						}
+                        return rightBreakpoint >= knownSV.getRightBreakpoint() - buffer && rightBreakpoint <= knownSV.getRightBreakpoint() + buffer;
 					}
 				}
 			}

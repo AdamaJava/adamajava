@@ -84,10 +84,6 @@ public class Clip implements Comparable<Clip>{
 		return clipSequence;
 	}
 
-	public boolean isReverse() {
-		return isReverse;
-	}
-
 	public char getStrand() {
 		if (isReverse) {
 			return QSVUtil.MINUS;
@@ -128,12 +124,10 @@ public class Clip implements Comparable<Clip>{
 		if (this == aThat)
 			return true;
 
-		if (!(aThat instanceof Clip))
+		if (!(aThat instanceof Clip other))
 			return false;
 
-		Clip other = (Clip) aThat;
-
-		int diff = Integer.compare(bpPos, other.bpPos);
+        int diff = Integer.compare(bpPos, other.bpPos);
 		if (diff == 0) {
 			return this.readName.equals(other.readName);
 		} else {			

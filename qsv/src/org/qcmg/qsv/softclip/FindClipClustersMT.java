@@ -163,7 +163,9 @@ public class FindClipClustersMT  {
 			filterThreads.shutdown();            
 
 			logger.info("waiting for  threads to finish (max wait will be 100 hours)");
-			filterThreads.awaitTermination(Constants.EXECUTOR_SERVICE_AWAIT_TERMINATION, TimeUnit.HOURS);
+			if (!filterThreads.awaitTermination(Constants.EXECUTOR_SERVICE_AWAIT_TERMINATION, TimeUnit.HOURS)) {
+				logger.error("Filtering threads did not finish within the time limit");
+			}
 
 			if ( ! readQueue.isEmpty()) {
 				throw new Exception(
@@ -213,7 +215,9 @@ public class FindClipClustersMT  {
 						.currentThread(), overlapLatch));
 			}
 			overlapThreads.shutdown();
-			overlapThreads.awaitTermination(Constants.EXECUTOR_SERVICE_AWAIT_TERMINATION, TimeUnit.HOURS);
+			if (!overlapThreads.awaitTermination(Constants.EXECUTOR_SERVICE_AWAIT_TERMINATION, TimeUnit.HOURS)) {
+				logger.error("Overlap threads did not finish within the time limit");
+			}
 		} catch (Exception e) {
 			logger.error("Setting exit status in 1 as exception caught: "
 					+ QSVUtil.getStrackTrace(e));
@@ -242,9 +246,9 @@ public class FindClipClustersMT  {
 			logger.info(referenceKey + "- number of clusters: "  + clusters.size() + ", number of clips " + clips.size());
 			if (translocation) {
 				List<SoftClipCluster> properClips = getProperClipSVs(referenceKey, clips);
-				findOverlaps(referenceKey, records, clusters, properClips);
+				findOverlaps(records, clusters, properClips);
 			} else {    			
-				findOverlaps(referenceKey, records, clusters, clips);
+				findOverlaps(records, clusters, clips);
 			}    		
 		} else if (clusters != null) {
 			logger.info(referenceKey + "- number of clusters: "  + clusters.size());
@@ -302,7 +306,7 @@ public class FindClipClustersMT  {
 		return new ArrayList<>(clipRecords.keySet());
 	}
 
-	private void findOverlaps(String key, List<QSVCluster> records, List<DiscordantPairCluster> clusters, List<SoftClipCluster> clips) {
+	private void findOverlaps(List<QSVCluster> records, List<DiscordantPairCluster> clusters, List<SoftClipCluster> clips) {
 		Iterator<DiscordantPairCluster> iter = clusters.iterator();
 
 		// look for matches
@@ -548,7 +552,10 @@ public class FindClipClustersMT  {
 			executorService.shutdown();
 
 			try {
-				executorService.awaitTermination(Constants.EXECUTOR_SERVICE_AWAIT_TERMINATION, TimeUnit.HOURS);                  
+				if (!executorService.awaitTermination(Constants.EXECUTOR_SERVICE_AWAIT_TERMINATION, TimeUnit.HOURS)) {
+					logger.error("Threads did not finish within the time limit");
+				}
+
 
 			} catch (InterruptedException e) {             
 				logger.error("Interrupted exception caught (b): "
@@ -791,7 +798,10 @@ public class FindClipClustersMT  {
 				executorService.shutdown();
 
 				try {
-					executorService.awaitTermination(Constants.EXECUTOR_SERVICE_AWAIT_TERMINATION, TimeUnit.HOURS);                   
+					if (!executorService.awaitTermination(Constants.EXECUTOR_SERVICE_AWAIT_TERMINATION, TimeUnit.HOURS)) {
+						logger.error("Threads did not finish within the time limit");
+					}
+
 
 				} catch (InterruptedException e) {             
 					logger.error("Interrupted exception caught (c): "

@@ -422,12 +422,12 @@ public class SoftClipCluster implements Comparable<SoftClipCluster> {
             readRescuedClips(tumourFile, true, ref, bp, leftMap, rightMap, splitReads, consensusLength, chrBuffer, minInsertSize, p.getReadGroupIds(), p.getPairingType());
             readRescuedClips(normalFile, false, ref, bp, leftMap, rightMap, splitReads, consensusLength, chrBuffer, minInsertSize, p.getReadGroupIds(), p.getPairingType());
         }
-        findMaxRescueBreakpoint(p, cache, leftMap, rightMap, splitReads, softclipDir);
+        findMaxRescueBreakpoint(p, cache, leftMap, rightMap, splitReads);
     }
 
     public void findMaxRescueBreakpoint(QSVParameters p, TIntObjectMap<int[]> cache,
                                         Map<Integer, Breakpoint> leftMap,
-                                        Map<Integer, Breakpoint> rightMap, TreeMap<Integer, List<UnmappedRead>> splitReads, String softclipDir) throws Exception {
+                                        Map<Integer, Breakpoint> rightMap, TreeMap<Integer, List<UnmappedRead>> splitReads) throws Exception {
 
         //find maximum breakpoint
         Breakpoint maxLengthBp = null;
@@ -458,7 +458,7 @@ public class SoftClipCluster implements Comparable<SoftClipCluster> {
         if (maxLengthBp != null) {
 
             if (maxLengthBp.getMateConsensus().length() > 20) {
-                boolean match = maxLengthBp.findRescuedMateBreakpoint(cache, p, softclipDir);
+                boolean match = maxLengthBp.findRescuedMateBreakpoint(cache, p);
 
                 if (match) {
                     if (this.getSingleBreakpoint() != null) {
@@ -528,7 +528,7 @@ public class SoftClipCluster implements Comparable<SoftClipCluster> {
                             if (count > 5000) {
                                 break;
                             }
-                            Clip c = SoftClipStaticMethods.createSoftClipRecord(r, readGroupId, bpStart, bpEnd, reference);
+                            Clip c = SoftClipStaticMethods.createSoftClipRecord(r, readGroupId, bpStart, bpEnd);
                             if (c != null) {
                                 if (c.isLeft()) {
                                     Breakpoint b = leftMap.get(c.getBpPos());

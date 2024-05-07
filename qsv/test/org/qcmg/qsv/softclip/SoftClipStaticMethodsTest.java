@@ -33,7 +33,7 @@ public class SoftClipStaticMethodsTest {
         SAMRecord record = getSAMRecords(11); 
         
         //left clip
-		Clip leftClip = SoftClipStaticMethods.createSoftClipRecord(record, record.getReadGroup().getId(), 89712340, 89712350, "chr10");
+		Clip leftClip = SoftClipStaticMethods.createSoftClipRecord(record, record.getReadGroup().getId(), 89712340, 89712350);
 		assertTrue(leftClip.isLeft());
 		assertEquals(59, leftClip.getLength());
 		assertEquals("AAAGATCAACCTGTCCTAAGTCATATAATCTCTTTGTGTAAGAGATTATACTTTGTGTA", leftClip.getClipSequence());
@@ -45,7 +45,7 @@ public class SoftClipStaticMethodsTest {
 		
 		SAMRecord record = getSAMRecords(5); 
 		//right clip		
-		Clip rightClip = SoftClipStaticMethods.createSoftClipRecord(record, record.getReadGroup().getId(), 89699960, 89700400, "chr10");
+		Clip rightClip = SoftClipStaticMethods.createSoftClipRecord(record, record.getReadGroup().getId(), 89699960, 89700400);
 		assertEquals(14, rightClip.getLength());
 		assertEquals("GAGATTATACTTTG", rightClip.getClipSequence());
 		assertEquals(record.getAlignmentEnd(), rightClip.getBpPos());
@@ -56,8 +56,8 @@ public class SoftClipStaticMethodsTest {
 		
 		SAMRecord record = getSAMRecords(5); 
 		//right clip
-		SoftClipStaticMethods.createSoftClipRecord(record, record.getReadGroup().getId(), 89700213, 89700213, "chr10");
-		Clip rightClip = SoftClipStaticMethods.createSoftClipRecord(record, record.getReadGroup().getId(), 89712341, 89712341, "chr10");
+		SoftClipStaticMethods.createSoftClipRecord(record, record.getReadGroup().getId(), 89700213, 89700213);
+		Clip rightClip = SoftClipStaticMethods.createSoftClipRecord(record, record.getReadGroup().getId(), 89712341, 89712341);
 		assertNull(rightClip);
 	}
 	
