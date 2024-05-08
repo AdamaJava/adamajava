@@ -93,7 +93,7 @@ public class MatePairTest {
       
     @Test
     public void testGetPairClassificationFromSamRecord() throws QSVException, IOException, CloneNotSupportedException {
-        SAMRecord record = (SAMRecord) records.get(0).clone();
+        SAMRecord record = (SAMRecord) records.getFirst().clone();
         record.setAttribute("ZP", "C**");
         assertEquals("C**", record.getAttribute("ZP"));
         MatePair mate = new MatePair(record, record);
@@ -103,7 +103,7 @@ public class MatePairTest {
     @Test
     public void checkSortOrder() {
         //same chromosome: starts in right order
-        MatePair pair = pairs.get(0);
+        MatePair pair = pairs.getFirst();
         assertEquals(140188379, pair.getLeftMate().getStart());
         assertEquals(140191044, pair.getRightMate().getStart());
         
@@ -131,7 +131,7 @@ public class MatePairTest {
     @Test
     public void testToString() {
         
-        MatePair p = pairs.get(0);
+        MatePair p = pairs.getFirst();
         String expected = "254_166_1407:20110221052813657,chr7,140188379,140188428,ABC,65,false,254_166_1407:20110221052813657,chr7,140191044,140191093,ABC,129,false,F1F2\n";
 
         assertEquals(expected, p.toString());
@@ -156,7 +156,7 @@ public class MatePairTest {
     @Test
     public void testGetPairOrder() {
         MatePair p = pairs.get(0);
-        assertEquals("F1F2", p.getPairOrder());;        
+        assertEquals("F1F2", p.getPairOrder());
     }
     
     @Test 

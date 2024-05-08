@@ -96,7 +96,7 @@ public class AnnotatorTest {
     		sequencingRuns.add(r);
     		
     		 Annotator annotator = new Annotator(250, 2790, ftest, "pe", sequencingRuns, "pe", "bwa");
-    		 annotator.setNHAttribute("bwa", rec);
+    		 Annotator.setNHAttribute("bwa", rec);
     		 assertEquals(0, rec.getAttribute("NH"));
     		 
     		 // try running the whole annotation
@@ -109,7 +109,7 @@ public class AnnotatorTest {
     		 rec.setAttribute("ZP", null);
     		 rec.setAttribute("NH", null);
     		 
-    		 annotator.setNHAttribute("bwa-mem", rec);
+    		 Annotator.setNHAttribute("bwa-mem", rec);
     		 assertEquals(1, rec.getAttribute("NH"));
     		 
     		 rec.setAttribute("NH", null);
@@ -191,7 +191,7 @@ public class AnnotatorTest {
     
     @Test
     public void addNHAttribute() throws QSVException {
-  	    SAMRecord r1 = records.get(0);
+  	    SAMRecord r1 = records.getFirst();
   	    Annotator.setNHAttribute("bwa", r1);
   	    assertEquals(0, r1.getAttribute(QSVConstants.NH_SHORT));
   	    Annotator.setNHAttribute("bwa-mem", r1);

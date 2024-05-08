@@ -122,7 +122,7 @@ public class QSVClusterTest {
     @Test
     public void testGetGermlineRatio() throws IOException, Exception {
     	DiscordantPairCluster cluster = TestUtil.setupHiseqCluster("somatic", testFolder.newFolder(), "1");
-    	MatePair m =cluster.getClusterMatePairs().get(0);    	
+    	MatePair m =cluster.getClusterMatePairs().getFirst();
     	record = new QSVCluster(cluster, false,  "id");
     	
     	assertFalse(record.getPotentialGermline());
@@ -272,7 +272,7 @@ public class QSVClusterTest {
     
     private void setupReferenceFile(File file, File indexFile) throws IOException {
 	
-		try (BufferedWriter writer = new BufferedWriter(new FileWriter(file));) {
+		try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
 			writer.write(">chr25\n");
 			writer.write("GATCACAGGTCTATCACCCTATTAACCACTCACGGGAGCTCTCCATGCATTTGGTATTTTCGTCTGGGGG\n");
 			writer.write("GTATGCACGCGATAGCATTGCGAGACGCTGGAGCCGGAGCACCCTATGTCGCAGTATCTGTCTTTGATTC\n");
@@ -313,7 +313,7 @@ public class QSVClusterTest {
 			writer.write("ATCACCAGTATTAGAGGCACCGCCTGCCCAGTGACACATGTTTAACGGCCGCGGTACCCTAACCGTGCAA\n");
 		}
 		
-		try (BufferedWriter writer = new BufferedWriter(new FileWriter(indexFile));) {
+		try (BufferedWriter writer = new BufferedWriter(new FileWriter(indexFile))) {
 			writer.write("chr25\t16571\t7\t50\t51\n");
 		}
     }

@@ -3,7 +3,6 @@ package org.qcmg.qsv.annotate;
 import static org.junit.Assert.*;
 
 import org.junit.Test;
-import org.qcmg.qsv.annotate.RunTypeRecord;
 
 public class RunTypeRecordTest {
     

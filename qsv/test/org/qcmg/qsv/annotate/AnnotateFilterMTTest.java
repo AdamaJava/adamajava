@@ -130,8 +130,7 @@ public class AnnotateFilterMTTest {
 	    String[] args = new String[] {"--ini", iniFile.getAbsolutePath(), "--output-temporary",  testFolder.getRoot().toString()};
 	    Options options = new Options(args);
 	    options.parseIniFile();
-	    String matepairsDir = null;
-		QSVParameters p = new QSVParameters(options, true, testFolder.getRoot().toString() , "test", null);
+        QSVParameters p = new QSVParameters(options, true, testFolder.getRoot().toString() , "test", null);
 		AnnotateFilterMT afmt = new AnnotateFilterMT(wGoodLatch, p, null, null, options);
 		afmt.new AnnotationFiltering(readQueue, writeQueue, writeClipQueue, mainThread, fLatch, wGoodLatch);
     	
