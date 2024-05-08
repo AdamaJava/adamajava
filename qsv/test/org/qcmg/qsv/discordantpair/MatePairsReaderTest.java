@@ -14,10 +14,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.qsv.QSVException;
-import org.qcmg.qsv.discordantpair.MatePair;
-import org.qcmg.qsv.discordantpair.MatePairsReader;
-import org.qcmg.qsv.discordantpair.PairClassification;
-import org.qcmg.qsv.discordantpair.PairGroup;
 import org.qcmg.qsv.util.TestUtil;
 
 public class MatePairsReaderTest {
@@ -38,7 +34,7 @@ public class MatePairsReaderTest {
    	   assertNotNull(reader.getFilesToRead());
    	   assertNotNull(reader.getFilesToRead().get("chr7"));
    	   assertEquals(1, reader.getFilesToRead().get("chr7").size());
-   	   assertEquals(fileName, reader.getFilesToRead().get("chr7").get(0).getName()); 
+   	   assertEquals(fileName, reader.getFilesToRead().get("chr7").getFirst().getName());
     }
     
     @After

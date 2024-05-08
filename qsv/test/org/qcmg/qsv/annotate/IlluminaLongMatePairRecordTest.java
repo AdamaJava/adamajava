@@ -39,7 +39,7 @@ public class IlluminaLongMatePairRecordTest {
     
     @Test    
     public void testHandleOrientation() {
-        SAMRecord record = records.get(0);
+        SAMRecord record = records.getFirst();
         record.setFlags(129);
         IlluminaLongMatePairRecord pe = new IlluminaLongMatePairRecord(record, 350, 2360);
         pe.setZPAnnotation("B");
@@ -68,7 +68,7 @@ public class IlluminaLongMatePairRecordTest {
     
     @Test
     public void testHandleIntervalSize() {
-    	 SAMRecord record = records.get(0);
+    	 SAMRecord record = records.getFirst();
          record.setFlags(129);
          IlluminaLongMatePairRecord pe = new IlluminaLongMatePairRecord(record, 350, 2360);
          pe.setZPAnnotation(""); 
@@ -88,7 +88,7 @@ public class IlluminaLongMatePairRecordTest {
     
     @Test
     public void testIsInward() {
-    	SAMRecord record = records.get(0);
+    	SAMRecord record = records.getFirst();
         record.setFlags(33);
         IlluminaLongMatePairRecord pe = new IlluminaLongMatePairRecord(record, 350, 2360);
         assertTrue(pe.isInward());
@@ -112,7 +112,7 @@ public class IlluminaLongMatePairRecordTest {
         assertTrue(pe.isReadForward());
         assertTrue(pe.isMateReverse());
         
-        record = records.get(0);
+        record = records.getFirst();
         record.setFlags(17);
         pe = new IlluminaLongMatePairRecord(record, 350, 2360);
         assertTrue(pe.isOutward());
@@ -152,7 +152,7 @@ public class IlluminaLongMatePairRecordTest {
 	 	pe = new IlluminaLongMatePairRecord(record, 11000, 12000);
 	 	assertTrue(pe.isF3toF5());
 	 	
-	 	record = records.get(0);
+	 	record = records.getFirst();
 	 	record.setFlags(65);
    	 	pe = new IlluminaLongMatePairRecord(record, 11000, 12000);
    	 	assertTrue(pe.isF3toF5());
@@ -164,7 +164,7 @@ public class IlluminaLongMatePairRecordTest {
     
     @Test
     public void testIsF5toF3() {
-    	SAMRecord record = records.get(0);    	
+    	SAMRecord record = records.getFirst();
     	record.setFlags(129);
    	 	IlluminaLongMatePairRecord pe = new IlluminaLongMatePairRecord(record, 11000, 12000);
    	 	assertTrue(pe.isF5toF3());
@@ -185,7 +185,7 @@ public class IlluminaLongMatePairRecordTest {
     
     @Test
     public void testIsSameStrand() {
-    	SAMRecord record = records.get(0);  
+    	SAMRecord record = records.getFirst();
     	record.setFlags(129);
     	IlluminaLongMatePairRecord pe = new IlluminaLongMatePairRecord(record, 11000, 12000);
     	assertTrue(pe.isSameStrand());
@@ -201,7 +201,7 @@ public class IlluminaLongMatePairRecordTest {
     
     @Test
     public void testIsDifferentStrand() {
-    	SAMRecord record = records.get(0);  
+    	SAMRecord record = records.getFirst();
     	record.setFlags(129);
     	IlluminaLongMatePairRecord pe = new IlluminaLongMatePairRecord(record, 11000, 12000);
     	assertFalse(pe.isDifferentStrand());
@@ -218,12 +218,12 @@ public class IlluminaLongMatePairRecordTest {
     @Test
     public void testCreateZPAnnotation() {
     	
-    	assertZPAnnotation(records.get(0), 97, "ABC");
+    	assertZPAnnotation(records.getFirst(), 97, "ABC");
     	assertZPAnnotation(records.get(14), 147, "AAA");
-    	assertZPAnnotation(records.get(0), 1169, "Z**");
+    	assertZPAnnotation(records.getFirst(), 1169, "Z**");
     	assertZPAnnotation(records.get(16), 147, "C**");
-    	assertZPAnnotation(records.get(0), 9, "D**");
-    	assertZPAnnotation(records.get(0), 513, "E**");    	
+    	assertZPAnnotation(records.getFirst(), 9, "D**");
+    	assertZPAnnotation(records.getFirst(), 513, "E**");
     }
     
     public void assertZPAnnotation(SAMRecord record, int flags, String annotation) {

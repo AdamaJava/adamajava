@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -31,7 +32,7 @@ import org.qcmg.qsv.util.TestUtil;
 
 public class FindDiscorantPairClustersMTTest {
 
-	private static final String FILE_SEPERATOR = System.getProperty("file.separator");
+	private static final String FILE_SEPARATOR = FileSystems.getDefault().getSeparator();
 	private  File tumorBam;
 	private  File normalBam;
 	private MatePairsReader findReader;
@@ -73,10 +74,10 @@ public class FindDiscorantPairClustersMTTest {
 
 	@Test
 	public void testRunTumorWithGermline() throws InterruptedException, ExecutionException, IOException {
-		TestUtil.createTmpClusterFile(matePairDir.getAbsolutePath() + FILE_SEPERATOR, PairClassification.AAC, "chr7_test_TD_AAC");
-		TestUtil.createTmpClusterFile(matePairDir.getAbsolutePath() + FILE_SEPERATOR, PairClassification.AAC, "chr7_test_ND_AAC");
-		findReader = new MatePairsReader(PairGroup.valueOf("AAC"), matePairDir.getAbsolutePath() + FILE_SEPERATOR, "test", "TD");
-		compareReader = new MatePairsReader(PairGroup.valueOf("AAC"), matePairDir.getAbsolutePath() + FILE_SEPERATOR, "test", "ND");
+		TestUtil.createTmpClusterFile(matePairDir.getAbsolutePath() + FILE_SEPARATOR, PairClassification.AAC, "chr7_test_TD_AAC");
+		TestUtil.createTmpClusterFile(matePairDir.getAbsolutePath() + FILE_SEPARATOR, PairClassification.AAC, "chr7_test_ND_AAC");
+		findReader = new MatePairsReader(PairGroup.valueOf("AAC"), matePairDir.getAbsolutePath() + FILE_SEPARATOR, "test", "TD");
+		compareReader = new MatePairsReader(PairGroup.valueOf("AAC"), matePairDir.getAbsolutePath() + FILE_SEPARATOR, "test", "ND");
 		//germline
 
 		findClusters = new FindDiscordantPairClustersMT(PairGroup.AAC, countDownLatch, findReader,
@@ -91,9 +92,9 @@ public class FindDiscorantPairClustersMTTest {
 
 	@Test
 	public void testRunTumorWithSomatic() throws InterruptedException, ExecutionException, IOException {
-		TestUtil.createTmpClusterFile(matePairDir.getAbsolutePath() + FILE_SEPERATOR, PairClassification.AAC, "chr7_test_TD_AAC");
-		findReader = new MatePairsReader(PairGroup.valueOf("AAC"), matePairDir.getAbsolutePath() + FILE_SEPERATOR, "test", "TD");
-		compareReader = new MatePairsReader(PairGroup.valueOf("AAC"), matePairDir.getAbsolutePath() + FILE_SEPERATOR, "test", "ND");
+		TestUtil.createTmpClusterFile(matePairDir.getAbsolutePath() + FILE_SEPARATOR, PairClassification.AAC, "chr7_test_TD_AAC");
+		findReader = new MatePairsReader(PairGroup.valueOf("AAC"), matePairDir.getAbsolutePath() + FILE_SEPARATOR, "test", "TD");
+		compareReader = new MatePairsReader(PairGroup.valueOf("AAC"), matePairDir.getAbsolutePath() + FILE_SEPARATOR, "test", "ND");
 		//germline
 		findClusters = new FindDiscordantPairClustersMT(PairGroup.AAC, countDownLatch, findReader,
 				compareReader, tumor, normal, countReport, query, true);
@@ -107,9 +108,9 @@ public class FindDiscorantPairClustersMTTest {
 
 	@Test
 	public void testRunNormal() throws InterruptedException, ExecutionException, IOException {
-		TestUtil.createTmpClusterFile(matePairDir.getAbsolutePath() + FILE_SEPERATOR, PairClassification.AAC, "chr7_test_ND_AAC");
-		findReader = new MatePairsReader(PairGroup.valueOf("AAC"), matePairDir.getAbsolutePath() + FILE_SEPERATOR, "test", "TD");
-		compareReader = new MatePairsReader(PairGroup.valueOf("AAC"), matePairDir.getAbsolutePath() + FILE_SEPERATOR, "test", "ND");
+		TestUtil.createTmpClusterFile(matePairDir.getAbsolutePath() + FILE_SEPARATOR, PairClassification.AAC, "chr7_test_ND_AAC");
+		findReader = new MatePairsReader(PairGroup.valueOf("AAC"), matePairDir.getAbsolutePath() + FILE_SEPARATOR, "test", "TD");
+		compareReader = new MatePairsReader(PairGroup.valueOf("AAC"), matePairDir.getAbsolutePath() + FILE_SEPARATOR, "test", "ND");
 		findClusters = new FindDiscordantPairClustersMT(PairGroup.AAC, countDownLatch, compareReader,
 				findReader, normal, tumor, countReport, query, true);
 
@@ -123,11 +124,11 @@ public class FindDiscorantPairClustersMTTest {
 
 	@Test
 	public void testFindCxxClusters() throws Exception {
-		TestUtil.createTmpClusterFile(matePairDir.getAbsolutePath() + FILE_SEPERATOR, PairClassification.Cxx, "chr4-chr15_test_TD_AAC");
-		TestUtil.createTmpClusterFile(matePairDir.getAbsolutePath() + FILE_SEPERATOR, PairClassification.Cxx, "chr4-chr15_test_ND_AAC");
+		TestUtil.createTmpClusterFile(matePairDir.getAbsolutePath() + FILE_SEPARATOR, PairClassification.Cxx, "chr4-chr15_test_TD_AAC");
+		TestUtil.createTmpClusterFile(matePairDir.getAbsolutePath() + FILE_SEPARATOR, PairClassification.Cxx, "chr4-chr15_test_ND_AAC");
 
-		findReader = new MatePairsReader(PairGroup.valueOf("Cxx"), matePairDir.getAbsolutePath() + FILE_SEPERATOR, "test", "TD");
-		compareReader = new MatePairsReader(PairGroup.valueOf("Cxx"), matePairDir.getAbsolutePath() + FILE_SEPERATOR, "test", "ND");
+		findReader = new MatePairsReader(PairGroup.valueOf("Cxx"), matePairDir.getAbsolutePath() + FILE_SEPARATOR, "test", "TD");
+		compareReader = new MatePairsReader(PairGroup.valueOf("Cxx"), matePairDir.getAbsolutePath() + FILE_SEPARATOR, "test", "ND");
 		findClusters = new FindDiscordantPairClustersMT(PairGroup.Cxx,
 				countDownLatch, findReader,
 				compareReader, tumor,normal, countReport, query, true);
@@ -142,23 +143,23 @@ public class FindDiscorantPairClustersMTTest {
 
 	@Test
 	public void testFindClusters() throws Exception {
-		TestUtil.createTmpClusterFile(matePairDir.getAbsolutePath() + FILE_SEPERATOR, PairClassification.AAC, "chr7_test_TD_AAC");
+		TestUtil.createTmpClusterFile(matePairDir.getAbsolutePath() + FILE_SEPARATOR, PairClassification.AAC, "chr7_test_TD_AAC");
 		findClusters = new FindDiscordantPairClustersMT(PairGroup.AAC, countDownLatch, findReader, compareReader, tumor, normal, countReport, "", true);
-		findReader = new MatePairsReader(PairGroup.valueOf("AAC"), matePairDir.getAbsolutePath() + FILE_SEPERATOR, "test", "TD");
-		List<MatePair> pairs = TestUtil.readInMatePairs(new File(matePairDir.getAbsolutePath() + FILE_SEPERATOR + "AAC" + FILE_SEPERATOR + "chr7_test_TD_AAC"));
+		findReader = new MatePairsReader(PairGroup.valueOf("AAC"), matePairDir.getAbsolutePath() + FILE_SEPARATOR, "test", "TD");
+		List<MatePair> pairs = TestUtil.readInMatePairs(new File(matePairDir.getAbsolutePath() + FILE_SEPARATOR + "AAC" + FILE_SEPARATOR + "chr7_test_TD_AAC"));
 
 		assertEquals(6, pairs.size());
 		List<DiscordantPairCluster> list = findClusters.findClusters(pairs);
 
 		assertEquals(1, list.size());
-		assertEquals(6, list.get(0).getClusterMatePairs().size());
+		assertEquals(6, list.getFirst().getClusterMatePairs().size());
 	}
 
 	@Test
 	public void testClassifyGermlineCluster() throws IOException, Exception {
-		TestUtil.createTmpClusterFile(matePairDir.getAbsolutePath() + FILE_SEPERATOR, PairClassification.AAC, "chr7_test_ND_AAC");
+		TestUtil.createTmpClusterFile(matePairDir.getAbsolutePath() + FILE_SEPARATOR, PairClassification.AAC, "chr7_test_ND_AAC");
 		findClusters = new FindDiscordantPairClustersMT(PairGroup.AAC, countDownLatch, findReader, compareReader, tumor, normal, countReport, "", true); 
-		List<MatePair> pairs = TestUtil.readInMatePairs(new File(matePairDir.getAbsolutePath() + FILE_SEPERATOR + "AAC" + FILE_SEPERATOR + "chr7_test_ND_AAC"));
+		List<MatePair> pairs = TestUtil.readInMatePairs(new File(matePairDir.getAbsolutePath() + FILE_SEPARATOR + "AAC" + FILE_SEPARATOR + "chr7_test_ND_AAC"));
 		findClusters.classifyClusters(Arrays.asList(TestUtil.setupSolidCluster(PairGroup.AAC, "somatic", testFolder.getRoot(), "chr7", "chr7")), pairs);
 
 		assertEquals(1, findClusters.getClustersMap().get("germline").size());	
@@ -166,7 +167,7 @@ public class FindDiscorantPairClustersMTTest {
 
 	@Test
 	public void testClassifySomaticCluster() throws IOException, Exception {
-		TestUtil.createTmpClusterFile(matePairDir.getAbsolutePath() + FILE_SEPERATOR, PairClassification.AAC, "chr7_test_ND_AAC");
+		TestUtil.createTmpClusterFile(matePairDir.getAbsolutePath() + FILE_SEPARATOR, PairClassification.AAC, "chr7_test_ND_AAC");
 		findClusters = new FindDiscordantPairClustersMT(PairGroup.AAC, countDownLatch, findReader, compareReader, tumor, normal, countReport, query, true); 
 
 		findClusters.classifyClusters(Arrays.asList(TestUtil.setupSolidCluster(PairGroup.AAC, "somatic", testFolder.getRoot(), "chr7", "chr7")), Arrays.asList(new MatePair("722_126_792:20110412030837875,chr4,100,200,Cxx,129,false,722_126_792:20110412030837875,chr15,300,400,Cxx,65,false,F2F1\n")));
@@ -175,7 +176,7 @@ public class FindDiscorantPairClustersMTTest {
 
 	@Test
 	public void testClassifyNormalGermlineCluster() throws IOException, Exception {
-		TestUtil.createTmpClusterFile(matePairDir.getAbsolutePath() + FILE_SEPERATOR, PairClassification.AAC, "chr7_test_ND_AAC");
+		TestUtil.createTmpClusterFile(matePairDir.getAbsolutePath() + FILE_SEPARATOR, PairClassification.AAC, "chr7_test_ND_AAC");
 		findClusters = new FindDiscordantPairClustersMT(PairGroup.AAC, countDownLatch, compareReader, findReader, normal, tumor, countReport, query, true); 
 
 		findClusters.classifyClusters(Arrays.asList(TestUtil.setupSolidCluster(PairGroup.AAC, "somatic", testFolder.getRoot(), "chr7", "chr7")), Collections.emptyList());

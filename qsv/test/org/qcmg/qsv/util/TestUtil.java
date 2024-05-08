@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -41,8 +42,8 @@ import htsjdk.samtools.SamReader;
 
 public class TestUtil {
 	
-	private static final String FILE_SEPERATOR = System.getProperty("file.separator");
-	private static String NEWLINE = System.getProperty("line.separator");
+	private static final String FILE_SEPARATOR = FileSystems.getDefault().getSeparator();
+	private static String NEWLINE = System.lineSeparator();
 	
 	public final static SAMFileHeader SOLID_SAM_FILE_HEADER_COORDINATE_SORTED = createSamHeaderObject(SortOrder.coordinate);
 	public final static SAMFileHeader SOLID_SAM_FILE_HEADER_QUERY_NAME_SORTED = createSamHeaderObject(SortOrder.queryname);
@@ -224,13 +225,13 @@ public class TestUtil {
         Options options = new Options(getValidOptions(testFolder, normalBam, tumorBam, "both", analysisMode));
         options.parseIniFile();
      
-        String matepairsDir = new File(testFolder, "matepair").getAbsolutePath() + FILE_SEPERATOR;
+        String matepairsDir = new File(testFolder, "matepair").getAbsolutePath() + FILE_SEPARATOR;
         for (PairClassification zp : PairClassification.values()) {
-            File mateDir = new File(matepairsDir + zp.getPairingClassification() + FILE_SEPERATOR);
+            File mateDir = new File(matepairsDir + zp.getPairingClassification() + FILE_SEPARATOR);
             mateDir.mkdir();
         }
         
-        QSVParameters p = new QSVParameters(options, isTumor, testFolder.getAbsolutePath() + FILE_SEPERATOR, "test", null);
+        QSVParameters p = new QSVParameters(options, isTumor, testFolder.getAbsolutePath() + FILE_SEPARATOR, "test", null);
         return p;
     }
 
@@ -239,15 +240,15 @@ public class TestUtil {
         Options options = new Options(getValidOptions(testFolder, normalBam, tumorBam, preprocessMode, analysisMode));
         options.parseIniFile();
 
-        String matepairsDir = new File(testFolder, "matepair").getAbsolutePath() + FILE_SEPERATOR;
+        String matepairsDir = new File(testFolder, "matepair").getAbsolutePath() + FILE_SEPARATOR;
         
         for (PairClassification zp : PairClassification.values()) {
-            File mateDir = new File(matepairsDir + zp.getPairingClassification() + FILE_SEPERATOR);
+            File mateDir = new File(matepairsDir + zp.getPairingClassification() + FILE_SEPARATOR);
             mateDir.mkdir();
         }
         
        // QSVParameters p = new QSVParameters(options, isTumor, testFolder.getRoot().toString() + FILE_SEPERATOR, matepairsDir, new Date(), "test");
-        QSVParameters p = new QSVParameters(options, isTumor, testFolder.getAbsolutePath() + FILE_SEPERATOR, "test", null);
+        QSVParameters p = new QSVParameters(options, isTumor, testFolder.getAbsolutePath() + FILE_SEPARATOR, "test", null);
         return p;
     }
     
@@ -273,7 +274,7 @@ public class TestUtil {
     	List<SAMRecord> samRecords = new ArrayList<>();
     	SAMFileHeader header = null;
     	
-    	try ( SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(samFile)); ) {
+    	try ( SamReader reader = SAMFileReaderFactory.createSAMFileReader(new File(samFile)) ) {
     		header = reader.getFileHeader();
     		 for (SAMRecord r : reader) {
     			 samRecords.add(r);
@@ -285,7 +286,7 @@ public class TestUtil {
     	SAMFileWriterFactory factory = new SAMFileWriterFactory();
     	factory.setCreateIndex(true);
     	
-        try (SAMFileWriter writer = factory.makeBAMWriter(header, false, new File(inputFileName));) {
+        try (SAMFileWriter writer = factory.makeBAMWriter(header, false, new File(inputFileName))) {
 		    for (SAMRecord r : samRecords) {
 			    writer.addAlignment(r);
 		    }
@@ -426,7 +427,7 @@ public class TestUtil {
 		SAMFileHeader h = createSamHeaderObject(so); 
 		String rg = "20110221052813657";
 		String zp = "AAC";
-		Integer one = Integer.valueOf(1);
+		Integer one = 1;
 		
 		SAMRecord s1 = getSAM(h, "254_166_1407", 129, "chr7",140188379,  63, "50M", "chr7", 140191044,  2715, "ACGGCTCATGTCTCCTTAGAATGTATAAAAGCAAGCTGTGCTCTGACCAC", "IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIA", "40A9", rg,zp, one);
 		SAMRecord s2 = getSAM(h, "254_166_1407", 65, "chr7",140191044,  63, "50M", "chr7", 140188379,  -2715, "ACTCCATTTCTAGAAAAAAATTAGAAAATTAACTGGAACCAGGAGAGGTG", "IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIHIIIIIII@", "18C31", rg,zp, one);
@@ -628,7 +629,7 @@ public class TestUtil {
 		
 		File testDir = new File(dirName + pc.getPairingClassification());
 		testDir.mkdir();
-		String outFile = testDir + FILE_SEPERATOR + fileName;
+		String outFile = testDir + FILE_SEPARATOR + fileName;
 		
 		try (BufferedWriter writer = new BufferedWriter(new FileWriter(new File(outFile)))) {
 		
@@ -871,7 +872,7 @@ public class TestUtil {
 	      }
 	      
 	      if ( ! clusterType.equals("somatic")) {
-	    	  	cluster.getMatchedReadPairs().add(pairs.get(0));
+	    	  	cluster.getMatchedReadPairs().add(pairs.getFirst());
 	      }
 	      
 	      cluster.setClusterEnds();

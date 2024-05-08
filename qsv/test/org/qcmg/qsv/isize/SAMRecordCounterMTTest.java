@@ -33,17 +33,16 @@ public class SAMRecordCounterMTTest {
 		SAMRecordCounterMT worker = new SAMRecordCounterMT(file);
 		List<RunTypeRecord> records = new ArrayList<>(worker.getRunRecords());
 		assertEquals(1, records.size());
-		RunTypeRecord record = records.get(0);
+		RunTypeRecord record = records.getFirst();
 		assertEquals("20110221052813657", record.getRgId());
 		assertEquals(725, record.getUpper());
 		assertEquals(85, record.getLower());
 	}
 
 	private void createBamFile(File file) throws IOException {
-		List<String> data = new ArrayList<>();
-		data.addAll(createSamHeader(SortOrder.unsorted));
+        List<String> data = new ArrayList<>(createSamHeader(SortOrder.unsorted));
 
-		try (BufferedWriter out = new BufferedWriter(new FileWriter(file));) {
+		try (BufferedWriter out = new BufferedWriter(new FileWriter(file))) {
 	        for (final String line : data) {
 	            out.write(line + "\n");
 	        }

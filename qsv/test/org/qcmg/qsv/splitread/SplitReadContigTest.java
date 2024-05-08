@@ -68,9 +68,9 @@ public class SplitReadContigTest {
 	public void testLeftLower() throws UnsupportedEncodingException, QSVException {
 		createStandardObject(1);
 		splitReadContig.setSplitReadAlignments(left, right);
-		assertTrue(SplitReadContig.leftLower(left.getQueryStart().intValue(), right.getQueryStart().intValue()));
+		assertTrue(SplitReadContig.leftLower(left.getQueryStart(), right.getQueryStart()));
 		splitReadContig.setSplitReadAlignments(right, left);
-		assertFalse(SplitReadContig.leftLower(right.getQueryStart().intValue(), left.getQueryStart().intValue()));
+		assertFalse(SplitReadContig.leftLower(right.getQueryStart(), left.getQueryStart()));
 	}
 	
 	@Test
@@ -277,12 +277,12 @@ public class SplitReadContigTest {
 		
 		System.out.println("left strand: " + left.getStrand());
 		System.out.println("right strand: " + right.getStrand());
-		System.out.println("left lower: " + (left.getQueryStart().intValue() < right.getQueryStart().intValue()));
-		System.out.println("left getQueryStart: " + left.getQueryStart().intValue());
-		System.out.println("left getQueryEnd: " + left.getQueryEnd().intValue());
+		System.out.println("left lower: " + (left.getQueryStart() < right.getQueryStart()));
+		System.out.println("left getQueryStart: " + left.getQueryStart());
+		System.out.println("left getQueryEnd: " + left.getQueryEnd());
 		System.out.println("left getStartPos: " + left.getStartPos());
-		System.out.println("right getQueryStart: " + right.getQueryStart().intValue());
-		System.out.println("right getQueryEnd: " + right.getQueryEnd().intValue());
+		System.out.println("right getQueryStart: " + right.getQueryStart());
+		System.out.println("right getQueryEnd: " + right.getQueryEnd());
 		
 		assertEquals(1, right.getQueryStart().intValue());
 		assertEquals(60, right.getQueryEnd().intValue());

@@ -169,7 +169,7 @@ public class OptionsTest {
     }
 
     @Test
-    public void testHelpOption() throws QSVException, InvalidFileFormatException, IOException {
+    public void testHelpOption() throws QSVException, IOException {
         Options options = new Options(new String[] {"--help"});
         assertTrue(options.hasHelpOption());
 

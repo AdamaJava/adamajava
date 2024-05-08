@@ -8,7 +8,6 @@ import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMFileHeader.SortOrder;
 
 import org.junit.Test;
-import org.qcmg.qsv.annotate.SOLiDLongMatePairRecord;
 import org.qcmg.qsv.util.TestUtil;
 
 public class SOLiDLongMatePairRecordTest {
@@ -51,7 +50,7 @@ public class SOLiDLongMatePairRecordTest {
         lmp.createZPAnnotation();
         
         //Read is R3 (second pair), R3 left of F3, Same strand, reverse
-        record = records.get(0);
+        record = records.getFirst();
         record.setFlags(177);
         assertFalse(record.getFirstOfPairFlag());
         assertTrue(record.getAlignmentStart() > record.getMateAlignmentStart());
@@ -73,7 +72,7 @@ public class SOLiDLongMatePairRecordTest {
         assertFalse(lmp.isF3ToR3());
         
         //Read is F3 (first of pair), F3 right of R3, Same strand, forward
-        record = records.get(0);
+        record = records.getFirst();
         record.setFlags(65);
         assertTrue(record.getFirstOfPairFlag());
         assertTrue(record.getAlignmentStart() > record.getMateAlignmentStart());
@@ -96,7 +95,7 @@ public class SOLiDLongMatePairRecordTest {
 
         
         //Read is R3 (second pair), R3 left of F3, Same strand, reverse
-        record = records.get(0);
+        record = records.getFirst();
         record.setFlags(129);
         assertFalse(record.getFirstOfPairFlag());
         assertTrue(record.getAlignmentStart() > record.getMateAlignmentStart());
@@ -118,7 +117,7 @@ public class SOLiDLongMatePairRecordTest {
         assertTrue(lmp.isF3ToR3());
         
         //Read is F3 (first of pair), F3 right of R3, Same strand, forward
-        record = records.get(0);
+        record = records.getFirst();
         record.setFlags(113);
         assertTrue(record.getFirstOfPairFlag());
         assertTrue(record.getAlignmentStart() > record.getMateAlignmentStart());
@@ -166,7 +165,7 @@ public class SOLiDLongMatePairRecordTest {
         assertTrue(lmp.isReadReverse());
         assertTrue(lmp.isMateReverse());
         
-        record = records.get(0);
+        record = records.getFirst();
         record.setFlags(145);
         lmp = new SOLiDLongMatePairRecord(record, 350, 2360);
         assertTrue(lmp.isInward());
@@ -192,7 +191,7 @@ public class SOLiDLongMatePairRecordTest {
         assertTrue(lmp.isReadReverse());
         assertTrue(lmp.isMateReverse());
         
-        record = records.get(0);
+        record = records.getFirst();
         record.setFlags(161);
         lmp = new SOLiDLongMatePairRecord(record, 350, 2360);
         assertTrue(lmp.isOutward());
@@ -203,7 +202,7 @@ public class SOLiDLongMatePairRecordTest {
     
     @Test
     public void testSameStrandIsTrue () {
-        SAMRecord record1 = records.get(0);        
+        SAMRecord record1 = records.getFirst();
         
         //Both on positive strand
         record1.setFlags(65);
@@ -222,7 +221,7 @@ public class SOLiDLongMatePairRecordTest {
     
     @Test
     public void testSameStrandIsFalse () {
-        SAMRecord record1 = records.get(0);        
+        SAMRecord record1 = records.getFirst();
         
         //Read positive, mate negative
         record1.setFlags(97);
@@ -241,7 +240,7 @@ public class SOLiDLongMatePairRecordTest {
     
     @Test
     public void testHandleOrientation () {
-        SAMRecord record = records.get(0);
+        SAMRecord record = records.getFirst();
         record.setFlags(145);
         SOLiDLongMatePairRecord lmp = new SOLiDLongMatePairRecord(record, 350, 2360);
         lmp.setZPAnnotation("B");
@@ -253,7 +252,7 @@ public class SOLiDLongMatePairRecordTest {
         lmp.setZPAnnotation("B");
         assertEquals("BX", lmp.handleOrientation());
         
-        record = records.get(0);
+        record = records.getFirst();
         record.setFlags(161);
         lmp = new SOLiDLongMatePairRecord(record, 350, 2360);
         lmp.setZPAnnotation("B");
@@ -273,7 +272,7 @@ public class SOLiDLongMatePairRecordTest {
         lmp.setZPAnnotation("A");
         assertEquals("AA", lmp.handleOrientation());
         
-        record = records.get(0);
+        record = records.getFirst();
         record.setFlags(145);
         lmp = new SOLiDLongMatePairRecord(record, 350, 2360);
         lmp.setZPAnnotation("A");
@@ -290,14 +289,14 @@ public class SOLiDLongMatePairRecordTest {
         lmp.createZPAnnotation();
         assertEquals("D**", lmp.getZPAnnotation());
         
-        record = records.get(0);
+        record = records.getFirst();
         record.setFlags(641);
         record.setAttribute("NH", 1);        
         lmp = new SOLiDLongMatePairRecord(record, 350, 2360);
         lmp.createZPAnnotation();
         assertEquals("E**", lmp.getZPAnnotation());
         
-        record = records.get(0);
+        record = records.getFirst();
         record.setFlags(577);
         record.setAttribute("NH", 1);        
         lmp = new SOLiDLongMatePairRecord(record, 350, 2360);

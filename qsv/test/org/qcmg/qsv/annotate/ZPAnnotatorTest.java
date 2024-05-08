@@ -43,7 +43,7 @@ public class ZPAnnotatorTest {
     
     @Test    
     public void testHandleOrientation() {
-        SAMRecord record = records.get(0);
+        SAMRecord record = records.getFirst();
         record.setFlags(129);
         assertEquals("BB", ZPAnnotator.handleOrientation(record, "B"));
         
@@ -59,7 +59,7 @@ public class ZPAnnotatorTest {
     
     @Test
     public void testHandleIntervalSize() {
-    	SAMRecord record = records.get(0);
+    	SAMRecord record = records.getFirst();
         record.setFlags(129);
         assertEquals("C", ZPAnnotator.handleIntervalSize(record, 350, 2360));
         assertEquals("A", ZPAnnotator.handleIntervalSize(record, 350, 13000));
@@ -68,7 +68,7 @@ public class ZPAnnotatorTest {
     
     @Test
     public void testIsInward() {
-		SAMRecord record = records.get(0);
+		SAMRecord record = records.getFirst();
         record.setFlags(33);
         assertTrue(ZPAnnotator.isInward(record));
         assertTrue(ZPAnnotator.isReadForward(record));
@@ -89,7 +89,7 @@ public class ZPAnnotatorTest {
         assertTrue(ZPAnnotator.isReadForward(record));
         assertTrue(ZPAnnotator.isMateReverse(record));
         
-        record = records.get(0);
+        record = records.getFirst();
         record.setFlags(17);
         assertTrue(ZPAnnotator.isOutward(record));
         assertTrue(ZPAnnotator.isMateForward(record));
@@ -123,7 +123,7 @@ public class ZPAnnotatorTest {
    	 	record.setFlags(113);
 	 	assertTrue(ZPAnnotator.isF3toF5(record));
 	 	
-	 	record = records.get(0);
+	 	record = records.getFirst();
 	 	record.setFlags(65);
    	 	assertTrue(ZPAnnotator.isF3toF5(record));
    	 	
@@ -133,7 +133,7 @@ public class ZPAnnotatorTest {
     
     @Test
     public void testIsF5toF3() {
-    	SAMRecord record = records.get(0);    	
+    	SAMRecord record = records.getFirst();
     	record.setFlags(129);
    	 	assertTrue(ZPAnnotator.isF5toF3(record));
    	 	
@@ -150,7 +150,7 @@ public class ZPAnnotatorTest {
     
     @Test
     public void testIsSameStrand() {
-    	SAMRecord record = records.get(0);  
+    	SAMRecord record = records.getFirst();
     	record.setFlags(129);
     	assertTrue(ZPAnnotator.isSameStrand(record));
     	
@@ -163,7 +163,7 @@ public class ZPAnnotatorTest {
     
     @Test
     public void testIsDifferentStrand() {
-    	SAMRecord record = records.get(0);  
+    	SAMRecord record = records.getFirst();
     	record.setFlags(129);
     	assertFalse(ZPAnnotator.isDifferentStrand(record));
     	
@@ -177,11 +177,11 @@ public class ZPAnnotatorTest {
     @Test
     public void createZPAnnotationAAA() {
 		// read is left of mate, read is forward, mate is reverse && normal distance
-		SAMRecord rec = records.get(0);
-		rec.setAttribute(QSVConstants.NH, Integer.valueOf(1));
+		SAMRecord rec = records.getFirst();
+		rec.setAttribute(QSVConstants.NH, 1);
 		rec.setInferredInsertSize(1000);
 		assertZPAnnotation(rec, 35, QSVConstants.AAA);
-		rec.setAttribute(QSVConstants.NH, Integer.valueOf(0));
+		rec.setAttribute(QSVConstants.NH, 0);
 		assertZPAnnotation(rec, 35, QSVConstants.AAA);
 		
 		// alternatively, NH is null, and we are on dif strands
@@ -192,8 +192,8 @@ public class ZPAnnotatorTest {
     @Test
     public void createZPAnnotationB() {
     	// same strand read is left of mate, read is forward, mate is reverse && normal distance
-    	SAMRecord rec = records.get(0);
-    	rec.setAttribute(QSVConstants.NH, Integer.valueOf(1));
+    	SAMRecord rec = records.getFirst();
+    	rec.setAttribute(QSVConstants.NH, 1);
     	rec.setInferredInsertSize(119);
     	assertZPAnnotation(rec, 131, "BBB");
     	
@@ -201,18 +201,18 @@ public class ZPAnnotatorTest {
     
     @Test
     public void createZPAnnotation() {
-		SAMRecord rec = records.get(0);
+		SAMRecord rec = records.getFirst();
 		assertZPAnnotation(rec, 1024, QSVConstants.Z_STAR_STAR);
 		
 		// set NH attribute
-		rec.setAttribute(QSVConstants.NH, Integer.valueOf(1));
+		rec.setAttribute(QSVConstants.NH, 1);
 		assertZPAnnotation(rec, 1024, QSVConstants.Z_STAR_STAR);
 		
 		assertZPAnnotation(rec, 11, QSVConstants.D_STAR_STAR);
 		assertZPAnnotation(rec, 515, QSVConstants.E_STAR_STAR);
 		
 		// set NH to zero and set mate to diff strand
-		rec.setAttribute(QSVConstants.NH, Integer.valueOf(0));
+		rec.setAttribute(QSVConstants.NH, 0);
 		assertZPAnnotation(rec, 3, QSVConstants.Z_STAR_STAR);
 		rec.setAttribute(QSVConstants.NH, null);
 		assertZPAnnotation(rec, 3, QSVConstants.Z_STAR_STAR);
@@ -221,12 +221,12 @@ public class ZPAnnotatorTest {
     
     @Test
     public void testCreateZPAnnotation() {
-    	assertZPAnnotation(records.get(0), 97, "AAC");
+    	assertZPAnnotation(records.getFirst(), 97, "AAC");
     	assertZPAnnotation(records.get(14), 147, "ABA");
-    	assertZPAnnotation(records.get(0), 1169, QSVConstants.Z_STAR_STAR);
+    	assertZPAnnotation(records.getFirst(), 1169, QSVConstants.Z_STAR_STAR);
     	assertZPAnnotation(records.get(16), 147, "C**");
-    	assertZPAnnotation(records.get(0), 9, "D**");
-    	assertZPAnnotation(records.get(0), 513, "E**");    	
+    	assertZPAnnotation(records.getFirst(), 9, "D**");
+    	assertZPAnnotation(records.getFirst(), 513, "E**");
     }
     
     public void assertZPAnnotation(SAMRecord record, int flags, String annotation) {

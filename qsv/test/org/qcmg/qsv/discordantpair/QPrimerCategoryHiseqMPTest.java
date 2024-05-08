@@ -11,8 +11,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.After;
 import org.junit.Test;
-import org.qcmg.qsv.discordantpair.MatePair;
-import org.qcmg.qsv.discordantpair.QPrimerCategory;
+
 
 
 

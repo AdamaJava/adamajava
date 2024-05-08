@@ -3,6 +3,7 @@ package org.qcmg.qsv;
 import static org.junit.Assert.assertFalse;
 
 import java.io.File;
+import java.nio.file.FileSystems;
 import java.util.Date;
 import java.util.UUID;
 
@@ -18,7 +19,7 @@ import org.qcmg.qsv.util.TestUtil;
 public class QSVPipelineTest {
 
     private QSVPipeline pipeline;
-    private static final String FILE_SEPERATOR = System.getProperty("file.separator");
+    private static final String FILE_SEPARATOR = FileSystems.getDefault().getSeparator();
 
     @Rule
 	public TemporaryFolder testFolder = new TemporaryFolder();
@@ -34,8 +35,8 @@ public class QSVPipelineTest {
         Options options = new Options(optionsArray);
         options.parseIniFile();
         String uuid = UUID.randomUUID().toString();
-        pipeline = new QSVPipeline(options, tmp.getAbsolutePath()  + FILE_SEPERATOR, new Date(), uuid, new QExec("qsv", "test", null, uuid));
-        String name = tmp.getAbsolutePath() + FILE_SEPERATOR + "test";
+        pipeline = new QSVPipeline(options, tmp.getAbsolutePath()  + FILE_SEPARATOR, new Date(), uuid, new QExec("qsv", "test", null, uuid));
+        String name = tmp.getAbsolutePath() + FILE_SEPARATOR + "test";
         pipeline.createOutputDirectory(name);        
         testFolder.delete();
         try {

@@ -180,7 +180,7 @@ public class QSVClusterWriterTest {
     	assertLineCount(tmp.getAbsolutePath()+ QSVUtil.getFileSeparator() + "test.somatic.sv.txt", 2);
      	assertLineCount(tmp.getAbsolutePath()+ QSVUtil.getFileSeparator() + "test.somatic.dcc", 1);
     	
-    	try (BufferedReader reader = new BufferedReader(new FileReader(new File(tmp.getAbsolutePath()+ QSVUtil.getFileSeparator() + "test.somatic.sv.txt")));) {
+    	try (BufferedReader reader = new BufferedReader(new FileReader(tmp.getAbsolutePath()+ QSVUtil.getFileSeparator() + "test.somatic.sv.txt"))) {
 	    	String line = reader.readLine();
 	    	int count = 0;
 	    	while (line != null) {

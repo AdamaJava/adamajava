@@ -78,20 +78,20 @@ public class DiscordantPairClusterTest {
     public void testCopyAndOrderCurrentClusterPairs() {
 	    	List<MatePair> mates = cluster.copyAndOrderCurrentClusterPairs();
 	    	assertEquals(6, mates.size());
-	    	assertEquals(140191044, mates.get(0).getRightMate().getStart());
+	    	assertEquals(140191044, mates.getFirst().getRightMate().getStart());
     }
     
     @Test
     public void testGetBreakpointsCategory() {
-	    	assertBreakpoints("AAC", "chr7", "chr7", "1", 140189108,140191044);
-	    	assertBreakpoints("AAB", "chr7", "chr7", "2", 140188227,140191629);
-	    	assertBreakpoints("AAB", "chr7", "chr7", "5", 140188227,140191629);
-	    	assertBreakpoints("BAA", "chr7", "chr7", "3", 140189108,140191629);
-	    	assertBreakpoints("BAA", "chr7", "chr7", "4", 140188227,140191044);
+	    	assertBreakpoints("AAC", "1", 140189108,140191044);
+	    	assertBreakpoints("AAB", "2", 140188227,140191629);
+	    	assertBreakpoints("AAB", "5", 140188227,140191629);
+	    	assertBreakpoints("BAA", "3", 140189108,140191629);
+	    	assertBreakpoints("BAA", "4", 140188227,140191044);
     }
 
-	private void assertBreakpoints(String pair, String chr1,
-		String chr2, String cat, int expectedLeft, int expectedRight) {
+	private void assertBreakpoints(String pair,
+								   String cat, int expectedLeft, int expectedRight) {
 		QPrimerCategory c = new QPrimerCategory("AAC", "chr7", "chr7", "id", "pe");
 	    	c.setPrimaryCategoryNo(cat);
 	    	cluster.setqPrimerCateory(c);    	
