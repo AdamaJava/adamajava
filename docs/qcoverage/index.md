@@ -44,7 +44,7 @@ there is always one thread in addition to the number specified with
 
 ## Installation
 
-qcoverage requires java 8 and (ideally) a multi-core machine with at least 20GB of RAM.
+qcoverage requires java 21 and (ideally) a multi-core machine with at least 20GB of RAM.
 * To do a build of qcoverage, first clone the adamajava repository.
   ~~~~{.text}
   git clone https://github.com/AdamaJava/adamajava
