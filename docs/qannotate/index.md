@@ -25,7 +25,7 @@ The modes available to qannotate are:
 
 ## Installation
 
-`qannotate` requires java 8 and (ideally) a multi-core machine with at least 20GB of RAM.
+`qannotate` requires java 21 and (ideally) a multi-core machine with at least 20GB of RAM.
 * To build `qannotate`, first clone the `adamajava` repository.
   ~~~~{.text}
   git clone https://github.com/AdamaJava/adamajava
