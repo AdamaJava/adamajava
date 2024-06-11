@@ -6,7 +6,7 @@ a given window-size to a VCF-like plain text file.
 
 ## Installation
 
-qcnv requires java 8 and (ideally) a multi-core machine. qcnv is threaded
+qcnv requires java 21 and (ideally) a multi-core machine. qcnv is threaded
 for increased execution speed and is relatively memory efficient at 
 approximately 2GB for a single thread although the memory use scales
 linearly with thread count so using large numbers of threads requires
