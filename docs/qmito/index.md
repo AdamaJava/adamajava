@@ -4,7 +4,7 @@
 
 ## Installation
 
-qmito requires java 8 and Multi-core machine (ideally) and 5G of RAM
+qmito requires java 21 and Multi-core machine (ideally) and 5G of RAM
 
 * To do a build of qmito, first clone the adamajava repository.
   ~~~~{.text}

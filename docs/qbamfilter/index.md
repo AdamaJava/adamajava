@@ -15,7 +15,7 @@ There is a separate page with a more detailed explanation of the
 
 ## Installation
 
-qbamfilter requires java 8 and (ideally) a multi-core machine, although 
+qbamfilter requires java 21 and (ideally) a multi-core machine, although 
 it operates in single-threaded mode by default.  You can tune the amount
 of memory used by qbamfilter by specifying the number of records to store 
 in memory (`--maxRecordNumber`).  You can also opt to sort the output BAM 

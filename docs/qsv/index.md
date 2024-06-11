@@ -29,7 +29,7 @@ In this version we was decided to replacing blat with an in-house product, q3Til
 
 ## Installation
 
-qsv requires java 8, a machine with 8 cores (hyperthreaded) and at least 40GB of RAM.
+qsv requires java 21, a machine with 8 cores (hyperthreaded) and at least 40GB of RAM.
 
 * To do a build of qsv, first clone the adamajava repository.
   ~~~~{.text}

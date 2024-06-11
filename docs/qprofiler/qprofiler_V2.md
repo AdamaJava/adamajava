@@ -5,7 +5,7 @@
 While the XML file is useful for extracting values for further analysis, a visual representation of the data is more useful in most cases so another tool qvisualise was created to parse the qprofiler XML files and produce HTML output with embedded graphs via the Charts javascript library developed by Google. qvisualise exists as a standalone program but it is also integrated into qprofiler so a HTML file will always be output by qprofiler unless the --nohtml tag is used. The HTML file name is based on the XML output filename with the extension .html appended.
 
 ## Installation
-qprofiler requires java 8, multi-core machine (ideally) and 5GB of RAM
+qprofiler requires java 21, multi-core machine (ideally) and 5GB of RAM
 
 * **To do a build of qprofiler, first clone the adamajava repository using "git clone":**
   ```

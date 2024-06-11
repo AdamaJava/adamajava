@@ -29,7 +29,7 @@ You can find the paper [here](http://www.plosone.org/article/info%3Adoi%2F10.137
 
 ## Installation
 
-qsnp requires java 8 and (ideally) a multi-core machine (5 threads are run
+qsnp requires java 21 and (ideally) a multi-core machine (5 threads are run
 concurrently) with at least 20GB of RAM.
 
 * Download the [qsnp tar file](http://sourceforge.net/projects/adamajava/files/qsnp.tar.bz2/download)

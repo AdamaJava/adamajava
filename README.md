@@ -6,7 +6,7 @@ The code is now being developed and maintained by the [Genome Informatics](https
 Documentation for the project is maintained in Markdown format and committed in the docs directory. To view the documentation, see the [AdamaJava project](https://adamajava.readthedocs.io/en/latest) at [Read the Docs](https://readthedocs.org/).
 
 While the repository contains code for dozens of utilities, the list below shows tools that are considered robust enough to be released for general use.
-Most are written in Java and require version 1.8.
+Most are written in Java and require version 21.
 Some tools have dependencies on other software applications and libraries.
 
 * qAmplicon - design primer pairs for variant verification

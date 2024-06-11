@@ -5,7 +5,7 @@
 
 ## Installation
 
-qprofiler2 requires java 8 and Multi-core machine (ideally) and 5G of RAM
+qprofiler2 requires java 21 and Multi-core machine (ideally) and 5G of RAM
 
 * To do a build of qprofiler2, first clone the adamajava repository.
   ~~~~{.text}

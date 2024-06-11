@@ -5,8 +5,7 @@ The project is being hosted on
 
 While the repository contains code for dozens of utilities, the list below
 shows tools that are considered robust enough to be released for general use.
-Most are written in Java and require version 1.7 or later although some now
-require version 1.8 or above. Some tools have dependencies
+Most are written in Java and require version 21. Some tools have dependencies
 on other software.
 
 * [qbamfilter](/qbamfilter/) - filters records from a BAM file

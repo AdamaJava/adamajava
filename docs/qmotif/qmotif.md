@@ -17,7 +17,7 @@
 `qmotif`'s primary use to date has been to search for repeats commonly found within telomeres.
 
 ## Requirements
-* Java 1.8
+* Java 21
 
 ## Building qmotif
 

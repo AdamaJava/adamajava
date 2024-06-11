@@ -16,5 +16,4 @@ Some related tools have been released as separate projects:
 
 * [qPure](https://sourceforge.net/projects/qpure/?source=directory)
 
-The current development team is: Oliver Holmes, Conrad Leonard,
-Christina Xu, Scott Wood, John Pearson.
+The current development team is: Felicity Newell, Oliver Holmes, Scott Wood, John Pearson.

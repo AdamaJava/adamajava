@@ -12,7 +12,7 @@ from the table below.
 
 ## Installation
 
-qmule requires java 8 and has different compute and memory requirements deepening on the mode.
+qmule requires java 21 and has different compute and memory requirements deepening on the mode.
 
 * To do a build of qmule, first clone the adamajava repository.
   ~~~~{.text}
