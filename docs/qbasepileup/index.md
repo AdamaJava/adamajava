@@ -1,6 +1,6 @@
 # qbasepileup
 ```diff
--This tool is dated due to some input file format (dccq, dcc1) is no longer available!
+-This tool is dated due to some input file formats (dccq, dcc1) no longer being available!
 ```
 
 
@@ -12,7 +12,7 @@ metrics on the reads at the positions of interest.
 
 ## Installation
 
-qbasepileup requires java 8 and (ideally) a multi-core machine (5 threads 
+qbasepileup requires java 21 and (ideally) a multi-core machine (5 threads 
 are run concurrently) with at least 20GB of RAM.
 
 * **To do a build of qbasepileup, first clone the adamajava repository using "git clone":**
