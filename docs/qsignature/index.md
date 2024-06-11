@@ -13,7 +13,7 @@ qsignature functions in two modes:
 
 ## Installation
 
-qsignature requires java 8.
+qsignature requires java 21.
 
 * **To do a build of qsignature, first clone the adamajava repository using "git clone":**
   ```
