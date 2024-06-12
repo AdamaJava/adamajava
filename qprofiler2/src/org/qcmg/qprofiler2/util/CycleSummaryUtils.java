@@ -43,7 +43,7 @@ public class CycleSummaryUtils {
 					deletion = false; 				
 					continue; 
 				}
-				// got a letter - update summary with positio					 					
+				// got a letter - update summary with position
 				// check cigar to see if we need to adjust our offset due to insertions etc
 				int additionalOffset = SAMUtils.getAdjustedReadOffset(cigar, position);	
 				if (position + additionalOffset > readBases.length) {
