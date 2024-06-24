@@ -34,16 +34,18 @@ public class BamSummarizer implements Summarizer {
 	private int maxRecords;
 	private String validation;
 	private boolean isFullBamHeader;
+	private boolean isLongReadBam;
 
 	private static final QLogger logger = QLoggerFactory.getLogger(BamSummarizer.class);	
 	public BamSummarizer() {}	 // default constructor	
-	public BamSummarizer( int maxRecords, String validation, boolean isFullBamHeader) {
+	public BamSummarizer( int maxRecords, String validation, boolean isFullBamHeader, boolean isLongReadBam) {
 		this.maxRecords = maxRecords;
 		this.validation = validation;
 		this.isFullBamHeader = isFullBamHeader;
+		this.isLongReadBam = isLongReadBam;
 	}	
 	
-	public static BamSummaryReport createReport(SAMFileHeader header, String file, int maxRecords, boolean isFullBamHeader) throws IOException {
+	public static BamSummaryReport createReport(SAMFileHeader header, String file, int maxRecords, boolean isFullBamHeader, boolean isLongReadBam) throws IOException {
 		
 		// create the SummaryReport
 		
@@ -51,7 +53,7 @@ public class BamSummarizer implements Summarizer {
         // Natural order
         List<String> readGroupIds = header.getReadGroups().stream().map(SAMReadGroupRecord::getId).sorted(Comparator.comparing(String::toString)).collect(toList());
 
-        BamSummaryReport bamSummaryReport = new BamSummaryReport( maxRecords, isFullBamHeader );
+        BamSummaryReport bamSummaryReport = new BamSummaryReport( maxRecords, isFullBamHeader, isLongReadBam );
 		bamSummaryReport.setBamHeader(header, isFullBamHeader);		
 		bamSummaryReport.setSamSequenceDictionary(samSeqDict);
 		bamSummaryReport.setReadGroups(readGroupIds);		
@@ -68,7 +70,7 @@ public class BamSummarizer implements Summarizer {
 		SamReader reader = SAMFileReaderFactory.createSAMFileReaderAsStream(input, index, vs);
 		
 		// create the SummaryReport		
-        BamSummaryReport bamSummaryReport = createReport(reader.getFileHeader(), input,  maxRecords, isFullBamHeader);
+        BamSummaryReport bamSummaryReport = createReport(reader.getFileHeader(), input,  maxRecords, isFullBamHeader, isLongReadBam);
       		
 		boolean logLevelEnabled = logger.isLevelEnabled(QLevel.DEBUG);		
 		long currentRecordCount = 0;

@@ -30,7 +30,7 @@ public class BamSummaryReportTest {
 			
 	@Test
 	public void testParseRNameAndPos() throws Exception {
-		BamSummaryReport bsr = new BamSummaryReport(-1, false);
+		BamSummaryReport bsr = new BamSummaryReport(-1, false, false);
 		final String rg = "rg1";
 		bsr.setReadGroups(Arrays.asList(rg));
 		
@@ -233,7 +233,7 @@ public class BamSummaryReportTest {
 	@Test
 	public void unKnownIdTest() throws Exception {
 		final Element root = XmlElementUtils.createRootElement("root",null);
-		BamSummaryReport bsr = new BamSummaryReport(-1, false);
+		BamSummaryReport bsr = new BamSummaryReport(-1, false, false);
 		SAMRecord record = new SAMRecord(null);
 		record.setReadName("243_146_1");
 		record.setBaseQualities(new byte[] {1,2,3,4,5,6,7});
@@ -253,7 +253,7 @@ public class BamSummaryReportTest {
 
 	@Test
 	public void unpairedTest() throws ParserConfigurationException {
-		BamSummaryReport report  = new BamSummaryReport(3, false);	
+		BamSummaryReport report  = new BamSummaryReport(3, false, false);
 		
 		SAMRecord record = new SAMRecord(null);
 		record.setReadName("TESTDATA");

@@ -87,16 +87,18 @@ public class BamSummaryReport extends SummaryReport {
  	
 	private Long maxRecords;
 	private boolean isFullBamHeader;
+	private boolean isLongReadBam;
 	private SAMFileHeader bamHeader;
 	private SAMSequenceDictionary samSeqDictionary;
 	private List<String> readGroupIds = Arrays.asList(XmlUtils.UNKNOWN_READGROUP); // init	
 			
-	public BamSummaryReport(int maxRecs, boolean isFullBamHeader) {
+	public BamSummaryReport(int maxRecs, boolean isFullBamHeader, boolean isLongReadBam) {
 		super();		
 		if (maxRecs > 0) {
 			maxRecords = Long.valueOf(maxRecs);	
 		}
 		this.isFullBamHeader =  isFullBamHeader;
+		this.isLongReadBam = isLongReadBam;
 	}	
 
 	/**
@@ -359,28 +361,37 @@ public class BamSummaryReport extends SummaryReport {
 			
 		// excludes repeated reads for tags
 		if (!record.getSupplementaryAlignmentFlag() &&	!record.isSecondaryAlignment() && !record.getReadFailsVendorQualityCheckFlag()) {
-			tagReport.parseTAGs(record);			
+			if (! isLongReadBam) {
+				tagReport.parseTAGs(record);
+			}
+
 		} 
-						
+
 		// check if record has its fail or duplicate flag set. if so, miss out some of the summaries
-		ReadGroupSummary rgSumm = rgSummaries.computeIfAbsent(readGroup, ReadGroupSummary::new);
+		ReadGroupSummary rgSumm = rgSummaries.computeIfAbsent(readGroup, k -> new ReadGroupSummary(k,isLongReadBam));
 		if (rgSumm.parseRecord(record)) {
 						
 			// SEQ 
 			byte[] data = record.getReadBases();			
 			if (record.getReadNegativeStrandFlag()) {
 				SequenceUtil.reverseComplement(data);
-			}		
-			seqByCycle[order].parseByteData(data);			
-			SummaryReportUtils.tallyBadReadsAsString(record.getReadBases(), seqBadReadLineLengths[order]);	
-			kmersSummary.parseKmers(record.getReadBases(), record.getReadNegativeStrandFlag(), order);
+			}
+			if (! isLongReadBam) {
+				seqByCycle[order].parseByteData(data);
+			}
+			SummaryReportUtils.tallyBadReadsAsString(record.getReadBases(), seqBadReadLineLengths[order]);
+			if (! isLongReadBam) {
+				kmersSummary.parseKmers(record.getReadBases(), record.getReadNegativeStrandFlag(), order);
+			}
 
 			// QUAL 
 			data = record.getBaseQualities();
 			if (record.getReadNegativeStrandFlag()) {
 				SequenceUtil.reverseQualities(data);
 			}
-			qualByCycleInteger[order].parseByteData(data);
+			if (! isLongReadBam) {
+				qualByCycleInteger[order].parseByteData(data);
+			}
 			SummaryReportUtils.tallyQualScores(record.getBaseQualities(), qualBadReadLineLengths[order]);				
  			
  						
@@ -397,14 +408,16 @@ public class BamSummaryReport extends SummaryReport {
 				} else if (record.getSecondOfPairFlag()) {
 					p2Lengths.increment(record.getReadBases().length);
 				}
-			} 
+			} else if (isLongReadBam) {
+				p1Lengths.increment(record.getReadBases().length);
+			}
 		}
 	}
 		
 	private void summaryToXml(Element parent) {
 		Element summaryElement = XmlElementUtils.createSubElement(parent, XmlUtils.BAM_SUMMARY);
 		
-		long  discardReads = 0;
+		long discardReads = 0;
 		long maxBases = 0;
 		long duplicateBase = 0;
 		long unmappedBase = 0;

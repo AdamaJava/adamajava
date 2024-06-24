@@ -47,16 +47,18 @@ public class BamSummarizerMT implements Summarizer {
 	private final int maxRecords;
 	private final String validation;
 	private final boolean isFullBamHeader;
+	private final boolean isLongReadBam;
 	ValidationStringency vs;
 	private static final String UNMAPPED_READS = "Unmapped";
 	
-	public BamSummarizerMT(int noOfProducerThreads, int noOfThreads, int maxNoOfRecords, String validation,boolean isFullBamHeader) {
+	public BamSummarizerMT(int noOfProducerThreads, int noOfThreads, int maxNoOfRecords, String validation,boolean isFullBamHeader, boolean isLongReadBam) {
 		super();
 		this.noOfProducerThreads = noOfProducerThreads;
 		this.noOfConsumerThreads = noOfThreads;
 		this.maxRecords = maxNoOfRecords;
 		this.validation = validation;
 		this.isFullBamHeader =  isFullBamHeader;
+		this.isLongReadBam = isLongReadBam;
 	}
 		
 	@Override
@@ -103,7 +105,7 @@ public class BamSummarizerMT implements Summarizer {
 		
 		final long start = System.currentTimeMillis();		
 		final File file = new File(input);
-		final BamSummaryReport bamSummaryReport =  BamSummarizer.createReport(header, input,  maxRecords, isFullBamHeader );				 		
+		final BamSummaryReport bamSummaryReport =  BamSummarizer.createReport(header, input,  maxRecords, isFullBamHeader, isLongReadBam );
 		logger.info("will create " + noOfConsumerThreads + " consumer threads");
 
 		final CountDownLatch pLatch = new CountDownLatch(noOfProducerThreads);

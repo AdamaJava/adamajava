@@ -60,6 +60,7 @@ public class QProfiler2 {
 	private String logFile;
 	private String validation;
 	private boolean  isFullBamHeader;
+	private boolean  isLongReadBam;
 
 	
 	/*
@@ -209,10 +210,13 @@ public class QProfiler2 {
 				}
 				break;
 			case BAM:
+				if (isLongReadBam) {
+					logger.info("Processing long read BAM file");
+				}
 				if (noOfConsumerThreads > 0) {
-					summarizer = new BamSummarizerMT(noOfProducerThreads, noOfConsumerThreads, maxRecords,  validation,  isFullBamHeader);
+					summarizer = new BamSummarizerMT(noOfProducerThreads, noOfConsumerThreads, maxRecords,  validation,  isFullBamHeader, isLongReadBam);
 				} else {
-					summarizer = new BamSummarizer( maxRecords, validation, isFullBamHeader);
+					summarizer = new BamSummarizer( maxRecords, validation, isFullBamHeader, isLongReadBam);
 				}
 				break;
 			case XML:
@@ -299,6 +303,8 @@ public class QProfiler2 {
 			}
 			
 			this.isFullBamHeader = options.hasFullBamHeaderOption();
+
+			this.isLongReadBam = options.hasLongReadBamOption();
 			
 			// setup the ExecutorService thread pool
 			// the size of the pool is the smaller of the no of files, and the NO_OF_PROCESSORS variable

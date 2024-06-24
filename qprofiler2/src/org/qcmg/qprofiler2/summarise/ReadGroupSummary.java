@@ -70,11 +70,13 @@ public class ReadGroupSummary {
 	private SummaryReportUtils.TallyStats pairtLenStats;
 	private SummaryReportUtils.TallyStats trimBaseStats;
 		
-	private final String readGroupId; 
+	private final String readGroupId;
+	private final boolean isLongReadBam;
 	
-	public ReadGroupSummary(String rgId) {
+	public ReadGroupSummary(String rgId, boolean isLongReadBam) {
 		this.readGroupId = rgId;
-	}
+        this.isLongReadBam = isLongReadBam;
+    }
 	
 	public String getReadGroupId() {
 		return readGroupId; 
@@ -197,10 +199,15 @@ public class ReadGroupSummary {
 		if (lSoft > 0) {
 			softClip.increment(lSoft);
 		}
+
 		// record read length excluding the discard reads duplicate.get() + unmapped.get() + getnonCanonicalReadsCount();	
 		// due to it for trimmed base calculation as well
-		forTrimLength.increment(record.getReadLength() + lHard);	
-			 				
+		// Adapter trimming not relevant for long read - the adapter trimming is calculated based on the length of the current read vs
+		// the length of the maximum read and long read has variable length so it is not possible to calculate the adapter trimming for long read
+		if (! isLongReadBam) {
+			forTrimLength.increment(record.getReadLength() + lHard);
+		}
+
 		return true;  
 	}
 	
@@ -250,6 +257,7 @@ public class ReadGroupSummary {
 			trimmedBase.increment( maxLength - i, forTrimLength.get(i));
 		}
 		this.trimBaseStats = new SummaryReportUtils.TallyStats( trimmedBase );
+
 	}
 	
 	public void readSummary2Xml(Element parent ) {
@@ -292,8 +300,8 @@ public class ReadGroupSummary {
 		long maxBases = getReadCount() * readlengthStats.getMax() ;
 		long lostBase = (duplicate.get() + unmapped.get() + notProperPairedReads.get()  ) * getMaxReadLength()
 				+ trimBaseStats.getBaseCounts() + softclipStats.getBaseCounts() + hardclipStats.getBaseCounts() + overlapStats.getBaseCounts();
-		final double lostPercent =  maxBases == 0 ? 0 : 100 * (double) lostBase / maxBases;	
-		
+		final double lostPercent =  maxBases == 0 ? 0 : 100 * (double) lostBase / maxBases;
+
 		ele = XmlUtils.createGroupNode(rgElement, "countedReads" );
 		XmlUtils.outputValueNode(ele, UNPAIRED_READ,  unpaired.get());	
 		// READ_COUNT : includes duplicateReads, nonCanonicalPairs and unmappedReads but excludes discardedReads (failed, secondary and supplementary).						

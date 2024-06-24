@@ -192,7 +192,7 @@ public class ReadGroupSummaryTest {
 	 */
 	private ReadGroupSummary createRGElement(String rgid) throws IOException, ParserConfigurationException {
 		
-		ReadGroupSummary rgSumm = new ReadGroupSummary(rgid);		
+		ReadGroupSummary rgSumm = new ReadGroupSummary(rgid, false);
 		try( SamReader reader = SAMFileReaderFactory.createSAMFileReader(input);){
 			for (SAMRecord record : reader) {	
 				if (rgid == null)
@@ -385,7 +385,7 @@ public class ReadGroupSummaryTest {
 		record.setAlignmentStart(239007);
 		record.setReferenceName("chrY");
 				
-		ReadGroupSummary rgSumm = new ReadGroupSummary(null);
+		ReadGroupSummary rgSumm = new ReadGroupSummary(null, false);
 		for (int flag : new int[] {117, 69, 181}) {
 			record.setFlags(flag);
 			rgSumm.parseRecord(record);
@@ -427,7 +427,7 @@ public class ReadGroupSummaryTest {
 		record.setAlignmentStart(239007);
 		record.setReferenceName("chrY");
 
-		ReadGroupSummary rgSumm = new ReadGroupSummary(null);
+		ReadGroupSummary rgSumm = new ReadGroupSummary(null, false);
 		// 64: unpaired read, 65: not proper pair read
 		for (int flag : new int[] {64, 65}) {
 			record.setFlags(flag);

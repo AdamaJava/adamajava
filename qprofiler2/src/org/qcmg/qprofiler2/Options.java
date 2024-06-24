@@ -33,7 +33,8 @@ final class Options {
 	private static final String OUTPUT_FILE_DESCRIPTION = Messages.getMessage(msgResource,"OUTPUT_FILE_DESCRIPTION");
 	private static final String INPUT_FILE_DESCRIPTION = Messages.getMessage(msgResource,"INPUT_FILE_DESCRIPTION");
 	private static final String INDEX_FILE_DESCRIPTION = Messages.getMessage(msgResource,"INDEX_FILE_DESCRIPTION");
-	private static final String VALIDATION_STRINGENCY_OPTION_DESCRIPTION = Messages.getMessage(msgResource,"VALIDATION_STRINGENCY_DESCRIPTION");	
+	private static final String VALIDATION_STRINGENCY_OPTION_DESCRIPTION = Messages.getMessage(msgResource,"VALIDATION_STRINGENCY_DESCRIPTION");
+	private static final String LONG_READ_OPTION_DESCRIPTION = Messages.getMessage(msgResource, "LONG_READ_OPTION_DESCRIPTION");
 	private static final String FULL_BAMHEADER_OPTION_DESCRIPTION = Messages.getMessage(msgResource, "FULL_BAMHEADER_OPTION_DESCRIPTION");
 	
 	// vcf mode
@@ -68,7 +69,8 @@ final class Options {
 		parser.accepts("bam-validation", VALIDATION_STRINGENCY_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("bam-full-header", FULL_BAMHEADER_OPTION_DESCRIPTION);
 		parser.accepts("vcf-format-field", FORMAT_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
-		parser.accepts("bam-index", INDEX_FILE_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');		
+		parser.accepts("bam-index", INDEX_FILE_DESCRIPTION).withRequiredArg().ofType(String.class).withValuesSeparatedBy(',');
+		parser.accepts("long-read", LONG_READ_OPTION_DESCRIPTION);
 		parser.posixlyCorrect(true);
 		options = parser.parse(args);
 		
@@ -118,6 +120,10 @@ final class Options {
 	
 	boolean hasFullBamHeaderOption() {
 		return options.has("bam-full-header") ; 
+	}
+
+	boolean hasLongReadBamOption() {
+		return options.has("long-read") ;
 	}
 
 	boolean hasVersionOption() {
