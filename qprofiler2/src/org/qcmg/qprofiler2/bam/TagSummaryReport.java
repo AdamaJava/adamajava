@@ -33,7 +33,7 @@ public class TagSummaryReport {
 	
 	// TAGS		
 	@SuppressWarnings("unchecked")
-	final CycleSummary<Character>[] tagMDMismatchByCycle = new CycleSummary[] {new CycleSummary<Character>(BamSummaryReport.cc, 512), new CycleSummary<Character>(BamSummaryReport.cc, 512), new CycleSummary<Character>(BamSummaryReport.cc, 512)};	
+	final CycleSummary<Character>[] tagMDMismatchByCycle = new CycleSummary[] {new CycleSummary<Character>(BamSummaryReport.cc, 512), new CycleSummary<Character>(BamSummaryReport.cc, 512), new CycleSummary<Character>(BamSummaryReport.cc, 512)};
 	private final QCMGAtomicLongArray[] mdRefAltLengthsForward = new QCMGAtomicLongArray[] {new QCMGAtomicLongArray(32), new QCMGAtomicLongArray(32), new QCMGAtomicLongArray(32)};	
 	private final QCMGAtomicLongArray[] mdRefAltLengthsReverse = new QCMGAtomicLongArray[] {new QCMGAtomicLongArray(32), new QCMGAtomicLongArray(32), new QCMGAtomicLongArray(32)};	
     final QCMGAtomicLongArray[] allReadsLineLengths = new QCMGAtomicLongArray[] {new QCMGAtomicLongArray(1024), new QCMGAtomicLongArray(1024), new QCMGAtomicLongArray(1024)};
@@ -43,7 +43,7 @@ public class TagSummaryReport {
 	private long errMdReadNo = 0 ;	
 	private AtomicLong mdTagCounts = new AtomicLong();
 	
-	public void parseTAGs(final SAMRecord record )  {
+	public void parseTAGs(final SAMRecord record, boolean isLongReadBam)  {
 				
 		for ( SAMTagAndValue tag : record.getAttributes()) {
 			if (tag.tag.equals("MD")) {
@@ -78,7 +78,7 @@ public class TagSummaryReport {
 			// 0: unpaired , 1: firstOfPair , 2: secondOfPair				
 			int order = (!record.getReadPairedFlag()) ? 0 : (record.getFirstOfPairFlag()) ? 1 : 2;					
 			String err = CycleSummaryUtils.tallyMDMismatches( value, record.getCigar(), tagMDMismatchByCycle[order], 
-					readBases, reverseStrand, mdRefAltLengthsForward[order], mdRefAltLengthsReverse[order]);
+					readBases, reverseStrand, mdRefAltLengthsForward[order], mdRefAltLengthsReverse[order], isLongReadBam);
 			// limit err message on log file
 			if ( err != null && (( errMdReadNo ++) < errReadLimit)) {
 				logger.warn(record.getReadName() + ": " + err);

@@ -70,6 +70,7 @@ public class BamSummaryReport extends SummaryReport {
 	@SuppressWarnings("unchecked")
 	private final CycleSummary<Integer>[] qualByCycleInteger = new CycleSummary[] {new CycleSummary<Integer>(ii, 512), new CycleSummary<Integer>(ii, 512), new CycleSummary<Integer>(ii, 512)};
 	private final QCMGAtomicLongArray[] qualBadReadLineLengths = new QCMGAtomicLongArray[] {new QCMGAtomicLongArray(128), new QCMGAtomicLongArray(128), new QCMGAtomicLongArray(128)};
+
 	private final QCMGAtomicLongArray[] mapQualityLengths = new QCMGAtomicLongArray[] {new QCMGAtomicLongArray(256), new QCMGAtomicLongArray(256), new QCMGAtomicLongArray(256)};
 	
 	// FLAGS
@@ -237,9 +238,9 @@ public class BamSummaryReport extends SummaryReport {
 		ele = XmlUtils.createMetricsNode(parent,  XmlUtils.QUAL_LENGTH,  rcPair);
 		for (int order = 0; order < 3; order++) {
 			if (qualByCycleInteger[order].getLengthMapFromCycle().isEmpty()) {
-				continue;		
+				continue;
 			}
-			XmlUtils.outputTallyGroup(ele, sourceName.get(order),  qualByCycleInteger[order].getLengthMapFromCycle(), true , true);	
+			XmlUtils.outputTallyGroup(ele, sourceName.get(order),  qualByCycleInteger[order].getLengthMapFromCycle(), true , true);
 		}
 		
 		// badBase:  
@@ -361,9 +362,8 @@ public class BamSummaryReport extends SummaryReport {
 			
 		// excludes repeated reads for tags
 		if (!record.getSupplementaryAlignmentFlag() &&	!record.isSecondaryAlignment() && !record.getReadFailsVendorQualityCheckFlag()) {
-			if (! isLongReadBam) {
-				tagReport.parseTAGs(record);
-			}
+
+			tagReport.parseTAGs(record, isLongReadBam);
 
 		} 
 
@@ -398,7 +398,7 @@ public class BamSummaryReport extends SummaryReport {
 			// TLen is done inside readGroupSummary.ParseRecord			
 			// MRNM is same to RNAME
  			
-			// RNAME & POS			
+			// RNAME & POS
 			parseRNameAndPos(record.getReferenceName(), record.getAlignmentStart(), readGroup);	// Position value
 			
 			// it is not include hard clip
