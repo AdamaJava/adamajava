@@ -148,6 +148,7 @@ public class BamSummaryReport extends SummaryReport {
 		createMAPQ(XmlElementUtils.createSubElement(bamReportElement, XmlUtils.MAPQ));	
 		createCigar(XmlElementUtils.createSubElement(bamReportElement,XmlUtils.CIGAR));
 		createTLen(XmlElementUtils.createSubElement(bamReportElement, XmlUtils.TLEN));
+		createRLENGTH(XmlElementUtils.createSubElement(bamReportElement, XmlUtils.RLENGTH));
 		createSeq(XmlElementUtils.createSubElement(bamReportElement, XmlUtils.SEQ));
 		createQual(XmlElementUtils.createSubElement(bamReportElement,XmlUtils.QUAL));
 		tagReport.toXml(XmlElementUtils.createSubElement(bamReportElement, XmlUtils.TAG)); 
@@ -267,6 +268,15 @@ public class BamSummaryReport extends SummaryReport {
         	// output tLen inside pairSummary, eg. inward, f3f5
         	entry.getValue().pairTlen2Xml(XmlUtils.createReadGroupNode(parent, entry.getKey()));     	
         }	
+	}
+
+	private void createRLENGTH(Element parent) {
+		//Read length
+		parent = XmlElementUtils.createSubElement(parent, XmlUtils.READGROUPS);
+		for (Entry<String, ReadGroupSummary> entry : rgSummaries.entrySet()) {
+			// output tLen inside pairSummary, eg. inward, f3f5
+			entry.getValue().readLength2Xml(XmlUtils.createReadGroupNode(parent, entry.getKey()));
+		}
 	}
 	
 	private void createCigar(Element parent) {	

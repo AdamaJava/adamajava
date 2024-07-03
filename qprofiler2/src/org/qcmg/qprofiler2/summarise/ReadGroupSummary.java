@@ -46,7 +46,8 @@ public class ReadGroupSummary {
 	QCMGAtomicLongArray hardClip = new QCMGAtomicLongArray(128);
 	
 	// record read length excluding the discard reads but includes duplicate,unmapped and nonCanonicalReads	
-	QCMGAtomicLongArray readLength = new QCMGAtomicLongArray(128);	
+	QCMGAtomicLongArray readLength = new QCMGAtomicLongArray(128);
+	QCMGAtomicLongArray readLengthBins = new QCMGAtomicLongArray(128);
 	QCMGAtomicLongArray forTrimLength = new QCMGAtomicLongArray(128);	
 	private final ConcurrentMap<String, AtomicLong> cigarValuesCount = new ConcurrentHashMap<>();
 	// must be concurrent set for multi threads
@@ -164,8 +165,8 @@ public class ReadGroupSummary {
 			 }	 
 		}
 		
-		readLength.increment(record.getReadLength() + lHard);	
-			
+		readLength.increment(record.getReadLength() + lHard);
+
 		// find mapped badly reads and return false	
 		if (record.getDuplicateReadFlag()) {
 			duplicate.incrementAndGet();
@@ -332,6 +333,49 @@ public class ReadGroupSummary {
 		}
 	}
 
+	public void readLength2Xml( Element parent ) {
+
+		Map<String, Element> metricEs = new HashMap<>();
+		Map<String, AtomicLong> metricCounts = new HashMap<>();
+
+		String name = "readLength";
+		// sum all pairCounts belong to metrics section
+		AtomicLong cPairs =  metricCounts.computeIfAbsent(name,  k ->  new AtomicLong());
+		cPairs.addAndGet(readLength.getSum());
+		// output pair tLen to classified section
+		if (isLongReadBam) {
+			Element ele = metricEs.computeIfAbsent(name,  k -> XmlUtils.createMetricsNode( parent, k, null));
+			for(int i = 0; i < readLength.length(); i ++) {
+				if(readLength.get(i) > 0) {
+					if (i <=1000) {
+						readLengthBins.increment(i, readLength.get(i));
+					} else {
+						int roundedLength = (int) (Math.ceil((double)i/1000)*1000);
+						readLengthBins.increment(roundedLength, readLength.get(i));
+					}
+				}
+			}
+
+			XmlUtils.outputTallyGroup( ele, "readLength", readLengthBins.toMap(), false, true );
+
+			// add pairCounts into metrics elements
+			for (Entry<String, Element> entry : metricEs.entrySet()) {
+				entry.getValue().setAttribute(ReadGroupSummary.READ_COUNT,
+						metricCounts.get(entry.getKey()).get() + "" );
+			}
+		} else{
+			Element ele = metricEs.computeIfAbsent(name,  k -> XmlUtils.createMetricsNode( parent, k, null));
+			XmlUtils.outputTallyGroup( ele, "readLength", readLength.toMap(), false, true );
+
+			// add pairCounts into metrics elements
+			for (Entry<String, Element> entry : metricEs.entrySet()) {
+				entry.getValue().setAttribute(ReadGroupSummary.READ_COUNT,
+						metricCounts.get(entry.getKey()).get() + "" );
+			}
+		}
+
+	}
+
 	public void pairTlen2Xml( Element parent ) {
 		Map<String, Element> metricEs = new HashMap<>();
 		Map<String, AtomicLong> metricCounts = new HashMap<>();
@@ -350,6 +394,7 @@ public class ReadGroupSummary {
 			cPairs.addAndGet(p.getoverlapCounts().getSum());
 			// output pair overlap to classified section
 			ele = metricEs.computeIfAbsent(name, k -> XmlUtils.createMetricsNode( parent, k, null));
+
 			XmlUtils.outputTallyGroup( ele, p.type.name(), p.getoverlapCounts().toMap(), false , true); 
 		}
 		
