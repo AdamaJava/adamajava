@@ -39,11 +39,7 @@ import org.qcmg.common.util.Pair;
 import org.qcmg.common.util.XmlElementUtils;
 import org.qcmg.qprofiler2.SummaryReport;
 import org.qcmg.qprofiler2.fastq.FastqSummaryReport;
-import org.qcmg.qprofiler2.summarise.CycleSummary;
-import org.qcmg.qprofiler2.summarise.KmersSummary;
-import org.qcmg.qprofiler2.summarise.PositionSummary;
-import org.qcmg.qprofiler2.summarise.ReadGroupSummary;
-import org.qcmg.qprofiler2.summarise.ReadIdSummary;
+import org.qcmg.qprofiler2.summarise.*;
 import org.qcmg.qprofiler2.util.CycleSummaryUtils;
 import org.qcmg.qprofiler2.util.FlagUtil;
 import org.qcmg.qprofiler2.util.SummaryReportUtils;
@@ -63,12 +59,19 @@ public class BamSummaryReport extends SummaryReport {
 	private final CycleSummary<Character>[] seqByCycle = new CycleSummary[] {
 		new CycleSummary<Character>(cc, 512), new CycleSummary<Character>(cc, 512), new CycleSummary<Character>(cc, 512)
 	};
-	
+	@SuppressWarnings("unchecked")
+	private final LongReadBinSummary<Character>[] longReadSeqByCycle = new LongReadBinSummary[] {
+		new LongReadBinSummary<Character>(cc, 512), new LongReadBinSummary<Character>(cc, 512), new LongReadBinSummary<Character>(cc, 512)
+	};
+
 	private final QCMGAtomicLongArray[] seqBadReadLineLengths = new QCMGAtomicLongArray[] {new QCMGAtomicLongArray(128), new QCMGAtomicLongArray(128), new QCMGAtomicLongArray(128)};
 
 	// QUAL
 	@SuppressWarnings("unchecked")
 	private final CycleSummary<Integer>[] qualByCycleInteger = new CycleSummary[] {new CycleSummary<Integer>(ii, 512), new CycleSummary<Integer>(ii, 512), new CycleSummary<Integer>(ii, 512)};
+	@SuppressWarnings("unchecked")
+	private final LongReadBinSummary<Integer>[] qualByLongReadBin = new LongReadBinSummary[] {new LongReadBinSummary<Integer>(ii, 512), new LongReadBinSummary<Integer>(ii, 512), new LongReadBinSummary<Integer>(ii, 512)};
+
 	private final QCMGAtomicLongArray[] qualBadReadLineLengths = new QCMGAtomicLongArray[] {new QCMGAtomicLongArray(128), new QCMGAtomicLongArray(128), new QCMGAtomicLongArray(128)};
 
 	private final QCMGAtomicLongArray[] mapQualityLengths = new QCMGAtomicLongArray[] {new QCMGAtomicLongArray(256), new QCMGAtomicLongArray(256), new QCMGAtomicLongArray(256)};
@@ -88,7 +91,7 @@ public class BamSummaryReport extends SummaryReport {
  	
 	private Long maxRecords;
 	private boolean isFullBamHeader;
-	private boolean isLongReadBam;
+	private final boolean isLongReadBam;
 	private SAMFileHeader bamHeader;
 	private SAMSequenceDictionary samSeqDictionary;
 	private List<String> readGroupIds = Arrays.asList(XmlUtils.UNKNOWN_READGROUP); // init	
@@ -149,8 +152,10 @@ public class BamSummaryReport extends SummaryReport {
 		createCigar(XmlElementUtils.createSubElement(bamReportElement,XmlUtils.CIGAR));
 		createTLen(XmlElementUtils.createSubElement(bamReportElement, XmlUtils.TLEN));
 		createRLENGTH(XmlElementUtils.createSubElement(bamReportElement, XmlUtils.RLENGTH));
-		createSeq(XmlElementUtils.createSubElement(bamReportElement, XmlUtils.SEQ));
-		createQual(XmlElementUtils.createSubElement(bamReportElement,XmlUtils.QUAL));
+		createSeq(XmlElementUtils.createSubElement(bamReportElement, XmlUtils.SEQ),isLongReadBam);
+		createQual(XmlElementUtils.createSubElement(bamReportElement,XmlUtils.QUAL), isLongReadBam);
+
+
 		tagReport.toXml(XmlElementUtils.createSubElement(bamReportElement, XmlUtils.TAG)); 
 
 	}
@@ -175,30 +180,43 @@ public class BamSummaryReport extends SummaryReport {
 	}
  		
 	// <SEQ>
-	private void createSeq(Element parent) {
-		
+	private void createSeq(Element parent, boolean isLongReadBam) {
 		long counts = 0;
-		for (int order = 0; order < 3; order++) {
-			counts += seqByCycle[order].getInputCounts();
+		if (isLongReadBam) {
+			for (int order = 0; order < 3; order++) {
+				counts += longReadSeqByCycle[order].getInputCounts();
+			}
+
+			Pair<String, Number> rcPair = new Pair<>(ReadGroupSummary.READ_COUNT, counts);
+
+			// sequenceBase
+			Element ele = XmlUtils.createMetricsNode(parent,  XmlUtils.SEQ_BASE,  rcPair);
+			for (int order = 0; order < 3; order++) {
+				longReadSeqByCycle[order].toXml(ele,  sourceName.get(order), longReadSeqByCycle[order].getInputCounts());
+			}
+		} else {
+			for (int order = 0; order < 3; order++) {
+				counts += seqByCycle[order].getInputCounts();
+			}
+
+			Pair<String, Number> rcPair = new Pair<>(ReadGroupSummary.READ_COUNT, counts);
+
+			// sequenceBase
+			Element ele = XmlUtils.createMetricsNode(parent, XmlUtils.SEQ_BASE, rcPair);
+			for (int order = 0; order < 3; order++) {
+				seqByCycle[order].toXml(ele, sourceName.get(order), seqByCycle[order].getInputCounts());
+			}
+
 		}
-		
-		Pair<String, Number> rcPair = new Pair<>(ReadGroupSummary.READ_COUNT, counts);
-		
-		// sequenceBase	
-		Element ele = XmlUtils.createMetricsNode(parent,  XmlUtils.SEQ_BASE,  rcPair);	
-		for (int order = 0; order < 3; order++) {
-			seqByCycle[order].toXml(ele,  sourceName.get(order), seqByCycle[order].getInputCounts());
-		}
-				
 		// seqLength
-		ele = XmlUtils.createMetricsNode(parent,  XmlUtils.SEQ_LENGTH,  rcPair); 
+		Pair<String, Number> rcPair = new Pair<>(ReadGroupSummary.READ_COUNT, counts);
+		Element ele = XmlUtils.createMetricsNode(parent, XmlUtils.SEQ_LENGTH, rcPair);
 		for (int order = 0; order < 3; order++) {
 			if (seqByCycle[order].getLengthMapFromCycle().isEmpty()) {
 				continue;
 			}
-			XmlUtils.outputTallyGroup(ele, sourceName.get(order) ,  seqByCycle[order].getLengthMapFromCycle(), true, true);		
+			XmlUtils.outputTallyGroup(ele, sourceName.get(order), seqByCycle[order].getLengthMapFromCycle(), true, true);
 		}
-		
 		// badBase: 
 		counts = 0;
 		for (int order = 0; order < 3; order++) {
@@ -219,24 +237,40 @@ public class BamSummaryReport extends SummaryReport {
 			kmersSummary.toXml(parent,i, false);
 		}
 	}
-	
+
 	// <QUAL>
-	private void createQual(Element parent) {
+	private void createQual(Element parent, boolean isLongReadBam) {
 		
 		long counts = 0;
-		for (int order = 0; order < 3; order++) {
-			counts += qualByCycleInteger[order].getInputCounts();
+		if (isLongReadBam) {
+			for (int order = 0; order < 3; order++) {
+				counts += qualByLongReadBin[order].getInputCounts();
+			}
+
+			Pair<String, Number> rcPair = new Pair<>(ReadGroupSummary.READ_COUNT, counts);
+
+			// "count on quality base",
+			Element ele = XmlUtils.createMetricsNode(parent,  XmlUtils.QUAL_BASE,  rcPair);
+			for (int order = 0; order < 3; order++) {
+				qualByLongReadBin[order].toXml(ele, sourceName.get(order), qualByLongReadBin[order].getInputCounts());
+			}
+		} else {
+			for (int order = 0; order < 3; order++) {
+				counts += qualByCycleInteger[order].getInputCounts();
+			}
+
+			Pair<String, Number> rcPair = new Pair<>(ReadGroupSummary.READ_COUNT, counts);
+
+			// "count on quality base",
+			Element ele = XmlUtils.createMetricsNode(parent,  XmlUtils.QUAL_BASE,  rcPair);
+			for (int order = 0; order < 3; order++) {
+				qualByCycleInteger[order].toXml(ele, sourceName.get(order), qualByCycleInteger[order].getInputCounts());
+			}
 		}
-		
-		Pair<String, Number> rcPair = new Pair<>(ReadGroupSummary.READ_COUNT, counts);
-		
-		// "count on quality base",
-		Element ele = XmlUtils.createMetricsNode(parent,  XmlUtils.QUAL_BASE,  rcPair);
-		for (int order = 0; order < 3; order++) {	
-			qualByCycleInteger[order].toXml(ele, sourceName.get(order), qualByCycleInteger[order].getInputCounts());
-		}
+
 		// qual length
-		ele = XmlUtils.createMetricsNode(parent,  XmlUtils.QUAL_LENGTH,  rcPair);
+		Pair<String, Number> rcPair = new Pair<>(ReadGroupSummary.READ_COUNT, counts);
+		Element ele = XmlUtils.createMetricsNode(parent,  XmlUtils.QUAL_LENGTH,  rcPair);
 		for (int order = 0; order < 3; order++) {
 			if (qualByCycleInteger[order].getLengthMapFromCycle().isEmpty()) {
 				continue;
@@ -259,8 +293,8 @@ public class BamSummaryReport extends SummaryReport {
 			}
 			XmlUtils.outputTallyGroup(ele, sourceName.get(order), qualBadReadLineLengths[order].toMap(), true , true);
 		}		
-	}	
-	
+	}
+
 	private void createTLen(Element parent) {
 		//ISIZE
 		parent = XmlElementUtils.createSubElement(parent, XmlUtils.READGROUPS);          
@@ -274,7 +308,7 @@ public class BamSummaryReport extends SummaryReport {
 		//Read length
 		parent = XmlElementUtils.createSubElement(parent, XmlUtils.READGROUPS);
 		for (Entry<String, ReadGroupSummary> entry : rgSummaries.entrySet()) {
-			// output tLen inside pairSummary, eg. inward, f3f5
+			// output ReadLength
 			entry.getValue().readLength2Xml(XmlUtils.createReadGroupNode(parent, entry.getKey()));
 		}
 	}
@@ -386,9 +420,12 @@ public class BamSummaryReport extends SummaryReport {
 			if (record.getReadNegativeStrandFlag()) {
 				SequenceUtil.reverseComplement(data);
 			}
-			if (! isLongReadBam) {
+			if (isLongReadBam) {
+				longReadSeqByCycle[order].parseByteData(data);
+			} else {
 				seqByCycle[order].parseByteData(data);
 			}
+
 			SummaryReportUtils.tallyBadReadsAsString(record.getReadBases(), seqBadReadLineLengths[order]);
 			if (! isLongReadBam) {
 				kmersSummary.parseKmers(record.getReadBases(), record.getReadNegativeStrandFlag(), order);
@@ -399,7 +436,9 @@ public class BamSummaryReport extends SummaryReport {
 			if (record.getReadNegativeStrandFlag()) {
 				SequenceUtil.reverseQualities(data);
 			}
-			if (! isLongReadBam) {
+			if (isLongReadBam) {
+				qualByLongReadBin[order].parseByteData(data);
+			} else {
 				qualByCycleInteger[order].parseByteData(data);
 			}
 			SummaryReportUtils.tallyQualScores(record.getBaseQualities(), qualBadReadLineLengths[order]);				
