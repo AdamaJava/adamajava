@@ -1,10 +1,9 @@
 package org.qcmg.qprofiler2;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.qcmg.qprofiler2.Options;
+
+import static org.junit.Assert.*;
 
 public class OptionsTest {
 	public static final String FILE_1 = "file1.xml"; 
@@ -122,6 +121,20 @@ public class OptionsTest {
 		} catch (Exception e) {
 			assertTrue(true);
 		}
+	}
+
+	@Test
+    public void testLongReadOptionEnabled() throws Exception {
+		String[] args = {"--long-read", "--input", "test.bam"};
+		Options options = new Options(args);
+		assertTrue(options.hasLongReadBamOption());
+	}
+
+	@Test
+    public void testLongReadOptionDisabled() throws Exception {
+		String[] args = {"--input", "test.bam"};
+		Options options = new Options(args);
+		assertFalse(options.hasLongReadBamOption());
 	}
 	
 	

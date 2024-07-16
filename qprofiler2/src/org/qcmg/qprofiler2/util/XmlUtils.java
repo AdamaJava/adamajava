@@ -45,7 +45,7 @@ public class XmlUtils {
 	public static final String QUAL_LENGTH = "qualLength";	
 	public static final String FIRST_PAIR = "firstReadInPair"; 
 	public static final String SECOND_PAIR = "secondReadInPair";
-
+	public static final String UNPAIRED = "unPaired";
 	public static final String BAM_SUMMARY = "bamSummary";
 	public static final String OVERALL = "Overall";
 	public static final String ALL_BASE_LOST = "OverallBasesLost";
