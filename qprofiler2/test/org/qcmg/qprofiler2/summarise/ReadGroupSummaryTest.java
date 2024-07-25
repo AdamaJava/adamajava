@@ -28,11 +28,15 @@ public class ReadGroupSummaryTest {
 	@ClassRule
 	public static TemporaryFolder testFolder = new TemporaryFolder();
 	static File input;
+	static File longReadInput;
 
 	@BeforeClass
 	public static void setup() throws IOException {
 		input = testFolder.newFile("testInputFile.sam");
 		createInputFile (input);
+
+		longReadInput = testFolder.newFile("testLongReadInputFile.sam");
+		createLongReadInputFile(longReadInput);
 	}	
 	 
 	public static void createInputFile(File input) throws IOException {
@@ -110,7 +114,97 @@ public class ReadGroupSummaryTest {
 			for (String line : data)  out.write(line + "\n");	               
 		}		
 	}
-		
+
+    public static void createLongReadInputFile(File input) throws IOException {
+		   List<String> data = new ArrayList<String>();
+		   data.add("@HD\tVN:1.6\tSO:coordinate");
+		   data.add("@SQ\tSN:chr22\tLN:50818468");
+		   data.add("@RG\tID:COLO829_BL.28464\tPL:ONT\tSM:COLO829_BL");
+
+				   //Read length 301 - Supplementary alignment
+						   data.add("12b013c5-a784-4448-9eca-140d6db89e1c\t2048\tchr22\t20164189\t1\t11M3D72M6D11M3I35M1I1M2I37M3D20M6I46M3D9M4I2M2I26M2D13M3713H\t*\t0\t0\tCCACCACCATCACCACCACCACCACCAGCAGCATCACCACCAATACCACCACCACCACCAGCATCACCATCAACACCACCATCACCACCACCATCACCACCAGCACCACCAGCACCACCACCATCACCACCAGCATCACCACCAACACCACCATCACCACCAGCATCAGCACCACCACCACCACCACCACCACTACCGTCACCACCACCACCACCACCACCACCATCACCACCACCACCACCAGCAGCATCACCACCAATACCACCACCACCACCAGCATCACCATCAACACCACCATCAC\t/6:<BEGGKJFOHKHIHOHLLKHGDCBEHGDJIF?>>7201FEGHIIHD=>CCCBCLKHSDDFHGKSJJQJPKJSMSMKNNIJSHFRGGIIFGGFILHJHHIGHFFCIHHHHHFFFPLKQMSMSLHQHHISODECDBIIKJPMIKOJJILKLJKGRJFOGHIGIIFLFHEMHLLIIGISSJJJILIGGGFHHHGHJH<;;;<CGHFNJKLINRSQMJJMKJPIKKIGHFFJGJSJHLSLJKJNJKMJILJHSKIPLFPIHHJNJIOOLKLHOLLHSCBBB?EFEHGIJJIMILSISSHOLG\ts1:i:40\ts2:i:0\tSA:Z:chr1,110120463,+,2357S1655M2I,60,48;chr21,43335930,+,202S1716M2I2094S,1,305;chr21,43335930,+,724S1700M16D1590S,60,299;\tMD:Z:11^ACT19C2C5T2C8T8C0A1C8C10^ATCAGA16T3T4C26T2C2T3T10C5C2T1^GTT4T5T5T17T5T3T13T5T1^GTT1C14T5T2C11^CC5T7\tRG:Z:COLO829_BL.28464\tML:B:C,3,16,0,2,5,18,6,28,3,4,4,1,1,12,5,8,12,2,11,3,18,3,33,17,1,17,2,1,2,5,2,1,3,4,5,36,5,2,38,9,10,125,14,15,8,13,1,14,5,9,8,10,252,239,255,253,250,237,248,227,252,3,2,254,254,243,251,247,243,253,244,252,237,252,222,238,3,238,1,254,4,250,253,254,252,11,7,43,7,5,30,16,21,52,241,240,19,17,254,241,250,15,17,20\tMM:Z:C+h?,108,444,3,1,3,5,3,11,3,5,32,10,167,1,14,3,10,31,37,244,11,17,7,20,19,17,78,15,44,13,9,16,0,96,35,46,22,15,25,4,1,11,2,0,7,9,47,1,32,38,34,5;C+m?,108,444,3,1,3,5,3,11,3,5,32,10,167,1,14,3,10,31,37,244,11,17,7,20,19,17,78,15,44,13,9,16,0,96,35,46,22,15,25,4,1,11,2,0,7,9,47,1,32,38,34,5;\tNM:i:67\tAS:i:260\tde:f:0.1463\trl:i:1308\tcm:i:3\tnn:i:0\ttp:A:P\tms:i:287\tqs:i:22");
+
+				   //Read length 1258
+						   data.add("e0ea8507-83a9-4e00-bb0c-b0a27f9ed0a4\t0\tchr22\t20178190\t60\t138M1I201M2D67M2D14M1D6M1I5M1D25M1D163M1I426M1D77M1I132M\t*\t0\t0\tGGGCACGTCTCTTCCCAGTGAACCTCAGATCCCTCGGGCGCCCACGCTCCCCACTGAGGGCCTGGGGCCACAGCACTCTGCCTGTGAGGGGTGGGCCCTTGGAGGCTTGGGAAGGCGCGCGCCCACAGGCACGTGGGGTAGAGCGCGCTGAGCGCTGTCTCAGTGATGGTTCCCCACACTGGCCCCTGACATGGGGCTTGGTGTGGCAGCTTGTTGGGGAGGTGGTGCGTGGAGCAGGATGGGGACCGGGAGGTGGTTGCTGTGGGCTCTGCGGGGCGTGAGGGCCGGTGTTTGCCCCAAGCTCAGTGCCTGCCTGTGACCACACCAGCTCATAAGCGACCGGGGTGGCCCAGGGGTGAGCGGAGAGGGGACCTGAGCAGGCAACACGGGCCTGGAGAGGAGCTTTGTCTCTAGGAGAAGGAGCCTGCTGCTGTACACCTGGTATCACGCCACCCCAAGCAAGCCCCGCAGAGCCCTCGGGAGCTCCACTCGGAGATGGAGACGCGCTTCCCTGTGTCGGGGCTTCGCTCAGAACATTTTTATGGGCTGTTAATTGTTATGCTTTCATTTAATTCTGGGTGTCATTCCATGTCAGCCAAGCCCGACAGGCTGGGATTTATGTCTTCCAAATTATGGGGCTCGGGCTGTTCAGAGGTAAAACAATTACCCATCAATCAGCCACCAACCGGCTTGTGCTGGGGCTGGCAGCCCCATTAGCGGGCGTGGGCAGCCATGGCCCAGCAAGACCCCTTGAGGGACAGGACTGCCTTCGAGGGCAAGGCAGTCTGGGTGAAGTCTCGCCCCAGGTTGGCCCTGTGCTGTGGCAGGGCGCAGCTCTCTGGGGAGGCGGCCGCTCAGGGAAGGACCCCAGGGTCCACATTCACACCCAACTGGCTCCAGTGCTGCAGCCCTCGGCCTCCCATATGATGGTGTGACCCTAGGTGGGCTGAGGGTGACCCGCCGGAAGACGCTGCAGCATCAAGGTGGGGGGACCATGGGTCCCATATGCTGGGGCCTGGGGAGCCTTGGCCAGCCATGGTCACTCAGTGGAGGGGCAGGGTCACCTGCCTCCTGAGCACCCCATCCCCAGGAGGGAGGAACCAGGTGTGACCCACTTCACAGGGAGGGGAAGCCTTGGCTGTCAGAGGGGACACTGCGTCTCTCACTGGGAGGACCTCCCGGCCTGGGCTTGAGGCCCACCTGGATCTGTGCAAACGTAGATGTGGGTAGGGTGGGGCAGGGGAGGGGAGGTGGGCAG\tFDDDEEFHHHJSHIKILJIGGGIHI5CJSFGC:ACFFGGIHHEEEFJOJEA6556AGHHQHNINLKMJNIMOKKNJMLMLLLK///-0E@FKMNMKQLIHLISIFG6()%%&&(--CHHJIKSPHJGHFJMHB2100..0)(&&()016@FHFMGHGFGDDFFFEECCEPPAA@MKLKNHNNKSKSLKSMINPQJSSOPMLSKJQLPLSIKMSQ>GJKSSQMKJHSLIABSNMQOJSJKIJLHFL>=CSHHKFEKMILSNLKLMILOSIOHD?>???HLKPJIHAABCBSJJSPFEDGKSPLOMSSMKRNMMSOLNJKHSLNMQLKHOJKC<-----.--/1BAHFQJLHDGOSF<<<CFFC;;<E>SKILB@AJSRKQMLSLISIKLQSSIKKMNLSKIKSOMMLGE*),8;99;<@AEA>=766662)))))3028-,,,-33365566--*('&%&()*..679EHSJSFLJGG?AA?JLIFA@?655<BSK<;=AHHFJHGLMHKMNSJNKKHPOSPMSKSPSKSOKLSKOISSSMLPLMMSRMQSOLSMOSIOSJSSOSDKSSSPSSRSO.:ISKSSMSOIOIHIOJHGGEHF3,,,,-D@>>210000,01*((()'(*1576699<9<HFFHGFKJNSQNNMOHPMOSOSKMNSKSOMSSMIPLLKSSNSSNOSNMKRGRJPEEBNHSNHFKMJROMSSRJOMIPKJILKPJMSPPKKFGDHJKKOPLSOKJNOMHKLSOLHA@?8/;??IKNJMHILSSBACCDMKOKKSKKHCKKLKOMKGGGIGKKKSKGJHSIMSNMMNJJEDEFEMKSSSGMKLLHHHFGGJ=BCGE6?NQGJLLNPOMGGGGFLFHFGFMNMPSQSLSLNSNMKONPJMOMMPIOFFGKQKI@<?:91****,<175538HGGSNKIKPKKNPHLOSONSSMMHIFSKH7<99899EGJMLMKSMMKQSSQOSNMMLSKOOMSSKLQNKRKQPRJKIQSLLQKHRJSGJEGKNIHONQS?>?>,2/02889998=??AE888888DALNLJJJ.,<=.=4A@JLLPLJLSNSJISOKLLKPOLPONOKDKSSLRKNNI=11()((*???JHHGOHNLSSNSNLLNSO:<<?.<88:>@GIMILN?>=>>>OOPMKNSSNNNSSPSKMKKHHGF9GLKSSKKSSSSSGOJPPNSQKSMJLSMLLSOLM77FAGJIFGFHFHHHHQIJHHIJ1@=;<===41235;0))***<ACCIIHFFJLGS9E\ts1:i:1139\ts2:i:0\tMD:Z:111G1C0A0T27C0T190T3^CT1T65^TC14^C7C3^C0C1G22^G3G585^G50G158\tRG:Z:COLO829_BL.28464\tML:B:C,2,5,1,1,1,2,10,12,1,6,6,1,4,15,29,194,5,2,9,0,3,3,0,16,1,6,7,2,15,8,12,3,6,1,2,13,22,6,2,0,77,49,67,28,9,3,7,254,254,254,253,13,243,254,14,14,254,9,36,31,60,7,5,20,2,252,251,254,19,254,13,248,240,31,16,27,11,249,252,253,235,220,12,253,255,145,39,56,33,13\tMM:Z:C+h?,26,11,5,69,2,0,16,14,1,7,12,11,15,2,11,7,10,14,3,2,0,5,3,2,2,20,10,11,0,11,4,3,12,9,28,2,0,6,2,0,0,28,0,2,3;C+m?,26,11,5,69,2,0,16,14,1,7,12,11,15,2,11,7,10,14,3,2,0,5,3,2,2,20,10,11,0,11,4,3,12,9,28,2,0,6,2,0,0,28,0,2,3;\tNM:i:25\tAS:i:2366\tde:f:0.0182\trl:i:0\tcm:i:204\tnn:i:0\ttp:A:P\tms:i:2368\tqs:i:20");
+
+				   //Read length 212
+						  data.add("ee9f0c60-5af7-495b-9c3b-d4b30971c3d2\t0\tchr22\t20173734\t60\t212M\t*\t0\t0\tCAAGGACTCCCCGCAGCCCAGTGTCTGTGGAGTGGGGCGTGAGGTGCTGCCTCCCATGTTGCTGCTTAGAAGGACGCAGCCCTGGAAACCCTCACTGTGGAGTCTCTGAGCCCCTCATCCGCAGAGCAGCAGTTGCTGCTGTTTGCACAGACAGCAAATCCGGGGCATGTTTGTTTAGTAAGATTACCTCTGCTGGGGCCTGGCCCAAGGGA\t9EISNSRSMHDEJGJJSLJSSNLSSPLPNMSJNNSSMKSMNSQSSJSNSSKSHSKJKNOSJSJSSMRMSSSLPNMSMLECCB?::>??B988;HKD@=4444:767;?IFHHEEFDQKISSMNPLSSPSKLLSSLSKSSSSKPLJMNSKKOQSJOKSLSJKIB;FDMOQISMSAA@AAJJSNNORPSMJMKNLKSSJHNMMOJJGHKPSLOJ\ts1:i:211\ts2:i:0\tMD:Z:212\tRG:Z:COLO829_BL.28464\tML:B:C,2,27,23,3,3,9,27,17,7,252\tMM:Z:C+h?,17,10,9,11,11;C+m?,17,10,9,11,11;\tNM:i:0\tAS:i:424\tde:f:0.0\trl:i:0\tcm:i:41\tnn:i:0\ttp:A:P\tms:i:424\tqs:i:21");
+
+				  data.add("10786c49-0a30-44b8-8abd-4c75b693c1a4\t0\tchr22\t20166193\t60\t16S56M9D152M1D34M4I52M12D73M\t*\t0\t0\tTGGCACATATAGAAATACACACGGGGTGAGGACCCTGCAAGCACATGCAAAGGCAGGGGTCTCTCTTAGTATTGGGCTGAACCTGTCTCTCTTCCTGCCTCACTGGGATTGTGGATGACCATGGGGTTGGCTCAGGAGTCTGCCCTGTGCCTGCAGATGTTCTGGATATCTGGGCTAGTGTTGGGGGGTATTATCTGACCCATGGACCAGTCTCTGGTTCTTCTCTGCCCCAGCCACTCCAGGCCTTTGGTGAACCCCAGTTTTCTACCATTCAACTTGACCTGCCATGTTCCTGAGATCTAGCCCAGGGCTACTTCTCACTAAAGTGTGAGTGGTTGCTTGGCACTACCCTAATCTTTGCCGCCTCATGTGTTTATTGGTGTGAAG\t027<31('&&$$$$%$$$$%%()346>>==<>AABBABBC<????DDGFGHHDBBBBAA?>??@AD@<998988799=:9979:;A>??DBCB@@BCBCAAACGHDDDCDEIGCCCDDECEDCA====>DDEAA@@?AB@==<?AAACCBAAABDDCCCCEDDEDCBAACDE@@@?>????BA?????>>?ACDAA???AAA@ACDCBAABBDDDEECDCBDCC32222BBACEDDCDBBAB@?>AAFBBDA@>>9690)((((()+=>AABBABCBDCCCCABABBA>=;731.-,''((''(.//111-.0/)))).47:>AADCDCCCDCB???????>>@DBA?>==>>@BEHHIFC75555;CEDEFGGGHHGFFFFDE?;;\ts1:i:303\ts2:i:133\tMD:Z:23C32^TGGGGCAGG5A146^A0T33C51^TCCATCCACCAA73\tRG:Z:COLO829_BL.28464\tML:B:C,216,4,22,8\tMM:Z:C+h?,4,91;C+m?,4,91;\tNM:i:30\tAS:i:642\tde:f:0.0216\trl:i:0\tcm:i:45\tnn:i:0\ttp:A:P\tms:i:673\tqs:i:17");
+		   try(BufferedWriter out = new BufferedWriter(new FileWriter(input))) {
+					   for (String line : data)  out.write(line + "\n");
+			   }
+	}
+
+	private ReadGroupSummary createLongReadRGElement(String rgid) throws IOException, ParserConfigurationException {
+
+		ReadGroupSummary rgSumm = new ReadGroupSummary(rgid, true);
+		try( SamReader reader = SAMFileReaderFactory.createSAMFileReader(longReadInput)){
+			for (SAMRecord record : reader) {
+				if (rgid == null)
+					rgSumm.parseRecord(record);
+				else if (rgid.equals(XmlUtils.UNKNOWN_READGROUP) && record.getReadGroup() == null)
+					rgSumm.parseRecord(record);
+				else if (record.getReadGroup() != null && record.getReadGroup().getId().equals(rgid))
+					rgSumm.parseRecord(record);
+			}
+		}
+
+		return rgSumm;
+	}
+
+	@Test
+	public void rgLongReadTest() throws Exception {
+		String rgid = "COLO829_BL.28464";  // here only test the pair from "1959N"
+		ReadGroupSummary rgSumm = createLongReadRGElement(rgid);
+		final Element root = XmlElementUtils.createRootElement("root",null);
+		rgSumm.readSummary2Xml(root);
+
+		// must be after readSummary2Xml(root)
+		//Total 3 - 1 is supplementary, so two counted
+		assertTrue(rgSumm.getReadCount() == 3);
+
+		// <sequenceMetrics name="baseLost">
+		Element root1 = XmlElementUtils.getChildElementByTagName(root, XmlUtils.SEQUENCE_METRICS)
+				.stream().filter(ele -> ele.getAttribute(XmlUtils.NAME).equals("basesLost")).findFirst().get() ;
+		checkBadReadStats(root1, "duplicateReads", 0, 0, "0.00");
+		checkBadReadStats(root1, "unmappedReads", 0, 0, "0.00");
+		checkBadReadStats(root1, ReadGroupSummary.NODE_NOT_PROPER_PAIR, 0, 0, "0.00");
+		checkBadReadStats(root1, "trimmedBases", 0, 0, "0.00");
+		checkCountedReadStats(root1, ReadGroupSummary.NODE_SOFTCLIP , new int[] {1, 16, 16, 16, 16, 16,16}, "0.42");
+		checkCountedReadStats(root1, ReadGroupSummary.NODE_HARDCLIP  ,new int[] {0, 0, 0, 0, 0,0,0}, "0.00");
+		checkCountedReadStats(root1, ReadGroupSummary.NODE_OVERLAP, new int[] {0,0,0,0,0,0,0},"0.00");
+
+		// <sequenceMetrics name="reads" readCount="2">
+		root1 = XmlElementUtils.getChildElementByTagName(root, XmlUtils.SEQUENCE_METRICS)
+				.stream().filter(ele -> ele.getAttribute(XmlUtils.NAME).equals("reads")).findFirst().get() ;
+		assertTrue(root1.getAttribute(ReadGroupSummary.READ_COUNT).equals("4"));
+		checkDiscardReads(root1, 1,0,0);
+
+		// check readCount
+		Element groupE =  XmlElementUtils.getChildElementByTagName(root1, XmlUtils.VARIABLE_GROUP)
+				.stream().filter(ele -> ele.getAttribute(XmlUtils.NAME).equals(ReadGroupSummary.NODE_READ_LENGTH)).findFirst().get() ;
+		assertTrue(checkChildValue(groupE, ReadGroupSummary.MAX, "1258"));
+		assertTrue(checkChildValue(groupE, ReadGroupSummary.MEAN, "619"));
+
+		//check tlen
+		groupE =  XmlElementUtils.getChildElementByTagName(root1, XmlUtils.VARIABLE_GROUP)
+				.stream().filter(ele -> ele.getAttribute(XmlUtils.NAME).equals(ReadGroupSummary.NODE_PAIR_TLEN)).findFirst().get() ;
+		assertTrue(checkChildValue(groupE, ReadGroupSummary.MAX, "0"));
+		assertTrue(checkChildValue(groupE, ReadGroupSummary.MEAN, "0"));
+
+		groupE =  XmlElementUtils.getChildElementByTagName(root1, XmlUtils.VARIABLE_GROUP)
+				.stream().filter(ele -> ele.getAttribute(XmlUtils.NAME).equals("countedReads")).findFirst().get() ;
+		assertTrue(checkChildValue(groupE, ReadGroupSummary.UNPAIRED_READ, "3"));
+		assertTrue(checkChildValue(groupE, ReadGroupSummary.READ_COUNT, "3"));
+		assertTrue(checkChildValue(groupE, ReadGroupSummary.BASE_LOST_COUNT, "16"));
+		// here overlapped base is more than real base number since it alignment end may include skipping/deletion base
+		assertTrue(checkChildValue(groupE, ReadGroupSummary.BASE_LOST_PERCENT, "0.42"));
+		assertTrue(checkChildValue(groupE, ReadGroupSummary.BASE_COUNT, "3774"));
+
+	}
+
+
 	/**
 	 * 
 	 * @param ele:<sequenceMetrics name="reads"..>
@@ -192,7 +286,7 @@ public class ReadGroupSummaryTest {
 	 */
 	private ReadGroupSummary createRGElement(String rgid) throws IOException, ParserConfigurationException {
 		
-		ReadGroupSummary rgSumm = new ReadGroupSummary(rgid);		
+		ReadGroupSummary rgSumm = new ReadGroupSummary(rgid, false);
 		try( SamReader reader = SAMFileReaderFactory.createSAMFileReader(input);){
 			for (SAMRecord record : reader) {	
 				if (rgid == null)
@@ -385,7 +479,7 @@ public class ReadGroupSummaryTest {
 		record.setAlignmentStart(239007);
 		record.setReferenceName("chrY");
 				
-		ReadGroupSummary rgSumm = new ReadGroupSummary(null);
+		ReadGroupSummary rgSumm = new ReadGroupSummary(null, false);
 		for (int flag : new int[] {117, 69, 181}) {
 			record.setFlags(flag);
 			rgSumm.parseRecord(record);
@@ -427,7 +521,7 @@ public class ReadGroupSummaryTest {
 		record.setAlignmentStart(239007);
 		record.setReferenceName("chrY");
 
-		ReadGroupSummary rgSumm = new ReadGroupSummary(null);
+		ReadGroupSummary rgSumm = new ReadGroupSummary(null, false);
 		// 64: unpaired read, 65: not proper pair read
 		for (int flag : new int[] {64, 65}) {
 			record.setFlags(flag);

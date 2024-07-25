@@ -11,7 +11,8 @@ import htsjdk.samtools.Cigar;
 public class CycleSummaryUtils {
 	
 	public static String tallyMDMismatches(final String mdData, Cigar cigar, final CycleSummary<Character> tagMDMismatchByCycle, 
-			final byte[] readBases, final boolean reverse, QCMGAtomicLongArray mdRefAltLengthsForward, QCMGAtomicLongArray mdRefAltLengthsReverse) {
+			final byte[] readBases, final boolean reverse, QCMGAtomicLongArray mdRefAltLengthsForward, QCMGAtomicLongArray mdRefAltLengthsReverse,
+										   boolean isLongReadBam) {
 		
 		if (null == mdData) {
 			return null; 
@@ -66,7 +67,11 @@ public class CycleSummaryUtils {
 				if (reverse) {
 					pos = readBases.length - pos + 1; 
 				}
-				tagMDMismatchByCycle.increment(pos, readBase);
+				//Skip for long read
+				if (! isLongReadBam) {
+					tagMDMismatchByCycle.increment(pos, readBase);
+				}
+
 				
 				int intFromChar = getIntFromChars(refBase, readBase);
 								

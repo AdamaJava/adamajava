@@ -38,22 +38,22 @@ public class TagSummaryReportTest {
 		record.setAttribute("MD", "A25A"); // (ref) A>C (base) in cycly 11 and 37
 		record.setAttribute("RG", "first");
 		record.setCigarString("10S27M");		
-		report.parseTAGs(record);
+		report.parseTAGs(record, false);
 		
 		// second read
 		record.setReadBases("ACCCT AACCC".replace(" ","" ).getBytes());
 		record.setCigarString( "10M" );
 		record.setAttribute( "MD", "T9" ); // ref T>A (Base) in cycle 1
-		report.parseTAGs(record);
+		report.parseTAGs(record, false);
 		
 		// third read
 		record.setReadNegativeStrandFlag(true); // ref A>T (base) in cycle 10 according to reverse
-		report.parseTAGs(record);
+		report.parseTAGs(record, false);
 		
 		// forth read invalid cigar so mutation and MD are ignored
 		record.setReadBases("ACCCT AACCC A".replace(" ","" ).getBytes());
 		record.setAttribute("RG", "last");
-		report.parseTAGs(record);
+		report.parseTAGs(record, false);
 		
 		// check md counts
 		Element root = XmlElementUtils.createRootElement( XmlUtils.TAG, null );
@@ -181,15 +181,15 @@ public class TagSummaryReportTest {
 		SAMRecord record = new SAMRecord(null);
 		record.setReadName("TESTDATA");
 		record.setAttribute(STU.makeStringTag(STU.NM), new Integer(Integer.MAX_VALUE));
-		report.parseTAGs(record);
+		report.parseTAGs(record, false);
 		
 		for (int i = 0; i < 200; i++) {	
 			for (int j = 0; j < 2; j ++) {
 				record.setAttribute(STU.makeStringTag(STU.NM), new Integer(i+j));
-				report.parseTAGs(record);
+				report.parseTAGs(record, false);
 			}			
 			record.setAttribute(STU.makeStringTag(STU.NM), i + "");
-			report.parseTAGs(record);			
+			report.parseTAGs(record, false);
 		}		
 		
 		Element root = XmlElementUtils.createRootElement( XmlUtils.TAG, null );

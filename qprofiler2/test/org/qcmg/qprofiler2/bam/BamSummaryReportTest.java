@@ -1,11 +1,18 @@
 package org.qcmg.qprofiler2.bam;
 
 import static org.junit.Assert.*;
+
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.parsers.ParserConfigurationException;
+
+import org.qcmg.qprofiler2.summarise.*;
 import org.w3c.dom.Element;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMUtils;
@@ -16,10 +23,6 @@ import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.XmlElementUtils;
 import org.qcmg.picard.BwaPair.Pair;
 import org.qcmg.qprofiler2.bam.BamSummaryReport;
-import org.qcmg.qprofiler2.summarise.CycleSummaryTest;
-import org.qcmg.qprofiler2.summarise.PairSummaryTest;
-import org.qcmg.qprofiler2.summarise.PositionSummary;
-import org.qcmg.qprofiler2.summarise.ReadGroupSummary;
 import org.qcmg.qprofiler2.util.XmlUtils;
 
 
@@ -30,7 +33,7 @@ public class BamSummaryReportTest {
 			
 	@Test
 	public void testParseRNameAndPos() throws Exception {
-		BamSummaryReport bsr = new BamSummaryReport(-1, false);
+		BamSummaryReport bsr = new BamSummaryReport(-1, false, false);
 		final String rg = "rg1";
 		bsr.setReadGroups(Arrays.asList(rg));
 		
@@ -135,6 +138,27 @@ public class BamSummaryReportTest {
 			assertTrue(count == 1);
 		}	 
 	}
+
+	private void checklengthLongRead(Element root, boolean isSeq,  String pairName) throws Exception {
+
+		String nodeName = (isSeq)? XmlUtils.SEQ  : XmlUtils.QUAL ;
+		String sLength = isSeq? XmlUtils.SEQ_LENGTH : XmlUtils.QUAL_LENGTH;
+
+		// get node <SEQ> or <QUAL>
+		List<Element> lists = XmlElementUtils.getOffspringElementByTagName(root, nodeName);
+		assertEquals(1, lists.size());
+
+		// get node <sequenceMetrics name="seqLength"> or <sequenceMetrics name="qualLength">
+		lists = XmlElementUtils.getOffspringElementByTagName(lists.get(0), XmlUtils.SEQUENCE_METRICS).stream()
+				.filter(e -> e.getAttribute(XmlUtils.NAME).equals(sLength)).collect(Collectors.toList());
+		assertEquals(1, lists.size());
+
+		// <variableGroup name="firstReadInPair"> or <variableGroup name="secondReadInPair">
+		//Long read so these elements should not exists
+		lists = XmlElementUtils.getOffspringElementByTagName(lists.get(0), XmlUtils.VARIABLE_GROUP).stream()
+				.filter(e -> e.getAttribute(XmlUtils.NAME).equals(pairName)).collect(Collectors.toList());
+		assertEquals(0, lists.size());
+	}
 		
 	private void checkTally(Element root, String groupName, String value, int count, int expectedNo) {
 		
@@ -143,6 +167,29 @@ public class BamSummaryReportTest {
 					((Element) e.getParentNode()).getAttribute(XmlUtils.NAME).equals(groupName)).count();
 
 		assertEquals(expectedNo , findNo);
+	}
+
+	@Test
+	public void checkLength_rname_mapq_for_longread() throws Exception {
+		File input = testFolder.newFile("testLongReadInputFile.sam");
+		Element root = createLongReadRoot(input);
+
+		// length
+		checklengthLongRead(root, true,  XmlUtils.FIRST_PAIR);
+		checklengthLongRead(root, true,  XmlUtils.SECOND_PAIR);
+		checklengthLongRead(root, false, XmlUtils.FIRST_PAIR);
+		checklengthLongRead(root, false, XmlUtils.SECOND_PAIR);
+
+		// rNAME
+		Element node = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.RNAME).get(0);
+		checkTally(node, XmlUtils.RNAME, "chr22", 3, 1);
+
+		// mapq is for all counted reads disregard duplicate ect, unmapped reads mapq=0
+		// Zero mapping quality indicates that the read maps to multiple locations or differet ref
+		node = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.MAPQ).get(0);
+		checkTally(node,  XmlUtils.UNPAIRED, "1", 1, 1);
+		checkTally(node,  XmlUtils.UNPAIRED, "60", 3, 1);
+
 	}
 		
 	@Test
@@ -210,6 +257,33 @@ public class BamSummaryReportTest {
 		tallyE = getTallys(rgsE, XmlUtils.UNKNOWN_READGROUP, "tLenInNotProperPair" , 1); 
 		chekTlen(tallyE, Pair.F3F5, 1, 0);
 	}
+
+
+	@Test
+	public void checkRLength() throws Exception {
+		File input = testFolder.newFile("testLongReadInputFile.sam");
+		Element root = createLongReadRoot(input);
+
+		final Element rlength = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.RLENGTH).get(0);
+		final List<Element> rgsE =  XmlElementUtils.getOffspringElementByTagName(rlength, "readGroup");
+
+		// five pairs in 1959T, we only record 13, 26, 2015
+		List<Element> tallyE = getTallys(rgsE, "COLO829_BL.28464", "readLength" , 3);
+		chekRlen(tallyE, 1, 212);
+		chekRlen(tallyE, 1, 387);
+		chekRlen(tallyE, 1, 2000);
+
+	}
+
+	private void chekRlen(List<Element> tallyE, int count, int value) {
+		long no = tallyE.stream().filter(e ->
+				((Element) e.getParentNode()).getAttribute(XmlUtils.NAME).equals("readLength") &&
+						e.getAttribute(XmlUtils.VALUE).equals(value+"") && e.getAttribute(XmlUtils.COUNT).equals(count+"")
+		).count();
+
+		assertTrue(no == 1);
+	}
+
 	private void chekTlen(List<Element> tallyE, Pair p, int count, int value) {
 		 long no = tallyE.stream().filter(e ->   
 			((Element) e.getParentNode()).getAttribute(XmlUtils.NAME).equals(p.name()) &&
@@ -233,7 +307,7 @@ public class BamSummaryReportTest {
 	@Test
 	public void unKnownIdTest() throws Exception {
 		final Element root = XmlElementUtils.createRootElement("root",null);
-		BamSummaryReport bsr = new BamSummaryReport(-1, false);
+		BamSummaryReport bsr = new BamSummaryReport(-1, false, false);
 		SAMRecord record = new SAMRecord(null);
 		record.setReadName("243_146_1");
 		record.setBaseQualities(new byte[] {1,2,3,4,5,6,7});
@@ -248,12 +322,21 @@ public class BamSummaryReportTest {
 			assertEquals(ele.getAttribute("name"), "unknown_readgroup_id");
 		} 		
 	}
-	
 
+
+	public static Element createLongReadRoot(File input) throws Exception {
+		ReadGroupSummaryTest.createLongReadInputFile(input);
+		BamSummarizer bs = new BamSummarizer(1000, null, false, true);
+		BamSummaryReport sr = (BamSummaryReport) bs.summarize(input.getAbsolutePath());
+		Element root = XmlElementUtils.createRootElement("root",null);
+		sr.toXml(root);
+
+		return root;
+	}
 
 	@Test
 	public void unpairedTest() throws ParserConfigurationException {
-		BamSummaryReport report  = new BamSummaryReport(3, false);	
+		BamSummaryReport report  = new BamSummaryReport(3, false, false);
 		
 		SAMRecord record = new SAMRecord(null);
 		record.setReadName("TESTDATA");
@@ -288,5 +371,8 @@ public class BamSummaryReportTest {
 		
 		
 	}
+
+
+
 
 }

@@ -45,7 +45,7 @@ public class XmlUtils {
 	public static final String QUAL_LENGTH = "qualLength";	
 	public static final String FIRST_PAIR = "firstReadInPair"; 
 	public static final String SECOND_PAIR = "secondReadInPair";
-
+	public static final String UNPAIRED = "unPaired";
 	public static final String BAM_SUMMARY = "bamSummary";
 	public static final String OVERALL = "Overall";
 	public static final String ALL_BASE_LOST = "OverallBasesLost";
@@ -60,7 +60,8 @@ public class XmlUtils {
 	public static final String TLEN = "TLEN";
 	public static final String SEQ = "SEQ"; 
 	public static final String QUAL = "QUAL";
-	public static final String TAG = "TAG";	
+	public static final String TAG = "TAG";
+	public static final String RLENGTH = "RLENGTH";
 	
    public static void bamHeaderToXml(Element parent1, SAMFileHeader header, boolean isFullBamHeader) {
 
@@ -276,10 +277,10 @@ public class XmlUtils {
     	if (tallys == null || tallys.isEmpty()) {
     		return null;
     	}
-    	
+
     	Element ele = createGroupNode( parent, name);	// <category> 
     	outputTallys( ele, name, tallys, hasPercent);
-    	
+
     	if (outputSum) {
 	    	long counts = tallys.values().stream().mapToLong( x -> (long) x.get()).sum() ;	
 	    	ele.setAttribute(COUNT, counts + "");

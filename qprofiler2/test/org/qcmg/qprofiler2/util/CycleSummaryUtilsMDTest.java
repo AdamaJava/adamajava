@@ -44,7 +44,7 @@ public class CycleSummaryUtilsMDTest {
 			}
 			
 			String err = CycleSummaryUtils.tallyMDMismatches(value, record.getCigar(), tagMDMismatchByCycle[order],
-					record.getReadBases(), record.getReadNegativeStrandFlag(), null, null);
+					record.getReadBases(), record.getReadNegativeStrandFlag(), null, null, false);
 			assertEquals(err , null);
 			count ++;			
 		}
@@ -82,7 +82,7 @@ public class CycleSummaryUtilsMDTest {
 		cigar.add(new CigarElement(3, CigarOperator.M));
 		cigar.add(new CigarElement(1, CigarOperator.I));
 		cigar.add(new CigarElement(96, CigarOperator.M));
-		CycleSummaryUtils.tallyMDMismatches("99", cigar, summary, readBases, false, forwardArray, reverseArray);				
+		CycleSummaryUtils.tallyMDMismatches("99", cigar, summary, readBases, false, forwardArray, reverseArray, false);
 		for (int i = 0 ; i < forwardArray.length() ; i++) {
 			assertEquals(0, forwardArray.get(i));
 		}			
@@ -106,7 +106,7 @@ public class CycleSummaryUtilsMDTest {
 		assertEquals(98,readBases.length);
 		
 		for (int i = 0; i < 10; i ++) {
-			CycleSummaryUtils.tallyMDMismatches("24C30C20", cigar, summary, readBases, false, forwardArray, reverseArray);
+			CycleSummaryUtils.tallyMDMismatches("24C30C20", cigar, summary, readBases, false, forwardArray, reverseArray, false);
 		}
 				
 		// would expect C>A on the forward as the mismatch happens before the insertion
@@ -133,7 +133,7 @@ public class CycleSummaryUtilsMDTest {
 			
 		// reverse string
 		for (int i = 0; i < 5; i ++) {
-			CycleSummaryUtils.tallyMDMismatches("24C30C20", cigar, summary, readBases, true, forwardArray, reverseArray);
+			CycleSummaryUtils.tallyMDMismatches("24C30C20", cigar, summary, readBases, true, forwardArray, reverseArray, false);
 		}
 		
 		for (int i = 0 ; i < reverseArray.length() ; i++) {
@@ -169,7 +169,7 @@ public class CycleSummaryUtilsMDTest {
 		// invalid cigar
 		Cigar cigar = new Cigar();
 		cigar.add(new CigarElement(30, CigarOperator.M));					 
-		String errMess = CycleSummaryUtils.tallyMDMismatches("52", cigar, summary, readBases, true, null, null);
+		String errMess = CycleSummaryUtils.tallyMDMismatches("52", cigar, summary, readBases, true, null, null, false);
 		assertTrue(errMess != null);
 		assertTrue(summary.cycles().size() == 0);
 		assertTrue(summary.getPossibleValues().size() == 0);
@@ -177,7 +177,7 @@ public class CycleSummaryUtilsMDTest {
 		// valid cigar
 		cigar = new Cigar();
 		cigar.add(new CigarElement(51, CigarOperator.M));	
-		errMess = CycleSummaryUtils.tallyMDMismatches("52", cigar, summary, readBases, true, null, null);
+		errMess = CycleSummaryUtils.tallyMDMismatches("52", cigar, summary, readBases, true, null, null, false);
 		assertTrue(errMess == null);	
 				
 		// extra long mds with big deletion  
@@ -187,14 +187,14 @@ public class CycleSummaryUtilsMDTest {
 		"GTCTACTCTAGATTTGTTCTAAATTAATAAATCCCATTATTTTTGGCTTCTACTACTTCTATTTATTAAATTCATTCTGAATATGAAGTTTATTT" +
 		"TCAAAGGAATTCATAATTCTTTACTCCRRGCTTGGTTCTAACAATGAATTTAATAAGAATTGTATTTAATCAATGTTTAAATATATTAAGGGC" +
 		"AAATTTTGTAAAAATGTTAGTGTTCCAAGCTTTCCATTTCCCCACAAATTAATTTTTTTAGCCTTTCCCCTTAATCCACTTTCTT19G0";		
-		errMess = CycleSummaryUtils.tallyMDMismatches(mdString, cigar, summary, readBases, false, null, null);
+		errMess = CycleSummaryUtils.tallyMDMismatches(mdString, cigar, summary, readBases, false, null, null, false);
 		assertTrue(errMess == null);		
 		assertEquals(1, summary.count(50, 'A'));  // forward
 				
 		// extra long md and invalid md (md baselength is bigger than read base)
 		summary = new CycleSummary<Character>(Character.MAX_VALUE, 64);
 		mdString = mdString.replace("19G", "29G");
-		errMess = CycleSummaryUtils.tallyMDMismatches(mdString, cigar, summary, readBases, true, null, null);	
+		errMess = CycleSummaryUtils.tallyMDMismatches(mdString, cigar, summary, readBases, true, null, null, false);
 	
 		assertTrue(errMess != null);
 		assertTrue(summary.cycles().size() == 0);
@@ -214,7 +214,7 @@ public class CycleSummaryUtilsMDTest {
 		cigar.add(new CigarElement(1, CigarOperator.M));
 		cigar.add(new CigarElement(1, CigarOperator.I));
 		cigar.add(new CigarElement(6, CigarOperator.M));
-		CycleSummaryUtils.tallyMDMismatches("92^AA2G2T1", cigar, summary, "GGATAGCTGTATACCCTTCAGGTCTTTTCCCCAAATACGATTGCCTAAAACAAAACATTATTAAAAGTTGTTCAAGGTCATGATCCTCCAACCTGTCTCT".getBytes(), false, forwardArray, reverseArray);
+		CycleSummaryUtils.tallyMDMismatches("92^AA2G2T1", cigar, summary, "GGATAGCTGTATACCCTTCAGGTCTTTTCCCCAAATACGATTGCCTAAAACAAAACATTATTAAAAGTTGTTCAAGGTCATGATCCTCCAACCTGTCTCT".getBytes(), false, forwardArray, reverseArray, false);
 		
 		// expecting to see 1 C>T and 1 G>T		
 		assertEquals(1, forwardArray.get(CycleSummaryUtils.getIntFromChars('T', 'C')));
@@ -230,7 +230,7 @@ public class CycleSummaryUtilsMDTest {
 		Cigar cigar = new Cigar();
 		cigar.add(new CigarElement(98, CigarOperator.I));
 		cigar.add(new CigarElement(3, CigarOperator.M));
-		CycleSummaryUtils.tallyMDMismatches("0G0T0T2A1A1A0A0A0A0A0A0A0A0A0A0A0A1A0A0A0A0A0A0A3A0A0A0A0A0A0A0A0A0A0A1A1A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A23A1A0", cigar, summary, "GTCTTTTTTTTTTTTTTTTTTTTTTTAAAAGGGGGGGGGCGGGGGGGCCCCCCCCTGTAACCCCAGCAATTTGGGGGACTGGGGGGGGGGGGTCTCTTGGG".getBytes(), false, forwardArray, reverseArray);
+		CycleSummaryUtils.tallyMDMismatches("0G0T0T2A1A1A0A0A0A0A0A0A0A0A0A0A0A1A0A0A0A0A0A0A3A0A0A0A0A0A0A0A0A0A0A1A1A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A0A23A1A0", cigar, summary, "GTCTTTTTTTTTTTTTTTTTTTTTTTAAAAGGGGGGGGGCGGGGGGGCCCCCCCCTGTAACCCCAGCAATTTGGGGGACTGGGGGGGGGGGGTCTCTTGGG".getBytes(), false, forwardArray, reverseArray, false);
 		
 		
 	}
@@ -248,7 +248,7 @@ public class CycleSummaryUtilsMDTest {
 		cigar.add(new CigarElement(1, CigarOperator.M));
 		cigar.add(new CigarElement(1, CigarOperator.I));
 		cigar.add(new CigarElement(4, CigarOperator.M));
-		CycleSummaryUtils.tallyMDMismatches("94^AG2G1G0", cigar, summary, "TCTCACATGAGAGTAACTAGCATCTTTCTCTCAGATGATGAAGATGATGAAGAGGAAGATGAAGAGGAAGAAATCGACGTGGTCACTGTGGAGACTGTCT".getBytes(), false, forwardArray, reverseArray);
+		CycleSummaryUtils.tallyMDMismatches("94^AG2G1G0", cigar, summary, "TCTCACATGAGAGTAACTAGCATCTTTCTCTCAGATGATGAAGATGATGAAGAGGAAGATGAAGAGGAAGAAATCGACGTGGTCACTGTGGAGACTGTCT".getBytes(), false, forwardArray, reverseArray, false);
 		
 		// expecting to see 2 G>T		
 		assertEquals(2, forwardArray.get(CycleSummaryUtils.getIntFromChars('G', 'T')));
@@ -275,7 +275,7 @@ public class CycleSummaryUtilsMDTest {
 		cigar.add(new CigarElement(18, CigarOperator.M));
 		cigar.add(new CigarElement(18, CigarOperator.S));
 		
-		CycleSummaryUtils.tallyMDMismatches("16A1T6A2^G5A6T1A0G2C4T0G2^A3^GA5T2T3T8", cigar, summary, "AGTCTAGAGTCCAAAAGGAATTCTTCCTCCTGCCTTTTCATCCCTTTTTTTCACATCTTTCACCTCCGCCGGGCCAATTTCTTCAGTTCTCGTTTTAAGC".getBytes(), false, forwardArray, reverseArray);
+		CycleSummaryUtils.tallyMDMismatches("16A1T6A2^G5A6T1A0G2C4T0G2^A3^GA5T2T3T8", cigar, summary, "AGTCTAGAGTCCAAAAGGAATTCTTCCTCCTGCCTTTTCATCCCTTTTTTTCACATCTTTCACCTCCGCCGGGCCAATTTCTTCAGTTCTCGTTTTAAGC".getBytes(), false, forwardArray, reverseArray, false);
 		
 		// expecting to see A>G, T>A, 2x A>C,...... 	
 		assertEquals(1, forwardArray.get(CycleSummaryUtils.getIntFromChars('A', 'G')));

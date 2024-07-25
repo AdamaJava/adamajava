@@ -46,7 +46,8 @@ public class ReadGroupSummary {
 	QCMGAtomicLongArray hardClip = new QCMGAtomicLongArray(128);
 	
 	// record read length excluding the discard reads but includes duplicate,unmapped and nonCanonicalReads	
-	QCMGAtomicLongArray readLength = new QCMGAtomicLongArray(128);	
+	QCMGAtomicLongArray readLength = new QCMGAtomicLongArray(128);
+	QCMGAtomicLongArray readLengthBins = new QCMGAtomicLongArray(128);
 	QCMGAtomicLongArray forTrimLength = new QCMGAtomicLongArray(128);	
 	private final ConcurrentMap<String, AtomicLong> cigarValuesCount = new ConcurrentHashMap<>();
 	// must be concurrent set for multi threads
@@ -70,11 +71,13 @@ public class ReadGroupSummary {
 	private SummaryReportUtils.TallyStats pairtLenStats;
 	private SummaryReportUtils.TallyStats trimBaseStats;
 		
-	private final String readGroupId; 
+	private final String readGroupId;
+	private final boolean isLongReadBam;
 	
-	public ReadGroupSummary(String rgId) {
+	public ReadGroupSummary(String rgId, boolean isLongReadBam) {
 		this.readGroupId = rgId;
-	}
+        this.isLongReadBam = isLongReadBam;
+    }
 	
 	public String getReadGroupId() {
 		return readGroupId; 
@@ -162,8 +165,8 @@ public class ReadGroupSummary {
 			 }	 
 		}
 		
-		readLength.increment(record.getReadLength() + lHard);	
-			
+		readLength.increment(record.getReadLength() + lHard);
+
 		// find mapped badly reads and return false	
 		if (record.getDuplicateReadFlag()) {
 			duplicate.incrementAndGet();
@@ -197,10 +200,15 @@ public class ReadGroupSummary {
 		if (lSoft > 0) {
 			softClip.increment(lSoft);
 		}
+
 		// record read length excluding the discard reads duplicate.get() + unmapped.get() + getnonCanonicalReadsCount();	
 		// due to it for trimmed base calculation as well
-		forTrimLength.increment(record.getReadLength() + lHard);	
-			 				
+		// Adapter trimming not relevant for long read - the adapter trimming is calculated based on the length of the current read vs
+		// the length of the maximum read and long read has variable length so it is not possible to calculate the adapter trimming for long read
+		if (! isLongReadBam) {
+			forTrimLength.increment(record.getReadLength() + lHard);
+		}
+
 		return true;  
 	}
 	
@@ -250,6 +258,7 @@ public class ReadGroupSummary {
 			trimmedBase.increment( maxLength - i, forTrimLength.get(i));
 		}
 		this.trimBaseStats = new SummaryReportUtils.TallyStats( trimmedBase );
+
 	}
 	
 	public void readSummary2Xml(Element parent ) {
@@ -292,8 +301,8 @@ public class ReadGroupSummary {
 		long maxBases = getReadCount() * readlengthStats.getMax() ;
 		long lostBase = (duplicate.get() + unmapped.get() + notProperPairedReads.get()  ) * getMaxReadLength()
 				+ trimBaseStats.getBaseCounts() + softclipStats.getBaseCounts() + hardclipStats.getBaseCounts() + overlapStats.getBaseCounts();
-		final double lostPercent =  maxBases == 0 ? 0 : 100 * (double) lostBase / maxBases;	
-		
+		final double lostPercent =  maxBases == 0 ? 0 : 100 * (double) lostBase / maxBases;
+
 		ele = XmlUtils.createGroupNode(rgElement, "countedReads" );
 		XmlUtils.outputValueNode(ele, UNPAIRED_READ,  unpaired.get());	
 		// READ_COUNT : includes duplicateReads, nonCanonicalPairs and unmappedReads but excludes discardedReads (failed, secondary and supplementary).						
@@ -324,6 +333,49 @@ public class ReadGroupSummary {
 		}
 	}
 
+	public void readLength2Xml( Element parent ) {
+
+		Map<String, Element> metricEs = new HashMap<>();
+		Map<String, AtomicLong> metricCounts = new HashMap<>();
+
+		String name = "readLength";
+		// sum all pairCounts belong to metrics section
+		AtomicLong cPairs =  metricCounts.computeIfAbsent(name,  k ->  new AtomicLong());
+		cPairs.addAndGet(readLength.getSum());
+		// output pair tLen to classified section
+		if (isLongReadBam) {
+			Element ele = metricEs.computeIfAbsent(name,  k -> XmlUtils.createMetricsNode( parent, k, null));
+			for(int i = 0; i < readLength.length(); i ++) {
+				if(readLength.get(i) > 0) {
+					if (i <=1000) {
+						readLengthBins.increment(i, readLength.get(i));
+					} else {
+						int roundedLength = (int) (Math.ceil((double)i/1000)*1000);
+						readLengthBins.increment(roundedLength, readLength.get(i));
+					}
+				}
+			}
+
+			XmlUtils.outputTallyGroup( ele, "readLength", readLengthBins.toMap(), false, true );
+
+			// add pairCounts into metrics elements
+			for (Entry<String, Element> entry : metricEs.entrySet()) {
+				entry.getValue().setAttribute(ReadGroupSummary.READ_COUNT,
+						metricCounts.get(entry.getKey()).get() + "" );
+			}
+		} else{
+			Element ele = metricEs.computeIfAbsent(name,  k -> XmlUtils.createMetricsNode( parent, k, null));
+			XmlUtils.outputTallyGroup( ele, "readLength", readLength.toMap(), false, true );
+
+			// add pairCounts into metrics elements
+			for (Entry<String, Element> entry : metricEs.entrySet()) {
+				entry.getValue().setAttribute(ReadGroupSummary.READ_COUNT,
+						metricCounts.get(entry.getKey()).get() + "" );
+			}
+		}
+
+	}
+
 	public void pairTlen2Xml( Element parent ) {
 		Map<String, Element> metricEs = new HashMap<>();
 		Map<String, AtomicLong> metricCounts = new HashMap<>();
@@ -342,6 +394,7 @@ public class ReadGroupSummary {
 			cPairs.addAndGet(p.getoverlapCounts().getSum());
 			// output pair overlap to classified section
 			ele = metricEs.computeIfAbsent(name, k -> XmlUtils.createMetricsNode( parent, k, null));
+
 			XmlUtils.outputTallyGroup( ele, p.type.name(), p.getoverlapCounts().toMap(), false , true); 
 		}
 		

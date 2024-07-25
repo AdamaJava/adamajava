@@ -51,7 +51,7 @@ public class BamSummarizerTest {
 	@Test
 	public void testSummarizeMaxRecords() throws Exception {
 		for (int i = 1 ; i < 6 ; i++) {
-			BamSummarizer bs = new BamSummarizer(i, null, false);
+			BamSummarizer bs = new BamSummarizer(i, null, false, false);
 			BamSummaryReport sr = (BamSummaryReport) bs.summarize(samInput);
 
 			assertNotNull(sr);
@@ -59,7 +59,7 @@ public class BamSummarizerTest {
 		}
 		
 		// test with 0 value - should return everything
-		BamSummarizer bs = new BamSummarizer(0, null, true);
+		BamSummarizer bs = new BamSummarizer(0, null, true, false);
 		BamSummaryReport sr = (BamSummaryReport) bs.summarize(samInput);
 		
 		assertNotNull(sr);
@@ -69,7 +69,7 @@ public class BamSummarizerTest {
 	@Test
 	public void testSummarizeWithExcludesAll() throws Exception {
 		// no excludes defined - should return everything
-		BamSummarizer bs = new BamSummarizer(0, null, false);
+		BamSummarizer bs = new BamSummarizer(0, null, false, false);
 		BamSummaryReport sr = (BamSummaryReport) bs.summarize(samInput);
 		
 		assertNotNull(sr);
