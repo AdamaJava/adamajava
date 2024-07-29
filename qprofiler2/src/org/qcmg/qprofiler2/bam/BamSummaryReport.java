@@ -144,7 +144,7 @@ public class BamSummaryReport extends SummaryReport {
 		
 		// create bamMertrics
 		bamReportElement = XmlElementUtils.createSubElement(bamReportElement, ProfileType.BAM.getReportName() + XmlUtils.METRICS);
-		createQNAME(XmlElementUtils.createSubElement(bamReportElement, XmlUtils.QNAME));	
+		//createQNAME(XmlElementUtils.createSubElement(bamReportElement, XmlUtils.QNAME));
 		createFLAG(XmlElementUtils.createSubElement(bamReportElement, XmlUtils.FLAG));		
 		createRNAME(XmlElementUtils.createSubElement(bamReportElement, XmlUtils.RNAME)); // it is same to RNEXT
 		createPOS(XmlElementUtils.createSubElement(bamReportElement,XmlUtils.POS));	
@@ -160,15 +160,15 @@ public class BamSummaryReport extends SummaryReport {
 
 	}
 	
-	private void createQNAME(Element parent) {
-		// read name will be under RT Tab	
-		Element rgsElement = XmlElementUtils.createSubElement(parent, XmlUtils.READGROUPS);
-		for (Entry<String, ReadIdSummary> entry:  readIdSummary.entrySet()) {
-			// "analysis read name pattern for read group
-			Element ele = XmlUtils.createReadGroupNode(rgsElement, entry.getKey());
-			entry.getValue().toXml(ele);			
-		}
-	}
+//	private void createQNAME(Element parent) {
+//		// read name will be under RT Tab
+//		Element rgsElement = XmlElementUtils.createSubElement(parent, XmlUtils.READGROUPS);
+//		for (Entry<String, ReadIdSummary> entry:  readIdSummary.entrySet()) {
+//			// "analysis read name pattern for read group
+//			Element ele = XmlUtils.createReadGroupNode(rgsElement, entry.getKey());
+//			entry.getValue().toXml(ele);
+//		}
+//	}
 	
 	private void createFLAG(Element parent) {
 		 if (null == flagBinaryCount || flagBinaryCount.isEmpty()) {
@@ -401,7 +401,7 @@ public class BamSummaryReport extends SummaryReport {
 		// summarize FLAGS for all reads includes bad reads
 		flagIntegerCount.increment(record.getFlags());
 		// summarize QName for each read group includes bad reads	
-		readIdSummary.computeIfAbsent(readGroup, (k) -> new ReadIdSummary()).parseReadId(record.getReadName());
+		//readIdSummary.computeIfAbsent(readGroup, (k) -> new ReadIdSummary()).parseReadId(record.getReadName());
 		
 			
 		// excludes repeated reads for tags

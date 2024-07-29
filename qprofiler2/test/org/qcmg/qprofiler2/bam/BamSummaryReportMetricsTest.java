@@ -219,28 +219,28 @@ public class BamSummaryReportMetricsTest {
 	}
 	
 	
-	/**
-	 * <bamMetrics><QNAME><readGroups><readGroup name="1959T"><sequenceMetrics name="qnameInfo" readCount="3">
-	 * readCount: total reads but excluds notProperpair, unmapped, duplicate and  discarded reads 
-	 * which is same to the sum of below
-	 * <bamSummary>..<value name="unpairedReads">
-	 * <sequenceMetrics name="properPairs">...<<value name="firstOfPairs"> and <value name="secondOfPairs">
-	 */
-	@Test
-	public void qNameTest() {
-		Element nameE = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.QNAME).get(0);
-		Element bamSummaryE = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.BAM_SUMMARY).get(0);
-		
-		for (String rg : new String[] {"1959T", "1959N", "unknown_readgroup_id" }) {			
-			Element ele =getElementByFirst(nameE, "readGroup",  k -> k.getAttribute(XmlUtils.NAME).equals(rg));
-			String count1 = XmlElementUtils.getChildElement(ele,  XmlUtils.SEQUENCE_METRICS, 0).getAttribute(ReadGroupSummary.READ_COUNT);
-			
-			Element eleSum = getElementByFirst(bamSummaryE, "readGroup",  k -> k.getAttribute(XmlUtils.NAME).equals(rg));				
-			String count2 = getElementByFirst(eleSum, XmlUtils.SEQUENCE_METRICS,  k -> k.getAttribute(XmlUtils.NAME).equals("reads")).getAttribute(ReadGroupSummary.READ_COUNT);				   
-				    
-			assertTrue(count1.equals(count2));	 		
-		}			
-	}	
+//	/**
+//	 * <bamMetrics><QNAME><readGroups><readGroup name="1959T"><sequenceMetrics name="qnameInfo" readCount="3">
+//	 * readCount: total reads but excluds notProperpair, unmapped, duplicate and  discarded reads
+//	 * which is same to the sum of below
+//	 * <bamSummary>..<value name="unpairedReads">
+//	 * <sequenceMetrics name="properPairs">...<<value name="firstOfPairs"> and <value name="secondOfPairs">
+//	 */
+//	@Test
+//	public void qNameTest() {
+//		Element nameE = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.QNAME).get(0);
+//		Element bamSummaryE = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.BAM_SUMMARY).get(0);
+//
+//		for (String rg : new String[] {"1959T", "1959N", "unknown_readgroup_id" }) {
+//			Element ele =getElementByFirst(nameE, "readGroup",  k -> k.getAttribute(XmlUtils.NAME).equals(rg));
+//			String count1 = XmlElementUtils.getChildElement(ele,  XmlUtils.SEQUENCE_METRICS, 0).getAttribute(ReadGroupSummary.READ_COUNT);
+//
+//			Element eleSum = getElementByFirst(bamSummaryE, "readGroup",  k -> k.getAttribute(XmlUtils.NAME).equals(rg));
+//			String count2 = getElementByFirst(eleSum, XmlUtils.SEQUENCE_METRICS,  k -> k.getAttribute(XmlUtils.NAME).equals("reads")).getAttribute(ReadGroupSummary.READ_COUNT);
+//
+//			assertTrue(count1.equals(count2));
+//		}
+//	}
 	
 	/**
 	 * <bamMetrics><QNAME><readGroups><readGroup name="1959T"><sequenceMetrics name="qnameInfo" readCount="3">
