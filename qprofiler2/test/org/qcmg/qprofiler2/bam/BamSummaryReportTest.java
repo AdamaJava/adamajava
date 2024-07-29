@@ -235,9 +235,24 @@ public class BamSummaryReportTest {
 
 		final Element tlenE = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.TLEN).get(0);
 		final List<Element> rgsE =  XmlElementUtils.getOffspringElementByTagName(tlenE, "readGroup");
-		
+
+		//Check overall length
+		List<Element> tallyE = getTallys(rgsE, "1959T", "Overall" , 4);
+		chekOverallTlen(tallyE, "Overall", 1, 13);
+		chekOverallTlen(tallyE, "Overall", 1, 26);
+		chekOverallTlen(tallyE, "Overall", 1, 93);
+		chekOverallTlen(tallyE, "Overall", 1, 2025);
+
+		tallyE = getTallys(rgsE, "1959N", "Overall" , 1);
+		chekOverallTlen(tallyE, "Overall", 1, 175);
+
+		tallyE = getTallys(rgsE, "unknown_readgroup_id", "Overall" , 2);
+		chekOverallTlen(tallyE, "Overall", 3, 0);
+		chekOverallTlen(tallyE, "Overall", 1, 76);
+
+
 		// five pairs in 1959T, we only record 13, 26, 2015		
-		List<Element> tallyE = getTallys(rgsE, "1959T", "tLenInProperPair" , 4); 
+		tallyE = getTallys(rgsE, "1959T", "tLenInProperPair" , 4);
 		chekTlen(tallyE, Pair.F3F5, 1, 93);
 		chekTlen(tallyE, Pair.F5F3, 1, 2025);
 		chekTlen(tallyE, Pair.Outward, 1, 13);
@@ -291,6 +306,15 @@ public class BamSummaryReportTest {
 		).count();	
 		
 		 assertTrue(no == 1);		
+	}
+
+	private void chekOverallTlen(List<Element> tallyE, String name, int count, int value) {
+		long no = tallyE.stream().filter(e ->
+				((Element) e.getParentNode()).getAttribute(XmlUtils.NAME).equals(name) &&
+						e.getAttribute(XmlUtils.VALUE).equals(value+"") && e.getAttribute(XmlUtils.COUNT).equals(count+"")
+		).count();
+
+		assertTrue(no == 1);
 	}
 	
 	private List<Element> getTallys(List<Element> rgsE,String rgName, String metricName,  int size) {		

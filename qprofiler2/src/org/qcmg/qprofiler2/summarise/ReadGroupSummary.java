@@ -53,6 +53,10 @@ public class ReadGroupSummary {
 	// must be concurrent set for multi threads
 	private final ConcurrentMap<Integer, PairSummary> pairCategory = new ConcurrentHashMap<>();
 
+	//Isize
+	public final static int middleTlenValue = 5000;
+	QCMGAtomicLongArray tLenOverall = new QCMGAtomicLongArray(middleTlenValue);
+
 	// bad reads information
 	AtomicLong duplicate = new AtomicLong();
 	AtomicLong secondary  = new AtomicLong();
@@ -180,6 +184,16 @@ public class ReadGroupSummary {
 		
 		// check pair orientation, tLen, mate
 		if (record.getReadPairedFlag()) {
+
+			//overall tLen for isize calculation
+			int tLen = record.getInferredInsertSize();
+			// to avoid double counts, we only select one of Pair: tLen > 0 or firstOfPair with tLen==0;
+			if (tLen > 0 || (tLen ==0 && record.getFirstOfPairFlag())) {
+				if (tLen < middleTlenValue) {
+					tLenOverall.increment(tLen);
+				}
+			}
+
 			BwaPair.Pair pairType = BwaPair.getPairType(record);
 			boolean isProper = record.getProperPairFlag();
 			int key = isProper ? pairType.id : pairType.id * -1;	
@@ -379,13 +393,20 @@ public class ReadGroupSummary {
 	public void pairTlen2Xml( Element parent ) {
 		Map<String, Element> metricEs = new HashMap<>();
 		Map<String, AtomicLong> metricCounts = new HashMap<>();
+
+		// For isize, write overall counts
+		AtomicLong cPairs =  metricCounts.computeIfAbsent("Overall",  k ->  new AtomicLong());
+		cPairs.addAndGet(tLenOverall.getSum());
+		Element ele = metricEs.computeIfAbsent("Overall",  k -> XmlUtils.createMetricsNode( parent, k, null));
+		XmlUtils.outputTallyGroup( ele, "Overall", tLenOverall.toMap(), false, true );
+
 		for (PairSummary p : pairCategory.values()) {
 			String name = p.isProperPair ? "tLenInProperPair" : "tLenInNotProperPair";
 			// sum all pairCounts belong to metrics section
-			AtomicLong cPairs =  metricCounts.computeIfAbsent(name,  k ->  new AtomicLong());
+			cPairs =  metricCounts.computeIfAbsent(name,  k ->  new AtomicLong());
 			cPairs.addAndGet(p.getTLENCounts().getSum());
 			// output pair tLen to classified section
-			Element ele = metricEs.computeIfAbsent(name,  k -> XmlUtils.createMetricsNode( parent, k, null)); 
+			ele = metricEs.computeIfAbsent(name,  k -> XmlUtils.createMetricsNode( parent, k, null));
 			XmlUtils.outputTallyGroup( ele, p.type.name(), p.getTLENCounts().toMap(), false, true );  
 					
 			name = p.isProperPair ? "overlapBaseInProperPair" : "overlapBaseInNotProperPair";

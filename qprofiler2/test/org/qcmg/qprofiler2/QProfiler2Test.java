@@ -132,11 +132,11 @@ public class QProfiler2Test {
 
     @Test
     public void schmeFileTest() throws IOException {
-        String nameSpace = "https://adamajava.org/xsd/qprofiler2/v2";
+        String nameSpace = "https://adamajava.org/xsd/qprofiler2/v3";
         String xmlns = "xmlns=\"" + nameSpace + "\"";
 
         String schemaXsi = "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"";
-        String schemaStr = "xsi:schemaLocation=\"" + nameSpace + " https://purl.org/adamajava/xsd/qprofiler2/v2/qprofiler2.xsd\"";
+        String schemaStr = "xsi:schemaLocation=\"" + nameSpace + " https://purl.org/adamajava/xsd/qprofiler2/v3/qprofiler2.xsd\"";
         String input = BAM_FILE.getAbsolutePath();
         File logFile = testFolder.newFile("qProfilerNode.log");
         String[] args = {"-input", input, "-log", logFile.getAbsolutePath()};
