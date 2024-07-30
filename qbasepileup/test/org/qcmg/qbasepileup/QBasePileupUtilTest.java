@@ -16,7 +16,7 @@ public class QBasePileupUtilTest {
 		
 		assertEquals("chr10", QBasePileupUtil.getFullChromosome("10"));
 		assertEquals("chr10", QBasePileupUtil.getFullChromosome("chr10"));
-		assertEquals("chrMT", QBasePileupUtil.getFullChromosome("M"));
+		assertEquals("chrM", QBasePileupUtil.getFullChromosome("M"));
 		assertEquals("chrMT", QBasePileupUtil.getFullChromosome("MT"));
 		assertEquals("GL12345", QBasePileupUtil.getFullChromosome("GL12345"));
 	}

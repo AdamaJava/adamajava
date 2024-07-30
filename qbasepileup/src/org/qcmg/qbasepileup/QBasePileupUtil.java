@@ -39,15 +39,7 @@ public class QBasePileupUtil {
 		
 		// if ref starts with chr or GL, just return it
 		if (ref.startsWith("chr") || ref.startsWith("GL")) {
-			if (ref.equals("chrM")) {
-				return "chrMT";
-			}
 			return ref;
-		}
-		
-		
-		if (ref.equals("M")) {
-			return "chrMT";
 		}
 		
 		if (addChromosomeReference(ref)) {
