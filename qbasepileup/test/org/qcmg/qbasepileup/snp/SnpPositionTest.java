@@ -50,9 +50,9 @@ public class SnpPositionTest {
 	}
 	
 	@Test
-	public void doesMurnIntochrMT() {
+	public void doesMurnIntochrM() {
 		SnpPosition p = new SnpPosition("test", "M", 1234, 1235);
-		assertEquals("chrMT", p.getFullChromosome());
+		assertEquals("chrM", p.getFullChromosome());
 	}
 	@Test
 	public void doesMTurnIntochrMT() {
