@@ -99,6 +99,10 @@ public class QProfiler2 {
 				index = cmdLineIndexFiles[i];
 			}
 			ProfileType type = ProfileType.getType2(f);
+			if (type != ProfileType.BAM & isLongReadBam) {
+				   throw new Exception( Messages.getMessage(msgResource, "FILE_TYPE_LONG_READ_ERROR"));
+		    }
+
 			sortedFiles.computeIfAbsent(type, v -> new ArrayList<>()).add(Pair.of(f, index));
 		}		
 				

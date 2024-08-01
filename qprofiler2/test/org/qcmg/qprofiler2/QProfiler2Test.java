@@ -131,6 +131,25 @@ public class QProfiler2Test {
     }
 
     @Test
+    public final void executeWithInvalidFileTypeAndLongReadOption() throws Exception {
+                File gffFile = testFolder.newFile("executeWithInvalidFileTypeLongRead.vcf");
+                File logFile = testFolder.newFile("executeWithInvalidFileTypeLongRead.log");
+                File inputFile = testFolder.newFile("executeWithInvalidFileTypeLongRead.xml");
+
+                String[] args1 = {"-input", inputFile.getAbsolutePath(), "-log", logFile.getAbsolutePath(), "--long-read"};
+                String[] args2 = new String[]{"-input", gffFile.getAbsolutePath(), "-log", logFile.getAbsolutePath(), "--long-read"};
+
+                for (String[] args : new String[][]{args1, args2}) {
+                try {
+                    new QProfiler2().setup(args);
+                    fail("Should have thrown a QProfilerException");
+                } catch (Exception qpe) {
+                    assertTrue(qpe.getMessage().contains("Long read option can only be chosen for BAM files"));
+                }
+            }
+    }
+
+    @Test
     public void schmeFileTest() throws IOException {
         String nameSpace = "https://adamajava.org/xsd/qprofiler2/v3";
         String xmlns = "xmlns=\"" + nameSpace + "\"";
