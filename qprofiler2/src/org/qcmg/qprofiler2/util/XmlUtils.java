@@ -33,7 +33,6 @@ public class XmlUtils {
 	public static final String TALLY = "tally";
 	public static final String TALLY_COUNT = "tallyCount";
 	public static final String START = "start";
-	public static final String END = "end";
 	public static final String CYCLE = "cycle";
 	public static final String BASE_CYCLE = "baseCycle";
 	public static final String RECORD = "record";
@@ -50,7 +49,7 @@ public class XmlUtils {
 	public static final String OVERALL = "Overall";
 	public static final String ALL_BASE_LOST = "OverallBasesLost";
 	 	
-	// commly used on fastq bam
+	// commonly used on fastq bam
 	public static final String QNAME = "QNAME";
 	public static final String FLAG = "FLAG";	
 	public static final String RNAME = "RNAME";
@@ -104,7 +103,7 @@ public class XmlUtils {
                 } else if (re instanceof AbstractSAMHeaderRecord) {
                 	elechild.setTextContent(((AbstractSAMHeaderRecord)re).getSAMString());
                 } else if (re instanceof VcfHeaderRecord) {
-                	elechild.setTextContent(((VcfHeaderRecord)re).toString());
+                	elechild.setTextContent(re.toString());
                 }
                 // set id
                 if (re instanceof SAMSequenceRecord) {
@@ -146,7 +145,7 @@ public class XmlUtils {
             	continue;
             }
             String cate = re.getMetaKey().replace("##", "");
-            List<VcfHeaderRecord> children = (others.containsKey(cate)) ? others.get(cate) : others.getOrDefault(cate, new ArrayList<VcfHeaderRecord>());
+            List<VcfHeaderRecord> children = (others.containsKey(cate)) ? others.get(cate) : others.getOrDefault(cate, new ArrayList<>());
             children.add(re);
             others.put(cate, children);
         }
@@ -168,7 +167,7 @@ public class XmlUtils {
     	Element ele = XmlElementUtils.createSubElement( parent,  XmlUtils.SEQUENCE_METRICS);
     						
 		if ( totalCounts != null) {
-			ele.setAttribute((String)totalCounts.left(), String.valueOf( totalCounts.right()));
+			ele.setAttribute(totalCounts.left(), String.valueOf( totalCounts.right()));
 		}
 		if (name != null) {
 			ele.setAttribute( NAME, name);
@@ -188,27 +187,9 @@ public class XmlUtils {
     	ele.setAttribute( NAME, name); 
     	return ele;
     }
-    
-    public static Element createGroupNode(Element parent, String name, Number totalcount) {
-    	Element ele = createGroupNode(  parent,   name);
-    	 ele.setAttribute( COUNT, String.valueOf(totalcount));  
-    	 return ele; 
-    }
-    
+
+
 	/**
-	 * 
-	 * @param parent node of baseCycle
-	 * @param name category name
-	 * @return the created element of baseCycle
-	 */
-    public static Element createCycleNode(Element parent, String name) {
-    	Element ele = XmlElementUtils.createSubElement( parent,  BASE_CYCLE);	
-    	ele.setAttribute( CYCLE, name); 
-    	return ele;
-    }
-        
-   
-    /**
      * 
      *
      * @param parent node of value
@@ -246,7 +227,7 @@ public class XmlUtils {
     }
 	
 	public static <T> void outputTallyGroupWithSize(Element parent, String name, Map<T, AtomicLong> tallys, int sizeLimits, boolean outputSum) {
-		boolean hasPercent = tallys.size() > sizeLimits ? false : true;		
+		boolean hasPercent = tallys.size() <= sizeLimits;
 		Element ele = outputTallyGroup(parent, name, tallys, hasPercent, outputSum) ;		
 		
 		if ( ele != null && tallys.size() > sizeLimits) {
@@ -267,7 +248,7 @@ public class XmlUtils {
 			Element ele1 = XmlElementUtils.createSubElement( ele, TALLY);
 			ele1.setAttribute( VALUE, String.valueOf( entry.getKey()));
 			ele1.setAttribute( COUNT, String.valueOf( tallys.get(entry.getKey()).get())); 
-			if ( hasPercent == true) {
+			if (hasPercent) {
 				ele1.setAttribute(PERCENT, String.format("%,.2f", percent));	
 			}					
 		}  	    	
@@ -282,7 +263,7 @@ public class XmlUtils {
     	outputTallys( ele, name, tallys, hasPercent);
 
     	if (outputSum) {
-	    	long counts = tallys.values().stream().mapToLong( x -> (long) x.get()).sum() ;	
+	    	long counts = tallys.values().stream().mapToLong(AtomicLong::get).sum() ;
 	    	ele.setAttribute(COUNT, counts + "");
     	}
     	
@@ -299,7 +280,7 @@ public class XmlUtils {
     	ele.setAttribute( CYCLE, name); 
  
     	outputTallys(  ele,  name,  tallys,  hasPercent);  
-    	long counts = tallys.values().stream().mapToLong( x -> (long) x.get()).sum() ;	
+    	long counts = tallys.values().stream().mapToLong(AtomicLong::get).sum() ;
     	ele.setAttribute(COUNT, counts + "");
     }
     
@@ -329,16 +310,16 @@ public class XmlUtils {
 		}
 		
 		boolean isNew = false;
-		String key1 = key;	 	
-		if (!map.containsKey(key1)) {
+		boolean useOther = false;
+		if ( ! map.containsKey(key)) {
 			if (map.size() >= limitSize) {
-				key1 = XmlUtils.OTHER;
+				useOther = true;
 			} else {
-				isNew = true; 
+				isNew = true;
 			}
-		} 
+		}
 		
-		map.computeIfAbsent(key1, k -> new AtomicLong()).incrementAndGet();
+		map.computeIfAbsent(useOther ? OTHER : key, k -> new AtomicLong()).incrementAndGet();
 		 
 		return isNew; 
 	}	     

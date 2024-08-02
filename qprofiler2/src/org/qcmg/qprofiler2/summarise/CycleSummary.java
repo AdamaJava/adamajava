@@ -34,8 +34,7 @@ import org.w3c.dom.Element;
  * 
  */
 public class CycleSummary<T> {
-	public static final String baseOnCycle = "cycle";
-	
+
 	private static final int MAX_ARRAY_CAPACITY = 2048 * 2048;		// over 4 million
 		
 	/**
@@ -251,7 +250,7 @@ public class CycleSummary<T> {
 	 * @return a map of counts for each possible value on this cycle
 	 */
 	public ConcurrentMap<T, AtomicLong> getValue(Integer key) {
-		ConcurrentMap<T, AtomicLong> cm = new ConcurrentHashMap<T, AtomicLong>();
+		ConcurrentMap<T, AtomicLong> cm = new ConcurrentHashMap<>();
 		
 		// loop through keys to get ones with this cycle number		
 		for (int i = 0 , length = tally.length() ; i < length ; i++) {
@@ -259,7 +258,7 @@ public class CycleSummary<T> {
 			// whole bunch of zeros in here - only want >0 values
 			if (arrayValue > 0) {
 				int [] cycleKey = getCycleKeyFromArrayPosition(i);
-				if (cycleKey[0] == key.intValue()) {
+				if (cycleKey[0] == key) {
 					cm.put(getTypeFromInt(cycleKey[1]), new AtomicLong(arrayValue));
 				}
 			}
@@ -271,7 +270,7 @@ public class CycleSummary<T> {
 	 * @return SortedSet relating to the cycles currently held by this summary object.
 	 */
 	public SortedSet<Integer> cycles() {
-		HashSet<Integer> ts = new HashSet<Integer>();		
+		HashSet<Integer> ts = new HashSet<>();
 		for (int i = 0 , length = tally.length() ; i < length ; i++) {
 			if (tally.get(i) <= 0) {
 				continue;		 
@@ -279,7 +278,7 @@ public class CycleSummary<T> {
 			int [] cycleKey = getCycleKeyFromArrayPosition(i);
 			ts.add(cycleKey[0]);		
 		}		
-		return new TreeSet<Integer>(ts);
+		return new TreeSet<>(ts);
 	}
 	
 	/**
@@ -289,7 +288,7 @@ public class CycleSummary<T> {
 	 */
 	public Set<T> getPossibleValues() {	
 		
-		HashSet<T> allValues = new HashSet<T>();
+		HashSet<T> allValues = new HashSet<>();
 		
 		for (int i = 0 , length = tally.length() ; i < length ; i++) {
 			if (tally.get(i) <= 0) {
@@ -299,7 +298,7 @@ public class CycleSummary<T> {
 		}		
 		// order as ACGTN
 		if (type instanceof Character) {					
-			List<T> notATGC = new ArrayList<T>();
+			List<T> notATGC = new ArrayList<>();
 			
 			for (T v : allValues) {
 				char v1 =   (Character)  v; 
@@ -308,11 +307,11 @@ public class CycleSummary<T> {
 				}				
 			}	
 			
-			allValues.removeAll(notATGC);
+			notATGC.forEach(allValues::remove);
 			return   Stream.concat(allValues.stream().sorted(), notATGC.stream()).collect(Collectors.toCollection(LinkedHashSet::new));	
 		} else if (type instanceof Integer) {				
  			// Integer reverse order for QUAL			 
-			TreeSet<T> treeSetObj = new TreeSet<T>((i1,i2) -> ((Integer) i2).compareTo((Integer) i1));
+			TreeSet<T> treeSetObj = new TreeSet<>((i1, i2) -> ((Integer) i2).compareTo((Integer) i1));
 		    treeSetObj.addAll(allValues);
 		    return treeSetObj; 
 		}
@@ -351,7 +350,7 @@ public class CycleSummary<T> {
 
 	// xu totalSize should be seprate to first and second of pair		
 	public Map<Integer, AtomicLong> getLengthMapFromCycle() {
-		Map<Integer, AtomicLong> map = new HashMap<Integer, AtomicLong>();		
+		Map<Integer, AtomicLong> map = new HashMap<>();
 		
 		long previousTally = -1;	
 		Integer last = 0;
