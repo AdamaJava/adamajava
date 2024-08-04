@@ -9,12 +9,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.parsers.ParserConfigurationException;
-import org.junit.Ignore;
+
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.util.XmlElementUtils;
-import org.qcmg.qprofiler2.bam.TagSummaryReport;
 import org.qcmg.qprofiler2.summarise.ReadGroupSummary;
 import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Element;
@@ -35,7 +34,7 @@ public class TagSummaryReportTest {
 		// first read
 		record.setReadBases("ACCCT AACCC CAACC CTAAC CNTAA CCCTA ACCCA AC".replace(" ","" ).getBytes());
 		record.setFlags(67); 	// first of pair forward
-		record.setAttribute("MD", "A25A"); // (ref) A>C (base) in cycly 11 and 37
+		record.setAttribute("MD", "A25A"); // (ref) A>C (base) in cycle 11 and 37
 		record.setAttribute("RG", "first");
 		record.setCigarString("10S27M");		
 		report.parseTAGs(record, false);
@@ -71,11 +70,11 @@ public class TagSummaryReportTest {
 		assertEquals( 2, XmlElementUtils.getChildElementByTagName( root, XmlUtils.SEQUENCE_METRICS ).size()  );				
 		
 		// <sequenceMetrics name="tags:MDM:Z">
-		Element metricE = getChildNameIs( root, XmlUtils.SEQUENCE_METRICS, "tags:MD:Z" ).get(0);
+		Element metricE = getChildNameIs( root, XmlUtils.SEQUENCE_METRICS, "tags:MD:Z" ).getFirst();
 		assertEquals( metricE.getChildNodes().getLength() , 3 );
 		
 		// check mutation on each base cycle
-		Element ele = getChildNameIs( metricE, XmlUtils.VARIABLE_GROUP, XmlUtils.FIRST_PAIR ).get(0);
+		Element ele = getChildNameIs( metricE, XmlUtils.VARIABLE_GROUP, XmlUtils.FIRST_PAIR ).getFirst();
 		assertEquals(ele.getAttribute(ReadGroupSummary.READ_COUNT), "4");
 		// three of firstOfPair have four mutation base
 		String[] values = new String[] {"A", "T", "C", "C"};
@@ -83,69 +82,36 @@ public class TagSummaryReportTest {
 		for (int i = 0; i < counts.length; i++ ) {			
 			String count = counts[i];
 			Element vE = XmlElementUtils.getChildElementByTagName(ele, XmlUtils.BASE_CYCLE).stream().
-				filter( e -> e.getAttribute( XmlUtils.CYCLE ).equals( String.valueOf(count))  ).findFirst().get();		
+				filter( e -> e.getAttribute( XmlUtils.CYCLE ).equals(count)  ).findFirst().get();
 			assertEquals( vE.getChildNodes().getLength() , 1 );
 			vE = (Element) vE.getChildNodes().item(0);
 			assertEquals( vE.getAttribute(XmlUtils.VALUE), values[i]);
 			assertEquals( vE.getAttribute(XmlUtils.COUNT), "1");
 		}
 		
-		// check mutaiton type on forward reads
-		ele = getChildNameIs(metricE, XmlUtils.VARIABLE_GROUP, XmlUtils.FIRST_PAIR+"ForwardStrand" ).get(0);
+		// check mutation type on forward reads
+		ele = getChildNameIs(metricE, XmlUtils.VARIABLE_GROUP, XmlUtils.FIRST_PAIR+"ForwardStrand" ).getFirst();
 		assertEquals( 1, XmlElementUtils.getOffspringElementByTagName(ele, XmlUtils.TALLY).stream()
 			.filter(e -> e.getAttribute(XmlUtils.VALUE).equals("A>C") && e.getAttribute(XmlUtils.COUNT).equals("2") ).count() );
 		assertEquals( 1, XmlElementUtils.getOffspringElementByTagName(ele, XmlUtils.TALLY).stream()
 			.filter(e -> e.getAttribute(XmlUtils.VALUE).equals("T>A") && e.getAttribute(XmlUtils.COUNT).equals("1") ).count() );		
 		
-		// check mutaiton type on reverse reads
-		ele = getChildNameIs( metricE, XmlUtils.VARIABLE_GROUP, XmlUtils.FIRST_PAIR+"ReverseStrand" ).get(0);
+		// check mutation type on reverse reads
+		ele = getChildNameIs( metricE, XmlUtils.VARIABLE_GROUP, XmlUtils.FIRST_PAIR+"ReverseStrand" ).getFirst();
 		assertEquals( 1, XmlElementUtils.getOffspringElementByTagName(ele, XmlUtils.TALLY).size());
 		assertEquals( 1, XmlElementUtils.getOffspringElementByTagName(ele, XmlUtils.TALLY).stream()
 				.filter(e -> e.getAttribute(XmlUtils.VALUE).equals("A>T") && e.getAttribute(XmlUtils.COUNT).equals("1") ).count() );
 		
 		// check tag RG
-		ele = getChildNameIs( root, XmlUtils.SEQUENCE_METRICS, "tags:RG:Z" ).get(0);
+		ele = getChildNameIs( root, XmlUtils.SEQUENCE_METRICS, "tags:RG:Z" ).getFirst();
 		assertEquals( 1, XmlElementUtils.getOffspringElementByTagName(ele, XmlUtils.TALLY).stream()
 				.filter(e -> e.getAttribute(XmlUtils.VALUE).equals("first") && e.getAttribute(XmlUtils.COUNT).equals("3") ).count() );
 		assertEquals( 1, XmlElementUtils.getOffspringElementByTagName(ele, XmlUtils.TALLY).stream()
 				.filter(e -> e.getAttribute(XmlUtils.VALUE).equals("last") && e.getAttribute(XmlUtils.COUNT).equals("1") ).count() );
 	}
-		
-	
-	@Ignore
-	public void testTagPosition() {
-		final  SAMTagUtil STU = SAMTagUtil.getSingleton();
-		final short CS = STU.CS;
-		final short CQ = STU.CQ;
-		final short RG = STU.RG;
-		final short CM = STU.CM;
-		final short SM = STU.SM;
-		final short NH = STU.NH;
-		final short MD = STU.MD;
-		final short IH = STU.IH;
-		// custom tags
-		final short ZM = STU.makeBinaryTag("ZM");
-		final short ZP = STU.makeBinaryTag("ZP");
-		final short ZF = STU.makeBinaryTag("ZF");
-		
-		short [] tags = {CS, CQ, RG, ZM, ZP, CM, ZF, SM, IH, NH, MD};
-		
-		System.out.println("current");
-		for (short tag : tags) {
-			System.out.println(STU.makeStringTag(tag) + " : " + tag);
-		}
-				
-		System.out.println("ordered");
-		short [] orderedTags = {MD, ZF, RG, IH, NH,CM,SM,ZM,ZP, CQ, CS};
-		
-		for (short tag : orderedTags) {
-			System.out.println(STU.makeStringTag(tag) + " : " + tag);
-		}
-								
-	}
-	
+
 	private void createMDerrFile(String input) throws IOException {
-		List<String> data = new ArrayList<String>();
+		List<String> data = new ArrayList<>();
         data.add("@HD	VN:1.0	SO:coordinate");
         data.add("@RG	ID:1959T	SM:eBeads_20091110_CD	DS:rl=50");
         data.add("@PG	ID:SOLID-GffToSam	VN:1.4.3");
@@ -180,12 +146,12 @@ public class TagSummaryReportTest {
 		TagSummaryReport report = new TagSummaryReport();
 		SAMRecord record = new SAMRecord(null);
 		record.setReadName("TESTDATA");
-		record.setAttribute(STU.makeStringTag(STU.NM), new Integer(Integer.MAX_VALUE));
+		record.setAttribute(STU.makeStringTag(STU.NM), Integer.MAX_VALUE);
 		report.parseTAGs(record, false);
 		
 		for (int i = 0; i < 200; i++) {	
 			for (int j = 0; j < 2; j ++) {
-				record.setAttribute(STU.makeStringTag(STU.NM), new Integer(i+j));
+				record.setAttribute(STU.makeStringTag(STU.NM), i + j);
 				report.parseTAGs(record, false);
 			}			
 			record.setAttribute(STU.makeStringTag(STU.NM), i + "");
@@ -195,7 +161,7 @@ public class TagSummaryReportTest {
 		Element root = XmlElementUtils.createRootElement( XmlUtils.TAG, null );
 		report.toXml( root );	
 		
-		Element ele = getChildNameIs( getChildNameIs( root, XmlUtils.SEQUENCE_METRICS, "tags:NM:Z" ).get(0), XmlUtils.VARIABLE_GROUP, "NM" ).get(0);
+		Element ele = getChildNameIs( getChildNameIs( root, XmlUtils.SEQUENCE_METRICS, "tags:NM:Z" ).getFirst(), XmlUtils.VARIABLE_GROUP, "NM" ).getFirst();
 		assertEquals( ele.getAttribute(XmlUtils.TALLY_COUNT) , TagSummaryReport.ADDI_TAG_MAP_LIMIT+"+" ); 
 		assertEquals( ((Element)ele.getParentNode()).getAttribute(ReadGroupSummary.READ_COUNT) , "200" );		
 		assertEquals( XmlElementUtils.getChildElementByTagName(ele, XmlUtils.TALLY).size(), 101);
@@ -204,7 +170,7 @@ public class TagSummaryReportTest {
 		assertEquals(findNo, 1);
 		
 		
-		ele = getChildNameIs( getChildNameIs( root, XmlUtils.SEQUENCE_METRICS, "tags:NM:i" ).get(0), XmlUtils.VARIABLE_GROUP, "NM" ).get(0);
+		ele = getChildNameIs( getChildNameIs( root, XmlUtils.SEQUENCE_METRICS, "tags:NM:i" ).getFirst(), XmlUtils.VARIABLE_GROUP, "NM" ).getFirst();
 		assertEquals( ele.getAttribute(XmlUtils.TALLY_COUNT) , TagSummaryReport.ADDI_TAG_MAP_LIMIT+"+" ); 
 		assertEquals( ((Element)ele.getParentNode()).getAttribute(ReadGroupSummary.READ_COUNT) , "401" );
 		assertEquals( XmlElementUtils.getChildElementByTagName(ele, XmlUtils.TALLY).size(), 101);
