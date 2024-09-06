@@ -59,17 +59,19 @@ public class CycleSummary<T> {
 		
 	// atomic boolean used as a lock when resizing the array
 	private final AtomicBoolean resizingInProgress = new AtomicBoolean(false);
-	
-	// can be set in the constructor, but defaults to the Java default value
-	private final  T type;
-	private final AtomicInteger cycleMask = new AtomicInteger();
+
+    private final AtomicInteger cycleMask = new AtomicInteger();
 	private final AtomicInteger keyMask = new AtomicInteger();
 	private final AtomicInteger maxCycleValue = new AtomicInteger();
 	private final AtomicInteger maxKeyValue = new AtomicInteger();
 	private final AtomicLong parseCounts = new AtomicLong();
 	
 	private AtomicLongArray tally;
-	
+	private final boolean isCharacter;
+	private final boolean isInteger;
+
+	private final int cycleMaskInt;
+
 	/**
 	 * Constructs a new SummaryByCycleNew2 object with the specified noOfCycles size, 
 	 *  and the default value for the noOfKeys, which is dependent on the supplied type T
@@ -78,13 +80,16 @@ public class CycleSummary<T> {
 	 * @param type
 	 * @param noOfCycles
 	 */
-	public CycleSummary(T type, final int noOfCycles) {		
-		this.type = type;		
+	public CycleSummary(T type, final int noOfCycles) {
+        // can be set in the constructor, but defaults to the Java default value
+        isCharacter = type instanceof Character;
+		isInteger = type instanceof Integer;
 		cycleMask.set(getMask(noOfCycles));
+		cycleMaskInt = cycleMask.get();
 		keyMask.set(getMask(DEFAULT_NO_OF_KEYS));
 		int capacity = 1 << (cycleMask.get() + keyMask.get());
 		
-		maxCycleValue.set((1 << cycleMask.get()) - 1);
+		maxCycleValue.set((1 << cycleMaskInt) - 1);
 		maxKeyValue.set((1 << keyMask.get()) - 1);		
 		tally = new AtomicLongArray(capacity);
 	}
@@ -103,10 +108,7 @@ public class CycleSummary<T> {
 	}
 	
 	public int getArrayPosition(int cycle, int key) {
-		int result = cycle;
-		result += (key << cycleMask.get());
-		
-		return result;
+		return cycle + (key << cycleMaskInt);
 	}
 	
 	/**
@@ -115,19 +117,19 @@ public class CycleSummary<T> {
 	 * @return a pair of cycle number and value which is stored in int. eg. array position 100, stores cycle 20 with 'A' (65)
 	 */
 	public int[] getCycleKeyFromArrayPosition(int position) {
-		int key = (position >>> cycleMask.get());
-		int cycle  = position & ((1 << cycleMask.get()) - 1);
+		int key = (position >>> cycleMaskInt);
+		int cycle  = position & ((1 << cycleMaskInt) - 1);
 		return new int[] {cycle,key};
 	}
 
 	
 	@SuppressWarnings("unchecked")
 	private T getTypeFromInt(int l) {
-		if (type instanceof Integer) {
+		if (isInteger) {
 			return (T)Integer.valueOf(l);
 		}
 		
-		if (type instanceof Character) {
+		if (isCharacter) {
 			return (T) Character.valueOf((char)l);
 		} else {
 			return null;
@@ -186,7 +188,7 @@ public class CycleSummary<T> {
 				Thread.sleep(200);
 				
 				// get new capacity
-				int capacity = 1 << ((newCycleMask == -1 ? cycleMask.get() : newCycleMask) + keyMask.get());
+				int capacity = 1 << ((newCycleMask == -1 ? cycleMaskInt : newCycleMask) + keyMask.get());
 				
 				// check on new capacity
 				if (capacity > MAX_ARRAY_CAPACITY) {
@@ -205,7 +207,7 @@ public class CycleSummary<T> {
 						int [] cycleKey = getCycleKeyFromArrayPosition(i);
 						
 						int newArrayIndex = cycleKey[0];
-						newArrayIndex += cycleKey[1] << (newCycleMask == -1 ? cycleMask.get() : newCycleMask);
+						newArrayIndex += cycleKey[1] << (newCycleMask == -1 ? cycleMaskInt : newCycleMask);
 						
 						newTally.set(newArrayIndex, value);
 					}
@@ -237,8 +239,8 @@ public class CycleSummary<T> {
 	 */	
 	public long count(Integer cycle, T value) {	
  
-		int v = (type instanceof Integer) ? (Integer) value : 
-			(type instanceof Character) ? (Character)  value  : -1; 
+		int v = isInteger ? (Integer) value :
+			isCharacter ? (Character) value  : -1;
 			
 		return  tally.get(getArrayPosition(cycle, v));
 	}
@@ -297,11 +299,11 @@ public class CycleSummary<T> {
 			allValues.add(getTypeFromInt(getCycleKeyFromArrayPosition(i)[1]));	
 		}		
 		// order as ACGTN
-		if (type instanceof Character) {					
+		if (isCharacter) {
 			List<T> notATGC = new ArrayList<>();
 			
 			for (T v : allValues) {
-				char v1 =   (Character)  v; 
+				char v1 = (Character) v;
 				if (v1 != 'A' &&   v1 != 'T' &&  v1 != 'G' &&  v1 != 'C') {
 					notATGC.add(v);		
 				}				
@@ -309,7 +311,7 @@ public class CycleSummary<T> {
 			
 			notATGC.forEach(allValues::remove);
 			return   Stream.concat(allValues.stream().sorted(), notATGC.stream()).collect(Collectors.toCollection(LinkedHashSet::new));	
-		} else if (type instanceof Integer) {				
+		} else if (isInteger) {
  			// Integer reverse order for QUAL			 
 			TreeSet<T> treeSetObj = new TreeSet<>((i1, i2) -> ((Integer) i2).compareTo((Integer) i1));
 		    treeSetObj.addAll(allValues);
@@ -331,7 +333,7 @@ public class CycleSummary<T> {
 	public void toXml(Element metricEle,  String groupName, long readCount) {
 		// do nothing if no base detected
 		Set<T> possibles = getPossibleValues();
-		if (possibles == null || possibles.size() <= 0) {
+		if (possibles == null || possibles.isEmpty()) {
 			return; 
 		}
 		 	
@@ -340,7 +342,7 @@ public class CycleSummary<T> {
 		for (Integer cycle : cycles()) {
 			Map<T, AtomicLong> tallys = new LinkedHashMap<>();
 			
-			for (T t :  getPossibleValues()) {			 
+			for (T t : possibles) {
 				tallys.put(t,new AtomicLong(count(cycle, t)));	
 			}
 			
@@ -348,7 +350,7 @@ public class CycleSummary<T> {
 		}		
 	}	
 
-	// xu totalSize should be seprate to first and second of pair		
+	// xu totalSize should be separate to first and second of pair
 	public Map<Integer, AtomicLong> getLengthMapFromCycle() {
 		Map<Integer, AtomicLong> map = new HashMap<>();
 		
@@ -388,30 +390,16 @@ public class CycleSummary<T> {
 			return;
 		}
 		parseCounts.incrementAndGet();
- 			
-		for (int i = 0, size = dataString.length ; i < size ; i++) {
-			int value = (type instanceof Integer) ? dataString[i] & 0xFF : 
-				(type instanceof Character) ? dataString[i] : 0;
-			increment(i + 1, value);
-		}						
-	}	
-	
-	public void parseStringData(String dataString,  int offset) {
-		if (null == dataString) {
-			return; 
-		}
-		parseCounts.incrementAndGet();
-		
-		int size = dataString.length();
-		if (size > 0) {				
-			// set offset to 0 if it is negative, or larger than the supplied string
-			if (offset < 0 || offset >= size) {
-				offset = 0;				
+
+		if (isInteger) {
+			for (int i = 0, size = dataString.length ; i < size ; i++) {
+				increment(i + 1, dataString[i] & 0xFF);
 			}
-			for (int i = 1 + offset ; i <= size; i++) {
-				increment(i - offset, dataString.charAt(i - 1));
-			}			 
-		}	
-	}	
+		} else if (isCharacter) {
+			for (int i = 0, size = dataString.length ; i < size ; i++) {
+				increment(i + 1, dataString[i]);
+			}
+		}
+	}
 
 }

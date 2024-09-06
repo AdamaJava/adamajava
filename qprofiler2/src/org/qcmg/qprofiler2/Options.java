@@ -55,7 +55,7 @@ final class Options {
 	
 	
 	@SuppressWarnings("unchecked")
-	Options(final String[] args) throws Exception {
+	Options(final String[] args) {
 		
 		parser.accepts("help", HELP_DESCRIPTION);		
 		parser.accepts("version", VERSION_DESCRIPTION);
@@ -63,8 +63,8 @@ final class Options {
 		parser.accepts("loglevel", LOG_LEVEL_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);		
 		parser.accepts("input", INPUT_FILE_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("output", OUTPUT_FILE_DESCRIPTION).withRequiredArg().ofType(String.class);		
-		parser.accepts("threads-producer" , PRODUCER_THREADS_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
-		parser.accepts("threads-consumer",  CONSUMER_THREADS_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
+		parser.accepts("threads-producer", PRODUCER_THREADS_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
+		parser.accepts("threads-consumer", CONSUMER_THREADS_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
 		parser.accepts("bam-records", RECORDS_OPTION_DESCRIPTION).withRequiredArg().ofType(Integer.class);
 		parser.accepts("bam-validation", VALIDATION_STRINGENCY_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("bam-full-header", FULL_BAMHEADER_OPTION_DESCRIPTION);
@@ -136,10 +136,6 @@ final class Options {
 		
 	boolean hasLogOption() {
 		return options.has("log"); 
-	}
-	
-	boolean hasLogLevelOption() {
-		return options.has("loglevel"); 
 	}
 
 	String[] getFileNames() {

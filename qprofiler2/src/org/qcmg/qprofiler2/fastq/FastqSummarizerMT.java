@@ -101,7 +101,7 @@ public class FastqSummarizerMT implements Summarizer {
 			}
 
 			// if there are items left on the queue - means that the consumer threads encountered errors and were unable to complete the processing
-			if (q.size()  > 0) {
+			if (!q.isEmpty()) {
 				logger.error("no consumer threads available to process items [" + q.size() + "] on queue");
 				throw new Exception("Consumer threads were unable to process all items on the queue");
 			}
@@ -123,7 +123,7 @@ public class FastqSummarizerMT implements Summarizer {
 		
 		fastqSummaryReport.setFinishTime(DateUtils.getCurrentDateAsString());
 
-        logger.info("done in " + (System.currentTimeMillis() - start) / 1000 + " secs") ;
+        logger.info("done in " + (System.currentTimeMillis() - start) / 1000 + " secs");
         		
 		return fastqSummaryReport;
 	}
@@ -153,7 +153,7 @@ public class FastqSummarizerMT implements Summarizer {
 						try {
 							report.parseRecord(record);
 						} catch (Exception e) {
-							logger.error("record: " + record.toString());
+							logger.error("record: " + record);
 							logger.error("Error caught parsing FastqRecord with readHeader: " + record.getReadName(), e);
 							throw e;
 						}
@@ -197,13 +197,13 @@ public class FastqSummarizerMT implements Summarizer {
 			logger.debug("Start Producer");
 			
 			
-			int size = 0;
+			int size;
 			int count = 0;
 			int millions = 0;
 			
 			final int counter = 1000000;
 			
-			try (FastqReader reader =  new FastqReader(file);) {
+			try (FastqReader reader =  new FastqReader(file)) {
 				for (FastqRecord record : reader) {
 					queue.add(record);
 					

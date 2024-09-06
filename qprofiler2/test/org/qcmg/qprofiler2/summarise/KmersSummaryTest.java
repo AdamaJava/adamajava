@@ -18,7 +18,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.util.Constants;
@@ -167,11 +166,11 @@ public class KmersSummaryTest {
 		// only one <sequenceMetrics>
 		List<Element> eles = XmlElementUtils.getChildElementByTagName(root, XmlUtils.SEQUENCE_METRICS);
 		assertEquals(eles.size(), 1);
-		assertEquals(eles.get(0).getAttribute(XmlUtils.NAME), "2mers");
-		assertEquals(1, eles.get(0).getChildNodes().getLength());
+		assertEquals(eles.getFirst().getAttribute(XmlUtils.NAME), "2mers");
+		assertEquals(1, eles.getFirst().getChildNodes().getLength());
 
 		// check <variableGroup...>
-		Element ele = (Element)eles.get(0).getFirstChild();
+		Element ele = (Element)eles.getFirst().getFirstChild();
 		assertEquals(ele.getAttribute(XmlUtils.NAME), "2mers") ;
 		// base.length -3
 		// cycle number = base.length - KmersSummary.maxKmers = 16-6 that is [1,11]
@@ -187,7 +186,7 @@ public class KmersSummaryTest {
 		summary.toXml(root, 2, false);
 		eles = XmlElementUtils.getChildElementByTagName(root, XmlUtils.SEQUENCE_METRICS);
 		// check <variableGroup...>
-		ele = (Element)eles.get(0).getFirstChild();
+		ele = (Element)eles.getFirst().getFirstChild();
 		assertEquals(ele.getAttribute(XmlUtils.NAME), "unPaired") ;
 
 	}
@@ -218,19 +217,20 @@ public class KmersSummaryTest {
 			Element baseCycleEle = (Element) tE.getParentNode();
 			Element groupEle =  (Element) baseCycleEle.getParentNode();
 			Element metricEle = (Element) groupEle.getParentNode();
-			if (tE.getAttribute(XmlUtils.VALUE).equals("GTT")) {
-				assertEquals("5", baseCycleEle.getAttribute(XmlUtils.CYCLE));
-				assertEquals("3mers", metricEle.getAttribute(XmlUtils.NAME));
-				assertEquals("firstReadInPair", groupEle.getAttribute(XmlUtils.NAME));
-			} else if (tE.getAttribute(XmlUtils.VALUE).equals("TAA")) {
-				assertEquals("3", baseCycleEle.getAttribute(XmlUtils.CYCLE));
-				assertEquals("3mers", metricEle.getAttribute(XmlUtils.NAME));
-				assertEquals("secondReadInPair", groupEle.getAttribute(XmlUtils.NAME));
-			} else if (tE.getAttribute(XmlUtils.VALUE).equals("CCT")) {
-				assertEquals("1", baseCycleEle.getAttribute(XmlUtils.CYCLE));
-			} else {
-				assertEquals("CAG", tE.getAttribute(XmlUtils.VALUE));
-			}
+            switch (tE.getAttribute(XmlUtils.VALUE)) {
+                case "GTT" -> {
+                    assertEquals("5", baseCycleEle.getAttribute(XmlUtils.CYCLE));
+                    assertEquals("3mers", metricEle.getAttribute(XmlUtils.NAME));
+                    assertEquals("firstReadInPair", groupEle.getAttribute(XmlUtils.NAME));
+                }
+                case "TAA" -> {
+                    assertEquals("3", baseCycleEle.getAttribute(XmlUtils.CYCLE));
+                    assertEquals("3mers", metricEle.getAttribute(XmlUtils.NAME));
+                    assertEquals("secondReadInPair", groupEle.getAttribute(XmlUtils.NAME));
+                }
+                case "CCT" -> assertEquals("1", baseCycleEle.getAttribute(XmlUtils.CYCLE));
+                default -> assertEquals("CAG", tE.getAttribute(XmlUtils.VALUE));
+            }
 		}
 
 		//  kmers3
@@ -345,7 +345,7 @@ public class KmersSummaryTest {
 	 * here this method only called once, otherwise exception throw due to file "input.sam" exists
 	 */
 	private static File createTestSamFile() throws IOException {
-		List<String> data = new ArrayList<String>();
+		List<String> data = new ArrayList<>();
 		data.add("@HD	VN:1.0	SO:coordinate");
 		data.add("@RG	ID:1959T	SM:eBeads_20091110_CD	DS:rl=50");
 		data.add("@SQ	SN:chr1	LN:249250621");
@@ -410,15 +410,13 @@ public class KmersSummaryTest {
 		// due to summary.toXml(). getPopularKmerString(...).getPossibleKmerString(kLength, false)
 		// any seq include 'N' will not be reported, it is better to skip 'N' for testing
 		StringBuilder sb=new StringBuilder();
-		for (int i = 0; i < 200; i ++) sb.append(bases);
+        sb.append(bases.repeat(200));
 		for (int i = 0; i < 100; i ++) {
 			summary.parseKmers(sb.toString().getBytes(StandardCharsets.UTF_8), false, 1);
 		}
 
 		// reach maximum 1000 base
-		for (int i = 0; i < (KmersSummary.maxCycleNo/bases.length() -200); i ++) {
-			sb.append(bases);
-		}
+        sb.append(bases.repeat((KmersSummary.maxCycleNo / bases.length() - 200)));
 		assertEquals(KmersSummary.maxCycleNo, sb.length());
 		summary.parseKmers(sb.toString().getBytes(StandardCharsets.UTF_8), false, 1);
 

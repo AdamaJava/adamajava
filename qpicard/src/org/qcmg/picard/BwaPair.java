@@ -36,44 +36,38 @@ public class BwaPair {
 	   	 * Hence we have to make this overlap algorithm suits all type of BAMs, now we return 0 for all pair with tLen == 0
 	   	 *   
 	   	 */
-	   	if(tLen == 0 ) return 0;	 
-		
-				
-		//to avoid double counts, we only select one of Pair: tLen > 0 
-		//that is we only select the one behind the mate: --selected---    ---mated--
-	   	if(tLen < 0) return 0;  
-	   		   	
-	   		   		   	
-	   	//two reads not overlapped due to far distance:  --selected---    ---mated---
-	    if(record.getMateAlignmentStart() - record.getAlignmentEnd() > 0) return 0;
+	   	if (tLen <= 0 ) return 0;
 
-	   	int result  = 0;  	
+	    int alignmentEnd = record.getAlignmentEnd();
+	   	//two reads not overlapped due to far distance:  --selected---    ---mated---
+	    if (record.getMateAlignmentStart() - alignmentEnd > 0) return 0;
+
+	   	int result = 0;
 		// |--selected--->    <---mated---|  mate end = tLen -1 + read start  
-		if( record.getReadNegativeStrandFlag() != record.getMateNegativeStrandFlag()  ) {  					  			
+		if( record.getReadNegativeStrandFlag() != record.getMateNegativeStrandFlag() ) {
 			//here tLen > 0 && mate.start <= read.end 
 			//so here read must forward  and mate reverse 
-			int mateEnd = tLen + record.getAlignmentStart()-1 ;  //reverse mate end
-			int readEnd = record.getAlignmentEnd();   //forward read end
+			int mateEnd = tLen + record.getAlignmentStart() - 1 ;  //reverse mate end
+//			int readEnd = record.getAlignmentEnd();   //forward read end
 			
-			result = Math.min( readEnd, mateEnd ) - Math.max(record.getAlignmentStart(), record.getMateAlignmentStart() ) + 1;   
-		}else if( !record.getReadNegativeStrandFlag()) { 
+			result = Math.min( alignmentEnd, mateEnd ) - Math.max(record.getAlignmentStart(), record.getMateAlignmentStart() ) + 1;
+		} else if ( !record.getReadNegativeStrandFlag()) {
 	   		//|--->    or     |-----> (read end - mate start>0) or       |----->
 	   		//|----->              |----->                      |---> (read end - mate start < 0)  		
 						
 			//if tLen >= 0, then mate_start > read_start; so min_end will be read end if we assue pair with same length.    			
-			result = record.getAlignmentEnd() - record.getMateAlignmentStart() + 1; 			
-		}else {  		
+			result = alignmentEnd - record.getMateAlignmentStart() + 1;
+		} else {
 	  		//<---|    or     <-----| (read end - mate start>0) or       <-----|
 	   		//<-----|             <-----|                      <---| (read end - mate start < 0)
-	   		result = record.getAlignmentEnd() - Math.max( record.getAlignmentStart(), record.getMateAlignmentStart()) + 1;			
+	   		result = alignmentEnd - Math.max( record.getAlignmentStart(), record.getMateAlignmentStart()) + 1;
 		}
-		
-		return result > 0? result : 0; 	
+		return Math.max(result, 0);
 	}
 
 	public static Pair getPairType( SAMRecord  record ) {
 	
-		if(record.getReadUnmappedFlag() ||  record.getMateUnmappedFlag() || ! record.getReferenceName().equals(record.getMateReferenceName()) )
+		if (record.getReadUnmappedFlag() ||  record.getMateUnmappedFlag() || ! record.getReferenceName().equals(record.getMateReferenceName()) )
 			return Pair.Others;
 		
 		// pair with different orientation 

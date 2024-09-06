@@ -36,8 +36,8 @@ public class KmersSummary {
 	
 	public static final int maxKmers = 6; 	
 	// Array in java is mutable, so set to final is meaningless, here we use unmodifiableList
-	public static final List<Character>  atgcCharArray = Collections.unmodifiableList(Arrays.asList('A','T','G','C'));
-	public static final List<Character>  atgcnCharArray = Collections.unmodifiableList(Arrays.asList('A','T','G','C','N'));
+	public static final List<Character>  atgcCharArray = List.of('A', 'T', 'G', 'C');
+	public static final List<Character>  atgcnCharArray = List.of('A', 'T', 'G', 'C', 'N');
 	
 	private final int merLength;
 	public int[] mersIndex;
@@ -46,7 +46,15 @@ public class KmersSummary {
 	private final int mersStrListLength;
 
 	public static final int BIT_MASK_VALUE = Integer.valueOf(StringUtils.padString("", maxKmers * BITS_TO_SHIFT, '1', false), 2);
-	
+	// Precompute nucleotide values in a lookup table
+	public static final int[] nucleotideValues = new int[256];
+	static {
+		nucleotideValues['A'] = 1;
+		nucleotideValues['C'] = 2;
+		nucleotideValues['G'] = 3;
+		nucleotideValues['T'] = 4;
+		nucleotideValues['N'] = 5;
+	}
 	public KmersSummary( int length ) {	
 		cycleNo = 0 ; // init 0, eventually store the biggest cycle number
 		this.merLength = length; 
@@ -122,7 +130,7 @@ public class KmersSummary {
 		// produce all possible kmers in String 
 		String str1 = producer( k, "", includeN );	
 		String[] mers = str1.split(Constants.COMMA_STRING);
-		// arrays are always mutable, it return the reference, then you lose control over the contents your variable, violating encapsulation.
+		// arrays are always mutable, it returns the reference, then you lose control over the contents your variable, violating encapsulation.
 		return Arrays.copyOf( mers, mers.length);
 	}	
 
@@ -136,49 +144,33 @@ public class KmersSummary {
 		if (c > cycleNo) {
 			cycleNo = c;
 		}
-         /*
-		 not sure we need the clone here - there is no code that modifies the array
-		  */
-		byte[] dataString =  null;  // can't point to same array
+
+		byte[] dataString = reverse ? new byte[readLength] : readString;
 		if (reverse) {
-			dataString = new byte[readLength];
 			for (int i = readLength - 1 , j = 0; i >= 0 ; i --, j ++) {
 				dataString[j] = (byte) BaseUtils.getComplement( (char) readString[i] );
 			}
-		} else {
-			dataString = readString;
 		}
 		// readString may have different length to other reads
 		int kmerId = 0;
 		int kmerIndex = 0;
+		QCMGAtomicLongArray tallyLocal = tally[flagFirstOfPair]; // Cache in a local variable.
 		for (int i = 0; i < readLength; i ++ ) {
-			kmerId = incrementInt(kmerId, dataString[i], BITS_TO_SHIFT);
+			int nucleotide = nucleotideValues[dataString[i]];
+			kmerId = (kmerId << BITS_TO_SHIFT) + (nucleotide > 0 ? nucleotide : 5); //nucleotideValues[dataString[i]]; //incrementInt(kmerId, dataString[i], BITS_TO_SHIFT);
 			if (i >= merLength - 1) {
 				/*
 				get the relevant part of the kmerId int by bit masking
 				 */
-				tally[flagFirstOfPair].increment( (kmerIndex++ * mersStrListLength) + mersIndex[kmerId & BIT_MASK_VALUE]);
+				tallyLocal.increment( (kmerIndex++ * mersStrListLength) + mersIndex[kmerId & BIT_MASK_VALUE]);
 			}
 		}
 		parsedCount[flagFirstOfPair].incrementAndGet();
 	}
 
 	public static int incrementInt(int toIncrement, byte b, int leftShift) {
-		int incrementer = 0;
-
-		if ('A' == b) {
-			incrementer = 1;
-		} else if ('C' == b) {
-			incrementer = 2;
-		} else if ('G' == b) {
-			incrementer = 3;
-		} else if ('T' == b) {
-			incrementer = 4;
-		} else {
-			incrementer = 5;
-		}
-		toIncrement <<= leftShift;
-		return toIncrement + incrementer;
+		// Perform the left shift and add the incrementer in one step
+		return (toIncrement << leftShift) + nucleotideValues[b];
 	}
 	
 	// 	can't be private since unit test
@@ -190,28 +182,14 @@ public class KmersSummary {
 	
 	// just for fast calculate, the return value is not position of mers in QCMGArray
 	static int getEntry(byte[] mers) {
-		int entry = 0; 
-		for (int i = 0, j = mers.length - 1; i < mers.length; i ++, j -- ) {
-			int no;
-			switch (mers[i]) {
-				case 'A' : 
-					no = 1; 
-					break;
-				case 'C' : 
-					no = 2;
-					break;
-				case 'G' : 
-					no = 3;
-					break;
-				case 'T' : 
-					no = 4;
-					break;
-				default : 
-					no = 5; 
-					break;
-			}
-			entry += no << ( j * 3 ); 	
-		}		
+		int entry = 0;
+		int shiftAmount = (mers.length - 1) * 3;
+
+		for (byte mer : mers) {
+			entry += nucleotideValues[mer] << shiftAmount;
+			shiftAmount -= 3;
+		}
+
 		return entry;
 	}
 		

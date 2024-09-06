@@ -3,7 +3,7 @@ package org.qcmg.qprofiler2.summarise;
 import static org.junit.Assert.*;
 import java.io.*;
 import java.util.*;
-import java.util.stream.Collectors;
+
 import org.junit.*;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.util.XmlElementUtils;
@@ -17,7 +17,7 @@ public class CycleSummaryTest {
 	@Rule
 	public TemporaryFolder testFolder = new TemporaryFolder();
 	
-	private  void checklength(Element root, String metricName, String pairName,int readCount, int cycle, String[] values, int[] counts) throws Exception {
+	private  void checkLength(Element root, String metricName, String pairName, int readCount, int cycle, String[] values, int[] counts) throws Exception {
 		if (counts.length != values.length) {
 			throw new Exception("error: values size must be same to counts size");
 		}
@@ -26,48 +26,48 @@ public class CycleSummaryTest {
 		List<Element> elements = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.VARIABLE_GROUP).stream()
 			.filter(e -> e.getAttribute(XmlUtils.NAME).equals(pairName)
 					&& e.getAttribute(ReadGroupSummary.READ_COUNT).equals(readCount+"")
-					&& ((Element) e.getParentNode()).getAttribute(XmlUtils.NAME).equals(metricName)).collect(Collectors.toList());
+					&& ((Element) e.getParentNode()).getAttribute(XmlUtils.NAME).equals(metricName)).toList();
 		Assert.assertEquals(elements.size(), 1);
 		
 		// eg, <baseCycle cycle="1">
-		Element ele = XmlElementUtils.getOffspringElementByTagName(elements.get(0), XmlUtils.BASE_CYCLE).stream()
+		Element ele = XmlElementUtils.getOffspringElementByTagName(elements.getFirst(), XmlUtils.BASE_CYCLE).stream()
 			.filter(e -> e.getAttribute(XmlUtils.CYCLE).equals(cycle + "")).findFirst().get();
 		assertEquals(values.length, ele.getChildNodes().getLength());
 			
 		// eg   QprofilerXmlUtils.seqLength + "_"+  QprofilerXmlUtils.FirstOfPair;
 		for (int i = 0; i < values.length; i ++) {
-			String v =  (metricName.contains("qual"))? ((byte) values[i].toCharArray()[0]-33) + ""  : (String)values[i];
+			String v =  (metricName.contains("qual"))? ((byte) values[i].toCharArray()[0]-33) + ""  : values[i];
 			String c = counts[i] + "";
 			long count = XmlElementUtils.getChildElementByTagName(ele, XmlUtils.TALLY).stream()
 					.filter(e -> e.getAttribute(XmlUtils.VALUE).equals(v)
 							&& e.getAttribute(XmlUtils.COUNT).equals(c)).count();
-			assertTrue(count == 1);
+            assertEquals(1, count);
 		}	 
 	}
 	
 	@Test
 	public void getBaseByCycleTest() throws Exception {
  		Element root = getSummarizedRoot();			  
- 		checklength(root, XmlUtils.SEQ_BASE , XmlUtils.FIRST_PAIR,2, 1, new String[] {"C","T"}, new int[] {1,1});
- 		checklength(root, XmlUtils.SEQ_BASE , XmlUtils.FIRST_PAIR,2, 141, new String[] {"G","N"}, new int[] {1,1});
- 		checklength(root, XmlUtils.SEQ_BASE , XmlUtils.FIRST_PAIR,2, 142, new String[] {"N"}, new int[] {1});
- 		checklength(root, XmlUtils.SEQ_BASE , XmlUtils.FIRST_PAIR,2, 151, new String[] {"M"}, new int[] {1}); 		
- 		checklength(root, XmlUtils.SEQ_BASE , XmlUtils.SECOND_PAIR ,1, 2, new String[] {"N"}, new int[] {1});
- 		checklength(root, XmlUtils.SEQ_BASE , XmlUtils.SECOND_PAIR ,1, 4, new String[] {"T"}, new int[] {1});
- 		checklength(root, XmlUtils.SEQ_BASE , XmlUtils.SECOND_PAIR ,1, 151, new String[] {"G"}, new int[] {1}); 		
+ 		checkLength(root, XmlUtils.SEQ_BASE , XmlUtils.FIRST_PAIR,2, 1, new String[] {"C","T"}, new int[] {1,1});
+ 		checkLength(root, XmlUtils.SEQ_BASE , XmlUtils.FIRST_PAIR,2, 141, new String[] {"G","N"}, new int[] {1,1});
+ 		checkLength(root, XmlUtils.SEQ_BASE , XmlUtils.FIRST_PAIR,2, 142, new String[] {"N"}, new int[] {1});
+ 		checkLength(root, XmlUtils.SEQ_BASE , XmlUtils.FIRST_PAIR,2, 151, new String[] {"M"}, new int[] {1});
+ 		checkLength(root, XmlUtils.SEQ_BASE , XmlUtils.SECOND_PAIR ,1, 2, new String[] {"N"}, new int[] {1});
+ 		checkLength(root, XmlUtils.SEQ_BASE , XmlUtils.SECOND_PAIR ,1, 4, new String[] {"T"}, new int[] {1});
+ 		checkLength(root, XmlUtils.SEQ_BASE , XmlUtils.SECOND_PAIR ,1, 151, new String[] {"G"}, new int[] {1});
  	}
 	
 	@Test
 	public void getQualityByCycleTest() throws Exception {
  		Element root = getSummarizedRoot();
  		
- 		checklength(root,  XmlUtils.QUAL_BASE , XmlUtils.FIRST_PAIR, 2,1, new String[] {"A","("}, new int[] {1,1});
- 		checklength(root,  XmlUtils.QUAL_BASE , XmlUtils.FIRST_PAIR, 2,143, new String[] {"-","J"}, new int[] {1, 1});
- 		checklength(root,  XmlUtils.QUAL_BASE , XmlUtils.FIRST_PAIR, 2,144, new String[] {"7"}, new int[] {1});
- 		checklength(root,  XmlUtils.QUAL_BASE , XmlUtils.FIRST_PAIR,2, 151, new String[] {"A"}, new int[] {1});		
-  		checklength(root,  XmlUtils.QUAL_BASE , XmlUtils.SECOND_PAIR,1, 1, new String[] {"A"}, new int[] {1});	
-		checklength(root,  XmlUtils.QUAL_BASE , XmlUtils.SECOND_PAIR,1, 148, new String[] {"-"}, new int[] {1});
-		checklength(root,  XmlUtils.QUAL_BASE , XmlUtils.SECOND_PAIR,1, 151, new String[] {"7"}, new int[] {1});
+ 		checkLength(root,  XmlUtils.QUAL_BASE , XmlUtils.FIRST_PAIR, 2,1, new String[] {"A","("}, new int[] {1,1});
+ 		checkLength(root,  XmlUtils.QUAL_BASE , XmlUtils.FIRST_PAIR, 2,143, new String[] {"-","J"}, new int[] {1, 1});
+ 		checkLength(root,  XmlUtils.QUAL_BASE , XmlUtils.FIRST_PAIR, 2,144, new String[] {"7"}, new int[] {1});
+ 		checkLength(root,  XmlUtils.QUAL_BASE , XmlUtils.FIRST_PAIR,2, 151, new String[] {"A"}, new int[] {1});
+  		checkLength(root,  XmlUtils.QUAL_BASE , XmlUtils.SECOND_PAIR,1, 1, new String[] {"A"}, new int[] {1});
+		checkLength(root,  XmlUtils.QUAL_BASE , XmlUtils.SECOND_PAIR,1, 148, new String[] {"-"}, new int[] {1});
+		checkLength(root,  XmlUtils.QUAL_BASE , XmlUtils.SECOND_PAIR,1, 151, new String[] {"7"}, new int[] {1});
 	}	
 
 	private Element getSummarizedRoot() throws Exception {
@@ -87,7 +87,7 @@ public class CycleSummaryTest {
 	 * @throws IOException
 	 */
 	public static String createInputFile(TemporaryFolder testFolder) throws IOException {
-		List<String> data = new ArrayList<String>();
+		List<String> data = new ArrayList<>();
         data.add("@HD	VN:1.0	SO:coordinate");
         data.add("@RG	ID:20150125163736341	SM:eBeads_20091110_CD	DS:rl=50");
         data.add("@RG	ID:20150125163738010	SM:eBeads_20091110_ND	DS:rl=50");

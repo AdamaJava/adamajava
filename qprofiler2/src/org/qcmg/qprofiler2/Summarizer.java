@@ -10,7 +10,7 @@
 package org.qcmg.qprofiler2;
 
 public interface Summarizer {
-	public static final int FEEDBACK_LINES_COUNT = 1000000;
+	int FEEDBACK_LINES_COUNT = 1000000;
 	
 	/**
 	 * Summarises the data held in the submitted file, returning a SummaryReport object
@@ -18,10 +18,9 @@ public interface Summarizer {
 	 * @param input is a file name with full path to be summarised
 	 * @param index is the accompany index file name with full path 
 	 * @return SummaryReport object containing the summations
-	 * @throws Exception
-	 */
-	public SummaryReport summarize(String input, String index) throws Exception;
-	public default SummaryReport summarize(String input) throws Exception {
+     */
+    SummaryReport summarize(String input, String index) throws Exception;
+	default SummaryReport summarize(String input) throws Exception {
 		return summarize(input, null);
 	}	
 	

@@ -5,6 +5,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+
+import htsjdk.samtools.Cigar;
 import htsjdk.samtools.CigarElement;
 import htsjdk.samtools.CigarOperator;
 import htsjdk.samtools.SAMRecord;
@@ -154,9 +156,10 @@ public class ReadGroupSummary {
 		// cigar string from reads including duplicateReads, nonCanonicalPairs and unmappedReads but excluding discardedReads (failed, secondary and supplementary).
 		int lHard = 0;
 		int lSoft = 0;
-		if (null != record.getCigar()) {
+		Cigar cigar = record.getCigar();
+		if (null != cigar) {
 			cigarRead.incrementAndGet();
-			for (CigarElement ce : record.getCigar().getCigarElements()) {			 
+			for (CigarElement ce : cigar.getCigarElements()) {
 				if ( ! CigarOperator.M.equals(ce.getOperator())) {
 					String key = "" + ce.getLength() + ce.getOperator();
 					cigarValuesCount.computeIfAbsent(key, k -> new AtomicLong(0)).incrementAndGet();
@@ -168,8 +171,8 @@ public class ReadGroupSummary {
 				}			 			 				 
 			 }	 
 		}
-		
-		readLength.increment(record.getReadLength() + lHard);
+		int readLengthAndHardClips = record.getReadLength() + lHard;
+		readLength.increment(readLengthAndHardClips);
 
 		// find mapped badly reads and return false	
 		if (record.getDuplicateReadFlag()) {
@@ -220,7 +223,7 @@ public class ReadGroupSummary {
 		// Adapter trimming not relevant for long read - the adapter trimming is calculated based on the length of the current read vs
 		// the length of the maximum read and long read has variable length so it is not possible to calculate the adapter trimming for long read
 		if (! isLongReadBam) {
-			forTrimLength.increment(record.getReadLength() + lHard);
+			forTrimLength.increment(readLengthAndHardClips);
 		}
 
 		return true;  

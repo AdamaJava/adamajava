@@ -11,13 +11,10 @@
  */
 package org.qcmg.qprofiler2.summarise;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.qcmg.common.model.QCMGAtomicLongArray;
@@ -25,96 +22,31 @@ import org.qcmg.common.model.QCMGAtomicLongArray;
 public class PositionSummary {
 	public static final int BUCKET_SIZE = 1000000;
 	
-	private final AtomicInteger min;
-	private final AtomicInteger max;
-	private final QCMGAtomicLongArray[] rgCoverages; // the coverage for each readgroup on that position   
-	private final List<String> readGroupIds; // nature sorted
-	
-	private final ArrayList<Long> maxRgs = new ArrayList<Long>();  // store the max coverage from all read group at each position;
-	private Boolean hasAddPosition = true;  // set to true after each time addPosition, set to false after getAverage
-		
-	/**
+	private final Map<String, QCMGAtomicLongArray> rgCoverages; // the coverage for each readgroup on that position
+
+    /**
 	 * No default constructor defined as we don't want the initial values of 
 	 * min and max to be zero (unless of course the passed in initial position value is zero)
 	 * Create the AtomicLongArray with size of 512 as we are binning by the million, and the largest chromosome is around the 250 mill mark
 	 * Should give us some breathing space..
-	 * @param position sets the first position value of this summary record to position
-	 * 
+	 *
 	 */	
 	public PositionSummary(List<String> rgs) {		
-		// Natural order should only do once inside BamSummarizer2::createReport
-		readGroupIds = rgs; 
-		
-		min = new AtomicInteger(512 * BUCKET_SIZE);
-		max = new AtomicInteger(0); 
-		rgCoverages = new QCMGAtomicLongArray[rgs.size()];
-		for (int i = 0; i < rgs.size(); i ++) {
-			rgCoverages[i] = new QCMGAtomicLongArray(512);
-		}			
+		rgCoverages = new ConcurrentHashMap<>();
+		// create a QCMGAtomicLongArray for each readGroup, and add it to
+		// the map
+		rgs.forEach(rg -> rgCoverages.put(rg, new QCMGAtomicLongArray(512)));
 	}
 	
-	public int getMin() {
-		return min.intValue();
-	}
-	
-	public int getMax() {
-		return max.intValue(); 
-	}
-	
-	public int getBinNumber() {
-		return (max.get() / BUCKET_SIZE) + 1;
-	}
-
-	/**
-	 * 
-	 * @return the max read coverage based on the max coverage from each read group and each position
-	 */
-	public long getMaxRgCoverage() {
-		if ( hasAddPosition  || maxRgs.isEmpty()) {
-			maxRgs.clear();
-			for (int i = 0, length = (max.get() / BUCKET_SIZE) + 1; i < length ; i++) {
-				long[] rgCov = new long[rgCoverages.length];				
-				for (int j = 0; j < rgCoverages.length; j ++) {
-					rgCov[j] = rgCoverages[j].get(i);
-				}
-				Arrays.sort(rgCov);
-				maxRgs.add( rgCov[rgCoverages.length - 1 ]);  // get the max coverage of all readGroup at that position		
-			}
-			hasAddPosition = false; 
-		}
-		// stream is slow but we only use it once		
-		return maxRgs.stream().mapToLong(val -> val).sum();
-	}
-	
-	/**
-	 * 
-	 * @param floorValue
-	 * @return return the bin number which max readgroup coverage over the floorValue
-	 */
-	public int getBigBinNumber(final long floorValue) {
-		if ( hasAddPosition  || maxRgs.isEmpty())  {
-			getMaxRgCoverage(); // caculate the maxRgs 
-		}		
-		return  (int) maxRgs.stream().mapToLong(val -> val).filter(val -> val > floorValue).count();
-	}
-		
-		
 	public long getTotalCount() {
-		long count = 0;	
-		for (String rg : readGroupIds) {
-			count += getTotalCountByRg( rg );			
-		}		
-		return count;
+		return rgCoverages.values()
+				.parallelStream()
+				.mapToLong(QCMGAtomicLongArray::getSum)
+				.sum();
 	}
 	
 	public long getTotalCountByRg(String rg) {
-		// get nature order
-		int order = Collections.binarySearch( readGroupIds, rg, null);  
-		long count = 0;		 
-		for (int i = 0, max = getBinNumber() ; i < max ; i ++) {							
-			count += rgCoverages[order].get(i);
-		}
-		return count; 
+		return rgCoverages.get(rg).getSum();
 	}
 		
 	/**
@@ -122,11 +54,13 @@ public class PositionSummary {
 	 * each element of Map is  bin_order, reads number on that bin from specified read group> 
 	 */	
 	public Map<Integer,  AtomicLong> getCoverageByRg( String rg) {
-		Map<Integer, AtomicLong> singleRgCoverage = new TreeMap<Integer, AtomicLong>();	
-		// get nature order
-		int order = Collections.binarySearch( readGroupIds, rg, null);  
-		for (int i = 0, max = getBinNumber() ; i < max ; i ++) {								
-			singleRgCoverage.put( i, new AtomicLong( rgCoverages[order].get(i)));
+		Map<Integer, AtomicLong> singleRgCoverage = new TreeMap<>();
+
+		QCMGAtomicLongArray array = rgCoverages.get(rg);
+		for (int i = 0, max = array.length() ; i < max ; i ++) {
+			if (array.get(i) > 0) {
+				singleRgCoverage.put( i, new AtomicLong( array.get(i)));
+			}
 		}
 		return singleRgCoverage;
 	}	
@@ -138,47 +72,6 @@ public class PositionSummary {
 	 * @param position int relating to the position being added to the summary
 	 */
 	public void addPosition(final int position, String  rgid  ) {
-		
-		// my attempt at a non-blocking updating of max
-		int tempMax = max.get();
-		if (position > tempMax) {
-			for (;;) {
-				if (position > tempMax) {
-					if (max.compareAndSet(tempMax, position)) {
-						break;
-					} else {
-						tempMax = max.get();
-					}
-				} else {
-					break;
-				}
-			}
-		}
-		
-		// and now min....
-		if (position < min.get()) {
-			int tempMin = min.get();
-			for (;;) {
-				if (tempMin > position) {
-					if (min.compareAndSet(tempMin, position)) {
-						break;
-					} else {
-						tempMin = min.get();
-					}
-				} else {
-					break;
-				}
-			}
-		}
-		// count for nominated rg on that position
-		// search for key rgid with natural ordering
-	    int order = Collections.binarySearch( readGroupIds, rgid, null);  
-		if (order < 0 ) {
-			throw new IllegalArgumentException("can't find readGroup Id on Bam header: @RG ID:" + rgid);
-		}
-		// last element is the total counts on that position
-		rgCoverages[ order  ].increment(position / BUCKET_SIZE);  
-				
-		hasAddPosition = true;
-	}
+		rgCoverages.get(rgid).increment(position / BUCKET_SIZE);
+    }
 }

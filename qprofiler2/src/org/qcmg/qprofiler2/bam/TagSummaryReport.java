@@ -3,13 +3,10 @@ package org.qcmg.qprofiler2.bam;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.Collectors;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -24,7 +21,6 @@ import org.w3c.dom.Element;
 
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMRecord.SAMTagAndValue;
-import htsjdk.samtools.SAMTagUtil;
 
 // for sam record tag information
 public class TagSummaryReport {
@@ -32,8 +28,6 @@ public class TagSummaryReport {
 	public static final int ADDI_TAG_MAP_LIMIT = 100;
 	public static final int errReadLimit  = 10;	
 	public static final String separator = Constants.COLON_STRING;
-
-	private static final SAMTagUtil STU = SAMTagUtil.getSingleton();
 
     // TAGS
 	@SuppressWarnings("unchecked")

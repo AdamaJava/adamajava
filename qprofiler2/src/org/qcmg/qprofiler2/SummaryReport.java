@@ -60,7 +60,7 @@ public abstract class SummaryReport {
 	
 	public void setFileMd5() {	
 		if (this.fileMd5 != null) {
-			logger.warn("file md5 value is already caculated, please check why check again!!! ");
+			logger.warn("file md5 value is already calculated, please check why check again!!! ");
 			return; 
 		}
 		

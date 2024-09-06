@@ -10,6 +10,7 @@ import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicLongArray;
+import java.util.stream.IntStream;
 
 public class QCMGAtomicLongArray {
 	
@@ -111,10 +112,10 @@ public class QCMGAtomicLongArray {
 	
 	public long getSum() {
 		long sum = 0;
-		for(int i = 0; i < array.length(); i ++) {			 
-			sum += array.get(i);			 
+		for (int i = 0, len = array.length(); i < len; i++) {
+			sum += array.get(i);
 		}
-		return sum; 
+		return sum;
 	}
 		
 }

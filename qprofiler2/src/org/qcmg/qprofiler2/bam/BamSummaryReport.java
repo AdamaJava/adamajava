@@ -412,7 +412,7 @@ public class BamSummaryReport extends SummaryReport {
 		} 
 
 		// check if record has its fail or duplicate flag set. if so, miss out some of the summaries
-		ReadGroupSummary rgSumm = rgSummaries.computeIfAbsent(readGroup, k -> new ReadGroupSummary(k,isLongReadBam));
+		ReadGroupSummary rgSumm = rgSummaries.computeIfAbsent(readGroup, k -> new ReadGroupSummary(k, isLongReadBam));
 		if (rgSumm.parseRecord(record)) {
 						
 			// SEQ 
@@ -557,7 +557,7 @@ public class BamSummaryReport extends SummaryReport {
 	}
 		
 	void parseRNameAndPos(final String rName,  final int position, String rgid) {
-		PositionSummary ps = (PositionSummary) rNamePosition.computeIfAbsent(rName, k -> new PositionSummary(readGroupIds));
+		PositionSummary ps = rNamePosition.computeIfAbsent(rName, k -> new PositionSummary(readGroupIds));
 		ps.addPosition(position, rgid);
 	}
 		

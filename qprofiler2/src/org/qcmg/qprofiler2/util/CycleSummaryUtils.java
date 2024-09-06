@@ -9,88 +9,122 @@ import org.qcmg.qprofiler2.summarise.CycleSummary;
 import htsjdk.samtools.Cigar;
 
 public class CycleSummaryUtils {
-	
-	public static String tallyMDMismatches(final String mdData, Cigar cigar, final CycleSummary<Character> tagMDMismatchByCycle, 
-			final byte[] readBases, final boolean reverse, QCMGAtomicLongArray mdRefAltLengthsForward, QCMGAtomicLongArray mdRefAltLengthsReverse,
-										   boolean isLongReadBam) {
-		
-		if (null == mdData) {
-			return null; 
+
+	private static final int[][] lookupTable = new int[256][256];
+	static {
+		lookupTable['A']['A'] = 1;
+		lookupTable['A']['C'] = 2;
+		lookupTable['A']['G'] = 3;
+		lookupTable['A']['T'] = 4;
+		lookupTable['A']['N'] = 5;
+
+		lookupTable['C']['A'] = 6;
+		lookupTable['C']['C'] = 7;
+		lookupTable['C']['G'] = 8;
+		lookupTable['C']['T'] = 9;
+		lookupTable['C']['N'] = 10;
+
+		lookupTable['G']['A'] = 11;
+		lookupTable['G']['C'] = 12;
+		lookupTable['G']['G'] = 13;
+		lookupTable['G']['T'] = 14;
+		lookupTable['G']['N'] = 15;
+
+		lookupTable['T']['A'] = 16;
+		lookupTable['T']['C'] = 17;
+		lookupTable['T']['G'] = 18;
+		lookupTable['T']['T'] = 19;
+		lookupTable['T']['N'] = 20;
+
+		lookupTable['N']['A'] = 21;
+		lookupTable['N']['C'] = 22;
+		lookupTable['N']['G'] = 23;
+		lookupTable['N']['T'] = 24;
+		lookupTable['N']['N'] = 25;
+	}
+
+	public static String tallyMDMismatches(
+			final String mdData, Cigar cigar, final CycleSummary<Character> tagMDMismatchByCycle,
+			final byte[] readBases, final boolean reverse,
+			QCMGAtomicLongArray mdRefAltLengthsForward, QCMGAtomicLongArray mdRefAltLengthsReverse,
+			boolean isLongReadBam) {
+
+		if (mdData == null) return null;
+
+		int readLength = readBases.length;
+		if (cigar.getReadLength() != readLength) {
+			return String.format("%s is invalid cigar, readlength from cigar is not same to length of readBases!", cigar);
 		}
-		
-		if (cigar.getReadLength() != readBases.length) {
-			return cigar.toString() + " is invalid cigar, readlength from cigar is not same to length of readBases!";
-		}
-		
-		if (readBases.length == 0) {
-			return  "can't process mismatch for an empty readBase";	
-		}
-				
+
+		if (readLength == 0) return "can't process mismatch for an empty readBase";
+
 		boolean deletion = false;
 		int position = 1;
-		for (int i = 0, size = mdData.length() ; i < size ; ) {
-			if (Character.isDigit(mdData.charAt(i))) {								
-				int numberLength = 1;
-				while (++i < size && Character.isDigit(mdData.charAt(i))) {
-					numberLength++;
-				}
-				position += Integer.parseInt(mdData.substring(i - numberLength, i));					
-			} else if ( '^' == mdData.charAt(i) ) {
+		int dataLength = mdData.length();
+
+		for (int i = 0; i < dataLength; ) {
+			char currentChar = mdData.charAt(i);
+			if (Character.isDigit(currentChar)) {
+				int start = i;
+				while (++i < mdData.length() && Character.isDigit(mdData.charAt(i)));
+				position +=  Integer.parseInt(mdData, start, i, 10);
+			} else if (currentChar == '^') {
 				deletion = true;
 				i++;
-			} else if (isInValidExtended(mdData.charAt(i))) {
-				if (deletion ) {
-					while (++i < size && isInValidExtendedInDelete(mdData.charAt(i))) {}
-					deletion = false; 				
-					continue; 
+			} else if (isInValidExtended(currentChar)) {
+				if (deletion) {
+					i = skipDeletions(mdData, i, dataLength);
+					deletion = false;
+					continue;
 				}
-				// got a letter - update summary with position
-				// check cigar to see if we need to adjust our offset due to insertions etc
-				int additionalOffset = SAMUtils.getAdjustedReadOffset(cigar, position);	
-				if (position + additionalOffset > readBases.length) {
+				int additionalOffset = SAMUtils.getAdjustedReadOffset(cigar, position);
+				if (position + additionalOffset > readLength) {
 					return "invalid MD string, position outside read Base!";
 				}
-				
-				char readBase = (char)readBases[position - 1 + additionalOffset];
-				char refBase = mdData.charAt(i);					
-				if (reverse) {
-					readBase = BaseUtils.getComplement( readBase );
-					refBase = BaseUtils.getComplement( refBase );			 
-				}
-				
+
+				char readBase = adjustAndGetReadBase(readBases, position, additionalOffset, reverse);
+				char refBase = reverse ? BaseUtils.getComplement(currentChar) : currentChar;
+
 				if (refBase == readBase) {
-					return "Found refBase == altBase, md: " + mdData + " , cigar: " + cigar.toString()
-						+ ", seq: " + new String(readBases,  StandardCharsets.UTF_8) + ", reverse strand: " + reverse; 
-				}
-				
-				int pos = position + additionalOffset;
-				if (reverse) {
-					pos = readBases.length - pos + 1; 
-				}
-				//Skip for long read
-				if (! isLongReadBam) {
-					tagMDMismatchByCycle.increment(pos, readBase);
+					return String.format("Found refBase == altBase, md: %s , cigar: %s, seq: %s, reverse strand: %b",
+							mdData, cigar, new String(readBases, StandardCharsets.UTF_8), reverse);
 				}
 
-				
-				int intFromChar = getIntFromChars(refBase, readBase);
-								
-				if ( reverse && mdRefAltLengthsReverse != null ) {
-					mdRefAltLengthsReverse.increment(intFromChar);					
-				} else if ( !reverse && mdRefAltLengthsForward != null ) {
-					mdRefAltLengthsForward.increment(intFromChar);
+				int adjustedPosition = reverse ? readLength - position - additionalOffset + 1 : position + additionalOffset;
+				if (!isLongReadBam) {
+					tagMDMismatchByCycle.increment(adjustedPosition, readBase);
 				}
+
+				incrementMDRefAltLengths(mdRefAltLengthsForward, mdRefAltLengthsReverse, reverse, refBase, readBase);
 				i++;
 				position++;
-				 
 			} else {
-				// need to increment this or could end up with infinite loop...	
 				i++;
-			 			 
 			}
 		}
 		
 		return null; 				
+	}
+
+	private static int skipDeletions(String mdData, int i, int size) {
+		while (++i < size && isInValidExtendedInDelete(mdData.charAt(i)));
+		return i;
+	}
+
+	private static char adjustAndGetReadBase(byte[] readBases, int position, int offset, boolean reverse) {
+		char readBase = (char) readBases[position - 1 + offset];
+		return reverse ? BaseUtils.getComplement(readBase) : readBase;
+	}
+
+	private static void incrementMDRefAltLengths(
+			QCMGAtomicLongArray forward, QCMGAtomicLongArray reverse,
+			boolean isReverse, char refBase, char readBase) {
+		int intFromChar = getIntFromChars(refBase, readBase);
+		if (isReverse && reverse != null) {
+			reverse.increment(intFromChar);
+		} else if (!isReverse && forward != null) {
+			forward.increment(intFromChar);
+		}
 	}
 	
 	/**
@@ -101,7 +135,7 @@ public class CycleSummaryUtils {
 	 * @return the number of cycle with big mismatch rate after combining all strand reads mismatch information
 	 */
 	public static int getBigMDCycleNo(CycleSummary<Character>[] mdCycles, float percent, QCMGAtomicLongArray[] allReadsLineLengths ) {
-		if (  mdCycles.length <= 0 ) {
+		if (mdCycles.length == 0) {
 			return 0; 
 		}
 		
@@ -114,7 +148,7 @@ public class CycleSummaryUtils {
 		int mismatchingCycles = 0;
 		for (Integer cycle : cycles) {
 			long count = 0, allReadsCount = 0;
-			for (int i = 0; i < mdCycles.length; i++) {
+			for (int i = 0, len = mdCycles.length; i < len; i++) {
 				count += SummaryReportUtils.getCountOfMapValues(mdCycles[i].getValue(cycle));	
 				allReadsCount += allReadsLineLengths[i].get(cycle);
 			}					
@@ -139,62 +173,49 @@ public class CycleSummaryUtils {
 	}
 		
 	public static int getIntFromChars(final char ref, final char alt) {
-		switch (ref) {
-			case 'A':
-				return 'A' == alt ? 1 : ('C' == alt ? 2 : ('G' == alt ? 3 : ('T' == alt ? 4 : 5)));
-			case 'C':
-				return 'A' == alt ? 6 : ('C' == alt ? 7 : ('G' == alt ? 8 : ('T' == alt ? 9 : 10)));
-			case 'G':
-				return 'A' == alt ? 11 : ('C' == alt ? 12 : ('G' == alt ? 13 : ('T' == alt ? 14 : 15)));
-			case 'T':
-				return 'A' == alt ? 16 : ('C' == alt ? 17 : ('G' == alt ? 18 : ('T' == alt ? 19 : 20)));
-			case 'N':
-				return 'A' == alt ? 21 : ('C' == alt ? 22 : ('G' == alt ? 23 : ('T' == alt ? 24 : 25)));
-			default : return -1;
-		}
-		
+		return lookupTable[ref][alt] == 0 ? -1 : lookupTable[ref][alt];
 	}
 	
 	public static String getStringFromInt(final int i) {
-		switch (i) {
-			// A's
-			case 1: return "A>A";
-			case 2: return "A>C";
-			case 3: return "A>G";
-			case 4: return "A>T";
-			case 5: return "A>N";
-			
-			// C's
-			case 6: return "C>A";
-			case 7: return "C>C";
-			case 8: return "C>G";
-			case 9: return "C>T";
-			case 10: return "C>N";
-			
-			// G's
-			case 11: return "G>A";
-			case 12: return "G>C";
-			case 13: return "G>G";
-			case 14: return "G>T";
-			case 15: return "G>N";
-			
-			// T's
-			case 16: return "T>A";
-			case 17: return "T>C";
-			case 18: return "T>G";
-			case 19: return "T>T";
-			case 20: return "T>N";
-			
-			// N's
-			case 21: return "N>A";
-			case 22: return "N>C";
-			case 23: return "N>G";
-			case 24: return "N>T";
-			case 25: return "N>N";
-			
-			// hmmmm
-			case -1: return "???";
-		}
-		return null;
-	}
+        return switch (i) {
+            // A's
+            case 1 -> "A>A";
+            case 2 -> "A>C";
+            case 3 -> "A>G";
+            case 4 -> "A>T";
+            case 5 -> "A>N";
+
+            // C's
+            case 6 -> "C>A";
+            case 7 -> "C>C";
+            case 8 -> "C>G";
+            case 9 -> "C>T";
+            case 10 -> "C>N";
+
+            // G's
+            case 11 -> "G>A";
+            case 12 -> "G>C";
+            case 13 -> "G>G";
+            case 14 -> "G>T";
+            case 15 -> "G>N";
+
+            // T's
+            case 16 -> "T>A";
+            case 17 -> "T>C";
+            case 18 -> "T>G";
+            case 19 -> "T>T";
+            case 20 -> "T>N";
+
+            // N's
+            case 21 -> "N>A";
+            case 22 -> "N>C";
+            case 23 -> "N>G";
+            case 24 -> "N>T";
+            case 25 -> "N>N";
+
+            // hmmmm
+            case -1 -> "???";
+            default -> null;
+        };
+    }
 }

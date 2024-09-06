@@ -1,8 +1,5 @@
 package org.qcmg.qprofiler2.util;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
@@ -13,6 +10,8 @@ import org.junit.Test;
 import org.qcmg.common.util.XmlElementUtils;
 import org.w3c.dom.Element;
 
+import static org.junit.Assert.*;
+
 public class XmlUtilsTest {
 	
 	@Test
@@ -21,23 +20,23 @@ public class XmlUtilsTest {
 		int limit = 10;
 		
 		for (int i = 1; i <= limit; i++) {
-			assertTrue(XmlUtils.updateMapWithLimit(map, i+"", limit));
-			assertTrue(map.get(i+"").get() == 1);
+			assertTrue(XmlUtils.updateMapWithLimit(map, i + "", limit));
+            assertEquals(1, map.get(i + "").get());
 			assertFalse(map.containsKey(XmlUtils.OTHER));
-			assertTrue(map.size() == i);
+            assertEquals(map.size(), i);
 		}
 		
 		for (int i = 1; i <= limit; i++) {
-			assertFalse(XmlUtils.updateMapWithLimit(map, i+"", limit));
-			assertTrue(map.get(i+"").get() == 2);
+			assertFalse(XmlUtils.updateMapWithLimit(map, i + "", limit));
+            assertEquals(2, map.get(i + "").get());
 			assertFalse(map.containsKey(XmlUtils.OTHER));
-			assertTrue(map.size()==limit);
+            assertEquals(map.size(), limit);
 		}
 		
-		for (int i = limit+1; i < limit+5; i++) {
-			assertFalse(XmlUtils.updateMapWithLimit(map, i+"", limit));
-			assertTrue(map.get(XmlUtils.OTHER).get() == i-limit);
-			assertTrue(map.size()==limit + 1);
+		for (int i = limit + 1; i < limit + 5; i++) {
+			assertFalse(XmlUtils.updateMapWithLimit(map, i + "", limit));
+            assertEquals(map.get(XmlUtils.OTHER).get(), i - limit);
+            assertEquals(map.size(), limit + 1);
 		}
 	}
 	
@@ -47,31 +46,31 @@ public class XmlUtilsTest {
 		Map<String, AtomicLong> map = new HashMap<>();
 		int limit = 10;
 		
-		for (int i = 1; i <= limit*2; i++) {			
-			XmlUtils.updateMapWithLimit(map, i+"", limit);			 
+		for (int i = 1; i <= limit * 2; i++) {
+			XmlUtils.updateMapWithLimit(map, i + "", limit);
 		}
-		for (int i = limit-5; i <= limit+5; i++) {			
-			XmlUtils.updateMapWithLimit(map, i+"", limit);			 
+		for (int i = limit - 5; i <= limit + 5; i++) {
+			XmlUtils.updateMapWithLimit(map, i + "", limit);
 		}
 		
 		Element root = XmlElementUtils.createRootElement( "root", null );
 		XmlUtils.outputTallyGroupWithSize(root, "test", map, limit,true);
 		
 		Element ele = XmlElementUtils.getChildElement(root, XmlUtils.VARIABLE_GROUP,0);
-		assertTrue(ele.getAttribute(XmlUtils.COUNT).equals("31")); // [1..20][5..15]
-		assertTrue(ele.getAttribute(XmlUtils.TALLY_COUNT).equals(limit+"+"));
+        assertEquals("31", ele.getAttribute(XmlUtils.COUNT)); // [1..20][5..15]
+        assertEquals(ele.getAttribute(XmlUtils.TALLY_COUNT), limit + "+");
 					
 		int[] counts = new int[] {1,1,1,1,2,2,2,2,2,2};
 		int[] values = new int[] {1,2,3,4,5,6,7,8,9,10};
 		for (Element e : XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.TALLY)) {
 			boolean isFind = false;		 
 			if (e.getAttribute(XmlUtils.VALUE).equals(XmlUtils.OTHER)) {
-					assertTrue(e.getAttribute(XmlUtils.COUNT).equals("15"));
-					isFind = true;
+                assertEquals("15", e.getAttribute(XmlUtils.COUNT));
+				isFind = true;
 			} else {
-				for (int i = 0; i<=10; i++) {		 
+				for (int i = 0; i <= 10; i++) {
 					if (e.getAttribute(XmlUtils.VALUE).equals(values[i] + "")) {
-						assertTrue(e.getAttribute(XmlUtils.COUNT).equals(counts[i]+""));
+                        assertEquals(e.getAttribute(XmlUtils.COUNT), counts[i] + "");
 						isFind = true;
 						break;
 					}

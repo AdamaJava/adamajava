@@ -17,7 +17,7 @@ import org.qcmg.common.string.StringUtils;
 
 public class FlagUtil {
 	
-	private static SAMRecord record = new SAMRecord(null);
+	private static final SAMRecord record = new SAMRecord(null);
 	
 	
 	public static String getFlagString(int flags) {
@@ -52,7 +52,7 @@ public class FlagUtil {
 			additionalData.append("d");
 				
 		return  StringUtils.padString(Integer.toBinaryString(flags), 12, '0', true)
-		+ ((additionalData.length() > 0) ? ", " + additionalData : "");
+		+ ((!additionalData.isEmpty()) ? ", " + additionalData : "");
 	}
 
 }

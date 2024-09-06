@@ -237,7 +237,7 @@ public class XmlUtils {
 	}
     
     
-    private static <T> void outputTallys( Element ele, String name, Map<T, AtomicLong> tallys, boolean hasPercent) {  	
+    private static <T> void outputTallys( Element ele, String sname, Map<T, AtomicLong> tallys, boolean hasPercent) {
     	double sum = hasPercent ? tallys.values().stream().mapToDouble( x -> (double) x.get()).sum() : 0;	   	   	    		
     	for (Entry<T, AtomicLong> entry: tallys.entrySet()) {	
 			// skip zero value for output
@@ -309,19 +309,18 @@ public class XmlUtils {
 			return false; 
 		}
 		
-		boolean isNew = false;
-		boolean useOther = false;
-		if ( ! map.containsKey(key)) {
-			if (map.size() >= limitSize) {
-				useOther = true;
+		AtomicLong al = map.get(key);
+		if (null == al) {
+			if (map.size() < limitSize) {
+				map.put(key, new AtomicLong(1));
+				return true;
 			} else {
-				isNew = true;
+				map.computeIfAbsent(OTHER, k -> new AtomicLong()).incrementAndGet();
 			}
+		} else {
+			al.incrementAndGet();
 		}
-		
-		map.computeIfAbsent(useOther ? OTHER : key, k -> new AtomicLong()).incrementAndGet();
-		 
-		return isNew; 
+		return false;
 	}	     
 
 }

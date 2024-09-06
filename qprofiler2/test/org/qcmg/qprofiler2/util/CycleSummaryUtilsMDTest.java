@@ -45,7 +45,7 @@ public class CycleSummaryUtilsMDTest {
 			
 			String err = CycleSummaryUtils.tallyMDMismatches(value, record.getCigar(), tagMDMismatchByCycle[order],
 					record.getReadBases(), record.getReadNegativeStrandFlag(), null, null, false);
-			assertEquals(err , null);
+            assertNull(err);
 			count ++;			
 		}
 	
@@ -70,7 +70,7 @@ public class CycleSummaryUtilsMDTest {
 	 */
 	@Test 	
 	public void testTallyMDMismatches() {
-		CycleSummary<Character> summary = new CycleSummary<Character>(Character.MAX_VALUE, 64);
+		CycleSummary<Character> summary = new CycleSummary<>(Character.MAX_VALUE, 64);
 		QCMGAtomicLongArray forwardArray = new QCMGAtomicLongArray(32);
 		QCMGAtomicLongArray reverseArray = new QCMGAtomicLongArray(32);
 		
@@ -98,11 +98,11 @@ public class CycleSummaryUtilsMDTest {
 		// 20S + 25M + 2I + 51M
 		assertEquals(98,cigar.getReadLength());
 		// base seq checked
-		StringBuilder sb = new StringBuilder("ACCTA ACATC AGCAG TGCTT".replace(" ", ""));  // 20S
-		sb.append("TCAAT TACGT TCCTT GAACA CTGTG".replace(" ", ""));  // 25M (25th mismatch C -> G)
-		sb.append("TC");  // 2I
-		sb.append("TTATG TCTTA TGTTA TGTCA TATAT TCATT ACATA TATAT ATTAC ATTACA".replace(" ", ""));  // (51M) (31th mismatch C -> A)
-		readBases = sb.toString().getBytes();
+        // 20S
+        String sb = "ACCTA ACATC AGCAG TGCTT".replace(" ", "") + "TCAAT TACGT TCCTT GAACA CTGTG".replace(" ", "") +  // 25M (25th mismatch C -> G)
+                "TC" +  // 2I
+                "TTATG TCTTA TGTTA TGTCA TATAT TCATT ACATA TATAT ATTAC ATTACA".replace(" ", "");  // (51M) (31th mismatch C -> A)
+        readBases = sb.getBytes();
 		assertEquals(98,readBases.length);
 		
 		for (int i = 0; i < 10; i ++) {
@@ -170,15 +170,15 @@ public class CycleSummaryUtilsMDTest {
 		Cigar cigar = new Cigar();
 		cigar.add(new CigarElement(30, CigarOperator.M));					 
 		String errMess = CycleSummaryUtils.tallyMDMismatches("52", cigar, summary, readBases, true, null, null, false);
-		assertTrue(errMess != null);
-		assertTrue(summary.cycles().size() == 0);
-		assertTrue(summary.getPossibleValues().size() == 0);
+        assertNotNull(errMess);
+        assertEquals(0, summary.cycles().size());
+        assertEquals(0, summary.getPossibleValues().size());
 		
 		// valid cigar
 		cigar = new Cigar();
 		cigar.add(new CigarElement(51, CigarOperator.M));	
 		errMess = CycleSummaryUtils.tallyMDMismatches("52", cigar, summary, readBases, true, null, null, false);
-		assertTrue(errMess == null);	
+        assertNull(errMess);
 				
 		// extra long mds with big deletion  
 		// cigar didn't contain deletion but md contains. At moment our qprofiler won't report error
@@ -188,17 +188,17 @@ public class CycleSummaryUtilsMDTest {
 		"TCAAAGGAATTCATAATTCTTTACTCCRRGCTTGGTTCTAACAATGAATTTAATAAGAATTGTATTTAATCAATGTTTAAATATATTAAGGGC" +
 		"AAATTTTGTAAAAATGTTAGTGTTCCAAGCTTTCCATTTCCCCACAAATTAATTTTTTTAGCCTTTCCCCTTAATCCACTTTCTT19G0";		
 		errMess = CycleSummaryUtils.tallyMDMismatches(mdString, cigar, summary, readBases, false, null, null, false);
-		assertTrue(errMess == null);		
+        assertNull(errMess);
 		assertEquals(1, summary.count(50, 'A'));  // forward
 				
 		// extra long md and invalid md (md baselength is bigger than read base)
 		summary = new CycleSummary<Character>(Character.MAX_VALUE, 64);
 		mdString = mdString.replace("19G", "29G");
 		errMess = CycleSummaryUtils.tallyMDMismatches(mdString, cigar, summary, readBases, true, null, null, false);
-	
-		assertTrue(errMess != null);
-		assertTrue(summary.cycles().size() == 0);
-		assertTrue(summary.getPossibleValues().size() == 0);		
+
+        assertNotNull(errMess);
+        assertEquals(0, summary.cycles().size());
+        assertEquals(0, summary.getPossibleValues().size());
 	}
 	
 	@Test
@@ -260,7 +260,7 @@ public class CycleSummaryUtilsMDTest {
 		// seq: AGTCTAGAGT CCAAAAGGAA TTCTTCCTCC TG*C*CTTTTCAT CCCTTTTTTT CACATCTTTC A*CC*TCCGCCGGG CCAATTTCT>TCAGTTCT CGTTTTAAGC, reverse strand: false
 		QCMGAtomicLongArray forwardArray = new QCMGAtomicLongArray(32);
 		QCMGAtomicLongArray reverseArray = new QCMGAtomicLongArray(32);
-		CycleSummary<Character> summary = new CycleSummary<Character>(Character.MAX_VALUE, 64);
+		CycleSummary<Character> summary = new CycleSummary<>(Character.MAX_VALUE, 64);
 		Cigar cigar = new Cigar();
 		cigar.add(new CigarElement(28, CigarOperator.M));
 		cigar.add(new CigarElement(1, CigarOperator.D));

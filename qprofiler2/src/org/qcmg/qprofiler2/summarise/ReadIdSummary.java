@@ -1,11 +1,6 @@
 package org.qcmg.qprofiler2.summarise;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Random;
-import java.util.StringTokenizer;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -49,9 +44,9 @@ static final int MAX_POOL_SIZE = 500;
 		}
 	}
 		
-	// the max queue size is 100k refer to BamSummarizerMT2, so 500 qname is trival 
-	List<String> poolRandom =  Collections.synchronizedList(new ArrayList<String>());  // collect random 500	
-	List<String> poolUniq =  Collections.synchronizedList(new ArrayList<String>());  // QNAME with different Element value	
+	// the max queue size is 100k refer to BamSummarizerMT2, so 500 qname is trivial
+	List<String> poolRandom =  Collections.synchronizedList(new ArrayList<>());  // collect random 500
+	List<String> poolUniq =  Collections.synchronizedList(new ArrayList<>());  // QNAME with different Element value
 
 	// overall qname information
 	ConcurrentMap<String, AtomicLong> patterns = new ConcurrentHashMap<>();	
@@ -71,8 +66,8 @@ static final int MAX_POOL_SIZE = 500;
 	ConcurrentMap<String, AtomicLong> tileNumbers = new ConcurrentHashMap<>();
 	ConcurrentMap<String, AtomicLong> pairs = new ConcurrentHashMap<>();	
 	ConcurrentMap<String, AtomicLong> indexes = new ConcurrentHashMap<>();	
-	private AtomicLong inputNo  = new AtomicLong();
-	private Random rd = new Random();
+	private final AtomicLong inputNo  = new AtomicLong();
+	private final Random rd = new Random();
 
 	/**
 	 * recognize known pattern, re-arrange split string
@@ -147,7 +142,7 @@ static final int MAX_POOL_SIZE = 500;
 		String[] parts = readId.split(Constants.COLON_STRING);
 		List<String> elements = new ArrayList<>();
 				
-		int pos = -1;				
+		int pos;
 		if (parts.length == 1) {
 			// check NCBI 
 			pos = parts[0].indexOf(".");	
@@ -196,10 +191,8 @@ static final int MAX_POOL_SIZE = 500;
 				index = yPos.substring(pos); // put index	
 				yPos = yPos.substring(0, pos);	 // then change yPos value
 			}
-			
-			for (int i = 0; i < 4; i ++) {
-				elements.add(parts[i]); 
-			} 
+
+            elements.addAll(Arrays.asList(parts).subList(0, 4));
 			
 			elements.add(yPos);
 			// return five elements or 7 elements
@@ -208,19 +201,17 @@ static final int MAX_POOL_SIZE = 500;
 				elements.add(pair);		
 			}	
 		} else {
-			for (int i = 0; i < parts.length; i ++) {
-				elements.add(parts[i]);						
-			}	
+            elements.addAll(Arrays.asList(parts));
 		}	
 		
-		return elements.toArray(new String[elements.size()]); 			
+		return elements.toArray(new String[0]);
 	}
 	
 	public void parseReadId(String id) {
 		inputNo.incrementAndGet();
 		String readId = id.trim(); 
 		
-		// read id line may contain extra informtion, such as below from fastq file
+		// read id line may contain extra information, such as below from fastq file
 		// NB551151:83:HWC2VBGX9:4:13602:8142:7462 1:N:0:GGGGGG
 		// we have to remove all string after space	
 		try {
@@ -293,10 +284,10 @@ static final int MAX_POOL_SIZE = 500;
 		   case SixColon_Illumina:   //code block				
 			   // "<instrument>:<run id>:<Flow Cell Id> :<lane>:<tile>:<X Pos>:<Y Pos>"
 				XmlUtils.updateMapWithLimit(tileNumbers, elements[4],TALLY_SIZE);
-				isUpdated = XmlUtils.updateMapWithLimit(instruments,  elements[0],TALLY_SIZE);	
-				isUpdated = XmlUtils.updateMapWithLimit(runIds, elements[1],TALLY_SIZE) || isUpdated;	;
-				isUpdated = XmlUtils.updateMapWithLimit(flowCellIds, elements[2],TALLY_SIZE) || isUpdated;	;
-				isUpdated = XmlUtils.updateMapWithLimit(flowCellLanes, elements[3],TALLY_SIZE) || isUpdated;	;	  
+				isUpdated = XmlUtils.updateMapWithLimit(instruments,  elements[0],TALLY_SIZE);
+				isUpdated = XmlUtils.updateMapWithLimit(runIds, elements[1],TALLY_SIZE) || isUpdated;
+				isUpdated = XmlUtils.updateMapWithLimit(flowCellIds, elements[2],TALLY_SIZE) || isUpdated;
+				isUpdated = XmlUtils.updateMapWithLimit(flowCellLanes, elements[3],TALLY_SIZE) || isUpdated;
 				break;	   		   
 
 		   default:
@@ -355,10 +346,10 @@ static final int MAX_POOL_SIZE = 500;
 		
 	public void toXml(Element ele) {
 		
-		Element element = XmlUtils.createMetricsNode(ele, "qnameInfo", new Pair<String, Number>(ReadGroupSummary.READ_COUNT, getInputReadNumber()));
+		Element element = XmlUtils.createMetricsNode(ele, "qnameInfo", new Pair<>(ReadGroupSummary.READ_COUNT, getInputReadNumber()));
 		XmlUtils.outputTallyGroup(element,  "QNAME Format", patterns , false , true);
 		for (int i = 0; i < columns.length; i ++) {
-			if (columns[i].size() > 0) {
+			if (!columns[i].isEmpty()) {
 				XmlUtils.outputTallyGroup(element,  "Element" + (i + 1), columns[i] , false, true);
 			}
  		}
