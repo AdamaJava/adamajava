@@ -26,6 +26,7 @@ public class CoverageTest {
 	private String inputBai;
 	private String inputGff3;
 	private String fname;
+	private String bedname;
 	private String log;
 
 	
@@ -56,6 +57,8 @@ public class CoverageTest {
 		inputGff3 = file.getAbsolutePath();
 		log = inputBam.replace("bam", "log");
 		fname = testFolder.getRoot().getAbsolutePath()+"/output.txt";
+		bedname = testFolder.getRoot().getAbsolutePath()+"/output.bed";
+
 	 } 
 	
 	@Test
@@ -92,7 +95,55 @@ public class CoverageTest {
 		assertTrue(fOutput.exists());
 	}
 
+    @Test
+	public final void testLowCoverageOptionDefaultVals() throws Exception {
+
+	   String cmd = "--log " + log + " --type low_coverage --input-gff3 " + inputGff3 + " --input-bam " + inputBam +
+									   " --input-bai " + inputBai +  " --output " + bedname;
+
+	    //default value txt output only
+	    Executor exec = execute(cmd);
+	    assertEquals(0, exec.getErrCode());
+	    File fBedOutput = new File(bedname);
+	    assertFalse(fBedOutput.exists());
+
+	   //filename should have file endings .lowcov.control8.bed and lowcov.tumour12.bed
+		File tumourBed = new File(bedname.replace(".bed",".lowcov.tumour12.bed"));
+		assertTrue(tumourBed.exists());
+
+		File controlBed = new File(bedname.replace(".bed",".lowcov.control8.bed"));
+		assertTrue(controlBed.exists());
+
+   }
+
+    @Test
+	public final void testLowCoverageOptionOptionalVals() throws Exception {
+
+		String cmd = "--log " + log + " --type low_coverage --input-gff3 " + inputGff3 + " --input-bam " + inputBam +
+				" --input-bai " + inputBai +  " --output " + bedname + " --low-cov-tumour 10 --low-cov-control 6";
+
+		//default value txt output only
+		Executor exec = execute(cmd);
+		assertEquals(0, exec.getErrCode());
+		File fBedOutput = new File(bedname);
+		assertFalse(fBedOutput.exists());
+
+		//filename should have not have the default low cov value file endings .lowcov.control8.bed and lowcov.tumour12.bed
+		File tumourBed = new File(bedname.replace(".bed",".lowcov.tumour12.bed"));
+		assertFalse(tumourBed.exists());
+		File controlBed = new File(bedname.replace(".bed",".lowcov.control8.bed"));
+		assertFalse(controlBed.exists());
+
+		//filename should have now have the options provided for low cov value file endings .lowcov.control6.bed and lowcov.tumour10.bed
+		tumourBed = new File(bedname.replace(".bed",".lowcov.tumour10.bed"));
+		assertTrue(tumourBed.exists());
+		controlBed = new File(bedname.replace(".bed",".lowcov.control6.bed"));
+		assertTrue(controlBed.exists());
+
+	}
 	@Test
+
+
 	public void coverageStatsXml() throws JAXBException {
 		jakarta.xml.bind.JAXBContext context = JAXBContextFactory
 				.createContext(new Class[] {CoverageReport.class, CoverageModel.class, QCoverageStats.class}, null);

@@ -14,6 +14,11 @@ public class PhysicalCoverageAlgorithm implements Algorithm {
 		return "physical coverage";
 	}
 
+	@Override
+	public CoverageType getCoverageType() {
+		return CoverageType.PHYSICAL;
+	}
+
 	public Job[] map(final Configuration invariants) {
 		return null;
 	}

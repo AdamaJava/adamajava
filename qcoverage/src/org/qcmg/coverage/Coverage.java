@@ -25,9 +25,7 @@ import java.io.*;
 import java.math.BigInteger;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
+import java.util.*;
 
 public final class Coverage {
 	private final Options options;
@@ -38,7 +36,7 @@ public final class Coverage {
 		this.options = options;
 		Configuration invariants = new Configuration(options);
 		jobQueue = new JobQueue(invariants);
-		saveCoverageReport();
+		saveCoverageReport(invariants.getCoverageType());
 	}
 	
 	/**
@@ -200,24 +198,56 @@ public final class Coverage {
 		return vcf;
 	}
 
-	private void saveCoverageReport() throws Exception {
-		final QCoverageStats stats = new QCoverageStats();
-		for (final CoverageReport report : jobQueue.getCoverageReport()) {
-			stats.getCoverageReport().add(report);
+	private void saveCoverageReport(CoverageType coverageType) throws Exception {
+
+		//save low coverage bed file
+		if (coverageType.equals(CoverageType.LOW_COVERAGE)) {
+			final HashMap<String, List<LowCoverageRegion>> lowCoverageList = jobQueue.lowCoverageResultsFinalList();
+
+			for (HashMap.Entry<String, List<LowCoverageRegion>> entry : lowCoverageList.entrySet()) {
+				String key = entry.getKey();
+				List<LowCoverageRegion> lowCoverageValues = entry.getValue();
+				LinkedHashSet<String> refNameOrder = jobQueue.getRefNamesOrdered();
+
+				//Sort vy refName, start and end so that bed is in correct order
+				lowCoverageValues.sort(new LowCoverageRegionComparator(refNameOrder));
+
+				String outfile = options.getOutputFileNames()[0];
+				//rename .bed extension if present to add the mnin coverage value
+				if (outfile.endsWith(".bed")) {
+					outfile = outfile.substring(0, outfile.length() - 4);
+				}
+				outfile = String.format("%s.lowcov.%s.bed", outfile, key);
+
+				try (final BufferedWriter out = new BufferedWriter(new FileWriter(outfile))) {
+					for (final LowCoverageRegion region : lowCoverageValues) {
+						out.write(region.toBedString() + StringUtils.RETURN);
+					}
+				}
+			}
+		} else {
+			//save coverage report
+			final QCoverageStats stats = new QCoverageStats();
+			for (final CoverageReport report : jobQueue.getCoverageReport()) {
+				stats.getCoverageReport().add(report);
+			}
+			if (options.hasVcfFlag() && options.hasPerFeatureOption()) {
+				writeVCFReport(stats);
+			}
+
+			if (options.hasXmlFlag()) {
+				writeXMLCoverageReport(stats);
+			}
+
+			if (options.hasTxtFlag()) {
+				if( options.hasPerFeatureOption()) writePerFeatureTabDelimitedCoverageReport(stats);
+				else writePerTypeTabDelimitedCoverageReport(stats);
+			}
 		}
 		
-		if (options.hasVcfFlag() && options.hasPerFeatureOption()) {
-			writeVCFReport(stats);
-		}
-		
-		if (options.hasXmlFlag()) {
-			writeXMLCoverageReport(stats);
-		}
-		
-		if (options.hasTxtFlag()) {			
-			if( options.hasPerFeatureOption()) writePerFeatureTabDelimitedCoverageReport(stats);
-			else writePerTypeTabDelimitedCoverageReport(stats);
-		}
+
+
+
 		
 	}
 

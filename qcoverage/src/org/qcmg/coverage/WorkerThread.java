@@ -3,9 +3,7 @@
  */
 package org.qcmg.coverage;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -15,7 +13,11 @@ import org.qcmg.common.log.QLoggerFactory;
 class WorkerThread extends Thread {
 	private final BlockingQueue<Job> inputQueue;
 	private final HashMap<String, TreeMap<Integer, AtomicLong>> reducedResults = new HashMap<String, TreeMap<Integer, AtomicLong>>();
+	private final HashMap<String, List<LowCoverageRegion>> reducedLowCoverageResults = new HashMap<String, List<LowCoverageRegion>>();
+
 	private final HashSet<HashMap<String, HashMap<Integer, AtomicLong>>> perJobResults = new HashSet<HashMap<String, HashMap<Integer, AtomicLong>>>();
+	private final HashSet<HashMap<String, List<LowCoverageRegion>>> perJobLowCoverageResults = new HashSet<HashMap<String, List<LowCoverageRegion>>>();
+
 	private final QLogger logger;
 	private final Thread mainThread;
 
@@ -28,6 +30,10 @@ class WorkerThread extends Thread {
 
 	public HashMap<String, TreeMap<Integer, AtomicLong>> getReducedResults() {
 		return reducedResults;
+	}
+
+	public HashMap<String, List<LowCoverageRegion>> getReducedLowCoverageResults() {
+		return reducedLowCoverageResults;
 	}
 
 	@Override
@@ -46,8 +52,11 @@ class WorkerThread extends Thread {
 				job.run();
 				logger.info(getName() + " completed job [" + job + "]");
 				perJobResults.add(job.getResults());
+				perJobLowCoverageResults.add(job.getLowCoverageResults());
 				logger.debug(getName() + " added job results. Results size: "
 						+ job.getResults().size());
+				logger.debug(getName() + " added job low coverage results. Results size: "
+						+ job.getLowCoverageResults().size());
 			} catch (InterruptedException e) {
 				throw new RuntimeException(e.getMessage());
 			} catch (Exception e) {
@@ -62,21 +71,21 @@ class WorkerThread extends Thread {
 	private void reduceResults() {
 		for (HashMap<String, HashMap<Integer, AtomicLong>> mappedResult : perJobResults) {
 			for (String id : mappedResult.keySet()) {
-				TreeMap<Integer, AtomicLong> covToBaseCountMap = reducedResults.get(id);
-				if (null == covToBaseCountMap) {
-					covToBaseCountMap = new TreeMap<Integer, AtomicLong>();
-					reducedResults.put(id, covToBaseCountMap);
-				}
-				for (Integer cov : mappedResult.get(id).keySet()) {
-					AtomicLong reducedBaseCount = covToBaseCountMap.get(cov);
-					if (null == reducedBaseCount) {
-						reducedBaseCount = new AtomicLong();
-						covToBaseCountMap.put(cov, reducedBaseCount);
-					}
-					AtomicLong mappedBaseCount = mappedResult.get(id).get(cov);
+                TreeMap<Integer, AtomicLong> covToBaseCountMap = reducedResults.computeIfAbsent(id, k -> new TreeMap<Integer, AtomicLong>());
+                for (Integer cov : mappedResult.get(id).keySet()) {
+                    AtomicLong reducedBaseCount = covToBaseCountMap.computeIfAbsent(cov, k -> new AtomicLong());
+                    AtomicLong mappedBaseCount = mappedResult.get(id).get(cov);
 					assert (null != mappedBaseCount); // Implicit to above logic
 					reducedBaseCount.addAndGet(mappedBaseCount.get());
 				}
+			}
+		}
+		//Reduce results for low coverage if run
+		for (HashMap<String, List<LowCoverageRegion>> mappedLowCovResult : perJobLowCoverageResults) {
+			for (String key : mappedLowCovResult.keySet()) {
+
+                List<LowCoverageRegion> lowCoverageRegions = reducedLowCoverageResults.computeIfAbsent(key, k -> new ArrayList<LowCoverageRegion>());
+                lowCoverageRegions.addAll(mappedLowCovResult.get(key));
 			}
 		}
 	}

@@ -6,20 +6,30 @@
  */
 package org.qcmg.coverage;
 
+import htsjdk.samtools.Cigar;
 import htsjdk.samtools.SAMRecord;
 
-public class SequenceCoverageAlgorithm implements Algorithm {
+public class LowCoverageAlgorithm implements Algorithm {
+
+	private final int lowCoverageTumour;
+	private final int lowCoverageControl;
+
+	public LowCoverageAlgorithm(Integer lowCovTumour, Integer lowCovControl) {
+		lowCoverageTumour = lowCovTumour;
+		lowCoverageControl = lowCovControl;
+	}
+
 	@Override
 	public String getName() {
-		return "sequence coverage";
+		return "low coverage";
 	}
 
 	@Override
 	public CoverageType getCoverageType() {
-		return CoverageType.SEQUENCE;
+		return CoverageType.LOW_COVERAGE;
 	}
 
-	//	@Override
+//	@Override
 //	public void applyTo(final SAMRecord read, final int[] perBaseCoverages) {
 	@Override
 	public void applyTo(final SAMRecord read, Object perBaseCoveragesObj) {
@@ -41,5 +51,13 @@ public class SequenceCoverageAlgorithm implements Algorithm {
 	@Override
 	public void applyTo(final SAMRecord read, Object perBaseCoverages, boolean fullyPopulated) {
 		applyTo(read, perBaseCoverages);
+	}
+
+	public Integer getLowCoverageTumour() {
+		return lowCoverageTumour;
+	}
+
+	public Integer getLowCoverageControl() {
+		return lowCoverageControl;
 	}
 }

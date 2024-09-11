@@ -13,16 +13,8 @@ import htsjdk.samtools.SamReader;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.Vector;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicLong;
@@ -38,11 +30,13 @@ import org.qcmg.qio.gff3.Gff3Record;
 
 public final class JobQueue {
 	private final HashMap<String, HashMap<Integer, AtomicLong>> perIdPerCoverageBaseCounts = new HashMap<String, HashMap<Integer, AtomicLong>>();
+	private final HashMap<String, List<LowCoverageRegion>> lowCoverageResultsFinalList = new HashMap<String, List<LowCoverageRegion>>();
 	private final boolean perFeatureFlag;
 	private final int numberThreads;
 	private int numberFeatures = 0;
 	private final File gff3File;
 	private final HashSet<String> refNames = new HashSet<String>();
+	private final LinkedHashSet<String> refNamesOrdered = new LinkedHashSet<String>();
 	private final HashMap<String, HashSet<Gff3Record>> perRefnameFeatures = new HashMap<String, HashSet<Gff3Record>>();
 	private final HashMap<String, Integer> perRefnameLengths = new HashMap<String, Integer>();
 	private final HashMap<Integer, HashSet<String>> perLengthRefnames = new HashMap<Integer, HashSet<String>>();
@@ -50,6 +44,7 @@ public final class JobQueue {
 	private final HashMap<String, HashSet<Pair<File, File>>> refnameFilePairs = new HashMap<String, HashSet<Pair<File, File>>>();
 	private final Vector<String> refnameExecutionOrder = new Vector<String>();
 	private final HashSet<HashMap<String, TreeMap<Integer, AtomicLong>>> perRefnameResults = new HashSet<HashMap<String, TreeMap<Integer, AtomicLong>>>();
+	private final HashSet<HashMap<String, List<LowCoverageRegion>>> lowCoverageResultsSet = new HashSet<HashMap<String, List<LowCoverageRegion>>>();
 	private final BlockingQueue<Job> jobQueue = new LinkedBlockingQueue<Job>();
 	private final LoggerInfo loggerInfo;
 	private final QLogger logger;
@@ -59,7 +54,7 @@ public final class JobQueue {
 	private final String validation;
 	private final ReadsNumberCounter countIn;
 	private final ReadsNumberCounter countOut;
-	
+	private final Options options;
 	
 	public JobQueue(final Configuration invariants) throws Exception {
 		perFeatureFlag = invariants.isPerFeatureFlag();
@@ -74,6 +69,7 @@ public final class JobQueue {
 		logger = QLoggerFactory.getLogger(JobQueue.class);
 		countIn = invariants.getInputReadsCount();
 		countOut = invariants.getCoverageReadsCount();
+		options = invariants.getOptions();
 		
 		execute();
 	}
@@ -94,6 +90,7 @@ public final class JobQueue {
 		reduceResults();
 		logger.info("Final reduce step complete");
 		logger.debug("Final reduced results: " + perIdPerCoverageBaseCounts);
+		logger.debug("Final reduced low coverage results size: " + lowCoverageResultsFinalList.size());
 	}
 
 	private void queueJobs() throws Exception {
@@ -146,6 +143,17 @@ public final class JobQueue {
 				}
 			}
 		}
+
+		if (coverageType.equals(CoverageType.LOW_COVERAGE)) {
+			//Reduce results for low coverage if run
+			for (HashMap<String, List<LowCoverageRegion>> mappedLowCovResult : lowCoverageResultsSet) {
+				for (String key : mappedLowCovResult.keySet()) {
+                    List<LowCoverageRegion> lowCoverageRegions = lowCoverageResultsFinalList.computeIfAbsent(key, k -> new ArrayList<LowCoverageRegion>());
+                    lowCoverageRegions.addAll(mappedLowCovResult.get(key));
+				}
+			}
+		}
+
 	}
 
 	private void loadFeatures() throws Exception, IOException {
@@ -166,11 +174,15 @@ public final class JobQueue {
 	}
 
 	private void identifyRefNames() throws Exception {
-		Set<String> bamRefNames = identifyBamRefNames();
+		LinkedHashSet<String> bamRefNames = identifyBamRefNames();
 		Collection<String> gff3RefNames = identifyGff3RefNames();
 		
 		refNames.addAll(bamRefNames);
 		refNames.retainAll(gff3RefNames);
+
+		//create ordered
+		refNamesOrdered.addAll(bamRefNames);
+		refNamesOrdered.retainAll(gff3RefNames);
 		
 		logger.debug("Common reference names: " + refNames);
 		for (String s : refNames) {
@@ -179,8 +191,8 @@ public final class JobQueue {
 	}
 
 	private Collection<String> identifyGff3RefNames() throws Exception, IOException {
-		
-		Map<String, Integer> gff3RefNames = new HashMap<>();
+
+		LinkedHashMap<String, Integer> gff3RefNames = new LinkedHashMap<>();
 		final StringBuilder gffErrors = new StringBuilder();
 		try (Gff3FileReader gff3Reader = new Gff3FileReader(gff3File);) {
 			for (Gff3Record record : gff3Reader) {
@@ -235,13 +247,13 @@ public final class JobQueue {
 	public static boolean isGff3RecordValid(Gff3Record record) {
 		return null != record && record.getStart() <= record.getEnd();
 	}
-	
-	private Set<String> identifyBamRefNames() throws IOException {
-		Set<String> bamRefNames = new HashSet<>();
+
+	private LinkedHashSet<String> identifyBamRefNames() throws IOException {
+		LinkedHashSet<String> bamRefNames = new LinkedHashSet<>();
 		for (final Pair<File, File> pair : filePairs) {
 			File bamFile = pair.left();
 			File baiFile = pair.right();
-			try (SamReader samReader = SAMFileReaderFactory.createSAMFileReader(bamFile, baiFile);) {
+			try (SamReader samReader = SAMFileReaderFactory.createSAMFileReader(bamFile, baiFile)) {
 				SAMFileHeader header = samReader.getFileHeader();
 				for (SAMSequenceRecord seqRecord : header.getSequenceDictionary()
 						.getSequences()) {
@@ -249,12 +261,8 @@ public final class JobQueue {
 					bamRefNames.add(seqName);
 					Integer seqLength = seqRecord.getSequenceLength();
 					perRefnameLengths.put(seqName, seqLength);
-					HashSet<Pair<File, File>> filePairs = refnameFilePairs.get(seqName);
-					if (null == filePairs) {
-						filePairs = new HashSet<Pair<File, File>>();
-						refnameFilePairs.put(seqName, filePairs);
-					}
-					filePairs.add(pair);
+                    HashSet<Pair<File, File>> filePairs = refnameFilePairs.computeIfAbsent(seqName, k -> new HashSet<Pair<File, File>>());
+                    filePairs.add(pair);
 				}
 			}
 			if ( ! bamRefNames.isEmpty()) {
@@ -283,8 +291,14 @@ public final class JobQueue {
 		logger.debug("All threads joined");
 		for (WorkerThread thread : workerThreads) {
 			perRefnameResults.add(thread.getReducedResults());
+			if (coverageType.equals(CoverageType.LOW_COVERAGE)) {
+				lowCoverageResultsSet.add(thread.getReducedLowCoverageResults());
+			}
 		}
 		logger.debug("Results from threads gathered: " + perRefnameResults);
+		if (coverageType.equals(CoverageType.LOW_COVERAGE)) {
+			logger.debug("LowCoverage Results size from threads gathered: " + lowCoverageResultsSet.size());
+		}
 	}
 
 	// Prioritise thread execution based on decreasing sequence length
@@ -331,6 +345,14 @@ public final class JobQueue {
 			results.add(report);
 		}
 		return results;
+	}
+
+	public HashMap<String, List<LowCoverageRegion>> lowCoverageResultsFinalList() {
+		return lowCoverageResultsFinalList;
+	}
+
+	public LinkedHashSet<String> getRefNamesOrdered() {
+		return refNamesOrdered;
 	}
 
 }
