@@ -2,7 +2,7 @@ package org.qcmg.coverage;
 
 import java.util.*;
 
-public class LowCoverageRegionComparator implements Comparator<LowCoverageRegion> {
+public class LowCoverageRegionComparator implements Comparator<LowReadDepthRegion> {
     private final Map<String, Integer> refNameOrder;
 
     public LowCoverageRegionComparator(LinkedHashSet<String> refNames) {
@@ -14,7 +14,7 @@ public class LowCoverageRegionComparator implements Comparator<LowCoverageRegion
     }
 
     @Override
-    public int compare(LowCoverageRegion r1, LowCoverageRegion r2) {
+    public int compare(LowReadDepthRegion r1, LowReadDepthRegion r2) {
         int refNameComparison = Integer.compare(refNameOrder.getOrDefault(r1.getRefName(), Integer.MAX_VALUE),
                 refNameOrder.getOrDefault(r2.getRefName(), Integer.MAX_VALUE));
 

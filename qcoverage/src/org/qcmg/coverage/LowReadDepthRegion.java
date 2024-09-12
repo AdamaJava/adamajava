@@ -13,13 +13,13 @@ public class LowCoverageRegion {
 	private final String refName;
 	private final int start;
 	private final int end;
-	private final int lowCoverageLimit;
+	private final int lowReadDepthLimit;
 
 	public LowCoverageRegion(String name,int start, int end, int minCoverage) {
 		this.refName = name;
 		this.start = start;
 		this.end = end;
-        this.lowCoverageLimit = minCoverage;
+        this.lowReadDepthLimit = minCoverage;
     }
 
 	public String getRefName() {

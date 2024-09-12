@@ -6,27 +6,24 @@
  */
 package org.qcmg.coverage;
 
-import htsjdk.samtools.Cigar;
 import htsjdk.samtools.SAMRecord;
 
 public class LowCoverageAlgorithm implements Algorithm {
 
-	private final int lowCoverageTumour;
-	private final int lowCoverageControl;
+	private final int readdepth_cutoff;
 
-	public LowCoverageAlgorithm(Integer lowCovTumour, Integer lowCovControl) {
-		lowCoverageTumour = lowCovTumour;
-		lowCoverageControl = lowCovControl;
+	public LowCoverageAlgorithm(Integer cutoff) {
+		readdepth_cutoff = cutoff;
 	}
 
 	@Override
 	public String getName() {
-		return "low coverage";
+		return "low read depth";
 	}
 
 	@Override
 	public CoverageType getCoverageType() {
-		return CoverageType.LOW_COVERAGE;
+		return CoverageType.LOW_READDEPTH;
 	}
 
 //	@Override
@@ -53,11 +50,8 @@ public class LowCoverageAlgorithm implements Algorithm {
 		applyTo(read, perBaseCoverages);
 	}
 
-	public Integer getLowCoverageTumour() {
-		return lowCoverageTumour;
+	public int getReaddepthCutoff() {
+		return readdepth_cutoff;
 	}
 
-	public Integer getLowCoverageControl() {
-		return lowCoverageControl;
-	}
 }

@@ -12,7 +12,7 @@ public class LowCoverageAlgorithmTest {
 	
 	@Test
 	public void testApplyToSingle() {
-		LowCoverageAlgorithm algorithm = new LowCoverageAlgorithm(12,8);
+		LowCoverageAlgorithm algorithm = new LowCoverageAlgorithm(12);
 		int [] arrayNew = new int[1024];
 
 		SAMRecord rec = new SAMRecord(null);
