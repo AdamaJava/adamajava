@@ -2,10 +2,10 @@ package org.qcmg.coverage;
 
 import java.util.*;
 
-public class LowCoverageRegionComparator implements Comparator<LowReadDepthRegion> {
+public class LowReadDepthRegionComparator implements Comparator<LowReadDepthRegion> {
     private final Map<String, Integer> refNameOrder;
 
-    public LowCoverageRegionComparator(LinkedHashSet<String> refNames) {
+    public LowReadDepthRegionComparator(LinkedHashSet<String> refNames) {
         refNameOrder = new HashMap<>();
         List<String> refNameList = new ArrayList<>(refNames);
         for (int i = 0; i < refNameList.size(); i++) {

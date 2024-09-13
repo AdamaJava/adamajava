@@ -8,14 +8,14 @@ package org.qcmg.coverage;
 
 import org.qcmg.common.util.Constants;
 
-public class LowCoverageRegion {
+public class LowReadDepthRegion {
 
 	private final String refName;
 	private final int start;
 	private final int end;
 	private final int lowReadDepthLimit;
 
-	public LowCoverageRegion(String name,int start, int end, int minCoverage) {
+	public LowReadDepthRegion(String name, int start, int end, int minCoverage) {
 		this.refName = name;
 		this.start = start;
 		this.end = end;

@@ -20,7 +20,7 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-public class QueryLowCoverageTest {
+public class QueryLowReadDepthTest {
 
     String bam;
     String bai;
@@ -65,79 +65,53 @@ public class QueryLowCoverageTest {
     }
 
     @Test
-    public void defaultLowCoverageValues() throws Exception {
+    public void lowReadDepthMinTwelveQuery() throws Exception {
         String fname = testFolder.getRoot().getAbsolutePath() + "/output";
-        File fOutputTumour = new File(fname + ".lowcov.tumour12.bed");
-        File fOutputControl = new File(fname + ".lowcov.control8.bed");
-        String cmd = "--log ./logfile --type low_coverage --input-gff3 " + gff1000To1065 + " --input-bam " + bam + " --input-bai " + bai + " --output " + fname + " --query and(flag_DuplicateRead==false,flag_NotprimaryAlignment==false,MAPQ>10)";
+        File fOutput = new File(fname + ".low_read_depth.12.bed");
+        String cmd = "--log ./logfile --type low_readdepth --input-gff3 " + gff1000To1065 + " --input-bam " + bam + " --input-bai " + bai + " --output " + fname + " --readdepth-cutoff 12 --query and(flag_DuplicateRead==false,flag_NotprimaryAlignment==false,MAPQ>10)";
+
         Executor exec = execute(cmd);
 
         assertEquals(0, exec.getErrCode());
-
-        File folder = testFolder.getRoot();
-        File[] listOfFiles = folder.listFiles();
-
-        assertTrue(fOutputTumour.exists());
-        assertTrue(fOutputControl.exists());
+        assertTrue(fOutput.exists());
 
         List<String> fileContents;
-        try (BufferedReader r = new BufferedReader(new FileReader(fOutputTumour))) {
+        try (BufferedReader r = new BufferedReader(new FileReader(fOutput))) {
             fileContents = r.lines().toList();
         }
         assertEquals(1, fileContents.size());
         assertEquals("chr1\t999\t1065", fileContents.get(0));
 
-        fOutputTumour.delete();
 
-        try (BufferedReader r = new BufferedReader(new FileReader(fOutputControl))) {
-            fileContents = r.lines().toList();
-        }
-        assertEquals(2, fileContents.size());
-        assertEquals("chr1\t999\t1010", fileContents.get(0));
-        assertEquals("chr1\t1054\t1065", fileContents.get(1));
-
-        fOutputControl.delete();
+        fOutput.delete();
 
     }
 
     @Test
-    public void defaultOptionalLowCoverageValues() throws Exception {
+    public void lowReadDepthMinEightQuery() throws Exception {
         String fname = testFolder.getRoot().getAbsolutePath() + "/output";
-        File fOutputTumour = new File(fname + ".lowcov.tumour10.bed");
-        File fOutputControl = new File(fname + ".lowcov.control6.bed");
-        String cmd = "--log ./logfile --type low_coverage --input-gff3 " + gff1000To1065 + " --input-bam " + bam + " --input-bai " + bai + " --output " + fname + " --low-cov-tumour 10 --low-cov-control 6 --query and(flag_DuplicateRead==false,flag_NotprimaryAlignment==false,MAPQ>10)";
+        File fOutput = new File(fname + ".low_read_depth.8.bed");
+        String cmd = "--log ./logfile --type low_readdepth --input-gff3 " + gff1000To1065 + " --input-bam " + bam + " --input-bai " + bai + " --output " + fname + " --readdepth-cutoff 8 --query and(flag_DuplicateRead==false,flag_NotprimaryAlignment==false,MAPQ>10)";
 
         Executor exec = execute(cmd);
 
         assertEquals(0, exec.getErrCode());
-
-        File folder = testFolder.getRoot();
-        File[] listOfFiles = folder.listFiles();
-
-        assertTrue(fOutputTumour.exists());
-        assertTrue(fOutputControl.exists());
+        assertTrue(fOutput.exists());
 
         List<String> fileContents;
-        try (BufferedReader r = new BufferedReader(new FileReader(fOutputTumour))) {
+        try (BufferedReader r = new BufferedReader(new FileReader(fOutput))) {
             fileContents = r.lines().toList();
-        }
-        assertEquals(2, fileContents.size());
-        assertEquals("chr1\t999\t1012", fileContents.get(0));
-        assertEquals("chr1\t1052\t1065", fileContents.get(1));
-        fOutputTumour.delete();
 
-        try (BufferedReader r = new BufferedReader(new FileReader(fOutputControl))) {
-            fileContents = r.lines().toList();
         }
         assertEquals(2, fileContents.size());
-        assertEquals("chr1\t999\t1008", fileContents.get(0));
-        assertEquals("chr1\t1056\t1065", fileContents.get(1));
-        fOutputControl.delete();
+        assertEquals("chr1\t999\t1009", fileContents.get(0));
+        assertEquals("chr1\t1055\t1065", fileContents.get(1));
+
+        fOutput.delete();
 
     }
 
     public static void createCoverageBam(String outputFileName, List<SAMRecord> recs, SAMFileHeader h) {
-
         File outputFile = new File(outputFileName);
         SAMFileWriterFactory.setDefaultCreateIndexWhileWriting(true);
         try (SAMFileWriter outputWriter = new SAMFileWriterFactory().makeSAMOrBAMWriter(h, true, outputFile)) {

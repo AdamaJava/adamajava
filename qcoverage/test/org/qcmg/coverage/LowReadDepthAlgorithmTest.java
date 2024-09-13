@@ -2,17 +2,14 @@ package org.qcmg.coverage;
 
 import htsjdk.samtools.SAMRecord;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
-import java.util.Arrays;
-
-public class LowCoverageAlgorithmTest {
+public class LowReadDepthAlgorithmTest {
 	
 	
 	@Test
 	public void testApplyToSingle() {
-		LowCoverageAlgorithm algorithm = new LowCoverageAlgorithm(12);
+		LowReadDepthAlgorithm algorithm = new LowReadDepthAlgorithm(12);
 		int [] arrayNew = new int[1024];
 
 		SAMRecord rec = new SAMRecord(null);

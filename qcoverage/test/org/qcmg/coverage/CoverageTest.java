@@ -96,10 +96,10 @@ public class CoverageTest {
 	}
 
     @Test
-	public final void testLowCoverageOptionDefaultVals() throws Exception {
+	public final void testLowReadDepthOption() throws Exception {
 
-	   String cmd = "--log " + log + " --type low_coverage --input-gff3 " + inputGff3 + " --input-bam " + inputBam +
-									   " --input-bai " + inputBai +  " --output " + bedname;
+	   String cmd = "--log " + log + " --type low_readdepth --input-gff3 " + inputGff3 + " --input-bam " + inputBam +
+									   " --input-bai " + inputBai +  " --output " + bedname + " --output-format bed --readdepth-cutoff 8";
 
 	    //default value txt output only
 	    Executor exec = execute(cmd);
@@ -107,42 +107,38 @@ public class CoverageTest {
 	    File fBedOutput = new File(bedname);
 	    assertFalse(fBedOutput.exists());
 
-	   //filename should have file endings .lowcov.control8.bed and lowcov.tumour12.bed
-		File tumourBed = new File(bedname.replace(".bed",".lowcov.tumour12.bed"));
-		assertTrue(tumourBed.exists());
+	   //filename should have file endings .low_read_depth.[readdepth-cutoff value].bed
+		File outputBed = new File(bedname.replace(".bed",".low_read_depth.8.bed"));
+		assertTrue(outputBed.exists());
 
-		File controlBed = new File(bedname.replace(".bed",".lowcov.control8.bed"));
-		assertTrue(controlBed.exists());
+		//filename should have file endings .low_read_depth.[readdepth-cutoff value].bed
+		outputBed = new File(bedname.replace(".bed",".low_read_depth.12.bed"));
+		assertFalse(outputBed.exists());
 
    }
 
-    @Test
-	public final void testLowCoverageOptionOptionalVals() throws Exception {
-
-		String cmd = "--log " + log + " --type low_coverage --input-gff3 " + inputGff3 + " --input-bam " + inputBam +
-				" --input-bai " + inputBai +  " --output " + bedname + " --low-cov-tumour 10 --low-cov-control 6";
-
-		//default value txt output only
-		Executor exec = execute(cmd);
-		assertEquals(0, exec.getErrCode());
-		File fBedOutput = new File(bedname);
-		assertFalse(fBedOutput.exists());
-
-		//filename should have not have the default low cov value file endings .lowcov.control8.bed and lowcov.tumour12.bed
-		File tumourBed = new File(bedname.replace(".bed",".lowcov.tumour12.bed"));
-		assertFalse(tumourBed.exists());
-		File controlBed = new File(bedname.replace(".bed",".lowcov.control8.bed"));
-		assertFalse(controlBed.exists());
-
-		//filename should have now have the options provided for low cov value file endings .lowcov.control6.bed and lowcov.tumour10.bed
-		tumourBed = new File(bedname.replace(".bed",".lowcov.tumour10.bed"));
-		assertTrue(tumourBed.exists());
-		controlBed = new File(bedname.replace(".bed",".lowcov.control6.bed"));
-		assertTrue(controlBed.exists());
-
-	}
 	@Test
+	public final void testLowReadDepthOptionMissingCutoffOption() throws Exception {
 
+		String cmd = "--log " + log + " --type low_readdepth --input-gff3 " + inputGff3 + " --input-bam " + inputBam +
+				" --input-bai " + inputBai +  " --output " + bedname + " --output-format bed";
+
+		//Should fail as readdepth-cutoff option is missing
+		Executor exec = execute(cmd);
+		assertEquals(1, exec.getErrCode());
+	}
+
+	@Test
+	public final void testLowReadDepthOptionIncorrectCutoffOption() throws Exception {
+
+		//Should fail as coverage type is wrong
+		String cmd = "--log " + log + " --type sequence --input-gff3 " + inputGff3 + " --input-bam " + inputBam +
+				" --input-bai " + inputBai +  " --output " + bedname + " --output-format bed --readdepth-cutoff 8";
+
+		//Should fail as readdepth-cutoff option only used for coverage type low_readdepth
+		Executor exec = execute(cmd);
+		assertEquals(1, exec.getErrCode());
+	}
 
 	public void coverageStatsXml() throws JAXBException {
 		jakarta.xml.bind.JAXBContext context = JAXBContextFactory

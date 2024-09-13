@@ -17,7 +17,7 @@ class TerminationJob implements Job {
 		throw new IllegalStateException("Termination job never returns a result.");
 	}
 
-	public HashMap<String, List<LowCoverageRegion>> getLowCoverageResults() {
+	public HashMap<String, List<LowReadDepthRegion>> getLowReadDepthResults() {
 		throw new IllegalStateException("Termination job never returns a result.");
 	}
 

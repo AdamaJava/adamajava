@@ -13,10 +13,10 @@ import org.qcmg.common.log.QLoggerFactory;
 class WorkerThread extends Thread {
 	private final BlockingQueue<Job> inputQueue;
 	private final HashMap<String, TreeMap<Integer, AtomicLong>> reducedResults = new HashMap<String, TreeMap<Integer, AtomicLong>>();
-	private final HashMap<String, List<LowCoverageRegion>> reducedLowCoverageResults = new HashMap<String, List<LowCoverageRegion>>();
+	private final HashMap<String, List<LowReadDepthRegion>> reducedLowReadDepthResults = new HashMap<String, List<LowReadDepthRegion>>();
 
 	private final HashSet<HashMap<String, HashMap<Integer, AtomicLong>>> perJobResults = new HashSet<HashMap<String, HashMap<Integer, AtomicLong>>>();
-	private final HashSet<HashMap<String, List<LowCoverageRegion>>> perJobLowCoverageResults = new HashSet<HashMap<String, List<LowCoverageRegion>>>();
+	private final HashSet<HashMap<String, List<LowReadDepthRegion>>> perJobLowReadDepthResults = new HashSet<HashMap<String, List<LowReadDepthRegion>>>();
 
 	private final QLogger logger;
 	private final Thread mainThread;
@@ -32,8 +32,8 @@ class WorkerThread extends Thread {
 		return reducedResults;
 	}
 
-	public HashMap<String, List<LowCoverageRegion>> getReducedLowCoverageResults() {
-		return reducedLowCoverageResults;
+	public HashMap<String, List<LowReadDepthRegion>> getReducedLowReadDepthResults() {
+		return reducedLowReadDepthResults;
 	}
 
 	@Override
@@ -52,11 +52,11 @@ class WorkerThread extends Thread {
 				job.run();
 				logger.info(getName() + " completed job [" + job + "]");
 				perJobResults.add(job.getResults());
-				perJobLowCoverageResults.add(job.getLowCoverageResults());
+				perJobLowReadDepthResults.add(job.getLowReadDepthResults());
 				logger.debug(getName() + " added job results. Results size: "
 						+ job.getResults().size());
-				logger.debug(getName() + " added job low coverage results. Results size: "
-						+ job.getLowCoverageResults().size());
+				logger.debug(getName() + " added job low read depth results. Results size: "
+						+ job.getLowReadDepthResults().size());
 			} catch (InterruptedException e) {
 				throw new RuntimeException(e.getMessage());
 			} catch (Exception e) {
@@ -80,12 +80,12 @@ class WorkerThread extends Thread {
 				}
 			}
 		}
-		//Reduce results for low coverage if run
-		for (HashMap<String, List<LowCoverageRegion>> mappedLowCovResult : perJobLowCoverageResults) {
-			for (String key : mappedLowCovResult.keySet()) {
+		//Reduce results for low read depth if run
+		for (HashMap<String, List<LowReadDepthRegion>> mappedLowReadDepthResult : perJobLowReadDepthResults) {
+			for (String key : mappedLowReadDepthResult.keySet()) {
 
-                List<LowCoverageRegion> lowCoverageRegions = reducedLowCoverageResults.computeIfAbsent(key, k -> new ArrayList<LowCoverageRegion>());
-                lowCoverageRegions.addAll(mappedLowCovResult.get(key));
+                List<LowReadDepthRegion> lowReadDepthRegions = reducedLowReadDepthResults.computeIfAbsent(key, k -> new ArrayList<LowReadDepthRegion>());
+                lowReadDepthRegions.addAll(mappedLowReadDepthResult.get(key));
 			}
 		}
 	}

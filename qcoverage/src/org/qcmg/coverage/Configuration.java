@@ -47,9 +47,9 @@ public final class Configuration {
 		} else if (type.equals("physical") || type.equals("phys")) {
 			coverageType = CoverageType.PHYSICAL;
 			algorithm = new PhysicalCoverageAlgorithm();
-		} else if (type.equals("low_coverage") || type.equals("low")) {
-			coverageType = CoverageType.LOW_COVERAGE;
-			algorithm = new LowCoverageAlgorithm(options.getLowCoverageTumour(),options.getLowCoverageControl());
+		} else if (type.equals("low_readdepth")) {
+			coverageType = CoverageType.LOW_READDEPTH;
+			algorithm = new LowReadDepthAlgorithm(options.getLowReadDepthCutoff());
 		} else {
 			throw new Exception("Unknown coverage type: '" + type + "'");
 		}
@@ -67,8 +67,8 @@ public final class Configuration {
 
 		perFeatureFlag = options.hasPerFeatureOption();
 
-		//Set to by feature for low coverage option
-		if (type.equals("low_coverage") || type.equals("low")) {
+		//Set to by feature for low read depth option
+		if (type.equals("low_readdepth")) {
 			perFeatureFlag = true;
 		}
 

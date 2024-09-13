@@ -30,7 +30,7 @@ import org.qcmg.qio.gff3.Gff3Record;
 
 public final class JobQueue {
 	private final HashMap<String, HashMap<Integer, AtomicLong>> perIdPerCoverageBaseCounts = new HashMap<String, HashMap<Integer, AtomicLong>>();
-	private final HashMap<String, List<LowCoverageRegion>> lowCoverageResultsFinalList = new HashMap<String, List<LowCoverageRegion>>();
+	private final HashMap<String, List<LowReadDepthRegion>> lowReadDepthResultsFinalMap = new HashMap<String, List<LowReadDepthRegion>>();
 	private final boolean perFeatureFlag;
 	private final int numberThreads;
 	private int numberFeatures = 0;
@@ -44,7 +44,7 @@ public final class JobQueue {
 	private final HashMap<String, HashSet<Pair<File, File>>> refnameFilePairs = new HashMap<String, HashSet<Pair<File, File>>>();
 	private final Vector<String> refnameExecutionOrder = new Vector<String>();
 	private final HashSet<HashMap<String, TreeMap<Integer, AtomicLong>>> perRefnameResults = new HashSet<HashMap<String, TreeMap<Integer, AtomicLong>>>();
-	private final HashSet<HashMap<String, List<LowCoverageRegion>>> lowCoverageResultsSet = new HashSet<HashMap<String, List<LowCoverageRegion>>>();
+	private final HashSet<HashMap<String, List<LowReadDepthRegion>>> lowReadDepthResultsSet = new HashSet<HashMap<String, List<LowReadDepthRegion>>>();
 	private final BlockingQueue<Job> jobQueue = new LinkedBlockingQueue<Job>();
 	private final LoggerInfo loggerInfo;
 	private final QLogger logger;
@@ -90,7 +90,7 @@ public final class JobQueue {
 		reduceResults();
 		logger.info("Final reduce step complete");
 		logger.debug("Final reduced results: " + perIdPerCoverageBaseCounts);
-		logger.debug("Final reduced low coverage results size: " + lowCoverageResultsFinalList.size());
+		logger.debug("Final reduced low read depth results size: " + lowReadDepthResultsFinalMap.size());
 	}
 
 	private void queueJobs() throws Exception {
@@ -144,12 +144,12 @@ public final class JobQueue {
 			}
 		}
 
-		if (coverageType.equals(CoverageType.LOW_COVERAGE)) {
-			//Reduce results for low coverage if run
-			for (HashMap<String, List<LowCoverageRegion>> mappedLowCovResult : lowCoverageResultsSet) {
-				for (String key : mappedLowCovResult.keySet()) {
-                    List<LowCoverageRegion> lowCoverageRegions = lowCoverageResultsFinalList.computeIfAbsent(key, k -> new ArrayList<LowCoverageRegion>());
-                    lowCoverageRegions.addAll(mappedLowCovResult.get(key));
+		if (coverageType.equals(CoverageType.LOW_READDEPTH)) {
+			//Reduce results for low read depth if run
+			for (HashMap<String, List<LowReadDepthRegion>> mappedLowRDepthResult : lowReadDepthResultsSet) {
+				for (String key : mappedLowRDepthResult.keySet()) {
+                    List<LowReadDepthRegion> lowReadDepthRegions = lowReadDepthResultsFinalMap.computeIfAbsent(key, k -> new ArrayList<>());
+                    lowReadDepthRegions.addAll(mappedLowRDepthResult.get(key));
 				}
 			}
 		}
@@ -291,13 +291,13 @@ public final class JobQueue {
 		logger.debug("All threads joined");
 		for (WorkerThread thread : workerThreads) {
 			perRefnameResults.add(thread.getReducedResults());
-			if (coverageType.equals(CoverageType.LOW_COVERAGE)) {
-				lowCoverageResultsSet.add(thread.getReducedLowCoverageResults());
+			if (coverageType.equals(CoverageType.LOW_READDEPTH)) {
+				lowReadDepthResultsSet.add(thread.getReducedLowReadDepthResults());
 			}
 		}
 		logger.debug("Results from threads gathered: " + perRefnameResults);
-		if (coverageType.equals(CoverageType.LOW_COVERAGE)) {
-			logger.debug("LowCoverage Results size from threads gathered: " + lowCoverageResultsSet.size());
+		if (coverageType.equals(CoverageType.LOW_READDEPTH)) {
+			logger.debug("Low Read Depth Results size from threads gathered: " + lowReadDepthResultsSet.size());
 		}
 	}
 
@@ -347,8 +347,8 @@ public final class JobQueue {
 		return results;
 	}
 
-	public HashMap<String, List<LowCoverageRegion>> lowCoverageResultsFinalList() {
-		return lowCoverageResultsFinalList;
+	public HashMap<String, List<LowReadDepthRegion>> getLowReadDepthResultsFinalMap() {
+		return lowReadDepthResultsFinalMap;
 	}
 
 	public LinkedHashSet<String> getRefNamesOrdered() {

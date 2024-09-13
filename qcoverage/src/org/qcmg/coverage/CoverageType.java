@@ -7,7 +7,7 @@ public enum CoverageType {
 
     SEQUENCE("sequence"),
     PHYSICAL("physical"),
-    LOW_COVERAGE("low_coverage");
+    LOW_READDEPTH("low_readdepth");
 
 
     private final String value;

@@ -8,11 +8,11 @@ package org.qcmg.coverage;
 
 import htsjdk.samtools.SAMRecord;
 
-public class LowCoverageAlgorithm implements Algorithm {
+public class LowReadDepthAlgorithm implements Algorithm {
 
 	private final int readdepth_cutoff;
 
-	public LowCoverageAlgorithm(Integer cutoff) {
+	public LowReadDepthAlgorithm(Integer cutoff) {
 		readdepth_cutoff = cutoff;
 	}
 

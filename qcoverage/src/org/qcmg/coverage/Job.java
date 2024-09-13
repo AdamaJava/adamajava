@@ -9,7 +9,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 interface Job {
 	public HashMap<String, HashMap<Integer, AtomicLong>> getResults();
-	public HashMap<String, List<LowCoverageRegion>> getLowCoverageResults();
+	public HashMap<String, List<LowReadDepthRegion>> getLowReadDepthResults();
 	public void run() throws Exception;
 	public String toString();
 }

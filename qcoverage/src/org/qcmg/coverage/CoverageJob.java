@@ -7,9 +7,7 @@
 package org.qcmg.coverage;
 
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
@@ -30,7 +28,7 @@ class CoverageJob implements Job {
 	private final HashSet<Gff3Record> features;
 	private int[] perBaseCoverages; // Uses 0-based coordinate indexing
 	private final HashMap<String, HashMap<Integer, AtomicLong>> idToCoverageToBaseCountMap = new HashMap<String, HashMap<Integer, AtomicLong>>();
-	private final HashMap<String, List<LowCoverageRegion>> lowCoverageMap = new HashMap<String, List<LowCoverageRegion>>();
+	private final HashMap<String, List<LowReadDepthRegion>> lowReadDepthMap = new HashMap<>();
 	private final QLogger logger;
 	private final QueryExecutor filter;
 	private final boolean perFeatureFlag;
@@ -79,8 +77,8 @@ class CoverageJob implements Job {
 	}
 
 	@Override
-	synchronized public HashMap<String, List<LowCoverageRegion>> getLowCoverageResults() {
-		return lowCoverageMap;
+	synchronized public HashMap<String, List<LowReadDepthRegion>> getLowReadDepthResults() {
+		return lowReadDepthMap;
 	}
 
 	@Override
@@ -99,7 +97,6 @@ class CoverageJob implements Job {
 			logger.info("assembling results for: " + refName);
 			assembleResultsByAlgorithm();
 			logger.debug("assembled results for: " + refName + " are: " + getResults());
-			//logger.debug("assembled low coverage results for: " + refName + " are: " + getLowCoverageResults());
 			logger.info("ending job for: " + refName);
 		} catch (Exception ex) {
 			logger.error("Exception caught in run method of CoverageJob", ex);
@@ -136,8 +133,8 @@ class CoverageJob implements Job {
 	}
 
 	private void assembleResultsByAlgorithm() throws IOException {
-		if (alg.getCoverageType().equals(CoverageType.LOW_COVERAGE)) {
-			assembleLowCoverageResults();
+		if (alg.getCoverageType().equals(CoverageType.LOW_READDEPTH)) {
+			assembleLowReadDepthResults();
 		} else {
 			assembleResults( );
 		}
@@ -226,32 +223,30 @@ class CoverageJob implements Job {
 		perBaseCoverages = null;
 	}
 
-	private int addLowCoverageRegionIfNeeded(int cov, int pos, String sampleType, int coverageLimit, int startPos, HashMap<String, List<LowCoverageRegion>> lowcovMap) {
-		if (cov <= coverageLimit) {
+	private int addLowReadDepthRegionIfNeeded(int cov, int pos, int coverageLimit, int startPos, HashMap<String, List<LowReadDepthRegion>> lowRDepthMap) {
+		if (cov < coverageLimit) {
 			if (startPos == -1) {
 				startPos = pos;
 			}
 		} else {
-			//Already a low coverage position previously, but now is higher coverage, so time
-			//to create the low coverage region and reset the startPos
+			//Already a low read depth position previously, but now is higher coverage, so time
+			//to create the low read depth region and reset the startPos
 			if (startPos != -1) {
 				int endPos = pos - 1;//the end is the pos - 1
-				lowcovMap.get(sampleType + coverageLimit).add(new LowCoverageRegion(refName, startPos, endPos, coverageLimit));
+				lowRDepthMap.get(refName).add(new LowReadDepthRegion(refName, startPos, endPos, coverageLimit));
 				startPos = -1;
 			}
 		}
 		return(startPos);
 	}
 
-	private void assembleLowCoverageResults() throws IOException {
+	private void assembleLowReadDepthResults() throws IOException {
 		for (Gff3Record feature : features) {
-            //If low coverage flag is being requested, then we need to find regions with <=8 and <=12 coverage
-			LowCoverageAlgorithm lowcovAlg = (LowCoverageAlgorithm) alg;
-            lowCoverageMap.computeIfAbsent("tumour" + lowcovAlg.getLowCoverageTumour(), k -> new ArrayList<>());
-            lowCoverageMap.computeIfAbsent("control" + lowcovAlg.getLowCoverageControl(), k -> new ArrayList<>());
+            //If low read depth flag is being requested, then we need to find regions with <=8 and <=12 coverage
+			LowReadDepthAlgorithm lowRdepthAlg = (LowReadDepthAlgorithm) alg;
+            lowReadDepthMap.computeIfAbsent(refName, k -> new ArrayList<>());
 
-			int lowCovTumourStart = -1;
-			int lowCovNormalStart = -1;
+			int lowReadDepthStart = -1;
 
 			for (int pos = feature.getStart(); pos <= feature.getEnd(); pos++) {
 				// GFF3 format uses 1-based feature coordinates; avoid problem
@@ -264,16 +259,12 @@ class CoverageJob implements Job {
 								"Malformed internal state. -1 coverage values are invalid. Report this bug.");
 					}
 
-					lowCovTumourStart = addLowCoverageRegionIfNeeded(cov,pos, "tumour", lowcovAlg.getLowCoverageTumour(), lowCovTumourStart, lowCoverageMap);
-					lowCovNormalStart = addLowCoverageRegionIfNeeded(cov,pos, "control",lowcovAlg.getLowCoverageControl(), lowCovNormalStart, lowCoverageMap);
+					lowReadDepthStart = addLowReadDepthRegionIfNeeded(cov,pos, lowRdepthAlg.getReaddepthCutoff(), lowReadDepthStart, lowReadDepthMap);
 
-					//add final low coverage region if we are at the end of the feature
+					//add final low read depth region if we are at the end of the feature
 					if (pos == feature.getEnd()) {
-						if (lowCovTumourStart != -1) {
-							lowCoverageMap.get("tumour" + lowcovAlg.getLowCoverageTumour()).add(new LowCoverageRegion(refName, lowCovTumourStart, pos, lowcovAlg.getLowCoverageTumour()));
-						}
-						if (lowCovNormalStart != -1) {
-							lowCoverageMap.get("control" + lowcovAlg.getLowCoverageControl()).add(new LowCoverageRegion(refName, lowCovNormalStart, pos, lowcovAlg.getLowCoverageControl()));
+						if (lowReadDepthStart != -1) {
+							lowReadDepthMap.get(refName).add(new LowReadDepthRegion(refName, lowReadDepthStart, pos, lowRdepthAlg.getReaddepthCutoff()));
 						}
 					}
 				}

@@ -200,29 +200,30 @@ public final class Coverage {
 
 	private void saveCoverageReport(CoverageType coverageType) throws Exception {
 
-		//save low coverage bed file
-		if (coverageType.equals(CoverageType.LOW_COVERAGE)) {
-			final HashMap<String, List<LowCoverageRegion>> lowCoverageList = jobQueue.lowCoverageResultsFinalList();
+		//save low read depth bed file
+		if (coverageType.equals(CoverageType.LOW_READDEPTH)) {
 
-			for (HashMap.Entry<String, List<LowCoverageRegion>> entry : lowCoverageList.entrySet()) {
-				String key = entry.getKey();
-				List<LowCoverageRegion> lowCoverageValues = entry.getValue();
-				LinkedHashSet<String> refNameOrder = jobQueue.getRefNamesOrdered();
+			String outfile = options.getOutputFileNames()[0];
+			//rename .bed extension if present to add the mnin coverage value
+			if (outfile.endsWith(".bed")) {
+				outfile = outfile.substring(0, outfile.length() - 4);
+			}
+			outfile = String.format("%s.low_read_depth.%s.bed", outfile, options.getLowReadDepthCutoff());
 
-				//Sort vy refName, start and end so that bed is in correct order
-				lowCoverageValues.sort(new LowCoverageRegionComparator(refNameOrder));
+			final HashMap<String, List<LowReadDepthRegion>> lowReadDepthResultsFinalMap = jobQueue.getLowReadDepthResultsFinalMap();
+			LinkedHashSet<String> refNamesOrdered = jobQueue.getRefNamesOrdered();
 
-				String outfile = options.getOutputFileNames()[0];
-				//rename .bed extension if present to add the mnin coverage value
-				if (outfile.endsWith(".bed")) {
-					outfile = outfile.substring(0, outfile.length() - 4);
-				}
-				outfile = String.format("%s.lowcov.%s.bed", outfile, key);
-
-				try (final BufferedWriter out = new BufferedWriter(new FileWriter(outfile))) {
-					for (final LowCoverageRegion region : lowCoverageValues) {
-						out.write(region.toBedString() + StringUtils.RETURN);
+			try (final BufferedWriter out = new BufferedWriter(new FileWriter(outfile))) {
+				for (String refName : refNamesOrdered) {
+					List<LowReadDepthRegion> lowReadDepthValues = lowReadDepthResultsFinalMap.get(refName);
+					if (lowReadDepthValues == null) {
+						continue;
 					}
+					//start and end so that bed is in correct order
+					lowReadDepthValues.sort(new LowReadDepthRegionComparator(refNamesOrdered));
+						for (final LowReadDepthRegion region : lowReadDepthValues) {
+							out.write(region.toBedString() + StringUtils.RETURN);
+						}
 				}
 			}
 		} else {

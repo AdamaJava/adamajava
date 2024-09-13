@@ -20,7 +20,7 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-public class LowCoverageTest {
+public class LowReadDepthTest {
 
     String bam;
     String bai;
@@ -65,80 +65,52 @@ public class LowCoverageTest {
     }
 
     @Test
-    public void defaultLowReadDepthValues() throws Exception {
+    public void lowReadDepthMinEight() throws Exception {
         String fname = testFolder.getRoot().getAbsolutePath() + "/output";
-        File fOutput = new File(fname + ".low_read_depth.12.bed");
-        String cmd = "--log ./logfile --type low_readdepth --input-gff3 " + gff1000To1065 + " --input-bam " + bam + " --input-bai " + bai + " --output " + fname + " --readdepth-cutoff 12";
+        File fOutput = new File(fname + ".low_read_depth.8.bed");
+        String cmd = "--log ./logfile --type low_readdepth --input-gff3 " + gff1000To1065 + " --input-bam " + bam + " --input-bai " + bai + " --output " + fname + " --readdepth-cutoff 8";
 
         Executor exec = execute(cmd);
 
-        String[] lines = exec.getErrorStreamConsumer().getLines();
-
-        for (String line : lines) {
-            System.out.println(line);
-        }
-
         assertEquals(0, exec.getErrCode());
-
-        File folder = testFolder.getRoot();
-        File[] listOfFiles = folder.listFiles();
 
         assertTrue(fOutput.exists());
 
         List<String> fileContents;
         try (BufferedReader r = new BufferedReader(new FileReader(fOutput))) {
             fileContents = r.lines().toList();
+
         }
         assertEquals(2, fileContents.size());
-        assertEquals("chr1\t999\t1010", fileContents.get(0));
-        assertEquals("chr1\t1050\t1065", fileContents.get(1));
+        assertEquals("chr1\t999\t1006", fileContents.get(0));
+        assertEquals("chr1\t1055\t1065", fileContents.get(1));
 
         fOutput.delete();
-
-//        try (BufferedReader r = new BufferedReader(new FileReader(fOutputControl))) {
-//            fileContents = r.lines().toList();
-//        }
-//        assertEquals(2, fileContents.size());
-//        assertEquals("chr1\t999\t1007", fileContents.get(0));
-//        assertEquals("chr1\t1054\t1065", fileContents.get(1));
-//
-//        fOutputControl.delete();
 
     }
 
     @Test
-    public void defaultOptionalLowReadDepthValues() throws Exception {
+    public void lowReadDepthMinTwelve() throws Exception {
         String fname = testFolder.getRoot().getAbsolutePath() + "/output";
-        File fOutputTumour = new File(fname + ".lowcov.tumour10.bed");
-        File fOutputControl = new File(fname + ".lowcov.control6.bed");
-        String cmd = "--log ./logfile --type low_coverage --input-gff3 " + gff1000To1065 + " --input-bam " + bam + " --input-bai " + bai + " --output " + fname + " --low-cov-tumour 10 --low-cov-control 6";
+        File fOutput = new File(fname + ".low_read_depth.12.bed");
+        String cmd = "--log ./logfile --type low_readdepth --input-gff3 " + gff1000To1065 + " --input-bam " + bam + " --input-bai " + bai + " --output " + fname + " --readdepth-cutoff 12";
 
         Executor exec = execute(cmd);
 
         assertEquals(0, exec.getErrCode());
 
-        File folder = testFolder.getRoot();
-        File[] listOfFiles = folder.listFiles();
-
-        assertTrue(fOutputTumour.exists());
-        assertTrue(fOutputControl.exists());
+        assertTrue(fOutput.exists());
 
         List<String> fileContents;
-        try (BufferedReader r = new BufferedReader(new FileReader(fOutputTumour))) {
+        try (BufferedReader r = new BufferedReader(new FileReader(fOutput))) {
             fileContents = r.lines().toList();
-        }
-        assertEquals(2, fileContents.size());
-        assertEquals("chr1\t999\t1009", fileContents.get(0));
-        assertEquals("chr1\t1052\t1065", fileContents.get(1));
-        fOutputTumour.delete();
 
-        try (BufferedReader r = new BufferedReader(new FileReader(fOutputControl))) {
-            fileContents = r.lines().toList();
         }
         assertEquals(2, fileContents.size());
-        assertEquals("chr1\t999\t1005", fileContents.get(0));
-        assertEquals("chr1\t1056\t1065", fileContents.get(1));
-        fOutputControl.delete();
+        assertEquals("chr1\t999\t1010", fileContents.get(0));
+        assertEquals("chr1\t1051\t1065", fileContents.get(1));
+
+        fOutput.delete();
 
     }
 
