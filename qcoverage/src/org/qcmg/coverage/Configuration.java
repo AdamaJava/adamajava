@@ -13,7 +13,7 @@ import org.qcmg.common.util.Pair;
 import org.qcmg.qbamfilter.query.QueryExecutor;
 
 public final class Configuration {
-	private final boolean perFeatureFlag;
+	private boolean perFeatureFlag;
 	private final int numberThreads;
 	private final String type;
 	private final String outputFileName;
@@ -47,6 +47,9 @@ public final class Configuration {
 		} else if (type.equals("physical") || type.equals("phys")) {
 			coverageType = CoverageType.PHYSICAL;
 			algorithm = new PhysicalCoverageAlgorithm();
+		} else if (type.equals("low_readdepth")) {
+			coverageType = CoverageType.LOW_READDEPTH;
+			algorithm = new LowReadDepthAlgorithm(options.getLowReadDepthCutoff());
 		} else {
 			throw new Exception("Unknown coverage type: '" + type + "'");
 		}
@@ -63,6 +66,12 @@ public final class Configuration {
 		inferMissingBaiFileNames();
 
 		perFeatureFlag = options.hasPerFeatureOption();
+
+		//Set to by feature for low read depth option
+		if (type.equals("low_readdepth")) {
+			perFeatureFlag = true;
+		}
+
 		if (options.hasNumberThreadsOption()) {
 			numberThreads = options.getNumberThreads()[0];
 		} else {

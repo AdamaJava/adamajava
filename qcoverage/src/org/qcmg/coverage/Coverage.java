@@ -25,9 +25,7 @@ import java.io.*;
 import java.math.BigInteger;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
+import java.util.*;
 
 public final class Coverage {
 	private final Options options;
@@ -38,7 +36,7 @@ public final class Coverage {
 		this.options = options;
 		Configuration invariants = new Configuration(options);
 		jobQueue = new JobQueue(invariants);
-		saveCoverageReport();
+		saveCoverageReport(invariants.getCoverageType());
 	}
 	
 	/**
@@ -200,24 +198,57 @@ public final class Coverage {
 		return vcf;
 	}
 
-	private void saveCoverageReport() throws Exception {
-		final QCoverageStats stats = new QCoverageStats();
-		for (final CoverageReport report : jobQueue.getCoverageReport()) {
-			stats.getCoverageReport().add(report);
+	private void saveCoverageReport(CoverageType coverageType) throws Exception {
+
+		//save low read depth bed file
+		if (coverageType.equals(CoverageType.LOW_READDEPTH)) {
+
+			String outfile = options.getOutputFileNames()[0];
+			//rename .bed extension if present to add the mnin coverage value
+			if (outfile.endsWith(".bed")) {
+				outfile = outfile.substring(0, outfile.length() - 4);
+			}
+			outfile = String.format("%s.low_read_depth.%s.bed", outfile, options.getLowReadDepthCutoff());
+
+			final HashMap<String, List<LowReadDepthRegion>> lowReadDepthResultsFinalMap = jobQueue.getLowReadDepthResultsFinalMap();
+			LinkedHashSet<String> refNamesOrdered = jobQueue.getRefNamesOrdered();
+
+			try (final BufferedWriter out = new BufferedWriter(new FileWriter(outfile))) {
+				for (String refName : refNamesOrdered) {
+					List<LowReadDepthRegion> lowReadDepthValues = lowReadDepthResultsFinalMap.get(refName);
+					if (lowReadDepthValues == null) {
+						continue;
+					}
+					//start and end so that bed is in correct order
+					lowReadDepthValues.sort(new LowReadDepthRegionComparator(refNamesOrdered));
+						for (final LowReadDepthRegion region : lowReadDepthValues) {
+							out.write(region.toBedString() + StringUtils.RETURN);
+						}
+				}
+			}
+		} else {
+			//save coverage report
+			final QCoverageStats stats = new QCoverageStats();
+			for (final CoverageReport report : jobQueue.getCoverageReport()) {
+				stats.getCoverageReport().add(report);
+			}
+			if (options.hasVcfFlag() && options.hasPerFeatureOption()) {
+				writeVCFReport(stats);
+			}
+
+			if (options.hasXmlFlag()) {
+				writeXMLCoverageReport(stats);
+			}
+
+			if (options.hasTxtFlag()) {
+				if( options.hasPerFeatureOption()) writePerFeatureTabDelimitedCoverageReport(stats);
+				else writePerTypeTabDelimitedCoverageReport(stats);
+			}
 		}
 		
-		if (options.hasVcfFlag() && options.hasPerFeatureOption()) {
-			writeVCFReport(stats);
-		}
-		
-		if (options.hasXmlFlag()) {
-			writeXMLCoverageReport(stats);
-		}
-		
-		if (options.hasTxtFlag()) {			
-			if( options.hasPerFeatureOption()) writePerFeatureTabDelimitedCoverageReport(stats);
-			else writePerTypeTabDelimitedCoverageReport(stats);
-		}
+
+
+
 		
 	}
 

@@ -27,7 +27,7 @@ public final class Options {
 	private static final String LOG_OPTION_DESCRIPTION = Messages.getMessage("LOG_OPTION_DESCRIPTION");
 	private static final String LOG_LEVEL_OPTION_DESCRIPTION = Messages.getMessage("LOG_LEVEL_OPTION_DESCRIPTION");
 	private static final String VALIDATION_STRINGENCY_OPTION_DESCRIPTION = Messages.getMessage("VALIDATION_STRINGENCY_DESCRIPTION");
-
+	private static final String LOW_READ_DEPTH_OPTION_DESCRIPTION = Messages.getMessage("LOW_READ_DEPTH_OPTION_DESCRIPTION");
 
 	private final OptionParser parser = new OptionParser();
 	private final OptionSet options;
@@ -42,6 +42,8 @@ public final class Options {
 	private final String log;
 	private String query;
 	private String validation;
+	private Integer lowReadDepthCutoff;
+
 	
 	@Deprecated
 	private boolean isSegmenterMode = false;
@@ -53,6 +55,7 @@ public final class Options {
 	private String bounds;
 	@Deprecated
 	private String[] features;
+
 
 	@SuppressWarnings("unchecked")
 	public Options(final String[] args) throws Exception {
@@ -67,12 +70,14 @@ public final class Options {
 		parser.accepts("input-bam", INPUT_BAM_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);				
 		parser.accepts("input-bai", INPUT_BAI_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);		
 		parser.accepts("input-gff3", INPUT_GFF3_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);				 
-		parser.accepts("type", TYPE_OPTION_DESCRIPTION)	.withRequiredArg().ofType(String.class);
+		parser.accepts("type", TYPE_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("query", QUERY_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("thread", NUMBER_THREADS_DESCRIPTION).withRequiredArg().ofType(Integer.class);
-		parser.accepts("per-feature", PER_FEATURE_OPTION_DESCRIPTION);						
-		parser.accepts("validation", VALIDATION_STRINGENCY_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class); 
-		
+		parser.accepts("per-feature", PER_FEATURE_OPTION_DESCRIPTION);
+		parser.accepts("validation", VALIDATION_STRINGENCY_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
+		parser.accepts("readdepth-cutoff", LOW_READ_DEPTH_OPTION_DESCRIPTION).withOptionalArg().ofType(Integer.class);
+
+
 
 //		//segmenter options
 //		parser.accepts("segmenter", Messages.getMessage("SEGMENTER_OPTION_DESCRIPTION"));
@@ -114,6 +119,8 @@ public final class Options {
 			
 			query = (String) options.valueOf("query");
 			validation = (String) options.valueOf("validation");
+
+			lowReadDepthCutoff = (Integer) options.valueOf("readdepth-cutoff");
 		}
 	}
 
@@ -169,7 +176,11 @@ public final class Options {
 	boolean hasVcfFlag() {
 		// at least one of the element match vcf
 		return ! Arrays.stream(outputFormat).allMatch( f -> {  return ! f.toUpperCase().equals("VCF"); });
-		 
+	}
+
+	boolean hasBedFlag() {
+		// at least one of the element match vcf
+		return ! Arrays.stream(outputFormat).allMatch( f -> {  return ! f.toUpperCase().equals("BED"); });
 	}
 
 	String getLog() {
@@ -228,6 +239,10 @@ public final class Options {
 		return outputFileNames;
 	}
 
+	public Integer getLowReadDepthCutoff() {
+		return lowReadDepthCutoff;
+	}
+
 	public void displayHelp() throws Exception {
 		parser.formatHelpWith(new BuiltinHelpFormatter(135, 2));
 		parser.printHelpOn(System.err);
@@ -281,6 +296,21 @@ public final class Options {
 		if (1 != getTypes().length) {
 			throw new Exception("Only one type option can be provided");
 		}
+		String type = getTypes()[0];
+		List<String> validTypes = Arrays.asList("seq", "low_readdepth", "sequence","physical","phys","segmenter");
+
+		if (!validTypes.contains(type)) {
+			throw new IllegalArgumentException("Invalid type: " + type + ". Valid types are: " + validTypes);
+		}
+
+		if (type.equals("low_readdepth") && !hasLowReadDepthOption()) {
+			throw new Exception("Missing low read depth cutoff option when running low_readdepth coverage type");
+		}
+
+		if (!type.equals("low_readdepth") && hasLowReadDepthOption()) {
+			throw new Exception("Low read depth cutoff option should only be used for low_readdepth coverage type");
+		}
+
 		if (!hasInputBAMOption()) {
 			throw new Exception("Missing BAM input file option");
 		}
@@ -302,6 +332,10 @@ public final class Options {
 		}
 		 
 		
+	}
+
+	private boolean hasLowReadDepthOption() {
+		return options.has("readdepth-cutoff");
 	}
 
 	private void checkFile(String type, String fileName) throws Exception {

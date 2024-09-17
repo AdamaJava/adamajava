@@ -6,7 +6,10 @@ package org.qcmg.coverage;
 public enum CoverageType {
 
     SEQUENCE("sequence"),
-    PHYSICAL("physical");
+    PHYSICAL("physical"),
+    LOW_READDEPTH("low_readdepth");
+
+
     private final String value;
 
     CoverageType(String v) {

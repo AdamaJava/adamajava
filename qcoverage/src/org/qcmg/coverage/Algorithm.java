@@ -10,6 +10,7 @@ import htsjdk.samtools.SAMRecord;
 
 interface Algorithm {
 	public String getName();
+	public CoverageType getCoverageType();
 	public void applyTo(final SAMRecord read, Object coverageCounter);
 	public void applyTo(final SAMRecord read, Object coverageCounter, boolean fullyPopulated);
 //	public void applyTo(final SAMRecord read, final int[] perBaseCoverages);

@@ -4,6 +4,7 @@
 package org.qcmg.coverage;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 class TerminationJob implements Job {
@@ -13,6 +14,10 @@ class TerminationJob implements Job {
 	}
 
 	public HashMap<String, HashMap<Integer, AtomicLong>> getResults() {
+		throw new IllegalStateException("Termination job never returns a result.");
+	}
+
+	public HashMap<String, List<LowReadDepthRegion>> getLowReadDepthResults() {
 		throw new IllegalStateException("Termination job never returns a result.");
 	}
 

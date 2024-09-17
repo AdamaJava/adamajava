@@ -6,11 +6,10 @@
  */
 package org.qcmg.coverage;
 
+
 import java.io.File;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
+import java.io.IOException;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 
 import htsjdk.samtools.SamReader;
@@ -29,14 +28,19 @@ class CoverageJob implements Job {
 	private final HashSet<Gff3Record> features;
 	private int[] perBaseCoverages; // Uses 0-based coordinate indexing
 	private final HashMap<String, HashMap<Integer, AtomicLong>> idToCoverageToBaseCountMap = new HashMap<String, HashMap<Integer, AtomicLong>>();
+	private final HashMap<String, List<LowReadDepthRegion>> lowReadDepthMap = new HashMap<>();
 	private final QLogger logger;
 	private final QueryExecutor filter;
 	private final boolean perFeatureFlag;
-	private final HashSet<SamReader> fileReaders = new HashSet<SamReader>();
+
+	private final HashSet<SamReader> fileReaders = new HashSet<>();
 	private final Algorithm alg;
 	private final ReadsNumberCounter counterIn;
 	private final ReadsNumberCounter counterOut;
 	private boolean fullyPopulated;
+
+
+
 
 	CoverageJob(final String refName, final int refLength, final HashMap<String, HashSet<Gff3Record>> refToFeaturesMap,
 			final HashSet<Pair<File, File>> filePairs, final QueryExecutor filter,
@@ -73,6 +77,11 @@ class CoverageJob implements Job {
 	}
 
 	@Override
+	synchronized public HashMap<String, List<LowReadDepthRegion>> getLowReadDepthResults() {
+		return lowReadDepthMap;
+	}
+
+	@Override
 	public String toString() {
 		return refName + " coverage";
 	}
@@ -86,7 +95,7 @@ class CoverageJob implements Job {
 			logger.info("performing coverage for: " + refName);
 			performCoverage();
 			logger.info("assembling results for: " + refName);
-			assembleResults();
+			assembleResultsByAlgorithm();
 			logger.debug("assembled results for: " + refName + " are: " + getResults());
 			logger.info("ending job for: " + refName);
 		} catch (Exception ex) {
@@ -97,6 +106,7 @@ class CoverageJob implements Job {
 
 	void constructCoverageMap() {
 		perBaseCoverages = new int[refLength]; // All elements default to zero
+
 		boolean isArrayFull = true;
 		// Initially set all values to -1 for no coverage at that coordinate
 		Arrays.fill(perBaseCoverages, -1);
@@ -120,6 +130,14 @@ class CoverageJob implements Job {
 		}
 		this.fullyPopulated = isArrayFull;
 		logger.info("fully populated: " + isArrayFull);
+	}
+
+	private void assembleResultsByAlgorithm() throws IOException {
+		if (alg.getCoverageType().equals(CoverageType.LOW_READDEPTH)) {
+			assembleLowReadDepthResults();
+		} else {
+			assembleResults( );
+		}
 	}
 
 	private void performCoverage() throws Exception {
@@ -180,18 +198,14 @@ class CoverageJob implements Job {
 
 	private void assembleResults() {
 		for (Gff3Record feature : features) {
-			String id = null;
+			String id;
 			if (perFeatureFlag) {
 				id = feature.getRawData();
 			} else {
 				id = feature.getType();
 			}
-			HashMap<Integer, AtomicLong> covToBaseCountMap = idToCoverageToBaseCountMap.get(id);
-			if (null == covToBaseCountMap) {
-				covToBaseCountMap = new HashMap<Integer, AtomicLong>();
-				idToCoverageToBaseCountMap.put(id, covToBaseCountMap);
-			}
-			for (int pos = feature.getStart(); pos <= feature.getEnd(); pos++) {
+            HashMap<Integer, AtomicLong> covToBaseCountMap = idToCoverageToBaseCountMap.computeIfAbsent(id, k -> new HashMap<>());
+            for (int pos = feature.getStart(); pos <= feature.getEnd(); pos++) {
 				// GFF3 format uses 1-based feature coordinates; avoid problem
 				// of GFF3 accidentally containing 0 coordinate
 				if (pos > 0 && (pos - 1) < perBaseCoverages.length) {
@@ -202,6 +216,57 @@ class CoverageJob implements Job {
 								"Malformed internal state. -1 coverage values are invalid. Report this bug.");
 					}
 					covToBaseCountMap.computeIfAbsent(cov, v -> new AtomicLong()).incrementAndGet();
+				}
+			}
+		}
+		// Attempt to release coverage memory by nullifying
+		perBaseCoverages = null;
+	}
+
+	private int addLowReadDepthRegionIfNeeded(int cov, int pos, int coverageLimit, int startPos, HashMap<String, List<LowReadDepthRegion>> lowRDepthMap) {
+		if (cov < coverageLimit) {
+			if (startPos == -1) {
+				startPos = pos;
+			}
+		} else {
+			//Already a low read depth position previously, but now is higher coverage, so time
+			//to create the low read depth region and reset the startPos
+			if (startPos != -1) {
+				int endPos = pos - 1;//the end is the pos - 1
+				lowRDepthMap.get(refName).add(new LowReadDepthRegion(refName, startPos, endPos, coverageLimit));
+				startPos = -1;
+			}
+		}
+		return(startPos);
+	}
+
+	private void assembleLowReadDepthResults() throws IOException {
+		for (Gff3Record feature : features) {
+            //If low read depth flag is being requested, then we need to find regions with <=8 and <=12 coverage
+			LowReadDepthAlgorithm lowRdepthAlg = (LowReadDepthAlgorithm) alg;
+            lowReadDepthMap.computeIfAbsent(refName, k -> new ArrayList<>());
+
+			int lowReadDepthStart = -1;
+
+			for (int pos = feature.getStart(); pos <= feature.getEnd(); pos++) {
+				// GFF3 format uses 1-based feature coordinates; avoid problem
+				// of GFF3 accidentally containing 0 coordinate
+				if (pos > 0 && (pos - 1) < perBaseCoverages.length) {
+					// Adjust from 1-based to 0-based indexing
+					int cov = perBaseCoverages[pos - 1];
+					if (-1 >= cov) {
+						throw new IllegalStateException(
+								"Malformed internal state. -1 coverage values are invalid. Report this bug.");
+					}
+
+					lowReadDepthStart = addLowReadDepthRegionIfNeeded(cov,pos, lowRdepthAlg.getReaddepthCutoff(), lowReadDepthStart, lowReadDepthMap);
+
+					//add final low read depth region if we are at the end of the feature
+					if (pos == feature.getEnd()) {
+						if (lowReadDepthStart != -1) {
+							lowReadDepthMap.get(refName).add(new LowReadDepthRegion(refName, lowReadDepthStart, pos, lowRdepthAlg.getReaddepthCutoff()));
+						}
+					}
 				}
 			}
 		}

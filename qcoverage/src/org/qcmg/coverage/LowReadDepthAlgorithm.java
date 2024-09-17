@@ -8,18 +8,25 @@ package org.qcmg.coverage;
 
 import htsjdk.samtools.SAMRecord;
 
-public class SequenceCoverageAlgorithm implements Algorithm {
+public class LowReadDepthAlgorithm implements Algorithm {
+
+	private final int readdepth_cutoff;
+
+	public LowReadDepthAlgorithm(Integer cutoff) {
+		readdepth_cutoff = cutoff;
+	}
+
 	@Override
 	public String getName() {
-		return "sequence coverage";
+		return "low read depth";
 	}
 
 	@Override
 	public CoverageType getCoverageType() {
-		return CoverageType.SEQUENCE;
+		return CoverageType.LOW_READDEPTH;
 	}
 
-	//	@Override
+//	@Override
 //	public void applyTo(final SAMRecord read, final int[] perBaseCoverages) {
 	@Override
 	public void applyTo(final SAMRecord read, Object perBaseCoveragesObj) {
@@ -42,4 +49,9 @@ public class SequenceCoverageAlgorithm implements Algorithm {
 	public void applyTo(final SAMRecord read, Object perBaseCoverages, boolean fullyPopulated) {
 		applyTo(read, perBaseCoverages);
 	}
+
+	public int getReaddepthCutoff() {
+		return readdepth_cutoff;
+	}
+
 }

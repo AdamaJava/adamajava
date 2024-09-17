@@ -26,6 +26,7 @@ public class CoverageTest {
 	private String inputBai;
 	private String inputGff3;
 	private String fname;
+	private String bedname;
 	private String log;
 
 	
@@ -56,6 +57,8 @@ public class CoverageTest {
 		inputGff3 = file.getAbsolutePath();
 		log = inputBam.replace("bam", "log");
 		fname = testFolder.getRoot().getAbsolutePath()+"/output.txt";
+		bedname = testFolder.getRoot().getAbsolutePath()+"/output.bed";
+
 	 } 
 	
 	@Test
@@ -92,7 +95,51 @@ public class CoverageTest {
 		assertTrue(fOutput.exists());
 	}
 
+    @Test
+	public final void testLowReadDepthOption() throws Exception {
+
+	   String cmd = "--log " + log + " --type low_readdepth --input-gff3 " + inputGff3 + " --input-bam " + inputBam +
+									   " --input-bai " + inputBai +  " --output " + bedname + " --output-format bed --readdepth-cutoff 8";
+
+	    //default value txt output only
+	    Executor exec = execute(cmd);
+	    assertEquals(0, exec.getErrCode());
+	    File fBedOutput = new File(bedname);
+	    assertFalse(fBedOutput.exists());
+
+	   //filename should have file endings .low_read_depth.[readdepth-cutoff value].bed
+		File outputBed = new File(bedname.replace(".bed",".low_read_depth.8.bed"));
+		assertTrue(outputBed.exists());
+
+		//filename should have file endings .low_read_depth.[readdepth-cutoff value].bed
+		outputBed = new File(bedname.replace(".bed",".low_read_depth.12.bed"));
+		assertFalse(outputBed.exists());
+
+   }
+
 	@Test
+	public final void testLowReadDepthOptionMissingCutoffOption() throws Exception {
+
+		String cmd = "--log " + log + " --type low_readdepth --input-gff3 " + inputGff3 + " --input-bam " + inputBam +
+				" --input-bai " + inputBai +  " --output " + bedname + " --output-format bed";
+
+		//Should fail as readdepth-cutoff option is missing
+		Executor exec = execute(cmd);
+		assertEquals(1, exec.getErrCode());
+	}
+
+	@Test
+	public final void testLowReadDepthOptionIncorrectCutoffOption() throws Exception {
+
+		//Should fail as coverage type is wrong
+		String cmd = "--log " + log + " --type sequence --input-gff3 " + inputGff3 + " --input-bam " + inputBam +
+				" --input-bai " + inputBai +  " --output " + bedname + " --output-format bed --readdepth-cutoff 8";
+
+		//Should fail as readdepth-cutoff option only used for coverage type low_readdepth
+		Executor exec = execute(cmd);
+		assertEquals(1, exec.getErrCode());
+	}
+
 	public void coverageStatsXml() throws JAXBException {
 		jakarta.xml.bind.JAXBContext context = JAXBContextFactory
 				.createContext(new Class[] {CoverageReport.class, CoverageModel.class, QCoverageStats.class}, null);
