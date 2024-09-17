@@ -49,7 +49,7 @@ public class MatePairsWriterTest {
     public void testWriteMatePairsToFile() throws IOException {
         writer.addNewMatePair(matePairs.getFirst());
         writer.writeMatePairsToFile();
-        File file = new File(mateDir, "chr7-1_TD_AAC");
+        File file = new File(mateDir, "chr7-1_xxx_TD_AAC");
         assertTrue(file.exists());
         assertTrue(file.length() > 100);
     }

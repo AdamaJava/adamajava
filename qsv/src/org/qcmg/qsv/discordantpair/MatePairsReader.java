@@ -85,7 +85,7 @@ public class MatePairsReader {
 					//contains ND or TD
 					if (s.contains(type)) {
 
-						String key = s.substring(0, s.indexOf("_"));
+						String key = s.substring(0, s.indexOf("_xxx_"));
 						String value = dirString + s;
 
 						File file = new File(value);

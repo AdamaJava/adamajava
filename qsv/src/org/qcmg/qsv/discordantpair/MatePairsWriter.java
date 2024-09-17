@@ -28,7 +28,7 @@ public class MatePairsWriter {
         this.zp = zp;
         this.matePairs = new TreeMap<String, Map<String, MatePair>>();
         this.dirToWrite = matePairFilePath + zp.getPairingClassification() + FILE_SEPARATOR;
-        this.fileName = "_" + type + "_" + zp.getPairingClassification();  
+        this.fileName = "_xxx_" + type + "_" + zp.getPairingClassification();
         this.pairType = pairType;
     }
 

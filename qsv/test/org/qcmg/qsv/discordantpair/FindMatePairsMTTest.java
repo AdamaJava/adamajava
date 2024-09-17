@@ -63,7 +63,7 @@ public class FindMatePairsMTTest {
 
         assertEquals(testFolder.getRoot().toString() + FILE_SEPARATOR + "matepair" + FILE_SEPARATOR + "AAC"
         + FILE_SEPARATOR, findMatePairs.getMatePairWritersMap().get(PairClassification.AAC).getDirToWrite());
-        assertEquals("_test_AAC", findMatePairs.getMatePairWritersMap().get(PairClassification.AAC).getFileName());
+        assertEquals("_xxx_test_AAC", findMatePairs.getMatePairWritersMap().get(PairClassification.AAC).getFileName());
     }
 
     @Test

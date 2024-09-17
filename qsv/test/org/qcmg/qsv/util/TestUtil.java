@@ -643,9 +643,33 @@ public class TestUtil {
 		
 		return outFile;
 	}
+
+	public static String createTmpClusterChrUnFile(String dirName, PairClassification pc, String fileName) throws IOException {
+
+		File testDir = new File(dirName + pc.getPairingClassification());
+		testDir.mkdir();
+		String outFile = testDir + FILE_SEPARATOR + fileName;
+
+		try (BufferedWriter writer = new BufferedWriter(new FileWriter(new File(outFile)))) {
+
+			if (pc.equals(PairClassification.AAC)) {
+				writeChrUnAACPairs(writer);
+			}
+		}
+
+		return outFile;
+	}
 		
-	public static void writeAACPairs(BufferedWriter writer) throws IOException {	
-		
+	public static void writeChrUnAACPairs(BufferedWriter writer) throws IOException {
+		writer.write("H3HHCALXX:2:1105:3188332:0:07262735-323a-489b-bd6d-10dcdc6726d0,chrUn_KI270438v1,88809,88954,AAC,97,false,H3HHCALXX:2:1105:3188332:0:07262735-323a-489b-bd6d-10dcdc6726d0,chrUn_KI270438v1,92960,93119,AAC,145,true,F1R2" + NEWLINE);
+		writer.write("H3HHCALXX:2:1105:4467207:0:07262735-323a-489b-bd6d-10dcdc6726d0,chrUn_KI270438v1,88917,89066,AAC,97,false,H3HHCALXX:2:1105:4467207:0:07262735-323a-489b-bd6d-10dcdc6726d0,chrUn_KI270438v1,93030,93161,AAC,145,true,F1R2" + NEWLINE);
+		writer.write("H3HHCALXX:2:1108:478183:0:07262735-323a-489b-bd6d-10dcdc6726d0,chrUn_KI270438v1,102130,102212,AAC,161,false,H3HHCALXX:2:1108:478183:0:07262735-323a-489b-bd6d-10dcdc6726d0,chrUn_KI270438v1,108627,108768,AAC,81,true,F2R1" + NEWLINE);
+		writer.write("H3HHCALXX:2:1213:3573424:0:07262735-323a-489b-bd6d-10dcdc6726d0,chrUn_KI270438v1,100014,100163,AAC,161,false,H3HHCALXX:2:1213:3573424:0:07262735-323a-489b-bd6d-10dcdc6726d0,chrUn_KI270438v1,102786,102935,AAC,81,true,F2R1" + NEWLINE);
+
+	}
+
+	public static void writeAACPairs(BufferedWriter writer) throws IOException {
+
 		writer.write("254_166_1407:20110221052813657,chr7,140188379,140188428,AAC,129,false,254_166_1407:20110221052813657,chr7,140191044,140191093,AAC,65,false,F2F1," + NEWLINE);
 		writer.write("1789_1456_806:20110221052813657,chr7,140188227,140188276,AAC,129,false,1789_1456_806:20110221052813657,chr7,140191179,140191228,AAC,65,false,F2F1," + NEWLINE);
 		writer.write("515_451_1845:20110221052813657,chr7,140188449,140188498,AAC,129,false,515_451_1845:20110221052813657,chr7,140191238,140191287,AAC,65,false,F2F1" + NEWLINE);
