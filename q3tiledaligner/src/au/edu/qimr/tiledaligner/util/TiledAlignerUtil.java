@@ -842,6 +842,14 @@ public class TiledAlignerUtil {
 		}
 		return is.toArray();
 	}
+
+	public static String[] splitString(String name) {
+		if (name.contains("_xxx_")) {
+			return name.split("_xxx_");
+		} else {
+			return name.split("_");
+		}
+	}
 	
 	public static List<BLATRecord> getBlatRecordsSWAll(String refFile, Map<ChrPosition, LongRange> refIndexMap, TIntObjectMap<int[]> cache, String sequence, final String name, int tileLength, String originatingMethod, boolean log, boolean recordsMustComeFromChrInName) {
 		if (null == cache || cache.isEmpty()) {
@@ -902,7 +910,7 @@ public class TiledAlignerUtil {
 			/*
 			 * get chromosome names from name
 			 */
-			String [] nameArray = name.split("_");
+			String [] nameArray = splitString(name);
 			for (String s : nameArray) {
 				if (s.startsWith("chr") || s.startsWith("GL")) {
 					acceptableRanges.add(PositionChrPositionMap.getLongStartAndStopPositionFromChrPosition(new ChrPointPosition(s, 1), refIndexMap));
@@ -1316,7 +1324,7 @@ public class TiledAlignerUtil {
 			/*
 			 * really only care if we have different chromosomes
 			 */
-			String[] nameArray = name.split("_");
+			String [] nameArray = splitString(name);
 			if (nameArray.length > 4 &&  ! nameArray[1].equals(nameArray[3])) {
 				logger.debug("got a splitcon: " + name + " with no of recs: " + uniqueResults.size() + ", taRec: " + taRec);
 				for (BLATRecord br : uniqueResults) {

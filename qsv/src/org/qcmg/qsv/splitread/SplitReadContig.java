@@ -190,7 +190,7 @@ public class SplitReadContig {
 		Date date = new Date();
 		Random r = new Random();
 		int random = r.nextInt(900000);
-		return "splitcon_" + knownSV.toString() + "_" + isTumour() + "_" + date.getTime() + "_" + random;
+		return "splitcon_xxx_" + knownSV.toString() + "_xxx_" + isTumour() + "_xxx_" + date.getTime() + "_xxx_" + random;
 	}
 	
 	public void setLeftSequence(String leftSequence) {
@@ -652,7 +652,7 @@ public class SplitReadContig {
 	}
 
 	void recheckMicrohomologyForSingleAlignment() {
-		
+
 		String leftRef = getReferenceSequence(splitreadSV.getLeftReference(), splitreadSV.getLeftBreakpoint() + 1, 0, 50, chromosomes);
 		String rightRef = getReferenceSequence(splitreadSV.getRightReference(), splitreadSV.getRightBreakpoint() - 1, 50, 0, chromosomes);	
 		int end = leftSequence.length();

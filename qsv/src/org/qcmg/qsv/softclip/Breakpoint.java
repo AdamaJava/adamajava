@@ -137,7 +137,7 @@ public class Breakpoint implements Comparable<Breakpoint>{
 	}
 
 	public String getName() {
-		return reference + "_" + breakpoint + "_" + isLeft + "_" + (positiveStrand ? QSVUtil.PLUS : QSVUtil.MINUS);
+		return reference + "_xxx_" + breakpoint + "_xxx_" + isLeft + "_xxx_" + (positiveStrand ? QSVUtil.PLUS : QSVUtil.MINUS);
 	}
 
 	public Integer getBreakpoint() {

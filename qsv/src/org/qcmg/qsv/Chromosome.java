@@ -94,9 +94,10 @@ public class Chromosome implements Comparable<Chromosome>{
 		String thisName = name.toLowerCase();
 		String otherName = other.name.toLowerCase();		
 		
-		if (thisName.contains("gl") || otherName.contains("gl")) {
+		if (thisName.contains("gl") || otherName.contains("gl") || thisName.contains("random") || otherName.contains("random")
+		|| thisName.contains("chrun") || otherName.contains("chrun") || thisName.contains("ebv") || otherName.contains("ebv")) {
 			return thisName.compareTo(otherName);
-		} else if (thisName.contains("chrmt")) {
+		} else if (thisName.contains("chrmt") || thisName.contains("chrm")) {
 			if (otherName.contains("x") || otherName.contains("y")) {
 				return 1;
 			} else {
@@ -106,7 +107,7 @@ public class Chromosome implements Comparable<Chromosome>{
 					return thisName.compareTo(otherName);
 				}
 			}
-		} else if (otherName.contains("chrmt")) {
+		} else if (otherName.contains("chrmt") || otherName.contains("chrm")) {
 			if (thisName.contains("x") || thisName.contains("y")) {
 				return -1;
 			} else {
