@@ -73,7 +73,7 @@ public class StructuralVariant {
 	
 	@Override
 	public String toString() {
-		return leftReference + "_" + leftBreakpoint + "_" + rightReference + "_" + rightBreakpoint + "_"+ orientationCategory; 
+		return leftReference + "_xxx_" + leftBreakpoint + "_xxx_" + rightReference + "_xxx_" + rightBreakpoint + "_xxx_"+ orientationCategory;
 	}
 
 	public boolean equalReference() {

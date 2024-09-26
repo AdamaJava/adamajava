@@ -15,9 +15,9 @@ import java.util.*;
 import static org.junit.Assert.*;
 
 public class BreakpointTest {
-	
+
 	Breakpoint breakpoint;
-	
+
 	@Rule
     public TemporaryFolder testFolder = new TemporaryFolder();
 
@@ -28,10 +28,10 @@ public class BreakpointTest {
 		assertFalse(breakpoint.isGermline());
 		assertEquals("somatic", breakpoint.getType());
 		assertEquals(QSVUtil.MINUS, breakpoint.getStrand());
-		assertEquals("chr10_89700299_false_-", breakpoint.getName());
+		assertEquals("chr10_xxx_89700299_xxx_false_xxx_-", breakpoint.getName());
 		assertEquals("CCCTGCCCTAAGAGCAGCAAATTGCTGAACTCCTCTGGTGGACCTCTTACACAAAGTATAATCTC", breakpoint.getMateConsensus());
 	}
-	
+
 	@Test
 	public void testDefineBreakpointPassesFilterWithGermlineLeft() throws Exception {
 		breakpoint = TestUtil.getBreakpoint(true, true, 20, false);
@@ -39,16 +39,16 @@ public class BreakpointTest {
 		assertTrue(breakpoint.isGermline());
 		assertEquals("germline", breakpoint.getType());
 		assertEquals(QSVUtil.PLUS, breakpoint.getStrand());
-		assertEquals("chr10_89712341_true_+", breakpoint.getName());
+		assertEquals("chr10_xxx_89712341_xxx_true_xxx_+", breakpoint.getName());
 		assertEquals("AAAGATCAACCTGTCCTAAGTCATATAATCTCTTTGTGTAAGAGATTATACTTTGTGTA", breakpoint.getMateConsensus());
 	}
-	
+
 	@Test
 	public void getClipString() {
 		Set<Clip> clips = TestUtil.getLeftClips(false);
 		assertEquals(1439, Breakpoint.getClipString(clips).length());
 	}
-	
+
 	@Test
 	public void parseMatchingSplitReads() {
 		String header = "";
@@ -67,7 +67,7 @@ public class BreakpointTest {
 			Breakpoint.parseMatchingSplitReads(null, null);
 			fail("Should have thrown an IAE");
 		} catch (IllegalArgumentException ignored) {}
-		
+
 		header += "what a great header";
 		splitReadsList.add(new UnmappedRead("column1,what a really great header,column2,3,column4", true));
 		Breakpoint.parseMatchingSplitReads(header, splitReadsList);
@@ -90,14 +90,14 @@ public class BreakpointTest {
 		header += "split_what a great header";
 		Breakpoint.parseMatchingSplitReads(header, splitReadsList);
 		assertEquals(1, splitReadsList.size());
-		
+
 		splitReadsList.add(new UnmappedRead("column1,what a great header,column2,3,column4", true));
 		splitReadsList.add(new UnmappedRead("column1,what a great header,column2,3,column4", true));
 		splitReadsList.add(new UnmappedRead("column1,what a great header,column2,3,column4", true));
 		Breakpoint.parseMatchingSplitReads(header, splitReadsList);
 		assertEquals(4, splitReadsList.size());
 	}
-	
+
 	@Test
 	public void matchBreakpoint() throws Exception {
 		/*
@@ -169,7 +169,7 @@ READ:GTTCTGGAATCCTGTGTGAGGGACAAACATTCAGACCACTGCAGGATTGTTCAGGAATCCTATCTGAGGGACAAA
 		b.addTumourClip(new Clip("ST-E00104:642:HF55MALXX:8:1123:24353:62523:3ae5af45-d754-4534-80f3-e08252df172b,GL000219.1,165002,+,left,ATTAGTGTTTTGCAATCCTATGGGAGGGACAACATTCACACCCTTGTAGCAGAGTTCTGGAATCCTGTGTGAGGGACAAACATTCAGACCACTGCAGGATTGTTCAGGAATCCTATCTGAGGGACAAACATGCAGACC,ATTAGTGTTTTGCAATCCTATGGGAGGGACAACATTCACACCCTTGTAGCAGA,GTTCTGGAATCCTGTGTGAGGGACAAACATTCAGACCACTGCAGGATTGTTCAGGAATCCTATCTGAGGGACAAACATGCAGACC"));
 		b.addTumourClip(new Clip("ST-E00129:529:HF5FTALXX:2:1106:19928:34500:ff341031-8dc5-4e50-9ff2-e9e1ee8f614f,GL000219.1,165002,+,left,GAAAACAGCATTAGTGTTTTGCAATCCTATGGGAGGGACAACATTCACACCCTTGTAGCAGAGTTCTGGAATCCTGTGTGAGGGACAAACATTCAGACCACTGCAGGATTGTTCAGGAATCCTATCTGAGGGACAAACATGCAGACCCTCA,GAAAACAGCATTAGTGTTTTGCAATCCTATGGGAGGGACAACATTCACACCCTTGTAGCAGA,GTTCTGGAATCCTGTGTGAGGGACAAACATTCAGACCACTGCAGGATTGTTCAGGAATCCTATCTGAGGGACAAACATGCAGACCCTCA"));
 		b.addTumourClip(new Clip("ST-E00104:642:HF55MALXX:8:2108:23794:21895:3ae5af45-d754-4534-80f3-e08252df172b,GL000219.1,165002,-,left,CACTCAGAAAACAGCATTAGTGTTTTGCAATCCTATGGGAGGGACAACATTCACACCCTTGTAGCAGAGTTCTGGAATCCTGTGTGAGGGACAAACATTCAGACCACTGCAGGATTGTTCAGGAATCCTATCTGAGGGACAAACATGCAGA,CACTCAGAAAACAGCATTAGTGTTTTGCAATCCTATGGGAGGGACAACATTCACACCCTTGTAGCAGA,GTTCTGGAATCCTGTGTGAGGGACAAACATTCAGACCACTGCAGGATTGTTCAGGAATCCTATCTGAGGGACAAACATGCAGA"));
-		
+
 		b.addNormalClip(new Clip("ST-E00129:529:HF5FTALXX:5:1115:15483:5458:71b40638-002b-4c7b-8a66-3b6209527a93,GL000219.1,165002,-,left,AACACTCAGAAAACAGCATTAGTGTTTTGCAATCCTATGGGAGGGACAACATTCACACCCTTGTAGCAGAGTTCTGGAATCCTGTGTGAGGGACAAACATTCAGACCACTGCAGGATTGTTCAGGAATCCTATCTGAGGGACAAACATGCA,AACACTCAGAAAACAGCATTAGTGTTTTGCAATCCTATGGGAGGGACAACATTCACACCCTTGTAGCAGA,GTTCTGGAATCCTGTGTGAGGGACAAACATTCAGACCACTGCAGGATTGTTCAGGAATCCTATCTGAGGGACAAACATGCA"));
 		b.addNormalClip(new Clip("ST-E00129:529:HF5FTALXX:5:1122:26646:26659:71b40638-002b-4c7b-8a66-3b6209527a93,GL000219.1,165002,-,left,AAAACAGCATTAGTGTTTTGCAATCCTATGGGAGGGACAACATTCACACCCTTGTAGCAGAGTTCTGGAATCCTGTGTGAGGGACAAACATTCAGACCACTGCAGGATTGTTCAGGAATCCTATCTGAGGGACAAACATGCAGACCCTCAC,AAAACAGCATTAGTGTTTTGCAATCCTATGGGAGGGACAACATTCACACCCTTGTAGCAGA,GTTCTGGAATCCTGTGTGAGGGACAAACATTCAGACCACTGCAGGATTGTTCAGGAATCCTATCTGAGGGACAAACATGCAGACCCTCAC"));
 		b.addNormalClip(new Clip("ST-E00129:529:HF5FTALXX:5:1223:11038:57706:71b40638-002b-4c7b-8a66-3b6209527a93,GL000219.1,165002,+,left,CAGCATTAGTGTTTTGCAATCCTATGGGAGGGACAACATTCACACCCTTGTAGCAGAGTTCTGGAATCCTGTGTGAGGGACAAACATTCAGACCACTGCAGGATTGTTCAGGAATCCTATCTGAGGGACAAACATGCAGACCCTCACAGCA,CAGCATTAGTGTTTTGCAATCCTATGGGAGGGACAACATTCACACCCTTGTAGCAGA,GTTCTGGAATCCTGTGTGAGGGACAAACATTCAGACCACTGCAGGATTGTTCAGGAATCCTATCTGAGGGACAAACATGCAGACCCTCACAGCA"));
@@ -183,14 +183,14 @@ READ:GTTCTGGAATCCTGTGTGAGGGACAAACATTCAGACCACTGCAGGATTGTTCAGGAATCCTATCTGAGGGACAAA
 		b.setConsensusRead(new ConsensusRead("clipContigFor,fullclip_ST-E00104:642:HF55MALXX:8:2115:26047:18942:3ae5af45-d754-4534-80f3-e08252df172b,fullclip_ST-E00129:529:HF5FTALXX:2:2102:16163:65459:ff341031-8dc5-4e50-9ff2-e9e1ee8f614f,fullclip_ST-E00104:642:HF55MALXX:5:1202:1621:35133:00587a9e-66fc-4fd2-a972-eee4cbaf9613,fullclip_ST-E00129:529:HF5FTALXX:5:1223:11038:57706:71b40638-002b-4c7b-8a66-3b6209527a93,fullclip_ST-E00104:642:HF55MALXX:2:2223:6248:2680:a7408e63-f751-46d8-b0ec-849c8b653631,fullclip_ST-E00104:642:HF55MALXX:8:1123:24353:62523:3ae5af45-d754-4534-80f3-e08252df172b,fullclip_ST-E00129:529:HF5FTALXX:2:1106:19928:34500:ff341031-8dc5-4e50-9ff2-e9e1ee8f614f,fullclip_ST-E00104:642:HF55MALXX:2:2208:3447:10697:a7408e63-f751-46d8-b0ec-849c8b653631,fullclip_ST-E00129:529:HF5FTALXX:2:2103:20446:28330:ff341031-8dc5-4e50-9ff2-e9e1ee8f614f,fullclip_ST-E00129:529:HF5FTALXX:2:2118:14367:57600:ff341031-8dc5-4e50-9ff2-e9e1ee8f614f,fullclip_ST-E00129:529:HF5FTALXX:2:2117:26606:15373:ff341031-8dc5-4e50-9ff2-e9e1ee8f614f,fullclip_ST-E00129:529:HF5FTALXX:5:2116:17939:10767:71b40638-002b-4c7b-8a66-3b6209527a93,fullclip_ST-E00104:642:HF55MALXX:2:2205:28747:49988:a7408e63-f751-46d8-b0ec-849c8b653631,fullclip_ST-E00129:529:HF5FTALXX:2:1205:18284:22018:ff341031-8dc5-4e50-9ff2-e9e1ee8f614f,fullclip_ST-E00129:529:HF5FTALXX:2:2121:16701:57565:ff341031-8dc5-4e50-9ff2-e9e1ee8f614f,fullclip_ST-E00129:529:HF5FTALXX:4:2109:20689:25411:4ea3b900-5fd2-4e6e-bb7d-2f2fbec977bd,fullclip_ST-E00129:529:HF5FTALXX:5:1122:26646:26659:71b40638-002b-4c7b-8a66-3b6209527a93,fullclip_ST-E00129:529:HF5FTALXX:3:2223:31314:6724:8c954e28-d035-4a28-806e-b8837caab052,fullclip_ST-E00129:529:HF5FTALXX:4:2119:32167:23319:4ea3b900-5fd2-4e6e-bb7d-2f2fbec977bd,fullclip_ST-E00129:529:HF5FTALXX:2:1124:5507:35643:ff341031-8dc5-4e50-9ff2-e9e1ee8f614f,fullclip_ST-E00104:642:HF55MALXX:5:2216:17066:61503:00587a9e-66fc-4fd2-a972-eee4cbaf9613,fullclip_ST-E00104:642:HF55MALXX:8:1115:25560:25798:3ae5af45-d754-4534-80f3-e08252df172b,fullclip_ST-E00129:529:HF5FTALXX:5:1218:28696:13931:71b40638-002b-4c7b-8a66-3b6209527a93,fullclip_ST-E00104:642:HF55MALXX:5:2215:28381:35819:00587a9e-66fc-4fd2-a972-eee4cbaf9613"
 				,"CTCAGAAAACAGCATTAGTGTTTTGCAATCCTATGGGAGGGACAACATTCACACCCTTGTAGCAGAGTTCTGGAATCCTGTGTGAGGGACAAACATTCAGACCACTGCAGGATTGTTCAGGAATCCTATCTGAGGGACAAACATGCAGACCCTCACAGCAGTGTTCT"
 				,"CTCAGAAAACAGCATTAGTGTTTTGCAATCCTATGGGAGGGACAACATTCACACCCTTGTAGCAGA","GTTCTGGAATCCTGTGTGAGGGACAAACATTCAGACCACTGCAGGATTGTTCAGGAATCCTATCTGAGGGACAAACATGCAGACCCTCACAGCAGTGTTCT"));
-		
+
 		BLATRecord r = new BLATRecord.Builder("52	4	0	0	0	0	1	1	+	GL000219.1_165002_true_+	66	9	65	GL000219.1	179198	165421	165478	2	36,20,	9,45,	165421,165458,").build();
-		
+
 		assertEquals(0, b.getMateBreakpoint());
         assertTrue(b.findMateBreakpoint(r));
 		assertEquals(165478, b.getMateBreakpoint());
 		assertEquals("GL000219.1", b.getMateReference());
-		
+
 		/*
 		 * try and match to another blat record - aligned by the tiled aligner of course...
 		 */
@@ -198,9 +198,9 @@ READ:GTTCTGGAATCCTGTGTGAGGGACAAACATTCAGACCACTGCAGGATTGTTCAGGAATCCTATCTGAGGGACAAA
         assertTrue(b.findMateBreakpoint(r2));
 		assertEquals(165479, b.getMateBreakpoint());			// out by 1
 		assertEquals("GL000219.1", b.getMateReference());
-		assertEquals("GL000219.1_165002_true_+", b.getName());
+		assertEquals("GL000219.1_xxx_165002_xxx_true_xxx_+", b.getName());
 	}
-	
+
 	@Test
 	public void matchBreakpoint2() throws Exception {
 		/*
@@ -230,7 +230,7 @@ READ:AGCCACCCTTTCACCCAGGTGCTCTGTCACAGGGAGATGAGAGTTTTATCTATAAGCCTCTGACTGGGGCTGCTG
 		b.setConsensusRead(new ConsensusRead(">clipContigFor,fullclip_ST-E00104:642:HF55MALXX:5:1121:3285:7814:00587a9e-66fc-4fd2-a972-eee4cbaf9613,fullclip_ST-E00104:642:HF55MALXX:3:1222:24779:64808:30a4cb83-388a-48a6-84e4-9e82f3ec8df5,fullclip_ST-E00104:642:HF55MALXX:5:1123:13941:59429:00587a9e-66fc-4fd2-a972-eee4cbaf9613,fullclip_ST-E00104:642:HF55MALXX:4:1219:29264:26835:cd63589e-70c3-4c57-b11c-4bb05ca22592,fullclip_ST-E00129:529:HF5FTALXX:5:2122:12388:59727:71b40638-002b-4c7b-8a66-3b6209527a93"
 				,"AGCCACCCTTTCACCCAGGTGCTCTGTCACAGGGAGATGAGAGTTTTATCTATAAGCCTCTGACTGGGGCTGCTGCCTTTCTTTCAGAGATGGCTTGCCCAGAGAGGAGGAATCTAGAGAGGCAGTCTGGCTACAGTGGCCAGTCAGAACTTCCAGGTGGCTTTG"
 				,"CAGTCAGAACTTCCAGGTGGCTTTG","AGCCACCCTTTCACCCAGGTGCTCTGTCACAGGGAGATGAGAGTTTTATCTATAAGCCTCTGACTGGGGCTGCTGCCTTTCTTTCAGAGATGGCTTGCCCAGAGAGGAGGAATCTAGAGAGGCAGTCTGGCTACAGTGGC"));
-		
+
 		/*
 		 * try and match to another blat record - aligned by the tiled aligner of course...
 		 */
@@ -238,13 +238,13 @@ READ:AGCCACCCTTTCACCCAGGTGCTCTGTCACAGGGAGATGAGAGTTTTATCTATAAGCCTCTGACTGGGGCTGCTG
         assertTrue(b.findMateBreakpoint(r2));
 		assertEquals(18918920, b.getMateBreakpoint());			// out by 1
 		assertEquals("chr11", b.getMateReference());
-		assertEquals("chr9_25061047_false_+", b.getName());
+		assertEquals("chr9_xxx_25061047_xxx_false_xxx_+", b.getName());
 	}
-	
+
 	@Test
 	public void findMateBreakpointIsTrueTA() throws Exception {
 		breakpoint = TestUtil.getBreakpoint(true, true, 20, false);
-		
+
 		String value = "42	1	0	0	0	0	0	0	+	name	59	0	43	chr10	135534747	89700259	89700301	1	42	1	89700259";
 		String[] values =value.split("\t");
 		BLATRecord tiledAlignerBlatRecord = new BLATRecord.Builder(values).build();
@@ -255,7 +255,7 @@ READ:AGCCACCCTTTCACCCAGGTGCTCTGTCACAGGGAGATGAGAGTTTTATCTATAAGCCTCTGACTGGGGCTGCTG
 		assertEquals(89700301, breakpoint.getMateBreakpoint());
 		assertEquals("chr10:chr10", breakpoint.getReferenceKey());
 	}
-	
+
 	@Test
 	public void addClip() throws Exception {
 		Breakpoint b = new Breakpoint(25061047, "chr9", false, 20, 50);
@@ -267,7 +267,7 @@ READ:AGCCACCCTTTCACCCAGGTGCTCTGTCACAGGGAGATGAGAGTTTTATCTATAAGCCTCTGACTGGGGCTGCTG
 		 */
 		b.addTumourClip(new Clip("ST-E00104:642:HF55MALXX:5:1121:3285:7814:00587a9e-66fc-4fd2-a972-eee4cbaf9613,chr9,25061047,+,right,CACCCAGGTGCTCTGTCACAGGGAGATGAGAGTTTTATCTATAAGCCTCAGAACTTCCAGGTGGCT,CAGTCAGAGGTGGCT,CACCCAGGTGCTCTTACAGTGGC"));
 		assertEquals(1, b.getClipsSize());
-		
+
 		/*
 		 * add in a normal
 		 */
@@ -276,31 +276,31 @@ READ:AGCCACCCTTTCACCCAGGTGCTCTGTCACAGGGAGATGAGAGTTTTATCTATAAGCCTCTGACTGGGGCTGCTG
 		b.addNormalClip(new Clip("ST-E00104:642:HF55MALXX:5:1121:3285:7814:00587a9e-66fc-4fd2-a972-eee4cbaf9613,chr9,25061047,+,right,CACCCAGGTGCTCTGTCACAGGGAGATGAGAGTTTTATCTATAAGCCTCAGAACTTCCAGGTGGCT,CAGTCAGAGGTGGCT,CACCCAGGTGCTCTTACAGTGGC"));
 		assertEquals(2, b.getClipsSize());
 	}
-	
+
 	@Test
 	public void testDefineBreakpointNoPassesFilterClipSizeFilter() throws Exception {
 		breakpoint = TestUtil.getBreakpoint(true, true, 20, false);
 		assertFalse(breakpoint.defineBreakpoint(10, false, null));
 	}
-	
+
 	@Test
 	public void testDefineBreakpointNoPassesFilterConsensusFilter() throws Exception {
 		breakpoint = TestUtil.getBreakpoint(true, true, 100, false);
 		assertFalse(breakpoint.defineBreakpoint(3, false, null));
 	}
-	
+
 	@Test
 	public void testDefineBreakpointNoPassesHighNCountFilter() throws Exception {
 		breakpoint = TestUtil.getBreakpoint(true, true, 20, true);
 		assertFalse(breakpoint.defineBreakpoint(3, false, null));
 	}
-	
+
 	@Test
 	public void testFindMateBreakpointIsTrue() throws Exception {
 		String value = "48\t1\t0\t0\t2\t0\t3\t0\t+\tchr10-89712341-true-pos\t66\t0\t48\tchr10\t135534747\t89700251\t89700299\t1\t48,\t0,\t89700251,";
 		String[] values =value.split("\t");
 		BLATRecord record = new BLATRecord.Builder(values).build();
-		
+
 		breakpoint = TestUtil.getBreakpoint(true, false, 20, false);
 		assertTrue(breakpoint.findMateBreakpoint(record));
 		assertEquals(QSVUtil.PLUS, breakpoint.getMateStrand());
@@ -308,33 +308,33 @@ READ:AGCCACCCTTTCACCCAGGTGCTCTGTCACAGGGAGATGAGAGTTTTATCTATAAGCCTCTGACTGGGGCTGCTG
 		assertEquals(89700299, breakpoint.getMateBreakpoint());
 		assertEquals("chr10:chr10", breakpoint.getReferenceKey());
 	}
-	
+
 	@Test
 	public void testFindMateBreakpointIsTrueWithNoChr() throws Exception {
 		String value = "48\t1\t0\t0\t2\t0\t3\t0\t+\t10-89712341-true-pos\t66\t0\t48\tchr10\t135534747\t89700251\t89700299\t1\t48,\t0,\t89700251,";
 		String[] values =value.split("\t");
 		BLATRecord record = new BLATRecord.Builder(values).build();
-		
+
 		breakpoint = TestUtil.getBreakpointNoChr(true, false, 20);
         assertTrue(breakpoint.findMateBreakpoint(record));
-		
+
 		assertEquals(QSVUtil.PLUS, breakpoint.getMateStrand());
 		assertEquals("chr10", breakpoint.getMateReference());
 		assertEquals(89700299, breakpoint.getMateBreakpoint());
 		assertEquals("10:chr10", breakpoint.getReferenceKey());
 	}
-	
+
 	@Test
 	public void testFindMateBreakpointWithReordering() throws Exception {
 		String value = "48\t1\t0\t0\t2\t0\t3\t0\t+\tchr10-89712341-true-pos\t66\t0\t48\tchr7\t135534747\t89700251\t89700299\t1\t48,\t0,\t89700251,";
 		String[] values =value.split("\t");
 		BLATRecord record = new BLATRecord.Builder(values).build();
-		
+
 		breakpoint = TestUtil.getBreakpoint(false, false, 20, false);
 		assertTrue(breakpoint.findMateBreakpoint(record));
 		assertEquals("chr7:chr10", breakpoint.getReferenceKey());
 	}
-	
+
 	@Test
 	public void calculateConsensusActual() throws Exception {
 		breakpoint = TestUtil.getBreakpoint(true, true, 20, false);
@@ -350,7 +350,7 @@ READ:AGCCACCCTTTCACCCAGGTGCTCTGTCACAGGGAGATGAGAGTTTTATCTATAAGCCTCTGACTGGGGCTGCTG
 		assertEquals("TTACACAAAGAGATTATATGACTTAGGACAGGTTGATCTTTGCAGATCTGTTCGTTTTGTGAAACAAGGTCTCGATCTGTTGCCTAT", Breakpoint.calculateConsensus(breakpoint.getStrand(), breakpoint.getBreakpointConsenus().length(), false, breakpoint.getTumourClips(), breakpoint.getNormalClips(), breakpoint.isGermline()));
 		assertEquals("NNNNNNNNNNNNNNNNNNNNNCCCTGCCCTAAGAGCAGCAAATTGCTGAACTCCTCTGGTGGACCTCTTACACAAAGTATAATCTC", Breakpoint.calculateConsensus(breakpoint.getStrand(), breakpoint.getBreakpointConsenus().length(), true, breakpoint.getTumourClips(), breakpoint.getNormalClips(), breakpoint.isGermline()));
 	}
-	
+
 	@Test
 	public void calculate() throws Exception {
 		breakpoint = TestUtil.getBreakpoint(true, true, 20, false);
@@ -358,7 +358,7 @@ READ:AGCCACCCTTTCACCCAGGTGCTCTGTCACAGGGAGATGAGAGTTTTATCTATAAGCCTCTGACTGGGGCTGCTG
 		int posLength = 0;
 		int negReadLength = 0;
 		int posReadLength = 0;
-		
+
 		for (Clip c: breakpoint.getTumourClips()) {
 			if (QSVUtil.PLUS == c.getStrand()) {
 				posLength = Math.max(posLength, c.getLength());
@@ -370,7 +370,7 @@ READ:AGCCACCCTTTCACCCAGGTGCTCTGTCACAGGGAGATGAGAGTTTTATCTATAAGCCTCTGACTGGGGCTGCTG
 		}
 		if (breakpoint.isGermline()) {
 			for (Clip c: breakpoint.getNormalClips()) {
-				
+
 				if (QSVUtil.PLUS == c.getStrand()) {
 					posLength = Math.max(posLength, c.getLength());
 					posReadLength = Math.max(posReadLength, c.getReferenceSequence().length());
@@ -384,7 +384,7 @@ READ:AGCCACCCTTTCACCCAGGTGCTCTGTCACAGGGAGATGAGAGTTTTATCTATAAGCCTCTGACTGGGGCTGCTG
         assert cr != null;
         assertEquals("AAAGATCAACCTGTCCTAAGTCATATAATCTCTTTGTGTAAGAGATTATACTTTGTGTAAGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAGGGCAGGGATCAATTCCTTAATATCTTAGGAAGACTAGGTATTGACAGTAAT", cr.getSequence());
 	}
-	
+
 	@Test
 	public void calculateClipConsensus() throws Exception {
 		Set<Clip> testClips = new HashSet<>();
@@ -395,9 +395,9 @@ READ:AGCCACCCTTTCACCCAGGTGCTCTGTCACAGGGAGATGAGAGTTTTATCTATAAGCCTCTGACTGGGGCTGCTG
 		controlClips.add(new Clip("HWI-ST1240:47:D12NAACXX:5:2311:7722:24906:20110221052813657,chr10,89712341,+,left,TCTCTTTGTGTAAGAGATTATACTTTGTGTAAGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAGGGCAGGGATCAATTCCTTAATATCTTAGGA,TCTCTTTGTGTAAGAGATTATACTTTGTGTA,AGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAGGGCAGGGATCAATTCCTTAATATCTTAGGA"));
 		controlClips.add(new Clip("HWI-ST1240:47:D12NAACXX:7:2210:12278:86346:20110221052813657,chr10,89712341,+,left,ACTTTGTGTAAGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAGGGCAGGGATCAATTCCTTAATATCTTAGGAAGACTAGGTATTGACAGTAAT,ACTTTGTGTA,AGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAGGGCAGGGATCAATTCCTTAATATCTTAGGAAGACTAGGTATTGACAGTAAT"));
 		controlClips.add(new Clip("HWI-ST1240:47:D12NAACXX:4:2105:19785:71299:20110221052813657,chr10,89712341,+,left,AAAGATCAACCTGTCCTAAGTCATATAATCTCTTTGTGTAAGAGATTATACTTTGTGTAAGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAGGG,AAAGATCAACCTGTCCTAAGTCATATAATCTCTTTGTGTAAGAGATTATACTTTGTGTA,AGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAGGG"));
-		
+
 		ConsensusRead cr = Breakpoint.calculateClipConsensus(0, testClips, controlClips, true, true, 20, true, 6, 0);
-		
+
 		/*
 		 * >consensusread
 FULL:AAAGATCAACCTGTCCTAAGTCATATAATCTCTTTGTGTAAGAGATTATACTTTGTGTAAGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAGGGCAGGGATCAATTCCTTAATATCTTAGGAAGACTAGGTATTGACAGTAAT
@@ -409,7 +409,7 @@ READ:AGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAGGGCAGGGATCAATTCCTTAATATCTTAGGAAGACT
 		assertEquals("AGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAGGGCAGGGATCAATTCCTTAATATCTTAGGAAGACTAGGTATTGACAGTAAT", cr.getReferenceSequence());
 		assertEquals("AAAGATCAACCTGTCCTAAGTCATATAATCTCTTTGTGTAAGAGATTATACTTTGTGTAAGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAGGGCAGGGATCAATTCCTTAATATCTTAGGAAGACTAGGTATTGACAGTAAT", cr.getSequence());
 	}
-	
+
 	@Test
 	public void calculateConsensus() {
 		assertEquals("A", Breakpoint.getBaseCountString(setUpBases(1,0,0,0,0)));
@@ -420,7 +420,7 @@ READ:AGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAGGGCAGGGATCAATTCCTTAATATCTTAGGAAGACT
 		assertEquals("N", Breakpoint.getBaseCountString(setUpBases(1,1,0,0,0)));
 		assertEquals("A", Breakpoint.getBaseCountString(setUpBases(2,1,0,0,0)));
 	}
-	
+
 	@Test
 	public void calculateStrand() throws QSVException {
 		assertStrand(QSVUtil.PLUS, QSVUtil.PLUS, false, 2,0);
@@ -428,7 +428,7 @@ READ:AGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAGGGCAGGGATCAATTCCTTAATATCTTAGGAAGACT
 		assertStrand(QSVUtil.PLUS, QSVUtil.PLUS, true, 4,0);
 		assertStrand(QSVUtil.MINUS, QSVUtil.MINUS, true, 0, 4);
 	}
-	
+
 	@Test
 	public void testCompare() {
 		breakpoint = new Breakpoint(1, "reference", true, 1, 1);
@@ -438,7 +438,7 @@ READ:AGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAGGGCAGGGATCAATTCCTTAATATCTTAGGAAGACT
 		assertNull(breakpoint.compare("chr1", 12356));
 		assertEquals(Integer.valueOf(12350), breakpoint.compare("chr1", 12350));
 	}
-	
+
 	@Test
 	public void compare() {
 		assertEquals(OptionalInt.of(0), Breakpoint.compare("", 0, "", 0));
@@ -453,12 +453,12 @@ READ:AGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAGGGCAGGGATCAATTCCTTAATATCTTAGGAAGACT
 		assertEquals(OptionalInt.empty(), Breakpoint.compare("chr1", 32, "chr1", 21));
 		assertEquals(OptionalInt.empty(), Breakpoint.compare("chr2", 10, "chr1", 20));
 	}
-	
+
 	private void assertStrand(char strand1, char strand2, boolean isGermline,
 			int posStrandCount, int negStrandCount) throws QSVException {
-		breakpoint = new Breakpoint(1, "reference", true, 1, 1);	
+		breakpoint = new Breakpoint(1, "reference", true, 1, 1);
 		HashSet<Clip> set = new HashSet<>();
-		set.add(new Clip("test,chr10,89712341,"+strand1+",left,ACTTTGAAAAAACAGTAATTAA,ACTTTGAAAAAACAGTAATT,AA"));		
+		set.add(new Clip("test,chr10,89712341,"+strand1+",left,ACTTTGAAAAAACAGTAATTAA,ACTTTGAAAAAACAGTAATT,AA"));
 		set.add(new Clip("test2,chr10,89712341,"+strand2+",left,ACTTTGAAAAAACAGTAATTAA,ACTTTGAAAAAACAGTAATT,AA"));
 		for (Clip c : set) {
 			breakpoint.addTumourClip(c);
@@ -466,7 +466,7 @@ READ:AGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAGGGCAGGGATCAATTCCTTAATATCTTAGGAAGACT
 		if (isGermline) {
 			breakpoint.setGermline(true);
 			set.clear();
-			set.add(new Clip("test3,chr10,89712341,"+strand1+",left,ACTTTGAAAAAACAGTAATTAA,ACTTTGAAAAAACAGTAATT,AA"));		
+			set.add(new Clip("test3,chr10,89712341,"+strand1+",left,ACTTTGAAAAAACAGTAATTAA,ACTTTGAAAAAACAGTAATT,AA"));
 			set.add(new Clip("test4,chr10,89712341,"+strand2+",left,ACTTTGAAAAAACAGTAATTAA,ACTTTGAAAAAACAGTAATT,AA"));
 			for (Clip c : set) {
 				breakpoint.addNormalClip(c);
@@ -477,13 +477,13 @@ READ:AGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAGGGCAGGGATCAATTCCTTAATATCTTAGGAAGACT
 		assertEquals(posStrandCount, breakpoint.getPosStrandCount());
 		assertEquals(negStrandCount, breakpoint.getNegStrandCount());
 	}
-	
+
 	@Test
 	public void testConsensusRead() throws Exception {
 		breakpoint = new Breakpoint(1, "reference", true, 1, 1);
 		breakpoint.setStrand(QSVUtil.PLUS);
 		breakpoint.setConsensusRead(new ConsensusRead("test", "ACTTTGAAAAAACAGTAATTAA","ACTTTGAAAAAACAGTAATT","AA"));
-		
+
 		assertEquals("ACTTTGAAAAAACAGTAATTAA", breakpoint.getCompleteConsensus());
 		assertEquals("ACTTTGAAAAAACAGTAATT", breakpoint.getMateConsensus());
 		assertEquals("AA", breakpoint.getBreakpointConsenus());
@@ -492,7 +492,7 @@ READ:AGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAGGGCAGGGATCAATTCCTTAATATCTTAGGAAGACT
 		assertEquals("ACTTTGAAAAAACAGTAATT", breakpoint.getMateConsensus());
 		assertEquals("TT", breakpoint.getBreakpointConsenus());
 	}
-	
+
 	@Test
 	public void belowMinInsertSizeSameBP() {
 		// same bp and mate bp
@@ -512,7 +512,7 @@ READ:AGAGGTCCACCAGAGGAGTTCAGCAATTTGCTGCTCTTAGGGCAGGGATCAATTCCTTAATATCTTAGGAAGACT
         assertTrue(Breakpoint.belowMinInsertSize(0, 2, 2));
         assertTrue(Breakpoint.belowMinInsertSize(2, 1, 2));
 	}
-	
+
 	private int[][] setUpBases(int a, int b, int c, int d, int e) {
 		int[][] bases = new int[1][5];
 		bases[0][0] = a;

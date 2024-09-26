@@ -161,6 +161,21 @@ public class TiledAlignerUtilTest {
 		assertEquals(0, ranges.get(0).getMinimum().intValue());
 		assertEquals(9, ranges.get(0).getMaximum().intValue());
 	}
+
+	@Test
+	public void testSplitString() {
+		String[] array = TiledAlignerUtil.splitString("chr22_xxx_49157941_xxx_false_xxx_+");
+		assertEquals(4, array.length);
+		assertEquals(array[0], "chr22");
+
+		array = TiledAlignerUtil.splitString("chr22_xxx_49157941_xxx_false_xxx_+");
+		assertEquals(4, array.length);
+		assertEquals(array[0], "chr22");
+
+		array = TiledAlignerUtil.splitString("chrUn_KI270448v1_xxx_1_xxx_true_xxx_-");
+		assertEquals(4, array.length);
+		assertEquals(array[0], "chrUn_KI270448v1");
+	}
 	
 	@Test
 	public void binarySearch() {

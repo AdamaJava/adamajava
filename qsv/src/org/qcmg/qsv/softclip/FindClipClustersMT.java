@@ -242,6 +242,7 @@ public class FindClipClustersMT  {
 
 	private void findOverlappingClusters(String referenceKey, List<QSVCluster> records, List<DiscordantPairCluster> clusters, List<SoftClipCluster> clips, boolean translocation) {
 
+
 		if (clusters != null && clips != null) {
 			logger.info(referenceKey + "- number of clusters: "  + clusters.size() + ", number of clips " + clips.size());
 			if (translocation) {
@@ -308,6 +309,8 @@ public class FindClipClustersMT  {
 
 	private void findOverlaps(List<QSVCluster> records, List<DiscordantPairCluster> clusters, List<SoftClipCluster> clips) {
 		Iterator<DiscordantPairCluster> iter = clusters.iterator();
+		//Sort clips
+		Collections.sort(clips);
 
 		// look for matches
 		while (iter.hasNext()) {
@@ -320,23 +323,20 @@ public class FindClipClustersMT  {
 					potentialClip.setHasClusterMatch(true);
 				}
 			}
-
 			records.add(record);			
 			iter.remove();
 		}
 
 		// remaining soft clips
 		int i = 0, size = clips.size();
-		for (SoftClipCluster clip : clips) {			
-
+		for (SoftClipCluster clip : clips) {
 			//already added elsewhere
 			if ( ! clip.hasClipMatch() && ! clip.hasClusterMatch()) {
-
 				QSVCluster record = new QSVCluster(clip, tumourParameters.getSampleId());
 				//find matches
 				for (int j = i + 1; j < size ; j++) {
 					SoftClipCluster clip2 = clips.get(j);
-					if (record.findClipOverlap(clip2)) {
+					if (! clip2.hasClusterMatch() && ! clip2.hasClipMatch() && record.findClipOverlap(clip2)) {
 						clip2.setHasClipMatch(true);
 					}
 				}
@@ -775,6 +775,7 @@ public class FindClipClustersMT  {
 				AbstractQueue<List<QSVCluster>> queueIn = new ConcurrentLinkedQueue<>();
 
 				int listSize = 50;
+
 				for (int i = 0; i < records.size(); i += listSize) {
 					if (((records.size()) - i) < listSize) {						
 						queueIn.add(records.subList(i, records.size()));
@@ -819,6 +820,7 @@ public class FindClipClustersMT  {
 				}
 				int count = rescuedClusters.size();
 				records.clear();
+				
 				qsvRecordWriter.writeTumourSVRecords(rescuedClusters);
 				logger.info("Finished finding split read alignments for "+ key +", number processed: " + count);
 			}
@@ -884,6 +886,7 @@ public class FindClipClustersMT  {
 						List<QSVCluster> records = new ArrayList<>();
 						findOverlappingClusters(referenceKey, records, clusters, clips, true);
 						rescueQSVRecords(referenceKey, records);
+
 						qsvRecordWriter.writeTumourSVRecords(records);
 					} // end else
 				}// end while

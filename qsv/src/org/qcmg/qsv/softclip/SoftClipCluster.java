@@ -12,9 +12,12 @@ import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMRecordIterator;
 import htsjdk.samtools.SamReader;
 import htsjdk.samtools.ValidationStringency;
+import org.qcmg.common.log.QLogger;
+import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qsv.QSVParameters;
 import org.qcmg.qsv.assemble.QSVAssemble;
+import org.qcmg.qsv.splitread.SplitReadContig;
 import org.qcmg.qsv.splitread.UnmappedRead;
 import org.qcmg.qsv.util.QSVConstants;
 import org.qcmg.qsv.util.QSVUtil;
@@ -24,6 +27,7 @@ import java.io.IOException;
 import java.util.*;
 
 public class SoftClipCluster implements Comparable<SoftClipCluster> {
+
 
     final String name;
     Breakpoint leftBreakpointObject;
@@ -196,9 +200,25 @@ public class SoftClipCluster implements Comparable<SoftClipCluster> {
     }
 
     @Override
-    public int compareTo(SoftClipCluster o) {
-        return this.name.compareTo(o.getName());
+    public int compareTo(SoftClipCluster other) {
+        int result = this.leftReference.compareTo(other.leftReference);
+        if (result != 0) return result;
+
+        result = this.rightReference.compareTo(other.rightReference);
+        if (result != 0) return result;
+
+        result = this.leftBreakpoint.compareTo(other.leftBreakpoint);
+        if (result != 0) return result;
+
+        result = this.rightBreakpoint.compareTo(other.rightBreakpoint);
+        if (result != 0) return result;
+
+        result = Character.compare(this.leftStrand, other.leftStrand);
+        if (result != 0) return result;
+
+        return Character.compare(this.rightStrand, other.rightStrand);
     }
+
 
     public String getName() {
         return name;

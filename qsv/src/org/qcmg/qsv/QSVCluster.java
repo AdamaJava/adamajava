@@ -257,6 +257,8 @@ public class QSVCluster {
 	 * @return true if clip record overlaps by +-50bp
 	 */
 	public boolean findClipOverlap(SoftClipCluster clipRecord) {
+
+
 		int potentialLeftStart = clipRecords.getFirst().getLeftBreakpoint();
 		int potentialLeftEnd =  clipRecords.getFirst().getLeftBreakpoint();
 		
@@ -266,6 +268,11 @@ public class QSVCluster {
 		
 		for (int i=1, size = clipRecords.size() ; i < size ; i++) {
 			SoftClipCluster clip = clipRecords.get(i);
+			if ( ! clipRecord.getMutationType().equals(clip.getMutationType())
+					&& ! clipRecord.getOrientationCategory().equals(clip.getOrientationCategory())) {
+				return false;
+			}
+
 			if (clip.getLeftBreakpoint() < potentialLeftStart) {
 				potentialLeftStart = clip.getLeftBreakpoint();
 			}
@@ -280,12 +287,12 @@ public class QSVCluster {
 				potentialRightEnd = clip.getRightBreakpoint();
 			}
 		}
-		
+
 		if (clipRecord.getLeftBreakpoint() >= (potentialLeftStart - 50)
 				&& clipRecord.getLeftBreakpoint() <= (potentialLeftEnd + 50) &&
 				clipRecord.getRightBreakpoint() >= (potentialRightStart - 50) 
 				&& clipRecord.getRightBreakpoint() <= (potentialRightEnd + 50)) {
-			
+
 			clipRecords.add(clipRecord);
 			if (clipRecord.isGermline()) {
 				isGermline = true;
