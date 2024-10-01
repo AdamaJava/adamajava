@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static htsjdk.samtools.SAMUtils.MAX_PHRED_SCORE;
+import static htsjdk.samtools.util.SequenceUtil.getSamReadNameFromFastqHeader;
 import static org.junit.Assert.*;
 
 public class FastqToSamWithHeadersTest {
@@ -116,6 +117,19 @@ public class FastqToSamWithHeadersTest {
         assertEquals("/aa", fastqToSam.getBaseName("/aa", "/aa" , freader1, freader2));
         assertEquals("aa/", fastqToSam.getBaseName("aa/", "aa/" , freader1, freader2));
         assertEquals("ab/c", fastqToSam.getBaseName("ab/c", "ab/c", freader1, freader2));
+        assertEquals("@ST-E00104:647:HFNMWALXX:4:1101:12357:1063", fastqToSam.getBaseName(getSamReadNameFromFastqHeader("@ST-E00104:647:HFNMWALXX:4:1101:12357:1063 1:N:0:NGGCTATG TB:n+#"), getSamReadNameFromFastqHeader("@ST-E00104:647:HFNMWALXX:4:1101:12357:1063 2:N:0:NGGCTATG TB:nAGA+#--A"), freader1, freader2));
+        assertEquals("@H3CK2CCXY:2:2222:2121145:0", fastqToSam.getBaseName("@H3CK2CCXY:2:2222:2121145:0", "@H3CK2CCXY:2:2222:2121145:0", freader1, freader2));
+    }
+
+    @Test
+    public void getSamReadFromFastqHeader() {
+        assertEquals("@ST-E00104:647:HFNMWALXX:4:1101:12357:1063", getSamReadNameFromFastqHeader("@ST-E00104:647:HFNMWALXX:4:1101:12357:1063 1:N:0:NGGCTATG TB:n+#"));
+        assertEquals("@H3CK2CCXY:2:2222:2121145:0", getSamReadNameFromFastqHeader("@H3CK2CCXY:2:2222:2121145:0"));
+        assertEquals("@V350038332L1C001R00400000275", getSamReadNameFromFastqHeader("@V350038332L1C001R00400000275/1"));
+        assertEquals("@V350038332L1C001R00400000275", getSamReadNameFromFastqHeader("@V350038332L1C001R00400000275/2"));
+        assertEquals("@V350038332L1C001R00400000275/3", getSamReadNameFromFastqHeader("@V350038332L1C001R00400000275/3"));
+        assertEquals("@V350038332L1C001R00400000275/3", getSamReadNameFromFastqHeader("@V350038332L1C001R00400000275/3/2/1"));
+        assertEquals("@V350038332L1C001R00400000275", getSamReadNameFromFastqHeader("@V350038332L1C001R00400000275/2/1"));
     }
 
     @Test
@@ -141,11 +155,11 @@ public class FastqToSamWithHeadersTest {
             Assert.fail("Should have thrown an exception");
         } catch (PicardException ignored) {}
         try {
-            fastqToSam.getBaseName("aa/1", "aa/1" , freader1, freader2);
+            fastqToSam.getBaseName("aa/4", "aa/5" , freader1, freader2);
             Assert.fail("Should have thrown an exception");
         } catch (PicardException ignored) {}
         try {
-            fastqToSam.getBaseName("aa/2", "aa/2" , freader1, freader2);
+            fastqToSam.getBaseName("aa/2", "aa/1" , freader1, freader2);
             Assert.fail("Should have thrown an exception");
         } catch (PicardException ignored) {}
     }

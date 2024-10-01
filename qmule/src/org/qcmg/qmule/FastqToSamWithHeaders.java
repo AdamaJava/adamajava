@@ -18,6 +18,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static htsjdk.samtools.util.SequenceUtil.getSamReadNameFromFastqHeader;
+
 /**
      * Converts a FASTQ file to an unaligned BAM or SAM file.
      * <p>
@@ -205,36 +207,6 @@ public class FastqToSamWithHeaders extends CommandLineProgram {
 
     private static final SolexaQualityConverter solexaQualityConverter = SolexaQualityConverter.getSingleton();
 
-    /**
-     * Looks at fastq input(s) and attempts to determine the proper quality format
-     *
-     * Closes the reader(s) by side effect
-     *
-     * @param reader1 The first fastq input
-     * @param reader2 The second fastq input, if necessary. To not use this input, set it to null
-     * @param expectedQuality If provided, will be used for sanity checking. If left null, autodetection will occur
-     */
-    public static FastqQualityFormat determineQualityFormat(final FastqReader reader1, final FastqReader reader2, final FastqQualityFormat expectedQuality) {
-        final QualityEncodingDetector detector = new QualityEncodingDetector();
-
-        if (reader2 == null) {
-            detector.add(QualityEncodingDetector.DEFAULT_MAX_RECORDS_TO_ITERATE, reader1);
-        } else {
-            detector.add(QualityEncodingDetector.DEFAULT_MAX_RECORDS_TO_ITERATE, reader1, reader2);
-            reader2.close();
-        }
-
-        reader1.close();
-
-        final FastqQualityFormat qualityFormat =  detector.generateBestGuess(QualityEncodingDetector.FileContext.FASTQ, expectedQuality);
-        if (detector.isDeterminationAmbiguous()) {
-            LOG.warn("Making ambiguous determination about fastq's quality encoding; more than one format possible based on observed qualities.");
-        }
-        LOG.info(String.format("Auto-detected quality format as: %s.", qualityFormat));
-
-        return qualityFormat;
-    }
-
 
     /**
      * Get a list of FASTQs that are sequentially numbered based on the first (base) fastq.
@@ -362,7 +334,7 @@ public class FastqToSamWithHeaders extends CommandLineProgram {
         final ProgressLogger progress = new ProgressLogger(LOG);
         for ( ; freader.hasNext()  ; readCount++) {
             final FastqRecord frec = freader.next();
-            final String frecName = SequenceUtil.getSamReadNameFromFastqHeader(frec.getReadName());
+            final String frecName = getSamReadNameFromFastqHeader(frec.getReadName());
             final SAMRecord srec = createSamRecord(writer.getFileHeader(), frecName , frec, false) ;
             srec.setReadPairedFlag(false);
             writer.addAlignment(srec);
@@ -380,8 +352,8 @@ public class FastqToSamWithHeaders extends CommandLineProgram {
             final FastqRecord frec1 = freader1.next();
             final FastqRecord frec2 = freader2.next();
 
-            final String frec1Name = SequenceUtil.getSamReadNameFromFastqHeader(frec1.getReadName());
-            final String frec2Name = SequenceUtil.getSamReadNameFromFastqHeader(frec2.getReadName());
+            final String frec1Name = getSamReadNameFromFastqHeader(frec1.getReadName());
+            final String frec2Name = getSamReadNameFromFastqHeader(frec2.getReadName());
             final String baseName = getBaseName(frec1Name, frec2Name, freader1, freader2);
 
             final SAMRecord srec1 = createSamRecord(writer.getFileHeader(), baseName, frec1, true) ;
@@ -415,8 +387,9 @@ public class FastqToSamWithHeaders extends CommandLineProgram {
         srec.setReadString(frec.getReadString());
         srec.setReadUnmappedFlag(true);
         srec.setAttribute(ReservedTagConstants.READ_GROUP_ID, readGroupName);
-        String additionalHeader = frec.getReadName().replace(baseName, "");
-        if (additionalHeader.length() > 0) {
+        // Optimize additional header handling
+        String additionalHeader = frec.getReadName().substring(baseName.length());
+        if ( ! additionalHeader.isEmpty()) {
             /*
             If this contains the trimmed bases flag (TB:) then put that in a separate tag
              */
@@ -430,13 +403,18 @@ public class FastqToSamWithHeaders extends CommandLineProgram {
                 }
             }
         }
+
+        // Convert and validate quality scores
         final byte[] quals = StringUtil.stringToBytes(frec.getBaseQualityString());
         convertQuality(quals, fqFormat);
-        for (final byte qual : quals) {
-            final int uQual = qual & 0xff;
-            if (uQual < minQ || uQual > maxQ) {
-                throw new PicardException("Base quality " + uQual + " is not in the range " + minQ + ".." +
-                        maxQ + " for read " + frec.getReadName());
+
+        if (fqFormat != FastqQualityFormat.Standard) {
+            for (final byte qual : quals) {
+                final int uQual = qual & 0xff;
+                if (uQual < minQ || uQual > maxQ) {
+                    throw new PicardException("Base quality " + uQual + " is not in the range " + minQ + ".." +
+                            maxQ + " for read " + frec.getReadName());
+                }
             }
         }
         srec.setBaseQualities(quals);
@@ -485,7 +463,8 @@ public class FastqToSamWithHeaders extends CommandLineProgram {
          }
     }
 
-    /** Returns read baseName and asserts correct pair read name format:
+    /**
+     * Returns the read baseName and asserts correct pair read name format:
      * <ul>
      * <li> Paired reads must either have the exact same read names or they must contain at least one "/"
      * <li> and the First pair read name must end with "/1" and second pair read name ends with "/2"
@@ -494,54 +473,64 @@ public class FastqToSamWithHeaders extends CommandLineProgram {
      * </ul>
      */
     String getBaseName(final String readName1, final String readName2, final FastqReader freader1, final FastqReader freader2) {
-        String [] toks = getReadNameTokens(readName1, 1, freader1);
-        final String baseName1 = toks[0] ;
-        final String num1 = toks[1] ;
 
-        toks = getReadNameTokens(readName2, 2, freader2);
-        final String baseName2 = toks[0] ;
-        final String num2 = toks[1];
-
-        if (!baseName1.equals(baseName2)) {
-            throw new PicardException(String.format("In paired mode, read name 1 (%s) does not match read name 2 (%s)", baseName1,baseName2));
+        /*
+        readName1 and readName2 will not end in /1 or /2 as those have been trimmed by the time we are here.
+        if they are the same, return, otherwise, do the check
+         */
+        if ( ! readName1.isEmpty() && readName1.equals(readName2)) {
+            return readName1;
         }
 
-        final boolean num1Blank = StringUtil.isBlank(num1);
-        final boolean num2Blank = StringUtil.isBlank(num2);
-        if (num1Blank || num2Blank) {
-            if(!num1Blank) throw new PicardException(error(freader1,"Pair 1 number is missing (" + readName1 + "). Both pair numbers must be present or neither."));       //num1 != blank and num2   == blank
-            else if(!num2Blank) throw new PicardException(error(freader2, "Pair 2 number is missing (" + readName2 + "). Both pair numbers must be present or neither.")); //num1 == blank and num =2 != blank
-        } else {
-            if (!num1.equals("1")) throw new PicardException(error(freader1,"Pair 1 number must be 1 (" + readName1 + ")"));
-            if (!num2.equals("2")) throw new PicardException(error(freader2,"Pair 2 number must be 2 (" + readName2 + ")"));
+        // Retrieve base name and pair number in one operation to avoid multiple traversals
+        String[] toks1 = breakReadName(readName1, freader1);
+        String[] toks2 = breakReadName(readName2, freader2);
+
+        if (!toks1[0].equals(toks2[0])) {
+            throw new PicardException(String.format("In paired mode, read name 1 (%s) does not match read name 2 (%s)", readName1, readName2));
         }
 
-        return baseName1 ;
+        // Check for the most common scenario and exit early if matched
+        if ("1".equals(toks1[1]) && "2".equals(toks2[1])) {
+            return toks1[0];
+        }
+
+        // Handle the case where either both are null or one is null and the other is not
+        final String num1 = toks1[1];
+        final String num2 = toks2[1];
+
+        if ((num1 == null) != (num2 == null)) {
+            if (num1 != null) {
+                throw new PicardException(error(freader1, "Pair 1 number is missing (" + readName1 + "). Both pair numbers must be present or neither."));
+            } else {
+                throw new PicardException(error(freader2, "Pair 2 number is missing (" + readName2 + "). Both pair numbers must be present or neither."));
+            }
+        } else if (num1 != null) {
+            if (!"1".equals(num1)) {
+                throw new PicardException(error(freader1, "Pair 1 number must be 1 (" + readName1 + ")"));
+            }
+            throw new PicardException(error(freader2, "Pair 2 number must be 2 (" + readName2 + ")"));
+        }
+
+        return toks1[0];
     }
 
-    /** Breaks up read name into baseName and number separated by the last / */
-    private String [] getReadNameTokens(final String readName, final int pairNum, final FastqReader freader) {
-        if(readName.equals("")) throw new PicardException(error(freader,"Pair read name " + pairNum + " cannot be empty: "+readName));
-
-        final int idx = readName.lastIndexOf('/');
-        final String[] result = new String[2];
-
-        if (idx == -1) {
-            result[0] = readName;
-            result[1] = null;
-        } else {
-            result[1] = readName.substring(idx + 1); // should be a 1 or 2
-
-            if(!result[1].equals("1") && !result[1].equals("2")) {    //if not a 1 or 2 then names must be identical
-                result[0] = readName;
-                result[1] = null;
-            }
-            else {
-                result[0] = readName.substring(0, idx); // baseName
-            }
+    /**
+     * Breaks read name into baseName and number in one traversal.
+     * Returns an array containing the baseName (index 0) and number (index 1).
+     */
+    private String[] breakReadName(final String readName, final FastqReader freader) {
+        if (readName.isEmpty()) {
+            throw new PicardException(error(freader, "Pair read name cannot be empty: " + readName));
         }
-
-        return result ;
+        final int idx = readName.lastIndexOf('/');
+        final String[] result = { readName, null };
+        if (idx != -1) {
+            final String num = readName.substring(idx + 1);
+            result[1] = ("1".equals(num) || "2".equals(num)) ? num : null;
+            result[0] = result[1] != null ? readName.substring(0, idx) : readName;
+        }
+        return result;
     }
 
     /** Little utility to give error messages corresponding to line numbers in the input files. */
