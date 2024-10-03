@@ -2,15 +2,15 @@ package org.qcmg.qprofiler2.bam;
 
 import static org.junit.Assert.*;
 
-import java.io.BufferedWriter;
+
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.parsers.ParserConfigurationException;
+
+
 
 import org.qcmg.qprofiler2.summarise.*;
 import org.w3c.dom.Element;
@@ -22,14 +22,15 @@ import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.XmlElementUtils;
 import org.qcmg.picard.BwaPair.Pair;
-import org.qcmg.qprofiler2.bam.BamSummaryReport;
 import org.qcmg.qprofiler2.util.XmlUtils;
+import org.w3c.dom.NodeList;
 
 
 public class BamSummaryReportTest {
-	
+
 	@Rule
-	public  TemporaryFolder testFolder = new TemporaryFolder();
+	public TemporaryFolder testFolder = new TemporaryFolder();
+
 			
 	@Test
 	public void testParseRNameAndPos() throws Exception {
@@ -79,6 +80,8 @@ public class BamSummaryReportTest {
 		assertEquals(1, returnedSummary.getCoverageByRg(rg).size());
 				
 	}
+
+
 			
 	@Test
 	public void testCompareWithSAMUtils() {
@@ -359,12 +362,55 @@ public class BamSummaryReportTest {
 	}
 
 	@Test
+	public void testReadGroupOrder() throws Exception {
+		BamSummaryReport report = new BamSummaryReport(3, false, false);
+		String[] rg = new String[] {"cd90dd75-8a1f-4fd0-a352-0364d8dd5300","69f81d0d-c430-4a6f-9ccd-05ea88b22c1d","374ed445-b8ee-4a1d-9337-f3fdd661f408"};
+		List list= Arrays.asList(rg);
+		report.setReadGroups(Arrays.asList(rg));
+
+		//Before sort
+		assertEquals(list.get(0),"cd90dd75-8a1f-4fd0-a352-0364d8dd5300");
+		assertEquals(list.get(1),"69f81d0d-c430-4a6f-9ccd-05ea88b22c1d");
+		assertEquals(list.get(2),"374ed445-b8ee-4a1d-9337-f3fdd661f408");
+
+		Element root =  XmlElementUtils.createRootElement("root", null);
+		report.setReadGroupSummaries(list);
+ 		report.summaryToXml(root);
+
+		List<String> readGroupNames = getAllReadGroupNames(root);
+		assertTrue(readGroupNames.size() == 3);
+		assertEquals(readGroupNames.get(0),"374ed445-b8ee-4a1d-9337-f3fdd661f408");
+		assertEquals(readGroupNames.get(1),"69f81d0d-c430-4a6f-9ccd-05ea88b22c1d");
+		assertEquals(readGroupNames.get(2),"cd90dd75-8a1f-4fd0-a352-0364d8dd5300");
+
+	}
+
+	public List<String> getAllReadGroupNames(Element root) {
+		List<String> readGroupNames = new ArrayList<>();
+		NodeList bamSummaryList = root.getElementsByTagName("bamSummary");
+		for (int i = 0; i < bamSummaryList.getLength(); i++) {
+			Element bamSummary = (Element) bamSummaryList.item(i);
+			NodeList readGroupsList = bamSummary.getElementsByTagName("readGroups");
+			for (int j = 0; j < readGroupsList.getLength(); j++) {
+				Element readGroups = (Element) readGroupsList.item(j);
+				NodeList readGroupList = readGroups.getElementsByTagName("readGroup");
+				for (int k = 0; k < readGroupList.getLength(); k++) {
+					Element readGroup = (Element) readGroupList.item(k);
+					readGroupNames.add(readGroup.getAttribute("name"));
+				}
+			}
+		}
+		return readGroupNames;
+	}
+	
+	@Test
 	public void unpairedTest() throws ParserConfigurationException {
 		BamSummaryReport report  = new BamSummaryReport(3, false, false);
 		
 		SAMRecord record = new SAMRecord(null);
+
 		record.setReadName("TESTDATA");
-		
+
 		// first read
 		record.setReadBases("ACCCT AACCC CAACC CTAAC CNTAA CCCTA ACCCA AC".replace(" ","").getBytes());		
 		report.parseRecord(record);// unapired		

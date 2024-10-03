@@ -297,33 +297,34 @@ public class BamSummaryReport extends SummaryReport {
 
 	private void createTLen(Element parent) {
 		//ISIZE
-		parent = XmlElementUtils.createSubElement(parent, XmlUtils.READGROUPS);          
-        for (Entry<String, ReadGroupSummary> entry : rgSummaries.entrySet()) {       
-        	// output tLen inside pairSummary, eg. inward, f3f5
-        	entry.getValue().pairTlen2Xml(XmlUtils.createReadGroupNode(parent, entry.getKey()));     	
-        }	
+		parent = XmlElementUtils.createSubElement(parent, XmlUtils.READGROUPS);
+		List<String> sortedKeys = rgSummaries.keySet().stream().sorted().toList();
+		for (String key : sortedKeys) {
+			rgSummaries.get(key).pairTlen2Xml(XmlUtils.createReadGroupNode(parent, key));
+		}
 	}
 
 	private void createRLENGTH(Element parent) {
 		//Read length
 		parent = XmlElementUtils.createSubElement(parent, XmlUtils.READGROUPS);
-		for (Entry<String, ReadGroupSummary> entry : rgSummaries.entrySet()) {
-			// output ReadLength
-			entry.getValue().readLength2Xml(XmlUtils.createReadGroupNode(parent, entry.getKey()));
+		List<String> sortedKeys = rgSummaries.keySet().stream().sorted().toList();
+		for (String key : sortedKeys) {
+			rgSummaries.get(key).readLength2Xml(XmlUtils.createReadGroupNode(parent, key));
 		}
 	}
 	
 	private void createCigar(Element parent) {	
-		parent = XmlElementUtils.createSubElement(parent, XmlUtils.READGROUPS);  
-		for (Entry<String, ReadGroupSummary> entry : rgSummaries.entrySet()) {
-			Element ele = XmlUtils.createMetricsNode(XmlUtils.createReadGroupNode(parent, entry.getKey()), null, 
-       			new Pair<String, Number>(ReadGroupSummary.READ_COUNT,entry.getValue().getCigarReadCount()));
-			
-        	// cigar string from reads including duplicateReads, notProperPairs and unmappedReads but excluding discardedReads (failed, secondary and supplementary).
-        	Map<String, AtomicLong> tallys = new TreeMap<>(new CigarStringComparator());
-        	tallys.putAll(	entry.getValue().getCigarCount());
-        	XmlUtils.outputTallyGroup(ele ,XmlUtils.CIGAR , tallys, true, false);				
-		}		
+		parent = XmlElementUtils.createSubElement(parent, XmlUtils.READGROUPS);
+		List<String> sortedKeys = rgSummaries.keySet().stream().sorted().toList();
+		for (String key : sortedKeys) {
+			Element ele = XmlUtils.createMetricsNode(XmlUtils.createReadGroupNode(parent, key), null,
+					new Pair<String, Number>(ReadGroupSummary.READ_COUNT,rgSummaries.get(key).getCigarReadCount()));
+
+			// cigar string from reads including duplicateReads, notProperPairs and unmappedReads but excluding discardedReads (failed, secondary and supplementary).
+			Map<String, AtomicLong> tallys = new TreeMap<>(new CigarStringComparator());
+			tallys.putAll(	rgSummaries.get(key).getCigarCount());
+			XmlUtils.outputTallyGroup(ele ,XmlUtils.CIGAR , tallys, true, false);
+		}
 	}	
 	
 	private void createRNAME(Element parent) {
@@ -371,12 +372,13 @@ public class BamSummaryReport extends SummaryReport {
 	
 	private void createPOS(Element parent) {
 		parent = XmlElementUtils.createSubElement(parent, XmlUtils.READGROUPS);
-		
-		for (String rg :  rgSummaries.keySet()) {
+
+		List<String> sortedKeys = rgSummaries.keySet().stream().sorted().toList();
+		for (String rg : sortedKeys) {
 			long readCount = rNamePosition.values().stream().mapToLong(x -> x.getTotalCountByRg(rg)).sum();
-			Element ele = XmlUtils.createMetricsNode(XmlUtils.createReadGroupNode(parent, rg)  , null, new Pair<String, Number>(ReadGroupSummary.READ_COUNT, readCount));			
-			rNamePosition.keySet().stream().sorted(new ReferenceNameComparator()).forEach(ref -> 
-				XmlUtils.outputBins(ele, ref, rNamePosition.get(ref).getCoverageByRg(rg), PositionSummary.BUCKET_SIZE));		
+			Element ele = XmlUtils.createMetricsNode(XmlUtils.createReadGroupNode(parent, rg)  , null, new Pair<String, Number>(ReadGroupSummary.READ_COUNT, readCount));
+			rNamePosition.keySet().stream().sorted(new ReferenceNameComparator()).forEach(ref ->
+					XmlUtils.outputBins(ele, ref, rNamePosition.get(ref).getCoverageByRg(rg), PositionSummary.BUCKET_SIZE));
 		}
 	}
 
@@ -463,7 +465,7 @@ public class BamSummaryReport extends SummaryReport {
 		}
 	}
 		
-	private void summaryToXml(Element parent) {
+	public void summaryToXml(Element parent) {
 		Element summaryElement = XmlElementUtils.createSubElement(parent, XmlUtils.BAM_SUMMARY);
 		
 		long discardReads = 0;
@@ -473,17 +475,18 @@ public class BamSummaryReport extends SummaryReport {
 		long noncanonicalBase = 0;
 		long  trimBases = 0,overlappedBase = 0, softClippedBase = 0, hardClippedBase = 0;
 		long  readCount = 0, lostBase = 0; // baseCount = 0,
-		Element rgsElement = XmlElementUtils.createSubElement(summaryElement, XmlUtils.READGROUPS);		
-		for (ReadGroupSummary summary: rgSummaries.values()) {				
+		Element rgsElement = XmlElementUtils.createSubElement(summaryElement, XmlUtils.READGROUPS);
+		List<String> sortedKeys = rgSummaries.keySet().stream().sorted().toList();
+		for (String key : sortedKeys) {
 			try {
-				
+				ReadGroupSummary summary = rgSummaries.get(key);
 				Element rgEle = XmlUtils.createReadGroupNode(rgsElement, summary.getReadGroupId());
 				summary.readSummary2Xml(rgEle);
-				summary.pairSummary2Xml(rgEle); 
+				summary.pairSummary2Xml(rgEle);
 				// presummary
 				lostBase += summary.getDuplicateBase() + summary.getUnmappedBase() + summary.getNotProperPairedBase()
-					+ summary.getTrimmedBase() + summary.getOverlappedBase() + summary.getSoftClippedBase() + summary.getHardClippedBase();
-				maxBases += summary.getReadCount() * summary.getMaxReadLength();						
+						+ summary.getTrimmedBase() + summary.getOverlappedBase() + summary.getSoftClippedBase() + summary.getHardClippedBase();
+				maxBases += summary.getReadCount() * summary.getMaxReadLength();
 				duplicateBase += summary.getDuplicateBase();
 				unmappedBase += summary.getUnmappedBase();
 				noncanonicalBase += summary.getNotProperPairedBase();
@@ -491,11 +494,11 @@ public class BamSummaryReport extends SummaryReport {
 				overlappedBase += summary.getOverlappedBase();
 				softClippedBase += summary.getSoftClippedBase();
 				hardClippedBase += summary.getHardClippedBase();
-				
+
 				discardReads += summary.getDiscardreads();
 				readCount += summary.getReadCount();
 			} catch (Exception e) {
-				logger.warn(e.getMessage()); 
+				logger.warn(e.getMessage());
 			}
 		}
 	
@@ -577,6 +580,12 @@ public class BamSummaryReport extends SummaryReport {
 	/////////////////////////////////////////////////////////////////////////
 	public void setReadGroups(List<String> ids) {
 		readGroupIds = Stream.concat(ids.stream(), readGroupIds.stream()).collect(Collectors.toList()); 		
+	}
+
+	public void setReadGroupSummaries(List<String> ids) {
+		for (String readGroupId : ids) {
+			rgSummaries.put(readGroupId, new ReadGroupSummary(readGroupId, isLongReadBam));
+		}
 	}
 	
 	ConcurrentMap<String, PositionSummary> getRNamePosition() {
