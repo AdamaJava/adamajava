@@ -6,8 +6,10 @@
  */
 package org.qcmg.motif;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -27,11 +29,9 @@ public class MotifCoverageAlgorithm implements Algorithm {
 	
 	final MotifMode mode;
 	
-	 List<String> stageOneMotifs;
-	 int stageOneMotifsSize;
-	 List<String> stageTwoMotifs;
-	 int stageTwoMotifsSize;
-	
+	 Set<String> stageOneMotifs;
+	 Set<String> stageTwoMotifs;
+
 	final int windowSize;
 	
 	final Pattern stageOneRegex;
@@ -41,12 +41,10 @@ public class MotifCoverageAlgorithm implements Algorithm {
 		this.mode = motifs.getMotifMode();
 		
 		if (mode.stageOneString()) {
-			this.stageOneMotifs = motifs.getStageOneMotifs().getMotifs();
-			this.stageOneMotifsSize = stageOneMotifs.size();
+			this.stageOneMotifs = new HashSet<>(motifs.getStageOneMotifs().getMotifs());
 		}
 		if (mode.stageTwoString()) {
-			this.stageTwoMotifs = motifs.getStageTwoMotifs().getMotifs();
-			this.stageTwoMotifsSize = stageTwoMotifs.size();
+			this.stageTwoMotifs = new HashSet<>(motifs.getStageTwoMotifs().getMotifs());
 		}
 		
 		this.stageOneRegex = motifs.getStageOneRegexPattern();
@@ -108,36 +106,44 @@ public class MotifCoverageAlgorithm implements Algorithm {
 		return false;
 	}
 	
+	/**
+	 * Finds and returns the identified stage two motifs in the given read string.
+	 * The search method depends on the processing mode, which could either be
+	 * string matching or regex matching.
+	 *
+	 * @param readString the string to be searched for stage two motifs or patterns
+	 * @return a concatenated string of stage two motifs found, or null if no motifs are found
+	 */
 	String getStageTwoMotifs(String readString) {
 		if ( ! StringUtils.isNullOrEmpty(readString)) {
 			
 			StringBuilder motifs = new StringBuilder();
+			boolean firstAppend = true;
 			if (mode.stageTwoString()) {
-				
-				for (int i = 0 ; i < stageTwoMotifsSize ; i++) {
-					String motif = stageTwoMotifs.get(i);
-					int index = readString.indexOf(motif);
-					if (index >= 0) {
-						
-						if (motifs.length() > 0) {
+				for (String motif : stageTwoMotifs) {
+					if (readString.contains(motif)) {
+						if (!firstAppend) {
 							motifs.append(MotifUtils.M_D);
+						} else {
+							firstAppend = false;
 						}
 						motifs.append(motif);
 					}
 				}
-				
 			} else {
 				
 				Matcher matcher = stageTwoRegex.matcher(readString);
 				while (matcher.find()) {
-					if (motifs.length() > 0) {
+					if (!firstAppend) {
 						motifs.append(MotifUtils.M_D);
+					} else {
+						firstAppend = false;
 					}
 					motifs.append(matcher.group());
 				}
 				
 			}
-			return motifs.length() == 0 ? null : motifs.toString();
+			return motifs.isEmpty() ? null : motifs.toString();
 		} else {
 			return null;
 		}
@@ -157,38 +163,27 @@ public class MotifCoverageAlgorithm implements Algorithm {
 	}
 
 /**
- * For the stage one pass, we don't care about what motif was found, its purely a yes/no, and it yes, we'll do a more thorough search in stage two
- * 
- * @param readString
- * @return
+ * Searches for specified motifs or patterns in the provided string during the first stage of processing.
+ * Performs a search based on whether the current processing mode uses string matching or regex.
+ *
+ * @param readString the string to be searched for motifs or patterns
+ * @return true if a match is found according to the current processing mode, false otherwise
  */
 	boolean stageOneSearch(String readString) {
-		if (StringUtils.isNullOrEmpty(readString)) {
+		if (readString == null || readString.isEmpty()) {
 			return false;
 		}
 		
-		boolean result = false;
-		
 		if (mode.stageOneString()) {
-			
-			for (int i = 0 ; i < stageOneMotifsSize ; i++) {
-				String motif = stageOneMotifs.get(i);
-				int index = readString.indexOf(motif);
-				if (index >= 0) {
-					result = true;
-					break;
+			for (String motif : stageOneMotifs) {
+				if (readString.contains(motif)) {
+					return true;
 				}
 			}
-			
 		} else {		// regex
 			Matcher matcher = stageOneRegex.matcher(readString);
-			if (matcher.find()) {
-				result = true;
-			}
+            return matcher.find();
 		}
-		
-		return result;
+		return false;
 	}
-
-	
 }

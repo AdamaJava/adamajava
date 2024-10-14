@@ -14,6 +14,6 @@ import org.qcmg.common.model.ChrPosition;
 import org.qcmg.motif.util.RegionCounter;
 
 interface Algorithm {
-	public String getName();
-	public boolean applyTo(final SAMRecord read, Map<ChrPosition, RegionCounter> motifRefPositions);
+	String getName();
+	boolean applyTo(final SAMRecord read, Map<ChrPosition, RegionCounter> motifRefPositions);
 }

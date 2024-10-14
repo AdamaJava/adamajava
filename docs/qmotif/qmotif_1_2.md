@@ -256,8 +256,25 @@ Sample XML output from qmotif:
 The output file has 3 sections:
 
 * `<summary>` - the input parameters plus any parameters that were not specified but that have defaults
+  * `<windowSize count="10000"/>` - the size of the genomic windows
+  * `<totalReadCount count="1809130333"/>` - the total number of reads in the input BAM
+  * `<noOfMotifs count="34497"/>` - the total number of motifs found in the input BAM
+  * `<rawUnmapped count="15452"/>` - the number of unmapped reads that passed the stage1 and stage2 filters
+  * `<rawIncludes count="107983"/>` - the number of reads in INCLUDES regions that passed the stage1 and stage2 filters
+  * `<rawGenomic count="214"/>` - the number of reads in GENOMIC regions that passed the stage1 and stage2 filters
+  * `<scaledUnmapped count="8541"/>` - the number of unmapped reads that passed the stage1 and stage2 filters after scaling
+  * `<scaledIncludes count="59687"/>` - the number of reads in INCLUDES regions that passed the stage1 and stage2 filters after scaling
+  * `<scaledGenomic count="118"/>` - the number of reads in GENOMIC regions that passed the stage1 and stage2 filters after scaling
 * `<motifs>` - an entry for each stage2_motif found along with a count of the total number of times the motif was seen
 * `<regions>` - counts of the different motifs seen in each of the regions (INCLUDES, EXCLUDES, GENOMIC, UNMAPPED) where each motif ID relates to one of the motif elements in "motifs"
+
+## Scaling
+The scaled counts are calculated by scaling the totalReadCount to 1 billion.  This is done to allow for easy comparison of the number of motifs found in BAM files with different number of reads.
+So if your BAM has 0.5B reads, all the scaled scores will be double the raw counts and if your BAM has 2B reads, the scaled scores would be half of the raw numbers. 
+We don’t take any account of unmapped reads, secondary alignments etc. when scaling, we just count every read. 
+We take this simple approach because when you are talking about tumours, the correct approach is non-obvious - for example, if we have 3 chromosomes with whole-arm amplifications, how should we take account of that? 
+Clever/correct scaling is left as an exercise for the user as they know their data best. 
+With all of those caveats, qMotif scaled scores correlate very well with wet-lab techniques as we showed in the qMotif paper so we think the simple scaling approach probably works well enough in the majority of cases.
 
 ## BAM
 

@@ -44,12 +44,7 @@ public class SummaryStats {
 	public long getTotalReadCount() {
 		return totalReadCount;
 	}
-	public long getWindowSize() {
-		return windowSize;
-	}
-	public long getCutoff() {
-		return cutoff;
-	}
+
 	public long getUniqueMotifCount() {
 		return uniqueMotifCount;
 	}
@@ -83,9 +78,7 @@ public class SummaryStats {
 	public void setWindowSize(long windowSize) {
 		this.windowSize = windowSize;
 	}
-	public void setCutoff(long cutoff) {
-		this.cutoff = cutoff;
-	}
+
 	public void setUniqueMotifCount(long uniqueMotifCount) {
 		this.uniqueMotifCount = uniqueMotifCount;
 	}

@@ -34,26 +34,19 @@ public class RegionCounter {
 			throw new IllegalArgumentException("Null or empty motif passed to addMotif");
 		}
 		
-		// should we check the type here and only increment if its an incremental type? - I think so
+		// should we check the type here and only increment if it is an incremental type? - I think so
 		if (type.acceptRead(isMapped)) {
-			String [] motifs = new String[] {motif};
-			if (motif.indexOf(MotifUtils.M_D) > -1) {
-				motifs = motif.split(MOTIF_DELIMITER);
-			}
-			if (forwardStrand) {
-				for (String m : motifs) {
-					motifsFS.computeIfAbsent(m, f -> new AtomicInteger()).incrementAndGet();
-				}
-			} else {
-				for (String m : motifs) {
-					motifsRS.computeIfAbsent(m, f -> new AtomicInteger()).incrementAndGet();
-				}
+			Map<String, AtomicInteger> relevantMotifs = forwardStrand ? motifsFS : motifsRS;
+			String[] motifs = motif.indexOf(MotifUtils.M_D) > -1 ? motif.split(MOTIF_DELIMITER) : new String[]{motif};
+
+			for (String m : motifs) {
+				relevantMotifs.computeIfAbsent(m, k -> new AtomicInteger()).incrementAndGet();
 			}
 		}
 	}
 	
 	public boolean hasMotifs() {
-		return motifsFS.size() > 0 || motifsRS.size() > 0;
+		return !motifsFS.isEmpty() || !motifsRS.isEmpty();
 	}
 	
 	public RegionType getType() {

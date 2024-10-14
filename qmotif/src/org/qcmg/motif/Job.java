@@ -9,12 +9,11 @@ package org.qcmg.motif;
 import java.util.Map;
 
 import org.qcmg.common.model.ChrPosition;
-import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.motif.util.RegionCounter;
 
 interface Job {
-	public Map<ChrPosition, RegionCounter> getResults();
-	public void run() throws Exception;
+	Map<ChrPosition, RegionCounter> getResults();
+	void run() throws Exception;
 	@Override
-	public String toString();
+    String toString();
 }

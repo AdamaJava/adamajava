@@ -9,7 +9,7 @@ package org.qcmg.motif;
 import java.io.File;
 import java.util.HashSet;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.LongAdder;
 
 import org.ini4j.Ini;
 import org.qcmg.common.model.ChrPosition;
@@ -23,13 +23,13 @@ import org.qcmg.qbamfilter.query.QueryExecutor;
 public final class Configuration {
 	private final int numberThreads;
 	private final File outputFile;
-	private final HashSet<Pair<File, File>> filePairs = new HashSet<Pair<File, File>>();
+	private final HashSet<Pair<File, File>> filePairs = new HashSet<>();
 	private final QueryExecutor filter;
 	private final Algorithm algorithm;
 	private final LoggerInfo loggerInfo;
 	private final String validation;
-	private final AtomicLong countReadFromInput;
-	private final AtomicLong countReadToCoverage;
+	private final LongAdder countReadFromInput;
+	private final LongAdder countReadToCoverage;
 	private final List<ChrPosition> excludes;
 	private final List<ChrPosition> includes;
 	private final Integer windowSize;
@@ -67,7 +67,7 @@ public final class Configuration {
 			stageTwoMotifs = new Motifs(Boolean.parseBoolean(IniUtils.getEntry(iniFile, MotifConstants.PARAMS, MotifConstants.STAGE_2_STRING_REV_COMP)), s2Motifs.split(Constants.COMMA_STRING));
 		}
 		
-		mAndR = new MotifsAndRegexes(stageOneMotifs, stageOneRegex, stageTwoMotifs, stageTwoRegex, windowSize.intValue());
+		mAndR = new MotifsAndRegexes(stageOneMotifs, stageOneRegex, stageTwoMotifs, stageTwoRegex, windowSize);
 		algorithm = new MotifCoverageAlgorithm(mAndR);
 		
 		// get excludes and includes
@@ -83,7 +83,7 @@ public final class Configuration {
 		inferFilePairings(bamFileNames, baiFileNames);
 
 		if (options.hasNumberThreadsOption()) {
-			numberThreads = options.getNumberThreads().intValue();
+			numberThreads = options.getNumberThreads();
 		} else {
 			numberThreads = 1;
 		}
@@ -96,8 +96,8 @@ public final class Configuration {
 		
 		outputFile = new File(options.getOutputXmlFileName());
 		checkFileExistence();
-		countReadFromInput = new AtomicLong();
-		countReadToCoverage = new AtomicLong();
+		countReadFromInput = new LongAdder();
+		countReadToCoverage = new LongAdder();
 		
 		String includesOnlyModeS = IniUtils.getEntry(iniFile, MotifConstants.PARAMS, MotifConstants.INCLUDES_ONLY_MODE);
 		if (null != includesOnlyModeS) {
@@ -106,20 +106,16 @@ public final class Configuration {
 		
 	}
 	
-	public AtomicLong getInputReadsCount(){
+	public LongAdder getInputReadsCount(){
 		return countReadFromInput;
 	}
 	
-	public AtomicLong getCoverageReadsCount(){
+	public LongAdder getCoverageReadsCount(){
 		return countReadToCoverage;
 	}
 	
 	public int getNumberThreads() {
 		return numberThreads;
-	}
-
-	public File getOutputFile() {
-		return outputFile;
 	}
 
 	public HashSet<Pair<File, File>> getFilePairs() {
