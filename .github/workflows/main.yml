@@ -31,5 +31,5 @@ jobs:
     # Commits the updated version.txt to the repo
     - uses: stefanzweifel/git-auto-commit-action@v4.2.0
       with:
-        github-token: ${{ secrets.CANWOOD_TOKEN_ACTION }}
+        github-token: ${{ secrets.GENOMELOCAL_TOKEN_ACTION }}
         commit_message: Version incremented by Action
