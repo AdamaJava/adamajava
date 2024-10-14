@@ -33,7 +33,6 @@ class CoverageJob implements Job {
 	private final QLogger logger;
 	private final QueryExecutor filter;
 	private final HashSet<File> fileReaders = new HashSet<>();
-//	private final HashSet<SamReader> fileReaders = new HashSet<>();
 	private final Algorithm alg;
 	private final LongAdder counterIn;
 	private final LongAdder counterOut;
@@ -66,8 +65,6 @@ class CoverageJob implements Job {
 		for (final Pair<File, File> pair : filePairs) {
 			File bamFile = pair.left();
 			fileReaders.add(bamFile);
-//			SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile, validation);
-//			fileReaders.add(reader);
 		}
 		logger.debug("Length of sequence to be processed by job '" + cp.toIGVString() + " : " + cp.getLength());
 	}
@@ -108,7 +105,6 @@ class CoverageJob implements Job {
 
 	private void performCoverage() throws Exception {
  		for (final File file : fileReaders) {
-// 		for (final SamReader fileReader : fileReaders) {
 			SamReader fileReader = SAMFileReaderFactory.createSAMFileReader(file, validation);
 			Iterator<SAMRecord> iter = "unmapped".equals(cp.getChromosome()) ? fileReader.queryUnmapped() : fileReader.query(cp.getChromosome(), cp.getStartPosition(), cp.getEndPosition(), true);
 			long recordCounterIn = 0;
