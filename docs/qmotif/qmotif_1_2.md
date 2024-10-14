@@ -1,4 +1,4 @@
-# qmotif v1.2
+# qmotif
 
 `qmotif` searches BAM sequencing records for user-specified nucleotide 
 motifs. It 
