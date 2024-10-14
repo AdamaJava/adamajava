@@ -83,7 +83,7 @@ public class MotifTest {
 				
 		ExpectedException.none();
 		Executor exec = execute("--log " + logFile.getAbsolutePath() + " --input-bam " + bamFile.getAbsolutePath() + " --output-xml " + outputXmlFile.getAbsolutePath() + " --output-bam " + outputBamFile.getAbsolutePath() +  " --ini " + iniFile.getAbsolutePath());
-		assertTrue(0 == exec.getErrCode());
+        assertEquals(0, exec.getErrCode());
 
 		assertTrue(outputXmlFile.exists());
 		assertTrue(outputBamFile.exists());
@@ -130,11 +130,11 @@ public class MotifTest {
  				if ( ! childNode.getClass().toString().equals("class com.sun.org.apache.xerces.internal.dom.DeferredTextImpl")) {
 					Element child =  (Element)children.item(j);
 					if (child.getNodeName().startsWith("totalReadsInThisAnalysis")) {
-						assertEquals(false, child.getAttribute("count").equals("0"));
+                        assertFalse(child.getAttribute("count").equals("0"));
 					}
 					if (child.getNodeName().startsWith(MotifConstants.BASES_CONTAINING_MOTIFS)) {
 						System.out.println("bases containing motifs: " + child.getAttribute("count"));
-						assertEquals(false, child.getAttribute("count").equals("0"));
+                        assertFalse(child.getAttribute("count").equals("0"));
 					}
 				}
 			}
@@ -153,7 +153,7 @@ public class MotifTest {
 		createIncludesInlyIni(includesOnlyINi);
 		
 		Executor exec = execute("--log " + logFile.getAbsolutePath() + " --input-bam " + bamFile.getAbsolutePath() + " --output-xml " + outputXmlFile.getAbsolutePath() + " --output-bam " + outputBamFile.getAbsolutePath() +  " --ini " + includesOnlyINi.getAbsolutePath());
-		assertTrue(0 == exec.getErrCode());
+        assertEquals(0, exec.getErrCode());
 		
 		assertTrue(outputXmlFile.exists());
 		assertTrue(outputBamFile.exists());
@@ -202,10 +202,10 @@ public class MotifTest {
 					if (child.getNodeName().startsWith("scaled")) {
 						assertEquals("-1", child.getAttribute("count"));
 					} else if (child.getNodeName().startsWith("totalReadsInThisAnalysis")) {
-						assertEquals(true, child.getAttribute("count").equals("0"));
+                        assertTrue(child.getAttribute("count").equals("0"));
 					} else if (child.getNodeName().startsWith(MotifConstants.BASES_CONTAINING_MOTIFS)) {
 						System.out.println("bases containing motifs: " + child.getAttribute("count"));
-						assertEquals(true, child.getAttribute("count").equals("0"));
+                        assertTrue(child.getAttribute("count").equals("0"));
 					}
 				}
 			}
@@ -242,21 +242,17 @@ public class MotifTest {
 			builder = factory.newDocumentBuilder();
 			doc = builder.parse(absoluteFile);
 			doc.getDocumentElement().normalize();
-		} catch (ParserConfigurationException e1) {
+		} catch (ParserConfigurationException | SAXException | IOException e1) {
 			e1.printStackTrace();
-		} catch (SAXException se) {
-			se.printStackTrace();
-		} catch (IOException ioe) {
-			ioe.printStackTrace();
 		}
-		return doc;
+        return doc;
 	}
 	
 	public static void createBam(File samFile, File bam) throws IOException {
 		 SAMFileWriterFactory factory = new SAMFileWriterFactory().setCreateIndex(true);
 		 
 		  try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(samFile);
-				SAMFileWriter writer = factory.makeBAMWriter(reader.getFileHeader(), false, bam);	 ) {			 		
+				SAMFileWriter writer = factory.makeBAMWriter(reader.getFileHeader(), false, bam)) {
 			  for (SAMRecord r: reader)  
 				writer.addAlignment(r);				 			 
 		  }		  		  
@@ -266,7 +262,7 @@ public class MotifTest {
         // create sam header and records
         
        
-        try (BufferedWriter out = new BufferedWriter(new FileWriter(samFile));) {
+        try (BufferedWriter out = new BufferedWriter(new FileWriter(samFile))) {
 	        for (final String line : createSamHeader(SortOrder.coordinate)) {
 	            out.write(line + "\n");
 	        }
@@ -288,7 +284,7 @@ public class MotifTest {
 			iniData.add("chr1p	chr1:10001-12464");
 			
 			
-		try (BufferedWriter out = new BufferedWriter(new FileWriter(iniFile));) {
+		try (BufferedWriter out = new BufferedWriter(new FileWriter(iniFile))) {
 			for (final String line : iniData) {
 				out.write(line + "\n");
 			}
@@ -307,8 +303,8 @@ public class MotifTest {
 				"chr1p	chr1:10001-12464"
 				);
 		
-		try (PrintWriter out = new PrintWriter(iniFile);) {
-			iniData.stream().forEach(out::println);
+		try (PrintWriter out = new PrintWriter(iniFile)) {
+			iniData.forEach(out::println);
 		}
 	}
 	

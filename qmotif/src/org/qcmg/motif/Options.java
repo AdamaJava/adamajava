@@ -38,15 +38,15 @@ public final class Options {
 	private final String validation;
 
 	@SuppressWarnings("unchecked")
-	public Options(final String[] args) throws Exception {
+	public Options(final String[] args) {
 		parser.acceptsAll(asList("h", "help"), HELP_DESCRIPTION);
-		parser.acceptsAll(asList("output-xml"), OUTPUT_XML_DESCRIPTION).withRequiredArg().ofType(String.class);
-		parser.acceptsAll(asList( "output-bam"), OUTPUT_BAM_DESCRIPTION).withRequiredArg().ofType(String.class);
-		parser.acceptsAll(asList("input-bam"), INPUT_BAM_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
-		parser.acceptsAll(asList("input-bai"), INPUT_BAI_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
-		parser.acceptsAll(asList("query"), QUERY_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
-		parser.acceptsAll(asList("threads"), NUMBER_THREADS_DESCRIPTION).withRequiredArg().ofType(Integer.class);
-		parser.acceptsAll(asList( "version"), VERSION_DESCRIPTION);
+		parser.acceptsAll(List.of("output-xml"), OUTPUT_XML_DESCRIPTION).withRequiredArg().ofType(String.class);
+		parser.acceptsAll(List.of("output-bam"), OUTPUT_BAM_DESCRIPTION).withRequiredArg().ofType(String.class);
+		parser.acceptsAll(List.of("input-bam"), INPUT_BAM_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
+		parser.acceptsAll(List.of("input-bai"), INPUT_BAI_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
+		parser.acceptsAll(List.of("query"), QUERY_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
+		parser.acceptsAll(List.of("threads"), NUMBER_THREADS_DESCRIPTION).withRequiredArg().ofType(Integer.class);
+		parser.acceptsAll(List.of("version"), VERSION_DESCRIPTION);
 		parser.accepts("log", LOG_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("loglevel", LOG_LEVEL_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("validation", VALIDATION_STRINGENCY_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class); 
@@ -122,7 +122,7 @@ public final class Options {
 	}
 
 	public boolean hasNonOptions() {
-		return 0 != options.nonOptionArguments().size();
+		return !options.nonOptionArguments().isEmpty();
 	}
 
 	public boolean hasNumberThreadsOption() {
@@ -159,7 +159,7 @@ public final class Options {
 		
 	public void detectBadOptions() throws Exception {
 		if (null != options.nonOptionArguments()
-				&& 0 < options.nonOptionArguments().size()) {
+				&& !options.nonOptionArguments().isEmpty()) {
 			throw new Exception("All arguments must be specified as options.");
 		}
 		//Summariser class don't require BAM input 

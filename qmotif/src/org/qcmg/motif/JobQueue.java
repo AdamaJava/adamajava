@@ -9,7 +9,6 @@ package org.qcmg.motif;
 import java.io.File;
 import java.util.AbstractQueue;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -24,7 +23,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.LongAdder;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -61,8 +60,8 @@ public final class JobQueue {
 	private final QueryExecutor filter;
 	private final Algorithm algorithm;
 	private final String validation;
-	private final AtomicLong countIn;
-	private final AtomicLong countOut;
+	private final LongAdder countIn;
+	private final LongAdder countOut;
 	private final List<ChrPosition> includes;
 	private final List<ChrPosition> excludes;
 	private final Integer windowSize;
@@ -97,50 +96,41 @@ public final class JobQueue {
 		// set bam filename in SummaryStats
 		ss.setBamFileName(bamFile.getAbsolutePath());
 		ss.setIncludesOnly(includesOnly);
-		
-		SamReader samReader = SAMFileReaderFactory.createSAMFileReader(bamFile);
-		SAMFileHeader header = samReader.getFileHeader();
-		
-		// set sort order to coordinate
-		header.setSortOrder(SortOrder.coordinate);
-		bamWriterFactory = new SAMWriterFactory(header, false, new File(invariants.getOutputBam()));
-		
-		contigs = new ArrayList<>();
-		
-		logger.info("running with invariants.isIncludesOnlyMode: " + includesOnly);
-		if (includesOnly) {
-			contigs.addAll(includes);
-			boolean addUnmapped = true;
-			// check to see if unmapped is included
-			for (ChrPosition cp : includes) {
- 				if (cp.getChromosome().equals(MotifConstants.UNMAPPED)) {
- 					addUnmapped = false;
- 					break;
- 				}
-			}
-			// don't add unmapped to includes only mode for now...			
-		} else {
-			
-			List<SAMSequenceRecord> bamFileContigs = header.getSequenceDictionary().getSequences();
-			// create a copy of this as we can't modify the original
-			// add in unmapped as this is not usually in the bam header
-			boolean containsUnmapped = false;
-			for (SAMSequenceRecord ssr : bamFileContigs) {
-				if (ssr.getSequenceName().equalsIgnoreCase(MotifConstants.UNMAPPED)) {
-					containsUnmapped = true;
-					break;
+
+		try (SamReader samReader = SAMFileReaderFactory.createSAMFileReader(bamFile)) {
+
+			SAMFileHeader header = samReader.getFileHeader();
+
+			// set sort order to coordinate
+			header.setSortOrder(SortOrder.coordinate);
+			bamWriterFactory = new SAMWriterFactory(header, false, new File(invariants.getOutputBam()));
+
+			contigs = new ArrayList<>();
+
+			logger.info("running with invariants.isIncludesOnlyMode: " + includesOnly);
+			if (includesOnly) {
+				contigs.addAll(includes);
+			} else {
+
+				List<SAMSequenceRecord> bamFileContigs = header.getSequenceDictionary().getSequences();
+				// create a copy of this as we can't modify the original
+				// add in unmapped as this is not usually in the bam header
+				boolean containsUnmapped = false;
+				for (SAMSequenceRecord ssr : bamFileContigs) {
+					if (ssr.getSequenceName().equalsIgnoreCase(MotifConstants.UNMAPPED)) {
+						containsUnmapped = true;
+						break;
+					}
+					contigs.add(new ChrRangePosition(ssr.getSequenceName(), 1, ssr.getSequenceLength()));
 				}
-				contigs.add(new ChrRangePosition(ssr.getSequenceName(), 1, ssr.getSequenceLength()));
-			}
-			if ( ! containsUnmapped) {
-				contigs.add(new ChrRangePosition(MotifConstants.UNMAPPED, 1, 1000 * 1000 * 128));
+				if (!containsUnmapped) {
+					contigs.add(new ChrRangePosition(MotifConstants.UNMAPPED, 1, 1000 * 1000 * 128));
+				}
 			}
 		}
-		
-		
+
 		// and now sort so that the largest is first
-		Collections.sort(contigs, COMPARATOR);
-		
+		contigs.sort(COMPARATOR);
 		execute();
 	}
 
@@ -160,8 +150,8 @@ public final class JobQueue {
 		processJobs(latch);
 		logger.info("All jobs completed");
 		
-		logger.info("total number from input is " + countIn.get());
-		logger.info("total number of reads (satisfied by the query if query provided) count to coverage is " + countOut.get());
+		logger.info("total number from input is " + countIn.longValue());
+		logger.info("total number of reads (satisfied by the query if query provided) count to coverage is " + countOut.longValue());
 		
 		logger.info("Performing final reduce step on results");
 		reduceResults();
@@ -200,7 +190,7 @@ public final class JobQueue {
 		map.computeIfAbsent(key, v -> new AtomicInteger()).addAndGet(value.get());
 	}
 
-	private void reduceResults() throws Exception {
+	private void reduceResults() {
 		
 		// print out the motifs for users convenience
 		int motifIndex = 1;
@@ -214,7 +204,7 @@ public final class JobQueue {
 		List<String> resultsList = new ArrayList<>();
 		
 		List<ChrPosition> orderedResultsList = new ArrayList<>(results.keySet());
-		Collections.sort(orderedResultsList, COMPARATOR);
+		orderedResultsList.sort(COMPARATOR);
 		
 		Map<String, AtomicInteger> allMotifs = new HashMap<>();
 		
@@ -240,7 +230,7 @@ public final class JobQueue {
 						// add to allMotifs if not already there
 						addToMap(allMotifs, entry.getKey(), entry.getValue());
 						noOfMotifHitsFS += entry.getValue().get();
-						basesCoveredByMotifs += entry.getKey().length() * entry.getValue().intValue();
+						basesCoveredByMotifs += (long) entry.getKey().length() * entry.getValue().intValue();
 					}
 				}
 				if ( ! rc.getMotifsReverseStrand().isEmpty()) {
@@ -250,7 +240,7 @@ public final class JobQueue {
 						// add to allMotifs if not already there
 						addToMap(allMotifs, entry.getKey(), entry.getValue());
 						noOfMotifHitsRS += entry.getValue().get();
-						basesCoveredByMotifs += entry.getKey().length() * entry.getValue().intValue();
+						basesCoveredByMotifs += (long) entry.getKey().length() * entry.getValue().intValue();
 					}
 				}
 				
@@ -286,7 +276,7 @@ public final class JobQueue {
 		}
 		
 		long factor = 1000 * 1000 * 1000;
-		long totalReadCount = countIn.get();
+		long totalReadCount = countIn.longValue();
 		
 		ss.setWindowSize(windowSize);
 		ss.setResults(results);
@@ -338,13 +328,11 @@ public final class JobQueue {
 	private class Writing implements Runnable {
 		
 		private final AbstractQueue<SAMRecord> queue;
-		private final Thread mainThread;
-		private final CountDownLatch latch;
+        private final CountDownLatch latch;
 
 		public Writing(AbstractQueue<SAMRecord> q,  Thread mainThread, CountDownLatch latch) {
 			queue = q;
-			this.mainThread = mainThread;
-			this.latch = latch;
+            this.latch = latch;
 		}
 
 		@Override
@@ -352,7 +340,7 @@ public final class JobQueue {
 			boolean run = true;
 			long count = 0;
 			SAMRecord record;
-			try (SAMFileWriter writer= bamWriterFactory.getWriter()) {
+			try (SAMFileWriter writer = bamWriterFactory.getWriter()) {
 				while (run) {
 					if ((record = queue.poll()) == null) {
 						if (latch.getCount() == 0) {
@@ -366,8 +354,6 @@ public final class JobQueue {
 							}
 						}
 					} else {
-						
-						
 						writer.addAlignment(record);
 						count++;
 						

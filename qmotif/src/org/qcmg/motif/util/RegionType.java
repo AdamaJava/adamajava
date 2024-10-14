@@ -10,10 +10,10 @@ public enum RegionType {
 	UNMAPPED (true, false),
 	GENOMIC (true, false);
 	
-	private boolean keepCounts;
-	private boolean includeMapped;
+	private final boolean keepCounts;
+	private final boolean includeMapped;
 	
-	private RegionType(boolean keepCount, boolean includeMapped) {
+	RegionType(boolean keepCount, boolean includeMapped) {
 		this.keepCounts = keepCount;
 		this.includeMapped = includeMapped;
 	}

@@ -59,8 +59,5 @@ public class Motifs {
 	public int getMotifsSize() {
 		return motifSize;
 	}
-	public boolean getRevComp() {
-		return revComp;
-	}
 
 }

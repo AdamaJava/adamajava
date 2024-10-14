@@ -1,8 +1,5 @@
 package org.qcmg.motif;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -15,6 +12,8 @@ import org.qcmg.motif.util.RegionCounter;
 import org.qcmg.motif.util.RegionType;
 
 import htsjdk.samtools.SAMRecord;
+
+import static org.junit.Assert.*;
 
 public class MotifCoverageAlgorithmTest {
 	
@@ -55,28 +54,28 @@ public class MotifCoverageAlgorithmTest {
 	
 	@Test
 	public void stageOneSearchNullEmptyAndNoMatch() {
-		assertEquals(false, mca.stageOneSearch(null));
-		assertEquals(false, mca.stageOneSearch(""));
-		assertEquals(false, mca.stageOneSearch("ACGTACGTACGTACGTACGT"));
-		assertEquals(false, mca.stageOneSearch("ABCDEFGHIJKLMNOP"));
-		assertEquals(false, mca.stageOneSearch("TTAGGGTTAGGTTAGGGTTAGG"));
+        assertFalse(mca.stageOneSearch(null));
+        assertFalse(mca.stageOneSearch(""));
+        assertFalse(mca.stageOneSearch("ACGTACGTACGTACGTACGT"));
+        assertFalse(mca.stageOneSearch("ABCDEFGHIJKLMNOP"));
+        assertFalse(mca.stageOneSearch("TTAGGGTTAGGTTAGGGTTAGG"));
 	}
 	
 	@Test
 	public void stageOneSearchMatchAndComplement() {
-		assertEquals(true, mca.stageOneSearch("TTAGGGTTAGGGTTAGGTTAGG"));
-		assertEquals(true, mca.stageOneSearch("CCCTAACCCTAAACGT"));
+        assertTrue(mca.stageOneSearch("TTAGGGTTAGGGTTAGGTTAGG"));
+        assertTrue(mca.stageOneSearch("CCCTAACCCTAAACGT"));
 	}
 	
 	@Test
 	public void stageTwoMotifsNullEmptyAndNoMatch() {
 		String s = mca.getStageTwoMotifs(null);
-		assertEquals(null, s);
+        assertNull(s);
 		assertNull(mca.getStageTwoMotifs(""));
 		s = mca.getStageTwoMotifs("ACGTACGTACGTACGTACGTACGT");
-		assertEquals(null, s);
+        assertNull(s);
 		s = mca.getStageTwoMotifs("ACGTTTAGGTTAGGACGT");
-		assertEquals(null, s);
+        assertNull(s);
 	}
 	@Test
 	public void stageTwoMotifsSameMatch() {
@@ -93,10 +92,10 @@ public class MotifCoverageAlgorithmTest {
 	@Test
 	public void noValidCountersInMap() {
 		Map<ChrPosition, RegionCounter> map = new HashMap<>();
-		assertEquals(null, mca.getCounterFromMap(map, null));
+        assertNull(mca.getCounterFromMap(map, null));
 		
 		map.put(new ChrRangePosition("1", 100, 200), new RegionCounter(RegionType.INCLUDES));
-		assertEquals(null, mca.getCounterFromMap(map, new ChrRangePosition("1", 300, 400)));
+        assertNull(mca.getCounterFromMap(map, new ChrRangePosition("1", 300, 400)));
 		RegionCounter rc300To400 = new RegionCounter(RegionType.INCLUDES);
 		map.put(new ChrRangePosition("1", 300, 400), rc300To400);
 		assertEquals(rc300To400, mca.getCounterFromMap(map, new ChrRangePosition("1", 299, 400)));
@@ -109,7 +108,7 @@ public class MotifCoverageAlgorithmTest {
 	}
 	@Test(expected=IllegalArgumentException.class)
 	public void applyToSingleNull() {
-		mca.applyTo(null, new HashMap<ChrPosition, RegionCounter>());
+		mca.applyTo(null, new HashMap<>());
 	}
 	@Test(expected=IllegalArgumentException.class)
 	public void applyToSingleNull2() {
@@ -122,12 +121,11 @@ public class MotifCoverageAlgorithmTest {
 		RegionCounter rc = new RegionCounter(RegionType.INCLUDES);
 		map.put(new ChrRangePosition("chr1", 1, 1000), rc);
 		for (int i = 0 ; i < 100 ; i++) {
-			assertEquals(true, mca.applyTo(samPass, map));
+            assertTrue(mca.applyTo(samPass, map));
 		}
-		assertEquals(true, rc.hasMotifs());
+        assertTrue(rc.hasMotifs());
 		assertEquals(100, rc.getStage1Coverage());
 		assertEquals(100, rc.getStage2Coverage());
-//		assertEquals(4 * 6 * 100 + 99, rc.getMotifsForwardStrand().length());
 	}
 	
 	@Test
@@ -136,9 +134,9 @@ public class MotifCoverageAlgorithmTest {
 		RegionCounter rc = new RegionCounter(RegionType.INCLUDES);
 		map.put(new ChrRangePosition("chr1", 1, 1000), rc);
 		for (int i = 0 ; i < 100 ; i++) {
-			assertEquals(false, mca.applyTo(samFail, map));
+            assertFalse(mca.applyTo(samFail, map));
 		}
-		assertEquals(false, rc.hasMotifs());
+        assertFalse(rc.hasMotifs());
 		assertEquals(0, rc.getStage1Coverage());
 		assertEquals(0, rc.getStage2Coverage());
 	}
@@ -153,15 +151,15 @@ public class MotifCoverageAlgorithmTest {
 		//GGTATTTCCCTCTATTCTTTGCCTGCGTACTTCTGGGTTAATGTAAGGTGCAAGAGACACAGTGCATAAGATGTGCACTAACCCTAACCCTAACCCTAACC	
 		//<<B0BBF<<FBBBFFBFBBF7FFFBFFFFFFIIBBF70BBFBB<BF0'0BFFFFF7BFFFI<'7<FFIIBB<B0<<7707<<7'77<B<0<BBBBBB<BBB	X0:i:1	
 		//X1:i:0	ZC:i:7	MD:Z:101	RG:Z:20121225042225590	XG:i:0	AM:i:37	NM:i:0	SM:i:37	XM:i:0	XO:i:0	XT:A:U
-		SAMRecord sam = new SAMRecord(null);;
-		sam.setFlags(99);
+		SAMRecord sam = new SAMRecord(null);
+        sam.setFlags(99);
 		sam.setAlignmentStart(182140442);
 		sam.setReadString("GGTATTTCCCTCTATTCTTTGCCTGCGTACTTCTGGGTTAATGTAAGGTGCAAGAGACACAGTGCATAAGATGTGCACTAACCCTAACCCTAACCCTAACC");
 		sam.setCigarString("101M");
 		sam.setMappingQuality(60);
 		sam.setBaseQualityString("<<B0BBF<<FBBBFFBFBBF7FFFBFFFFFFIIBBF70BBFBB<BF0'0BFFFFF7BFFFI<'7<FFIIBB<B0<<7707<<7'77<B<0<BBBBBB<BBB");
-		
-		assertEquals(false, mca.applyTo(sam, map));
+
+        assertFalse(mca.applyTo(sam, map));
 		
 	}
 	
@@ -175,19 +173,42 @@ public class MotifCoverageAlgorithmTest {
 		//ACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCT	
 		//CC@FFFFFHHHHHJJJJJJJJJJJJJJCEHIJJJGIBHIGEHDHIIDIGIBFFGHIJJJIHGGHFFDFFDECEBDBBCCDBDDD?BDDBDDDDB?CCDDD2	X0:i:361	
 		//ZC:i:10	MD:Z:101	PG:Z:MarkDuplicates.3	RG:Z:20140411002647551	XG:i:0	AM:i:0	NM:i:0	SM:i:0	XM:i:0	XO:i:0	XT:A:R
-		SAMRecord sam = new SAMRecord(null);;
-		sam.setFlags(163);
+		SAMRecord sam = new SAMRecord(null);
+        sam.setFlags(163);
 		sam.setAlignmentStart(10003);
 		sam.setReadString("ACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCT");
 		sam.setCigarString("101M");
 		sam.setMappingQuality(9);
 		sam.setBaseQualityString("CC@FFFFFHHHHHJJJJJJJJJJJJJJCEHIJJJGIBHIGEHDHIIDIGIBFFGHIJJJIHGGHFFDFFDECEBDBBCCDBDDD?BDDBDDDDB?CCDDD2");
-		
-		assertEquals(true, mca.applyTo(sam, map));
+
+        assertTrue(mca.applyTo(sam, map));
 		// same as initial sequence apart from the first character and the last 4 characters
 		assertEquals("CCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAA"
 				, rc.getMotifsForwardStrand().keySet().iterator().next());
 		
 	}
+
+	@Test
+	public void realLifeData3() {
+		Map<ChrPosition, RegionCounter> map = new HashMap<>();
+		RegionCounter rc = new RegionCounter(RegionType.INCLUDES);
+		map.put(new ChrRangePosition("chr", 10001,12464), rc);
+
+		SAMRecord sam = new SAMRecord(null);
+		sam.setFlags(163);
+		sam.setAlignmentStart(10003);
+		sam.setReadString("TTAGGGTTAGGGTTAGGG");
+		sam.setCigarString("18M");
+		sam.setMappingQuality(9);
+		sam.setBaseQualityString("CC@FFFFFHHHHHJJJJJ");
+
+		assertTrue(mcaStage1StringStage2Regex.applyTo(sam, map));
+		// same as initial sequence apart from the first character and the last 4 characters
+		assertEquals("TTAGGGTTAGGGTTAGGG"
+				, rc.getMotifsForwardStrand().keySet().iterator().next());
+
+	}
+
+
 
 }

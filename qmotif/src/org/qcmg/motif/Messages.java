@@ -6,7 +6,6 @@
  */
 package org.qcmg.motif;
 
-import java.text.MessageFormat;
 import java.util.ResourceBundle;
 
 /**
@@ -35,62 +34,6 @@ final class Messages {
 	}
 
 	/**
-	 * Gets the message.
-	 *
-	 * @param identifier the identifier
-	 * @param argument the argument
-	 * @return the message
-	 */
-	static String getMessage(final String identifier, final String argument) {
-		final String message = Messages.getMessage(identifier);
-		Object[] arguments = { argument };
-		return MessageFormat.format(message, arguments);
-	}
-
-	/**
-	 * Gets the message.
-	 *
-	 * @param identifier the identifier
-	 * @param arg1 the arg1
-	 * @param arg2 the arg2
-	 * @return the message
-	 */
-	static String getMessage(final String identifier, final String arg1,
-			final String arg2) {
-		final String message = Messages.getMessage(identifier);
-		Object[] arguments = { arg1, arg2 };
-		return MessageFormat.format(message, arguments);
-	}
-
-	/**
-	 * Gets the message.
-	 *
-	 * @param identifier the identifier
-	 * @param arg1 the arg1
-	 * @param arg2 the arg2
-	 * @param arg3 the arg3
-	 * @return the message
-	 */
-	static String getMessage(final String identifier, final String arg1,
-			final String arg2, final String arg3) {
-		final String message = Messages.getMessage(identifier);
-		Object[] arguments = { arg1, arg2, arg3 };
-		return MessageFormat.format(message, arguments);
-	}
-
-	/**
-	 * Gets the message.
-	 *
-	 * @param identifier the identifier
-	 * @param arguments the arguments
-	 * @return the message
-	 */
-	static String getMessage(final String identifier, final Object[] arguments) {
-		final String message = Messages.getMessage(identifier);
-		return MessageFormat.format(message, arguments);
-	}
-
-	/**
 	 * Gets the program name.
 	 *
 	 * @return the program name
@@ -112,7 +55,6 @@ final class Messages {
 	 * Gets the version message.
 	 *
 	 * @return the version message
-	 * @throws Exception the exception
 	 */
 	static String getVersionMessage() {
 		return getProgramName() + ", version " + getProgramVersion();

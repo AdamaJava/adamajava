@@ -62,7 +62,7 @@ public class Summariser {
 	public static void writeOutput(String out, List<String> data) throws IOException {
 		if ( ! StringUtils.isNullOrEmpty(out)) {
 			try (PrintWriter pw = new PrintWriter(out)) {
-				data.stream().forEachOrdered(pw::println);
+				data.forEach(pw::println);
 			}
 		}
 	}
@@ -73,7 +73,7 @@ public class Summariser {
 			/*
 			 * get pertinent bits of info from qmotif xml file
 			 */
-			try (Stream<String> lines = Files.lines(Paths.get(file), Charset.defaultCharset());) {
+			try (Stream<String> lines = Files.lines(Paths.get(file), Charset.defaultCharset())) {
 				String x = lines.filter(s -> s.startsWith("<summary") 
 						|| s.startsWith("<totalReadCount")
 						|| s.startsWith("<noOfMotifs")
@@ -99,14 +99,14 @@ public class Summariser {
 		return null;
 	}
 	
-	public static List<String> getAllSummaryData(List<String> inputFiles) throws IOException {
-		return inputFiles.stream().map(f -> getSummaryData(f)).collect(Collectors.toList());
+	public static List<String> getAllSummaryData(List<String> inputFiles) {
+		return inputFiles.stream().map(Summariser::getSummaryData).collect(Collectors.toList());
 	}
 	
 	public static List<String> loadInputsFromFile(String inputFile) throws IOException {
 		if (null != inputFile) {
 			try (Stream<String> lines = Files.lines(Paths.get(inputFile), Charset.defaultCharset());) {
-				return lines.map(s -> s.toString()).collect(Collectors.toList());
+				return lines.collect(Collectors.toList());
 			}
 		}
 		return Collections.emptyList();

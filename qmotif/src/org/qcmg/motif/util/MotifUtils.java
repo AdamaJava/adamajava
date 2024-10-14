@@ -80,7 +80,7 @@ public class MotifUtils {
 		// now go through the includes/excludes and if there are any overlaps - remove the OTHER ones and keep the inc/exc
 		
 		if (null != includes && ! includes.isEmpty()) {
-			List<ChrPosition> overlapIncludes = getExistingOverlappingPositions(new ArrayList<ChrPosition>(results.keySet()), includes);
+			List<ChrPosition> overlapIncludes = getExistingOverlappingPositions(new ArrayList<>(results.keySet()), includes);
 			if ( ! overlapIncludes.isEmpty()) {
 				
 				// darn....
@@ -93,7 +93,7 @@ public class MotifUtils {
 		}
 		
 		if (null != excludes && ! excludes.isEmpty()) {
-			List<ChrPosition> overlapExcludes = getExistingOverlappingPositions(new ArrayList<ChrPosition>(results.keySet()), excludes);
+			List<ChrPosition> overlapExcludes = getExistingOverlappingPositions(new ArrayList<>(results.keySet()), excludes);
 			if ( ! overlapExcludes.isEmpty()) {
 				// darn....
 				// need to determine if the overlapping position needs to be removed (ie, is entirely enclosed by an includes chrpos, or if it needs to be trimmed
@@ -155,17 +155,17 @@ public class MotifUtils {
 		existingPositions.sort(COMPARATOR);
 		newPositions.sort(COMPARATOR);
 		
-		List<ChrPosition> exisitingOverlaps = new ArrayList<>();
+		List<ChrPosition> existingOverlaps = new ArrayList<>();
 		
 		for(ChrPosition newCP : newPositions) {
-			exisitingOverlaps.addAll(existingPositions.stream().filter(cp -> ChrPositionUtils.doChrPositionsOverlap(newCP, cp)).collect(Collectors.toList()));
+			existingOverlaps.addAll(existingPositions.stream().filter(cp -> ChrPositionUtils.doChrPositionsOverlap(newCP, cp)).toList());
 		}
-		return exisitingOverlaps;
+		return existingOverlaps;
 	}
 
 	static void addMotifToString(StringBuilder existingString, String motif) {
 		if (null != existingString && ! StringUtils.isNullOrEmpty(motif)) {
-			if (existingString.length() > 0) {
+			if (!existingString.isEmpty()) {
 				existingString.append(M_D);
 			}
 			existingString.append(motif);

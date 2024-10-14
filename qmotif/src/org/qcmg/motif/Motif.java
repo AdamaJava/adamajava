@@ -140,7 +140,7 @@ public final class Motif {
 				includes.add(entry.getKey());
 			}
 		}
-		Collections.sort(includes, COMPARATOR);
+		includes.sort(COMPARATOR);
 		
 		for (ChrPosition cp : includes) {
 			Element e = doc.createElement("region");
@@ -160,7 +160,7 @@ public final class Motif {
 			Element excludesE = doc.createElement("excludes");
 			iniE.appendChild(excludesE);
 			
-			Collections.sort(excludes, COMPARATOR);
+			excludes.sort(COMPARATOR);
 			
 			for (ChrPosition cp : excludes) {
 				Element e = doc.createElement("region");
@@ -249,7 +249,7 @@ public final class Motif {
 		
 		// get ordered positions
 		List<ChrPosition> orderedPositions = new ArrayList<>(results.keySet());
-		Collections.sort(orderedPositions, COMPARATOR);
+		orderedPositions.sort(COMPARATOR);
 		
 		for (ChrPosition cp : orderedPositions) {
 			// only output if we have a motif
@@ -301,7 +301,7 @@ public final class Motif {
 	private static boolean performLogging = false; // Defaults to false
 	private static QLogger mlogger = null;
 
-	public static void main(final String[] args) throws Exception {
+	public static void main(final String[] args) {
 		try {
 			moptions = new Options(args);			
 			if (moptions.hasHelpOption()) {
@@ -351,7 +351,7 @@ public final class Motif {
 		moptions.displayHelp();
 	}
 
-	private static void displayVersionMessage() throws Exception {
+	private static void displayVersionMessage() {
 		System.err.println(Messages.getVersionMessage());
 	}
 
@@ -361,10 +361,6 @@ public final class Motif {
 
 	static String getProgramVersion() {
 		return Motif.class.getPackage().getImplementationVersion();
-	}
-
-	static String getVersionMessage() throws Exception {
-		return getProgramName() + ", version " + getProgramVersion();
 	}
 
 }

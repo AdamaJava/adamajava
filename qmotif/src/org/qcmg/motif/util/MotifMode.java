@@ -15,7 +15,7 @@ public enum MotifMode {
 	private boolean stageOneString;
 	private boolean stageTwoString;
 	
-	private MotifMode(boolean stageOneString, boolean stageTwoString) {
+	MotifMode(boolean stageOneString, boolean stageTwoString) {
 		this.stageOneString = stageOneString;
 		this.stageTwoString = stageTwoString;
 	}

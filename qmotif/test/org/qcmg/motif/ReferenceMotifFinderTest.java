@@ -1,12 +1,12 @@
 package org.qcmg.motif;
 
-import static org.junit.Assert.assertEquals;
-
 import java.util.regex.Matcher;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
+import static org.junit.Assert.*;
 
 public class ReferenceMotifFinderTest {
 	
@@ -99,11 +99,11 @@ public class ReferenceMotifFinderTest {
 	public void checkPositionOfMatch() {
 		String reference = "NNNNACGTACGTACGTACGTCCCTAACCCTAAACGTGTAGGGGTAGGG";
 		Matcher m = rmf.TELOMERE_PATTERN.matcher(reference);
-		assertEquals(true, m.find());
+        assertTrue(m.find());
 		assertEquals(20, m.start());
-		assertEquals(true, m.find());
+        assertTrue(m.find());
 		assertEquals(36, m.start());
-		assertEquals(false, m.find());
+        assertFalse(m.find());
 	}
 
 }
