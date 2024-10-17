@@ -23,6 +23,7 @@ nav:
         - "Introduction": qmotif/index.md
         - "qmotif v1.0": qmotif/qmotif_1_0.md
         - "qmotif v1.2": qmotif/qmotif_1_2.md
+        - "qmotif latest": qmotif/qmotif_github.md
     - qmule:
         - Introduction: qmule/index.md
         - "AlignerCompare mode": qmule/qmule_aligner_compare_mode.md
