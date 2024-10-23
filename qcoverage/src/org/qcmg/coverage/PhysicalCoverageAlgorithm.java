@@ -18,13 +18,6 @@ public class PhysicalCoverageAlgorithm implements Algorithm {
 	public CoverageType getCoverageType() {
 		return CoverageType.PHYSICAL;
 	}
-
-	public Job[] map(final Configuration invariants) {
-		return null;
-	}
-
-	public void reduce(final Job[] jobs) {
-	}
 	
 	@Override
 	public void applyTo(final SAMRecord read, Object perBaseCoverages) {

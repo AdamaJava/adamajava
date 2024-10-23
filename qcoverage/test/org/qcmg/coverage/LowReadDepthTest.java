@@ -41,17 +41,17 @@ public class LowReadDepthTest {
         if (null == gff1000To1065) {
             File f = testFolder.newFile("gff1");
             gff1000To1065 = f.getAbsolutePath();
-            createGFF3File(1000, 1065, f);
+            createGFF3File(f);
 
         }
     }
 
-    private void createGFF3File(final int start, final int end, File file) throws IOException {
+    private void createGFF3File(File file) throws IOException {
         Gff3Record record = new Gff3Record();
         record.setSeqId("chr1");
         record.setType("chrom");
-        record.setStart(start);
-        record.setEnd(end);
+        record.setStart(1000);
+        record.setEnd(1065);
         record.setScore(".");
         record.setSource(".");
         record.setStrand("+");

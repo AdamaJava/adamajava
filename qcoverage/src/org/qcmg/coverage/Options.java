@@ -58,7 +58,7 @@ public final class Options {
 
 
 	@SuppressWarnings("unchecked")
-	public Options(final String[] args) throws Exception {
+	public Options(final String[] args) {
 		parser.accepts("help", HELP_DESCRIPTION);	
 		parser.accepts("version", VERSION_DESCRIPTION);
 		parser.accepts("log", LOG_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
@@ -115,7 +115,7 @@ public final class Options {
 			outputFormat = extractStringList("output-format");
 						
 			types = extractStringList("type");
-			numberThreads = extractIntegerList("thread");
+			numberThreads = extractIntegerList();
 			
 			query = (String) options.valueOf("query");
 			validation = (String) options.valueOf("validation");
@@ -131,8 +131,8 @@ public final class Options {
 		return result;
 	}
 
-	private Integer[] extractIntegerList(final String id) {
-		List<?> list = options.valuesOf(id);
+	private Integer[] extractIntegerList() {
+		List<?> list = options.valuesOf("thread");
 		Integer[] result = new Integer[list.size()];
 		list.toArray(result);
 		return result;
@@ -165,22 +165,17 @@ public final class Options {
 	boolean hasTxtFlag() {		 
 		//default (empty) is TXT, or specify TXT
 		return outputFormat.length == 0 || 
-				! Arrays.stream(outputFormat).allMatch( f -> {  return ! f.toUpperCase().equals("TXT"); });
+				! Arrays.stream(outputFormat).allMatch( f -> {  return ! f.equalsIgnoreCase("TXT"); });
 	}
 
 	boolean hasXmlFlag() {
 		// at least one of the element match xml
-		return ! Arrays.stream(outputFormat).allMatch( f -> {  return ! f.toUpperCase().equals("XML"); });
+		return ! Arrays.stream(outputFormat).allMatch( f -> {  return ! f.equalsIgnoreCase("XML"); });
 	}
 	
 	boolean hasVcfFlag() {
 		// at least one of the element match vcf
-		return ! Arrays.stream(outputFormat).allMatch( f -> {  return ! f.toUpperCase().equals("VCF"); });
-	}
-
-	boolean hasBedFlag() {
-		// at least one of the element match vcf
-		return ! Arrays.stream(outputFormat).allMatch( f -> {  return ! f.toUpperCase().equals("BED"); });
+		return ! Arrays.stream(outputFormat).allMatch( f -> {  return ! f.equalsIgnoreCase("VCF"); });
 	}
 
 	String getLog() {
@@ -193,10 +188,6 @@ public final class Options {
 
 	String getLogLevel() {
 		return logLevel;
-	}
-
-	public boolean hasInputBAIOption() {
-		return options.has("input-bai");
 	}
 
 	public boolean hasInputGFF3Option() {
@@ -220,7 +211,7 @@ public final class Options {
 	}
 
 	public boolean hasNonOptions() {
-		return 0 != options.nonOptionArguments().size();
+		return !options.nonOptionArguments().isEmpty();
 	}
 
 	public boolean hasNumberThreadsOption() {

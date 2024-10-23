@@ -8,8 +8,8 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 interface Job {
-	public HashMap<String, HashMap<Integer, AtomicLong>> getResults();
-	public HashMap<String, List<LowReadDepthRegion>> getLowReadDepthResults();
-	public void run() throws Exception;
-	public String toString();
+	HashMap<String, HashMap<Integer, AtomicLong>> getResults();
+	HashMap<String, List<LowReadDepthRegion>> getLowReadDepthResults();
+	void run() throws Exception;
+	String toString();
 }

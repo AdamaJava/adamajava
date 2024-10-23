@@ -25,15 +25,15 @@ public class Feature {
 		String[] values = featureString.split(",");
 		this.name = values[0];
 		this.priority = priority;
-		this.preList = new ArrayList<Integer>();
-		this.postList = new ArrayList<Integer>();
+		this.preList = new ArrayList<>();
+		this.postList = new ArrayList<>();
 		
 		for (int i=1; i<values.length; i++) {
 			String current = values[i];
 			if (current.startsWith("+")) {
-				postList.add(Integer.valueOf(current.substring(1, current.length())));
+				postList.add(Integer.valueOf(current.substring(1)));
 			} else if (current.startsWith("-")) {
-				preList.add(Integer.valueOf(current.substring(1, current.length())));				
+				preList.add(Integer.valueOf(current.substring(1)));
 			} else {
 				Integer currentInt = Integer.valueOf(current);
 				preList.add(currentInt);

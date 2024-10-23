@@ -2,7 +2,6 @@ package org.qcmg.coverage;
 
 import htsjdk.samtools.SAMFileHeader.SortOrder;
 import org.junit.*;
-import org.junit.rules.ExpectedException;
 import org.qcmg.common.commandline.Executor;
 import org.qcmg.qio.gff3.Gff3Record;
 import org.qcmg.qio.record.RecordWriter;
