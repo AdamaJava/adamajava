@@ -12,11 +12,11 @@ import org.qcmg.common.log.QLoggerFactory;
 
 class WorkerThread extends Thread {
 	private final BlockingQueue<Job> inputQueue;
-	private final HashMap<String, TreeMap<Integer, AtomicLong>> reducedResults = new HashMap<String, TreeMap<Integer, AtomicLong>>();
-	private final HashMap<String, List<LowReadDepthRegion>> reducedLowReadDepthResults = new HashMap<String, List<LowReadDepthRegion>>();
+	private final HashMap<String, TreeMap<Integer, AtomicLong>> reducedResults = new HashMap<>();
+	private final HashMap<String, List<LowReadDepthRegion>> reducedLowReadDepthResults = new HashMap<>();
 
-	private final HashSet<HashMap<String, HashMap<Integer, AtomicLong>>> perJobResults = new HashSet<HashMap<String, HashMap<Integer, AtomicLong>>>();
-	private final HashSet<HashMap<String, List<LowReadDepthRegion>>> perJobLowReadDepthResults = new HashSet<HashMap<String, List<LowReadDepthRegion>>>();
+	private final HashSet<HashMap<String, HashMap<Integer, AtomicLong>>> perJobResults = new HashSet<>();
+	private final HashSet<HashMap<String, List<LowReadDepthRegion>>> perJobLowReadDepthResults = new HashSet<>();
 
 	private final QLogger logger;
 	private final Thread mainThread;
@@ -71,7 +71,7 @@ class WorkerThread extends Thread {
 	private void reduceResults() {
 		for (HashMap<String, HashMap<Integer, AtomicLong>> mappedResult : perJobResults) {
 			for (String id : mappedResult.keySet()) {
-                TreeMap<Integer, AtomicLong> covToBaseCountMap = reducedResults.computeIfAbsent(id, k -> new TreeMap<Integer, AtomicLong>());
+                TreeMap<Integer, AtomicLong> covToBaseCountMap = reducedResults.computeIfAbsent(id, k -> new TreeMap<>());
                 for (Integer cov : mappedResult.get(id).keySet()) {
                     AtomicLong reducedBaseCount = covToBaseCountMap.computeIfAbsent(cov, k -> new AtomicLong());
                     AtomicLong mappedBaseCount = mappedResult.get(id).get(cov);
@@ -84,7 +84,7 @@ class WorkerThread extends Thread {
 		for (HashMap<String, List<LowReadDepthRegion>> mappedLowReadDepthResult : perJobLowReadDepthResults) {
 			for (String key : mappedLowReadDepthResult.keySet()) {
 
-                List<LowReadDepthRegion> lowReadDepthRegions = reducedLowReadDepthResults.computeIfAbsent(key, k -> new ArrayList<LowReadDepthRegion>());
+                List<LowReadDepthRegion> lowReadDepthRegions = reducedLowReadDepthResults.computeIfAbsent(key, k -> new ArrayList<>());
                 lowReadDepthRegions.addAll(mappedLowReadDepthResult.get(key));
 			}
 		}

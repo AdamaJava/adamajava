@@ -24,7 +24,7 @@ public final class Configuration {
 	private final File outputFile;
 	private File[] inputBAMFiles;
 	private File[] inputBAIFiles;
-	private final HashSet<Pair<File, File>> filePairs = new HashSet<Pair<File, File>>();
+	private final HashSet<Pair<File, File>> filePairs = new HashSet<>();
 	private final Options options;
 	private final CoverageType coverageType;
 	private final QueryExecutor filter;
@@ -33,7 +33,7 @@ public final class Configuration {
 	private final String validation;
 	private final ReadsNumberCounter countReadFromInput;
 	private final ReadsNumberCounter countReadToCoverage;
-	
+
 	private final QLogger logger;
 
 	public Configuration(final Options options) throws Exception {
@@ -41,18 +41,21 @@ public final class Configuration {
 		this.options = options;
 
 		type = options.getTypes()[0];
-		if (type.equals("sequence") || type.equals("seq")) {
-			coverageType = CoverageType.SEQUENCE;
-			algorithm = new SequenceCoverageAlgorithm();
-		} else if (type.equals("physical") || type.equals("phys")) {
-			coverageType = CoverageType.PHYSICAL;
-			algorithm = new PhysicalCoverageAlgorithm();
-		} else if (type.equals("low_readdepth")) {
-			coverageType = CoverageType.LOW_READDEPTH;
-			algorithm = new LowReadDepthAlgorithm(options.getLowReadDepthCutoff());
-		} else {
-			throw new Exception("Unknown coverage type: '" + type + "'");
-		}
+        switch (type) {
+            case "sequence", "seq" -> {
+                coverageType = CoverageType.SEQUENCE;
+                algorithm = new SequenceCoverageAlgorithm();
+            }
+            case "physical", "phys" -> {
+                coverageType = CoverageType.PHYSICAL;
+                algorithm = new PhysicalCoverageAlgorithm();
+            }
+            case "low_readdepth" -> {
+                coverageType = CoverageType.LOW_READDEPTH;
+                algorithm = new LowReadDepthAlgorithm(options.getLowReadDepthCutoff());
+            }
+            default -> throw new Exception("Unknown coverage type: '" + type + "'");
+        }
 
 		loggerInfo = new LoggerInfo(options);
 		logger = QLoggerFactory.getLogger(Configuration.class);
@@ -188,7 +191,7 @@ public final class Configuration {
 	}
 
 	private void inferAllBaiFileNames() {
-		Vector<String> baiFileNameList = new Vector<String>();
+		Vector<String> baiFileNameList = new Vector<>();
 		for (String bamFileName : bamFileNames) {
 			baiFileNameList.add(bamFileName + ".bai");
 		}

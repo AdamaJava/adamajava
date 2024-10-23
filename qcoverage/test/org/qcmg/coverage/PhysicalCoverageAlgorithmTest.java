@@ -57,13 +57,13 @@ public class PhysicalCoverageAlgorithmTest {
 		
 		algorithm.applyTo(rec, arrayNew);
 		applyToOld(rec, arrayOld);
-		
-		for (int i = 0 , length = arrayNew.length  ; i < length ; i++) {
-			Assert.assertEquals( -1, arrayNew[i]);
-		}
-		for (int i = 0 , length = arrayOld.length  ; i < length ; i++) {
-			Assert.assertEquals(-1, arrayOld[i]);
-		}
+
+        for (int j : arrayNew) {
+            Assert.assertEquals(-1, j);
+        }
+        for (int j : arrayOld) {
+            Assert.assertEquals(-1, j);
+        }
 		Assert.assertArrayEquals(arrayOld, arrayNew);
 	}
 	
@@ -122,13 +122,13 @@ public class PhysicalCoverageAlgorithmTest {
 		
 		algorithm.applyTo(rec1, arrayNew);
 		applyToOld(rec1, arrayOld);
-		
-		for (int i = 0 , length = arrayNew.length  ; i < length ; i++) {
-			Assert.assertEquals( -1, arrayNew[i]);
-		}
-		for (int i = 0 , length = arrayOld.length  ; i < length ; i++) {
-			Assert.assertEquals(-1, arrayOld[i]);
-		}
+
+        for (int j : arrayNew) {
+            Assert.assertEquals(-1, j);
+        }
+        for (int j : arrayOld) {
+            Assert.assertEquals(-1, j);
+        }
 		Assert.assertArrayEquals(arrayOld, arrayNew);
 	}
 	

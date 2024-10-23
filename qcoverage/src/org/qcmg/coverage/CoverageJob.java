@@ -8,7 +8,6 @@ package org.qcmg.coverage;
 
 
 import java.io.File;
-import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -27,7 +26,7 @@ class CoverageJob implements Job {
 	private final String refName;
 	private final HashSet<Gff3Record> features;
 	private int[] perBaseCoverages; // Uses 0-based coordinate indexing
-	private final HashMap<String, HashMap<Integer, AtomicLong>> idToCoverageToBaseCountMap = new HashMap<String, HashMap<Integer, AtomicLong>>();
+	private final HashMap<String, HashMap<Integer, AtomicLong>> idToCoverageToBaseCountMap = new HashMap<>();
 	private final HashMap<String, List<LowReadDepthRegion>> lowReadDepthMap = new HashMap<>();
 	private final QLogger logger;
 	private final QueryExecutor filter;
@@ -67,8 +66,8 @@ class CoverageJob implements Job {
 			SamReader reader = SAMFileReaderFactory.createSAMFileReader(bamFile, validation);
 			fileReaders.add(reader);
 		}
-		logger.debug("length of sequence to be processed by job '" + toString() + "':" + refLength);
-		logger.debug("number of features to be processed by job '" + toString() + "':" + features.size());
+		logger.debug("length of sequence to be processed by job '" + this + "':" + refLength);
+		logger.debug("number of features to be processed by job '" + this + "':" + features.size());
 	}
 
 	@Override
@@ -122,17 +121,17 @@ class CoverageJob implements Job {
 			Arrays.fill(perBaseCoverages, start-1, feature.getEnd(), 0);
 			logger.debug("filled in from : " + (start-1) + " to " + feature.getEnd());
 		}
-		for (int i = 0 , len = perBaseCoverages.length ; i < len ; i++) {
-			if (perBaseCoverages[i] < 0) {
-				isArrayFull = false;
-				break;
-			}
-		}
+        for (int perBaseCoverage : perBaseCoverages) {
+            if (perBaseCoverage < 0) {
+                isArrayFull = false;
+                break;
+            }
+        }
 		this.fullyPopulated = isArrayFull;
 		logger.info("fully populated: " + isArrayFull);
 	}
 
-	private void assembleResultsByAlgorithm() throws IOException {
+	private void assembleResultsByAlgorithm() {
 		if (alg.getCoverageType().equals(CoverageType.LOW_READDEPTH)) {
 			assembleLowReadDepthResults();
 		} else {
@@ -240,7 +239,7 @@ class CoverageJob implements Job {
 		return(startPos);
 	}
 
-	private void assembleLowReadDepthResults() throws IOException {
+	private void assembleLowReadDepthResults() {
 		for (Gff3Record feature : features) {
             //If low read depth flag is being requested, then we need to find regions with <=8 and <=12 coverage
 			LowReadDepthAlgorithm lowRdepthAlg = (LowReadDepthAlgorithm) alg;

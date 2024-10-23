@@ -1,6 +1,7 @@
 package org.qcmg.coverage;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -13,12 +14,12 @@ import org.qcmg.qio.gff3.Gff3Record;
 public class CoverageJobTest {
 	
 //	static final QLogger logger = QLoggerFactory.getLogger(CoverageJobTest.class);
-	private final HashSet<Pair<File, File>> pairs = new HashSet<Pair<File, File>>();
+	private final HashSet<Pair<File, File>> pairs = new HashSet<>();
 	
 	@Test
 	public void testConstructCoverageMap() throws Exception {
-		HashSet<Gff3Record> features = new HashSet<Gff3Record>();
-		HashMap<String, HashSet<Gff3Record>> refToFeaturesMap = new HashMap<String, HashSet<Gff3Record>>();
+		HashSet<Gff3Record> features = new HashSet<>();
+		HashMap<String, HashSet<Gff3Record>> refToFeaturesMap = new HashMap<>();
 		
 		Gff3Record gff = new Gff3Record();
 		gff.setStart(100);
@@ -54,8 +55,8 @@ public class CoverageJobTest {
 	}
 	@Test
 	public void testConstructCoverageMapManyFeatures() throws Exception {
-		HashSet<Gff3Record> features = new HashSet<Gff3Record>();
-		HashMap<String, HashSet<Gff3Record>> refToFeaturesMap = new HashMap<String, HashSet<Gff3Record>>();
+		HashSet<Gff3Record> features = new HashSet<>();
+		HashMap<String, HashSet<Gff3Record>> refToFeaturesMap = new HashMap<>();
 		
 		int gffRange = 100;
 		
@@ -96,7 +97,7 @@ public class CoverageJobTest {
 	
 	@Ignore
 	public void testConstructCoverageMapPerformance() throws Exception {
-		HashSet<Gff3Record> features = new HashSet<Gff3Record>();
+		HashSet<Gff3Record> features = new HashSet<>();
 		HashMap<String, HashSet<Gff3Record>> refToFeaturesMap = new HashMap<String, HashSet<Gff3Record>>();
 		
 		int gffRange = 100;
@@ -157,9 +158,7 @@ public class CoverageJobTest {
 	
 	private void constructCoverageMapOld(int [] perBaseCoverages, HashSet<Gff3Record> features) {
 		// Initially set all values to -1 for no coverage at that coordinate
-		for (int i = 0; i < perBaseCoverages.length; i++) {
-			perBaseCoverages[i] = -1;
-		}
+        Arrays.fill(perBaseCoverages, -1);
 		// For all coordinates where a feature exists, set to zero coverage
 		for (Gff3Record feature : features) {
 			for (int coord = feature.getStart(); coord <= feature.getEnd(); coord++) {

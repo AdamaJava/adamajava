@@ -80,7 +80,7 @@ public class QueryLowReadDepthTest {
             fileContents = r.lines().toList();
         }
         assertEquals(1, fileContents.size());
-        assertEquals("chr1\t999\t1065", fileContents.get(0));
+        assertEquals("chr1\t999\t1065", fileContents.getFirst());
 
 
         fOutput.delete();

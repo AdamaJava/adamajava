@@ -29,23 +29,23 @@ import org.qcmg.qio.gff3.Gff3FileReader;
 import org.qcmg.qio.gff3.Gff3Record;
 
 public final class JobQueue {
-	private final HashMap<String, HashMap<Integer, AtomicLong>> perIdPerCoverageBaseCounts = new HashMap<String, HashMap<Integer, AtomicLong>>();
-	private final HashMap<String, List<LowReadDepthRegion>> lowReadDepthResultsFinalMap = new HashMap<String, List<LowReadDepthRegion>>();
+	private final HashMap<String, HashMap<Integer, AtomicLong>> perIdPerCoverageBaseCounts = new HashMap<>();
+	private final HashMap<String, List<LowReadDepthRegion>> lowReadDepthResultsFinalMap = new HashMap<>();
 	private final boolean perFeatureFlag;
 	private final int numberThreads;
 	private int numberFeatures = 0;
 	private final File gff3File;
-	private final HashSet<String> refNames = new HashSet<String>();
-	private final LinkedHashSet<String> refNamesOrdered = new LinkedHashSet<String>();
-	private final HashMap<String, HashSet<Gff3Record>> perRefnameFeatures = new HashMap<String, HashSet<Gff3Record>>();
-	private final HashMap<String, Integer> perRefnameLengths = new HashMap<String, Integer>();
-	private final HashMap<Integer, HashSet<String>> perLengthRefnames = new HashMap<Integer, HashSet<String>>();
+	private final HashSet<String> refNames = new HashSet<>();
+	private final LinkedHashSet<String> refNamesOrdered = new LinkedHashSet<>();
+	private final HashMap<String, HashSet<Gff3Record>> perRefnameFeatures = new HashMap<>();
+	private final HashMap<String, Integer> perRefnameLengths = new HashMap<>();
+	private final HashMap<Integer, HashSet<String>> perLengthRefnames = new HashMap<>();
 	private final HashSet<Pair<File, File>> filePairs;
-	private final HashMap<String, HashSet<Pair<File, File>>> refnameFilePairs = new HashMap<String, HashSet<Pair<File, File>>>();
-	private final Vector<String> refnameExecutionOrder = new Vector<String>();
-	private final HashSet<HashMap<String, TreeMap<Integer, AtomicLong>>> perRefnameResults = new HashSet<HashMap<String, TreeMap<Integer, AtomicLong>>>();
-	private final HashSet<HashMap<String, List<LowReadDepthRegion>>> lowReadDepthResultsSet = new HashSet<HashMap<String, List<LowReadDepthRegion>>>();
-	private final BlockingQueue<Job> jobQueue = new LinkedBlockingQueue<Job>();
+	private final HashMap<String, HashSet<Pair<File, File>>> refnameFilePairs = new HashMap<>();
+	private final Vector<String> refnameExecutionOrder = new Vector<>();
+	private final HashSet<HashMap<String, TreeMap<Integer, AtomicLong>>> perRefnameResults = new HashSet<>();
+	private final HashSet<HashMap<String, List<LowReadDepthRegion>>> lowReadDepthResultsSet = new HashSet<>();
+	private final BlockingQueue<Job> jobQueue = new LinkedBlockingQueue<>();
 	private final LoggerInfo loggerInfo;
 	private final QLogger logger;
 	private final QueryExecutor filter;
@@ -55,7 +55,7 @@ public final class JobQueue {
 	private final ReadsNumberCounter countIn;
 	private final ReadsNumberCounter countOut;
 	private final Options options;
-	
+
 	public JobQueue(final Configuration invariants) throws Exception {
 		perFeatureFlag = invariants.isPerFeatureFlag();
 		gff3File = invariants.getInputGFF3File();
@@ -74,7 +74,7 @@ public final class JobQueue {
 		execute();
 	}
 
-	private void execute() throws Exception, IOException {
+	private void execute() throws Exception {
 		logger.info("Loading features from GFF file");
 		loadFeatures();
 		logger.info("Queueing jobs");
@@ -122,22 +122,14 @@ public final class JobQueue {
 		logger.info("Queued jobs are: " + jobQueue);
 	}
 
-	private void reduceResults() throws Exception {
+	private void reduceResults() {
 		for (HashMap<String, TreeMap<Integer, AtomicLong>> mappedResult : perRefnameResults) {
 			for (String id : mappedResult.keySet()) {
-				HashMap<Integer, AtomicLong> covToBaseCountMap = perIdPerCoverageBaseCounts
-						.get(id);
-				if (null == covToBaseCountMap) {
-					covToBaseCountMap = new HashMap<Integer, AtomicLong>();
-					perIdPerCoverageBaseCounts.put(id, covToBaseCountMap);
-				}
-				for (Integer cov : mappedResult.get(id).keySet()) {
-					AtomicLong reducedBaseCount = covToBaseCountMap.get(cov);
-					if (null == reducedBaseCount) {
-						reducedBaseCount = new AtomicLong();
-						covToBaseCountMap.put(cov, reducedBaseCount);
-					}
-					AtomicLong mappedBaseCount = mappedResult.get(id).get(cov);
+                HashMap<Integer, AtomicLong> covToBaseCountMap = perIdPerCoverageBaseCounts
+                        .computeIfAbsent(id, k -> new HashMap<>());
+                for (Integer cov : mappedResult.get(id).keySet()) {
+                    AtomicLong reducedBaseCount = covToBaseCountMap.computeIfAbsent(cov, k -> new AtomicLong());
+                    AtomicLong mappedBaseCount = mappedResult.get(id).get(cov);
 					assert (null != mappedBaseCount); // Implicit to above logic
 					reducedBaseCount.addAndGet(mappedBaseCount.get());
 				}
@@ -156,18 +148,14 @@ public final class JobQueue {
 
 	}
 
-	private void loadFeatures() throws Exception, IOException {
+	private void loadFeatures() throws Exception {
 		identifyRefNames();
 		Gff3FileReader featureReader = new Gff3FileReader(gff3File);
 		for (final Gff3Record feature : featureReader) {
 			String ref = feature.getSeqId();
 			if (refNames.contains(ref)) {
-				HashSet<Gff3Record> features = perRefnameFeatures.get(ref);
-				if (null == features) {
-					features = new HashSet<Gff3Record>();
-					perRefnameFeatures.put(ref, features);
-				}
-				features.add(feature);
+                HashSet<Gff3Record> features = perRefnameFeatures.computeIfAbsent(ref, k -> new HashSet<>());
+                features.add(feature);
 			}
 		}
 		featureReader.close();
@@ -190,11 +178,11 @@ public final class JobQueue {
 		}
 	}
 
-	private Collection<String> identifyGff3RefNames() throws Exception, IOException {
+	private Collection<String> identifyGff3RefNames() throws Exception {
 
 		LinkedHashMap<String, Integer> gff3RefNames = new LinkedHashMap<>();
 		final StringBuilder gffErrors = new StringBuilder();
-		try (Gff3FileReader gff3Reader = new Gff3FileReader(gff3File);) {
+		try (Gff3FileReader gff3Reader = new Gff3FileReader(gff3File)) {
 			for (Gff3Record record : gff3Reader) {
 				if (isGff3RecordValid(record)) {
 					numberFeatures++;
@@ -229,7 +217,7 @@ public final class JobQueue {
 			}
 		}
 		
-		if (gffErrors.length() > 0) {
+		if (!gffErrors.isEmpty()) {
 			logger.error(gffErrors.toString());
 			throw new IllegalArgumentException("Errors in gff file: " + gff3File);
 		}
@@ -261,7 +249,7 @@ public final class JobQueue {
 					bamRefNames.add(seqName);
 					Integer seqLength = seqRecord.getSequenceLength();
 					perRefnameLengths.put(seqName, seqLength);
-                    HashSet<Pair<File, File>> filePairs = refnameFilePairs.computeIfAbsent(seqName, k -> new HashSet<Pair<File, File>>());
+                    HashSet<Pair<File, File>> filePairs = refnameFilePairs.computeIfAbsent(seqName, k -> new HashSet<>());
                     filePairs.add(pair);
 				}
 			}
@@ -278,8 +266,7 @@ public final class JobQueue {
 	}
 
 	private void processJobs() throws Exception {
-		assert (null != refNames);
-		HashSet<WorkerThread> workerThreads = new HashSet<WorkerThread>();
+        HashSet<WorkerThread> workerThreads = new HashSet<>();
 		for (int j = 0; j < numberThreads; j++) {
 			WorkerThread thread = new WorkerThread(jobQueue, loggerInfo, Thread.currentThread());
 			workerThreads.add(thread);
@@ -304,7 +291,7 @@ public final class JobQueue {
 	// Prioritise thread execution based on decreasing sequence length
 	private void identifyRefNameExecutionOrder() {
 		for (Integer length : perRefnameLengths.values()) {
-			perLengthRefnames.put(length, new HashSet<String>());
+			perLengthRefnames.put(length, new HashSet<>());
 		}
 		// Identify refnames for each length
 		for (String refName : refNames) {
@@ -319,16 +306,14 @@ public final class JobQueue {
 		// Determine refName execution order from largest-to-smallest length
 		for (int i = lengths.length - 1; i >= 0; i--) {
 			assert (perLengthRefnames.containsKey(lengths[i]));
-			for (String refName : perLengthRefnames.get(lengths[i])) {
-				refnameExecutionOrder.add(refName);
-			}
+            refnameExecutionOrder.addAll(perLengthRefnames.get(lengths[i]));
 		}
 		logger.debug("Refname execution order (first-to-last): "
 				+ refnameExecutionOrder);
 	}
 
 	public List<CoverageReport> getCoverageReport() {
-		List<CoverageReport> results = new Vector<CoverageReport>();
+		List<CoverageReport> results = new Vector<>();
 		for (final String type : perIdPerCoverageBaseCounts.keySet()) {
 			HashMap<Integer, AtomicLong> value = perIdPerCoverageBaseCounts
 					.get(type);
