@@ -1,9 +1,18 @@
 def isExecutable = false
 apply plugin: 'java-library'
 
+repositories {
+    mavenCentral()
+    flatDir {
+        dirs '../lib'
+    }
+}
+
 dependencies {
     implementation project(':qcommon')
     implementation project(':qio')
 	  
-    api 'com.github.samtools:htsjdk:4.0.2'
+    //api 'com.github.samtools:htsjdk:4.0.2'
+    // Reference the JAR file from the local repository
+    api files('../lib/htsjdk-V1.0.0-fork.jar')
 }
