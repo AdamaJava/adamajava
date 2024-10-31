@@ -14,5 +14,6 @@ dependencies {
 	  
     //api 'com.github.samtools:htsjdk:4.0.2'
     // Reference the JAR file from the local repository
-    api name: 'htsjdk-v1.0.0-fork'
+    api files('../lib/htsjdk-v1.0.0-fork.jar')
+    api 'com.github.samtools:htsjdk:v1.0.0-fork'
 }
