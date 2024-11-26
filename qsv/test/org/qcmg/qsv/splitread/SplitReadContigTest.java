@@ -234,6 +234,41 @@ public class SplitReadContigTest {
 	}
 
 	@Test
+	public void testknownAndPotentialReferencesMatch() {
+		StructuralVariant knownSV = new StructuralVariant("chr10", "chr10", 89700299, 89712341, "1");
+		SplitReadAlignment left = new SplitReadAlignment("chr10", QSVUtil.MINUS, 89700210, 89700299, 109, 282);
+		SplitReadAlignment right = new SplitReadAlignment("chr10", QSVUtil.MINUS, 89700210, 89700299, 109, 282);
+		assertTrue(SplitReadContig.knownAndPotentialReferencesMatch(knownSV, left, right));
+
+		knownSV = new StructuralVariant("chr10", "chr10", 89700299, 89712341, "1");
+		left = new SplitReadAlignment("chr12", QSVUtil.MINUS, 89700210, 89700299, 109, 282);
+		right = new SplitReadAlignment("chr10", QSVUtil.MINUS, 89700210, 89700299, 109, 282);
+		assertFalse(SplitReadContig.knownAndPotentialReferencesMatch(knownSV, left, right));
+
+		knownSV = new StructuralVariant("chr10", "chr10", 89700299, 89712341, "1");
+		left = new SplitReadAlignment("chr10", QSVUtil.MINUS, 89700210, 89700299, 109, 282);
+		right = new SplitReadAlignment("chr12", QSVUtil.MINUS, 89700210, 89700299, 109, 282);
+		assertFalse(SplitReadContig.knownAndPotentialReferencesMatch(knownSV, left, right));
+
+		knownSV = new StructuralVariant("chr10", "chr12", 89700299, 89712341, "1");
+		left = new SplitReadAlignment("chr12", QSVUtil.MINUS, 89700210, 89700299, 109, 282);
+		right = new SplitReadAlignment("chr10", QSVUtil.MINUS, 89700210, 89700299, 109, 282);
+		assertTrue(SplitReadContig.knownAndPotentialReferencesMatch(knownSV, left, right));
+
+		knownSV = new StructuralVariant("chr10", "chr12", 89700299, 89712341, "1");
+		left = new SplitReadAlignment("chr10", QSVUtil.MINUS, 89700210, 89700299, 109, 282);
+		right = new SplitReadAlignment("chr12", QSVUtil.MINUS, 89700210, 89700299, 109, 282);
+		assertTrue(SplitReadContig.knownAndPotentialReferencesMatch(knownSV, left, right));
+
+		knownSV = new StructuralVariant("chr10", "chr12", 89700299, 89712341, "1");
+		left = new SplitReadAlignment("chr10", QSVUtil.MINUS, 89700210, 89700299, 109, 282);
+		right = new SplitReadAlignment("chr10", QSVUtil.MINUS, 89700210, 89700299, 109, 282);
+		assertFalse(SplitReadContig.knownAndPotentialReferencesMatch(knownSV, left, right));
+
+
+	}
+
+	@Test
 	public void setSplitReadAlignments2() {
 		/*
 		 * consensus: CGTGGGGGTGGGATCCACTGAGCTAGAACACTTGGCTCCCTGGCTTTGGCCCCCTTTCCAGGGGAGTGAACAGTTCTGTCTTGCTGGTGTTCCAGGCGCCACTGGGGTATGAAAAATATTCCTGCAGCTAGCTCAGTGTCTTCTTGGCAATGTGGGCACTTTTTTGGTTCCATATGAATTTTAAAGTAGTTTTTTCCAATTCTGTGAAGAAA

@@ -219,6 +219,7 @@ public class SplitReadContig {
 	}
 
 	public static SplitReadAlignment getSingleSplitReadAlignment(SplitReadAlignment left, SplitReadAlignment right) {
+
 		if (left == null && right != null) {
 			return right;
 		} else if (right == null && left != null) {
@@ -492,7 +493,7 @@ public class SplitReadContig {
 		left = null;
 		right = null;
 
-		if (confidenceLevel.equals(QSVConstants.LEVEL_SINGLE_CLIP) || knownSV.equalReference()) {				
+	    if (confidenceLevel.equals(QSVConstants.LEVEL_SINGLE_CLIP) || knownSV.equalReference()) {
 			getSplitReadAlignments(null, records);		
 		} else {
 			List<BLATRecord> leftRecords = new ArrayList<>();
@@ -506,12 +507,10 @@ public class SplitReadContig {
 					rightRecords.add(r);
 				}
 			}
-			getTranslocationSplitReadAlignments(null, leftRecords, rightRecords);	
+			getTranslocationSplitReadAlignments(null, leftRecords, rightRecords);
 		}
 
-
-
-		if (left != null & right != null) {
+		if (left != null & right != null & knownAndPotentialReferencesMatch(knownSV, left, right)) {
 
 			//rearrange
 			reorder();				
@@ -609,6 +608,14 @@ public class SplitReadContig {
 		}		
 	}
 
+	public static boolean knownAndPotentialReferencesMatch(StructuralVariant currentSV, SplitReadAlignment leftAlign, SplitReadAlignment rightAlign) {
+		if (leftAlign != null & rightAlign != null) {
+			return (leftAlign.getReference().equals(currentSV.getLeftReference()) && rightAlign.getReference().equals(currentSV.getRightReference())) ||
+					(rightAlign.getReference().equals(currentSV.getLeftReference()) && leftAlign.getReference().equals(currentSV.getRightReference()));
+		}
+		return false;
+	}
+
 	public static boolean leftLower(int leftStart, int rightStart) {
 		return leftStart < rightStart;
 	}
@@ -652,7 +659,6 @@ public class SplitReadContig {
 	}
 
 	void recheckMicrohomologyForSingleAlignment() {
-
 		String leftRef = getReferenceSequence(splitreadSV.getLeftReference(), splitreadSV.getLeftBreakpoint() + 1, 0, 50, chromosomes);
 		String rightRef = getReferenceSequence(splitreadSV.getRightReference(), splitreadSV.getRightBreakpoint() - 1, 50, 0, chromosomes);	
 		int end = leftSequence.length();
@@ -698,7 +704,11 @@ public class SplitReadContig {
 			
 			ConcurrentMap<String,byte[]> referenceMap = QSVUtil.getReferenceMap();
 			byte[] basesArray = referenceMap.get(reference);
-			
+
+			if (start > end) {
+				logger.info("In getReferenceSequence method - Reference: " + reference + "breakpoint: " +  breakpoint + " chromosome: " + c.getName() + "  chromosome length: "  + c.getTotalLength() + " start: " + start + " end: " + end + " basesArray length: " + basesArray.length);
+				throw new IllegalArgumentException("Start of reference sequence to retrieve is greater than end: " + start + " " + end);
+			}
 			// array is zero-based, and picard is 1-based
 			return new String(Arrays.copyOfRange(basesArray, start - 1, end - 1));
 		}
@@ -937,7 +947,8 @@ public class SplitReadContig {
 			}
 			if (index2 != -1) {
 				rightRecords.remove(index2);
-			}			
+			}
+
 			getTranslocationSplitReadAlignments(getSingleSplitReadAlignment(left, right), leftRecords, rightRecords);
 		}
 	}
@@ -1101,4 +1112,5 @@ public class SplitReadContig {
 	public String getMutationType() {
 		return this.mutationType;
 	}
+
 }
