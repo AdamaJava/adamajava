@@ -204,7 +204,6 @@ public final class Coverage {
 		if (coverageType.equals(CoverageType.LOW_READDEPTH)) {
 
 			String outfile = options.getOutputFileNames()[0];
-			//rename .bed extension if present to add the mnin coverage value
 			if (!outfile.endsWith(".bed")) {
 				outfile = outfile + ".bed";
 			}
