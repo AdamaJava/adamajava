@@ -34,7 +34,7 @@ public class CoverageTest {
 	 public TemporaryFolder testFolder = new TemporaryFolder();
 	
 	
-	@Before
+	 @Before
 	 public void setup() throws IOException {
 		 inputBam = testFolder.newFile("coverage.bam").getAbsolutePath();
 		 inputBai = inputBam.replace("bam", "bai");
@@ -59,8 +59,8 @@ public class CoverageTest {
 		fname = testFolder.getRoot().getAbsolutePath()+"/output.txt";
 		bedname = testFolder.getRoot().getAbsolutePath()+"/output.bed";
 
-	 } 
-	
+	 }
+
 	@Test
 	public final void defaultTest() throws Exception {
 		
@@ -105,17 +105,25 @@ public class CoverageTest {
 	    Executor exec = execute(cmd);
 	    assertEquals(0, exec.getErrCode());
 	    File fBedOutput = new File(bedname);
-	    assertFalse(fBedOutput.exists());
-
-	   //filename should have file endings .low_read_depth.[readdepth-cutoff value].bed
-		File outputBed = new File(bedname.replace(".bed",".low_read_depth.8.bed"));
-		assertTrue(outputBed.exists());
-
-		//filename should have file endings .low_read_depth.[readdepth-cutoff value].bed
-		outputBed = new File(bedname.replace(".bed",".low_read_depth.12.bed"));
-		assertFalse(outputBed.exists());
-
+	    assertTrue(fBedOutput.exists());
    }
+
+	@Test
+	public final void testLowReadDepthOptionNoBedExtension() throws Exception {
+		String bed = bedname.replace(".bed","");
+		String cmd = "--log " + log + " --type low_readdepth --input-gff3 " + inputGff3 + " --input-bam " + inputBam +
+				" --input-bai " + inputBai +  " --output " + bed + " --output-format bed --readdepth-cutoff 8";
+
+		//default value txt output only
+		Executor exec = execute(cmd);
+		assertEquals(0, exec.getErrCode());
+		File fBedOutput = new File(bed);
+		assertFalse(fBedOutput.exists());
+
+		fBedOutput = new File(bedname);
+		assertTrue(fBedOutput.exists());
+	}
+
 
 	@Test
 	public final void testLowReadDepthOptionMissingCutoffOption() throws Exception {

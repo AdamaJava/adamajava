@@ -204,11 +204,9 @@ public final class Coverage {
 		if (coverageType.equals(CoverageType.LOW_READDEPTH)) {
 
 			String outfile = options.getOutputFileNames()[0];
-			//rename .bed extension if present to add the mnin coverage value
-			if (outfile.endsWith(".bed")) {
-				outfile = outfile.substring(0, outfile.length() - 4);
+			if (!outfile.endsWith(".bed")) {
+				outfile = outfile + ".bed";
 			}
-			outfile = String.format("%s.low_read_depth.%s.bed", outfile, options.getLowReadDepthCutoff());
 
 			final HashMap<String, List<LowReadDepthRegion>> lowReadDepthResultsFinalMap = jobQueue.getLowReadDepthResultsFinalMap();
 			LinkedHashSet<String> refNamesOrdered = jobQueue.getRefNamesOrdered();

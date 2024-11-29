@@ -66,8 +66,8 @@ public class LowReadDepthTest {
 
     @Test
     public void lowReadDepthMinEight() throws Exception {
-        String fname = testFolder.getRoot().getAbsolutePath() + "/output";
-        File fOutput = new File(fname + ".low_read_depth.8.bed");
+        String fname = testFolder.getRoot().getAbsolutePath() + "/output.bed";
+        File fOutput = new File(fname);
         String cmd = "--log ./logfile --type low_readdepth --input-gff3 " + gff1000To1065 + " --input-bam " + bam + " --input-bai " + bai + " --output " + fname + " --readdepth-cutoff 8";
 
         Executor exec = execute(cmd);
@@ -91,8 +91,8 @@ public class LowReadDepthTest {
 
     @Test
     public void lowReadDepthMinTwelve() throws Exception {
-        String fname = testFolder.getRoot().getAbsolutePath() + "/output";
-        File fOutput = new File(fname + ".low_read_depth.12.bed");
+        String fname = testFolder.getRoot().getAbsolutePath() + "/output.bed";
+        File fOutput = new File(fname);
         String cmd = "--log ./logfile --type low_readdepth --input-gff3 " + gff1000To1065 + " --input-bam " + bam + " --input-bai " + bai + " --output " + fname + " --readdepth-cutoff 12";
 
         Executor exec = execute(cmd);
