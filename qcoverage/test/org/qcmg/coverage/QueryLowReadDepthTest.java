@@ -66,8 +66,8 @@ public class QueryLowReadDepthTest {
 
     @Test
     public void lowReadDepthMinTwelveQuery() throws Exception {
-        String fname = testFolder.getRoot().getAbsolutePath() + "/output";
-        File fOutput = new File(fname + ".low_read_depth.12.bed");
+        String fname = testFolder.getRoot().getAbsolutePath() + "/output.bed";
+        File fOutput = new File(fname);
         String cmd = "--log ./logfile --type low_readdepth --input-gff3 " + gff1000To1065 + " --input-bam " + bam + " --input-bai " + bai + " --output " + fname + " --readdepth-cutoff 12 --query and(flag_DuplicateRead==false,flag_NotprimaryAlignment==false,MAPQ>10)";
 
         Executor exec = execute(cmd);
@@ -89,8 +89,8 @@ public class QueryLowReadDepthTest {
 
     @Test
     public void lowReadDepthMinEightQuery() throws Exception {
-        String fname = testFolder.getRoot().getAbsolutePath() + "/output";
-        File fOutput = new File(fname + ".low_read_depth.8.bed");
+        String fname = testFolder.getRoot().getAbsolutePath() + "/output.bed";
+        File fOutput = new File(fname);
         String cmd = "--log ./logfile --type low_readdepth --input-gff3 " + gff1000To1065 + " --input-bam " + bam + " --input-bai " + bai + " --output " + fname + " --readdepth-cutoff 8 --query and(flag_DuplicateRead==false,flag_NotprimaryAlignment==false,MAPQ>10)";
 
         Executor exec = execute(cmd);
