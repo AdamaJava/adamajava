@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.util.ChrPositionUtils;
@@ -109,7 +108,6 @@ public class ConfidenceModeTest {
 
     @Test
     public void testCheckStrandBiasWhenBothStrandsRepresented() {
-        ConfidenceMode subject = new ConfidenceMode();
 
         Map<String, int[]> alleleDist = new HashMap<>();
         alleleDist.put("A", new int[]{10, 10});
@@ -252,47 +250,179 @@ public class ConfidenceModeTest {
     @Test
     public void checkMIUN() {
         StringBuilder sb = null;
-        ConfidenceMode.checkMIUN(null, 0, null, sb, -1, 3);
+        ConfidenceMode.checkMIUN(null, 0, null, sb, -1, 3, null);
         assertNull(sb);
         sb = new StringBuilder();
-        ConfidenceMode.checkMIUN(new String[]{"A"}, 0, "", sb, -1, 3);
+        ConfidenceMode.checkMIUN(new String[]{"A"}, 0, "", sb, -1, 3, null);
         assertEquals("", sb.toString());
-        ConfidenceMode.checkMIUN(new String[]{"A"}, 0, "C1", sb, 1, 3);
+        ConfidenceMode.checkMIUN(new String[]{"A"}, 0, "C1", sb, 1, 3, null);
         assertEquals("", sb.toString());
-        ConfidenceMode.checkMIUN(new String[]{"A"}, 0, "C1;G2;T3", sb, 1, 3);
+        ConfidenceMode.checkMIUN(new String[]{"A"}, 0, "C1;G2;T3", sb, 1, 3, null);
         assertEquals("", sb.toString());
-        ConfidenceMode.checkMIUN(new String[]{"A", "C"}, 0, "C1;G2;T3", sb, 2, 3);
+        ConfidenceMode.checkMIUN(new String[]{"A", "C"}, 0, "C1;G2;T3", sb, 2, 3, null);
         assertEquals("", sb.toString());
-        ConfidenceMode.checkMIUN(new String[]{"A", "C", "G"}, 93, "C1;G2;T3", sb, 2, 3);
+        ConfidenceMode.checkMIUN(new String[]{"A", "C", "G"}, 93, "C1;G2;T3", sb, 2, 3, null);
         assertEquals("", sb.toString());
-        ConfidenceMode.checkMIUN(new String[]{"A", "C", "G", "T"}, 93, "C1;G2;T3", sb, 2, 3);
+        ConfidenceMode.checkMIUN(new String[]{"A", "C", "G", "T"}, 93, "C1;G2;T3", sb, 2, 3, null);
         assertEquals("MIUN", sb.toString());
         sb = new StringBuilder();
-        ConfidenceMode.checkMIUN(new String[]{"A", "C", "G"}, 94, "C1;G2;T3", sb, 2, 3);
+        ConfidenceMode.checkMIUN(new String[]{"A", "C", "G"}, 94, "C1;G2;T3", sb, 2, 3, null);
         assertEquals("", sb.toString());
-        ConfidenceMode.checkMIUN(new String[]{"A", "C", "T"}, 0, "C1;G2;T3", sb, 3, 3);
+        ConfidenceMode.checkMIUN(new String[]{"A", "C", "T"}, 0, "C1;G2;T3", sb, 3, 3, null);
         assertEquals("MIUN", sb.toString());
         sb = new StringBuilder();
-        ConfidenceMode.checkMIUN(new String[]{"A", "C", "T"}, 100, "C1;G2;T3", sb, 3, 3);
+        ConfidenceMode.checkMIUN(new String[]{"A", "C", "T"}, 100, "C1;G2;T3", sb, 3, 3, null);
         assertEquals("", sb.toString());
-        ConfidenceMode.checkMIUN(new String[]{"C"}, 0, "C1;G2;T3", sb, 1, 3);
+        ConfidenceMode.checkMIUN(new String[]{"C"}, 0, "C1;G2;T3", sb, 1, 3, null);
         assertEquals("MIUN", sb.toString());
         sb = new StringBuilder();
-        ConfidenceMode.checkMIUN(new String[]{"G"}, 0, "C1;G2;T3", sb, 2, 3);
+        ConfidenceMode.checkMIUN(new String[]{"G"}, 0, "C1;G2;T3", sb, 2, 3, null);
         assertEquals("MIUN", sb.toString());
         sb = new StringBuilder();
-        ConfidenceMode.checkMIUN(new String[]{"T"}, 0, "C1;G2;T3", sb, 3, 3);
+        ConfidenceMode.checkMIUN(new String[]{"T"}, 0, "C1;G2;T3", sb, 3, 3, null);
         assertEquals("MIUN", sb.toString());
         sb = new StringBuilder();
-        ConfidenceMode.checkMIUN(new String[]{"T"}, 0, "C1;G2;T3", sb, 4, 3);
+        ConfidenceMode.checkMIUN(new String[]{"T"}, 0, "C1;G2;T3", sb, 4, 3, null);
         assertEquals("", sb.toString());
         sb = new StringBuilder();
-        ConfidenceMode.checkMIUN(new String[]{"A"}, 0, "A3;C8", sb, 2, 3);
+        ConfidenceMode.checkMIUN(new String[]{"A"}, 0, "A3;C8", sb, 2, 3, null);
         assertEquals("MIUN", sb.toString());
         sb = new StringBuilder();
-        ConfidenceMode.checkMIUN(new String[]{"A"}, 90, "A3;C8", sb, 2, 3);
+        ConfidenceMode.checkMIUN(new String[]{"A", "C"}, 0, "A3;C8", sb, 2, 3, null);
+        assertEquals("MIUN", sb.toString());
+        sb = new StringBuilder();
+        ConfidenceMode.checkMIUN(new String[]{"A"}, 90, "A3;C8", sb, 2, 3, null);
         assertEquals("", sb.toString());
+
+//
     }
+
+    @Test
+    public void testMIUNWithHelpFromUnfiltered() {
+           /*
+        add some tests with alt in the alleleDist
+         */
+        StringBuilder sb = new StringBuilder();
+        Map<String, int[]> alleleDist = new HashMap<>();
+        ConfidenceMode.checkMIUN(new String[]{"A"}, 10, "A1", sb, 2, 3, alleleDist);
+        assertEquals("", sb.toString());
+
+        alleleDist.put("A", new int[]{1, 0});
+        ConfidenceMode.checkMIUN(new String[]{"A"}, 10, "A1", sb, 2, 3, alleleDist);
+        assertEquals("MIUN", sb.toString());
+
+        alleleDist.put("A", new int[]{0, 1});
+        sb = new StringBuilder();
+        ConfidenceMode.checkMIUN(new String[]{"A"}, 10, "A1", sb, 2, 3, alleleDist);
+        assertEquals("MIUN", sb.toString());
+        sb = new StringBuilder();
+        ConfidenceMode.checkMIUN(new String[]{"A"}, 10, "C1", sb, 2, 3, alleleDist);
+        assertEquals("", sb.toString());
+        
+    }
+
+    @Test
+    public void testCheckMIUN_AllAllelesPassCutoff() {
+        StringBuilder sb = new StringBuilder();
+        Map<String, int[]> alleleDist = new HashMap<>();
+        alleleDist.put("G", new int[]{2, 2}); // Sum 4
+        alleleDist.put("T", new int[]{1, 1}); // Sum 2
+        ConfidenceMode.checkMIUN(new String[]{"G", "T"}, 30, "G4;T4", sb, 5, 10, alleleDist);
+        assertTrue(sb.toString().contains("MIUN")); // Both "G" and "T" pass the cutoff, MIUN should be added
+    }
+
+    @Test
+    public void testCheckMIUN_AltsNotInFailedFilter() {
+        StringBuilder sb = new StringBuilder();
+        Map<String, int[]> alleleDist = new HashMap<>();
+        alleleDist.put("A", new int[]{1, 2});
+
+        ConfidenceMode.checkMIUN(new String[]{"C"}, 10, "T:3;G:5;", sb, 2, 10, alleleDist);
+
+        assertEquals(0, sb.length()); // No matching alternative allele in `failedFilter`, no mutation added
+    }
+
+
+    @Test
+    public void testCheckMIUN_EmptyFailedFilterString() {
+        StringBuilder sb = new StringBuilder();
+        Map<String, int[]> alleleDist = new HashMap<>();
+        alleleDist.put("G", new int[]{0, 0});
+
+        ConfidenceMode.checkMIUN(new String[]{"G"}, 20, "", sb, 5, 10, alleleDist);
+
+        assertEquals(0, sb.length()); // Empty `failedFilter`, no mutation should be added
+    }
+
+    @Test
+    public void testCheckMIUN_AltExceedsCutoff() {
+        StringBuilder sb = new StringBuilder();
+        Map<String, int[]> alleleDist = new HashMap<>();
+        alleleDist.put("A", new int[]{3, 3}); // Sum = 6
+
+        ConfidenceMode.checkMIUN(new String[]{"A"}, 20, "A5", sb, 5, 10, alleleDist);
+
+        assertTrue(sb.toString().contains("MIUN")); // Alt exceeds the calculated cutoff, "MIUN" should be added
+    }
+
+
+    @Test
+    public void testCheckMIUN_PercentageCutoff() {
+        StringBuilder sb = new StringBuilder();
+        Map<String, int[]> alleleDist = new HashMap<>();
+        alleleDist.put("A", new int[]{0, 0}); // Sum = 0
+
+        // Total Coverage = 50 + 32 = 82
+        // Percentage-based cutoff = 30% = 31.5 -> 32
+        ConfidenceMode.checkMIUN(new String[]{"A"}, 50, "A32", sb, 10, 30, alleleDist);
+
+        assertTrue(sb.toString().contains("MIUN")); // Failed filter count meets the percentage cutoff
+    }
+    @Test
+    public void testCheckMIUN_EmptyAlts() {
+        StringBuilder sb = new StringBuilder();
+        ConfidenceMode.checkMIUN(new String[]{}, 10, "T:3;G:5;", sb, 5, 10, new HashMap<>());
+        assertEquals(0, sb.length()); // No update should occur with empty `alts` array
+    }
+
+
+    @Test
+    public void testCheckMIUN_NullFailedFilter() {
+        StringBuilder sb = new StringBuilder();
+        ConfidenceMode.checkMIUN(new String[]{"A"}, 10, null, sb, 2, 10, new HashMap<>());
+        assertEquals(0, sb.length()); // Null `failedFilter` should result in no modification
+    }
+
+
+    @Test
+    public void testCheckMIUN_HandlesMultipleAlts() {
+        StringBuilder sb = new StringBuilder();
+        Map<String, int[]> alleleDist = new HashMap<>();
+        alleleDist.put("T", new int[]{1, 1}); // Sum = 2
+        alleleDist.put("A", new int[]{4, 2}); // Sum = 6
+
+        // Total Coverage = 50 + 10 = 60
+        // Hard cutoff = max(5, (10% of 60)) = max(5, 6) = 6
+        ConfidenceMode.checkMIUN(new String[]{"T", "A"}, 50, "T3;A4", sb, 5, 10, alleleDist);
+
+        assertTrue(sb.toString().contains("MIUN")); // "A" exceeds the cutoff, so MIUN is added
+    }
+
+
+
+    @Test
+    public void testCheckMIUN_HardCutoff() {
+        StringBuilder sb = new StringBuilder();
+        Map<String, int[]> alleleDist = new HashMap<>();
+        alleleDist.put("T", new int[]{1, 1}); // Sum = 2
+
+        // Total Coverage = 50 + 6 = 56
+        // Hard cutoff = max(10, (20% of 56)) = max(10, 11.2) = 11
+        ConfidenceMode.checkMIUN(new String[]{"T"}, 50, "T9", sb, 10, 20, alleleDist);
+
+        assertEquals(0, sb.length()); // Failed filter count + alleleDist below the hard cutoff
+    }
+
 
     @Test
     public void testHOM() {
@@ -657,6 +787,28 @@ public class ConfidenceModeTest {
 
         assertEquals("COV", vcf.getSampleFormatRecord(1).getField(VcfHeaderUtils.FORMAT_FILTER));
         assertEquals("COV", vcf.getSampleFormatRecord(2).getField(VcfHeaderUtils.FORMAT_FILTER));
+        assertEquals("PASS", vcf.getSampleFormatRecord(3).getField(VcfHeaderUtils.FORMAT_FILTER));
+        assertEquals("PASS", vcf.getSampleFormatRecord(4).getField(VcfHeaderUtils.FORMAT_FILTER));
+    }
+
+    @Test
+    public void realLifeMIUN2() {
+        // chr1    16651203        rs79306135      G       A       .       .       FLANK=GTAAAACTGGA;BaseQRankSum=0.325;ClippingRankSum=0.000;DP=58;ExcessHet=3.0103;FS=4.683;MQ=55.10;MQRankSum=-6.669;QD=4.63;ReadPosRankSum=-0.352;SOR=1.425;IN=1,2;DB;VLD;HOM=3,TATATGTAAAgCTGGATTAAT;EFF=downstream_gene_variant(MODIFIER||914|||MST1P2|unprocessed_pseudogene|NON_CODING|ENST00000457982||1),intergenic_region(MODIFIER||||||||||1)  GT:AD:CCC:CCM:DP:EOR:FF:FT:GQ:INF:NNS:OABS:QL   0/0:21,1:Reference:13:22:.:A1;C1:PASS:.:.:.:A0[0]1[41];G9[40.11]12[39.08]:.     0/1:43,14:Somatic:13:57:A0[]1[];G0[]1[]:A10;G2:PASS:.:SOMATIC:13:A6[40.33]8[37.12];G21[35.67]22[38.91]:.
+        //        ./.:.:.:3:.:.:.:PASS:.:NCIG:.:.:.       0/1:45,12:.:3:57:.:.:PASS:99:SOMATIC:.:.:263.77
+        VcfRecord vcf = VcfUtils.createVcfRecord(ChrPositionUtils.getChrPosition("chr1",   16651203, 16651203), "rs79306135", "G", "A");
+        vcf.setInfo("FLANK=GTAAAACTGGA;BaseQRankSum=0.325;ClippingRankSum=0.000;DP=58;ExcessHet=3.0103;FS=4.683;MQ=55.10;MQRankSum=-6.669;QD=4.63;ReadPosRankSum=-0.352;SOR=1.425;IN=1,2;DB;VLD;HOM=3,TATATGTAAAgCTGGATTAAT;EFF=downstream_gene_variant(MODIFIER||914|||MST1P2|unprocessed_pseudogene|NON_CODING|ENST00000457982||1),intergenic_region(MODIFIER||||||||||1)");
+        vcf.setFormatFields(java.util.Arrays.asList(
+                "GT:AD:CCC:CCM:DP:EOR:FF:FT:GQ:INF:NNS:OABS:QL",
+                "0/0:21,1:Reference:13:22:.:A1;C1:.:.:.:.:A0[0]1[41];G9[40.11]12[39.08]:.",
+                "0/1:43,14:Somatic:13:57:A0[]1[];G0[]1[]:A10;G2:.:.:SOMATIC:13:A6[40.33]8[37.12];G21[35.67]22[38.91]:.",
+                "./.:.:.:3:.:.:.:.:.:NCIG:.:.:.",
+                "0/1:45,12:.:3:57:.:.:.:99:SOMATIC:.:.:263.77"));
+        ConfidenceMode cm = new ConfidenceMode(TWO_SAMPLE_TWO_CALLER_META);
+        cm.positionRecordMap.put(vcf.getChrPosition(), List.of(vcf));
+        cm.addAnnotation();
+        vcf = cm.positionRecordMap.get(vcf.getChrPosition()).getFirst();
+        assertEquals("MIUN", vcf.getSampleFormatRecord(1).getField(VcfHeaderUtils.FORMAT_FILTER));
+        assertEquals("PASS", vcf.getSampleFormatRecord(2).getField(VcfHeaderUtils.FORMAT_FILTER));
         assertEquals("PASS", vcf.getSampleFormatRecord(3).getField(VcfHeaderUtils.FORMAT_FILTER));
         assertEquals("PASS", vcf.getSampleFormatRecord(4).getField(VcfHeaderUtils.FORMAT_FILTER));
     }
