@@ -8,13 +8,11 @@ package au.edu.qimr.qannotate.modes;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
@@ -54,6 +52,8 @@ public class ConfidenceMode extends AbstractMode {
 
     public static final int sBiasAltPercentage = 5;
     public static final int sBiasCovPercentage = 5;
+
+    private static final int[] ZERO_ARRAY = {0, 0};
 
     @Deprecated    // using values (both hard cutoff and percentage) from MIN for MIUN annotation
     public static final int MIUN_CUTOFF = 2;    // based on existing values
@@ -230,7 +230,7 @@ public class ConfidenceMode extends AbstractMode {
                         /*
                          * look for MIUN, but only if we don't already have MIN
                          */
-                        checkMIUN(failedFilterStringBuilder, ffArr, i, alts, cov);
+                        checkMIUN(failedFilterStringBuilder, ffArr, i, alts, cov, alleleDist);
 
                         if (!failedFilterStringBuilder.toString().contains(VcfHeaderUtils.FILTER_COVERAGE) && cov < controlCovCutoffForSomaticCalls) {
                             StringUtils.updateStringBuilder(failedFilterStringBuilder, VcfHeaderUtils.FILTER_COVERAGE, Constants.SEMI_COLON);
@@ -243,7 +243,7 @@ public class ConfidenceMode extends AbstractMode {
                     String gt = gtArray[i];
                     if ( ! StringUtils.isNullOrEmptyOrMissingData(gt) && ! "0/0".equals(gt)) {
                         int index = gt.indexOf(Constants.SLASH);
-                        int[] gts = new int[]{Integer.parseInt(gt.substring(0, index)), Integer.parseInt(gt.substring(index + 1))};
+                        int[] gts = new int[]{Integer.parseInt(gt, 0, index, 10), Integer.parseInt(gt, index + 1, gt.length(), 10)};
 
                         if (!alleleDist.isEmpty() && !isGATKCall) {
                             checkStrandBias(alts, failedFilterStringBuilder, alleleDist, gts, sBiasCovPercentage, sBiasAltPercentage);
@@ -304,12 +304,12 @@ public class ConfidenceMode extends AbstractMode {
         }
     }
 
-    private void checkMIUN(StringBuilder fSb, String[] ffArr, int i, String[] alts, int cov) {
+    private void checkMIUN(StringBuilder fSb, String[] ffArr, int i, String[] alts, int cov,  Map<String, int[]> alleleDist) {
         if (!fSb.toString().contains(VcfHeaderUtils.FILTER_MUTATION_IN_NORMAL)) {
             if (null != ffArr && ffArr.length > i) {
                 String failedFilter = ffArr[i];
                 // using the same values as for the MIN annotation
-                checkMIUN(alts, cov, failedFilter, fSb, minCutoff, (float) minPercentage);
+                checkMIUN(alts, cov, failedFilter, fSb, minCutoff, (float) minPercentage, alleleDist);
             }
         }
     }
@@ -385,7 +385,7 @@ public class ConfidenceMode extends AbstractMode {
     public static void checkMIN(String[] alts, int coverage, Map<String, int[]> alleleDist, StringBuilder sb, int minCutoff, float minPercentage) {
         if (null != alts && null != alleleDist) {
             for (String alt : alts) {
-                int altCov = Arrays.stream(alleleDist.getOrDefault(alt, new int[]{0, 0})).sum();
+                int altCov = Arrays.stream(alleleDist.getOrDefault(alt, ZERO_ARRAY)).sum();
                 boolean min = VcfUtils.mutationInNormal(altCov, coverage, minPercentage, minCutoff);
                 if (min) {
                     StringUtils.updateStringBuilder(sb, VcfHeaderUtils.FILTER_MUTATION_IN_NORMAL, Constants.SEMI_COLON);
@@ -407,25 +407,31 @@ public class ConfidenceMode extends AbstractMode {
      * @param miunCutoff     The minimum coverage cutoff for MIUN
      * @param miunPercentage The minimum percentage cutoff for MIUN
      */
-    public static void checkMIUN(String[] alts, int coverage, String failedFilter, StringBuilder sb, int miunCutoff, float miunPercentage) {
-        if (null != alts && !StringUtils.isNullOrEmptyOrMissingData(failedFilter)) {
+    public static void checkMIUN(String[] alts, int coverage, String failedFilter, StringBuilder sb, int miunCutoff, float miunPercentage, Map<String, int[]> alleleDist) {
+        if (alts == null || alts.length == 0 || StringUtils.isNullOrEmptyOrMissingData(failedFilter)) {
+            return;
+        }
 
-            int totalCoverage = coverage + getCoverageFromFailedFilterString(failedFilter);
-            float cutoffToUse = Math.max(miunCutoff, (miunPercentage / 100) * totalCoverage);
+        int totalCoverage = coverage + getCoverageFromFailedFilterString(failedFilter);
+        float cutoffToUse = Math.max(miunCutoff, (miunPercentage / 100) * totalCoverage);
 
+        for (String alt : alts) {
+            int altIndex = failedFilter.indexOf(alt);
+            if (altIndex > -1) {
+                /*
+                 * bases are separated by colons
+                 */
+                int semiColonIndex = failedFilter.indexOf(Constants.SEMI_COLON, altIndex);
+                int failedFilterCount = Integer.parseInt(failedFilter, altIndex + alt.length(), semiColonIndex > -1 ? semiColonIndex : failedFilter.length(), 10);
 
-            for (String alt : alts) {
-                int altIndex = failedFilter.indexOf(alt);
-                if (altIndex > -1) {
-                    /*
-                     * bases are separated by colons
-                     */
-                    int semiColonIndex = failedFilter.indexOf(Constants.SEMI_COLON, altIndex);
-                    int failedFilterCount = Integer.parseInt(failedFilter.substring(altIndex + alt.length(), semiColonIndex > -1 ? semiColonIndex : failedFilter.length()));
-                    if (failedFilterCount >= cutoffToUse) {
-                        StringUtils.updateStringBuilder(sb, VcfHeaderUtils.FILTER_MUTATION_IN_UNFILTERED_NORMAL, Constants.SEMI_COLON);
-                        break;
-                    }
+                // Add coverage from alleleDist map
+                int[] passedFilterCoverage = null != alleleDist ? alleleDist.getOrDefault(alt, ZERO_ARRAY) : ZERO_ARRAY;
+                int passedFilterCoverageSum = passedFilterCoverage[0] + passedFilterCoverage[1];
+                failedFilterCount += passedFilterCoverageSum;
+
+                if (failedFilterCount >= cutoffToUse) {
+                    StringUtils.updateStringBuilder(sb, VcfHeaderUtils.FILTER_MUTATION_IN_UNFILTERED_NORMAL, Constants.SEMI_COLON);
+                    break;
                 }
             }
         }
@@ -451,8 +457,8 @@ public class ConfidenceMode extends AbstractMode {
         Map<String, int[]> eorMap = VcfUtils.getAllelicCoverageWithStrand(eor);
         for (String alt : alts) {
             if (gt.contains("" + i)) {
-                int[] altCov = oabsMap.getOrDefault(alt, new int[]{0, 0});
-                int[] altCovEOR = eorMap.getOrDefault(alt, new int[]{0, 0});
+                int[] altCov = oabsMap.getOrDefault(alt, ZERO_ARRAY);
+                int[] altCovEOR = eorMap.getOrDefault(alt, ZERO_ARRAY);
                 int middleOfReadForwardStrand = altCov[0] - altCovEOR[0];
                 int middleOfReadReverseStrand = altCov[1] - altCovEOR[1];
                 int middleOfReadCount = middleOfReadForwardStrand + middleOfReadReverseStrand;
@@ -545,7 +551,8 @@ public class ConfidenceMode extends AbstractMode {
         }
         int cI = value.indexOf(Constants.COMMA);
         if (cI == -1) return new int[]{Integer.parseInt(value)};
-        return new int[]{Integer.parseInt(value.substring(0, cI)), Integer.parseInt(value.substring(cI + 1))};
+        return new int[]{Integer.parseInt(value, 0, cI, 10), Integer.parseInt(value, cI + 1, value.length(), 10)};
+//        return new int[]{Integer.parseInt(value.substring(0, cI)), Integer.parseInt(value.substring(cI + 1))};
     }
 
     /**
@@ -566,7 +573,7 @@ public class ConfidenceMode extends AbstractMode {
             // could probably start this at 1....
             for (int i = 0; i < ff.length(); ) {
                 if (Character.isDigit(ff.charAt(i))) {
-                    cov += Integer.parseInt(ff.substring(i, semiColonIndex > -1 ? semiColonIndex : ff.length()));
+                    cov += Integer.parseInt(ff, i, semiColonIndex > -1 ? semiColonIndex : ff.length(), 10);
                     if (semiColonIndex == -1) {
                         break;
                     } else {
