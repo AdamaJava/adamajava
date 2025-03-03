@@ -76,7 +76,7 @@ public class GenotypeUtil {
 		
 		StringBuilder sb = new StringBuilder();
 		sb.append(null != gt ? gt : Constants.MISSING_GT).append(Constants.COLON);
-		sb.append(VcfUtils.getAD(""+ref, alt, oabs)).append(Constants.COLON);
+		sb.append(VcfUtils.getAD("" + ref, alt, oabs)).append(Constants.COLON);
 		sb.append(null == acc ? Constants.MISSING_DATA_STRING :acc.getCoverage()).append(Constants.COLON);
 		/*
 		 * adding EOR (end of reads -similar in format to FF)

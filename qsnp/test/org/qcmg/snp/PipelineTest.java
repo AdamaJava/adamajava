@@ -3,10 +3,7 @@ package org.qcmg.snp;
 import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -121,5 +118,46 @@ public class PipelineTest {
 		rec.setBaseQualityString(array[10]);
 		
 		return rec;
+	}
+
+	@Test
+	public void testNameHashing() {
+		List<String> names = Arrays.asList( "HGMY7DSX5230415:3:1538:31602:12446",
+		"HGN5JDSX5230415:4:1456:2709:30452",
+		"HGNCTDSX5230415:3:2520:4191:1266",
+		"HGNCTDSX5230415:3:1162:4490:7044",
+		"HGN5JDSX5230415:4:1148:16197:31015",
+		"HGNCTDSX5230415:3:2431:27805:36338",
+		"HGMY7DSX5230415:3:1318:28899:23234",
+		"HGN5JDSX5230415:4:1547:1759:7075",
+		"HGMWYDSX5230415:3:1236:30590:22561",
+		"HGMWYDSX5230415:3:2639:10818:19727",
+		"HGN5JDSX5230415:4:2371:13114:3474",
+		"HGMY7DSX5230415:3:1555:25482:29653",
+		"HGMY7DSX5230415:3:1644:20365:15029",
+		"HGMY7DSX5230415:3:1561:27091:11741",
+		"HGNCTDSX5230415:3:2515:16857:21919",
+		"HGMWYDSX5230415:3:1126:2166:31610",
+		"HGN5JDSX5230415:4:1456:2709:30452",
+		"HGNCTDSX5230415:3:1423:11342:20603",
+		"HGMWYDSX5230415:3:1555:18195:3411",
+		"HGMWYDSX5230415:3:2573:27751:31422",
+		"HGN5JDSX5230415:4:2208:8232:13088",
+		"HGNCTDSX5230415:3:1262:31783:25034",
+		"HGNCTDSX5230415:3:1262:31783:25034",
+		"HGMWYDSX5230415:3:2671:30002:6668",
+		"HGMWYDSX5230415:3:2344:28357:27524",
+		"HGMY7DSX5230415:3:2623:25364:17268",
+		"HGN5JDSX5230415:4:2368:32660:33818");
+		assertEquals(27, names.size());
+		/*
+		put into a set to check for uniqueness
+		 */
+		Set<String> nameSet = new HashSet<>(names);
+		assertEquals(25, nameSet.size());
+		/*
+		now hash them and check we get the same amount of unique hashes
+		 */
+
 	}
 }

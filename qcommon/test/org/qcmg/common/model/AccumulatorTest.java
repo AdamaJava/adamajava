@@ -81,11 +81,12 @@ public class AccumulatorTest {
     public void testUnfilteredPileup() {
         Accumulator acc = new Accumulator(1);
         String basesString = "ACGT";
-        for (byte b : basesString.getBytes()) acc.addFailedFilterBase(b);
+        long readNameHash = 1;
+        for (byte b : basesString.getBytes()) acc.addFailedFilterBase(b, readNameHash);
         assertEquals("A1;C1;G1;T1", acc.getFailedFilterPileup());
-        for (byte b : basesString.getBytes()) acc.addFailedFilterBase(b);
+        for (byte b : basesString.getBytes()) acc.addFailedFilterBase(b, readNameHash + 1);
         assertEquals("A2;C2;G2;T2", acc.getFailedFilterPileup());
-        for (byte b : basesString.getBytes()) acc.addFailedFilterBase(b);
+        for (byte b : basesString.getBytes()) acc.addFailedFilterBase(b, readNameHash + 2);
         assertEquals("A3;C3;G3;T3", acc.getFailedFilterPileup());
     }
 
@@ -97,8 +98,9 @@ public class AccumulatorTest {
         }
 
         String basesString = "GG";
+        long readNameHash = 1;
         for (byte b : basesString.getBytes()) {
-            acc.addFailedFilterBase(b);
+            acc.addFailedFilterBase(b, readNameHash++);
         }
         assertEquals("G2", acc.getFailedFilterPileup());
         /*
@@ -106,7 +108,7 @@ public class AccumulatorTest {
          */
         basesString = "G";
         for (byte b : basesString.getBytes()) {
-            acc.addFailedFilterBase(b);
+            acc.addFailedFilterBase(b, readNameHash++);
         }
         assertEquals("G3", acc.getFailedFilterPileup());
     }
@@ -115,31 +117,32 @@ public class AccumulatorTest {
     @Test
     public void singleUnfilteredPileup() {
         Accumulator acc = new Accumulator(1);
-        for (byte b : "ACGT".getBytes()) acc.addFailedFilterBase(b);
+        long readNameHash = 1;
+        for (byte b : "ACGT".getBytes()) acc.addFailedFilterBase(b, readNameHash++);
         assertEquals("A1;C1;G1;T1", acc.getFailedFilterPileup());
 
         acc = new Accumulator(1);
-        for (byte b : "ACGTA".getBytes()) acc.addFailedFilterBase(b);
+        for (byte b : "ACGTA".getBytes()) acc.addFailedFilterBase(b, readNameHash++);
         assertEquals("A2;C1;G1;T1", acc.getFailedFilterPileup());
 
         acc = new Accumulator(1);
-        for (byte b : "ACCGT".getBytes()) acc.addFailedFilterBase(b);
+        for (byte b : "ACCGT".getBytes()) acc.addFailedFilterBase(b, readNameHash++);
         assertEquals("A1;C2;G1;T1", acc.getFailedFilterPileup());
 
         acc = new Accumulator(1);
-        for (byte b : "ATTTGT".getBytes()) acc.addFailedFilterBase(b);
+        for (byte b : "ATTTGT".getBytes()) acc.addFailedFilterBase(b, readNameHash++);
         assertEquals("A1;G1;T4", acc.getFailedFilterPileup());
 
         acc = new Accumulator(1);
-        for (byte b : "AAAATTTGT".getBytes()) acc.addFailedFilterBase(b);
+        for (byte b : "AAAATTTGT".getBytes()) acc.addFailedFilterBase(b, readNameHash++);
         assertEquals("A4;G1;T4", acc.getFailedFilterPileup());
 
         acc = new Accumulator(1);
-        for (byte b : "AAAACTTTCGT".getBytes()) acc.addFailedFilterBase(b);
+        for (byte b : "AAAACTTTCGT".getBytes()) acc.addFailedFilterBase(b, readNameHash++);
         assertEquals("A4;C2;G1;T4", acc.getFailedFilterPileup());
 
         acc = new Accumulator(1);
-        for (byte b : "AAAACTTTCGTG".getBytes()) acc.addFailedFilterBase(b);
+        for (byte b : "AAAACTTTCGTG".getBytes()) acc.addFailedFilterBase(b, readNameHash++);
         assertEquals("A4;C2;G2;T4", acc.getFailedFilterPileup());
     }
 
@@ -217,7 +220,7 @@ public class AccumulatorTest {
         Accumulator acc = new Accumulator(1);
         for (int i = 1; i <= 60; i++) acc.addBase((byte) 'G', (byte) 40, false, 1, 1, 2, i);
         for (int i = 1; i <= 5; i++) acc.addBase((byte) 'C', (byte) 42, false, 1, 1, 2, i + 61);
-        for (int i = 1; i <= 1; i++) acc.addBase((byte) 'C', (byte) 42, true, 1, 1, 2, i + 67);
+        for (int i = 1; i == 1; i++) acc.addBase((byte) 'C', (byte) 42, true, 1, 1, 2, i + 67);
 
         assertEquals("C1[42]5[42];G0[0]60[40]", AccumulatorUtils.getOABS(acc));
         /*

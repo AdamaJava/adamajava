@@ -43,10 +43,10 @@ public class Accumulator {
 
     private final int position;
 
-    private short failedFilterACount = 0;
-    private short failedFilterCCount = 0;
-    private short failedFilterGCount = 0;
-    private short failedFilterTCount = 0;
+    private TLongList failedFilterACount;
+    private TLongList failedFilterCCount;
+    private TLongList failedFilterGCount;
+    private TLongList failedFilterTCount;
 
     private TLongList readNameHashStrandBasePositionQualities;
 
@@ -58,19 +58,23 @@ public class Accumulator {
         return position;
     }
 
-    public void addFailedFilterBase(final byte base) {
+    public void addFailedFilterBase(final byte base, long readNameHash) {
         switch (base) {
             case A_BYTE:
-                failedFilterACount++;
+                if (null == failedFilterACount) failedFilterACount = new TLongArrayList();
+                failedFilterACount.add(readNameHash);
                 break;
             case C_BYTE:
-                failedFilterCCount++;
+                if (null == failedFilterCCount) failedFilterCCount = new TLongArrayList();
+                failedFilterCCount.add(readNameHash);
                 break;
             case G_BYTE:
-                failedFilterGCount++;
+                if (null == failedFilterGCount) failedFilterGCount = new TLongArrayList();
+                failedFilterGCount.add(readNameHash);
                 break;
             case T_BYTE:
-                failedFilterTCount++;
+                if (null == failedFilterTCount) failedFilterTCount = new TLongArrayList();
+                failedFilterTCount.add(readNameHash);
                 break;
             default: /* do nothing */
                 break;
@@ -120,17 +124,17 @@ public class Accumulator {
 
     public String getFailedFilterPileup() {
         StringBuilder sb = new StringBuilder();
-        if (failedFilterACount > 0) {
-            StringUtils.updateStringBuilder(sb, A_STRING + failedFilterACount, Constants.SEMI_COLON);
+        if (null != failedFilterACount && ! failedFilterACount.isEmpty()) {
+            StringUtils.updateStringBuilder(sb, A_STRING + failedFilterACount.size(), Constants.SEMI_COLON);
         }
-        if (failedFilterCCount > 0) {
-            StringUtils.updateStringBuilder(sb, C_STRING + failedFilterCCount, Constants.SEMI_COLON);
+        if (null != failedFilterCCount && ! failedFilterCCount.isEmpty()) {
+            StringUtils.updateStringBuilder(sb, C_STRING + failedFilterCCount.size(), Constants.SEMI_COLON);
         }
-        if (failedFilterGCount > 0) {
-            StringUtils.updateStringBuilder(sb, G_STRING + failedFilterGCount, Constants.SEMI_COLON);
+        if (null != failedFilterGCount && ! failedFilterGCount.isEmpty()) {
+            StringUtils.updateStringBuilder(sb, G_STRING + failedFilterGCount.size(), Constants.SEMI_COLON);
         }
-        if (failedFilterTCount > 0) {
-            StringUtils.updateStringBuilder(sb, T_STRING + failedFilterTCount, Constants.SEMI_COLON);
+        if (null != failedFilterTCount && ! failedFilterTCount.isEmpty()) {
+            StringUtils.updateStringBuilder(sb, T_STRING + failedFilterTCount.size(), Constants.SEMI_COLON);
         }
         return !sb.isEmpty() ? sb.toString() : Constants.MISSING_DATA_STRING;
     }
@@ -140,4 +144,23 @@ public class Accumulator {
         return null == readNameHashStrandBasePositionQualities ? 0 : readNameHashStrandBasePositionQualities.size() / 2;
     }
 
+    public boolean isEmpty() {
+        return null == readNameHashStrandBasePositionQualities && null == failedFilterACount && null == failedFilterCCount && null == failedFilterGCount && null == failedFilterTCount;
+    }
+
+    public TLongList getFailedFilterACount() {
+        return failedFilterACount;
+    }
+
+    public TLongList getFailedFilterCCount() {
+        return failedFilterCCount;
+    }
+
+    public TLongList getFailedFilterGCount() {
+        return failedFilterGCount;
+    }
+
+    public TLongList getFailedFilterTCount() {
+        return failedFilterTCount;
+    }
 }

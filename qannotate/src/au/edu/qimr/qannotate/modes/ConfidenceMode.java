@@ -415,6 +415,8 @@ public class ConfidenceMode extends AbstractMode {
         int totalCoverage = coverage + getCoverageFromFailedFilterString(failedFilter);
         float cutoffToUse = Math.max(miunCutoff, (miunPercentage / 100) * totalCoverage);
 
+        System.out.println("in checkMIUN - alts: " + Arrays.toString(alts) + ", coverage: " + coverage + ", failedFilter: " + failedFilter + ", cutoffToUse: " + cutoffToUse);
+
         for (String alt : alts) {
             int altIndex = failedFilter.indexOf(alt);
             if (altIndex > -1) {
