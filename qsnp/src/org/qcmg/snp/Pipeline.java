@@ -1009,30 +1009,6 @@ public abstract class Pipeline {
 				}
 			}
 		}
-
-		public void workStealing(Queue<SAMRecordFilterWrapper> workStealingQueue, Accumulator[] workStealingArray, AtomicInteger minStartPositionWorkStrealing) {
-			if (null == workStealingQueue || workStealingQueue.isEmpty()) {
-				return;
-			}
-			// work stealing
-			final int stealSize = 1000;
-			final int stealLimit = 10000;
-			int stealCount = 0;
-			int stealAttempts = 0;
-			while (stealCount < stealLimit) {
-				final SAMRecordFilterWrapper rec = workStealingQueue.poll();
-				if (null != rec) {
-					minStartPositionWorkStrealing.set(rec.getRecord().getAlignmentStart());
-					processSAMRecord(rec);
-					stealCount++;
-				} else {
-					stealAttempts++;
-					if (stealAttempts > 10) {
-						break;
-					}
-				}
-			}
-		}
 		
 		@Override
 		public void run() {
