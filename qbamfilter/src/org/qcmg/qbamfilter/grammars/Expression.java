@@ -43,16 +43,16 @@ public class Expression implements SamRecordFilter{
 	public boolean filterOut(final SAMRecord record){
 
 	    	if(operator == queryTree.Operator.AND){
-		    	for(int i = 0; i < conditions.size(); i ++){
-		    		if( ! conditions.get(i).filterOut(record))
-		    			return false;	    		
-		    	}
+                for (SamRecordFilter condition : conditions) {
+                    if (!condition.filterOut(record))
+                        return false;
+                }
 		    	return true;
 	    	}else{ // case of OR
-	    		for(int i = 0; i < conditions.size(); i ++){
-		    		if(conditions.get(i).filterOut(record))
-		    			return true;	    		
-		    	}
+                for (SamRecordFilter condition : conditions) {
+                    if (condition.filterOut(record))
+                        return true;
+                }
 	    		return false;
 	    	}
     }

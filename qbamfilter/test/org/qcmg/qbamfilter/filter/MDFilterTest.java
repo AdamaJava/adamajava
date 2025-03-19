@@ -6,7 +6,6 @@
 package org.qcmg.qbamfilter.filter;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.util.regex.Matcher;
@@ -34,8 +33,52 @@ public class MDFilterTest {
         new File(TestFile.INPUT_FILE_NAME).delete();
     }
 
-    @Test
-    public void ValidTest() throws Exception{
+	@Test
+	public void testTallyMDMismatchesRepeatedCalls() {
+		// Define a sample MD data string
+//		String mdData = "150";
+		String mdData = "10A5^ACGT8G1N2T6N";
+//		int expectedResult = 0; // 3 mismatches (A,G,T), plus 2 N's
+		int expectedResult = 5; // 3 mismatches (A,G,T), plus 2 N's
+
+		// Define how many times to call the method
+		final int repeatCount = 1_000_000;
+
+		// Measure performance across repeated calls
+		long startTime = System.nanoTime();
+		for (int i = 0; i < repeatCount; i++) {
+			int result = MDFilter.tallyMDMismatches(mdData);
+			assertEquals(expectedResult, result); // Ensure correctness
+		}
+		long endTime = System.nanoTime();
+
+		// Print out the time taken
+		System.out.printf("tallyMDMismatches executed %d times in %d ms%n",
+				repeatCount, (endTime - startTime) / 1_000_000);
+	}
+
+	 @Test
+	 public void commonMDValues() {
+	 	 String md = "150";
+		 assertEquals(0, MDFilter.tallyMDMismatches(md));
+		 md = "10C100";
+		 assertEquals(1, MDFilter.tallyMDMismatches(md));
+		 md = "10C100A";
+		 assertEquals(2, MDFilter.tallyMDMismatches(md));
+		 md = "G10C100A";
+		 assertEquals(3, MDFilter.tallyMDMismatches(md));
+		 md = "G10C0C100A";
+		 assertEquals(4, MDFilter.tallyMDMismatches(md));
+		 md = "G10^CC100A";
+		 assertEquals(2, MDFilter.tallyMDMismatches(md));
+		 md = "G10^CC100A";
+		 assertEquals(2, MDFilter.tallyMDMismatches(md));
+
+	}
+
+
+	@Test
+    public void validTest() throws Exception{
 	    Comparator op = Comparator.Small;
         String value = "3";
         SamRecordFilter filter = new MDFilter("mismatch",op, value);
