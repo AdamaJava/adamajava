@@ -60,7 +60,6 @@ public class AccumulatorUtils {
     public static final long T_BASE_BIT = 0x400000000000000L;
     public static final int T_BASE_BIT_POSITION = 58;
 
-
     public static final long STRAND_BIT = 0x8000000000000000L;
     public static final int STRAND_BIT_POSITION = 63;
     public static final long END_OF_READ_BIT = 0x4000000000000000L;
@@ -69,7 +68,7 @@ public class AccumulatorUtils {
 
     /**
      * This removes reads that have the same read name hash from the accumulator.
-     * If
+     * <p>
      * If the duplicates have the same base, then 1 is left, if they have different bases, they are both (all?) removed
      * <p>
      * This method updates the Accumulator object that is passed in, and is therefore not side-effect free
@@ -236,6 +235,7 @@ public class AccumulatorUtils {
      * strand (bit 63)
      * end of read (bit 62)
      * base (bits 58-61)
+     * passedFilter (bit 57)
      * quality (bits 32-40)
      * position (bits 0-31)
      *
@@ -1014,8 +1014,9 @@ public class AccumulatorUtils {
         if (null != acc) {
             TLongList list = acc.getData();
             if (null != list) {
-                TLongIntMap map = new TLongIntHashMap(list.size() * 2);
-                for (int i = 0, len = list.size(); i < len; i += 2) {
+                int len = list.size();
+                TLongIntMap map = new TLongIntHashMap(len);
+                for (int i = 0; i < len; i += 2) {
 
                     int startPosition = (int) list.get(i + 1);
                     if (((list.get(i + 1) >>> STRAND_BIT_POSITION) & 1) == 0) {
@@ -1038,8 +1039,9 @@ public class AccumulatorUtils {
         if (null != acc) {
             TLongList list = acc.getData();
             if (null != list) {
-                TLongCharMap map = new TLongCharHashMap(list.size() * 2);
-                for (int i = 0, len = list.size(); i < len; i += 2) {
+                int len = list.size();
+                TLongCharMap map = new TLongCharHashMap(len);
+                for (int i = 0; i < len; i += 2) {
 
                     char base = getBaseAsCharFromLong(list.get(i + 1));
                     if (((list.get(i + 1) >>> STRAND_BIT_POSITION) & 1) == 0) {

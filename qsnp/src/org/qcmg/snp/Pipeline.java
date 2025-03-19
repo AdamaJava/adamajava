@@ -28,6 +28,7 @@ import net.jpountz.xxhash.XXHashFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -35,7 +36,6 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Queue;
@@ -133,9 +133,7 @@ public abstract class Pipeline {
 	int[] testStartPositions;
 	int noOfControlFiles;
 	int noOfTestFiles;
-	boolean includeIndels;
-	int mutationId;
-	
+
 	List<Rule> controlRules = new ArrayList<>(4);
 	List<Rule> testRules = new ArrayList<>(4);
 	
@@ -354,13 +352,13 @@ public abstract class Pipeline {
 			try (FastaSequenceFile fsf = new FastaSequenceFile(new File(referenceFile), true)) {
 				if (null != fsf.getSequenceDictionary()) {
 					refFileContigs = fsf.getSequenceDictionary().getSequences()
-						.stream().map(ssr -> ssr.getSequenceName()).collect(Collectors.toList());
+						.stream().map(SAMSequenceRecord::getSequenceName).collect(Collectors.toList());
 				}
 			}
 		}
 		snps.sort(refFileContigs.isEmpty() ? null : ChrPositionComparator.getVcfRecordComparator(refFileContigs));
 
-		try (RecordWriter<VcfRecord> writer = new RecordWriter<>(new File(outputFileName));) {			
+		try (RecordWriter<VcfRecord> writer = new RecordWriter<>(new File(outputFileName))) {
 			final VcfHeader header = getHeaderForQSnp(patientId, controlSampleId, testSampleId, "qSNP v" + Main.version, normalBamIds, tumourBamIds, qexec.getUuid().getValue());
 			VcfHeaderUtils.addQPGLineToHeader(header, qexec.getToolName().getValue(), qexec.getToolVersion().getValue(), qexec.getCommandLine().getValue() 
 					+ (StringUtils.isNullOrEmpty(runMode) ? "" : " [runMode: " + runMode + "]"));
@@ -578,7 +576,7 @@ public abstract class Pipeline {
 	
 	static boolean isVariantOnBothStrands(List<PileupElement> baseCounts) {
 		final PileupElement pe = PileupElementUtil.getLargestVariant(baseCounts);
-		return null == pe ? false :  pe.isFoundOnBothStrands();
+		return null != pe && pe.isFoundOnBothStrands();
 	}
 	
 	/**
@@ -653,19 +651,16 @@ public abstract class Pipeline {
 		Accumulator [] controlAccs = new Accumulator[1024 * 1024 * 256];
 		Accumulator [] testAccs = new Accumulator[1024 * 1024 * 256];
 		
-		final CyclicBarrier barrier = new CyclicBarrier(noOfThreads, new Runnable() {
-			@Override
-			public void run() {
-				// reset the minStartPositions values to zero
-				controlMinStart.set(0);
-				testMinStart.set(0);
-				
-				// update the reference bases array
-				loadNextReferenceSequence();
-				
-				logger.info("barrier has been reached by all threads - moving onto next chromosome");
-			}
-		});
+		final CyclicBarrier barrier = new CyclicBarrier(noOfThreads, () -> {
+            // reset the minStartPositions values to zero
+            controlMinStart.set(0);
+            testMinStart.set(0);
+
+            // update the reference bases array
+            loadNextReferenceSequence();
+
+            logger.info("barrier has been reached by all threads - moving onto next chromosome");
+        });
 		final ExecutorService service = Executors.newFixedThreadPool(noOfThreads);
 		final CountDownLatch consumerLatch = new CountDownLatch(consumerLatchSize);
 		final CountDownLatch controlProducerLatch = new CountDownLatch(1);
@@ -737,7 +732,7 @@ public abstract class Pipeline {
 		private final CyclicBarrier barrier;
 		private final boolean includeDups;
 		private final boolean runqBamFilter;
-		private Accumulator [] accum;
+		private final Accumulator [] accum;
 		private XXHash64 xxhash64;
 		private final static int seed = 0x9747b28c; // used to initialize the hash value, use whatever value you want, but always the same
 		private final static int ONE_MILLION = 1_000_000;
@@ -746,7 +741,7 @@ public abstract class Pipeline {
 				final Queue<SAMRecordFilterWrapper> samQueue, final Thread mainThread, final String query, 
 				final CyclicBarrier barrier, boolean includeDups, Accumulator [] accum) throws Exception {
 			this.latch = latch;
-			final Set<File> bams = new HashSet<File>();
+			final Set<File> bams = new HashSet<>();
 			for (final String bamFile : bamFiles) {
 				bams.add(new File(bamFile));
 			}
@@ -776,7 +771,7 @@ public abstract class Pipeline {
 			
 			try {
 				boolean keepRunning = true;
-				
+
 				while (keepRunning) {
 					
 					
@@ -796,13 +791,13 @@ public abstract class Pipeline {
 					
 					while (iter.hasNext()) {
 						final SAMRecord record = iter.next();
-					
+
 						if (++ counter > ONE_MILLION) {
 							higherOrderCounter++;
 							counter = 0;
 							int qSize = queue.size();
 							logger.info("hit " + higherOrderCounter + "M sam records, passed filter: " + passedFilterCount + ", qsize: " + qSize);
-							if (passedFilterCount == 0 && (counter + (ONE_MILLION * higherOrderCounter)) >= noOfRecordsFailingFilter) {
+							if (passedFilterCount == 0 && (counter + ((long) ONE_MILLION * higherOrderCounter)) >= noOfRecordsFailingFilter) {
 								throw new SnpException("INVALID_FILTER", ""+ (counter + (ONE_MILLION * higherOrderCounter)));
 							}
 							while (qSize > 10000) {
@@ -894,10 +889,23 @@ public abstract class Pipeline {
 				passedFilterCount++;
 			}
 			record.getCigar();					// cache cigar for all records
-			record.getAlignmentEnd();		// cache alignment end for all records
-			
-			final SAMRecordFilterWrapper wrapper = new SAMRecordFilterWrapper(record, xxhash64.hash(record.getReadName().getBytes(), 0, record.getReadNameLength(), seed));
+			int end = record.getAlignmentEnd();		// cache alignment end for all records
+			int start = record.getAlignmentStart();
+			final SAMRecordFilterWrapper wrapper = new SAMRecordFilterWrapper(record, xxhash64.hash(record.getReadName().getBytes(),0, record.getReadName().length(), seed));
 			wrapper.setPassesFilter(passesFilter);
+
+			/*
+			setup Accumulators for this read
+			 */
+ 			int startPosition = Math.min(start, end);
+ 			int endPosition = Math.max(start, end);
+			for (int i = startPosition; i <= endPosition; i++) {
+				Accumulator acc = accum[i];
+				if (null == acc) {
+					accum[i] = new Accumulator(i);
+				}
+			}
+
 			queue.add(wrapper);
 		}
 	}
@@ -935,12 +943,14 @@ public abstract class Pipeline {
 		public void processSAMRecord(final SAMRecordFilterWrapper record) {
 			final SAMRecord sam = record.getRecord();
 			final boolean forwardStrand = ! sam.getReadNegativeStrandFlag();
+			final boolean passesFilter = record.getPassesFilter();
 			final int startPosition = sam.getAlignmentStart();
 			// endPosition is just that for reverse strand, but for forward strand reads it is start position
 			final int endPosition = sam.getAlignmentEnd();
 			final byte[] bases = sam.getReadBases();
-			final byte[] qualities = record.getPassesFilter() ? sam.getBaseQualities() : null;
+			final byte[] qualities = passesFilter ? sam.getBaseQualities() : null;
 			final Cigar cigar = sam.getCigar();
+			final long readNameHash = record.getPosition();
 			
 			int referenceOffset = 0, offset = 0;
 			
@@ -951,8 +961,8 @@ public abstract class Pipeline {
 				if (co.consumesReferenceBases() && co.consumesReadBases()) {
 					// we have a number (length) of bases that can be advanced.
 					updateMapWithAccums(startPosition, bases,
-							qualities, forwardStrand, offset, length, referenceOffset, 
-							record.getPassesFilter(), endPosition, record.getPosition());
+							qualities, forwardStrand, offset, length, referenceOffset,
+							passesFilter, endPosition, readNameHash);
 					// advance offsets
 					referenceOffset += length;
 					offset += length;
@@ -984,16 +994,18 @@ public abstract class Pipeline {
 			final int startPosAndRefOffset = startPosition + referenceOffset;
 			
 			for (int i = 0 ; i < length ; i++) {
-				Accumulator acc = array[i + startPosAndRefOffset];
+				int currentPos = i + startPosAndRefOffset;
+				Accumulator acc = array[currentPos];
 				if (null == acc) {
-					acc = new Accumulator(i + startPosAndRefOffset);
-					array[i + startPosAndRefOffset] = acc;
+					acc = new Accumulator(currentPos);
+					array[currentPos] = acc;
 				}
-				if (passesFilter && qualities[i + offset] >= minBaseQual) {
-					acc.addBase(bases[i + offset], qualities[i + offset], forwardStrand, 
-							startPosition, i + startPosAndRefOffset, readEndPosition, readNameHash);
+				int iPlusOffset = i + offset;
+				if (passesFilter && qualities[iPlusOffset] >= minBaseQual) {
+					acc.addBase(bases[iPlusOffset], qualities[iPlusOffset], forwardStrand,
+							startPosition, currentPos, readEndPosition, readNameHash);
 				} else {
-					acc.addFailedFilterBase(bases[i + offset]);
+					acc.addFailedFilterBase(bases[iPlusOffset], readNameHash);
 				}
 			}
 		}
@@ -1045,7 +1057,7 @@ public abstract class Pipeline {
 						if (barrier.getNumberWaiting() >= (singleSampleMode ? 1 : 2)) {
 //							logger.info("null record, barrier count > 2 - what now??? q.size: " + queue.size());
 							// just me left
-							if (queue.size() == 0 ) {
+							if (queue.isEmpty()) {
 								logger.info("Consumer: Processed all records in " + currentChr + ", waiting at barrier");
 								
 								try {
@@ -1243,8 +1255,15 @@ public abstract class Pipeline {
 	}
 	
 	
-	private void interrogateAccumulations(final Accumulator control, final Accumulator test) {
-		
+	private void interrogateAccumulations(Accumulator control, Accumulator test) {
+
+		if (null != control && control.isEmpty()) {
+			control = null;
+		}
+		if (null != test && test.isEmpty()) {
+			test = null;
+		}
+
 		// get coverage for both normal and tumour
 		int controlCoverage = null != control ? control.getCoverage() : 0;
 		int testCoverage = null != test ? test.getCoverage() : 0;
@@ -1262,9 +1281,9 @@ public abstract class Pipeline {
 		final int position = control != null ? control.getPosition() : test.getPosition();
 		
 		// if we are over the length of this particular sequence - return
-		if (position-1 >= referenceBasesLength) return;
+		if (position - 1 >= referenceBasesLength) return;
 		
-		char ref = (char) referenceBases[position-1];
+		char ref = (char) referenceBases[position - 1];
 		if ( ! BaseUtils.isACGT(ref)) {
 			logger.warn("ignoring potential snp at " + currentChr + ":" + position + " - don't deal with ref values of: " + ref);
 		} else {
@@ -1343,7 +1362,7 @@ public abstract class Pipeline {
 					/*
 					 * attempt to add format field information
 					 */
-					List<String> ff = new ArrayList<String>(4);
+					List<String> ff = new ArrayList<>(4);
 					ff.add(header);
 					
 					if ( ! singleSampleMode) {
@@ -1363,15 +1382,7 @@ public abstract class Pipeline {
 			}
 		}
 	}
-	
-	/**
-	 * Overloaded method
-	 * @see compoundSnps(boolean complete)
-	 */
-	void compoundSnps() {
-		compoundSnps(true);
-	}
-	
+
 	public static List<SAMRecord> getRecordsAtPosition(SamReader reader, String contig, int position) {
 		SAMRecordIterator iter = reader.query(contig, position, position, false);
 		List<SAMRecord> recs = new ArrayList<>();
@@ -1450,15 +1461,9 @@ public abstract class Pipeline {
 			}
 		}
 		
-		if (toRemove.size() > 0) {
+		if (!toRemove.isEmpty()) {
 			logger.info("About to call remove with toRemove size: " + toRemove.size());
-			Iterator<VcfRecord> iter = snps.iterator();
-			while (iter.hasNext()) {
-				VcfRecord v = iter.next();
-				if (toRemove.contains(v)) {
-					iter.remove();
-				}
-			}
+            snps.removeIf(toRemove::contains);
 			logger.info("About to call remove with toRemove size: " + toRemove.size() + " - DONE");
 		}
 		

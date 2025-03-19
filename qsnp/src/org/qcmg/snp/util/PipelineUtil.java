@@ -1,16 +1,10 @@
 package org.qcmg.snp.util;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+import gnu.trove.set.hash.TLongHashSet;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.Accumulator;
@@ -41,7 +35,6 @@ import gnu.trove.set.hash.TIntHashSet;
 public class PipelineUtil {
 	
 	public static final String OPEN_CLOSE_BRACKETS = "[]";
-	public static final String ZERO_ZERO_GT = "0/0";
 	private static final QLogger logger = QLoggerFactory.getLogger(PipelineUtil.class);
 	
 	public static List<List<VcfRecord>> listOfListOfAdjacentVcfs(List<VcfRecord> snps) {
@@ -103,15 +96,15 @@ public class PipelineUtil {
 	 */
 	public static List<String> getAltStringAndGenotypes(List<String> control, List<String> test, String reference) {
 		if (StringUtils.isNullOrEmpty(reference)) {
-			throw new IllegalArgumentException("Null or empty reference passed to PipelIneUtil.getAltStringAndGenotypes");
+			throw new IllegalArgumentException("Null or empty reference passed to PipelineUtil.getAltStringAndGenotypes");
 		}
 		List<String>allels = new ArrayList<>(5);
 		allels.add(reference);
 		if (null != control) {
-			allels.addAll(control.stream().distinct().filter(s -> isAltFreeOfRef(s, reference)).collect(Collectors.toList()));
+			allels.addAll(control.stream().distinct().filter(s -> isAltFreeOfRef(s, reference)).toList());
 		}
 		if (null != test) {
-			allels.addAll(test.stream().distinct().filter(s -> isAltFreeOfRef(s, reference)).collect(Collectors.toList()));
+			allels.addAll(test.stream().distinct().filter(s -> isAltFreeOfRef(s, reference)).toList());
 		}
 		
 		allels = allels.stream().distinct().collect(Collectors.toList());
@@ -131,7 +124,7 @@ public class PipelineUtil {
 		Arrays.sort(testGT);
 		String cgt = Arrays.binarySearch(controlGT, (short) -1) > -1 ? Constants.MISSING_GT : controlGT[0] + Constants.SLASH_STRING + controlGT[1];
 		String tgt =  Arrays.binarySearch(testGT, (short) -1) > -1 ? Constants.MISSING_GT : testGT[0] + Constants.SLASH_STRING + testGT[1];
-		return Arrays.asList(allels.isEmpty() ? Constants.MISSING_DATA_STRING : allels.stream().collect(Collectors.joining(Constants.COMMA_STRING)), cgt, tgt);
+		return Arrays.asList(allels.isEmpty() ? Constants.MISSING_DATA_STRING : String.join(Constants.COMMA_STRING, allels), cgt, tgt);
 	}
 	
 	/**
@@ -167,28 +160,32 @@ public class PipelineUtil {
 	}
 	
 	/**
-	 * Checks each character in the alt string against the corresponding character in the alt string. If any are the same, returns true. False otherwise
-	 * @param alt
-	 * @param ref
-	 * @return
+	 * Checks if the provided alternate string ('alt') is completely free of any reference bases ('ref').
+	 * The method ensures that all characters in 'alt' differ from their corresponding characters in 'ref'.
+	 * If either 'alt' or 'ref' is null, empty, or contains '.', or if their lengths do not match,
+	 * the method returns true, assuming 'alt' is free of any reference comparison.
+	 *
+	 * @param alt The alternate string to be checked. Must not be null, empty, or contain missing data (".").
+	 * @param ref The reference string to compare against. Must not be null, empty, or contain missing data (".").
+	 * @return true if 'alt' is free of any characters from 'ref' or the inputs are invalid; otherwise, false.
 	 */
 	public static boolean isAltFreeOfRef(String alt, String ref) {
 		
 		/*
 		 * alt and ref must be not null, empty, missing data, and must be the same length  
 		 */
-		if ( ! StringUtils.isNullOrEmptyOrMissingData(alt) &&  ! StringUtils.isNullOrEmptyOrMissingData(ref)) {
-			int len = alt.length();
-			if (len == ref.length()) {
-				for (int i = 0 ; i < len ; i++) {
-					if (alt.charAt(i) == ref.charAt(i)) {
-						return false;
-					}
-				}
+		if (alt == null || ref == null || alt.isEmpty() || ref.isEmpty() || ".".equals(alt) || ".".equals(ref) || alt.length() != ref.length()) {
+			return true;
+		}
+
+		int len = alt.length();
+		for (int i = 0 ; i < len ; i++) {
+			if (alt.charAt(i) == ref.charAt(i)) {
+				return false;
 			}
 		}
-		
-		return true;
+
+		return true; // No matches found, alt is free of ref.
 	}
 	
 	/**
@@ -202,14 +199,11 @@ public class PipelineUtil {
 		if (null != basesAndCounts) {
 			
 			List<String> genotypeBases = basesAndCounts.entrySet().stream()
-				.filter(e -> ! e.getKey().contains("_"))
-				.filter(e -> e.getValue().length == 4)
-				.filter(e -> (e.getValue()[0] + e.getValue()[2]) >= minimumCoverage )
-				.filter(e -> e.getKey().equals(ref) || isAltFreeOfRef(e.getKey(), ref))
+				.filter(e -> e.getValue().length == 4 && (e.getValue()[0] + e.getValue()[2]) >= minimumCoverage && (e.getKey().equals(ref) || isAltFreeOfRef(e.getKey(), ref)) && ! e.getKey().contains("_"))
 				.sorted(
 						Comparator.comparing((Map.Entry<String,  short[]> e) -> e.getValue()[0] + e.getValue()[2], Comparator.reverseOrder())
 						.thenComparing(e -> e.getValue()[0] > 0 && e.getValue()[2] > 0, Comparator.reverseOrder()))
-				.map(e -> e.getKey())
+				.map(Map.Entry::getKey)
 				.collect(Collectors.toList());
 			
 			if (genotypeBases.size() > 2) {
@@ -223,19 +217,22 @@ public class PipelineUtil {
 	
 	/**
 	 * Returns the Observed Alleles By Strand for this map of bases and counts.
-	 *  
-	 * @param basesAndCounts
-	 * @return
+	 *
+	 * @param basesAndCounts a map where the key is a string and the value is an array of
+	 *                       short integers; used to generate a formatted string if certain
+	 *                       conditions are met
+	 * @return an Optional containing the formatted string if the input map is not null and
+	 *         contains matching entries, otherwise an empty Optional
 	 */
 	public static Optional<String> getOABS(Map<String, short[]> basesAndCounts) {
 		if (null != basesAndCounts) {
 			String oabs = basesAndCounts.entrySet().stream()
 					.filter(e -> e.getValue().length == 4)
-					.sorted((e1, e2) -> e1.getKey().compareTo(e2.getKey()))
+					.sorted(Map.Entry.comparingByKey())
 					.map(e -> e.getKey() + e.getValue()[0] + OPEN_CLOSE_BRACKETS + e.getValue()[2] + OPEN_CLOSE_BRACKETS)
 					.collect(Collectors.joining(Constants.SEMI_COLON_STRING));
 			
-			return Optional.ofNullable(oabs.length() > 0 ? oabs : null);
+			return Optional.ofNullable(!oabs.isEmpty() ? oabs : null);
 		}
 		return Optional.empty();
 	}
@@ -297,9 +294,7 @@ public class PipelineUtil {
 					StringBuilder sb = moReadIdsAndBases.get(j);
 					if (null == sb) {
 						sb = new StringBuilder();
-						for (int k = 0 ; k < ai.get() ; k++) {
-							sb.append('_');
-						}
+                        sb.append("_".repeat(Math.max(0, ai.get())));
 						moReadIdsAndBases.put(j, sb );
 					}
 					sb.append(c);
@@ -416,10 +411,16 @@ public class PipelineUtil {
 		return set.size();
 	}
 	
+	/**
+	 * Determines if the given string contains at least one lowercase character.
+	 *
+	 * @param s the string to be checked for lowercase characters
+	 * @return true if the string contains at least one lowercase character, false otherwise
+	 */
 	public static boolean isStringLowerCase(String s) {
 		if (null != s) {
 			for (char c : s.toCharArray()) {
-				if (Character.isLetter(c) && Character.isLowerCase(c)) {
+				if (Character.isLowerCase(c)) {
 					return true;
 				}
 			}
@@ -428,11 +429,17 @@ public class PipelineUtil {
 	}
 	
 	/**
-	 * for each element in the list, get the corresponding value in the map, and return the unique count of these values
-	 * In this map, strandedness is the sign in the int value, the long key is the readname hashcode, and all 64 bits are used for this.
-	 * @param map
-	 * @param list
-	 * @return
+	 * Computes the count of unique integers based on the given map and list.
+	 * The method evaluates the elements in the list, retrieves their corresponding values
+	 * from the map, and filters them based on the specified boolean flag.
+	 * Only absolute values of the integers matching the condition are considered, and duplicates
+	 * are ignored.
+	 *
+	 * @param map a mapping of long keys to integer values that is used to determine the start positions
+	 * @param list a list of long values to be evaluated
+	 * @param fs a flag that determines the criteria for filtering the map values; true for positive
+	 *           values and false for negative values
+	 * @return the count of unique absolute values matching the specified criteria
 	 */
 	public static int getUniqueCount(TLongIntMap map, TLongList list, boolean fs) {
 		TIntSet set = new TIntHashSet();
@@ -446,96 +453,100 @@ public class PipelineUtil {
 		return set.size();
 	}
 	
-//	/**
-//	 * Returns a VcfRecord with just the positional and ref and alt information provided. Does not contain filter, info, format etc.
-//	 * @param vcfs
-//	 * @return
-//	 */
-//	public static VcfRecord createSkeletonCompoundSnp(List<VcfRecord> vcfs) {
-//		/*
-//		 * sort list
-//		 */
-//		vcfs.sort(null);
-//		StringBuilder ref = new StringBuilder();
-//		StringBuilder alt = new StringBuilder();
-//		ChrPosition startPosition = vcfs.get(0).getChrPosition();
-//		
-//		for (VcfRecord v : vcfs) {
-//			ref.append(v.getRefChar());
-//			alt.append(v.getAlt());
-//		}
-//		return VcfUtils.createVcfRecord(startPosition, null, ref.toString(), alt.toString());
-//	}
-//	
-	
+	/**
+	 * Processes a map of VcfRecord to a pair of Accumulator objects and separates them into two lists:
+	 * one for control accumulators and another for test accumulators. Entries with non-null accumulators
+	 * are added to their respective lists.
+	 *
+	 * @param vcfs A map where keys are VcfRecord objects and values are pairs of Accumulator objects.
+	 *             The left value in the pair corresponds to the control accumulator, and the right value
+	 *             corresponds to the test accumulator.
+	 * @return A pair of lists, where the first list contains the control accumulators and the second
+	 *         list contains the test accumulators.
+	 */
 	public static Pair<List<Accumulator>, List<Accumulator>> getAccs(Map<VcfRecord, Pair<Accumulator, Accumulator>> vcfs) {
-		/*
-		 * sort keys in map
-		 */
-		List<VcfRecord> l = new ArrayList<>(vcfs.keySet());
-		l.sort(null);
-		
-		/*
-		 * extract left for control, right for test
-		 */
+		// Preallocate lists for control and test accumulators based on map size
 		List<Accumulator> cAccs = new ArrayList<>(vcfs.size() + 1);
 		List<Accumulator> tAccs = new ArrayList<>(vcfs.size() + 1);
-		
-		for (VcfRecord v : l) {
-			Pair<Accumulator, Accumulator> p = vcfs.get(v);
-			if (null != p.left()) {
-				cAccs.add(p.left());
-			}
-			if (null != p.right()) {
-				tAccs.add(p.right());
-			}
-		}
-		
-		return new Pair<>(cAccs,tAccs);
+
+		// Stream and process the map entries directly
+		vcfs.entrySet()
+				.stream()
+				.sorted(Map.Entry.comparingByKey()) // Optional: sorting based on keys
+				.forEach(entry -> {
+					Pair<Accumulator, Accumulator> p = entry.getValue();
+					if (p.left() != null) {
+						cAccs.add(p.left());
+					}
+					if (p.right() != null) {
+						tAccs.add(p.right());
+					}
+				});
+
+		// Return the final pair
+		return new Pair<>(cAccs, tAccs);
+
 	}
 	
 	public static Optional<String> getReference(Collection<VcfRecord> vcfs) {
-		return Optional.ofNullable(vcfs.stream().sorted().map(VcfRecord::getRef).collect(Collectors.joining()));
+		return Optional.of(vcfs.stream().sorted().map(VcfRecord::getRef).collect(Collectors.joining()));
 	}
 	
 	/**
-	 * REturns a count of either the novel starts
-	 * 
-	 * map contains bases as key, and short array contains 4 elements, which are (in this order):
-	 * forward strand count
-	 * forward strand novel starts count
-	 * reverse strand count
-	 * reverse strand novel starts count
-	 * 
-	 * Offset dictates whether you are getting novel starts (offset = 1), or counts (offset = 0)
-	 * 
-	 * 
-	 * @param map
-	 * @param key
-	 * @param offset
-	 * @return
+	 * Retrieves a specific count from the short array associated with the given key in the map.
+	 * The short array contains coverage data, and the count is determined by the offset and an adjacent index.
+	 * If the key is not found or the short array is null, the method returns 0.
+	 *
+	 * @param map A map where keys are strings representing specific identifiers, and values are short arrays
+	 *            containing coverage data.
+	 * @param key The key for which the count is to be retrieved.
+	 * @param offset The offset within the short array to determine the count.
+	 * @return The sum of the value at the offset index and the value at the adjacent index (offset + 2)
+	 *         in the short array corresponding to the specified key. If the key is not found or the associated
+	 *         array is null, 0 is returned.
 	 */
 	public static int getCount(Map<String,  short[]> map, String key, int offset) {
 		short[] sa =map.get(key);
-		return (null !=  sa) ? sa[0 + offset] + sa[2 + offset] : 0;
+		return (null !=  sa) ? sa[offset] + sa[2 + offset] : 0;
 	}
 	
 	/**
-	 * returns the novel starts counts for both strands for this base (key)
-	 *  @see getCount(Map<String,  short[]> map, String key, int offset)
-	 * @param map
-	 * @param key
-	 * @return
+	 * Retrieves the count of novel starts for the specified key from the given map.
+	 * The map contains bases as keys, and each key corresponds to a short array
+	 * that holds count information for various metrics. The novel starts count is
+	 * calculated by summing the forward strand novel starts count and the reverse strand
+	 * novel starts count.
+	 *
+	 * @param map A map where keys are strings representing bases, and values are
+	 *            short arrays containing count data. The short array has
+	 *            4 elements in the following order:
+	 *            - Forward strand count
+	 *            - Forward strand novel starts count
+	 *            - Reverse strand count
+	 *            - Reverse strand novel starts count
+	 * @param key The specific base key for which to retrieve the novel starts count.
+	 * @return The sum of forward strand and reverse strand novel starts counts for
+	 *         the specified base key. If the key is not found in the map, 0 is returned.
 	 */
 	public static int getNovelStartsCounts(Map<String,  short[]> map, String key) {
 		return getCount(map, key, 1);
 	}
 	/**
-	 * Returns the total count for both strands for this base
-	 * @see getCount(Map<String,  short[]> map, String key, int offset)
-	 * @param map
-	 * @param key
-	 * @return
+	 * Retrieves the total counts for the specified key from the given map.
+	 * The map contains bases as keys, and each key corresponds to a short array
+	 * that holds count information for various metrics. The total count is
+	 * calculated by summing the counts from both forward and reverse strands.
+	 *
+	 * @param map A map where keys are strings representing bases, and values
+	 *            are short arrays containing count data. The short array has
+	 *            4 elements in the following order:
+	 *            - Forward strand count
+	 *            - Forward strand novel starts count
+	 *            - Reverse strand count
+	 *            - Reverse strand novel starts count
+	 * @param key The specific base key for which to retrieve the total counts.
+	 * @return The total counts (sum of forward and reverse strand counts) for
+	 *         the specified base key. If the key is not found in the map, 0 is returned.
 	 */
 	public static int getTotalCounts(Map<String,  short[]> map, String key) {
 		return getCount(map, key, 0);
@@ -543,10 +554,10 @@ public class PipelineUtil {
 	
 	public static String[] getMR(Map<String, short[]> map, String[] aAlts, int firstG, int secondG) {
 		if (null == aAlts) {
-			throw new IllegalArgumentException("Null or empty alts passed to PipelIneUtil.getMR");
+			throw new IllegalArgumentException("Null or empty alts passed to PipeLineUtil.getMR");
 		}
 		if (null == map) {
-			throw new IllegalArgumentException("Null map passed to PipelIneUtil.getMR");
+			throw new IllegalArgumentException("Null map passed to PipeLineUtil.getMR");
 		}
 		
 		/*
@@ -578,10 +589,10 @@ public class PipelineUtil {
 		/*
 		 * if string builder are empty, put missing data in there
 		 */
-		if (mr.length() == 0) {
+		if (mr.isEmpty()) {
 			mr.append(Constants.MISSING_DATA_STRING);
 		}
-		if (nns.length() == 0) {
+		if (nns.isEmpty()) {
 			nns.append(Constants.MISSING_DATA_STRING);
 		}
 		
@@ -600,9 +611,9 @@ public class PipelineUtil {
 	
 	/**
 	 * Create compound snp based purely on GATK vcf information.
-	 * Classification (ie. SOMATIC) must be same for all snps - thats about the only rule...
+	 * Classification (i.e. SOMATIC) must be same for all snps - that's about the only rule...
 	 * oh, and the genotypes need to be the same for all control samples and for all test samples
-	 * eg. 0/0 ->0/1 for all snps in cs
+	 * e.g. 0/0 ->0/1 for all snps in cs
 	 * 
 	 * @param vcfs
 	 * @return
@@ -636,7 +647,7 @@ public class PipelineUtil {
 			String [] gtArr = ffMap.get(VcfHeaderUtils.FORMAT_GENOTYPE);
 			String [] dpArr = ffMap.get(VcfHeaderUtils.FORMAT_READ_DEPTH);
 			if (null == dpArr) {
-				logger.warn("null dp array for rec: " + v.toString());
+				logger.warn("null dp array for rec: " + v);
 			}
 			String [] adArr = ffMap.get(VcfHeaderUtils.FORMAT_ALLELIC_DEPTHS);
 			String [] gqArr = ffMap.get(VcfHeaderUtils.FORMAT_GENOTYPE_QUALITY);
@@ -675,11 +686,11 @@ public class PipelineUtil {
 			// if gts are the same, alls well
 				if (singleSampleMode || (controlGTs.stream().distinct().count() == 1 && testGTs.stream().distinct().count() == 1 )) {
 				
-					VcfRecord firstRec = vcfs.get(0);
+					VcfRecord firstRec = vcfs.getFirst();
 					VcfRecord v = VcfUtils.createVcfRecord(firstRec.getChrPosition(), null, csRef, csAlt);
 					
 					/*
-					 * sort collections to get lowest value first - thats what we will use
+					 * sort collections to get lowest value first - that's what we will use
 					 */
 					if ( ! singleSampleMode) {
 						controlDPs.sort(null);
@@ -705,26 +716,26 @@ public class PipelineUtil {
 					 */
 					StringBuilder cSB = null;
 					if ( ! singleSampleMode) {
-						cSB = new StringBuilder(controlGTs.get(0));								//GT
-						StringUtils.updateStringBuilder(cSB, controlADs.get(0), Constants.COLON);	//AD
-						StringUtils.updateStringBuilder(cSB, controlDPs.get(0), Constants.COLON);		//DP
+						cSB = new StringBuilder(controlGTs.getFirst());								//GT
+						StringUtils.updateStringBuilder(cSB, controlADs.getFirst(), Constants.COLON);	//AD
+						StringUtils.updateStringBuilder(cSB, controlDPs.getFirst(), Constants.COLON);		//DP
 						StringUtils.updateStringBuilder(cSB, Constants.MISSING_DATA_STRING, Constants.COLON);	//FT
-						StringUtils.updateStringBuilder(cSB,controlGQs.get(0), Constants.COLON);		// GQ field
+						StringUtils.updateStringBuilder(cSB,controlGQs.getFirst(), Constants.COLON);		// GQ field
 						StringUtils.updateStringBuilder(cSB,cINF, Constants.COLON);		// INF field
 						StringUtils.updateStringBuilder(cSB, Constants.MISSING_DATA_STRING, Constants.COLON);	//NNS
 						StringUtils.updateStringBuilder(cSB, Constants.MISSING_DATA_STRING, Constants.COLON);	//OABS
-						StringUtils.updateStringBuilder(cSB, controlQLs.get(0), Constants.COLON);								//QL
+						StringUtils.updateStringBuilder(cSB, controlQLs.getFirst(), Constants.COLON);								//QL
 					}
 					
-					StringBuilder tSB = new StringBuilder(testGTs.get(0));
-					StringUtils.updateStringBuilder(tSB, testADs.get(0), Constants.COLON);
-					StringUtils.updateStringBuilder(tSB, testDPs.get(0), Constants.COLON);
+					StringBuilder tSB = new StringBuilder(testGTs.getFirst());
+					StringUtils.updateStringBuilder(tSB, testADs.getFirst(), Constants.COLON);
+					StringUtils.updateStringBuilder(tSB, testDPs.getFirst(), Constants.COLON);
 					StringUtils.updateStringBuilder(tSB, Constants.MISSING_DATA_STRING, Constants.COLON);
-					StringUtils.updateStringBuilder(tSB, testGQs.get(0), Constants.COLON);	// GQ field
+					StringUtils.updateStringBuilder(tSB, testGQs.getFirst(), Constants.COLON);	// GQ field
 					StringUtils.updateStringBuilder(tSB, somCount > 0 ? "SOMATIC" : Constants.MISSING_DATA_STRING, Constants.COLON);	// INF field
 					StringUtils.updateStringBuilder(tSB, Constants.MISSING_DATA_STRING, Constants.COLON);	//NNS
 					StringUtils.updateStringBuilder(tSB, Constants.MISSING_DATA_STRING, Constants.COLON);	//OABS
-					StringUtils.updateStringBuilder(tSB, testQLs.get(0), Constants.COLON);									//QL
+					StringUtils.updateStringBuilder(tSB, testQLs.getFirst(), Constants.COLON);									//QL
 					
 					if ( singleSampleMode) {
 						v.setFormatFields(Arrays.asList("GT:AD:DP:FT:GQ:INF:NNS:OABS:QL", tSB.toString()));
@@ -739,12 +750,36 @@ public class PipelineUtil {
 		
 		return Optional.empty();
 	}
-	
+
+	public static String formatCBasesCountsNNS(Map<String, short[]> cBasesCountsNNS) {
+		if (cBasesCountsNNS == null || cBasesCountsNNS.isEmpty()) {
+			return "cBasesCountsNNS is empty or null";
+		}
+
+		// Prepare StringBuilder to format content
+		StringBuilder sb = new StringBuilder("{");
+		cBasesCountsNNS.forEach((key, counts) -> {
+			sb.append(key)
+					.append(": [")
+					.append(Arrays.toString(counts)) // Format short[] as a string
+					.append("], ");
+		});
+
+		// Remove trailing ", " if it exists and close the string
+		if (sb.length() > 1) {
+			sb.setLength(sb.length() - 2); // Remove last ", "
+		}
+		sb.append("}");
+
+		return sb.toString();
+	}
+
+
 	public static Optional<VcfRecord> createCompoundSnp(Map<VcfRecord, Pair<Accumulator, Accumulator>> vcfs, List<Rule> controlRules, List<Rule> testRules, boolean runSBias, int sBiasCov, int sBiasAlt) {
 		
 		Pair<List<Accumulator>, List<Accumulator>> p = getAccs(vcfs);
 		Optional<String> refO = getReference(vcfs.keySet());
-		String ref = refO.isPresent() ? refO.get() : null;
+		String ref = refO.orElse(null);
 		
 		Map<String, short[]> cBasesCountsNNS =  getBasesFromAccumulators(p.left());
 		Map<String, short[]> tBasesCountsNNS =  getBasesFromAccumulators(p.right());
@@ -753,7 +788,7 @@ public class PipelineUtil {
 		int testCov = getCoverage(tBasesCountsNNS);
 		Rule cr = RulesUtil.getRule(controlRules, controlCov);
 		Rule tr = RulesUtil.getRule(testRules, testCov);
-		
+
 		/*
 		 * check to see if we need to use a percentage, if so, calculate the minCov based on totalCov
 		 */
@@ -768,8 +803,8 @@ public class PipelineUtil {
 		 * check to see if we have a mutation
 		 * if getBasesForGenotype only returns an empty list OR a list just containing the reference for BOTH control, and test, then we don't have a mutation
 		 */
-		if ((cGT.isEmpty() || (cGT.size() == 1 && cGT.get(0).equals(ref))) 
-				&& (tGT.isEmpty() || (tGT.size() == 1 && tGT.get(0).equals(ref)))) {
+		if ((cGT.isEmpty() || (cGT.size() == 1 && cGT.getFirst().equals(ref)))
+				&& (tGT.isEmpty() || (tGT.size() == 1 && tGT.getFirst().equals(ref)))) {
 			return Optional.empty();
 		}
 		
@@ -781,13 +816,70 @@ public class PipelineUtil {
 		/*
 		 * If alt string is '.' - no dice
 		 */
-		if (altsAndGTs.isEmpty() || StringUtils.isNullOrEmptyOrMissingData(altsAndGTs.get(0))) {
+		if (altsAndGTs.isEmpty() || StringUtils.isNullOrEmptyOrMissingData(altsAndGTs.getFirst())) {
 			return Optional.empty(); 
 		}
 		
 		VcfRecord firstRec = vcfs.keySet().stream().sorted().findFirst().get();
+
+//		ChrPosition cpToDebug = ChrPositionUtils.getChrPosition("chr1", 25002122, 25002122);
+//		if (firstRec.getChrPosition().equals(cpToDebug)) {
+//			logger.info("cBasesCountsNNS: " + formatCBasesCountsNNS(cBasesCountsNNS));
+//			logger.info("tBasesCountsNNS: " + formatCBasesCountsNNS(tBasesCountsNNS));
+//			logger.info("p.left():");
+//			int x = 0;
+//			for (Accumulator acc : p.left()) {
+//				if ( null != acc.getFailedFilterACount()) {
+//					for (int i = 0 ; i < acc.getFailedFilterACount().size() ; i++) {
+//						logger.info("failedFilterACount: " + acc.getFailedFilterACount().get(i));
+//					}
+//				}
+//				if ( null != acc.getFailedFilterCCount()) {
+//					for (int i = 0 ; i < acc.getFailedFilterCCount().size() ; i++) {
+//						logger.info("failedFilterCCount: " + acc.getFailedFilterCCount().get(i));
+//					}
+//				}
+//				if ( null != acc.getFailedFilterGCount()) {
+//					for (int i = 0 ; i < acc.getFailedFilterGCount().size() ; i++) {
+//						logger.info("failedFilterGCount: " + acc.getFailedFilterGCount().get(i));
+//					}
+//				}
+//				if ( null != acc.getFailedFilterTCount()) {
+//					for (int i = 0 ; i < acc.getFailedFilterTCount().size() ; i++) {
+//						logger.info("failedFilterTCount: " + acc.getFailedFilterTCount().get(i));
+//					}
+//				}
+//				logger.info("that was acc: " + x++);
+//			}
+//			logger.info("p.right():");
+//			x = 0;
+//			for (Accumulator acc : p.right()) {
+//				if ( null != acc.getFailedFilterACount()) {
+//					for (int i = 0 ; i < acc.getFailedFilterACount().size() ; i++) {
+//						logger.info("failedFilterACount: " + acc.getFailedFilterACount().get(i));
+//					}
+//				}
+//				if ( null != acc.getFailedFilterCCount()) {
+//					for (int i = 0 ; i < acc.getFailedFilterCCount().size() ; i++) {
+//						logger.info("failedFilterCCount: " + acc.getFailedFilterCCount().get(i));
+//					}
+//				}
+//				if ( null != acc.getFailedFilterGCount()) {
+//					for (int i = 0 ; i < acc.getFailedFilterGCount().size() ; i++) {
+//						logger.info("failedFilterGCount: " + acc.getFailedFilterGCount().get(i));
+//					}
+//				}
+//				if ( null != acc.getFailedFilterTCount()) {
+//					for (int i = 0 ; i < acc.getFailedFilterTCount().size() ; i++) {
+//						logger.info("failedFilterTCount: " + acc.getFailedFilterTCount().get(i));
+//					}
+//				}
+//				logger.info("that was acc: " + x++);
+//			}
+//		}
+
 		
-		VcfRecord v = VcfUtils.createVcfRecord(firstRec.getChrPosition(), null, ref, altsAndGTs.get(0));
+		VcfRecord v = VcfUtils.createVcfRecord(firstRec.getChrPosition(), null, ref, altsAndGTs.getFirst());
 		
 		/*
 		 * get some data that will be used frequently in the filter finding
@@ -807,44 +899,136 @@ public class PipelineUtil {
 		/*
 		 * get classification
 		 */
-		Classification c = GenotypeUtil.getClassification(cBasesCountsNNS.keySet().stream().collect(Collectors.joining(Constants.COMMA_STRING)), altsAndGTs.get(1), altsAndGTs.get(2), altsAndGTs.get(0));
+		Classification c = GenotypeUtil.getClassification(String.join(Constants.COMMA_STRING, cBasesCountsNNS.keySet()), altsAndGTs.get(1), altsAndGTs.get(2), altsAndGTs.get(0));
 		
 		/*
-		 * format fields - going for GT:AD:DP:FT:INF:NNS:OABS
+		 * format fields - going for GT:AD:DP:FF:FT:INF:NNS:OABS
 		 */
 		Optional<String> oOabs = getOABS(cBasesCountsNNS);
-		String oabs = oOabs.isPresent() ? oOabs.get() : Constants.MISSING_DATA_STRING;
-		
+		String oabs = oOabs.orElse(Constants.MISSING_DATA_STRING);
+
+		String failedFilter = getFailedFilterCS(p.left());
+
 		StringBuilder cSB = new StringBuilder(altsAndGTs.get(1));
-		StringUtils.updateStringBuilder(cSB, VcfUtils.getAD(ref, altsAndGTs.get(0), oabs), Constants.COLON);
-		StringUtils.updateStringBuilder(cSB, controlCov > 0 ? controlCov+"" : "0", Constants.COLON);
+		StringUtils.updateStringBuilder(cSB, VcfUtils.getAD(ref, altsAndGTs.get(0), oabs), Constants.COLON);//GT and
+		StringUtils.updateStringBuilder(cSB, controlCov > 0 ? controlCov + "" : "0", Constants.COLON);		//DP
+		StringUtils.updateStringBuilder(cSB, failedFilter, Constants.COLON);								// FF (failed filter)
 		/*
 		 * filters are applied in qannotate now
 		 */
-		StringUtils.updateStringBuilder(cSB, Constants.MISSING_DATA_STRING, Constants.COLON);
+		StringUtils.updateStringBuilder(cSB, Constants.MISSING_DATA_STRING, Constants.COLON);				// FT field
 		String [] mrNNS =  getMR(cBasesCountsNNS, aAlts, controlFirstG, controlSecondG);
-		StringUtils.updateStringBuilder(cSB, Constants.MISSING_DATA_STRING, Constants.COLON);	// INF field
-		StringUtils.updateStringBuilder(cSB, mrNNS[1], Constants.COLON);
-		StringUtils.updateStringBuilder(cSB, oabs, Constants.COLON);
+		StringUtils.updateStringBuilder(cSB, Constants.MISSING_DATA_STRING, Constants.COLON);				// INF field
+		StringUtils.updateStringBuilder(cSB, mrNNS[1], Constants.COLON);									// NNS field
+		StringUtils.updateStringBuilder(cSB, oabs, Constants.COLON);										// OABS field
 		
 		oOabs = getOABS(tBasesCountsNNS);
-		oabs = oOabs.isPresent() ? oOabs.get() : Constants.MISSING_DATA_STRING;
+		oabs = oOabs.orElse(Constants.MISSING_DATA_STRING);
 		
 		StringBuilder tSB = new StringBuilder(altsAndGTs.get(2));
-		StringUtils.updateStringBuilder(tSB, VcfUtils.getAD(ref, altsAndGTs.get(0), oabs), Constants.COLON);
-		StringUtils.updateStringBuilder(tSB, testCov > 0 ? testCov +"" :  "0", Constants.COLON);
+		StringUtils.updateStringBuilder(tSB, VcfUtils.getAD(ref, altsAndGTs.get(0), oabs), Constants.COLON);//GT and
+		StringUtils.updateStringBuilder(tSB, testCov > 0 ? testCov + "" :  "0", Constants.COLON);			//DP
+		failedFilter = getFailedFilterCS(p.right());
+		StringUtils.updateStringBuilder(tSB, failedFilter, Constants.COLON);								// FF (failed filter)
 		/*
 		 * filters are applied in qannotate now
 		 */
-		StringUtils.updateStringBuilder(tSB, Constants.MISSING_DATA_STRING, Constants.COLON);
+		StringUtils.updateStringBuilder(tSB, Constants.MISSING_DATA_STRING, Constants.COLON);				// FT field
 		StringUtils.updateStringBuilder(tSB, (c == Classification.SOMATIC ? VcfHeaderUtils.INFO_SOMATIC : Constants.MISSING_DATA_STRING), Constants.COLON);	// INF field
 		mrNNS =  getMR(tBasesCountsNNS,aAlts, testFirstG, testSecondG);
-		StringUtils.updateStringBuilder(tSB, mrNNS[1], Constants.COLON);
-		StringUtils.updateStringBuilder(tSB, oabs, Constants.COLON);
+		StringUtils.updateStringBuilder(tSB, mrNNS[1], Constants.COLON);									// NNS field
+		StringUtils.updateStringBuilder(tSB, oabs, Constants.COLON);										// OABS field
 		
-		v.setFormatFields(Arrays.asList("GT:AD:DP:FT:INF:NNS:OABS", cSB.toString(), tSB.toString()));
+		v.setFormatFields(Arrays.asList("GT:AD:DP:FF:FT:INF:NNS:OABS", cSB.toString(), tSB.toString()));
 		
-		return Optional.ofNullable(v);
+		return Optional.of(v);
+	}
+
+	public static String getFailedFilterCS(List<Accumulator> accumulators) {
+		if (null == accumulators || accumulators.isEmpty()) {
+			return Constants.MISSING_DATA_STRING;
+		}
+		Map<Long, StringBuilder> failedFilters = new THashMap<>();
+		int x = 0;
+		int runningTally = 0;
+		for (Accumulator acc : accumulators) {
+			if (null != acc) {
+				String padding = "_".repeat(x);
+				TLongList count = acc.getFailedFilterACount();
+				if (null != count && ! count.isEmpty()) {
+					TLongHashSet failedFilterSet = new TLongHashSet(count);
+					long[] array = failedFilterSet.toArray();
+					for (long l : array) {
+						failedFilters.computeIfAbsent(l, k -> new StringBuilder(padding)).append("A");
+					}
+				}
+				count = acc.getFailedFilterCCount();
+				if (null != count && ! count.isEmpty()) {
+					TLongHashSet failedFilterSet = new TLongHashSet(count);
+					long[] array = failedFilterSet.toArray();
+					for (long l : array) {
+						failedFilters.computeIfAbsent(l, k -> new StringBuilder(padding)).append("C");
+					}
+				}
+				count = acc.getFailedFilterGCount();
+				if (null != count && ! count.isEmpty()) {
+					TLongHashSet failedFilterSet = new TLongHashSet(count);
+					long[] array = failedFilterSet.toArray();
+					for (long l : array) {
+						failedFilters.computeIfAbsent(l, k -> new StringBuilder(padding)).append("G");
+					}
+				}
+				count = acc.getFailedFilterTCount();
+				if (null != count && ! count.isEmpty()) {
+					TLongHashSet failedFilterSet = new TLongHashSet(count);
+					long[] array = failedFilterSet.toArray();
+					for (long l : array) {
+						failedFilters.computeIfAbsent(l, k -> new StringBuilder(padding)).append("T");
+					}
+				}
+			}
+			if (x >= 1) {
+				/*
+				add padding to any entry in the map that has length less than x
+				 */
+				for (Map.Entry<Long, StringBuilder> e : failedFilters.entrySet()) {
+					if (e.getValue().length() < (x + 1)) {
+						e.getValue().append("_".repeat((x + 1) - e.getValue().length()));
+					}
+				}
+			}
+			x++;
+//			logger.info("runningTally: " + runningTally + ", failedFilters.size(): " + failedFilters.size());
+
+			/*
+			purge any entries in the map that have a value greater than length (x + 1)
+			 */
+			Iterator<Map.Entry<Long, StringBuilder>> iter = failedFilters.entrySet().iterator();
+			while (iter.hasNext()) {
+				Map.Entry<Long, StringBuilder> entry = iter.next();
+				if (entry.getValue().length() >= (x + 1)) {
+					iter.remove();
+				}
+			}
+
+		}
+		for (Map.Entry<Long, StringBuilder> e : failedFilters.entrySet()) {
+			if (e.getValue().length() < x) {
+				e.getValue().append("_".repeat(x - e.getValue().length()));
+			}
+		}
+
+		/*
+		 * now we have a map of readIds and failed filters, we need to turn this into a string
+		 */
+		Map<String, AtomicInteger> failedFilterCounts = new HashMap<>();
+		failedFilters.forEach((k,v) -> failedFilterCounts.computeIfAbsent(v.toString(), k1 -> new AtomicInteger()).incrementAndGet());
+
+		StringBuilder outputSB = new StringBuilder();
+		failedFilterCounts.entrySet().stream() .sorted(Map.Entry.comparingByKey())
+				.forEach(e -> StringUtils.updateStringBuilder(outputSB, e.getKey() + e.getValue().get(), ';'));
+
+		return outputSB.isEmpty() ? Constants.MISSING_DATA_STRING : outputSB.toString();
 	}
 
 }

@@ -78,7 +78,7 @@ public class GenotypeUtilTest {
 		/*
 		 * chr10	54817257	rs386743785	AG	GA	.	.	IN=1,2;DB;HOM=0,TTTAACCTTCgaCTTGCCCACA;EFF=intergenic_region(MODIFIER||||||||||1)	GT:AD:CCC:CCM:DP:FT:INF:MR:NNS:OABS	1/1:0,19:Germline:32:34:PASS:.:19:19:AA8[]6[];GA8[]11[];TA0[]1[]	0/0:2,0:ReferenceNoVariant:32:55:PASS:SOMATIC:.:.:AA33[]20[];AG1[]1[];A_2[]0[]	1/1:0,19:Germline:32:34:PASS:.:19:19:AA8[]6[];GA8[]11[];TA0[]1[]	0/0:2,0:ReferenceNoVariant:32:55:PASS:SOMATIC:.:.:AA33[]20[];AG1[]1[];A_2[]0[]
 		 * 
-		 * need to decomose this cs to see if the individual snps are somatic - should be germline
+		 * need to decompose this cs to see if the individual snps are somatic - should be germline
 		 */
 		
 		//AA8[]6[];GA8[]11[];TA0[]1[]
@@ -126,8 +126,8 @@ public class GenotypeUtilTest {
 		control = AccumulatorUtils.createFromOABS(cOABS, 13118);
 		test = AccumulatorUtils.createFromOABS(tOABS, 13118);
 		gt = "0/1";
-		assertEquals("0/1:10,6:"+control.getCoverage()+":.:.:.:.:2:"+cOABS, GenotypeUtil.getFormatValues(control, gt, "T", 'C', true, 5, 5,Classification.GERMLINE, true));
-		assertEquals("0/1:10,4:"+test.getCoverage()+":.:.:.:.:1:"+tOABS, GenotypeUtil.getFormatValues(test, gt, "T", 'C', true, 5, 5,Classification.GERMLINE, false));
+		assertEquals("0/1:10,6:" + control.getCoverage() + ":.:.:.:.:2:" + cOABS, GenotypeUtil.getFormatValues(control, gt, "T", 'C', true, 5, 5,Classification.GERMLINE, true));
+		assertEquals("0/1:10,4:" + test.getCoverage() + ":.:.:.:.:1:" + tOABS, GenotypeUtil.getFormatValues(test, gt, "T", 'C', true, 5, 5,Classification.GERMLINE, false));
 		
 	}
 	
@@ -143,9 +143,9 @@ public class GenotypeUtilTest {
 		Accumulator control = AccumulatorUtils.createFromOABS(cOABS, 16534);
 		Accumulator test = AccumulatorUtils.createFromOABS(tOABS, 16534);
 		String gt = "1/1";
-		assertEquals(gt + ":0,3:"+control.getCoverage()+":.:.:.:.:2:"+cOABS, GenotypeUtil.getFormatValues(control, gt, "T", 'C', true, 5, 5,Classification.SOMATIC, true));
+		assertEquals(gt + ":0,3:" + control.getCoverage()+":.:.:.:.:2:" + cOABS, GenotypeUtil.getFormatValues(control, gt, "T", 'C', true, 5, 5,Classification.SOMATIC, true));
 		gt = "0/0";
-		assertEquals(gt + ":3,2:"+test.getCoverage()+":.:.:.:SOMATIC:.:"+tOABS, GenotypeUtil.getFormatValues(test, gt, "T", 'C', true, 5, 5,Classification.SOMATIC, false));
+		assertEquals(gt + ":3,2:" + test.getCoverage()+":.:.:.:SOMATIC:.:" + tOABS, GenotypeUtil.getFormatValues(test, gt, "T", 'C', true, 5, 5,Classification.SOMATIC, false));
 	}
 	
 	@Test
@@ -159,16 +159,16 @@ public class GenotypeUtilTest {
 		Accumulator test = AccumulatorUtils.createFromOABS(tOABS, 16571);
 		assertEquals(Classification.GERMLINE, GenotypeUtil.getClassification("ACG", ".", "1/1","A"));
 		String gt = "1/1";
-		assertEquals("./.:2,1:"+control.getCoverage()+":.:.:.:.:.:"+cOABS, GenotypeUtil.getFormatValues(control, null, "A", 'G', true, 5, 5,Classification.GERMLINE, true));
-		assertEquals(gt + ":2,3:"+test.getCoverage()+":.:.:.:.:1:"+tOABS, GenotypeUtil.getFormatValues(test, gt, "A", 'G', true, 5, 5,Classification.GERMLINE, false));
+		assertEquals("./.:2,1:" + control.getCoverage() + ":.:.:.:.:.:" + cOABS, GenotypeUtil.getFormatValues(control, null, "A", 'G', true, 5, 5,Classification.GERMLINE, true));
+		assertEquals(gt + ":2,3:" + test.getCoverage() + ":.:.:.:.:1:" + tOABS, GenotypeUtil.getFormatValues(test, gt, "A", 'G', true, 5, 5,Classification.GERMLINE, false));
 		
 		cOABS = "A0[0]1[34];C0[0]1[1]";
 		tOABS = "A0[0]3[18];G0[0]2[30]";
 		control = AccumulatorUtils.createFromOABS(cOABS, 16571);
 		test = AccumulatorUtils.createFromOABS(tOABS, 16571);
 		assertEquals(Classification.GERMLINE, GenotypeUtil.getClassification("ACG", ".", "1/1","A"));
-		assertEquals("./.:0,1:"+control.getCoverage()+":.:.:.:.:.:"+cOABS, GenotypeUtil.getFormatValues(control, null, "A", 'G', true, 5, 5,Classification.GERMLINE, true));
-		assertEquals(gt + ":2,3:"+test.getCoverage()+":.:.:.:.:1:"+tOABS, GenotypeUtil.getFormatValues(test, gt, "A", 'G', true, 5, 5,Classification.GERMLINE, false));
+		assertEquals("./.:0,1:" + control.getCoverage()+":.:.:.:.:.:" + cOABS, GenotypeUtil.getFormatValues(control, null, "A", 'G', true, 5, 5,Classification.GERMLINE, true));
+		assertEquals(gt + ":2,3:" + test.getCoverage()+":.:.:.:.:1:" + tOABS, GenotypeUtil.getFormatValues(test, gt, "A", 'G', true, 5, 5,Classification.GERMLINE, false));
 	}
 	
 	@Test
@@ -182,16 +182,16 @@ public class GenotypeUtilTest {
 		Accumulator test = AccumulatorUtils.createFromOABS(tOABS, 133129);
 		assertEquals(Classification.GERMLINE, GenotypeUtil.getClassification("AG", "1/1", ".","A"));
 		String gt = "1/1";
-		assertEquals(gt + ":1,3:"+control.getCoverage()+":.:.:.:.:2:"+cOABS, GenotypeUtil.getFormatValues(control, gt, "A", 'G', true, 5, 5,Classification.GERMLINE, true));
-		assertEquals("./.:2,1:"+test.getCoverage()+":.:.:.:.:.:"+tOABS, GenotypeUtil.getFormatValues(test, null, "A", 'G', true, 5, 5,Classification.GERMLINE, false));
+		assertEquals(gt + ":1,3:" + control.getCoverage()+":.:.:.:.:2:" + cOABS, GenotypeUtil.getFormatValues(control, gt, "A", 'G', true, 5, 5,Classification.GERMLINE, true));
+		assertEquals("./.:2,1:" + test.getCoverage()+":.:.:.:.:.:" + tOABS, GenotypeUtil.getFormatValues(test, null, "A", 'G', true, 5, 5,Classification.GERMLINE, false));
 		
 		cOABS = "A2[30]1[2];G0[0]1[36]";
 		tOABS = "A1[21]0[0];G0[0]1[23]";
 		control = AccumulatorUtils.createFromOABS(cOABS, 133129);
 		test = AccumulatorUtils.createFromOABS(tOABS, 133129);
 		assertEquals(Classification.GERMLINE, GenotypeUtil.getClassification("AG", "1/1", ".","A"));
-		assertEquals(gt + ":1,3:"+control.getCoverage()+":.:.:.:.:2:"+cOABS, GenotypeUtil.getFormatValues(control, gt, "A", 'G', true, 5, 5,Classification.GERMLINE, true));
-		assertEquals("./.:1,1:"+test.getCoverage()+":.:.:.:.:.:"+tOABS, GenotypeUtil.getFormatValues(test, null, "A", 'G', true, 5, 5,Classification.GERMLINE, false));
+		assertEquals(gt + ":1,3:" + control.getCoverage()+":.:.:.:.:2:" + cOABS, GenotypeUtil.getFormatValues(control, gt, "A", 'G', true, 5, 5,Classification.GERMLINE, true));
+		assertEquals("./.:1,1:" + test.getCoverage()+":.:.:.:.:.:" + tOABS, GenotypeUtil.getFormatValues(test, null, "A", 'G', true, 5, 5,Classification.GERMLINE, false));
 	}
 	
 	@Test
@@ -205,9 +205,9 @@ public class GenotypeUtilTest {
 		Accumulator test = AccumulatorUtils.createFromOABS(tOABS, 15274);
 		assertEquals(Classification.SOMATIC, GenotypeUtil.getClassification("GT", "2/2", "1/2","G,T"));
 		String gt = "2/2";
-		assertEquals(gt + ":0,4,61:"+control.getCoverage()+":.:.:.:.:2:"+cOABS, GenotypeUtil.getFormatValues(control, gt, "G,T", 'A', true, 5, 5,Classification.SOMATIC, true));
+		assertEquals(gt + ":0,4,61:" + control.getCoverage()+":.:.:.:.:2:" + cOABS, GenotypeUtil.getFormatValues(control, gt, "G,T", 'A', true, 5, 5,Classification.SOMATIC, true));
 		gt = "1/2";
-		assertEquals(gt + ":0,9,47:"+test.getCoverage()+":.:.:.:SOMATIC:1,2:"+tOABS, GenotypeUtil.getFormatValues(test, gt, "G,T", 'A', true, 5, 5,Classification.SOMATIC, false));
+		assertEquals(gt + ":0,9,47:" + test.getCoverage()+":.:.:.:SOMATIC:1,2:" + tOABS, GenotypeUtil.getFormatValues(test, gt, "G,T", 'A', true, 5, 5,Classification.SOMATIC, false));
 	}
 	
 	@Test
@@ -221,9 +221,9 @@ public class GenotypeUtilTest {
 		Accumulator test = AccumulatorUtils.createFromOABS(tOABS, 15274);
 		assertEquals(Classification.SOMATIC, GenotypeUtil.getClassification("GT", "2/2", "1/2","G,T"));
 		String gt = "2/2";
-		assertEquals(gt + ":0,4,61:"+control.getCoverage()+":.:.:.:.:2:"+cOABS, GenotypeUtil.getFormatValues(control, gt, "G,T", 'A', true, 5, 5,Classification.SOMATIC, true));
+		assertEquals(gt + ":0,4,61:" + control.getCoverage() + ":.:.:.:.:2:" + cOABS, GenotypeUtil.getFormatValues(control, gt, "G,T", 'A', true, 5, 5,Classification.SOMATIC, true));
 		gt = "1/2";
-		assertEquals(gt + ":0,9,47:"+test.getCoverage()+":.:.:.:SOMATIC:1,2:"+tOABS, GenotypeUtil.getFormatValues(test, gt, "G,T", 'A', true, 5, 5,Classification.SOMATIC, false));
+		assertEquals(gt + ":0,9,47:" + test.getCoverage() + ":.:.:.:SOMATIC:1,2:" + tOABS, GenotypeUtil.getFormatValues(test, gt, "G,T", 'A', true, 5, 5,Classification.SOMATIC, false));
 	}
 	
 	@Test
@@ -238,30 +238,31 @@ public class GenotypeUtilTest {
 		Classification c = Classification.SOMATIC;
 		assertEquals(Classification.SOMATIC, GenotypeUtil.getClassification("GT", "2/2", "1/2","G,T"));
 		String gt = "0/0";
-		assertEquals(gt + ":356,6:"+control.getCoverage()+":.:.:.:.:.:"+cOABS, GenotypeUtil.getFormatValues(control, gt, "A", 'G', true, 5, 5,c, true));
+		assertEquals(gt + ":356,6:" + control.getCoverage()+":.:.:.:.:.:" + cOABS, GenotypeUtil.getFormatValues(control, gt, "A", 'G', true, 5, 5,c, true));
 		gt = "0/1";
-		assertEquals(gt + ":234,16:"+test.getCoverage()+":.:.:.:SOMATIC:2:"+tOABS, GenotypeUtil.getFormatValues(test, gt, "A", 'G', true, 5, 5,c, false));
+		assertEquals(gt + ":234,16:" + test.getCoverage()+":.:.:.:SOMATIC:2:" + tOABS, GenotypeUtil.getFormatValues(test, gt, "A", 'G', true, 5, 5,c, false));
 		
 		/*
 		 * add in the unfiltered alt - need 3% of these to trigger (which is 11 in this case
 		 */
-		control.addFailedFilterBase((byte)'A');
-		control.addFailedFilterBase((byte)'A');
+		long readNameHash = 1;
+		control.addFailedFilterBase((byte)'A', readNameHash++);
+		control.addFailedFilterBase((byte)'A', readNameHash++);
 		 gt = "0/0";
-		assertEquals(gt + ":356,6:"+control.getCoverage()+":.:A2:.:.:.:"+cOABS, GenotypeUtil.getFormatValues(control, gt, "A", 'G', true, 5, 5,c, true));
+		assertEquals(gt + ":356,6:" + control.getCoverage() + ":.:A2:.:.:.:" + cOABS, GenotypeUtil.getFormatValues(control, gt, "A", 'G', true, 5, 5,c, true));
 		gt = "0/1";
-		assertEquals(gt + ":234,16:"+test.getCoverage()+":.:.:.:SOMATIC:2:"+tOABS, GenotypeUtil.getFormatValues(test, gt, "A", 'G', true, 5, 5,c, false));
+		assertEquals(gt + ":234,16:" + test.getCoverage() + ":.:.:.:SOMATIC:2:" + tOABS, GenotypeUtil.getFormatValues(test, gt, "A", 'G', true, 5, 5,c, false));
 		
 		/*
 		 * add 9 more
 		 */
 		for (int i = 0 ; i < 9 ; i++) {
-			control.addFailedFilterBase((byte)'A');
+			control.addFailedFilterBase((byte)'A', readNameHash++);
 		}
 		gt = "0/0";
-		assertEquals(gt + ":356,6:"+control.getCoverage()+":.:A11:.:.:.:"+cOABS, GenotypeUtil.getFormatValues(control, gt, "A", 'G', true, 5, 5,c, true));
+		assertEquals(gt + ":356,6:"+control.getCoverage() + ":.:A11:.:.:.:" + cOABS, GenotypeUtil.getFormatValues(control, gt, "A", 'G', true, 5, 5,c, true));
 		gt = "0/1";
-		assertEquals(gt + ":234,16:"+test.getCoverage()+":.:.:.:SOMATIC:2:"+tOABS, GenotypeUtil.getFormatValues(test, gt, "A", 'G', true, 5, 5,c, false));
+		assertEquals(gt + ":234,16:"+test.getCoverage() + ":.:.:.:SOMATIC:2:" + tOABS, GenotypeUtil.getFormatValues(test, gt, "A", 'G', true, 5, 5,c, false));
 	}
 	
 	@Test
