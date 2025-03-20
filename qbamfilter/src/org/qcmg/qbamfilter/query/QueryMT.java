@@ -62,7 +62,7 @@ public class QueryMT {
 				logger.info("create index file for unmatched reads output " + index);				
 				int unmatchedCount = 0;
 				SAMWriterFactory writeFactory = new SAMWriterFactory(he, presorted, unmatchedFile,tmpdir, index);
-				try ( SAMFileWriter writer = writeFactory.getWriter(); ) {
+				try ( SAMFileWriter writer = writeFactory.getWriter()) {
 					SAMRecord record;					
 					while (true) {
 						if (  (record = outBadQueue.poll()) == null ){
@@ -190,12 +190,12 @@ public class QueryMT {
 
 			if (outBadQueue != null) {
 				writeThreadB.awaitTermination(Constants.EXECUTOR_SERVICE_AWAIT_TERMINATION, TimeUnit.HOURS);
-				if (outBadQueue.size() != 0)
+				if (!outBadQueue.isEmpty())
 					throw new Exception(" threads have completed but Queue of unmatched Records isn't empty):  "
 									+ outBadQueue.size());
 			}
 
-			if (readQueue.size() != 0 || postfilteringQueue.size() != 0)
+			if (!readQueue.isEmpty() || !postfilteringQueue.isEmpty())
 				throw new Exception(" threads have completed but queue isn't empty  (inputQueue, postfilteringQueue ):  "
 								+ readQueue.size() + ", " + postfilteringQueue.size());
 
@@ -281,9 +281,7 @@ public class QueryMT {
 		final CountDownLatch wGoodLatch;
 		final CountDownLatch wBadLatch;
 
-		private int countOutputSleep;
-
-		/**
+        /**
 		 * 
 		 * @param qIn : store SAM record from input file
 		 * @param qOutGood : store unmatched record based on query
@@ -313,7 +311,7 @@ public class QueryMT {
 
 			long sleepcount = 0;
 			long count = 0;
-			countOutputSleep = 0;
+            int countOutputSleep = 0;
 			boolean run = true;
 
 			try {
@@ -405,69 +403,68 @@ public class QueryMT {
 			int countSleep = 0;
 			boolean run = true;
 			
-			
-				boolean presorted = header.getSortOrder().equals(sort);
-				boolean index =  sort.equals(SAMFileHeader.SortOrder.coordinate);
-				//make sure don't change the input header since the writer of unmatched reads  should use it. 
-				SAMFileHeader he = header.clone();
-				he.setSortOrder(sort);
-				SAMWriterFactory writeFactory = new SAMWriterFactory(he , presorted, file,tmpdir, index);
+			boolean presorted = header.getSortOrder().equals(sort);
+			boolean index =  sort.equals(SAMFileHeader.SortOrder.coordinate);
+			//make sure don't change the input header since the writer of unmatched reads  should use it.
+			SAMFileHeader he = header.clone();
+			he.setSortOrder(sort);
+			SAMWriterFactory writeFactory = new SAMWriterFactory(he , presorted, file,tmpdir, index);
+
+			logger.info("input bam are presorted: " + presorted);
+			logger.info("set sort to " + sort);
+			logger.info("create index file " + index);
 				
-				logger.info("input bam are presorted: " + presorted);
-				logger.info("set sort to " + sort);
-				logger.info("create index file " + index);
-				
-				try {
-					List<SAMRecordFilterWrapper> unorderedRecords = new ArrayList<>();
-					SAMRecordFilterWrapper record;
-					while (run) {
-						// when queue is empty,maybe filtering is done
-						if ((record = queue.poll()) == null) {
-							if (fLatch.getCount() == 0)
-								run = false;
-							try {
-								Thread.sleep(sleepUnit);
-								countSleep++;
-							} catch (Exception e) {
-								logger.info(Thread.currentThread().getName() + " " + e.getMessage());
-							}
-
-							if ((count % checkPoint == 0) && (!mainThread.isAlive()))
-								throw new Exception( "Writing threads failed since parent thread died.");
-
-						} else {
-							if (count == record.getPosition()) {
-								addRecordToWriter(record, writeFactory.getWriter());
-
-								// check the list to see if the next element has already been retrieved
-								int size = unorderedRecords.size();
-								if (size > 0) {
-									int i = 0;
-									if (size > 1) {
-										Collections.sort(unorderedRecords);
-									}
-									while (i < size
-											&& (record = unorderedRecords
-													.get(0)).getPosition() == count) {
-										addRecordToWriter(record, writeFactory.getWriter());
-										unorderedRecords.remove(0);
-										i++;
-									}
-								}
-							} else if (count < record.getPosition()) {
-								unorderedRecords.add(record);
-							} else {
-								logger.error("count: " + count + " is higher that recently processed record: " + record.getPosition());
-							}
+			try {
+				List<SAMRecordFilterWrapper> unorderedRecords = new ArrayList<>();
+				SAMRecordFilterWrapper record;
+				while (run) {
+					// when queue is empty,maybe filtering is done
+					if ((record = queue.poll()) == null) {
+						if (fLatch.getCount() == 0)
+							run = false;
+						try {
+							Thread.sleep(sleepUnit);
+							countSleep++;
+						} catch (Exception e) {
+							logger.info(Thread.currentThread().getName() + " " + e.getMessage());
 						}
-					}				  
-				logger.info(writeFactory.getLogMessage());
 
-				if (!mainThread.isAlive())
-					throw new Exception("Writing threads failed since parent thread died.");
-				else
-					logger.info("completed writing threads, added " + filteredCount
-							+ " records to the output: " + file.getAbsolutePath());
+						if ((count % checkPoint == 0) && (!mainThread.isAlive()))
+							throw new Exception( "Writing threads failed since parent thread died.");
+
+					} else {
+						if (count == record.getPosition()) {
+							addRecordToWriter(record, writeFactory.getWriter());
+
+							// check the list to see if the next element has already been retrieved
+							int size = unorderedRecords.size();
+							if (size > 0) {
+								int i = 0;
+								if (size > 1) {
+									Collections.sort(unorderedRecords);
+								}
+								while (i < size
+										&& (record = unorderedRecords
+												.getFirst()).getPosition() == count) {
+									addRecordToWriter(record, writeFactory.getWriter());
+									unorderedRecords.removeFirst();
+									i++;
+								}
+							}
+						} else if (count < record.getPosition()) {
+							unorderedRecords.add(record);
+						} else {
+							logger.error("count: " + count + " is higher that recently processed record: " + record.getPosition());
+						}
+					}
+				}
+			logger.info(writeFactory.getLogMessage());
+
+			if (!mainThread.isAlive())
+				throw new Exception("Writing threads failed since parent thread died.");
+			else
+				logger.info("completed writing threads, added " + filteredCount
+						+ " records to the output: " + file.getAbsolutePath());
 
 			} catch (Exception e) {
 				logger.error("Exception caught in Writer thread", e);

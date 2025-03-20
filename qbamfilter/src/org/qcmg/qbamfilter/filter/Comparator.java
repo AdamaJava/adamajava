@@ -43,22 +43,21 @@ public enum Comparator {
          * return true if the String v1 doesn't contain String v2 for Comparator  NotContain
          */
         public boolean eval(String v1, String v2) {
-            switch(this){
-                case GreatEqual: return Integer.parseInt(v1) >= Integer.parseInt(v2);
-                case SmallEqual: return Integer.parseInt(v1) <= Integer.parseInt(v2);
-                case Great: return Integer.parseInt(v1) > Integer.parseInt(v2);
-                case Small: return Integer.parseInt(v1) < Integer.parseInt(v2);
-                case Equal: return v1.equalsIgnoreCase(v2);
-                case NotEqual: return ! v1.equalsIgnoreCase(v2);
-                case StartWith: return v1.toLowerCase().startsWith(v2.toLowerCase());
-                case NotStartWith: return ! v1.toLowerCase().startsWith(v2.toLowerCase());
-                case EndWith: return v1.toLowerCase().endsWith(v2.toLowerCase());
-                case NotEndWith: return ! v1.toLowerCase().endsWith(v2.toLowerCase());
-                case Contain: return  v1.toLowerCase().contains(v2.toLowerCase());
-                case NotContain: return  ! v1.toLowerCase().contains(v2.toLowerCase());
-            }
+            return switch (this) {
+                case GreatEqual -> Integer.parseInt(v1) >= Integer.parseInt(v2);
+                case SmallEqual -> Integer.parseInt(v1) <= Integer.parseInt(v2);
+                case Great -> Integer.parseInt(v1) > Integer.parseInt(v2);
+                case Small -> Integer.parseInt(v1) < Integer.parseInt(v2);
+                case Equal -> v1.equalsIgnoreCase(v2);
+                case NotEqual -> !v1.equalsIgnoreCase(v2);
+                case StartWith -> v1.toLowerCase().startsWith(v2.toLowerCase());
+                case NotStartWith -> !v1.toLowerCase().startsWith(v2.toLowerCase());
+                case EndWith -> v1.toLowerCase().endsWith(v2.toLowerCase());
+                case NotEndWith -> !v1.toLowerCase().endsWith(v2.toLowerCase());
+                case Contain -> v1.toLowerCase().contains(v2.toLowerCase());
+                case NotContain -> !v1.toLowerCase().contains(v2.toLowerCase());
+            };
 
-            throw new AssertionError("Unknown comparator mark:" + this);
         }
 
  
@@ -151,7 +150,7 @@ public enum Comparator {
          * @param comp: valid string parameter must belong to [">=", ">", "<=", "<", "==", "!="]
          * @return one of the six Comparators based on the parameter string comp
          */
-        public static Comparator GetComparator(String comp, String value) {
+        public static Comparator getComparator(String comp, String value) {
 
             return switch (comp) {
                 case ">=" -> GreatEqual;

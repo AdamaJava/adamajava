@@ -56,10 +56,10 @@ public class Condition {
 		else
 			this.value = value;
 		
-		op = Comparator.GetComparator(comp, value);
+		op = Comparator.getComparator(comp, value);
 		
 		if(op == null)
-			throw new Exception(String.format("invalide condition in query: %s %s %s ", key, comp, value));
+			throw new Exception(String.format("invalid condition in query: %s %s %s ", key, comp, value));
 
     }
     

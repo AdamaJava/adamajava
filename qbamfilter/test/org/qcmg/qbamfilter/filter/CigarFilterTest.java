@@ -1,11 +1,11 @@
 package org.qcmg.qbamfilter.filter;
 
+import htsjdk.samtools.*;
 import org.junit.*;
 import org.qcmg.picard.SAMFileReaderFactory;
 
 import static org.junit.Assert.*;
-import htsjdk.samtools.SamReader;
-import htsjdk.samtools.SAMRecord;
+
 import htsjdk.samtools.filter.SamRecordFilter;
 
 import java.io.File;
@@ -50,6 +50,40 @@ public class CigarFilterTest {
                fail();
             }
         }
+    }
+
+    @Test
+    public void someCIGARValues() throws Exception {
+        Cigar c = new Cigar();
+        c.add(new CigarElement(150, CigarOperator.M));
+        SAMRecord sam = new SAMRecord(new SAMFileHeader());
+        sam.setCigar(c);
+        SamRecordFilter filter = new CigarFilter("M", Comparator.GreatEqual, "34");
+        assertTrue(filter.filterOut(sam));
+
+        c = new Cigar();
+        c.add(new CigarElement(33, CigarOperator.M));
+        sam.setCigar(c);
+        assertFalse(filter.filterOut(sam));
+
+        c = new Cigar();
+        c.add(new CigarElement(34, CigarOperator.M));
+        sam.setCigar(c);
+        assertTrue(filter.filterOut(sam));
+
+        c = new Cigar();
+        c.add(new CigarElement(10, CigarOperator.M));
+        sam.setCigar(c);
+        assertFalse(filter.filterOut(sam));
+        c.add(new CigarElement(10, CigarOperator.M));
+        sam.setCigar(c);
+        assertFalse(filter.filterOut(sam));
+        c.add(new CigarElement(10, CigarOperator.M));
+        sam.setCigar(c);
+        assertFalse(filter.filterOut(sam));
+        c.add(new CigarElement(10, CigarOperator.M));
+        sam.setCigar(c);
+        assertTrue(filter.filterOut(sam));
     }
     
     /**
