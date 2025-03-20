@@ -294,6 +294,10 @@ public class ConfidenceModeTest {
         ConfidenceMode.checkMIUN(new String[]{"A"}, 90, "A3;C8", sb, 2, 3, null);
         assertEquals("", sb.toString());
 
+        sb = new StringBuilder();
+        ConfidenceMode.checkMIUN(new String[]{"AA"}, 90, "AA13;AC8", sb, 2, 3, null);
+        assertEquals("MIUN", sb.toString());
+
 //
     }
 
@@ -811,6 +815,28 @@ public class ConfidenceModeTest {
         assertEquals("PASS", vcf.getSampleFormatRecord(2).getField(VcfHeaderUtils.FORMAT_FILTER));
         assertEquals("PASS", vcf.getSampleFormatRecord(3).getField(VcfHeaderUtils.FORMAT_FILTER));
         assertEquals("PASS", vcf.getSampleFormatRecord(4).getField(VcfHeaderUtils.FORMAT_FILTER));
+
+    }
+
+    @Test
+    public void compoundSnpMIUN() {
+        /*
+        chr1  205931  .       AA      GG      .       .       .       GT:AD:DP:FF:FT:INF:NNS:OABS     0/0:6,0:6:AA47;AT1;A_1;GG3:.:.:.:AA3[]3[]       0/1:20,4:25:AA182;GG2;TA1:.:SOMATIC:4:AA
+7[]13[];GA1[]0[];GG0[]4[]
+         */
+        VcfRecord vcf = VcfUtils.createVcfRecord(ChrPositionUtils.getChrPosition("chr1", 205931, 205931), ".", "CA", "GG");
+        vcf.setInfo("FLANK=GTAAAACTGGA;BaseQRankSum=0.325;ClippingRankSum=0.000;DP=58;ExcessHet=3.0103;FS=4.683;MQ=55.10;MQRankSum=-6.669;QD=4.63;ReadPosRankSum=-0.352;SOR=1.425;IN=1;DB;VLD;HOM=3,TATATGTAAAgCTGGATTAAT;EFF=downstream_gene_variant(MODIFIER||914|||MST1P2|unprocessed_pseudogene|NON_CODING|ENST00000457982||1),intergenic_region(MODIFIER||||||||||1)");
+        vcf.setFormatFields(java.util.Arrays.asList(
+                "GT:AD:DP:FF:FT:INF:NNS:OABS",
+                "0/0:36,0:36:CA12;GG4;_A2:.:.:.:CA17[]19[];C_1[]0[]",
+                "0/1:102,11:114:AA1;CA30;CC1;CT1;C_3;GG50;GT1:.:SOMATIC:10:AA1[]0[];CA61[]41[];GG4[]7[];G_1[]0[];_A0[]2[]"));
+        ConfidenceMode cm = new ConfidenceMode(TWO_SAMPLE_ONE_CALLER_META);
+        cm.positionRecordMap.put(vcf.getChrPosition(), List.of(vcf));
+        cm.addAnnotation();
+        vcf = cm.positionRecordMap.get(vcf.getChrPosition()).getFirst();
+        assertEquals("MIUN", vcf.getSampleFormatRecord(1).getField(VcfHeaderUtils.FORMAT_FILTER));
+        assertEquals("PASS", vcf.getSampleFormatRecord(2).getField(VcfHeaderUtils.FORMAT_FILTER));
+
     }
 
     @Test
@@ -1343,6 +1369,30 @@ public class ConfidenceModeTest {
         assertEquals("PASS", vcf.getSampleFormatRecord(2).getField(VcfHeaderUtils.FORMAT_FILTER));
         assertEquals("PASS", vcf.getSampleFormatRecord(3).getField(VcfHeaderUtils.FORMAT_FILTER));
         assertEquals("PASS", vcf.getSampleFormatRecord(4).getField(VcfHeaderUtils.FORMAT_FILTER));
+    }
+
+    @Test
+    public void realLifeCSMIUN() {
+        /*
+        chr1  11445731        rs386628485     AG      GC      .       .       IN=1;DB;HOM=0,ACAGAGAGACagAGAGTCAGAG    GT:AD:DP:FF:FT:INF:NNS:OABS     0/0:18,1:20:AC1;AG6;AGC1;AT1;A_1;CC1;GC7:PASS:.:.:AG7[]11[];GC0[]1[];GG0
+[]1[];_C1[]0[]  0/1:32,4:36:AA1;AG11;A_1;GA1;GC18;G_1:MR:SOMATIC:4:AG21[]11[];A_1[]0[];GC2[]2[];_C1[]0[]        ./.:.:.:.:COV:.:.:.     ./.:.:.:.:COV:.:.:.
+         */
+        VcfRecord vcf = new VcfRecord(new String[]{"chr1", "11445731", "rs386628485", "AG", "GC", ".", ".", "IN=1;DB;HOM=0,ACAGAGAGACagAGAGTCAGAG"
+                , "GT:AD:DP:FF:FT:INF:NNS:OABS"
+                , "0/0:18,1:20:AC1;AG6;AGC1;AT1;A_1;CC1;GC7:.:.:.:AG7[]11[];GC0[]1[];GG0[]1[];_C1[]0[]"
+                , "0/1:32,4:36:AA1;AG11;A_1;GA1;GC18;G_1:.:SOMATIC:4:AG21[]11[];A_1[]0[];GC2[]2[];_C1[]0[]"
+                , "./.:.:.:.:.:.:.:."
+                , "./.:.:.:.:.:.:.:."});
+        ConfidenceMode cm = new ConfidenceMode(TWO_SAMPLE_TWO_CALLER_META);
+        cm.positionRecordMap.put(vcf.getChrPosition(), List.of(vcf));
+        cm.addAnnotation();
+
+        vcf = cm.positionRecordMap.get(vcf.getChrPosition()).getFirst();
+        assertEquals("MIUN", vcf.getSampleFormatRecord(1).getField(VcfHeaderUtils.FORMAT_FILTER));
+        assertEquals("MR", vcf.getSampleFormatRecord(2).getField(VcfHeaderUtils.FORMAT_FILTER));
+        assertEquals("COV", vcf.getSampleFormatRecord(3).getField(VcfHeaderUtils.FORMAT_FILTER));
+        assertEquals("COV", vcf.getSampleFormatRecord(4).getField(VcfHeaderUtils.FORMAT_FILTER));
+
     }
 
     @Test
