@@ -161,6 +161,10 @@ public class Annotate {
         return exitStatus;
     }
 
+    private boolean isStandardContig(ChrPosition thisVcfsCP) {
+        return thisVcfsCP.getChromosome().startsWith("chr") ? STANDARD_GRCH38_CONTIGS.contains(thisVcfsCP.getChromosome().substring(3)) : STANDARD_GRCH38_CONTIGS.contains(thisVcfsCP.getChromosome());
+    }
+
 
     private static List<String> getAnnotationsForPosition(ChrPosition cp, List<AnnotationSource> annotationSources, Executor executor) {
         long contigAndPosition = ((ChrPositionUtils.convertContigAndPositionToLong(cp.getChromosome().startsWith("chr") ? cp.getChromosome().substring(3) : cp.getChromosome(), cp.getStartPosition())));
