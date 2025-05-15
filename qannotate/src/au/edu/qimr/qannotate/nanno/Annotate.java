@@ -23,6 +23,13 @@ public class Annotate {
 
     static final List<String> SEARCH_TERM_VARIETIES = Arrays.asList(">", "->", "-->", "/");
 
+    // Define the set of standard GRCh38 contigs (no "chr" prefix version)
+    private static final Set<String> STANDARD_GRCH38_CONTIGS = Set.of(
+            "1", "2", "3", "4", "5", "6", "7", "8", "9", "10",
+            "11", "12", "13", "14", "15", "16", "17", "18", "19", "20",
+            "21", "22", "X", "Y", "MT", "M"
+    );
+
     static Comparator<String[]> CUSTOM_COMPARATOR;
     static QLogger logger;
 
@@ -71,70 +78,77 @@ public class Annotate {
 
         ChrPosition lastCP = null;
         try (
-                VcfFileReader reader = new VcfFileReader(inputFile)) {
+            VcfFileReader reader = new VcfFileReader(inputFile)) {
             logger.info("VcfFileReader has been setup");
             int vcfCount = 0;
+            int nonStandardContigCount = 0;
             for (VcfRecord vcf : reader) {
                 vcfCount++;
 
                 ChrPosition thisVcfsCP = vcf.getChrPositionRefAlt();
                 logger.debug("thisVcfsCP: " + thisVcfsCP.toIGVString());
 
-
-                /*
-                 * check that this CP is "after" the last CP
-                 */
-                int compare = null != lastCP ? ((ChrPositionRefAlt) thisVcfsCP).compareTo((ChrPositionRefAlt) lastCP) : 0;
-                if (compare < 0) {
-                    throw new IllegalArgumentException("Incorrect order of vcf records in input vcf file! this vcf: " + thisVcfsCP.toIGVString() + ", last vcf: " + lastCP.toIGVString());
-                }
+                boolean isStandardContig = thisVcfsCP.getChromosome().startsWith("chr") ? STANDARD_GRCH38_CONTIGS.contains(thisVcfsCP.getChromosome().substring(3)) : STANDARD_GRCH38_CONTIGS.contains(thisVcfsCP.getChromosome());
+                if (isStandardContig) {
 
 
-                String alt = ((ChrPositionRefAlt) thisVcfsCP).getAlt();
-                String gatkAD = VcfUtils.getFormatField(vcf.getFormatFields(), "AD", 0);
-                String gatkGT = VcfUtils.getFormatField(vcf.getFormatFields(), "GT", 0);
-
-                if (alt.contains(",")) {
-                    logger.info("alt has comma: " + thisVcfsCP);
                     /*
-                     * split record, create new ChrPositions for each
+                     * check that this CP is "after" the last CP
                      */
-                    String[] altArray = alt.split(",");
-                    List<VcfRecord> splitVcfs = new ArrayList<>();
-                    for (String thisAlt : altArray) {
-                        if (thisAlt.equals("*")) {
-                            /*
-                             * ignore
-                             */
-                        } else {
-                            VcfRecord newVcf = VcfUtils.cloneWithNewAlt(vcf, thisAlt);
-                            splitVcfs.add(newVcf);
-                        }
+                    int compare = null != lastCP ? ((ChrPositionRefAlt) thisVcfsCP).compareTo((ChrPositionRefAlt) lastCP) : 0;
+                    if (compare < 0) {
+                        throw new IllegalArgumentException("Incorrect order of vcf records in input vcf file! this vcf: " + thisVcfsCP.toIGVString() + ", last vcf: " + lastCP.toIGVString());
                     }
-                    if (splitVcfs.size() > 1) {
+
+
+                    String alt = ((ChrPositionRefAlt) thisVcfsCP).getAlt();
+                    String gatkAD = VcfUtils.getFormatField(vcf.getFormatFields(), "AD", 0);
+                    String gatkGT = VcfUtils.getFormatField(vcf.getFormatFields(), "GT", 0);
+
+                    if (alt.contains(",")) {
+                        logger.info("alt has comma: " + thisVcfsCP);
                         /*
-                         * sort
+                         * split record, create new ChrPositions for each
                          */
-                        splitVcfs.sort(null);
-                    }
-                    for (VcfRecord splitVcf : splitVcfs) {
-                        List<String> annotations = new ArrayList<>(getAnnotationsForPosition(splitVcf.getChrPositionRefAlt(), annotationSources, executor));
-                        queue.add(new ChrPositionAnnotations(splitVcf.getChrPositionRefAlt(), annotations, gatkAD, gatkGT, alt));
+                        String[] altArray = alt.split(",");
+                        List<VcfRecord> splitVcfs = new ArrayList<>();
+                        for (String thisAlt : altArray) {
+                            if (thisAlt.equals("*")) {
+                                /*
+                                 * ignore
+                                 */
+                            } else {
+                                VcfRecord newVcf = VcfUtils.cloneWithNewAlt(vcf, thisAlt);
+                                splitVcfs.add(newVcf);
+                            }
+                        }
+                        if (splitVcfs.size() > 1) {
+                            /*
+                             * sort
+                             */
+                            splitVcfs.sort(null);
+                        }
+                        for (VcfRecord splitVcf : splitVcfs) {
+                            List<String> annotations = new ArrayList<>(getAnnotationsForPosition(splitVcf.getChrPositionRefAlt(), annotationSources, executor));
+                            queue.add(new ChrPositionAnnotations(splitVcf.getChrPositionRefAlt(), annotations, gatkAD, gatkGT, alt));
+                        }
+
+                    } else {
+
+                        logger.debug("about to get annotations for: " + thisVcfsCP.toIGVString());
+                        List<String> annotations = getAnnotationsForPosition(thisVcfsCP, annotationSources, executor);
+                        logger.debug("got annotations for: " + thisVcfsCP.toIGVString() + " - adding to queue");
+                        queue.add(new ChrPositionAnnotations(thisVcfsCP, annotations, gatkAD, gatkGT, alt));
+
                     }
 
+                    lastCP = thisVcfsCP;
                 } else {
-
-                    logger.debug("about to get annotations for: " + thisVcfsCP.toIGVString());
-                    List<String> annotations = getAnnotationsForPosition(thisVcfsCP, annotationSources, executor);
-                    logger.debug("got annotations for: " + thisVcfsCP.toIGVString() + " - adding to queue");
-                    queue.add(new ChrPositionAnnotations(thisVcfsCP, annotations, gatkAD, gatkGT, alt));
-
+                    nonStandardContigCount++;
                 }
-
-                lastCP = thisVcfsCP;
             }
 
-            logger.info("# of vcf records: " + vcfCount);
+            logger.info("# of vcf records: " + vcfCount + ", # of non-standard contigs: " + nonStandardContigCount);
         } finally {
             /*
              * count down the count down latch

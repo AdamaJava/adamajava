@@ -64,10 +64,13 @@ public class ChrPositionUtils {
         if (null == contigName || contigName.isEmpty()) {
             throw new IllegalArgumentException("null or empty contig name supplied to convertContigNameToInt");
         }
-        int i = Character.isDigit(contigName.charAt(0)) ? Integer.parseInt(contigName) : -1;
-        if (i > -1) {
-            return i;
+        // check if the contig name is a number
+        // if so, return it as an int
+        // otherwise, convert it to a hash code
+        if (isDigits(contigName)) {
+            return Integer.parseInt(contigName);
         }
+
 
         if (contigName.length() > 3 && contigName.startsWith("chr")) {
             return convertContigNameToInt(contigName.substring(3));
@@ -79,6 +82,15 @@ public class ChrPositionUtils {
             case "M", "MT" -> 25;
             default -> contigName.hashCode();
         };
+    }
+
+    public static boolean isDigits(String str) {
+        if (str == null || str.isEmpty()) return false;
+        for (int i = 0; i < str.length(); i++) {
+            char c = str.charAt(i);
+            if (c < '0' || c > '9') return false;
+        }
+        return true;
     }
 
     /**
