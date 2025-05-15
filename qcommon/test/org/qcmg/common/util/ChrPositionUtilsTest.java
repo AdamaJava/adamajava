@@ -36,6 +36,61 @@ public class ChrPositionUtilsTest {
 	}
 
 	@Test
+	public void testConvertContigNameToInt_NumericContig() {
+		assertEquals(1, ChrPositionUtils.convertContigNameToInt("1"));
+		assertEquals(22, ChrPositionUtils.convertContigNameToInt("22"));
+	}
+
+	@Test
+	public void testConvertContigNameToInt_ChromosomeWithChrPrefix() {
+		assertEquals(1, ChrPositionUtils.convertContigNameToInt("chr1"));
+		assertEquals(22, ChrPositionUtils.convertContigNameToInt("chr22"));
+	}
+
+	@Test
+	public void testConvertContigNameToInt_SexChromosomes() {
+		assertEquals(23, ChrPositionUtils.convertContigNameToInt("X"));
+		assertEquals(24, ChrPositionUtils.convertContigNameToInt("Y"));
+	}
+
+	@Test
+	public void testConvertContigNameToInt_Mitochondrial() {
+		assertEquals(25, ChrPositionUtils.convertContigNameToInt("M"));
+		assertEquals(25, ChrPositionUtils.convertContigNameToInt("MT"));
+	}
+
+	@Test
+	public void testConvertContigNameToInt_ChromosomeWithChrPrefixSpecialCases() {
+		assertEquals(23, ChrPositionUtils.convertContigNameToInt("chrX"));
+		assertEquals(24, ChrPositionUtils.convertContigNameToInt("chrY"));
+		assertEquals(25, ChrPositionUtils.convertContigNameToInt("chrM"));
+	}
+
+	@Test
+	public void testConvertContigNameToInt_AltChromosome() {
+		assertEquals("22_KI270739v1_random".hashCode(), ChrPositionUtils.convertContigNameToInt("chr22_KI270739v1_random"));
+		assertEquals("Y_KI270740v1_random".hashCode(), ChrPositionUtils.convertContigNameToInt("chrY_KI270740v1_random"));
+		assertEquals("Un_KI270302v1".hashCode(), ChrPositionUtils.convertContigNameToInt("chrUn_KI270302v1"));
+	}
+
+	@Test
+	public void testConvertContigNameToInt_OtherValues() {
+		// For other values, it should return hashCode
+		String contig = "other";
+		assertEquals(contig.hashCode(), ChrPositionUtils.convertContigNameToInt(contig));
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testConvertContigNameToInt_NullInput() {
+		ChrPositionUtils.convertContigNameToInt(null);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testConvertContigNameToInt_EmptyInput() {
+		ChrPositionUtils.convertContigNameToInt("");
+	}
+
+	@Test
 	public void testConvertChrPositionToLong() {
 		long expected = ((long) 4 << 32) + 9;
 		long actual = ChrPositionUtils.convertContigAndPositionToLong("4", 9);
