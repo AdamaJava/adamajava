@@ -88,7 +88,7 @@ public class Annotate {
                 ChrPosition thisVcfsCP = vcf.getChrPositionRefAlt();
                 logger.debug("thisVcfsCP: " + thisVcfsCP.toIGVString());
 
-                boolean isStandardContig = thisVcfsCP.getChromosome().startsWith("chr") ? STANDARD_GRCH38_CONTIGS.contains(thisVcfsCP.getChromosome().substring(3)) : STANDARD_GRCH38_CONTIGS.contains(thisVcfsCP.getChromosome());
+                boolean isStandardContig = isStandardContig(thisVcfsCP);
                 if (isStandardContig) {
 
 
