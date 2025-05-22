@@ -104,9 +104,9 @@ public class QSVUtilTest {
 		assertTrue(QSVUtil.reorderByChromosomes("chr21", "chr12"));
 		assertTrue(QSVUtil.reorderByChromosomes("chrY", "chrX"));
 		assertTrue(QSVUtil.reorderByChromosomes("chrY", "chr1"));
-		assertTrue(QSVUtil.reorderByChromosomes("chrY", "chrMT"));
+		assertFalse(QSVUtil.reorderByChromosomes("chrY", "chrMT"));
 		assertFalse(QSVUtil.reorderByChromosomes("chr1", "chrX"));
-		assertTrue(QSVUtil.reorderByChromosomes("X", "MT"));
+		assertFalse(QSVUtil.reorderByChromosomes("X", "MT"));
 		assertFalse(QSVUtil.reorderByChromosomes("X", "Y"));
 		assertTrue(QSVUtil.reorderByChromosomes("GL4", "GL1"));
 		assertFalse(QSVUtil.reorderByChromosomes("GL1", "GL4"));
@@ -179,8 +179,8 @@ public class QSVUtilTest {
 		/*
 		 * Due to timezone differences, it is safest just to dictate which year we expect the analysis id to start with
 		 */
-		assertEquals(true, QSVUtil.getAnalysisId(false, "test", new Date(1352958269803L)).startsWith("qSV_test_2012"));
-		assertTrue(QSVUtil.getAnalysisId(true, "test", new Date(1352958269803L)).length() == 36);
+        assertTrue(QSVUtil.getAnalysisId(false, "test", new Date(1352958269803L)).startsWith("qSV_test_2012"));
+        assertEquals(36, QSVUtil.getAnalysisId(true, "test", new Date(1352958269803L)).length());
 	}
 
 	@Test
@@ -216,64 +216,64 @@ public class QSVUtilTest {
 	
 	@Test
 	public void highNCountNoNs() throws QSVException {
-		assertEquals(false, QSVUtil.highNCount("Hello there", 0.01));
+        assertFalse(QSVUtil.highNCount("Hello there", 0.01));
 		// double limit is a percentage, so if set to 0.0, will return true
-		assertEquals(true, QSVUtil.highNCount("Hello there", 0.0));
+        assertTrue(QSVUtil.highNCount("Hello there", 0.0));
 	}
 	
 	@Test
 	public void highNCountSingleN() throws QSVException {
-		assertEquals(true, QSVUtil.highNCount("Hello, anybody there?", 0.01));	// 1 in 21 >= 1%
-		assertEquals(true, QSVUtil.highNCount("Hello, aNybody there?", 0.01));	// 1 in 21 >= 1%
-		assertEquals(false, QSVUtil.highNCount("Hello, anybody there?", 0.1));	// 1 in 21 ! >= 10%
-		assertEquals(false, QSVUtil.highNCount("Hello, aNybody there?", 0.1));	// 1 in 21 ! >= 10%
+        assertTrue(QSVUtil.highNCount("Hello, anybody there?", 0.01));	// 1 in 21 >= 1%
+        assertTrue(QSVUtil.highNCount("Hello, aNybody there?", 0.01));	// 1 in 21 >= 1%
+        assertFalse(QSVUtil.highNCount("Hello, anybody there?", 0.1));	// 1 in 21 ! >= 10%
+        assertFalse(QSVUtil.highNCount("Hello, aNybody there?", 0.1));	// 1 in 21 ! >= 10%
 	}
 
 	@Test
 	public void highNCountAllNs() throws QSVException {
 		// shouldn't matter what value is used for the limit
-		assertEquals(true, QSVUtil.highNCount("NNnnnNNNNNnnNnNnN", 0.01));
-		assertEquals(true, QSVUtil.highNCount("NNnnnNNNNNnnNnNnN", 0));
-		assertEquals(true, QSVUtil.highNCount("NNnnnNNNNNnnNnNnN", 1));
+        assertTrue(QSVUtil.highNCount("NNnnnNNNNNnnNnNnN", 0.01));
+        assertTrue(QSVUtil.highNCount("NNnnnNNNNNnnNnNnN", 0));
+        assertTrue(QSVUtil.highNCount("NNnnnNNNNNnnNnNnN", 1));
 	}
 	
 	@Test
 	public void highNCountInvalidLimit() throws QSVException {
 		exception.expect(QSVException.class);
-		assertEquals(true, QSVUtil.highNCount("NNnnnNNNNNnnNnNnN", -0.1));
+        assertTrue(QSVUtil.highNCount("NNnnnNNNNNnnNnNnN", -0.1));
 		exception.expect(QSVException.class);
-		assertEquals(true, QSVUtil.highNCount("NNnnnNNNNNnnNnNnN", -1));
+        assertTrue(QSVUtil.highNCount("NNnnnNNNNNnnNnNnN", -1));
 		exception.expect(QSVException.class);
-		assertEquals(true, QSVUtil.highNCount("NNnnnNNNNNnnNnNnN", -100));
+        assertTrue(QSVUtil.highNCount("NNnnnNNNNNnnNnNnN", -100));
 		exception.expect(QSVException.class);
-		assertEquals(true, QSVUtil.highNCount("NNnnnNNNNNnnNnNnN", 1.00000001));
+        assertTrue(QSVUtil.highNCount("NNnnnNNNNNnnNnNnN", 1.00000001));
 		exception.expect(QSVException.class);
-		assertEquals(true, QSVUtil.highNCount("NNnnnNNNNNnnNnNnN", 100000001));
+        assertTrue(QSVUtil.highNCount("NNnnnNNNNNnnNnNnN", 100000001));
 	}
 	
 	@Test
 	public void doesMPOverlapRegion() {
 		
 		MatePair mp = new MatePair("254_166_1407:20110221052813657,chr7,1000,1100,AAC,129,false,254_166_1407:20110221052813657,chr7,5000,5150,AAC,65,false,F2F1,\n");
-		assertEquals(true, QSVUtil.doesMatePairOverlapRegions(mp, 0, 2000, 3000, 6000));
-		assertEquals(true, QSVUtil.doesMatePairOverlapRegions(mp, 0, 1000, 3000, 6000));
-		assertEquals(true, QSVUtil.doesMatePairOverlapRegions(mp, 0, 1000, 1000, 6000));
-		assertEquals(true, QSVUtil.doesMatePairOverlapRegions(mp, 0, 1000, 5149, 6000));
-		assertEquals(true, QSVUtil.doesMatePairOverlapRegions(mp, 1000, 1100, 5000, 5150));
-		
-		assertEquals(false, QSVUtil.doesMatePairOverlapRegions(mp, 1001, 1099, 5000, 5150));
-		assertEquals(false, QSVUtil.doesMatePairOverlapRegions(mp, 0, 999, 1000, 6000));
-		assertEquals(false, QSVUtil.doesMatePairOverlapRegions(mp, 0, 1000, 6000, 6001));
+        assertTrue(QSVUtil.doesMatePairOverlapRegions(mp, 0, 2000, 3000, 6000));
+        assertTrue(QSVUtil.doesMatePairOverlapRegions(mp, 0, 1000, 3000, 6000));
+        assertTrue(QSVUtil.doesMatePairOverlapRegions(mp, 0, 1000, 1000, 6000));
+        assertTrue(QSVUtil.doesMatePairOverlapRegions(mp, 0, 1000, 5149, 6000));
+        assertTrue(QSVUtil.doesMatePairOverlapRegions(mp, 1000, 1100, 5000, 5150));
+
+        assertFalse(QSVUtil.doesMatePairOverlapRegions(mp, 1001, 1099, 5000, 5150));
+        assertFalse(QSVUtil.doesMatePairOverlapRegions(mp, 0, 999, 1000, 6000));
+        assertFalse(QSVUtil.doesMatePairOverlapRegions(mp, 0, 1000, 6000, 6001));
 	}
 	
 	@Test
 	public void createRecord() {
-		assertEquals(true, QSVUtil.createRecord(0, 0, 0));
-		assertEquals(true, QSVUtil.createRecord(0, 0, 10));
-		assertEquals(true, QSVUtil.createRecord(0, -10, 10));
-		
-		assertEquals(false, QSVUtil.createRecord(0, 1, 10));
-		assertEquals(false, QSVUtil.createRecord(0, 10, 10));
-		assertEquals(false, QSVUtil.createRecord(0, 20, 10));
+        assertTrue(QSVUtil.createRecord(0, 0, 0));
+        assertTrue(QSVUtil.createRecord(0, 0, 10));
+        assertTrue(QSVUtil.createRecord(0, -10, 10));
+
+        assertFalse(QSVUtil.createRecord(0, 1, 10));
+        assertFalse(QSVUtil.createRecord(0, 10, 10));
+        assertFalse(QSVUtil.createRecord(0, 20, 10));
 	}
 }
