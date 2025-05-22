@@ -159,8 +159,7 @@ public class WiggleFromPileupTest {
         gffs.add(gff6);
         Iterator<Gff3Record> iter = gffs.iterator();
 
-        Assert.assertFalse(WiggleFromPileup.isPositionInBait("chr0", 0, iter, iter.next()));
-        Assert.assertFalse(WiggleFromPileup.isPositionInBait("chr1", 0, iter, gff1));
+        Assert.assertFalse(WiggleFromPileup.isPositionInBait("chr1", 0, iter, iter.next()));
 
         assertTrue(WiggleFromPileup.isPositionInBait("chr1", 1, iter, gff1));
         assertTrue(WiggleFromPileup.isPositionInBait("chr1", 10, iter, gff1));

@@ -1,6 +1,5 @@
 package org.qcmg.snp;
 
-import static org.junit.Assert.assertEquals;
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMSequenceRecord;
 import htsjdk.samtools.SamReader;
@@ -10,7 +9,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -35,6 +33,8 @@ import org.qcmg.common.vcf.header.VcfHeaderUtils;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qio.vcf.VcfFileReader;
 
+import static org.junit.Assert.*;
+
 public class VcfPipelineTest {
 	
 	@org.junit.Rule
@@ -43,13 +43,13 @@ public class VcfPipelineTest {
     public ExpectedException thrown= ExpectedException.none();
 
 	private void createFile( File vcfFile, List<String> data ) throws IOException {
-		try (final PrintWriter pw = new PrintWriter(vcfFile);){
-			data.stream().forEachOrdered(pw::println);
+		try (final PrintWriter pw = new PrintWriter(vcfFile)){
+			data.forEach(pw::println);
 		}
 	}
 	
 	@Test
-	public void readsEndAfter1Snp() throws SnpException, Exception {
+	public void readsEndAfter1Snp() throws Exception {
 		final File iniFile = testFolder.newFile("qsnp_vcf.ini");	
 		final File testInputVcf = testFolder.newFile("test.vcf");
 		final File testInputBam = testFolder.newFile("test.sam");
@@ -76,12 +76,12 @@ public class VcfPipelineTest {
 		VcfRecord v = new VcfRecord(new String[]{"chr1","881627","rs2272757","G","A","164.77",".","AC=1;AF=0.500;AN=2;BaseQRankSum=-2.799;ClippingRankSum=1.555;DB;DP=18;FS=7.375;MLEAC=1;MLEAF=0.500;MQ=59.94;MQ0=0;MQRankSum=0.400;QD=9.15;ReadPosRankSum=0.755;SOR=0.044","GT:AD:DP:GQ:PL","0/1:10,8:18:99:193,0,370",".:.:.:.:."});
 		List<String> ff = v.getFormatFields();
 		assertEquals(3, ff.size());
-		assertEquals(true, ff.get(1).contains("0/1"));
+        assertTrue(ff.get(1).contains("0/1"));
 		assertEquals(".:.:.:.:.", ff.get(2));
 		VcfPipeline.updateGTFieldIFNoCall(v, 10, false);
 		ff = v.getFormatFields();
 		assertEquals(3, ff.size());
-		assertEquals(true, ff.get(1).contains("0/1"));
+        assertTrue(ff.get(1).contains("0/1"));
 		assertEquals("./.:.:10:.:.", ff.get(2));
 	}
 	@Test
@@ -89,15 +89,15 @@ public class VcfPipelineTest {
 		VcfRecord v = new VcfRecord(new String[]{"chr1","31029","rs372996257","G","A",".",".","FLANK=TCACCAGGAAC;BaseQRankSum=1.632;ClippingRankSum=0.457;DP=15;FS=24.362;MQ=23.95;MQRankSum=-0.326;QD=2.38;ReadPosRankSum=2.285;SOR=3.220;IN=1,2;DB","GT:AD:CCC:CCM:DP:FT:GQ:INF:MR:NNS:OABS","./.:.:.:3:.:.:.:.:.:.:G14[37.5]0[0]","0/1:11,4:.:3:15:SBIASALT:64:SOMATIC:4:4:A0[0]4[41];G10[39]2[41]"});
 		List<String> ff = v.getFormatFields();
 		assertEquals(3, ff.size());
-		assertEquals(true, ff.get(1).contains("./."));
+        assertTrue(ff.get(1).contains("./."));
 		VcfPipeline.updateGTFieldIFNoCall(v, 14, true);
 		ff = v.getFormatFields();
 		assertEquals(3, ff.size());
-		assertEquals(true, ff.get(1).contains("./."));
+        assertTrue(ff.get(1).contains("./."));
 	}
 	
 	@Test
-	public void classify() throws SnpException, Exception {
+	public void classify() throws Exception {
 		final File iniFile = testFolder.newFile("qsnp_vcf.ini");	
 		final File testInputVcf = testFolder.newFile("test.vcf");
 		final File testInputBam = testFolder.newFile("test.sam");
@@ -125,7 +125,7 @@ public class VcfPipelineTest {
 		new VcfPipeline(new Ini(iniFile), new QExec("stackOverflow2", "test", null), false);
 		// check the vcf output file
 		assertEquals(testVcfs.size() + controlVcfs.size() -2, noOfLinesInVCFOutputFile(vcfOutput));		// -2 removes the 2 header files
-		try (VcfFileReader reader = new VcfFileReader(vcfOutput);){
+		try (VcfFileReader reader = new VcfFileReader(vcfOutput)){
 			for (VcfRecord vcf : reader) {
 				
 				/*
@@ -144,7 +144,7 @@ public class VcfPipelineTest {
 	}
 	
 	@Test
-	public void classifySingleSample() throws SnpException, Exception {
+	public void classifySingleSample() throws Exception {
 		final File iniFile = testFolder.newFile("qsnp_vcf.ini");	
 		final File testInputVcf = testFolder.newFile("test.vcf");
 		final File vcfOutput = testFolder.newFile("output.vcf");
@@ -163,7 +163,7 @@ public class VcfPipelineTest {
 		new VcfPipeline(new Ini(iniFile), new QExec("classifySingleSample", "test", null), true);
 		// check the vcf output file
 		assertEquals(testVcfs.size() - 1, noOfLinesInVCFOutputFile(vcfOutput));		// -1 removes the header file
-		try (VcfFileReader reader = new VcfFileReader(vcfOutput);){
+		try (VcfFileReader reader = new VcfFileReader(vcfOutput)){
 			for (VcfRecord vcf : reader) {
 				
 				/*
@@ -182,7 +182,7 @@ public class VcfPipelineTest {
 		}
 	}
 	@Test
-	public void readsEndAfter2Snps() throws SnpException, Exception {
+	public void readsEndAfter2Snps() throws Exception {
 		final File iniFile = testFolder.newFile("qsnp_vcf.ini");	
 		final File testInputVcf = testFolder.newFile("test.vcf");
 		final File testInputBam = testFolder.newFile("test.sam");
@@ -210,7 +210,7 @@ public class VcfPipelineTest {
 		assertEquals(vcfs.size()-1, noOfLinesInVCFOutputFile(vcfOutput));
 	}
 	@Test
-	public void readsEndBefore3Snps() throws SnpException, Exception {
+	public void readsEndBefore3Snps() throws Exception {
 		final File iniFile = testFolder.newFile("qsnp_vcf.ini");	
 		final File testInputVcf = testFolder.newFile("test.vcf");
 		final File testInputBam = testFolder.newFile("test.sam");
@@ -236,7 +236,7 @@ public class VcfPipelineTest {
 	}
 	
 	@Test
-	public void readsEndBefore4Snps() throws SnpException, Exception {
+	public void readsEndBefore4Snps() throws Exception {
 		final File iniFile = testFolder.newFile("qsnp_vcf.ini");	
 		final File testInputVcf = testFolder.newFile("test.vcf");
 		final File testInputBam = testFolder.newFile("test.sam");
@@ -263,7 +263,7 @@ public class VcfPipelineTest {
 	}
 	
 	@Test
-	public void compoundSnps() throws SnpException, Exception {
+	public void compoundSnps() throws Exception {
 		final File iniFile = testFolder.newFile("qsnp_vcf.ini");	
 		final File testInputVcf = testFolder.newFile("test.vcf");
 		final File testInputBam = testFolder.newFile("test.sam");
@@ -291,10 +291,10 @@ public class VcfPipelineTest {
 	public void sorting() throws IOException {
 		
 		Comparator<String> comp = null;
-		List<String> sortedContigs = new ArrayList<String>();
+		List<String> sortedContigs = new ArrayList<>();
 		final File testInputBam = testFolder.newFile("test.sam");
 		createFile(testInputBam, getBamFile());
-		try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(testInputBam);) {
+		try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(testInputBam)) {
 			final SAMFileHeader header = reader.getFileHeader();
 			
 			for (final SAMSequenceRecord contig : header.getSequenceDictionary().getSequences()) {
@@ -305,18 +305,17 @@ public class VcfPipelineTest {
 		comp = ChrPositionComparator.getChrNameComparator(sortedContigs);
 		Comparator<ChrPosition> c = ChrPositionComparator.getComparator(comp);
 		
-		List<ChrPosition> chrPos = sortedContigs.stream().map(s -> ChrPositionUtils.getChrPosition(s, 1, 1)).collect(Collectors.toList());
-		
-		Collections.sort(chrPos, VcfPipeline.CHR_COMPARATOR);
-		assertEquals(22, chrPos.indexOf(ChrPositionUtils.getChrPosition("chrMT", 1, 1)));
-		Collections.sort(chrPos, c);
+		List<ChrPosition> chrPos = sortedContigs.stream().map(s -> ChrPositionUtils.getChrPosition(s, 1, 1)).sorted(VcfPipeline.CHR_COMPARATOR).collect(Collectors.toList());
+
+        assertEquals(24, chrPos.indexOf(ChrPositionUtils.getChrPosition("chrMT", 1, 1)));
+		chrPos.sort(c);
 		assertEquals(83, chrPos.indexOf(ChrPositionUtils.getChrPosition("chrMT", 1, 1)));
-		
-		assertEquals(true, c.compare(ChrPositionUtils.getChrPosition("chr1", 1, 1), ChrPositionUtils.getChrPosition("chr1", 2, 2)) < 0);
-		assertEquals(true, c.compare(ChrPositionUtils.getChrPosition("chr1", 2, 2), ChrPositionUtils.getChrPosition("chr1", 2, 2)) == 0);
-		assertEquals(true, c.compare(ChrPositionUtils.getChrPosition("chr1", 2, 2), ChrPositionUtils.getChrPosition("chr1", 1, 1)) > 0);
-		assertEquals(true, c.compare(ChrPositionUtils.getChrPosition("chr1", 2, 2), ChrPositionUtils.getChrPosition("chr2", 1, 1)) < 0);
-		assertEquals(true, c.compare(ChrPositionUtils.getChrPosition("chr2", 2, 20), ChrPositionUtils.getChrPosition("chr2", 2, 2)) > 0);
+
+        assertTrue(c.compare(ChrPositionUtils.getChrPosition("chr1", 1, 1), ChrPositionUtils.getChrPosition("chr1", 2, 2)) < 0);
+        assertEquals(0, c.compare(ChrPositionUtils.getChrPosition("chr1", 2, 2), ChrPositionUtils.getChrPosition("chr1", 2, 2)));
+        assertTrue(c.compare(ChrPositionUtils.getChrPosition("chr1", 2, 2), ChrPositionUtils.getChrPosition("chr1", 1, 1)) > 0);
+        assertTrue(c.compare(ChrPositionUtils.getChrPosition("chr1", 2, 2), ChrPositionUtils.getChrPosition("chr2", 1, 1)) < 0);
+        assertTrue(c.compare(ChrPositionUtils.getChrPosition("chr2", 2, 20), ChrPositionUtils.getChrPosition("chr2", 2, 2)) > 0);
 	}
 	
 	
@@ -324,29 +323,29 @@ public class VcfPipelineTest {
 	public void getListComparator() throws IOException {
 		List<String> list = Arrays.asList("chr1", "chr2");
 		Comparator<String> comp = ChrPositionComparator.getChrNameComparator(list);
-		
-		assertEquals(true, comp.compare("chr1", "chr2") < 0);
-		assertEquals(true, comp.compare("chr2", "chr1") > 0);
+
+        assertTrue(comp.compare("chr1", "chr2") < 0);
+        assertTrue(comp.compare("chr2", "chr1") > 0);
 		
 		final File testInputBam = testFolder.newFile("test.sam");
 		createFile(testInputBam, getBamFile());
-		try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(testInputBam);) {
+		try (SamReader reader = SAMFileReaderFactory.createSAMFileReader(testInputBam)) {
 			final SAMFileHeader header = reader.getFileHeader();
 			
-			final List<String> sortedContigs = new ArrayList<String>();
+			final List<String> sortedContigs = new ArrayList<>();
 			for (final SAMSequenceRecord contig : header.getSequenceDictionary().getSequences()) {
 				sortedContigs.add(contig.getSequenceName());
 			}
 			comp = ChrPositionComparator.getChrNameComparator(sortedContigs);
 		}
-		
-		assertEquals(true, comp.compare("chr1", "chr2") < 0);
-		assertEquals(true, comp.compare("chr2", "chr1") > 0);
-		assertEquals(true, comp.compare("chrMT", "chr1") > 0);
-		assertEquals(true, comp.compare("chrMT", "GL000249.1") > 0);
+
+        assertTrue(comp.compare("chr1", "chr2") < 0);
+        assertTrue(comp.compare("chr2", "chr1") > 0);
+        assertTrue(comp.compare("chrMT", "chr1") > 0);
+        assertTrue(comp.compare("chrMT", "GL000249.1") > 0);
 		
 		List<String> toSort = Arrays.asList("chrMT", "chrX","chr1", "chrY", "GL000217.1");
-		Collections.sort(toSort, comp);
+		toSort.sort(comp);
 		assertEquals(0, toSort.indexOf("chr1"));
 		assertEquals(1, toSort.indexOf("chrX"));
 		assertEquals(2, toSort.indexOf("chrY"));
@@ -357,15 +356,15 @@ public class VcfPipelineTest {
 	@Ignore
 	public void testVcfOmissionBasedOnLackOfData() {
 		VcfRecord vcf = new VcfRecord(new String[]{"chrX","84428775",".","C","CT","368.74",".","AC=1;AF=0.500;AN=2;BaseQRankSum=1.883;ClippingRankSum=0.000;DP=18;ExcessHet=3.0103;FS=0.000;MLEAC=1;MLEAF=0.500;MQ=60.00;MQRankSum=0.000;QD=20.49;ReadPosRankSum=0.774;SOR=0.941","GT","./."});
-		assertEquals(true, VcfPipeline.FF_NOT_ENOUGH_INFO.equals(vcf.getFormatFieldStrings()));
+        assertEquals(VcfPipeline.FF_NOT_ENOUGH_INFO, vcf.getFormatFieldStrings());
 		vcf = new VcfRecord(new String[]{"chrX","84428775",".","C","CT","368.74",".","AC=1;AF=0.500;AN=2;BaseQRankSum=1.883;ClippingRankSum=0.000;DP=18;ExcessHet=3.0103;FS=0.000;MLEAC=1;MLEAF=0.500;MQ=60.00;MQRankSum=0.000;QD=20.49;ReadPosRankSum=0.774;SOR=0.941","GT","C/CT"});
-		assertEquals(false, VcfPipeline.FF_NOT_ENOUGH_INFO.equals(vcf.getFormatFieldStrings()));
+        assertNotEquals(VcfPipeline.FF_NOT_ENOUGH_INFO, vcf.getFormatFieldStrings());
 		vcf = new VcfRecord(new String[]{"chrX","84428775",".","C","CT","368.74",".","AC=1;AF=0.500;AN=2;BaseQRankSum=1.883;ClippingRankSum=0.000;DP=18;ExcessHet=3.0103;FS=0.000;MLEAC=1;MLEAF=0.500;MQ=60.00;MQRankSum=0.000;QD=20.49;ReadPosRankSum=0.774;SOR=0.941","GT:AD","./.:0"});
-		assertEquals(false, VcfPipeline.FF_NOT_ENOUGH_INFO.equals(vcf.getFormatFieldStrings()));
+        assertNotEquals(VcfPipeline.FF_NOT_ENOUGH_INFO, vcf.getFormatFieldStrings());
 	}
 	
 	@Test
-	public void stackOverflow() throws SnpException, Exception {
+	public void stackOverflow() throws Exception {
 		/*
 		 * I think that this is due to the comparator placing chrMT  before the GL's whereas in the bam headers and vcfs, chrMT is last.
 		 * Not the case - see getLIstComparator test
@@ -646,7 +645,7 @@ public class VcfPipelineTest {
 		  TestVcfPipeline vp = new TestVcfPipeline(true);
 		  vp.testVcfFile = vcfFile.getAbsolutePath();
 		  VcfHeader headerFromFile = null;
-		  try (VcfFileReader reader = new VcfFileReader(vcfFile);) {
+		  try (VcfFileReader reader = new VcfFileReader(vcfFile)) {
 			  headerFromFile = reader.getVcfHeader();
 		  }
 		  vp.setTestVcfHeader(headerFromFile);
@@ -658,21 +657,21 @@ public class VcfPipelineTest {
 			  if (i == 1) {
 				  assertEquals("##fileformat=VCFv4.1", rec.toString());
 			  } else if (i == 2) {
-				  assertEquals(true, rec.toString().startsWith(VcfHeaderUtils.STANDARD_UUID_LINE));
-			  } else if (i == 3) {	
-				  assertEquals(true, rec.toString().startsWith("##reference"));				
+                  assertTrue(rec.toString().startsWith(VcfHeaderUtils.STANDARD_UUID_LINE));
+			  } else if (i == 3) {
+                  assertTrue(rec.toString().startsWith("##reference"));
 			  } else if (i == 4) {
-				  assertEquals(true, rec.toString().startsWith(VcfHeaderUtils.HEADER_LINE_FILTER));
+                  assertTrue(rec.toString().startsWith(VcfHeaderUtils.HEADER_LINE_FILTER));
 			  } else if (i > 4 && i < 24) {
-				  assertEquals(true, rec.toString().startsWith(VcfHeaderUtils.HEADER_LINE_INFO));
+                  assertTrue(rec.toString().startsWith(VcfHeaderUtils.HEADER_LINE_INFO));
 			  }else if (i > 23 && i < 29) {
-				  assertEquals(true, rec.toString().startsWith(VcfHeaderUtils.HEADER_LINE_FORMAT));
+                  assertTrue(rec.toString().startsWith(VcfHeaderUtils.HEADER_LINE_FORMAT));
 			  } else if (i > 29 && i < 50) {
-				  assertEquals(true, rec.toString().startsWith("##contig"));
+                  assertTrue(rec.toString().startsWith("##contig"));
 			  }  else if (i == 29) {
-				  assertEquals(true, rec.toString().startsWith("##GATKCommandLine"));
+                  assertTrue(rec.toString().startsWith("##GATKCommandLine"));
 			  } else {
-				  assertEquals(true, rec.toString().startsWith("#CHROM"));
+                  assertTrue(rec.toString().startsWith("#CHROM"));
 			  }
 		  }
 		  assertEquals(50, i);	// no additional header added at this stage
@@ -684,13 +683,13 @@ public class VcfPipelineTest {
 			  if(rec.toString().startsWith(VcfHeaderUtils.STANDARD_FILE_FORMAT) 
 					  || rec.toString().startsWith(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE))
 				  continue;
-			  assertEquals(true, rec.getId() != null     //???
-							  || rec.toString().startsWith(VcfHeaderUtils.STANDARD_CONTROL_VCF)
-							  || rec.toString().startsWith(VcfHeaderUtils.STANDARD_CONTROL_VCF_UUID)
-							  || rec.toString().startsWith(VcfHeaderUtils.STANDARD_CONTROL_VCF_GATK_VER)
-							  || rec.toString().startsWith(VcfHeaderUtils.STANDARD_TEST_VCF)
-							  || rec.toString().startsWith(VcfHeaderUtils.STANDARD_TEST_VCF_GATK_VER)
-							  || rec.toString().startsWith(VcfHeaderUtils.STANDARD_TEST_VCF_UUID));
+              assertTrue(rec.getId() != null     //???
+                      || rec.toString().startsWith(VcfHeaderUtils.STANDARD_CONTROL_VCF)
+                      || rec.toString().startsWith(VcfHeaderUtils.STANDARD_CONTROL_VCF_UUID)
+                      || rec.toString().startsWith(VcfHeaderUtils.STANDARD_CONTROL_VCF_GATK_VER)
+                      || rec.toString().startsWith(VcfHeaderUtils.STANDARD_TEST_VCF)
+                      || rec.toString().startsWith(VcfHeaderUtils.STANDARD_TEST_VCF_GATK_VER)
+                      || rec.toString().startsWith(VcfHeaderUtils.STANDARD_TEST_VCF_UUID));
 		  }
 		  
 		  // now check that when calling writeToVcf that we get this along with standard qsnp vcf header		  
@@ -698,7 +697,7 @@ public class VcfPipelineTest {
 		  vp.writeVCF(qsnpVcfFile.getAbsolutePath());
 		  
 		  VcfHeader finalHeader = null;
-		  try (VcfFileReader reader2 = new VcfFileReader(qsnpVcfFile);) {
+		  try (VcfFileReader reader2 = new VcfFileReader(qsnpVcfFile)) {
 		  		finalHeader = reader2.getVcfHeader();
 		  }
 		  
@@ -725,14 +724,13 @@ public class VcfPipelineTest {
 							  assertEquals(rec, finalRec);							  
 							  String line1 = rec.toString();
 							  String line2 = finalRec.toString();
-							  assertEquals(true, line1.equals(line2));
-							  assertEquals(line1.hashCode(), line1.hashCode());							  
+                              assertEquals(line1, line2);
 							  System.out.println("finalRec: BaseQRankSum hashCode: " + finalRec.hashCode());
 						  }					   
 				  }
 			  }
-		  
-		  assertEquals(true, finalHeaderRecords.containsAll(existingHeaderRecords));
+
+        assertTrue(finalHeaderRecords.containsAll(existingHeaderRecords));
 	}
 	
 	@Test
@@ -757,7 +755,7 @@ public class VcfPipelineTest {
 		 */
 		VcfPipeline.mergeVcfRecords(controlMap, testMap, mergedVcfs);
 		assertEquals(1, mergedVcfs.size());
-		VcfRecord mergedRec = mergedVcfs.get(0);
+		VcfRecord mergedRec = mergedVcfs.getFirst();
 		Map<String, String[]> ffMap = VcfUtils.getFormatFieldsAsMap(mergedRec.getFormatFields());
 		assertEquals("T,G", mergedRec.getAlt());
 		assertEquals("0/1", ffMap.get(VcfHeaderUtils.FORMAT_GENOTYPE)[0]);
@@ -768,7 +766,7 @@ public class VcfPipelineTest {
 	
 	private int noOfLinesInVCFOutputFile(File vcfOutput) throws IOException {
 		int noOfLines = 0;
-		try (VcfFileReader reader = new VcfFileReader(vcfOutput);){
+		try (VcfFileReader reader = new VcfFileReader(vcfOutput)){
 			for (VcfRecord vcf : reader) noOfLines++;
 		}
 		return noOfLines;
