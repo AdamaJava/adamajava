@@ -34,8 +34,7 @@ public class AnnotateTest {
 		createJsonInputs(inputJson, annotationSource, "blah", false, 3, 4, true);
 		
 		AnnotationInputs ais = AnnotateUtils.getInputs(inputJson.getAbsolutePath());
-        assertTrue(ais != null);
-        assert ais != null;
+        assertNotNull(ais);
         assertEquals(1, ais.getInputs().size());
 		
 		List<AnnotationSource> sources = new ArrayList<>();
@@ -57,7 +56,7 @@ public class AnnotateTest {
 			AnnotateUtils.populateAnnotationSources(ais, new ArrayList<>());
 			Assert.fail();
 		} catch (IllegalArgumentException iae) {
-			assertEquals(true, iae.getMessage().contains("No headers for AnnotationSourceTSV!"));
+            assertTrue(iae.getMessage().contains("No headers for AnnotationSourceTSV!"));
 		}
 		
 		/*
@@ -68,7 +67,7 @@ public class AnnotateTest {
 			AnnotateUtils.populateAnnotationSources(ais, new ArrayList<>());
 			Assert.fail();
 		} catch (IllegalArgumentException iae) {
-			assertEquals(true, iae.getMessage().contains("No headers for AnnotationSourceTSV!"));
+            assertTrue(iae.getMessage().contains("No headers for AnnotationSourceTSV!"));
 		}
 		
 		/*
@@ -79,7 +78,7 @@ public class AnnotateTest {
 			AnnotateUtils.populateAnnotationSources(ais, new ArrayList<>());
 			Assert.fail();
 		} catch (IllegalArgumentException iae) {
-			assertEquals(true, iae.getMessage().contains("Could not find requested fields (blah) in header"));
+            assertTrue(iae.getMessage().contains("Could not find requested fields (blah) in header"));
 		}
 	}
 
@@ -169,8 +168,8 @@ public class AnnotateTest {
 		 * check output file
 		 */
 		List<String> lines = Files.readAllLines(Paths.get(outputFile.getAbsolutePath()));
-		assertEquals(true, lines.contains("chr1	655650	A	C	C	0/1	17,15	M				"));
-		assertEquals(true, lines.contains("chr1	655652	A	T	T	1/1	0,46	M				"));
+        assertTrue(lines.contains("chr1	655650	A	C	C	0/1	17,15	M				"));
+        assertTrue(lines.contains("chr1	655652	A	T	T	1/1	0,46	M				"));
 		
 	}
 
@@ -211,7 +210,7 @@ public class AnnotateTest {
 		assertEquals("chr1\t889689\tG\tA\tA,C\t1/2\t22,4,18\tOR4F16-SAMD11\tENSG00000284662.2-ENSG00000187634.13\tintergenic_region\tintergenic_region\t\t\t\tMODIFIER\tn.889689G>A\t\t\t\t\t\"GENE\"+(\"889689G>A\"|\"889689G->A\"|\"889689G-->A\"|\"889689G/A\")", lines.get(lines.size() - 4));
 		assertEquals("chr1\t889689\tG\tC\tA,C\t1/2\t22,4,18\tOR4F16-SAMD11\tENSG00000284662.2-ENSG00000187634.13\tintergenic_region\tintergenic_region\t\t\t\tMODIFIER\tn.889689G>C\t\t\t\t\t\"GENE\"+(\"889689G>C\"|\"889689G->C\"|\"889689G-->C\"|\"889689G/C\")", lines.get(lines.size() - 3));
 		assertEquals("chr1\t1130186\tCAAAAAA\tC\tC,CAAAAAAAAAAAAAA\t1/2\t0,3,2\tC1orf159-TTLL10\tENSG00000131591.18-ENSG00000162571.14\tintergenic_region\tintergenic_region\t\t\t\tMODIFIER\tn.1130187_1130192delAAAAAA\t\t\t\t\t", lines.get(lines.size() - 2));
-		assertEquals("chr1\t1130186\tCAAAAAA\tCAAAAAAAAAAAAAA\tC,CAAAAAAAAAAAAAA\t1/2\t0,3,2\tC1orf159-TTLL10\tENSG00000131591.18-ENSG00000162571.14\tintergenic_region\tintergenic_region\t\t\t\tMODIFIER\tn.1130192_1130193insAAAAAAAA\t\t\t\t\t", lines.get(lines.size() - 1));
+		assertEquals("chr1\t1130186\tCAAAAAA\tCAAAAAAAAAAAAAA\tC,CAAAAAAAAAAAAAA\t1/2\t0,3,2\tC1orf159-TTLL10\tENSG00000131591.18-ENSG00000162571.14\tintergenic_region\tintergenic_region\t\t\t\tMODIFIER\tn.1130192_1130193insAAAAAAAA\t\t\t\t\t", lines.getLast());
 	}
 	
 	private int executeTest(File inputVcf, File inputJson, File outputFile, File log) throws IOException {
@@ -253,7 +252,7 @@ public class AnnotateTest {
 "}"
 				);
 		
-		try (BufferedWriter out = new BufferedWriter(new FileWriter(jsonFile));) {
+		try (BufferedWriter out = new BufferedWriter(new FileWriter(jsonFile))) {
 			for (String line : data) {
 				out.write(line + "\n");
 			}
@@ -297,13 +296,13 @@ public class AnnotateTest {
 "}"
 				);
 		
-		try (BufferedWriter out = new BufferedWriter(new FileWriter(inputJson));) {
+		try (BufferedWriter out = new BufferedWriter(new FileWriter(inputJson))) {
 			for (String line : data) {
 				out.write(line + "\n");
 			}
 		}
 		AnnotationInputs ais = AnnotateUtils.getInputs(inputJson.getAbsolutePath());
-		assertEquals(true, ais.isIncludeSearchTerm());
+        assertTrue(ais.isIncludeSearchTerm());
 		assertEquals("test1,test2,test3", ais.getAdditionalEmptyFields());
 		assertEquals(3, ais.getAnnotationSourceThreadCount());
 		assertEquals("field_1,field_2,field_3", ais.getOutputFieldOrder());
@@ -324,7 +323,7 @@ public class AnnotateTest {
 //        		"chr1	60781981	rs5015226	T	G	.	.	FLANK=ACCAAGTGCCT;DP=53;FS=0.000;MQ=60.00;QD=31.16;SOR=0.730;IN=1,2;DB;HOM=0,CGAAAACCAAgTGCCTGCATT;EFF=intergenic_region(MODIFIER||||||||||1)	GT:AD:CCC:CCM:DP:EOR:FF:FT:GQ:INF:NNS:OABS:QL	1/1:0,46:Germline:34:47:G0[]1[]:G5;T1:PASS:.:.:42:C0[0]1[12];G23[40.04]23[36.83]:.	1/1:0,57:Germline:34:57:G2[]0[]:G3:PASS:.:.:51:G24[39]33[39.18]:.	1/1:0,53:Germline:34:53:.:.:PASS:99:.:.:.:2418.77	1/1:0,60:Germline:34:60:.:.:PASS:99:.:.:.:2749.77"
         		);
         
-        try (BufferedWriter out = new BufferedWriter(new FileWriter(f));) {
+        try (BufferedWriter out = new BufferedWriter(new FileWriter(f))) {
             for (String line : data) {
             	out.write(line + "\n");
             }
@@ -343,7 +342,7 @@ public class AnnotateTest {
 				"chr1    889689  .       G       A,C     679.1   PASS    AC=1,1;AF=0.500,0.500;AN=2;BaseQRankSum=-2.586e+00;DP=63;ExcessHet=0.0000;FS=2.623;MLEAC=1,1;MLEAF=0.500,0.500;MQ=52.67;MQRankSum=-1.696e+00;QD=15.43;ReadPosRankSum=-9.520e-01;SOR=0.984;ANN=A|intergenic_region|MODIFIER|OR4F16-SAMD11|ENSG00000284662.2-ENSG00000187634.13|intergenic_region|ENSG00000284662.2-ENSG00000187634.13|||n.889689G>A||||||,C|intergenic_region|MODIFIER|OR4F16-SAMD11|ENSG00000284662.2-ENSG00000187634.13|intergenic_region|ENSG00000284662.2-ENSG00000187634.13|||n.889689G>C||||||     GT:AD:DP:GQ:PL  1/2:22,4,18:44:99:696,580,775,165,0,111".replaceAll("\\s+", "\t"),
 				"chr1    1130186 .       CAAAAAA C,CAAAAAAAAAAAAAA       125.02  HardFiltered    AC=1,1;AF=0.500,0.500;AN=2;DP=17;ExcessHet=0.0000;FS=0.000;MLEAC=1,1;MLEAF=0.500,0.500;MQ=59.72;QD=25.00;SOR=3.611;ANN=C|intergenic_region|MODIFIER|C1orf159-TTLL10|ENSG00000131591.18-ENSG00000162571.14|intergenic_region|ENSG00000131591.18-ENSG00000162571.14|||n.1130187_1130192delAAAAAA||||||,CAAAAAAAAAAAAAA|intergenic_region|MODIFIER|C1orf159-TTLL10|ENSG00000131591.18-ENSG00000162571.14|intergenic_region|ENSG00000131591.18-ENSG00000162571.14|||n.1130192_1130193insAAAAAAAA||||||      GT:AD:DP:GQ:PL  1/2:0,3,2:5:67:142,74,232,72,0,67".replaceAll("\\s+", "\t"));
 
-		try (BufferedWriter out = new BufferedWriter(new FileWriter(f));) {
+		try (BufferedWriter out = new BufferedWriter(new FileWriter(f))) {
 			if (addHeader) {
 				out.write(header + "\n");
 			}
@@ -368,7 +367,7 @@ public class AnnotateTest {
         		"1	655652	A	T	M	L	.	1	65565	1	55428	1	OR4F56	ENSG00000186092	ENST00000641515	ENSP00000493376	A0A2U3U0J3	A0A2U3U0J3_HUMAN	.	.	.	.	c.1A>C	p.Met1?"
         		);
 
-        try (BufferedWriter out = new BufferedWriter(new FileWriter(f));) {
+        try (BufferedWriter out = new BufferedWriter(new FileWriter(f))) {
         	if (addHeader) {
         		out.write(header + "\n");
         	}
@@ -415,7 +414,7 @@ public class AnnotateTest {
 				"6	655652	A	G	M	L	.	1	65565	1	55428	1	OR4F5	ENSG00000186092	ENST00000641515	ENSP00000493376	A0A2U3U0J3	A0A2U3U0J3_HUMAN	.	.	.	.	c.1A>C	p.Met1?"
 				);
 		
-		try (BufferedWriter out = new BufferedWriter(new FileWriter(f));) {
+		try (BufferedWriter out = new BufferedWriter(new FileWriter(f))) {
 			out.write(header + "\n");
 			for (String line : data) {
 				out.write(line + "\n");

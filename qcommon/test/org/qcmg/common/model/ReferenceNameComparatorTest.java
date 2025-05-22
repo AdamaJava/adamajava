@@ -80,11 +80,11 @@ public class ReferenceNameComparatorTest {
             if (i < 23) {
                 Assert.assertEquals(i, Integer.parseInt(key));
             } else if (i == 23) {
-                Assert.assertEquals("MT", key);
-            } else if (i == 24) {
                 Assert.assertEquals("X", key);
-            } else if (i == 25) {
+            } else if (i == 24) {
                 Assert.assertEquals("Y", key);
+            } else if (i == 25) {
+                Assert.assertEquals("MT", key);
             }
             i++;
         }
@@ -146,7 +146,7 @@ public class ReferenceNameComparatorTest {
         map.put("chr14", 1);
 
         assertEquals("chr1", map.firstKey());
-        assertEquals("chrY", map.lastKey());
+        assertEquals("chrMT", map.lastKey());
     }
 
     @Test
@@ -167,7 +167,7 @@ public class ReferenceNameComparatorTest {
         map.put("chr14", 1);
 
         assertEquals("chr2", map.firstKey());
-        assertEquals("chrY", map.lastKey());
+        assertEquals("chrMT", map.lastKey());
     }
 
     @Test
@@ -188,7 +188,7 @@ public class ReferenceNameComparatorTest {
         map.put("chr14", 1);
 
         assertEquals("chr1", map.firstKey());
-        assertEquals("chrY", map.lastKey());
+        assertEquals("chrMT", map.lastKey());
 
     }
 
@@ -216,9 +216,9 @@ public class ReferenceNameComparatorTest {
 
         assertEquals("chr1", map.firstKey());
         Assert.assertTrue(map.containsKey("chr1_ctg5_hap1"));
-        Assert.assertTrue(map.containsKey("chr17_ctg5_hap1"));
+        Assert.assertTrue(map.containsKey("chrMT"));
         Assert.assertTrue(map.containsKey("chr17"));
-        assertEquals("chrY", map.lastKey());
+        assertEquals("chr17_ctg5_hap1", map.lastKey());
     }
 
     @Test
@@ -258,7 +258,13 @@ public class ReferenceNameComparatorTest {
         map.put("chr10", 1);
         assertEquals(4, map.size());
 
+        map.put("chrM", 1);
+        map.put("chrY", 1);
+        map.put("chrX", 1);
+
         assertEquals("chr1", map.firstKey());
         assertEquals("chr10_gl000191_random", map.lastKey());
+        map.put("chrXX", 1);
+        assertEquals("chrXX", map.lastKey());
     }
 }
