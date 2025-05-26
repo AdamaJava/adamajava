@@ -45,25 +45,24 @@ public class VcfProfiler {
 	
 	private static QLogger logger;
 	private int exitStatus;
-	
-	private String logFile;
-	private String outputXml;
+
+    private String outputXml;
 	private String inputVcf;
 	private String snpPositionsVcf;
 	
 	private int minimumCoverage = SignatureUtil.MINIMUM_COVERAGE;
 	
 	private final int coverageDistMaxValue = 1000;
-	private int[] coverageDist = new int[coverageDistMaxValue + 1];
+	private final int[] coverageDist = new int[coverageDistMaxValue + 1];
 	
-	private Map<String, AtomicInteger> baseDist = new HashMap<>();
-	private Map<String, int[]> geneDist = new HashMap<>();
-	private Map<String, AtomicInteger> snpDist = new HashMap<>();
+	private final Map<String, AtomicInteger> baseDist = new HashMap<>();
+	private final Map<String, int[]> geneDist = new HashMap<>();
+	private final Map<String, AtomicInteger> snpDist = new HashMap<>();
 	
-	private Map<ChrPosition, String> positionGeneMap = new HashMap<>();
-	private Map<String, List<String>> homMap = new HashMap<>();
+	private final Map<ChrPosition, String> positionGeneMap = new HashMap<>();
+	private final Map<String, List<String>> homMap = new HashMap<>();
 	
-	private AtomicIntegerArray homLengthDistribution = new AtomicIntegerArray(40000);
+	private final AtomicIntegerArray homLengthDistribution = new AtomicIntegerArray(40000);
 	
 	DecimalFormat df = new DecimalFormat("####0.000");
 	
@@ -96,13 +95,13 @@ public class VcfProfiler {
 		int contiguousHomCounter = 0;
 		int homCounter = 0;
 		int hetCounter = 0;
-		String thisContig = "";
+		String thisContig;
 		String lastContig = "";
 		
 		/*
 		 * load vcf file into memory
 		 */
-		try (VcfFileReader reader = new VcfFileReader(inputVcf);) {
+		try (VcfFileReader reader = new VcfFileReader(inputVcf)) {
 			for (VcfRecord rec : reader) {
 				
 				thisContig = rec.getChromosome();
@@ -138,7 +137,7 @@ public class VcfProfiler {
 					 */
 					Optional<int[]> coverageArray = SignatureUtil.decipherCoverageStringBespoke(infoSubString);
 					
-					int coverage = coverageArray.isPresent() ? Arrays.stream(coverageArray.get()).sum() : 0;
+					int coverage = coverageArray.map(ints -> Arrays.stream(ints).sum()).orElse(0);
 					if (coverage >= coverageDistMaxValue) {
 						
 						coverageDist[coverageDistMaxValue] ++;
@@ -150,7 +149,7 @@ public class VcfProfiler {
 					boolean isHomAlt = false;
 					boolean isHetAlt = false;
 					boolean isHetWildtype = false;
-					boolean isHom = false;
+					boolean isHom;
 					
 					if (coverageArray.isPresent()) {
 						int [] coverageArrayActual = coverageArray.get();
@@ -308,8 +307,8 @@ public class VcfProfiler {
 			int totalHomPositions = 0;
 			for (String s : entry.getValue()) {
 				String [] sArray = s.split(":");
-				totalSpan += Integer.valueOf(sArray[0]);
-				totalHomPositions += Integer.valueOf(sArray[1]);
+				totalSpan += Integer.parseInt(sArray[0]);
+				totalHomPositions += Integer.parseInt(sArray[1]);
 			}
 			logger.info("total hom span for " + entry.getKey() + " is " + totalSpan + ", number of events: " + entry.getValue().size() + ", number of hom positions: " + totalHomPositions 
 					+ ", as a % of positions in that contig: " + df.format(100.0 *  totalHomPositions / snpDist.get(entry.getKey()).get()));
@@ -364,7 +363,7 @@ public class VcfProfiler {
 	}
 	
 	static void populatePosGeneMap(String file, Map<ChrPosition, String> map, Map<String, AtomicInteger> snpDist) throws IOException {
-		try (VcfFileReader reader = new VcfFileReader(file);) {
+		try (VcfFileReader reader = new VcfFileReader(file)) {
 			for (VcfRecord vcf : reader) {
 				
 				/*
@@ -431,7 +430,7 @@ public class VcfProfiler {
 	
 	public static void main(String[] args) throws Exception {
 		VcfProfiler sp = new VcfProfiler();
-		int exitStatus = 0;
+		int exitStatus;
 		try {
 			exitStatus = sp.setup(args);
 		} catch (Exception e) {
@@ -450,7 +449,7 @@ public class VcfProfiler {
 		System.exit(exitStatus);
 	}
 	
-	protected int setup(String args[]) throws Exception{
+	protected int setup(String[] args) throws Exception{
 		int returnStatus = 1;
 		if (null == args || args.length == 0) {
 			System.err.println(Messages.VCF_PROFILER_USAGE);
@@ -469,7 +468,7 @@ public class VcfProfiler {
 			System.err.println(Messages.VCF_PROFILER_USAGE);
 		} else {
 			// configure logging
-			logFile = options.getLog();
+            String logFile = options.getLog();
 			logger = QLoggerFactory.getLogger(VcfProfiler.class, logFile, options.getLogLevel());
 			
 			
@@ -488,8 +487,8 @@ public class VcfProfiler {
 				return 1;
 			}
 			
-			options.getMinCoverage().ifPresent(i -> {minimumCoverage = i.intValue();});
-			logger.tool("Setting minumim coverage to: " + minimumCoverage);
+			options.getMinCoverage().ifPresent(i -> minimumCoverage = i);
+			logger.tool("Setting minimum coverage to: " + minimumCoverage);
 			logger.tool("snpPositionsVcf: " + snpPositionsVcf);
 			
 			logger.logInitialExecutionStats("VcfProfiler", VcfProfiler.class.getPackage().getImplementationVersion(), args);

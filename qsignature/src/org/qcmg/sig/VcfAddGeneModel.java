@@ -31,13 +31,12 @@ public class VcfAddGeneModel {
 	
 	private static QLogger logger;
 	private int exitStatus;
-	
-	private String logFile;
-	private String outputVcf;
+
+    private String outputVcf;
 	private String inputVcf;
 	private String geneModelFile;
 	
-	private Map<ChrPosition, String> geneModelPositionMap = new HashMap<>();
+	private final Map<ChrPosition, String> geneModelPositionMap = new HashMap<>();
 	
 	private int engage() throws Exception {
 		
@@ -47,7 +46,7 @@ public class VcfAddGeneModel {
 		 * load gene model file into memory
 		 */
 		
-		try (StringFileReader reader = new StringFileReader(new File(geneModelFile));) {
+		try (StringFileReader reader = new StringFileReader(new File(geneModelFile))) {
 			for (String rec: reader) {
 				geneModelRecordCount++;
 				String [] recArray = TabTokenizer.tokenize(rec);
@@ -85,7 +84,7 @@ public class VcfAddGeneModel {
 		int matchingGeneModelAtPosition = 0;
 		int vcfRecordCount = 0;
 		try (VcfFileReader vReader = new VcfFileReader(inputVcf);
-				RecordWriter<VcfRecord> writer = new RecordWriter<>(new File(outputVcf));) {
+				RecordWriter<VcfRecord> writer = new RecordWriter<>(new File(outputVcf))) {
 			VcfHeader header = vReader.getVcfHeader();
 			for (final VcfHeaderRecord record: header) {
 				writer.addHeader(record.toString());
@@ -148,7 +147,7 @@ public class VcfAddGeneModel {
 			System.err.println(Messages.GENE_MODEL_USAGE);
 		} else {
 			// configure logging
-			logFile = options.getLog();
+            String logFile = options.getLog();
 			logger = QLoggerFactory.getLogger(VcfAddGeneModel.class, logFile, options.getLogLevel());
 			
 			

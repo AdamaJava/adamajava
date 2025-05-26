@@ -16,13 +16,8 @@ public class VcfInMemoryPositionIterator extends PositionIterator<ChrPosition> i
 	public static final int REF_POSITION = 3;
 	
 	List<ChrPosition> list = new ArrayList<>();
-	
-	private String id;
-	private String ref;
-	private String chr;
-	private int position;
-	
-	private int listPosition;
+
+    private int listPosition;
 	
 	public VcfInMemoryPositionIterator(File file) throws IOException {
 		this(file, REF_POSITION);
@@ -30,7 +25,7 @@ public class VcfInMemoryPositionIterator extends PositionIterator<ChrPosition> i
 	
 	public VcfInMemoryPositionIterator(File file, int refPosition) throws IOException {
 		
-		try (StringFileReader reader = new StringFileReader(file);) {
+		try (StringFileReader reader = new StringFileReader(file)) {
 			for (String vcf : reader) {
 				int tabPosition = vcf.indexOf("\t");
 				int lastTabPosition = -1;
@@ -39,10 +34,10 @@ public class VcfInMemoryPositionIterator extends PositionIterator<ChrPosition> i
 				/*
 				 * reset some values
 				 */
-				id = null;
-				chr = null;
-				ref = null;
-				position = -1;
+                String id = null;
+                String chr = null;
+                String ref = null;
+                int position = -1;
 				
 				/*
 				 * re-populate values
@@ -93,7 +88,7 @@ public class VcfInMemoryPositionIterator extends PositionIterator<ChrPosition> i
 	}
 
 	@Override
-	public void close() throws IOException {
+	public void close() {
 	}
 
 	@Override

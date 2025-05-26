@@ -17,14 +17,14 @@ import org.qcmg.picard.ReferenceUtils;
 
 public class GeneModelInMemoryPositionIterator extends PositionIterator<ChrPosition> implements Closeable {
 	
-	private List<ChrPosition> list = new ArrayList<>();
+	private final List<ChrPosition> list = new ArrayList<>();
 	private int listPosition;
 	
 	public GeneModelInMemoryPositionIterator(File file, String reference) throws IOException {
 		
-		try (BufferedReader in = new BufferedReader(new FileReader(file));) {
+		try (BufferedReader in = new BufferedReader(new FileReader(file))) {
 			
-			String line = null;
+			String line;
 			while ((line = in.readLine()) != null) {
 				final String[] params = TabTokenizer.tokenize(line);
 				if (params.length < 5) {
@@ -65,7 +65,7 @@ public class GeneModelInMemoryPositionIterator extends PositionIterator<ChrPosit
 	}
 
 	@Override
-	public void close() throws IOException {
+	public void close() {
 	}
 	
 	@Override

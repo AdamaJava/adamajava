@@ -113,7 +113,7 @@ final class Options {
 				.describedAs("Snp Chip Search Suffix");
 		parser.accepts("additionalSearchString", "qsig vcf filenames must match any strings supplied by this option. If they don't match, they will not be included in the comparison").withRequiredArg().ofType(String.class)
 				.describedAs("Additional Search string");
-		parser.accepts("excludeString", "Qsig vcf filenames that contain the suppled excludes string will be excluded").withRequiredArg().ofType(String.class)
+		parser.accepts("excludeString", "Qsig vcf filenames that contain the supplied excludes string will be excluded").withRequiredArg().ofType(String.class)
 				.describedAs("Excluded strings");
 		parser.accepts("illuminaArraysDesign", "Illumina arrays design document - contains list of snp ids and whether they should be complemented").withRequiredArg().ofType(String.class)
 				.describedAs("Illumina Arrays Design file");
@@ -188,14 +188,7 @@ final class Options {
 	public Optional<String> getReference() {
 		return  Optional.ofNullable((String) options.valueOf("reference"));
 	}
-	
-	public boolean hasEmailOption() {
-		return options.has("email");
-	}
-	public String getEmail() {
-		return (String) options.valueOf("email");
-	}
-	
+
 	public boolean hasAdditionalSearchStringOption() {
 		return options.has("additionalSearchString");
 	}
@@ -296,14 +289,6 @@ final class Options {
 		return Optional.ofNullable(hetLowerCutoff);
 	}
 
-	public boolean hasEmailSubjectOption() {
-		return options.has("emailSubject");
-	}
-
-	public String getEmaiSubjectl() {
-		return (String) options.valueOf("emailSubject");
-	}
-
 	public boolean hasExcludeVcfsFileOption() {
 		return options.has("excludeVcfsFile");
 	}
@@ -334,7 +319,7 @@ final class Options {
 		return Optional.ofNullable(maxCacheSize);
   }
 	public Optional<Boolean> getStream() {
-		return Optional.ofNullable(options.has("stream"));
+		return Optional.of(options.has("stream"));
 	}
 
 }

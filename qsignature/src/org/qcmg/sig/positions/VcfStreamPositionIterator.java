@@ -3,7 +3,6 @@ package org.qcmg.sig.positions;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -14,19 +13,11 @@ import org.qcmg.qio.record.StringFileReader;
 public class VcfStreamPositionIterator extends PositionIterator<ChrPosition> implements Closeable {
 	
 	public static final int REF_POSITION = 3;
-	
-	
-	List<ChrPosition> list = new ArrayList<>();
-	
-	private StringFileReader reader;
-	private Iterator<String> iterator;
+	private final StringFileReader reader;
+	private final Iterator<String> iterator;
 	private final int refPosition;
-	private String id;
-	private String ref;
-	private String chr;
-	private int position;
-	
-	public VcfStreamPositionIterator(File file) throws IOException {
+
+    public VcfStreamPositionIterator(File file) throws IOException {
 		this(file, REF_POSITION);
 	}
 	
@@ -52,10 +43,10 @@ public class VcfStreamPositionIterator extends PositionIterator<ChrPosition> imp
 			/*
 			 * reset some values
 			 */
-			id = null;
-			chr = null;
-			ref = null;
-			position = -1;
+            String id = null;
+            String chr = null;
+            String ref = null;
+            int position = -1;
 			
 			/*
 			 * re-populate values

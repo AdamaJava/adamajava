@@ -74,26 +74,22 @@ public class Compare {
 	private float lowerHetCutoff = SignatureUtil.HET_LOWER_CUTOFF;
 	
 	private String excludeVcfsFile;
-	private List<String> excludes;
-	private String logFile;
-	
-	private int maxCacheSize = -1;
+
+    private int maxCacheSize = -1;
 	
 	private final Map<String, int[]> fileIdsAndCounts = new THashMap<>();
 	private final List<Comparison> allComparisons = new CopyOnWriteArrayList<>();
 	
 	private final ConcurrentMap<File, Pair<SigMeta,TIntByteHashMap>> cache = new ConcurrentHashMap<>();
-	
-	List<String> suspiciousResults = new ArrayList<>();
-	
+
 	private int engage() throws Exception {
 		
 		// get excludes
 		logger.info("Retrieving excludes list from: " + excludeVcfsFile);
-		excludes = SignatureUtil.getEntriesFromExcludesFile(excludeVcfsFile);
+        List<String> excludes = SignatureUtil.getEntriesFromExcludesFile(excludeVcfsFile);
 		
 		// get qsig vcf files
-		logger.info("Retrieving qsig vcf files from: " + Arrays.stream(paths).collect(Collectors.joining(",")));
+		logger.info("Retrieving qsig vcf files from: " + String.join(",", paths));
 		Set<File> uniqueFiles = new THashSet<>();
 		for (String path : paths) {
 			uniqueFiles.addAll(FileUtils.findFilesEndingWithFilterNIO(path, SignatureUtil.QSIG_VCF));
@@ -112,7 +108,7 @@ public class Compare {
 		logger.info("Total number of files to be compared (minus excluded files): " + files.size());
 		
 		if (files.isEmpty()) {
-			logger.warn("No files left after removing exlcuded files");
+			logger.warn("No files left after removing excluded files");
 			return 0;
 		}
 		
@@ -120,10 +116,8 @@ public class Compare {
 		 * Match files on additionalSearchStrings
 		 */
 		if (null != additionalSearchStrings && additionalSearchStrings.length > 0) {
-			Predicate<File> p = (File f) -> {
-				return Arrays.stream(additionalSearchStrings).anyMatch(s -> f.getAbsolutePath().contains(s));
-			};
-			files = files.stream().filter(f -> p.test(f)).collect(Collectors.toList());
+			Predicate<File> p = (File f) -> Arrays.stream(additionalSearchStrings).anyMatch(s -> f.getAbsolutePath().contains(s));
+			files = files.stream().filter(p).collect(Collectors.toList());
 		}
 		
 		
@@ -236,7 +230,7 @@ public class Compare {
 						
 						Comparison c = ComparisonUtil.compareRatiosUsingSnpsFloat(r1, r2, new File(rg1), new File(rg2));
 						if (c.getScore() < cutoff) {
-							logger.warn("rgs don't match!: " + c.toString());
+							logger.warn("rgs don't match!: " + c);
 						}
 					}
 				}
@@ -270,12 +264,12 @@ public class Compare {
 					Integer in;
 					while ((in = queue.poll()) != null) {
 				
-						logger.info("performing comparison for : " + in.intValue());
+						logger.info("performing comparison for : " + in);
 						
 						File f1 = files.get(in);
 						Pair<SigMeta, TIntByteHashMap> r1 = cache.get(f1);
 						
-						for (int j = in.intValue() + 1 ; j < size ; j ++ ) {
+						for (int j = in + 1; j < size ; j ++ ) {
 							File f2 = files.get(j);
 							Pair<SigMeta, TIntByteHashMap> r2 =  cache.get(f2);
 							
@@ -394,7 +388,7 @@ public class Compare {
 			System.err.println(Messages.COMPARE_USAGE);
 		} else {
 			// configure logging
-			logFile = options.getLog();
+            String logFile = options.getLog();
 			logger = QLoggerFactory.getLogger(Compare.class, logFile, options.getLogLevel());
 			
 			
@@ -412,16 +406,16 @@ public class Compare {
 				cutoff = options.getCutoff();
 			}
 			
-			options.getMinCoverage().ifPresent(i -> {minimumCoverage = i.intValue();});
-			options.getNoOfThreads().ifPresent(i -> {nThreads = i.intValue();});
-			options.getMinRGCoverage().ifPresent(i -> {minimumRGCoverage = i.intValue();});
-			options.getMaxCacheSize().ifPresent(i -> {maxCacheSize = i.intValue();});
-			options.getHomCutoff().ifPresent(s -> {homCutoff = s;});
-			options.getHetUpperCutoff().ifPresent(s -> {upperHetCutoff = s;});
-			options.getHetLowerCutoff().ifPresent(s -> {lowerHetCutoff = s;});
+			options.getMinCoverage().ifPresent(i -> minimumCoverage = i);
+			options.getNoOfThreads().ifPresent(i -> nThreads = i);
+			options.getMinRGCoverage().ifPresent(i -> minimumRGCoverage = i);
+			options.getMaxCacheSize().ifPresent(i -> maxCacheSize = i);
+			options.getHomCutoff().ifPresent(s -> homCutoff = s);
+			options.getHetUpperCutoff().ifPresent(s -> upperHetCutoff = s);
+			options.getHetLowerCutoff().ifPresent(s -> lowerHetCutoff = s);
 			logger.tool("Number of threads to use: " + nThreads);
-			logger.tool("Setting minumim coverage to: " + minimumCoverage);
-			logger.tool("Setting minumim RG coverage to: " + minimumRGCoverage);
+			logger.tool("Setting minimum coverage to: " + minimumCoverage);
+			logger.tool("Setting minimum RG coverage to: " + minimumRGCoverage);
 			logger.tool("Setting max cache size to: " + maxCacheSize);
 			logger.tool("Setting homCutoff to: " + homCutoff);
 			logger.tool("Setting upperHetCutoff to: " + upperHetCutoff);

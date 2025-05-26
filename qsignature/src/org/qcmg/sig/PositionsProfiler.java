@@ -39,11 +39,10 @@ public class PositionsProfiler {
 	private static QLogger logger;
 	
 	private int exitStatus;
-	private String logFile;
-	private String snpPositionsVcf;
+    private String snpPositionsVcf;
 	
-	private Map<String, AtomicInteger> snpDistByContig = new HashMap<>();
-	private Map<String, AtomicInteger> snpDistByGeneMap = new HashMap<>();
+	private final Map<String, AtomicInteger> snpDistByContig = new HashMap<>();
+	private final Map<String, AtomicInteger> snpDistByGeneMap = new HashMap<>();
 	
 	DecimalFormat df = new DecimalFormat("####0.000");
 	
@@ -114,7 +113,7 @@ public class PositionsProfiler {
 		int i = 100;
 		logger.info("top " + i + " genes by number of positions");
 		
-		List<String> topGenes = snpDistByGeneMap.entrySet().stream().sorted((e1, e2) -> Integer.compare(e2.getValue().get(), e1.getValue().get())).map(e -> e.getKey()).limit(i).collect(Collectors.toList());
+		List<String> topGenes = snpDistByGeneMap.entrySet().stream().sorted((e1, e2) -> Integer.compare(e2.getValue().get(), e1.getValue().get())).map(Entry::getKey).limit(i).toList();
 		for (String topGene : topGenes) {
 			logger.info("topGene: " + topGene + ", positions in gene: " + snpDistByGeneMap.get(topGene).get());
 		}
@@ -126,7 +125,7 @@ public class PositionsProfiler {
 		
 		Map<String, AtomicInteger> geneBioTypePositionCountMap = new HashMap<>();
 		int recordCount = 0;
-		try (VcfFileReader reader = new VcfFileReader(file);) {
+		try (VcfFileReader reader = new VcfFileReader(file)) {
 			for (VcfRecord vcf : reader) {
 				recordCount++;
 				/*
@@ -227,7 +226,7 @@ public class PositionsProfiler {
 		System.exit(exitStatus);
 	}
 	
-	protected int setup(String args[]) throws Exception{
+	protected int setup(String[] args) throws Exception{
 		int returnStatus = 1;
 		if (null == args || args.length == 0) {
 			System.err.println(Messages.POSITIONS_PROFILER_USAGE);
@@ -246,7 +245,7 @@ public class PositionsProfiler {
 			System.err.println(Messages.POSITIONS_PROFILER_USAGE);
 		} else {
 			// configure logging
-			logFile = options.getLog();
+            String logFile = options.getLog();
 			logger = QLoggerFactory.getLogger(PositionsProfiler.class, logFile, options.getLogLevel());
 			
 			options.getSnpPositions().ifPresent(s -> snpPositionsVcf = s);

@@ -16,8 +16,8 @@ public class CompareRatiosTest {
 	
 	@Test
 	public void testCompareRatios() {
-		Map<ChrPosition, int[]> f1Ratios = new HashMap<ChrPosition, int[]>();
-		Map<ChrPosition, int[]> f2Ratios = new HashMap<ChrPosition, int[]>();
+		Map<ChrPosition, int[]> f1Ratios = new HashMap<>();
+		Map<ChrPosition, int[]> f2Ratios = new HashMap<>();
 		AtomicIntegerArray positionsUsed = new AtomicIntegerArray(20); 
 		AtomicIntegerArray oldPositionsUsed = new AtomicIntegerArray(20); 
 		ChrPosition cp1 = ChrPointPosition.valueOf("chr1", 12345);
@@ -61,8 +61,8 @@ public class CompareRatiosTest {
 	}
 	@Test
 	public void testCompareRatiosMisMatch() {
-		Map<ChrPosition, int[]> f1Ratios = new HashMap<ChrPosition, int[]>();
-		Map<ChrPosition, int[]> f2Ratios = new HashMap<ChrPosition, int[]>();
+		Map<ChrPosition, int[]> f1Ratios = new HashMap<>();
+		Map<ChrPosition, int[]> f2Ratios = new HashMap<>();
 		AtomicIntegerArray positionsUsed = new AtomicIntegerArray(20); 
 		ChrPosition cp1 = ChrPointPosition.valueOf("chr1", 12345);
 		ChrPosition cp2 = ChrPointPosition.valueOf("chr2", 12345);
@@ -81,8 +81,8 @@ public class CompareRatiosTest {
 	
 	@Test
 	public void testCompareRatiosLowCoverage() {
-		Map<ChrPosition, int[]> f1Ratios = new HashMap<ChrPosition, int[]>();
-		Map<ChrPosition, int[]> f2Ratios = new HashMap<ChrPosition, int[]>();
+		Map<ChrPosition, int[]> f1Ratios = new HashMap<>();
+		Map<ChrPosition, int[]> f2Ratios = new HashMap<>();
 		AtomicIntegerArray positionsUsed = new AtomicIntegerArray(20); 
 		ChrPosition cp1 = ChrPointPosition.valueOf("chr1", 12345);
 		
@@ -100,7 +100,7 @@ public class CompareRatiosTest {
 	
 	
 	public static float[] compareRatios(final Map<ChrPosition, int[]> file1Ratios,
-			final Map<ChrPosition, int[]> file2Ratios, final int minCoverage, AtomicIntegerArray noOfPOsitionsUsed) {
+			final Map<ChrPosition, int[]> file2Ratios, final int minCoverage, AtomicIntegerArray noOfPositionsUsed) {
 		
 		float[] results = new float[minCoverage];
 		
@@ -128,7 +128,7 @@ public class CompareRatiosTest {
 			
 			for (int i = 0 ; i < minCov ; i++) {
 				results[i] += diffAtPos;
-				noOfPOsitionsUsed.incrementAndGet(i);
+				noOfPositionsUsed.incrementAndGet(i);
 			}
 		}
 		
@@ -136,7 +136,7 @@ public class CompareRatiosTest {
 	}
 	
 	public static float[] compareRatiosOld(final Map<ChrPosition, int[]> file1Ratios,
-			final Map<ChrPosition, int[]> file2Ratios, final int maxCoverage, AtomicIntegerArray noOfPOsitionsUsed) {
+			final Map<ChrPosition, int[]> file2Ratios, final int maxCoverage, AtomicIntegerArray noOfPositionsUsed) {
 		float [] totalDifference = new float[maxCoverage];
 		
 		for (Entry<ChrPosition, int[]> file1RatiosEntry : file1Ratios.entrySet()) {
@@ -157,7 +157,7 @@ public class CompareRatiosTest {
 			
 			for (int i = 0 ; i < minCoverageAcrossTheBoard ; i++) {
 				totalDifference[i] += differenceAtThisPosition;
-				noOfPOsitionsUsed.incrementAndGet(i);
+				noOfPositionsUsed.incrementAndGet(i);
 			}
 		}
 		

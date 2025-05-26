@@ -7,6 +7,7 @@
 package org.qcmg.sig;
 
 import java.io.File;
+import java.nio.file.FileSystems;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -56,19 +57,15 @@ public class VariantAlleleFreqDist {
 	private String [] additionalSearchStrings;
 	
 	private String excludeVcfsFile;
-	private List<String> excludes;
-	private String logFile;
-	
-	List<String> suspiciousResults = new ArrayList<>();
-	
+
 	private int engage() throws Exception {
 		
 		// get excludes
 		logger.info("Retrieving excludes list from: " + excludeVcfsFile);
-		excludes = SignatureUtil.getEntriesFromExcludesFile(excludeVcfsFile);
+        List<String> excludes = SignatureUtil.getEntriesFromExcludesFile(excludeVcfsFile);
 		
 		// get qsig vcf files
-		logger.info("Retrieving qsig vcf files from: " + Arrays.stream(paths).collect(Collectors.joining(",")));
+		logger.info("Retrieving qsig vcf files from: " + String.join(",", paths));
 		Set<File> uniqueFiles = new THashSet<>();
 		for (String path : paths) {
 			uniqueFiles.addAll(FileUtils.findFilesEndingWithFilterNIO(path, SignatureUtil.QSIG_VCF));
@@ -86,7 +83,7 @@ public class VariantAlleleFreqDist {
 		logger.info("Total number of files to be VAF'ed (minus excluded files): " + files.size());
 		
 		if (files.isEmpty()) {
-			logger.warn("No files left after removing exlcuded files");
+			logger.warn("No files left after removing excluded files");
 			return 0;
 		}
 		
@@ -94,19 +91,15 @@ public class VariantAlleleFreqDist {
 		 * Match files on additionalSearchStrings
 		 */
 		if (null != additionalSearchStrings && additionalSearchStrings.length > 0) {
-			Predicate<File> p = (File f) -> {
-				return Arrays.stream(additionalSearchStrings).anyMatch(s -> f.getAbsolutePath().contains(s));
-			};
-			files = files.stream().filter(f -> p.test(f)).collect(Collectors.toList());
+			Predicate<File> p = (File f) -> Arrays.stream(additionalSearchStrings).anyMatch(s -> f.getAbsolutePath().contains(s));
+			files = files.stream().filter(p).collect(Collectors.toList());
 		}
 		
 		files.sort(FileUtils.FILE_COMPARATOR);
-		int size = files.size();
-		for (int i = 0 ; i < size ; i++) {
-			File f1 = files.get(i);
-			Map<Short, int[]> vafDist = SignatureUtil.getVariantAlleleFractionDistribution(f1, minimumCoverage);
-			writeXmlOutput(f1, vafDist,outputXml);
-		}
+        for (File f1 : files) {
+            Map<Short, int[]> vafDist = SignatureUtil.getVariantAlleleFractionDistribution(f1, minimumCoverage);
+            writeXmlOutput(f1, vafDist, outputXml);
+        }
 		
 		return exitStatus;
 	}
@@ -167,7 +160,7 @@ public class VariantAlleleFreqDist {
 				name = name.substring(0, index);
 			}
 			logger.info("will write output to: " + name);
-			o = new File(o.getAbsolutePath() + System.getProperty("file.separator") + name + ".qsig.vaf.xml");
+			o = new File(o.getAbsolutePath() + FileSystems.getDefault().getSeparator() + name + ".qsig.vaf.xml");
 		}
 		
 		StreamResult result = new StreamResult(o);
@@ -196,7 +189,7 @@ public class VariantAlleleFreqDist {
 		System.exit(exitStatus);
 	}
 	
-	protected int setup(String args[]) throws Exception {
+	protected int setup(String[] args) throws Exception {
 		int returnStatus = 1;
 		if (null == args || args.length == 0) {
 			System.err.println(Messages.USAGE);
@@ -215,7 +208,7 @@ public class VariantAlleleFreqDist {
 			System.err.println(Messages.USAGE);
 		} else {
 			// configure logging
-			logFile = options.getLog();
+            String logFile = options.getLog();
 			logger = QLoggerFactory.getLogger(VariantAlleleFreqDist.class, logFile, options.getLogLevel());
 			
 			String [] cmdLineOutputFiles = options.getOutputFileNames();
@@ -230,10 +223,10 @@ public class VariantAlleleFreqDist {
 				throw new QSignatureException("MISSING_DIRECTORY_OPTION");
 			}
 			
-			options.getMinCoverage().ifPresent(i -> {minimumCoverage = i.intValue();});
-			options.getMinRGCoverage().ifPresent(i -> {minimumRGCoverage = i.intValue();});
-			logger.tool("Setting minumim coverage to: " + minimumCoverage);
-			logger.tool("Setting minumim RG coverage to: " + minimumRGCoverage);
+			options.getMinCoverage().ifPresent(i -> minimumCoverage = i);
+			options.getMinRGCoverage().ifPresent(i -> minimumRGCoverage = i);
+			logger.tool("Setting minimum coverage to: " + minimumCoverage);
+			logger.tool("Setting minimum RG coverage to: " + minimumRGCoverage);
 			
 			additionalSearchStrings = options.getAdditionalSearchString();
 			logger.tool("Setting additionalSearchStrings to: " + Arrays.deepToString(additionalSearchStrings));

@@ -59,11 +59,7 @@ import gnu.trove.map.hash.THashMap;
 import gnu.trove.map.hash.TIntByteHashMap;
 
 public class SignatureUtil {
-	
-	/*
-	 * CONSTANTS
-	 */
-	public final static String QSIG_REPORT = ".txt.qsig.report.txt";
+
 	public static final String QSIG_VCF_GZ = ".qsig.vcf.gz";
 	public static final String QSIG_VCF = ".qsig.vcf";
 	public static final String BAM_QSIG_VCF = ".bam.qsig.vcf";
@@ -76,8 +72,7 @@ public class SignatureUtil {
 	public static final String TYPE_REGEX = "_[A-Z]{2}_";
 	private static final char[] BASES = new char[] {'A', 'C', 'G', 'T', 'N'};
 	private static final char[] BASES_NO_N = new char[] {'A', 'C', 'G', 'T'};
-	
-	public static final String SNP_ARRAY = "SNP_array";
+
 	public static final String UNKNOWN = "UNKNOWN";
 	
 	public static final int MINIMUM_COVERAGE = 10;
@@ -219,11 +214,11 @@ public class SignatureUtil {
 				//do a brute force search for the empty coverage string before passing to tokenizer
 				// only populate ratios with non-zero values
 				// attempt to keep memory usage down...
-				if (line.indexOf(SHORT_CUT_EMPTY_COVERAGE) > -1) {
+				if (line.contains(SHORT_CUT_EMPTY_COVERAGE)) {
 					continue;
 				}
 				// ignore entries that have nan in there
-				if (line.indexOf(NAN) > -1) {
+				if (line.contains(NAN)) {
 					continue;
 				}
 				
@@ -264,8 +259,7 @@ public class SignatureUtil {
 		} else {
 			
 			String md = "";
-			int count = 0;
-			int bq = -1;
+            int bq = -1;
 			int mq = -1;
 			float gc = -1f;
 			Map<String, String> rgIds = new THashMap<>();
@@ -273,8 +267,7 @@ public class SignatureUtil {
 				if (s.startsWith(SignatureUtil.MD_5_SUM)) {
 					md = s.substring(MD_5_SUM.length() + 1);
 				} else if (s.startsWith(POSITIONS_COUNT)) {
-					count = Integer.parseInt(s.substring(POSITIONS_COUNT.length() + 1));
-				} else if (s.startsWith(MIN_BASE_QUAL)) {
+                } else if (s.startsWith(MIN_BASE_QUAL)) {
 					bq = Integer.parseInt(s.substring(MIN_BASE_QUAL.length() + 1));
 				} else if (s.startsWith(MIN_GC_SCORE)) {
 					gc = Float.parseFloat(s.substring(MIN_GC_SCORE.length() + 1));
@@ -316,7 +309,7 @@ public class SignatureUtil {
 					
 					String ref = vcf.getRef();
 					short vafAsShort = getFloatAsShort(getVAF(counts, ref));
-					dist.computeIfAbsent(Short.valueOf(vafAsShort), v -> new int[2])[passesCoverage ? 0 : 1] += 1;
+					dist.computeIfAbsent(vafAsShort, v -> new int[2])[passesCoverage ? 0 : 1] += 1;
 				}
 			}
 		}
@@ -334,19 +327,15 @@ public class SignatureUtil {
 	}
 	
 	public static float getVAF(int[] counts, String ref) {
-		float vaf = 0.0f;
-		switch (ref) {
-		case "A": vaf = (float)(counts[1] + counts[2] + counts[3]) / counts[4]; break;
-		case "C": vaf = (float)(counts[0] + counts[2] + counts[3]) / counts[4]; break;
-		case "G": vaf = (float)(counts[0] + counts[1] + counts[3]) / counts[4]; break;
-		case "T": vaf = (float)(counts[0] + counts[1] + counts[2]) / counts[4]; break;
-		}
-		return vaf;
+        return switch (ref) {
+case "A" -> (float) (counts[1] + counts[2] + counts[3]) / counts[4];
+case "C" -> (float) (counts[0] + counts[2] + counts[3]) / counts[4];
+case "G" -> (float) (counts[0] + counts[1] + counts[3]) / counts[4];
+case "T" -> (float) (counts[0] + counts[1] + counts[2]) / counts[4];
+default -> 0.0f;
+};
 	}
-	
-	public static Pair<SigMeta, TMap<String, TIntByteHashMap>> loadSignatureGenotype(File file) throws IOException {
-		return loadSignatureGenotype(file, MINIMUM_COVERAGE, MINIMUM_RG_COVERAGE);
-	}
+
 	public static Pair<SigMeta, TMap<String, TIntByteHashMap>> loadSignatureGenotype(File file, int minCoverage, int minRGCoverage) throws IOException {
 		return loadSignatureGenotype(file, minCoverage, minRGCoverage, HOM_CUTOFF, HET_UPPER_CUTOFF, HET_LOWER_CUTOFF);
 	}
@@ -710,7 +699,7 @@ public class SignatureUtil {
 		}
 		
 		// all these indicies should be +ve
-		if (aIndex < 0 || cIndex < 0 || gIndex < 0 || tIndex < 0 || nIndex < 0) {
+		if (aIndex < 0 || cIndex < 0 || gIndex < 0 || tIndex < 0) {
 			logger.warn("Invalid coverage string: " + info);
 			throw new IllegalArgumentException("Invalid coverage string passed to decipherCoverageString: " + info);
 		}

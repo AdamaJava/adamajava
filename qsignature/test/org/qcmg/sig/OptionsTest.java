@@ -29,9 +29,9 @@ public class OptionsTest {
 		Options options = new Options(new String[] {});
 		assertEquals(Optional.empty(), options.getMinRGCoverage());
 		options = new Options(new String[] {"-minRGCoverage", "10"});
-		assertEquals(Optional.of(Integer.valueOf(10)), options.getMinRGCoverage());
+		assertEquals(Optional.of(10), options.getMinRGCoverage());
 		options = new Options(new String[] {"-minRGCoverage", "12345"});
-		assertEquals(Optional.of(Integer.valueOf(12345)), options.getMinRGCoverage());
+		assertEquals(Optional.of(12345), options.getMinRGCoverage());
 	}
 	
 	@Test
@@ -39,27 +39,27 @@ public class OptionsTest {
 		Options options = new Options(new String[] {});
 		assertEquals(Optional.empty(), options.getMinCoverage());
 		options = new Options(new String[] {"-minCoverage", "10"});
-		assertEquals(Optional.of(Integer.valueOf(10)), options.getMinCoverage());
+		assertEquals(Optional.of(10), options.getMinCoverage());
 		options = new Options(new String[] {"-minCoverage", "12345"});
-		assertEquals(Optional.of(Integer.valueOf(12345)), options.getMinCoverage());
+		assertEquals(Optional.of(12345), options.getMinCoverage());
 	}
 	@Test
 	public void minBQ() throws Exception {
 		Options options = new Options(new String[] {});
 		assertEquals(Optional.empty(), options.getMinBaseQuality());
 		options = new Options(new String[] {"-minBaseQuality", "10"});
-		assertEquals(Optional.of(Integer.valueOf(10)), options.getMinBaseQuality());
+		assertEquals(Optional.of(10), options.getMinBaseQuality());
 		options = new Options(new String[] {"-minBaseQuality", "12345"});
-		assertEquals(Optional.of(Integer.valueOf(12345)), options.getMinBaseQuality());
+		assertEquals(Optional.of(12345), options.getMinBaseQuality());
 	}
 	@Test
 	public void minMQ() throws Exception {
 		Options options = new Options(new String[] {});
 		assertEquals(Optional.empty(), options.getMinMappingQuality());
 		options = new Options(new String[] {"-minMappingQuality", "10"});
-		assertEquals(Optional.of(Integer.valueOf(10)), options.getMinMappingQuality());
+		assertEquals(Optional.of(10), options.getMinMappingQuality());
 		options = new Options(new String[] {"-minMappingQuality", "12345"});
-		assertEquals(Optional.of(Integer.valueOf(12345)), options.getMinMappingQuality());
+		assertEquals(Optional.of(12345), options.getMinMappingQuality());
 	}
 
 }

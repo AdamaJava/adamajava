@@ -63,8 +63,7 @@ import java.util.zip.GZIPOutputStream;
 public class Generate {
 	
 	static QLogger logger;
-	private String logFile;
-	private String[] cmdLineInputFiles;
+    private String[] cmdLineInputFiles;
 	private String illumiaArraysDesign;
 	private String snpPositions;
 	private String genePositions;
@@ -84,7 +83,7 @@ public class Generate {
 	
 	private int minMappingQuality = 10;
 	private int minBaseQuality = 10;
-	private static float minGCScore = 0.70000f ;
+	private static final float minGCScore = 0.70000f ;
 	private String validationStringency;
 	
 	Comparator<String> chrComparator;
@@ -97,11 +96,10 @@ public class Generate {
 	private byte[] snpPositionsMD5;
 	
 	private PositionIterator<ChrPosition> positionsIterator;
-	private boolean isSnpPositionsAVcfFile;
-	private MessageDigest md;
+    private MessageDigest md;
 	private RecordReader<?> positionsReader;
 	
-	private List<ChrPosition> nextCPs = new java.util.LinkedList<>();
+	private final List<ChrPosition> nextCPs = new java.util.LinkedList<>();
 	
 	public int engage() throws Exception {
 		
@@ -154,7 +152,7 @@ public class Generate {
 		LocalDateTime timePoint = LocalDateTime.now();
 		StringBuilder sb = new StringBuilder();
 		sb.append("##fileformat=VCFv4.2").append(Constants.NL);
-		sb.append("##datetime=").append(timePoint.toString()).append(Constants.NL);
+		sb.append("##datetime=").append(timePoint).append(Constants.NL);
 		sb.append("##program=").append(exec.getToolName().getValue()).append(Constants.NL);
 		sb.append("##version=").append(exec.getToolVersion().getValue()).append(Constants.NL);
 		sb.append("##java_version=").append(exec.getJavaVersion().getValue()).append(Constants.NL);
@@ -284,7 +282,7 @@ public class Generate {
 		logger.info("in loadIlluminaArraysDesign with illumiaArraysDesign: " + illumiaArraysDesign);
 		// check that we can read the file
 		if (null != illumiaArraysDesign && FileUtils.canFileBeRead(illumiaArraysDesign)) {
-			try (StringFileReader reader=  new StringFileReader(new File(illumiaArraysDesign));) {
+			try (StringFileReader reader=  new StringFileReader(new File(illumiaArraysDesign))) {
 				for (final String rec : reader) {
 					final String [] params = TabTokenizer.tokenize(rec);
 					final String id = params[0];
@@ -298,8 +296,7 @@ public class Generate {
 	}
 
 	static void loadIlluminaData(File illuminaFile, Map<ChrPosition, IlluminaRecord> illuminaMap) throws IOException {
-		;
-		try (IlluminaFileReader reader = new IlluminaFileReader(illuminaFile);) {
+		try (IlluminaFileReader reader = new IlluminaFileReader(illuminaFile)) {
 			for (final IlluminaRecord tempRec : reader) {
 				
 				// only interested in illumina data if it has a gc score above 0.7, and a valid chromosome
@@ -373,7 +370,7 @@ public class Generate {
 		ChrPosition vcf = getNextPositionRecord("updateResultsIllumina-1");
 		while (null != vcf) {
 			/*
-			 * create ChrPointPOsition from vcf (?!?) so that map lookup works
+			 * create ChrPointPosition from vcf (?!?) so that map lookup works
 			 */
 			ChrPointPosition cpForMap = ChrPointPosition.valueOf(vcf.getChromosome(), vcf.getStartPosition());
 			// lookup corresponding snp in illumina map
@@ -442,14 +439,14 @@ public class Generate {
 			Map<String, Integer> convertedMap = new HashMap<>();
 			if (null != rgIds) {
 				rgIds.forEachEntry((String k, int v) -> {
-					convertedMap.putIfAbsent(k, Integer.valueOf(v));
+					convertedMap.putIfAbsent(k, v);
 					return true;
 				} );
 			}
 			
 				
 			convertedMap.entrySet().stream()
-				.sorted(Comparator.comparing(Entry::getValue))
+				.sorted(Entry.comparingByValue())
 				.forEach(e -> sbRgIds.append("##rg").append(e.getValue()).append(Constants.EQ).append(e.getKey()).append(Constants.NL));
 			
 			try (OutputStream os = new GZIPOutputStream(new FileOutputStream(outputVCFFile), 1024 * 1024)) {
@@ -636,31 +633,31 @@ public class Generate {
 	}
 	
 	/**
-	 * Examines the positions file to see if it a vcf file.
+	 * Examines the positions file to see if it is a vcf file.
 	 * Does this in 2 ways - checks the name, and if it contains vcf, all good.
 	 * If not, checks the file header to see if it contains the standard vcf header.
 	 * 
-	 * Returns a PositionInterator instance. If stream option has been set, uses that, otherwise uses an in memory version.
+	 * Returns a PositionIterator instance. If stream option has been set, uses that, otherwise uses an in memory version.
 	 * 
 	 * 
 	 * @param randomSnpsFile
 	 * @throws IOException
-	 * @throws NoSuchAlgorithmException
-	 */
-	private void setupPositionIterator(String randomSnpsFile) throws IOException, NoSuchAlgorithmException {
-		
-		isSnpPositionsAVcfFile = randomSnpsFile.contains("vcf");
+     */
+	private void setupPositionIterator(String randomSnpsFile) throws IOException {
+
+        boolean isSnpPositionsAVcfFile = randomSnpsFile.contains("vcf");
 		/*
 		 * get header from file and examine that to see if it looks like a vcf
 		 * set the positionsIterator depending on the type of file (vcf or string)
 		 */
-		if ( ! isSnpPositionsAVcfFile) {
+		if ( !isSnpPositionsAVcfFile) {
 			try (StringFileReader reader = new StringFileReader(new File(randomSnpsFile), "#")) {
 				List<String> header = reader.getHeader();
 				for (String h : header) {
-					if (h.startsWith(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE)) {
-						isSnpPositionsAVcfFile = true;
-					}
+                    if (h.startsWith(VcfHeaderUtils.STANDARD_FINAL_HEADER_LINE)) {
+                        isSnpPositionsAVcfFile = true;
+                        break;
+                    }
 				}
 			}
 		}
@@ -707,7 +704,7 @@ public class Generate {
 			 * retrieving record from cache - don't re-insert
 			 * if we are looking forward (ie. not consuming), then we do a get rather than a remove
 			 */
-			thisCP = lookForwardPosition >= 0 ? nextCPs.get(lookForwardPosition) : nextCPs.remove(0);
+			thisCP = lookForwardPosition >= 0 ? nextCPs.get(lookForwardPosition) : nextCPs.removeFirst();
 			if (lookForwardPosition == -1) {
 				if (null != cp) {
 					completedCPs.add(cp);
@@ -723,9 +720,8 @@ public class Generate {
 	 * 
 	 * @param randomGeneFile
 	 * @throws IOException
-	 * @throws NoSuchAlgorithmException
-	 */
-	private void setGenePositionsIterator(String randomGeneFile) throws IOException, NoSuchAlgorithmException {
+     */
+	private void setGenePositionsIterator(String randomGeneFile) throws IOException {
 		positionsIterator = new GeneModelInMemoryPositionIterator(new File(randomGeneFile), reference);
 	}
 	
@@ -750,7 +746,7 @@ public class Generate {
 		System.exit(exitStatus);
 	}
 	
-	protected int setup(String args[]) throws Exception {
+	protected int setup(String [] args) throws Exception {
 		int returnStatus = 1;
 		if (null == args || args.length == 0) {
 			System.err.println(Messages.GENERATOR_USAGE);
@@ -771,7 +767,7 @@ public class Generate {
 			System.err.println(Messages.GENERATOR_USAGE);
 		} else {
 			// configure logging
-			logFile = options.getLog();
+            String logFile = options.getLog();
 			logger = QLoggerFactory.getLogger(Generate.class, logFile, options.getLogLevel());
 			exec = logger.logInitialExecutionStats("Generate", Generate.class.getPackage().getImplementationVersion(), args);
 			
@@ -781,11 +777,11 @@ public class Generate {
 				throw new QSignatureException("INSUFFICIENT_INPUT_FILES");
 			} else {
 				// loop through supplied files - check they can be read
-				for (int i = 0 ; i < cmdLineInputFiles.length ; i++ ) {
-					if ( ! FileUtils.canFileBeRead(cmdLineInputFiles[i])) {
-						throw new QSignatureException("INPUT_FILE_READ_ERROR" , cmdLineInputFiles[i]);
-					}
-				}
+                for (String cmdLineInputFile : cmdLineInputFiles) {
+                    if (!FileUtils.canFileBeRead(cmdLineInputFile)) {
+                        throw new QSignatureException("INPUT_FILE_READ_ERROR", cmdLineInputFile);
+                    }
+                }
 			}
 			
 			if (null != options.getOutputFileNames() && options.getOutputFileNames().length > 0) {
@@ -794,8 +790,8 @@ public class Generate {
 			if (null != options.getDirNames() && options.getDirNames().length > 0) {
 				outputDirectory = options.getDirNames()[0];
 			}
-			options.getMinMappingQuality().ifPresent(i -> minMappingQuality = i.intValue());
-			options.getMinBaseQuality().ifPresent(i -> minBaseQuality = i.intValue());
+			options.getMinMappingQuality().ifPresent(i -> minMappingQuality = i);
+			options.getMinBaseQuality().ifPresent(i -> minBaseQuality = i);
 			
 			options.getIlluminaArraysDesign().ifPresent(i -> illumiaArraysDesign = i);
 			options.getSnpPositions().ifPresent(s -> snpPositions = s);
@@ -808,7 +804,7 @@ public class Generate {
 			}
 			
 			/*
-			 * want either genePositions or snpPOsitions
+			 * want either genePositions or snpPositions
 			 */
 			if ((null == snpPositions || ! FileUtils.canFileBeRead(snpPositions)) && (null == genePositions || ! FileUtils.canFileBeRead(genePositions))) {
 				throw new QSignatureException("INSUFFICIENT_INPUT_FILES");
@@ -897,8 +893,8 @@ public class Generate {
 		private final Thread mainThread;
 		private final File outputVCFFile;
 		private OutputStream os;
-		private boolean isBam;
-		private File inputFile;
+		private final boolean isBam;
+		private final File inputFile;
 		
 		public Writer(CountDownLatch wLatch,  CountDownLatch cLatch, File outputVCFFile, Thread mainThread, File inputFile, boolean isBam) {
 			
@@ -922,13 +918,13 @@ public class Generate {
 				Map<String, Integer> convertedMap = new HashMap<>();
 				if (null != rgIds) {
 					rgIds.forEachEntry((String k, int v) -> {
-						convertedMap.putIfAbsent(k, Integer.valueOf(v));
+						convertedMap.putIfAbsent(k, v);
 						return true;
 					} );
 				}
 					
 				convertedMap.entrySet().stream()
-					.sorted(Comparator.comparing(Entry::getValue))
+					.sorted(Entry.comparingByValue())
 					.forEach(e -> sbRgIds.append("##rg").append(e.getValue()).append(Constants.EQ).append(e.getKey()).append(Constants.NL));
 				
 				os = new GZIPOutputStream(new FileOutputStream(outputVCFFile), 1024 * 1024);
@@ -952,11 +948,11 @@ public class Generate {
 						 * If it is and we have no more elements in queue, then our work is done
 						 */
 						if (cLatch.getCount() == 0) {
-							if (results.size() > 0) {
+							if (!results.isEmpty()) {
 								/*
 								 * add remaining cps to completedCPs queue (sort them first)
 								 */
-								completedCPs.addAll(results.keySet().stream().sorted(ChrPositionComparator.getComparator(chrComparator)).collect(Collectors.toList()));
+								completedCPs.addAll(results.keySet().stream().sorted(ChrPositionComparator.getComparator(chrComparator)).toList());
 								logger.info("added " + results.size() + " entries to completedCPs. completedCPs size: " + completedCPs.size());
 							} else {
 								break;
@@ -994,7 +990,7 @@ public class Generate {
 							for (int i = 0 ; i < bsps.length ; i++) {
 								String readGroupSpecificDist = getDist(bsps, i);
 								if ( ! readGroupSpecificDist.isEmpty()) { 
-									sb.append(Constants.COMMA).append("rg" + i).append(Constants.COLON).append(readGroupSpecificDist);
+									sb.append(Constants.COMMA).append("rg").append(i).append(Constants.COLON).append(readGroupSpecificDist);
 								}
 							}
 						

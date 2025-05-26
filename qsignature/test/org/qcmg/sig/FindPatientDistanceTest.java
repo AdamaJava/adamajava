@@ -32,10 +32,10 @@ public class FindPatientDistanceTest {
 	@Test
 	public void testNoArgs() throws Exception {
 		Executor exec = execute(null);
-		assertTrue(1 == exec.getErrCode());
+        assertEquals(1, exec.getErrCode());
 		
 		exec = execute("");
-		assertTrue(1 == exec.getErrCode());
+        assertEquals(1, exec.getErrCode());
 	}
 	
 	@Ignore
@@ -44,7 +44,7 @@ public class FindPatientDistanceTest {
 		File bamVcfFile = testFolder.newFile("testNoSnpChipFiles.qsig.vcf`");
 		
 		Executor exec = execute("--log " + logFile.getAbsolutePath() + " -i blah");
-		assertTrue(2 == exec.getErrCode());		// doesn't like default path name (/aa/bb/cc)
+        assertEquals(2, exec.getErrCode());		// doesn't like default path name (/aa/bb/cc)
 		
 		exec = execute("--log " + logFile.getAbsolutePath() + " -i " + bamVcfFile.getAbsolutePath() + " -d " + searchFolder.getAbsolutePath());
 		assertEquals(1, exec.getErrCode());

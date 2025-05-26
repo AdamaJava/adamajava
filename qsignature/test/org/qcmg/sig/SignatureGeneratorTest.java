@@ -1,7 +1,5 @@
 package org.qcmg.sig;
 
-import static org.junit.Assert.assertEquals;
-
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -9,7 +7,6 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -29,6 +26,8 @@ import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMSequenceDictionary;
 import htsjdk.samtools.SAMSequenceRecord;
 
+import static org.junit.Assert.*;
+
 public class SignatureGeneratorTest {
 	
 	@Rule
@@ -38,12 +37,12 @@ public class SignatureGeneratorTest {
 	
 	@Test
 	public void testPatientRegex() {
-		Assert.assertEquals(true, "APGI_1992".matches(SignatureUtil.PATIENT_REGEX));
-		Assert.assertEquals(false, "APG_1992".matches(SignatureUtil.PATIENT_REGEX));
-		Assert.assertEquals(false, "APGI_992".matches(SignatureUtil.PATIENT_REGEX));
-		Assert.assertEquals(false, "APGI_19922".matches(SignatureUtil.PATIENT_REGEX));
-		Assert.assertEquals(true, "PPPP_1234".matches(SignatureUtil.PATIENT_REGEX));
-		Assert.assertEquals(true, "PPPP_1234.exome.ND.bam".substring(0,9).matches(SignatureUtil.PATIENT_REGEX));
+        assertTrue("APGI_1992".matches(SignatureUtil.PATIENT_REGEX));
+        assertFalse("APG_1992".matches(SignatureUtil.PATIENT_REGEX));
+        assertFalse("APGI_992".matches(SignatureUtil.PATIENT_REGEX));
+        assertFalse("APGI_19922".matches(SignatureUtil.PATIENT_REGEX));
+        assertTrue("PPPP_1234".matches(SignatureUtil.PATIENT_REGEX));
+        assertTrue("PPPP_1234.exome.ND.bam".substring(0, 9).matches(SignatureUtil.PATIENT_REGEX));
 	}
 	
 	@Test
@@ -51,24 +50,22 @@ public class SignatureGeneratorTest {
 		String illRecString = "rs9349115	5636391030_R02C01	G	G	0.7370			78	1081258	0	C	C	G	G	B	B	6	39330207	0.7923	1.0000	[C/G]	TOP	BOT		0.922	0.938	0.102	0.835	1780	10559	0.9912	0.2395";
 		char ref = 'C';
 		String result = updateResultsIllumina(illRecString, ref);
-		assertEquals(true, result.contains("C:20,G:3"));
+        assertTrue(result.contains("C:20,G:3"));
 		
 		illRecString = "rs1738240	5636391030_R02C01	A	A	0.8534			78	546817	0	A	A	T	T	A	A	6	38763733	0.8261	1.0000	[T/C]	BOT	TOP		0.021	1.517	1.469	0.048	17587	1072	0.0076	-0.2979";
 		ref = 'C';
 		result = updateResultsIllumina(illRecString, ref);
-		assertEquals(true, result.contains("T:16"));
+        assertTrue(result.contains("T:16"));
 		
 		illRecString = "rs235501	5636391030_R02C01	C	C	0.8590			78	643550	0	C	C	G	G	A	A	1	171556165	0.8302	1.0000	[G/C]	BOT	TOP		0.006	1.144	1.133	0.011	13745	905	0.0000	-0.0755";
 		ref = 'G';
 		result = updateResultsIllumina(illRecString, ref);
-		assertEquals(true, result.contains("C:17"));
+        assertTrue(result.contains("C:17"));
 	}
 	
 	
 	/**
 	 * Method has been copied from QSignatureSequential.updateResultsIllumina
-	 * 
-	 * @see SignatureGenerator#updateResultsIllumina
 	 */
 	private String updateResultsIllumina(String illRecString, char ref) {
 		final int snpChipCoverageValue = 20;
@@ -81,7 +78,7 @@ public class SignatureGeneratorTest {
 		} else {
 			System.out.println("unable to process snp: " + illRec.getSnp());
 		}
-		assertEquals(false, null == illuminaAlleles);
+        assertNotNull(illuminaAlleles);
 		
 		// need to check that the alleles are valid
 		if ( ! BaseUtils.isACGTN(illuminaAlleles.charAt(0)) || ! BaseUtils.isACGTN(illuminaAlleles.charAt(2)) ) {
@@ -98,9 +95,7 @@ public class SignatureGeneratorTest {
 		char illGenChar1 = illuminaAlleles.charAt(0);
 		char illGenChar2 = illuminaAlleles.charAt(1);
 		if ('/' == illGenChar2) {
-			if (illuminaAlleles.length() < 3)
-				throw new IllegalArgumentException("invalid illumina genotype specified: " + illuminaAlleles);
-			illGenChar2 = illuminaAlleles.charAt(2);
+            illGenChar2 = illuminaAlleles.charAt(2);
 		}
 		
 		final boolean complement = ref != illGenChar1 && ref != illGenChar2;
@@ -175,7 +170,7 @@ public class SignatureGeneratorTest {
 	}
     
     static void writeSnpChipFile(File snpChipFile) throws IOException {
-    	try (Writer writer = new FileWriter(snpChipFile);) {
+    	try (Writer writer = new FileWriter(snpChipFile)) {
 	    	writer.write("[Header]\n");
 	    	writer.write("GSGT Version    1.9.4\n");
 	    	writer.write("Processing Date 3/1/2013 9:06 PM\n");
@@ -193,7 +188,7 @@ public class SignatureGeneratorTest {
     	}
     }
     static void writeIlluminaArraysDesignFile(File illuminaArraysDesign) throws IOException {
-    	try (Writer writer = new FileWriter(illuminaArraysDesign);) {
+    	try (Writer writer = new FileWriter(illuminaArraysDesign)) {
     		writer.write("#dbSNP Id	Reference Genome	dbSNP alleles	Chr	Position(hg19)	dbSNP Strand	IlluminaDesign	ComplementArrayCalls?\n");
 			writer.write("rs1000000	G	C/T	chr12	126890980	-	[T/C]	yes\n");
 			writer.write("rs10000004	A	A/G	chr4	75406448	+	[T/C]	yes\n");
@@ -204,7 +199,7 @@ public class SignatureGeneratorTest {
     	}
     }
     public static void writeSnpPositionsFile(File snpPositions) throws IOException {
-    	try (Writer writer = new FileWriter(snpPositions);) {
+    	try (Writer writer = new FileWriter(snpPositions)) {
     		writer.write("chr3	183635768	random_1016708		C		RANDOM_POSITION\n");
     		writer.write("chr3	183635778	random_1016709		G		RANDOM_POSITION\n");
     		writer.write("chr4	75406448	random_649440		A		RANDOM_POSITION\n");
@@ -219,7 +214,7 @@ public class SignatureGeneratorTest {
      * looks a little like a vcf file.... wait it is a vcf!
      */
     public static void writeSnpPositionsVcf(File snpPositions) throws IOException {
-    	try (Writer writer = new FileWriter(snpPositions);) {
+    	try (Writer writer = new FileWriter(snpPositions)) {
     		writer.write("##fileformat=VCFv4.2\n");
     		writer.write("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n");
     		writer.write("chr3	183635768	random_1016708	C	.\t.\t.\t.\n");
@@ -231,27 +226,22 @@ public class SignatureGeneratorTest {
     		writer.write("chr12	126890980	random_169627	G	.\t.\t.\t.\n");
     	}
     }
-    static void writeGenePositionsFile(File genePositions, String chr, int start, int stop) throws IOException {
-    	try (Writer writer = new FileWriter(genePositions);) {
-    		writer.write(chr + "	ensembl_havana	gene	" + start + "	" + stop + "	.	+	.	ID=gene:ENSG00000188505;Name=NCCRP1;biotype=protein_coding;description=non-specific cytotoxic cell receptor protein 1 homolog (zebrafish) [Source:HGNC Symbol%3BAcc:33739];gene_id=ENSG00000188505;logic_name=ensembl_havana_gene;version=4\n");
-//			writer.write( "chr9	ensembl_havana	gene	14734664	14910993	.	-       .       ID=gene:ENSG00000164946;Name=FREM1;biotype=protein_coding;description=FRAS1 related extracellular matrix 1 [Source:HGNC Symbol%3BAcc:23399];gene_id=ENSG00000164946;logic_name=ensembl_havana_gene;version=15\n");
-//			writer.write( "chr12	ensembl_havana	gene	25357723	25403870	.       -       .       ID=gene:ENSG00000133703;Name=KRAS;biotype=protein_coding;description=Kirsten rat sarcoma viral oncogene homolog [Source:HGNC\n");
-//			writer.write( "chr8	ensembl_havana	gene	95938200	95961639	.	-       .	ID=gene:ENSG00000164938;Name=TP53INP1;biotype=protein_coding;description=tumor protein p53 inducible nuclear protein 1 [Source:HGNC Symbol%3BAcc:18022];gene_id=ENSG00000164938;logic_name=ensembl_havana_gene;version=9\\n");
-//			writer.write( "chr10	ensembl_havana	gene	127512115	127542264	.	+	.	ID=gene:ENSG00000107949;Name=BCCIP;biotype=protein_coding;description=BRCA2 and CDKN1A interacting protein [Source:HGNC Symbol%3BAcc:978];gene_id=ENSG00000107949;logic_name=ensembl_havana_gene;version=12\n");
+    static void writeGenePositionsFile(File genePositions, int start, int stop) throws IOException {
+    	try (Writer writer = new FileWriter(genePositions)) {
+    		writer.write("chr1" + "	ensembl_havana	gene	" + start + "	" + stop + "	.	+	.	ID=gene:ENSG00000188505;Name=NCCRP1;biotype=protein_coding;description=non-specific cytotoxic cell receptor protein 1 homolog (zebrafish) [Source:HGNC Symbol%3BAcc:33739];gene_id=ENSG00000188505;logic_name=ensembl_havana_gene;version=4\n");
     	}
     }
 	
-    static void getBamFile(File bamFile, boolean validHeader, boolean useChrs) {
-    	getBamFile(bamFile,  validHeader,  useChrs, false);
+    static void getBamFile(File bamFile) {
+    	getBamFile(bamFile, false);
     }
     
-    static void getBamFile(File bamFile, boolean validHeader, boolean useChrs, boolean addReadGroupToHeaderAndRecords) {
-    	final SAMFileHeader header = getHeader(validHeader, useChrs, addReadGroupToHeaderAndRecords);
-    	List<SAMRecord> data = getRecords(useChrs, header, true, addReadGroupToHeaderAndRecords);
+    static void getBamFile(File bamFile, boolean addReadGroupToHeaderAndRecords) {
+    	final SAMFileHeader header = getHeader(true, true, addReadGroupToHeaderAndRecords);
+    	List<SAMRecord> data = getRecords(true, header, true, addReadGroupToHeaderAndRecords);
     	final SAMWriterFactory factory = new SAMWriterFactory(header, false, bamFile, false);
-    	try (SAMFileWriter writer = factory.getWriter();) {    		 
-    		if (null != data)
-    			for (final SAMRecord s : data) writer.addAlignment(s);
+    	try (SAMFileWriter writer = factory.getWriter()) {
+            for (final SAMRecord s : data) writer.addAlignment(s);
     	}  
     }
     
@@ -300,7 +290,7 @@ public class SignatureGeneratorTest {
 	private static List<SAMRecord> getRecords(boolean useChr, SAMFileHeader header, boolean isValid, boolean addRG) {
 		List<SAMRecord> records = new ArrayList<>();
 //		records.add("HS2000-152_756:1:1316:11602:65138	89	chr1	9993	25	100M	=	9993	0	TCTTCCGATCTCCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTA	B@??BBCCB<>BCBB?:BAA?9-A;?2;@ECA=;7BEE?=7D9@@8.C;B8=.HGDBBBCCD::*GGD:?*FDGFCA>EIHEEBEAEFDFFC=+?DD@@@	X0:i:1	X1:i:0	ZC:i:9	MD:Z:0C0T0G6A0A89	PG:Z:MarkDuplicates	RG:Z:20130325103517169	XG:i:0	AM:i:0	NM:i:5	SM:i:25	XM:i:5	XN:i:8	XO:i:0	XT:A:U");
-		SAMRecord sam = new SAMRecord(header);
+		SAMRecord sam;
 		
 		sam = new SAMRecord(header);
 		sam.setAlignmentStart(150);
@@ -328,8 +318,8 @@ public class SignatureGeneratorTest {
 		if (addRG) {
 			sam.setAttribute("RG", "20130325103517169");
 		}
-		
-		assertEquals(true, SAMUtils.isSAMRecordValidForVariantCalling(sam, true));
+
+        assertTrue(SAMUtils.isSAMRecordValidForVariantCalling(sam, true));
 		for (int i = 0 ; i < 10; i++) records.add(sam);
 		
 //		records.add("HS2000-152_756:2:1212:5424:43221	99	chr1	10001	29	45M1I14M4D9M2D21M10S	=	10101	199	TAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCTAACCCCTAACCCCCACCCCCTACCCCACACTCACCCACCCCCTAACCTCAGCACCCC	CCCFFFFFFHHHHGGIJJIIJJJJJJJJJJGEHIJJ9)?)?D))?(?BFB;CD@C#############################################	ZC:i:7	MD:Z:54T0A3^CTAA5A3^TA2C2A4T0A0A8	PG:Z:MarkDuplicates	RG:Z:20130325112045146	XG:i:7	AM:i:29	NM:i:15	SM:i:29	XM:i:8	XO:i:3	XT:A:M");
