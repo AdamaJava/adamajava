@@ -34,8 +34,7 @@ import org.qcmg.qio.illumina.IlluminaRecord;
 public class CompareIlluminaData {
 	
 	private static QLogger logger;
-	private String logFile;
-	private String[] cmdLineInputFiles;
+    private String[] cmdLineInputFiles;
 	private int exitStatus;
 	
 	private final Map<ChrPosition, IlluminaRecord> normalIlluminaMap = new HashMap<>();
@@ -110,7 +109,7 @@ public class CompareIlluminaData {
 	
 	static void loadIlluminaData(File illuminaFile, Map<ChrPosition, IlluminaRecord> illuminaMap) throws IOException {
 		
-		try (IlluminaFileReader reader = new IlluminaFileReader(illuminaFile);) {
+		try (IlluminaFileReader reader = new IlluminaFileReader(illuminaFile)) {
 			 
 			for (IlluminaRecord rec : reader) {
 				 				
@@ -153,7 +152,7 @@ public class CompareIlluminaData {
 		System.exit(exitStatus);
 	}
 	
-	protected int setup(String args[]) throws Exception{
+	protected int setup(String[] args) throws Exception{
 		int returnStatus = 1;
 		if (null == args || args.length == 0) {
 			System.err.println(Messages.COMPARE_USAGE);
@@ -176,7 +175,7 @@ public class CompareIlluminaData {
 			options.displayHelp();
 		} else {
 			// configure logging
-			logFile = options.getLog();
+            String logFile = options.getLog();
 			logger = QLoggerFactory.getLogger(CompareIlluminaData.class, logFile, options.getLogLevel());
 			logger.logInitialExecutionStats("CompareIlluminaData", CompareIlluminaData.class.getPackage().getImplementationVersion(), args);
 			
@@ -186,11 +185,11 @@ public class CompareIlluminaData {
 				throw new QSignatureException("INSUFFICIENT_ARGUMENTS");
 			} else {
 				// loop through supplied files - check they can be read
-				for (int i = 0 ; i < cmdLineInputFiles.length ; i++ ) {
-					if ( ! FileUtils.canFileBeRead(cmdLineInputFiles[i])) {
-						throw new QSignatureException("INPUT_FILE_READ_ERROR" , cmdLineInputFiles[i]);
-					}
-				}
+                for (String cmdLineInputFile : cmdLineInputFiles) {
+                    if (!FileUtils.canFileBeRead(cmdLineInputFile)) {
+                        throw new QSignatureException("INPUT_FILE_READ_ERROR", cmdLineInputFile);
+                    }
+                }
 			}
 			
 			return engage();

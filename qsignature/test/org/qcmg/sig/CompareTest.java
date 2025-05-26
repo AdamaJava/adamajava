@@ -45,7 +45,7 @@ public class CompareTest {
 		
 		Executor exec = execute("--log " + logF.getAbsolutePath() + " -d " + f1.getParent() + " -o " + o.getAbsolutePath());
 		assertEquals(0, exec.getErrCode());		// all ok
-		assertEquals(true, o.exists());
+        assertTrue(o.exists());
 		assertEquals(11, Files.readAllLines(Paths.get(o.getAbsolutePath())).size());		// 11 lines means 1 comparison
 	}
 	
@@ -151,7 +151,7 @@ public class CompareTest {
 		
 		Executor exec = execute("--log " + logF.getAbsolutePath() + " -d " + trad1.getParent() + " -o " + o.getAbsolutePath());
 		assertEquals(0, exec.getErrCode());		// all ok
-		assertEquals(true, o.exists());
+        assertTrue(o.exists());
 		List<String> outputData = Files.readAllLines(Paths.get(o.getAbsolutePath()));
 		assertEquals(11, outputData.size());		// 10 lines means 1 comparison
 		assertEquals("<cutoffs hom=\"0.9\" lower_het=\"0.3\" upper_het=\"0.7\"/>", outputData.get(2).trim());
@@ -213,7 +213,7 @@ public class CompareTest {
 		
 		Executor exec = execute("--log " + logF.getAbsolutePath() + " -d " + cutoff1.getParent() + " -o " + o.getAbsolutePath() + " --max-cache-size 0");
 		assertEquals(0, exec.getErrCode());		// all ok
-		assertEquals(true, o.exists());
+        assertTrue(o.exists());
 		List<String> outputData = Files.readAllLines(Paths.get(o.getAbsolutePath()));
 		assertEquals(11, outputData.size());		// 10 lines means 1 comparison
 		assertEquals("<cutoffs hom=\"0.9\" lower_het=\"0.3\" upper_het=\"0.7\"/>", outputData.get(2).trim());
@@ -221,7 +221,7 @@ public class CompareTest {
 		
 		exec = execute("--log " + logF.getAbsolutePath() + " -d " + cutoff1.getParent() + " -o " + o.getAbsolutePath() + " --max-cache-size 0 --homCutoff 0.99 --hetLowerCutoff 0.49 --hetUpperCutoff 0.51");
 		assertEquals(0, exec.getErrCode());		// all ok
-		assertEquals(true, o.exists());
+        assertTrue(o.exists());
 		outputData = Files.readAllLines(Paths.get(o.getAbsolutePath()));
 		assertEquals(11, outputData.size());		// 10 lines means 1 comparison
 		assertEquals("<cutoffs hom=\"0.99\" lower_het=\"0.49\" upper_het=\"0.51\"/>", outputData.get(2).trim());
@@ -229,7 +229,7 @@ public class CompareTest {
 		
 		exec = execute("--log " + logF.getAbsolutePath() + " -d " + cutoff1.getParent() + " -o " + o.getAbsolutePath() + " --max-cache-size 0 --homCutoff 0.85");
 		assertEquals(0, exec.getErrCode());		// all ok
-		assertEquals(true, o.exists());
+        assertTrue(o.exists());
 		outputData = Files.readAllLines(Paths.get(o.getAbsolutePath()));
 		assertEquals(11, outputData.size());		// 10 lines means 1 comparison
 		assertEquals("<cutoffs hom=\"0.85\" lower_het=\"0.3\" upper_het=\"0.7\"/>", outputData.get(2).trim());
@@ -237,7 +237,7 @@ public class CompareTest {
 		
 		exec = execute("--log " + logF.getAbsolutePath() + " -d " + cutoff1.getParent() + " -o " + o.getAbsolutePath() + " --max-cache-size 0 --hetLowerCutoff 0.49");
 		assertEquals(0, exec.getErrCode());		// all ok
-		assertEquals(true, o.exists());
+        assertTrue(o.exists());
 		outputData = Files.readAllLines(Paths.get(o.getAbsolutePath()));
 		assertEquals(11, outputData.size());		// 10 lines means 1 comparison
 		assertEquals("<cutoffs hom=\"0.9\" lower_het=\"0.49\" upper_het=\"0.7\"/>", outputData.get(2).trim());
@@ -245,7 +245,7 @@ public class CompareTest {
 		
 		exec = execute("--log " + logF.getAbsolutePath() + " -d " + cutoff1.getParent() + " -o " + o.getAbsolutePath() + " --max-cache-size 0 --hetUpperCutoff 0.50");
 		assertEquals(0, exec.getErrCode());		// all ok
-		assertEquals(true, o.exists());
+        assertTrue(o.exists());
 		outputData = Files.readAllLines(Paths.get(o.getAbsolutePath()));
 		assertEquals(11, outputData.size());		// 10 lines means 1 comparison
 		assertEquals("<cutoffs hom=\"0.9\" lower_het=\"0.3\" upper_het=\"0.5\"/>", outputData.get(2).trim());
@@ -253,7 +253,7 @@ public class CompareTest {
 		
 		exec = execute("--log " + logF.getAbsolutePath() + " -d " + cutoff1.getParent() + " -o " + o.getAbsolutePath() + " --max-cache-size 0 --hetUpperCutoff 0.7");
 		assertEquals(0, exec.getErrCode());		// all ok
-		assertEquals(true, o.exists());
+        assertTrue(o.exists());
 		outputData = Files.readAllLines(Paths.get(o.getAbsolutePath()));
 		assertEquals(11, outputData.size());		// 10 lines means 1 comparison
 		assertEquals("<cutoffs hom=\"0.9\" lower_het=\"0.3\" upper_het=\"0.7\"/>", outputData.get(2).trim());
@@ -284,7 +284,7 @@ public class CompareTest {
 		
 		Executor exec = execute("--log " + logF.getAbsolutePath() + " -d " + bespoke1.getParent() + " -o " + o.getAbsolutePath() + " --max-cache-size 0");
 		assertEquals(0, exec.getErrCode());		// all ok
-		assertEquals(true, o.exists());
+        assertTrue(o.exists());
 		List<String> outputData = Files.readAllLines(Paths.get(o.getAbsolutePath()));
 		assertEquals(11, outputData.size());		// 11 lines means 1 comparison
 		assertEquals("<cutoffs hom=\"0.9\" lower_het=\"0.3\" upper_het=\"0.7\"/>", outputData.get(2).trim());
@@ -292,7 +292,7 @@ public class CompareTest {
 		
 		exec = execute("--log " + logF.getAbsolutePath() + " -d " + bespoke1.getParent() + " -o " + o.getAbsolutePath() + " --max-cache-size 1");
 		assertEquals(0, exec.getErrCode());		// all ok
-		assertEquals(true, o.exists());
+        assertTrue(o.exists());
 		outputData = Files.readAllLines(Paths.get(o.getAbsolutePath()));
 		assertEquals(11, outputData.size());		// 10 lines means 1 comparison
 		assertEquals("<cutoffs hom=\"0.9\" lower_het=\"0.3\" upper_het=\"0.7\"/>", outputData.get(2).trim());
@@ -300,7 +300,7 @@ public class CompareTest {
 		
 		exec = execute("--log " + logF.getAbsolutePath() + " -d " + bespoke1.getParent() + " -o " + o.getAbsolutePath() + " --max-cache-size 2");
 		assertEquals(0, exec.getErrCode());		// all ok
-		assertEquals(true, o.exists());
+        assertTrue(o.exists());
 		outputData = Files.readAllLines(Paths.get(o.getAbsolutePath()));
 		assertEquals(11, outputData.size());		// 10 lines means 1 comparison
 		assertEquals("<cutoffs hom=\"0.9\" lower_het=\"0.3\" upper_het=\"0.7\"/>", outputData.get(2).trim());
@@ -308,7 +308,7 @@ public class CompareTest {
 		
 		exec = execute("--log " + logF.getAbsolutePath() + " -d " + bespoke1.getParent() + " -o " + o.getAbsolutePath() + " --max-cache-size 20");
 		assertEquals(0, exec.getErrCode());		// all ok
-		assertEquals(true, o.exists());
+        assertTrue(o.exists());
 		outputData = Files.readAllLines(Paths.get(o.getAbsolutePath()));
 		assertEquals(11, outputData.size());		// 10 lines means 1 comparison
 		assertEquals("<cutoffs hom=\"0.9\" lower_het=\"0.3\" upper_het=\"0.7\"/>", outputData.get(2).trim());
@@ -316,7 +316,7 @@ public class CompareTest {
 		
 		exec = execute("--log " + logF.getAbsolutePath() + " -d " + bespoke1.getParent() + " -o " + o.getAbsolutePath() + " --maxCacheSize 1");
 		assertEquals(0, exec.getErrCode());		// all ok
-		assertEquals(true, o.exists());
+        assertTrue(o.exists());
 		outputData = Files.readAllLines(Paths.get(o.getAbsolutePath()));
 		assertEquals(11, outputData.size());		// 10 lines means 1 comparison
 		assertEquals("<cutoffs hom=\"0.9\" lower_het=\"0.3\" upper_het=\"0.7\"/>", outputData.get(2).trim());
@@ -327,7 +327,7 @@ public class CompareTest {
 		writeVcfFileHeader(f, "##positions_md5sum=d18c99f481afbe04294d11deeb418890\n");
 	}
 	private void writeVcfFileHeader(File f, String md5) throws IOException {
-		try (FileWriter w = new FileWriter(f);){
+		try (FileWriter w = new FileWriter(f)){
 			w.write("##fileformat=VCFv4.2\n");
 			w.write("##datetime=2016-08-17T14:44:30.088\n");
 			w.write("##program=SignatureGeneratorBespoke\n");
@@ -356,7 +356,7 @@ public class CompareTest {
 	}
 	
 	private void writeVcfFile(File f, String md5) throws IOException {
-		try (FileWriter w = new FileWriter(f);){
+		try (FileWriter w = new FileWriter(f)){
 			w.write("##fileformat=VCFv4.2\n");
 			w.write("##datetime=2016-08-17T14:44:30.088\n");
 			w.write("##program=SignatureGeneratorBespoke\n");
@@ -392,7 +392,7 @@ public class CompareTest {
 	}
 	
 	public static void writeDataToFile(List<String> data, File f) throws IOException {
-		try (FileWriter w = new FileWriter(f);){
+		try (FileWriter w = new FileWriter(f)){
 			for (String d : data) {
 				w.write(d + "\n");
 			}

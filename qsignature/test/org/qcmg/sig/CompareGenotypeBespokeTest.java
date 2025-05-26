@@ -24,7 +24,7 @@ public class CompareGenotypeBespokeTest {
 		File inputF = testFolder.newFile("blah.qsig.vcf.gz");
 		
 		Executor exec = execute("--log " + logF.getAbsolutePath() + " -d " + inputF.getParent());
-		assertTrue(0 == exec.getErrCode());		// all ok
+        assertEquals(0, exec.getErrCode());		// all ok
 	}
 	
 	@Test
@@ -38,8 +38,8 @@ public class CompareGenotypeBespokeTest {
 		writeVcfFile(f2);
 		
 		Executor exec = execute("--log " + logF.getAbsolutePath() + " -d " + f1.getParent() + " -o " + o.getAbsolutePath());
-		assertTrue(0 == exec.getErrCode());		// all ok
-		assertEquals(true, o.exists());
+        assertEquals(0, exec.getErrCode());		// all ok
+        assertTrue(o.exists());
 		assertEquals(11, Files.readAllLines(Paths.get(o.getAbsolutePath())).size());		// 11 lines means 1 comparison
 	}
 	
@@ -54,8 +54,8 @@ public class CompareGenotypeBespokeTest {
 		writeVcfFile(f2, "##positions_md5sum=d18c99f481afbe04294d11deeb418890XXX\n");
 		
 		Executor exec = execute("--log " + logF.getAbsolutePath() + " -d " + f1.getParent() + " -o " + o.getAbsolutePath());
-		assertTrue(0 == exec.getErrCode());		// all ok
-		assertEquals(true, o.exists());
+        assertEquals(0, exec.getErrCode());		// all ok
+        assertTrue(o.exists());
 		assertEquals(9, Files.readAllLines(Paths.get(o.getAbsolutePath())).size());		// 9 lines means 0 comparison
 		
 	}
@@ -66,7 +66,7 @@ public class CompareGenotypeBespokeTest {
 	}
 	
 	private void writeVcfFile(File f, String md5) throws IOException {
-		try (FileWriter w = new FileWriter(f);){
+		try (FileWriter w = new FileWriter(f)){
 			w.write("##fileformat=VCFv4.2\n");
 			w.write("##datetime=2016-08-17T14:44:30.088\n");
 			w.write("##program=SignatureGeneratorBespoke\n");

@@ -15,7 +15,7 @@ public class ComparisonTest {
 	@Test
 	public void testComparisonConstructor() {
 		try {
-			new Comparison((String)null,0, (String)null, 0, 0, 0);
+			new Comparison(null,0, (String)null, 0, 0, 0);
 			Assert.fail("Should have thrown an IAE");
 		}	catch (IllegalArgumentException iae){}
 		
@@ -23,30 +23,26 @@ public class ComparisonTest {
 		assertEquals(Double.NaN, c.getScore(), 0.00001);
 		
 		try {
-			c = new Comparison(F1, 0, F2, 0, 100, 0);
+			new Comparison(F1, 0, F2, 0, 100, 0);
 			Assert.fail("Should have thrown an IAE");
 		}	catch (IllegalArgumentException iae){}
 		
 		try {
-			c = new Comparison(F1, 0, F2, 0, -1, 0);
+			new Comparison(F1, 0, F2, 0, -1, 0);
 			Assert.fail("Should have thrown an IAE");
 		}	catch (IllegalArgumentException iae){}
 		try {
-			c = new Comparison(F1, -1, F2, 0, 0, 0);
+			new Comparison(F1, -1, F2, 0, 0, 0);
 			Assert.fail("Should have thrown an IAE");
 		}	catch (IllegalArgumentException iae){}
 		try {
-			c = new Comparison(F1, 0, F2, -1, 0, 0);
+			new Comparison(F1, 0, F2, -1, 0, 0);
 			Assert.fail("Should have thrown an IAE");
 		}	catch (IllegalArgumentException iae){}
 		try {
-			c = new Comparison(F1, 0, F2, 0, 0, -1);
+			new Comparison(F1, 0, F2, 0, 0, -1);
 			Assert.fail("Should have thrown an IAE");
 		}	catch (IllegalArgumentException iae){}
-//		try {
-//			c = new Comparison(F1, 0, F2, 0, 0, 0);
-//			Assert.fail("Should have thrown an IAE");
-//		}	catch (IllegalArgumentException iae){}
 	}
 	
 	@Test

@@ -1,23 +1,10 @@
 package org.qcmg.sig.util;
 
-import static org.junit.Assert.assertEquals;
 import gnu.trove.map.TMap;
 import gnu.trove.map.hash.TIntByteHashMap;
 import gnu.trove.map.hash.TIntShortHashMap;
-
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
 import org.apache.commons.math3.util.Pair;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.util.ChrPositionCache;
@@ -25,6 +12,13 @@ import org.qcmg.qio.illumina.IlluminaRecord;
 import org.qcmg.sig.CompareTest;
 import org.qcmg.sig.model.Comparison;
 import org.qcmg.sig.model.SigMeta;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.*;
+
+import static org.junit.Assert.*;
 
 
 public class SignatureUtilTest {
@@ -119,75 +113,62 @@ public class SignatureUtilTest {
 	public void doesOldStyleHeaderReturnASigMeta() {
 		//TabbedHeader h = new TabbedHeader(BAM_HEADER_OLD_SKOOL);
 		Optional<Pair<SigMeta, Map<String, String>>> optional = SignatureUtil.getSigMetaAndRGsFromHeader(BAM_HEADER_OLD_SKOOL);
-		assertEquals(true, optional.isPresent());
+        assertTrue(optional.isPresent());
 		SigMeta sm = optional.get().getKey();
-		assertEquals(false, sm.isValid());
+        assertFalse(sm.isValid());
 	}
 	
 	@Test
 	public void doContigsStartWithDigit() {
-		assertEquals(true, SignatureUtil.doContigsStartWithDigit(Arrays.asList("1")));
-		assertEquals(false, SignatureUtil.doContigsStartWithDigit(Arrays.asList("c1")));
-		assertEquals(false, SignatureUtil.doContigsStartWithDigit(Arrays.asList("chr1")));
-		assertEquals(true, SignatureUtil.doContigsStartWithDigit(Arrays.asList("chr1","2")));
-		assertEquals(false, SignatureUtil.doContigsStartWithDigit(Arrays.asList("chr1","X2")));
+        assertTrue(SignatureUtil.doContigsStartWithDigit(List.of("1")));
+        assertFalse(SignatureUtil.doContigsStartWithDigit(List.of("c1")));
+        assertFalse(SignatureUtil.doContigsStartWithDigit(List.of("chr1")));
+        assertTrue(SignatureUtil.doContigsStartWithDigit(Arrays.asList("chr1", "2")));
+        assertFalse(SignatureUtil.doContigsStartWithDigit(Arrays.asList("chr1", "X2")));
 	}
 	
 	@Test
 	public void getSigMetaEmptyHeader() {
 		assertEquals(Optional.empty(), SignatureUtil.getSigMetaAndRGsFromHeader(null));
-		
-		
-		//new TabbedHeader(null); will create an empty list, but now it will not
-		//TabbedHeader h = new TabbedHeader(null);
-//		Optional<Pair<SigMeta, Map<String, String>>> o =SignatureUtil.getSigMetaAndRGsFromHeader(null); 
-//		assertEquals(true, o.isPresent());
-//	
-//		assertEquals(false, o.get().getFirst().isValid());		// invalid SigMeta
-//		assertEquals(true, o.get().getSecond().isEmpty());	// empty rg map
 	}
 	
 	@Test
 	public void getSigMetaBam() {
-		//TabbedHeader h = new TabbedHeader(BAM_HEADER);
-		Optional<Pair<SigMeta, Map<String, String>>> o =SignatureUtil.getSigMetaAndRGsFromHeader(BAM_HEADER); 
-		assertEquals(true, o.isPresent());
-		
-		assertEquals(true, o.get().getFirst().isValid());			// valid SigMeta
-		assertEquals(false, o.get().getSecond().isEmpty());	// non-empty rg map
+		Optional<Pair<SigMeta, Map<String, String>>> o =SignatureUtil.getSigMetaAndRGsFromHeader(BAM_HEADER);
+        assertTrue(o.isPresent());
+
+        assertTrue(o.get().getFirst().isValid());			// valid SigMeta
+        assertFalse(o.get().getSecond().isEmpty());	// non-empty rg map
 		assertEquals(2, o.get().getSecond().size());				// non-empty rg map
-		
-		assertEquals(true, o.get().getSecond().containsKey("rg1"));
-		assertEquals(true, o.get().getSecond().containsKey("rg2"));
+
+        assertTrue(o.get().getSecond().containsKey("rg1"));
+        assertTrue(o.get().getSecond().containsKey("rg2"));
 		assertEquals("fc17fe15-6c1a-42aa-9270-0787d84c8001", o.get().getSecond().get("rg1"));
 		assertEquals("14989e3c-e669-46c2-866d-a8c504679743", o.get().getSecond().get("rg2"));
 	}
 	
 	@Test
 	public void getSigMetaSnpChip() {
-		//TabbedHeader h = new TabbedHeader(SNP_CHIP_HEADER);
-		Optional<Pair<SigMeta, Map<String, String>>> o =SignatureUtil.getSigMetaAndRGsFromHeader(SNP_CHIP_HEADER); 
-		assertEquals(true, o.isPresent());
-		
-		assertEquals(true, o.get().getFirst().isValid());			// valid SigMeta
-		assertEquals(true, o.get().getSecond().isEmpty());	// non-empty rg map
+		Optional<Pair<SigMeta, Map<String, String>>> o =SignatureUtil.getSigMetaAndRGsFromHeader(SNP_CHIP_HEADER);
+        assertTrue(o.isPresent());
+
+        assertTrue(o.get().getFirst().isValid());			// valid SigMeta
+        assertTrue(o.get().getSecond().isEmpty());	// non-empty rg map
 		assertEquals(0, o.get().getSecond().size());				// non-empty rg map
 	}
 	
 	@Test
 	public void canSigMEtasBeCompared() {
-		//TabbedHeader h = new TabbedHeader(SNP_CHIP_HEADER);
-		Optional<Pair<SigMeta, Map<String, String>>> o =SignatureUtil.getSigMetaAndRGsFromHeader(SNP_CHIP_HEADER); 
-		assertEquals(true, o.isPresent());
+		Optional<Pair<SigMeta, Map<String, String>>> o =SignatureUtil.getSigMetaAndRGsFromHeader(SNP_CHIP_HEADER);
+        assertTrue(o.isPresent());
 		SigMeta snpChpSM = o.get().getFirst();
 		
-		//h = new TabbedHeader(BAM_HEADER);
-		o =SignatureUtil.getSigMetaAndRGsFromHeader(BAM_HEADER); 
-		assertEquals(true, o.isPresent());
+		o =SignatureUtil.getSigMetaAndRGsFromHeader(BAM_HEADER);
+        assertTrue(o.isPresent());
 		SigMeta bamSM = o.get().getFirst();
-		
-		assertEquals(true, SigMeta.suitableForComparison(snpChpSM, bamSM));
-		assertEquals(true, SigMeta.suitableForComparison(bamSM, snpChpSM));
+
+        assertTrue(SigMeta.suitableForComparison(snpChpSM, bamSM));
+        assertTrue(SigMeta.suitableForComparison(bamSM, snpChpSM));
 	}
 	
 	@Test
@@ -228,9 +209,9 @@ public class SignatureUtilTest {
 "A:0,C:0,G:40,T:0,N:0,TOTAL:40;NOVELCOV");
 		
 		int [] indicies = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17};
-		List<Optional<float[]>> oeso_0031Floats = oeso_0031CovArray.stream().map(s -> SignatureUtil.getValuesFromCoverageStringFloat(s)).collect(Collectors.toList());
-		List<Byte> oeso_0031Shorts = oeso_0031Floats.stream().map(of -> SignatureUtil.getCodedGenotypeAsByte(of.get())).collect(Collectors.toList());
-		oeso_0031Shorts.stream().forEach(System.out::println);
+		List<Optional<float[]>> oeso_0031Floats = oeso_0031CovArray.stream().map(SignatureUtil::getValuesFromCoverageStringFloat).toList();
+		List<Byte> oeso_0031Shorts = oeso_0031Floats.stream().map(of -> SignatureUtil.getCodedGenotypeAsByte(of.get())).toList();
+		oeso_0031Shorts.forEach(System.out::println);
 		
 		List<String> oeso_0050CovArray = Arrays.asList("A:25,C:0,G:31,T:0,N:0,TOTAL:56;NOVELCOV",
 "A:0,C:21,G:0,T:0,N:0,TOTAL:21;NOVELCOV",
@@ -250,9 +231,9 @@ public class SignatureUtilTest {
 "A:22,C:0,G:19,T:0,N:0,TOTAL:41;NOVELCOV",
 "A:18,C:0,G:10,T:0,N:0,TOTAL:28;NOVELCOV");
 		
-		List<Optional<float[]>> oeso_0050Floats = oeso_0050CovArray.stream().map(s -> SignatureUtil.getValuesFromCoverageStringFloat(s)).collect(Collectors.toList());
-		List<Byte> oeso_0050Shorts = oeso_0050Floats.stream().map(of -> SignatureUtil.getCodedGenotypeAsByte(of.get())).collect(Collectors.toList());
-		oeso_0050Shorts.stream().forEach(System.out::println);
+		List<Optional<float[]>> oeso_0050Floats = oeso_0050CovArray.stream().map(SignatureUtil::getValuesFromCoverageStringFloat).toList();
+		List<Byte> oeso_0050Shorts = oeso_0050Floats.stream().map(of -> SignatureUtil.getCodedGenotypeAsByte(of.get())).toList();
+		oeso_0050Shorts.forEach(System.out::println);
 		
 		List<String> pn400007CovArray = Arrays.asList("A:70,C:1,G:0,T:0,N:0,TOTAL:71;NOVELCOV",
 "A:0,C:84,G:0,T:0,N:0,TOTAL:84;NOVELCOV",
@@ -272,9 +253,9 @@ public class SignatureUtilTest {
 "A:36,C:1,G:0,T:0,N:0,TOTAL:37;NOVELCOV",
 "A:0,C:0,G:50,T:0,N:0,TOTAL:50;NOVELCOV");
 		
-		List<Optional<float[]>> pn400007Floats = pn400007CovArray.stream().map(s -> SignatureUtil.getValuesFromCoverageStringFloat(s)).collect(Collectors.toList());
-		List<Byte> pn400007Shorts = pn400007Floats.stream().map(of -> SignatureUtil.getCodedGenotypeAsByte(of.get())).collect(Collectors.toList());
-		pn400007Shorts.stream().forEach(System.out::println);
+		List<Optional<float[]>> pn400007Floats = pn400007CovArray.stream().map(SignatureUtil::getValuesFromCoverageStringFloat).toList();
+		List<Byte> pn400007Shorts = pn400007Floats.stream().map(of -> SignatureUtil.getCodedGenotypeAsByte(of.get())).toList();
+		pn400007Shorts.forEach(System.out::println);
 		
 		TIntShortHashMap oeso_0031Map = new TIntShortHashMap();
 		TIntShortHashMap oeso_0050Map = new TIntShortHashMap();
@@ -286,9 +267,9 @@ public class SignatureUtilTest {
 		}
 		
 		Comparison c = ComparisonUtil.compareRatiosUsingSnpsFloat(oeso_0031Map, oeso_0050Map, new File("oeso_0031"), new File("oeso_0050"));
-		System.out.println("c: " + c.toString());
+		System.out.println("c: " + c);
 		Comparison c1 = ComparisonUtil.compareRatiosUsingSnpsFloat(oeso_0031Map, pn400007Map, new File("oeso_0031"), new File("pn400007"));
-		System.out.println("c1: " + c1.toString());
+		System.out.println("c1: " + c1);
 	}
 	
 	@Test
@@ -341,7 +322,7 @@ public class SignatureUtilTest {
 	@Test
 	public void getVAFDist() throws IOException {
 		File f = testFolder.newFile();
-		try (FileWriter w = new FileWriter(f);){
+		try (FileWriter w = new FileWriter(f)){
 			// add header
 			for (String s : BAM_HEADER) {
 				w.write(s + "\n");
@@ -360,13 +341,9 @@ public class SignatureUtilTest {
 		Map<Short, int[]> dist = SignatureUtil.getVariantAlleleFractionDistribution(f, 20);
 		for (short s = 0 ; s <=100 ; s++) {
 			switch (s) {
-			case 0: 
+			case 0, 50, 100:
 				Assert.assertArrayEquals(new int[]{10,0}, dist.get(s)); break;
-			case 50:
-				Assert.assertArrayEquals(new int[]{10,0}, dist.get(s)); break;
-			case 100:
-				Assert.assertArrayEquals(new int[]{10,0}, dist.get(s)); break;
-			default :
+                default :
 				Assert.assertArrayEquals(null, dist.get(s));
 			}
 		}
@@ -437,36 +414,6 @@ public class SignatureUtilTest {
 		assertEquals(5055, SignatureUtil.getFloatAsShort(50.55f));
 	}
 	
-//	@Test
-//	public void genotypeShort() {
-//		/*
-//		 * AAs and BBs
-//		 */
-//		assertEquals(2000, SignatureUtil.getCodedGenotype(new float[]{0.91f,0.0f,0.0f,0.09f}));
-//		assertEquals(200, SignatureUtil.getCodedGenotype(new float[]{0.01f,0.99f,0.0f,0.00f}));
-//		assertEquals(20, SignatureUtil.getCodedGenotype(new float[]{0.01f,0.09f,0.909f,0.00f}));
-//		assertEquals(2, SignatureUtil.getCodedGenotype(new float[]{0.0f,0.0f,0.0f,1.0f}));
-//		
-//		/*
-//		 * ABs
-//		 */
-//		assertEquals(1100, SignatureUtil.getCodedGenotype(new float[]{0.5f,0.5f,0.0f,0.0f}));
-//		assertEquals(1001, SignatureUtil.getCodedGenotype(new float[]{0.5f,0.0f,0.0f,0.4f}));
-//		assertEquals(101, SignatureUtil.getCodedGenotype(new float[]{0.0f,0.4f,0.0f,0.4f}));
-//		assertEquals(11, SignatureUtil.getCodedGenotype(new float[]{0.0f,0.0f,0.59f,0.59f}));
-//		assertEquals(1010, SignatureUtil.getCodedGenotype(new float[]{0.5f,0.0f,0.5f,0.0f}));
-//		
-//		/*
-//		 * invalid
-//		 */
-//		assertEquals(1000, SignatureUtil.getCodedGenotype(new float[]{0.5f,0.0f,0.0f,0.0f}));
-//		assertEquals(1111, SignatureUtil.getCodedGenotype(new float[]{0.5f,0.5f,0.5f,0.5f}));
-//		assertEquals(false, SignatureUtil.isCodedGenotypeValid(SignatureUtil.getCodedGenotype(new float[]{0.32f,0.32f,0.32f,0.05f})));
-//		assertEquals(1, SignatureUtil.getCodedGenotype(new float[]{0.0f,0.0f,0.0f,0.4f}));
-//		assertEquals(100, SignatureUtil.getCodedGenotype(new float[]{0.0f,0.4f,0.0f,0.0f}));
-//		assertEquals(10, SignatureUtil.getCodedGenotype(new float[]{0.0f,0.0f,0.59f,0.0f}));
-//	}
-	
 	@Test
 	public void genotypeAsByte() {
 		/*
@@ -474,50 +421,50 @@ public class SignatureUtilTest {
 		 */
 		//10000 or HOM_A
 		assertEquals(SignatureUtil.HOM_A, SignatureUtil.getCodedGenotypeAsByte(new float[]{0.91f,0.0f,0.0f,0.09f}));
-		assertEquals(true, SignatureUtil.isCodedGenotypeValid(SignatureUtil.getCodedGenotypeAsByte(new float[]{0.91f,0.0f,0.0f,0.09f})));
+        assertTrue(SignatureUtil.isCodedGenotypeValid(SignatureUtil.getCodedGenotypeAsByte(new float[]{0.91f, 0.0f, 0.0f, 0.09f})));
 		//100000
 		assertEquals(SignatureUtil.HOM_C, SignatureUtil.getCodedGenotypeAsByte(new float[]{0.01f,0.99f,0.0f,0.00f}));
-		assertEquals(true, SignatureUtil.isCodedGenotypeValid(SignatureUtil.getCodedGenotypeAsByte(new float[]{0.01f,0.99f,0.0f,0.00f})));
+        assertTrue(SignatureUtil.isCodedGenotypeValid(SignatureUtil.getCodedGenotypeAsByte(new float[]{0.01f, 0.99f, 0.0f, 0.00f})));
 		//1000000
 		assertEquals(SignatureUtil.HOM_G, SignatureUtil.getCodedGenotypeAsByte(new float[]{0.01f,0.09f,0.909f,0.00f}));
-		assertEquals(true, SignatureUtil.isCodedGenotypeValid(SignatureUtil.getCodedGenotypeAsByte(new float[]{0.01f,0.09f,0.909f,0.00f})));
+        assertTrue(SignatureUtil.isCodedGenotypeValid(SignatureUtil.getCodedGenotypeAsByte(new float[]{0.01f, 0.09f, 0.909f, 0.00f})));
 		//10000000
 		assertEquals(SignatureUtil.HOM_T, SignatureUtil.getCodedGenotypeAsByte(new float[]{0.0f,0.0f,0.0f,1.0f}));
-		assertEquals(true, SignatureUtil.isCodedGenotypeValid(SignatureUtil.getCodedGenotypeAsByte(new float[]{0.0f,0.0f,0.0f,1.0f})));
+        assertTrue(SignatureUtil.isCodedGenotypeValid(SignatureUtil.getCodedGenotypeAsByte(new float[]{0.0f, 0.0f, 0.0f, 1.0f})));
 		
 		/*
 		 * ABs
 		 */
 		assertEquals(SignatureUtil.HET_AC, SignatureUtil.getCodedGenotypeAsByte(new float[]{0.5f,0.5f,0.0f,0.0f}));
-		assertEquals(true,  SignatureUtil.isCodedGenotypeValid(SignatureUtil.getCodedGenotypeAsByte(new float[]{0.5f,0.5f,0.0f,0.0f})));
+        assertTrue(SignatureUtil.isCodedGenotypeValid(SignatureUtil.getCodedGenotypeAsByte(new float[]{0.5f, 0.5f, 0.0f, 0.0f})));
 		assertEquals(SignatureUtil.HET_AT, SignatureUtil.getCodedGenotypeAsByte(new float[]{0.5f,0.0f,0.0f,0.4f}));
-		assertEquals(true,  SignatureUtil.isCodedGenotypeValid(SignatureUtil.getCodedGenotypeAsByte(new float[]{0.5f,0.0f,0.0f,0.4f})));
+        assertTrue(SignatureUtil.isCodedGenotypeValid(SignatureUtil.getCodedGenotypeAsByte(new float[]{0.5f, 0.0f, 0.0f, 0.4f})));
 		assertEquals(SignatureUtil.HET_CT, SignatureUtil.getCodedGenotypeAsByte(new float[]{0.0f,0.4f,0.0f,0.4f}));
-		assertEquals(true,  SignatureUtil.isCodedGenotypeValid(SignatureUtil.getCodedGenotypeAsByte(new float[]{0.0f,0.4f,0.0f,0.4f})));
+        assertTrue(SignatureUtil.isCodedGenotypeValid(SignatureUtil.getCodedGenotypeAsByte(new float[]{0.0f, 0.4f, 0.0f, 0.4f})));
 		assertEquals(SignatureUtil.HET_CG, SignatureUtil.getCodedGenotypeAsByte(new float[]{0.0f,0.4f,0.6f,0.0f}));
-		assertEquals(true,  SignatureUtil.isCodedGenotypeValid(SignatureUtil.getCodedGenotypeAsByte(new float[]{0.0f,0.4f,0.6f,0.0f})));
+        assertTrue(SignatureUtil.isCodedGenotypeValid(SignatureUtil.getCodedGenotypeAsByte(new float[]{0.0f, 0.4f, 0.6f, 0.0f})));
 		assertEquals(SignatureUtil.HET_GT, SignatureUtil.getCodedGenotypeAsByte(new float[]{0.0f,0.0f,0.59f,0.59f}));
-		assertEquals(true,  SignatureUtil.isCodedGenotypeValid(SignatureUtil.getCodedGenotypeAsByte(new float[]{0.0f,0.0f,0.59f,0.59f})));
+        assertTrue(SignatureUtil.isCodedGenotypeValid(SignatureUtil.getCodedGenotypeAsByte(new float[]{0.0f, 0.0f, 0.59f, 0.59f})));
 		assertEquals(SignatureUtil.HET_AG, SignatureUtil.getCodedGenotypeAsByte(new float[]{0.5f,0.0f,0.5f,0.0f}));
-		assertEquals(true,  SignatureUtil.isCodedGenotypeValid(SignatureUtil.getCodedGenotypeAsByte(new float[]{0.5f,0.0f,0.5f,0.0f})));
+        assertTrue(SignatureUtil.isCodedGenotypeValid(SignatureUtil.getCodedGenotypeAsByte(new float[]{0.5f, 0.0f, 0.5f, 0.0f})));
 		
 		/*
 		 * invalid
 		 */
 		// this is 3 lots of 0.32 - invalid
-		assertEquals(false, SignatureUtil.isCodedGenotypeValid(SignatureUtil.getCodedGenotypeAsByte(new float[]{0.32f,0.32f,0.32f,0.0f})));
+        assertFalse(SignatureUtil.isCodedGenotypeValid(SignatureUtil.getCodedGenotypeAsByte(new float[]{0.32f, 0.32f, 0.32f, 0.0f})));
 		
 		
 		assertEquals("1", Integer.toBinaryString(SignatureUtil.getCodedGenotypeAsByte(new float[]{0.5f,0.0f,0.0f,0.0f})));
-		assertEquals(false, SignatureUtil.isCodedGenotypeValid(SignatureUtil.getCodedGenotypeAsByte(new float[]{0.5f,0.0f,0.0f,0.0f})));
+        assertFalse(SignatureUtil.isCodedGenotypeValid(SignatureUtil.getCodedGenotypeAsByte(new float[]{0.5f, 0.0f, 0.0f, 0.0f})));
 		assertEquals("1111", Integer.toBinaryString(SignatureUtil.getCodedGenotypeAsByte(new float[]{0.5f,0.5f,0.5f,0.5f})));
-		assertEquals(false, SignatureUtil.isCodedGenotypeValid(SignatureUtil.getCodedGenotypeAsByte(new float[]{0.5f,0.5f,0.5f,0.5f})));
+        assertFalse(SignatureUtil.isCodedGenotypeValid(SignatureUtil.getCodedGenotypeAsByte(new float[]{0.5f, 0.5f, 0.5f, 0.5f})));
 		assertEquals("1000", Integer.toBinaryString(SignatureUtil.getCodedGenotypeAsByte(new float[]{0.0f,0.0f,0.0f,0.4f})));
-		assertEquals(false, SignatureUtil.isCodedGenotypeValid(SignatureUtil.getCodedGenotypeAsByte(new float[]{0.0f,0.0f,0.0f,0.4f})));
+        assertFalse(SignatureUtil.isCodedGenotypeValid(SignatureUtil.getCodedGenotypeAsByte(new float[]{0.0f, 0.0f, 0.0f, 0.4f})));
 		assertEquals("10", Integer.toBinaryString(SignatureUtil.getCodedGenotypeAsByte(new float[]{0.0f,0.4f,0.0f,0.0f})));
-		assertEquals(false, SignatureUtil.isCodedGenotypeValid(SignatureUtil.getCodedGenotypeAsByte(new float[]{0.0f,0.4f,0.0f,0.0f})));
+        assertFalse(SignatureUtil.isCodedGenotypeValid(SignatureUtil.getCodedGenotypeAsByte(new float[]{0.0f, 0.4f, 0.0f, 0.0f})));
 		assertEquals("100", Integer.toBinaryString(SignatureUtil.getCodedGenotypeAsByte(new float[]{0.0f,0.0f,0.59f,0.0f})));
-		assertEquals(false, SignatureUtil.isCodedGenotypeValid(SignatureUtil.getCodedGenotypeAsByte(new float[]{0.0f,0.0f,0.59f,0.0f})));
+        assertFalse(SignatureUtil.isCodedGenotypeValid(SignatureUtil.getCodedGenotypeAsByte(new float[]{0.0f, 0.0f, 0.59f, 0.0f})));
 	}
 	
 	@Test
@@ -527,14 +474,14 @@ public class SignatureUtilTest {
 		assertEquals(SignatureUtil.EMPTY_COVERAGE, SignatureUtil.getCoverageStringFromCharsAndInts('A', 'A', 0, 0));
 		assertEquals(SignatureUtil.EMPTY_COVERAGE, SignatureUtil.getCoverageStringFromCharsAndInts('X', 'Y', 0, 0));
 		assertEquals(SignatureUtil.EMPTY_COVERAGE, SignatureUtil.getCoverageStringFromCharsAndInts('Z', 'Z', 0, 0));
-		
-		assertEquals(true, SignatureUtil.getCoverageStringFromCharsAndInts('A', 'C', 1, 0).contains("A:1,C:0,G:0,T:0,N:0,TOTAL:1"));
-		assertEquals(true, SignatureUtil.getCoverageStringFromCharsAndInts('A', 'C', 1, 1).contains("A:1,C:1,G:0,T:0,N:0,TOTAL:2"));
-		assertEquals(true, SignatureUtil.getCoverageStringFromCharsAndInts('A', 'C', 2, 1).contains("A:2,C:1,G:0,T:0,N:0,TOTAL:3"));
-		assertEquals(true, SignatureUtil.getCoverageStringFromCharsAndInts('A', 'C', 2, 2).contains("A:2,C:2,G:0,T:0,N:0,TOTAL:4"));
-		assertEquals(true, SignatureUtil.getCoverageStringFromCharsAndInts('A', 'C', 299, 2).contains("A:299,C:2,G:0,T:0,N:0,TOTAL:301"));
-		assertEquals(true, SignatureUtil.getCoverageStringFromCharsAndInts('A', 'C', 1, 201).contains("A:1,C:201,G:0,T:0,N:0,TOTAL:202"));
-		assertEquals(true, SignatureUtil.getCoverageStringFromCharsAndInts('A', 'A', 1, 200).contains("A:201,C:0,G:0,T:0,N:0,TOTAL:201"));
+
+        assertTrue(SignatureUtil.getCoverageStringFromCharsAndInts('A', 'C', 1, 0).contains("A:1,C:0,G:0,T:0,N:0,TOTAL:1"));
+        assertTrue(SignatureUtil.getCoverageStringFromCharsAndInts('A', 'C', 1, 1).contains("A:1,C:1,G:0,T:0,N:0,TOTAL:2"));
+        assertTrue(SignatureUtil.getCoverageStringFromCharsAndInts('A', 'C', 2, 1).contains("A:2,C:1,G:0,T:0,N:0,TOTAL:3"));
+        assertTrue(SignatureUtil.getCoverageStringFromCharsAndInts('A', 'C', 2, 2).contains("A:2,C:2,G:0,T:0,N:0,TOTAL:4"));
+        assertTrue(SignatureUtil.getCoverageStringFromCharsAndInts('A', 'C', 299, 2).contains("A:299,C:2,G:0,T:0,N:0,TOTAL:301"));
+        assertTrue(SignatureUtil.getCoverageStringFromCharsAndInts('A', 'C', 1, 201).contains("A:1,C:201,G:0,T:0,N:0,TOTAL:202"));
+        assertTrue(SignatureUtil.getCoverageStringFromCharsAndInts('A', 'A', 1, 200).contains("A:201,C:0,G:0,T:0,N:0,TOTAL:201"));
 	}
 	
 	@Test
@@ -544,22 +491,22 @@ public class SignatureUtilTest {
 		
 		File excludesFile = testFolder.newFile("excludesFile");
 		assertEquals(0, SignatureUtil.getEntriesFromExcludesFile(excludesFile.getAbsolutePath()).size());
-		try (FileWriter writer = new FileWriter(excludesFile);){
+		try (FileWriter writer = new FileWriter(excludesFile)){
 			writer.write("excludesFile1");
 		}
 		
 		assertEquals(1, SignatureUtil.getEntriesFromExcludesFile(excludesFile.getAbsolutePath()).size());
-		assertEquals("excludesFile1", SignatureUtil.getEntriesFromExcludesFile(excludesFile.getAbsolutePath()).get(0));
+		assertEquals("excludesFile1", SignatureUtil.getEntriesFromExcludesFile(excludesFile.getAbsolutePath()).getFirst());
 		
-		try (FileWriter writer = new FileWriter(excludesFile, true);){
+		try (FileWriter writer = new FileWriter(excludesFile, true)){
 			writer.write("excludesFile2");
 		}
 		assertEquals(1, SignatureUtil.getEntriesFromExcludesFile(excludesFile.getAbsolutePath()).size());
-		assertEquals("excludesFile1excludesFile2", SignatureUtil.getEntriesFromExcludesFile(excludesFile.getAbsolutePath()).get(0));
+		assertEquals("excludesFile1excludesFile2", SignatureUtil.getEntriesFromExcludesFile(excludesFile.getAbsolutePath()).getFirst());
 		
-		try (FileWriter writer = new FileWriter(excludesFile, true);){
+		try (FileWriter writer = new FileWriter(excludesFile, true)){
 			for (int i = 3 ; i <= 10 ; i++) {
-				writer.append("\nexcludesFile" + i);
+				writer.append("\nexcludesFile").append(String.valueOf(i));
 			}
 		}
 		
@@ -569,9 +516,9 @@ public class SignatureUtilTest {
 	
 	@Test
 	public void testRemoveExcludedFilesFromList() {
-		assertEquals(null, SignatureUtil.removeExcludedFilesFromList(null, null));
-		assertEquals(0, SignatureUtil.removeExcludedFilesFromList(new ArrayList<File>(), null).size());
-		assertEquals(0, SignatureUtil.removeExcludedFilesFromList(new ArrayList<File>(), new ArrayList<String>()).size());
+        assertNull(SignatureUtil.removeExcludedFilesFromList(null, null));
+		assertEquals(0, SignatureUtil.removeExcludedFilesFromList(new ArrayList<>(), null).size());
+		assertEquals(0, SignatureUtil.removeExcludedFilesFromList(new ArrayList<>(), new ArrayList<>()).size());
 		List<File> files = new ArrayList<>();
 		files.add(new File("file1"));
 		assertEquals(1, SignatureUtil.removeExcludedFilesFromList(files, null).size());
@@ -589,7 +536,7 @@ public class SignatureUtilTest {
 	}
 	
 	public static void writeSignatureFile(File signatureFile, String data) throws IOException {
-		try (FileWriter writer = new FileWriter(signatureFile);){
+		try (FileWriter writer = new FileWriter(signatureFile)){
 			// add header
 			writer.write("##test vcf file for use in SignatureUtilTest\n#CHROM POS     ID        REF ALT    QUAL FILTER INFO\n");
 			// add data
@@ -793,7 +740,7 @@ public class SignatureUtilTest {
 	}
 	
 	private void createSnpChipVcfFile(File f) throws IOException {
-		try (FileWriter w = new FileWriter(f);){
+		try (FileWriter w = new FileWriter(f)){
 			// add header
 			for (String s : SNP_CHIP_HEADER) {
 				w.write(s+"\n");
@@ -812,7 +759,7 @@ public class SignatureUtilTest {
 		}
 	}
 	private void createBamVcfFile(File f) throws IOException {
-		try (FileWriter w = new FileWriter(f);){
+		try (FileWriter w = new FileWriter(f)){
 			// add header
 			for (String s : BAM_HEADER) {
 				w.write(s+"\n");

@@ -33,7 +33,7 @@ public class VcfStreamPositionIteratorTest {
 	    assertEquals(7, positions.size());
 	    
 	    vspi.close();
-	    positions.stream().forEach(cp -> System.out.println( cp.toString()));
+	    positions.forEach(cp -> System.out.println( cp.toString()));
 	}
 	
 	@Test
@@ -51,7 +51,7 @@ public class VcfStreamPositionIteratorTest {
 		assertEquals(7, positions.size());
 		
 		vspi.close();
-		positions.stream().forEach(cp -> System.out.println( cp.toString()));
+		positions.forEach(cp -> System.out.println( cp.toString()));
 	}
 
 }

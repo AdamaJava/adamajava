@@ -78,7 +78,7 @@ public class QuartileTest {
 	
 	@Test
 	public void testQuartileWikipedia() {
-		List<Number> numbers = new ArrayList<Number>();
+		List<Number> numbers = new ArrayList<>();
 		numbers.add(6); 
 		numbers.add(47); 
 		numbers.add(49); 
@@ -100,7 +100,7 @@ public class QuartileTest {
 	}
 	
 	private List<Number> getNumbers() {
-		List<Number> numbers = new ArrayList<Number>(1200);
+		List<Number> numbers = new ArrayList<>(1200);
 		
 		numbers.add(0.007866156	);
 		numbers.add(0.007879757	);

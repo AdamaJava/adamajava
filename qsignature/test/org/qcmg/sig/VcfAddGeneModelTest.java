@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -17,9 +16,6 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.vcf.VcfRecord;
 import org.qcmg.qio.vcf.VcfFileReader;
-import org.qcmg.sig.model.SigVcfMeta;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class VcfAddGeneModelTest {
 	
@@ -64,19 +60,19 @@ public class VcfAddGeneModelTest {
     	
     	for (VcfRecord rec : vcfRecs) {
     		if (rec.getPosition() == 52651) {
-    			assertEquals(true, rec.getInfo().startsWith("gene_id=123_456;gene_version=15;transcript_id=ENST00000480186;transcript_version=7;"));
+                assertTrue(rec.getInfo().startsWith("gene_id=123_456;gene_version=15;transcript_id=ENST00000480186;transcript_version=7;"));
     		} else if (rec.getPosition() == 108826383) {
-    			assertEquals(rec.getInfo(), "gene_id=ENSG00000131686;gene_version=15;transcript_id=ENST00000480186;transcript_version=7;gene_name=CA6;gene_source=ensembl_havana;gene_biotype=protein_coding;transcript_name=CA6-205;transcript_source=ensembl_havana;transcript_biotype=protein_coding;tag=basic;transcript_support_level=2;");
+    			assertEquals("gene_id=ENSG00000131686;gene_version=15;transcript_id=ENST00000480186;transcript_version=7;gene_name=CA6;gene_source=ensembl_havana;gene_biotype=protein_coding;transcript_name=CA6-205;transcript_source=ensembl_havana;transcript_biotype=protein_coding;tag=basic;transcript_support_level=2;", rec.getInfo());
     		} else if (rec.getPosition() == 159441457) {
-    			assertEquals(true, rec.getInfo().startsWith("gene_id=987_654;gene_version=15;transcript_id=ENST00000480186;transcript_version=7;"));
+                assertTrue(rec.getInfo().startsWith("gene_id=987_654;gene_version=15;transcript_id=ENST00000480186;transcript_version=7;"));
     		} else {
-    			assertEquals(true, ".".equals(rec.getInfo()));
+                assertEquals(".", rec.getInfo());
     		}
     	}
     }
 	
 	static void writeSnpPositionsVcf(File output) throws IOException {
-    	try (Writer writer = new FileWriter(output);) {
+    	try (Writer writer = new FileWriter(output)) {
     		writer.write("##fileformat=VCFv4.2\n");
     		writer.write("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n");
     		writer.write("chr1	52651	.	T	.	.	.	.\n");
@@ -89,7 +85,7 @@ public class VcfAddGeneModelTest {
     }
 	
 	 static void writeGeneModelFile(File output) throws IOException {
-    	try (Writer writer = new FileWriter(output);) {
+    	try (Writer writer = new FileWriter(output)) {
     		writer.write("chr1	ensembl_havana	exon	51651	53651	.	+	.	gene_id \"123_456\"; gene_version \"15\"; transcript_id \"ENST00000480186\"; transcript_version \"7\"; exon_number \"3\"; gene_name \"CA6\"; gene_source \"ensembl_havana\"; gene_biotype \"protein_coding\"; transcript_name \"CA6-205\"; transcript_source \"ensembl_havana\"; transcript_biotype \"protein_coding\"; exon_id \"ENSE00001913776\"; exon_version \"2\"; tag \"basic\"; transcript_support_level \"2\";\n");
 			writer.write("chr4	ensembl_havana	CDS	75405448	75407448	.	+	2	gene_id \"ENSG00000131686\"; gene_version \"15\"; transcript_id \"ENST00000480186\"; transcript_version \"7\"; exon_number \"3\"; gene_name \"CA6\"; gene_source \"ensembl_havana\"; gene_biotype \"protein_coding\"; transcript_name \"CA6-205\"; transcript_source \"ensembl_havana\"; transcript_biotype \"protein_coding\"; protein_id \"ENSP00000435280\"; protein_version \"1\"; tag \"basic\"; transcript_support_level \"2\";\n");
 			writer.write("chr4	ensembl_havana	stop_codon	95733806	95733956	.	+	0	gene_id \"ENSG00000131686\"; gene_version \"15\"; transcript_id \"ENST00000480186\"; transcript_version \"7\"; exon_number \"3\"; gene_name \"CA6\"; gene_source \"ensembl_havana\"; gene_biotype \"protein_coding\"; transcript_name \"CA6-205\"; transcript_source \"ensembl_havana\"; transcript_biotype \"protein_coding\"; tag \"basic\"; transcript_support_level \"2\";\n");

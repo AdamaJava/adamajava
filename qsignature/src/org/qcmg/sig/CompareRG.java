@@ -66,23 +66,21 @@ public class CompareRG {
 	private String [] additionalSearchStrings;
 	
 	private String excludeVcfsFile;
-	private List<String> excludes;
-	private String logFile;
-	
-	private final List<Comparison> allComparisons = new ArrayList<>();
+
+    private final List<Comparison> allComparisons = new ArrayList<>();
 	
 	private final Map<File, Pair<SigMeta, TMap<String, TIntByteHashMap>>> cache = new THashMap<>();
 	
-	List<String> suspiciousResults = new ArrayList<String>();
+	List<String> suspiciousResults = new ArrayList<>();
 	
 	private int engage() throws Exception {
 		
 		// get excludes
 		logger.info("Retrieving excludes list from: " + excludeVcfsFile);
-		excludes = SignatureUtil.getEntriesFromExcludesFile(excludeVcfsFile);
+        List<String> excludes = SignatureUtil.getEntriesFromExcludesFile(excludeVcfsFile);
 		
 		// get qsig vcf files for this donor
-		logger.info("Retrieving qsig vcf files from: " + Arrays.stream(paths).collect(Collectors.joining(",")));
+		logger.info("Retrieving qsig vcf files from: " + String.join(",", paths));
 		Set<File> uniqueFiles = new THashSet<>();
 		for (String path : paths) {
 			uniqueFiles.addAll(FileUtils.findFilesEndingWithFilterNIO(path, SignatureUtil.BAM_QSIG_VCF));
@@ -100,7 +98,7 @@ public class CompareRG {
 		logger.info("Total number of files to be compared (minus excluded files): " + files.size());
 		
 		if (files.isEmpty()) {
-			logger.warn("No files left after removing exlcuded files");
+			logger.warn("No files left after removing excluded files");
 			return 0;
 		}
 		
@@ -108,10 +106,8 @@ public class CompareRG {
 		 * Match files on additionalSearchStrings
 		 */
 		if (null != additionalSearchStrings && additionalSearchStrings.length > 0) {
-			Predicate<File> p = (File f) -> {
-				return Arrays.stream(additionalSearchStrings).anyMatch(s -> f.getAbsolutePath().contains(s));
-			};
-			files = files.stream().filter(f -> p.test(f)).collect(Collectors.toList());
+			Predicate<File> p = (File f) -> Arrays.stream(additionalSearchStrings).anyMatch(s -> f.getAbsolutePath().contains(s));
+			files = files.stream().filter(p).collect(Collectors.toList());
 		}
 		
 		final int numberOfFiles = files.size();
@@ -151,7 +147,7 @@ public class CompareRG {
 						
 						Comparison c = ComparisonUtil.compareRatiosUsingSnpsFloat(r1, r2, f.getAbsolutePath() + "-" + rg1, f.getAbsolutePath() + "-" + rg2);
 						if (c.getScore() < genotypeCutoff) {
-							logger.warn("rgs don't match!: " + c.toString());
+							logger.warn("rgs don't match!: " + c);
 						}
 						allComparisons.add(c);
 					}
@@ -313,7 +309,7 @@ public class CompareRG {
 			options.displayHelp();
 		} else {
 			// configure logging
-			logFile = options.getLog();
+            String logFile = options.getLog();
 			logger = QLoggerFactory.getLogger(CompareRG.class, logFile, options.getLogLevel());
 			
 			
@@ -333,10 +329,10 @@ public class CompareRG {
 			}
 			logger.tool("Setting cutoff to: " + genotypeCutoff);
 			
-			options.getMinCoverage().ifPresent(i -> {minimumCoverage = i.intValue();});
-			options.getMinRGCoverage().ifPresent(i -> {minimumRGCoverage = i.intValue();});
-			logger.tool("Setting minumim coverage to: " + minimumCoverage);
-			logger.tool("Setting minumim RG coverage to: " + minimumRGCoverage);
+			options.getMinCoverage().ifPresent(i -> minimumCoverage = i);
+			options.getMinRGCoverage().ifPresent(i -> minimumRGCoverage = i);
+			logger.tool("Setting minimum coverage to: " + minimumCoverage);
+			logger.tool("Setting minimum RG coverage to: " + minimumRGCoverage);
 			
 			additionalSearchStrings = options.getAdditionalSearchString();
 			logger.tool("Setting additionalSearchStrings to: " + Arrays.deepToString(additionalSearchStrings));

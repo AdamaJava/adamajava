@@ -23,9 +23,7 @@ public class SigVcfMeta {
 	public void setNumberOfPositions(int numberOfPositions) {
 		this.numberOfPositions = numberOfPositions;
 	}
-	public double getNumberOfPositionsPercentage() {
-		return numberOfPositionsPercentage;
-	}
+
 	public void setNumberOfPositionsPercentage(double numberOfPositionsPercentage) {
 		this.numberOfPositionsPercentage = numberOfPositionsPercentage;
 	}
@@ -35,9 +33,7 @@ public class SigVcfMeta {
 	public void setUniqueGeneHitCount(int uniqueGeneHitCount) {
 		this.uniqueGeneHitCount = uniqueGeneHitCount;
 	}
-	public double getUniqueGeneHitCountPercentage() {
-		return uniqueGeneHitCountPercentage;
-	}
+
 	public void setUniqueGeneHitCountPercentage(double uniqueGeneHitCountPercentage) {
 		this.uniqueGeneHitCountPercentage = uniqueGeneHitCountPercentage;
 	}
@@ -47,9 +43,7 @@ public class SigVcfMeta {
 	public void setGeneHitCount(int geneHitCount) {
 		this.geneHitCount = geneHitCount;
 	}
-	public double getGeneHitCountPercentage() {
-		return geneHitCountPercentage;
-	}
+
 	public void setGeneHitCountPercentage(double geneHitCountPercentage) {
 		this.geneHitCountPercentage = geneHitCountPercentage;
 	}
@@ -59,9 +53,7 @@ public class SigVcfMeta {
 	public void setGeneHitCountPassingCoverage(int geneHitCountPassingCoverage) {
 		this.geneHitCountPassingCoverage = geneHitCountPassingCoverage;
 	}
-	public double getGeneHitCountPassingCoveragePercentage() {
-		return geneHitCountPassingCoveragePercentage;
-	}
+
 	public void setGeneHitCountPassingCoveragePercentage(double geneHitCountPassingCoveragePercentage) {
 		this.geneHitCountPassingCoveragePercentage = geneHitCountPassingCoveragePercentage;
 	}
@@ -83,9 +75,7 @@ public class SigVcfMeta {
 	public void setNumberOfHetPositions(int numberOfHetPositions) {
 		this.numberOfHetPositions = numberOfHetPositions;
 	}
-	public double getNumberOfHomPositionsPercentage() {
-		return numberOfHomPositionsPercentage;
-	}
+
 	public void setNumberOfHomPositionsPercentage(double numberOfHomPositionsPercentage) {
 		this.numberOfHomPositionsPercentage = numberOfHomPositionsPercentage;
 	}
@@ -95,9 +85,7 @@ public class SigVcfMeta {
 	public void setNumberOfHomPositions(int numberOfHomPositions) {
 		this.numberOfHomPositions = numberOfHomPositions;
 	}
-	public String getGeneDistDescription() {
-		return geneDistDescription;
-	}
+
 	public void setGeneDistDescription(String geneDistDescription) {
 		this.geneDistDescription = geneDistDescription;
 	}

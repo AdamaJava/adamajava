@@ -33,7 +33,7 @@ public class VcfInMemoryPositionIteratorTest {
 	    assertEquals(7, positions.size());
 	    
 	    vspi.close();
-	    positions.stream().forEach(cp -> System.out.println( cp.toString()));
+	    positions.forEach(cp -> System.out.println( cp.toString()));
 	}
 	@Test
 	public void getRecordsVcf() throws IOException {
@@ -50,7 +50,7 @@ public class VcfInMemoryPositionIteratorTest {
 		assertEquals(7, positions.size());
 		
 		vspi.close();
-		positions.stream().forEach(cp -> System.out.println( cp.toString()));
+		positions.forEach(cp -> System.out.println( cp.toString()));
 	}
 
 }
