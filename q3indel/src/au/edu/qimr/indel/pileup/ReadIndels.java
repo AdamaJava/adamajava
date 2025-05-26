@@ -27,10 +27,10 @@ public class ReadIndels {
 	private VcfHeader header; 
 	
 	private static final int errRecordLimit = 100;
-	//counts from each input, {No of new indel, No of overlap indel, No of indels with mult Allel, No of inputs variants, No of input variants with multi Allel}
+	//counts from each input, {No of new indel, No of overlap indel, No of indels with multi Allele, No of inputs variants, No of input variants with multi Allele}
 	private final int[] counts = {0, 0, 0, 0, 0}; 
  
-	//here key will be uniq for indel: chr, start, end, allel 
+	//here key will be uniq for indel: chr, start, end, allele
 	private final  Map<VcfRecord, VcfRecord> positionRecordMap = new  ConcurrentHashMap<>();	
 	
 	public ReadIndels( QLogger logger) { 
@@ -49,7 +49,7 @@ public class ReadIndels {
 			List<String> format = vcf.getFormatFields();
 			if (format != null) {
 				while (format.size() > 2) { 
-					format.remove(format.size() - 1);   
+					format.removeLast();
 				}
 				vcf.setFormatFields(format);			 
 				VcfUtils.addMissingDataToFormatFields(vcf, 2);
@@ -94,12 +94,12 @@ public class ReadIndels {
 		//only keep first sample column of second vcf
 		List<String> secformat = secVcf.getFormatFields();
 		while (secformat != null && secformat.size() > 2 ) {
-			secformat.remove(secformat.size() - 1); 
+			secformat.removeLast();
 		}
 		
 		//copy secVcf with sample column "FORMAT <missing data> oriSample" only 
 		if (existingvcf == null) { 
-			//the test only indel always set as somatic, even gatkeTest runMode 
+			//the test only indel always set as somatic, even gatk Test runMode
 			existingvcf = new VcfRecord.Builder(secVcf.getChrPosition(), secVcf.getRef())
 			.id(secVcf.getId()).allele(secVcf.getAlt()).filter(FILTER_SOMATIC).build();
  			
@@ -116,15 +116,15 @@ public class ReadIndels {
 			return false; 
 		} else {
 			//gatk mode already set filter as "." (germline) ignore pileup, since they are also appear on control vcf			
-			//only keep first sample column of exsiting vcf
+			//only keep first sample column of existing vcf
 			List<String> format1 = existingvcf.getFormatFields();
 			
 			if (format1 != null) {
 				while (format1.size() > 2 ) {
-					format1.remove(format1.size() - 1); 
+					format1.removeLast();
 				}
 				existingvcf.setFormatFields(format1);
-				//merge exiting and second vcf format, the exsitingvcf already inside map	
+				//merge exiting and second vcf format, the existing vcf already inside map
 				VcfUtils.addAdditionalSampleToFormatField(existingvcf,  secformat) ;				
 			}
 			return true; 			
@@ -178,7 +178,7 @@ public class ReadIndels {
 	 	        		vcf1.setFilter(Constants.MISSING_DATA_STRING);
 	 	        		
  					if (positionRecordMap.containsKey(vcf1) && (indelOverlap ++) < errRecordLimit) {						
- 						logger.warn("same variants already exsits, this one will be discard:\n" + positionRecordMap.get(vcf1).toString() );
+ 						logger.warn("same variants already exists, this one will be discard:\n" + positionRecordMap.get(vcf1).toString() );
  						continue; //no overwrite but just warning
  					}
  					positionRecordMap.put(vcf1, vcf1);  
@@ -197,7 +197,7 @@ public class ReadIndels {
 	}
 	
 	/**
-	 * change the input vcf by putting '.' on "GT" field if there are multi Alleles existis;
+	 * change the input vcf by putting '.' on "GT" field if multi Alleles exists;
 	 * do nothing if not multi Alleles or not GT field on format column
 	 * @param vcf input vcf record
 	 */
@@ -211,7 +211,7 @@ public class ReadIndels {
 		//add GD to second field 				
 		VcfFormatFieldRecord[] frecords = new VcfFormatFieldRecord[format.size() - 1];		
 		for (int i = 1; i < format.size(); i ++) { 
-			VcfFormatFieldRecord re = new  VcfFormatFieldRecord(format.get(0), format.get(i));
+			VcfFormatFieldRecord re = new  VcfFormatFieldRecord(format.getFirst(), format.get(i));
 			String gd = IndelUtils.getGenotypeDetails(re, vcf.getRef(), vcf.getAlt() );
 			re.setField(1, VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS, gd == null ? Constants.MISSING_DATA_STRING : gd);
 			
@@ -229,7 +229,7 @@ public class ReadIndels {
 		for (int i = 1; i < frecords.length; i++) {
 			//the exception shouldn't happen
 			if ( !frecords[i].getFormatColumnString().equals(frecords[0].getFormatColumnString())) { 
-				throw new IllegalArgumentException("both sample column with differnt format column: \n" 
+				throw new IllegalArgumentException("both sample column with different format column: \n"
 						+ frecords[0].getFormatColumnString() + "\n" + frecords[i].getFormatColumnString());
 			}
 			format.add(frecords[i].getSampleColumnString());
@@ -241,7 +241,6 @@ public class ReadIndels {
 	/**
 	 * 
 	 * @return a map of, key is the indel position, value is the list a vcf record on that position. 
-	 * @throws Exception
 	 */
 	public Map<ChrRangePosition, IndelPosition> getIndelMap() throws Q3IndelException {	
 	

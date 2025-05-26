@@ -38,9 +38,7 @@ public class IniFileTest {
 	
 	@Test
 	public void testQuery() throws IOException, Q3IndelException {
-		
-		
-		 		
+
 		//ini file not exist
 		String[] args = {"-i", fini.getAbsolutePath()};
 		try {
@@ -51,33 +49,33 @@ public class IniFileTest {
 		// create ini file without query and some dodgy file
 		createIniFile(fini,fini,fini,fini,fini, null,  blah);	
 				
-		Options options = new Options(args);	
-		assertTrue(options.getFilterQuery() == null);
+		Options options = new Options(args);
+        assertNull(options.getFilterQuery());
 		
 		// create ini file with empty query 
 		createIniFile(fini,fini,fini,fini,fini, "", blah);	 
-		options = new Options(args);	
-		assertTrue(options.getFilterQuery() == null);
+		options = new Options(args);
+        assertNull(options.getFilterQuery());
 	}
 	
 	@Test
 	public final void testIni() {
 	
-		// create ini file with  query 
+		// create ini file with query
 		String str = "and (flag_ReadUnmapped != true, flag_DuplicatedRead != true)";
 		createIniFile(fini,fini,fini,fini,fini, str,output);	 
 		
 		try {
 			Options options = new Options(new String[]{"-i", fini.getAbsolutePath()});	
 			assertTrue(options.getFilterQuery().equalsIgnoreCase(str));
-			assertTrue(options.getControlBam().getAbsolutePath().equals(fini.getAbsolutePath() ));
-			assertTrue(options.getTestBam().getAbsolutePath().equals(fini.getAbsolutePath()));
-			assertTrue(options.getControlInputVcf().getAbsolutePath().equals(fini.getAbsolutePath()));
-			assertTrue(options.getTestInputVcf().getAbsolutePath().equals(fini.getAbsolutePath()));
+            assertEquals(options.getControlBam().getAbsolutePath(), fini.getAbsolutePath());
+            assertEquals(options.getTestBam().getAbsolutePath(), fini.getAbsolutePath());
+            assertEquals(options.getControlInputVcf().getAbsolutePath(), fini.getAbsolutePath());
+            assertEquals(options.getTestInputVcf().getAbsolutePath(), fini.getAbsolutePath());
 			assertEquals("OESO-5007", options.getDonorId());
-			
-			assertTrue(options.getControlSample().equals("Normalcontrol(othersite):a6b558da-ab2d-4e92-a029-6544fb98653b"));					
-			assertTrue(options.getTestSample().equals("Primarytumour:4ca050b3-d15b-436b-b035-d6c1925b59fb"));
+
+            assertEquals("Normalcontrol(othersite):a6b558da-ab2d-4e92-a029-6544fb98653b", options.getControlSample());
+            assertEquals("Primarytumour:4ca050b3-d15b-436b-b035-d6c1925b59fb", options.getTestSample());
 		} catch (Exception e) {
 			Assert.fail("Should not threw a Exception");
 		}		
@@ -119,8 +117,8 @@ public class IniFileTest {
            for (String line : data)  
                    out.write(line + "\n");	           	            
         }catch(IOException e){
-	        	System.err.println( Q3IndelException.getStrackTrace(e));	 	        	 
-	        	assertTrue(false);
+	        	System.err.println( Q3IndelException.getStrackTrace(e));
+            fail();
         }	
 	}
 

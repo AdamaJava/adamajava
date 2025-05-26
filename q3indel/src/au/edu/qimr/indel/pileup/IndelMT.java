@@ -4,11 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.AbstractQueue;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
@@ -157,17 +153,16 @@ public class IndelMT {
  			}			
 		}		
 		/**
-		 * it swap SAMRecord between currentPool and nextPool. After then, the currentPool will contain all SAMRecord overlapping topPos position, 
-		 * the nextPool will contain all SAMRecord start after topPos position.  All SAMRecord end before topPos position will be remvoved from both pool. 
+		 * it swap SAMRecord between currentPool and nextPool. After then, the currentPool will contain all SAMRecord overlapping topPos positions,
+		 * the nextPool will contain all SAMRecord start after topPos position.  All SAMRecord end before topPos position will be removed from both pools.
 		 * @param topPos   pileup position
-		 * @param currentPool a list of SAMRecord overlapped previous pileup Position
+		 * @param currentPool a list of SAMRecord overlapped the previous pileup Position
 		 * @param nextPool a list of SAMRecord behind previous pileup Position
 		 */
 		 void resetPool(IndelPosition topPos, List<SAMRecord> currentPool, List<SAMRecord> nextPool) { 
 			
-			List<SAMRecord> tmpCurrentPool = new ArrayList<>();							
-			List<SAMRecord> tmpPool = new ArrayList<>();	
-			tmpPool.addAll(nextPool);
+			List<SAMRecord> tmpCurrentPool = new ArrayList<>();
+             List<SAMRecord> tmpPool = new ArrayList<>(nextPool);
 			
 			//check read record behind on current position			
 			for (SAMRecord  re : tmpPool ) {
@@ -237,14 +232,14 @@ public class IndelMT {
 				}
 				logger.info(indelload.getCountsNewIndel() + " indels are found from control vcf input.");
 				logger.info(indelload.getCountsMultiIndel() + " indels are split from multi alleles in control vcf.");
-				logger.info(indelload.getCountsInputLine() + " variant records exsit inside control vcf input.");
-				logger.info(indelload.getCountsInputMultiAlt() + " variant records with multi alleles exsits inside control vcf input.");
+				logger.info(indelload.getCountsInputLine() + " variant records exist inside control vcf input.");
+				logger.info(indelload.getCountsInputMultiAlt() + " variant records with multi alleles exists inside control vcf input.");
 			}	
 			//then test second column
 			if (options.getTestInputVcf() != null) { 
 				indelload.appendTestIndels(options.getTestInputVcf());				
-				logger.info(indelload.getCountsInputLine() + " variant records exsit inside test vcf input.");
-				logger.info(indelload.getCountsInputMultiAlt() + " variants record with multi alleles exsits inside test vcf input.");	
+				logger.info(indelload.getCountsInputLine() + " variant records exist inside test vcf input.");
+				logger.info(indelload.getCountsInputMultiAlt() + " variants record with multi alleles exists inside test vcf input.");
 				logger.info(indelload.getCountsMultiIndel() + " indels are split from multi alleles inside test vcf");					
 				logger.info(indelload.getCountsNewIndel() + " new indels are found in test vcf input only.");
 				logger.info(indelload.getCountsOverlapIndel() + " indels are found in both control and test vcf inputs.");
@@ -390,7 +385,7 @@ public class IndelMT {
 					}
 				}
 			}
-			logger.info("outputed VCF record: " + count);	
+			logger.info("outputted VCF record: " + count);
 			logger.info("including somatic record: " + somaticCount);
 		}
 	}
@@ -470,7 +465,7 @@ public class IndelMT {
 		header.addInfo(IndelUtils.INFO_SVTYPE, "1", "String",IndelUtils.DESCRIPTION_INFO_SVTYPE); 
 				
 		header.addFormat(VcfHeaderUtils.FORMAT_GENOTYPE_DETAILS, "1","String", "Genotype details: specific alleles");
-		header.addFormat(IndelUtils.FORMAT_ACINDEL, ".", "String", IndelUtils.DESCRIPTION_FORMAT_ACINDEL); //vcf validataion
+		header.addFormat(IndelUtils.FORMAT_ACINDEL, ".", "String", IndelUtils.DESCRIPTION_FORMAT_ACINDEL); //vcf validation
 		
 		/*
 		 * overwrite the AD and PL header supplied by GATK as we will have samples with no data/coverage, and a number set to 'R' for the AD field causes the validator to complain
@@ -491,7 +486,7 @@ public class IndelMT {
 	  * @return a sorted list of IndelPotion on this contig; return whole reference indels if contig is null
 	  */
 	 private  AbstractQueue<IndelPosition>  getIndelList( SAMSequenceRecord contig) {	  
-		if (positionRecordMap == null || positionRecordMap.size() == 0) {
+		if (positionRecordMap == null || positionRecordMap.isEmpty()) {
 			return new ConcurrentLinkedQueue<>(); 			  
 		}
 		
@@ -504,7 +499,7 @@ public class IndelMT {
 		}
 		
 		//lambda expression to replace abstract method
-		list.sort(  (IndelPosition o1, IndelPosition o2) -> o1.getChrRangePosition().compareTo( o2.getChrRangePosition()) );				 
+		list.sort(Comparator.comparing(IndelPosition::getChrRangePosition));
 		
 		return new ConcurrentLinkedQueue<>(list);
 	 }
