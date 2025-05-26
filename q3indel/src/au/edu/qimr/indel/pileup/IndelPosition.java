@@ -55,9 +55,9 @@ public class IndelPosition {
 		position = new ChrRangePosition(fullChromosome, start, end);		
 	}
 
-	//next job: check all vcfs are same type, start and end
+	//next job: check all vcfs are the same type, start and end
 	public IndelPosition(List<VcfRecord> res, SVTYPE type) { 
-		this(res.get(0), type);		
+		this(res.getFirst(), type);
 		//append all vcfs
 		vcfs.clear();
 		vcfs.addAll(res);
@@ -154,21 +154,15 @@ public class IndelPosition {
 	@Override
     public boolean equals(final Object o) {
 	       
-        if (!(o instanceof IndelPosition)) {
+        if (!(o instanceof IndelPosition other)) {
         	return false;
         }
-        
-        final IndelPosition other = (IndelPosition) o;
-             	
-    	if (! this.mutationType .equals(other.mutationType)) {
+
+        if (! this.mutationType .equals(other.mutationType)) {
     		return false;
     	}
-    		   	
-    	if ( ! this.position.equals(other.position)) {
-    		return false;
-    	}
-    		  	
-        return true; 
+
+        return this.position.equals(other.position);
     }
 	    
     @Override
@@ -203,14 +197,14 @@ public class IndelPosition {
 			return re; 
 		}		
 		
-		boolean somatic = (re.getFilter().equals(ReadIndels.FILTER_SOMATIC)) ? true : false;
+		boolean somatic = re.getFilter().equals(ReadIndels.FILTER_SOMATIC);
  		if (normalPileup != null && somatic) { 
  			if ( normalPileup.getSupportReadCount(index) > gematicNNS ) { 
 				somatic = false;
  			} else if (normalPileup.getInformativeCount() > 0) { 
 				int scount = normalPileup.getSupportReadCount(index);
 				int icount = normalPileup.getInformativeCount();
-				if ((100 * scount / icount) >= (gematicSOI * 100)) { 
+				if (((float) (100 * scount) / icount) >= (gematicSOI * 100)) {
 					somatic = false; 
 				}
 			} 
@@ -285,7 +279,7 @@ public class IndelPosition {
 		//future job should check GT column	
 		//control always on first column and then test
 		List<String> field = new ArrayList<>();
-		field.add( 0,  (genotypeField.size() > 0) ? genotypeField.get(0) + ":" + IndelUtils.FORMAT_ACINDEL : IndelUtils.FORMAT_ACINDEL );
+		field.add( 0,  (!genotypeField.isEmpty()) ? genotypeField.get(0) + ":" + IndelUtils.FORMAT_ACINDEL : IndelUtils.FORMAT_ACINDEL );
 		field.add( 1,  (genotypeField.size() > 1) ? genotypeField.get(1) + ":" + nd : nd);
 		field.add( 2,  (genotypeField.size() > 2) ? genotypeField.get(2) + ":" + td : td);					
 		re.setFormatFields( field ); 

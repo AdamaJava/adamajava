@@ -7,10 +7,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+
+import org.junit.*;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.util.IndelUtils;
 import org.qcmg.common.vcf.VcfRecord;
@@ -71,8 +69,8 @@ public class IndelMTTest {
 				assertTrue(record.getFilter().contains("NNS"));
 				if(record.getChromosome().equals("chrY")){									
 					//input 12 reads including one duplicate so coverage is 11
-					assertTrue(record.getSampleFormatRecord(1).getField("ACINDEL").equals("2,12,11,3[1,2],4[3],2,4,4"));
-					assertTrue(record.getFilter().equals("NNS"));					 
+                    assertEquals("2,12,11,3[1,2],4[3],2,4,4", record.getSampleFormatRecord(1).getField("ACINDEL"));
+                    assertEquals("NNS", record.getFilter());
 				}else{
 					assertTrue(record.getFilter().contains("COVN8"));	
 					assertTrue(record.getFilter().contains("COVT"));	
@@ -89,7 +87,8 @@ public class IndelMTTest {
 	public void withQueryTest() throws IOException{
 		
 		Options options = Support.runQ3IndelNoHom( ini_query.getAbsolutePath());
-		assertTrue(options.getFilterQuery().equals(query));				
+        Assert.assertNotNull(options);
+        assertEquals(query, options.getFilterQuery());
 		//check output 
 		int passNo = 0;
 		VcfRecord record = null;
@@ -109,23 +108,24 @@ public class IndelMTTest {
 			}
 		}
 		//there is no record pass the query so no indel counts
-		assertTrue(passNo == 4);
-		if(record.getChromosome().equals("chrY")){
-			assertTrue(record.getSampleFormatRecord(1).getField(IndelUtils.FORMAT_ACINDEL).equals("."));
-			assertTrue(record.getSampleFormatRecord(2).getField(IndelUtils.FORMAT_ACINDEL).equals("."));
+        assertEquals(4, passNo);
+        Assert.assertNotNull(record);
+        if(record.getChromosome().equals("chrY")){
+            assertEquals(".", record.getSampleFormatRecord(1).getField(IndelUtils.FORMAT_ACINDEL));
+            assertEquals(".", record.getSampleFormatRecord(2).getField(IndelUtils.FORMAT_ACINDEL));
 		}
 				
 		//check sample column name
-		assertTrue(header.getSampleId()[0].equals( test_bam.getName().replaceAll("(?i).bam", "")   ));
-		assertTrue(header.getSampleId()[1].equals( test_bam.getName().replaceAll("(?i).bam", "")   ));		
-		assertTrue( header.firstMatchedRecord(VcfHeaderUtils.STANDARD_DONOR_ID).getMetaValue().equals(options.getDonorId()) );
-		assertTrue( header.firstMatchedRecord(VcfHeaderUtils.STANDARD_CONTROL_SAMPLE).getMetaValue().equals(options.getControlSample()) );
-		assertTrue( header.firstMatchedRecord(VcfHeaderUtils.STANDARD_TEST_SAMPLE).getMetaValue().equals(options.getTestSample()) ); 			
-		assertTrue( header.firstMatchedRecord(VcfHeaderUtils.STANDARD_INPUT_LINE + "_GATK_TEST").getMetaValue().equals(options.getTestInputVcf().getAbsolutePath()) );
-		assertTrue( header.firstMatchedRecord(VcfHeaderUtils.STANDARD_INPUT_LINE + "_GATK_CONTROL").getMetaValue().equals(options.getControlInputVcf().getAbsolutePath()) ); 			
-		assertTrue( header.firstMatchedRecord(VcfHeaderUtils.STANDARD_CONTROL_BAM ).getMetaValue().equals(options.getControlBam().getAbsolutePath()) );
-		assertTrue( header.firstMatchedRecord(VcfHeaderUtils.STANDARD_TEST_BAM ).getMetaValue().equals(options.getTestBam().getAbsolutePath()) );
-		assertTrue( header.firstMatchedRecord(VcfHeaderUtils.STANDARD_ANALYSIS_ID).getMetaValue().equals(options.getAnalysisId()) );
+        assertEquals(header.getSampleId()[0], test_bam.getName().replaceAll("(?i).bam", ""));
+        assertEquals(header.getSampleId()[1], test_bam.getName().replaceAll("(?i).bam", ""));
+        assertEquals(header.firstMatchedRecord(VcfHeaderUtils.STANDARD_DONOR_ID).getMetaValue(), options.getDonorId());
+        assertEquals(header.firstMatchedRecord(VcfHeaderUtils.STANDARD_CONTROL_SAMPLE).getMetaValue(), options.getControlSample());
+        assertEquals(header.firstMatchedRecord(VcfHeaderUtils.STANDARD_TEST_SAMPLE).getMetaValue(), options.getTestSample());
+        assertEquals(header.firstMatchedRecord(VcfHeaderUtils.STANDARD_INPUT_LINE + "_GATK_TEST").getMetaValue(), options.getTestInputVcf().getAbsolutePath());
+        assertEquals(header.firstMatchedRecord(VcfHeaderUtils.STANDARD_INPUT_LINE + "_GATK_CONTROL").getMetaValue(), options.getControlInputVcf().getAbsolutePath());
+        assertEquals(header.firstMatchedRecord(VcfHeaderUtils.STANDARD_CONTROL_BAM).getMetaValue(), options.getControlBam().getAbsolutePath());
+        assertEquals(header.firstMatchedRecord(VcfHeaderUtils.STANDARD_TEST_BAM).getMetaValue(), options.getTestBam().getAbsolutePath());
+        assertEquals(header.firstMatchedRecord(VcfHeaderUtils.STANDARD_ANALYSIS_ID).getMetaValue(), options.getAnalysisId());
 	}
 	
 	public static void createDelBam( File output) throws IOException {

@@ -1,8 +1,5 @@
 package au.edu.qimr.indel.pileup;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -18,6 +15,8 @@ import org.qcmg.qio.vcf.VcfFileReader;
 
 import au.edu.qimr.indel.IniFileTest;
 import au.edu.qimr.indel.Support;
+
+import static org.junit.Assert.*;
 
 public class QFlagTest {
 	
@@ -67,14 +66,14 @@ public class QFlagTest {
 		 
 		//gemline since control 100% supporting even only one record	
 		try (VcfFileReader reader = new VcfFileReader(outputVcfFile)){ 
-			for (VcfRecord re : reader) {				
-				assertTrue(re.getSampleFormatRecord(2).getField("ACINDEL").equals("2,12,11,3[1,2],4[3],2,4,4"));
-				assertTrue(re.getSampleFormatRecord(1).getField("ACINDEL").equals("0,1,1,0[0,0],1[1],0,0,1"));
+			for (VcfRecord re : reader) {
+                assertEquals("2,12,11,3[1,2],4[3],2,4,4", re.getSampleFormatRecord(2).getField("ACINDEL"));
+                assertEquals("0,1,1,0[0,0],1[1],0,0,1", re.getSampleFormatRecord(1).getField("ACINDEL"));
 				
 				//germline reads
-				assertFalse(re.getInfo().contains("SOMATIC"));					
-				assertTrue(re.getInfoRecord().getField(IndelUtils.INFO_NIOC).equals("0"));
-				assertTrue(re.getInfoRecord().getField(IndelUtils.INFO_SSOI).equals("0"));
+				assertFalse(re.getInfo().contains("SOMATIC"));
+                assertEquals("0", re.getInfoRecord().getField(IndelUtils.INFO_NIOC));
+                assertEquals("0", re.getInfoRecord().getField(IndelUtils.INFO_SSOI));
 								
 				assertTrue(re.getFilter().contains("COVN8"));						
 				assertFalse(re.getFilter().contains("MIN"));	
@@ -98,13 +97,13 @@ public class QFlagTest {
 		Support.createBam(data, control_bam);
 		Support.runQ3IndelNoHom( ini.getAbsolutePath());	
 		try (VcfFileReader reader = new VcfFileReader(outputVcfFile)){ 
-			for (VcfRecord re : reader) {				
-				assertTrue(re.getSampleFormatRecord(2).getField("ACINDEL").equals("2,12,11,3[1,2],4[3],2,4,4"));
-				assertTrue(re.getSampleFormatRecord(1).getField("ACINDEL").equals("0,7,7,0[0,0],1[1],6,0,4"));
+			for (VcfRecord re : reader) {
+                assertEquals("2,12,11,3[1,2],4[3],2,4,4", re.getSampleFormatRecord(2).getField("ACINDEL"));
+                assertEquals("0,7,7,0[0,0],1[1],6,0,4", re.getSampleFormatRecord(1).getField("ACINDEL"));
 				//somatic reads
-				assertTrue(re.getInfo().contains("SOMATIC"));				
-				assertTrue(re.getInfoRecord().getField(IndelUtils.INFO_NIOC).equals("0.333"));
-				assertTrue(re.getInfoRecord().getField(IndelUtils.INFO_SSOI).equals("0.273"));
+				assertTrue(re.getInfo().contains("SOMATIC"));
+                assertEquals("0.333", re.getInfoRecord().getField(IndelUtils.INFO_NIOC));
+                assertEquals("0.273", re.getInfoRecord().getField(IndelUtils.INFO_SSOI));
 				
 				assertFalse(re.getFilter().contains("COVN8"));	
 				assertTrue(re.getFilter().contains("MIN"));	

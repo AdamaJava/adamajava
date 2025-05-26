@@ -5,7 +5,6 @@ import static org.junit.Assert.*;
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMRecord;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,7 +20,7 @@ public class IndelPileupTest {
 	QLogger logger = QLoggerFactory.getLogger(IndelPileupTest.class);
 		
 	@Test
-	public void insertTest() throws Exception{		 
+	public void insertTest() {
         //pileup
 		List<VcfRecord> vcfs = new ArrayList<>();
 		vcfs.add(new VcfRecord.Builder("chr1",	183014,	"G").allele("GTT").build());
@@ -33,27 +32,27 @@ public class IndelPileupTest {
 		pileup.pileup(pool);
 	 		
 		//assert first insertion vcf
-        assertTrue(pileup.getInformativeCount() == 3);
-        assertTrue(pileup.getSupportReadCount(0) == 1); 
-        assertTrue(pileup.getPartialReadCount(0) == 1);
-        assertTrue(pileup.getSupportNovelStartReadCount(0) == 1);   
+        assertEquals(3, pileup.getInformativeCount());
+        assertEquals(1, pileup.getSupportReadCount(0));
+        assertEquals(1, pileup.getPartialReadCount(0));
+        assertEquals(1, pileup.getSupportNovelStartReadCount(0));
          // 4 events supporting reads (one INS three snps) won't count as strong supporting
-        assertTrue(pileup.getStrongSupportReadCount(0) == 0);        
+        assertEquals(0, pileup.getStrongSupportReadCount(0));
         //novelStrats for strong supporting
-        assertTrue(pileup.getStrongSupportNovelStartReadCount(0) == 0);
+        assertEquals(0, pileup.getStrongSupportNovelStartReadCount(0));
             
         //assert second insertion vcf
-        assertTrue(pileup.getInformativeCount() == 3);
-        assertTrue(pileup.getSupportReadCount(1) == 1); 
-        assertTrue(pileup.getSupportNovelStartReadCount(1) == 1);
-        assertTrue(pileup.getPartialReadCount(1) == 1); 	        
-        //MD:Z:23G38T0C57  adjacant snps count as one, so one snp, one mnp and one INS, total 3 events
+        assertEquals(3, pileup.getInformativeCount());
+        assertEquals(1, pileup.getSupportReadCount(1));
+        assertEquals(1, pileup.getSupportNovelStartReadCount(1));
+        assertEquals(1, pileup.getPartialReadCount(1));
+        //MD:Z:23G38T0C57  adjacent snps count as one, so one snp, one mnp and one INS, total 3 events
         assertEquals(1, pileup.getStrongSupportReadCount(1));
-        assertTrue(pileup.getStrongSupportNovelStartReadCount(1) == 1);
+        assertEquals(1, pileup.getStrongSupportNovelStartReadCount(1));
 	}	
 	
 	@Test
-	public void deleteTest() throws Exception{
+	public void deleteTest() {
  		//get delete indel
 		VcfRecord vs = new VcfRecord.Builder("chr1", 197, "CAG").allele("C").build();				 
 		IndelPosition indel = new IndelPosition (vs);
@@ -61,20 +60,20 @@ public class IndelPileupTest {
 		List<SAMRecord> pool = makePool(indel.getEnd());
         IndelPileup pileup = new IndelPileup( indel, 13, 3,3); 	
         pileup.pileup(pool);
-                
-        assertTrue(pileup.getmotif(0).equals("AG"));
-        assertTrue(pileup.getInformativeCount() == 2);
-        assertTrue(pileup.getSupportReadCount(0) == 2); 
-        assertTrue(pileup.getPartialReadCount(0) == 0); 	        
+
+        assertEquals("AG", pileup.getmotif(0));
+        assertEquals(2, pileup.getInformativeCount());
+        assertEquals(2, pileup.getSupportReadCount(0));
+        assertEquals(0, pileup.getPartialReadCount(0));
         // 3 events: cigar 130M1I3M2D17M and MD:Z:11G0T121^AG17
         //8 events: cigar 131M2D20M and MD:Z:47A1G1A1C2C1G1C70^AG20
-        assertTrue(pileup.getStrongSupportReadCount(0) == 1);  
-        assertTrue(pileup.getSupportNovelStartReadCount(0)  == 2);
-        assertTrue(pileup.getStrongSupportNovelStartReadCount(0) == 1);
+        assertEquals(1, pileup.getStrongSupportReadCount(0));
+        assertEquals(2, pileup.getSupportNovelStartReadCount(0));
+        assertEquals(1, pileup.getStrongSupportNovelStartReadCount(0));
 	}
 	
 	@Test
-	public void nearbySoftTest() throws Exception{
+	public void nearbySoftTest() {
 		
 		VcfRecord vs = new VcfRecord.Builder("chrX", 150936181, "GTGTGT").allele("G").build();				 
 		IndelPosition indel = new IndelPosition (vs);
@@ -82,7 +81,7 @@ public class IndelPileupTest {
         
 		List<SAMRecord> pool = new ArrayList<>();	
 		pool.add(new SAMRecord(null ));		
-		SAMRecord record = pool.get(0);		
+		SAMRecord record = pool.getFirst();
 		
 		//no soft clip, even hord clip inside window
 		record.setReferenceName("chrX");
@@ -90,23 +89,23 @@ public class IndelPileupTest {
 		record.setReadString("AAAAAAAAATTTTTTTTTTGGGGGGGGGGCCCCCCCCCCAAAAAAAAAA"); 
 		record.setCigarString("96H45M9H");
 		record.setFlags(2227);
-        pileup.pileup(pool);       
-        assertTrue(pileup.getNearybySoftclipCount() == 0);
+        pileup.pileup(pool);
+        assertEquals(0, pileup.getNearybySoftclipCount());
  
         //right soft clip inside window
 		record.setCigarString("96H45M9S");		 
 		pileup.pileup(pool);
-		assertTrue(pileup.getNearybySoftclipCount() == 1);
+        assertEquals(1, pileup.getNearybySoftclipCount());
 		
 		//both side of soft clip are inside window
 		record.setAlignmentStart(150936172);		
 		record.setCigarString("96S4M9S");
 		pileup.pileup(pool);
-		assertTrue(pileup.getNearybySoftclipCount() == 1);
+        assertEquals(1, pileup.getNearybySoftclipCount());
 	}
 
 	@Test
-	public void bigDelTest() throws Exception{
+	public void bigDelTest() {
 		
 		VcfRecord vs = new VcfRecord.Builder("chrX", 150936181, "GTGTGTTTTTTTTTTTTTTTTTTTTTTTTTTTTT").allele("G").build();				 
 		IndelPosition indel = new IndelPosition (vs);
@@ -114,7 +113,7 @@ public class IndelPileupTest {
         
 		List<SAMRecord> pool = new ArrayList<>();	
 		pool.add(new SAMRecord(null ));		
-		SAMRecord record = pool.get(0);		
+		SAMRecord record = pool.getFirst();
 		
 		//two deletion happen inside indel region
 		record.setReferenceName("chrX");
@@ -123,13 +122,13 @@ public class IndelPileupTest {
 		record.setCigarString("26M5D2M1D22M");
 		record.setFlags(2227);
 				
-        pileup.pileup(pool);   
-        assertTrue(pileup.getNearbyIndelCount() == 0);
-        assertTrue(pileup.getSupportReadCount(0) == 0);
-        assertTrue(pileup.getPartialReadCount(0) == 1);
+        pileup.pileup(pool);
+        assertEquals(0, pileup.getNearbyIndelCount());
+        assertEquals(0, pileup.getSupportReadCount(0));
+        assertEquals(1, pileup.getPartialReadCount(0));
 	}
 	 
-	private List<SAMRecord> makePool(int indelEnd) throws IOException{
+	private List<SAMRecord> makePool(int indelEnd) {
 		List<SAMRecord> pool = new ArrayList<>();				
 		
 		pool.add(createSamRec("1997_1173_1256	99	chr1	183011	60	112M1D39M	=	183351	491	" + 

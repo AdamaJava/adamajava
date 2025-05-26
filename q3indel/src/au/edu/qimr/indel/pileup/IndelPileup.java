@@ -113,7 +113,7 @@ public class IndelPileup {
 			for (CigarElement ce : cigar.getCigarElements()) { 	
 				//insertion only one base, eg, start = 100; end = 101
 				if (CigarOperator.I == ce.getOperator()) {
-					//check whether it is supporting or partical indel
+					//check whether it is supporting or partial indel
 					//if(refPos == indelStart ){
 					if (refPos >= indelStart && refPos <= indelEnd) { 
 						if (type.equals(SVTYPE.DEL) ) {
@@ -122,7 +122,7 @@ public class IndelPileup {
 							support = true; // refPos==indelStart=indelEnd
 						}
 					} else if (refPos > windowStart && refPos < windowEnd) { 
-						nearby = true;  //nearby insertion overlap the window
+						nearby = true;  //nearby insertion overlaps the window
 					}
 				} else if ( CigarOperator.D == ce.getOperator()) { 
 					//deletion overlaps variants, full/part supporting reads
@@ -133,7 +133,7 @@ public class IndelPileup {
 						//indel chock have base on both side of indel region
 						|| (refPos <= indelStart && refPos + ce.getLength() - 1 >= indelEnd)) { 
 						if (type.equals(SVTYPE.INS)) { 
-							nearby = true;		//nearyby deletion
+							nearby = true;		//nearby deletion
 						} else { 
 							support = true; // supporting or partial
 						} 
@@ -163,7 +163,7 @@ public class IndelPileup {
 		
 		this.nearbyIndel = count; 
 			
-		// all nearby/faraway indle reads are removed
+		// all nearby/faraway indel reads are removed
 		return regionPool; 	
 	}
 	
@@ -191,7 +191,7 @@ public class IndelPileup {
 			Cigar cigar = re.getCigar();
 			for (CigarElement ce : cigar.getCigarElements()) { 
 				if (CigarOperator.I == ce.getOperator() && (refPos == indelEnd && type.equals(SVTYPE.INS))) {
-					//if insert rePos go next cigar block after cigar.I, which is indel end position			 	 			 		 	
+					//if insert rePos go next cigar block after cigar. I, which is indel end position
 			 		if (ce.getLength() != motif.length()) { 
 			 			partialflag = true;
 			 		} else { 

@@ -109,9 +109,9 @@ public class Options {
 			controlVcf = getIOFromIni(iniFile, INI_SEC_IOS, "controlVcf");					 			
 		} else if (runMode.equalsIgnoreCase(RUNMODE_DEFAULT)) {
 			String[] inputs = iniFile.get(INI_SEC_IOS).getAll("inputVcf",String[].class);
-			for (int i = 0; i < inputs.length; i ++) {
-				pindelVcfs.add(new File(inputs[i]));
-			}				
+            for (String input : inputs) {
+                pindelVcfs.add(new File(input));
+            }
 		}
 		
 		nearbyIndelWindow = Integer.parseInt( iniFile.fetch(INI_SEC_PARAM, "window.nearbyIndel"));
@@ -140,7 +140,7 @@ public class Options {
 		}
 		
 		String f = ini.fetch(parent, child);
-		if ( StringUtils.isNullOrEmpty(f) || f.toLowerCase().equals("null")) {
+		if ( StringUtils.isNullOrEmpty(f) || f.equalsIgnoreCase("null")) {
 			return null; 
 		}
 					
@@ -236,14 +236,14 @@ public class Options {
 				throw new Q3IndelException("FILE_EXISTS_ERROR","(control gatk vcf) " + controlVcf.getAbsolutePath());
 			}
 		} else if (RUNMODE_DEFAULT.equalsIgnoreCase(runMode)) { 
-			if (pindelVcfs.size() == 0) {
+			if (pindelVcfs.isEmpty()) {
 				throw new Q3IndelException("INPUT_OPTION_ERROR","(pindel input vcf) not specified" );
 			}
-			for (int i = 0; i < pindelVcfs.size(); i ++) {
-				if ( pindelVcfs.get(i) != null && ! pindelVcfs.get(i).exists()) {  
-					throw new Q3IndelException("FILE_EXISTS_ERROR","(control indel vcf) " + pindelVcfs.get(i).getAbsolutePath());
-				}
-			}
+            for (File pindelVcf : pindelVcfs) {
+                if (pindelVcf != null && !pindelVcf.exists()) {
+                    throw new Q3IndelException("FILE_EXISTS_ERROR", "(control indel vcf) " + pindelVcf.getAbsolutePath());
+                }
+            }
 		} else {
 			throw new Q3IndelException("UNKNOWN_RUNMODE_ERROR", runMode);			
 		}			

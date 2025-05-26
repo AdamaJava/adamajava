@@ -1,6 +1,7 @@
 package au.edu.qimr.indel;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import htsjdk.samtools.SAMFileWriter;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SamReader;
@@ -34,13 +35,13 @@ public class Support {
         try( BufferedWriter out = new BufferedWriter(new FileWriter(tmp))) {	           
            for (String line : data)   out.write(line + "\n");	
         }catch(IOException e){
-        	System.err.println( Q3IndelException.getStrackTrace(e));	 	        	 
-        	assertTrue(false);
+        	System.err.println( Q3IndelException.getStrackTrace(e));
+            fail();
         }
 		 	
-		try(SamReader reader = SAMFileReaderFactory.createSAMFileReader(tmp);){		
+		try(SamReader reader = SAMFileReaderFactory.createSAMFileReader(tmp)){
 			SAMWriterFactory factory = new  SAMWriterFactory(reader.getFileHeader() ,false, output);			
-			try(SAMFileWriter writer = factory.getWriter();) {
+			try(SAMFileWriter writer = factory.getWriter()) {
 				for( SAMRecord record : reader) writer.addAlignment(record);				
 			}
 			factory.renameIndex();	 //try already closed writer	 

@@ -1,7 +1,6 @@
 package au.edu.qimr.indel.pileup;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
@@ -52,7 +51,7 @@ public class SingleModeTest {
 			 for (VcfRecord re : reader) { 											
 				if(re.getChromosome().equals("chrY")){
 					assertEquals(".", re.getSampleFormatRecord(2).getField("ACINDEL"));
-					assertTrue(re.getSampleFormatRecord(1).getField("ACINDEL").equals("1,1,1,1[1,0],1[1],0,0,1") );
+                    assertEquals("1,1,1,1[1,0],1[1],0,0,1", re.getSampleFormatRecord(1).getField("ACINDEL"));
 				}
 			}
 		}	
@@ -70,8 +69,8 @@ public class SingleModeTest {
 		 try (VcfFileReader reader = new VcfFileReader(outputVcfFile)) {				 
 			 for (VcfRecord re : reader)  											
 				if(re.getChromosome().equals("chrY")){
-					assertTrue(re.getSampleFormatRecord(1).getField("ACINDEL").equals(".") );
-					assertTrue(re.getSampleFormatRecord(2).getField("ACINDEL").equals("1,1,1,1[1,0],1[1],0,0,1") );
+                    assertEquals(".", re.getSampleFormatRecord(1).getField("ACINDEL"));
+                    assertEquals("1,1,1,1[1,0],1[1],0,0,1", re.getSampleFormatRecord(2).getField("ACINDEL"));
 				}
 		}	
 	}
