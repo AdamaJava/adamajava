@@ -41,12 +41,9 @@ public class SigMeta {
 		if (mappingQ != other.mappingQ)
 			return false;
 		if (md5sum == null) {
-			if (other.md5sum != null)
-				return false;
-		} else if (!md5sum.equals(other.md5sum))
-			return false;
-		return true;
-	}
+            return other.md5sum == null;
+		} else return md5sum.equals(other.md5sum);
+    }
 
 	@Override
 	public String toString() {
@@ -55,7 +52,7 @@ public class SigMeta {
 	}
 	
 	public boolean isValid() {
-		return md5sum != null && md5sum.length() > 0;
+		return md5sum != null && !md5sum.isEmpty();
 	}
 	
 	/**

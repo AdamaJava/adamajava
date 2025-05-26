@@ -95,7 +95,7 @@ public class GenerateTest {
 		sam.setMappingQuality(60);
 		sam.setCigarString("24M4D76M");
 		String rgId = null != sam.getReadGroup() ? sam.getReadGroup().getId() : null;
-		assertEquals(null, rgId);
+        assertNull(rgId);
 		assertEquals(0, rgIds.get(rgId));
 	}
 	
@@ -150,7 +150,7 @@ public class GenerateTest {
 		/*
 		 * will be null as the RG needs to be set on the record and also exist in the header
 		 */
-		assertEquals(null, rgId);
+        assertNull(rgId);
 		assertEquals(0, rgIds.get(rgId));
 	}
 	
@@ -193,7 +193,7 @@ public class GenerateTest {
     	final File outputFile = new File(outputFIleName);
 	    	
 	    SignatureGeneratorTest.writeSnpPositionsFile(positionsOfInterestFile);
-	    SignatureGeneratorTest.getBamFile(bamFile, true, true);
+	    SignatureGeneratorTest.getBamFile(bamFile);
 	    	
     	final int exitStatus = qss.setup(new String[] {"--log" , logFile.getAbsolutePath(), "-snpPositions" , positionsOfInterestFile.getAbsolutePath(), "-i" , bamFile.getAbsolutePath()} );
     	assertEquals(0, exitStatus);
@@ -201,7 +201,7 @@ public class GenerateTest {
     	assertTrue(outputFile.exists());
    	
     	final List<VcfRecord> recs = new ArrayList<>();
-    	try (VcfFileReader reader = new VcfFileReader(outputFile);) {
+    	try (VcfFileReader reader = new VcfFileReader(outputFile)) {
     		/*
 			 * get md5sum
 			 */
@@ -209,11 +209,11 @@ public class GenerateTest {
 			
 	    	for (final VcfRecord rec : reader) {
 	    		recs.add(rec);
-	    		assertEquals(true, rec.getRef().equals("A") || rec.getRef().equals("C") ||rec.getRef().equals("G") || rec.getRef().equals("T"));
-	    		System.out.print("rec: " + rec.toString());
+                assertTrue(rec.getRef().equals("A") || rec.getRef().equals("C") || rec.getRef().equals("G") || rec.getRef().equals("T"));
+	    		System.out.print("rec: " + rec);
 	    	}
 	    	VcfHeader header = reader.getVcfHeader();
-	    	assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg0=null")));
+            assertTrue(header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg0=null")));
     	}
        	
     	assertEquals(7, recs.size());
@@ -235,7 +235,7 @@ public class GenerateTest {
 		final File outputFile = new File(outputFIleName);
 		
 		SignatureGeneratorTest.writeSnpPositionsFile(positionsOfInterestFile);
-		SignatureGeneratorTest.getBamFile(bamFile, true, true);
+		SignatureGeneratorTest.getBamFile(bamFile);
 		
 		final int exitStatus = qss.setup(new String[] {"--log" , logFile.getAbsolutePath(), "-snpPositions" , positionsOfInterestFile.getAbsolutePath(), "-i" , bamFile.getAbsolutePath(), "--stream"} );
 		assertEquals(0, exitStatus);
@@ -243,7 +243,7 @@ public class GenerateTest {
 		assertTrue(outputFile.exists());
 		
 		final List<VcfRecord> recs = new ArrayList<>();
-		try (VcfFileReader reader = new VcfFileReader(outputFile);) {
+		try (VcfFileReader reader = new VcfFileReader(outputFile)) {
 			/*
 			 * get md5sum
 			 */
@@ -251,11 +251,11 @@ public class GenerateTest {
 			
 			for (final VcfRecord rec : reader) {
 				recs.add(rec);
-				assertEquals(true, rec.getRef().equals("A") || rec.getRef().equals("C") ||rec.getRef().equals("G") || rec.getRef().equals("T"));
-				System.out.print("rec: " + rec.toString());
+                assertTrue(rec.getRef().equals("A") || rec.getRef().equals("C") || rec.getRef().equals("G") || rec.getRef().equals("T"));
+				System.out.print("rec: " + rec);
 			}
 			VcfHeader header = reader.getVcfHeader();
-			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg0=null")));
+            assertTrue(header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg0=null")));
 		}
 		
 		assertEquals(7, recs.size());
@@ -277,7 +277,7 @@ public class GenerateTest {
 		final File outputFile = new File(outputFIleName);
 		
 		SignatureGeneratorTest.writeSnpPositionsVcf(positionsOfInterestFile);
-		SignatureGeneratorTest.getBamFile(bamFile, true, true);
+		SignatureGeneratorTest.getBamFile(bamFile);
 		
 		final int exitStatus = qss.setup(new String[] {"--log" , logFile.getAbsolutePath(), "-snpPositions" , positionsOfInterestFile.getAbsolutePath(), "-i" , bamFile.getAbsolutePath()} );
 		assertEquals(0, exitStatus);
@@ -285,7 +285,7 @@ public class GenerateTest {
 		assertTrue(outputFile.exists());
 		
 		final List<VcfRecord> recs = new ArrayList<>();
-		try (VcfFileReader reader = new VcfFileReader(outputFile);) {
+		try (VcfFileReader reader = new VcfFileReader(outputFile)) {
 			/*
 			 * get md5sum
 			 */
@@ -293,10 +293,10 @@ public class GenerateTest {
 			
 			for (final VcfRecord rec : reader) {
 				recs.add(rec);
-				assertEquals(true, rec.getRef().equals("A") || rec.getRef().equals("C") ||rec.getRef().equals("G") || rec.getRef().equals("T"));
+                assertTrue(rec.getRef().equals("A") || rec.getRef().equals("C") || rec.getRef().equals("G") || rec.getRef().equals("T"));
 			}
 			VcfHeader header = reader.getVcfHeader();
-			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg0=null")));
+            assertTrue(header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg0=null")));
 		}
 		
 		assertEquals(7, recs.size());
@@ -318,7 +318,7 @@ public class GenerateTest {
 		final File outputFile = new File(outputFIleName);
 		
 		SignatureGeneratorTest.writeSnpPositionsVcf(positionsOfInterestFile);
-		SignatureGeneratorTest.getBamFile(bamFile, true, true);
+		SignatureGeneratorTest.getBamFile(bamFile);
 		
 		final int exitStatus = qss.setup(new String[] {"--log" , logFile.getAbsolutePath(), "-snpPositions" , positionsOfInterestFile.getAbsolutePath(), "-i" , bamFile.getAbsolutePath(), "--stream"} );
 		assertEquals(0, exitStatus);
@@ -326,7 +326,7 @@ public class GenerateTest {
 		assertTrue(outputFile.exists());
 		
 		final List<VcfRecord> recs = new ArrayList<>();
-		try (VcfFileReader reader = new VcfFileReader(outputFile);) {
+		try (VcfFileReader reader = new VcfFileReader(outputFile)) {
 			/*
 			 * get md5sum
 			 */
@@ -334,10 +334,10 @@ public class GenerateTest {
 			
 			for (final VcfRecord rec : reader) {
 				recs.add(rec);
-				assertEquals(true, rec.getRef().equals("A") || rec.getRef().equals("C") ||rec.getRef().equals("G") || rec.getRef().equals("T"));
+                assertTrue(rec.getRef().equals("A") || rec.getRef().equals("C") || rec.getRef().equals("G") || rec.getRef().equals("T"));
 			}
 			VcfHeader header = reader.getVcfHeader();
-			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg0=null")));
+            assertTrue(header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg0=null")));
 		}
 		
 		assertEquals(7, recs.size());
@@ -369,7 +369,7 @@ public class GenerateTest {
 		assertTrue(outputFile.exists());
 		
 		final List<VcfRecord> recs = new ArrayList<>();
-		try (VcfFileReader reader = new VcfFileReader(outputFile);) {
+		try (VcfFileReader reader = new VcfFileReader(outputFile)) {
 			/*
 			 * get md5sum
 			 */
@@ -377,10 +377,10 @@ public class GenerateTest {
 			
 			for (final VcfRecord rec : reader) {
 				recs.add(rec);
-				assertEquals(true, rec.getRef().equals("A") || rec.getRef().equals("C") ||rec.getRef().equals("G") || rec.getRef().equals("T"));
+                assertTrue(rec.getRef().equals("A") || rec.getRef().equals("C") || rec.getRef().equals("G") || rec.getRef().equals("T"));
 			}
 			VcfHeader header = reader.getVcfHeader();
-			assertEquals(false, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg0=null")));	// no rgs in snp chips
+            assertFalse(header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg0=null")));	// no rgs in snp chips
 		}	
 		
 		assertEquals(3, recs.size());
@@ -408,7 +408,7 @@ public class GenerateTest {
 		assertTrue(outputFile.exists());
 		
 		final List<VcfRecord> recs = new ArrayList<>();
-		try (VcfFileReader reader = new VcfFileReader(outputFile);) {
+		try (VcfFileReader reader = new VcfFileReader(outputFile)) {
 			/*
 			 * get md5sum
 			 */
@@ -416,10 +416,10 @@ public class GenerateTest {
 			
 			for (final VcfRecord rec : reader) {
 				recs.add(rec);
-				assertEquals(true, rec.getRef().equals("A") || rec.getRef().equals("C") ||rec.getRef().equals("G") || rec.getRef().equals("T"));
+                assertTrue(rec.getRef().equals("A") || rec.getRef().equals("C") || rec.getRef().equals("G") || rec.getRef().equals("T"));
 			}
 			VcfHeader header = reader.getVcfHeader();
-			assertEquals(false, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg0=null")));	// no rgs in snp chips
+            assertFalse(header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg0=null")));	// no rgs in snp chips
 		}	
 		
 		assertEquals(3, recs.size());
@@ -438,7 +438,7 @@ public class GenerateTest {
 		
 		//    	writeSnpChipFile(snpChipFile);
 		SignatureGeneratorTest.writeSnpPositionsVcf(positionsOfInterestFile);
-		SignatureGeneratorTest.getBamFile(bamFile, true, true);
+		SignatureGeneratorTest.getBamFile(bamFile);
 		
 		final int exitStatus = qss.setup(new String[] {"--log" , logFile.getAbsolutePath(), "-snpPositions" , positionsOfInterestFile.getAbsolutePath(), "-i" , bamFile.getAbsolutePath()} );
 		assertEquals(0, exitStatus);
@@ -446,7 +446,7 @@ public class GenerateTest {
 		assertTrue(outputFile.exists());
 		
 		final List<VcfRecord> recs = new ArrayList<>();
-		try (VcfFileReader reader = new VcfFileReader(outputFile);) {
+		try (VcfFileReader reader = new VcfFileReader(outputFile)) {
 			/*
 			 * get md5sum
 			 */
@@ -455,10 +455,10 @@ public class GenerateTest {
 			for (final VcfRecord rec : reader) {
 				recs.add(rec);
 				System.out.print("rec: " + rec.toString());
-				assertEquals(true, rec.getRef().equals("A") || rec.getRef().equals("C") ||rec.getRef().equals("G") || rec.getRef().equals("T"));
+                assertTrue(rec.getRef().equals("A") || rec.getRef().equals("C") || rec.getRef().equals("G") || rec.getRef().equals("T"));
 			}
 			VcfHeader header = reader.getVcfHeader();
-			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg0=null")));
+            assertTrue(header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg0=null")));
 		}
 		
 		assertEquals(7, recs.size());
@@ -481,7 +481,7 @@ public class GenerateTest {
 		
 		//    	writeSnpChipFile(snpChipFile);
 		SignatureGeneratorTest.writeSnpPositionsVcf(positionsOfInterestFile);
-		SignatureGeneratorTest.getBamFile(bamFile, true, true);
+		SignatureGeneratorTest.getBamFile(bamFile);
 		
 		final int exitStatus = qss.setup(new String[] {"--log" , logFile.getAbsolutePath(), "-snpPositions" , positionsOfInterestFile.getAbsolutePath(), "-i" , bamFile.getAbsolutePath(), "--stream"} );
 		assertEquals(0, exitStatus);
@@ -489,7 +489,7 @@ public class GenerateTest {
 		assertTrue(outputFile.exists());
 		
 		final List<VcfRecord> recs = new ArrayList<>();
-		try (VcfFileReader reader = new VcfFileReader(outputFile);) {
+		try (VcfFileReader reader = new VcfFileReader(outputFile)) {
 			/*
 			 * get md5sum
 			 */
@@ -498,10 +498,10 @@ public class GenerateTest {
 			for (final VcfRecord rec : reader) {
 				recs.add(rec);
 				System.out.print("rec: " + rec.toString());
-				assertEquals(true, rec.getRef().equals("A") || rec.getRef().equals("C") ||rec.getRef().equals("G") || rec.getRef().equals("T"));
+                assertTrue(rec.getRef().equals("A") || rec.getRef().equals("C") || rec.getRef().equals("G") || rec.getRef().equals("T"));
 			}
 			VcfHeader header = reader.getVcfHeader();
-			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg0=null")));
+            assertTrue(header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg0=null")));
 		}
 		
 		assertEquals(7, recs.size());
@@ -523,7 +523,7 @@ public class GenerateTest {
 		final File outputFile = new File(outputFIleName);
 		
 		SignatureGeneratorTest.writeSnpPositionsFile(positionsOfInterestFile);
-		SignatureGeneratorTest.getBamFile(bamFile, true, true, true);
+		SignatureGeneratorTest.getBamFile(bamFile, true);
 		
 		final int exitStatus = qss.setup(new String[] {"--log" , logFile.getAbsolutePath(), "-snpPositions" , positionsOfInterestFile.getAbsolutePath(), "-i" , bamFile.getAbsolutePath()} );
 		assertEquals(0, exitStatus);
@@ -531,7 +531,7 @@ public class GenerateTest {
 		assertTrue(outputFile.exists());
 		
 		final List<VcfRecord> recs = new ArrayList<>();
-		try (VcfFileReader reader = new VcfFileReader(outputFile);) {
+		try (VcfFileReader reader = new VcfFileReader(outputFile)) {
 			/*
 			 * get md5sum
 			 */
@@ -539,13 +539,13 @@ public class GenerateTest {
 			
 			for (final VcfRecord rec : reader) {
 				recs.add(rec);
-				assertEquals(true, rec.getRef().equals("A") || rec.getRef().equals("C") ||rec.getRef().equals("G") || rec.getRef().equals("T"));
+                assertTrue(rec.getRef().equals("A") || rec.getRef().equals("C") || rec.getRef().equals("G") || rec.getRef().equals("T"));
 			}
 			VcfHeader header = reader.getVcfHeader();
-			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg0=null")));
-			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg1=20130325103517169")));
-			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg2=20130325112045146")));
-			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg3=20130325084856212")));
+            assertTrue(header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg0=null")));
+            assertTrue(header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg1=20130325103517169")));
+            assertTrue(header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg2=20130325112045146")));
+            assertTrue(header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg3=20130325084856212")));
 		}
 		
 		assertEquals(7, recs.size());
@@ -567,7 +567,7 @@ public class GenerateTest {
 		final File outputFile = new File(outputFIleName);
 		
 		SignatureGeneratorTest.writeSnpPositionsFile(positionsOfInterestFile);
-		SignatureGeneratorTest.getBamFile(bamFile, true, true, true);
+		SignatureGeneratorTest.getBamFile(bamFile, true);
 		
 		final int exitStatus = qss.setup(new String[] {"--log" , logFile.getAbsolutePath(), "-snpPositions" , positionsOfInterestFile.getAbsolutePath(), "-i" , bamFile.getAbsolutePath(), "--stream"} );
 		assertEquals(0, exitStatus);
@@ -575,7 +575,7 @@ public class GenerateTest {
 		assertTrue(outputFile.exists());
 		
 		final List<VcfRecord> recs = new ArrayList<>();
-		try (VcfFileReader reader = new VcfFileReader(outputFile);) {
+		try (VcfFileReader reader = new VcfFileReader(outputFile)) {
 			/*
 			 * get md5sum
 			 */
@@ -583,13 +583,13 @@ public class GenerateTest {
 			
 			for (final VcfRecord rec : reader) {
 				recs.add(rec);
-				assertEquals(true, rec.getRef().equals("A") || rec.getRef().equals("C") ||rec.getRef().equals("G") || rec.getRef().equals("T"));
+                assertTrue(rec.getRef().equals("A") || rec.getRef().equals("C") || rec.getRef().equals("G") || rec.getRef().equals("T"));
 			}
 			VcfHeader header = reader.getVcfHeader();
-			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg0=null")));
-			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg1=20130325103517169")));
-			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg2=20130325112045146")));
-			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg3=20130325084856212")));
+            assertTrue(header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg0=null")));
+            assertTrue(header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg1=20130325103517169")));
+            assertTrue(header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg2=20130325112045146")));
+            assertTrue(header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg3=20130325084856212")));
 		}
 		
 		assertEquals(7, recs.size());
@@ -611,7 +611,7 @@ public class GenerateTest {
 		final File outputFile = new File(outputFIleName);
 		
 		SignatureGeneratorTest.writeSnpPositionsVcf(positionsOfInterestFile);
-		SignatureGeneratorTest.getBamFile(bamFile, true, true, true);
+		SignatureGeneratorTest.getBamFile(bamFile, true);
 		
 		final int exitStatus = qss.setup(new String[] {"--log" , logFile.getAbsolutePath(), "-snpPositions" , positionsOfInterestFile.getAbsolutePath(), "-i" , bamFile.getAbsolutePath()} );
 		assertEquals(0, exitStatus);
@@ -619,7 +619,7 @@ public class GenerateTest {
 		assertTrue(outputFile.exists());
 		
 		final List<VcfRecord> recs = new ArrayList<>();
-		try (VcfFileReader reader = new VcfFileReader(outputFile);) {
+		try (VcfFileReader reader = new VcfFileReader(outputFile)) {
 			/*
 			 * get md5sum
 			 */
@@ -627,13 +627,13 @@ public class GenerateTest {
 			
 			for (final VcfRecord rec : reader) {
 				recs.add(rec);
-				assertEquals(true, rec.getRef().equals("A") || rec.getRef().equals("C") ||rec.getRef().equals("G") || rec.getRef().equals("T"));
+                assertTrue(rec.getRef().equals("A") || rec.getRef().equals("C") || rec.getRef().equals("G") || rec.getRef().equals("T"));
 			}
 			VcfHeader header = reader.getVcfHeader();
-			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg0=null")));
-			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg1=20130325103517169")));
-			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg2=20130325112045146")));
-			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg3=20130325084856212")));
+            assertTrue(header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg0=null")));
+            assertTrue(header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg1=20130325103517169")));
+            assertTrue(header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg2=20130325112045146")));
+            assertTrue(header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg3=20130325084856212")));
 		}
 		
 		assertEquals(7, recs.size());
@@ -655,7 +655,7 @@ public class GenerateTest {
 		final File outputFile = new File(outputFIleName);
 		
 		SignatureGeneratorTest.writeSnpPositionsVcf(positionsOfInterestFile);
-		SignatureGeneratorTest.getBamFile(bamFile, true, true, true);
+		SignatureGeneratorTest.getBamFile(bamFile, true);
 		
 		final int exitStatus = qss.setup(new String[] {"--log" , logFile.getAbsolutePath(), "-snpPositions" , positionsOfInterestFile.getAbsolutePath(), "-i" , bamFile.getAbsolutePath(), "--stream"} );
 		assertEquals(0, exitStatus);
@@ -663,7 +663,7 @@ public class GenerateTest {
 		assertTrue(outputFile.exists());
 		
 		final List<VcfRecord> recs = new ArrayList<>();
-		try (VcfFileReader reader = new VcfFileReader(outputFile);) {
+		try (VcfFileReader reader = new VcfFileReader(outputFile)) {
 			/*
 			 * get md5sum
 			 */
@@ -671,13 +671,13 @@ public class GenerateTest {
 			
 			for (final VcfRecord rec : reader) {
 				recs.add(rec);
-				assertEquals(true, rec.getRef().equals("A") || rec.getRef().equals("C") ||rec.getRef().equals("G") || rec.getRef().equals("T"));
+                assertTrue(rec.getRef().equals("A") || rec.getRef().equals("C") || rec.getRef().equals("G") || rec.getRef().equals("T"));
 			}
 			VcfHeader header = reader.getVcfHeader();
-			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg0=null")));
-			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg1=20130325103517169")));
-			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg2=20130325112045146")));
-			assertEquals(true, header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg3=20130325084856212")));
+            assertTrue(header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg0=null")));
+            assertTrue(header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg1=20130325103517169")));
+            assertTrue(header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg2=20130325112045146")));
+            assertTrue(header.getAllMetaRecords().contains(new VcfHeaderRecord("##rg3=20130325084856212")));
 		}
 		
 		assertEquals(7, recs.size());
@@ -776,7 +776,7 @@ public class GenerateTest {
 				"-i", bamFile.getAbsolutePath(),  
 				"-d", dir});
 		assertEquals(0, exitStatus);
-		assertEquals(true, new File(dir + File.separator + bamFile.getName() + ".qsig.vcf.gz").exists());
+        assertTrue(new File(dir + File.separator + bamFile.getName() + ".qsig.vcf.gz").exists());
 		assertTrue(new File(dir + File.separator + bamFile.getName() + ".qsig.vcf.gz").length() > 0);
 	}
 	
@@ -788,7 +788,7 @@ public class GenerateTest {
 		final File refFile = testFolder.newFile("runProcessWithGenePositionsOption.fa");
 		final File refIndexFile = testFolder.newFile("runProcessWithGenePositionsOption.fa.fai");
 		
-		SignatureGeneratorTest.writeGenePositionsFile(genesOfInterestFile, "chr1", 10, 1000);
+		SignatureGeneratorTest.writeGenePositionsFile(genesOfInterestFile, 10, 1000);
 		String dir = testFolder.newFolder("output_dir").getAbsolutePath();
 		try {
 			/*
@@ -802,7 +802,7 @@ public class GenerateTest {
 		} catch (QSignatureException e) {}
 		
 		setupReferenceFile(refFile, refIndexFile);
-		SignatureGeneratorTest.getBamFile(bamFile, true, true, true);
+		SignatureGeneratorTest.getBamFile(bamFile, true);
 		
 		int exitStatus = qss.setup(new String[] {"--log", logFile.getAbsolutePath(), 
 				"-genePositions", genesOfInterestFile.getAbsolutePath(), 
@@ -811,9 +811,9 @@ public class GenerateTest {
 				"-d", dir} );
 		assertEquals(0, exitStatus);
 		String name = dir + File.separator + bamFile.getName() + ".qsig.vcf.gz";
-		assertEquals(true, new File(name).exists());
+        assertTrue(new File(name).exists());
 		assertTrue(new File(name).length() > 0);
-		try (VcfFileReader reader = new VcfFileReader(new File(name));) {
+		try (VcfFileReader reader = new VcfFileReader(new File(name))) {
 			/*
 			 * get md5sum
 			 */
@@ -834,11 +834,11 @@ public class GenerateTest {
 		final File refFile = testFolder.newFile("runProcessWithGenePositionsOptioNoOverlap.fa");
 		final File refIndexFile = testFolder.newFile("runProcessWithGenePositionsOptioNoOverlap.fa.fai");
 		
-		SignatureGeneratorTest.writeGenePositionsFile(genesOfInterestFile, "chr1", 10000, 12000);
+		SignatureGeneratorTest.writeGenePositionsFile(genesOfInterestFile, 10000, 12000);
 		String dir = testFolder.newFolder("output_dir").getAbsolutePath();
 		
 		setupReferenceFile(refFile, refIndexFile);
-		SignatureGeneratorTest.getBamFile(bamFile, true, true, true);
+		SignatureGeneratorTest.getBamFile(bamFile, true);
 		
 		int exitStatus = qss.setup(new String[] {"--log", logFile.getAbsolutePath(), 
 				"-genePositions", genesOfInterestFile.getAbsolutePath(), 
@@ -847,9 +847,9 @@ public class GenerateTest {
 				"-d", dir} );
 		assertEquals(0, exitStatus);
 		String name = dir + File.separator + bamFile.getName() + ".qsig.vcf.gz";
-		assertEquals(true, new File(name).exists());
+        assertTrue(new File(name).exists());
 		assertTrue(new File(name).length() > 0);
-		try (VcfFileReader reader = new VcfFileReader(new File(name));) {
+		try (VcfFileReader reader = new VcfFileReader(new File(name))) {
 			/*
 			 * get md5sum
 			 */
@@ -870,11 +870,11 @@ public class GenerateTest {
 		final File refFile = testFolder.newFile("runProcessWithGenePositionsOptioPartialOverlap.fa");
 		final File refIndexFile = testFolder.newFile("runProcessWithGenePositionsOptioPartialOverlap.fa.fai");
 		
-		SignatureGeneratorTest.writeGenePositionsFile(genesOfInterestFile, "chr1", 10, 200);
+		SignatureGeneratorTest.writeGenePositionsFile(genesOfInterestFile, 10, 200);
 		String dir = testFolder.newFolder("output_dir").getAbsolutePath();
 		
 		setupReferenceFile(refFile, refIndexFile);
-		SignatureGeneratorTest.getBamFile(bamFile, true, true, true);
+		SignatureGeneratorTest.getBamFile(bamFile, true);
 		
 		int exitStatus = qss.setup(new String[] {"--log", logFile.getAbsolutePath(), 
 				"-genePositions", genesOfInterestFile.getAbsolutePath(), 
@@ -883,9 +883,9 @@ public class GenerateTest {
 				"-d", dir} );
 		assertEquals(0, exitStatus);
 		String name = dir + File.separator + bamFile.getName() + ".qsig.vcf.gz";
-		assertEquals(true, new File(name).exists());
+        assertTrue(new File(name).exists());
 		assertTrue(new File(name).length() > 0);
-		try (VcfFileReader reader = new VcfFileReader(new File(name));) {
+		try (VcfFileReader reader = new VcfFileReader(new File(name))) {
 			/*
 			 * get md5sum
 			 */
@@ -901,7 +901,7 @@ public class GenerateTest {
 	
 	private void setupReferenceFile(File file, File indexFile) throws IOException {
 			
-		try (BufferedWriter writer = new BufferedWriter(new FileWriter(file));) {
+		try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
 			writer.write(">chr1\n");
 			writer.write("GATCACAGGTCTATCACCCTATTAACCACTCACGGGAGCTCTCCATGCATTTGGTATTTTCGTCTGGGGG");
 			writer.write("GTATGCACGCGATAGCATTGCGAGACGCTGGAGCCGGAGCACCCTATGTCGCAGTATCTGTCTTTGATTC");
@@ -942,7 +942,7 @@ public class GenerateTest {
 			writer.write("ATCACCAGTATTAGAGGCACCGCCTGCCCAGTGACACATGTTTAACGGCCGCGGTACCCTAACCGTGCAA");
 		}
 		
-		try (BufferedWriter writer = new BufferedWriter(new FileWriter(indexFile));) {
+		try (BufferedWriter writer = new BufferedWriter(new FileWriter(indexFile))) {
 			writer.write("chr1\t16571\t7\t50\t51\n");
 		}
     }

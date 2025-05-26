@@ -1,7 +1,5 @@
 package org.qcmg.sig.util;
 
-import static org.junit.Assert.assertEquals;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -13,6 +11,8 @@ import org.junit.Test;
 import org.qcmg.common.model.ChrPosition;
 import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.sig.model.Comparison;
+
+import static org.junit.Assert.*;
 
 public class ComparisonUtilTest {
 	
@@ -103,7 +103,7 @@ public class ComparisonUtilTest {
 			Assert.fail("Should have thrown an IAE");
 		} catch (IllegalArgumentException iae) {}
 		try {
-			ComparisonUtil.getComparisonsBody(new ArrayList<Comparison>());
+			ComparisonUtil.getComparisonsBody(new ArrayList<>());
 			Assert.fail("Should have thrown an IAE");
 		} catch (IllegalArgumentException iae) {}
 		
@@ -128,11 +128,11 @@ public class ComparisonUtilTest {
 		} catch (IllegalArgumentException iae) {}
 		
 		comps.add(new Comparison(F1, 0, F2, 0, 0, 0));
-		assertEquals(false, ComparisonUtil.containsDodgyComparisons(comps, 0.0));
+        assertFalse(ComparisonUtil.containsDodgyComparisons(comps, 0.0));
 		
 		comps.add(new Comparison(F1, 0, F2, 0, 10000, 10000));
-		assertEquals(true, ComparisonUtil.containsDodgyComparisons(comps, 0.0));
-		assertEquals(false, ComparisonUtil.containsDodgyComparisons(comps, 1));
+        assertTrue(ComparisonUtil.containsDodgyComparisons(comps, 0.0));
+        assertFalse(ComparisonUtil.containsDodgyComparisons(comps, 1));
 	}
 
 }

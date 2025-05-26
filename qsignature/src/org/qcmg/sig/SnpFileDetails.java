@@ -28,8 +28,7 @@ import org.qcmg.qio.record.StringFileReader;
 public class SnpFileDetails {
 	
 	private static QLogger logger;
-	private String logFile;
-	private String[] cmdLineInputFiles;
+    private String[] cmdLineInputFiles;
 	private int exitStatus;
 	private final List<VcfRecord> snps = new ArrayList<>();
 	
@@ -116,7 +115,7 @@ public class SnpFileDetails {
 			System.err.println(Messages.USAGE);
 		} else {
 			// configure logging
-			logFile = options.getLog();
+            String logFile = options.getLog();
 			logger = QLoggerFactory.getLogger(SnpFileDetails.class, logFile, options.getLogLevel());
 			logger.logInitialExecutionStats("SnpFileDetails", SnpFileDetails.class.getPackage().getImplementationVersion(), args);
 			
@@ -126,11 +125,11 @@ public class SnpFileDetails {
 				throw new QSignatureException("INSUFFICIENT_ARGUMENTS");
 			} else {
 				// loop through supplied files - check they can be read
-				for (int i = 0 ; i < cmdLineInputFiles.length ; i++ ) {
-					if ( ! FileUtils.canFileBeRead(cmdLineInputFiles[i])) {
-						throw new QSignatureException("INPUT_FILE_READ_ERROR" , cmdLineInputFiles[i]);
-					}
-				}
+                for (String cmdLineInputFile : cmdLineInputFiles) {
+                    if (!FileUtils.canFileBeRead(cmdLineInputFile)) {
+                        throw new QSignatureException("INPUT_FILE_READ_ERROR", cmdLineInputFile);
+                    }
+                }
 			}
 			return engage();
 		}

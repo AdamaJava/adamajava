@@ -30,7 +30,7 @@ public class ComparisonUtil {
 		}
 		
 		StringBuilder sb = new StringBuilder();
-		String mainFile = comparisons.get(0).getMain();
+		String mainFile = comparisons.getFirst().getMain();
 		if (null != mainFile) {
 			sb.append(mainFile).append('\t');
 		}
@@ -135,9 +135,8 @@ public class ComparisonUtil {
 		}
 		double concordance = totalCompared > 0 ? ((double)match / totalCompared) * 100 : 0;
 		logger.info("match: " + match + ", totalCompared: " + totalCompared + " percentage concordance: " + concordance);
-		
-		Comparison comp = new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), match, totalCompared);
-		return comp;
+
+        return new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), match, totalCompared);
 	}
 	
 	public static Comparison compareRatiosUsingSnpsFloat(TIntShortHashMap file1Ratios, TIntShortHashMap file2Ratios, File file1, File file2) {
@@ -172,9 +171,8 @@ public class ComparisonUtil {
 			}
 			return true;
 		});
-		
-		Comparison comp = new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), match.get(), totalCompared.get());
-		return comp;
+
+        return new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), match.get(), totalCompared.get());
 	}
 	public static Comparison compareRatiosUsingSnpsFloat(TIntByteHashMap file1Ratios, TIntByteHashMap file2Ratios, File file1, File file2) {
 		return compareRatiosUsingSnpsFloat(file1Ratios, file2Ratios, file1.getAbsolutePath(), file2.getAbsolutePath()); 
@@ -214,8 +212,7 @@ public class ComparisonUtil {
 			}
 			return true;
 		});
-		
-		Comparison comp = new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), match.get(), totalCompared.get());
-		return comp;
+
+        return new Comparison(file1, file1Ratios.size(), file2, file2Ratios.size(), match.get(), totalCompared.get());
 	}
 }
