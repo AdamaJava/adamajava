@@ -1,12 +1,13 @@
 package org.qcmg.snp;
 
-import static org.junit.Assert.assertEquals;
-
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -21,21 +22,22 @@ import org.qcmg.picard.util.SAMUtils;
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMRecord;
 
+import static org.junit.Assert.*;
+
 public class PipelineTest {
 	
 	@Rule
 	public final TemporaryFolder testFolder = new TemporaryFolder();
-	
+
 	@Test
 	public void getHeader() {
 		VcfHeader h = Pipeline.getHeaderForQSnp("abc", "123", "456", "qsnp", null, null, "xyz");
-		assertEquals(true, null != h.getFormatRecord(VcfHeaderUtils.FORMAT_OBSERVED_ALLELES_BY_STRAND));
-		assertEquals(true, h.getFormatRecord(VcfHeaderUtils.FORMAT_OBSERVED_ALLELES_BY_STRAND).toString().contains(VcfHeaderUtils.FORMAT_OBSERVED_ALLELES_BY_STRAND_DESC));
+        assertNotNull(h.getFormatRecord(VcfHeaderUtils.FORMAT_OBSERVED_ALLELES_BY_STRAND));
+        assertTrue(h.getFormatRecord(VcfHeaderUtils.FORMAT_OBSERVED_ALLELES_BY_STRAND).toString().contains(VcfHeaderUtils.FORMAT_OBSERVED_ALLELES_BY_STRAND_DESC));
 	}
-	
-	
+
 	@Test
-	public void getAccumulatorsFromReads() throws IOException {
+	public void getAccumulatorsFromReads() {
 		final Pipeline pipeline = new TestPipeline();
 		
 		CountDownLatch consumerLatch = new CountDownLatch(1);

@@ -28,7 +28,6 @@ import net.jpountz.xxhash.XXHashFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -450,7 +449,7 @@ public abstract class Pipeline {
 	}
 	
 	List<SAMSequenceDictionary> getSequenceDictionaries(List<SAMFileHeader> headers) {
-		final List<SAMSequenceDictionary> seqDictionaries = new ArrayList<SAMSequenceDictionary>();
+		final List<SAMSequenceDictionary> seqDictionaries = new ArrayList<>();
 		for (final SAMFileHeader header : headers) {
 			seqDictionaries.add(header.getSequenceDictionary());
 		}
@@ -485,7 +484,7 @@ public abstract class Pipeline {
 		
 		
 		// pick the first normal sequence to check against fasta
-		final List<SAMSequenceRecord> normalSequences = normalSeqDictionaries.get(0).getSequences();
+		final List<SAMSequenceRecord> normalSequences = normalSeqDictionaries.getFirst().getSequences();
 		
 		// now check against the supplied reference file
 		final FastaSequenceFile ref = new FastaSequenceFile(new File(referenceFile), true);
@@ -633,7 +632,7 @@ public abstract class Pipeline {
 	/**
 	 * Sets up 2 Producer threads, 2 Consumer threads and a Cleaner thread, along with the concurrent collections, queues, and barriers used by them all
 	 * 
-	 * @param ignoreDuplicates indicates whether duplicate records should be discarded out right. Not useful for torrent mode
+	 * @param includeDups indicates whether duplicate records should be discarded out right. Not useful for torrent mode
 	 * @throws Exception
 	 */
 	void walkBams(boolean includeDups) throws Exception {
@@ -736,7 +735,10 @@ public abstract class Pipeline {
 		private XXHash64 xxhash64;
 		private final static int seed = 0x9747b28c; // used to initialize the hash value, use whatever value you want, but always the same
 		private final static int ONE_MILLION = 1_000_000;
-		
+		private int failedFilterStartPosition = 0;
+		private int failedFilterCountAtStartPosition = 0;
+		private static final int MAX_FAILED_RECORDS_PER_POSITION = 1000;
+
 		public Producer(final String[] bamFiles, final CountDownLatch latch, final boolean isNormal, 
 				final Queue<SAMRecordFilterWrapper> samQueue, final Thread mainThread, final String query, 
 				final CyclicBarrier barrier, boolean includeDups, Accumulator [] accum) throws Exception {
@@ -874,7 +876,24 @@ public abstract class Pipeline {
 				/*
 				 * we now want to keep track of reads that don't pass the filter for test as well as control
 				 */
-				addRecordToQueue(record, passesFilter);
+				if ( ! passesFilter) {
+					/*
+					There are instances in the genome where there are a large number of poor quality reads mapping to the same location.
+					This is causing memory issues when trying to process these reads, and so will ignore these reads once we have seen 100 reads at the same start position that fail the filter.
+					 */
+					int start = record.getAlignmentStart();
+					if (start == failedFilterStartPosition) {
+						failedFilterCountAtStartPosition++;
+					} else {
+						failedFilterCountAtStartPosition = 1;
+						failedFilterStartPosition = start;
+					}
+					if (failedFilterCountAtStartPosition <= MAX_FAILED_RECORDS_PER_POSITION) {
+						addRecordToQueue(record, false);
+					}
+				} else {
+					addRecordToQueue(record, true);
+				}
 			} else {
 				// didn't have any filtering defined - add all
 				addRecordToQueue(record, true);
@@ -986,7 +1005,7 @@ public abstract class Pipeline {
 		 * @param length
 		 * @param referenceOffset
 		 * @param passesFilter
-		 * @param readStartPosition start position of the read - depends on strand as to whether this is the alignemtnEnd or alignmentStart
+		 * @param readStartPosition start position of the read - depends on strand as to whether this is the alignmentEnd or alignmentStart
 		 */
 		public void updateMapWithAccums(int startPosition, final byte[] bases, final byte[] qualities,
 				boolean forwardStrand, int offset, int length, int referenceOffset, final boolean passesFilter, final int readEndPosition, long readNameHash) {
@@ -1275,10 +1294,10 @@ public abstract class Pipeline {
 		 */
 		if (null != control && null != test) {
 			if (control.getPosition() != test.getPosition()) {
-				throw new IllegalArgumentException("Control and test accumulator positions do not match!!! control: " + control.toString() + ", and test: " + test.toString());
+				throw new IllegalArgumentException("Control and test accumulator positions do not match!!! control: " + control + ", and test: " + test);
 			}
 		}
-		final int position = control != null ? control.getPosition() : test.getPosition();
+		final int position = control != null ? control.getPosition() : test != null ? test.getPosition() : Integer.MAX_VALUE;
 		
 		// if we are over the length of this particular sequence - return
 		if (position - 1 >= referenceBasesLength) return;
@@ -1377,7 +1396,7 @@ public abstract class Pipeline {
 					/*
 					 * populate adjacentAccumulators so that compound snp decision can be made
 					 */
-					adjacentAccumulators.put(v, new Pair<Accumulator, Accumulator>(control, test));
+					adjacentAccumulators.put(v, new Pair<>(control, test));
 				}
 			}
 		}
