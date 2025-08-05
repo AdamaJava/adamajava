@@ -12,19 +12,14 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.commandline.Executor;
-import org.qcmg.common.model.Accumulator;
 
 import htsjdk.samtools.SAMFileHeader;
 import htsjdk.samtools.SAMFileHeader.SortOrder;
@@ -96,9 +91,9 @@ public class StandardPipelineTest {
 		final String command = "-log " + logFile.getAbsolutePath() + " -i " + ini.getAbsolutePath();
 		final Executor exec = new Executor(command, "org.qcmg.snp.Main");
 		assertEquals(0, exec.getErrCode());
-		List<String> vcfs = Files.lines(Paths.get(vcf.getPath())).filter(s -> ! s.startsWith("#")).collect(Collectors.toList());
+		List<String> vcfs = Files.lines(Paths.get(vcf.getPath())).filter(s -> ! s.startsWith("#")).toList();
 		
-		vcfs.stream().forEach(System.out::println);
+		vcfs.forEach(System.out::println);
 		
 		assertEquals(60, vcfs.size());
 		AtomicInteger ai = new AtomicInteger(0);
@@ -147,40 +142,16 @@ public class StandardPipelineTest {
 		final String command = "-log " + logFile.getAbsolutePath() + " -i " + ini.getAbsolutePath();
 		final Executor exec = new Executor(command, "org.qcmg.snp.Main");
 		assertEquals(0, exec.getErrCode());
-		List<String> vcfs = Files.lines(Paths.get(vcf.getPath())).filter(s -> ! s.startsWith("#")).collect(Collectors.toList());
+		List<String> vcfs = Files.lines(Paths.get(vcf.getPath())).filter(s -> ! s.startsWith("#")).toList();
 		
-		vcfs.stream().forEach(System.out::println);
+		vcfs.forEach(System.out::println);
 		
 		assertEquals(4, vcfs.size());
 //		assertEquals("GL000208.1	53	.	T	G	.	.	FLANK=AAGTGGTTCAA	GT:AD:DP:EOR:FF:FT:INF:NNS:OABS	0/1:90,6:96:T1[]5[]:C1;G51;T89:.:.:6:G1[41]5[40.2];T9[35.22]81[39.68]	0/1:90,6:96:T1[]5[]:C1;G51;T89:.:.:6:G1[41]5[40.2];T9[35.22]81[39.68]", vcfs.get(0));
-		assertEquals("GL000208.1	53	.	T	G	.	.	FLANK=AAGTGGTTCAA	GT:AD:DP:EOR:FF:FT:INF:NNS:OABS	0/1:115,10:125:T1[]7[]:C1;G51;T89:.:.:9:G2[41]8[40.5];T9[35.22]106[39.88]	0/1:115,10:125:T1[]7[]:C1;G51;T89:.:.:9:G2[41]8[40.5];T9[35.22]106[39.88]", vcfs.get(0));
+		assertEquals("GL000208.1	53	.	T	G	.	.	FLANK=AAGTGGTTCAA	GT:AD:DP:EOR:FF:FT:INF:NNS:OABS	0/1:115,10:125:T1[]7[]:C1;G51;T89:.:.:9:G2[41]8[40.5];T9[35.22]106[39.88]	0/1:115,10:125:T1[]7[]:C1;G51;T89:.:.:9:G2[41]8[40.5];T9[35.22]106[39.88]", vcfs.getFirst());
 //		assertEquals("GL000208.1	77	.	T	C	.	.	FLANK=AAAGACGTATT	GT:AD:DP:EOR:FF:FT:INF:NNS:OABS	1/1:4,94:98:C0[]3[];T0[]1[]:C171;T11:.:.:64:C9[35.78]85[39.94];T1[41]3[39.67]	1/1:4,94:98:C0[]3[];T0[]1[]:C171;T11:.:.:64:C9[35.78]85[39.94];T1[41]3[39.67]", vcfs.get(1));
 //		assertEquals("GL000208.1	84	.	C	A	.	.	FLANK=TATTCAACTCA	GT:AD:DP:EOR:FF:FT:INF:NNS:OABS	0/1:22,71:93:A2[]6[]:A178;C6:.:.:50:A8[38.62]63[38.92];C2[36.5]20[40.2]	0/1:22,71:93:A2[]6[]:A178;C6:.:.:50:A8[38.62]63[38.92];C2[36.5]20[40.2]", vcfs.get(2));
 //		assertEquals("GL000208.1	98	.	C	A	.	.	FLANK=ACTTTAATGCA	GT:AD:DP:EOR:FF:FT:INF:NNS:OABS	1/1:0,83:83:A0[]8[]:A188;G1:.:.:59:A8[37]75[38.63]	1/1:0,83:83:A0[]8[]:A188;G1:.:.:59:A8[37]75[38.63]", vcfs.get(3));
-	}
-	
-	@Ignore
-	public void testContainsAndRemove() {
-		final ConcurrentMap<Integer, Accumulator> map = new ConcurrentHashMap<Integer, Accumulator>();
-		final int noOfLoops = 100000;
-		long time = System.currentTimeMillis();
-		for (int i = 0 ; i < noOfLoops ; i++) {
-			map.remove(i);
-		}
-		System.out.println("EMPTY: remove time: " + (System.currentTimeMillis() - time));
-		
-		time = System.currentTimeMillis();
-		for (int i = 0 ; i < noOfLoops ; i++) {
-			if (map.containsKey(i))
-				map.remove(i);
-		}
-		System.out.println("EMPTY: contains and remove time: " + (System.currentTimeMillis() - time));
-		
-		time = System.currentTimeMillis();
-		for (int i = 0 ; i < noOfLoops ; i++) {
-			map.remove(i);
-		}
-		System.out.println("EMPTY: remove time: " + (System.currentTimeMillis() - time));
 	}
 	
 	public void checkBam(File f) {
