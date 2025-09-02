@@ -123,6 +123,8 @@ final class Options {
 				.describedAs("emailSubject");
 		parser.accepts("excludeVcfsFile", "file containing a list of vcf files to ignore in the comparison").withRequiredArg().ofType(String.class)
 				.describedAs("excludeVcfsFile");
+        parser.accepts("blocklist", "BED file containing a list of genomic position to ignore in the comparison").withRequiredArg().ofType(String.class)
+                .describedAs("BED file containing regions to ignore");
 		parser.accepts("validation", VALIDATION_STRINGENCY_OPTION_DESCRIPTION).withRequiredArg().ofType(String.class);
 		parser.accepts("stream", STREAM_OPTION_DESCRIPTION);
 		parser.acceptsAll(asList("p", "position"), "File containing a list of positions that will be examined. Must be a subset of the positions in the snpPositions file").withRequiredArg().ofType(String.class).describedAs("position");
@@ -296,6 +298,9 @@ final class Options {
 	public String getExcludeVcfsFile() {
 		return (String) options.valueOf("excludeVcfsFile");
 	}
+    public String getBlocklist() {
+        return (String) options.valueOf("blocklist");
+    }
 	public Optional<String> getGeneModelFile() {
 		return Optional.ofNullable((String) options.valueOf("geneModel"));
 	}

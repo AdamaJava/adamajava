@@ -4,9 +4,12 @@ import gnu.trove.map.TMap;
 import gnu.trove.map.hash.TIntByteHashMap;
 import gnu.trove.map.hash.TIntShortHashMap;
 import org.apache.commons.math3.util.Pair;
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.qcmg.common.model.PositionRange;
 import org.qcmg.common.util.ChrPositionCache;
 import org.qcmg.qio.illumina.IlluminaRecord;
 import org.qcmg.sig.CompareTest;
@@ -16,14 +19,22 @@ import org.qcmg.sig.model.SigMeta;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 
 import static org.junit.Assert.*;
 
 
 public class SignatureUtilTest {
-	
-	@org.junit.Rule
+
+
+    private Path tempFile;
+    private Map<String, List<PositionRange>> testMap;
+    private Map<String, List<PositionRange>> blockedPositions;
+
+
+    @org.junit.Rule
 	public  TemporaryFolder testFolder = new TemporaryFolder();
 	
 	public static final List<String> BAM_HEADER = Arrays.asList("##fileformat=VCFv4.2",
@@ -73,8 +84,257 @@ public class SignatureUtilTest {
 			"##INFO=<ID=QAF,Number=.,Type=String,Description=\"Lists the counts of As-Cs-Gs-Ts for each read group, along with the total\">",
 			"##input=/mnt/lustre/working/genomeinfo/data/20180309_KNArrays/202047900199_R05C01.array.txt",
 			"#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO");
-	
-	@Test
+
+
+    @Before
+    public void setUp() {
+        testMap = new HashMap<>();
+        blockedPositions = new HashMap<>();
+
+    }
+
+    @After
+    public void tearDown() throws IOException {
+        if (tempFile != null && Files.exists(tempFile)) {
+            Files.delete(tempFile);
+        }
+    }
+
+    @Test
+    public void testPositionNotBlocked() {
+        // Given
+        String chrPosString = "chr1\t12345";
+        List<PositionRange> ranges = Arrays.asList(
+                new PositionRange(1000, 2000),
+                new PositionRange(5000, 6000)
+        );
+        blockedPositions.put("chr1", ranges);
+
+        // When
+        boolean shouldContinue = false;
+        if (null != blockedPositions) {
+            int tabIndex = chrPosString.indexOf('\t');
+            String chr = chrPosString.substring(0, tabIndex);
+            List<PositionRange> list = blockedPositions.get(chr);
+            if (null != list) {
+                int pos = Integer.parseInt(chrPosString, tabIndex + 1, chrPosString.length(), 10);
+                boolean blocked = list.stream().anyMatch(r -> r.containsPosition(pos));
+                if (blocked) {
+                    shouldContinue = true;
+                }
+            }
+        }
+
+        // Then
+        assertFalse("Should not continue when position is not blocked", shouldContinue);
+    }
+
+    @Test
+    public void testPositionIsBlocked() {
+        // Given
+        String chrPosString = "chr1\t1500";
+        List<PositionRange> ranges = Arrays.asList(
+                new PositionRange(1000, 2000),
+                new PositionRange(5000, 6000)
+        );
+        blockedPositions.put("chr1", ranges);
+
+        // When
+        boolean shouldContinue = false;
+        if (null != blockedPositions) {
+            int tabIndex = chrPosString.indexOf('\t');
+            String chr = chrPosString.substring(0, tabIndex);
+            List<PositionRange> list = blockedPositions.get(chr);
+            if (null != list) {
+                int pos = Integer.parseInt(chrPosString, tabIndex + 1, chrPosString.length(), 10);
+                boolean blocked = list.stream().anyMatch(r -> r.containsPosition(pos));
+                if (blocked) {
+                    shouldContinue = true;
+                }
+            }
+        }
+
+        // Then
+        assertTrue("Should continue when position is blocked", shouldContinue);
+    }
+
+    @Test
+    public void testPositionAtRangeBoundary() {
+        // Given - test position at start of range
+        String chrPosString1 = "chr2\t1000";
+        List<PositionRange> ranges = List.of(new PositionRange(1000, 2000));
+        blockedPositions.put("chr2", ranges);
+
+        // When
+        boolean shouldContinue1 = false;
+        if (null != blockedPositions) {
+            int tabIndex = chrPosString1.indexOf('\t');
+            String chr = chrPosString1.substring(0, tabIndex);
+            List<PositionRange> list = blockedPositions.get(chr);
+            if (null != list) {
+                int pos = Integer.parseInt(chrPosString1, tabIndex + 1, chrPosString1.length(), 10);
+                boolean blocked = list.stream().anyMatch(r -> r.containsPosition(pos));
+                if (blocked) {
+                    shouldContinue1 = true;
+                }
+            }
+        }
+
+        // Given - test position at end of range
+        String chrPosString2 = "chr2\t2000";
+        boolean shouldContinue2 = false;
+        if (null != blockedPositions) {
+            int tabIndex = chrPosString2.indexOf('\t');
+            String chr = chrPosString2.substring(0, tabIndex);
+            List<PositionRange> list = blockedPositions.get(chr);
+            if (null != list) {
+                int pos = Integer.parseInt(chrPosString2, tabIndex + 1, chrPosString2.length(), 10);
+                boolean blocked = list.stream().anyMatch(r -> r.containsPosition(pos));
+                if (blocked) {
+                    shouldContinue2 = true;
+                }
+            }
+        }
+
+        // Then
+        assertTrue("Should continue when position is at start of blocked range", shouldContinue1);
+        assertTrue("Should continue when position is at end of blocked range", shouldContinue2);
+    }
+
+    @Test
+    public void testMultipleRangesOneBlocked() {
+        // Given
+        String chrPosString = "chr3\t5500";
+        List<PositionRange> ranges = Arrays.asList(
+                new PositionRange(1000, 2000),
+                new PositionRange(3000, 4000),
+                new PositionRange(5000, 6000)
+        );
+        blockedPositions.put("chr3", ranges);
+
+        // When
+        boolean shouldContinue = false;
+        if (null != blockedPositions) {
+            int tabIndex = chrPosString.indexOf('\t');
+            String chr = chrPosString.substring(0, tabIndex);
+            List<PositionRange> list = blockedPositions.get(chr);
+            if (null != list) {
+                int pos = Integer.parseInt(chrPosString, tabIndex + 1, chrPosString.length(), 10);
+                boolean blocked = list.stream().anyMatch(r -> r.containsPosition(pos));
+                if (blocked) {
+                    shouldContinue = true;
+                }
+            }
+        }
+
+        // Then
+        assertTrue("Should continue when position matches one of multiple ranges", shouldContinue);
+    }
+
+    @Test
+    public void testDifferentChromosomes() {
+        // Given
+        String chrPosString = "chrX\t1500";
+        List<PositionRange> ranges = List.of(new PositionRange(1000, 2000));
+        blockedPositions.put("chr1", ranges);
+
+        // When
+        boolean shouldContinue = false;
+        if (null != blockedPositions) {
+            int tabIndex = chrPosString.indexOf('\t');
+            String chr = chrPosString.substring(0, tabIndex);
+            List<PositionRange> list = blockedPositions.get(chr);
+            if (null != list) {
+                int pos = Integer.parseInt(chrPosString, tabIndex + 1, chrPosString.length(), 10);
+                boolean blocked = list.stream().anyMatch(r -> r.containsPosition(pos));
+                if (blocked) {
+                    shouldContinue = true;
+                }
+            }
+        }
+
+        // Then
+        assertFalse("Should not continue when chromosome is not in blocked list", shouldContinue);
+    }
+
+    @Test
+    public void testEmptyRangeList() {
+        // Given
+        String chrPosString = "chr1\t12345";
+        blockedPositions.put("chr1", new ArrayList<>());
+
+        // When
+        boolean shouldContinue = false;
+        if (null != blockedPositions) {
+            int tabIndex = chrPosString.indexOf('\t');
+            String chr = chrPosString.substring(0, tabIndex);
+            List<PositionRange> list = blockedPositions.get(chr);
+            if (null != list) {
+                int pos = Integer.parseInt(chrPosString, tabIndex + 1, chrPosString.length(), 10);
+                boolean blocked = list.stream().anyMatch(r -> r.containsPosition(pos));
+                if (blocked) {
+                    shouldContinue = true;
+                }
+            }
+        }
+
+        // Then
+        assertFalse("Should not continue when range list is empty", shouldContinue);
+    }
+
+    @Test(expected = NumberFormatException.class)
+    public void testInvalidPosition() {
+        // Given
+        String chrPosString = "chr1\tabc";
+        List<PositionRange> ranges = List.of(new PositionRange(1000, 2000));
+        blockedPositions.put("chr1", ranges);
+
+        // When
+        if (null != blockedPositions) {
+            int tabIndex = chrPosString.indexOf('\t');
+            String chr = chrPosString.substring(0, tabIndex);
+            List<PositionRange> list = blockedPositions.get(chr);
+            if (null != list) {
+                // This should throw NumberFormatException
+                int pos = Integer.parseInt(chrPosString, tabIndex + 1, chrPosString.length(), 10);
+            }
+        }
+
+        // Then - expect NumberFormatException
+    }
+
+    @Test
+    public void testChrPositionStringParsing() {
+        // Given
+        String chrPosString = "chr15\t123456789";
+        List<PositionRange> ranges = List.of(new PositionRange(123456700, 123456800));
+        blockedPositions.put("chr15", ranges);
+
+        // When
+        boolean shouldContinue = false;
+        if (null != blockedPositions) {
+            int tabIndex = chrPosString.indexOf('\t');
+            String chr = chrPosString.substring(0, tabIndex);
+            List<PositionRange> list = blockedPositions.get(chr);
+            if (null != list) {
+                int pos = Integer.parseInt(chrPosString, tabIndex + 1, chrPosString.length(), 10);
+                boolean blocked = list.stream().anyMatch(r -> r.containsPosition(pos));
+                if (blocked) {
+                    shouldContinue = true;
+                }
+            }
+        }
+
+        // Then
+        assertEquals("Should correctly parse chromosome", "chr15", chrPosString.substring(0, chrPosString.indexOf('\t')));
+        assertEquals("Should correctly parse position", 123456789,
+                Integer.parseInt(chrPosString, chrPosString.indexOf('\t') + 1, chrPosString.length(), 10));
+        assertTrue("Should continue when large position is in blocked range", shouldContinue);
+    }
+
+
+
+    @Test
 	public void testGetPatientFromFile() {
 		assertEquals("AAAA_1234", SignatureUtil.getPatientFromFile(new File("/path/project/AAAA_1234/SNP_array/1234.txt")));
 		assertEquals("AAAA_9999", SignatureUtil.getPatientFromFile(new File("/path/project/AAAA_9999/SNP_array/5555.txt")));
@@ -721,8 +981,211 @@ public class SignatureUtilTest {
 		illRecParams[22] = "BOT";	// strand
 		testResults(illRecParams, 1);
 	}
-	
-	private void testResults(String [] illRecParams, int ... positionsWithCoverage) {
+
+    @Test
+    public void testLoadBlockListIntoMap_ValidData() throws IOException {
+        String content = """
+                chr1\t100\t200
+                chr2\t300\t400\textra_column
+                chr1\t500\t600
+                """;
+
+        Path file = createTempFileWithContent(content);
+
+        SignatureUtil.loadBlockListIntoMap(file.toString(), testMap);
+
+        assertEquals(2, testMap.size());
+        assertTrue(testMap.containsKey("chr1"));
+        assertTrue(testMap.containsKey("chr2"));
+
+        List<PositionRange> chr1Ranges = testMap.get("chr1");
+        assertEquals(2, chr1Ranges.size());
+        assertEquals(new PositionRange(100, 200), chr1Ranges.get(0));
+        assertEquals(new PositionRange(500, 600), chr1Ranges.get(1));
+
+        List<PositionRange> chr2Ranges = testMap.get("chr2");
+        assertEquals(1, chr2Ranges.size());
+        assertEquals(new PositionRange(300, 400), chr2Ranges.getFirst());
+    }
+
+    @Test
+    public void testLoadBlockListIntoMap_EmptyFile() throws IOException {
+        Path file = createTempFileWithContent("");
+
+        SignatureUtil.loadBlockListIntoMap(file.toString(), testMap);
+
+        assertTrue(testMap.isEmpty());
+    }
+
+    @Test
+    public void testLoadBlockListIntoMap_CommentsAndEmptyLines() throws IOException {
+        String content = """
+                # This is a comment
+                
+                chr1\t100\t200
+                # Another comment
+                
+                chr2\t300\t400
+                """;
+
+        Path file = createTempFileWithContent(content);
+
+        SignatureUtil.loadBlockListIntoMap(file.toString(), testMap);
+
+        assertEquals(2, testMap.size());
+        assertEquals(1, testMap.get("chr1").size());
+        assertEquals(1, testMap.get("chr2").size());
+    }
+
+    @Test
+    public void testLoadBlockListIntoMap_MalformedLines() throws IOException {
+        String content = """
+                chr1\t100\t200
+                malformed_line
+                chr2
+                chr3\t300
+                chr4\t400\t500
+                chr5\tinvalid\t600
+                chr6\t700\tinvalid
+                """;
+
+        Path file = createTempFileWithContent(content);
+
+        SignatureUtil.loadBlockListIntoMap(file.toString(), testMap);
+
+        assertEquals(2, testMap.size());
+        assertTrue(testMap.containsKey("chr1"));
+        assertTrue(testMap.containsKey("chr4"));
+        assertEquals(new PositionRange(100, 200), testMap.get("chr1").getFirst());
+        assertEquals(new PositionRange(400, 500), testMap.get("chr4").getFirst());
+    }
+
+    @Test
+    public void testLoadBlockListIntoMap_LineEndingWithTab() throws IOException {
+        String content = """
+                chr1\t100\t
+                chr2\t200\t300
+                """;
+
+        Path file = createTempFileWithContent(content);
+
+        SignatureUtil.loadBlockListIntoMap(file.toString(), testMap);
+
+        assertEquals(1, testMap.size());
+        assertTrue(testMap.containsKey("chr2"));
+        assertEquals(new PositionRange(200, 300), testMap.get("chr2").getFirst());
+    }
+
+    @Test
+    public void testLoadBlockListIntoMap_NumberFormatException() throws IOException {
+        String content = """
+                chr1\t100\t200
+                chr2\tabc\t300
+                chr3\t400\txyz
+                chr4\t500\t600
+                """;
+
+        Path file = createTempFileWithContent(content);
+
+        SignatureUtil.loadBlockListIntoMap(file.toString(), testMap);
+
+        assertEquals(2, testMap.size());
+        assertTrue(testMap.containsKey("chr1"));
+        assertTrue(testMap.containsKey("chr4"));
+        assertEquals(new PositionRange(100, 200), testMap.get("chr1").getFirst());
+        assertEquals(new PositionRange(500, 600), testMap.get("chr4").getFirst());
+    }
+
+    @Test
+    public void testLoadBlockListIntoMap_ExistingMapWithData() throws IOException {
+        // Pre-populate the map
+        testMap.put("chr0", new ArrayList<>());
+        testMap.get("chr0").add(new PositionRange(1, 10));
+
+        String content = "chr1\t100\t200\n";
+        Path file = createTempFileWithContent(content);
+
+        SignatureUtil.loadBlockListIntoMap(file.toString(), testMap);
+
+        assertEquals(2, testMap.size());
+        assertTrue(testMap.containsKey("chr0"));
+        assertTrue(testMap.containsKey("chr1"));
+        assertEquals(new PositionRange(1, 10), testMap.get("chr0").getFirst());
+        assertEquals(new PositionRange(100, 200), testMap.get("chr1").getFirst());
+    }
+
+    @Test
+    public void testLoadBlockListIntoMap_SameContigMultipleRanges() throws IOException {
+        String content = """
+                chr1\t100\t200
+                chr1\t300\t400
+                chr1\t500\t600
+                """;
+
+        Path file = createTempFileWithContent(content);
+
+        SignatureUtil.loadBlockListIntoMap(file.toString(), testMap);
+
+        assertEquals(1, testMap.size());
+        List<PositionRange> ranges = testMap.get("chr1");
+        assertEquals(3, ranges.size());
+        assertEquals(new PositionRange(100, 200), ranges.get(0));
+        assertEquals(new PositionRange(300, 400), ranges.get(1));
+        assertEquals(new PositionRange(500, 600), ranges.get(2));
+    }
+
+    @Test
+    public void testLoadBlockListIntoMap_WithExtraColumns() throws IOException {
+        String content = """
+                chr1\t100\t200\textra1\textra2
+                chr2\t300\t400\textra
+                """;
+
+        Path file = createTempFileWithContent(content);
+
+        SignatureUtil.loadBlockListIntoMap(file.toString(), testMap);
+
+        assertEquals(2, testMap.size());
+        assertEquals(new PositionRange(100, 200), testMap.get("chr1").getFirst());
+        assertEquals(new PositionRange(300, 400), testMap.get("chr2").getFirst());
+    }
+
+    @Test
+    public void testLoadBlockListIntoMap_NonExistentFile() {
+        // This test verifies that the method handles IOException gracefully
+        // The method should not throw an exception but should log the error
+        SignatureUtil.loadBlockListIntoMap("non_existent_file.txt", testMap);
+
+        // Map should remain empty
+        assertTrue(testMap.isEmpty());
+    }
+
+    private Path createTempFileWithContent(String content) throws IOException {
+        tempFile = Files.createTempFile("blocklist", ".txt");
+        Files.writeString(tempFile, content);
+        return tempFile;
+    }
+
+
+    @Test
+    public void testLoadBlockListIntoMap_WhitespaceInValues() throws IOException {
+        String content = """
+                chr1\t100\t200
+                 chr2 \t 300 \t 400\s
+                """; // This should fail parsing due to spaces
+
+        Path file = createTempFileWithContent(content);
+
+        SignatureUtil.loadBlockListIntoMap(file.toString(), testMap);
+
+        // Only chr1 should be parsed successfully due to whitespace in chr2 line
+        assertEquals(1, testMap.size());
+        assertTrue(testMap.containsKey("chr1"));
+        assertEquals(new PositionRange(100, 200), testMap.get("chr1").getFirst());
+    }
+
+
+    private void testResults(String [] illRecParams, int ... positionsWithCoverage) {
 		int coverageValue = 20 / positionsWithCoverage.length;
 		
 		IlluminaRecord illRec = new IlluminaRecord(illRecParams);

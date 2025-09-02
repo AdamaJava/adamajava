@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.math3.util.Pair;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.model.PositionRange;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.FileUtils;
 import org.qcmg.sig.model.Comparison;
@@ -82,7 +83,20 @@ public class Compare {
 	
 	private final ConcurrentMap<File, Pair<SigMeta,TIntByteHashMap>> cache = new ConcurrentHashMap<>();
 
+    private final Map<String, List<PositionRange>> blockPositions = new THashMap<>();
+    private String blocklist;
+
 	private int engage() throws Exception {
+
+        if (null != blocklist) {
+            SignatureUtil.loadBlockListIntoMap(blocklist, blockPositions);
+            int totalEntries = blockPositions.values().stream()
+                    .mapToInt(List::size)
+                    .sum();
+
+            logger.info("Total blocked positions: " + totalEntries);
+
+        }
 		
 		// get excludes
 		logger.info("Retrieving excludes list from: " + excludeVcfsFile);
@@ -197,8 +211,9 @@ public class Compare {
 		// if not - load
 		Pair<SigMeta, TIntByteHashMap> result = cache.get(f);
 		if (result == null) {
-			Pair<SigMeta, TMap<String, TIntByteHashMap>> rgResults = SignatureUtil.loadSignatureGenotype(f, minimumCoverage, minimumRGCoverage, homCutoff, upperHetCutoff, lowerHetCutoff);
-			
+//			Pair<SigMeta, TMap<String, TIntByteHashMap>> rgResults = SignatureUtil.loadSignatureGenotype(f, minimumCoverage, minimumRGCoverage, homCutoff, upperHetCutoff, lowerHetCutoff);
+			Pair<SigMeta, TMap<String, TIntByteHashMap>> rgResults = SignatureUtil.loadSignatureGenotype(f, minimumCoverage, minimumRGCoverage, homCutoff, upperHetCutoff, lowerHetCutoff, blockPositions);
+
 			
 			/*
 			 * deal with empty file scenario first
@@ -423,10 +438,14 @@ public class Compare {
 			
 			additionalSearchStrings = options.getAdditionalSearchString();
 			logger.tool("Setting additionalSearchStrings to: " + Arrays.deepToString(additionalSearchStrings));
+
+            blocklist = options.getBlocklist();
+            if (null != blocklist) {
+                logger.tool("Blocklist: " + blocklist);
+            }
 			
 			if (options.hasExcludeVcfsFileOption())
 				excludeVcfsFile = options.getExcludeVcfsFile();
-			
 			logger.logInitialExecutionStats("Compare", Compare.class.getPackage().getImplementationVersion(), args);
 			
 			return engage();
