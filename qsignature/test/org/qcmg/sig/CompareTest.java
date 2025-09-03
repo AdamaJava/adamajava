@@ -60,9 +60,8 @@ public class CompareTest {
 		writeVcfFile(f1);
 		writeVcfFileHeader(f2);
 		writeVcfFile(f3);
-		
 		Executor exec = execute("--log " + logF.getAbsolutePath() + " -d " + f1.getParent() + " -o " + o.getAbsolutePath());
-		assertEquals(0, exec.getErrCode());		// all ok
+        assertEquals(0, exec.getErrCode());		// all ok
 		assertTrue(o.exists());
 		List<String> outputData = Files.readAllLines(Paths.get(o.getAbsolutePath()));
 		assertEquals(14, outputData.size());		// 13 lines means 3 comparison

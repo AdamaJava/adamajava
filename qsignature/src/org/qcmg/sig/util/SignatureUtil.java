@@ -8,6 +8,7 @@ package org.qcmg.sig.util;
 
 import static java.util.Comparator.comparing;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -39,6 +40,7 @@ import javax.xml.transform.stream.StreamResult;
 import org.apache.commons.math3.util.Pair;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
+import org.qcmg.common.model.PositionRange;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.BaseUtils;
 import org.qcmg.common.util.ChrPositionCache;
@@ -336,11 +338,14 @@ default -> 0.0f;
 };
 	}
 
-	public static Pair<SigMeta, TMap<String, TIntByteHashMap>> loadSignatureGenotype(File file, int minCoverage, int minRGCoverage) throws IOException {
-		return loadSignatureGenotype(file, minCoverage, minRGCoverage, HOM_CUTOFF, HET_UPPER_CUTOFF, HET_LOWER_CUTOFF);
+    public static Pair<SigMeta, TMap<String, TIntByteHashMap>> loadSignatureGenotype(File file, int minCoverage, int minRGCoverage) throws IOException {
+        return loadSignatureGenotype(file, minCoverage, minRGCoverage, HOM_CUTOFF, HET_UPPER_CUTOFF, HET_LOWER_CUTOFF, null);
+    }
+	public static Pair<SigMeta, TMap<String, TIntByteHashMap>> loadSignatureGenotype(File file, int minCoverage, int minRGCoverage, Map<String, List<PositionRange>> blockedPositions) throws IOException {
+		return loadSignatureGenotype(file, minCoverage, minRGCoverage, HOM_CUTOFF, HET_UPPER_CUTOFF, HET_LOWER_CUTOFF, blockedPositions);
 	}
 	
-	public static Pair<SigMeta, TMap<String, TIntByteHashMap>> loadSignatureGenotype(File file, int minCoverage, int minRGCoverage, float homCutoff, float upperHetCutoff, float lowerHetCutoff) throws IOException {
+	public static Pair<SigMeta, TMap<String, TIntByteHashMap>> loadSignatureGenotype(File file, int minCoverage, int minRGCoverage, float homCutoff, float upperHetCutoff, float lowerHetCutoff, Map<String, List<PositionRange>> blockedPositions) throws IOException {
 		if (null == file) {
 			throw new IllegalArgumentException("Null file object passed to loadSignatureGenotype");
 		}
@@ -361,16 +366,55 @@ default -> 0.0f;
 			}
 			
 			if (null != sm && sm.isValid()) {
-				getDataFromBespokeLayout(file, minCoverage, minRGCoverage, ratios, rgRatios, rgIds, reader, homCutoff, upperHetCutoff, lowerHetCutoff);
+				getDataFromBespokeLayout(file, minCoverage, minRGCoverage, ratios, rgRatios, rgIds, reader, homCutoff, upperHetCutoff, lowerHetCutoff, blockedPositions);
 			} else {
 				rgRatios.put("all", loadSignatureRatiosFloatGenotypeNew(file, MINIMUM_COVERAGE, homCutoff, upperHetCutoff, lowerHetCutoff));
 			}
 		}
 		return new Pair<>(sm, rgRatios);
 	}
+
+    public static void loadBlockListIntoMap(String blocklistFile, Map<String, List<PositionRange>> map) {
+        try {
+            // Use buffered reading with larger buffer for better I/O performance
+            try (BufferedReader reader = Files.newBufferedReader(Paths.get(blocklistFile), StandardCharsets.UTF_8)) {
+
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    // Skip comments and empty lines early
+                    if (line.isEmpty() || line.charAt(0) == '#') continue;
+                    
+                    // Use indexOf instead of split for better performance
+                    int firstTab = line.indexOf('\t');
+                    if (firstTab == -1) continue;
+                    
+                    int secondTab = line.indexOf('\t', firstTab + 1);
+                    if (secondTab == -1) continue;
+                    
+                    // Check if there's a third tab (tokens.length >= 3 equivalent)
+                    int thirdTab = line.indexOf('\t', secondTab + 1);
+                    if (thirdTab == -1 && secondTab == line.length() - 1) continue;
+                    
+                    try {
+                        String contig = line.substring(0, firstTab);
+                        int start = Integer.parseInt(line, firstTab + 1, secondTab, 10);
+                        int stop = Integer.parseInt(line, secondTab + 1,
+                            thirdTab == -1 ? line.length() : thirdTab, 10);
+
+                        map.computeIfAbsent(contig, v -> new ArrayList<>()).add(new PositionRange(start, stop));
+                    } catch (NumberFormatException e) {
+                        // Skip malformed lines silently or log if needed
+                        logger.debug("Skipping malformed line: " + line);
+                    }
+                }
+            }
+        } catch (IOException e) {
+            logger.error("Error reading blocklist file: " + blocklistFile, e);
+        }
+    }
 	
 	public static void getDataFromBespokeLayout(File file, int minCoverage, int minRGCoverage, TIntByteHashMap ratios,
-				TMap<String, TIntByteHashMap> rgRatios, Map<String, String> rgIds, StringFileReader reader, float homCutoff, float upperHetCutoff, float lowerHetCutoff) {
+				TMap<String, TIntByteHashMap> rgRatios, Map<String, String> rgIds, StringFileReader reader, float homCutoff, float upperHetCutoff, float lowerHetCutoff, Map<String, List<PositionRange>> blockedPositions) {
 		int noOfRGs = rgIds.size();
 		logger.debug("Number of rgs for  " + file.getAbsolutePath() + " is " + noOfRGs);
 		
@@ -386,9 +430,26 @@ default -> 0.0f;
 			
 			String coverage = line.substring(line.lastIndexOf(Constants.TAB_STRING));
 			String chrPosString = line.substring(0, line.indexOf(Constants.TAB_STRING, line.indexOf(Constants.TAB_STRING) + 1));
-			
-			
-			/*
+
+            if (null != blockedPositions) {
+                /*
+                get chr and position
+                 */
+                int tabIndex = chrPosString.indexOf(Constants.TAB);
+                String chr = chrPosString.substring(0, tabIndex);
+                List<PositionRange> list = blockedPositions.get(chr);
+                if (null != list) {
+                    int pos = Integer.parseInt(chrPosString, tabIndex + 1, chrPosString.length(), 10);
+                    boolean blocked = list.stream().anyMatch(r -> r.containsPosition(pos));
+                    if (blocked) {
+                        logger.debug("Found blocked position for " + chrPosString);
+                        continue;
+                    }
+                }
+            }
+
+
+            /*
 			 * This should be in the QAF=t:5-0-0-0,rg4:2-0-0-0,rg1:1-0-0-0,rg2:2-0-0-0 format
 			 * Need to tease out the pertinent bits
 			 */
@@ -402,7 +463,6 @@ default -> 0.0f;
 				
 				if (isCodedGenotypeValid(genotype1)) {
 					cachePosition.set(ChrPositionCache.getStringIndex(chrPosString));
-					
 					ratios.put(cachePosition.get(), genotype1);
 					/*
 					 * Get rg data if we have more than 1 rg
