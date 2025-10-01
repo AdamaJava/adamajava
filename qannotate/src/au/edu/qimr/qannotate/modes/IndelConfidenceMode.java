@@ -34,7 +34,7 @@ import au.edu.qimr.qannotate.Options;
 
 /**
  * @author christix
- * annotate whether indel is high, low or zero confidence
+ * annotate whether indel is high, low, or zero confidence
  *
  */
 public class IndelConfidenceMode extends AbstractMode{
@@ -47,10 +47,12 @@ public class IndelConfidenceMode extends AbstractMode{
 	private static final float DEFAULT_SSOI = 0.2f;
 	public static final int DEFAULT_HOMN = 6;
 	private final Map<String,BitSet> mask = new HashMap<>();
+
+    private int homopolymerCutoff = IndelConfidenceMode.DEFAULT_HOMN;
 		
  	//filters 
 	private static final String FILTER_REPEAT = "REPEAT"; 
-	private static final String DESCRITPION_INFO_CONFIDENCE =  "set to HIGH if the variants passed all filter, "
+	private static final String DESCRIPTION_INFO_CONFIDENCE =  "set to HIGH if the variants passed all filter, "
 			+ "nearby homopolymer sequence base less than six and less than 10% reads contains nearby indel; set to Zero if "
 			+ "coverage more than 1000, or fallen in repeat region; set to LOW for reminding variants";
  	
@@ -68,36 +70,42 @@ public class IndelConfidenceMode extends AbstractMode{
 		input = options.getInputFileName();
 		output = options.getOutputFileName();
 		commandLine = options.getCommandLine();
+        options.getHomoplymersCutoff().ifPresent(i -> homopolymerCutoff = i);
 		
 		logger.tool("input: " + options.getInputFileName());
         logger.tool("mask File: " + options.getDatabaseFileName() );
         logger.tool("output annotated records: " + options.getOutputFileName());
         logger.tool("logger file " + options.getLogFileName());
         logger.tool("logger level " + (options.getLogLevel() == null ? QLoggerFactory.DEFAULT_LEVEL.getName() :  options.getLogLevel()));
+        logger.tool("Homopolymer cutoff (will add to filter if value is greater than or equal to cutoff): " + homopolymerCutoff);
           
 		addAnnotation(options.getDatabaseFileName() );				
 	}
 
 	/**
-	 * load repeat region into RAM 
-	 * @param dbfile
-	 * @throws Exception
-	 */
+     * Loads repeat region data from the specified file and populates a BitSet for masking.
+     * Each line in the file is processed to extract chromosome, start, and end positions,
+     * which are then used to update the mask data structure.
+     *
+     * @param dbfile the path to the file containing repeat regions. The file should consist of lines
+     *               where each line contains chromosome, start, and end positions of the repeat regions.
+     * @throws IOException if an I/O error occurs while reading the file.
+     */
 	private void loadMask(String dbfile) throws IOException {		
         //load repeat region to bitset
         try(BufferedReader reader = new BufferedReader(new FileReader(dbfile))){
             String line;
             while (( line = reader.readLine()) != null) {
-            		if ( ! line.startsWith("geno")) {
-	                String[] array = line.split(" ");
-	                	//int no = Integer.parseInt(array[0]) - 1;
-	                	String chr = IndelUtils.getFullChromosome(array[0]);
-	                	
-	                	int start = Integer.parseInt(array[1]);
-	                	int end = Integer.parseInt(array[2]);
-	                	
-	                	mask.computeIfAbsent(chr, (v) -> new BitSet()).set(start,end);
-            		}
+                if ( ! line.startsWith("geno")) {
+                String[] array = line.split(" ");
+                    //int no = Integer.parseInt(array[0]) - 1;
+                    String chr = IndelUtils.getFullChromosome(array[0]);
+
+                    int start = Integer.parseInt(array[1]);
+                    int end = Integer.parseInt(array[2]);
+
+                    mask.computeIfAbsent(chr, (v) -> new BitSet()).set(start,end);
+                }
             }
 		}        
 	}
@@ -117,11 +125,11 @@ public class IndelConfidenceMode extends AbstractMode{
 			float ssoi = (info.getField(VcfHeaderUtils.INFO_SOMATIC) != null) ?  
 					1 : StringUtils.string2Number(vcf.getInfoRecord().getField(IndelUtils.INFO_SSOI), Float.class);
 			
-			//check homoplymers			
+			//check homopolymers
 			int lhomo = (info.getField(VcfHeaderUtils.INFO_HOM) == null)? 1 :
 				StringUtils.string2Number(info.getField(VcfHeaderUtils.INFO_HOM).split(",")[0], Integer.class);
 			
-			if(nioc <= DEFAULT_NIOC && lhomo <= DEFAULT_HOMN && ssoi >= DEFAULT_SSOI) return MafConfidence.HIGH;		
+			if(nioc <= DEFAULT_NIOC && lhomo <= homopolymerCutoff && ssoi >= DEFAULT_SSOI) return MafConfidence.HIGH;
 			
 		} else if (filter.equals(IndelUtils.FILTER_HCOVN) || filter.equals(IndelUtils.FILTER_HCOVT) || 
 				filter.equals(FILTER_REPEAT) || filter.contains(Constants.SEMI_COLON + FILTER_REPEAT + Constants.SEMI_COLON)  ||
@@ -134,7 +142,16 @@ public class IndelConfidenceMode extends AbstractMode{
 	}
 	
  
-	private boolean isRepeat(VcfRecord vcf){
+	/**
+     * Determines if the given VCF record falls within a repeat region.
+     * It checks the specified chromosome and position range in the associated
+     * BitSet mask for repeat regions.
+     *
+     * @param vcf a {@code VcfRecord} representing the variant call to check for repeat regions.
+     *            This includes details such as chromosome, position, and other metadata.
+     * @return {@code true} if the variant falls within a repeat region; {@code false} otherwise.
+     */
+    private boolean isRepeat(VcfRecord vcf){
         
 		String chr = IndelUtils.getFullChromosome(vcf.getChromosome()); 
 		BitSet chrMask = mask.get(chr);
@@ -158,14 +175,14 @@ public class IndelConfidenceMode extends AbstractMode{
 		
 		long count = 0;
 		long repeatCount = 0; 
-		HashSet<ChrPosition> posCheck = new HashSet<ChrPosition>();	
+		HashSet<ChrPosition> posCheck = new HashSet<>();
 		try (VcfFileReader reader = new VcfFileReader(input) ;
             RecordWriter<VcfRecord> writer = new RecordWriter<>(new File(output ))  ) {
 			    
 			//reheader
 		    VcfHeader hd = 	reader.getVcfHeader();
 		    hd.addFilter(FILTER_REPEAT, DESCRIPTION_FILTER_REPEAT );       	  
-		    hd.addInfo(VcfHeaderUtils.INFO_CONFIDENCE, "1", "String", DESCRITPION_INFO_CONFIDENCE);		    
+		    hd.addInfo(VcfHeaderUtils.INFO_CONFIDENCE, "1", "String", DESCRIPTION_INFO_CONFIDENCE);
 		    hd = reheader(hd, commandLine ,input);			    	  
 	
 		    for(final VcfHeaderRecord record: hd)  
@@ -183,8 +200,8 @@ public class IndelConfidenceMode extends AbstractMode{
 	    		writer.add(vcf);
 	        }
 		}  
-		logger.info(String.format("outputed %d VCF record, happend on %d variants location.",  count , posCheck.size()));
-		logger.info("number of variants fallen into repeat region is " + repeatCount);
+		logger.info(String.format("outputted %d VCF records in %d locations.",  count , posCheck.size()));
+		logger.info("number of variants in repeat regions: " + repeatCount);
 					 
 	}
  
