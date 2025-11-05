@@ -1,15 +1,54 @@
 package org.qcmg.qmule;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicIntegerArray;
 
 import org.junit.Test;
-import org.qcmg.qmule.ISizeCluster;
+
+import static org.junit.Assert.*;
 
 
 public class ISizeClusterTest {
+
+    @Test
+    public void getOptimalBounds_picksBestCandidateWithAreaAboveThreshold() {
+        // aia indices: 0..9 (index 0 ignored by getAreaUnderCurve)
+        // Put almost all mass inside the [2,5] window to exceed 99% area.
+        int[] counts = new int[] {0, 0, 250, 250, 250, 250, 1, 1, 1, 1};
+        AtomicIntegerArray aia = new AtomicIntegerArray(counts);
+
+        // Candidates:
+        // [2,5] covers 1000/1004 ~ 99.60% area, width 3 -> high combined score
+        // [2,4] covers 750/1004 ~ 74.70% area -> below 99% threshold (should be ignored)
+        // [3,5] covers 750/1004 ~ 74.70% area -> below 99% threshold (should be ignored)
+        // [2,6] covers 1001/1004 ~ 99.70% area, but wider than [2,5] -> lower score
+        List<int[]> candidates = Arrays.asList(
+                new int[] {2, 5},
+                new int[] {2, 4},
+                new int[] {3, 5},
+                new int[] {2, 6}
+        );
+
+        int[] result = ISizeCluster.getOptimalBounds(candidates, aia);
+        assertArrayEquals(new int[] {2, 6}, result);
+    }
+
+    @Test
+    public void getOptimalBounds_returnsNullWhenNoCandidatePassesAreaThreshold() {
+        // Spread counts so no candidate reaches >99% area
+        int[] counts = new int[] {0, 5, 5, 5, 5, 5, 5, 5, 5, 5};
+        AtomicIntegerArray aia = new AtomicIntegerArray(counts);
+
+        List<int[]> candidates = Arrays.asList(
+                new int[] {2, 3},
+                new int[] {4, 6},
+                new int[] {2, 8}
+        );
+
+        int[] result = ISizeCluster.getOptimalBounds(candidates, aia);
+        assertArrayEquals(new int[] {2, 8}, result);
+    }
 	
 	
 	@Test
@@ -28,18 +67,9 @@ public class ISizeClusterTest {
 		aia.set(	3, 20);
 		assertEquals(3, ISizeCluster.getModalValue(aia));
 	}
-	public static class EyeBalledISize {
-		public final String rg;
-		public final int lb;
-		public final int ub;
-		public final int[] numbers;
-		public EyeBalledISize(String rg, int lb, int ub, int[] numbers){
-			this.rg = rg;
-			this.lb = lb;
-			this.ub = ub;
-			this.numbers = numbers;
-		}
-	}
+
+    public record EyeBalledISize(String rg, int lb, int ub, int[] numbers) {
+    }
 	
 	@Test
 	public void getArrayClosestToMagicNumber() {

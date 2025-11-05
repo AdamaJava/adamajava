@@ -133,14 +133,14 @@ public class ISizeCluster {
 		 */
 		int ub = drawTheLineUpperBound;
 		
-		double percent = getAreaUndeCurve(aia, lb, ub);
+		double percent = getAreaUnderCurve(aia, lb, ub);
 		if (percent < MIN_PERCENTAGE) {
 			/*
 			 * lets try the draw the line technique
 			 */
 			lb = drawLineMethod[0];
 			ub = drawLineMethod[1];
-			percent = getAreaUndeCurve(aia, lb, ub);
+			percent = getAreaUnderCurve(aia, lb, ub);
 		}
 		
 		System.out.println("LB: " + lb + ", UB: " + ub + ", percent: " + percent);
@@ -158,7 +158,7 @@ public class ISizeCluster {
 				/*
 				 * check that we have met the percentage requirement, assuming that percentage is set
 				 */
-				if (percentage == 0.0 || getAreaUndeCurve(aia, lowerBound, i) >= percentage) {
+				if (percentage == 0.0 || getAreaUnderCurve(aia, lowerBound, i) >= percentage) {
 					return i;
 				}
 			}
@@ -367,12 +367,9 @@ public class ISizeCluster {
 					/*
 					 * lets see if this gives us a percentage value greater that the min
 					 */
-					if (getAreaUndeCurve(aia, lowerBound, upperBound) >= MIN_PERCENTAGE) {
+					if (getAreaUnderCurve(aia, lowerBound, upperBound) >= MIN_PERCENTAGE) {
 						System.out.println("diff at position " + (i + modal + (windowSize / 2)) + ": " + diff + " is more than " + stdDevMultiplier + "*stdDevs from the mean! mean: " + mean + ", stdDev: " + stdDev);
 						break;
-						
-					} else {
-						// keep looking
 					}
 					
 				}
@@ -393,12 +390,11 @@ public class ISizeCluster {
 		 * get starting point
 		 */
 		int prevCount = aia.get(modal);
-		
+
 		 /*
 		  * look for difference between previous position - flag if count drops by more than a certain percentage (maybe 30%)
 		  * Start at modal and work down both sides of mountain
 		  */
-		 prevCount = aia.get(modal);
 		 int lowerBound = 0;
 		 int upperBound = Integer.MAX_VALUE;
 		 double [] diffValues = new double[modal];
@@ -406,7 +402,7 @@ public class ISizeCluster {
 			 
 			 int thisCount = aia.get(iSize);
 			 /*
-			  * get difference between thisCount and prevCount as a percentage
+			  * get the difference between thisCount and prevCount as a percentage
 			  */
 			 double diff = (double) thisCount / prevCount;
 			 diffValues[iSize] = diff;
@@ -454,14 +450,14 @@ public class ISizeCluster {
 				  */
 				 
 				 /*
-				  * is the count of this iSize less that that of the lower bound?
+				  * is the count of this iSize less than that of the lower bound?
 				  */
 				 if (thisCount <= aia.get(lowerBound)) {
 					 
 					 /*
 					  * check to see if percentage is good
 					  */
-					 double perc = getAreaUndeCurve(aia, lowerBound, iSize); 
+					 double perc = getAreaUnderCurve(aia, lowerBound, iSize);
 					 if (perc >= 99.75) {
 					 
 						 upperBound = iSize;
@@ -493,37 +489,69 @@ public class ISizeCluster {
 			int tempUpperBound = drawTheLineMethod(aia, i, 0d);
 			candidates.add(new int[]{i, tempUpperBound});
 		}
-		int [] bounds = getOptimalBounds(candidates, aia);
-		return bounds;
+        return getOptimalBounds(candidates, aia);
 	}
+
+
+    public static int[] getOptimalBounds(List<int[]> candidates, AtomicIntegerArray aia) {
+        // guard clauses
+        if (candidates == null || candidates.isEmpty() || aia == null || aia.length() == 0) {
+            return null;
+        }
+
+        // constants to make intent explicit
+        final double AREA_WEIGHT = 2000.0;
+        final double MIN_AREA_PERCENT = 99.0;
+
+        int[] bestBounds = null;
+        double bestScore = Double.NEGATIVE_INFINITY;
+
+        int[] bestFallbackBounds = null;    // used if no candidate reaches the min area threshold
+        double bestFallbackArea = Double.NEGATIVE_INFINITY;
+        double bestFallbackScore = Double.NEGATIVE_INFINITY;
+
+        for (int[] bounds : candidates) {
+            if (bounds == null || bounds.length < 2) continue;
+            final int start = bounds[0];
+            final int end = bounds[1];
+
+            final double area = getAreaUnderCurve(aia, start, end);
+            final double score = (AREA_WEIGHT * area) - (end - start);
+
+            // First preference: area meets threshold, pick highest score
+            if (area > MIN_AREA_PERCENT) {
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestBounds = bounds;
+                }
+            } else {
+                // Fallback: track the best by area, then score as tie-breaker
+                if (area > bestFallbackArea || (area == bestFallbackArea && score > bestFallbackScore)) {
+                    bestFallbackArea = area;
+                    bestFallbackScore = score;
+                    bestFallbackBounds = bounds;
+                }
+            }
+        }
+
+        if (bestBounds == null) {
+            bestBounds = bestFallbackBounds;
+        }
+        if (bestBounds != null) {
+            System.out.println("Winning bounds: " + bestBounds[0] + " - " + bestBounds[1]);
+        }
+        return bestBounds;
+    }
 	
-	
-	public static int[] getOptimalBounds(List<int[]> candidates, AtomicIntegerArray aia) {
-		double maxValue = 0;
-		int[] maxArray = null;
-		
-		for (int[] iArray : candidates) {
-			double area = getAreaUndeCurve(aia, iArray[0], iArray[1]);
-			
-			double combinedScore = (2000 * area)  - ( (iArray[1] - iArray[0]));
-			if (area > 99.0 && combinedScore > maxValue) {
-				maxValue = combinedScore;
-				maxArray = iArray;
-			}
-		}
-		
-		System.out.println("Winning bounds: " + maxArray[0] + " - " + maxArray[1]);
-		return maxArray;
-	}
-	
-	public static double getAreaUndeCurve(AtomicIntegerArray aia, int start, int end) {
+	public static double getAreaUnderCurve(AtomicIntegerArray countsByIndex, int start, int end) {
 		int withinISizeTally = 0;
 		int totalTally = 0;
-		 for (int i = 1 ; i < aia.length() ; i++) {
+		 for (int i = 1 ; i < countsByIndex.length() ; i++) {
+             final int binCount = countsByIndex.get(i);
 			 if (i >= start && i <= end) {
-				 withinISizeTally += aia.get(i);
+				 withinISizeTally += binCount;
 			 }
-			 totalTally += aia.get(i);
+			 totalTally += binCount;
 		 }
 		 return ((100d * withinISizeTally) / totalTally);
 	}

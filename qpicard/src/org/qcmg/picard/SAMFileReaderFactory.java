@@ -23,6 +23,7 @@ import htsjdk.samtools.seekablestream.SeekableStream;
 import htsjdk.samtools.seekablestream.SeekableStreamFactory;
 import htsjdk.samtools.ValidationStringency;
 
+import org.qcmg.common.log.QLevel;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.protocol.s3.S3AwareURLStreamHandlerFactory;
@@ -52,12 +53,16 @@ public class SAMFileReaderFactory {
 			final ValidationStringency stringency, final Option...options ) throws IOException {				
 		
 		if (null == bamFile) throw new IllegalArgumentException("Please provide a bam file");
+
+        boolean debugLevelEnabled = logger.isLevelEnabled(QLevel.DEBUG);
 				
 		SamReaderFactory factory =   ( options != null && options.length > 0) ? 
 				SamReaderFactory.makeDefault().enable(options) : SamReaderFactory.makeDefault();	
 				
 		factory.validationStringency(null != stringency ? stringency : DefaultStringency);
-		logger.debug("Setting Validation Stringency on SamReader to: " + factory.validationStringency().name());			
+        if (debugLevelEnabled) {
+            logger.debug("Setting Validation Stringency on SamReader to: " + factory.validationStringency().name());
+        }
 		
 		//check to see if we have a BAM/CRAM or SAM file, which will determine which input stream is created		 
 		SamInputResource resources;
@@ -71,12 +76,16 @@ public class SAMFileReaderFactory {
 			if (null != index) {
 				SeekableStream indexStream = SeekableStreamFactory.getInstance().getStreamFor(index.getAbsolutePath());
 				resources = resources.index(indexStream);
-				logger.info("setup index: " + index.getAbsolutePath());
+                if (debugLevelEnabled) {
+                    logger.debug("setup index: " + index.getAbsolutePath());
+                }
 			}
 			//set reference file for cram. default reference set by java option "-Dsamjdk.REFERENCE_FASTA" 
 			if (reference != null && reference.exists()) {
-				factory.referenceSequence(reference); 
-				logger.info("setup reference: " + reference.getAbsolutePath());
+				factory.referenceSequence(reference);
+                if (debugLevelEnabled) {
+                    logger.debug("setup reference: " + reference.getAbsolutePath());
+                }
 			}			
 		} else {
 			InputStream is = new FileInputStream(bamFile);
