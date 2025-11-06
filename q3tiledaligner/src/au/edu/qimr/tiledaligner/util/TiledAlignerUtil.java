@@ -21,6 +21,7 @@ import gnu.trove.map.hash.TLongIntHashMap;
 import htsjdk.samtools.reference.ReferenceSequenceFileFactory;
 import htsjdk.samtools.util.SequenceUtil;
 import org.apache.commons.lang3.Range;
+import org.qcmg.common.log.QLevel;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.BLATRecord;
@@ -716,18 +717,29 @@ public class TiledAlignerUtil {
 	 * @return
 	 */
 	public static boolean doesSequenceHaveMostlySingleBaseRepeats(String sequence) {
-		
-		return Arrays.stream(REPEATS).filter(sequence::contains).noneMatch(s -> {
-			int index = sequence.indexOf(s);
-			int tally = s.length();
-			while (index != -1) {
-				index = sequence.indexOf(s, index + 1);
-				if (index > -1) {
-					tally ++;
-				}
-			}
-			return  ((double)tally / sequence.length()) > 0.25;
-		});
+        final int n = sequence.length();
+        if (n == 0) return true;
+
+        final int minRun = 23;           // strictly greater than 23
+        final int thresholdAbs = (n / 4) + 1; // strictly greater than 25%
+
+        char prev = 0;
+        int run = 0;
+
+        for (int i = 0; i < n; i++) {
+            char c = sequence.charAt(i);
+            if (c == prev) {
+                run++;
+            } else {
+                prev = c;
+                run = 1;
+            }
+            // Return false if a homopolymer violates both conditions
+            if (run >= minRun && run > thresholdAbs) {
+                return false;
+            }
+        }
+        return true;
 	}
 	
 	public static Map<String, List<BLATRecord>> runTiledAlignerCache(String refFile, Map<ChrPosition, LongRange> refIndexMap, TIntObjectMap<int[]> cache, Map<String, String> sequencesNameMap, int tileLength, String originatingMethod, boolean log, boolean recordsMustComeFromChrInName) {
@@ -738,32 +750,27 @@ public class TiledAlignerUtil {
 		if (null == sequencesNameMap) {
 			throw new IllegalArgumentException("null sequencesNameMap passed to TiledAlignerUtil.runTiledAlignerCache");
 		}
-		
-		Map<String, List<BLATRecord>> results = new HashMap<>();
+		boolean writeToLog = log && logger.isLevelEnabled(QLevel.INFO);
+		Map<String, List<BLATRecord>> results = new HashMap<>(Math.max(16, sequencesNameMap.size() * 2));
 		
 		for (Entry<String, String> entry : sequencesNameMap.entrySet()) {
-			if (log) {
+			if (writeToLog) {
 				logger.info("about to call getBlatRecords for " + entry.getKey());
 			}
 			String name = entry.getValue();
-			if (null != name && name.contains(":")) {
-				logger.info("got more than 1 name for sequence. names: " + name + ", will use first one to dictate sw strategy");
-				String [] names = entry.getValue().split(":");
-				name = names[0];
-			}
-			logger.info("in runTiledAlignerCache, name: " + name + ", seq: " + entry.getKey());
-			
-			List<BLATRecord> blatties = getBlatRecordsSWAll(refFile, refIndexMap, cache, entry.getKey(), entry.getValue(), tileLength, originatingMethod, log, recordsMustComeFromChrInName);
-			blatties.sort(null);
+
+			List<BLATRecord> blatRecords = getBlatRecordsSWAll(refFile, refIndexMap, cache, entry.getKey(), entry.getValue(), tileLength, originatingMethod, writeToLog, recordsMustComeFromChrInName);
 			/*
 			 * populate the name field on the BLATRecord with the value, if present - otherwise just leave as the default
 			 */
-			if (null != entry.getValue()) {
-				for (BLATRecord b : blatties) {
-					b.setQName(entry.getValue());
+			if (null != name) {
+				for (BLATRecord b : blatRecords) {
+                    if (b.getQName() == null || !name.equals(b.getQName())) {
+                        b.setQName(name);
+                    }
 				}
 			}
-			results.put(entry.getKey(), blatties);
+			results.put(entry.getKey(), blatRecords);
 		}
 		return results;
 	}
@@ -878,15 +885,18 @@ public class TiledAlignerUtil {
 		
 		int commonTileCountAtStart = NumberUtils.getContinuousCountFromValue(0, allCommonTiles);
 		int commonTileCountAtStartRC = NumberUtils.getContinuousCountFromValue(0, allCommonTilesRC);
-		if (commonTileCountAtStart > 0 || commonTileCountAtStartRC > 0) {
+
+        boolean debugLoggingEnabled = logger.isLevelEnabled(QLevel.DEBUG);
+
+		if (debugLoggingEnabled && (commonTileCountAtStart > 0 || commonTileCountAtStartRC > 0)) {
 			logger.debug("commonTileCountAtStart: " + commonTileCountAtStart + " (total: " + allCommonTiles.length + "), commonTileCountAtStartRC: " + commonTileCountAtStartRC + " (total: " + allCommonTilesRC.length + ")");
 		}
 		
 		
-		if (null != allCommonTiles && allCommonTiles.length > 0) {
+		if (debugLoggingEnabled && null != allCommonTiles && allCommonTiles.length > 0) {
 			logger.debug("common tile positions: " + Arrays.stream(allCommonTiles).mapToObj(i -> "" + i).collect(Collectors.joining(",")));
 		}
-		if (null != allCommonTilesRC && allCommonTilesRC.length > 0) {
+		if (debugLoggingEnabled && null != allCommonTilesRC && allCommonTilesRC.length > 0) {
 			logger.debug("RS common tile positions: " + Arrays.stream(allCommonTilesRC).mapToObj(i -> "" + i).collect(Collectors.joining(",")));
 		}
 		
@@ -921,8 +931,9 @@ public class TiledAlignerUtil {
 			if ( ! updatedMap.isEmpty()) {
 				map1 = updatedMap;
 			}
-			
-			logger.info("we have " + acceptableRanges.size() + " ranges for this name: " + name + ", updated map size: " + updatedMap.size() + ", going with map of size: " + map1.size());
+			if (log) {
+                logger.info("we have " + acceptableRanges.size() + " ranges for this name: " + name + ", updated map size: " + updatedMap.size() + ", going with map of size: " + map1.size());
+            }
 		}
 		
 		if (log) {
@@ -988,12 +999,16 @@ public class TiledAlignerUtil {
 							String ref =  ReferenceUtil.getRefFromChrStartStop(refFile, cp.getChromosome(), cp.getStartPosition() - buffer, cp.getStartPosition() + sequence.length() + buffer);
 							Optional<ChrPosition> optionalCP = getChrPositionWithReference(cp.getChromosome(), cp.getStartPosition(), forwardStrand ? sequence : revCompSequence, ref);
 							if (optionalCP.isPresent()) {
-								logger.debug("got a perfect match!  cp: " + cp.toIGVString() + ", ref: " + ref + ", sequence: " + sequence);
+                                if (debugLoggingEnabled) {
+                                    logger.debug("got a perfect match!  cp: " + cp.toIGVString() + ", ref: " + ref + ", sequence: " + sequence);
+                                }
 								needToRunSW = false;
 								Optional<BLATRecord> oBR = BLATRecordUtil.getDetailsForBLATRecord(List.of(optionalCP.get()), name, forwardStrand ? sequence : revCompSequence, forwardStrand);
 								oBR.ifPresent(results::add);
 							} else {
-								logger.debug("got perfect match on tiles, but not on sequence! cp: " + cp.toIGVString() + ", ref: " + ref + ", sequence: " + sequence);
+                                if (debugLoggingEnabled) {
+                                    logger.debug("got perfect match on tiles, but not on sequence! cp: " + cp.toIGVString() + ", ref: " + ref + ", sequence: " + sequence);
+                                }
 							}
 						}
 					}
@@ -1016,9 +1031,11 @@ public class TiledAlignerUtil {
 			int passingScore99 = (int)(seqLength * 0.99);
 			boolean finalIteration = false;
 			int iterationCount = 0;
-			
-			logger.debug("seqLength: " + seqLength + ",  splits: " + splits + ", totalNumberOfTiledPositions: " + totalNumberOfTiledPositions + ", shortcut positions: " + potentialMatches.size() + ", shortcut positions RC: " + potentialMatchesRC.size());
-			
+
+            if (debugLoggingEnabled) {
+                logger.debug("starting SW mode for name: " + name + ", seqLength: " + seqLength + ", passingScore: " + passingScore + ", passingScore99: " + passingScore99 + ", splits: " + splits + ", totalNumberOfTiledPositions: " + totalNumberOfTiledPositions);
+            }
+
 			/*
 			 * look at shortcut positions first
 			 */
@@ -1026,7 +1043,9 @@ public class TiledAlignerUtil {
 				for (long l : potentialMatches.keys()) {
 					BLATRecord br = smithWaterman(l, seqLength, seqLength, name, sequence, revCompSequence,  refFile, allCommonTiles, refIndexMap, false);
 					if (null != br) {
-						logger.debug("found record from shortcut: " + br);
+                        if (debugLoggingEnabled) {
+                            logger.debug("found record from shortcut: " + br);
+                        }
 						results.add(br);
 					}
 				}
@@ -1035,7 +1054,9 @@ public class TiledAlignerUtil {
 				 * quick check to see if we can find a shortcut with buffer
 				 */
 				TLongIntMap splitReadShortCuts = getShortCutPositionsForSmithwaterman(startPositions, 500000);
-				logger.debug("Have " + splitReadShortCuts.size() + " potential split read shortcuts available!");
+                if (debugLoggingEnabled) {
+                    logger.debug("Have " + splitReadShortCuts.size() + " potential split read shortcuts available!");
+                }
 				
 				
 				for (long l : splitReadShortCuts.keys()) {
@@ -1054,7 +1075,9 @@ public class TiledAlignerUtil {
 						
 						BLATRecord br =  investigateSplitShortCut(l, splitReadShortCuts.get(l), name, sequence, revCompSequence, refFile, allCommonTiles, refIndexMap, false);
 						if (null != br) {
-							logger.debug("found record from split read shortcut: " + br);
+                            if (debugLoggingEnabled) {
+                                logger.debug("found record from split read shortcut: " + br);
+                            }
 							results.add(br);
 						}
 					}
@@ -1064,7 +1087,9 @@ public class TiledAlignerUtil {
 				for (long l : potentialMatchesRC.keys()) {
 					BLATRecord br = smithWaterman(l, seqLength, seqLength, name, sequence, revCompSequence, refFile, allCommonTilesRC, refIndexMap, true);
 					if (null != br) {
-						logger.debug("found record from shortcutRC: " + br);
+                        if (debugLoggingEnabled) {
+                            logger.debug("found record from shortcutRC: " + br);
+                        }
 						results.add(br);
 					}
 				}
@@ -1073,7 +1098,9 @@ public class TiledAlignerUtil {
 				 * quick check to see if we can find a shortcut with buffer
 				 */
 				TLongIntMap splitReadShortCuts = getShortCutPositionsForSmithwaterman(startPositionsRC, 500000);
-				logger.debug("Have " + splitReadShortCuts.size() + "RC, split read shortcuts available!");
+                if (debugLoggingEnabled) {
+                    logger.debug("Have " + splitReadShortCuts.size() + "RC, split read shortcuts available!");
+                }
 
 				for (long l : splitReadShortCuts.keys()) {
 					
@@ -1092,15 +1119,18 @@ public class TiledAlignerUtil {
 					if (goodToGo) {
 						BLATRecord br =  investigateSplitShortCut(l, splitReadShortCuts.get(l), name, sequence, revCompSequence, refFile, allCommonTilesRC, refIndexMap, true);
 						if (null != br) {
-							logger.debug("found record from split read shortcutRC: " + br);
+                            if (debugLoggingEnabled) {
+                                logger.debug("found record from split read shortcutRC: " + br);
+                            }
 							results.add(br);
 						}
 					}
 				}
 			}
-			logger.debug("after shortcut mode, results is following size: " + results.size());
-			
-			
+            if (debugLoggingEnabled) {
+                logger.debug("after shortcut mode, results is following size: " + results.size());
+            }
+
 			boolean runSW = true;
 			
 			/*
@@ -1108,8 +1138,10 @@ public class TiledAlignerUtil {
 			 */
 			List<BLATRecord> splitsList = new ArrayList<>();
 			if (results.isEmpty() || results.getLast().getScore() < passingScore99) {
-				
-				logger.debug("about to run some splits, no of positions in TARecord:  name: " + name + ", " + taRec.getCountDist());
+
+                if (debugLoggingEnabled) {
+                    logger.debug("about to run some splits, no of positions in TARecord:  name: " + name + ", " + taRec.getCountDist());
+                }
 				TIntObjectMap<Set<IntLongPairs>> splitsMap = TARecordUtil.getSplitStartPositions(taRec);
 				List<IntLongPairs> potentialSplits = new ArrayList<>();
 				splitsMap.forEachValue(s -> potentialSplits.addAll(s.stream().toList()));
@@ -1123,15 +1155,19 @@ public class TiledAlignerUtil {
 						.map(Optional::get)
 						//				.filter(br -> br.getScore() > passingScore)
 						.toList());
-				logger.debug("after splits mode, splitsList is following size: " + splitsList.size());
+                if (debugLoggingEnabled) {
+                    logger.debug("after splits mode, splitsList is following size: " + splitsList.size());
+                }
 				splitsList.sort(null);
 				
 				if ( ! splitsList.isEmpty() && splitsList.getLast().getScore() >= passingScore99) {
-					logger.debug("top score from splits: " + splitsList.getLast().getScore() + ", no need to run sw!");
+                    if (debugLoggingEnabled) {
+                        logger.debug("top score from splits: " + splitsList.getLast().getScore() + ", no need to run sw!");
+                    }
 					runSW = false;
 					results.addAll(splitsList);
 				} else {
-					if ( ! splitsList.isEmpty()) {
+					if (debugLoggingEnabled && ! splitsList.isEmpty()) {
 						logger.debug("top score from splits: " + splitsList.getLast().getScore() + ", will run sw!");
 					}
 				}
@@ -1144,15 +1180,19 @@ public class TiledAlignerUtil {
 				boolean limitReached = false;
 				
 				for (Integer i : sortedKeys) {
-					
-					logger.debug("Looping through sortedKeys, i: " + i);
+
+                    if (debugLoggingEnabled) {
+                        logger.debug("Looping through sortedKeys, i: " + i);
+                    }
 					
 					if (limitReached) {
 						/*
 						 * need to break out of this look once we are in the weeds.
 						 * Definition of weeds is currently less than half the max value
 						 */
-						logger.debug("limitReached is true, swCount: " + swCount + ", results.size(): " + results.size());
+                        if (debugLoggingEnabled) {
+                            logger.debug("limitReached is true, swCount: " + swCount + ", results.size(): " + results.size());
+                        }
 						break;
 					}
 					
@@ -1190,7 +1230,9 @@ public class TiledAlignerUtil {
 							br = getRecordFromTileCountAndMismatches(l, length, mismatchCount, seqLength, name, sequence, revCompSequence, refIndexMap);
 						}
 						if (null != br) {
-							logger.debug("created br: " + br);
+                            if (debugLoggingEnabled) {
+                                logger.debug("created br: " + br);
+                            }
 							if (br.getScore() > thisIterationMaxScore) {
 								thisIterationMaxScore = br.getScore();
 							}
@@ -1256,11 +1298,14 @@ public class TiledAlignerUtil {
 						int [] [] missingRanges = NumberUtils.getRemainingRanges(seqLength, new int[][] {new int[] {largestSplitBR.getQueryStart(),largestSplitBR.getQueryEnd() }}, 10);
 						
 						if (missingRanges.length > 0) {
-							logger.debug("missing ranges: " + Arrays.deepToString(missingRanges));
+                            if (debugLoggingEnabled) {
+                                logger.debug("missing ranges: " + Arrays.deepToString(missingRanges));
+                            }
 							for (int [] missingRange : missingRanges) {
-								logger.debug("missing ranges: " + Arrays.deepToString(missingRanges));
-								
-								
+                                if (debugLoggingEnabled) {
+                                    logger.debug("missing ranges: " + Arrays.deepToString(missingRanges));
+                                }
+
 								Optional<BLATRecord> optionalBR = BLATRecordUtil.findRecordInRange(results, missingRange[0], missingRange[1]);
 								if (optionalBR.isPresent()) {
 									/*
@@ -1277,19 +1322,25 @@ public class TiledAlignerUtil {
 						if ( ! splitsResults.isEmpty()) {
 							splitsResults.sort(null);
 							boolean returnSplits = true;
-							logger.debug("will look for a possible merged rec with splitResults: " + splitsResults.stream().map(BLATRecord::toString).collect(Collectors.joining(",")));
-								Optional<BLATRecord> mergedRec = BLATRecordUtil.mergeBLATRecs(splitsResults, org.apache.commons.lang3.StringUtils.countMatches(sequence, 'N'));
-								if (mergedRec.isPresent()) {
-									logger.debug("merged rec is present!!!: " + mergedRec.get());
-									results.add(mergedRec.get());
-									returnSplits = false;
-								}
+                            if (debugLoggingEnabled) {
+                                logger.debug("will look for a possible merged rec with splitResults: " + splitsResults.stream().map(BLATRecord::toString).collect(Collectors.joining(",")));
+                            }
+                            Optional<BLATRecord> mergedRec = BLATRecordUtil.mergeBLATRecs(splitsResults, org.apache.commons.lang3.StringUtils.countMatches(sequence, 'N'));
+                            if (mergedRec.isPresent()) {
+                                if (debugLoggingEnabled) {
+                                    logger.debug("merged rec is present!!!: " + mergedRec.get());
+                                }
+                                results.add(mergedRec.get());
+                                returnSplits = false;
+                            }
 							if (returnSplits) {
 								Optional<int []> coverageAndOverlapO = BLATRecordUtil.getCombinedNonOverlappingScore(splitsResults);
 								if (coverageAndOverlapO.isPresent()) {
 									int [] coverageAndOverlap = coverageAndOverlapO.get();
 									if (coverageAndOverlap[0] > passingScore && coverageAndOverlap[0] > (coverageAndOverlap[1] * 2)) {
-										logger.info("Returning splits results, coverageAndOverlap[0] > passingScore && coverageAndOverlap[0] > (coverageAndOverlap[1] * 2)");
+                                        if (log) {
+										    logger.info("Returning splits results, coverageAndOverlap[0] > passingScore && coverageAndOverlap[0] > (coverageAndOverlap[1] * 2)");
+                                        }
 										return splitsResults;
 									}
 								}
@@ -1300,13 +1351,16 @@ public class TiledAlignerUtil {
 				}
 				
 				if ( ! splitsList.isEmpty() ) {
-					int topSplitsScore = splitsList.getLast().getScore();
-					results.sort(null);
-					int topOtherRecordsScore =  results.getLast().getScore();
-					if (topSplitsScore > topOtherRecordsScore) {
-						logger.debug("adding splitList entries to results");
-						results.addAll(splitsList);
-					}
+                    if (results.isEmpty()) {
+                        logger.debug("adding splitList entries to results as results is empty");
+                        results.addAll(splitsList);
+                    } else {
+                        results.sort(null);
+                        if (splitsList.getLast().getScore() > results.getLast().getScore()) {
+                            logger.debug("adding splitList entries to results");
+                            results.addAll(splitsList);
+                        }
+                    }
 				}
 			}
 		}
@@ -1316,11 +1370,11 @@ public class TiledAlignerUtil {
 		 */
 		List<BLATRecord> uniqueResults = results.stream().distinct().sorted().collect(Collectors.toList());
 
-        if (log) {
+        if (debugLoggingEnabled) {
 			logger.debug("number of blat records for seq: " + sequence +", " + uniqueResults.size() +", winner: " + (!uniqueResults.isEmpty() ? uniqueResults.getLast().toString() : "-"));
 		}
 		
-		if (null != name && name.contains("splitcon")) {
+		if (log && null != name && debugLoggingEnabled && name.contains("splitcon")) {
 			/*
 			 * really only care if we have different chromosomes
 			 */
@@ -1337,9 +1391,10 @@ public class TiledAlignerUtil {
 		 * Don't want to do this for splitcon records, as overlapping records is a feature...
 		 */
 		List<BLATRecord> nonOverlappingRecs = BLATRecordUtil.removeOverlappingRecords(uniqueResults);
-		nonOverlappingRecs.sort(null);
-		logger.info("Removed overlapping records. Previous count: " + uniqueResults.size() + ", new count (nonOverlappingRecs size): " + nonOverlappingRecs.size() + " top record: " + (!nonOverlappingRecs.isEmpty() ? nonOverlappingRecs.getLast().toString() : null));
-		
+//		nonOverlappingRecs.sort(null);
+        if (log) {
+            logger.info("Removed overlapping records. Previous count: " + uniqueResults.size() + ", new count (nonOverlappingRecs size): " + nonOverlappingRecs.size() + " top record: " + (!nonOverlappingRecs.isEmpty() ? nonOverlappingRecs.getLast().toString() : null));
+        }
 		return nonOverlappingRecs;
 	}
 

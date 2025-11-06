@@ -532,29 +532,30 @@ public class BLATRecordUtil {
 		if (null == originalList) {
 			throw new IllegalArgumentException("Null list supplied as argument to removeOverlappingRecords!");
 		}
-		
+//        if (originalList.size() < 2) return originalList;
 		int size = originalList.size();
 		if (size < 2) {
 			return originalList;
 		}
-		
-		List<BLATRecord> nonOverlappingList = new ArrayList<>(size);
-		
+
+		List<BLATRecord> nonOverlappingList = new ArrayList<>(size + 1);
+
 		/*
-		 * sort the original list 
+		 * sort the original list
 		 */
 		originalList.sort(null);
 		/*
 		 * add the entry with the highest score to the new list
 		 */
 		nonOverlappingList.add(originalList.get(size - 1));
-		
+
 		for (int i = size - 2 ; i >= 0 ; i--) {
 			if ( ! doesRecordOverlapEntriesInList(nonOverlappingList, originalList.get(i))) {
 				nonOverlappingList.add(originalList.get(i));
 			}
 		}
 		return nonOverlappingList;
+
 	}
 	
 	/**
@@ -593,17 +594,18 @@ public class BLATRecordUtil {
 	 * @return
 	 */
 	public static boolean doRecordsOverlapReference(BLATRecord r1, BLATRecord r2) {
-		if (null != r1 && null != r2 && r1.getTName().equals(r2.getTName())) {
-			int r1Start = r1.getStartPos();
-			int r1End = r1.getEndPos();
-			int r2Start = r2.getStartPos();
-			int r2End = r2.getEndPos();
-			
-			if ((r2Start >= r1Start && r2Start < r1End) || (r2End > r1Start && r2End <= r1End)) {
-				return true;
-			}
-		}
-		return false;
+        if (r1 == null || r2 == null) return false;
+        final String c1 = r1.getTName();
+        final String c2 = r2.getTName();
+        if (c1 == null || !c1.equals(c2)) return false;
+
+        final int s1 = r1.getStartPos();
+        final int e1 = r1.getEndPos();
+        final int s2 = r2.getStartPos();
+        final int e2 = r2.getEndPos();
+
+        // overlap if max(start) < min(end)
+        return (s1 < e2) && (s2 < e1);
 	}
 
 	/**

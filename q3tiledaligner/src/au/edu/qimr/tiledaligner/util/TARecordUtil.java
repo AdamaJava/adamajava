@@ -155,7 +155,7 @@ public class TARecordUtil {
 		 * trim ranges if there is an overlap
 		 */
 		for (int j = 0 ; j < ranges.length - 1; j++) {
-			if (j + 1 < ranges.length) {
+//			if (j + 1 < ranges.length) {
 				int [] thisIntArray = ranges[j];
 				int [] nextIntArray = ranges[j + 1];
 				ChrPosition thisCP = cps[j];
@@ -253,7 +253,7 @@ public class TARecordUtil {
 						
 					}
 				}
-			}			
+//			}
 		}
 	}
 	
@@ -269,16 +269,16 @@ public class TARecordUtil {
 	 * @return
 	 */
 	public static int[] sortTileCount(int[] tileCounts) {
-		
-		return Arrays.stream(tileCounts)
-				.mapToObj(k -> NumberUtils.splitIntInto2(k))
-				.sorted((a,b) -> {int diff = Integer.compare((a[0] - a[1]), (b[0] - b[1]));
-				                if (diff == 0) {
-				                	diff = b[1] - a[1];
-				                }
-								return diff;})
-				.mapToInt(a -> NumberUtils.pack2IntsInto1(a[0], a[1]))
-				.toArray();
+
+        return Arrays.stream(tileCounts)
+                .mapToObj(NumberUtils::splitIntInto2)
+                .sorted((a,b) -> {int diff = Integer.compare((a[0] - a[1]), (b[0] - b[1]));
+                    if (diff == 0) {
+                        diff = b[1] - a[1];
+                    }
+                    return diff;})
+                .mapToInt(a -> NumberUtils.pack2IntsInto1(a[0], a[1]))
+                .toArray();
 	}
 	
 	
@@ -378,7 +378,7 @@ public class TARecordUtil {
 										 * check that pairs is not a subset of existing pairs
 										 */
 										if ( ! IntLongPairsUtil.isPairsASubSetOfExistingPairs(getPairsFromMap(results), pairs)) {
-											Set<IntLongPairs> resultsListList = results.putIfAbsent(IntLongPairsUtil.getBasesCoveredByIntLongPairs(pairs, seqLength, TILE_LENGTH), new HashSet<>(Arrays.asList(pairs)));
+											Set<IntLongPairs> resultsListList = results.putIfAbsent(IntLongPairsUtil.getBasesCoveredByIntLongPairs(pairs, seqLength, TILE_LENGTH), new HashSet<>(List.of(pairs)));
 											if (null != resultsListList) {
 												resultsListList.add(pairs);
 											}
@@ -419,7 +419,7 @@ public class TARecordUtil {
 										 * check that pairs is not a subset of existing pairs
 										 */
 										if ( ! IntLongPairsUtil.isPairsASubSetOfExistingPairs(getPairsFromMap(results), pairs)) {
-											Set<IntLongPairs> resultsListList = results.putIfAbsent(IntLongPairsUtil.getBasesCoveredByIntLongPairs(pairs, seqLength, TILE_LENGTH), new HashSet<>(Arrays.asList(pairs)));
+											Set<IntLongPairs> resultsListList = results.putIfAbsent(IntLongPairsUtil.getBasesCoveredByIntLongPairs(pairs, seqLength, TILE_LENGTH), new HashSet<>(List.of(pairs)));
 											if (null != resultsListList) {
 												resultsListList.add(pairs);
 											}
@@ -455,7 +455,7 @@ public class TARecordUtil {
 	
 	public static List<IntLongPairs> getPairsFromMap(TIntObjectMap<Set<IntLongPairs>> map) {
 		List<IntLongPairs> list = new ArrayList<>();
-		map.forEachValue(s -> list.addAll(s));
+		map.forEachValue(list::addAll);
 		return list;
 	}
 	
@@ -463,9 +463,9 @@ public class TARecordUtil {
 		List<IntLongPair> results = new ArrayList<>(4);
 		results.add(pair);
 		Optional<IntLongPair> list1ILP = getBestILPFromList(list1, pair);
-		list1ILP.ifPresent(ilp -> results.add(ilp));
+		list1ILP.ifPresent(results::add);
 		Optional<IntLongPair> list2ILP = getBestILPFromList(list2, pair);
-		list2ILP.ifPresent(ilp -> results.add(ilp));
+		list2ILP.ifPresent(results::add);
 		results.sort(null);
 		return new IntLongPairs(results.toArray(new IntLongPair[]{}));
 	}
@@ -496,7 +496,7 @@ public class TARecordUtil {
 			/*
 			 * if leading candidate is too far away from original entry, return empty optional
 			 */
-			IntLongPair ilp = list.get(0);
+			IntLongPair ilp = list.getFirst();
 			return Optional.of(ilp);
 			
 		} else {
