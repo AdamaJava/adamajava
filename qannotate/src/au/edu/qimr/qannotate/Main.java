@@ -69,6 +69,8 @@ public class Main {
     static void runMultipleModes(String[] args, List<Options.MODE> modes, String inputFile, String outputFile) throws Exception {
         String currentInput = inputFile;
         List<File> tempFiles = new ArrayList<>();
+        List<String> databaseArgs = extractDatabaseArgs(args);
+        int databaseIndex = 0;
         for (int i = 0 ; i < modes.size() ; i++) {
             boolean finalMode = i == modes.size() - 1;
             String currentOutput;
@@ -80,7 +82,11 @@ public class Main {
                 tempFiles.add(tmp);
                 currentOutput = tmp.getAbsolutePath();
             }
-            Options modeOptions = new Options(rewriteArgsForMode(args, modes.get(i), currentInput, currentOutput));
+            List<String> modeDatabaseArgs = new ArrayList<>();
+            if (modeUsesDatabase(modes.get(i)) && databaseIndex < databaseArgs.size()) {
+                modeDatabaseArgs.add(databaseArgs.get(databaseIndex++));
+            }
+            Options modeOptions = new Options(rewriteArgsForMode(args, modes.get(i), currentInput, currentOutput, modeDatabaseArgs));
             checkOptions(modeOptions);
             runMode(modeOptions);
             currentInput = currentOutput;
@@ -92,16 +98,17 @@ public class Main {
         }
     }
 
-    static String[] rewriteArgsForMode(String[] args, Options.MODE mode, String inputFile, String outputFile) {
+    static String[] rewriteArgsForMode(String[] args, Options.MODE mode, String inputFile, String outputFile, List<String> databaseArgs) {
         List<String> newArgs = new ArrayList<>();
         for (int i = 0 ; i < args.length ; i++) {
             String arg = args[i];
-            if (isOptionWithValue(arg, "mode", "input", "i", "o", "output")) {
+            if (isOptionWithValue(arg, "mode", "input", "i", "o", "output", "d", "database")) {
                 i++;
                 continue;
             }
             if (arg.startsWith("--mode=") || arg.startsWith("--input=") || arg.startsWith("-i=")
-                    || arg.startsWith("--output=") || arg.startsWith("-o=") || arg.startsWith("-output=")) {
+                    || arg.startsWith("--output=") || arg.startsWith("-o=") || arg.startsWith("-output=")
+                    || arg.startsWith("--database=") || arg.startsWith("-d=")) {
                 continue;
             }
             newArgs.add(arg);
@@ -112,7 +119,35 @@ public class Main {
         newArgs.add(inputFile);
         newArgs.add("-o");
         newArgs.add(outputFile);
+        for (String databaseArg : databaseArgs) {
+            newArgs.add("-d");
+            newArgs.add(databaseArg);
+        }
         return newArgs.toArray(new String[0]);
+    }
+
+    static List<String> extractDatabaseArgs(String[] args) {
+        List<String> databaseArgs = new ArrayList<>();
+        for (int i = 0 ; i < args.length ; i++) {
+            String arg = args[i];
+            if (arg.equals("-d") || arg.equals("--database")) {
+                if (i + 1 < args.length) {
+                    databaseArgs.add(args[++i]);
+                }
+            } else if (arg.startsWith("-d=")) {
+                databaseArgs.add(arg.substring(3));
+            } else if (arg.startsWith("--database=")) {
+                databaseArgs.add(arg.substring(11));
+            }
+        }
+        return databaseArgs;
+    }
+
+    private static boolean modeUsesDatabase(Options.MODE mode) {
+        return switch (mode) {
+            case dbsnp, germline, snpeff, cadd, trf, hom, overlap, make_valid, indelconfidence -> true;
+            default -> false;
+        };
     }
 
     private static boolean isOptionWithValue(String arg, String... options) {
