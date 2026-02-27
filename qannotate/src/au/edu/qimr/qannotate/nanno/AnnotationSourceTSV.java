@@ -112,7 +112,7 @@ public class AnnotationSourceTSV extends AnnotationSource {
 		StringBuilder dataToReturn = new StringBuilder();
 		int recordLength = null != record ? record.length : 0;
 		if (recordLength > 0 && null != fieldNames && null != fieldPositions) {
-			for (int i = 0; i < fieldNames.length; i++) {
+			for (int i = 0; i < Math.min(fieldNames.length, fieldPositions.length); i++) {
 				int pos = fieldPositions[i];
 				if (recordLength > pos) {
 					dataToReturn.append((!dataToReturn.isEmpty()) ? FIELD_DELIMITER_TAB : "")

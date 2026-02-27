@@ -37,6 +37,14 @@ public class AnnotationSourceTSVTest {
 		fieldPositions = new int[]{100, 11};
 		assertEquals("", AnnotationSourceTSV.extractFieldsFromRecord(new String[]{"slightly_longer","record","","","","","","","","","bar"}, fieldNames,  fieldPositions));
 		
+		// mismatched array lengths - fieldNames longer than fieldPositions
+		fieldNames = new String[]{"foo", "foo2", "foo3"};
+		fieldPositions = new int[]{10};
+		assertEquals("foo=bar", AnnotationSourceTSV.extractFieldsFromRecord(new String[]{"slightly_longer", "record", "", "", "", "", "", "", "", "", "bar"}, fieldNames, fieldPositions));
+		// mismatched array lengths - fieldPositions longer than fieldNames
+		fieldNames = new String[]{"foo"};
+		fieldPositions = new int[]{10, 1, 0};
+		assertEquals("foo=bar", AnnotationSourceTSV.extractFieldsFromRecord(new String[]{"slightly_longer", "record", "", "", "", "", "", "", "", "", "bar"}, fieldNames, fieldPositions));
 	}
 	
 	@Test
