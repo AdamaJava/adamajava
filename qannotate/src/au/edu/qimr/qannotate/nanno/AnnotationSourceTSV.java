@@ -19,6 +19,9 @@ public class AnnotationSourceTSV extends AnnotationSource {
 	List<String> headerLines;
 	Map<String, Integer> headerNameAndPosition;
 
+	private String[] fieldNames;
+	private int[] fieldPositions;
+
 	public AnnotationSourceTSV(RecordReader<String> reader, int chrPositionInRecord, int positionPositionInRecord,
 			int refPositionInFile, int altPositionInFile, String fieldNames, boolean chrStartsWithChr) {
 		super(reader, chrPositionInRecord, positionPositionInRecord, refPositionInFile, altPositionInFile, chrStartsWithChr);
@@ -45,6 +48,12 @@ public class AnnotationSourceTSV extends AnnotationSource {
 		headerNameAndPosition = getHeaderNameAndPositions(fieldNames, headerLine);
 		if (headerNameAndPosition.isEmpty()) {
 			throw new IllegalArgumentException("Could not find requested fields (" + fieldNames + ") in header: " + headerLine);
+		}
+		// precompute arrays for fast extraction
+		this.fieldNames = headerNameAndPosition.keySet().toArray(new String[0]);
+		this.fieldPositions = new int[this.fieldNames.length];
+		for (int i = 0; i < this.fieldNames.length; i++) {
+			this.fieldPositions[i] = headerNameAndPosition.get(this.fieldNames[i]);
 		}
 	}
 	
@@ -96,20 +105,18 @@ public class AnnotationSourceTSV extends AnnotationSource {
 		/*
 		 * entries in the INFO field are delimited by ';'
 		 */
-		return extractFieldsFromRecord(record, headerNameAndPosition);
+		return extractFieldsFromRecord(record, fieldNames, fieldPositions);
 	}
 	
-	public static String extractFieldsFromRecord(String[] record, Map<String, Integer> fields) {
+	public static String extractFieldsFromRecord(String[] record, String[] fieldNames, int[] fieldPositions) {
 		StringBuilder dataToReturn = new StringBuilder();
 		int recordLength = null != record ? record.length : 0;
-		if ( recordLength > 0 && null != fields) {
-//			String [] recordArray = TabTokenizer.tokenize(record);
-			for (Entry<String, Integer> entry : fields.entrySet()) {
-				/*
-				 * make sure that array length is not shorter than entry value
-				 */
-				if (recordLength > entry.getValue()) {
-					dataToReturn.append(( ! dataToReturn.isEmpty()) ? FIELD_DELIMITER_TAB : "").append(entry.getKey()).append("=").append(record[entry.getValue()]);
+		if (recordLength > 0 && null != fieldNames && null != fieldPositions) {
+			for (int i = 0; i < fieldNames.length; i++) {
+				int pos = fieldPositions[i];
+				if (recordLength > pos) {
+					dataToReturn.append((!dataToReturn.isEmpty()) ? FIELD_DELIMITER_TAB : "")
+							.append(fieldNames[i]).append("=").append(record[pos]);
 				}
 			}
 		}

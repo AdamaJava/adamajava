@@ -78,25 +78,24 @@ public abstract class AnnotationSource implements Closeable {
              * lets see if there are any records that match on ref and alt
              */
             return getAnnotationsFromCurrentRecords(requestedCp);
-
-        } else {
-            int matchWithNextCP = Long.compare(requestedCpAsLong, nextCPAsLong);
-            if (nextCPAsLong > -1 && matchWithNextCP < 0) {
-                /*
-                 * requestedCp is "less than" next CP
-                 * return empty list here
-                 */
-            } else {
-//                logger.debug(reader.getFile().getName() + ": getting next record. requestedCp: " + (null != requestedCp ? requestedCp.toIGVString() : null) + ", currentCP: " + (null != currentCP ? currentCP.toIGVString() : null));
-                getNextRecord(requestedCpAsLong, matchWithNextCP);
-                if (requestedCpAsLong == currentCPAsLong) {
-                    return getAnnotationsFromCurrentRecords(requestedCp);
-                }
-                /*
-                 * requestedCP and currentCP are not equal
-                 */
-            }
         }
+
+        int matchWithNextCP = Long.compare(requestedCpAsLong, nextCPAsLong);
+        if (nextCPAsLong > -1 && matchWithNextCP < 0) {
+            /*
+             * requestedCp is "less than" next CP
+             * return empty list here
+             */
+            return annotationToReturn(null);
+        }
+
+        getNextRecord(requestedCpAsLong, matchWithNextCP);
+        if (requestedCpAsLong == currentCPAsLong) {
+            return getAnnotationsFromCurrentRecords(requestedCp);
+        }
+        /*
+         * requestedCP and currentCP are not equal
+         */
         return annotationToReturn(null);
     }
 

@@ -2,7 +2,9 @@ package au.edu.qimr.qannotate.nanno;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.qcmg.common.string.StringUtils;
@@ -11,7 +13,8 @@ import org.qcmg.qio.record.RecordReader;
 public class AnnotationSourceVCF extends AnnotationSource {
 	
 	public static final String FIELD_DELIMITER_SEMI_COLON = ";";
-	
+	private static final int INFO_LENGTH_PARSE_THRESHOLD = 2000;
+	private static final int FIELDS_PARSE_THRESHOLD = 3;
 	
 	
 	List<String> annotationFields;
@@ -52,23 +55,51 @@ public class AnnotationSourceVCF extends AnnotationSource {
 	
 	
 	public static String extractFieldsFromInfoField(String info, List<String> fields, String emptyInfoFieldResult) {
-		if (StringUtils.isNullOrEmptyOrMissingData(info)) {
+		if (StringUtils.isNullOrEmptyOrMissingData(info) || fields == null) {
 			return emptyInfoFieldResult;
+		}
+		boolean parseOnce = (fields.size() > FIELDS_PARSE_THRESHOLD) || info.length() > INFO_LENGTH_PARSE_THRESHOLD;
+		if ( ! parseOnce) {
+			StringBuilder dataToReturn = new StringBuilder();
+			for (String af : fields) {
+				if (!StringUtils.isNullOrEmpty(af)) {
+					int start = info.indexOf(af + "=");
+					if (start > -1) {
+						int end = info.indexOf(FIELD_DELIMITER_SEMI_COLON, start);
+						if (end == -1) {
+							dataToReturn.append((!dataToReturn.isEmpty()) ? FIELD_DELIMITER_TAB + info.substring(start) : info.substring(start));
+						} else {
+							dataToReturn.append((!dataToReturn.isEmpty()) ? FIELD_DELIMITER_TAB + info.substring(start, end) : info.substring(start, end));
+						}
+					} else {
+						dataToReturn.append((!dataToReturn.isEmpty()) ? FIELD_DELIMITER_TAB + af + "=" : af + "=");
+					}
+				}
+			}
+			return (dataToReturn.isEmpty()) ? emptyInfoFieldResult : dataToReturn.toString();
+		}
+		Map<String, String> infoMap = new HashMap<>();
+		int start = 0;
+		while (start <= info.length()) {
+			int end = info.indexOf(FIELD_DELIMITER_SEMI_COLON, start);
+			if (end == -1) end = info.length();
+
+			String token = info.substring(start, end);
+			int eq = token.indexOf('=');
+			if (eq > -1) {
+				infoMap.put(token.substring(0, eq), token.substring(eq + 1));
+			} else if (!token.isEmpty()) {
+				infoMap.put(token, "");
+			}
+
+			start = end + 1;
 		}
 		StringBuilder dataToReturn = new StringBuilder();
 		for (String af : fields) {
-			if ( ! StringUtils.isNullOrEmpty(af)) {
-				int start = info.indexOf(af + "=");
-				if (start > -1) {
-					int end = info.indexOf(FIELD_DELIMITER_SEMI_COLON, start);
-					if (end == -1) {
-						dataToReturn.append((!dataToReturn.isEmpty()) ? FIELD_DELIMITER_TAB + info.substring(start) : info.substring(start));
-					} else {
-						dataToReturn.append((!dataToReturn.isEmpty()) ? FIELD_DELIMITER_TAB + info.substring(start, end) : info.substring(start, end));
-					}
-				} else {
-					dataToReturn.append((!dataToReturn.isEmpty()) ? FIELD_DELIMITER_TAB + af + "=" : af + "=");
-				}
+			if (!StringUtils.isNullOrEmpty(af)) {
+				String value = infoMap.get(af);
+				String entry = (value != null) ? af + "=" + value : af + "=";
+				dataToReturn.append((!dataToReturn.isEmpty()) ? FIELD_DELIMITER_TAB : "").append(entry);
 			}
 		}
 		return (dataToReturn.isEmpty()) ? emptyInfoFieldResult : dataToReturn.toString();
