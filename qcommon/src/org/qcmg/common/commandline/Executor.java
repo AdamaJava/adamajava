@@ -8,6 +8,7 @@
 package org.qcmg.common.commandline;
 
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -17,18 +18,61 @@ public class Executor {
 	
 	private final StreamConsumer outputStreamConsumer;
 	private final StreamConsumer errorStreamConsumer;
-	private final int errCode;	
+	private final int errCode;
 	
-	public Executor(String arguments, String qualifiedMainClassName) throws IOException, InterruptedException {
-		this("java", "-classpath", "\"" + System.getProperty("java.class.path") + "\"", qualifiedMainClassName, arguments);
+	private static String getJavaPath() {
+		return Paths.get(System.getProperty("java.home"), "bin", "java").toString();
 	}
 	
-	public Executor(String [] arguments, String qualifiedMainClassName) throws IOException, InterruptedException {				
-		this("java -classpath " + System.getProperty("java.class.path") + " " + qualifiedMainClassName + " " + Arrays.toString(arguments) );
+	public Executor(String arguments, String qualifiedMainClassName) throws IOException, InterruptedException {
+		this(getJavaPath(), "-classpath", System.getProperty("java.class.path"), qualifiedMainClassName, arguments);
+	}
+	
+	public Executor(String [] arguments, String qualifiedMainClassName) throws IOException, InterruptedException {
+		String javaPath = getJavaPath();
+		String classPath = System.getProperty("java.class.path");
+		List<String> commands = new ArrayList<>();
+		commands.add(javaPath);
+		commands.add("-classpath");
+		commands.add(classPath);
+		commands.add(qualifiedMainClassName);
+		commands.addAll(Arrays.asList(arguments));
+		
+		ProcessBuilder processBuilder = new ProcessBuilder(commands);
+		Process process = processBuilder.start();
+		outputStreamConsumer = new StreamConsumer(process.getInputStream());
+		errorStreamConsumer = new StreamConsumer(process.getErrorStream());
+		outputStreamConsumer.run();
+		errorStreamConsumer.run();
+		errCode = process.waitFor();
 	}
 
 	public Executor(String jvmArgs, String arguments, String qualifiedMainClassName) throws IOException, InterruptedException {
-		this("java -classpath " + System.getProperty("java.class.path") + " " + jvmArgs + " " + qualifiedMainClassName + " " + arguments);
+		String javaPath = getJavaPath();
+		String classPath = System.getProperty("java.class.path");
+		List<String> commands = new ArrayList<>();
+		commands.add(javaPath);
+		commands.add("-classpath");
+		commands.add(classPath);
+		for (String arg : jvmArgs.split(" ")) {
+			if (!arg.isEmpty()) {
+				commands.add(arg);
+			}
+		}
+		commands.add(qualifiedMainClassName);
+		for (String arg : arguments.split(" ")) {
+			if (!arg.isEmpty()) {
+				commands.add(arg);
+			}
+		}
+		
+		ProcessBuilder processBuilder = new ProcessBuilder(commands);
+		Process process = processBuilder.start();
+		outputStreamConsumer = new StreamConsumer(process.getInputStream());
+		errorStreamConsumer = new StreamConsumer(process.getErrorStream());
+		outputStreamConsumer.run();
+		errorStreamConsumer.run();
+		errCode = process.waitFor();
 	}
 
 	// constructor for running a command line
