@@ -49,11 +49,12 @@ public class AnnotationSourceTSV extends AnnotationSource {
 		if (headerNameAndPosition.isEmpty()) {
 			throw new IllegalArgumentException("Could not find requested fields (" + fieldNames + ") in header: " + headerLine);
 		}
-		// precompute arrays for fast extraction
-		this.fieldNames = headerNameAndPosition.keySet().toArray(new String[0]);
-		this.fieldPositions = new int[this.fieldNames.length];
-		for (int i = 0; i < this.fieldNames.length; i++) {
-			this.fieldPositions[i] = headerNameAndPosition.get(this.fieldNames[i]);
+		// precompute arrays for fast extraction, preserving user-requested field order
+		String[] requestedFields = fieldNames.split(",");
+		this.fieldNames = requestedFields;
+		this.fieldPositions = new int[requestedFields.length];
+		for (int i = 0; i < requestedFields.length; i++) {
+			this.fieldPositions[i] = headerNameAndPosition.get(requestedFields[i]);
 		}
 	}
 	
