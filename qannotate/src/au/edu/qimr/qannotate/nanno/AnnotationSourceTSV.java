@@ -3,7 +3,7 @@ package au.edu.qimr.qannotate.nanno;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -81,7 +81,7 @@ public class AnnotationSourceTSV extends AnnotationSource {
 	 * return an empty map if any of the fields are not in the header
 	 */
 	public static Map<String, Integer> getHeaderNameAndPositions(String fieldNames, String header) {
-		Map<String, Integer> namePositions = new HashMap<>();
+		Map<String, Integer> namePositions = new LinkedHashMap<>();
 		
 		System.out.println("header: " + header);
 		

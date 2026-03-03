@@ -115,7 +115,7 @@ public class AnnotateTest {
 		AnnotateUtils.populateAnnotationSources(ais, sources);
 		assertEquals(1, sources.size());
 		String annotation = sources.getFirst().getAnnotation(ChrPositionUtils.convertContigAndPositionToLong("1", 655652), new ChrPositionRefAlt("chr1", 655652, 655652, "A", "T"));
-		assertEquals("HGVSc_VEP=c.1A>C\tHGVSp_VEP=p.Met1?\taaref=M", annotation);
+		assertEquals("aaref=M\tHGVSc_VEP=c.1A>C\tHGVSp_VEP=p.Met1?", annotation);
 	}
 	
 	@Test
