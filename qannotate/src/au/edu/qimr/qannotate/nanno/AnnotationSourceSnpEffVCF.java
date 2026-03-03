@@ -240,7 +240,13 @@ public class AnnotationSourceSnpEffVCF extends AnnotationSource {
         String[] annArray = ann.split(",");
         Map<String, String> worstByGene = new java.util.LinkedHashMap<>();
         for (String aa : annArray) {
-            if (aa.startsWith(alt)) {
+            int pipeIndex = aa.indexOf('|');
+            if (pipeIndex <= 0) {
+                // Malformed ANN entry or missing allele token; skip
+                continue;
+            }
+            String alleleToken = aa.substring(0, pipeIndex);
+            if (alleleToken.equals(alt)) {
                 String[] parts = TabTokenizer.tokenize(aa, '|');
                 if (parts.length > 3) {
                     String gene = parts[3];
