@@ -62,8 +62,6 @@ public class AnnotationSourceSnpEffVCF extends AnnotationSource {
     @Override
     public String getAnnotation(long requestedCpAsLong, ChrPosition requestedCp) {
 
-//        logger.debug(reader.getFile().getName() + ":  requestedCp is " + (null != requestedCp ? requestedCp.toIGVString() : null) + ", currentCP: " + (null != currentCP ? currentCP.toIGVString() : null) + ", nextCP: " + (null != nextCP ? nextCP.toIGVString() : null));
-
         /*
          * check to see if the records we currently have stored are a match
          */
@@ -73,70 +71,21 @@ public class AnnotationSourceSnpEffVCF extends AnnotationSource {
              * we match on position
              * lets see if there are any records that match on ref and alt
              */
-//            return getAnnotationsFromRecords(requestedCp);
-            if (requestedCp instanceof ChrPositionRefAlt reqCpRefAlt) {
-                String reqRef = reqCpRefAlt.getRef();
-                String reqAlt = reqCpRefAlt.getAlt();
-                for (String rec : currentRecords) {
-                    String[] recArray = TabTokenizer.tokenize(rec, DEFAULT_DELIMITER);
-                    String recRef = recArray[refPositionInFile];
-                    String recAlt = recArray[altPositionInFile];
-
-                    if (recAlt.contains(",")) {
-                        String[] recAltArray = recAlt.split(",");
-                        for (String recAltValue : recAltArray) {
-                            if (reqRef.equals(recRef) && reqAlt.equals(recAltValue)) {
-                                return annotationToReturnWithAlt(rec, recAltValue);
-                            }
-                        }
-                    } else {
-                        if (reqRef.equals(recRef) && reqAlt.equals(recAlt)) {
-                            return annotationToReturnWithAlt(rec, recAlt);
-                        }
-                    }
-                }
-            }
-
+            return getAnnotationsFromRecords(requestedCp);
         } else {
             int matchWithNextCP = Long.compare(requestedCpAsLong, nextCPAsLong);
             if (nextCPAsLong > -1 && matchWithNextCP < 0) {
 
             } else {
 
-//                logger.debug(reader.getFile().getName() + ": getting next record. requestedCp: " + (null != requestedCp ? requestedCp.toIGVString() : null) + ", currentCP: " + (null != currentCP ? currentCP.toIGVString() : null));
                 getNextRecord(requestedCpAsLong, matchWithNextCP);
                 if (requestedCpAsLong == currentCPAsLong) {
                     /*
                      * we match on position
                      * lets see if there are any records that match on ref and alt
                      */
-                    if (requestedCp instanceof ChrPositionRefAlt reqCpRefAlt) {
-                        String reqRef = reqCpRefAlt.getRef();
-                        String reqAlt = reqCpRefAlt.getAlt();
-                        for (String rec : currentRecords) {
-                            String[] recArray = TabTokenizer.tokenize(rec, DEFAULT_DELIMITER);
-                            String recRef = recArray[refPositionInFile];
-                            String recAlt = recArray[altPositionInFile];
-
-                            if (recAlt.contains(",")) {
-                                String[] recAltArray = recAlt.split(",");
-                                for (String recAltValue : recAltArray) {
-                                    if (reqRef.equals(recRef) && reqAlt.equals(recAltValue)) {
-                                        return annotationToReturnWithAlt(rec, recAltValue);
-                                    }
-                                }
-                            } else {
-                                if (reqRef.equals(recRef) && reqAlt.equals(recAlt)) {
-                                    return annotationToReturnWithAlt(rec, recAlt);
-                                }
-                            }
-                        }
-                    }
-//                    return getAnnotationsFromRecords(requestedCp);
+                    return getAnnotationsFromRecords(requestedCp);
                 }
-                /*
-                 * requestedCP and currentCP are not equal
-                 */
             }
         }
         return annotationToReturn(null);
@@ -151,7 +100,7 @@ public class AnnotationSourceSnpEffVCF extends AnnotationSource {
                 String recRef = recArray[refPositionInFile];
                 String recAlt = recArray[altPositionInFile];
 
-                if (recAlt.contains(",")) {
+                if (recAlt.indexOf(',') >= 0) {
                     String[] recAltArray = recAlt.split(",");
                     for (String recAltValue : recAltArray) {
                         if (reqRef.equals(recRef) && reqAlt.equals(recAltValue)) {
@@ -177,7 +126,6 @@ public class AnnotationSourceSnpEffVCF extends AnnotationSource {
          * dealing with a vcf file and assuming that the required annotation fields are in the INFO field
          * so get that and go from there.
          */
-//        String[] recordArray = record.split("\t");
         String info = record[7];
         String alt = record[4];
 
@@ -221,32 +169,31 @@ public class AnnotationSourceSnpEffVCF extends AnnotationSource {
         if (StringUtils.isNullOrEmpty(worstConsequence)) {
             return emptyInfoFieldResult;
         }
-
         /*
-         * we have our consequence
-         * split by pipe and then get our fields
+         * we have our consequences (comma-delimited)
+         * split by comma into consequences, then by pipe into fields
          */
-        String[] consequenceArray = TabTokenizer.tokenize(worstConsequence, '|');
+        String[] consequences = worstConsequence.split(",");
 
         for (String af : fields) {
             if (!StringUtils.isNullOrEmpty(af)) {
 
-                /*
-                 * get position from map
-                 */
                 String aflc = af.toLowerCase();
                 Integer arrayPosition = SNP_EFF_ANNOTATION_FIELDS_AND_POSITIONS.get(aflc);
-                if (null != arrayPosition && arrayPosition >= 0 && arrayPosition < consequenceArray.length) {
-                    /*
-                     * good
-                     */
-                    String annotation = consequenceArray[arrayPosition];
-                    dataToReturn.append((!dataToReturn.isEmpty()) ? FIELD_DELIMITER_TAB + af + "=" + annotation : af + "=" + annotation);
-                } else {
-//					System.out.println("Could not find field [" + af + "] in SNP_EFF_ANNOTATION_FIELDS_AND_POSITIONS map!");
-//					System.out.println("arrayPosition.intValue(): " + arrayPosition.intValue() + ", consequenceArray.length: " + consequenceArray.length);
-                }
 
+                if (null != arrayPosition) {
+                    StringBuilder fieldValues = new StringBuilder();
+                    for (String consequence : consequences) {
+                        String[] consequenceArray = TabTokenizer.tokenize(consequence, '|');
+                        if (arrayPosition >= 0 && arrayPosition < consequenceArray.length) {
+                            String annotation = consequenceArray[arrayPosition];
+                            fieldValues.append(fieldValues.isEmpty() ? annotation : "|" + annotation);
+                        }
+                    }
+                    dataToReturn.append((!dataToReturn.isEmpty())
+                            ? FIELD_DELIMITER_TAB + af + "=" + fieldValues
+                            : af + "=" + fieldValues);
+                }
             }
         }
         return (dataToReturn.isEmpty()) ? emptyInfoFieldResult : dataToReturn.toString();
@@ -283,19 +230,33 @@ public class AnnotationSourceSnpEffVCF extends AnnotationSource {
          * Pick the first one as that is the one with the highest effect as decreed by snpEff
          */
         int annoIndex = info.indexOf("ANN=");
+        if (annoIndex < 0) {
+            return "";
+        }
         int end = info.indexOf(FIELD_DELIMITER_SEMI_COLON, annoIndex);
         String ann = info.substring(annoIndex + 4, end == -1 ? info.length() : end);
 
 
         String[] annArray = ann.split(",");
-        String worstConsequence = "";
+        Map<String, String> worstByGene = new java.util.LinkedHashMap<>();
         for (String aa : annArray) {
-            if (aa.startsWith(alt)) {
-                worstConsequence = aa;
-                break;
+            int pipeIndex = aa.indexOf('|');
+            if (pipeIndex <= 0) {
+                // Malformed ANN entry or missing allele token; skip
+                continue;
+            }
+            String alleleToken = aa.substring(0, pipeIndex);
+            if (alleleToken.equals(alt)) {
+                String[] parts = TabTokenizer.tokenize(aa, '|');
+                if (parts.length > 3) {
+                    String gene = parts[3];
+                    if (!StringUtils.isNullOrEmpty(gene) && !worstByGene.containsKey(gene)) {
+                        worstByGene.put(gene, aa);
+                    }
+                }
             }
         }
-        return worstConsequence;
+        return String.join(",", worstByGene.values());
     }
 
     @Override

@@ -3,7 +3,7 @@ package au.edu.qimr.qannotate.nanno;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -18,6 +18,9 @@ public class AnnotationSourceTSV extends AnnotationSource {
 	String emptyRecordResult;
 	List<String> headerLines;
 	Map<String, Integer> headerNameAndPosition;
+
+	private String[] fieldNames;
+	private int[] fieldPositions;
 
 	public AnnotationSourceTSV(RecordReader<String> reader, int chrPositionInRecord, int positionPositionInRecord,
 			int refPositionInFile, int altPositionInFile, String fieldNames, boolean chrStartsWithChr) {
@@ -46,6 +49,13 @@ public class AnnotationSourceTSV extends AnnotationSource {
 		if (headerNameAndPosition.isEmpty()) {
 			throw new IllegalArgumentException("Could not find requested fields (" + fieldNames + ") in header: " + headerLine);
 		}
+		// precompute arrays for fast extraction, preserving user-requested field order
+		String[] requestedFields = fieldNames.split(",");
+		this.fieldNames = requestedFields;
+		this.fieldPositions = new int[requestedFields.length];
+		for (int i = 0; i < requestedFields.length; i++) {
+			this.fieldPositions[i] = headerNameAndPosition.get(requestedFields[i]);
+		}
 	}
 	
 	/*
@@ -72,7 +82,7 @@ public class AnnotationSourceTSV extends AnnotationSource {
 	 * return an empty map if any of the fields are not in the header
 	 */
 	public static Map<String, Integer> getHeaderNameAndPositions(String fieldNames, String header) {
-		Map<String, Integer> namePositions = new HashMap<>();
+		Map<String, Integer> namePositions = new LinkedHashMap<>();
 		
 		System.out.println("header: " + header);
 		
@@ -96,20 +106,18 @@ public class AnnotationSourceTSV extends AnnotationSource {
 		/*
 		 * entries in the INFO field are delimited by ';'
 		 */
-		return extractFieldsFromRecord(record, headerNameAndPosition);
+		return extractFieldsFromRecord(record, fieldNames, fieldPositions);
 	}
 	
-	public static String extractFieldsFromRecord(String[] record, Map<String, Integer> fields) {
+	public static String extractFieldsFromRecord(String[] record, String[] fieldNames, int[] fieldPositions) {
 		StringBuilder dataToReturn = new StringBuilder();
 		int recordLength = null != record ? record.length : 0;
-		if ( recordLength > 0 && null != fields) {
-//			String [] recordArray = TabTokenizer.tokenize(record);
-			for (Entry<String, Integer> entry : fields.entrySet()) {
-				/*
-				 * make sure that array length is not shorter than entry value
-				 */
-				if (recordLength > entry.getValue()) {
-					dataToReturn.append(( ! dataToReturn.isEmpty()) ? FIELD_DELIMITER_TAB : "").append(entry.getKey()).append("=").append(record[entry.getValue()]);
+		if (recordLength > 0 && null != fieldNames && null != fieldPositions) {
+			for (int i = 0; i < Math.min(fieldNames.length, fieldPositions.length); i++) {
+				int pos = fieldPositions[i];
+				if (recordLength > pos) {
+					dataToReturn.append((!dataToReturn.isEmpty()) ? FIELD_DELIMITER_TAB : "")
+							.append(fieldNames[i]).append("=").append(record[pos]);
 				}
 			}
 		}
