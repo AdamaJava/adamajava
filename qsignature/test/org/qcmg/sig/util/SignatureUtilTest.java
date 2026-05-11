@@ -413,8 +413,8 @@ public class SignatureUtilTest {
         assertNotNull(o);
 
 		assertTrue(o.getFirst().isValid());			// valid SigMeta
-		assertTrue(o.getSecond().isEmpty());	// non-empty rg map
-		assertEquals(0, o.getSecond().size());				// non-empty rg map
+		assertTrue(o.getSecond().isEmpty());	// empty rg map
+		assertEquals(0, o.getSecond().size());				// empty rg map
 	}
 	
 	@Test
