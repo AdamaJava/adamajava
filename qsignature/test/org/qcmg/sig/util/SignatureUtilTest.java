@@ -372,9 +372,9 @@ public class SignatureUtilTest {
 	@Test
 	public void doesOldStyleHeaderReturnASigMeta() {
 		//TabbedHeader h = new TabbedHeader(BAM_HEADER_OLD_SKOOL);
-		Pair<SigMeta, Map<String, String>> optional = SignatureUtil.getSigMetaAndRGsFromHeader(BAM_HEADER_OLD_SKOOL);
-        assertNotNull(optional);
-		SigMeta sm = optional.getKey();
+		Pair<SigMeta, Map<String, String>> metaAndRgs = SignatureUtil.getSigMetaAndRGsFromHeader(BAM_HEADER_OLD_SKOOL);
+        assertNotNull(metaAndRgs);
+		SigMeta sm = metaAndRgs.getKey();
         assertFalse(sm.isValid());
 	}
 	
