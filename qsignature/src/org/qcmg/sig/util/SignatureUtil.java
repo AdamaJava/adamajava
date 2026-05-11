@@ -21,8 +21,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -109,11 +107,27 @@ public class SignatureUtil {
 	public static final float HOM_CUTOFF = 0.90000f;
 	public static final float HET_UPPER_CUTOFF = 0.70000f;
 	public static final float HET_LOWER_CUTOFF = 0.30000f;
-	
+	private static final boolean[] VALID_GENOTYPE_LOOKUP = buildValidGenotypeLookup();
+
 	/*
 	 * METHODS
 	 */
-	
+
+	private static boolean[] buildValidGenotypeLookup() {
+		boolean[] lookup = new boolean[256];
+		lookup[HET_AC & 0xFF] = true;
+		lookup[HET_AG & 0xFF] = true;
+		lookup[HET_CG & 0xFF] = true;
+		lookup[HET_AT & 0xFF] = true;
+		lookup[HET_CT & 0xFF] = true;
+		lookup[HET_GT & 0xFF] = true;
+		lookup[HOM_T & 0xFF] = true;
+		lookup[HOM_G & 0xFF] = true;
+		lookup[HOM_C & 0xFF] = true;
+		lookup[HOM_A & 0xFF] = true;
+		return lookup;
+	}
+
 	public static String getCoverageStringFromCharsAndInts(char c1, char c2, int i1, int i2, boolean bespoke) {
 		StringBuilder sb = new StringBuilder();
 		if (bespoke) {
@@ -239,10 +253,10 @@ public class SignatureUtil {
 					coverage = line.substring(nextLastIndex + 1, lastIndex);
 				}
 				
-				Optional<float[]> array = getValuesFromCoverageStringFloat(coverage, minCoverage);
-				
-				if (array.isPresent()) {
-					byte g = getCodedGenotypeAsByte(array.get(), homCutoff, hetUpperCutoff, hetLowerCutoff);
+				float[] array = getValuesFromCoverageStringFloat(coverage, minCoverage);
+
+				if (null != array) {
+					byte g = getCodedGenotypeAsByte(array, homCutoff, hetUpperCutoff, hetLowerCutoff);
 					if (isCodedGenotypeValid(g)) {
 						int index = line.indexOf(Constants.TAB_STRING);
 						index = line.indexOf(Constants.TAB_STRING, index + 1);
@@ -255,9 +269,9 @@ public class SignatureUtil {
 		return ratios;
 	}
 	
-	public static  Optional<Pair<SigMeta, Map<String, String>>> getSigMetaAndRGsFromHeader(List<String> h) {
+	public static Pair<SigMeta, Map<String, String>> getSigMetaAndRGsFromHeader(List<String> h) {
 		if (null == h) {
-			return Optional.empty();
+			return null;
 		} else {
 			
 			String md = "";
@@ -270,7 +284,7 @@ public class SignatureUtil {
 					md = s.substring(MD_5_SUM.length() + 1);
 				} else if (s.startsWith(POSITIONS_COUNT)) {
                 } else if (s.startsWith(MIN_BASE_QUAL)) {
-					bq = Integer.parseInt(s.substring(MIN_BASE_QUAL.length() + 1));
+					bq = Integer.parseInt(s, MIN_BASE_QUAL.length() + 1, s.length(), 10);
 				} else if (s.startsWith(MIN_GC_SCORE)) {
 					gc = Float.parseFloat(s.substring(MIN_GC_SCORE.length() + 1));
 				} else if (s.startsWith(MIN_MAPPING_QUAL)) {
@@ -283,7 +297,7 @@ public class SignatureUtil {
 				}
 			}
 			
-			return Optional.of(new Pair<>(new SigMeta(md, bq, mq, gc), rgIds));
+			return new Pair<>(new SigMeta(md, bq, mq, gc), rgIds);
 		}
 	}
 	
@@ -358,9 +372,8 @@ default -> 0.0f;
 		try (StringFileReader reader = new StringFileReader(file, "#")) {
 			List<String> h = reader.getHeader();
 			
-			Optional<Pair<SigMeta, Map<String, String>>> metaAndRGsO = getSigMetaAndRGsFromHeader(h);
-			if (metaAndRGsO.isPresent()) {
-				Pair<SigMeta, Map<String, String>> p = metaAndRGsO.get();
+			Pair<SigMeta, Map<String, String>> p = getSigMetaAndRGsFromHeader(h);
+			if (null != p) {
 				sm = p.getFirst();
 				rgIds = p.getSecond();
 			}
@@ -419,9 +432,8 @@ default -> 0.0f;
 		logger.debug("Number of rgs for  " + file.getAbsolutePath() + " is " + noOfRGs);
 		
 		String line;
-		
-		AtomicInteger cachePosition = new AtomicInteger();
-		
+		int cachePosition;
+
 		for (String vcfRecord : reader) {
 			line = vcfRecord;
 			if (line.startsWith(Constants.HASH_STRING)) {
@@ -432,15 +444,18 @@ default -> 0.0f;
 			String chrPosString = line.substring(0, line.indexOf(Constants.TAB_STRING, line.indexOf(Constants.TAB_STRING) + 1));
 
             if (null != blockedPositions) {
-                /*
-                get chr and position
-                 */
                 int tabIndex = chrPosString.indexOf(Constants.TAB);
                 String chr = chrPosString.substring(0, tabIndex);
                 List<PositionRange> list = blockedPositions.get(chr);
                 if (null != list) {
                     int pos = Integer.parseInt(chrPosString, tabIndex + 1, chrPosString.length(), 10);
-                    boolean blocked = list.stream().anyMatch(r -> r.containsPosition(pos));
+                    boolean blocked = false;
+                    for (PositionRange r : list) {
+                        if (r.containsPosition(pos)) {
+                            blocked = true;
+                            break;
+                        }
+                    }
                     if (blocked) {
                         logger.debug("Found blocked position for " + chrPosString);
                         continue;
@@ -448,40 +463,29 @@ default -> 0.0f;
                 }
             }
 
-
-            /*
-			 * This should be in the QAF=t:5-0-0-0,rg4:2-0-0-0,rg1:1-0-0-0,rg2:2-0-0-0 format
-			 * Need to tease out the pertinent bits
-			 */
 			int commaIndex = coverage.indexOf(Constants.COMMA);
 			String totalCov = coverage.substring(coverage.indexOf(Constants.COLON) + 1, commaIndex > -1 ? commaIndex : coverage.length());
-			
-			Optional<float[]> array = getValuesFromCoverageStringBespoke(totalCov, minCoverage);
-			array.ifPresent(f -> {
-				
-				byte genotype1 = getCodedGenotypeAsByte(f, homCutoff, upperHetCutoff, lowerHetCutoff);
-				
+
+			float[] array = getValuesFromCoverageStringBespoke(totalCov, minCoverage);
+			if (null != array) {
+				byte genotype1 = getCodedGenotypeAsByte(array, homCutoff, upperHetCutoff, lowerHetCutoff);
+
 				if (isCodedGenotypeValid(genotype1)) {
-					cachePosition.set(ChrPositionCache.getStringIndex(chrPosString));
-					ratios.put(cachePosition.get(), genotype1);
+					cachePosition = ChrPositionCache.getStringIndex(chrPosString);
+					ratios.put(cachePosition, genotype1);
 					/*
 					 * Get rg data if we have more than 1 rg
 					 */
 					if (noOfRGs > 1) {
-						
-						String [] covParams = coverage.substring(commaIndex + 1).split(Constants.COMMA_STRING);
+						String[] covParams = coverage.substring(commaIndex + 1).split(Constants.COMMA_STRING);
 						for (String s : covParams) {
-							/*
-							 * strip rg id from string
-							 */
 							int index = s.indexOf(Constants.COLON_STRING);
 							String cov = s.substring(index + 1);
-							
-							Optional<float[]> arr = getValuesFromCoverageStringBespoke(cov, minRGCoverage);
-							arr.ifPresent(f2-> {
-								
-								byte genotype2 = getCodedGenotypeAsByte(f2, homCutoff, upperHetCutoff, lowerHetCutoff);
-								
+
+							float[] arr = getValuesFromCoverageStringBespoke(cov, minRGCoverage);
+							if (null != arr) {
+								byte genotype2 = getCodedGenotypeAsByte(arr, homCutoff, upperHetCutoff, lowerHetCutoff);
+
 								if (isCodedGenotypeValid(genotype2)) {
 									String rg = s.substring(0, index);
 									TIntByteHashMap r = rgRatios.get(rg);
@@ -489,18 +493,18 @@ default -> 0.0f;
 										r = new TIntByteHashMap();
 										rgRatios.put(rg, r);
 									}
-									r.put(cachePosition.get(), genotype2);
+									r.put(cachePosition, genotype2);
 								}
-							});
+							}
 						}
 					}
 				}
-			});
-			
+			}
+
 			rgRatios.put("all", ratios);
 		}
 	}
-	
+
 	/**
 	 * Convert float array containing allele percentages for ACGT bases into a byte.
 	 * 
@@ -557,16 +561,7 @@ default -> 0.0f;
 	 * @return
 	 */
 	public static boolean isCodedGenotypeValid(byte b) {
-		return b == HET_AC
-				|| b == HET_AG
-				|| b == HET_CG
-				|| b == HET_AT
-				|| b == HET_CT
-				|| b == HET_GT
-				|| b == HOM_T
-				|| b == HOM_G
-				|| b == HOM_C
-				|| b == HOM_A;
+		return VALID_GENOTYPE_LOOKUP[b & 0xFF];
 	}
 	
 	
@@ -590,9 +585,6 @@ default -> 0.0f;
 	/**
 	 * Removes from the list of files the filenames specified in the list of strings
 	 * 
-	 * @param originalList
-	 * @param filesToExclude
-	 * @return
 	 */
 	public static List<File> removeExcludedFilesFromList(List<File> originalList, List<String> filesToExclude) {
 		
@@ -735,7 +727,7 @@ default -> 0.0f;
 	 * @return
 	 */
 	public static int[] decipherCoverageString(String info) {
-		if (StringUtils.isNullOrEmpty(info)) {
+		if (StringUtils.isNullOrEmpty(info, false)) {
 			throw new IllegalArgumentException("Invalid coverage string passed to decipherCoverageString: " + info);
 		}
 		// strip out the pertinent bits
@@ -746,8 +738,8 @@ default -> 0.0f;
 			throw new IllegalArgumentException("Invalid coverage string passed to decipherCoverageString: " + info);
 		}
 		
-		final int total = Integer.parseInt(info.substring(totalIndex + 6, info.indexOf("NOVELCOV") - 1));
-		
+		final int total = Integer.parseInt(info, totalIndex + 6, info.indexOf("NOVELCOV") - 1, 10);
+
 		int aIndex = info.indexOf("A:");
 		int cIndex = info.indexOf("C:");
 		int gIndex = info.indexOf("G:");
@@ -764,11 +756,11 @@ default -> 0.0f;
 			throw new IllegalArgumentException("Invalid coverage string passed to decipherCoverageString: " + info);
 		}
 		
-		int aCount = Integer.parseInt(info.substring(aIndex + 2, cIndex - 1));
-		int cCount = Integer.parseInt(info.substring(cIndex + 2, gIndex - 1));
-		int gCount = Integer.parseInt(info.substring(gIndex + 2, tIndex - 1));
-		int tCount = Integer.parseInt(info.substring(tIndex + 2, nIndex - 1));
-		
+		int aCount = Integer.parseInt(info, aIndex + 2, cIndex - 1, 10);
+		int cCount = Integer.parseInt(info, cIndex + 2, gIndex - 1, 10);
+		int gCount = Integer.parseInt(info, gIndex + 2, tIndex - 1, 10);
+		int tCount = Integer.parseInt(info, tIndex + 2, nIndex - 1, 10);
+
 		if (total != (aCount + cCount + gCount + tCount)) {
 			logger.warn("inconsistency in sums: " + info + " (NOTE doesn't take into account N values)");
 		}
@@ -783,65 +775,70 @@ default -> 0.0f;
 	 * @param info
 	 * @return
 	 */
-	public static Optional<int[]> decipherCoverageStringBespoke(String info) {
-		if (StringUtils.isNullOrEmpty(info)) {
-			throw new IllegalArgumentException("Invalid coverage string passed to decipherCoverageStringBespoke: " + info);
-		}
-		
+	/**
+	 * Parses a bespoke coverage string of the form "A-C-G-T" into the supplied counts array.
+	 * Mirrors the original decipherCoverageStringBespoke algorithm exactly, without Optional overhead.
+	 * Returns true only when exactly 4 dash-separated integer tokens are found.
+	 */
+	private static boolean parseBespokeCoverageCounts(final String info, final int[] counts) {
 		int i = 0;
 		int index = info.indexOf(Constants.MINUS);
 		int oldIndex = 0;
-		int[] counts = new int[4];
 		while (index > -1 && oldIndex != index) {
-			counts[i] =  Integer.parseInt(info.substring(oldIndex, index));
+			counts[i] = Integer.parseInt(info, oldIndex, index, 10);
 			oldIndex = index + 1;
 			index = info.indexOf(Constants.MINUS, oldIndex);
 			i++;
 		}
 		if (i == 3) {
-			counts[3] =  Integer.parseInt(info.substring(oldIndex));
-			return Optional.of(counts);
+			counts[3] = Integer.parseInt(info, oldIndex, info.length(), 10);
+			return true;
 		}
-		
-		return Optional.empty();
+		return false;
 	}
-	
-	public static Optional<float[]> getValuesFromCoverageStringFloat(final String coverage) {
+
+	public static int[] decipherCoverageStringBespoke(String info) {
+		if (StringUtils.isNullOrEmpty(info, false)) {
+			throw new IllegalArgumentException("Invalid coverage string passed to decipherCoverageStringBespoke: " + info);
+		}
+		int[] counts = new int[4];
+		return parseBespokeCoverageCounts(info, counts) ? counts : null;
+	}
+
+	public static float[] getValuesFromCoverageStringBespoke(final String coverage, int minimumCoverage) {
+		int[] baseCoverages = decipherCoverageStringBespoke(coverage);
+		if (null == baseCoverages) {
+			return null;
+		}
+		final float[] floats = new float[5];
+		int total = baseCoverages[0] + baseCoverages[1] + baseCoverages[2] + baseCoverages[3];
+		if (total >= minimumCoverage) {
+			floats[0] = (float) baseCoverages[0] / total;
+			floats[1] = (float) baseCoverages[1] / total;
+			floats[2] = (float) baseCoverages[2] / total;
+			floats[3] = (float) baseCoverages[3] / total;
+			floats[4] = total;
+		}
+		return floats[4] > 0 ? floats : null;
+	}
+
+	public static float[] getValuesFromCoverageStringFloat(final String coverage) {
 		return getValuesFromCoverageStringFloat(coverage, 10);
 	}
-	
-	public static Optional<float[]> getValuesFromCoverageStringBespoke(final String coverage, int minimumCoverage) {
-		
-		Optional<int[]> baseCoverages = decipherCoverageStringBespoke(coverage);
-		
-		final float[] floats = new float[5];
-		
-		baseCoverages.ifPresent(i -> {
-			int total = i[0] + i[1] + i[2] + i[3];
-			if (total >= minimumCoverage) {
-				floats[0] = (float) i[0] / total; 
-				floats[1] = (float) i[1] / total; 
-				floats[2] = (float) i[2] / total; 
-				floats[3] = (float) i[3] / total; 
-				floats[4] = total; 
-			}
-		});
-		return floats[4] > 0 ? Optional.of(floats) : Optional.empty();
-	}
-	
-	public static Optional<float[]> getValuesFromCoverageStringFloat(final String coverage, int minimumCoverage) {
-		
+
+	public static float[] getValuesFromCoverageStringFloat(final String coverage, int minimumCoverage) {
 		int[] baseCoverages = decipherCoverageString(coverage);
 		int total = baseCoverages[4];
 		if (total < minimumCoverage) {
-			return Optional.empty();
+			return null;
 		}
-		
-		return Optional.of(new float[] { (float) baseCoverages[0] / total, 
+
+		return new float[] {
+				(float) baseCoverages[0] / total,
 				(float) baseCoverages[1] / total,
-				(float) baseCoverages[2] / total, 
+				(float) baseCoverages[2] / total,
 				(float) baseCoverages[3] / total,
-				total});
+				total};
 	}
 	
 	public static void writeXmlOutput( Map<String, int[]> fileIdsAndCounts, List<Comparison> allComparisons, String outputXml) throws ParserConfigurationException, TransformerException {

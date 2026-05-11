@@ -372,9 +372,9 @@ public class SignatureUtilTest {
 	@Test
 	public void doesOldStyleHeaderReturnASigMeta() {
 		//TabbedHeader h = new TabbedHeader(BAM_HEADER_OLD_SKOOL);
-		Optional<Pair<SigMeta, Map<String, String>>> optional = SignatureUtil.getSigMetaAndRGsFromHeader(BAM_HEADER_OLD_SKOOL);
-        assertTrue(optional.isPresent());
-		SigMeta sm = optional.get().getKey();
+		Pair<SigMeta, Map<String, String>> optional = SignatureUtil.getSigMetaAndRGsFromHeader(BAM_HEADER_OLD_SKOOL);
+        assertNotNull(optional);
+		SigMeta sm = optional.getKey();
         assertFalse(sm.isValid());
 	}
 	
@@ -389,43 +389,43 @@ public class SignatureUtilTest {
 	
 	@Test
 	public void getSigMetaEmptyHeader() {
-		assertEquals(Optional.empty(), SignatureUtil.getSigMetaAndRGsFromHeader(null));
+		assertNull(SignatureUtil.getSigMetaAndRGsFromHeader(null));
 	}
 	
 	@Test
 	public void getSigMetaBam() {
-		Optional<Pair<SigMeta, Map<String, String>>> o =SignatureUtil.getSigMetaAndRGsFromHeader(BAM_HEADER);
-        assertTrue(o.isPresent());
+		Pair<SigMeta, Map<String, String>> o = SignatureUtil.getSigMetaAndRGsFromHeader(BAM_HEADER);
+        assertNotNull(o);
 
-        assertTrue(o.get().getFirst().isValid());			// valid SigMeta
-        assertFalse(o.get().getSecond().isEmpty());	// non-empty rg map
-		assertEquals(2, o.get().getSecond().size());				// non-empty rg map
+		assertTrue(o.getFirst().isValid());			// valid SigMeta
+		assertFalse(o.getSecond().isEmpty());	// non-empty rg map
+		assertEquals(2, o.getSecond().size());				// non-empty rg map
 
-        assertTrue(o.get().getSecond().containsKey("rg1"));
-        assertTrue(o.get().getSecond().containsKey("rg2"));
-		assertEquals("fc17fe15-6c1a-42aa-9270-0787d84c8001", o.get().getSecond().get("rg1"));
-		assertEquals("14989e3c-e669-46c2-866d-a8c504679743", o.get().getSecond().get("rg2"));
+		assertTrue(o.getSecond().containsKey("rg1"));
+		assertTrue(o.getSecond().containsKey("rg2"));
+		assertEquals("fc17fe15-6c1a-42aa-9270-0787d84c8001", o.getSecond().get("rg1"));
+		assertEquals("14989e3c-e669-46c2-866d-a8c504679743", o.getSecond().get("rg2"));
 	}
 	
 	@Test
 	public void getSigMetaSnpChip() {
-		Optional<Pair<SigMeta, Map<String, String>>> o =SignatureUtil.getSigMetaAndRGsFromHeader(SNP_CHIP_HEADER);
-        assertTrue(o.isPresent());
+		Pair<SigMeta, Map<String, String>> o = SignatureUtil.getSigMetaAndRGsFromHeader(SNP_CHIP_HEADER);
+        assertNotNull(o);
 
-        assertTrue(o.get().getFirst().isValid());			// valid SigMeta
-        assertTrue(o.get().getSecond().isEmpty());	// non-empty rg map
-		assertEquals(0, o.get().getSecond().size());				// non-empty rg map
+		assertTrue(o.getFirst().isValid());			// valid SigMeta
+		assertTrue(o.getSecond().isEmpty());	// non-empty rg map
+		assertEquals(0, o.getSecond().size());				// non-empty rg map
 	}
 	
 	@Test
 	public void canSigMEtasBeCompared() {
-		Optional<Pair<SigMeta, Map<String, String>>> o =SignatureUtil.getSigMetaAndRGsFromHeader(SNP_CHIP_HEADER);
-        assertTrue(o.isPresent());
-		SigMeta snpChpSM = o.get().getFirst();
-		
-		o =SignatureUtil.getSigMetaAndRGsFromHeader(BAM_HEADER);
-        assertTrue(o.isPresent());
-		SigMeta bamSM = o.get().getFirst();
+		Pair<SigMeta, Map<String, String>> o = SignatureUtil.getSigMetaAndRGsFromHeader(SNP_CHIP_HEADER);
+        assertNotNull(o);
+		SigMeta snpChpSM = o.getFirst();
+
+		o = SignatureUtil.getSigMetaAndRGsFromHeader(BAM_HEADER);
+        assertNotNull(o);
+		SigMeta bamSM = o.getFirst();
 
         assertTrue(SigMeta.suitableForComparison(snpChpSM, bamSM));
         assertTrue(SigMeta.suitableForComparison(bamSM, snpChpSM));
@@ -469,8 +469,8 @@ public class SignatureUtilTest {
 "A:0,C:0,G:40,T:0,N:0,TOTAL:40;NOVELCOV");
 		
 		int [] indicies = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17};
-		List<Optional<float[]>> oeso_0031Floats = oeso_0031CovArray.stream().map(SignatureUtil::getValuesFromCoverageStringFloat).toList();
-		List<Byte> oeso_0031Shorts = oeso_0031Floats.stream().map(of -> SignatureUtil.getCodedGenotypeAsByte(of.get())).toList();
+		List<float[]> oeso_0031Floats = oeso_0031CovArray.stream().map(SignatureUtil::getValuesFromCoverageStringFloat).toList();
+		List<Byte> oeso_0031Shorts = oeso_0031Floats.stream().map(SignatureUtil::getCodedGenotypeAsByte).toList();
 		oeso_0031Shorts.forEach(System.out::println);
 		
 		List<String> oeso_0050CovArray = Arrays.asList("A:25,C:0,G:31,T:0,N:0,TOTAL:56;NOVELCOV",
@@ -491,8 +491,8 @@ public class SignatureUtilTest {
 "A:22,C:0,G:19,T:0,N:0,TOTAL:41;NOVELCOV",
 "A:18,C:0,G:10,T:0,N:0,TOTAL:28;NOVELCOV");
 		
-		List<Optional<float[]>> oeso_0050Floats = oeso_0050CovArray.stream().map(SignatureUtil::getValuesFromCoverageStringFloat).toList();
-		List<Byte> oeso_0050Shorts = oeso_0050Floats.stream().map(of -> SignatureUtil.getCodedGenotypeAsByte(of.get())).toList();
+		List<float[]> oeso_0050Floats = oeso_0050CovArray.stream().map(SignatureUtil::getValuesFromCoverageStringFloat).toList();
+		List<Byte> oeso_0050Shorts = oeso_0050Floats.stream().map(SignatureUtil::getCodedGenotypeAsByte).toList();
 		oeso_0050Shorts.forEach(System.out::println);
 		
 		List<String> pn400007CovArray = Arrays.asList("A:70,C:1,G:0,T:0,N:0,TOTAL:71;NOVELCOV",
@@ -513,8 +513,8 @@ public class SignatureUtilTest {
 "A:36,C:1,G:0,T:0,N:0,TOTAL:37;NOVELCOV",
 "A:0,C:0,G:50,T:0,N:0,TOTAL:50;NOVELCOV");
 		
-		List<Optional<float[]>> pn400007Floats = pn400007CovArray.stream().map(SignatureUtil::getValuesFromCoverageStringFloat).toList();
-		List<Byte> pn400007Shorts = pn400007Floats.stream().map(of -> SignatureUtil.getCodedGenotypeAsByte(of.get())).toList();
+		List<float[]> pn400007Floats = pn400007CovArray.stream().map(SignatureUtil::getValuesFromCoverageStringFloat).toList();
+		List<Byte> pn400007Shorts = pn400007Floats.stream().map(SignatureUtil::getCodedGenotypeAsByte).toList();
 		pn400007Shorts.forEach(System.out::println);
 		
 		TIntShortHashMap oeso_0031Map = new TIntShortHashMap();
@@ -543,20 +543,20 @@ public class SignatureUtilTest {
 			Assert.fail("Should have thrown an IAE");
 		} catch (IllegalArgumentException iae) {}
 		
-		Assert.assertEquals(Optional.empty(), SignatureUtil.decipherCoverageStringBespoke("1"));
-		Assert.assertEquals(Optional.empty(), SignatureUtil.decipherCoverageStringBespoke("1,2,3,4"));
-		Assert.assertEquals(Optional.empty(), SignatureUtil.decipherCoverageStringBespoke("1-2-3,4"));
-		Assert.assertEquals(Optional.empty(), SignatureUtil.decipherCoverageStringBespoke("1-2-3-4-"));
-		Assert.assertEquals(Optional.empty(), SignatureUtil.decipherCoverageStringBespoke("1---3-4-"));
-		Assert.assertEquals(Optional.empty(), SignatureUtil.decipherCoverageStringBespoke("-----"));
-		Assert.assertEquals(Optional.empty(), SignatureUtil.decipherCoverageStringBespoke("-"));
-		Assert.assertEquals(Optional.empty(), SignatureUtil.decipherCoverageStringBespoke("--"));
-		Assert.assertEquals(Optional.empty(), SignatureUtil.decipherCoverageStringBespoke("-1-"));
-		
-		Assert.assertArrayEquals(new int[]{1,2,3,4}, SignatureUtil.decipherCoverageStringBespoke("1-2-3-4").get());
-		Assert.assertArrayEquals(new int[]{1000,100,10,1}, SignatureUtil.decipherCoverageStringBespoke("1000-100-10-1").get());
-		Assert.assertArrayEquals(new int[]{1000,1000,1000,1000}, SignatureUtil.decipherCoverageStringBespoke("1000-1000-1000-1000").get());
-		Assert.assertArrayEquals(new int[]{2,1000,20,10}, SignatureUtil.decipherCoverageStringBespoke("2-1000-20-10").get());
+		Assert.assertNull(SignatureUtil.decipherCoverageStringBespoke("1"));
+		Assert.assertNull(SignatureUtil.decipherCoverageStringBespoke("1,2,3,4"));
+		Assert.assertNull(SignatureUtil.decipherCoverageStringBespoke("1-2-3,4"));
+		Assert.assertNull(SignatureUtil.decipherCoverageStringBespoke("1-2-3-4-"));
+		Assert.assertNull(SignatureUtil.decipherCoverageStringBespoke("1---3-4-"));
+		Assert.assertNull(SignatureUtil.decipherCoverageStringBespoke("-----"));
+		Assert.assertNull(SignatureUtil.decipherCoverageStringBespoke("-"));
+		Assert.assertNull(SignatureUtil.decipherCoverageStringBespoke("--"));
+		Assert.assertNull(SignatureUtil.decipherCoverageStringBespoke("-1-"));
+
+		Assert.assertArrayEquals(new int[]{1,2,3,4}, SignatureUtil.decipherCoverageStringBespoke("1-2-3-4"));
+		Assert.assertArrayEquals(new int[]{1000,100,10,1}, SignatureUtil.decipherCoverageStringBespoke("1000-100-10-1"));
+		Assert.assertArrayEquals(new int[]{1000,1000,1000,1000}, SignatureUtil.decipherCoverageStringBespoke("1000-1000-1000-1000"));
+		Assert.assertArrayEquals(new int[]{2,1000,20,10}, SignatureUtil.decipherCoverageStringBespoke("2-1000-20-10"));
 	}
 	
 	@Test

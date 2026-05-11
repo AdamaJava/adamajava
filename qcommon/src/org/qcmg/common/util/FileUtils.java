@@ -277,6 +277,7 @@ public class FileUtils {
 		final List<File> foundFiles = new ArrayList<>();
 		
 		Path startingDir = Paths.get(path);
+		final String filterGz = filter + ".gz";
 		Files.walkFileTree(startingDir, EnumSet.of(FileVisitOption.FOLLOW_LINKS),Integer.MAX_VALUE, new SimpleFileVisitor<>() {
 			
 			@Override
@@ -287,8 +288,8 @@ public class FileUtils {
 			
 			@Override
 			public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
-				if (Files.isReadable(file) && (file.toString().endsWith(filter) || file.toString().endsWith(filter + ".gz"))) {
-//					if (Files.exists(file, LinkOption.NOFOLLOW_LINKS) && file.toString().endsWith(filter)) {
+				String fileString = file.toString();
+				if ((fileString.endsWith(filter) || fileString.endsWith(filterGz)) && Files.isReadable(file)) {
 					foundFiles.add(file.toFile());
 				}
 				return FileVisitResult.CONTINUE;
