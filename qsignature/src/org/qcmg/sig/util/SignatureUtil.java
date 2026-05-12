@@ -282,8 +282,7 @@ public class SignatureUtil {
 			for (String s : h) {
 				if (s.startsWith(SignatureUtil.MD_5_SUM)) {
 					md = s.substring(MD_5_SUM.length() + 1);
-				} else if (s.startsWith(POSITIONS_COUNT)) {
-                } else if (s.startsWith(MIN_BASE_QUAL)) {
+				} else if (s.startsWith(MIN_BASE_QUAL)) {
 					bq = Integer.parseInt(s, MIN_BASE_QUAL.length() + 1, s.length(), 10);
 				} else if (s.startsWith(MIN_GC_SCORE)) {
 					gc = Float.parseFloat(s.substring(MIN_GC_SCORE.length() + 1));
