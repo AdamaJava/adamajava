@@ -277,7 +277,7 @@ public class FileUtils {
 		final List<File> foundFiles = new ArrayList<>();
 		
 		Path startingDir = Paths.get(path);
-		final String filterGz = filter + ".gz";
+		final String filterGz = filter.endsWith(".gz") ? filter : filter + ".gz";
 		Files.walkFileTree(startingDir, EnumSet.of(FileVisitOption.FOLLOW_LINKS),Integer.MAX_VALUE, new SimpleFileVisitor<>() {
 			
 			@Override
