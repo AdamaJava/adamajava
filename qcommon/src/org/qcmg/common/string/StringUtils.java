@@ -302,11 +302,11 @@ public class StringUtils {
      * @return true if supplied is null or empty, false otherwise
      */
     public static boolean isNullOrEmpty(final String test, boolean ignoreWhiteSpace) {
-        return null == test || (ignoreWhiteSpace ? test.trim().isEmpty() : test.isEmpty());
+        return null == test || (ignoreWhiteSpace ? test.isBlank() : test.isEmpty());
     }
 
     public static boolean isNullOrEmptyOrMissingData(final String test, boolean ignoreWhiteSpace) {
-        return null == test || (ignoreWhiteSpace ? test.trim().isEmpty() : test.isEmpty()) || Constants.MISSING_DATA_STRING.equals(test) || Constants.MISSING_GT.equals(test);
+        return null == test || (ignoreWhiteSpace ? test.isBlank() : test.isEmpty()) || Constants.MISSING_DATA_STRING.equals(test) || Constants.MISSING_GT.equals(test);
     }
 
     public static boolean isNullOrEmptyOrMissingData(final String test) {
