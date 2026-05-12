@@ -789,6 +789,9 @@ default -> 0.0f;
 			i++;
 		}
 		if (i == 3) {
+			if (oldIndex >= info.length()) {
+				return false;
+			}
 			counts[3] = Integer.parseInt(info, oldIndex, info.length(), 10);
 			return true;
 		}
