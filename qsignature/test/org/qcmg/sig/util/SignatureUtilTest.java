@@ -471,7 +471,10 @@ public class SignatureUtilTest {
 		int [] indicies = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17};
 		List<float[]> oeso_0031Floats = oeso_0031CovArray.stream().map(SignatureUtil::getValuesFromCoverageStringFloat).toList();
 		List<Byte> oeso_0031Shorts = oeso_0031Floats.stream().map(SignatureUtil::getCodedGenotypeAsByte).toList();
-		oeso_0031Shorts.forEach(System.out::println);
+		Assert.assertEquals(indicies.length, oeso_0031Floats.size());
+		Assert.assertEquals(indicies.length, oeso_0031Shorts.size());
+		Assert.assertTrue(oeso_0031Floats.stream().allMatch(values -> values != null && values.length > 0));
+		Assert.assertTrue(oeso_0031Shorts.stream().allMatch(Objects::nonNull));
 		
 		List<String> oeso_0050CovArray = Arrays.asList("A:25,C:0,G:31,T:0,N:0,TOTAL:56;NOVELCOV",
 "A:0,C:21,G:0,T:0,N:0,TOTAL:21;NOVELCOV",
