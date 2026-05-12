@@ -545,10 +545,10 @@ default -> 0.0f;
 	
 	/**
 	 * the following values are considered to be valid:
-	 * 10000000		-128	HOM_A
-	 * 01000000		64		HOM_C
-	 * 00100000		32		HOM_G
-	 * 00010000		16		HOM_T
+	 * 10000000		-128	HOM_T
+	 * 01000000		64		HOM_G
+	 * 00100000		32		HOM_C
+	 * 00010000		16		HOM_A
 	 * 00001100		12		HET_GT
 	 * 00001010		10		HET_CT
 	 * 00001001		9		HET_AT
@@ -796,7 +796,7 @@ default -> 0.0f;
 	}
 
 	public static int[] decipherCoverageStringBespoke(String info) {
-		if (StringUtils.isNullOrEmpty(info, false)) {
+		if (StringUtils.isNullOrEmpty(info)) {
 			throw new IllegalArgumentException("Invalid coverage string passed to decipherCoverageStringBespoke: " + info);
 		}
 		int[] counts = new int[4];

@@ -544,6 +544,10 @@ public class SignatureUtilTest {
 			SignatureUtil.decipherCoverageStringBespoke("");
 			Assert.fail("Should have thrown an IAE");
 		} catch (IllegalArgumentException iae) {}
+		try {
+			SignatureUtil.decipherCoverageStringBespoke("   ");
+			Assert.fail("Should have thrown an IAE");
+		} catch (IllegalArgumentException iae) {}
 		
 		Assert.assertNull(SignatureUtil.decipherCoverageStringBespoke("1"));
 		Assert.assertNull(SignatureUtil.decipherCoverageStringBespoke("1,2,3,4"));
