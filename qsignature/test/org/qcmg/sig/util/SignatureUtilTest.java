@@ -496,7 +496,6 @@ public class SignatureUtilTest {
 		
 		List<float[]> oeso_0050Floats = oeso_0050CovArray.stream().map(SignatureUtil::getValuesFromCoverageStringFloat).toList();
 		List<Byte> oeso_0050Shorts = oeso_0050Floats.stream().map(SignatureUtil::getCodedGenotypeAsByte).toList();
-		oeso_0050Shorts.forEach(System.out::println);
 		
 		List<String> pn400007CovArray = Arrays.asList("A:70,C:1,G:0,T:0,N:0,TOTAL:71;NOVELCOV",
 "A:0,C:84,G:0,T:0,N:0,TOTAL:84;NOVELCOV",
