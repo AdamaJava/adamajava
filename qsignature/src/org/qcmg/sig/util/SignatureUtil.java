@@ -784,6 +784,9 @@ default -> 0.0f;
 		int index = info.indexOf(Constants.MINUS);
 		int oldIndex = 0;
 		while (index > -1 && oldIndex != index) {
+			if (i >= counts.length) {
+				return false;
+			}
 			counts[i] = Integer.parseInt(info, oldIndex, index, 10);
 			oldIndex = index + 1;
 			index = info.indexOf(Constants.MINUS, oldIndex);

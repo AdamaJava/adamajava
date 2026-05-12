@@ -551,6 +551,7 @@ public class SignatureUtilTest {
 		Assert.assertNull(SignatureUtil.decipherCoverageStringBespoke("1-2-3,4"));
 		Assert.assertNull(SignatureUtil.decipherCoverageStringBespoke("1-2-3-4-"));
 		Assert.assertNull(SignatureUtil.decipherCoverageStringBespoke("1---3-4-"));
+		Assert.assertNull(SignatureUtil.decipherCoverageStringBespoke("1-2-3-4-5-6"));
 		Assert.assertNull(SignatureUtil.decipherCoverageStringBespoke("-----"));
 		Assert.assertNull(SignatureUtil.decipherCoverageStringBespoke("-"));
 		Assert.assertNull(SignatureUtil.decipherCoverageStringBespoke("--"));
