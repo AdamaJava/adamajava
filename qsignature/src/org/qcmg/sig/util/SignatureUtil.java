@@ -727,7 +727,7 @@ default -> 0.0f;
 	 * @return
 	 */
 	public static int[] decipherCoverageString(String info) {
-		if (StringUtils.isNullOrEmpty(info, false)) {
+		if (StringUtils.isNullOrEmpty(info)) {
 			throw new IllegalArgumentException("Invalid coverage string passed to decipherCoverageString: " + info);
 		}
 		// strip out the pertinent bits

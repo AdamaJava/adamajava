@@ -23,39 +23,64 @@ public class Annotate {
 
     static final List<String> SEARCH_TERM_VARIETIES = Arrays.asList(">", "->", "-->", "/");
 
-    // Define the set of standard GRCh38 contigs (no "chr" prefix version)
     private static final Set<String> STANDARD_GRCH38_CONTIGS = Set.of(
             "1", "2", "3", "4", "5", "6", "7", "8", "9", "10",
             "11", "12", "13", "14", "15", "16", "17", "18", "19", "20",
             "21", "22", "X", "Y", "MT", "M"
     );
 
+    /** Number of variants processed per chunk. Controls peak memory: peak ≈ CHUNK_SIZE × N_sources × avg-annotation-bytes. */
+    static final int CHUNK_SIZE = 100_000;
+
+    private static final ChrPositionAnnotations POISON_PILL =
+            new ChrPositionAnnotations(null, null, "", "", "");
+
     static Comparator<String[]> CUSTOM_COMPARATOR;
     static QLogger logger;
 
     private int exitStatus;
-
     private String inputFile;
     private String outputFile;
     private String jsonInputs;
-
     private QExec exec;
+
+    record VariantWork(ChrPosition cp, long cpAsLong, String gatkAD, String gatkGT, String originalAlt) {}
+
+    /**
+     * Performs a single linear sweep through one annotation source against a
+     * sorted chunk of variants. The annotation file cursor advances forward and
+     * is never rewound, so repeated calls across chunks work correctly.
+     */
+    static class SourceSweeper implements Callable<String[]> {
+
+        private final AnnotationSource source;
+        private final List<VariantWork> variants;
+
+        SourceSweeper(AnnotationSource source, List<VariantWork> variants) {
+            this.source = source;
+            this.variants = variants;
+        }
+
+        @Override
+        public String[] call() {
+            String[] results = new String[variants.size()];
+            for (int i = 0; i < variants.size(); i++) {
+                VariantWork v = variants.get(i);
+                results[i] = source.getAnnotation(v.cpAsLong(), v.cp());
+            }
+            return results;
+        }
+    }
 
     public int engage() throws Exception {
 
-        /*
-         * parse the json file into an AnnotationInputs object
-         */
         AnnotationInputs ais = AnnotateUtils.getInputs(jsonInputs);
-        logger.info("Number of annotation source threads to use: " + ais.getAnnotationSourceThreadCount());
-        /*
-         * create a comparator that will be used to sort the annotation fields for output
-         */
-        CUSTOM_COMPARATOR = AnnotateUtils.createComparatorFromList(Arrays.stream(ais.getOutputFieldOrder().split(",")).collect(Collectors.toList()));
+        logger.info("Number of annotation sources: " + ais.getInputs().size());
+
+        CUSTOM_COMPARATOR = AnnotateUtils.createComparatorFromList(
+                Arrays.stream(ais.getOutputFieldOrder().split(",")).collect(Collectors.toList()));
         logger.info("Custom comparator created");
-        /*
-         * check headers that have been supplied in the json inputs file
-         */
+
         int headersOK = AnnotateUtils.checkHeaders(ais);
         if (headersOK == 1) {
             logger.error("Headers have been checked - not OK!!!");
@@ -68,126 +93,151 @@ public class Annotate {
         logger.info("annotationSources have been loaded (size: " + annotationSources.size() + ")");
         annotationSources.forEach(as -> logger.info(as.toString()));
 
-        CountDownLatch consumerLatch = new CountDownLatch(1);
-        Queue<ChrPositionAnnotations> queue = new ConcurrentLinkedQueue<>();
+        // One thread per source, reused across all chunks.
+        ExecutorService sourceExecutor = Executors.newFixedThreadPool(annotationSources.size());
 
-
-        ExecutorService executor = Executors.newFixedThreadPool(Math.max(ais.getAnnotationSourceThreadCount(), 1) + 1);    // need an extra thread for the consumer, and at least 1 other thread
-        executor.execute(new Consumer(queue, outputFile, consumerLatch, ais, exec));
-        logger.info("ExecutorService has been setup");
+        // Consumer (writer) thread — started once up front so writing overlaps sweeping.
+        BlockingQueue<ChrPositionAnnotations> queue = new LinkedBlockingQueue<>(50_000);
+        ExecutorService consumerExecutor = Executors.newSingleThreadExecutor();
+        consumerExecutor.execute(new Consumer(queue, outputFile, ais, exec));
 
         ChrPosition lastCP = null;
-        try (
-            VcfFileReader reader = new VcfFileReader(inputFile)) {
-            logger.info("VcfFileReader has been setup");
-            int vcfCount = 0;
-            int nonStandardContigCount = 0;
+        int totalVariants = 0;
+        int nonStandardContigCount = 0;
+        List<VariantWork> chunk = new ArrayList<>(CHUNK_SIZE);
+
+        try (VcfFileReader reader = new VcfFileReader(inputFile)) {
+            logger.info("Reading and processing VCF records in chunks of " + CHUNK_SIZE + "...");
+
             for (VcfRecord vcf : reader) {
-                vcfCount++;
-
                 ChrPosition thisVcfsCP = vcf.getChrPositionRefAlt();
-                logger.debug("thisVcfsCP: " + thisVcfsCP.toIGVString());
 
-                boolean isStandardContig = isStandardContig(thisVcfsCP);
-                if (isStandardContig) {
-
-
-                    /*
-                     * check that this CP is "after" the last CP
-                     */
-                    int compare = null != lastCP ? ((ChrPositionRefAlt) thisVcfsCP).compareTo((ChrPositionRefAlt) lastCP) : 0;
-                    if (compare < 0) {
-                        throw new IllegalArgumentException("Incorrect order of vcf records in input vcf file! this vcf: " + thisVcfsCP.toIGVString() + ", last vcf: " + lastCP.toIGVString());
-                    }
-
-
-                    String alt = ((ChrPositionRefAlt) thisVcfsCP).getAlt();
-                    String gatkAD = VcfUtils.getFormatField(vcf.getFormatFields(), "AD", 0);
-                    String gatkGT = VcfUtils.getFormatField(vcf.getFormatFields(), "GT", 0);
-
-                    if (alt.contains(",")) {
-                        logger.info("alt has comma: " + thisVcfsCP);
-                        /*
-                         * split record, create new ChrPositions for each
-                         */
-                        String[] altArray = alt.split(",");
-                        List<VcfRecord> splitVcfs = new ArrayList<>();
-                        for (String thisAlt : altArray) {
-                            if (thisAlt.equals("*")) {
-                                /*
-                                 * ignore
-                                 */
-                            } else {
-                                VcfRecord newVcf = VcfUtils.cloneWithNewAlt(vcf, thisAlt);
-                                splitVcfs.add(newVcf);
-                            }
-                        }
-                        if (splitVcfs.size() > 1) {
-                            /*
-                             * sort
-                             */
-                            splitVcfs.sort(null);
-                        }
-                        for (VcfRecord splitVcf : splitVcfs) {
-                            List<String> annotations = new ArrayList<>(getAnnotationsForPosition(splitVcf.getChrPositionRefAlt(), annotationSources, executor));
-                            queue.add(new ChrPositionAnnotations(splitVcf.getChrPositionRefAlt(), annotations, gatkAD, gatkGT, alt));
-                        }
-
-                    } else {
-
-                        logger.debug("about to get annotations for: " + thisVcfsCP.toIGVString());
-                        List<String> annotations = getAnnotationsForPosition(thisVcfsCP, annotationSources, executor);
-                        logger.debug("got annotations for: " + thisVcfsCP.toIGVString() + " - adding to queue");
-                        queue.add(new ChrPositionAnnotations(thisVcfsCP, annotations, gatkAD, gatkGT, alt));
-
-                    }
-
-                    lastCP = thisVcfsCP;
-                } else {
+                if (!isStandardContig(thisVcfsCP)) {
                     nonStandardContigCount++;
+                    continue;
+                }
+
+                int compare = null != lastCP
+                        ? ((ChrPositionRefAlt) thisVcfsCP).compareTo((ChrPositionRefAlt) lastCP)
+                        : 0;
+                if (compare < 0) {
+                    throw new IllegalArgumentException("Incorrect order of vcf records in input vcf file! this vcf: "
+                            + thisVcfsCP.toIGVString() + ", last vcf: " + lastCP.toIGVString());
+                }
+
+                String alt = ((ChrPositionRefAlt) thisVcfsCP).getAlt();
+                String gatkAD = VcfUtils.getFormatField(vcf.getFormatFields(), "AD", 0);
+                String gatkGT = VcfUtils.getFormatField(vcf.getFormatFields(), "GT", 0);
+
+                if (alt.contains(",")) {
+                    logger.info("alt has comma: " + thisVcfsCP);
+                    String[] altArray = alt.split(",");
+                    List<VcfRecord> splitVcfs = new ArrayList<>();
+                    for (String thisAlt : altArray) {
+                        if (!thisAlt.equals("*")) {
+                            splitVcfs.add(VcfUtils.cloneWithNewAlt(vcf, thisAlt));
+                        }
+                    }
+                    if (splitVcfs.size() > 1) splitVcfs.sort(null);
+                    for (VcfRecord splitVcf : splitVcfs) {
+                        chunk.add(toVariantWork(splitVcf.getChrPositionRefAlt(), gatkAD, gatkGT, alt));
+                    }
+                } else {
+                    chunk.add(toVariantWork(thisVcfsCP, gatkAD, gatkGT, alt));
+                }
+
+                lastCP = thisVcfsCP;
+
+                if (chunk.size() >= CHUNK_SIZE) {
+                    processChunk(chunk, annotationSources, sourceExecutor, queue);
+                    totalVariants += chunk.size();
+                    chunk = new ArrayList<>(CHUNK_SIZE);
                 }
             }
 
-            logger.info("# of vcf records: " + vcfCount + ", # of non-standard contigs: " + nonStandardContigCount);
-        } finally {
-            /*
-             * count down the count down latch
-             */
-            consumerLatch.countDown();
+            // Flush the final partial chunk.
+            if (!chunk.isEmpty()) {
+                processChunk(chunk, annotationSources, sourceExecutor, queue);
+                totalVariants += chunk.size();
+            }
         }
-        executor.shutdown();
-        executor.awaitTermination(60, TimeUnit.MINUTES);
-        logger.info("ExecutorService has been shutdown");
+
+        logger.info("VCF processing complete: " + totalVariants + " variants, "
+                + nonStandardContigCount + " non-standard contigs skipped");
+
+        queue.put(POISON_PILL);
+        sourceExecutor.shutdown();
+        consumerExecutor.shutdown();
+        consumerExecutor.awaitTermination(60, TimeUnit.MINUTES);
+        sourceExecutor.awaitTermination(60, TimeUnit.MINUTES);
+        logger.info("Done");
         return exitStatus;
     }
 
-    private boolean isStandardContig(ChrPosition thisVcfsCP) {
-        return thisVcfsCP.getChromosome().startsWith("chr") ? STANDARD_GRCH38_CONTIGS.contains(thisVcfsCP.getChromosome().substring(3)) : STANDARD_GRCH38_CONTIGS.contains(thisVcfsCP.getChromosome());
+    /**
+     * Sweeps all annotation sources in parallel over one chunk of variants,
+     * assembles per-variant result arrays, and hands them to the writer queue.
+     * <p>
+     * Peak live memory while this method runs:
+     *   chunk.size() × annotationSources.size() × (avg annotation string bytes)
+     * which is independent of total VCF size.
+     * <p>
+     * The {@link AnnotationSource} instances are stateful iterators over their
+     * files; they must not be shared between concurrent calls to this method.
+     */
+    private static void processChunk(List<VariantWork> chunk,
+                                     List<AnnotationSource> annotationSources,
+                                     ExecutorService sourceExecutor,
+                                     BlockingQueue<ChrPositionAnnotations> queue) throws Exception {
+
+        final int numSources = annotationSources.size();
+
+        // Sweep all sources in parallel over this chunk.
+        List<Future<String[]>> futures = new ArrayList<>(numSources);
+        for (AnnotationSource source : annotationSources) {
+            futures.add(sourceExecutor.submit(new SourceSweeper(source, chunk)));
+        }
+
+        // Collect results — String[numSources][chunk.size()].
+        String[][] chunkResults = new String[numSources][];
+        for (int s = 0; s < numSources; s++) {
+            chunkResults[s] = futures.get(s).get();
+        }
+
+        // Assemble per-variant annotation arrays and enqueue for writing.
+        // After this loop chunkResults goes out of scope and is eligible for GC.
+        final int n = chunk.size();
+        for (int i = 0; i < n; i++) {
+            VariantWork v = chunk.get(i);
+            String[] annotations = new String[numSources];
+            for (int s = 0; s < numSources; s++) {
+                annotations[s] = chunkResults[s][i];
+            }
+            queue.put(new ChrPositionAnnotations(v.cp(), annotations, v.gatkAD(), v.gatkGT(), v.originalAlt()));
+        }
     }
 
+    private static VariantWork toVariantWork(ChrPosition cp, String gatkAD, String gatkGT, String originalAlt) {
+        String contig = cp.getChromosome().startsWith("chr") ? cp.getChromosome().substring(3) : cp.getChromosome();
+        long cpAsLong = ChrPositionUtils.convertContigAndPositionToLong(contig, cp.getStartPosition());
+        return new VariantWork(cp, cpAsLong, gatkAD, gatkGT, originalAlt);
+    }
 
-    private static List<String> getAnnotationsForPosition(ChrPosition cp, List<AnnotationSource> annotationSources, Executor executor) {
-        long contigAndPosition = ((ChrPositionUtils.convertContigAndPositionToLong(cp.getChromosome().startsWith("chr") ? cp.getChromosome().substring(3) : cp.getChromosome(), cp.getStartPosition())));
-        return annotationSources.stream()
-                .map(source -> CompletableFuture.supplyAsync(() ->
-                        source.getAnnotation(contigAndPosition, cp), executor))
-                .map(CompletableFuture::join).collect(Collectors.toList());
+    private boolean isStandardContig(ChrPosition cp) {
+        String contig = cp.getChromosome();
+        return STANDARD_GRCH38_CONTIGS.contains(contig.startsWith("chr") ? contig.substring(3) : contig);
     }
 
     public static class ChrPositionAnnotations {
 
-        public List<String> getAnnotations() {
-            return annotations;
-        }
+        final ChrPosition cp;
+        /** One entry per annotation source; each entry is a tab-separated "key=value\tkey=value…" string. */
+        final String[] annotations;
+        final String gatkAD;
+        final String gatkGT;
+        final String originalAlt;
 
-        ChrPosition cp;
-        List<String> annotations;
-        String gatkAD;
-        String gatkGT;
-        String originalAlt;
-
-        public ChrPositionAnnotations(ChrPosition cp, List<String> annotations, String gatkAD, String gatkGT, String originalAlt) {
-            super();
+        public ChrPositionAnnotations(ChrPosition cp, String[] annotations, String gatkAD, String gatkGT, String originalAlt) {
             this.cp = cp;
             this.annotations = annotations;
             this.gatkAD = gatkAD;
@@ -195,101 +245,155 @@ public class Annotate {
             this.originalAlt = originalAlt;
         }
 
+        public String[] getAnnotations() {
+            return annotations;
+        }
+
         public String toStringMinusAnnotations() {
             return ((ChrPositionRefAlt) cp).toTabSeperatedString() + "\t" + originalAlt + "\t" + gatkGT + "\t" + gatkAD;
         }
-
     }
 
     public static class Consumer implements Runnable {
 
-        private final Queue<ChrPositionAnnotations> queue;
+        private final BlockingQueue<ChrPositionAnnotations> queue;
         private final boolean includeSearchTerm;
-        private final CountDownLatch latch;
         private final RecordWriter<String> writer;
         private final String additionalEmptyValues;
 
-        public Consumer(Queue<ChrPositionAnnotations> queue, String outputFile, CountDownLatch latch, AnnotationInputs ais, QExec exec) throws IOException {
-            this.queue = queue;
-            this.latch = latch;
-            includeSearchTerm = ais.isIncludeSearchTerm();
-            additionalEmptyValues = AnnotateUtils.generateAdditionalEmptyValues(ais);
-            List<String> headers = AnnotateUtils.generateHeaders(ais, exec);
+        private final int fieldCount;
+        // pre-allocated, reused output buffer — Consumer is single-threaded
+        private final String[] outputValues;
+        private final StringBuilder sb = new StringBuilder(512);
 
-            writer = new RecordWriter<>(new File(outputFile));
+        // used only during first-record initialisation
+        private final Map<String, Integer> fieldPositionMap;
+        private boolean indexInitialised = false;
+        // annotationToSlot[flatIndex] = output slot (-1 = discard)
+        // built once on the first record, never changes
+        private int[] annotationToSlot;
+
+        public Consumer(BlockingQueue<ChrPositionAnnotations> queue, String outputFile, AnnotationInputs ais, QExec exec) throws IOException {
+            this.queue = queue;
+            this.includeSearchTerm = ais.isIncludeSearchTerm();
+            this.additionalEmptyValues = AnnotateUtils.generateAdditionalEmptyValues(ais);
+            List<String> headers = AnnotateUtils.generateHeaders(ais, exec);
+            this.writer = new RecordWriter<>(new File(outputFile));
             for (String h : headers) {
                 writer.addHeader(h);
             }
+
+            String[] fieldOrder = ais.getOutputFieldOrder().split(",");
+            this.fieldCount = fieldOrder.length;
+            this.outputValues = new String[fieldCount];
+            Map<String, Integer> map = new HashMap<>(fieldCount * 2);
+            for (int i = 0; i < fieldCount; i++) {
+                map.put(fieldOrder[i], i);
+            }
+            this.fieldPositionMap = map;
         }
 
         @Override
         public void run() {
             logger.info("Consumer thread is a go!");
             try {
-
                 while (true) {
-
-                    final ChrPositionAnnotations rec = queue.poll();
-                    if (null != rec) {
-
-                        processRecord(rec);
-
-                    } else {
-                        if (latch.getCount() == 0) {
-                            break;
-                        }
-                        // sleep and try again
-                        try {
-                            Thread.sleep(20);
-                        } catch (final InterruptedException e) {
-                            logger.error("InterruptedException caught in Consumer sleep: " + e.getLocalizedMessage());
-                            throw e;
-                        }
+                    final ChrPositionAnnotations rec = queue.take();
+                    if (rec == POISON_PILL) {
+                        break;
                     }
+                    processRecord(rec);
                 }
             } catch (final Exception e) {
                 e.printStackTrace();
-                logger.error("Exception caught in Consumer class: " + e.getCause().getMessage());
+                logger.error("Exception caught in Consumer class", e);
             } finally {
                 logger.info("Consumer: shutting down");
-                /*
-                 * close writer
-                 */
                 try {
                     writer.close();
                 } catch (IOException e) {
-                    // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
             }
         }
 
         public void processRecord(final ChrPositionAnnotations recAndAnnotations) throws IOException {
+            final String[] rawAnnotations = recAndAnnotations.getAnnotations();
 
-            List<String> annotations = recAndAnnotations.getAnnotations();
-            logger.debug("annotations.size(): " + annotations.size());
+            // ── First-record initialisation ──────────────────────────────────────────
+            // Walk every tab-separated "key=value" token across all source strings and
+            // build annotationToSlot[flatIndex] = output slot once, reused every record.
+            if (!indexInitialised) {
+                // Count total flat tokens to size the array.
+                int totalTokens = 0;
+                for (String annot : rawAnnotations) {
+                    totalTokens++;
+                    for (int k = 0; k < annot.length(); k++) {
+                        if (annot.charAt(k) == '\t') totalTokens++;
+                    }
+                }
+                annotationToSlot = new int[totalTokens];
+                int idx = 0;
+                for (String annot : rawAnnotations) {
+                    int start = 0;
+                    final int len = annot.length();
+                    while (true) {
+                        int tab = annot.indexOf('\t', start);
+                        int end = tab < 0 ? len : tab;
+                        int eq = annot.indexOf('=', start);
+                        String key = (eq >= 0 && eq < end) ? annot.substring(start, eq) : annot.substring(start, end);
+                        Integer slot = fieldPositionMap.get(key);
+                        annotationToSlot[idx++] = slot != null ? slot : -1;
+                        if (tab < 0) break;
+                        start = tab + 1;
+                    }
+                }
+                indexInitialised = true;
+            }
 
-            /*
-             * collect entries in annotations lists into map
-             */
-            List<String> singleAnnotations = AnnotateUtils.convertAnnotations(annotations);
-            logger.debug("singleAnnotations.size(): " + singleAnnotations.size());
-
+            // ── Hot path — no List/stream allocation ─────────────────────────────────
+            Arrays.fill(outputValues, "");
+            int flatIdx = 0;
+            for (String annot : rawAnnotations) {
+                int start = 0;
+                final int len = annot.length();
+                while (true) {
+                    int tab = annot.indexOf('\t', start);
+                    int end = tab < 0 ? len : tab;
+                    int slot = annotationToSlot[flatIdx++];
+                    if (slot >= 0) {
+                        int eq = annot.indexOf('=', start);
+                        outputValues[slot] = (eq >= 0 && eq < end) ? annot.substring(eq + 1, end) : "";
+                    }
+                    if (tab < 0) break;
+                    start = tab + 1;
+                }
+            }
 
             String searchTerm = "";
             if (includeSearchTerm) {
-                String hgvsC = AnnotateUtils.getAnnotationFromList(singleAnnotations, "hgvs.c").orElse(null);
-                String hgvsP = AnnotateUtils.getAnnotationFromList(singleAnnotations, "hgvs.p").orElse(null);
-                searchTerm = AnnotateUtils.getSearchTerm(hgvsC, hgvsP);
+                String hgvsC = getFromOutputValues("hgvs.c");
+                String hgvsP = getFromOutputValues("hgvs.p");
+                searchTerm = AnnotateUtils.getSearchTerm(
+                        hgvsC.isEmpty() ? null : hgvsC,
+                        hgvsP.isEmpty() ? null : hgvsP);
             }
-            /*
-             * sort and write out to file
-             */
-            String annotationString = singleAnnotations.stream().map(s -> s.split("=", 2)).sorted(CUSTOM_COMPARATOR).map(a -> a[1]).collect(Collectors.joining("\t"));
 
-            logger.debug("annotationString: " + annotationString);
+            sb.setLength(0);
+            sb.append(recAndAnnotations.toStringMinusAnnotations()).append('\t');
+            for (int i = 0; i < fieldCount; i++) {
+                if (i > 0) sb.append('\t');
+                sb.append(outputValues[i]);
+            }
+            sb.append(additionalEmptyValues);
+            if (includeSearchTerm) sb.append('\t').append(searchTerm);
 
-            writer.add(recAndAnnotations.toStringMinusAnnotations() + "\t" + annotationString + additionalEmptyValues + (includeSearchTerm ? "\t" + searchTerm : ""));
+            writer.add(sb.toString());
+        }
+
+        private String getFromOutputValues(String fieldName) {
+            Integer slot = fieldPositionMap.get(fieldName);
+            return (slot != null && outputValues[slot] != null) ? outputValues[slot] : "";
         }
     }
 
@@ -307,14 +411,13 @@ public class Annotate {
             }
             e.printStackTrace();
         }
-
         if (null != logger) {
             logger.logFinalExecutionStats(exitStatus);
         }
         System.exit(exitStatus);
     }
 
-    protected int setup(String [] args) throws Exception {
+    protected int setup(String[] args) throws Exception {
         int returnStatus = 1;
         if (null == args || args.length == 0) {
             System.err.println(Messages.getMessage("NANNO_USAGE"));
@@ -322,9 +425,6 @@ public class Annotate {
         }
         final Options options = new Options(args);
 
-        System.out.println("options.getInputFileName: " + options.getInputFileName());
-        System.out.println("options.getOutputFileName: " + options.getOutputFileName());
-        System.out.println("options.getConfigFileName: " + options.getConfigFileName());
         if (null == options.getInputFileName()) {
             System.err.println(Messages.getMessage("NANNO_USAGE"));
         } else if (null == options.getOutputFileName()) {
@@ -334,18 +434,16 @@ public class Annotate {
         } else if (null == options.getConfigFileName()) {
             System.err.println(Messages.getMessage("NANNO_USAGE"));
         } else {
-            // configure logging
             String logFile = options.getLogFileName();
             logger = QLoggerFactory.getLogger(Annotate.class, logFile, options.getLogLevel());
             exec = logger.logInitialExecutionStats("Annotate", Annotate.class.getPackage().getImplementationVersion(), args);
             outputFile = options.getOutputFileName();
             inputFile = options.getInputFileName();
             jsonInputs = options.getConfigFileName();
-
             return engage();
         }
 
         return returnStatus;
     }
-
 }
+
