@@ -781,10 +781,11 @@ default -> 0.0f;
 	 */
 	private static boolean parseBespokeCoverageCounts(final String info, final int[] counts) {
 		int i = 0;
+		final int countsLength = counts.length;
 		int index = info.indexOf(Constants.MINUS);
 		int oldIndex = 0;
 		while (index > -1 && oldIndex != index) {
-			if (i >= counts.length) {
+			if (i >= countsLength) {
 				return false;
 			}
 			counts[i] = Integer.parseInt(info, oldIndex, index, 10);
