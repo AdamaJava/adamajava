@@ -25,6 +25,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.apache.commons.math3.util.Pair;
+import org.qcmg.common.log.QLevel;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.PositionRange;
@@ -86,6 +87,8 @@ public class Compare {
     private final Map<String, List<PositionRange>> blockPositions = new THashMap<>();
     private String blocklist;
 
+	private boolean debugEnabled;
+
 	private int engage() throws Exception {
 
         if (null != blocklist) {
@@ -106,13 +109,13 @@ public class Compare {
 		logger.info("Retrieving qsig vcf files from: " + String.join(",", paths));
 		Set<File> uniqueFiles = new THashSet<>();
 		for (String path : paths) {
+			// Single walk: this matches both .qsig.vcf and .qsig.vcf.gz
 			uniqueFiles.addAll(FileUtils.findFilesEndingWithFilterNIO(path, SignatureUtil.QSIG_VCF));
-			uniqueFiles.addAll(FileUtils.findFilesEndingWithFilterNIO(path, SignatureUtil.QSIG_VCF_GZ));
 		}
 		List<File> files = new ArrayList<>(uniqueFiles);
 		
 		if (files.isEmpty()) {
-			logger.warn("Didn't find any files ending with " + SignatureUtil.QSIG_VCF + " in " + Arrays.toString(paths));
+			logger.warn("Didn't find any files ending with " + SignatureUtil.QSIG_VCF + " (or .gz) in " + Arrays.toString(paths));
 			return 0;
 		}
 		
@@ -194,7 +197,9 @@ public class Compare {
 						allComparisons.add(comp);
 						logger.info("adding comparison between " + entry.getKey().getAbsolutePath() + " and " + files.get(i).getAbsolutePath());
 					} else {
-						logger.warn("Could not compare " + entry.getKey().getAbsolutePath() + " and " + files.get(i).getAbsolutePath() + " as their SigMeta information was not equal or not valid: " + entry.getValue().getKey() + " and " + sigData.getKey());
+						if (debugEnabled) {
+							logger.debug("Could not compare " + entry.getKey().getAbsolutePath() + " and " + files.get(i).getAbsolutePath() + " as their SigMeta information was not equal or not valid: " + entry.getValue().getKey() + " and " + sigData.getKey());
+						}
 					}
 				}
 			}
@@ -298,7 +303,9 @@ public class Compare {
 								Comparison comp = ComparisonUtil.compareRatiosUsingSnpsFloat(r1.getValue(), r2.getValue(), f1, f2);
 								myComps.add(comp);
 							} else {
-								logger.warn("Could not compare " + f1.getAbsolutePath() + " and " + f2.getAbsolutePath() + " as their SigMeta information was not equal or not valid: " + r1.getKey() + " and " + r2.getKey());
+								if (debugEnabled) {
+									logger.debug("Could not compare " + f1.getAbsolutePath() + " and " + f2.getAbsolutePath() + " as their SigMeta information was not equal or not valid: " + r1.getKey() + " and " + r2.getKey());
+								}
 							}
 						}
 					}
@@ -405,6 +412,7 @@ public class Compare {
 			// configure logging
             String logFile = options.getLog();
 			logger = QLoggerFactory.getLogger(Compare.class, logFile, options.getLogLevel());
+			debugEnabled = logger.isLevelEnabled(QLevel.DEBUG);
 			
 			
 			String [] cmdLineOutputFiles = options.getOutputFileNames();

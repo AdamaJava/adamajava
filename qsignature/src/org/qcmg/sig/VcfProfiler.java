@@ -15,7 +15,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicIntegerArray;
 
@@ -135,9 +134,9 @@ public class VcfProfiler {
 					 * this should be a string containing counts of As-Cs-Gs-Ts
 					 * Convert into an array
 					 */
-					Optional<int[]> coverageArray = SignatureUtil.decipherCoverageStringBespoke(infoSubString);
-					
-					int coverage = coverageArray.map(ints -> Arrays.stream(ints).sum()).orElse(0);
+					int[] coverageArray = SignatureUtil.decipherCoverageStringBespoke(infoSubString);
+
+					int coverage = null != coverageArray ? Arrays.stream(coverageArray).sum() : 0;
 					if (coverage >= coverageDistMaxValue) {
 						
 						coverageDist[coverageDistMaxValue] ++;
@@ -151,8 +150,8 @@ public class VcfProfiler {
 					boolean isHetWildtype = false;
 					boolean isHom;
 					
-					if (coverageArray.isPresent()) {
-						int [] coverageArrayActual = coverageArray.get();
+					if (null != coverageArray) {
+						int [] coverageArrayActual = coverageArray;
 						/*
 						 * get the bases that this represents
 						 * use the trusted 90% for hom, 30-70% for het cutoffs

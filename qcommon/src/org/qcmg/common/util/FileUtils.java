@@ -270,6 +270,20 @@ public class FileUtils {
 		return files.toArray(EMPTY_FILE_ARRAY);
 	}
 	
+	/**
+	 * Recursively finds readable files whose names end with the supplied suffix.
+	 * <p>
+	 * If {@code filter} does not already end with {@code ".gz"}, this method also matches
+	 * readable files ending with {@code filter + ".gz"} so callers can find both
+	 * compressed and uncompressed variants in a single filesystem walk.
+	 *
+	 * @param path root path to search from
+	 * @param filter file-name suffix to match; when it does not end with {@code ".gz"},
+	 *        both {@code filter} and {@code filter + ".gz"} are matched
+	 * @return readable files whose names match the requested suffix rules
+	 * @throws IllegalArgumentException if {@code path} or {@code filter} is null or empty
+	 * @throws IOException if an I/O error occurs while traversing the directory tree
+	 */
 	public static List<File> findFilesEndingWithFilterNIO(final String path, final String filter) throws IOException {
 		if (StringUtils.isNullOrEmpty(path)) throw new IllegalArgumentException("Path argument to findFilesEndingWithFilterNIO is null or empty");
 		if (StringUtils.isNullOrEmpty(filter)) throw new IllegalArgumentException("Filter argument to findFilesEndingWithFilterNIO is null or empty");
@@ -277,6 +291,7 @@ public class FileUtils {
 		final List<File> foundFiles = new ArrayList<>();
 		
 		Path startingDir = Paths.get(path);
+		final String filterGz = filter.endsWith(".gz") ? filter : filter + ".gz";
 		Files.walkFileTree(startingDir, EnumSet.of(FileVisitOption.FOLLOW_LINKS),Integer.MAX_VALUE, new SimpleFileVisitor<>() {
 			
 			@Override
@@ -287,8 +302,8 @@ public class FileUtils {
 			
 			@Override
 			public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
-				if (Files.isReadable(file) && (file.toString().endsWith(filter) || file.toString().endsWith(filter + ".gz"))) {
-//					if (Files.exists(file, LinkOption.NOFOLLOW_LINKS) && file.toString().endsWith(filter)) {
+				String fileString = file.toString();
+				if ((fileString.endsWith(filter) || fileString.endsWith(filterGz)) && Files.isReadable(file)) {
 					foundFiles.add(file.toFile());
 				}
 				return FileVisitResult.CONTINUE;

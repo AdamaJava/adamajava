@@ -295,18 +295,18 @@ public class StringUtils {
      * Tests to see if a String is null or empty.<br>
      * Returns true if it is null or empty, false otherwise.<p>
      * If <code>ignoreWhiteSpace</code> is set to <code>true</code>, and the string under test is not null,
-     * it will be trimmed before the {@link String#isEmpty()} method is invoked.
+     * it will be checked with {@link String#isBlank()} so Unicode-aware blank strings are treated as empty.
      *
      * @param test             String that is being tested
      * @param ignoreWhiteSpace boolean indicating if whitespace should be considered when determining if the string is empty
      * @return true if supplied is null or empty, false otherwise
      */
     public static boolean isNullOrEmpty(final String test, boolean ignoreWhiteSpace) {
-        return null == test || (ignoreWhiteSpace ? test.trim().isEmpty() : test.isEmpty());
+        return null == test || (ignoreWhiteSpace ? test.isBlank() : test.isEmpty());
     }
 
     public static boolean isNullOrEmptyOrMissingData(final String test, boolean ignoreWhiteSpace) {
-        return null == test || (ignoreWhiteSpace ? test.trim().isEmpty() : test.isEmpty()) || Constants.MISSING_DATA_STRING.equals(test) || Constants.MISSING_GT.equals(test);
+        return null == test || (ignoreWhiteSpace ? test.isBlank() : test.isEmpty()) || Constants.MISSING_DATA_STRING.equals(test) || Constants.MISSING_GT.equals(test);
     }
 
     public static boolean isNullOrEmptyOrMissingData(final String test) {
