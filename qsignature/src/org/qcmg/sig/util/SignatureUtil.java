@@ -768,16 +768,11 @@ default -> 0.0f;
 	}
 	
 	/**
-	 * info should be in the following format:
-	 * "5-0-0-0" which corresponds to count_of_As-count_of_Cs-count_of_Gs-count_of_Ts
-	 * 
-	 * @param info
-	 * @return
-	 */
-	/**
-	 * Parses a bespoke coverage string of the form "A-C-G-T" into the supplied counts array.
-	 * Mirrors the original decipherCoverageStringBespoke algorithm exactly, without Optional overhead.
-	 * Returns true only when exactly 4 dash-separated integer tokens are found.
+	 * Parses a bespoke coverage string of the form "A-C-G-T" into the supplied counts array,
+	 * for example {@code 5-0-0-0} for counts of A, C, G and T respectively.
+	 *
+	 * @return {@code true} only when exactly four dash-separated integer tokens are found;
+	 * otherwise {@code false}
 	 */
 	private static boolean parseBespokeCoverageCounts(final String info, final int[] counts) {
 		int i = 0;
