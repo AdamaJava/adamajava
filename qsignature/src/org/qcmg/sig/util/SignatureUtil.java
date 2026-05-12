@@ -269,6 +269,13 @@ public class SignatureUtil {
 		return ratios;
 	}
 	
+	/**
+	 * Extracts signature metadata and read-group identifiers from the supplied header lines.
+	 *
+	 * @param h header lines from a qsignature file
+	 * @return a pair containing the parsed {@link SigMeta} and read-group map, or {@code null}
+	 *         when {@code h} is {@code null}
+	 */
 	public static Pair<SigMeta, Map<String, String>> getSigMetaAndRGsFromHeader(List<String> h) {
 		if (null == h) {
 			return null;
@@ -798,6 +805,14 @@ default -> 0.0f;
 		return false;
 	}
 
+	/**
+	 * Parses a bespoke coverage string of the form {@code A-C-G-T}.
+	 *
+	 * @param info bespoke coverage string
+	 * @return a four-element count array for valid bespoke coverage strings, or {@code null}
+	 *         when a non-empty input is malformed
+	 * @throws IllegalArgumentException if {@code info} is {@code null}, empty, or blank
+	 */
 	public static int[] decipherCoverageStringBespoke(String info) {
 		if (StringUtils.isNullOrEmpty(info)) {
 			throw new IllegalArgumentException("Invalid coverage string passed to decipherCoverageStringBespoke: " + info);
@@ -806,6 +821,16 @@ default -> 0.0f;
 		return parseBespokeCoverageCounts(info, counts) ? counts : null;
 	}
 
+	/**
+	 * Converts a bespoke coverage string into allele fractions plus total coverage.
+	 *
+	 * @param coverage bespoke coverage string of the form {@code A-C-G-T}
+	 * @param minimumCoverage minimum total coverage required to return ratios
+	 * @return a float array containing A/C/G/T fractions and total coverage, or {@code null}
+	 *         when the coverage string is malformed or total coverage is below
+	 *         {@code minimumCoverage}
+	 * @throws IllegalArgumentException if {@code coverage} is {@code null}, empty, or blank
+	 */
 	public static float[] getValuesFromCoverageStringBespoke(final String coverage, int minimumCoverage) {
 		int[] baseCoverages = decipherCoverageStringBespoke(coverage);
 		if (null == baseCoverages) {
@@ -827,6 +852,15 @@ default -> 0.0f;
 		return getValuesFromCoverageStringFloat(coverage, 10);
 	}
 
+	/**
+	 * Converts a standard coverage string into allele fractions plus total coverage.
+	 *
+	 * @param coverage standard coverage string in FULLCOV/NOVELCOV format
+	 * @param minimumCoverage minimum total coverage required to return ratios
+	 * @return a float array containing A/C/G/T fractions and total coverage, or {@code null}
+	 *         when total coverage is below {@code minimumCoverage}
+	 * @throws IllegalArgumentException if {@code coverage} is {@code null}, empty, blank, or malformed
+	 */
 	public static float[] getValuesFromCoverageStringFloat(final String coverage, int minimumCoverage) {
 		int[] baseCoverages = decipherCoverageString(coverage);
 		int total = baseCoverages[4];
