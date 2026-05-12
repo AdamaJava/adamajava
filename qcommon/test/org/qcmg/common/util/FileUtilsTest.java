@@ -336,6 +336,20 @@ public class FileUtilsTest {
         Assert.assertEquals(2, FileUtils.findFilesEndingWithFilterNIO(dir.getAbsolutePath(), "test").size());
         assertTrue(FileUtils.findFilesEndingWithFilterNIO(dir.getAbsolutePath(), "test").contains(fileInFolder));
         assertTrue(FileUtils.findFilesEndingWithFilterNIO(dir.getAbsolutePath(), "test").contains(nestedFileInFolder));
+
+        File qsigFile = tempFolder.newFile("sample.qsig.vcf");
+        File qsigGzFile = tempFolder.newFile("sample.qsig.vcf.gz");
+        File doubleGzFile = tempFolder.newFile("sample.qsig.vcf.gz.gz");
+
+        List<File> qsigMatches = FileUtils.findFilesEndingWithFilterNIO(tempFolder.getRoot().getAbsolutePath(), ".qsig.vcf");
+        Assert.assertEquals(2, qsigMatches.size());
+        assertTrue(qsigMatches.contains(qsigFile));
+        assertTrue(qsigMatches.contains(qsigGzFile));
+        assertFalse(qsigMatches.contains(doubleGzFile));
+
+        List<File> qsigGzMatches = FileUtils.findFilesEndingWithFilterNIO(tempFolder.getRoot().getAbsolutePath(), ".qsig.vcf.gz");
+        Assert.assertEquals(1, qsigGzMatches.size());
+        Assert.assertEquals(qsigGzFile, qsigGzMatches.getFirst());
     }
 
     @Test
