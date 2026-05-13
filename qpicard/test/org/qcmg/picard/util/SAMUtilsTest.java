@@ -308,11 +308,11 @@ public class SAMUtilsTest {
 		
 		
 		SAMRecord rec = new SAMRecord(null);
-		assertEquals('\n', rec.getSAMString().charAt(rec.getSAMString().length() -1));
-		Assert.assertTrue(rec.getSAMString().endsWith("\n"));
+		String originalSAMString = rec.getSAMString();
 		
 		String newSAMString = SAMUtils.getSAMRecordAsSting(rec);
 		Assert.assertFalse(newSAMString.endsWith("\n"));
+		assertEquals(originalSAMString.replace("\n", ""), newSAMString);
 	}
 	
 	@Test
