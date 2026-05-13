@@ -106,7 +106,7 @@ public class SAMUtilsTest {
 		assertEquals(0, sam.getReferencePositionAtReadPosition(51));	// 1-based offset for picard
 		
 		// insertion
-//		683_862_952	1105	chr1	6610753	4	7M3I40M	=	6610559	-240	TTTGTTTTGATGAGATGGAGTTTTGCTCTTGTTGCCCAGGCTGGAGTACA	%))))))),,?B0BII@.@?44,AIB7*@@:=/GIII=@IH9%%III<EI	ZC:i:6	MD:Z:3T43	RG:Z:201011090922324
+//		683_862_952	1105	chr1	6610753	4	7M3I40M	=	6610559	-240	TTTGTTTTGATGAGATGGAGTTTTGCTCTTGTTGCCCAGGCTGGAGTACA	%))))))),,?B0BII@.@?44,AIB7*@@:=/GIII=@IH9%%III<EI	ZC:i:6	MD:Z:3T43	RG:Z:201011090922[...]
 //				43	NH:i:4	CM:i:3	NM:i:4	CQ:Z::@&7:9=%'36;&8:2@((6%<%&21;'&/&:'(91:)(;%(%%%%%%%%	CS:Z:T01131223123021003101102223100012201322213210001100	XW:Z:36_39
 		sam.setCigarString("7M3I40M");
 		sam.setReadString("TTTGTTTTGATGAGATGGAGTTTTGCTCTTGTTGCCCAGGCTGGAGTACA");
@@ -309,6 +309,7 @@ public class SAMUtilsTest {
 		
 		SAMRecord rec = new SAMRecord(null);
 		String originalSAMString = rec.getSAMString();
+		Assert.assertTrue(originalSAMString.endsWith("\n"));
 		
 		String newSAMString = SAMUtils.getSAMRecordAsSting(rec);
 		Assert.assertFalse(newSAMString.endsWith("\n"));
@@ -324,7 +325,7 @@ public class SAMUtilsTest {
 		assertEquals(true, SAMUtils.isSAMRecordValid(sam));
 		sam.setReadFailsVendorQualityCheckFlag(true);
 		assertEquals(false, SAMUtils.isSAMRecordValid(sam));
- 	}
+  	}
 	
 	@Test
 	public void testIsSAMRecordValidForVariantCalling() {
