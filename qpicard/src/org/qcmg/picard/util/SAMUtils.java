@@ -205,17 +205,6 @@ public class SAMUtils {
         return mis;
 	 }
 	 
-	 /**
-	  * Remove the trailing newline char at the end of the supplied getSAMString
-	  * @param rec
-	  * @return
-	  */
-	 public static String getSAMRecordAsSting(SAMRecord rec) {
-		 if (null == rec) throw new IllegalArgumentException("Null SAMRecord passed to getSAMRecordAsSting");
-		 
-		 return rec.getSAMString().replace("\n", "");
-	 }
-	 
 	 public static boolean isSAMRecordValid(SAMRecord rec) {
 		 return 
 				 null != rec
