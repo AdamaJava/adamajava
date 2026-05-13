@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Optional;
 
 import org.junit.Rule;
@@ -80,6 +81,16 @@ public class OptionsTest {
 
 		o = new Options(new String[]{"--mode", "confidence","-homReportWindow", "42", "-output",output.getAbsolutePath(),"-i",i.getAbsolutePath(),});
 		assertEquals(Optional.of(42), o.getHomoplymersReportWindow());
+	}
+
+	@Test
+	public void multipleModes() throws IOException {
+		File i = testFolder.newFile();
+		File o = testFolder.newFile();
+		File d = testFolder.newFile();
+		Options options = new Options(new String[]{"--mode", "dbsnp", "--mode", "germline", "-i", i.getAbsolutePath(), "-o", o.getAbsolutePath(), "-d", d.getAbsolutePath()});
+		assertEquals(Arrays.asList(Options.MODE.dbsnp, Options.MODE.germline), options.getModes());
+		assertEquals(Options.MODE.dbsnp, options.getMode());
 	}
 
 }

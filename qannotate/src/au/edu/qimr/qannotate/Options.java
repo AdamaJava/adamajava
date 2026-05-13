@@ -11,6 +11,7 @@ import static java.util.Arrays.asList;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -35,6 +36,7 @@ public class Options {
     private final String commandLine;
 
     private final Options.MODE mode;
+    private final List<Options.MODE> modes;
     private final OptionParser parser;
     private final String outputFileName;
     private final String inputFileName;
@@ -83,12 +85,13 @@ public class Options {
         parser = new OptionParser();
         OptionSet options = parseArgs(args);
 
-        if (options.has("mode")) {
-            String m = ((String) options.valueOf("mode")).toLowerCase();
-            this.mode = MODE.valueOf(m); //already checked the validation of mode
-        } else {
-            this.mode = null;
+        List<String> modeStrings = (List<String>) options.valuesOf("mode");
+        List<MODE> modeList = new ArrayList<>();
+        for (String m : modeStrings) {
+            modeList.add(MODE.valueOf(m.toLowerCase()));
         }
+        this.modes = Collections.unmodifiableList(modeList);
+        this.mode = modeList.isEmpty() ? null : modeList.get(0);
 
         if (options.has("h") || options.has("help")) {
             displayHelp(mode);
@@ -113,7 +116,7 @@ public class Options {
         List<String> dbList = (List<String>) options.valuesOf("d");
         databaseFiles = dbList.toArray(new String[dbList.size()]);
 
-        if (MODE.dbsnp == mode && dbList.isEmpty()) {
+        if (modes.contains(MODE.dbsnp) && dbList.isEmpty()) {
             displayHelp(mode);
             System.exit(0);
         }
@@ -193,43 +196,43 @@ public class Options {
             System.exit(0);
         }
 
-        Options.MODE mm = null;
+        List<Options.MODE> selectedModes = new ArrayList<>();
         if (options.has("mode")) {
-            final String m = ((String) options.valueOf("mode")).toLowerCase();
-            try {
-                mm = MODE.valueOf(m);
-            } catch (IllegalArgumentException | NullPointerException e) {
-                System.err.println("invalid mode specified: " + m);
-                System.exit(1);
+            for (String m : (List<String>) options.valuesOf("mode")) {
+                try {
+                    selectedModes.add(MODE.valueOf(m.toLowerCase()));
+                } catch (IllegalArgumentException | NullPointerException e) {
+                    System.err.println("invalid mode specified: " + m);
+                    System.exit(1);
+                }
             }
         }
 
-        if (mm == null) {
+        if (selectedModes.isEmpty()) {
             /*
              * used by nanno.Annotate
              */
             parser.accepts("config", Messages.getMessage("NANNO_CONF_FILE_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("config file");
         } else {
 
-            if (mm.equals(MODE.confidence) || mm.equals(MODE.vcf2maf)) {
+            if (selectedModes.contains(MODE.confidence) || selectedModes.contains(MODE.vcf2maf)) {
                 parser.accepts(test, Messages.getMessage("TUMOUR_SAMPLEID_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("testSample");
                 parser.accepts(control, Messages.getMessage("NORMAL_SAMPLEID_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("controlSample");
-            } else {
-                parser.acceptsAll(asList("d", "database"), Messages.getMessage("DATABASE_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("database file");
             }
+            parser.acceptsAll(asList("d", "database"), Messages.getMessage("DATABASE_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("database file");
 
-            if (mm.equals(MODE.snpeff)) {
+            if (selectedModes.contains(MODE.snpeff)) {
                 parser.accepts("config", Messages.getMessage("CONF_FILE_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("config file");
                 parser.accepts("summaryFile", Messages.getMessage("SUMMARY_FILE_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("stat output");
             }
 
-            if (mm.equals(MODE.trf))
+            if (selectedModes.contains(MODE.trf))
                 parser.accepts("buffer", "check TRF region on both sides of indel within this nominated size").withRequiredArg().ofType(Integer.class);//.describedAs("integer");
 
-            if (mm.equals(MODE.cadd))
+            if (selectedModes.contains(MODE.cadd))
                 parser.accepts("gap", "adjacent variants size").withRequiredArg().ofType(String.class).describedAs("gap size");
 
-            if (mm.equals(MODE.vcf2maf)) {
+            if (selectedModes.contains(MODE.vcf2maf)) {
                 parser.accepts("outdir", Messages.getMessage("MAF_OUTPUT_DIRECTORY_OPTION_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("output file location");
                 parser.accepts("donor", Messages.getMessage("DONOR_ID_DESCRIPTION")).withRequiredArg().ofType(String.class).describedAs("donor id");
                 parser.accepts("center", "Genome sequencing center").withRequiredArg().ofType(String.class).describedAs("center");
@@ -336,6 +339,10 @@ public class Options {
 
     public MODE getMode() {
         return mode;
+    }
+
+    public List<MODE> getModes() {
+        return modes;
     }
 
     private void displayHelp(MODE mode) throws IOException {
