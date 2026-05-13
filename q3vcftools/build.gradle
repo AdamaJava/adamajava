@@ -14,9 +14,8 @@ dependencies {
     implementation project(':qcommon')
     implementation project(':qio')
 
-    implementation 'com.github.samtools:htsjdk:4.0.2'
+    implementation 'com.github.samtools:htsjdk:5.0.0'
     implementation 'net.sf.jopt-simple:jopt-simple:5.0.4'
     // https://mvnrepository.com/artifact/com.github.mwiede/jsch
     implementation 'com.github.mwiede:jsch:0.2.16'
 }
-
