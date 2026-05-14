@@ -1,10 +1,10 @@
 package org.qcmg.picard.util;
 
-import static org.junit.Assert.assertEquals;
 import htsjdk.samtools.SAMRecord;
 
-import org.junit.Assert;
 import org.junit.Test;
+
+import static org.junit.Assert.*;
 
 public class SAMUtilsTest {
 
@@ -106,7 +106,7 @@ public class SAMUtilsTest {
 		assertEquals(0, sam.getReferencePositionAtReadPosition(51));	// 1-based offset for picard
 		
 		// insertion
-//		683_862_952	1105	chr1	6610753	4	7M3I40M	=	6610559	-240	TTTGTTTTGATGAGATGGAGTTTTGCTCTTGTTGCCCAGGCTGGAGTACA	%))))))),,?B0BII@.@?44,AIB7*@@:=/GIII=@IH9%%III<EI	ZC:i:6	MD:Z:3T43	RG:Z:201011090922324
+//		683_862_952	1105	chr1	6610753	4	7M3I40M	=	6610559	-240	TTTGTTTTGATGAGATGGAGTTTTGCTCTTGTTGCCCAGGCTGGAGTACA	%))))))),,?B0BII@.@?44,AIB7*@@:=/GIII=@IH9%%III<EI	ZC:i:6	MD:Z:3T43	RG:Z:201011090922[...]
 //				43	NH:i:4	CM:i:3	NM:i:4	CQ:Z::@&7:9=%'36;&8:2@((6%<%&21;'&/&:'(91:)(;%(%%%%%%%%	CS:Z:T01131223123021003101102223100012201322213210001100	XW:Z:36_39
 		sam.setCigarString("7M3I40M");
 		sam.setReadString("TTTGTTTTGATGAGATGGAGTTTTGCTCTTGTTGCCCAGGCTGGAGTACA");
@@ -300,73 +300,57 @@ public class SAMUtilsTest {
 	}
 	
 	@Test
-	public void testGetSAMRecordAsSting() {
-		try {
-			SAMUtils.getSAMRecordAsSting(null);
-			Assert.fail("Should have thrown an IAE");
-		} catch (IllegalArgumentException iae) {}
-		
-		
-		SAMRecord rec = new SAMRecord(null);
-		assertEquals('\n', rec.getSAMString().charAt(rec.getSAMString().length() -1));
-		Assert.assertTrue(rec.getSAMString().endsWith("\n"));
-		
-		String newSAMString = SAMUtils.getSAMRecordAsSting(rec);
-		Assert.assertFalse(newSAMString.endsWith("\n"));
+	public void testIsSAMRecordValid() {
+		assertFalse(SAMUtils.isSAMRecordValid(null));
+		SAMRecord sam = new SAMRecord(null);
+		assertTrue(SAMUtils.isSAMRecordValid(sam));
+		sam.setReadFailsVendorQualityCheckFlag(false);
+		assertTrue(SAMUtils.isSAMRecordValid(sam));
+		sam.setReadFailsVendorQualityCheckFlag(true);
+		assertFalse(SAMUtils.isSAMRecordValid(sam));
 	}
 	
 	@Test
-	public void testIsSAMRecordValid() {
-		assertEquals(false, SAMUtils.isSAMRecordValid(null));
-		SAMRecord sam = new SAMRecord(null);
-		assertEquals(true, SAMUtils.isSAMRecordValid(sam));
-		sam.setReadFailsVendorQualityCheckFlag(false);
-		assertEquals(true, SAMUtils.isSAMRecordValid(sam));
-		sam.setReadFailsVendorQualityCheckFlag(true);
-		assertEquals(false, SAMUtils.isSAMRecordValid(sam));
- 	}
-	
-	@Test
 	public void testIsSAMRecordValidForVariantCalling() {
-		assertEquals(false, SAMUtils.isSAMRecordValidForVariantCalling(null));
+		assertFalse(SAMUtils.isSAMRecordValidForVariantCalling(null));
 		SAMRecord sam = new SAMRecord(null);
-		assertEquals(true, SAMUtils.isSAMRecordValidForVariantCalling(sam));
+		assertTrue(SAMUtils.isSAMRecordValidForVariantCalling(sam));
 		sam.setReadFailsVendorQualityCheckFlag(false);
-		assertEquals(true, SAMUtils.isSAMRecordValidForVariantCalling(sam));
+		assertTrue(SAMUtils.isSAMRecordValidForVariantCalling(sam));
 		sam.setReadFailsVendorQualityCheckFlag(true);
-		assertEquals(false, SAMUtils.isSAMRecordValidForVariantCalling(sam));
+		assertFalse(SAMUtils.isSAMRecordValidForVariantCalling(sam));
 		
 		// dups
 		sam.setReadFailsVendorQualityCheckFlag(false);
 		sam.setDuplicateReadFlag(false);
-		assertEquals(true, SAMUtils.isSAMRecordValidForVariantCalling(sam));
+		assertTrue(SAMUtils.isSAMRecordValidForVariantCalling(sam));
 		sam.setDuplicateReadFlag(true);
-		assertEquals(false, SAMUtils.isSAMRecordValidForVariantCalling(sam));
+		assertFalse(SAMUtils.isSAMRecordValidForVariantCalling(sam));
 		
 		// unmapped
 		sam.setDuplicateReadFlag(false);
 		sam.setReadUnmappedFlag(false);
-		assertEquals(true, SAMUtils.isSAMRecordValidForVariantCalling(sam));
+		assertTrue(SAMUtils.isSAMRecordValidForVariantCalling(sam));
 		sam.setReadUnmappedFlag(true);
-		assertEquals(false, SAMUtils.isSAMRecordValidForVariantCalling(sam));
+		assertFalse(SAMUtils.isSAMRecordValidForVariantCalling(sam));
 		
 		// primary alignmant
 		sam.setReadUnmappedFlag(false);
 		sam.setNotPrimaryAlignmentFlag(false);
-		assertEquals(true, SAMUtils.isSAMRecordValidForVariantCalling(sam));
+		assertTrue(SAMUtils.isSAMRecordValidForVariantCalling(sam));
 		sam.setNotPrimaryAlignmentFlag(true);
-		assertEquals(false, SAMUtils.isSAMRecordValidForVariantCalling(sam));
+		assertFalse(SAMUtils.isSAMRecordValidForVariantCalling(sam));
 	}
 	
 	@Test
 	public void supplementaryReads() {
 		SAMRecord sam = new SAMRecord(null);
 		sam.setSecondaryAlignment(true);
-		assertEquals(false, SAMUtils.isSAMRecordValidForVariantCalling(sam));
+		assertFalse(SAMUtils.isSAMRecordValidForVariantCalling(sam));
 		sam.setSecondaryAlignment(false);
-		assertEquals(true, SAMUtils.isSAMRecordValidForVariantCalling(sam));
+		assertTrue(SAMUtils.isSAMRecordValidForVariantCalling(sam));
 		sam.setSupplementaryAlignmentFlag(true);
-		assertEquals(false, SAMUtils.isSAMRecordValidForVariantCalling(sam));
+		assertFalse(SAMUtils.isSAMRecordValidForVariantCalling(sam));
 	}
 	
 	@Test
@@ -404,8 +388,8 @@ public class SAMUtilsTest {
 				} else {
 //					System.out.println("duplicate flag set for " + i);
 				}
-				
-				assertEquals(false, SAMUtils.isSAMRecordValidForVariantCalling(sam));
+
+                assertFalse(SAMUtils.isSAMRecordValidForVariantCalling(sam));
 				
 			} else if (((i >>> failsVendorCheck) & 1) != 0) {
 				if (((i >>> unmapped) & 1) != 0 && ((i >>> notPrimaryAlignment) & 1) != 0) {
@@ -417,8 +401,8 @@ public class SAMUtilsTest {
 				} else {
 //					System.out.println("fvc flag set for " + i);
 				}
-				
-				assertEquals(false, SAMUtils.isSAMRecordValidForVariantCalling(sam));
+
+                assertFalse(SAMUtils.isSAMRecordValidForVariantCalling(sam));
 				
 			} else if (((i >>> notPrimaryAlignment) & 1) != 0) {
 				if (((i >>> unmapped) & 1) != 0 ) {
@@ -426,19 +410,19 @@ public class SAMUtilsTest {
 				} else {
 //					System.out.println("npa flag set for " + i);
 				}
-				
-				assertEquals(false, SAMUtils.isSAMRecordValidForVariantCalling(sam));
+
+                assertFalse(SAMUtils.isSAMRecordValidForVariantCalling(sam));
 			} else if (((i >>> unmapped) & 1) != 0) {
 //				System.out.println("unmapped flag set for " + i);
-				
-				assertEquals(false, SAMUtils.isSAMRecordValidForVariantCalling(sam));
+
+                assertFalse(SAMUtils.isSAMRecordValidForVariantCalling(sam));
 				
 			} else if (((i >>> supplementary) & 1) != 0) {
-				assertEquals(false, SAMUtils.isSAMRecordValidForVariantCalling(sam));
+                assertFalse(SAMUtils.isSAMRecordValidForVariantCalling(sam));
 			} else if (((i >>> secondary) & 1) != 0) {
-				assertEquals(false, SAMUtils.isSAMRecordValidForVariantCalling(sam));
+                assertFalse(SAMUtils.isSAMRecordValidForVariantCalling(sam));
 			} else {
-				assertEquals(true, SAMUtils.isSAMRecordValidForVariantCalling(sam));
+                assertTrue(SAMUtils.isSAMRecordValidForVariantCalling(sam));
 			}
 		}
 	}

@@ -267,7 +267,7 @@ public class GatkUniqueSnps {
 				
 				// need to get the base at the position
 				int offset = record.getPosition() - sam.getAlignmentStart();
-				if (offset < 0) throw new Exception("invalid start position!!!: "+ sam.format());
+				if (offset < 0) throw new Exception("invalid start position!!!: " + sam.getSAMString().trim());
 				
 				if (offset >= sam.getReadLength()) {
 					offset = sam.getReadLength() -1; 

@@ -12,7 +12,5 @@ dependencies {
     implementation project(':qcommon')
     implementation project(':qio')
 	  
-    //api 'com.github.samtools:htsjdk:4.0.2'
-    // Reference the JAR file from the local repository
-    api files('../lib/htsjdk-V1.0.0-fork.jar')
+    api 'com.github.samtools:htsjdk:5.0.0'
 }
