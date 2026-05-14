@@ -74,7 +74,7 @@ public class BAMFileUtils {
 	/**
 	 * Will rename the originalIndex with an updated suffix should the original index not end in .bam.bai or .cram.crai
 	 *
-	 * Not sure this method will do much work anymore as the version of htsjdk currently being used (5.0.0) does this out of the box
+	 * This method may do little or no work when the HTSJDK version in use already creates indexes with the expected suffixes.
 	 *
 	 * @param bamOrCramFile
 	 * @param originalIndex
