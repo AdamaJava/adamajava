@@ -301,56 +301,56 @@ public class SAMUtilsTest {
 	
 	@Test
 	public void testIsSAMRecordValid() {
-        assertFalse(SAMUtils.isSAMRecordValid(null));
+		assertFalse(SAMUtils.isSAMRecordValid(null));
 		SAMRecord sam = new SAMRecord(null);
-        assertTrue(SAMUtils.isSAMRecordValid(sam));
+		assertTrue(SAMUtils.isSAMRecordValid(sam));
 		sam.setReadFailsVendorQualityCheckFlag(false);
-        assertTrue(SAMUtils.isSAMRecordValid(sam));
+		assertTrue(SAMUtils.isSAMRecordValid(sam));
 		sam.setReadFailsVendorQualityCheckFlag(true);
-        assertFalse(SAMUtils.isSAMRecordValid(sam));
-  	}
+		assertFalse(SAMUtils.isSAMRecordValid(sam));
+	}
 	
 	@Test
 	public void testIsSAMRecordValidForVariantCalling() {
-        assertFalse(SAMUtils.isSAMRecordValidForVariantCalling(null));
+		assertFalse(SAMUtils.isSAMRecordValidForVariantCalling(null));
 		SAMRecord sam = new SAMRecord(null);
-        assertTrue(SAMUtils.isSAMRecordValidForVariantCalling(sam));
+		assertTrue(SAMUtils.isSAMRecordValidForVariantCalling(sam));
 		sam.setReadFailsVendorQualityCheckFlag(false);
-        assertTrue(SAMUtils.isSAMRecordValidForVariantCalling(sam));
+		assertTrue(SAMUtils.isSAMRecordValidForVariantCalling(sam));
 		sam.setReadFailsVendorQualityCheckFlag(true);
-        assertFalse(SAMUtils.isSAMRecordValidForVariantCalling(sam));
+		assertFalse(SAMUtils.isSAMRecordValidForVariantCalling(sam));
 		
 		// dups
 		sam.setReadFailsVendorQualityCheckFlag(false);
 		sam.setDuplicateReadFlag(false);
-        assertTrue(SAMUtils.isSAMRecordValidForVariantCalling(sam));
+		assertTrue(SAMUtils.isSAMRecordValidForVariantCalling(sam));
 		sam.setDuplicateReadFlag(true);
-        assertFalse(SAMUtils.isSAMRecordValidForVariantCalling(sam));
+		assertFalse(SAMUtils.isSAMRecordValidForVariantCalling(sam));
 		
 		// unmapped
 		sam.setDuplicateReadFlag(false);
 		sam.setReadUnmappedFlag(false);
-        assertTrue(SAMUtils.isSAMRecordValidForVariantCalling(sam));
+		assertTrue(SAMUtils.isSAMRecordValidForVariantCalling(sam));
 		sam.setReadUnmappedFlag(true);
-        assertFalse(SAMUtils.isSAMRecordValidForVariantCalling(sam));
+		assertFalse(SAMUtils.isSAMRecordValidForVariantCalling(sam));
 		
 		// primary alignmant
 		sam.setReadUnmappedFlag(false);
 		sam.setNotPrimaryAlignmentFlag(false);
-        assertTrue(SAMUtils.isSAMRecordValidForVariantCalling(sam));
+		assertTrue(SAMUtils.isSAMRecordValidForVariantCalling(sam));
 		sam.setNotPrimaryAlignmentFlag(true);
-        assertFalse(SAMUtils.isSAMRecordValidForVariantCalling(sam));
+		assertFalse(SAMUtils.isSAMRecordValidForVariantCalling(sam));
 	}
 	
 	@Test
 	public void supplementaryReads() {
 		SAMRecord sam = new SAMRecord(null);
 		sam.setSecondaryAlignment(true);
-        assertFalse(SAMUtils.isSAMRecordValidForVariantCalling(sam));
+		assertFalse(SAMUtils.isSAMRecordValidForVariantCalling(sam));
 		sam.setSecondaryAlignment(false);
-        assertTrue(SAMUtils.isSAMRecordValidForVariantCalling(sam));
+		assertTrue(SAMUtils.isSAMRecordValidForVariantCalling(sam));
 		sam.setSupplementaryAlignmentFlag(true);
-        assertFalse(SAMUtils.isSAMRecordValidForVariantCalling(sam));
+		assertFalse(SAMUtils.isSAMRecordValidForVariantCalling(sam));
 	}
 	
 	@Test
