@@ -1,8 +1,6 @@
 package au.edu.qimr.tiledaligner.util;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -14,9 +12,182 @@ import org.qcmg.common.model.ChrPositionName;
 import org.qcmg.common.model.ChrRangePosition;
 import org.qcmg.common.string.StringUtils;
 
+import static org.junit.Assert.*;
+
 public class BLATRecordUtilTest {
 
-	
+    private BLATRecord rec(String qName, String chr, int start, int end, int score) {
+        // Build a minimal BLATRecord with fields sufficient for compareTo, getScore, start/end
+        // match - misMatch - tNumInsert - qNumInsert = score
+        int match = score;
+        int misMatch = 0;
+        int tNumInsert = 0;
+        int qNumInsert = 0;
+
+        return new BLATRecord.Builder()
+                .withMatch(match)
+                .withMisMatch(misMatch)
+                .withRepMatch(0)
+                .withNCount(0)
+                .withQNumInsert(qNumInsert)
+                .withQBaseInsert(0)
+                .withTNumInsert(tNumInsert)
+                .withTBaseInsert(0)
+                .withStrand(BLATRecord.PLUS)
+                .withQName(qName)
+                .withSize(end - start + 1)
+                .withQStart(0)
+                .withQEnd(end - start + 1)
+                .withTName(chr)
+                .withTSize(250_000_000)
+                .withTStart(start - 1)   // BLATRecord.getStartPos() = tStart + 1
+                .withTEnd(end)
+                .withBlockCount(1)
+                .withBlockSizes(String.valueOf(end - start + 1))
+                .withQStarts("0")
+                .withTStarts(String.valueOf(start - 1))
+                .build();
+    }
+
+    private BLATRecord rec(String chr, int startInclusive1Based, int endInclusive1Based) {
+        // BLATRecord expects zero-based tStart and 1-based getEndPos() via tEnd
+        return new BLATRecord.Builder()
+                .withMatch(0).withMisMatch(0).withRepMatch(0).withNCount(0)
+                .withQNumInsert(0).withQBaseInsert(0).withTNumInsert(0).withTBaseInsert(0)
+                .withStrand(BLATRecord.PLUS)
+                .withQName("q")
+                .withSize(100)
+                .withQStart(0).withQEnd(100)
+                .withTName(chr)
+                .withTSize(1_000_000)
+                .withTStart(startInclusive1Based - 1) // zero-based internal start
+                .withTEnd(endInclusive1Based)         // end as returned by getEndPos()
+                .withBlockCount(1)
+                .withBlockSizes("100")
+                .withQStarts("0")
+                .withTStarts(String.valueOf(startInclusive1Based - 1))
+                .build();
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void removeOverlappingRecords_nullList_throws() {
+        BLATRecordUtil.removeOverlappingRecords(null);
+    }
+
+    @Test
+    public void removeOverlappingRecords_sizeLessThan2_returnsOriginal() {
+        List<BLATRecord> original = new ArrayList<>();
+        assertSame(original, BLATRecordUtil.removeOverlappingRecords(original));
+
+        BLATRecord r1 = rec("q1", "chr1", 100, 120, 10);
+        List<BLATRecord> singleton = new ArrayList<>(List.of(r1));
+        assertSame(singleton, BLATRecordUtil.removeOverlappingRecords(singleton));
+    }
+
+    @Test
+    public void removeOverlappingRecords_filtersOverlaps_keepsHighestScoreFirst() {
+        BLATRecord aLow  = rec("qA", "chr1", 100, 150, 10);
+        BLATRecord aHigh = rec("qA", "chr1", 120, 180, 30);   // overlaps aLow, higher score
+        BLATRecord b     = rec("qA", "chr1", 300, 350, 20);   // non-overlapping to aHigh
+        BLATRecord cLow  = rec("qA", "chr2", 100, 200, 5);
+        BLATRecord cHigh = rec("qA", "chr2", 150, 250, 25);   // overlaps cLow, higher score
+
+        List<BLATRecord> input = new ArrayList<>(Arrays.asList(aLow, aHigh, b, cLow, cHigh));
+
+        List<BLATRecord> result = BLATRecordUtil.removeOverlappingRecords(input);
+
+        // Expect to keep top-scoring from each overlapping cluster plus any non-overlapping:
+        // aHigh (score 30), b (20), cHigh (25)
+        // The method adds the highest after sorting then scans backward, so order is not guaranteed.
+        assertEquals(3, result.size());
+        assertTrue(result.contains(aHigh));
+        assertTrue(result.contains(b));
+        assertTrue(result.contains(cHigh));
+
+        // Ensure no overlaps remain within the result set
+        for (int i = 0; i < result.size(); i++) {
+            for (int j = i + 1; j < result.size(); j++) {
+                assertFalse("Results should not overlap",
+                        BLATRecordUtil.doesRecordOverlapEntriesInList(List.of(result.get(i)), result.get(j)));
+            }
+        }
+    }
+
+    @Test
+    public void removeOverlappingRecords_allOverlap_sameChromosome_keepsHighestOnly() {
+        BLATRecord r1 = rec("qA", "chr3", 100, 200, 15);
+        BLATRecord r2 = rec("qA", "chr3", 120, 220, 35);
+        BLATRecord r3 = rec("qA", "chr3", 150, 250, 25);
+
+        List<BLATRecord> input = new ArrayList<>(Arrays.asList(r1, r2, r3));
+
+        List<BLATRecord> result = BLATRecordUtil.removeOverlappingRecords(input);
+
+        assertEquals(1, result.size());
+        assertEquals(r2, result.get(0));
+    }
+
+    @Test
+    public void removeOverlappingRecords_differentChromosomes_notOverlapping() {
+        BLATRecord r1 = rec("qA", "chr1", 100, 150, 10);
+        BLATRecord r2 = rec("qA", "chr2", 120, 170, 12);
+
+        List<BLATRecord> result = BLATRecordUtil.removeOverlappingRecords(new ArrayList<>(List.of(r1, r2)));
+
+        assertEquals(2, result.size());
+        assertTrue(result.contains(r1));
+        assertTrue(result.contains(r2));
+    }
+
+    @Test
+    public void overlaps_midInside() {
+        BLATRecord r1 = rec("chr1", 100, 200);
+        BLATRecord r2 = rec("chr1", 150, 250); // r2Start in [r1Start, r1End)
+        assertTrue(BLATRecordUtil.doRecordsOverlapReference(r1, r2));
+    }
+
+    @Test
+    public void overlaps_endInside() {
+        BLATRecord r1 = rec("chr1", 100, 200);
+        BLATRecord r2 = rec("chr1", 50, 120); // r2End in (r1Start, r1End]
+        assertTrue(BLATRecordUtil.doRecordsOverlapReference(r1, r2));
+    }
+
+    @Test
+    public void noOverlap_touchingAtBoundary_left() {
+        BLATRecord r1 = rec("chr1", 100, 200);
+        BLATRecord r2 = rec("chr1", 50, 100); // r2End == r1Start (exclusive per code)
+        assertFalse(BLATRecordUtil.doRecordsOverlapReference(r1, r2));
+    }
+
+    @Test
+    public void noOverlap_touchingAtBoundary_right() {
+        BLATRecord r1 = rec("chr1", 100, 200);
+        BLATRecord r2 = rec("chr1", 200, 300); // r2Start == r1End (exclusive per code)
+        assertFalse(BLATRecordUtil.doRecordsOverlapReference(r1, r2));
+    }
+
+    @Test
+    public void noOverlap_separateIntervals() {
+        BLATRecord r1 = rec("chr1", 100, 150);
+        BLATRecord r2 = rec("chr1", 151, 200);
+        assertFalse(BLATRecordUtil.doRecordsOverlapReference(r1, r2));
+    }
+
+    @Test
+    public void noOverlap_differentChromosome() {
+        BLATRecord r1 = rec("chr1", 100, 200);
+        BLATRecord r2 = rec("chr2", 150, 250);
+        assertFalse(BLATRecordUtil.doRecordsOverlapReference(r1, r2));
+    }
+
+    @Test
+    public void noOverlap_nullInputs() {
+        BLATRecord r = rec("chr1", 100, 200);
+        assertFalse(BLATRecordUtil.doRecordsOverlapReference(null, r));
+        assertFalse(BLATRecordUtil.doRecordsOverlapReference(r, null));
+        assertFalse(BLATRecordUtil.doRecordsOverlapReference(null, null));
+    }
 
 	@Test
 	public void getBlatDetails() {
