@@ -1,12 +1,14 @@
 package org.qcmg.qprofiler2.util;
 
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.TreeSet;
 import org.qcmg.common.model.QCMGAtomicLongArray;
 import org.qcmg.common.util.BaseUtils;
-import org.qcmg.picard.util.SAMUtils;
 import org.qcmg.qprofiler2.summarise.CycleSummary;
 import htsjdk.samtools.Cigar;
+import htsjdk.samtools.CigarElement;
+import htsjdk.samtools.CigarOperator;
 
 public class CycleSummaryUtils {
 	
@@ -28,13 +30,17 @@ public class CycleSummaryUtils {
 				
 		boolean deletion = false;
 		int position = 1;
+		List<CigarElement> cigarElements = cigar.getCigarElements();
+		int cigarIndex = 0;
+		int alignedBases = 0;
+		int additionalOffset = 0;
 		for (int i = 0, size = mdData.length() ; i < size ; ) {
 			if (Character.isDigit(mdData.charAt(i))) {								
 				int numberLength = 1;
 				while (++i < size && Character.isDigit(mdData.charAt(i))) {
 					numberLength++;
 				}
-				position += Integer.parseInt(mdData.substring(i - numberLength, i));					
+				position += Integer.parseInt(mdData, i - numberLength, i, 10);
 			} else if ( '^' == mdData.charAt(i) ) {
 				deletion = true;
 				i++;
@@ -44,9 +50,17 @@ public class CycleSummaryUtils {
 					deletion = false; 				
 					continue; 
 				}
-				// got a letter - update summary with position
-				// check cigar to see if we need to adjust our offset due to insertions etc
-				int additionalOffset = SAMUtils.getAdjustedReadOffset(cigar, position);	
+				// MD positions increase and exclude deletions/skips. Advance through each
+				// CIGAR element once, counting insertions and soft clips in the read offset.
+				while (alignedBases < position && cigarIndex < cigarElements.size()) {
+					CigarElement element = cigarElements.get(cigarIndex++);
+					CigarOperator operator = element.getOperator();
+					if (operator.consumesReadBases() && operator.consumesReferenceBases()) {
+						alignedBases += element.getLength();
+					} else if (operator.consumesReadBases()) {
+						additionalOffset += element.getLength();
+					}
+				}
 				if (position + additionalOffset > readBases.length) {
 					return "invalid MD string, position outside read Base!";
 				}

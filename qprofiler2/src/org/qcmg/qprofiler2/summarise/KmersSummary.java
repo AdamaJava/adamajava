@@ -12,7 +12,6 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.qcmg.common.model.QCMGAtomicLongArray;
 import org.qcmg.common.string.StringUtils;
-import org.qcmg.common.util.BaseUtils;
 import org.qcmg.common.util.Constants;
 import org.qcmg.common.util.Pair;
 import org.qcmg.qprofiler2.bam.BamSummaryReport;
@@ -22,6 +21,23 @@ import org.w3c.dom.Element;
 public class KmersSummary {
 
 	public static final int BITS_TO_SHIFT = 3;
+	private static final byte[] BASE_CODES = new byte[256];
+	private static final byte[] REVERSE_BASE_CODES = new byte[256];
+
+	static {
+		// Forward parsing treats every non-ACGT byte as N.
+		Arrays.fill(BASE_CODES, (byte) 5);
+		BASE_CODES['A'] = 1;
+		BASE_CODES['C'] = 2;
+		BASE_CODES['G'] = 3;
+		BASE_CODES['T'] = 4;
+		// Zero marks a base rejected by the original reverse-complement parser.
+		REVERSE_BASE_CODES['A'] = 4;
+		REVERSE_BASE_CODES['C'] = 3;
+		REVERSE_BASE_CODES['G'] = 2;
+		REVERSE_BASE_CODES['T'] = 1;
+		REVERSE_BASE_CODES['N'] = 5;
+	}
 		
 	// init 0, eventually store the biggest cycle number
 	private int cycleNo ; 
@@ -136,49 +152,37 @@ public class KmersSummary {
 		if (c > cycleNo) {
 			cycleNo = c;
 		}
-         /*
-		 not sure we need the clone here - there is no code that modifies the array
-		  */
-		byte[] dataString =  null;  // can't point to same array
+		byte[] codes = reverse ? REVERSE_BASE_CODES : BASE_CODES;
 		if (reverse) {
-			dataString = new byte[readLength];
-			for (int i = readLength - 1 , j = 0; i >= 0 ; i --, j ++) {
-				dataString[j] = (byte) BaseUtils.getComplement( (char) readString[i] );
+			// Validate before updating any tallies, as the old complement pass did.
+			for (int i = readLength - 1; i >= 0; i--) {
+				if (codes[readString[i] & 0xff] == 0) {
+					throw new IllegalArgumentException("Supplied base was not complementable: " + (char) readString[i]);
+				}
 			}
-		} else {
-			dataString = readString;
 		}
 		// readString may have different length to other reads
 		int kmerId = 0;
-		int kmerIndex = 0;
+		int tallyOffset = 0;
+		int baseIndex = reverse ? readLength - 1 : 0;
+		int step = reverse ? -1 : 1;
+		QCMGAtomicLongArray counts = tally[flagFirstOfPair];
 		for (int i = 0; i < readLength; i ++ ) {
-			kmerId = incrementInt(kmerId, dataString[i], BITS_TO_SHIFT);
+			kmerId = (kmerId << BITS_TO_SHIFT) + codes[readString[baseIndex] & 0xff];
+			baseIndex += step;
 			if (i >= merLength - 1) {
 				/*
 				get the relevant part of the kmerId int by bit masking
 				 */
-				tally[flagFirstOfPair].increment( (kmerIndex++ * mersStrListLength) + mersIndex[kmerId & BIT_MASK_VALUE]);
+				counts.increment(tallyOffset + mersIndex[kmerId & BIT_MASK_VALUE]);
+				tallyOffset += mersStrListLength;
 			}
 		}
 		parsedCount[flagFirstOfPair].incrementAndGet();
 	}
 
 	public static int incrementInt(int toIncrement, byte b, int leftShift) {
-		int incrementer = 0;
-
-		if ('A' == b) {
-			incrementer = 1;
-		} else if ('C' == b) {
-			incrementer = 2;
-		} else if ('G' == b) {
-			incrementer = 3;
-		} else if ('T' == b) {
-			incrementer = 4;
-		} else {
-			incrementer = 5;
-		}
-		toIncrement <<= leftShift;
-		return toIncrement + incrementer;
+		return (toIncrement << leftShift) + BASE_CODES[b & 0xff];
 	}
 	
 	// 	can't be private since unit test

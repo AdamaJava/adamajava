@@ -36,16 +36,34 @@ public class TagSummaryReport {
 	private static final SAMTagUtil STU = SAMTagUtil.getSingleton();
 
     // TAGS
-	@SuppressWarnings("unchecked")
-	final CycleSummary<Character>[] tagMDMismatchByCycle = new CycleSummary[] {new CycleSummary<>(BamSummaryReport.cc, 512), new CycleSummary<>(BamSummaryReport.cc, 512), new CycleSummary<>(BamSummaryReport.cc, 512)};
+	final CycleSummary<Character>[] tagMDMismatchByCycle;
 	private final QCMGAtomicLongArray[] mdRefAltLengthsForward = new QCMGAtomicLongArray[] {new QCMGAtomicLongArray(32), new QCMGAtomicLongArray(32), new QCMGAtomicLongArray(32)};	
 	private final QCMGAtomicLongArray[] mdRefAltLengthsReverse = new QCMGAtomicLongArray[] {new QCMGAtomicLongArray(32), new QCMGAtomicLongArray(32), new QCMGAtomicLongArray(32)};	
-    final QCMGAtomicLongArray[] allReadsLineLengths = new QCMGAtomicLongArray[] {new QCMGAtomicLongArray(1024), new QCMGAtomicLongArray(1024), new QCMGAtomicLongArray(1024)};
+	// Derived from mdReadLengths by getAllReadsLineLengths() after parsing.
+    final QCMGAtomicLongArray[] allReadsLineLengths;
 
 	private final ConcurrentMap<String, ConcurrentMap<String, AtomicLong>> additionalTags = new ConcurrentHashMap<>();
+	private final QCMGAtomicLongArray[] mdReadLengths;
 	protected QLogger logger = QLoggerFactory.getLogger(getClass());	
 	private long errMdReadNo = 0 ;	
 	private final AtomicLong mdTagCounts = new AtomicLong();
+
+	public TagSummaryReport() {
+		this(false);
+	}
+
+	@SuppressWarnings("unchecked")
+	public TagSummaryReport(boolean isLongReadBam) {
+		tagMDMismatchByCycle = isLongReadBam ? new CycleSummary[0] : new CycleSummary[] {
+			new CycleSummary<>(BamSummaryReport.cc, 512), new CycleSummary<>(BamSummaryReport.cc, 512), new CycleSummary<>(BamSummaryReport.cc, 512)
+		};
+		allReadsLineLengths = isLongReadBam ? new QCMGAtomicLongArray[0] : new QCMGAtomicLongArray[] {
+			new QCMGAtomicLongArray(1024), new QCMGAtomicLongArray(1024), new QCMGAtomicLongArray(1024)
+		};
+		mdReadLengths = isLongReadBam ? new QCMGAtomicLongArray[0] : new QCMGAtomicLongArray[] {
+			new QCMGAtomicLongArray(1024), new QCMGAtomicLongArray(1024), new QCMGAtomicLongArray(1024)
+		};
+	}
 	
 	public void parseTAGs(final SAMRecord record, boolean isLongReadBam)  {
 		String mdValue = null;
@@ -57,7 +75,7 @@ public class TagSummaryReport {
 			
 			// the type may be one of A (character), B (general array), f (real number), H (hexadecimal array), i (integer), or Z (string).
 			// Note that H tag type is never written anymore, because B style is more compact.	         
-			String type = ":B";			
+			String type = ":B";
 			if (tag.value instanceof Integer) {
 				type = ":i";
 			} else if (tag.value instanceof Number ) {
@@ -69,7 +87,7 @@ public class TagSummaryReport {
 			}
 
 			Map<String, AtomicLong> map = additionalTags.computeIfAbsent(tag.tag + type, k -> new ConcurrentHashMap<>());
-			XmlUtils.updateMapWithLimit(map, tag.value + "", ADDI_TAG_MAP_LIMIT);				 
+			XmlUtils.updateMapWithLimit(map, tag.value + "", ADDI_TAG_MAP_LIMIT);
 		}
 						
 		// MD	 
@@ -80,27 +98,43 @@ public class TagSummaryReport {
 
 			// 0: unpaired , 1: firstOfPair , 2: secondOfPair				
 			int order = (!record.getReadPairedFlag()) ? 0 : (record.getFirstOfPairFlag()) ? 1 : 2;					
-			String err = CycleSummaryUtils.tallyMDMismatches( mdValue, record.getCigar(), tagMDMismatchByCycle[order],
+			String err = CycleSummaryUtils.tallyMDMismatches( mdValue, record.getCigar(), isLongReadBam ? null : tagMDMismatchByCycle[order],
 					readBases, reverseStrand, mdRefAltLengthsForward[order], mdRefAltLengthsReverse[order], isLongReadBam);
 			// limit err message on log file
 			if ( err != null && (( errMdReadNo ++) < errReadLimit)) {
 				logger.warn(record.getReadName() + ": " + err);
 			}
 			
-			// this counts will be used to calculate % for MD
-			for ( int i = 1, len = readBases.length; i <= len; i ++ ) {
-				allReadsLineLengths[order].increment(i);		
-			}		
+			// Long reads omit mismatch-by-cycle metrics, so they need no per-cycle denominators.
+			if (!isLongReadBam) {
+				mdReadLengths[order].increment(readBases.length);
+			}
 		}		
 	}
 	
+	/** Builds per-cycle denominators after parsing has finished. Repeated calls do not add counts. */
+	QCMGAtomicLongArray[] getAllReadsLineLengths() {
+		for (int order = 0; order < mdReadLengths.length; order++) {
+			long count = 0;
+			for (int cycle = mdReadLengths[order].length() - 1; cycle > 0; cycle--) {
+				count += mdReadLengths[order].get(cycle);
+				long previous = cycle < allReadsLineLengths[order].length() ? allReadsLineLengths[order].get(cycle) : 0;
+				if (count != previous) {
+					allReadsLineLengths[order].increment(cycle, count - previous);
+				}
+			}
+		}
+		return allReadsLineLengths;
+	}
+
 	public void toXml(Element parent) {
+		getAllReadsLineLengths();
 				
 		// "tags:MD:Z" mismatchbycycle
 		if ( mdTagCounts.get() > 0) {
 			Element ele = XmlUtils.createMetricsNode(parent, "tags:MD:Z",
                     new Pair<>(ReadGroupSummary.READ_COUNT, mdTagCounts.get()));
-			for (int order = 0; order < 3; order ++) {
+			for (int order = 0; order < tagMDMismatchByCycle.length; order ++) {
 				// so choose 1st cycle base counts as read count, since all read at least have one base. 
 				tagMDMismatchByCycle[order].toXml( ele, BamSummaryReport.sourceName.get(order), allReadsLineLengths[order].get(1) );
 				

@@ -1,5 +1,6 @@
 package org.qcmg.qprofiler2.summarise;
 
+import htsjdk.samtools.util.SequenceUtil;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -15,10 +16,16 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertTrue;
 
 public class LongReadBinSummaryTest {
@@ -26,6 +33,153 @@ public class LongReadBinSummaryTest {
 	@Rule
 	public TemporaryFolder testFolder = new TemporaryFolder();
 	private String UNPAIRED_READ = "unPaired";
+
+	@Test
+	public void strandAwareParsingMatchesOrientedArraysAndCountsBadValues() {
+		String alphabet = "ACGTN.acgtnRYSWKMBDHV=U";
+		for (int readLength : new int[] {0, 1, 1001, 2005, 100001, 100002, 125000}) {
+			byte[] bases = new byte[readLength];
+			byte[] qualities = new byte[readLength];
+			int badBases = 0;
+			int badQualities = 0;
+			for (int i = 0; i < readLength; i++) {
+				bases[i] = (byte) alphabet.charAt(i % alphabet.length());
+				qualities[i] = (byte) (i % 256);
+				if (bases[i] == 'N' || bases[i] == '.') {
+					badBases++;
+				}
+				if ((qualities[i] & 0xFF) < 10) {
+					badQualities++;
+				}
+			}
+			byte[] originalBases = bases.clone();
+			byte[] originalQualities = qualities.clone();
+			for (boolean reverse : new boolean[] {false, true}) {
+				byte[] orientedBases = bases.clone();
+				byte[] orientedQualities = qualities.clone();
+				if (reverse) {
+					SequenceUtil.reverseComplement(orientedBases);
+					SequenceUtil.reverseQualities(orientedQualities);
+				}
+				LongReadBinSummary<Character> sequence = new LongReadBinSummary<>('A', 512);
+				LongReadBinSummary<Integer> quality = new LongReadBinSummary<>(0, 512);
+				assertEquals(badBases, sequence.parseByteData(bases, reverse));
+				assertEquals(badQualities, quality.parseByteData(qualities, reverse));
+				assertEquals(1, sequence.getInputCounts());
+				assertEquals(1, quality.getInputCounts());
+				long[][] expectedBases = new long[1002][128];
+				long[][] expectedQualities = new long[1002][256];
+				for (int i = 0; i < readLength; i++) {
+					int bin = i <= 100000 ? (i + 1000) / 1000 : 1001;
+					expectedBases[bin][orientedBases[i]]++;
+					expectedQualities[bin][orientedQualities[i] & 0xFF]++;
+				}
+				for (int bin = 1; bin <= 1001; bin++) {
+					for (int value = 0; value < 128; value++) {
+						assertEquals(expectedBases[bin][value], sequence.count(bin, (char) value));
+					}
+					for (int value = 0; value < 256; value++) {
+						assertEquals(expectedQualities[bin][value], quality.count(bin, value));
+					}
+				}
+				assertArrayEquals(originalBases, bases);
+				assertArrayEquals(originalQualities, qualities);
+			}
+		}
+	}
+
+	@Test
+	public void strandAwareParsingHandlesAbsentData() {
+		LongReadBinSummary<Character> summary = new LongReadBinSummary<>('A', 512);
+		assertEquals(0, summary.parseByteData(null, true));
+		assertEquals(0, summary.getInputCounts());
+		assertEquals(0, summary.parseByteData(new byte[0], true));
+		assertEquals(1, summary.getInputCounts());
+		assertTrue(summary.cycles().isEmpty());
+	}
+
+	@Test
+	public void binCountsMatchPerBaseTallyAtBoundaries() {
+		for (int readLength : new int[] {0, 1, 999, 1000, 1001, 2000, 2001,
+				100000, 100001, 100002, 125000}) {
+			byte[] bases = new byte[readLength];
+			byte[] qualities = new byte[readLength];
+			LongReadBinSummary<Character> sequence = new LongReadBinSummary<>('A', 512);
+			LongReadBinSummary<Integer> quality = new LongReadBinSummary<>(0, 512);
+			long[][] expectedBases = new long[1002][5];
+			long[][] expectedQualities = new long[1002][256];
+			String alphabet = "ACGTN";
+			for (int i = 0; i < readLength; i++) {
+				bases[i] = (byte) alphabet.charAt(i % alphabet.length());
+				qualities[i] = (byte) (i % 256);
+				int bin = i <= 100000 ? (i + 1000) / 1000 : 1001;
+				expectedBases[bin][i % alphabet.length()]++;
+				expectedQualities[bin][i % 256]++;
+			}
+			sequence.parseByteData(bases);
+			quality.parseByteData(qualities);
+			assertEquals(1, sequence.getInputCounts());
+			assertEquals(1, quality.getInputCounts());
+			for (int bin = 1; bin <= 1001; bin++) {
+				for (int value = 0; value < alphabet.length(); value++) {
+					assertEquals(expectedBases[bin][value], sequence.count(bin, alphabet.charAt(value)));
+				}
+				for (int value = 0; value < 256; value++) {
+					assertEquals(expectedQualities[bin][value], quality.count(bin, value));
+				}
+			}
+		}
+	}
+
+	@Test
+	public void concurrentParsingKeepsAllCounts() throws Exception {
+		LongReadBinSummary<Character> summary = new LongReadBinSummary<>('A', 512);
+		byte[] bases = new byte[125000];
+		Arrays.fill(bases, (byte) 'A');
+		ExecutorService executor = Executors.newFixedThreadPool(4);
+		try {
+			List<Future<?>> tasks = new ArrayList<>();
+			for (int i = 0; i < 20; i++) {
+				tasks.add(executor.submit(() -> summary.parseByteData(bases)));
+			}
+			for (Future<?> task : tasks) {
+				task.get();
+			}
+		} finally {
+			executor.shutdownNow();
+		}
+		assertEquals(20, summary.getInputCounts());
+		for (int bin = 1; bin <= 100; bin++) {
+			assertEquals(20000, summary.count(bin, 'A'));
+		}
+		assertEquals(20, summary.count(101, 'A'));
+		assertEquals(20L * 24999, summary.count(1001, 'A'));
+	}
+
+	@Test
+	public void xmlKeepsBinLabelsAndObservedValues() throws Exception {
+		LongReadBinSummary<Character> summary = new LongReadBinSummary<>('A', 512);
+		Element root = XmlElementUtils.createRootElement("qProfiler", null);
+		summary.parseByteData(null);
+		summary.parseByteData(new byte[0]);
+		assertEquals(1, summary.getInputCounts());
+		summary.toXml(root, UNPAIRED_READ, summary.getInputCounts());
+		assertTrue(XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.VARIABLE_GROUP).isEmpty());
+
+		byte[] bases = new byte[100002];
+		Arrays.fill(bases, (byte) 'N');
+		summary.parseByteData(bases);
+		assertEquals(Set.of('N'), summary.getPossibleValues());
+		summary.toXml(root, UNPAIRED_READ, summary.getInputCounts());
+		List<Element> bins = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.BASE_CYCLE);
+		assertEquals(102, bins.size());
+		assertEquals("1000", bins.get(0).getAttribute(XmlUtils.CYCLE));
+		assertEquals("1000", bins.get(0).getAttribute(XmlUtils.COUNT));
+		assertEquals("100000", bins.get(100).getAttribute(XmlUtils.CYCLE));
+		assertEquals("1", bins.get(100).getAttribute(XmlUtils.COUNT));
+		assertEquals("1000001", bins.get(101).getAttribute(XmlUtils.CYCLE));
+		assertEquals("1", bins.get(101).getAttribute(XmlUtils.COUNT));
+	}
 	
 	private  void checklength(Element root, String metricName, String pairName,int readCount, int cycle, String[] values, int[] counts) throws Exception {
 		if (counts.length != values.length) {

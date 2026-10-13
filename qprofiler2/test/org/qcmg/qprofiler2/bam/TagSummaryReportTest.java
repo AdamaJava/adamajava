@@ -6,7 +6,10 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -23,6 +26,130 @@ import htsjdk.samtools.SAMTagUtil;
 public class TagSummaryReportTest {
 	@Rule
 	public  TemporaryFolder testFolder = new TemporaryFolder();	
+
+	@Test
+	public void longReadsSkipPerCycleMdCountsAndKeepSubstitutionTotals() throws Exception {
+		TagSummaryReport report = new TagSummaryReport(true);
+		assertEquals(0, report.allReadsLineLengths.length);
+		assertEquals(0, report.tagMDMismatchByCycle.length);
+		byte[] bases = new byte[125000];
+		Arrays.fill(bases, (byte) 'A');
+		SAMRecord record = new SAMRecord(null);
+		record.setReadName("LONG_READ");
+		record.setReadBases(bases);
+		record.setCigarString(bases.length + "M");
+		record.setAttribute("MD", "0C" + (bases.length - 1));
+		for (int order = 0; order < 3; order++) {
+			record.setFlags(order == 0 ? 0 : order == 1 ? 65 : 129);
+			report.parseTAGs(record, true);
+			record.setReadNegativeStrandFlag(true);
+			report.parseTAGs(record, true);
+		}
+
+		Element root = XmlElementUtils.createRootElement(XmlUtils.TAG, null);
+		report.toXml(root);
+		Element mdMetric = getChildNameIs(root, XmlUtils.SEQUENCE_METRICS, "tags:MD:Z").getFirst();
+		assertEquals("6", mdMetric.getAttribute(ReadGroupSummary.READ_COUNT));
+		assertEquals(0, XmlElementUtils.getOffspringElementByTagName(mdMetric, XmlUtils.BASE_CYCLE).size());
+		for (int order = 0; order < 3; order++) {
+			String name = BamSummaryReport.sourceName.get(order);
+			assertEquals(0, getChildNameIs(mdMetric, XmlUtils.VARIABLE_GROUP, name).size());
+			for (String strand : new String[] {"ForwardStrand", "ReverseStrand"}) {
+				Element group = getChildNameIs(mdMetric, XmlUtils.VARIABLE_GROUP, name + strand).getFirst();
+				List<Element> tallies = XmlElementUtils.getOffspringElementByTagName(group, XmlUtils.TALLY);
+				assertEquals(1, tallies.size());
+				assertEquals(strand.equals("ForwardStrand") ? "C>A" : "G>T", tallies.getFirst().getAttribute(XmlUtils.VALUE));
+				assertEquals("1", tallies.getFirst().getAttribute(XmlUtils.COUNT));
+			}
+		}
+	}
+
+	@Test
+	public void shortReadsKeepPerCycleMdDenominators() {
+		TagSummaryReport report = new TagSummaryReport();
+		SAMRecord record = new SAMRecord(null);
+		record.setReadName("SHORT_READ");
+		record.setReadString("AAAAA");
+		record.setCigarString("5M");
+		record.setAttribute("MD", "0C4");
+		report.parseTAGs(record, false);
+		report.getAllReadsLineLengths();
+		for (int cycle = 1; cycle <= 5; cycle++) {
+			assertEquals(1, report.allReadsLineLengths[0].get(cycle));
+		}
+		assertEquals(5, report.allReadsLineLengths[0].getSum());
+		assertEquals(1, report.tagMDMismatchByCycle[0].count(1, 'A'));
+	}
+
+	@Test
+	public void mdDenominatorsHandleMixedLengthsAndRepeatedOutput() throws Exception {
+		TagSummaryReport report = new TagSummaryReport();
+		SAMRecord record = new SAMRecord(null);
+		record.setReadName("MIXED_LENGTHS");
+		for (int order = 0; order < 3; order++) {
+			record.setFlags(order == 0 ? 0 : order == 1 ? 65 : 129);
+			for (int length : new int[] {0, 2, 5, 5}) {
+				record.setReadString("A".repeat(length));
+				record.setCigarString(length == 0 ? "*" : length + "M");
+				record.setAttribute("MD", Integer.toString(length));
+				report.parseTAGs(record, false);
+			}
+			// Reads without MD must not contribute to mismatch denominators.
+			record.setReadString("A".repeat(10));
+			record.setCigarString("10M");
+			record.setAttribute("MD", null);
+			report.parseTAGs(record, false);
+		}
+		for (int output = 0; output < 2; output++) {
+			report.toXml(XmlElementUtils.createRootElement(XmlUtils.TAG, null));
+			for (int order = 0; order < 3; order++) {
+				assertEquals(0, report.allReadsLineLengths[order].get(0));
+				for (int cycle = 1; cycle <= 10; cycle++) {
+					assertEquals(cycle <= 2 ? 3 : cycle <= 5 ? 2 : 0, report.allReadsLineLengths[order].get(cycle));
+				}
+				assertEquals(12, report.allReadsLineLengths[order].getSum());
+			}
+		}
+	}
+
+	@Test
+	public void concurrentTagTalliesKeepTypesAndDenominatorsSeparate() throws Exception {
+		TagSummaryReport report = new TagSummaryReport();
+		List<Callable<Void>> workers = new ArrayList<>();
+		for (int worker = 0; worker < 4; worker++) {
+			final boolean integerTag = worker % 2 == 0;
+			workers.add(() -> {
+				SAMRecord record = new SAMRecord(null);
+				record.setReadString("AAAAA");
+				record.setCigarString("5M");
+				record.setAttribute("MD", "5");
+				record.setAttribute("RG", "shared");
+				record.setAttribute("NM", integerTag ? (Object) 1 : "1");
+				for (int i = 0; i < 1000; i++) {
+					report.parseTAGs(record, false);
+				}
+				return null;
+			});
+		}
+		try (var executor = Executors.newFixedThreadPool(4)) {
+			for (var result : executor.invokeAll(workers)) {
+				result.get();
+			}
+		}
+		Element root = XmlElementUtils.createRootElement(XmlUtils.TAG, null);
+		report.toXml(root);
+		for (String tag : new String[] {"RG:Z", "NM:i", "NM:Z"}) {
+			Element metric = getChildNameIs(root, XmlUtils.SEQUENCE_METRICS, "tags:" + tag).getFirst();
+			String expected = tag.startsWith("RG") ? "4000" : "2000";
+			assertEquals(expected, metric.getAttribute(ReadGroupSummary.READ_COUNT));
+			List<Element> tallies = XmlElementUtils.getOffspringElementByTagName(metric, XmlUtils.TALLY);
+			assertEquals(1, tallies.size());
+			assertEquals(expected, tallies.getFirst().getAttribute(XmlUtils.COUNT));
+		}
+		for (int cycle = 1; cycle <= 5; cycle++) {
+			assertEquals(4000, report.allReadsLineLengths[0].get(cycle));
+		}
+	}
 	
 	@Test
 	public void simpleTest() throws Exception {

@@ -3,6 +3,9 @@ package org.qcmg.qprofiler2.summarise;
 import static org.junit.Assert.*;
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import org.junit.*;
 import org.junit.rules.TemporaryFolder;
@@ -16,6 +19,157 @@ public class CycleSummaryTest {
 	
 	@Rule
 	public TemporaryFolder testFolder = new TemporaryFolder();
+
+	@Test
+	public void fusedSequenceParsingMatchesOrientedCyclesAndBadBaseCounts() {
+		byte[] bases = "ACGTN.nacgtMR=*".getBytes(java.nio.charset.StandardCharsets.US_ASCII);
+		for (boolean reverse : new boolean[] {false, true}) {
+			CycleSummary<Character> actual = new CycleSummary<>('A', 1);
+			CycleSummary<Character> expected = new CycleSummary<>('A', 1);
+			byte[] original = bases.clone();
+			byte[] oriented = bases.clone();
+			if (reverse) {
+				htsjdk.samtools.util.SequenceUtil.reverseComplement(oriented);
+			}
+			expected.parseByteData(oriented);
+			assertEquals(2, actual.parseByteData(bases, reverse));
+			assertArrayEquals(original, bases);
+			assertEquals(expected.getInputCounts(), actual.getInputCounts());
+			for (int cycle = 1; cycle <= bases.length; cycle++) {
+				assertEquals(expected.getValue(cycle).keySet(), actual.getValue(cycle).keySet());
+				assertEquals(expected.count(cycle, (char) oriented[cycle - 1]), actual.count(cycle, (char) oriented[cycle - 1]));
+			}
+		}
+	}
+
+	@Test
+	public void fusedQualityParsingHandlesEveryUnsignedValueInBothDirections() {
+		byte[] qualities = new byte[256];
+		for (int i = 0; i < qualities.length; i++) {
+			qualities[i] = (byte) i;
+		}
+		for (boolean reverse : new boolean[] {false, true}) {
+			CycleSummary<Integer> actual = new CycleSummary<>(0, 1);
+			byte[] original = qualities.clone();
+			assertEquals(0, actual.parseByteData(null, reverse));
+			assertEquals(0, actual.getInputCounts());
+			assertEquals(0, actual.parseByteData(new byte[0], reverse));
+			assertEquals(10, actual.parseByteData(qualities, reverse));
+			assertArrayEquals(original, qualities);
+			assertEquals(2, actual.getInputCounts());
+			for (int cycle = 1; cycle <= qualities.length; cycle++) {
+				int value = reverse ? 256 - cycle : cycle - 1;
+				assertEquals(1, actual.count(cycle, value));
+			}
+		}
+	}
+
+	@Test
+	public void byteParsingKeepsUnsignedQualityValuesAndInputCounts() {
+		CycleSummary<Integer> summary = new CycleSummary<>(0, 1);
+		summary.parseByteData(null);
+		assertEquals(0, summary.getInputCounts());
+		summary.parseByteData(new byte[0]);
+		byte[] qualities = new byte[256];
+		for (int i = 0; i < qualities.length; i++) {
+			qualities[i] = (byte) i;
+		}
+		summary.parseByteData(qualities);
+		summary.parseByteData(qualities);
+		assertEquals(3, summary.getInputCounts());
+		for (int i = 0; i < qualities.length; i++) {
+			assertEquals(2, summary.count(i + 1, i));
+			assertEquals(0, summary.count(i + 1, (i + 1) & 255));
+		}
+	}
+
+	@Test
+	public void byteParsingKeepsSequenceCyclesThroughResize() {
+		CycleSummary<Character> summary = new CycleSummary<>('A', 1);
+		byte[] bases = "ACGTNacgtn.*=".getBytes(java.nio.charset.StandardCharsets.US_ASCII);
+		summary.parseByteData(bases);
+		summary.parseStringData("ACGTNacgtn.*=", 0);
+		for (int i = 0; i < bases.length; i++) {
+			assertEquals(2, summary.count(i + 1, (char) bases[i]));
+		}
+		assertEquals(2, summary.getInputCounts());
+	}
+
+	@Test
+	public void concurrentReadsAndIndividualIncrementsKeepCountsThroughResize() throws Exception {
+		CycleSummary<Integer> summary = new CycleSummary<>(0, 1);
+		CyclicBarrier start = new CyclicBarrier(9);
+		List<Callable<Void>> tasks = new ArrayList<>();
+		int[] lengths = {3, 17, 65, 257, 513};
+		// More readers than tally shards also exercises concurrent updates to one shard.
+		for (int worker = 0; worker < 8; worker++) {
+			tasks.add(() -> {
+				start.await();
+				for (int length : lengths) {
+					byte[] values = new byte[length];
+					Arrays.fill(values, (byte) 255);
+					for (int repeat = 0; repeat < 20; repeat++) {
+						if ((repeat & 1) == 0) {
+							summary.parseByteData(values);
+						} else {
+							assertEquals(0, summary.parseByteData(values, true));
+						}
+					}
+				}
+				return null;
+			});
+		}
+		tasks.add(() -> {
+			start.await();
+			for (int i = 0; i < 2000; i++) {
+				summary.increment(100, 512);
+			}
+			return null;
+		});
+		try (var executor = Executors.newFixedThreadPool(9)) {
+			for (var result : executor.invokeAll(tasks)) {
+				result.get();
+			}
+		}
+		assertEquals(800, summary.getInputCounts());
+		assertEquals(2000, summary.count(100, 512));
+		for (int cycle = 1; cycle <= 513; cycle++) {
+			long expected = 0;
+			for (int length : lengths) {
+				if (cycle <= length) {
+					expected += 160;
+				}
+			}
+			assertEquals(expected, summary.count(cycle, 255));
+		}
+	}
+
+	@Test
+	public void failedResizeDoesNotChangeExistingTallyOrMasks() {
+		CycleSummary<Integer> summary = new CycleSummary<>(0, 1);
+		summary.increment(1, 2);
+		assertThrows(IllegalArgumentException.class, () -> summary.increment(50000, 1024));
+		summary.increment(1, 2);
+		assertEquals(2, summary.count(1, 2));
+	}
+
+	@Test
+	public void resultQueriesMergeByteCountsWithoutLosingLaterUpdates() {
+		CycleSummary<Character> summary = new CycleSummary<>('A', 1);
+		byte[] bases = {'A', 'C'};
+		summary.parseByteData(bases);
+		assertEquals(1, summary.count(1, 'A'));
+		assertEquals(1, summary.count(1, 'A'));
+		summary.parseByteData(bases);
+		summary.increment(1, 'A');
+		assertEquals(Set.of('A', 'C'), summary.getPossibleValues());
+		assertEquals(3, summary.count(1, 'A'));
+		assertEquals(2, summary.getValue(2).get('C').get());
+		summary.parseByteData(bases);
+		assertEquals(new TreeSet<>(List.of(1, 2)), summary.cycles());
+		assertEquals(4, summary.count(1, 'A'));
+		assertEquals(3, summary.count(2, 'C'));
+	}
 	
 	private  void checklength(Element root, String metricName, String pairName,int readCount, int cycle, String[] values, int[] counts) throws Exception {
 		if (counts.length != values.length) {

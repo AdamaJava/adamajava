@@ -11,7 +11,10 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.parsers.ParserConfigurationException;
@@ -22,6 +25,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.qcmg.common.util.Constants;
+import org.qcmg.common.util.BaseUtils;
 import org.qcmg.common.util.XmlElementUtils;
 import org.qcmg.picard.SAMFileReaderFactory;
 import org.qcmg.qprofiler2.util.XmlUtils;
@@ -55,6 +59,68 @@ public class KmersSummaryTest {
 			kmerId = KmersSummary.incrementInt(kmerId, b, 3);
 		}
 		assertEquals(Integer.parseUnsignedInt("001001100011010001", 2), kmerId);
+	}
+
+	@Test
+	public void incrementIntHandlesEveryByteValue() {
+		for (int value = 0; value < 256; value++) {
+			byte base = (byte) value;
+			int code = base == 'A' ? 1 : base == 'C' ? 2 : base == 'G' ? 3 : base == 'T' ? 4 : 5;
+			assertEquals((12345 << 3) + code, KmersSummary.incrementInt(12345, base, 3));
+		}
+	}
+
+	@Test
+	public void parseKmersMatchesIndependentWindowCountsInBothDirections() {
+		for (boolean reverse : new boolean[] {false, true}) {
+			KmersSummary summary = new KmersSummary(KmersSummary.maxKmers);
+			Random random = new Random(17);
+			for (int order = 0; order < 3; order++) {
+				List<Map<String, Long>> expected = new ArrayList<>();
+				for (int length : new int[] {0, 5, 6, 12, 12}) {
+					byte[] bases = new byte[length];
+					for (int i = 0; i < length; i++) {
+						bases[i] = (byte) "ACGTN".charAt(random.nextInt(5));
+					}
+					byte[] original = bases.clone();
+					summary.parseKmers(bases, reverse, order);
+					assertArrayEquals(original, bases);
+					StringBuilder sequence = new StringBuilder();
+					for (int i = 0; i < length; i++) {
+						sequence.append(reverse ? BaseUtils.getComplement((char) bases[length - 1 - i]) : (char) bases[i]);
+					}
+					for (int cycle = 0; cycle <= length - KmersSummary.maxKmers; cycle++) {
+						if (expected.size() <= cycle) {
+							expected.add(new HashMap<>());
+						}
+						expected.get(cycle).merge(sequence.substring(cycle, cycle + KmersSummary.maxKmers), 1L, Long::sum);
+					}
+				}
+				for (int cycle = 0; cycle < expected.size(); cycle++) {
+					for (String mer : summary.getPossibleKmerString(KmersSummary.maxKmers, true)) {
+						assertEquals(expected.get(cycle).getOrDefault(mer, 0L).longValue(), summary.getCount(cycle, mer, order));
+					}
+				}
+			}
+		}
+	}
+
+	@Test
+	public void forwardUnknownBasesCountAsNAndReverseRejectsBeforeTallying() throws Exception {
+		KmersSummary summary = new KmersSummary(KmersSummary.maxKmers);
+		byte[] bases = new byte[] {'x', 'A', 'C', 'G', 'T', (byte) 0xff, 'N', 'A', 'C', 'G', 'T', 'A'};
+		byte[] original = bases.clone();
+		summary.parseKmers(bases, false, 0);
+		assertEquals(1, summary.getCount(0, "NACGTN", 0));
+		assertEquals(1, summary.getCount(6, "NACGTA", 0));
+		assertThrows(IllegalArgumentException.class, () -> summary.parseKmers(bases, true, 1));
+		assertArrayEquals(original, bases);
+		// A complete reverse window precedes the invalid byte; rejection must leave it uncounted.
+		assertEquals(0, summary.getCount(0, "TACGTN", 1));
+		Element root = XmlElementUtils.createRootElement("root", null);
+		summary.toXml(root, 6, false);
+		assertEquals("1", XmlElementUtils.getChildElementByTagName(root, XmlUtils.SEQUENCE_METRICS)
+				.getFirst().getAttribute(ReadGroupSummary.READ_COUNT));
 	}
 
 	@Test
@@ -438,4 +504,3 @@ public class KmersSummaryTest {
 		}
 	}
 }
-
