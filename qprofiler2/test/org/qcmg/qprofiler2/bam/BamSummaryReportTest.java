@@ -16,6 +16,7 @@ import org.qcmg.qprofiler2.summarise.*;
 import org.w3c.dom.Element;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SAMUtils;
+import htsjdk.samtools.util.SequenceUtil;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -30,6 +31,165 @@ public class BamSummaryReportTest {
 
 	@Rule
 	public TemporaryFolder testFolder = new TemporaryFolder();
+
+	@Test
+	public void shortReadParsingPreservesArraysAndLegacyMetrics() throws Exception {
+		byte[] bases = "AACGNTACCGTA".getBytes(java.nio.charset.StandardCharsets.US_ASCII);
+		byte[] qualities = {0, 9, 10, 30, (byte) 128, (byte) 255, 3, 42, 7, 40, 20, 1};
+		BamSummaryReport actual = new BamSummaryReport(-1, false, false);
+		BamSummaryReport expected = new BamSummaryReport(-1, false, false);
+		KmersSummary legacyKmers = new KmersSummary(KmersSummary.maxKmers);
+		for (int flags : new int[] {0, 67, 131}) {
+			SAMRecord record = new SAMRecord(null);
+			record.setReadName("SHORT_REVERSE_READ");
+			record.setReadBases(bases.clone());
+			record.setBaseQualities(qualities.clone());
+			record.setReferenceName("chr1");
+			record.setAlignmentStart(1);
+			record.setCigarString(bases.length + "M");
+			record.setFlags(flags | 16);
+			if (record.getReadPairedFlag()) {
+				record.setMateReferenceName("chr1");
+				record.setMateAlignmentStart(100);
+			}
+			SAMRecord oriented = record.deepCopy();
+			oriented.setReadNegativeStrandFlag(false);
+			SequenceUtil.reverseComplement(oriented.getReadBases());
+			SequenceUtil.reverseQualities(oriented.getBaseQualities());
+			for (int repeat = 0; repeat < 2; repeat++) {
+				actual.parseRecord(record);
+				expected.parseRecord(oriented);
+				// Before the optimization, parseRecord complemented the record's
+				// bases before passing them to parseKmers with reverse=true.
+				legacyKmers.parseKmers(oriented.getReadBases(), true, flags == 0 ? 0 : flags == 67 ? 1 : 2);
+				assertArrayEquals(bases, record.getReadBases());
+				assertArrayEquals(qualities, record.getBaseQualities());
+			}
+		}
+		Element actualRoot = XmlElementUtils.createRootElement("root", null);
+		Element expectedRoot = XmlElementUtils.createRootElement("root", null);
+		actual.toXml(actualRoot);
+		expected.toXml(expectedRoot);
+		for (String node : new String[] {XmlUtils.SEQ, XmlUtils.QUAL}) {
+			Element actualMetric = XmlElementUtils.getOffspringElementByTagName(actualRoot, node).getFirst();
+			Element expectedMetric = XmlElementUtils.getOffspringElementByTagName(expectedRoot, node).getFirst();
+			if (node.equals(XmlUtils.SEQ)) {
+				Element legacyRoot = XmlElementUtils.createRootElement("root", null);
+				for (int k : new int[] {2, 3, KmersSummary.maxKmers}) {
+					legacyKmers.toXml(legacyRoot, k, false);
+					String name = k + "mers";
+					Element actualKmer = XmlElementUtils.getChildElementByTagName(actualMetric, XmlUtils.SEQUENCE_METRICS)
+							.stream().filter(e -> e.getAttribute(XmlUtils.NAME).equals(name)).findFirst().orElseThrow();
+					Element legacyKmer = XmlElementUtils.getChildElementByTagName(legacyRoot, XmlUtils.SEQUENCE_METRICS)
+							.stream().filter(e -> e.getAttribute(XmlUtils.NAME).equals(name)).findFirst().orElseThrow();
+					assertTrue(name, legacyKmer.isEqualNode(actualKmer));
+					Element expectedKmer = XmlElementUtils.getChildElementByTagName(expectedMetric, XmlUtils.SEQUENCE_METRICS)
+							.stream().filter(e -> e.getAttribute(XmlUtils.NAME).equals(name)).findFirst().orElseThrow();
+					expectedMetric.replaceChild(expectedMetric.getOwnerDocument().importNode(legacyKmer, true), expectedKmer);
+				}
+			}
+			assertTrue(node, expectedMetric.isEqualNode(actualMetric));
+			Element badMetric = XmlElementUtils.getChildElementByTagName(actualMetric, XmlUtils.SEQUENCE_METRICS)
+					.stream().filter(e -> e.getAttribute(XmlUtils.NAME).equals(XmlUtils.BAD_READ)).findFirst().orElseThrow();
+			List<Element> tallies = XmlElementUtils.getOffspringElementByTagName(badMetric, XmlUtils.TALLY);
+			assertEquals(3, tallies.size());
+			for (Element tally : tallies) {
+				assertEquals(node.equals(XmlUtils.SEQ) ? "1" : "5", tally.getAttribute(XmlUtils.VALUE));
+				assertEquals("2", tally.getAttribute(XmlUtils.COUNT));
+			}
+		}
+		assertEquals(2, actual.getSeqByCycle(0).count(1, 'T'));
+		assertEquals(0, actual.getSeqByCycle(0).count(1, 'A'));
+	}
+
+	@Test
+	public void constructsOnlySummariesForSelectedReadMode() throws Exception {
+		for (boolean longRead : new boolean[] {false, true}) {
+			BamSummaryReport report = new BamSummaryReport(-1, false, longRead);
+			for (String name : new String[] {"seqByCycle", "qualByCycleInteger", "kmersSummary"}) {
+				var field = BamSummaryReport.class.getDeclaredField(name);
+				field.setAccessible(true);
+				assertEquals(name, longRead, field.get(report) == null);
+			}
+			for (String name : new String[] {"longReadSeqByCycle", "qualByLongReadBin"}) {
+				var field = BamSummaryReport.class.getDeclaredField(name);
+				field.setAccessible(true);
+				assertEquals(name, !longRead, field.get(report) == null);
+			}
+			var field = BamSummaryReport.class.getDeclaredField("tagReport");
+			field.setAccessible(true);
+			TagSummaryReport tags = (TagSummaryReport) field.get(report);
+			assertEquals(longRead ? 0 : 3, tags.tagMDMismatchByCycle.length);
+			assertEquals(longRead ? 0 : 3, tags.allReadsLineLengths.length);
+
+			Element root = XmlElementUtils.createRootElement("root", null);
+			report.toXml(root);
+			Element sequence = XmlElementUtils.getOffspringElementByTagName(root, XmlUtils.SEQ).getFirst();
+			for (String name : new String[] {XmlUtils.SEQ_LENGTH, "2mers", "3mers", "6mers"}) {
+				Element metric = XmlElementUtils.getChildElementByTagName(sequence, XmlUtils.SEQUENCE_METRICS)
+						.stream().filter(e -> e.getAttribute(XmlUtils.NAME).equals(name)).findFirst().orElseThrow();
+				assertEquals("0", metric.getAttribute(ReadGroupSummary.READ_COUNT));
+				assertEquals(0, metric.getChildNodes().getLength());
+			}
+		}
+	}
+
+	@Test
+	public void longReadParsingPreservesRecordArraysAndOrientedMetrics() throws Exception {
+		byte[] bases = new byte[2005];
+		Arrays.fill(bases, 0, 1000, (byte) 'A');
+		Arrays.fill(bases, 1000, 2000, (byte) 'C');
+		System.arraycopy("N.GTA".getBytes(), 0, bases, 2000, 5);
+		byte[] qualities = new byte[bases.length];
+		Arrays.fill(qualities, (byte) 30);
+		qualities[0] = 0;
+		qualities[999] = 9;
+		qualities[1000] = 10;
+		qualities[2001] = 3;
+		qualities[2002] = (byte) 128;
+		qualities[2004] = (byte) 255;
+		BamSummaryReport actual = new BamSummaryReport(-1, false, true);
+		BamSummaryReport expected = new BamSummaryReport(-1, false, true);
+		for (int flags : new int[] {0, 67, 131}) {
+			SAMRecord reverseRecord = new SAMRecord(null);
+			reverseRecord.setReadName("LONG_READ");
+			reverseRecord.setReadBases(bases.clone());
+			reverseRecord.setBaseQualities(qualities.clone());
+			reverseRecord.setReferenceName("chr1");
+			reverseRecord.setAlignmentStart(1);
+			reverseRecord.setCigarString(bases.length + "M");
+			reverseRecord.setFlags(flags | 16);
+			if (reverseRecord.getReadPairedFlag()) {
+				reverseRecord.setMateReferenceName("chr1");
+				reverseRecord.setMateAlignmentStart(3000);
+			}
+			SAMRecord orientedRecord = reverseRecord.deepCopy();
+			orientedRecord.setReadNegativeStrandFlag(false);
+			SequenceUtil.reverseComplement(orientedRecord.getReadBases());
+			SequenceUtil.reverseQualities(orientedRecord.getBaseQualities());
+			expected.parseRecord(orientedRecord);
+			actual.parseRecord(reverseRecord);
+			assertArrayEquals(bases, reverseRecord.getReadBases());
+			assertArrayEquals(qualities, reverseRecord.getBaseQualities());
+		}
+		Element actualRoot = XmlElementUtils.createRootElement("root", null);
+		Element expectedRoot = XmlElementUtils.createRootElement("root", null);
+		actual.toXml(actualRoot);
+		expected.toXml(expectedRoot);
+		for (String node : new String[] {XmlUtils.SEQ, XmlUtils.QUAL}) {
+			Element actualMetric = XmlElementUtils.getOffspringElementByTagName(actualRoot, node).getFirst();
+			Element expectedMetric = XmlElementUtils.getOffspringElementByTagName(expectedRoot, node).getFirst();
+			assertTrue(node, expectedMetric.isEqualNode(actualMetric));
+			Element badMetric = XmlElementUtils.getChildElementByTagName(actualMetric, XmlUtils.SEQUENCE_METRICS)
+					.stream().filter(e -> e.getAttribute(XmlUtils.NAME).equals(XmlUtils.BAD_READ)).findFirst().orElseThrow();
+			List<Element> badTallies = XmlElementUtils.getOffspringElementByTagName(badMetric, XmlUtils.TALLY);
+			assertEquals(3, badTallies.size());
+			for (Element tally : badTallies) {
+				assertEquals(node.equals(XmlUtils.SEQ) ? "2" : "3", tally.getAttribute(XmlUtils.VALUE));
+				assertEquals("1", tally.getAttribute(XmlUtils.COUNT));
+			}
+		}
+	}
 
 			
 	@Test

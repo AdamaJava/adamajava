@@ -55,22 +55,14 @@ public class BamSummaryReport extends SummaryReport {
 	
 	private final ConcurrentMap<String, ReadIdSummary> readIdSummary = new ConcurrentHashMap<String, ReadIdSummary>();
 	// SEQ first of pair, secondof pair, unpaired
-	@SuppressWarnings("unchecked")
-	private final CycleSummary<Character>[] seqByCycle = new CycleSummary[] {
-		new CycleSummary<Character>(cc, 512), new CycleSummary<Character>(cc, 512), new CycleSummary<Character>(cc, 512)
-	};
-	@SuppressWarnings("unchecked")
-	private final LongReadBinSummary<Character>[] longReadSeqByCycle = new LongReadBinSummary[] {
-		new LongReadBinSummary<Character>(cc, 512), new LongReadBinSummary<Character>(cc, 512), new LongReadBinSummary<Character>(cc, 512)
-	};
+	private final CycleSummary<Character>[] seqByCycle;
+	private final LongReadBinSummary<Character>[] longReadSeqByCycle;
 
 	private final QCMGAtomicLongArray[] seqBadReadLineLengths = new QCMGAtomicLongArray[] {new QCMGAtomicLongArray(128), new QCMGAtomicLongArray(128), new QCMGAtomicLongArray(128)};
 
 	// QUAL
-	@SuppressWarnings("unchecked")
-	private final CycleSummary<Integer>[] qualByCycleInteger = new CycleSummary[] {new CycleSummary<Integer>(ii, 512), new CycleSummary<Integer>(ii, 512), new CycleSummary<Integer>(ii, 512)};
-	@SuppressWarnings("unchecked")
-	private final LongReadBinSummary<Integer>[] qualByLongReadBin = new LongReadBinSummary[] {new LongReadBinSummary<Integer>(ii, 512), new LongReadBinSummary<Integer>(ii, 512), new LongReadBinSummary<Integer>(ii, 512)};
+	private final CycleSummary<Integer>[] qualByCycleInteger;
+	private final LongReadBinSummary<Integer>[] qualByLongReadBin;
 
 	private final QCMGAtomicLongArray[] qualBadReadLineLengths = new QCMGAtomicLongArray[] {new QCMGAtomicLongArray(128), new QCMGAtomicLongArray(128), new QCMGAtomicLongArray(128)};
 
@@ -86,8 +78,8 @@ public class BamSummaryReport extends SummaryReport {
 	private final QCMGAtomicLongArray p2Lengths = new QCMGAtomicLongArray(1024);
 	private final ConcurrentMap<String, ReadGroupSummary> rgSummaries = new ConcurrentHashMap<>(); 
 			
-	private final KmersSummary kmersSummary = new KmersSummary(KmersSummary.maxKmers); // default use biggest mers length
- 	private final TagSummaryReport tagReport = new TagSummaryReport();
+	private final KmersSummary kmersSummary;
+	private final TagSummaryReport tagReport;
  	
 	private Long maxRecords;
 	private boolean isFullBamHeader;
@@ -96,6 +88,7 @@ public class BamSummaryReport extends SummaryReport {
 	private SAMSequenceDictionary samSeqDictionary;
 	private List<String> readGroupIds = Arrays.asList(XmlUtils.UNKNOWN_READGROUP); // init	
 			
+	@SuppressWarnings("unchecked")
 	public BamSummaryReport(int maxRecs, boolean isFullBamHeader, boolean isLongReadBam) {
 		super();		
 		if (maxRecs > 0) {
@@ -103,6 +96,28 @@ public class BamSummaryReport extends SummaryReport {
 		}
 		this.isFullBamHeader =  isFullBamHeader;
 		this.isLongReadBam = isLongReadBam;
+		if (isLongReadBam) {
+			seqByCycle = null;
+			qualByCycleInteger = null;
+			kmersSummary = null;
+			longReadSeqByCycle = new LongReadBinSummary[] {
+				new LongReadBinSummary<>(cc, 512), new LongReadBinSummary<>(cc, 512), new LongReadBinSummary<>(cc, 512)
+			};
+			qualByLongReadBin = new LongReadBinSummary[] {
+				new LongReadBinSummary<>(ii, 512), new LongReadBinSummary<>(ii, 512), new LongReadBinSummary<>(ii, 512)
+			};
+		} else {
+			seqByCycle = new CycleSummary[] {
+				new CycleSummary<>(cc, 512), new CycleSummary<>(cc, 512), new CycleSummary<>(cc, 512)
+			};
+			qualByCycleInteger = new CycleSummary[] {
+				new CycleSummary<>(ii, 512), new CycleSummary<>(ii, 512), new CycleSummary<>(ii, 512)
+			};
+			kmersSummary = new KmersSummary(KmersSummary.maxKmers);
+			longReadSeqByCycle = null;
+			qualByLongReadBin = null;
+		}
+		tagReport = new TagSummaryReport(isLongReadBam);
 	}	
 
 	/**
@@ -211,11 +226,14 @@ public class BamSummaryReport extends SummaryReport {
 		// seqLength
 		Pair<String, Number> rcPair = new Pair<>(ReadGroupSummary.READ_COUNT, counts);
 		Element ele = XmlUtils.createMetricsNode(parent, XmlUtils.SEQ_LENGTH, rcPair);
-		for (int order = 0; order < 3; order++) {
-			if (seqByCycle[order].getLengthMapFromCycle().isEmpty()) {
-				continue;
+		if (!isLongReadBam) {
+			for (int order = 0; order < 3; order++) {
+				Map<Integer, AtomicLong> lengths = seqByCycle[order].getLengthMapFromCycle();
+				if (lengths.isEmpty()) {
+					continue;
+				}
+				XmlUtils.outputTallyGroup(ele, sourceName.get(order), lengths, true, true);
 			}
-			XmlUtils.outputTallyGroup(ele, sourceName.get(order), seqByCycle[order].getLengthMapFromCycle(), true, true);
 		}
 		// badBase: 
 		counts = 0;
@@ -234,7 +252,11 @@ public class BamSummaryReport extends SummaryReport {
 				
 		// 1mers is same to baseByCycle
 		for (int i : new int[] {2, 3, KmersSummary.maxKmers }) {
-			kmersSummary.toXml(parent,i, false);
+			if (isLongReadBam) {
+				XmlUtils.createMetricsNode(parent, i + "mers", new Pair<>(ReadGroupSummary.READ_COUNT, 0L));
+			} else {
+				kmersSummary.toXml(parent, i, false);
+			}
 		}
 	}
 
@@ -271,11 +293,14 @@ public class BamSummaryReport extends SummaryReport {
 		// qual length
 		Pair<String, Number> rcPair = new Pair<>(ReadGroupSummary.READ_COUNT, counts);
 		Element ele = XmlUtils.createMetricsNode(parent,  XmlUtils.QUAL_LENGTH,  rcPair);
-		for (int order = 0; order < 3; order++) {
-			if (qualByCycleInteger[order].getLengthMapFromCycle().isEmpty()) {
-				continue;
+		if (!isLongReadBam) {
+			for (int order = 0; order < 3; order++) {
+				Map<Integer, AtomicLong> lengths = qualByCycleInteger[order].getLengthMapFromCycle();
+				if (lengths.isEmpty()) {
+					continue;
+				}
+				XmlUtils.outputTallyGroup(ele, sourceName.get(order), lengths, true, true);
 			}
-			XmlUtils.outputTallyGroup(ele, sourceName.get(order),  qualByCycleInteger[order].getLengthMapFromCycle(), true , true);
 		}
 		
 		// badBase:  
@@ -414,36 +439,35 @@ public class BamSummaryReport extends SummaryReport {
 		} 
 
 		// check if record has its fail or duplicate flag set. if so, miss out some of the summaries
-		ReadGroupSummary rgSumm = rgSummaries.computeIfAbsent(readGroup, k -> new ReadGroupSummary(k,isLongReadBam));
+		ReadGroupSummary rgSumm = rgSummaries.get(readGroup);
+		if (rgSumm == null) {
+			rgSumm = rgSummaries.computeIfAbsent(readGroup, k -> new ReadGroupSummary(k, isLongReadBam));
+		}
 		if (rgSumm.parseRecord(record)) {
 						
-			// SEQ 
-			byte[] data = record.getReadBases();			
-			if (record.getReadNegativeStrandFlag()) {
-				SequenceUtil.reverseComplement(data);
-			}
+			boolean reverse = record.getReadNegativeStrandFlag();
+			byte[] bases = record.getReadBases();
+			byte[] qualities = record.getBaseQualities();
 			if (isLongReadBam) {
-				longReadSeqByCycle[order].parseByteData(data);
+				int badBases = longReadSeqByCycle[order].parseByteData(bases, reverse);
+				seqBadReadLineLengths[order].increment(badBases);
+				int badQualities = qualByLongReadBin[order].parseByteData(qualities, reverse);
+				qualBadReadLineLengths[order].increment(badQualities);
 			} else {
-				seqByCycle[order].parseByteData(data);
+				int badBases = seqByCycle[order].parseByteData(bases, reverse);
+				seqBadReadLineLengths[order].increment(badBases);
+				// Preserve the original k-mer orientation: reverse-strand reads were
+				// complemented here and again by parseKmers. Use a copy so the record
+				// remains unchanged, including its bases used by MD parsing.
+				byte[] kmerBases = bases;
+				if (reverse) {
+					kmerBases = bases.clone();
+					SequenceUtil.reverseComplement(kmerBases);
+				}
+				kmersSummary.parseKmers(kmerBases, reverse, order);
+				int badQualities = qualByCycleInteger[order].parseByteData(qualities, reverse);
+				qualBadReadLineLengths[order].increment(badQualities);
 			}
-
-			SummaryReportUtils.tallyBadReadsAsString(record.getReadBases(), seqBadReadLineLengths[order]);
-			if (! isLongReadBam) {
-				kmersSummary.parseKmers(record.getReadBases(), record.getReadNegativeStrandFlag(), order);
-			}
-
-			// QUAL 
-			data = record.getBaseQualities();
-			if (record.getReadNegativeStrandFlag()) {
-				SequenceUtil.reverseQualities(data);
-			}
-			if (isLongReadBam) {
-				qualByLongReadBin[order].parseByteData(data);
-			} else {
-				qualByCycleInteger[order].parseByteData(data);
-			}
-			SummaryReportUtils.tallyQualScores(record.getBaseQualities(), qualBadReadLineLengths[order]);				
  			
  						
 			// TLen is done inside readGroupSummary.ParseRecord			
@@ -455,12 +479,12 @@ public class BamSummaryReport extends SummaryReport {
 			// it is not include hard clip
 			if (record.getReadPairedFlag()) {
 				if (record.getFirstOfPairFlag()) {
-					p1Lengths.increment(record.getReadBases().length);
+					p1Lengths.increment(bases.length);
 				} else if (record.getSecondOfPairFlag()) {
-					p2Lengths.increment(record.getReadBases().length);
+					p2Lengths.increment(bases.length);
 				}
 			} else if (isLongReadBam) {
-				p1Lengths.increment(record.getReadBases().length);
+				p1Lengths.increment(bases.length);
 			}
 		}
 	}
@@ -506,7 +530,7 @@ public class BamSummaryReport extends SummaryReport {
 		// Element metricsE = XmlUtils.createMetricsNode(summaryElement, "summary1", new Pair(ReadGroupSummary.READ_COUNT, getRecordsInputed()));	
 		Element metricsE = XmlUtils.createMetricsNode(summaryElement, XmlUtils.OVERALL, null);	
 		XmlUtils.outputValueNode(metricsE, "Number of cycles with greater than 1% mismatches",
-				CycleSummaryUtils.getBigMDCycleNo(tagReport.tagMDMismatchByCycle, (float) 0.01, tagReport.allReadsLineLengths));		
+				CycleSummaryUtils.getBigMDCycleNo(tagReport.tagMDMismatchByCycle, (float) 0.01, tagReport.getAllReadsLineLengths()));
 				
 		int point = 1;
 		for (QCMGAtomicLongArray length: new QCMGAtomicLongArray[] {p1Lengths, p2Lengths}) {
@@ -560,7 +584,10 @@ public class BamSummaryReport extends SummaryReport {
 	}
 		
 	void parseRNameAndPos(final String rName,  final int position, String rgid) {
-		PositionSummary ps = (PositionSummary) rNamePosition.computeIfAbsent(rName, k -> new PositionSummary(readGroupIds));
+		PositionSummary ps = rNamePosition.get(rName);
+		if (ps == null) {
+			ps = rNamePosition.computeIfAbsent(rName, k -> new PositionSummary(readGroupIds));
+		}
 		ps.addPosition(position, rgid);
 	}
 		
@@ -593,6 +620,6 @@ public class BamSummaryReport extends SummaryReport {
 	}
 	
 	CycleSummary<Character> getSeqByCycle(int flagFirstOfPair) {
-		return   seqByCycle[flagFirstOfPair] ; 	
+		return isLongReadBam ? null : seqByCycle[flagFirstOfPair];
 	}
 }

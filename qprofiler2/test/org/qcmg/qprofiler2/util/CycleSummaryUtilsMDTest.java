@@ -5,9 +5,13 @@ import htsjdk.samtools.CigarElement;
 import htsjdk.samtools.CigarOperator;
 import htsjdk.samtools.SAMRecord;
 import htsjdk.samtools.SamReader;
+import htsjdk.samtools.TextCigarCodec;
 import static org.junit.Assert.*;
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Set;
+import java.util.TreeSet;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -21,6 +25,70 @@ import org.qcmg.qprofiler2.util.CycleSummaryUtils;
 public class CycleSummaryUtilsMDTest {
 	@Rule
 	public TemporaryFolder testFolder = new TemporaryFolder();
+
+	@Test
+	public void mismatchCursorHandlesOperationBoundariesOnBothStrands() {
+		Cigar cigar = TextCigarCodec.decode("2H3S2M1I2M2D1M1I2=3N2X1P2M2S3H");
+		byte[] bases = new byte[cigar.getReadLength()];
+		Arrays.fill(bases, (byte) 'A');
+		int[] forwardCycles = {5, 7, 8, 9, 13, 14, 15, 16};
+		for (boolean reverse : new boolean[] {false, true}) {
+			for (boolean longRead : new boolean[] {false, true}) {
+				CycleSummary<Character> cycles = new CycleSummary<>('A', 64);
+				QCMGAtomicLongArray forward = new QCMGAtomicLongArray(32);
+				QCMGAtomicLongArray backward = new QCMGAtomicLongArray(32);
+				assertNull(CycleSummaryUtils.tallyMDMismatches("1C0G0C0^TT0C2G0T0C0G0", cigar,
+						cycles, bases, reverse, forward, backward, longRead));
+				QCMGAtomicLongArray substitutions = reverse ? backward : forward;
+				assertEquals(4, substitutions.get(CycleSummaryUtils.getIntFromChars(reverse ? 'G' : 'C', reverse ? 'T' : 'A')));
+				assertEquals(3, substitutions.get(CycleSummaryUtils.getIntFromChars(reverse ? 'C' : 'G', reverse ? 'T' : 'A')));
+				assertEquals(1, substitutions.get(CycleSummaryUtils.getIntFromChars(reverse ? 'A' : 'T', reverse ? 'T' : 'A')));
+				assertEquals(8, substitutions.getSum());
+				assertEquals(0, (reverse ? forward : backward).getSum());
+				Set<Integer> expectedCycles = new TreeSet<>();
+				if (!longRead) {
+					for (int forwardCycle : forwardCycles) {
+						int cycle = reverse ? bases.length - forwardCycle + 1 : forwardCycle;
+						expectedCycles.add(cycle);
+						assertEquals(1, cycles.count(cycle, reverse ? 'T' : 'A'));
+					}
+				}
+				assertEquals(expectedCycles, cycles.cycles());
+			}
+		}
+	}
+
+	@Test
+	public void mismatchCursorHandlesManyOperationsAndAdjacentMismatches() {
+		int repeats = 200;
+		Cigar cigar = TextCigarCodec.decode("1M1I1M1D1M".repeat(repeats));
+		byte[] bases = new byte[cigar.getReadLength()];
+		Arrays.fill(bases, (byte) 'A');
+		String md = "0C0G0^A0T".repeat(repeats) + "0";
+		for (boolean reverse : new boolean[] {false, true}) {
+			for (boolean longRead : new boolean[] {false, true}) {
+				CycleSummary<Character> cycles = new CycleSummary<>('A', 512);
+				QCMGAtomicLongArray forward = new QCMGAtomicLongArray(32);
+				QCMGAtomicLongArray backward = new QCMGAtomicLongArray(32);
+				assertNull(CycleSummaryUtils.tallyMDMismatches(md, cigar, cycles, bases,
+						reverse, forward, backward, longRead));
+				assertEquals(3L * repeats, (reverse ? backward : forward).getSum());
+				assertEquals(0, (reverse ? forward : backward).getSum());
+				Set<Integer> expectedCycles = new TreeSet<>();
+				if (!longRead) {
+					for (int block = 0; block < repeats; block++) {
+						for (int offset : new int[] {1, 3, 4}) {
+							int forwardCycle = 4 * block + offset;
+							int cycle = reverse ? bases.length - forwardCycle + 1 : forwardCycle;
+							expectedCycles.add(cycle);
+							assertEquals(1, cycles.count(cycle, reverse ? 'T' : 'A'));
+						}
+					}
+				}
+				assertEquals(expectedCycles, cycles.cycles());
+			}
+		}
+	}
 	
 	@Test
 	public void getBigMDCycleNoTest() throws IOException {

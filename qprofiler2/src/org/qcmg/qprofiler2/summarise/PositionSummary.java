@@ -14,6 +14,7 @@ package org.qcmg.qprofiler2.summarise;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -29,6 +30,7 @@ public class PositionSummary {
 	private final AtomicInteger max;
 	private final QCMGAtomicLongArray[] rgCoverages; // the coverage for each readgroup on that position   
 	private final List<String> readGroupIds; // nature sorted
+	private final Map<String, Integer> readGroupIndexes;
 	
 	private final ArrayList<Long> maxRgs = new ArrayList<Long>();  // store the max coverage from all read group at each position;
 	private Boolean hasAddPosition = true;  // set to true after each time addPosition, set to false after getAverage
@@ -43,7 +45,12 @@ public class PositionSummary {
 	 */	
 	public PositionSummary(List<String> rgs) {		
 		// Natural order should only do once inside BamSummarizer2::createReport
-		readGroupIds = rgs; 
+		readGroupIds = rgs;
+		Map<String, Integer> indexes = new HashMap<>();
+		for (String rg : rgs) {
+			indexes.put(rg, Collections.binarySearch(rgs, rg, null));
+		}
+		readGroupIndexes = Collections.unmodifiableMap(indexes);
 		
 		min = new AtomicInteger(512 * BUCKET_SIZE);
 		max = new AtomicInteger(0); 
@@ -172,8 +179,8 @@ public class PositionSummary {
 		}
 		// count for nominated rg on that position
 		// search for key rgid with natural ordering
-	    int order = Collections.binarySearch( readGroupIds, rgid, null);  
-		if (order < 0 ) {
+	    Integer order = readGroupIndexes.get(rgid);
+		if (order == null || order < 0) {
 			throw new IllegalArgumentException("can't find readGroup Id on Bam header: @RG ID:" + rgid);
 		}
 		// last element is the total counts on that position

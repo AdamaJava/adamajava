@@ -20,14 +20,16 @@ import java.util.TreeSet;
 import java.util.LinkedHashSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.StampedLock;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicLongArray;
+import java.util.concurrent.atomic.AtomicReferenceArray;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.qcmg.qprofiler2.util.XmlUtils;
 import org.w3c.dom.Element;
+import htsjdk.samtools.util.SequenceUtil;
 
 /**
  * Class that tallies by cycle using java generics 
@@ -36,6 +38,14 @@ import org.w3c.dom.Element;
 public class CycleSummary<T> {
 
 	private static final int MAX_ARRAY_CAPACITY = 2048 * 2048;		// over 4 million
+	private static final int TALLY_SHARDS = 4;
+	private static final byte[] REVERSE_BASES = new byte[256];
+
+	static {
+		for (int i = 0; i < REVERSE_BASES.length; i++) {
+			REVERSE_BASES[i] = SequenceUtil.complement((byte) i);
+		}
+	}
 		
 	/**
 	 * 
@@ -57,8 +67,9 @@ public class CycleSummary<T> {
 	 */
 	private static final int DEFAULT_NO_OF_KEYS = 128;	
 		
-	// atomic boolean used as a lock when resizing the array
-	private final AtomicBoolean resizingInProgress = new AtomicBoolean(false);
+	// Spread readers across locks to reduce contention. Resizing takes every write lock
+	// so that the tally and its cycle mask remain stable throughout an update.
+	private final StampedLock[] tallyLocks = new StampedLock[TALLY_SHARDS];
 	
 	// can be set in the constructor, but defaults to the Java default value
 	private final  T type;
@@ -69,6 +80,9 @@ public class CycleSummary<T> {
 	private final AtomicLong parseCounts = new AtomicLong();
 	
 	private AtomicLongArray tally;
+	// Allocate at most four additional arrays, only for threads that parse byte data.
+	private final AtomicReferenceArray<AtomicLongArray> byteTallies = new AtomicReferenceArray<>(TALLY_SHARDS);
+	private volatile boolean byteTalliesPresent;
 	
 	/**
 	 * Constructs a new SummaryByCycleNew2 object with the specified noOfCycles size, 
@@ -79,7 +93,10 @@ public class CycleSummary<T> {
 	 * @param noOfCycles
 	 */
 	public CycleSummary(T type, final int noOfCycles) {		
-		this.type = type;		
+		this.type = type;
+		for (int i = 0; i < tallyLocks.length; i++) {
+			tallyLocks[i] = new StampedLock();
+		}
 		cycleMask.set(getMask(noOfCycles));
 		keyMask.set(getMask(DEFAULT_NO_OF_KEYS));
 		int capacity = 1 << (cycleMask.get() + keyMask.get());
@@ -144,87 +161,108 @@ public class CycleSummary<T> {
 	 */
 
 	public void increment(final int cycle, final int value) {
-		if (cycle > maxCycleValue.get() || value > maxKeyValue.get()) {
-			resize(cycle, value);
+		StampedLock lock = updateLock();
+		long stamp = lockForUpdate(lock, cycle, value);
+		try {
+			tally.incrementAndGet(getArrayPosition(cycle, value));
+		} finally {
+			lock.unlockRead(stamp);
 		}
-		if (resizingInProgress.get()) {
-			// CAS until resizing is complete
-			while  (! resizingInProgress.compareAndSet(false, false)) {}
-		}
-		tally.incrementAndGet(getArrayPosition(cycle, value));
 	}
-		
-	private void resize(final int cycle, final int key) {
-		
-		// find out if it is the cycle, key or both that are larger than current maximums
-		// lock
-		while (! resizingInProgress.compareAndSet(false, true)) {}
-		try {	
-			// only resize if we still need to
-			// another thread may have already done this for us
-			boolean resize = false;	
-			
-			// re-set current maximums
-			int newCycleMask = -1;
-			if (cycle > maxCycleValue.get()) {
-				newCycleMask = getMask(cycle); 
-				maxCycleValue.set((1 << newCycleMask) - 1);
-				resize = true;
+
+	private StampedLock updateLock() {
+		return tallyLocks[(int) Thread.currentThread().threadId() & (tallyLocks.length - 1)];
+	}
+
+	private long lockForUpdate(StampedLock lock, final int cycle, final int key) {
+		while (true) {
+			long stamp = lock.readLock();
+			if (cycle <= maxCycleValue.get() && key <= maxKeyValue.get()) {
+				return stamp;
 			}
-			
-			if (key > maxKeyValue.get()) {
-				keyMask.set(getMask(key)); 
-				maxKeyValue.set((1 << keyMask.get()) - 1);
-				resize = true;
-			}
-			
-			if (resize) {
-				
-				// sleep to allow any threads in CAS loop in increment method to complete
-				// resizing should not occur often so will not be too great a performance penalty
-				// and it SHOULD mean we keep the array in a consistent state 
-				Thread.sleep(200);
-				
-				// get new capacity
-				int capacity = 1 << ((newCycleMask == -1 ? cycleMask.get() : newCycleMask) + keyMask.get());
-				
-				// check on new capacity
-				if (capacity > MAX_ARRAY_CAPACITY) {
-					throw new IllegalArgumentException("new AtomicLongArray is too large...");
-				}
-				
-				// create new array
-				AtomicLongArray newTally = new AtomicLongArray(capacity);
-				
-				// transfer data from existing tally to new tally
-				for (int i = 0, length = tally.length() ; i < length ; i++) {
-					
-					// retrieve existing data
-					long value = tally.get(i);
-					if (value > 0) {
-						int [] cycleKey = getCycleKeyFromArrayPosition(i);
-						
-						int newArrayIndex = cycleKey[0];
-						newArrayIndex += cycleKey[1] << (newCycleMask == -1 ? cycleMask.get() : newCycleMask);
-						
-						newTally.set(newArrayIndex, value);
+			lock.unlockRead(stamp);
+			resize(cycle, key);
+		}
+	}
+
+	// Queries and resizing run much less often than parsing. Consolidate reader tallies
+	// here so ordinary result access continues to use the original array layout.
+	private void mergeByteTallies() {
+		if (!byteTalliesPresent) {
+			return;
+		}
+		long[] stamps = lockAllUpdates();
+		try {
+			mergeByteTalliesLocked();
+		} finally {
+			unlockAllUpdates(stamps);
+		}
+	}
+
+	private void mergeByteTalliesLocked() {
+		for (int slot = 0; slot < byteTallies.length(); slot++) {
+			AtomicLongArray counts = byteTallies.get(slot);
+			if (counts != null) {
+				for (int i = 0; i < counts.length(); i++) {
+					long count = counts.get(i);
+					if (count != 0) {
+						tally.addAndGet(i, count);
 					}
 				}
-				tally = newTally;
-				
-				// update cycleMask
-				if (newCycleMask > -1) {
-					cycleMask.set(newCycleMask);
-				}
-			}	
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		} finally {
-			// unlock
-			while (! resizingInProgress.compareAndSet(true, false)) {}
+				byteTallies.set(slot, null);
+			}
+		}
+		byteTalliesPresent = false;
+	}
+
+	private long[] lockAllUpdates() {
+		long[] stamps = new long[tallyLocks.length];
+		for (int i = 0; i < tallyLocks.length; i++) {
+			stamps[i] = tallyLocks[i].writeLock();
+		}
+		return stamps;
+	}
+
+	private void unlockAllUpdates(long[] stamps) {
+		for (int i = tallyLocks.length - 1; i >= 0; i--) {
+			tallyLocks[i].unlockWrite(stamps[i]);
 		}
 	}
-	
+
+	private void resize(final int cycle, final int key) {
+		long[] stamps = lockAllUpdates();
+		try {
+			if (cycle <= maxCycleValue.get() && key <= maxKeyValue.get()) {
+				return;
+			}
+			int oldCycleMask = cycleMask.get();
+			int newCycleMask = cycle > maxCycleValue.get() ? getMask(cycle) : oldCycleMask;
+			int newKeyMask = key > maxKeyValue.get() ? getMask(key) : keyMask.get();
+			long capacity = 1L << (newCycleMask + newKeyMask);
+			if (capacity > MAX_ARRAY_CAPACITY) {
+				throw new IllegalArgumentException("new AtomicLongArray is too large...");
+			}
+			mergeByteTalliesLocked();
+			AtomicLongArray newTally = new AtomicLongArray((int) capacity);
+			int oldCycleBits = (1 << oldCycleMask) - 1;
+			for (int i = 0, length = tally.length(); i < length; i++) {
+				long value = tally.get(i);
+				if (value > 0) {
+					int oldCycle = i & oldCycleBits;
+					int oldKey = i >>> oldCycleMask;
+					newTally.set(oldCycle + (oldKey << newCycleMask), value);
+				}
+			}
+			tally = newTally;
+			cycleMask.set(newCycleMask);
+			keyMask.set(newKeyMask);
+			maxCycleValue.set((1 << newCycleMask) - 1);
+			maxKeyValue.set((1 << newKeyMask) - 1);
+		} finally {
+			unlockAllUpdates(stamps);
+		}
+	}
+
 	/**
 	 *  * Returns the number of times a particular value has occurred at a particular cycle.
 	 * <p>
@@ -235,7 +273,8 @@ public class CycleSummary<T> {
 	 * @return Integer relating to the count of .Defaults to zero if the cycle does not exist, 
 	 * or if the cycle does not contain the specified value <T>
 	 */	
-	public long count(Integer cycle, T value) {	
+	public long count(Integer cycle, T value) {
+		mergeByteTallies();
  
 		int v = (type instanceof Integer) ? (Integer) value : 
 			(type instanceof Character) ? (Character)  value  : -1; 
@@ -250,6 +289,7 @@ public class CycleSummary<T> {
 	 * @return a map of counts for each possible value on this cycle
 	 */
 	public ConcurrentMap<T, AtomicLong> getValue(Integer key) {
+		mergeByteTallies();
 		ConcurrentMap<T, AtomicLong> cm = new ConcurrentHashMap<>();
 		
 		// loop through keys to get ones with this cycle number		
@@ -270,6 +310,7 @@ public class CycleSummary<T> {
 	 * @return SortedSet relating to the cycles currently held by this summary object.
 	 */
 	public SortedSet<Integer> cycles() {
+		mergeByteTallies();
 		HashSet<Integer> ts = new HashSet<>();
 		for (int i = 0 , length = tally.length() ; i < length ; i++) {
 			if (tally.get(i) <= 0) {
@@ -286,7 +327,8 @@ public class CycleSummary<T> {
 	 *  Returns null if the summary does not contain the cycle.
 	 *  
 	 */
-	public Set<T> getPossibleValues() {	
+	public Set<T> getPossibleValues() {
+		mergeByteTallies();
 		
 		HashSet<T> allValues = new HashSet<>();
 		
@@ -388,14 +430,88 @@ public class CycleSummary<T> {
 			return;
 		}
 		parseCounts.incrementAndGet();
- 			
-		for (int i = 0, size = dataString.length ; i < size ; i++) {
-			int value = (type instanceof Integer) ? dataString[i] & 0xFF : 
-				(type instanceof Character) ? dataString[i] : 0;
-			increment(i + 1, value);
-		}						
-	}	
-	
+		if (dataString.length == 0) {
+			return;
+		}
+		int valueMask = type instanceof Integer ? 0xff : type instanceof Character ? -1 : 0;
+		StampedLock lock = updateLock();
+		long stamp = lockForUpdate(lock, dataString.length, valueMask == 0xff ? 255 : 127);
+		try {
+			AtomicLongArray counts = byteTally();
+			int shift = cycleMask.get();
+			for (int i = 0; i < dataString.length; i++) {
+				int value = dataString[i] & valueMask;
+				counts.incrementAndGet((i + 1) + (value << shift));
+			}
+		} finally {
+			lock.unlockRead(stamp);
+		}
+	}
+
+	// Called while an update lock protects the current array capacity.
+	private AtomicLongArray byteTally() {
+		int slot = (int) Thread.currentThread().threadId() & (byteTallies.length() - 1);
+		AtomicLongArray counts = byteTallies.get(slot);
+		if (counts == null) {
+			AtomicLongArray newCounts = new AtomicLongArray(tally.length());
+			if (byteTallies.compareAndSet(slot, null, newCounts)) {
+				counts = newCounts;
+			} else {
+				counts = byteTallies.get(slot);
+			}
+			byteTalliesPresent = true;
+		}
+		return counts;
+	}
+
+	/**
+	 * Tallies oriented cycles and returns the number of N/dot bases or qualities below 10.
+	 * Reverse sequence data is complemented; reverse quality data is only reversed.
+	 * The supplied array is never modified.
+	 */
+	public int parseByteData(final byte[] dataString, final boolean reverse) {
+		if (dataString == null) {
+			return 0;
+		}
+		parseCounts.incrementAndGet();
+		if (dataString.length == 0) {
+			return 0;
+		}
+		boolean integerData = type instanceof Integer;
+		boolean characterData = type instanceof Character;
+		StampedLock lock = updateLock();
+		long stamp = lockForUpdate(lock, dataString.length, integerData ? 255 : 127);
+		try {
+			AtomicLongArray counts = byteTally();
+			int shift = cycleMask.get();
+			int inputIndex = reverse ? dataString.length - 1 : 0;
+			int step = reverse ? -1 : 1;
+			int badValues = 0;
+			if (integerData) {
+				for (int i = 0; i < dataString.length; i++, inputIndex += step) {
+					int value = dataString[inputIndex] & 0xff;
+					counts.incrementAndGet((i + 1) + (value << shift));
+					if (value < 10) {
+						badValues++;
+					}
+				}
+			} else {
+				int valueMask = characterData ? -1 : 0;
+				for (int i = 0; i < dataString.length; i++, inputIndex += step) {
+					int value = reverse && characterData ? REVERSE_BASES[dataString[inputIndex] & 0xff]
+							: dataString[inputIndex] & valueMask;
+					counts.incrementAndGet((i + 1) + (value << shift));
+					if (value == 'N' || value == '.') {
+						badValues++;
+					}
+				}
+			}
+			return badValues;
+		} finally {
+			lock.unlockRead(stamp);
+		}
+	}
+
 	public void parseStringData(String dataString,  int offset) {
 		if (null == dataString) {
 			return; 

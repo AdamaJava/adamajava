@@ -8,6 +8,7 @@
 
 package org.qcmg.qprofiler2.summarise;
 
+import htsjdk.samtools.util.SequenceUtil;
 import org.qcmg.qprofiler2.util.XmlUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,6 +53,9 @@ public class LongReadBinSummary<T> {
 	private static final int DEFAULT_NO_OF_KEYS = 128;
 	// Size of bin (base pairs) to assign long read bases to.
 	private static final int BIN_SIZE = 1000;
+	private static final int LAST_BINNED_POSITION = 100000;
+	private static final int OVERFLOW_BIN = 1001;
+	private static final int OVERFLOW_LENGTH = 1000001;
 	private static final Logger log = LoggerFactory.getLogger(LongReadBinSummary.class);
 
 	// atomic boolean used as a lock when resizing the array
@@ -142,6 +146,10 @@ public class LongReadBinSummary<T> {
 	 */
 
 	public void increment(final int cycle, final int value) {
+		addCount(cycle, value, 1);
+	}
+
+	private void addCount(final int cycle, final int value, final long count) {
 		if (cycle > maxCycleValue.get() || value > maxKeyValue.get()) {
 			resize(cycle, value);
 		}
@@ -149,7 +157,7 @@ public class LongReadBinSummary<T> {
 			// CAS until resizing is complete
 			while  (! resizingInProgress.compareAndSet(false, false)) {}
 		}
-		tally.incrementAndGet(getArrayPosition(cycle, value));
+		tally.addAndGet(getArrayPosition(cycle, value), count);
 	}
 		
 	private void resize(final int cycle, final int key) {
@@ -289,10 +297,10 @@ public class LongReadBinSummary<T> {
 		HashSet<T> allValues = new HashSet<T>();
 		
 		for (int i = 0 , length = tally.length() ; i < length ; i++) {
-			if (tally.get(i) < 0) {
+			if (tally.get(i) <= 0) {
 				continue;
 			}
-			allValues.add(getTypeFromInt(getCycleKeyFromArrayPosition(i)[1]));	
+			allValues.add(getTypeFromInt(i >>> cycleMask.get()));
 		}		
 		// order as ACGTN
 		if (type instanceof Character) {					
@@ -338,7 +346,7 @@ public class LongReadBinSummary<T> {
 		for (Integer cycle : cycles()) {
 			Map<T, AtomicLong> tallys = new LinkedHashMap<>();
 			
-			for (T t :  getPossibleValues()) {			 
+			for (T t : possibles) {
 				tallys.put(t,new AtomicLong(count(cycle, t)));	
 			}
 
@@ -353,28 +361,74 @@ public class LongReadBinSummary<T> {
 	}
 	
 	public void parseByteData(final byte[] dataString) {
+		parseByteData(dataString, false);
+	}
+
+	/**
+	 * Tallies bins in sequencing order without modifying the input array.
+	 * Reverse-strand sequence is complemented; quality values are only reversed.
+	 *
+	 * @param dataString ASCII sequence bases or raw Phred quality scores
+	 * @param reverse whether the read is aligned to the reverse strand
+	 * @return number of N/dot bases for sequence, or unsigned quality scores below 10
+	 */
+	public int parseByteData(final byte[] dataString, final boolean reverse) {
 		if (dataString == null) {
-			return;
+			return 0;
 		}
 		parseCounts.incrementAndGet();
 
-		//Assign to 100 bins based on read length
-		//double binSize = (dataString.length+1) / (double)100;
-		int numberOfBins = (dataString.length + BIN_SIZE - 1) / BIN_SIZE;
-		for (int i = 0, size = dataString.length ; i < size ; i++) {
-			int value = (type instanceof Integer) ? dataString[i] & 0xFF :
-				(type instanceof Character) ? dataString[i] : 0;
-			//int binIndex = (int) Math.ceil((i+1) / binSize); // Find which bin the value belongs to
-			//increment(binIndex, value);
-			int roundedLength = 1000001;
-			int binNumber = 1001;
-			//Bins of 1000 up to 1000000 then a single bin for everything else
-			if (i <= 100000) {
-				roundedLength = (int) (Math.ceil((double)i/BIN_SIZE)*BIN_SIZE);
-				binNumber = ((i+1) + BIN_SIZE -1) / BIN_SIZE;
-			}
-				increment(binNumber, value);
-				length.set(binNumber,roundedLength);
+		if (dataString.length == 0) {
+			return 0;
 		}
+
+		// Count locally so each value needs only one atomic update per bin per read.
+		int[] counts = new int[256];
+		int[] values = new int[256];
+		boolean integerData = type instanceof Integer;
+		boolean characterData = type instanceof Character;
+		boolean complement = reverse && characterData;
+		int badValues = 0;
+		int step = reverse ? -1 : 1;
+		for (int start = 0; start < dataString.length;) {
+			int binNumber = OVERFLOW_BIN;
+			int end = dataString.length;
+			int roundedLength = OVERFLOW_LENGTH;
+			if (start <= LAST_BINNED_POSITION) {
+				binNumber = start / BIN_SIZE + 1;
+				end = start + Math.min(BIN_SIZE, dataString.length - start);
+				end = Math.min(end, LAST_BINNED_POSITION + 1);
+				// Preserve the existing label based on the last zero-based position.
+				roundedLength = ((end - 1 + BIN_SIZE - 1) / BIN_SIZE) * BIN_SIZE;
+			}
+
+			int distinctValues = 0;
+			int inputIndex = reverse ? dataString.length - 1 - start : start;
+			for (int i = start; i < end; i++, inputIndex += step) {
+				byte data = dataString[inputIndex];
+				int value = 0;
+				if (integerData) {
+					value = data & 0xFF;
+				} else if (characterData) {
+					value = data;
+				}
+				if (counts[value]++ == 0) {
+					values[distinctValues++] = value;
+				}
+			}
+			for (int i = 0; i < distinctValues; i++) {
+				int value = values[i];
+				if ((integerData && value < 10) || (characterData && (value == 'N' || value == '.'))) {
+					badValues += counts[value];
+				}
+				// Complement each distinct base once rather than every base in the read.
+				int tallyValue = complement ? SequenceUtil.complement((byte) value) : value;
+				addCount(binNumber, tallyValue, counts[value]);
+				counts[value] = 0;
+			}
+			length.set(binNumber, roundedLength);
+			start = end;
+		}
+		return badValues;
 	}
 }

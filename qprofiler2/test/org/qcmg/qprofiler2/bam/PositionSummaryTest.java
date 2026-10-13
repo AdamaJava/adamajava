@@ -15,6 +15,13 @@ public class PositionSummaryTest {
 	final String rg3 = "rg3";
 
 	@Test
+	public void cachedReadGroupIndexMatchesCoverageLookupWithDuplicateIds() {
+		PositionSummary summary = new PositionSummary(Arrays.asList(rg1, rg1, rg1, rg2));
+		summary.addPosition(123, rg1);
+		assertEquals(1, summary.getCoverageByRg(rg1).get(0).get());
+	}
+
+	@Test
 	public void testAddPositionMinMax() throws Exception {
 		List<String> rgs = Arrays.asList( rg1, rg2 );
 		PositionSummary ps = new PositionSummary(rgs);
