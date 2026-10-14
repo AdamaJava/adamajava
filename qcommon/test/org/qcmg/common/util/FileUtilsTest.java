@@ -15,6 +15,7 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.HashSet;
 import java.util.zip.GZIPOutputStream;
 
 import org.junit.After;
@@ -350,6 +351,43 @@ public class FileUtilsTest {
         List<File> qsigGzMatches = FileUtils.findFilesEndingWithFilterNIO(tempFolder.getRoot().getAbsolutePath(), ".qsig.vcf.gz");
         Assert.assertEquals(1, qsigGzMatches.size());
         Assert.assertEquals(qsigGzFile, qsigGzMatches.getFirst());
+    }
+
+    @Test
+    public void parallelSearchMatchesSerialWithLinksAndCycles() throws IOException {
+        Path root = tempFolder.newFolder("project").toPath();
+        for (int i = 0; i < 12; i++) {
+            Path directory = Files.createDirectories(root.resolve("sample" + i).resolve("nested.qsig.vcf"));
+            Files.createFile(directory.resolve("sample.qsig.vcf"));
+            Files.createFile(directory.resolve("sample.qsig.vcf.gz"));
+            Files.createFile(directory.resolve("sample.qsig.vcf.gz.gz"));
+            Files.createFile(directory.resolve("unrelated.bam"));
+        }
+        Files.createSymbolicLink(root.resolve("alias"), root.resolve("sample0"));
+        Files.createSymbolicLink(root.resolve("sample0/back"), root);
+        Files.createSymbolicLink(root.resolve("linked.qsig.vcf"), root.resolve("sample1/nested.qsig.vcf/sample.qsig.vcf"));
+        Files.createSymbolicLink(root.resolve("broken.qsig.vcf"), root.resolve("absent"));
+        for (String suffix : new String[]{".qsig.vcf", ".qsig.vcf.gz"}) {
+            List<File> expected = FileUtils.findFilesEndingWithFilterNIO(root.toString(), suffix);
+            assertEquals(suffix.equals(".qsig.vcf") ? 27 : 13, expected.size());
+            for (int threads : new int[]{1, 2, 8}) {
+                List<File> actual = FileUtils.findFilesEndingWithFilterNIO(root.toString(), suffix, threads);
+                assertEquals(expected.size(), actual.size());
+                assertEquals(new HashSet<>(expected), new HashSet<>(actual));
+            }
+        }
+    }
+
+    @Test
+    public void parallelSearchHandlesSingleMissingAndEmptyInputs() throws IOException {
+        File file = tempFolder.newFile("sample.qsig.vcf");
+        assertEquals(List.of(file), FileUtils.findFilesEndingWithFilterNIO(file.toString(), ".qsig.vcf", 3));
+        assertTrue(FileUtils.findFilesEndingWithFilterNIO(file.toString(), ".bam", 3).isEmpty());
+        assertTrue(FileUtils.findFilesEndingWithFilterNIO(file + ".absent", ".qsig.vcf", 3).isEmpty());
+        assertTrue(FileUtils.findFilesEndingWithFilterNIO(tempFolder.newFolder().toString(), ".qsig.vcf", 3).isEmpty());
+        assertThrows(IllegalArgumentException.class, () -> FileUtils.findFilesEndingWithFilterNIO(null, ".qsig.vcf", 3));
+        assertThrows(IllegalArgumentException.class, () -> FileUtils.findFilesEndingWithFilterNIO(file.toString(), "", 3));
+        assertThrows(IllegalArgumentException.class, () -> FileUtils.findFilesEndingWithFilterNIO(file.toString(), ".qsig.vcf", 0));
     }
 
     @Test

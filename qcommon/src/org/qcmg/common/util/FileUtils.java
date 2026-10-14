@@ -17,6 +17,11 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
+import java.util.concurrent.CompletionService;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
@@ -312,6 +317,99 @@ public class FileUtils {
 		
 		return foundFiles;
 	}
+
+    /**
+     * Finds the same files as {@link #findFilesEndingWithFilterNIO(String, String)},
+     * scanning independent directories with up to {@code threads} workers. This
+     * overlaps metadata requests on filesystems with high request latency.
+     * Symbolic links are followed, but links back to an ancestor are skipped.
+     */
+    public static List<File> findFilesEndingWithFilterNIO(String path, String filter, int threads) throws IOException {
+        if (threads < 1) throw new IllegalArgumentException("Search threads must be positive");
+        if (threads == 1) return findFilesEndingWithFilterNIO(path, filter);
+        if (StringUtils.isNullOrEmpty(path)) throw new IllegalArgumentException("Search path is null or empty");
+        if (StringUtils.isNullOrEmpty(filter)) throw new IllegalArgumentException("Search filter is null or empty");
+
+        ExecutorService executor = Executors.newFixedThreadPool(threads);
+        CompletionService<DirectorySearchResult> completed = new ExecutorCompletionService<>(executor);
+        String filterGz = filter.endsWith(".gz") ? filter : filter + ".gz";
+        List<File> files = new ArrayList<>();
+        try {
+            completed.submit(() -> searchDirectory(new SearchDirectory(Paths.get(path), List.of()), filter, filterGz));
+            int pending = 1;
+            while (pending > 0) {
+                DirectorySearchResult result = completed.take().get();
+                pending--;
+                files.addAll(result.files());
+                for (SearchDirectory directory : result.directories()) {
+                    completed.submit(() -> searchDirectory(directory, filter, filterGz));
+                    pending++;
+                }
+            }
+            return files;
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IOException("Interrupted searching for files", e);
+        } catch (ExecutionException e) {
+            if (e.getCause() instanceof IOException ioe) throw ioe;
+            throw new IOException("File search failed", e.getCause());
+        } finally {
+            executor.shutdownNow();
+        }
+    }
+
+    private record SearchAncestor(Path path, Object fileKey) {}
+    private record SearchDirectory(Path path, List<SearchAncestor> ancestors) {}
+    private record DirectorySearchResult(List<File> files, List<SearchDirectory> directories) {}
+
+    private static DirectorySearchResult searchDirectory(SearchDirectory search, String filter, String filterGz) throws IOException {
+        List<File> files = new ArrayList<>();
+        List<SearchDirectory> directories = new ArrayList<>();
+        List<SearchAncestor> ancestors = new ArrayList<>(search.ancestors());
+        // Depth one closes each directory stream before scheduling its children.
+        // Keeping the ancestry across tasks preserves walkFileTree's cycle checks.
+        Files.walkFileTree(search.path(), EnumSet.of(FileVisitOption.FOLLOW_LINKS), 1, new SimpleFileVisitor<>() {
+            @Override
+            public FileVisitResult preVisitDirectory(Path directory, BasicFileAttributes attrs) throws IOException {
+                if (isSearchAncestor(directory, attrs.fileKey(), ancestors)) return FileVisitResult.SKIP_SUBTREE;
+                ancestors.add(new SearchAncestor(directory, attrs.fileKey()));
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                if (Thread.currentThread().isInterrupted()) throw new IOException("File search cancelled");
+                if (attrs.isDirectory()) {
+                    if (!isSearchAncestor(file, attrs.fileKey(), ancestors)) {
+                        directories.add(new SearchDirectory(file, List.copyOf(ancestors)));
+                    }
+                } else {
+                    String name = file.getFileName().toString();
+                    if ((name.endsWith(filter) || name.endsWith(filterGz)) && Files.isReadable(file)) {
+                        files.add(file.toFile());
+                    }
+                }
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult visitFileFailed(Path file, IOException error) {
+                return FileVisitResult.CONTINUE;
+            }
+        });
+        return new DirectorySearchResult(files, directories);
+    }
+
+    private static boolean isSearchAncestor(Path path, Object fileKey, List<SearchAncestor> ancestors) throws IOException {
+        for (SearchAncestor ancestor : ancestors) {
+            if (fileKey != null && ancestor.fileKey() != null) {
+                if (fileKey.equals(ancestor.fileKey())) return true;
+            } else if (Files.isSameFile(path, ancestor.path())) {
+                return true;
+            }
+        }
+        return false;
+    }
 	
 	/**
 	 * Returns an array of File instances that match the given directory and filename filter.

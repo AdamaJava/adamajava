@@ -2,6 +2,7 @@ package org.qcmg.sig;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertThrows;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -322,6 +323,80 @@ public class CompareTest {
 		assertEquals("<comparison file1=\"1\" file2=\"2\" overlap=\"5\" score=\"1.0\"/>", outputData.get(8).trim());
 	}
 	
+    @Test
+    public void cacheSizesAndThreadsProduceIdenticalResults() throws Exception {
+        for (int i = 0; i < 5; i++) {
+            File input = testFolder.newFile("sample" + i + ".qsig.vcf");
+            writeVcfFile(input, i == 4 ? "##positions_md5sum=different\n"
+                    : "##positions_md5sum=d18c99f481afbe04294d11deeb418890\n");
+        }
+        File empty = testFolder.newFile("empty.qsig.vcf");
+        writeVcfFileHeader(empty);
+        File traditional = testFolder.newFile("traditional.qsig.vcf");
+        List<String> traditionalData = new ArrayList<>(SignatureUtilTest.BAM_HEADER_OLD_SKOOL);
+        traditionalData.add("chr1\t99236\t.\tT\t.\t.\t.\tFULLCOV=A:0,C:0,G:0,T:20,N:0,TOTAL:20;NOVELCOV=A:0,C:0,G:0,T:20,N:0,TOTAL:20");
+        writeDataToFile(traditionalData, traditional);
+
+        File output = testFolder.newFile("results.xml");
+        File log = testFolder.newFile("compare.log");
+        List<String> expected = null;
+        for (int cacheSize : new int[]{-1, 0, 1, 2, 3, 4, 6, 7, 20}) {
+            for (int threads : new int[]{1, 3}) {
+                assertEquals(0, new Compare().setup(new String[]{"--log", log.getAbsolutePath(),
+                        "-d", testFolder.getRoot().getAbsolutePath(), "-o", output.getAbsolutePath(),
+                        "--max-cache-size", Integer.toString(cacheSize), "--noOfThreads", Integer.toString(threads)}));
+                List<String> actual = Files.readAllLines(output.toPath());
+                assertEquals(16, actual.stream().filter(line -> line.contains("<comparison ")).count());
+                if (expected == null) {
+                    expected = actual;
+                } else {
+                    assertEquals("cache size " + cacheSize + ", threads " + threads, expected, actual);
+                }
+            }
+        }
+    }
+
+    @Test
+    public void explicitInputsMatchDirectoryDiscovery() throws Exception {
+        File first = testFolder.newFile("first.qsig.vcf");
+        File second = testFolder.newFile("second.qsig.vcf");
+        writeVcfFile(first);
+        writeVcfFile(second);
+        File list = testFolder.newFile("inputs.txt");
+        Files.writeString(list.toPath(), first.getName() + "\n\n" + second.getAbsolutePath() + "\n" + first.getName() + "\n");
+        File output = testFolder.newFile("result.xml");
+        File log = testFolder.newFile("compare.log");
+        String[] common = {"--log", log.getAbsolutePath(), "-output", output.getAbsolutePath(), "--noOfThreads", "3"};
+        List<String> expected = null;
+        for (List<String> selection : List.of(
+                List.of("-d", testFolder.getRoot().getAbsolutePath()),
+                List.of("--input-list", list.getAbsolutePath()),
+                List.of("-i", first.getAbsolutePath(), "-i", second.getAbsolutePath()),
+                List.of("-d", testFolder.getRoot().getAbsolutePath(), "--input-list", list.getAbsolutePath()))) {
+            List<String> args = new ArrayList<>(Arrays.asList(common));
+            args.addAll(selection);
+            assertEquals(0, new Compare().setup(args.toArray(String[]::new)));
+            List<String> actual = Files.readAllLines(output.toPath());
+            if (expected == null) expected = actual;
+            else assertEquals(expected, actual);
+            assertEquals(1, actual.stream().filter(line -> line.contains("<comparison ")).count());
+        }
+    }
+
+    @Test
+    public void inputListRejectsMissingFilesAndDirectories() throws Exception {
+        File list = testFolder.newFile("inputs.txt");
+        Files.writeString(list.toPath(), "missing.qsig.vcf\n");
+        IOException error = assertThrows(IOException.class, () -> Compare.readInputList(list.toPath()));
+        assertTrue(error.getMessage().contains(":1:"));
+        File directory = testFolder.newFolder("directory.qsig.vcf");
+        Files.writeString(list.toPath(), directory.getAbsolutePath() + "\n");
+        assertThrows(IOException.class, () -> Compare.readInputList(list.toPath()));
+        File unrelated = testFolder.newFile("unrelated.bam");
+        Files.writeString(list.toPath(), unrelated.getAbsolutePath() + "\n");
+        assertThrows(IOException.class, () -> Compare.readInputList(list.toPath()));
+    }
+
 	private void writeVcfFileHeader(File f) throws IOException {
 		writeVcfFileHeader(f, "##positions_md5sum=d18c99f481afbe04294d11deeb418890\n");
 	}

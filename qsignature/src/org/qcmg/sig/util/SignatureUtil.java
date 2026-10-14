@@ -9,6 +9,7 @@ package org.qcmg.sig.util;
 import static java.util.Comparator.comparing;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -25,15 +26,15 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.sax.SAXTransformerFactory;
+import javax.xml.transform.sax.TransformerHandler;
 import javax.xml.transform.stream.StreamResult;
+
+import org.xml.sax.SAXException;
+import org.xml.sax.helpers.AttributesImpl;
+import javax.xml.transform.TransformerException;
 
 import org.apache.commons.math3.util.Pair;
 import org.qcmg.common.log.QLogger;
@@ -51,8 +52,6 @@ import org.qcmg.qio.record.StringFileReader;
 import org.qcmg.qio.vcf.VcfFileReader;
 import org.qcmg.sig.model.Comparison;
 import org.qcmg.sig.model.SigMeta;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 import gnu.trove.map.TMap;
 import gnu.trove.map.hash.THashMap;
@@ -880,71 +879,56 @@ default -> 0.0f;
 		writeXmlOutput( fileIdsAndCounts, allComparisons,  outputXml, HOM_CUTOFF, HET_UPPER_CUTOFF, HET_LOWER_CUTOFF);
 	}
 	public static void writeXmlOutput( Map<String, int[]> fileIdsAndCounts, List<Comparison> allComparisons, String outputXml, float homCutoff, float upperHetCutoff, float lowerHetCutoff) throws ParserConfigurationException, TransformerException {
-		DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
-		DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
-		
-		// root elements
-		Document doc = docBuilder.newDocument();
-		Element rootElement = doc.createElement("qsignature");
-		doc.appendChild(rootElement);
-		
-		// list cutoffs
-		Element cutoffsE = doc.createElement("cutoffs");
-		cutoffsE.setAttribute("hom", homCutoff + "");
-		cutoffsE.setAttribute("upper_het", upperHetCutoff + "");
-		cutoffsE.setAttribute("lower_het", lowerHetCutoff + "");
-		rootElement.appendChild(cutoffsE);
-		
-		// list files
-		Element filesE = doc.createElement("files");
-		rootElement.appendChild(filesE);
-		
-		// write output xml file
-		// do it to console first...
-		List<String> keys = new ArrayList<>( fileIdsAndCounts.keySet());
-		keys.sort(null);
-		for (String f  : keys) {
-			int[] value = fileIdsAndCounts.get(f);
-			
-			Element fileE = doc.createElement("file");
-			fileE.setAttribute("id", value[0] + "");
-			fileE.setAttribute("name", f);
-			fileE.setAttribute("coverage", value[1] + "");
-			if (value[2] > -1) {
-				fileE.setAttribute("average_coverage_at_positions", value[2] + "");
-			}
-			filesE.appendChild(fileE);
-		}
-		
-		// list files
-		Element compsE = doc.createElement("comparisons");
-		rootElement.appendChild(compsE);
-		
-		/*
-		 * sort comparisons by file ids
-		 */
-		allComparisons.sort(comparing((Comparison c) -> fileIdsAndCounts.get(c.getMain())[0])
-				.thenComparing((c) ->  fileIdsAndCounts.get(c.getTest())[0]));
-		
-		for (Comparison comp : allComparisons) {
-			int id1 = fileIdsAndCounts.get(comp.getMain())[0];
-			int id2 = fileIdsAndCounts.get(comp.getTest())[0];
-			
-			Element compE = doc.createElement("comparison");
-			compE.setAttribute("file1", id1 + "");
-			compE.setAttribute("file2", id2 + "");
-			compE.setAttribute("score", comp.getScore() + "");
-			compE.setAttribute("overlap", comp.getOverlapCoverage() + "");
-			compsE.appendChild(compE);
-		}
-		
-		// write it out
-		TransformerFactory transformerFactory = TransformerFactory.newInstance();
-		Transformer transformer = transformerFactory.newTransformer();
-		DOMSource source = new DOMSource(doc);
-		StreamResult result = new StreamResult(new File(outputXml));
-		transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-		transformer.transform(source, result);
-	}
+        // Sort before writing so output ordering remains independent of worker order.
+        allComparisons.sort(comparing((Comparison c) -> fileIdsAndCounts.get(c.getMain())[0])
+                .thenComparing(c -> fileIdsAndCounts.get(c.getTest())[0]));
+        List<String> keys = new ArrayList<>(fileIdsAndCounts.keySet());
+        keys.sort(null);
+
+        // Stream through the XML serializer instead of retaining millions of DOM elements.
+        try (BufferedWriter output = Files.newBufferedWriter(Paths.get(outputXml), StandardCharsets.UTF_8)) {
+            TransformerHandler xml = ((SAXTransformerFactory) SAXTransformerFactory.newInstance()).newTransformerHandler();
+            xml.getTransformer().setOutputProperty(OutputKeys.INDENT, "yes");
+            xml.getTransformer().setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+            xml.setResult(new StreamResult(output));
+            xml.startDocument();
+            xml.characters(new char[]{'\n'}, 0, 1);
+            xml.startElement("", "", "qsignature", new AttributesImpl());
+            writeXmlElement(xml, "cutoffs", "hom", Float.toString(homCutoff),
+                    "lower_het", Float.toString(lowerHetCutoff), "upper_het", Float.toString(upperHetCutoff));
+            xml.startElement("", "", "files", new AttributesImpl());
+            for (String file : keys) {
+                int[] value = fileIdsAndCounts.get(file);
+                if (value[2] > -1) {
+                    writeXmlElement(xml, "file", "average_coverage_at_positions", Integer.toString(value[2]),
+                            "coverage", Integer.toString(value[1]), "id", Integer.toString(value[0]), "name", file);
+                } else {
+                    writeXmlElement(xml, "file", "coverage", Integer.toString(value[1]),
+                            "id", Integer.toString(value[0]), "name", file);
+                }
+            }
+            xml.endElement("", "", "files");
+            xml.startElement("", "", "comparisons", new AttributesImpl());
+            for (Comparison comp : allComparisons) {
+                writeXmlElement(xml, "comparison", "file1", Integer.toString(fileIdsAndCounts.get(comp.getMain())[0]),
+                        "file2", Integer.toString(fileIdsAndCounts.get(comp.getTest())[0]),
+                        "overlap", Integer.toString(comp.getOverlapCoverage()), "score", Double.toString(comp.getScore()));
+            }
+            xml.endElement("", "", "comparisons");
+            xml.endElement("", "", "qsignature");
+            xml.endDocument();
+        } catch (IOException | SAXException e) {
+            throw new TransformerException("Could not write qsignature XML output", e);
+        }
+    }
+
+    private static void writeXmlElement(TransformerHandler xml, String name, String... attributes) throws SAXException {
+        AttributesImpl values = new AttributesImpl();
+        for (int i = 0; i < attributes.length; i += 2) {
+            values.addAttribute("", "", attributes[i], "CDATA", attributes[i + 1]);
+        }
+        xml.startElement("", "", name, values);
+        xml.endElement("", "", name);
+    }
 
 }

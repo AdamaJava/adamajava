@@ -69,6 +69,8 @@ final class Options {
 	Options(final String[] args) throws Exception {
 		parser.acceptsAll(asList("i", "input"), INPUT_DESCRIPTION)
 				.withRequiredArg().ofType(String.class).describedAs("infile");
+        parser.accepts("input-list", "Compare: text file with one signature VCF path per line; relative paths are resolved against this list's directory")
+                .withRequiredArg().ofType(String.class).describedAs("file list");
 		parser.accepts("output", OUTPUT_DESCRIPTION)
 				.withRequiredArg().ofType(String.class).describedAs("outputfile");
 		parser.acceptsAll(asList("d", "dir", "directory"),
@@ -232,6 +234,9 @@ final class Options {
 	String[] getInputFileNames() {
 		return inputFileNames;
 	}
+    String getInputList() {
+        return (String) options.valueOf("input-list");
+    }
 	String[] getOutputFileNames() {
 		return outputFileNames;
 	}
