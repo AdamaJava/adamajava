@@ -54,7 +54,28 @@ public class AnnotateUtils {
 
             logger.info("fileName: " + fileName + ", positions: " + ai.getChrIndex() + ", " + ai.getPositionIndex() + ", " + ai.getRefIndex() + ", " + ai.getAltIndex() + ", fieldNames: " + fieldNames);
 
-            if (ai.isSnpEffVcf()) {
+            boolean useByteBuffered = ai.isByteBuffered() && !ai.isSnpEffVcf() && !fileName.contains("vcf")
+                    && ai.getChrIndex() == 1 && ai.getPositionIndex() == 2;
+            if (ai.isByteBuffered() && !useByteBuffered) {
+                logger.warn("byteBuffered requires a TSV source with chrIndex=1 and positionIndex=2; "
+                        + "using the standard reader for " + fileName);
+            }
+
+            if (useByteBuffered) {
+                ByteBufferedTsvReader reader = new ByteBufferedTsvReader(new File(fileName), ai.isChrStartsWithChr());
+                try {
+                    annotationSources.add(new AnnotationSourceTSV(reader, ai.getChrIndex(), ai.getPositionIndex(),
+                            ai.getRefIndex(), ai.getAltIndex(), fieldNames, ai.isChrStartsWithChr()));
+                } catch (RuntimeException e) {
+                    try {
+                        reader.close();
+                    } catch (IOException closeFailure) {
+                        e.addSuppressed(closeFailure);
+                    }
+                    throw e;
+                }
+                logger.info("Using byte-buffered TSV reader for " + fileName);
+            } else if (ai.isSnpEffVcf()) {
                 annotationSources.add(new AnnotationSourceSnpEffVCF(new StringFileReader(new File(fileName), 1024 * 1024), ai.getChrIndex(), ai.getPositionIndex(), ai.getRefIndex(), ai.getAltIndex(), fieldNames, ai.isChrStartsWithChr()));
             } else if (fileName.contains("vcf")) {
                 annotationSources.add(new AnnotationSourceVCF(new StringFileReader(new File(fileName), 1024 * 1024), ai.getChrIndex(), ai.getPositionIndex(), ai.getRefIndex(), ai.getAltIndex(), fieldNames, ai.isChrStartsWithChr()));

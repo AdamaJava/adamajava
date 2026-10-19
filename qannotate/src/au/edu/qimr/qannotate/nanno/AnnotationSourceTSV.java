@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 import org.qcmg.common.string.StringUtils;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.qio.record.RecordReader;
+import org.qcmg.qio.record.RecordSource;
 
 public class AnnotationSourceTSV extends AnnotationSource {
 	
@@ -19,10 +20,19 @@ public class AnnotationSourceTSV extends AnnotationSource {
 	List<String> headerLines;
 	Map<String, Integer> headerNameAndPosition;
 
-	private String[] fieldNames;
-	private int[] fieldPositions;
+	private final String[] fieldNames;
+	private final int[] fieldPositions;
+	// Column boundaries reused by this source's single sweeper thread.
+	private final int[] columnStarts;
+	private final int[] columnEnds;
 
 	public AnnotationSourceTSV(RecordReader<String> reader, int chrPositionInRecord, int positionPositionInRecord,
+			int refPositionInFile, int altPositionInFile, String fieldNames, boolean chrStartsWithChr) {
+		this((RecordSource<String>) reader, chrPositionInRecord, positionPositionInRecord,
+				refPositionInFile, altPositionInFile, fieldNames, chrStartsWithChr);
+	}
+
+	AnnotationSourceTSV(RecordSource<String> reader, int chrPositionInRecord, int positionPositionInRecord,
 			int refPositionInFile, int altPositionInFile, String fieldNames, boolean chrStartsWithChr) {
 		super(reader, chrPositionInRecord, positionPositionInRecord, refPositionInFile, altPositionInFile, chrStartsWithChr);
 		// TODO Auto-generated constructor stub
@@ -56,6 +66,9 @@ public class AnnotationSourceTSV extends AnnotationSource {
 		for (int i = 0; i < requestedFields.length; i++) {
 			this.fieldPositions[i] = headerNameAndPosition.get(requestedFields[i]);
 		}
+		int maxPosition = Arrays.stream(this.fieldPositions).max().orElse(0);
+		this.columnStarts = new int[maxPosition + 1];
+		this.columnEnds = new int[maxPosition + 1];
 	}
 	
 	/*
@@ -95,6 +108,40 @@ public class AnnotationSourceTSV extends AnnotationSource {
 		}
 		
 		return namePositions;
+	}
+
+	@Override
+	void getNextRecord(long requestedCpAsLong, int matchWithNextCP) {
+		if (reader instanceof ByteBufferedTsvReader byteReader) {
+			currentRecords = byteReader.readRecordsAt(requestedCpAsLong);
+			currentCPAsLong = currentRecords.isEmpty() ? -1 : requestedCpAsLong;
+			nextCPAsLong = byteReader.nextPosition();
+		} else {
+			super.getNextRecord(requestedCpAsLong, matchWithNextCP);
+		}
+	}
+
+	@Override
+	protected String annotationFromRecord(String record) {
+		int start = 0;
+		int columnCount = 0;
+		while (columnCount < columnStarts.length) {
+			int tab = record.indexOf(DEFAULT_DELIMITER, start);
+			columnStarts[columnCount] = start;
+			columnEnds[columnCount++] = tab < 0 ? record.length() : tab;
+			if (tab < 0) break;
+			start = tab + 1;
+		}
+		StringBuilder result = new StringBuilder();
+		for (int i = 0; i < fieldNames.length; i++) {
+			int column = fieldPositions[i];
+			if (column < columnCount) {
+				if (!result.isEmpty()) result.append(DEFAULT_DELIMITER);
+				result.append(fieldNames[i]).append('=')
+						.append(record, columnStarts[column], columnEnds[column]);
+			}
+		}
+		return result.toString();
 	}
 
 	@Override

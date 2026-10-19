@@ -2,6 +2,7 @@ package au.edu.qimr.qannotate.nanno;
 
 import au.edu.qimr.qannotate.Messages;
 import au.edu.qimr.qannotate.Options;
+import org.qcmg.common.log.QLevel;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.meta.QExec;
@@ -46,12 +47,14 @@ public class Annotate {
 
     record VariantWork(ChrPosition cp, long cpAsLong, String gatkAD, String gatkGT, String originalAlt) {}
 
+    record SourceSweepResult(String[] annotations, long elapsedNanos) {}
+
     /**
      * Performs a single linear sweep through one annotation source against a
      * sorted chunk of variants. The annotation file cursor advances forward and
      * is never rewound, so repeated calls across chunks work correctly.
      */
-    static class SourceSweeper implements Callable<String[]> {
+    static class SourceSweeper implements Callable<SourceSweepResult> {
 
         private final AnnotationSource source;
         private final List<VariantWork> variants;
@@ -62,13 +65,14 @@ public class Annotate {
         }
 
         @Override
-        public String[] call() {
+        public SourceSweepResult call() {
+            long startNanos = System.nanoTime();
             String[] results = new String[variants.size()];
             for (int i = 0; i < variants.size(); i++) {
                 VariantWork v = variants.get(i);
                 results[i] = source.getAnnotation(v.cpAsLong(), v.cp());
             }
-            return results;
+            return new SourceSweepResult(results, System.nanoTime() - startNanos);
         }
     }
 
@@ -104,6 +108,9 @@ public class Annotate {
         ChrPosition lastCP = null;
         int totalVariants = 0;
         int nonStandardContigCount = 0;
+        int multiAllelicCount = 0;
+        int chunksProcessed = 0;
+        long[] sourceElapsedNanos = new long[annotationSources.size()];
         List<VariantWork> chunk = new ArrayList<>(CHUNK_SIZE);
 
         try (VcfFileReader reader = new VcfFileReader(inputFile)) {
@@ -126,21 +133,25 @@ public class Annotate {
                 }
 
                 String alt = ((ChrPositionRefAlt) thisVcfsCP).getAlt();
-                String gatkAD = VcfUtils.getFormatField(vcf.getFormatFields(), "AD", 0);
-                String gatkGT = VcfUtils.getFormatField(vcf.getFormatFields(), "GT", 0);
+                Map<String, String[]> formatFields = vcf.getFormatFieldsAsMap();
+                String gatkAD = VcfUtils.getFormatField(formatFields, "AD", 0);
+                String gatkGT = VcfUtils.getFormatField(formatFields, "GT", 0);
 
                 if (alt.contains(",")) {
-                    logger.info("alt has comma: " + thisVcfsCP);
+                    multiAllelicCount++;
+                    if (logger.isLevelEnabled(QLevel.DEBUG)) {
+                        logger.debug("alt has comma: " + thisVcfsCP);
+                    }
                     String[] altArray = alt.split(",");
-                    List<VcfRecord> splitVcfs = new ArrayList<>();
+                    // All other sort keys are identical, so sorting ALT gives the same order as cloned VCFs.
+                    Arrays.sort(altArray);
                     for (String thisAlt : altArray) {
                         if (!thisAlt.equals("*")) {
-                            splitVcfs.add(VcfUtils.cloneWithNewAlt(vcf, thisAlt));
+                            ChrPositionRefAlt splitCP = new ChrPositionRefAlt(thisVcfsCP.getChromosome(),
+                                    thisVcfsCP.getStartPosition(), thisVcfsCP.getEndPosition(),
+                                    ((ChrPositionRefAlt) thisVcfsCP).getRef(), thisAlt);
+                            chunk.add(toVariantWork(splitCP, gatkAD, gatkGT, alt));
                         }
-                    }
-                    if (splitVcfs.size() > 1) splitVcfs.sort(null);
-                    for (VcfRecord splitVcf : splitVcfs) {
-                        chunk.add(toVariantWork(splitVcf.getChrPositionRefAlt(), gatkAD, gatkGT, alt));
                     }
                 } else {
                     chunk.add(toVariantWork(thisVcfsCP, gatkAD, gatkGT, alt));
@@ -149,7 +160,8 @@ public class Annotate {
                 lastCP = thisVcfsCP;
 
                 if (chunk.size() >= CHUNK_SIZE) {
-                    processChunk(chunk, annotationSources, sourceExecutor, queue);
+                    processChunk(chunk, annotationSources, sourceExecutor, queue,
+                            sourceElapsedNanos, ++chunksProcessed);
                     totalVariants += chunk.size();
                     chunk = new ArrayList<>(CHUNK_SIZE);
                 }
@@ -157,13 +169,24 @@ public class Annotate {
 
             // Flush the final partial chunk.
             if (!chunk.isEmpty()) {
-                processChunk(chunk, annotationSources, sourceExecutor, queue);
+                processChunk(chunk, annotationSources, sourceExecutor, queue,
+                        sourceElapsedNanos, ++chunksProcessed);
                 totalVariants += chunk.size();
             }
         }
 
         logger.info("VCF processing complete: " + totalVariants + " variants, "
-                + nonStandardContigCount + " non-standard contigs skipped");
+                + nonStandardContigCount + " non-standard contigs skipped, "
+                + multiAllelicCount + " multi-allelic records split");
+
+        logger.info("Annotation source timings measure elapsed sweep time, including source I/O. "
+                + "Sources run in parallel, so their times overlap; executor queue and output writing time are excluded.");
+        for (int s = 0; s < annotationSources.size(); s++) {
+            logger.info(String.format(Locale.ROOT,
+                    "Annotation source timing summary: source=%d, file=%s, chunks=%d, variants=%d, total_elapsed_seconds=%.3f",
+                    s + 1, annotationSources.get(s).reader.getFile().getPath(), chunksProcessed,
+                    totalVariants, sourceElapsedNanos[s] / 1_000_000_000.0));
+        }
 
         queue.put(POISON_PILL);
         sourceExecutor.shutdown();
@@ -188,12 +211,14 @@ public class Annotate {
     private static void processChunk(List<VariantWork> chunk,
                                      List<AnnotationSource> annotationSources,
                                      ExecutorService sourceExecutor,
-                                     BlockingQueue<ChrPositionAnnotations> queue) throws Exception {
+                                     BlockingQueue<ChrPositionAnnotations> queue,
+                                     long[] sourceElapsedNanos,
+                                     int chunkNumber) throws Exception {
 
         final int numSources = annotationSources.size();
 
         // Sweep all sources in parallel over this chunk.
-        List<Future<String[]>> futures = new ArrayList<>(numSources);
+        List<Future<SourceSweepResult>> futures = new ArrayList<>(numSources);
         for (AnnotationSource source : annotationSources) {
             futures.add(sourceExecutor.submit(new SourceSweeper(source, chunk)));
         }
@@ -201,7 +226,14 @@ public class Annotate {
         // Collect results — String[numSources][chunk.size()].
         String[][] chunkResults = new String[numSources][];
         for (int s = 0; s < numSources; s++) {
-            chunkResults[s] = futures.get(s).get();
+            SourceSweepResult result = futures.get(s).get();
+            chunkResults[s] = result.annotations();
+            sourceElapsedNanos[s] += result.elapsedNanos();
+            logger.info(String.format(Locale.ROOT,
+                    "Annotation source timing: source=%d, file=%s, chunk=%d, variants=%d, elapsed_seconds=%.3f, total_elapsed_seconds=%.3f",
+                    s + 1, annotationSources.get(s).reader.getFile().getPath(), chunkNumber,
+                    chunk.size(), result.elapsedNanos() / 1_000_000_000.0,
+                    sourceElapsedNanos[s] / 1_000_000_000.0));
         }
 
         // Assemble per-variant annotation arrays and enqueue for writing.
@@ -446,4 +478,3 @@ public class Annotate {
         return returnStatus;
     }
 }
-
