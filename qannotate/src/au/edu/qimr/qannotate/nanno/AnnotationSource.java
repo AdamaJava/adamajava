@@ -8,6 +8,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.qcmg.common.log.QLevel;
 import org.qcmg.common.log.QLogger;
 import org.qcmg.common.log.QLoggerFactory;
 import org.qcmg.common.model.ChrPointPosition;
@@ -17,6 +18,7 @@ import org.qcmg.common.model.ChrPositionRefAlt;
 import org.qcmg.common.util.ChrPositionUtils;
 import org.qcmg.common.util.TabTokenizer;
 import org.qcmg.qio.record.RecordReader;
+import org.qcmg.qio.record.RecordSource;
 
 public abstract class AnnotationSource implements Closeable {
 
@@ -33,7 +35,7 @@ public abstract class AnnotationSource implements Closeable {
     long nextCPAsLong;
 
 
-    protected final RecordReader<String> reader;
+    protected final RecordSource<String> reader;
     protected final Iterator<String> iter;
     protected final int chrPositionInRecord;
     protected final int positionPositionInRecord;
@@ -43,8 +45,17 @@ public abstract class AnnotationSource implements Closeable {
 
     protected final boolean chrStartsWithChr;
 
+    // Annotation files are sorted, so the chromosome usually stays the same for millions of rows.
+    private String cachedContig;
+    private int cachedContigNumber;
+
 
     public AnnotationSource(RecordReader<String> reader, int chrPositionInRecord, int positionPositionInRecord, int refPositionInFile, int altPositionInFile, boolean chrStartsWithChr) {
+        this((RecordSource<String>) reader, chrPositionInRecord, positionPositionInRecord,
+                refPositionInFile, altPositionInFile, chrStartsWithChr);
+    }
+
+    protected AnnotationSource(RecordSource<String> reader, int chrPositionInRecord, int positionPositionInRecord, int refPositionInFile, int altPositionInFile, boolean chrStartsWithChr) {
         super();
         this.reader = reader;
         this.iter = reader.iterator();
@@ -65,7 +76,9 @@ public abstract class AnnotationSource implements Closeable {
 
     public String getAnnotation(long requestedCpAsLong, ChrPosition requestedCp) {
 
-        logger.debug(reader.getFile().getName() + ":  requestedCp is " + requestedCpAsLong + ", currentCP: " + currentCPAsLong + ", nextCP: " + nextCPAsLong);
+        if (logger.isLevelEnabled(QLevel.DEBUG)) {
+            logger.debug(reader.getFile().getName() + ":  requestedCp is " + requestedCpAsLong + ", currentCP: " + currentCPAsLong + ", nextCP: " + nextCPAsLong);
+        }
 
 
         /*
@@ -105,67 +118,83 @@ public abstract class AnnotationSource implements Closeable {
             String reqAlt = reqCpRefAlt.getAlt();
 
             for (String rec : currentRecords) {
-                String[] recArray = TabTokenizer.tokenize(rec, DEFAULT_DELIMITER);
-                String recRef = recArray[refPositionInFile];
-                String recAlt = recArray[altPositionInFile];
-
-                if (reqRef.equals(recRef) && reqAlt.equals(recAlt)) {
-                    return annotationToReturn(recArray);
+                if (matchesAlleles(rec, reqRef, reqAlt)) {
+                    return annotationFromRecord(rec);
                 }
             }
         }
         return annotationToReturn(null);
     }
 
-    void getNextRecord(long requestedCpAsLong, int matchWithNextCP) {
-//    void getNextRecord(ChrPosition requestedCp, int matchWithNextCP) {
-        currentRecords = new ArrayList<>(4);
+    /** Only parse the annotation payload after REF and ALT match. */
+    protected String annotationFromRecord(String record) {
+        return annotationToReturn(TabTokenizer.tokenize(record, DEFAULT_DELIMITER));
+    }
 
-        /*
-         * check to see if the nextCP meets our criteria
-         * if it does, set currentCP to be next CP
-         * we still need to iterate through the file to see if we have more than this entry
-         */
+    private boolean matchesAlleles(String record, String ref, String alt) {
+        int start = 0;
+        int lastColumn = Math.max(refPositionInFile, altPositionInFile);
+        for (int column = 0; column <= lastColumn; column++) {
+            int tab = record.indexOf(DEFAULT_DELIMITER, start);
+            int end = tab < 0 ? record.length() : tab;
+            if (column == refPositionInFile
+                    && (end - start != ref.length() || !record.regionMatches(start, ref, 0, ref.length()))) {
+                return false;
+            }
+            if (column == altPositionInFile
+                    && (end - start != alt.length() || !record.regionMatches(start, alt, 0, alt.length()))) {
+                return false;
+            }
+            if (tab < 0) {
+                return column == lastColumn;
+            }
+            start = tab + 1;
+        }
+        return true;
+    }
+
+    void getNextRecord(long requestedCpAsLong, int matchWithNextCP) {
+        currentRecords = new ArrayList<>(4);
         if (matchWithNextCP == 0) {
             currentCPAsLong = nextCPAsLong;
             currentRecords = nextRecords;
         }
 
-//        String startsWithString = (chrStartsWithChr ? requestedCp.getChromosome() : requestedCp.getChromosome().substring(3));
         while (iter.hasNext()) {
-            /*
-             * check to see if this record is the one we want
-             */
             String nextRecord = iter.next();
-            int match;
-            String[] nextRecordArray = null;
+            long recordCP;
             if (canUseStartsWith) {
-                match = isThisOurRecordShortcut(requestedCpAsLong, nextRecord, chrStartsWithChr);
+                recordCP = getRecordPosition(nextRecord);
             } else {
-                nextRecordArray = TabTokenizer.partialTokenize(nextRecord, DEFAULT_DELIMITER, Math.max(chrPositionInRecord, positionPositionInRecord) + 1);
-                match = isThisOurRecord(requestedCpAsLong, nextRecordArray, chrPositionInRecord, positionPositionInRecord, chrStartsWithChr);
+                String[] columns = TabTokenizer.partialTokenize(nextRecord, DEFAULT_DELIMITER,
+                        Math.max(chrPositionInRecord, positionPositionInRecord) + 1);
+                recordCP = getCpAsLongFromRecord(columns, chrPositionInRecord, positionPositionInRecord, chrStartsWithChr);
             }
+            int match = requestedCpAsLong == -1 ? 1 : Long.compare(requestedCpAsLong, recordCP);
             if (match == 0) {
-                /*
-                 * got a match!
-                 * we could have more than 1 entry for each position
-                 */
-                currentCPAsLong = getChrPositionAsLongFromRecord(nextRecordArray, chrPositionInRecord, positionPositionInRecord, nextRecord, chrStartsWithChr);
+                currentCPAsLong = recordCP;
                 currentRecords.add(nextRecord);
-
             } else if (match < 0) {
-                /*
-                 * we have overshot - set nextCP and break out
-                 */
-                nextCPAsLong = getChrPositionAsLongFromRecord(nextRecordArray, chrPositionInRecord, positionPositionInRecord, nextRecord, chrStartsWithChr);
-                nextRecords = new ArrayList<>();
+                nextCPAsLong = recordCP;
+                nextRecords = new ArrayList<>(1);
                 nextRecords.add(nextRecord);
                 break;
             }
-            /*
-             * no match yet - keep going
-             */
         }
+    }
+
+    private long getRecordPosition(String record) {
+        int firstTab = record.indexOf(DEFAULT_DELIMITER);
+        int contigStart = chrStartsWithChr ? 3 : 0;
+        int contigLength = firstTab - contigStart;
+        if (cachedContig == null || cachedContig.length() != contigLength
+                || !record.regionMatches(contigStart, cachedContig, 0, contigLength)) {
+            cachedContig = record.substring(contigStart, firstTab);
+            cachedContigNumber = ChrPositionUtils.convertContigNameToInt(cachedContig);
+        }
+        int position = Integer.parseInt(record, firstTab + 1,
+                record.indexOf(DEFAULT_DELIMITER, firstTab + 1), 10);
+        return ((long) cachedContigNumber << 32) + position;
     }
 
     public static ChrPosition getChrPositionFromRecord(String[] nextRecordArray, int chrPositionInRecord, int positionPositionInRecord, String nextRecord) {

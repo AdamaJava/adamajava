@@ -143,5 +143,20 @@ This section will describe the JSON configuration file that is used when creatin
   * `altIndex` position (1 based) of chromosome in annotation source file
   * `fields` list of required fields (comma separated) from this annotation source
   * `snpEffVcf` true/false value indicating if this annotation source file is a snpEff VCF file
+  * `byteBuffered` optional boolean, defaults to `false`. For large UTF-8 TSV sources with `chrIndex=1` and `positionIndex=2`, set this to `true` to skip unwanted rows as bytes without constructing their full strings. Supports plain text and gzip files. Other source types or column layouts use the standard reader and log a warning. All traversed gzip data is still decompressed.
 
+For example, enable the byte-buffered reader for a gnomAD TSV source with:
+
+```json
+{
+  "file": "/reference/data/gnomad.genomes.v3.1.2.sites.all.tsv.gz",
+  "chrIndex": 1,
+  "positionIndex": 2,
+  "refIndex": 4,
+  "altIndex": 5,
+  "chrStartsWithChr": true,
+  "byteBuffered": true,
+  "fields": "AF,AN,AC,vep"
+}
+```
 

@@ -42,6 +42,7 @@ public class AnnotationInputs {
 		private boolean snpEffVcf;
 		private String fields;
 		private boolean chrStartsWithChr;
+		private boolean byteBuffered;
 
 		public AnnotationInput() {}
 
@@ -75,6 +76,10 @@ public class AnnotationInputs {
 
 		public boolean isChrStartsWithChr() {
 			return chrStartsWithChr;
+		}
+
+		public boolean isByteBuffered() {
+			return byteBuffered;
 		}
 }
 }

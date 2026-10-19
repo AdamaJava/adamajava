@@ -8,7 +8,6 @@
 package org.qcmg.qio.record;
 
 import java.io.BufferedReader;
-import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -26,8 +25,10 @@ import java.util.zip.GZIPInputStream;
 import org.qcmg.common.util.FileUtils;
 
 
-public abstract class RecordReader<T> implements Closeable, Iterable<T> {
+public abstract class RecordReader<T> implements RecordSource<T> {
     public static final int DEFAULT_BUFFER_SIZE = 65536;
+    // Compressed bytes buffered by the inflater, independently of the text reader's buffer size.
+    private static final int GZIP_BUFFER_SIZE = 64 * 1024;
     public static final String DEFAULT_HEADER_PREFIX = null; //no header line
     public static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
 
@@ -54,7 +55,9 @@ public abstract class RecordReader<T> implements Closeable, Iterable<T> {
 
         this.file = file;
         boolean isGzip = FileUtils.isInputGZip(file);
-        InputStream inputStream = (isGzip) ? new GZIPInputStream(new FileInputStream(file)) : new FileInputStream(file);
+        InputStream inputStream = (isGzip)
+                ? new GZIPInputStream(new FileInputStream(file), GZIP_BUFFER_SIZE)
+                : new FileInputStream(file);
         InputStreamReader streamReader = new InputStreamReader(inputStream, charset);
         bin = new BufferedReader(streamReader, bufferSize);
 
